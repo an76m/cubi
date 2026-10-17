@@ -303,10 +303,13 @@
             const W = book.clientWidth;
             const pageEl = document.getElementById(isCover ? 'coverPage' : 'innerPage');
 
+            if (isCover && window.dyOpenDate) { const od = dyOpenDate(); if (od) currentDate.setTime(od.getTime()); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
             const targetDate = new Date(currentDate);
             if (!isCover) {
+                const to = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir);   // 🗂 꾸민 페이지만 보기면 빈 날은 건너뛰어요 (js/skins.js)
+                if (!to) return false;
                 saveData(false);
-                targetDate.setDate(targetDate.getDate() + dir);
+                targetDate.setTime(to.getTime());
             }
 
             const under = buildStaticPage(targetDate);
@@ -336,7 +339,7 @@
             const bx = book.getBoundingClientRect().left;
             const uOff = under.getBoundingClientRect().left - bx, fOff = two ? -W : 0;     // 아래 장 · 넘김 층이 책 왼쪽에서 얼마나 떨어져 있는지
             const edgeL = !isCover && two ? -W : 0;                                          // 전날로 넘길 때 잡는 왼쪽 끝 (펼침면은 왼쪽 쪽 끝)
-            turn = { isCover, dir, W, pageEl, under, shadow, flapLayer, flap, d: 0, two, uOff, fOff, edgeL };
+            turn = { isCover, dir, to: targetDate, W, pageEl, under, shadow, flapLayer, flap, d: 0, two, uOff, fOff, edgeL };
             updateCurl(0);
             return true;
         }
@@ -405,8 +408,9 @@
                     pgmApply();   // 다이어리를 열면 늘 가운데에서 시작
                     const ip = document.getElementById('innerPage'); ip.classList.remove('ph-in'); void ip.offsetWidth; ip.classList.add('ph-in');   // 날짜바가 스르륵 나타나요
                     setTimeout(() => ip.classList.remove('ph-in'), 600);
+                    if (window.dfFix) setTimeout(dfFix, 0);                      // 🗂 목록을 받기 전에 열었으면 받은 뒤 마지막으로 꾸민 날로
                 } else {
-                    currentDate.setDate(currentDate.getDate() + t.dir);
+                    currentDate.setTime(t.to.getTime());
                 }
                 selectedElement = null;
                 if (window.dyViewSet) dyViewSet(t.isCover || t.dir === 1 ? 'l' : 'r');   // 📱 다음 날은 왼쪽 · 전날은 오른쪽 쪽부터

@@ -625,6 +625,58 @@
             page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.c);
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
         }
+        /* 🗂 꾸민 페이지만 보기 (도련 · 10-17) : 켜면 넘길 때 빈 날은 건너뛰고 꾸민 날만 (5 · 6 · 9 → 7 · 8 은 안 보여요)
+           - 켜면 빈 페이지는 절대 안 보여요 (오늘도) · 다이어리를 열면 마지막으로 꾸민 날 · 꾸민 날이 하나도 없을 때만 오늘
+           - 처음 · 마지막 꾸민 날에서 더 넘기면 안 넘어가요 · 새 날은 날짜 바 달력으로 골라서 가요
+           - 꺼져 있으면 열 때 그 날짜 (오늘) · 넘길 때 하루씩
+           - 모든 다이어리 공통 (보는 방법이라서) · 저장은 그대로 · 설정.json 'diary_filled' · 게스트는 이 기기 'malang_filled'
+           - 꾸민 날 목록 : 드라이브의 날짜 파일 목록 (켜져 있으면 처음 한 번 · driveEnumerateAll) + 이 기기에서 읽거나 고친 날
+           - 유한 다이어리를 만들 때 넣을 것 : 열면 날짜 기준은 위와 같고 (꺼져 있는데 기간이 지났으면 마지막 날) · 페이지 기준은 켜고 끄기와 상관없이 마지막으로 꾸민 페이지 */
+        const DF_KEY = 'diary_filled', DF_LOCAL = 'malang_filled';
+        let dfList = null, dfGen = -1, dfLoading = null;
+        const dfOn = () => prefGet(DF_KEY, DF_LOCAL) === 'on';
+        function dfSet(on) { prefSet(DF_KEY, DF_LOCAL, on ? 'on' : 'off'); dfRender(); if (on) dfFix(); }
+        function dfRender() { const s = document.getElementById('dyFillSw'); if (s) s.checked = dfOn(); }
+        function dfLoad() {
+            if (dfGen !== drive.gen) { dfList = null; dfGen = drive.gen; }
+            if (dfList || dfLoading || !dfOn() || drive.guest || !drive.ready) return dfLoading;
+            const gen = drive.gen;
+            dfLoading = driveEnumerateAll().then(a => { if (gen === drive.gen) dfList = new Set(a.map(f => f.key)); }).catch(() => {}).finally(() => { dfLoading = null; });
+            return dfLoading;
+        }
+        function dfHas(k) {                                                    // 읽었거나 고친 날은 지금 내용으로 · 아니면 드라이브 목록으로
+            if (drive.guest || drive.loadedDays.has(k) || drive.dirtyKeys.has(k)) return store.getItem(k) !== null;
+            return !!(dfList && dfList.has(k));
+        }
+        /* 넘길 날 : 꺼져 있으면 하루 앞 · 뒤 / 켜져 있으면 꾸민 날 중 가장 가까운 날 (없으면 null = 안 넘어가요) */
+        function dyStep(date, dir) {
+            if (!dfOn()) return addDays(date, dir);
+            dfLoad();
+            if (!dfList && !drive.guest) return addDays(date, dir);           // 목록을 받기 전에는 하루씩
+            const cur = getDateKey(date), list = dfDays().filter(k => dir > 0 ? k > cur : k < cur);
+            return list.length ? dfDate(dir > 0 ? list[0] : list[list.length - 1]) : null;
+        }
+        function dfDays() {                                                    // 꾸민 날 (오래된 날부터)
+            const keys = new Set(dfList || []);
+            store.keys().forEach(k => { if (DAY_KEY_RE.test(k)) keys.add(k); });
+            return [...keys].filter(dfHas).sort();
+        }
+        const dfDate = k => { const p = parseDayKey(k); return new Date(p.y, p.m - 1, p.d); };
+        /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */
+        function dyOpenDate() {
+            if (!dfOn()) return null;
+            dfLoad();
+            if (!dfList && !drive.guest) return null;
+            const d = dfDays(); return d.length ? dfDate(d[d.length - 1]) : null;
+        }
+        /* 목록을 받은 뒤 · 켰을 때 : 지금 빈 페이지를 보고 있으면 마지막으로 꾸민 날로 */
+        async function dfFix() {
+            await dfLoad();
+            if (!dfOn() || !isCoverOpen || turn) return;
+            const cur = getDateKey(currentDate);
+            if (dfHas(cur)) return;
+            const d = dfDays(); if (d.length && d[d.length - 1] !== cur) goToDate(dfDate(d[d.length - 1]));
+        }
         /* 📒 다이어리 고르기 창 */
         function dyThumb(t) {
             const H = 56, W = Math.round(H / t.r * 2);                             // 모두 펼친 두 쪽 그대로 (실제 비율)
@@ -646,7 +698,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const id = dyNow().id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo; window.dkFilePath = dkFilePath;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo; window.dkFilePath = dkFilePath;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['skins'] = true;

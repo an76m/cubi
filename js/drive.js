@@ -466,9 +466,9 @@
             return Promise.all(dates.map(ensureDayLoaded));
         }
         /* 다이어리를 처음 열 때: 오늘 + 어제 + 내일 (3개) */
-        function prefetchInitial() { return prefetchDays([currentDate, addDays(currentDate, -1), addDays(currentDate, 1)]); }
+        function prefetchInitial() { const st = d => window.dyStep ? dyStep(currentDate, d) : addDays(currentDate, d); return prefetchDays([currentDate, st(-1), st(1)].filter(Boolean)); }
         /* 페이지를 한 장 넘긴 뒤: 넘긴 방향의 다음 하루치만 (1개) */
-        function prefetchAfterTurn(dir) { return prefetchDays([addDays(currentDate, dir)]); }
+        function prefetchAfterTurn(dir) { const d = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir); return prefetchDays(d ? [d] : []); }
 
         async function loadFromDrive() {
             resetDriveCaches();
@@ -838,6 +838,7 @@
 
         async function postLoginTasks() {
             await recoverPendingBackup();
+            if (window.dfFix) dfFix();                                       // 🗂 꾸민 페이지만 보기 : 꾸민 날 목록 (js/skins.js)
         }
 
         /* 드라이브에서 불러온 데이터를 화면에 반영 */
