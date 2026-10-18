@@ -92,6 +92,7 @@
 
         function tmOpen(e) {
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
+            if (window.bdGapAt && bdGapAt(e.clientX, e.clientY)) return;        // 🗂️ 바인더 가운데 링 자리는 종이가 아니라서 메뉴가 없어요 (도련 10-18 · js/skins.js)
             if (typeof dw !== 'undefined' && dw.on) return;
             const canvas = document.getElementById('canvasArea'), r = canvas.getBoundingClientRect();
             const k = r.width / (canvas.offsetWidth || r.width) || 1;
