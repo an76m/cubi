@@ -13,7 +13,7 @@
                       / 스티커 / 씰 · 조각 · 모조지스티커 · 마테 · 떡메 · 속지 / 내X · 받은X / 목록 · 원본
                       / 다꾸 / 기본 / 2026년 / 10월 / 9일.json        📔 기본 다이어리 · 하루에 파일 1개
                       / 다꾸 / 기본 / 2026년 / 검색-2026년.json        🔍 다이어리마다 검색 목록 (권 폴더엔 검색-권이름.json · js/search.js)
-                      / 다꾸 / 노트 · 바인더 / 6공바인더(A5) / 다이어리.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 종류(다이어리.json kind)별 칸 · 늘 페이지 기준 (js/skins.js dkFolderName)
+                      / 다꾸 / 노트 · 바인더 / 6공바인더(A5) / 다이어리.json · 표지.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 종류(다이어리.json kind)별 칸 · 늘 페이지 기준 (js/skins.js dkFolderName)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
@@ -176,7 +176,7 @@
         function parsePageKey(k) { const r = PAGE_KEY_RE.exec(k); return r ? { b: r[1], n: +r[2] } : null; }
         const isPageKey = k => PAGE_KEY_RE.test(k), isBookKey = k => BOOK_KEY_RE.test(k);
         const isOwnFile = k => isDayKey(k) || isPageKey(k) || isBookKey(k);    // 키 하나가 드라이브 파일 하나 (하루 · 장 · 다이어리.json)
-        function keyLabel(k) { const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? `${p.n}페이지` : '다이어리'; }
+        function keyLabel(k) { const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
         function keyFile(k) { return CAFE_KEYS.includes(k) ? 'cafe' : 'settings'; }
@@ -413,7 +413,7 @@
             const p = parsePageKey(key), b = BOOK_KEY_RE.exec(key);
             return p || b ? getBookIndex(p ? p.b : b[1], create) : Promise.resolve(null);
         }
-        function fileOfKey(key) { const d = parseDayKey(key); if (d) return dayFileName(d.d); const p = parsePageKey(key); return p ? p.n + '페이지.json' : DK_INFO; }
+        function fileOfKey(key) { const d = parseDayKey(key); if (d) return dayFileName(d.d); const p = parsePageKey(key); return p ? (p.n ? p.n + '페이지.json' : '표지.json') : DK_INFO; }   // 0장 = 📕 표지
         async function fetchKey(key, meta) {
             const idx = await idxOfKey(key, false), name = fileOfKey(key);
             if (idx) await dayDupFix(idx, name, key);

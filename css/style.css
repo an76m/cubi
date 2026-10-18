@@ -3736,3 +3736,13 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 #diaryBook.dy-anim .inner-page { transition: transform .35s ease; }
 #diaryBook.dy-one { clip-path: inset(-80px 0 -80px -80px); }
 #diaryBook.dy-one.dy-r { clip-path: inset(-80px -80px -80px 0); }
+
+/* 📕 표지 꾸미기 (js/skins.js dkCoverEdit · dkCoverPaint) : 펼친 표지(0장) = 그 다이어리 색 · 닫힌 겉표지도 그 색 + 앞표지에 붙인 것 */
+.inner-page.dk-cover .canvas-area { background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)) !important; }
+.inner-page.dk-cover .canvas-area::before, .inner-page.dk-cover .canvas-area::after { display: none; }
+.cover-page.cv-book { background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); }
+.cover-page.cv-book .cv-lace, .cover-page.cv-book .cover-title, .cover-page.cv-book .cover-subtitle, .cover-page.cv-book .cv-berry { display: none; }
+.cv-deco { position: absolute; pointer-events: none; z-index: 3; text-align: left; color: initial; }
+.cover-page.cv-book .drag-hint { z-index: 4; }   /* 꾸민 것은 공지 카드 위에 (눌러도 아래로 지나가요) */
+.cv-deco .element-box { pointer-events: none; left: 0; top: 0; }
+.inner-page.dk-cover .page-stamps { display: none; }   /* 표지엔 기분 · 날씨 도장 자리가 없어요 */

@@ -41,7 +41,7 @@
         }
         /* 키 → 목록 안의 이름 (기본 = '2026-10-18' · 유한 = 'p3') · 키 → 목록 (기본 = 'y2026' 해마다 · 유한 = 'b<권 id>' 권마다) */
         const srDayOf = key => { const p = parseDayKey(key); if (p) return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`; const q = parsePageKey(key); return q ? 'p' + q.n : ''; };
-        const srScope = key => { const p = parseDayKey(key); if (p) return 'y' + p.y; const q = parsePageKey(key); return q ? 'b' + q.b : ''; };
+        const srScope = key => { const p = parseDayKey(key); if (p) return 'y' + p.y; const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
         /* 목록 파일 자리 : { dir, name } (create : 폴더가 없으면 만들기) */
         async function srLoc(s, create) {
             if (s[0] === 'y') return { dir: await getFolder(DAY_PATH.concat(s.slice(1) + '년'), create), name: `${SR_PREFIX}${s.slice(1)}년.json` };
