@@ -800,13 +800,13 @@
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => kind === '다이어리' ? DY_COLORS : [];
+        const dyItems = (kind, tab) => kind === '다이어리' ? DY_COLORS : ftOn('dybook') ? DY_TYPES.filter(t => t.k === kind) : [];   // 🧪 dybook 을 켜면 노트 · 바인더 규격이 바로 보여요 (개발 중 시험용 · 칸 없이)
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free' || v === 'mine';
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
             const bar = document.getElementById('dyTabs');
-            const tabs = stkTabsOn(v => dyItems(dyKind, v).length, 'dy').filter(([v]) => !dyHide(dyKind, v));
+            const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
             bar.hidden = bar.children.length < 2;
             dyTabSet(tabs.length ? tabs[0][0] : '');
@@ -816,8 +816,10 @@
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
-            document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(([c, n]) =>
-                `<button type="button" class="dy-it" data-id="${DY_DEF}:${c}" onclick="dyPickColor('${c}')"><span class="dy-stage">${dyThumb(base, skinPresets[c])}</span><span class="dy-n">${n}</span><small>${base.mm}</small></button>`).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
+            const cell = it => Array.isArray(it)
+                ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
+                : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
+            document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
             dyRender();
         }
         function dyPickColor(c) {                                              // 기본다이어리 4색 : 기본 다이어리로 바꾸고 그 색 (js/settings.js applySkinPreset)
