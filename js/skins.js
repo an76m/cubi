@@ -613,15 +613,14 @@
         const clipId = () => { const v = prefGet(CLIP_KEY, CLIP_LOCAL); return CLIPS.some(c => c[0] === v) ? v : ''; };
         const clipNow = () => CLIPS.find(c => c[0] === clipId()) || null;
         let clipN = 0;
-        function clipSvg(c) {                                                  // 평범한 더블 클립 (앞에서 본 모양 · 쇠 손잡이 둘 · 몸통은 고른 색)
+        function clipSvg(c) {                                                  // 평범한 더블 클립 (앞에서 본 모양 · 쇠 손잡이는 뒤로 젖혀서 위로 조금만 · 몸통은 고른 색)
             const w = 'clipW' + (++clipN);                                     // 그라데이션 id 는 그림마다 따로 (숨은 창의 것을 빌리면 안 보여요)
-            return `<svg viewBox="0 0 64 76" aria-hidden="true"><defs><linearGradient id="${w}" x1="0" x2="1"><stop offset="0" stop-color="#8e949e"/><stop offset=".45" stop-color="#f4f5f8"/><stop offset="1" stop-color="#9aa0aa"/></linearGradient></defs>`
-                + `<path d="M17 34 L12 5 Q32 -1 52 5 L47 34" fill="none" stroke="#5b5f68" stroke-opacity=".35" stroke-width="4.4" transform="translate(1 1.5)"/>`
-                + `<path d="M17 34 L12 5 Q32 -1 52 5 L47 34" fill="none" stroke="url(#${w})" stroke-width="3.6" stroke-linejoin="round"/>`
-                + `<path d="M21 34 L18 11 Q32 7 46 11 L43 34" fill="none" stroke="url(#${w})" stroke-width="3" stroke-linejoin="round"/>`
-                + `<path d="M9 30 H55 L60 70 Q60 73 57 73 H7 Q4 73 4 70 Z" fill="${c}"/>`
-                + `<path d="M9 30 H55 L57 44 H7 Z" fill="#fff" fill-opacity=".22"/><path d="M4.6 64 H59.4 L60 70 Q60 73 57 73 H7 Q4 73 4 70 Z" fill="#000" fill-opacity=".18"/>`
-                + `<rect x="7" y="29" width="50" height="5" rx="2.5" fill="url(#${w})"/></svg>`;
+            return `<svg viewBox="0 0 64 50" aria-hidden="true"><defs><linearGradient id="${w}" x1="0" x2="1"><stop offset="0" stop-color="#8e949e"/><stop offset=".45" stop-color="#f4f5f8"/><stop offset="1" stop-color="#9aa0aa"/></linearGradient></defs>`
+                + `<path d="M15 10 Q14 1 22 1 H42 Q50 1 49 10" fill="none" stroke="url(#${w})" stroke-width="3.2" stroke-linejoin="round"/>`
+                + `<path d="M20 10 Q20 5 25 5 H39 Q44 5 44 10" fill="none" stroke="url(#${w})" stroke-width="2.6"/>`
+                + `<path d="M9 9 H55 L60 45 Q60 48 57 48 H7 Q4 48 4 45 Z" fill="${c}"/>`
+                + `<path d="M9 9 H55 L56.6 21 H7.4 Z" fill="#fff" fill-opacity=".22"/><path d="M4.6 40 H59.4 L60 45 Q60 48 57 48 H7 Q4 48 4 45 Z" fill="#000" fill-opacity=".18"/>`
+                + `<rect x="7" y="7" width="50" height="5" rx="2.5" fill="url(#${w})"/></svg>`;
         }
         function clipPick(id) {
             prefSet(CLIP_KEY, CLIP_LOCAL, CLIPS.some(c => c[0] === id) ? id : '');
