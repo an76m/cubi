@@ -776,7 +776,7 @@
                 bdBsSet(p);
                 if (k < 1) { requestAnimationFrame(step); return; }
                 ip.classList.remove('dy-dg'); delete ip.dataset.dg; ip.style.removeProperty('--bs'); bdBusy = false;
-                if (go && bdSt) { bdSt.open = 1; ip.classList.add('dy-bo-go', 'dy-ring-open'); bdShow(false); bdFreeOn(); }   // 🔓 링이 열리면 표지 · 링은 스르륵 사라지고 두 쪽은 스티커처럼 (도련 10-18)
+                if (go && bdSt) { bdSt.open = 1; gdClipAway(); ip.classList.add('dy-bo-go', 'dy-ring-open'); bdShow(false); bdFreeOn(); }   // 🔓 링이 열리면 표지 · 링은 스르륵 사라지고 두 쪽은 스티커처럼 (도련 10-18)
                 else { bdSt = null; bdShow(true); }                              // 덜 끌었으면 버튼만 보여요
             };
             requestAnimationFrame(step);
@@ -932,10 +932,11 @@
             setTimeout(() => ip.classList.add('dy-bh', 'dy-bh-pop'), 620);
             setTimeout(() => pu.remove(), 1250);
         }
+        function gdClipAway() { if (gdHeld && gdHeld.startsWith('clip:')) gdLet(); }   // 📎 링이 열리면 들고 있던 집게도 내려놓아요 (집게는 css 로 다 숨어요)
         function bdOut() {                                                      // 링 열림 → 두 쪽이 크기 그대로 가운데로 미끄러져 와서 아주 가까이 (붙어서 한 몸이 되지 않아요) → 반투명 테이프가 붙고 스윽 사라짐
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
-            bdBusy = true; ip.classList.add('dy-bo-go');
+            bdBusy = true; ip.classList.add('dy-bo-go'); gdClipAway();
             setTimeout(() => ip.classList.add('dy-bo'), 330);                  // 미끄러져 와요
             setTimeout(() => ip.classList.add('dy-bo-tape'), 1100);            // 테이프 (붙은 채 남아요 · 끼우기 때 떼어져요)
             setTimeout(() => { ip.classList.remove('dy-bo-go', 'dy-bo-tape'); bdBusy = false; bdPut((bdGet() & 2) | 1); bdSync(); }, 2700);
@@ -950,7 +951,8 @@
         /* ✂️ 문구류 = 손에 드는 도구 (도련 10-18 · 앞으로 더하는 문구류도 모두 이 규칙 · 쓰는 법만 문구류마다 조금씩)
            - ✂️ 문구류 칸에서 톡 = 페이지 위에 놓여요 · 한 번 더 톡 = 치워요
            - 놓인 문구류를 클릭 · 터치 = 손에 들어요 (🖱 마우스에 붙어 다니고 · 👆 터치는 누른 곳으로 순간 이동)
-           - 들고 있는 채 다른 놓인 문구류에 🖱 들어가거나 누르면 바꿔 들어요 · 들고 있던 것은 그 문구류가 있던 자리에 놓여요
+           - 들고 있는 채 다른 놓인 문구류를 클릭 · 터치하면 바꿔 들어요 (🖱 지나가기만 해선 안 바뀌어요 · 도련 10-18) · 들고 있던 것은 그 문구류가 있던 자리에 놓여요
+           - 📎 집게는 바인더 링이 열려 표지가 사라지면 다 같이 사라지고 (⚡ 자동 · ✋ 수동) · 링에 다시 끼우면 다시 나와요
            - 들고 클릭 · 터치 = 쓰기 : 🪡 핀셋 집기(스티커 옮기기 · 돌리기 · 메뉴 · 원래대로) · 🕳️ 펀칭기 구멍 · 🩹 양면테이프 끌어서 바르기 · 📎 집게 테두리에 꽂기
              🕳️ · 📎 는 제자리 근처를 누르면 착 붙어요 (스냅) · 그 밖에선 옮겨지기만 해요
            - 다이어리(종이 둘레) 밖으로는 못 나가요 : 🖱 나가면 그 끝자리에 내려놓고 마우스 화살표로 · 👆 다이어리 밖을 누르면 내려놓아요 · 🪡 핀셋만 밖으로도 (스티커 창 등)
@@ -1020,7 +1022,7 @@
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
             const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
-            if (prev) { const m = el.classList.contains('edge') ? gdTo(x, y) : gdMid(el); prev.classList.remove('held'); gdCenter(prev, m.x, m.y); prev.dataset.nh = 1; }   // 🖱 그 위에 있는 동안은 다시 바뀌지 않게
+            if (prev) { const m = el.classList.contains('edge') ? gdTo(x, y) : gdMid(el); prev.classList.remove('held'); gdCenter(prev, m.x, m.y); prev.dataset.nh = 1; }   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
             gdFollow(x, y, e);
             if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
@@ -1077,10 +1079,8 @@
             if (!gdHeld) return;
             const t = e.target && e.target.closest && e.target.closest('#innerPage > .bd-tool:not(.held):not(.edge)');
             document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
-            const swap = t && !t.dataset.nh && e.pointerType === 'mouse' && !e.buttons;   // 🖱 들어가면 바꿔 들어요
-            if (gdHeld === 'twz') { if (swap) gdHold(t.dataset.t, e.clientX, e.clientY, e); return; }   // 🪡 핀셋은 밖으로도
+            if (gdHeld === 'twz') return;                                      // 🪡 핀셋은 밖으로도
             if (!gdIn(e.clientX, e.clientY)) { gdLet(); return; }               // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표
-            if (swap) { gdHold(t.dataset.t, e.clientX, e.clientY, e); return; }
             gdFollow(e.clientX, e.clientY, e);
         }, true);
         ['pointerup', 'pointercancel'].forEach(k => window.addEventListener(k, e => {

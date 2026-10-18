@@ -3834,7 +3834,8 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 /* ✂️ 문구류 = 손에 드는 도구 (js/skins.js gdHold · 🪡 핀셋 · 📎 집게 · 🕳️ 펀칭기 · 🩹 양면테이프) : 놓인 것 · 손에 든 것(.held) · 테두리에 꽂힌 집게(.edge) */
 .bd-tool { position: absolute; z-index: 40; cursor: pointer; touch-action: none; filter: drop-shadow(2px 6px 6px rgba(80, 50, 60, .28)); transition: filter .15s; }
 .bd-tool svg { display: block; width: 100%; height: 100%; transition: transform .1s; }
-.bd-tool.punch { width: 56px; height: 112px; } .bd-tool.tape { width: 132px; height: 74px; } .bd-tool.clip { width: 118px; height: 92px; transform-origin: 59px 66px; }
+.bd-tool.punch { width: 56px; height: 112px; } .bd-tool.tape { width: 132px; height: 74px; } .bd-tool.clip { width: 118px; height: 92px; transform-origin: 59px 66px; transition: filter .15s, opacity .3s; }
+.inner-page.dy-bo .bd-tool.clip, .inner-page.dy-bo-go .bd-tool.clip, .inner-page.dy-ring-open .bd-tool.clip { opacity: 0; pointer-events: none; }   /* 📎 바인더 링이 열려 표지가 사라지면 집게도 · 다시 끼우면 다시 (도련 10-18) */
 .bd-tool.tweez { width: 55.8px; height: 201.5px; transform: rotate(-28deg); }   /* 🪡 놓인 핀셋 (든 동안은 핀셋 화살표가 따라와요 · js/elements.js pinMove) */
 .bd-tool.tweez.held { display: none; }
 .bd-tool.held { z-index: 60; pointer-events: none; filter: drop-shadow(5px 14px 10px rgba(80, 50, 60, .3)); transition: none; }
