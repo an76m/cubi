@@ -3806,6 +3806,20 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.dy-bo-go .dy-bo-btn, .inner-page.dy-bo-back .dy-bo-btn, .inner-page.png-mode .dy-bo-btn { display: none !important; }
 .dy-bo-btn .a { display: contents; } .dy-bo-btn .h { display: none; }
 .inner-page.dy-hand .dy-bo-btn .a { display: none; } .inner-page.dy-hand .dy-bo-btn .h { display: contents; }
+/* 📄 링을 연 뒤 두 쪽이 스티커처럼 (js/skins.js bdFreeOn) : 종이 = .bd-sheet · 표지 · 링 · 틈은 사라져요 */
+.bd-sheet { position: absolute; z-index: 0; box-sizing: border-box; border-radius: var(--bd-rad, 11px 18px 18px 11px); box-shadow: var(--bd-ring, 0 0 0 4px #fff), 4.6px 9.2px 23px rgba(160, 90, 110, .16);
+    transform-origin: center center; cursor: move; touch-action: none; outline: 1px dashed transparent; outline-offset: 6px; transition: box-shadow .16s; }
+.bd-sheet.sel { outline-color: #ff4757; }
+.bd-sheet.lift { box-shadow: var(--bd-ring, 0 0 0 4px #fff), 4px 12px 26px rgba(120, 70, 90, .3); }
+.bd-sheet.r { z-index: 1; } .bd-sheet.sel { z-index: 2; }
+.bd-rot { position: absolute; width: 36px; height: 36px; display: none; cursor: grab; touch-action: none; }
+.bd-sheet.sel .bd-rot { display: block; }
+.bd-rot.tl { left: -24px; top: -24px; } .bd-rot.tr { right: -24px; top: -24px; } .bd-rot.bl { left: -24px; bottom: -24px; } .bd-rot.br { right: -24px; bottom: -24px; }
+.bd-hole { position: absolute; display: block; pointer-events: none; }
+.inner-page.dy-free #canvasArea { background: none !important; box-shadow: none !important; pointer-events: none; z-index: 3; }
+.inner-page.dy-free #canvasArea > * { pointer-events: none !important; }
+.inner-page.dy-free .dy-gap, .inner-page.dy-free .dy-holes, .inner-page.dy-free .dy-edge-w, .inner-page.dy-free .dy-seam, .inner-page.dy-free .dy-bo-btn { opacity: 0 !important; transition: opacity .3s; }
+.inner-page.dy-free .page-stamps, .inner-page.dy-free .page-dday, .inner-page.dy-free .season-corner { transition: none; }
 /* ✋ 링을 옆으로 끄는 동안 (js/skins.js bdRingStart · --bs 0 닫힘 ~ 1 열림) */
 .inner-page.dy-dg .dy-bo-btn { opacity: .35; }
 .inner-page.dy-dg .dy-rings, .inner-page.dy-dg .dy-cov, .inner-page.dy-dg .dy-gap, .inner-page.dy-dg .dy-gap::before, .inner-page.dy-dg #canvasArea > .element-box, .inner-page.dy-dg .dy-edge-w, .inner-page.dy-dg .dy-edge-f, .inner-page.dy-dg .dy-seam, .inner-page.dy-dg .page-stamps, .inner-page.dy-dg .page-dday, .inner-page.dy-dg .season-corner, .inner-page.dy-dg #canvasArea, .inner-page.dy-dg .dy-holes i { transition: none !important; }

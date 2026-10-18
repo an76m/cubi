@@ -711,7 +711,7 @@
             const cv = document.getElementById('canvasArea'), ip = document.getElementById('innerPage'); if (!cv || !ip) return;
             const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2;
             cv.querySelectorAll(':scope > .element-box').forEach(el => {
-                const r = on && el.offsetLeft + el.offsetWidth / 2 >= half;
+                const px = parseFloat(el.dataset.posX); const r = on && (isFinite(px) ? px : 0) + el.offsetLeft + el.offsetWidth / 2 >= half;   // 자리는 transform(posX) 에 있어요
                 el.classList.toggle('bd-l', on && !r); el.classList.toggle('bd-r', r);
             });
             if (!bdObs && window.MutationObserver) {                           // 새로 붙이거나 옮기면 다시 (어느 쪽인지)
@@ -743,6 +743,7 @@
         }
         let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
         window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
+            if (bdFree) { bdFreeDown(e); return; }                          // 📄 두 쪽을 스티커처럼 (아래 bdFree)
             if (!bdHit(e)) { bdShow(false); return; }
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
             if (bdBusy || bdSt) return;                                       // 🔓 링이 열린 채면 그 자리는 아무 일 없음
@@ -753,7 +754,7 @@
             bdShow(false);
             if (k === 'in') bdIn(); else bdOut();
         }, true);
-        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
+        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || (bdFree && bdFree.d) || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
         function bdGapAt(x, y) {                                                // 🗂️ 링에 끼운 두 쪽 사이 (종이가 아닌 곳 · 빈 곳 메뉴 없음 · 📱 폰도)
             const ip = document.getElementById('innerPage'); if (!ip || !isCoverOpen || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return false;
             const g = ip.querySelector('.dy-gap'), r = g && g.getBoundingClientRect(); return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
@@ -777,6 +778,7 @@
         const BD_TMP = ['dy-bo-go', 'dy-bo-hold', 'dy-bo', 'dy-bo-back', 'dy-bo-tape', 'dy-bh-pop', 'dy-ring-open'];
         let bdSt = null, bdDg = null;                                          // bdSt { at : 그 장 · open : 링이 열렸음 } · bdDg = 끄는 중
         function bdStepEnd() {                                                  // 처음 모습으로 (다른 장으로 가면)
+            bdFreeOff();
             const ip = document.getElementById('innerPage'); bdSt = null; bdDg = null;
             if (ip) { ip.classList.remove('dy-dg', ...BD_TMP); delete ip.dataset.dg; ip.style.removeProperty('--bs'); }
             bdShow(false);
@@ -805,11 +807,92 @@
                 bdBsSet(p);
                 if (k < 1) { requestAnimationFrame(step); return; }
                 ip.classList.remove('dy-dg'); delete ip.dataset.dg; ip.style.removeProperty('--bs'); bdBusy = false;
-                if (go && bdSt) { bdSt.open = 1; ip.classList.add('dy-bo-go', 'dy-bo-hold', 'dy-ring-open'); bdShow(false); }   // 🔓 링이 열린 채로 (다음 단계는 아직)
+                if (go && bdSt) { bdSt.open = 1; ip.classList.add('dy-bo-go', 'dy-ring-open'); bdShow(false); bdFreeOn(); }   // 🔓 링이 열리면 표지 · 링은 스르륵 사라지고 두 쪽은 스티커처럼 (도련 10-18)
                 else { bdSt = null; bdShow(true); }                              // 덜 끌었으면 버튼만 보여요
             };
             requestAnimationFrame(step);
         }
+        /* 📄 링을 연 뒤 : 왼쪽 쪽 · 오른쪽 쪽이 스티커처럼 (도련 10-18)
+           - 쪽을 누르면 골라져요 (빨간 점선 네모) · 끌면 옮겨지고 · 네 모서리를 잡고 돌리면 돌아가요 · 다른 곳을 누르면 풀려요
+           - 위 날짜바를 끌면 다이어리째(js/page.js 페이지 옮기기) → 두 쪽이 같이 따라와요 (날짜바가 부모 · 쪽이 자식)
+           - 종이 = .bd-sheet 두 장 (#canvasArea 의 바탕을 그대로 옮겨 그려요) · 붙인 꾸밈 · 기분 · 날씨 도장도 그 쪽과 같이 옮겨지고 돌아가요 (translate · rotate)
+           - 아직 저장하지 않아요 · 다른 장으로 가면 처음 모습 · 쪽 위 꾸밈은 이 동안 못 만져요 */
+        let bdFree = null;                                                      // { k : 배율, sh : { l, r }, sel, d : 끄는 중 }
+        function bdFreeOn() {
+            const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!ip || !cv || !bk || bdFree) return;
+            const ir = ip.getBoundingClientRect(), k = ir.width / (ip.offsetWidth || ir.width) || 1, cr = cv.getBoundingClientRect();
+            const ox = (cr.left - ir.left) / k, oy = (cr.top - ir.top) / k, W = cv.offsetWidth, H = cv.offsetHeight, cqw = bk.offsetWidth / 100, sw = W / 2 - 6 * cqw;
+            const cs = getComputedStyle(cv);
+            const bgPos = off => cs.backgroundPosition.split(',').map(p => { const [x, y] = p.trim().split(/\s+/); return `calc(${x} - ${off}px) ${y || '0px'}`; }).join(', ');
+            bdFree = { k, sh: {}, sel: null, d: null };
+            ['l', 'r'].forEach(side => {
+                const x = side === 'l' ? 0 : W - sw, el = document.createElement('div');
+                el.className = 'bd-sheet ' + side;
+                Object.assign(el.style, { left: (ox + x) + 'px', top: oy + 'px', width: sw + 'px', height: H + 'px', backgroundColor: cs.backgroundColor, backgroundImage: cs.backgroundImage, backgroundSize: cs.backgroundSize, backgroundRepeat: cs.backgroundRepeat, backgroundPosition: bgPos(x) });
+                el.innerHTML = '<b class="bd-rot tl"></b><b class="bd-rot tr"></b><b class="bd-rot bl"></b><b class="bd-rot br"></b>';
+                ip.insertBefore(el, cv);
+                bdFree.sh[side] = { el, x: 0, y: 0, r: 0, cx: ox + x + sw / 2, cy: oy + H / 2 };
+            });
+            if (ip.classList.contains('dy-bh')) ip.querySelectorAll('.dy-holes i').forEach(h => {   // 뚫은 구멍도 그 쪽에
+                const r = h.getBoundingClientRect(); if (!r.width) return;
+                const hx = (r.left + r.width / 2 - ir.left) / k, hy = (r.top + r.height / 2 - ir.top) / k, sd = hx < ox + W / 2 ? 'l' : 'r', sh = bdFree.sh[sd];
+                const d = document.createElement('i'), hs = getComputedStyle(h); d.className = 'bd-hole';
+                Object.assign(d.style, { left: (hx - (ox + (sd === 'l' ? 0 : W - sw)) - r.width / k / 2) + 'px', top: (hy - oy - r.height / k / 2) + 'px', width: r.width / k + 'px', height: r.height / k + 'px', background: hs.background, borderRadius: hs.borderRadius, boxShadow: hs.boxShadow });
+                sh.el.appendChild(d);
+            });
+            ip.classList.add('dy-free'); bdFreeApply();
+        }
+        function bdFreeOff() {
+            const ip = document.getElementById('innerPage'); if (!bdFree) return;
+            bdFree = null;
+            if (!ip) return;
+            ip.classList.remove('dy-free');
+            ip.querySelectorAll('.bd-sheet').forEach(x => x.remove());
+            ip.querySelectorAll('#canvasArea > .element-box, .page-stamps, .page-dday, .season-corner').forEach(x => { x.style.removeProperty('translate'); x.style.removeProperty('rotate'); });
+        }
+        function bdFreeApply() {                                                // 그 쪽에 붙은 것들도 같이 (쪽 가운데를 축으로)
+            const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!bdFree || !ip || !cv || !bk) return;
+            const cqw = bk.offsetWidth / 100, L = bdFree.sh.l, Rr = bdFree.sh.r;
+            [L, Rr].forEach(sh => { sh.el.style.translate = `${sh.x}px ${sh.y}px`; sh.el.style.rotate = sh.r + 'deg'; });
+            const ox = cv.offsetLeft, oy = cv.offsetTop;                       // #canvasArea 는 innerPage 안에 바로
+            const move = (el, sh, shift, bx, by) => {                         // bx · by : 그 꾸밈의 바탕 자리 (innerPage 기준)
+                const o = getComputedStyle(el).transformOrigin.split(' ').map(parseFloat);
+                const Ox = bx + el.offsetLeft + o[0], Oy = by + el.offsetTop + o[1];
+                const a = sh.r * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a), vx = Ox + shift - sh.cx, vy = Oy - sh.cy;
+                const tx = vx * c - vy * sn + sh.cx - Ox + sh.x, ty = vx * sn + vy * c + sh.cy - Oy + sh.y;
+                el.style.translate = `${tx}px ${ty}px`; el.style.rotate = sh.r + 'deg';
+            };
+            cv.querySelectorAll(':scope > .element-box').forEach(el => {
+                const r = el.classList.contains('bd-r'); move(el, r ? Rr : L, (r ? 6 : -6) * cqw, ox, oy);
+            });
+            ip.querySelectorAll(':scope > .page-stamps, :scope > .season-corner').forEach(el => move(el, Rr, 0, 0, 0));
+            ip.querySelectorAll(':scope > .page-dday').forEach(el => move(el, L, 0, 0, 0));
+        }
+        function bdFreeSel(side) {
+            if (!bdFree) return; bdFree.sel = side;
+            ['l', 'r'].forEach(x => bdFree.sh[x].el.classList.toggle('sel', x === side));
+        }
+        function bdFreeDown(e) {
+            const sheet = e.target.closest && e.target.closest('.bd-sheet');
+            if (!sheet) { bdFreeSel(null); return; }                          // 다른 곳 = 풀기 (날짜바 끌기 · 넘기기는 그대로)
+            e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
+            const side = sheet.classList.contains('l') ? 'l' : 'r', sh = bdFree.sh[side];
+            bdFreeSel(side);
+            const r = sheet.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+            const rot = e.target.classList.contains('bd-rot');
+            bdFree.d = { id: e.pointerId, sh, rot, x: e.clientX, y: e.clientY, sx: sh.x, sy: sh.y, sr: sh.r, cx, cy, a0: Math.atan2(e.clientY - cy, e.clientX - cx) };
+            sheet.classList.add('lift');
+        }
+        window.addEventListener('pointermove', e => {
+            const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
+            if (d.rot) d.sh.r = d.sr + (Math.atan2(e.clientY - d.cy, e.clientX - d.cx) - d.a0) * 180 / Math.PI;
+            else { d.sh.x = d.sx + (e.clientX - d.x) / bdFree.k; d.sh.y = d.sy + (e.clientY - d.y) / bdFree.k; }
+            bdFreeApply();
+        }, true);
+        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, e => {
+            const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
+            bdFree.d = null; d.sh.el.classList.remove('lift');
+        }, true));
         function bdPunch() {                                                    // 🕳️ 펀치로 꾹 → 구멍
             const ip = document.getElementById('innerPage'), fr = document.getElementById('dyFront'); if (!ip || !fr) return;
             const pu = document.createElement('span'); pu.className = 'dy-punch'; pu.style.setProperty('--pc', punchNow()[2]);
