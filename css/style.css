@@ -3766,6 +3766,9 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
     transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #fff; background: color-mix(in srgb, var(--primary-accent) 88%, #fff); color: #fff; font: inherit; font-size: 18px; line-height: 1;
     box-shadow: 0 3px 10px rgba(110, 50, 80, .3); pointer-events: auto; cursor: pointer; }
 .dy-bo-btn small { font-size: 9.5px; font-weight: 800; margin-top: 2px; }
+.dy-bo-btn { opacity: 0; scale: .7; transition: opacity .2s, scale .2s; }                 /* 평소엔 안 보여요 · 지나가거나 한 번 누르면 (js/skins.js bdShow) */
+.dy-bo-btn::after { content: ''; position: absolute; inset: -22px; border-radius: 50%; }   /* 지나가는 걸 알아채는 자리는 버튼보다 넓게 */
+.inner-page.dy-bo-show .dy-bo-btn { opacity: 1; scale: 1; }
 .inner-page.dy-bd:not(.dy-bo) .dy-bo-btn.out, .inner-page.dy-bd.dy-bo .dy-bo-btn.in { display: flex; }
 .inner-page.dy-bo-go .dy-bo-btn, .inner-page.dy-bo-back .dy-bo-btn, .inner-page.png-mode .dy-bo-btn { display: none !important; }
 #diaryBook.dy-one.dy-r .dy-bo-btn { transform: translate(8px, -50%); }

@@ -692,6 +692,24 @@
             const v = bdGet(), on = bdOn();
             ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', on && (v & 2) > 0);
         }
+        /* 버튼은 평소엔 안 보여요 (도련 10-18)
+           - 보이기 : 🖱 마우스가 그 자리를 지나가면 · 🖱 그 자리를 클릭하면 · 👆 그 자리를 터치하면
+           - 실행 : 보이는 버튼을 클릭 · 터치 (마우스는 지나가서 한 번 클릭 또는 클릭 두 번 / 터치는 두 번)
+           - 사라지기 : 설정 '자동으로 사라지는 시간'(clearSec · js/tapmenu.js)이 지나면 · 다른 곳을 누르면 */
+        let bdShowT = 0;
+        const bdShown = () => { const ip = document.getElementById('innerPage'); return !!ip && ip.classList.contains('dy-bo-show'); };
+        function bdShow(on) {
+            const ip = document.getElementById('innerPage'); if (!ip) return;
+            clearTimeout(bdShowT); ip.classList.toggle('dy-bo-show', !!on);
+            if (on) bdShowT = setTimeout(() => bdShow(false), (window.clearSec ? clearSec() : 5) * 1000);
+        }
+        function bdHover(e) { if (e.pointerType === 'mouse' && !bdBusy && !bdShown()) bdShow(true); }
+        function bdTap(k) {
+            if (!bdShown()) { bdShow(true); return; }
+            bdShow(false);
+            if (k === 'out') bdOut(); else bdIn();
+        }
+        document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('.dy-bo-btn'))) bdShow(false); }, true);
         function bdOut() {
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
@@ -719,7 +737,7 @@
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
             if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span>`
-                + `<button type="button" class="dy-bo-btn out" onpointerdown="event.stopPropagation()" onclick="bdOut()">📤<small>꺼내기</small></button><button type="button" class="dy-bo-btn in" onpointerdown="event.stopPropagation()" onclick="bdIn()">📥<small>끼우기</small></button>`);   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
+                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" onpointerenter="bdHover(event)" onpointerdown="event.stopPropagation()" onclick="bdTap('${k}')">${k === 'out' ? '📤<small>꺼내기</small>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
@@ -1038,7 +1056,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id, cid = 'clip:' + clipId(), pid = 'punch:' + punchNow()[0]; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || b.dataset.id === cid || b.dataset.id === pid)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.punchPick = punchPick; window.bdOut = bdOut; window.bdIn = bdIn; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.punchPick = punchPick; window.bdOut = bdOut; window.bdTap = bdTap; window.bdHover = bdHover; window.bdIn = bdIn; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
