@@ -793,18 +793,26 @@
             const H = 56, W = Math.round(H / t.r * 2);                             // 모두 펼친 두 쪽 그대로 (실제 비율)
             return `<span class="dy-th" data-b="${t.b}" style="--dy-c:${t.c};width:${W}px;height:${H}px"><i></i><i></i></span>`;
         }
-        let dyTab = '';
-        function dyOpen() {                                                    // 위 카테고리 하나씩 (처음엔 지금 쓰는 다이어리가 있는 칸)
-            dyTab = dyNow().k;
-            document.getElementById('dyTabs').innerHTML = DY_TAB.map(g => `<button type="button" class="stk-tab" data-g="${g}" onclick="dyTabSet('${g}')">${g}</button>`).join('');
-            dyTabSet(dyTab);
+        /* 다이어리 창의 📔 다이어리 · 📓 노트 · 🗂 바인더 버튼 (도련 10-18 · 스티커 창처럼 종류 버튼 → 칸 기본 · 내가만든 · 공유받은 · 이벤트 · 문구점)
+           기본 칸 = 지금 있는 규격 (DY_TYPES 의 k) · 다른 칸은 다이어리 만들기 · 문구점이 생기면 채워요 */
+        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' };
+        let dyKind = '다이어리', dyTab = 'free';
+        const dyItems = (kind, tab) => tab === 'free' ? DY_TYPES.filter(t => t.k === kind) : [];
+        function dyOpen(kind) {
+            dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
+            document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + dyKind;
+            const bar = document.getElementById('dyTabs');
+            bar.innerHTML = stkTabsOn(v => dyItems(dyKind, v).length, 'dy').map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
+            bar.hidden = bar.children.length < 2;
+            dyTabSet('free');
             openModal('dyModal');
         }
         function dyTabSet(g) {
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
-            document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${DY_TYPES.filter(t => t.k === g).map(t =>
-                `<button type="button" class="dy-it" data-id="${t.id}" onclick="dySet('${t.id}')"><span class="dy-stage">${dyThumb(t)}</span><span class="dy-n">${t.g}</span><small>${t.g === t.n ? '' : t.n + ' · '}${t.mm}</small></button>`).join('')}</div>`;
+            const list = dyItems(dyKind, g), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || '';
+            document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(t =>
+                `<button type="button" class="dy-it" data-id="${t.id}" onclick="dySet('${t.id}')"><span class="dy-stage">${dyThumb(t)}</span><span class="dy-n">${t.g}</span><small>${t.g === t.n ? '' : t.n + ' · '}${t.mm}</small></button>`).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
