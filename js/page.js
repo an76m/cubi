@@ -300,12 +300,14 @@
         function beginCurl(isCover, dir) {
             if (turn) return false;
             if (isCover && dir !== 1) return false;
+            const keep = !isCover && dir === 1 && !!window.dkUnfold && dkUnfold();   // 📕 표꾸 화면에서 넘기면 겉표지를 여는 것처럼 (열리면서 가운데로 · js/skins.js)
+            if (keep) isCover = true;
 
             const book = document.getElementById('diaryBook');
             const W = book.clientWidth;
             const pageEl = document.getElementById(isCover ? 'coverPage' : 'innerPage');
 
-            if (isCover && window.dyOpenDate) { const od = dyOpenDate(); if (od) currentDate.setTime(od.getTime()); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
+            if (isCover && !keep && window.dyOpenDate) { const od = dyOpenDate(); if (od) currentDate.setTime(od.getTime()); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
             const targetDate = new Date(currentDate);
             if (!isCover) {
                 const to = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir);   // 🗂 꾸민 페이지만 보기면 빈 날은 건너뛰어요 (js/skins.js)
@@ -341,7 +343,7 @@
             const bx = book.getBoundingClientRect().left;
             const uOff = under.getBoundingClientRect().left - bx, fOff = two ? -W : 0;     // 아래 장 · 넘김 층이 책 왼쪽에서 얼마나 떨어져 있는지
             const edgeL = !isCover && two ? -W : 0;                                          // 전날로 넘길 때 잡는 왼쪽 끝 (펼침면은 왼쪽 쪽 끝)
-            turn = { isCover, dir, to: targetDate, W, pageEl, under, shadow, flapLayer, flap, d: 0, two, uOff, fOff, edgeL };
+            turn = { isCover, dir, to: targetDate, W, pageEl, under, shadow, flapLayer, flap, d: 0, two, uOff, fOff, edgeL, keep };
             updateCurl(0);
             return true;
         }
@@ -410,7 +412,7 @@
                     pgmApply();   // 다이어리를 열면 늘 가운데에서 시작
                     const ip = document.getElementById('innerPage'); ip.classList.remove('ph-in'); void ip.offsetWidth; ip.classList.add('ph-in');   // 날짜바가 스르륵 나타나요
                     setTimeout(() => ip.classList.remove('ph-in'), 600);
-                    if (window.dfFix) setTimeout(dfFix, 0);                      // 🗂 목록을 받기 전에 열었으면 받은 뒤 마지막으로 꾸민 날로
+                    if (window.dfFix && !t.keep) setTimeout(dfFix, 0);                      // 🗂 목록을 받기 전에 열었으면 받은 뒤 마지막으로 꾸민 날로
                 } else {
                     currentDate.setTime(t.to.getTime());
                 }
@@ -423,6 +425,7 @@
             }
 
             if (t.isCover && t.two && !complete) document.getElementById('diaryWrapper').style.marginLeft = '';
+            if (t.keep && !complete && window.dkRefold) setTimeout(dkRefold, 0);             // 📕 덜 넘기고 놓으면 다시 표꾸 화면
             t.under.remove();
             t.flapLayer.remove();
             t.pageEl.style.clipPath = '';

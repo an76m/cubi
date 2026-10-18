@@ -675,6 +675,25 @@
                 }, 760);
             }, wait);
         }
+        /* 📕 표꾸 화면에서 다음 장으로 : 닫힌 겉표지로 바꿔 놓고 1장을 펼쳐요 (js/page.js beginCurl · 💻 열리면서 다이어리가 가운데로) */
+        function dkUnfold() {
+            if (!dkCv() || dkFolding) return false;
+            const to = dyStep(currentDate, 1); if (!to) return false;
+            saveData(false);
+            currentDate.setTime(to.getTime()); selectedElement = null;
+            isCoverOpen = false;
+            document.getElementById('innerPage').style.display = 'none';
+            document.getElementById('coverPage').style.display = '';
+            dkCvSync(); dkCoverPaint();
+            return true;
+        }
+        function dkRefold() {                                                  // 덜 넘기고 놓았을 때 : 다시 표꾸 화면
+            currentDate.setTime(dkDate(0).getTime());
+            isCoverOpen = true;
+            document.getElementById('coverPage').style.display = 'none';
+            document.getElementById('innerPage').style.display = 'flex';
+            loadData();
+        }
         function dkCoverPaint() {
             const cv = document.getElementById('coverPage'), t = dkType(); if (!cv) return;
             cv.classList.toggle('cv-book', !!t);
@@ -892,7 +911,7 @@
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
-        window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
+        window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
