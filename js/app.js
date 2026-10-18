@@ -8,8 +8,7 @@
 
         let customSkins = {};
 
-        /* 페이지 크기 : 다이어리마다 정해져요 (js/skins.js dySize) · 아래는 그림 크기를 맞추는 기준 한 쪽 */
-        const DEFAULT_PAGE_W = 500, DEFAULT_PAGE_H = 700;
+        /* 페이지 크기 : 다이어리마다 정해져요 (js/skins.js dySize) */
         const PAGE_BORDER = 4, PAGE_HEADER_H = 48;
         let liveSize = null;
         let layoutDirty = false;

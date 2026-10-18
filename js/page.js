@@ -596,10 +596,6 @@
             const b = document.getElementById('diaryBook');
             return { w: b.clientWidth * 2, h: b.clientHeight };                // 📖 펼친 두 쪽이 한 장 (js/skins.js)
         }
-        function fitFactor(c) {
-            const ref = canvasOfPage(DEFAULT_PAGE_W, DEFAULT_PAGE_H);
-            return Math.min(c.w / ref.w, c.h / ref.h);
-        }
 
         function convertGeometry(g, fromPage, toPage) {
             const a = canvasOfPage(fromPage.w, fromPage.h), b = canvasOfPage(toPage.w, toPage.h);
@@ -607,7 +603,7 @@
             const px = parseFloat(g.posX) || 0, py = parseFloat(g.posY) || 0;
             const sc = parseFloat(g.scale) || 1;
             const w = g.boxW || 0, h = g.boxH || 0;
-            const k = fitFactor(b) / fitFactor(a);
+            const k = Math.min(b.w / a.w, b.h / a.h);                            // 크기는 가로 · 세로 중 덜 바뀐 쪽만큼 (찌그러지지 않게)
             const cx = (px + w / 2) * (b.w / a.w);
             const cy = (py + h / 2) * (b.h / a.h);
             return { posX: cx - w / 2, posY: cy - h / 2, scale: sc * k };
