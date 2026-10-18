@@ -644,7 +644,7 @@
         }
         /* 📕 표꾸로 갈 때 연출 : 펼친 다이어리의 왼쪽 쪽(앞표지 안쪽)이 가운데 묶음을 축으로 넘어와 덮이면서 겉표지가 돼요
            - 넘어오는 장 뒷면 = 지금 왼쪽 쪽 그대로 (#innerPage 복사) · 앞면 = 겉표지 (다이어리 색 · 책등 · 앞표지에 붙인 것)
-           - 📱 한 쪽씩 보는 화면은 먼저 오른쪽 쪽으로 옮긴 뒤 접어요 · 💻 다 접히면 다이어리가 화면 가운데로 */
+           - 📱 한 쪽씩 보는 화면은 먼저 오른쪽 쪽으로 옮긴 뒤 접어요 · 💻 접히는 동안 다이어리가 같이 화면 가운데로 */
         let dkFolding = false;
         function dkFold(done) {
             const book = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'), wr = document.getElementById('diaryWrapper');
@@ -666,8 +666,9 @@
                 flap.append(back, front); book.appendChild(flap);
                 ip.classList.add('dk-folding', 'ph-wait');
                 void flap.offsetWidth; flap.classList.add('go');
+                if (wr && wr.style.marginLeft) { wr.style.transition = 'margin-left .75s cubic-bezier(.45, .05, .3, 1)'; wr.style.marginLeft = ''; }   // 💻 접히면서 동시에 가운데로
                 setTimeout(() => {
-                    if (wr) { wr.style.transition = 'margin-left .45s ease'; setTimeout(() => { wr.style.transition = ''; }, 500); }
+                    if (wr) wr.style.transition = '';
                     done();
                     flap.remove(); ip.classList.remove('dk-folding', 'ph-wait');
                     ip.classList.add('ph-in'); setTimeout(() => ip.classList.remove('ph-in'), 600);
