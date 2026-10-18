@@ -841,7 +841,21 @@
             if (!bdFree) return; bdFree.sel = side;
             ['l', 'r'].forEach(x => bdFree.sh[x].el.classList.toggle('sel', x === side));
         }
+        function bdFreeBox(x, y) {                                              // 그 자리의 꾸밈 (스티커 · 🩹 바른 테이프 · 평소엔 종이처럼 못 눌러요)
+            const cv = document.getElementById('canvasArea'); if (!cv) return null;
+            cv.classList.add('bd-pick');
+            try { return document.elementsFromPoint(x, y).map(n => n.closest && n.closest('#canvasArea > .element-box')).find(Boolean) || null; } finally { cv.classList.remove('bd-pick'); }
+        }
+        let bdBoxTap = null;                                                    // 🪡 핀셋으로 꾸밈을 톡 = 그 꾸밈 메뉴 (순서 · 삭제 · 도련 10-18)
+        window.addEventListener('pointermove', e => { if (bdBoxTap && bdBoxTap.id === e.pointerId && Math.hypot(e.clientX - bdBoxTap.x, e.clientY - bdBoxTap.y) > 10) bdBoxTap = null; }, true);
+        window.addEventListener('pointerup', e => {
+            const t = bdBoxTap; if (!t || t.id !== e.pointerId) return; bdBoxTap = null; bdEat = Date.now();
+            if (window.tmOpenElem && t.box.isConnected) tmOpenElem(t.box, e.clientX, e.clientY, e.pointerType !== 'mouse');
+        }, true);
         function bdFreeDown(e) {
+            if (!e.target.closest || !e.target.closest('#innerPage')) { bdFreeSel(null); return; }   // 창 · 메뉴 · 🗑 핀셋 뜯기 화면은 그대로
+            const box = window.gdTwz && gdTwz() && bdFreeBox(e.clientX, e.clientY);
+            if (box) { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); bdBoxTap = { id: e.pointerId, box, x: e.clientX, y: e.clientY }; return; }
             const sheet = e.target.closest && e.target.closest('.bd-sheet');
             if (!sheet) { bdFreeSel(null); return; }                          // 다른 곳 = 풀기 (날짜바 끌기 · 넘기기는 그대로)
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();

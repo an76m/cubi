@@ -914,6 +914,11 @@
             requestAnimationFrame(() => twz && twz.tool.classList.add('in'));
         }
         function twzPick(x, y) {                                               // 누른 곳 맨 위의 것 (뜯기는 중인 것 · 뒷면 복제본은 빼요)
+            const cv = document.getElementById('canvasArea'), free = cv && cv.closest('.dy-free');   // 📄 바인더 링을 연 뒤 (꾸밈은 평소엔 못 눌러요 · js/skins.js bdFree) 에도 집어요
+            if (free) cv.classList.add('bd-pick');
+            try { return twzPickAt(x, y); } finally { if (free) cv.classList.remove('bd-pick'); }
+        }
+        function twzPickAt(x, y) {
             return document.elementsFromPoint(x, y).map(n => n.closest && n.closest('#canvasArea > .element-box')).find(b => b && !b.classList.contains('el-peel-back') && !b.classList.contains('el-dying')) || null;
         }
         function twzAttach(el) {                                               // 이 스티커를 뜯을 준비 (뒷면 복제본 · 손잡이 숨기기)
@@ -933,9 +938,9 @@
         /* 스티커 안 좌표 ↔ 화면 좌표 (돌리기 · 크기 · 페이지 배율까지) */
         function twzGeo() {
             const t = twz, ca = document.getElementById('canvasArea'), r = ca.getBoundingClientRect(), k = r.width / (ca.offsetWidth || r.width) || 1;
-            const s = parseFloat(t.el.dataset.scale) || 1, a = (parseFloat(t.el.dataset.rotation) || 0) * Math.PI / 180;
-            const cx = (parseFloat(t.el.dataset.posX) || 0) + t.W / 2, cy = (parseFloat(t.el.dataset.posY) || 0) + t.H / 2;
-            return { toLoc: (X, Y) => { const ux = (X - r.left) / k - cx, uy = (Y - r.top) / k - cy; return [(ux * Math.cos(-a) - uy * Math.sin(-a)) / s + t.W / 2, (ux * Math.sin(-a) + uy * Math.cos(-a)) / s + t.H / 2]; } };
+            const s = parseFloat(t.el.dataset.scale) || 1, a = ((parseFloat(t.el.dataset.rotation) || 0) + (parseFloat(t.el.style.rotate) || 0)) * Math.PI / 180;   // 📄 바인더 쪽째 돌린 것까지 (js/skins.js bdFreeApply)
+            const b = t.el.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;   // 가운데는 화면에 보이는 그대로 (바인더 쪽 벌어짐 · 옮긴 쪽까지)
+            return { toLoc: (X, Y) => { const ux = (X - cx) / k, uy = (Y - cy) / k; return [(ux * Math.cos(-a) - uy * Math.sin(-a)) / s + t.W / 2, (ux * Math.sin(-a) + uy * Math.cos(-a)) / s + t.H / 2]; } };
         }
         function twzToolAt(x, y) {
             const t = twz; if (!t) return; t.tip = [x, y]; t.tool.style.transform = `translate(${x - TWZ_TIP[0]}px, ${y - TWZ_TIP[1]}px)${handFlip()} rotate(${TWZ_ANG}deg)`;

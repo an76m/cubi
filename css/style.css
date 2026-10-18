@@ -3817,6 +3817,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .bd-hole.on { visibility: visible; }
 .inner-page.dy-free #canvasArea { background: none !important; box-shadow: none !important; pointer-events: none; z-index: 3; }
 .inner-page.dy-free #canvasArea > * { pointer-events: none !important; }
+.inner-page.dy-free #canvasArea.bd-pick, .inner-page.dy-free #canvasArea.bd-pick > .element-box { pointer-events: auto !important; }   /* 🪡 핀셋으로 집을 때만 잠깐 (js/skins.js bdFreeBox · elements.js twzPick) */
 .inner-page.dy-free .dy-gap, .inner-page.dy-free .dy-holes, .inner-page.dy-free .dy-edge-w, .inner-page.dy-free .dy-seam, .inner-page.dy-free .dy-bo-btn { opacity: 0 !important; transition: opacity .3s; }
 .inner-page.dy-free .page-stamps, .inner-page.dy-free .page-dday, .inner-page.dy-free .season-corner { transition: none; }
 /* ✋ 링을 옆으로 끄는 동안 (js/skins.js bdRingStart · --bs 0 닫힘 ~ 1 열림) */
