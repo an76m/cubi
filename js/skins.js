@@ -721,7 +721,7 @@
             bdShow(false);
             if (k === 'in') bdIn(); else bdOut();
         }, true);
-        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || (bdFree && bdFree.d) || gdG || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
+        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || (bdFree && bdFree.d) || gdG || bdBoxTap || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
         function bdGapAt(x, y) {                                                // 🗂️ 링에 끼운 두 쪽 사이 (종이가 아닌 곳 · 빈 곳 메뉴 없음 · 📱 폰도)
             const ip = document.getElementById('innerPage'); if (!ip || !isCoverOpen || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo') || ip.classList.contains('dy-free')) return false;
             const g = ip.querySelector('.dy-gap'), r = g && g.getBoundingClientRect(); return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
@@ -844,18 +844,40 @@
         function bdFreeBox(x, y) {                                              // 그 자리의 꾸밈 (스티커 · 🩹 바른 테이프 · 평소엔 종이처럼 못 눌러요)
             const cv = document.getElementById('canvasArea'); if (!cv) return null;
             cv.classList.add('bd-pick');
-            try { return document.elementsFromPoint(x, y).map(n => n.closest && n.closest('#canvasArea > .element-box')).find(Boolean) || null; } finally { cv.classList.remove('bd-pick'); }
+            try { const n = document.elementsFromPoint(x, y).find(n => n.closest && n.closest('#canvasArea > .element-box')); return n ? { box: n.closest('#canvasArea > .element-box'), rot: !!n.closest('.rot-zone') } : null; } finally { cv.classList.remove('bd-pick'); }
         }
-        let bdBoxTap = null;                                                    // 🪡 핀셋으로 꾸밈을 톡 = 그 꾸밈 메뉴 (순서 · 삭제 · 도련 10-18)
-        window.addEventListener('pointermove', e => { if (bdBoxTap && bdBoxTap.id === e.pointerId && Math.hypot(e.clientX - bdBoxTap.x, e.clientY - bdBoxTap.y) > 10) bdBoxTap = null; }, true);
-        window.addEventListener('pointerup', e => {
-            const t = bdBoxTap; if (!t || t.id !== e.pointerId) return; bdBoxTap = null; bdEat = Date.now();
-            if (window.tmOpenElem && t.box.isConnected) tmOpenElem(t.box, e.clientX, e.clientY, e.pointerType !== 'mouse');
+        /* 🪡 링을 연 뒤에도 핀셋으로 꾸밈(스티커 · 🩹 테이프)을 (도련 10-18)
+           - 톡 = 그 꾸밈 메뉴 (순서 · 삭제) · 끌기 = 옮기기 · 고른 꾸밈의 모서리(rot-zone)를 끌기 = 돌리기
+           - 옮기고 돌린 쪽 위에서도 손가락 · 마우스를 그대로 따라와요 · 다른 쪽으로 넘어가면 그 쪽 것이 돼요 (보이는 자리 · 각도 그대로) */
+        let bdBoxTap = null;
+        const bdBoxC = el => { const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; };
+        function bdBoxPut(el, C, vis) {                                          // 화면 가운데 C · 보이는 각도 vis 로
+            const sd = gdSide(C.x, C.y), m = gdCv(C.x, C.y, sd), x = m.x - el.offsetLeft - el.offsetWidth / 2, y = m.y - el.offsetTop - el.offsetHeight / 2, r = Math.round((vis - bdFree.sh[sd].r) * 10) / 10;
+            el.dataset.posX = x; el.dataset.posY = y; el.dataset.rotation = r;
+            el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${r}deg)`;
+            bdSides(); bdFreeApply();
+        }
+        window.addEventListener('pointermove', e => {
+            const t = bdBoxTap; if (!t || t.id !== e.pointerId || !bdFree) return;
+            if (!t.moved && !t.rot && Math.hypot(e.clientX - t.x, e.clientY - t.y) < 8) return;
+            t.moved = true; t.box.classList.add('lifting');
+            if (t.rot) bdBoxPut(t.box, t.c0, t.vis + (Math.atan2(e.clientY - t.c0.y, e.clientX - t.c0.x) - t.a0) * 180 / Math.PI);
+            else bdBoxPut(t.box, { x: t.c0.x + e.clientX - t.x, y: t.c0.y + e.clientY - t.y }, t.vis);
         }, true);
+        ['pointerup', 'pointercancel'].forEach(k => window.addEventListener(k, e => {
+            const t = bdBoxTap; if (!t || t.id !== e.pointerId) return; bdBoxTap = null; bdEat = Date.now(); t.box.classList.remove('lifting');
+            if (t.moved) { if (typeof saveData === 'function') saveData(false); return; }
+            if (k === 'pointerup' && !t.rot && t.box.isConnected) { if (typeof selectElement === 'function') selectElement(t.box); if (window.tmOpenElem) tmOpenElem(t.box, e.clientX, e.clientY, e.pointerType !== 'mouse'); }
+        }, true));
         function bdFreeDown(e) {
             if (!e.target.closest || !e.target.closest('#innerPage')) { bdFreeSel(null); return; }   // 창 · 메뉴 · 🗑 핀셋 뜯기 화면은 그대로
-            const box = window.gdTwz && gdTwz() && bdFreeBox(e.clientX, e.clientY);
-            if (box) { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); bdBoxTap = { id: e.pointerId, box, x: e.clientX, y: e.clientY }; return; }
+            const hb = window.gdTwz && gdTwz() && bdFreeBox(e.clientX, e.clientY);
+            if (hb) {
+                e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
+                const box = hb.box, c0 = bdBoxC(box), sd = box.classList.contains('bd-r') ? 'r' : 'l';
+                bdBoxTap = { id: e.pointerId, box, rot: hb.rot, x: e.clientX, y: e.clientY, c0, vis: (parseFloat(box.dataset.rotation) || 0) + bdFree.sh[sd].r, a0: Math.atan2(e.clientY - c0.y, e.clientX - c0.x), moved: false };
+                return;
+            }
             const sheet = e.target.closest && e.target.closest('.bd-sheet');
             if (!sheet) { bdFreeSel(null); return; }                          // 다른 곳 = 풀기 (날짜바 끌기 · 넘기기는 그대로)
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
@@ -1137,12 +1159,16 @@
             if (ip.classList.contains('dy-bdl') && !ip.classList.contains('dy-bo')) p.x += p.x < cv.offsetWidth / 2 ? 6 * cq : -6 * cq;   // 링에 끼운 동안 두 쪽은 6cqw 씩 바깥으로
             return p;
         }
+        function gdSide(x, y) {                                                 // 📄 링을 연 뒤 그 자리(화면)에 놓일 꾸밈이 어느 쪽 것이 되는지 (저장 자리로 나뉘는 쪽과 같게)
+            const W = document.getElementById('canvasArea').offsetWidth, ok = sd => { const m = gdCv(x, y, sd); return (m.x >= W / 2) === (sd === 'r'); };
+            const first = gdCv(x, y).x >= W / 2 ? 'r' : 'l', other = first === 'l' ? 'r' : 'l';
+            return ok(first) ? first : ok(other) ? other : first;
+        }
         function gdTapeAdd(A, B) {
             if (Math.hypot(B.x - A.x, B.y - A.y) < 10) return;
             let a, b;
             if (bdFree) {                                                       // 📄 두 쪽에 걸쳐 바르면 : 가운데가 놓일 쪽 기준으로 양 끝을 (붙은 뒤 그 쪽과 같이 움직여도 제자리)
-                const W = document.getElementById('canvasArea').offsetWidth, mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2, ok = sd => { const m = gdCv(mx, my, sd); return (m.x >= W / 2) === (sd === 'r'); };
-                const first = gdCv(mx, my).x >= W / 2 ? 'r' : 'l', sd = ok(first) ? first : ok(first === 'l' ? 'r' : 'l') ? (first === 'l' ? 'r' : 'l') : first;
+                const sd = gdSide((A.x + B.x) / 2, (A.y + B.y) / 2);
                 a = gdCv(A.x, A.y, sd); b = gdCv(B.x, B.y, sd);
             } else { a = gdCv(A.x, A.y); b = gdCv(B.x, B.y); }
             const L = Math.max(8, Math.round(Math.hypot(b.x - a.x, b.y - a.y))), TH = 12;
