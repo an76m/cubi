@@ -714,7 +714,7 @@
                 el.classList.toggle('bd-l', on && !r); el.classList.toggle('bd-r', r);
             });
             if (!bdObs && window.MutationObserver) {                           // 새로 붙이거나 옮기면 다시 (어느 쪽인지)
-                bdObs = new MutationObserver(() => { const p = document.getElementById('innerPage'); if (p && p.classList.contains('dy-bdl')) bdSides(); });
+                bdObs = new MutationObserver(ms => { const p = document.getElementById('innerPage'); if (p && p.classList.contains('dy-bdl')) { bdSides(); if (bdFree && !bdFree.ap && ms.some(m => m.type === 'childList')) { bdFree.ap = 1; requestAnimationFrame(() => { if (bdFree) { bdFree.ap = 0; bdFreeApply(); } }); } } });   // 📄 쪽을 따로 움직이는 중에 새로 붙인 것도 그 쪽과 같이
                 bdObs.observe(cv, { childList: true, subtree: false });
                 bdObs.observe(cv, { attributes: true, attributeFilter: ['style'], subtree: true });
             }
@@ -730,6 +730,7 @@
         function bdShow(on) {
             const ip = document.getElementById('innerPage'); if (!ip) return;
             clearTimeout(bdShowT); ip.classList.toggle('dy-bo-show', !!on); bdShowAt = on ? Date.now() : 0;
+            if (on) ip.style.setProperty('--bdb-y', bdGrp === 'b' ? 'calc(100% - 15cqw)' : '15cqw');   // ✋ 수동 🔓 링 열기 버튼은 그 링 자리에
             if (on) bdShowT = setTimeout(() => bdShow(false), (window.clearSec ? clearSec() : 5) * 1000);
         }
         function bdHit(e, any) {                                                // 그 자리를 눌렀나 · 지나가나 (any : 표지를 막 펼친 때도)
@@ -737,9 +738,14 @@
             if (!ip || !bk || !isCoverOpen || !ip.classList.contains('dy-bd') || (!any && Date.now() - bdLayAt < 700)) return false;
             const g = ip.querySelector('.dy-gap'); if (!g) return false;
             const t = e.target; if (t && t.closest && t.closest('.element-box, .dy-clip, .bd-tool, .page-header, .page-stamps, .page-dday, .modal')) return false;
-            const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, hw = ip.classList.contains('dy-bo') ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
-            return Math.abs(e.clientX - cx) <= hw && e.clientY >= r.top && e.clientY <= r.bottom;
+            const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, out = ip.classList.contains('dy-bo'), hw = out ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
+            if (Math.abs(e.clientX - cx) > hw || e.clientY < r.top || e.clientY > r.bottom) return false;
+            if (out) return true;                                               // 📥 끼우기 = 가운데 틈 위아래 전부
+            const cq = bk.getBoundingClientRect().width / 100, top = e.clientY <= r.top + 30 * cq, bot = e.clientY >= r.bottom - 30 * cq;
+            if (bdMode() === 'hand') { if (!top && !bot) return false; bdGrp = top ? 't' : 'b'; return true; }   // ✋ 수동 🔓 링 열기 = 위 · 아래 링 자리 (도련 10-18)
+            return !top && !bot;                                                // ⚡ 자동 📤 꺼내기 = 위아래 링 사이 (도련 10-18)
         }
+        let bdGrp = 't';                                                        // ✋ 수동 : 위 링 · 아래 링 중 어디서
         let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
         window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
             if (bdFree) { bdFreeDown(e); return; }                          // 📄 두 쪽을 스티커처럼 (아래 bdFree)
@@ -755,14 +761,16 @@
         }, true);
         ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || (bdFree && bdFree.d) || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
         function bdGapAt(x, y) {                                                // 🗂️ 링에 끼운 두 쪽 사이 (종이가 아닌 곳 · 빈 곳 메뉴 없음 · 📱 폰도)
-            const ip = document.getElementById('innerPage'); if (!ip || !isCoverOpen || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return false;
+            const ip = document.getElementById('innerPage'); if (!ip || !isCoverOpen || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo') || ip.classList.contains('dy-free')) return false;
             const g = ip.querySelector('.dy-gap'), r = g && g.getBoundingClientRect(); return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
         }
         window.bdGapAt = bdGapAt;
         document.addEventListener('pointermove', e => {                        // 🖱 지나가면 보여요 · 겉표지를 밀어 펼친 손(마우스)이 그 자리에 머물러 있으면 안 보여요 (도련 10-18)
             if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt) return;
             if (!bdHit(e, true)) { bdArmed = true; return; }
-            if (bdArmed && !bdShown() && bdHit(e)) bdShow(true);
+            if (!bdArmed || !bdHit(e)) return;
+            if (!bdShown()) bdShow(true);
+            else document.getElementById('innerPage').style.setProperty('--bdb-y', bdGrp === 'b' ? 'calc(100% - 15cqw)' : '15cqw');   // 위 링 ↔ 아래 링으로 옮겨 가면 버튼도
         }, { passive: true });
         /* ✋ 수동 · ⚡ 자동 (설정 '바인더 속지 빼기 · 끼우기' · 기본 수동 · 도련 10-18)
            - ⚡ 자동 : 한 번 누르면 끝까지 (bdOut · bdIn)
@@ -879,11 +887,13 @@
             bdFreeSel(side);
             const r = sheet.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
             const rot = e.target.classList.contains('bd-rot');
-            bdFree.d = { id: e.pointerId, sh, rot, x: e.clientX, y: e.clientY, sx: sh.x, sy: sh.y, sr: sh.r, cx, cy, a0: Math.atan2(e.clientY - cy, e.clientX - cx) };
+            bdFree.d = { id: e.pointerId, sh, side, rot, x: e.clientX, y: e.clientY, sx: sh.x, sy: sh.y, sr: sh.r, cx, cy, a0: Math.atan2(e.clientY - cy, e.clientX - cx), moved: false };
             sheet.classList.add('lift');
         }
         window.addEventListener('pointermove', e => {
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
+            if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return;   // 살짝 톡 = 메뉴
+            d.moved = true;
             if (d.rot) d.sh.r = d.sr + (Math.atan2(e.clientY - d.cy, e.clientX - d.cx) - d.a0) * 180 / Math.PI;
             else { d.sh.x = d.sx + (e.clientX - d.x) / bdFree.k; d.sh.y = d.sy + (e.clientY - d.y) / bdFree.k; }
             bdFreeApply();
@@ -891,7 +901,18 @@
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, e => {
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
             bdFree.d = null; d.sh.el.classList.remove('lift');
+            if (!d.moved && !d.rot && e.type === 'pointerup') bdFreeMenu(e, d.side);   // 쪽을 톡 = 그 쪽에 빈 곳 메뉴 (연필꽂이 · 필통 … · 도련 10-18)
         }, true));
+        function bdFreeMenu(e, side) {
+            if (!window.tmOpen) return;
+            tmOpen({ clientX: e.clientX, clientY: e.clientY });
+            const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook');
+            if (!bdFree || typeof tmAnchor === 'undefined' || !tmAnchor || !ip || !cv || !bk) return;
+            const sh = bdFree.sh[side], ir = ip.getBoundingClientRect(), k = bdFree.k;   // 옮기고 돌린 쪽 위 자리 → 그 쪽의 원래 자리 (고른 게 그 쪽 눌린 자리에 놓이게)
+            const vx = (e.clientX - ir.left) / k - sh.cx - sh.x, vy = (e.clientY - ir.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
+            const px = vx * Math.cos(a) - vy * Math.sin(a) + sh.cx, py = vx * Math.sin(a) + vy * Math.cos(a) + sh.cy;
+            tmAnchor.x = px - cv.offsetLeft - (side === 'r' ? 6 : -6) * bk.offsetWidth / 100; tmAnchor.y = py - cv.offsetTop;
+        }
         function bdPunch() {                                                    // 🕳️ 펀치로 꾹 → 구멍
             const ip = document.getElementById('innerPage'), fr = document.getElementById('dyFront'); if (!ip || !fr) return;
             const pu = document.createElement('span'); pu.className = 'dy-punch'; pu.style.setProperty('--pc', punchNow()[2]);

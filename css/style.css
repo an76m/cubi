@@ -3804,6 +3804,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.dy-bo-show .dy-bo-btn { opacity: 1; scale: 1; }
 .inner-page.dy-bd:not(.dy-bo) .dy-bo-btn.out, .inner-page.dy-bd.dy-bo .dy-bo-btn.in { display: flex; }
 .inner-page.dy-bo-go .dy-bo-btn, .inner-page.dy-bo-back .dy-bo-btn, .inner-page.png-mode .dy-bo-btn { display: none !important; }
+.inner-page.dy-hand .dy-bo-btn.out { top: var(--bdb-y, 15cqw); }   /* ✋ 수동 🔓 링 열기 = 위 · 아래 링 자리 */
 .dy-bo-btn .a { display: contents; } .dy-bo-btn .h { display: none; }
 .inner-page.dy-hand .dy-bo-btn .a { display: none; } .inner-page.dy-hand .dy-bo-btn .h { display: contents; }
 /* 📄 링을 연 뒤 두 쪽이 스티커처럼 (js/skins.js bdFreeOn) : 종이 = .bd-sheet · 표지 · 링 · 틈은 사라져요 */
