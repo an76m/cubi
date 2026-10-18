@@ -609,7 +609,7 @@
             const back = [], front = [];
             const rings = n => { let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; return h; };
             back.push('<b class="dy-cov"></b>');
-            front.push('<span class="dy-fold"></span>');
+            front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
             if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span>`);
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');

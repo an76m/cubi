@@ -3716,10 +3716,17 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page[data-dy="tn"] .dy-cov { inset: -2cqw -2.6cqw -2cqw -2cqw; border-radius: 1.6cqw; background: linear-gradient(160deg, color-mix(in srgb, var(--dy-c) 75%, #fff), var(--dy-c)); }
 .inner-page[data-dy="hard"] .dy-cov { inset: -2cqw -3cqw -2cqw -2cqw; border-radius: 1.6cqw 4cqw 4cqw 1.6cqw; }
 .inner-page[data-dy="spread"] .dy-cov { inset: -2cqw -2.6cqw; border-radius: 2cqw; }
-.dy-rings { position: absolute; left: calc(50% - 5cqw); top: 0; bottom: 0; width: 10cqw; }
-.dy-rings i { position: absolute; left: 0; width: 10cqw; height: 2.6cqw; margin-top: -1.3cqw; border-radius: 1.4cqw; border: .8cqw solid #d7c8ce; box-shadow: inset 0 .3cqw 0 #fff, 0 .3cqw .6cqw rgba(90, 60, 70, .25); box-sizing: border-box; }
+/* 🗂️ 6공 링 (도련 10-18) : 두 속지 사이가 떨어져 있고 (가운데로 표지 안쪽 · 링 받침) · 크고 쇠 느낌 나는 링이 양쪽 속지 구멍을 꿰어요 */
+.dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: 12cqw; margin-left: -6cqw; background:
+        linear-gradient(90deg, #fff 0 .35cqw, #e6d9df .35cqw .5cqw, #fbf7f9 .5cqw .8cqw, #e6d9df .8cqw .95cqw, transparent .95cqw calc(100% - .95cqw), #e6d9df calc(100% - .95cqw) calc(100% - .8cqw), #fbf7f9 calc(100% - .8cqw) calc(100% - .5cqw), #e6d9df calc(100% - .5cqw) calc(100% - .35cqw), #fff calc(100% - .35cqw)),
+        color-mix(in srgb, var(--dy-c) 55%, #fff);
+    box-shadow: inset 1.2cqw 0 1.2cqw -.6cqw rgba(70, 40, 55, .28), inset -1.2cqw 0 1.2cqw -.6cqw rgba(70, 40, 55, .28); }
+.dy-gap::before { content: ''; position: absolute; left: 50%; top: 4cqw; bottom: 4cqw; width: 4.4cqw; margin-left: -2.2cqw; border-radius: 1.6cqw;
+    background: linear-gradient(90deg, #8d939e, #e9ecf0 30%, #ffffff 45%, #c3c8d0 65%, #7f8692); box-shadow: 0 .3cqw .8cqw rgba(40, 30, 40, .3); }
+.dy-rings { position: absolute; left: calc(50% - 15cqw); top: 0; bottom: 0; width: 30cqw; }
+.dy-rings i { position: absolute; left: 0; width: 30cqw; height: 9cqw; margin-top: -6.3cqw; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.28' stop-color='%23d5d9e0'/%3E%3Cstop offset='.5' stop-color='%23888f9b'/%3E%3Cstop offset='.62' stop-color='%23c9ced6'/%3E%3Cstop offset='.85' stop-color='%23f4f5f7'/%3E%3Cstop offset='1' stop-color='%239aa1ac'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='30' cy='42' rx='8' ry='6' fill='%23584a52' fill-opacity='.45'/%3E%3Cellipse cx='170' cy='42' rx='8' ry='6' fill='%23584a52' fill-opacity='.45'/%3E%3Cpath d='M30 44 C30 10 170 10 170 44' fill='none' stroke='%23000' stroke-opacity='.22' stroke-width='12' transform='translate(0 5)' stroke-linecap='round'/%3E%3Cpath d='M30 42 C30 6 170 6 170 42' fill='none' stroke='url(%23m)' stroke-width='13' stroke-linecap='round'/%3E%3Cpath d='M34 36 C40 14 160 14 166 36' fill='none' stroke='%23fff' stroke-opacity='.85' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; filter: drop-shadow(0 .2cqw .2cqw rgba(40, 30, 40, .25)); }
 .dy-rings i:nth-child(1) { top: 7.5cqw; } .dy-rings i:nth-child(2) { top: 16.5cqw; } .dy-rings i:nth-child(3) { top: 25.5cqw; }
-.dy-rings i:nth-child(4) { bottom: 24.2cqw; } .dy-rings i:nth-child(5) { bottom: 15.2cqw; } .dy-rings i:nth-child(6) { bottom: 6.2cqw; }
+.dy-rings i:nth-child(4) { bottom: 22.2cqw; } .dy-rings i:nth-child(5) { bottom: 13.2cqw; } .dy-rings i:nth-child(6) { bottom: 4.2cqw; }
 .dy-band { position: absolute; top: -3cqw; bottom: -3cqw; left: calc(50% - .6cqw); width: 1.2cqw; border-radius: .6cqw; background: #e7768f; box-shadow: .3cqw 0 .6cqw rgba(90, 40, 50, .25); }
 .dy-band.hard { left: auto; right: -2cqw; width: 1.4cqw; background: #4a3a44; }
 .dy-fold { position: absolute; top: 0; bottom: 0; left: 50%; width: 8cqw; transform: translateX(-50%); background: linear-gradient(90deg, transparent, rgba(150, 100, 120, .18) 45%, rgba(150, 100, 120, .28) 50%, rgba(150, 100, 120, .18) 55%, transparent); }
