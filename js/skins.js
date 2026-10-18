@@ -639,7 +639,41 @@
         function dkCoverEdit() {
             closeModal('skinModal');
             if (!dkType()) { showMsg('📕 기본 다이어리 표지는 꾸밀 수 없어요.<br><span style="font-size:12px;color:#777;">노트 · 바인더는 표지에 스티커를 붙여 꾸밀 수 있어요.</span>'); return; }
-            goToDate(dkDate(0));
+            if (!isCoverOpen || turn || dkCv()) { goToDate(dkDate(0)); return; }
+            dkFold(() => goToDate(dkDate(0)));
+        }
+        /* 📕 표꾸로 갈 때 연출 : 펼친 다이어리의 왼쪽 쪽(앞표지 안쪽)이 가운데 묶음을 축으로 넘어와 덮이면서 겉표지가 돼요
+           - 넘어오는 장 뒷면 = 지금 왼쪽 쪽 그대로 (#innerPage 복사) · 앞면 = 겉표지 (다이어리 색 · 책등 · 앞표지에 붙인 것)
+           - 📱 한 쪽씩 보는 화면은 먼저 오른쪽 쪽으로 옮긴 뒤 접어요 · 💻 다 접히면 다이어리가 화면 가운데로 */
+        let dkFolding = false;
+        function dkFold(done) {
+            const book = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'), wr = document.getElementById('diaryWrapper');
+            if (dkFolding || !book || !ip) { done(); return; }
+            dkFolding = true; selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
+            saveData(false);
+            const wait = dyMode() === 'swipe' && dyView === 'l' ? 400 : 0;
+            if (wait) dyViewSet('r', true);
+            setTimeout(() => {
+                const flap = document.createElement('div'); flap.className = 'dk-fold';
+                const back = document.createElement('div'); back.className = 'dk-fold-b';
+                const page = ip.cloneNode(true); page.removeAttribute('id'); page.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+                page.classList.remove('dk-cover', 'dy-at-r'); Object.assign(page.style, { left: '0', transform: 'none', pointerEvents: 'none' });
+                back.appendChild(page);
+                const front = document.createElement('div'); front.className = 'dk-fold-f';
+                const cv = document.getElementById('coverPage'), deco = document.getElementById('cvDeco');
+                front.style.setProperty('--dy-c', cv ? cv.style.getPropertyValue('--dy-c') : '');
+                if (deco) front.appendChild(deco.cloneNode(true)).removeAttribute('id');
+                flap.append(back, front); book.appendChild(flap);
+                ip.classList.add('dk-folding', 'ph-wait');
+                void flap.offsetWidth; flap.classList.add('go');
+                setTimeout(() => {
+                    if (wr) { wr.style.transition = 'margin-left .45s ease'; setTimeout(() => { wr.style.transition = ''; }, 500); }
+                    done();
+                    flap.remove(); ip.classList.remove('dk-folding', 'ph-wait');
+                    ip.classList.add('ph-in'); setTimeout(() => ip.classList.remove('ph-in'), 600);
+                    dkFolding = false;
+                }, 760);
+            }, wait);
         }
         function dkCoverPaint() {
             const cv = document.getElementById('coverPage'), t = dkType(); if (!cv) return;
