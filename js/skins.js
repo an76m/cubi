@@ -699,7 +699,7 @@
         function dkPath(date) {                                                // 💾 저장 알림에 보여 줄 자리
             if (!dkIs(date) || !dkType()) return '';
             const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
-            return `다꾸/${b ? b.name : dkFolderName(o.design, o.spec)}/${dkNo(date)}페이지.json`;
+            return `다꾸/${b ? b.kind : o.kind}/${b ? b.name : dkFolderName(o.design, o.spec)}/${dkNo(date)}페이지.json`;
         }
         /* 고른 다이어리와 지금 펼친 날짜가 맞는지 (유한인데 진짜 날짜 · 기본인데 장 날짜 · 페이지 수를 넘음) → 맞는 곳으로 */
         function dkSync(load) {

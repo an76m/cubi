@@ -13,7 +13,7 @@
                       / 스티커 / 씰 · 조각 · 모조지스티커 · 마테 · 떡메 · 속지 / 내X · 받은X / 목록 · 원본
                       / 다꾸 / 기본 / 2026년 / 10월 / 9일.json        📔 기본 다이어리 · 하루에 파일 1개
                       / 다꾸 / 검색 / 검색-2026.json                  🔍 (js/search.js)
-                      / 다꾸 / 딸기우유 (6공 A5) / 다이어리.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 늘 페이지 기준 (js/skins.js dkFolderName)
+                      / 다꾸 / 노트 · 바인더 / 6공 바인더 (A5) / 다이어리.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 종류(다이어리.json kind)별 칸 · 늘 페이지 기준 (js/skins.js dkFolderName)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
@@ -23,6 +23,8 @@
         const DAKKU_PATH = [TOP_FOLDER_NAME, '다꾸'];               // ✏ 일기 쓰고 스티커 꾸미는 곳 (도련 · 10-17)
         const DAY_PATH = DAKKU_PATH.concat('기본');                // 📔 기본 다이어리 : 말랑달콤 / 다꾸 / 기본 / 2026년 / 10월 / 9일.json
         const SEARCH_PATH = DAKKU_PATH.concat('검색');             // 🔍 검색 목록
+        const DK_KINDS = ['노트', '바인더'];                         // 📕 유한 다이어리 칸 : 말랑달콤 / 다꾸 / 노트 · 바인더 / 권 폴더 (도련 · 10-18)
+        const bookPath = kind => DAKKU_PATH.concat(DK_KINDS.includes(kind) ? kind : DK_KINDS[0]);
         const SETTINGS_PATH = [TOP_FOLDER_NAME, '설정'], SETTINGS_FILE_NAME = '설정.json';
         const CAFE_PATH = [TOP_FOLDER_NAME, '카페'], CAFE_FILE_NAME = '카페.json';
         const STICKER_PATH = [TOP_FOLDER_NAME, '스티커'];          // 스티커 / 씰 / 내씰 …
@@ -424,16 +426,18 @@
         }
         const fetchDay = (date, meta) => fetchKey(getDateKey(date), meta);
 
-        /* 📕 유한 다이어리 권 폴더 찾기 : 다꾸 안 폴더마다 다이어리.json 의 id 를 읽어요 (폴더 이름은 사람이 알아보는 용도 · 같은 이름 폴더를 합치지 않아요) */
+        /* 📕 유한 다이어리 권 폴더 찾기 : 다꾸 / 노트 · 바인더 안 폴더마다 다이어리.json 의 id 를 읽어요 (폴더 이름은 사람이 알아보는 용도 · 같은 이름 폴더를 합치지 않아요) */
         function dkScan() {
             if (drive.bookScan) return drive.bookScan;
             const p = drive.bookScan = (async () => {
-                const out = new Map(), root = await getFolder(DAKKU_PATH, false);
-                if (!root) return out;
-                const dirs = (await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name')).filter(f => f.name !== '기본' && f.name !== '검색');
-                await Promise.all(dirs.map(async d => {
-                    const f = await findFile(d.id, DK_INFO); if (!f) return;
-                    try { const o = parseJsonObject(await readFileText(f.id), DK_INFO); if (o && o.id && !out.has(o.id)) out.set(o.id, { folderId: d.id, name: d.name }); } catch (e) {}
+                const out = new Map();
+                await Promise.all(DK_KINDS.map(async kind => {
+                    const root = await getFolder(bookPath(kind), false); if (!root) return;
+                    const dirs = await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name');
+                    await Promise.all(dirs.map(async d => {
+                        const f = await findFile(d.id, DK_INFO); if (!f) return;
+                        try { const o = parseJsonObject(await readFileText(f.id), DK_INFO); if (o && o.id && !out.has(o.id)) out.set(o.id, { folderId: d.id, name: d.name, kind }); } catch (e) {}
+                    }));
                 }));
                 return out;
             })();
@@ -453,15 +457,15 @@
                 let hit = scan.get(id);
                 if (!hit) {
                     if (!create) return null;
-                    const root = await getFolder(DAKKU_PATH, true), info = dkInfoOf(id);
+                    const info = dkInfoOf(id), root = await getFolder(bookPath(info.kind), true);
                     const taken = (await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'name')).map(f => f.name);
                     const name = dkFolderName(info.design, info.spec, taken);
-                    hit = { folderId: await createFolder(name, root), name };
+                    hit = { folderId: await createFolder(name, root), name, kind: info.kind };
                     await driveUpsert(hit.folderId, DK_INFO, null, JSON.stringify(info));
                     scan.set(id, hit);
                 }
                 const files = await driveList(`'${hit.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-                const e = { folderId: hit.folderId, name: hit.name, files: new Map(), dups: new Map() };
+                const e = { folderId: hit.folderId, name: hit.name, kind: hit.kind, files: new Map(), dups: new Map() };
                 files.forEach(f => {
                     if (!e.files.has(f.name)) e.files.set(f.name, f);
                     else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
