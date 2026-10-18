@@ -794,13 +794,14 @@
             return `<span class="dy-th" data-b="${t.b}" style="--dy-c:${sk ? sk.border : t.c};${sk ? `--dy-p:${sk.page};` : ''}width:${W}px;height:${H}px"><i></i><i></i></span>`;
         }
         /* 다이어리 창의 📔 기본다이어리 · 📓 노트 · 🗂 바인더 버튼 (도련 10-18 · 스티커 창처럼 종류 버튼 → 칸 기본 · 내가만든 · 공유받은 · 이벤트 · 문구점)
-           기본다이어리 기본 칸 = 기본 다이어리 4색 (js/app.js skinPresets · 고르면 기본 다이어리로 바꾸고 그 색 · id 'basic:색')
-           노트 · 바인더 = 기본 · 내가만든 칸은 숨김 (10-18 · 규격 6종은 DY_TYPES 에 그대로 · 문구점 · 다이어리 만들기가 생기면 그 칸에) */
+           기본다이어리 = 칸 없이 4색만 (js/app.js skinPresets · 고르면 기본 다이어리로 바꾸고 그 색 · id 'basic:색')
+           노트 · 바인더 = 기본 칸 없음 · 공유받은 · 이벤트 · 문구점 (내가만든은 숨김) · 버튼도 숨김 (features.js dybook · 10-18)
+           규격 6종은 DY_TYPES 에 그대로 (문구점 · 다이어리 만들기가 생기면 그 칸에) */
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => kind === '다이어리' && tab === 'free' ? DY_COLORS : [];
-        const dyHide = (kind, v) => kind !== '다이어리' && (v === 'free' || v === 'mine');
+        const dyItems = (kind, tab) => kind === '다이어리' ? DY_COLORS : [];
+        const dyHide = (kind, v) => kind === '다이어리' || v === 'free' || v === 'mine';
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
