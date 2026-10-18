@@ -225,6 +225,7 @@
         }
 
         function formatDate(date) {
+            const dk = window.dkLabel && dkLabel(date); if (dk) return dk;   // 📕 유한 다이어리 장 : 페이지 수 · 날짜 (js/skins.js)
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
@@ -233,6 +234,7 @@
         }
 
         function getDateKey(date) {
+            const dk = window.dkKey && dkKey(date); if (dk) return dk;       // 📕 유한 다이어리 장 (2000년 날짜) → dkp_권_장 (js/skins.js)
             return `diary_${date.getFullYear()}_${String(date.getMonth() + 1).padStart(2, '0')}_${String(date.getDate()).padStart(2, '0')}`;
         }
 
@@ -307,7 +309,7 @@
             const targetDate = new Date(currentDate);
             if (!isCover) {
                 const to = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir);   // 🗂 꾸민 페이지만 보기면 빈 날은 건너뛰어요 (js/skins.js)
-                if (!to) return false;
+                if (!to) { if (window.dkEnd) dkEnd(dir); return false; }   // 📕 유한 다이어리 마지막 장 → 기본으로 넘어갈까요?
                 saveData(false);
                 targetDate.setTime(to.getTime());
             }

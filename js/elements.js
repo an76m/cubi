@@ -1084,8 +1084,10 @@
             if (pageStamps.mo) day.mo = pageStamps.mo;                          // 😊 오늘의 기분 · ☀️ 날씨 도장 (js/stamp.js)
             if (pageStamps.we) day.we = pageStamps.we;
             if (typeof pageLeaf !== 'undefined' && pageLeaf !== 'line') { day.lf = pageLeaf; if (pageLeaf === 'my') day.lfi = pageLeafImg; }   // 📃 속지 (js/leafpad.js · 줄노트는 기본이라 저장 안 함)
-            if (elementsData.length || day.mo || day.we || day.lf) store.setItem(dayKey, JSON.stringify(day));
+            const has = !!(elementsData.length || day.mo || day.we || day.lf);
+            if (has) store.setItem(dayKey, JSON.stringify(day));
             else store.removeItem(dayKey);   // 빈 페이지는 파일에 남기지 않음
+            if (window.dkMark) dkMark(dayKey, has);                             // 📕 유한 다이어리 : 장을 처음 꾸민 날 (js/skins.js)
             if (typeof searchTouch === 'function') searchTouch(dayKey);          // 🔍 검색 목록 고치기 (js/search.js)
 
             if (!showAlert) return;          // 자동 저장: 변경이 있으면 잠시 뒤 드라이브에 자동 업로드
@@ -1157,6 +1159,7 @@
         }
 
         function loadData() {
+            if (window.dkSync) dkSync();                                        // 📕 고른 다이어리와 펼친 장이 맞게 (js/skins.js)
             liveSize = getPageSize();
             clearCanvas();
             pageStamps.mo = ''; pageStamps.we = '';

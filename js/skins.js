@@ -510,7 +510,7 @@
         const DY_KEY = 'diary_type', DY_LOCAL = 'malang_diary_type';
         /* 📔 기본 다이어리 (도련 · 10-17) : 한 달 노트 크기 · 날짜 기준 · 끝없는 다이어리 · 고르기 창 맨 앞 '기본' 칸
            나머지는 페이지 수가 정해진 다이어리 (유한 · 늘 페이지 기준 · 도련 10-18) · 문구점 디자인이 생기면 그 규격으로 써요
-           ⚠ 지금은 모양만 바뀌고 저장은 기본 다이어리 날짜 파일 그대로예요 (유한 저장은 아직 안 붙임 · 도련 확인용으로 고르기 창에 보여요)
+           지금은 규격마다 한 권 (페이지 수 DK_PAGES) · 아래 📕 유한 다이어리
            다꾸러가 실제로 많이 쓰는 것만 (도련 · 10-17 검색 : 6공 A5 · A6 · 트래블러스 레귤러 · 호보니치 오리지널 · 몰스킨 라지 · 소소문구 데일리로그 같은 한 달 노트) */
         const DY_TYPES = [
             { id: 'basic', g: '기본', n: '기본', mm: '85×165', b: 'thin', r: 165 / 85, c: '#f7a8c0' },
@@ -531,7 +531,6 @@
            - 유한은 늘 페이지 기준 (도련 · 10-18 : 날짜 기준 유한 다이어리는 없앰 · 안 쓴 날이 손해처럼 느껴져서) : … / 1페이지.json
              유한이라 년 · 월 폴더 없이 권 폴더에 바로 (도련 · 10-17 : 폴더를 덜 찾아요)
            - days : { 3: '2026-10-18' } 처럼 장 번호 → 처음 꾸민 날 · 달력(꾸민 날만 · 나머지 회색)과 날짜 보기가 장 파일을 다 안 열고 이것만 읽어요 */
-        const DK_INFO = '다이어리.json';
         function dkFolderName(design, spec, taken) {
             const clean = v => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim();
             const base = `${clean(design).slice(0, 20) || '다이어리'} (${clean(spec) || '규격'})`, has = new Set(taken || []);
@@ -539,9 +538,8 @@
             for (let n = 2; ; n++) if (!has.has(`${base} ${n}권`)) return `${base} ${n}권`;
         }
         function dkInfo(o) {                                                    // 다이어리.json 내용
-            return { id: o.id || 'dk_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), design: o.design || '', spec: o.spec || '', pages: o.pages || 0, days: o.days && typeof o.days === 'object' ? o.days : {} };
+            return { id: o.id || 'dk' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), design: o.design || '', spec: o.spec || '', pages: o.pages || 0, days: o.days && typeof o.days === 'object' ? o.days : {} };
         }
-        const dkFilePath = (folder, n) => DAKKU_PATH.concat(folder, n + '페이지.json');
         const DY_H = 700;                                                      // 페이지 높이 기준
         const dyNow = () => { const id = prefGet(DY_KEY, DY_LOCAL); return DY_TYPES.find(t => t.id === id) || DY_TYPES.find(t => t.id === DY_DEF); };
         /* 📖 펼침면 (도련 · 10-17) : 모든 다이어리는 펼친 두 쪽이 하루예요
@@ -593,8 +591,13 @@
         }
         function dySet(id) {
             const t = DY_TYPES.find(x => x.id === id) || dyNow();
-            prefSet(DY_KEY, DY_LOCAL, t.id);
-            if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco();
+            if (t.id !== dyNow().id) {
+                if (isCoverOpen && !turn) saveData(false);                     // 지금 장을 먼저 저장 (다이어리가 바뀌면 저장 키가 바뀌어요)
+                prefSet(DY_KEY, DY_LOCAL, t.id);
+                if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco();
+                dkSync(true);
+                dkFix();
+            }
             dyRender();                                                        // 고른 칸에 색 · 페이지가 바로 바뀌어서 따로 알림은 없어요
         }
         function dyLoad() { if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco(); }
@@ -626,13 +629,110 @@
             page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.c);
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
         }
+        /* 📕 유한 다이어리 (도련 · 10-18) : 기본이 아닌 다이어리 = 페이지 수가 정해진 다이어리 · 늘 페이지 기준 (날짜 기준 유한은 없앰)
+           - 장 = 펼친 두 쪽 하나 · 저장 키 dkp_<권 id>_<장> · 다이어리.json = dkb_<권 id> (js/drive.js)
+           - 화면 코드는 날짜(currentDate)로 움직여요 → 장은 '2000년 1월 n일' 날짜로 넣고 (dkDate) getDateKey 가 장 키로 바꿔요
+             진짜 날짜 (오늘 · 달력 · 검색 · D-day) 는 늘 진짜 날짜예요 · 2000년 날짜는 장으로만 써요
+           - 지금은 규격마다 한 권 (diary_books : 규격 id → 권 id) · 문구점 디자인이 생기면 디자인마다 권
+           - 첫 장을 저장할 때 드라이브에 권 폴더가 생겨요 (고르기만 하면 안 생겨요) · 장을 처음 꾸민 날을 다이어리.json days 에 (고쳐도 안 바뀜 · 다 지우면 빠짐)
+           - 열면 : 켜고 끄기와 상관없이 마지막으로 꾸민 장 (없으면 1장)
+           - 위 바 가운데 : 페이지 수가 기본 · 누르면 그 장을 처음 꾸민 날 (빈 장은 '새 장') ↔ 다시 누르면 페이지 수 (이 기기 · malang_bkview)
+           - 📅 달력 : 꾸민 날만 누를 수 있고 나머지는 회색 · 누르면 그날 처음 꾸민 장 · 여러 장이면 작은 숫자 (js/month.js)
+           - 🔍 검색 : 이 다이어리 장들에서 찾아요 (js/search.js)
+           - 마지막 장에서 더 넘기면 "기본 다이어리로 넘어갈까요?" */
+        const DK_KEY = 'diary_books', DK_LOCAL = 'malang_books', DK_VIEW = 'malang_bkview', DK_PAGES = 30, DK_Y = 2000;
+        const dkType = () => { const t = dyNow(); return t.id === DY_DEF ? null : t; };
+        function dkId(make) {                                                  // 지금 고른 규격의 권 id (make : 없으면 새로)
+            const t = dkType(); if (!t) return null;
+            const m = prefGet(DK_KEY, DK_LOCAL), o = m && typeof m === 'object' ? Object.assign({}, m) : {};
+            if (o[t.id] || !make) return o[t.id] || null;
+            o[t.id] = dkInfo({}).id;
+            prefSet(DK_KEY, DK_LOCAL, o);
+            return o[t.id];
+        }
+        const dkIs = d => d.getFullYear() === DK_Y;                            // 장 날짜인지
+        const dkNo = d => Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(DK_Y, 0, 1)) / 864e5) + 1;
+        const dkDate = n => new Date(DK_Y, 0, n);
+        function dkKey(date) { if (!dkIs(date) || !dkType()) return null; const id = dkId(true); return `dkp_${id}_${dkNo(date)}`; }   // js/page.js getDateKey
+        function dkInfoOf(id) {                                                // 다이어리.json 내용 (아직 없으면 그 규격으로 새로)
+            let o = null; try { o = JSON.parse(store.getItem('dkb_' + id)); } catch (e) {}
+            if (o && o.id) return dkInfo(o);
+            const m = prefGet(DK_KEY, DK_LOCAL) || {}, t = DY_TYPES.find(x => m[x.id] === id) || dkType() || {};
+            return dkInfo({ id, design: t.g, spec: t.n, pages: t.pg || DK_PAGES });
+        }
+        const dkNow = () => dkType() ? dkInfoOf(dkId(true)) : null;
+        const dkFilled = o => Object.keys(o.days).map(Number).filter(n => n > 0).sort((a, b) => a - b);
+        function dkInfoMerge(a, b) {                                           // 두 기기 것 합치기 : 장마다 더 이른 날 (js/drive.js writeBook)
+            const o = dkInfo(Object.assign({}, b, a)), bd = b && b.days && typeof b.days === 'object' ? b.days : {};
+            o.days = Object.assign({}, o.days);
+            Object.keys(bd).forEach(n => { if (!o.days[n] || bd[n] < o.days[n]) o.days[n] = bd[n]; });
+            o.pages = Math.max(+a.pages || 0, +(b && b.pages) || 0);
+            return o;
+        }
+        function dkMark(key, has) {                                            // 저장할 때 (js/elements.js saveData) : 처음 꾸민 날 적기 · 다 지운 장은 빼기
+            const p = parsePageKey(key); if (!p) return;
+            const o = dkInfoOf(p.b), had = !!o.days[p.n];
+            if (has === had) return;
+            if (has) { const t = new Date(); o.days[p.n] = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
+            else delete o.days[p.n];
+            store.setItem('dkb_' + p.b, JSON.stringify(o));
+        }
+        const dkDayOf = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+        function dkReal(date) {                                                // 장 날짜 → 그 장을 처음 꾸민 날 (빈 장은 오늘) · D-day 같은 진짜 날짜용
+            if (!dkIs(date) || !dkType()) return date;
+            const s = dkNow().days[dkNo(date)]; return s ? dkDayOf(s) : new Date();
+        }
+        const dkView = () => { try { return localStorage.getItem(DK_VIEW) === 'date' ? 'date' : 'page'; } catch (e) { return 'page'; } };
+        function dkLabel(date) {                                               // 위 바 가운데 글 (js/page.js formatDate)
+            if (!dkIs(date) || !dkType()) return '';
+            const o = dkNow(), n = dkNo(date);
+            if (dkView() === 'date') return o.days[n] ? formatDate(dkDayOf(o.days[n])) : '새 장';
+            return `${n} / ${o.pages} 페이지`;
+        }
+        function dkTap() {                                                     // 위 바 가운데를 누르면 : 유한은 페이지 수 ↔ 날짜 · 기본은 한 달 모아보기
+            if (!dkType()) { if (window.openMonth) openMonth(); return; }
+            try { localStorage.setItem(DK_VIEW, dkView() === 'date' ? 'page' : 'date'); } catch (e) {}
+            document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
+        }
+        function dkPath(date) {                                                // 💾 저장 알림에 보여 줄 자리
+            if (!dkIs(date) || !dkType()) return '';
+            const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
+            return `다꾸/${b ? b.name : dkFolderName(o.design, o.spec)}/${dkNo(date)}페이지.json`;
+        }
+        /* 고른 다이어리와 지금 펼친 날짜가 맞는지 (유한인데 진짜 날짜 · 기본인데 장 날짜 · 페이지 수를 넘음) → 맞는 곳으로 */
+        function dkSync(load) {
+            const bk = !!dkType(), on = dkIs(currentDate);
+            if (bk !== on || (bk && dkNo(currentDate) > dkNow().pages)) {
+                if (window.dyViewSet) dyViewSet('l');
+                currentDate.setTime((bk ? dyOpenDate() : dyOpenDate() || new Date()).getTime());
+                selectedElement = null;
+            } else if (!load) return;
+            document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
+            if (load && isCoverOpen && !turn) loadData();
+        }
+        /* 다이어리.json 을 읽은 뒤 : 빈 장을 보고 있으면 마지막으로 꾸민 장으로 */
+        async function dkFix() {
+            const id = dkId(false); if (!id) return;
+            await ensureKeyLoaded('dkb_' + id);
+            if (!dkType() || dkId(false) !== id || !isCoverOpen || turn || !dkIs(currentDate)) return;
+            const o = dkNow(), f = dkFilled(o), n = dkNo(currentDate);
+            if (f.length && !o.days[n] && f[f.length - 1] !== n) goToDate(dkDate(f[f.length - 1]));
+            else document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
+        }
+        let dkEndAt = 0;
+        async function dkEnd(dir) {                                            // 마지막 장에서 더 넘기려고 할 때 (js/page.js beginCurl)
+            if (dir < 0 || !dkType() || !dkIs(currentDate) || dkNo(currentDate) < dkNow().pages || performance.now() - dkEndAt < 2500) return;
+            dkEndAt = performance.now();
+            if (await showMsg('📕 이 다이어리의 <b>마지막 장</b>이에요.<br>📔 기본 다이어리로 넘어갈까요?', true)) dySet(DY_DEF);
+            dkEndAt = performance.now();
+        }
         /* 🗂 꾸민 페이지만 보기 (도련 · 10-17) : 켜면 넘길 때 빈 날은 건너뛰고 꾸민 날만 (5 · 6 · 9 → 7 · 8 은 안 보여요)
            - 켜면 빈 페이지는 절대 안 보여요 (오늘도) · 다이어리를 열면 마지막으로 꾸민 날 · 꾸민 날이 하나도 없을 때만 오늘
            - 처음 · 마지막 꾸민 날에서 더 넘기면 안 넘어가요 · 새 날은 날짜 바 달력으로 골라서 가요
            - 꺼져 있으면 열 때 그 날짜 (오늘) · 넘길 때 하루씩
            - 모든 다이어리 공통 (보는 방법이라서) · 저장은 그대로 · 설정.json 'diary_filled' · 게스트는 이 기기 'malang_filled'
            - 꾸민 날 목록 : 드라이브의 날짜 파일 목록 (켜져 있으면 처음 한 번 · driveEnumerateAll) + 이 기기에서 읽거나 고친 날
-           - 유한 다이어리를 만들 때 넣을 것 : 켜고 끄기와 상관없이 마지막으로 꾸민 페이지로 열어요 */
+           - 📕 유한 다이어리 : 열면 켜고 끄기와 상관없이 마지막으로 꾸민 장 · 켜면 꾸민 장 + 마지막으로 꾸민 다음 빈 장 하나만 넘겨요 */
         const DF_KEY = 'diary_filled', DF_LOCAL = 'malang_filled';
         let dfList = null, dfGen = -1, dfLoading = null;
         const dfOn = () => prefGet(DF_KEY, DF_LOCAL) === 'on';
@@ -651,6 +751,12 @@
         }
         /* 넘길 날 : 꺼져 있으면 하루 앞 · 뒤 / 켜져 있으면 꾸민 날 중 가장 가까운 날 (없으면 null = 안 넘어가요) */
         function dyStep(date, dir) {
+            if (dkType() && dkIs(date)) {                                      // 📕 유한 : 1장 ~ 마지막 장
+                const o = dkNow(), n = dkNo(date), f = dkFilled(o);
+                if (!dfOn()) { const to = n + dir; return to >= 1 && to <= o.pages ? dkDate(to) : null; }
+                const nx = (f.length ? f[f.length - 1] : 0) + 1, list = f.concat(nx <= o.pages ? [nx] : []).filter(x => dir > 0 ? x > n : x < n);
+                return list.length ? dkDate(dir > 0 ? list[0] : list[list.length - 1]) : null;
+            }
             if (!dfOn()) return addDays(date, dir);
             dfLoad();
             if (!dfList && !drive.guest) return addDays(date, dir);           // 목록을 받기 전에는 하루씩
@@ -665,6 +771,7 @@
         const dfDate = k => { const p = parseDayKey(k); return new Date(p.y, p.m - 1, p.d); };
         /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */
         function dyOpenDate() {
+            if (dkType()) { const f = dkFilled(dkNow()); return dkDate(f.length ? f[f.length - 1] : 1); }   // 📕 유한 : 마지막으로 꾸민 장
             if (!dfOn()) return null;
             dfLoad();
             if (!dfList && !drive.guest) return null;
@@ -672,6 +779,7 @@
         }
         /* 목록을 받은 뒤 · 켰을 때 : 지금 빈 페이지를 보고 있으면 마지막으로 꾸민 날로 */
         async function dfFix() {
+            if (dkType()) return dkFix();
             await dfLoad();
             if (!dfOn() || !isCoverOpen || turn) return;
             const cur = getDateKey(currentDate);
@@ -699,7 +807,9 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const id = dyNow().id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo; window.dkFilePath = dkFilePath;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dkType = dkType; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
+        window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['skins'] = true;

@@ -37,9 +37,12 @@
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         const DAY_KEY_RE = /^diary_(\d{4})_(\d{2})_(\d{2})$/;
+        const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/;   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
+        const DK_INFO = '다이어리.json';
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
            - 날짜 데이터  : diary_2026_09_10  → 말랑달콤/다꾸/기본/2026년/9월/10일.json
+           - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/다꾸/딸기우유 (6공 A5)/3페이지.json · dkb_<권 id> → 같은 폴더 다이어리.json
            - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페/카페.json) */
         const store = {
             _m: new Map(),
@@ -81,6 +84,8 @@
             folderBusy: new Map(),
             monthIndex: new Map(),       // '2026/9' → { folderId, files: Map(파일명 → 파일정보) } 캐시
             monthBusy: new Map(),
+            books: new Map(), bookBusy: new Map(),   // 📕 권 id → { folderId, files } (monthIndex 와 같은 모양)
+            bookScan: null,              // 📕 다꾸 안 권 폴더 : 권 id → { folderId, name } (다이어리.json 의 id 로 찾아요)
             get dirty() { return this.dirtyKeys.size > 0; }
         };
         let uploadTimer = null;
@@ -165,6 +170,10 @@
         function dayKeyOf(y, m, d) { return `diary_${y}_${String(m).padStart(2, '0')}_${String(d).padStart(2, '0')}`; }
         function parseDayKey(k) { const r = DAY_KEY_RE.exec(k); return r ? { y: +r[1], m: +r[2], d: +r[3] } : null; }
         function isDayKey(k) { return DAY_KEY_RE.test(k); }
+        function parsePageKey(k) { const r = PAGE_KEY_RE.exec(k); return r ? { b: r[1], n: +r[2] } : null; }
+        const isPageKey = k => PAGE_KEY_RE.test(k), isBookKey = k => BOOK_KEY_RE.test(k);
+        const isOwnFile = k => isDayKey(k) || isPageKey(k) || isBookKey(k);    // 키 하나가 드라이브 파일 하나 (하루 · 장 · 다이어리.json)
+        function keyLabel(k) { const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? `${p.n}페이지` : '다이어리'; }
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
         function keyFile(k) { return CAFE_KEYS.includes(k) ? 'cafe' : 'settings'; }
@@ -237,6 +246,7 @@
         function handRender() { const l = handLeft(); document.querySelectorAll('#handPick [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'left') === l)); }
         function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d; }
         function dayPathText(date) {                                       // 안내문용 : 맨 위 폴더 이름은 빼요 (도련 · 2026-10-13)
+            const dk = window.dkPath && dkPath(date); if (dk) return dk;     // 📕 유한 다이어리 장 (js/skins.js)
             return `${DAY_PATH.slice(1).join('/')}/${yearFolderName(date.getFullYear())}/${monthFolderName(date.getMonth() + 1)}/${dayFileName(date.getDate())}`;
         }
         function corruptError(what) { const er = new Error('corrupt'); er.type = 'corrupt'; er.what = what; return er; }
@@ -378,6 +388,7 @@
         function resetDriveCaches() {
             drive.folderIds.clear(); drive.folderBusy.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
+            drive.books.clear(); drive.bookBusy.clear(); drive.bookScan = null;
             drive.settingsFile = null; drive.cafeFile = null;
         }
 
@@ -393,14 +404,71 @@
             return parseJsonObject(await readFileText(f.id), which);
         }
 
-        async function fetchDay(date, meta) {
-            const idx = await getMonthIndex(date.getFullYear(), date.getMonth() + 1, false);
-            if (idx) await dayDupFix(idx, dayFileName(date.getDate()), getDateKey(date));
-            const f = idx && idx.files.get(dayFileName(date.getDate()));
+        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 달 폴더 · 📕 장 · 다이어리.json : 권 폴더) */
+        function idxOfKey(key, create) {
+            const d = parseDayKey(key); if (d) return getMonthIndex(d.y, d.m, create);
+            const p = parsePageKey(key), b = BOOK_KEY_RE.exec(key);
+            return p || b ? getBookIndex(p ? p.b : b[1], create) : Promise.resolve(null);
+        }
+        function fileOfKey(key) { const d = parseDayKey(key); if (d) return dayFileName(d.d); const p = parsePageKey(key); return p ? p.n + '페이지.json' : DK_INFO; }
+        async function fetchKey(key, meta) {
+            const idx = await idxOfKey(key, false), name = fileOfKey(key);
+            if (idx) await dayDupFix(idx, name, key);
+            const f = idx && idx.files.get(name);
             if (meta) meta.t = f ? f.modifiedTime || '' : '';
-            if (!f) return null;                                   // 그날 쓴 일기가 없음
-            const obj = parseJsonObject(await readFileText(f.id), getDateKey(date));
+            if (!f) return null;                                   // 그날 (그 장) 쓴 게 없음
+            const obj = parseJsonObject(await readFileText(f.id), key);
             return obj ? JSON.stringify(obj) : null;
+        }
+        const fetchDay = (date, meta) => fetchKey(getDateKey(date), meta);
+
+        /* 📕 유한 다이어리 권 폴더 찾기 : 다꾸 안 폴더마다 다이어리.json 의 id 를 읽어요 (폴더 이름은 사람이 알아보는 용도 · 같은 이름 폴더를 합치지 않아요) */
+        function dkScan() {
+            if (drive.bookScan) return drive.bookScan;
+            const p = drive.bookScan = (async () => {
+                const out = new Map(), root = await getFolder(DAKKU_PATH, false);
+                if (!root) return out;
+                const dirs = (await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name')).filter(f => f.name !== '기본' && f.name !== '검색');
+                await Promise.all(dirs.map(async d => {
+                    const f = await findFile(d.id, DK_INFO); if (!f) return;
+                    try { const o = parseJsonObject(await readFileText(f.id), DK_INFO); if (o && o.id && !out.has(o.id)) out.set(o.id, { folderId: d.id, name: d.name }); } catch (e) {}
+                }));
+                return out;
+            })();
+            p.catch(() => { if (drive.bookScan === p) drive.bookScan = null; });
+            return p;
+        }
+        /* 권 폴더 안 파일 목록 · create=true 면 없을 때 폴더와 다이어리.json 을 만들어요 (첫 장을 저장할 때) */
+        async function getBookIndex(id, create) {
+            let entry = drive.books.get(id);
+            if (entry) return entry;
+            if (drive.bookBusy.has(id)) {
+                entry = await drive.bookBusy.get(id);
+                if (entry || !create) return entry;
+            }
+            const p = (async () => {
+                const scan = await dkScan();
+                let hit = scan.get(id);
+                if (!hit) {
+                    if (!create) return null;
+                    const root = await getFolder(DAKKU_PATH, true), info = dkInfoOf(id);
+                    const taken = (await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'name')).map(f => f.name);
+                    const name = dkFolderName(info.design, info.spec, taken);
+                    hit = { folderId: await createFolder(name, root), name };
+                    await driveUpsert(hit.folderId, DK_INFO, null, JSON.stringify(info));
+                    scan.set(id, hit);
+                }
+                const files = await driveList(`'${hit.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
+                const e = { folderId: hit.folderId, name: hit.name, files: new Map(), dups: new Map() };
+                files.forEach(f => {
+                    if (!e.files.has(f.name)) e.files.set(f.name, f);
+                    else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
+                });
+                drive.books.set(id, e);
+                return e;
+            })();
+            drive.bookBusy.set(id, p);
+            try { return await p; } finally { drive.bookBusy.delete(id); }
         }
 
         /* 📄📄 같은 날 일기 파일이 2개 이상 (두 기기가 거의 동시에 처음 만든 경우) → 하나로 정리
@@ -421,8 +489,7 @@
                     if (b === null || b === 'null' || b === a) continue;
                     if (a === null || a === 'null') { win = i; continue; }
                     const tm = f => new Date(f.modifiedTime).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    const dk = parseDayKey(key);
-                    const first = await showAsk(`📄 <b>${dk.m}월 ${dk.d}일</b> 일기 파일이 두 개 있어요.<br>(두 기기에서 거의 동시에 처음 저장한 것 같아요)<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 드라이브 휴지통으로 가요.</span>`, `🕐 ${tm(list[win])} 저장한 것`, `🕑 ${tm(list[i])} 저장한 것`);
+                    const first = await showAsk(`📄 <b>${keyLabel(key)}</b> 일기 파일이 두 개 있어요.<br>(두 기기에서 거의 동시에 처음 저장한 것 같아요)<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 드라이브 휴지통으로 가요.</span>`, `🕐 ${tm(list[win])} 저장한 것`, `🕑 ${tm(list[i])} 저장한 것`);
                     if (!first) win = i;
                 }
                 const keep = list[0];
@@ -437,14 +504,16 @@
         }
 
         /* 하루치를 메모리로 읽어 오기 (이미 읽었으면 바로 끝, 읽는 중이면 그 요청을 같이 기다림) */
-        function ensureDayLoaded(date) {
-            const key = getDateKey(date);
+        const ensureDayLoaded = date => ensureKeyLoaded(getDateKey(date));
+        function ensureKeyLoaded(key) {
             if (drive.guest || drive.loadedDays.has(key)) return Promise.resolve(true);
             if (drive.dayLoads.has(key)) return drive.dayLoads.get(key);
             const gen = drive.gen;
             const p = (async () => {
                 try {
-                    const meta = {}, text = await fetchDay(date, meta);
+                    const pk = parsePageKey(key);
+                    if (pk && !(await ensureKeyLoaded('dkb_' + pk.b))) return false;   // 📕 장을 읽기 전에 다이어리.json 먼저 (꾸민 날 · 페이지 수)
+                    const meta = {}, text = await fetchKey(key, meta);
                     if (gen !== drive.gen) return false;
                     if (!drive.dirtyKeys.has(key)) store.putLoaded(key, text);   // 고치는 중인 내용이 있으면 덮어쓰지 않음
                     if (!drive.dayMeta.has(key)) drive.dayMeta.set(key, meta.t);
@@ -676,10 +745,10 @@
         }
 
         /* 일기 하루 올리기 : 다른 기기가 그 사이 같은 날을 고쳤으면 물어봐요 */
-        async function writeDay(key, dk) {
+        async function writeDay(key) {
             const val = store.getItem(key);
-            const name = dayFileName(dk.d);
-            const idx = await getMonthIndex(dk.y, dk.m, val !== null);              // 올릴 때만 년도·달 폴더를 만들어요
+            const name = fileOfKey(key), lab = keyLabel(key);
+            const idx = await idxOfKey(key, val !== null);                          // 올릴 때만 년도·달 폴더 (📕 권 폴더) 를 만들어요
             if (!idx) return;                                                       // 지울 날인데 폴더도 없음
             await dayDupFix(idx, name, key);
             const f = idx.files.get(name);
@@ -690,7 +759,7 @@
                 let theirs = null;
                 try { theirs = JSON.stringify(parseJsonObject(await readFileText(cur.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; }
                 if (theirs !== val && theirs !== null && theirs !== 'null') {
-                    const mineWins = await showAsk(`📱 다른 기기에서 <b>${dk.m}월 ${dk.d}일</b> 일기를 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
+                    const mineWins = await showAsk(`📱 다른 기기에서 <b>${lab}</b> 일기를 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
                     if (!mineWins) {
                         idx.files.set(name, cur); drive.dayMeta.set(key, cur.modifiedTime);
                         if (!drive.dirtyKeys.has(key)) { store.putLoaded(key, theirs); dayShownAgain(key); }
@@ -712,7 +781,7 @@
                     try { theirs = JSON.stringify(parseJsonObject(await readFileText(first.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; }
                     let mine = true;
                     if (theirs !== null && theirs !== 'null' && theirs !== val)
-                        mine = await showAsk(`📱 다른 기기에서도 방금 <b>${dk.m}월 ${dk.d}일</b> 일기를 처음 저장했어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 드라이브 휴지통으로 가요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
+                        mine = await showAsk(`📱 다른 기기에서도 방금 <b>${lab}</b> 일기를 처음 저장했어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 드라이브 휴지통으로 가요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
                     let fin = first;
                     if (mine && theirs !== val) { if (window.trashKeepDay) await trashKeepDay(key, theirs); fin = Object.assign({}, first, await driveUpsert(idx.folderId, name, first.id, val)); }
                     await driveTrash(saved.id);                                     // 내가 만든 쪽은 휴지통으로 (가장 먼저 만든 파일 하나만 남겨요)
@@ -723,6 +792,23 @@
                 }
             }
             idx.files.set(name, { id: saved.id, name, modifiedTime: saved.modifiedTime });
+            drive.dayMeta.set(key, saved.modifiedTime);
+        }
+        /* 📕 다이어리.json 올리기 : 다른 기기가 고쳤으면 묻지 않고 합쳐요 (장마다 처음 꾸민 날 = 더 이른 날) */
+        async function writeBook(key) {
+            const id = BOOK_KEY_RE.exec(key)[1];
+            let val = store.getItem(key);
+            if (val === null) return;
+            const idx = await getBookIndex(id, true);
+            const f = idx.files.get(DK_INFO);
+            let cur = f ? await driveMeta(f.id) : null;
+            if (!cur) cur = await findFile(idx.folderId, DK_INFO);
+            if (cur && cur.modifiedTime !== (drive.dayMeta.get(key) || '')) {
+                let theirs = null; try { theirs = parseJsonObject(await readFileText(cur.id), key); } catch (e) { if (e.type !== 'corrupt') throw e; }
+                if (theirs) { val = JSON.stringify(dkInfoMerge(JSON.parse(val), theirs)); store.putLoaded(key, val); }
+            }
+            const saved = await driveUpsert(idx.folderId, DK_INFO, cur && cur.id, val);
+            idx.files.set(DK_INFO, { id: saved.id, name: DK_INFO, modifiedTime: saved.modifiedTime });
             drive.dayMeta.set(key, saved.modifiedTime);
         }
         /* 그날이 지금 펼쳐 둔 페이지면 다시 그리기 · 검색 목록도 */
@@ -736,8 +822,8 @@
         /* 변경된 키 하나(또는 같은 설정 파일의 키 묶음)를 드라이브에 반영 */
         async function driveWriteKey(key, retried, mine) {
             try {
-                const dk = parseDayKey(key);
-                if (dk) await writeDay(key, dk);
+                if (isBookKey(key)) await writeBook(key);
+                else if (isOwnFile(key)) await writeDay(key);
                 else await writeKeyFile(keyFile(key), mine || new Set([key]));
             } catch (e) {
                 if (e && e.code === 'gone' && !retried) { resetDriveCaches(); return driveWriteKey(key, true, mine); }
@@ -763,10 +849,10 @@
                 for (const key of Array.from(drive.dirtyKeys)) {
                     if (done.has(key) || !drive.dirtyKeys.has(key)) continue;
                     /* 설정 키는 같은 파일 것을 한 번에 (파일 하나를 여러 번 올리지 않게) */
-                    const group = isDayKey(key) ? [key] : Array.from(drive.dirtyKeys).filter(k => !isDayKey(k) && keyFile(k) === keyFile(key));
+                    const group = isOwnFile(key) ? [key] : Array.from(drive.dirtyKeys).filter(k => !isOwnFile(k) && keyFile(k) === keyFile(key));
                     group.forEach(k => { drive.dirtyKeys.delete(k); done.add(k); });   // 올리는 도중 또 바뀌면 다시 표시됨
                     drive.inflight = key;
-                    try { await driveWriteKey(key, false, new Set(group)); sent.push(isDayKey(key) ? key : keyFile(key)); }
+                    try { await driveWriteKey(key, false, new Set(group)); sent.push(isOwnFile(key) ? key : keyFile(key)); }
                     catch (e) {
                         group.forEach(k => drive.dirtyKeys.add(k)); allOk = false;
                         if (e && e.code === 'auth') { authFail = true; break; }
@@ -987,7 +1073,7 @@
                 const next = [];
                 for (const k of left) {
                     const dk = parseDayKey(k);
-                    await ensureDayLoaded(new Date(dk.y, dk.m - 1, dk.d));
+                    await ensureKeyLoaded(k);
                     if (!drive.loadedDays.has(k)) { next.push(k); continue; }         // 드라이브 것을 못 읽으면 덮지 않고 다시 시도
                     const cur = store.getItem(k), mine = days[k];
                     if (cur === mine) continue;
@@ -1068,7 +1154,7 @@
                 drive.dirtyKeys.forEach(k => { items[k] = store.getItem(k); });          // null = 내용을 지운 날
                 if (drive.inflight && !(drive.inflight in items)) items[drive.inflight] = store.getItem(drive.inflight);
                 Object.keys(items).forEach(k => {                                         // 그때 드라이브 파일의 수정 시각 (기기 시계가 아니라 구글 시각)
-                    if (isDayKey(k)) { if (drive.dayMeta.has(k)) b[k] = drive.dayMeta.get(k); }
+                    if (isOwnFile(k)) { if (drive.dayMeta.has(k)) b[k] = drive.dayMeta.get(k); }
                     else if (isSettingKey(k)) {
                         const f = drive[KEY_FILES[keyFile(k)].prop]; b[k] = f && f.modifiedTime || '';
                         if (keyFile(k) === 'cafe' && drive.cafeBase.has(k)) bv[k] = drive.cafeBase.get(k);   // ☕ 합칠 때 기준
@@ -1139,15 +1225,16 @@
             const safe = [], cafe = [], askDays = [], askSet = [];
             for (const k of Object.keys(p.items)) {
                 const v = p.items[k];
-                if (!k.startsWith('diary_') && !VAULT_KEYS.includes(k)) continue;
+                if (!k.startsWith('diary_') && !VAULT_KEYS.includes(k) && !isPageKey(k) && !isBookKey(k)) continue;
                 if (!(v === null || typeof v === 'string')) continue;
-                const dk = parseDayKey(k);
+                const dk = isOwnFile(k);
                 let now;
                 if (dk) {
-                    await ensureDayLoaded(new Date(dk.y, dk.m - 1, dk.d));
+                    await ensureKeyLoaded(k);
                     if (!drive.loadedDays.has(k)) continue;                             // 드라이브 내용을 읽지 못하면 건드리지 않음
-                    const idx = drive.monthIndex.get(`${dk.y}/${dk.m}`);
-                    const f = idx && idx.files.get(dayFileName(dk.d));
+                    if (isBookKey(k)) { if (v) store.setItem(k, JSON.stringify(dkInfoMerge(JSON.parse(v), JSON.parse(store.getItem(k) || '{}')))); continue; }   // 📕 다이어리.json 은 묻지 않고 합쳐요
+                    const idx = await idxOfKey(k, false);
+                    const f = idx && idx.files.get(fileOfKey(k));
                     now = f ? f.modifiedTime || '' : '';
                 } else if (isSettingKey(k)) {
                     const sf = drive[KEY_FILES[keyFile(k)].prop];
@@ -1173,8 +1260,7 @@
                     }
                 }
                 for (const k of askDays) {
-                    const dk = parseDayKey(k);
-                    const mine = await showAsk(`📴 ${when} 화면이 꺼질 때 고친 <b>${dk.m}월 ${dk.d}일</b> 일기가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 이 날을 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 이 기기 것', '📱 다른 기기 것');
+                    const mine = await showAsk(`📴 ${when} 화면이 꺼질 때 고친 <b>${keyLabel(k)}</b> 일기가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 이 날을 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 이 기기 것', '📱 다른 기기 것');
                     if (mine) { if (window.trashKeepDay) await trashKeepDay(k, store.getItem(k)); put(k); any = true; }   // 🗑 다른 기기 것은 휴지통에
                 }
                 if (askSet.length) {
@@ -1219,24 +1305,24 @@
                 try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에 (고친 것은 지키려고)
                 for (const which of Object.keys(KEY_FILES)) {
                     const F = KEY_FILES[which], known = drive[F.prop];
-                    if (Array.from(drive.dirtyKeys).some(k => !isDayKey(k) && keyFile(k) === which)) continue;   // 올릴 때 합쳐요
+                    if (Array.from(drive.dirtyKeys).some(k => !isOwnFile(k) && keyFile(k) === which)) continue;   // 올릴 때 합쳐요
                     const dir = await getFolder(F.path, false);
                     const cur = dir && (known && await driveMeta(known.id) || await findFile(dir, F.name));
                     if (gen !== drive.gen) return;
                     if (cur && (!known || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, new Set());
                 }
-                const days = isCoverOpen ? [currentDate, addDays(currentDate, -1), addDays(currentDate, 1)] : [];
-                const months = new Set(days.map(d => `${d.getFullYear()}/${d.getMonth() + 1}`));
-                months.forEach(m => drive.monthIndex.delete(m));            // 달 폴더 목록을 새로 (수정 시각이 들어 있어요)
+                const keys = isCoverOpen ? [currentDate, addDays(currentDate, -1), addDays(currentDate, 1)].map(getDateKey) : [];
+                const bk = keys.map(parsePageKey).find(Boolean);
+                if (bk) { keys.unshift('dkb_' + bk.b); drive.books.delete(bk.b); }       // 📕 권 폴더 목록을 새로 · 다이어리.json 도
+                keys.map(parseDayKey).filter(Boolean).forEach(d => drive.monthIndex.delete(`${d.y}/${d.m}`));   // 달 폴더 목록을 새로 (수정 시각이 들어 있어요)
                 let any = false;
-                for (const d of days) {
-                    const key = getDateKey(d);
+                for (const key of keys) {
                     if (!drive.loadedDays.has(key) || drive.dirtyKeys.has(key) || drive.inflight === key) continue;
-                    const idx = await getMonthIndex(d.getFullYear(), d.getMonth() + 1, false);
-                    const f = idx && idx.files.get(dayFileName(d.getDate()));
+                    const idx = await idxOfKey(key, false);
+                    const f = idx && idx.files.get(fileOfKey(key));
                     const t = f ? f.modifiedTime || '' : '';
                     if (gen !== drive.gen || t === (drive.dayMeta.get(key) || '')) continue;
-                    const meta = {}, text = await fetchDay(d, meta);
+                    const meta = {}, text = await fetchKey(key, meta);
                     if (gen !== drive.gen || drive.dirtyKeys.has(key)) continue;
                     store.putLoaded(key, text); drive.dayMeta.set(key, meta.t);
                     dayShownAgain(key); any = true;

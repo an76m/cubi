@@ -1677,6 +1677,11 @@
         .mo-c.mo-today { box-shadow: inset 0 0 0 2.5px var(--primary-accent, #ff6b81); }
         .mo-c.mo-today i { color: var(--primary-accent, #ff6b81); font-weight: bold; }
         .mo-c.mo-fut { opacity: .45; }
+        .mo-c.mo-off { background: #efeaec; cursor: default; opacity: .55; }     /* 📕 유한 다이어리 : 꾸미지 않은 날은 회색 · 못 눌러요 */
+        .mo-c.mo-off i { color: #a89aa0; text-shadow: none; }
+        .mo-cnt { position: absolute; right: 3px; bottom: 3px; z-index: 1; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--primary-accent, #ff6b81); color: #fff; font-size: 10.5px; font-weight: bold; line-height: 16px; text-align: center; box-sizing: border-box; }
+        .mo-bk-note, .mo-book .mo-note:not(.mo-bk-note) { display: none; }
+        .mo-book .mo-bk-note { display: block; }
         .mo-note { margin: 0; font-size: 12.5px; line-height: 1.6; color: #8a7a80; text-align: center; word-break: keep-all; }
 
         /* ===== 😊 기분 · 날씨 도장 (js/stamp.js) ===== */

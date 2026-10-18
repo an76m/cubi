@@ -56,9 +56,9 @@
             const page = ddq('innerPage'); if (!page) return;
             let box = ddq('pageDday');
             if (!box) { box = document.createElement('div'); box.id = 'pageDday'; box.className = 'page-dday'; box.onclick = () => openDday(); page.appendChild(box); }
-            box.innerHTML = typeof currentDate !== 'undefined' ? ddBadgeHtml(currentDate) : '';
+            box.innerHTML = typeof currentDate !== 'undefined' ? ddBadgeHtml(window.dkReal ? dkReal(currentDate) : currentDate) : '';   // 📕 유한 다이어리 장은 처음 꾸민 날 기준
         }
-        function ddStaticHtml(date) { const h = ddBadgeHtml(date); return h ? `<div class="page-dday">${h}</div>` : ''; }
+        function ddStaticHtml(date) { const h = ddBadgeHtml(window.dkReal ? dkReal(date) : date); return h ? `<div class="page-dday">${h}</div>` : ''; }
 
         /* ---------- D-day 화면 ---------- */
         function ddBuild() {

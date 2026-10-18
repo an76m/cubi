@@ -5,6 +5,8 @@
    - 날짜를 누르면 그날 일기로 바로 가요
    - 드라이브 사용 : 그 달의 파일 목록 1번 + 아직 안 읽은 '가벼운' 날 파일만 읽어요 (사진이 많은 큰 날은 📷 표시만, 눌러서 볼 때 읽어요)
      한 번 읽은 날은 기억해 두어서, 그 날로 넘길 때 다시 읽지 않아요
+   - 📕 유한 다이어리 (도련 · 10-18) : 꾸민 날만 누를 수 있고 나머지는 회색 · 누르면 그날 처음 꾸민 장 · 하루에 여러 장이면 작은 숫자
+     꾸민 날은 다이어리.json 의 days 만 읽어요 (장 파일을 다 열지 않아요)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (날짜를 눌러도 아무 일 없어요) */
 
         const MO_LIGHT = 80000;          // 이보다 작은 날 파일만 미리 읽어 대표 그림을 보여 줘요 (바이트)
@@ -24,6 +26,7 @@
                 <div class="mo-week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
                 <div class="mo-grid" id="moGrid"></div>
                 <p class="mo-note">💡 날짜를 누르면 그날 일기로 가요. 📷 는 사진이 많은 날이에요 (눌러서 보면 그림이 나와요).</p>
+                <p class="mo-note mo-bk-note">💡 꾸민 날만 눌러져요. 누르면 그날 처음 꾸민 장으로 가요. 숫자는 그날 꾸민 장 수예요.</p>
               </div>`;
             document.body.appendChild(el);
         }
@@ -45,9 +48,52 @@
             return { emoji: '📝' };
         }
 
+        /* 📕 유한 다이어리 : 그 달에 꾸민 날 → [장 번호 …] */
+        function moBookDays(y, m) {
+            const o = dkNow(), out = new Map();
+            dkFilled(o).forEach(n => { const d = dkDayOf(o.days[n]); if (d.getFullYear() === y && d.getMonth() === m) { const a = out.get(d.getDate()) || []; a.push(n); out.set(d.getDate(), a); } });
+            return out;
+        }
+        async function moRenderBook(gen, y, m) {
+            const today = new Date(), last = new Date(y, m + 1, 0).getDate(), first = new Date(y, m, 1).getDay();
+            const book = moBookDays(y, m), todo = [];
+            const draw = () => {
+                if (gen !== mo.gen) return;
+                let h = '';
+                for (let i = 0; i < first; i++) h += '<span class="mo-c mo-e"></span>';
+                for (let d = 1; d <= last; d++) {
+                    const ps = book.get(d), tdy = y === today.getFullYear() && m === today.getMonth() && d === today.getDate() ? ' mo-today' : '';
+                    if (!ps) { h += `<button type="button" class="mo-c mo-off${tdy}" disabled><i>${d}</i></button>`; continue; }
+                    const pd = dkDate(ps[0]), key = getDateKey(pd), ok = drive.guest || drive.loadedDays.has(key);
+                    if (!ok) todo.push(pd);
+                    const pv = ok ? moPreview(pd) : null;
+                    const inner = pv ? (pv.img ? `<img src="${pv.img.replace(/"/g, '&quot;')}" alt="" loading="lazy">` : `<em>${pv.emoji}</em>`) : '<em class="mo-wait">·</em>';
+                    h += `<button type="button" class="mo-c mo-has${tdy}" onclick="moGo(${d})"><i>${d}</i>${inner}${ps.length > 1 ? `<span class="mo-cnt">${ps.length}</span>` : ''}</button>`;
+                }
+                moq('moGrid').innerHTML = h;
+                const n = [...book.values()].reduce((a, x) => a + x.length, 0);
+                moq('moSum').innerHTML = n ? `이 달에 꾸민 장 <b>${n}</b>장` : '이 달에는 꾸민 장이 없어요';
+            };
+            draw();
+            for (let i = 0; i < todo.length && gen === mo.gen; i += 4) {
+                await Promise.all(todo.slice(i, i + 4).map(d => ensureDayLoaded(d).catch(() => false)));
+                draw();
+            }
+        }
+
         async function moRender() {
             const gen = ++mo.gen, y = mo.y, m = mo.m, today = new Date();
             moq('moTitle').textContent = `${y}년 ${m + 1}월`;
+            const bk = window.dkType && dkType();
+            moq('monthRoom').classList.toggle('mo-book', !!bk);
+            if (bk) {                                                           // 📕 유한 다이어리 : 다이어리.json 을 읽은 뒤 꾸민 날만
+                if (typeof drive !== 'undefined' && drive.ready && !drive.guest) {
+                    moq('moGrid').innerHTML = '<div class="mo-loading">📅 달력을 펼치는 중…</div>';
+                    try { await ensureKeyLoaded('dkb_' + dkNow().id); } catch (e) {}
+                    if (gen !== mo.gen) return;
+                }
+                return moRenderBook(gen, y, m);
+            }
             const last = new Date(y, m + 1, 0).getDate(), first = new Date(y, m, 1).getDay();
             /* 그 달의 파일 목록 (로그인했을 때) */
             let files = null;
@@ -91,13 +137,15 @@
         }
         function moMove(dir) { let m = mo.m + dir, y = mo.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } mo.y = y; mo.m = m; moRender(); }
         function moGo(d) {
-            const date = new Date(mo.y, mo.m, d);
+            let date = new Date(mo.y, mo.m, d);
+            if (window.dkType && dkType()) { const ps = moBookDays(mo.y, mo.m).get(d); if (!ps) return; date = dkDate(ps[0]); }   // 📕 그날 처음 꾸민 장
             closeMonth();
             if (typeof goToDate === 'function') goToDate(date);
         }
         function openMonth() {
             moBuild();
-            const base = typeof isCoverOpen !== 'undefined' && isCoverOpen ? currentDate : new Date();
+            let base = typeof isCoverOpen !== 'undefined' && isCoverOpen ? currentDate : new Date();
+            if (window.dkType && dkType() && dkIs(base)) { const s = dkNow().days[dkNo(base)]; base = s ? dkDayOf(s) : new Date(); }   // 📕 지금 장을 꾸민 달 (빈 장이면 이번 달)
             mo.y = base.getFullYear(); mo.m = base.getMonth();
             if (isCoverOpen) saveData(false);                    // 지금 페이지 내용도 달력에 바로 보이도록
             moq('monthRoom').classList.add('show');

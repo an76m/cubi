@@ -7,6 +7,7 @@
    - 검색 창을 처음 열 때 (기기마다 · 접속할 때마다 한 번) 드라이브의 일기 목록과 맞춰 봐요
      다른 기기에서 쓴 일기처럼 목록에 없는 날만 그 일기 파일을 읽어서 채워요 (처음 한 번은 조금 걸릴 수 있어요)
    - 게스트(로그인 안 함)는 지금 기기에 있는 일기에서만 찾아요
+   - 📕 유한 다이어리를 쓰는 중이면 그 다이어리 장들에서만 찾아요 (꾸민 장을 다 읽어서 · 검색 목록 파일은 안 써요)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (검색 버튼만 '준비 중') */
 
         const SR_PREFIX = '검색-', SR_MAX = 2000, SR_SAVE_MS = 20000;
@@ -181,7 +182,9 @@
             inp.addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(t); srRun(); inp.blur(); } });
         }
         function srMood(label) { srq('srInput').value = '기분 ' + label; srRun(); }
-        function srAll() {                                                          // [{ day, text }] (최신 날 먼저)
+        const srBook = () => !!(window.dkType && dkType());
+        function srAll() {                                                          // [{ day, text }] (최신 날 먼저 · 📕 유한은 day = 'p장' · 뒤 장 먼저)
+            if (srBook()) return dkFilled(dkNow()).reverse().map(n => { let raw = null; try { raw = JSON.parse(store.getItem(getDateKey(dkDate(n)))); } catch (e) {} return { day: 'p' + n, text: srText(raw) }; }).filter(x => x.text);
             const map = new Map();
             sr.years.forEach(Y => Object.keys(Y.d).forEach(day => map.set(day, Y.d[day][0])));
             store.keys().forEach(k => { const day = srDayOf(k); if (day && (!srOn() || drive.loadedDays.has(k) || drive.dirtyKeys.has(k))) { let raw = null; try { raw = JSON.parse(store.getItem(k)); } catch (e) {} const t = srText(raw); if (t) map.set(day, t); else map.delete(day); } });
@@ -189,23 +192,27 @@
         }
         function srRun() {
             const q = srq('srInput').value.trim(), list = srq('srList');
-            if (!q) { list.innerHTML = ''; srq('srStatus').textContent = sr.synced || !srOn() ? `📔 일기 ${srAll().length}일 중에서 찾아요` : ''; return; }
+            const bk = srBook(), unit = bk ? '장' : '일';
+            if (!q) { list.innerHTML = ''; srq('srStatus').textContent = bk ? `📕 이 다이어리 ${srAll().length}장 중에서 찾아요` : sr.synced || !srOn() ? `📔 일기 ${srAll().length}일 중에서 찾아요` : ''; return; }
             const words = q.toLowerCase().split(/\s+/).filter(Boolean);
             const hits = srAll().filter(x => { const t = x.text.toLowerCase(); return words.every(w => t.includes(w)); });
-            srq('srStatus').innerHTML = hits.length ? `'<b>${srEsc(q)}</b>' 이(가) 나온 날 <b>${hits.length}</b>일` : `'<b>${srEsc(q)}</b>' 이(가) 나온 날이 없어요`;
+            srq('srStatus').innerHTML = hits.length ? `'<b>${srEsc(q)}</b>' 이(가) 나온 ${bk ? '장' : '날'} <b>${hits.length}</b>${unit}` : `'<b>${srEsc(q)}</b>' 이(가) 나온 ${bk ? '장' : '날'}이 없어요`;
             const wk = ['일', '월', '화', '수', '목', '금', '토'];
             list.innerHTML = hits.slice(0, 200).map(x => {
-                const [y, m, d] = x.day.split('-').map(Number), dt = new Date(y, m - 1, d);
+                const pn = bk ? +x.day.slice(1) : 0, ds = bk ? dkNow().days[pn] : x.day;
+                const [y, m, d] = ds.split('-').map(Number), dt = new Date(y, m - 1, d);
                 const flat = x.text.replace(/\s+/g, ' '), i = flat.toLowerCase().indexOf(words[0]);
                 let snip = flat.slice(Math.max(0, i - 24), i + 60); if (i > 24) snip = '…' + snip; if (i + 60 < flat.length) snip += '…';
                 let html = srEsc(snip);
                 words.forEach(w => { html = html.replace(new RegExp(srEsc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), s => `<mark>${s}</mark>`); });
-                return `<button type="button" class="sr-it" onclick="srGo('${x.day}')"><span class="sr-d"><b>${m}월 ${d}일</b><small>${y} · ${wk[dt.getDay()]}</small></span><span class="sr-t">${html}</span></button>`;
+                const head = bk ? `<b>${pn}페이지</b><small>${m}월 ${d}일</small>` : `<b>${m}월 ${d}일</b><small>${y} · ${wk[dt.getDay()]}</small>`;
+                return `<button type="button" class="sr-it" onclick="srGo('${x.day}')"><span class="sr-d">${head}</span><span class="sr-t">${html}</span></button>`;
             }).join('') + (hits.length > 200 ? '<p class="sr-more">최근 200일까지 보여 줘요. 낱말을 더 넣어 좁혀 보세요.</p>' : '');
         }
         function srGo(day) {
             const [y, m, d] = day.split('-').map(Number);
             closeSearch();
+            if (day[0] === 'p') { goToDate(dkDate(+day.slice(1))); return; }   // 📕 유한 다이어리 장
             if (typeof goToDate === 'function') goToDate(new Date(y, m - 1, d));
         }
         async function openSearch() {
@@ -215,6 +222,11 @@
             document.body.classList.add('fc-lock');
             setTimeout(() => srq('srInput').focus(), 50);
             srRun();
+            if (srBook()) {                                                     // 📕 유한 : 꾸민 장을 다 읽어서 찾아요
+                const ps = dkFilled(dkNow()).map(dkDate).filter(d => !drive.guest && !drive.loadedDays.has(getDateKey(d)));
+                if (ps.length) { srq('srStatus').textContent = '📕 이 다이어리를 펼쳐 보는 중…'; await Promise.all(ps.map(d => ensureDayLoaded(d).catch(() => false))); srRun(); }
+                return;
+            }
             if (srOn() && !sr.synced) {
                 srq('srStatus').textContent = '📔 일기 목록을 살펴보는 중…';
                 try { await srSync((i, n) => { srq('srStatus').textContent = `📔 검색 목록을 만드는 중… ${i} / ${n}일 (처음 한 번만)`; }); } catch (e) { srq('srStatus').textContent = '⚠ 일기 목록을 다 읽지 못했어요. 지금 있는 것에서 찾을게요.'; }
