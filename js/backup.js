@@ -90,10 +90,10 @@
         /* [{ path, text() }] → 지금 쓰는 곳의 같은 자리에 (있으면 덮어쓰기) */
         /* 하나로 모인 파일은 통째로 덮지 않고 합쳐요 (도련 · 2026-10-13 · 경우의 수 점검)
            - 설정.json · 카페.json : 키마다 (같은 키는 넣는 쪽) → 받는 쪽에만 있던 설정 · 카페 기록이 사라지지 않게
-           - 검색-년도.json : 날짜마다 합치기
+           - 검색-*.json (해마다 · 권마다 검색 목록) : 날짜(장)마다 합치기
            - 모음 목록(목록/목록N.json) : 넣지 않아요 → 원본은 모두 들어가고, 모음을 처음 열 때 원본을 보고 목록을 다시 맞춰요 (js/coll.js collCheck)
              (목록 안에는 그쪽 저장소의 파일 번호가 들어 있어서 다른 곳에 그대로 넣으면 맞지 않아요) */
-        const bkKind = p => /\/설정\/설정\.json$|\/카페\/카페\.json$/.test(p) ? 'keys' : /\/검색-\d{4}\.json$/.test(p) ? 'search' : /\/목록\/목록\d+\.json$/.test(p) ? 'skip' : '';
+        const bkKind = p => /\/설정\/설정\.json$|\/카페\/카페\.json$/.test(p) ? 'keys' : /\/검색-[^/]+\.json$/.test(p) ? 'search' : /\/목록\/목록\d+\.json$/.test(p) ? 'skip' : '';
         function bkMerge(kind, curText, body) {
             let a, b; try { a = JSON.parse(curText); b = JSON.parse(body); } catch (e) { return body; }
             if (!a || typeof a !== 'object' || !b || typeof b !== 'object') return body;

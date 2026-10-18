@@ -12,8 +12,8 @@
                       / 다이어리 / 배경지 / 내배경지 · 받은배경지 / 목록 · 원본   📂
                       / 스티커 / 씰 · 조각 · 모조지스티커 · 마테 · 떡메 · 속지 / 내X · 받은X / 목록 · 원본
                       / 다꾸 / 기본 / 2026년 / 10월 / 9일.json        📔 기본 다이어리 · 하루에 파일 1개
-                      / 다꾸 / 검색 / 검색-2026.json                  🔍 (js/search.js)
-                      / 다꾸 / 노트 · 바인더 / 6공 바인더 (A5) / 다이어리.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 종류(다이어리.json kind)별 칸 · 늘 페이지 기준 (js/skins.js dkFolderName)
+                      / 다꾸 / 기본 / 2026년 / 검색-2026년.json        🔍 다이어리마다 검색 목록 (권 폴더엔 검색-권이름.json · js/search.js)
+                      / 다꾸 / 노트 · 바인더 / 6공바인더(A5) / 다이어리.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 종류(다이어리.json kind)별 칸 · 늘 페이지 기준 (js/skins.js dkFolderName)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
@@ -22,7 +22,6 @@
         const TOP_FOLDER_NAME = '말랑달콤';                         // 최상위 폴더
         const DAKKU_PATH = [TOP_FOLDER_NAME, '다꾸'];               // ✏ 일기 쓰고 스티커 꾸미는 곳 (도련 · 10-17)
         const DAY_PATH = DAKKU_PATH.concat('기본');                // 📔 기본 다이어리 : 말랑달콤 / 다꾸 / 기본 / 2026년 / 10월 / 9일.json
-        const SEARCH_PATH = DAKKU_PATH.concat('검색');             // 🔍 검색 목록
         const DK_KINDS = ['노트', '바인더'];                         // 📕 유한 다이어리 칸 : 말랑달콤 / 다꾸 / 노트 · 바인더 / 권 폴더 (도련 · 10-18)
         const bookPath = kind => DAKKU_PATH.concat(DK_KINDS.includes(kind) ? kind : DK_KINDS[0]);
         const SETTINGS_PATH = [TOP_FOLDER_NAME, '설정'], SETTINGS_FILE_NAME = '설정.json';

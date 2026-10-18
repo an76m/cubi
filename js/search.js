@@ -1,13 +1,15 @@
 /* 말랑달콤 다이어리 - js/search.js
    🔍 일기 검색 : 지금까지 쓴 일기에서 낱말을 찾아요 (다이어리 위쪽 날짜 뒤의 🔍)
    - 글상자 · 오늘의 질문 대답 · 이모지 스티커 · 운세/꿈해몽/행운 카드 글 · 기분/날씨 도장 이름까지 찾아요
-   - 빠르게 찾으려고 '검색 목록'을 따로 둬요 : 말랑달콤 / 다꾸 / 검색 / 검색-2026.json (한 해에 파일 1개, 글만 담겨요)
+   - 빠르게 찾으려고 '검색 목록'을 다이어리마다 품고 있어요 (글만 담겨요 · 도련 10-18 : 이름 = '검색-' + 담긴 폴더 이름)
+       📔 기본 : 말랑달콤 / 다꾸 / 기본 / 2026년 / 검색-2026년.json (한 해에 파일 1개)
+       📕 노트 · 바인더 : 말랑달콤 / 다꾸 / 바인더 / 6공바인더(A5) / 검색-6공바인더(A5).json (한 권에 파일 1개)
      일기를 저장하면 검색 목록도 고쳐 두었다가, 20초 뒤(또는 화면을 닫을 때) 한 번에 올려요
      올리기 전에 다른 기기가 그 파일을 고쳤으면 : 그 파일 위에 이 기기에서 바뀐 날만 얹어서 올려요
    - 검색 창을 처음 열 때 (기기마다 · 접속할 때마다 한 번) 드라이브의 일기 목록과 맞춰 봐요
      다른 기기에서 쓴 일기처럼 목록에 없는 날만 그 일기 파일을 읽어서 채워요 (처음 한 번은 조금 걸릴 수 있어요)
    - 게스트(로그인 안 함)는 지금 기기에 있는 일기에서만 찾아요
-   - 📕 유한 다이어리를 쓰는 중이면 그 다이어리 장들에서만 찾아요 (꾸민 장을 다 읽어서 · 검색 목록 파일은 안 써요)
+   - 📕 유한 다이어리를 쓰는 중이면 그 다이어리 장들에서만 찾아요 (그 권의 검색 목록 + 목록에 없는 꾸민 장만 읽어서)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (검색 버튼만 '준비 중') */
 
         const SR_PREFIX = '검색-', SR_MAX = 2000, SR_SAVE_MS = 20000;
@@ -37,19 +39,27 @@
             if (raw.we) out.push('날씨 ' + lab(typeof PS_WEATHERS !== 'undefined' ? PS_WEATHERS : [], raw.we));
             return out.join('\n').replace(/[ \t]+/g, ' ').slice(0, SR_MAX);
         }
-        const srDayOf = key => { const p = parseDayKey(key); return p ? `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}` : ''; };
+        /* 키 → 목록 안의 이름 (기본 = '2026-10-18' · 유한 = 'p3') · 키 → 목록 (기본 = 'y2026' 해마다 · 유한 = 'b<권 id>' 권마다) */
+        const srDayOf = key => { const p = parseDayKey(key); if (p) return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`; const q = parsePageKey(key); return q ? 'p' + q.n : ''; };
+        const srScope = key => { const p = parseDayKey(key); if (p) return 'y' + p.y; const q = parsePageKey(key); return q ? 'b' + q.b : ''; };
+        /* 목록 파일 자리 : { dir, name } (create : 폴더가 없으면 만들기) */
+        async function srLoc(s, create) {
+            if (s[0] === 'y') return { dir: await getFolder(DAY_PATH.concat(s.slice(1) + '년'), create), name: `${SR_PREFIX}${s.slice(1)}년.json` };
+            const b = await getBookIndex(s.slice(1), create);
+            return { dir: b ? b.folderId : null, name: b ? `${SR_PREFIX}${b.name}.json` : '' };
+        }
 
-        /* ---------- 해마다 검색 목록 (드라이브 파일) ---------- */
-        async function srYear(y) {
-            let Y = sr.years.get(y);
+        /* ---------- 다이어리마다 검색 목록 (드라이브 파일 · sr.years 는 목록 이름 → 목록) ---------- */
+        async function srYear(s) {
+            let Y = sr.years.get(s);
             if (Y && Y.ready) return Y;
             if (Y && Y.loading) return Y.loading;
-            Y = { ready: false, d: {}, fileId: null, mt: '', dirty: false, pend: [], touched: new Set() };
-            sr.years.set(y, Y);
+            Y = { ready: false, d: {}, fileId: null, mt: '', dirty: false, pend: [], touched: new Set(), synced: false };
+            sr.years.set(s, Y);
             Y.loading = (async () => {
                 try {
-                    const dir = await getFolder(SEARCH_PATH, false);
-                    const f = dir && await findFile(dir, `${SR_PREFIX}${y}.json`);
+                    const { dir, name } = await srLoc(s, false);
+                    const f = dir && await findFile(dir, name);
                     if (f) { Y.fileId = f.id; Y.mt = f.modifiedTime || ''; const o = JSON.parse(await readFileText(f.id) || '{}'); if (o && o.d && typeof o.d === 'object') Y.d = o.d; }
                 } catch (e) {}
                 Y.ready = true; Y.loading = null;
@@ -74,27 +84,27 @@
         /* 다른 기기에서 일기가 바뀌었어요 (js/drive.js checkRemote) → 검색 창을 열 때 다시 맞춰 봐요 */
         function srRemote() {
             sr.synced = false;
-            sr.years.forEach((Y, y) => { if (Y.ready && !Y.dirty) sr.years.delete(y); });
+            sr.years.forEach((Y, s) => { if (Y.ready && !Y.dirty) sr.years.delete(s); });
         }
         /* 일기를 저장할 때마다 (js/elements.js 의 saveData 에서 불러요) */
         function searchTouch(key) {
             if (!srOn()) return;
-            const p = parseDayKey(key); if (!p) return;
-            const Y = sr.years.get(p.y);
+            const s = srScope(key); if (!s) return;
+            const Y = sr.years.get(s);
             if (Y && Y.ready) { srApply(Y, key); return; }
             if (Y) { if (!Y.pend.includes(key)) Y.pend.push(key); return; }
-            srYear(p.y).then(Y2 => srApply(Y2, key));
+            srYear(s).then(Y2 => srApply(Y2, key));
         }
         function srSchedule() { clearTimeout(sr.timer); sr.timer = setTimeout(srUpload, SR_SAVE_MS); }
         async function srUpload() {
             clearTimeout(sr.timer);
             if (!srOn()) return;
-            for (const [y, Y] of sr.years) {
+            for (const [s, Y] of sr.years) {
                 if (!Y.ready || !Y.dirty) continue;
                 Y.dirty = false;
                 const mine = new Set(Y.touched); Y.touched.clear();
                 try {
-                    const dir = await getFolder(SEARCH_PATH, true), name = `${SR_PREFIX}${y}.json`;
+                    const { dir, name } = await srLoc(s, true);
                     let cur = Y.fileId ? await driveMeta(Y.fileId) : null;
                     if (!cur) cur = await findFile(dir, name);
                     if (cur && cur.modifiedTime !== Y.mt) {                              // 다른 기기가 고쳤어요 → 그 위에 내가 바꾼 날만
@@ -131,7 +141,7 @@
                     .map(f => +((/^(\d{4})년$/.exec(f.name) || [])[1])).filter(Boolean).sort();
                 const need = [];
                 for (const y of years) {
-                    const Y = await srYear(y), seen = new Set();
+                    const Y = await srYear('y' + y), seen = new Set();
                     for (let m = 1; m <= 12; m++) {
                         const idx = await getMonthIndex(y, m, false); if (!idx) continue;
                         idx.files.forEach((f, name) => {
@@ -183,12 +193,29 @@
         }
         function srMood(label) { srq('srInput').value = '기분 ' + label; srRun(); }
         const srBook = () => !!(window.dkType && dkType());
+        /* 📕 지금 권의 목록과 꾸민 장 맞춰 보기 (검색 창을 열 때 · 목록에 없는 장만 읽어요 · 다 지운 장은 빼요) */
+        async function srBookSync(progress) {
+            const s = 'b' + dkId(true), Y = await srYear(s);
+            if (Y.synced) return;
+            const o = dkNow(), filled = new Set(dkFilled(o).map(n => 'p' + n));
+            Object.keys(Y.d).forEach(day => { if (!filled.has(day)) srSet(Y, day, null); });
+            const need = [...filled].filter(day => !Y.d[day]).map(day => getDateKey(dkDate(+day.slice(1))));
+            for (let i = 0; i < need.length; i += 4) {
+                if (progress) progress(i, need.length);
+                await Promise.all(need.slice(i, i + 4).map(async key => {
+                    if (drive.loadedDays.has(key) || drive.dirtyKeys.has(key)) { srApply(Y, key); return; }
+                    try { let raw = null; try { raw = JSON.parse(await fetchKey(key)); } catch (e) {} const t = srText(raw); srSet(Y, srDayOf(key), t ? [t, ''] : null); } catch (e) {}
+                }));
+            }
+            Y.synced = true;
+            srSchedule();
+        }
         function srAll() {                                                          // [{ day, text }] (최신 날 먼저 · 📕 유한은 day = 'p장' · 뒤 장 먼저)
-            if (srBook()) return dkFilled(dkNow()).reverse().map(n => { let raw = null; try { raw = JSON.parse(store.getItem(getDateKey(dkDate(n)))); } catch (e) {} return { day: 'p' + n, text: srText(raw) }; }).filter(x => x.text);
-            const map = new Map();
-            sr.years.forEach(Y => Object.keys(Y.d).forEach(day => map.set(day, Y.d[day][0])));
-            store.keys().forEach(k => { const day = srDayOf(k); if (day && (!srOn() || drive.loadedDays.has(k) || drive.dirtyKeys.has(k))) { let raw = null; try { raw = JSON.parse(store.getItem(k)); } catch (e) {} const t = srText(raw); if (t) map.set(day, t); else map.delete(day); } });
-            return [...map.entries()].sort((a, b) => a[0] < b[0] ? 1 : -1).map(([day, text]) => ({ day, text }));
+            const bk = srBook(), cur = bk ? 'b' + dkId(true) : '', map = new Map();
+            sr.years.forEach((Y, s) => { if (bk ? s === cur : s[0] === 'y') Object.keys(Y.d).forEach(day => map.set(day, Y.d[day][0])); });
+            store.keys().forEach(k => { const day = srDayOf(k), s = srScope(k); if (day && (bk ? s === cur : s[0] === 'y') && (!srOn() || drive.loadedDays.has(k) || drive.dirtyKeys.has(k))) { let raw = null; try { raw = JSON.parse(store.getItem(k)); } catch (e) {} const t = srText(raw); if (t) map.set(day, t); else map.delete(day); } });
+            const order = bk ? (a, b) => +b[0].slice(1) - +a[0].slice(1) : (a, b) => a[0] < b[0] ? 1 : -1;
+            return [...map.entries()].sort(order).map(([day, text]) => ({ day, text }));
         }
         function srRun() {
             const q = srq('srInput').value.trim(), list = srq('srList');
@@ -222,9 +249,12 @@
             document.body.classList.add('fc-lock');
             setTimeout(() => srq('srInput').focus(), 50);
             srRun();
-            if (srBook()) {                                                     // 📕 유한 : 꾸민 장을 다 읽어서 찾아요
-                const ps = dkFilled(dkNow()).map(dkDate).filter(d => !drive.guest && !drive.loadedDays.has(getDateKey(d)));
-                if (ps.length) { srq('srStatus').textContent = '📕 이 다이어리를 펼쳐 보는 중…'; await Promise.all(ps.map(d => ensureDayLoaded(d).catch(() => false))); srRun(); }
+            if (srBook()) {                                                     // 📕 유한 : 그 권의 검색 목록 + 목록에 없는 장만 읽어서
+                if (srOn()) {
+                    srq('srStatus').textContent = '📕 이 다이어리를 살펴보는 중…';
+                    try { await srBookSync((i, n) => { srq('srStatus').textContent = `📕 검색 목록을 만드는 중… ${i} / ${n}장`; }); } catch (e) { srq('srStatus').textContent = '⚠ 다 읽지 못했어요. 지금 있는 것에서 찾을게요.'; }
+                    srRun();
+                }
                 return;
             }
             if (srOn() && !sr.synced) {
