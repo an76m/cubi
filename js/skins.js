@@ -622,6 +622,54 @@
                 + `<path d="M9 9 H55 L56.6 21 H7.4 Z" fill="#fff" fill-opacity=".22"/><path d="M4.6 40 H59.4 L60 45 Q60 48 57 48 H7 Q4 48 4 45 Z" fill="#000" fill-opacity=".18"/>`
                 + `<rect x="7" y="7" width="50" height="5" rx="2.5" fill="url(#${w})"/></svg>`;
         }
+        /* 📎 집게 옮기기 (도련 10-18) : 집게를 누른 채 끌면 종이 테두리를 레일처럼 따라가요 (모서리는 둥글게 돌면서 · 테두리 밖으로는 못 나가요)
+           - 자리 = 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 설정 'diary_clip_at' · 노트 크기가 달라도 같은 자리
+           - 집게 아랫입(종이를 무는 곳)이 테두리 위 · 몸통은 늘 바깥쪽을 봐요 */
+        const CLIP_AT_KEY = 'diary_clip_at', CLIP_AT_LOCAL = 'malang_diary_clip_at', CLIP_GX = 59, CLIP_GY = 66;   // 집게 그림에서 종이를 무는 곳
+        function clipRail(W, H, r) {                                           // 테두리 길이 · 길이 → [x, y, 바깥 방향(도)]
+            r = Math.max(0, Math.min(r, W / 2, H / 2));
+            const a = Math.PI * r / 2, seg = [W - 2 * r, a, H - 2 * r, a, W - 2 * r, a, H - 2 * r, a], L = seg.reduce((x, y) => x + y, 0);
+            const at = d => {
+                d = ((d % L) + L) % L;
+                let i = 0; while (i < 7 && d > seg[i]) { d -= seg[i]; i++; }
+                const k = seg[i] ? d / seg[i] : 0, arc = (cx, cy, a0) => { const t = (a0 + k * 90) * Math.PI / 180; return [cx + r * Math.sin(t), cy - r * Math.cos(t), a0 + k * 90]; };
+                return [[r + d, 0, 0], arc(W - r, r, 0), [W, r + d, 90], arc(W - r, H - r, 90), [W - r - d, H, 180], arc(r, H - r, 180), [0, H - r - d, 270], arc(r, r, 270)][i];
+            };
+            return { L, at };
+        }
+        function clipBox() {
+            const fr = document.getElementById('dyFront'), cv = document.getElementById('canvasArea'), el = fr && fr.querySelector('.dy-clip');
+            if (!el || !cv) return null;
+            return { fr, el, rail: clipRail(fr.offsetWidth, fr.offsetHeight, parseFloat(getComputedStyle(cv).borderTopLeftRadius) || 12) };
+        }
+        let clipF = null;                                                      // 끄는 동안의 자리
+        function clipF0(b) { const v = prefGet(CLIP_AT_KEY, CLIP_AT_LOCAL); return typeof v === 'number' && v >= 0 && v < 1 ? v : (b.fr.offsetWidth * .03 + CLIP_GX) / b.rail.L; }   // 처음 = 왼쪽 쪽 위
+        function clipPlace(f) {
+            const b = clipBox(); if (!b) return;
+            if (f == null) f = clipF != null ? clipF : clipF0(b);
+            const [x, y, deg] = b.rail.at(f * b.rail.L);
+            Object.assign(b.el.style, { left: (x - CLIP_GX) + 'px', top: (y - CLIP_GY) + 'px', transform: `rotate(${deg}deg)` });
+        }
+        function clipDown(e) {
+            const b = clipBox(); if (!b) return;
+            e.preventDefault(); e.stopPropagation();
+            const el = b.el; el.setPointerCapture && el.setPointerCapture(e.pointerId); el.classList.add('drag');
+            clipF = clipF0(b);
+            const move = ev => {                                               // 손가락에서 가장 가까운 테두리 자리 (지금 자리 근처에서만 찾아 건너뛰지 않아요)
+                ev.preventDefault();
+                const bb = clipBox(); if (!bb) return;
+                const rc = bb.fr.getBoundingClientRect(), sx = rc.width / bb.fr.offsetWidth || 1, px = (ev.clientX - rc.left) / sx, py = (ev.clientY - rc.top) / sx, L = bb.rail.L;
+                let best = clipF * L, bd = Infinity;
+                for (let d = -L * .2; d <= L * .2; d += 3) { const [x, y] = bb.rail.at(clipF * L + d), dd = (x - px) ** 2 + (y - py) ** 2; if (dd < bd) { bd = dd; best = clipF * L + d; } }
+                clipF = (((best / L) % 1) + 1) % 1; clipPlace(clipF);
+            };
+            const up = () => {
+                el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+                el.classList.remove('drag');
+                prefSet(CLIP_AT_KEY, CLIP_AT_LOCAL, Math.round(clipF * 10000) / 10000); clipF = null;
+            };
+            el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+        }
         function clipPick(id) {
             prefSet(CLIP_KEY, CLIP_LOCAL, CLIPS.some(c => c[0] === id) ? id : '');
             dyDeco(); dyRender();
@@ -636,7 +684,7 @@
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
-            if (t.k === '노트') { const c = clipNow(); if (c) front.push(`<span class="dy-clip">${clipSvg(c[2])}</span>`); }   // 📎 집게 = 노트용 장식 (기본 다이어리 · 바인더엔 안 꽂아요)
+            if (t.k === '노트') { const c = clipNow(); if (c) front.push(`<span class="dy-clip" title="끌어서 옮겨요" onpointerdown="clipDown(event)">${clipSvg(c[2])}</span>`); }   // 📎 집게 = 노트용 장식 (기본 다이어리 · 바인더엔 안 꽂아요)
             return [back.join(''), front.join('')];
         }
         function dyDeco() {                                                    // js/page.js refreshLayout 끝에서 불러요
@@ -656,6 +704,7 @@
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
             if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)
             dkCoverPaint();
+            clipPlace();
         }
         /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 노트 · 바인더만 (기본 다이어리 표지는 못 꾸며요 · 다이어리를 살 이유)
            - 표지 = 0장 (dkDate(0) · 키 dkp_<권 id>_0 · 권 폴더 표지.json) → 속지처럼 스티커 메뉴로 그대로 꾸며요
@@ -946,7 +995,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id, cid = 'clip:' + clipId(); document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || b.dataset.id === cid)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
