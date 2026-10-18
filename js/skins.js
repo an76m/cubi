@@ -680,9 +680,9 @@
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
         function punchPick(id) { prefSet(PUNCH_KEY, PUNCH_LOCAL, PUNCHES.some(p => p[0] === id) ? id : 'basic'); dyRender(); }
-        const bdOn = () => { const t = dyNow(); return t.b === 'ring' && dvDev() !== 'phone' &&   // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
-             isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };
-        function bdGet() { if (!bdOn()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
+        const bdLay = () => { const t = dyNow(); return t.b === 'ring' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
+        const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
+        function bdGet() { if (!bdLay()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
         function bdPut(v) {
             const m = Object.assign({}, prefGet(BD_KEY, BD_LOCAL) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {});
             b[dkNo(currentDate)] = v; m[id] = b; prefSet(BD_KEY, BD_LOCAL, m);
@@ -690,8 +690,27 @@
         let bdBusy = false;
         function bdSync() {
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy) return;
-            const v = bdGet(), on = bdOn();
-            ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', on && (v & 2) > 0);
+            const v = bdGet(), lay = bdLay(), on = bdOn();
+            ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
+            bdSides();
+        }
+        /* 📐 6공 바인더 속지 자리 (도련 10-18 · 꺼낼 때 종이가 늘어나지 않고 크기 그대로 미끄러져 와야 해서)
+           - 저장된 자리 = 꺼내서 두 쪽을 아주 가까이 맞대 놓은 자리 (양쪽 바깥 6cqw 는 종이 밖)
+           - 링에 끼운 동안은 두 쪽이 6cqw 씩 바깥으로 벌어져 있어요 → 왼쪽 쪽에 있는 것은 왼쪽으로 · 오른쪽 쪽에 있는 것은 오른쪽으로 (가운데 = 그것의 가운데 기준)
+           - 꺼내면 두 쪽이 크기 그대로 가운데로 미끄러져 와요 (붙은 그림 · 종이 바깥 끝 · 틈 · 구멍이 같이) */
+        let bdObs = null;
+        function bdSides() {
+            const cv = document.getElementById('canvasArea'), ip = document.getElementById('innerPage'); if (!cv || !ip) return;
+            const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2;
+            cv.querySelectorAll(':scope > .element-box').forEach(el => {
+                const r = on && el.offsetLeft + el.offsetWidth / 2 >= half;
+                el.classList.toggle('bd-l', on && !r); el.classList.toggle('bd-r', r);
+            });
+            if (!bdObs && window.MutationObserver) {                           // 새로 붙이거나 옮기면 다시 (어느 쪽인지)
+                bdObs = new MutationObserver(() => { const p = document.getElementById('innerPage'); if (p && p.classList.contains('dy-bdl')) bdSides(); });
+                bdObs.observe(cv, { childList: true, subtree: false });
+                bdObs.observe(cv, { attributes: true, attributeFilter: ['style'], subtree: true });
+            }
         }
         /* 버튼은 평소엔 안 보여요 (도련 10-18)
            - 보이기 : 🖱 마우스가 그 자리를 지나가면 · 🖱 그 자리를 클릭하면 · 👆 그 자리를 터치하면
@@ -711,24 +730,13 @@
             if (k === 'out') bdOut(); else bdIn();
         }
         document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('.dy-bo-btn'))) bdShow(false); }, true);
-        function bdOut() {                                                      // 링이 열리며 두 쪽이 링에서 빠져나와 (살짝 벌어졌다가) 가운데로 다가와 맞닿음 (종이 경계선은 그대로) → 반투명 테이프가 붙고 스윽 사라짐
-            const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'); if (!ip || !cv || bdBusy || !bdOn()) return;
+        function bdOut() {                                                      // 링 열림 → 두 쪽이 크기 그대로 가운데로 미끄러져 와서 아주 가까이 (붙어서 한 몸이 되지 않아요) → 반투명 테이프가 붙고 스윽 사라짐
+            const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
             bdBusy = true; ip.classList.add('dy-bo-go');
-            const wrap = document.createElement('div'); wrap.className = 'bd-slide'; wrap.setAttribute('aria-hidden', 'true');   // 두 쪽을 그대로 떠서 (복사) 움직이고 · 그동안 진짜 쪽은 잠깐 숨겨요
-            Object.assign(wrap.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' });
-            ['l', 'r'].forEach(side => {
-                const c = cv.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-                c.classList.add('bd-half', side); wrap.appendChild(c);
-            });
-            ip.appendChild(wrap); cv.style.opacity = '0';
-            setTimeout(() => { ip.classList.add('dy-bo-slide'); wrap.classList.add('a'); }, 180);          // 링에서 빠지며 살짝 벌어져요
-            setTimeout(() => { wrap.classList.remove('a'); wrap.classList.add('b'); }, 560);            // 가운데로 다가와 맞닿아요 (틈 뒤에 있던 종이 안쪽도 같이 나와요)
-            setTimeout(() => {                                                  // 맞닿았어요 → 진짜 쪽으로 바꾸고 테이프
-                ip.classList.add('dy-bo', 'dy-bo-tape'); cv.style.opacity = '';
-                wrap.remove();
-            }, 1240);
-            setTimeout(() => { ip.classList.remove('dy-bo-go', 'dy-bo-slide', 'dy-bo-tape'); bdBusy = false; bdPut((bdGet() & 2) | 1); bdSync(); }, 2850);
+            setTimeout(() => ip.classList.add('dy-bo'), 330);                  // 미끄러져 와요
+            setTimeout(() => ip.classList.add('dy-bo-tape'), 1100);            // 테이프
+            setTimeout(() => { ip.classList.remove('dy-bo-go', 'dy-bo-tape'); bdBusy = false; bdPut((bdGet() & 2) | 1); bdSync(); }, 2700);
         }
         function bdIn() {                                                       // 펀치 → 구멍 → 테이프 떼기 → 링에 끼우기
             const ip = document.getElementById('innerPage'), fr = document.getElementById('dyFront'); if (!ip || !fr || bdBusy || !bdOn()) return;
@@ -737,8 +745,8 @@
             const pu = document.createElement('span'); pu.className = 'dy-punch'; pu.style.setProperty('--pc', punchNow()[2]);
             pu.innerHTML = '<i></i><i></i>'; fr.appendChild(pu);
             setTimeout(() => ip.classList.add('dy-bh', 'dy-bh-pop'), 620);    // 꾹 누르는 순간 구멍
-            setTimeout(() => { pu.remove(); ip.classList.add('dy-bo-back'); ip.classList.remove('dy-bo'); }, 1250);
-            setTimeout(() => { ip.classList.remove('dy-bo-back', 'dy-bh-pop'); bdBusy = false; bdPut(2); bdSync(); }, 2500);
+            setTimeout(() => { pu.remove(); ip.classList.add('dy-bo-back'); ip.classList.remove('dy-bo'); }, 1250);   // 두 쪽이 크기 그대로 벌어져 링에 끼워져요
+            setTimeout(() => { ip.classList.remove('dy-bo-back', 'dy-bh-pop'); bdBusy = false; bdPut(2); bdSync(); }, 2700);
         }
         function clipPick(id) {
             prefSet(CLIP_KEY, CLIP_LOCAL, CLIPS.some(c => c[0] === id) ? id : '');
@@ -750,7 +758,7 @@
             const rings = n => { let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; return h; };
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
-            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span>`
+            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge"></span><span class="dy-edge r"></span>`
                 + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" onpointerenter="bdHover(event)" onpointerdown="event.stopPropagation()" onclick="bdTap('${k}')">${k === 'out' ? '📤<small>꺼내기</small>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');

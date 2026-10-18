@@ -3739,34 +3739,34 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .dy-gap { transition: width .55s .3s, margin-left .55s .3s, opacity .35s .3s; }
 .dy-rings { transition: opacity .35s .75s, transform .35s .75s; }
 .dy-cov { transition: opacity .45s .2s; }
-.inner-page.dy-bo .dy-gap { width: 0; margin-left: 0; opacity: 0; }
+.inner-page.dy-bo .dy-gap { width: .35cqw; margin-left: -.175cqw; opacity: 0; }
 .inner-page.dy-bo .dy-rings { opacity: 0; transform: scaleX(1.3); }
 .inner-page.dy-bo .dy-cov { opacity: 0; }
 .inner-page.dy-bo-go .dy-rings { transition-delay: 0s; opacity: 0; transform: scaleX(1.3); }   /* 링부터 열려요 */
-.inner-page.dy-bo-go .dy-gap { transition-delay: .25s; }
-.inner-page.dy-bo-go .dy-cov { transition-delay: 0s; }
-.inner-page.dy-bo-go .dy-gap { transition: none; }
+.inner-page.dy-bo-go .dy-cov { transition-delay: .1s; opacity: 0; }
 .dy-tape { position: absolute; left: 50%; top: 16%; width: 22cqw; height: 5cqw; margin-left: -11cqw; border-radius: .3cqw; opacity: 0; pointer-events: none;   /* 양면테이프 : 무늬 없는 반투명 · 붙고 나서 스윽 사라져요 (원래 종이 뒤에 붙는 거라 안 보여요) */
     background: rgba(255, 255, 255, .42); box-shadow: 0 .2cqw .6cqw rgba(90, 60, 75, .1), inset 0 0 0 .12cqw rgba(255, 255, 255, .55); transform: rotate(-3deg); }
 .dy-tape.b { top: auto; bottom: 16%; transform: rotate(2deg); }
 .inner-page.dy-bo-tape .dy-tape { animation: dyTape 1.5s ease-in-out both; }
 .inner-page.dy-bo-tape .dy-tape.b { animation-delay: .12s; }
 @keyframes dyTape { 0% { opacity: 0; translate: 0 -2.5cqw; scale: 1.12; } 22% { opacity: 1; translate: 0 0; scale: 1; } 55% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 3cqw 0; } }
-.dy-seam { position: absolute; left: 50%; top: 0; bottom: 0; width: .5cqw; margin-left: -.25cqw; opacity: 0; pointer-events: none;   /* 꺼낸 두 쪽이 맞닿은 경계 (종이선 · 살처럼 붙지 않아요) */
-    background: linear-gradient(90deg, transparent, rgba(110, 80, 95, .16) 35%, rgba(110, 80, 95, .32) 50%, rgba(110, 80, 95, .16) 65%, transparent); }
+.dy-seam { position: absolute; left: 50%; top: 0; bottom: 0; width: .35cqw; margin-left: -.175cqw; opacity: 0; pointer-events: none; transition: opacity .3s;   /* 꺼낸 두 쪽 사이 아주아주 가는 틈 (붙어서 한 몸이 되지 않아요) */
+    background: var(--bg-color, #ffe6f0); box-shadow: -.15cqw 0 .3cqw rgba(110, 80, 95, .18), .15cqw 0 .3cqw rgba(110, 80, 95, .18); }
+.inner-page.dy-bo-go .dy-seam { transition-delay: .85s; }
 .inner-page.dy-bo .dy-seam { opacity: 1; }
-.bd-slide { position: absolute; z-index: 4; pointer-events: none; }
-.bd-slide .bd-half { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; transform: none;
-    transition: transform .36s cubic-bezier(.3, 0, .3, 1), clip-path .36s cubic-bezier(.3, 0, .3, 1); }
-.bd-slide .bd-half.l { clip-path: inset(-30px calc(50% + 6cqw) -30px -30px); }
-.bd-slide .bd-half.r { clip-path: inset(-30px -30px -30px calc(50% + 6cqw)); }
-.bd-slide.a .bd-half.l { transform: translateX(-5cqw); }
-.bd-slide.a .bd-half.r { transform: translateX(5cqw); }
-.bd-slide.b .bd-half { transition-duration: .66s; transition-timing-function: cubic-bezier(.45, .05, .3, 1); }
-.bd-slide.b .bd-half.l { clip-path: inset(-30px 50% -30px -30px); }
-.bd-slide.b .bd-half.r { clip-path: inset(-30px -30px -30px 50%); }
-.inner-page.dy-bo-slide .dy-gap { opacity: 0; transition: none; }
-.inner-page.dy-bo-slide .dy-cov { opacity: 0; }
+/* 📐 6공 속지 자리 : 링에 끼운 동안 두 쪽이 6cqw 씩 바깥으로 · 꺼내면 크기 그대로 가운데로 (js/skins.js bdSides) */
+.inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-l { translate: -6cqw 0; }
+.inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-r { translate: 6cqw 0; }
+.inner-page.dy-bo-go #canvasArea > .element-box, .inner-page.dy-bo-back #canvasArea > .element-box { transition: translate .75s cubic-bezier(.45, .05, .3, 1); }
+.dy-edge { position: absolute; top: -12px; bottom: -12px; left: -12px; width: 0; background: var(--bg-color, #ffe6f0); pointer-events: none; transition: width .75s cubic-bezier(.45, .05, .3, 1); }   /* 꺼낸 두 쪽의 바깥 끝 (종이 크기 그대로 · 바깥 6cqw 는 책상) */
+.dy-edge.r { left: auto; right: -12px; }
+.inner-page.dy-bdl #canvasArea:not([class*="lf-"]), .inner-page.dy-bdl #canvasArea.lf-line { transition: background-position .75s cubic-bezier(.45, .05, .3, 1); }
+.inner-page.dy-bo #canvasArea:not([class*="lf-"]), .inner-page.dy-bo #canvasArea.lf-line { background-position-x: 6cqw; }   /* 줄노트 여백 선도 종이와 같이 */
+.dy-gap::before { transition: opacity .3s; }
+.inner-page.dy-bo-go .dy-gap::before, .inner-page.dy-bo .dy-gap::before { opacity: 0; }   /* 링 받침도 링과 같이 빠져요 */
+.inner-page.dy-bo .dy-edge { width: calc(12px + 6cqw); }
+.dy-edge { display: none; } .inner-page.dy-bdl .dy-edge { display: block; }
+.inner-page.dy-bo-go .dy-gap, .inner-page.dy-bo-back .dy-gap { transition: width .75s cubic-bezier(.45, .05, .3, 1), margin-left .75s cubic-bezier(.45, .05, .3, 1), opacity .3s .45s; }
 .dy-holes { position: absolute; inset: 0; pointer-events: none; }
 .dy-holes i { position: absolute; left: calc(50% - 10.5cqw); width: 2.4cqw; height: 2.4cqw; margin: -1.2cqw 0 0 -1.2cqw; border-radius: 50%; display: none;
     background: color-mix(in srgb, var(--dy-c) 55%, #fff); box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }
@@ -3776,6 +3776,9 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .dy-holes i:nth-child(6n+1) { top: 7.5cqw; } .dy-holes i:nth-child(6n+2) { top: 16.5cqw; } .dy-holes i:nth-child(6n+3) { top: 25.5cqw; }
 .dy-holes i:nth-child(6n+4) { top: calc(100% - 24.9cqw); } .dy-holes i:nth-child(6n+5) { top: calc(100% - 15.9cqw); } .dy-holes i:nth-child(6n) { top: calc(100% - 6.9cqw); }
 .inner-page.dy-bh-pop .dy-holes i { animation: dyHole .35s ease-out both; }
+.dy-holes i { transition: left .75s cubic-bezier(.45, .05, .3, 1); }
+.inner-page.dy-bo .dy-holes i { left: calc(50% - 4.5cqw); }
+.inner-page.dy-bo .dy-holes i:nth-child(n+7) { left: calc(50% + 4.5cqw); }
 @keyframes dyHole { from { transform: scale(0); } 70% { transform: scale(1.25); } to { transform: none; } }
 .dy-bo-btn { position: absolute; left: 50%; top: 50%; z-index: 2; display: none; flex-direction: column; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0; padding: 0;
     transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #fff; background: color-mix(in srgb, var(--primary-accent) 88%, #fff); color: #fff; font: inherit; font-size: 18px; line-height: 1;
