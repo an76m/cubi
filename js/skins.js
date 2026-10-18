@@ -692,7 +692,7 @@
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy) return;
             if (bdSt) { if (bdSt.at === bdAt()) return; bdStepEnd(); }        // ✋ 수동 단계 중 : 같은 장이면 그대로 · 다른 장으로 가면 처음 모습으로
             const v = bdGet(), lay = bdLay(), on = bdOn();
-            if (lay && !ip.classList.contains('dy-bdl')) bdLayAt = Date.now();   // 표지를 막 펼쳤을 때 · 장을 막 넘겼을 때
+            if (lay && !ip.classList.contains('dy-bdl')) { bdLayAt = Date.now(); bdArmed = false; }   // 표지를 막 펼쳤을 때 · 장을 막 넘겼을 때 (🖱 마우스가 그 자리를 한 번 벗어난 뒤부터 지나가기로 보여요)
             const cv = document.getElementById('canvasArea');
             if (lay && cv) {                                                   // 꺼낸 종이 바깥 끝도 처음 종이처럼 (둥근 모서리 · 테두리)
                 const cs = getComputedStyle(cv), ring = cs.boxShadow.split(/,(?![^(]*\))/).map(x => x.trim()).filter(x => / 0px 0px 0px [\d.]+px$/.test(x));
@@ -725,16 +725,16 @@
            - 실행 : 보이는 동안 그 자리를 다시 클릭 · 터치 (마우스는 지나가서 한 번 클릭 또는 클릭 두 번 / 터치는 두 번)
            - 사라지기 : 설정 '자동으로 사라지는 시간'(clearSec · js/tapmenu.js)이 지나면 · 다른 곳을 누르면
            - 누르는 순간(pointerdown)만 봐요 → 표지를 펼치거나 장을 넘긴 손짓이 꺼내기로 이어지지 않아요 (📱 패드 10-18) */
-        let bdShowT = 0, bdShowAt = 0, bdLayAt = 0;
+        let bdShowT = 0, bdShowAt = 0, bdLayAt = 0, bdArmed = false;
         const bdShown = () => { const ip = document.getElementById('innerPage'); return !!ip && ip.classList.contains('dy-bo-show'); };
         function bdShow(on) {
             const ip = document.getElementById('innerPage'); if (!ip) return;
             clearTimeout(bdShowT); ip.classList.toggle('dy-bo-show', !!on); bdShowAt = on ? Date.now() : 0;
             if (on) bdShowT = setTimeout(() => bdShow(false), (window.clearSec ? clearSec() : 5) * 1000);
         }
-        function bdHit(e) {                                                     // 그 자리를 눌렀나 · 지나가나
+        function bdHit(e, any) {                                                // 그 자리를 눌렀나 · 지나가나 (any : 표지를 막 펼친 때도)
             const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook');
-            if (!ip || !bk || !ip.classList.contains('dy-bd') || Date.now() - bdLayAt < 700) return false;
+            if (!ip || !bk || !isCoverOpen || !ip.classList.contains('dy-bd') || (!any && Date.now() - bdLayAt < 700)) return false;
             const g = ip.querySelector('.dy-gap'); if (!g) return false;
             const t = e.target; if (t && t.closest && t.closest('.element-box, .dy-clip, .page-header, .page-stamps, .page-dday, .modal')) return false;
             const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, hw = ip.classList.contains('dy-bo') ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
@@ -754,7 +754,11 @@
             if (k === 'in') bdIn(); else bdOut();
         }, true);
         ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
-        document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !e.buttons && !bdBusy && !bdShown() && bdHit(e)) bdShow(true); }, { passive: true });
+        document.addEventListener('pointermove', e => {                        // 🖱 지나가면 보여요 · 겉표지를 밀어 펼친 손(마우스)이 그 자리에 머물러 있으면 안 보여요 (도련 10-18)
+            if (e.pointerType !== 'mouse' || e.buttons || bdBusy) return;
+            if (!bdHit(e, true)) { bdArmed = true; return; }
+            if (bdArmed && !bdShown() && bdHit(e)) bdShow(true);
+        }, { passive: true });
         /* ✋ 수동 · ⚡ 자동 (설정 '바인더 속지 빼기 · 끼우기' · 기본 수동 · 도련 10-18)
            - ⚡ 자동 : 한 번 누르면 끝까지 (bdOut · bdIn)
            - ✋ 수동 = 손으로 끌기 : 가운데 버튼에 지금 할 일이 보이고, 종이 위 아무 데서나 끌면 끄는 만큼 움직여요 (반 넘게 끌고 놓으면 그 단계 끝 · 덜 끌면 제자리)
