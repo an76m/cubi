@@ -3727,13 +3727,20 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .dy-rings i { position: absolute; left: 0; width: 30cqw; height: 9cqw; margin-top: -6.3cqw; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.28' stop-color='%23d5d9e0'/%3E%3Cstop offset='.5' stop-color='%23888f9b'/%3E%3Cstop offset='.62' stop-color='%23c9ced6'/%3E%3Cstop offset='.85' stop-color='%23f4f5f7'/%3E%3Cstop offset='1' stop-color='%239aa1ac'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='30' cy='42' rx='8' ry='6' fill='%23584a52' fill-opacity='.45'/%3E%3Cellipse cx='170' cy='42' rx='8' ry='6' fill='%23584a52' fill-opacity='.45'/%3E%3Cpath d='M30 44 C30 10 170 10 170 44' fill='none' stroke='%23000' stroke-opacity='.22' stroke-width='12' transform='translate(0 5)' stroke-linecap='round'/%3E%3Cpath d='M30 42 C30 6 170 6 170 42' fill='none' stroke='url(%23m)' stroke-width='13' stroke-linecap='round'/%3E%3Cpath d='M34 36 C40 14 160 14 166 36' fill='none' stroke='%23fff' stroke-opacity='.85' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; filter: drop-shadow(0 .2cqw .2cqw rgba(40, 30, 40, .25)); }
 .dy-rings i:nth-child(1) { top: 7.5cqw; } .dy-rings i:nth-child(2) { top: 16.5cqw; } .dy-rings i:nth-child(3) { top: 25.5cqw; }
 .dy-rings i:nth-child(4) { bottom: 22.2cqw; } .dy-rings i:nth-child(5) { bottom: 13.2cqw; } .dy-rings i:nth-child(6) { bottom: 4.2cqw; }
-/* 📎 노트 왼쪽 쪽이 살짝 뜸 (위 바깥 모서리가 들려 있고 아래로 옅은 그림자) · 집게를 꽂으면 납작 */
-.dy-lift { position: absolute; left: 0; top: 0; width: 50%; height: 100%; pointer-events: none;
-    background: linear-gradient(180deg, rgba(255, 255, 255, .55), transparent 4cqw), linear-gradient(90deg, rgba(120, 80, 100, .07), transparent 14cqw); }
-.dy-lift::before { content: ''; position: absolute; left: 0; top: 0; width: 9cqw; height: 9cqw; background: color-mix(in srgb, var(--dy-c) 45%, #fff); clip-path: polygon(0 0, 100% 0, 0 100%); }
-.dy-lift::after { content: ''; position: absolute; left: 0; top: 0; width: 9cqw; height: 9cqw; border-radius: 0 0 1.6cqw 0;
-    background: linear-gradient(135deg, transparent 49%, #d9cdd3 50%, #fbf8fa 62%, #ffffff 74%, #efe7eb 100%); filter: drop-shadow(.5cqw .5cqw .6cqw rgba(80, 50, 65, .28)); }
-.dy-clip { position: absolute; left: 13%; top: -6.6cqw; width: 14cqw; height: 16.6cqw; pointer-events: none; filter: drop-shadow(0 .5cqw .6cqw rgba(50, 35, 45, .3)); }
+/* 📎 노트 왼쪽 쪽이 살짝 뜸 (도련 10-18 다시) : 접힌 모서리가 아니라 쪽 전체가 묶음에서 바깥쪽으로 살짝 들린 느낌
+   - 바깥 가장자리 · 위쪽이 빛을 받아 밝고, 묶음 쪽으로 휘어 내려가는 그늘 · 들린 가장자리 밑으로 표지에 그림자 (위쪽이 더 많이 떠요)
+   - 쪽 안은 그대로 꾸밀 수 있게 아주 옅게 · 집게를 꽂으면 납작 */
+.dy-lift { position: absolute; left: 0; top: 0; width: 50%; height: 100%; pointer-events: none; animation: dyLift 5s ease-in-out infinite;
+    background: linear-gradient(90deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 12cqw),
+        linear-gradient(90deg, transparent 55%, rgba(120, 80, 100, .09) 82%, rgba(120, 80, 100, .03) 94%, transparent),
+        linear-gradient(170deg, rgba(255, 255, 255, .35), transparent 30%); }
+.dy-lift::before { content: ''; position: absolute; left: -3cqw; top: -1.4cqw; bottom: 0; width: 3cqw; border-radius: 3cqw 0 0 3cqw;
+    background: linear-gradient(90deg, transparent, rgba(60, 30, 45, .42)); -webkit-mask: linear-gradient(#000, rgba(0, 0, 0, .15)); mask: linear-gradient(#000, rgba(0, 0, 0, .15)); }
+.dy-lift::after { content: ''; position: absolute; left: -1.6cqw; right: 6%; top: -2.6cqw; height: 2.6cqw; border-radius: 3cqw 3cqw 0 0;
+    background: linear-gradient(0deg, rgba(60, 30, 45, .38), transparent); -webkit-mask: linear-gradient(90deg, #000, rgba(0, 0, 0, .1)); mask: linear-gradient(90deg, #000, rgba(0, 0, 0, .1)); }
+@keyframes dyLift { 50% { opacity: .78; } }
+@media (prefers-reduced-motion: reduce) { .dy-lift { animation: none; } }
+.dy-clip { position: absolute; left: 12%; top: -9cqw; width: 19cqw; height: 22.6cqw; pointer-events: none; filter: drop-shadow(0 .7cqw .8cqw rgba(50, 35, 45, .32)); }
 .dy-clip svg { display: block; width: 100%; height: 100%; }
 .dy-clipth { display: block; width: 44px; height: 52px; filter: drop-shadow(0 3px 4px rgba(60, 40, 50, .25)); }
 .dy-clipth svg { display: block; width: 100%; height: 100%; }
