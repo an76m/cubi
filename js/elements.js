@@ -383,7 +383,8 @@
         function elKeepCenter(el, x, y) {
             const ca = document.getElementById('canvasArea'); if (!ca) return [x, y];
             const W = el.offsetWidth, H = el.offsetHeight, PW = ca.offsetWidth, PH = ca.offsetHeight;
-            return [Math.max(-W / 2, Math.min(PW - W / 2, x)), Math.max(-H / 2, Math.min(PH - H / 2, y))];
+            const L = ca.closest('.dk-cover') ? PW / 2 : 0;                     // 📕 표꾸 : 표지는 오른쪽 쪽 (js/skins.js dkCv)
+            return [Math.max(L - W / 2, Math.min(PW - W / 2, x)), Math.max(-H / 2, Math.min(PH - H / 2, y))];
         }
         window.elKeepCenter = elKeepCenter;
         function makeTransformable(el) {

@@ -761,7 +761,7 @@
             return `다꾸/${b ? b.kind : o.kind}/${b ? b.name : dkFolderName(o.design, o.spec)}/${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;
         }
         function dkCv() { return !!dkType() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
-        function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)
+        function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } const b = document.getElementById('diaryBook'); if (b) b.classList.toggle('dk-cv', cv); }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)
         /* 고른 다이어리와 지금 펼친 날짜가 맞는지 (유한인데 진짜 날짜 · 기본인데 장 날짜 · 페이지 수를 넘음) → 맞는 곳으로 */
         function dkSync(load) {
             const bk = !!dkType(), on = dkIs(currentDate);
