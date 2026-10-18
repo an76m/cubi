@@ -923,7 +923,7 @@
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
             bdBusy = true; ip.classList.add('dy-bo-go');
             setTimeout(() => ip.classList.add('dy-bo'), 330);                  // 미끄러져 와요
-            setTimeout(() => ip.classList.add('dy-bo-tape'), 1100);            // 테이프
+            setTimeout(() => ip.classList.add('dy-bo-tape'), 1100);            // 테이프 (붙은 채 남아요 · 끼우기 때 떼어져요)
             setTimeout(() => { ip.classList.remove('dy-bo-go', 'dy-bo-tape'); bdBusy = false; bdPut((bdGet() & 2) | 1); bdSync(); }, 2700);
         }
         function bdIn() {                                                       // 펀치 → 구멍 → 테이프 떼기 → 링에 끼우기
