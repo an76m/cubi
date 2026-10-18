@@ -680,7 +680,8 @@
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
         function punchPick(id) { prefSet(PUNCH_KEY, PUNCH_LOCAL, PUNCHES.some(p => p[0] === id) ? id : 'basic'); dyRender(); }
-        const bdOn = () => { const t = dyNow(); return t.b === 'ring' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };
+        const bdOn = () => { const t = dyNow(); return t.b === 'ring' && dvDev() !== 'phone' &&   // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
+             isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };
         function bdGet() { if (!bdOn()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
         function bdPut(v) {
             const m = Object.assign({}, prefGet(BD_KEY, BD_LOCAL) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {});
