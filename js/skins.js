@@ -698,6 +698,7 @@
                 const cs = getComputedStyle(cv), ring = cs.boxShadow.split(/,(?![^(]*\))/).map(x => x.trim()).filter(x => / 0px 0px 0px [\d.]+px$/.test(x));
                 ip.style.setProperty('--bd-ring', ring.join(', ') || '0 0 0 4px #fff'); ip.style.setProperty('--bd-rad', cs.borderRadius);
             }
+            ip.classList.toggle('dy-hand', bdMode() === 'hand');               // ✋ 수동 : 꺼내기 대신 🔓 링 열기 버튼
             ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
             bdSides();
         }
@@ -746,6 +747,9 @@
             if (!bdHit(e)) { if (!bdSt) bdShow(false); return; }
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
             if (bdBusy) return;
+            if (bdMode() === 'hand' && !document.getElementById('innerPage').classList.contains('dy-bo')) {   // ✋ 수동 : 🔓 링 열기는 누를 것 없이 그 자리에서 바로 옆으로 끌어요 (도련 10-18)
+                bdStepStart('out'); if (bdSt) { bdSt.pre = 1; bdDgStart(e); } return;
+            }
             if (!bdShown()) { bdShow(true); return; }
             if (Date.now() - bdShowAt < 250) return;
             const k = document.getElementById('innerPage').classList.contains('dy-bo') ? 'in' : 'out';
@@ -771,8 +775,8 @@
              끼우기 = 🕳️ 구멍 뚫기(꾹 누르기) → ↔️ 벌리기(바깥으로 밀기) → 🗂️ 바인더에 넣기(위로 올리기) → 🔒 링 닫기(옆으로 밀기)
            - 끄는 동안 = innerPage 의 data-dg(ring · cov · join) + --bs(0 끼운 모습 ~ 1 꺼낸 모습) · css 가 그대로 그려요 */
         const BDM_KEY = 'diary_binder_mode', BDM_LOCAL = 'malang_diary_binder_mode';
-        const bdMode = () => prefGet(BDM_KEY, BDM_LOCAL) === 'auto' ? 'auto' : 'hand';
-        function bdModeSet(v) { prefSet(BDM_KEY, BDM_LOCAL, v === 'auto' ? 'auto' : 'hand'); bdModeRender(); }
+        function bdMode() { return prefGet('diary_binder_mode', 'malang_diary_binder_mode') === 'auto' ? 'auto' : 'hand'; }   // BDM_KEY · BDM_LOCAL (bdSync 가 먼저 불러도 되게)
+        function bdModeSet(v) { prefSet(BDM_KEY, BDM_LOCAL, v === 'auto' ? 'auto' : 'hand'); bdModeRender(); bdSync(); }
         function bdModeRender() { const m = bdMode(); document.querySelectorAll('#bdModePick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === m)); }
         const bdAt = () => dyNow().id + '|' + dkNo(currentDate);
         const BD_HAND = {
@@ -867,7 +871,8 @@
                 bdBsSet(d.st.rev ? 1 - p : p);
                 if (k < 1) { requestAnimationFrame(step); return; }
                 ip.classList.remove('dy-dg'); delete ip.dataset.dg; ip.style.removeProperty('--bs'); bdBusy = false;
-                if (go) { ip.classList.remove(...BD_TMP); (d.st.end || []).forEach(c => ip.classList.add(c)); bdStepNext(); }
+                if (go) { if (bdSt) bdSt.pre = 0; ip.classList.remove(...BD_TMP); (d.st.end || []).forEach(c => ip.classList.add(c)); bdStepNext(); }
+                else if (bdSt && bdSt.pre) { bdStepEnd(); bdShow(true); }        // 🔓 덜 끌었으면 아직 시작 전 (버튼만 보여요)
             };
             requestAnimationFrame(step);
         }
@@ -904,7 +909,7 @@
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
             if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge-w"><i class="dy-edge-f"></i></span>`
-                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" tabindex="-1">${k === 'out' ? '📤<small>꺼내기</small>' : '📥<small>끼우기</small>'}</button>`).join('') + '<button type="button" class="dy-bo-btn st" tabindex="-1"></button>');   // st : ✋ 수동일 때 다음 단계   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
+                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" tabindex="-1">${k === 'out' ? '<span class="a">📤<small>꺼내기</small></span><span class="h">🔓<small>링 열기</small></span>' : '📥<small>끼우기</small>'}</button>`).join('') + '<button type="button" class="dy-bo-btn st" tabindex="-1"></button>');   // st : ✋ 수동일 때 다음 단계   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');

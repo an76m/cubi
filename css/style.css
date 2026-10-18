@@ -3805,6 +3805,8 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.dy-bd:not(.dy-bo) .dy-bo-btn.out, .inner-page.dy-bd.dy-bo .dy-bo-btn.in { display: flex; }
 .inner-page.dy-bo-go .dy-bo-btn, .inner-page.dy-bo-back .dy-bo-btn, .inner-page.png-mode .dy-bo-btn { display: none !important; }
 .dy-bo-btn.st { display: none !important; }
+.dy-bo-btn .a { display: contents; } .dy-bo-btn .h { display: none; }
+.inner-page.dy-hand .dy-bo-btn .a { display: none; } .inner-page.dy-hand .dy-bo-btn .h { display: contents; }
 .inner-page.dy-bs .dy-bo-btn.out, .inner-page.dy-bs .dy-bo-btn.in { display: none !important; }
 .inner-page.dy-bs .dy-bo-btn.st { display: flex !important; width: auto; min-width: 64px; height: auto; padding: 6px 10px; top: 72%; }
 .dy-bo-btn.st em { font-style: normal; font-size: 9px; font-weight: 700; opacity: .7; white-space: nowrap; margin-top: 1px; }
