@@ -789,35 +789,44 @@
             const d = dfDays(); if (d.length && d[d.length - 1] !== cur) goToDate(dfDate(d[d.length - 1]));
         }
         /* 📒 다이어리 고르기 창 */
-        function dyThumb(t) {
+        function dyThumb(t, sk) {                                              // sk : 기본다이어리 4색 (테두리 · 속지 색)
             const H = 56, W = Math.round(H / t.r * 2);                             // 모두 펼친 두 쪽 그대로 (실제 비율)
-            return `<span class="dy-th" data-b="${t.b}" style="--dy-c:${t.c};width:${W}px;height:${H}px"><i></i><i></i></span>`;
+            return `<span class="dy-th" data-b="${t.b}" style="--dy-c:${sk ? sk.border : t.c};${sk ? `--dy-p:${sk.page};` : ''}width:${W}px;height:${H}px"><i></i><i></i></span>`;
         }
-        /* 다이어리 창의 📔 다이어리 · 📓 노트 · 🗂 바인더 버튼 (도련 10-18 · 스티커 창처럼 종류 버튼 → 칸 기본 · 내가만든 · 공유받은 · 이벤트 · 문구점)
-           기본 칸 = 지금 있는 규격 (DY_TYPES 의 k) · 다른 칸은 다이어리 만들기 · 문구점이 생기면 채워요 */
-        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' };
+        /* 다이어리 창의 📔 기본다이어리 · 📓 노트 · 🗂 바인더 버튼 (도련 10-18 · 스티커 창처럼 종류 버튼 → 칸 기본 · 내가만든 · 공유받은 · 이벤트 · 문구점)
+           기본다이어리 기본 칸 = 기본 다이어리 4색 (js/app.js skinPresets · 고르면 기본 다이어리로 바꾸고 그 색 · id 'basic:색')
+           노트 · 바인더 = 기본 · 내가만든 칸은 숨김 (10-18 · 규격 6종은 DY_TYPES 에 그대로 · 문구점 · 다이어리 만들기가 생기면 그 칸에) */
+        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' }, DY_NAME = { '다이어리': '기본다이어리' };
+        const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => tab === 'free' ? DY_TYPES.filter(t => t.k === kind) : [];
+        const dyItems = (kind, tab) => kind === '다이어리' && tab === 'free' ? DY_COLORS : [];
+        const dyHide = (kind, v) => kind !== '다이어리' && (v === 'free' || v === 'mine');
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
-            document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + dyKind;
+            document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
             const bar = document.getElementById('dyTabs');
-            bar.innerHTML = stkTabsOn(v => dyItems(dyKind, v).length, 'dy').map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
+            const tabs = stkTabsOn(v => dyItems(dyKind, v).length, 'dy').filter(([v]) => !dyHide(dyKind, v));
+            bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
             bar.hidden = bar.children.length < 2;
-            dyTabSet('free');
+            dyTabSet(tabs.length ? tabs[0][0] : '');
             openModal('dyModal');
         }
         function dyTabSet(g) {
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
-            const list = dyItems(dyKind, g), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || '';
-            document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(t =>
-                `<button type="button" class="dy-it" data-id="${t.id}" onclick="dySet('${t.id}')"><span class="dy-stage">${dyThumb(t)}</span><span class="dy-n">${t.g}</span><small>${t.g === t.n ? '' : t.n + ' · '}${t.mm}</small></button>`).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
+            const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
+            document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(([c, n]) =>
+                `<button type="button" class="dy-it" data-id="${DY_DEF}:${c}" onclick="dyPickColor('${c}')"><span class="dy-stage">${dyThumb(base, skinPresets[c])}</span><span class="dy-n">${n}</span><small>${base.mm}</small></button>`).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
+            dyRender();
+        }
+        function dyPickColor(c) {                                              // 기본다이어리 4색 : 기본 다이어리로 바꾸고 그 색 (js/settings.js applySkinPreset)
+            if (dyNow().id !== DY_DEF) dySet(DY_DEF);
+            applySkinPreset(c);
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const id = dyNow().id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
