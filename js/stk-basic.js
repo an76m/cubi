@@ -74,11 +74,11 @@
             starfish: `<path d="M50 12 C56 30 58 34 86 38 C64 52 64 56 72 84 C54 68 46 68 28 84 C36 56 36 52 14 38 C42 34 44 30 50 12Z" fill="#ffa58f" ${L}/>${face(50, 50, 10)}`
         };
 
-        /* 그림 하나 → SVG 주소 : die = 하얀 다이컷 테두리 (조각스티커) · 아니면 인쇄 그림 (모조지스티커) */
+        /* 그림 하나 → SVG 주소 : die = 하얀 다이컷 테두리 (조각스티커 · 페이지 한 쪽(340)에 알맞게 110 · 도련 10-18) · 아니면 인쇄 그림 (모조지스티커) */
         function sbSvg(k, die) {
             const body = ICON[k]; if (!body) return '';
             const s = die
-                ? `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="-9 -9 118 118"><style>.ol *{fill:#fff;stroke:#fff;stroke-width:13px;stroke-linejoin:round;stroke-linecap:round}</style><g class="ol">${body}</g><g>${body}</g></svg>`
+                ? `<svg xmlns="http://www.w3.org/2000/svg" width="110" height="110" viewBox="-9 -9 118 118"><style>.ol *{fill:#fff;stroke:#fff;stroke-width:13px;stroke-linejoin:round;stroke-linecap:round}</style><g class="ol">${body}</g><g>${body}</g></svg>`
                 : `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="-2 -2 104 104">${body}</svg>`;
             return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
         }

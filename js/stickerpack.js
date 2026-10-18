@@ -226,12 +226,25 @@
             x.lineWidth = 6; x.strokeStyle = '#fff'; x.strokeText(w, 95, 62, 150); x.fillStyle = line; x.fillText(w, 95, 62, 150);
             return spkTrim(c);
         }
+        /* 📏 붙는 크기 (페이지 한 쪽 340 기준 · 도련 10-18) : 그린 그림(160 캔버스)에 이만큼 곱해요 · 그림은 그대로 두고 SVG 로 감싸 크기만 줄여서 선명해요 */
+        const SPK_SIZE = { abc: .5, num: .5, heart: .55, note: .5, day: .5, month: .5, mark: .5, word: .6, sky: .5, twinkle: .45 };
+        function spkSmall(png, k) {
+            return new Promise(ok => {
+                const im = new Image();
+                im.onload = () => {
+                    const w = im.naturalWidth, h = im.naturalHeight; if (!w || !h) { ok(png); return; }
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(w * k)}" height="${Math.round(h * k)}" viewBox="0 0 ${w} ${h}"><image width="${w}" height="${h}" href="${png}"/></svg>`;
+                    ok('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+                };
+                im.onerror = () => ok(png); im.src = png;
+            });
+        }
         async function spkSrcs(pack) {
             if (spkS.cache[pack.id]) return spkS.cache[pack.id];
             if (pack.load) return (spkS.cache[pack.id] = await pack.load());   // 🖼️ 개발자 그림 포인트스티커 (js/stk-basic.js sbPack)
             if (document.fonts && document.fonts.load) await Promise.race([document.fonts.load(`700 100px ${SPK_FONT}`), new Promise(r => setTimeout(r, 1500))]).catch(() => {});
-            const items = typeof pack.items === 'function' ? pack.items() : pack.items;
-            return (spkS.cache[pack.id] = items.map((it, i) => (pack.draw || spkGlyph)(it, i)));
+            const items = typeof pack.items === 'function' ? pack.items() : pack.items, k = SPK_SIZE[pack.id] || .5;
+            return (spkS.cache[pack.id] = await Promise.all(items.map((it, i) => spkSmall((pack.draw || spkGlyph)(it, i), k))));
         }
 
         /* ---------- 🍭 포인트스티커 창 : 위쪽 '🍭 포인트스티커 · 😀 이모지' 두 칸 (js/stickermaker.js openStickerList) ---------- */
