@@ -3745,7 +3745,8 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.dy-bo-go .dy-rings { transition-delay: 0s; opacity: 0; transform: scaleX(1.3); }   /* 링부터 열려요 */
 .inner-page.dy-bo-go .dy-cov { transition-delay: .1s; opacity: 0; }
 .dy-tape { position: absolute; left: 50%; top: 16%; width: 22cqw; height: 5cqw; margin-left: -11cqw; border-radius: .3cqw; opacity: 0; pointer-events: none;   /* 양면테이프 : 무늬 없는 반투명 · 붙고 나서 스윽 사라져요 (원래 종이 뒤에 붙는 거라 안 보여요) */
-    background: rgba(255, 255, 255, .8); box-shadow: 0 .2cqw .6cqw rgba(90, 60, 75, .14), inset 0 0 0 .12cqw rgba(255, 255, 255, .6); transform: rotate(-3deg); }   /* 0.8 불투명 (도련 10-18) */
+    background: #f3e6cf; box-shadow: 0 .2cqw .6cqw rgba(90, 60, 75, .16), inset 0 0 0 .12cqw rgba(255, 255, 255, .45); transform: rotate(-3deg); }   /* 옅은 베이지 · 완전 불투명 (도련 10-18 · 잘 보이게) */
+.dy-tape { z-index: 1; }   /* 가운데 틈 위를 덮어요 */
 .dy-tape.b { top: auto; bottom: 16%; transform: rotate(2deg); }
 .inner-page.dy-bo-tape .dy-tape { animation: dyTape 1.5s ease-in-out both; }
 .inner-page.dy-bo-tape .dy-tape.b { animation-delay: .12s; }
@@ -3826,7 +3827,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page[data-dg="join"] .dy-holes i:nth-child(n+7) { left: calc(50% + 10.5cqw - 6cqw * var(--bs, 0)) !important; }
 /* 🩹 끌어다 붙이는 테이프 조각 */
 .dy-tp { position: absolute; width: 22cqw; height: 5cqw; margin: -2.5cqw 0 0 -11cqw; border-radius: .3cqw; pointer-events: none; z-index: 4; transform: rotate(-3deg);
-    background: rgba(255, 255, 255, .8); box-shadow: 0 .6cqw 1.4cqw rgba(90, 60, 75, .18), inset 0 0 0 .12cqw rgba(255, 255, 255, .6); }
+    background: #f3e6cf; box-shadow: 0 .6cqw 1.4cqw rgba(90, 60, 75, .18), inset 0 0 0 .12cqw rgba(255, 255, 255, .6); }
 .dy-tp.ok { box-shadow: 0 .2cqw .6cqw rgba(90, 60, 75, .12), inset 0 0 0 .12cqw rgba(255, 255, 255, .6), 0 0 0 .3cqw rgba(255, 143, 177, .45); }
 .dy-tp.back { opacity: 0; transition: opacity .25s; }
 #diaryBook.dy-one.dy-r .dy-bo-btn { transform: translate(8px, -50%); }
