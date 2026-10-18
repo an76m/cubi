@@ -7,7 +7,7 @@
    ※ 다른 파일보다 먼저 읽어요 (<head>) · 이 파일이 없으면 모든 기능이 보여요 */
 
         const FEATURES = {
-            cafe: true,       // ☕ (10-17 다시 보이게) 카페 (하단메뉴 카페 버튼 · 🎨 색상설정의 '카페 버튼 안쪽' 색)
+            cafe: false,      // ☕ (10-18 다시 숨김 · 도련) 카페 (하단메뉴 카페 버튼 · 🎨 색상설정의 '카페 버튼 안쪽' 색)
             notebook: true,   // 📒 스티커 수첩 (10-13 다시 보이게 · 손보는 중) (⚙ 설정의 '스티커 고르는 창' · 숨기면 늘 🪟 고르는 창)
             dday: false,      // ⏳ D-day (⚙ 설정 스위치 · 페이지 왼쪽 위 D-day · 카페에서 만들어요)
             pattern: true,    // (10-18 다시 보이게) 🌈 배경지 · 🖼️ 이미지로 배경지 · 🖌️ 그려서 배경지 (🎨 페이지 창)
@@ -24,7 +24,7 @@
         };
         /* 💻 내 컴퓨터(index.html 더블클릭 · localhost)에서는 모든 기능이 보여요 → 새 기능 소개 영상용 (사이트는 위 FEATURES 그대로) */
         const FT_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-        const FT_OFF_LOCAL = ['fphone'];   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16)
+        const FT_OFF_LOCAL = ['fphone', 'cafe'];   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18)
         function ftOn(name) { if (FT_OFF_LOCAL.includes(name) && FEATURES[name] === false) return false; return FT_LOCAL || !(name in FEATURES) || FEATURES[name] !== false; }
         (function () {
             const root = document.documentElement;
