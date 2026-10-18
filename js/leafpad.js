@@ -49,7 +49,8 @@
         /* 그날 파일에서 속지 읽어 입히기 (js/page.js 넘기는 페이지) */
         function lfStatic(c, date) {
             let raw = null; try { raw = JSON.parse(store.getItem(getDateKey(date))); } catch (e) {}
-            if (raw && raw.lf) lfApply(c, raw.lf, raw.lfi);
+            const lf = (raw && raw.lf) || (window.dkLeafOf && dkLeafOf(date));   // 📓 만든 노트의 내지 (js/dymaker.js)
+            if (lf) lfApply(c, lf, raw && raw.lfi);
         }
         function openLeafPicker() {
             const box = lfq('leafPick'); if (!box) return;

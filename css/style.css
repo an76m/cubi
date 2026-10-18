@@ -3301,7 +3301,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
 /* 🔓 기능 공개 스위치 (js/features.js) : 숨긴 기능의 버튼 · 칸 */
 .ft-no-cafe [data-ft~="cafe"], .ft-no-notebook [data-ft~="notebook"], .ft-no-dday [data-ft~="dday"], .ft-no-pattern [data-ft~="pattern"],
-.ft-no-studio [data-ft~="studio"], .ft-no-skin [data-ft~="skin"], .ft-no-dybook [data-ft~="dybook"], .ft-no-patmake [data-ft~="patmake"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"] { display: none !important; }
+.ft-no-studio [data-ft~="studio"], .ft-no-skin [data-ft~="skin"], .ft-no-dybook [data-ft~="dybook"], .ft-no-patmake [data-ft~="patmake"], .ft-no-patdraw [data-ft~="patdraw"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"] { display: none !important; }
 
 /* 🆓 기본 스티커 : 🧩 봉투 · 📄 모조지스티커 카드 (js/stk-basic.js) */
 .sticker-grid .sb-card { grid-column: span 3; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 0 8px; border: 2px solid var(--border-color); border-radius: 16px; background: #fff; font: inherit; color: #5b3f4a; cursor: pointer; overflow: hidden; }
@@ -3790,3 +3790,41 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .cover-page.cv-book .drag-hint { z-index: 4; }   /* 꾸민 것은 공지 카드 위에 (눌러도 아래로 지나가요) */
 .cv-deco .element-box { pointer-events: none; left: 0; top: 0; }
 .inner-page.dk-cover .page-stamps { display: none; }   /* 표지엔 기분 · 날씨 도장 자리가 없어요 */
+
+/* 📓 노트 · 🗂️ 바인더 만들기 (js/dymaker.js · 도련 10-18) */
+.dy-new .dy-stage b { font-size: 34px; font-weight: 400; color: var(--primary-accent); line-height: 1; }
+.dy-new { border-style: dashed; }
+.dy-ed { position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: #fff; box-shadow: 0 1px 4px rgba(120, 60, 90, .2); cursor: pointer; }
+.dmk-win { width: min(94vw, 460px); max-height: 88vh; overflow-y: auto; text-align: left; }
+.dmk-prev { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 14px 10px; margin-bottom: 6px; border-radius: 16px; background: radial-gradient(ellipse at 50% 90%, rgba(120, 70, 90, .14), transparent 62%), color-mix(in srgb, var(--primary-accent) 6%, #fff); }
+.dmk-prev .dy-th { flex: none; }
+.dmk-prev-n { display: flex; flex-direction: column; gap: 3px; font-size: 15px; font-weight: 800; color: #5a3d4a; word-break: keep-all; }
+.dmk-prev-n small { font-size: 11.5px; font-weight: 600; opacity: .7; }
+.dmk-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-top: 1.5px dashed color-mix(in srgb, var(--border-color) 60%, #fff); }
+.dmk-row > b { flex: none; width: 64px; font-size: 13px; color: #7b5a63; }
+.dmk-row.dmk-col { flex-direction: column; align-items: stretch; }
+.dmk-row.dmk-col > b { width: auto; }
+.dmk-row > b small { font-weight: 600; opacity: .65; margin-left: 4px; }
+.dmk-name { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 12px; border: 1.5px solid color-mix(in srgb, var(--border-color) 80%, #fff); font: inherit; font-size: 14px; }
+.dmk-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dmk-chip { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 11px; border-radius: 12px; border: 1.5px solid color-mix(in srgb, var(--border-color) 75%, #fff); background: #fff; font: inherit; font-size: 13px; font-weight: 700; color: #5a3d4a; cursor: pointer; }
+.dmk-chip small { font-size: 10px; font-weight: 600; opacity: .6; }
+.dmk-chip.on { border-color: var(--primary-accent); background: color-mix(in srgb, var(--primary-accent) 10%, #fff); color: var(--primary-accent); }
+.dmk-sw { display: flex; flex-wrap: wrap; gap: 7px; }
+.dmk-c { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #fff; background: var(--c); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, #000 10%); cursor: pointer; padding: 0; }
+.dmk-c.on { box-shadow: 0 0 0 3px var(--primary-accent); }
+.dmk-pg { display: flex; align-items: center; gap: 6px; }
+.dmk-pg input { width: 64px; padding: 6px; text-align: center; border-radius: 10px; border: 1.5px solid color-mix(in srgb, var(--border-color) 80%, #fff); font: inherit; font-size: 15px; font-weight: 800; }
+.dmk-pg small { font-size: 11px; opacity: .6; }
+.dmk-step { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--border-color) 80%, #fff); background: #fff; font-size: 17px; font-weight: 800; color: var(--primary-accent); cursor: pointer; }
+.dmk-lv { padding: 8px; margin-top: 6px; border-radius: 14px; background: color-mix(in srgb, var(--primary-accent) 5%, #fff); }
+.dmk-lv-r { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; color: #7b5a63; margin-bottom: 6px; }
+.dmk-lv-r input { width: 52px; padding: 4px; text-align: center; border-radius: 8px; border: 1.5px solid color-mix(in srgb, var(--border-color) 80%, #fff); font: inherit; font-weight: 800; }
+.dmk-lv-r input:disabled { background: transparent; border-color: transparent; color: inherit; }
+.dmk-x { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; border: 0; background: #fff; color: #b0889a; cursor: pointer; }
+.dmk-lv-pick { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.dmk-lf { font-size: 10.5px; text-align: center; }
+.dmk-lf .lf-sw { border-radius: 8px; }
+.dmk-add { margin-top: 8px; align-self: center; padding: 6px 14px; border-radius: 14px; border: 1.5px dashed var(--primary-accent); background: #fff; color: var(--primary-accent); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.dmk-add[hidden], #dmkDel[hidden] { display: none; }
+#dmkModal .sub-modal-btns .dmk-ok { background: var(--primary-accent); color: #fff; border-color: var(--primary-accent); font-weight: 800; }
