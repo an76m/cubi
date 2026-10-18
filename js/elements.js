@@ -819,7 +819,7 @@
              그 밖(하단메뉴 · 🪟 고르는 창 · 설정 등 모든 창 · 페이지 메뉴)에 가거나 누르면 사라져요 · 누르면 집게가 오므라들고 떼면 벌어져요
            - 📱 폰 · 📲 패드 : 손을 떼고 정한 초가 지나면 사라져요 / 💻 컴퓨터 : 마우스를 늘 따라와요
            - 설정 '🪡 핀셋' : 사라지는 시간(기본 1초) · 기기마다 늘 보이기 켜기/끄기 (기본 폰 끔 · 패드 끔 · 컴퓨터 켬 · 끄면 멈추고 정한 초 뒤에 사라져요)
-           - 표지로 돌아가거나 🗑 삭제 · ✏️ 그리기 · ✂️ 스티커 칼을 쓰는 동안엔 비켜요 (pinOff) */
+           - 표지로 돌아가거나 🗑 삭제 · ✏️ 그리기 · ✂️ 스티커 칼 · ✏️ 연필꽂이(글쓰기 · 📏 자)를 쓰는 동안엔 비켜요 (pinOff) */
         const PIN_CFG_KEY = 'diary_pin_cfg', PIN_CFG_LOCAL = 'malang_pin_cfg', PIN_CFG_DEF = { sec: 1, phone: 0, pad: 0, pc: 1 }, PIN_SEC_MIN = 1, PIN_SEC_MAX = 10;
         function pinCfg() { const v = prefGet(PIN_CFG_KEY, PIN_CFG_LOCAL); return Object.assign({}, PIN_CFG_DEF, v && typeof v === 'object' ? v : {}); }
         function pinCfgSet(k, v) {
@@ -834,7 +834,7 @@
         }
         let pinEl = null, pinWatch = 0, pinTimer = 0, pinKind = 'pc', pinHold = false;   // pinHold : 보이는 곳에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 그대로 보여요)
         const pinOpen = () => { const p = document.getElementById('innerPage'); return !!p && p.offsetParent !== null; };
-        const pinOff = () => !!twz || !pinOpen() || document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden])');
+        const pinOff = () => !!twz || !pinOpen() || document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden]), #pcRoom:not([hidden])');   // ✏️ 연필꽂이가 뜬 순간부터 글쓰기가 끝날 때까지 숨어요 (도련 · 10-18)
         const PIN_AREA = '#innerPage, #pelRoom, #pcbRoom, #spkBoard, .modal.snb-on .snb-sheets';   // 🪡 핀셋이 보이는 곳
         function pinOver(x, y) {
             const top = document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
