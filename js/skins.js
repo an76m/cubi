@@ -297,7 +297,7 @@
         }
         function savePatLayout() { try { localStorage.setItem(PAT_LAYOUT_KEY, JSON.stringify(patLayout)); } catch (e) {} }
 
-        /* 배경지 칸 5개 (스티커 창과 같은 이름) : 기본 = ☁️ 말랑배경지 · 내가만든 · 공유받은 = 📥 파일로 받은 것 + 🌟 등록된 사용자 배경지
+        /* 배경지 칸 (스티커 창과 같은 이름) : 기본 = 페이지 4색 바탕 · 내가만든 (10-18 숨김) · 공유받은 = 📥 파일로 받은 것 + 🌟 등록된 사용자 배경지
            이벤트 = 앞으로 이벤트로 나눠 줄 배경지 (아직 없어서 칸이 숨어 있어요) · 문구점 = 🛍️ 문구점 가기 */
         function patItems() {
             const cm = typeof getCommunityItems === 'function' ? getCommunityItems() : [];
@@ -320,7 +320,7 @@
                 tier = id.startsWith('cm:') ? 'share' : mine ? (mine.got ? 'share' : 'mine') : 'free';
             }
             const bar = document.getElementById('patTabs');
-            if (bar) bar.innerHTML = stkTabsOn().map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="setPatTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
+            if (bar) bar.innerHTML = stkTabsOn().filter(([v]) => v !== 'mine').map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="setPatTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
             if (bar && !bar.querySelector(`[data-tab="${tier}"]`)) tier = 'free';
             closeModal('skinModal');
             setPatTab(tier);
@@ -514,16 +514,16 @@
            다꾸러가 실제로 많이 쓰는 모양 · 크기만 (도련 · 10-17)
            ⚠ 브랜드 이름은 절대 쓰지 않아요 (도련 · 10-18 : 팔 때 큰일나요) → 종류 · 규격 이름으로만 (화면 · 폴더 이름 · 코드 모두) */
         const DY_TYPES = [
-            { id: 'basic', g: '기본', n: '기본', mm: '85×165', b: 'thin', r: 165 / 85, c: '#f7a8c0' },
-            { id: 'ring-a5', g: '6공 바인더', n: 'A5', mm: '148×210', b: 'ring', r: 210 / 148, c: '#ff9dbb' },
-            { id: 'ring-a6', g: '6공 바인더', n: 'A6', mm: '105×148', b: 'ring', r: 148 / 105, c: '#c4b2f2' },
-            { id: 'leather-slim', g: '가죽 노트', n: '슬림', mm: '110×210', b: 'tn', r: 210 / 110, c: '#a3714f' },
-            { id: 'pocket-a6', g: '문고판 노트', n: 'A6', mm: '105×148', b: 'spread', r: 148 / 105, c: '#ffb3c7' },
-            { id: 'hard-a5', g: '하드커버 노트', n: '라지', mm: '130×210', b: 'hard', r: 210 / 130, c: '#5a4652' },
-            { id: 'month', g: '한 달 노트', n: '데일리 한 달', mm: '85×165', b: 'thin', r: 165 / 85, c: '#8fd0b7' }
+            { id: 'basic', k: '다이어리', g: '기본', n: '기본', mm: '85×165', b: 'thin', r: 165 / 85, c: '#f7a8c0' },
+            { id: 'ring-a5', k: '바인더', g: '6공 바인더', n: 'A5', mm: '148×210', b: 'ring', r: 210 / 148, c: '#ff9dbb' },
+            { id: 'ring-a6', k: '바인더', g: '6공 바인더', n: 'A6', mm: '105×148', b: 'ring', r: 148 / 105, c: '#c4b2f2' },
+            { id: 'leather-slim', k: '노트', g: '가죽 노트', n: '슬림', mm: '110×210', b: 'tn', r: 210 / 110, c: '#a3714f' },
+            { id: 'pocket-a6', k: '노트', g: '문고판 노트', n: 'A6', mm: '105×148', b: 'spread', r: 148 / 105, c: '#ffb3c7' },
+            { id: 'hard-a5', k: '노트', g: '하드커버 노트', n: '라지', mm: '130×210', b: 'hard', r: 210 / 130, c: '#5a4652' },
+            { id: 'month', k: '노트', g: '한 달 노트', n: '데일리 한 달', mm: '85×165', b: 'thin', r: 165 / 85, c: '#8fd0b7' }
         ];
         const DY_DEF = 'basic';                                                // 처음 설치하면 기본 다이어리
-        const DY_TAB = { '기본': '기본', '6공 바인더': '6공', '가죽 노트': '가죽', '문고판 노트': '문고판', '하드커버 노트': '하드커버', '한 달 노트': '한 달' };   // 고르기 창 위 카테고리
+        const DY_TAB = ['다이어리', '노트', '바인더'];                         // 고르기 창 위 카테고리 = k (도련 · 10-18 : 실물 모양으로 · 저장 폴더는 나누지 않아요 · 다이어리.json kind)
         /* 📕 유한 다이어리 저장 규칙 (도련 · 10-17) : 말랑달콤 / 다꾸 / 디자인 (규격) [n권] / …
            - 한 권에 폴더 하나 · 그 안 '다이어리.json' 에 id · 디자인 · 규격 · 페이지 수 · 장마다 처음 꾸민 날 (days)
            - 앱은 폴더 이름이 아니라 다이어리.json 의 id 로 찾아요 → 폴더 이름은 사람이 드라이브에서 알아보는 용도
@@ -539,7 +539,7 @@
             for (let n = 2; ; n++) if (!has.has(`${base} ${n}권`)) return `${base} ${n}권`;
         }
         function dkInfo(o) {                                                    // 다이어리.json 내용
-            return { id: o.id || 'dk' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), design: o.design || '', spec: o.spec || '', pages: o.pages || 0, days: o.days && typeof o.days === 'object' ? o.days : {} };
+            return { id: o.id || 'dk' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), design: o.design || '', spec: o.spec || '', kind: o.kind || '노트', pages: o.pages || 0, days: o.days && typeof o.days === 'object' ? o.days : {} };
         }
         const DY_H = 700;                                                      // 페이지 높이 기준
         const dyNow = () => { const id = prefGet(DY_KEY, DY_LOCAL); return DY_TYPES.find(t => t.id === id) || DY_TYPES.find(t => t.id === DY_DEF); };
@@ -659,7 +659,7 @@
             let o = null; try { o = JSON.parse(store.getItem('dkb_' + id)); } catch (e) {}
             if (o && o.id) return dkInfo(o);
             const m = prefGet(DK_KEY, DK_LOCAL) || {}, t = DY_TYPES.find(x => m[x.id] === id) || dkType() || {};
-            return dkInfo({ id, design: t.g, spec: t.n, pages: t.pg || DK_PAGES });
+            return dkInfo({ id, design: t.g, spec: t.n, kind: t.k, pages: t.pg || DK_PAGES });
         }
         const dkNow = () => dkType() ? dkInfoOf(dkId(true)) : null;
         const dkFilled = o => Object.keys(o.days).map(Number).filter(n => n > 0).sort((a, b) => a - b);
@@ -794,16 +794,16 @@
         }
         let dyTab = '';
         function dyOpen() {                                                    // 위 카테고리 하나씩 (처음엔 지금 쓰는 다이어리가 있는 칸)
-            dyTab = dyNow().g;
-            document.getElementById('dyTabs').innerHTML = Object.keys(DY_TAB).map(g => `<button type="button" class="stk-tab" data-g="${g}" onclick="dyTabSet('${g}')">${DY_TAB[g]}</button>`).join('');
+            dyTab = dyNow().k;
+            document.getElementById('dyTabs').innerHTML = DY_TAB.map(g => `<button type="button" class="stk-tab" data-g="${g}" onclick="dyTabSet('${g}')">${g}</button>`).join('');
             dyTabSet(dyTab);
             openModal('dyModal');
         }
         function dyTabSet(g) {
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
-            document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${DY_TYPES.filter(t => t.g === g).map(t =>
-                `<button type="button" class="dy-it" data-id="${t.id}" onclick="dySet('${t.id}')"><span class="dy-stage">${dyThumb(t)}</span><span class="dy-n">${t.n}</span><small>${t.mm}</small></button>`).join('')}</div>`;
+            document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${DY_TYPES.filter(t => t.k === g).map(t =>
+                `<button type="button" class="dy-it" data-id="${t.id}" onclick="dySet('${t.id}')"><span class="dy-stage">${dyThumb(t)}</span><span class="dy-n">${t.g}</span><small>${t.g === t.n ? '' : t.n + ' · '}${t.mm}</small></button>`).join('')}</div>`;
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }

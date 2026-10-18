@@ -3271,7 +3271,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
 /* 🔓 기능 공개 스위치 (js/features.js) : 숨긴 기능의 버튼 · 칸 */
 .ft-no-cafe [data-ft~="cafe"], .ft-no-notebook [data-ft~="notebook"], .ft-no-dday [data-ft~="dday"], .ft-no-pattern [data-ft~="pattern"],
-.ft-no-studio [data-ft~="studio"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"] { display: none !important; }
+.ft-no-studio [data-ft~="studio"], .ft-no-skin [data-ft~="skin"], .ft-no-patmake [data-ft~="patmake"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"] { display: none !important; }
 
 /* 🆓 기본 스티커 : 🧩 봉투 · 📄 모조지스티커 카드 (js/stk-basic.js) */
 .sticker-grid .sb-card { grid-column: span 3; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 0 8px; border: 2px solid var(--border-color); border-radius: 16px; background: #fff; font: inherit; color: #5b3f4a; cursor: pointer; overflow: hidden; }
