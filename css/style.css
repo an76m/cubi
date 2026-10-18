@@ -3807,6 +3807,8 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .bd-sheet.sel { outline-color: #ff4757; }
 .bd-sheet.lift { box-shadow: var(--bd-ring, 0 0 0 4px #fff), 4px 12px 26px rgba(120, 70, 90, .3); }
 .bd-sheet.r { z-index: 1; } .bd-sheet.sel { z-index: 2; }
+.bd-sheet.stuck { animation: bdStuck .32s ease-out; }   /* 🩹 양면테이프로 두 곳 이상 붙어서 안 움직여요 (js/skins.js) */
+@keyframes bdStuck { 25% { transform: translate(3px, 1px); } 50% { transform: translate(-2px, -1px); } 75% { transform: translate(1px, 0); } }
 .bd-rot { position: absolute; width: 36px; height: 36px; display: none; cursor: grab; touch-action: none; }
 .bd-sheet.sel .bd-rot { display: block; }
 .bd-rot.tl { left: -24px; top: -24px; } .bd-rot.tr { right: -24px; top: -24px; } .bd-rot.bl { left: -24px; bottom: -24px; } .bd-rot.br { right: -24px; bottom: -24px; }

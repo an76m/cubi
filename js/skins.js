@@ -846,23 +846,59 @@
             if (!sheet) { bdFreeSel(null); return; }                          // 다른 곳 = 풀기 (날짜바 끌기 · 넘기기는 그대로)
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
             const side = sheet.classList.contains('l') ? 'l' : 'r', sh = bdFree.sh[side];
-            bdFreeSel(side);
-            const r = sheet.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-            const rot = e.target.classList.contains('bd-rot');
-            bdFree.d = { id: e.pointerId, sh, side, rot, x: e.clientX, y: e.clientY, sx: sh.x, sy: sh.y, sr: sh.r, cx, cy, a0: Math.atan2(e.clientY - cy, e.clientX - cx), moved: false };
-            sheet.classList.add('lift');
+            const tp = bdTapeLinks(), grp = tp.link ? ['l', 'r'] : [side], pins = [];   // 🩹 양면테이프 : 두 쪽에 걸치면 한 장처럼 · 종이 밖(책상)에 걸치면 그 자리가 축
+            grp.forEach(x => tp.pin[x].forEach(p => { if (!pins.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 6)) pins.push(p); }));
+            bdFreeSel(side); if (tp.link) ['l', 'r'].forEach(x => bdFree.sh[x].el.classList.add('sel'));
+            const rot = e.target.classList.contains('bd-rot'), S = gdTo(e.clientX, e.clientY);
+            const st = grp.map(x => ({ sh: bdFree.sh[x], x: bdFree.sh[x].x, y: bdFree.sh[x].y, r: bdFree.sh[x].r }));
+            const P = pins.length === 1 ? pins[0] : { x: st.reduce((a, o) => a + o.sh.cx + o.x, 0) / st.length, y: st.reduce((a, o) => a + o.sh.cy + o.y, 0) / st.length };   // 돌리는 축 : 테이프 축 · 없으면 (묶인) 종이 가운데
+            bdFree.d = { id: e.pointerId, sh, side, rot, x: e.clientX, y: e.clientY, S, st, P, pin: pins.length, a0: Math.atan2(S.y - P.y, S.x - P.x), moved: false };
+            st.forEach(o => o.sh.el.classList.add('lift'));
+        }
+        /* 🩹 양면테이프가 실제처럼 (도련 10-18 · ✋ 수동 링을 연 뒤) : 테이프가 어디에 걸쳤는지를 누르는 순간 봐요
+           - 두 쪽에 걸침 = 두 쪽이 한 장처럼 (어느 쪽을 잡아도 같이 옮겨지고 같이 돌아요)
+           - 종이와 종이 밖(책상)에 걸침 = 그 테이프 가운데가 축 → 끌면 축을 중심으로 끄는 쪽으로 돌기만 해요 · 축이 두 곳 이상이면 꽉 잡혀서 안 움직여요
+           - 핀셋으로 테이프를 떼면 다시 자유롭게 */
+        function bdSheetHas(sh, p) {                                            // 그 자리가 이 쪽 종이 위인지 (다이어리 자리)
+            const el = sh.el, l = parseFloat(el.style.left), t = parseFloat(el.style.top), w = el.offsetWidth, h = el.offsetHeight;
+            const a = -sh.r * Math.PI / 180, vx = p.x - sh.cx - sh.x, vy = p.y - sh.cy - sh.y;
+            const bx = vx * Math.cos(a) - vy * Math.sin(a) + sh.cx, by = vx * Math.sin(a) + vy * Math.cos(a) + sh.cy;
+            return bx >= l && bx <= l + w && by >= t && by <= t + h;
+        }
+        function bdTapeLinks() {
+            const out = { link: false, pin: { l: [], r: [] } }; if (!bdFree) return out;
+            document.querySelectorAll('#canvasArea > .element-box').forEach(el => {
+                const img = el.querySelector(':scope > img'); if (!img || !String(img.dataset.src || '').includes('gd-tape')) return;
+                const side = el.classList.contains('bd-r') ? 'r' : 'l', b = el.getBoundingClientRect(), c = gdTo(b.left + b.width / 2, b.top + b.height / 2);
+                const a = ((parseFloat(el.dataset.rotation) || 0) + bdFree.sh[side].r) * Math.PI / 180, hl = img.offsetWidth * (parseFloat(el.dataset.scale) || 1) / 2;
+                const on = { l: false, r: false, out: false };
+                for (let i = 0; i <= 8; i++) {
+                    const t = -hl + hl * i / 4, p = { x: c.x + Math.cos(a) * t, y: c.y + Math.sin(a) * t }, L = bdSheetHas(bdFree.sh.l, p), R = bdSheetHas(bdFree.sh.r, p);
+                    if (L) on.l = true; if (R) on.r = true; if (!L && !R) on.out = true;
+                }
+                if (on.l && on.r) out.link = true;
+                if (on.out) ['l', 'r'].forEach(x => { if (on[x]) out.pin[x].push(c); });
+            });
+            return out;
         }
         window.addEventListener('pointermove', e => {
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
             if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return;   // 살짝 톡 = 메뉴
             d.moved = true;
-            if (d.rot) d.sh.r = d.sr + (Math.atan2(e.clientY - d.cy, e.clientX - d.cx) - d.a0) * 180 / Math.PI;
-            else { d.sh.x = d.sx + (e.clientX - d.x) / bdFree.k; d.sh.y = d.sy + (e.clientY - d.y) / bdFree.k; }
+            if (d.pin > 1) { if (!d.stuck) { d.stuck = 1; d.st.forEach(o => { o.sh.el.classList.remove('stuck'); void o.sh.el.offsetWidth; o.sh.el.classList.add('stuck'); }); } return; }   // 🩹 축이 두 곳 이상 = 꽉 잡혀서 안 움직여요 (살짝 버티기만)
+            const Q = gdTo(e.clientX, e.clientY);
+            if (d.rot || d.pin) {                                               // 돌리기 (축 = 테이프 · 없으면 종이 가운데)
+                let da = Math.atan2(Q.y - d.P.y, Q.x - d.P.x) - d.a0; const c = Math.cos(da), sn = Math.sin(da);
+                d.st.forEach(o => {
+                    const vx = o.sh.cx + o.x - d.P.x, vy = o.sh.cy + o.y - d.P.y;
+                    o.sh.x = d.P.x + vx * c - vy * sn - o.sh.cx; o.sh.y = d.P.y + vx * sn + vy * c - o.sh.cy; o.sh.r = o.r + da * 180 / Math.PI;
+                });
+            } else d.st.forEach(o => { o.sh.x = o.x + Q.x - d.S.x; o.sh.y = o.y + Q.y - d.S.y; });
             bdFreeApply();
         }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, e => {
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
-            bdFree.d = null; d.sh.el.classList.remove('lift');
+            bdFree.d = null; d.st.forEach(o => o.sh.el.classList.remove('lift'));
             if (!d.moved && !d.rot && e.type === 'pointerup') bdFreeMenu(e, d.side);   // 쪽을 톡 = 그 쪽에 빈 곳 메뉴 (연필꽂이 · 필통 … · 도련 10-18)
         }, true));
         function bdFreeMenu(e, side) {
@@ -937,7 +973,9 @@
         function gdK() { const ip = gdIp(), r = ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }
         const gdTo = (x, y) => { const { r, k } = gdK(); return { x: (x - r.left) / k, y: (y - r.top) / k }; };   // 화면 → 다이어리(innerPage) 자리
         function gdArea() {                                                     // 다이어리 둘레 (집게가 물 자리만큼 조금 넉넉히) · 화면 안
-            const cv = document.getElementById('canvasArea'), r = cv && cv.getBoundingClientRect(); if (!r || !r.width) return null;
+            const cv = document.getElementById('canvasArea'), r0 = cv && cv.getBoundingClientRect(); if (!r0 || !r0.width) return null;
+            const r = { left: r0.left, top: r0.top, right: r0.right, bottom: r0.bottom };
+            if (bdFree) ['l', 'r'].forEach(x => { const b = bdFree.sh[x].el.getBoundingClientRect(); r.left = Math.min(r.left, b.left); r.top = Math.min(r.top, b.top); r.right = Math.max(r.right, b.right); r.bottom = Math.max(r.bottom, b.bottom); });   // 📄 옮긴 종이까지
             const m = 26; return { l: Math.max(0, r.left - m), t: Math.max(0, r.top - m), r: Math.min(innerWidth, r.right + m), b: Math.min(innerHeight, r.bottom + m) };
         }
         const gdIn = (x, y) => { const a = gdArea(); return !!a && x >= a.l && x <= a.r && y >= a.t && y <= a.b; };
@@ -1072,10 +1110,10 @@
             const g = gdG, a = gdTo(g.a.x, g.a.y), b = gdTo(g.b.x, g.b.y), L = Math.hypot(b.x - a.x, b.y - a.y);
             Object.assign(g.pv.style, { left: a.x + 'px', top: (a.y - 6) + 'px', width: L + 'px', transform: `rotate(${Math.atan2(b.y - a.y, b.x - a.x)}rad)` });
         }
-        function gdCv(x, y) {                                                   // 화면 자리 → 페이지에 저장되는 자리 (바인더 쪽 벌어짐 · 링을 연 뒤 옮기고 돌린 쪽까지)
+        function gdCv(x, y, f) {   // f : 이 쪽 기준으로 (테이프 양 끝을 같은 쪽 기준으로)                                                   // 화면 자리 → 페이지에 저장되는 자리 (바인더 쪽 벌어짐 · 링을 연 뒤 옮기고 돌린 쪽까지)
             const ip = gdIp(), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'), cq = bk.offsetWidth / 100, { r, k } = gdK();
             if (bdFree) {
-                const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet')), side = s ? (s.classList.contains('l') ? 'l' : 'r') : (x < innerWidth / 2 ? 'l' : 'r'), sh = bdFree.sh[side];
+                const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet')), side = f || (s ? (s.classList.contains('l') ? 'l' : 'r') : (x < innerWidth / 2 ? 'l' : 'r')), sh = bdFree.sh[side];
                 const vx = (x - r.left) / k - sh.cx - sh.x, vy = (y - r.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
                 return { x: vx * Math.cos(a) - vy * Math.sin(a) + sh.cx - cv.offsetLeft - (side === 'r' ? 6 : -6) * cq, y: vx * Math.sin(a) + vy * Math.cos(a) + sh.cy - cv.offsetTop };
             }
@@ -1085,13 +1123,20 @@
         }
         function gdTapeAdd(A, B) {
             if (Math.hypot(B.x - A.x, B.y - A.y) < 10) return;
-            const a = gdCv(A.x, A.y), b = gdCv(B.x, B.y), L = Math.max(8, Math.round(Math.hypot(b.x - a.x, b.y - a.y))), TH = 12;
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${L}" height="${TH}" viewBox="0 0 ${L} ${TH}"><rect y="1" width="${L}" height="${TH - 2}" rx="1.5" fill="#f3e6cf"/><rect y="1.6" width="${L}" height="2" fill="#fff" fill-opacity=".6"/><rect y="${TH - 3.4}" width="${L}" height="1.6" fill="#cdb894" fill-opacity=".55"/></svg>`;
+            let a, b;
+            if (bdFree) {                                                       // 📄 두 쪽에 걸쳐 바르면 : 가운데가 놓일 쪽 기준으로 양 끝을 (붙은 뒤 그 쪽과 같이 움직여도 제자리)
+                const W = document.getElementById('canvasArea').offsetWidth, mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2, ok = sd => { const m = gdCv(mx, my, sd); return (m.x >= W / 2) === (sd === 'r'); };
+                const first = gdCv(mx, my).x >= W / 2 ? 'r' : 'l', sd = ok(first) ? first : ok(first === 'l' ? 'r' : 'l') ? (first === 'l' ? 'r' : 'l') : first;
+                a = gdCv(A.x, A.y, sd); b = gdCv(B.x, B.y, sd);
+            } else { a = gdCv(A.x, A.y); b = gdCv(B.x, B.y); }
+            const L = Math.max(8, Math.round(Math.hypot(b.x - a.x, b.y - a.y))), TH = 12;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="gd-tape" width="${L}" height="${TH}" viewBox="0 0 ${L} ${TH}"><rect y="1" width="${L}" height="${TH - 2}" rx="1.5" fill="#f3e6cf"/><rect y="1.6" width="${L}" height="2" fill="#fff" fill-opacity=".6"/><rect y="${TH - 3.4}" width="${L}" height="1.6" fill="#cdb894" fill-opacity=".55"/></svg>`;
             const el = createElementFromData({ type: 'image', content: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), width: L + 'px', height: TH + 'px', posX: 0, posY: 0, scale: 1, rotation: Math.round(Math.atan2(b.y - a.y, b.x - a.x) * 1800 / Math.PI) / 10, zIndex: zIndexCounter++ }, true);
             el.dataset.ts = 1;                                                  // 📷 사진 꾸미기 창이 안 떠요
             document.getElementById('canvasArea').appendChild(el);
             const x = Math.round((a.x + b.x) / 2 - el.offsetWidth / 2 - el.offsetLeft), y = Math.round((a.y + b.y) / 2 - el.offsetHeight / 2 - el.offsetTop);
             el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${el.dataset.rotation}deg)`;
+            if (bdFree) { bdSides(); bdFreeApply(); }                          // 📄 링을 연 뒤엔 그 쪽과 같이 (바로)
             if (typeof saveData === 'function') saveData(false);
         }
         /* 📎 집게 : 들고 다이어리 테두리 근처를 누르면 착 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가고 (집게끼리 지나가요) · 톡 하면 빼서 들어요 */
