@@ -15,6 +15,7 @@
                  "image": "notice/1.png",            ← 넣고 싶을 때만 (그림 주소)
                  "html": "<p>안녕하세요, 다꾸러 여러분!</p>" }   ← 공지 내용 (html 그대로 보여요)
            - jpg · png · webp · 움직이는 gif 모두 표시됩니다.
+           - 📓 노트 · 🗂️ 바인더 겉표지 (도련 10-18) : id 가 0 이면 카드 자체가 안 보여요 (만든 사람 · 문구점 표지 디자인을 가리지 않게) · 1 이상이면 보여요 · 기본 다이어리는 늘 보여요
            ===================================================================== */
         const NOTICE_IMAGE_SRC = '';                          // 겉표지 카드 그림 (비우면 기본 환영 카드)
         const NOTICE_FILE = location.protocol === 'file:' ? 'https://softsweetdiary.com/notice.json' : 'notice.json';   // 공지 내용 파일 (사이트 맨 위 · index.html 을 바로 열면 사이트 것을)
@@ -138,6 +139,7 @@
             if (img.getAttribute('src') !== src) img.src = src;
             box.classList.toggle('ring', ring);
             box.classList.toggle('img', !!NOTICE_IMAGE_SRC);
+            box.classList.toggle('nt-none', !n);                            // 📓 노트 · 바인더 겉표지는 공지(id 1 이상)가 있을 때만 카드가 보여요 (css .cover-page.cv-book · 도련 10-18)
             let hit = box.querySelector('.cn-hit');
             if (n && !hit) {                                               // 버튼이라서 눌러도 표지가 넘어가지 않아요 (js/page.js 는 button 위 누르기를 넘기지 않아요)
                 hit = document.createElement('button');

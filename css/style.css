@@ -3787,6 +3787,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .cover-page.cv-book { background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); }
 .cover-page.cv-book .cv-lace, .cover-page.cv-book .cover-title, .cover-page.cv-book .cover-subtitle, .cover-page.cv-book .cv-berry { display: none; }
 .cv-deco { position: absolute; pointer-events: none; z-index: 3; text-align: left; color: initial; }
+.cover-page.cv-book .cover-notice.nt-none { display: none; }   /* 📓 노트 · 바인더 표지는 공지가 있을 때만 (js/service.js noticePaint · 기본 다이어리는 늘) */
 .cover-page.cv-book .drag-hint { z-index: 4; }   /* 꾸민 것은 공지 카드 위에 (눌러도 아래로 지나가요) */
 .cv-deco .element-box { pointer-events: none; left: 0; top: 0; }
 .inner-page.dk-cover .page-stamps { display: none; }   /* 표지엔 기분 · 날씨 도장 자리가 없어요 */
