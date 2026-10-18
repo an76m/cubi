@@ -684,14 +684,14 @@
             currentDate.setTime(to.getTime()); selectedElement = null;
             isCoverOpen = false;
             document.getElementById('innerPage').style.display = 'none';
-            document.getElementById('coverPage').style.display = '';
+            const cp = document.getElementById('coverPage'); cp.style.display = ''; cp.classList.add('cv-plain');   // 넘어가는 겉표지엔 공지 카드 · 밀어서 열기가 없어요
             dkCvSync(); dkCoverPaint();
             return true;
         }
         function dkRefold() {                                                  // 덜 넘기고 놓았을 때 : 다시 표꾸 화면
             currentDate.setTime(dkDate(0).getTime());
             isCoverOpen = true;
-            document.getElementById('coverPage').style.display = 'none';
+            const cp = document.getElementById('coverPage'); cp.style.display = 'none'; cp.classList.remove('cv-plain');
             document.getElementById('innerPage').style.display = 'flex';
             loadData();
         }

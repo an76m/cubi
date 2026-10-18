@@ -948,8 +948,13 @@
 
         /* ---------- 화면(UI) ---------- */
         function showGate(state, msg) {
-            document.getElementById('driveGate').style.display = 'flex';
-            document.getElementById('gateMsg').innerHTML = msg;
+            const g = document.getElementById('driveGate'), c = g.querySelector('.gate-card'), m = document.getElementById('gateMsg');
+            if (!m) return;
+            g.style.display = 'flex';
+            msg = String(msg || '').replace(/^\s*☁\s*/, '');                    // 🎀 구름 글자 대신 하트 세 개가 기다려 줘요
+            if (g.dataset.state !== state || m.innerHTML !== msg) { c.classList.remove('gate-swap'); void c.offsetWidth; c.classList.add('gate-swap'); }   // 같은 카드 안에서 스르륵 바뀌어요
+            g.dataset.state = state;
+            m.innerHTML = msg;
             const login = state === 'login';
             document.getElementById('gateLoginBtn').style.display = login ? 'flex' : 'none';
             document.getElementById('gateGuestBtn').style.display = login ? 'flex' : 'none';
