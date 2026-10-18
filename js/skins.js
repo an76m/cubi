@@ -604,14 +604,9 @@
             dyRender();                                                        // 고른 칸에 색 · 페이지가 바로 바뀌어서 따로 알림은 없어요
         }
         function dyLoad() { if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco(); }
-        /* 📎 집게 (도련 10-18) : 노트로 다꾸하는 사람들이 뜬 페이지를 집게로 눌러 둬요
-           - 노트용 장식이에요 (페이지 들림 연출은 도련이 뺐어요 · 기본 다이어리 · 바인더엔 안 꽂아요) · 크기는 노트 크기와 상관없이 늘 같아요 · 골라 쓰는 것
-           - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 📒 다이어리 메뉴 ✂️ 문구류 → 📎 집게 칸 · 처음엔 왼쪽 쪽 위 종이 끝을 물어요
-           - 설정.json 'diary_clip' (게스트는 이 기기) = 고른 색 id · '' = 안 써요 · 나중에 키링 같은 꾸미기 문구류도 이 칸 옆에 (정해진 자리에 설치) */
-        const CLIP_KEY = 'diary_clip', CLIP_LOCAL = 'malang_diary_clip';
+        /* 📎 집게 (도련 10-18) : 다이어리 둘레(종이 테두리)를 물어요 · 다이어리 · 노트 · 바인더 모두 · 여러 개를 꺼내 원하는 만큼 꽂아요 (아래 ✂️ 문구류)
+           - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 크기는 다이어리 크기와 상관없이 늘 같아요 */
         const CLIPS = [['black', '검정', '#3f3b42'], ['pink', '분홍', '#ff8fb1'], ['sky', '하늘', '#7cc4ea'], ['yellow', '노랑', '#f7c948'], ['mint', '민트', '#6fcca8'], ['purple', '보라', '#b39ddb']];
-        const clipId = () => { const v = prefGet(CLIP_KEY, CLIP_LOCAL); return CLIPS.some(c => c[0] === v) ? v : ''; };
-        const clipNow = () => CLIPS.find(c => c[0] === clipId()) || null;
         let clipN = 0;
         function clipSvg(c) {                                                  // 평범한 더블 클립 (앞에서 본 모양 · 쇠 손잡이는 뒤로 젖혀서 위로 조금만 · 몸통은 고른 색)
             const w = 'clipW' + (++clipN);                                     // 그라데이션 id 는 그림마다 따로 (숨은 창의 것을 빌리면 안 보여요)
@@ -622,10 +617,9 @@
                 + `<path d="M9 9 H55 L56.6 21 H7.4 Z" fill="#fff" fill-opacity=".22"/><path d="M4.6 40 H59.4 L60 45 Q60 48 57 48 H7 Q4 48 4 45 Z" fill="#000" fill-opacity=".18"/>`
                 + `<rect x="7" y="7" width="50" height="5" rx="2.5" fill="url(#${w})"/></svg>`;
         }
-        /* 📎 집게 옮기기 (도련 10-18) : 집게를 누른 채 끌면 종이 테두리를 레일처럼 따라가요 (모서리는 둥글게 돌면서 · 테두리 밖으로는 못 나가요)
-           - 자리 = 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 설정 'diary_clip_at' · 노트 크기가 달라도 같은 자리
-           - 집게 아랫입(종이를 무는 곳)이 테두리 위 · 몸통은 늘 바깥쪽을 봐요 */
-        const CLIP_AT_KEY = 'diary_clip_at', CLIP_AT_LOCAL = 'malang_diary_clip_at', CLIP_GX = 59, CLIP_GY = 66;   // 집게 그림에서 종이를 무는 곳
+        /* 📎 집게가 무는 테두리 : 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 모서리는 둥글게 돌아요
+           - 집게 아랫입(종이를 무는 곳 59, 66)이 테두리 위 · 몸통은 늘 바깥쪽을 봐요 */
+        const CLIP_GX = 59, CLIP_GY = 66;
         function clipRail(W, H, r) {                                           // 테두리 길이 · 길이 → [x, y, 바깥 방향(도)]
             r = Math.max(0, Math.min(r, W / 2, H / 2));
             const a = Math.PI * r / 2, seg = [W - 2 * r, a, H - 2 * r, a, W - 2 * r, a, H - 2 * r, a], L = seg.reduce((x, y) => x + y, 0);
@@ -636,39 +630,6 @@
                 return [[r + d, 0, 0], arc(W - r, r, 0), [W, r + d, 90], arc(W - r, H - r, 90), [W - r - d, H, 180], arc(r, H - r, 180), [0, H - r - d, 270], arc(r, r, 270)][i];
             };
             return { L, at };
-        }
-        function clipBox() {
-            const fr = document.getElementById('dyFront'), cv = document.getElementById('canvasArea'), el = fr && fr.querySelector('.dy-clip');
-            if (!el || !cv) return null;
-            return { fr, el, rail: clipRail(fr.offsetWidth, fr.offsetHeight, parseFloat(getComputedStyle(cv).borderTopLeftRadius) || 12) };
-        }
-        let clipF = null;                                                      // 끄는 동안의 자리
-        function clipF0(b) { const v = prefGet(CLIP_AT_KEY, CLIP_AT_LOCAL); return typeof v === 'number' && v >= 0 && v < 1 ? v : (b.fr.offsetWidth * .03 + CLIP_GX) / b.rail.L; }   // 처음 = 왼쪽 쪽 위
-        function clipPlace(f) {
-            const b = clipBox(); if (!b) return;
-            if (f == null) f = clipF != null ? clipF : clipF0(b);
-            const [x, y, deg] = b.rail.at(f * b.rail.L);
-            Object.assign(b.el.style, { left: (x - CLIP_GX) + 'px', top: (y - CLIP_GY) + 'px', transform: `rotate(${deg}deg)` });
-        }
-        function clipDown(e) {
-            const b = clipBox(); if (!b) return;
-            e.preventDefault(); e.stopPropagation();
-            const el = b.el; el.setPointerCapture && el.setPointerCapture(e.pointerId); el.classList.add('drag');
-            clipF = clipF0(b);
-            const move = ev => {                                               // 손가락에서 가장 가까운 테두리 자리 (지금 자리 근처에서만 찾아 건너뛰지 않아요)
-                ev.preventDefault();
-                const bb = clipBox(); if (!bb) return;
-                const rc = bb.fr.getBoundingClientRect(), sx = rc.width / bb.fr.offsetWidth || 1, px = (ev.clientX - rc.left) / sx, py = (ev.clientY - rc.top) / sx, L = bb.rail.L;
-                let best = clipF * L, bd = Infinity;
-                for (let d = -L * .2; d <= L * .2; d += 3) { const [x, y] = bb.rail.at(clipF * L + d), dd = (x - px) ** 2 + (y - py) ** 2; if (dd < bd) { bd = dd; best = clipF * L + d; } }
-                clipF = (((best / L) % 1) + 1) % 1; clipPlace(clipF);
-            };
-            const up = () => {
-                el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
-                el.classList.remove('drag');
-                prefSet(CLIP_AT_KEY, CLIP_AT_LOCAL, Math.round(clipF * 10000) / 10000); clipF = null;
-            };
-            el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
         }
         /* 📤 바인더 꺼내서 꾸미기 (도련 10-18) : 6공 바인더로 다꾸하는 사람들처럼
            - 📤 꺼내기 (펼침면 가운데 링 위 작은 버튼) : 링이 열리고 두 쪽이 빠져나와 가운데 틈이 닫혀 맞붙고 · 바인더(표지 · 링)는 빠지고 · 가운데에 테이프가 가로로 붙어요
@@ -699,7 +660,7 @@
             }
             ip.classList.toggle('dy-hand', bdMode() === 'hand');               // ✋ 수동 : 꺼내기 대신 🔓 링 열기 버튼
             ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
-            bdSides();
+            bdSides(); gdHoleSync();                                         // 🕳️ 하나씩 뚫은 구멍
         }
         /* 📐 6공 바인더 속지 자리 (도련 10-18 · 꺼낼 때 종이가 늘어나지 않고 크기 그대로 미끄러져 와야 해서)
            - 저장된 자리 = 꺼내서 두 쪽을 아주 가까이 맞대 놓은 자리 (양쪽 바깥 6cqw 는 종이 밖)
@@ -737,7 +698,7 @@
             const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook');
             if (!ip || !bk || !isCoverOpen || !ip.classList.contains('dy-bd') || (!any && Date.now() - bdLayAt < 700)) return false;
             const g = ip.querySelector('.dy-gap'); if (!g) return false;
-            const t = e.target; if (t && t.closest && t.closest('.element-box, .dy-clip, .bd-tool, .page-header, .page-stamps, .page-dday, .modal')) return false;
+            const t = e.target; if (t && t.closest && t.closest('.element-box, .bd-tool, .page-header, .page-stamps, .page-dday, .modal')) return false;
             const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, out = ip.classList.contains('dy-bo'), hw = out ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
             if (Math.abs(e.clientX - cx) > hw || e.clientY < r.top || e.clientY > r.bottom) return false;
             if (out) return true;                                               // 📥 끼우기 = 가운데 틈 위아래 전부
@@ -748,6 +709,7 @@
         let bdGrp = 't';                                                        // ✋ 수동 : 위 링 · 아래 링 중 어디서
         let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
         window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
+            if (gdDown(e)) return;                                            // ✂️ 문구류를 들고 있거나 놓인 문구류를 누르면 (아래 gdDown)
             if (bdFree) { bdFreeDown(e); return; }                          // 📄 두 쪽을 스티커처럼 (아래 bdFree)
             if (!bdHit(e)) { bdShow(false); return; }
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
@@ -759,14 +721,14 @@
             bdShow(false);
             if (k === 'in') bdIn(); else bdOut();
         }, true);
-        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || (bdFree && bdFree.d) || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
+        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && (bdDg || (bdFree && bdFree.d) || gdG || Date.now() - bdEat < 900)) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
         function bdGapAt(x, y) {                                                // 🗂️ 링에 끼운 두 쪽 사이 (종이가 아닌 곳 · 빈 곳 메뉴 없음 · 📱 폰도)
             const ip = document.getElementById('innerPage'); if (!ip || !isCoverOpen || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo') || ip.classList.contains('dy-free')) return false;
             const g = ip.querySelector('.dy-gap'), r = g && g.getBoundingClientRect(); return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
         }
         window.bdGapAt = bdGapAt;
         document.addEventListener('pointermove', e => {                        // 🖱 지나가면 보여요 · 겉표지를 밀어 펼친 손(마우스)이 그 자리에 머물러 있으면 안 보여요 (도련 10-18)
-            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt) return;
+            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt || (gdHeld && gdHeld !== 'twz')) return;   // ✂️ 문구류를 든 채면 안 보여요
             if (!bdHit(e, true)) { bdArmed = true; return; }
             if (!bdArmed || !bdHit(e)) return;
             if (!bdShown()) bdShow(true);
@@ -840,13 +802,13 @@
                 ip.insertBefore(el, cv);
                 bdFree.sh[side] = { el, x: 0, y: 0, r: 0, cx: ox + x + sw / 2, cy: oy + H / 2 };
             });
-            if (ip.classList.contains('dy-bh')) ip.querySelectorAll('.dy-holes i').forEach(h => {   // 뚫은 구멍도 그 쪽에
-                const r = h.getBoundingClientRect(); if (!r.width) return;
-                const hx = (r.left + r.width / 2 - ir.left) / k, hy = (r.top + r.height / 2 - ir.top) / k, sd = hx < ox + W / 2 ? 'l' : 'r', sh = bdFree.sh[sd];
-                const d = document.createElement('i'), hs = getComputedStyle(h); d.className = 'bd-hole';
-                Object.assign(d.style, { left: (hx - (ox + (sd === 'l' ? 0 : W - sw)) - r.width / k / 2) + 'px', top: (hy - oy - r.height / k / 2) + 'px', width: r.width / k + 'px', height: r.height / k + 'px', background: hs.background, borderRadius: hs.borderRadius, boxShadow: hs.boxShadow });
-                sh.el.appendChild(d);
-            });
+            const hm = ip.classList.contains('dy-bh') ? 4095 : gdHoleMask();        // 6공 자리 (뚫은 구멍은 보이고 · 안 뚫은 자리는 🕳️ 펀칭기가 찾아요)
+            ['l', 'r'].forEach(side => [7.5, 16.5, 25.5, -24.9, -15.9, -6.9].forEach((t, j) => {
+                const i = (side === 'l' ? 0 : 6) + j, d = document.createElement('i'), s2 = 2.4 * cqw;
+                d.className = 'bd-hole' + ((hm >> i & 1) ? ' on' : ''); d.dataset.i = i;
+                Object.assign(d.style, { left: ((side === 'l' ? sw - 4.5 * cqw : 4.5 * cqw) - s2 / 2) + 'px', top: ((t > 0 ? t * cqw : H + t * cqw) - s2 / 2) + 'px', width: s2 + 'px', height: s2 + 'px' });
+                bdFree.sh[side].el.appendChild(d);
+            }));
             ip.classList.add('dy-free'); bdFreeApply();
         }
         function bdFreeOff() {
@@ -935,10 +897,23 @@
             setTimeout(() => { ip.classList.add('dy-bo-back'); ip.classList.remove('dy-bo'); }, 1250);   // 두 쪽이 크기 그대로 벌어져 링에 끼워져요
             setTimeout(() => { ip.classList.remove('dy-bo-back', 'dy-bh-pop'); bdBusy = false; bdPut(2); bdSync(); }, 2700);
         }
-        /* ✂️ 문구류 🕳️ 펀칭기 · 🩹 양면테이프 (도련 10-18) : 고르면 페이지 위에 놓여요 · 위에서 내려다본 모습 (그대로 쓸 수 있게)
-           - 끌어서 옮겨요 · 목록에서 한 번 더 누르면 치워요 · 아직 저장하지 않아요 (쓰는 방법은 다음에)
-           - ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
-        const BD_TOOLS = [['punch1', '기본 펀칭기', 'punch'], ['tape1', '기본 양면테이프', 'tape']];
+        /* ✂️ 문구류 = 손에 드는 도구 (도련 10-18 · 앞으로 더하는 문구류도 모두 이 규칙 · 쓰는 법만 문구류마다 조금씩)
+           - ✂️ 문구류 칸에서 톡 = 페이지 위에 놓여요 · 한 번 더 톡 = 치워요
+           - 놓인 문구류를 클릭 · 터치 = 손에 들어요 (🖱 마우스에 붙어 다니고 · 👆 터치는 누른 곳으로 순간 이동)
+           - 들고 있는 채 다른 놓인 문구류에 🖱 들어가거나 누르면 바꿔 들어요 · 들고 있던 것은 그 문구류가 있던 자리에 놓여요
+           - 들고 클릭 · 터치 = 쓰기 : 🪡 핀셋 집기(스티커 옮기기 · 돌리기 · 메뉴 · 원래대로) · 🕳️ 펀칭기 구멍 · 🩹 양면테이프 끌어서 바르기 · 📎 집게 테두리에 꽂기
+             🕳️ · 📎 는 제자리 근처를 누르면 착 붙어요 (스냅) · 그 밖에선 옮겨지기만 해요
+           - 다이어리(종이 둘레) 밖으로는 못 나가요 : 🖱 나가면 그 끝자리에 내려놓고 마우스 화살표로 · 👆 다이어리 밖을 누르면 내려놓아요 · 🪡 핀셋만 밖으로도 (스티커 창 등)
+           - 🪡 핀셋을 안 들면 스티커를 못 만져요 (글 메모는 그대로) · 다이어리를 처음 열면 핀셋이 페이지에 하나 놓여 있어요
+           - 저장 : 📎 집게는 권마다 (설정 'diary_clips' { 권 id : { 색 : { f 테두리 자리 } | { x, y 종이 위 자리(비율) } } })
+             🕳️ 뚫은 구멍 (설정 'diary_holes' { 권 id : { 장 : 12칸 표시 } }) · 🩹 바른 테이프는 페이지 꾸밈(그림)이라 핀셋으로 옮기고 지울 수 있어요
+             다른 문구류는 다이어리를 다시 열면 문구류 칸으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
+        const GD = {                                                            // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터)
+            twz: { g: 'tweez', n: '기본 핀셋', w: 55.8, h: 201.5, hx: 27.9, hy: 4.6 },
+            punch1: { g: 'punch', n: '기본 펀칭기', w: 56, h: 112, hx: 28, hy: 21 },
+            tape1: { g: 'tape', n: '기본 양면테이프', w: 132, h: 74, hx: 6, hy: 62 }
+        };
+        const gdInfo = id => { const c = String(id).startsWith('clip:') && CLIPS.find(x => 'clip:' + x[0] === id); return c ? { g: 'clip', n: c[1], c: c[2], w: 118, h: 92, hx: CLIP_GX, hy: CLIP_GY } : GD[id] || null; };
         function toolSvg(g) {
             if (g === 'punch') return `<svg viewBox="0 0 64 128" aria-hidden="true">
                 <rect x="7" y="8" width="50" height="114" rx="12" fill="#3b3e45"/><rect x="9" y="10" width="46" height="110" rx="11" fill="#55595f"/>
@@ -955,37 +930,223 @@
                 <path d="M30 22 Q44 14 58 20" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"/></svg>`;
         }
         let toolN = 0;
-        function toolPick(id) {
-            const t = BD_TOOLS.find(x => x[0] === id), ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'); if (!t || !ip || !cv) return;
-            const old = ip.querySelector(`.bd-tool[data-t="${id}"]`);
-            if (old) old.remove();                                              // 한 번 더 누르면 치워요
-            else {
-                const el = document.createElement('div'); el.className = 'bd-tool ' + t[2]; el.dataset.t = id; el.title = '끌어서 옮겨요';
-                el.innerHTML = toolSvg(t[2]);
-                const W = cv.offsetWidth, H = cv.offsetHeight, ox = cv.offsetLeft, oy = cv.offsetTop, ww = t[2] === 'punch' ? 56 : 132, hh = t[2] === 'punch' ? 112 : 74;
-                const x = t[2] === 'punch' ? ox + W * .78 - ww / 2 : ox + W * .22 - ww / 2, y = oy + H * .72 - hh / 2;
-                Object.assign(el.style, { left: x + 'px', top: y + 'px' });
-                el.addEventListener('pointerdown', toolDown);
-                ip.appendChild(el);
-            }
+        const gdArt = (id, t = gdInfo(id)) => t.g === 'tweez' ? (typeof pinSvg === 'function' ? pinSvg() : '') : t.g === 'clip' ? clipSvg(t.c) : toolSvg(t.g);
+        let gdHeld = null, gdG = null, gdInit = false, gdBook = null;           // gdHeld : 손에 든 문구류 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
+        const gdIp = () => document.getElementById('innerPage');
+        const gdEl = id => { const ip = gdIp(); return ip ? [...ip.querySelectorAll(':scope > .bd-tool')].find(x => x.dataset.t === id) || null : null; };
+        function gdK() { const ip = gdIp(), r = ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }
+        const gdTo = (x, y) => { const { r, k } = gdK(); return { x: (x - r.left) / k, y: (y - r.top) / k }; };   // 화면 → 다이어리(innerPage) 자리
+        function gdArea() {                                                     // 다이어리 둘레 (집게가 물 자리만큼 조금 넉넉히) · 화면 안
+            const cv = document.getElementById('canvasArea'), r = cv && cv.getBoundingClientRect(); if (!r || !r.width) return null;
+            const m = 26; return { l: Math.max(0, r.left - m), t: Math.max(0, r.top - m), r: Math.min(innerWidth, r.right + m), b: Math.min(innerHeight, r.bottom + m) };
+        }
+        const gdIn = (x, y) => { const a = gdArea(); return !!a && x >= a.l && x <= a.r && y >= a.t && y <= a.b; };
+        function gdMake(id) {
+            const t = gdInfo(id), ip = gdIp(); if (!t || !ip) return null;
+            const el = document.createElement('div'); el.className = 'bd-tool ' + t.g; el.dataset.t = id; el.innerHTML = gdArt(id, t);
+            ip.appendChild(el); return el;
+        }
+        function gdCenter(el, x, y) {                                           // 가운데를 그 자리에 (다이어리 자리)
+            const t = gdInfo(el.dataset.t); el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f;
+            el.style.left = (x - t.w / 2) + 'px'; el.style.top = (y - t.h / 2) + 'px';
+        }
+        const gdMid = el => { const t = gdInfo(el.dataset.t); return { x: (parseFloat(el.style.left) || 0) + t.w / 2, y: (parseFloat(el.style.top) || 0) + t.h / 2 }; };
+        function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구류마다 조금씩 비켜서)
+            const cv = document.getElementById('canvasArea'), r = cv.getBoundingClientRect(), t = gdInfo(id);
+            const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), tp = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
+            const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
+            return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
+        }
+        function gdPick(id) {                                                   // ✂️ 문구류 칸 톡 : 놓기 ↔ 치우기
+            if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
+            const el = gdEl(id);
+            if (el) { if (gdHeld === id) gdLet(); el.remove(); }
+            else { const p = gdSpot(id); gdCenter(gdMake(id), p.x, p.y); }
+            if (id.startsWith('clip:')) gdClipSave();
             dyRender();
         }
-        let toolDg = null;
-        function toolDown(e) {
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            e.preventDefault(); e.stopPropagation();                            // 페이지 넘기기 · 메뉴로 안 가요
-            const el = e.currentTarget, ip = document.getElementById('innerPage'), r = ip.getBoundingClientRect(), k = r.width / (ip.offsetWidth || r.width) || 1;
-            toolDg = { el, id: e.pointerId, x: e.clientX, y: e.clientY, l: parseFloat(el.style.left) || 0, t: parseFloat(el.style.top) || 0, k };
-            el.classList.add('lift'); try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
+            const el = gdEl(id); if (!el) return;
+            const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
+            if (prev) { const m = el.classList.contains('edge') ? gdTo(x, y) : gdMid(el); prev.classList.remove('held'); gdCenter(prev, m.x, m.y); prev.dataset.nh = 1; }   // 🖱 그 위에 있는 동안은 다시 바뀌지 않게
+            gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
+            gdFollow(x, y, e);
+            if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
+        }
+        function gdLet() {                                                      // 내려놓기 (지금 자리에)
+            const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on');
+            if (!el) return;
+            el.classList.remove('held');
+            if (id.startsWith('clip:')) gdClipSave();
+        }
+        function gdFollow(x, y, e) {                                            // 손끝(쓰는 끝) = 포인터
+            const el = gdHeld && gdEl(gdHeld); if (!el) return;
+            if (gdHeld === 'twz') { document.body.classList.remove('gd-on'); return; }   // 🪡 핀셋은 원래 핀셋 화살표가 따라와요 (js/elements.js pinMove)
+            const t = gdInfo(gdHeld), p = gdTo(x, y);
+            el.style.left = (p.x - t.hx) + 'px'; el.style.top = (p.y - t.hy) + 'px';
+            document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구류
+        }
+        const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
+        function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
+            if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
+            const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
+            const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool');
+            if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구류 = 들기 · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
+                gdEat(e);
+                if (tool.classList.contains('edge')) gdG = { k: 'rail', el: tool, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+                else gdHold(tool.dataset.t, e.clientX, e.clientY, e);
+                return true;
+            }
+            if (gdHeld && gdHeld !== 'twz') {
+                if (!inDy || !gdIn(e.clientX, e.clientY)) { gdLet(); return false; }   // 👆 다이어리 밖을 누르면 내려놓아요
+                if (e.target.closest('.page-header, button, textarea, input, select')) return false;
+                gdEat(e); gdFollow(e.clientX, e.clientY, e); gdUse(e); return true;
+            }
+            if (gdHeld !== 'twz' && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로)
+                const box = e.target.closest('#canvasArea > .element-box');
+                if (box && !box.querySelector('textarea')) { gdEat(e); return true; }
+            }
+            return false;
+        }
+        function gdUse(e) {
+            const g = gdInfo(gdHeld).g;
+            if (g === 'punch') gdPunch(e.clientX, e.clientY);
+            else if (g === 'tape') { const pv = document.createElement('div'); pv.className = 'gd-tape-pv'; gdIp().appendChild(pv); gdG = { k: 'tape', id: e.pointerId, a: { x: e.clientX, y: e.clientY }, b: { x: e.clientX, y: e.clientY }, pv }; gdTapePv(); }
+            else if (g === 'clip') gdClipSnap(e.clientX, e.clientY);
         }
         window.addEventListener('pointermove', e => {
-            const d = toolDg; if (!d || d.id !== e.pointerId) return;
-            d.el.style.left = (d.l + (e.clientX - d.x) / d.k) + 'px'; d.el.style.top = (d.t + (e.clientY - d.y) / d.k) + 'px';
-        });
-        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, e => { const d = toolDg; if (!d || d.id !== e.pointerId) return; toolDg = null; d.el.classList.remove('lift'); }));
-        function clipPick(id) {
-            prefSet(CLIP_KEY, CLIP_LOCAL, CLIPS.some(c => c[0] === id) ? id : '');
-            dyDeco(); dyRender();
+            if (!isCoverOpen) return;
+            const g = gdG;
+            if (g && g.id === e.pointerId) {
+                if (g.k === 'tape') { const a = gdArea(); g.b = { x: Math.max(a.l, Math.min(a.r, e.clientX)), y: Math.max(a.t, Math.min(a.b, e.clientY)) }; gdFollow(g.b.x, g.b.y, e); gdTapePv(); }
+                else if (g.k === 'rail' && (g.moved || Math.hypot(e.clientX - g.x, e.clientY - g.y) > 6)) { g.moved = true; gdRailMove(g.el, e.clientX, e.clientY); if (gdHeld && gdHeld !== 'twz') gdFollow(e.clientX, e.clientY, e); }
+                return;
+            }
+            if (!gdHeld) return;
+            const t = e.target && e.target.closest && e.target.closest('#innerPage > .bd-tool:not(.held):not(.edge)');
+            document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
+            const swap = t && !t.dataset.nh && e.pointerType === 'mouse' && !e.buttons;   // 🖱 들어가면 바꿔 들어요
+            if (gdHeld === 'twz') { if (swap) gdHold(t.dataset.t, e.clientX, e.clientY, e); return; }   // 🪡 핀셋은 밖으로도
+            if (!gdIn(e.clientX, e.clientY)) { gdLet(); return; }               // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표
+            if (swap) { gdHold(t.dataset.t, e.clientX, e.clientY, e); return; }
+            gdFollow(e.clientX, e.clientY, e);
+        }, true);
+        ['pointerup', 'pointercancel'].forEach(k => window.addEventListener(k, e => {
+            const g = gdG; if (!g || g.id !== e.pointerId) return;
+            gdG = null; bdEat = Date.now();                                     // 뒤따르는 click 은 메뉴로 안 가요
+            if (g.k === 'tape') { g.pv.remove(); if (k === 'pointerup') gdTapeAdd(g.a, g.b); }
+            else if (g.k === 'rail') { if (g.moved) gdClipSave(); else if (k === 'pointerup') gdHold(g.el.dataset.t, e.clientX, e.clientY, e); }   // 꽂힌 집게를 톡 = 빼서 들기
+        }, true));
+        window.addEventListener('blur', () => { document.body.classList.remove('gd-on'); });
+        /* 🕳️ 펀칭기 : 6공 자리 근처를 누르면 그 구멍 자리로 착 → 구멍 (링을 연 뒤 · 꺼낸 종이에서만 · 링에 끼운 채는 옮겨지기만) */
+        const GD_HOLE = 'diary_holes', GD_HOLE_L = 'malang_diary_holes';
+        function gdHoleMask() {   // GD_HOLE · GD_HOLE_L (bdSync 가 먼저 불러도 되게)
+            const m = prefGet('diary_holes', 'malang_diary_holes') || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
+        function gdHoleOn(i) {
+            const m = Object.assign({}, prefGet(GD_HOLE, GD_HOLE_L) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
+            b[n] = (+b[n] || 0) | (1 << i); m[id] = b; prefSet(GD_HOLE, GD_HOLE_L, m);
+        }
+        function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); }
+        function gdHoles() {
+            const ip = gdIp(); if (!ip || !ip.classList.contains('dy-bdl') || bdBusy) return [];
+            if (bdFree) return [...ip.querySelectorAll('.bd-sheet .bd-hole')];
+            if (ip.classList.contains('dy-bo') && !ip.classList.contains('dy-bo-go')) return [...ip.querySelectorAll('.dy-holes i')];
+            return [];
+        }
+        function gdPunch(x, y) {
+            const el = gdEl(gdHeld), bk = document.getElementById('diaryBook'); if (!el || !bk) return;
+            let best = null, bd = Infinity;
+            gdHoles().forEach(h => { const r = h.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, d = Math.hypot(cx - x, cy - y); if (r.width && d < bd) { bd = d; best = { h, cx, cy }; } });
+            if (!best || bd > Math.max(30, bk.getBoundingClientRect().width * .05)) return;   // 구멍 자리 근처가 아니면 옮겨지기만
+            gdFollow(best.cx, best.cy);
+            el.classList.remove('press'); void el.offsetWidth; el.classList.add('press'); setTimeout(() => el.classList.remove('press'), 260);
+            const i = best.h.classList.contains('bd-hole') ? +best.h.dataset.i : [...best.h.parentNode.children].indexOf(best.h);
+            setTimeout(() => {
+                const ip = gdIp(), hs = ip ? [ip.querySelectorAll('.dy-holes i')[i], ...[...ip.querySelectorAll('.bd-sheet .bd-hole')].filter(h => +h.dataset.i === i)] : [];
+                hs.forEach(h => { if (!h) return; h.classList.remove('pop'); void h.offsetWidth; h.classList.add('on', 'pop'); });
+                gdHoleOn(i);
+            }, 110);
+        }
+        /* 🩹 양면테이프 : 들고 끌면 끈 만큼 테이프가 발라져요 → 페이지 꾸밈(그림)으로 붙어요 (핀셋으로 옮기고 지울 수 있어요) */
+        function gdTapePv() {
+            const g = gdG, a = gdTo(g.a.x, g.a.y), b = gdTo(g.b.x, g.b.y), L = Math.hypot(b.x - a.x, b.y - a.y);
+            Object.assign(g.pv.style, { left: a.x + 'px', top: (a.y - 6) + 'px', width: L + 'px', transform: `rotate(${Math.atan2(b.y - a.y, b.x - a.x)}rad)` });
+        }
+        function gdCv(x, y) {                                                   // 화면 자리 → 페이지에 저장되는 자리 (바인더 쪽 벌어짐 · 링을 연 뒤 옮기고 돌린 쪽까지)
+            const ip = gdIp(), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'), cq = bk.offsetWidth / 100, { r, k } = gdK();
+            if (bdFree) {
+                const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet')), side = s ? (s.classList.contains('l') ? 'l' : 'r') : (x < innerWidth / 2 ? 'l' : 'r'), sh = bdFree.sh[side];
+                const vx = (x - r.left) / k - sh.cx - sh.x, vy = (y - r.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
+                return { x: vx * Math.cos(a) - vy * Math.sin(a) + sh.cx - cv.offsetLeft - (side === 'r' ? 6 : -6) * cq, y: vx * Math.sin(a) + vy * Math.cos(a) + sh.cy - cv.offsetTop };
+            }
+            const p = { x: (x - r.left) / k - cv.offsetLeft, y: (y - r.top) / k - cv.offsetTop };
+            if (ip.classList.contains('dy-bdl') && !ip.classList.contains('dy-bo')) p.x += p.x < cv.offsetWidth / 2 ? 6 * cq : -6 * cq;   // 링에 끼운 동안 두 쪽은 6cqw 씩 바깥으로
+            return p;
+        }
+        function gdTapeAdd(A, B) {
+            if (Math.hypot(B.x - A.x, B.y - A.y) < 10) return;
+            const a = gdCv(A.x, A.y), b = gdCv(B.x, B.y), L = Math.max(8, Math.round(Math.hypot(b.x - a.x, b.y - a.y))), TH = 12;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${L}" height="${TH}" viewBox="0 0 ${L} ${TH}"><rect y="1" width="${L}" height="${TH - 2}" rx="1.5" fill="#f3e6cf"/><rect y="1.6" width="${L}" height="2" fill="#fff" fill-opacity=".6"/><rect y="${TH - 3.4}" width="${L}" height="1.6" fill="#cdb894" fill-opacity=".55"/></svg>`;
+            const el = createElementFromData({ type: 'image', content: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), width: L + 'px', height: TH + 'px', posX: 0, posY: 0, scale: 1, rotation: Math.round(Math.atan2(b.y - a.y, b.x - a.x) * 1800 / Math.PI) / 10, zIndex: zIndexCounter++ }, true);
+            el.dataset.ts = 1;                                                  // 📷 사진 꾸미기 창이 안 떠요
+            document.getElementById('canvasArea').appendChild(el);
+            const x = Math.round((a.x + b.x) / 2 - el.offsetWidth / 2 - el.offsetLeft), y = Math.round((a.y + b.y) / 2 - el.offsetHeight / 2 - el.offsetTop);
+            el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${el.dataset.rotation}deg)`;
+            if (typeof saveData === 'function') saveData(false);
+        }
+        /* 📎 집게 : 들고 다이어리 테두리 근처를 누르면 착 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가고 (집게끼리 지나가요) · 톡 하면 빼서 들어요 */
+        function gdRail() {
+            const cv = document.getElementById('canvasArea'); if (!cv) return null;
+            return { cv, rail: clipRail(cv.offsetWidth, cv.offsetHeight, parseFloat(getComputedStyle(cv).borderTopLeftRadius) || 12) };
+        }
+        function gdClipPut(el, f) {
+            const R = gdRail(); if (!R) return;
+            const [x, y, deg] = R.rail.at(f * R.rail.L);
+            el.classList.add('edge'); el.classList.remove('held'); el.dataset.f = f;
+            Object.assign(el.style, { left: (R.cv.offsetLeft + x - CLIP_GX) + 'px', top: (R.cv.offsetTop + y - CLIP_GY) + 'px', transform: `rotate(${deg}deg)` });
+        }
+        function gdRailNear(x, y, f0, span) {                                   // 그 자리에서 가장 가까운 테두리 자리 (f0 근처만 · 없으면 한 바퀴 전부)
+            const R = gdRail(), p = gdTo(x, y), px = p.x - R.cv.offsetLeft, py = p.y - R.cv.offsetTop, L = R.rail.L;
+            let best = 0, bd = Infinity; const c = f0 == null ? L / 2 : f0 * L, w = f0 == null ? L / 2 : L * span;
+            for (let d = c - w; d <= c + w; d += 3) { const [rx, ry] = R.rail.at(d), dd = (rx - px) ** 2 + (ry - py) ** 2; if (dd < bd) { bd = dd; best = d; } }
+            return { f: (((best / L) % 1) + 1) % 1, d: Math.sqrt(bd) };
+        }
+        function gdRailMove(el, x, y) { const n = gdRailNear(x, y, +el.dataset.f || 0, .2); gdClipPut(el, n.f); }
+        function gdClipSnap(x, y) {
+            const el = gdEl(gdHeld), n = gdRailNear(x, y), { k } = gdK(); if (!el) return;
+            if (n.d * k > 34) return;                                           // 테두리 근처가 아니면 옮겨지기만
+            gdHeld = null; document.body.classList.remove('gd-on');
+            gdClipPut(el, n.f); el.classList.add('snap'); setTimeout(() => el.classList.remove('snap'), 200);
+            gdClipSave();
+        }
+        const GD_CLIP = 'diary_clips', GD_CLIP_L = 'malang_diary_clips';
+        function gdClipSave() {
+            const cv = document.getElementById('canvasArea'); if (!cv || !gdBook) return;
+            const o = {}, W = cv.offsetWidth || 1, H = cv.offsetHeight || 1;
+            gdIp().querySelectorAll(':scope > .bd-tool.clip').forEach(el => {
+                const c = el.dataset.t.slice(5);
+                if (el.classList.contains('edge')) o[c] = { f: Math.round(+el.dataset.f * 1e4) / 1e4 };
+                else { const m = gdMid(el); o[c] = { x: Math.round((m.x - cv.offsetLeft) / W * 1e4) / 1e4, y: Math.round((m.y - cv.offsetTop) / H * 1e4) / 1e4 }; }
+            });
+            const all = Object.assign({}, prefGet(GD_CLIP, GD_CLIP_L) || {}); all[gdBook] = o; prefSet(GD_CLIP, GD_CLIP_L, all);
+        }
+        function gdSync() {                                                     // dyDeco 끝에서 : 📎 그 권의 집게 · 🪡 처음 열면 핀셋
+            const ip = gdIp(), cv = document.getElementById('canvasArea'); if (!ip || !cv) return;
+            const book = dyNow().id, saved = (prefGet(GD_CLIP, GD_CLIP_L) || {})[book] || {};
+            if (gdBook !== book) {                                              // 다른 권 = 그 권의 집게로
+                ip.querySelectorAll(':scope > .bd-tool.clip').forEach(el => { if (gdHeld === el.dataset.t) gdHeld = null; el.remove(); });
+                gdBook = book;
+                Object.keys(saved).forEach(c => { if (CLIPS.some(x => x[0] === c)) gdMake('clip:' + c); });
+            }
+            ip.querySelectorAll(':scope > .bd-tool.clip:not(.held)').forEach(el => {   // 크기가 바뀌어도 같은 자리
+                const s = saved[el.dataset.t.slice(5)]; if (!s) return;
+                if (typeof s.f === 'number') gdClipPut(el, s.f); else gdCenter(el, cv.offsetLeft + s.x * cv.offsetWidth, cv.offsetTop + s.y * cv.offsetHeight);
+            });
+            gdHoleSync();
+            if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나
+                gdInit = true;
+                setTimeout(() => { if (!gdEl('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y); } }, 900);
+            }
         }
         /* 페이지 둘레 꾸밈 : 커버(뒤) · 가운데 접힘 · 링 · 밴드 · 책갈피 끈(앞) */
         function dyParts(t) {
@@ -998,7 +1159,6 @@
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
-            if (t.k === '노트') { const c = clipNow(); if (c) front.push(`<span class="dy-clip" title="끌어서 옮겨요" onpointerdown="clipDown(event)">${clipSvg(c[2])}</span>`); }   // 📎 집게 = 노트용 장식 (기본 다이어리 · 바인더엔 안 꽂아요)
             return [back.join(''), front.join('')];
         }
         function dyDeco() {                                                    // js/page.js refreshLayout 끝에서 불러요
@@ -1012,14 +1172,14 @@
             let bk = document.getElementById('dyBack'), fr = document.getElementById('dyFront');
             if (!bk) { bk = document.createElement('div'); bk.id = 'dyBack'; bk.className = 'dy-deco'; bk.setAttribute('aria-hidden', 'true'); page.prepend(bk); }
             if (!fr) { fr = document.createElement('div'); fr.id = 'dyFront'; fr.className = 'dy-deco'; fr.setAttribute('aria-hidden', 'true'); page.appendChild(fr); }
-            const dk = t.id + '|' + (t.k === '노트' ? clipId() : ''); if (bk.dataset.k !== dk) { const [b, f] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; bk.dataset.k = fr.dataset.k = dk; }
+            const dk = t.id; if (bk.dataset.k !== dk) { const [b, f] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; bk.dataset.k = fr.dataset.k = dk; }
             [bk, fr].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
             page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
             if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)
             dkCoverPaint();
-            clipPlace();
             bdSync();
+            gdSync();                                                          // ✂️ 📎 집게 · 🪡 핀셋
         }
         /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 노트 · 바인더만 (기본 다이어리 표지는 못 꾸며요 · 다이어리를 살 이유)
            - 표지 = 0장 (dkDate(0) · 키 dkp_<권 id>_0 · 권 폴더 표지.json) → 속지처럼 스티커 메뉴로 그대로 꾸며요
@@ -1270,9 +1430,9 @@
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️', '문구류': '✂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
-        const DY_GOODS = [['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프']];                                // ✂️ 문구류 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구류를 여기에)
+        const DY_GOODS = [['tweez', '🪡 핀셋'], ['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프']];                                // ✂️ 문구류 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구류를 여기에)
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => tab === 'punch' || tab === 'tape' ? BD_TOOLS.filter(x => x[2] === tab).map(x => ({ tool: x })) : tab === 'clip' ? ['noclip'].concat(CLIPS.map(c => ({ clip: c }))) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => tab === 'clip' ? CLIPS.map(c => ({ tool: 'clip:' + c[0] })) : DY_GOODS.some(x => x[0] === tab) ? Object.keys(GD).filter(id => GD[id].g === tab).map(id => ({ tool: id })) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) || kind === '문구류' ? kind : dyNow().k;
@@ -1289,11 +1449,7 @@
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
             const cell = it => it && it.tool
-                ? `<button type="button" class="dy-it" data-id="tool:${it.tool[0]}" onclick="toolPick('${it.tool[0]}')"><span class="dy-stage"><span class="dy-toolth ${it.tool[2]}">${toolSvg(it.tool[2])}</span></span><span class="dy-n">${it.tool[1]}</span><small>누르면 페이지에 놓여요</small></button>`
-                : it === 'noclip'
-                ? `<button type="button" class="dy-it" data-id="clip:" onclick="clipPick('')"><span class="dy-stage"><span class="dy-clipth none">🚫</span></span><span class="dy-n">안 써요</span><small>집게 빼기</small></button>`
-                : it && it.clip
-                ? `<button type="button" class="dy-it" data-id="clip:${it.clip[0]}" onclick="clipPick('${it.clip[0]}')"><span class="dy-stage"><span class="dy-clipth">${clipSvg(it.clip[2])}</span></span><span class="dy-n">${it.clip[1]}</span><small>기본집게</small></button>`
+                ? `<button type="button" class="dy-it" data-id="tool:${it.tool}" onclick="gdPick('${it.tool}')"><span class="dy-stage"><span class="dy-toolth ${gdInfo(it.tool).g}">${gdArt(it.tool)}</span></span><span class="dy-n">${gdInfo(it.tool).n}</span><small>${it.tool.startsWith('clip:') ? '기본집게' : '톡 하면 페이지에'}</small></button>`
                 : it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + dyKind + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
@@ -1302,7 +1458,7 @@
                 ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
-            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'punch' ? '🕳️ 고르면 페이지 위에 놓여요 · 끌어서 옮겨요 · 한 번 더 누르면 치워요' : g === 'tape' ? '🩹 고르면 페이지 위에 놓여요 · 끌어서 옮겨요 · 한 번 더 누르면 치워요' : g === 'clip' ? '📎 노트에 꽂혀요 · 집게를 끌면 종이 테두리를 따라 옮겨져요' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
+            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'tweez' ? '🪡 톡 하면 페이지에 놓여요 · 놓인 핀셋을 누르면 손에 들어요 · 핀셋을 들어야 스티커를 옮길 수 있어요' : g === 'clip' ? '📎 톡 하면 페이지에 놓여요 (여러 개) · 들고 다이어리 테두리 근처를 누르면 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가요' : g === 'punch' ? '🕳️ 톡 하면 페이지에 놓여요 · 들고 링을 연 종이의 구멍 자리 근처를 누르면 구멍이 뚫려요' : g === 'tape' ? '🩹 톡 하면 페이지에 놓여요 · 들고 끌면 양면테이프가 발라져요' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
             dyRender();
             if (g === 'mine' && dyKind !== '다이어리' && typeof dmkSync === 'function') dmkSync(dyKind);   // 드라이브의 내노트 · 내바인더 목록과 맞추기
         }
@@ -1312,8 +1468,8 @@
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id, cid = 'clip:' + clipId(); document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || b.dataset.id === cid || (b.dataset.id || '').startsWith('tool:') && !!document.querySelector(`#innerPage .bd-tool[data-t="${b.dataset.id.slice(5)}"]`))); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.toolPick = toolPick; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || (b.dataset.id || '').startsWith('tool:') && !!gdEl(b.dataset.id.slice(5)))); }
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdPick = gdPick; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

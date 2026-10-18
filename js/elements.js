@@ -814,7 +814,7 @@
         function pinSvg() {   // 그라데이션 id 는 핀셋마다 따로 · 같은 id 가 숨은 핀셋에 있으면 색이 안 칠해지고 테두리만 보여요
             const k = prefGet(PIN_KEY, PIN_LOCAL), n = ++pinSeq;
             return (PIN_SKINS[k] || PIN_SKINS.basic).replace(/id="(\w+)"/g, `id="$1-${n}"`).replace(/url\(#(\w+)\)/g, `url(#$1-${n})`); }
-        /* 🪡 핀셋 (도련 · 10-17) : 다이어리를 펼친 순간부터 핀셋이 손끝(포인터)을 따라와요 · 모양만 (뜯기 · 붙이기는 원래대로)
+        /* 🪡 핀셋 (도련 · 10-17) : 핀셋을 손에 든 동안 손끝(포인터)을 따라와요 · ✂️ 문구류 🪡 핀셋 (도련 10-18 · js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
            - 스티커 꾸미기와 관련된 곳에서만 보여요 (도련 · 10-17 · pinOver) : 페이지 칸 · 🏷️ 씰 종이 · 🍭 포인트 하얀 판 · 🧩 조각 봉투 · 📒 수첩 속지(표지를 넘긴 뒤)
              + 배경지 (수첩에서 집은 스티커를 페이지로 옮길 때 깜박이지 않게) · 날짜가 있는 위쪽 바 전체에선 사라져요
              그 밖(하단메뉴 · 🪟 고르는 창 · 설정 등 모든 창 · 페이지 메뉴)에 가거나 누르면 사라져요 · 누르면 집게가 오므라들고 떼면 벌어져요
@@ -835,7 +835,7 @@
         }
         let pinEl = null, pinWatch = 0, pinTimer = 0, pinKind = 'pc', pinHold = false;   // pinHold : 보이는 곳에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 그대로 보여요)
         const pinOpen = () => { const p = document.getElementById('innerPage'); return !!p && p.offsetParent !== null; };
-        const pinOff = () => !!twz || !pinOpen() || document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden]), #pcRoom:not([hidden])');   // ✏️ 연필꽂이가 뜬 순간부터 글쓰기가 끝날 때까지 숨어요 (도련 · 10-18)
+        const pinOff = () => !!twz || !(window.gdTwz && gdTwz()) || !pinOpen() || document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden]), #pcRoom:not([hidden])');   // ✏️ 연필꽂이가 뜬 순간부터 글쓰기가 끝날 때까지 숨어요 (도련 · 10-18)
         const PIN_AREA = '#innerPage, #pelRoom, #pcbRoom, #spkBoard, .modal.snb-on .snb-sheets';   // 🪡 핀셋이 보이는 곳
         function pinOver(x, y) {
             const top = document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
