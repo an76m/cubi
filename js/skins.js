@@ -184,7 +184,7 @@
             openModal('skinModal');
         }
 
-        /* ---------- 📔 페이지 목록 (썸네일만 · 스티커 창과 같은 칸 5개) ----------
+        /* ---------- 📔 페이지 목록 (썸네일만 · 스티커 창과 같은 칸 5개 · 10-18 '기본' 칸 4색만 보여요 · 기본 다이어리에만 적용) ----------
            기본 = 기본 페이지 4종 · 내가만든 = 🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 공유받은 = 📥 파일로 받은 것 + 🌟 모두의 페이지
            이벤트 = 🌸 계절 테마 등 · 문구점 = 🎁 테마 페이지 + 🛍️ 문구점 가기
            썸네일은 따로 저장하지 않고, 페이지에 저장된 색 5개 · 꾸밈 위치로 작은 다이어리를 바로 그려요 (요청 없음) */
@@ -192,7 +192,7 @@
         function openPageList(tab) {
             closeModal('skinModal');
             const bar = document.getElementById('pageTabs');
-            bar.innerHTML = stkTabsOn(v => sklItems(v).length, 'page').map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="sklSetTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
+            bar.innerHTML = stkTabsOn(v => sklItems(v).length, 'page').filter(([v]) => v === 'free').map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="sklSetTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
             sklTab = tab || sklTabOf(currentSkinId);
             if (!bar.querySelector(`[data-tab="${sklTab}"]`)) sklTab = 'free';
             renderPageList();
@@ -221,7 +221,7 @@
             if (!g) return;
             document.querySelectorAll('#pageTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === sklTab));
             const items = sklItems(sklTab);
-            let head = '';
+            let head = typeof dkType === 'function' && dkType() ? '<div class="cs-empty skl-wide">📒 지금은 기본 다이어리가 아니라서 색이 안 보여요.<br>고른 색은 기본 다이어리에서 보여요.</div>' : '';
             if (sklTab === 'share' && (typeof ftOn !== 'function' || ftOn('share'))) head = '<div class="shx-bar in"><button type="button" class="shx-btn go" onclick="document.getElementById(\'skinFileInput\').click()">📥 파일 불러오기</button><small>카페에서 받은 페이지 파일을 골라요</small></div>';
             if (sklTab === 'event' && typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN) head = '<div class="season-card skl-wide" id="seasonCard"></div>';
             const empty = {
@@ -629,6 +629,7 @@
             [bk, fr].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
             page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.c);
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
+            if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)
         }
         /* 📕 유한 다이어리 (도련 · 10-18) : 기본이 아닌 다이어리 = 페이지 수가 정해진 다이어리 · 늘 페이지 기준 (날짜 기준 유한은 없앰)
            - 장 = 펼친 두 쪽 하나 · 저장 키 dkp_<권 id>_<장> · 다이어리.json = dkb_<권 id> (js/drive.js)

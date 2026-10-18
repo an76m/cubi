@@ -235,15 +235,24 @@
             return c ? { skin: c, kind: 'inline', name: '지금 쓰는 페이지' } : null;
         }
 
+        /* 📔 페이지 색은 기본 다이어리에만 (도련 10-18 · 기본 사용자를 위한 서비스) : 유한 다이어리(고른 · 산 · 받은 다이어리)는 늘 처음 모양
+           화면 바탕(--bg-color)은 🌈 배경지가 맡아서 페이지 색으로는 안 바꿔요 */
+        let skinWant = null, skinBook = null;
         function setSkinVars(skin) {
+            skinWant = skin;
+            skinBook = !!(typeof dkType === 'function' && dkType());
+            if (skinBook) skin = skinPresets.pink;
             const root = document.documentElement;
-            root.style.setProperty('--bg-color', skin.bg);
             root.style.setProperty('--cover-bg', skin.cover);
             root.style.setProperty('--page-bg', skin.page);
             root.style.setProperty('--border-color', skin.border);
             root.style.setProperty('--primary-accent', skin.accent);
             SK_OPT.forEach(o => skSetOpt(o, skin[o.k] || null, skin.page));   // 하단메뉴 · 팝업메뉴 색 : 따로 정한 색이 없으면 기본 모양(테두리는 테두리 색을 따라감)
-            if (typeof stuApply === 'function') stuApply(skin);               // 🎀 놓아 둔 꾸밈 · 바꾼 아이콘 (js/skinstudio.js)
+            if (typeof stuApply === 'function') stuApply(skinBook ? {} : skin);   // 🎀 놓아 둔 꾸밈 · 바꾼 아이콘 (js/skinstudio.js)
+        }
+        /* 다이어리를 바꾼 뒤 (js/skins.js dyDeco) : 기본 ↔ 유한이 바뀌었으면 페이지 색 다시 */
+        function skinBookSync() {
+            if (skinWant && skinBook !== !!(typeof dkType === 'function' && dkType())) setSkinVars(skinWant);
         }
 
         /* 색 고르기 칸도 지금 스킨 색으로 맞춤 (고른 스킨을 조금 바꿔서 내 스킨으로 등록할 수 있게) */
