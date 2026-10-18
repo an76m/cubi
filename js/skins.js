@@ -690,7 +690,7 @@
         let bdBusy = false;
         function bdSync() {
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy) return;
-            if (bdSt) { if (bdSt.at === bdAt()) return; bdStepEnd(); }        // ✋ 수동 단계 중 : 같은 장이면 그대로 · 다른 장으로 가면 처음 모습으로
+            if (bdSt) { if (bdSt.at === bdAt()) return; bdStepEnd(); }        // ✋ 링을 연 채 : 같은 장이면 그대로 · 다른 장으로 가면 처음 모습으로
             const v = bdGet(), lay = bdLay(), on = bdOn();
             if (lay && !ip.classList.contains('dy-bdl')) { bdLayAt = Date.now(); bdArmed = false; }   // 표지를 막 펼쳤을 때 · 장을 막 넘겼을 때 (🖱 마우스가 그 자리를 한 번 벗어난 뒤부터 지나가기로 보여요)
             const cv = document.getElementById('canvasArea');
@@ -743,17 +743,13 @@
         }
         let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
         window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
-            if (bdSt && bdSt.at === bdAt() && bdInPaper(e)) { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); bdDgStart(e); return; }   // ✋ 수동 : 종이를 끌어요
-            if (!bdHit(e)) { if (!bdSt) bdShow(false); return; }
+            if (!bdHit(e)) { bdShow(false); return; }
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
-            if (bdBusy) return;
-            if (bdMode() === 'hand' && !document.getElementById('innerPage').classList.contains('dy-bo')) {   // ✋ 수동 : 🔓 링 열기는 누를 것 없이 그 자리에서 바로 옆으로 끌어요 (도련 10-18)
-                bdStepStart('out'); if (bdSt) { bdSt.pre = 1; bdDgStart(e); } return;
-            }
+            if (bdBusy || bdSt) return;                                       // 🔓 링이 열린 채면 그 자리는 아무 일 없음
+            if (bdMode() === 'hand' && !document.getElementById('innerPage').classList.contains('dy-bo')) { bdRingStart(e); return; }   // ✋ 수동 : 🔓 링 열기는 누를 것 없이 그 자리에서 바로 옆으로 끌어요 (도련 10-18)
             if (!bdShown()) { bdShow(true); return; }
             if (Date.now() - bdShowAt < 250) return;
             const k = document.getElementById('innerPage').classList.contains('dy-bo') ? 'in' : 'out';
-            if (bdMode() === 'hand') { bdStepStart(k); return; }
             bdShow(false);
             if (k === 'in') bdIn(); else bdOut();
         }, true);
@@ -764,115 +760,53 @@
         }
         window.bdGapAt = bdGapAt;
         document.addEventListener('pointermove', e => {                        // 🖱 지나가면 보여요 · 겉표지를 밀어 펼친 손(마우스)이 그 자리에 머물러 있으면 안 보여요 (도련 10-18)
-            if (e.pointerType !== 'mouse' || e.buttons || bdBusy) return;
+            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt) return;
             if (!bdHit(e, true)) { bdArmed = true; return; }
             if (bdArmed && !bdShown() && bdHit(e)) bdShow(true);
         }, { passive: true });
         /* ✋ 수동 · ⚡ 자동 (설정 '바인더 속지 빼기 · 끼우기' · 기본 수동 · 도련 10-18)
            - ⚡ 자동 : 한 번 누르면 끝까지 (bdOut · bdIn)
-           - ✋ 수동 = 손으로 끌기 : 가운데 버튼에 지금 할 일이 보이고, 종이 위 아무 데서나 끌면 끄는 만큼 움직여요 (반 넘게 끌고 놓으면 그 단계 끝 · 덜 끌면 제자리)
-             빼기 = 🔓 링 열기(옆으로 밀기) → 📤 속지 빼기(바인더를 아래로 내리기) → ↔️ 가운데로 모으기(종이를 가운데로 밀기) → 🩹 테이프 붙이기(테이프를 가운데로 끌어다 놓기)
-             끼우기 = 🕳️ 구멍 뚫기(꾹 누르기) → ↔️ 벌리기(바깥으로 밀기) → 🗂️ 바인더에 넣기(위로 올리기) → 🔒 링 닫기(옆으로 밀기)
-           - 끄는 동안 = innerPage 의 data-dg(ring · cov · join) + --bs(0 끼운 모습 ~ 1 꺼낸 모습) · css 가 그대로 그려요 */
+           - ✋ 수동 : 가운데 링 자리에서 바로 옆으로 끌면 끄는 만큼 🔓 링이 열려요 (반 넘게 끌고 놓으면 열림 · 덜 끌면 제자리)
+             링 열기 다음 단계는 도련이 하나씩 정해서 만들어요 (10-18 · 예전 속지 빼기 · 모으기 · 테이프 · 수동 끼우기는 지웠어요) · 끼우기는 지금 ⚡ 자동 그대로
+           - 끄는 동안 = innerPage 의 data-dg="ring" + --bs(0 닫힘 ~ 1 열림) · css 가 그대로 그려요 */
         const BDM_KEY = 'diary_binder_mode', BDM_LOCAL = 'malang_diary_binder_mode';
         function bdMode() { return prefGet('diary_binder_mode', 'malang_diary_binder_mode') === 'auto' ? 'auto' : 'hand'; }   // BDM_KEY · BDM_LOCAL (bdSync 가 먼저 불러도 되게)
         function bdModeSet(v) { prefSet(BDM_KEY, BDM_LOCAL, v === 'auto' ? 'auto' : 'hand'); bdModeRender(); bdSync(); }
         function bdModeRender() { const m = bdMode(); document.querySelectorAll('#bdModePick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === m)); }
         const bdAt = () => dyNow().id + '|' + dkNo(currentDate);
-        const BD_HAND = {
-            out: [
-                { ic: '🔓', t: '링 열기', h: '↔ 옆으로 밀기', g: 'ring', end: ['dy-bo-go', 'dy-bo-hold'] },
-                { ic: '📤', t: '속지 빼기', h: '↓ 바인더 내리기', g: 'cov', end: ['dy-bo-go'] },
-                { ic: '↔️', t: '가운데로 모으기', h: '→ ← 가운데로 밀기', g: 'join', end: ['dy-bo-go', 'dy-bo'] },
-                { ic: '🩹', t: '테이프 붙이기', h: '테이프를 가운데로', g: 'tape' }
-            ],
-            in: [
-                { ic: '🕳️', t: '구멍 뚫기', h: '꾹 누르기', g: 'hold' },
-                { ic: '↔️', t: '벌리기', h: '← → 바깥으로 밀기', g: 'join', rev: 1, end: ['dy-bo-go'] },
-                { ic: '🗂️', t: '바인더에 넣기', h: '↑ 바인더 올리기', g: 'cov', rev: 1, end: ['dy-bo-go', 'dy-bo-hold'] },
-                { ic: '🔒', t: '링 닫기', h: '↔ 옆으로 밀기', g: 'ring', rev: 1, end: [] }
-            ]
-        };
-        const BD_TMP = ['dy-bo-go', 'dy-bo-hold', 'dy-bo', 'dy-bo-back', 'dy-bo-tape', 'dy-bh-pop'];
-        let bdSt = null, bdDg = null;                                          // bdSt { k : out | in, i : 지금 단계, at : 그 장 } · bdDg = 끄는 중
-        const bdCur = () => bdSt && BD_HAND[bdSt.k][bdSt.i];
-        function bdStepLabel() {
-            const b = document.querySelector('#innerPage .dy-bo-btn.st'), st = bdCur(); if (!b || !st) return;
-            b.innerHTML = `${st.ic}<small>${st.t}</small><em>${st.h}</em>`;
-            const ip = document.getElementById('innerPage'); if (ip) ip.classList.toggle('dy-bs-tp', st.g === 'tape');
-        }
-        function bdStepStart(k) {
-            const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
-            selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
-            clearTimeout(bdShowT); ip.classList.add('dy-bs', 'dy-bo-show');
-            bdSt = { k, i: 0, at: bdAt() }; bdStepLabel();
-        }
-        function bdStepNext() {
-            const ip = document.getElementById('innerPage'); if (!ip || !bdSt) return;
-            bdSt.i++;
-            if (bdSt.i < BD_HAND[bdSt.k].length) { bdStepLabel(); return; }
-            const k = bdSt.k; bdStepEnd(); bdPut(k === 'out' ? (bdGet() & 2) | 1 : 2); bdSync();
-        }
-        function bdStepEnd() {
+        const BD_TMP = ['dy-bo-go', 'dy-bo-hold', 'dy-bo', 'dy-bo-back', 'dy-bo-tape', 'dy-bh-pop', 'dy-ring-open'];
+        let bdSt = null, bdDg = null;                                          // bdSt { at : 그 장 · open : 링이 열렸음 } · bdDg = 끄는 중
+        function bdStepEnd() {                                                  // 처음 모습으로 (다른 장으로 가면)
             const ip = document.getElementById('innerPage'); bdSt = null; bdDg = null;
-            if (ip) { ip.classList.remove('dy-bs', 'dy-bs-tp', 'dy-dg', ...BD_TMP); delete ip.dataset.dg; ip.style.removeProperty('--bs'); }
-            document.querySelectorAll('#innerPage .dy-punch, #innerPage .dy-tp').forEach(p => p.remove());
+            if (ip) { ip.classList.remove('dy-dg', ...BD_TMP); delete ip.dataset.dg; ip.style.removeProperty('--bs'); }
             bdShow(false);
         }
-        function bdInPaper(e) {                                                 // ✋ 수동 단계 중엔 종이 위 아무 데서나 끌어요
-            const cv = document.getElementById('canvasArea'); if (!cv) return false;
-            const r = cv.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-        }
         function bdBsSet(s) { const ip = document.getElementById('innerPage'); if (ip) ip.style.setProperty('--bs', Math.max(0, Math.min(1, s)).toFixed(3)); }
-        function bdDgStart(e) {
-            const st = bdCur(), ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook'); if (!st || !ip || !bk || bdBusy) return;
-            const cqw = bk.offsetWidth / 100, g = ip.querySelector('.dy-gap').getBoundingClientRect(), cx = g.left + g.width / 2;
-            if (st.g === 'hold') {                                              // 🕳️ 꾹 누르면 펀치
-                bdDg = { st, x: e.clientX, y: e.clientY, id: e.pointerId, t: setTimeout(() => { bdDg = null; bdBusy = true; bdPunch(); setTimeout(() => { bdBusy = false; bdStepNext(); }, 1300); }, 450) };
-                return;
-            }
-            if (st.g === 'tape') {                                              // 🩹 테이프 조각을 잡아요 (어디를 눌러도 손가락 아래로 와요)
-                const fr = document.getElementById('dyFront'), tp = document.createElement('span'); tp.className = 'dy-tp'; fr.appendChild(tp);
-                bdDg = { st, tp, fr, cx, id: e.pointerId }; bdTpMove(e); return;
-            }
-            const D = { ring: Math.max(12 * cqw, 60), cov: Math.max(30 * cqw, 110), join: Math.max(6 * cqw, 70) }[st.g];
-            bdDg = { st, x: e.clientX, y: e.clientY, cx, D, side: e.clientX < cx ? 1 : -1, p: 0, id: e.pointerId };
-            ip.classList.add('dy-dg'); ip.dataset.dg = st.g; bdBsSet(st.rev ? 1 : 0);
-        }
-        function bdTpMove(e) {
-            const d = bdDg, r = d.fr.getBoundingClientRect();
-            d.tp.style.left = (e.clientX - r.left) + 'px'; d.tp.style.top = (e.clientY - r.top) + 'px';
-            d.tp.classList.toggle('ok', Math.abs(e.clientX - d.cx) < 36);
+        function bdRingStart(e) {                                               // 🔓 옆으로 끌기 시작
+            const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook'); if (!ip || !bk || bdBusy || !bdOn()) return;
+            selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
+            clearTimeout(bdShowT); ip.classList.add('dy-bo-show');
+            bdSt = { at: bdAt(), open: 0 };
+            bdDg = { x: e.clientX, D: Math.max(12 * bk.offsetWidth / 100, 60), p: 0, id: e.pointerId };
+            ip.classList.add('dy-dg'); ip.dataset.dg = 'ring'; bdBsSet(0);
         }
         window.addEventListener('pointermove', e => {
             const d = bdDg; if (!d || d.id !== e.pointerId) return;
-            if (d.st.g === 'hold') { if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 12) { clearTimeout(d.t); bdDg = null; } return; }
-            if (d.st.g === 'tape') { bdTpMove(e); return; }
-            const dx = e.clientX - d.x, dy = e.clientY - d.y;
-            const v = d.st.g === 'ring' ? Math.abs(dx) : d.st.g === 'cov' ? (d.st.rev ? -dy : dy) : (d.st.rev ? -dx * d.side : dx * d.side);
-            d.p = Math.max(0, Math.min(1, v / d.D)); bdBsSet(d.st.rev ? 1 - d.p : d.p);
+            d.p = Math.max(0, Math.min(1, Math.abs(e.clientX - d.x) / d.D)); bdBsSet(d.p);
         }, true);
         window.addEventListener('pointerup', e => bdDgEnd(e), true);
         window.addEventListener('pointercancel', e => bdDgEnd(e, true), true);
         function bdDgEnd(e, cancel) {
             const d = bdDg, ip = document.getElementById('innerPage'); if (!d || d.id !== e.pointerId || !ip) return;
             bdDg = null;
-            if (d.st.g === 'hold') { clearTimeout(d.t); return; }
-            if (d.st.g === 'tape') {
-                if (!cancel && Math.abs(e.clientX - d.cx) < 36) {               // 가운데에 붙였어요 → 스윽 사라짐
-                    d.tp.remove(); bdBusy = true; ip.classList.add('dy-bo-tape');
-                    setTimeout(() => { bdBusy = false; bdStepNext(); }, 1600);
-                } else { d.tp.classList.add('back'); setTimeout(() => d.tp.remove(), 250); }
-                return;
-            }
             const go = !cancel && d.p >= .5, from = d.p, to = go ? 1 : 0, t0 = performance.now(); bdBusy = true;
             const step = now => {                                                // 놓으면 끝까지 · 덜 끌었으면 제자리로
                 const k = Math.min(1, (now - t0) / 220), p = from + (to - from) * k;
-                bdBsSet(d.st.rev ? 1 - p : p);
+                bdBsSet(p);
                 if (k < 1) { requestAnimationFrame(step); return; }
                 ip.classList.remove('dy-dg'); delete ip.dataset.dg; ip.style.removeProperty('--bs'); bdBusy = false;
-                if (go) { if (bdSt) bdSt.pre = 0; ip.classList.remove(...BD_TMP); (d.st.end || []).forEach(c => ip.classList.add(c)); bdStepNext(); }
-                else if (bdSt && bdSt.pre) { bdStepEnd(); bdShow(true); }        // 🔓 덜 끌었으면 아직 시작 전 (버튼만 보여요)
+                if (go && bdSt) { bdSt.open = 1; ip.classList.add('dy-bo-go', 'dy-bo-hold', 'dy-ring-open'); bdShow(false); }   // 🔓 링이 열린 채로 (다음 단계는 아직)
+                else { bdSt = null; bdShow(true); }                              // 덜 끌었으면 버튼만 보여요
             };
             requestAnimationFrame(step);
         }
@@ -909,7 +843,7 @@
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
             if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge-w"><i class="dy-edge-f"></i></span>`
-                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" tabindex="-1">${k === 'out' ? '<span class="a">📤<small>꺼내기</small></span><span class="h">🔓<small>링 열기</small></span>' : '📥<small>끼우기</small>'}</button>`).join('') + '<button type="button" class="dy-bo-btn st" tabindex="-1"></button>');   // st : ✋ 수동일 때 다음 단계   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
+                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" tabindex="-1">${k === 'out' ? '<span class="a">📤<small>꺼내기</small></span><span class="h">🔓<small>링 열기</small></span>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
