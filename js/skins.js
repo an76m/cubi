@@ -691,6 +691,12 @@
         function bdSync() {
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy) return;
             const v = bdGet(), lay = bdLay(), on = bdOn();
+            if (lay && !ip.classList.contains('dy-bdl')) bdLayAt = Date.now();   // 표지를 막 펼쳤을 때 · 장을 막 넘겼을 때
+            const cv = document.getElementById('canvasArea');
+            if (lay && cv) {                                                   // 꺼낸 종이 바깥 끝도 처음 종이처럼 (둥근 모서리 · 테두리)
+                const cs = getComputedStyle(cv), ring = cs.boxShadow.split(/,(?![^(]*\))/).map(x => x.trim()).filter(x => / 0px 0px 0px [\d.]+px$/.test(x));
+                ip.style.setProperty('--bd-ring', ring.join(', ') || '0 0 0 4px #fff'); ip.style.setProperty('--bd-rad', cs.borderRadius);
+            }
             ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
             bdSides();
         }
@@ -713,23 +719,38 @@
             }
         }
         /* 버튼은 평소엔 안 보여요 (도련 10-18)
+           - 버튼 자리 = 가운데 링 자리 전부 (위에서 아래까지 · 꺼낸 뒤엔 맞댄 틈 둘레) · 그 위에 붙은 꾸밈은 꾸밈이 먼저
            - 보이기 : 🖱 마우스가 그 자리를 지나가면 · 🖱 그 자리를 클릭하면 · 👆 그 자리를 터치하면
-           - 실행 : 보이는 버튼을 클릭 · 터치 (마우스는 지나가서 한 번 클릭 또는 클릭 두 번 / 터치는 두 번)
-           - 사라지기 : 설정 '자동으로 사라지는 시간'(clearSec · js/tapmenu.js)이 지나면 · 다른 곳을 누르면 */
-        let bdShowT = 0;
+           - 실행 : 보이는 동안 그 자리를 다시 클릭 · 터치 (마우스는 지나가서 한 번 클릭 또는 클릭 두 번 / 터치는 두 번)
+           - 사라지기 : 설정 '자동으로 사라지는 시간'(clearSec · js/tapmenu.js)이 지나면 · 다른 곳을 누르면
+           - 누르는 순간(pointerdown)만 봐요 → 표지를 펼치거나 장을 넘긴 손짓이 꺼내기로 이어지지 않아요 (📱 패드 10-18) */
+        let bdShowT = 0, bdShowAt = 0, bdLayAt = 0;
         const bdShown = () => { const ip = document.getElementById('innerPage'); return !!ip && ip.classList.contains('dy-bo-show'); };
         function bdShow(on) {
             const ip = document.getElementById('innerPage'); if (!ip) return;
-            clearTimeout(bdShowT); ip.classList.toggle('dy-bo-show', !!on);
+            clearTimeout(bdShowT); ip.classList.toggle('dy-bo-show', !!on); bdShowAt = on ? Date.now() : 0;
             if (on) bdShowT = setTimeout(() => bdShow(false), (window.clearSec ? clearSec() : 5) * 1000);
         }
-        function bdHover(e) { if (e.pointerType === 'mouse' && !bdBusy && !bdShown()) bdShow(true); }
-        function bdTap(k) {
-            if (!bdShown()) { bdShow(true); return; }
-            bdShow(false);
-            if (k === 'out') bdOut(); else bdIn();
+        function bdHit(e) {                                                     // 그 자리를 눌렀나 · 지나가나
+            const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook');
+            if (!ip || !bk || !ip.classList.contains('dy-bd') || Date.now() - bdLayAt < 700) return false;
+            const g = ip.querySelector('.dy-gap'); if (!g) return false;
+            const t = e.target; if (t && t.closest && t.closest('.element-box, .dy-clip, .page-header, .page-stamps, .page-dday, .modal')) return false;
+            const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, hw = ip.classList.contains('dy-bo') ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
+            return Math.abs(e.clientX - cx) <= hw && e.clientY >= r.top && e.clientY <= r.bottom;
         }
-        document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('.dy-bo-btn'))) bdShow(false); }, true);
+        let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
+        window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
+            if (!bdHit(e)) { bdShow(false); return; }
+            e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
+            if (bdBusy) return;
+            if (!bdShown()) { bdShow(true); return; }
+            if (Date.now() - bdShowAt < 250) return;
+            bdShow(false);
+            if (document.getElementById('innerPage').classList.contains('dy-bo')) bdIn(); else bdOut();
+        }, true);
+        ['pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click'].forEach(k => window.addEventListener(k, e => { if (bdEat && Date.now() - bdEat < 900) { e.stopPropagation(); if (k === 'click') bdEat = 0; } }, true));
+        document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !e.buttons && !bdBusy && !bdShown() && bdHit(e)) bdShow(true); }, { passive: true });
         function bdOut() {                                                      // 링 열림 → 두 쪽이 크기 그대로 가운데로 미끄러져 와서 아주 가까이 (붙어서 한 몸이 되지 않아요) → 반투명 테이프가 붙고 스윽 사라짐
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
@@ -758,8 +779,8 @@
             const rings = n => { let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; return h; };
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
-            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge"></span><span class="dy-edge r"></span>`
-                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" onpointerenter="bdHover(event)" onpointerdown="event.stopPropagation()" onclick="bdTap('${k}')">${k === 'out' ? '📤<small>꺼내기</small>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
+            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge-w"><i class="dy-edge-f"></i></span>`
+                + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" tabindex="-1">${k === 'out' ? '📤<small>꺼내기</small>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
@@ -1078,7 +1099,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id, cid = 'clip:' + clipId(), pid = 'punch:' + punchNow()[0]; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || b.dataset.id === cid || b.dataset.id === pid)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.punchPick = punchPick; window.bdOut = bdOut; window.bdTap = bdTap; window.bdHover = bdHover; window.bdIn = bdIn; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.punchPick = punchPick; window.bdOut = bdOut; window.bdIn = bdIn; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
