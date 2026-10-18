@@ -563,7 +563,7 @@
                 row.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === c[row.dataset.k]));
             });
         }
-        const dyMode = () => dvCfg()[dvDev()] === 'one' ? 'right' : dvDev() === 'phone' ? 'swipe' : 'spread';
+        const dyMode = () => dkCv() || dvCfg()[dvDev()] === 'one' ? 'right' : dvDev() === 'phone' ? 'swipe' : 'spread';   // 📕 표꾸 중엔 접힌 겉표지처럼 앞표지 한 쪽만
         let dyView = 'l';                                                      // 📱 지금 보는 쪽 (l 왼쪽 · r 오른쪽)
         function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요
             const t = dyNow(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H;
@@ -634,7 +634,7 @@
         }
         /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 노트 · 바인더만 (기본 다이어리 표지는 못 꾸며요 · 다이어리를 살 이유)
            - 표지 = 0장 (dkDate(0) · 키 dkp_<권 id>_0 · 권 폴더 표지.json) → 속지처럼 스티커 메뉴로 그대로 꾸며요
-           - 펼친 표지 : 왼쪽 = 뒤표지 · 오른쪽 = 앞표지 · 다 꾸미면 다음 장으로 넘기면 1장이에요
+           - 표꾸 화면 : 로그인 때 겉표지처럼 접힌 앞표지 한 쪽 (펼친 면의 오른쪽 쪽 자리) · 다음 장으로 넘기면 1장이에요
            - 닫힌 겉표지 : 그 다이어리 색 + 앞표지(오른쪽 쪽)에 붙인 것 (#cvDeco · 눌러도 그대로 열려요) */
         function dkCoverEdit() {
             closeModal('skinModal');
@@ -726,15 +726,17 @@
             const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
             return `다꾸/${b ? b.kind : o.kind}/${b ? b.name : dkFolderName(o.design, o.spec)}/${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;
         }
+        function dkCv() { return !!dkType() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
+        function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)
         /* 고른 다이어리와 지금 펼친 날짜가 맞는지 (유한인데 진짜 날짜 · 기본인데 장 날짜 · 페이지 수를 넘음) → 맞는 곳으로 */
         function dkSync(load) {
             const bk = !!dkType(), on = dkIs(currentDate);
-            const ip = document.getElementById('innerPage'); if (ip) ip.classList.toggle('dk-cover', bk && on && dkNo(currentDate) === 0);   // 📕 표꾸 중 : 펼친 표지 모양
             if (bk !== on || (bk && dkNo(currentDate) > dkNow().pages)) {
                 if (window.dyViewSet) dyViewSet('l');
                 currentDate.setTime((bk ? dyOpenDate() : dyOpenDate() || new Date()).getTime());
                 selectedElement = null;
-            } else if (!load) return;
+            } else if (!load) return dkCvSync();
+            dkCvSync();
             document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
             if (load && isCoverOpen && !turn) loadData();
         }

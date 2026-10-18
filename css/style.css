@@ -3737,8 +3737,10 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 #diaryBook.dy-one { clip-path: inset(-80px 0 -80px -80px); }
 #diaryBook.dy-one.dy-r { clip-path: inset(-80px -80px -80px 0); }
 
-/* 📕 표지 꾸미기 (js/skins.js dkCoverEdit · dkCoverPaint) : 펼친 표지(0장) = 그 다이어리 색 · 닫힌 겉표지도 그 색 + 앞표지에 붙인 것 */
-.inner-page.dk-cover .canvas-area { background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)) !important; }
+/* 📕 표지 꾸미기 (js/skins.js dkCoverEdit · dkCoverPaint) : 표꾸 화면(0장) = 접힌 겉표지처럼 앞표지 한 쪽 · 그 다이어리 색 · 닫힌 겉표지도 그 색 + 앞표지에 붙인 것 */
+.inner-page.dk-cover .canvas-area { background: linear-gradient(90deg, rgba(0,0,0,.12), rgba(255,255,255,.18) 60%, rgba(0,0,0,.05)) 50% 0 / 6cqw 100% no-repeat, linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)) !important;
+    border-radius: 15px 22px 22px 15px; box-shadow: 5px 10px 25px rgba(0,0,0,.12) !important; }   /* 표꾸 화면 = 접힌 겉표지 (책등 · 둥근 모서리 · 링 · 테두리 없음) */
+.inner-page.dk-cover > .dy-deco { display: none; }
 .inner-page.dk-cover .canvas-area::before, .inner-page.dk-cover .canvas-area::after { display: none; }
 .cover-page.cv-book { background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); }
 .cover-page.cv-book .cv-lace, .cover-page.cv-book .cover-title, .cover-page.cv-book .cover-subtitle, .cover-page.cv-book .cv-berry { display: none; }
