@@ -3819,7 +3819,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.dy-free #canvasArea > * { pointer-events: none !important; }
 .inner-page.dy-free #canvasArea.bd-pick, .inner-page.dy-free #canvasArea.bd-pick > .element-box { pointer-events: auto !important; }   /* 🪡 핀셋으로 집을 때만 잠깐 (js/skins.js bdFreeBox · elements.js twzPick) */
 .inner-page.dy-free .dy-gap, .inner-page.dy-free .dy-holes, .inner-page.dy-free .dy-edge-w, .inner-page.dy-free .dy-seam, .inner-page.dy-free .dy-bo-btn { opacity: 0 !important; transition: opacity .3s; }
-.inner-page.dy-free .page-stamps, .inner-page.dy-free .page-dday, .inner-page.dy-free .season-corner { transition: none; }
+.inner-page.dy-free .page-stamps, .inner-page.dy-free .page-dday, .inner-page.dy-free .season-corner, .inner-page.dy-free #canvasArea > .element-box { transition: none; }   /* 📄 붙은 꾸밈(🩹 테이프 · 스티커)은 종이와 한 몸으로 (늦게 따라오면 들쑥날쑥해 보여요) */
 /* ✋ 링을 옆으로 끄는 동안 (js/skins.js bdRingStart · --bs 0 닫힘 ~ 1 열림) */
 .inner-page.dy-dg .dy-bo-btn { opacity: .35; }
 .inner-page.dy-dg .dy-rings, .inner-page.dy-dg .dy-cov, .inner-page.dy-dg .dy-gap, .inner-page.dy-dg .dy-gap::before, .inner-page.dy-dg #canvasArea > .element-box, .inner-page.dy-dg .dy-edge-w, .inner-page.dy-dg .dy-edge-f, .inner-page.dy-dg .dy-seam, .inner-page.dy-dg .page-stamps, .inner-page.dy-dg .page-dday, .inner-page.dy-dg .season-corner, .inner-page.dy-dg #canvasArea, .inner-page.dy-dg .dy-holes i { transition: none !important; }

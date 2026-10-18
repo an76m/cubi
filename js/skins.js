@@ -885,11 +885,13 @@
                 const img = el.querySelector(':scope > img'); if (!img || !String(img.dataset.src || '').includes('gd-tape')) return;
                 const side = el.classList.contains('bd-r') ? 'r' : 'l', b = el.getBoundingClientRect(), c = gdTo(b.left + b.width / 2, b.top + b.height / 2);
                 const a = ((parseFloat(el.dataset.rotation) || 0) + bdFree.sh[side].r) * Math.PI / 180, hl = img.offsetWidth * (parseFloat(el.dataset.scale) || 1) / 2;
-                const on = { l: false, r: false, out: false };
-                for (let i = 0; i <= 8; i++) {
-                    const t = -hl + hl * i / 4, p = { x: c.x + Math.cos(a) * t, y: c.y + Math.sin(a) * t }, L = bdSheetHas(bdFree.sh.l, p), R = bdSheetHas(bdFree.sh.r, p);
-                    if (L) on.l = true; if (R) on.r = true; if (!L && !R) on.out = true;
+                const on = { l: false, r: false, out: false }, hit = [], N = 16;
+                for (let i = 0; i <= N; i++) {
+                    const t = -hl + 2 * hl * i / N, p = { x: c.x + Math.cos(a) * t, y: c.y + Math.sin(a) * t }, L = bdSheetHas(bdFree.sh.l, p), R = bdSheetHas(bdFree.sh.r, p);
+                    if (L) on.l = true; if (R) on.r = true; hit.push(L || R);
                 }
+                const f = hit.indexOf(true), z = hit.lastIndexOf(true);
+                on.out = f > 0 || (z >= 0 && z < N);                             // 종이 밖(책상) = 테이프 끝이 종이를 벗어난 곳만 (두 쪽 사이 틈은 책상이 아니에요)
                 if (on.l && on.r) out.link = true;
                 if (on.out) ['l', 'r'].forEach(x => { if (on[x]) out.pin[x].push(c); });
             });
