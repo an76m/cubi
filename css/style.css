@@ -3728,7 +3728,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .dy-rings i:nth-child(1) { top: 7.5cqw; } .dy-rings i:nth-child(2) { top: 16.5cqw; } .dy-rings i:nth-child(3) { top: 25.5cqw; }
 .dy-rings i:nth-child(4) { bottom: 22.2cqw; } .dy-rings i:nth-child(5) { bottom: 13.2cqw; } .dy-rings i:nth-child(6) { bottom: 4.2cqw; }
 /* 📎 집게 = 장식 (도련 10-18 · 페이지 들림 연출은 뺐어요) · 왼쪽 쪽 위 가장자리에 꽂혀요 */
-.dy-clip { position: absolute; left: 3%; top: -21.4cqw; width: 38cqw; height: 29.7cqw; pointer-events: none; filter: drop-shadow(0 1cqw 1.2cqw rgba(50, 35, 45, .32)); }   /* 몸통 대부분은 종이 밖 · 아랫입만 종이 위 가장자리를 물어요 (도련 사진) */
+.dy-clip { position: absolute; left: 3%; top: -66px; width: 118px; height: 92px; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(50, 35, 45, .32)); }   /* 크기는 노트 크기와 상관없이 늘 같아요 · 몸통 대부분은 종이 밖 · 아랫입만 종이 위 가장자리를 물어요 (도련 사진) */
 .dy-clip svg { display: block; width: 100%; height: 100%; }
 .dy-clipth { display: block; width: 56px; height: 44px; filter: drop-shadow(0 3px 4px rgba(60, 40, 50, .25)); }
 .dy-clipth svg { display: block; width: 100%; height: 100%; }

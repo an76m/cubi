@@ -605,8 +605,8 @@
         }
         function dyLoad() { if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco(); }
         /* 📎 집게 (도련 10-18) : 노트로 다꾸하는 사람들이 뜬 페이지를 집게로 눌러 둬요
-           - 장식이에요 (페이지 들림 연출은 도련이 뺐어요) · 기본 다이어리 · 노트에 꽂혀요 (바인더엔 안 꽂아요) · 골라 쓰는 것
-           - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 📔 기본다이어리 창 → 📎 집게 칸 · 왼쪽 쪽 위 가장자리에 꽂혀요
+           - 노트용 장식이에요 (페이지 들림 연출은 도련이 뺐어요 · 기본 다이어리 · 바인더엔 안 꽂아요) · 크기는 노트 크기와 상관없이 늘 같아요 · 골라 쓰는 것
+           - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 📓 노트 창 → 📎 기본집게 칸 · 왼쪽 쪽 위 종이 끝을 물어요
            - 설정.json 'diary_clip' (게스트는 이 기기) = 고른 색 id · '' = 안 써요 · 나중에 키링 같은 꾸미기 문구류도 이 칸 옆에 (정해진 자리에 설치) */
         const CLIP_KEY = 'diary_clip', CLIP_LOCAL = 'malang_diary_clip';
         const CLIPS = [['black', '검정', '#3f3b42'], ['pink', '분홍', '#ff8fb1'], ['sky', '하늘', '#7cc4ea'], ['yellow', '노랑', '#f7c948'], ['mint', '민트', '#6fcca8'], ['purple', '보라', '#b39ddb']];
@@ -636,7 +636,7 @@
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
-            if (t.k !== '바인더') { const c = clipNow(); if (c) front.push(`<span class="dy-clip">${clipSvg(c[2])}</span>`); }   // 📎 집게 = 장식 (기본 다이어리 · 노트 · 바인더엔 안 꽂아요)
+            if (t.k === '노트') { const c = clipNow(); if (c) front.push(`<span class="dy-clip">${clipSvg(c[2])}</span>`); }   // 📎 집게 = 노트용 장식 (기본 다이어리 · 바인더엔 안 꽂아요)
             return [back.join(''), front.join('')];
         }
         function dyDeco() {                                                    // js/page.js refreshLayout 끝에서 불러요
@@ -650,7 +650,7 @@
             let bk = document.getElementById('dyBack'), fr = document.getElementById('dyFront');
             if (!bk) { bk = document.createElement('div'); bk.id = 'dyBack'; bk.className = 'dy-deco'; bk.setAttribute('aria-hidden', 'true'); page.prepend(bk); }
             if (!fr) { fr = document.createElement('div'); fr.id = 'dyFront'; fr.className = 'dy-deco'; fr.setAttribute('aria-hidden', 'true'); page.appendChild(fr); }
-            const dk = t.id + '|' + clipId(); if (bk.dataset.k !== dk) { const [b, f] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; bk.dataset.k = fr.dataset.k = dk; }
+            const dk = t.id + '|' + (t.k === '노트' ? clipId() : ''); if (bk.dataset.k !== dk) { const [b, f] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; bk.dataset.k = fr.dataset.k = dk; }
             [bk, fr].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
             page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
@@ -907,13 +907,13 @@
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'clip' ? ['noclip'].concat(CLIPS.map(c => ({ clip: c }))) : DY_COLORS) : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => tab === 'clip' ? ['noclip'].concat(CLIPS.map(c => ({ clip: c }))) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
             const bar = document.getElementById('dyTabs');
-            const tabs = dyKind === '다이어리' ? [['dy', '📔 다이어리'], ['clip', '📎 집게']] : stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // 📔 기본다이어리 = 다이어리 · 집게 칸 (나중에 키링 같은 꾸미기 문구류도)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
+            const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v)).concat(dyKind === '노트' ? [['clip', '📎 기본집게']] : []);   // 📓 노트 창 맨 뒤 = 노트용 기본집게 칸 (나중에 키링 같은 꾸미기 문구류도)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
             bar.hidden = bar.children.length < 2;
             dyTabSet(tabs.length ? tabs[0][0] : '');
@@ -935,7 +935,7 @@
                 ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
-            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'clip' ? '📎 꾸미기용 집게 · 왼쪽 쪽 위에 꽂혀요 (기본 다이어리 · 노트)' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
+            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'clip' ? '📎 노트용 꾸미기 집게 · 왼쪽 쪽 위 종이 끝을 물어요' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
             dyRender();
             if (g === 'mine' && dyKind !== '다이어리' && typeof dmkSync === 'function') dmkSync(dyKind);   // 드라이브의 내노트 · 내바인더 목록과 맞추기
         }
