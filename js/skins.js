@@ -661,6 +661,8 @@
             ip.classList.toggle('dy-hand', bdMode() === 'hand');               // ✋ 수동 : 꺼내기 대신 🔓 링 열기 버튼
             ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
             bdSides(); gdHoleSync();                                         // 🕳️ 하나씩 뚫은 구멍
+            const fs = on && !bdSt && bdFreeGet();                             // ✋ 링을 연 채 그만둔 장이면 그 모습 그대로 (bdFreeSave)
+            if (fs) { bdSt = { at: bdAt(), open: 1 }; ip.classList.add('dy-bo-go', 'dy-ring-open', 'dy-free-in'); bdFreeOn(fs); requestAnimationFrame(() => requestAnimationFrame(() => ip.classList.remove('dy-free-in'))); }
         }
         /* 📐 6공 바인더 속지 자리 (도련 10-18 · 꺼낼 때 종이가 늘어나지 않고 크기 그대로 미끄러져 와야 해서)
            - 저장된 자리 = 꺼내서 두 쪽을 아주 가까이 맞대 놓은 자리 (양쪽 바깥 6cqw 는 종이 밖)
@@ -710,6 +712,7 @@
         let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
         window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
             if (gdDown(e)) return;                                            // ✂️ 문구류를 들고 있거나 놓인 문구류를 누르면 (아래 gdDown)
+            if (bdFree && e.target.closest && e.target.closest('.bd-back')) { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); bdBack(); return; }   // 📥 바인더에 다시 끼우기
             if (bdFree) { bdFreeDown(e); return; }                          // 📄 두 쪽을 스티커처럼 (아래 bdFree)
             if (!bdHit(e)) { bdShow(false); return; }
             e.preventDefault(); e.stopPropagation(); bdEat = Date.now();
@@ -776,7 +779,7 @@
                 bdBsSet(p);
                 if (k < 1) { requestAnimationFrame(step); return; }
                 ip.classList.remove('dy-dg'); delete ip.dataset.dg; ip.style.removeProperty('--bs'); bdBusy = false;
-                if (go && bdSt) { bdSt.open = 1; gdClipAway(); ip.classList.add('dy-bo-go', 'dy-ring-open'); bdShow(false); bdFreeOn(); }   // 🔓 링이 열리면 표지 · 링은 스르륵 사라지고 두 쪽은 스티커처럼 (도련 10-18)
+                if (go && bdSt) { bdSt.open = 1; gdClipAway(); ip.classList.add('dy-bo-go', 'dy-ring-open'); bdShow(false); bdFreeOn(); bdFreeSave(); }   // 🔓 링이 열리면 표지 · 링은 스르륵 사라지고 두 쪽은 스티커처럼 (도련 10-18)
                 else { bdSt = null; bdShow(true); }                              // 덜 끌었으면 버튼만 보여요
             };
             requestAnimationFrame(step);
@@ -785,9 +788,39 @@
            - 쪽을 누르면 골라져요 (빨간 점선 네모) · 끌면 옮겨지고 · 네 모서리를 잡고 돌리면 돌아가요 · 다른 곳을 누르면 풀려요
            - 위 날짜바를 끌면 다이어리째(js/page.js 페이지 옮기기) → 두 쪽이 같이 따라와요 (날짜바가 부모 · 쪽이 자식)
            - 종이 = .bd-sheet 두 장 (#canvasArea 의 바탕을 그대로 옮겨 그려요) · 붙인 꾸밈 · 기분 · 날씨 도장도 그 쪽과 같이 옮겨지고 돌아가요 (translate · rotate)
-           - 아직 저장하지 않아요 · 다른 장으로 가면 처음 모습 · 쪽 위 꾸밈은 이 동안 못 만져요 */
+           - 저장 : 링을 연 장만 (설정 'diary_free' { 권 id : { 장 : [왼 x, y, 각도, 오른 x, y, 각도] } } · x · y 는 cqw) · 다른 장에 갔다 오거나 다시 열어도 그대로
+             📥 바인더에 끼우면 그 장 기록은 지워요 (평범한 다꾸 · 다른 다이어리엔 아무것도 안 남아요 · 도련 10-18)
+           - 📥 바인더 버튼 : 두 쪽의 구멍 12개를 다 뚫어야 끼워져요 (🕳️ 펀칭기) */
+        function bdFreeGet() { const m = prefGet('diary_free', 'malang_diary_free') || {}, b = m[dyNow().id]; return (b && b[dkNo(currentDate)]) || null; }
+        function bdFreePut(v) {
+            const m = Object.assign({}, prefGet('diary_free', 'malang_diary_free') || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
+            if (v) b[n] = v; else delete b[n];
+            if (Object.keys(b).length) m[id] = b; else delete m[id];
+            prefSet('diary_free', 'malang_diary_free', m);
+        }
+        function bdFreeSave() {
+            const bk = document.getElementById('diaryBook'); if (!bdFree || !bk) return;
+            const cq = bk.offsetWidth / 100, f = v => Math.round(v * 100) / 100;
+            bdFreePut(['l', 'r'].flatMap(x => { const h = bdFree.sh[x]; return [f(h.x / cq), f(h.y / cq), f(h.r)]; }));
+        }
+        const bdHolesAll = () => { const ip = document.getElementById('innerPage'); return !!ip && (ip.classList.contains('dy-bh') || (gdHoleMask() & 4095) === 4095); };
+        function bdBackSync() { const b = document.querySelector('#innerPage .bd-back'); if (b) b.classList.toggle('ok', bdHolesAll()); }
+        function bdBack() {                                                     // 📥 두 쪽이 제자리로 돌아가 링에 끼워지고 표지 · 링 · 집게가 다시
+            const ip = document.getElementById('innerPage'); if (!bdFree || bdBusy || !ip) return;
+            const b = ip.querySelector('.bd-back');
+            if (!bdHolesAll()) { if (b) { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); } return; }
+            bdBusy = true; bdFreeSel(null);
+            const st = ['l', 'r'].map(x => { const h = bdFree.sh[x]; return { h, x: h.x, y: h.y, r: h.r }; }), t0 = performance.now();
+            const step = now => {
+                const k = Math.min(1, (now - t0) / 600), e = 1 - Math.pow(1 - k, 3);
+                if (bdFree) { st.forEach(o => { o.h.x = o.x * (1 - e); o.h.y = o.y * (1 - e); o.h.r = o.r * (1 - e); }); bdFreeApply(); }
+                if (k < 1) { requestAnimationFrame(step); return; }
+                bdFreePut(null); bdPut(2); bdBusy = false; bdStepEnd(); bdSync();
+            };
+            requestAnimationFrame(step);
+        }
         let bdFree = null;                                                      // { k : 배율, sh : { l, r }, sel, d : 끄는 중 }
-        function bdFreeOn() {
+        function bdFreeOn(fs) {
             const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!ip || !cv || !bk || bdFree) return;
             const ir = ip.getBoundingClientRect(), k = ir.width / (ip.offsetWidth || ir.width) || 1, cr = cv.getBoundingClientRect();
             const ox = (cr.left - ir.left) / k, oy = (cr.top - ir.top) / k, W = cv.offsetWidth, H = cv.offsetHeight, cqw = bk.offsetWidth / 100, sw = W / 2 - 6 * cqw;
@@ -809,14 +842,18 @@
                 Object.assign(d.style, { left: ((side === 'l' ? sw - 4.5 * cqw : 4.5 * cqw) - s2 / 2) + 'px', top: ((t > 0 ? t * cqw : H + t * cqw) - s2 / 2) + 'px', width: s2 + 'px', height: s2 + 'px' });
                 bdFree.sh[side].el.appendChild(d);
             }));
-            ip.classList.add('dy-free'); bdFreeApply();
+            if (fs) ['l', 'r'].forEach((x, j) => { const h = bdFree.sh[x]; h.x = (+fs[j * 3] || 0) * cqw; h.y = (+fs[j * 3 + 1] || 0) * cqw; h.r = +fs[j * 3 + 2] || 0; });
+            const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'bd-back'; bb.tabIndex = -1;
+            bb.innerHTML = '<span class="y">📥<small>바인더</small></span><span class="n">🕳️<small>구멍 먼저</small></span>';
+            Object.assign(bb.style, { left: (ox + W / 2) + 'px', top: (oy + H / 2) + 'px' }); ip.appendChild(bb);
+            ip.classList.add('dy-free'); bdFreeApply(); bdBackSync();
         }
         function bdFreeOff() {
             const ip = document.getElementById('innerPage'); if (!bdFree) return;
             bdFree = null;
             if (!ip) return;
             ip.classList.remove('dy-free');
-            ip.querySelectorAll('.bd-sheet').forEach(x => x.remove());
+            ip.querySelectorAll('.bd-sheet, .bd-back').forEach(x => x.remove());
             ip.querySelectorAll('#canvasArea > .element-box, .page-stamps, .page-dday, .season-corner').forEach(x => { x.style.removeProperty('translate'); x.style.removeProperty('rotate'); });
         }
         function bdFreeApply() {                                                // 그 쪽에 붙은 것들도 같이 (쪽 가운데를 축으로)
@@ -937,6 +974,7 @@
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, e => {
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
             bdFree.d = null; d.st.forEach(o => o.sh.el.classList.remove('lift'));
+            if (d.moved) bdFreeSave();
             if (!d.moved && !d.rot && e.type === 'pointerup') bdFreeMenu(e, d.side);   // 쪽을 톡 = 그 쪽에 빈 곳 메뉴 (연필꽂이 · 필통 … · 도련 10-18)
         }, true));
         function bdFreeMenu(e, side) {
@@ -1122,7 +1160,7 @@
             const m = Object.assign({}, prefGet(GD_HOLE, GD_HOLE_L) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
             b[n] = (+b[n] || 0) | (1 << i); m[id] = b; prefSet(GD_HOLE, GD_HOLE_L, m);
         }
-        function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); }
+        function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); bdBackSync(); }
         function gdHoles() {
             const ip = gdIp(); if (!ip || !ip.classList.contains('dy-bdl') || bdBusy) return [];
             if (bdFree) return [...ip.querySelectorAll('.bd-sheet .bd-hole')];
@@ -1140,7 +1178,7 @@
             setTimeout(() => {
                 const ip = gdIp(), hs = ip ? [ip.querySelectorAll('.dy-holes i')[i], ...[...ip.querySelectorAll('.bd-sheet .bd-hole')].filter(h => +h.dataset.i === i)] : [];
                 hs.forEach(h => { if (!h) return; h.classList.remove('pop'); void h.offsetWidth; h.classList.add('on', 'pop'); });
-                gdHoleOn(i);
+                gdHoleOn(i); bdBackSync();
             }, 110);
         }
         /* 🩹 양면테이프 : 들고 끌면 끈 만큼 테이프가 발라져요 → 페이지 꾸밈(그림)으로 붙어요 (핀셋으로 옮기고 지울 수 있어요) */

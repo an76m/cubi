@@ -3808,7 +3808,14 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .bd-sheet.sel { outline-color: #ff4757; }
 .bd-sheet.lift { box-shadow: var(--bd-ring, 0 0 0 4px #fff), 4px 12px 26px rgba(120, 70, 90, .3); }
 .bd-sheet.r { z-index: 1; } .bd-sheet.sel { z-index: 2; }
-.bd-sheet.stuck { animation: bdStuck .32s ease-out; }   /* 🩹 양면테이프로 두 곳 이상 붙어서 안 움직여요 (js/skins.js) */
+.bd-sheet.stuck { animation: bdStuck .32s ease-out; }
+/* 📥 링을 연 채면 가운데에 바인더 버튼 (js/skins.js bdBack) · 구멍 12개를 다 뚫어야 끼워져요 */
+.bd-back { position: absolute; z-index: 4; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 56px; height: 56px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .92); box-shadow: 0 3px 12px rgba(160, 90, 110, .25); font-size: 20px; line-height: 1; cursor: pointer; color: #8a5a6a; }
+.bd-back small { font-size: 9.5px; font-weight: 800; margin-top: 2px; }
+.bd-back .y, .bd-back.ok .n { display: none; } .bd-back.ok .y, .bd-back .n { display: contents; }
+.bd-back.no { animation: bdStuck .32s ease-out; }
+.inner-page.png-mode .bd-back { display: none; }
+.inner-page.dy-free-in .dy-rings, .inner-page.dy-free-in .dy-cov, .inner-page.dy-free-in .dy-gap, .inner-page.dy-free-in .dy-seam, .inner-page.dy-free-in .bd-tool.clip { transition: none !important; }   /* 🩹 양면테이프로 두 곳 이상 붙어서 안 움직여요 (js/skins.js) */
 @keyframes bdStuck { 25% { transform: translate(3px, 1px); } 50% { transform: translate(-2px, -1px); } 75% { transform: translate(1px, 0); } }
 .bd-rot { position: absolute; width: 36px; height: 36px; display: none; cursor: grab; touch-action: none; }
 .bd-sheet.sel .bd-rot { display: block; }
