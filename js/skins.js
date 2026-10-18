@@ -679,7 +679,6 @@
         const PUNCHES = [['basic', '기본펀치', '#9aa0aa']];                      // 🕳️ 펀치 (나중에 문구점 · 예쁜 펀치)
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
-        function punchPick(id) { prefSet(PUNCH_KEY, PUNCH_LOCAL, PUNCHES.some(p => p[0] === id) ? id : 'basic'); dyRender(); }
         const bdLay = () => { const t = dyNow(); return t.b === 'ring' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
         const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
         function bdGet() { if (!bdLay()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
@@ -737,7 +736,7 @@
             const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook');
             if (!ip || !bk || !isCoverOpen || !ip.classList.contains('dy-bd') || (!any && Date.now() - bdLayAt < 700)) return false;
             const g = ip.querySelector('.dy-gap'); if (!g) return false;
-            const t = e.target; if (t && t.closest && t.closest('.element-box, .dy-clip, .page-header, .page-stamps, .page-dday, .modal')) return false;
+            const t = e.target; if (t && t.closest && t.closest('.element-box, .dy-clip, .bd-tool, .page-header, .page-stamps, .page-dday, .modal')) return false;
             const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, hw = ip.classList.contains('dy-bo') ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
             return Math.abs(e.clientX - cx) <= hw && e.clientY >= r.top && e.clientY <= r.bottom;
         }
@@ -915,6 +914,54 @@
             setTimeout(() => { ip.classList.add('dy-bo-back'); ip.classList.remove('dy-bo'); }, 1250);   // 두 쪽이 크기 그대로 벌어져 링에 끼워져요
             setTimeout(() => { ip.classList.remove('dy-bo-back', 'dy-bh-pop'); bdBusy = false; bdPut(2); bdSync(); }, 2700);
         }
+        /* ✂️ 문구류 🕳️ 펀칭기 · 🩹 양면테이프 (도련 10-18) : 고르면 페이지 위에 놓여요 · 위에서 내려다본 모습 (그대로 쓸 수 있게)
+           - 끌어서 옮겨요 · 목록에서 한 번 더 누르면 치워요 · 아직 저장하지 않아요 (쓰는 방법은 다음에)
+           - ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
+        const BD_TOOLS = [['punch1', '기본 펀칭기', 'punch'], ['tape1', '기본 양면테이프', 'tape']];
+        function toolSvg(g) {
+            if (g === 'punch') return `<svg viewBox="0 0 64 128" aria-hidden="true">
+                <rect x="7" y="8" width="50" height="114" rx="12" fill="#3b3e45"/><rect x="9" y="10" width="46" height="110" rx="11" fill="#55595f"/>
+                <defs><linearGradient id="tpH${toolN}" x1="0" x2="1"><stop offset="0" stop-color="#e9e8e2"/><stop offset=".35" stop-color="#fbfbf8"/><stop offset=".75" stop-color="#f1f0eb"/><stop offset="1" stop-color="#d9d8d1"/></linearGradient></defs>
+                <path d="M14 30 Q14 4 32 4 Q50 4 50 30 L50 104 Q50 114 40 114 L24 114 Q14 114 14 104 Z" fill="url(#tpH${toolN++})" stroke="#cfcec7" stroke-width="1"/>
+                <circle cx="32" cy="24" r="9" fill="#c9ccd2" stroke="#9ea3ab" stroke-width="1.4"/><circle cx="32" cy="24" r="4.6" fill="#2d3036"/><circle cx="30.4" cy="22.4" r="1.4" fill="#fff" opacity=".7"/>
+                <path d="M20 108 h24" stroke="#c7c6bf" stroke-width="2" stroke-linecap="round"/><path d="M19 40 Q19 30 24 26" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".9"/></svg>`;
+            return `<svg viewBox="0 0 150 84" aria-hidden="true">
+                <path d="M14 58 Q4 58 6 48 Q8 40 18 40 Q16 22 34 16 Q50 10 64 20 Q76 8 96 10 Q120 12 128 30 Q146 34 144 52 Q142 70 122 72 L30 74 Q16 74 14 58 Z" fill="rgba(226, 238, 238, .78)" stroke="#aebfbf" stroke-width="1.6"/>
+                <path d="M6 60 L1 70 L14 70 Z" fill="#f4f4f1" stroke="#b7c3c3" stroke-width="1"/>
+                <circle cx="56" cy="44" r="21" fill="#bfe6dc" stroke="#7fc4b4" stroke-width="2"/><circle cx="56" cy="44" r="11" fill="#e9f6f2" stroke="#9bd2c4" stroke-width="1.5"/>
+                <circle cx="100" cy="42" r="22" fill="#f6f2e6" stroke="#d9d2bd" stroke-width="2"/><circle cx="100" cy="42" r="12" fill="#fffdf7" stroke="#e5dfcc" stroke-width="1.5"/>
+                <path d="M78 64 l8 -6 m-4 6 l8 -6 m-4 6 l8 -6" stroke="#c6d2d2" stroke-width="1.2"/>
+                <path d="M30 22 Q44 14 58 20" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"/></svg>`;
+        }
+        let toolN = 0;
+        function toolPick(id) {
+            const t = BD_TOOLS.find(x => x[0] === id), ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'); if (!t || !ip || !cv) return;
+            const old = ip.querySelector(`.bd-tool[data-t="${id}"]`);
+            if (old) old.remove();                                              // 한 번 더 누르면 치워요
+            else {
+                const el = document.createElement('div'); el.className = 'bd-tool ' + t[2]; el.dataset.t = id; el.title = '끌어서 옮겨요';
+                el.innerHTML = toolSvg(t[2]);
+                const W = cv.offsetWidth, H = cv.offsetHeight, ox = cv.offsetLeft, oy = cv.offsetTop, ww = t[2] === 'punch' ? 56 : 132, hh = t[2] === 'punch' ? 112 : 74;
+                const x = t[2] === 'punch' ? ox + W * .78 - ww / 2 : ox + W * .22 - ww / 2, y = oy + H * .72 - hh / 2;
+                Object.assign(el.style, { left: x + 'px', top: y + 'px' });
+                el.addEventListener('pointerdown', toolDown);
+                ip.appendChild(el);
+            }
+            dyRender();
+        }
+        let toolDg = null;
+        function toolDown(e) {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();                            // 페이지 넘기기 · 메뉴로 안 가요
+            const el = e.currentTarget, ip = document.getElementById('innerPage'), r = ip.getBoundingClientRect(), k = r.width / (ip.offsetWidth || r.width) || 1;
+            toolDg = { el, id: e.pointerId, x: e.clientX, y: e.clientY, l: parseFloat(el.style.left) || 0, t: parseFloat(el.style.top) || 0, k };
+            el.classList.add('lift'); try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        window.addEventListener('pointermove', e => {
+            const d = toolDg; if (!d || d.id !== e.pointerId) return;
+            d.el.style.left = (d.l + (e.clientX - d.x) / d.k) + 'px'; d.el.style.top = (d.t + (e.clientY - d.y) / d.k) + 'px';
+        });
+        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, e => { const d = toolDg; if (!d || d.id !== e.pointerId) return; toolDg = null; d.el.classList.remove('lift'); }));
         function clipPick(id) {
             prefSet(CLIP_KEY, CLIP_LOCAL, CLIPS.some(c => c[0] === id) ? id : '');
             dyDeco(); dyRender();
@@ -1202,9 +1249,9 @@
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️', '문구류': '✂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
-        const DY_GOODS = [['clip', '📎 집게'], ['punch', '🕳️ 펀치']];                                // ✂️ 문구류 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구류를 여기에)
+        const DY_GOODS = [['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프']];                                // ✂️ 문구류 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구류를 여기에)
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => tab === 'punch' ? PUNCHES.map(p => ({ punch: p })) : tab === 'clip' ? ['noclip'].concat(CLIPS.map(c => ({ clip: c }))) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => tab === 'punch' || tab === 'tape' ? BD_TOOLS.filter(x => x[2] === tab).map(x => ({ tool: x })) : tab === 'clip' ? ['noclip'].concat(CLIPS.map(c => ({ clip: c }))) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) || kind === '문구류' ? kind : dyNow().k;
@@ -1220,8 +1267,8 @@
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
-            const cell = it => it && it.punch
-                ? `<button type="button" class="dy-it" data-id="punch:${it.punch[0]}" onclick="punchPick('${it.punch[0]}')"><span class="dy-stage"><span class="dy-punchth" style="--pc:${it.punch[2]}"><i></i><i></i></span></span><span class="dy-n">${it.punch[1]}</span><small>6공 · 처음부터 있어요</small></button>`
+            const cell = it => it && it.tool
+                ? `<button type="button" class="dy-it" data-id="tool:${it.tool[0]}" onclick="toolPick('${it.tool[0]}')"><span class="dy-stage"><span class="dy-toolth ${it.tool[2]}">${toolSvg(it.tool[2])}</span></span><span class="dy-n">${it.tool[1]}</span><small>누르면 페이지에 놓여요</small></button>`
                 : it === 'noclip'
                 ? `<button type="button" class="dy-it" data-id="clip:" onclick="clipPick('')"><span class="dy-stage"><span class="dy-clipth none">🚫</span></span><span class="dy-n">안 써요</span><small>집게 빼기</small></button>`
                 : it && it.clip
@@ -1234,7 +1281,7 @@
                 ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
-            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'punch' ? '🕳️ 바인더에서 꺼내 꾸민 종이를 다시 끼울 때 6공 구멍을 뚫어요' : g === 'clip' ? '📎 노트에 꽂혀요 · 집게를 끌면 종이 테두리를 따라 옮겨져요' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
+            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'punch' ? '🕳️ 고르면 페이지 위에 놓여요 · 끌어서 옮겨요 · 한 번 더 누르면 치워요' : g === 'tape' ? '🩹 고르면 페이지 위에 놓여요 · 끌어서 옮겨요 · 한 번 더 누르면 치워요' : g === 'clip' ? '📎 노트에 꽂혀요 · 집게를 끌면 종이 테두리를 따라 옮겨져요' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
             dyRender();
             if (g === 'mine' && dyKind !== '다이어리' && typeof dmkSync === 'function') dmkSync(dyKind);   // 드라이브의 내노트 · 내바인더 목록과 맞추기
         }
@@ -1244,8 +1291,8 @@
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id, cid = 'clip:' + clipId(), pid = 'punch:' + punchNow()[0]; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || b.dataset.id === cid || b.dataset.id === pid)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.punchPick = punchPick; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id, cid = 'clip:' + clipId(); document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || b.dataset.id === cid || (b.dataset.id || '').startsWith('tool:') && !!document.querySelector(`#innerPage .bd-tool[data-t="${b.dataset.id.slice(5)}"]`))); }
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.clipPick = clipPick; window.toolPick = toolPick; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.clipDown = clipDown; window.clipPlace = clipPlace; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
