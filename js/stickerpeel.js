@@ -191,6 +191,7 @@
             if (cur && d && d.mode === 'peel') pelDrawPeel(ctx, cur, d.C, d.F);
             else if (cur && st.state === 'on' && st.snap) pelSnap(ctx, cur, t);
             else if (cur && st.state === 'free') {
+                pelGrow(t);
                 const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));                // 뒷면 → 앞면으로 뒤집혀요
                 pelDraw(ctx, flip < 0 ? a.back : a.front, st, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), PEL_UP);
             }
@@ -282,12 +283,23 @@
             const [gx, gy] = pelToStage(st, lx, ly);
             S.drag = { mode: 'free', off: [gx - st.cx, gy - st.cy], baseRot: st.rot, last: P, lt: performance.now() };
             st.cx = P[0] - S.drag.off[0]; st.cy = P[1] - S.drag.off[1];
+            const pg = pelPage(), pr = pg && pg.getBoundingClientRect();                  // 📏 하얀 종이에서 완전히 떨어지는 순간 진짜 크기로 (페이지 배율 · 도련 · 10-18)
+            if (pr && pr.width) st.grow = { goal: pr.width / (pg.offsetWidth || pr.width), s0: st.s, t0: performance.now(), off: S.drag.off.slice() };
             pelNoise(0); if (navigator.vibrate) navigator.vibrate(15);
             pelSay('톡! 떼어졌어요 ✨ 원하는 곳에 놓아 보세요');
+        }
+        /* 📏 진짜 크기로 스르르 (잡은 자리는 손가락 끝 그대로) */
+        function pelGrow(t) {
+            const S = pelS, st = S.st, g = st.grow; if (!g) return;
+            const k = Math.min(1, (t - g.t0) / 240), e = 1 - Math.pow(1 - k, 3);
+            st.s = g.s0 + (g.goal - g.s0) * e;
+            const d = S.drag; if (d && d.mode === 'free') { const z = st.s / g.s0; d.off = [g.off[0] * z, g.off[1] * z]; st.cx = d.last[0] - d.off[0]; st.cy = d.last[1] - d.off[1]; }
+            if (k >= 1) st.grow = null;
         }
         function pelUp() {
             const S = pelS, d = S.drag; if (!d) return;
             const st = S.st; pelNoise(0); S.drag = null;
+            if (st.grow) { st.s = st.grow.goal; st.grow = null; }                    // 다 커지기 전에 놓으면 진짜 크기로
             if (d.mode === 'board') return;
             if (d.mode === 'peel') {
                 st.snap = { C: d.C, F: d.F, t0: performance.now() };

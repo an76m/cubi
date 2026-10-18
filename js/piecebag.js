@@ -357,7 +357,8 @@
             const S = pcbS, st = S.drag.st;
             if (st.liner) { S.fallers.push({ k: st.k, cx: st.cx, cy: st.cy, rot: st.rot, s: st.s, vx: Math.random() < .5 ? -1 : 1, vr: (Math.random() - .5) * .1, t0: pcbNow() }); st.liner = false; }
             const local = pcbToLocal(st, S.drag.C[0], S.drag.C[1]); pcbNoise(0);
-            st.state = 'free'; st.t0 = pcbNow(); st.half = null; st.sGoal = S.SP; st.z = ++S.z;
+            const pg = pcbq('canvasArea'), pr = pg && pg.getBoundingClientRect();                  // 📏 떨어지는 순간 페이지에 붙을 진짜 크기로 (원본 × 페이지 배율 · 도련 · 10-18)
+            st.state = 'free'; st.t0 = pcbNow(); st.half = null; st.sGoal = pr && pr.width ? pr.width / (pg.offsetWidth || pr.width) : S.SP; st.z = ++S.z;
             S.drag = { st, mode: 'free', local, baseRot: st.rot, last: P }; pcbAnchor(st, P);
             pcbBuzz(15); pcbSay('톡! 뒷종이가 벗겨졌어요 ✨ 원하는 곳에 붙여 보세요');
         }

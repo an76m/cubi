@@ -485,14 +485,14 @@
         }
         /* 놓은 자리에 붙이기 : 그 스티커를 톡 누른 것과 똑같이 한 뒤, 새로 생긴 것을 놓은 자리로 옮겨요
            (🏷️ 그림 모음은 떼는 창 없이 하얀 테두리째 바로 붙여요 · 봉투 · 대지 · 모조지스티커처럼 창이 뜨는 것은 그 창이 떠요) */
-        function snbPut(p, x, y) {
+        function snbPut(p, x, y, real) {                                      // real : 이미 진짜 크기로 떠 있던 낱장 씰 (그 크기로 바로 놓아요)
             const m = snb.m, cv = snbq('canvasArea'), before = new Set(cv.children);
             let found = null;
             snb.dropping = true; setTimeout(() => { snb.dropping = false; }, 2700);
             const mo = new MutationObserver(() => {
                 const el = [...cv.children].find(c => !before.has(c) && c.classList.contains('element-box'));
                 if (!el || found) return;
-                found = el; mo.disconnect(); snbPlace(el, x, y); snbBack(m, true);
+                found = el; mo.disconnect(); if (real) el.style.width = real.w + 'px'; snbPlace(el, x, y); snbBack(m, true);
             });
             mo.observe(cv, { childList: true });
             setTimeout(() => { if (found) return; mo.disconnect(); snbBack(m, false); }, 2500);
@@ -500,7 +500,7 @@
             if (it.classList.contains('lib-item')) {
                 const im = it.querySelector('img'); if (!im) return;
                 const url = it.dataset.u || im.src;
-                (async () => { let s = url; try { if (window.pelBake) s = await pelBake(url); } catch (e) {} if (addImage(s) && window.elOrig) elOrig(snbq('canvasArea').querySelector(':scope > .element-box:last-child')); })();
+                (async () => { let s = real ? real.s : url; try { if (!real && window.pelBake) s = await pelBake(url); } catch (e) {} if (addImage(s) && window.elOrig) elOrig(snbq('canvasArea').querySelector(':scope > .element-box:last-child')); })();
                 return;
             }
             if (m.id === 'leafModal') setTimeout(() => { if (!found) { found = 1; mo.disconnect(); snbBack(m, true); } }, 650);   // 📃 속지는 바탕만 바뀌어요
@@ -671,27 +671,42 @@
             }
             if (!r.width || !r.height) return false;
             pc.classList.add('out');
+            snbReal(p, im);
             p.seal = pfxSeal({ src, cx: r.left + r.width / 2, cy: r.top + r.height / 2, w: r.width, h: r.height, rot: 0, x: p.x, y: p.y,
+                real: () => { const q = p.real; if (!q) return null; const pg = snbq('canvasArea'), cr = pg.getBoundingClientRect(), k = cr.width / (pg.offsetWidth || cr.width) || 1; return { w: q.w * k, h: q.h * k, src: q.img }; },   // 📏 떨어지는 순간 진짜 크기로
                 onDetach: () => snbAway(true),                                     // 📱 다 떼어지면 수첩이 비켜요
                 onCancel: () => { snbAway(false); snbPeelBack(p); },
-                onDrop: (cx, cy, rot) => { const ok = snbOver(cx, cy); snbAway(false); if (ok) snbPeelStick(p, cx, cy, rot, r); else snbPeelBack(p); } });
+                onDrop: (cx, cy, rot, b, sz) => { const ok = snbOver(cx, cy); snbAway(false); if (ok) snbPeelStick(p, cx, cy, rot, r, sz); else snbPeelBack(p); } });
             const stage = document.querySelector('body > .pfx-stage:last-of-type'); if (stage) stage.classList.add('snb-top');   // 수첩 위에서 떼어져요
             if (navigator.vibrate) try { navigator.vibrate(6); } catch (er) {}
             return true;
         }
         const snbTap = o => o.matches('[onclick]') ? o : (o.querySelector('button, [onclick]') || o);   // 원래 칸에서 눌리는 곳
         function snbPeelBack(p) { p.it.classList.remove('out'); }
-        async function snbPeelStick(p, cx, cy, rot, r) {
+        /* 📏 붙을 그림(원본 · 씰은 하얀 테두리까지)을 미리 읽어 진짜 크기를 알아 둬요 (p.real = { w, h, img, s } · 페이지 배율 1 기준) */
+        function snbReal(p, im) {
+            const pc = p.it, lib = pc._src && pc._src.classList.contains('lib-item') ? pc._src : null;
+            if (!im || (pc._src && !lib)) return;                                // 이모지 · 봉투처럼 창이 뜨는 낱장은 그대로
+            const url = lib ? (lib.dataset.u || (lib.querySelector('img') || im).src) : pc._url, seal = lib || pc._k === 'seal';
+            if (!url) return;
+            (async () => {
+                let s = url;
+                if (seal && window.pelBake) try { s = await pelBake(url); } catch (e) { s = url; }
+                const img = await new Promise((ok, no) => { const g = new Image(); g.onload = () => ok(g); g.onerror = no; g.src = s; });
+                if (img.naturalWidth && img.naturalHeight) p.real = { w: img.naturalWidth, h: img.naturalHeight, img, s };
+            })().catch(() => {});
+        }
+        async function snbPeelStick(p, cx, cy, rot, r, sz) {
             const pc = p.it;
             setTimeout(() => { pc.classList.remove('out'); pc.classList.add('again'); setTimeout(() => pc.classList.remove('again'), 500); }, 350);   // 스티커첩은 다시 채워져요
-            if (pc._src) { snbPut({ it: pc._src, t: snbTap(pc._src) }, cx, cy); return; }      // 낱장 모음 시트 : 원래 칸과 같은 방법으로 그 자리에
-            let s = pc._url;
-            if (pc._k === 'seal' && window.pelBake) try { s = await pelBake(s); } catch (e) {}
+            if (pc._src) { snbPut({ it: pc._src, t: snbTap(pc._src) }, cx, cy, p.real && sz ? p.real : null); return; }      // 낱장 모음 시트 : 원래 칸과 같은 방법으로 그 자리에
+            let s = p.real ? p.real.s : pc._url;
+            if (!p.real && pc._k === 'seal' && window.pelBake) try { s = await pelBake(s); } catch (e) {}
             if (!addImage(s)) return;
             const pg = snbq('canvasArea'), cr = pg.getBoundingClientRect(), k = cr.width / (pg.offsetWidth || cr.width) || 1, el = pg.querySelector(':scope > .element-box:last-child');
             if (!el) return;
             const deg = Math.round(rot * 180 / Math.PI * 10) / 10;
-            el.style.width = Math.round(r.width / k * (pc._k === 'seal' ? 1.12 : 1)) + 'px'; el.dataset.rotation = deg;
+            el.style.width = Math.round(p.real ? p.real.w : r.width / k * (pc._k === 'seal' ? 1.12 : 1)) + 'px'; el.dataset.rotation = deg;   // 떨어질 때 이미 진짜 크기라 그대로
             if (pc._k === 'paper') el.dataset.float = 1;                             // 📄 모조지스티커 : 옮길 때 살짝 떠요
             snbPlace(el, cx, cy);
             if (window.elOrig) elOrig(el);                                       // 🖼️ 시트에서는 작게 보여도 붙는 순간 원본 크기로 (js/elements.js)

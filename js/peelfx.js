@@ -65,7 +65,9 @@
    - src : img · canvas (그림) · cx, cy : 화면에 보이는 가운데 · w, h : 화면에 보이는 크기 · rot : 라디안 · (x, y) : 처음 누른 자리
    - 누른 자리에서 가장 가까운 가장자리(C)가 먼저 들려요 → 끄는 손가락(F)을 끈적하게 따라 접혀 넘어가요 (뒷면 크림색 + 말린 음영 + 그림자)
    - 가장자리가 78% 넘게 들리면 '톡' 떼어져서(onDetach) 뒷면 → 앞면으로 뒤집히며 1.07배로 떠서 손가락을 따라와요
-   - 놓으면 : 다 뗐으면 onDrop(cx, cy, rot) · 덜 뗐으면 제자리로 착 다시 붙고 onCancel()
+   - 놓으면 : 다 뗐으면 onDrop(cx, cy, rot, baseRot, { w, h }) · 덜 뗐으면 제자리로 착 다시 붙고 onCancel()   ({ w, h } = 놓을 때 화면에 보이던 그림 크기)
+   - real : 페이지에 붙을 진짜 크기 { w, h, src? } (화면 px · 함수로 줘도 돼요) → 하얀 창에서 완전히 떨어지는 순간 그 크기로 스르르 바뀌어요 (도련 · 10-18)
+            src(원본 그림)를 주면 크게 바뀌어도 흐려지지 않아요 · 아직 못 읽었으면 읽히는 대로 바뀌어요
    - 돌려준 { move(x, y), up(), kill() } 로 손가락 움직임을 넘겨 줘요 (화면 맨 위 투명 캔버스에 그려요)
    ===================================================================== */
         const PFX_DETACH = .78, PFX_GRAB = 26;                               // PFX_GRAB : 가장자리에서 이만큼(화면 px) 안을 잡으면 잡은 자리부터 떼어져요
@@ -109,7 +111,7 @@
             const DPR = Math.min(window.devicePixelRatio || 1, 3), VW = window.innerWidth, VH = window.innerHeight;
             const cv = pfxMk(VW * DPR, VH * DPR); cv.className = 'pfx-stage'; document.body.appendChild(cv);
             const ctx = cv.getContext('2d'), fl = pfxMk(VW * DPR, VH * DPR);
-            const asset = pfxAsset(o.src, o.w, o.h), st = { cx: o.cx, cy: o.cy, rot: o.rot || 0, s: 1, state: 'on' };
+            let asset = pfxAsset(o.src, o.w, o.h); const st = { cx: o.cx, cy: o.cy, rot: o.rot || 0, s: 1, state: 'on' };
             const toStage = (lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
             const toLocal = (x, y) => { const dx = (x - st.cx) / st.s, dy = (y - st.cy) / st.s, c = Math.cos(-st.rot), s = Math.sin(-st.rot); return [dx * c - dy * s, dx * s + dy * c]; };
             /* 들리는 가장자리 : 가장자리 가까이(PFX_GRAB)를 잡고 안쪽으로 끌면 🏷️ 하얀 스티커 창처럼 잡은 자리부터 바로 말려 올라와요
@@ -123,7 +125,24 @@
                 for (const [x, y] of pts) { const pr = (x - o.x) * ux + (y - o.y) * uy, pp = Math.abs((x - o.x) * -uy + (y - o.y) * ux), sc = pr + pp * .6; if (sc < best) { best = sc; bp = [x, y]; } }
                 return { C: bp, gain };
             };
-            let drag = { mode: 'peel', C: null, F: null, start: [o.x, o.y], last: [o.x, o.y], lt: performance.now() }, snap = null, raf = 0, dead = false;
+            let drag = { mode: 'peel', C: null, F: null, start: [o.x, o.y], last: [o.x, o.y], lt: performance.now() }, snap = null, raf = 0, dead = false, grow = null;
+            /* 📏 떨어지는 순간 진짜 크기로 : 그림을 그 크기로 다시 만들고(선명하게) 보이는 크기에서 1까지 키워요 · 잡은 자리는 손가락 끝에 그대로 */
+            function realGo() {
+                if (grow || !o.real || st.state !== 'free') return;
+                let R = null; try { R = typeof o.real === 'function' ? o.real() : o.real; } catch (e) {}
+                if (!R || !(R.w > 0) || !(R.h > 0)) return;
+                let na; try { na = pfxAsset(R.src || o.src, R.w, R.h); } catch (e) { na = null; }
+                if (!na) { grow = { done: 1 }; return; }
+                const q = na.w / asset.w; asset = na; st.s /= q;
+                grow = { t0: performance.now(), s0: st.s, off: drag && drag.off ? drag.off.slice() : null };
+            }
+            function realStep(t) {
+                if (!grow || grow.done) return;
+                const k = Math.min(1, (t - grow.t0) / 240), e = 1 - Math.pow(1 - k, 3);
+                st.s = grow.s0 + (1 - grow.s0) * e;
+                if (drag && drag.mode === 'free' && grow.off) { const z = st.s / grow.s0; drag.off = [grow.off[0] * z, grow.off[1] * z]; st.cx = drag.last[0] - drag.off[0]; st.cy = drag.last[1] - drag.off[1]; }
+                if (k >= 1) grow.done = 1;
+            }
 
             const applyT = (c, extraS = 1, flipX = 1) => { c.translate(st.cx, st.cy); c.rotate(st.rot); c.scale(st.s * extraS * flipX, st.s * extraS); };
             const halfPlane = (c, M, n, sign) => { const p = [-n[1], n[0]], L = 4000; c.beginPath();
@@ -171,6 +190,7 @@
                     drawPeel(asset.front, snap.C, [snap.F[0] + (snap.C[0] - snap.F[0]) * e, snap.F[1] + (snap.C[1] - snap.F[1]) * e]);
                     if (q >= 1) { kill(); if (o.onCancel) o.onCancel(); return; }
                 } else if (st.state === 'free') {
+                    realGo(); realStep(t);
                     const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));          // 뒷면 → 앞면 뒤집기
                     drawSticker(flip < 0 ? asset.back : asset.front, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), { c: 'rgba(80,50,60,.25)', b: 18, y: 12 });
                 }
@@ -185,6 +205,7 @@
                 pfxNoise(0);
                 try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
                 if (o.onDetach) o.onDetach();
+                realGo();                                                                                   // 📏 이 순간 진짜 크기로
             }
             function move(x, y) {
                 if (!drag || dead) return; const P = [x, y], now = performance.now();
@@ -206,7 +227,9 @@
                 if (d.mode === 'peel') { pfxNoise(0); if (!d.C) { kill(); if (o.onCancel) o.onCancel(); return; } snap = { C: d.C, F: d.F, t0: performance.now() }; return; }      // 덜 뗐으면 착 다시 붙어요
                 const r = Math.max(-.5, Math.min(.5, st.rot));
                 try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
-                kill(); if (o.onDrop) o.onDrop(st.cx, st.cy, r, d.baseRot);
+                if (grow && !grow.done) { st.s = 1; grow.done = 1; }                                       // 다 커지기 전에 놓으면 진짜 크기로
+                const sz = { w: (asset.w - 4) * st.s, h: (asset.h - 4) * st.s };                         // pfxAsset 의 여백(m = 2) 양쪽을 빼요
+                kill(); if (o.onDrop) o.onDrop(st.cx, st.cy, r, d.baseRot, sz);
             }
             function kill() { if (dead) return; dead = true; pfxNoise(0); cancelAnimationFrame(raf); cv.remove(); }
             raf = requestAnimationFrame(frame);

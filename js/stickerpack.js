@@ -308,13 +308,14 @@
             const img = p.it.querySelector('img'), r = img.getBoundingClientRect(), it = p.it;
             it.classList.add('out');
             p.seal = pfxSeal({ src: img, cx: r.left + r.width / 2, cy: r.top + r.height / 2, w: r.width, h: r.height, rot: 0, x: p.x, y: p.y,
+                real: () => spkReal(img),                                                    // 📏 판에서 완전히 떨어지는 순간 진짜 크기로
                 onDetach: () => spkAway(true),
                 onCancel: () => { it.classList.remove('out'); spkAway(false); },
-                onDrop: (cx, cy, rot) => {                                                  // 페이지 위면 붙이고 · 판 위나 바깥이면 제자리로
+                onDrop: (cx, cy, rot, b0, sz) => {                                          // 페이지 위면 붙이고 · 판 위나 바깥이면 제자리로
                     const pg = spkq('canvasArea'), pr = pg && pg.getBoundingClientRect(), b = spkq('spkBoard').getBoundingClientRect();
                     const onBoard = cx > b.left && cx < b.right && cy > b.top && cy < b.bottom;
                     const onB = onBoard && !spkq('spkBoard').classList.contains('away');   // 📱 비켜 준 판 자리는 페이지예요
-                    if (pr && !onB && cx > pr.left && cx < pr.right && cy > pr.top && cy < pr.bottom) spkStick({ it, src: img.src, w: r.width, h: r.height, cx, cy, rot });
+                    if (pr && !onB && cx > pr.left && cx < pr.right && cy > pr.top && cy < pr.bottom) spkStick({ it, src: img.src, w: sz ? sz.w : r.width, h: sz ? sz.h : r.height, cx, cy, rot });
                     else { it.classList.remove('out'); spkAway(false); }
                 } });
             p.seal.move(e.clientX, e.clientY);
@@ -324,6 +325,12 @@
             if (p.seal) { p.seal.up(); return; }
             spkLift(p.it, p.x, p.y, e.pointerId);
         }
+        /* 📏 페이지에 붙을 진짜 크기 (원본 그림 크기 × 페이지 배율 · 화면 px) */
+        function spkReal(img) {
+            const pg = spkq('canvasArea'); if (!pg || !img.naturalWidth || !img.naturalHeight) return null;
+            const r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
+            return { w: img.naturalWidth * k, h: img.naturalHeight * k, src: img };
+        }
         /* 톡 : 저절로 떼어져서 떠 있어요 (다시 끌거나 다른 곳을 누르면 제자리) */
         function spkLift(it, ex, ey, pid) {
             const e = { clientX: ex, clientY: ey, pointerId: pid };
@@ -332,11 +339,13 @@
             f.style.transform = `translate(${r.left}px, ${r.top}px)`; f.classList.add('flat'); document.body.appendChild(f); void f.offsetWidth; it.classList.add('out');
             const L = spkS.lift = { f, it, src: img.src, w: r.width, h: r.height, home: [r.left + r.width / 2, r.top + r.height / 2], off: [e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)], moved: false, start: [e.clientX, e.clientY], last: [e.clientX, e.clientY], s: 1, rot: 0 };
             L.cx = L.home[0]; L.cy = L.home[1];
-            const up = () => {                                                        // 다 떼어지면 커지며 떠올라 손가락 자리로
+            const up = () => {                                                        // 다 떼어지면 진짜 크기로 바뀌며 떠올라 손가락 자리로
                 L.peel = null; if (spkS.lift !== L) return;
                 f.classList.remove('flat', 'drag');
+                const R = spkReal(img), s = R ? R.w / L.w : 1.3;                          // 📏 판에서 완전히 떨어지는 순간 진짜 크기 (도련 · 10-18)
+                if (L.moved) L.off = [L.off[0] * s, L.off[1] * s];                         // 잡은 자리는 손가락 끝 그대로
                 const [x, y] = L.moved ? [L.last[0] - L.off[0], L.last[1] - L.off[1]] : L.home;
-                spkFly(x, y, 1.3, (Math.random() - .5) * .2);
+                spkFly(x, y, s, (Math.random() - .5) * .2);
                 if (L.upLater) setTimeout(() => { if (spkS.lift === L) spkDrop(L); }, 170);
             };
             if (window.pfxPeel) { L.peel = true; const stop = pfxPeel(f, e.clientX, e.clientY, .35, -1, 0, up); if (L.peel) L.peel = stop; } else up();
@@ -382,13 +391,14 @@
         /* 붙이기 : 작아지며 꾹 → 페이지 스티커가 돼요 (빨간 점선으로 골라 둬요) */
         function spkStick(L) {
             spkS.lift = null; setTimeout(() => spkAway(false), 200);
-            if (L.f) { L.f.classList.add('back'); L.f.style.transform = `translate(${L.cx - L.w / 2}px, ${L.cy - L.h / 2}px) scale(1) rotate(${L.rot}rad)`; }
+            const S = L.f ? L.s || 1 : 1;                                                // 📏 떠 있던 크기(진짜 크기) 그대로 붙어요
+            if (L.f) { L.f.classList.add('back'); L.f.style.transform = `translate(${L.cx - L.w / 2}px, ${L.cy - L.h / 2}px) scale(${S}) rotate(${L.rot}rad)`; }
             setTimeout(() => {
                 if (L.f) L.f.remove(); L.it.classList.remove('out');
                 if (!addImage(L.src)) return;
                 const pg = spkq('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1, el = pg.querySelector('.element-box:last-child');
                 if (el) {
-                    const w = L.w / k, h = L.h / k, PADB = 14, deg = Math.round(L.rot * 180 / Math.PI * 10) / 10;
+                    const w = L.w * S / k, h = L.h * S / k, PADB = 14, deg = Math.round(L.rot * 180 / Math.PI * 10) / 10;
                     const put = (px, py) => { el.dataset.posX = px; el.dataset.posY = py; el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(${deg}deg)`; };
                     el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
                     const x = Math.round((L.cx - r.left) / k - (w + PADB) / 2), y = Math.round((L.cy - r.top) / k - (h + PADB) / 2);
