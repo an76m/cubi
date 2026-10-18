@@ -3742,16 +3742,31 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.dy-bo .dy-gap { width: 0; margin-left: 0; opacity: 0; }
 .inner-page.dy-bo .dy-rings { opacity: 0; transform: scaleX(1.3); }
 .inner-page.dy-bo .dy-cov { opacity: 0; }
-.inner-page.dy-bo-go .dy-rings { transition-delay: 0s; }
+.inner-page.dy-bo-go .dy-rings { transition-delay: 0s; opacity: 0; transform: scaleX(1.3); }   /* 링부터 열려요 */
 .inner-page.dy-bo-go .dy-gap { transition-delay: .25s; }
-.inner-page.dy-bo-go .dy-cov { transition-delay: .45s; }
-.dy-tape { position: absolute; left: 50%; top: 16%; width: 24cqw; height: 5.5cqw; margin-left: -12cqw; border-radius: .4cqw; opacity: 0; pointer-events: none;
-    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .82) 0 1.2cqw, rgba(255, 214, 228, .7) 1.2cqw 2.4cqw); box-shadow: 0 .3cqw .9cqw rgba(90, 60, 75, .22), inset 0 0 0 .15cqw rgba(255, 255, 255, .7);
-    clip-path: polygon(2% 0, 98% 4%, 100% 50%, 97% 100%, 1% 96%, 0 50%); transform: translateY(-2cqw) rotate(-4deg) scale(1.1); transition: opacity .35s, transform .35s; }
-.dy-tape.b { top: auto; bottom: 16%; transform: translateY(-2cqw) rotate(3deg) scale(1.1); }
-.inner-page.dy-bo .dy-tape { opacity: 1; transform: rotate(-4deg); }
-.inner-page.dy-bo .dy-tape.b { transform: rotate(3deg); }
-.inner-page.dy-bo-go .dy-tape { transition-delay: .9s; }
+.inner-page.dy-bo-go .dy-cov { transition-delay: 0s; }
+.inner-page.dy-bo-go .dy-gap { transition: none; }
+.dy-tape { position: absolute; left: 50%; top: 16%; width: 22cqw; height: 5cqw; margin-left: -11cqw; border-radius: .3cqw; opacity: 0; pointer-events: none;   /* 양면테이프 : 무늬 없는 반투명 · 붙고 나서 스윽 사라져요 (원래 종이 뒤에 붙는 거라 안 보여요) */
+    background: rgba(255, 255, 255, .42); box-shadow: 0 .2cqw .6cqw rgba(90, 60, 75, .1), inset 0 0 0 .12cqw rgba(255, 255, 255, .55); transform: rotate(-3deg); }
+.dy-tape.b { top: auto; bottom: 16%; transform: rotate(2deg); }
+.inner-page.dy-bo-tape .dy-tape { animation: dyTape 1.5s ease-in-out both; }
+.inner-page.dy-bo-tape .dy-tape.b { animation-delay: .12s; }
+@keyframes dyTape { 0% { opacity: 0; translate: 0 -2.5cqw; scale: 1.12; } 22% { opacity: 1; translate: 0 0; scale: 1; } 55% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 3cqw 0; } }
+.dy-seam { position: absolute; left: 50%; top: 0; bottom: 0; width: .5cqw; margin-left: -.25cqw; opacity: 0; pointer-events: none;   /* 꺼낸 두 쪽이 맞닿은 경계 (종이선 · 살처럼 붙지 않아요) */
+    background: linear-gradient(90deg, transparent, rgba(110, 80, 95, .16) 35%, rgba(110, 80, 95, .32) 50%, rgba(110, 80, 95, .16) 65%, transparent); }
+.inner-page.dy-bo .dy-seam { opacity: 1; }
+.bd-slide { position: absolute; z-index: 4; pointer-events: none; }
+.bd-slide .bd-half { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; transform: none;
+    transition: transform .36s cubic-bezier(.3, 0, .3, 1), clip-path .36s cubic-bezier(.3, 0, .3, 1); }
+.bd-slide .bd-half.l { clip-path: inset(-30px calc(50% + 6cqw) -30px -30px); }
+.bd-slide .bd-half.r { clip-path: inset(-30px -30px -30px calc(50% + 6cqw)); }
+.bd-slide.a .bd-half.l { transform: translateX(-5cqw); }
+.bd-slide.a .bd-half.r { transform: translateX(5cqw); }
+.bd-slide.b .bd-half { transition-duration: .66s; transition-timing-function: cubic-bezier(.45, .05, .3, 1); }
+.bd-slide.b .bd-half.l { clip-path: inset(-30px 50% -30px -30px); }
+.bd-slide.b .bd-half.r { clip-path: inset(-30px -30px -30px 50%); }
+.inner-page.dy-bo-slide .dy-gap { opacity: 0; transition: none; }
+.inner-page.dy-bo-slide .dy-cov { opacity: 0; }
 .dy-holes { position: absolute; inset: 0; pointer-events: none; }
 .dy-holes i { position: absolute; left: calc(50% - 10.5cqw); width: 2.4cqw; height: 2.4cqw; margin: -1.2cqw 0 0 -1.2cqw; border-radius: 50%; display: none;
     background: color-mix(in srgb, var(--dy-c) 55%, #fff); box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }

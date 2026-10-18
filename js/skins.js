@@ -710,11 +710,24 @@
             if (k === 'out') bdOut(); else bdIn();
         }
         document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('.dy-bo-btn'))) bdShow(false); }, true);
-        function bdOut() {
-            const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
+        function bdOut() {                                                      // 링이 열리며 두 쪽이 링에서 빠져나와 (살짝 벌어졌다가) 가운데로 다가와 맞닿음 (종이 경계선은 그대로) → 반투명 테이프가 붙고 스윽 사라짐
+            const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'); if (!ip || !cv || bdBusy || !bdOn()) return;
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
-            bdBusy = true; ip.classList.add('dy-bo-go', 'dy-bo');
-            setTimeout(() => { ip.classList.remove('dy-bo-go'); bdBusy = false; bdPut((bdGet() & 2) | 1); bdSync(); }, 1300);
+            bdBusy = true; ip.classList.add('dy-bo-go');
+            const wrap = document.createElement('div'); wrap.className = 'bd-slide'; wrap.setAttribute('aria-hidden', 'true');   // 두 쪽을 그대로 떠서 (복사) 움직이고 · 그동안 진짜 쪽은 잠깐 숨겨요
+            Object.assign(wrap.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' });
+            ['l', 'r'].forEach(side => {
+                const c = cv.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+                c.classList.add('bd-half', side); wrap.appendChild(c);
+            });
+            ip.appendChild(wrap); cv.style.opacity = '0';
+            setTimeout(() => { ip.classList.add('dy-bo-slide'); wrap.classList.add('a'); }, 180);          // 링에서 빠지며 살짝 벌어져요
+            setTimeout(() => { wrap.classList.remove('a'); wrap.classList.add('b'); }, 560);            // 가운데로 다가와 맞닿아요 (틈 뒤에 있던 종이 안쪽도 같이 나와요)
+            setTimeout(() => {                                                  // 맞닿았어요 → 진짜 쪽으로 바꾸고 테이프
+                ip.classList.add('dy-bo', 'dy-bo-tape'); cv.style.opacity = '';
+                wrap.remove();
+            }, 1240);
+            setTimeout(() => { ip.classList.remove('dy-bo-go', 'dy-bo-slide', 'dy-bo-tape'); bdBusy = false; bdPut((bdGet() & 2) | 1); bdSync(); }, 2850);
         }
         function bdIn() {                                                       // 펀치 → 구멍 → 테이프 떼기 → 링에 끼우기
             const ip = document.getElementById('innerPage'), fr = document.getElementById('dyFront'); if (!ip || !fr || bdBusy || !bdOn()) return;
@@ -736,7 +749,7 @@
             const rings = n => { let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; return h; };
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
-            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span>`
+            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span>`
                 + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" onpointerenter="bdHover(event)" onpointerdown="event.stopPropagation()" onclick="bdTap('${k}')">${k === 'out' ? '📤<small>꺼내기</small>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
