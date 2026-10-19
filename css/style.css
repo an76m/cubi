@@ -3917,6 +3917,11 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 #diaryBook.dy-one .inner-page .page-header { translate: calc(var(--dy-w) * -.5) 0; }
 #diaryBook.dy-one .inner-page.dy-at-r { transform: none; }
 #diaryBook.dy-one .inner-page.dy-at-r .page-header { translate: calc(var(--dy-w) * .5) 0; }
+/* 📱 폰 한 쪽 보기 : 페이지 위 알림(☁ 저장 경고 · 불러오는 중)도 지금 보이는 쪽 안에 (도련 10-19) */
+#diaryBook.dy-one .drive-badge { max-width: 34%; }
+#diaryBook.dy-one .inner-page.dy-at-r .drive-badge { left: calc(50% + 8px); }
+#diaryBook.dy-one .inner-page .cv-loading { left: 25%; }
+#diaryBook.dy-one .inner-page.dy-at-r .cv-loading { left: 75%; }
 #diaryBook.dy-anim .inner-page { transition: transform .35s ease; }
 #diaryBook.dy-one { clip-path: inset(-80px 0 -80px -80px); }
 #diaryBook.dy-one.dy-r { clip-path: inset(-80px -80px -80px 0); }
