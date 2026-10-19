@@ -3433,7 +3433,9 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .pc-box { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%) rotate(-3deg); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 9px 18px 10px; border: 2px dashed #f48bab; border-radius: 14px; outline: 4px solid #fff; background: #fffaf6; color: #d0517a; font: inherit; cursor: pointer; box-shadow: 0 6px 12px rgba(150,60,90,.28); transition: transform .18s; -webkit-tap-highlight-color: transparent; }
 .pc-box small { font-size: 11px; font-weight: 700; color: #b07a8c; }
 .pc-box b { font-size: 19px; font-weight: 900; white-space: nowrap; }
-.pc-box em { margin-top: 3px; padding: 2px 9px; border-radius: 9px; background: #ffe3ec; color: #c2456f; font-size: 11px; font-style: normal; font-weight: 800; white-space: nowrap; }
+.pc-box em { margin-top: 5px; padding: 5px 14px; border-radius: 999px; background: linear-gradient(#ff8fb1, #f06f97); color: #fff; font-size: 13px; font-style: normal; font-weight: 900; white-space: nowrap; box-shadow: 0 3px 0 #c94a76, 0 5px 8px rgba(150,40,80,.3); animation: pcBoxPush 1.6s ease-in-out infinite; }   /* 진짜 버튼처럼 볼록 · 살짝 눌렸다 올라와요 = 누르는 곳 */
+@keyframes pcBoxPush { 0%, 70%, 100% { transform: none; box-shadow: 0 3px 0 #c94a76, 0 5px 8px rgba(150,40,80,.3); } 80% { transform: translateY(2px); box-shadow: 0 1px 0 #c94a76, 0 2px 4px rgba(150,40,80,.3); } }
+@media (prefers-reduced-motion: reduce) { .pc-box em { animation: none; } }
 .pc-box:hover { transform: translate(-50%, -50%) rotate(-3deg) scale(1.05); }
 .pc-box:active { transform: translate(-50%, -50%) rotate(-3deg) scale(.95); }
 .pc-cup.gone .pc-box { pointer-events: none; }
