@@ -4053,4 +4053,21 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .gdc-dr.out .gdc-ic.clip, .gdc-dr.out .gdc-ic.tape { transform: translateY(-4px); }
 .gdc-dr.out .gdc-out { opacity: 1; scale: 1; }
 .gdc-x { position: absolute; right: -12px; top: -22px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 8px rgba(160, 90, 110, .25); }
+.gdc-row { position: relative; display: flex; flex-direction: column; }
+.gdc-row > .gdc-dr { width: 100%; }
+.gdc-tag small { display: block; font-size: 10px; font-weight: 700; color: #c07a92; letter-spacing: 0; margin-top: -1px; }
+.gdc-pull { flex: none; width: 30px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: linear-gradient(180deg, #ffd27a, #e5a93a); box-shadow: 0 2px 0 #c98d2a; color: #8a5a12; font-size: 12px; font-weight: 900; line-height: 1; }   /* 손잡이 = 서랍 열기 */
+.gdc-row.open .gdc-dr { border-radius: 9px 9px 0 0; transform: translateY(2px); box-shadow: 0 2px 0 #f0c3a4; }
+.gdc-tray { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 7px 6px 6px; margin: 0 4px; border: 2px solid #f0c3a4; border-top: 0; border-radius: 0 0 10px 10px;
+    background: repeating-linear-gradient(90deg, #f7dcc4 0 6px, #f3d2b6 6px 7px); box-shadow: inset 0 6px 8px -4px rgba(140, 80, 60, .35); animation: gdcTray .25s cubic-bezier(.2, .9, .3, 1.2); transform-origin: top; }   /* 쭉 빠진 서랍 속 */
+@keyframes gdcTray { from { opacity: 0; transform: scaleY(.3); } }
+.gdc-it { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px 3px; border: 2px solid transparent; border-radius: 9px; background: rgba(255, 255, 255, .75); cursor: pointer; font-family: inherit; }
+.gdc-it .gdc-ic { height: 28px; }
+.gdc-it .gdc-ic.tweez, .gdc-it .gdc-ic.scissors { height: 44px; }
+.gdc-it small { font-size: 10px; font-weight: 800; color: #9b4a68; white-space: nowrap; }
+.gdc-it.main { border-color: #ffb3c8; background: #fff; }
+.gdc-it.main::before { content: '★'; position: absolute; left: 3px; top: 1px; font-size: 10px; color: #ff8fb1; }   /* 주로 쓰는 것 */
+.gdc-it.on { box-shadow: 0 0 0 2px #6fcca8; }
+.gdc-it.on::after { content: '✓'; position: absolute; right: -4px; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #6fcca8; color: #fff; font-size: 10px; font-weight: 900; line-height: 15px; text-align: center; }
+.gdc-it:active { transform: scale(.94); }
 .gdc-tip { margin: 14px 0 0; text-align: center; font-size: 11px; color: #8a6a72; background: rgba(255, 255, 255, .85); border-radius: 10px; padding: 3px 8px; }
