@@ -806,24 +806,45 @@
         const bdHolesAll = () => { const ip = document.getElementById('innerPage'); return !!ip && (ip.classList.contains('dy-bh') || (gdHoleMask() & 4095) === 4095); };
         /* 📥 바인더에 끼울 수 있나 (도련 10-19 · 현실처럼) : 구멍 12개가 다 뚫려 있고 · 두 쪽이 떨어져 있고 · 구멍을 가린 게 없고 · 책상에 붙지 않아야 해요
            - 두 쪽에 걸친 것 = 양면테이프 · 스티커 · 글 메모 무엇이든 (그 꾸밈의 네모가 두 쪽 종이에 다 닿으면)
-           - 구멍을 가린 것 = 꾸밈의 네모 안에 뚫린 구멍 자리가 들어가면 · 책상 = 양면테이프가 종이 밖까지 (bdTapeLinks pin)
-           - 버튼 글씨가 이유를 보여 주고 · 누르면 흔들리며 걸린 꾸밈이 빨갛게 깜박여요 */
-        const BD_WHY = { holes: ['🕳️', '구멍 먼저'], link: ['✂️', '두 쪽 떼기'], cover: ['🙈', '구멍이 가려졌어요'], desk: ['🩹', '책상에서 떼기'] };
+           - 구멍을 가린 것 = 구멍 자리에 그림의 보이는 부분이 있으면 (투명한 곳은 안 가려요) · 책상 = 양면테이프가 종이 밖까지 (bdTapeLinks pin)
+           - 버튼은 늘 📥 바인더 · 누르면 걸린 꾸밈이 빨갛게 깜박이고 이유가 화면 가운데 떠요 (도련 10-19) */
+        const BD_WHY = { holes: '🕳️ 구멍 12개를 먼저 뚫어 주세요', link: '✂️ 두 쪽에 걸쳐 붙은 걸 떼어 주세요', cover: '🙈 구멍을 가린 걸 옮겨 주세요', desk: '🩹 책상에 붙은 테이프를 떼어 주세요' };
+        const bdAlpha = new Map();                                              // 그림 src → 작은 알파 지도 (못 읽으면 null = 네모로 판단)
+        function bdAlphaOf(img) {
+            const k = img.currentSrc || img.src; if (!k || !img.complete || !img.naturalWidth) return null;
+            if (bdAlpha.has(k)) return bdAlpha.get(k);
+            let v = null;
+            try {
+                const s = Math.min(1, 160 / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.max(1, Math.round(img.naturalWidth * s)), h = Math.max(1, Math.round(img.naturalHeight * s));
+                const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h);
+                v = { w, h, d: g.getImageData(0, 0, w, h).data };
+            } catch (e) { v = null; }
+            bdAlpha.set(k, v); return v;
+        }
         function bdBlock() {
             if (!bdFree) return null;
             if (!bdHolesAll()) return { k: 'holes', els: [] };
             const L = bdFree.sh.l, R = bdFree.sh.r, link = [], cover = [], desk = [];
-            const holes = [...document.querySelectorAll('#innerPage .bd-sheet .bd-hole')].map(h => { const r = h.getBoundingClientRect(); return gdTo(r.left + r.width / 2, r.top + r.height / 2); });
+            const holes = [...document.querySelectorAll('#innerPage .bd-sheet .bd-hole')].map(h => { const r = h.getBoundingClientRect(), p = gdTo(r.left + r.width / 2, r.top + r.height / 2); p.r = Math.abs(gdTo(r.right, r.top).x - gdTo(r.left, r.top).x) / 2; return p; });
             document.querySelectorAll('#canvasArea > .element-box').forEach(el => {
                 const side = el.classList.contains('bd-r') ? 'r' : 'l', b = el.getBoundingClientRect(); if (!b.width) return;
                 const c = gdTo(b.left + b.width / 2, b.top + b.height / 2), sc = parseFloat(el.dataset.scale) || 1, w = el.offsetWidth * sc / 2, h = el.offsetHeight * sc / 2;
                 const a = ((parseFloat(el.dataset.rotation) || 0) + bdFree.sh[side].r) * Math.PI / 180, cs = Math.cos(a), sn = Math.sin(a);
                 const at = (u, v) => ({ x: c.x + u * cs - v * sn, y: c.y + u * sn + v * cs });
-                let onL = false, onR = false;
-                for (let i = 0; i <= 8; i++) for (let j = 0; j <= 8; j++) { const p = at(-w + 2 * w * i / 8, -h + 2 * h * j / 8); if (!onL && bdSheetHas(L, p)) onL = true; if (!onR && bdSheetHas(R, p)) onR = true; }
+                const img = el.querySelector(':scope > img'), al = img && bdAlphaOf(img);
+                const solid = (u, v) => {                                       // 꾸밈 안 (u, v) 자리가 보이는 그림인가
+                    if (Math.abs(u) > w + .01 || Math.abs(v) > h + .01) return false;
+                    if (!al) return true;
+                    const x = u / sc + el.offsetWidth / 2 - img.offsetLeft, y = v / sc + el.offsetHeight / 2 - img.offsetTop;
+                    const iw = img.offsetWidth, ih = img.offsetHeight; if (x < -.5 || y < -.5 || x > iw + .5 || y > ih + .5) return false;
+                    const ax = Math.min(al.w - 1, Math.max(0, Math.floor(x / iw * al.w))), ay = Math.min(al.h - 1, Math.max(0, Math.floor(y / ih * al.h)));
+                    return al.d[(ay * al.w + ax) * 4 + 3] > 60;
+                };
+                let onL = false, onR = false;                                   // 두 쪽에 걸쳤나 (보이는 그림만 · 투명한 곳은 빼고)
+                for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) { const u = -w + 2 * w * i / 10, v = -h + 2 * h * j / 10; if (!solid(u, v)) continue; const p = at(u, v); if (!onL && bdSheetHas(L, p)) onL = true; if (!onR && bdSheetHas(R, p)) onR = true; }
                 if (onL && onR) link.push(el);
-                if (holes.some(p => { const vx = p.x - c.x, vy = p.y - c.y; return Math.abs(vx * cs + vy * sn) <= w && Math.abs(-vx * sn + vy * cs) <= h; })) cover.push(el);
-                const img = el.querySelector(':scope > img'); if (img && String(img.dataset.src || '').includes('gd-tape')) {   // 🩹 테이프 끝이 종이 밖(책상)으로 (두 쪽 사이 틈은 책상이 아니에요 · bdTapeLinks 와 같게)
+                if (holes.some(p => [[0, 0], [.6, 0], [-.6, 0], [0, .6], [0, -.6]].some(([a, b]) => { const vx = p.x + a * p.r - c.x, vy = p.y + b * p.r - c.y; return solid(vx * cs + vy * sn, -vx * sn + vy * cs); }))) cover.push(el);
+                if (img && String(img.dataset.src || '').includes('gd-tape')) {   // 🩹 테이프 끝이 종이 밖(책상)으로 (두 쪽 사이 틈은 책상이 아니에요 · bdTapeLinks 와 같게)
                     const hit = []; for (let i = 0; i <= 16; i++) { const p = at(-w + 2 * w * i / 16, 0); hit.push(bdSheetHas(L, p) || bdSheetHas(R, p)); }
                     const f = hit.indexOf(true), z = hit.lastIndexOf(true); if (f > 0 || (z >= 0 && z < 16)) desk.push(el);
                 }
@@ -833,21 +854,18 @@
             if (desk.length) return { k: 'desk', els: desk };
             return null;
         }
-        let bdBackRaf = 0;
-        function bdBackSync() {
-            const b = document.querySelector('#innerPage .bd-back'); if (!b) return;
-            const why = bdBlock(), t = why ? BD_WHY[why.k] : ['📥', '바인더'];
-            b.classList.toggle('ok', !why); b.innerHTML = `${t[0]}<small>${t[1]}</small>`;
+        let bdWhyT = 0;
+        function bdWhySay(t) {                                                  // 📥 못 끼우는 이유 · 화면 가운데
+            let m = document.getElementById('bdWhy'); if (!m) { m = document.createElement('div'); m.id = 'bdWhy'; m.className = 'bd-why'; document.body.appendChild(m); }
+            m.textContent = t; m.classList.remove('on'); void m.offsetWidth; m.classList.add('on');
+            clearTimeout(bdWhyT); bdWhyT = setTimeout(() => m.classList.remove('on'), 2200);
         }
-        const bdBackLater = () => { if (!bdBackRaf) bdBackRaf = requestAnimationFrame(() => { bdBackRaf = 0; bdBackSync(); }); };
         function bdBack() {                                                     // 📥 두 쪽이 제자리로 돌아가 링에 끼워지고 표지 · 링 · 집게가 다시
             const ip = document.getElementById('innerPage'); if (!bdFree || bdBusy || !ip) return;
-            const b = ip.querySelector('.bd-back');
             const why = bdBlock();
-            if (why) {                                                          // 흔들리고 걸린 꾸밈이 빨갛게 깜박여요
-                if (b) { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); }
+            if (why) {                                                          // 걸린 꾸밈이 빨갛게 깜박이고 이유가 가운데
                 why.els.forEach(el => { el.classList.remove('bd-bad'); void el.offsetWidth; el.classList.add('bd-bad'); setTimeout(() => el.classList.remove('bd-bad'), 1300); });
-                bdBackSync(); return;
+                bdWhySay(BD_WHY[why.k]); return;
             }
             bdBusy = true; bdFreeSel(null);
             const st = ['l', 'r'].map(x => { const h = bdFree.sh[x]; return { h, x: h.x, y: h.y, r: h.r }; }), t0 = performance.now();
@@ -883,14 +901,12 @@
                 bdFree.sh[side].el.appendChild(d);
             }));
             if (fs) ['l', 'r'].forEach((x, j) => { const h = bdFree.sh[x]; h.x = (+fs[j * 3] || 0) * cqw; h.y = (+fs[j * 3 + 1] || 0) * cqw; h.r = +fs[j * 3 + 2] || 0; });
-            const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'bd-back'; bb.tabIndex = -1;
+            const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'bd-back'; bb.tabIndex = -1; bb.innerHTML = '📥<small>바인더</small>';
             (ip.querySelector('.page-header') || ip).appendChild(bb);           // 위 날짜바 오른쪽 끝 (도련 10-19)
-            ip.classList.add('dy-free'); bdFreeApply(); bdBackSync();
-            if (window.MutationObserver) { bdFree.mo = new MutationObserver(bdBackLater); bdFree.mo.observe(cv, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] }); }   // 📥 붙이고 · 떼고 · 옮기면 버튼 글씨도
+            ip.classList.add('dy-free'); bdFreeApply();
         }
         function bdFreeOff() {
             const ip = document.getElementById('innerPage'); if (!bdFree) return;
-            if (bdFree.mo) bdFree.mo.disconnect();
             bdFree = null;
             if (!ip) return;
             ip.classList.remove('dy-free');
@@ -901,7 +917,6 @@
             const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!bdFree || !ip || !cv || !bk) return;
             const cqw = bk.offsetWidth / 100, L = bdFree.sh.l, Rr = bdFree.sh.r;
             [L, Rr].forEach(sh => { sh.el.style.translate = `${sh.x}px ${sh.y}px`; sh.el.style.rotate = sh.r + 'deg'; });
-            bdBackLater();                                                     // 📥 바인더 버튼 글씨 (옮기고 · 붙이고 · 떼면)
             const ox = cv.offsetLeft, oy = cv.offsetTop;                       // #canvasArea 는 innerPage 안에 바로
             const move = (el, sh, shift, bx, by) => {                         // bx · by : 그 꾸밈의 바탕 자리 (innerPage 기준)
                 const o = getComputedStyle(el).transformOrigin.split(' ').map(parseFloat);
@@ -1213,7 +1228,7 @@
             const m = Object.assign({}, prefGet(GD_HOLE, GD_HOLE_L) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
             b[n] = (+b[n] || 0) | (1 << i); m[id] = b; prefSet(GD_HOLE, GD_HOLE_L, m);
         }
-        function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); bdBackSync(); }
+        function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); }
         function gdHoles() {
             const ip = gdIp(); if (!ip || !ip.classList.contains('dy-bdl') || bdBusy) return [];
             if (bdFree) return [...ip.querySelectorAll('.bd-sheet .bd-hole')];
@@ -1231,7 +1246,7 @@
             setTimeout(() => {
                 const ip = gdIp(), hs = ip ? [ip.querySelectorAll('.dy-holes i')[i], ...[...ip.querySelectorAll('.bd-sheet .bd-hole')].filter(h => +h.dataset.i === i)] : [];
                 hs.forEach(h => { if (!h) return; h.classList.remove('pop'); void h.offsetWidth; h.classList.add('on', 'pop'); });
-                gdHoleOn(i); bdBackSync();
+                gdHoleOn(i);
             }, 110);
         }
         /* 🩹 양면테이프 : 들고 끌면 끈 만큼 테이프가 발라져요 → 페이지 꾸밈(그림)으로 붙어요 (핀셋으로 옮기고 지울 수 있어요) */
