@@ -814,57 +814,45 @@
         function pinSvg() {   // 그라데이션 id 는 핀셋마다 따로 · 같은 id 가 숨은 핀셋에 있으면 색이 안 칠해지고 테두리만 보여요
             const k = prefGet(PIN_KEY, PIN_LOCAL), n = ++pinSeq;
             return (PIN_SKINS[k] || PIN_SKINS.basic).replace(/id="(\w+)"/g, `id="$1-${n}"`).replace(/url\(#(\w+)\)/g, `url(#$1-${n})`); }
-        /* 🪡 핀셋 (도련 · 10-17) : 핀셋을 손에 든 동안 손끝(포인터)을 따라와요 · ✂️ 문구류 🪡 핀셋 (도련 10-18 · js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
-           - 스티커 꾸미기와 관련된 곳에서만 보여요 (도련 · 10-17 · pinOver) : 페이지 칸 · 🏷️ 씰 종이 · 🍭 포인트 하얀 판 · 🧩 조각 봉투 · 📒 수첩 속지(표지를 넘긴 뒤)
-             + 배경지 (수첩에서 집은 스티커를 페이지로 옮길 때 깜박이지 않게) · 날짜가 있는 위쪽 바 전체에선 사라져요
-             그 밖(하단메뉴 · 🪟 고르는 창 · 설정 등 모든 창 · 페이지 메뉴)에 가거나 누르면 사라져요 · 누르면 집게가 오므라들고 떼면 벌어져요
-           - 📱 폰 · 📲 패드 : 핀셋은 절대 사라지지 않아요 (도련 10-19) · 쓰임이 없을 땐 그 자리에서 아주 느리게 위아래로 둥실 (공중에 떠서 기다리는 느낌)
-             핀셋과 상관있는 곳(페이지 · 떼는 창 · 수첩 종이 · 버튼 말고)을 누를 때만 그 자리로 옮겨 가요 · 하단메뉴 · 창 · 버튼 · 메뉴 · 배경을 누르면 그대로 둥실 (pinRel)
-             연필꽂이 · 그리기 · 메뉴가 떠도 그대로 · 핀셋을 내려놓거나(✂️ 문구류 칸) 표지로 돌아가면 / 🗑 뜯기 화면의 핀셋이 대신 나올 때만 비켜요
-           - 💻 컴퓨터 : 마우스를 늘 따라와요 · 설정 '🪡 핀셋 사라지는 시간'(기본 1초) · 늘 보이기 켜기/끄기 (기본 켬 · 끄면 마우스가 멈추고 정한 초 뒤에 사라져요)
-           - 표지로 돌아가거나 🗑 삭제 · ✏️ 그리기 · ✂️ 스티커 칼 · ✏️ 연필꽂이(글쓰기 · 📏 자)를 쓰는 동안엔 비켜요 (pinOff) */
-        const PIN_CFG_KEY = 'diary_pin_cfg', PIN_CFG_LOCAL = 'malang_pin_cfg', PIN_CFG_DEF = { sec: 1, pc: 1 }, PIN_SEC_MIN = 1, PIN_SEC_MAX = 10;
-        function pinCfg() { const v = prefGet(PIN_CFG_KEY, PIN_CFG_LOCAL); return Object.assign({}, PIN_CFG_DEF, v && typeof v === 'object' ? v : {}); }
-        function pinCfgSet(k, v) {
-            const c = pinCfg();
-            if (k === 'sec') c.sec = Math.max(PIN_SEC_MIN, Math.min(PIN_SEC_MAX, Math.round(Number(v)) || PIN_CFG_DEF.sec)); else c[k] = c[k] ? 0 : 1;
-            prefSet(PIN_CFG_KEY, PIN_CFG_LOCAL, c); pinCfgRender();
-        }
-        function pinCfgRender() {
-            const c = pinCfg(), r = document.getElementById('pinSecRange'), t = document.getElementById('pinSecVal');
-            if (r) r.value = c.sec; if (t) t.textContent = c.sec + '초';
-            document.querySelectorAll('#pinStay [data-k]').forEach(btn => { const on = !!c[btn.dataset.k]; btn.classList.toggle('on', on); btn.querySelector('small').textContent = on ? '늘 보여요' : c.sec + '초 뒤 사라져요'; });
-        }
-        let pinMH = 0, pinRelNow = false, pinLast = null, pinEl = null, pinWatch = 0, pinTimer = 0, pinKind = 'pc', pinHold = false;   // pinHold : 보이는 곳에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 그대로 보여요)
+        /* 🪡 핀셋 (도련 · 10-17 · 10-19) : 핀셋을 손에 든 동안 늘 보여요 · 절대 사라지지 않아요 · ✂️ 문구류 🪡 핀셋 (js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
+           - 쓰임이 없을 땐 그 자리에서 아주 느리게 위아래로 둥실 (공중에 떠서 기다리는 느낌) · 누르는 동안은 둥실 멈추고 집게가 오므라들어요
+           - 💻 마우스 : 핀셋이 갈 수 있는 곳(pinOver : 페이지 · 🏷️ 씰 종이 · 🍭 포인트 판 · 🧩 조각 봉투 · 📒 수첩 속지 · 배경지)에선 마우스에 붙어 둥실거리며 따라와요
+             갈 수 없는 곳(하단메뉴 · 창 · 버튼 · 메뉴 · 날짜바)으로 마우스가 가면 그 끝자리에 멈춰 둥실 (마우스 화살표가 보여요) · 돌아오면 다시 따라와요
+           - 📱 폰 · 📲 패드 : 핀셋과 상관있는 곳(pinRel)을 누를 때만 그 자리로 옮겨 가요 · 나머지를 누르면 그 자리에 둥실
+           - ✏️ 그리기 · ✂️ 스티커 칼 · ✏️ 연필꽂이를 쓰는 동안은 따라오지 않고 그 자리에 둥실 (pinBusy)
+           - 비키는 건 핀셋을 내려놓거나(✂️ 문구류 칸) · 표지로 돌아가거나 · 🗑 뜯기 화면의 핀셋이 대신 나올 때뿐 (pinOff) */
+        let pinRelNow = false, pinLast = null, pinEl = null, pinWatch = 0, pinKind = 'pc', pinHold = false, pinFollow = false;   // pinHold : 핀셋 자리에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 따라와요)
         const pinOpen = () => { const p = document.getElementById('innerPage'); return !!p && p.offsetParent !== null; };
-        const pinOff = () => !!twz || !(window.gdTwz && gdTwz()) || !pinOpen() || (pinKind === 'pc' && (document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden]), #pcRoom:not([hidden])')));   // 📱 📲 터치는 연필꽂이 · 그리기에서도 그 자리에 둥실   // ✏️ 연필꽂이가 뜬 순간부터 글쓰기가 끝날 때까지 숨어요 (도련 · 10-18)
-        const PIN_AREA = '#innerPage, #pelRoom, #pcbRoom, #spkBoard, .modal.snb-on .snb-sheets';   // 🪡 핀셋이 보이는 곳
+        const pinOff = () => !!twz || !(window.gdTwz && gdTwz()) || !pinOpen();
+        const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden]), #pcRoom:not([hidden])');
+        const PIN_AREA = '#innerPage, #pelRoom, #pcbRoom, #spkBoard, .modal.snb-on .snb-sheets';   // 🪡 핀셋이 갈 수 있는 곳
+        const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
         function pinOver(x, y) {
-            const top = document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
-            if (!top || top.closest('.pel-hint, .snb-cover, #pageHeader') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 수첩 표지 · 날짜 바 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 보여요)
+            const top = pinTop(x, y);
+            if (!top || pinBusy() || top.closest('.pel-hint, .snb-cover, #pageHeader, .tap-menu') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 수첩 표지 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
             if (top.closest(PIN_AREA)) return true;
             return top === document.body || top === document.documentElement || top.matches('.modal.snb-on') || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경 · 📒 수첩 뒤 배경지 포함)
         }
         function pinRel(x, y) {                                                  // 👆 핀셋과 상관있는 곳 (그 자리로 옮겨 가요) · 아니면 그 자리에 둥실
-            const top = document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
-            return !!top && !!top.closest(PIN_AREA) && !top.closest('button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .snb-cover, .bd-tool, .bd-back, .page-stamps');
+            const top = pinTop(x, y);
+            return !!top && !pinBusy() && !!top.closest(PIN_AREA) && !top.closest('button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .snb-cover, .bd-tool, .bd-back, .page-stamps');
         }
-        const pinMenu = () => !!document.querySelector('.tap-menu');            // 📍 페이지를 눌러 뜬 메뉴(저장 · 순서 …)가 열려 있는 동안은 숨어요 (js/tapmenu.js)
         const pinDev = e => e.pointerType === 'mouse' ? 'pc' : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pad';
         function pinStart() {
-            pinEl = document.createElement('div'); pinEl.className = 'twz pin-cur in'; pinEl.setAttribute('aria-hidden', 'true'); pinEl.innerHTML = pinSvg();
-            document.body.appendChild(pinEl);
-            pinWatch = setInterval(() => { if (pinOff()) pinStop(); else if (pinKind === 'pc') { if (pinMenu()) pinShow(false); } else pinDodge(); }, 120);   // 📱 📲 터치는 메뉴가 떠도 그 자리에 둥실 · 가리면 비켜요 (pinDodge)
+            pinEl = document.createElement('div'); pinEl.className = 'twz pin-cur in bob'; pinEl.setAttribute('aria-hidden', 'true'); pinEl.innerHTML = pinSvg();
+            document.body.appendChild(pinEl); pinFollow = false;
+            if (pinLast) pinPut(...pinLast);
+            pinWatch = setInterval(() => { if (pinOff()) pinStop(); else pinDodge(); }, 120);   // 메뉴 · 창이 가리면 비켜요 (pinDodge)
         }
-        /* 👆 메뉴 · 창이 둥실 떠 있는 핀셋과 겹치면 창 바로 바깥의 가장 가까운 빈자리로 스르르 비켜요 (도련 10-19)
-           - 화면 안에서만 · 창에서 멀리 가지 않아요 (창 둘레 바로 옆) · 손이 닿아 있는 동안은 안 움직여요
+        /* 메뉴 · 창이 둥실 떠 있는 핀셋과 겹치면 창 바로 바깥의 가장 가까운 빈자리로 스르르 비켜요 (도련 10-19)
+           - 화면 안에서만 · 창에서 멀리 가지 않아요 (창 둘레 바로 옆) · 손이 닿아 있는 동안 · 💻 마우스를 따라오는 동안은 안 움직여요
            - 핀셋을 쓰는 창(📒 수첩 · 떼는 창)은 비키지 않아요 */
         let pinDown = 0;
         window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
         const PIN_WALL = '.tap-menu, .modal:not(.snb-on) > .modal-content, .twz-say.on';
         function pinDodge() {
-            if (!pinEl || pinDown || !pinLast || pinEl.classList.contains('out') || pinEl.classList.contains('glide')) return;
+            if (!pinEl || pinDown || pinFollow || !pinLast || pinEl.classList.contains('glide')) return;
             const vis = el => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== 'hidden' ? r : null; };
             const walls = [...document.querySelectorAll(PIN_WALL)].filter(el => !el.closest('.modal') || el.closest('.modal').style.display === 'flex').map(vis).filter(Boolean);
             if (!walls.length) return;
@@ -888,35 +876,30 @@
             setTimeout(() => { if (pinEl) pinEl.classList.remove('glide'); }, 620);
         }
         function pinStop() {
-            clearInterval(pinWatch); clearTimeout(pinTimer); if (pinEl) pinEl.remove(); pinEl = null; document.body.classList.remove('pin-on');
+            clearInterval(pinWatch); if (pinEl) pinEl.remove(); pinEl = null; pinFollow = false; document.body.classList.remove('pin-on');
         }
-        function pinShow(on) { if (pinEl) pinEl.classList.toggle('out', !on); document.body.classList.toggle('pin-on', on && pinKind === 'pc'); }   // 💻 핀셋이 보일 때만 화살표를 숨겨요
-        function pinLater() {                                                  // 늘 보이기를 끈 기기 : 정한 초 뒤에 사라져요
-            clearTimeout(pinTimer);
-            if (pinKind !== 'pc') { if (pinEl) pinEl.classList.add('bob'); return; }   // 📱 📲 터치 : 손을 떼도 사라지지 않고 그 자리에 둥실 떠서 기다려요 (도련 10-19)
-            const c = pinCfg(); if (c.pc) return;
-            pinTimer = setTimeout(() => pinShow(false), c.sec * 1000);
-        }
+        function pinStay() { pinFollow = false; document.body.classList.remove('pin-on'); if (pinEl && !pinHold) pinEl.classList.add('bob'); }   // 그 자리에 멈춰 둥실 (💻 마우스 화살표가 보여요)
         const pinPut = (x, y) => { pinLast = [x, y]; pinEl.style.transform = `translate(${x - TWZ_TIP[0]}px, ${y - TWZ_TIP[1]}px)${handFlip()} rotate(${TWZ_ANG}deg)`; };
         function pinMove(e) {
             pinKind = pinDev(e);
-            if (!pinEl) { if (pinOff()) return; pinStart(); if (pinKind !== 'pc' && pinLast) { pinPut(...pinLast); pinEl.classList.add('bob'); } }
-            clearTimeout(pinTimer);
-            if (pinKind !== 'pc') {                                             // 📱 📲 터치 : 사라지지 않아요 · 상관있는 곳만 옮겨 가요 (누른 순간 정해요)
+            if (!pinEl) { if (pinOff()) return; pinStart(); }
+            if (pinKind !== 'pc') {                                             // 📱 📲 터치 : 상관있는 곳만 옮겨 가요 (누른 순간 정해요)
+                pinFollow = false; document.body.classList.remove('pin-on');
                 if (e.type === 'pointerdown') pinRelNow = pinRel(e.clientX, e.clientY);
-                pinShow(true); if (!pinRelNow) return;
+                if (!pinRelNow) return;
                 pinEl.classList.remove('bob', 'glide'); pinPut(e.clientX, e.clientY); return;   // 손이 닿으면 둥실 멈춤
             }
-            const on = !pinMenu() && ((pinHold && (e.buttons & 1 || e.pointerType !== 'mouse')) || pinOver(e.clientX, e.clientY)); pinShow(on); if (!on) return;
+            const on = (pinHold && (e.buttons & 1)) || pinOver(e.clientX, e.clientY);
+            if (!on) { pinStay(); return; }
+            pinFollow = true; document.body.classList.add('pin-on'); pinEl.classList.remove('glide');
+            pinEl.classList.toggle('bob', !(e.buttons & 1));                    // 💻 마우스에 붙어 둥실 · 누르는 동안은 멈춤
             pinPut(e.clientX, e.clientY);
-            if (!(e.buttons & 1)) pinLater();                 // 💻 마우스가 멈추면 (늘 보이기를 껐을 때만)
         }
         document.addEventListener('pointermove', pinMove, true);
-        document.addEventListener('pointerdown', e => { pinHold = false; pinMove(e); if (pinEl && (pinKind === 'pc' || pinRelNow)) { pinEl.classList.add('shut'); pinHold = !pinEl.classList.contains('out'); } }, true);
-        ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, e => { pinHold = false; if (pinEl) { pinEl.classList.remove('shut'); pinKind = pinDev(e); pinLater(); } }, true));
-        document.addEventListener('mouseout', e => { if (!e.relatedTarget && pinEl) pinShow(false); });   // 💻 마우스가 창 밖으로 나가면
-        window.pinAt = e => { pinMove(e); if (pinEl && pinKind !== 'pc') { pinRelNow = false; pinShow(true); pinPut(e.clientX, e.clientY); } pinLater(); };                       // 🪡 놓인 핀셋을 막 집은 순간 (그 누름은 js/skins.js gdDown 이 먹어서 여기로 안 와요)
-        window.pinCfgSet = pinCfgSet; window.pinCfgRender = pinCfgRender;
+        document.addEventListener('pointerdown', e => { pinHold = false; pinMove(e); if (pinEl && (pinKind === 'pc' ? pinFollow : pinRelNow)) { pinEl.classList.add('shut'); pinEl.classList.remove('bob'); pinHold = true; } }, true);
+        ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, e => { pinHold = false; if (pinEl) { pinEl.classList.remove('shut'); pinEl.classList.add('bob'); } }, true));
+        document.addEventListener('mouseout', e => { if (!e.relatedTarget && pinEl) pinStay(); });   // 💻 마우스가 창 밖으로 나가면 그 자리에 둥실
+        window.pinAt = e => { pinMove(e); if (pinEl) { pinRelNow = false; pinEl.classList.add('bob'); pinPut(e.clientX, e.clientY); } };   // 🪡 놓인 핀셋을 막 집은 순간 (그 누름은 js/skins.js gdDown 이 먹어서 여기로 안 와요)
         let twz = null;
         const twzReduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
         function twzRoom(pin) {
