@@ -790,7 +790,7 @@
            - 종이 = .bd-sheet 두 장 (#canvasArea 의 바탕을 그대로 옮겨 그려요) · 붙인 꾸밈 · 기분 · 날씨 도장도 그 쪽과 같이 옮겨지고 돌아가요 (translate · rotate)
            - 저장 : 링을 연 장만 (설정 'diary_free' { 권 id : { 장 : [왼 x, y, 각도, 오른 x, y, 각도] } } · x · y 는 cqw) · 다른 장에 갔다 오거나 다시 열어도 그대로
              📥 바인더에 끼우면 그 장 기록은 지워요 (평범한 다꾸 · 다른 다이어리엔 아무것도 안 남아요 · 도련 10-18)
-           - 📥 바인더 버튼 : 두 쪽의 구멍 12개를 다 뚫어야 끼워져요 (🕳️ 펀칭기) */
+           - 📥 바인더 버튼(위 날짜바 오른쪽 끝) : 두 쪽의 구멍 12개를 다 뚫어야 끼워져요 (🕳️ 펀칭기) */
         function bdFreeGet() { const m = prefGet('diary_free', 'malang_diary_free') || {}, b = m[dyNow().id]; return (b && b[dkNo(currentDate)]) || null; }
         function bdFreePut(v) {
             const m = Object.assign({}, prefGet('diary_free', 'malang_diary_free') || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
@@ -845,7 +845,7 @@
             if (fs) ['l', 'r'].forEach((x, j) => { const h = bdFree.sh[x]; h.x = (+fs[j * 3] || 0) * cqw; h.y = (+fs[j * 3 + 1] || 0) * cqw; h.r = +fs[j * 3 + 2] || 0; });
             const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'bd-back'; bb.tabIndex = -1;
             bb.innerHTML = '<span class="y">📥<small>바인더</small></span><span class="n">🕳️<small>구멍 먼저</small></span>';
-            Object.assign(bb.style, { left: (ox + W / 2) + 'px', top: (oy + H / 2) + 'px' }); ip.appendChild(bb);
+            (ip.querySelector('.page-header') || ip).appendChild(bb);           // 위 날짜바 오른쪽 끝 (도련 10-19)
             ip.classList.add('dy-free'); bdFreeApply(); bdBackSync();
         }
         function bdFreeOff() {
