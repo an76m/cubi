@@ -3827,6 +3827,10 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .bd-rot.tl { left: -24px; top: -24px; } .bd-rot.tr { right: -24px; top: -24px; } .bd-rot.bl { left: -24px; bottom: -24px; } .bd-rot.br { right: -24px; bottom: -24px; }
 .bd-hole { position: absolute; display: block; pointer-events: none; border-radius: 50%; visibility: hidden; background: color-mix(in srgb, var(--bg-color, #ffe6f0) 80%, #c9a3b3); box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }
 .bd-hole.on { visibility: visible; }
+.bd-hl { position: absolute; z-index: 4; pointer-events: none; transform-origin: center center; }   /* 🕳️ 구멍만 꾸밈 위 = 스티커째 뚫린 것처럼 (js/skins.js bdFreeOn) */
+.gd-slot { position: absolute; z-index: 39; pointer-events: none; border-radius: 50%; box-sizing: border-box; border: 2px dashed rgba(70, 75, 85, .75); background: rgba(255, 255, 255, .35); }   /* 🕳️ 펀칭기가 뚫을 자리 (스티커에 가려도 보여요 · js/skins.js gdSlot) */
+.gd-slot.press { animation: gdSlot .3s ease-out; }
+@keyframes gdSlot { 30% { background: rgba(90, 95, 105, .32); } }
 .inner-page.dy-free #canvasArea { background: none !important; box-shadow: none !important; pointer-events: none; z-index: 3; }
 .inner-page.dy-free #canvasArea > * { pointer-events: none !important; }
 .inner-page.dy-free #canvasArea.bd-pick, .inner-page.dy-free #canvasArea.bd-pick > .element-box { pointer-events: auto !important; }   /* 🪡 핀셋으로 집을 때만 잠깐 (js/skins.js bdFreeBox · elements.js twzPick) */

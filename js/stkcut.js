@@ -197,9 +197,11 @@
         const ca = q('canvasArea'), car = ca.getBoundingClientRect(), k = car.width / (ca.offsetWidth || car.width) || 1;
         const s = parseFloat(el.dataset.scale) || 1, rot = (parseFloat(el.dataset.rotation) || 0) * Math.PI / 180;
         const px = parseFloat(el.dataset.posX) || 0, py = parseFloat(el.dataset.posY) || 0, cx = px + W / 2, cy = py + H / 2;
+        const br = el.getBoundingClientRect(), scx = br.left + br.width / 2, scy = br.top + br.height / 2;   // 보이는 자리 그대로 (🗂 바인더는 쪽마다 옮겨지고 돌아가 있어요 · translate · rotate)
+        const vrot = rot + (parseFloat(getComputedStyle(el).rotate) || 0) * Math.PI / 180;
         const toLocal = ([X, Y]) => {                   // 화면 → 스티커 그림 좌표 (캔버스 px)
-            const ux = (X - car.left) / k - cx, uy = (Y - car.top) / k - cy;
-            const lx = (ux * Math.cos(-rot) - uy * Math.sin(-rot)) / s + W / 2, ly = (ux * Math.sin(-rot) + uy * Math.cos(-rot)) / s + H / 2;
+            const ux = (X - scx) / k, uy = (Y - scy) / k;
+            const lx = (ux * Math.cos(-vrot) - uy * Math.sin(-vrot)) / s + W / 2, ly = (ux * Math.sin(-vrot) + uy * Math.cos(-vrot)) / s + H / 2;
             return [(lx - B - P) * R, (ly - B - P) * R];
         };
         const L = pts.map(toLocal), n = L.length, cwR = c.width, chR = c.height, BIG = 4 * (cwR + chR);
@@ -236,7 +238,9 @@
             const url = o.toDataURL('image/png');
             const lcx = (t.x0 + w / 2) / R + B + P - W / 2, lcy = (t.y0 + h / 2) / R + B + P - H / 2;   // 조각 가운데 (스티커 가운데 기준 · 돌리기 전)
             const gap = 2.5;                                                                         // 칼선 틈 : 두 조각이 살짝 벌어져요
-            const pcx = cx + s * (lcx * Math.cos(rot) - lcy * Math.sin(rot)) + side * nv[0] * gap, pcy = cy + s * (lcx * Math.sin(rot) + lcy * Math.cos(rot)) + side * nv[1] * gap;
+            let pcx = cx + s * (lcx * Math.cos(rot) - lcy * Math.sin(rot)) + side * nv[0] * gap, pcy = cy + s * (lcx * Math.sin(rot) + lcy * Math.cos(rot)) + side * nv[1] * gap;
+            const at = window.bdCvAt && bdCvAt(scx + k * s * (lcx * Math.cos(vrot) - lcy * Math.sin(vrot)), scy + k * s * (lcx * Math.sin(vrot) + lcy * Math.cos(vrot)));   // 🗂 바인더 : 보이는 자리 → 저장 자리 (조각이 다른 쪽으로 넘어가도 제자리)
+            if (at) { pcx = at.x + side * nv[0] * gap; pcy = at.y + side * nv[1] * gap; }
             if (!addImage(url)) return false;
             const ne = ca.querySelector(':scope > .element-box:last-child'), im = ne.querySelector(':scope > img');
             ne.style.width = Math.max(4, Math.round(w / R * 10) / 10) + 'px';
