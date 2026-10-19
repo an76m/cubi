@@ -81,7 +81,9 @@
         R.el = el; return el;
     }
     function rlSize() {
-        R.ppc = rlPpc(); R.L = innerWidth < 700 ? 10 : 15;
+        R.ppc = rlPpc();
+        const b0 = document.getElementById('canvasArea'), vw = b0 ? (window.dyVisRect ? dyVisRect(b0.getBoundingClientRect()) : b0.getBoundingClientRect()).width : innerWidth;
+        R.L = Math.max(5, Math.min(15, Math.floor((Math.min(vw, innerWidth) - 1.2 * R.ppc - 30) / R.ppc)));   // 보이는 쪽 안에 다 들어가게 (📱 폰 = 오른쪽 쪽 · 양 끝 ⟳ 돌리기 손잡이가 보여요 · 도련 10-19)
         R.el.querySelector('.rl-svg').innerHTML = rlDraw();
         R.el.style.width = R.W + 'px'; R.el.style.height = R.H + 'px';
         R.el.querySelector('.rl-fit').hidden = !!rlSaved();
@@ -147,7 +149,7 @@
         try { R.el.setPointerCapture(e.pointerId); } catch (er) {}
         R.touch.set(e.pointerId, [e.clientX, e.clientY]);
         if (R.touch.size === 2) { rlTwoStart(); return true; }
-        const [lx] = rlLocal(e.clientX, e.clientY), rot = Math.abs(lx) > R.W / 2 - 16;
+        const [lx] = rlLocal(e.clientX, e.clientY), rot = Math.abs(lx) > R.W / 2 - (e.pointerType === 'mouse' ? 16 : 30);   // 👆 터치는 끝을 넉넉히
         R.drag = rot
             ? { id: e.pointerId, rot: true, a0: Math.atan2(e.clientY - R.cy, e.clientX - R.cx) * 180 / Math.PI - R.ang }
             : { id: e.pointerId, off: [R.cx - e.clientX, R.cy - e.clientY] };

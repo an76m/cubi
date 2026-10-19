@@ -825,7 +825,7 @@
         let pinRelNow = false, pinLast = null, pinEl = null, pinWatch = 0, pinKind = 'pc', pinHold = false, pinFollow = false;   // pinHold : 핀셋 자리에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 따라와요)
         const pinOpen = () => { const p = document.getElementById('innerPage'); return !!p && p.offsetParent !== null; };
         const pinOff = () => !!twz || !(window.gdTwz && gdTwz()) || !pinOpen();
-        const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('.sk-room:not([hidden]), #pcRoom:not([hidden])');
+        const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('.sk-knife.grab, .rl-ruler.grab, #pcRoom:not([hidden])');   // ✂️ 칼 · 📏 자를 잡고 있는 동안은 핀셋이 안 따라와요 (도련 10-19)
         const PIN_AREA = '#innerPage, #pelRoom, #pcbRoom, #spkBoard, .modal.snb-on .snb-sheets';   // 🪡 핀셋이 갈 수 있는 곳
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
         function pinOver(x, y) {
@@ -836,7 +836,7 @@
         }
         function pinRel(x, y) {                                                  // 👆 핀셋과 상관있는 곳 (그 자리로 옮겨 가요) · 아니면 그 자리에 둥실
             const top = pinTop(x, y);
-            return !!top && !pinBusy() && !!top.closest(PIN_AREA) && !top.closest('button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .snb-cover, .bd-tool, .bd-back, .page-stamps');
+            return !!top && !pinBusy() && !!top.closest(PIN_AREA) && !top.closest('.rl-ruler, .sk-knife, button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .snb-cover, .bd-tool, .bd-back, .page-stamps');
         }
         const pinDev = e => e.pointerType === 'mouse' ? 'pc' : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pad';
         function pinStart() {

@@ -1,5 +1,5 @@
 /* ✂️ 스티커 칼 (도련 · 2026-10-17 · 10-19 연필꽂이 → 🗄️ 문구함) : 문구함 '칼' 서랍을 톡 = 칼을 들어요 (js/skins.js · 서랍에서 여러 칼 중 골라요 KN_KINDS)
-   - 귀여운 스티커 칼이 글쓰기 필기구처럼 기울어진 채 마우스 · 손가락을 따라가요 (칼끝 = 닿은 자리)
+   - 귀여운 스티커 칼이 페이지 위에 놓여요 · 칼을 잡고 끌면 칼끝이 지나간 자리에 칼선이 그어져요 (도련 10-19 · 화면을 덮지 않아요 → 다른 버튼 · 핀셋 · 자를 그대로 써요)
    - 페이지의 아무 스티커나 끝에서 끝까지 가로질러 그으면 그 선(분단선)으로 두 조각이 돼요 · 동그랗게 오려 내는 게 아니라 '나누는 선'
    - 선이 여러 스티커와 겹치면 맨 위에 있는 스티커 하나만 잘라요 · 스티커를 먼저 고를 필요 없어요
    - 칼은 ✕ · Esc · 문구함 '칼' 서랍을 다시 톡 할 때까지 남아 있어서 여러 번 연달아 자를 수 있어요
@@ -47,17 +47,18 @@
     }
     const elCuttable = el => !!cutKind(el);
 
-    /* ---------- 칼 방 : 화면 전체를 덮는 투명한 판 (그 위에서만 그어요) ---------- */
+    /* ---------- 칼 방 : 누르는 건 칼 · ✕ 뿐 (나머지는 그 아래로 그대로) ---------- */
     function build() {
         let r = q('skRoom'); if (r) return r;
         r = document.createElement('div'); r.id = 'skRoom'; r.className = 'sk-room'; r.hidden = true;
         r.innerHTML = '<canvas class="sk-line" id="skLine"></canvas>'
-            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 자를 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 자르면 <b>✕</b><button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
+            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 칼을 <b>잡고</b> 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 쓰면 <b>✕</b><button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
             + '<div class="sk-knife" id="skKnife"></div>';
         document.body.appendChild(r);
         q('skX').addEventListener('click', e => { e.stopPropagation(); close(); }); q('skX').addEventListener('pointerdown', e => e.stopPropagation());
-        r.addEventListener('pointerdown', down); r.addEventListener('pointermove', move);
-        r.addEventListener('pointerup', up); r.addEventListener('pointercancel', () => { S.down = false; S.pts = null; if (S.snap) { S.snap = null; rlTell(null); } paint(); });
+        const kn = q('skKnife');
+        kn.addEventListener('pointerdown', down); kn.addEventListener('pointermove', move);
+        kn.addEventListener('pointerup', up); kn.addEventListener('pointercancel', () => { kn.classList.remove('grab'); S.down = false; S.pts = null; if (S.snap) { S.snap = null; rlTell(null); } paint(); });
         addEventListener('keydown', e => { if (e.key === 'Escape' && S.on) close(); });
         addEventListener('resize', () => { if (S.on) size(); });
         return r;
@@ -68,7 +69,7 @@
         c.getContext('2d').setTransform(d, 0, 0, d, 0, 0); paint();
     }
     function knifeAt(x, y) {
-        const k = S.kn; if (!k) return;
+        const k = S.kn; if (!k) return; S.at = [x, y];                 // 지금 칼끝 자리
         k.style.transform = `translate(${x - KN_TIP[0]}px, ${y - KN_TIP[1]}px)${handFlip()} rotate(${KN_ANG}deg)`;
     }
     function paint() {                                 // 그은 칼선 : 하얀 테두리 + 회색 점선 (칼집 느낌)
@@ -98,23 +99,26 @@
         if (S.room) S.room.hidden = true;
         document.dispatchEvent(new CustomEvent('sk-change'));             // 🗄️ 문구함 서랍 '페이지에 ✓' 다시
     }
-    function down(e) {
-        if (e.button > 0 || S.busy) return;
-        if (window.rlGrab && rlGrab(e)) return;          // 📏 자를 누르면 자 옮기기 · 돌리기
-        const sn = window.rlSnap ? rlSnap(e.clientX, e.clientY) : null, at = sn ? rlProj(sn, e.clientX, e.clientY) : [e.clientX, e.clientY];   // 자 가장자리에 대고 그으면 반듯하게
-        e.preventDefault(); S.down = true; S.id = e.pointerId; S.pts = [at]; S.snap = sn ? { sn, a: at } : null;
-        try { S.room.setPointerCapture(e.pointerId); } catch (er) {}
-        knifeAt(at[0], at[1]); paint();
+    function down(e) {                                 // 칼을 잡아요 : 칼끝은 잡은 손과 같이 움직여요
+        if (e.button > 0 || S.busy || S.down) return;
+        e.preventDefault(); e.stopPropagation();
+        const t = S.at, sn = window.rlSnap ? rlSnap(t[0], t[1]) : null, at = sn ? rlProj(sn, t[0], t[1]) : t;   // 자 가장자리에 대고 그으면 반듯하게
+        S.down = true; S.id = e.pointerId; S.off = [t[0] - e.clientX, t[1] - e.clientY]; S.pts = [at]; S.snap = sn ? { sn, a: at } : null;
+        try { S.kn.setPointerCapture(e.pointerId); } catch (er) {}
+        S.kn.classList.add('grab'); knifeAt(at[0], at[1]); paint();
     }
     function move(e) {
-        if (S.down && S.snap && e.pointerId === S.id) {  // 📏 자에 붙은 곧은 칼선 : 시작점 → 지금 자리 (가장자리 위)
-            const at = rlProj(S.snap.sn, e.clientX, e.clientY);
+        if (!S.down || e.pointerId !== S.id) return;
+        const x = e.clientX + S.off[0], y = e.clientY + S.off[1];
+        if (S.snap) {                                  // 📏 자에 붙은 곧은 칼선 : 시작점 → 지금 자리 (가장자리 위)
+            const at = rlProj(S.snap.sn, x, y);
             knifeAt(at[0], at[1]); S.pts = [S.pts[0], at]; rlTell(S.snap.a, at); paint(); return;
         }
-        knifeAt(e.clientX, e.clientY);                 // 🖱 마우스는 누르지 않아도 칼이 따라와요
-        if (!S.down || e.pointerId !== S.id) return;
+        const sn = window.rlSnap ? rlSnap(x, y) : null;
+        if (sn) { const at = rlProj(sn, x, y); S.snap = { sn, a: at }; S.pts = [at]; knifeAt(at[0], at[1]); paint(); return; }   // 📏 칼끝이 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (오던 길은 버려요)
+        knifeAt(x, y);
         const p = S.pts, l = p[p.length - 1];
-        if (Math.hypot(e.clientX - l[0], e.clientY - l[1]) >= 3) { p.push([e.clientX, e.clientY]); paint(); }
+        if (Math.hypot(x - l[0], y - l[1]) >= 3) { p.push([x, y]); paint(); }
     }
     /* 그은 선이 지나간 스티커 중 맨 위부터 하나씩 잘라 봐요 → 처음 잘린 것 하나만 */
     function crossed(pts) {
@@ -128,13 +132,13 @@
     }
     async function up(e) {
         if (!S.down || e.pointerId !== S.id) return;
-        S.down = false;
+        S.down = false; S.kn.classList.remove('grab');
         if (S.snap) { S.snap = null; rlTell(null); }
         const pts = S.pts; if (!pts || pts.length < 2) { S.pts = null; paint(); return; }
-        S.busy = true; let ok = false;
-        try { for (const el of crossed(pts)) { if (await split(el, pts)) { ok = true; break; } } } catch (er) { console.warn('자르기', er); }
+        S.busy = true; let ok = false; const hit = crossed(pts);
+        try { for (const el of hit) { if (await split(el, pts)) { ok = true; break; } } } catch (er) { console.warn('자르기', er); }
         S.busy = false; S.pts = null; paint();
-        if (!ok) { hint('스티커를 <b>끝에서 끝까지</b> 가로질러야 나뉘어요 ✂️'); return; }
+        if (!ok) { if (hit.length) hint('스티커를 <b>끝에서 끝까지</b> 가로질러야 나뉘어요 ✂️'); return; }
         const say = q('skTip').querySelector('.sk-say'); if (say) say.remove();
         if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
     }

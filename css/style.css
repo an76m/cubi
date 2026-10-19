@@ -3597,12 +3597,13 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 @media (prefers-reduced-motion: reduce) { .pk-room, .pk-case, .pk-ti, .pk-tag { transition: none !important; } .pk-t.pop .pk-ti, .pk-tip.shake { animation: none; } }
 
 /* ✂️ 스티커 자르기 (js/stkcut.js) : 화면 전체 투명 판 · 기울어진 스티커 칼 · 칼선 */
-.sk-room { position: fixed; inset: 0; z-index: 4200; cursor: none; touch-action: none; }
+.sk-room { position: fixed; inset: 0; z-index: 1495; pointer-events: none; }   /* 칼 · ✕ 만 눌려요 (도련 10-19 · 화면을 덮지 않게) */
 .sk-room[hidden] { display: none; }
 .sk-line { position: absolute; left: 0; top: 0; pointer-events: none; }
-.sk-knife { position: absolute; left: 0; top: 0; width: 40px; height: 120px; transform-origin: 13px 4px; pointer-events: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
+.sk-knife { position: absolute; left: 0; top: 0; width: 40px; height: 120px; transform-origin: 13px 4px; pointer-events: auto; cursor: grab; touch-action: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
 .sk-knife svg { display: block; }
 .sk-knife.gone { opacity: 0; }
+.sk-knife.grab { cursor: grabbing; }
 .sk-tip { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 10px 44px 10px 14px; border-radius: 16px; background: #fff; border: 2px solid #ffc2d4; box-shadow: 0 6px 18px rgba(194, 56, 92, .16); color: #6b4256; font-size: 13.5px; line-height: 1.5; pointer-events: none; }   /* 안내 칸 위에서도 그을 수 있게 (✕ 만 눌러요) */
 .sk-tip > b:first-child { color: #d6457a; margin-right: 6px; }
 .sk-tip .sk-say { display: block; margin-top: 4px; color: #c2385c; font-weight: 700; }
