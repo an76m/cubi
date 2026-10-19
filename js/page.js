@@ -326,6 +326,8 @@
             shadow.className = 'under-shadow ' + (dir === 1 ? 'dir-next' : 'dir-prev');
             under.appendChild(shadow);
             book.appendChild(under);
+            const ucv = under.querySelector('.canvas-area');                                 // 📒 아래 장의 링 · 커버는 아래 장 종이 자리에 (로그인 뒤 처음 펼칠 땐 속 장이 숨어 있어 크기가 0 → 왼쪽 위에 잘린 링이 보였어요 · 도련 10-19)
+            if (ucv) under.querySelectorAll(':scope > .dy-deco').forEach(c => Object.assign(c.style, { left: ucv.offsetLeft + 'px', top: ucv.offsetTop + 'px', width: ucv.offsetWidth + 'px', height: ucv.offsetHeight + 'px' }));
 
             const flapLayer = document.createElement('div');
             flapLayer.className = 'flap-layer';
