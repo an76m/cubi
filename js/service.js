@@ -412,7 +412,7 @@
         function ctBuild() {
             let el = document.getElementById('cafeTown'); if (el) return el;
             el = document.createElement('div'); el.id = 'cafeTown'; el.className = 'ct-room';
-            el.innerHTML = `<div class="ct-stage"><img src="img/cafe-town.webp" alt="말랑달콤 카페 마을" draggable="false">${CT_SPOTS.map(([id, n, [x0, y0, x1, y1]]) =>
+            el.innerHTML = `<div class="ct-stage"><img src="img/cafe-town.webp" alt="말랑달콤 카페 마을" draggable="false"><canvas class="ct-fx" width="418" height="235" aria-hidden="true"></canvas>${CT_SPOTS.map(([id, n, [x0, y0, x1, y1]]) =>
                 `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}</div>
                 <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button>`;
             document.body.appendChild(el);
@@ -436,9 +436,54 @@
             const el = ctBuild(); el.style.display = 'block';
             if (typeof wlPrefetch === 'function') wlPrefetch();
             requestAnimationFrame(() => { el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2; el.scrollTop = (el.scrollHeight - el.clientHeight) / 2; });
-            svcDailyBadges();
+            svcDailyBadges(); ctFxStart(el);
         }
-        function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; }
+        function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; ctFxStop(); }
+        /* ✨ 마을이 군데군데 움직여요 : 그림 위에 투명 캔버스 하나 (418×235 = 그림의 1/4 · 한 칸 = 픽셀아트 한 점)
+           - 🌸 벚꽃잎 · 💧 분수 물방울 · ✨ 호수·연못·분수 반짝임 · 🦆 오리 물결 · 🦋 나비 · 🐝 꿀벌 (위치는 그림 좌표 ÷ 4)
+           - 1초에 12장만 그려서 가볍게 · 마을을 닫으면 멈춰요 · '동작 줄이기' 설정이면 안 움직여요 */
+        let ctFx = null;
+        function ctFxStart(el) {
+            ctFxStop();
+            if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const cv = el.querySelector('.ct-fx'), g = cv.getContext('2d'), W = cv.width, H = cv.height, rnd = (a, b) => a + Math.random() * (b - a);
+            const px = (x, y, c, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+            const WATER = [[150, 214, 330, 235], [148, 37, 232, 50], [190, 132, 215, 138], [196, 120, 210, 124]];   // 연못 · 먼 호수 · 분수 아래 · 위 물받이
+            const petal = top => ({ x: rnd(-20, W), y: top ? rnd(-H, 0) : rnd(0, H), v: rnd(.25, .55), a: rnd(0, 6), s: rnd(.02, .05), c: Math.random() < .5 ? '#ffb7cf' : '#ffd6e4' });
+            const P = Array.from({ length: 34 }, () => petal(false));
+            const D = [], S = [], R = [];
+            const B = [0, 1, 2].map(i => ({ x: rnd(100, 330), y: rnd(60, 200), t: rnd(0, 9), c: ['#fff3a0', '#cfe8ff', '#ffc2e0'][i] }));
+            let f = 0, last = 0;
+            const tick = now => {
+                ctFx.raf = requestAnimationFrame(tick);
+                if (now - last < 83) return; last = now; f++;
+                g.clearRect(0, 0, W, H);
+                // ✨ 물 반짝임
+                if (Math.random() < .55) { const w = WATER[Math.random() < .55 ? 0 : (Math.random() * 4) | 0]; S.push({ x: rnd(w[0], w[2]), y: rnd(w[1], w[3]), l: 6 }); }
+                for (let i = S.length - 1; i >= 0; i--) { const k = S[i]; k.l--; if (k.l < 0) { S.splice(i, 1); continue; }
+                    px(k.x, k.y, '#fff'); if (k.l > 2 && k.l < 5) { px(k.x - 1, k.y, '#dff6ff'); px(k.x + 1, k.y, '#dff6ff'); px(k.x, k.y - 1, '#dff6ff'); px(k.x, k.y + 1, '#dff6ff'); } }
+                // 💧 분수 물방울
+                for (let i = 0; i < 2; i++) D.push({ x: 202.5, y: 112, vx: rnd(-.7, .7), vy: rnd(-1.1, -.6), l: 14 });
+                for (let i = D.length - 1; i >= 0; i--) { const k = D[i]; k.x += k.vx; k.y += k.vy; k.vy += .2; k.l--;
+                    if (k.l < 0 || k.y > 134) { D.splice(i, 1); continue; } px(k.x, k.y, k.l > 8 ? '#ffffff' : '#bfe9ff'); }
+                // 🦆 오리 물결
+                if (f % 22 === 0) R.push({ r: 2 });
+                for (let i = R.length - 1; i >= 0; i--) { const k = R[i]; k.r += .5; if (k.r > 11) { R.splice(i, 1); continue; }
+                    g.globalAlpha = 1 - k.r / 11; for (let a = 0; a < 6.28; a += .5) px(281 + Math.cos(a) * k.r * 1.6, 226 + Math.sin(a) * k.r * .45, '#e9f8ff'); g.globalAlpha = 1; }
+                // 🌸 벚꽃잎
+                P.forEach((k, i) => { k.y += k.v; k.a += k.s; k.x += Math.sin(k.a) * .45 + .18;
+                    if (k.y > H + 2 || k.x > W + 4) P[i] = petal(true);
+                    const flip = Math.sin(k.a * 2) > 0; px(k.x, k.y, k.c, flip ? 2 : 1, flip ? 1 : 2); px(k.x + (flip ? 1 : 0), k.y + (flip ? 0 : 1), '#ff8fb5'); });
+                // 🦋 나비 · 🐝 꿀벌
+                B.forEach(k => { k.t += .07; k.x += Math.cos(k.t * .7) * .6 + .1; k.y += Math.sin(k.t * 1.3) * .5; if (k.x > W + 4) k.x = -4;
+                    const open = f % 4 < 2; px(k.x, k.y, '#7a5a62', 1, 2);
+                    if (open) { px(k.x - 2, k.y - 1, k.c, 2, 2); px(k.x + 1, k.y - 1, k.c, 2, 2); } else { px(k.x - 1, k.y - 1, k.c, 1, 2); px(k.x + 1, k.y - 1, k.c, 1, 2); } });
+                for (let i = 0; i < 2; i++) { const t = f * .09 + i * 3.1, bx = 62 + Math.cos(t) * (9 + i * 3), by = 148 + Math.sin(t * 1.7) * 5;
+                    px(bx, by, '#ffd23f', 2, 2); px(bx + 1, by, '#5b3a4a', 1, 2); px(bx, by - 1 - (f % 2), '#ffffff'); }
+            };
+            ctFx = { raf: requestAnimationFrame(tick) };
+        }
+        function ctFxStop() { if (ctFx) cancelAnimationFrame(ctFx.raf); ctFx = null; }
         function ctGo(id) {
             if (id === 'pet') return openPet();
             if (id === 'honey') return openHoney();
