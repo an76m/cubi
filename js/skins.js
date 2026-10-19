@@ -1097,6 +1097,7 @@
             if (prev) { const m = el.classList.contains('edge') ? gdTo(x, y) : gdMid(el); prev.classList.remove('held'); gdCenter(prev, m.x, m.y); prev.dataset.nh = 1; }   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
             gdFollow(x, y, e);
+            if (id === 'twz' && e && window.pinAt) pinAt(e);                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
             if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
         }
         function gdLet() {                                                      // 내려놓기 (지금 자리에)

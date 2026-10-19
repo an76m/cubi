@@ -3649,7 +3649,9 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .twz { position: absolute; left: 0; top: 0; width: 55.8px; height: 201.5px; transform-origin: 27.9px 4.65px; pointer-events: none; opacity: 0; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .25s ease; will-change: transform; }
 .twz.in { opacity: 1; }
 .twz.pin-cur { position: fixed; z-index: 2147483000; transition: none; }
-.twz.pin-cur.out { opacity: 0; transition: opacity .25s; }   /* 🪡 핀셋이 사라질 때 (js/elements.js pinShow) */
+.twz.pin-cur.out { opacity: 0; transition: opacity .25s; }
+.twz.pin-cur.bob { animation: twzBob 2.6s ease-in-out infinite alternate; }   /* 📱 📲 터치 : 손을 뗀 동안 공중에 떠서 아주 느리게 위아래로 (js/elements.js pinLater) */
+@keyframes twzBob { from { translate: 0 0; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); } to { translate: 0 -7px; filter: drop-shadow(3px 10px 6px rgba(120, 60, 90, .2)); } }   /* 🪡 핀셋이 사라질 때 (js/elements.js pinShow) */
 .twz-del { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 2px; padding: 2px 7px 2px 4px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 11px; font-weight: 800; line-height: 1.4; box-shadow: 0 2px 6px rgba(160, 30, 40, .3); pointer-events: none; will-change: transform; transition: opacity .12s; }   /* 🗑 삭제 핀셋 표시 (js/elements.js twzToolAt) */
 .twz-del svg { width: 14px; height: 14px; }
 .twz-room.bye .twz-del { opacity: 0; }
