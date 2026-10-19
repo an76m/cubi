@@ -399,7 +399,7 @@
         /* =====================================================================
            🏡 카페 마을 (도련 10-19) : 하단 '카페' = 화면 전체가 예쁜 마을로 바뀌어요 · 건물을 톡 = 그 메뉴
            - 그림 : img/cafe-town.webp (1672×941 · 도련이 준 그림 · 이름표도 그림 안에 있어요)
-           - 화면을 꽉 채우고 (남는 쪽은 밀어서 둘러보기 · PC 는 마우스로 끌어서) · 처음엔 가운데 분수대가 보여요
+           - 📱 폰(짧은 쪽 600px 미만)은 예전 카페 버튼 창 · 패드 · PC 는 그림 전체가 화면 안에 꼭 맞게 (창 크기 따라 · 남는 곳은 흐린 그림)
            - CT_SPOTS : 그림 위 누르는 칸 [x0, y0, x1, y1] (그림 픽셀) · 칸을 바꾸려면 숫자만 고치면 돼요
            - 매일 · 운세 · 인형 · 게임 · 함께하기 = 카페 창의 그 칸을 바로 (‹ 카페 단추는 숨김 · ✕ 로 닫으면 다시 마을)
            - 가운데 카페 건물은 아직 연결 없음 (숨겨 둔 저금통 · 문구점 · 보고·듣기 자리로 쓸 수 있어요) */
@@ -416,26 +416,18 @@
                 `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}</div>
                 <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button>`;
             document.body.appendChild(el);
-            let drag = null;                                                    // 🖱️ PC : 끌어서 둘러보기 (터치는 원래대로 밀기)
-            el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button) return; drag = { x: e.clientX, y: e.clientY, l: el.scrollLeft, t: el.scrollTop, m: false }; });
-            el.addEventListener('pointermove', e => {
-                if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-                if (Math.abs(dx) + Math.abs(dy) > 6) { drag.m = true; el.classList.add('ct-drag'); }
-                if (drag.m) { el.scrollLeft = drag.l - dx; el.scrollTop = drag.t - dy; }
-            });
-            const end = () => { setTimeout(() => { drag = null; el.classList.remove('ct-drag'); }, 0); };
-            el.addEventListener('pointerup', end); el.addEventListener('pointerleave', end);
             el.addEventListener('click', e => {
-                const b = e.target.closest('.ct-spot'); if (!b || (drag && drag.m)) return;
+                const b = e.target.closest('.ct-spot'); if (!b) return;
                 b.classList.remove('ct-hit'); void b.offsetWidth; b.classList.add('ct-hit');
                 setTimeout(() => ctGo(b.dataset.ct), 180);
             });
             return el;
         }
+        const ctPhone = () => Math.min(innerWidth, innerHeight) < 600;      // 📱 폰 = 예전 카페 버튼 창 (도련 10-19)
         function openCafeTown() {
-            const el = ctBuild(); el.style.display = 'block';
+            if (ctPhone()) return openModal('serviceModal');
+            const el = ctBuild(); el.style.display = 'grid';
             if (typeof wlPrefetch === 'function') wlPrefetch();
-            requestAnimationFrame(() => { el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2; el.scrollTop = (el.scrollHeight - el.clientHeight) / 2; });
             svcDailyBadges(); ctFxStart(el);
         }
         function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; ctFxStop(); }
