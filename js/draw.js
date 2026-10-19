@@ -89,6 +89,7 @@
             penDown(e); return true;
         };
         function penMove(e) {
+            if (dw.snap && dw.cur && !(window.rlSnap && rlSnap(e.clientX, e.clientY))) { dw.snap = null; rlTell(null); }   // 자 밖으로 끌면 떨어져서 이어 그려요 (도련 10-19)
             if (dw.snap && dw.cur) {                                               // 📏 자에 붙은 곧은 선 : 시작점 → 지금 자리 (가장자리 위)
                 e.preventDefault(); e.stopPropagation();
                 const at = rlProj(dw.snap.sn, e.clientX, e.clientY);

@@ -1,5 +1,7 @@
 /* ✂️ 스티커 칼 (도련 · 2026-10-17 · 10-19 연필꽂이 → 🗄️ 문구함) : 문구함 '칼' 서랍을 톡 = 칼을 들어요 (js/skins.js · 서랍에서 여러 칼 중 골라요 KN_KINDS)
    - 귀여운 스티커 칼이 페이지 위에 놓여요 · 칼을 잡고 끌면 칼끝이 지나간 자리에 칼선이 그어져요 (도련 10-19 · 화면을 덮지 않아요 → 다른 버튼 · 핀셋 · 자를 그대로 써요)
+   - 칼을 톡 = 손에 들기 (문구함에서 꺼내면 바로 들려 있어요) : 💻 칼이 마우스를 따라와요 · 페이지를 누르고 끌면 그 자리부터 칼선 · 👆 누른 자리로 칼이 가서 그어요
+     칼을 다시 톡 = 그 자리에 내려놓기 · 🪡 핀셋 같은 다른 문구함을 톡 = 그걸로 바꿔 들기 (칼은 그 자리에) · 자에 붙은 채 자 밖으로 끌면 떨어져요
    - 페이지의 아무 스티커나 끝에서 끝까지 가로질러 그으면 그 선(분단선)으로 두 조각이 돼요 · 동그랗게 오려 내는 게 아니라 '나누는 선'
    - 선이 여러 스티커와 겹치면 맨 위에 있는 스티커 하나만 잘라요 · 스티커를 먼저 고를 필요 없어요
    - 칼은 ✕ · Esc · 문구함 '칼' 서랍을 다시 톡 할 때까지 남아 있어서 여러 번 연달아 자를 수 있어요
@@ -52,7 +54,7 @@
         let r = q('skRoom'); if (r) return r;
         r = document.createElement('div'); r.id = 'skRoom'; r.className = 'sk-room'; r.hidden = true;
         r.innerHTML = '<canvas class="sk-line" id="skLine"></canvas>'
-            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 칼을 <b>잡고</b> 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 쓰면 <b>✕</b><button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
+            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 칼을 <b>톡</b> 해서 들고 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 쓰면 <b>✕</b><button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
             + '<div class="sk-knife" id="skKnife"></div>';
         document.body.appendChild(r);
         q('skX').addEventListener('click', e => { e.stopPropagation(); close(); }); q('skX').addEventListener('pointerdown', e => e.stopPropagation());
@@ -95,7 +97,7 @@
     }
     function close() {
         if (!S.on) return;
-        S.on = false; S.pts = null; S.down = false; S.snap = null; paint();
+        hold(false); S.on = false; S.pts = null; S.down = false; S.snap = null; paint();
         if (S.room) S.room.hidden = true;
         document.dispatchEvent(new CustomEvent('sk-change'));             // 🗄️ 문구함 서랍 '페이지에 ✓' 다시
     }
@@ -103,23 +105,48 @@
         if (e.button > 0 || S.busy || S.down) return;
         e.preventDefault(); e.stopPropagation();
         const t = S.at, sn = window.rlSnap ? rlSnap(t[0], t[1]) : null, at = sn ? rlProj(sn, t[0], t[1]) : t;   // 자 가장자리에 대고 그으면 반듯하게
-        S.down = true; S.id = e.pointerId; S.off = [t[0] - e.clientX, t[1] - e.clientY]; S.pts = [at]; S.snap = sn ? { sn, a: at } : null;
+        S.down = true; S.id = e.pointerId; S.off = [t[0] - e.clientX, t[1] - e.clientY]; S.t0 = [e.clientX, e.clientY]; S.moved = false; S.page = false; S.pts = [at]; S.snap = sn ? { sn, a: at, n: 1 } : null; S.snapped = !!sn;
         try { S.kn.setPointerCapture(e.pointerId); } catch (er) {}
         S.kn.classList.add('grab'); knifeAt(at[0], at[1]); paint();
     }
     function move(e) {
         if (!S.down || e.pointerId !== S.id) return;
+        if (!S.moved && Math.hypot(e.clientX - S.t0[0], e.clientY - S.t0[1]) < 6) return;   // 톡 = 들기 · 내려놓기
+        S.moved = true;
         const x = e.clientX + S.off[0], y = e.clientY + S.off[1];
-        if (S.snap) {                                  // 📏 자에 붙은 곧은 칼선 : 시작점 → 지금 자리 (가장자리 위)
-            const at = rlProj(S.snap.sn, x, y);
-            knifeAt(at[0], at[1]); S.pts = [S.pts[0], at]; rlTell(S.snap.a, at); paint(); return;
-        }
         const sn = window.rlSnap ? rlSnap(x, y) : null;
-        if (sn) { const at = rlProj(sn, x, y); S.snap = { sn, a: at }; S.pts = [at]; knifeAt(at[0], at[1]); paint(); return; }   // 📏 칼끝이 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (오던 길은 버려요)
+        if (S.snap && sn && sn.s === S.snap.sn.s) {    // 📏 자에 붙은 곧은 칼선 : 붙은 자리 → 지금 자리 (가장자리 위)
+            const at = rlProj(S.snap.sn, x, y);
+            knifeAt(at[0], at[1]); S.pts.length = S.snap.n; S.pts.push(at); rlTell(S.snap.a, at); paint(); return;
+        }
+        if (S.snap) { S.snap = null; rlTell(null); }   // 자 밖으로 끌면 떨어져요 (곧은 선은 그대로 두고 이어서 · 도련 10-19)
+        else if (sn) {                                 // 📏 칼끝이 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (처음 붙을 땐 오던 길은 버려요)
+            const at = rlProj(sn, x, y); if (!S.snapped) S.pts = []; S.pts.push(at); S.snap = { sn, a: at, n: S.pts.length }; S.snapped = true;
+            knifeAt(at[0], at[1]); paint(); return;
+        }
         knifeAt(x, y);
         const p = S.pts, l = p[p.length - 1];
         if (Math.hypot(x - l[0], y - l[1]) >= 3) { p.push([x, y]); paint(); }
     }
+    /* ✋ 손에 든 칼 : 다른 문구함은 내려놓고 · 💻 마우스를 따라와요 · 페이지를 누르면 그 자리부터 칼선 */
+    function hold(on) {
+        if (!S.on) on = false;
+        if (on && window.gdLetGo) gdLetGo();           // 🪡 핀셋 · 가위 … 들고 있던 것은 그 자리에
+        S.held = !!on; document.body.classList.toggle('sk-held', S.held); document.body.classList.remove('sk-follow');
+        if (S.kn) S.kn.classList.toggle('held', S.held);
+    }
+    const SK_NO = 'button, input, textarea, select, a, .page-header, .tap-menu, .bd-tool, .rl-ruler, .sk-knife, .sk-tip, .modal';
+    const skPage = (x, y, t) => { t = t || document.elementFromPoint(x, y); return !!t && !!t.closest && !!t.closest('#innerPage') && !t.closest(SK_NO); };
+    addEventListener('pointermove', e => {
+        if (!S.held || S.down || e.pointerType !== 'mouse') return;
+        const on = skPage(e.clientX, e.clientY); document.body.classList.toggle('sk-follow', on);
+        if (on) knifeAt(e.clientX, e.clientY);
+    }, true);
+    addEventListener('pointerdown', e => {
+        if (!S.held || S.down || S.busy || e.button > 0 || !skPage(e.clientX, e.clientY, e.target)) return;
+        e.preventDefault(); e.stopPropagation();
+        knifeAt(e.clientX, e.clientY); down(e); S.page = true;          // 👆 누른 자리로 칼이 가서 그어요
+    }, true);
     /* 그은 선이 지나간 스티커 중 맨 위부터 하나씩 잘라 봐요 → 처음 잘린 것 하나만 */
     function crossed(pts) {
         const ca = q('canvasArea'); if (!ca) return [];
@@ -134,6 +161,7 @@
         if (!S.down || e.pointerId !== S.id) return;
         S.down = false; S.kn.classList.remove('grab');
         if (S.snap) { S.snap = null; rlTell(null); }
+        if (!S.moved && !S.page) { S.pts = null; paint(); hold(!S.held); return; }   // 칼을 톡 = 들기 ↔ 내려놓기
         const pts = S.pts; if (!pts || pts.length < 2) { S.pts = null; paint(); return; }
         S.busy = true; let ok = false; const hit = crossed(pts);
         try { for (const el of hit) { if (await split(el, pts)) { ok = true; break; } } } catch (er) { console.warn('자르기', er); }
@@ -262,5 +290,5 @@
         return true;
     }
 
-    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skKindNow = () => S.on ? S.kind : null; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
+    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skHold = hold; window.skLetGo = () => { if (S.held) hold(false); }; window.skKindNow = () => S.on ? S.kind : null; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
 })();

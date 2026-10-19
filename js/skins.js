@@ -1191,6 +1191,7 @@
                 prev.classList.remove('held'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
                 if (fl) { prev.classList.remove('drop'); void prev.offsetWidth; prev.classList.add('drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
             }
+            if (window.skLetGo) skLetGo();                                   // ✂️ 들고 있던 칼은 그 자리에 (js/stkcut.js)
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
             gdFollow(x, y, e);
             if (id === 'twz' && e && window.pinAt) pinAt(e);                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
@@ -1348,7 +1349,7 @@
         const cabFlip = id => {
             if (!cabTool(id)) return gdPick(id);
             const on = cabIsOn(id), [x, y] = cabMid();
-            if (id.startsWith('knife')) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { closeModal('gdCabModal'); skKnife(x, y, cabK(id)); } }
+            if (id.startsWith('knife')) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { closeModal('gdCabModal'); skKnife(x, y, cabK(id)); if (window.skHold) skHold(true); } }   // 꺼내면 바로 손에
             else if (on) { if (window.rlEnd) rlEnd(); } else if (window.rlShow) rlShow(x, y, cabK(id));
         };
         const GD_MAIN = 'diary_gd_main', GD_MAIN_L = 'malang_diary_gd_main';
@@ -1414,7 +1415,7 @@
         }
         function gdCabCup() { closeModal('gdCabModal'); if (window.openDraw) openDraw(); }
         window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
-        window.gdScs = gdScs; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
+        window.gdScs = gdScs; window.gdLetGo = () => { if (gdHeld) gdLet(); }; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
 
         /* 🕳️ 펀칭기 (도련 10-19 · 진짜처럼 12번) : 구멍 자리 근처로 가면 그 자리에 착 붙고 → 누르면 철컥 하나 뚫려요
            - 💻 마우스 = 근처로 가면 붙어서 점선 동그라미(.gd-slot)가 보여요 (스티커에 가려도) · 👆 터치 = 근처를 누르면 붙으며 바로 뚫려요 · 빗나가면 "다시 눌러 주세요"
