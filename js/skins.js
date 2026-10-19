@@ -659,7 +659,7 @@
                 ip.style.setProperty('--bd-ring', ring.join(', ') || '0 0 0 4px #fff'); ip.style.setProperty('--bd-rad', cs.borderRadius);
             }
             ip.classList.toggle('dy-hand', bdMode() === 'hand');               // ✋ 수동 : 꺼내기 대신 🔓 링 열기 버튼
-            ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
+            ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && bdMode() === 'auto' && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
             bdSides(); gdHoleSync();                                         // 🕳️ 하나씩 뚫은 구멍
             const fs = on && !bdSt && bdFreeGet();                             // ✋ 링을 연 채 그만둔 장이면 그 모습 그대로 (bdFreeSave)
             if (fs) { bdSt = { at: bdAt(), open: 1 }; ip.classList.add('dy-bo-go', 'dy-ring-open', 'dy-free-in'); bdFreeOn(fs); requestAnimationFrame(() => requestAnimationFrame(() => ip.classList.remove('dy-free-in'))); }
@@ -743,7 +743,7 @@
              링 열기 다음 단계는 도련이 하나씩 정해서 만들어요 (10-18 · 예전 속지 빼기 · 모으기 · 테이프 · 수동 끼우기는 지웠어요) · 끼우기는 지금 ⚡ 자동 그대로
            - 끄는 동안 = innerPage 의 data-dg="ring" + --bs(0 닫힘 ~ 1 열림) · css 가 그대로 그려요 */
         const BDM_KEY = 'diary_binder_mode', BDM_LOCAL = 'malang_diary_binder_mode';
-        function bdMode() { return prefGet('diary_binder_mode', 'malang_diary_binder_mode') === 'auto' ? 'auto' : 'hand'; }   // BDM_KEY · BDM_LOCAL (bdSync 가 먼저 불러도 되게)
+        function bdMode() { return (!window.ftOn || ftOn('bdauto')) && prefGet('diary_binder_mode', 'malang_diary_binder_mode') === 'auto' ? 'auto' : 'hand'; }   // ⚡ 자동은 숨김 동안 늘 ✋ 수동 (js/features.js bdauto · 10-19)   // BDM_KEY · BDM_LOCAL (bdSync 가 먼저 불러도 되게)
         function bdModeSet(v) { prefSet(BDM_KEY, BDM_LOCAL, v === 'auto' ? 'auto' : 'hand'); bdModeRender(); bdSync(); }
         function bdModeRender() { const m = bdMode(); document.querySelectorAll('#bdModePick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === m)); }
         const bdAt = () => dyNow().id + '|' + dkNo(currentDate);

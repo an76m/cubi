@@ -19,12 +19,13 @@
             stkmake: true,    // (10-18 다시 보이게) ✂️ 나만의 스티커 만들기 · 스티커 창들의 '내가만든' 칸
             share: false,     // 📥 '공유받은' 칸 · 💾 공유용 파일 저장 (카페로 주고받는 것)
             caps: true,       // (10-18 다시 보이게) 🎁 캡슐스티커 (카페 랜덤박스에서 받아요)
+            bdauto: false,    // ⚡ 바인더 자동 속지 빼기 · 끼우기 (📤 꺼내기 · 📥 끼우기 버튼 · ⚙ 설정의 '바인더 속지 빼기 · 끼우기' · 10-19 숨김 · 지금은 ✋ 수동만)
             bgm: false,       // 🎵 배경음악 (⚙ 설정 메뉴의 '배경음악' 칸 · 10-15 숨김)
             fphone: false     // 📞 반짝이 피처폰 메신저 (로그인한 회원끼리 · 서버 말랑달콤사람들 .gs 새 버전이 필요해요)
         };
         /* 💻 내 컴퓨터(index.html 더블클릭 · localhost)에서는 모든 기능이 보여요 → 새 기능 소개 영상용 (사이트는 위 FEATURES 그대로) */
         const FT_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-        const FT_OFF_LOCAL = ['fphone', 'cafe'];   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18)
+        const FT_OFF_LOCAL = ['fphone', 'cafe', 'bdauto'];   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
         function ftOn(name) { if (FT_OFF_LOCAL.includes(name) && FEATURES[name] === false) return false; return FT_LOCAL || !(name in FEATURES) || FEATURES[name] !== false; }
         (function () {
             const root = document.documentElement;
