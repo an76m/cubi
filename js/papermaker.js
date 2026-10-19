@@ -1,10 +1,11 @@
 /* 말랑달콤 다이어리 - js/papermaker.js
-   📄 모조지스티커 (도톰한 미색 종이에 인쇄된 스티커 · 원하는 모양대로 칼집을 내서 떼어 써요)
+   📄 모조지스티커 (도톰한 미색 종이에 인쇄된 스티커 · 원하는 모양대로 ✂️ 가위로 오려서 떼어 써요)
    만들기 : 스티커 만들기 결과창(📷 · 🖼️ 한 장 · 여러 장) · 📸 포토부스 → 📄 모조지스티커 만들기 / 📄 모조지스티커로 다이어리에 붙이기
      → 고른 모양대로 오린 사진들이 모조지스티커 한 장에 알아서 나란히 인쇄돼요 (pmMakeSheet) → 📄 내스티커에 '모조지스티커 한 장'으로 저장
    쓰기 : 내스티커에서 모조지스티커를 누르면 (또는 붙이기 버튼) 배경(화면) 한가운데에 스티커 종이가 나와요 (openPaperSheet)
-     1) 🔪 커터칼로 칼집 내기 : 원하는 그림 둘레를 손가락으로 한 바퀴 따라 그리면 그 모양대로 칼집이 나요 (처음 자리까지 돌아와야 해요 · 종이에서 떨어지지 않아요)
-     2) 칼집 낸 스티커를 누른 채 끌면 🏷️ 씰스티커처럼 가장자리부터 말려 떼어져요 (js/peelfx.js pfxSeal) → 다 떼면 손가락을 따라와요
+     1) ✂️ 가위로 오리기 (도련 10-19) : ✂️ 문구함의 가위를 들고 원하는 그림 둘레를 한 바퀴 따라 그리면 그 모양대로 오려져요 (처음 자리까지 돌아와야 해요 · 종이에서 떨어지지 않아요)
+        → 가는 동안 싹둑싹둑 (소리 · 가위가 오리는 방향으로 돌아요 · js/skins.js scs) · 자른 선은 싹둑마다 한 토막씩 · 가위 없이 그리면 '✂️ 가위를 사용해 주세요'
+     2) 오린 스티커를 🪡 핀셋으로 누른 채 끌면 (핀셋 없이 끌면 '🪡 핀셋을 사용해 주세요') 🏷️ 씰스티커처럼 가장자리부터 말려 떼어져요 (js/peelfx.js pfxSeal) → 다 떼면 손가락을 따라와요
         → 페이지에 놓으면 그 자리 · 그 각도로 붙어요 · 덜 떼고 놓거나 페이지 밖에 놓으면 종이의 제자리로 착 돌아가요
      3) 칼집 낸 스티커 : 톡 = ✍️ 글씨 쓰기 (스티커 위에만 써져요) · 꾹 = 구김
    - 종이 위쪽 마스킹테이프(✋ 잡고 옮겨요)를 끌면 종이가 화면 안에서 옮겨져요 (칼집 낸 스티커도 같이)
@@ -17,6 +18,8 @@
    ※ 이 파일이 없어도 다이어리는 정상 동작 (모조지스티커만 '준비 중') */
 
         const PM_W = 360, PM_HR = 2, PM_OUT = 420;
+        const PM_HINT = '✂️ <b>가위</b>를 들고 원하는 그림 둘레를 <b>한 바퀴</b> 따라 그려 오려요';
+        const pmScs = () => !window.gdScs || gdScs(), pmTwz = () => !window.gdTwz || gdTwz();   // ✂️ 오리기는 가위로 · 🪡 떼기는 핀셋으로 (js/skins.js 문구함)
         const PM_PENS = ['#2f2a2c', '#7a4b3a', '#d0566b', '#3f6fb5'];
         const pmS = { on: false, cv: null, ctx: null, W: 0, H: 0, DPR: 1, raf: 0, hint: '', sheet: null, SH: 0, SC: 1, X: 0, Y: 0, mv: { x: 0, y: 0 },
             pieces: [], fades: [], drag: null, edit: null, z: 1, pen: PM_PENS[0] };
@@ -91,7 +94,7 @@
             pmq('pmPens').hidden = true;
             const room = pmq('pmRoom'); room.classList.toggle('pm-note', !!S.note); room.classList.add('show');
             if (!S.note) document.body.classList.add('fc-lock');
-            S.hint = ''; pmSay(S.note ? '원하는 그림 둘레를 손가락으로 <b>한 바퀴</b> 따라 그리면 칼집이 나요' : '원하는 그림 둘레를 손가락으로 <b>한 바퀴</b> 따라 그리면 칼집이 나요 · 위쪽 <b>테이프</b>를 끌면 옮겨져요');
+            S.hint = ''; pmSay(S.note ? PM_HINT : PM_HINT + ' · 위쪽 <b>테이프</b>를 끌면 옮겨져요');
             cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(pmFrame);
             if (S.note && dn && !dn.done) {                                          // 누른 채 그대로 그리면 바로 칼집이 나요
                 pmZones(); const z = pmq('pmHit').firstChild;
@@ -282,7 +285,12 @@
             }
             const tp = pmTape();                                                           // 위쪽 테이프 : 종이 옮기기 (📒 수첩에는 없어요)
             if (!S.note && P[0] > tp.x - 8 && P[0] < tp.x + tp.w + 8 && P[1] > tp.y - 8 && P[1] < tp.y + tp.h + 8) { cap(); S.drag = { mode: 'sheet', last: P }; pmSay('종이를 옮기는 중… ✋'); return; }
-            if (pmInSheet(P, 14)) { cap(); S.drag = { mode: 'cut', pts: [P], len: 0, acc: 0, ang: 0, lt: pmNow() }; pmSay('스윽스윽… <b>처음 자리</b>까지 한 바퀴 돌아와요'); return; }
+            if (pmInSheet(P, 14)) {
+                if (!pmScs()) { if (window.scsSay) scsSay(P[0], P[1]); return; }          // ✂️ 가위를 들어야 오려져요
+                cap(); const d = S.drag = { mode: 'cut', pts: [P], len: 0, shown: 0, lt: pmNow() };
+                if (window.scsCutStart) scsCutStart(P[0], P[1], () => { d.shown = d.len; }); else d.shown = Infinity;   // 자른 선은 싹둑마다 한 토막씩
+                pmSay('싹둑싹둑… <b>처음 자리</b>까지 한 바퀴 돌아와요'); return;
+            }
         }
         function pmMove(e) {
             const S = pmS, d = S.drag; if (!d) return;
@@ -290,7 +298,7 @@
             if (d.mode === 'sheet') { pmShift(P[0] - d.last[0], P[1] - d.last[1]); d.last = P; return; }
             if (d.mode === 'cut') {
                 const L = d.pts[d.pts.length - 1], l = pmDist(P, L); if (l < 2.5) return;
-                d.pts.push(P); d.len += l; d.acc += l; d.ang = Math.atan2(P[1] - L[1], P[0] - L[0]);
+                d.pts.push(P); d.len += l;
                 if (d.len > 90 && d.pts.length > 14 && pmDist(P, d.pts[0]) < 20) pmFinishCut();
                 return;
             }
@@ -304,6 +312,7 @@
                 if (d.seal) { d.seal.move(P[0], P[1]); return; }
                 if (pmDist(P, d.start) < 7 || d.crumpled) return;
                 d.moved = true; clearTimeout(d.lp);
+                if (!pmTwz()) { S.drag = null; if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🪡 떼는 건 핀셋으로 (톡 = 글씨 · 꾹 = 구김은 그대로)
                 d.seal = pmPeel(d.st, d.start);
                 if (d.seal) d.seal.move(P[0], P[1]); else S.drag = null;
             }
@@ -331,19 +340,21 @@
         /* 한 바퀴 다 그리면 그 모양대로 칼집 : 스티커는 종이에 그대로 붙어 있어요 (떨어지지 않아요) */
         function pmFinishCut() {
             const S = pmS, d = S.drag; S.drag = null;
+            if (window.scsCutEnd) scsCutEnd(true);                                          // 마지막 싹둑
             const st = pmCutOut(d.pts);
-            if (!st) { S.fades.push({ pts: d.pts, len: d.len, t0: pmNow() }); pmSay('여긴 종이가 거의 없어요. 남은 그림에 칼집을 내 보세요'); return; }
+            if (!st) { S.fades.push({ pts: d.pts, len: d.len, t0: pmNow() }); pmSay('여긴 종이가 거의 없어요. 남은 그림을 오려 보세요'); return; }
             S.pieces.push(st); st.squish = pmNow(); pmBuzz(18);
-            pmSay('스윽! 칼집이 났어요 ✂️ 스티커를 <b>누른 채 끌어서</b> 떼어 내요 · 톡 = ✍️ 글씨');
+            pmSay('싹둑! 오려졌어요 ✂️ <b>🪡 핀셋</b>으로 누른 채 끌어서 떼어 내요 · 톡 = ✍️ 글씨');
         }
         function pmUp(e) {
             const S = pmS, d = S.drag; if (!d) return;
             S.drag = null;
-            if (d.mode === 'sheet') { pmSay('원하는 그림 둘레를 손가락으로 <b>한 바퀴</b> 따라 그리면 칼집이 나요'); return; }
+            if (d.mode === 'sheet') { pmSay(PM_HINT); return; }
             if (d.mode === 'cut') {
                 if (d.len > 90 && pmDist(d.pts[d.pts.length - 1], d.pts[0]) < 44) { S.drag = d; pmFinishCut(); return; }
+                if (window.scsCutEnd) scsCutEnd(false);
                 S.fades.push({ pts: d.pts, len: d.len, t0: pmNow() });
-                pmSay(d.len < 60 ? '그림 둘레를 <b>쭉 이어서</b> 따라 그려요' : '아쉬워요! <b>처음 자리</b>까지 돌아와야 칼집이 나요'); return;
+                pmSay(d.len < 60 ? '그림 둘레를 <b>쭉 이어서</b> 따라 그려요' : '아쉬워요! <b>처음 자리</b>까지 돌아와야 오려져요'); return;
             }
             if (d.mode === 'edittap') { if (pmDist([e.clientX, e.clientY], d.start) < 12) pmExitEdit(); return; }
             if (d.mode === 'piece') {
@@ -374,7 +385,7 @@
             }
             if (typeof saveData === 'function') saveData(false);
             pmBuzz(8);
-            pmSay('꾹! 붙였어요 ✨ 다른 그림에도 칼집을 내 보세요');
+            pmSay('꾹! 붙였어요 ✨ 다른 그림도 오려 보세요');
         }
 
         /* ---------- 그리기 ---------- */
@@ -396,25 +407,16 @@
         }
         function pmDrawCut(c, d, alpha, t) {
             const pts = d.pts; if (pts.length < 2) return;
+            const lim = alpha === 1 && d.shown != null ? d.shown : Infinity;                 // ✂️ 오리는 중 : 싹둑한 데까지만 (js/skins.js scs)
             c.save(); c.globalAlpha = alpha; c.lineJoin = 'round'; c.lineCap = 'round';
-            c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const p of pts) c.lineTo(p[0], p[1]);
+            c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+            for (let i = 1, run = 0; i < pts.length; i++) { const l = pmDist(pts[i - 1], pts[i]); if (run + l > lim) { const q = (lim - run) / l; c.lineTo(pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * q, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * q); break; } run += l; c.lineTo(pts[i][0], pts[i][1]); }
             c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2.4; c.stroke(); c.strokeStyle = 'rgba(70,52,58,.75)'; c.lineWidth = 1.1; c.stroke();
             if (alpha === 1) {
-                const S0 = pts[0], L = pts[pts.length - 1];
+                const S0 = pts[0];
                 if (d.len > 50) { const pu = .5 + .5 * Math.sin(t / 160); c.setLineDash([4, 4]); c.strokeStyle = `rgba(210,90,120,${.45 + pu * .4})`; c.lineWidth = 1.6; c.beginPath(); c.arc(S0[0], S0[1], 20 + pu * 3, 0, 7); c.stroke(); c.setLineDash([]); }
-                c.translate(L[0], L[1]); c.rotate(d.ang + Math.PI - .5); pmKnife(c);
             }
             c.restore();
-        }
-        /* 커터칼 : 칼끝이 (0, 0) · 손잡이는 +x 쪽 */
-        function pmKnife(c) {
-            c.shadowColor = 'rgba(80,50,60,.25)'; c.shadowBlur = 4; c.shadowOffsetY = 2;
-            c.beginPath(); c.moveTo(0, 0); c.lineTo(13, -4.5); c.lineTo(13, 3.5); c.closePath();                       // 칼날
-            c.fillStyle = '#e9edf3'; c.fill(); c.shadowBlur = 0; c.shadowOffsetY = 0; c.strokeStyle = '#a8b0bd'; c.lineWidth = .8; c.stroke();
-            c.strokeStyle = 'rgba(150,158,170,.7)'; c.lineWidth = .6; c.beginPath(); c.moveTo(6, -2.2); c.lineTo(6, 1.8); c.stroke();
-            pmRR(c, 12, -5.5, 30, 11, 5); c.fillStyle = '#ffb3c8'; c.fill(); c.strokeStyle = '#e88aa4'; c.lineWidth = 1; c.stroke();   // 분홍 손잡이
-            c.fillStyle = '#fff'; c.beginPath(); c.arc(22, -1.5, 2.2, 0, 7); c.fill();                                // 밀개
-            c.fillStyle = 'rgba(255,255,255,.55)'; pmRR(c, 26, -4, 13, 2.4, 1.2); c.fill();
         }
         /* 종이 위쪽 마스킹테이프 (잡고 옮기는 손잡이) */
         function pmDrawTape(c) {

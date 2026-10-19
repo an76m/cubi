@@ -1101,21 +1101,25 @@
              다른 문구함은 다이어리를 다시 열면 문구함 칸으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
         /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
         let twzSayT = 0;
-        function twzSay(x, y) {
+        function twzSay(x, y, t) {                                                // t : 다른 말 (✂️ 가위 · scsSay)
             let b = document.getElementById('twzSay2');
-            if (!b) { b = document.createElement('div'); b.id = 'twzSay2'; b.className = 'twz-say'; b.textContent = '🪡 핀셋을 사용해 주세요'; document.body.appendChild(b); }
+            if (!b) { b = document.createElement('div'); b.id = 'twzSay2'; b.className = 'twz-say'; document.body.appendChild(b); }
+            b.textContent = t || '🪡 핀셋을 사용해 주세요';
             b.style.left = Math.max(90, Math.min(innerWidth - 90, x)) + 'px'; b.style.top = Math.max(40, y - 14) + 'px';
             b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
             clearTimeout(twzSayT); twzSayT = setTimeout(() => b.classList.remove('on'), 1600);
         }
         window.twzSay = twzSay;
+        window.scsSay = (x, y) => twzSay(x, y, '✂️ 가위를 사용해 주세요');   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
         const GD = {                                                            // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터)
             twz: { g: 'tweez', n: '기본 핀셋', w: 55.8, h: 201.5, hx: 27.9, hy: 4.6 },
             punch1: { g: 'punch', n: '기본 펀칭기', w: 56, h: 112, hx: 28, hy: 21 },
-            tape1: { g: 'tape', n: '기본 양면테이프', w: 132, h: 74, hx: 6, hy: 62 }
+            tape1: { g: 'tape', n: '기본 양면테이프', w: 132, h: 74, hx: 6, hy: 62 },
+            scs1: { g: 'scissors', n: '기본 가위', w: 54, h: 126, hx: 27, hy: 46 }   // hx · hy : 날이 종이를 무는 자리 (아래 scs)
         };
         const gdInfo = id => { const c = String(id).startsWith('clip:') && CLIPS.find(x => 'clip:' + x[0] === id); return c ? { g: 'clip', n: c[1], c: c[2], w: 118, h: 92, hx: CLIP_GX, hy: CLIP_GY } : GD[id] || null; };
         function toolSvg(g) {
+            if (g === 'scissors') return scsSvg(.35);
             if (g === 'punch') return `<svg viewBox="0 0 64 128" aria-hidden="true">
                 <rect x="7" y="8" width="50" height="114" rx="12" fill="#3b3e45"/><rect x="9" y="10" width="46" height="110" rx="11" fill="#55595f"/>
                 <defs><linearGradient id="tpH${toolN}" x1="0" x2="1"><stop offset="0" stop-color="#e9e8e2"/><stop offset=".35" stop-color="#fbfbf8"/><stop offset=".75" stop-color="#f1f0eb"/><stop offset="1" stop-color="#d9d8d1"/></linearGradient></defs>
@@ -1132,7 +1136,8 @@
         }
         let toolN = 0;
         const gdArt = (id, t = gdInfo(id)) => t.g === 'tweez' ? (typeof pinSvg === 'function' ? pinSvg() : '') : t.g === 'clip' ? clipSvg(t.c) : toolSvg(t.g);
-        let gdHeld = null, gdG = null, gdInit = false, gdBook = null;           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
+        let gdHeld = null, gdG = null, gdInit = false, gdBook = null;
+        const gdScs = () => !!gdHeld && (gdInfo(gdHeld) || {}).g === 'scissors';           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
         const gdIp = () => document.getElementById('innerPage');
         const gdEl = id => { const ip = gdIp(); return ip ? [...ip.querySelectorAll(':scope > .bd-tool')].find(x => x.dataset.t === id) || null : null; };
         function gdK() { const ip = gdIp(), r = ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }
@@ -1157,7 +1162,7 @@
         function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구함마다 조금씩 비켜서)
             const cv = document.getElementById('canvasArea'), r = cv.getBoundingClientRect(), t = gdInfo(id);
             const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), tp = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
-            const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
+            const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
         }
         function gdPick(id) {                                                   // ✂️ 문구함 칸 톡 : 놓기 ↔ 치우기
@@ -1178,7 +1183,7 @@
             if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
         }
         function gdLet() {                                                      // 내려놓기 (지금 자리에)
-            const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null);
+            const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
             if (!el) return;
             el.classList.remove('held', 'snap');
             if (id.startsWith('clip:')) gdClipSave();
@@ -1186,6 +1191,7 @@
         function gdFollow(x, y, e) {                                            // 손끝(쓰는 끝) = 포인터
             const el = gdHeld && gdEl(gdHeld); if (!el) return;
             if (gdHeld === 'twz') { document.body.classList.remove('gd-on'); return; }   // 🪡 핀셋은 원래 핀셋 화살표가 따라와요 (js/elements.js pinMove)
+            if (gdScs()) { document.body.classList.remove('gd-on'); scsPut(x, y, e, true); return; }   // ✂️ 가위는 화면 위에 떠서 따라와요 (📒 수첩 · 모조지 종이 위로도)
             const t = gdInfo(gdHeld), p = gdTo(x, y);
             el.style.left = (p.x - t.hx) + 'px'; el.style.top = (p.y - t.hy) + 'px';
             document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구함
@@ -1199,6 +1205,15 @@
                 gdEat(e);
                 if (tool.classList.contains('edge')) gdG = { k: 'rail', el: tool, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
                 else gdHold(tool.dataset.t, e.clientX, e.clientY, e);
+                return true;
+            }
+            if (gdScs()) {                                                      // ✂️ 가위 : 어디를 눌러도 손에 그대로 (모조지 종이 · 📒 수첩은 그쪽에서 오려요 js/papermaker.js)
+                scsPut(e.clientX, e.clientY, e);
+                if (!inDy || e.target.closest('.page-header, button, textarea, input, select')) return false;
+                gdEat(e);
+                const box = e.target.closest('#canvasArea > .element-box');
+                if (box && !box.querySelector('textarea')) twzSay(e.clientX, e.clientY);   // 스티커는 🪡 핀셋으로
+                else scsSnip();                                                 // 빈 곳 = 허공에 싹둑
                 return true;
             }
             if (gdHeld && gdHeld !== 'twz') {
@@ -1230,6 +1245,7 @@
             const t = e.target && e.target.closest && e.target.closest('#innerPage > .bd-tool:not(.held):not(.edge)');
             document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
             if (gdHeld === 'twz') return;                                      // 🪡 핀셋은 밖으로도
+            if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
             if (!gdIn(e.clientX, e.clientY)) { gdLet(); return; }               // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표
             if (gdInfo(gdHeld).g === 'punch' && e.pointerType === 'mouse' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }   // 🕳️ 가장자리에 착
             gdFollow(e.clientX, e.clientY, e);
@@ -1241,6 +1257,72 @@
             else if (g.k === 'rail') { if (g.moved) gdClipSave(); else if (k === 'pointerup') gdHold(g.el.dataset.t, e.clientX, e.clientY, e); }   // 꽂힌 집게를 톡 = 빼서 들기
         }, true));
         window.addEventListener('blur', () => { document.body.classList.remove('gd-on'); });
+        /* ✂️ 가위 (도련 10-19) : 문구함 → 페이지에 놓고 → 누르면 손에 · 📄 모조지스티커는 가위로만 오려요 (js/papermaker.js)
+           - 든 가위는 화면 위에 떠서 따라와요 (.scs-cur · 📒 수첩 · 모조지 종이 위로도) · 날은 벌린 채
+           - 오리는 동안 : 조금 갈 때마다(SCS_STEP) 날이 싹둑 닫혔다 벌어지고 소리 · 가위 끝이 오리는 방향으로 부드럽게 돌아요
+           - 자른 선은 싹둑 한 번마다 한 토막씩 늘어나요 (papermaker 의 d.shown) · 페이지 빈 곳을 누르면 허공에 싹둑
+           - 종이는 가만히 있어요 (칼선 없이 마음대로 오리니까 · 도련 10-19) */
+        const SCS_STEP = 22, SCS_MAX = 14, SCS_REST = -20;                      // 싹둑 한 번 거리(px) · 가장 벌린 각도 · 쉬는 기울기(도)
+        function scsSvg(o) {                                                    // o : 벌린 정도 0 ~ 1 · 손잡이 고리 2개 + 날 2개 + 나사
+            const a = (o * SCS_MAX).toFixed(2), n = toolN++;
+            const blade = (d, id) => `<path d="${d}" fill="url(#${id})" stroke="#8d97a8" stroke-width=".9" stroke-linejoin="round"/>`;
+            const ring = (cx, arm, col, ln) => `<path d="${arm}" fill="none" stroke="${ln}" stroke-width="8.4" stroke-linecap="round"/><path d="${arm}" fill="none" stroke="${col}" stroke-width="6.2" stroke-linecap="round"/>
+                <ellipse cx="${cx}" cy="106" rx="10.5" ry="13" fill="none" stroke="${ln}" stroke-width="7.6"/><ellipse cx="${cx}" cy="106" rx="10.5" ry="13" fill="none" stroke="${col}" stroke-width="5.4"/>
+                <path d="M${cx - 6} 98 Q${cx - 3} 94 ${cx + 1} 94" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>`;
+            return `<svg viewBox="0 0 54 126" overflow="visible" aria-hidden="true"><defs><linearGradient id="scM${n}" x1="0" x2="1"><stop offset="0" stop-color="#f6f8fb"/><stop offset=".5" stop-color="#d5dce6"/><stop offset="1" stop-color="#aeb8c7"/></linearGradient></defs>
+                <g class="scs-b" transform="rotate(${-a} 27 70)">${ring(40, 'M27 70 C30 78 35 86 39 93', '#9fd0f7', '#5f9fd6')}${blade('M27.4 76 C28 60 28.6 40 28.2 18 Q27.6 6 24.4 5 Q21.4 6 21 20 C20.6 40 22 60 23.2 72 Z', 'scM' + n)}</g>
+                <g class="scs-a" transform="rotate(${a} 27 70)">${ring(14, 'M27 70 C24 78 19 86 15 93', '#ff9fbd', '#e0729a')}${blade('M26.6 76 C26 60 25.4 40 25.8 18 Q26.4 6 29.6 5 Q32.6 6 33 20 C33.4 40 32 60 30.8 72 Z', 'scM' + n)}
+                  <path d="M31.2 14 C31.8 30 31.4 50 30.3 64" stroke="#fff" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".85"/></g>
+                <circle cx="27" cy="70" r="4.4" fill="#fff4f8" stroke="#c98aa0" stroke-width="1"/><path d="M27 72.6 l-2.2 -2.1 a1.25 1.25 0 0 1 2.2 -1.5 a1.25 1.25 0 0 1 2.2 1.5 z" fill="#ff7fa6"/></svg>`;   // 나사 : 작은 하트
+        }
+        const scs = { el: null, x: 0, y: 0, ang: SCS_REST, to: SCS_REST, snip: -1e9, raf: 0, cut: null, on: false };
+        function scsRel(x, y) {                                                 // 가위가 갈 수 있는 곳 (다이어리 · 모조지 종이 · 📒 수첩) · 버튼 · 메뉴 · 다른 창 위는 그 자리에 둥실
+            const top = document.elementsFromPoint(x, y).find(n => !n.closest('.scs-cur, .pin-cur, .twz-say'));
+            if (!top || top.closest('button, a, input, select, textarea, .tap-menu, #pageHeader, .page-header') || (top.closest('.modal') && !top.closest('.modal.snb-on'))) return false;
+            return top === document.body || top === document.documentElement || !!top.closest('#diaryWrapper, #bgPatternLayer, .pm-z, .modal.snb-on');
+        }
+        function scsPut(x, y, e, force) {                                       // 따라가기 (force : 손에 든 순간)
+            if (!force && !scs.cut && !scsRel(x, y)) { document.body.classList.remove('scs-on'); return; }
+            if (!scs.el) { scs.el = document.createElement('div'); scs.el.className = 'scs-cur'; scs.el.innerHTML = scsSvg(1); document.body.appendChild(scs.el); }
+            if (scs.cut) {                                                      // ✂️ 오리는 중 : 간 거리만큼 싹둑 · 가는 방향으로 돌기
+                const c = scs.cut, dx = x - c.x, dy = y - c.y, l = Math.hypot(dx, dy);
+                if (l >= 6) { c.acc += l; c.x = x; c.y = y; scs.to = Math.atan2(dy, dx) * 180 / Math.PI + 90; }
+                if (c.acc >= SCS_STEP && performance.now() - scs.snip > 150) { c.acc = 0; scsSnip(); if (c.on) c.on(); }
+            }
+            scs.x = x; scs.y = y; scs.el.hidden = false; scs.on = true;
+            document.body.classList.toggle('scs-on', !e || e.pointerType === 'mouse');   // 💻 화살표 대신 가위
+            if (!scs.raf) scs.raf = requestAnimationFrame(scsFrame);
+        }
+        function scsHide() { scs.on = false; scs.cut = null; if (scs.el) scs.el.hidden = true; document.body.classList.remove('scs-on'); }
+        function scsSnip() { scs.snip = performance.now(); scsSnd(); try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {} }
+        function scsFrame(t) {
+            scs.raf = 0;
+            if (!gdScs() || !isCoverOpen) { scsHide(); return; }
+            if (!scs.on || !scs.el) return;
+            let d = ((scs.to - scs.ang + 540) % 360) - 180; scs.ang += d * (scs.cut ? .22 : .1);   // 손떨림에 덜덜 떨지 않게 부드럽게
+            const k = t - scs.snip, o = k < 70 ? 1 - .92 * k / 70 : k < 190 ? .08 + .92 * (k - 70) / 120 : 1;   // 싹둑 : 0.07초에 닫고 0.12초에 다시 벌려요
+            const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g');
+            g[0].setAttribute('transform', `rotate(${-a} 27 70)`); g[1].setAttribute('transform', `rotate(${a} 27 70)`);
+            const T = GD.scs1; scs.el.style.transform = `translate(${scs.x - T.hx}px, ${scs.y - T.hy}px) rotate(${scs.ang.toFixed(2)}deg)`;
+            scs.raf = requestAnimationFrame(scsFrame);
+        }
+        /* 📄 모조지 오리기 (js/papermaker.js) : 시작 · 끝 · 싹둑마다 on() (자른 선을 한 토막 늘려요) */
+        function scsCutStart(x, y, on) { if (!gdScs()) return false; scs.cut = { x, y, acc: 0, on }; scsPut(x, y, null, true); return true; }
+        function scsCutEnd(done) { if (!scs.cut) return; scs.cut = null; scs.to = SCS_REST; if (done) scsSnip(); }
+        function scsSnd() {                                                     // 🔊 싹둑 (날이 스치는 소리 + 닫히는 딸깍)
+            const ac = typeof sndFx === 'function' ? sndFx() : null; if (!ac) return;
+            const t = ac.currentTime, out = sndOut();
+            const n = Math.floor(ac.sampleRate * .07), buf = ac.createBuffer(1, n, ac.sampleRate), v = buf.getChannelData(0);
+            for (let i = 0; i < n; i++) { const q = i / n; v[i] = (Math.random() * 2 - 1) * Math.pow(q < .2 ? q / .2 : 1 - (q - .2) / .8, 2); }
+            const sr = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+            sr.buffer = buf; f.type = 'bandpass'; f.frequency.setValueAtTime(5200, t); f.frequency.exponentialRampToValueAtTime(2600, t + .07); f.Q.value = 1.4; g.gain.value = .32;
+            sr.connect(f).connect(g).connect(out); sr.start(t);
+            const o = ac.createOscillator(), gg = ac.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(2300, t + .06); o.frequency.exponentialRampToValueAtTime(1400, t + .09);
+            gg.gain.setValueAtTime(.0001, t + .06); gg.gain.exponentialRampToValueAtTime(.12, t + .064); gg.gain.exponentialRampToValueAtTime(.0001, t + .1);
+            o.connect(gg).connect(out); o.start(t + .06); o.stop(t + .11);
+        }
+        window.gdScs = gdScs; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
+
         /* 🕳️ 펀칭기 (도련 10-19 · 진짜처럼 12번) : 구멍 자리 근처로 가면 그 자리에 착 붙고 → 누르면 철컥 하나 뚫려요
            - 💻 마우스 = 근처로 가면 붙어서 점선 동그라미(.gd-slot)가 보여요 (스티커에 가려도) · 👆 터치 = 근처를 누르면 붙으며 바로 뚫려요 · 빗나가면 "다시 눌러 주세요"
            - 구멍은 꾸밈 위로 보여요 = 스티커째 뚫린 것처럼 (.bd-hl) · 링을 연 뒤 꺼낸 종이에서만 */
@@ -1740,7 +1822,7 @@
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️', '문구함': '✂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
-        const DY_GOODS = [['tweez', '🪡 핀셋'], ['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프']];                                // ✂️ 문구함 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구함을 여기에)
+        const DY_GOODS = [['tweez', '🪡 핀셋'], ['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프'], ['scissors', '✂️ 가위']];                                // ✂️ 문구함 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구함을 여기에)
         let dyKind = '다이어리', dyTab = 'free';
         const dyItems = (kind, tab) => tab === 'clip' ? CLIPS.map(c => ({ tool: 'clip:' + c[0] })) : DY_GOODS.some(x => x[0] === tab) ? Object.keys(GD).filter(id => GD[id].g === tab).map(id => ({ tool: id })) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
@@ -1768,7 +1850,7 @@
                 ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
-            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'tweez' ? '🪡 톡 하면 페이지에 놓여요 · 놓인 핀셋을 누르면 손에 들어요 · 핀셋을 들어야 스티커를 옮길 수 있어요' : g === 'clip' ? '📎 톡 하면 페이지에 놓여요 (여러 개) · 들고 다이어리 테두리 근처를 누르면 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가요' : g === 'punch' ? '🕳️ 톡 하면 페이지에 놓여요 · 들고 링을 연 종이의 구멍 자리 근처로 가면 착 붙고 · 누르면 철컥 뚫려요 (12개)' : g === 'tape' ? '🩹 톡 하면 페이지에 놓여요 · 들고 끌면 양면테이프가 발라져요' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
+            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'tweez' ? '🪡 톡 하면 페이지에 놓여요 · 놓인 핀셋을 누르면 손에 들어요 · 핀셋을 들어야 스티커를 옮길 수 있어요' : g === 'clip' ? '📎 톡 하면 페이지에 놓여요 (여러 개) · 들고 다이어리 테두리 근처를 누르면 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가요' : g === 'punch' ? '🕳️ 톡 하면 페이지에 놓여요 · 들고 링을 연 종이의 구멍 자리 근처로 가면 착 붙고 · 누르면 철컥 뚫려요 (12개)' : g === 'tape' ? '🩹 톡 하면 페이지에 놓여요 · 들고 끌면 양면테이프가 발라져요' : g === 'scissors' ? '✂️ 톡 하면 페이지에 놓여요 · 들고 모조지스티커 그림 둘레를 따라 그리면 싹둑싹둑 오려져요 · 떼는 건 🪡 핀셋으로' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
             dyRender();
             if (g === 'mine' && dyKind !== '다이어리' && typeof dmkSync === 'function') dmkSync(dyKind);   // 드라이브의 내노트 · 내바인더 목록과 맞추기
         }

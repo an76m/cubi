@@ -367,7 +367,7 @@
                 if (e.button > 0 || !m.classList.contains('snb-on') || !e.target.closest || e.target.closest('.modal-title, .snb-cover, .snb-ear')) return;
                 if (snb.press) { if (snb.press.drag) return; clearTimeout(snb.press.timer); }
                 const pp = e.target.closest('.snb-paper');
-                if (pp && body.contains(pp) && window.openPaperSheet) {          // 📄 모조지스티커 종이 : 수첩 안에서 바로 칼집 (js/papermaker.js)
+                if (pp && body.contains(pp) && window.openPaperSheet) {          // 📄 모조지스티커 종이 : 수첩 안에서 바로 오려요 (✂️ 가위 · 🪡 핀셋 확인은 js/papermaker.js)
                     snb.press = null; e.preventDefault(); e.stopPropagation(); snb.noClick = Date.now() + 700;
                     openPaperSheet(pp.src, { el: pp, down: { x: e.clientX, y: e.clientY, id: e.pointerId } });
                     return;
@@ -429,7 +429,7 @@
         }
         /* 🪡 핀셋을 안 들면 🪟 고르는 창 · 📒 수첩에서도 스티커를 못 떼요 (도련 10-19 · 페이지 위 스티커와 같은 규칙 js/skins.js gd)
            - 누르면 그 칸이 살짝 흔들리고 페이지에 놓인 핀셋이 콩 뛰어요 · 그 자리에 '핀셋을 사용해 주세요' 말풍선 (js/skins.js twzSay · 도련 10-19) · 밀어서 장 넘기기 · 칸 고르기 · 메모지 · 속지는 그대로 */
-        const SNB_STK = '.snb-pc, .snb-paper, .spk-card, .sb-card, .tp-item, .tk-it, .lib-item, .sticker-item, .smk-it';
+        const SNB_STK = '.snb-pc, .spk-card, .sb-card, .tp-item, .tk-it, .lib-item, .sticker-item, .smk-it';
         const snbLock = () => !!window.gdTwz && !gdTwz();
         function snbLockAt(e) {
             if (!e.isTrusted || !snbLock() || !e.target.closest) return null;
@@ -440,7 +440,7 @@
             const tw = document.querySelector('#innerPage > .bd-tool.tweez:not(.held)');
             if (tw) try { tw.animate([{ translate: '0 0' }, { translate: '0 -14px' }, { translate: '0 0' }, { translate: '0 -6px' }, { translate: '0 0' }], { duration: 520, easing: 'ease-out' }); } catch (er) {}
         }
-        window.addEventListener('pointerdown', e => { const it = snbLockAt(e); if (it && it.matches('.tk-it, .snb-paper')) { e.preventDefault(); e.stopPropagation(); } }, true);   // 누르는 순간 떼어지는 칸 (🧻 떡메 · 📄 모조지 종이)
+        window.addEventListener('pointerdown', e => { const it = snbLockAt(e); if (it && it.matches('.tk-it')) { e.preventDefault(); e.stopPropagation(); } }, true);   // 누르는 순간 떼어지는 칸 (🧻 떡메 · 📄 모조지 종이)
         window.addEventListener('click', e => { const it = snbLockAt(e); if (!it) return; e.preventDefault(); e.stopPropagation(); snbNudge(it); if (window.twzSay) twzSay(e.clientX, e.clientY); }, true);
         /* 🔀 수첩 ↔ 다이어리 : 누른 쪽이 앞으로 와요 (번갈아 옮기기) */
         document.addEventListener('pointerdown', e => {
