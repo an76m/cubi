@@ -156,7 +156,7 @@
             const on = pk.pick, r = pkq('pkRoom');
             r.querySelectorAll('.pk-t').forEach(b => { const v = on.has(b.dataset.id); b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); });
             r.querySelectorAll('[data-n]').forEach(n => { const c = [...on].filter(id => id.split(':')[0] === n.dataset.n).length; n.textContent = c || ''; });
-            pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개`;
+            pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개<small>♥ 고른 것만 연필꽂이에 꽂혀요</small>`;
         }
         function pkToggle(b) {
             const id = b.dataset.id, on = pk.pick;

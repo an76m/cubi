@@ -3433,6 +3433,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .pc-box { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%) rotate(-3deg); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 9px 18px 10px; border: 2px dashed #f48bab; border-radius: 14px; outline: 4px solid #fff; background: #fffaf6; color: #d0517a; font: inherit; cursor: pointer; box-shadow: 0 6px 12px rgba(150,60,90,.28); transition: transform .18s; -webkit-tap-highlight-color: transparent; }
 .pc-box small { font-size: 11px; font-weight: 700; color: #b07a8c; }
 .pc-box b { font-size: 19px; font-weight: 900; white-space: nowrap; }
+.pc-box em { margin-top: 3px; padding: 2px 9px; border-radius: 9px; background: #ffe3ec; color: #c2456f; font-size: 11px; font-style: normal; font-weight: 800; white-space: nowrap; }
 .pc-box:hover { transform: translate(-50%, -50%) rotate(-3deg) scale(1.05); }
 .pc-box:active { transform: translate(-50%, -50%) rotate(-3deg) scale(.95); }
 .pc-cup.gone .pc-box { pointer-events: none; }
@@ -3558,6 +3559,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
   box-shadow: inset 0 4px 10px rgba(70,10,35,.45), inset 0 0 0 2px rgba(255,255,255,.12); }
 .pk-tip { margin: 0 0 8px; padding: 6px 10px; border-radius: 10px; background: rgba(255,250,246,.95); color: #7a5a66; font-size: 12.5px; text-align: center; word-break: keep-all; box-shadow: 0 2px 5px rgba(60,10,30,.25); }
 .pk-tip b { color: #d0517a; }
+.pk-tip small { display: block; margin-top: 2px; color: #c2456f; font-size: 11.5px; font-weight: 700; }
 .pk-tip.shake { animation: pkShake .4s; }
 @keyframes pkShake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
 /* 🗂 종류 칸 (색연필 · 형광펜 · 지우개 · 칼 · 자) : 숫자 = 꽂은 개수 */
