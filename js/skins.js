@@ -604,7 +604,7 @@
             dyRender();                                                        // 고른 칸에 색 · 페이지가 바로 바뀌어서 따로 알림은 없어요
         }
         function dyLoad() { if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco(); }
-        /* 📎 집게 (도련 10-18) : 다이어리 둘레(종이 테두리)를 물어요 · 다이어리 · 노트 · 바인더 모두 · 여러 개를 꺼내 원하는 만큼 꽂아요 (아래 ✂️ 문구류)
+        /* 📎 집게 (도련 10-18) : 다이어리 둘레(종이 테두리)를 물어요 · 다이어리 · 노트 · 바인더 모두 · 여러 개를 꺼내 원하는 만큼 꽂아요 (아래 ✂️ 문구함)
            - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 크기는 다이어리 크기와 상관없이 늘 같아요 */
         const CLIPS = [['black', '검정', '#3f3b42'], ['pink', '분홍', '#ff8fb1'], ['sky', '하늘', '#7cc4ea'], ['yellow', '노랑', '#f7c948'], ['mint', '민트', '#6fcca8'], ['purple', '보라', '#b39ddb']];
         let clipN = 0;
@@ -634,7 +634,7 @@
         /* 📤 바인더 꺼내서 꾸미기 (도련 10-18) : 6공 바인더로 다꾸하는 사람들처럼
            - 📤 꺼내기 (펼침면 가운데 링 위 작은 버튼) : 링이 열리고 두 쪽이 빠져나와 가운데 틈이 닫혀 맞붙고 · 바인더(표지 · 링)는 빠지고 · 가운데에 테이프가 가로로 붙어요
              → 책상 위 종이 두 장 · 스티커가 가운데를 넘나들며 마음대로
-           - 📥 끼우기 : 펀치를 꼭 거쳐요 (기본펀치는 처음부터 · ✂️ 문구류 → 🕳️ 펀치) · 6공 자리에 구멍이 뚫리고 (구멍에 걸친 꾸밈에도 구멍) · 테이프를 떼고 링에 끼워 닫아요
+           - 📥 끼우기 : 펀치를 꼭 거쳐요 (기본펀치는 처음부터 · ✂️ 문구함 → 🕳️ 펀치) · 6공 자리에 구멍이 뚫리고 (구멍에 걸친 꾸밈에도 구멍) · 테이프를 떼고 링에 끼워 닫아요
            - 장마다 상태 : 설정 'diary_binder' { 권 id : { 장 : 1 꺼냄 | 2 구멍 뚫음 } } · 뚫은 구멍은 늘 남아요 (다시 꺼내도) */
         const BD_KEY = 'diary_binder', BD_LOCAL = 'malang_diary_binder';
         const PUNCHES = [['basic', '기본펀치', '#9aa0aa']];                      // 🕳️ 펀치 (나중에 문구점 · 예쁜 펀치)
@@ -711,7 +711,7 @@
         let bdGrp = 't';                                                        // ✋ 수동 : 위 링 · 아래 링 중 어디서
         let bdEat = 0;                                                          // 그 자리를 누른 손짓은 다른 데(메뉴 · 넘기기)로 안 가요
         window.addEventListener('pointerdown', e => {                         // window 에서 먼저 받아요 (js/tapmenu.js 의 빈 곳 톡 메뉴보다 먼저)
-            if (gdDown(e)) return;                                            // ✂️ 문구류를 들고 있거나 놓인 문구류를 누르면 (아래 gdDown)
+            if (gdDown(e)) return;                                            // ✂️ 문구함을 들고 있거나 놓인 문구함을 누르면 (아래 gdDown)
             if (bdFree && e.target.closest && e.target.closest('.bd-back')) { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); bdBack(); return; }   // 📥 바인더에 다시 끼우기
             if (bdFree) { bdFreeDown(e); return; }                          // 📄 두 쪽을 스티커처럼 (아래 bdFree)
             if (!bdHit(e)) { bdShow(false); return; }
@@ -731,7 +731,7 @@
         }
         window.bdGapAt = bdGapAt;
         document.addEventListener('pointermove', e => {                        // 🖱 지나가면 보여요 · 겉표지를 밀어 펼친 손(마우스)이 그 자리에 머물러 있으면 안 보여요 (도련 10-18)
-            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt || (gdHeld && gdHeld !== 'twz')) return;   // ✂️ 문구류를 든 채면 안 보여요
+            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt || (gdHeld && gdHeld !== 'twz')) return;   // ✂️ 문구함을 든 채면 안 보여요
             if (!bdHit(e, true)) { bdArmed = true; return; }
             if (!bdArmed || !bdHit(e)) return;
             if (!bdShown()) bdShow(true);
@@ -1010,10 +1010,10 @@
             setTimeout(() => { ip.classList.add('dy-bo-back'); ip.classList.remove('dy-bo'); }, 1250);   // 두 쪽이 크기 그대로 벌어져 링에 끼워져요
             setTimeout(() => { ip.classList.remove('dy-bo-back', 'dy-bh-pop'); bdBusy = false; bdPut(2); bdSync(); }, 2700);
         }
-        /* ✂️ 문구류 = 손에 드는 도구 (도련 10-18 · 앞으로 더하는 문구류도 모두 이 규칙 · 쓰는 법만 문구류마다 조금씩)
-           - ✂️ 문구류 칸에서 톡 = 페이지 위에 놓여요 · 한 번 더 톡 = 치워요
-           - 놓인 문구류를 클릭 · 터치 = 손에 들어요 (🖱 마우스에 붙어 다니고 · 👆 터치는 누른 곳으로 순간 이동)
-           - 들고 있는 채 다른 놓인 문구류를 클릭 · 터치하면 바꿔 들어요 (🖱 지나가기만 해선 안 바뀌어요 · 도련 10-18) · 들고 있던 것은 그 문구류가 있던 자리에 놓여요
+        /* ✂️ 문구함 = 손에 드는 도구 (도련 10-18 · 앞으로 더하는 문구함도 모두 이 규칙 · 쓰는 법만 문구함마다 조금씩)
+           - ✂️ 문구함 칸에서 톡 = 페이지 위에 놓여요 · 한 번 더 톡 = 치워요
+           - 놓인 문구함을 클릭 · 터치 = 손에 들어요 (🖱 마우스에 붙어 다니고 · 👆 터치는 누른 곳으로 순간 이동)
+           - 들고 있는 채 다른 놓인 문구함을 클릭 · 터치하면 바꿔 들어요 (🖱 지나가기만 해선 안 바뀌어요 · 도련 10-18) · 들고 있던 것은 그 문구함이 있던 자리에 놓여요
            - 📎 집게는 바인더 링이 열려 표지가 사라지면 다 같이 사라지고 (⚡ 자동 · ✋ 수동) · 링에 다시 끼우면 다시 나와요
            - 들고 클릭 · 터치 = 쓰기 : 🪡 핀셋 집기(스티커 옮기기 · 돌리기 · 메뉴 · 원래대로) · 🕳️ 펀칭기 구멍 · 🩹 양면테이프 끌어서 바르기 · 📎 집게 테두리에 꽂기
              🕳️ · 📎 는 제자리 근처를 누르면 착 붙어요 (스냅) · 그 밖에선 옮겨지기만 해요
@@ -1021,7 +1021,7 @@
            - 🪡 핀셋을 안 들면 스티커를 못 만져요 (글 메모는 그대로) · 다이어리를 처음 열면 핀셋이 페이지에 하나 놓여 있어요
            - 저장 : 📎 집게는 권마다 (설정 'diary_clips' { 권 id : { 색 : { f 테두리 자리 } | { x, y 종이 위 자리(비율) } } })
              🕳️ 뚫은 구멍 (설정 'diary_holes' { 권 id : { 장 : 12칸 표시 } }) · 🩹 바른 테이프는 페이지 꾸밈(그림)이라 핀셋으로 옮기고 지울 수 있어요
-             다른 문구류는 다이어리를 다시 열면 문구류 칸으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
+             다른 문구함은 다이어리를 다시 열면 문구함 칸으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
         /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
         let twzSayT = 0;
         function twzSay(x, y) {
@@ -1055,7 +1055,7 @@
         }
         let toolN = 0;
         const gdArt = (id, t = gdInfo(id)) => t.g === 'tweez' ? (typeof pinSvg === 'function' ? pinSvg() : '') : t.g === 'clip' ? clipSvg(t.c) : toolSvg(t.g);
-        let gdHeld = null, gdG = null, gdInit = false, gdBook = null;           // gdHeld : 손에 든 문구류 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
+        let gdHeld = null, gdG = null, gdInit = false, gdBook = null;           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
         const gdIp = () => document.getElementById('innerPage');
         const gdEl = id => { const ip = gdIp(); return ip ? [...ip.querySelectorAll(':scope > .bd-tool')].find(x => x.dataset.t === id) || null : null; };
         function gdK() { const ip = gdIp(), r = ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }
@@ -1077,13 +1077,13 @@
             el.style.left = (x - t.w / 2) + 'px'; el.style.top = (y - t.h / 2) + 'px';
         }
         const gdMid = el => { const t = gdInfo(el.dataset.t); return { x: (parseFloat(el.style.left) || 0) + t.w / 2, y: (parseFloat(el.style.top) || 0) + t.h / 2 }; };
-        function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구류마다 조금씩 비켜서)
+        function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구함마다 조금씩 비켜서)
             const cv = document.getElementById('canvasArea'), r = cv.getBoundingClientRect(), t = gdInfo(id);
             const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), tp = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
             const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
         }
-        function gdPick(id) {                                                   // ✂️ 문구류 칸 톡 : 놓기 ↔ 치우기
+        function gdPick(id) {                                                   // ✂️ 문구함 칸 톡 : 놓기 ↔ 치우기
             if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
             const el = gdEl(id);
             if (el) { if (gdHeld === id) gdLet(); el.remove(); }
@@ -1111,14 +1111,14 @@
             if (gdHeld === 'twz') { document.body.classList.remove('gd-on'); return; }   // 🪡 핀셋은 원래 핀셋 화살표가 따라와요 (js/elements.js pinMove)
             const t = gdInfo(gdHeld), p = gdTo(x, y);
             el.style.left = (p.x - t.hx) + 'px'; el.style.top = (p.y - t.hy) + 'px';
-            document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구류
+            document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구함
         }
         const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
             const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool');
-            if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구류 = 들기 · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
+            if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구함 = 들기 · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
                 gdEat(e);
                 if (tool.classList.contains('edge')) gdG = { k: 'rail', el: tool, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
                 else gdHold(tool.dataset.t, e.clientX, e.clientY, e);
@@ -1564,19 +1564,19 @@
            기본다이어리 = 칸 없이 4색만 (js/app.js skinPresets · 고르면 기본 다이어리로 바꾸고 그 색 · id 'basic:색')
            노트 · 바인더 = 기본 칸 없음 · 내가만든 (➕ 만들기 + 만든 것 · js/dymaker.js · 10-18 확정) · 공유받은 · 이벤트 · 문구점은 든 게 생기면
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
-        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️', '문구류': '✂️' }, DY_NAME = { '다이어리': '기본다이어리' };
+        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️', '문구함': '✂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
-        const DY_GOODS = [['tweez', '🪡 핀셋'], ['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프']];                                // ✂️ 문구류 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구류를 여기에)
+        const DY_GOODS = [['tweez', '🪡 핀셋'], ['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프']];                                // ✂️ 문구함 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구함을 여기에)
         let dyKind = '다이어리', dyTab = 'free';
         const dyItems = (kind, tab) => tab === 'clip' ? CLIPS.map(c => ({ tool: 'clip:' + c[0] })) : DY_GOODS.some(x => x[0] === tab) ? Object.keys(GD).filter(id => GD[id].g === tab).map(id => ({ tool: id })) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
         function dyOpen(kind) {
-            dyKind = DY_TAB.includes(kind) || kind === '문구류' ? kind : dyNow().k;
+            dyKind = DY_TAB.includes(kind) || kind === '문구함' ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
             const bar = document.getElementById('dyTabs');
-            const tabs = dyKind === '문구류' ? DY_GOODS : stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구류 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
+            const tabs = dyKind === '문구함' ? DY_GOODS : stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
-            bar.hidden = bar.children.length < (dyKind === '문구류' ? 1 : 2);
+            bar.hidden = bar.children.length < (dyKind === '문구함' ? 1 : 2);
             dyTabSet(tabs.length ? tabs[0][0] : '');
             openModal('dyModal');
         }

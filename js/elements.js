@@ -814,13 +814,13 @@
         function pinSvg() {   // 그라데이션 id 는 핀셋마다 따로 · 같은 id 가 숨은 핀셋에 있으면 색이 안 칠해지고 테두리만 보여요
             const k = prefGet(PIN_KEY, PIN_LOCAL), n = ++pinSeq;
             return (PIN_SKINS[k] || PIN_SKINS.basic).replace(/id="(\w+)"/g, `id="$1-${n}"`).replace(/url\(#(\w+)\)/g, `url(#$1-${n})`); }
-        /* 🪡 핀셋 (도련 · 10-17 · 10-19) : 핀셋을 손에 든 동안 늘 보여요 · 절대 사라지지 않아요 · ✂️ 문구류 🪡 핀셋 (js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
+        /* 🪡 핀셋 (도련 · 10-17 · 10-19) : 핀셋을 손에 든 동안 늘 보여요 · 절대 사라지지 않아요 · ✂️ 문구함 🪡 핀셋 (js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
            - 쓰임이 없을 땐 그 자리에서 아주 느리게 위아래로 둥실 (공중에 떠서 기다리는 느낌) · 누르는 동안은 둥실 멈추고 집게가 오므라들어요
            - 💻 마우스 : 핀셋이 갈 수 있는 곳(pinOver : 페이지 · 🏷️ 씰 종이 · 🍭 포인트 판 · 🧩 조각 봉투 · 📒 수첩 속지 · 배경지)에선 마우스에 붙어 둥실거리며 따라와요
              갈 수 없는 곳(하단메뉴 · 창 · 버튼 · 메뉴 · 날짜바)으로 마우스가 가면 그 끝자리에 멈춰 둥실 (마우스 화살표가 보여요) · 돌아오면 다시 따라와요
            - 📱 폰 · 📲 패드 : 핀셋과 상관있는 곳(pinRel)을 누를 때만 그 자리로 옮겨 가요 · 나머지를 누르면 그 자리에 둥실
            - ✏️ 그리기 · ✂️ 스티커 칼 · ✏️ 연필꽂이를 쓰는 동안은 따라오지 않고 그 자리에 둥실 (pinBusy)
-           - 비키는 건 핀셋을 내려놓거나(✂️ 문구류 칸) · 표지로 돌아가거나 · 🗑 뜯기 화면의 핀셋이 대신 나올 때뿐 (pinOff) */
+           - 비키는 건 핀셋을 내려놓거나(✂️ 문구함 칸) · 표지로 돌아가거나 · 🗑 뜯기 화면의 핀셋이 대신 나올 때뿐 (pinOff) */
         let pinRelNow = false, pinLast = null, pinEl = null, pinWatch = 0, pinKind = 'pc', pinHold = false, pinFollow = false;   // pinHold : 핀셋 자리에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 따라와요)
         const pinOpen = () => { const p = document.getElementById('innerPage'); return !!p && p.offsetParent !== null; };
         const pinOff = () => !!twz || !(window.gdTwz && gdTwz()) || !pinOpen();
