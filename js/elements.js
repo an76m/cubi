@@ -102,7 +102,7 @@
            - 그림은 다 불러온 뒤 크기를 재서 맞춰요 */
         function elCenter(el) {
             const go = () => {
-                if (!el.isConnected || el.dataset.posX !== '100' || el.dataset.posY !== '100') return;
+                if (!el.isConnected || +el.dataset.posX !== (el._p0 ?? 100) || el.dataset.posY !== '100') return;
                 const pg = document.getElementById('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
                 const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${el.dataset.rotation || 0}deg)`; };
                 put(0, 0);
@@ -389,7 +389,8 @@
         window.elKeepCenter = elKeepCenter;
         function makeTransformable(el) {
             el.style.zIndex = zIndexCounter++;
-            let posX = 100, posY = 100, scale = 1, rotation = 0;
+            const p0 = 100 + (window.dyVisX ? dyVisX() : 0);                   // 새로 놓는 자리 : 보이는 쪽의 왼쪽 위 (📱 한쪽 보기 · 오른쪽 쪽이면 오른쪽 쪽에 · 도련 10-19)
+            let posX = p0, posY = 100, scale = 1, rotation = 0; el._p0 = p0;
 
             /* 네 꼭짓점 : 잡고 돌리면 회전 + 가운데로 당기면 작게 · 바깥으로 밀면 크게 (눈에 안 보이는 터치 칸 · 도련 · 2026-10-13)
                · 손가락 2개로 벌리면 확대/축소 + 비틀면 회전 · 마우스 휠로 확대/축소 */
