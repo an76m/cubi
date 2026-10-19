@@ -1,12 +1,12 @@
 /* 말랑달콤 다이어리 - js/pencase.js
-   👝 필통 : 가진 도구를 모두 보관하는 틴 케이스 → 연필꽂이에 꽂을 것만 골라요 (도련 · 2026-10-15 · 10-17 칼 · 자 · 세로 정렬)
-   - 페이지 빈 곳을 누르면 나오는 메뉴(js/tapmenu.js)의 '필통' 을 누르면 닫힌 필통이 나와요 → 걸쇠(뚜껑)를 톡 누르거나 왼쪽으로 밀면 뚜껑이 오른쪽에서 왼쪽으로 휙 열려요 · 필통은 늘 페이지 한가운데 (pkPlace)
-   - 안에는 도구가 한 줄로 세로로 서서 가운데 고무밴드에 끼워져 있어요 (도련 10-17 · 진짜 필통처럼)
-     고무밴드(필통 안 어디든)를 좌우로 밀면 도구가 끝없이 빙글빙글 넘어가요 (끝에 닿으면 처음 도구가 다시 와요 · 휠 · ← → 키도) · 필통 안쪽에서만 보여요
-     위 이름표(🗂 색연필 · 형광펜 · 지우개 · 칼 · 자)를 누르면 그 종류로 휙 넘어가요 · 가운데 있는 종류에 불이 들어와요 · 숫자 = 그 종류에서 꽂은 개수
+   👝 보관함 : 가진 필기구를 모두 보관하는 틴 케이스 → 연필꽂이에 꽂을 것만 골라요 (도련 · 2026-10-15 · 10-19 필통 → 보관함)
+   - ✏️ 연필꽂이 앞 '보관함' 버튼(js/draw.js pc-box)을 누르면 보이는 쪽(📱 폰 = 오른쪽) 한가운데에 열린 채로 나와요 · 뚜껑 · 고무밴드 · ✕ 없음
+   - 안에는 필기구가 한 줄로 세로로 서 있어요 · 안쪽 어디든 좌우로 밀면 끝없이 빙글빙글 넘어가요 (끝에 닿으면 처음 것이 다시 와요 · 휠 · ← → 키도)
+     위 이름표(🗂 색연필 · 형광펜 · 지우개)를 누르면 그 종류로 휙 · 가운데 있는 종류에 불 · 숫자 = 그 종류에서 꽂은 개수
      톡 누르면 연필꽂이에 꽂기 / 빼기 (꽂은 것은 쏙 올라오고 하트 꼬리표) · 도구가 늘어도 줄만 길어져요
-   - 도구 종류는 PK_KINDS 한 곳 · 새 색 · 새 칼(js/stkcut.js KN_KINDS) · 새 자(js/ruler.js RL_KINDS)를 넣으면 필통에 저절로 나와요
-   - '뚜껑 닫기' 를 누르면 저장 → 📒 수첩 모드 연필꽂이에는 고른 것만 꽂히고 · 고르는 창 모드 필기구 줄에는 고른 색만 나와요 (js/draw.js pcList · penSetTool)
+   - ✂️ 칼 · 📏 자는 보관함에 안 보이고 🗄️ 문구함 서랍(js/skins.js)에서 골라 연필꽂이에 꽂아요 (PK_KINDS box: false · 저장은 같은 목록)
+   - 도구 종류는 PK_KINDS 한 곳 · 새 색 · 새 칼(js/stkcut.js KN_KINDS) · 새 자(js/ruler.js RL_KINDS)를 넣으면 저절로 나와요
+   - '닫기' 를 누르면 저장 → 📒 수첩 모드 연필꽂이에는 고른 것만 다시 꽂히고 · 고르는 창 모드 필기구 줄에는 고른 색만 나와요 (js/draw.js pcList · penSetTool)
    - 연필꽂이에는 1 ~ 24 개 (너무 많으면 고르기 어려워요)
    저장 : 'diary_pencase'(설정.json) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', 'knife:pink', 'ruler:pink', …]
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 필기구 그대로) */
@@ -20,15 +20,15 @@
             { k: 'pen', lb: '색연필', list: () => PK_PENS.map(c => ({ id: 'pen:' + c, tool: 'pen', color: c, size: 1 })) },
             { k: 'hi', lb: '형광펜', list: () => PK_HIS.map(c => ({ id: 'hi:' + c, tool: 'hi', color: c, size: 1 })) },
             { k: 'erase', lb: '지우개', list: () => [0, 1, 2].map(n => ({ id: 'erase:' + n, tool: 'erase', size: n, name: ['작은 지우개', '지우개', '큰 지우개'][n] })) },
-            { k: 'knife', lb: '칼', list: () => (window.skKinds ? skKinds() : []).map(t => ({ id: 'knife:' + t.id, tool: 'knife', kind: t.id, name: t.name })) },
-            { k: 'ruler', lb: '자', list: () => (window.rlKinds ? rlKinds() : []).map(t => ({ id: 'ruler:' + t.id, tool: 'ruler', kind: t.id, name: t.name })) }
+            { k: 'knife', lb: '칼', box: false, list: () => (window.skKinds ? skKinds() : []).map(t => ({ id: 'knife:' + t.id, tool: 'knife', kind: t.id, name: t.name })) },
+            { k: 'ruler', lb: '자', box: false, list: () => (window.rlKinds ? rlKinds() : []).map(t => ({ id: 'ruler:' + t.id, tool: 'ruler', kind: t.id, name: t.name })) }
         ];
         let pkAllC = null;
         const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 칼 · 자 파일을 다 읽은 뒤 처음 쓸 때 만들어요
         const PK_DEF = PK_PENS.slice(0, 8).map(c => 'pen:' + c).concat(PK_HIS.slice(0, 6).map(c => 'hi:' + c), ['erase:0', 'erase:2', 'knife:pink', 'ruler:pink']);   // 처음 연필꽂이
         const pkq = id => document.getElementById(id);
         const pkSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof store !== 'undefined';
-        const pk = { on: false, pick: null, busy: false, tab: 'pen', x: 0, w: 1, v: 0, raf: 0, go: null, drag: null, moved: false };   // x = 고무밴드를 민 거리(px) · w = 한 바퀴 길이
+        const pk = { on: false, pick: null, busy: false, tab: 'pen', x: 0, w: 1, v: 0, raf: 0, go: null, drag: null, moved: false };   // x = 민 거리(px) · w = 한 바퀴 길이
 
         function pkRead() {
             let v = null;
@@ -70,47 +70,33 @@
         function pkBuild() {
             let r = pkq('pkRoom'); if (r) return r;
             r = document.createElement('div'); r.id = 'pkRoom'; r.className = 'pk-room'; r.hidden = true;
-            r.setAttribute('role', 'dialog'); r.setAttribute('aria-label', '필통');
-            const kinds = PK_KINDS.filter(g => g.list().length);
+            r.setAttribute('role', 'dialog'); r.setAttribute('aria-label', '보관함');
+            const kinds = PK_KINDS.filter(g => g.box !== false && g.list().length);
             r.innerHTML = `<div class="pk-case" id="pkCase">
                 <div class="pk-body">
                     <div class="pk-in">
                         <p class="pk-tip" id="pkTip"></p>
                         <div class="pk-tabs" role="tablist">${kinds.map(g => `<button type="button" class="pk-tab" role="tab" data-k="${g.k}">${g.lb}<b data-n="${g.k}"></b></button>`).join('')}</div>
-                        <div class="pk-tray" id="pkTray"><div class="pk-strip" id="pkStrip">${pkLap(kinds, false)}${pkLap(kinds, true).repeat(3)}</div><i class="pk-elastic" id="pkElastic" aria-hidden="true"></i></div>
+                        <div class="pk-tray" id="pkTray"><div class="pk-strip" id="pkStrip">${pkLap(kinds, false)}${pkLap(kinds, true).repeat(3)}</div></div>
                     </div>
-                    <button type="button" class="pk-done" id="pkDone">뚜껑 닫기 ✓</button>
+                    <button type="button" class="pk-done" id="pkDone">닫기</button>
                 </div>
-                <div class="pk-lid" id="pkLid" role="button" tabindex="0" aria-label="뚜껑 열기">
-                    <div class="pk-lid-out"><span class="pk-label"><b>MALLANG</b><small>pencil case</small></span><i class="pk-clasp"></i><em class="pk-open-tip">톡 눌러 뚜껑 열기</em></div>
-                    <div class="pk-lid-in"><i class="pk-band"></i><span class="pk-memo">오늘은 무엇으로 꾸밀까? ✏️</span></div>
-                </div>
-            </div>
-            <button type="button" class="pk-x" id="pkX" aria-label="필통 닫기">✕</button>`;
+            </div>`;
             document.body.appendChild(r);
-            const lid = pkq('pkLid');
-            lid.onclick = () => { if (!pkq('pkCase').classList.contains('open')) pkOpenLid(); };
-            lid.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); lid.onclick(); } };
-            let x0 = null;                                                     // 왼쪽으로 밀어도 열려요
-            lid.addEventListener('pointerdown', e => { x0 = e.clientX; });
-            lid.addEventListener('pointermove', e => { if (x0 != null && x0 - e.clientX > 30) { x0 = null; lid.onclick(); } });
-            addEventListener('pointerup', () => { x0 = null; });
             addEventListener('resize', () => { if (pk.on) pkPlace(); });
             r.querySelectorAll('.pk-t').forEach(b => b.onclick = () => pkToggle(b));
             r.querySelectorAll('.pk-tab').forEach(b => b.onclick = () => pkTab(b.dataset.k));
             pkBand(pkq('pkTray'));
             pkq('pkDone').onclick = pkClose;
-            pkq('pkX').onclick = pkClose;
             r.addEventListener('keydown', e => { if (e.key === 'Escape') pkClose(); });
             return r;
         }
-        /* 🎀 고무밴드 넘기기 : x 를 한 바퀴(w)로 나눈 나머지만큼 줄을 옮겨요 → 끝이 없어요 */
+        /* 좌우로 밀어 넘기기 : x 를 한 바퀴(w)로 나눈 나머지만큼 줄을 옮겨요 → 끝이 없어요 */
         function pkSet(x) {
             const st = pkq('pkStrip'), tr = pkq('pkTray'); if (!st) return;
             pk.w = st.children[st.children.length / 4].offsetLeft || 1;          // 두 번째 바퀴가 시작하는 자리 = 한 바퀴 길이
             pk.x = x; const m = ((x % pk.w) + pk.w) % pk.w;
             st.style.transform = `translateX(${-m.toFixed(1)}px)`;
-            pkq('pkElastic').style.backgroundPositionX = (-x * .35).toFixed(1) + 'px';     // 밴드 결이 살짝 따라 밀려요
             const mid = m + tr.clientWidth / 2;                                // 가운데 있는 종류에 불
             let k = pk.tab; st.querySelectorAll('.pk-grp').forEach(g => { if (g.offsetLeft <= mid) k = g.dataset.k; });
             if (k !== pk.tab) pkTabOn(k);
@@ -170,7 +156,7 @@
             const on = pk.pick, r = pkq('pkRoom');
             r.querySelectorAll('.pk-t').forEach(b => { const v = on.has(b.dataset.id); b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); });
             r.querySelectorAll('[data-n]').forEach(n => { const c = [...on].filter(id => id.split(':')[0] === n.dataset.n).length; n.textContent = c || ''; });
-            pkq('pkTip').innerHTML = `고무밴드를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개`;
+            pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개`;
         }
         function pkToggle(b) {
             const id = b.dataset.id, on = pk.pick;
@@ -182,45 +168,49 @@
         }
         function pkSay(t) { const p = pkq('pkTip'); p.innerHTML = t; p.classList.remove('shake'); void p.offsetWidth; p.classList.add('shake'); clearTimeout(pk.tm); pk.tm = setTimeout(pkRender, 1600); }
 
-        /* 페이지 한가운데에 맞춰요 : 닫혀 있을 땐 한가운데 · 뚜껑을 열면 젖혀질 자리(몸통 폭의 약 28%)만큼 오른쪽으로 비켜요 → 페이지 안에 들어오게 줄여요 */
+        /* 보이는 쪽 한가운데에 맞춰요 (📱 폰 = 오른쪽 쪽) · 페이지 안에 들어오게 줄여요 */
         function pkPlace() {
             const c = pkq('pkCase'), pg = document.getElementById('canvasArea'); if (!c) return;
-            const r = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: innerHeight };
-            const W = c.offsetWidth, H = c.offsetHeight, lid = W * .28;
-            const s = Math.min(1, (r.width - 12) / (W + lid), (r.height - 12) / H, (innerHeight - 16) / H);
+            const r0 = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, right: innerWidth, bottom: innerHeight, width: innerWidth, height: innerHeight }, r = window.dyVisRect ? dyVisRect(r0) : r0;
+            const W = c.offsetWidth, H = c.offsetHeight;
+            const s = Math.min(1, (r.width - 12) / W, (r.height - 12) / H, (innerHeight - 16) / H);
             const x = r.left + (r.width - W * s) / 2, y = Math.max(8, r.top + (r.height - H * s) / 2);
             c.style.setProperty('--s', s.toFixed(3)); c.style.setProperty('--x', Math.round(x) + 'px'); c.style.setProperty('--y', Math.round(y) + 'px');
-            c.style.setProperty('--ox', Math.round(lid * s / 2) + 'px');
         }
 
-        /* ---------- 열고 닫기 ---------- */
+        /* ---------- 열고 닫기 (✏️ 연필꽂이 '보관함' 버튼) ---------- */
         function openPencase() {
             if (pk.on || pk.busy) return;
             const r = pkBuild(); pk.on = true; pk.pick = new Set(pkRead());
             pkRender();
-            const c = pkq('pkCase'); c.classList.remove('open', 'shut');
+            const c = pkq('pkCase'); c.classList.remove('shut');
             r.hidden = false; pkPlace(); pkTab(pk.tab, true); requestAnimationFrame(() => r.classList.add('show'));
-            setTimeout(() => pkq('pkLid').focus({ preventScroll: true }), 50);
+            setTimeout(() => { const b = r.querySelector('.pk-tab.on'); if (b) b.focus({ preventScroll: true }); }, 50);
         }
-        function pkOpenLid() {
-            const c = pkq('pkCase'); c.classList.add('open');
-            if (window.sfx) try { sfx('page'); } catch (e) {}
-            setTimeout(() => { const b = pkq('pkRoom').querySelector('.pk-tab.on'); if (b) b.focus({ preventScroll: true }); }, 500);
+        function pkDone() {                                                   // 저장 → 연필꽂이 다시 꽂기
+            if (window.rlTopSync) rlTopSync();                                   // 📏 구석 연필꽂이의 작은 자 머리
+            if (window.pcRefill) pcRefill();
         }
         function pkClose() {
             if (!pk.on || pk.busy) return;
             pk.busy = true;
-            const r = pkq('pkRoom'), c = pkq('pkCase'), was = c.classList.contains('open');
-            pkWrite([...pk.pick]); pkStop();
-            if (window.rlTopSync) rlTopSync();                                   // 📏 구석 연필꽂이의 작은 자 머리
-            c.classList.remove('open'); c.classList.add('shut');                    // 뚜껑 탁 → 사라져요
+            const r = pkq('pkRoom'), c = pkq('pkCase');
+            pkWrite([...pk.pick]); pkStop(); pkDone();
+            c.classList.add('shut');
             setTimeout(() => {
                 r.classList.remove('show');
-                setTimeout(() => {
-                    r.hidden = true; pk.on = false; pk.busy = false;
-                }, 220);
-            }, was ? 480 : 60);
+                setTimeout(() => { r.hidden = true; pk.on = false; pk.busy = false; }, 220);
+            }, 60);
         }
+        /* 🗄️ 문구함 칼 · 자 서랍 (js/skins.js) : 그 종류 목록 · 꽂혀 있는지 · 꽂기/빼기 */
+        const pkKind = k => { const g = PK_KINDS.find(g => g.k === k); return g ? g.list() : []; };
+        const pkHas = id => pkRead().includes(id);
+        function pkFlip(id, on) {
+            const v = pkRead().filter(x => x !== id);
+            if (on) { if (v.length >= PK_MAX) { showMsg(`연필꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return false; } v.push(id); }
+            pkWrite(v); pkDone(); return true;
+        }
+        window.pkKind = pkKind; window.pkHas = pkHas; window.pkFlip = pkFlip; window.pkSvg = pkSvg;
         window.openPencase = openPencase; window.pkCupList = pkCupList; window.pkColors = pkColors; window.pkFirst = pkFirst;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

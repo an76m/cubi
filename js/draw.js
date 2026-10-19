@@ -241,7 +241,7 @@
                     + DRAW_SIZES.erase.map((w, i) => `<button type="button" class="draw-size${i === dw.size.erase ? ' on' : ''}" onclick="penSetSize(${i})" aria-label="지우개 크기"><i style="width:${w / 2 + 4}px;height:${w / 2 + 4}px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px #c9a3b2"></i></button>`).join('');
                 return;
             }
-            const cols = (window.pkColors && pkColors(t)) || (t === 'hi' ? DRAW_HI_COLORS : DRAW_PEN_COLORS);   // 👝 필통에서 고른 색만
+            const cols = (window.pkColors && pkColors(t)) || (t === 'hi' ? DRAW_HI_COLORS : DRAW_PEN_COLORS);   // 👝 보관함에서 고른 색만
             if (!cols.includes(dw.color[t])) dw.color[t] = cols[0];
             opt.innerHTML = cols.map(c => `<button type="button" class="draw-col${c === dw.color[t] ? ' on' : ''}" style="--c:${c}" onclick="penSetColor('${c}')" aria-label="색"></button>`).join('')
                 + '<span class="draw-sep"></span>'
@@ -309,6 +309,7 @@
                 <button type="button" data-tool="hi" onclick="penSetTool('hi')">🖍️ 형광펜</button>
                 <button type="button" data-tool="erase" onclick="penSetTool('erase')">🧽 지우개</button>
                 <button type="button" id="penUndo" onclick="penUndo()" aria-label="되돌리기">↶</button>
+                <button type="button" class="draw-box" onclick="window.openPencase && openPencase()" aria-label="보관함 (쓸 색 고르기)">♡ 보관함</button>
               </div>
               <div class="draw-row draw-opts" id="penOpts"></div>
               <div class="draw-row">
@@ -338,10 +339,11 @@
             r = document.createElement('div'); r.id = 'pcRoom'; r.className = 'pc-room'; r.hidden = true;
             r.innerHTML = `<div class="pc-cup" id="pcCup"><p class="pc-hint">도구를 골라 <b>위로 쏙</b> 뽑아요 · 옆으로 밀면 비켜나요</p>`
                 + `<button type="button" class="pc-x" aria-label="닫기">✕</button>`
-                + `<div class="pc-back"></div><div class="pc-tools" id="pcTools"></div><div class="pc-front"><i></i><b>♡</b></div></div>`
+                + `<div class="pc-back"></div><div class="pc-tools" id="pcTools"></div><div class="pc-front"><i></i><button type="button" class="pc-box" aria-label="보관함 열기 (꽂을 필기구 고르기)"><small>내 필기구</small><b>♡ 보관함</b></button></div></div>`
                 + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️</p>`
                 + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="연필꽂이 (꽂으면 완료)"><span class="pc-mini-tops"><i style="--c:#e2556f"></i><i style="--c:#3d9be0"></i><i style="--c:#ffe14d"></i></span><span class="pc-mini-cup"></span></button>`;
             document.body.appendChild(r);
+            r.querySelector('.pc-box').onclick = () => { if (!pcS.held && window.openPencase) openPencase(); };   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
             const mini = drq('pcMini');
             mini.onclick = () => { if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.memo) pcMemoEnd(); else penDone(); };   // 손이 비어 있으면 (📏 자만) 톡 = 끝
@@ -353,7 +355,7 @@
         /* 페이지 가운데 길쭉한 연필꽂이 · 작은 연필꽂이는 페이지 오른쪽 아래 (하단 메뉴 밖으로 안 나가게) */
         function pcLayout() {
             const pg = drq('canvasArea'), cup = drq('pcCup'), mini = drq('pcMini'), note = drq('pcTipNote'); if (!pg || !cup) return;
-            const r = pg.getBoundingClientRect(), cw = cup.offsetWidth, ch = cup.offsetHeight;
+            const r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect(), cw = cup.offsetWidth, ch = cup.offsetHeight;   // 📱 폰 = 보이는 오른쪽 쪽 가운데
             cup.style.left = Math.round(r.left + r.width / 2 - cw / 2) + 'px';
             cup.style.top = Math.round(Math.max(8, r.top + r.height / 2 - ch / 2 + 10)) + 'px';
             const vv = window.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : innerHeight);   // 📱 자판이 올라오면 그 위로
@@ -375,7 +377,12 @@
             drq('pcHeld').hidden = true; drq('pcMini').hidden = true; drq('pcTipNote').hidden = true;
             pcFill();
         }
-        function pcFill() {                                // 연필꽂이에 필기구 꽂기 (👝 필통에서 바꾸면 다시 꽂아요)
+        window.pcRefill = () => {                          // 👝 보관함 · 🗄️ 문구함 칼 · 자 서랍에서 바꾸면 다시 꽂아요 (🪟 고르는 창 모드는 아래 창 색 줄을 다시)
+            const r = drq('pcRoom'), bar = drq('penBar');
+            if (r && !r.hidden && !pcS.held) pcFill();
+            if (bar && !bar.hidden) penSetTool(dw.tool);
+        };
+        function pcFill() {                                // 연필꽂이에 필기구 꽂기 (👝 보관함에서 바꾸면 다시 꽂아요)
             const box = drq('pcTools'); box.textContent = '';
             let L = pcList().slice();                         // 👝 필통에서 고른 것 (색연필 · 형광펜 · 지우개 · ✂️ 칼 · 📏 자)
             if (!window.pkCupList) { if (window.skKnife) L.splice(Math.min(2, L.length), 0, { tool: 'knife' }); if (window.rlCupSvg) L.push({ tool: 'ruler' }); }   // 필통 파일이 없으면 기본 칼 · 자
