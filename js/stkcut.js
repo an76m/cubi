@@ -115,7 +115,7 @@
         S.moved = true;
         const x = e.clientX + S.off[0], y = e.clientY + S.off[1];
         const sn = window.rlSnap ? rlSnap(x, y) : null;
-        if (S.snap && sn && sn.s === S.snap.sn.s) {    // 📏 자에 붙은 곧은 칼선 : 붙은 자리 → 지금 자리 (가장자리 위)
+        if (S.snap && rlStay(S.snap.sn, x, y)) {        // 자 안쪽으로 들어가도 가장자리에 그대로    // 📏 자에 붙은 곧은 칼선 : 붙은 자리 → 지금 자리 (가장자리 위)
             const at = rlProj(S.snap.sn, x, y);
             knifeAt(at[0], at[1]); S.pts.length = S.snap.n; S.pts.push(at); rlTell(S.snap.a, at); paint(); return;
         }

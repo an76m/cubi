@@ -1349,7 +1349,7 @@
         const cabFlip = id => {
             if (!cabTool(id)) return gdPick(id);
             const on = cabIsOn(id), [x, y] = cabMid();
-            if (id.startsWith('knife')) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { closeModal('gdCabModal'); skKnife(x, y, cabK(id)); if (window.skHold) skHold(true); } }   // 꺼내면 바로 손에
+            if (id.startsWith('knife')) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { skKnife(x, y, cabK(id)); if (window.skHold) skHold(true); } }   // 꺼내면 바로 손에 (문구함은 그대로 · 도련 10-19)
             else if (on) { if (window.rlEnd) rlEnd(); } else if (window.rlShow) rlShow(x, y, cabK(id));
         };
         const GD_MAIN = 'diary_gd_main', GD_MAIN_L = 'malang_diary_gd_main';

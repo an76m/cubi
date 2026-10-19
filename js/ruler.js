@@ -123,6 +123,9 @@
         if (ok(dn)) return { s: 1 };
         return null;
     }
+    /* 붙은 가장자리에서 바깥으로 얼마나 나갔는지 (px · - = 자 안쪽) : 자 안으로 들어가도 붙은 채 · 바깥으로 SNAP_OUT 넘게 나가야 떨어져요 */
+    const rlOut = (sn, x, y) => sn.s * rlLocal(x, y)[1] - R.H / 2;
+    const rlStay = (sn, x, y) => R.on && rlOut(sn, x, y) < SNAP_OUT + 8 && Math.abs(rlLocal(x, y)[0]) <= R.W / 2 + 24;
     /* 그 가장자리 위로 붙이기 (자 길이 밖으로는 안 나가요) · gap = 가장자리에서 띄우는 거리 */
     function rlProj(sn, x, y, gap) {
         const [lx] = rlLocal(x, y), l = Math.max(-R.W / 2, Math.min(R.W / 2, lx));
@@ -243,7 +246,7 @@
     }
 
     window.rlShow = rlShow; window.rlEnd = rlEnd; window.rlOn = rlOn; window.rlGrab = rlGrab; window.rlHit = rlHit;
-    window.rlSnap = rlSnap; window.rlProj = rlProj; window.rlTell = rlTell; window.rlMeasure = rlMeasure;
+    window.rlSnap = rlSnap; window.rlStay = rlStay; window.rlProj = rlProj; window.rlTell = rlTell; window.rlMeasure = rlMeasure;
     window.rlCupSvg = rlCupSvg; window.rlCalOpen = rlCalOpen;
     window.rlKinds = () => RL_KINDS.map(k => ({ id: k.id, name: k.name })); window.rlKindNow = () => R.on ? R.kind : null;
 })();

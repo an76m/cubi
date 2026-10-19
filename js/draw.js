@@ -81,7 +81,7 @@
             const pt = penPointXY(at[0], at[1]);
             if (dw.tool === 'erase') { dw.erasing = true; dw.hist.push(dw.strokes); dw.erased = false; dw.inks = penInks(); penRing(pt); penEraseAt(pt); return; }
             dw.cur = { tool: dw.tool, color: dw.color[dw.tool], w: DRAW_SIZES[dw.tool][dw.size[dw.tool]], pts: [pt] };
-            dw.snap = sn ? { sn, a: at } : null;
+            dw.snap = sn ? { sn, a: at, n: 1 } : null;
             penRender();
         }
         window.rlEdgeDown = e => {                                             // 📏 자 가장자리 안쪽을 누름 (js/ruler.js) : 필기구를 들었으면 여기서 긋기 시작
@@ -89,12 +89,16 @@
             penDown(e); return true;
         };
         function penMove(e) {
-            if (dw.snap && dw.cur && !(window.rlSnap && rlSnap(e.clientX, e.clientY))) { dw.snap = null; rlTell(null); }   // 자 밖으로 끌면 떨어져서 이어 그려요 (도련 10-19)
-            if (dw.snap && dw.cur) {                                               // 📏 자에 붙은 곧은 선 : 시작점 → 지금 자리 (가장자리 위)
+            if (dw.snap && dw.cur && !rlStay(dw.snap.sn, e.clientX, e.clientY)) { dw.snap = null; rlTell(null); }   // 자 바깥으로 끌면 떨어져서 이어 그려요 (자 안쪽으로는 붙은 채 · 도련 10-19)
+            else if (!dw.snap && dw.cur && dw.cur.tool !== 'erase' && window.rlSnap) {   // 📏 긋다가 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (그어 온 선은 그대로)
+                const sn = rlSnap(e.clientX, e.clientY);
+                if (sn) { const at = rlProj(sn, e.clientX, e.clientY); dw.cur.pts.push(penPointXY(at[0], at[1])); dw.snap = { sn, a: at, n: dw.cur.pts.length }; }
+            }
+            if (dw.snap && dw.cur) {                                               // 📏 자에 붙은 곧은 선 : 붙은 자리 → 지금 자리 (가장자리 위)
                 e.preventDefault(); e.stopPropagation();
                 const at = rlProj(dw.snap.sn, e.clientX, e.clientY);
                 if (penNote()) pcHeldAt(at[0], at[1]);
-                dw.cur.pts = [dw.cur.pts[0], penPointXY(at[0], at[1])]; rlTell(dw.snap.a, at);
+                dw.cur.pts.length = dw.snap.n; dw.cur.pts.push(penPointXY(at[0], at[1])); rlTell(dw.snap.a, at);
                 penRender(); return;
             }
             if (penNote()) { if (!pcS.held || pcS.carry) return; if (dw.cur || dw.erasing || e.pointerType === 'mouse') pcHeldAt(e.clientX, e.clientY); }   // 📒 연필심이 따라와요

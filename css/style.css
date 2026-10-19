@@ -3597,7 +3597,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 @media (prefers-reduced-motion: reduce) { .pk-room, .pk-case, .pk-ti, .pk-tag { transition: none !important; } .pk-t.pop .pk-ti, .pk-tip.shake { animation: none; } }
 
 /* ✂️ 스티커 자르기 (js/stkcut.js) : 화면 전체 투명 판 · 기울어진 스티커 칼 · 칼선 */
-.sk-room { position: fixed; inset: 0; z-index: 1495; pointer-events: none; }   /* 칼 · ✕ 만 눌려요 (도련 10-19 · 화면을 덮지 않게) */
+.sk-room { position: fixed; inset: 0; z-index: 905; pointer-events: none; }   /* 칼 · ✕ 만 눌려요 (도련 10-19 · 화면을 덮지 않게) */
 .sk-room[hidden] { display: none; }
 .sk-line { position: absolute; left: 0; top: 0; pointer-events: none; }
 .sk-knife { position: absolute; left: 0; top: 0; width: 40px; height: 120px; transform-origin: 13px 4px; pointer-events: auto; cursor: grab; touch-action: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
@@ -3651,7 +3651,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .inner-page.png-mode #canvasArea, .inner-page.png-mode .canvas-area { overflow: hidden; }
 
 /* 📏 자 (js/ruler.js · 도련 10-17) : 페이지 위에 깔아 두는 도구 · 들고 있는 필기구(1500) · 칼 방(4200)보다 아래 */
-.rl-ruler { position: fixed; left: 0; top: 0; z-index: 1490; transform-origin: 50% 50%; touch-action: none; cursor: grab; filter: drop-shadow(1px 3px 3px rgba(150, 70, 100, .22)); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.rl-ruler { position: fixed; left: 0; top: 0; z-index: 900; transform-origin: 50% 50%; touch-action: none; cursor: grab; filter: drop-shadow(1px 3px 3px rgba(150, 70, 100, .22)); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 .rl-ruler[hidden] { display: none; }
 .rl-ruler.grab { cursor: grabbing; filter: drop-shadow(3px 8px 7px rgba(150, 70, 100, .28)); }
 .rl-ruler.rl-off { transition: opacity .25s; opacity: 0; }
@@ -3663,7 +3663,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .rl-fit[hidden] { display: none; }
 .rl-say { position: fixed; z-index: 4300; transform: translate(-50%, -100%); padding: 4px 10px; border-radius: 12px; background: #fff; border: 1.5px solid #ee8fb0; color: #c2385c; font-size: 13px; font-weight: bold; white-space: nowrap; pointer-events: none; box-shadow: 0 3px 8px rgba(150, 70, 100, .18); }
 .rl-say[hidden] { display: none; }
-.rl-meas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 1491; pointer-events: none; overflow: visible; display: none; }
+.rl-meas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 901; pointer-events: none; overflow: visible; display: none; }   /* 📏 자 · 칼은 창(.modal 1000) 밑에 (도련 10-19) */
 .rl-meas.on { display: block; }
 .rl-meas line { stroke: #ff6f9f; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 6; }
 .rl-cal { position: fixed; inset: 0; z-index: 3500; display: grid; place-items: center; padding: 12px; background: rgba(90, 50, 65, .35); }
