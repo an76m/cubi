@@ -1334,16 +1334,23 @@
            - 손잡이 톡 · 서랍 꾹 = 서랍이 쭉 열려서 가진 디자인이 6개씩 보여요 (‹ › · 옆으로 밀어 넘기기 · 서랍 이름표에 몇 개인지) → 톡 = 그걸 '주로 쓰는 것'으로 + 페이지에 (다시 톡 = 치우기)
              집게처럼 여러 개 쓰는 것은 여러 개 꺼낼 수 있어요 (GD_MULTI) · 핀셋 · 가위처럼 하나만 쓰는 것은 놓인 것이 바뀌어요
            - 주로 쓰는 것 : 'diary_gd_main' { 종류: id } · 지금은 종류마다 기본 1개 (집게는 6색) · 나중에 📦 문구점에서 산 것을 gdOwn 에 더해요
-           - ✂️ 칼 · 📏 자 서랍 (GD_CUP · 도련 10-19 · 필통 서랍 대신) : 페이지가 아니라 ✏️ 연필꽂이에 꽂아요 (js/pencase.js pkKind · pkHas · pkFlip) · 여러 개 꽂을 수 있어요 · '연필꽂이에 ✓' */
+           - ✂️ 칼 · 📏 자 서랍 (GD_TOOL · 도련 10-19 · 펀칭기 · 가위처럼 문구함에서 꺼내 써요) : 톡 = 보이는 쪽 가운데에 자를 놓아요 · 칼을 들어요 (js/ruler.js rlShow · js/stkcut.js skKnife) · 다시 톡 = 넣기 */
         const GD_CAB = [['tweez', '핀셋'], ['clip', '집게'], ['punch', '펀칭기'], ['tape', '양면테이프'], ['scissors', '가위'], ['knife', '칼'], ['ruler', '자']];
-        const GD_MULTI = ['clip', 'knife', 'ruler'], GD_CUP = ['knife', 'ruler'];
-        const cabCup = g => GD_CUP.includes(g);
-        const cabKn = id => (window.pkKind ? pkKind(id.split(':')[0]) : []).find(t => t.id === id);
-        const cabOwn = g => cabCup(g) ? (window.pkKind ? pkKind(g).map(t => t.id) : []) : gdOwn(g);
-        const cabName = id => GD_CUP.includes(id.split(':')[0]) ? (cabKn(id) || {}).name || '' : gdInfo(id).n;
-        const cabArt = id => GD_CUP.includes(id.split(':')[0]) ? (cabKn(id) && window.pkSvg ? pkSvg(cabKn(id)) : '') : gdArt(id);
-        const cabIsOn = id => GD_CUP.includes(id.split(':')[0]) ? !!(window.pkHas && pkHas(id)) : !!gdEl(id);   // 연필꽂이에 꽂혀 있음 · 페이지에 놓여 있음
-        const cabFlip = id => GD_CUP.includes(id.split(':')[0]) ? window.pkFlip && pkFlip(id, !pkHas(id)) : gdPick(id);
+        const GD_MULTI = ['clip'], GD_TOOL = ['knife', 'ruler'];
+        const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
+        const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
+        const cabK = id => id.split(':')[1];
+        const cabOwn = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);
+        const cabName = id => cabTool(id) ? (cabKinds(id.split(':')[0]).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;
+        const cabArt = id => !cabTool(id) ? gdArt(id) : id.startsWith('knife') ? (window.skKnifeSvg ? skKnifeSvg(cabK(id)) : '') : (window.rlCupSvg ? rlCupSvg(cabK(id), 150) : '');
+        const cabIsOn = id => !cabTool(id) ? !!gdEl(id) : id.startsWith('knife') ? !!(window.skKindNow && skKindNow() === cabK(id)) : !!(window.rlKindNow && rlKindNow() === cabK(id));
+        const cabMid = () => { const b0 = document.getElementById('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; return [b.left + b.width / 2, b.top + b.height / 2]; };   // 📱 폰 = 보이는 오른쪽 쪽
+        const cabFlip = id => {
+            if (!cabTool(id)) return gdPick(id);
+            const on = cabIsOn(id), [x, y] = cabMid();
+            if (id.startsWith('knife')) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { closeModal('gdCabModal'); skKnife(x, y, cabK(id)); } }
+            else if (on) { if (window.rlEnd) rlEnd(); } else if (window.rlShow) rlShow(x, y, cabK(id));
+        };
         const GD_MAIN = 'diary_gd_main', GD_MAIN_L = 'malang_diary_gd_main';
         const gdOwn = g => g === 'clip' ? CLIPS.map(c => 'clip:' + c[0]) : Object.keys(GD).filter(id => GD[id].g === g);   // 가진 디자인 (📦 문구점이 생기면 여기에)
         function gdMain(g) { const own = cabOwn(g), m = (prefGet(GD_MAIN, GD_MAIN_L) || {})[g]; return own.includes(m) ? m : own[0]; }
@@ -1369,7 +1376,7 @@
                 return `<div class="gdc-row${open ? ' open' : ''}"><button type="button" class="gdc-dr${on ? ' out' : ''}" data-g="${g}">
                     <span class="gdc-in"><span class="gdc-ic ${g}">${cabArt(main)}</span></span>
                     <span class="gdc-tag">${n}${own.length > 1 ? `<small>${cabName(main).replace(/^기본\s*/, '')} · ${own.length}개</small>` : ''}</span>
-                    <span class="gdc-pull" role="button" aria-label="서랍 열기">${open ? '▲' : '▼'}</span><em class="gdc-out">${cabCup(g) ? '연필꽂이에' : '페이지에'} ✓${on > 1 ? ' ' + on : ''}</em></button>${tray}</div>`;
+                    <span class="gdc-pull" role="button" aria-label="서랍 열기">${open ? '▲' : '▼'}</span><em class="gdc-out">페이지에 ✓${on > 1 ? ' ' + on : ''}</em></button>${tray}</div>`;
             };
             cab.innerHTML = `<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
                 <button type="button" class="gdc-cup" aria-label="연필꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>연필꽂이</small></button>

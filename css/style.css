@@ -3421,7 +3421,6 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .pc-tools { position: absolute; left: 0; right: 0; bottom: 20px; height: 440px; }
 .pc-tool { position: absolute; left: calc(50% - 16px); bottom: 0; width: 32px; height: 340px; transform-origin: 50% 100%; pointer-events: auto; touch-action: none; cursor: grab; filter: drop-shadow(1px 2px 1.5px rgba(90,60,70,.25)); transition: transform .3s cubic-bezier(.3,1.4,.5,1); -webkit-tap-highlight-color: transparent; }
 .pc-tool.er { height: 140px; bottom: 196px; width: 36px; left: calc(50% - 18px); }
-.pc-tool.kn { height: 156px; bottom: 186px; width: 52px; left: calc(50% - 26px); }   /* ✂️ 스티커 칼 (js/stkcut.js) : 짧아서 지우개처럼 위쪽에 꽂혀요 */
 .pc-tool.grab { transition: none; cursor: grabbing; filter: drop-shadow(3px 6px 4px rgba(90,60,70,.3)); }
 .pc-tool svg, .pc-held svg { width: 100%; height: 100%; display: block; }
 .pc-front { position: absolute; left: 18px; right: 18px; bottom: 0; height: 246px; z-index: 20; border-radius: 4px 4px 22px 22px / 4px 4px 12px 12px; pointer-events: none;
@@ -3604,8 +3603,6 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .sk-knife { position: absolute; left: 0; top: 0; width: 40px; height: 120px; transform-origin: 13px 4px; pointer-events: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
 .sk-knife svg { display: block; }
 .sk-knife.gone { opacity: 0; }
-.sk-knife.in { transition: transform .26s ease-in, opacity .26s; }
-.sk-cup { position: absolute; z-index: 1; }
 .sk-tip { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; padding: 10px 44px 10px 14px; border-radius: 16px; background: #fff; border: 2px solid #ffc2d4; box-shadow: 0 6px 18px rgba(194, 56, 92, .16); color: #6b4256; font-size: 13.5px; line-height: 1.5; pointer-events: none; }   /* 안내 칸 위에서도 그을 수 있게 (✕ 만 눌러요) */
 .sk-tip > b:first-child { color: #d6457a; margin-right: 6px; }
 .sk-tip .sk-say { display: block; margin-top: 4px; color: #c2385c; font-weight: 700; }
@@ -3653,7 +3650,6 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .rl-ruler { position: fixed; left: 0; top: 0; z-index: 1490; transform-origin: 50% 50%; touch-action: none; cursor: grab; filter: drop-shadow(1px 3px 3px rgba(150, 70, 100, .22)); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 .rl-ruler[hidden] { display: none; }
 .rl-ruler.grab { cursor: grabbing; filter: drop-shadow(3px 8px 7px rgba(150, 70, 100, .28)); }
-.rl-ruler.rl-in { transition: transform .28s ease-in, opacity .28s; opacity: .15; }
 .rl-ruler.rl-off { transition: opacity .25s; opacity: 0; }
 .rl-svg, .rl-svg svg { display: block; width: 100%; height: 100%; pointer-events: none; }
 .rl-h { position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: #fff; border: 2px solid #ee8fb0; box-shadow: 0 2px 5px rgba(150, 70, 100, .25); cursor: alias; pointer-events: none; }   /* 돌리기 손잡이 (누르는 건 자가 받아요) */
@@ -3666,10 +3662,6 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .rl-meas { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 1491; pointer-events: none; overflow: visible; display: none; }
 .rl-meas.on { display: block; }
 .rl-meas line { stroke: #ff6f9f; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 6; }
-.pc-tool.rl { height: 390px; bottom: 0; width: 36px; left: calc(50% - 18px); }   /* 📒 연필꽂이에 꽂힌 자 */
-.rl-top { position: absolute; right: 2px; top: -14px; width: 26px; height: 52px; pointer-events: auto; touch-action: none; cursor: grab; }   /* 구석 연필꽂이의 작은 자 머리 : 위로 끌면 뽑혀요 */
-.rl-top::before { content: ''; position: absolute; right: 7px; top: 0; width: 11px; height: 50px; border-radius: 3px 3px 0 0; transform: rotate(9deg); background: repeating-linear-gradient(var(--rl-i, #8a4a63) 0 1px, transparent 1px 5px) 0 4px / 4px 100% no-repeat, var(--rl-c, rgba(255, 196, 216, .95)); border: 1px solid var(--rl-l, #ee8fb0); }
-body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .rl-cal { position: fixed; inset: 0; z-index: 3500; display: grid; place-items: center; padding: 12px; background: rgba(90, 50, 65, .35); }
 .rl-cal[hidden] { display: none; }
 .rl-cal-box { width: min(560px, 100%); max-height: calc(100vh - 24px); overflow-y: auto; box-sizing: border-box; padding: 16px; border-radius: 18px; background: #fff; border: 2px solid var(--border-color, #ffb6c1); color: #6b4256; text-align: center; }
@@ -3684,7 +3676,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .rl-cal-btns { display: flex; gap: 6px; margin-top: 10px; }
 .rl-cal-btns .btn { flex: 1; justify-content: center; }
 .rl-cal-ok { background: #ffe3ec; }
-@media (prefers-reduced-motion: reduce) { .rl-ruler.rl-in, .rl-ruler.rl-off { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .rl-ruler.rl-off { transition: none; } }
 
 /* 📒 다이어리 고르기 (js/skins.js dyOpen · dyDeco) : 페이지 둘레 꾸밈 · 누르는 건 막지 않아요 */
 .dy-deco { position: absolute; pointer-events: none; }

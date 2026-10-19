@@ -1,16 +1,16 @@
-/* ✂️ 스티커 칼 (도련 · 2026-10-17) : 📒 연필꽂이(js/draw.js)에 색연필과 같이 꽂혀 있어요 · 👝 필통에서 여러 칼 중 골라요(KN_KINDS) → 위로 쏙 뽑으면 스티커 칼
+/* ✂️ 스티커 칼 (도련 · 2026-10-17 · 10-19 연필꽂이 → 🗄️ 문구함) : 문구함 '칼' 서랍을 톡 = 칼을 들어요 (js/skins.js · 서랍에서 여러 칼 중 골라요 KN_KINDS)
    - 귀여운 스티커 칼이 글쓰기 필기구처럼 기울어진 채 마우스 · 손가락을 따라가요 (칼끝 = 닿은 자리)
    - 페이지의 아무 스티커나 끝에서 끝까지 가로질러 그으면 그 선(분단선)으로 두 조각이 돼요 · 동그랗게 오려 내는 게 아니라 '나누는 선'
    - 선이 여러 스티커와 겹치면 맨 위에 있는 스티커 하나만 잘라요 · 스티커를 먼저 고를 필요 없어요
-   - 칼은 ✕ · Esc · 구석 연필꽂이을 톡 할 때까지 남아 있어서 여러 번 연달아 자를 수 있어요
+   - 칼은 ✕ · Esc · 문구함 '칼' 서랍을 다시 톡 할 때까지 남아 있어서 여러 번 연달아 자를 수 있어요
    - 조각은 각각 옮기기 · 꾹 눌러 🗑️ 삭제 (원하지 않는 부분을 잘라서 버려요)
    - 되는 것 : 포인트 · 씰 · 조각 · 모조지스티커 · 🎀 마스킹테이프 · 🧻 떡메모지 (글상자 · 인형 · 액자 · 움직이는 그림은 안 돼요)
    - 자른 조각은 PNG 그림이 돼요 (떡메에 쓴 글씨도 그림 속에 같이 · 테이프는 늘이기 손잡이가 없어져요)
-   ※ 이 파일이 없어도 다이어리는 정상 동작 (연필꽂이에 칼만 안 꽂혀요) */
+   ※ 이 파일이 없어도 다이어리는 정상 동작 (문구함에 칼만 안 나와요) */
 (() => {
     'use strict';
     const q = id => document.getElementById(id);
-    /* 🔪 칼 종류 (👝 필통에서 골라 연필꽂이에 꽂아요 · js/pencase.js) : 손잡이 색만 달라요 · 새 칼 = 한 줄 추가 (id 는 바꾸지 않기) */
+    /* 🔪 칼 종류 (🗄️ 문구함 '칼' 서랍에서 골라요 · js/skins.js) : 손잡이 색만 달라요 · 새 칼 = 한 줄 추가 (id 는 바꾸지 않기) */
     const KN_KINDS = [
         { id: 'pink', name: '딸기 칼', hd: ['#ffb3cb', '#ff8fb1', '#f06f97'], ln: '#d95a84', pu: ['#ffe27a', '#e7b93d'] },
         { id: 'sky', name: '하늘 칼', hd: ['#cfe9ff', '#9fd0f7', '#6fb2ea'], ln: '#4d93cf', pu: ['#fff2a8', '#e7cf5a'] },
@@ -18,7 +18,7 @@
         { id: 'lilac', name: '라일락 칼', hd: ['#eadcff', '#cfb6fb', '#b195ef'], ln: '#8a6bd4', pu: ['#bff0dc', '#7cc9a8'] }
     ];
     const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0];
-    let knN = 0;                                       // 그림마다 색 이름(id)을 따로 : 같은 id 가 숨은 연필꽂이 · 필통에 먼저 있으면 그 색을 못 찾아 칼이 테두리만 보여요 (도련 10-19)
+    let knN = 0;                                       // 그림마다 색 이름(id)을 따로 : 같은 id 가 문구함 서랍에 먼저 있으면 그 색을 못 찾아 칼이 테두리만 보여요 (도련 10-19)
     function knifeSvg(id) {
         const k = knKind(id), n = ++knN, g = 'skHd_' + k.id + n, bl = 'skBl' + n;
         return '<svg viewBox="0 0 40 120" width="40" height="120" aria-hidden="true">'
@@ -52,12 +52,10 @@
         let r = q('skRoom'); if (r) return r;
         r = document.createElement('div'); r.id = 'skRoom'; r.className = 'sk-room'; r.hidden = true;
         r.innerHTML = '<canvas class="sk-line" id="skLine"></canvas>'
-            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 자를 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 자르면 <b>구석 연필꽂이</b>를 톡<button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
-            + '<button type="button" class="pc-mini sk-cup" id="skCup" aria-label="연필꽂이 (칼 꽂기 = 끝)"><span class="pc-mini-tops"><i style="--c:#e2556f"></i><i style="--c:#3d9be0"></i><i style="--c:#ffe14d"></i></span><span class="pc-mini-cup"></span></button>'
+            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 자를 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 자르면 <b>✕</b><button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
             + '<div class="sk-knife" id="skKnife"></div>';
         document.body.appendChild(r);
-        if (window.rlMiniAttach) rlMiniAttach(q('skCup'));                // 📏 칼을 든 채 구석 연필꽂이의 작은 자 머리를 위로 끌면 자를 뽑아요 (js/ruler.js)
-        ['skX', 'skCup'].forEach(id => { q(id).addEventListener('click', e => { e.stopPropagation(); close(true); }); q(id).addEventListener('pointerdown', e => e.stopPropagation()); });
+        q('skX').addEventListener('click', e => { e.stopPropagation(); close(); }); q('skX').addEventListener('pointerdown', e => e.stopPropagation());
         r.addEventListener('pointerdown', down); r.addEventListener('pointermove', move);
         r.addEventListener('pointerup', up); r.addEventListener('pointercancel', () => { S.down = false; S.pts = null; if (S.snap) { S.snap = null; rlTell(null); } paint(); });
         addEventListener('keydown', e => { if (e.key === 'Escape' && S.on) close(); });
@@ -68,8 +66,6 @@
         const c = S.cv, d = Math.min(2, window.devicePixelRatio || 1);
         c.width = Math.round(innerWidth * d); c.height = Math.round(innerHeight * d); c.style.width = innerWidth + 'px'; c.style.height = innerHeight + 'px';
         c.getContext('2d').setTransform(d, 0, 0, d, 0, 0); paint();
-        const pg = q('canvasArea'), cup = q('skCup');                     // 구석 연필꽂이 : 페이지 오른쪽 아래 (글쓰기 연필꽂이와 같은 자리)
-        if (pg && cup) { const r = pg.getBoundingClientRect(), vv = window.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : innerHeight); cup.style.left = Math.round(r.right - 62 - 12) + 'px'; cup.style.top = Math.round(bot - 84 - 12) + 'px'; }
     }
     function knifeAt(x, y) {
         const k = S.kn; if (!k) return;
@@ -83,29 +79,24 @@
         path(); x.strokeStyle = 'rgba(255,255,255,.95)'; x.lineWidth = 4; x.setLineDash([]); x.stroke();
         path(); x.strokeStyle = '#7d6a78'; x.lineWidth = 1.6; x.setLineDash([5, 3]); x.stroke();
     }
-    /* 🖐 연필꽂이에서 칼을 뽑으면 (js/draw.js pcPick) : 뽑은 손 자리에서 칼을 들고 시작 */
+    /* 🗄️ 문구함 '칼' 서랍을 톡 (js/skins.js) : 보이는 쪽 가운데에서 칼을 들고 시작 */
     function open(x, y, kind) {
         if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
         if (window.tmClose) tmClose();
         if (typeof selectedElement !== 'undefined' && selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         const r = build(); S.room = r; S.cv = q('skLine'); S.kn = q('skKnife'); S.on = true; S.pts = null; S.down = false;
-        S.kn.innerHTML = knifeSvg(kind);               // 뽑은 칼 그대로
+        S.kind = knKind(kind).id; S.kn.innerHTML = knifeSvg(kind);   // 고른 칼 그대로
         r.hidden = false; S.kn.classList.remove('gone', 'in'); size();
-        if (x == null) { const b = q('canvasArea').getBoundingClientRect(); x = b.left + b.width / 2; y = b.top + b.height / 2; }
+        if (x == null) { const b0 = q('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; x = b.left + b.width / 2; y = b.top + b.height / 2; }   // 📱 폰 = 보이는 오른쪽 쪽
         knifeAt(x, y);
         const t = q('skTip'), say = t.querySelector('.sk-say'); if (say) say.remove();
         if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
     }
-    function close(put) {                              // put = 구석 연필꽂이에 쏙 꽂고 끝
+    function close() {
         if (!S.on) return;
         S.on = false; S.pts = null; S.down = false; S.snap = null; paint();
-        if (window.rlEnd) rlEnd(put);                    // 📏 자도 같이 들어가요
-        const fin = () => { if (S.room) S.room.hidden = true; if (S.kn) S.kn.classList.remove('in'); };
-        if (put && S.kn) {
-            const m = q('skCup').getBoundingClientRect();
-            S.kn.classList.add('in'); S.kn.style.transform = `translate(${m.left + m.width / 2 - KN_TIP[0]}px, ${m.top + 6 - KN_TIP[1]}px) rotate(180deg) scale(.35)`;
-            setTimeout(fin, 280);
-        } else fin();
+        if (S.room) S.room.hidden = true;
+        document.dispatchEvent(new CustomEvent('sk-change'));             // 🗄️ 문구함 서랍 '페이지에 ✓' 다시
     }
     function down(e) {
         if (e.button > 0 || S.busy) return;
@@ -267,5 +258,5 @@
         return true;
     }
 
-    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
+    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skKindNow = () => S.on ? S.kind : null; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
 })();

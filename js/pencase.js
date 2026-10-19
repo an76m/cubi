@@ -4,28 +4,26 @@
    - 안에는 필기구가 한 줄로 세로로 서 있어요 · 안쪽 어디든 좌우로 밀면 끝없이 빙글빙글 넘어가요 (끝에 닿으면 처음 것이 다시 와요 · 휠 · ← → 키도)
      위 이름표(🗂 색연필 · 형광펜 · 지우개)를 누르면 그 종류로 휙 · 가운데 있는 종류에 불 · 숫자 = 그 종류에서 꽂은 개수
      톡 누르면 연필꽂이에 꽂기 / 빼기 (꽂은 것은 쏙 올라오고 하트 꼬리표) · 도구가 늘어도 줄만 길어져요
-   - ✂️ 칼 · 📏 자는 보관함에 안 보이고 🗄️ 문구함 서랍(js/skins.js)에서 골라 연필꽂이에 꽂아요 (PK_KINDS box: false · 저장은 같은 목록)
-   - 도구 종류는 PK_KINDS 한 곳 · 새 색 · 새 칼(js/stkcut.js KN_KINDS) · 새 자(js/ruler.js RL_KINDS)를 넣으면 저절로 나와요
+   - ✂️ 칼 · 📏 자는 연필꽂이 · 보관함에 없어요 → 🗄️ 문구함 서랍에서 펀칭기 · 가위처럼 꺼내 써요 (js/skins.js · 도련 10-19)
+   - 도구 종류는 PK_KINDS 한 곳 · 새 색을 넣으면 저절로 나와요
    - '닫기' 를 누르면 저장 → 📒 수첩 모드 연필꽂이에는 고른 것만 다시 꽂히고 · 고르는 창 모드 필기구 줄에는 고른 색만 나와요 (js/draw.js pcList · penSetTool)
    - 연필꽂이에는 1 ~ 24 개 (너무 많으면 고르기 어려워요)
-   저장 : 'diary_pencase'(설정.json) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', 'knife:pink', 'ruler:pink', …]
+   저장 : 'diary_pencase'(설정.json) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', …]
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 필기구 그대로) */
 
         const PK_KEY = 'diary_pencase', PK_LOCAL = 'malang_pencase', PK_MAX = 24;
         const PK_PENS = ['#333333', '#e2556f', '#ff8a3d', '#3d9be0', '#4caf7a', '#8a6be0', '#8a5a44', '#ffffff',
                          '#ff9ec1', '#ffd36b', '#a8e3a0', '#9fd3ff', '#c7a8ff', '#ff5c8a', '#2f6fb5', '#5c3a2e'];
         const PK_HIS = ['#ffe14d', '#ff9ec4', '#9be59b', '#9fd3ff', '#ffc078', '#cdb4ff', '#ffb3d9', '#b3f0ff', '#d9ff8a'];
-        /* 🗂 필통 칸 (보이는 순서) · list = 그 종류 도구들 (칼 · 자는 그 파일이 정한 종류를 읽어요) */
+        /* 🗂 보관함 칸 (보이는 순서) · list = 그 종류 도구들 */
         const PK_KINDS = [
             { k: 'pen', lb: '색연필', list: () => PK_PENS.map(c => ({ id: 'pen:' + c, tool: 'pen', color: c, size: 1 })) },
             { k: 'hi', lb: '형광펜', list: () => PK_HIS.map(c => ({ id: 'hi:' + c, tool: 'hi', color: c, size: 1 })) },
-            { k: 'erase', lb: '지우개', list: () => [0, 1, 2].map(n => ({ id: 'erase:' + n, tool: 'erase', size: n, name: ['작은 지우개', '지우개', '큰 지우개'][n] })) },
-            { k: 'knife', lb: '칼', box: false, list: () => (window.skKinds ? skKinds() : []).map(t => ({ id: 'knife:' + t.id, tool: 'knife', kind: t.id, name: t.name })) },
-            { k: 'ruler', lb: '자', box: false, list: () => (window.rlKinds ? rlKinds() : []).map(t => ({ id: 'ruler:' + t.id, tool: 'ruler', kind: t.id, name: t.name })) }
+            { k: 'erase', lb: '지우개', list: () => [0, 1, 2].map(n => ({ id: 'erase:' + n, tool: 'erase', size: n, name: ['작은 지우개', '지우개', '큰 지우개'][n] })) }
         ];
         let pkAllC = null;
-        const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 칼 · 자 파일을 다 읽은 뒤 처음 쓸 때 만들어요
-        const PK_DEF = PK_PENS.slice(0, 8).map(c => 'pen:' + c).concat(PK_HIS.slice(0, 6).map(c => 'hi:' + c), ['erase:0', 'erase:2', 'knife:pink', 'ruler:pink']);   // 처음 연필꽂이
+        const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 처음 쓸 때 만들어요
+        const PK_DEF = PK_PENS.slice(0, 8).map(c => 'pen:' + c).concat(PK_HIS.slice(0, 6).map(c => 'hi:' + c), ['erase:0', 'erase:2']);   // 처음 연필꽂이
         const pkq = id => document.getElementById(id);
         const pkSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof store !== 'undefined';
         const pk = { on: false, pick: null, busy: false, tab: 'pen', x: 0, w: 1, v: 0, raf: 0, go: null, drag: null, moved: false };   // x = 민 거리(px) · w = 한 바퀴 길이
@@ -41,16 +39,14 @@
             try { if (pkSync()) store.setItem(PK_KEY, t); } catch (e) {}
             try { localStorage.setItem(PK_LOCAL, t); } catch (e) {}
         }
-        /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요) · 칼은 앞쪽 · 자는 맨 오른쪽 */
+        /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
         function pkCupList() {
             const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ tool: t.tool, color: t.color, size: t.size, kind: t.kind }));
             const pens = g('pen'), his = g('hi'), ers = g('erase'), out = [];
             while (pens.length || his.length) { if (pens.length) out.push(pens.shift()); if (pens.length) out.push(pens.shift()); if (his.length) out.push(his.shift()); }
             ers.forEach((e, i) => out.splice(Math.round((i + 1) * out.length / (ers.length + 1)) + i, 0, e));
-            g('knife').forEach((k, i) => out.splice(Math.min(2 + i * 3, out.length), 0, k));
-            return out.concat(g('ruler'));
+            return out;
         }
-        function pkFirst(tool) { const on = pkRead(); const t = pkAll().find(t => t.tool === tool && on.includes(t.id)); return t ? t.kind : null; }   // 그 종류에서 처음 고른 것 (📏 구석 연필꽂이의 작은 자 머리)
 
         function pkColors(tool) {                                              // 고르는 창 모드 필기구 줄의 색 (그 종류를 하나도 안 골랐으면 null → 기본 색)
             const on = new Set(pkRead()), c = pkAll().filter(t => t.tool === tool && on.has(t.id)).map(t => t.color);
@@ -59,7 +55,7 @@
 
         /* ---------- 필통 그리기 ---------- */
         function pkSvg(t) {                                                    // 연필꽂이와 같은 그림 · 세로로 서 있어요
-            return t.tool === 'erase' ? penEraserSvg(t.size) : t.tool === 'hi' ? penMarkerSvg(t.color, 1) : t.tool === 'knife' ? skKnifeSvg(t.kind) : t.tool === 'ruler' ? rlCupSvg(t.kind, 150) : penPencilSvg(t.color, 1);
+            return t.tool === 'erase' ? penEraserSvg(t.size) : t.tool === 'hi' ? penMarkerSvg(t.color, 1) : penPencilSvg(t.color, 1);
         }
         function pkTool(t, copy) {
             const nm = t.name || (t.tool === 'pen' ? '색연필' : '형광펜');   // 그림은 바닥에 맞춰 세워요 (모두 같은 줄에 서요)
@@ -71,7 +67,7 @@
             let r = pkq('pkRoom'); if (r) return r;
             r = document.createElement('div'); r.id = 'pkRoom'; r.className = 'pk-room'; r.hidden = true;
             r.setAttribute('role', 'dialog'); r.setAttribute('aria-label', '보관함');
-            const kinds = PK_KINDS.filter(g => g.box !== false && g.list().length);
+            const kinds = PK_KINDS.filter(g => g.list().length);
             r.innerHTML = `<div class="pk-case" id="pkCase">
                 <div class="pk-body">
                     <div class="pk-in">
@@ -187,31 +183,19 @@
             r.hidden = false; pkPlace(); pkTab(pk.tab, true); requestAnimationFrame(() => r.classList.add('show'));
             setTimeout(() => { const b = r.querySelector('.pk-tab.on'); if (b) b.focus({ preventScroll: true }); }, 50);
         }
-        function pkDone() {                                                   // 저장 → 연필꽂이 다시 꽂기
-            if (window.rlTopSync) rlTopSync();                                   // 📏 구석 연필꽂이의 작은 자 머리
-            if (window.pcRefill) pcRefill();
-        }
         function pkClose() {
             if (!pk.on || pk.busy) return;
             pk.busy = true;
             const r = pkq('pkRoom'), c = pkq('pkCase');
-            pkWrite([...pk.pick]); pkStop(); pkDone();
+            pkWrite([...pk.pick]); pkStop();
+            if (window.pcRefill) pcRefill();                                     // 연필꽂이 · 아래 창 색 줄 다시
             c.classList.add('shut');
             setTimeout(() => {
                 r.classList.remove('show');
                 setTimeout(() => { r.hidden = true; pk.on = false; pk.busy = false; }, 220);
             }, 60);
         }
-        /* 🗄️ 문구함 칼 · 자 서랍 (js/skins.js) : 그 종류 목록 · 꽂혀 있는지 · 꽂기/빼기 */
-        const pkKind = k => { const g = PK_KINDS.find(g => g.k === k); return g ? g.list() : []; };
-        const pkHas = id => pkRead().includes(id);
-        function pkFlip(id, on) {
-            const v = pkRead().filter(x => x !== id);
-            if (on) { if (v.length >= PK_MAX) { showMsg(`연필꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return false; } v.push(id); }
-            pkWrite(v); pkDone(); return true;
-        }
-        window.pkKind = pkKind; window.pkHas = pkHas; window.pkFlip = pkFlip; window.pkSvg = pkSvg;
-        window.openPencase = openPencase; window.pkCupList = pkCupList; window.pkColors = pkColors; window.pkFirst = pkFirst;
+        window.openPencase = openPencase; window.pkCupList = pkCupList; window.pkColors = pkColors;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['pencase'] = true;
