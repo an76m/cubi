@@ -2748,9 +2748,10 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .cover-page .drag-hint { position: absolute; bottom: 8cqw; left: 50%; margin: 0; font-size: 3cqw; font-weight: 700; white-space: nowrap; color: #7b5a63; animation: cvNudge 1.5s infinite; }
 @keyframes cvNudge { 0%, 100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% - 1.6cqw)); } }
 
-/* 속지 : 줄 노트 + 링 구멍 · 하얀 테두리 (종이 크기는 그대로라 붙인 스티커 자리는 안 바뀌어요) */
+/* 속지 : 줄 노트 + 빨간(스킨색) 여백선 + 링 구멍 · 하얀 테두리 (종이 크기는 그대로라 붙인 스티커 자리는 안 바뀌어요) */
 .inner-page .canvas-area { background:
         radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y,
+        linear-gradient(90deg, transparent 10.5cqw, color-mix(in srgb, var(--primary-accent) 45%, #fff) 10.5cqw 10.9cqw, transparent 10.9cqw),
         linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw,
         var(--page-bg);
     box-shadow: 0 0 0 4px #fff, 1cqw 2cqw 5cqw rgba(160,90,110,.16); }
@@ -2772,12 +2773,14 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .inner-page .canvas-area.lf-kraft, .lf-slide.lf-kraft { background: var(--lf-holes), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"), #e2cba6; }
 .inner-page .canvas-area.lf-plain, .lf-slide.lf-plain { background: var(--lf-holes), var(--page-bg); }
 .lf-slide { position: absolute; inset: 0; z-index: 0; pointer-events: none; border-radius: inherit; box-shadow: -6px 0 14px rgba(90,40,60,.18); background:
-        var(--lf-holes), linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw, var(--page-bg); }
+        var(--lf-holes), linear-gradient(90deg, transparent 10.5cqw, color-mix(in srgb, var(--primary-accent) 45%, #fff) 10.5cqw 10.9cqw, transparent 10.9cqw),
+        linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw, var(--page-bg); }
 .lf-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; --sbg: 10px; }
 .lf-pick { font: inherit; font-size: 12.5px; font-weight: 700; color: var(--dk-ink, #7b5a63); background: none; border: 0; padding: 0; cursor: pointer; container-type: inline-size; }
 .lf-pick .lf-sw { --lf-holes: radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y;
     display: block; aspect-ratio: 1; height: auto; border-radius: 10px; margin-bottom: 4px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--border-color) 55%, #fff); }
-.lf-pick .lf-sw.lf-line { background: var(--lf-holes), linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw, var(--page-bg); }
+.lf-pick .lf-sw.lf-line { background: var(--lf-holes), linear-gradient(90deg, transparent 10.5cqw, color-mix(in srgb, var(--primary-accent) 45%, #fff) 10.5cqw 10.9cqw, transparent 10.9cqw),
+        linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw, var(--page-bg); }
 .lf-pick .lf-sw.lf-grid { background: var(--lf-holes), linear-gradient(color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / 5cqw 5cqw, linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / 5cqw 5cqw, #fffefc; }
 .lf-pick .lf-sw.lf-dot { background: var(--lf-holes), radial-gradient(circle, color-mix(in srgb, var(--primary-accent) 38%, #fff) .9cqw, transparent 1.2cqw) 0 0 / 9cqw 9cqw, #fffdfb; }
 .lf-pick .lf-sw.lf-gingham { background: var(--lf-holes), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / 13cqw 13cqw, linear-gradient(color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / 13cqw 13cqw, #fff; }
@@ -3710,6 +3713,7 @@ body.rl-out .rl-top, body.rl-none .rl-top { display: none; }
 .inner-page.png-mode .dy-deco { display: none; }
 .inner-page.dy-noholes .canvas-area { --lf-holes: linear-gradient(transparent, transparent); }
 .inner-page.dy-noholes .canvas-area:not([class*="lf-"]) { background:
+        linear-gradient(90deg, transparent 10.5cqw, color-mix(in srgb, var(--primary-accent) 45%, #fff) 10.5cqw 10.9cqw, transparent 10.9cqw),
         linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw,
         var(--page-bg); }
 .dy-cov { position: absolute; inset: -2.4cqw -2.4cqw -2.4cqw -2.4cqw; border-radius: 3cqw; background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); box-shadow: 0 2cqw 4cqw rgba(110, 60, 80, .25); }
@@ -4054,15 +4058,9 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .gdc-tag small { display: block; font-size: 10px; font-weight: 700; color: #c07a92; letter-spacing: 0; margin-top: -1px; }
 .gdc-pull { flex: none; width: 30px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: linear-gradient(180deg, #ffd27a, #e5a93a); box-shadow: 0 2px 0 #c98d2a; color: #8a5a12; font-size: 12px; font-weight: 900; line-height: 1; }   /* 손잡이 = 서랍 열기 */
 .gdc-row.open .gdc-dr { border-radius: 9px 9px 0 0; transform: translateY(2px); box-shadow: 0 2px 0 #f0c3a4; }
-.gdc-tray { padding: 7px 6px 6px; touch-action: pan-y; margin: 0 4px; border: 2px solid #f0c3a4; border-top: 0; border-radius: 0 0 10px 10px;
+.gdc-tray { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 7px 6px 6px; margin: 0 4px; border: 2px solid #f0c3a4; border-top: 0; border-radius: 0 0 10px 10px;
     background: repeating-linear-gradient(90deg, #f7dcc4 0 6px, #f3d2b6 6px 7px); box-shadow: inset 0 6px 8px -4px rgba(140, 80, 60, .35); animation: gdcTray .25s cubic-bezier(.2, .9, .3, 1.2); transform-origin: top; }   /* 쭉 빠진 서랍 속 */
 @keyframes gdcTray { from { opacity: 0; transform: scaleY(.3); } }
-.gdc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; min-height: 104px; align-content: start; }
-.gdc-pg { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 6px; }
-.gdc-pg button { width: 26px; height: 22px; padding: 0; border: 0; border-radius: 7px; background: linear-gradient(180deg, #ffd27a, #e5a93a); box-shadow: 0 2px 0 #c98d2a; color: #8a5a12; font: 900 15px/1 inherit; cursor: pointer; }
-.gdc-pg button:disabled { opacity: .35; cursor: default; }
-.gdc-pg i { width: 6px; height: 6px; border-radius: 50%; background: rgba(155, 74, 104, .25); }
-.gdc-pg i.on { background: #e0729a; width: 14px; border-radius: 4px; }
 .gdc-it { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px 3px; border: 2px solid transparent; border-radius: 9px; background: rgba(255, 255, 255, .75); cursor: pointer; font-family: inherit; }
 .gdc-it .gdc-ic { height: 28px; }
 .gdc-it .gdc-ic.tweez, .gdc-it .gdc-ic.scissors { height: 44px; }

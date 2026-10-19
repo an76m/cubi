@@ -18,31 +18,21 @@
         const snbq = id => document.getElementById(id);
 
         function snbSync() { return typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof store !== 'undefined'; }
-        const SNB_DEF = { phone: 'list', pad: 'note', pc: 'note' };          // 기본 : 📱 폰 = 🪟 고르는 창 · 📲 패드 · 💻 PC = 📒 수첩 (도련 10-19)
-        const snbDev = () => typeof dvDev === 'function' ? dvDev() : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pc';   // 이 기기 (js/skins.js 📖 페이지 보기와 같은 기준)
-        function snbCfg() {                                                     // ⚙️ 설정 → 📒 스티커 고르는 창 : 기기마다 따로 { phone · pad · pc }
-            let v = null;
-            try { v = JSON.parse(snbSync() ? store.getItem(SNB_KEY) : localStorage.getItem(SNB_LOCAL)); } catch (e) {}
-            return Object.assign({}, SNB_DEF, v && typeof v === 'object' ? v : {});
-        }
         function snbMode() {
+            let v = null;
+            try { v = snbSync() ? store.getItem(SNB_KEY) : localStorage.getItem(SNB_LOCAL); } catch (e) {}
+            try { v = JSON.parse(v); } catch (e) {}
             if (typeof ftOn === 'function' && !ftOn('notebook')) return 'list';   // 🔓 수첩을 숨겨 둔 동안은 늘 고르는 창 (js/features.js)
-            return snbCfg()[snbDev()] === 'list' ? 'list' : 'note';
+            if (v === 'list' || v === 'note') return v;                          // ⚙️ 설정에서 직접 고른 것
+            return Math.min(innerWidth, innerHeight) < 600 ? 'list' : 'note';    // 기본 : 📱 폰 = 🪟 고르는 창 · 💻 PC · 패드 = 📒 수첩 (도련 10-19)
         }
-        function snbSet(k, v) {
-            const c = snbCfg(); c[k] = v === 'note' ? 'note' : 'list';
-            const t = JSON.stringify(c);
+        function snbSet(v) {
+            const t = JSON.stringify(v === 'note' ? 'note' : 'list');
             try { if (snbSync()) store.setItem(SNB_KEY, t); } catch (e) {}
             try { localStorage.setItem(SNB_LOCAL, t); } catch (e) {}
             snbRender();
         }
-        function snbRender() {
-            const c = snbCfg(), me = snbDev();
-            document.querySelectorAll('#snbPick [data-k]').forEach(row => {
-                row.classList.toggle('me', row.dataset.k === me);
-                row.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === c[row.dataset.k]));
-            });
-        }
+        function snbRender() { document.querySelectorAll('#snbPick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === snbMode())); }
 
         /* ---------- 수첩 옷 입히기 / 벗기기 ---------- */
         function snbWrap(m) {
