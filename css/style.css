@@ -4011,3 +4011,5 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 
 /* ☁ 장을 펼칠 때 불러오는 중 (js/elements.js setCanvasLoading) : 하얀 바탕 · 페이지 가운데 */
 .cv-loading { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 50; padding: 14px 24px; border-radius: 18px; background: #fff; color: var(--primary-accent); font-size: 16px; font-weight: bold; white-space: nowrap; box-shadow: 0 6px 22px rgba(160, 90, 110, .25); pointer-events: none; }
+/* 🪡 페이지 팝업메뉴는 떠 있는 핀셋보다 위 (핀셋은 메뉴를 피하지 않아요 · 도련 10-19 · js/elements.js PIN_WALL) */
+.tap-menu, .layer-menu { z-index: 2147483001; }

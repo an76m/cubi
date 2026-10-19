@@ -850,7 +850,7 @@
         let pinDown = 0;
         window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
-        const PIN_WALL = '.tap-menu, .modal:not(.snb-on) > .modal-content, .twz-say.on';
+        const PIN_WALL = '.modal:not(.snb-on) > .modal-content, .twz-say.on';   // 페이지 팝업메뉴(.tap-menu)는 피하지 않아요 (도련 10-19 · 메뉴가 핀셋 위에 떠요)
         function pinDodge() {
             if (!pinEl || pinDown || pinFollow || !pinLast || pinEl.classList.contains('glide')) return;
             const vis = el => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== 'hidden' ? r : null; };
