@@ -553,7 +553,7 @@
         function snbPlace(el, x, y) {
             const go = () => {
                 if (!el.isConnected) return;
-                const pg = snbq('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
+                const pg = snbq('canvasArea'), r0 = pg.getBoundingClientRect(), k = r0.width / (pg.offsetWidth || r0.width) || 1, r = window.dyVisRect ? dyVisRect(r0) : r0;
                 const put = (a, b) => { el.dataset.posX = a; el.dataset.posY = b; el.style.transform = `translate(${a}px, ${b}px) scale(${el.dataset.scale || 1}) rotate(${el.dataset.rotation || 0}deg)`; };
                 put(0, 0);
                 const b = el.getBoundingClientRect(), hw = Math.min(b.width, r.width) / 2, hh = Math.min(b.height, r.height) / 2;

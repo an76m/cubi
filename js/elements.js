@@ -103,7 +103,7 @@
         function elCenter(el) {
             const go = () => {
                 if (!el.isConnected || +el.dataset.posX !== (el._p0 ?? 100) || el.dataset.posY !== '100') return;
-                const pg = document.getElementById('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
+                const pg = document.getElementById('canvasArea'), r0 = pg.getBoundingClientRect(), k = r0.width / (pg.offsetWidth || r0.width) || 1, r = window.dyVisRect ? dyVisRect(r0) : r0;
                 const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${el.dataset.rotation || 0}deg)`; };
                 put(0, 0);
                 const b = el.getBoundingClientRect(), hw = Math.min(b.width, r.width) / 2, hh = Math.min(b.height, r.height) / 2;

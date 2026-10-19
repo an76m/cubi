@@ -1129,7 +1129,7 @@
            ===================================================================== */
         function attachDollToPage(d) {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">표지를 넘긴 뒤 다시 붙여 주세요. 인형은 내 인형들에 저장되어 있어요.</span>'); return false; }
-            const el = createElementFromData({ type: 'doll', content: d, width: '130px', posX: 90, posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
+            const el = createElementFromData({ type: 'doll', content: d, width: '130px', posX: 90 + (window.dyVisX ? dyVisX() : 0), posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
             document.getElementById('canvasArea').appendChild(el);
             selectElement(el);
             saveData(false);

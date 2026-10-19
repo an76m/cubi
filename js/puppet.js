@@ -528,7 +528,7 @@
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">표지를 넘긴 뒤 다시 붙여 주세요.</span>'); return; }
             try {
                 const c = await psScenePng(PS.show, PS.sc, psScene().lines.length ? 0 : null);
-                const el = createElementFromData({ type: 'image', content: c.toDataURL('image/jpeg', .88), width: '240px', posX: 50, posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
+                const el = createElementFromData({ type: 'image', content: c.toDataURL('image/jpeg', .88), width: '240px', posX: 50 + (window.dyVisX ? dyVisX() : 0), posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
                 document.getElementById('canvasArea').appendChild(el);
                 selectElement(el); saveData(false);
                 showMsg('📔 장면 사진을 일기에 붙였어요!');

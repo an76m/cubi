@@ -577,6 +577,11 @@
             const b = document.getElementById('diaryBook'), cv = document.getElementById('canvasArea');
             return b && cv && dyMode() !== 'spread' && b.classList.contains('dy-r') ? cv.offsetWidth / 2 : 0;
         }
+        function dyVisRect(r) {                                                // 화면 위 '지금 보이는 쪽' (📱 한쪽 보기 = 책 테두리 안만) · 새로 놓을 자리를 여기 안으로
+            const b = document.getElementById('diaryBook'); r = { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+            if (b && b.classList.contains('dy-one')) { const o = b.getBoundingClientRect(); r.left = Math.max(r.left, o.left); r.right = Math.min(r.right, o.right); r.width = r.right - r.left; }
+            return r;
+        }
         const dyUnderR = (dir, cover) => dyMode() === 'right' || (dyMode() === 'swipe' && !cover && dir === -1);   // 넘길 때 밑에 보일 장이 오른쪽 쪽인지 (js/page.js beginCurl)
         function dyViewSet(v, anim) {                                          // 📱 왼쪽 · 오른쪽 쪽 보기 (한쪽 보기는 늘 오른쪽)
             const m = dyMode(); dyView = m === 'right' || (m === 'swipe' && v === 'r') ? 'r' : 'l';
@@ -1164,7 +1169,7 @@
         }
         const gdMid = el => { const t = gdInfo(el.dataset.t); return { x: (parseFloat(el.style.left) || 0) + t.w / 2, y: (parseFloat(el.style.top) || 0) + t.h / 2 }; };
         function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구함마다 조금씩 비켜서)
-            const cv = document.getElementById('canvasArea'), r = cv.getBoundingClientRect(), t = gdInfo(id);
+            const cv = document.getElementById('canvasArea'), r = dyVisRect(cv.getBoundingClientRect()), t = gdInfo(id);
             const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), tp = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
             const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
@@ -1938,7 +1943,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || (b.dataset.id || '').startsWith('tool:') && !!gdEl(b.dataset.id.slice(5)))); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdPick = gdPick; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdPick = gdPick; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

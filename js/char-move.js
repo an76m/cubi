@@ -811,7 +811,7 @@ void main(){
         async function cpAttach() {
             const pl = CMV.pp; if (!pl) return;
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">표지를 넘긴 뒤 다시 붙여 주세요.</span>'); return; }
-            const el = createElementFromData({ type: 'image', content: cpSnapshot(pl).toDataURL('image/png'), cm: cpParams(pl), ts: 1, width: '170px', posX: 80, posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
+            const el = createElementFromData({ type: 'image', content: cpSnapshot(pl).toDataURL('image/png'), cm: cpParams(pl), ts: 1, width: '170px', posX: 80 + (window.dyVisX ? dyVisX() : 0), posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
             document.getElementById('canvasArea').appendChild(el);
             selectElement(el);
             saveData(false);
@@ -824,7 +824,7 @@ void main(){
         async function cmvAttach() {
             const pl = CMV.pl; if (!pl) return;
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">표지를 넘긴 뒤 다시 붙여 주세요.</span>'); return; }
-            const el = createElementFromData({ type: 'image', content: CMV.pad.toDataURL('image/png'), cm: cmvParams(pl), ts: 1, width: '170px', posX: 80, posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
+            const el = createElementFromData({ type: 'image', content: CMV.pad.toDataURL('image/png'), cm: cmvParams(pl), ts: 1, width: '170px', posX: 80 + (window.dyVisX ? dyVisX() : 0), posY: 60, scale: 1, rotation: 0, zIndex: zIndexCounter }, true);
             document.getElementById('canvasArea').appendChild(el);
             selectElement(el);
             saveData(false);
