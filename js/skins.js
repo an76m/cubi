@@ -1322,7 +1322,7 @@
         /* 🗄️ 하단 메뉴 '문구함' : 화면 가운데 세로 서랍장 (도련 10-19)
            - 서랍장 위에는 ✏️ 연필꽂이 (톡 = 그리기 · js/draw.js openDraw) · 서랍마다 이름표 : 핀셋 · 집게 · 펀칭기 · 양면테이프 · 가위 · 필통
            - 서랍 = 그 종류의 보관함 : 앞면 톡 = '주로 쓰는 것'을 바로 페이지에 (다시 톡 = 치우기 · 서랍이 빠끔 + '페이지에 ✓')
-           - 손잡이 톡 · 서랍 꾹 = 서랍이 쭉 열려서 가진 디자인이 다 보여요 → 톡 = 그걸 '주로 쓰는 것'으로 + 페이지에 (다시 톡 = 치우기)
+           - 손잡이 톡 · 서랍 꾹 = 서랍이 쭉 열려서 가진 디자인이 6개씩 보여요 (‹ › · 옆으로 밀어 넘기기 · 서랍 이름표에 몇 개인지) → 톡 = 그걸 '주로 쓰는 것'으로 + 페이지에 (다시 톡 = 치우기)
              집게처럼 여러 개 쓰는 것은 여러 개 꺼낼 수 있어요 (GD_MULTI) · 핀셋 · 가위처럼 하나만 쓰는 것은 놓인 것이 바뀌어요
            - 주로 쓰는 것 : 'diary_gd_main' { 종류: id } · 지금은 종류마다 기본 1개 (집게는 6색) · 나중에 📦 문구점에서 산 것을 gdOwn 에 더해요
            - 👝 필통 서랍은 필통 창 (js/pencase.js) · ✕ 로 닫아요 */
@@ -1334,6 +1334,7 @@
         function gdMainSet(g, id) { const m = Object.assign({}, prefGet(GD_MAIN, GD_MAIN_L) || {}); if (m[g] === id) return; m[g] = id; prefSet(GD_MAIN, GD_MAIN_L, m); }
         const gdOnPage = g => gdOwn(g).filter(id => gdEl(id));
         let cabOpen = null, cabPress = null;
+        const CAB_PER = 6, cabPage = {};                                        // 서랍 속은 6개씩 칸을 넘겨 봐요 (📦 문구점에서 사서 아무리 많아져도 서랍장 길이는 그대로 · 도련 10-19)
         const CAB_CUP = `<svg viewBox="0 0 80 92" aria-hidden="true"><path d="M27 52 L22 8 Q22 3 26 4 L29 52" fill="#ffe27a" stroke="#d9aa2b" stroke-width="1.2"/><path d="M22.6 12 L24 4 L26 12z" fill="#7a5a3a"/>
             <path d="M37 52 V6 Q40 0 43 6 V52" fill="#9fd0f7" stroke="#5f9fd6" stroke-width="1.2"/><path d="M38.6 9 L40 2 L41.4 9z" fill="#3d6f9a"/>
             <path d="M49 52 L55 12 Q57 8 59 11 L54 52" fill="#ffb3c8" stroke="#e0729a" stroke-width="1.2"/><rect x="54.2" y="7" width="5" height="6" rx="1.5" transform="rotate(10 56 10)" fill="#fff" stroke="#e0729a"/>
@@ -1346,10 +1347,14 @@
             const dr = ([g, n]) => {
                 if (g === 'case') return `<div class="gdc-row"><button type="button" class="gdc-dr" data-g="case" onclick="gdCabTap('case')"><span class="gdc-in"><span class="gdc-ic case">${CAB_CASE}</span></span><span class="gdc-tag">${n}</span><i class="gdc-knob"></i></button></div>`;
                 const main = gdMain(g), on = gdOnPage(g).length, open = cabOpen === g;
-                const tray = open ? `<div class="gdc-tray">${gdOwn(g).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${gdEl(id) ? ' on' : ''}" onclick="gdCabItem('${g}', '${id}')"><span class="gdc-ic ${g}">${gdArt(id)}</span><small>${gdInfo(id).n}</small></button>`).join('')}</div>` : '';
+                const own = gdOwn(g), pages = Math.ceil(own.length / CAB_PER);
+                if (open && cabPage[g] == null) cabPage[g] = Math.max(0, own.indexOf(main)) / CAB_PER | 0;   // 처음엔 주로 쓰는 것이 있는 칸
+                const pg = Math.min(pages - 1, Math.max(0, cabPage[g] || 0));
+                const tray = open ? `<div class="gdc-tray" data-g="${g}"><div class="gdc-grid">${own.slice(pg * CAB_PER, pg * CAB_PER + CAB_PER).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${gdEl(id) ? ' on' : ''}" onclick="gdCabItem('${g}', '${id}')"><span class="gdc-ic ${g}">${gdArt(id)}</span><small>${gdInfo(id).n}</small></button>`).join('')}</div>${pages > 1
+                    ? `<div class="gdc-pg"><button type="button" aria-label="앞 칸" onclick="gdCabPage('${g}', -1)"${pg ? '' : ' disabled'}>‹</button>${Array.from({ length: pages }, (_, i) => `<i${i === pg ? ' class="on"' : ''}></i>`).join('')}<button type="button" aria-label="다음 칸" onclick="gdCabPage('${g}', 1)"${pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : ''}</div>` : '';
                 return `<div class="gdc-row${open ? ' open' : ''}"><button type="button" class="gdc-dr${on ? ' out' : ''}" data-g="${g}">
                     <span class="gdc-in"><span class="gdc-ic ${g}">${gdArt(main)}</span></span>
-                    <span class="gdc-tag">${n}${gdOwn(g).length > 1 ? `<small>${gdInfo(main).n.replace(/^기본\s*/, '')}</small>` : ''}</span>
+                    <span class="gdc-tag">${n}${own.length > 1 ? `<small>${gdInfo(main).n.replace(/^기본\s*/, '')} · ${own.length}개</small>` : ''}</span>
                     <span class="gdc-pull" role="button" aria-label="서랍 열기">${open ? '▲' : '▼'}</span><em class="gdc-out">페이지에 ✓${on > 1 ? ' ' + on : ''}</em></button>${tray}</div>`;
             };
             cab.innerHTML = `<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
@@ -1363,6 +1368,11 @@
                 b.addEventListener('click', e => { if (!cabPress || cabPress.g !== g) return; cabPress = null; if (e.target.closest('.gdc-pull')) gdCabPull(g); else gdCabTap(g); });
                 b.addEventListener('contextmenu', e => e.preventDefault());
             });
+            cab.querySelectorAll('.gdc-tray').forEach(t => {                    // 👆 서랍 속을 옆으로 밀어서 넘기기
+                let sx = null;
+                t.addEventListener('pointerdown', e => { sx = e.clientX; });
+                t.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 40) { gdCabPage(t.dataset.g, dx < 0 ? 1 : -1); } });
+            });
         }
         function openGdCab() {
             if (typeof isCoverOpen === 'undefined' || !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
@@ -1374,7 +1384,8 @@
             if (on.length) on.forEach(id => gdPick(id)); else gdPick(gdMain(g));
             gdCabRender();
         }
-        function gdCabPull(g) { cabOpen = cabOpen === g ? null : g; gdCabRender(); }   // 서랍 쭉 열기 · 닫기
+        function gdCabPull(g) { cabOpen = cabOpen === g ? null : g; delete cabPage[g]; gdCabRender(); }   // 서랍 쭉 열기 · 닫기
+        function gdCabPage(g, d) { const n = Math.ceil(gdOwn(g).length / CAB_PER); cabPage[g] = Math.min(n - 1, Math.max(0, (cabPage[g] || 0) + d)); gdCabRender(); }
         function gdCabItem(g, id) {                                             // 서랍 안 디자인 톡 : 주로 쓰는 것 + 페이지에 (다시 톡 = 치우기)
             const was = !!gdEl(id);
             if (!GD_MULTI.includes(g) && !was) gdOnPage(g).forEach(x => gdPick(x));   // 하나만 쓰는 것은 바꿔 놓기
@@ -1382,7 +1393,7 @@
             gdCabRender();
         }
         function gdCabCup() { closeModal('gdCabModal'); if (window.openDraw) openDraw(); }
-        window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem;
+        window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
         window.gdScs = gdScs; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
 
         /* 🕳️ 펀칭기 (도련 10-19 · 진짜처럼 12번) : 구멍 자리 근처로 가면 그 자리에 착 붙고 → 누르면 철컥 하나 뚫려요
