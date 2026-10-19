@@ -18,7 +18,7 @@
             trash: TM_SVG('<path d="M9.5 5.2V4a1.2 1.2 0 0 1 1.2-1.2h2.6A1.2 1.2 0 0 1 14.5 4v1.2" fill="none" stroke="#d9577a" stroke-width="1.8"/><path d="M6 9h12l-.9 10a2 2 0 0 1-2 1.8H8.9a2 2 0 0 1-2-1.8z" fill="#ee7f9f"/><rect x="4.5" y="5.2" width="15" height="2.8" rx="1.4" fill="#d9577a"/><path d="M10 11.5v6M14 11.5v6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>')
         };
         const TM_ITEMS = [
-            { key: 'p_pen', icon: TM_ICONS.pen, label: '연필꽂이', run: () => { tmAnchor = null; window.openDraw ? openDraw() : comingSoon('🖍️ 연필꽂이'); } },
+            { key: 'p_pen', icon: TM_ICONS.pen, label: '펜꽂이', run: () => { tmAnchor = null; window.openDraw ? openDraw() : comingSoon('🖍️ 펜꽂이'); } },
             { key: 'p_case', icon: TM_ICONS.case, label: '필통', run: () => { tmAnchor = null; window.openPencase ? openPencase() : comingSoon('👝 필통'); } },
             { key: 'p_save', icon: TM_ICONS.save, label: '저장', run: () => { tmAnchor = null; openSaveChooser(); } },
             { key: 'p_pin', icon: TM_ICONS.pin, label: '삭제', run: () => { const a = tmPinAt; tmAnchor = null; if (window.twzPin) twzPin(a && a.x, a && a.y); } }   // 📌 무엇이든 핀셋으로 뜯어 버려요 (도련 · 10-17 · js/elements.js twzPin)
