@@ -414,9 +414,10 @@
             el = document.createElement('div'); el.id = 'cafeTown'; el.className = 'ct-room';
             el.innerHTML = `<div class="ct-stage"><img src="img/cafe-town.webp" alt="말랑달콤 카페 마을" draggable="false"><canvas class="ct-fx" width="418" height="235" aria-hidden="true"></canvas>${CT_SPOTS.map(([id, n, [x0, y0, x1, y1]]) =>
                 `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}</div>
-                <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button><button type="button" class="ct-x" aria-label="닫기" onclick="closeCafeTown()">✕</button>`;
+                <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button><button type="button" class="ct-x" aria-label="닫기" onclick="closeCafeTown()">✕</button>${typeof sndFxBtn === 'function' ? sndFxBtn('ct-snd') : ''}`;
             document.body.appendChild(el);
             el.addEventListener('click', e => {
+                if (e.target.closest('.ct-snd')) { setTimeout(ctSndSync, 0); return; }     // 🔊 버튼 = 설정의 '연출 소리' (sndToggleFx) → 켜면 마을 소리도 다시
                 const b = e.target.closest('.ct-spot'); if (!b) return;
                 b.classList.remove('ct-hit'); void b.offsetWidth; b.classList.add('ct-hit');
                 setTimeout(() => ctGo(b.dataset.ct), 180);
@@ -428,9 +429,9 @@
             if (ctPhone()) return openModal('serviceModal');
             const el = ctBuild(); el.style.display = 'grid';
             if (typeof wlPrefetch === 'function') wlPrefetch();
-            svcDailyBadges(); ctFxStart(el);
+            svcDailyBadges(); ctFxStart(el); if (typeof sndMark === 'function') sndMark(); ctSndStart();
         }
-        function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; ctFxStop(); }
+        function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; ctFxStop(); ctSndStop(); }
         /* ✨ 마을이 군데군데 움직여요 : 그림 위에 투명 캔버스 하나 (418×235 = 그림의 1/4 · 한 칸 = 픽셀아트 한 점)
            - 🌸 벚꽃잎 · 💧 분수 물방울 · ✨ 호수·연못·분수 반짝임 · 🦆 오리 물결 · 🦋 나비 · 🐝 꿀벌 (위치는 그림 좌표 ÷ 4)
            - 1초에 12장만 그려서 가볍게 · 마을을 닫으면 멈춰요 · '동작 줄이기' 설정이면 안 움직여요 */
@@ -476,6 +477,49 @@
             ctFx = { raf: requestAnimationFrame(tick) };
         }
         function ctFxStop() { if (ctFx) cancelAnimationFrame(ctFx.raf); ctFx = null; }
+
+        /* 🎵 마을 소리 = 🐦 새소리만 (도련 10-19 · 파일 없이 브라우저가 만들어요 · js/sound.js 의 '✨ 연출 소리' 켜기/끄기 · 크기를 따라요)
+           - 몇 초마다 짹짹 (왼쪽 · 오른쪽 여기저기서) · 마을을 닫거나 다른 앱으로 가면 멈춰요 · 오른쪽 위 🔊 로 끄고 켜요 */
+        let ctSnd = null;
+        const CT_LV = 1.8;                                                     // 마을 소리 전체 크기 (연출 소리 크기 위에 곱해요)
+        function ctSndStart() {
+            ctSndStop(true);
+            const town = document.getElementById('cafeTown');
+            if (!town || town.style.display === 'none' || document.hidden || typeof sndFx !== 'function') return;
+            const ac = sndFx(); if (!ac || !sndOut()) return;
+            const t = ac.currentTime, bus = ac.createGain(); bus.gain.setValueAtTime(0.0001, t); bus.gain.exponentialRampToValueAtTime(CT_LV, t + 1.8); bus.connect(sndOut());
+            const nodes = [];
+            ctSnd = { ac, bus, nodes, tm: [] };
+            // 🐦 새소리
+            const bird = () => {
+                if (!ctSnd) return; const n = 2 + (Math.random() * 3 | 0), base = 2600 + Math.random() * 1400, pan = ac.createStereoPanner ? ac.createStereoPanner() : null, t0 = ac.currentTime + .05;
+                if (pan) { pan.pan.value = Math.random() * 1.6 - .8; pan.connect(bus); }
+                for (let i = 0; i < n; i++) {
+                    const o = ac.createOscillator(), g = ac.createGain(), s0 = t0 + i * (.09 + Math.random() * .05);
+                    o.frequency.setValueAtTime(base, s0); o.frequency.exponentialRampToValueAtTime(base * (1.25 + Math.random() * .3), s0 + .05); o.frequency.exponentialRampToValueAtTime(base * .9, s0 + .08);
+                    g.gain.setValueAtTime(0.0001, s0); g.gain.exponentialRampToValueAtTime(.035, s0 + .01); g.gain.exponentialRampToValueAtTime(0.0001, s0 + .085);
+                    o.connect(g).connect(pan || bus); o.start(s0); o.stop(s0 + .1);
+                }
+                ctSnd.tm.push(setTimeout(bird, 2200 + Math.random() * 5000));
+            };
+            ctSnd.tm.push(setTimeout(bird, 1200));
+            let lv = CT_LV;                                                       // 위에 창이 뜨면 작게 · 놀이 화면(오락실 등)이 뜨면 조용히
+            ctSnd.duck = setInterval(() => {
+                if (!ctSnd) return;
+                const up = sel => [...document.querySelectorAll(sel)].some(e => e.id !== 'cafeTown' && !e.closest('#cafeTown') && e.getClientRects().length > 0);
+                const v = up('[class*="-room"]') ? .0001 : up('.modal') ? CT_LV * .35 : CT_LV;
+                if (v !== lv) { lv = v; const t = ac.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(Math.max(bus.gain.value, .0001), t); bus.gain.exponentialRampToValueAtTime(v, t + .5); }
+            }, 700);
+        }
+        function ctSndStop(now) {
+            if (!ctSnd) return; const { ac, bus, nodes, tm, duck: ctSnd_duck } = ctSnd; ctSnd = null;
+            tm.forEach(clearTimeout); clearInterval(ctSnd_duck);
+            const t = ac.currentTime; try { bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(Math.max(bus.gain.value, .0001), t); bus.gain.exponentialRampToValueAtTime(0.0001, t + (now ? .05 : .4)); } catch (e) {}
+            setTimeout(() => { nodes.forEach(n => { try { n.stop(); } catch (e) {} }); try { bus.disconnect(); } catch (e) {} }, now ? 80 : 450);
+        }
+        function ctSndSync() { if (typeof sndOn === 'function' && sndOn()) ctSndStart(); else ctSndStop(); }
+        document.addEventListener('snd-fx-off', () => ctSndStop());
+        document.addEventListener('visibilitychange', () => { const el = document.getElementById('cafeTown'); if (!el || el.style.display === 'none') return; if (document.hidden) ctSndStop(); else ctSndSync(); });
         function ctGo(id) {
             if (id === 'pet') return openPet();
             if (id === 'honey') return openHoney();
