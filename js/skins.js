@@ -808,9 +808,9 @@
         const bdHolesAll = () => { const ip = document.getElementById('innerPage'); return !!ip && (ip.classList.contains('dy-bh') || (gdHoleMask() & 4095) === 4095); };
         /* 📥 바인더에 끼울 수 있나 (도련 10-19 · 현실처럼) : 구멍 12개가 다 뚫려 있고 · 두 쪽이 떨어져 있고 · 구멍을 가린 게 없고 · 책상에 붙지 않아야 해요
            - 두 쪽에 걸친 것 = 양면테이프 · 스티커 · 글 메모 무엇이든 (그 꾸밈의 네모가 두 쪽 종이에 다 닿으면)
-           - 구멍 위 스티커는 펀칭기가 같이 뚫어요 (막지 않아요) · 책상 = 양면테이프가 종이 밖까지 (bdTapeLinks pin)
+           - 구멍을 가린 것 = 구멍 자리에 보이는 그림이 있으면 (투명한 곳 · 펀칭기로 같이 뚫은 자리는 괜찮아요) · 책상 = 양면테이프가 종이 밖까지 (bdTapeLinks pin)
            - 버튼은 늘 📥 바인더 · 누르면 걸린 꾸밈이 빨갛게 깜박이고 이유가 화면 가운데 떠요 (도련 10-19) */
-        const BD_WHY = { holes: '🕳️ 구멍 12개를 먼저 뚫어 주세요', link: '✂️ 두 쪽에 걸쳐 붙은 걸 떼어 주세요', desk: '🩹 책상에 붙은 테이프를 떼어 주세요' };
+        const BD_WHY = { holes: '🕳️ 구멍 12개를 먼저 뚫어 주세요', link: '✂️ 두 쪽에 걸쳐 붙은 걸 떼어 주세요', cover: '🙈 구멍을 가린 스티커는 펀칭기로 뚫어 주세요', desk: '🩹 책상에 붙은 테이프를 떼어 주세요' };
         const bdAlpha = new Map();                                              // 그림 src → 작은 알파 지도 (못 읽으면 null = 네모로 판단)
         function bdAlphaOf(img) {
             const k = img.currentSrc || img.src; if (!k || !img.complete || !img.naturalWidth) return null;
@@ -826,7 +826,8 @@
         function bdBlock() {
             if (!bdFree) return null;
             if (!bdHolesAll()) return { k: 'holes', els: [] };
-            const L = bdFree.sh.l, R = bdFree.sh.r, link = [], desk = [];
+            const L = bdFree.sh.l, R = bdFree.sh.r, link = [], desk = [], cover = [];
+            const holes = [...document.querySelectorAll('#innerPage .bd-hl .bd-hole')].map(h => { const r = h.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }; });
             document.querySelectorAll('#canvasArea > .element-box').forEach(el => {
                 const side = el.classList.contains('bd-r') ? 'r' : 'l', b = el.getBoundingClientRect(); if (!b.width) return;
                 const c = gdTo(b.left + b.width / 2, b.top + b.height / 2), sc = parseFloat(el.dataset.scale) || 1, w = el.offsetWidth * sc / 2, h = el.offsetHeight * sc / 2;
@@ -845,12 +846,14 @@
                 for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) { const u = -w + 2 * w * i / 10, v = -h + 2 * h * j / 10; if (!solid(u, v)) continue; const p = at(u, v); if (bdSheetHas(L, p)) nL++; if (bdSheetHas(R, p)) nR++; }
                 const isTape = img && String(img.dataset.src || '').includes('gd-tape');   // 🩹 테이프는 조금만 걸쳐도 붙어요 · ✂️ 손으로 조금 삐뚤게 자른 조각이 살짝 넘어간 건 괜찮아요 (도련 10-19)
                 if (nL && nR && (isTape || Math.min(nL, nR) >= Math.max(4, (nL + nR) * .15))) link.push(el);
+                if (holes.some(o => [[0, 0], [.55, 0], [-.55, 0], [0, .55], [0, -.55]].some(([a, b]) => { const p = bdLocal(el, o.x + a * o.r, o.y + b * o.r); return p && bdSolid(el, p); }))) cover.push(el);
                 if (isTape) {   // 🩹 테이프 끝이 종이 밖(책상)으로 (두 쪽 사이 틈은 책상이 아니에요 · bdTapeLinks 와 같게)
                     const hit = []; for (let i = 0; i <= 16; i++) { const p = at(-w + 2 * w * i / 16, 0); hit.push(bdSheetHas(L, p) || bdSheetHas(R, p)); }
                     const f = hit.indexOf(true), z = hit.lastIndexOf(true); if (f > 0 || (z >= 0 && z < 16)) desk.push(el);
                 }
             });
             if (link.length) return { k: 'link', els: link };
+            if (cover.length) return { k: 'cover', els: cover };
             if (desk.length) return { k: 'desk', els: desk };
             return null;
         }
@@ -1275,6 +1278,38 @@
             b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
             clearTimeout(gdSayT); gdSayT = setTimeout(() => b.classList.remove('on'), 1600);
         }
+        /* 🕳️ 펀칭할 때 그 구멍 위에 있던 스티커에만 구멍 (도련 10-19 · 나중에 붙인 스티커는 구멍을 가려요)
+           - el.dataset.ph = "x,y,r|…" (그 꾸밈 안 자리 · 돌리기 · 크기 전 px) → CSS mask 로 그 자리만 비워요 (저장 'ph') */
+        function bdLocal(el, X, Y) {                                            // 화면 (X, Y) → 그 꾸밈 안 자리 (보이는 그대로 · 바인더 쪽 옮김 · 돌림까지)
+            const b = el.getBoundingClientRect(); if (!b.width) return null;
+            const cv = document.getElementById('canvasArea'), k = cv.getBoundingClientRect().width / (cv.offsetWidth || 1) || 1, s = parseFloat(el.dataset.scale) || 1;
+            const a = -((parseFloat(el.dataset.rotation) || 0) + (parseFloat(getComputedStyle(el).rotate) || 0)) * Math.PI / 180;
+            const ux = (X - b.left - b.width / 2) / k, uy = (Y - b.top - b.height / 2) / k;
+            return { x: (ux * Math.cos(a) - uy * Math.sin(a)) / s + el.offsetWidth / 2, y: (ux * Math.sin(a) + uy * Math.cos(a)) / s + el.offsetHeight / 2, s, k };
+        }
+        function bdSolid(el, p) {                                               // 그 꾸밈 안 자리 p 에 보이는 그림이 있나 (뚫린 자리는 없어요)
+            if (p.x < 0 || p.y < 0 || p.x > el.offsetWidth || p.y > el.offsetHeight) return false;
+            if (bdPh(el).some(h => Math.hypot(h[0] - p.x, h[1] - p.y) < h[2] * .8)) return false;
+            const img = el.querySelector(':scope > img'), al = img && bdAlphaOf(img); if (!al) return true;
+            const iw = img.offsetWidth, ih = img.offsetHeight, x = p.x - img.offsetLeft, y = p.y - img.offsetTop; if (x < 0 || y < 0 || x > iw || y > ih) return false;
+            return al.d[(Math.min(al.h - 1, Math.floor(y / ih * al.h)) * al.w + Math.min(al.w - 1, Math.floor(x / iw * al.w))) * 4 + 3] > 60;
+        }
+        const bdPh = el => String(el.dataset.ph || '').split('|').filter(Boolean).map(t => t.split(',').map(Number));
+        function bdPhPaint(el) {                                                // 뚫린 자리만 투명하게
+            const hs = bdPh(el), m = hs.map(h => `radial-gradient(circle ${h[2]}px at ${h[0]}px ${h[1]}px, transparent ${h[2]}px, #000 ${h[2] + .6}px)`).join(', ');
+            el.style.maskImage = el.style.webkitMaskImage = m;
+            el.style.maskComposite = hs.length > 1 ? 'intersect' : ''; el.style.webkitMaskComposite = hs.length > 1 ? 'source-in' : '';
+        }
+        window.bdPhPaint = bdPhPaint;
+        function bdPierce(h) {                                                  // 이 구멍(화면 원) 위에 있는 스티커마다 구멍
+            let n = 0;
+            document.querySelectorAll('#canvasArea > .element-box').forEach(el => {
+                const p = bdLocal(el, h.x, h.y); if (!p || !bdSolid(el, p)) return;
+                const r = Math.round(h.d / 2 / p.k / p.s * 10) / 10, v = [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10, r];
+                el.dataset.ph = [...bdPh(el), v].map(a => a.join(',')).join('|'); bdPhPaint(el); n++;
+            });
+            if (n && typeof saveData === 'function') saveData(false);
+        }
         function gdPunchSnd() {                                                 // 🔊 철컥 (꾹 누르는 소리 + 종이 뚫리는 소리)
             const ac = typeof sndFx === 'function' ? sndFx() : null; if (!ac) return;
             const t = ac.currentTime, out = sndOut();
@@ -1302,6 +1337,7 @@
             el.classList.remove('press'); void el.offsetWidth; el.classList.add('press'); setTimeout(() => el.classList.remove('press'), 260);
             const sl = gdIp().querySelector(':scope > .gd-slot'); if (sl) { sl.classList.remove('press'); void sl.offsetWidth; sl.classList.add('press'); }
             gdPunchSnd();
+            bdPierce(c);                                                        // 위에 있던 스티커도 같이 뚫려요
             setTimeout(() => {
                 const ip = gdIp(); if (!ip) return;
                 [ip.querySelectorAll('.dy-holes i')[c.i], ...[...ip.querySelectorAll('.bd-hl .bd-hole')].filter(h => +h.dataset.i === c.i)].forEach(h => { if (!h) return; h.classList.remove('pop'); void h.offsetWidth; h.classList.add('on', 'pop'); });
@@ -1418,12 +1454,12 @@
             const rings = n => { let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; return h; };
             back.push('<b class="dy-cov"></b>');
             front.push(t.b === 'ring' ? '<span class="dy-gap"></span>' : '<span class="dy-fold"></span>');   // 🗂️ 바인더는 링 때문에 두 속지가 떨어져 있어요 (가운데로 표지 안쪽이 보여요)
-            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-holes">${rings(12)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge-w"><i class="dy-edge-f"></i></span>`
+            if (t.b === 'ring') front.push(`<span class="dy-rings">${rings(6)}</span><span class="dy-tape"></span><span class="dy-tape b"></span><span class="dy-seam"></span><span class="dy-edge-w"><i class="dy-edge-f"></i></span>`
                 + ['out', 'in'].map(k => `<button type="button" class="dy-bo-btn ${k}" tabindex="-1">${k === 'out' ? '<span class="a">📤<small>꺼내기</small></span><span class="h">🔓<small>링 열기</small></span>' : '📥<small>끼우기</small>'}</button>`).join(''));   // 📤 꺼내서 꾸미기 (bdOut · bdIn)
             if (t.b === 'tn') front.push('<span class="dy-band"></span>');
             if (t.b === 'spread') front.push('<span class="dy-rib"></span>');
             if (t.b === 'hard') front.push('<span class="dy-band hard"></span>');
-            return [back.join(''), front.join('')];
+            return [back.join(''), front.join(''), t.b === 'ring' ? `<span class="dy-holes">${rings(12)}</span>` : ''];   // 🕳️ 구멍은 종이 위 · 스티커 아래 (#dyHoleL · 펀칭기로 뚫은 스티커에만 구멍 · bdPierce)
         }
         function dyDeco() {                                                    // js/page.js refreshLayout 끝에서 불러요
             const page = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), book = document.getElementById('diaryBook'), wr = document.getElementById('diaryWrapper');
@@ -1436,8 +1472,9 @@
             let bk = document.getElementById('dyBack'), fr = document.getElementById('dyFront');
             if (!bk) { bk = document.createElement('div'); bk.id = 'dyBack'; bk.className = 'dy-deco'; bk.setAttribute('aria-hidden', 'true'); page.prepend(bk); }
             if (!fr) { fr = document.createElement('div'); fr.id = 'dyFront'; fr.className = 'dy-deco'; fr.setAttribute('aria-hidden', 'true'); page.appendChild(fr); }
-            const dk = t.id; if (bk.dataset.k !== dk) { const [b, f] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; bk.dataset.k = fr.dataset.k = dk; }
-            [bk, fr].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
+            let hl = document.getElementById('dyHoleL'); if (!hl) { hl = document.createElement('div'); hl.id = 'dyHoleL'; hl.className = 'dy-deco'; hl.setAttribute('aria-hidden', 'true'); cv.after(hl); }
+            const dk = t.id; if (bk.dataset.k !== dk) { const [b, f, h] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; hl.innerHTML = h; bk.dataset.k = fr.dataset.k = dk; }
+            [bk, fr, hl].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
             page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
             if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)

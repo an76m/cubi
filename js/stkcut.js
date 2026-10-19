@@ -188,6 +188,11 @@
                 });
             }
         }
+        if (el.dataset.ph) {                                // 🕳️ 펀칭기로 뚫린 구멍도 조각에 그대로
+            x.globalCompositeOperation = 'destination-out';
+            String(el.dataset.ph).split('|').filter(Boolean).forEach(t => { const [hx, hy, hr] = t.split(',').map(Number); x.beginPath(); x.arc(hx - B - P, hy - B - P, hr, 0, Math.PI * 2); x.fill(); });
+            x.globalCompositeOperation = 'source-over';
+        }
         return { c, R, cw, ch, W, H, B, P };
     }
 
