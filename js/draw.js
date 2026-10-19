@@ -284,6 +284,15 @@
             const px = (c.left + x0 * k - ir2.left) / k, py = (c.top + y0 * k - ir2.top) / k;
             el.dataset.posX = px; el.dataset.posY = py;
             el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(0deg)`;
+            const fix = n => requestAnimationFrame(() => {                     // 📎 바인더 : 붙은 쪽(bd-l · bd-r)만큼 벌어져 보여서 그린 자리에서 밀려나요 → 화면에서 그린 자리 그대로 맞추기 (도련 10-19)
+                if (!el.isConnected) return;
+                const r3 = img.getBoundingClientRect(), dx = (c.left + x0 * k - r3.left) / k, dy = (c.top + y0 * k - r3.top) / k;
+                if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
+                const x = +el.dataset.posX + dx, y = +el.dataset.posY + dy; el.dataset.posX = x; el.dataset.posY = y;
+                el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(0deg)`; saveData(false);
+                if (n) fix(n - 1);
+            });
+            fix(1);
             if (selectedElement) selectedElement.classList.remove('selected');
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
             saveData(false);
