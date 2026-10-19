@@ -854,7 +854,38 @@
         function pinStart() {
             pinEl = document.createElement('div'); pinEl.className = 'twz pin-cur in'; pinEl.setAttribute('aria-hidden', 'true'); pinEl.innerHTML = pinSvg();
             document.body.appendChild(pinEl);
-            pinWatch = setInterval(() => { if (pinOff()) pinStop(); else if (pinKind === 'pc' && pinMenu()) pinShow(false); }, 120);   // 📱 📲 터치는 메뉴가 떠도 그 자리에 둥실
+            pinWatch = setInterval(() => { if (pinOff()) pinStop(); else if (pinKind === 'pc') { if (pinMenu()) pinShow(false); } else pinDodge(); }, 120);   // 📱 📲 터치는 메뉴가 떠도 그 자리에 둥실 · 가리면 비켜요 (pinDodge)
+        }
+        /* 👆 메뉴 · 창이 둥실 떠 있는 핀셋과 겹치면 창 바로 바깥의 가장 가까운 빈자리로 스르르 비켜요 (도련 10-19)
+           - 화면 안에서만 · 창에서 멀리 가지 않아요 (창 둘레 바로 옆) · 손이 닿아 있는 동안은 안 움직여요
+           - 핀셋을 쓰는 창(📒 수첩 · 떼는 창)은 비키지 않아요 */
+        let pinDown = 0;
+        window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
+        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
+        const PIN_WALL = '.tap-menu, .modal:not(.snb-on) > .modal-content, .twz-say.on';
+        function pinDodge() {
+            if (!pinEl || pinDown || !pinLast || pinEl.classList.contains('out') || pinEl.classList.contains('glide')) return;
+            const vis = el => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== 'hidden' ? r : null; };
+            const walls = [...document.querySelectorAll(PIN_WALL)].filter(el => !el.closest('.modal') || el.closest('.modal').style.display === 'flex').map(vis).filter(Boolean);
+            if (!walls.length) return;
+            const b = pinEl.getBoundingClientRect(), M = 10, W = innerWidth, H = innerHeight;
+            const hit = (dx, dy) => walls.some(r => b.left + dx < r.right + 4 && b.right + dx > r.left - 4 && b.top + dy < r.bottom + 4 && b.bottom + dy > r.top - 4);
+            if (!hit(0, 0)) return;
+            const inside = (dx, dy) => b.left + dx >= M && b.right + dx <= W - M && b.top + dy >= M && b.bottom + dy <= H - M;
+            const fit = (dx, dy) => [Math.min(Math.max(dx, M - b.left), W - M - b.right), Math.min(Math.max(dy, M - b.top), H - M - b.bottom)];   // 화면 안으로
+            let best = null;
+            walls.forEach(r => [[r.left - M - b.right, 0], [r.right + M - b.left, 0], [0, r.top - M - b.bottom], [0, r.bottom + M - b.top]].forEach(([dx, dy]) => {
+                const c = fit(dx, dy), d = Math.hypot(c[0], c[1]), ok = inside(c[0], c[1]) && !hit(c[0], c[1]);
+                if (!best || (ok && !best.ok) || (ok === best.ok && d < best.d)) best = { c, d, ok };
+            }));
+            if (!best || !best.ok) {                                            // 빈자리가 없으면 덜 가리는 화면 구석 쪽으로
+                const cs = [[M - b.left, M - b.top], [W - M - b.right, M - b.top], [M - b.left, H - M - b.bottom], [W - M - b.right, H - M - b.bottom]];
+                const area = (dx, dy) => walls.reduce((a, r) => a + Math.max(0, Math.min(b.right + dx, r.right) - Math.max(b.left + dx, r.left)) * Math.max(0, Math.min(b.bottom + dy, r.bottom) - Math.max(b.top + dy, r.top)), 0);
+                const c = cs.sort((p, q) => area(...p) - area(...q) || Math.hypot(...p) - Math.hypot(...q))[0]; best = { c };
+            }
+            if (Math.hypot(best.c[0], best.c[1]) < 2) return;
+            pinEl.classList.add('glide'); pinPut(pinLast[0] + best.c[0], pinLast[1] + best.c[1]);
+            setTimeout(() => { if (pinEl) pinEl.classList.remove('glide'); }, 620);
         }
         function pinStop() {
             clearInterval(pinWatch); clearTimeout(pinTimer); if (pinEl) pinEl.remove(); pinEl = null; document.body.classList.remove('pin-on');
@@ -874,7 +905,7 @@
             if (pinKind !== 'pc') {                                             // 📱 📲 터치 : 사라지지 않아요 · 상관있는 곳만 옮겨 가요 (누른 순간 정해요)
                 if (e.type === 'pointerdown') pinRelNow = pinRel(e.clientX, e.clientY);
                 pinShow(true); if (!pinRelNow) return;
-                pinEl.classList.remove('bob'); pinPut(e.clientX, e.clientY); return;   // 손이 닿으면 둥실 멈춤
+                pinEl.classList.remove('bob', 'glide'); pinPut(e.clientX, e.clientY); return;   // 손이 닿으면 둥실 멈춤
             }
             const on = !pinMenu() && ((pinHold && (e.buttons & 1 || e.pointerType !== 'mouse')) || pinOver(e.clientX, e.clientY)); pinShow(on); if (!on) return;
             pinPut(e.clientX, e.clientY);
