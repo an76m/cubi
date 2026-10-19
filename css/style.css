@@ -4071,3 +4071,17 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .gdc-it.on::after { content: '✓'; position: absolute; right: -4px; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #6fcca8; color: #fff; font-size: 10px; font-weight: 900; line-height: 15px; text-align: center; }
 .gdc-it:active { transform: scale(.94); }
 .gdc-tip { margin: 14px 0 0; text-align: center; font-size: 11px; color: #8a6a72; background: rgba(255, 255, 255, .85); border-radius: 10px; padding: 3px 8px; }
+
+/* 🏡 카페 마을 (js/service.js openCafeTown) : 화면 꽉 채운 그림 · 남는 쪽은 밀어서 둘러보기 · 창(1000)보다 아래라 메뉴 창이 위에 떠요 */
+.ct-room { position: fixed; inset: 0; z-index: 990; display: none; overflow: auto; overscroll-behavior: contain; background: #bfe4ff; scrollbar-width: none; animation: ctIn .35s ease-out; }
+.ct-room::-webkit-scrollbar { display: none; }
+@keyframes ctIn { from { opacity: 0; transform: scale(1.04); } }
+.ct-stage { position: relative; width: max(100vw, calc(100dvh * 1672 / 941)); aspect-ratio: 1672 / 941; }
+.ct-stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+.ct-room.ct-drag { cursor: grabbing; }
+.ct-spot { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 22%; -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) { .ct-spot:hover { background: radial-gradient(closest-side, rgba(255, 255, 255, .32), rgba(255, 255, 255, 0)); } }
+.ct-spot.ct-hit { animation: ctHit .35s ease-out; }
+@keyframes ctHit { 0% { background: radial-gradient(closest-side, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0)); transform: scale(.97); } 100% { background: none; transform: none; } }
+.ct-spot .svc-badge { position: absolute; top: 50%; right: 3%; }
+.ct-back { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 10px; z-index: 2; border: 2px solid #f2a7c0; border-radius: 16px; padding: 6px 14px; background: rgba(255, 255, 255, .94); color: #c2557d; font: 800 14px var(--font-family, inherit); cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }

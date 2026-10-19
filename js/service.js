@@ -231,6 +231,7 @@
             mark('svcBtnQuestion', ques ? '💬 NEW' : '');
             mark('svcBtnPlant', water ? '💧 물 주기' : '');
             mark('svcCatDaily', (stamp ? 1 : 0) + (water ? 1 : 0) + (luck ? 1 : 0) + (ques ? 1 : 0) || '');
+            mark('ctDaily', (stamp ? 1 : 0) + (water ? 1 : 0) + (luck ? 1 : 0) + (ques ? 1 : 0) || '');      // 🏡 카페 마을의 매일 집에도
         }
         /* 🌱 매일 칸의 버튼을 누르면 그 버튼만 '알려 줌' 처리 (다른 버튼의 표시는 건드리지 않아요) */
         document.addEventListener('click', e => {
@@ -392,6 +393,58 @@
                     server: '서버에서 저장하지 못했어요.<br>잠시 후 다시 시도해 주세요.'
                 }[reason] + '<br><span style="font-size:12px;color:#999;">적은 내용은 그대로 남아 있어요.</span>');
             }
+        }
+
+
+        /* =====================================================================
+           🏡 카페 마을 (도련 10-19) : 하단 '카페' = 화면 전체가 예쁜 마을로 바뀌어요 · 건물을 톡 = 그 메뉴
+           - 그림 : img/cafe-town.webp (1672×941 · 도련이 준 그림 · 이름표도 그림 안에 있어요)
+           - 화면을 꽉 채우고 (남는 쪽은 밀어서 둘러보기 · PC 는 마우스로 끌어서) · 처음엔 가운데 분수대가 보여요
+           - CT_SPOTS : 그림 위 누르는 칸 [x0, y0, x1, y1] (그림 픽셀) · 칸을 바꾸려면 숫자만 고치면 돼요
+           - 매일 · 운세 · 인형 · 게임 · 함께하기 = 카페 창의 그 칸을 바로 (‹ 카페 단추는 숨김 · ✕ 로 닫으면 다시 마을)
+           - 가운데 카페 건물은 아직 연결 없음 (숨겨 둔 저금통 · 문구점 · 보고·듣기 자리로 쓸 수 있어요) */
+        const CT_W = 1672, CT_H = 941;
+        const CT_SPOTS = [
+            ['daily', '🌱 매일', [0, 0, 490, 235]], ['fortune', '🔮 운세·마음', [935, 0, 1275, 245]], ['make', '🧸 인형 꾸미기', [1300, 120, 1672, 360]],
+            ['game', '🕹️ 게임', [30, 280, 410, 510]], ['pet', '🐾 펫 키우기', [1270, 360, 1672, 595]], ['honey', '🍯 꿀 만들기', [55, 540, 410, 830]],
+            ['window', '🪟 힐링창문', [600, 630, 1045, 862]], ['together', '💌 함께하기', [1270, 610, 1672, 830]]
+        ];
+        function ctBuild() {
+            let el = document.getElementById('cafeTown'); if (el) return el;
+            el = document.createElement('div'); el.id = 'cafeTown'; el.className = 'ct-room';
+            el.innerHTML = `<div class="ct-stage"><img src="img/cafe-town.webp" alt="말랑달콤 카페 마을" draggable="false">${CT_SPOTS.map(([id, n, [x0, y0, x1, y1]]) =>
+                `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}</div>
+                <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button>`;
+            document.body.appendChild(el);
+            let drag = null;                                                    // 🖱️ PC : 끌어서 둘러보기 (터치는 원래대로 밀기)
+            el.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button) return; drag = { x: e.clientX, y: e.clientY, l: el.scrollLeft, t: el.scrollTop, m: false }; });
+            el.addEventListener('pointermove', e => {
+                if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+                if (Math.abs(dx) + Math.abs(dy) > 6) { drag.m = true; el.classList.add('ct-drag'); }
+                if (drag.m) { el.scrollLeft = drag.l - dx; el.scrollTop = drag.t - dy; }
+            });
+            const end = () => { setTimeout(() => { drag = null; el.classList.remove('ct-drag'); }, 0); };
+            el.addEventListener('pointerup', end); el.addEventListener('pointerleave', end);
+            el.addEventListener('click', e => {
+                const b = e.target.closest('.ct-spot'); if (!b || (drag && drag.m)) return;
+                b.classList.remove('ct-hit'); void b.offsetWidth; b.classList.add('ct-hit');
+                setTimeout(() => ctGo(b.dataset.ct), 180);
+            });
+            return el;
+        }
+        function openCafeTown() {
+            const el = ctBuild(); el.style.display = 'block';
+            if (typeof wlPrefetch === 'function') wlPrefetch();
+            requestAnimationFrame(() => { el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2; el.scrollTop = (el.scrollHeight - el.clientHeight) / 2; });
+            svcDailyBadges();
+        }
+        function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; }
+        function ctGo(id) {
+            if (id === 'pet') return openPet();
+            if (id === 'honey') return openHoney();
+            if (id === 'window') return comingSoon('🪟 힐링창문');
+            openModal('serviceModal'); svcOpenCat(id);
+            document.getElementById('svcBack').classList.add('mt-none');    // 마을에서 왔으니 ‹ 카페 대신 ✕ = 마을로
         }
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
