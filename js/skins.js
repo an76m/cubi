@@ -671,9 +671,11 @@
         let bdObs = null;
         function bdSides() {
             const cv = document.getElementById('canvasArea'), ip = document.getElementById('innerPage'); if (!cv || !ip) return;
-            const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2;
+            const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2, bk = document.getElementById('diaryBook'), band = (bk ? bk.offsetWidth / 100 : 0) * 6.5;
             cv.querySelectorAll(':scope > .element-box').forEach(el => {
-                const px = parseFloat(el.dataset.posX); const r = on && (isFinite(px) ? px : 0) + el.offsetLeft + el.offsetWidth / 2 >= half;   // 자리는 transform(posX) 에 있어요
+                const px = parseFloat(el.dataset.posX), c = (isFinite(px) ? px : 0) + el.offsetLeft + el.offsetWidth / 2;   // 자리는 transform(posX) 에 있어요
+                let pin = el.dataset.bs; if (pin && Math.abs(c - half) > band) { delete el.dataset.bs; pin = ''; }   // 📌 가운데 틈 근처에 놓인 꾸밈은 놓인 쪽을 기억해요 (bdPin) · 멀리 옮기면 잊어요
+                const r = on && (pin ? pin === 'r' : c >= half);
                 el.classList.toggle('bd-l', on && !r); el.classList.toggle('bd-r', r);
             });
             if (!bdObs && window.MutationObserver) {                           // 새로 붙이거나 옮기면 다시 (어느 쪽인지)
@@ -946,11 +948,18 @@
            - 옮기고 돌린 쪽 위에서도 손가락 · 마우스를 그대로 따라와요 · 다른 쪽으로 넘어가면 그 쪽 것이 돼요 (보이는 자리 · 각도 그대로) */
         let bdBoxTap = null;
         const bdBoxC = el => { const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; };
+        function bdPin(el, sd) {                                                // 📌 가운데 틈 근처(보이는 자리)에 놓이면 저장 자리로는 반대쪽 반이라 쪽이 바뀌어 튀어요 → 놓인 쪽을 기억 (그때만 · 저장 'bs')
+            const cv = document.getElementById('canvasArea'); if (!cv || !el) return;
+            const c = (parseFloat(el.dataset.posX) || 0) + el.offsetLeft + el.offsetWidth / 2;
+            if ((c >= cv.offsetWidth / 2) !== (sd === 'r')) el.dataset.bs = sd; else delete el.dataset.bs;
+        }
+        window.bdPin = bdPin;
+        window.bdAfterLoad = () => { const ip = document.getElementById('innerPage'); if (!ip || !ip.classList.contains('dy-bdl')) return; bdSides(); if (bdFree) bdFreeApply(); };   // 📄 장을 넘겨 불러온 꾸밈 (링을 연 채 저장된 장도 쪽 따라)
         function bdBoxPut(el, C, vis) {                                          // 화면 가운데 C · 보이는 각도 vis 로
             const sd = gdSide(C.x, C.y), m = gdCv(C.x, C.y, sd), x = m.x - el.offsetLeft - el.offsetWidth / 2, y = m.y - el.offsetTop - el.offsetHeight / 2, r = Math.round((vis - bdFree.sh[sd].r) * 10) / 10;
             el.dataset.posX = x; el.dataset.posY = y; el.dataset.rotation = r;
             el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${r}deg)`;
-            bdSides(); bdFreeApply();
+            bdPin(el, sd); bdSides(); bdFreeApply();
         }
         window.addEventListener('pointermove', e => {
             const t = bdBoxTap; if (!t || t.id !== e.pointerId || !bdFree) return;
@@ -1316,24 +1325,27 @@
             if (ip.classList.contains('dy-bdl') && !ip.classList.contains('dy-bo')) p.x += p.x < cv.offsetWidth / 2 ? 6 * cq : -6 * cq;   // 링에 끼운 동안 두 쪽은 6cqw 씩 바깥으로
             return p;
         }
-        window.bdCvAt = (x, y) => {                                             // ✂️ 스티커 칼 조각 자리 (js/stkcut.js) : 화면 → 저장 자리 · 바인더가 아니면 null
-            const ip = gdIp(), cv = document.getElementById('canvasArea'); if (!ip || !cv || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return null;
-            if (!bdFree) return gdCv(x, y);
-            const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet')), W = cv.offsetWidth;
-            const sides = s ? [s.classList.contains('l') ? 'l' : 'r'] : ['l', 'r'];
-            for (const sd of [...sides, 'l', 'r']) { const m = gdCv(x, y, sd); if ((m.x >= W / 2) === (sd === 'r')) return m; }
-            return gdCv(x, y);
+        window.bdCvAt = (x, y) => {                                             // ✂️ 스티커 칼 조각 자리 (js/stkcut.js) : 화면 → 저장 자리 + 쪽 (그 뒤 bdPin) · 바인더가 아니면 null
+            const ip = gdIp(), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!ip || !cv || !bk || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return null;
+            if (bdFree) { const sd = gdSide(x, y), m = gdCv(x, y, sd); return { x: m.x, y: m.y, sd }; }
+            const { r, k } = gdK(), cq = bk.offsetWidth / 100, vx = (x - r.left) / k - cv.offsetLeft, sd = vx < cv.offsetWidth / 2 ? 'l' : 'r';   // 링에 끼운 동안 : 보이는 쪽 그대로 (두 쪽은 6cqw 씩 바깥으로)
+            return { x: vx + (sd === 'l' ? 6 : -6) * cq, y: (y - r.top) / k - cv.offsetTop, sd };
         };
         function gdSide(x, y) {                                                 // 📄 링을 연 뒤 그 자리(화면)에 놓일 꾸밈이 어느 쪽 것이 되는지 (저장 자리로 나뉘는 쪽과 같게)
+            if (bdFree) {                                                       // 그 종이 위면 그 쪽 · 틈(종이 밖)이면 가까운 종이 쪽 (틈 근처는 bdPin 이 기억)
+                const d = side => { const r = bdFree.sh[side].el.getBoundingClientRect(); return Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom)); };
+                const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet'));
+                return s ? (s.classList.contains('l') ? 'l' : 'r') : d('l') <= d('r') ? 'l' : 'r';
+            }
             const W = document.getElementById('canvasArea').offsetWidth, ok = sd => { const m = gdCv(x, y, sd); return (m.x >= W / 2) === (sd === 'r'); };
             const first = gdCv(x, y).x >= W / 2 ? 'r' : 'l', other = first === 'l' ? 'r' : 'l';
             return ok(first) ? first : ok(other) ? other : first;
         }
         function gdTapeAdd(A, B) {
             if (Math.hypot(B.x - A.x, B.y - A.y) < 10) return;
-            let a, b;
+            let a, b, sd = null;
             if (bdFree) {                                                       // 📄 두 쪽에 걸쳐 바르면 : 가운데가 놓일 쪽 기준으로 양 끝을 (붙은 뒤 그 쪽과 같이 움직여도 제자리)
-                const sd = gdSide((A.x + B.x) / 2, (A.y + B.y) / 2);
+                sd = gdSide((A.x + B.x) / 2, (A.y + B.y) / 2);
                 a = gdCv(A.x, A.y, sd); b = gdCv(B.x, B.y, sd);
             } else { a = gdCv(A.x, A.y); b = gdCv(B.x, B.y); }
             const L = Math.max(8, Math.round(Math.hypot(b.x - a.x, b.y - a.y))), TH = 12;
@@ -1343,7 +1355,7 @@
             document.getElementById('canvasArea').appendChild(el);
             const x = Math.round((a.x + b.x) / 2 - el.offsetWidth / 2 - el.offsetLeft), y = Math.round((a.y + b.y) / 2 - el.offsetHeight / 2 - el.offsetTop);
             el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${el.dataset.rotation}deg)`;
-            if (bdFree) { bdSides(); bdFreeApply(); }                          // 📄 링을 연 뒤엔 그 쪽과 같이 (바로)
+            if (bdFree) { bdPin(el, sd); bdSides(); bdFreeApply(); }           // 📄 링을 연 뒤엔 그 쪽과 같이 (바로)
             if (typeof saveData === 'function') saveData(false);
         }
         /* 📎 집게 : 들고 다이어리 테두리 근처를 누르면 착 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가고 (집게끼리 지나가요) · 톡 하면 빼서 들어요 */

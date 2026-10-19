@@ -1091,6 +1091,7 @@
                 if (img && el.dataset.float) item.fm = 1;
                 if (img && el.dataset.cm) { try { item.cm = JSON.parse(el.dataset.cm); } catch (e) {} }   // 🪄 움직이는 캐릭터 : 칠한 곳 · 움직임 설정 (js/char-move.js)
                 if (img && el.dataset.sh) { try { item.sh = JSON.parse(el.dataset.sh); } catch (e) {} }   // ✨ 셰이더 스티커 : 효과 이름 · GLSL 글자 · 속도 · 세기 (js/glrun.js)
+                if (el.dataset.bs) item.bs = el.dataset.bs;                    // 📌 바인더 가운데 틈 근처에 놓인 쪽 (js/skins.js bdPin · 그때만 저장)
                 if (img && el.dataset.ts) item.ts = 1;                          // 🔤 글씨스티커 : 📷 사진 꾸미기 창이 안 떠요 (js/page.js getSelectedPhoto)                       // 📄 모조지스티커 : 옮길 때 떼지 않고 살짝 떠서 (아래 makeTransformable)
                 if (img && el.dataset.frame) {                                  // 📷 사진 틀 (js/frame.js)
                     item.fr = el.dataset.frame;
@@ -1177,6 +1178,7 @@
 
             if (interactive) makeTransformable(el);
 
+            if (data.bs === 'l' || data.bs === 'r') el.dataset.bs = data.bs;
             el.dataset.posX = data.posX || 0;
             el.dataset.posY = data.posY || 0;
             el.dataset.scale = data.scale || 1;
@@ -1224,6 +1226,7 @@
             if (typeof psRender === 'function') psRender();
             if (typeof setPageLeaf === 'function') setPageLeaf((raw && raw.lf) || (window.dkLeafOf && dkLeafOf(currentDate)) || 'line', raw && raw.lfi);  // 📃 그날 속지 (js/leafpad.js) · 📓 없으면 만든 노트의 내지 (js/dymaker.js)
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ 이 페이지 날짜 기준 D-day (js/dday.js)
+            if (window.bdAfterLoad) bdAfterLoad();                          // 🗂 바인더 : 불러온 꾸밈도 바로 그 쪽 자리로 (js/skins.js)
         }
         const pageStamps = { mo: '', we: '' };            // 지금 페이지의 기분 · 날씨 도장
 

@@ -18,12 +18,13 @@
         { id: 'lilac', name: '라일락 칼', hd: ['#eadcff', '#cfb6fb', '#b195ef'], ln: '#8a6bd4', pu: ['#bff0dc', '#7cc9a8'] }
     ];
     const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0];
+    let knN = 0;                                       // 그림마다 색 이름(id)을 따로 : 같은 id 가 숨은 연필꽂이 · 필통에 먼저 있으면 그 색을 못 찾아 칼이 테두리만 보여요 (도련 10-19)
     function knifeSvg(id) {
-        const k = knKind(id), g = 'skHd_' + k.id;
+        const k = knKind(id), n = ++knN, g = 'skHd_' + k.id + n, bl = 'skBl' + n;
         return '<svg viewBox="0 0 40 120" width="40" height="120" aria-hidden="true">'
-        + `<defs><linearGradient id="skBl" x1="0" x2="1"><stop offset="0" stop-color="#f4f7fb"/><stop offset=".55" stop-color="#cfd7e3"/><stop offset="1" stop-color="#aab5c6"/></linearGradient>`
+        + `<defs><linearGradient id="${bl}" x1="0" x2="1"><stop offset="0" stop-color="#f4f7fb"/><stop offset=".55" stop-color="#cfd7e3"/><stop offset="1" stop-color="#aab5c6"/></linearGradient>`
         + `<linearGradient id="${g}" x1="0" x2="1"><stop offset="0" stop-color="${k.hd[0]}"/><stop offset=".5" stop-color="${k.hd[1]}"/><stop offset="1" stop-color="${k.hd[2]}"/></linearGradient></defs>`
-        + '<path d="M13 4h14v30l-7 0-7-8z" fill="url(#skBl)" stroke="#8f9bb0" stroke-width="1"/>'                       // 칼날 (끝이 비스듬)
+        + `<path d="M13 4h14v30l-7 0-7-8z" fill="url(#${bl})" stroke="#8f9bb0" stroke-width="1"/>`                       // 칼날 (끝이 비스듬)
         + '<path d="M13 4l7 0-7 8z" fill="#fff" opacity=".7"/><path d="M15 14h10M15 22h10" stroke="#9aa6ba" stroke-width=".8" stroke-dasharray="2 2"/>'   // 꺾는 칼날 줄
         + `<rect x="8" y="32" width="24" height="84" rx="10" fill="url(#${g})" stroke="${k.ln}" stroke-width="1.2"/>`      // 말랑한 손잡이
         + '<rect x="11" y="36" width="6" height="72" rx="3" fill="#fff" opacity=".45"/>'
@@ -250,6 +251,7 @@
             const nx = Math.round(pcx - ne.offsetWidth / 2), ny = Math.round(pcy - ne.offsetHeight / 2);
             ne.dataset.posX = nx; ne.dataset.posY = ny; ne.dataset.scale = s; ne.dataset.rotation = rotDeg; ne.style.zIndex = z;
             ne.style.transform = `translate(${nx}px, ${ny}px) scale(${s}) rotate(${rotDeg}deg)`;
+            if (at && window.bdPin) bdPin(ne, at.sd);                       // 📌 가운데 틈 근처 조각은 놓인 쪽 그대로
             ne.classList.remove('selected'); made.push(ne);
         }
         el.remove();
