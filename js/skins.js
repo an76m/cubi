@@ -1176,11 +1176,21 @@
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
             const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
-            if (prev) { const m = el.classList.contains('edge') ? gdTo(x, y) : gdMid(el); prev.classList.remove('held'); gdCenter(prev, m.x, m.y); prev.dataset.nh = 1; }   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게
+            if (prev) {
+                const fl = e && e.pointerType !== 'mouse' && gdFloatAt(prev);  // 👆 터치 : 떠 있던 것은 그 자리에서 아래로 톡 떨어져요 (도련 10-19 · 누른 자리로 순간이동하지 않게)
+                const m = fl || (el.classList.contains('edge') ? gdTo(x, y) : gdMid(el));   // 🖱 마우스 : 손에 든 채 따라오던 자리 = 누른 자리라 서로 바꿔요
+                prev.classList.remove('held'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
+                if (fl) { prev.classList.remove('drop'); void prev.offsetWidth; prev.classList.add('drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
+            }
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
             gdFollow(x, y, e);
             if (id === 'twz' && e && window.pinAt) pinAt(e);                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
             if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
+        }
+        function gdFloatAt(el) {                                                // 떠 있는 문구함의 가운데 (다이어리 자리) : 🪡 핀셋 · ✂️ 가위는 화면 위에 따로 떠 있어요
+            const f = el.dataset.t === 'twz' ? document.querySelector('.twz.pin-cur') : gdInfo(el.dataset.t).g === 'scissors' ? scs.el : el;
+            const r = f && !f.hidden && f.getBoundingClientRect(); if (!r || !r.width) return null;
+            return gdTo(r.left + r.width / 2, r.top + r.height / 2);
         }
         function gdLet() {                                                      // 내려놓기 (지금 자리에)
             const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
@@ -1309,17 +1319,17 @@
         /* 📄 모조지 오리기 (js/papermaker.js) : 시작 · 끝 · 싹둑마다 on() (자른 선을 한 토막 늘려요) */
         function scsCutStart(x, y, on) { if (!gdScs()) return false; scs.cut = { x, y, acc: 0, on }; scsPut(x, y, null, true); return true; }
         function scsCutEnd(done) { if (!scs.cut) return; scs.cut = null; scs.to = SCS_REST; if (done) scsSnip(); }
-        function scsSnd() {                                                     // 🔊 싹둑 (날이 스치는 소리 + 닫히는 딸깍)
+        function scsSnd() {                                                     // 🔊 싹둑 (부드럽게 · 도련 10-19) : 낮게 스치는 소리 + 아주 작은 톡
             const ac = typeof sndFx === 'function' ? sndFx() : null; if (!ac) return;
             const t = ac.currentTime, out = sndOut();
-            const n = Math.floor(ac.sampleRate * .07), buf = ac.createBuffer(1, n, ac.sampleRate), v = buf.getChannelData(0);
-            for (let i = 0; i < n; i++) { const q = i / n; v[i] = (Math.random() * 2 - 1) * Math.pow(q < .2 ? q / .2 : 1 - (q - .2) / .8, 2); }
-            const sr = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
-            sr.buffer = buf; f.type = 'bandpass'; f.frequency.setValueAtTime(5200, t); f.frequency.exponentialRampToValueAtTime(2600, t + .07); f.Q.value = 1.4; g.gain.value = .32;
-            sr.connect(f).connect(g).connect(out); sr.start(t);
-            const o = ac.createOscillator(), gg = ac.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(2300, t + .06); o.frequency.exponentialRampToValueAtTime(1400, t + .09);
-            gg.gain.setValueAtTime(.0001, t + .06); gg.gain.exponentialRampToValueAtTime(.12, t + .064); gg.gain.exponentialRampToValueAtTime(.0001, t + .1);
-            o.connect(gg).connect(out); o.start(t + .06); o.stop(t + .11);
+            const n = Math.floor(ac.sampleRate * .09), buf = ac.createBuffer(1, n, ac.sampleRate), v = buf.getChannelData(0);
+            for (let i = 0; i < n; i++) { const q = i / n; v[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * Math.min(1, q / .35)) * Math.pow(1 - q, 1.6); }   // 천천히 커졌다 스르르
+            const sr = ac.createBufferSource(), lp = ac.createBiquadFilter(), bp = ac.createBiquadFilter(), g = ac.createGain();
+            sr.buffer = buf; lp.type = 'lowpass'; lp.frequency.value = 3200; bp.type = 'bandpass'; bp.frequency.setValueAtTime(2100, t); bp.frequency.exponentialRampToValueAtTime(1300, t + .09); bp.Q.value = .7; g.gain.value = .14;
+            sr.connect(lp).connect(bp).connect(g).connect(out); sr.start(t);
+            const o = ac.createOscillator(), gg = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1050, t + .07); o.frequency.exponentialRampToValueAtTime(760, t + .1);
+            gg.gain.setValueAtTime(.0001, t + .07); gg.gain.exponentialRampToValueAtTime(.035, t + .075); gg.gain.exponentialRampToValueAtTime(.0001, t + .12);
+            o.connect(gg).connect(out); o.start(t + .07); o.stop(t + .13);
         }
         window.gdScs = gdScs; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
 

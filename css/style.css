@@ -3865,6 +3865,8 @@ body.scs-on, body.scs-on * { cursor: none !important; }   /* 💻 다이어리 �
 .bd-tool.punch.press svg { transform: scale(.9); }
 .bd-tool.snap svg { animation: gdSnap .2s ease-out; }
 @keyframes gdSnap { from { transform: scale(1.12); } to { transform: none; } }
+.bd-tool.drop svg { animation: gdDrop .3s cubic-bezier(.5, 0, .6, 1.4); }   /* 👆 터치로 바꿀 때 떠 있던 것이 그 자리에서 톡 떨어져요 (js/skins.js gdHold) */
+@keyframes gdDrop { from { transform: translateY(-14px) scale(1.06); } to { transform: none; } }
 body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /* 💻 다이어리 위에선 화살표 대신 든 문구함 */
 .gd-tape-pv { position: absolute; z-index: 39; height: 12px; transform-origin: 0 50%; pointer-events: none; border-radius: 1.5px; background: linear-gradient(#fff9 0 3px, #f3e6cf 3px calc(100% - 3px), #cdb894aa 0); }   /* 🩹 바르는 중 */
 .inner-page.png-mode .bd-tool:not(.edge), .inner-page.png-mode .gd-tape-pv { display: none; }
