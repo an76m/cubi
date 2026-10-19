@@ -427,7 +427,7 @@
             }));
         }
         /* 🪡 핀셋을 안 들면 🪟 고르는 창 · 📒 수첩에서도 스티커를 못 떼요 (도련 10-19 · 페이지 위 스티커와 같은 규칙 js/skins.js gd)
-           - 누르면 그 칸이 살짝 흔들리고 페이지에 놓인 핀셋이 콩 뛰어요 (알림 글 없음) · 밀어서 장 넘기기 · 칸 고르기 · 메모지 · 속지는 그대로 */
+           - 누르면 그 칸이 살짝 흔들리고 페이지에 놓인 핀셋이 콩 뛰어요 · 그 자리에 '핀셋을 사용해 주세요' 말풍선 (js/skins.js twzSay · 도련 10-19) · 밀어서 장 넘기기 · 칸 고르기 · 메모지 · 속지는 그대로 */
         const SNB_STK = '.snb-pc, .snb-paper, .spk-card, .sb-card, .tp-item, .tk-it, .lib-item, .sticker-item, .smk-it';
         const snbLock = () => !!window.gdTwz && !gdTwz();
         function snbLockAt(e) {
@@ -440,7 +440,7 @@
             if (tw) try { tw.animate([{ translate: '0 0' }, { translate: '0 -14px' }, { translate: '0 0' }, { translate: '0 -6px' }, { translate: '0 0' }], { duration: 520, easing: 'ease-out' }); } catch (er) {}
         }
         window.addEventListener('pointerdown', e => { const it = snbLockAt(e); if (it && it.matches('.tk-it, .snb-paper')) { e.preventDefault(); e.stopPropagation(); } }, true);   // 누르는 순간 떼어지는 칸 (🧻 떡메 · 📄 모조지 종이)
-        window.addEventListener('click', e => { const it = snbLockAt(e); if (!it) return; e.preventDefault(); e.stopPropagation(); snbNudge(it); }, true);
+        window.addEventListener('click', e => { const it = snbLockAt(e); if (!it) return; e.preventDefault(); e.stopPropagation(); snbNudge(it); if (window.twzSay) twzSay(e.clientX, e.clientY); }, true);
         /* 🔀 수첩 ↔ 다이어리 : 누른 쪽이 앞으로 와요 (번갈아 옮기기) */
         document.addEventListener('pointerdown', e => {
             const m = snb.m, w = snbq('diaryWrapper'); if (!m || !w || !m.classList.contains('snb-on') || m.style.display !== 'flex') return;

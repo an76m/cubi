@@ -3993,3 +3993,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dmk-in-lock { margin-left: auto; font-size: 13px; }
 .dmk-empty { padding: 10px; font-size: 12px; color: #a08a92; text-align: center; }
 #dmkModal .sub-modal-btns .dmk-ok, #dmkRoom .sub-modal-btns .dmk-ok { background: var(--primary-accent); color: #fff; border-color: var(--primary-accent); font-weight: 800; }
+
+/* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 (js/skins.js twzSay) */
+.twz-say { position: fixed; z-index: 100000; translate: -50% -100%; padding: 7px 13px; border-radius: 14px; background: #fff; color: #d94f7a; font-size: 13px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(160, 90, 110, .25); pointer-events: none; opacity: 0; scale: .8; transition: opacity .2s, scale .2s; }
+.twz-say::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; background: #fff; rotate: 45deg; translate: -50% 0; }
+.twz-say.on { opacity: 1; scale: 1; }

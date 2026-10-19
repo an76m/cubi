@@ -1022,6 +1022,16 @@
            - 저장 : 📎 집게는 권마다 (설정 'diary_clips' { 권 id : { 색 : { f 테두리 자리 } | { x, y 종이 위 자리(비율) } } })
              🕳️ 뚫은 구멍 (설정 'diary_holes' { 권 id : { 장 : 12칸 표시 } }) · 🩹 바른 테이프는 페이지 꾸밈(그림)이라 핀셋으로 옮기고 지울 수 있어요
              다른 문구류는 다이어리를 다시 열면 문구류 칸으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
+        /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
+        let twzSayT = 0;
+        function twzSay(x, y) {
+            let b = document.getElementById('twzSay2');
+            if (!b) { b = document.createElement('div'); b.id = 'twzSay2'; b.className = 'twz-say'; b.textContent = '🪡 핀셋을 사용해 주세요'; document.body.appendChild(b); }
+            b.style.left = Math.max(90, Math.min(innerWidth - 90, x)) + 'px'; b.style.top = Math.max(40, y - 14) + 'px';
+            b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+            clearTimeout(twzSayT); twzSayT = setTimeout(() => b.classList.remove('on'), 1600);
+        }
+        window.twzSay = twzSay;
         const GD = {                                                            // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터)
             twz: { g: 'tweez', n: '기본 핀셋', w: 55.8, h: 201.5, hx: 27.9, hy: 4.6 },
             punch1: { g: 'punch', n: '기본 펀칭기', w: 56, h: 112, hx: 28, hy: 21 },
@@ -1120,7 +1130,7 @@
             }
             if (gdHeld !== 'twz' && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로)
                 const box = e.target.closest('#canvasArea > .element-box');
-                if (box && !box.querySelector('textarea')) { gdEat(e); return true; }
+                if (box && !box.querySelector('textarea')) { gdEat(e); twzSay(e.clientX, e.clientY); return true; }
             }
             return false;
         }
