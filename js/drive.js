@@ -444,6 +444,19 @@
             return p;
         }
         /* 권 폴더 안 파일 목록 · create=true 면 없을 때 폴더와 다이어리.json 을 만들어요 (첫 장을 저장할 때) */
+        /* ⚡ 권 id → 폴더 id 를 이 기기에 기억 (다음 로그인부터 첫 장이 빨리 열려요) */
+        const DK_FID = 'dk_folder_ids';
+        function dkFidGet() { try { return JSON.parse(localStorage.getItem(DK_FID)) || {}; } catch (e) { return {}; } }
+        function dkFidSet(o) { try { localStorage.setItem(DK_FID, JSON.stringify(o)); } catch (e) {} }
+        function dkIdxOf(hit, files, id) {
+            const e = { folderId: hit.folderId, name: hit.name, kind: hit.kind, files: new Map(), dups: new Map() };
+            files.forEach(f => {
+                if (!e.files.has(f.name)) e.files.set(f.name, f);
+                else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
+            });
+            drive.books.set(id, e);
+            return e;
+        }
         async function getBookIndex(id, create) {
             let entry = drive.books.get(id);
             if (entry) return entry;
@@ -452,6 +465,14 @@
                 if (entry || !create) return entry;
             }
             const p = (async () => {
+                const memo = dkFidGet(), mm = memo[id], fid = mm && mm.f;
+                if (fid) {                                 // ⚡ 이 기기에서 찾았던 권 폴더면 폴더 훑기(6번 왕복)를 건너뛰고 바로 목록 1번
+                    try {
+                        const files = await driveList(`'${fid}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
+                        if (files.some(f => f.name === DK_INFO)) return dkIdxOf({ folderId: fid, name: mm.n || '', kind: mm.k || '' }, files, id);
+                    } catch (e) {}
+                    delete memo[id]; dkFidSet(memo);                  // 폴더가 지워졌거나 다른 계정이면 원래대로 훑기
+                }
                 const scan = await dkScan();
                 let hit = scan.get(id);
                 if (!hit) {
@@ -464,13 +485,8 @@
                     scan.set(id, hit);
                 }
                 const files = await driveList(`'${hit.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-                const e = { folderId: hit.folderId, name: hit.name, kind: hit.kind, files: new Map(), dups: new Map() };
-                files.forEach(f => {
-                    if (!e.files.has(f.name)) e.files.set(f.name, f);
-                    else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
-                });
-                drive.books.set(id, e);
-                return e;
+                const m2 = dkFidGet(); m2[id] = { f: hit.folderId, n: hit.name, k: hit.kind }; dkFidSet(m2);
+                return dkIdxOf(hit, files, id);
             })();
             drive.bookBusy.set(id, p);
             try { return await p; } finally { drive.bookBusy.delete(id); }
@@ -516,9 +532,9 @@
             const gen = drive.gen;
             const p = (async () => {
                 try {
-                    const pk = parsePageKey(key);
-                    if (pk && !(await ensureKeyLoaded('dkb_' + pk.b))) return false;   // 📕 장을 읽기 전에 다이어리.json 먼저 (꾸민 날 · 페이지 수)
-                    const meta = {}, text = await fetchKey(key, meta);
+                    const pk = parsePageKey(key), meta = {};
+                    const [okB, text] = await Promise.all([pk ? ensureKeyLoaded('dkb_' + pk.b) : true, fetchKey(key, meta)]);   // 📕 다이어리.json 과 장을 함께 읽고 (기다리는 왕복 1번 줄임)
+                    if (!okB) return false;                                              //    다이어리.json 을 못 읽었으면 장도 넣지 않아요
                     if (gen !== drive.gen) return false;
                     if (!drive.dirtyKeys.has(key)) store.putLoaded(key, text);   // 고치는 중인 내용이 있으면 덮어쓰지 않음
                     if (!drive.dayMeta.has(key)) drive.dayMeta.set(key, meta.t);
