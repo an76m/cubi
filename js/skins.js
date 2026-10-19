@@ -846,7 +846,7 @@
                 for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) { const u = -w + 2 * w * i / 10, v = -h + 2 * h * j / 10; if (!solid(u, v)) continue; const p = at(u, v); if (bdSheetHas(L, p)) nL++; if (bdSheetHas(R, p)) nR++; }
                 const isTape = img && String(img.dataset.src || '').includes('gd-tape');   // 🩹 테이프는 조금만 걸쳐도 붙어요 · ✂️ 손으로 조금 삐뚤게 자른 조각이 살짝 넘어간 건 괜찮아요 (도련 10-19)
                 if (nL && nR && (isTape || Math.min(nL, nR) >= Math.max(4, (nL + nR) * .15))) link.push(el);
-                if (holes.some(o => [[0, 0], [.55, 0], [-.55, 0], [0, .55], [0, -.55]].some(([a, b]) => { const p = bdLocal(el, o.x + a * o.r, o.y + b * o.r); return p && bdSolid(el, p); }))) cover.push(el);
+                if (holes.some(o => [[0, 0], ...[...Array(8)].map((_, i) => [Math.cos(i * Math.PI / 4) * .85, Math.sin(i * Math.PI / 4) * .85])].some(([a, b]) => { const p = bdLocal(el, o.x + a * o.r, o.y + b * o.r); return p && bdSolid(el, p); }))) cover.push(el);
                 if (isTape) {   // 🩹 테이프 끝이 종이 밖(책상)으로 (두 쪽 사이 틈은 책상이 아니에요 · bdTapeLinks 와 같게)
                     const hit = []; for (let i = 0; i <= 16; i++) { const p = at(-w + 2 * w * i / 16, 0); hit.push(bdSheetHas(L, p) || bdSheetHas(R, p)); }
                     const f = hit.indexOf(true), z = hit.lastIndexOf(true); if (f > 0 || (z >= 0 && z < 16)) desk.push(el);
@@ -1289,7 +1289,7 @@
         }
         function bdSolid(el, p) {                                               // 그 꾸밈 안 자리 p 에 보이는 그림이 있나 (뚫린 자리는 없어요)
             if (p.x < 0 || p.y < 0 || p.x > el.offsetWidth || p.y > el.offsetHeight) return false;
-            if (bdPh(el).some(h => Math.hypot(h[0] - p.x, h[1] - p.y) < h[2] * .8)) return false;
+            if (bdPh(el).some(h => Math.hypot(h[0] - p.x, h[1] - p.y) < h[2] * 1.05)) return false;
             const img = el.querySelector(':scope > img'), al = img && bdAlphaOf(img); if (!al) return true;
             const iw = img.offsetWidth, ih = img.offsetHeight, x = p.x - img.offsetLeft, y = p.y - img.offsetTop; if (x < 0 || y < 0 || x > iw || y > ih) return false;
             return al.d[(Math.min(al.h - 1, Math.floor(y / ih * al.h)) * al.w + Math.min(al.w - 1, Math.floor(x / iw * al.w))) * 4 + 3] > 60;
@@ -1304,7 +1304,9 @@
         function bdPierce(h) {                                                  // 이 구멍(화면 원) 위에 있는 스티커마다 구멍
             let n = 0;
             document.querySelectorAll('#canvasArea > .element-box').forEach(el => {
-                const p = bdLocal(el, h.x, h.y); if (!p || !bdSolid(el, p)) return;
+                const p = bdLocal(el, h.x, h.y); if (!p) return;
+                const rr = h.d / 2 * .95, ring = [[0, 0], ...[...Array(12)].map((_, i) => [Math.cos(i * Math.PI / 6), Math.sin(i * Math.PI / 6)])];   // 구멍을 살짝만 덮어도 (가장자리까지)
+                if (!ring.some(([a, b]) => { const q = bdLocal(el, h.x + a * rr, h.y + b * rr); return q && bdSolid(el, q); })) return;
                 const r = Math.round(h.d / 2 / p.k / p.s * 10) / 10, v = [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10, r];
                 el.dataset.ph = [...bdPh(el), v].map(a => a.join(',')).join('|'); bdPhPaint(el); n++;
             });
