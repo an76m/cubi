@@ -50,7 +50,7 @@
                 if (selectedElement) selectedElement.classList.add('selected');
             };
 
-            html2canvas(innerPage, {
+            return html2canvas(innerPage, {
                 backgroundColor: null,
                 useCORS: true,
                 scale: 2
@@ -68,9 +68,9 @@
                 link.download = `${getDateKey(currentDate)}.png`;
                 link.href = out.toDataURL('image/png');
                 link.click();
-                restore();
+                restore(); if (window.saveBusy) saveBusy(false);
             }).catch(() => {
-                restore();
+                restore(); if (window.saveBusy) saveBusy(false);
                 showMsg('⚠ PNG 저장에 실패했습니다.');
             });
         }

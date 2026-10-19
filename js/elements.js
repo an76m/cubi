@@ -1091,8 +1091,8 @@
                 if (img && el.dataset.float) item.fm = 1;
                 if (img && el.dataset.cm) { try { item.cm = JSON.parse(el.dataset.cm); } catch (e) {} }   // 🪄 움직이는 캐릭터 : 칠한 곳 · 움직임 설정 (js/char-move.js)
                 if (img && el.dataset.sh) { try { item.sh = JSON.parse(el.dataset.sh); } catch (e) {} }   // ✨ 셰이더 스티커 : 효과 이름 · GLSL 글자 · 속도 · 세기 (js/glrun.js)
-                if (el.dataset.bs) item.bs = el.dataset.bs;
-                if (el.dataset.ph) item.ph = el.dataset.ph;                    // 🕳️ 펀칭기로 같이 뚫린 구멍 (js/skins.js bdPierce)                    // 📌 바인더 가운데 틈 근처에 놓인 쪽 (js/skins.js bdPin · 그때만 저장)
+                if (el.dataset.bs) item.bs = el.dataset.bs;                    // 📌 바인더 가운데 틈 근처에 놓인 쪽 (js/skins.js bdPin · 그때만 저장)
+                if (el.dataset.ph) item.ph = el.dataset.ph;                    // 🕳️ 펀칭기로 같이 뚫린 구멍 (js/skins.js bdPierce)
                 if (img && el.dataset.ts) item.ts = 1;                          // 🔤 글씨스티커 : 📷 사진 꾸미기 창이 안 떠요 (js/page.js getSelectedPhoto)                       // 📄 모조지스티커 : 옮길 때 떼지 않고 살짝 떠서 (아래 makeTransformable)
                 if (img && el.dataset.frame) {                                  // 📷 사진 틀 (js/frame.js)
                     item.fr = el.dataset.frame;
@@ -1134,7 +1134,9 @@
                 showMsg('⚠ 구글 드라이브에 연결되어 있지 않아 웹에 저장되지 않았어요.<br>왼쪽 아래 ☁ 표시를 눌러 로그인해 주세요.<br><span style="font-size:12px;color:#777;">사진으로 남기려면 💾 저장 → 🖼 내 기기에 사진(PNG)으로 저장을 눌러 주세요.</span>');
                 return;
             }
-            const ok = await flushUpload({ force: true });   // 파일이 없으면 생성, 있으면 덮어쓰기
+            saveBusy(drive.local ? '📁 저장 중…' : '☁ 저장 중…');
+            let ok = false;
+            try { ok = await flushUpload({ force: true }); } finally { await saveBusy(false); }   // 파일이 없으면 생성, 있으면 덮어쓰기
             if (drive.local) { showMsg(ok ? '📁 ' + dvWhere() + '에 저장했어요!<br><span style="font-size:12px;color:#777;">' + dayPathText(currentDate) + '</span>' : '⚠ 폴더에 저장하지 못했어요.<br>잠시 후 자동으로 다시 시도합니다.'); return; }   // 📁 (js/devsave.js)
             showMsg(ok
                 ? '☁ 구글 드라이브에 저장했어요!<br><span style="font-size:12px;color:#777;">' + dayPathText(currentDate) + '</span>'
@@ -1266,8 +1268,20 @@
         function chooseSave(kind) {
             closeModal('saveChooser');
             if (kind === 'web') saveData(true);
-            if (kind === 'png') setTimeout(exportToPNG, 60);
+            if (kind === 'png') { saveBusy('🖼 사진으로 저장 중…'); setTimeout(() => { let p = null; try { p = exportToPNG(); } catch (e) { console.warn('PNG', e); showMsg('⚠ PNG 저장에 실패했습니다.'); } if (!p) saveBusy(false); }, 60); }   // 끝나면 js/settings.js 가 saveBusy(false)
         }
+        /* 💾 저장 중 (도련 10-19 · 페이지 팝업메뉴 저장) : 하얀 바탕 · 화면 가운데 · 너무 빨리 끝나도 잠깐은 보여요 */
+        let saveBusyAt = 0;
+        function saveBusy(t) {
+            let b = document.getElementById('saveBusy');
+            if (t) {
+                if (!b) { b = document.createElement('div'); b.id = 'saveBusy'; b.className = 'save-busy'; document.body.appendChild(b); }
+                b.textContent = t; b.classList.add('on'); saveBusyAt = Date.now(); return Promise.resolve();
+            }
+            const wait = Math.max(0, 600 - (Date.now() - saveBusyAt));
+            return new Promise(r => setTimeout(() => { if (b) b.classList.remove('on'); r(); }, wait));
+        }
+        window.saveBusy = saveBusy;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['elements'] = true;
