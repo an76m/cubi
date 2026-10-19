@@ -23,7 +23,8 @@
             try { v = snbSync() ? store.getItem(SNB_KEY) : localStorage.getItem(SNB_LOCAL); } catch (e) {}
             try { v = JSON.parse(v); } catch (e) {}
             if (typeof ftOn === 'function' && !ftOn('notebook')) return 'list';   // 🔓 수첩을 숨겨 둔 동안은 늘 고르는 창 (js/features.js)
-            return v === 'list' ? 'list' : 'note';                              // 📒 기본은 수첩 (도련 · 2026-10-13 · 고르는 창을 직접 고른 사람만 고르는 창)
+            if (v === 'list' || v === 'note') return v;                          // ⚙️ 설정에서 직접 고른 것
+            return Math.min(innerWidth, innerHeight) < 600 ? 'list' : 'note';    // 기본 : 📱 폰 = 🪟 고르는 창 · 💻 PC · 패드 = 📒 수첩 (도련 10-19)
         }
         function snbSet(v) {
             const t = JSON.stringify(v === 'note' ? 'note' : 'list');
@@ -88,9 +89,9 @@
             if (!box) return;
             box.style.left = box.style.top = '0px';
             const L = box.offsetLeft, T = box.offsetTop, p = snb.pos;                // 애니메이션 중에도 바뀌지 않는 제자리
-            const KEEP = 140;                                                   // 화면 밖으로 밀어 둘 수 있어요 (제목 줄 쪽은 이만큼 늘 보여요) · 폰에서 페이지를 넓게 보며 붙이게
-            p.x = Math.max(KEEP - box.offsetWidth - L, Math.min(innerWidth - KEEP - L, p.x));
-            p.y = Math.max(-T, Math.min(innerHeight - KEEP - T, p.y));
+            /* 창 전체가 화면 안에 (도련 10-19 · 화면보다 큰 창은 왼쪽 · 위를 맞춰요) */
+            p.x = Math.max(-L, Math.min(innerWidth - box.offsetWidth - L, p.x));
+            p.y = Math.max(-T, Math.min(innerHeight - box.offsetHeight - T, p.y));
             box.style.left = p.x + 'px'; box.style.top = p.y + 'px';
         }
 
