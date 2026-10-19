@@ -71,7 +71,7 @@
         const el = document.createElement('div'); el.className = 'rl-ruler'; el.id = 'rlRuler'; el.hidden = true;
         el.innerHTML = '<div class="rl-svg"></div><i class="rl-h l" aria-hidden="true"></i><i class="rl-h r" aria-hidden="true"></i><button type="button" class="rl-fit" hidden>📏 cm 맞추기</button>';
         document.body.appendChild(el);
-        el.addEventListener('pointerdown', e => { if (!rlGrab(e)) e.stopPropagation(); });
+        el.addEventListener('pointerdown', e => { if (window.rlEdgeDown && rlSnap(e.clientX, e.clientY) && rlEdgeDown(e)) return; if (!rlGrab(e)) e.stopPropagation(); });   // 필기구를 든 채 자 가장자리 안쪽을 누르면 자를 옮기지 않고 자에 대고 그어요 (js/draw.js rlEdgeDown · 도련 10-19)
         el.addEventListener('pointermove', rlMove); el.addEventListener('pointerup', rlUp); el.addEventListener('pointercancel', rlUp);
         const fit = el.querySelector('.rl-fit');
         fit.addEventListener('pointerdown', e => e.stopPropagation()); fit.addEventListener('click', e => { e.stopPropagation(); rlCalOpen(); });

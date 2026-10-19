@@ -84,6 +84,10 @@
             dw.snap = sn ? { sn, a: at } : null;
             penRender();
         }
+        window.rlEdgeDown = e => {                                             // 📏 자 가장자리 안쪽을 누름 (js/ruler.js) : 필기구를 들었으면 여기서 긋기 시작
+            if (!dw.on || !dw.svg || dw.tool === 'erase' || (penNote() && (!pcS.held || pcS.carry))) return false;
+            penDown(e); return true;
+        };
         function penMove(e) {
             if (dw.snap && dw.cur) {                                               // 📏 자에 붙은 곧은 선 : 시작점 → 지금 자리 (가장자리 위)
                 e.preventDefault(); e.stopPropagation();
@@ -652,3 +656,4 @@
             if (dw.on && !e.target.closest('#penLayer')) e.stopPropagation();
         }, true);
         window.openDraw = openDraw;
+        document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) penDone(); }, true);   // 🧭 그리는 중 하단 메뉴를 누르면 : 그린 것을 붙이고 그리기 끝 → 그 메뉴로 (도련 10-19)
