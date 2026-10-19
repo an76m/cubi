@@ -609,6 +609,7 @@
         }
         .skin-compact .modal-title { font-size: 1.05rem; margin-bottom: 6px; }
         .skin-compact .modal-title.skin-sub-title { font-size: 0.9rem; margin-bottom: 6px; }
+        .modal .drag-title { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }   /* ✋ 창 옮기기 (js/skins.js setupSkinWindows) */
         .skin-compact .drag-title { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none;
             border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
         .skin-compact .btn { font-size: 12px; }

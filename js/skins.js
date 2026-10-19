@@ -134,40 +134,43 @@
         /* ---------- 스킨 창 : 제목을 끌어서 옮기기 · 👀 꾹 눌러 다이어리 보기 ----------
            페이지 색을 바꾸면서 뒤의 다이어리가 어떻게 바뀌는지 볼 수 있게 */
         (function setupSkinWindows() {
-            const posOf = {};
+            const moved = new Set();
             const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-            document.querySelectorAll('.modal.skin-float').forEach(modal => {
+            /* ✋ 하단 메뉴 '다이어리' · '스티커' 에서 뜨는 창은 모두 위 제목 줄을 잡고 옮겨요 (도련 10-19 · 📒 수첩으로 뜬 창은 js/stknote.js snbMovable) */
+            const WIN_IDS = ['skinModal', 'patternModal', 'makerModal', 'stickerMakeModal', 'stickerToolModal', 'leafMakeModal', 'stickerModal', 'paperModal', 'tteokModal', 'leafModal'];
+            document.querySelectorAll('.modal.skin-float, ' + WIN_IDS.map(id => '#' + id).join(', ')).forEach(modal => {
                 const box = modal.querySelector('.modal-content');
                 const title = box && box.querySelector('.modal-title');
                 if (!title) return;
                 title.classList.add('drag-title');
                 title.title = '끌어서 창을 옮길 수 있어요';
                 let start = null;
-                title.addEventListener('pointerdown', e => {
-                    if (e.button > 0 || e.target.closest('button')) return;      // 제목 줄의 ← · ✕ · 👀 버튼은 끌기 아님
-                    const p = posOf[modal.id] || { x: 0, y: 0 };
-                    start = { x: e.clientX, y: e.clientY, ox: p.x, oy: p.y };
-                    title.setPointerCapture(e.pointerId);
+                box.addEventListener('pointerdown', e => {
+                    if (e.button > 0 || modal.classList.contains('snb-on') || e.target.closest('button, input, select, textarea')) return;   // 제목 줄의 ← · ✕ · 👀 버튼은 끌기 아님
+                    if (!title.contains(e.target) && !(e.target === box && e.clientY <= title.getBoundingClientRect().bottom)) return;   // 제목 줄 · 그 위 빈 띠
+                    start = { x: e.clientX, y: e.clientY, ox: parseFloat(box.style.left) || 0, oy: parseFloat(box.style.top) || 0 };
+                    box.setPointerCapture(e.pointerId);
                     e.preventDefault();
                 });
-                title.addEventListener('pointermove', e => {
+                box.addEventListener('pointermove', e => {
                     if (!start) return;
-                    const r = box.getBoundingClientRect(), p = posOf[modal.id] || { x: 0, y: 0 };
+                    const r = box.getBoundingClientRect(), px = parseFloat(box.style.left) || 0, py = parseFloat(box.style.top) || 0;
                     /* 창이 화면 밖으로 나가지 않게 (창 전체가 화면 안에) */
-                    const baseL = r.left - p.x, baseT = r.top - p.y;
+                    const baseL = r.left - px, baseT = r.top - py;
                     const x = clamp(start.ox + e.clientX - start.x, -baseL, Math.max(-baseL, window.innerWidth - r.width - baseL));
                     const y = clamp(start.oy + e.clientY - start.y, -baseT, Math.max(-baseT, window.innerHeight - r.height - baseT));
-                    posOf[modal.id] = { x, y };
+                    moved.add(modal.id);
                     box.style.position = 'relative'; box.style.left = x + 'px'; box.style.top = y + 'px';   // transform 이 아니라 left · top : 창이 따로 겹 층을 만들지 않아야 ← · ✕ 버튼이 테이프 위에 나와요
                     box.dispatchEvent(new Event('dk-move'));                   // 모서리 테이프도 창을 따라가게 (js/dakku.js dkTapes)
                 });
                 const end = () => { start = null; };
-                title.addEventListener('pointerup', end);
-                title.addEventListener('pointercancel', end);
+                box.addEventListener('pointerup', end);
+                box.addEventListener('pointercancel', end);
             });
             /* 화면 크기가 바뀌면(폰 돌리기 등) 옮겨 둔 창은 가운데로 */
             window.addEventListener('resize', () => {
-                Object.keys(posOf).forEach(id => { delete posOf[id]; const b = document.querySelector('#' + id + ' .modal-content'); if (b) { b.style.left = b.style.top = ''; b.dispatchEvent(new Event('dk-move')); } });
+                moved.forEach(id => { const m = document.getElementById(id), b = m && m.querySelector('.modal-content'); if (b && !m.classList.contains('snb-on')) { b.style.left = b.style.top = ''; b.dispatchEvent(new Event('dk-move')); } });
+                moved.clear();
             });
             /* 👀 버튼 : 누르고 있는 동안 창을 투명하게 */
             document.querySelectorAll('.skin-peek-btn').forEach(btn => {
@@ -706,6 +709,7 @@
             if (!ip || !bk || !isCoverOpen || !ip.classList.contains('dy-bd') || (!any && Date.now() - bdLayAt < 700)) return false;
             const g = ip.querySelector('.dy-gap'); if (!g) return false;
             const t = e.target; if (t && t.closest && t.closest('.element-box, .bd-tool, .page-header, .page-stamps, .page-dday, .modal')) return false;
+            if ([...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex')) return false;   // 🪟 창이 떠 있는 동안은 뒤의 링이 안 열려요 (도련 10-19 · 창을 옮기려다 링이 열림)
             const r = g.getBoundingClientRect(), cx = r.left + r.width / 2, out = ip.classList.contains('dy-bo'), hw = out ? Math.max(bk.offsetWidth * .03, 28) : Math.max(r.width / 2, 28);
             if (Math.abs(e.clientX - cx) > hw || e.clientY < r.top || e.clientY > r.bottom) return false;
             if (out) return true;                                               // 📥 끼우기 = 가운데 틈 위아래 전부

@@ -68,7 +68,7 @@
            화면 밖으로는 안 나가요 · 아홉 창이 같은 자리를 써요 */
         function snbMovable(m, box) {
             let st = null;
-            const grip = e => { const c = m.querySelector('.snb-cover'); return (!c || c.hidden) && e.target.closest && e.target.closest('.modal-title') && !e.target.closest('button'); };
+            const grip = e => { const c = m.querySelector('.snb-cover'); if (c && !c.hidden) return snbCvBand(c, e); return e.target.closest && e.target.closest('.modal-title') && !e.target.closest('button'); };
             box.addEventListener('pointerdown', e => {
                 if (e.button > 0 || !m.classList.contains('snb-on') || !grip(e)) return;
                 st = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: snb.pos.x, oy: snb.pos.y, on: false };
@@ -83,6 +83,7 @@
             const end = e => { if (!st || st.id !== e.pointerId) return; if (st.on) snb.moved = Date.now() + 350; st = null; };
             window.addEventListener('pointerup', end, true); window.addEventListener('pointercancel', end, true);
         }
+        const snbCvBand = (c, e) => e.clientY - c.getBoundingClientRect().top < 44;   // 📔 겉표지일 땐 위 레이스 띠를 잡고 옮겨요 (도련 10-19 · 모든 창을 옮길 수 있게) · 그 아래는 넘겨 펼치기
         function snbPlaceBox(box) {
             if (!box) return;
             box.style.left = box.style.top = '0px';
@@ -187,7 +188,7 @@
                 requestAnimationFrame(step);
             };
             c.addEventListener('pointerdown', e => {
-                if (e.button > 0 || p) return;
+                if (e.button > 0 || p || snbCvBand(c, e)) return;
                 p = { id: e.pointerId, x: e.clientX, y: e.clientY, W: c.clientWidth, d: 0, on: false, t0: 0 };
             });
             window.addEventListener('pointermove', e => {
