@@ -672,12 +672,15 @@
         function bdSides() {
             const cv = document.getElementById('canvasArea'), ip = document.getElementById('innerPage'); if (!cv || !ip) return;
             const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2, bk = document.getElementById('diaryBook'), band = (bk ? bk.offsetWidth / 100 : 0) * 6.5;
+            let moved = false;
             cv.querySelectorAll(':scope > .element-box').forEach(el => {
                 const px = parseFloat(el.dataset.posX), c = (isFinite(px) ? px : 0) + el.offsetLeft + el.offsetWidth / 2;   // 자리는 transform(posX) 에 있어요
                 let pin = el.dataset.bs; if (pin && Math.abs(c - half) > band) { delete el.dataset.bs; pin = ''; }   // 📌 가운데 틈 근처에 놓인 꾸밈은 놓인 쪽을 기억해요 (bdPin) · 멀리 옮기면 잊어요
                 const r = on && (pin ? pin === 'r' : c >= half);
+                if (el.classList.contains('bd-r') !== r) moved = true;
                 el.classList.toggle('bd-l', on && !r); el.classList.toggle('bd-r', r);
             });
+            if (moved && bdFree && !bdFree.ap) { bdFree.ap = 1; requestAnimationFrame(() => { if (bdFree) { bdFree.ap = 0; bdFreeApply(); } }); }   // 📄 쪽이 바뀐 꾸밈은 그 쪽 자리로 다시 (✂️ 자른 조각 · 옮긴 것이 튀지 않게)
             if (!bdObs && window.MutationObserver) {                           // 새로 붙이거나 옮기면 다시 (어느 쪽인지)
                 bdObs = new MutationObserver(ms => { const p = document.getElementById('innerPage'); if (p && p.classList.contains('dy-bdl')) { bdSides(); if (bdFree && !bdFree.ap && ms.some(m => m.type === 'childList')) { bdFree.ap = 1; requestAnimationFrame(() => { if (bdFree) { bdFree.ap = 0; bdFreeApply(); } }); } } });   // 📄 쪽을 따로 움직이는 중에 새로 붙인 것도 그 쪽과 같이
                 bdObs.observe(cv, { childList: true, subtree: false });

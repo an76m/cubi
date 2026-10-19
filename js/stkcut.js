@@ -260,6 +260,7 @@
             ne.classList.remove('selected'); made.push(ne);
         }
         el.remove();
+        if (window.bdAfterLoad) bdAfterLoad();                                 // 🗂 바인더 : 조각을 바로 그 쪽 자리로
         if (typeof selectedElement !== 'undefined') { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         made.forEach(e => { e.classList.add('sk-new'); setTimeout(() => e.classList.remove('sk-new'), 700); });
         if (typeof saveData === 'function') saveData(false);
