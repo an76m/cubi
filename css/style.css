@@ -4024,3 +4024,33 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 💾 저장 중 (js/elements.js saveBusy) : 하얀 바탕 · 화면 가운데 */
 .save-busy { position: fixed; left: 50%; top: 50%; translate: -50% -50%; z-index: 2147483002; padding: 14px 24px; border-radius: 18px; background: #fff; color: var(--primary-accent, #ff6b81); font-size: 16px; font-weight: bold; white-space: nowrap; box-shadow: 0 6px 22px rgba(160, 90, 110, .25); pointer-events: none; opacity: 0; scale: .9; transition: opacity .18s, scale .18s; }
 .save-busy.on { opacity: 1; scale: 1; }
+
+/* 🗄️ 하단 메뉴 '문구함' : 가운데 세로 서랍장 + 위에 연필꽂이 (js/skins.js gdCab · 도련 10-19) */
+.tb-gd { background: #cfe8f7; color: #2f6a93; }
+.gdc-modal { align-items: center; }
+.gdc-wrap { position: relative; width: min(230px, 68vw); margin-top: min(84px, 11vh); animation: gdcPop .32s cubic-bezier(.2, .9, .3, 1.3); }
+@keyframes gdcPop { from { translate: 0 18px; scale: .92; } }
+.gdc-cup { position: absolute; left: 50%; bottom: calc(100% - 8px); translate: -50% 0; width: min(92px, 12vh); padding: 0; border: 0; background: none; cursor: pointer; filter: drop-shadow(0 4px 4px rgba(120, 70, 90, .22)); transition: transform .15s; }
+.gdc-cup svg { display: block; width: 100%; height: auto; }
+.gdc-cup small { position: absolute; left: 50%; bottom: 14px; translate: -50% 0; font-size: 10px; font-weight: 800; color: #b04a6e; background: #fff; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+@media (hover: hover) { .gdc-cup:hover { transform: translateY(-3px) rotate(-2deg); } }
+.gdc-body { position: relative; padding: 10px 10px 12px; border-radius: 16px 16px 12px 12px; background: linear-gradient(180deg, #fff3e6, #ffe6d2); border: 2px solid #e9b892;
+    box-shadow: 0 16px 30px rgba(140, 80, 60, .28), inset 0 2px 0 rgba(255, 255, 255, .8); display: flex; flex-direction: column; gap: min(7px, 1vh); }
+.gdc-body::before { content: ''; position: absolute; left: -6px; right: -6px; top: -9px; height: 12px; border-radius: 8px; background: linear-gradient(180deg, #ffd9bd, #f2bf98); border: 2px solid #e2a77c; }   /* 서랍장 윗판 */
+.gdc-body::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -9px; height: 8px; border-radius: 0 0 6px 6px; background: #e8b28c; z-index: -1; }   /* 다리 */
+.gdc-dr { position: relative; display: flex; align-items: center; gap: 8px; height: min(52px, 7.4vh); padding: 0 12px 0 8px; border: 2px solid #f0c3a4; border-radius: 9px; cursor: pointer; font-family: inherit;
+    background: linear-gradient(180deg, #fffaf4, #fff0e2); box-shadow: 0 2px 0 #f0c3a4, inset 0 -3px 0 rgba(230, 170, 130, .18); transition: transform .2s cubic-bezier(.3, .9, .4, 1.3), box-shadow .2s; }
+.gdc-dr:active { transform: scale(.97); }
+.gdc-in { width: 44px; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.gdc-ic { display: flex; align-items: center; justify-content: center; height: 80%; transform: rotate(-18deg); transition: transform .25s; }
+.gdc-ic svg { height: 100%; width: auto; max-width: 44px; display: block; }
+.gdc-ic.tweez { height: 120%; } .gdc-ic.scissors { height: 115%; } .gdc-ic.clip, .gdc-ic.tape, .gdc-ic.case { transform: none; height: 70%; }
+.gdc-tag { flex: 1; text-align: center; padding: 3px 6px; border-radius: 6px; background: #fff; border: 1.5px dashed #e9a8bd; color: #9b4a68; font-size: 13.5px; font-weight: 800; letter-spacing: .5px; white-space: nowrap; }
+.gdc-knob { width: 18px; height: 9px; border-radius: 6px; background: linear-gradient(180deg, #ffd27a, #e5a93a); box-shadow: 0 2px 0 #c98d2a; flex: none; }
+.gdc-out { position: absolute; right: -6px; top: -9px; padding: 1px 7px; border-radius: 9px; background: #6fcca8; color: #fff; font-size: 10.5px; font-style: normal; font-weight: 800; opacity: 0; scale: .7; transition: opacity .2s, scale .2s; pointer-events: none; }
+.gdc-dr.out { transform: translateY(3px) scale(1.035); box-shadow: 0 8px 12px rgba(140, 80, 60, .22), 0 2px 0 #f0c3a4; background: linear-gradient(180deg, #fffdf9, #ffe9d6); }   /* 빠끔 열린 서랍 = 페이지에 놓였어요 */
+.gdc-dr.out .gdc-ic { transform: rotate(-18deg) translateY(-4px); }
+.gdc-dr.out .gdc-ic.clip, .gdc-dr.out .gdc-ic.tape { transform: translateY(-4px); }
+.gdc-dr.out .gdc-out { opacity: 1; scale: 1; }
+.gdc-x { position: absolute; right: -12px; top: -22px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 8px rgba(160, 90, 110, .25); }
+.gdc-tip { margin: 14px 0 0; text-align: center; font-size: 11px; color: #8a6a72; background: rgba(255, 255, 255, .85); border-radius: 10px; padding: 3px 8px; }

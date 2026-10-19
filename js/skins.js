@@ -1269,7 +1269,7 @@
         window.addEventListener('blur', () => { document.body.classList.remove('gd-on'); });
         /* ✂️ 가위 (도련 10-19) : 문구함 → 페이지에 놓고 → 누르면 손에 · 📄 모조지스티커는 가위로만 오려요 (js/papermaker.js)
            - 든 가위는 화면 위에 떠서 따라와요 (.scs-cur · 📒 수첩 · 모조지 종이 위로도) · 날은 벌린 채
-           - 오리는 동안 : 조금 갈 때마다(SCS_STEP) 날이 싹둑 닫혔다 벌어지고 소리 · 가위 끝이 오리는 방향으로 부드럽게 돌아요
+           - 오리는 동안 : 조금 갈 때마다(SCS_STEP) 날이 싹둑 닫혔다 벌어져요 (소리 없음 · 도련 10-19) · 가위 끝이 오리는 방향으로 부드럽게 돌아요
            - 자른 선은 싹둑 한 번마다 한 토막씩 늘어나요 (papermaker 의 d.shown) · 페이지 빈 곳을 누르면 허공에 싹둑
            - 종이는 가만히 있어요 (칼선 없이 마음대로 오리니까 · 도련 10-19) */
         const SCS_STEP = 22, SCS_MAX = 14, SCS_REST = -20;                      // 싹둑 한 번 거리(px) · 가장 벌린 각도 · 쉬는 기울기(도)
@@ -1304,7 +1304,7 @@
             if (!scs.raf) scs.raf = requestAnimationFrame(scsFrame);
         }
         function scsHide() { scs.on = false; scs.cut = null; if (scs.el) scs.el.hidden = true; document.body.classList.remove('scs-on'); }
-        function scsSnip() { scs.snip = performance.now(); scsSnd(); try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {} }
+        function scsSnip() { scs.snip = performance.now(); try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {} }
         function scsFrame(t) {
             scs.raf = 0;
             if (!gdScs() || !isCoverOpen) { scsHide(); return; }
@@ -1319,18 +1319,39 @@
         /* 📄 모조지 오리기 (js/papermaker.js) : 시작 · 끝 · 싹둑마다 on() (자른 선을 한 토막 늘려요) */
         function scsCutStart(x, y, on) { if (!gdScs()) return false; scs.cut = { x, y, acc: 0, on }; scsPut(x, y, null, true); return true; }
         function scsCutEnd(done) { if (!scs.cut) return; scs.cut = null; scs.to = SCS_REST; if (done) scsSnip(); }
-        function scsSnd() {                                                     // 🔊 싹둑 (부드럽게 · 도련 10-19) : 낮게 스치는 소리 + 아주 작은 톡
-            const ac = typeof sndFx === 'function' ? sndFx() : null; if (!ac) return;
-            const t = ac.currentTime, out = sndOut();
-            const n = Math.floor(ac.sampleRate * .09), buf = ac.createBuffer(1, n, ac.sampleRate), v = buf.getChannelData(0);
-            for (let i = 0; i < n; i++) { const q = i / n; v[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * Math.min(1, q / .35)) * Math.pow(1 - q, 1.6); }   // 천천히 커졌다 스르르
-            const sr = ac.createBufferSource(), lp = ac.createBiquadFilter(), bp = ac.createBiquadFilter(), g = ac.createGain();
-            sr.buffer = buf; lp.type = 'lowpass'; lp.frequency.value = 3200; bp.type = 'bandpass'; bp.frequency.setValueAtTime(2100, t); bp.frequency.exponentialRampToValueAtTime(1300, t + .09); bp.Q.value = .7; g.gain.value = .14;
-            sr.connect(lp).connect(bp).connect(g).connect(out); sr.start(t);
-            const o = ac.createOscillator(), gg = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1050, t + .07); o.frequency.exponentialRampToValueAtTime(760, t + .1);
-            gg.gain.setValueAtTime(.0001, t + .07); gg.gain.exponentialRampToValueAtTime(.035, t + .075); gg.gain.exponentialRampToValueAtTime(.0001, t + .12);
-            o.connect(gg).connect(out); o.start(t + .07); o.stop(t + .13);
+        /* 🗄️ 하단 메뉴 '문구함' : 화면 가운데 세로 서랍장 (도련 10-19)
+           - 서랍장 위에는 ✏️ 연필꽂이 (톡 = 그리기 · js/draw.js openDraw) · 서랍마다 이름표 : 핀셋 · 집게 · 펀칭기 · 양면테이프 · 가위 · 필통
+           - 서랍을 톡 = 그 문구가 바로 페이지에 놓여요 (서랍이 빠끔 열린 채) · 다시 톡 = 페이지에서 치워요 (gdPick 과 같아요)
+           - 👝 필통 서랍은 필통 창 (js/pencase.js) · ✕ 로 닫아요 */
+        const GD_CAB = [['twz', '핀셋'], ['clip:' + CLIPS[0][0], '집게'], ['punch1', '펀칭기'], ['tape1', '양면테이프'], ['scs1', '가위'], ['case', '필통']];
+        const CAB_CUP = `<svg viewBox="0 0 80 92" aria-hidden="true"><path d="M27 52 L22 8 Q22 3 26 4 L29 52" fill="#ffe27a" stroke="#d9aa2b" stroke-width="1.2"/><path d="M22.6 12 L24 4 L26 12z" fill="#7a5a3a"/>
+            <path d="M37 52 V6 Q40 0 43 6 V52" fill="#9fd0f7" stroke="#5f9fd6" stroke-width="1.2"/><path d="M38.6 9 L40 2 L41.4 9z" fill="#3d6f9a"/>
+            <path d="M49 52 L55 12 Q57 8 59 11 L54 52" fill="#ffb3c8" stroke="#e0729a" stroke-width="1.2"/><rect x="54.2" y="7" width="5" height="6" rx="1.5" transform="rotate(10 56 10)" fill="#fff" stroke="#e0729a"/>
+            <path d="M31 52 L33 18 Q34 14 36 18 L35 52" fill="#bfe9c9" stroke="#6fbf8a" stroke-width="1.1"/>
+            <path d="M14 46 H66 L62 88 Q61 91 58 91 H22 Q19 91 18 88 Z" fill="#ff9fbd" stroke="#e0729a" stroke-width="1.6"/><path d="M14 46 H66 V52 H14 Z" fill="#ffc2d4" stroke="#e0729a" stroke-width="1.4"/>
+            <path d="M40 76 l-5.6 -5.3 a3.2 3.2 0 0 1 5.6 -3.8 a3.2 3.2 0 0 1 5.6 3.8 z" fill="#fff" opacity=".9"/><path d="M21 58 Q22 70 24 82" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/></svg>`;
+        const CAB_CASE = '<svg viewBox="0 0 60 36" aria-hidden="true"><rect x="3" y="7" width="54" height="26" rx="12" fill="#cdb4ff" stroke="#8a6bd4" stroke-width="1.6"/><path d="M8 12 H52" stroke="#fff" stroke-width="2.4" stroke-dasharray="3 3"/><rect x="40" y="3" width="6" height="12" rx="3" fill="#ffe27a" stroke="#d9aa2b"/><circle cx="30" cy="23" r="4" fill="#fff" opacity=".7"/></svg>';
+        function gdCabOn(id) { return id !== 'case' && !!gdEl(id); }
+        function gdCabRender() {
+            const cab = document.getElementById('gdCab'); if (!cab) return;
+            cab.innerHTML = `<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
+                <button type="button" class="gdc-cup" aria-label="연필꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>연필꽂이</small></button>
+                <div class="gdc-body">${GD_CAB.map(([id, n]) => `<button type="button" class="gdc-dr${gdCabOn(id) ? ' out' : ''}" data-id="${id}" onclick="gdCabTap('${id}')">
+                    <span class="gdc-in"><span class="gdc-ic ${id === 'case' ? 'case' : gdInfo(id).g}">${id === 'case' ? CAB_CASE : gdArt(id)}</span></span>
+                    <span class="gdc-tag">${n}</span><i class="gdc-knob"></i><em class="gdc-out">페이지에 ✓</em></button>`).join('')}</div>
+                <p class="gdc-tip">서랍 톡 = 놓기 · 다시 톡 = 치우기</p>`;
         }
+        function openGdCab() {
+            if (typeof isCoverOpen === 'undefined' || !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            gdCabRender(); openModal('gdCabModal');
+        }
+        function gdCabTap(id) {
+            if (id === 'case') { closeModal('gdCabModal'); if (window.openPencase) openPencase(); return; }
+            gdPick(id);
+            const b = document.querySelector(`#gdCab .gdc-dr[data-id="${id}"]`); if (b) b.classList.toggle('out', gdCabOn(id));
+        }
+        function gdCabCup() { closeModal('gdCabModal'); if (window.openDraw) openDraw(); }
+        window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup;
         window.gdScs = gdScs; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
 
         /* 🕳️ 펀칭기 (도련 10-19 · 진짜처럼 12번) : 구멍 자리 근처로 가면 그 자리에 착 붙고 → 누르면 철컥 하나 뚫려요
