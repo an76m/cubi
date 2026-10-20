@@ -184,7 +184,7 @@
         }
         /* ⚙ 설정 → 📥 백업 불러오기 */
         function bkRestore() {
-            if (!drive.ready || drive.guest) { showMsg('📥 백업은 구글로 로그인했거나 📁 폴더에 저장할 때 불러올 수 있어요.<br><span style="font-size:12px;color:#777;">첫 화면의 <b>로그인 없이 시작하기 → 📥 백업 파일로 시작하기</b>도 돼요.</span>'); return; }
+            if (!drive.ready || drive.guest) { showMsg('📥 백업은 구글로 로그인했거나 📁 폴더에 저장할 때 불러올 수 있어요.<br><span style="font-size:12px;color:#777;">첫 화면의 <b>로그인 없이 다꾸하기 → 📥 백업 파일로 시작하기</b>도 돼요.</span>'); return; }
             bkPickFile(async file => {
                 const b = await bkOpen(file); if (!b) return;
                 const google = !drive.local;

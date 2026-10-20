@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/devsave.js
    📁 로그인 없이 쓰기 : 이 기기의 '말랑달콤' 폴더에 저장 (도련 · 2026-10-13)
-   - 첫 화면 '로그인 없이 시작하기' → "일기를 어디에 둘까요?"  📁 폴더 · 👀 구경만
+   - 첫 화면 '로그인 없이 다꾸하기' → "일기를 어디에 둘까요?"  📁 폴더 · 👀 구경만
    - 📁 폴더를 고른 사람은 구글로 로그인했을 때와 저장 · 불러오기 · 폴더 모양 · 기능이 모두 같아요
      → 드라이브에 말을 거는 곳(drive.js gfetch) 하나만 '이 기기 폴더'로 바꿔 끼워요 (vfsFetch : 드라이브 API 흉내)
      → 일기 · 설정 · 카페 · 스티커 모음 · 내가 만든 스티커 · 페이지 · 인형 · 인형극 · 검색 목록 … 드라이브에 저장되던 것 모두
@@ -379,7 +379,7 @@
                 <div class="gate-msg">지난번에 고른 ${n}에서<br>이어서 쓸게요.</div>
                 <button type="button" class="btn gate-btn dv-go">📁 폴더 열고 이어서 쓰기</button>
                 <button type="button" class="gate-guest dv-other">다른 폴더 고르기</button>
-                <button type="button" class="gate-guest dv-login">구글 계정으로 시작하기</button>`);
+                <button type="button" class="gate-guest dv-login">구글 계정으로 다꾸하기</button>`);
             c.querySelector('.dv-go').onclick = async () => {
                 let st = 'denied'; try { st = await V.top.requestPermission({ mode: 'readwrite' }); } catch (e) {}
                 if (st !== 'granted') { showMsg('폴더를 허용해야 이어서 쓸 수 있어요.<br><span style="font-size:12px;color:#777;">허용 창에서 <b>방문할 때마다 허용</b>을 누르면 다음부터는 바로 열려요.</span>'); return; }
@@ -444,7 +444,7 @@
             }
             dvSetMode('');                                                 // 다음부터는 구글로 열려요
             if (files && files.length) await dvCarry(files);
-            else if (files === null) showMsg('⚠ 이 기기 폴더를 다 읽지 못해서 옮기지 않았어요.<br><span style="font-size:12px;color:#777;">폴더는 그대로 남아 있어요. ⚙ 설정 → 로그아웃 → 로그인 없이 시작하기 → 📁 폴더로 열어서 📦 백업 파일을 받은 뒤, 구글에서 📥 백업 불러오기로 넣을 수 있어요.</span>');
+            else if (files === null) showMsg('⚠ 이 기기 폴더를 다 읽지 못해서 옮기지 않았어요.<br><span style="font-size:12px;color:#777;">폴더는 그대로 남아 있어요. ⚙ 설정 → 로그아웃 → 로그인 없이 다꾸하기 → 📁 폴더로 열어서 📦 백업 파일을 받은 뒤, 구글에서 📥 백업 불러오기로 넣을 수 있어요.</span>');
         }
         function dvAfterLogin() { dvSetMode(''); }
         /* 로그인한 뒤 : 이 기기 폴더 통째로 드라이브로 */
