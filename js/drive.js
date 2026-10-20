@@ -74,6 +74,7 @@
             ready: false,      // 설정을 성공적으로 불러온 상태 (이때부터만 업로드 허용)
             local: false,      // 📁 로그인 없이 이 기기 폴더 (js/devsave.js) : 드라이브와 똑같이 움직여요
             guest: false, uploading: false, needAuth: false, error: false, lastSaved: null,
+            rootId: null, wiped: false,   // 🗑 이 창이 본 말랑달콤 폴더 · 지워진 걸 알아챈 뒤 (rootGone · rootReset : 더 올리지 않고 처음 상태로 다시 열기)
             gen: 0,            // 다시 불러오기 할 때마다 증가 (예전 요청의 결과가 뒤늦게 섞이는 것 방지)
             inflight: null,    // 지금 업로드 중인 키
             settingsFile: null, cafeFile: null,   // { id, modifiedTime } : 마지막으로 읽거나 쓴 때의 드라이브 파일 (두 기기 확인용)
@@ -222,10 +223,12 @@
         }
         /* ☁ 설정 값 하나 (JSON) : 로그인 → 설정.json 의 key · 이 기기 local 에도 같이 (드라이브를 읽기 전 · 게스트는 이 기기 값)
            쓰는 곳 : 🗂 고르는 창 칸 · 🎵 배경음악 · 🔮 토정비결 생일 · ✏️ 닉네임 */
+        /* ☁ 로그인 중에는 드라이브(설정.json) 것만 믿어요 : 드라이브에 없으면 처음 상태 (도련 10-20 · 말랑달콤 폴더를 지우면 모든 기기가 처음부터)
+           브라우저 기억(local)은 게스트 · 드라이브를 읽기 전에 화면을 빨리 띄울 때만 */
         function prefGet(key, local) {
             let v = null;
-            try { if (drive.ready && !drive.guest) v = store.getItem(key); } catch (e) {}
-            if (v === null) { try { v = localStorage.getItem(local); } catch (e) {} }
+            if (drive.ready && !drive.guest) { try { v = store.getItem(key); } catch (e) {} }
+            else { try { v = localStorage.getItem(local); } catch (e) {} }
             if (v === null) return null;
             try { return JSON.parse(v); } catch (e) { return v; }
         }
@@ -357,6 +360,7 @@
                     if (again) id = again;
                 }
                 if (id) drive.folderIds.set(key, id);
+                if (id && key === TOP_FOLDER_NAME) drive.rootId = id;          // 🗑 말랑달콤 폴더가 지워졌는지 볼 때 (rootGone)
                 return id || null;
             })();
             drive.folderBusy.set(busyKey, p);
@@ -561,7 +565,7 @@
         function prefetchAfterTurn(dir) { const d = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir); return prefetchDays(d ? [d] : []); }
 
         async function loadFromDrive() {
-            resetDriveCaches();
+            resetDriveCaches(); drive.rootId = null;
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             clearTimeout(uploadTimer);
             drive.gen++;
@@ -853,6 +857,20 @@
         }
 
         /* 업로드는 한 번에 하나씩(순서대로) 처리 → 같은 날짜 파일이 두 개 생기는 문제 방지 */
+        /* 🗑 말랑달콤 폴더가 지워졌는지 (도련 10-20) : 이 창이 열려 있는 동안 본 폴더가 휴지통에 갔거나 없어졌으면 true
+           (처음 쓰는 계정처럼 아직 폴더가 없던 건 아니에요 · 📁 이 기기 저장은 따로) */
+        async function rootGone() {
+            if (drive.local || !drive.rootId) return false;
+            try { return !(await driveMeta(drive.rootId)); } catch (e) { return false; }
+        }
+        /* 지워졌으면 : 메모리 · 임시 보관본에 든 옛 내용을 올리지 않고 처음 상태로 다시 열어요 */
+        async function rootReset() {
+            drive.wiped = true; clearTimeout(uploadTimer);
+            drive.dirtyKeys.clear(); clearPending();
+            const { forget } = await readAllPending(); await forget();
+            await showMsg('☁ 구글 드라이브의 <b>말랑달콤</b> 폴더가 지워졌어요.<br>처음 상태로 다시 열게요.');
+            location.reload();
+        }
         function flushUpload(opts) {
             const force = !!(opts && opts.force);
             clearTimeout(uploadTimer);
@@ -862,7 +880,8 @@
                     const k = getDateKey(currentDate);
                     if (drive.loadedDays.has(k) && store.getItem(k) !== null) drive.dirtyKeys.add(k);
                 }
-                if (!drive.dirty) return true;
+                if (!drive.dirty || drive.wiped) return true;
+                if (await rootGone()) { rootReset(); return false; }        // 🗑 지워진 폴더를 옛 내용으로 다시 만들지 않아요
                 drive.uploading = true; updateBadge();
                 let allOk = true, authFail = false, full = false;
                 const sent = [];
@@ -1175,6 +1194,7 @@
             });
         }
         function savePending() {
+            if (drive.wiped) return;
             try {
                 const items = {}, b = {}, bv = {};
                 drive.dirtyKeys.forEach(k => { items[k] = store.getItem(k); });          // null = 내용을 지운 날
@@ -1231,7 +1251,7 @@
 
         function saveOnScreenOff() {
             try { if (!turn) saveData(false); } catch (err) {}      // 편집 중인 글/스티커를 메모리(store)에 반영
-            if (!drive.ready || drive.guest) return;                 // 로그인 전이거나 게스트면 저장할 곳이 없음
+            if (!drive.ready || drive.guest || drive.wiped) return;  // 로그인 전 · 게스트면 저장할 곳이 없음 · 🗑 폴더가 지워졌으면 올리지 않음
             if (drive.dirty || drive.uploading) {
                 savePending();                                       // 업로드 전에 먼저 이 기기에 안전하게 보관
                 if (drive.dirty) flushUpload();                      // 디바운스(3초) 기다리지 않고 즉시 업로드
@@ -1247,6 +1267,7 @@
         async function recoverPendingBackup() {
             const { p, forget } = await readAllPending();
             if (!p) { await forget(); return; }
+            if (!drive.local && !(await getFolder([TOP_FOLDER_NAME], false).catch(() => 'x'))) { await forget(); return; }   // 🗑 말랑달콤 폴더가 없으면 옛 보관본은 버려요 (처음 상태)
             const B = p.b && typeof p.b === 'object' ? p.b : {}, BV = p.bv && typeof p.bv === 'object' ? p.bv : {};
             const safe = [], cafe = [], askDays = [], askSet = [];
             for (const k of Object.keys(p.items)) {
@@ -1322,12 +1343,13 @@
             else if (m.t === 'coll' && typeof collRemote === 'function') collRemote(m.path);   // 스티커 · 페이지 목록 (js/coll.js)
         };
         function checkRemote(force) {
-            if (!drive.ready || drive.guest || document.hidden || drive.needAuth) return Promise.resolve();
+            if (!drive.ready || drive.guest || document.hidden || drive.needAuth || drive.wiped) return Promise.resolve();
             if (!force && Date.now() - lastRemoteCheck < 50000) return Promise.resolve();
             if (remoteChecking) return remoteChecking;
             lastRemoteCheck = Date.now();
             remoteChecking = (async () => {
                 const gen = drive.gen;
+                if (await rootGone()) { rootReset(); return; }              // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로
                 try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에 (고친 것은 지키려고)
                 for (const which of Object.keys(KEY_FILES)) {
                     const F = KEY_FILES[which], known = drive[F.prop];
@@ -1372,7 +1394,7 @@
         /* 데스크톱에서 창/탭을 닫을 때 */
         window.addEventListener('beforeunload', (e) => {
             saveOnScreenOff();
-            if (drive.ready && !drive.guest && (drive.dirty || drive.uploading)) { e.preventDefault(); e.returnValue = ''; }
+            if (drive.ready && !drive.guest && !drive.wiped && (drive.dirty || drive.uploading)) { e.preventDefault(); e.returnValue = ''; }
         });
 
 

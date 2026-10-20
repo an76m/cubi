@@ -1749,6 +1749,8 @@
            - 화면 코드는 날짜(currentDate)로 움직여요 → 장은 '2000년 1월 n일' 날짜로 넣고 (dkDate) getDateKey 가 장 키로 바꿔요
              진짜 날짜 (오늘 · 달력 · 검색 · D-day) 는 늘 진짜 날짜예요 · 2000년 날짜는 장으로만 써요
            - 지금은 규격마다 한 권 (diary_books : 규격 id → 권 id) · 문구점 디자인이 생기면 디자인마다 권
+           - ☁ 로그인 중에는 권 id 를 드라이브 설정.json 것만 따라요 (도련 10-20 · 기기 브라우저 기억 malang_books 은 로그인 전 · 게스트용)
+             새 권 id 는 규격 id 로 정해요 (dk + 규격 id) → 두 기기가 따로 처음 꾸며도 같은 권 · 말랑달콤 폴더를 지우면 모든 기기가 같은 빈 권에서 다시 시작
            - 첫 장을 저장할 때 드라이브에 권 폴더가 생겨요 (고르기만 하면 안 생겨요) · 장을 처음 꾸민 날을 다이어리.json days 에 (고쳐도 안 바뀜 · 다 지우면 빠짐)
            - 열면 : 켜고 끄기와 상관없이 마지막으로 꾸민 장 (없으면 1장)
            - 위 바 가운데 : 페이지 수가 기본 · 누르면 그 장을 처음 꾸민 날 (빈 장은 '새 장') ↔ 다시 누르면 페이지 수 (이 기기 · malang_bkview)
@@ -1757,11 +1759,12 @@
            - 마지막 장에서 더 넘기면 "기본 다이어리로 넘어갈까요?" */
         const DK_KEY = 'diary_books', DK_LOCAL = 'malang_books', DK_VIEW = 'malang_bkview', DK_PAGES = 30, DK_Y = 2000;
         const dkType = () => { const t = dyNow(); return t.id === DY_DEF ? null : t; };
+        function dkMap() { const m = prefGet(DK_KEY, DK_LOCAL); return m && typeof m === 'object' ? m : {}; }   // 규격 id → 권 id (☁ 로그인 중엔 드라이브 것만 · js/drive.js prefGet)
         function dkId(make) {                                                  // 지금 고른 규격의 권 id (make : 없으면 새로)
             const t = dkType(); if (!t) return null;
-            const m = prefGet(DK_KEY, DK_LOCAL), o = m && typeof m === 'object' ? Object.assign({}, m) : {};
+            const o = Object.assign({}, dkMap());
             if (o[t.id] || !make) return o[t.id] || null;
-            o[t.id] = dkInfo({}).id;
+            o[t.id] = 'dk' + (String(t.id).toLowerCase().replace(/[^0-9a-z]/g, '') || Date.now().toString(36));   // 기기마다 같은 id
             prefSet(DK_KEY, DK_LOCAL, o);
             return o[t.id];
         }
@@ -1772,7 +1775,7 @@
         function dkInfoOf(id) {                                                // 다이어리.json 내용 (아직 없으면 그 규격으로 새로)
             let o = null; try { o = JSON.parse(store.getItem('dkb_' + id)); } catch (e) {}
             if (o && o.id) return dkInfo(o);
-            const m = prefGet(DK_KEY, DK_LOCAL) || {}, t = DY_TYPES.concat(typeof dmkAll === 'function' ? dmkAll() : []).find(x => m[x.id] === id) || dkType() || {};
+            const m = dkMap(), t = DY_TYPES.concat(typeof dmkAll === 'function' ? dmkAll() : []).find(x => m[x.id] === id) || dkType() || {};
             return dkInfo({ id, design: t.g, spec: t.n, kind: t.k, pages: t.pg || DK_PAGES });
         }
         const dkNow = () => dkType() ? dkInfoOf(dkId(true)) : null;
@@ -1955,7 +1958,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || (b.dataset.id || '').startsWith('tool:') && !!gdEl(b.dataset.id.slice(5)))); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdPick = gdPick; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdPick = gdPick; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

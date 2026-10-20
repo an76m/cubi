@@ -95,7 +95,7 @@
         }
         function dmkFilledMax(id) {                                            // 그 권에서 꾸민 마지막 페이지
             if (!id || typeof dkFilled !== 'function') return 0;
-            const m = prefGet(DK_KEY, DK_LOCAL) || {}, bid = m[id]; if (!bid) return 0;
+            const m = window.dkMap ? dkMap() : {}, bid = m[id]; if (!bid) return 0;
             const f = dkFilled(dkInfoOf(bid)); return f.length ? f[f.length - 1] : 0;
         }
 
