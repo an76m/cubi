@@ -52,11 +52,9 @@
                   <div class="pb-row"><small>필터</small><div class="pb-chips" id="pbFilters">${PB_FILTERS.map(f => `<button type="button" data-v="${f[0]}" onclick="pbSetFilter('${f[0]}')">${f[1]}</button>`).join('')}</div></div>
                   <div class="pb-row"><small>글씨</small><input id="pbText" maxlength="18" placeholder="아래에 쓸 말 (예: 우리의 하루 💕)" oninput="pb.text=this.value;pbCompose()"></div>
                   <label class="pb-deco"><input type="checkbox" id="pbDeco" checked onchange="pb.deco=this.checked;pbCompose()"> ✨ 반짝이 꾸밈</label>
-                  <button type="button" class="pb-go" onclick="pbKeep('stick')">📌 다이어리에 붙이기</button>
-                  <div class="pb-three">
-                    <button type="button" class="pb-go pb-sub" onclick="pbKeep('piece')">🧩<br>조각스티커<br>만들기</button>
-                    <button type="button" class="pb-go pb-sub" onclick="pbKeep('seal')">🏷️<br>씰스티커<br>만들기</button>
-                    <button type="button" class="pb-go pb-sub" onclick="pbKeep('paper')">📄<br>모조지스티커<br>만들기</button>
+                  <div class="pb-two pb-kind">
+                    <button type="button" class="pb-go" id="pbGoStick" onclick="pbKeep(smKindAct(true))"></button>
+                    <button type="button" class="pb-go pb-sub" id="pbGoMake" onclick="pbKeep(smKindAct(false))"></button>
                   </div>
                   <div class="pb-two"><button type="button" class="pb-go pb-sub" onclick="pbSave()">💾 내 기기에 저장</button><button type="button" class="pb-go pb-sub" onclick="pbRetake()">🔄 다시 찍기</button></div>
                 </section>
@@ -195,19 +193,28 @@
             pb.out = '';
         }
         function pbOut() { if (!pb.out) pb.out = pbq('pbCanvas').toDataURL('image/jpeg', .86); return pb.out; }
-        /* act : 'stick' 붙이기(씰) · 'piece' · 'seal' · 'paper' 만들기(내스티커에 저장 · 모조지스티커는 모조지스티커 한 장에 인쇄해서) */
+        /* act : 고른 종류(js/stickermaker.js smKindAct) — 붙이기 'pstick' 조각 봉투째 · 'stick' 씰 종이째 · 'pastick' 모조지스티커 종이째
+                 / 만들기 'piece' · 'seal' · 'paper' (내스티커에 저장 · 모조지스티커는 모조지스티커 한 장에 인쇄해서) */
+        const PB_STICK = { stick: 'seal', pstick: 'piece', pastick: 'paper' }, PB_NAME = { seal: '🏷️ 씰스티커', piece: '🧩 조각스티커', paper: '📄 모조지스티커' };
         async function pbKeep(act) {
             if (pb.busy) return;
-            if (act === 'stick' && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">🏷️ 씰스티커 만들기로 저장해 두었다가 붙여도 돼요.</span>'); return; }
+            const k = PB_STICK[act] || act, stick = !!PB_STICK[act];
+            if (stick && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg(`먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">${PB_NAME[k]} 만들기로 저장해 두었다가 붙여도 돼요.</span>`); return; }
             if (typeof pelBake !== 'function' || typeof smAdd !== 'function') { comingSoon('🏷️ 씰스티커'); return; }
             pb.busy = true;
             const all = [...document.querySelectorAll('#boothRoom .pb-go')]; all.forEach(b => { b.disabled = true; });
             try {
                 let src = pbOut();
-                if (act === 'paper') { if (!window.pmMakeSheet) { comingSoon('📄 모조지스티커'); return; } try { src = await pmMakeSheet([src]); } catch (e) { showMsg('모조지스티커를 만들지 못했어요.'); return; } }
+                if (k === 'paper') { if (!window.pmMakeSheet) { comingSoon('📄 모조지스티커'); return; } try { src = await pmMakeSheet([src]); } catch (e) { showMsg('모조지스티커를 만들지 못했어요.'); return; } }
                 else try { src = await pelBake(src); } catch (e) {}
-                const k = act === 'stick' ? 'seal' : act, r = await smAdd(src, k);
-                if (act === 'stick') { smAddMsg(r, k, true); closeBooth(); openStickerPeel(src); return; }
+                const r = await smAdd(src, k);
+                if (stick) {
+                    smAddMsg(r, k, true); closeBooth();
+                    if (k === 'piece' && window.openPieceBag) openPieceBag([src]);
+                    else if (k === 'paper' && window.openPaperSheet) openPaperSheet(src);
+                    else openStickerPeel(src);
+                    return;
+                }
                 if (r === 'ok') closeBooth();
                 smAddMsg(r, k, false);
             } finally { pb.busy = false; all.forEach(b => { b.disabled = false; }); }
@@ -222,6 +229,7 @@
             if (typeof closeModal === 'function') closeModal('serviceModal');
             pbBuild(); pb.shots = [];
             pbSetLayout(pb.layout); pbSetFrame(pb.frame); pbStep(1);
+            if (window.smKindBtn) { pbq('pbGoStick').innerHTML = smKindBtn(true); pbq('pbGoMake').innerHTML = smKindBtn(false); }   // 고른 종류의 버튼 2개
             pbq('boothRoom').classList.add('show');
             document.body.classList.add('fc-lock');
         }

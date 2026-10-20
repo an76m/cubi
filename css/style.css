@@ -2020,10 +2020,9 @@
         .pel-x.pel-bx { right: auto; left: 0; top: 0; width: 26px; height: 26px; padding: 0; border: 0; background: none; color: #8a6a76; font-size: 16px; line-height: 26px; text-align: center; cursor: pointer; text-shadow: 0 1px 0 #fff; }   /* 하얀 종이 오른쪽 위 끝 ✕ (모조지스티커처럼 · js/stickerpeel.js pelFrame) */
         /* 📄 모조지스티커 만들기 (js/papermaker.js · 화면 모양은 .smk-* 를 같이 써요) */
         /* 결과창의 🧩 · 🏷️ · 📄 만들기 버튼 3개 (사진 스티커 · 포토부스) */
-        .smk-three, .pb-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .smk-three .smk-go, .pb-three .pb-go { padding: 10px 2px; font-size: 13px; line-height: 1.3; word-break: keep-all; }
+        .smk-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .smk-two .smk-go, .pb-kind .pb-go { padding: 10px 4px; font-size: 13.5px; line-height: 1.3; word-break: keep-all; }   /* 🧩 · 🏷️ · 📄 고른 종류 : 다이어리에 붙이기 · 만들기 */
         /* 📌 붙이기 2개 : 🏷️ 씰스티커로 · 🧩 조각스티커로 */
-        .smk-sticks .smk-go { padding: 10px 2px; font-size: 12.5px; line-height: 1.3; word-break: keep-all; }   /* 🧩 · 🏷️ · 📄 ~로 다이어리에 붙이기 */
         #pmPens { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); padding: 8px 12px; border: 1.5px solid var(--border-color); border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 3px 10px rgba(120,80,95,.14); }
         #pmPens[hidden] { display: none; }
         .pel-room.pm-room { z-index: 95; }
@@ -4123,5 +4122,5 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ct-room .snd-fx.ct-snd { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 54px; z-index: 2; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 📒 수첩 .snb-on 과 같게 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
-#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #leafMakeModal, #stickerModal, #paperModal, #tteokModal, #leafModal, .modal.skin-float { pointer-events: none; }
-#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #leafMakeModal > .modal-content, #stickerModal > .modal-content, #paperModal > .modal-content, #tteokModal > .modal-content, #leafModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
+#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #stickerModal, #paperModal, #tteokModal, #leafModal, .modal.skin-float { pointer-events: none; }
+#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #stickerModal > .modal-content, #paperModal > .modal-content, #tteokModal > .modal-content, #leafModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }

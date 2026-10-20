@@ -56,15 +56,9 @@
                   <div id="smFinal" class="smk-col">
                     <label class="smk-border"><input type="checkbox" id="smBorder" checked onchange="smS.border=this.checked;smDraw()"> 하얀 테두리</label>
                     <div id="smPhotoGo" class="smk-col">
-                      <div class="smk-three smk-sticks">
-                        <button type="button" class="smk-go" onclick="smFinish('pstick',this)">🧩<br>조각스티커로<br>다이어리에 붙이기</button>
-                        <button type="button" class="smk-go" onclick="smFinish('stick',this)">🏷️<br>씰스티커로<br>다이어리에 붙이기</button>
-                        <button type="button" class="smk-go" onclick="smFinish('pastick',this)">📄<br>모조지스티커로<br>다이어리에 붙이기</button>
-                      </div>
-                      <div class="smk-three">
-                        <button type="button" class="smk-go smk-sub" onclick="smFinish('piece',this)">🧩<br>조각스티커<br>만들기</button>
-                        <button type="button" class="smk-go smk-sub" onclick="smFinish('seal',this)">🏷️<br>씰스티커<br>만들기</button>
-                        <button type="button" class="smk-go smk-sub" onclick="smFinish('paper',this)">📄<br>모조지스티커<br>만들기</button>
+                      <div class="smk-two">
+                        <button type="button" class="smk-go" id="smGoStick" onclick="smKindGo(true,this)"></button>
+                        <button type="button" class="smk-go smk-sub" id="smGoMake" onclick="smKindGo(false,this)"></button>
                       </div>
                     </div>
                     <div id="smTextGo" class="smk-col">
@@ -254,6 +248,7 @@
             smq('smPhotoOpts').hidden = t;
             smq('smTextA').hidden = !t; smq('smTextB').hidden = !t;
             smq('smPhotoGo').hidden = t; smq('smTextGo').hidden = !t;
+            smq('smGoStick').innerHTML = smKindBtn(true); smq('smGoMake').innerHTML = smKindBtn(false);
             const many = !t && !!smS.many;                            // 여러 장 : 사진 줄 · 🔁 버튼이 보여요
             smq('smStrip').hidden = !many; smq('smAll').hidden = !many;
             if (t) smq('smHint').innerHTML = '⌨️ 글씨를 다 쓰면 키보드의 <b>엔터(↵)</b>를 눌러 주세요<br><small>아이패드의 \'키보드 내리기\' 버튼으로 내리면 버튼 누르는 자리가 어긋날 수 있어요</small>';
@@ -428,6 +423,18 @@
         }
         /* act : 'stick' 씰로 붙이기 · 'pstick' 조각으로 붙이기 · 'piece' · 'seal' · 'paper' 만들기 / 글씨 스티커는 'text' 붙이기 · 'keep' 저장만 */
         const SM_STICK = { stick: 'seal', pstick: 'piece', pastick: 'paper' };
+        /* 🧩 · 🏷️ · 📄 스티커 만들기 (도련 10-21) : ✂️ 스티커만들기 창에서 종류를 먼저 고르고 → 📸 포토부스 · 📷 사진찍기 · 🖼️ 앨범
+           → 결과창 버튼은 고른 종류의 2개 : 다이어리에 붙이기 · 만들기(내가만든에 저장) (📸 포토부스도 같아요 · js/photobooth.js) */
+        const SM_KIND = { piece: ['🧩', '조각스티커', 'pstick'], seal: ['🏷️', '씰스티커', 'stick'], paper: ['📄', '모조지스티커', 'pastick'] };
+        let smKind = 'piece';
+        function smPickKind(k) {
+            smKind = SM_KIND[k] ? k : 'piece';
+            const t = smq('stickerSrcTitle'); if (t) t.textContent = SM_KIND[smKind][0] + ' ' + SM_KIND[smKind][1] + ' 만들기';
+            openModal('stickerSrcModal');
+        }
+        const smKindAct = stick => stick ? SM_KIND[smKind][2] : smKind;            // 붙이기 : 'pstick' · 'stick' · 'pastick' / 만들기 : 'piece' · 'seal' · 'paper'
+        const smKindBtn = stick => { const [i, n] = SM_KIND[smKind]; return stick ? `${i}<br>${n}로<br>다이어리에 붙이기` : `${i}<br>${n}<br>만들기`; };
+        function smKindGo(stick, btn) { return smFinish(smKindAct(stick), btn); }
         /* 📄 모조지스티커 : 오린 그림들 → 모조지스티커 한 장 [src] (js/papermaker.js) */
         async function smPaperSheet(srcs) {
             if (!window.pmMakeSheet) { comingSoon('📄 모조지스티커'); return null; }
@@ -533,5 +540,6 @@
         }
         /* 스티커 창의 다른 칸을 누르면 '내 스티커' 표시 지우기 */
         document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.cat-btn'); if (b) { const g = smq('stickerGrid'); if (g) delete g.dataset.mine; } }, true);
+        window.smPickKind = smPickKind; window.smKindGo = smKindGo; window.smKindAct = smKindAct; window.smKindBtn = smKindBtn;
         window.smGo = smGo; window.smAllSame = smAllSame; window.smOpenCam = smOpenCam; window.smOpenFile = smOpenFile; window.smOpenText = smOpenText;
         window.loadMyStickers = loadMyStickers; window.smAdd = smAdd; window.smAddMsg = smAddMsg; window.smUse = smUse; window.smDel = smDel;

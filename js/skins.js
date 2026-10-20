@@ -137,7 +137,7 @@
             const moved = new Set();
             const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
             /* ✋ 하단 메뉴 '다이어리' · '스티커' 에서 뜨는 창은 모두 위 제목 줄을 잡고 옮겨요 (도련 10-19 · 📒 수첩으로 뜬 창은 js/stknote.js snbMovable) */
-            const WIN_IDS = ['skinModal', 'patternModal', 'makerModal', 'stickerMakeModal', 'stickerToolModal', 'leafMakeModal', 'stickerModal', 'paperModal', 'tteokModal', 'leafModal'];
+            const WIN_IDS = ['skinModal', 'patternModal', 'makerModal', 'stickerMakeModal', 'stickerToolModal', 'stickerSrcModal', 'leafMakeModal', 'stickerModal', 'paperModal', 'tteokModal', 'leafModal'];
             document.querySelectorAll('.modal.skin-float, ' + WIN_IDS.map(id => '#' + id).join(', ')).forEach(modal => {
                 const box = modal.querySelector('.modal-content');
                 const title = box && box.querySelector('.modal-title');
