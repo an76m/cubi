@@ -138,7 +138,7 @@
     const SK_NO = 'button, input, textarea, select, a, .page-header, .tap-menu, .bd-tool, .rl-ruler, .sk-knife, .sk-tip, .modal';
     const skPage = (x, y, t) => { t = t || document.elementFromPoint(x, y); return !!t && !!t.closest && !!t.closest('#innerPage') && !t.closest(SK_NO); };
     addEventListener('pointermove', e => {
-        if (!S.held || S.down || e.pointerType !== 'mouse') return;
+        if (!S.held || S.down || e.pointerType === 'touch') return;   // 🖱 ✏️ 마우스 · 펜 호버는 칼이 따라와요
         const on = skPage(e.clientX, e.clientY); document.body.classList.toggle('sk-follow', on);
         if (on) knifeAt(e.clientX, e.clientY);
     }, true);

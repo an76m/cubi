@@ -1211,7 +1211,7 @@
             const el = gdEl(id); if (!el) return;
             const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
             if (prev) {
-                const fl = e && e.pointerType !== 'mouse' && gdFloatAt(prev);  // 👆 터치 : 떠 있던 것은 그 자리에서 아래로 톡 떨어져요 (도련 10-19 · 누른 자리로 순간이동하지 않게)
+                const fl = e && e.pointerType === 'touch' && gdFloatAt(prev);  // 👆 터치 (✏️ 펜은 마우스처럼 바꿔 들어요) : 떠 있던 것은 그 자리에서 아래로 톡 떨어져요 (도련 10-19 · 누른 자리로 순간이동하지 않게)
                 const m = fl || (el.classList.contains('edge') ? gdTo(x, y) : gdMid(el));   // 🖱 마우스 : 손에 든 채 따라오던 자리 = 누른 자리라 서로 바꿔요
                 prev.classList.remove('held'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
                 if (fl) { prev.classList.remove('drop'); void prev.offsetWidth; prev.classList.add('drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
@@ -1294,7 +1294,7 @@
             if (gdHeld === 'twz') return;                                      // 🪡 핀셋은 밖으로도
             if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
             if (!gdIn(e.clientX, e.clientY)) { gdLet(); return; }               // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표
-            if (gdInfo(gdHeld).g === 'punch' && e.pointerType === 'mouse' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }   // 🕳️ 가장자리에 착
+            if (gdInfo(gdHeld).g === 'punch' && e.pointerType !== 'touch' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }   // 🕳️ 가장자리에 착
             gdFollow(e.clientX, e.clientY, e);
         }, true);
         ['pointerup', 'pointercancel'].forEach(k => window.addEventListener(k, e => {
@@ -1337,7 +1337,7 @@
             const top = document.elementsFromPoint(x, y).find(n => !n.closest('.scs-cur, .pin-cur, .twz-say'));
             if (!top) return false;
             if (top.closest('.pm-z')) return !(window.pinBusy && pinBusy());      // 📄 모조지 종이 = 오리는 곳
-            return e && e.pointerType !== 'mouse' ? !!(window.pinRel && pinRel(x, y)) : !!(window.pinOver && pinOver(x, y));
+            return e && e.pointerType === 'touch' ? !!(window.pinRel && pinRel(x, y)) : !!(window.pinOver && pinOver(x, y));   // ✏️ 펜은 마우스처럼 (닿기 전부터 따라와요)
         }
         let scsDown = 0;                                                        // 누르는 동안 : 비키지 않고 · 🎈 둥실도 멈춰요 (body.gd-press · css)
         window.addEventListener('pointerdown', () => { scsDown = 1; document.body.classList.add('gd-press'); }, true);
@@ -1358,7 +1358,7 @@
                 if (c.acc >= SCS_STEP && performance.now() - scs.snip > SCS_GAP) { c.acc = 0; scsSnip(); if (c.on) c.on(); }
             }
             scs.x = x; scs.y = y; scs.el.hidden = false; scs.aim.hidden = false; scs.on = true;
-            document.body.classList.toggle('scs-on', !e || e.pointerType === 'mouse');   // 💻 화살표 대신 가위
+            document.body.classList.toggle('scs-on', !e || e.pointerType !== 'touch');   // 💻 ✏️ 따라오는 중 (마우스 · 펜)
             if (!scs.raf) scs.raf = requestAnimationFrame(scsFrame);
         }
         function scsHide() { scs.on = false; scs.cut = null; if (scs.el) scs.el.hidden = true; if (scs.aim) scs.aim.hidden = true; document.body.classList.remove('scs-on'); }
@@ -1600,7 +1600,7 @@
             const c = gdNear(x, y);
             if (!c) {                                                           // 구멍 자리가 아니면 옮겨지기만 · 👆 터치로 종이를 눌렀으면 다시 하라고
                 gdSlot(null); el.classList.remove('snap');
-                if (e && e.pointerType !== 'mouse' && gdHoles().length && document.elementsFromPoint(x, y).some(n => n.classList && (n.classList.contains('bd-sheet') || n.classList.contains('element-box')))) gdSay(x, y, '🕳️ 구멍 자리가 안 맞았어요 · 다시 눌러 주세요');
+                if (e && e.pointerType === 'touch' && gdHoles().length && document.elementsFromPoint(x, y).some(n => n.classList && (n.classList.contains('bd-sheet') || n.classList.contains('element-box')))) gdSay(x, y, '🕳️ 구멍 자리가 안 맞았어요 · 다시 눌러 주세요');
                 return;
             }
             gdFollow(c.x, c.y); gdSlot(c); el.classList.add('snap');
@@ -1613,7 +1613,7 @@
                 [ip.querySelectorAll('.dy-holes i')[c.i], ...[...ip.querySelectorAll('.bd-hl .bd-hole')].filter(h => +h.dataset.i === c.i)].forEach(h => { if (!h) return; h.classList.remove('pop'); void h.offsetWidth; h.classList.add('on', 'pop'); });
                 gdHoleOn(1 << c.i);
             }, 110);
-            if (!e || e.pointerType !== 'mouse') setTimeout(() => { const s = gdIp() && gdIp().querySelector(':scope > .gd-slot.press'); if (s) { s.remove(); const t = gdEl(gdHeld); if (t) t.classList.remove('snap'); } }, 600);   // 👆 뚫고 나면 점선 동그라미는 사라져요
+            if (!e || e.pointerType === 'touch') setTimeout(() => { const s = gdIp() && gdIp().querySelector(':scope > .gd-slot.press'); if (s) { s.remove(); const t = gdEl(gdHeld); if (t) t.classList.remove('snap'); } }, 600);   // 👆 뚫고 나면 점선 동그라미는 사라져요
         }
         /* 🩹 양면테이프 : 들고 끌면 끈 만큼 테이프가 발라져요 → 페이지 꾸밈(그림)으로 붙어요 (핀셋으로 옮기고 지울 수 있어요) */
         function gdTapePv() {
