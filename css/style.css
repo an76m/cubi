@@ -3898,10 +3898,6 @@ body.scs-on, body.scs-on * { cursor: none !important; }   /* 💻 다이어리 �
 body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /* 💻 다이어리 위에선 화살표 대신 든 문구함 */
 .gd-tape-pv { position: absolute; z-index: 39; height: 12px; transform-origin: 0 50%; pointer-events: none; border-radius: 1.5px; background: linear-gradient(#fff9 0 3px, #f3e6cf 3px calc(100% - 3px), #cdb894aa 0); }   /* 🩹 바르는 중 */
 .inner-page.png-mode .bd-tool:not(.edge), .inner-page.png-mode .gd-tape-pv { display: none; }
-.dy-toolth { display: block; } .dy-toolth svg { display: block; width: 100%; height: 100%; }
-.dy-toolth.punch { width: 28px; height: 56px; } .dy-toolth.tape { width: 64px; height: 36px; } .dy-toolth.clip { width: 56px; height: 44px; filter: drop-shadow(0 3px 4px rgba(60, 40, 50, .25)); }
-.dy-toolth.tweez { width: 20px; height: 72px; transform: rotate(-28deg); }
-.dy-toolth.scissors { width: 26px; height: 60px; transform: rotate(-20deg); }
 .dy-punchth { position: relative; display: block; width: 26px; height: 52px; }
 .dy-punchth i:first-child { position: absolute; inset: 0; border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pc) 70%, #000), color-mix(in srgb, var(--pc) 40%, #fff) 50%, color-mix(in srgb, var(--pc) 70%, #000)); box-shadow: 0 3px 6px rgba(40, 30, 40, .3); }
 .dy-punchth i:last-child { position: absolute; left: 7px; right: 7px; top: 3px; bottom: 3px; border-radius: 4px; background: linear-gradient(90deg, #6d727c, #eef0f3 45%, #9aa0aa); }

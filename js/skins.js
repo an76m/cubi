@@ -1097,7 +1097,7 @@
             setTimeout(() => { ip.classList.remove('dy-bo-back', 'dy-bh-pop'); bdBusy = false; bdPut(2); bdSync(); }, 2700);
         }
         /* ✂️ 문구함 = 손에 드는 도구 (도련 10-18 · 앞으로 더하는 문구함도 모두 이 규칙 · 쓰는 법만 문구함마다 조금씩)
-           - ✂️ 문구함 칸에서 톡 = 페이지 위에 놓여요 · 한 번 더 톡 = 치워요
+           - 🗄️ 하단 메뉴 문구함 서랍에서 톡 = 페이지 위에 놓여요 · 한 번 더 톡 = 치워요
            - 놓인 문구함을 클릭 · 터치 = 손에 들어요 (🖱 마우스에 붙어 다니고 · 👆 터치는 누른 곳으로 순간 이동)
            - 들고 있는 채 다른 놓인 문구함을 클릭 · 터치하면 바꿔 들어요 (🖱 지나가기만 해선 안 바뀌어요 · 도련 10-18) · 들고 있던 것은 그 문구함이 있던 자리에 놓여요
            - 📎 집게는 바인더 링이 열려 표지가 사라지면 다 같이 사라지고 (⚡ 자동 · ✋ 수동) · 링에 다시 끼우면 다시 나와요
@@ -1107,7 +1107,7 @@
            - 🪡 핀셋을 안 들면 스티커를 못 만져요 (글 메모는 그대로) · 다이어리를 처음 열면 핀셋이 페이지에 하나 놓여 있어요
            - 저장 : 📎 집게는 권마다 (설정 'diary_clips' { 권 id : { 색 : { f 테두리 자리 } | { x, y 종이 위 자리(비율) } } })
              🕳️ 뚫은 구멍 (설정 'diary_holes' { 권 id : { 장 : 12칸 표시 } }) · 🩹 바른 테이프는 페이지 꾸밈(그림)이라 핀셋으로 옮기고 지울 수 있어요
-             다른 문구함은 다이어리를 다시 열면 문구함 칸으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
+             다른 문구함은 다이어리를 다시 열면 문구함 서랍으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
         /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
         let twzSayT = 0;
         function twzSay(x, y, t) {                                                // t : 다른 말 (✂️ 가위 · scsSay)
@@ -1174,13 +1174,12 @@
             const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
         }
-        function gdPick(id) {                                                   // ✂️ 문구함 칸 톡 : 놓기 ↔ 치우기
+        function gdPick(id) {                                                   // 🗄️ 문구함 서랍 톡 : 놓기 ↔ 치우기 (아래 cabFlip)
             if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
             const el = gdEl(id);
             if (el) { if (gdHeld === id) gdLet(); el.remove(); }
             else { const p = gdSpot(id); gdCenter(gdMake(id), p.x, p.y); }
             if (id.startsWith('clip:')) gdClipSave();
-            dyRender();
         }
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
@@ -1917,19 +1916,18 @@
            기본다이어리 = 칸 없이 4색만 (js/app.js skinPresets · 고르면 기본 다이어리로 바꾸고 그 색 · id 'basic:색')
            노트 · 바인더 = 기본 칸 없음 · 내가만든 (➕ 만들기 + 만든 것 · js/dymaker.js · 10-18 확정) · 공유받은 · 이벤트 · 문구점은 든 게 생기면
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
-        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️', '문구함': '✂️' }, DY_NAME = { '다이어리': '기본다이어리' };
+        const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
-        const DY_GOODS = [['tweez', '🪡 핀셋'], ['clip', '📎 집게'], ['punch', '🕳️ 펀칭기'], ['tape', '🩹 양면테이프'], ['scissors', '✂️ 가위']];                                // ✂️ 문구함 창 카테고리 (도련 10-18 · 나중에 키링 같은 꾸미기 문구함을 여기에)
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => tab === 'clip' ? CLIPS.map(c => ({ tool: 'clip:' + c[0] })) : DY_GOODS.some(x => x[0] === tab) ? Object.keys(GD).filter(id => GD[id].g === tab).map(id => ({ tool: id })) : kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
         function dyOpen(kind) {
-            dyKind = DY_TAB.includes(kind) || kind === '문구함' ? kind : dyNow().k;
+            dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
             const bar = document.getElementById('dyTabs');
-            const tabs = dyKind === '문구함' ? DY_GOODS : stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
+            const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
-            bar.hidden = bar.children.length < (dyKind === '문구함' ? 1 : 2);
+            bar.hidden = bar.children.length < 2;
             dyTabSet(tabs.length ? tabs[0][0] : '');
             openModal('dyModal');
         }
@@ -1937,9 +1935,7 @@
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
-            const cell = it => it && it.tool
-                ? `<button type="button" class="dy-it" data-id="tool:${it.tool}" onclick="gdPick('${it.tool}')"><span class="dy-stage"><span class="dy-toolth ${gdInfo(it.tool).g}">${gdArt(it.tool)}</span></span><span class="dy-n">${gdInfo(it.tool).n}</span><small>${it.tool.startsWith('clip:') ? '기본집게' : '톡 하면 페이지에'}</small></button>`
-                : it === 'new'
+            const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + dyKind + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
                 ? `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${dmkEsc(it.g)}</span><small>${it.n} · ${it.pg}페이지</small><span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkOpen('${dyKind}', '${it.id}')">✏️</span></button>`
@@ -1947,7 +1943,6 @@
                 ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
-            const ps = document.querySelector('#dyModal .dy-pick-s'); if (ps) ps.textContent = g === 'tweez' ? '🪡 톡 하면 페이지에 놓여요 · 놓인 핀셋을 누르면 손에 들어요 · 핀셋을 들어야 스티커를 옮길 수 있어요' : g === 'clip' ? '📎 톡 하면 페이지에 놓여요 (여러 개) · 들고 다이어리 테두리 근처를 누르면 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가요' : g === 'punch' ? '🕳️ 톡 하면 페이지에 놓여요 · 들고 링을 연 종이의 구멍 자리 근처로 가면 착 붙고 · 누르면 철컥 뚫려요 (12개)' : g === 'tape' ? '🩹 톡 하면 페이지에 놓여요 · 들고 끌면 양면테이프가 발라져요' : g === 'scissors' ? '✂️ 톡 하면 페이지에 놓여요 · 들고 모조지스티커 그림 둘레를 따라 그리면 싹둑싹둑 오려져요 · 떼는 건 🪡 핀셋으로' : '펼친 두 쪽이 한 장 (기본 다이어리는 하루) · 실제 비율 그대로';
             dyRender();
             if (g === 'mine' && dyKind !== '다이어리' && typeof dmkSync === 'function') dmkSync(dyKind);   // 드라이브의 내노트 · 내바인더 목록과 맞추기
         }
@@ -1957,8 +1952,8 @@
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id || (b.dataset.id || '').startsWith('tool:') && !!gdEl(b.dataset.id.slice(5)))); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdPick = gdPick; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
+        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
