@@ -1499,6 +1499,7 @@
         function gdCabCup() { closeModal('gdCabModal'); if (window.openDraw) openDraw(); }
         window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
         window.gdScs = gdScs; window.gdLetGo = () => { if (gdHeld) gdLet(); }; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
+        window.gdToolTap = (el, e) => { if (el && !el.classList.contains('edge')) gdHold(el.dataset.t, e.clientX, e.clientY, e); };   // 📄 모조지 손가락 칸이 덮은 페이지 문구를 눌렀을 때 (js/papermaker.js)
         window.scsAim = P => gdScs() ? [P[0], P[1] - SCS_LIFT] : P; window.scsLift = () => gdScs() ? SCS_LIFT : 0;   // 🎯 누르는 자리 → 자르는 자리 (js/papermaker.js)
 
         /* 🕳️ 펀칭기 (도련 10-19 · 진짜처럼 12번) : 구멍 자리 근처로 가면 그 자리에 착 붙고 → 누르면 철컥 하나 뚫려요

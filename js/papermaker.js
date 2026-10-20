@@ -283,6 +283,10 @@
                 d.lp = setTimeout(() => { if (S.drag === d && !d.moved) { pmCrumple(st); d.crumpled = true; pmBuzz(30); pmSay(st.lift >= 3 ? '구깃구깃… 가장자리가 많이 들떴어요 😵' : '꾸깃! 구겨진 자국이 남았어요'); } }, 520);
                 return;
             }
+            if (!pmInSheet(P, 0) && window.gdToolTap) {                                    // 🪡 종이 밖(✂️ 가위를 들면 넓어지는 아래쪽)에 놓인 페이지 문구 = 그 문구를 들어요
+                const tool = document.elementsFromPoint(P[0], P[1]).find(n => n.matches && n.matches('#innerPage > .bd-tool:not(.held)'));
+                if (tool) { gdToolTap(tool, e); return; }
+            }
             const tp = pmTape();                                                           // 위쪽 테이프 : 종이 옮기기 (📒 수첩에는 없어요)
             if (!S.note && P[0] > tp.x - 8 && P[0] < tp.x + tp.w + 8 && P[1] > tp.y - 8 && P[1] < tp.y + tp.h + 8) { cap(); S.drag = { mode: 'sheet', last: P }; pmSay('종이를 옮기는 중… ✋'); return; }
             const A = pmScs() && window.scsAim ? scsAim(P) : P;                          // 🎯 자르는 자리 = 가위 날 끝 십자선 (누르는 자리보다 위 · js/skins.js SCS_LIFT)
