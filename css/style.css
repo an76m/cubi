@@ -3884,7 +3884,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.tweez { width: 55.8px; height: 201.5px; transform: rotate(-28deg); }   /* 🪡 놓인 핀셋 (든 동안은 핀셋 화살표가 따라와요 · js/elements.js pinMove) */
 .bd-tool.tweez.held { display: none; }
 .bd-tool.scissors { width: 54px; height: 126px; transform: rotate(-20deg); } .bd-tool.scissors.held { display: none; }   /* ✂️ 놓인 가위 · 든 동안은 .scs-cur 가 따라와요 (js/skins.js scs) */
-.scs-cur { position: fixed; left: 0; top: 0; width: 54px; height: 126px; z-index: 1700; pointer-events: none; transform-origin: 27px 46px; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
+.scs-cur { position: fixed; left: 0; top: 0; width: 54px; height: 126px; z-index: 1700; pointer-events: none; transform-origin: 27px 38px; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
 .scs-cur[hidden] { display: none; } .scs-cur svg { display: block; width: 100%; height: 100%; }
 /* 🎯 가위 조준 십자선 (FPS 게임처럼 · 도련 10-21 · js/skins.js SCS_LIFT) : 진짜 자르는 자리 = 가위 날 끝 · 💻 마우스 화살표(누르는 자리)는 그대로 보여요 */
 .scs-aim { position: fixed; left: -13px; top: -13px; width: 26px; height: 26px; z-index: 1701; pointer-events: none;
@@ -3896,6 +3896,13 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.held { z-index: 60; pointer-events: none; filter: drop-shadow(5px 14px 10px rgba(80, 50, 60, .3)); transition: none; }
 .bd-tool.edge { z-index: 41; filter: drop-shadow(0 3px 4px rgba(50, 35, 45, .32)); cursor: grab; }
 .bd-tool.punch.press svg { transform: scale(.9); }
+/* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
+.bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 2.6s ease-in-out infinite alternate; }
+@keyframes gdBob { from { translate: 0 0; } to { translate: 0 -6px; } }
+body.gd-press .bd-tool.held, body.gd-press .scs-cur, body.gd-press .scs-aim, body.gd-press .sk-knife, .bd-tool.held.snap, .sk-knife.grab { animation: none; }
+@media (prefers-reduced-motion: reduce) { .bd-tool.held, .scs-cur, .scs-aim, .sk-knife { animation: none; } }
+/* 📥 페이지 밖에 놓인 문구를 페이지 안으로 스르르 (js/skins.js gdHome) */
+.bd-tool.home { transition: left .45s cubic-bezier(.3, .7, .3, 1), top .45s cubic-bezier(.3, .7, .3, 1), filter .15s; }
 .bd-tool.snap svg { animation: gdSnap .2s ease-out; }
 @keyframes gdSnap { from { transform: scale(1.12); } to { transform: none; } }
 .bd-tool.drop svg { animation: gdDrop .3s cubic-bezier(.5, 0, .6, 1.4); }   /* 👆 터치로 바꿀 때 떠 있던 것이 그 자리에서 톡 떨어져요 (js/skins.js gdHold) */

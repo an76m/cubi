@@ -1167,6 +1167,19 @@
             const t = gdInfo(el.dataset.t); el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f;
             el.style.left = (x - t.w / 2) + 'px'; el.style.top = (y - t.h / 2) + 'px';
         }
+        /* 📥 페이지로 소환 (도련 10-21) : 내려놓은 문구가 페이지 밖(배경지)에 있으면 보이는 페이지 안 가장 가까운 자리로 스르르
+           - 🪡 핀셋 · ✂️ 가위를 페이지 밖에서 쓰다가 다른 문구를 고르거나 내려놓을 때 · 테두리에 꽂힌 📎 집게는 그대로 */
+        function gdHome(el) {
+            const cv = document.getElementById('canvasArea'); if (!el || !cv || el.classList.contains('edge') || !window.dyVisRect) return;
+            const v = dyVisRect(cv.getBoundingClientRect()), b = el.getBoundingClientRect(); if (!b.width) return;
+            const l = Math.max(v.left, 0) + 8, r = Math.min(v.right, innerWidth) - 8, t = Math.max(v.top, 0) + 8, bt = Math.min(v.bottom, innerHeight) - 8;
+            const cx = (b.left + b.right) / 2, cy = (b.top + b.bottom) / 2, hw = Math.min(b.width / 2, (r - l) / 2), hh = Math.min(b.height / 2, (bt - t) / 2);
+            const nx = Math.max(l + hw, Math.min(r - hw, cx)), ny = Math.max(t + hh, Math.min(bt - hh, cy));
+            if (Math.abs(nx - cx) < 1 && Math.abs(ny - cy) < 1) return;
+            const m = gdMid(el), p = gdTo(nx, ny), p0 = gdTo(cx, cy);
+            el.classList.add('home'); gdCenter(el, m.x + p.x - p0.x, m.y + p.y - p0.y);
+            setTimeout(() => el.classList.remove('home'), 520);
+        }
         const gdMid = el => { const t = gdInfo(el.dataset.t); return { x: (parseFloat(el.style.left) || 0) + t.w / 2, y: (parseFloat(el.style.top) || 0) + t.h / 2 }; };
         function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구함마다 조금씩 비켜서)
             const cv = document.getElementById('canvasArea'), r = dyVisRect(cv.getBoundingClientRect()), t = gdInfo(id);
@@ -1189,6 +1202,7 @@
                 const m = fl || (el.classList.contains('edge') ? gdTo(x, y) : gdMid(el));   // 🖱 마우스 : 손에 든 채 따라오던 자리 = 누른 자리라 서로 바꿔요
                 prev.classList.remove('held'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
                 if (fl) { prev.classList.remove('drop'); void prev.offsetWidth; prev.classList.add('drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
+                gdHome(prev);                                                   // 📥 페이지 밖이었으면 페이지 안으로
             }
             if (window.skLetGo) skLetGo();                                   // ✂️ 들고 있던 칼은 그 자리에 (js/stkcut.js)
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
@@ -1205,6 +1219,7 @@
             const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
             if (!el) return;
             el.classList.remove('held', 'snap');
+            gdHome(el);                                                         // 📥 페이지 밖이었으면 페이지 안으로
             if (id.startsWith('clip:')) gdClipSave();
         }
         function gdFollow(x, y, e) {                                            // 손끝(쓰는 끝) = 포인터
@@ -1287,7 +1302,7 @@
            - 진짜 자르는 자리 = 가위 날 끝 = 빨간 십자선 (.scs-aim · FPS 게임처럼) → 십자선이 지나간 대로 오려져요 (js/papermaker.js scsAim)
            - 💻 마우스는 화살표가 그대로 보여요 (누르는 자리) */
         const SCS_LIFT = 100;
-        const SCS_PIV = [27, 46];                                               // 🎯 가위 날 가운데 (자르는 자리 · 도련 10-21) = 십자선 자리 = 가위가 도는 축 (css .scs-cur transform-origin 과 같게 · 날이 벌어지는 축은 하트 나사 27 70)
+        const SCS_PIV = [27, 38];                                               // 🎯 가위 회색 날 가운데 (자르는 자리 · 도련 10-21) = 십자선 자리 = 가위가 도는 축 (css .scs-cur transform-origin 과 같게 · 날이 벌어지는 축은 하트 나사 27 70)
         function scsSvg(o) {                                                    // o : 벌린 정도 0 ~ 1 · 손잡이 고리 2개 + 날 2개 + 나사
             const a = (o * SCS_MAX).toFixed(2), n = toolN++;
             const blade = (d, id) => `<path d="${d}" fill="url(#${id})" stroke="#8d97a8" stroke-width=".9" stroke-linejoin="round"/>`;
@@ -1311,9 +1326,9 @@
             if (top.closest('.pm-z')) return !(window.pinBusy && pinBusy());      // 📄 모조지 종이 = 오리는 곳
             return e && e.pointerType !== 'mouse' ? !!(window.pinRel && pinRel(x, y)) : !!(window.pinOver && pinOver(x, y));
         }
-        let scsDown = 0;
-        window.addEventListener('pointerdown', () => { scsDown = 1; }, true);
-        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { scsDown = 0; }, true));
+        let scsDown = 0;                                                        // 누르는 동안 : 비키지 않고 · 🎈 둥실도 멈춰요 (body.gd-press · css)
+        window.addEventListener('pointerdown', () => { scsDown = 1; document.body.classList.add('gd-press'); }, true);
+        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { scsDown = 0; document.body.classList.remove('gd-press'); }, true));
         function scsPut(x, y, e, force) {                                       // 따라가기 (force : 손에 든 순간) · x, y = 누르는 자리 → 가위는 SCS_LIFT 위
             if (!force && !scs.cut && !scsRel(x, y, e)) { document.body.classList.remove('scs-on'); return; }
             scs.gx = null;                                                      // 비키던 중이면 그만
