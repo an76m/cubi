@@ -1381,7 +1381,7 @@
             cab.innerHTML = `<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
                 <button type="button" class="gdc-cup" aria-label="연필꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>연필꽂이</small></button>
                 <div class="gdc-body">${GD_CAB.map(dr).join('')}</div>
-                <p class="gdc-tip">톡 = 꺼내기 · 손잡이·꾹 = 골라 담기</p>`;
+                <p class="gdc-tip">톡 = 꺼내기 · 손잡이·꾹 = 골라 담기<br>잡고 끌면 서랍장이 옮겨져요</p>`;
             cab.querySelectorAll('.gdc-dr[data-g]').forEach(b => {
                 const g = b.dataset.g;
                 b.addEventListener('pointerdown', e => { if (e.button > 0) return; cabPress = { g, t: setTimeout(() => { cabPress = null; gdCabPull(g); }, 450) }; });
@@ -1399,6 +1399,34 @@
             if (typeof isCoverOpen === 'undefined' || !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             cabOpen = null; gdCabRender(); openModal('gdCabModal');
         }
+        /* ✋ 서랍장 옮기기 (도련 10-21) : 서랍장 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡 · 꾹은 그대로 서랍 (끌면 톡 · 꾹은 안 돼요)
+           - 서랍 속(골라 담기 칸 · 옆으로 밀기)과 ✕ 는 끌기 아님 · 화면 밖으로는 못 나가요 · 닫았다 열어도 그 자리 · 화면 크기가 바뀌면 가운데로 */
+        (function gdCabMovable() {
+            const w = document.getElementById('gdCab'); if (!w) return;
+            let d = null, swallow = false;
+            w.addEventListener('pointerdown', e => {
+                if (e.button > 0 || e.target.closest('.gdc-tray, .gdc-x')) return;
+                d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId };
+            });
+            w.addEventListener('pointermove', e => {
+                if (!d || e.pointerId !== d.id) return;
+                const dx = e.clientX - d.x, dy = e.clientY - d.y;
+                if (!d.on) {
+                    if (Math.hypot(dx, dy) < 8) return;
+                    d.on = true; w.setPointerCapture(e.pointerId); w.classList.add('moving');
+                    if (cabPress) { clearTimeout(cabPress.t); cabPress = null; }        // 끌기 시작 = 서랍 톡 · 꾹 취소
+                }
+                const r = w.getBoundingClientRect(), bl = r.left - (parseFloat(w.style.left) || 0), bt = r.top - (parseFloat(w.style.top) || 0);
+                const top = 56;                                                         // 위 연필꽂이도 화면 안에
+                w.style.left = Math.max(8 - bl, Math.min(innerWidth - 8 - r.width - bl, d.ox + dx)) + 'px';
+                w.style.top = Math.max(top - bt, Math.min(innerHeight - 8 - r.height - bt, d.oy + dy)) + 'px';
+                e.preventDefault();
+            });
+            const end = () => { if (d && d.on) { swallow = true; setTimeout(() => { swallow = false; }, 0); w.classList.remove('moving'); } d = null; };
+            w.addEventListener('pointerup', end); w.addEventListener('pointercancel', end);
+            w.addEventListener('click', e => { if (swallow) { e.stopPropagation(); e.preventDefault(); swallow = false; } }, true);   // 끈 뒤 떨어지는 톡은 무시
+            addEventListener('resize', () => { w.style.left = w.style.top = ''; });
+        })();
         function gdCabTap(g) {                                                  // 앞면 톡 : 주로 쓰는 것 꺼내기 · 놓여 있으면 (그 종류 전부) 치우기
             const on = gdOnPage(g);
             if (on.length) on.forEach(cabFlip); else cabFlip(gdMain(g));
