@@ -12,14 +12,14 @@
    - 🎁 선물 도착 : 주인이 저금 확인 · 아이템 주기를 하면 서버에 도착 신호가 남아요 → 🪙 · 🎀 · 🎁 · 🖼️ 를 알림 창 하나로 보여 줘요 (js/arrival.js 의 arPush)
        신호는 다이어리가 '받아서 저장했어요' 하고 알릴 때까지 서버에 남아 있어요 → 다이어리를 안 쓰는 동안 받은 선물도, 접속하면 바로 떠요
        🔔 선물 벨 (js/fbase.js) : 주인이 선물을 주는 순간 파이어스토어가 벨을 울려 줘요 → 그때 한 번만 물어봐요 (로그인 확인 없이 회원번호로 · 아주 가벼워요)
-       벨이 안 될 때만(연결 안 됨 · 하루 무료량) 예전처럼 보고 있는 동안 1분마다 · 다이어리로 돌아오는 순간 물어봐요
+       벨이 안 될 때만(연결 안 됨 · 하루 무료량) 예전처럼 보고 있는 동안 10분마다 · 다이어리로 돌아오는 순간 물어봐요
    - 처음 온 사람이면(답의 first) 🎁 캡슐 스티커 첫 선물을 받아요 → capsWelcome (js/gacha.js)
    - 게스트는 보내지 않아요
    ※ 이 파일이 없어도 다이어리는 정상 동작 */
 
         const MEMBER_API_URL = 'https://script.google.com/macros/s/AKfycbzuhJ24tR7VbfKfX-lGI8-BRpPDx3d_J0UwR9x94RxPd2H3mvJiea-vn7EvRRCt2IgMag/exec';   // ← '말랑달콤 사람들' 앱스크립트 웹 앱 주소
         const PR_EVERY = 3 * 60 * 60 * 1000;            // 3시간
-        const PR_GIFT_EVERY = 60 * 1000;                // 🎁 선물 신호 물어보기 : 1분마다 (🔔 벨이 안 될 때만)
+        const PR_GIFT_EVERY = 10 * 60 * 1000;           // 🎁 선물 신호 물어보기 : 10분마다 (🔔 벨이 안 될 때만 · 천 명이 1분마다 물으면 앱스크립트가 몰려요 · 도련 10-20)
         const pr = { last: 0, me: '', code: '', gLast: 0, gBusy: false };
         const prOk = () => MEMBER_API_URL && typeof drive !== 'undefined' && drive.ready && !drive.guest;
         function prDevice() {

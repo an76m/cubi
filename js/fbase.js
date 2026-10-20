@@ -2,10 +2,10 @@
    🔥 파이어스토어 연결 하나 (도련 · 2026-10-14) : 구글로 로그인한 회원 모두
    - 출입증 : 말랑달콤사람들_앱스크립트.gs 의 fb_hello (구글 로그인 확인 → uid = 회원번호 · 닉네임이 있으면 nl · nd)
    - 🔔 선물 벨 : bells/{회원번호} 를 듣고 있다가 울리면 → 지우고 → 앱스크립트에서 선물을 한 번 받아 와요 (js/presence.js 의 prGiftAsk)
-              벨이 안 될 때(연결 안 됨 · 하루 무료량)는 presence.js 가 예전처럼 1분마다 물어봐요 (fbBellOn() 이 false)
+              벨이 안 될 때(연결 안 됨 · 하루 무료량)는 presence.js 가 예전처럼 10분마다 물어봐요 (fbBellOn() 이 false)
    - 📞 피처폰 (js/fphone.js) 도 이 연결을 같이 써요 : fbOn() · FB.nick · 'fbauth' 이벤트 · fbSignIn(새 출입증)
    - 폴더 저장 · 구경만 하기는 연결하지 않아요
-   ※ 이 파일이 없어도 다이어리는 정상 동작 (선물은 1분마다 확인) */
+   ※ 이 파일이 없어도 다이어리는 정상 동작 (선물은 10분마다 확인) */
 
         const FB_SDK = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-';
         const FB_CFG = { apiKey: 'AIzaSyDg3q7ki9HS_6h-Txv9J1kGc9VTmo2b8lc', authDomain: 'softsweetdiary-phone.firebaseapp.com', projectId: 'softsweetdiary-phone', storageBucket: 'softsweetdiary-phone.firebasestorage.app', messagingSenderId: '666233690853', appId: '1:666233690853:web:7e6be0cca2e150a489520c' };
