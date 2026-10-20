@@ -350,6 +350,51 @@
         .gate-card .dv-opt:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(150,70,100,.14); }
         .gate-card .gate-guest { padding: 4px 8px; color: #9a7884; }
         @media (prefers-reduced-motion: reduce) { .gate-book, .gate-dots i, .gate-swap > * { animation: none; } }
+        /* 🧚 첫 화면 요정 버튼 (도련 10-20) : 파스텔 버튼 끝에 요정이 앉아 있어요 · 그림 한 칸 = 4px (SVG viewBox 76칸)
+           평소 = 날개 파닥 · 눈 깜빡 · 하트 · 별가루 / 올리면 = 웃으며 깡충 · 요술봉 흔들기 / 누르면 = 눈 꼭 · 버튼 꾹 */
+        .gf-btn { appearance: none; border: 0; background: none; padding: 0; margin: 0; font: inherit; color: inherit; text-align: center; box-sizing: border-box;
+            flex-direction: column; align-items: stretch; width: 100%; max-width: 303px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .gf-btn + .gf-btn { margin-top: 4px; }
+        .gf-btn:focus-visible { outline: 3px solid rgba(240,86,122,.45); outline-offset: 4px; border-radius: 14px; }
+        .gf-art { position: relative; display: block; }
+        .gf-btn:active .gf-art { transform: translateY(4px); }
+        .gf-btn svg { display: block; width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges; }
+        .gf-lbl { position: absolute; display: flex; align-items: center; justify-content: center; font-family: 'Jua', var(--system-font), sans-serif; font-size: 19px; color: #5a3d4a; white-space: nowrap; pointer-events: none; }
+        .gf-desc { display: block; margin-top: 8px; font-size: 12.5px; letter-spacing: -.3px; line-height: 1.5; color: #6e4c5a; word-break: keep-all; text-wrap: balance; }
+        .gf-desc i { display: block; font-style: normal; font-size: 12px; color: #a07b88; }
+        .gf-wu { animation: gfFlapU .4s steps(1) infinite; }
+        .gf-wd { animation: gfFlapD .4s steps(1) infinite; }
+        @keyframes gfFlapU { 0% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes gfFlapD { 0% { opacity: 0; } 50% { opacity: 1; } }
+        .gf-eo { animation: gfBlinkO 4s steps(1) infinite; }
+        .gf-ec { opacity: 0; animation: gfBlinkC 4s steps(1) infinite; }
+        .gf-fl .gf-eo, .gf-fl .gf-ec { animation-duration: 5s; }
+        @keyframes gfBlinkO { 0% { opacity: 1; } 92% { opacity: 0; } 96% { opacity: 1; } }
+        @keyframes gfBlinkC { 0% { opacity: 0; } 92% { opacity: 1; } 96% { opacity: 0; } }
+        .gf-eh { opacity: 0; }
+        .gf-btn:active .gf-eh { opacity: 0; }
+        .gf-btn:active .gf-ec { opacity: 1; }
+        .gf-fy { animation: gfBob 1.2s steps(1) infinite; }
+        .gf-fl .gf-fy { animation-duration: 1.5s; }
+        @keyframes gfBob { 0% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+        @keyframes gfHop { 0% { transform: translateY(-1px); } 50% { transform: translateY(-3px); } }
+        @keyframes gfWave { 0% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+        .gf-ht { animation: gfRise 2.4s steps(8) infinite; }
+        .gf-ht2 { animation-delay: -1.2s; }
+        @keyframes gfRise { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
+        .gf-sp { animation: gfTw 1.2s steps(1) infinite; }
+        .gf-sp2 { animation-delay: -.6s; }
+        @keyframes gfTw { 0% { opacity: 1; } 50% { opacity: 0; } }
+        @media (hover: hover) {
+            .gf-btn:hover .gf-wu, .gf-btn:hover .gf-wd { animation-duration: .16s; }
+            .gf-btn:hover .gf-eo, .gf-btn:hover .gf-ec { animation: none; opacity: 0; }
+            .gf-btn:hover .gf-eh { opacity: 1; }
+            .gf-btn:hover .gf-fy { animation: gfHop .44s steps(1) infinite; }
+            .gf-btn:hover .gf-wnd { animation: gfWave .3s steps(1) infinite; }
+            .gf-btn:hover .gf-ht { animation-duration: 1s; }
+            .gf-btn:hover .gf-sp { animation-duration: .4s; }
+        }
+        @media (prefers-reduced-motion: reduce) { .gf-btn * { animation: none !important; } }
         /* ☁ 드라이브 저장 알림 : 다이어리 페이지 왼쪽 하단 · 저장 기록이 바뀔 때만 부드럽게 나왔다 사라져요 (js/drive.js updateBadge) */
         .drive-badge { position: absolute; left: 8px; bottom: 8px; z-index: 40; max-width: 70%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             padding: 4px 9px; border-radius: 12px; font-size: 11px; background: rgba(255,255,255,.92);
