@@ -1281,7 +1281,13 @@
            - 오리는 동안 : 조금 갈 때마다(SCS_STEP) 날이 싹둑 닫혔다 벌어져요 (소리 없음 · 도련 10-19) · 가위 끝이 오리는 방향으로 부드럽게 돌아요
            - 자른 선은 싹둑 한 번마다 한 토막씩 늘어나요 (papermaker 의 d.shown) · 페이지 빈 곳을 누르면 허공에 싹둑
            - 종이는 가만히 있어요 (칼선 없이 마음대로 오리니까 · 도련 10-19) */
-        const SCS_STEP = 22, SCS_MAX = 14, SCS_REST = -20;                      // 싹둑 한 번 거리(px) · 가장 벌린 각도 · 쉬는 기울기(도)
+        const SCS_STEP = 12, SCS_MAX = 14, SCS_REST = -20;                      // 싹둑 한 번 거리(px) · 가장 벌린 각도 · 쉬는 기울기(도) (10-21 : 더 자주 싹둑싹둑 · 도련)
+        const SCS_WALK = 46, SCS_GAP = 120;                                     // 들고 다닐 때도 이만큼 가면 싹둑 · 싹둑 사이 최소 시간(ms)
+        /* 🎯 가위 조준 (도련 10-21) : 누르는 자리(손가락 · 마우스) 위로 SCS_LIFT 만큼 띄워서 가위가 손에 안 가려져요
+           - 진짜 자르는 자리 = 가위 날 끝 = 빨간 십자선 (.scs-aim · FPS 게임처럼) → 십자선이 지나간 대로 오려져요 (js/papermaker.js scsAim)
+           - 💻 마우스는 화살표가 그대로 보여요 (누르는 자리) */
+        const SCS_LIFT = 100;
+        const SCS_PIV = [27, 70];                                               // 🎯 가위 가운데 하트 나사 = 십자선 자리 = 도는 축 = 싹둑 축 (scsSvg 의 rotate(… 27 70) · css .scs-cur transform-origin 과 같게)
         function scsSvg(o) {                                                    // o : 벌린 정도 0 ~ 1 · 손잡이 고리 2개 + 날 2개 + 나사
             const a = (o * SCS_MAX).toFixed(2), n = toolN++;
             const blade = (d, id) => `<path d="${d}" fill="url(#${id})" stroke="#8d97a8" stroke-width=".9" stroke-linejoin="round"/>`;
@@ -1308,20 +1314,26 @@
         let scsDown = 0;
         window.addEventListener('pointerdown', () => { scsDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { scsDown = 0; }, true));
-        function scsPut(x, y, e, force) {                                       // 따라가기 (force : 손에 든 순간)
+        function scsPut(x, y, e, force) {                                       // 따라가기 (force : 손에 든 순간) · x, y = 누르는 자리 → 가위는 SCS_LIFT 위
             if (!force && !scs.cut && !scsRel(x, y, e)) { document.body.classList.remove('scs-on'); return; }
             scs.gx = null;                                                      // 비키던 중이면 그만
+            y -= SCS_LIFT;
             if (!scs.el) { scs.el = document.createElement('div'); scs.el.className = 'scs-cur'; scs.el.innerHTML = scsSvg(1); document.body.appendChild(scs.el); }
+            if (!scs.aim) { scs.aim = document.createElement('div'); scs.aim.className = 'scs-aim'; scs.aim.setAttribute('aria-hidden', 'true'); document.body.appendChild(scs.aim); }
+            if (!scs.cut && scs.on) {                                           // 들고 다닐 때도 가끔 싹둑 (귀엽게)
+                scs.walk = (scs.walk || 0) + Math.hypot(x - scs.x, y - scs.y);
+                if (scs.walk >= SCS_WALK && performance.now() - scs.snip > SCS_GAP * 2) { scs.walk = 0; scsSnip(); }
+            }
             if (scs.cut) {                                                      // ✂️ 오리는 중 : 간 거리만큼 싹둑 · 가는 방향으로 돌기
                 const c = scs.cut, dx = x - c.x, dy = y - c.y, l = Math.hypot(dx, dy);
                 if (l >= 6) { c.acc += l; c.x = x; c.y = y; scs.to = Math.atan2(dy, dx) * 180 / Math.PI + 90; }
-                if (c.acc >= SCS_STEP && performance.now() - scs.snip > 150) { c.acc = 0; scsSnip(); if (c.on) c.on(); }
+                if (c.acc >= SCS_STEP && performance.now() - scs.snip > SCS_GAP) { c.acc = 0; scsSnip(); if (c.on) c.on(); }
             }
-            scs.x = x; scs.y = y; scs.el.hidden = false; scs.on = true;
+            scs.x = x; scs.y = y; scs.el.hidden = false; scs.aim.hidden = false; scs.on = true;
             document.body.classList.toggle('scs-on', !e || e.pointerType === 'mouse');   // 💻 화살표 대신 가위
             if (!scs.raf) scs.raf = requestAnimationFrame(scsFrame);
         }
-        function scsHide() { scs.on = false; scs.cut = null; if (scs.el) scs.el.hidden = true; document.body.classList.remove('scs-on'); }
+        function scsHide() { scs.on = false; scs.cut = null; if (scs.el) scs.el.hidden = true; if (scs.aim) scs.aim.hidden = true; document.body.classList.remove('scs-on'); }
         function scsSnip() { scs.snip = performance.now(); try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {} }
         function scsFrame(t) {
             scs.raf = 0;
@@ -1333,14 +1345,15 @@
             }
             if (scs.gx != null) { scs.x += (scs.gx - scs.x) * .12; scs.y += (scs.gy - scs.y) * .12; if (Math.hypot(scs.gx - scs.x, scs.gy - scs.y) < .5) { scs.x = scs.gx; scs.y = scs.gy; scs.gx = null; } }
             let d = ((scs.to - scs.ang + 540) % 360) - 180; scs.ang += d * (scs.cut ? .22 : .1);   // 손떨림에 덜덜 떨지 않게 부드럽게
-            const k = t - scs.snip, o = k < 70 ? 1 - .92 * k / 70 : k < 190 ? .08 + .92 * (k - 70) / 120 : 1;   // 싹둑 : 0.07초에 닫고 0.12초에 다시 벌려요
+            const k = t - scs.snip, o = k < 45 ? 1 - .92 * k / 45 : k < 120 ? .08 + .92 * (k - 45) / 75 : 1;   // 싹둑 : 0.045초에 닫고 0.075초에 다시 벌려요 (10-21 빠르게)
             const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g');
             g[0].setAttribute('transform', `rotate(${-a} 27 70)`); g[1].setAttribute('transform', `rotate(${a} 27 70)`);
-            const T = GD.scs1; scs.el.style.transform = `translate(${scs.x - T.hx}px, ${scs.y - T.hy}px) rotate(${scs.ang.toFixed(2)}deg)`;
+            scs.el.style.transform = `translate(${scs.x - SCS_PIV[0]}px, ${scs.y - SCS_PIV[1]}px) rotate(${scs.ang.toFixed(2)}deg)`;   // 나사가 십자선 위에
+            if (scs.aim) scs.aim.style.transform = `translate(${scs.x}px, ${scs.y}px)`;   // 🎯 십자선 = 날 끝 (돌지 않아요)
             scs.raf = requestAnimationFrame(scsFrame);
         }
         /* 📄 모조지 오리기 (js/papermaker.js) : 시작 · 끝 · 싹둑마다 on() (자른 선을 한 토막 늘려요) */
-        function scsCutStart(x, y, on) { if (!gdScs()) return false; scs.cut = { x, y, acc: 0, on }; scsPut(x, y, null, true); return true; }
+        function scsCutStart(x, y, on) { if (!gdScs()) return false; scs.cut = { x, y: y - SCS_LIFT, acc: 0, on }; scsPut(x, y, null, true); return true; }   // x, y = 누르는 자리 (자르는 자리는 십자선)
         function scsCutEnd(done) { if (!scs.cut) return; scs.cut = null; scs.to = SCS_REST; if (done) scsSnip(); }
         /* 🗄️ 하단 메뉴 '문구함' : 화면 가운데 세로 서랍장 (도련 10-19)
            - 서랍장 위에는 ✏️ 연필꽂이 (톡 = 그리기 · js/draw.js openDraw · 꽂을 필기구는 연필꽂이 앞 '보관함') · 서랍마다 이름표 : 핀셋 · 집게 · 펀칭기 · 양면테이프 · 가위 · 칼 · 자
@@ -1457,6 +1470,7 @@
         function gdCabCup() { closeModal('gdCabModal'); if (window.openDraw) openDraw(); }
         window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
         window.gdScs = gdScs; window.gdLetGo = () => { if (gdHeld) gdLet(); }; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
+        window.scsAim = P => gdScs() ? [P[0], P[1] - SCS_LIFT] : P; window.scsLift = () => gdScs() ? SCS_LIFT : 0;   // 🎯 누르는 자리 → 자르는 자리 (js/papermaker.js)
 
         /* 🕳️ 펀칭기 (도련 10-19 · 진짜처럼 12번) : 구멍 자리 근처로 가면 그 자리에 착 붙고 → 누르면 철컥 하나 뚫려요
            - 💻 마우스 = 근처로 가면 붙어서 점선 동그라미(.gd-slot)가 보여요 (스티커에 가려도) · 👆 터치 = 근처를 누르면 붙으며 바로 뚫려요 · 빗나가면 "다시 눌러 주세요"

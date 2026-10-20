@@ -140,11 +140,11 @@
         }
         /* 손가락 받는 칸 : 종이(테이프 포함) 자리만 (나머지는 페이지가 받아요) · 글씨 쓰는 중에는 화면 전체 */
         function pmZones() {
-            const S = pmS, hit = pmq('pmHit'), m = 14, z = [];
+            const S = pmS, hit = pmq('pmHit'), m = 14, z = [], lift = !S.edit && window.scsLift ? scsLift() : 0;   // ✂️ 가위를 들면 종이 아래 (손가락 자리)까지 받아요
             if (S.drag) return;                                                          // 끄는 중에는 그대로 (손가락은 누른 칸이 끝까지 받아요)
             if (S.edit) z.push([0, 0, S.W, S.H]);
-            else if (S.note) { if (!S.gone) z.push([S.X, S.Y, PM_W * S.SC, S.SH * S.SC]); }   // 📒 수첩 : 종이 자리만 (둘레는 수첩이 받아요)
-            else if (!S.gone) z.push([S.X - m, S.Y - 24, PM_W * S.SC + m * 2, S.SH * S.SC + 24 + m]);
+            else if (S.note) { if (!S.gone) z.push([S.X, S.Y, PM_W * S.SC, S.SH * S.SC + lift]); }   // 📒 수첩 : 종이 자리만 (둘레는 수첩이 받아요)
+            else if (!S.gone) z.push([S.X - m, S.Y - 24, PM_W * S.SC + m * 2, S.SH * S.SC + 24 + m + lift]);
             while (hit.children.length < z.length) { const d = document.createElement('div'); d.className = 'pm-z'; hit.appendChild(d); }
             [...hit.children].forEach((d, i) => {
                 const q = z[i]; d.hidden = !q; if (!q) return;
@@ -285,9 +285,10 @@
             }
             const tp = pmTape();                                                           // 위쪽 테이프 : 종이 옮기기 (📒 수첩에는 없어요)
             if (!S.note && P[0] > tp.x - 8 && P[0] < tp.x + tp.w + 8 && P[1] > tp.y - 8 && P[1] < tp.y + tp.h + 8) { cap(); S.drag = { mode: 'sheet', last: P }; pmSay('종이를 옮기는 중… ✋'); return; }
-            if (pmInSheet(P, 14)) {
+            const A = pmScs() && window.scsAim ? scsAim(P) : P;                          // 🎯 자르는 자리 = 가위 날 끝 십자선 (누르는 자리보다 위 · js/skins.js SCS_LIFT)
+            if (pmInSheet(A, 14)) {
                 if (!pmScs()) { if (window.scsSay) scsSay(P[0], P[1]); return; }          // ✂️ 가위를 들어야 오려져요
-                cap(); const d = S.drag = { mode: 'cut', pts: [P], len: 0, shown: 0, lt: pmNow() };
+                cap(); const d = S.drag = { mode: 'cut', pts: [A], len: 0, shown: 0, lt: pmNow() };
                 if (window.scsCutStart) scsCutStart(P[0], P[1], () => { d.shown = d.len; }); else d.shown = Infinity;   // 자른 선은 싹둑마다 한 토막씩
                 pmSay('싹둑싹둑… <b>처음 자리</b>까지 한 바퀴 돌아와요'); return;
             }
@@ -297,9 +298,10 @@
             const P = [e.clientX, e.clientY];
             if (d.mode === 'sheet') { pmShift(P[0] - d.last[0], P[1] - d.last[1]); d.last = P; return; }
             if (d.mode === 'cut') {
-                const L = d.pts[d.pts.length - 1], l = pmDist(P, L); if (l < 2.5) return;
-                d.pts.push(P); d.len += l;
-                if (d.len > 90 && d.pts.length > 14 && pmDist(P, d.pts[0]) < 20) pmFinishCut();
+                const A = window.scsAim ? scsAim(P) : P;                                     // 🎯 십자선 자리로 오려요
+                const L = d.pts[d.pts.length - 1], l = pmDist(A, L); if (l < 2.5) return;
+                d.pts.push(A); d.len += l;
+                if (d.len > 90 && d.pts.length > 14 && pmDist(A, d.pts[0]) < 20) pmFinishCut();
                 return;
             }
             if (d.mode === 'ink') {
