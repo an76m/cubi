@@ -1287,7 +1287,7 @@
            - 진짜 자르는 자리 = 가위 날 끝 = 빨간 십자선 (.scs-aim · FPS 게임처럼) → 십자선이 지나간 대로 오려져요 (js/papermaker.js scsAim)
            - 💻 마우스는 화살표가 그대로 보여요 (누르는 자리) */
         const SCS_LIFT = 100;
-        const SCS_PIV = [27, 70];                                               // 🎯 가위 가운데 하트 나사 = 십자선 자리 = 도는 축 = 싹둑 축 (scsSvg 의 rotate(… 27 70) · css .scs-cur transform-origin 과 같게)
+        const SCS_PIV = [27, 46];                                               // 🎯 가위 날 가운데 (자르는 자리 · 도련 10-21) = 십자선 자리 = 가위가 도는 축 (css .scs-cur transform-origin 과 같게 · 날이 벌어지는 축은 하트 나사 27 70)
         function scsSvg(o) {                                                    // o : 벌린 정도 0 ~ 1 · 손잡이 고리 2개 + 날 2개 + 나사
             const a = (o * SCS_MAX).toFixed(2), n = toolN++;
             const blade = (d, id) => `<path d="${d}" fill="url(#${id})" stroke="#8d97a8" stroke-width=".9" stroke-linejoin="round"/>`;
@@ -1339,6 +1339,7 @@
             scs.raf = 0;
             if (!gdScs() || !isCoverOpen) { scsHide(); return; }
             if (!scs.on || !scs.el) return;
+            if (scs.cut && scs.cut.acc >= 2 && t - scs.snip > SCS_GAP) { scs.cut.acc = 0; scsSnip(); if (scs.cut.on) scs.cut.on(); }   // ✂️ 손을 멈춰도 남은 만큼 싹둑 → 자른 선이 십자선까지 따라와요
             if (!scs.cut && !scsDown && !document.body.classList.contains('scs-on') && t - scs.dodgeT > 120 && window.dodgeBy) {   // 🚪 창 · 메뉴가 가리면 바로 옆 빈자리로 스르르 (🪡 핀셋 pinDodge 와 같아요)
                 scs.dodgeT = t;
                 if (scs.gx == null) { const c = dodgeBy(scs.el.getBoundingClientRect()); if (c) { scs.gx = scs.x + c[0]; scs.gy = scs.y + c[1]; } }

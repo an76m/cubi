@@ -3884,7 +3884,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.tweez { width: 55.8px; height: 201.5px; transform: rotate(-28deg); }   /* 🪡 놓인 핀셋 (든 동안은 핀셋 화살표가 따라와요 · js/elements.js pinMove) */
 .bd-tool.tweez.held { display: none; }
 .bd-tool.scissors { width: 54px; height: 126px; transform: rotate(-20deg); } .bd-tool.scissors.held { display: none; }   /* ✂️ 놓인 가위 · 든 동안은 .scs-cur 가 따라와요 (js/skins.js scs) */
-.scs-cur { position: fixed; left: 0; top: 0; width: 54px; height: 126px; z-index: 1700; pointer-events: none; transform-origin: 27px 70px; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
+.scs-cur { position: fixed; left: 0; top: 0; width: 54px; height: 126px; z-index: 1700; pointer-events: none; transform-origin: 27px 46px; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
 .scs-cur[hidden] { display: none; } .scs-cur svg { display: block; width: 100%; height: 100%; }
 /* 🎯 가위 조준 십자선 (FPS 게임처럼 · 도련 10-21 · js/skins.js SCS_LIFT) : 진짜 자르는 자리 = 가위 날 끝 · 💻 마우스 화살표(누르는 자리)는 그대로 보여요 */
 .scs-aim { position: fixed; left: -13px; top: -13px; width: 26px; height: 26px; z-index: 1701; pointer-events: none;
