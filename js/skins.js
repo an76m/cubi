@@ -1200,11 +1200,50 @@
             const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
         }
+        /* 🗄️ 문구함에 안 가리는 자리 (도련 10-21) : 문구함이 떠 있으면 꺼낸 문구가 그 밑에 깔리지 않게
+           pref = 원래 자리(화면 가운데 [x, y]) · w, h = 화면에서의 크기 → 보이는 페이지 안 · 문구함(연필꽂이 포함)과 안 겹치는 가장 가까운 자리
+           - 📱 폰처럼 자리가 없으면 맨 위 ✏️ 연필꽂이 자리 (위쪽이 삐죽 나와 보여서 나온 걸 알 수 있어요) */
+        function cabFree(w, h, pref) {
+            const m = document.getElementById('gdCabModal'), cab = document.getElementById('gdCab'), cv = document.getElementById('canvasArea');
+            if (!m || m.style.display !== 'flex' || !cab || !cv || !window.dyVisRect) return pref;
+            const v = dyVisRect(cv.getBoundingClientRect()), L = Math.max(v.left, 8), R = Math.min(v.right, innerWidth - 8), T = Math.max(v.top, 8), B = Math.min(v.bottom, innerHeight - 8);
+            const a = cab.getBoundingClientRect(), cupEl = cab.querySelector('.gdc-cup'), u = cupEl ? cupEl.getBoundingClientRect() : a, M = 10;
+            const c = { l: Math.min(a.left, u.left) - M, t: Math.min(a.top, u.top) - M, r: Math.max(a.right, u.right) + M, b: Math.max(a.bottom, u.bottom) + M };
+            const hit = (x, y) => x - w / 2 < c.r && x + w / 2 > c.l && y - h / 2 < c.b && y + h / 2 > c.t;
+            const fits = (x, y) => x - w / 2 >= L && x + w / 2 <= R && y - h / 2 >= T && y + h / 2 <= B;
+            if (fits(pref[0], pref[1]) && !hit(pref[0], pref[1])) return pref;
+            let best = null;
+            for (let y = T + h / 2; y <= B - h / 2; y += 16) for (let x = L + w / 2; x <= R - w / 2; x += 16) {
+                if (hit(x, y)) continue;
+                const d = Math.hypot(x - pref[0], y - pref[1]); if (!best || d < best.d) best = { x, y, d };
+            }
+            if (best) return [best.x, best.y];
+            const n = gdIp() ? gdIp().querySelectorAll(':scope > .bd-tool').length % 4 : 0;   // 여러 개면 조금씩 비켜서
+            const p = [u.left + u.width / 2 + (n - 1.5) * 14, u.top]; p.cup = true;   // ✏️ 연필꽂이에 꽂힌 듯 (위쪽 반이 삐죽) · 문구함을 닫으면 페이지 안으로 (gdCabHome)
+            return p;
+        }
+        (function gdCabHome() {                                                 // 🗄️ 문구함을 닫으면 연필꽂이 자리에 꺼내 둔 문구는 페이지 안으로 스르르 (gdHome)
+            const m = document.getElementById('gdCabModal'); if (!m) return;
+            new MutationObserver(() => {
+                if (m.style.display === 'flex') return;
+                document.querySelectorAll('#innerPage > .bd-tool[data-cup]').forEach(el => { delete el.dataset.cup; if (!el.classList.contains('held')) gdHome(el); });
+            }).observe(m, { attributes: true, attributeFilter: ['style'] });
+        })();
+        const gdScr = p => { const { r, k } = gdK(); return [r.left + p.x * k, r.top + p.y * k]; };   // 다이어리 자리 → 화면
         function gdPick(id) {                                                   // 🗄️ 문구함 서랍 톡 : 놓기 ↔ 치우기 (아래 cabFlip)
             if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
             const el = gdEl(id);
             if (el) { if (gdHeld === id) gdLet(); el.remove(); }
-            else { const p = gdSpot(id); gdCenter(gdMake(id), p.x, p.y); }
+            else {
+                const t = gdInfo(id), k = gdK().k, s = cabFree(t.w * k, t.h * k, gdScr(gdSpot(id))), p = gdTo(s[0], s[1]);   // 🗄️ 문구함에 안 가리게
+                const el = gdMake(id); gdCenter(el, p.x, p.y);
+                if (s.cup) el.dataset.cup = 1;
+                else {                                                          // 기울어진 문구(🪡 · ✂️)는 실제 차지하는 자리로 한 번 더
+                    const r = el.getBoundingClientRect(), c = [(r.left + r.right) / 2, (r.top + r.bottom) / 2], s2 = cabFree(r.width, r.height, c);
+                    if (s2.cup) el.dataset.cup = 1;
+                    else if (s2[0] !== c[0] || s2[1] !== c[1]) { const q = gdTo(s2[0], s2[1]), q0 = gdTo(c[0], c[1]); gdCenter(el, p.x + q.x - q0.x, p.y + q.y - q0.y); }
+                }
+            }
             if (id.startsWith('clip:')) gdClipSave();
         }
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
@@ -1403,8 +1442,9 @@
         const cabMid = () => { const b0 = document.getElementById('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; return [b.left + b.width / 2, b.top + b.height / 2]; };   // 📱 폰 = 보이는 오른쪽 쪽
         const cabFlip = id => {
             if (!cabTool(id)) return gdPick(id);
-            const on = cabIsOn(id), [x, y] = cabMid();
-            if (id.startsWith('knife')) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { skKnife(x, y, cabK(id)); if (window.skHold) skHold(true); } }   // 꺼내면 바로 손에 (문구함은 그대로 · 도련 10-19)
+            const on = cabIsOn(id), kn = id.startsWith('knife'), cv = document.getElementById('canvasArea');
+            const [x, y] = cabFree(kn ? 40 : Math.min(600, cv ? cv.getBoundingClientRect().width : 600), kn ? 120 : 90, cabMid());   // 🗄️ 문구함에 안 가리게 (🔪 40×120 · 📏 긴 자)
+            if (kn) { if (on) { if (window.skClose) skClose(); } else if (window.skKnife) { skKnife(x, y - 50, cabK(id)); if (window.skHold) skHold(true); } }   // 칼끝 = 가운데보다 위   // 꺼내면 바로 손에 (문구함은 그대로 · 도련 10-19)
             else if (on) { if (window.rlEnd) rlEnd(); } else if (window.rlShow) rlShow(x, y, cabK(id));
         };
         const GD_MAIN = 'diary_gd_main', GD_MAIN_L = 'malang_diary_gd_main';
