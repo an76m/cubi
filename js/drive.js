@@ -35,6 +35,7 @@
             : 'https://www.googleapis.com/auth/drive.file';
         const AUTH_FLAG_KEY = 'gdrive_authed';   // 이 기기에서 이전에 로그인했는지 (자동 로그인 시도용)
         const UPLOAD_DEBOUNCE_MS = 3000;         // 변경 후 이 시간이 지나면 자동으로 드라이브에 저장
+        const UPLOAD_MAX_WAIT_MS = 30000;        // ⏱ 3초도 안 쉬고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
         const PENDING_KEY = 'gdrive_pending_backup'; // 화면이 꺼질 때 업로드가 끝나기 전에 앱이 멈출 경우를 대비한 임시 보관본
         const KEEPALIVE_MAX_BYTES = 60000;       // fetch keepalive 옵션은 본문 64KB 이하만 가능
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
@@ -92,7 +93,7 @@
             bookScan: null,              // 📕 다꾸 안 권 폴더 : 권 id → { folderId, name } (다이어리.json 의 id 로 찾아요)
             get dirty() { return this.dirtyKeys.size > 0; }
         };
-        let uploadTimer = null;
+        let uploadTimer = null, dirtySince = 0;   // dirtySince : 아직 안 올린 첫 변경 시각 (UPLOAD_MAX_WAIT_MS)
         let uploadChain = Promise.resolve(true);
         let pendingToken = null;
 
@@ -100,8 +101,9 @@
             if (drive.guest) { if (typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST && typeof localTestSave === 'function') localTestSave(); updateBadge(); return; }
             drive.dirtyKeys.add(key);
             if (drive.ready) {
+                if (!dirtySince) dirtySince = Date.now();
                 clearTimeout(uploadTimer);
-                uploadTimer = setTimeout(() => flushUpload(), UPLOAD_DEBOUNCE_MS);
+                uploadTimer = setTimeout(() => flushUpload(), Math.min(UPLOAD_DEBOUNCE_MS, Math.max(0, dirtySince + UPLOAD_MAX_WAIT_MS - Date.now())));
             }
             updateBadge();
         }
@@ -876,7 +878,7 @@
         }
         function flushUpload(opts) {
             const force = !!(opts && opts.force);
-            clearTimeout(uploadTimer);
+            clearTimeout(uploadTimer); dirtySince = 0;
             uploadChain = uploadChain.then(async () => {
                 if (!drive.ready || drive.guest) return false;
                 if (force && isCoverOpen) {                                 // 💾 저장 버튼: 지금 보고 있는 날짜 파일을 한 번 더 덮어씀
