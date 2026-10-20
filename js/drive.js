@@ -1083,7 +1083,7 @@
             }
             showGate('wait', '☁ 구글 드라이브에 연결하는 중…');
             const fileHint = location.protocol === 'file:'
-                ? '<br><br><span style="font-size:12px;color:#c62828;">이 파일이 <b>file://</b>로 열려 있어요. 구글 로그인은 https 주소(GitHub Pages 등)나 localhost에서만 동작해요.</span>' : '';
+                ? '<br><br><span style="font-size:12px;color:#d6487f;">이 파일이 <b>file://</b>로 열려 있어요. 구글 로그인은 https 주소(GitHub Pages 등)나 localhost에서만 동작해요.</span>' : '';
             if (!(await waitForGoogle(10000))) {
                 showGate('login', '구글 로그인 스크립트를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.' + fileHint);
                 return;

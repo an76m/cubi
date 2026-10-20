@@ -265,7 +265,7 @@
         .color-picker-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .color-picker-row input[type="color"] { cursor: pointer; border: none; background: none; width: 32px; height: 32px; }
 
-        .element-box img.broken { min-width: 60px; min-height: 40px; background: #ffe3e3; border: 1px dashed var(--primary-accent); font-size: 11px; color: #a33; word-break: break-all; }
+        .element-box img.broken { min-width: 60px; min-height: 40px; background: #ffe3e3; border: 1px dashed var(--primary-accent); font-size: 11px; color: #d6487f; word-break: break-all; }   /* 🩷 안내 글씨는 핑크 (10-21) */
         /* 📚 이미지 라이브러리 : 페이지 넘기기 + 행·열·크기 설정 */
         .lib-content { max-width: min(95vw, var(--lib-w, 520px)); min-width: min(90vw, 320px); }
         .lib-cats { display: flex; gap: 6px; overflow-x: auto; padding: 2px; margin-bottom: 2px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
@@ -404,7 +404,7 @@
             transition: opacity .7s ease, transform .7s ease, visibility 0s linear .7s; }
         .drive-badge.show { opacity: 1; visibility: visible; pointer-events: auto; transform: none;
             transition: opacity .7s ease, transform .7s ease, visibility 0s; }
-        .drive-badge.warn { border-color: #e57373; color: #c62828; }
+        .drive-badge.warn { border-color: #f3a6c4; color: #d6487f; }   /* 🩷 경고도 핑크 (도련 10-21) */
 
         /* 💌 건의함 모달 (설정 모달 위에 겹쳐서 표시) */
         #feedbackModal { z-index: 1100; }
@@ -435,7 +435,7 @@
         .sending-sec { font-size: 13px; color: #999; margin-top: 2px; font-variant-numeric: tabular-nums; }
         .sending-msg { font-size: 13px; color: #666; margin-top: 8px; line-height: 1.55; word-break: keep-all; }
         .sending-card.fail { border-color: #ef9a9a; }
-        .sending-card.fail .sending-title { color: #e53935; }
+        .sending-card.fail .sending-title { color: #d6487f; }
         .sending-close { margin-top: 14px; width: 100%; justify-content: center; padding: 8px 10px; }
         .sending-close[hidden] { display: none; }
         @media (prefers-reduced-motion: reduce) { .sending-spinner { animation-duration: 2.5s; } }
@@ -695,8 +695,8 @@
         .ls-gauge { height: 14px; border-radius: 8px; background: #f1f1f1; border: 1px solid var(--border-color); overflow: hidden; margin-top: 6px; }
         .ls-gauge-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #8fd3a8, #4caf50); transition: width .4s; }
         .ls-gauge-fill.warn { background: linear-gradient(90deg, #ffd27f, #ff9800); }
-        .ls-gauge-fill.full { background: linear-gradient(90deg, #ff8a80, #e53935); }
-        .ls-warn { font-size: 12px; color: #c62828; background: #fff1f0; border: 1px dashed #ef9a9a; border-radius: 8px; padding: 5px 8px; margin-top: 5px; text-align: left; line-height: 1.5; }
+        .ls-gauge-fill.full { background: linear-gradient(90deg, #ffa8c8, #e0559a); }   /* 🩷 꽉 참도 핑크 (10-21) */
+        .ls-warn { font-size: 12px; color: #d6487f; background: #fff0f6; border: 1px dashed #f3a6c4; border-radius: 8px; padding: 5px 8px; margin-top: 5px; text-align: left; line-height: 1.5; }
 
         /* ☕ 카페 : 준비중인 버튼은 살짝 흐리게 */
         .service-btn.soon { opacity: .72; }
@@ -3901,6 +3901,12 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 @keyframes gdBob { from { translate: 0 0; } to { translate: 0 -6px; } }
 body.gd-press .bd-tool.held, body.gd-press .scs-cur, body.gd-press .scs-aim, body.gd-press .sk-knife, .bd-tool.held.snap, .sk-knife.grab { animation: none; }
 @media (prefers-reduced-motion: reduce) { .bd-tool.held, .scs-cur, .scs-aim, .sk-knife { animation: none; } }
+/* 🩷 이 문구가 필요해요 : 페이지의 핀셋 · 가위 둘레 / 문구함 서랍이 핑크로 깜박깜박 (js/skins.js gdNeed · 2.6초) */
+.bd-tool.need { animation: gdNeedTool .65s ease-in-out 4 alternate; }
+@keyframes gdNeedTool { from { filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px rgba(255, 79, 139, .45)); } to { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px #ff4f8b) drop-shadow(0 0 22px #ff8fb6); } }
+.gdc-dr.need { animation: gdNeedDr .65s ease-in-out 4 alternate; }
+@keyframes gdNeedDr { from { box-shadow: 0 0 0 2px rgba(255, 95, 147, .45); } to { box-shadow: 0 0 0 5px #ff5f93, 0 0 22px 8px rgba(255, 95, 147, .6); } }
+@media (prefers-reduced-motion: reduce) { .bd-tool.need { animation: none; filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #ff5f93); } .gdc-dr.need { animation: none; box-shadow: 0 0 0 4px #ff7fa8; } }
 /* 📥 페이지 밖에 놓인 문구를 페이지 안으로 스르르 (js/skins.js gdHome) */
 .bd-tool.home { transition: left .45s cubic-bezier(.3, .7, .3, 1), top .45s cubic-bezier(.3, .7, .3, 1), filter .15s; }
 .bd-tool.snap svg { animation: gdSnap .2s ease-out; }
@@ -4054,7 +4060,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 #dmkModal .sub-modal-btns .dmk-ok, #dmkRoom .sub-modal-btns .dmk-ok { background: var(--primary-accent); color: #fff; border-color: var(--primary-accent); font-weight: 800; }
 
 /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 (js/skins.js twzSay) */
-.twz-say { position: fixed; z-index: 100000; translate: -50% -100%; padding: 7px 13px; border-radius: 14px; background: #fff; color: #d94f7a; font-size: 13px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(160, 90, 110, .25); pointer-events: none; opacity: 0; scale: .8; transition: opacity .2s, scale .2s; }
+.twz-say { position: fixed; z-index: 100000; translate: -50% -100%; padding: 7px 13px; border-radius: 14px; background: #fff; color: #e0559a; font-size: 13px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(160, 90, 110, .25); pointer-events: none; opacity: 0; scale: .8; transition: opacity .2s, scale .2s; }
 .twz-say::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; background: #fff; rotate: 45deg; translate: -50% 0; }
 .twz-say.on { opacity: 1; scale: 1; }
 

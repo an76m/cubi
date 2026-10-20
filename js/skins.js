@@ -1117,9 +1117,22 @@
             const hw = Math.max(90, b.offsetWidth / 2 + 8); b.style.left = Math.max(hw, Math.min(innerWidth - hw, x)) + 'px';   // 말이 길어도 화면 안에 b.style.top = Math.max(40, y - 14) + 'px';
             b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
             clearTimeout(twzSayT); twzSayT = setTimeout(() => b.classList.remove('on'), ms || 1600);
+            if (!t) gdNeed('tweez');                                            // 🩷 핀셋 있는 곳을 깜박여 알려 줘요
+        }
+        /* 🩷 이 문구가 필요해요 (도련 10-21) : 🪡 핀셋 없이 스티커를 만지거나 · ✂️ 가위 없이 모조지를 오리려 할 때 (twzSay · scsSay)
+           - 그 문구가 페이지에 놓여 있으면 → 페이지의 그 문구 둘레가 핑크로 깜박 (안 보이는 쪽이면 먼저 페이지 안으로 소환 · gdHome)
+           - 없으면 → 🗄️ 문구함이 뜨고 그 서랍이 핑크로 깜박 · 톡 하면 꺼내져요 */
+        function gdNeed(g) {
+            if (typeof isCoverOpen === 'undefined' || !isCoverOpen) return;
+            const blink = el => { if (!el) return; el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
+            const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
+            if (on) { gdHome(on); blink(on); return; }
+            const m = document.getElementById('gdCabModal');
+            if (!m || m.style.display !== 'flex') openGdCab();
+            blink(document.querySelector(`#gdCab .gdc-dr[data-g="${g}"]`));
         }
         window.twzSay = twzSay;
-        window.scsSay = (x, y) => twzSay(x, y, '✂️ 가위를 사용해 주세요');   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
+        window.scsSay = (x, y) => { twzSay(x, y, '✂️ 가위를 사용해 주세요'); gdNeed('scissors'); };   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
         const GD = {                                                            // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터)
             twz: { g: 'tweez', n: '기본 핀셋', w: 55.8, h: 201.5, hx: 27.9, hy: 4.6 },
             punch1: { g: 'punch', n: '기본 펀칭기', w: 56, h: 112, hx: 28, hy: 21 },
