@@ -1753,11 +1753,11 @@
              새 권 id 는 규격 id 로 정해요 (dk + 규격 id) → 두 기기가 따로 처음 꾸며도 같은 권 · 말랑달콤 폴더를 지우면 모든 기기가 같은 빈 권에서 다시 시작
            - 첫 장을 저장할 때 드라이브에 권 폴더가 생겨요 (고르기만 하면 안 생겨요) · 장을 처음 꾸민 날을 다이어리.json days 에 (고쳐도 안 바뀜 · 다 지우면 빠짐)
            - 열면 : 켜고 끄기와 상관없이 마지막으로 꾸민 장 (없으면 1장)
-           - 위 바 가운데 : 페이지 수가 기본 · 누르면 그 장을 처음 꾸민 날 (빈 장은 '새 장') ↔ 다시 누르면 페이지 수 (이 기기 · malang_bkview)
+           - 위 바 가운데 : 페이지 수가 기본 · 누르면 그 장을 처음 꾸민 날 (빈 장은 '새 장') ↔ 다시 누르면 페이지 수 (☁ 설정.json diary_bkview · 기기마다 같아요)
            - 📅 달력 : 꾸민 날만 누를 수 있고 나머지는 회색 · 누르면 그날 처음 꾸민 장 · 여러 장이면 작은 숫자 (js/month.js)
            - 🔍 검색 : 이 다이어리 장들에서 찾아요 (js/search.js)
            - 마지막 장에서 더 넘기면 "기본 다이어리로 넘어갈까요?" */
-        const DK_KEY = 'diary_books', DK_LOCAL = 'malang_books', DK_VIEW = 'malang_bkview', DK_PAGES = 30, DK_Y = 2000;
+        const DK_KEY = 'diary_books', DK_LOCAL = 'malang_books', DK_VIEW = 'malang_bkview', DK_VIEW_KEY = 'diary_bkview', DK_PAGES = 30, DK_Y = 2000;
         const dkType = () => { const t = dyNow(); return t.id === DY_DEF ? null : t; };
         function dkMap() { const m = prefGet(DK_KEY, DK_LOCAL); return m && typeof m === 'object' ? m : {}; }   // 규격 id → 권 id (☁ 로그인 중엔 드라이브 것만 · js/drive.js prefGet)
         function dkId(make) {                                                  // 지금 고른 규격의 권 id (make : 없으면 새로)
@@ -1800,7 +1800,7 @@
             if (!dkIs(date) || !dkType()) return date;
             const s = dkNow().days[dkNo(date)]; return s ? dkDayOf(s) : new Date();
         }
-        const dkView = () => { try { return localStorage.getItem(DK_VIEW) === 'date' ? 'date' : 'page'; } catch (e) { return 'page'; } };
+        const dkView = () => prefGet(DK_VIEW_KEY, DK_VIEW) === 'date' ? 'date' : 'page';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20)
         function dkLabel(date) {                                               // 위 바 가운데 글 (js/page.js formatDate)
             if (!dkIs(date) || !dkType()) return '';
             const o = dkNow(), n = dkNo(date);
@@ -1810,7 +1810,7 @@
         }
         function dkTap() {                                                     // 위 바 가운데를 누르면 : 유한은 페이지 수 ↔ 날짜 · 기본은 한 달 모아보기
             if (!dkType()) { if (window.openMonth) openMonth(); return; }
-            try { localStorage.setItem(DK_VIEW, dkView() === 'date' ? 'page' : 'date'); } catch (e) {}
+            prefSet(DK_VIEW_KEY, DK_VIEW, dkView() === 'date' ? 'page' : 'date');
             document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
         }
         function dkPath(date) {                                                // 💾 저장 알림에 보여 줄 자리

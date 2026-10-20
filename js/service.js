@@ -202,15 +202,15 @@
         /* 🌱 매일 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 화분 물 주기 · 오늘의 행운 · 오늘의 질문)
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
            - 다음 날이 되면 새것이니까 다시 알려 줘요 · 이미 한 것은 처음부터 안 붙어요 */
-        const SVC_SEEN = 'malang_daily_seen';                      // 오늘 이미 알려 준 것 { d: '2026-10-06', ids: [버튼 id…] }
+        const SVC_SEEN = 'malang_daily_seen', SVC_SEEN_KEY = 'diary_daily_seen';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20) · 오늘 이미 알려 준 것 { d: '2026-10-06', ids: [버튼 id…] }
         const svcDay = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
         function svcSeenGet() {
-            try { const o = JSON.parse(localStorage.getItem(SVC_SEEN)); if (o && o.d === svcDay() && Array.isArray(o.ids)) return o.ids; } catch (e) {}
+            const o = prefGet(SVC_SEEN_KEY, SVC_SEEN); if (o && o.d === svcDay() && Array.isArray(o.ids)) return o.ids;
             return [];
         }
         function svcSeenAdd(ids) {
             const a = svcSeenGet(); ids.forEach(i => { if (!a.includes(i)) a.push(i); });
-            try { localStorage.setItem(SVC_SEEN, JSON.stringify({ d: svcDay(), ids: a })); } catch (e) {}
+            prefSet(SVC_SEEN_KEY, SVC_SEEN, { d: svcDay(), ids: a });
         }
         async function svcDailyBadges() {
             const mark = (id, txt) => {

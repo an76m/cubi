@@ -979,6 +979,10 @@
             if (typeof bgmLoadPref === 'function') bgmLoadPref();           // 🎵 배경음악 음량 · 반복 · 섞기 (js/bgm.js)
             handLoad();                                                      // ✋ 쓰는 손
             if (typeof dyLoad === 'function') dyLoad();                     // 📒 고른 다이어리 (js/skins.js)
+            if (typeof nwRefresh === 'function') nwRefresh();               // ✨ NEW 표시 (☁ diary_new · js/arrival.js)
+            if (typeof svcDailyBadges === 'function') svcDailyBadges();     // 🔔 오늘 이미 본 알림 (☁ diary_daily_seen · js/service.js)
+            const pd = document.getElementById('pageDateDisplay');          // 📅 날짜 바 페이지 수 ↔ 날짜 (☁ diary_bkview · js/skins.js)
+            if (pd && isCoverOpen && typeof formatDate === 'function') pd.innerText = formatDate(currentDate);
         }
 
         /* ---------- 화면(UI) ---------- */

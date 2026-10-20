@@ -14,7 +14,7 @@
 
         const AR_PENDING = 'malang_arrive';          // 아직 '닫기'를 안 누른 도착 알림 (합쳐 둔 한 장)
         const AR_SEEN = 'malang_arrive_n';           // 이미 받아 둔 신호 번호들 (서버가 '받았어요'를 못 받아 또 보내도 두 번 안 더하려고)
-        const AR_NEW = 'malang_new';                 // 메뉴에 붙일 NEW { me, tape: {id|all: 1}, caps: {…}, coin: 1, wall: {번호: 1} }
+        const AR_NEW = 'malang_new', AR_NEW_KEY = 'diary_new';   // ☁ 설정.json (기기마다 같아요 · PC에서 본 NEW 는 패드에서도 사라져요 · 도련 10-20) · 메뉴에 붙일 NEW { me, tape: {id|all: 1}, caps: {…}, coin: 1, wall: {번호: 1} }
         const arRead = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
         const arWrite = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
         const arEsc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -23,7 +23,7 @@
 
         /* ---------- 🔔 NEW 표시 ---------- */
         function nwGet() {
-            const n = arRead(AR_NEW, {});
+            const n = prefGet(AR_NEW_KEY, AR_NEW) || {};
             return n && typeof n === 'object' && (!n.me || !arMe() || n.me === arMe()) ? n : {};      // 다른 계정이 남긴 표시는 안 써요
         }
         function nwHas(kind, id) {                      // 그 종류(와 디자인)가 새것이면 true
@@ -36,11 +36,11 @@
             const put = (k, o) => { if (!o || typeof o !== 'object' || !Object.keys(o).length) return; n[k] = n[k] && typeof n[k] === 'object' ? n[k] : {}; Object.keys(o).forEach(id => { n[k][id] = 1; }); };
             put('tape', g.t); put('caps', g.s); put('wall', g.w);
             if (g.c) n.coin = 1;
-            arWrite(AR_NEW, n); nwRefresh();
+            prefSet(AR_NEW_KEY, AR_NEW, n); nwRefresh();
         }
         function nwClear(kind) {
             const n = nwGet(); if (!(kind in n)) return;
-            delete n[kind]; arWrite(AR_NEW, n); nwRefresh();
+            delete n[kind]; prefSet(AR_NEW_KEY, AR_NEW, n); nwRefresh();
         }
         function nwRefresh() {
             document.querySelectorAll('[data-nw]').forEach(el => el.classList.toggle('nw-on', nwOn(el.dataset.nw)));
