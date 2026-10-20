@@ -1110,13 +1110,13 @@
              다른 문구함은 다이어리를 다시 열면 문구함 서랍으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
         /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
         let twzSayT = 0;
-        function twzSay(x, y, t) {                                                // t : 다른 말 (✂️ 가위 · scsSay)
+        function twzSay(x, y, t, ms) {                                            // t : 다른 말 (✂️ 가위 · scsSay) · ms : 떠 있는 시간
             let b = document.getElementById('twzSay2');
             if (!b) { b = document.createElement('div'); b.id = 'twzSay2'; b.className = 'twz-say'; document.body.appendChild(b); }
             b.textContent = t || '🪡 핀셋을 사용해 주세요';
-            b.style.left = Math.max(90, Math.min(innerWidth - 90, x)) + 'px'; b.style.top = Math.max(40, y - 14) + 'px';
+            const hw = Math.max(90, b.offsetWidth / 2 + 8); b.style.left = Math.max(hw, Math.min(innerWidth - hw, x)) + 'px';   // 말이 길어도 화면 안에 b.style.top = Math.max(40, y - 14) + 'px';
             b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
-            clearTimeout(twzSayT); twzSayT = setTimeout(() => b.classList.remove('on'), 1600);
+            clearTimeout(twzSayT); twzSayT = setTimeout(() => b.classList.remove('on'), ms || 1600);
         }
         window.twzSay = twzSay;
         window.scsSay = (x, y) => twzSay(x, y, '✂️ 가위를 사용해 주세요');   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
@@ -1629,7 +1629,14 @@
             gdHoleSync();
             if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나
                 gdInit = true;
-                setTimeout(() => { if (!gdEl('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y); } }, 900);
+                setTimeout(() => {
+                    if (!gdEl('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y); }
+                    setTimeout(() => {                                          // 💬 핀셋 위에 한 번 : 스티커는 핀셋으로 집어요 (도련 10-21 · 앱을 열고 처음 펼칠 때만)
+                        const t = gdEl('twz'); if (!t || !isCoverOpen) return;
+                        const r = t.getBoundingClientRect();
+                        twzSay(r.left + r.width / 2, r.top, '🪡 스티커는 핀셋으로 집어서 옮겨요!', 3500);
+                    }, 450);
+                }, 900);
             }
         }
         /* 페이지 둘레 꾸밈 : 커버(뒤) · 가운데 접힘 · 링 · 밴드 · 책갈피 끈(앞) */
