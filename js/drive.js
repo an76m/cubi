@@ -851,7 +851,10 @@
                 else if (isOwnFile(key)) await writeDay(key);
                 else await writeKeyFile(keyFile(key), mine || new Set([key]));
             } catch (e) {
-                if (e && e.code === 'gone' && !retried) { resetDriveCaches(); return driveWriteKey(key, true, mine); }
+                if (e && e.code === 'gone' && !retried) {
+                    if (await rootGone()) { rootReset(); throw e; }           // 🗑 말랑달콤 폴더째 지워졌으면 새로 만들지 않고 처음 상태로 (평소 저장은 확인 없이 바로 올려요 · 도련 10-20)
+                    resetDriveCaches(); return driveWriteKey(key, true, mine);
+                }
                 throw e;
             }
         }
@@ -881,7 +884,6 @@
                     if (drive.loadedDays.has(k) && store.getItem(k) !== null) drive.dirtyKeys.add(k);
                 }
                 if (!drive.dirty || drive.wiped) return true;
-                if (await rootGone()) { rootReset(); return false; }        // 🗑 지워진 폴더를 옛 내용으로 다시 만들지 않아요
                 drive.uploading = true; updateBadge();
                 let allOk = true, authFail = false, full = false;
                 const sent = [];
