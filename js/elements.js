@@ -388,7 +388,7 @@
         }
         window.elKeepCenter = elKeepCenter;
         function makeTransformable(el) {
-            el.style.zIndex = zIndexCounter++;
+            zRoom(); el.style.zIndex = zIndexCounter++;
             const p0 = 100 + (window.dyVisX ? dyVisX() : 0);                   // 새로 놓는 자리 : 보이는 쪽의 왼쪽 위 (📱 한쪽 보기 · 오른쪽 쪽이면 오른쪽 쪽에 · 도련 10-19)
             let posX = p0, posY = 100, scale = 1, rotation = 0; el._p0 = p0;
 
@@ -507,7 +507,7 @@
                     if (seal) { seal.move(pos.x, pos.y); return; }
                     if (!lifted && Math.hypot(ddx, ddy) > 6) {
                         lifted = true;
-                        el.style.zIndex = zIndexCounter++;
+                        zRoom(); el.style.zIndex = zIndexCounter++;
                         /* 🏷️ 씰스티커처럼 떼었다 붙이기 : 지금은 꺼 뒀어요 (모든 것이 모조지스티커처럼 살짝 떠서 옮겨져요)
                            다시 켜려면 아래 두 줄의 // 를 지우고, 그 밑의 '살짝 떠서' 한 줄을 지우면 돼요 (sealStart 함수는 그대로 있어요)
                         if (!(seal = sealStart())) { el.classList.add('lifting'); liftTo(1.06); }   // 📝 메모지 · 🧻 떡메 · 📄 모조지스티커 · 테이프 : 살짝 떠서 옮겨요
@@ -677,6 +677,15 @@
             if (window.tmClose) tmClose();
         }, true);
 
+        /* 🧱 페이지에 붙인 것(스티커 · 글 · 그림 · 필기구 글씨)의 z 는 1 ~ Z_MAX 안에서만 (도련 10-21)
+           그 위는 늘 페이지 문구 · 날짜바 · 도장 · 알림 · 넘기기 그림자 (css z 10000 ~ · .bd-tool · .page-header …) → 꾸밈이 아무리 쌓여도 문구를 덮지 않아요
+           옮길 때마다 z 가 1씩 올라가니 Z_MAX 를 넘으면 겹친 순서는 그대로 두고 1 부터 다시 매겨요 */
+        const Z_MAX = 9000;
+        function zRoom() {
+            if (zIndexCounter <= Z_MAX) return;
+            const L = layerBoxes(); L.forEach((x, n) => { x.style.zIndex = n + 1; });
+            zIndexCounter = L.length + 1;
+        }
         /* ↕️ 순서 : 고른 것의 겹친 순서 바꾸기 (맨 앞 · 한 칸 앞 · 한 칸 뒤 · 맨 뒤) */
         function layerBoxes() {
             return [...document.querySelectorAll('#canvasArea > .element-box')].map((el, i) => [el, parseInt(el.style.zIndex) || 1, i])
@@ -960,7 +969,7 @@
             el.classList.remove('selected');
             el.classList.add('el-dying');
             el.querySelectorAll('.handle, .rot-zone, .stretch-handle').forEach(h => h.style.display = 'none');
-            const back = el.cloneNode(true); back.classList.add('el-peel-back'); back.removeAttribute('id'); back.style.clipPath = 'polygon(0 0, 0 0, 0 0)'; back.style.zIndex = 99999;   // 뜯긴 부분은 다른 스티커보다 위로
+            const back = el.cloneNode(true); back.classList.add('el-peel-back'); back.removeAttribute('id'); back.style.clipPath = 'polygon(0 0, 0 0, 0 0)'; back.style.zIndex = Z_MAX + 500;   // 뜯긴 부분은 다른 스티커보다 위로 (문구 · 날짜바보다는 아래)
             back.querySelectorAll('textarea').forEach(t => { t.readOnly = true; t.tabIndex = -1; });
             el.after(back);
             Object.assign(twz, { el, back, H: el.offsetHeight, W: el.offsetWidth, base: el.style.transform || '', G: null, P: null, drag: null, done: false, full: false });
@@ -1196,7 +1205,7 @@
 
             const z = parseInt(data.zIndex) || 1;
             el.style.zIndex = z;
-            if (interactive) zIndexCounter = Math.max(zIndexCounter, z + 1);
+            if (interactive) { zIndexCounter = Math.max(zIndexCounter, z + 1); if (z > Z_MAX) setTimeout(zRoom, 0); }
             return el;
         }
 

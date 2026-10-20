@@ -101,7 +101,7 @@
             background: var(--page-bg); box-shadow: 0 4px 12px rgba(0,0,0,.08);
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 2px; font-size: 1.2rem; color: var(--primary-accent); font-weight: bold;
-            flex-shrink: 0; box-sizing: border-box;
+            flex-shrink: 0; box-sizing: border-box; z-index: 10010;   /* 📅 날짜바 · 문구 · 도장 · 알림은 늘 스티커(z 1 ~ 9000 · js/elements.js zRoom) 위 (도련 10-21) */
         }
 
         /* < > 날짜 넘기기 : 날짜 색과 같은 심플한 화살표 */
@@ -192,7 +192,7 @@
 
         .flap-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 20; overflow: hidden; pointer-events: none;
+            z-index: 10020; overflow: hidden; pointer-events: none;
             border-radius: 15px 22px 22px 15px;
         }
         .flap { position: absolute; top: 0; bottom: 0; display: none; box-sizing: border-box;
@@ -204,7 +204,7 @@
         .flap.dir-prev { border-radius: 0 15px 15px 0; filter: drop-shadow(6px 0 8px rgba(0,0,0,.28)); }
         .flap.dir-prev.page-back  { background: var(--curl-shade-prev), var(--page-bg); }
 
-        .under-shadow { position: absolute; top: 48px; bottom: 0; display: none; pointer-events: none; z-index: 50; }
+        .under-shadow { position: absolute; top: 48px; bottom: 0; display: none; pointer-events: none; z-index: 10050; }
         .under-shadow.dir-next { background: linear-gradient(to right, rgba(0,0,0,.38), rgba(0,0,0,0)); }
         .under-shadow.dir-prev { background: linear-gradient(to left,  rgba(0,0,0,.38), rgba(0,0,0,0)); }
 
@@ -398,7 +398,7 @@
         }
         @media (prefers-reduced-motion: reduce) { .gf-btn * { animation: none !important; } }
         /* ☁ 드라이브 저장 알림 : 다이어리 페이지 왼쪽 하단 · 저장 기록이 바뀔 때만 부드럽게 나왔다 사라져요 (js/drive.js updateBadge) */
-        .drive-badge { position: absolute; left: 8px; bottom: 8px; z-index: 40; max-width: 70%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .drive-badge { position: absolute; left: 8px; bottom: 8px; z-index: 10040; max-width: 70%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             padding: 4px 9px; border-radius: 12px; font-size: 11px; background: rgba(255,255,255,.92);
             border: 2px solid var(--border-color); color: #555; cursor: pointer; font-family: var(--font-family);
             opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(4px);
@@ -1764,7 +1764,7 @@
         .mo-note { margin: 0; font-size: 12.5px; line-height: 1.6; color: #8a7a80; text-align: center; word-break: keep-all; }
 
         /* ===== 😊 기분 · 날씨 도장 (js/stamp.js) ===== */
-        .page-stamps { position: absolute; top: 54px; right: 8px; z-index: 50; display: flex; gap: 6px; pointer-events: none; }
+        .page-stamps { position: absolute; top: 54px; right: 8px; z-index: 10050; display: flex; gap: 6px; pointer-events: none; }
         .ps-st { pointer-events: auto; width: 46px; height: 46px; border-radius: 50%; border: none; padding: 0; cursor: pointer; font-family: inherit;
             display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
             background: rgba(255,255,255,.85); box-shadow: inset 0 0 0 2px var(--c), inset 0 0 0 4px #fff, inset 0 0 0 5px var(--c); }
@@ -1811,7 +1811,7 @@
         .sr-more { text-align: center; font-size: 12.5px; color: #a08890; }
 
         /* ===== ⏳ D-day (js/dday.js) ===== */
-        .page-dday { position: absolute; top: 56px; left: 8px; z-index: 50; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; cursor: pointer; max-width: 60%; }
+        .page-dday { position: absolute; top: 56px; left: 8px; z-index: 10050; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; cursor: pointer; max-width: 60%; }
         .page-dday:empty { display: none; }
         .dd-badge { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.9); border: 1.5px solid var(--border-color, #ffb6c1); color: #6a4a5a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; box-sizing: border-box; }
         .dd-badge b { color: var(--primary-accent, #ff6b81); }
@@ -3858,7 +3858,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-hole { position: absolute; display: block; pointer-events: none; border-radius: 50%; visibility: hidden; background: color-mix(in srgb, var(--bg-color, #ffe6f0) 80%, #c9a3b3); box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }
 .bd-hole.on { visibility: visible; }
 .bd-hl { position: absolute; z-index: 2; pointer-events: none; transform-origin: center center; }   /* 🕳️ 구멍은 종이 위 · 스티커 아래 (펀칭기로 같이 뚫은 스티커만 구멍 · js/skins.js bdPierce) */
-.gd-slot { position: absolute; z-index: 39; pointer-events: none; border-radius: 50%; box-sizing: border-box; border: 2px dashed rgba(70, 75, 85, .75); background: rgba(255, 255, 255, .35); }   /* 🕳️ 펀칭기가 뚫을 자리 (스티커에 가려도 보여요 · js/skins.js gdSlot) */
+.gd-slot { position: absolute; z-index: 10039; pointer-events: none; border-radius: 50%; box-sizing: border-box; border: 2px dashed rgba(70, 75, 85, .75); background: rgba(255, 255, 255, .35); }   /* 🕳️ 펀칭기가 뚫을 자리 (스티커에 가려도 보여요 · js/skins.js gdSlot) */
 .gd-slot.press { animation: gdSlot .3s ease-out; }
 @keyframes gdSlot { 30% { background: rgba(90, 95, 105, .32); } }
 .inner-page.dy-free #canvasArea { background: none !important; box-shadow: none !important; pointer-events: none; z-index: 3; }
@@ -3878,7 +3878,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .dy-punch i:last-child { position: absolute; left: 22%; right: 22%; top: 4%; bottom: 4%; border-radius: 2cqw; background: linear-gradient(90deg, #6d727c, #eef0f3 45%, #9aa0aa); box-shadow: inset 0 0 0 .3cqw rgba(0, 0, 0, .12); }
 @keyframes dyPunch { 0% { transform: translateY(-110%); opacity: 0; } 25% { transform: none; opacity: 1; } 42% { transform: scale(.96); } 52% { transform: none; } 72% { transform: none; opacity: 1; } 100% { transform: translateY(-110%); opacity: 0; } }
 /* ✂️ 문구함 = 손에 드는 도구 (js/skins.js gdHold · 🪡 핀셋 · 📎 집게 · 🕳️ 펀칭기 · 🩹 양면테이프) : 놓인 것 · 손에 든 것(.held) · 테두리에 꽂힌 집게(.edge) */
-.bd-tool { position: absolute; z-index: 40; cursor: pointer; touch-action: none; filter: drop-shadow(2px 6px 6px rgba(80, 50, 60, .28)); transition: filter .15s; }
+.bd-tool { position: absolute; z-index: 10040; cursor: pointer; touch-action: none; filter: drop-shadow(2px 6px 6px rgba(80, 50, 60, .28)); transition: filter .15s; }
 .bd-tool svg { display: block; width: 100%; height: 100%; transition: transform .1s; }
 .bd-tool.punch { width: 56px; height: 112px; } .bd-tool.tape { width: 132px; height: 74px; } .bd-tool.clip { width: 118px; height: 92px; transform-origin: 59px 66px; transition: filter .15s, opacity .3s; }
 .inner-page.dy-bo .bd-tool.clip, .inner-page.dy-bo-go .bd-tool.clip, .inner-page.dy-ring-open .bd-tool.clip { opacity: 0; pointer-events: none; }   /* 📎 바인더 링이 열려 표지가 사라지면 집게도 · 다시 끼우면 다시 (도련 10-18) */
@@ -3894,8 +3894,8 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
     filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 1px 2px rgba(0, 0, 0, .25)); }
 .scs-aim::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: #ff3f8e; }   /* 가운데 점 */
 .scs-aim[hidden] { display: none; }
-.bd-tool.held { z-index: 60; pointer-events: none; filter: drop-shadow(5px 14px 10px rgba(80, 50, 60, .3)); transition: none; }
-.bd-tool.edge { z-index: 41; filter: drop-shadow(0 3px 4px rgba(50, 35, 45, .32)); cursor: grab; }
+.bd-tool.held { z-index: 10060; pointer-events: none; filter: drop-shadow(5px 14px 10px rgba(80, 50, 60, .3)); transition: none; }
+.bd-tool.edge { z-index: 10041; filter: drop-shadow(0 3px 4px rgba(50, 35, 45, .32)); cursor: grab; }
 .bd-tool.punch.press svg { transform: scale(.9); }
 /* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 2.6s ease-in-out infinite alternate; }
@@ -3915,7 +3915,7 @@ body.gd-press .bd-tool.held, body.gd-press .scs-cur, body.gd-press .scs-aim, bod
 .bd-tool.drop svg { animation: gdDrop .3s cubic-bezier(.5, 0, .6, 1.4); }   /* 👆 터치로 바꿀 때 떠 있던 것이 그 자리에서 톡 떨어져요 (js/skins.js gdHold) */
 @keyframes gdDrop { from { transform: translateY(-14px) scale(1.06); } to { transform: none; } }
 body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /* 💻 다이어리 위에선 화살표 대신 든 문구함 */
-.gd-tape-pv { position: absolute; z-index: 39; height: 12px; transform-origin: 0 50%; pointer-events: none; border-radius: 1.5px; background: linear-gradient(#fff9 0 3px, #f3e6cf 3px calc(100% - 3px), #cdb894aa 0); }   /* 🩹 바르는 중 */
+.gd-tape-pv { position: absolute; z-index: 10039; height: 12px; transform-origin: 0 50%; pointer-events: none; border-radius: 1.5px; background: linear-gradient(#fff9 0 3px, #f3e6cf 3px calc(100% - 3px), #cdb894aa 0); }   /* 🩹 바르는 중 */
 .inner-page.png-mode .bd-tool:not(.edge), .inner-page.png-mode .gd-tape-pv { display: none; }
 .dy-punchth { position: relative; display: block; width: 26px; height: 52px; }
 .dy-punchth i:first-child { position: absolute; inset: 0; border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pc) 70%, #000), color-mix(in srgb, var(--pc) 40%, #fff) 50%, color-mix(in srgb, var(--pc) 70%, #000)); box-shadow: 0 3px 6px rgba(40, 30, 40, .3); }
@@ -3982,7 +3982,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .cover-page.cv-book, .dk-fold-f { overflow: visible; }
 .cover-page.cv-plain .cover-notice, .cover-page.cv-plain .drag-hint { visibility: hidden; }   /* 📕 표꾸를 마치고 넘길 때 (js/skins.js dkUnfold) */   /* 닫힌 겉표지 · 접히는 장도 삐져나간 스티커가 보여요 */
 .inner-page.dk-cover > .dy-deco { display: none; }
-.dk-fold { position: absolute; inset: 0; z-index: 30; pointer-events: none; transform-origin: 0 50%; transform: perspective(2400px) rotateY(-180deg); transform-style: preserve-3d; transition: transform .75s cubic-bezier(.45, .05, .3, 1); }
+.dk-fold { position: absolute; inset: 0; z-index: 10030; pointer-events: none; transform-origin: 0 50%; transform: perspective(2400px) rotateY(-180deg); transform-style: preserve-3d; transition: transform .75s cubic-bezier(.45, .05, .3, 1); }
 .dk-fold.go { transform: perspective(2400px) rotateY(0deg); }
 .dk-fold-b, .dk-fold-f { position: absolute; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .dk-fold-b { inset: 0; overflow: hidden; transform: rotateY(180deg); }   /* 넘어오기 전 = 지금 왼쪽 쪽 */
