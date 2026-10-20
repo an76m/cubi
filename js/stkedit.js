@@ -128,7 +128,7 @@
             if (se.tool === 'text' && se.textSel >= 0 && se.st.texts[se.textSel]) {
                 const t = se.st.texts[se.textSel], ox = out.getContext('2d'); ox.font = `700 ${t.size}px 'Gaegu', 'Jua', cursive`;
                 const w = ox.measureText(t.t).width + 12, h = t.size + 10;
-                x.setLineDash([5 / k, 4 / k]); x.lineWidth = 1.5 / k; x.strokeStyle = '#c2385c'; x.strokeRect(t.x - w / 2, t.y - h / 2, w, h); x.setLineDash([]);
+                x.setLineDash([5 / k, 4 / k]); x.lineWidth = 1.5 / k; x.strokeStyle = '#d04a86';   /* 🩷 선택 점선도 핑크 */ x.strokeRect(t.x - w / 2, t.y - h / 2, w, h); x.setLineDash([]);
             }
         }
         let seRaf = 0;
