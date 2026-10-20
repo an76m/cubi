@@ -852,14 +852,13 @@
         window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
         const PIN_WALL = '.modal:not(.snb-on) > .modal-content, .twz-say.on';   // 페이지 팝업메뉴(.tap-menu)는 피하지 않아요 (도련 10-19 · 메뉴가 핀셋 위에 떠요)
-        function pinDodge() {
-            if (!pinEl || pinDown || pinFollow || !pinLast || pinEl.classList.contains('glide')) return;
+        function dodgeBy(b) {                                                   // b : 떠 있는 도구의 테두리 → 비킬 거리 [dx, dy] (안 겹치면 null) · ✂️ 가위도 같이 써요 (js/skins.js scsFrame)
             const vis = el => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== 'hidden' ? r : null; };
             const walls = [...document.querySelectorAll(PIN_WALL)].filter(el => !el.closest('.modal') || el.closest('.modal').style.display === 'flex').map(vis).filter(Boolean);
-            if (!walls.length) return;
-            const b = pinEl.getBoundingClientRect(), M = 10, W = innerWidth, H = innerHeight;
+            if (!walls.length) return null;
+            const M = 10, W = innerWidth, H = innerHeight;
             const hit = (dx, dy) => walls.some(r => b.left + dx < r.right + 4 && b.right + dx > r.left - 4 && b.top + dy < r.bottom + 4 && b.bottom + dy > r.top - 4);
-            if (!hit(0, 0)) return;
+            if (!hit(0, 0)) return null;
             const inside = (dx, dy) => b.left + dx >= M && b.right + dx <= W - M && b.top + dy >= M && b.bottom + dy <= H - M;
             const fit = (dx, dy) => [Math.min(Math.max(dx, M - b.left), W - M - b.right), Math.min(Math.max(dy, M - b.top), H - M - b.bottom)];   // 화면 안으로
             let best = null;
@@ -872,8 +871,12 @@
                 const area = (dx, dy) => walls.reduce((a, r) => a + Math.max(0, Math.min(b.right + dx, r.right) - Math.max(b.left + dx, r.left)) * Math.max(0, Math.min(b.bottom + dy, r.bottom) - Math.max(b.top + dy, r.top)), 0);
                 const c = cs.sort((p, q) => area(...p) - area(...q) || Math.hypot(...p) - Math.hypot(...q))[0]; best = { c };
             }
-            if (Math.hypot(best.c[0], best.c[1]) < 2) return;
-            pinEl.classList.add('glide'); pinPut(pinLast[0] + best.c[0], pinLast[1] + best.c[1]);
+            return Math.hypot(best.c[0], best.c[1]) < 2 ? null : best.c;
+        }
+        function pinDodge() {
+            if (!pinEl || pinDown || pinFollow || !pinLast || pinEl.classList.contains('glide')) return;
+            const c = dodgeBy(pinEl.getBoundingClientRect()); if (!c) return;
+            pinEl.classList.add('glide'); pinPut(pinLast[0] + c[0], pinLast[1] + c[1]);
             setTimeout(() => { if (pinEl) pinEl.classList.remove('glide'); }, 620);
         }
         function pinStop() {
@@ -897,6 +900,7 @@
             pinPut(e.clientX, e.clientY);
         }
         document.addEventListener('pointermove', pinMove, true);
+        window.pinOver = pinOver; window.pinRel = pinRel; window.pinBusy = pinBusy; window.dodgeBy = dodgeBy;   // ✂️ 가위도 핀셋과 같은 규칙 (js/skins.js scsRel · scsFrame)
         document.addEventListener('pointerdown', e => { pinHold = false; pinMove(e); if (pinEl && (pinKind === 'pc' ? pinFollow : pinRelNow)) { pinEl.classList.add('shut'); pinEl.classList.remove('bob'); pinHold = true; } }, true);
         ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, e => { pinHold = false; if (pinEl) { pinEl.classList.remove('shut'); pinEl.classList.add('bob'); } }, true));
         document.addEventListener('mouseout', e => { if (!e.relatedTarget && pinEl) pinStay(); });   // 💻 마우스가 창 밖으로 나가면 그 자리에 둥실

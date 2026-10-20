@@ -1294,14 +1294,23 @@
                   <path d="M31.2 14 C31.8 30 31.4 50 30.3 64" stroke="#fff" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".85"/></g>
                 <circle cx="27" cy="70" r="4.4" fill="#fff4f8" stroke="#c98aa0" stroke-width="1"/><path d="M27 72.6 l-2.2 -2.1 a1.25 1.25 0 0 1 2.2 -1.5 a1.25 1.25 0 0 1 2.2 1.5 z" fill="#ff7fa6"/></svg>`;   // 나사 : 작은 하트
         }
-        const scs = { el: null, x: 0, y: 0, ang: SCS_REST, to: SCS_REST, snip: -1e9, raf: 0, cut: null, on: false };
-        function scsRel(x, y) {                                                 // 가위가 갈 수 있는 곳 (다이어리 · 모조지 종이 · 📒 수첩) · 버튼 · 메뉴 · 다른 창 위는 그 자리에 둥실
+        const scs = { el: null, x: 0, y: 0, ang: SCS_REST, to: SCS_REST, snip: -1e9, raf: 0, cut: null, on: false, gx: null, gy: 0, dodgeT: 0 };
+        /* ✂️ 가위가 갈 수 있는 곳 = 🪡 핀셋과 같은 규칙 (도련 10-21 · js/elements.js pinOver · pinRel · pinBusy) + 📄 모조지 종이 위
+           - 💻 마우스 : 갈 수 없는 곳(하단메뉴 · 창 · 버튼 · 메뉴 · 날짜바)으로 가면 그 끝자리에 멈추고 화살표 · 돌아오면 다시 따라와요
+           - 📱 📲 터치 : 가위와 상관있는 곳을 누를 때만 그 자리로 · 나머지는 그 자리에
+           - ✏️ 그리기 · ✂️ 칼 · 📏 자 · ✏️ 연필꽂이를 쓰는 동안은 안 따라와요 · 창 · 메뉴가 가리면 비켜요 (scsFrame · dodgeBy) */
+        function scsRel(x, y, e) {
             const top = document.elementsFromPoint(x, y).find(n => !n.closest('.scs-cur, .pin-cur, .twz-say'));
-            if (!top || top.closest('button, a, input, select, textarea, .tap-menu, #pageHeader, .page-header') || (top.closest('.modal') && !top.closest('.modal.snb-on'))) return false;
-            return top === document.body || top === document.documentElement || !!top.closest('#diaryWrapper, #bgPatternLayer, .pm-z, .modal.snb-on');
+            if (!top) return false;
+            if (top.closest('.pm-z')) return !(window.pinBusy && pinBusy());      // 📄 모조지 종이 = 오리는 곳
+            return e && e.pointerType !== 'mouse' ? !!(window.pinRel && pinRel(x, y)) : !!(window.pinOver && pinOver(x, y));
         }
+        let scsDown = 0;
+        window.addEventListener('pointerdown', () => { scsDown = 1; }, true);
+        ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { scsDown = 0; }, true));
         function scsPut(x, y, e, force) {                                       // 따라가기 (force : 손에 든 순간)
-            if (!force && !scs.cut && !scsRel(x, y)) { document.body.classList.remove('scs-on'); return; }
+            if (!force && !scs.cut && !scsRel(x, y, e)) { document.body.classList.remove('scs-on'); return; }
+            scs.gx = null;                                                      // 비키던 중이면 그만
             if (!scs.el) { scs.el = document.createElement('div'); scs.el.className = 'scs-cur'; scs.el.innerHTML = scsSvg(1); document.body.appendChild(scs.el); }
             if (scs.cut) {                                                      // ✂️ 오리는 중 : 간 거리만큼 싹둑 · 가는 방향으로 돌기
                 const c = scs.cut, dx = x - c.x, dy = y - c.y, l = Math.hypot(dx, dy);
@@ -1318,6 +1327,11 @@
             scs.raf = 0;
             if (!gdScs() || !isCoverOpen) { scsHide(); return; }
             if (!scs.on || !scs.el) return;
+            if (!scs.cut && !scsDown && !document.body.classList.contains('scs-on') && t - scs.dodgeT > 120 && window.dodgeBy) {   // 🚪 창 · 메뉴가 가리면 바로 옆 빈자리로 스르르 (🪡 핀셋 pinDodge 와 같아요)
+                scs.dodgeT = t;
+                if (scs.gx == null) { const c = dodgeBy(scs.el.getBoundingClientRect()); if (c) { scs.gx = scs.x + c[0]; scs.gy = scs.y + c[1]; } }
+            }
+            if (scs.gx != null) { scs.x += (scs.gx - scs.x) * .12; scs.y += (scs.gy - scs.y) * .12; if (Math.hypot(scs.gx - scs.x, scs.gy - scs.y) < .5) { scs.x = scs.gx; scs.y = scs.gy; scs.gx = null; } }
             let d = ((scs.to - scs.ang + 540) % 360) - 180; scs.ang += d * (scs.cut ? .22 : .1);   // 손떨림에 덜덜 떨지 않게 부드럽게
             const k = t - scs.snip, o = k < 70 ? 1 - .92 * k / 70 : k < 190 ? .08 + .92 * (k - 70) / 120 : 1;   // 싹둑 : 0.07초에 닫고 0.12초에 다시 벌려요
             const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g');
