@@ -333,12 +333,12 @@
         }
 
         async function createFolder(name, parentId) {
-            const res = await gfetch(`${DRIVE_API}?fields=id`, {
+            const res = await gfetch(`${DRIVE_API}?fields=id,modifiedTime`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json; charset=UTF-8' },
                 body: JSON.stringify({ name, mimeType: FOLDER_MIME, parents: [parentId || DRIVE_PARENT_DEFAULT] })
             });
             if (!res.ok) throw await driveFail(res, 'mkdir');
-            return (await res.json()).id;
+            return mineWrote(await res.json()).id;
         }
 
         /* names = ['말랑달콤','설정'] / ['말랑달콤','다꾸','기본','2026년','9월'] …
@@ -568,6 +568,7 @@
 
         async function loadFromDrive() {
             resetDriveCaches(); drive.rootId = null;
+            await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             clearTimeout(uploadTimer);
             drive.gen++;
@@ -598,7 +599,7 @@
                 const res = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime`, Object.assign({
                     method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body
                 }, keepaliveFor(body)));
-                if (res.ok) return await res.json();
+                if (res.ok) return mineWrote(await res.json());
                 throw await driveFail(res, 'update');                           // 404 'gone' : 그 사이 지워짐 → 캐시를 비우고 다시 시도
             }
             /* 새 파일을 만들기 전에 폴더가 살아 있는지 드라이브에 직접 확인 : 휴지통에 들어간 폴더에 만들면 일기가 안 보이게 돼요
@@ -616,7 +617,7 @@
                 method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: multipart
             }, keepaliveFor(multipart)));
             if (!res.ok) throw await driveFail(res, 'create');                 // 404 'gone' : 폴더가 지워짐
-            return await res.json();
+            return mineWrote(await res.json());
         }
 
         async function driveTrash(fileId) {
@@ -1350,6 +1351,34 @@
             if (m.t === 'saved') checkRemote(true);
             else if (m.t === 'coll' && typeof collRemote === 'function') collRemote(m.path);   // 스티커 · 페이지 목록 (js/coll.js)
         };
+        /* 🔔 다른 기기 확인을 가볍게 : 구글 드라이브 changes = "지난번 이후 이 앱이 만든 파일 중 바뀐 것" (도련 10-20)
+           - 1분마다 요청 1개 · 바뀐 게 없으면 거기서 끝 · 있으면 아래 checkRemote 자세히 보기(폴더 지움 · 설정 · 카페 · 보는 날짜)
+           - 내가 방금 올린 파일(mineWrote 로 기억한 id · 수정 시각 그대로)은 바뀐 걸로 안 쳐요
+           - 표시(changeTok)는 이 창 메모리에만 · 모르겠으면(처음 · 실패) 늘 자세히 봐요 → 놓치는 일은 없어요 */
+        let changeTok = null;
+        const mineAt = new Map();                                            // 파일 id → 내가 올린 수정 시각
+        function mineWrote(f) { if (f && f.id && f.modifiedTime) { mineAt.set(f.id, f.modifiedTime); if (mineAt.size > 300) mineAt.delete(mineAt.keys().next().value); } return f; }
+        async function changesStart() {
+            changeTok = null;
+            if (drive.local) return;
+            try { const res = await gfetch('https://www.googleapis.com/drive/v3/changes/startPageToken'); if (res.ok) changeTok = (await res.json()).startPageToken || null; } catch (e) {}
+        }
+        async function changesAny() {                                       // true = 바뀐 게 있거나 모름 → 자세히 보기
+            if (drive.local) return true;
+            if (!changeTok) { await changesStart(); return true; }
+            let tok = changeTok, any = false;
+            try {
+                for (let i = 0; i < 20 && tok; i++) {
+                    const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=200&spaces=drive&fields=nextPageToken,newStartPageToken,changes(fileId,removed,file(modifiedTime,trashed))`);
+                    if (!res.ok) { changeTok = null; return true; }
+                    const j = await res.json();
+                    if ((j.changes || []).some(c => c.removed || !c.file || c.file.trashed || mineAt.get(c.fileId) !== c.file.modifiedTime)) any = true;
+                    if (j.newStartPageToken) { changeTok = j.newStartPageToken; return any; }
+                    tok = j.nextPageToken;
+                }
+            } catch (e) { return true; }
+            changeTok = null; return true;
+        }
         function checkRemote(force) {
             if (!drive.ready || drive.guest || document.hidden || drive.needAuth || drive.wiped) return Promise.resolve();
             if (!force && Date.now() - lastRemoteCheck < 50000) return Promise.resolve();
@@ -1357,6 +1386,7 @@
             lastRemoteCheck = Date.now();
             remoteChecking = (async () => {
                 const gen = drive.gen;
+                if (!force && !(await changesAny())) return;               // 🔔 바뀐 게 없으면 요청 1개로 끝 (바뀐 게 있을 때만 아래처럼 자세히 봐요)
                 if (await rootGone()) { rootReset(); return; }              // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로
                 try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에 (고친 것은 지키려고)
                 for (const which of Object.keys(KEY_FILES)) {
