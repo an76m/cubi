@@ -4075,7 +4075,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 
 /* 🗄️ 하단 메뉴 '문구함' : 가운데 세로 서랍장 + 위에 연필꽂이 (js/skins.js gdCab · 도련 10-19) */
 .tb-gd { background: #cfe8f7; color: #2f6a93; }
-.gdc-modal { align-items: center; }
+.gdc-modal { align-items: center; pointer-events: none; } .gdc-modal .gdc-wrap { pointer-events: auto; }   /* 🗄️ 문구함이 떠 있어도 다이어리 · 하단메뉴 · 다른 창을 그대로 써요 (도련 10-21 · js/settings.js winOne) */
 .gdc-wrap { position: relative; width: min(230px, 68vw); margin-top: min(84px, 11vh); animation: gdcPop .32s cubic-bezier(.2, .9, .3, 1.3); }
 .gdc-wrap { touch-action: none; }   /* ✋ 잡고 끌면 옮겨져요 (js/skins.js gdCabMovable) · 서랍 속은 아래 pan-y */
 .gdc-wrap.moving { cursor: grabbing; } .gdc-wrap.moving .gdc-dr { transform: none; }
