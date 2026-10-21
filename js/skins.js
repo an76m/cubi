@@ -1283,11 +1283,22 @@
             document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구함
         }
         const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
+        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 오가기 (도련 10-21) : 그리기 · 메모 쓰기 중에 페이지의 문구를 누르면
+           구석 연필통 톡과 똑같이 끝내요 (쓴 글은 그림으로 붙고 · 든 필기구는 연필꽂이에) → 그 문구를 바로 들어요 */
+        function gdPenOff() {
+            for (let i = 0; i < 3; i++) {
+                const r = document.getElementById('pcRoom');
+                if (!document.body.classList.contains('draw-on') && !(r && !r.hidden)) return;
+                const m = document.getElementById('pcMini');
+                if (m && !m.hidden && m.offsetParent) m.click(); else if (typeof penDone === 'function') penDone();
+            }
+        }
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
             const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool');
-            if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구함 = 들기 · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
+            if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구함 = 들기
+                gdPenOff();                                                     // ✏️ 필기구를 쓰던 중이면 쓴 것은 붙이고 필기구는 연필꽂이에 → 이 문구를 들어요 (도련 10-21) · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
                 gdEat(e);
                 if (tool.classList.contains('edge')) gdG = { k: 'rail', el: tool, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
                 else gdHold(tool.dataset.t, e.clientX, e.clientY, e);
@@ -1536,7 +1547,7 @@
             cabFlip(id); if (!was) gdMainSet(g, id);
             gdCabRender();
         }
-        function gdCabCup() { closeModal('gdCabModal'); if (window.openDraw) openDraw(); }
+        function gdCabCup() { closeModal('gdCabModal'); if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo(); if (window.openDraw) openDraw(); }   // ✏️ 연필꽂이 : 들고 있던 문구는 그 자리에 내려놓고 (도련 10-21)
         window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
         window.gdScs = gdScs; window.gdLetGo = () => { if (gdHeld) gdLet(); }; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
         window.gdToolTap = (el, e) => { if (el && !el.classList.contains('edge')) gdHold(el.dataset.t, e.clientX, e.clientY, e); };   // 📄 모조지 손가락 칸이 덮은 페이지 문구를 눌렀을 때 (js/papermaker.js)
