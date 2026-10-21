@@ -839,7 +839,7 @@
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
-            if (top && !pinBusy() && top.closest('.modal.snb-on')) return true;   // 📒 수첩 : 어디서든 핀셋이 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
+            if (top && !pinBusy() && top.closest('.modal.snb-on, #stickerModal, #paperModal, #tteokModal, #leafModal')) return true;   // 📒 수첩 · 🪟 고르는 창 : 어디서든 핀셋 · 가위가 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
             if (!top || pinBusy() || top.closest('.pel-hint, .snb-cover, #pageHeader, .tap-menu') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 수첩 표지 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
             if (top.closest(PIN_AREA)) return true;
             return top === document.body || top === document.documentElement || top.matches('.modal.snb-on') || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경 · 📒 수첩 뒤 배경지 포함)
