@@ -150,6 +150,10 @@
             const k = capsList().find(x => x.id === id); if (!k || typeof addImage !== 'function') return false;
             if (capsLeft(id) < 0) { showMsg('🎁 선물권 기간이 끝났어요.<br>랜덤박스 캡슐에서 다시 만나요!'); return false; }
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">받은 스티커는 ✏️ 스티커 창의 🎁 캡슐 스티커에 있어요.</span>'); return false; }
+            if (!fromBox && window.openStickerPeel && window.snbMode && snbMode() === 'list') {   // 🪟 고르는 창 : 씰 낱장처럼 하얀 창에 한 장 → 🪡 핀셋으로 떼어 붙여요 (도련 10-21 · js/stickerpeel.js)
+                if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
+                openStickerPeel(capsUrl(k)); return true;
+            }
             if (!addImage(capsUrl(k))) return false;
             const box = document.querySelector('#canvasArea .element-box:last-child'); if (box) box.style.width = '120px';
             if (fromBox) closeGacha();

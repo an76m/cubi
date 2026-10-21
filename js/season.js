@@ -118,6 +118,10 @@
         function seasonStick(k, id) {
             if (!SEASON_OPEN || k !== seasonNow()) return;
             const s = (SEASON_STICKERS[k] || []).find(x => x.id === id); if (!s || typeof addImage !== 'function') return;
+            if (window.openStickerPeel && window.snbMode && snbMode() === 'list') {   // 🪟 고르는 창 : 하얀 창에서 🪡 핀셋으로 떼어 붙여요 (캡슐 스티커와 같게 · 도련 10-21)
+                if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
+                openStickerPeel('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s.svg)); return;
+            }
             if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s.svg))) return;
             const el = document.querySelector('#canvasArea .element-box:last-child'); if (el) el.style.width = '110px';
             if (window.stkBlink) stkBlink();
