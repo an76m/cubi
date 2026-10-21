@@ -585,6 +585,19 @@
                 if (!e.target.closest || !e.target.closest('.toolbar .tb-cafe')) return;
                 document.querySelectorAll('.modal').forEach(o => { if (!KEEP.has(o.id) && vis(o)) shut(o); });
             }, true);
+            /* ☕ 카페에 있는 동안은 손에 든 문구(핀셋 · 가위 · 칼 · 필기구 …)를 숨겨요 → 카페 창이 다 닫히면 다시 (도련 10-21 · css body.cafe-on)
+               - 카페에서 연 창(배경화면 · 포춘카드 …)도 카페 · 다른 하단 메뉴를 누르면 카페 끝 */
+            let cafeT = 0;
+            const cafeOff = () => { clearInterval(cafeT); cafeT = 0; document.body.classList.remove('cafe-on'); };
+            const cafeUp = () => { const t = document.getElementById('cafeTown'); return (t && t.style.display !== 'none' && t.getClientRects().length > 0) || [...document.querySelectorAll('.modal')].some(o => !KEEP.has(o.id) && vis(o)); };
+            document.addEventListener('click', e => {
+                const b = e.target.closest && e.target.closest('.toolbar .tb-btn'); if (!b) return;
+                if (!b.classList.contains('tb-cafe')) { cafeOff(); return; }
+                document.body.classList.add('cafe-on'); clearInterval(cafeT);
+                let seenUp = false;
+                cafeT = setInterval(() => { const up = cafeUp(); if (up) seenUp = true; else if (seenUp) cafeOff(); }, 250);
+                setTimeout(() => { if (cafeT && !seenUp && !cafeUp()) cafeOff(); }, 2000);   // 카페가 안 열렸으면 (다이어리를 아직 안 열었을 때 등)
+            }, true);
             new MutationObserver(ms => ms.forEach(r => r.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.classList.contains('modal')) watch(n); if (n.querySelectorAll) n.querySelectorAll('.modal').forEach(watch); }))).observe(document.body, { childList: true, subtree: true });
         })();
         /* ⚙️ 설정 창 칸 : 📖 다이어리 · ✋ 도구 · 🔊 소리·글꼴 · 💾 저장 (다시 열면 마지막에 본 칸) */
