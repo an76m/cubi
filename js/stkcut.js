@@ -131,6 +131,7 @@
     /* ✋ 손에 든 칼 : 다른 문구함은 내려놓고 · 💻 마우스를 따라와요 · 페이지를 누르면 그 자리부터 칼선 */
     function hold(on) {
         if (!S.on) on = false;
+        if (on && window.penRest) penRest();            // ✏️ 필기구는 구석 연필꽂이에서 쉬어요
         if (on && window.gdLetGo) gdLetGo();           // 🪡 핀셋 · 가위 … 들고 있던 것은 그 자리에
         S.held = !!on; document.body.classList.toggle('sk-held', S.held); document.body.classList.remove('sk-follow');
         if (S.kn) S.kn.classList.toggle('held', S.held);

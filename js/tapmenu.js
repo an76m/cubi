@@ -94,7 +94,7 @@
         function tmOpen(e) {
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
             if (window.bdGapAt && bdGapAt(e.clientX, e.clientY)) return;        // 🗂️ 바인더 가운데 링 자리는 종이가 아니라서 메뉴가 없어요 (도련 10-18 · js/skins.js)
-            if (typeof dw !== 'undefined' && dw.on) return;
+            if (typeof dw !== 'undefined' && dw.on && !dw.rest) return;
             const canvas = document.getElementById('canvasArea'), r = canvas.getBoundingClientRect();
             const k = r.width / (canvas.offsetWidth || r.width) || 1;
             tmAnchor = { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, t: Date.now() };
@@ -107,7 +107,7 @@
         /* 📌 놓아 둔 그림 · 글 위에서 나오는 메뉴 : 🎨 다듬기(js/elements.js elEditable) · ✥ 글씨체 · 사진 꾸미기(js/page.js openTextPanel) · ↕️ 순서 · 🗑️ 삭제 */
         function tmOpenElem(el, x, y, byTouch) {
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
-            if (typeof dw !== 'undefined' && dw.on) return;
+            if (typeof dw !== 'undefined' && dw.on && !dw.rest) return;
             if (!el || !el.isConnected) return;
             tmAnchor = null;
             selectElement(el);
@@ -160,7 +160,7 @@
             const t = e.touches[0], box = e.target.closest && e.target.closest('#canvasArea > .element-box');
             if (!box || e.target.closest('.rot-zone, .handle')) return;
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
-            if (typeof dw !== 'undefined' && dw.on) return;
+            if (typeof dw !== 'undefined' && dw.on && !dw.rest) return;
             const ta = box.querySelector('textarea');
             if (!ta || document.activeElement === ta) return;           // 글을 쓰는 중이면 기본 동작 (커서 · 글자 고르기)
             tmHoldPos = { x: t.clientX, y: t.clientY };

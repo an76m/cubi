@@ -1248,6 +1248,7 @@
         }
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
+            gdPenOff();
             const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
             if (prev) {
                 const fl = e && e.pointerType === 'touch' && gdFloatAt(prev);  // 👆 터치 (✏️ 펜은 마우스처럼 바꿔 들어요) : 떠 있던 것은 그 자리에서 아래로 톡 떨어져요 (도련 10-19 · 누른 자리로 순간이동하지 않게)
@@ -1283,16 +1284,8 @@
             document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구함
         }
         const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
-        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 오가기 (도련 10-21) : 그리기 · 메모 쓰기 중에 페이지의 문구를 누르면
-           구석 연필통 톡과 똑같이 끝내요 (쓴 글은 그림으로 붙고 · 든 필기구는 연필꽂이에) → 그 문구를 바로 들어요 */
-        function gdPenOff() {
-            for (let i = 0; i < 3; i++) {
-                const r = document.getElementById('pcRoom');
-                if (!document.body.classList.contains('draw-on') && !(r && !r.hidden)) return;
-                const m = document.getElementById('pcMini');
-                if (m && !m.hidden && m.offsetParent) m.click(); else if (typeof penDone === 'function') penDone();
-            }
-        }
+        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 다른 문구를 들면 필기구는 구석 연필꽂이에서 쉬어요 (끝은 구석 연필꽂이 톡만 · js/draw.js penRest) */
+        function gdPenOff() { if (window.penRest) penRest(); }
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;

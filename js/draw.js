@@ -43,27 +43,68 @@
 
         /* ---------- 그리기 모드 ---------- */
         function openDraw() {
-            if (dw.on) return;
+            if (dw.on) { if (penNote()) penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 연필꽂이를 다시 펼쳐요 (쓴 것 · 구석 연필꽂이 그대로)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             if (selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
             penBuildBar();
-            const canvas = drq('canvasArea');
-            const svg = document.createElementNS(DRAW_NS, 'svg');
-            svg.id = 'penLayer'; svg.setAttribute('class', 'draw-layer');
-            svg.innerHTML = '<g></g><circle class="draw-ring" r="10" cx="-99" cy="-99"/>';
-            canvas.appendChild(svg);
-            dw.svg = svg; dw.ring = svg.lastChild; dw.strokes = []; dw.hist = []; dw.cur = null; dw.on = true;
-            svg.addEventListener('pointerdown', penDown);
-            svg.addEventListener('pointermove', penMove);
-            svg.addEventListener('pointerup', penUp);
-            svg.addEventListener('pointercancel', penUp);
-            svg.addEventListener('pointerleave', () => penRing(null));
+            penMkLayer(); dw.strokes = []; dw.hist = []; dw.cur = null; dw.on = true; dw.rest = false;
             document.body.classList.add('draw-on');
             drq('penBar').hidden = false;
             penSetTool(dw.tool);
             if (penNote()) { drq('penBar').hidden = true; pcOpen(); }        // 📒 수첩 모드 : 아래 창 대신 연필꽂이
             penRender();
         }
+        function penMkLayer() {
+            const canvas = drq('canvasArea');
+            const svg = document.createElementNS(DRAW_NS, 'svg');
+            svg.id = 'penLayer'; svg.setAttribute('class', 'draw-layer');
+            svg.innerHTML = '<g></g><circle class="draw-ring" r="10" cx="-99" cy="-99"/>';
+            canvas.appendChild(svg);
+            dw.svg = svg; dw.ring = svg.lastChild;
+            svg.addEventListener('pointerdown', penDown);
+            svg.addEventListener('pointermove', penMove);
+            svg.addEventListener('pointerup', penUp);
+            svg.addEventListener('pointercancel', penUp);
+            svg.addEventListener('pointerleave', () => penRing(null));
+        }
+        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 필기구는 구석 연필꽂이를 톡 눌러야만 끝나요
+           - 다른 문구를 들면 '쉬는 중' : 쓴 것은 페이지에 붙고 · 든 필기구는 구석 연필꽂이에 쏙 · 구석 연필꽂이는 그대로 보여요
+           - 다시 쓰려면 구석 연필꽂이를 위로 밀거나 🗄️ 문구함의 연필꽂이 → 필기구를 뽑으면 다른 문구는 내려놔요 */
+        function penFlush() {                                                  // 지금까지 쓴 것만 페이지에 붙이고 계속 써요
+            const s = dw.strokes.slice(); if (!s.length) return;
+            dw.strokes = []; dw.hist = []; dw.cur = null; penRender();
+            const u = drq('penUndo'); if (u) u.disabled = true;
+            penAttach(s);
+        }
+        function pcStow() {                                                    // 든 필기구를 조용히 연필꽂이에 (끝내지 않아요)
+            const h = drq('pcHeld'); pcS.held = null; pcS.press = null; pcS.carry = null; pcS.drag = null;
+            if (h) { h.hidden = true; h.classList.remove('carry', 'in'); }
+            const n = drq('pcTipNote'); if (n) n.hidden = true;
+            if (drq('pcTools')) pcFill();
+        }
+        function penRest() {
+            if (pcS.memo) { pcMemoEnd(); return; }                             // 📝 메모 쓰기는 쓴 글 그대로 끝
+            if (!dw.on) return;
+            if (!penNote()) { penDone(); return; }                             // 🪟 고르는 창 모드는 예전처럼 ✓ 완료
+            if (dw.cur) { dw.strokes.push(dw.cur); dw.cur = null; }
+            dw.erasing = false; penRing(null);
+            penFlush(); pcStow(); pcShrink();
+            const m = drq('pcMini'); if (m) m.hidden = false; pcLayout();
+            if (dw.rest) return;
+            dw.rest = true; document.body.classList.remove('draw-on'); document.body.classList.add('pen-rest');
+            const r = drq('pcRoom'); if (r) r.classList.add('rest');
+        }
+        function penWake(open) {
+            if (!dw.on) return;
+            if (!dw.svg) penMkLayer(); else if (!dw.svg.isConnected) drq('canvasArea').appendChild(dw.svg);   // 쉬는 사이 페이지를 넘겼으면 새 페이지 위에
+            if (dw.rest) {
+                dw.rest = false; document.body.classList.remove('pen-rest'); document.body.classList.add('draw-on');
+                const r = drq('pcRoom'); if (r) r.classList.remove('rest');
+            }
+            if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo();     // 🪡 들고 있던 다른 문구는 내려놔요
+            if (open) { if (pcS.held) pcStow(); pcReopen(); }
+        }
+        window.penRest = penRest;
         function penPoint(e) { return penPointXY(e.clientX, e.clientY); }
         function penPointXY(x, y) {
             const c = drq('canvasArea'), r = c.getBoundingClientRect();
@@ -260,6 +301,9 @@
         function penDone() {
             const strokes = dw.strokes.slice();
             penClose();
+            penAttach(strokes);
+        }
+        function penAttach(strokes) {
             if (!strokes.length) return;
             let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
             strokes.forEach(s => s.pts.forEach(p => { const r = s.w / 2 + 2; x0 = Math.min(x0, p[0] - r); y0 = Math.min(y0, p[1] - r); x1 = Math.max(x1, p[0] + r); y1 = Math.max(y1, p[1] + r); }));
@@ -305,12 +349,13 @@
             penClose();
         }
         function penClose() {
-            dw.on = false; dw.cur = null; dw.snap = null; dw.strokes = []; dw.hist = []; dw.ring = null;
+            dw.on = false; dw.rest = false; dw.cur = null; dw.snap = null; dw.strokes = []; dw.hist = []; dw.ring = null;
             const l = drq('penLayer'); if (l) l.remove();
             dw.svg = null;
             const bar = drq('penBar'); if (bar) bar.hidden = true;
             pcClose();
-            document.body.classList.remove('draw-on');
+            document.body.classList.remove('draw-on', 'pen-rest');
+            const r = drq('pcRoom'); if (r) r.classList.remove('rest');
         }
 
         function penBuildBar() {
@@ -436,6 +481,7 @@
         }
         /* 뽑기 : 연필꽂이는 구석의 작은 연필꽂이로 · 뽑은 필기구만 손에 */
         function pcPick(o, e) {
+            if (dw.on) penWake(false);                                         // ✏️ 쉬다가 다시 뽑으면 다른 문구는 내려놔요
             pcS.drag = null; o.el.classList.remove('grab'); o.el.style.visibility = 'hidden';
             pcS.held = o;
             pcShrink();
@@ -459,6 +505,7 @@
         /* 구석 연필꽂이를 위로 밀면 다시 커져요 (손이 비어 있을 때 · 필기구를 더 뽑으려고) */
         function pcReopen() {
             const cup = drq('pcCup'); if (!cup || pcS.held) return;
+            if (dw.rest) penWake(false);
             drq('pcMini').hidden = true; drq('pcTipNote').hidden = true;
             cup.classList.remove('gone'); cup.style.transform = '';
         }
@@ -667,7 +714,7 @@
         ['keyup', 'click', 'scroll'].forEach(t => document.addEventListener(t, e => { if (pcS.memo && e.target === pcS.memo) { if (t === 'scroll' && pcS.memo.dataset.hl) mhlPaint(pcS.memo); mfAim(); } }, true));
         /* 그리는 동안에는 페이지 넘기기(끌기)를 막아요 */
         document.getElementById('diaryWrapper').addEventListener('pointerdown', e => {
-            if (dw.on && !e.target.closest('#penLayer')) e.stopPropagation();
+            if (dw.on && !dw.rest && !e.target.closest('#penLayer')) e.stopPropagation();
         }, true);
         window.openDraw = openDraw;
-        document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) penDone(); }, true);   // 🧭 그리는 중 하단 메뉴를 누르면 : 그린 것을 붙이고 그리기 끝 → 그 메뉴로 (도련 10-19)
+        document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) { if (penNote()) penFlush(); else penDone(); } }, true);   // 🧭 하단 메뉴를 누르면 : 쓴 것만 페이지에 붙여요 · 필기구는 손에 그대로 (도련 10-21 · 🪟 고르는 창 모드는 ✓ 완료)
