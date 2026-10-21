@@ -839,12 +839,14 @@
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
+            if (top && !pinBusy() && top.closest('.modal.snb-on')) return true;   // 📒 수첩 : 어디서든 핀셋이 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
             if (!top || pinBusy() || top.closest('.pel-hint, .snb-cover, #pageHeader, .tap-menu') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 수첩 표지 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
             if (top.closest(PIN_AREA)) return true;
             return top === document.body || top === document.documentElement || top.matches('.modal.snb-on') || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경 · 📒 수첩 뒤 배경지 포함)
         }
         function pinRel(x, y) {                                                  // 👆 핀셋과 상관있는 곳 (그 자리로 옮겨 가요) · 아니면 그 자리에 둥실
             const top = pinTop(x, y);
+            if (top && !pinBusy() && top.closest('.modal.snb-on')) return true;   // 📒 수첩 : 어디를 눌러도 그 자리로 (도련 10-22)
             return !!top && !pinBusy() && !!top.closest(PIN_AREA) && !top.closest('.rl-ruler, .sk-knife, button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .snb-cover, .bd-tool, .bd-back, .page-stamps');
         }
         const pinDev = e => e.pointerType === 'mouse' || e.pointerType === 'pen' ? 'pc' : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pad';   // ✏️ 펜(애플 펜슬 · S펜)은 마우스처럼 : 닿기 전 떠 있는 펜 끝도 따라와요 (펜 호버 · 도련 10-21)
@@ -862,7 +864,10 @@
         window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
         const PIN_WALL = '.modal:not(.snb-on) > .modal-content, .twz-say.on';   // 페이지 팝업메뉴(.tap-menu)는 피하지 않아요 (도련 10-19 · 메뉴가 핀셋 위에 떠요)
+        const PIN_COVER = '#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #stickerModal:not(.snb-on)[style*="display: flex"], #paperModal:not(.snb-on)[style*="display: flex"], #tteokModal:not(.snb-on)[style*="display: flex"], #leafModal:not(.snb-on)[style*="display: flex"]';
+        const pinCovered = () => !!document.querySelector(PIN_COVER);           // 🗂 문구함 · ✨ 스티커 창 · 🪟 고르는 창 : 든 문구는 그 창 뒤로 (비키지 않아요 · css · 도련 10-22)
         function dodgeBy(b) {                                                   // b : 떠 있는 도구의 테두리 → 비킬 거리 [dx, dy] (안 겹치면 null) · ✂️ 가위도 같이 써요 (js/skins.js scsFrame)
+            if (pinCovered()) return null;
             const vis = el => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== 'hidden' ? r : null; };
             const walls = [...document.querySelectorAll(PIN_WALL)].filter(el => !el.closest('.modal') || el.closest('.modal').style.display === 'flex').map(vis).filter(Boolean);
             if (!walls.length) return null;
