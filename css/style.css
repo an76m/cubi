@@ -3925,6 +3925,8 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1.5초) */
 /* ☕ 카페에 있는 동안은 손에 든 문구를 숨겨요 (js/settings.js · 도련 10-21) */
 body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
+/* 🗄️ 하얀 창(씰 종이 · 조각 봉투)이 떠 있을 때 문구함은 그 위로 (핀셋을 꺼내 바로 떼게 · 도련 10-21) */
+body:has(#pelRoom.show) #gdCabModal, body:has(#pcbRoom.show) #gdCabModal { z-index: 1700 !important; }
 /* ✨ 문구를 드는 순간 핑크빛 한 번 반짝 (js/skins.js toolGlow · 도련 10-21) · 안쪽 그림에 걸어 둥실 · 그림자 움직임과 안 부딪혀요 */
 .pick-glow > svg, .pick-glow > :first-child { animation: pickGlow .85s ease-out 1; }
 @keyframes pickGlow { 0% { filter: drop-shadow(0 0 0 rgba(255, 143, 192, 0)); } 30% { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px #ff8fc0) drop-shadow(0 0 20px rgba(255, 143, 192, .7)); } 100% { filter: drop-shadow(0 0 0 rgba(255, 143, 192, 0)); } }

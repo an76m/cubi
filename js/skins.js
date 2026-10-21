@@ -1290,10 +1290,17 @@
         function toolGlow(el) { if (!el) return; el.classList.remove('pick-glow'); void el.offsetWidth; el.classList.add('pick-glow'); clearTimeout(el._glowT); el._glowT = setTimeout(() => el.classList.remove('pick-glow'), 900); }
         window.toolGlow = toolGlow;
         function gdPenOff() { if (window.penRest) penRest(); }
+        /* 🪡 하얀 창(씰 종이 · 조각 봉투)이 떠 있어도 빈 곳 너머 페이지의 문구는 집을 수 있어요 (그 창에서 떼려면 핀셋이 필요해서 · 도련 10-21)
+           화면 가득한 캔버스(#pelCv · #pcbCv)의 그 자리가 비어 있을 때만 (종이 · 스티커 · 봉투 위는 그 창이 받아요) */
+        function gdUnderRoom(e) {
+            const cv = e.target && e.target.id && (e.target.id === 'pelCv' || e.target.id === 'pcbCv') ? e.target : null; if (!cv) return null;
+            try { const r = cv.getBoundingClientRect(), k = cv.width / (r.width || 1), a = cv.getContext('2d').getImageData(Math.round((e.clientX - r.left) * k), Math.round((e.clientY - r.top) * k), 1, 1).data[3]; if (a > 40) return null; /* 흐린 배경(알파 ~26)은 빈 곳 */ } catch (er) { return null; }
+            return document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('#innerPage > .bd-tool')).find(Boolean) || null;
+        }
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
-            const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool');
+            const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool') || gdUnderRoom(e);
             if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구함 = 들기
                 gdPenOff();                                                     // ✏️ 필기구를 쓰던 중이면 쓴 것은 붙이고 필기구는 연필꽂이에 → 이 문구를 들어요 (도련 10-21) · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
                 gdEat(e);

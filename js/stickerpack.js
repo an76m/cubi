@@ -310,6 +310,7 @@
         /* 누른 채 끌면 🏷️ 씰스티커처럼 손가락을 따라 가장자리부터 떼어져요 (js/peelfx.js pfxSeal) · 톡 누르면 저절로 떼어져 떠올라요 */
         function spkDown(e) {
             const it = e.target.closest('.spk-it'); if (!it) return;
+            if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(e.clientX, e.clientY); return; }   // 🪡 하얀 판에서 떼기는 핀셋으로 (도련 10-21)
             e.preventDefault(); spkPutBack();
             spkS.press = { it, x: e.clientX, y: e.clientY, seal: null };
             try { spkq('spkGrid').setPointerCapture(e.pointerId); } catch (er) {}

@@ -449,7 +449,7 @@
         const snbLock = () => !!window.gdTwz && !gdTwz();
         function snbLockAt(e) {
             if (!e.isTrusted || !snbLock() || !e.target.closest) return null;
-            const it = e.target.closest(SNB_STK); return it && it.closest('#stickerModal, #tteokModal') ? it : null;
+            const it = e.target.closest(SNB_STK); return it && !it.matches('.tk-it') && it.closest('#stickerModal.snb-on') ? it : null;   // 🪟 고르는 창은 스티커 시트를 그냥 골라요 → 뜰 때 하얀 창에서 핀셋으로 떼요 (도련 10-21) · 🧻 떡메는 핀셋 없이
         }
         function snbNudge(it) {
             try { it.animate([{ rotate: '0deg' }, { rotate: '4deg' }, { rotate: '-4deg' }, { rotate: '0deg' }], { duration: 300 }); } catch (er) {}

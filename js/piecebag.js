@@ -304,7 +304,9 @@
             e.preventDefault(); const P = [e.clientX, e.clientY];
             const cap = () => { try { S.cv.setPointerCapture(e.pointerId); } catch (er) {} };
             const h = pcbHeld();
+            const noTwz = () => { if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return true; } return false; };   // 🪡 조각 집기 · 벗기기는 핀셋으로 (봉투 뜯기는 손으로 · 도련 10-21)
             if (h && !h.anim) {                                                  // 1) 손에 든 조각 : 뒷종이 벗기기
+                if ((pcbEdge(h, P).d < PCB_GRAB || h.half) && noTwz()) return;
                 const ei = pcbEdge(h, P);
                 if (h.half && (pcbDist(P, h.half.F) < 56 || ei.inside || ei.d < PCB_GRAB)) { cap(); pcbStartPeel(h, h.half.C, P, h.half.F, true); pcbSay('그대로 쭉~ 마저 벗겨요'); return; }
                 if (ei.d < PCB_GRAB) { cap(); const C = pcbToStage(h, ei.bp[0], ei.bp[1]); pcbStartPeel(h, C, P, C, false); pcbSay('살살… 뒷종이에서 떼어내는 중'); return; }
@@ -317,7 +319,7 @@
                 if (pcbIn(P, B)) { cap(); S.drag = { mode: 'bag', start: P, last: P }; return; }   // 누르면 안내 · 끌면 옮기기
             } else if (!b.busy && pcbIn(P, S.SMALL, 10)) { cap(); S.drag = { mode: 'bag', start: P, last: P }; return; }
             for (const st of S.pieces.filter(p => p.state === 'loose' && !p.anim).sort((x, y) => y.z - x.z)) {   // 3) 조각 집기
-                const ei = pcbEdge(st, P); if (ei.inside || ei.d < 8) { pcbLift(st); return; }
+                const ei = pcbEdge(st, P); if (ei.inside || ei.d < 8) { if (noTwz()) return; pcbLift(st); return; }
             }
             if (h && !h.anim) { pcbPutBack(h); return; }                         // 4) 빈 곳 : 들고 있던 걸 내려놓기
             if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e);           // 5) 날짜바 위 → 페이지 옮기기 (js/page.js)

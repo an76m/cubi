@@ -244,6 +244,7 @@
             }
             /* 스티커 안쪽 가장자리는 넉넉히(PEL_GRAB) · 바깥(종이 빈 곳)은 조금만(PEL_GRAB_OUT) → 나머지 빈 곳은 종이 옮기기 */
             if (bp && Math.sqrt(best) < (hit === bo ? PEL_GRAB : PEL_GRAB_OUT)) {
+                if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
                 pelPick(bo); const st = S.st, C = pelToStage(st, bp[0], bp[1]); st.snap = null;
                 S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
                 try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
