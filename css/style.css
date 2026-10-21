@@ -3926,7 +3926,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 /* ☕ 카페에 있는 동안은 손에 든 문구를 숨겨요 (js/settings.js · 도련 10-21) */
 body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
 /* 🗂 문구함 · ✨ 스티커 창 · 🪟 고르는 창이 떠 있으면 손에 든 문구(핀셋 · 가위 · 칼 · 필기구)는 그 창 뒤로 (도련 10-22 · 📒 수첩은 위 · js/elements.js pinCovered) */
-body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #stickerModal:not(.snb-on)[style*="display: flex"], #paperModal:not(.snb-on)[style*="display: flex"], #tteokModal:not(.snb-on)[style*="display: flex"], #leafModal:not(.snb-on)[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }
+body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #stickerModal:not(.snb-on)[style*="display: flex"], #paperModal:not(.snb-on)[style*="display: flex"], #tteokModal:not(.snb-on)[style*="display: flex"], #leafModal:not(.snb-on)[style*="display: flex"]):not(:has(.modal.snb-on[style*="display: flex"])) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 📒 수첩이 떠 있으면 (문구함과 같이 떠도) 늘 창 앞 */
 /* 🗄️ 하얀 창(씰 종이 · 조각 봉투)이 떠 있을 때 문구함은 그 위로 (핀셋을 꺼내 바로 떼게 · 도련 10-21) */
 body:has(#pelRoom.show) #gdCabModal, body:has(#pcbRoom.show) #gdCabModal { z-index: 1700 !important; }
 /* ✨ 문구를 드는 순간 핑크빛 한 번 반짝 (js/skins.js toolGlow · 도련 10-21) · 안쪽 그림에 걸어 둥실 · 그림자 움직임과 안 부딪혀요 */
