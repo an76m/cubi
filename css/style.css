@@ -8,7 +8,8 @@
             --primary-accent: #ff6b81;
             --pick: #ffd9e8;              /* 🩷 선택 표시는 늘 파스텔 핑크 (도련 10-21 · 창의 고른 칸 · 탭 · 페이지 스티커 선택 손잡이 …) · 연해서 글씨는 흰색 말고 진한 장미색 */
             --pick-line: #ffb3d1;         /* 🩷 페이지 스티커 선택 손잡이 (너무 연하면 안 보여서 조금 진하게) */
-            --pick-ink: #b1407a;          /* 🩷 파스텔 핑크 위 · 고른 칸 글씨 (진하게 · 도련 10-21) */
+            --pick-ink: #b1407a;
+            --pick-sub: #c97ea2;          /* 🩷 고른 칸 부제 (제목보다 흐리게) */          /* 🩷 파스텔 핑크 위 · 고른 칸 글씨 (진하게 · 도련 10-21) */
             --system-font: system-ui, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', Roboto, sans-serif;
             --font-family: var(--system-font);
 
@@ -3010,7 +3011,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .snb-pick .btn b { font-size: 14px; }
 .snb-pick .btn small { font-size: 11px; color: #a08a94; font-weight: normal; }
 .snb-pick .btn.on { background: var(--pick); border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
-.snb-pick .btn.on small { color: #fff; }
+.snb-pick .btn.on small, .pg-set-seg .btn.on small, .stk-tab.on small, .lib-cat.on small, .lib-layout-btn.on small, .bgm-tab.on small, .stu-tab.on small, .lb-tabs button.on small, .dd-kinds button.on small, .lm-chips button.on small { color: var(--pick-sub); font-weight: normal; opacity: 1; }   /* 🩷 고른 칸의 부제 : 제목(--pick-ink)보다 흐린 장미색 (도련 10-21) */
 
 .modal.snb-on > .modal-content { position: relative; box-sizing: border-box; width: min(94vw, 640px); max-width: calc(100vw - 12px); min-width: 0; max-width: none; height: min(86vh, 920px); max-height: none;
     overflow: hidden; padding: 12px 12px 8px 34px; border-radius: 8px 22px 22px 8px;
