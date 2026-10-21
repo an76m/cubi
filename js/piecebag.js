@@ -477,4 +477,4 @@
             pcbGain.gain.setTargetAtTime(v, ac.currentTime, .03);
         }
 
-        window.openPieceBag = openPieceBag; window.closePieceBag = closePieceBag;
+        window.openPieceBag = openPieceBag; window.closePieceBag = closePieceBag; window.pcbNoise = pcbNoise;   // 🧩 수첩 속 봉투 뜯는 소리도 같게 (js/stknote.js)

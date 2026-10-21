@@ -383,6 +383,11 @@
                     openPaperSheet(pp.src, { el: pp, down: { x: e.clientX, y: e.clientY, id: e.pointerId } });
                     return;
                 }
+                const bg = e.target.closest('.snb-bag');
+                if (bg && body.contains(bg)) {                                     // 🧩 조각 봉투 : 수첩 안에서 바로 뜯어요 (snbBagGrab)
+                    snb.press = null; e.preventDefault(); e.stopPropagation(); snb.noClick = Date.now() + 700;
+                    snbBagGrab(bg, e); return;
+                }
                 const tk = m.id === 'tteokModal' && e.target.closest('.tk-it');
                 if (tk && body.contains(tk) && window.tkNoteGrab) {                // 🧻 떡메 : 수첩 안에서 바로 뜯어요 (js/leafpad.js tkNoteGrab)
                     snb.press = null; e.preventDefault(); e.stopPropagation(); snb.noClick = Date.now() + 700;
@@ -674,7 +679,10 @@
                 g.textContent = ''; const im = document.createElement('img'); im.className = 'snb-paper'; im.src = src; im.alt = ''; im.draggable = false; g.appendChild(im);
                 return;
             }
-            if (sh._bag) { snbBagDraw(sh, g, urls); return; }
+            if (sh._bag) { sh._fill = { urls, orig, k }; snbBagDraw(sh, g, urls); return; }
+            snbPcLay(g, urls, orig, k);
+        }
+        function snbPcLay(g, urls, orig, k) {                                  // 시트에 그림 늘어놓기 (한 장에 다 들어가는 크기)
             const W = g.clientWidth, H = g.clientHeight, GAP = 8;
             let pc = Math.floor(Math.sqrt(W * H / urls.length)) - GAP;          // 시트 한 장에 다 들어가는 크기
             while (pc > 28 && Math.floor((W + GAP) / (pc + GAP)) * Math.floor((H + GAP) / (pc + GAP)) < urls.length) pc -= 2;
@@ -686,22 +694,75 @@
                 g.appendChild(p);
             });
         }
-        /* 🧩 수첩 속 조각 봉투 : 비닐 창으로 조각이 살짝 보이는 봉투 한 개 → 톡 누르면 🪟 고르는 창과 똑같이 화면 가운데에 봉투가 나와요
-           (윗부분 점선을 밀어 뜯으면 조각이 와르르 · 다 쓰면 수첩이 다시 떠요 · js/piecebag.js · js/stk-basic.js stkBasicOpen · js/stickermaker.js smUse) */
+        /* 🧩 수첩 속 조각 봉투 (도련 10-21) : 비닐 창으로 조각이 살짝 보이는 봉투 → 수첩 안에서 바로 뜯어요
+           - 윗부분 점선을 옆으로 쓱 밀면 띠가 들리며 '찌이익' → 다 뜯으면 띠가 휙 날아가고 조각들이 봉투에서 톡톡 튀어나와 시트에 놓여요
+           - 그다음은 다른 시트처럼 하나씩 돌돌 말려 떼어 붙여요 (🪡 핀셋) · 수첩을 다시 열면 늘 새 봉투
+           - 덜 뜯고 놓으면 띠가 제자리로 · 톡 누르면 뜯는 법을 알려 줘요 */
         function snbBagDraw(sh, g, urls) {
             g.textContent = '';
-            const b = document.createElement('button'); b.type = 'button'; b.className = 'snb-bag'; b.style.setProperty('--c', sh._bagC);
-            b.setAttribute('aria-label', '조각 봉투 뜯기');
+            const b = document.createElement('div'); b.className = 'snb-bag'; b.style.setProperty('--c', sh._bagC);
+            b.setAttribute('role', 'button'); b.setAttribute('aria-label', '조각 봉투 : 윗부분 점선을 옆으로 밀어 뜯어요');
             const win = urls.slice(0, 9).map((u, i) => `<img src="${u}" alt="" draggable="false" style="--r:${((i * 37) % 31) - 15}deg">`).join('');
-            b.innerHTML = `<span class="snb-bag-top"></span><span class="snb-bag-win">${win}</span><small>조각 ${urls.length}개 · 톡 눌러 뜯어요 ✂️</small>`;
-            b.addEventListener('click', e => {
-                e.stopPropagation();
-                if (Date.now() < snb.noClick) return;                           // 밀어서 넘긴 거면 그대로
-                const o = sh._bag; if (!o || !o.isConnected) return;
-                const k = o.classList.contains('smk-bag') ? o.querySelector('button') : o;
-                if (k) k.click();
-            });
+            b.innerHTML = `<span class="snb-bag-rip"><i>◀ 여기를 쭉 뜯어요 ▶</i></span><span class="snb-bag-top"><i class="snb-bag-cut"></i></span><span class="snb-bag-win">${win}</span><small>조각 ${urls.length}개 · 점선을 옆으로 밀어 뜯어요 ✂️</small>`;
             g.appendChild(b);
+        }
+        function snbBagGrab(bg, e) {
+            const sh = bg.closest('.snb-sh'); if (!sh || sh._tearing || !sh._fill) return;
+            const rip = bg.querySelector('.snb-bag-rip'), cut = bg.querySelector('.snb-bag-cut'), W = bg.clientWidth || 200;
+            const x0 = e.clientX; let last = e.clientX, lt = performance.now(), dir = 0, tear = 0, moved = 0;
+            rip.style.transition = cut.style.transition = 'none';
+            const draw = () => {
+                rip.style.transformOrigin = dir > 0 ? '100% 100%' : '0% 100%';
+                rip.style.transform = `rotate(${-dir * tear * 10}deg) translateY(${-tear * 5}px)`;
+                cut.style.left = dir > 0 ? '0' : 'auto'; cut.style.right = dir > 0 ? 'auto' : '0'; cut.style.width = (tear * 100) + '%';
+            };
+            const off = () => { removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); if (window.pcbNoise) pcbNoise(0); };
+            const mv = ev => {
+                if (ev.pointerId !== e.pointerId) return; ev.preventDefault();
+                const dx = ev.clientX - last, now = performance.now(), sp = Math.abs(dx) / Math.max(1, now - lt); last = ev.clientX; lt = now; moved += Math.abs(dx);
+                if (!dir && Math.abs(ev.clientX - x0) > 6) dir = Math.sign(ev.clientX - x0);
+                if (dir && dx * dir > 0) { tear = Math.min(1, tear + Math.abs(dx) / (W * .8)); if (window.pcbNoise) pcbNoise(Math.min(.4, sp * .35)); }
+                else if (window.pcbNoise) pcbNoise(0);
+                if (dir) draw();
+                if (tear >= 1) { off(); snbBagOpen(sh, bg, dir); }
+            };
+            const up = ev => {
+                if (ev.pointerId !== e.pointerId) return; off();
+                snb.noClick = Date.now() + 400;
+                rip.style.transition = cut.style.transition = 'transform .3s cubic-bezier(.3,1.5,.5,1), width .3s ease'; rip.style.transform = ''; cut.style.width = '0';   // 덜 뜯으면 제자리로
+                if (moved < 6) {                                                // 톡 : 뜯는 법 알려 주기
+                    const t = bg.querySelector('small'); t.classList.remove('snb-bag-say'); void t.offsetWidth; t.classList.add('snb-bag-say');
+                    try { rip.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 420 }); } catch (er) {}
+                }
+            };
+            addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+        }
+        function snbBagOpen(sh, bg, dir) {
+            sh._tearing = true; snb.noClick = Date.now() + 900;
+            if (navigator.vibrate) try { navigator.vibrate(20); } catch (er) {}
+            const rip = bg.querySelector('.snb-bag-rip');
+            try { rip.animate([{ transform: rip.style.transform || 'none', opacity: 1 }, { transform: `translate(${dir * 70}px, -90px) rotate(${-dir * 50}deg)`, opacity: 0 }], { duration: 480, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'forwards' }); } catch (er) { rip.style.opacity = 0; }
+            try { bg.animate([{ scale: 1 }, { scale: 1.07 }, { scale: .97 }, { scale: 1 }], { duration: 320 }); } catch (er) {}
+            setTimeout(() => {
+                if (!sh.isConnected) return;
+                const g = sh.querySelector('.snb-sh-in'), sr = sh.getBoundingClientRect(), br = bg.getBoundingClientRect(), wr = bg.querySelector('.snb-bag-win').getBoundingClientRect();
+                bg.style.cssText += `;position:absolute;left:${br.left - sr.left}px;top:${br.top - sr.top}px;width:${br.width}px;height:${br.height}px;margin:0;animation:none`;
+                sh.appendChild(bg);                                             // 봉투는 시트 위에 그대로 · 아래에 조각을 늘어놓고 봉투에서 튀어나오게
+                const f = sh._fill; snbPcLay(g, f.urls, f.orig, f.k);
+                const cx = wr.left + wr.width / 2, cy = wr.top + wr.height * .4, ps = [...g.querySelectorAll('.snb-pc')];
+                ps.forEach((p, i) => {
+                    const r = p.getBoundingClientRect(), dx = cx - (r.left + r.width / 2), dy = cy - (r.top + r.height / 2), sp = ((i * 53) % 41) - 20;
+                    try { p.animate([
+                        { transform: `translate(${dx}px, ${dy}px) scale(.25) rotate(${sp}deg)`, opacity: 0 },
+                        { offset: .45, transform: `translate(${dx * .45}px, ${dy * .45 - 46}px) scale(.85) rotate(${-sp}deg)`, opacity: 1 },
+                        { offset: .8, transform: 'translate(0, -6px) scale(1.06)' },
+                        { transform: 'none', opacity: 1 }], { duration: 620, delay: 60 + i * 45, easing: 'ease-out', fill: 'backwards' }); } catch (er) {}
+                });
+                if (window.sfx) try { sfx('pop'); } catch (er) {}
+                const end = 60 + ps.length * 45 + 420;
+                try { bg.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.92)' }], { duration: 380, delay: end, fill: 'forwards' }).onfinish = () => bg.remove(); }
+                catch (er) { setTimeout(() => bg.remove(), end); }
+            }, 220);
         }
         /* ---------- 🧾 시트에서 돌돌 말려 떼기 (js/peelfx.js pfxSeal · 🍭 포인트스티커 판과 같은 떼기)
            누른 채 끌면 가장자리부터 말려 올라오다 다 떼어지면 손가락을 따라와요 → 페이지 위에 놓으면 그 자리 · 그 각도로 붙어요
