@@ -551,10 +551,13 @@
            - 알림 · 확인 창(customAlertModal · showMsg)은 그 위에 떠요 (밑의 창을 닫지 않아요)
            - 스티커를 떼는 창(🏷️ 흰 종이 · 🧩 조각 봉투 · 🍭 포인트 판 · 📄 모조지 · 🧻 떡메)도 새 창이 뜨면 닫아요
            - 옛 창의 ✕ 가 다른 창을 다시 띄우면(스티커 창으로 돌아가기 등) 0.35초 안에 뜬 그 창은 바로 접어요 → 새 창이 그대로 맨 위
-           - 🗄️ 문구함은 다른 창과 같이 떠 있어요 (꾸미다가 문구는 아무 때나 · 도련 10-21) · 하단 ☕ 카페 · ⚙ 설정을 누를 때만 닫혀요
+           - 🗄️ 문구함은 스티커를 붙일 때만 써서 ✨ 스티커 창(스티커 · 고르는 창 · 메모지 · 떡메 · 속지)하고만 같이 떠요 (도련 10-21)
+             그 밖의 창(📒 다이어리 · ⚙ 설정 · 카페 …)이 뜨면 문구함도 닫히고 · 문구함을 열면 그 밖의 창은 닫혀요
            - 가장 나중에 뜬 창이 맨 위 (z 1001) */
         (function winOne() {
-            const KEEP = new Set(['customAlertModal']), SIDE = new Set(['gdCabModal']);
+            const KEEP = new Set(['customAlertModal']), CAB = 'gdCabModal';
+            const STK = new Set(['stickerMakeModal', 'stickerModal', 'paperModal', 'tteokModal', 'leafModal']);   // 문구함과 같이 뜨는 스티커 창
+            const pair = (a, b) => (a === CAB && STK.has(b)) || (b === CAB && STK.has(a));
             const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['spkRoom', 'closeStickerPack'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
             const vis = m => m.style.display === 'flex' || m.style.display === 'block';
             const seen = new WeakMap(); let busy = false, last = null, lastAt = 0;
@@ -566,12 +569,11 @@
             function opened(m) {
                 if (busy || KEEP.has(m.id)) return;
                 document.querySelectorAll('.modal').forEach(o => { if (o !== m && o.style.zIndex === '1001') o.style.zIndex = ''; }); m.style.zIndex = '1001';   // 나중에 뜬 창이 위
-                if (SIDE.has(m.id)) return;                                     // 🗄️ 문구함은 다른 창을 닫지 않아요
                 if (last && last !== m && vis(last) && performance.now() - lastAt < 350) { m.style.display = 'none'; return; }   // 옛 창을 닫다가 다시 뜬 창
                 busy = true; last = m; lastAt = performance.now();
                 try {
-                    document.querySelectorAll('.modal').forEach(o => { if (o !== m && !KEEP.has(o.id) && !SIDE.has(o.id) && vis(o)) shut(o); });
-                    ROOMS.forEach(([id, fn]) => { const r = document.getElementById(id); if (r && r.classList.contains('show') && typeof window[fn] === 'function') window[fn](); });
+                    document.querySelectorAll('.modal').forEach(o => { if (o !== m && !KEEP.has(o.id) && !pair(m.id, o.id) && vis(o)) shut(o); });
+                    if (m.id !== CAB) ROOMS.forEach(([id, fn]) => { const r = document.getElementById(id); if (r && r.classList.contains('show') && typeof window[fn] === 'function') window[fn](); });
                 } finally { busy = false; }
             }
             function watch(m) {
@@ -579,10 +581,9 @@
                 new MutationObserver(() => { const v = vis(m), was = seen.get(m); seen.set(m, v); if (v && !was) opened(m); }).observe(m, { attributes: true, attributeFilter: ['style'] });
             }
             document.querySelectorAll('.modal').forEach(watch);
-            document.addEventListener('click', e => {                           // ☕ 카페 · ⚙ 설정 버튼만 🗄️ 문구함을 닫아요
-                if (!e.target.closest || !e.target.closest('.toolbar .tb-cafe, .toolbar .tb-set')) return;
-                const c = document.getElementById('gdCabModal'); if (c && vis(c)) closeModal('gdCabModal');
-                if (e.target.closest('.tb-cafe')) document.querySelectorAll('.modal').forEach(o => { if (!KEEP.has(o.id) && vis(o)) shut(o); });   // ☕ 카페 마을은 창(.modal)이 아니라서 떠 있던 창을 직접 닫아요
+            document.addEventListener('click', e => {                           // ☕ 카페 마을은 창(.modal)이 아니라서 떠 있던 창(문구함 포함)을 직접 닫아요
+                if (!e.target.closest || !e.target.closest('.toolbar .tb-cafe')) return;
+                document.querySelectorAll('.modal').forEach(o => { if (!KEEP.has(o.id) && vis(o)) shut(o); });
             }, true);
             new MutationObserver(ms => ms.forEach(r => r.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.classList.contains('modal')) watch(n); if (n.querySelectorAll) n.querySelectorAll('.modal').forEach(watch); }))).observe(document.body, { childList: true, subtree: true });
         })();
