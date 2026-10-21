@@ -91,7 +91,8 @@
             penFlush();
             if (pcS.held) {                                                    // ✏️ 든 필기구는 사라지지 않고 그 자리에 내려놔요 (도련 10-21 · 톡 누르면 다시 들어요)
                 pcS.laid = pcS.held; pcS.held = null; pcS.press = null; pcS.carry = null;
-                const h = drq('pcHeld'); h.classList.remove('carry', 'in'); h.classList.add('laid');
+                const h = drq('pcHeld'), b = h.getBoundingClientRect(); h.classList.remove('carry', 'in'); h.classList.add('laid');
+                h.style.transform = `translate(${b.left + b.width / 2}px, ${b.top + b.height / 2}px)${handFlip()} rotate(${PC_ANG + 180}deg) translate(-15px, -75px)`;   // 놓인 필기구는 거꾸로 (손잡이 아래 · 🪡 핀셋처럼 · 도련 10-21)
                 const n = drq('pcTipNote'); if (n) n.hidden = true;
             }
             pcShrink();
@@ -416,8 +417,8 @@
                 const h = drq('pcHeld'); pcS.laid = null; h.classList.remove('laid');
                 penWake(false);
                 pcS.held = o; dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.size[o.tool] = o.size; penSetTool(o.tool);
-                const t = pcS.tip || [e.clientX, e.clientY];
-                pcS.carry = { id: e.pointerId, off: [t[0] - e.clientX, t[1] - e.clientY] }; h.classList.add('carry');
+                pcS.carry = { id: e.pointerId, off: [0, 0] }; h.classList.add('carry'); pcHeldAt(e.clientX, e.clientY);   // 집은 자리에 연필심 (다시 바로 든 모양으로)
+                window.toolGlow && toolGlow(h);
                 if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
             });
             const mini = drq('pcMini');
@@ -506,6 +507,7 @@
             const h = drq('pcHeld'); h.innerHTML = pcSvg(o); h.hidden = false; h.classList.add('carry');
             pcS.carry = { id: e.pointerId, off: [0, 0] };                         // 뽑은 손 그대로 들고 있어요 (연필심 = 손가락)
             pcHeldAt(e.clientX, e.clientY);
+            if (window.toolGlow) toolGlow(h);                                  // ✨ 뽑는 순간 한 번 반짝
             if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
             const note = drq('pcTipNote'); note.hidden = false; clearTimeout(pcS.noteTm);
             note.innerHTML = pcS.memo ? '이제 글을 써요 · 다 쓰면 <b>구석 연필꽂이</b>을 톡 ✏️' : '다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️'; pcS.noteTm = setTimeout(() => { note.hidden = true; }, 4200);

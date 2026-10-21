@@ -3905,6 +3905,10 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.punch.press svg { transform: scale(.9); }
 /* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1초) */
+/* ✨ 문구를 드는 순간 핑크빛 한 번 반짝 (js/skins.js toolGlow · 도련 10-21) · 안쪽 그림에 걸어 둥실 · 그림자 움직임과 안 부딪혀요 */
+.pick-glow > svg, .pick-glow > :first-child { animation: pickGlow .85s ease-out 1; }
+@keyframes pickGlow { 0% { filter: drop-shadow(0 0 0 rgba(255, 143, 192, 0)); } 30% { filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px #ff8fc0) drop-shadow(0 0 20px rgba(255, 143, 192, .7)); } 100% { filter: drop-shadow(0 0 0 rgba(255, 143, 192, 0)); } }
+@media (prefers-reduced-motion: reduce) { .pick-glow > svg, .pick-glow > :first-child { animation: none; } }
 @keyframes gdBob { from { translate: 0 0; } to { translate: 0 -6px; } }
 body.gd-press .bd-tool.held, body.gd-press .scs-cur, body.gd-press .scs-aim, body.gd-press .sk-knife, .bd-tool.held.snap, .sk-knife.grab { animation: none; }
 @media (prefers-reduced-motion: reduce) { .bd-tool.held, .scs-cur, .scs-aim, .sk-knife { animation: none; } }

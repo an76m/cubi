@@ -851,6 +851,7 @@
         function pinStart() {
             pinEl = document.createElement('div'); pinEl.className = 'twz pin-cur in bob'; pinEl.setAttribute('aria-hidden', 'true'); pinEl.innerHTML = pinSvg();
             document.body.appendChild(pinEl); pinFollow = false;
+            if (window.toolGlow) toolGlow(pinEl);                              // ✨ 든 순간 한 번 반짝 (js/skins.js)
             if (pinLast) pinPut(...pinLast);
             pinWatch = setInterval(() => { if (pinOff()) pinStop(); else pinDodge(); }, 120);   // 메뉴 · 창이 가리면 비켜요 (pinDodge)
         }

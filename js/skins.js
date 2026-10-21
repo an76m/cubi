@@ -1260,7 +1260,8 @@
             if (window.skLetGo) skLetGo();                                   // ✂️ 들고 있던 칼은 그 자리에 (js/stkcut.js)
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
             gdFollow(x, y, e);
-            if (id === 'twz' && e && window.pinAt) pinAt(e);                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
+            if (id === 'twz' && e && window.pinAt) pinAt(e);
+            if (id !== 'twz') { if (gdScs()) { scs.ang = SCS_LAY; scs.to = SCS_REST; } setTimeout(() => toolGlow(gdScs() ? scs.el : el), 0); }   // ✂️ 놓인 모양에서 든 모양으로 스르르 돌아요 · ✨ 한 번 반짝                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
             if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
         }
         function gdFloatAt(el) {                                                // 떠 있는 문구함의 가운데 (다이어리 자리) : 🪡 핀셋 · ✂️ 가위는 화면 위에 따로 떠 있어요
@@ -1285,6 +1286,9 @@
         }
         const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
         /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 다른 문구를 들면 필기구는 구석 연필꽂이에서 쉬어요 (끝은 구석 연필꽂이 톡만 · js/draw.js penRest) */
+        /* ✨ 문구를 드는 순간 핑크빛으로 한 번 반짝 (도련 10-21 · 모든 문구 : 핀셋 · 가위 · 칼 · 필기구 · 펀칭기 · 테이프) */
+        function toolGlow(el) { if (!el) return; el.classList.remove('pick-glow'); void el.offsetWidth; el.classList.add('pick-glow'); clearTimeout(el._glowT); el._glowT = setTimeout(() => el.classList.remove('pick-glow'), 900); }
+        window.toolGlow = toolGlow;
         function gdPenOff() { if (window.penRest) penRest(); }
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
@@ -1352,7 +1356,8 @@
            - 오리는 동안 : 조금 갈 때마다(SCS_STEP) 날이 싹둑 닫혔다 벌어져요 (소리 없음 · 도련 10-19) · 가위 끝이 오리는 방향으로 부드럽게 돌아요
            - 자른 선은 싹둑 한 번마다 한 토막씩 늘어나요 (papermaker 의 d.shown) · 페이지 빈 곳을 누르면 허공에 싹둑
            - 종이는 가만히 있어요 (칼선 없이 마음대로 오리니까 · 도련 10-19) */
-        const SCS_STEP = 12, SCS_MAX = 14, SCS_REST = -20;                      // 싹둑 한 번 거리(px) · 가장 벌린 각도 · 쉬는 기울기(도) (10-21 : 더 자주 싹둑싹둑 · 도련)
+        const SCS_STEP = 12, SCS_MAX = 14, SCS_REST = -62, SCS_LAY = -20;   // SCS_REST = 든 가위 기울기 (날이 왼쪽 위 · 도련 10-21) · SCS_LAY = 놓인 가위 (css .bd-tool.scissors)
+                             // 싹둑 한 번 거리(px) · 가장 벌린 각도 · 쉬는 기울기(도) (10-21 : 더 자주 싹둑싹둑 · 도련)
         const SCS_WALK = 46, SCS_GAP = 120;                                     // 들고 다닐 때도 이만큼 가면 싹둑 · 싹둑 사이 최소 시간(ms)
         /* 🎯 가위 조준 (도련 10-21) : 누르는 자리(손가락 · 마우스) 위로 SCS_LIFT 만큼 띄워서 가위가 손에 안 가려져요
            - 진짜 자르는 자리 = 가위 날 끝 = 빨간 십자선 (.scs-aim · FPS 게임처럼) → 십자선이 지나간 대로 오려져요 (js/papermaker.js scsAim)
