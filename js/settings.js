@@ -584,6 +584,7 @@
             document.addEventListener('click', e => {                           // ☕ 카페 마을은 창(.modal)이 아니라서 떠 있던 창(문구함 포함)을 직접 닫아요
                 if (!e.target.closest || !e.target.closest('.toolbar .tb-cafe')) return;
                 document.querySelectorAll('.modal').forEach(o => { if (!KEEP.has(o.id) && vis(o)) shut(o); });
+                ROOMS.forEach(([id, fn]) => { const r = document.getElementById(id); if (r && r.classList.contains('show') && typeof window[fn] === 'function') window[fn](); });   // 🚪 스티커 떼는 창도
             }, true);
             /* ☕ 카페에 있는 동안은 손에 든 문구(핀셋 · 가위 · 칼 · 필기구 …)를 숨겨요 → 카페 창이 다 닫히면 다시 (도련 10-21 · css body.cafe-on)
                - 카페에서 연 창(배경화면 · 포춘카드 …)도 카페 · 다른 하단 메뉴를 누르면 카페 끝 */
