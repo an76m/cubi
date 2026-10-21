@@ -77,8 +77,8 @@
             penAttach(s);
         }
         function pcStow() {                                                    // 든 필기구를 조용히 연필꽂이에 (끝내지 않아요)
-            const h = drq('pcHeld'); pcS.held = null; pcS.press = null; pcS.carry = null; pcS.drag = null;
-            if (h) { h.hidden = true; h.classList.remove('carry', 'in'); }
+            const h = drq('pcHeld'); pcS.held = null; pcS.laid = null; pcS.press = null; pcS.carry = null; pcS.drag = null;
+            if (h) { h.hidden = true; h.classList.remove('carry', 'in', 'laid'); }
             const n = drq('pcTipNote'); if (n) n.hidden = true;
             if (drq('pcTools')) pcFill();
         }
@@ -88,7 +88,13 @@
             if (!penNote()) { penDone(); return; }                             // 🪟 고르는 창 모드는 예전처럼 ✓ 완료
             if (dw.cur) { dw.strokes.push(dw.cur); dw.cur = null; }
             dw.erasing = false; penRing(null);
-            penFlush(); pcStow(); pcShrink();
+            penFlush();
+            if (pcS.held) {                                                    // ✏️ 든 필기구는 사라지지 않고 그 자리에 내려놔요 (도련 10-21 · 톡 누르면 다시 들어요)
+                pcS.laid = pcS.held; pcS.held = null; pcS.press = null; pcS.carry = null;
+                const h = drq('pcHeld'); h.classList.remove('carry', 'in'); h.classList.add('laid');
+                const n = drq('pcTipNote'); if (n) n.hidden = true;
+            }
+            pcShrink();
             const m = drq('pcMini'); if (m) m.hidden = false; pcLayout();
             if (dw.rest) return;
             dw.rest = true; document.body.classList.remove('draw-on'); document.body.classList.add('pen-rest');
@@ -404,6 +410,16 @@
             document.body.appendChild(r);
             r.querySelector('.pc-box').onclick = () => { if (!pcS.held && window.openPencase) openPencase(); };   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
+            drq('pcHeld').addEventListener('pointerdown', e => {               // ✏️ 내려놓은 필기구를 톡 = 다시 들기 (다른 문구는 내려놔요 · 끌면 그대로 따라와요)
+                const o = pcS.laid; if (!o || e.button > 0) return;
+                e.preventDefault(); e.stopPropagation();
+                const h = drq('pcHeld'); pcS.laid = null; h.classList.remove('laid');
+                penWake(false);
+                pcS.held = o; dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.size[o.tool] = o.size; penSetTool(o.tool);
+                const t = pcS.tip || [e.clientX, e.clientY];
+                pcS.carry = { id: e.pointerId, off: [t[0] - e.clientX, t[1] - e.clientY] }; h.classList.add('carry');
+                if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
+            });
             const mini = drq('pcMini');
             mini.onclick = () => { if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.memo) pcMemoEnd(); else penDone(); };   // 손이 비어 있으면 톡 = 끝
             mini.addEventListener('pointerdown', e => { pcS.mini = null; if (pcS.held || pcS.memo || e.button > 0) return; pcS.mini = { id: e.pointerId, y: e.clientY, up: false }; });
@@ -506,6 +522,7 @@
         function pcReopen() {
             const cup = drq('pcCup'); if (!cup || pcS.held) return;
             if (dw.rest) penWake(false);
+            if (pcS.laid) pcStow();                                            // 내려놓은 필기구는 연필꽂이에 다시 꽂아요
             drq('pcMini').hidden = true; drq('pcTipNote').hidden = true;
             cup.classList.remove('gone'); cup.style.transform = '';
         }
@@ -571,7 +588,8 @@
         }
         function pcClose() {
             const r = drq('pcRoom'); if (r) r.hidden = true;
-            pcS.held = null; pcS.carry = null; pcS.press = null; pcS.drag = null;
+            pcS.held = null; pcS.laid = null; pcS.carry = null; pcS.press = null; pcS.drag = null;
+            const h = drq('pcHeld'); if (h) h.classList.remove('laid', 'carry');
         }
         /* ---------- ✏️ 📒 수첩 모드 : 메모에 글 쓰기 (도련 · 2026-10-13)
            - 페이지의 메모(글상자 · 떡메)를 톡 눌러 쓰려는 순간 연필꽂이가 떠요 → 필기구를 위로 쏙 뽑아요
