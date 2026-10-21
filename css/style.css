@@ -3107,6 +3107,19 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
     box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.95), inset 0 0 0 3px color-mix(in srgb, var(--primary-accent) 14%, transparent), 0 2px 0 rgba(0,0,0,.04), 0 6px 14px rgba(0,0,0,.1); }
 .snb-sh.paper { border-radius: 4px; background: radial-gradient(rgba(150,120,90,.05) 1px, transparent 1.2px) 0 0 / 5px 5px, #fffaf0; box-shadow: inset 0 0 0 1px rgba(200,180,150,.35), 0 2px 0 rgba(0,0,0,.04), 0 6px 14px rgba(0,0,0,.1); }   /* 📄 모조지스티커 시트 : 도톰한 미색 종이 */
 .snb-sh-in { height: 100%; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 8px; overflow: hidden; }
+/* 🧩 수첩 속 조각 봉투 (js/stknote.js snbBagDraw · 도련 10-21) */
+.snb-sh.bag .snb-sh-in { align-content: center; }
+.snb-bag { position: relative; display: flex; flex-direction: column; width: min(78%, 250px); aspect-ratio: 3 / 4; padding: 0; border: 0; border-radius: 8px 8px 16px 16px; overflow: hidden; cursor: pointer; font: inherit;
+    background: linear-gradient(105deg, rgba(255,255,255,.55) 0 18%, rgba(255,255,255,.1) 34% 64%, rgba(255,255,255,.4) 78%, rgba(255,255,255,.1)), color-mix(in srgb, var(--c) 55%, #fff);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.7), 0 4px 0 rgba(0,0,0,.05), 0 10px 18px rgba(120,60,90,.18); animation: snbBagWig 3s ease-in-out infinite; transform-origin: 50% 100%; }
+.snb-bag:hover { animation-duration: 1.2s; }
+.snb-bag-top { flex: none; height: 30px; background: var(--c); position: relative; }
+.snb-bag-top::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: 5px; border-bottom: 2px dashed rgba(255,255,255,.95); }   /* ✂️ 여기를 밀어 뜯어요 */
+.snb-bag-win { flex: 1; margin: 12px 14px 4px; border-radius: 14px; background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.9); display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px; padding: 8px; }
+.snb-bag-win img { width: 28%; aspect-ratio: 1; object-fit: contain; transform: rotate(var(--r, 0deg)); pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.12)); }
+.snb-bag small { flex: none; padding: 6px 4px 10px; font-size: 12px; font-weight: bold; color: #8b4a67; }
+@keyframes snbBagWig { 0%, 78%, 100% { transform: rotate(0); } 84% { transform: rotate(-2.5deg); } 90% { transform: rotate(2deg); } 95% { transform: rotate(-1deg); } }
+@media (prefers-reduced-motion: reduce) { .snb-bag { animation: none; } }
 .snb-sh-wait { margin: auto; font-size: 12px; color: #a08a94; }
 .snb-pc { width: var(--pc, 64px); height: var(--pc, 64px); display: flex; align-items: center; justify-content: center; cursor: grab; }
 .snb-pc img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none;

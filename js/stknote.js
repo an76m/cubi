@@ -613,7 +613,11 @@
                 const paper = (mu.sb && mu.sb[0] === 'paper') || mu.kind === 'paper';
                 const name = mu.lib ? '씰 종이' : mu.sb ? (mu.sb[0] === 'piece' ? '조각 봉투' : '모조지스티커') : mu.pack ? (b ? b.textContent : '포인트스티커') : paper ? '모조지스티커' : ((im && im.alt) || '내 스티커 시트');
                 const sh = sheet(name);
-                if (paper) sh.classList.add('paper');                              // 📄 모조지스티커 : 인쇄된 종이 한 장 (칼집을 내서 떼요)
+                if (paper) sh.classList.add('paper');
+                if ((mu.sb && mu.sb[0] === 'piece') || e.classList.contains('smk-bag')) {   // 🧩 조각 봉투 : 수첩에서도 봉투째 → 톡 = 고르는 창과 똑같이 봉투를 뜯어 와르르 (js/piecebag.js · 도련 10-21)
+                    sh.classList.add('bag'); sh._bag = e;
+                    const t = e.querySelector('.sb-top'); sh._bagC = (t && t.style.getPropertyValue('--c')) || '#ffb3c8';
+                }                              // 📄 모조지스티커 : 인쇄된 종이 한 장 (칼집을 내서 떼요)
                 sh._mu = mu; sh.querySelector('.snb-sh-in').innerHTML = '<small class="snb-sh-wait">시트를 펼치는 중…</small>';
             });
             const W = body.clientWidth - 8 - 24, H = body.clientHeight - 12 - 46, PC = 64, GAP = 8;
@@ -670,6 +674,7 @@
                 g.textContent = ''; const im = document.createElement('img'); im.className = 'snb-paper'; im.src = src; im.alt = ''; im.draggable = false; g.appendChild(im);
                 return;
             }
+            if (sh._bag) { snbBagDraw(sh, g, urls); return; }
             const W = g.clientWidth, H = g.clientHeight, GAP = 8;
             let pc = Math.floor(Math.sqrt(W * H / urls.length)) - GAP;          // 시트 한 장에 다 들어가는 크기
             while (pc > 28 && Math.floor((W + GAP) / (pc + GAP)) * Math.floor((H + GAP) / (pc + GAP)) < urls.length) pc -= 2;
@@ -680,6 +685,23 @@
                 const im = document.createElement('img'); im.src = u; im.alt = ''; im.draggable = false; p.appendChild(im);
                 g.appendChild(p);
             });
+        }
+        /* 🧩 수첩 속 조각 봉투 : 비닐 창으로 조각이 살짝 보이는 봉투 한 개 → 톡 누르면 🪟 고르는 창과 똑같이 화면 가운데에 봉투가 나와요
+           (윗부분 점선을 밀어 뜯으면 조각이 와르르 · 다 쓰면 수첩이 다시 떠요 · js/piecebag.js · js/stk-basic.js stkBasicOpen · js/stickermaker.js smUse) */
+        function snbBagDraw(sh, g, urls) {
+            g.textContent = '';
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'snb-bag'; b.style.setProperty('--c', sh._bagC);
+            b.setAttribute('aria-label', '조각 봉투 뜯기');
+            const win = urls.slice(0, 9).map((u, i) => `<img src="${u}" alt="" draggable="false" style="--r:${((i * 37) % 31) - 15}deg">`).join('');
+            b.innerHTML = `<span class="snb-bag-top"></span><span class="snb-bag-win">${win}</span><small>조각 ${urls.length}개 · 톡 눌러 뜯어요 ✂️</small>`;
+            b.addEventListener('click', e => {
+                e.stopPropagation();
+                if (Date.now() < snb.noClick) return;                           // 밀어서 넘긴 거면 그대로
+                const o = sh._bag; if (!o || !o.isConnected) return;
+                const k = o.classList.contains('smk-bag') ? o.querySelector('button') : o;
+                if (k) k.click();
+            });
+            g.appendChild(b);
         }
         /* ---------- 🧾 시트에서 돌돌 말려 떼기 (js/peelfx.js pfxSeal · 🍭 포인트스티커 판과 같은 떼기)
            누른 채 끌면 가장자리부터 말려 올라오다 다 떼어지면 손가락을 따라와요 → 페이지 위에 놓으면 그 자리 · 그 각도로 붙어요
