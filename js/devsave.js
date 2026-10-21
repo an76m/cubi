@@ -426,7 +426,7 @@
             if (!V.on) return;
             if (!drive.client && !driveClientMake()) { showMsg('구글 로그인을 준비하는 중이에요.<br>잠시 후 다시 눌러 주세요.'); waitForGoogle(10000).then(ok => { if (ok) driveClientMake(); }); return; }
             const tp = requestToken('select_account');                      // 창은 지금 바로
-            bkBusy('☁ 구글 로그인 창에서 계정을 선택해 주세요…');
+            bkBusy('☁ 구글 로그인 중이에요… 잠시만 기다려 주세요');   // 계정을 고른 뒤에도 보이는 글 (도련 10-21)
             let files = null;
             const collect = (async () => { await bkSettle(); files = await bkReadTree(); })().catch(e => { console.warn(e); files = null; });
             try { await tp; }

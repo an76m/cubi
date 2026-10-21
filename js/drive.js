@@ -1103,8 +1103,8 @@
             if (drive.local && window.dvLogin) return dvLogin();                   // 📁 이 기기 폴더로 쓰다가 구글로 (js/devsave.js)
             const guestDays = drive.guest ? guestSnapshot() : null;               // 👤 게스트로 쓴 일기 (로그인하면 메모리가 드라이브 것으로 바뀌어서 먼저 챙겨요)
             if (!drive.client && !driveClientMake() && await waitForGoogle(10000)) driveClientMake();   // 이 기기 폴더로 열었으면 구글 준비가 아직이에요
-            showGate('wait', '☁ 구글 로그인 창에서 계정을 선택해 주세요…');
-            try { await requestToken('select_account'); await loadFromDrive(); hideGate(); await postLoginTasks(); }
+            showGate('wait', '☁ 구글 로그인 중이에요…<br>잠시만 기다려 주세요');      // 계정을 고른 뒤에도 보이는 글이라 '고르세요' 대신 (도련 10-21)
+            try { await requestToken('select_account'); showGate('wait', '☁ 다이어리를 불러오는 중이에요…<br>잠시만 기다려 주세요'); await loadFromDrive(); hideGate(); await postLoginTasks(); }
             catch (e) { showGate('login', driveErrorText(e)); if (guestDays) guestHold = guestDays; return; }
             if (window.dvAfterLogin) dvAfterLogin();                              // 📁 폴더 모드를 쓰던 기기도 이제 드라이브로 열려요
             if (guestDays || guestHold) guestCarry(Object.assign({}, guestHold || {}, guestDays || {}));
