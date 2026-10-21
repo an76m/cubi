@@ -173,9 +173,9 @@
 .smk-room .smk-go.smk-sub:active, .smk-room .smk-go.smk-sub.pressing, .smk-room .smk-go.smk-sub.busy, .pb-room .pb-go.pb-sub:active { background: color-mix(in srgb, var(--dk-accent) 8%, #fff); box-shadow: none; }
 /* 고르는 칩 · 색 · 입력칸 */
 .smk-room .smk-chips button, .pb-room .pb-chips button { border: 1.5px solid var(--dk-line); background: #fff; color: var(--dk-ink); font-weight: 700; }
-.smk-room .smk-chips button.on, .pb-room .pb-chips button.on { background: var(--dk-accent); border-color: var(--dk-accent); color: #fff; }
+.smk-room .smk-chips button.on, .pb-room .pb-chips button.on { background: var(--pick); border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
 .smk-room .smk-chips button:active, .smk-room .smk-chips button.pressing { background: color-mix(in srgb, var(--dk-accent) 10%, #fff); }
-.smk-room .smk-chips button.on:active { background: var(--dk-accent); }
+.smk-room .smk-chips button.on:active { background: var(--pick); }
 .smk-room .smk-colors button.on { box-shadow: 0 0 0 3px var(--dk-accent); }
 .smk-room .smk-fonts { background: rgba(255, 255, 255, .75); border: 1.5px dashed var(--dk-line); }
 .smk-room #smText, .pb-room #pbText { border: 1.5px dashed var(--dk-line); background: #fff; color: var(--dk-ink); }
