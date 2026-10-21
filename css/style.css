@@ -3682,7 +3682,7 @@ body.sk-held #innerPage { cursor: crosshair; }
 .twz.in { opacity: 1; }
 .twz.pin-cur { position: fixed; z-index: 2147483000; transition: none; }
 .twz.pin-cur.glide { transition: transform .6s cubic-bezier(.3, .7, .3, 1), opacity .25s; }   /* 👆 메뉴 · 창을 가리면 스르르 비켜요 (js/elements.js pinDodge) */
-.twz.pin-cur.bob { animation: twzBob 2.6s ease-in-out infinite alternate; }   /* 🪡 든 핀셋은 늘 공중에 떠서 아주 느리게 위아래로 (누르는 동안만 멈춤 · js/elements.js pinMove) */
+.twz.pin-cur.bob { animation: twzBob 1.5s ease-in-out infinite alternate; }   /* 🪡 든 핀셋은 늘 공중에 떠서 위아래로 (10-21 조금 더 빠르게) (누르는 동안만 멈춤 · js/elements.js pinMove) */
 @keyframes twzBob { from { translate: 0 0; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); } to { translate: 0 -7px; filter: drop-shadow(3px 10px 6px rgba(120, 60, 90, .2)); } }
 .twz-del { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 2px; padding: 2px 7px 2px 4px; border-radius: 999px; background: #e5484d; color: #fff; font-size: 11px; font-weight: 800; line-height: 1.4; box-shadow: 0 2px 6px rgba(160, 30, 40, .3); pointer-events: none; will-change: transform; transition: opacity .12s; }   /* 🗑 삭제 핀셋 표시 (js/elements.js twzToolAt) */
 .twz-del svg { width: 14px; height: 14px; }
@@ -3901,7 +3901,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.edge { z-index: 10041; filter: drop-shadow(0 3px 4px rgba(50, 35, 45, .32)); cursor: grab; }
 .bd-tool.punch.press svg { transform: scale(.9); }
 /* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
-.bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 2.6s ease-in-out infinite alternate; }
+.bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 조금 더 빠르게) */
 @keyframes gdBob { from { translate: 0 0; } to { translate: 0 -6px; } }
 body.gd-press .bd-tool.held, body.gd-press .scs-cur, body.gd-press .scs-aim, body.gd-press .sk-knife, .bd-tool.held.snap, .sk-knife.grab { animation: none; }
 @media (prefers-reduced-motion: reduce) { .bd-tool.held, .scs-cur, .scs-aim, .sk-knife { animation: none; } }
