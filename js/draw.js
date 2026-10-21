@@ -422,7 +422,7 @@
                 if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
             });
             const mini = drq('pcMini');
-            mini.onclick = () => { if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.memo) pcMemoEnd(); else penDone(); };   // 손이 비어 있으면 톡 = 끝
+            mini.onclick = () => { if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.laid) { pcS.laid = null; drq('pcHeld').classList.remove('laid'); pcPutBack(); } else if (pcS.memo) pcMemoEnd(); else penDone(); };   // ✏️ 내려놓은 필기구도 쏙 빨려 들어가며 끝 (도련 10-21)   // 손이 비어 있으면 톡 = 끝
             mini.addEventListener('pointerdown', e => { pcS.mini = null; if (pcS.held || pcS.memo || e.button > 0) return; pcS.mini = { id: e.pointerId, y: e.clientY, up: false }; });
             mini.addEventListener('pointermove', e => { const m = pcS.mini; if (m && m.id === e.pointerId && !m.up && m.y - e.clientY > 30) { m.up = true; pcReopen(); } });
             return r;
