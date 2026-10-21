@@ -34,7 +34,7 @@
         + '<path d="M20 86c-3-4-8-2-7 2 1 3 7 7 7 7s6-4 7-7c1-4-4-6-7-2z" fill="#fff"/>'                                   // 하트
         + '<circle cx="20" cy="106" r="3" fill="#fff" opacity=".85"/></svg>';
     }
-    const KN_LAY = ' translate(7px, 56px) rotate(180deg) translate(-7px, -56px)';   // 칼 가운데(40×120 의 20,60 · 칼끝 13,4 기준)를 축으로 반 바퀴
+    const KN_LAY = -28;                                // 놓인 칼 기울기 = 놓인 핀셋 (css .bd-tool.tweez)
     const KN_TIP = [13, 4], KN_ANG = 215;              // 칼끝(그림 안 좌표) · 기울기 (칼끝이 왼쪽 아래 · 손잡이는 오른쪽 위 = 글쓰기 필기구와 같은 방향)
     const S = { on: false, room: null, cv: null, kn: null, pts: null, down: false, id: null, busy: false, snap: null };
 
@@ -73,7 +73,12 @@
     }
     function knifeAt(x, y) {
         const k = S.kn; if (!k) return; S.at = [x, y];                 // 지금 칼끝 자리
-        k.style.transform = `translate(${x - KN_TIP[0]}px, ${y - KN_TIP[1]}px)${handFlip()} rotate(${KN_ANG}deg)` + (S.held ? '' : KN_LAY);   // 🔪 놓인 칼은 거꾸로 (손잡이 아래 · 🪡 핀셋처럼 · 도련 10-21)
+        if (!S.held) {                                  // 🔪 놓인 칼은 🪡 놓인 핀셋과 같은 방향 (칼끝 왼쪽 위 · 손잡이 오른쪽 아래 · 도련 10-21) · 칼 가운데는 든 칼과 같은 자리
+            const a = KN_ANG * Math.PI / 180, f = handLeft() ? -1 : 1, v = [20 - KN_TIP[0], 60 - KN_TIP[1]];
+            const cx = x + f * (v[0] * Math.cos(a) - v[1] * Math.sin(a)), cy = y + v[0] * Math.sin(a) + v[1] * Math.cos(a);
+            k.style.transform = `translate(${cx - KN_TIP[0]}px, ${cy - KN_TIP[1]}px) rotate(${KN_LAY}deg) translate(${-v[0]}px, ${-v[1]}px)`; return;
+        }
+        k.style.transform = `translate(${x - KN_TIP[0]}px, ${y - KN_TIP[1]}px)${handFlip()} rotate(${KN_ANG}deg)`;
     }
     function paint() {                                 // 그은 칼선 : 하얀 테두리 + 회색 점선 (칼집 느낌)
         const c = S.cv; if (!c) return; const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height);

@@ -92,7 +92,7 @@
             if (pcS.held) {                                                    // ✏️ 든 필기구는 사라지지 않고 그 자리에 내려놔요 (도련 10-21 · 톡 누르면 다시 들어요)
                 pcS.laid = pcS.held; pcS.held = null; pcS.press = null; pcS.carry = null;
                 const h = drq('pcHeld'), b = h.getBoundingClientRect(); h.classList.remove('carry', 'in'); h.classList.add('laid');
-                h.style.transform = `translate(${b.left + b.width / 2}px, ${b.top + b.height / 2}px)${handFlip()} rotate(${PC_ANG + 180}deg) translate(-15px, -75px)`;   // 놓인 필기구는 거꾸로 (손잡이 아래 · 🪡 핀셋처럼 · 도련 10-21)
+                h.style.transform = `translate(${b.left + b.width / 2}px, ${b.top + b.height / 2}px) rotate(-28deg) translate(-15px, -75px)`;   // 놓인 필기구는 🪡 놓인 핀셋과 같은 방향 (끝이 왼쪽 위 · 손잡이 오른쪽 아래 · css .bd-tool.tweez · 도련 10-21)
                 const n = drq('pcTipNote'); if (n) n.hidden = true;
             }
             pcShrink();
