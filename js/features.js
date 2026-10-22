@@ -25,7 +25,7 @@
         };
         /* 💻 내 컴퓨터(index.html 더블클릭 · localhost)에서는 모든 기능이 보여요 → 새 기능 소개 영상용 (사이트는 위 FEATURES 그대로) */
         const FT_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-        const FT_OFF_LOCAL = ['fphone', 'bdauto'];   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
+        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share'];   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
         function ftOn(name) { if (FT_OFF_LOCAL.includes(name) && FEATURES[name] === false) return false; return FT_LOCAL || !(name in FEATURES) || FEATURES[name] !== false; }
         (function () {
             const root = document.documentElement;

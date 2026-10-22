@@ -825,6 +825,7 @@
         }
 
         window.snbAway = snbAway; window.snbOver = snbOver;
+        window.snbFire = () => !!snb.fire;                                    // 📒 수첩에서 떼어 놓는 중 (내가만든 씰 = 하얀 창 없이 바로 페이지에 · js/stickermaker.js smUse · sharebox.js shxUse)
         window.snbSkipCover = id => { if (snb.m && snb.m.id === id) snb.skipCover = true; }; window.snbState = () => ({ page: snb.page, pages: snb.pages.length, curl: !!snb.curl }); window.snbMode = snbMode; window.snbSet = snbSet; window.snbRender = snbRender; window.snbGo = snbGo;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */

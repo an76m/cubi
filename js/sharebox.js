@@ -43,6 +43,7 @@
         /* ---------- 📤 공유하기 (내가만든 칸) ---------- */
         /* 내가만든 칸 맨 위 띠 : 평소엔 📤 공유하기 · 고르는 중엔 '몇 개 골랐어요 · 💾 파일로 저장 · 취소' */
         function shxBar(kind) {
+            if (typeof ftOn === 'function' && !ftOn('share')) return '';     // 📤 공유하기 숨김 (10-23 도련 · js/features.js share)
             const on = shx.on && shx.kind === kind;
             return `<div class="shx-bar${on ? ' on' : ''}" data-kind="${kind}">${on
                 ? `<span class="shx-cnt">✔ <b>${shx.picks.length}</b>개 골랐어요</span><button type="button" class="shx-btn go" onclick="shxSend()"${shx.picks.length ? '' : ' disabled'}>💾 파일로 저장</button><button type="button" class="shx-btn" onclick="shxStop()">취소</button>`
@@ -144,14 +145,16 @@
         }
         function shxGuest() { showMsg('🔐 공유받은 스티커는 <b>로그인</b>하면 불러올 수 있어요.<br><span style="font-size:12px;color:#777;">받은 스티커는 내 구글 드라이브에 보관돼요.</span>'); }
         async function shxUse(kind, id) {
+            const drop = !!(window.snbFire && snbFire());                     // 📒 수첩에서 떼어 놓은 것 = 바로 페이지에
             let s = null;
             try { s = shxItem(kind, await collItem(shxColl(kind), id)); } catch (e) {}
             if (!s) { showMsg('⚠ 이 스티커를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); return; }
             if (kind === 'tape') { if (typeof tpmStick === 'function') tpmStick(s); return; }
             if (kind === 'leaf') { if (window.pickLeaf) pickLeaf('my', s.src); return; }
             if (kind === 'tk') { if (window.tkUseMy) tkUseMy(s); return; }
-            stkLeave();
-            if (kind === 'seal' && window.openStickerPeel) openStickerPeel(s.ss || s.src, { ts: !!s.t });
+            if (!drop) stkLeave();
+            if (kind === 'seal' && drop && window.smDropSeal) smDropSeal(s);
+            else if (kind === 'seal' && window.openStickerPeel) openStickerPeel(s.ss || s.src, { ts: !!s.t });
             else if (kind === 'paper' && window.openPaperSheet) openPaperSheet(s.src);
             else if (s.k === 'piece' && window.openPieceBag) openPieceBag(s.ss || [s.src]);
             else if (typeof smStick === 'function') (s.ss || [s.src]).forEach(smStick);
