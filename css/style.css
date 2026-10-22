@@ -4150,6 +4150,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ct-room::before { content: ''; position: absolute; inset: -40px; background: url(../img/cafe-town.webp) center / cover; filter: blur(18px) brightness(1.05); opacity: .75; }   /* 그림 밖 남는 곳 */
 @keyframes ctIn { from { opacity: 0; transform: scale(1.04); } }
 .ct-stage { position: relative; width: min(100vw, calc(100vh * 1672 / 941)); width: min(100vw, calc(100dvh * 1672 / 941)); aspect-ratio: 1672 / 941; box-shadow: 0 0 40px rgba(120, 60, 90, .25); }
+.ct-stage { container-type: inline-size; }
+.ct-soon { position: absolute; transform: translateX(-50%); pointer-events: none; white-space: nowrap; font: 800 1.08cqw/1.15 var(--font-family, inherit); color: #e53950; letter-spacing: .02em; text-shadow: 0 0 2px #fffaf2, 0 0 2px #fffaf2; }   /* 🚧 (준비중) : 그림 속 이름 아래 빨간 글씨 (js/service.js CT_SOON) */
 .ct-stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
 .ct-fx { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
 .ct-spot { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 22%; -webkit-tap-highlight-color: transparent; }

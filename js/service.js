@@ -409,11 +409,12 @@
             ['game', '🕹️ 게임', [30, 280, 410, 510]], ['pet', '🐾 펫 키우기', [1270, 360, 1672, 595]], ['honey', '🍯 꿀 만들기', [55, 540, 410, 830]],
             ['window', '🪟 힐링창문', [600, 630, 1045, 862]], ['together', '💌 함께하기', [1270, 610, 1672, 830]]
         ];
+        const CT_SOON = [[215, 802], [961, 829], [1578, 514], [1472, 332]];   // 🚧 (준비중) 빨간 글씨 = 그림 속 이름 바로 아래 [가운데 x, 위 y] (그림 픽셀) · 꿀 만들기 · 힐링창문 · 펫 키우기 · 인형 꾸미기 (도련 10-23) · 열리면 여기서 빼요
         function ctBuild() {
             let el = document.getElementById('cafeTown'); if (el) return el;
             el = document.createElement('div'); el.id = 'cafeTown'; el.className = 'ct-room';
             el.innerHTML = `<div class="ct-stage"><img src="img/cafe-town.webp" alt="말랑달콤 카페 마을" draggable="false"><canvas class="ct-fx" width="418" height="235" aria-hidden="true"></canvas>${CT_SPOTS.map(([id, n, [x0, y0, x1, y1]]) =>
-                `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}</div>
+                `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}${CT_SOON.map(([x, y]) => `<span class="ct-soon" style="left:${x / CT_W * 100}%;top:${y / CT_H * 100}%">(준비중)</span>`).join('')}</div>
                 <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button><button type="button" class="ct-x" aria-label="닫기" onclick="closeCafeTown()">✕</button>${typeof sndFxBtn === 'function' ? sndFxBtn('ct-snd') : ''}`;
             document.body.appendChild(el);
             el.addEventListener('click', e => {
