@@ -255,7 +255,7 @@
         }
         function penUndo() { if (dw.hist.length) { dw.strokes = dw.hist.pop(); penRender(); } }
         /* ---------- ✏️ 필기구 그림 (📒 수첩 모드 연필꽂이에서 써요 · 30 × 150 · 위가 연필심) ---------- */
-        const penNote = () => typeof window.snbMode === 'function' && snbMode() === 'note';
+        const penNote = () => (typeof window.snbMode === 'function' && snbMode() === 'note') || (typeof dvDev === 'function' && dvDev() === 'phone');   // 📱 폰은 🪟 고르는 창 모드여도 연필꽂이 (아이패드처럼 · 도련 10-22)
         function penLighten(c, k) {                    // 색을 k 만큼 하얗게
             const n = parseInt(c.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, f = v => Math.round(v + (255 - v) * k);
             return `rgb(${f(r)},${f(g)},${f(b)})`;
