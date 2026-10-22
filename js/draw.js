@@ -38,20 +38,17 @@
                 const a = penAttrs(s); Object.keys(a).forEach(k => p.setAttribute(k, a[k]));
                 g.appendChild(p);
             });
-            drq('penUndo').disabled = !dw.hist.length;
         }
 
         /* ---------- 그리기 모드 ---------- */
         function openDraw() {
-            if (dw.on) { if (penNote()) penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 연필꽂이를 다시 펼쳐요 (쓴 것 · 구석 연필꽂이 그대로)
+            if (dw.on) { penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 연필꽂이를 다시 펼쳐요 (쓴 것 · 구석 연필꽂이 그대로)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             if (selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
-            penBuildBar();
             penMkLayer(); dw.strokes = []; dw.hist = []; dw.cur = null; dw.on = true; dw.rest = false;
             document.body.classList.add('draw-on');
-            drq('penBar').hidden = false;
             penSetTool(dw.tool);
-            if (penNote()) { drq('penBar').hidden = true; pcOpen(); }        // 📒 수첩 모드 : 아래 창 대신 연필꽂이
+            pcOpen();                                                          // ✏️ 모든 기기 · 모드에서 연필꽂이 (아래 펜 창은 없앴어요 · 도련 10-22)
             penRender();
         }
         function penMkLayer() {
@@ -73,7 +70,6 @@
         function penFlush() {                                                  // 지금까지 쓴 것만 페이지에 붙이고 계속 써요
             const s = dw.strokes.slice(); if (!s.length) return;
             dw.strokes = []; dw.hist = []; dw.cur = null; penRender();
-            const u = drq('penUndo'); if (u) u.disabled = true;
             penAttach(s);
         }
         function pcStow() {                                                    // 든 필기구를 조용히 연필꽂이에 (끝내지 않아요)
@@ -85,7 +81,6 @@
         function penRest() {
             if (pcS.memo) { pcMemoEnd(); return; }                             // 📝 메모 쓰기는 쓴 글 그대로 끝
             if (!dw.on) return;
-            if (!penNote()) { penDone(); return; }                             // 🪟 고르는 창 모드는 예전처럼 ✓ 완료
             if (dw.cur) { dw.strokes.push(dw.cur); dw.cur = null; }
             dw.erasing = false; penRing(null);
             penFlush();
@@ -120,11 +115,11 @@
         }
         function penDown(e) {
             e.preventDefault(); e.stopPropagation();
-            if (penNote() && !pcS.held && !pcS.carry && window.rlOn && rlOn()) { rlMeasure(e); return; }   // 📏 문구함에서 꺼낸 자 : 아무것도 안 든 채 가장자리를 쓸면 길이 재기
-            if (penNote() && (!pcS.held || pcS.carry)) return;                 // 📒 필기구를 뽑아야 써져요
+            if (!pcS.held && !pcS.carry && window.rlOn && rlOn()) { rlMeasure(e); return; }   // 📏 문구함에서 꺼낸 자 : 아무것도 안 든 채 가장자리를 쓸면 길이 재기
+            if (!pcS.held || pcS.carry) return;                 // 📒 필기구를 뽑아야 써져요
             const sn = dw.tool !== 'erase' && window.rlSnap ? rlSnap(e.clientX, e.clientY) : null;   // 📏 자 가장자리에 대고 그으면 반듯하게
             const at = sn ? rlProj(sn, e.clientX, e.clientY) : [e.clientX, e.clientY];
-            if (penNote()) pcHeldAt(at[0], at[1]);                             // 연필심이 닿은 바로 그 자리
+            pcHeldAt(at[0], at[1]);                                            // 연필심이 닿은 바로 그 자리
             try { dw.svg.setPointerCapture(e.pointerId); } catch (err) {}
             const pt = penPointXY(at[0], at[1]);
             if (dw.tool === 'erase') { dw.erasing = true; dw.hist.push(dw.strokes); dw.erased = false; dw.inks = penInks(); penRing(pt); penEraseAt(pt); return; }
@@ -133,7 +128,7 @@
             penRender();
         }
         window.rlEdgeDown = e => {                                             // 📏 자 가장자리 안쪽을 누름 (js/ruler.js) : 필기구를 들었으면 여기서 긋기 시작
-            if (!dw.on || !dw.svg || dw.tool === 'erase' || (penNote() && (!pcS.held || pcS.carry))) return false;
+            if (!dw.on || !dw.svg || dw.tool === 'erase' || !pcS.held || pcS.carry) return false;
             penDown(e); return true;
         };
         function penMove(e) {
@@ -145,11 +140,11 @@
             if (dw.snap && dw.cur) {                                               // 📏 자에 붙은 곧은 선 : 붙은 자리 → 지금 자리 (가장자리 위)
                 e.preventDefault(); e.stopPropagation();
                 const at = rlProj(dw.snap.sn, e.clientX, e.clientY);
-                if (penNote()) pcHeldAt(at[0], at[1]);
+                pcHeldAt(at[0], at[1]);
                 dw.cur.pts.length = dw.snap.n; dw.cur.pts.push(penPointXY(at[0], at[1])); rlTell(dw.snap.a, at);
                 penRender(); return;
             }
-            if (penNote()) { if (!pcS.held || pcS.carry) return; if (dw.cur || dw.erasing || e.pointerType === 'mouse') pcHeldAt(e.clientX, e.clientY); }   // 📒 연필심이 따라와요
+            { if (!pcS.held || pcS.carry) return; if (dw.cur || dw.erasing || e.pointerType === 'mouse') pcHeldAt(e.clientX, e.clientY); }   // 📒 연필심이 따라와요
             if (dw.tool === 'erase' && !dw.erasing) penRing(penPoint(e));
             if (!dw.cur && !dw.erasing) return;
             e.preventDefault(); e.stopPropagation();
@@ -253,9 +248,7 @@
                 img.src = url; d.dirty = true;
             });
         }
-        function penUndo() { if (dw.hist.length) { dw.strokes = dw.hist.pop(); penRender(); } }
         /* ---------- ✏️ 필기구 그림 (📒 수첩 모드 연필꽂이에서 써요 · 30 × 150 · 위가 연필심) ---------- */
-        const penNote = () => (typeof window.snbMode === 'function' && snbMode() === 'note') || (typeof dvDev === 'function' && dvDev() === 'phone');   // 📱 폰은 🪟 고르는 창 모드여도 연필꽂이 (아이패드처럼 · 도련 10-22)
         function penLighten(c, k) {                    // 색을 k 만큼 하얗게
             const n = parseInt(c.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, f = v => Math.round(v + (255 - v) * k);
             return `rgb(${f(r)},${f(g)},${f(b)})`;
@@ -284,25 +277,11 @@
                 + `<rect x="${x}" y="70" width="${w}" height="70" fill="#8fc8e8"/><rect x="${x}" y="80" width="${w}" height="7" fill="#fff" opacity=".7"/>`
                 + `<path d="M${x + 2} 39 Q15 35 ${x + w - 2} 39" stroke="#cfc2b8" stroke-width="1" fill="none"/></svg>`;
         }
-        function penSetTool(t) {
+        function penSetTool(t) {                       // 뽑은 필기구로 바꿔 들기 (색 · 굵기는 연필꽂이 필기구 그대로)
             dw.tool = t;
-            document.querySelectorAll('#penBar [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
-            const opt = drq('penOpts');
-            drq('penLayer').classList.toggle('erasing', t === 'erase');
+            const l = drq('penLayer'); if (l) l.classList.toggle('erasing', t === 'erase');
             if (t !== 'erase') penRing(null);
-            if (t === 'erase') {
-                opt.innerHTML = '<span class="draw-hint">지울 곳을 문질러요</span><span class="draw-sep"></span>'
-                    + DRAW_SIZES.erase.map((w, i) => `<button type="button" class="draw-size${i === dw.size.erase ? ' on' : ''}" onclick="penSetSize(${i})" aria-label="지우개 크기"><i style="width:${w / 2 + 4}px;height:${w / 2 + 4}px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px #c9a3b2"></i></button>`).join('');
-                return;
-            }
-            const cols = (window.pkColors && pkColors(t)) || (t === 'hi' ? DRAW_HI_COLORS : DRAW_PEN_COLORS);   // 👝 보관함에서 고른 색만
-            if (!cols.includes(dw.color[t])) dw.color[t] = cols[0];
-            opt.innerHTML = cols.map(c => `<button type="button" class="draw-col${c === dw.color[t] ? ' on' : ''}" style="--c:${c}" onclick="penSetColor('${c}')" aria-label="색"></button>`).join('')
-                + '<span class="draw-sep"></span>'
-                + DRAW_SIZES[t].map((w, i) => `<button type="button" class="draw-size${i === dw.size[t] ? ' on' : ''}" onclick="penSetSize(${i})" aria-label="굵기"><i style="width:${Math.min(22, w + 3)}px;height:${Math.min(t === 'hi' ? 10 : 22, w + 3)}px;border-radius:${t === 'hi' ? 2 : 50}px"></i></button>`).join('');
         }
-        function penSetColor(c) { dw.color[dw.tool] = c; penSetTool(dw.tool); }
-        function penSetSize(i) { dw.size[dw.tool] = i; penSetTool(dw.tool); }
 
         /* ✓ 완료 : 그린 선들 → 다이어리 그림 하나 */
         function penDone() {
@@ -348,44 +327,16 @@
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
             saveData(false);
         }
-        function penCancel() {
-            if (dw.strokes.length) {
-                showMsg('그린 선을 모두 지우고 나갈까요?', true).then(ok => { if (ok) penClose(); });
-                return;
-            }
-            penClose();
-        }
         function penClose() {
             dw.on = false; dw.rest = false; dw.cur = null; dw.snap = null; dw.strokes = []; dw.hist = []; dw.ring = null;
             const l = drq('penLayer'); if (l) l.remove();
             dw.svg = null;
-            const bar = drq('penBar'); if (bar) bar.hidden = true;
             pcClose();
             document.body.classList.remove('draw-on', 'pen-rest');
             const r = drq('pcRoom'); if (r) r.classList.remove('rest');
         }
 
-        function penBuildBar() {
-            if (drq('penBar')) return;
-            const bar = document.createElement('div');
-            bar.id = 'penBar'; bar.className = 'draw-bar'; bar.hidden = true;
-            bar.innerHTML = `
-              <div class="draw-row">
-                <button type="button" data-tool="pen" onclick="penSetTool('pen')">🖊️ 펜</button>
-                <button type="button" data-tool="hi" onclick="penSetTool('hi')">🖍️ 형광펜</button>
-                <button type="button" data-tool="erase" onclick="penSetTool('erase')">🧽 지우개</button>
-                <button type="button" id="penUndo" onclick="penUndo()" aria-label="되돌리기">↶</button>
-                <button type="button" class="draw-box" onclick="window.openPencase && openPencase()" aria-label="보관함 (쓸 색 고르기)">♡ 보관함</button>
-              </div>
-              <div class="draw-row draw-opts" id="penOpts"></div>
-              <div class="draw-row">
-                <button type="button" class="draw-cancel" onclick="penCancel()">✕ 취소</button>
-                <button type="button" class="draw-done" onclick="penDone()">✓ 완료</button>
-              </div>`;
-            document.body.appendChild(bar);
-        }
-
-        /* ---------- ✏️ 📒 수첩 모드 연필꽂이 (고르는 창 모드는 지금 그대로 · 도련 · 2026-10-13)
+        /* ---------- ✏️ 연필꽂이 (모든 기기 · 수첩 · 고르는 창 모드 공통 · 아래 펜 창은 10-22 없앰 · 도련)
            - 예쁜 연필꽂이에 색연필 · 형광펜 · 지우개가 섞여 꽂혀 있어요 → 옆으로 끌면 비켜나고, 위로 쭉 끌면 쏙 뽑혀요
            - 뽑으면 연필꽂이는 오른쪽 아래 구석의 작은 연필꽂이가 되고, 뽑은 필기구만 손에 들려요
            - 쓰면 연필심(지우개는 바닥)이 손가락 · 마우스가 닿은 바로 그 자리를 따라가요
@@ -452,10 +403,9 @@
             drq('pcHeld').hidden = true; drq('pcMini').hidden = true; drq('pcTipNote').hidden = true;
             pcFill();
         }
-        window.pcRefill = () => {                          // 👝 보관함에서 바꾸면 다시 꽂아요 (🪟 고르는 창 모드는 아래 창 색 줄을 다시)
-            const r = drq('pcRoom'), bar = drq('penBar');
+        window.pcRefill = () => {                          // 👝 보관함에서 바꾸면 다시 꽂아요
+            const r = drq('pcRoom');
             if (r && !r.hidden && !pcS.held) pcFill();
-            if (bar && !bar.hidden) penSetTool(dw.tool);
         };
         function pcFill() {                                // 연필꽂이에 필기구 꽂기 (👝 보관함에서 바꾸면 다시 꽂아요)
             const box = drq('pcTools'); box.textContent = '';
@@ -599,7 +549,7 @@
            - 한 메모 = 마지막에 고른 필기구 하나 · 메모마다 저장돼요 (k 색 · hl 형광펜 색 · pn 연필 느낌)
            - 자판으로 쓰면 손에 든 필기구 끝이 커서를 따라가며 사각사각 움직여요
            - 다 쓰면 구석 작은 연필꽂이를 톡 (또는 꾹 집어 꽂기 · 메모 밖을 눌러도 쏙 들어가요)
-           - ✕ 를 누르면 필기구 없이 그대로 써요 · 고르는 창 모드에서는 원래대로 바로 써요 ---------- */
+           - ✕ 를 누르면 필기구 없이 그대로 써요 ---------- */
         const mhlOk = c => /^#[0-9a-f]{6}$/i.test(c || '');
         function mhlLook(ta, hl, pn) {                                        // 불러올 때 · 고를 때
             if (mhlOk(hl)) ta.dataset.hl = hl; else delete ta.dataset.hl;
@@ -714,7 +664,7 @@
         }, true);
         document.addEventListener('focusin', e => {
             const ta = e.target;
-            if (!penNote() || dw.on || pcS.memoFocus || ta.tagName !== 'TEXTAREA' || ta.readOnly || !ta.closest('#canvasArea .element-box')) return;
+            if (dw.on || pcS.memoFocus || ta.tagName !== 'TEXTAREA' || ta.readOnly || !ta.closest('#canvasArea .element-box')) return;
             if (pcS.memo === ta) { mfAim(); return; }
             if (ta !== mfTapTa || performance.now() - mfTapAt > 1500) return;     // 손으로 누른 때만
             if (pcS.memo) pcMemoEnd();
@@ -737,4 +687,4 @@
             if (dw.on && !dw.rest && !e.target.closest('#penLayer')) e.stopPropagation();
         }, true);
         window.openDraw = openDraw;
-        document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) { if (penNote()) penFlush(); else penDone(); } }, true);   // 🧭 하단 메뉴를 누르면 : 쓴 것만 페이지에 붙여요 · 필기구는 손에 그대로 (도련 10-21 · 🪟 고르는 창 모드는 ✓ 완료)
+        document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) { penFlush(); } }, true);   // 🧭 하단 메뉴를 누르면 : 쓴 것만 페이지에 붙여요 · 필기구는 손에 그대로 (도련 10-21 · 🪟 고르는 창 모드는 ✓ 완료)

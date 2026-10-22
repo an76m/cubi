@@ -1561,27 +1561,8 @@
         /* ===== 🖍️ 펜 · 형광펜 (js/draw.js) ===== */
         .draw-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 9700; touch-action: none; cursor: crosshair; }
         body.draw-on .page-header { pointer-events: none; opacity: .45; }   /* 하단 메뉴는 그대로 눌려요 (누르면 그린 것을 붙이고 그리기 끝 · js/draw.js · 도련 10-19) */
-        .draw-bar { position: fixed; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 1500; width: min(420px, calc(100vw - 16px));
-            background: #fff; border-radius: 18px; padding: 8px; box-shadow: 0 8px 26px rgba(0,0,0,.2); border: 2px solid var(--border-color, #ffb6c1);
-            display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; }
-        .draw-bar[hidden] { display: none; }
-        .draw-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
-        .draw-row > button { border: 1.5px solid #f0d0da; background: #fff; border-radius: 12px; padding: 7px 10px; font: inherit; font-size: 13.5px; cursor: pointer; color: #5a3d4a; }
-        .draw-row > button.on { background: var(--pick); border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
-        .draw-row > button:disabled { opacity: .35; }
-        .draw-row > .draw-box { border-style: dashed; border-color: #f48bab; background: #fffaf6; color: #d0517a; font-weight: 800; }   /* 👝 보관함 : 쓸 색 고르기 (js/pencase.js) */
-        .draw-opts { min-height: 32px; }
-        .draw-row > .draw-col { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1.5px #d8c8ce; cursor: pointer; padding: 0; transition: transform .12s; }
-        .draw-row > .draw-col.on { background: var(--c); color: inherit; border-color: #fff; transform: scale(1.15); box-shadow: 0 0 0 2.5px var(--primary-accent, #ff9cc3); }
-        .draw-row > .draw-size { flex: none; width: 34px; height: 32px; border-radius: 10px; border: 1.5px solid #eee; background: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
-        .draw-size i { display: block; background: #5a3d4a; }
-        .draw-row > .draw-size.on { border-color: var(--primary-accent, #ff9cc3); background: #fff0f5; color: inherit; }
         .draw-layer.erasing { cursor: none; }
         .draw-ring { fill: rgba(255,255,255,.55); stroke: #c98aa0; stroke-width: 1.5; stroke-dasharray: 3 2; pointer-events: none; }
-        .draw-sep { width: 1px; height: 22px; background: #eee; margin: 0 2px; }
-        .draw-hint { font-size: 13px; color: #8a6a78; }
-        .draw-done { background: #4caf7a !important; color: #fff !important; border-color: #4caf7a !important; font-weight: bold; padding: 8px 22px !important; }
-        .draw-cancel { color: #a07888 !important; }
 
         /* ===== 📷 사진 틀 (js/frame.js) : .fr-이름 은 다이어리 사진과 고르기 칩에 함께 쓰여요 ===== */
         .text-panel[data-mode="photo"] .text-only, .text-panel[data-mode="text"] .photo-only { display: none !important; }
