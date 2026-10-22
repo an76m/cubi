@@ -302,12 +302,24 @@
 
         /* 배경지 칸 (스티커 창과 같은 이름) : 기본 = 페이지 4색 바탕 · 내가만든 (10-18 숨김) · 공유받은 = 📥 파일로 받은 것 + 🌟 등록된 사용자 배경지
            이벤트 = 앞으로 이벤트로 나눠 줄 배경지 (아직 없어서 칸이 숨어 있어요) · 문구점 = 🛍️ 문구점 가기 */
+        /* 🎨 기본 칸 안의 카테고리 : 단색(페이지 4색 바탕 c-…) · 패턴(줄무늬 · 도트 · 체크) */
+        const PAT_SUBS = [['solid', '단색'], ['pat', '패턴']];
+        const patG = p => p.g || (/^c-/.test(String(p.id)) ? 'solid' : 'pat');
+        let patSub = 'solid';
+        function patCatsPaint() {
+            const box = document.getElementById('patCats'); if (!box) return;
+            box.hidden = patTier !== 'free';
+            if (box.hidden) return;
+            box.innerHTML = PAT_SUBS.map(([v, n]) => `<button type="button" class="lib-cat${v === patSub ? ' on' : ''}" onclick="setPatSub('${v}')">${n}<small>${BG_PATTERNS.filter(p => p.tier === 'free' && patG(p) === v).length}</small></button>`).join('');
+        }
+        function setPatSub(v) { patSub = v; patPage = 0; renderPatternList(); }
+        window.setPatSub = setPatSub;
         function patItems() {
             const cm = typeof getCommunityItems === 'function' ? getCommunityItems() : [];
             const my = tab => typeof patListItems === 'function' ? patListItems(tab).items : [];   // 🌈 내가만든 · 받은 : 모음의 작은 그림 (js/pattern-maker.js)
             if (patTier === 'mine') return my('mine');
             if (patTier === 'share') return my('share').concat(cm);
-            if (patTier === 'free') return BG_PATTERNS.filter(p => p.tier === 'free');
+            if (patTier === 'free') return BG_PATTERNS.filter(p => p.tier === 'free' && patG(p) === patSub);   // 기본 칸 : 🎨 단색 · ☁️ 패턴 (10-23 도련)
             return [];
         }
         function patPerPage() { return patLayout.rows * patLayout.cols; }
@@ -331,6 +343,7 @@
         }
         function setPatTab(tier) {
             patTier = tier;
+            if (tier === 'free' && bgPattern) { const cur = BG_PATTERNS.find(p => p.id === bgPattern.id); if (cur) patSub = patG(cur); }   // 지금 쓰는 것이 있는 카테고리부터
             document.querySelectorAll('#patTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === tier));
             /* 지금 쓰는 패턴이 이 목록에 있으면 그 페이지부터 보여 주기 */
             const idx = bgPattern ? patItems().findIndex(p => p.id === bgPattern.id) : -1;
@@ -367,6 +380,7 @@
             if (!grid) return;
             applyPatLayoutStyle();
             updatePatternUI();
+            patCatsPaint();
             grid.innerHTML = '';
             const items = patItems(), per = patPerPage(), pages = patPageCount(), more = patMore();
             if (more && items.length < (patPage + 1) * per) {                 // 이 쪽을 채울 만큼 아직 안 읽었으면 다음 묶음을 읽고 다시 그려요
@@ -378,7 +392,7 @@
                 nickRow.style.display = patTier === 'share' && window.pickPatternFile ? 'flex' : 'none';   // 📥 파일 불러오기 (js/pattern-maker.js)
             }
             document.getElementById('patStatus').textContent = items.length
-                ? `배경지 ${items.length}${more ? '개 넘게' : '개'} · 누르면 전체 배경에 적용돼요`
+                ? `${patTier === 'free' && patSub === 'solid' ? '단색' : '패턴'} ${items.length}${more ? '개 넘게' : '개'} · 누르면 전체 배경에 적용돼요`
                 : more ? '불러오는 중…'
                 : ({ mine: '아직 만든 배경지가 없어요. 🖼️ 이미지로 · 🖌️ 그려서 배경지에서 만들어 보세요!', share: '아직 공유받은 배경지가 없어요.', event: '🎁 아직 받은 이벤트 배경지가 없어요.', shop: '' }[patTier] ?? '아직 준비된 배경지가 없어요.');
             patPage = pages ? Math.max(0, Math.min(pages - (more ? 0 : 1), patPage)) : 0;
