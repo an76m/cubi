@@ -133,7 +133,8 @@
         async function collAll(C) {
             const lists = await collIndex(C);
             for (const L of lists) await collLoad(C, L);
-            return C.pend.slice().reverse().concat(...lists.slice().reverse().map(L => L.items.slice().reverse())).filter(e => !C.gone.has(e.id));
+            const seen = new Set();
+            return C.pend.slice().reverse().concat(...lists.slice().reverse().map(L => L.items.slice().reverse())).filter(e => !C.gone.has(e.id) && !seen.has(e.id) && seen.add(e.id));   // 같은 칸은 한 번만
         }
         /* 이미 읽은 칸에서 찾기 */
         function collEnt(C, id) {
@@ -447,8 +448,9 @@
             let next = lists.length - 1, shown = 0;
             const sentinel = document.createElement('div');
             sentinel.className = 'cg-more';
+            const seen = new Set();                                            // 🔁 같은 칸은 한 번만 (드라이브에 올리는 중엔 '올릴 것'과 목록에 같은 칸이 잠깐 같이 있어요 · 도련 10-23 글씨스티커 2개)
             const add = arr => {
-                const html = arr.filter(e => !C.gone.has(e.id)).map(render).join('');
+                const html = arr.filter(e => !C.gone.has(e.id) && !seen.has(e.id) && seen.add(e.id)).map(render).join('');
                 if (html) { sentinel.insertAdjacentHTML('beforebegin', html); shown++; }
             };
             host.innerHTML = '';
