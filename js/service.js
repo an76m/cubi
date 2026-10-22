@@ -255,6 +255,7 @@
         function openShop(at) { window.open('shop/' + (at || ''), '_blank'); }      // at : 문구점 안의 칸 (예 '#/c/스티커')
         function openPet() { comingSoon('🐾 펫 키우기'); }
         function openHoney() { comingSoon('🍯 꿀 만들기'); }
+        function openDollSoon() { comingSoon('🧸 인형 꾸미기'); }   // 🚧 인형 꾸미기 = 준비중 (10-23 도련 · 인형방 · 인형극 창은 안 열어요 · 코드는 그대로 · 다시 열려면 index.html 버튼을 svcOpenCat('make') 로)
         if (typeof window.openPuppetShow !== 'function') window.openPuppetShow = () => comingSoon('🎭 인형극');   // js/puppet.js 가 없을 때만
         function openSweetVideo() { comingSoon('🎬 달콤영상'); }
         function openFortune() { if (typeof openFortuneCard === 'function') openFortuneCard(); else comingSoon('🔮 포춘카드'); }   // js/fortune.js
@@ -525,6 +526,7 @@
             if (id === 'pet') return openPet();
             if (id === 'honey') return openHoney();
             if (id === 'window') return comingSoon('🪟 힐링창문');
+            if (id === 'make') return openDollSoon();
             openModal('serviceModal'); svcOpenCat(id);
             document.getElementById('svcBack').classList.add('mt-none');    // 마을에서 왔으니 ‹ 카페 대신 ✕ = 마을로
         }
