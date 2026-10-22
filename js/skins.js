@@ -335,7 +335,7 @@
                 tier = id.startsWith('cm:') ? 'share' : mine ? (mine.got ? 'share' : 'mine') : 'free';
             }
             const bar = document.getElementById('patTabs');
-            if (bar) bar.innerHTML = stkTabsOn().filter(([v]) => v !== 'mine' || ftOn('patmake')).map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="setPatTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
+            if (bar) bar.innerHTML = stkTabsOn().filter(([v]) => v !== 'mine' || ftOn('patmine')).map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="setPatTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
             if (bar && !bar.querySelector(`[data-tab="${tier}"]`)) tier = 'free';
             closeModal('skinModal');
             setPatTab(tier);

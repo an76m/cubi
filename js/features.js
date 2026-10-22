@@ -11,11 +11,12 @@
             notebook: true,   // 📒 스티커 수첩 (10-13 다시 보이게 · 손보는 중) (⚙ 설정의 '스티커 고르는 창' · 숨기면 늘 🪟 고르는 창)
             dday: false,      // ⏳ D-day (⚙ 설정 스위치 · 페이지 왼쪽 위 D-day · 카페에서 만들어요)
             pattern: true,    // (10-18 다시 보이게) 🌈 배경지 · 🖼️ 이미지로 배경지 · 🖌️ 그려서 배경지 (🎨 페이지 창)
-            studio: false,    // 🎀 페이지 꾸미기 (🎨 페이지 창 · 10-18 숨김 : 실물 다이어리 · 속지 방향과 안 맞아요)
-            skin: false,      // 📔 페이지 · 🎨 페이지 색상설정 (다이어리 창 · 10-18 숨김 · 기능은 그대로)
+            studio: true,     // (10-23 다시 보이게 · 도련) 🎀 페이지 꾸미기 (🎨 페이지 창 · 10-18 숨김 : 실물 다이어리 · 속지 방향과 안 맞아요)
+            skin: true,       // (10-23 다시 보이게 · 도련) 📔 페이지 · 🎨 페이지 색상설정 (다이어리 창 · 10-18 숨김 · 기능은 그대로)
             dybook: false,    // (10-23 숨김 · 도련 : 다이어리 창은 기본다이어리 · 배경지만) 📓 노트 · 🗂️ 바인더 · 📕 표지 꾸미기 (다이어리 창 · 10-18 확정 · 내가만든 칸에서 노트 · 바인더 만들기 js/dymaker.js)
-            patmake: false,   // (10-23 숨김 · 도련 : 배경지 창 '내가만든' 칸도) 🖼️ 이미지로 배경지 + 🌈 배경지 창의 '내가만든' 칸 (다이어리 창 · 10-18 확정)
-            patdraw: false,   // 🖌️ 그려서 배경지 (다이어리 창 · 10-18 숨김)
+            patmake: true,    // (10-23 다시 보이게 · 도련) 🖼️ 이미지로 배경지 버튼 (다이어리 창 · 10-18 확정)
+            patmine: false,   // 🌈 배경지 창의 '내가만든' 칸 (10-23 숨김 · 도련 · js/skins.js openPatternList)
+            patdraw: true,    // (10-23 다시 보이게 · 도련) 🖌️ 그려서 배경지 (다이어리 창 · 10-18 숨김)
             stkmake: true,    // (10-18 다시 보이게) ✂️ 나만의 스티커 만들기 · 스티커 창들의 '내가만든' 칸
             share: false,     // 📥 '공유받은' 칸 · 💾 공유용 파일 저장 (카페로 주고받는 것)
             caps: true,       // (10-18 다시 보이게) 🎁 캡슐스티커 (카페 랜덤박스에서 받아요)
@@ -25,7 +26,7 @@
         };
         /* 💻 내 컴퓨터(index.html 더블클릭 · localhost)에서는 모든 기능이 보여요 → 새 기능 소개 영상용 (사이트는 위 FEATURES 그대로) */
         const FT_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share', 'skin', 'studio', 'dybook', 'patmake', 'patdraw'];   // 🙈 10-23 : 다이어리 창은 기본다이어리 · 배경지만 (로컬에서도)   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
+        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share', 'dybook', 'patmine'];   // 🙈 로컬에서도 숨겨요 (10-23 : 노트 · 바인더 · 표지 꾸미기 · 배경지 창 내가만든 칸)   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
         function ftOn(name) { if (FT_OFF_LOCAL.includes(name) && FEATURES[name] === false) return false; return FT_LOCAL || !(name in FEATURES) || FEATURES[name] !== false; }
         (function () {
             const root = document.documentElement;
