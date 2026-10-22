@@ -242,6 +242,7 @@
         }, true);
         const SVC_CAT_NAMES = { daily: '🌱 매일', fortune: '🔮 운세·마음', make: '🧸 인형 꾸미기', game: '🕹️ 게임', watch: '🎧 보고·듣기', together: '💌 함께하기' };
         function svcOpenCat(id) {
+            if (id === 'make') return openDollSoon();                         // 🧸 인형 꾸미기 = 준비중 (어디서 열어도 · 10-23 도련)
             const panel = document.getElementById('svcPanel-' + id); if (!panel) return;
             document.getElementById('svcCats').hidden = true;
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = p !== panel; });
