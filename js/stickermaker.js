@@ -52,6 +52,7 @@
                   <div id="smTextB" class="smk-col" hidden>
                     <div class="smk-chips smk-fonts" id="smFonts"></div>
                     <div class="smk-colors" id="smColors">${SM_COLORS.map(c => `<button type="button" data-c="${c}" style="--c:${c}" onclick="smSetColor('${c}')" aria-label="색"></button>`).join('')}</div>
+                    <label class="smk-zoom smk-tsz">글씨 크기 <small>작게</small><input type="range" id="smTsz" min="0.5" max="1.6" step="0.05" value="1" oninput="smS.tsz=+this.value;smDraw()"><small>크게</small></label>
                   </div>
                   <div id="smFinal" class="smk-col">
                     <label class="smk-border"><input type="checkbox" id="smBorder" checked onchange="smS.border=this.checked;smDraw()"> 하얀 테두리</label>
@@ -203,8 +204,8 @@
         }
         function smRenderText(ctx) {
             const S = SM_SIZE, t = smS.text || '오늘도 말랑!';
-            let size = 64; ctx.font = `${size}px ${smS.font}`;
-            while (size > 22 && ctx.measureText(t).width > S - 50) { size -= 2; ctx.font = `${size}px ${smS.font}`; }
+            let size = Math.round(64 * (smS.tsz || 1)); ctx.font = `${size}px ${smS.font}`;   // 🔠 글씨 크기 (작게 0.5 ~ 크게 1.6 · 10-23 도련) · 줄에 안 들어가면 들어갈 만큼 줄여요
+            while (size > 12 && ctx.measureText(t).width > S - 50) { size -= 2; ctx.font = `${size}px ${smS.font}`; }
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
             if (smS.border) { ctx.lineWidth = size * .42; ctx.strokeStyle = '#fff'; ctx.strokeText(t, S / 2, S / 2); }   // 🔤 글씨스티커는 그림자 없이
             ctx.lineWidth = size * .12; ctx.strokeStyle = smS.color === '#ffffff' ? '#ff9ab3' : 'rgba(0,0,0,.18)'; ctx.strokeText(t, S / 2, S / 2);
@@ -238,6 +239,7 @@
         function smStartText() {
             smS.mode = 'text'; smPhase();
             smq('smText').value = smS.text;
+            const tz = smq('smTsz'); if (tz) tz.value = smS.tsz || 1;
             if (!smS.fontsBuilt) { smS.fontsBuilt = true; smFillFonts(); }
             smShow(); smSetFont(smS.font); smSetColor(smS.color);
             if (window.matchMedia && matchMedia('(pointer: fine)').matches) setTimeout(() => smq('smText').focus(), 50);   // 📱 터치 기기는 키보드가 저절로 올라와 화면이 움직이지 않게 직접 눌러서 써요

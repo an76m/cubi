@@ -1953,6 +1953,9 @@
         .smk-all { display: block; margin: 8px auto 0; padding: 7px 14px; border: 1.5px solid var(--border-color); border-radius: 999px; background: #fff; color: #7a5a66; font-size: 13px; cursor: pointer; }
         #smText { font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 12px; border: 2px solid #d8e6f0; outline: none; }
         .smk-colors { display: flex; gap: 8px; justify-content: center; }
+        .smk-tsz { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 700; color: #8a5a6e; }   /* 🔠 글씨스티커 크기 */
+        .smk-tsz small { font-size: 11px; font-weight: 500; color: #a88; }
+        .smk-tsz input { flex: 1; max-width: 180px; }
         .smk-colors button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1.5px #ccc; cursor: pointer; padding: 0; }
         .smk-colors button.on { box-shadow: 0 0 0 3px #5aa8e0; }
         /* 글꼴 버튼 : 크기를 똑같이 고정 + 글자가 칸 밖으로 안 넘치게 (웹폰트가 늦게 도착해도 칸 모양이 안 바뀌어서 아이패드 터치 위치가 안 어긋나요) */
