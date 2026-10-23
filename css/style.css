@@ -4268,3 +4268,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 📒 다이어리 창 (10-24) : 두 줄 이름 (기본다이어리 / 색상설정) · 두 번째 줄 빨간 (준비중) */
 .dk-lb.l2, .service-btn .dk-lb.l2 { white-space: pre-line !important; line-height: 1.25; }
 .service-btn small.dk-soon, .stk-menu .service-btn small.dk-soon { display: block; margin-top: 2px; color: #e53950 !important; font-size: 10.5px; font-weight: 700; }
+/* 📃 속지 고르기 칸 (고르는 창 · 📒 수첩) : 링 구멍 없이 그림만 (도련 10-24 · 페이지에 깔린 속지는 구멍 그대로) */
+.lf-pick .lf-sw, .lf-pick .lf-sw.lf-my { --lf-holes: linear-gradient(transparent, transparent); }
+/* 📒 수첩 : 그림 속지는 그림 비율 그대로 (--lf-r · js/leafpad.js) → 원본이 다 보여요 */
+.modal.snb-on .lf-pick:has(.lf-my) { width: min(100%, calc((var(--snb-h, 520px) - 44px) * var(--lf-r, .68))); }
+.modal.snb-on .lf-pick .lf-sw.lf-my { aspect-ratio: var(--lf-r, .68); background-size: 100% 100%; }

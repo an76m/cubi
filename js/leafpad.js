@@ -433,3 +433,19 @@
         }
         window.openTteok = openTteok; window.tkNoteGrab = tkNoteGrab; window.spawnTteok = spawnTteok; window.closeTteokRoom = closeTteokRoom; window.tkNoteDress = tkNoteDress; window.lfTabs = lfTabs;
         window.tkMiniHtml = tkMiniHtml; window.tkUseMy = tkUseMy;
+
+/* 📃 그림 속지(lf-my : 기본 속지 · 내가만든) 목록 칸 : 그림의 가로:세로를 --lf-r 로 (도련 10-24)
+   📒 수첩에서는 한 장이 그 비율 그대로 보여서 그림이 잘리지 않아요 (css/style.css .modal.snb-on .lf-pick) */
+(function () {
+    const seen = new WeakSet();
+    const fit = el => {
+        if (seen.has(el)) return; seen.add(el);
+        const m = /url\(["']?(.*?)["']?\)/.exec(el.style.getPropertyValue('--lf-img') || ''); if (!m) return;
+        const im = new Image();
+        im.onload = () => { if (im.naturalWidth && im.naturalHeight) (el.closest('.lf-pick') || el).style.setProperty('--lf-r', (im.naturalWidth / im.naturalHeight).toFixed(4)); };
+        im.src = m[1];
+    };
+    const scan = root => { if (root.querySelectorAll) root.querySelectorAll('.lf-sw.lf-my').forEach(fit); };
+    new MutationObserver(ms => ms.forEach(r => r.addedNodes.forEach(scan))).observe(document.documentElement, { childList: true, subtree: true });
+    scan(document);
+})();
