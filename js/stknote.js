@@ -632,7 +632,7 @@
                     sh.classList.add('v2');
                     const t = document.createElement('div'); t.className = 'snb-v2tag';
                     const esc = x => String(x).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
-                    t.innerHTML = `<b>${esc(mu.v2.name)}</b><small>씰 ${mu.n}장</small>${mu.v2.isNew ? '<em>NEW</em>' : ''}<i class="snb-v2hrt${mu.v2.fav ? ' on' : ''}" data-v2fav="${esc(mu.v2.id)}">${mu.v2.fav ? '♥' : '♡'}</i>${mu.v2.clip ? '<i class="snb-v2clip">📎</i>' : ''}`;
+                    t.innerHTML = `<b>${esc(mu.v2.name)}</b><small>씰 ${mu.n}장</small>${mu.v2.isNew ? '<em>NEW</em>' : ''}${/^q:/.test(mu.v2.id) ? '' : `<i class="snb-v2hrt${mu.v2.fav ? ' on' : ''}" data-v2fav="${esc(mu.v2.id)}">${mu.v2.fav ? '♥' : '♡'}</i>`}${mu.v2.clip ? '<i class="snb-v2clip">📎</i>' : ''}`;
                     sh.appendChild(t);
                 }
             });

@@ -2,7 +2,8 @@
    🆕 스티커 고르는 창 v2 (도련 10-23 · ⚙️ 설정 → 📒 스티커 고르는 창 → v2) : 🏷️ 씰스티커 → 기본 칸부터
    🪟 고르는 창 v2 = 문구점 진열대
      - 맨 위 매대 : 🕘 최근 · ♡ 찜 · ✨ 새로 나온 · 🍂 지금 계절 (누르면 그것만 · 다시 누르면 전체)
-     - 🔍 찾기 : 세트 이름 · 주제 · 찾기 단어 (js/kit-meta.js)
+     - 🔍 찾기 : 세트 이름 · 주제 · 찾기 단어 + 그림 하나하나의 검색어 (js/kit-meta.js img) → '토끼' 그림만 모아 보여 줘요 · 눌러서 그 그림 하나만 떼어 써요
+       (📒 수첩은 찾은 그림을 모은 '🔍 찾은 그림' 장이 맨 앞에 · 그 뒤로 그 그림이 든 세트)
      - 주제 칩 : 전체 · 동물 · 꽃·식물 · 디저트 · 인물 · 소품 · 하늘 · 계절 (세트가 있는 것만)
      - 🕘 최근 쓴 세트 한 줄 + 전체 세트 카드 (새것부터) · 카드 = 세트 이름 · 개수 · NEW / 계절 딱지 · ♡ 찜
      - 카드를 누르면 예전처럼 하얀 씰 종이가 펼쳐져 🪡 핀셋으로 떼어 써요 (js/elements.js libPickSheet)
@@ -30,7 +31,7 @@
     /* 세트 목록 : 기본스티커 목록(basicKit) + 이름표(KIT_META) */
     async function sets() {
         if (S.sets) return S.sets;
-        const kit = await basicKit(), M = (window.KIT_META && KIT_META.sets) || {};
+        const kit = await basicKit(), M = (window.KIT_META && KIT_META.sets) || {}, IK = (window.KIT_META && KIT_META.img) || {};
         const byCat = {}; Object.keys(M).forEach(k => { const x = M[k]; if (x.c != null) byCat[x.c + '|' + x.i] = x; });
         const file = u => String(u).split('/').pop();
         const out = [], idx = {};
@@ -40,6 +41,7 @@
             out.push(mk(file(x.us[0]), x.us, c, m, i));
         });
         kit.images.forEach(x => out.push(mk(file(x.u), [x.u], x.c || '기본', M[file(x.u)], -1)));
+        out.forEach(s => { s.ik = s.us.map(u => IK[file(u)] || ''); });      // 그림마다 검색어
         const dmax = out.reduce((a, s) => s.d > a ? s.d : a, '');
         const lim = dmax ? new Date(new Date(dmax).getTime() - 7 * 864e5).toISOString().slice(0, 10) : '';
         out.forEach((s, n) => { s.n0 = n; s.isNew = !!(dmax && s.d >= lim && s.d >= '2026-10-20'); });
@@ -59,8 +61,15 @@
         else if (S.mode === 'season') v = v.filter(s => s.s.includes(SEASON[0]));
         if (S.topic) v = v.filter(s => s.t === S.topic);
         const w = S.q.trim();
-        if (w) { const ws = w.split(/\s+/); v = v.filter(s => ws.every(x => (s.n + ' ' + s.t + ' ' + s.k + ' ' + catName(s.c) + ' ' + s.s.join(' ')).includes(x))); }
+        if (w) { const ws = w.split(/\s+/); v = v.filter(s => ws.every(x => (s.n + ' ' + s.t + ' ' + s.k + ' ' + catName(s.c) + ' ' + s.s.join(' ')).includes(x)) || s.ik.some(k => k && ws.every(x => k.includes(x)))); }
         return v;
+    }
+    /* 🔍 찾은 그림 하나하나 (세트 속에서도) : [{ u, s(세트) }] */
+    function hits(v) {
+        const ws = S.q.trim().split(/\s+/).filter(Boolean); if (!ws.length) return [];
+        const out = [];
+        v.forEach(s => s.ik.forEach((k, i) => { if (k && ws.every(x => k.includes(x))) out.push({ u: s.us[i], s }); }));
+        return out;
     }
     /* 한 장 카드 */
     function card(s, small) {
@@ -73,14 +82,14 @@
     async function render() {
         const box = q('sv2Box'); if (!box) return;
         if (!S.sets) { box.innerHTML = '<p class="sv2-wait">⏳ 스티커 목록을 불러오는 중...</p>'; try { await sets(); } catch (e) { box.innerHTML = '<p class="sv2-wait">⚠ 스티커 목록을 불러오지 못했어요.<br>인터넷 연결을 확인한 뒤 다시 열어 주세요.</p>'; return; } }
-        const list = S.sets, v = view(list), R = recent();
+        const list = S.sets, v = view(list), R = recent(), H = hits(v), note = window.snbMode && snbMode() === 'note';
         const topics = TOPICS.filter(t => list.some(s => s.t === t));
         const shelf = [['recent', '🕘 최근'], ['fav', '♡ 찜'], ['new', '✨ 새로 나온'], ['season', SEASON[1] + ' ' + SEASON[0]]];
         const keepQ = document.activeElement && document.activeElement.id === 'sv2Q';
         const plain = !S.mode && !S.topic && !S.q.trim();
         const rec = plain ? R.map(id => list.find(s => s.id === id)).filter(Boolean).slice(0, 8) : [];
         const head = S.mode === 'fav' ? '♡ 찜한 세트' : S.mode === 'recent' ? '🕘 최근 쓴 세트' : S.mode === 'new' ? '✨ 새로 나온 세트' : S.mode === 'season' ? `${SEASON[1]} ${SEASON[0]} 세트` : S.q.trim() ? `'${esc(S.q.trim())}' 찾은 세트` : S.topic ? esc(S.topic) + ' 세트' : '전체 세트';
-        const F = favs(), sig = [S.mode, S.topic, S.q, rec.map(s => s.id).join(','), v.map(s => s.id).join(',')].join('|');
+        const F = favs(), sig = [S.mode, S.topic, S.q, note, rec.map(s => s.id).join(','), v.map(s => s.id).join(',')].join('|');
         if (box._sig === sig && box.firstChild) {                                // 목록은 그대로 · ♡ · 📎 만 바꿔요 (📒 수첩이 첫 장으로 돌아가지 않게)
             box.querySelectorAll('.sv2-card').forEach(c => { const f = F.includes(c.dataset.id), h = c.querySelector('.sv2-hrt'); if (!!c.dataset.fav !== f) c.dataset.fav = f ? 1 : ''; if (h) { h.classList.toggle('on', f); h.textContent = f ? '♥' : '♡'; } const cl = R[0] === c.dataset.id ? 1 : ''; if (String(c.dataset.clip || '') !== String(cl)) c.dataset.clip = cl; });
             document.querySelectorAll('.snb-v2hrt[data-v2fav]').forEach(h => { const f = F.includes(h.dataset.v2fav); h.classList.toggle('on', f); h.textContent = f ? '♥' : '♡'; });
@@ -92,12 +101,13 @@
             + `<label class="sv2-find${S.q ? ' on' : ''}">🔍 <input id="sv2Q" type="search" enterkeyhint="search" autocomplete="off" placeholder="토끼, 꽃, 케이크… 찾기" value="${esc(S.q)}">${S.q ? '<button type="button" class="sv2-x" data-x="1">✕</button>' : ''}</label>`
             + `<div class="sv2-topics">${['', ...topics].map(t => `<button type="button" class="lib-cat${S.topic === t ? ' on' : ''}" data-topic="${esc(t)}">${t || '전체'}<small>${(t ? list.filter(s => s.t === t) : list).length}</small></button>`).join('')}</div>`
             + (rec.length ? `<p class="sv2-sub">🕘 최근 쓴 세트 <small>밀어서 더 보기 ›</small></p><div class="sv2-strip">${rec.map(s => card(s, true)).join('')}</div>` : '')
-            + `<p class="sv2-sub">${head} <small>${v.length}개${plain ? ' · 새것부터' : ''}</small></p>`
-            + (v.length ? `<div class="sv2-grid">${v.map(s => card(s)).join('')}</div>` : `<p class="sv2-empty">${empty}</p>`);
+            + (H.length && !note ? `<p class="sv2-sub">🔍 '${esc(S.q.trim())}' 그림 ${H.length}개 <small>세트 ${new Set(H.map(h => h.s.id)).size}개에서 · 누르면 그 그림만 떼어 써요</small></p><div class="sv2-hits">${H.slice(0, 120).map(h => `<button type="button" class="sv2-hit" data-u="${esc(h.u)}" data-id="${esc(h.s.id)}"><span><img alt="" loading="lazy" src="${window.kitSize ? kitSize(h.u, 120) : h.u}"></span><small>${esc(h.s.n)}</small></button>`).join('')}</div>` : '')
+            + `<p class="sv2-sub">${H.length ? `'${esc(S.q.trim())}' 들어 있는 세트` : head} <small>${v.length}개${plain ? ' · 새것부터' : ''}</small></p>`
+            + (v.length ? `<div class="sv2-grid">${H.length && note ? card({ id: 'q:' + S.q.trim(), us: H.map(h => h.u), n: `🔍 '${S.q.trim()}' 찾은 그림`, s: [], one: false, isNew: false }) : ''}${v.map(s => card(s)).join('')}</div>` : `<p class="sv2-empty">${empty}</p>`);
         if (keepQ) { const i = q('sv2Q'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
         deco();
     }
-    function used(id) { const r = recent().filter(x => x !== id); r.unshift(id); pset(REC, r.slice(0, 12)); }
+    function used(id) { if (/^q:/.test(id)) return; const r = recent().filter(x => x !== id); r.unshift(id); pset(REC, r.slice(0, 12)); }
     function toggleFav(id) { const f = favs(), i = f.indexOf(id); if (i >= 0) f.splice(i, 1); else f.unshift(id); pset(FAV, f.slice(0, 200)); return i < 0; }
     window.v2Used = id => { used(id); if (on()) setTimeout(render, 400); };
     window.v2Fav = id => { const r = toggleFav(id); render(); return r; };
@@ -107,6 +117,7 @@
         const sh = e.target.closest('[data-mode]'); if (sh) { S.mode = S.mode === sh.dataset.mode ? '' : sh.dataset.mode; render(); return; }
         const tp = e.target.closest('[data-topic]'); if (tp) { S.topic = tp.dataset.topic; render(); return; }
         if (e.target.closest('[data-x]')) { S.q = ''; render(); return; }
+        const ht = e.target.closest('.sv2-hit'); if (ht) { used(ht.dataset.id); if (window.libPick) libPick(ht.dataset.u); return; }   // 🔍 찾은 그림 하나만
         const c = e.target.closest('.sv2-card'); if (!c) return;
         const s = (S.sets || []).find(x => x.id === c.dataset.id); if (!s) return;
         used(s.id);

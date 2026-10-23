@@ -4251,3 +4251,11 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
   .sv2-tab.on { transform: translateX(-6px); }
   .sv2-posts { left: 56px; }
 }
+/* 🔍 v2 찾은 그림 하나하나 (세트 속 토끼만 꺼내 쓰기) */
+.sv2-hits { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; padding: 2px 2px 6px; }
+.sv2-hit { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; min-width: 0; text-align: center; }
+.sv2-hit span { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; background: #fff; border-radius: 12px; box-shadow: 0 2px 6px rgba(120, 60, 80, .15); padding: 8px; }
+.sv2-hit img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .2)); }
+.sv2-hit small { display: block; margin-top: 4px; font-size: 10.5px; color: #a88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sv2-hit:active span { transform: scale(.96); }
+.sv2 input[type="search"]::-webkit-search-cancel-button, .sv2-deco input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
