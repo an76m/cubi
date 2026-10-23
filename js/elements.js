@@ -507,7 +507,7 @@
                     if (seal) { seal.move(pos.x, pos.y); return; }
                     if (!lifted && Math.hypot(ddx, ddy) > 6) {
                         lifted = true;
-                        zRoom(); el.style.zIndex = zIndexCounter++;
+                        if (!el.dataset.bgp) { zRoom(); el.style.zIndex = zIndexCounter++; }   // 📄 배경 모조지는 옮겨도 뒤에 그대로
                         /* 🏷️ 씰스티커처럼 떼었다 붙이기 : 지금은 꺼 뒀어요 (모든 것이 모조지스티커처럼 살짝 떠서 옮겨져요)
                            다시 켜려면 아래 두 줄의 // 를 지우고, 그 밑의 '살짝 떠서' 한 줄을 지우면 돼요 (sealStart 함수는 그대로 있어요)
                         if (!(seal = sealStart())) { el.classList.add('lifting'); liftTo(1.06); }   // 📝 메모지 · 🧻 떡메 · 📄 모조지스티커 · 테이프 : 살짝 떠서 옮겨요
@@ -1113,6 +1113,7 @@
                 if (img && el.dataset.sh) { try { item.sh = JSON.parse(el.dataset.sh); } catch (e) {} }   // ✨ 셰이더 스티커 : 효과 이름 · GLSL 글자 · 속도 · 세기 (js/glrun.js)
                 if (el.dataset.bs) item.bs = el.dataset.bs;                    // 📌 바인더 가운데 틈 근처에 놓인 쪽 (js/skins.js bdPin · 그때만 저장)
                 if (el.dataset.ph) item.ph = el.dataset.ph;                    // 🕳️ 펀칭기로 같이 뚫린 구멍 (js/skins.js bdPierce)
+                if (img && el.dataset.bgp) item.bgp = 1;                        // 📄 배경 모조지 : 옮겨도 맨 뒤 그대로 (js/papermaker.js · 10-23)
                 if (img && el.dataset.ts) item.ts = 1;                          // 🔤 글씨스티커 : 📷 사진 꾸미기 창이 안 떠요 (js/page.js getSelectedPhoto)                       // 📄 모조지스티커 : 옮길 때 떼지 않고 살짝 떠서 (아래 makeTransformable)
                 if (img && el.dataset.frame) {                                  // 📷 사진 틀 (js/frame.js)
                     item.fr = el.dataset.frame;
@@ -1186,6 +1187,7 @@
                 el.appendChild(img);
                 if (data.float) el.dataset.float = 1;
                 if (data.ts) el.dataset.ts = 1;
+                if (data.bgp) el.dataset.bgp = 1;
                 if (data.cm && window.cmvDress) cmvDress(el, img, data.cm);    // 🪄 움직이는 캐릭터 (js/char-move.js) : 그림 위에 움직이는 캔버스를 겹쳐요
                 else if (data.sh && window.glrDress) glrDress(el, img, data.sh); // ✨ 셰이더 스티커 (js/glrun.js) : 그림 위에 움직이는 캔버스를 겹쳐요
                 if (data.frame && /^[a-z0-9]{1,10}$/.test(data.frame)) {

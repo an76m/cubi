@@ -380,7 +380,7 @@
                 const pp = e.target.closest('.snb-paper');
                 if (pp && body.contains(pp) && window.openPaperSheet) {          // 📄 모조지스티커 종이 : 수첩 안에서 바로 오려요 (✂️ 가위 · 🪡 핀셋 확인은 js/papermaker.js)
                     snb.press = null; e.preventDefault(); e.stopPropagation(); snb.noClick = Date.now() + 700;
-                    openPaperSheet(pp.src, { el: pp, down: { x: e.clientX, y: e.clientY, id: e.pointerId } });
+                    openPaperSheet(pp.src, { el: pp, bg: pp.dataset.bg === '1', down: { x: e.clientX, y: e.clientY, id: e.pointerId } });
                     return;
                 }
                 const bg = e.target.closest('.snb-bag');
@@ -656,10 +656,10 @@
         async function snbSheetFill(sh) {
             sh._ld = 1;
             const mu = sh._mu, g = sh.querySelector('.snb-sh-in');
-            let urls = [], k = 'pack', orig = null;                              // urls : 시트에 보이는 그림 (작은 미리보기) · orig : 붙일 때 쓰는 원본
+            let urls = [], k = 'pack', orig = null, bgp = false;                  // bgp : 📄 배경 모조지 (그림이 곧 종이 · 통째로 떼요)                              // urls : 시트에 보이는 그림 (작은 미리보기) · orig : 붙일 때 쓰는 원본
             try {
                 if (mu.lib) { urls = mu.lib.map(u => window.kitSize ? kitSize(u, 400) : u); orig = mu.lib; k = 'seal'; }   // 🏷️ 씰 종이
-                else if (mu.sb) { const o = window.sbSheet && sbSheet(mu.sb[0], mu.sb[1]); if (o) { urls = o.urls; orig = o.orig || null; k = o.k; } }   // 🧩 조각 봉투 · 📄 모조지스티커 (js/stk-basic.js)
+                else if (mu.sb) { const o = window.sbSheet && sbSheet(mu.sb[0], mu.sb[1]); if (o) { urls = o.urls; orig = o.orig || null; k = o.k; bgp = !!o.bg; } }   // 🧩 조각 봉투 · 📄 모조지스티커 (js/stk-basic.js)
                 else if (mu.pack) {
                     const P = (typeof SPK_PACKS !== 'undefined' && SPK_PACKS.find(q => q.id === mu.pack)) || (window.sbPack && sbPack(mu.pack));   // 🖼️ 개발자 그림 묶음(srv:N)도
                     urls = P ? await keepTrying(() => spkSrcs(P), { alive: () => sh.isConnected }) : [];
@@ -673,10 +673,10 @@
             if (!urls.length) { sh._ld = 0; g.innerHTML = '<small class="snb-sh-wait">⚠ 시트를 불러오지 못했어요</small>'; return; }
             if (k === 'paper') {                                                // 📄 모조지스티커 : 그림들이 인쇄된 종이 한 장 → 누르면 그 위에서 칼집 (js/papermaker.js)
                 let src = urls[0];
-                if (mu.sb) try { src = await pmMakeSheet(urls); } catch (e) { src = ''; }
+                if (mu.sb && !bgp) try { src = await pmMakeSheet(urls); } catch (e) { src = ''; }
                 if (!sh.isConnected) return;
                 if (!src) { sh._ld = 0; g.innerHTML = '<small class="snb-sh-wait">⚠ 시트를 불러오지 못했어요</small>'; return; }
-                g.textContent = ''; const im = document.createElement('img'); im.className = 'snb-paper'; im.src = src; im.alt = ''; im.draggable = false; g.appendChild(im);
+                g.textContent = ''; const im = document.createElement('img'); im.className = 'snb-paper'; if (bgp) { im.dataset.bg = 1; im.crossOrigin = 'anonymous'; sh.classList.add('bgp'); } im.src = src; im.alt = ''; im.draggable = false; g.appendChild(im);
                 return;
             }
             if (sh._bag) { sh._fill = { urls, orig, k }; snbBagDraw(sh, g, urls); return; }
