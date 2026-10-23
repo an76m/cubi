@@ -628,6 +628,7 @@
                     const t = e.querySelector('.sb-top'); sh._bagC = (t && t.style.getPropertyValue('--c')) || '#ffb3c8';
                 }                              // 📄 모조지스티커 : 인쇄된 종이 한 장 (칼집을 내서 떼요)
                 sh._mu = mu; sh.querySelector('.snb-sh-in').innerHTML = '<small class="snb-sh-wait">시트를 펼치는 중…</small>';
+                snbDelBtn(sh, e, 'snb-del sh');                                 // 🗑 내가만든 · 받은 스티커는 수첩에서도 지울 수 있어요 (10-24)
                 if (mu.v2) {                                                   // 🆕 v2 : 시트 아래 뒷종이 = 세트 이름 · 개수 · ♥ 찜 · 📎 마지막에 쓴 세트
                     sh.classList.add('v2');
                     const t = document.createElement('div'); t.className = 'snb-v2tag';
@@ -649,11 +650,24 @@
                     else if (im) { const c = document.createElement('img'); c.src = im.currentSrc || im.src; c.alt = ''; c.draggable = false; pc.appendChild(c); }
                     else if (cv) { try { const c = document.createElement('img'); c.src = cv.toDataURL(); pc.appendChild(c); } catch (er) {} }
                     else { const t = document.createElement('b'); t.textContent = (o.textContent || '').trim().slice(0, 4); pc.appendChild(t); }
+                    snbDelBtn(pc, o, 'snb-del');
                     g.appendChild(pc);
                 });
             }
             return wrap;
         }
+        /* 🗑 지우기 (도련 10-24 : 수첩에서는 내가만든 스티커를 못 지웠어요) : 원래 칸의 지우기(title="지우기" ✕)를 대신 눌러요
+           → 고르는 창과 똑같이 '지울까요?' → 원래 목록이 다시 그려지면 수첩도 바로 그 장 · 그 그림이 사라져요 */
+        function snbDelBtn(host, src, cls) {
+            const del = src && src.querySelector('[title="지우기"]'); if (!del) return;
+            const x = document.createElement('button'); x.type = 'button'; x.className = cls; x.title = '지우기'; x.setAttribute('aria-label', '지우기'); x.textContent = '✕';
+            x._del = del; host.appendChild(x);
+        }
+        document.addEventListener('pointerdown', e => {                       // 떼기 · 장 넘기기보다 먼저 (붙잡히지 않게)
+            const x = e.target.closest && e.target.closest('.snb-del'); if (!x) return;
+            e.stopPropagation(); e.preventDefault();
+            if (x._del && x._del.isConnected) x._del.click();
+        }, true);
         /* 지금 장과 앞뒤 장의 시트만 그림을 읽어요 (시트가 수백 장이어도 가볍게) */
         function snbSheetNear(body) {
             const wrap = body.querySelector(':scope > .snb-sheets'); if (!wrap) return;

@@ -428,7 +428,7 @@
                     const del = document.createElement('button');
                     del.type = 'button'; del.className = 'btn'; del.textContent = '🗑'; del.title = '삭제';
                     del.onclick = () => deleteMyPattern(p.uid, p.got);
-                    if (p.got) acts.append(del); else acts.append(send, del);
+                    if (p.got || (typeof ftOn === 'function' && !ftOn('share'))) acts.append(del); else acts.append(send, del);   // 💾 파일로 저장은 공유(카페)가 열릴 때만 (10-24)
                     wrap.append(card, acts);
                     frag.appendChild(wrap);
                 } else frag.appendChild(card);

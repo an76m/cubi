@@ -4273,3 +4273,9 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 📒 수첩 : 그림 속지는 그림 비율 그대로 (--lf-r · js/leafpad.js) → 원본이 다 보여요 */
 .modal.snb-on .lf-pick:has(.lf-my) { width: min(100%, calc((var(--snb-h, 520px) - 44px) * var(--lf-r, .68))); }
 .modal.snb-on .lf-pick .lf-sw.lf-my { aspect-ratio: var(--lf-r, .68); background-size: 100% 100%; }
+/* 📒 수첩 🗑 지우기 (10-24) : 낱장 그림 = 오른쪽 위 작은 ✕ · 시트(여러 장) = 시트 오른쪽 위 ✕ */
+.snb-pc { position: relative; }
+.snb-del { position: absolute; z-index: 3; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: #fff; color: #c06080; font: 700 11px/1 sans-serif; box-shadow: 0 1px 4px rgba(0, 0, 0, .22); cursor: pointer; }
+.snb-pc > .snb-del { top: 0; right: 0; width: 20px; height: 20px; }
+.snb-sh > .snb-del.sh { top: 6px; right: 6px; width: 26px; height: 26px; font-size: 13px; }
+.snb-sh { position: relative; }
