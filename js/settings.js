@@ -424,15 +424,16 @@
         async function saveCustomSkin() {
             const newSkin = skinFromPickers();
             if (typeof stuExtra === 'function') Object.assign(newSkin, stuExtra());   // 🎀 페이지 꾸미기에서 놓은 꾸밈 · 아이콘도 함께
-            if (await saveMySkin(newSkin)) showMsg('🎨 내 페이지에 저장했어요!<br><span style="font-size:12px;color:#777;">📔 페이지 → 내가만든 칸에서 언제든 고를 수 있어요.</span>');
+            if (await saveMySkin(newSkin)) showMsg('🎨 나만의 기본다이어리에 저장했어요!<br><span style="font-size:12px;color:#777;">📔 기본다이어리 → 내가만든 칸에서 언제든 고를 수 있어요.</span>');
         }
 
         async function deleteSkin(id, got) {
-            if (!(await showMsg('이 페이지를 지울까요?', true))) return;
+            if (!(await showMsg('이 기본다이어리를 지울까요?', true))) return;
             try { await collRemove(pgColl(!!got), id); } catch (e) { showMsg('⚠ 지우지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
             delete customSkins[id];
             if (currentSkinId === id) applySkinPreset('pink');
             renderSkinSelect();
+            if (window.dyMineRefresh) dyMineRefresh();                          // 📔 기본다이어리 창 '내가만든' 칸도 바로 (10-24 : 다른 데 갔다 와야 지워져 보였어요)
         }
 
         /* 드라이브에서 읽은 뒤 (customSkins 는 로그인할 때 지금 고른 페이지 원본만 채워요 · pgPrepare) */

@@ -2090,6 +2090,7 @@
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
         const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? !['free', 'mine'].includes(v) : v === 'free';
+        window.dyMineRefresh = () => { if (dyMineOpen()) dyMineRender(); };   // 🗑 지운 뒤 · 저장한 뒤 바로 (js/settings.js deleteSkin)
         const dyMineOpen = () => { const m = document.getElementById('dyModal'); return !!m && m.style.display === 'flex' && dyKind === '다이어리' && dyTab === 'mine'; };
         /* 📔 기본다이어리 → 내가만든 : 내 페이지 모음 (드라이브 내페이지 · js/settings.js pgColl · 지우기 🗑 · 💾 는 페이지 목록과 같아요) */
         function dyMineRender() {

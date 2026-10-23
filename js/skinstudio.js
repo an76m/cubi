@@ -466,7 +466,7 @@
         async function stuSave() {
             if (!(await saveMySkin(Object.assign(skinFromPickers(), stuExtra())))) return;   // 이름 없이 저장 (js/settings.js saveMySkin)
             closeStudio();
-            showMsg('🎀 내 페이지에 저장했어요!<br><span style="font-size:12px;color:#777;">📔 페이지 → 내가만든 칸에서 언제든 고를 수 있어요.</span>');
+            showMsg('🎀 나만의 기본다이어리에 저장했어요!<br><span style="font-size:12px;color:#777;">📔 기본다이어리 → 내가만든 칸에서 언제든 고를 수 있어요.</span>');
         }
 
         /* ---------- 다이어리 위에서 끌기 ---------- */
