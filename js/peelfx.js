@@ -120,7 +120,11 @@
                 const v = Math.hypot(vx, vy) || 1, ux = vx / v, uy = vy / v; let best = 1e12, bp = null, lo = 1e9, hi = -1e9, near = null, nd = 1e12;
                 const pts = asset.edge.map(q => toStage(q[0], q[1]));
                 for (const [x, y] of pts) { const pr = x * ux + y * uy; lo = Math.min(lo, pr); hi = Math.max(hi, pr); const d = (x - o.x) ** 2 + (y - o.y) ** 2; if (d < nd) { nd = d; near = [x, y]; } }
-                const gain = Math.max(1.25, (hi - lo) / 75);
+                const gain = o.soft ? Math.min(1.7, Math.max(1.25, (hi - lo) / 160)) : Math.max(1.25, (hi - lo) / 75);   // 📄 큰 종이(soft)는 천천히 말려요 (한 번에 확 넘어가면 판때기 같아요)
+                if (o.soft) {                                                                                    // 📄 큰 종이 : 끄는 방향 반대쪽 모서리(귀퉁이)부터 돌돌
+                    let bc = null, bs = 1e12; for (const [x, y] of pts) { const sc = (x - o.x) * ux + (y - o.y) * uy; if (sc < bs) { bs = sc; bc = [x, y]; } }
+                    return { C: bc, gain };
+                }
                 if (near && Math.sqrt(nd) < PFX_GRAB && (st.cx - near[0]) * ux + (st.cy - near[1]) * uy > 0) return { C: near, gain: Math.max(1, (hi - lo) / 95) };   // 가장자리를 잡고 안쪽으로
                 for (const [x, y] of pts) { const pr = (x - o.x) * ux + (y - o.y) * uy, pp = Math.abs((x - o.x) * -uy + (y - o.y) * ux), sc = pr + pp * .6; if (sc < best) { best = sc; bp = [x, y]; } }
                 return { C: bp, gain };
@@ -164,12 +168,18 @@
                 const a = 1 - 2 * n[0] * n[0], b = -2 * n[0] * n[1], d = 1 - 2 * n[1] * n[1], e = 2 * md * n[0], f = 2 * md * n[1];
                 const L = fl.getContext('2d'); L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, fl.width, fl.height);
                 L.setTransform(DPR * a, DPR * b, DPR * b, DPR * d, DPR * e, DPR * f);
+                if (o.soft) {                                                    // 📄 말린 종이 : 들린 부분을 접힌 선 쪽으로 눌러(짧게) 둥글게 말려 올라간 느낌
+                    const c = .58, k = c - 1, nx = n[0], ny = n[1];
+                    const sa = 1 + k * nx * nx, sb = k * nx * ny, sd = 1 + k * ny * ny, se = M[0] - (sa * M[0] + sb * M[1]), sf = M[1] - (sb * M[0] + sd * M[1]);
+                    L.setTransform(1, 0, 0, 1, 0, 0); L.transform(DPR, 0, 0, DPR, 0, 0); L.transform(sa, sb, sb, sd, se, sf); L.transform(a, b, b, d, e, f);
+                }
                 L.save(); halfPlane(L, M, n, -1); L.clip();
                 L.translate(st.cx, st.cy); L.rotate(st.rot); L.scale(st.s, st.s); L.drawImage(asset.back, -asset.w / 2, -asset.h / 2, asset.w, asset.h); L.restore();
                 // 말린 느낌 음영 : 접힌 선 근처는 어둡고, 가운데는 밝게
                 L.setTransform(DPR, 0, 0, DPR, 0, 0); L.globalCompositeOperation = 'source-atop';
-                const span = Math.max(20, len / 2), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
-                g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)');
+                const span = Math.max(20, len / 2 * (o.soft ? .58 : 1)), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
+                if (o.soft) { g.addColorStop(0, 'rgba(90,60,70,.42)'); g.addColorStop(.12, 'rgba(255,255,255,.6)'); g.addColorStop(.3, 'rgba(255,255,255,.2)'); g.addColorStop(.7, 'rgba(160,130,140,.12)'); g.addColorStop(1, 'rgba(120,90,100,.3)'); }   // 둥근 말림 : 접힌 곳은 반짝 · 끝은 어둑
+                else { g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)'); }
                 L.fillStyle = g; L.fillRect(0, 0, VW, VH); L.globalCompositeOperation = 'source-over';
                 // 들린 부분이 드리우는 그림자
                 ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;

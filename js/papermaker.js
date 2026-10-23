@@ -345,7 +345,7 @@
             pmSeat(st); st.peel = true;
             const back = msg => { st.peel = false; st.squish = pmNow(); if (S.gone) { S.gone = 0; S.back = pmNow(); } if (msg) pmSay(msg); };
             pmSay('찌익… 끝까지 <b>떼어</b> 내요');
-            const seal = pfxSeal({ src: st.img, cx: st.cx, cy: st.cy, w: st.w * st.s, h: st.h * st.s, rot: 0, x: at[0], y: at[1],
+            const seal = pfxSeal({ src: st.img, cx: st.cx, cy: st.cy, w: st.w * st.s, h: st.h * st.s, rot: 0, x: at[0], y: at[1], soft: !!st.bg,   // 📄 배경 모조지 = 큰 종이라 귀퉁이부터 천천히 말려요 (10-24)
                 onDetach: () => { if (pmPhone()) { S.gone = pmNow(); S.back = 0; } if (S.note && window.snbAway) snbAway(true); pmBuzz(15); pmSay('톡! 떼어졌어요 ✨ <b>페이지</b>에 놓으면 붙어요'); },   // 📱 종이는 스르르 비켜요 (놓으면 다시)
                 onCancel: () => { if (S.note && window.snbAway) snbAway(false); back('조금만 더! 끝까지 떼어야 해요'); },
                 onDrop: (cx, cy, rot) => {
