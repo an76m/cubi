@@ -228,16 +228,12 @@
             if (sklTab === 'share' && (typeof ftOn !== 'function' || ftOn('share'))) head = '<div class="shx-bar in"><button type="button" class="shx-btn go" onclick="document.getElementById(\'skinFileInput\').click()">📥 파일 불러오기</button><small>카페에서 받은 페이지 파일을 골라요</small></div>';
             if (sklTab === 'event' && typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN) head = '<div class="season-card skl-wide" id="seasonCard"></div>';
             const empty = {
-                mine: '아직 만든 페이지가 없어요.<br>🎨 페이지 색상설정이나 🎀 페이지 꾸미기에서 저장해 보세요!',
+                mine: '아직 만든 기본다이어리가 없어요.<br>🎨 기본다이어리 색상설정이나 🎀 기본다이어리 꾸미기에서 저장해 보세요!',
                 share: '아직 공유받은 페이지가 없어요.<br>카페에서 받은 파일을 📥 파일 불러오기로 넣어 보세요.',
                 event: '🎁 아직 받은 이벤트 페이지가 없어요.<br>이벤트 페이지가 오면 여기에 들어와요!'
             }[sklTab];
             const shop = sklTab === 'shop' ? `<button type="button" class="stk-go" onclick="openShop('#/c/페이지')"><span>🛍️</span><b>문구점에서 페이지 보기</b><small>새 창으로 열려요</small></button>` : '';
-            const cell = (it, got, by) => {
-                const on = it.id === currentSkinId, safe = String(it.id).replace(/[\\'"<>&]/g, c => '&#' + c.charCodeAt(0) + ';');
-                const acts = it.own ? `<span class="skl-acts">${got || (typeof ftOn === 'function' && !ftOn('share')) ? '' : `<button type="button" title="파일로 저장 (카페에 올리기용)" onclick="downloadSkinFile('${safe}')">💾</button>`}<button type="button" title="지우기" onclick="deleteSkin('${safe}', ${got ? 1 : 0})">🗑</button></span>` : '';
-                return `<div class="skl-it${on ? ' on' : ''}" data-id="${safe}"><button type="button" class="skl-pick" aria-pressed="${on}" onclick="sklPick('${safe}'${it.own ? (got ? ', 1' : ', 0') : ''})">${sklThumb(it.skin)}${on ? '<span class="skl-on">✔ 사용 중</span>' : ''}</button>${by ? `<small class="shx-by">by ${String(by).replace(/[<>&"']/g, c => '&#' + c.charCodeAt(0) + ';')}</small>` : ''}${acts}</div>`;
-            };
+            const cell = sklCell;
             const coll = sklTab === 'mine' || sklTab === 'share';                    // 🎨 내가만든 · 📥 받은 페이지 : 모음에서 작은 그림으로 (js/coll.js)
             g.innerHTML = head + (coll ? '<div class="cg-host"></div>' : '') + items.map(it => cell(it)).join('')
                 + (!coll && !items.length && !shop && empty && !(sklTab === 'event' && head) ? `<div class="cs-empty">${empty}</div>` : '') + shop;
@@ -248,10 +244,18 @@
             }
             if (head.includes('seasonCard') && typeof seasonRenderCard === 'function') seasonRenderCard();
         }
-        /* 고르기 : 내 페이지는 원본을 읽은 뒤에 (got : 받은페이지 칸) */
+        /* 페이지 한 칸 (페이지 목록 · 📔 기본다이어리 창 '내가만든' 칸이 같이 써요) */
+        function sklCell(it, got, by) {
+            const on = it.id === currentSkinId && !(typeof dkType === 'function' && dkType()), safe = String(it.id).replace(/[\\'"<>&]/g, c => '&#' + c.charCodeAt(0) + ';');
+            const acts = it.own ? `<span class="skl-acts">${got || (typeof ftOn === 'function' && !ftOn('share')) ? '' : `<button type="button" title="파일로 저장 (카페에 올리기용)" onclick="downloadSkinFile('${safe}')">💾</button>`}<button type="button" title="지우기" onclick="deleteSkin('${safe}', ${got ? 1 : 0})">🗑</button></span>` : '';
+            return `<div class="skl-it${on ? ' on' : ''}" data-id="${safe}"><button type="button" class="skl-pick" aria-pressed="${on}" onclick="sklPick('${safe}'${it.own ? (got ? ', 1' : ', 0') : ''})">${sklThumb(it.skin)}${on ? '<span class="skl-on">✔ 사용 중</span>' : ''}</button>${by ? `<small class="shx-by">by ${String(by).replace(/[<>&"']/g, c => '&#' + c.charCodeAt(0) + ';')}</small>` : ''}${acts}</div>`;
+        }
+        /* 고르기 : 내 페이지는 원본을 읽은 뒤에 (got : 받은페이지 칸) · 📔 기본다이어리 창에서 고르면 기본 다이어리로 바꾸고 그 색 · 꾸밈 */
         async function sklPick(id, got) {
             if ((got != null) && !hasOwn(customSkins, id) && !(await pgEnsure(id, !!got))) { showMsg('⚠ 이 페이지를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); return; }
-            if (applySkinPreset(id)) renderPageList();
+            const dy = dyMineOpen();
+            if (dy && dyNow().id !== DY_DEF) dySet(DY_DEF);
+            if (applySkinPreset(id)) { renderPageList(); if (dy) dyMineRender(); }
         }
         /* 작은 다이어리 그림 : 바탕 · 겉표지 · 속지(테두리) · 하단메뉴 + 놓아 둔 꾸밈 (속지 · 머리 · 하단메뉴 자리) */
         function sklThumb(skin) {
@@ -2082,8 +2086,19 @@
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' }, DY_NAME = { '다이어리': '기본다이어리' };
         const DY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
         let dyKind = '다이어리', dyTab = 'free';
-        const dyItems = (kind, tab) => kind === '다이어리' ? DY_COLORS : tab === 'mine' ? ['new'].concat(typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 📓 내가만든 = ➕ 만들기 + 만든 것 (js/dymaker.js) · 규격 6종은 나중에 문구점 바탕
-        const dyHide = (kind, v) => kind === '다이어리' || v === 'free';
+        /* 10-24 도련 : 📔 기본다이어리 = 기본(4색) · 내가만든(🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 예전 📔 페이지 목록의 칸을 옮겨 왔어요)
+                       📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
+        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 규격 6종은 나중에 문구점 바탕
+        const dyHide = (kind, v) => kind === '다이어리' ? !['free', 'mine'].includes(v) : v === 'free';
+        const dyMineOpen = () => { const m = document.getElementById('dyModal'); return !!m && m.style.display === 'flex' && dyKind === '다이어리' && dyTab === 'mine'; };
+        /* 📔 기본다이어리 → 내가만든 : 내 페이지 모음 (드라이브 내페이지 · js/settings.js pgColl · 지우기 🗑 · 💾 는 페이지 목록과 같아요) */
+        function dyMineRender() {
+            const box = document.getElementById('dyPickList'); if (!box) return;
+            box.innerHTML = '<div class="skl-grid dy-skl"><div class="cg-host"></div></div>';
+            const C = pgColl(false);
+            C.onChange = () => { if (dyMineOpen()) dyMineRender(); };
+            collGrid(box.querySelector('.cg-host'), C, e => sklCell({ id: e.id, skin: e.th, own: true }, false), '<div class="cs-empty">아직 만든 기본다이어리가 없어요.<br>🎨 기본다이어리 색상설정이나 🎀 기본다이어리 꾸미기에서 저장해 보세요!</div>');
+        }
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + (DY_NAME[dyKind] || dyKind);
@@ -2097,7 +2112,8 @@
         function dyTabSet(g) {
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
-            const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>나중에 다이어리 만들기에서 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
+            if (dyKind === '다이어리' && g === 'mine') { dyMineRender(); return; }
+            const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${dyKind} 만들기(준비중)가 열리면 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + dyKind + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my

@@ -4265,3 +4265,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sv2-go { flex: none; border: 0; border-radius: 9px; background: #f06f9a; color: #fff; font: inherit; font-size: 12.5px; font-weight: 800; padding: 5px 11px; cursor: pointer; }
 .sv2-go:active { transform: scale(.96); }
 .sv2-dfind .sv2-go { padding: 4px 9px; background: #f06f9a; color: #fff; border-radius: 9px; font-weight: 800; }
+/* 📒 다이어리 창 (10-24) : 두 줄 이름 (기본다이어리 / 색상설정) · 두 번째 줄 빨간 (준비중) */
+.dk-lb.l2, .service-btn .dk-lb.l2 { white-space: pre-line !important; line-height: 1.25; }
+.service-btn small.dk-soon, .stk-menu .service-btn small.dk-soon { display: block; margin-top: 2px; color: #e53950 !important; font-size: 10.5px; font-weight: 700; }

@@ -145,8 +145,8 @@
             const ic = b.querySelector('.service-icon'); if (!ic) return;
             const t = [...b.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
             const name = t.map(n => n.textContent).join('').trim();
-            if (t.length) { const lb = document.createElement('span'); lb.className = 'dk-lb'; lb.textContent = name; t[0].replaceWith(lb); t.slice(1).forEach(n => n.remove()); }
-            die(ic, MAP[name], i);
+            if (t.length) { const lb = document.createElement('span'); lb.className = 'dk-lb' + (name.includes('\n') ? ' l2' : ''); lb.textContent = name; t[0].replaceWith(lb); t.slice(1).forEach(n => n.remove()); }   // &#10; = 두 줄 이름 (기본다이어리 / 색상설정)
+            die(ic, b.dataset.ico || MAP[name.replace(/\s+/g, ' ')], i);                     // data-ico = 아이콘을 직접 (두 줄 이름 등)
         });
         box.querySelectorAll('.svc-cat').forEach((c, i) => { const ic = c.querySelector('.svc-cat-icon'), b = c.querySelector('b'); if (ic && b && !ic.querySelector('svg')) die(ic, MAP[b.textContent.trim()], i + 1); else if (ic) die(ic, '', i + 1); });
         box.querySelectorAll('.save-choice').forEach((c, i) => { const ic = c.querySelector('.save-choice-icon'), b = c.querySelector('b'); if (ic && b) die(ic, /PNG/.test(b.textContent) ? 'pick' : 'cloud', i); });
