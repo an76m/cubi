@@ -803,7 +803,7 @@
                 let s = url;
                 if (seal && window.pelBake) try { s = await pelBake(url); } catch (e) { s = url; }
                 const img = await new Promise((ok, no) => { const g = new Image(); g.onload = () => ok(g); g.onerror = no; g.src = s; });
-                if (img.naturalWidth && img.naturalHeight) p.real = { w: img.naturalWidth, h: img.naturalHeight, img, s };
+                if (img.naturalWidth && img.naturalHeight) { const [w, h] = window.elFit ? elFit(img.naturalWidth, img.naturalHeight) : [img.naturalWidth, img.naturalHeight]; p.real = { w, h, img, s }; }   // 📐 큰 그림은 페이지에 맞는 크기로
             })().catch(() => {});
         }
         async function snbPeelStick(p, cx, cy, rot, r, sz) {
