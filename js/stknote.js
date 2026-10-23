@@ -254,7 +254,8 @@
             const body = m.querySelector('.snb-body'); if (!body) return;
             snbCatsSync(m, body);                                              // 🗂 카테고리를 먼저 놓아야 장 높이가 맞아요
             if (!body.clientHeight) return;
-            const tkS = Math.max(.44, Math.min((body.clientWidth - 48) / 150, (body.clientHeight - 70) / 173));   // 🧻 떡메 한 장 크기 (150 × 173 그림을 장에 맞게)
+            const pg = snbq('canvasArea'), pgK = pg && pg.offsetWidth ? pg.getBoundingClientRect().width / pg.offsetWidth : 1;   // 페이지 배율
+            const tkS = Math.max(.44, Math.min((body.clientWidth - 48) / 150, (body.clientHeight - 70) / 173, pgK));   // 🧻 떡메 한 장 크기 = 페이지에 붙는 크기와 같게 (10-24 도련 : 수첩에서 크게 뜯었는데 페이지에선 작아져 이상해요) · 장이 좁으면 장에 맞게
             if (body.style.getPropertyValue('--tk-s') !== tkS.toFixed(3)) body.style.setProperty('--tk-s', tkS.toFixed(3));
             if (!body.style.getPropertyValue('--snb-h')) body.style.setProperty('--snb-h', body.clientHeight + 'px');
             if (snbLibOn(m)) {
