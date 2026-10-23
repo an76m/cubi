@@ -280,7 +280,7 @@
             stuRenderDeco();
             closeModal('stuModal');
         }
-        function stuBackToMenu() { closeStudio(); openModal('skinModal'); }
+        function stuBackToMenu() { closeStudio(); openModal('myDiaryModal'); }   // ← ✨ 나만의 기본다이어리 (10-24)
 
         /* 팝업메뉴는 눌러야 잠깐 뜨는 거라서, 만드는 동안은 가짜 팝업메뉴를 다이어리 옆에 띄워 놓고 거기에 꾸며요 */
         function stuShowFakePop() {

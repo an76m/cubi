@@ -140,7 +140,7 @@
             if (makerMode === 'draw') { setupDrawUI(); updateDrawPreview(); }
         }
 
-        function backToSkinMenuFromMaker() { closeModal('makerModal'); openModal('skinModal'); }
+        function backToSkinMenuFromMaker() { closeModal('makerModal'); openModal('patMakeModal'); }   // ← 🖌️ 배경지 만들기 (10-24)
 
         function showMakerPreview(recipe) {
             makerRecipe = recipe;

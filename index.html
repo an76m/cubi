@@ -18,9 +18,9 @@
     <!-- html2canvas (PNG 저장용) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <script src="js/features.js?v=20261009-684"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
-    <link rel="stylesheet" href="css/style.css?v=20261009-684">
-    <link rel="stylesheet" href="css/dakku.css?v=20261009-684">
+    <script src="js/features.js?v=20261009-685"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
+    <link rel="stylesheet" href="css/style.css?v=20261009-685">
+    <link rel="stylesheet" href="css/dakku.css?v=20261009-685">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -363,29 +363,59 @@
         </div>
     </div>
 
-    <!-- 📒 다이어리 창 (하단메뉴 다이어리 버튼 · 10-24 도련 : 3 × 3)
-         1줄 📔 기본다이어리 · 🎨 기본다이어리 색상설정 · 🎀 기본다이어리 꾸미기 (만든 것은 📔 기본다이어리 창의 '내가만든' 칸에서 골라요)
-         2줄 📓 노트 · 🗂️ 바인더 · 🌈 배경지 / 3줄 📓 노트 만들기 · 🗂️ 바인더 만들기 (준비중 · 노트 · 바인더 창 안의 ➕ 만들기를 밖으로) · 🖼️ 이미지로 배경지
-         📔 페이지(목록)는 뺐어요 (기본 · 내가만든 → 기본다이어리 창으로 · js/skins.js openPageList 는 그대로)
-         이름이 긴 칸은 &#10; 로 두 줄 (js/dakku.js 라벨 · data-ico = 아이콘) -->
+    <!-- 📒 다이어리 창 (하단메뉴 다이어리 버튼 · 10-24 도련)
+         1줄 = 고르기 : 📔 기본다이어리 · 📓 노트 · 🗂️ 바인더
+         2줄 = 만들기 : ✨ 나만의 기본다이어리(→ 🎨 색상설정 · 🎀 꾸미기 창) · 📓 노트 만들기 · 🗂️ 바인더 만들기 (준비중)
+         3줄 = 🌈 배경지 · 🖌️ 배경지 만들기(→ 🖼️ 이미지로 · 🖌️ 그려서 창)
+         📔 페이지(목록)는 뺐어요 (기본 · 내가만든 → 📔 기본다이어리 창으로 · js/skins.js openPageList 는 그대로)
+         이름이 긴 칸은 &#10; 로 두 줄 (js/dakku.js 라벨 · data-ico = 아이콘 · 만들기 아이콘 mydiary · notemk · bindmk · patmk) -->
     <div class="modal" id="skinModal">
         <div class="modal-content">
             <div class="modal-title">📒 다이어리</div>
             <div class="service-grid stk-menu">
                 <button class="btn service-btn" onclick="closeModal('skinModal'); dyOpen('다이어리')"><span class="service-icon">📔</span>기본다이어리</button>   <!-- 칸 : 기본(4색) · 내가만든(색상설정 · 꾸미기에서 저장한 것) · js/skins.js dyOpen -->
-                <button class="btn service-btn" data-ft="skin" data-ico="palette" onclick="openSkinBasic()"><span class="service-icon">🎨</span>기본다이어리&#10;색상설정</button>
-                <button class="btn service-btn" data-ft="studio" data-ico="bow" onclick="openStudio()"><span class="service-icon">🎀</span>기본다이어리&#10;꾸미기</button>
                 <button class="btn service-btn" onclick="closeModal('skinModal'); dyOpen('노트')"><span class="service-icon">📓</span>노트</button>   <!-- 10-24 다시 보이게 (features.js dybook 은 📕 표지 꾸미기만) -->
                 <button class="btn service-btn" onclick="closeModal('skinModal'); dyOpen('바인더')"><span class="service-icon">🗂️</span>바인더</button>
+                <button class="btn service-btn" data-ft="skin" data-ico="mydiary" onclick="closeModal('skinModal'); openModal('myDiaryModal')"><span class="service-icon">✨</span>나만의&#10;기본다이어리</button>
+                <button class="btn service-btn" data-ico="notemk" onclick="comingSoon('📓 노트 만들기')"><span class="service-icon">📓</span>노트 만들기<small class="dk-soon">(준비중)</small></button>   <!-- 나중에 dmkOpen('노트') (js/dymaker.js) -->
+                <button class="btn service-btn" data-ico="bindmk" onclick="comingSoon('🗂️ 바인더 만들기')"><span class="service-icon">🗂️</span>바인더 만들기<small class="dk-soon">(준비중)</small></button>   <!-- 나중에 dmkOpen('바인더') -->
                 <button class="btn service-btn" data-ft="pattern" onclick="openPatternList()"><span class="service-icon">🌈</span>배경지</button>
-                <button class="btn service-btn soon2" data-ico="note" onclick="comingSoon('📓 노트 만들기')"><span class="service-icon">📓</span>노트 만들기<small class="dk-soon">(준비중)</small></button>   <!-- 나중에 dmkOpen('노트') (js/dymaker.js) -->
-                <button class="btn service-btn soon2" data-ico="binder" onclick="comingSoon('🗂️ 바인더 만들기')"><span class="service-icon">🗂️</span>바인더 만들기<small class="dk-soon">(준비중)</small></button>   <!-- 나중에 dmkOpen('바인더') -->
-                <button class="btn service-btn" data-ft="pattern patmake" onclick="openMaker('image')"><span class="service-icon">🖼️</span>이미지로 배경지</button>
+                <button class="btn service-btn" data-ft="pattern patmake" data-ico="patmk" onclick="closeModal('skinModal'); openModal('patMakeModal')"><span class="service-icon">🖌️</span>배경지 만들기</button>
                 <button class="btn service-btn" data-ft="dybook" onclick="dkCoverEdit()"><span class="service-icon">📕</span>표지 꾸미기</button>   <!-- 표꾸 : 노트 · 바인더만 (js/skins.js dkCoverEdit · 숨김) -->
-                <button class="btn service-btn" data-ft="pattern patdraw" onclick="openMaker('draw')"><span class="service-icon">🖌️</span>그려서 배경지</button>
             </div>
             <button class="btn" style="width:100%; margin-top:15px; justify-content:center;" onclick="closeModal('skinModal')">닫기</button>
         </div>
+    </div>
+
+    <!-- ✨ 나만의 기본다이어리 창 (📒 다이어리 → ✨ · 10-24 도련) : 🎨 기본다이어리 색상설정 · 🎀 기본다이어리 꾸미기 → 만든 것은 📔 기본다이어리 창의 '내가만든' 칸 -->
+    <div class="modal" id="myDiaryModal">
+        <div class="modal-content">
+            <div class="modal-title">✨ 나만의 기본다이어리</div>
+            <div class="service-grid stk-menu">
+                <button class="btn service-btn" data-ft="skin" data-ico="palette" onclick="closeModal('myDiaryModal'); openSkinBasic()"><span class="service-icon">🎨</span>기본다이어리&#10;색상설정</button>
+                <button class="btn service-btn" data-ft="studio" data-ico="bow" onclick="closeModal('myDiaryModal'); openStudio()"><span class="service-icon">🎀</span>기본다이어리&#10;꾸미기</button>
+            </div>
+            <div class="sub-modal-btns">
+                <button class="btn" onclick="closeModal('myDiaryModal'); openModal('skinModal')">← 다이어리</button>
+                <button class="btn" onclick="closeModal('myDiaryModal')">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🖌️ 배경지 만들기 창 (📒 다이어리 → 🖌️ · 10-24 도련) : 🖼️ 이미지로 배경지 · 🖌️ 그려서 배경지 (js/pattern-maker.js openMaker) -->
+    <div class="modal" id="patMakeModal">
+        <div class="modal-content">
+            <div class="modal-title">🖌️ 배경지 만들기</div>
+            <div class="service-grid stk-menu">
+                <button class="btn service-btn" data-ft="pattern patmake" onclick="closeModal('patMakeModal'); openMaker('image')"><span class="service-icon">🖼️</span>이미지로 배경지</button>
+                <button class="btn service-btn" data-ft="pattern patdraw" onclick="closeModal('patMakeModal'); openMaker('draw')"><span class="service-icon">🖌️</span>그려서 배경지</button>
+            </div>
+            <div class="sub-modal-btns">
+                <button class="btn" onclick="closeModal('patMakeModal'); openModal('skinModal')">← 다이어리</button>
+                <button class="btn" onclick="closeModal('patMakeModal')">닫기</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- 📔 페이지 목록 (썸네일만 · 칸 5개 : 기본 · 내가만든 · 공유받은 · 이벤트 · 문구점 · js/skins.js openPageList)
@@ -401,7 +431,7 @@
             <div class="skl-grid" id="pageGrid"></div>
             <input type="file" id="skinFileInput" accept=".txt,.json,text/plain,application/json" style="display:none" onchange="importSkinFile(event)">
             <div class="sub-modal-btns">
-                <button class="btn" onclick="backToSkinMenu('pageListModal')">← 페이지 메뉴</button>
+                <button class="btn" onclick="backToSkinMenu('pageListModal')">← 다이어리</button>
                 <button class="btn" onclick="closeModal('pageListModal')">닫기</button>
             </div>
         </div>
@@ -424,7 +454,7 @@
             <div class="stu-body" id="stuBody"></div>
             <input type="file" id="stuFile" accept="image/*" style="display:none" onchange="stuUpload(event)">
             <div class="sub-modal-btns">
-                <button class="btn" onclick="stuBackToMenu()">← 페이지 메뉴</button>
+                <button class="btn" onclick="stuBackToMenu()">← 나만의 기본다이어리</button>
                 <button class="btn" onclick="closeStudio()">닫기</button>
             </div>
         </div>
@@ -437,7 +467,7 @@
             <div class="th-note">구매하거나 보상으로 받은 테마 페이지가 여기에 모여요. 눌러서 바로 적용해요.</div>
             <div class="th-list" id="themeBoxList"></div>
             <div class="sub-modal-btns">
-                <button class="btn" onclick="backToSkinMenu('themeBoxModal')">← 페이지 메뉴</button>
+                <button class="btn" onclick="backToSkinMenu('themeBoxModal')">← 다이어리</button>
                 <button class="btn" onclick="closeModal('themeBoxModal')">닫기</button>
             </div>
         </div>
@@ -490,7 +520,7 @@
             <button class="btn skin-save-btn" onclick="saveCustomSkin()">➕ 이 색으로 내 페이지 저장</button>
 
             <div class="sub-modal-btns">
-                <button class="btn" onclick="backToSkinMenu('skinBasicModal')">← 페이지 메뉴</button>
+                <button class="btn" onclick="closeModal('skinBasicModal'); openModal('myDiaryModal')">← 나만의 기본다이어리</button>
                 <button class="btn" onclick="closeModal('skinBasicModal')">닫기</button>
             </div>
         </div>
@@ -544,7 +574,7 @@
             <div class="pat-grid" id="patGrid"></div>
 
             <div class="sub-modal-btns">
-                <button class="btn" onclick="backToSkinMenu('patternModal')">← 페이지 메뉴</button>
+                <button class="btn" onclick="backToSkinMenu('patternModal')">← 다이어리</button>
                 <button class="btn" onclick="closeModal('patternModal')">닫기</button>
             </div>
         </div>
@@ -638,7 +668,7 @@
             </div>
 
             <div class="sub-modal-btns">
-                <button class="btn" onclick="backToSkinMenuFromMaker()">← 페이지 메뉴</button>
+                <button class="btn" onclick="backToSkinMenuFromMaker()">← 배경지 만들기</button>
                 <button class="btn" onclick="closeModal('makerModal')">닫기</button>
             </div>
         </div>
@@ -939,103 +969,103 @@
     </div>
 
     <!-- 📦 코드 파일 (순서 중요 · 업데이트할 때 ?v= 뒤 숫자를 바꾸면 모든 사용자가 새 파일을 받아요) -->
-    <script src="js/localtest.js?v=20261009-684"></script>   <!-- 💻 내 컴퓨터(localhost)에서만 : 로그인 없이 테스트 -->
-    <script src="js/trash.js?v=20261009-684"></script>   <!-- 🗑 휴지통 : 지운 것 · 덮어쓰기 전 모습 30일 -->
-    <script src="js/backup.js?v=20261009-684"></script>   <!-- 📦 백업 · 📥 불러오기 : 말랑달콤 폴더 통째로 zip -->
-    <script src="js/devsave.js?v=20261009-684"></script>   <!-- 📁 로그인 없이 : 이 기기의 말랑달콤 폴더에 저장 -->
-    <script src="js/drive.js?v=20261009-684"></script>
-    <script src="js/coll.js?v=20261009-684"></script>
-    <script src="js/sound.js?v=20261009-684"></script>
-    <script src="js/app.js?v=20261009-684"></script>
-    <script src="js/page.js?v=20261009-684"></script>
-    <script src="js/elements.js?v=20261009-684"></script>
-    <script src="js/tapmenu.js?v=20261009-684"></script>
-    <script src="js/settings.js?v=20261009-684"></script>
-    <script src="js/patterns.js?v=20261009-684"></script>
+    <script src="js/localtest.js?v=20261009-685"></script>   <!-- 💻 내 컴퓨터(localhost)에서만 : 로그인 없이 테스트 -->
+    <script src="js/trash.js?v=20261009-685"></script>   <!-- 🗑 휴지통 : 지운 것 · 덮어쓰기 전 모습 30일 -->
+    <script src="js/backup.js?v=20261009-685"></script>   <!-- 📦 백업 · 📥 불러오기 : 말랑달콤 폴더 통째로 zip -->
+    <script src="js/devsave.js?v=20261009-685"></script>   <!-- 📁 로그인 없이 : 이 기기의 말랑달콤 폴더에 저장 -->
+    <script src="js/drive.js?v=20261009-685"></script>
+    <script src="js/coll.js?v=20261009-685"></script>
+    <script src="js/sound.js?v=20261009-685"></script>
+    <script src="js/app.js?v=20261009-685"></script>
+    <script src="js/page.js?v=20261009-685"></script>
+    <script src="js/elements.js?v=20261009-685"></script>
+    <script src="js/tapmenu.js?v=20261009-685"></script>
+    <script src="js/settings.js?v=20261009-685"></script>
+    <script src="js/patterns.js?v=20261009-685"></script>
     <!-- 🌟 카페에서 받아 등록한 사용자 패턴 (pattern-tool.html 로 만들어요 · 없거나 깨져도 다이어리는 정상 동작) -->
     <script src="js/community-patterns.js"></script>
     <!-- 🌟 카페에서 받아 등록한 모두의 스킨 (pattern-tool.html 로 만들어요 · 없거나 깨져도 다이어리는 정상 동작) -->
     <script src="js/community-skins.js"></script>
-    <script src="js/pattern-recipe.js?v=20261009-684"></script>
-    <script src="js/skins.js?v=20261009-684"></script>
-    <script src="js/dymaker.js?v=20261009-684"></script>
-    <script src="js/pattern-maker.js?v=20261009-684"></script>
-    <script src="js/skinstudio.js?v=20261009-684"></script>
-    <script src="js/theme-skins.js?v=20261009-684"></script>
-    <script src="js/doll-art.js?v=20261009-684"></script>
-    <script src="js/doll-render.js?v=20261009-684"></script>
-    <script src="js/doll-store.js?v=20261009-684"></script>
-    <script src="js/doll-room.js?v=20261009-684"></script>
-    <script src="js/doll-move.js?v=20261009-684"></script>
-    <script src="js/glrun.js?v=20261009-684"></script>
-    <script src="js/char-move.js?v=20261009-684"></script>
-    <script src="js/puppet.js?v=20261009-684"></script>
-    <script src="js/service.js?v=20261009-684"></script>
+    <script src="js/pattern-recipe.js?v=20261009-685"></script>
+    <script src="js/skins.js?v=20261009-685"></script>
+    <script src="js/dymaker.js?v=20261009-685"></script>
+    <script src="js/pattern-maker.js?v=20261009-685"></script>
+    <script src="js/skinstudio.js?v=20261009-685"></script>
+    <script src="js/theme-skins.js?v=20261009-685"></script>
+    <script src="js/doll-art.js?v=20261009-685"></script>
+    <script src="js/doll-render.js?v=20261009-685"></script>
+    <script src="js/doll-store.js?v=20261009-685"></script>
+    <script src="js/doll-room.js?v=20261009-685"></script>
+    <script src="js/doll-move.js?v=20261009-685"></script>
+    <script src="js/glrun.js?v=20261009-685"></script>
+    <script src="js/char-move.js?v=20261009-685"></script>
+    <script src="js/puppet.js?v=20261009-685"></script>
+    <script src="js/service.js?v=20261009-685"></script>
     <!-- 🎁 랜덤박스 (없어도 다이어리는 정상 동작) -->
-    <script src="js/gacha.js?v=20261009-684"></script>
-    <script src="js/presence.js?v=20261009-684"></script>
-    <script src="js/fbase.js?v=20261009-684"></script>   <!-- 🔥 파이어스토어 연결 (🔔 선물 벨 · 📞 전화기) -->
-    <script src="js/fphone.js?v=20261009-684"></script>   <!-- 📞 반짝이 피처폰 메신저 (로그인 회원끼리) -->
+    <script src="js/gacha.js?v=20261009-685"></script>
+    <script src="js/presence.js?v=20261009-685"></script>
+    <script src="js/fbase.js?v=20261009-685"></script>   <!-- 🔥 파이어스토어 연결 (🔔 선물 벨 · 📞 전화기) -->
+    <script src="js/fphone.js?v=20261009-685"></script>   <!-- 📞 반짝이 피처폰 메신저 (로그인 회원끼리) -->
     <!-- 🎵 배경음악 (없어도 다이어리는 정상 동작) -->
-    <script src="js/bgm.js?v=20261009-684"></script>
+    <script src="js/bgm.js?v=20261009-685"></script>
     <!-- 🔮 포춘카드 (없어도 다이어리는 정상 동작) -->
-    <script src="js/fortune.js?v=20261009-684"></script>
+    <script src="js/fortune.js?v=20261009-685"></script>
     <!-- 🕹️ 오락실 (없어도 다이어리는 정상 동작) -->
-    <script src="js/arcade.js?v=20261009-684"></script>
-    <script src="js/hof.js?v=20261009-684"></script>
+    <script src="js/arcade.js?v=20261009-685"></script>
+    <script src="js/hof.js?v=20261009-685"></script>
     <!-- 🌙 꿈해몽 (상징 사전 js/dream-data.js 는 꿈해몽을 열 때 불러와요 · 없어도 다이어리는 정상 동작) -->
-    <script src="js/ritual.js?v=20261009-684"></script>
-    <script src="js/dream.js?v=20261009-684"></script>
+    <script src="js/ritual.js?v=20261009-685"></script>
+    <script src="js/dream.js?v=20261009-685"></script>
     <!-- 🎍 토정비결 (음력 계산 js/lib/korean-lunar-calendar.min.js 는 토정비결을 열 때 불러와요 · 없어도 다이어리는 정상 동작) -->
-    <script src="js/tojeong.js?v=20261009-684"></script>
-    <script src="js/plant.js?v=20261009-684"></script>
-    <script src="js/capsule-stickers.js?v=20261009-684"></script>
-    <script src="js/attend.js?v=20261009-684"></script>
-    <script src="js/luck.js?v=20261009-684"></script>
-    <script src="js/question-data.js?v=20261009-684"></script>
-    <script src="js/question.js?v=20261009-684"></script>
-    <script src="js/tape.js?v=20261009-684"></script>
-    <script src="js/paper.js?v=20261009-684"></script>
-    <script src="js/leafpad.js?v=20261009-684"></script>
-    <script src="js/leafmaker.js?v=20261009-684"></script>
-    <script src="js/draw.js?v=20261009-684"></script>
-    <script src="js/pencase.js?v=20261009-684"></script>
-    <script src="js/frame.js?v=20261009-684"></script>
-    <script src="js/season-data.js?v=20261009-684"></script>
-    <script src="js/season.js?v=20261009-684"></script>
-    <script src="js/lock.js?v=20261009-684"></script>
-    <script src="js/cycle.js?v=20261009-684"></script>
-    <script src="js/month.js?v=20261009-684"></script>
-    <script src="js/stamp.js?v=20261009-684"></script>
-    <script src="js/search.js?v=20261009-684"></script>
-    <script src="js/dday.js?v=20261009-684"></script>
-    <script src="js/show.js?v=20261009-684"></script>
-    <script src="js/press.js?v=20261009-684"></script>
-    <script src="js/photobooth.js?v=20261009-684"></script>
-    <script src="js/stickermaker.js?v=20261009-684"></script>
-    <script src="js/stickerpeel.js?v=20261009-684"></script>
-    <script src="js/stkedit.js?v=20261009-684"></script>   <!-- 🎨 스티커 다듬기 : 씰 종이에서 떼기 전에 색 · 뒤집기 · 자르기 · 지우개 · 글씨 · 반짝이 -->
-    <script src="js/stkcut.js?v=20261009-684"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
-    <script src="js/ruler.js?v=20261009-684"></script>   <!-- 📏 자 : 연필꽂이에서 뽑아 페이지에 깔아 둬요 · 칼 · 색연필을 대면 반듯하게 · 진짜 cm -->
-    <script src="js/piecebag.js?v=20261009-684"></script>
-    <script src="js/dakku.js?v=20261009-684"></script>
-    <script src="js/papermaker.js?v=20261009-684"></script>
-    <script src="js/stk-basic.js?v=20261009-684"></script>
-    <script src="js/stickerpack.js?v=20261009-684"></script>
-    <script src="js/peelfx.js?v=20261009-684"></script>
-    <script src="js/tapemaker.js?v=20261009-684"></script>
-    <script src="js/sharebox.js?v=20261009-684"></script>
-    <script src="js/namematch.js?v=20261009-684"></script>
-    <script src="js/psytest-data.js?v=20261009-684"></script>
-    <script src="js/psytest.js?v=20261009-684"></script>
-    <script src="js/letter.js?v=20261009-684"></script>
-    <script src="js/install.js?v=20261009-684"></script>
-    <script src="js/piggy.js?v=20261009-684"></script>
-    <script src="js/wall.js?v=20261009-684"></script>
-    <script src="js/arrival.js?v=20261009-684"></script>
-    <script src="js/stknote.js?v=20261009-684"></script>
-    <script src="js/kit-meta.js?v=20261009-684"></script>   <!-- 🏷️ 기본스티커 세트 이름 · 주제 · 계절 (v2 · kitwork/genmeta.py) -->
-    <script src="js/stkv2.js?v=20261009-684"></script>   <!-- 🆕 스티커 고르는 창 v2 · 수첩 v2 -->
+    <script src="js/tojeong.js?v=20261009-685"></script>
+    <script src="js/plant.js?v=20261009-685"></script>
+    <script src="js/capsule-stickers.js?v=20261009-685"></script>
+    <script src="js/attend.js?v=20261009-685"></script>
+    <script src="js/luck.js?v=20261009-685"></script>
+    <script src="js/question-data.js?v=20261009-685"></script>
+    <script src="js/question.js?v=20261009-685"></script>
+    <script src="js/tape.js?v=20261009-685"></script>
+    <script src="js/paper.js?v=20261009-685"></script>
+    <script src="js/leafpad.js?v=20261009-685"></script>
+    <script src="js/leafmaker.js?v=20261009-685"></script>
+    <script src="js/draw.js?v=20261009-685"></script>
+    <script src="js/pencase.js?v=20261009-685"></script>
+    <script src="js/frame.js?v=20261009-685"></script>
+    <script src="js/season-data.js?v=20261009-685"></script>
+    <script src="js/season.js?v=20261009-685"></script>
+    <script src="js/lock.js?v=20261009-685"></script>
+    <script src="js/cycle.js?v=20261009-685"></script>
+    <script src="js/month.js?v=20261009-685"></script>
+    <script src="js/stamp.js?v=20261009-685"></script>
+    <script src="js/search.js?v=20261009-685"></script>
+    <script src="js/dday.js?v=20261009-685"></script>
+    <script src="js/show.js?v=20261009-685"></script>
+    <script src="js/press.js?v=20261009-685"></script>
+    <script src="js/photobooth.js?v=20261009-685"></script>
+    <script src="js/stickermaker.js?v=20261009-685"></script>
+    <script src="js/stickerpeel.js?v=20261009-685"></script>
+    <script src="js/stkedit.js?v=20261009-685"></script>   <!-- 🎨 스티커 다듬기 : 씰 종이에서 떼기 전에 색 · 뒤집기 · 자르기 · 지우개 · 글씨 · 반짝이 -->
+    <script src="js/stkcut.js?v=20261009-685"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
+    <script src="js/ruler.js?v=20261009-685"></script>   <!-- 📏 자 : 연필꽂이에서 뽑아 페이지에 깔아 둬요 · 칼 · 색연필을 대면 반듯하게 · 진짜 cm -->
+    <script src="js/piecebag.js?v=20261009-685"></script>
+    <script src="js/dakku.js?v=20261009-685"></script>
+    <script src="js/papermaker.js?v=20261009-685"></script>
+    <script src="js/stk-basic.js?v=20261009-685"></script>
+    <script src="js/stickerpack.js?v=20261009-685"></script>
+    <script src="js/peelfx.js?v=20261009-685"></script>
+    <script src="js/tapemaker.js?v=20261009-685"></script>
+    <script src="js/sharebox.js?v=20261009-685"></script>
+    <script src="js/namematch.js?v=20261009-685"></script>
+    <script src="js/psytest-data.js?v=20261009-685"></script>
+    <script src="js/psytest.js?v=20261009-685"></script>
+    <script src="js/letter.js?v=20261009-685"></script>
+    <script src="js/install.js?v=20261009-685"></script>
+    <script src="js/piggy.js?v=20261009-685"></script>
+    <script src="js/wall.js?v=20261009-685"></script>
+    <script src="js/arrival.js?v=20261009-685"></script>
+    <script src="js/stknote.js?v=20261009-685"></script>
+    <script src="js/kit-meta.js?v=20261009-685"></script>   <!-- 🏷️ 기본스티커 세트 이름 · 주제 · 계절 (v2 · kitwork/genmeta.py) -->
+    <script src="js/stkv2.js?v=20261009-685"></script>   <!-- 🆕 스티커 고르는 창 v2 · 수첩 v2 -->
 
     <!-- 🛡 파일 누락 확인 : 하나라도 못 읽었으면 다이어리를 시작하지 않아서 잘못된 저장을 막아요 -->
     <script>

@@ -94,6 +94,19 @@
       cloud: `<path d="M13 36h23a7 7 0 0 0 1-14 10 10 0 0 0-19-3 8.5 8.5 0 0 0-5 17z" fill="#d4ecff" ${K}/>${face(24, 29, 7)}<ellipse cx="18" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/><ellipse cx="30" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/>`,
       heartS: `<path d="${heart(24, 30, 1.6)}" fill="#ff8fab" ${K}/><path d="M13 16q1.5-3.5 5-3.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
     };
+    /* ✨ 만들기 아이콘 (10-24 도련 : 다이어리 창의 나만의 기본다이어리 · 노트 만들기 · 바인더 만들기 · 배경지 만들기)
+       본 아이콘을 조금 줄이고 오른쪽 아래에 분홍 ＋ 단추 (스티커 만들기 칸들과 같은 느낌) */
+    const plus = `<circle cx="37.5" cy="37.5" r="8" fill="#ff8fab" ${K}/><path d="M37.5 33.6v7.8M33.6 37.5h7.8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`;
+    const small = (k, x = 1, y = 0) => `<g transform="translate(${x} ${y}) scale(.84)">${ICON[k]}</g>`;
+    ICON.notemk = small('note', 1, 1) + plus;
+    ICON.bindmk = small('binder', 1, 0) + plus;
+    ICON.mydiary = `<g transform="translate(1 1) scale(.84)">${ICON.dybook}</g>`
+        + `<path d="M21 6.5l-4.8-3.4v6.8zM21 6.5l4.8-3.4v6.8z" fill="#ff8fab" ${K}/><circle cx="21" cy="6.5" r="2" fill="#ffd1dc" ${T}/>` + plus;   // 리본을 단 내 다이어리
+    ICON.patmk = `<g transform="rotate(-7 21 24)"><rect x="6" y="8" width="29" height="32" rx="3.5" fill="#fff6cf" ${K}/>`
+        + `<path d="M6 17h29M6 26h29M14.5 8v32M24 8v32" stroke="#ffc6d6" stroke-width="2.4" opacity=".75"/>`
+        + `<g fill="#ff9fb8"><circle cx="10.2" cy="12.5" r="1.4"/><circle cx="19.3" cy="21.5" r="1.4"/><circle cx="29.3" cy="12.5" r="1.4"/><circle cx="10.2" cy="31" r="1.4"/><circle cx="29.3" cy="31" r="1.4"/></g></g>`
+        + `<path d="M23 31.5l13-13 3.6 3.6-13 13-5 1.4z" fill="#c9b6ff" ${K}/><path d="M36 18.5l2.1-2.1a1.8 1.8 0 0 1 2.5 0l1.1 1.1a1.8 1.8 0 0 1 0 2.5l-2.1 2.1" fill="#ff9fb8" ${K}/>`
+        + plus;
     const svg = k => `<svg class="dk-ico" viewBox="0 0 48 48" aria-hidden="true">${ICON[k]}</svg>`;
     const ROT = [-5, 3, -2, 4, -3, 2, -4, 5, -1, 3, -3, 2];
 
@@ -101,7 +114,7 @@
     const MAP = {
         '포인트스티커': 'emoji', '캡슐스티커': 'caps', '마스킹테이프': 'tape', '조각스티커': 'piece', '씰스티커': 'seal', '모조지스티커': 'paper', '속지': 'leaf', '메모지': 'memo', '떡메모지': 'tteok',
         '포토부스': 'booth', '사진찍기': 'cam', '사진고르기': 'pick', '사진찍어 만들기': 'cam', '조각스티커 만들기': 'piece', '씰스티커 만들기': 'seal', '모조지스티커 만들기': 'paper', '앨범골라 만들기': 'pick', '글씨 스티커': 'text', '글씨스티커 만들기': 'text', '마스킹테이프 만들기': 'tapemk', '속지 만들기': 'leafmk', '떡메모지 만들기': 'tteokmk',
-        '다이어리 고르기': 'diary', '기본다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
+        '다이어리 고르기': 'diary', '기본다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 기본다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '매일': 'sprout', '운세·마음': 'ball', '인형 꾸미기': 'doll', '게임': 'game', '펫 키우기': 'paw', '함께하기': 'letter',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '오늘의 질문': 'ask', '오늘의 행운': 'clover', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
