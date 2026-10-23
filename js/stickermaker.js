@@ -344,8 +344,10 @@
         /* 🏷️ 씰스티커 → 기본 : 스티커 칸 대신 말랑달콤 그림 모음 목록을 바로 (창 넓이는 목록 배치를 따라요 · js/elements.js) */
         function stkLib(on) {
             const box = smq('libBox'); if (!box) return false;
-            box.hidden = !on; smq('stickerGrid').hidden = on; smq('libContent').classList.toggle('lib-content', on);
-            if (on) { applyLibLayoutStyle(); updateLibPager(); loadLibrary(false); }
+            const v2 = on && window.stkV2On && stkV2On();                       // 🆕 v2 : 진열대 · 세트 카드 (js/stkv2.js)
+            box.hidden = !on || v2; smq('stickerGrid').hidden = on; smq('libContent').classList.toggle('lib-content', on && !v2);
+            if (window.stkV2Show) stkV2Show(!!v2);
+            if (on && !v2) { applyLibLayoutStyle(); updateLibPager(); loadLibrary(false); }
             return on;
         }
         function stkTab(tab) {

@@ -84,11 +84,9 @@
            씰(하얀 종이) · 포인트스티커 판 · 조각 봉투 · 📒 수첩 시트에서 작게 보이던 것도 붙는 순간 원본 크기 · 페이지보다 크면 페이지 밖으로 넘쳐요
            (🎀 테이프 · 카드 · 그림 그리기 · 📄 모조지스티커처럼 크기를 정해 두고 붙는 것은 그대로) */
         function elOrig(el) { const img = el && el.querySelector(':scope > img'); if (img) elRealSize(el, img); }
-        const EL_FIT = [260, 400];                                            // 📐 처음 놓일 때 가장 큰 크기 (페이지 한 쪽 336 × 644 · 그보다 큰 그림은 이만큼으로 줄여 놓아요 · 작은 그림은 원본 크기)
         function elRealSize(el, img) {
             const go = () => requestAnimationFrame(() => requestAnimationFrame(() => {
-                const w0 = img.naturalWidth, h0 = img.naturalHeight; if (!el.isConnected || !w0 || !h0) return;
-                const f = Math.min(1, EL_FIT[0] / w0, EL_FIT[1] / h0), w = Math.round(w0 * f), h = Math.round(h0 * f);   // 📐 큰 그림은 페이지에 맞는 크기로 (그림은 선명한 원본 그대로 · 10-23 도련)
+                const w = img.naturalWidth, h = img.naturalHeight; if (!el.isConnected || !w || !h) return;
                 const b0 = el.getBoundingClientRect(), c0 = [b0.left + b0.width / 2, b0.top + b0.height / 2];
                 el.style.width = w + 'px'; el.style.height = el.style.height ? h + 'px' : ''; el.dataset.scale = 1;
                 const pg = document.getElementById('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
@@ -139,7 +137,6 @@
         }
         const libCatName = c => c.replace(/^\d+\s*[.)_\-]?\s*/, '') || c;
         window.elOrig = elOrig;
-        window.elFit = (w, h) => { const f = Math.min(1, EL_FIT[0] / w, EL_FIT[1] / h); return [Math.round(w * f), Math.round(h * f)]; };   // 📐 페이지에 놓일 크기 (js/stknote.js 떼는 동안 크기도 같게)
         function libView() { return !libItems ? [] : libCat ? libItems.filter(x => x.c === libCat) : libItems; }
 
         async function fetchLibraryList() {

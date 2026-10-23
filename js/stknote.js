@@ -27,15 +27,18 @@
         }
         function snbMode() {
             if (typeof ftOn === 'function' && !ftOn('notebook')) return 'list';   // 🔓 수첩을 숨겨 둔 동안은 늘 고르는 창 (js/features.js)
-            return snbCfg()[snbDev()] === 'list' ? 'list' : 'note';
+            return /^list/.test(snbCfg()[snbDev()] || '') ? 'list' : 'note';   // 'list' · 'note' · v2 = 'list2' · 'note2'
         }
         function snbSet(k, v) {
-            const c = snbCfg(); c[k] = v === 'note' ? 'note' : 'list';
+            const c = snbCfg(); c[k] = ['list', 'note', 'list2', 'note2'].includes(v) ? v : 'list';
             const t = JSON.stringify(c);
             try { if (snbSync()) store.setItem(SNB_KEY, t); } catch (e) {}
             try { localStorage.setItem(SNB_LOCAL, t); } catch (e) {}
             snbRender();
         }
+        /* 🆕 v2 (도련 10-23) : 새 진열 고르는 창 · 바인더 수첩 (🏷️ 씰스티커부터 · js/stkv2.js) · ⚙️ 설정에서 기기마다 v1 · v2 */
+        function snbVer() { return /2$/.test(snbCfg()[snbDev()] || '') ? 2 : 1; }
+        window.snbVer = snbVer;
         function snbRender() {
             const c = snbCfg(), me = snbDev();
             document.querySelectorAll('#snbPick [data-k]').forEach(row => {
@@ -577,9 +580,10 @@
            그림이 하나뿐인 스티커는 '낱장 모음 시트'로 한 장에 모아요 · 시트의 그림은 하나씩 떼어 붙여요
            원래 목록은 몸통 안에 숨겨 두고(눌렀을 때 하는 일 · 더 불러오기는 그대로) 시트만 보여요
            ✨ 스티커 창 수첩은 늘 시트로만 보여요 (목록으로 보기 · 목록에서 끌어 붙이기 없음 · 도련 · 2026-10-10) ---------- */
-        const SNB_SRC = '.lib-item:not(.empty), .sticker-item, .smk-it, .spk-card, .sb-card, .cs-it, .tpm-it';
+        const SNB_SRC = '.lib-item:not(.empty), .sticker-item, .smk-it, .spk-card, .sb-card, .cs-it, .tpm-it, .sv2-card';   // .sv2-card = 🆕 v2 세트 카드 (js/stkv2.js)
         /* 여러 그림이 든 칸인지 : 포인트스티커 묶음 · 🧩 조각 봉투 · 📄 모조지스티커 · 'N장 / Npcs' 표시가 2 이상인 내 스티커 · 공유받은 스티커 */
         function snbMulti(e) {
+            if (e.classList.contains('sv2-card')) { let us = []; try { us = JSON.parse(e.dataset.us || '[]'); } catch (er) {} return us.length ? { lib: us, n: us.length, v2: { id: e.dataset.id, name: e.dataset.n, fav: !!e.dataset.fav, clip: !!e.dataset.clip, isNew: !!e.dataset.new } } : null; }   // 🆕 v2 : 세트 한 장 = 수첩 한 장 (낱장 그림도 한 장)
             if (e.classList.contains('sb-card')) { const a = (e.getAttribute('onclick') || '').match(/stkBasicOpen\('(piece|paper)','([^']+)'\)/); return a ? { sb: [a[1], a[2]] } : null; }
             if (e.classList.contains('spk-card')) { const id = ((e.getAttribute('onclick') || '').match(/'([^']+)'/) || [])[1]; return id ? { pack: id } : null; }
             if (!e.classList.contains('smk-it') || !e.dataset.id) return null;
@@ -616,7 +620,7 @@
             multi.forEach(([e, mu]) => {
                 const im = e.querySelector('img'), b = e.querySelector('b:not(.smk-n)');
                 const paper = (mu.sb && mu.sb[0] === 'paper') || mu.kind === 'paper';
-                const name = mu.lib ? '씰 종이' : mu.sb ? (mu.sb[0] === 'piece' ? '조각 봉투' : '모조지스티커') : mu.pack ? (b ? b.textContent : '포인트스티커') : paper ? '모조지스티커' : ((im && im.alt) || '내 스티커 시트');
+                const name = mu.v2 ? mu.v2.name : mu.lib ? '씰 종이' : mu.sb ? (mu.sb[0] === 'piece' ? '조각 봉투' : '모조지스티커') : mu.pack ? (b ? b.textContent : '포인트스티커') : paper ? '모조지스티커' : ((im && im.alt) || '내 스티커 시트');
                 const sh = sheet(name);
                 if (paper) sh.classList.add('paper');
                 if ((mu.sb && mu.sb[0] === 'piece') || e.classList.contains('smk-bag')) {   // 🧩 조각 봉투 : 수첩에서도 봉투째 → 톡 = 고르는 창과 똑같이 봉투를 뜯어 와르르 (js/piecebag.js · 도련 10-21)
@@ -624,6 +628,13 @@
                     const t = e.querySelector('.sb-top'); sh._bagC = (t && t.style.getPropertyValue('--c')) || '#ffb3c8';
                 }                              // 📄 모조지스티커 : 인쇄된 종이 한 장 (칼집을 내서 떼요)
                 sh._mu = mu; sh.querySelector('.snb-sh-in').innerHTML = '<small class="snb-sh-wait">시트를 펼치는 중…</small>';
+                if (mu.v2) {                                                   // 🆕 v2 : 시트 아래 뒷종이 = 세트 이름 · 개수 · ♥ 찜 · 📎 마지막에 쓴 세트
+                    sh.classList.add('v2');
+                    const t = document.createElement('div'); t.className = 'snb-v2tag';
+                    const esc = x => String(x).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
+                    t.innerHTML = `<b>${esc(mu.v2.name)}</b><small>씰 ${mu.n}장</small>${mu.v2.isNew ? '<em>NEW</em>' : ''}<i class="snb-v2hrt${mu.v2.fav ? ' on' : ''}" data-v2fav="${esc(mu.v2.id)}">${mu.v2.fav ? '♥' : '♡'}</i>${mu.v2.clip ? '<i class="snb-v2clip">📎</i>' : ''}`;
+                    sh.appendChild(t);
+                }
             });
             const W = body.clientWidth - 8 - 24, H = body.clientHeight - 12 - 46, PC = 64, GAP = 8;
             const per = Math.max(1, Math.floor((W + GAP) / (PC + GAP)) * Math.floor((H + GAP) / (PC + GAP)));
@@ -803,11 +814,12 @@
                 let s = url;
                 if (seal && window.pelBake) try { s = await pelBake(url); } catch (e) { s = url; }
                 const img = await new Promise((ok, no) => { const g = new Image(); g.onload = () => ok(g); g.onerror = no; g.src = s; });
-                if (img.naturalWidth && img.naturalHeight) { const [w, h] = window.elFit ? elFit(img.naturalWidth, img.naturalHeight) : [img.naturalWidth, img.naturalHeight]; p.real = { w, h, img, s }; }   // 📐 큰 그림은 페이지에 맞는 크기로
+                if (img.naturalWidth && img.naturalHeight) p.real = { w: img.naturalWidth, h: img.naturalHeight, img, s };
             })().catch(() => {});
         }
         async function snbPeelStick(p, cx, cy, rot, r, sz) {
             const pc = p.it;
+            const vs = pc.closest('.snb-sh'); if (vs && vs._mu && vs._mu.v2 && window.v2Used) v2Used(vs._mu.v2.id);   // 🆕 v2 : 🕘 최근 · 📎 클립
             setTimeout(() => { pc.classList.remove('out'); pc.classList.add('again'); setTimeout(() => pc.classList.remove('again'), 500); }, 350);   // 스티커첩은 다시 채워져요
             if (pc._src) { snbPut({ it: pc._src, t: snbTap(pc._src) }, cx, cy, p.real && sz ? p.real : null); return; }      // 낱장 모음 시트 : 원래 칸과 같은 방법으로 그 자리에
             let s = p.real ? p.real.s : pc._url;
@@ -825,6 +837,7 @@
         }
 
         window.snbAway = snbAway; window.snbOver = snbOver;
+        window.snbGoFirst = () => { snb.page = 0; const c = snb.m && snb.m.querySelector('.snb-cover'); if (c) c.hidden = true; snbSoon(); };                // 🆕 v2 : 인덱스 탭 · 포스트잇을 누르면 첫 장부터
         window.snbFire = () => !!snb.fire;                                    // 📒 수첩에서 떼어 놓는 중 (내가만든 씰 = 하얀 창 없이 바로 페이지에 · js/stickermaker.js smUse · sharebox.js shxUse)
         window.snbSkipCover = id => { if (snb.m && snb.m.id === id) snb.skipCover = true; }; window.snbState = () => ({ page: snb.page, pages: snb.pages.length, curl: !!snb.curl }); window.snbMode = snbMode; window.snbSet = snbSet; window.snbRender = snbRender; window.snbGo = snbGo;
 
