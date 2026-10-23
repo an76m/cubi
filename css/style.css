@@ -4279,3 +4279,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .snb-pc > .snb-del { top: 0; right: 0; width: 20px; height: 20px; }
 .snb-sh > .snb-del.sh { top: 6px; right: 6px; width: 26px; height: 26px; font-size: 13px; }
 .snb-sh { position: relative; }
+/* 🕳️ 예전 반쪽 속지의 왼쪽 링 구멍(--lf-holes)은 이제 안 써요 (도련 10-24) → 페이지 · 속지 고르기 · 속지 만들기 · 미리보기 모두 구멍 없이
+   (바인더 6공 링 · 펀칭 구멍 .dy-holes 는 따로라 그대로) */
+:root, .inner-page .canvas-area, .lf-slide, .lf-pick .lf-sw, .lm-box, .dmk-rfth { --lf-holes: linear-gradient(transparent, transparent) !important; }
