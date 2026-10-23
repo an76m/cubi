@@ -4259,3 +4259,9 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sv2-hit small { display: block; margin-top: 4px; font-size: 10.5px; color: #a88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sv2-hit:active span { transform: scale(.96); }
 .sv2 input[type="search"]::-webkit-search-cancel-button, .sv2-deco input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
+/* 🔍 v2 찾기 = 다 쓰고 [찾기] (네이버 · 구글처럼) */
+.sv2-find, .sv2-dfind { margin: 0 0 8px; }
+.sv2-dfind { margin: 0; }
+.sv2-go { flex: none; border: 0; border-radius: 9px; background: #f06f9a; color: #fff; font: inherit; font-size: 12.5px; font-weight: 800; padding: 5px 11px; cursor: pointer; }
+.sv2-go:active { transform: scale(.96); }
+.sv2-dfind .sv2-go { padding: 4px 9px; background: #f06f9a; color: #fff; border-radius: 9px; font-weight: 800; }
