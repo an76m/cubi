@@ -202,7 +202,7 @@
                 btnElement.classList.add('active');
             }
 
-            const grid = document.getElementById('stickerGrid');
+            const grid = document.getElementById('stickerGrid'); if (!grid) return;   // 🎒 예전 목록 창은 없어요 (유한 스티커로 다시 끼울 때까지)
             grid.innerHTML = '';
 
             const ranges = category === 'all' ? Object.values(emojiRanges).flat() : emojiRanges[category];      // 'all' = 표정부터 기호까지 한 칸에 전부

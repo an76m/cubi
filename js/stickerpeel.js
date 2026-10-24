@@ -7,6 +7,8 @@
    - pelBake(src) : 📸 포토부스 사진처럼 네모난 그림 둘레에 하얀 칼선 테두리를 둘러요 (원본 크기 그대로 PNG)
                     ⚙ 설정 '🏷️ 씰 하얀 테두리'가 꺼져 있으면(기본) 테두리 없이 크기만 맞춰요 (js/show.js showOn('die'))
    - 소리는 ⚙ 설정의 '✨ 연출 소리'를 따라요 (js/sound.js)
+   - 🎒 유한 스티커 (10-25) : opt.own = { id, wh } 로 열면 내 종이 (js/own.js) · 그림 자리가 null 이면 이미 쓴 칸 → 뗀 자국만 보여요
+     붙어서 저장되는 순간 ownUse(종이, 칸) → 그 칸은 영원히 사라져요 · 페이지 요소에 data-own = '종이:칸'
    ※ 이 파일이 없어도 다이어리는 정상 동작 (스티커가 바로 붙어요) */
 
         const PEL_GRAB = 28, PEL_GRAB_OUT = 10, PEL_PAD = 22, PEL_M = 7, PEL_EDGE = 6;
@@ -67,9 +69,10 @@
             let cx = S.W / 2, cy = S.H / 2;
             cx += S.mv.x; cy += S.mv.y;                                          // 종이를 옮긴 만큼
             const it = S.items, n = it.length, pw = Math.min(r.width, S.W);
-            if (n === 1) {
+            if (n === 1 && it[0].a) {
                 const a = it[0].a, s = Math.min(pw * .42 / a.w, S.H * .4 / a.h, 1);
                 if (it[0].st.state === 'on') Object.assign(it[0].st, { cx, cy, s, rot: 0 });
+                it[0].slot = { cx, cy, w: (a.w - a.m * 2) * s, h: (a.h - a.m * 2) * s };
                 S.board = { cx, cy, w: (a.w - a.m * 2) * s + PEL_PAD * 2, h: (a.h - a.m * 2) * s + PEL_PAD * 2 };
                 return pelKeep();
             }
@@ -77,10 +80,11 @@
             const cs = Math.min(150, (pw * .86 - PEL_PAD * 2 - G * (cols - 1)) / cols, (S.H * .6 - PEL_PAD * 2 - G * (rows - 1)) / rows);
             S.board = { cx, cy, w: cols * cs + G * (cols - 1) + PEL_PAD * 2, h: rows * cs + G * (rows - 1) + PEL_PAD * 2 };
             it.forEach((o, i) => {
-                if (o.st.state !== 'on') return;
-                const a = o.a, s = Math.min(1, cs / Math.max(a.w - a.m * 2, a.h - a.m * 2));
+                const [iw, ih] = o.a ? [o.a.w - o.a.m * 2, o.a.h - o.a.m * 2] : (o.wh || [cs, cs]), s = Math.min(1, cs / Math.max(iw || cs, ih || cs, 1));
                 const inRow = Math.min(cols, n - Math.floor(i / cols) * cols), sx = (cols - inRow) * (cs + G) / 2;   // 마지막 줄은 가운데로
-                Object.assign(o.st, { cx: cx - S.board.w / 2 + PEL_PAD + sx + (i % cols) * (cs + G) + cs / 2, cy: cy - S.board.h / 2 + PEL_PAD + Math.floor(i / cols) * (cs + G) + cs / 2, s, rot: 0 });
+                const sc = { cx: cx - S.board.w / 2 + PEL_PAD + sx + (i % cols) * (cs + G) + cs / 2, cy: cy - S.board.h / 2 + PEL_PAD + Math.floor(i / cols) * (cs + G) + cs / 2 };
+                o.slot = { cx: sc.cx, cy: sc.cy, w: (iw || cs) * s, h: (ih || cs) * s };   // 🎒 뗀 자국 자리
+                if (o.st.state === 'on') Object.assign(o.st, sc, { s, rot: 0 });
             });
             pelKeep();
         }
@@ -90,7 +94,7 @@
             dx = Math.max(B.w / 2 - B.cx, Math.min(S.W - B.w / 2 - B.cx, dx)); dy = Math.max(B.h / 2 - B.cy, Math.min(S.H - B.h / 2 - B.cy, dy));
             if (B.w > S.W) dx = S.W / 2 - B.cx; if (B.h > S.H) dy = S.H / 2 - B.cy;
             B.cx += dx; B.cy += dy; S.mv.x += dx; S.mv.y += dy;
-            for (const o of S.items) if (o.st.state === 'on') { o.st.cx += dx; o.st.cy += dy; }
+            for (const o of S.items) { if (o.st.state === 'on') { o.st.cx += dx; o.st.cy += dy; } if (o.slot) { o.slot.cx += dx; o.slot.cy += dy; } }
         }
         const pelKeep = () => pelShift(0, 0);
         /* 📱 폰 (화면 폭 700 미만) : 스티커 창 · 하얀 종이 · 페이지가 늘 겹쳐서, 뗀 스티커를 붙일 동안 하얀 종이가 비켜 줘요
@@ -102,19 +106,20 @@
         /* src : 그림 하나 또는 여러 개 [src, …] */
         async function openStickerPeel(src, opt) {                       // opt.ts : 🔤 글씨스티커 (붙인 뒤 📷 사진 꾸미기 창이 안 떠요)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
-            const list = Array.isArray(src) ? src : [src];
+            const list = Array.isArray(src) ? src : [src], own = (opt && opt.own) || null;
             let imgs;
-            try { imgs = await Promise.all(list.map(pelLoad)); } catch (e) { showMsg('스티커를 열지 못했어요.'); return false; }
-            if (!imgs.length) return false;
+            try { imgs = await Promise.all(list.map(u => u ? pelLoad(u) : null)); } catch (e) { showMsg('스티커를 열지 못했어요.'); return false; }
+            if (!imgs.some(Boolean)) return false;
             pelBuild();
             const S = pelS;
             S.cv = pelq('pelCv'); S.ctx = S.cv.getContext('2d');
-            S.items = imgs.map((im, i) => ({ a: pelAsset(im), src: list[i], st: { state: 'on' } })); pelPick(S.items[0]);
-            S.ts = !!(opt && opt.ts); S.drag = null; S.gone = 0; S.back = 0; S.mv = { x: 0, y: 0 }; S.on = true;
+            S.items = imgs.map((im, i) => im ? { a: pelAsset(im), src: list[i], st: { state: 'on' } } : { a: null, src: '', st: { state: 'used' }, wh: own && own.wh && own.wh[i] });   // 🎒 null = 이미 쓴 칸
+            pelPick(S.items.find(o => o.st.state === 'on'));
+            S.own = own; S.ts = !!(opt && opt.ts); S.drag = null; S.gone = 0; S.back = 0; S.mv = { x: 0, y: 0 }; S.on = true;
             pelLayout();
             pelq('pelRoom').classList.add('show'); document.body.classList.add('fc-lock');
             S.hint = '';
-            pelSay(S.items.length > 1 ? `씰이 <b>${S.items.length}개</b> 있어요! <b>가장자리</b>를 집어 하나씩 떼어 보세요` : '스티커 <b>가장자리</b>를 손톱으로 집듯이 잡고 천천히 떼어 보세요');
+            pelSay(pelLeft() > 1 ? `씰이 <b>${pelLeft()}개</b> 있어요! <b>가장자리</b>를 집어 하나씩 떼어 보세요` : '스티커 <b>가장자리</b>를 손톱으로 집듯이 잡고 천천히 떼어 보세요');
             cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(pelFrame);
             return true;
         }
@@ -181,6 +186,7 @@
             const bx = pelq('pelX');                                             // ✕ : 하얀 종이 오른쪽 위 끝 (모조지스티커처럼 · 종이를 따라 다녀요)
             if (bx) { const B = S.board; bx.style.left = (B.cx + B.w / 2 - 26) + 'px'; bx.style.top = (B.cy - B.h / 2) + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
             const d = S.drag, cur = S.items.find(o => o.st === st);
+            if (bo > 0) for (const o of S.items) if (o.st.state !== 'on' && o.slot) pelResidue(ctx, o.slot, bo);   // 🎒 뗀 자국 (빈 자리)
             for (const o of S.items) {                                           // 종이 위에 남은 스티커들 (잡은 건 맨 위에)
                 if (o.st.state !== 'on') continue;
                 if (o === cur && ((d && d.mode === 'peel') || o.st.snap)) continue;
@@ -196,6 +202,14 @@
                 pelDraw(ctx, flip < 0 ? a.back : a.front, st, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), PEL_UP);
             }
             S.raf = requestAnimationFrame(pelFrame);
+        }
+        /* 🎒 뗀 자국 : 스티커가 있던 자리에 살짝 끈적한 흔적만 */
+        function pelResidue(ctx, sl, bo) {
+            ctx.save(); ctx.globalAlpha = bo * .9;
+            pelRR(ctx, sl.cx - sl.w / 2, sl.cy - sl.h / 2, sl.w, sl.h, Math.min(14, sl.w / 4, sl.h / 4));
+            ctx.fillStyle = 'rgba(214,206,222,.30)'; ctx.fill();
+            ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(190,178,200,.55)'; ctx.stroke();
+            ctx.restore();
         }
         /* 덜 떼다 놓으면 제자리로 착 붙어요 */
         function pelSnap(ctx, o, t) {
@@ -333,6 +347,11 @@
             }
             st.state = 'done';
             if (typeof saveData === 'function') saveData(false);
+            if (S.own && el && window.ownUse) {                                  // 🎒 붙어서 저장된 순간 그 칸은 영원히 사라져요 (js/own.js)
+                const k = S.items.findIndex(o => o.st === st);
+                el.dataset.own = S.own.id + ':' + k;
+                ownUse(S.own.id, k, el).catch(e => console.warn('스티커 칸을 아직 못 지웠어요 (다시 해요) :', e));
+            }
             const left = S.items.filter(o => o.st.state === 'on');
             if (!left.length) { closeStickerPeel(); return; }
             if (S.gone) { S.gone = 0; S.back = performance.now(); }              // 📱 하얀 종이가 남은 스티커와 다시 나타나요

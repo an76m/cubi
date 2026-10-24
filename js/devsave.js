@@ -256,6 +256,7 @@
                     if (u.searchParams.get('alt') === 'media') { const t = await vRead(p); return t === undefined ? vRes(404, {}) : vRes(200, t); }
                     return vRes(200, p === '' ? { id: 'root', name: '', mimeType: FOLDER, trashed: false } : vFile(p));
                 }
+                if (method === 'DELETE') { await vRemove(p); return vRes(200, {}); }   // 🔥 완전 삭제 (휴지통 칸에 안 넣어요 · 🎒 유한 스티커 js/own.js)
                 if (method === 'PATCH' && upload) { const e = await vWrite(p, String(opts.body == null ? '' : opts.body)); return vRes(200, { id, modifiedTime: vIso(e.mt) }); }
                 if (method === 'PATCH') {
                     const add = u.searchParams.get('addParents'), meta = (() => { try { return JSON.parse(opts.body || '{}'); } catch (e) { return {}; } })();

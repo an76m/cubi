@@ -547,7 +547,7 @@
             const t = m.querySelector('.modal-title.mt-bar .mt-text');
             if (t && !t.dataset.fit) { t.dataset.fit = 1; new MutationObserver(() => mtFit(m)).observe(t, { childList: true, characterData: true, subtree: true }); }
         }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function closeModal(id) { const m = document.getElementById(id); if (m) m.style.display = 'none'; }
         /* 🪟 창은 늘 하나만 (도련 10-21) : 새 창이 뜨면 먼저 떠 있던 창은 그 창의 ✕ 로 닫아요 (최신 창만 보여요)
            - 알림 · 확인 창(customAlertModal · showMsg)은 그 위에 떠요 (밑의 창을 닫지 않아요)
            - 스티커를 떼는 창(🏷️ 흰 종이 · 🧩 조각 봉투 · 🍭 포인트 판 · 📄 모조지 · 🧻 떡메)도 새 창이 뜨면 닫아요
@@ -557,7 +557,7 @@
            - 가장 나중에 뜬 창이 맨 위 (z 1001) */
         (function winOne() {
             const KEEP = new Set(['customAlertModal']), CAB = 'gdCabModal';
-            const STK = new Set(['stickerMakeModal', 'stickerModal', 'paperModal', 'tteokModal', 'leafModal']);   // 문구함과 같이 뜨는 스티커 창
+            const STK = new Set(['stickerMakeModal', 'basketModal', 'shelfModal', 'paperModal', 'tteokModal', 'leafModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 진열대 · 10-25)
             const pair = (a, b) => (a === CAB && STK.has(b)) || (b === CAB && STK.has(a));
             const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['spkRoom', 'closeStickerPack'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
             const vis = m => m.style.display === 'flex' || m.style.display === 'block';

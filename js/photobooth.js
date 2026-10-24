@@ -210,9 +210,7 @@
                 const r = await smAdd(src, k);
                 if (stick) {
                     smAddMsg(r, k, true); closeBooth();
-                    if (k === 'piece' && window.openPieceBag) openPieceBag([src]);
-                    else if (k === 'paper' && window.openPaperSheet) openPaperSheet(src);
-                    else openStickerPeel(src);
+                    if (r === 'ok' && window.bkOpenSheet && smAdd.last) bkOpenSheet(smAdd.last);   // 🎒 바구니에 넣은 종이를 바로 열어요 (js/basket.js)
                     return;
                 }
                 if (r === 'ok') closeBooth();

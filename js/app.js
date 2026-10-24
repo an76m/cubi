@@ -141,7 +141,6 @@ let fontList = [
         };
 
         window.onload = () => {
-            loadEmojiCategory('all');
             setupCurlDrag();
             loadCustomSkins();
             setupFontSelects();

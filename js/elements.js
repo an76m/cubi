@@ -123,9 +123,8 @@
            - 다이어리 안에서는 주소로 바꿔서 써요 : images [{ u, c }] · sheets [{ c, us }] · kits [{ c, us }] · [{ c, u }]
            - c = 기본스티커/씰스티커 아래 폴더 이름 = 카테고리 ('' 이면 '기본' 카테고리) · 나머지 종류는 js/stk-basic.js 가 각 창의 기본 칸에 제가 그린 그림과 섞어서 보여요
            - 카테고리만 이름이 보여요 ('1. 캐릭터' 처럼 앞 번호는 순서용 · 화면에는 '캐릭터') · 스티커 이름은 없어요
-           - 목록은 앱을 켠 동안 한 번만 받아요 (basicKit) */
+           - 목록은 앱을 켠 동안 한 번만 받아요 (basicKit) · 🏪 진열대가 써요 (js/basket.js · 🎒 유한 스티커 10-25 : 예전 그림 모음 목록 창은 없앴어요) */
         const KIT_BASE = 'https://malang-img.pages.dev';                    // ← 🖼️ 그림 보관함 (Cloudflare Pages 주소 · 끝에 / 없이)
-        let libItems = null, libLoading = false, libCats = [], libCat = '';
         const KIT_THUMB = new Set();                                         // 미리보기(t/)가 따로 있는 그림 지문
         const kitOk = f => typeof f === 'string' && /^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$/.test(f);
         const kitUrl = f => KIT_BASE + '/k/' + f;
@@ -137,7 +136,6 @@
         }
         const libCatName = c => c.replace(/^\d+\s*[.)_\-]?\s*/, '') || c;
         window.elOrig = elOrig;
-        function libView() { return !libItems ? [] : libCat ? libItems.filter(x => x.c === libCat) : libItems; }
 
         async function fetchLibraryList() {
             if (!KIT_BASE) throw new Error('setup');
@@ -179,201 +177,8 @@
             if (!basicKitP || (force && !basicKitTry)) basicKitP = basicKitLoop();
             return basicKitP;
         }
-        document.addEventListener('basickit-retry', e => {                 // 🏷️ 씰 창 안내 글씨 (다른 창은 받을 때까지 조용히 기다렸다가 채워요)
-            const st = document.getElementById('libStatus');
-            if (st && libLoading) st.textContent = `⏳ 목록을 다시 불러오는 중이에요… (${e.detail.n + 1}번째)`;
-        });
         window.basicKit = basicKit; window.kitSize = kitSize; window.kitName = libCatName;
 
-        /* ---------- 📚 라이브러리 페이지 넘기기 ----------
-           - 한 페이지에 (몇 줄 × 한 줄에 몇 개)개씩 보여 주고, ◀ 이전 / 다음 ▶ 버튼(또는 옆으로 밀기)으로 넘김
-           - 🗂 고르는 창은 설정의 '고르는 창 칸 정하기' (js/stk-basic.js) · libLayout 은 📒 수첩이 장에 맞춰 바꿔요 (js/stknote.js) */
-        const LIB_DEFAULT_LAYOUT = { rows: 3, cols: 5, size: 88 };
-        const LIB_GAP = 8;
-        let libLayout = Object.assign({}, LIB_DEFAULT_LAYOUT);
-        let libPage = 0;
-        let libSwiped = false;
-
-        function libPerPage() { return libLayout.rows * libLayout.cols; }
-        /* 쪽 나누기 : 씰 1개 = 1칸 · 씰 종이(여러 개) = 가로 2 × 세로 2칸 정사각형 (도련 · 2026-10-16 · 묶음이 더 잘 보이게) · 빈 곳은 뒤의 1칸짜리가 채워요 (CSS grid-auto-flow: dense 와 같은 순서)
-           → [[item, …], …] 쪽마다 */
-        const libSpan = x => x.s ? Math.min(2, libLayout.cols) : 1;              // 가로 칸 수
-        const libSpanH = x => x.s ? Math.min(2, libLayout.rows) : 1;             // 세로 칸 수
-        /* 🗂 고르는 창은 낱장 줄 + 묶음 줄 (도련 · 10-17 · js/stk-basic.js) · 📒 수첩 창은 위 칸 나누기 그대로 */
-        const libPg = () => !!window.pgPages && !(document.getElementById('libGrid') || document.body).closest('.snb-on');
-        const libN = x => x.s ? x.s.length : 1;                                 // 칸마다 스티커 수
-        function libPages() {
-            if (libPg()) { const v = libView(); return pgPages(v.map(libN), pgGrid()).map(p => p.map(i => v[i])); }
-            const { rows, cols } = libLayout, out = [];
-            let page = null, used = null;
-            const fit = (w, h) => {
-                for (let r = 0; r + h <= rows; r++) for (let c = 0; c + w <= cols; c++) {
-                    let ok = true; for (let i = 0; i < h && ok; i++) for (let k = 0; k < w; k++) if (used[(r + i) * cols + c + k]) { ok = false; break; }
-                    if (ok) { for (let i = 0; i < h; i++) for (let k = 0; k < w; k++) used[(r + i) * cols + c + k] = 1; return true; }
-                }
-                return false;
-            };
-            libView().forEach(x => {
-                const w = libSpan(x), h = libSpanH(x);
-                if (!page || !fit(w, h)) { page = []; used = new Array(rows * cols).fill(0); out.push(page); fit(w, h); }
-                page.push(x);
-            });
-            return out;
-        }
-        function libPageCount() { return libPages().length; }
-
-        /* 줄 수·한 줄 개수·크기 → 그리드 모양과 창 너비에 반영 */
-        function applyLibLayoutStyle() {
-            const { cols, size } = libLayout;
-            document.getElementById('libGrid').style.gridTemplateColumns = `repeat(${cols}, minmax(0, ${size}px))`;
-            document.getElementById('libContent').style.setProperty('--lib-w', (cols * size + (cols - 1) * LIB_GAP + 48) + 'px');
-        }
-
-        function updateLibPager() {
-            const pages = libPageCount();
-            document.getElementById('libPageInfo').textContent = pages ? `${libPage + 1} / ${pages}` : '0 / 0';
-            document.getElementById('libPrevBtn').disabled = !pages || libPage <= 0;
-            document.getElementById('libNextBtn').disabled = !pages || libPage >= pages - 1;
-        }
-
-        function changeLibPage(delta) {
-            const pages = libPageCount();
-            if (!pages) return;
-            const next = Math.max(0, Math.min(pages - 1, libPage + delta));
-            if (next === libPage) return;
-            libPage = next;
-            renderLibrary();
-        }
-
-        /* 스마트폰 : 이미지 목록을 옆으로 밀어서 페이지 넘기기 */
-        (function setupLibSwipe() {
-            const grid = document.getElementById('libGrid');
-            let sx = 0, sy = 0, tracking = false;
-            grid.addEventListener('touchstart', (e) => {
-                if (e.touches.length !== 1 || e.target.closest('.pg-mv')) { tracking = false; return; }   // 🗂 옆으로 미는 묶음 줄 위에서는 쪽을 안 넘겨요
-                tracking = true; libSwiped = false;
-                sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-            }, { passive: true });
-            grid.addEventListener('touchend', (e) => {
-                if (!tracking) return;
-                tracking = false;
-                const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-                    libSwiped = true;                                  // 밀기 끝에 이미지가 눌리지 않도록
-                    changeLibPage(dx < 0 ? 1 : -1);
-                    setTimeout(() => { libSwiped = false; }, 400);
-                }
-            });
-        })();
-
-        /* ☕ 라이브러리 목록 미리 받아 두기 : 다이어리를 열고 잠시 뒤 조용히 받아 둬요 → 🏷️ 씰스티커 → 기본을 누르면 바로 보여요 */
-        window.addEventListener('load', () => setTimeout(() => { if (!libItems && !libLoading) loadLibrary(false); }, 2500));
-
-
-        async function loadLibrary(force) {
-            const st = document.getElementById('libStatus'), grid = document.getElementById('libGrid');
-            if (libItems && !force) { renderLibrary(); return; }
-            if (libLoading) return;
-            libLoading = true;
-            st.textContent = '⏳ 이미지 목록을 불러오는 중...';
-            grid.innerHTML = '';
-            try {
-                const kit = await basicKit(force), seen = new Set();
-                libItems = [];
-                kit.sheets.forEach(x => libItems.push({ u: x.us[0], s: x.us, c: x.c || '기본' }));   // 🏷️ 씰 종이 (폴더 1개 = 종이 1장) : 카테고리 맨 앞에
-                kit.images.forEach(x => { if (!seen.has(x.u)) { seen.add(x.u); libItems.push({ u: x.u, c: x.c || '기본' }); } });   // 카테고리 폴더 밖 그림 = '기본'
-                libCats = [...new Set(libItems.map(x => x.c).filter(Boolean))];
-                if (!libCats.includes(libCat)) libCat = libCats[0] || '';      // '전체' 칸 없이 첫 카테고리부터 (한꺼번에 다 그리지 않아서 빨라요)
-                libPage = 0;
-                renderLibrary();
-            } catch (err) {
-                libItems = null;
-                updateLibPager();
-                st.innerHTML = err && err.message === 'setup' ? '🏷️ 그림 모음을 준비하고 있어요. 조금만 기다려 주세요!'
-                    : '⚠ 이미지 목록을 불러오지 못했어요.<br>인터넷 연결을 확인한 뒤 다시 열어 주세요.';
-            }
-            libLoading = false;
-        }
-
-        /* 🗂 카테고리 칸 (카테고리가 하나뿐이면 숨겨요) · '전체' 칸은 없어요 */
-        function renderLibCats() {
-            const box = document.getElementById('libCats'); if (!box) return;
-            box.hidden = libCats.length < 2;
-            if (libCats.length < 2) { box.innerHTML = ''; return; }
-            const btn = (c, label, n) => `<button type="button" class="lib-cat${c === libCat ? ' on' : ''}" data-c="${c.replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';')}">${label}<small>${n}</small></button>`;
-            box.innerHTML = libCats.map(c => btn(c, libCatName(c).replace(/[&<>"']/g, ch => '&#' + ch.charCodeAt(0) + ';'), libItems.filter(x => x.c === c).length)).join('');
-            box.querySelectorAll('.lib-cat').forEach(b => { b.onclick = () => setLibCat(b.dataset.c); });
-            const on = box.querySelector('.lib-cat.on'); if (on) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        }
-        function setLibCat(c) {
-            if (c === libCat) return;
-            libCat = c; libPage = 0;
-            renderLibrary();
-        }
-
-        /* 그림 모음에서 고르면 : 🏷️ 씰스티커처럼 하얀 칼선 테두리를 둘러 하얀 종이째 나와요 → 떼어 붙여요 (js/stickerpeel.js)
-           그림을 그릴 수 없으면(주소가 막힘) 예전처럼 페이지에 바로 붙어요 */
-        /* 🏷️ 씰 종이 : 한 종이에 씰 여러 개 → 하나씩 떼어 붙여요 (js/stickerpeel.js) */
-        async function libPickSheet(urls) {
-            if (window.stkLeave) stkLeave();
-            try { if (window.pelBake && window.openStickerPeel && await openStickerPeel(await Promise.all(urls.map(u => pelBake(kitSize(u, 600)))))) return; } catch (e) {}
-            showMsg('⚠ 씰 종이를 열지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>');
-            if (window.stkReturn) stkReturn(700);
-        }
-        async function libPick(url) {
-            if (window.stkLeave) stkLeave();
-            try { if (window.pelBake && window.openStickerPeel && await openStickerPeel(await pelBake(url))) return; } catch (e) {}
-            if (addImage(url)) elOrig(document.querySelector('#canvasArea > .element-box:last-child')); if (window.stkReturn) stkReturn(700);
-        }
-        function renderLibrary() {
-            const st = document.getElementById('libStatus'), grid = document.getElementById('libGrid');
-            grid.innerHTML = '';
-            if (libCats.length && !libCats.includes(libCat)) libCat = libCats[0];   // '전체' 없이 늘 한 카테고리 (📒 수첩도 · 카테고리 칸은 제목 아래 js/stknote.js snbCatsSync)
-            applyLibLayoutStyle();
-            renderLibCats();
-            const view = libView();
-            if (!view.length) { st.textContent = '기본스티커 / 씰스티커 폴더에 그림이 없어요.'; updateLibPager(); return; }
-            const per = libPerPage(), all = libPages(), pages = all.length;
-            libPage = Math.max(0, Math.min(pages - 1, libPage));
-            st.textContent = '';                                                // 안내 글은 없이 (공간 아끼기 · 도련 2026-10-15) · 불러오는 중 · 오류만 보여요
-            const thumbW = libLayout.size > 120 ? 400 : 240;                    // 크게 볼 때는 조금 더 선명한 썸네일
-            const frag = document.createDocumentFragment(), cur = all[libPage] || [], pick = libPg(), els = [];
-            if (pick) { grid.style.gridTemplateColumns = ''; document.getElementById('libContent').style.removeProperty('--lib-w'); }   // 🗂 칸 크기는 js/stk-basic.js
-            else if (window.pgOff) pgOff(grid, []);
-            let usedSlots = 0;
-            cur.forEach(x => {
-                const { u: url, s: sheet } = x;
-                const item = document.createElement('div');
-                item.className = 'lib-item' + (sheet ? ' lib-sheet' : ''); item.dataset.u = url;   // 원본 주소 (📒 수첩이 붙일 때 써요)
-                usedSlots += libSpan(x) * libSpanH(x);
-                if (sheet) {                                                       // 🏷️ 씰 종이 : 가로 2 × 세로 2칸 정사각형 · 안에 든 씰을 크게 + 총 개수 (🗂 고르는 창은 묶음 줄)
-                    if (!pick) { item.style.gridColumn = 'span ' + libSpan(x); item.style.gridRow = 'span ' + libSpanH(x); }
-                    item.title = '스티커 ' + sheet.length + '개';
-                    item.innerHTML = sbThumbs(sheet.map(u => kitSize(u, 96))) + `<small class="lib-cnt">스티커 ${sheet.length}개</small>`;
-                } else {
-                    const img = document.createElement('img');
-                    img.loading = 'lazy';
-                    img.src = kitSize(url, thumbW);
-                    img.onerror = () => item.classList.add('bad');
-                    item.appendChild(img);
-                }
-                item.onclick = () => { if (!libSwiped) (sheet ? libPickSheet(sheet) : libPick(url)); };
-                frag.appendChild(item); els.push(item);
-            });
-            /* 마지막 페이지가 덜 차도 창 크기가 흔들리지 않도록 빈칸 채우기 */
-            for (let k = usedSlots; k < per && pages > 1 && !pick; k++) {
-                const empty = document.createElement('div');
-                empty.className = 'lib-item empty';
-                frag.appendChild(empty);
-            }
-            grid.appendChild(frag);
-            if (pick) { const v = libView(), ns = v.map(libN); pgLay(grid, els, cur.map(libN), pgGrid(), pgOneTxt(pgPages(ns, pgGrid()), ns, libPage)); }
-            updateLibPager();
-        }
-        /* 🗂 칸 설정 · 창 너비가 바뀌면 다시 그려요 (보고 있을 때만) */
-        const libRedo = () => { const b = document.getElementById('libBox'); if (libItems && b && !b.hidden && b.offsetParent) renderLibrary(); };
-        document.addEventListener('pickgrid', libRedo); window.libRedo = libRedo;
-        let libRz = 0; window.addEventListener('resize', () => { clearTimeout(libRz); libRz = setTimeout(libRedo, 200); });
 
         /* 🔒 페이지 스티커 크기 바꾸기 막기 (도련 · 2026-10-16) : 빨간 점선 네모의 꼭짓점 · 두 손가락 · 마우스 휠로 크기가 안 바뀌어요 (돌리기 · 옮기기는 그대로)
            다시 켜려면 false 로 바꾸면 돼요 (크기 코드는 그대로 있어요) */
@@ -839,7 +644,7 @@
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
-            if (top && !pinBusy() && top.closest('.modal.snb-on, #stickerModal, #paperModal, #tteokModal, #leafModal')) return true;   // 📒 수첩 · 🪟 고르는 창 : 어디서든 핀셋 · 가위가 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
+            if (top && !pinBusy() && top.closest('.modal.snb-on, #paperModal, #tteokModal, #leafModal')) return true;   // 📒 수첩 · 🪟 고르는 창 : 어디서든 핀셋 · 가위가 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
             if (!top || pinBusy() || top.closest('.pel-hint, .snb-cover, #pageHeader, .tap-menu') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 수첩 표지 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
             if (top.closest(PIN_AREA)) return true;
             return top === document.body || top === document.documentElement || top.matches('.modal.snb-on') || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경 · 📒 수첩 뒤 배경지 포함)
@@ -864,7 +669,7 @@
         window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
         const PIN_WALL = '.modal:not(.snb-on) > .modal-content, .twz-say.on';   // 페이지 팝업메뉴(.tap-menu)는 피하지 않아요 (도련 10-19 · 메뉴가 핀셋 위에 떠요)
-        const PIN_COVER = '#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #stickerModal:not(.snb-on)[style*="display: flex"], #paperModal:not(.snb-on)[style*="display: flex"], #tteokModal:not(.snb-on)[style*="display: flex"], #leafModal:not(.snb-on)[style*="display: flex"]';   // 🪟 고르는 창 위에 뜬 🪡 핀셋 · ✂️ 가위도 비키지 않아요 (도련 10-22)
+        const PIN_COVER = '#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #shelfModal[style*="display: flex"], #paperModal:not(.snb-on)[style*="display: flex"], #tteokModal:not(.snb-on)[style*="display: flex"], #leafModal:not(.snb-on)[style*="display: flex"]';   // 🪟 고르는 창 위에 뜬 🪡 핀셋 · ✂️ 가위도 비키지 않아요 (도련 10-22)
         const pinCovered = () => !!document.querySelector(PIN_COVER) && !document.querySelector('.modal.snb-on[style*="display: flex"]');   // 📒 수첩이 떠 있으면 늘 창 앞           // 🗂 문구함 · ✨ 스티커 창 · 🪟 고르는 창 : 든 문구는 그 창 뒤로 (비키지 않아요 · css · 도련 10-22)
         function dodgeBy(b) {                                                   // b : 떠 있는 도구의 테두리 → 비킬 거리 [dx, dy] (안 겹치면 null) · ✂️ 가위도 같이 써요 (js/skins.js scsFrame)
             if (pinCovered()) return null;
