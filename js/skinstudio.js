@@ -280,7 +280,7 @@
             stuRenderDeco();
             closeModal('stuModal');
         }
-        function stuBackToMenu() { closeStudio(); openModal('myDiaryModal'); }   // ← ✨ 나만의 기본다이어리 (10-24)
+        function stuBackToMenu() { closeStudio(); openModal('myDiaryModal'); }   // ← ✨ 나만의 다이어리 (10-24)
 
         /* 팝업메뉴는 눌러야 잠깐 뜨는 거라서, 만드는 동안은 가짜 팝업메뉴를 다이어리 옆에 띄워 놓고 거기에 꾸며요 */
         function stuShowFakePop() {
@@ -466,7 +466,7 @@
         async function stuSave() {
             if (!(await saveMySkin(Object.assign(skinFromPickers(), stuExtra())))) return;   // 이름 없이 저장 (js/settings.js saveMySkin)
             closeStudio();
-            showMsg('🎀 나만의 기본다이어리에 저장했어요!<br><span style="font-size:12px;color:#777;">📔 기본다이어리 → 내가만든 칸에서 언제든 고를 수 있어요.</span>');
+            showMsg('🎀 나만의 다이어리에 저장했어요!<br><span style="font-size:12px;color:#777;">📔 다이어리 → 내가만든 칸에서 언제든 고를 수 있어요.</span>');
         }
 
         /* ---------- 다이어리 위에서 끌기 ---------- */

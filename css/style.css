@@ -2981,7 +2981,8 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .pat-grid > .stk-go { grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 16px 8px; border: 2px solid var(--border-color); border-radius: 16px; background: #fff; font: inherit; color: inherit; cursor: pointer; }
 .pat-grid > .stk-go span { font-size: 2rem; line-height: 1; }
 .pat-grid > .stk-go small { font-size: 11.5px; color: #a08890; }
-#skinModal .stk-menu { grid-template-columns: repeat(3, 1fr); }
+#skinModal .stk-menu { grid-template-columns: repeat(2, minmax(0, 150px)); justify-content: center; column-gap: 26px; }   /* 📒 다이어리 창 2 × 2 (10-24 · v693 · 준비중 4개 숨김) */
+#skinModal .service-btn[hidden] { display: none !important; }
 
 /* 📚 모음 칸 (js/coll.js collGrid) : 칸들은 바깥 격자에 그대로 들어가고, 끝에 닿으면 다음 묶음을 읽어요 */
 .cg-host { display: contents; }
@@ -3970,7 +3971,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dy-it small { font-size: 10.5px; opacity: .6; }
 /* 그림 : 커버 위에 왼쪽 · 오른쪽 쪽 (i 두 개) · 가운데 묶음은 종류마다 */
 .dy-th { position: relative; display: block; border-radius: 4px; background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 62%, #fff), var(--dy-c)); box-shadow: 0 4px 8px rgba(110, 60, 80, .22); }
-.dy-th i { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: repeating-linear-gradient(var(--dy-p, #fffaf2) 0 6px, color-mix(in srgb, var(--dy-c) 35%, #fff) 6px 7px); }   /* --dy-p : 기본다이어리 4색의 속지 색 */
+.dy-th i { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: repeating-linear-gradient(var(--dy-p, #fffaf2) 0 6px, color-mix(in srgb, var(--dy-c) 35%, #fff) 6px 7px); }   /* --dy-p : 다이어리 4색의 속지 색 */
 .dy-th i:first-child { left: 4px; border-radius: 3px 0 0 3px; box-shadow: inset -6px 0 6px -4px rgba(120, 70, 90, .3); }
 .dy-th i:last-child { right: 4px; border-radius: 0 3px 3px 0; box-shadow: inset 6px 0 6px -4px rgba(120, 70, 90, .3); }
 .dy-th::before, .dy-th::after { content: none; position: absolute; z-index: 1; }
@@ -4265,7 +4266,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sv2-go { flex: none; border: 0; border-radius: 9px; background: #f06f9a; color: #fff; font: inherit; font-size: 12.5px; font-weight: 800; padding: 5px 11px; cursor: pointer; }
 .sv2-go:active { transform: scale(.96); }
 .sv2-dfind .sv2-go { padding: 4px 9px; background: #f06f9a; color: #fff; border-radius: 9px; font-weight: 800; }
-/* 📒 다이어리 창 (10-24) : 두 줄 이름 (기본다이어리 / 색상설정) · 두 번째 줄 빨간 (준비중) */
+/* 📒 다이어리 창 (10-24) : 두 줄 이름 (다이어리 / 색상설정) · 두 번째 줄 빨간 (준비중) */
 .dk-lb.l2, .service-btn .dk-lb.l2 { white-space: pre-line !important; line-height: 1.25; }
 .service-btn small.dk-soon, .stk-menu .service-btn small.dk-soon { display: block; margin-top: 2px; color: #e53950 !important; font-size: 10.5px; font-weight: 700; }
 /* 📃 속지 고르기 칸 (고르는 창 · 📒 수첩) : 링 구멍 없이 그림만 (도련 10-24 · 페이지에 깔린 속지는 구멍 그대로) */

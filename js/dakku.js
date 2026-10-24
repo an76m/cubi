@@ -48,7 +48,7 @@
       leafmk: `<rect x="8" y="8" width="25" height="32" rx="4" fill="#dceaff" ${K}/><path d="M14 18h13M14 24h13M14 30h8" stroke="#9dbbe6" stroke-width="1.6" stroke-linecap="round"/><g transform="rotate(35 34 28)"><rect x="31" y="12" width="7" height="24" rx="1.5" fill="#ffd36b" ${T}/><rect x="31" y="12" width="7" height="4.5" rx="1.5" fill="#ff9fb8" ${T}/><path d="M31 36l3.5 6 3.5-6z" fill="#fde9cf" ${T}/></g>`,
       /* 🎨 페이지 · 📒 다이어리 고르기 : 펼친 다이어리 (분홍 커버 · 두 쪽 · 가운데 링 · 책갈피 끈) */
       diary: `<path d="M4.5 14v26.5c7-1.6 13.5-1 19.5 2.3 6-3.3 12.5-3.9 19.5-2.3V14z" fill="#ff9fb8" ${K}/><path d="M24 13.5c-5.5-3.2-11.5-3.6-17-2.5v26.5c5.5-1.1 11.5-.7 17 2.5z" fill="#fffaf0" ${K}/><path d="M24 13.5c5.5-3.2 11.5-3.6 17-2.5v26.5c-5.5-1.1-11.5-.7-17 2.5z" fill="#fffaf0" ${K}/><path d="M11 19.5q5-.8 9.5 1M11 25q5-.8 9.5 1M11 30.5q4-.6 7 .6M28 31q4-1 8.5-.4" stroke="#f2c6d2" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="${heart(32.5, 21.5, .5)}" fill="#ff8fab"/><g fill="#fff" ${T}><rect x="21.5" y="17" width="5" height="3" rx="1.5"/><rect x="21.5" y="24.5" width="5" height="3" rx="1.5"/><rect x="21.5" y="32" width="5" height="3" rx="1.5"/></g><path d="M27 39.5v6.5l1.9-1.7 1.9 1.7v-7.4" fill="#ffd36b" ${K}/>${spark(41, 7.5, 4, '#ffe08f')}`,
-      /* 📒 다이어리 창 : 기본다이어리 · 노트 · 바인더 · 표지 꾸미기 (스티커 창 아이콘과 같은 손그림 · 도련 10-21) */
+      /* 📒 다이어리 창 : 다이어리 · 노트 · 바인더 · 표지 꾸미기 (스티커 창 아이콘과 같은 손그림 · 도련 10-21) */
       dybook: `<rect x="10" y="7" width="28" height="34" rx="4" fill="#ffb4c8" ${K}/><path d="M10 11a4 4 0 0 1 4-4h2.5v34H14a4 4 0 0 1-4-4z" fill="#ff8fab" ${K}/><rect x="20.5" y="12.5" width="13" height="8.5" rx="2" fill="#fff" ${T}/><path d="M23.5 15.5h7M23.5 18.2h4.5" stroke="#ffb4c8" stroke-width="1.4" stroke-linecap="round"/>${face(27, 29.5, 6)}<ellipse cx="22.3" cy="32.6" rx="1.9" ry="1.2" fill="#ff6f96" opacity=".7"/><ellipse cx="31.7" cy="32.6" rx="1.9" ry="1.2" fill="#ff6f96" opacity=".7"/><path d="M25.6 32q1.4 1.3 2.8 0" ${S}/><path d="M30 40v6.5l2.2-1.8 2.2 1.8V40" fill="#ffd36b" ${K}/>${spark(41, 9, 4.2, '#ffe08f')}`,
       note: `<rect x="9" y="7" width="28" height="35" rx="3.5" fill="#b9e6d3" ${K}/><path d="M9 7h4v35H9z" fill="#9fd6bf" opacity=".8"/><rect x="30" y="7" width="3.6" height="35" fill="#ff9fb8" ${T}/><rect x="14.5" y="13" width="12.5" height="6.5" rx="1.6" fill="#fff" ${T}/><path d="M17 16.3h7.5" stroke="#9fd6bf" stroke-width="1.4" stroke-linecap="round"/><path d="${heart(20.8, 26.5, .62)}" fill="#fff" ${T}/><path d="M17 4.5v7.5l2.1-1.7 2.1 1.7V4.5" fill="#ffd36b" ${K}/>${spark(41.5, 30, 4, '#fff')}`,
       binder: `<rect x="15" y="5" width="24" height="31" rx="2" fill="#fffaf0" ${K} transform="rotate(7 27 20)"/><path d="M20 12h12M20 16.5h12" stroke="#e8dccb" stroke-width="1.3" stroke-linecap="round" transform="rotate(7 27 20)"/><rect x="9" y="10" width="29" height="32" rx="4" fill="#d8c8f6" ${K}/><g fill="#eef2f7" ${K}><rect x="5" y="14" width="9" height="4" rx="2"/><rect x="5" y="24" width="9" height="4" rx="2"/><rect x="5" y="34" width="9" height="4" rx="2"/></g><rect x="19" y="17" width="14" height="9" rx="2" fill="#fff" ${T}/><path d="${heart(26, 19.3, .36)}" fill="#ff9fb8"/>${face(26, 33, 6)}<ellipse cx="21.6" cy="35.6" rx="1.8" ry="1.1" fill="#ff6f96" opacity=".65"/><ellipse cx="30.4" cy="35.6" rx="1.8" ry="1.1" fill="#ff6f96" opacity=".65"/>`,
@@ -94,7 +94,7 @@
       cloud: `<path d="M13 36h23a7 7 0 0 0 1-14 10 10 0 0 0-19-3 8.5 8.5 0 0 0-5 17z" fill="#d4ecff" ${K}/>${face(24, 29, 7)}<ellipse cx="18" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/><ellipse cx="30" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/>`,
       heartS: `<path d="${heart(24, 30, 1.6)}" fill="#ff8fab" ${K}/><path d="M13 16q1.5-3.5 5-3.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
     };
-    /* ✨ 만들기 아이콘 (10-24 도련 : 다이어리 창의 나만의 기본다이어리 · 노트 만들기 · 바인더 만들기 · 배경지 만들기)
+    /* ✨ 만들기 아이콘 (10-24 도련 : 다이어리 창의 나만의 다이어리 · 노트 만들기 · 바인더 만들기 · 배경지 만들기)
        본 아이콘을 조금 줄이고 오른쪽 아래에 분홍 ＋ 단추 (스티커 만들기 칸들과 같은 느낌) */
     const plus = `<circle cx="37.5" cy="37.5" r="8" fill="#ff8fab" ${K}/><path d="M37.5 33.6v7.8M33.6 37.5h7.8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`;
     const small = (k, x = 1, y = 0) => `<g transform="translate(${x} ${y}) scale(.84)">${ICON[k]}</g>`;
@@ -114,7 +114,7 @@
     const MAP = {
         '포인트스티커': 'emoji', '캡슐스티커': 'caps', '마스킹테이프': 'tape', '조각스티커': 'piece', '씰스티커': 'seal', '모조지스티커': 'paper', '속지': 'leaf', '메모지': 'memo', '떡메모지': 'tteok',
         '포토부스': 'booth', '사진찍기': 'cam', '사진고르기': 'pick', '사진찍어 만들기': 'cam', '조각스티커 만들기': 'piece', '씰스티커 만들기': 'seal', '모조지스티커 만들기': 'paper', '앨범골라 만들기': 'pick', '글씨 스티커': 'text', '글씨스티커 만들기': 'text', '마스킹테이프 만들기': 'tapemk', '속지 만들기': 'leafmk', '떡메모지 만들기': 'tteokmk',
-        '다이어리 고르기': 'diary', '기본다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 기본다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
+        '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '매일': 'sprout', '운세·마음': 'ball', '인형 꾸미기': 'doll', '게임': 'game', '펫 키우기': 'paw', '함께하기': 'letter',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '오늘의 질문': 'ask', '오늘의 행운': 'clover', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
@@ -158,7 +158,7 @@
             const ic = b.querySelector('.service-icon'); if (!ic) return;
             const t = [...b.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
             const name = t.map(n => n.textContent).join('').trim();
-            if (t.length) { const lb = document.createElement('span'); lb.className = 'dk-lb' + (name.includes('\n') ? ' l2' : ''); lb.textContent = name; t[0].replaceWith(lb); t.slice(1).forEach(n => n.remove()); }   // &#10; = 두 줄 이름 (기본다이어리 / 색상설정)
+            if (t.length) { const lb = document.createElement('span'); lb.className = 'dk-lb' + (name.includes('\n') ? ' l2' : ''); lb.textContent = name; t[0].replaceWith(lb); t.slice(1).forEach(n => n.remove()); }   // &#10; = 두 줄 이름 (다이어리 / 색상설정)
             die(ic, b.dataset.ico || MAP[name.replace(/\s+/g, ' ')], i);                     // data-ico = 아이콘을 직접 (두 줄 이름 등)
         });
         box.querySelectorAll('.svc-cat').forEach((c, i) => { const ic = c.querySelector('.svc-cat-icon'), b = c.querySelector('b'); if (ic && b && !ic.querySelector('svg')) die(ic, MAP[b.textContent.trim()], i + 1); else if (ic) die(ic, '', i + 1); });
