@@ -89,7 +89,8 @@
             S.SH = Math.round(PM_W * im.height / im.width);
             S.sheet = pmMk(PM_W * PM_HR, S.SH * PM_HR); const s = S.sheet.getContext('2d'); s.scale(PM_HR, PM_HR);
             pmRR(s, 0, 0, PM_W, S.SH, 6); s.save(); s.clip(); s.drawImage(im, 0, 0, PM_W, S.SH); s.restore();
-            pmGrain(s, PM_W, S.SH);
+            if (!o.grained) pmGrain(s, PM_W, S.SH);                                 // 🎒 내 종이는 이미 결이 있어요 (두 번 입히지 않게)
+            S.own = o.own || null; if (S.own && !S.own.a0) S.own.a0 = pmInk0();
             S.pieces = []; S.fades = []; S.drag = null; S.edit = null; S.mv = { x: 0, y: 0 }; S.gone = 0; S.back = 0; S.on = true;
             S.note = o.el && o.el.isConnected ? o.el : null;
             S.bg = !!o.bg;                                                           // 📄 배경 모조지 : 🪡 핀셋으로 통째로 떼기 · 붙이면 맨 뒤
@@ -425,8 +426,30 @@
                 }
             }
             if (typeof saveData === 'function') saveData(false);
+            if (S.own && window.ownPaper) pmOwnSave(el);                        // 🎒 오린 자리는 영원히 비어요 · 남은 종이는 계속 (js/own.js)
             pmBuzz(8);
             pmSay('꾹! 붙였어요 ✨ 다른 그림도 오려 보세요');
+        }
+
+        /* 🎒 남은 종이 : 종이(오린 자리는 비어 있어요) + 아직 안 뗀 칼집 조각을 제자리에 다시 → 그림 한 장 · 남은 비율 */
+        function pmInk0() {
+            const S = pmS, d = S.sheet.getContext('2d').getImageData(0, 0, S.sheet.width, S.sheet.height).data; let n = 0;
+            for (let i = 3; i < d.length; i += 32) if (d[i] > 100) n++;
+            return n || 1;
+        }
+        function pmOwnSave(el) {
+            const S = pmS, c = pmMk(S.sheet.width, S.sheet.height), g = c.getContext('2d');
+            g.drawImage(S.sheet, 0, 0);
+            g.setTransform(PM_HR, 0, 0, PM_HR, 0, 0);
+            for (const st of S.pieces) g.drawImage(st.img, st.home[0] - st.w / 2, st.home[1] - st.h / 2, st.w, st.h);   // 칼집만 낸 조각은 종이에 그대로 붙어 있어요
+            const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0;
+            for (let i = 3; i < d.length; i += 32) if (d[i] > 100) n++;
+            const left = n / (S.own.a0 || 1), img = c.toDataURL('image/png');
+            const t = pmMk(120, Math.round(120 * c.height / c.width)); t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+            let th = ''; try { th = t.toDataURL('image/webp', .8); } catch (e) {} if (!/^data:image\/webp/.test(th)) th = t.toDataURL('image/png');
+            if (el) el.dataset.own = S.own.id;
+            ownPaper(S.own.id, img, th, left, el, S.own.a0).catch(er => console.warn('모조지를 아직 못 고쳤어요 (다시 해요) :', er));
+            if (left <= .04) { pmSay('종이를 다 썼어요 ✨'); setTimeout(closePaperSheet, 700); }
         }
 
         /* ---------- 그리기 ---------- */

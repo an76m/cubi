@@ -1,8 +1,8 @@
 /* 말랑달콤 다이어리 - js/gacha.js
    🎁 랜덤박스 : 문방구 캡슐 뽑기 기계
    - 🪙 코인 1개로 한 번 뽑아요. 코인은 📅 출석 도장판의 숨은 날에 도장을 찍으면 나와요 (js/attend.js)
-   - 캡슐에서 🎁 캡슐 스티커(움직이는 스티커 10종 · js/capsule-stickers.js)가 나오면 30일 선물권이 생겨요
-     선물권이 있는 동안 ✏️ 스티커 창의 🎁 캡슐 스티커 칸에서 다이어리에 붙여요 (기간이 끝나도 이미 붙인 건 그대로)
+   - 캡슐에서 🎁 캡슐 스티커(움직이는 스티커 10종 · js/capsule-stickers.js)가 나오면 🧺 바구니에 그 스티커 한 장이 쏙 (🎒 유한 스티커 10-25 · 한 번 붙이면 끝 · js/own.js)
+     (서버는 예전처럼 30일 선물권을 기억하지만 다이어리는 쓰지 않아요 · 첫 선물도 바구니로)
    - 코인 · 당첨 · 선물권은 모두 '랜덤박스 서버'(구글 앱스크립트)가 정하고 기억해요.
      선물권 목록은 이 기기에도 기억해 둬서 스티커 창을 열자마자 보여요 (서버 답이 오면 맞춰요)
    - 서버 코드 : 랜덤박스_앱스크립트.gs (랜덤박스 시트 → 확장 프로그램 → Apps Script 에 붙여 넣기)
@@ -77,20 +77,6 @@
             const p = capsPasses().find(x => x.id === id); if (!p) return -1;
             return Math.round((Date.parse(p.until) - Date.parse(capsToday())) / 864e5);
         }
-        /* ✏️ 스티커 창 → 🎁 캡슐 스티커 칸 : 선물권이 있는 스티커만 당첨된 순서대로 (끝난 건 빠지고 뒤의 것이 앞으로) */
-        function loadCapsStickers(btn, fresh) {
-            if (btn) { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
-            const grid = gq('stickerGrid'); if (!grid) return;
-            if (btn) capsWelcomeShow();
-            const mine = capsPasses().map(p => ({ k: capsList().find(x => x.id === p.id), left: capsLeft(p.id) })).filter(x => x.k);
-            grid.innerHTML = (mine.length
-                ? mine.map(({ k, left }) => `<button type="button" class="cs-it" onclick="capsStickerAdd('${k.id}')">${typeof nwChip === 'function' ? nwChip('caps', k.id) : ''}<img src="${capsUrl(k)}" alt="${k.name}"><small>${k.name}</small><i>${left ? 'D-' + left : 'D-day'}</i></button>`).join('')
-                : '<div class="cs-empty">🎁 아직 캡슐 스티커가 없어요</div>') + capsGuide();
-            if (!fresh && gcUseDrive()) gcApi('status').then(r => {                   // 서버의 선물권으로 맞추기
-                if (!r.ok) return; capsSet(r.passes);
-                const act = document.querySelector('.cat-btn.cs-cat.active'); if (act) loadCapsStickers(null, true);
-            });
-        }
         /* 🧭 캡슐 스티커 얻는 방법 (스티커 칸 아래 · 첫 선물 창 공통) : 늘 보여요 */
         function capsGuide(inPop) {
             return `<div class="cs-guide${inPop ? ' in-pop' : ''}">
@@ -114,18 +100,12 @@
         async function capsWelcome() {
             const r = await gcApi('welcome');
             if (!r || !r.ok || !r.gift) return;
-            capsSet(r.passes || [r.gift]);
-            try { localStorage.setItem(CAPS_WELCOME_POP, JSON.stringify(r.gift)); } catch (e) {}
-        }
-        const CAPS_WELCOME_POP = 'malang_welcome_pop';
-        function capsWelcomeShow() {                   // 🎁 캡슐 스티커 칸을 누르면 (한 번만)
-            let g = null; try { g = JSON.parse(localStorage.getItem(CAPS_WELCOME_POP)); localStorage.removeItem(CAPS_WELCOME_POP); } catch (e) {}
-            if (g && g.id) capsWelcomePop(g.id, g.until);
+            const k = capsList().find(x => x.id === r.gift.id);
+            if (await capsToBasket(k)) capsWelcomePop(r.gift.id);             // 🎒 첫 선물도 바구니로 · 바로 알려요
         }
         function capsWelcomePop(id, until) {
             const k = capsList().find(x => x.id === id); if (!k) return;
             const old = document.getElementById('capsWelcome'); if (old) old.remove();
-            const d = new Date(until + 'T00:00:00'), when = isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일`;
             const el = document.createElement('div');
             el.id = 'capsWelcome'; el.className = 'gp-wrap';
             el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
@@ -135,7 +115,7 @@
                 <div class="cw-stk"><img src="${capsUrl(k)}" alt="${k.name}"></div>
                 <div class="gp-t">🎁 첫 선물이 도착했어요!</div>
                 <p class="gp-s">말랑달콤에 온 걸 환영해요 💕<br><b>움직이는 캡슐 스티커</b> <em>'${k.name}'</em>를 선물로 드려요</p>
-                ${when ? `<div class="gp-until">이 스티커는 <b>${when}</b>까지 쓸 수 있어요</div>` : ''}
+                <div class="gp-until">✨ 스티커 → <b>🧺 내 바구니</b>에 넣어 뒀어요</div>
                 ${capsGuide(true)}
                 <button type="button" class="btn btn-primary gp-close">닫기</button>
               </div>`;
@@ -145,22 +125,15 @@
             setTimeout(() => { if (typeof sndChime === 'function') sndChime(); }, 500);
         }
 
-        /* 다이어리 오늘 페이지에 붙이기 (스티커 창 · 당첨 화면 공통) */
-        function capsStickerAdd(id, fromBox) {
-            const k = capsList().find(x => x.id === id); if (!k || typeof addImage !== 'function') return false;
-            if (capsLeft(id) < 0) { showMsg('🎁 선물권 기간이 끝났어요.<br>랜덤박스 캡슐에서 다시 만나요!'); return false; }
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">받은 스티커는 ✏️ 스티커 창의 🎁 캡슐 스티커에 있어요.</span>'); return false; }
-            if (!fromBox && window.openStickerPeel && window.snbMode && snbMode() === 'list') {   // 🪟 고르는 창 : 씰 낱장처럼 하얀 창에 한 장 → 🪡 핀셋으로 떼어 붙여요 (도련 10-21 · js/stickerpeel.js)
-                if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
-                openStickerPeel(capsUrl(k)); return true;
-            }
-            if (!addImage(capsUrl(k))) return false;
-            const box = document.querySelector('#canvasArea .element-box:last-child'); if (box) box.style.width = '120px';
-            if (fromBox) closeGacha();
-            if (window.stkBlink) stkBlink();
-            return true;
+        /* 🎒 캡슐 스티커 → 🧺 바구니에 한 장 (선물) · 새 종이 id */
+        async function capsToBasket(k) {
+            if (!k || !window.ownTake || !window.ownMode || !ownMode()) return '';
+            try { return await ownTake({ k: 'seal', from: 'gift', nm: k.name, imgs: [capsUrl(k)], baked: true }); } catch (e) { console.warn(e); return ''; }
         }
-
+        async function capsTakeOut() {                                  // 당첨 화면 : 바구니에서 바로 꺼내 떼어 붙이기
+            const id = await gc.own; if (!id) { showMsg('🧺 바구니에 넣지 못했어요.<br>인터넷 연결을 확인해 주세요.'); return; }
+            closeGacha(); if (window.bkOpenSheet) bkOpenSheet(id);
+        }
         /* ---------- 화면 만들기 ---------- */
         function gcBuild() {
             if (gc.built) return;
@@ -416,12 +389,12 @@
             } else {
                 box.className = 'gc-result win';
                 gcSfx.win(); gcBuzz([60, 40, 60, 40, 120]); gcConfetti();
-                const [, mm, dd] = o.until.split('-');
                 box.innerHTML = `<h3>🎉 당첨!</h3>
                     <img class="gc-prize gc-stk" alt="${k.name}" src="${capsUrl(k)}">
-                    <p><b>🎁 ${k.name}</b><br>캡슐 스티커 <b>30일 선물권</b>이 도착했어요 💝</p>
-                    <p class="gc-small">${+mm}월 ${+dd}일까지 ✏️ 스티커 창의 🎁 캡슐 스티커에서 붙일 수 있어요</p>
-                    <button class="gc-main" type="button" onclick="capsStickerAdd('${k.id}', true)">📌 오늘 다이어리에 붙이기</button>`;
+                    <p><b>🎁 ${k.name}</b><br>캡슐 스티커가 <b>🧺 바구니</b>에 쏙 들어갔어요 💝</p>
+                    <p class="gc-small">✨ 스티커 → 🧺 내 바구니에서 떼어 붙여요 · 한 번 붙이면 끝이에요</p>
+                    <button class="gc-main" type="button" onclick="capsTakeOut()">📌 지금 꺼내서 붙이기</button>`;
+                gc.own = capsToBasket(k);
                 gq('gcSay').textContent = '축하해요! 정말 운이 좋아요!';
             }
             if (o.coins > 0 || gc.test) {                          // 코인이 남았으면 바로 한 번 더

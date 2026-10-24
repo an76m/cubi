@@ -3,6 +3,8 @@
    - 사진 모서리나 글 위에 붙이면 '다꾸' 느낌이 나요
    - 붙인 뒤 ↔ 손잡이를 끌면 무늬는 그대로, 길이만 늘었다 줄었다 해요 (🔄 돌리기 · ↘ 크기는 다른 그림과 같아요)
    - 테이프는 그림(SVG)으로 일기에 담겨요 → 파일 없음 · 나중에 무늬를 고쳐도 이미 붙인 테이프는 그대로
+   - 🎒 유한 스티커 (10-25) : 🧺 바구니의 테이프 한 롤 = placeTape(그림, own) · 붙인 길이만큼 롤이 줄어요 (js/own.js ownQty)
+     ↔ 로 늘이면 늘인 만큼 더 줄고 · 줄여도 돌아오지 않아요(뜯어낸 테이프) · 롤이 남은 만큼만 늘어나요 · 다시 열었을 때(저장된 테이프)는 줄이기만 돼요 (js/elements.js)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (마스킹테이프 칸만 안 보여요) */
 
         const TAPE_MARK = 'malang-tape';
@@ -72,10 +74,18 @@
             placeTape(tapeUrl(t));
         }
         /* 테이프 그림 하나를 다이어리에 붙이기 (🎀 마스킹테이프 · 🎀 내 마스킹테이프 공용) */
-        function placeTape(url) {
+        function placeTape(url, own) {                                       // own = { id } : 🎒 내 테이프 롤 (붙인 길이만큼 줄어요)
+            const left = own && window.ownQtyLeft ? ownQtyLeft(own.id) : 0;
+            if (own && left < 20) { showMsg('🎀 이 테이프는 다 썼어요.'); return false; }
             if (!addImage(url)) return false;
             const el = document.querySelector('#canvasArea .element-box:last-child');
-            if (el) { el.style.width = '170px'; el.style.height = '30px'; el.dataset.rotation = -8; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, 'rotate(-8deg)'); selectElement(el); }
+            const w = own ? Math.min(170, left) : 170;
+            if (el) { el.style.width = w + 'px'; el.style.height = '30px'; el.dataset.rotation = -8; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, 'rotate(-8deg)'); selectElement(el); }
+            if (own && el && window.ownQty) {
+                el.dataset.own = own.id; el.dataset.ownUsed = w; el.dataset.ownMax = left;   // 이 테이프가 늘어날 수 있는 끝 = 롤에 남아 있던 만큼
+                if (typeof saveData === 'function') saveData(false);
+                ownQty(own.id, w, el).catch(er => console.warn('테이프 길이를 아직 못 줄였어요 (다시 해요) :', er));
+            }
             if (window.stkBlink) stkBlink();
             return true;
         }
@@ -88,3 +98,5 @@
         window.tapeRecvHtml = tapeRecvHtml; window.tapeFreeHtml = tapeFreeHtml; window.addFreeTape = addFreeTape;
         window.isTapeSrc = isTapeSrc;
         window.placeTape = placeTape;
+        window.tapeShelf = () => tapeFreeList().map(t => ({ id: t.id, g: t.g || '기본', name: t.name || '', url: tapeUrl(t) }))   // 🏪 진열대 (js/basket.js)
+            .concat(TAPES.filter(t => tapeHas(t.id)).map(t => ({ id: t.id, g: '💗 선물 받은 테이프', name: t.name || '', url: tapeUrl(t) })));   // 💗 저금통 · 선물로 열린 테이프도 그 기간엔 진열대에서 받아요

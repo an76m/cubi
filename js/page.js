@@ -196,33 +196,6 @@
             styleTextarea(ta, font, color, size);
         }
 
-        function loadEmojiCategory(category, btnElement) {
-            if (btnElement) {
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                btnElement.classList.add('active');
-            }
-
-            const grid = document.getElementById('stickerGrid'); if (!grid) return;   // 🎒 예전 목록 창은 없어요 (유한 스티커로 다시 끼울 때까지)
-            grid.innerHTML = '';
-
-            const ranges = category === 'all' ? Object.values(emojiRanges).flat() : emojiRanges[category];      // 'all' = 표정부터 기호까지 한 칸에 전부
-            if (!ranges) return;
-
-            const fragment = document.createDocumentFragment();
-
-            ranges.forEach(([start, end]) => {
-                for (let code = start; code <= end; code++) {
-                    const char = String.fromCodePoint(code);
-                    const item = document.createElement('div');
-                    item.className = 'sticker-item';
-                    item.innerText = char;
-                    item.onclick = () => addSticker(char);
-                    fragment.appendChild(item);
-                }
-            });
-
-            grid.appendChild(fragment);
-        }
 
         function formatDate(date) {
             const dk = window.dkLabel && dkLabel(date); if (dk) return dk;   // 📕 유한 다이어리 장 : 페이지 수 · 날짜 (js/skins.js)

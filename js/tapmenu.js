@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/tapmenu.js
-   📍 빈 곳을 누르면 그 자리에 추가 메뉴(💾 저장 · 🗑 삭제 · 속지 빼기)가 나와요. (📃 속지 다듬기는 10-17 숨김) (속지 칸은 바꾼 속지가 있을 때만 · js/leafpad.js lfMenu) (스티커 · 이미지 · 조각스티커 · 메모지는 하단메뉴 ✨ 스티커 창으로 옮겼어요)
+   📍 빈 곳을 누르면 그 자리에 추가 메뉴(✏️ 글상자 · 💾 저장 · 🗑 삭제 · 속지 빼기)가 나와요. (📃 속지 다듬기는 10-17 숨김) (속지 칸은 바꾼 속지가 있을 때만 · js/leafpad.js lfMenu) (스티커 · 이미지 · 조각스티커 · 메모지는 하단메뉴 ✨ 스티커 창으로 옮겼어요)
    - 고른 것이 있으면(빨간 점선) 첫 번째 터치는 '선택 해제'만 (elements.js 의 canvasArea click 에서 불러요)
    - 메뉴에서 고른 것은 눌렀던 자리 근처에 놓여요 (tmPlace)
    📌 페이지에 놓은 그림은 짧게 톡 · 왼쪽 클릭하면 (도련 · 10-17 · 빈 곳 메뉴처럼 · 그림은 꾹 누르기 · 오른쪽 클릭으로는 안 나와요) / 글상자는 톡 = 글쓰기라 폰 · 아이패드에서 꾹 누르면(0.5초) · 마우스로 오른쪽 클릭하면 (🎨 다듬기는 10-17 숨김 · ✂️ 자르기는 연필꽂이의 스티커 칼로 · js/stkcut.js) · ✥ 글씨체(글) · 사진 꾸미기(사진) · ↕️ 순서 · 🗑 삭제(이 스티커만) 메뉴가 나와요 (tmOpenElem) */
@@ -16,6 +16,7 @@
             trash: TM_SVG('<path d="M9.5 5.2V4a1.2 1.2 0 0 1 1.2-1.2h2.6A1.2 1.2 0 0 1 14.5 4v1.2" fill="none" stroke="#d9577a" stroke-width="1.8"/><path d="M6 9h12l-.9 10a2 2 0 0 1-2 1.8H8.9a2 2 0 0 1-2-1.8z" fill="#ee7f9f"/><rect x="4.5" y="5.2" width="15" height="2.8" rx="1.4" fill="#d9577a"/><path d="M10 11.5v6M14 11.5v6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>')
         };
         const TM_ITEMS = [
+            { key: 'p_text', icon: TM_ICONS.font, label: '글상자', run: () => { if (typeof addText === 'function') addText(); } },   // ✏️ 그냥 글상자 (스티커가 아니라 늘 써요 · 예전 📝 메모지 '기본' · 🎒 10-25 · 누른 자리에 놓여요)
             { key: 'p_save', icon: TM_ICONS.save, label: '저장', run: () => { tmAnchor = null; openSaveChooser(); } },
             { key: 'p_pin', icon: TM_ICONS.pin, label: '삭제', run: () => { const a = tmPinAt; tmAnchor = null; if (tmNoTwz(a && a.x, a && a.y)) return; if (window.twzPin) twzPin(a && a.x, a && a.y); } }   // 📌 무엇이든 핀셋으로 뜯어 버려요 (도련 · 10-17 · js/elements.js twzPin)
         ];

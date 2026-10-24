@@ -2,7 +2,7 @@
    🌸☀️🍁⛄ 계절 테마 : 지금 계절에 맞는 다이어리 색 + 화면에 살랑살랑 날리는 꽃잎 · 물방울 · 낙엽 · 눈 (🎨 페이지 → 계절 테마)
    - 다이어리 페이지 오른쪽 아래에 계절 장식이 살짝 붙어요 (글 · 그림보다 뒤에 있어서 가리지 않아요)
    - 계절 : 봄 3~5월 · 여름 6~8월 · 가을 9~11월 · 겨울 12~2월 (계절이 바뀌면 테마도 저절로 바뀌어요)
-   - 계절 스티커 : ✏️ 스티커 창 → 계절 칸 · 지금 계절의 스티커만 붙일 수 있어요 (다른 계절은 미리 보기)
+   - 계절 스티커 : 🏪 진열대의 🌸 계절 스티커 코너 · 지금 계절 것만 받아요 (🎒 js/basket.js)
      이미 붙인 스티커는 계절이 지나도 일기에 그대로 남아요
    - 켜고 끄기는 설정(설정.json)에 저장 ('diary_season' = 1) · 다른 페이지를 고르면 계절 테마는 꺼져요
    - 움직임 줄이기(기기 설정)를 켠 사람에게는 날리는 효과를 보여 주지 않아요
@@ -100,33 +100,6 @@
               <p class="ss-note">계절이 바뀌면 테마도 저절로 바뀌어요. ✏️ 스티커 창에서 <b>${S.name} 스티커</b>도 써 보세요!</p>`;
         }
 
-        /* ✏️ 스티커 창 → 계절 스티커 칸 */
-        function loadSeasonStickers(btn) {
-            if (!SEASON_OPEN) return;
-            if (btn) { document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
-            const now = seasonNow(), url = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s.svg);
-            const sec = k => {
-                const S = SEASONS[k], open = k === now;
-                return `<div class="ss-sg-head">${S.icon} ${S.name} 스티커 ${open ? '<em>지금 쓸 수 있어요!</em>' : `<small>${S.months}에 열려요</small>`}</div>`
-                    + SEASON_STICKERS[k].map(s => open
-                        ? `<button type="button" class="cs-it" onclick="seasonStick('${k}','${s.id}')"><img src="${url(s)}" alt="${s.name}"><small>${s.name}</small></button>`
-                        : `<span class="cs-it"><img src="${url(s)}" alt="${s.name}"><small>${S.months}</small></span>`).join('');
-            };
-            const order = ['sp', 'su', 'au', 'wi'], i = order.indexOf(now);
-            ssq('stickerGrid').innerHTML = order.slice(i).concat(order.slice(0, i)).map(sec).join('');
-        }
-        function seasonStick(k, id) {
-            if (!SEASON_OPEN || k !== seasonNow()) return;
-            const s = (SEASON_STICKERS[k] || []).find(x => x.id === id); if (!s || typeof addImage !== 'function') return;
-            if (window.openStickerPeel && window.snbMode && snbMode() === 'list') {   // 🪟 고르는 창 : 하얀 창에서 🪡 핀셋으로 떼어 붙여요 (캡슐 스티커와 같게 · 도련 10-21)
-                if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
-                openStickerPeel('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s.svg)); return;
-            }
-            if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s.svg))) return;
-            const el = document.querySelector('#canvasArea .element-box:last-child'); if (el) el.style.width = '110px';
-            if (window.stkBlink) stkBlink();
-        }
-
         (function seasonInit() {
             const b = ssq('seasonTab'), sk = ssq('seasonSkin');
             if (sk) sk.hidden = !SEASON_OPEN;
@@ -137,5 +110,3 @@
         window.seasonToggle = seasonToggle;
         window.seasonStop = seasonStop;
         window.seasonRestore = seasonRestore;
-        window.loadSeasonStickers = loadSeasonStickers;
-        window.seasonStick = seasonStick;

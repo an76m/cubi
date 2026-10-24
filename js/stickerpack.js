@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/stickerpack.js
-   🍭 포인트스티커 : ✨ 스티커 창 → 🍭 포인트스티커 → 위쪽 '🍭 포인트스티커' 칸 (첫 칸 · 😀 이모지는 둘째 칸)
+   🍭 포인트스티커 : 🏪 진열대 🍭 코너에서 판을 받아 🧺 바구니에서 꺼내 써요 (🎒 10-25)
    - 비슷한 것끼리 묶은 작은 스티커 모음 : 🔤 말랑 알파벳 A~Z · 🔢 말랑 숫자 0~9 · 💗 하트 모음
      🎵 음표 · 📅 요일 · 🗓 달 · ✅ 기호(체크 · 번호 · 화살표) · 💬 한마디 · 🌤 날씨 · ✨ 반짝이 (도련 · 2026-10-15)
      그림 파일 없이 코드로 그려요 (말랑 버블 글씨 · 젤리 모양 + 하얀 다이컷 테두리 · spkGlyph · spkShape) → 한 번 그린 건 기억해 둬요
@@ -8,6 +8,8 @@
      2) 그대로 끌어서 페이지에 놓으면 작아지며 꾹 붙어요 → 빨간 점선이 생겨 옮기기 · 돌리기 · 크기 조절 (다른 스티커와 같아요)
         페이지 밖이나 판 위에 놓으면 제자리로 돌아가요 · 떠 있을 때 다른 곳을 누르면 제자리로
    - 판 위쪽 테이프(✋)를 끌면 판이 옮겨져요 · 오른쪽 위 끝 ✕ 로 닫아요 · 판 바깥은 그대로 페이지라 붙인 스티커를 바로 고칠 수 있어요
+   - 🎒 유한 스티커 (10-25) : 🧺 바구니의 포인트스티커 판을 열면 openStickerPack({ srcs, own }) · 쓴 칸(null)은 빈 자리 · 붙이면 그 칸은 영원히 사라져요 (js/own.js)
+     진열대 목록은 spkPackList() (그린 판 · 🏪 진열대 js/basket.js)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (포인트스티커 칸만 '준비 중') */
 
         const SPK_FONT = "'Fredoka', 'Jua', 'Arial Rounded MT Bold', sans-serif";
@@ -241,26 +243,9 @@
         }
         async function spkSrcs(pack) {
             if (spkS.cache[pack.id]) return spkS.cache[pack.id];
-            if (pack.load) return (spkS.cache[pack.id] = await pack.load());   // 🖼️ 개발자 그림 포인트스티커 (js/stk-basic.js sbPack)
             if (document.fonts && document.fonts.load) await Promise.race([document.fonts.load(`700 100px ${SPK_FONT}`), new Promise(r => setTimeout(r, 1500))]).catch(() => {});
             const items = typeof pack.items === 'function' ? pack.items() : pack.items, k = SPK_SIZE[pack.id] || .5;
             return (spkS.cache[pack.id] = await Promise.all(items.map((it, i) => spkSmall((pack.draw || spkGlyph)(it, i), k))));
-        }
-
-        /* ---------- 🍭 포인트스티커 창 : 위쪽 '🍭 포인트스티커 · 😀 이모지' 두 칸 (js/stickermaker.js openStickerList) ---------- */
-        function spkTabs() {
-            const bar = spkq('stickerKindTabs'); if (!bar) return;
-            bar.innerHTML = [['pack', '🍭 포인트스티커'], ['emoji', '😀 이모지']].map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="spkTab('${v}')">${n}</button>`).join('');
-            bar.classList.add('two'); bar.hidden = false;
-        }
-        async function spkTab(tab) {
-            document.querySelectorAll('#stickerKindTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
-            const g = spkq('stickerGrid'); g.scrollTop = 0;
-            if (tab === 'emoji') { const b = document.querySelector('#stickerCategories .em-cat'); if (b) b.click(); return; }
-            g.innerHTML = '<div class="smk-empty">불러오는 중…</div>';
-            const cards = [];
-            for (const p of SPK_PACKS) { const s = await spkSrcs(p); cards.push(`<button type="button" class="spk-card" data-sbc="${p.g}"${window.sbFit ? sbFit(s.length) : ''} onclick="openStickerPack('${p.id}')">${window.sbThumbs ? sbThumbs(s) : ''}<small>스티커 ${s.length}개</small></button>`); }   // 이름 없이 · 카테고리 칸 (js/stk-basic.js)
-            if (document.querySelector('#stickerKindTabs .stk-tab.on[data-tab="pack"]')) g.innerHTML = `<div class="spk-cards">${window.stkBasicSrv ? stkBasicSrv('mini') : ''}${cards.join('')}</div>`;   // 🖼️ 개발자 그림 시트가 맨 앞 (js/stk-basic.js)
         }
 
         /* ---------- 하얀 판 ---------- */
@@ -289,14 +274,15 @@
             x = Math.max(6, Math.min(W - b.offsetWidth - 6, x)); y = Math.max(64, Math.min(H - b.offsetHeight - 6, y));
             b.style.left = x + 'px'; b.style.top = y + 'px'; spkS.mv = [x, y];
         }
-        async function openStickerPack(id) {
+        async function openStickerPack(id) {                                         // id = { srcs, own } : 🎒 내 포인트스티커 판 (js/basket.js)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            const p = SPK_PACKS.find(q => q.id === id) || (window.sbPack && sbPack(id)); if (!p) return;
+            const mine = id && typeof id === 'object' ? id : null;
+            const p = mine ? { id: 'own' } : SPK_PACKS.find(q => q.id === id); if (!p) return;
             if (window.stkLeave) stkLeave();
-            spkBuild(); spkPutBack(); spkS.pack = p;
+            spkBuild(); spkPutBack(); spkS.pack = p; spkS.own = mine && mine.own || null;
             let srcs;
-            try { srcs = await spkSrcs(p); } catch (e) { showMsg('⚠ 포인트스티커를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); if (window.stkReturn) stkReturn(); return; }
-            spkq('spkGrid').innerHTML = srcs.map((u, i) => `<span class="spk-it" data-i="${i}"><img src="${u}" alt="" draggable="false"></span>`).join('');
+            try { srcs = mine ? mine.srcs : await spkSrcs(p); } catch (e) { showMsg('⚠ 포인트스티커를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); if (window.stkReturn) stkReturn(); return; }
+            spkq('spkGrid').innerHTML = srcs.map((u, i) => u ? `<span class="spk-it" data-i="${i}"><img src="${u}" alt="" draggable="false"></span>` : `<span class="spk-it used" data-i="${i}"></span>`).join('');   // 🎒 쓴 칸 = 뗀 자국
             spkq('spkRoom').classList.add('show');
             const b = spkq('spkBoard'), W = window.innerWidth, H = window.innerHeight, pg = spkq('diaryBook') || spkq('diaryWrapper'), r = pg.getBoundingClientRect();
             /* 페이지 옆에 자리가 있으면 오른쪽 옆 · 없으면 아래쪽 가운데 (하단메뉴 바로 위) */
@@ -309,7 +295,7 @@
         /* ---------- 누르면 🏷️ 씰스티커처럼 떼어져서(js/peelfx.js) 떠오르기 · 끌기 → 붙이기 ---------- */
         /* 누른 채 끌면 🏷️ 씰스티커처럼 손가락을 따라 가장자리부터 떼어져요 (js/peelfx.js pfxSeal) · 톡 누르면 저절로 떼어져 떠올라요 */
         function spkDown(e) {
-            const it = e.target.closest('.spk-it'); if (!it) return;
+            const it = e.target.closest('.spk-it'); if (!it || it.classList.contains('used')) return;
             if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(e.clientX, e.clientY); return; }   // 🪡 하얀 판에서 떼기는 핀셋으로 (도련 10-21)
             e.preventDefault(); spkPutBack();
             spkS.press = { it, x: e.clientX, y: e.clientY, seal: null };
@@ -423,8 +409,16 @@
                 }
                 if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
                 if (typeof saveData === 'function') saveData(false);
+                if (spkS.own && window.ownUse) {                                          // 🎒 붙어서 저장된 순간 그 칸은 영원히 사라져요 (js/own.js)
+                    const k = +L.it.dataset.i; L.it.classList.add('used'); L.it.innerHTML = '';
+                    if (el) el.dataset.own = spkS.own.id + ':' + k;
+                    ownUse(spkS.own.id, k, el).catch(er => console.warn('스티커 칸을 아직 못 지웠어요 (다시 해요) :', er));
+                    if (!spkq('spkGrid').querySelector('.spk-it:not(.used)')) setTimeout(closeStickerPack, 500);   // 다 쓴 판은 닫혀요
+                }
             }, 150);
         }
         document.addEventListener('pointerdown', e => { if (spkS.lift && !spkS.lift.down && !e.target.closest('.spk-fly, #spkBoard')) spkPutBack(); }, true);
 
-        window.spkTab = spkTab; window.spkTabs = spkTabs; window.openStickerPack = openStickerPack; window.closeStickerPack = closeStickerPack;
+        /* 🏪 진열대 : 그린 포인트스티커 판 [{ id, g : 카테고리, srcs() }] (js/basket.js) */
+        const spkPackList = () => SPK_PACKS.map(p => ({ id: p.id, g: p.g, srcs: () => spkSrcs(p) }));
+        window.openStickerPack = openStickerPack; window.closeStickerPack = closeStickerPack; window.spkPackList = spkPackList;

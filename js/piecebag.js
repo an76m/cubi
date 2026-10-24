@@ -6,6 +6,7 @@
    - 작은 봉투를 누르거나 ✕ 를 누르면 남은 조각은 봉투로 돌아가요 · 다 붙이면 저절로 닫혀요
    - 봉투를 잡고 끌면 봉투가 화면 안에서 옮겨져요 (쏟아진 조각은 그 자리에) · 날짜바를 끌면 페이지가 옮겨져요 (js/page.js pgmBegin)
    - 소리 : 봉투를 옆으로 뜯을 때 · 뒷종이를 벗길 때 '찌이익' (⚙ 설정의 '✨ 연출 소리' · js/sound.js)
+   - 🎒 유한 스티커 (10-25) : 🧺 바구니의 봉투 = label.own { id, slots : 조각마다 원래 칸 번호 } · 남은 조각만 들어 있어요 · 붙이면 그 조각은 영원히 사라져요 (js/own.js)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (조각이 바로 붙어요 · js/stickermaker.js) */
 
         const PCB_PAD = 6, PCB_LINER = 3, PCB_GRAB = 30;
@@ -113,6 +114,7 @@
             S.cv = pcbq('pcbCv'); S.ctx = S.cv.getContext('2d');
             S.assets = imgs.map((im, i) => Object.assign(pcbAsset(im), { src: srcs[i] }));
             S.label = label && label.t ? { t: String(label.t).slice(0, 14), s: String(label.s || '').slice(0, 14) } : null;
+            S.own = label && label.own || null;
             S.pieces = []; S.fallers = []; S.drag = null; S.closing = 0; S.used = new Set(); S.mv = { x: 0, y: 0 }; S.on = true;
             pcbLayout();
             S.bag = { state: 'closed', tear: 0, dir: 1, wig: 0, move: null, strip: null, busy: false,
@@ -459,6 +461,11 @@
                 if (window.elOrig) elOrig(el);                                    // 🖼️ 원본 크기로 (js/elements.js)
             }
             if (typeof saveData === 'function') saveData(false);
+            if (S.own && window.ownUse) {                                       // 🎒 붙어서 저장된 순간 그 조각은 영원히 사라져요 (js/own.js)
+                const slot = S.own.slots ? S.own.slots[st.k] : st.k;
+                if (el) el.dataset.own = S.own.id + ':' + slot;
+                ownUse(S.own.id, slot, el).catch(er => console.warn('조각을 아직 못 지웠어요 (다시 해요) :', er));
+            }
             if (S.pieces.length) pcbSay(`꾹! 붙였어요 ✨ 조각이 <b>${S.pieces.length}개</b> 남았어요`);
             else { pcbSay('꾹! 다 붙였어요 ✨'); pcbEnd(); }
         }

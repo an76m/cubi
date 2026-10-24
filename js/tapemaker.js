@@ -2,8 +2,7 @@
    🎀 마스킹테이프 만들기 : 내가 직접 그린 그림, 또는 내 사진으로 나만의 마스킹테이프를 만들어요 (하단메뉴 ✨ 스티커 → ✂️ 스티커만들기 → 🎀 마스킹테이프 만들기)
    - ✏️ 그리기 : 네모 한 칸에 펜 · 지우개로 직접 그리면 테이프에 쭉 이어 붙어요 (🔁 이어지게 그리기 · 되돌리기 · 바탕색 · 크기)
    - 🖼️ 내 사진으로 : 사진 가운데를 네모로 잘라 테이프에 이어 붙여요 (사진은 이 기기에서만 줄여서, 완성된 테이프만 저장돼요)
-   - 📌 바로 붙이거나 💾 내 마스킹테이프에 저장 → ✨ 스티커 창 → 🎀 마스킹테이프 → 내스티커에서 언제든 다시 붙여요 (최대 30개 · 선물 받은 테이프와 같은 칸에 따로 묶어 보여요)
-     저장 위치 : 내 드라이브 말랑달콤 / 스티커 / 마테 / 내마테 / 목록 · 원본 (js/coll.js · 게스트는 이 기기에만)
+   - 🎒 만든 테이프 = 🧺 바구니에 한 롤 (10-25 · js/own.js) : 📌 바로 꺼내 붙이기 · 🧺 바구니에 넣기 · 붙인 길이만큼 롤이 줄어요 (또 쓰려면 또 만들어요)
    - 테이프 그림은 js/tape.js 의 tapeSvg 를 그대로 써요 (끝 톱니 · 반투명 · 길이 늘이기 손잡이가 같아요)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (마스킹테이프 만들기 · 내 마스킹테이프만 '준비 중') */
 
@@ -14,7 +13,6 @@
         const TPM_SIZE = { d: [16, 60, 30], i: [16, 60, 30] };            // 크기 막대 : [가장 작게, 가장 크게, 처음 값] (그리기 · 사진)
         const tpmS = { built: false, m: 'd', bg: '#ffc9d9', pen: '#ffffff', br: 7, er: false, wrap: true, sd: 30, si: 30, dimg: '', img: '', undo: [] };
         const tpmq = id => document.getElementById(id);
-        const tpmColl = () => stkColl('tape', false);                  // 🎀 내가만든 테이프 (js/coll.js)
         const tpmR = n => Math.round(n * 100) / 100;
 
         /* 저장해 둔 모양(o) → tape.js 의 tapeSvg 가 읽는 모양 (그림 · 사진 모두 '한 칸 그림'을 이어 붙여요) */
@@ -32,7 +30,6 @@
         }
 
         /* 목록에 보일 작은 테이프 (그림만 48px 로 줄여요) */
-        async function tpmThumb(o) { return { m: o.m, bg: o.bg, s: o.s, img: await collThumb(o.img, 48) || o.img }; }
 
         /* ---------- 화면 (스티커 만들기 화면의 모양을 같이 써요 : css .smk-*) ---------- */
         function tpmBuild() {
@@ -66,7 +63,7 @@
                     <p class="smk-hint">사진 가운데를 네모로 잘라서 테이프에 쭉 이어 붙여요</p>
                   </div>
                   <button type="button" class="smk-go" onclick="tpmFinish(true,this)">📌 다이어리에 붙이기</button>
-                  <button type="button" class="smk-go smk-sub" onclick="tpmFinish(false,this)">💾 마스킹테이프 만들기</button>
+                  <button type="button" class="smk-go smk-sub" onclick="tpmFinish(false,this)">🧺 바구니에 넣기</button>
                 </section>
               </div>`;
             document.body.appendChild(el);
@@ -156,45 +153,17 @@
         }
 
         /* ---------- 완성 ---------- */
-        function tpmFinish(stick, btn) { return smkRun(btn, stick ? '📌 붙이는 중…' : '💾 저장하는 중…', () => tpmDoFinish(stick)); }
+        function tpmFinish(stick, btn) { return smkRun(btn, stick ? '📌 붙이는 중…' : '🧺 넣는 중…', () => tpmDoFinish(stick)); }
         async function tpmDoFinish(stick) {
             if (tpmS.m === 'i' && !tpmS.img) { showMsg('🖼️ 사진을 먼저 골라 주세요.'); return; }
             if (tpmS.m === 'd') { tpmExport(); if (!tpmS.dimg) { showMsg('✏️ 먼저 네모 칸에 그려 주세요.'); return; } }
-            const o = tpmCur();
-            try { await collAdd(tpmColl(), o, await tpmThumb(o), {}); }       // 화면은 바로 · 드라이브는 뒤에서
-            catch (e) { if (!stick) { showMsg('⚠ 내 마스킹테이프를 저장하지 못했어요. 잠시 후 다시 해 주세요.'); return; } }
-            if (stick) { tpmStick(o); return; }
+            const o = tpmCur(), u = tpmUrl(o);                                // 🎒 만든 테이프 = 🧺 바구니에 한 롤 (붙인 길이만큼 줄어요 · js/own.js)
+            let id = '';
+            try { id = await ownTake({ k: 'tape', from: 'mine', imgs: [u], th: u }); }
+            catch (e) { showMsg('⚠ 테이프를 바구니에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
             closeTapeMaker();
-            showMsg('🎀 내 마스킹테이프에 저장했어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🎀 마스킹테이프 → 내가만든 칸에서 붙일 수 있어요.</span>');
-        }
-        function tpmStick(o) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">테이프는 🎀 내 마스킹테이프에 저장돼 있어요.</span>'); return; }
-            if (placeTape(tpmUrl(o))) closeTapeMaker();
-        }
-
-        /* ---------- ✏️ 스티커 창 → 🎀 내 마스킹테이프 ---------- */
-        function tpmCell(e) {
-            const t = e.th && typeof e.th === 'object' ? Object.assign({ id: e.id }, e.th) : null;
-            return `<div class="tpm-it" data-shx="${e.id}" data-id="${e.id}"><button type="button" class="tp-item" onclick="tpmUse('${e.id}')"><span style="background-image:url(&quot;${t ? tpmUrl(t) : ''}&quot;)"></span></button><i onclick="tpmDel('${e.id}')" title="지우기">✕</i></div>`;
-        }
-        /* ✨ 스티커 → 🎀 마스킹테이프 → 내가만든 : 내가 만든 테이프 (이벤트로 받은 테이프는 이벤트 칸 · js/stickermaker.js stkTab) */
-        function loadMyTapes() {
-            const g = tpmq('stickerGrid');
-            g.dataset.mytape = '1';
-            const C = tpmColl();
-            C.onChange = () => { if (g.dataset.mytape && g.isConnected) loadMyTapes(); };
-            g.innerHTML = (window.shxBar ? shxBar('tape') : '') + '<div class="cg-host"></div>';
-            return collGrid(g.querySelector('.cg-host'), C, tpmCell, '<div class="cs-empty">🎀 아직 마스킹테이프가 없어요.<br>✂️ 스티커만들기에서 나만의 테이프를 만들어 보세요!</div>');
-        }
-        async function tpmUse(id) {
-            let o = null;
-            try { o = tpmClean(await collItem(tpmColl(), id)); } catch (e) {}
-            if (o) tpmStick(o); else showMsg('⚠ 이 테이프를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>');
-        }
-        async function tpmDel(id) {
-            if (!(await showMsg('이 테이프를 내 마스킹테이프에서 지울까요?<br><span style="font-size:12px;color:#777;">이미 일기에 붙인 테이프는 그대로 남아요.</span>', true))) return;
-            await collRemove(tpmColl(), id);
-            const g = tpmq('stickerGrid'); if (g && g.dataset.mytape) loadMyTapes();
+            if (stick) { if (window.bkOpenSheet) bkOpenSheet(id); return; }
+            showMsg('🎀 만든 테이프를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🧺 내 바구니에서 꺼내 붙여요.</span>');
         }
 
         function openTapeMaker() {
@@ -211,4 +180,3 @@
         /* 스티커 창의 다른 칸을 누르면 '내 마스킹테이프' 표시 지우기 */
         document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.cat-btn'); if (b) { const g = tpmq('stickerGrid'); if (g) delete g.dataset.mytape; } }, true);
         window.openTapeMaker = openTapeMaker;
-        window.loadMyTapes = loadMyTapes; window.tpmUse = tpmUse; window.tpmDel = tpmDel;

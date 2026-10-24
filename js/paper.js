@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/paper.js
-   📝 글상자 모양 : 메모지 · 포스트잇 · 말풍선 · 액자 등 (하단메뉴 ✨ 스티커 → 📝 메모지에서 모양을 골라 놓아요)
+   📝 글상자 모양 : 메모지 · 포스트잇 · 말풍선 · 액자 등 (🎒 🧺 바구니의 메모지 한 묶음에서 한 장씩 놓아요 · js/basket.js)
    - 모양은 그림 파일이 아니라 CSS 로 그려요 (css/style.css 의 .pp-이름) → 일기에는 모양 이름만 저장 (pp)
    - 새 모양 추가 : 아래 PAPERS 에 { id, name(이름), s(칩에 보일 짧은 이름) } 를 넣고 style.css 에 .pp-id 모양을 만들면 돼요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (모양 고르기만 안 보여요 · 이미 고른 모양은 그대로 보여요) */
@@ -40,17 +40,6 @@
             if (id && h < 70) selectedElement.style.height = '90px';
             if (typeof updateTextPanel === 'function') updateTextPanel();
         }
-        /* 📝 메모지 창 (하단메뉴 ✨ 스티커 → 📝 메모지) : 모양을 고르면 그 모양의 메모지가 페이지에 놓이고, 눌러서 글을 써요 */
-        function openPaperPicker() {
-            const box = document.getElementById('paperPick'); if (!box) return;
-            if (!box.firstChild) box.innerHTML = (window.stkBasicSrv ? stkBasicSrv('memo') : '') + PAPERS.map(p => `<button type="button" class="btn pp-pick-btn" title="${p.name}" data-sbc="${PAPER_CAT[p.id] || '기본'}" onclick="pickPaper('${p.id}')"><span class="pp-chip${p.id ? ' pp-' + p.id : ''}"></span></button>`).join('');   // 이름 없이 · 카테고리 칸 (js/stk-basic.js)
-            openModal('paperModal');
-        }
-        function pickPaper(id) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            closeModal('paperModal');
-            addText(); applyPaper(id);
-        }
-        window.openPaperPicker = openPaperPicker; window.pickPaper = pickPaper;
         window.applyPaper = applyPaper;
         window.setPaper = setPaper;
+        window.memoShelf = () => PAPERS.filter(p => p.id).map(p => ({ id: p.id, name: p.name, g: PAPER_CAT[p.id] || '기본' }));   // 🏪 진열대 · '기본'(글상자)은 늘 쓸 수 있어요 (js/basket.js)

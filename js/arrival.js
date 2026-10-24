@@ -101,16 +101,9 @@
             arShow();
             return true;
         }
-        function arCaps(s) {                            // 🎁 캡슐 스티커 : 선물권 목록 맞추기 (끝나는 날을 아는 건 바로 · 그리고 서버에서도 한 번 더)
-            if (!s || typeof s !== 'object' || typeof capsPasses !== 'function' || typeof capsSet !== 'function') return;
-            const list = capsPasses();
-            Object.keys(s).forEach(id => {
-                const u = s[id] && s[id][0]; if (!arDayOk(u)) return;
-                const i = list.findIndex(x => x.id === id);
-                if (i >= 0) list[i].until = u; else list.push({ id: id, until: u });
-            });
-            capsSet(list);
-            if (typeof gcApi === 'function') gcApi('status').then(r => { if (r && r.ok) { capsSet(r.passes); const act = document.querySelector('.cat-btn.cs-cat.active'); if (act && typeof loadCapsStickers === 'function') loadCapsStickers(null, true); } }).catch(() => {});
+        function arCaps(s) {                            // 🎁 캡슐 스티커 선물 → 🧺 바구니에 한 장씩 (🎒 유한 스티커 10-25 · 선물권 날짜는 안 써요)
+            if (!s || typeof s !== 'object' || typeof capsToBasket !== 'function' || typeof capsList !== 'function') return;
+            Object.keys(s).forEach(id => { const k = capsList().find(x => x.id === id); if (k) capsToBasket(k); });
         }
         function arCoin(c) {                            // 🪙 랜덤박스가 열려 있으면 코인 표시 바로 맞추기
             if (!Array.isArray(c) || c[1] == null) return;
@@ -216,7 +209,7 @@
         }
         function arGo(kind) {                           // '열어 보기' : 그 아이템이 있는 자리로 바로
             try {
-                if (kind === 'tape' || kind === 'caps') openStickerList(kind);
+                if (kind === 'tape' || kind === 'caps') { if (window.openBasket) openBasket(); }   // 🎒 받은 스티커는 🧺 바구니에
                 else if (kind === 'coin') openRandomBox();
                 else if (kind === 'wall') openWall();
             } catch (e) {}

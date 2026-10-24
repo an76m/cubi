@@ -12,7 +12,7 @@
    - 글씨 스티커 : 1단계 글자 쓰기 → (다음 단계) 2단계 글꼴 · 색 · 하얀 테두리 고르고 붙이기 · 💾 저장만 → 🧩 내스티커
    - 🎒 유한 스티커 (10-25) : 만든 🏷️ 씰은 종이 한 장으로 🧺 바구니에 들어가요 (js/own.js ownTakeMine) → 한 칸씩 떼어 붙이면 영원히 사라져요 (또 쓰려면 또 만들어요)
      📌 붙이기 = 바구니에 넣고 그 종이를 바로 열어요 · 만들기 = 바구니에만
-     🧩 조각 · 📄 모조지스티커 만들기는 유한 스티커에 끼울 때까지 잠깐 쉬어요 (✂️ 스티커만들기 창에 버튼 없음)
+     🧩 조각(봉투 하나) · 📄 모조지(종이 한 장)도 바구니로 · 🎀 테이프 · 📃 속지 · 🧻 떡메 만들기는 js/tapemaker.js · js/leafmaker.js
    ※ 사진은 이 기기에서만 오려서, 완성한 스티커 그림만 저장돼요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (세 버튼만 '준비 중') */
 
@@ -317,9 +317,14 @@
         /* 🎒 만든 씰 → 🧺 바구니에 종이 한 장 (js/own.js) · smAdd.last = 넣은 종이 id (📌 붙이기는 그 종이를 바로 열어요) */
         async function smAdd(src, k, t) {
             smAdd.last = '';
-            if (k && k !== 'seal') { comingSoon(k === 'piece' ? '🧩 조각스티커' : '📄 모조지스티커'); return 'soon'; }
             if (!window.ownTakeMine) return 'fail';
-            try { smAdd.last = await ownTakeMine(src, { ts: !!t, nm: (t || '').slice(0, 20) }); return 'ok'; }
+            try {
+                const srcs = (Array.isArray(src) ? src : [src]).filter(Boolean);
+                if (k === 'piece') smAdd.last = await ownTake({ k: 'piece', from: 'mine', imgs: srcs, baked: true, nm: '내가 만든 조각' });   // 🧩 봉투 하나
+                else if (k === 'paper') smAdd.last = await ownTake({ k: 'paper', from: 'mine', imgs: [srcs[0]] });              // 📄 인쇄된 모조지 한 장
+                else smAdd.last = await ownTakeMine(srcs, { ts: !!t, nm: (t || '').slice(0, 20) });                              // 🏷️ 씰 종이 한 장
+                return 'ok';
+            }
             catch (e) { console.warn(e); smAdd.err = e; return 'fail'; }
         }
         /* 저장 결과 안내 (stick : 붙이는 중이면 실패만 알려요) */

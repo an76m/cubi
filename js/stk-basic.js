@@ -1,14 +1,10 @@
 /* 말랑달콤 다이어리 - js/stk-basic.js
-   🆓 기본 스티커 : 처음부터 누구나 쓰는 🧩 조각스티커 봉투 · 📄 모조지스티커 (✨ 스티커 → 그 종류 → 기본 칸)
-   + 🖼️ 개발자 그림 : Cloudflare 그림 보관함의 기본스티커 (js/elements.js basicKit · KIT_BASE) 를 각 창 기본 칸 맨 앞에 섞어요
-       🍭 포인트스티커 · 🧩 조각스티커 · 📄 모조지스티커 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 마스킹테이프 · 🧻 떡메모지 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
-       🗂 카테고리 칸 : 기본 칸 위에 카테고리 칸 ('전체' 없이 첫 카테고리부터) (씰 창과 같은 모양) · 스티커 이름은 안 보여요
-       data-sbc="카테고리" 가 붙은 칸만 걸러요 (제가 그린 것도 각 파일에서 data-sbc 를 붙여요 : js/tape.js · js/stickerpack.js · js/leafpad.js · js/paper.js)
-       (🏷️ 씰은 js/elements.js 의 씰 목록이 낱장 · 씰 종이로 보여 줘요)
-       붙일 때 그림을 받아 data 로 바꿔서 일기에 담아요 (사진과 같아요 · 나중에 드라이브에서 지워도 붙인 건 그대로)
-   - 그림은 모두 이 파일 안의 SVG (파일 없음) · 다이어리에 붙이면 그 그림(SVG)이 일기에 담겨요
-   - 🧩 봉투를 누르면 지금 연출 그대로 봉투가 나와요 (js/piecebag.js openPieceBag) · 조각마다 하얀 다이컷 테두리
-   - 📄 모조지스티커를 누르면 그림들이 모조지스티커 한 장에 인쇄돼서 나와요 (js/papermaker.js pmMakeSheet → openPaperSheet) · 열 때마다 배치가 조금씩 달라요
+   🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 처음부터 누구나 받는 기본 스티커
+   - 제가 그린 것 : 🧩 조각 봉투 · 📄 모조지스티커 (그림은 모두 이 파일 안의 SVG · 파일 없음)
+   - 🖼️ 개발자 그림 : Cloudflare 그림 보관함의 기본스티커 (js/elements.js basicKit) 중 씰 말고 나머지 종류
+       🍭 포인트 · 🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
+       📄 모조지 폴더 이름이 '배경'으로 시작하면 배경 모조지 (종이 전체가 무늬 · 통째로 떼기)
+   - sbShelf(종류) → 진열대 칸 [{ c, nm, cnt, look, thumbs, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
    - hold: true = 만들어 두고 아직 안 보여 줘요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 칸만 '준비 중') */
 
@@ -96,55 +92,7 @@
         ];
         const sbOn = a => a.filter(x => !x.hold);
         /* 🖼️ 여러 개 묶음 미리보기 (씰 종이 · 포인트 · 조각 · 모조지스티커 같은 모양) : 작은 칸에 최대한 많이 · 2줄 · 넘치는 건 안 보여요 (개수는 카드 글씨가 총개수) */
-        const sbThumbs = urls => `<span class="sb-thumbs">${urls.map(u => `<img alt="" loading="lazy" src="${u}">`).join('')}</span>`;   // 모두 넣어요 (📒 수첩 창은 CSS가 2 ~ 3줄만 보여요)
-        const sbFit = n => ` data-fit="${n}"`;                                // 카드에 스티커 수 표시 (🗂 고르는 창 칸이 읽어요 · 아래 🗂 고르는 창 칸)
-        const sbMini = (ks, die) => sbThumbs(ks.map(k => sbSvg(k, die)));
-        const sbc = c => ` data-sbc="${esc(c || '')}"`;
-        /* 기본 칸 그리기 (js/stickermaker.js stkTab) : kind = 'piece' · 'paper' */
-        function stkBasicHtml(kind) {
-            if (kind === 'piece') return stkBasicSrv('piece') + sbOn(SB_BAGS).map(b =>
-                `<button type="button" class="sb-card sb-bag"${sbc(b.g)}${sbFit(b.k.length)} onclick="stkBasicOpen('piece','${b.id}')"><span class="sb-top" style="--c:${b.c}"></span>${sbMini(b.k, true)}<small>조각 ${b.k.length}개</small></button>`).join('');
-            if (kind === 'paper') return stkBasicSrv('paper') + sbOn(SB_SHEETS).map(s =>
-                `<button type="button" class="sb-card sb-sheet"${sbc(s.g)}${sbFit(s.k.length)} onclick="stkBasicOpen('paper','${s.id}')"><i class="sb-tape"></i>${sbMini(s.k, false)}<small>그림 ${s.k.length}개</small></button>`).join('');
-            return '';
-        }
-        async function stkBasicOpen(kind, id) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            if (/^srv:\d+$/.test(id)) {                                     // 🖼️ 개발자 그림 묶음
-                const x = SRV[kind] && SRV[kind][+id.slice(4)]; if (!x || !x.urls) return;
-                let srcs;
-                try { srcs = kind === 'piece' ? await Promise.all(x.urls.map(u => sbDie(kitAt(u, 600)))) : await Promise.all(x.urls.map(u => sbData(kitAt(u, 600)).then(d => d.src))); }
-                catch (e) { sbFail(); return; }
-                if (kind === 'piece') { if (window.stkLeave) stkLeave(); else closeModal('stickerModal'); if (window.openPieceBag) openPieceBag(srcs, { t: '말랑달콤 조각', s: kitCat(x.c) || '기본 조각' }); return; }
-                if (sbIsBg(x.c)) {                                              // 📄 배경 모조지 : 그 그림이 곧 종이 한 장 (인쇄 없이)
-                    let src = '';
-                    try { src = (await sbData(kitAt(x.urls[0], 1200))).src; } catch (e) { sbFail(); return; }
-                    if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
-                    openPaperSheet(src, { bg: true });
-                    return;
-                }
-                let sheet = null;
-                try { sheet = await pmMakeSheet(srcs); } catch (e) { showMsg('모조지스티커를 만들지 못했어요.'); return; }
-                if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
-                openPaperSheet(sheet);
-                return;
-            }
-            if (kind === 'piece') {
-                const b = sbOn(SB_BAGS).find(x => x.id === id); if (!b || !window.openPieceBag) return;
-                if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
-                openPieceBag(b.k.map(k => sbSvg(k, true)), { t: '말랑달콤 조각', s: b.g || '기본 조각' });
-                return;
-            }
-            const s = sbOn(SB_SHEETS).find(x => x.id === id); if (!s || !window.openPaperSheet || !window.pmMakeSheet) return;
-            let sheet = null;
-            try { sheet = await pmMakeSheet(s.k.map(k => sbSvg(k, false))); } catch (e) { showMsg('모조지스티커를 만들지 못했어요.'); return; }
-            if (window.stkLeave) stkLeave(); else closeModal('stickerModal');
-            openPaperSheet(sheet);
-        }
-        /* =====================================================================
-           🖼️ 개발자 그림 (Cloudflare 그림 보관함의 기본스티커)
-           ===================================================================== */
-        const SRV = { mini: null, piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();
+        const SRV = { mini: null, piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();   // 받은 목록 · 그림 (앱을 켠 동안)
         const kitCat = c => (window.kitName ? kitName(String(c || '')) : String(c || '')).slice(0, 24);   // '1. 동물' → '동물'
         /* 📄 모조지스티커 '모양' · '배경' (도련 10-23) : 포장기 폴더 이름이 '배경' 으로 시작하면 배경 모조지 (예 모조지스티커/배경_체크/분홍체크.png)
            - 모양 = 그림 모양대로 ✂️ 가위로 오려 써요 (지금까지 것) · 배경 = 종이 전체가 무늬 → 🪡 핀셋으로 통째로 떼어 맨 뒤에 깔아요 (가위로 오려도 돼요)
@@ -188,339 +136,45 @@
             return p;
         }
         const sbDie = url => window.pelBake ? pelBake(url) : sbData(url).then(d => d.src);   // 하얀 다이컷 테두리 (js/stickerpeel.js)
-        const sbFail = () => showMsg('⚠ 그림을 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>');
-        const BAG_COLS = ['#ffd1dc', '#cfe9ff', '#ffe8c2', '#ffd6e8', '#dff3d8', '#e8dcff'];
-
-        /* 기본 칸에 넣는 자리 : 먼저 빈 자리를 두고 → 목록을 받으면 채워요 (못 받으면 조용히 빈 채로) */
-        function stkBasicSrv(kind) {
-            setTimeout(() => sbFill(kind), 0);
-            return `<div class="sb-srv" data-sbk="${kind}"></div>`;
-        }
-        async function sbFill(kind) {
-            const boxes = () => document.querySelectorAll(`.sb-srv[data-sbk="${kind}"]`);
-            boxes().forEach(el => sbCats(el.parentElement, kind));           // 제가 그린 것 카테고리 먼저 (서버 목록이 늦거나 못 받아도)
-            let list = [];
-            try { list = await sbList(kind); } catch (e) { return; }
-            const html = list.map((x, i) => {
-                const t = x.urls ? x.urls : [x.url], g = sbc(x.c);
-                if (kind === 'piece') return `<button type="button" class="sb-card sb-bag"${g}${sbFit(t.length)} onclick="stkBasicOpen('piece','srv:${i}')"><span class="sb-top" style="--c:${BAG_COLS[i % BAG_COLS.length]}"></span>${sbThumbs(t.map(u => thumb(u, 96)))}<small>조각 ${t.length}개</small></button>`;
-                if (kind === 'paper' && sbIsBg(x.c)) return `<button type="button" class="sb-card sb-sheet sb-bgp" data-sbt="bg"${sbc(sbBgName(x.c))}${sbFit(1)} onclick="stkBasicOpen('paper','srv:${i}')"><i class="sb-tape"></i>${sbThumbs([thumb(t[0], 240)])}<small>통째로 떼기</small></button>`;   // 📄 배경 모조지 : 한 장씩
-                if (kind === 'paper') return `<button type="button" class="sb-card sb-sheet"${g}${sbFit(t.length)} onclick="stkBasicOpen('paper','srv:${i}')"><i class="sb-tape"></i>${sbThumbs(t.map(u => thumb(u, 96)))}<small>그림 ${t.length}개</small></button>`;
-                if (kind === 'mini') return `<button type="button" class="spk-card"${g}${sbFit(t.length)} onclick="openStickerPack('srv:${i}')">${sbThumbs(t.map(u => thumb(u, 96)))}<small>스티커 ${t.length}개</small></button>`;
-                if (kind === 'tape') return `<button type="button" class="tp-item"${g} onclick="sbUse('tape',${i})"><span style="background:url(&quot;${thumb(x.url, 240)}&quot;) left center / auto 100% repeat-x"></span></button>`;
-                if (kind === 'tk') return `<button type="button" class="tk-it"${g} onclick="sbUse('tk',${i})">${window.tkMiniHtml ? tkMiniHtml('my', { src: thumb(x.url, 200) }) : ''}</button>`;
-                if (kind === 'leaf') return `<button type="button" class="lf-pick"${g} onclick="sbUse('leaf',${i})"><i class="lf-sw lf-my" style="--lf-img:url('${thumb(x.url, 240)}')"></i></button>`;
-                if (kind === 'memo') return `<button type="button" class="btn pp-pick-btn"${g} onclick="sbUse('memo',${i})"><span class="pp-chip sb-memo" style="background-image:url(&quot;${thumb(x.url, 120)}&quot;)"></span></button>`;
-                return '';
-            }).join('');
-            boxes().forEach(el => { el.innerHTML = html; sbCats(el.parentElement, kind); });
-        }
-        /* 🗂 카테고리 칸 : 그 창 기본 칸의 data-sbc 를 모아 카테고리 칸을 만들고 ('전체' 없음 · 카테고리 없는 칸 = 기본), 누르면 그 카테고리만 보여요
-           카테고리가 하나도 없으면 칸을 숨겨요 · 고른 칸은 창을 다시 열어도 기억 (앱을 켠 동안) */
-        const sbCatOn = {}, sbTypeOn = {}, SB_TYPES = [['shape', '모양'], ['bg', '배경']];
-        function sbCats(box, kind) {
-            if (!box) return;
-            if (kind === 'paper') return sbCatsPaper(box);
-            const items = [...box.querySelectorAll('[data-sbc]')];
-            /* 같은 이름은 하나로 ('1. 동물' 과 '동물' 처럼 번호만 다르면 같은 칸) · 카테고리 없는 칸 = '기본' */
-            const label = c => kitCat(c) || c || '기본', labels = [...new Set(items.map(el => label(el.dataset.sbc)))];
-            let bar = box.querySelector(':scope > .sb-cats');
-            items.forEach(el => { el.hidden = false; });
-            if (labels.length < 2) { if (bar) bar.remove(); sbPage(box, kind, items); return; }   // 카테고리가 하나뿐이면 칸 없이 (📒 수첩은 이 칸을 제목 아래로 옮겨 보여줘요 · js/stknote.js snbCatsSync)
-            if (!bar) { bar = document.createElement('div'); bar.className = 'lib-cats sb-cats'; box.prepend(bar); }   // 🗂 맨 위 (제목 바로 아래) → 그 아래 ◀ ▶
-            const pgr = box.querySelector(':scope > .sb-pager'); if (pgr && bar.nextElementSibling !== pgr) bar.after(pgr);
-            let cur = sbCatOn[kind] || '';
-            if (!labels.includes(cur)) cur = labels[0];                   // '전체' 칸 없이 첫 카테고리부터
-            const btn = (v, n) => `<button type="button" class="lib-cat${v === cur ? ' on' : ''}" data-c="${esc(v)}">${esc(v)}<small>${n}</small></button>`;
-            bar.innerHTML = labels.map(l => btn(l, items.filter(el => label(el.dataset.sbc) === l).length)).join('');
-            bar.querySelectorAll('.lib-cat').forEach(b => { b.onclick = () => { sbCatOn[kind] = b.dataset.c; sbPgOn[kind] = 0; sbCats(box, kind); }; });
-            sbPage(box, kind, items.filter(el => label(el.dataset.sbc) === cur), items);
-        }
-        /* 📄 모조지스티커 기본 칸 : 위 줄 = 모양 · 배경 / 아래 줄 = 그 안의 카테고리 (두 줄 · 📒 수첩도 그대로 옮겨 보여요 · js/stknote.js snbCatsSync)
-           배경이 아직 하나도 없으면 '아직 배경 모조지가 없어요' */
-        function sbCatsPaper(box) {
-            const kind = 'paper', all = [...box.querySelectorAll('[data-sbc]')];
-            const type = el => el.dataset.sbt === 'bg' ? 'bg' : 'shape';
-            const t = sbTypeOn.paper || 'shape', items = all.filter(el => type(el) === t);
-            const label = c => kitCat(c) || c || '기본', labels = [...new Set(items.map(el => label(el.dataset.sbc)))];
-            let bar = box.querySelector(':scope > .sb-cats');
-            all.forEach(el => { el.hidden = false; });
-            if (!bar) { bar = document.createElement('div'); bar.className = 'lib-cats sb-cats'; box.prepend(bar); }
-            bar.classList.add('sb-two');
-            const pgr = box.querySelector(':scope > .sb-pager'); if (pgr && bar.nextElementSibling !== pgr) bar.after(pgr);
-            const key = 'paper:' + t;
-            let cur = sbCatOn[key] || '';
-            if (!labels.includes(cur)) cur = labels[0] || '';
-            const tb = (v, n) => `<button type="button" class="lib-cat sb-type${v === t ? ' on' : ''}" data-t="${v}">${n}<small>${all.filter(el => type(el) === v).length}</small></button>`;
-            const cb = (v, n) => `<button type="button" class="lib-cat${v === cur ? ' on' : ''}" data-c="${esc(v)}">${esc(v)}<small>${n}</small></button>`;
-            bar.innerHTML = `<div class="sb-row sb-trow">${SB_TYPES.map(([v, n]) => tb(v, n)).join('')}</div>`
-                + (labels.length > 1 ? `<div class="sb-row">${labels.map(l => cb(l, items.filter(el => label(el.dataset.sbc) === l).length)).join('')}</div>` : '')
-                + (items.length ? '' : `<p class="sb-none">${t === 'bg' ? '📄 아직 배경 모조지가 없어요' : '아직 모조지스티커가 없어요'}</p>`);
-            bar.querySelectorAll('.lib-cat').forEach(b => {
-                b.onclick = () => {
-                    if (b.dataset.t) { if (sbTypeOn.paper === b.dataset.t) return; sbTypeOn.paper = b.dataset.t; }
-                    else sbCatOn[key] = b.dataset.c;
-                    sbPgOn[kind] = 0; sbCats(box, kind);
-                };
+        /* =====================================================================
+           🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 기본스티커(Cloudflare) + 제가 그린 봉투 · 모조지
+           kind = 'piece' · 'paper' · 'mini' · 'tape' · 'tk' · 'leaf' · 'memo'
+           → [{ c : 카테고리, nm : 이름표, cnt : 개수 글, look : 'grid' · 'tape' · 'tk' · 'leaf' · 'memo' · 'sheet', thumbs : [작은 그림], take() → ownTake 에 넘길 종이 }]
+           ===================================================================== */
+        const sbOwnK = { piece: 'piece', paper: 'paper', mini: 'point', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };
+        async function sbShelf(kind) {
+            const out = [], k = sbOwnK[kind];
+            let list = []; try { list = await sbList(kind); } catch (e) {}
+            list.forEach(x => {
+                const urls = x.urls || [x.url], c = kitCat(x.c) || '기본';
+                if (kind === 'piece') out.push({ c, nm: '', cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                    take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
+                else if (kind === 'paper' && sbIsBg(x.c)) out.push({ c: '배경 ' + sbBgName(x.c), nm: '', cnt: '통째로 떼기', look: 'sheet', thumbs: [thumb(urls[0], 240)],
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src], x: { bg: 1 } }) });
+                else if (kind === 'paper') out.push({ c, nm: '', cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                    take: async () => ({ k, imgs: [await pmMakeSheet(await Promise.all(urls.map(u => sbData(kitAt(u, 600)).then(d => d.src))))] }) });
+                else if (kind === 'mini') out.push({ c, nm: '', cnt: `스티커 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                    take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
+                else if (kind === 'tape') out.push({ c, nm: '', cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
+                    take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
+                        const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
+                        return { k, imgs: [u], th: u }; } });
+                else if (kind === 'tk') out.push({ c, nm: '', cnt: `${(window.OWN_Q || {}).tk || 50}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], x: { pad: 'my' } }) });
+                else if (kind === 'leaf') out.push({ c, nm: '', cnt: '한 장', look: 'leafimg', thumbs: [thumb(x.url, 240)],
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 900), true)).src], x: { lf: 'my' } }) });
+                else if (kind === 'memo') out.push({ c, nm: '', cnt: `${(window.OWN_Q || {}).memo || 50}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],
+                    take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], x: { pp: 'img', w: d.w, h: d.h } }; } });
             });
-            sbPage(box, kind, items.filter(el => labels.length < 2 || label(el.dataset.sbc) === cur), all);
+            if (kind === 'piece') sbOn(SB_BAGS).forEach(b => { const srcs = b.k.map(q => sbSvg(q, true));
+                out.push({ c: b.g || '기본', nm: '말랑달콤 조각', cnt: `조각 ${b.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: srcs, baked: true, nm: '말랑달콤 조각' }) }); });
+            if (kind === 'paper') sbOn(SB_SHEETS).forEach(sh => { const srcs = sh.k.map(q => sbSvg(q, false));
+                out.push({ c: sh.g || '기본', nm: '', cnt: `그림 ${sh.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: [await pmMakeSheet(srcs)] }) }); });
+            return out;
         }
-        /* ◀ 이전 · 다음 ▶ : 씰스티커 창처럼 한 쪽씩 (한 줄 칸 수 × SB_ROWS 줄) · 쪽 수가 1이면 숨겨요 */
-        const SB_ROWS = { mini: 2, piece: 2, paper: 2, tape: 4, memo: 4, tk: 3, leaf: 3 }, sbPgOn = {};
-        /* 📒 스티커 수첩으로 보고 있는지 (js/stknote.js) : 수첩은 ◀ ▶ 없이 고른 카테고리를 전부 펼치고 수첩이 장을 나눠요 */
-        const sbNote = box => !!(box.closest && box.closest('.modal.snb-on'));
-        function sbRefreshAll() { document.querySelectorAll('.sb-srv[data-sbk]').forEach(el => sbCats(el.parentElement, el.dataset.sbk)); }
-        window.sbRefreshAll = sbRefreshAll;
-        document.addEventListener('pickgrid', sbRefreshAll);              // 🗂 칸 설정을 바꾸면 바로
-        let sbRz = 0; window.addEventListener('resize', () => { clearTimeout(sbRz); sbRz = setTimeout(sbRefreshAll, 200); });   // 창 너비가 바뀌면 칸 크기도
-        function sbPage(box, kind, shown, all) {
-            (all || shown).forEach(el => { el.hidden = !shown.includes(el); });
-            const pick = !sbNote(box) && !!window.pgPages && shown.some(el => el.dataset.fit);   // 🗂 고르는 창 : 낱장 줄 + 묶음 줄 (아래 🗂 고르는 창 칸)
-            if (!pick && window.pgOff) pgOff(box, all || shown);           // 📒 수첩은 예전 모양
-            let pg = box.querySelector(':scope > .sb-pager');
-            if (!pg) {
-                pg = document.createElement('div'); pg.className = 'lib-pager sb-pager';
-                pg.innerHTML = '<button type="button" class="btn">◀ 이전</button><span class="lib-page-info sb-pg-info"></span><button type="button" class="btn">다음 ▶</button>';
-                const bar = box.querySelector(':scope > .sb-cats');           // 🗂 카테고리 아래 · 그림 목록 바로 위 (큰 갈래가 위)
-                if (bar) bar.after(pg); else box.insertBefore(pg, box.querySelector(':scope > .sb-srv') || box.firstChild);
-                const [p, n] = pg.querySelectorAll('.btn');
-                p.onclick = () => { sbPgOn[kind] = (sbPgOn[kind] || 0) - 1; sbCats(box, kind); };
-                n.onclick = () => { sbPgOn[kind] = (sbPgOn[kind] || 0) + 1; sbCats(box, kind); };
-            }
-            /* 한 줄 칸 수 : 첫 줄에 놓인 칸을 세요 (창이 안 보이면 3) */
-            const t0 = shown[0];                                            // offsetTop : 창이 뜨며 기울어도 그대로
-            const cols = t0 && t0.offsetWidth ? Math.max(1, shown.filter(el => Math.abs(el.offsetTop - t0.offsetTop) < 2).length) : 3;
-            let pages, cur;
-            if (pick) {
-                const g = pgGrid(), ns = shown.map(el => +el.dataset.fit || 1), ps = pgPages(ns, g);
-                pages = ps.length; cur = Math.max(0, Math.min(sbPgOn[kind] || 0, pages - 1)); sbPgOn[kind] = cur;
-                const on = ps[cur] || [];
-                shown.forEach((el, i) => { if (!on.includes(i)) el.hidden = true; });
-                pgLay(box, on.map(i => shown[i]), on.map(i => ns[i]), g, pgOneTxt(ps, ns, cur));
-            }
-            else {
-                const per = sbNote(box) ? Math.max(1, shown.length) : cols * (SB_ROWS[kind] || 3); pages = Math.ceil(shown.length / per);
-                cur = Math.max(0, Math.min(sbPgOn[kind] || 0, pages - 1)); sbPgOn[kind] = cur;
-                shown.forEach((el, i) => { if (i < cur * per || i >= (cur + 1) * per) el.hidden = true; });
-            }
-            pg.hidden = pages <= 1;
-            const [p, n] = pg.querySelectorAll('.btn');
-            p.disabled = cur <= 0; n.disabled = cur >= pages - 1;
-            pg.querySelector('.sb-pg-info').textContent = `${cur + 1} / ${pages}`;
-        }
-        /* 🍭 포인트스티커 : js/stickerpack.js openStickerPack('srv:번호') 가 불러요 */
-        function sbPack(id) {
-            const i = +String(id).replace('srv:', ''), x = SRV.mini && SRV.mini[i];
-            if (!x || !x.urls) return null;
-            return { id: 'srv' + i, load: () => Promise.all(x.urls.map(u => sbDie(kitAt(u, 600)))) };
-        }
-        /* 📒 수첩 시트 (js/stknote.js) : 🧩 조각 봉투 · 📄 모조지스티커 한 장 → 그 안의 그림 전부를 시트 한 장으로
-           k = 붙일 때 모양 : 'seal' 하얀 다이컷 테두리를 둘러서 (조각 그림) · 'pack' 그대로 (이미 테두리가 있는 그림) · 'paper' 모조지스티커 종이째 (옮길 때 살짝 떠요) */
-        function sbSheet(kind, id) {
-            if (/^srv:\d+$/.test(id)) {
-                const x = SRV[kind] && SRV[kind][+id.slice(4)]; if (!x || !x.urls) return null;
-                if (kind === 'paper' && sbIsBg(x.c)) return { urls: [kitAt(x.urls[0], 1200)], orig: x.urls, k: 'paper', bg: true };   // 📄 배경 모조지 : 그 그림이 곧 종이
-                return { urls: x.urls.map(u => kitAt(u, 400)), orig: x.urls, k: kind === 'piece' ? 'seal' : 'paper' };   // orig : 붙일 때 쓰는 원본
-            }
-            const b = sbOn(kind === 'piece' ? SB_BAGS : SB_SHEETS).find(x => x.id === id); if (!b) return null;
-            return { urls: b.k.map(k => sbSvg(k, kind === 'piece')), k: kind === 'piece' ? 'pack' : 'paper' };
-        }
-        /* 🎀 🧻 📃 📝 그림 1장 쓰기 */
-        async function sbUse(kind, i) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            const x = SRV[kind] && SRV[kind][i]; if (!x || !x.url) return;
-            let d;
-            try { d = await sbData(kitAt(x.url, kind === 'leaf' ? 900 : kind === 'tape' ? 'h120' : 600), kind === 'leaf'); } catch (e) { sbFail(); return; }
-            if (kind === 'tape') {                                          // 무늬 한 칸을 옆으로 이어 붙여요 (테이프 높이 30)
-                if (typeof tapeUrl !== 'function' || !window.placeTape) return;
-                const h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
-                placeTape(tapeUrl({ id: 'b-' + i, name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` }));
-            } else if (kind === 'tk') { if (window.tkUseMy) tkUseMy({ src: d.src, glue: '' }); }
-            else if (kind === 'leaf') { if (window.pickLeaf) pickLeaf('my', d.src); }
-            else if (kind === 'memo') {                                     // 그림 위에 글을 쓰는 메모 (🧻 떡메 메모와 같은 모양으로 저장)
-                closeModal('paperModal');
-                if (typeof addText !== 'function' || !window.tkNoteDress) return;
-                addText();
-                const el = typeof selectedElement !== 'undefined' ? selectedElement : null; if (!el) return;
-                tkNoteDress(el, 'my', d.src);
-                el.style.width = '180px'; el.style.height = Math.round(180 * d.h / d.w) + 'px';
-                if (typeof saveData === 'function') saveData(false);
-            }
-        }
-        window.stkBasicSrv = stkBasicSrv; window.sbPack = sbPack; window.sbUse = sbUse;
-        window.sbThumbs = sbThumbs; window.sbFit = sbFit; window.stkBasicHtml = stkBasicHtml; window.stkBasicOpen = stkBasicOpen; window.sbSheet = sbSheet;
+        const collHashS = s => { s = String(s); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
+        window.sbShelf = sbShelf; window.sbDie = sbDie;
     })();
-
-/*    🗂 고르는 창 칸 (도련 · 2026-10-17) : 🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🍭 포인트 기본 칸 (📒 수첩 창은 그대로)
-   - 가로 = 한 줄에 보이는 스티커 수 · 세로 = 한 쪽의 줄 수 (⚙️ 설정 → 🗂 고르는 창 칸 정하기 · 설정.json 에 폰 · 컴퓨터 따로)
-   - 낱장 줄 : 낱장을 가로 칸 수만큼 한 줄로 · 나머지는 다음 쪽 · 누르면 그 낱장 하나만
-   - 묶음 줄 : 묶음 하나 = 한 줄 · 가로 칸보다 많으면 줄을 옆으로 밀어서 봐요 (필통 밴드처럼 · 끝에서 멈춰요) · 어디를 눌러도 묶음 전체
-   - 한 쪽 = 낱장 1줄 + 묶음 (세로 - 1)줄 · 낱장이 다 끝나면 묶음이 모든 줄 · 묶음이 없으면 낱장이 모든 줄
-   - 낱장 줄은 위(기본) · 아래 중에서 골라요
-   그리는 곳 : js/stk-basic.js sbPage · js/elements.js renderLibrary */
-(function () {
-    /* 저장 : 설정.json 'diary_pick_grid' = { m: 폰, d: 컴퓨터 } (각 { c, r, top }) · 이 기기에도 같이 (js/drive.js prefGet)
-       화면 폭 600px 보다 좁으면 폰 칸 · 넓으면 컴퓨터 칸을 써요 → 다른 폰 · 컴퓨터에서 열어도 그대로 */
-    const KEY = 'diary_pick_grid', LOCAL = 'malang_pick_grid', LIM = { c: [3, 10], r: [2, 8] }, GAP = 6;
-    const pgPhone = () => innerWidth < 600;
-    const pgDef = () => pgPhone() ? { c: 4, r: 4, top: 1 } : { c: 6, r: 4, top: 1 };   // 폰 4 × 4 · 컴퓨터 6 × 4
-    const clamp = (k, v) => Math.max(LIM[k][0], Math.min(LIM[k][1], v));
-    function pgAll() { const a = prefGet(KEY, LOCAL); return a && typeof a === 'object' ? a : {}; }
-    function pgGrid() {
-        const g = pgDef(), s = pgAll()[pgPhone() ? 'm' : 'd'];
-        if (s && typeof s === 'object') {
-            ['c', 'r'].forEach(k => { const n = parseInt(s[k], 10); if (!isNaN(n)) g[k] = clamp(k, n); });
-            if ('top' in s) g.top = s.top ? 1 : 0;
-        }
-        return g;
-    }
-    function pgSave(g) {
-        const a = pgAll(); a[pgPhone() ? 'm' : 'd'] = { c: g.c, r: g.r, top: g.top };
-        prefSet(KEY, LOCAL, a);
-        document.dispatchEvent(new CustomEvent('pickgrid'));
-    }
-
-    /* 쪽 나누기 : ns = 칸마다 스티커 수 (1 = 낱장) → [[번호, …], …] */
-    function pgPages(ns, g) {
-        const S = [], B = [], out = [];
-        ns.forEach((n, i) => (n > 1 ? B : S).push(i));
-        let s = 0, b = 0;
-        while (s < S.length || b < B.length) {
-            const pg = []; let rows = g.r;
-            if (s < S.length) {
-                const k = b < B.length ? g.c : g.c * g.r;                    // 묶음이 남아 있으면 낱장은 한 줄만
-                pg.push(...S.slice(s, s + k)); s += k; rows = b < B.length ? rows - 1 : 0;
-            }
-            pg.push(...B.slice(b, b + rows)); b += rows;
-            out.push(pg);
-        }
-        return out;
-    }
-    /* 낱장 줄 글씨 : 몇 번째부터 몇 번째까지 / 모두 몇 개 */
-    function pgOneTxt(ps, ns, cur) {
-        const one = i => ns[i] <= 1;
-        let a = 0; for (let p = 0; p < cur; p++) a += ps[p].filter(one).length;
-        const k = (ps[cur] || []).filter(one).length, t = ns.filter(n => n <= 1).length;
-        if (!k) return '';
-        return t > k ? `낱장 스티커 · ${a + 1}–${a + k} / ${t}` : `낱장 스티커 ${t}개`;
-    }
-
-    /* 한 쪽 그리기 : els = 이 쪽 칸들 (순서대로) · ns = 칸마다 스티커 수 */
-    function pgLay(box, els, ns, g, txt) {
-        box.classList.add('pg-on');
-        const cs = getComputedStyle(box), W = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-        const cw = Math.max(24, Math.floor((W - 4 - GAP * (g.c - 1)) / g.c * 10) / 10);
-        box.style.setProperty('--pg-c', g.c); box.style.setProperty('--pg-cw', cw + 'px'); box.style.setProperty('--pg-r', g.r);
-        let lab = box.querySelector(':scope > .pg-lab');
-        if (!lab) { lab = document.createElement('div'); lab.className = 'pg-lab'; box.appendChild(lab); }
-        lab.textContent = txt || ''; lab.hidden = !txt; lab.style.order = g.top ? 1 : 5;
-        els.forEach((el, i) => {
-            const n = ns[i], bun = n > 1;
-            el.classList.toggle('pg-one', !bun); el.classList.toggle('pg-bun', bun);
-            el.style.order = bun ? 3 : g.top ? 2 : 6;
-            if (bun) pgBand(el, n, g.c, cw);
-            else { el.classList.remove('pg-mv', 'pg-l', 'pg-r'); const p = el.querySelector('.pg-pos'); if (p) p.remove(); }
-        });
-    }
-    /* 📒 수첩으로 바꾸면 예전 모양으로 */
-    function pgOff(box, els) {
-        if (!box.classList.contains('pg-on')) return;
-        box.classList.remove('pg-on'); box.style.removeProperty('--pg-cw');
-        const lab = box.querySelector(':scope > .pg-lab'); if (lab) lab.remove();
-        els.forEach(el => {
-            el.classList.remove('pg-one', 'pg-bun', 'pg-mv', 'pg-l', 'pg-r'); el.style.order = '';
-            const s = el.querySelector('.sb-thumbs'); if (s) s.style.transform = '';
-            const p = el.querySelector('.pg-pos'); if (p) p.remove();
-        });
-    }
-
-    /* ↔ 묶음 줄 밀기 : 끌기 · 휠 · ← → 키 · 놓으면 칸에 딱 맞춰 멈춰요 · 밀고 난 뒤에는 눌리지 않아요 */
-    function pgBand(el, n, c, cw) {
-        const strip = el.querySelector('.sb-thumbs'); if (!strip) return;
-        el._pgN = n; el._pgC = c; el._pgMax = Math.max(0, n - c); el._pgStep = cw + GAP;
-        el.classList.toggle('pg-mv', el._pgMax > 0);
-        if (!el.querySelector('.pg-pos')) { const p = document.createElement('span'); p.className = 'pg-pos'; el.appendChild(p); }
-        pgGo(el, Math.round(Math.min(el._pgX || 0, el._pgMax)));
-        if (el._pgOn) return; el._pgOn = 1;
-        let sx = 0, x0 = 0, on = false, moved = false, id = null, wt = 0;
-        el.addEventListener('pointerdown', e => {
-            if (!el.classList.contains('pg-mv') || (e.button && e.pointerType === 'mouse')) return;
-            sx = e.clientX; x0 = el._pgX || 0; on = true; moved = false; id = e.pointerId;
-        });
-        el.addEventListener('pointermove', e => {
-            if (!on || e.pointerId !== id) return;
-            const dx = e.clientX - sx;
-            if (!moved) { if (Math.abs(dx) < 6) return; moved = true; el.classList.add('pg-drag'); try { el.setPointerCapture(id); } catch (er) {} }
-            pgGo(el, x0 - dx / el._pgStep);
-        });
-        const up = () => {
-            if (!on) return; on = false;
-            if (moved) { el.classList.remove('pg-drag'); pgGo(el, Math.round(el._pgX)); el._pgNo = Date.now(); }
-        };
-        el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-        el.addEventListener('lostpointercapture', e => { if (e.target === el) up(); });   // 손가락이 처음 닿은 그림이 놓는 것은 빼고
-        el.addEventListener('click', e => { if (Date.now() - (el._pgNo || 0) < 400) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-        el.addEventListener('wheel', e => {
-            if (!el.classList.contains('pg-mv')) return;
-            const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.shiftKey ? e.deltaY : 0; if (!d) return;
-            e.preventDefault(); el.classList.add('pg-drag'); pgGo(el, (el._pgX || 0) + d / el._pgStep);
-            clearTimeout(wt); wt = setTimeout(() => { el.classList.remove('pg-drag'); pgGo(el, Math.round(el._pgX)); }, 140);
-        }, { passive: false });
-        el.addEventListener('keydown', e => {
-            if (!el.classList.contains('pg-mv') || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
-            e.preventDefault(); pgGo(el, Math.round(el._pgX || 0) + (e.key === 'ArrowRight' ? 1 : -1));
-        });
-    }
-    function pgGo(el, x) {
-        x = Math.max(0, Math.min(el._pgMax || 0, x)); el._pgX = x;
-        const s = el.querySelector('.sb-thumbs'); if (s) s.style.transform = `translateX(${(-x * el._pgStep).toFixed(1)}px)`;
-        el.classList.toggle('pg-l', x > .02); el.classList.toggle('pg-r', x < el._pgMax - .02);
-        const p = el.querySelector('.pg-pos'), a = Math.round(x);
-        if (p) p.textContent = el._pgMax ? `↔ ${a + 1}–${a + el._pgC} / ${el._pgN}` : '';
-    }
-
-    /* ---------- ⚙️ 설정 → 🗂 고르는 창 칸 정하기 : 더미 칸을 보면서 정해요 ---------- */
-    const DUMMY = [10, 6, 12, 3, 8, 9, 5, 7];                                // 더미 묶음 스티커 수
-    let pgTry = null;
-    function pgOpen() {
-        let c = document.getElementById('pgSet');
-        if (!c) {
-            c = document.createElement('div'); c.id = 'pgSet'; c.className = 'pg-set';
-            c.innerHTML = '<div class="pg-set-box" role="dialog" aria-label="고르는 창 칸 정하기"><div class="pg-set-t">🗂 고르는 창 칸 정하기</div>'
-                + '<p class="pg-set-p">가로는 한 줄에 보이는 스티커 수, 세로는 한 쪽에 보이는 줄 수예요.<br>묶음이 가로보다 많으면 그 줄을 옆으로 밀어서 봐요.</p>'
-                + '<div class="pg-set-row"><span>↔ 가로</span><button type="button" class="btn" data-k="c" data-d="-1">－</button><b id="pgSetC"></b><button type="button" class="btn" data-k="c" data-d="1">＋</button></div>'
-                + '<div class="pg-set-row"><span>↕ 세로</span><button type="button" class="btn" data-k="r" data-d="-1">－</button><b id="pgSetR"></b><button type="button" class="btn" data-k="r" data-d="1">＋</button></div>'
-                + '<div class="pg-set-row"><span>낱장 줄</span><div class="pg-set-seg"><button type="button" class="btn" data-top="1">맨 위</button><button type="button" class="btn" data-top="0">맨 아래</button></div></div>'
-                + '<div class="pg-set-dm" id="pgSetDm" aria-hidden="true"></div>'
-                + '<small class="pg-set-s" id="pgSetS"></small>'
-                + '<div class="pg-set-btns"><button type="button" class="btn" id="pgSetReset">처음대로</button><button type="button" class="btn" id="pgSetNo">닫기</button><button type="button" class="btn pg-set-ok" id="pgSetOk">저장</button></div></div>';
-            document.body.appendChild(c);
-            c.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => { pgTry[b.dataset.k] = clamp(b.dataset.k, pgTry[b.dataset.k] + +b.dataset.d); pgDummy(); }));
-            c.querySelectorAll('[data-top]').forEach(b => b.addEventListener('click', () => { pgTry.top = +b.dataset.top; pgDummy(); }));
-            document.getElementById('pgSetNo').onclick = () => { c.hidden = true; };
-            document.getElementById('pgSetReset').onclick = () => { pgTry = pgDef(); pgDummy(); };
-            document.getElementById('pgSetOk').onclick = () => { pgSave(pgTry); c.hidden = true; showMsg('🗂 고르는 창 칸을 바꿨어요'); };
-            c.addEventListener('click', e => { if (e.target === c) c.hidden = true; });
-        }
-        pgTry = pgGrid(); c.hidden = false; pgDummy();
-        document.getElementById('pgSetS').textContent = (pgPhone() ? '📱 폰' : '💻 컴퓨터') + ' 화면 설정이에요 · 폰과 컴퓨터는 따로 저장돼요';
-    }
-    /* 더미 : 낱장 12개 + 묶음 여러 개로 첫 쪽 모양 */
-    function pgDummy() {
-        const g = pgTry, dm = document.getElementById('pgSetDm'); if (!dm) return;
-        document.getElementById('pgSetC').textContent = g.c + '칸';
-        document.getElementById('pgSetR').textContent = g.r + '줄';
-        document.querySelectorAll('#pgSet [data-top]').forEach(b => b.classList.toggle('on', +b.dataset.top === g.top));
-        document.querySelectorAll('#pgSet [data-k]').forEach(b => { const k = b.dataset.k; b.disabled = +b.dataset.d < 0 ? g[k] <= LIM[k][0] : g[k] >= LIM[k][1]; });
-        const dot = n => '<i></i>'.repeat(n);
-        const one = `<div class="pg-dm-lab">낱장 스티커 · 1–${g.c} / 12</div><div class="pg-dm-one">${dot(g.c)}</div>`;
-        const buns = DUMMY.slice(0, g.r - 1).map(n => `<div class="pg-dm-bun${n > g.c ? ' more' : ''}"><div><span>묶음 ${n}개</span><span>${n > g.c ? `↔ 1–${g.c} / ${n}` : ''}</span></div><p>${dot(Math.min(n, g.c))}</p></div>`).join('');
-        dm.style.setProperty('--c', g.c);
-        dm.innerHTML = g.top ? one + buns : buns + one;
-    }
-
-    window.pgGrid = pgGrid; window.pgPages = pgPages; window.pgOneTxt = pgOneTxt; window.pgLay = pgLay; window.pgOff = pgOff; window.pgOpen = pgOpen;
-})();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['stk-basic'] = true;

@@ -1,17 +1,6 @@
 /* 말랑달콤 다이어리 - js/elements.js
    스티커/글/이미지 추가 · 라이브러리 · 요소 이동/회전/크기 · 페이지 내용 저장(saveData)/불러오기
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
-        function addSticker(emoji) {
-            const el = document.createElement('div');
-            el.className = 'element-box';
-            el.innerHTML = `<span style="font-size:45px; display:inline-block;">${emoji}</span>`;
-            makeTransformable(el);
-            const at = window.tmPlace && tmPlace(el);
-            document.getElementById('canvasArea').appendChild(el);
-            if (!at) elCenter(el);
-            if (window.stkBlink) stkBlink();
-        }
-
         function addText() {
             const el = document.createElement('div');
             el.className = 'element-box';
@@ -278,6 +267,7 @@
                 } else if (stretchHandle && e.target === stretchHandle) {
                     actionType = 'stretch';
                     initialW = parseFloat(el.style.width) || el.offsetWidth;
+                    if (!el.dataset.own && el._tapeMax == null) el._tapeMax = initialW;   // 🎒 저장된 테이프는 줄이기만 (롤과 이어져 있지 않아요 · js/tape.js)
                 } else {
                     actionType = 'move';
                     initialX = posX; initialY = posY;
@@ -337,13 +327,18 @@
                 } else if (actionType === 'stretch') {
                     const a = rotation * Math.PI / 180;
                     const d = ((pos.x - startX) * Math.cos(a) + (pos.y - startY) * Math.sin(a)) / (scale || 1);
-                    el.style.width = Math.round(Math.max(40, Math.min(1200, initialW + d))) + 'px';
+                    const tmax = el.dataset.own ? +el.dataset.ownMax || initialW : el._tapeMax != null ? el._tapeMax : 1200;   // 🎒 롤에 남은 만큼만 늘어나요
+                    el.style.width = Math.round(Math.max(40, Math.min(1200, tmax, initialW + d))) + 'px';
                 }
                 updateTransform();
                 if (el === selectedElement) positionTextPanel();
             };
 
             const onEnd = () => {
+                if (actionType === 'stretch' && el.dataset.own && window.ownQty) {   // 🎒 늘인 만큼 롤이 더 줄어요 (줄인 건 돌아오지 않아요)
+                    const w = parseFloat(el.style.width) || 0, used = +el.dataset.ownUsed || 0;
+                    if (w > used + .5) { el.dataset.ownUsed = w; if (typeof saveData === 'function') saveData(false); ownQty(el.dataset.own, w - used, el).catch(() => {}); }
+                }
                 actionType = null; pinch = null;
                 if (seal) { lifted = false; seal.up(); return; }
                 if (peelStop) { peelStop(); peelStop = null; }                  // 아주 빨리 놓으면 들린 쪽도 바로 평평하게
@@ -644,7 +639,7 @@
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
-            if (top && !pinBusy() && top.closest('.modal.snb-on, #paperModal, #tteokModal, #leafModal')) return true;   // 📒 수첩 · 🪟 고르는 창 : 어디서든 핀셋 · 가위가 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
+            if (top && !pinBusy() && top.closest('.modal.snb-on')) return true;   // 📒 수첩 · 🪟 고르는 창 : 어디서든 핀셋 · 가위가 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)
             if (!top || pinBusy() || top.closest('.pel-hint, .snb-cover, #pageHeader, .tap-menu') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 수첩 표지 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
             if (top.closest(PIN_AREA)) return true;
             return top === document.body || top === document.documentElement || top.matches('.modal.snb-on') || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경 · 📒 수첩 뒤 배경지 포함)

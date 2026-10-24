@@ -10,6 +10,9 @@
    - ✨ 스티커 창 → 🏪 진열대 : 기본스티커(Cloudflare 그림 보관함 · js/elements.js basicKit)를 카테고리 매대(선반)별로 진열
        · [🧺 받기] = 그 스티커 종이를 새로 한 장 받아 바구니로 (공짜 · 몇 번이든 · 같은 스티커도 받을 때마다 새 종이 · 도련 10-25)
        · 이름표 = js/kit-meta.js 의 세트 이름 (도구/스티커정리/3_정보.py)
+   - 모든 종류 (10-25) : 🏷️ 씰 · 🍭 포인트 · 😀 이모지 · 🧩 조각 · 📄 모조지 · 🎀 테이프 · 📝 메모지 · 🧻 떡메 · 📃 속지 (+ 🌸 계절 · 🎁 캡슐 선물)
+       · 바구니 카드 모양 = 종류마다 (씰 종이 · 테이프 롤 · 떡메 묶음 · 메모지 묶음 · 속지 한 장 …) · 남은 양은 두께로만 보여요 (숫자 없이)
+       · 종이를 톡 = 종류마다 원래 연출로 (씰 · 포인트 판 · 조각 봉투 · 모조지 · 떡메 묶음) / 테이프 · 메모지 · 속지는 페이지에 바로 놓여요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (스티커 창의 두 칸만 안 열려요) */
 
 (function () {
@@ -59,13 +62,20 @@
         catch (e) { wrap.innerHTML = bkMsg('⚠ 바구니를 열지 못했어요.<br>' + ownErrText(e), '<button type="button" class="btn bk-again" onclick="bkRender(true)">🔄 다시 열기</button>'); return; }
         bkDraw();
     }
+    /* 바구니 카드 : 종류마다 모양 · 남은 양은 두께(--q)로만 */
+    const kitImg = u => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
     function bkCard(e) {
-        const used = new Set(e.u), cols = Math.ceil(Math.sqrt(e.n));
-        let inner;
-        if (e.th) inner = `<img src="${esc(e.th)}" alt="" draggable="false">`;
-        else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`).join('')}</i>`;
-        return `<button type="button" class="bk-sh${e.n === 1 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="스티커 종이">${inner}</button>`;
+        const used = new Set(e.u), cols = Math.ceil(Math.sqrt(e.n)), x = e.x || {}, q = e.q0 ? Math.max(.08, e.q / e.q0) : 1;
+        let inner, cls = 'k-' + e.k;
+        if (e.k === 'tape') inner = `<span class="bk-roll" style="--q:${q.toFixed(2)}"><i style="background-image:url(&quot;${esc(e.th || '')}&quot;)"></i></span>`;
+        else if (e.k === 'tk') inner = `<span class="bk-pad" style="--q:${q.toFixed(2)}">${window.tkMiniHtml ? tkMiniHtml(x.pad || 'memo', x.pad === 'my' ? { src: e.th, glue: x.glue || '' } : null) : ''}</span>`;
+        else if (e.k === 'memo') inner = `<span class="bk-pad bk-memo" style="--q:${q.toFixed(2)}">${x.pp && x.pp !== 'img' ? `<span class="pp-chip pp-${esc(x.pp)}"></span>` : `<img src="${esc(e.th || '')}" alt="" draggable="false">`}</span>`;
+        else if (e.k === 'leaf') inner = `<span class="lf-pick bk-leaf"><i class="lf-sw ${x.lf && x.lf !== 'my' ? 'lf-' + esc(x.lf) : 'lf-my'}"${!x.lf || x.lf === 'my' ? ` style="--lf-img:url('${esc(e.th || '')}')"` : ''}></i></span>`;
+        else if (e.th) inner = `<img src="${esc(e.th)}" alt="" draggable="false">`;
+        else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : kitImg(u)).join('')}</i>`;
+        return `<button type="button" class="bk-sh ${cls}${e.n === 1 && !e.q0 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="${esc(KIND_NAME[e.k] || '스티커')}">${inner}</button>`;
     }
+    const KIND_NAME = { seal: '씰스티커', point: '포인트스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', memo: '메모지', tk: '떡메모지', leaf: '속지' };
     function bkDraw() {
         const wrap = bq('bkWrap'); if (!wrap) return;
         const guest = ownMode() === 'mem';
@@ -80,6 +90,8 @@
             + `<div class="bk-tools"><button type="button" class="btn bk-mix" onclick="bkMix()">🔀 뒤적이기</button></div>` + note;
         bkPlace(show, false);
         bkWire();
+        let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
+        wrap.querySelectorAll('#bkPile img').forEach(im => { if (!im.complete) im.addEventListener('load', again, { once: true }); });
     }
     /* 자리 잡기 : 기억한 자리 · 없으면 그 종이만의 자리 (바닥 쪽으로 몰려 쌓여요) */
     function bkPlace(show, anim) {
@@ -143,7 +155,7 @@
         if (navigator.vibrate) try { navigator.vibrate([6, 40, 6]); } catch (e) {}
     }
 
-    /* ---------- 🏷️ 종이 열기 : 하얀 떼는 창 (뗀 자리는 비어 있어요) ---------- */
+    /* ---------- 종이 열기 : 종류마다 원래 연출로 (뗀 자리 · 쓴 양은 이미 빠져 있어요) ---------- */
     async function bkOpenSheet(id) {
         if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
         if (B.opening || !window.ownSheet) return;
@@ -151,64 +163,150 @@
         const card = document.querySelector(`.bk-sh[data-id="${CSS.escape(id)}"]`); if (card) card.classList.add('busy');
         try {
             const r = await ownSheet(id);
-            if (!r) { showMsg('이 스티커 종이는 이미 다 썼어요.<br><span style="font-size:12px;color:#777;">다른 기기에서 썼을 수도 있어요.</span>'); if (vis('basketModal')) bkRender(true); return; }
-            let srcs = r.s.imgs;
-            if (!r.s.baked && window.pelBake) srcs = await Promise.all(srcs.map(u => u ? pelBake(u).catch(() => u) : null));   // 기본스티커 : 하얀 테두리 (⚙ 설정을 따라요)
-            if (window.stkLeave) stkLeave();
-            const ok = window.openStickerPeel && await openStickerPeel(srcs, { own: { id, wh: r.s.wh }, ts: !!r.s.ts });
+            if (!r) { showMsg('이 스티커는 이미 다 썼어요.<br><span style="font-size:12px;color:#777;">다른 기기에서 썼을 수도 있어요.</span>'); if (vis('basketModal')) bkRender(true); return; }
+            const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
+            const die = async a => !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요)
+            let ok = false;
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts }); }
+            else if (s.k === 'point') { if (!window.openStickerPack) return; await openStickerPack({ srcs: await die(s.imgs), own }); ok = true; }   // stkLeave 는 판이 해요
+            else if (s.k === 'piece') {
+                const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
+                if (window.stkLeave) stkLeave();
+                ok = window.openPieceBag && await openPieceBag(srcs, { t: s.nm || '말랑달콤 조각', s: '', own: { id, slots } });
+            }
+            else if (s.k === 'paper') { if (window.stkLeave) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
+            else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }); }   // 페이지에 바로 · 비켰다 다시 떠요 (stkBlink)
+            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave) stkLeave(); tkOwnOpen(x.pad || 'memo', x.pad === 'my' ? { src: s.imgs[0], glue: x.glue || '' } : null, { id }); ok = true; }
+            else if (s.k === 'memo') ok = bkMemo(id, s, x);
+            else if (s.k === 'leaf') ok = bkLeaf(id, s, x);
             if (!ok && window.stkReturn) stkReturn(300);
         } catch (e) {
             console.warn(e);
-            showMsg('⚠ 스티커 종이를 열지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
+            showMsg('⚠ 스티커를 열지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
         } finally { B.opening = ''; if (card) card.classList.remove('busy'); }
+    }
+    /* 📝 메모지 한 장 : 페이지에 바로 놓여요 → 톡 해서 글쓰기 */
+    function bkMemo(id, s, x) {
+        if (typeof addText !== 'function') return false;
+        addText();
+        const el = typeof selectedElement !== 'undefined' ? selectedElement : null; if (!el) return false;
+        if (x.pp === 'img' && window.tkNoteDress) { tkNoteDress(el, 'my', s.imgs[0]); el.style.width = '180px'; el.style.height = Math.round(180 * (x.h || 1) / (x.w || 1)) + 'px'; }
+        else if (window.applyPaper) applyPaper(x.pp);
+        el.dataset.own = id;
+        if (typeof saveData === 'function') saveData(false);
+        ownQty(id, 1, el).catch(er => console.warn('메모지를 아직 못 줄였어요 (다시 해요) :', er));
+        if (window.stkBlink) stkBlink();
+        return true;
+    }
+    /* 📃 속지 한 장 : 오늘 페이지에 끼우면 그 한 장은 끝 (같은 속지가 이미 깔려 있으면 쓰지 않아요) */
+    function bkLeaf(id, s, x) {
+        if (!window.pickLeaf) return false;
+        const lf = x.lf && x.lf !== 'my' ? x.lf : 'my', img = lf === 'my' ? s.imgs[0] : undefined;
+        if (typeof pageLeaf !== 'undefined' && pageLeaf === lf && (lf !== 'my' || pageLeafImg === img)) { showMsg('📃 오늘 페이지에 이미 깔린 속지예요.'); return false; }
+        if (window.stkBlink) stkBlink();
+        pickLeaf(lf, img);
+        ownQty(id, 1, null).catch(er => console.warn('속지를 아직 못 지웠어요 (다시 해요) :', er));
+        return true;
     }
     if (window.ownOnChange) ownOnChange(() => { if (vis('basketModal')) bkRender(false); });
 
-    /* ---------- 🏪 진열대 ---------- */
-    const SH = { items: null, busy: false };
+    /* ---------- 🏪 진열대 : 코너(종류)마다 · 그 안에 카테고리 매대 ---------- */
+    const SH = { built: false, items: [], busy: false };
     const shFile = u => String(u).split('/').pop();
+    const EMOJI_NAME = { faces: '표정', animals: '동물', food: '음식', activities: '놀이', travel: '여행', objects: '물건', symbols: '기호' };
+    /* 코너 : [아이콘, 이름, 상품 만들기] */
+    const SH_CORNERS = [
+        ['seal', '🏷️', '씰스티커', async () => {
+            const kit = await basicKit(), M = (window.KIT_META && KIT_META.sets) || {}, out = [];
+            kit.sheets.forEach(x => out.push({ c: x.c || '기본', us: x.us }));
+            kit.images.forEach(x => out.push({ c: x.c || '기본', us: [x.u] }));
+            return out.map(it => { const m = M[shFile(it.us[0])], nm = (m && m.n) || '';
+                return { c: window.kitName ? kitName(it.c) : it.c, nm, cnt: `씰 ${it.us.length}개`, look: 'grid', thumbs: it.us.map(u => window.kitSize ? kitSize(u, 96) : u), take: () => ownTakeKit(it.us, nm) }; });
+        }],
+        ['point', '🍭', '포인트스티커', async () => {
+            const out = [];
+            for (const p of (window.spkPackList ? spkPackList() : [])) { const srcs = await p.srcs(); out.push({ c: p.g, nm: '', cnt: `스티커 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'point', imgs: srcs, baked: true } }); }
+            return out.concat(window.sbShelf ? await sbShelf('mini') : []);
+        }],
+        ['emoji', '😀', '이모지', async () => {
+            if (typeof emojiRanges === 'undefined') return [];
+            return Object.keys(emojiRanges).map(c => {
+                const chars = []; for (const [a, b] of emojiRanges[c]) for (let i = a; i <= b && chars.length < 16; i++) chars.push(String.fromCodePoint(i));
+                return { c: '이모지', nm: EMOJI_NAME[c] || c, cnt: `스티커 ${chars.length}개`, look: 'emoji', chars, take: async () => ({ k: 'point', imgs: await Promise.all(chars.map(shEmoji)), baked: true, nm: EMOJI_NAME[c] || '' }) };
+            });
+        }],
+        ['piece', '🧩', '조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
+        ['paper', '📄', '모조지스티커', async () => window.sbShelf ? sbShelf('paper') : []],
+        ['tape', '🎀', '마스킹테이프', async () => (window.tapeShelf ? tapeShelf() : []).map(t => ({ c: t.g, nm: t.name, cnt: '한 롤', look: 'tape', thumbs: [t.url], def: { k: 'tape', imgs: [t.url], th: t.url } }))
+            .concat(window.sbShelf ? await sbShelf('tape') : [])],
+        ['memo', '📝', '메모지', async () => (window.memoShelf ? memoShelf() : []).map(p => ({ c: p.g, nm: p.name, cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } }))
+            .concat(window.sbShelf ? await sbShelf('memo') : [])],
+        ['tk', '🧻', '떡메모지', async () => (window.tkShelf ? tkShelf() : []).map(t => ({ c: t.g, nm: t.n, cnt: `${OWN_Q.tk}장`, look: 'tk', pad: t.k, def: { k: 'tk', imgs: [''], x: { pad: t.k }, noTh: true } }))
+            .concat(window.sbShelf ? await sbShelf('tk') : [])],
+        ['leaf', '📃', '속지', async () => (window.leafShelf ? leafShelf() : []).map(l => ({ c: l.g, nm: l.n, cnt: '한 장', look: 'leaf', lf: l.k, def: { k: 'leaf', imgs: [''], x: { lf: l.k }, noTh: true } }))
+            .concat(window.sbShelf ? await sbShelf('leaf') : [])],
+        ['season', '🌸', '계절 스티커', async () => {
+            if (typeof SEASON_OPEN === 'undefined' || !SEASON_OPEN || typeof SEASON_STICKERS === 'undefined') return [];
+            const k = seasonNow(), S = SEASONS[k], srcs = (SEASON_STICKERS[k] || []).map(x => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x.svg));
+            return srcs.length ? [{ c: S.name, nm: `${S.name} 스티커`, cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true, nm: `${S.name} 스티커` } }] : [];
+        }],
+    ];
+    /* 😀 이모지 → 그림 (64px) */
+    function shEmoji(ch) {
+        const c = document.createElement('canvas'); c.width = c.height = 64;   // 포인트스티커 크기 (페이지 한 쪽 336 · 작게 콕)
+        const x = c.getContext('2d'); x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '50px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+        x.fillText(ch, 32, 35);
+        const u = c.toDataURL('image/png');
+        return window.pelBake ? pelBake(u).catch(() => u) : u;
+    }
     function openShelf() {
         if (vis('stickerMakeModal')) closeModal('stickerMakeModal');
         if (vis('basketModal')) closeModal('basketModal');
         openModal('shelfModal');
-        shRender();
+        SH.built = false; shRender();                                          // 열 때마다 새로 (선물로 열린 테이프 · 계절 코너가 바로 보이게)
     }
-    async function shRender() {
-        const box = bq('shWrap'); if (!box) return;
-        if (SH.items && box.querySelector('.sh-row')) return;
-        if (SH.busy) return;
-        SH.busy = true;
-        box.innerHTML = bkMsg('🏪 진열대를 채우는 중…');
-        try {
-            const kit = await basicKit(), M = (window.KIT_META && KIT_META.sets) || {};
-            const items = [];
-            kit.sheets.forEach(x => items.push({ us: x.us, c: x.c || '기본' }));
-            kit.images.forEach(x => items.push({ us: [x.u], c: x.c || '기본' }));
-            items.forEach(it => { const m = M[shFile(it.us[0])]; it.nm = (m && m.n) || ''; });
-            SH.items = items;
-            const cats = [...new Set(items.map(x => x.c))];
-            box.innerHTML = cats.map(c => {
-                const its = items.map((x, i) => [x, i]).filter(([x]) => x.c === c);
-                return `<section class="sh-row"><h4 class="sh-sign"><span>${esc(window.kitName ? kitName(c) : c)}</span></h4><div class="sh-rack">${its.map(([x, i]) => shCard(x, i)).join('')}</div></section>`;
-            }).join('') || bkMsg('진열대가 비어 있어요.');
-        } catch (e) {
-            SH.items = null;
-            box.innerHTML = bkMsg('⚠ 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', '<button type="button" class="btn bk-again" onclick="shRetry()">🔄 다시 불러오기</button>');
-        } finally { SH.busy = false; }
+    /* 코너 안내판(맨 위 · 누르면 그 코너로) + 코너마다 매대 · 코너는 따로따로 채워요 (느린 코너가 다른 코너를 막지 않게) */
+    function shRender() {
+        const box = bq('shWrap'); if (!box || SH.built) return;
+        SH.built = true; SH.items = [];
+        box.innerHTML = `<nav class="sh-signs" aria-label="코너">${SH_CORNERS.map(([k, ic, n]) => `<button type="button" class="sh-go" data-k="${k}" onclick="shGo('${k}')">${ic} ${n}</button>`).join('')}</nav>`
+            + SH_CORNERS.map(([k, ic, n]) => `<section class="sh-corner" id="shc-${k}"><h3 class="sh-head">${ic} ${n} 코너</h3><div class="sh-body">${bkMsg('채우는 중…')}</div></section>`).join('');
+        SH_CORNERS.forEach(([k, , , fill]) => shFill(k, fill));
     }
-    function shRetry() { SH.items = null; shRender(); }
+    async function shFill(k, fill) {
+        const sec = bq('shc-' + k), body = sec && sec.querySelector('.sh-body'); if (!body) return;
+        let items = [];
+        try { items = await fill(); } catch (e) { console.warn(e); body.innerHTML = bkMsg('⚠ 불러오지 못했어요.', '<button type="button" class="btn bk-again" onclick="shRetry()">🔄 다시 불러오기</button>'); return; }
+        if (!items.length) { sec.hidden = true; const g = document.querySelector(`.sh-go[data-k="${k}"]`); if (g) g.hidden = true; return; }
+        const base = SH.items.length; SH.items.push(...items);
+        const cats = [...new Set(items.map(x => x.c))];
+        body.innerHTML = cats.map(c => `<section class="sh-row"><h4 class="sh-sign"><span>${esc(c)}</span></h4><div class="sh-rack">${items.map((x, i) => [x, base + i]).filter(([x]) => x.c === c).map(([x, i]) => shCard(x, i)).join('')}</div></section>`).join('');
+    }
+    function shGo(k) { const s = bq('shc-' + k), w = bq('shWrap'); if (s && w) w.scrollTo({ top: s.offsetTop - w.offsetTop - 4, behavior: 'smooth' }); }
+    function shRetry() { SH.built = false; shRender(); }
+    function shLook(x) {
+        const n = (x.thumbs || x.chars || []).length, cols = Math.ceil(Math.sqrt(Math.max(1, n)));
+        if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
+        if (x.look === 'tape' ) return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(x.thumbs[0])}&quot;)"></i></div>`;
+        if (x.look === 'tk') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml(x.pad) : ''}</div>`;
+        if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: x.thumbs[0] }) : ''}</div>`;
+        if (x.look === 'leaf') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-${esc(x.lf)}"></i></span>`;
+        if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(x.thumbs[0])}')"></i></span>`;
+        if (x.look === 'memo') return `<div class="sh-memo"><span class="pp-chip pp-${esc(x.pp)}"></span></div>`;
+        if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(x.thumbs[0])}" alt="" loading="lazy"></div>`;
+        return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${x.thumbs.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
+    }
     function shCard(x, i) {
-        const n = x.us.length, cols = Math.ceil(Math.sqrt(n));
-        return `<div class="sh-item"><div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${x.us.map(u => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`
-            + `${x.nm ? `<b class="sh-tag">${esc(x.nm)}</b>` : ''}<small class="sh-cnt">씰 ${n}개</small>`
+        return `<div class="sh-item">${shLook(x)}${x.nm ? `<b class="sh-tag">${esc(x.nm)}</b>` : ''}<small class="sh-cnt">${esc(x.cnt || '')}</small>`
             + `<button type="button" class="sh-take" onclick="shTake(${i}, this)">🧺 받기</button></div>`;
     }
     async function shTake(i, btn) {
-        const x = SH.items && SH.items[i]; if (!x || btn.disabled) return;
-        if (!window.ownTakeKit || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
+        const x = SH.items[i]; if (!x || btn.disabled) return;
+        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         try {
-            await ownTakeKit(x.us, x.nm);
+            if (x.def) await ownTake(Object.assign({ nm: x.nm }, x.def));
+            else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(Object.assign({ nm: x.nm }, r)); }   // take() : 새 종이 id(씰) 또는 종이 정보
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙!';
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             setTimeout(() => { btn.classList.remove('got'); btn.textContent = '🧺 받기'; btn.disabled = false; }, 1400);
@@ -220,5 +318,5 @@
     }
 
     window.openBasket = openBasket; window.bkRender = bkRender; window.bkMix = bkMix; window.bkOpenSheet = bkOpenSheet;
-    window.openShelf = openShelf; window.shTake = shTake; window.shRetry = shRetry;
+    window.openShelf = openShelf; window.shTake = shTake; window.shRetry = shRetry; window.shGo = shGo;
 })();

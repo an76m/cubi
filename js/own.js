@@ -11,13 +11,18 @@
        · 📦 백업 · 📥 불러오기에서 빼요 (불러오기로 쓴 스티커가 되살아나지 않게 · js/backup.js)
        · 말랑달콤 폴더를 지우면 모두 사라지고 되돌릴 수 없어요 (진짜 문구를 불태운 것과 같아요 · 도련)
    - 📁 로그인 없이 폴더에 저장 = 드라이브와 똑같이 (js/devsave.js vfsFetch) · 👀 구경만 = 이 창을 닫으면 사라져요 (일기처럼)
-   - 목록 한 칸 : { id, f : 종이 파일 id, k : 'seal' 종류, n : 칸 수, u : [쓴 칸 번호], at : 받은 때, from : 'kit' 기본 · 'mine' 만든 것,
-                   nm : 이름, us : [기본스티커 그림 주소] (바구니 미리보기 · kit) · th : 작은 그림 (mine) · ts : 🔤 글씨스티커 }
-   - 종이 파일 : { v, id, k, from, nm, ts, baked : 하얀 테두리를 이미 둘렀는지, imgs : [그림 data · 쓴 칸은 null], wh : [[가로, 세로]] }
+   - 줄어드는 방식 (도련 10-25) : 칸 = 🏷️ 씰 · 🍭 포인트 · 🧩 조각 (뗀 칸만 비어요)
+                               수량 = 🎀 테이프 (붙인 길이만큼 · 한 롤 OWN_Q.tape px) · 🧻 떡메 · 📝 메모지 (한 장씩 · 한 묶음 50장) · 📃 속지 (깔면 끝)
+                               종이 = 📄 모조지 (오린 자리만 비고 남은 종이는 계속 · 거의 다 오리면 끝)
+   - 목록 한 칸 : { id, f : 종이 파일 id, k : 종류, n : 칸 수, u : [쓴 칸 번호] · q0 · q : 처음 · 남은 수량, at : 받은 때, from : 'kit' 기본 · 'mine' 만든 것 · 'gift' 선물,
+                   nm : 이름, us : [기본스티커 그림 주소] (바구니 미리보기) · th : 작은 그림 · ts : 🔤 글씨스티커 }
+   - 종이 파일 : { v, id, k, from, nm, ts, baked : 하얀 테두리를 이미 둘렀는지, imgs : [그림 data · 쓴 칸은 null], wh : [[가로, 세로]], q0 · q, x : 종류마다 정보 }
    ※ 파일 불러오는 순서 : drive → coll → … → own → basket (index.html) */
 
         const OWN_DIR = [TOP_FOLDER_NAME, '스티커', '보관함'], OWN_IDX = '목록.json', OWN_SALT = 'malang-own|v1|softsweetdiary';
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
+        const OWN_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
+        const ownAlive = e => e.q0 ? e.q > 0 : e.u.length < e.n;
         const O = { kw: '', key: null, idx: null, idxF: null, idxAt: 0, mem: null, q: Promise.resolve(), subs: new Set(), replayed: '' };
 
         /* ---------- 어디에 (드라이브 · 이 기기 폴더 = 'drive' / 구경만 = 'mem' / 아직 = '') ---------- */
@@ -74,7 +79,7 @@
             try { t = await readFileText(f.id); } catch (e) { if (e && e.code === 'gone') { O.idxF = null; return []; } throw e; }
             if (!t.trim()) return [];
             const o = await ownUnlock(t);
-            return (Array.isArray(o.list) ? o.list : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }));
+            return (Array.isArray(o.list) ? o.list : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}));
         }
         async function ownIdxWrite(list) {
             if (ownMode() === 'mem') { O.mem.idx = list.map(e => Object.assign({}, e, { u: e.u.slice() })); return; }
@@ -122,31 +127,35 @@
             return ownSerial(async () => {
                 const list = await ownIdxRead();
                 const pend = ownPendGet();
-                pend.forEach(p => { const e = list.find(x => x.id === p.s); if (e && !e.u.includes(p.k)) e.u.push(p.k); });
-                O.idx = list.filter(e => e.u.length < e.n); O.idxAt = performance.now();
+                pend.forEach(p => { const e = list.find(x => x.id === p.s); if (!e) return; if (p.q) e.q = Math.max(0, e.q - p.q); else if (!e.u.includes(p.k)) e.u.push(p.k); });
+                O.idx = list.filter(ownAlive); O.idxAt = performance.now();
                 if (pend.length && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
                 return O.idx;
             });
         }
-        const ownLeft = e => e.n - e.u.length;
+        const ownLeft = e => e.q0 ? e.q : e.n - e.u.length;
+        const ownQtyLeft = id => { const e = O.idx && O.idx.find(x => x.id === id); return e ? (e.q0 ? e.q : ownLeft(e)) : 0; };
 
         /* ---------- ➕ 새 종이 넣기 (받기 · 만들기 · 나중에 사기) ----------
            sheet : { k, from, nm, ts, baked, imgs, wh } · meta : { us (kit 그림 주소) · th (작은 그림) } → id */
         async function ownAdd(sheet, meta) {
             ownReady();
             const id = ownRid(), imgs = sheet.imgs.slice(0, 40);
-            const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'kit', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [] };
+            const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'kit', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
             const ent = { id, f: '', k: full.k, n: imgs.length, u: [], at: Date.now(), from: full.from, nm: full.nm };
+            const q0 = sheet.q0 || OWN_Q[full.k];
+            if (q0) { full.q0 = full.q = q0; ent.q0 = ent.q = q0; }
             if (full.ts) ent.ts = 1;
             if (meta && meta.us) ent.us = meta.us.slice(0, 40);
             if (meta && meta.th) ent.th = meta.th;
+            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg };   // 바구니 모양 (떡메 종류 · 속지 무늬 · 메모지 모양)
             return ownSerial(async () => {
                 ent.f = await ownFileNew(full);
                 try {
                     const list = await ownIdxRead();                              // 다른 기기가 고친 목록 위에 더해요
                     list.push(ent);
                     await ownIdxWrite(list);
-                    O.idx = list.filter(e => e.u.length < e.n); O.idxAt = performance.now();
+                    O.idx = list.filter(ownAlive); O.idxAt = performance.now();
                 } catch (e) { ownFileKill(ent.f).catch(() => {}); throw e; }   // 목록에 못 넣었으면 종이 파일도 치워요
                 ownTell();
                 return id;
@@ -158,12 +167,13 @@
             ownReady();
             return ownSerial(async () => {
                 const list = await ownIdxRead();
-                O.idx = list.filter(e => e.u.length < e.n); O.idxAt = performance.now();
+                O.idx = list.filter(ownAlive); O.idxAt = performance.now();
                 const e = list.find(x => x.id === id);
-                if (!e || e.u.length >= e.n) { ownTell(); return null; }
+                if (!e || !ownAlive(e)) { ownTell(); return null; }
                 let s;
                 try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
-                ownPendGet().forEach(p => { if (p.s === id && s.imgs[p.k] != null) s.imgs[p.k] = null; });   // 이 기기에서 쓰는 중인 칸
+                ownPendGet().forEach(p => { if (p.s !== id) return; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else if (s.imgs[p.k] != null) s.imgs[p.k] = null; });   // 이 기기에서 쓰는 중인 칸 · 수량
+                if (s.q0 && s.q <= 0) return null;
                 return { e, s };
             });
         }
@@ -175,40 +185,59 @@
             if (ownMode() === 'mem') return;                                    // 👀 구경만은 남기지 않아요
             try { const o = JSON.parse(localStorage.getItem(OWN_PEND) || '{}'); if (arr.length) o[O.kw] = arr; else delete o[O.kw]; localStorage.setItem(OWN_PEND, JSON.stringify(o)); } catch (e) {}
         }
-        function ownUse(id, k, el) {
+        function ownUse(id, k, el) { return ownOp(id, { k }, el); }                     // 칸 하나
+        function ownQty(id, q, el) { return ownOp(id, { q: Math.max(1, Math.round(q)) }, el); }   // 수량 (테이프 길이 · 떡메 · 메모지 · 속지)
+        function ownPaper(id, img, th, left, el, a0) { return ownOp(id, { img, th, left, a0 }, el); }   // 📄 모조지 : 남은 종이 그림으로 바꾸기 (left : 남은 비율)
+        function ownOp(id, op, el) {
             ownReset();
-            const pend = ownPendGet();
-            if (!pend.some(p => p.s === id && p.k === k)) { pend.push({ s: id, k, t: Date.now() }); ownPendSet(pend); }
-            if (O.idx) { const e = O.idx.find(x => x.id === id); if (e && !e.u.includes(k)) e.u.push(k); O.idx = O.idx.filter(x => x.u.length < x.n); ownTell(); }
-            return ownSerial(() => ownSpend(id, k, el));
+            if (op.img == null) {                                                 // 칸 · 수량은 끊겨도 다음에 이어서 지워요 (이 기기에 기억)
+                const pend = ownPendGet();
+                if (op.q) pend.push({ s: id, q: op.q, t: Date.now(), n: ownRid() });
+                else if (!pend.some(p => p.s === id && p.k === op.k)) pend.push({ s: id, k: op.k, t: Date.now() });
+                ownPendSet(pend); op.n = op.q ? pend[pend.length - 1].n : '';
+            }
+            if (O.idx) {                                                          // 이 기기에서는 바로 빠져 보여요
+                const e = O.idx.find(x => x.id === id);
+                if (e) { if (op.q) e.q = Math.max(0, e.q - op.q); else if (op.img != null) { if (op.th) e.th = op.th; if (op.left <= OWN_PAPER_END) { e.q0 = 1; e.q = 0; } } else if (!e.u.includes(op.k)) e.u.push(op.k); }
+                O.idx = O.idx.filter(ownAlive); ownTell();
+            }
+            return ownSerial(() => ownSpend(id, op, el));
         }
-        async function ownSpend(id, k, el) {
-            const done = () => ownPendSet(ownPendGet().filter(p => !(p.s === id && p.k === k)));
+        const OWN_PAPER_END = .04;                                                // 📄 남은 종이가 이만큼보다 적으면 다 쓴 종이
+        async function ownSpend(id, op, el) {
+            const done = () => ownPendSet(ownPendGet().filter(p => !(p.s === id && (op.q ? p.n === op.n : p.k === op.k))));
             let list;
             try { list = await ownIdxRead(); }
             catch (e) { ownRetryLater(); throw e; }                              // 인터넷이 끊겼어요 → 나중에 이어서 (이 기기에서는 이미 빠져 보여요)
             const e = list.find(x => x.id === id);
             let s = null;
             if (e) { try { s = await ownFileRead(e.f); } catch (er) { if (!(er && er.code === 'gone')) { ownRetryLater(); throw er; } } }
-            if (!e || !s || s.imgs[k] == null) {                                 // 📱 다른 기기에서 이미 쓴 칸
+            const gone = !e || !s || (op.q ? !(s.q > 0) : op.img != null ? false : s.imgs[op.k] == null);
+            if (gone) {                                                          // 📱 다른 기기에서 이미 쓴 칸 · 다 쓴 묶음
                 done(); ownGone(el);
-                O.idx = list.filter(x => x.u.length < x.n); O.idxAt = performance.now(); ownTell();
+                O.idx = list.filter(ownAlive); O.idxAt = performance.now(); ownTell();
                 return false;
             }
-            s.imgs[k] = null;
-            e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
+            let end;
+            if (op.q) { s.q = Math.max(0, s.q - op.q); e.q = s.q; end = s.q <= 0; }
+            else if (op.img != null) { s.imgs = [op.img]; if (op.th) e.th = op.th; s.x = Object.assign({}, s.x, { grained: 1 }, op.a0 && !(s.x && s.x.a0) ? { a0: op.a0 } : {}); end = op.left <= OWN_PAPER_END; }   // a0 : 처음 종이의 잉크 양 (남은 비율 재기)
+            else {
+                s.imgs[op.k] = null;
+                e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
+                end = e.u.length >= e.n;
+            }
             const old = e.f;
             try {
-                if (e.u.length >= e.n) list.splice(list.indexOf(e), 1);         // 마지막 칸 → 종이째 사라져요
+                if (end) list.splice(list.indexOf(e), 1);                        // 마지막 칸 · 다 쓴 묶음 → 종이째 사라져요
                 else {
-                    if (e.from === 'mine') e.th = await ownThumb(s.imgs);       // 바구니 미리보기도 뗀 자리가 비게
-                    e.f = await ownFileNew(s);
+                    if (op.k != null && e.th && !e.us) e.th = await ownThumb(s.imgs);   // 바구니 미리보기도 뗀 자리가 비게
+                    e.f = await ownFileNew(s);                                   // 새 파일로 바꿔 쓰고 옛 것은 완전 삭제 (옛 버전 기록으로 되살릴 수 없게)
                 }
                 await ownIdxWrite(list);
             } catch (er) { if (e.f !== old) ownFileKill(e.f).catch(() => {}); ownRetryLater(); throw er; }
             await ownFileKill(old).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 (다음에 다시) :', er));
             done();
-            O.idx = list.filter(x => x.u.length < x.n); O.idxAt = performance.now(); ownTell();
+            O.idx = list.filter(ownAlive); O.idxAt = performance.now(); ownTell();
             return true;
         }
         function ownGone(el) {
@@ -223,7 +252,7 @@
         function ownRetryLater() { clearTimeout(ownRetryT); ownRetryT = setTimeout(ownReplay, 30000); }
         async function ownReplay() {
             if (!ownMode()) return;
-            for (const p of ownPendGet()) { try { await ownSerial(() => ownSpend(p.s, p.k, null)); } catch (e) { return; } }
+            for (const p of ownPendGet()) { try { await ownSerial(() => ownSpend(p.s, p.q ? { q: p.q, n: p.n } : { k: p.k }, null)); } catch (e) { return; } }
         }
         window.addEventListener('online', () => { if (ownPendGet().length) ownReplay(); });
 
@@ -264,6 +293,13 @@
             return ownAdd({ k: 'seal', from: 'mine', nm: (opt && opt.nm) || '', ts: opt && opt.ts, baked: true, imgs, wh: await ownSizes(imgs) }, { th: await ownThumb(imgs) });
         }
 
+        /* 🎒 아무 종류나 새 종이로 (진열대 · 만들기 · 선물) : d = { k, from, nm, imgs, baked, ts, x, q0, us, th } · th 가 없으면 그림으로 만들어요 */
+        async function ownTake(d) {
+            const imgs = (d.imgs || []).slice();
+            const th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));   // noTh : 바구니가 모양을 직접 그려요 (그린 떡메 · 속지 · 메모지)
+            return ownAdd({ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'point' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0 },
+                Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {}));
+        }
         /* 실패 이유 → 알림 글 */
         function ownErrText(e) {
             const c = e && e.code;
@@ -276,4 +312,5 @@
         }
 
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
+        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q;
         window.ownOnChange = ownOnChange; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;

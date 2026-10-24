@@ -2,14 +2,11 @@
    📃 속지 만들기 (✂️ 스티커만들기 → 📃 속지 만들기)
    - 🖼️ 사진 불러오기 : 사진을 페이지 비율로 맞춰 깔아요 (손가락으로 옮기기 · 확대 · 연하게 해서 글씨가 잘 보이게)
    - ✏️ 직접 그리기 : 종이 색 · 밑줄(무지 · 줄 · 모눈 · 도트) 위에 펜으로 그려요 (사진 위에 그려도 돼요)
-   - 다 만들면 오늘 페이지 속지로 끼워지고 📃 속지 → 내가만든 칸에 모여요 (개수 제한 없음)
+   - 🎒 만든 속지 한 장 · 떡메 한 묶음은 🧺 바구니로 (10-25 · js/own.js) : 📃 오늘 페이지에 끼우기 · 📌 떡메 묶음으로 꺼내기 = 바구니에 넣고 바로 써요 · 🧺 바구니에 넣기
    - 페이지에는 그림(JPG)째로 그날 파일에 lfi 로 저장돼요 (주소 아님 · 인수인계 12번)
-   - 내가만든 목록 : 로그인하면 내 드라이브 말랑달콤 / 스티커 / 속지 / 내속지 / 목록 · 원본 · 둘러보기면 이 기기 (js/coll.js)
    ※ 링 구멍은 미리보기 · 페이지 모두 그 위에 그대로 보여요 (css/style.css --lf-holes)
    🧻 떡메모지 만들기 (✂️ 스티커만들기 → 🧻 떡메모지 만들기) : 같은 창을 떡메 모양으로 써요 (lm.for = 'tk')
    - 한 장 크기는 기본 떡메와 같아요 (150 × 148 · 그림은 2배로 그려요) · 링 구멍 대신 위에 🩷 풀칠 띠 색을 골라요
-   - 📌 떡메 묶음으로 꺼내기 : 바로 묶음이 나와서 뜯어 붙여요 · 💾 떡메모지 만들기 : 내가만든 칸에 저장만
-   - 내가만든 떡메 : 로그인하면 내 드라이브 말랑달콤 / 스티커 / 떡메 / 내떡메 · 둘러보기면 이 기기 (js/coll.js)
    - 페이지에 붙은 한 장은 글 + 그림 그대로 그날 파일에 저장돼요 (tk: 'my' · tb · 인수인계 12번) */
 
         const LM_W = 900;
@@ -22,52 +19,6 @@
         const lm = { built: false, for: 'leaf', glue: '', tab: 'photo', w: LM_W, h: 1400, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, paper: 'page', guide: 'plain',
             pen: LM_PENS[0], size: 7, erase: false, ink: null, undo: [], drag: null };
         const lmq = id => document.getElementById(id);
-        const lmColl = () => stkColl('leaf', false);                  // 📃 내가만든 속지 (js/coll.js)
-        const lmOk = u => /^data:image\/(jpeg|png|webp)/.test(u || '');
-        const tkColl = () => stkColl('tk', false);                     // 🧻 내가만든 떡메 (js/coll.js)
-
-        /* ---------- 📃 속지 창 → 내가만든 칸 ---------- */
-        function lmMine(box) {
-            const C = lmColl(), cur = collHash(typeof pageLeafImg !== 'undefined' ? pageLeafImg : '');
-            C.onChange = () => { if (box.isConnected && box.dataset.lm) lmMine(box); };
-            box.dataset.lm = '1';
-            box.innerHTML = `${window.shxBar ? shxBar('leaf') : ''}<div class="lf-picks"><button type="button" class="lf-pick lm-new" onclick="closeModal('leafModal'); openLeafMaker()"><i class="lf-sw"><b>＋</b></i>속지 만들기</button><div class="cg-host"></div></div>`;
-            return collGrid(box.querySelector('.cg-host'), C,
-                e => `<div class="lm-it" data-shx="${e.id}" data-id="${e.id}"><button type="button" class="lf-pick${e.x.h === cur ? ' on' : ''}" onclick="lmUse('${e.id}')"><i class="lf-sw lf-my" style="--lf-img:url('${e.th}')"></i>내 속지</button><i onclick="lmDel('${e.id}')" title="지우기">✕</i></div>`,
-                '<p class="svc-tip">아직 만든 속지가 없어요. <b>＋ 속지 만들기</b>로 사진을 깔거나 직접 그려 보세요!</p>');
-        }
-        async function lmUse(id) {
-            let l = null;
-            try { l = await collItem(lmColl(), id); } catch (e) {}
-            if (l && lmOk(l.src)) { if (window.pickLeaf) pickLeaf('my', l.src); }
-            else showMsg('⚠ 이 속지를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>');
-        }
-        /* ---------- 🧻 떡메모지 창 → 내가만든 칸 ---------- */
-        function tkMine(box) {
-            const C = tkColl();
-            C.onChange = () => { if (box.isConnected && box.dataset.tkm) tkMine(box); };
-            box.dataset.tkm = '1';
-            box.innerHTML = `${window.shxBar ? shxBar('tk') : ''}<div class="tk-list"><button type="button" class="tk-it tk-new" onclick="closeModal('tteokModal'); openTteokMaker()"><span class="tk-plus">＋</span><b>떡메모지 만들기</b></button><div class="cg-host"></div></div>`;
-            return collGrid(box.querySelector('.cg-host'), C,
-                e => `<div class="lm-it" data-shx="${e.id}" data-id="${e.id}"><button type="button" class="tk-it" onclick="tkMineUse('${e.id}')">${tkMiniHtml('my', { src: e.th, glue: e.x && e.x.g })}<b>내 떡메</b></button><i onclick="tkMineDel('${e.id}')" title="지우기">✕</i></div>`,
-                '<p class="svc-tip" style="grid-column:1/-1">아직 만든 떡메가 없어요. <b>＋ 떡메모지 만들기</b>로 사진을 깔거나 직접 그려 보세요!</p>');
-        }
-        async function tkMineUse(id) {
-            let t = null;
-            try { t = await collItem(tkColl(), id); } catch (e) {}
-            if (t && lmOk(t.src)) tkUseMy({ src: t.src, glue: t.glue || '' });
-            else showMsg('⚠ 이 떡메를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>');
-        }
-        async function tkMineDel(id) {
-            if (!(await showMsg('이 떡메를 내가만든 칸에서 지울까요?<br><span style="font-size:12px;color:#777;">이미 붙인 떡메는 그대로 남아요.</span>', true))) return;
-            await collRemove(tkColl(), id);
-            tkMine(lmq('tkOther'));
-        }
-        async function lmDel(id) {
-            if (!(await showMsg('이 속지를 내가만든 칸에서 지울까요?<br><span style="font-size:12px;color:#777;">이미 끼운 페이지의 속지는 그대로 남아요.</span>', true))) return;
-            await collRemove(lmColl(), id);
-            lmMine(lmq('leafOther'));
-        }
 
         /* ---------- 만들기 창 ---------- */
         function lmBuild() {
@@ -100,7 +51,7 @@
             lmq('leafMakeModal').querySelector('.lm-content').classList.toggle('lm-tk', T);
             lmq('lmTitle').textContent = T ? '🧻 떡메모지 만들기' : '📃 속지 만들기';
             lmq('lmGo').textContent = T ? '📌 떡메 묶음으로 꺼내기' : '📃 오늘 페이지에 끼우기';
-            lmq('lmKeep').textContent = T ? '💾 떡메모지 만들기' : '💾 속지 만들기';
+            lmq('lmKeep').textContent = '🧺 바구니에 넣기';
             lmGlueShow();
             const ca = lmq('canvasArea'), r = ca && ca.getBoundingClientRect();
             if (T) { lm.w = LM_TK_W; lm.h = LM_TK_H; }
@@ -189,48 +140,30 @@
         function lmUndo() { const s = lm.undo.pop(); if (!s) return; lm.ink.getContext('2d').putImageData(s, 0, 0); lmDraw(); }
         function lmClear() { lm.undo.push(lm.ink.getContext('2d').getImageData(0, 0, lm.w, lm.h)); lm.ink.getContext('2d').clearRect(0, 0, lm.w, lm.h); lmDraw(); }
 
-        /* ---------- 다 만들었어요 : 오늘 페이지에 끼우고 내가만든 칸에 넣어요 ---------- */
-        async function lmDone(btn, keep) {                              // keep : 💾 내가만든 칸에 저장만 (오늘 페이지는 그대로)
+        /* ---------- 다 만들었어요 : 🧺 바구니에 넣고 · 끼우기면 바로 꺼내 써요 ---------- */
+        async function lmDone(btn, keep) {                              // keep : 🧺 바구니에 넣기만 (오늘 페이지는 그대로)
             if (btn && btn.disabled) return;
             const c = document.createElement('canvas'); c.width = lm.w; c.height = lm.h; lmCompose(c.getContext('2d'));
             const src = c.toDataURL('image/jpeg', lm.for === 'tk' ? .9 : .86);
             if (lm.for === 'tk') return tkDone(btn, keep, src);
+            return lmOwn(btn, keep, { k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my' } }, '📃 속지');   // 🎒 만든 속지 한 장 = 🧺 바구니로 (끼우면 끝)
+        }
+        /* 🎒 만든 것 → 🧺 바구니 (keep : 넣기만 · 아니면 바로 꺼내 쓰기 · js/own.js) */
+        async function lmOwn(btn, keep, d, name) {
             if (btn) btn.disabled = true;
-            let saved = true;
-            try { await collAdd(lmColl(), { src }, await collThumb(src), { h: collHash(src) }); }   // 화면은 바로 · 드라이브는 뒤에서
-            catch (e) { saved = false; }
-            if (btn) btn.disabled = false;
-            if (keep) {
-                if (!saved) { showMsg('⚠ 내가만든 칸에 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 뒤 다시 눌러 주세요.</span>'); return; }
-                closeModal('leafMakeModal');
-                showMsg(`💾 내가만든 칸에 저장했어요!<br><span style="font-size:12px;color:#777;">✨ 스티커 → 📃 속지 → 내가만든 칸에서 끼울 수 있어요.</span>`);
-                return;
-            }
+            let id = '';
+            try { id = await ownTake(d); }
+            catch (e) { showMsg('⚠ 바구니에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
+            finally { if (btn) btn.disabled = false; }
             closeModal('leafMakeModal');
-            if (window.pickLeaf) pickLeaf('my', src);
-            showMsg(saved ? `📃 오늘 페이지 속지로 끼웠어요!<br><span style="font-size:12px;color:#777;">✨ 스티커 → 📃 속지 → 내가만든 칸에서 다른 날에도 쓸 수 있어요.</span>`
-                : '📃 오늘 페이지 속지로 끼웠어요!<br><span style="font-size:12px;color:#777;">⚠ 내가만든 칸에는 저장하지 못했어요.</span>');
+            if (!keep && window.bkOpenSheet) { bkOpenSheet(id); return; }
+            showMsg(`${name}를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🧺 내 바구니에서 꺼내 써요.</span>`);
         }
 
-        /* 🧻 떡메 : 내가만든 칸에 넣고 · 📌 이면 바로 묶음으로 */
-        async function tkDone(btn, keep, src) {
-            const glue = lm.glue;
-            if (btn) btn.disabled = true;
-            let saved = true;
-            try { await collAdd(tkColl(), { src, glue }, await collThumb(src), { h: collHash(src + glue), g: glue }); }
-            catch (e) { saved = false; }
-            if (btn) btn.disabled = false;
-            if (keep) {
-                if (!saved) { showMsg('⚠ 내가만든 칸에 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 뒤 다시 눌러 주세요.</span>'); return; }
-                closeModal('leafMakeModal');
-                showMsg(`💾 내가만든 칸에 저장했어요!<br><span style="font-size:12px;color:#777;">✨ 스티커 → 🧻 떡메모지 → 내가만든 칸에서 꺼낼 수 있어요.</span>`);
-                return;
-            }
-            closeModal('leafMakeModal');
-            tkUseMy({ src, glue });
-            if (!saved) showMsg('⚠ 내가만든 칸에는 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">이 묶음은 지금 바로 뜯어 쓸 수 있어요.</span>');
+        /* 🧻 떡메 : 🧺 바구니에 넣고 · 📌 이면 바로 묶음으로 */
+        async function tkDone(btn, keep, src) {                         // 🎒 만든 떡메 한 묶음(50장) = 🧺 바구니로
+            return lmOwn(btn, keep, { k: 'tk', from: 'mine', imgs: [src], x: { pad: 'my', glue: lm.glue || '' } }, '🧻 떡메');
         }
 
         window.openLeafMaker = openLeafMaker; window.openTteokMaker = openTteokMaker;
-        window.tkMine = tkMine; window.tkMineUse = tkMineUse; window.tkMineDel = tkMineDel; window.lmTab = lmTab; window.lmUndo = lmUndo; window.lmClear = lmClear; window.lmDone = lmDone;
-        window.lmMine = lmMine; window.lmUse = lmUse; window.lmDel = lmDel;
+        window.lmTab = lmTab; window.lmUndo = lmUndo; window.lmClear = lmClear; window.lmDone = lmDone;
