@@ -519,7 +519,7 @@
         }],
         memo: ['메모지', async () => (window.sbShelf ? await sbShelf('memo') : []).concat((window.memoShelf ? memoShelf() : []).map(p => ({ cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } })))],
         tool: ['정리 도구', async () => {                                       // 🗂️ 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
-            const out = AB_COL.map((c, i) => ({ cnt: `속지 10장 · ${AB_BD_N}칸`, look: 'binder', c: i, tool: 'bd' }));
+            const out = AB_COL.map((c, i) => ({ cnt: `속지 10장 · 시트 ${AB_BD_N}장 꽂아요`, desc: `한 쪽에 ${AB_PER}포켓 · 앞뒤 ${AB_BD_N / AB_PER}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', c: i, tool: 'bd' }));
             out.push({ cnt: `이형지 ${AB_RL_N}쪽 · 스티커 ${AB_RL_N * (window.OWN_REL_MAX || 24)}개`, desc: `한 쪽에 ${window.OWN_REL_MAX || 24}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', tool: 'rl' });
             return out;
         }],
