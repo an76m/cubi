@@ -264,10 +264,25 @@
     /* 📒 스티커첩 탭은 정리한 스티커가 하나라도 생기면 보여요 (처음엔 🧺 바구니만 · 도련 10-25) */
     const abHasAlbum = () => !!B.album && (abMine(B.album.bd).some(b => Object.keys(b.p || {}).length) || abMine(B.album.rl).some(r => (r.it || []).length));
     const abErr = e => { console.warn(e); showMsg('⚠ 정리하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); };
-    async function abDo(p) {
+    /* 저장하는 동안 알려 줘요 (앱이 멈춘 게 아니에요 · 도련 10-25) : msg = 하는 중 · ok = 끝났어요 */
+    async function abDo(p, msg, ok) {
         AB.busy = true; const b = bq('abBody'); if (b) b.classList.add('busy');
-        try { return await p; } catch (e) { abErr(e); bkRender(true); } finally { AB.busy = false; const b2 = bq('abBody'); if (b2) b2.classList.remove('busy'); }
+        if (msg) abToast(msg, 'on');
+        try { const r = await p; if (msg) abToast(ok || '✓ 저장했어요', 'ok'); return r; }
+        catch (e) { if (msg) abToast('', 'off'); abErr(e); bkRender(true); }
+        finally { AB.busy = false; const b2 = bq('abBody'); if (b2) b2.classList.remove('busy'); }
     }
+    function abToast(t, kind) {
+        let el = bq('abToast');
+        if (!el) { el = document.createElement('div'); el.id = 'abToast'; el.className = 'ab-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
+        clearTimeout(AB.toastT);
+        if (kind === 'off') { el.classList.remove('show'); return; }
+        el.innerHTML = (kind === 'on' ? '<i class="ab-spin" aria-hidden="true"></i>' : '') + esc(t);
+        el.classList.toggle('ok', kind === 'ok'); el.classList.add('show');
+        if (kind === 'ok') AB.toastT = setTimeout(() => el.classList.remove('show'), 1200);
+    }
+    /* 화면은 바로 바꾸고(기다리지 않게) 저장은 뒤에서 · 실패하면 드라이브 모습으로 되돌아가요 */
+    function abNow(fn) { try { fn(B.album, B.all); } catch (e) {} abSplit(); bkView(); }
     function abOpen(v, id) { B.cur = id; B.pg = 0; bkView(v); }
     const abChip = b => { const c = abCol(b); return `<i class="ab-chip" style="--c1:${c[0]};--c2:${c[1]}"></i>`; };
 
@@ -311,8 +326,8 @@
             + abBinderHtml(b, false) + '<p class="bk-note">종이를 톡 = 꺼내 쓰기 · 뗀 자리는 비어요 · 다 쓴 종이는 저절로 빠져요</p>';
         bq('abPage').onclick = ev => { const c = ev.target.closest('.bk-sh'); if (c) bkOpenSheet(c.dataset.id); };
     }
-    function abLabel(t, id, v) { abDo(ownAlbum(a => { const x = (t === 'bd' ? a.bd : a.rl).find(o => o.id === id); if (x) x.lb = String(v || '').trim().slice(0, 8); })); }
-    function abColor(id) { abDo(ownAlbum(a => { const b = a.bd.find(o => o.id === id); if (b) b.c = ((b.c || 0) + 1) % AB_COL.length; })); }
+    function abLabel(t, id, v) { const fn = a => { const x = (t === 'bd' ? a.bd : a.rl).find(o => o.id === id); if (x) x.lb = String(v || '').trim().slice(0, 8); }; abNow(fn); abDo(ownAlbum(fn), '🏷️ 라벨 붙이는 중…', '✓ 라벨을 붙였어요'); }
+    function abColor(id) { const fn = a => { const b = a.bd.find(o => o.id === id); if (b) b.c = ((b.c || 0) + 1) % AB_COL.length; }; abNow(fn); abDo(ownAlbum(fn), '🎨 표지 바꾸는 중…', '✓ 표지를 바꿨어요'); }
 
     /* 🤍 이형지 : 톡 = 꺼내 쓰기 · 끌기 = 자리 옮기기 */
     function abRelItems(r, pg) {
@@ -406,20 +421,31 @@
     function abPutSheet(id, pk) {
         const D = B.desk; if (!D || AB.busy) return;
         D.pick = '';
-        abDo(ownAlbum(a => {
-            const b = a.bd.find(x => x.id === D.bd); if (!b || b.p[pk]) return;
+        const bd = D.bd, fn = a => {
+            const b = a.bd.find(x => x.id === bd); if (!b || b.p[pk]) return;
             a.bd.forEach(x => Object.keys(x.p).forEach(i => { if (x.p[i] === id) delete x.p[i]; }));
             b.p[pk] = id;
-        }));
+        };
+        abNow(fn);
+        abDo(ownAlbum(fn), '📒 바인더에 꽂는 중…', '✓ 바인더에 꽂았어요');
     }
-    function abTakeOut(pk) { const D = B.desk; if (!D || AB.busy) return; abDo(ownAlbum(a => { const b = a.bd.find(x => x.id === D.bd); if (b) delete b.p[pk]; })); }
+    function abTakeOut(pk) {
+        const D = B.desk; if (!D || AB.busy) return;
+        const bd = D.bd, fn = a => { const b = a.bd.find(x => x.id === bd); if (b) delete b.p[pk]; };
+        abNow(fn);
+        abDo(ownAlbum(fn), '🧺 바구니로 빼는 중…', '✓ 바구니로 뺐어요');
+    }
     async function abPutSt(slot, cx, cy, box) {
         const D = B.desk; if (!D || !D.sheet || AB.busy || D.sheet.imgs[slot] == null) return;
         const r = box.getBoundingClientRect();
         const pos = { x: Math.max(.08, Math.min(.92, (cx - r.left) / r.width)), y: Math.max(.1, Math.min(.9, (cy - r.top) / r.height)), r: Math.round((Math.random() - .5) * 24) };
         const src = D.sheet.id; D.sel = -1;
         pos.pg = D.rpg || 0;
-        const nid = await abDo(ownRelMove(src, slot, D.rl, pos));
+        const img = D.sheet.imgs[slot], tmp = 'tmp' + Date.now(), rel = abRlOf(D.rl);   // 화면에는 바로 붙여 보여요
+        D.sheet.imgs[slot] = null;
+        if (rel) { B.byId.set(tmp, { id: tmp, th: img }); rel.it.push({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }); }
+        bkView();
+        const nid = await abDo(ownRelMove(src, slot, D.rl, pos), '🤍 이형지북에 붙이는 중…', '✓ 이형지북에 붙였어요');
         if (nid === undefined) { D.sheet = null; return; }                       // 실패 (알림은 abDo)
         if (!nid) { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); D.sheet = null; bkRender(true); return; }
         if (B.desk && B.desk.sheet && B.desk.sheet.id === src) { B.desk.sheet.imgs[slot] = null; if (!B.desk.sheet.imgs.some(u => u != null)) { B.desk.pick = ''; B.desk.sheet = null; } }
@@ -463,7 +489,9 @@
             d.it.classList.remove('lift');
             if (!ok) return;
             if (!d.on) { bkOpenSheet(d.id); return; }
-            abDo(ownAlbum(a => { const r = a.rl.find(x => x.id === d.rid), t = r && r.it.find(o => o.s === d.id); if (t) { t.x = d.x; t.y = d.y; } }));
+            const fn = a => { const r = a.rl.find(x => x.id === d.rid), t = r && r.it.find(o => o.s === d.id); if (t) { t.x = d.x; t.y = d.y; } };
+            try { fn(B.album); } catch (e) {}
+            abDo(ownAlbum(fn), '자리 옮기는 중…', '✓ 자리를 옮겼어요');
             return;
         }
         if (!ok) return;
