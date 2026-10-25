@@ -4033,8 +4033,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .bk-roll { position: relative; display: block; width: 74px; height: 74px; border-radius: 50%; background: #fffaf2; box-shadow: 0 2px 6px rgba(110,80,95,.25); }
 .bk-roll i { position: absolute; inset: 0; border-radius: 50%; background-size: auto 30px; background-repeat: repeat; -webkit-mask: radial-gradient(circle, transparent calc(36px - 22px * var(--q, 1)), #000 calc(37px - 22px * var(--q, 1))); mask: radial-gradient(circle, transparent calc(36px - 22px * var(--q, 1)), #000 calc(37px - 22px * var(--q, 1))); }
 .bk-roll::after { content: ''; position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px; border-radius: 50%; background: #e9d2b0; box-shadow: inset 0 0 0 4px #d9b98c; }
-.bk-pad { position: relative; display: block; padding-bottom: calc(10px * var(--q, 1)); }
-.bk-pad::after { content: ''; position: absolute; left: 3px; right: 3px; bottom: 0; height: calc(10px * var(--q, 1)); border-radius: 0 0 6px 6px; background: repeating-linear-gradient(#fffdf8 0 2px, #e6dccd 2px 3px); box-shadow: 0 2px 4px rgba(110,80,95,.2); }
+.bk-pad { position: relative; display: block; }
 .bk-pad .tk-mini { pointer-events: none; }
 .bk-memo { width: 74px; }
 .bk-memo .pp-chip, .bk-memo img { display: block; width: 74px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(110,80,95,.2); }
@@ -4411,3 +4410,8 @@ body.dsk-on #dskLayer { z-index: 1660; }
 .dsk.big .dsk-say { display: block; position: absolute; left: 50%; top: 100%; translate: -50% 0; margin-top: 4px; padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,.95); color: #b23b6c; font-size: 12px; font-weight: 800; text-align: center; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
 
 .dsk .bk-sh.k-tape, .dsk .bk-sh.k-leaf, .dsk .bk-sh.k-memo, .dsk .bk-sh.k-tk { display: flex; justify-content: center; align-items: center; }
+/* 🔢 남은 길이 (마테 · 심 가운데) · 남은 장수 (떡메 · 메모지 · 위쪽) (도련 10-26 · 아래 하얀 두께 덩어리는 지웠어요) */
+.bk-qty { position: absolute; z-index: 2; padding: 1px 6px; border-radius: 8px; background: rgba(255,255,255,.95); border: 1px solid rgba(123,90,99,.4); color: #8a4a64; font-size: 10.5px; font-weight: 800; font-style: normal; line-height: 1.3; white-space: nowrap; pointer-events: none; }
+.bk-roll .bk-qty { left: 50%; top: 50%; translate: -50% -50%; }
+.bk-qty.top { left: 50%; top: -7px; translate: -50% 0; }
+
