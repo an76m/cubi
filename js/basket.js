@@ -281,7 +281,7 @@
     /* 저장하는 동안 알려 줘요 (앱이 멈춘 게 아니에요 · 도련 10-25) : msg = 하는 중 · ok = 끝났어요 */
     async function abDo(p, msg, ok) {                                         // 기다리게 하지 않아요 (저장하는 동안에도 계속 정리해요)
         if (msg) abToast(msg, 'on');
-        try { const r = await p; if (msg && !AB.pend.length && !AB.fly) abToast(ok || '✓ 저장했어요', 'ok'); return r; }
+        try { const r = await p; if (msg && !AB.pend.length && !AB.fly) abToast(ok || '저장됨', 'ok'); return r; }
         catch (e) { if (msg) abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); }
     }
     /* 💾 모아서 한 번에 저장 (도련 10-25) : 꽂기 · 빼기 · 라벨 · 표지 · 자리 옮기기는 화면에 바로 → 손을 멈추고 1.2초 뒤(또는 다 했어요 · 창 닫기) 한 번에
@@ -291,12 +291,11 @@
         try { fn(B.album); } catch (e) {}
         AB.pend.push(fn); B.sig = bkSig();
         clearTimeout(AB.flushT); AB.flushT = setTimeout(abFlush, 1200);
-        abToast('정리 중… (손을 멈추면 저장해요)', 'on');
     }
     async function abFlush() {
         clearTimeout(AB.flushT);
         if (AB.fly || AB.relFly || (!AB.pend.length && !AB.rel.length) || !window.ownAlbum) return;
-        abToast('💾 저장하는 중…', 'on');
+        abToast('저장 중', 'on');
         if (AB.pend.length) {
             const fns = AB.pend; AB.pend = []; AB.fly = fns;
             try { await ownAlbum(a => fns.forEach(fn => { try { fn(a); } catch (e) {} })); AB.fly = null; }
@@ -310,7 +309,7 @@
                 if (ids.some(x => !x)) { showMsg('이미 썼거나 자리가 없는 스티커는 붙이지 못했어요.'); B.sig = ''; bkRender(true); }
             } catch (e) { AB.relFly = null; abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
         }
-        if (!AB.pend.length && !AB.rel.length) abToast('✓ 저장했어요', 'ok');
+        if (!AB.pend.length && !AB.rel.length) abToast('저장됨', 'ok');
         else AB.flushT = setTimeout(abFlush, 300);
     }
     function abReapply() {
@@ -327,9 +326,9 @@
         if (!el) { el = document.createElement('div'); el.id = 'abToast'; el.className = 'ab-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
         clearTimeout(AB.toastT);
         if (kind === 'off') { el.classList.remove('show'); return; }
-        el.innerHTML = (kind === 'on' ? '<i class="ab-spin" aria-hidden="true"></i>' : '') + esc(t);
+        el.innerHTML = (kind === 'on' ? '<i class="ab-spin" aria-hidden="true"></i>' : '☁ ') + esc(t);   // ☁ 작은 표시 (페이지 저장처럼 조용히 · 도련 10-25)
         el.classList.toggle('ok', kind === 'ok'); el.classList.add('show');
-        if (kind === 'ok') AB.toastT = setTimeout(() => el.classList.remove('show'), 1200);
+        if (kind === 'ok') AB.toastT = setTimeout(() => el.classList.remove('show'), 900);
     }
     /* 화면은 바로 바꾸고(기다리지 않게) 저장은 뒤에서 · 실패하면 드라이브 모습으로 되돌아가요 */
     function abNow(fn) { try { fn(B.album, B.all); } catch (e) {} abSplit(); bkView(); B.sig = bkSig(); }
@@ -496,7 +495,6 @@
         B.sig = bkSig();
         if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
         clearTimeout(AB.flushT); AB.flushT = setTimeout(abFlush, 1200);
-        abToast('정리 중… (손을 멈추면 저장해요)', 'on');
     }
     function abSay(el, t) { const s = el.querySelector('span'); if (!s) return; const o = s.textContent; s.textContent = t; setTimeout(() => { if (s.isConnected) s.textContent = o; }, 1300); }
     async function abLoadSheet(id) {

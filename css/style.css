@@ -4324,4 +4324,9 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .obj-win .st2-slot { position: relative; z-index: 2; }
 .obj-win .st2-slot::before { content: ''; position: absolute; left: 50%; top: -6px; width: 104px; height: 84px; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, .7), rgba(255, 255, 255, .35) 55%, rgba(255, 255, 255, 0)); pointer-events: none; }
 .obj-win .st2-slot > .st2-goods { position: relative; z-index: 1; }
+/* ☁ 수납함 저장 표시는 작고 조용하게 (도련 10-25 · 페이지 저장처럼 신경 안 쓰이게) : 오른쪽 위 작은 알약 */
+.ab-toast { left: auto; right: max(12px, env(safe-area-inset-right)); bottom: auto; top: calc(12px + env(safe-area-inset-top, 0px)); max-width: 60vw; padding: 4px 10px; gap: 5px; border-radius: 12px; font-size: 11.5px; background: rgba(94,66,80,.55); transform: translate(0, -6px); }
+.ab-toast.show { opacity: .9; transform: translate(0, 0); }
+.ab-toast.ok { background: rgba(94,66,80,.45); }
+.ab-toast .ab-spin { width: 10px; height: 10px; border-width: 1.5px; }
 
