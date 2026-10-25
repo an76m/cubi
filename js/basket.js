@@ -822,7 +822,7 @@
     }
     function shCard(x, i) {
         return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
-            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button>${SH.got && SH.got.has(i) ? '<button type="button" class="sh-take sh-get got" disabled>✓ 바구니에 쏙</button>' : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">🧺 받기</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
+            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shInto()}', 0)">✓ 바구니에 쏙</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">🧺 받기</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (진열대 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
@@ -838,6 +838,7 @@
             + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">🧺 받기</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div></div>`;
         z.hidden = false;
     }
+    const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
         shZoomOff(); closeModal('shelfKindModal');
         bkOpenKind(k);
@@ -855,7 +856,7 @@
             if (x.def) await ownTake(x.def);
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
-            btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙';
+            btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙'; btn.disabled = false; btn.onclick = () => shGoSee(shInto(), 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             (SH.got || (SH.got = new Set())).add(i);                            // 창을 닫았다 열면 다시 받기
         } catch (e) {
             console.warn(e);
