@@ -374,14 +374,14 @@
         const STK_BLINK = 700;
         let stkBackOn = false;
         function stkLeave() {                                              // 🧺 바구니 → 떼는 창으로 (바구니가 떠 있을 때만 돌아올 자리로 기억)
-            const m = smq('basketModal'); if (!m || m.style.display !== 'flex') return;
-            closeModal('basketModal'); stkBackOn = true;
+            const m = smq('basketKindModal'); if (!m || m.style.display !== 'flex') return;
+            closeModal('basketKindModal'); stkBackOn = true;
         }
         function stkReturn(delay) {
             if (!stkBackOn) return; stkBackOn = false;
             setTimeout(() => {
                 if (document.body.classList.contains('fc-lock') || [...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex')) return;   // 그사이 다른 창이 떴으면 그대로
-                if (window.openBasket) openBasket();
+                if (window.bkReopen) bkReopen(); else if (window.openBasket) openBasket();   // 보던 종류 바구니로
             }, delay || 280);
         }
         function stkBlink() { stkLeave(); stkReturn(STK_BLINK); }

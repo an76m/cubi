@@ -3713,7 +3713,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1.5초) */
 /* ☕ 카페에 있는 동안은 손에 든 문구를 숨겨요 (js/settings.js · 도련 10-21) */
 body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
-body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
+body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
    🚪 스티커 떼는 창(흰 종이 · 조각 봉투 · 포인트 판)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
 
@@ -3971,8 +3971,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ct-room .snd-fx.ct-snd { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 54px; z-index: 2; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 📒 수첩 .snb-on 과 같게 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
-#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #shelfModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
-#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #shelfModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
+#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
+#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
 
 /* 📄 모조지스티커 기본 칸 : 위 줄 모양 · 배경 / 아래 줄 카테고리 (js/stk-basic.js sbCatsPaper · 📒 수첩 제목 아래에도 그대로 · 도련 10-23) */
 
@@ -4014,16 +4014,16 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 🧺 바구니 : 뒷벽 · 종이 더미 · 앞 테두리(종이 아래쪽이 바구니 안에 쏙 들어간 것처럼) */
 .bk-content { width: min(94vw, 460px); }
 .bk-wrap { position: relative; }
-.bk-bin { --wv1: #f3cf98; --wv2: #e7b878; --wv3: #d49c58; position: relative; width: 100%; max-width: 420px; height: clamp(260px, 46vh, 360px); margin: 4px auto 2px; }
-.bk-bin::before { content: ''; position: absolute; left: 3%; right: 3%; top: 30%; bottom: 2%; border-radius: 26px 26px 34px 34px; box-shadow: inset 0 14px 22px rgba(120,70,30,.35);
-    background: repeating-linear-gradient(45deg, var(--wv3) 0 6px, var(--wv2) 6px 12px), var(--wv2); background-blend-mode: multiply; opacity: .55; }
-.bk-pile { position: absolute; left: 5%; right: 5%; top: 10%; bottom: 6%; touch-action: none; }
-.bk-front { position: absolute; left: 0; right: 0; bottom: 0; height: 34%; z-index: 100000; pointer-events: none; border-radius: 10px 10px 36px 36px;
-    background: repeating-linear-gradient(90deg, transparent 0 13px, rgba(160,105,45,.28) 13px 15px), repeating-linear-gradient(0deg, var(--wv1) 0 9px, var(--wv2) 9px 18px);
-    box-shadow: inset 0 -10px 18px rgba(150,95,40,.25), 0 6px 14px rgba(120,80,60,.18); }
-.bk-front::before { content: ''; position: absolute; left: -2%; right: -2%; top: -7px; height: 15px; border-radius: 9px; background: linear-gradient(#fbe3b9, #ecc285); box-shadow: 0 2px 4px rgba(150,95,40,.25); }
-.bk-front span { position: absolute; right: 16px; bottom: 12px; background: #fffaf2; color: #8a6450; font-size: 11.5px; font-weight: 800; padding: 2px 9px; border-radius: 4px; transform: rotate(-4deg); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-.bk-bin.empty { height: 190px; }
+/* 🧺 위에서 내려다본 바구니 (도련 10-25) : 둘레 = 땋은 테두리 · 안 = 엮은 바닥 전체가 종이 놓는 자리 */
+.bk-bin { position: relative; width: 100%; max-width: 440px; height: clamp(340px, 60vh, 520px); margin: 4px auto 2px; border-radius: 30px;
+    background: repeating-linear-gradient(45deg, rgba(255,240,210,.55) 0 4px, transparent 4px 9px), repeating-linear-gradient(-45deg, #f1c98e 0 5px, #dcaa68 5px 10px);
+    box-shadow: inset 0 2px 0 rgba(255,246,226,.9), inset 0 -3px 0 rgba(170,110,50,.35), 0 6px 14px rgba(120,80,60,.2); }
+.bk-bin::before { content: ''; position: absolute; inset: 13px; border-radius: 20px;
+    background: repeating-linear-gradient(45deg, #d8a77b 0 6px, #e0b38b 6px 12px);
+    box-shadow: inset 0 0 0 1.5px rgba(160,100,45,.35), inset 0 6px 16px rgba(120,70,30,.32), inset 0 -4px 10px rgba(120,70,30,.18); }
+.bk-pile { position: absolute; inset: 18px; touch-action: none; }
+.bk-tag { position: absolute; right: 20px; bottom: 4px; z-index: 100000; pointer-events: none; background: #fffaf2; color: #8a6450; font-size: 11.5px; font-weight: 800; padding: 2px 9px; border-radius: 4px; transform: rotate(-4deg); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.bk-bin.empty { height: 200px; }
 .bk-sh { position: absolute; left: 0; top: 0; width: 86px; padding: 6px; border: 1px solid #ece6ee; border-radius: 9px; background: linear-gradient(135deg, #fdfdff, #f4f6fb);
     box-shadow: 0 2px 6px rgba(110,80,95,.22); transform: rotate(var(--r, 0deg)); cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .bk-sh.one { width: 74px; }
@@ -4081,7 +4081,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .spk-it.used::after { content: ''; width: 58%; height: 70%; border-radius: 8px; background: rgba(214,206,222,.3); outline: 1.2px dashed rgba(190,178,200,.6); outline-offset: -2px; }   /* 🎒 뗀 자국 */
 /* 🏪 진열대 종류 창 (10-25) : 카테고리 없이 한 매대 · 🔍 확대 */
 .sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 14px 10px; padding: 8px 4px 4px; }
-.sh-grid .sh-item { flex: none; padding-bottom: 12px; background: linear-gradient(transparent calc(100% - 8px), #ecca95 calc(100% - 8px), #d9ae70 100%); }
+.sh-grid .sh-item { flex: none; padding-bottom: 12px; border-bottom: 2px dashed #f6c3d5; }   /* 매대 줄 = 핑크 점선 (도련 10-25 · 갈색 막대 대신) */
 .sh-look { display: flex; justify-content: center; width: 100%; padding: 0; border: 0; background: none; font: inherit; cursor: zoom-in; }
 .sh-look:active { transform: scale(.97); }
 .sh-zoom { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 14px; border-radius: inherit; background: rgba(255, 250, 247, .94); }

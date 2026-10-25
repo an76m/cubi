@@ -148,6 +148,7 @@
             if (full.ts) ent.ts = 1;
             if (meta && meta.us) ent.us = meta.us.slice(0, 40);
             if (meta && meta.th) ent.th = meta.th;
+            if (sheet.b) ent.b = sheet.b;                                         // 들어갈 바구니 (😀 이모지는 씰이지만 이모지 바구니로)
             if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg };   // 바구니 모양 (떡메 종류 · 속지 무늬 · 메모지 모양)
             return ownSerial(async () => {
                 ent.f = await ownFileNew(full);
@@ -297,7 +298,7 @@
         async function ownTake(d) {
             const imgs = (d.imgs || []).slice();
             const th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));   // noTh : 바구니가 모양을 직접 그려요 (그린 떡메 · 속지 · 메모지)
-            return ownAdd({ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'point' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0 },
+            return ownAdd({ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'point' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b },
                 Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {}));
         }
         /* 실패 이유 → 알림 글 */

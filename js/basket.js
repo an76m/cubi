@@ -1,6 +1,7 @@
 /* 말랑달콤 다이어리 - js/basket.js
    🧺 내 바구니 · 🏪 진열대 (도련 10-25 · 유한 스티커 · 저장 · 쓰기는 js/own.js)
-   - ✨ 스티커 창 → 🧺 내 바구니 : 받거나 만든 스티커 종이가 바구니에 마구 쌓여요 (정리 · 카테고리 · 찾기 · 이름 없음 = 진짜 바구니처럼)
+   - ✨ 스티커 창 → 🧺 내 바구니 : 종류 아이콘 8개 → 종류마다 바구니 하나 (도련 10-25 · 온갖 종류가 한데 섞이지 않게) · 위에서 내려다본 바구니
+   - 바구니 안 : 받거나 만든 스티커 종이가 마구 쌓여요 (정리 · 카테고리 · 찾기 · 이름 없음 = 진짜 바구니처럼)
        · 종이는 살짝 기울고 겹쳐 쌓여요 · 새로 들어온 종이가 맨 위
        · 종이를 끌면 옆으로 치워져요(맨 위로) → 아래 깔린 종이를 찾아요 · 🔀 뒤적이기 = 통째로 휘저어 섞기
        · 종이를 톡 = 그 종이가 하얀 떼는 창으로 나와요 (뗀 자리는 비어 있어요 · js/stickerpeel.js) → 붙이면 그 칸은 영원히 사라져요
@@ -19,7 +20,9 @@
     const bq = id => document.getElementById(id);
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     const BK_LAY = 'malang_bk_lay', BK_MAX = 150;
-    const B = { list: [], opening: '', lay: null, drag: null, top: 0 };
+    const B = { list: [], all: [], kind: '', opening: '', lay: null, drag: null, top: 0 };   // list = 지금 연 바구니(한 종류) · all = 모든 종이
+    const BK_KINDS = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지', memo: '메모지' };
+    const bkKindOf = e => e.b || (e.k === 'point' ? 'seal' : e.k);           // 들어갈 바구니 (😀 이모지는 b · 옛 포인트는 씰 · 🌸 계절 · 🎁 캡슐 = 씰)
     const vis = id => { const m = bq(id); return !!m && m.style.display === 'flex'; };
 
     /* ---------- 종이 자리 (이 기기에만 : { o : [아래 → 위 id], p : { id : [x, y, 기울기] } }) ---------- */
@@ -32,11 +35,13 @@
         return B.lay;
     }
     function bkLaySave() {
-        const L = bkLay(), ids = new Set(B.list.map(e => e.id));
+        const L = bkLay(), ids = new Set(B.all.map(e => e.id));
         L.o = L.o.filter(id => ids.has(id)); Object.keys(L.p).forEach(id => { if (!ids.has(id)) delete L.p[id]; });   // 다 쓴 종이는 잊어요
         if (bkWho() === 'guest') return;
         try { const all = JSON.parse(localStorage.getItem(BK_LAY) || '{}') || {}; all[L.w] = { o: L.o, p: L.p }; localStorage.setItem(BK_LAY, JSON.stringify(all)); } catch (e) {}
     }
+    /* 이 바구니의 쌓인 순서만 바꿔요 (다른 바구니 순서는 그대로) */
+    function bkSetOrder(ord) { const L = bkLay(), mine = new Set(ord); L.o = L.o.filter(id => !mine.has(id)).concat(ord); }
     function bkRnd(id, n) { let h = 2166136261 ^ n; for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 13; h = Math.imul(h, 2246822507); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
     /* 쌓인 순서 : 끌었거나 뒤적인 것은 기억한 순서 · 나머지는 받은 순서 (새것이 위) */
     function bkOrder() {
@@ -47,18 +52,28 @@
     }
 
     /* ---------- 🧺 내 바구니 ---------- */
-    function openBasket() {
+    function openBasket() {                                                   // 첫 창 : 종류 아이콘 8개
         if (vis('stickerMakeModal')) closeModal('stickerMakeModal');
+        if (vis('basketKindModal')) closeModal('basketKindModal');
         openModal('basketModal');
+    }
+    function bkOpenKind(k) {                                                  // 그 종류의 바구니
+        if (!BK_KINDS[k]) return;
+        B.kind = k;
+        if (vis('basketModal')) closeModal('basketModal');
+        const t = bq('bkTitle'); if (t) t.textContent = '🧺 ' + BK_KINDS[k];
+        const w = bq('bkWrap'); if (w) w.innerHTML = '';
+        openModal('basketKindModal');
         bkRender(true);
     }
+    function bkReopen() { if (B.kind) bkOpenKind(B.kind); else openBasket(); }   // 떼는 창이 닫히면 보던 바구니로
     const bkMsg = (h, btn) => `<div class="bk-msg">${h}${btn || ''}</div>`;
     async function bkRender(force) {
         const wrap = bq('bkWrap'); if (!wrap) return;
         if (!window.ownList) { wrap.innerHTML = bkMsg('🧺 바구니를 준비하고 있어요.'); return; }
         if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 바구니를 쓸 수 있어요.'); return; }
         if (!wrap.querySelector('.bk-bin')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
-        try { B.list = (await ownList(force)).slice(); }
+        try { B.all = (await ownList(force)).slice(); B.list = B.all.filter(e => bkKindOf(e) === B.kind); }
         catch (e) { wrap.innerHTML = bkMsg('⚠ 바구니를 열지 못했어요.<br>' + ownErrText(e), '<button type="button" class="btn bk-again" onclick="bkRender(true)">🔄 다시 열기</button>'); return; }
         bkDraw();
     }
@@ -81,19 +96,19 @@
         const guest = ownMode() === 'mem';
         const note = `<p class="bk-note">${guest ? '👀 구경만 할 때는 창을 닫거나 새로고침하면 바구니도 비워져요.' : '🔥 받은 · 만든 스티커는 내 드라이브 <b>말랑달콤</b> 폴더에 보관돼요. 폴더를 지우면 모두 사라지고 되돌릴 수 없어요.'}</p>`;
         if (!B.list.length) {
-            wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div><div class="bk-front"></div></div>`
-                + bkMsg('바구니가 비어 있어요.<br>🏪 진열대에서 스티커를 받아 오거나<br>✂️ 나만의 스티커를 만들어 보세요!') + note;
+            wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div></div>`
+                + bkMsg(`${esc(BK_KINDS[B.kind] || '')} 바구니가 비어 있어요.<br>🏪 진열대에서 받아 오거나<br>✂️ 나만의 스티커를 만들어 보세요!`) + note;
             return;
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
-        wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><div class="bk-front"><span>${B.list.length}장</span></div></div>`
+        wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${B.list.length}장</span></div>`
             + `<div class="bk-tools"><button type="button" class="btn bk-mix" onclick="bkMix()">🔀 뒤적이기</button></div>` + note;
         bkPlace(show, false);
         bkWire();
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
         wrap.querySelectorAll('#bkPile img').forEach(im => { if (!im.complete) im.addEventListener('load', again, { once: true }); });
     }
-    /* 자리 잡기 : 기억한 자리 · 없으면 그 종이만의 자리 (바닥 쪽으로 몰려 쌓여요) */
+    /* 자리 잡기 : 기억한 자리 · 없으면 그 종이만의 자리 (위에서 내려다본 바구니 · 바닥 전체에 흩어져요) */
     function bkPlace(show, anim) {
         const pile = bq('bkPile'); if (!pile) return;
         const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight;
@@ -101,7 +116,7 @@
             const c = pile.querySelector(`.bk-sh[data-id="${CSS.escape(e.id)}"]`); if (!c) return;
             const cw = c.offsetWidth || 90, ch = c.offsetHeight || 100;
             let p = L.p[e.id];
-            if (!p) p = [bkRnd(e.id, 1), 1 - Math.pow(bkRnd(e.id, 2), 1.7) * .9, (bkRnd(e.id, 3) - .5) * 30];
+            if (!p) p = [bkRnd(e.id, 1), bkRnd(e.id, 2), (bkRnd(e.id, 3) - .5) * 30];
             c.classList.toggle('anim', !!anim);
             c.style.left = Math.round(p[0] * Math.max(0, W - cw)) + 'px';
             c.style.top = Math.round(p[1] * Math.max(0, H - ch)) + 'px';
@@ -135,7 +150,7 @@
             const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             const rot = parseFloat(d.c.style.getPropertyValue('--r')) || 0;
             L.p[d.id] = [Math.max(0, Math.min(1, parseFloat(d.c.style.left) / Math.max(1, W - cw))), Math.max(0, Math.min(1, parseFloat(d.c.style.top) / Math.max(1, H - ch))), rot];
-            L.o = bkOrder().map(e => e.id).filter(id => id !== d.id).concat(d.id);   // 치운 종이는 맨 위에
+            bkSetOrder(bkOrder().map(e => e.id).filter(id => id !== d.id).concat(d.id));   // 치운 종이는 맨 위에
             bkLaySave();
         };
         pile.onpointerup = up; pile.onpointercancel = up;
@@ -144,8 +159,8 @@
     function bkMix() {
         const L = bkLay(), ord = bkOrder().map(e => e.id);
         for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]]; }
-        L.o = ord; L.p = {};
-        ord.forEach(id => { L.p[id] = [Math.random(), 1 - Math.pow(Math.random(), 1.5) * .92, (Math.random() - .5) * 34]; });
+        bkSetOrder(ord);
+        ord.forEach(id => { L.p[id] = [Math.random(), Math.random(), (Math.random() - .5) * 34]; });
         bkLaySave();
         const byId = new Map(B.list.map(e => [e.id, e])), show = ord.map(id => byId.get(id)).slice(-BK_MAX), pile = bq('bkPile');
         if (!pile) return;
@@ -163,7 +178,7 @@
         const card = document.querySelector(`.bk-sh[data-id="${CSS.escape(id)}"]`); if (card) card.classList.add('busy');
         try {
             const r = await ownSheet(id);
-            if (!r) { showMsg('이 스티커는 이미 다 썼어요.<br><span style="font-size:12px;color:#777;">다른 기기에서 썼을 수도 있어요.</span>'); if (vis('basketModal')) bkRender(true); return; }
+            if (!r) { showMsg('이 스티커는 이미 다 썼어요.<br><span style="font-size:12px;color:#777;">다른 기기에서 썼을 수도 있어요.</span>'); if (vis('basketKindModal')) bkRender(true); return; }
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
             const die = async a => !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요)
             let ok = false;
@@ -207,7 +222,7 @@
         ownQty(id, 1, null).catch(er => console.warn('속지를 아직 못 지웠어요 (다시 해요) :', er));
         return true;
     }
-    if (window.ownOnChange) ownOnChange(() => { if (vis('basketModal')) bkRender(false); });
+    if (window.ownOnChange) ownOnChange(() => { if (vis('basketKindModal')) bkRender(false); });
 
     /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
        카테고리 · 스티커 이름 없이 (현실 문구점도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
@@ -232,7 +247,7 @@
             if (typeof emojiRanges === 'undefined') return [];
             return Object.keys(emojiRanges).map(c => {
                 const chars = []; for (const [a, b] of emojiRanges[c]) for (let i = a; i <= b && chars.length < 16; i++) chars.push(String.fromCodePoint(i));
-                return { cnt: `씰 ${chars.length}개`, look: 'emoji', chars, take: async () => ({ k: 'seal', imgs: await Promise.all(chars.map(shEmoji)), baked: true }) };
+                return { cnt: `씰 ${chars.length}개`, look: 'emoji', chars, take: async () => ({ k: 'seal', b: 'emoji', imgs: await Promise.all(chars.map(shEmoji)), baked: true }) };
             });
         }],
         memo: ['메모지', async () => (window.sbShelf ? await sbShelf('memo') : []).concat((window.memoShelf ? memoShelf() : []).map(p => ({ cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } })))],
@@ -255,6 +270,7 @@
     function openShelf() {
         if (vis('stickerMakeModal')) closeModal('stickerMakeModal');
         if (vis('basketModal')) closeModal('basketModal');
+        if (vis('basketKindModal')) closeModal('basketKindModal');
         if (vis('shelfKindModal')) closeModal('shelfKindModal');
         const se = document.querySelector('#shelfModal [data-shk="season"]'); if (se) se.hidden = !shSeasonOn();
         openModal('shelfModal');
@@ -320,6 +336,6 @@
         }
     }
 
-    window.openBasket = openBasket; window.bkRender = bkRender; window.bkMix = bkMix; window.bkOpenSheet = bkOpenSheet;
+    window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkMix = bkMix; window.bkOpenSheet = bkOpenSheet;
     window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shTake = shTake;
 })();
