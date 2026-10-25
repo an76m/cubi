@@ -590,12 +590,20 @@
         tape: ['마스킹테이프', async () => (window.sbShelf ? await sbShelf('tape') : []).concat((window.tapeShelf ? tapeShelf() : []).map(t => ({ cnt: '한 롤', look: 'tape', thumbs: [t.url], def: { k: 'tape', imgs: [t.url], th: t.url } })))],
         tk: ['떡메모지', async () => (window.sbShelf ? await sbShelf('tk') : []).concat((window.tkShelf ? tkShelf() : []).map(t => ({ cnt: `${OWN_Q.tk}장`, look: 'tk', pad: t.k, def: { k: 'tk', imgs: [''], x: { pad: t.k }, noTh: true } })))],
         leaf: ['속지', async () => (window.sbShelf ? await sbShelf('leaf') : []).concat((window.leafShelf ? leafShelf() : []).map(l => ({ cnt: '한 장', look: 'leaf', lf: l.k, def: { k: 'leaf', imgs: [''], x: { lf: l.k }, noTh: true } })))],
-        emoji: ['이모지', async () => {
+        emoji: ['이모지', async () => {                                          // 😀 예전 이모지 창의 7묶음 전부 (도련 10-25) · 실제 그림 이모지로 보이는 것만 · 16개씩 씰 종이 한 장
             if (typeof emojiRanges === 'undefined') return [];
-            return Object.keys(emojiRanges).map(c => {
-                const chars = []; for (const [a, b] of emojiRanges[c]) for (let i = a; i <= b && chars.length < 16; i++) chars.push(String.fromCodePoint(i));
-                return { cnt: `씰 ${chars.length}개`, look: 'emoji', chars, take: async () => ({ k: 'seal', b: 'emoji', imgs: await Promise.all(chars.map(shEmoji)), baked: true }) };
-            });
+            const own = new Map(), out = [];                                     // 겹치는 번호는 더 좁은 묶음에 (🦀 게는 얼굴이 아니라 동물 · 기호는 남은 것)
+            for (const c of ['animals', 'food', 'activities', 'travel', 'objects', 'faces', 'symbols']) for (const [a, b] of (emojiRanges[c] || [])) for (let i = a; i <= b; i++) if (!own.has(i)) own.set(i, c);
+            for (const c of Object.keys(emojiRanges)) {
+                const chars = [];
+                for (const [a, b] of emojiRanges[c]) for (let i = a; i <= b; i++) if (own.get(i) === c && !chars.includes(i)) chars.push(i);
+                const ok = await shEmoOk(chars);
+                for (let i = 0; i < ok.length; i += 16) {
+                    const part = ok.slice(i, i + 16);
+                    out.push({ cnt: `씰 ${part.length}개`, look: 'emoji', chars: part, cat: c, take: async () => ({ k: 'seal', b: 'emoji', imgs: await Promise.all(part.map(shEmoji)), baked: true }) });
+                }
+            }
+            return out;
         }],
         memo: ['메모지', async () => (window.sbShelf ? await sbShelf('memo') : []).concat((window.memoShelf ? memoShelf() : []).map(p => ({ cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } })))],
         tool: ['정리 도구', async () => {                                       // 🗂️ 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
@@ -631,6 +639,28 @@
         return c.lateP;
     }
     const shSeasonOn = () => typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN && typeof SEASON_STICKERS !== 'undefined';
+    /* 😀 이 기기에서 그림 이모지로 보이는 글자만 (빈 번호 = □ · 색 없는 글자는 빼요) · 텍스트로 보이는 글자는 FE0F 를 붙여 그림으로 */
+    async function shEmoOk(cps) {
+        const c = document.createElement('canvas'); c.width = c.height = 24;
+        const x = c.getContext('2d', { willReadFrequently: true });
+        x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+        const look = ch => { x.clearRect(0, 0, 24, 24); x.fillText(ch, 12, 13); return x.getImageData(0, 0, 24, 24).data; };
+        const same = (p, q) => { for (let i = 0; i < p.length; i += 4) if (p[i + 3] !== q[i + 3]) return false; return true; };
+        const tofu = look(String.fromCodePoint(0x10FFFD)), tofu2 = look(String.fromCodePoint(0x1FBFF));
+        const color = d => { let n = 0; for (let i = 0; i < d.length; i += 4) { if (d[i + 3] > 60 && (Math.abs(d[i] - d[i + 1]) > 24 || Math.abs(d[i + 1] - d[i + 2]) > 24)) { if (++n > 6) return true; } } return false; };
+        const ink = d => { for (let i = 3; i < d.length; i += 4) if (d[i] > 60) return true; return false; };
+        const res = [], plain = [];
+        for (let k = 0; k < cps.length; k++) {
+            if (k && k % 150 === 0) await new Promise(r => setTimeout(r, 0));     // 화면이 멈추지 않게 조금씩
+            const cp = cps[k]; let ch = String.fromCodePoint(cp);
+            if (!/\p{Extended_Pictographic}/u.test(ch)) continue;
+            if (!/\p{Emoji_Presentation}/u.test(ch)) ch += '\uFE0F';
+            const d = look(ch);
+            if (!ink(d) || same(d, tofu) || same(d, tofu2)) continue;
+            (color(d) ? res : plain).push(ch);
+        }
+        return res.length >= 20 ? res : res.concat(plain);                    // 색 이모지 글꼴이 없는 기기면 보이는 것 모두
+    }
     /* 😀 이모지 → 그림 (64px · 작게 콕) */
     function shEmoji(ch) {
         const c = document.createElement('canvas'); c.width = c.height = 64;
@@ -667,14 +697,15 @@
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 3, SH_MINW = 96, SH_GAP = 10;
-    const SH_CATS = { paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']] };
-    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : '';
+    const SH_CATS = { paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']],
+        emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
+    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : k === 'emoji' ? x.cat : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
         const cats = SH_CATS[k];
         if (cats && !cats.some(c => c[0] === SH.cat)) SH.cat = cats[0][0];
-        const tabs = cats ? `<div class="ab-tabs sm sh-cats">${cats.map(c => `<button type="button" class="${c[0] === SH.cat ? 'on' : ''}" onclick="shCat('${c[0]}')">${c[1]}</button>`).join('')}</div>` : '';
+        const tabs = cats ? `<div class="ab-tabs sm sh-cats${cats.length > 3 ? ' many' : ''}" style="--n:${cats.length}">${cats.map(c => { const [ic, ...nm] = c[1].split(' '); return `<button type="button" class="${c[0] === SH.cat ? 'on' : ''}" onclick="shCat('${c[0]}')">${cats.length > 3 ? `<b>${ic}</b><small>${nm.join(' ')}</small>` : c[1]}</button>`; }).join('')}</div>` : '';
         const list = items.map((x, i) => [x, i]).filter(([x]) => !cats || shCatOf(k, x) === SH.cat);
         const cols = Math.max(1, Math.floor(((box.clientWidth || 340) - 8 + SH_GAP) / (SH_MINW + SH_GAP))), per = cols * SH_ROWS;
         const pages = Math.max(1, Math.ceil(list.length / per));
