@@ -741,7 +741,7 @@
     /* 그 종류의 진열대 창 */
     /* ⏱ 시험용 (도련 10-25 · 진열대가 다시 켠 뒤 처음 열 때 3초쯤 · 어디서 걸리는지 찾기) : 목록 받기 · 진열대 만들기 · 첫 쪽 그림 다 뜰 때까지 · 원인 찾으면 이 함수와 T 줄을 지워요 */
     function shTime(T, box, seq) {
-        const imgs = [...box.querySelectorAll('img')], drawn = performance.now();
+        const imgs = [...box.querySelectorAll('img')].concat([...new Set([...box.querySelectorAll('svg.sh-pv image')].map(i => i.getAttribute('href')))].map(u => { const im = new Image(); im.src = u; return im; })), drawn = performance.now();   // 🖼️ 묶음 미리보기 파일도 셈
         const wait = imgs.map(im => im.complete ? 0 : new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }));
         Promise.race([Promise.all(wait), new Promise(r => setTimeout(r, 15000))]).then(() => {
             if (seq !== SH.seq) return;
@@ -807,7 +807,7 @@
     function shPage(d) { SH.pg = (SH.pg || 0) + d; shDraw(SH.kind); const box = bq('shkWrap'); if (box) box.scrollTop = 0; }
     function shPreload(list) {
         const seen = SH.pre || (SH.pre = new Set());
-        list.forEach(([x]) => (x.pv ? [x.pv] : x.thumbs || []).forEach(u => {
+        list.forEach(([x]) => (x.pv ? [x.pv.u] : x.thumbs || []).forEach(u => {
             if (!u || /^data:/.test(u) || seen.has(u)) return;
             seen.add(u); const im = new Image(); im.decoding = 'async'; im.src = u;
         }));
@@ -824,7 +824,7 @@
         if (x.look === 'leaf') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-${esc(x.lf)}"></i></span>`;
         if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(src[0])}')"></i></span>`;
         if (x.look === 'memo') return `<div class="sh-memo"><span class="pp-chip pp-${esc(x.pp)}"></span></div>`;
-        if (!big && x.pv && x.look === 'grid') return `<div class="sh-paper"><img class="sh-pv" src="${esc(x.pv)}" alt="" onerror="this.style.visibility='hidden'"></div>`;   // 🖼️ 묶음 미리보기 한 장 (작은 그림 수십 장 대신 · 포장기 p/)
+        if (!big && x.pv && x.look === 'grid') { const p = x.pv; return `<div class="sh-paper"><svg class="sh-pv" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><svg width="${p.w}" height="${p.h}"><image href="${esc(p.u)}" x="0" y="${-p.y}" width="${p.w}" height="${p.H}"/></svg></svg></div>`; }   // 🖼️ 묶음 미리보기 (작은 그림 수십 장 대신 · 포장기 p/ 한 파일에서 내 칸만 잘라 보여요)
         if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }

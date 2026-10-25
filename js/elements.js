@@ -142,15 +142,15 @@
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
                 const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, 30).map(kitUrl);
-                const pv = p => typeof p === 'string' && /^[0-9a-f]{16}$/.test(p) ? KIT_BASE + '/p/' + p + '.webp' : '';   // 🖼️ 묶음 미리보기 한 장 (포장기 · 진열대 카드용)
+                const pv = a => Array.isArray(a) && /^[0-9a-f]{16}$/.test(a[0]) && a.slice(1).every(n => typeof n === 'number' && n >= 0) ? { u: KIT_BASE + '/p/' + a[0] + '.webp', y: a[1], h: a[2], H: a[3], w: a[4] } : null;   // 🖼️ 묶음 미리보기 (포장기가 8장씩 한 파일에 세로로 · pa = [지문, y, 높이, 전체 높이, 폭] · 진열대 카드용)
                 const kits = {};
                 Object.keys(d.kits && typeof d.kits === 'object' ? d.kits : {}).forEach(k => {
-                    kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs), pv: pv(x.p) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f) } : null)
+                    kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f) } : null)
                         .filter(x => x && (x.u || (x.us && x.us.length)));
                 });
                 return {
                     images: d.images.filter(x => x && kitOk(x.f)).map(x => ({ u: kitUrl(x.f), c: String(x.c || '') })),
-                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && { c: String(x.c || ''), us: us(x.fs), pv: pv(x.p) }).filter(x => x && x.us.length),
+                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && { c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) }).filter(x => x && x.us.length),
                     kits
                 };
             }
