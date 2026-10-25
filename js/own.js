@@ -23,7 +23,7 @@
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
         const OWN_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
         const ownAlive = e => e.q0 ? e.q > 0 : e.u.length < e.n;
-        const O = { kw: '', key: null, idx: null, idxF: null, idxAt: 0, mem: null, album: null, albumR: null, q: Promise.resolve(), subs: new Set(), replayed: '' };
+        const O = { kw: '', key: null, idx: null, idxF: null, idxAt: 0, mem: null, album: null, albumR: null, albF: null, q: Promise.resolve(), subs: new Set(), replayed: '' };
 
         /* ---------- 어디에 (드라이브 · 이 기기 폴더 = 'drive' / 구경만 = 'mem' / 아직 = '') ---------- */
         const ownMode = () => typeof drive === 'undefined' ? '' : drive.guest ? 'mem' : drive.ready ? 'drive' : '';
@@ -31,8 +31,8 @@
         function ownReset() {
             const w = ownWho();
             if (O.kw === w) return;
-            O.kw = w; O.key = null; O.idx = null; O.idxF = null; O.idxAt = 0; O.album = O.albumR = null;
-            if (ownMode() === 'mem') O.mem = { idx: [], files: new Map(), album: null };
+            O.kw = w; O.key = null; O.idx = null; O.idxF = null; O.idxAt = 0; O.album = O.albumR = O.albF = null;
+            if (ownMode() === 'mem') O.mem = { idx: [], files: new Map(), album: null, alb: null };
         }
 
         /* ---------- 🔐 암호화 (계정마다 다른 열쇠 · 압축 → AES-GCM) ---------- */
@@ -80,12 +80,11 @@
             try { t = await readFileText(f.id); } catch (e) { if (e && e.code === 'gone') { O.idxF = null; return []; } throw e; }
             if (!t.trim()) return [];
             const o = await ownUnlock(t);
-            O.albumR = o.album && typeof o.album === 'object' ? o.album : null;           // 📒 스티커첩 (바인더 · 이형지 정리) : 목록과 한 파일에 같이 (한 번에 저장돼요)
+            O.albumR = o.album && typeof o.album === 'object' ? o.album : null;           // 📒 예전(v698~v714) 스티커첩 자리 : 이제는 스티커첩.json 따로 (없을 때만 이걸 읽어요)
             return (Array.isArray(o.list) ? o.list : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}));
         }
-        async function ownIdxWrite(list, album) {
-            if (album === undefined) album = O.albumR;                            // 스티커첩은 방금 읽은 그대로 (목록만 고칠 때)
-            O.albumR = album || null;
+        async function ownIdxWrite(list) {
+            const album = O.albumR;                                               // 예전 스티커첩 자리는 읽은 그대로 둬요 (스티커첩.json 이 생기면 안 써요)
             if (ownMode() === 'mem') { O.mem.idx = list.map(e => Object.assign({}, e, { u: e.u.slice() })); O.mem.album = album ? JSON.parse(JSON.stringify(album)) : null; return; }
             const d = await getFolder(OWN_DIR, true), body = await ownLock(album ? { v: 1, list, album } : { v: 1, list });
             let saved;
@@ -132,7 +131,7 @@
                 const list = await ownIdxRead();
                 const pend = ownPendGet();
                 pend.forEach(p => { const e = list.find(x => x.id === p.s); if (!e) return; if (p.q) e.q = Math.max(0, e.q - p.q); else if (!e.u.includes(p.k)) e.u.push(p.k); });
-                O.idx = list.filter(ownAlive); O.idxAt = performance.now(); O.album = ownAlbumClean(O.albumR, O.idx);
+                O.idx = list.filter(ownAlive); O.idxAt = performance.now();
                 if (pend.length && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
                 return O.idx;
             });
@@ -312,38 +311,64 @@
            · 정리한 종이는 바구니에서 빠져 보여요 · 다 쓴 종이는 저절로 빠져요 · 목록과 같은 파일(암호화)이라 다른 기기에서도 그대로 ---------- */
         const OWN_REL_MAX = 24;                                                   // 이형지 한 쪽에 붙는 수
         function ownAlbumClean(a, list) {
-            const alive = new Set((list || []).filter(ownAlive).map(e => e.id));
+            const alive = list ? new Set(list.filter(ownAlive).map(e => e.id)) : null;   // list 없으면 다 쓴 종이 거르기는 안 해요 (화면에서 걸러요)
+            const ok = id => !alive || alive.has(id);
             const o = { bd: [], rl: [], g: {} };
             if (a && typeof a === 'object') {
                 if (a.g && typeof a.g === 'object') Object.keys(a.g).forEach(k => { if (a.g[k]) o.g[k] = 1; });
                 (Array.isArray(a.bd) ? a.bd : []).forEach(b => {
                     if (!b || !b.id) return;
-                    const p = {}; Object.keys(b.p || {}).forEach(i => { if (alive.has(b.p[i])) p[i] = b.p[i]; });
+                    const p = {}; Object.keys(b.p || {}).forEach(i => { if (ok(b.p[i])) p[i] = b.p[i]; });
                     o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, n: Math.max(4, Math.min(200, +b.n || 80)), p });
                 });
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;
                     const n = Math.max(1, Math.min(100, +r.n || 20));
-                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && alive.has(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0 })) });
+                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0 })) });
                 });
             }
             return o;
         }
-        /* ⚡ 마지막으로 읽은 목록 (드라이브를 기다리지 않고 바로 그려요 · 그 뒤 새로 읽어 바뀐 게 있으면 다시 그려요 · 도련 10-25) */
+        /* ⚡ 마지막으로 읽은 목록 · 스티커첩 (드라이브를 기다리지 않고 바로 그려요 · 그 뒤 새로 읽어 바뀐 게 있으면 다시 그려요 · 도련 10-25) */
         function ownPeek() {
-            if (!ownMode() || !O.idx || O.kw !== ownWho()) return null;
-            return { list: O.idx, album: O.album || ownAlbumClean(null, O.idx) };
+            if (!ownMode() || !O.idx || !O.album || O.kw !== ownWho()) return null;
+            return { list: O.idx, album: O.album };
         }
-        async function ownAlbumGet(force) { await ownList(force); return O.album || ownAlbumClean(null, O.idx); }
-        /* 스티커첩 고치기 : fn(album, list) 이 album 을 고쳐요 (차례대로 · 드라이브의 지금 모습 위에) */
+        /* 📒 스티커첩은 작은 파일 하나 (보관함/스티커첩.json · 암호화) : 바인더에 꽂을 때 큰 목록 파일을 건드리지 않아서 빨라요 (도련 10-25) */
+        const OWN_ALB = '스티커첩.json';
+        async function ownAlbRead() {
+            if (ownMode() === 'mem') { if (O.mem.alb) return JSON.parse(JSON.stringify(O.mem.alb)); if (!O.idx) await ownIdxRead(); return O.albumR; }
+            const d = await getFolder(OWN_DIR, false);
+            if (!d) return null;
+            let f = await findFile(d, OWN_ALB); O.albF = f;
+            if (!f) { if (O.albumR == null) await ownIdxRead(); return O.albumR; }   // 아직 없으면 예전 자리(목록 안)에서
+            let t; try { t = await readFileText(f.id); } catch (e) { if (e && e.code === 'gone') { O.albF = null; return null; } throw e; }
+            if (!t.trim()) return null;
+            const o = await ownUnlock(t);
+            return o && o.album && typeof o.album === 'object' ? o.album : null;
+        }
+        async function ownAlbWrite(a) {
+            if (ownMode() === 'mem') { O.mem.alb = JSON.parse(JSON.stringify(a)); return; }
+            const body = await ownLock({ v: 1, album: a });
+            let saved;
+            try { saved = await driveUpsert(await getFolder(OWN_DIR, true), OWN_ALB, O.albF && O.albF.id, body); }
+            catch (e) { if (!(e && e.code === 'gone')) throw e; O.albF = null; saved = await driveUpsert(await getFolder(OWN_DIR, true), OWN_ALB, null, body); }
+            O.albF = { id: saved.id, modifiedTime: saved.modifiedTime };
+        }
+        async function ownAlbumGet(force) {
+            ownReady();
+            if (O.album && !force) return O.album;
+            return ownSerial(async () => { O.album = ownAlbumClean(await ownAlbRead(), null); return O.album; });
+        }
+        /* 스티커첩 고치기 : fn(album) 이 album 을 고쳐요 (차례대로 · 드라이브의 지금 모습 위에 · 스티커첩 파일만) */
         async function ownAlbum(fn) {
             ownReady();
             return ownSerial(async () => {
-                const list = await ownIdxRead();
-                const a = ownAlbumClean(O.albumR, list);
-                const r = await fn(a, list);
-                await ownIdxWrite(list, ownAlbumClean(a, list));
-                O.idx = list.filter(ownAlive); O.idxAt = performance.now(); O.album = ownAlbumClean(O.albumR, O.idx);
+                const a = ownAlbumClean(await ownAlbRead(), null);
+                const r = await fn(a, O.idx || []);
+                const c = ownAlbumClean(a, null);
+                await ownAlbWrite(c);
+                O.album = c;
                 ownTell();
                 return r;
             });
@@ -352,7 +377,7 @@
         async function ownRelMove(srcId, slot, relId, pos) {
             ownReady();
             return ownSerial(async () => {
-                const list = await ownIdxRead(), a = ownAlbumClean(O.albumR, list);
+                const list = await ownIdxRead(), a = ownAlbumClean(await ownAlbRead(), list);
                 const rel = a.rl.find(r => r.id === relId);
                 if (!rel) { const er = new Error('gone'); er.code = 'gone'; throw er; }
                 const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+pos.pg || 0)));
@@ -374,10 +399,12 @@
                     else { if (e.th && !e.us) e.th = await ownThumb(s.imgs); e.f = await ownFileNew(s); }
                     list.push(ne);
                     rel.it.push({ s: nid, pg, x: Math.max(0, Math.min(1, +pos.x || 0)), y: Math.max(0, Math.min(1, +pos.y || 0)), r: +pos.r || 0 });
-                    await ownIdxWrite(list, ownAlbumClean(a, list));
+                    await ownIdxWrite(list);
                 } catch (er) { ownFileKill(ne.f).catch(() => {}); if (e.f !== old) ownFileKill(e.f).catch(() => {}); throw er; }
                 await ownFileKill(old).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 :', er));
-                O.idx = list.filter(ownAlive); O.idxAt = performance.now(); O.album = ownAlbumClean(O.albumR, O.idx);
+                O.idx = list.filter(ownAlive); O.idxAt = performance.now();
+                const c = ownAlbumClean(a, list);
+                try { await ownAlbWrite(c); O.album = c; } catch (er) { O.album = null; ownTell(); throw er; }   // 스티커첩 저장이 안 되면 새 종이는 바구니에 남아요 (잃어버리지 않아요)
                 ownTell();
                 return nid;
             });

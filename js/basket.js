@@ -75,18 +75,19 @@
         if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 바구니를 쓸 수 있어요.'); return; }
         /* ⚡ 먼저 : 마지막으로 읽은 목록으로 바로 그려요 (드라이브를 기다리지 않게) → 그다음 새로 읽어 달라졌을 때만 다시 그려요 */
         const peek = force && window.ownPeek ? ownPeek() : null;
-        if (peek) { B.all = peek.list.slice(); B.album = peek.album; abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
+        if (peek) { B.all = peek.list.slice(); B.album = JSON.parse(JSON.stringify(peek.album)); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
         else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
         try {
             B.all = (await ownList(force)).slice();
-            B.album = window.ownAlbumGet ? await ownAlbumGet(false) : { bd: [], rl: [], g: {} };
+            B.album = window.ownAlbumGet ? JSON.parse(JSON.stringify(await ownAlbumGet(force))) : { bd: [], rl: [], g: {} };
+            abReapply();                                                        // 아직 저장 안 된 정리는 그 위에 다시 (화면이 되돌아가지 않게)
         }
         catch (e) {
             if (peek) { console.warn(e); return; }                              // 보던 목록은 그대로 두어요
             wrap.innerHTML = bkMsg('⚠ 바구니를 열지 못했어요.<br>' + ownErrText(e), '<button type="button" class="btn bk-again" onclick="bkRender(true)">🔄 다시 열기</button>'); return;
         }
         const sig = bkSig();
-        if (peek && sig === B.sig && wrap.querySelector('.ab-body')) return;    // 그대로면 다시 그리지 않아요
+        if (sig === B.sig && wrap.querySelector('.ab-body')) return;            // 그대로면 다시 그리지 않아요 (깜빡이지 않게)
         B.sig = sig;
         abSplit();
         if (B.drag || AB.drag) return;                                          // 끄는 중에는 다시 그리지 않아요 (놓으면 그려요)
@@ -262,6 +263,7 @@
     }
     /* 화면 바꾸기 : bin (바구니) · album (스티커첩) · bd (바인더 펼침) · rl (이형지 펼침) · desk (정리 책상) */
     function bkView(v) {
+        if (v && B.view === 'desk' && v !== 'desk') abFlush();                  // 정리 책상을 나가면 바로 저장
         if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; }
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;
         if (B.view === 'album' && !abHasAlbum()) B.view = 'bin';               // 정리한 게 없으면 스티커첩 탭도 없어요
@@ -276,13 +278,32 @@
     const abHasAlbum = () => !!B.album && (abMine(B.album.bd).some(b => Object.keys(b.p || {}).length) || abMine(B.album.rl).some(r => (r.it || []).length));
     const abErr = e => { console.warn(e); showMsg('⚠ 정리하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); };
     /* 저장하는 동안 알려 줘요 (앱이 멈춘 게 아니에요 · 도련 10-25) : msg = 하는 중 · ok = 끝났어요 */
-    async function abDo(p, msg, ok) {
-        AB.busy = true; const b = bq('abBody'); if (b) b.classList.add('busy');
+    async function abDo(p, msg, ok) {                                         // 기다리게 하지 않아요 (저장하는 동안에도 계속 정리해요)
         if (msg) abToast(msg, 'on');
-        try { const r = await p; if (msg) abToast(ok || '✓ 저장했어요', 'ok'); return r; }
-        catch (e) { if (msg) abToast('', 'off'); abErr(e); bkRender(true); }
-        finally { AB.busy = false; const b2 = bq('abBody'); if (b2) b2.classList.remove('busy'); }
+        try { const r = await p; if (msg && !AB.pend.length && !AB.fly) abToast(ok || '✓ 저장했어요', 'ok'); return r; }
+        catch (e) { if (msg) abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); }
     }
+    /* 💾 모아서 한 번에 저장 (도련 10-25) : 꽂기 · 빼기 · 라벨 · 표지 · 자리 옮기기는 화면에 바로 → 손을 멈추고 1.2초 뒤(또는 다 했어요 · 창 닫기) 한 번에
+       · 저장하는 동안 새로 한 정리는 다음 번에 또 한 번에 · 스티커첩 파일(작은 파일)만 써요 */
+    AB.pend = []; AB.fly = null; AB.flushT = 0;
+    function abQueue(fn) {
+        try { fn(B.album); } catch (e) {}
+        AB.pend.push(fn); B.sig = bkSig();
+        clearTimeout(AB.flushT); AB.flushT = setTimeout(abFlush, 1200);
+        abToast('정리 중… (손을 멈추면 저장해요)', 'on');
+    }
+    async function abFlush() {
+        clearTimeout(AB.flushT);
+        if (AB.fly || !AB.pend.length || !window.ownAlbum) return AB.fly;
+        const fns = AB.pend; AB.pend = []; AB.fly = fns;
+        abToast('💾 저장하는 중…', 'on');
+        try { await ownAlbum(a => fns.forEach(fn => { try { fn(a); } catch (e) {} })); AB.fly = null; if (!AB.pend.length) abToast('✓ 저장했어요', 'ok'); }
+        catch (e) { AB.fly = null; abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
+        if (AB.pend.length) { AB.flushT = setTimeout(abFlush, 300); }
+    }
+    function abReapply() { (AB.fly || []).concat(AB.pend).forEach(fn => { try { fn(B.album); } catch (e) {} }); }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) abFlush(); });
+    window.addEventListener('pagehide', () => abFlush());
     function abToast(t, kind) {
         let el = bq('abToast');
         if (!el) { el = document.createElement('div'); el.id = 'abToast'; el.className = 'ab-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
@@ -293,7 +314,7 @@
         if (kind === 'ok') AB.toastT = setTimeout(() => el.classList.remove('show'), 1200);
     }
     /* 화면은 바로 바꾸고(기다리지 않게) 저장은 뒤에서 · 실패하면 드라이브 모습으로 되돌아가요 */
-    function abNow(fn) { try { fn(B.album, B.all); } catch (e) {} abSplit(); bkView(); }
+    function abNow(fn) { try { fn(B.album, B.all); } catch (e) {} abSplit(); bkView(); B.sig = bkSig(); }
     function abOpen(v, id) { B.cur = id; B.pg = 0; bkView(v); }
     const abChip = b => { const c = abCol(b); return `<i class="ab-chip" style="--c1:${c[0]};--c2:${c[1]}"></i>`; };
 
@@ -339,8 +360,8 @@
             + abBinderHtml(b, false) + '<p class="bk-note">종이를 톡 = 꺼내 쓰기 · 뗀 자리는 비어요 · 다 쓴 종이는 저절로 빠져요</p>';
         bq('abPage').onclick = ev => { const c = ev.target.closest('.bk-sh'); if (c) bkOpenSheet(c.dataset.id); };
     }
-    function abLabel(t, id, v) { const fn = a => { const x = (t === 'bd' ? a.bd : a.rl).find(o => o.id === id); if (x) x.lb = String(v || '').trim().slice(0, 8); }; abNow(fn); abDo(ownAlbum(fn), '🏷️ 라벨 붙이는 중…', '✓ 라벨을 붙였어요'); }
-    function abColor(id) { const fn = a => { const b = a.bd.find(o => o.id === id); if (b) b.c = ((b.c || 0) + 1) % AB_COL.length; }; abNow(fn); abDo(ownAlbum(fn), '🎨 표지 바꾸는 중…', '✓ 표지를 바꿨어요'); }
+    function abLabel(t, id, v) { const fn = a => { const x = (t === 'bd' ? a.bd : a.rl).find(o => o.id === id); if (x) x.lb = String(v || '').trim().slice(0, 8); }; abQueue(fn); abSplit(); if (B.view !== 'desk') bkView(); B.sig = bkSig(); }
+    function abColor(id) { const fn = a => { const b = a.bd.find(o => o.id === id); if (b) b.c = ((b.c || 0) + 1) % AB_COL.length; }; abQueue(fn); bkView(); B.sig = bkSig(); }
 
     /* 🤍 이형지 : 톡 = 꺼내 쓰기 · 끌기 = 자리 옮기기 */
     function abRelItems(r, pg) {
@@ -405,12 +426,11 @@
             + `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 스티커를 끌어 이형지북에 붙여요<br>이형지북으로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`
             + '<div class="bk-tools"><button type="button" class="btn ab-done" onclick="bkView(\'bin\')">다 했어요</button></div>';
         body.onpointerdown = ev => {
-            if (ev.button > 0 || AB.busy) return;
+            if (ev.button > 0) return;
             const sc = ev.target.closest('.ab-sc'), st = ev.target.closest('.ab-st:not(.hole)'), src = sc || st; if (!src) return;
             AB.drag = { kind: sc ? 'sheet' : 'st', src, id: sc ? sc.dataset.id : D.pick, slot: st ? +st.dataset.slot : -1, x0: ev.clientX, y0: ev.clientY, pid: ev.pointerId, on: false, ghost: null };
         };
         body.onclick = ev => {
-            if (AB.busy) return;
             const pk = ev.target.closest('.ab-pk');
             if (pk) { if (pk.classList.contains('full')) abTakeOut(+pk.dataset.pk); else if (D.pick) abPutSheet(D.pick, +pk.dataset.pk); else abSay(pk, '⬆ 위에서 종이를 먼저 골라요'); return; }
             const rel = ev.target.closest('#abRel');
@@ -431,25 +451,47 @@
         bkView();
     }
     function abTapSt(slot) { const D = B.desk; if (!D) return; D.sel = D.sel === slot ? -1 : slot; bkView(); }
+    /* 꽂기 · 빼기 : 화면을 다시 그리지 않고 떠 있는 카드를 그대로 옮겨요 (그림을 새로 받지 않아서 바로 · 도련 10-25) */
     function abPutSheet(id, pk) {
-        const D = B.desk; if (!D || AB.busy) return;
+        const D = B.desk; if (!D) return;
+        const b0 = abBdOf(D.bd); if (!b0 || b0.p[pk]) return;
         D.pick = '';
         const bd = D.bd, fn = a => {
             const b = a.bd.find(x => x.id === bd); if (!b || b.p[pk]) return;
             a.bd.forEach(x => Object.keys(x.p).forEach(i => { if (x.p[i] === id) delete x.p[i]; }));
             b.p[pk] = id;
         };
-        abNow(fn);
-        abDo(ownAlbum(fn), '📒 바인더에 꽂는 중…', '✓ 바인더에 꽂았어요');
+        const sc = document.querySelector(`#abStrip .ab-sc[data-id="${CSS.escape(id)}"]`), pkEl = document.querySelector(`#abPage .ab-pk[data-pk="${pk}"]`);
+        abQueue(fn); abSplit();
+        if (sc && pkEl) {
+            const card = sc.querySelector('.bk-sh'); sc.remove();
+            pkEl.classList.add('full'); pkEl.textContent = ''; if (card) pkEl.appendChild(card);
+            document.querySelectorAll('#abStrip .ab-sc.on').forEach(x => x.classList.remove('on'));
+            abDeskCounts();
+            if (!B.list.length) { const st = bq('abStrip'); if (st) st.innerHTML = '<span class="ab-stripempty">바구니가 비었어요</span>'; }
+        } else bkView();
+        B.sig = bkSig();
+        if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
     }
     function abTakeOut(pk) {
-        const D = B.desk; if (!D || AB.busy) return;
+        const D = B.desk; if (!D) return;
+        const b0 = abBdOf(D.bd), id = b0 && b0.p[pk]; if (!id) return;
         const bd = D.bd, fn = a => { const b = a.bd.find(x => x.id === bd); if (b) delete b.p[pk]; };
-        abNow(fn);
-        abDo(ownAlbum(fn), '🧺 바구니로 빼는 중…', '✓ 바구니로 뺐어요');
+        const pkEl = document.querySelector(`#abPage .ab-pk[data-pk="${pk}"]`), st = bq('abStrip');
+        abQueue(fn); abSplit();
+        if (pkEl && st) {
+            const card = pkEl.querySelector('.bk-sh');
+            pkEl.classList.remove('full'); pkEl.innerHTML = '<span>여기에 놓기</span>';
+            const em = st.querySelector('.ab-stripempty'); if (em) em.remove();
+            const sc = document.createElement('div'); sc.className = 'ab-sc'; sc.dataset.id = id; if (card) sc.appendChild(card);
+            st.prepend(sc); st.scrollLeft = 0;
+            abDeskCounts();
+        } else bkView();
+        B.sig = bkSig();
     }
+    function abDeskCounts() { const D = B.desk, b = D && abBdOf(D.bd), sm = document.querySelector('.ab-target small'); if (b && sm) sm.textContent = `${Object.keys(b.p).length} / ${b.n}장`; }
     async function abPutSt(slot, cx, cy, box) {
-        const D = B.desk; if (!D || !D.sheet || AB.busy || D.sheet.imgs[slot] == null) return;
+        const D = B.desk; if (!D || !D.sheet || D.sheet.imgs[slot] == null) return;
         const r = box.getBoundingClientRect();
         const pos = { x: Math.max(.08, Math.min(.92, (cx - r.left) / r.width)), y: Math.max(.1, Math.min(.9, (cy - r.top) / r.height)), r: Math.round((Math.random() - .5) * 24) };
         const src = D.sheet.id; D.sel = -1;
@@ -457,13 +499,19 @@
         const img = D.sheet.imgs[slot], tmp = 'tmp' + Date.now(), rel = abRlOf(D.rl);   // 화면에는 바로 붙여 보여요
         D.sheet.imgs[slot] = null;
         if (rel) { B.byId.set(tmp, { id: tmp, th: img }); rel.it.push({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }); }
-        bkView();
+        const stEl = document.querySelector(`#abPeel .ab-st[data-slot="${slot}"]`), relEl = bq('abRel');      // 화면만 바로 고쳐요 (다시 그리지 않아요)
+        if (stEl && relEl) {
+            const hole = document.createElement('b'); hole.className = 'ab-st hole'; stEl.replaceWith(hole);
+            relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
+            relEl.classList.remove('ready'); const hint = relEl.querySelector('.ab-relhint'); if (hint) hint.textContent = '스티커를 끌어 와 붙여요';
+            document.querySelectorAll('#abPeel .ab-st.on').forEach(x => x.classList.remove('on'));
+        } else bkView();
         const nid = await abDo(ownRelMove(src, slot, D.rl, pos), '🤍 이형지북에 붙이는 중…', '✓ 이형지북에 붙였어요');
         if (nid === undefined) { D.sheet = null; return; }                       // 실패 (알림은 abDo)
         if (!nid) { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); D.sheet = null; bkRender(true); return; }
         if (B.desk && B.desk.sheet && B.desk.sheet.id === src) { B.desk.sheet.imgs[slot] = null; if (!B.desk.sheet.imgs.some(u => u != null)) { B.desk.pick = ''; B.desk.sheet = null; } }
         if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
-        if (B.view === 'desk') bkView();
+        if (B.desk && !B.desk.pick && B.view === 'desk') bkView();               // 종이를 다 옮겼으면 다시 그려요
     }
     /* 끌기 (정리 책상 : 종이 → 포켓 · 스티커 → 이형지 / 이형지 펼침 : 자리 옮기기) */
     document.addEventListener('pointermove', ev => {
@@ -503,8 +551,7 @@
             if (!ok) return;
             if (!d.on) { bkOpenSheet(d.id); return; }
             const fn = a => { const r = a.rl.find(x => x.id === d.rid), t = r && r.it.find(o => o.s === d.id); if (t) { t.x = d.x; t.y = d.y; } };
-            try { fn(B.album); } catch (e) {}
-            abDo(ownAlbum(fn), '자리 옮기는 중…', '✓ 자리를 옮겼어요');
+            abQueue(fn);
             return;
         }
         if (!ok) return;
