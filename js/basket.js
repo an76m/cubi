@@ -170,18 +170,20 @@
             const d = B.drag; if (!d || ev.pointerId !== d.pid) return;
             if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 7) return;
             if (!d.moved) { d.moved = true; clearTimeout(d.hold); d.c.classList.remove('anim'); d.c.classList.add('lift'); d.c.style.zIndex = ++B.top; }
-            const mc = pile.closest('.modal-content'), mr = mc && mc.getBoundingClientRect();
-            d.out = !!mr && (ev.clientX < mr.left || ev.clientX > mr.right || ev.clientY < mr.top || ev.clientY > mr.bottom);   // 바구니 창 밖 = 꺼내기
-            pile.classList.toggle('dsk-out', d.out);
+            const bin = pile.closest('.bk-bin'), br = bin && bin.getBoundingClientRect();
+            if (!d.desk && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
+                d.desk = dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true); d.c.style.visibility = 'hidden';
+            }
+            if (d.desk) { dsMove(d.desk, ev.clientX, ev.clientY); return; }
             const W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             d.c.style.left = Math.max(-cw * .25, Math.min(W - cw * .75, ev.clientX - d.pr.left - d.ox)) + 'px';
             d.c.style.top = Math.max(-ch * .3, Math.min(H - ch * .6, ev.clientY - d.pr.top - d.oy)) + 'px';
         };
         const up = ev => {
             const d = B.drag; if (!d || (ev && ev.pointerId !== d.pid)) return;
-            B.drag = null; d.c.classList.remove('lift'); clearTimeout(d.hold); pile.classList.remove('dsk-out');
+            B.drag = null; d.c.classList.remove('lift'); clearTimeout(d.hold);
+            if (d.desk) { abSplit(); B.sig = bkSig(); bkDraw(); return; }       // 꺼낸 종이는 바구니에서 빠져요
             if (!d.moved) { if (ev && ev.type === 'pointerup') dsTake(d.id); return; }   // 톡 = 꺼내기 (도련 10-26 · 바구니는 잠깐 비켰다 다시 떠요)
-            if (d.out && ev && ev.type === 'pointerup') { dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true); bkPlace(bkOrder().slice(-BK_MAX), false); return; }   // 끌어서 창 밖에 놓기 = 그 자리에 꺼내기 (바구니는 그대로)
             const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             const rot = parseFloat(d.c.style.getPropertyValue('--r')) || 0;
             L.p[d.id] = [Math.max(0, Math.min(1, parseFloat(d.c.style.left) / Math.max(1, W - cw))), Math.max(0, Math.min(1, parseFloat(d.c.style.top) / Math.max(1, H - ch))), rot];
@@ -271,7 +273,7 @@
         (a.bd || []).forEach(b => Object.values(b.p || {}).forEach(id => placed.add(id)));
         (a.rl || []).forEach(r => (r.it || []).forEach(t => placed.add(t.s)));
         B.byId = new Map(B.all.map(e => [e.id, e]));
-        B.list = B.all.filter(e => bkKindOf(e) === B.kind && !placed.has(e.id));
+        B.list = B.all.filter(e => bkKindOf(e) === B.kind && !placed.has(e.id) && !DS.m.has(e.id));   // 🗂️ 페이지에 꺼내 둔 종이는 바구니에 없어요 (✕ 로 치우면 돌아와요)
     }
     /* 화면 바꾸기 : bin (바구니) · album (스티커첩) · bd (바인더 펼침) · rl (이형지 펼침) · desk (정리 책상) */
     function bkView(v) {
@@ -901,7 +903,10 @@
         d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
     }
     function dsFront(d) { d.el.style.zIndex = ++DS.z; }
-    function dsDrop(id) { const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); }
+    function dsDrop(id) {
+        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id);
+        if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
+    }
     function dsTake(id, at, keep) {
         if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
         const e = dsEntry(id) || B.byId.get(id); if (!dsLeft(e)) { showMsg('이 스티커는 이미 다 썼어요.'); return; }
@@ -919,7 +924,9 @@
             closeModal('basketKindModal');
             setTimeout(() => { if (![...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex') && !dsRoomOn()) bkReopen(); }, 420);
         }
+        return d;
     }
+    function dsMove(d, x, y) { d.x = x; d.y = y; const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (x - w / 2) + 'px'; d.el.style.top = (y - h / 2) + 'px'; }
     function dsWire(d) {
         let p = null;
         d.el.addEventListener('pointerdown', ev => {
