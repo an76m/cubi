@@ -1,20 +1,13 @@
 /* 말랑달콤 다이어리 - js/stickerpack.js
-   🍭 포인트스티커 : 🏪 진열대 🍭 코너에서 판을 받아 🧺 바구니에서 꺼내 써요 (🎒 10-25)
-   - 비슷한 것끼리 묶은 작은 스티커 모음 : 🔤 말랑 알파벳 A~Z · 🔢 말랑 숫자 0~9 · 💗 하트 모음
-     🎵 음표 · 📅 요일 · 🗓 달 · ✅ 기호(체크 · 번호 · 화살표) · 💬 한마디 · 🌤 날씨 · ✨ 반짝이 (도련 · 2026-10-15)
-     그림 파일 없이 코드로 그려요 (말랑 버블 글씨 · 젤리 모양 + 하얀 다이컷 테두리 · spkGlyph · spkShape) → 한 번 그린 건 기억해 둬요
-   - 팩을 고르면 하얀 판에 스티커가 올려진 채 페이지 옆(자리가 없으면 아래쪽)에 떠 있어요
-     1) 스티커를 톡 누르면 살짝 커지며 떠올라요 (말려 떼지는 연출 없이)
-     2) 그대로 끌어서 페이지에 놓으면 작아지며 꾹 붙어요 → 빨간 점선이 생겨 옮기기 · 돌리기 · 크기 조절 (다른 스티커와 같아요)
-        페이지 밖이나 판 위에 놓으면 제자리로 돌아가요 · 떠 있을 때 다른 곳을 누르면 제자리로
-   - 판 위쪽 테이프(✋)를 끌면 판이 옮겨져요 · 오른쪽 위 끝 ✕ 로 닫아요 · 판 바깥은 그대로 페이지라 붙인 스티커를 바로 고칠 수 있어요
-   - 🎒 유한 스티커 (10-25) : 🧺 바구니의 포인트스티커 판을 열면 openStickerPack({ srcs, own }) · 쓴 칸(null)은 빈 자리 · 붙이면 그 칸은 영원히 사라져요 (js/own.js)
-     진열대 목록은 spkPackList() (그린 판 · 🏪 진열대 js/basket.js)
-   ※ 이 파일이 없어도 다이어리는 정상 동작 (포인트스티커 칸만 '준비 중') */
+   🎨 제가 그린 씰 종이 (그림 파일 없이 코드로 · 🏪 진열대 🏷️ 씰스티커 창에 나와요 · js/basket.js)
+   - 비슷한 것끼리 한 종이에 : 🔤 말랑 알파벳 A~Z · 🔢 말랑 숫자 0~9 · 💗 하트 모음 · 🎵 음표 · 📅 요일 · 🗓 달 · ✅ 기호 · 💬 한마디 · 🌤 날씨 · ✨ 반짝이 (도련 · 2026-10-15)
+   - 말랑 버블 글씨 · 젤리 모양 + 하얀 다이컷 테두리 (spkGlyph · spkShape) → 한 번 그린 건 기억해 둬요 · 받으면 🏷️ 씰 종이 한 장 (js/own.js)
+   - (10-25 도련) '포인트스티커'라는 종류는 없앴어요 → 모두 씰스티커 · 떼는 것도 씰처럼 하얀 종이에서 (js/stickerpeel.js)
+   ※ 이 파일이 없어도 다이어리는 정상 동작 (진열대에 이 종이들만 안 나와요) */
 
         const SPK_FONT = "'Fredoka', 'Jua', 'Arial Rounded MT Bold', sans-serif";
         const SPK_COLORS = [['#ff9ec1', '#e0628f'], ['#ffd36b', '#d9a12a'], ['#9fd3ff', '#4f9fd8'], ['#a8e3a0', '#5aa863'], ['#c7a8ff', '#8a63d9'], ['#ffb48a', '#e07a45'], ['#8fe0d2', '#3fae9c']];
-        const SPK_PACKS = [
+        const SPK_PACKS = [   // g 는 옛 카테고리 (안 써요 · 10-25 카테고리 없음)
             { id: 'abc', g: '글자', items: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('') },
             { id: 'num', g: '숫자', items: '0123456789!?'.split('') },
             { id: 'heart', g: '도형', items: Array.from({ length: 16 }, (_, i) => 'h' + i), draw: (it, i) => spkHeart(i) },
@@ -26,8 +19,7 @@
             { id: 'sky', g: '날씨', items: () => SPK_SKY, draw: spkShape },
             { id: 'twinkle', g: '반짝이', items: () => SPK_TWINKLE, draw: spkShape },
         ];
-        const spkS = { cache: {}, pack: null, lift: null, mv: null, drag: null, press: null };
-        const spkq = id => document.getElementById(id);
+        const spkS = { cache: {} };
         const spkMk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
         /* ---------- 그리기 : 160 × 160 캔버스 → 빈 곳 잘라낸 PNG ---------- */
@@ -248,177 +240,6 @@
             return (spkS.cache[pack.id] = await Promise.all(items.map((it, i) => spkSmall((pack.draw || spkGlyph)(it, i), k))));
         }
 
-        /* ---------- 하얀 판 ---------- */
-        function spkBuild() {
-            if (spkq('spkRoom')) return;
-            const el = document.createElement('div');
-            el.id = 'spkRoom'; el.className = 'spk-room';
-            el.innerHTML = `<div class="spk-board" id="spkBoard"><div class="spk-tape" id="spkTape">✋ 잡고 옮겨요</div><button type="button" class="pm-x spk-x" onclick="closeStickerPack()" aria-label="닫기">✕</button>
-                <div class="spk-grid" id="spkGrid"></div></div>`;
-            document.body.appendChild(el);
-            spkq('spkTape').addEventListener('pointerdown', e => {
-                e.preventDefault(); spkPutBack(); try { e.target.setPointerCapture(e.pointerId); } catch (er) {}
-                const b = spkq('spkBoard').getBoundingClientRect(); spkS.drag = { dx: e.clientX - b.left, dy: e.clientY - b.top };
-            });
-            spkq('spkTape').addEventListener('pointermove', e => { if (spkS.drag) spkPlace(e.clientX - spkS.drag.dx, e.clientY - spkS.drag.dy); });
-            const end = () => { spkS.drag = null; }; spkq('spkTape').addEventListener('pointerup', end); spkq('spkTape').addEventListener('pointercancel', end);
-            const g = spkq('spkGrid');
-            g.addEventListener('pointerdown', spkDown); g.addEventListener('pointermove', spkGridMove);
-            g.addEventListener('pointerup', spkGridUp); g.addEventListener('pointercancel', spkGridUp);
-            spkq('spkBoard').addEventListener('pointerdown', e => { if (!e.target.closest('.spk-it, .spk-tape, .spk-x')) spkPutBack(); });
-            window.addEventListener('resize', () => { const b = spkq('spkBoard'); if (spkq('spkRoom').classList.contains('show')) { const r = b.getBoundingClientRect(); spkPlace(r.left, r.top); } });
-        }
-        /* 판 자리 : 화면 안으로 */
-        function spkPlace(x, y) {
-            const b = spkq('spkBoard'), W = window.innerWidth, H = window.innerHeight;
-            x = Math.max(6, Math.min(W - b.offsetWidth - 6, x)); y = Math.max(64, Math.min(H - b.offsetHeight - 6, y));
-            b.style.left = x + 'px'; b.style.top = y + 'px'; spkS.mv = [x, y];
-        }
-        async function openStickerPack(id) {                                         // id = { srcs, own } : 🎒 내 포인트스티커 판 (js/basket.js)
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            const mine = id && typeof id === 'object' ? id : null;
-            const p = mine ? { id: 'own' } : SPK_PACKS.find(q => q.id === id); if (!p) return;
-            if (window.stkLeave) stkLeave();
-            spkBuild(); spkPutBack(); spkS.pack = p; spkS.own = mine && mine.own || null;
-            let srcs;
-            try { srcs = mine ? mine.srcs : await spkSrcs(p); } catch (e) { showMsg('⚠ 포인트스티커를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); if (window.stkReturn) stkReturn(); return; }
-            spkq('spkGrid').innerHTML = srcs.map((u, i) => u ? `<span class="spk-it" data-i="${i}"><img src="${u}" alt="" draggable="false"></span>` : `<span class="spk-it used" data-i="${i}"></span>`).join('');   // 🎒 쓴 칸 = 뗀 자국
-            spkq('spkRoom').classList.add('show');
-            const b = spkq('spkBoard'), W = window.innerWidth, H = window.innerHeight, pg = spkq('diaryBook') || spkq('diaryWrapper'), r = pg.getBoundingClientRect();
-            /* 페이지 옆에 자리가 있으면 오른쪽 옆 · 없으면 아래쪽 가운데 (하단메뉴 바로 위) */
-            const nav = document.querySelector('.tb-sticker'), nt = nav ? nav.parentElement.getBoundingClientRect().top : H;
-            if (W - r.right >= b.offsetWidth + 12) spkPlace(r.right + 8, Math.max(80, r.top + 40));
-            else spkPlace((W - b.offsetWidth) / 2, nt - b.offsetHeight - 10);
-        }
-        function closeStickerPack() { spkPutBack(); const r = spkq('spkRoom'); if (r) r.classList.remove('show'); if (window.stkReturn) stkReturn(); }   // ✨ 스티커 창에서 왔으면 다시 떠요
-
-        /* ---------- 누르면 🏷️ 씰스티커처럼 떼어져서(js/peelfx.js) 떠오르기 · 끌기 → 붙이기 ---------- */
-        /* 누른 채 끌면 🏷️ 씰스티커처럼 손가락을 따라 가장자리부터 떼어져요 (js/peelfx.js pfxSeal) · 톡 누르면 저절로 떼어져 떠올라요 */
-        function spkDown(e) {
-            const it = e.target.closest('.spk-it'); if (!it || it.classList.contains('used')) return;
-            if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(e.clientX, e.clientY); return; }   // 🪡 하얀 판에서 떼기는 핀셋으로 (도련 10-21)
-            e.preventDefault(); spkPutBack();
-            spkS.press = { it, x: e.clientX, y: e.clientY, seal: null };
-            try { spkq('spkGrid').setPointerCapture(e.pointerId); } catch (er) {}
-        }
-        function spkGridMove(e) {
-            const p = spkS.press; if (!p) return;
-            if (p.seal) { p.seal.move(e.clientX, e.clientY); return; }
-            if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 5 || !window.pfxSeal) return;
-            const img = p.it.querySelector('img'), r = img.getBoundingClientRect(), it = p.it;
-            it.classList.add('out');
-            p.seal = pfxSeal({ src: img, cx: r.left + r.width / 2, cy: r.top + r.height / 2, w: r.width, h: r.height, rot: 0, x: p.x, y: p.y,
-                real: () => spkReal(img),                                                    // 📏 판에서 완전히 떨어지는 순간 진짜 크기로
-                onDetach: () => spkAway(true),
-                onCancel: () => { it.classList.remove('out'); spkAway(false); },
-                onDrop: (cx, cy, rot, b0, sz) => {                                          // 페이지 위면 붙이고 · 판 위나 바깥이면 제자리로
-                    const pg = spkq('canvasArea'), pr = pg && pg.getBoundingClientRect(), b = spkq('spkBoard').getBoundingClientRect();
-                    const onBoard = cx > b.left && cx < b.right && cy > b.top && cy < b.bottom;
-                    const onB = onBoard && !spkq('spkBoard').classList.contains('away');   // 📱 비켜 준 판 자리는 페이지예요
-                    if (pr && !onB && cx > pr.left && cx < pr.right && cy > pr.top && cy < pr.bottom) spkStick({ it, src: img.src, w: sz ? sz.w : r.width, h: sz ? sz.h : r.height, cx, cy, rot });
-                    else { it.classList.remove('out'); spkAway(false); }
-                } });
-            p.seal.move(e.clientX, e.clientY);
-        }
-        function spkGridUp(e) {
-            const p = spkS.press; if (!p) return; spkS.press = null;
-            if (p.seal) { p.seal.up(); return; }
-            spkLift(p.it, p.x, p.y, e.pointerId);
-        }
-        /* 📏 페이지에 붙을 진짜 크기 (원본 그림 크기 × 페이지 배율 · 화면 px) */
-        function spkReal(img) {
-            const pg = spkq('canvasArea'); if (!pg || !img.naturalWidth || !img.naturalHeight) return null;
-            const r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
-            return { w: img.naturalWidth * k, h: img.naturalHeight * k, src: img };
-        }
-        /* 톡 : 저절로 떼어져서 떠 있어요 (다시 끌거나 다른 곳을 누르면 제자리) */
-        function spkLift(it, ex, ey, pid) {
-            const e = { clientX: ex, clientY: ey, pointerId: pid };
-            const img = it.querySelector('img'), r = img.getBoundingClientRect();
-            const f = img.cloneNode(); f.className = 'spk-fly'; f.style.width = r.width + 'px'; f.style.height = r.height + 'px';
-            f.style.transform = `translate(${r.left}px, ${r.top}px)`; f.classList.add('flat'); document.body.appendChild(f); void f.offsetWidth; it.classList.add('out');
-            const L = spkS.lift = { f, it, src: img.src, w: r.width, h: r.height, home: [r.left + r.width / 2, r.top + r.height / 2], off: [e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)], moved: false, start: [e.clientX, e.clientY], last: [e.clientX, e.clientY], s: 1, rot: 0 };
-            L.cx = L.home[0]; L.cy = L.home[1];
-            const up = () => {                                                        // 다 떼어지면 진짜 크기로 바뀌며 떠올라 손가락 자리로
-                L.peel = null; if (spkS.lift !== L) return;
-                f.classList.remove('flat', 'drag');
-                const R = spkReal(img), s = R ? R.w / L.w : 1.3;                          // 📏 판에서 완전히 떨어지는 순간 진짜 크기 (도련 · 10-18)
-                if (L.moved) L.off = [L.off[0] * s, L.off[1] * s];                         // 잡은 자리는 손가락 끝 그대로
-                const [x, y] = L.moved ? [L.last[0] - L.off[0], L.last[1] - L.off[1]] : L.home;
-                spkFly(x, y, s, (Math.random() - .5) * .2);
-                if (L.upLater) setTimeout(() => { if (spkS.lift === L) spkDrop(L); }, 170);
-            };
-            if (window.pfxPeel) { L.peel = true; const stop = pfxPeel(f, e.clientX, e.clientY, .35, -1, 0, up); if (L.peel) L.peel = stop; } else up();
-            f.addEventListener('pointermove', spkMove); f.addEventListener('pointerup', spkUp); f.addEventListener('pointercancel', spkUp);
-            f.addEventListener('pointerdown', ev => { ev.preventDefault(); const q = spkS.lift; if (!q) return; q.off = [ev.clientX - q.cx, ev.clientY - q.cy]; q.start = [ev.clientX, ev.clientY]; q.moved = false; q.down = true; try { f.setPointerCapture(ev.pointerId); } catch (er) {} });
-            L.down = false;
-            if (navigator.vibrate) try { navigator.vibrate(6); } catch (er) {}
-        }
-        function spkFly(cx, cy, s, rot) {
-            const L = spkS.lift; if (!L) return;
-            L.cx = cx; L.cy = cy; if (s != null) L.s = s; if (rot != null) L.rot = rot;
-            L.f.style.transform = `translate(${cx - L.w / 2}px, ${cy - L.h / 2}px) scale(${L.s}) rotate(${L.rot}rad)`;
-        }
-        function spkMove(e) {
-            const L = spkS.lift; if (!L || !L.down) return;
-            if (!L.moved && Math.hypot(e.clientX - L.start[0], e.clientY - L.start[1]) < 5) return;
-            L.moved = true; L.last = [e.clientX, e.clientY]; spkAway(true);
-            if (L.peel) return;                                                       // 떼어지는 동안은 제자리
-            L.f.classList.add('drag'); spkFly(e.clientX - L.off[0], e.clientY - L.off[1]);
-        }
-        function spkUp() {
-            const L = spkS.lift; if (!L || !L.down) return;
-            L.down = false; L.f.classList.remove('drag');
-            if (!L.moved) return;                                                     // 톡 : 떠 있는 채로 (다시 끌거나 다른 곳을 누르면 제자리)
-            if (L.peel) { L.upLater = true; return; }                                 // 아직 떼어지는 중 → 다 떼어진 뒤 놓기
-            spkDrop(L);
-        }
-        function spkDrop(L) {
-            const pg = spkq('canvasArea'), r = pg && pg.getBoundingClientRect(), b = spkq('spkBoard').getBoundingClientRect();
-            const onBoard = L.cx > b.left && L.cx < b.right && L.cy > b.top && L.cy < b.bottom && !spkq('spkBoard').classList.contains('away');
-            if (r && !onBoard && L.cx > r.left && L.cx < r.right && L.cy > r.top && L.cy < r.bottom) spkStick(L); else spkPutBack();
-        }
-        /* 제자리로 */
-        /* 📱 폰 (화면 폭 700 미만) : 판이 페이지를 가려서, 뗀 스티커를 붙일 동안 판이 비켜 줘요 · 💻 PC · 아이패드는 그대로 (도련 · 2026-10-10) */
-        function spkAway(on) { const b = spkq('spkBoard'); if (b) b.classList.toggle('away', !!on && innerWidth < 700); }
-        function spkPutBack() {
-            spkAway(false);
-            const L = spkS.lift; if (!L) return; spkS.lift = null;
-            if (typeof L.peel === 'function') L.peel(); L.peel = null;
-            L.f.classList.remove('flat'); L.f.classList.add('back'); L.s = 1; L.rot = 0; L.f.style.transform = `translate(${L.home[0] - L.w / 2}px, ${L.home[1] - L.h / 2}px) scale(1)`;
-            setTimeout(() => { L.f.remove(); L.it.classList.remove('out'); }, 200);
-        }
-        /* 붙이기 : 작아지며 꾹 → 페이지 스티커가 돼요 (빨간 점선으로 골라 둬요) */
-        function spkStick(L) {
-            spkS.lift = null; setTimeout(() => spkAway(false), 200);
-            const S = L.f ? L.s || 1 : 1;                                                // 📏 떠 있던 크기(진짜 크기) 그대로 붙어요
-            if (L.f) { L.f.classList.add('back'); L.f.style.transform = `translate(${L.cx - L.w / 2}px, ${L.cy - L.h / 2}px) scale(${S}) rotate(${L.rot}rad)`; }
-            setTimeout(() => {
-                if (L.f) L.f.remove(); L.it.classList.remove('out');
-                if (!addImage(L.src)) return;
-                const pg = spkq('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1, el = pg.querySelector('.element-box:last-child');
-                if (el) {
-                    const w = L.w * S / k, h = L.h * S / k, PADB = 14, deg = Math.round(L.rot * 180 / Math.PI * 10) / 10;
-                    const put = (px, py) => { el.dataset.posX = px; el.dataset.posY = py; el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(${deg}deg)`; };
-                    el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
-                    const x = Math.round((L.cx - r.left) / k - (w + PADB) / 2), y = Math.round((L.cy - r.top) / k - (h + PADB) / 2);
-                    put(x, y); const bb = el.getBoundingClientRect();
-                    put(Math.round(x + (L.cx - (bb.left + bb.width / 2)) / k), Math.round(y + (L.cy - (bb.top + bb.height / 2)) / k));
-                    if (window.elOrig) elOrig(el);                                   // 🖼️ 판에서는 작게 보여도 붙는 순간 원본 크기로 (js/elements.js)
-                    if (typeof selectElement === 'function') selectElement(el);
-                }
-                if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
-                if (typeof saveData === 'function') saveData(false);
-                if (spkS.own && window.ownUse) {                                          // 🎒 붙어서 저장된 순간 그 칸은 영원히 사라져요 (js/own.js)
-                    const k = +L.it.dataset.i; L.it.classList.add('used'); L.it.innerHTML = '';
-                    if (el) el.dataset.own = spkS.own.id + ':' + k;
-                    ownUse(spkS.own.id, k, el).catch(er => console.warn('스티커 칸을 아직 못 지웠어요 (다시 해요) :', er));
-                    if (!spkq('spkGrid').querySelector('.spk-it:not(.used)')) setTimeout(closeStickerPack, 500);   // 다 쓴 판은 닫혀요
-                }
-            }, 150);
-        }
-        document.addEventListener('pointerdown', e => { if (spkS.lift && !spkS.lift.down && !e.target.closest('.spk-fly, #spkBoard')) spkPutBack(); }, true);
-
-        /* 🏪 진열대 : 그린 포인트스티커 판 [{ id, g : 카테고리, srcs() }] (js/basket.js) */
-        const spkPackList = () => SPK_PACKS.map(p => ({ id: p.id, g: p.g, srcs: () => spkSrcs(p) }));
-        window.openStickerPack = openStickerPack; window.closeStickerPack = closeStickerPack; window.spkPackList = spkPackList;
+        /* 🏪 진열대 : 그린 씰 종이 [{ id, srcs() }] (js/basket.js) */
+        const spkPackList = () => SPK_PACKS.map(p => ({ id: p.id, srcs: () => spkSrcs(p) }));
+        window.spkPackList = spkPackList;

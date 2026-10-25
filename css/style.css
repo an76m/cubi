@@ -3713,7 +3713,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1.5초) */
 /* ☕ 카페에 있는 동안은 손에 든 문구를 숨겨요 (js/settings.js · 도련 10-21) */
 body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
-body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #shelfModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
+body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
    🚪 스티커 떼는 창(흰 종이 · 조각 봉투 · 포인트 판)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
 
@@ -3971,8 +3971,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ct-room .snd-fx.ct-snd { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 54px; z-index: 2; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 📒 수첩 .snb-on 과 같게 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
-#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #shelfModal, .modal.skin-float { pointer-events: none; }
-#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #shelfModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
+#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #shelfModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
+#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #shelfModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
 
 /* 📄 모조지스티커 기본 칸 : 위 줄 모양 · 배경 / 아래 줄 카테고리 (js/stk-basic.js sbCatsPaper · 📒 수첩 제목 아래에도 그대로 · 도련 10-23) */
 
@@ -4045,16 +4045,11 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 🏪 진열대 : 카테고리 매대(선반) · 옆으로 밀어 보는 종이 · 이름표 · 🧺 받기 */
 .sh-content { width: min(94vw, 560px); }
 .sh-wrap { max-height: min(62vh, 560px); overflow-y: auto; padding: 2px 2px 4px; overscroll-behavior: contain; }
-.sh-row { margin: 4px 0 14px; }
 .sh-sign { margin: 0 0 2px 4px; }
 .sh-sign span { display: inline-block; padding: 3px 13px; border: 2px solid var(--border-color); border-radius: 10px; background: #fff; color: #7b5a63; font-size: 13px; font-weight: 800; transform: rotate(-2deg); box-shadow: 0 2px 0 rgba(0,0,0,.06); }
-.sh-rack { display: flex; align-items: flex-end; gap: 12px; overflow-x: auto; padding: 10px 8px 16px; scroll-snap-type: x proximity; overscroll-behavior-x: contain;
-    background: linear-gradient(transparent calc(100% - 10px), #ecca95 calc(100% - 10px), #d9ae70 100%); border-radius: 0 0 4px 4px; }
 .sh-item { flex: 0 0 112px; display: flex; flex-direction: column; align-items: center; gap: 4px; scroll-snap-align: start; }
 .sh-paper { width: 100%; padding: 7px; border: 1px solid #ece6ee; border-radius: 9px; background: linear-gradient(135deg, #fdfdff, #f4f6fb); box-shadow: 0 2px 6px rgba(110,80,95,.18); }
 .sh-paper.one { width: 86px; }
-.sh-tag { position: relative; max-width: 100%; padding: 1px 8px 1px 13px; border-radius: 3px 8px 8px 3px; background: #fff3c4; color: #7b5a63; font-size: 11.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sh-tag::before { content: ''; position: absolute; left: 4px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px #e8d38a; }
 .sh-cnt { font-size: 11px; color: #a08890; }
 .sh-take { border: 0; border-radius: 10px; background: var(--primary-accent, #f06f9a); color: #fff; font: inherit; font-size: 12.5px; font-weight: 800; padding: 5px 12px; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,.12); }
 .sh-take:active { transform: scale(.95); }
@@ -4073,12 +4068,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .bk-memo .pp-chip, .bk-memo img { display: block; width: 74px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(110,80,95,.2); }
 .bk-leaf { display: block; width: 64px; pointer-events: none; }
 .bk-leaf .lf-sw { display: block; width: 64px; aspect-ratio: .7; border-radius: 4px; box-shadow: 0 2px 6px rgba(110,80,95,.22); container-type: inline-size; }
-/* 🏪 코너 안내판 · 코너 */
-.sh-signs { position: sticky; top: 0; z-index: 2; display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 8px; background: var(--win-fill, #fffaf2); }
-.sh-go { flex: none; border: 1.5px solid var(--border-color); border-radius: 14px; background: #fff; color: #7b5a63; font: inherit; font-size: 12.5px; font-weight: 700; padding: 5px 11px; cursor: pointer; }
-.sh-go:active { transform: scale(.95); }
-.sh-corner { margin: 6px 0 18px; }
-.sh-head { margin: 4px 2px 6px; padding: 6px 12px; border-radius: 10px; background: linear-gradient(90deg, #ffe1ea, transparent); color: #a34a6c; font-size: 15px; }
 .sh-emo b { display: grid; place-items: center; aspect-ratio: 1; font-size: 17px; font-weight: normal; line-height: 1; }
 .sh-tape { width: 100%; padding: 14px 0; }
 .sh-tape i { display: block; height: 26px; background-size: auto 100%; background-repeat: repeat-x; transform: rotate(-4deg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
@@ -4090,3 +4079,26 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-paper.one img { display: block; width: 100%; height: auto; }
 .spk-it.used { pointer-events: none; cursor: default; }
 .spk-it.used::after { content: ''; width: 58%; height: 70%; border-radius: 8px; background: rgba(214,206,222,.3); outline: 1.2px dashed rgba(190,178,200,.6); outline-offset: -2px; }   /* 🎒 뗀 자국 */
+/* 🏪 진열대 종류 창 (10-25) : 카테고리 없이 한 매대 · 🔍 확대 */
+.sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 14px 10px; padding: 8px 4px 4px; }
+.sh-grid .sh-item { flex: none; padding-bottom: 12px; background: linear-gradient(transparent calc(100% - 8px), #ecca95 calc(100% - 8px), #d9ae70 100%); }
+.sh-look { display: flex; justify-content: center; width: 100%; padding: 0; border: 0; background: none; font: inherit; cursor: zoom-in; }
+.sh-look:active { transform: scale(.97); }
+.sh-zoom { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 14px; border-radius: inherit; background: rgba(255, 250, 247, .94); }
+.sh-zoom[hidden] { display: none; }
+.sh-zcard { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-height: 100%; }
+.sh-zlook { width: 100%; max-height: min(60vh, 520px); overflow: auto; display: flex; justify-content: center; }
+.sh-zlook .sh-paper { width: min(100%, 420px); padding: 12px; }
+.sh-zlook .sh-paper.one { width: min(80%, 320px); }
+.sh-zlook .bk-grid { gap: 8px; }
+.sh-zlook .sh-emo b { font-size: 34px; }
+.sh-zlook .sh-tape { width: min(100%, 420px); padding: 30px 0; }
+.sh-zlook .sh-tape i { height: 46px; }
+.sh-zlook .sh-pad .tk-mini { transform: scale(2.2); transform-origin: 50% 0; margin-bottom: 96px; }
+.sh-zlook .sh-pad { min-height: 0; padding-top: 4px; }
+.sh-zlook .sh-leaf, .sh-zlook .sh-leaf .lf-sw { width: min(70vw, 240px); }
+.sh-zlook .sh-memo .pp-chip { width: 220px; height: 160px; }
+.sh-zbtns { display: flex; gap: 10px; }
+.sh-zbtns .sh-take { font-size: 14px; padding: 8px 20px; }
+.sh-content .modal-content, #shelfKindModal .modal-content { position: relative; }
+

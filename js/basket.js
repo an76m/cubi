@@ -7,12 +7,12 @@
        · 다 쓴 종이는 바구니에서 사라져요 · 종이 자리 · 쌓인 순서는 이 기기에만 기억 (localStorage · 드라이브에 쓰지 않아요)
        · 화면에는 맨 위 BK_MAX 장만 그려요 (수백 장이어도 버벅이지 않게 · 🔀 뒤적이면 아래 것이 올라와요)
        · 나중에 🗂️ 바인더 · 바구니 · 라벨을 사서 정리하는 기능을 이 위에 얹어요 (도련 10-25)
-   - ✨ 스티커 창 → 🏪 진열대 : 기본스티커(Cloudflare 그림 보관함 · js/elements.js basicKit)를 카테고리 매대(선반)별로 진열
+   - ✨ 스티커 창 → 🏪 진열대 : 종류 아이콘 8개 → 그 종류의 진열대 창 (카테고리 · 이름 없이 · 새로 들어온 것이 맨 앞 · 도련 10-25)
+       · 🔍 확대 = 그 스티커 전체 모습 + 아래 🧺 받기
        · [🧺 받기] = 그 스티커 종이를 새로 한 장 받아 바구니로 (공짜 · 몇 번이든 · 같은 스티커도 받을 때마다 새 종이 · 도련 10-25)
-       · 이름표 = js/kit-meta.js 의 세트 이름 (도구/스티커정리/3_정보.py)
-   - 모든 종류 (10-25) : 🏷️ 씰 · 🍭 포인트 · 😀 이모지 · 🧩 조각 · 📄 모조지 · 🎀 테이프 · 📝 메모지 · 🧻 떡메 · 📃 속지 (+ 🌸 계절 · 🎁 캡슐 선물)
+   - 모든 종류 (10-25) : 🏷️ 씰 · 😀 이모지(씰로 떼요) · 🧩 조각 · 📄 모조지 · 🎀 테이프 · 📝 메모지 · 🧻 떡메 · 📃 속지 (+ 🌸 계절 · 🎁 캡슐 선물)
        · 바구니 카드 모양 = 종류마다 (씰 종이 · 테이프 롤 · 떡메 묶음 · 메모지 묶음 · 속지 한 장 …) · 남은 양은 두께로만 보여요 (숫자 없이)
-       · 종이를 톡 = 종류마다 원래 연출로 (씰 · 포인트 판 · 조각 봉투 · 모조지 · 떡메 묶음) / 테이프 · 메모지 · 속지는 페이지에 바로 놓여요
+       · 종이를 톡 = 종류마다 원래 연출로 (씰 · 조각 봉투 · 모조지 · 떡메 묶음) / 테이프 · 메모지 · 속지는 페이지에 바로 놓여요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (스티커 창의 두 칸만 안 열려요) */
 
 (function () {
@@ -75,7 +75,7 @@
         else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : kitImg(u)).join('')}</i>`;
         return `<button type="button" class="bk-sh ${cls}${e.n === 1 && !e.q0 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="${esc(KIND_NAME[e.k] || '스티커')}">${inner}</button>`;
     }
-    const KIND_NAME = { seal: '씰스티커', point: '포인트스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', memo: '메모지', tk: '떡메모지', leaf: '속지' };
+    const KIND_NAME = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', memo: '메모지', tk: '떡메모지', leaf: '속지' };
     function bkDraw() {
         const wrap = bq('bkWrap'); if (!wrap) return;
         const guest = ownMode() === 'mem';
@@ -168,7 +168,6 @@
             const die = async a => !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요)
             let ok = false;
             if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts }); }
-            else if (s.k === 'point') { if (!window.openStickerPack) return; await openStickerPack({ srcs: await die(s.imgs), own }); ok = true; }   // stkLeave 는 판이 해요
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
                 if (window.stkLeave) stkLeave();
@@ -210,103 +209,107 @@
     }
     if (window.ownOnChange) ownOnChange(() => { if (vis('basketModal')) bkRender(false); });
 
-    /* ---------- 🏪 진열대 : 코너(종류)마다 · 그 안에 카테고리 매대 ---------- */
-    const SH = { built: false, items: [], busy: false };
-    const shFile = u => String(u).split('/').pop();
-    const EMOJI_NAME = { faces: '표정', animals: '동물', food: '음식', activities: '놀이', travel: '여행', objects: '물건', symbols: '기호' };
-    /* 코너 : [아이콘, 이름, 상품 만들기] */
-    const SH_CORNERS = [
-        ['seal', '🏷️', '씰스티커', async () => {
-            const kit = await basicKit(), M = (window.KIT_META && KIT_META.sets) || {}, out = [];
-            kit.sheets.forEach(x => out.push({ c: x.c || '기본', us: x.us }));
-            kit.images.forEach(x => out.push({ c: x.c || '기본', us: [x.u] }));
-            return out.map(it => { const m = M[shFile(it.us[0])], nm = (m && m.n) || '';
-                return { c: window.kitName ? kitName(it.c) : it.c, nm, cnt: `씰 ${it.us.length}개`, look: 'grid', thumbs: it.us.map(u => window.kitSize ? kitSize(u, 96) : u), take: () => ownTakeKit(it.us, nm) }; });
+    /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
+       카테고리 · 스티커 이름 없이 (현실 문구점도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
+    const SH = { kind: '', items: [], zoom: -1, seq: 0 };
+    const kitThumb = (u, w) => window.kitSize ? kitSize(u, w) : u;
+    /* 종류 : [아이콘 이름, 창 이름, 상품 만들기] (진열대 첫 창의 아이콘 순서 = 이 순서) */
+    const SH_KINDS = {
+        seal: ['씰스티커', async () => {
+            const kit = await basicKit(), out = [];
+            kit.sheets.slice().reverse().forEach(x => out.push(x.us));               // 새로 들어온 것(뒤 번호)이 맨 앞
+            kit.images.slice().reverse().forEach(x => out.push([x.u]));              // 낱장
+            const items = out.map(us => ({ cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
+            for (const p of (window.spkPackList ? spkPackList() : [])) { const srcs = await p.srcs(); items.push({ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }); }   // 제가 그린 씰 종이 (예전 포인트스티커 · js/stickerpack.js)
+            return items.concat(window.sbShelf ? await sbShelf('mini') : []);         // 옛 포인트스티커 폴더 그림도 씰로
         }],
-        ['point', '🍭', '포인트스티커', async () => {
-            const out = [];
-            for (const p of (window.spkPackList ? spkPackList() : [])) { const srcs = await p.srcs(); out.push({ c: p.g, nm: '', cnt: `스티커 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'point', imgs: srcs, baked: true } }); }
-            return out.concat(window.sbShelf ? await sbShelf('mini') : []);
-        }],
-        ['emoji', '😀', '이모지', async () => {
+        piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
+        paper: ['모조지스티커', async () => window.sbShelf ? sbShelf('paper') : []],
+        tape: ['마스킹테이프', async () => (window.sbShelf ? await sbShelf('tape') : []).concat((window.tapeShelf ? tapeShelf() : []).map(t => ({ cnt: '한 롤', look: 'tape', thumbs: [t.url], def: { k: 'tape', imgs: [t.url], th: t.url } })))],
+        tk: ['떡메모지', async () => (window.sbShelf ? await sbShelf('tk') : []).concat((window.tkShelf ? tkShelf() : []).map(t => ({ cnt: `${OWN_Q.tk}장`, look: 'tk', pad: t.k, def: { k: 'tk', imgs: [''], x: { pad: t.k }, noTh: true } })))],
+        leaf: ['속지', async () => (window.sbShelf ? await sbShelf('leaf') : []).concat((window.leafShelf ? leafShelf() : []).map(l => ({ cnt: '한 장', look: 'leaf', lf: l.k, def: { k: 'leaf', imgs: [''], x: { lf: l.k }, noTh: true } })))],
+        emoji: ['이모지', async () => {
             if (typeof emojiRanges === 'undefined') return [];
             return Object.keys(emojiRanges).map(c => {
                 const chars = []; for (const [a, b] of emojiRanges[c]) for (let i = a; i <= b && chars.length < 16; i++) chars.push(String.fromCodePoint(i));
-                return { c: '이모지', nm: EMOJI_NAME[c] || c, cnt: `스티커 ${chars.length}개`, look: 'emoji', chars, take: async () => ({ k: 'point', imgs: await Promise.all(chars.map(shEmoji)), baked: true, nm: EMOJI_NAME[c] || '' }) };
+                return { cnt: `씰 ${chars.length}개`, look: 'emoji', chars, take: async () => ({ k: 'seal', imgs: await Promise.all(chars.map(shEmoji)), baked: true }) };
             });
         }],
-        ['piece', '🧩', '조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
-        ['paper', '📄', '모조지스티커', async () => window.sbShelf ? sbShelf('paper') : []],
-        ['tape', '🎀', '마스킹테이프', async () => (window.tapeShelf ? tapeShelf() : []).map(t => ({ c: t.g, nm: t.name, cnt: '한 롤', look: 'tape', thumbs: [t.url], def: { k: 'tape', imgs: [t.url], th: t.url } }))
-            .concat(window.sbShelf ? await sbShelf('tape') : [])],
-        ['memo', '📝', '메모지', async () => (window.memoShelf ? memoShelf() : []).map(p => ({ c: p.g, nm: p.name, cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } }))
-            .concat(window.sbShelf ? await sbShelf('memo') : [])],
-        ['tk', '🧻', '떡메모지', async () => (window.tkShelf ? tkShelf() : []).map(t => ({ c: t.g, nm: t.n, cnt: `${OWN_Q.tk}장`, look: 'tk', pad: t.k, def: { k: 'tk', imgs: [''], x: { pad: t.k }, noTh: true } }))
-            .concat(window.sbShelf ? await sbShelf('tk') : [])],
-        ['leaf', '📃', '속지', async () => (window.leafShelf ? leafShelf() : []).map(l => ({ c: l.g, nm: l.n, cnt: '한 장', look: 'leaf', lf: l.k, def: { k: 'leaf', imgs: [''], x: { lf: l.k }, noTh: true } }))
-            .concat(window.sbShelf ? await sbShelf('leaf') : [])],
-        ['season', '🌸', '계절 스티커', async () => {
-            if (typeof SEASON_OPEN === 'undefined' || !SEASON_OPEN || typeof SEASON_STICKERS === 'undefined') return [];
-            const k = seasonNow(), S = SEASONS[k], srcs = (SEASON_STICKERS[k] || []).map(x => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x.svg));
-            return srcs.length ? [{ c: S.name, nm: `${S.name} 스티커`, cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true, nm: `${S.name} 스티커` } }] : [];
+        memo: ['메모지', async () => (window.sbShelf ? await sbShelf('memo') : []).concat((window.memoShelf ? memoShelf() : []).map(p => ({ cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } })))],
+        season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
+            if (!shSeasonOn()) return [];
+            const k = seasonNow(), srcs = (SEASON_STICKERS[k] || []).map(x => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x.svg));
+            return srcs.length ? [{ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }] : [];
         }],
-    ];
-    /* 😀 이모지 → 그림 (64px) */
+    };
+    const shSeasonOn = () => typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN && typeof SEASON_STICKERS !== 'undefined';
+    /* 😀 이모지 → 그림 (64px · 작게 콕) */
     function shEmoji(ch) {
-        const c = document.createElement('canvas'); c.width = c.height = 64;   // 포인트스티커 크기 (페이지 한 쪽 336 · 작게 콕)
+        const c = document.createElement('canvas'); c.width = c.height = 64;
         const x = c.getContext('2d'); x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '50px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
         x.fillText(ch, 32, 35);
         const u = c.toDataURL('image/png');
         return window.pelBake ? pelBake(u).catch(() => u) : u;
     }
+    /* 진열대 첫 창 : 종류 아이콘 (🌸 계절은 이벤트 때만) */
     function openShelf() {
         if (vis('stickerMakeModal')) closeModal('stickerMakeModal');
         if (vis('basketModal')) closeModal('basketModal');
+        if (vis('shelfKindModal')) closeModal('shelfKindModal');
+        const se = document.querySelector('#shelfModal [data-shk="season"]'); if (se) se.hidden = !shSeasonOn();
         openModal('shelfModal');
-        SH.built = false; shRender();                                          // 열 때마다 새로 (선물로 열린 테이프 · 계절 코너가 바로 보이게)
     }
-    /* 코너 안내판(맨 위 · 누르면 그 코너로) + 코너마다 매대 · 코너는 따로따로 채워요 (느린 코너가 다른 코너를 막지 않게) */
-    function shRender() {
-        const box = bq('shWrap'); if (!box || SH.built) return;
-        SH.built = true; SH.items = [];
-        box.innerHTML = `<nav class="sh-signs" aria-label="코너">${SH_CORNERS.map(([k, ic, n]) => `<button type="button" class="sh-go" data-k="${k}" onclick="shGo('${k}')">${ic} ${n}</button>`).join('')}</nav>`
-            + SH_CORNERS.map(([k, ic, n]) => `<section class="sh-corner" id="shc-${k}"><h3 class="sh-head">${ic} ${n} 코너</h3><div class="sh-body">${bkMsg('채우는 중…')}</div></section>`).join('');
-        SH_CORNERS.forEach(([k, , , fill]) => shFill(k, fill));
-    }
-    async function shFill(k, fill) {
-        const sec = bq('shc-' + k), body = sec && sec.querySelector('.sh-body'); if (!body) return;
+    /* 그 종류의 진열대 창 */
+    async function shOpenKind(k) {
+        const K = SH_KINDS[k]; if (!K) return;
+        closeModal('shelfModal'); openModal('shelfKindModal');
+        const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
+        const box = bq('shkWrap'); SH.kind = k; SH.items = []; shZoomOff();
+        const seq = ++SH.seq;
+        box.innerHTML = bkMsg('진열대를 채우는 중…'); box.scrollTop = 0;
         let items = [];
-        try { items = await fill(); } catch (e) { console.warn(e); body.innerHTML = bkMsg('⚠ 불러오지 못했어요.', '<button type="button" class="btn bk-again" onclick="shRetry()">🔄 다시 불러오기</button>'); return; }
-        if (!items.length) { sec.hidden = true; const g = document.querySelector(`.sh-go[data-k="${k}"]`); if (g) g.hidden = true; return; }
-        const base = SH.items.length; SH.items.push(...items);
-        const cats = [...new Set(items.map(x => x.c))];
-        body.innerHTML = cats.map(c => `<section class="sh-row"><h4 class="sh-sign"><span>${esc(c)}</span></h4><div class="sh-rack">${items.map((x, i) => [x, base + i]).filter(([x]) => x.c === c).map(([x, i]) => shCard(x, i)).join('')}</div></section>`).join('');
+        try { items = await K[1](); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
+        if (seq !== SH.seq) return;                                              // 그사이 다른 종류를 열었어요
+        SH.items = items;
+        if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
+        const secs = k === 'paper' ? ['모양', '배경'] : [''];
+        box.innerHTML = secs.map(sec => {
+            const its = items.map((x, i) => [x, i]).filter(([x]) => !sec || (x.sec || '모양') === sec); if (!its.length) return '';
+            return (sec ? `<h4 class="sh-sign"><span>${sec === '배경' ? '📄 배경 (통째로 떼기)' : '✂️ 모양 (가위로 오리기)'}</span></h4>` : '') + `<div class="sh-grid">${its.map(([x, i]) => shCard(x, i)).join('')}</div>`;
+        }).join('');
     }
-    function shGo(k) { const s = bq('shc-' + k), w = bq('shWrap'); if (s && w) w.scrollTo({ top: s.offsetTop - w.offsetTop - 4, behavior: 'smooth' }); }
-    function shRetry() { SH.built = false; shRender(); }
-    function shLook(x) {
-        const n = (x.thumbs || x.chars || []).length, cols = Math.ceil(Math.sqrt(Math.max(1, n)));
+    function shLook(x, big) {
+        const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = Math.ceil(Math.sqrt(Math.max(1, n)));
         if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
-        if (x.look === 'tape' ) return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(x.thumbs[0])}&quot;)"></i></div>`;
+        if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tk') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml(x.pad) : ''}</div>`;
-        if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: x.thumbs[0] }) : ''}</div>`;
+        if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: src[0] }) : ''}</div>`;
         if (x.look === 'leaf') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-${esc(x.lf)}"></i></span>`;
-        if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(x.thumbs[0])}')"></i></span>`;
+        if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(src[0])}')"></i></span>`;
         if (x.look === 'memo') return `<div class="sh-memo"><span class="pp-chip pp-${esc(x.pp)}"></span></div>`;
-        if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(x.thumbs[0])}" alt="" loading="lazy"></div>`;
-        return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${x.thumbs.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
+        if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
+        return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }
     function shCard(x, i) {
-        return `<div class="sh-item">${shLook(x)}${x.nm ? `<b class="sh-tag">${esc(x.nm)}</b>` : ''}<small class="sh-cnt">${esc(x.cnt || '')}</small>`
-            + `<button type="button" class="sh-take" onclick="shTake(${i}, this)">🧺 받기</button></div>`;
+        return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
+            + `<button type="button" class="sh-take" onclick="shZoom(${i})">🔍 확대</button></div>`;
     }
-    async function shTake(i, btn) {
-        const x = SH.items[i]; if (!x || btn.disabled) return;
+    /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (진열대 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
+    function shZoom(i) {
+        const x = SH.items[i], z = bq('shZoom'); if (!x || !z) return;
+        SH.zoom = i;
+        z.innerHTML = `<div class="sh-zcard"><div class="sh-zlook k-${esc(SH.kind)}">${shLook(x, true)}</div><small class="sh-cnt">${esc(x.cnt || '')}</small>`
+            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">🧺 받기</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div></div>`;
+        z.hidden = false;
+    }
+    function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; }
+    async function shTake(btn) {
+        const x = SH.items[SH.zoom]; if (!x || btn.disabled) return;
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         try {
-            if (x.def) await ownTake(Object.assign({ nm: x.nm }, x.def));
-            else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(Object.assign({ nm: x.nm }, r)); }   // take() : 새 종이 id(씰) 또는 종이 정보
+            if (x.def) await ownTake(x.def);
+            else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }   // take() : 새 종이 id(씰) 또는 종이 정보
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙!';
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             setTimeout(() => { btn.classList.remove('got'); btn.textContent = '🧺 받기'; btn.disabled = false; }, 1400);
@@ -318,5 +321,5 @@
     }
 
     window.openBasket = openBasket; window.bkRender = bkRender; window.bkMix = bkMix; window.bkOpenSheet = bkOpenSheet;
-    window.openShelf = openShelf; window.shTake = shTake; window.shRetry = shRetry; window.shGo = shGo;
+    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shTake = shTake;
 })();

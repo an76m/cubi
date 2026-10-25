@@ -550,16 +550,16 @@
         function closeModal(id) { const m = document.getElementById(id); if (m) m.style.display = 'none'; }
         /* 🪟 창은 늘 하나만 (도련 10-21) : 새 창이 뜨면 먼저 떠 있던 창은 그 창의 ✕ 로 닫아요 (최신 창만 보여요)
            - 알림 · 확인 창(customAlertModal · showMsg)은 그 위에 떠요 (밑의 창을 닫지 않아요)
-           - 스티커를 떼는 창(🏷️ 흰 종이 · 🧩 조각 봉투 · 🍭 포인트 판 · 📄 모조지 · 🧻 떡메)도 새 창이 뜨면 닫아요
+           - 스티커를 떼는 창(🏷️ 흰 종이 · 🧩 조각 봉투 · 📄 모조지 · 🧻 떡메)도 새 창이 뜨면 닫아요
            - 옛 창의 ✕ 가 다른 창을 다시 띄우면(스티커 창으로 돌아가기 등) 0.35초 안에 뜬 그 창은 바로 접어요 → 새 창이 그대로 맨 위
            - 🗄️ 문구함은 스티커를 붙일 때만 써서 ✨ 스티커 창(스티커 · 고르는 창 · 메모지 · 떡메 · 속지)하고만 같이 떠요 (도련 10-21)
              그 밖의 창(📒 다이어리 · ⚙ 설정 · 카페 …)이 뜨면 문구함도 닫히고 · 문구함을 열면 그 밖의 창은 닫혀요
            - 가장 나중에 뜬 창이 맨 위 (z 1001) */
         (function winOne() {
             const KEEP = new Set(['customAlertModal']), CAB = 'gdCabModal';
-            const STK = new Set(['stickerMakeModal', 'basketModal', 'shelfModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 진열대 · 10-25)
+            const STK = new Set(['stickerMakeModal', 'basketModal', 'shelfModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 진열대 · 10-25)
             const pair = (a, b) => (a === CAB && STK.has(b)) || (b === CAB && STK.has(a));
-            const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['spkRoom', 'closeStickerPack'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
+            const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
             const vis = m => m.style.display === 'flex' || m.style.display === 'block';
             const seen = new WeakMap(); let busy = false, last = null, lastAt = 0;
             function shut(m) {

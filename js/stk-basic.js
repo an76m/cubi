@@ -2,9 +2,9 @@
    🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 처음부터 누구나 받는 기본 스티커
    - 제가 그린 것 : 🧩 조각 봉투 · 📄 모조지스티커 (그림은 모두 이 파일 안의 SVG · 파일 없음)
    - 🖼️ 개발자 그림 : Cloudflare 그림 보관함의 기본스티커 (js/elements.js basicKit) 중 씰 말고 나머지 종류
-       🍭 포인트 · 🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
-       📄 모조지 폴더 이름이 '배경'으로 시작하면 배경 모조지 (종이 전체가 무늬 · 통째로 떼기)
-   - sbShelf(종류) → 진열대 칸 [{ c, nm, cnt, look, thumbs, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
+       🏷️ 씰(옛 포인트스티커 폴더) · 🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
+       📄 모조지는 모조지스티커/모양/… · 모조지스티커/배경/… (도련 10-25 · 폴더 이름이 '배경'으로 시작하면 배경 모조지 = 종이 전체가 무늬 · 통째로 떼기)
+   - sbShelf(종류) → 진열대 칸 [{ cnt, look, thumbs, bigs, sec, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
    - hold: true = 만들어 두고 아직 안 보여 줘요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 칸만 '준비 중') */
 
@@ -99,7 +99,6 @@
            - 화면 카테고리 이름은 '배경' 뒤 글자 ('배경_체크' → '체크' · 그냥 '배경' 폴더는 '배경') */
         const SB_BG = /^배경(?:\s*[_\-·.]\s*|\s+|$)/;
         const sbIsBg = c => SB_BG.test(kitCat(c));
-        const sbBgName = c => kitCat(c).replace(SB_BG, '') || '배경';
         const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
         const kitAt = (u, w) => window.kitSize ? kitSize(u, w) : u;           // 크기에 맞는 주소 (js/elements.js)
         const thumb = (u, w) => kitAt(u, w || 160);
@@ -138,38 +137,38 @@
         const sbDie = url => window.pelBake ? pelBake(url) : sbData(url).then(d => d.src);   // 하얀 다이컷 테두리 (js/stickerpeel.js)
         /* =====================================================================
            🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 기본스티커(Cloudflare) + 제가 그린 봉투 · 모조지
-           kind = 'piece' · 'paper' · 'mini' · 'tape' · 'tk' · 'leaf' · 'memo'
-           → [{ c : 카테고리, nm : 이름표, cnt : 개수 글, look : 'grid' · 'tape' · 'tk' · 'leaf' · 'memo' · 'sheet', thumbs : [작은 그림], take() → ownTake 에 넘길 종이 }]
+           kind = 'piece' · 'paper' · 'mini'(옛 포인트 폴더 → 씰) · 'tape' · 'tk' · 'leaf' · 'memo' · 카테고리 · 이름 없이 (도련 10-25 : 현실 문구점도 그렇게 팔아요)
+           → [{ cnt : 개수 글, look : 'grid' · 'tape' · 'tkimg' · 'leafimg' · 'memoimg' · 'sheet', thumbs : [작은 그림], bigs : [🔍 확대 그림], sec : 모조지 '모양' · '배경', take() → ownTake 에 넘길 종이 }]
            ===================================================================== */
-        const sbOwnK = { piece: 'piece', paper: 'paper', mini: 'point', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };
+        const sbOwnK = { piece: 'piece', paper: 'paper', mini: 'seal', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };   // mini = 옛 포인트스티커 폴더 → 이제 씰 (10-25)
         async function sbShelf(kind) {
             const out = [], k = sbOwnK[kind];
             let list = []; try { list = await sbList(kind); } catch (e) {}
-            list.forEach(x => {
-                const urls = x.urls || [x.url], c = kitCat(x.c) || '기본';
-                if (kind === 'piece') out.push({ c, nm: '', cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+            list.slice().reverse().forEach(x => {                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
+                const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
+                if (kind === 'piece') out.push({ bigs, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
-                else if (kind === 'paper' && sbIsBg(x.c)) out.push({ c: '배경 ' + sbBgName(x.c), nm: '', cnt: '통째로 떼기', look: 'sheet', thumbs: [thumb(urls[0], 240)],
+                else if (kind === 'paper' && sbIsBg(x.c)) out.push({ sec: '배경', bigs, cnt: '통째로 떼기', look: 'sheet', thumbs: [thumb(urls[0], 240)],
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src], x: { bg: 1 } }) });
-                else if (kind === 'paper') out.push({ c, nm: '', cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                else if (kind === 'paper') out.push({ sec: '모양', bigs, cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: [await pmMakeSheet(await Promise.all(urls.map(u => sbData(kitAt(u, 600)).then(d => d.src))))] }) });
-                else if (kind === 'mini') out.push({ c, nm: '', cnt: `스티커 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                else if (kind === 'mini') out.push({ bigs, cnt: `씰 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
-                else if (kind === 'tape') out.push({ c, nm: '', cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
+                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
                     take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
                         const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
                         return { k, imgs: [u], th: u }; } });
-                else if (kind === 'tk') out.push({ c, nm: '', cnt: `${(window.OWN_Q || {}).tk || 50}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],
+                else if (kind === 'tk') out.push({ bigs, cnt: `${(window.OWN_Q || {}).tk || 50}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], x: { pad: 'my' } }) });
-                else if (kind === 'leaf') out.push({ c, nm: '', cnt: '한 장', look: 'leafimg', thumbs: [thumb(x.url, 240)],
+                else if (kind === 'leaf') out.push({ bigs, cnt: '한 장', look: 'leafimg', thumbs: [thumb(x.url, 240)],
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 900), true)).src], x: { lf: 'my' } }) });
-                else if (kind === 'memo') out.push({ c, nm: '', cnt: `${(window.OWN_Q || {}).memo || 50}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],
+                else if (kind === 'memo') out.push({ bigs, cnt: `${(window.OWN_Q || {}).memo || 50}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],
                     take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], x: { pp: 'img', w: d.w, h: d.h } }; } });
             });
             if (kind === 'piece') sbOn(SB_BAGS).forEach(b => { const srcs = b.k.map(q => sbSvg(q, true));
-                out.push({ c: b.g || '기본', nm: '말랑달콤 조각', cnt: `조각 ${b.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: srcs, baked: true, nm: '말랑달콤 조각' }) }); });
+                out.push({ cnt: `조각 ${b.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: srcs, baked: true }) }); });
             if (kind === 'paper') sbOn(SB_SHEETS).forEach(sh => { const srcs = sh.k.map(q => sbSvg(q, false));
-                out.push({ c: sh.g || '기본', nm: '', cnt: `그림 ${sh.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: [await pmMakeSheet(srcs)] }) }); });
+                out.push({ sec: '모양', cnt: `그림 ${sh.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: [await pmMakeSheet(srcs)] }) }); });
             return out;
         }
         const collHashS = s => { s = String(s); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
