@@ -681,7 +681,7 @@
     const SH_LATE = {
         seal: async () => {
             const out = [];
-            await Promise.all((window.spkPackList ? spkPackList() : []).map(async (p, i) => { const srcs = await p.srcs(); out[i] = { cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }; }));
+            for (const p of (window.spkPackList ? spkPackList() : [])) { const srcs = await p.srcs(); out.push({ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }); }   // 한 종이씩 차례로 (화면이 안 멈추게)
             return out.filter(Boolean);
         },
     };
@@ -740,6 +740,12 @@
     }
     /* 그 종류의 진열대 창 */
     /* ⏱ 시험용 (도련 10-25 · 진열대가 다시 켠 뒤 처음 열 때 3초쯤 · 어디서 걸리는지 찾기) : 목록 받기 · 진열대 만들기 · 첫 쪽 그림 다 뜰 때까지 · 원인 찾으면 이 함수와 T 줄을 지워요 */
+    function shPicsReady(box) {                                              // 지금 쪽 그림(묶음 미리보기 포함)이 다 뜰 때까지 (최대 8초)
+        const urls = [...box.querySelectorAll('img')].map(i => i.complete ? null : i).filter(Boolean), pv = [...new Set([...box.querySelectorAll('svg.sh-pv image')].map(i => i.getAttribute('href')))];
+        const wait = urls.map(im => new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }))
+            .concat(pv.map(u => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = u; })));
+        return Promise.race([Promise.all(wait), new Promise(r => setTimeout(r, 8000))]);
+    }
     function shTime(T, box, seq) {
         const imgs = [...box.querySelectorAll('img')].concat([...new Set([...box.querySelectorAll('svg.sh-pv image')].map(i => i.getAttribute('href')))].map(u => { const im = new Image(); im.src = u; return im; })), drawn = performance.now();   // 🖼️ 묶음 미리보기 파일도 셈
         const wait = imgs.map(im => im.complete ? 0 : new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }));
@@ -767,7 +773,7 @@
         SH.items = items;
         shDraw(k);
         shTime(T, box, seq);
-        if (SH_LATE[k] && !items.late) shLate(k).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품
+        if (SH_LATE[k] && !items.late) shPicsReady(box).then(() => seq === SH.seq ? shLate(k) : null).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품   // 제가 그린 씰 종이는 첫 쪽 그림이 다 뜬 뒤에 (같이 그리면 첫 쪽이 늦게 떠요 · 도련 10-25)
     }
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */

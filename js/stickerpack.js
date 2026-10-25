@@ -236,7 +236,9 @@
             if (spkS.cache[pack.id]) return spkS.cache[pack.id];
             if (document.fonts && document.fonts.load) await Promise.race([document.fonts.load(`700 100px ${SPK_FONT}`), new Promise(r => setTimeout(r, 1500))]).catch(() => {});
             const items = typeof pack.items === 'function' ? pack.items() : pack.items, k = SPK_SIZE[pack.id] || .5;
-            return (spkS.cache[pack.id] = await Promise.all(items.map((it, i) => spkSmall((pack.draw || spkGlyph)(it, i), k))));
+            const out = [];                                                     // 몇 개씩 그리고 쉬어요 (한꺼번에 그리면 그동안 화면이 멈춰서 진열대 그림이 늦게 떠요 · 도련 10-25)
+            for (let i = 0; i < items.length; i++) { out.push(spkSmall((pack.draw || spkGlyph)(items[i], i), k)); if (i % 3 === 2) await new Promise(r => setTimeout(r, 0)); }
+            return (spkS.cache[pack.id] = await Promise.all(out));
         }
 
         /* 🏪 진열대 : 그린 씰 종이 [{ id, srcs() }] (js/basket.js) */
