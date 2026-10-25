@@ -606,7 +606,7 @@
         const K = SH_KINDS[k]; if (!K) return;
         closeModal('shelfModal'); openModal('shelfKindModal');
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
-        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; shZoomOff();
+        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = ''; shZoomOff();
         const seq = ++SH.seq;
         box.scrollTop = 0;
         if (!SH.cache[k]) box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…');
@@ -617,23 +617,40 @@
         shDraw(k);
         if (SH_LATE[k] && !items.late) shLate(k).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품
     }
-    /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽에 SH_PER 개 · 지금 쪽을 보는 동안 다음 쪽 그림을 미리 받아 둬요 */
-    const SH_PER = 12;
+    /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
+       · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */
+    const SH_ROWS = 3, SH_MINW = 96, SH_GAP = 10;
+    const SH_CATS = { paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']] };
+    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
-        const secs = k === 'paper' ? ['모양', '배경'] : [''];
-        const order = secs.flatMap(sec => items.map((x, i) => [x, i]).filter(([x]) => !sec || (x.sec || '모양') === sec));   // 📄 모조지는 모양 → 배경 차례
-        const pages = Math.max(1, Math.ceil(order.length / SH_PER));
+        const cats = SH_CATS[k];
+        if (cats && !cats.some(c => c[0] === SH.cat)) SH.cat = cats[0][0];
+        const tabs = cats ? `<div class="ab-tabs sm sh-cats">${cats.map(c => `<button type="button" class="${c[0] === SH.cat ? 'on' : ''}" onclick="shCat('${c[0]}')">${c[1]}</button>`).join('')}</div>` : '';
+        const list = items.map((x, i) => [x, i]).filter(([x]) => !cats || shCatOf(k, x) === SH.cat);
+        const cols = Math.max(1, Math.floor(((box.clientWidth || 340) - 8 + SH_GAP) / (SH_MINW + SH_GAP))), per = cols * SH_ROWS;
+        const pages = Math.max(1, Math.ceil(list.length / per));
         SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
-        const page = order.slice(SH.pg * SH_PER, (SH.pg + 1) * SH_PER);
+        const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
         const nav = pages > 1 ? `<div class="ab-nav sh-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="shPage(-1)"${SH.pg ? '' : ' disabled'}>‹</button><span>${SH.pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="shPage(1)"${SH.pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : '';
-        box.innerHTML = secs.map(sec => {
-            const its = page.filter(([x]) => !sec || (x.sec || '모양') === sec); if (!its.length) return '';
-            return (sec ? `<h4 class="sh-sign"><span>${sec === '배경' ? '📄 배경 (통째로 떼기)' : '✂️ 모양 (가위로 오리기)'}</span></h4>` : '') + `<div class="sh-grid">${its.map(([x, i]) => shCard(x, i)).join('')}</div>`;
-        }).join('') + nav;
-        shPreload(order.slice((SH.pg + 1) * SH_PER, (SH.pg + 2) * SH_PER));          // 다음 쪽 미리
+        box.innerHTML = tabs + (page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')) + nav;
+        shFit(box);
+        shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리
     }
+    /* 창 안에 3줄이 다 들어가게 칸 높이를 맞춰요 (넘치면 조금씩 줄여요) */
+    function shFit(box) {
+        const mc = box.closest('.modal-content'); if (!mc) return;
+        let h = 150;
+        const set = () => { box.style.setProperty('--sh-h', h + 'px'); box.style.setProperty('--sh-z', (h / 130).toFixed(3)); };
+        set();
+        for (let i = 0; i < 10; i++) {
+            const over = mc.scrollHeight - mc.clientHeight;
+            if (over <= 1 || h <= 64) break;
+            h = Math.max(64, h - Math.ceil(over / SH_ROWS) - 1); set();
+        }
+    }
+    function shCat(c) { SH.cat = c; SH.pg = 0; shDraw(SH.kind); }
     function shPage(d) { SH.pg = (SH.pg || 0) + d; shDraw(SH.kind); const box = bq('shkWrap'); if (box) box.scrollTop = 0; }
     function shPreload(list) {
         const seen = SH.pre || (SH.pre = new Set());
@@ -704,5 +721,5 @@
     }
 
     window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
-    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shTake = shTake;
+    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shCat = shCat; window.shTake = shTake;
 })();
