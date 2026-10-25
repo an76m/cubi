@@ -127,13 +127,24 @@
         async function ownList(force) {
             ownReady();
             if (O.idx && !force && performance.now() - O.idxAt < OWN_FRESH) return O.idx;
+            return ownSerial(async () => ownIdxApply(await ownIdxRead()));
+        }
+        function ownIdxApply(list) {                                             // 이 기기에서 쓰는 중인 칸 · 수량을 빼고 기억해요
+            const pend = ownPendGet();
+            pend.forEach(p => { const e = list.find(x => x.id === p.s); if (!e) return; if (p.q) e.q = Math.max(0, e.q - p.q); else if (!e.u.includes(p.k)) e.u.push(p.k); });
+            O.idx = list.filter(ownAlive); O.idxAt = performance.now();
+            if (pend.length && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
+            return O.idx;
+        }
+        /* ⚡ 수납함 열기 : 목록 파일 · 스티커첩 파일을 동시에 읽어요 (하나씩 읽던 것보다 빨라요 · 도련 10-25) */
+        async function ownOpen(force) {
+            ownReady();
+            if (O.idx && O.album && !force && performance.now() - O.idxAt < OWN_FRESH) return { list: O.idx, album: O.album };
             return ownSerial(async () => {
-                const list = await ownIdxRead();
-                const pend = ownPendGet();
-                pend.forEach(p => { const e = list.find(x => x.id === p.s); if (!e) return; if (p.q) e.q = Math.max(0, e.q - p.q); else if (!e.u.includes(p.k)) e.u.push(p.k); });
-                O.idx = list.filter(ownAlive); O.idxAt = performance.now();
-                if (pend.length && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
-                return O.idx;
+                const [list, alb] = await Promise.all([ownIdxRead(), ownAlbRead(true)]);
+                ownIdxApply(list);
+                O.album = ownAlbumClean(alb == null ? O.albumR : alb, null);   // 스티커첩 파일이 아직 없으면 예전 자리(목록 안)
+                return { list: O.idx, album: O.album };
             });
         }
         const ownLeft = e => e.q0 ? e.q : e.n - e.u.length;
@@ -336,12 +347,12 @@
         }
         /* 📒 스티커첩은 작은 파일 하나 (보관함/스티커첩.json · 암호화) : 바인더에 꽂을 때 큰 목록 파일을 건드리지 않아서 빨라요 (도련 10-25) */
         const OWN_ALB = '스티커첩.json';
-        async function ownAlbRead() {
-            if (ownMode() === 'mem') { if (O.mem.alb) return JSON.parse(JSON.stringify(O.mem.alb)); if (!O.idx) await ownIdxRead(); return O.albumR; }
+        async function ownAlbRead(noOld) {                                       // noOld : 스티커첩 파일이 없어도 예전 자리를 따로 읽지 않아요 (ownOpen 이 목록과 같이 읽어요)
+            if (ownMode() === 'mem') { if (O.mem.alb) return JSON.parse(JSON.stringify(O.mem.alb)); if (noOld) return null; if (!O.idx) await ownIdxRead(); return O.albumR; }
             const d = await getFolder(OWN_DIR, false);
             if (!d) return null;
             let f = await findFile(d, OWN_ALB); O.albF = f;
-            if (!f) { if (O.albumR == null) await ownIdxRead(); return O.albumR; }   // 아직 없으면 예전 자리(목록 안)에서
+            if (!f) { if (noOld) return null; if (O.albumR == null && !O.idx) await ownIdxRead(); return O.albumR; }   // 아직 없으면 예전 자리(목록 안)에서
             let t; try { t = await readFileText(f.id); } catch (e) { if (e && e.code === 'gone') { O.albF = null; return null; } throw e; }
             if (!t.trim()) return null;
             const o = await ownUnlock(t);
@@ -428,4 +439,4 @@
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q;
         window.ownOnChange = ownOnChange; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownRelMove = ownRelMove; window.ownSheetImgs = ownSheetImgs; window.OWN_REL_MAX = OWN_REL_MAX;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownSheetImgs = ownSheetImgs; window.OWN_REL_MAX = OWN_REL_MAX;

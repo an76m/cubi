@@ -78,8 +78,9 @@
         if (peek) { B.all = peek.list.slice(); B.album = JSON.parse(JSON.stringify(peek.album)); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
         else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
         try {
-            B.all = (await ownList(force)).slice();
-            B.album = window.ownAlbumGet ? JSON.parse(JSON.stringify(await ownAlbumGet(force))) : { bd: [], rl: [], g: {} };
+            const got = window.ownOpen ? await ownOpen(force) : { list: await ownList(force), album: { bd: [], rl: [], g: {} } };   // 목록 · 스티커첩을 동시에
+            B.all = got.list.slice();
+            B.album = JSON.parse(JSON.stringify(got.album));
             abReapply();                                                        // 아직 저장 안 된 정리는 그 위에 다시 (화면이 되돌아가지 않게)
         }
         catch (e) {
