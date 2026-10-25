@@ -4195,3 +4195,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
   .bk-pile .bk-sh.one { width: 128px; }
   .bk-pile .bk-sh.k-tape > *, .bk-pile .bk-sh.k-tk > *, .bk-pile .bk-sh.k-memo > *, .bk-pile .bk-sh.k-leaf > * { zoom: 1.8; }
 }
+.sh-got { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 16px; border-radius: 12px; background: #fff0f4; border: 1.5px solid #ffc6d6; }
+.sh-got b { font-size: 15px; color: #c2457a; }
+.sh-got small { font-size: 12px; color: #8a6a78; text-align: center; word-break: keep-all; }

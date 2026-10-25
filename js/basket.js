@@ -583,6 +583,11 @@
             + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">🧺 받기</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div></div>`;
         z.hidden = false;
     }
+    function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
+        shZoomOff(); closeModal('shelfKindModal');
+        bkOpenKind(k);
+        if (album) { B.view = 'album'; bkView('album'); }
+    }
     function shToolKind(k) { SH.toolKind = k; if (SH.zoom >= 0) shZoom(SH.zoom); }
     function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; }
     async function shTake(btn) {
@@ -593,10 +598,12 @@
             if (x.tool) { if (!window.ownAlbum) throw new Error('ready'); await abTakeTool(x.tool, SH.toolKind, x.c); }
             else if (x.def) await ownTake(x.def);
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }   // take() : 새 종이 id(씰) 또는 종이 정보
-            btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = x.tool ? '✓ 서랍에 쏙!' : '✓ 바구니에 쏙!';
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
-            const z = SH.zoom;                                                    // 받으면 확대 창이 저절로 닫혀요 (또 누르지 않게 · 도련 10-25)
-            setTimeout(() => { if (SH.zoom === z && btn.isConnected) shZoomOff(); }, 750);
+            /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
+            const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
+            const where = x.tool ? `🗄️ 내 서랍 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `🗄️ 내 서랍 · ${esc(BK_KINDS[into] || '')} 바구니`;
+            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
+                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${x.tool ? '📒 스티커첩에서 보기' : '🧺 바구니에서 보기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div>`;
         } catch (e) {
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
@@ -605,5 +612,5 @@
     }
 
     window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
-    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shTake = shTake;
+    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shTake = shTake;
 })();
