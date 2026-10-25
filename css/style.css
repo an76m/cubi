@@ -4415,3 +4415,20 @@ body.dsk-on #dskLayer { z-index: 1660; }
 .bk-roll .bk-qty { left: 50%; top: 50%; translate: -50% -50%; }
 .bk-qty.top { left: 50%; top: -7px; translate: -50% 0; }
 
+
+/* 🩷 다꾸하는 법 메모 (도련 10-26 · js/dkguide.js) : 페이지 위에 붙은 메모 · 눌리지 않아요(✕ 만) */
+.dg-note { position: absolute; z-index: 30; width: 272px; max-width: calc(100vw - 40px); box-sizing: border-box; padding: 24px 18px 13px; background: #fffbe8; border-radius: 4px 4px 14px 4px; box-shadow: 0 6px 14px rgba(190, 110, 140, .2); font-family: 'Gowun Dodum', sans-serif; color: #5e4250; font-size: 14px; line-height: 1.35; pointer-events: none; translate: -50% 0; rotate: -2deg; opacity: 0; scale: .92; transition: opacity .3s, scale .3s; }
+.dg-note.on { opacity: 1; scale: 1; }
+.dg-tape { position: absolute; left: 50%; top: -10px; width: 76px; height: 20px; margin-left: -38px; background: rgba(255, 182, 206, .75); rotate: 3deg; }
+.dg-x { position: absolute; right: 0; top: 0; width: 40px; height: 40px; border: 0; padding: 0; background: none; color: #c9a3b2; display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; }
+.dg-x svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.dg-h { display: block; font-family: 'Gaegu', cursive; font-weight: 700; font-size: 23px; color: #c2457a; margin-bottom: 10px; white-space: nowrap; }
+.dg-step { display: flex; align-items: center; gap: 11px; }
+.dg-step em { font-style: normal; font-weight: 700; color: #b23b6c; }
+.dg-ic { flex: none; width: 38px; height: 38px; border-radius: 12px; background: #fff0f5; display: flex; align-items: center; justify-content: center; }
+.dg-ic svg { width: 27px; height: 26px; }
+.dg-line { display: block; width: 2px; height: 10px; margin: 2px 0 2px 18px; background: repeating-linear-gradient(#f2b8cb 0 3px, transparent 3px 6px); }
+.dg-foot { margin-top: 12px; padding-top: 9px; border-top: 1.5px dashed #f2cfdb; font-size: 12px; color: #7d6470; }
+.dg-foot b { color: #9a6200; }
+body.dg-on .toolbar .tb-sticker { box-shadow: 0 0 0 3px rgba(245, 165, 36, .35), 0 0 14px 3px rgba(245, 165, 36, .35); }
+body.cafe-on .dg-note { visibility: hidden; }

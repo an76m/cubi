@@ -342,6 +342,7 @@
         function ownPaper(id, img, th, left, el, a0) { return ownOp(id, { img, th, left, a0 }, el); }   // 📄 모조지 : 남은 종이 그림으로 바꾸기 (left : 남은 비율)
         function ownOp(id, op, el) {
             ownReset();
+            if (window.dgDone) dgDone();                                             // 🩷 처음 붙였으면 다꾸하는 법 메모는 끝 (js/dkguide.js)
             if (op.img == null) {                                                 // 칸 · 수량은 끊겨도 다음에 이어서 지워요 (이 기기에 기억)
                 const pend = ownPendGet();
                 if (op.q) pend.push({ s: id, q: op.q, t: Date.now(), n: ownRid() });

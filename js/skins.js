@@ -1790,12 +1790,8 @@
             if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나
                 gdInit = true;
                 setTimeout(() => {
-                    if (!gdEl('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y); }
-                    setTimeout(() => {                                          // 💬 핀셋 위에 한 번 : 스티커는 핀셋으로 집어요 (도련 10-21 · 앱을 열고 처음 펼칠 때만)
-                        const t = gdEl('twz'); if (!t || !isCoverOpen) return;
-                        const r = t.getBoundingClientRect();
-                        twzSay(r.left + r.width / 2, r.top, '🪡 스티커는 핀셋으로 집어서 옮겨요!', 3500);
-                    }, 450);
+                    if (!gdEl('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
+                    setTimeout(() => { if (isCoverOpen && window.dgShow) dgShow(); }, 450);   // 🩷 처음 쓰는 사람용 다꾸하는 법 메모 (js/dkguide.js · 예전 '핀셋으로 집어서 옮겨요' 첫 알림 대신 · 도련 10-26)
                 }, 900);
             }
         }
