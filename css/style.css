@@ -4077,6 +4077,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-memo { display: grid; place-items: center; width: 100%; min-height: 80px; }
 .sh-memo .pp-chip { width: 86px; height: 62px; box-shadow: 0 2px 5px rgba(110,80,95,.18); }
 .sh-paper.one img { display: block; width: 100%; height: auto; }
+.sh-paper img.sh-pv { display: block; width: 100%; height: auto; }   /* 🖼️ 묶음 미리보기 한 장 */
+.sh-grid .sh-paper img.sh-pv { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
 .spk-it.used { pointer-events: none; cursor: default; }
 .spk-it.used::after { content: ''; width: 58%; height: 70%; border-radius: 8px; background: rgba(214,206,222,.3); outline: 1.2px dashed rgba(190,178,200,.6); outline-offset: -2px; }   /* 🎒 뗀 자국 */
 /* 🏪 진열대 종류 창 (10-25) : 카테고리 없이 한 매대 · 🔍 확대 */

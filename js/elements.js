@@ -145,8 +145,8 @@
                 const sw = navigator.serviceWorker && navigator.serviceWorker.controller; if (!sw) return;
                 const keep = new Set(), add = f => { const m = typeof f === 'string' && /^([0-9a-f]{16})\./.exec(f); if (m) keep.add(m[1]); };
                 (d.images || []).forEach(x => x && add(x.f));
-                (d.sheets || []).forEach(x => x && (x.fs || []).forEach(add));
-                Object.values(d.kits || {}).forEach(a => (Array.isArray(a) ? a : []).forEach(x => { if (!x) return; add(x.f); (x.fs || []).forEach(add); }));
+                (d.sheets || []).forEach(x => { if (!x) return; (x.fs || []).forEach(add); if (x.p) add(x.p + '.webp'); });
+                Object.values(d.kits || {}).forEach(a => (Array.isArray(a) ? a : []).forEach(x => { if (!x) return; add(x.f); (x.fs || []).forEach(add); if (x.p) add(x.p + '.webp'); }));
                 sw.postMessage({ type: 'kit-keep', keep: [...keep] });
             } catch (e) {}
         }
@@ -154,14 +154,15 @@
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
                 const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, 30).map(kitUrl);
+                const pv = p => typeof p === 'string' && /^[0-9a-f]{16}$/.test(p) ? KIT_BASE + '/p/' + p + '.webp' : '';   // 🖼️ 묶음 미리보기 한 장 (포장기 · 진열대 카드용)
                 const kits = {};
                 Object.keys(d.kits && typeof d.kits === 'object' ? d.kits : {}).forEach(k => {
-                    kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f) } : null)
+                    kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs), pv: pv(x.p) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f) } : null)
                         .filter(x => x && (x.u || (x.us && x.us.length)));
                 });
                 return {
                     images: d.images.filter(x => x && kitOk(x.f)).map(x => ({ u: kitUrl(x.f), c: String(x.c || '') })),
-                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && { c: String(x.c || ''), us: us(x.fs) }).filter(x => x && x.us.length),
+                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && { c: String(x.c || ''), us: us(x.fs), pv: pv(x.p) }).filter(x => x && x.us.length),
                     kits
                 };
             }

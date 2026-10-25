@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - sw.js (앱 설치용 서비스 워커)
    - 파일을 미리 저장(캐시)하지 않아요 → 깃허브에 올리면 설치한 앱도 바로 최신
-   - 🖼️ 기본스티커 그림(Cloudflare /k/ · /t/ · 이름 = 그림 지문이라 내용이 절대 안 바뀌어요)만 이 기기에 오래 보관 → 두 번째부터 바로 떠요 (도련 10-25)
+   - 🖼️ 기본스티커 그림(Cloudflare /k/ · /t/ · /p/ 묶음 미리보기 · 이름 = 그림 지문이라 내용이 절대 안 바뀌어요)만 이 기기에 오래 보관 → 두 번째부터 바로 떠요 (도련 10-25)
      · 앱이 새 기본스티커 목록을 받으면 목록에 없는 그림은 바로 지워요 (message 'kit-keep')
    - 인터넷이 끊겼을 때 페이지를 열면 하얀 화면 대신 안내 화면을 보여 줘요
    ※ 이 파일은 꼭 index.html 과 같은 폴더(맨 위)에 있어야 해요 */
@@ -16,7 +16,7 @@ const OFFLINE_HTML = `<!doctype html><html lang="ko"><head><meta charset="utf-8"
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-const KIT = 'https://malang-img.pages.dev/', KIT_CACHE = 'malang-kit-v1', KIT_RE = /\/(k|t)\/([0-9a-f]{16})\.(png|jpg|gif|webp|svg)$/;
+const KIT = 'https://malang-img.pages.dev/', KIT_CACHE = 'malang-kit-v1', KIT_RE = /\/(k|t|p)\/([0-9a-f]{16})\.(png|jpg|gif|webp|svg)$/;
 async function kitGet(req) {
     const c = await caches.open(KIT_CACHE), url = req.url.split('?')[0];
     const hit = await c.match(url); if (hit) return hit;

@@ -109,7 +109,7 @@
             return (SRV[kind] = a.map(x => {
                 if (!x) return null;
                 const c = String(x.c || '').slice(0, 40);
-                if (Array.isArray(x.us)) return x.us.length ? { c, urls: x.us.slice(0, 30) } : null;
+                if (Array.isArray(x.us)) return x.us.length ? { c, urls: x.us.slice(0, 30), pv: x.pv || '' } : null;
                 return x.u ? { c, url: x.u } : null;
             }).filter(Boolean));
         }
@@ -146,13 +146,13 @@
             let list = []; try { list = await sbList(kind); } catch (e) {}
             list.slice().reverse().forEach(x => {                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
                 const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
-                if (kind === 'piece') out.push({ bigs, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
                 else if (kind === 'paper' && sbIsBg(x.c)) out.push({ sec: '배경', bigs, cnt: '통째로 떼기', look: 'sheet', thumbs: [thumb(urls[0], 240)],
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src], x: { bg: 1 } }) });
-                else if (kind === 'paper') out.push({ sec: '모양', bigs, cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                else if (kind === 'paper') out.push({ sec: '모양', bigs, pv: x.pv, cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: [await pmMakeSheet(await Promise.all(urls.map(u => sbData(kitAt(u, 600)).then(d => d.src))))] }) });
-                else if (kind === 'mini') out.push({ bigs, cnt: `씰 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                else if (kind === 'mini') out.push({ bigs, pv: x.pv, cnt: `씰 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
                 else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
                     take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);

@@ -640,9 +640,9 @@
     const SH_KINDS = {
         seal: ['씰스티커', async () => {
             const kit = await basicKit(), out = [];
-            kit.sheets.slice().reverse().forEach(x => out.push(x.us));               // 새로 들어온 것(뒤 번호)이 맨 앞
-            kit.images.slice().reverse().forEach(x => out.push([x.u]));              // 낱장
-            const items = out.map(us => ({ cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
+            kit.sheets.slice().reverse().forEach(x => out.push([x.us, x.pv]));       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
+            kit.images.slice().reverse().forEach(x => out.push([[x.u]]));            // 낱장
+            const items = out.map(([us, pv]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
             return items.concat(window.sbShelf ? await sbShelf('mini') : []);         // 옛 포인트스티커 폴더 그림도 씰로 (제가 그린 씰 종이는 SH_LATE 로 뒤에 붙어요)
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
@@ -771,7 +771,7 @@
     }
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */
-    const SH_ROWS = 3, SH_MINW = 96, SH_GAP = 10;
+    const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
     const SH_CATS = { paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']],
         emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
     const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : k === 'emoji' ? x.cat : '';
@@ -782,7 +782,7 @@
         if (cats && !cats.some(c => c[0] === SH.cat)) SH.cat = cats[0][0];
         const tabs = cats ? `<div class="ab-tabs sm sh-cats${cats.length > 3 ? ' many' : ''}" style="--n:${cats.length}">${cats.map(c => { const [ic, ...nm] = c[1].split(' '); return `<button type="button" class="${c[0] === SH.cat ? 'on' : ''}" onclick="shCat('${c[0]}')">${cats.length > 3 ? `<b>${ic}</b><small>${nm.join(' ')}</small>` : c[1]}</button>`; }).join('')}</div>` : '';
         const list = items.map((x, i) => [x, i]).filter(([x]) => !cats || shCatOf(k, x) === SH.cat);
-        const cols = Math.max(1, Math.floor(((box.clientWidth || 340) - 8 + SH_GAP) / (SH_MINW + SH_GAP))), per = cols * SH_ROWS;
+        const cols = SH_COLS, per = cols * SH_ROWS;
         const pages = Math.max(1, Math.ceil(list.length / per));
         SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
@@ -794,7 +794,7 @@
     /* 창 안에 3줄이 다 들어가게 칸 높이를 맞춰요 (넘치면 조금씩 줄여요) */
     function shFit(box) {
         const mc = box.closest('.modal-content'); if (!mc) return;
-        let h = 150;
+        let h = Math.round(Math.min(300, ((box.clientWidth || 340) - 8 - SH_GAP) / SH_COLS * 1.35));   // 세로로 긴 카드 (가로 × 1.35 · 창에 안 들어가면 줄여요)
         const set = () => { box.style.setProperty('--sh-h', h + 'px'); box.style.setProperty('--sh-z', (h / 130).toFixed(3)); };
         set();
         for (let i = 0; i < 10; i++) {
@@ -807,7 +807,7 @@
     function shPage(d) { SH.pg = (SH.pg || 0) + d; shDraw(SH.kind); const box = bq('shkWrap'); if (box) box.scrollTop = 0; }
     function shPreload(list) {
         const seen = SH.pre || (SH.pre = new Set());
-        list.forEach(([x]) => (x.thumbs || []).forEach(u => {
+        list.forEach(([x]) => (x.pv ? [x.pv] : x.thumbs || []).forEach(u => {
             if (!u || /^data:/.test(u) || seen.has(u)) return;
             seen.add(u); const im = new Image(); im.decoding = 'async'; im.src = u;
         }));
@@ -816,7 +816,7 @@
     function shLook(x, big) {
         if (x.look === 'binder') { const c = AB_COL[x.c]; return `<div class="sh-tool"><span class="ab-cover" style="--c1:${c[0]};--c2:${c[1]}"></span></div>`; }
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
-        const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = Math.ceil(Math.sqrt(Math.max(1, n)));
+        const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tk') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml(x.pad) : ''}</div>`;
@@ -824,6 +824,7 @@
         if (x.look === 'leaf') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-${esc(x.lf)}"></i></span>`;
         if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(src[0])}')"></i></span>`;
         if (x.look === 'memo') return `<div class="sh-memo"><span class="pp-chip pp-${esc(x.pp)}"></span></div>`;
+        if (!big && x.pv && x.look === 'grid') return `<div class="sh-paper"><img class="sh-pv" src="${esc(x.pv)}" alt="" onerror="this.style.visibility='hidden'"></div>`;   // 🖼️ 묶음 미리보기 한 장 (작은 그림 수십 장 대신 · 포장기 p/)
         if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }
