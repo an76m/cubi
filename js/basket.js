@@ -658,7 +658,7 @@
             kit.sheets.slice().reverse().forEach(x => out.push([x.us, x.pv]));       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
             kit.images.slice().reverse().forEach(x => out.push([[x.u]]));            // 낱장
             const items = out.map(([us, pv]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
-            return items;                                                        // (제가 그린 씰 종이는 SH_LATE 로 뒤에 붙어요)
+            return items;
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
         paper: ['모조지스티커', async () => window.sbShelf ? sbShelf('paper') : []],
@@ -692,26 +692,12 @@
             return srcs.length ? [{ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }] : [];
         }],
     };
-    /* ⚡ 늦게 붙는 상품 : 그리는 데 시간이 걸리는 것(제가 그린 씰 종이 · 캔버스)은 먼저 연 뒤 뒤에 붙여요 (도련 10-25 · 빨리 열리게) */
-    const SH_LATE = {
-        seal: async () => {
-            const out = [];
-            for (const p of (window.spkPackList ? spkPackList() : [])) { const srcs = await p.srcs(); out.push({ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }); }   // 한 종이씩 차례로 (화면이 안 멈추게)
-            return out.filter(Boolean);
-        },
-    };
     SH.cache = {};                                                            // 한 번 채운 매대는 기억해요 (다시 열면 바로)
     async function shItems(k) {
         if (SH.cache[k]) return SH.cache[k];
         const items = await SH_KINDS[k][1]();
         if (k !== 'season') SH.cache[k] = items;
         return items;
-    }
-    function shLate(k) {
-        const c = SH.cache[k];
-        if (!SH_LATE[k] || !c) return Promise.resolve(null);
-        if (!c.lateP) c.lateP = SH_LATE[k]().then(extra => { c.push(...extra); c.late = true; return extra; });
-        return c.lateP;
     }
     const shSeasonOn = () => typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN && typeof SEASON_STICKERS !== 'undefined';
     /* 😀 이 기기에서 그림 이모지로 보이는 글자만 (빈 번호 = □ · 색 없는 글자는 빼요) · 텍스트로 보이는 글자는 FE0F 를 붙여 그림으로 */
@@ -754,12 +740,6 @@
         openModal('shelfModal');
     }
     /* 그 종류의 진열대 창 */
-    function shPicsReady(box) {                                              // 지금 쪽 그림(묶음 미리보기 포함)이 다 뜰 때까지 (최대 8초)
-        const urls = [...box.querySelectorAll('img')].map(i => i.complete ? null : i).filter(Boolean), pv = [...new Set([...box.querySelectorAll('svg.sh-pv image')].map(i => i.getAttribute('href')))];
-        const wait = urls.map(im => new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }))
-            .concat(pv.map(u => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = u; })));
-        return Promise.race([Promise.all(wait), new Promise(r => setTimeout(r, 8000))]);
-    }
     async function shOpenKind(k) {
         const K = SH_KINDS[k]; if (!K) return;
         closeModal('shelfModal'); openModal('shelfKindModal');
@@ -773,7 +753,6 @@
         if (seq !== SH.seq) return;                                              // 그사이 다른 종류를 열었어요
         SH.items = items;
         shDraw(k);
-        if (SH_LATE[k] && !items.late) shPicsReady(box).then(() => seq === SH.seq ? shLate(k) : null).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품   // 제가 그린 씰 종이는 첫 쪽 그림이 다 뜬 뒤에 (같이 그리면 첫 쪽이 늦게 떠요 · 도련 10-25)
     }
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */
