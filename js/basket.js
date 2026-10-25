@@ -263,7 +263,7 @@
     }
     /* 화면 바꾸기 : bin (바구니) · album (스티커첩) · bd (바인더 펼침) · rl (이형지 펼침) · desk (정리 책상) */
     function bkView(v) {
-        if (v && B.view === 'desk' && v !== 'desk') abFlush();                  // 정리 책상을 나가면 바로 저장
+        if (v && B.view === 'desk' && v !== 'desk') { abFlush(); if (AB.peelOn && window.closeStickerPeel) closeStickerPeel(); }   // 정리 책상을 나가면 바로 저장 · 띄운 종이도 닫아요
         if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; }
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;
         if (B.view === 'album' && !abHasAlbum()) B.view = 'bin';               // 정리한 게 없으면 스티커첩 탭도 없어요
@@ -390,7 +390,7 @@
         B.desk = { mode: 'bd', bd: (abMine(B.album.bd)[0] || {}).id || '', rl: (abMine(B.album.rl)[0] || {}).id || '', pick: '', sheet: null, sel: -1 };
         B.pg = 0; bkView('desk');
     }
-    function abMode(m) { const D = B.desk; if (!D) return; D.mode = m; D.sel = -1; bkView(); }
+    function abMode(m) { const D = B.desk; if (!D) return; if (AB.peelOn && m !== 'rl' && window.closeStickerPeel) closeStickerPeel(); D.mode = m; D.sel = -1; bkView(); }
     function abNextTarget() {
         const D = B.desk; if (!D) return;
         const L = abMine(D.mode === 'bd' ? B.album.bd : B.album.rl); if (L.length < 2) return;
@@ -411,19 +411,19 @@
         } else {
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
             const panel = !D.pick ? '<div class="ab-peelhint">⬆ 위 줄에서 종이를 톡 골라요</div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>'
-                : `<div class="ab-peel${D.sheet.baked ? ' baked' : ''}" id="abPeel">${D.sheet.imgs.map((u, i) => u == null ? '<b class="ab-st hole"></b>' : `<button type="button" class="ab-st${D.sel === i ? ' on' : ''}" data-slot="${i}" aria-label="스티커"><img src="${esc(u)}" alt="" draggable="false"></button>`).join('')}</div>`;
+                : '<div class="ab-peelzone" id="abPeelZone"><span>🪡 핀셋으로 떼어 아래 이형지북에 붙여요</span></div>';   // 🤍 종이는 이 자리에 한 줄로 떠요 (js/stickerpeel.js 이형지북 모드)
             if (r) {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
                 main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 이형지북 고르기"><i class="ab-chip rl"></i>${L.length > 1 ? `${L.findIndex(x => x.id === r.id) + 1} / ${L.length} ▾` : '이형지북'}</button>${abLbDesk('rl', r)}<small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
-                    + `<div class="ab-rel desk${D.sel >= 0 ? ' ready' : ''}" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sel >= 0 ? '붙일 자리를 톡!' : D.sheet ? '스티커를 끌어 와 붙여요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
+                    + `<div class="ab-rel desk" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sheet ? '떼어 낸 스티커를 여기에 놓아요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
             }
             else main = panel + bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 이형지북 받아 오기</button>');
         }
         body.innerHTML = abHead('바구니', 'bin', '<b class="ab-ttl">📒 정리하기</b>')
             + (relOk ? `<div class="ab-tabs sm"><button type="button" class="${D.mode === 'bd' ? 'on' : ''}" onclick="abMode('bd')">📒 바인더에 꽂기</button><button type="button" class="${D.mode === 'rl' ? 'on' : ''}" onclick="abMode('rl')">🤍 이형지북에 붙이기</button></div>` : '')
             + `<div class="ab-strip" id="abStrip">${strip}</div>` + main
-            + `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 스티커를 끌어 이형지북에 붙여요<br>이형지북으로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`
+            + `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 🪡 핀셋으로 떼어 이형지북에 붙여요<br>이형지북으로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`
             + '<div class="bk-tools"><button type="button" class="btn ab-done" onclick="bkView(\'bin\')">다 했어요</button></div>';
         body.onpointerdown = ev => {
             if (ev.button > 0) return;
@@ -437,6 +437,47 @@
             if (rel && D.mode === 'rl' && D.sel >= 0) abPutSt(D.sel, ev.clientX, ev.clientY, rel);
         };
         if (D.mode === 'rl' && D.pick && !D.sheet) abLoadSheet(D.pick);
+        if (D.mode === 'rl' && D.sheet) { if (AB.peelOn !== D.sheet.id) abPeelOpen(); else if (window.pelRelayout) pelRelayout(); }
+        else if (AB.peelOn && window.closeStickerPeel) closeStickerPeel();
+    }
+    /* 🤍 고른 종이를 진짜 씰 종이처럼 띄워요 : 한 줄 · 옆으로 밀어 넘기기 · 🪡 핀셋으로 가장자리를 집어 떼기 → 이형지북 위에 놓기 (js/stickerpeel.js · 도련 10-25) */
+    async function abPeelOpen() {
+        const D = B.desk; if (!D || !D.sheet || !window.openStickerPeel) return;
+        const id = D.sheet.id; AB.peelOn = id;
+        const imgs = D.sheet.baked || !window.pelBake ? D.sheet.imgs : await Promise.all(D.sheet.imgs.map(u => u ? pelBake(u).catch(() => u) : null));   // 하얀 테두리 (⚙ 설정을 따라요)
+        const D2 = B.desk;
+        if (!D2 || !D2.sheet || D2.sheet.id !== id || D2.mode !== 'rl' || B.view !== 'desk') { if (AB.peelOn === id) AB.peelOn = ''; return; }
+        const ok = await openStickerPeel(imgs, { rel: {
+            at: () => { const z = bq('abPeelZone'); return z ? z.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: 130, right: innerWidth, bottom: 130 }; },
+            target: () => { const r = bq('abRel'); return r ? r.getBoundingClientRect() : null; },
+            alive: () => vis('basketKindModal') && B.view === 'desk' && !!bq('abPeelZone'),
+            drop: (k, pos) => abRelDrop(id, k, pos),
+            close: () => {
+                if (AB.peelOn !== id) return;
+                AB.peelOn = '';
+                const D3 = B.desk;
+                if (D3 && D3.pick === id && D3.sheet && !D3.sheet.imgs.some(u => u != null)) { D3.pick = ''; D3.sheet = null; if (B.view === 'desk') bkView(); }   // 다 뗐어요
+                else if (D3 && D3.pick === id && B.view === 'desk') { D3.pick = ''; D3.sheet = null; bkView(); }   // ✕ 로 닫았어요
+            }
+        } });
+        if (!ok && AB.peelOn === id) AB.peelOn = '';
+    }
+    function abRelDrop(src, k, pos) {
+        const D = B.desk; if (!D) return;
+        pos = { x: Math.max(.08, Math.min(.92, pos.x)), y: Math.max(.1, Math.min(.9, pos.y)), r: Math.max(-25, Math.min(25, pos.r || 0)), pg: D.rpg || 0 };
+        let img = '';
+        if (D.sheet && D.sheet.id === src) { img = D.sheet.imgs[k] || ''; D.sheet.imgs[k] = null; }
+        const tmp = 'tmp' + Date.now() + k, rel = abRlOf(D.rl), relEl = bq('abRel');                // 화면에는 바로 붙여 보여요
+        if (rel && img) { B.byId.set(tmp, { id: tmp, th: img }); rel.it.push({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }); }
+        if (relEl && img) {
+            relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
+            const sm = document.querySelector('.ab-target small'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${window.OWN_REL_MAX || 24}개`;
+        }
+        B.sig = bkSig();
+        if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+        abDo(ownRelMove(src, k, D.rl, pos), '🤍 이형지북에 붙이는 중…', '✓ 이형지북에 붙였어요').then(nid => {
+            if (nid === '') { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); B.sig = ''; bkRender(true); }
+        });
     }
     function abSay(el, t) { const s = el.querySelector('span'); if (!s) return; const o = s.textContent; s.textContent = t; setTimeout(() => { if (s.isConnected) s.textContent = o; }, 1300); }
     async function abLoadSheet(id) {
@@ -447,6 +488,7 @@
     }
     function abTapSheet(id) {
         const D = B.desk; if (!D) return;
+        if (AB.peelOn && AB.peelOn !== id && window.closeStickerPeel) closeStickerPeel();   // 다른 종이를 고르면 띄운 종이는 닫아요
         if (D.pick === id) { if (D.mode === 'bd') D.pick = ''; } else { D.pick = id; D.sheet = null; D.sel = -1; }
         bkView();
     }
@@ -570,7 +612,7 @@
     document.addEventListener('pointercancel', abUp);
 
     window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abPage = abPage; window.abRPage = abRPage; window.abLabel = abLabel; window.abColor = abColor;
-    window.abDesk = abDesk; window.abMode = abMode; window.abNextTarget = abNextTarget;
+    window.abDesk = abDesk; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
        카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
