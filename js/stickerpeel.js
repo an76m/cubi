@@ -215,7 +215,7 @@
                 pelRR(ctx, bx, by, B.w, B.h, 14); const g = ctx.createLinearGradient(bx, by, bx + B.w, by + B.h);
                 g.addColorStop(0, '#fdfdff'); g.addColorStop(.5, '#f4f6fb'); g.addColorStop(1, '#fbfcff'); ctx.fillStyle = g; ctx.fill(); ctx.restore();
             }
-            if (bo > 0 && S.items.length > 1 && !S.rel) { ctx.save(); ctx.globalAlpha = bo; pelDrawTape(ctx); ctx.restore(); }   // 여러 개 씰 종이 : 위쪽 '✋ 잡고 옮겨요' (포인트스티커처럼)
+            if (bo > 0 && S.items.length > 1 && !S.rel) { ctx.save(); ctx.globalAlpha = bo; pelDrawTape(ctx); ctx.restore(); }   // 여러 개 씰 종이 : 위쪽 '✋ 잡고 옮겨요'
             const bx = pelq('pelX');                                             // ✕ : 하얀 종이 오른쪽 위 끝 (모조지스티커처럼 · 종이를 따라 다녀요)
             if (bx) { const B = S.rel ? (A => ({ cx: A.left + A.width / 2, w: A.width, cy: A.top + A.height / 2, h: A.height }))(S.rel.at()) : S.board; bx.style.left = (B.cx + B.w / 2 - 26) + 'px'; bx.style.top = (B.cy - B.h / 2) + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
             const d = S.drag, cur = S.items.find(o => o.st === st);

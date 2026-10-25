@@ -334,7 +334,7 @@
         async function ownTake(d) {
             const imgs = (d.imgs || []).slice();
             const th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));   // noTh : 바구니가 모양을 직접 그려요 (그린 떡메 · 속지 · 메모지)
-            return ownAdd({ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'point' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b },
+            return ownAdd({ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b },
                 Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {}));
         }
         /* ---------- 📒 스티커첩 (도련 10-25) : 바인더 = 종이째 포켓에 · 이형지 = 낱개로 떼어 모으기

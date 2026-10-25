@@ -2677,31 +2677,6 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .stk-tab { padding: 6px 1px; border: 1.5px solid var(--border-color); border-radius: 12px; background: #fff; font: inherit; font-size: 12px; font-weight: bold; line-height: 1.2; color: #7a5a66; cursor: pointer; word-break: keep-all; letter-spacing: -.02em; }
 .stk-tab.on { background: var(--pick); border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
 
-/* 🍭 포인트스티커 (js/stickerpack.js) : 🍭 포인트스티커 창 위쪽 두 칸 · 팩 고르기 · 하얀 판 · 떠오른 스티커 */
-
-.stk-tabs.two { grid-template-columns: repeat(2, 1fr); }
-
-      /* 창 너비를 다 써요 (한 칸에 갇히지 않게) */
-   /* 조각스티커 칸처럼 두께 없이 */
-
-.spk-prev { display: flex; gap: 2px; height: 44px; align-items: center; }
-.spk-prev img { height: 34px; max-width: 34px; object-fit: contain; }
-
-.spk-room { position: fixed; inset: 0; z-index: 95; display: none; pointer-events: none; }   /* 판 바깥은 페이지가 그대로 받아요 · 꾸미기 도구(.toolbar)는 그 위 */
-.spk-room.show { display: block; }
-.spk-board { position: absolute; width: min(330px, calc(100vw - 24px)); padding: 26px 12px 12px; border: 1.5px solid var(--border-color); border-radius: 18px; background: #fff; box-shadow: 0 6px 18px rgba(120,80,95,.16); pointer-events: auto; touch-action: none; }
-.spk-tape { position: absolute; left: 50%; top: -13px; transform: translateX(-50%) rotate(-2deg); padding: 4px 16px; background: repeating-linear-gradient(90deg, rgba(255,198,214,.92) 0 9px, rgba(255,222,232,.92) 9px 14px); color: #9b5a6e; font-size: 12px; font-weight: bold; white-space: nowrap; cursor: grab; touch-action: none; clip-path: polygon(0 0, 100% 0, 97% 25%, 100% 50%, 97% 75%, 100% 100%, 0 100%, 3% 75%, 0 50%, 3% 25%); }
-.spk-x { right: 4px; top: 2px; }
-.spk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-.spk-it { display: flex; align-items: center; justify-content: center; height: 44px; cursor: pointer; touch-action: none; }
-.spk-it img { max-width: 40px; max-height: 40px; pointer-events: none; -webkit-user-drag: none; user-select: none; }
-.spk-it.out img { opacity: .18; }
-.spk-fly { position: fixed; left: 0; top: 0; z-index: 96; pointer-events: auto; touch-action: none; transform-origin: center; filter: drop-shadow(0 8px 10px rgba(90,60,70,.28)); transition: transform .16s cubic-bezier(.3,1.5,.6,1); cursor: grab; user-select: none; -webkit-user-drag: none; }
-.spk-fly.drag { transition: none; }
-.spk-fly.flat { transition: none; filter: drop-shadow(0 1px 1px rgba(90,60,70,.15)); }
-.spk-fly.back { transition: transform .16s ease-out; filter: drop-shadow(0 2px 2px rgba(90,60,70,.2)); pointer-events: none; }
-@media (min-width: 700px) { .spk-board { width: 400px; } .spk-it { height: 54px; } .spk-it img { max-width: 48px; max-height: 48px; } }
-
 /* 🏷️ 씰스티커처럼 떼어지는 연출 (js/peelfx.js) : 접혀 넘어간 크림색 뒷면 + 그림자 */
 .pfx-flap { pointer-events: none; transform-origin: center center; filter: drop-shadow(0 4px 5px rgba(90, 60, 70, .28)); }
 .pfx-back { filter: brightness(0) invert(1) sepia(.22) !important; transition: none !important; pointer-events: none !important; border-color: transparent !important; box-shadow: none !important; }
@@ -2973,7 +2948,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 @keyframes snbNudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
 /* 끄는 중인 스티커 : 손가락을 따라 떠다녀요 */
 
-   /* 🍭 포인트스티커 카드 · 내 스티커 · 안내 칸은 한 줄 전체로 */
+   /* 내 스티커 · 안내 칸은 한 줄 전체로 */
    /* ✋ 펼친 수첩은 제목 줄을 끌어 옮겨요 */
 
 /* 🧾 스티커 수첩 · 시트 스타일 (js/stknote.js snbSheetSync) : 한 장에 세로로 긴 시트 하나 */
@@ -2992,8 +2967,6 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
 @keyframes snbAgain { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
 
-.spk-board { transition: opacity .25s; }
-.spk-board.away { opacity: 0; pointer-events: none; }
 
 /* =====================================================================
    💃 인형 움직이기 (js/doll-move.js) · 🪄 캐릭터 움직이기 (js/char-move.js)
@@ -3241,7 +3214,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
    /* 씰 종이 칸 너비(=1칸×2)에 맞춰요 */
 
-/* 🧾 묶음 스티커 (🏷️ 씰 종이 · 🍭 포인트스티커 · 🧩 조각 봉투 · 📄 모조지스티커) : 씰 1개 칸 가로 2 × 세로 2 크기의 정사각형 · 안의 그림도 크게 3 × 3 (도련 · 2026-10-16) */
+/* 🧾 묶음 스티커 (🏷️ 씰 종이 · 🧩 조각 봉투 · 📄 모조지스티커) : 씰 1개 칸 가로 2 × 세로 2 크기의 정사각형 · 안의 그림도 크게 3 × 3 (도련 · 2026-10-16) */
 
    /* 🧩 봉투는 위 색 띠가 있어서 2줄까지 */
 /* 🗂 고르는 창 칸 (도련 · 2026-10-17 · js/stk-basic.js) : 낱장 줄(칸 하나 = 스티커 하나) + 묶음 줄(한 줄 = 묶음 하나 · 옆으로 밀어요) · 📒 수첩 창(.snb-on)은 위 모양 그대로
@@ -3715,7 +3688,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
 body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
-   🚪 스티커 떼는 창(흰 종이 · 조각 봉투 · 포인트 판)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
+   🚪 스티커 떼는 창(흰 종이 · 조각 봉투)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
 
 body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, .pel-room.pm-note.show) .toolbar { z-index: 1690; }
 /* 🗄️ 하얀 창(씰 종이 · 조각 봉투)이 떠 있을 때 문구함은 그 위로 (핀셋을 꺼내 바로 떼게 · 도련 10-21) */
@@ -4079,8 +4052,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-paper.one img { display: block; width: 100%; height: auto; }
 .sh-paper img.sh-pv { display: block; width: 100%; height: auto; }   /* 🖼️ 묶음 미리보기 한 장 */
 .sh-grid .sh-paper img.sh-pv { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
-.spk-it.used { pointer-events: none; cursor: default; }
-.spk-it.used::after { content: ''; width: 58%; height: 70%; border-radius: 8px; background: rgba(214,206,222,.3); outline: 1.2px dashed rgba(190,178,200,.6); outline-offset: -2px; }   /* 🎒 뗀 자국 */
 /* 🏪 진열대 종류 창 (10-25) : 카테고리 없이 한 매대 · 🔍 확대 */
 .sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 14px 10px; padding: 8px 4px 4px; }
 .sh-grid .sh-item { flex: none; padding-bottom: 12px; border-bottom: 2px dashed #f6c3d5; }   /* 매대 줄 = 핑크 점선 (도련 10-25 · 갈색 막대 대신) */

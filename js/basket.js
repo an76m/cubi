@@ -22,7 +22,7 @@
     const BK_LAY = 'malang_bk_lay', BK_MAX = 150;
     const B = { list: [], all: [], kind: '', view: 'bin', cur: '', pg: 0, desk: null, album: null, byId: new Map(), opening: '', lay: null, drag: null, top: 0 };   // list = 지금 연 바구니(한 종류) · all = 모든 종이
     const BK_KINDS = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지', memo: '메모지' };
-    const bkKindOf = e => e.b || (e.k === 'point' ? 'seal' : e.k);           // 들어갈 바구니 (😀 이모지는 b · 옛 포인트는 씰 · 🌸 계절 · 🎁 캡슐 = 씰)
+    const bkKindOf = e => e.b || e.k;                                        // 들어갈 바구니 (😀 이모지는 b · 🌸 계절 · 🎁 캡슐 = 씰)
     const vis = id => { const m = bq(id); return !!m && m.style.display === 'flex'; };
 
     /* ---------- 종이 자리 (이 기기에만 : { o : [아래 → 위 id], p : { id : [x, y, 기울기] } }) ---------- */
@@ -643,7 +643,7 @@
             kit.sheets.slice().reverse().forEach(x => out.push([x.us, x.pv]));       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
             kit.images.slice().reverse().forEach(x => out.push([[x.u]]));            // 낱장
             const items = out.map(([us, pv]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
-            return items.concat(window.sbShelf ? await sbShelf('mini') : []);         // 옛 포인트스티커 폴더 그림도 씰로 (제가 그린 씰 종이는 SH_LATE 로 뒤에 붙어요)
+            return items;                                                        // (제가 그린 씰 종이는 SH_LATE 로 뒤에 붙어요)
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
         paper: ['모조지스티커', async () => window.sbShelf ? sbShelf('paper') : []],

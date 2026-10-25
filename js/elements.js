@@ -70,7 +70,7 @@
             return true;
         }
         /* 🖼️ 스티커는 늘 원본 크기 그대로 (그림 1px = 페이지 1px · 도련 · 2026-10-16) : 그림이 다 오면 (붙이는 쪽이 자리를 정한 뒤) 크기만 원본으로 · 가운데는 그대로
-           씰(하얀 종이) · 포인트스티커 판 · 조각 봉투 · 📒 수첩 시트에서 작게 보이던 것도 붙는 순간 원본 크기 · 페이지보다 크면 페이지 밖으로 넘쳐요
+           씰(하얀 종이) · 조각 봉투 · 📒 수첩 시트에서 작게 보이던 것도 붙는 순간 원본 크기 · 페이지보다 크면 페이지 밖으로 넘쳐요
            (🎀 테이프 · 카드 · 그림 그리기 · 📄 모조지스티커처럼 크기를 정해 두고 붙는 것은 그대로) */
         function elOrig(el) { const img = el && el.querySelector(':scope > img'); if (img) elRealSize(el, img); }
         function elRealSize(el, img) {
@@ -157,7 +157,7 @@
         }
         /* 기본스티커 목록 (앱을 켠 동안 한 번) : { images, sheets, kits }
            실패하면 받을 때까지 5초마다 알아서 다시 해요 (js/drive.js keepTrying · 창을 닫아도 뒤에서 계속)
-           씰 · 포인트 · 조각 · 모조지스티커 · 테이프 · 메모지 · 떡메 · 속지 창이 모두 이 목록 하나를 같이 기다려요 */
+           씰 · 조각 · 모조지스티커 · 테이프 · 메모지 · 떡메 · 속지 창이 모두 이 목록 하나를 같이 기다려요 */
         let basicKitP = null, basicKitTry = 0;
         async function basicKitLoop() {
             basicKitTry = 1;
@@ -453,12 +453,12 @@
         };
         ['mousedown', 'touchstart', 'mouseup', 'touchend', 'touchcancel'].forEach(t => document.addEventListener(t, idleTouch, { capture: true, passive: true }));
         /* ✏️ 애플펜슬 : 아이패드는 펜슬로 끌자마자 그림 끌어 옮기기 · 글자 고르기를 시작해서 (손가락은 꾹 눌러야 시작) 끌기가 중간에 끊겨요
-           → 페이지 스티커 · 🍭 포인트스티커 · 🏷️ 씰스티커 · 🧩 조각스티커(비닐 찢기) · 📄 모조지스티커 화면에서는 펜슬일 때 그 동작을 막아요 (글상자 · 버튼은 그대로) */
+           → 페이지 스티커 · 🏷️ 씰스티커 · 🧩 조각스티커(비닐 찢기) · 📄 모조지스티커 화면에서는 펜슬일 때 그 동작을 막아요 (글상자 · 버튼은 그대로) */
         document.addEventListener('touchstart', e => {
             const t = e.touches[0], tg = e.target;
             if (!e.cancelable || !t || t.touchType !== 'stylus' || !tg.closest) return;
             if (tg.closest('textarea, input, button, select')) return;
-            if (tg.closest('#canvasArea .element-box, .spk-grid, .pel-room')) e.preventDefault();
+            if (tg.closest('#canvasArea .element-box, .pel-room')) e.preventDefault();
         }, { capture: true, passive: false });
 
         document.getElementById('canvasArea').addEventListener('click', (e) => {
@@ -541,7 +541,7 @@
             layerMark();
         }
         /* 🎨 페이지에 붙인 것 다시 다듬기 (꾹 누르기 · 오른쪽 클릭 메뉴 · js/tapmenu.js) → js/stkedit.js · 종류마다 맞는 도구만 (도련 · 2026-10-15)
-           - 스티커 · 사진 (씰 · 조각 · 포인트 · 내 스티커) : 전부
+           - 스티커 · 사진 (씰 · 조각 · 내 스티커) : 전부
            - 📄 모조지스티커 · 🧻 떡메 · 📝 메모지(그림) : 글씨 빼고 (종이 위에는 원래 글을 써요) · 긴 변 1000 까지
            - 🎀 마테 : 색만 (무늬가 이어져 늘어나서 자르면 이음새가 어긋나요) → 테이프 SVG 에 색 행렬을 넣어요 (늘이기 그대로)
            - 빼요 : 사진틀 · 글 · 인형 · 움직이는 캡슐(svg) · 그림 없는 기본 메모지
@@ -634,7 +634,7 @@
             return (PIN_SKINS[k] || PIN_SKINS.basic).replace(/id="(\w+)"/g, `id="$1-${n}"`).replace(/url\(#(\w+)\)/g, `url(#$1-${n})`); }
         /* 🪡 핀셋 (도련 · 10-17 · 10-19) : 핀셋을 손에 든 동안 늘 보여요 · 절대 사라지지 않아요 · 🗄️ 문구함 🪡 핀셋 서랍 (js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
            - 쓰임이 없을 땐 그 자리에서 아주 느리게 위아래로 둥실 (공중에 떠서 기다리는 느낌) · 누르는 동안은 둥실 멈추고 집게가 오므라들어요
-           - 💻 마우스 : 핀셋이 갈 수 있는 곳(pinOver : 페이지 · 🏷️ 씰 종이 · 🍭 포인트 판 · 🧩 조각 봉투 · 📒 수첩 속지 · 배경지)에선 마우스에 붙어 둥실거리며 따라와요
+           - 💻 마우스 : 핀셋이 갈 수 있는 곳(pinOver : 페이지 · 🏷️ 씰 종이 · 🧩 조각 봉투 · 📒 수첩 속지 · 배경지)에선 마우스에 붙어 둥실거리며 따라와요
              갈 수 없는 곳(하단메뉴 · 창 · 버튼 · 메뉴 · 날짜바)으로 마우스가 가면 그 끝자리에 멈춰 둥실 (마우스 화살표가 보여요) · 돌아오면 다시 따라와요
            - 📱 폰 · 📲 패드 : 핀셋과 상관있는 곳(pinRel)을 누를 때만 그 자리로 옮겨 가요 · 나머지를 누르면 그 자리에 둥실
            - ✏️ 그리기 · ✂️ 스티커 칼 · ✏️ 연필꽂이를 쓰는 동안은 따라오지 않고 그 자리에 둥실 (pinBusy)
@@ -644,7 +644,7 @@
         const pinOff = () => !!twz || !(window.gdTwz && gdTwz()) || !pinOpen();
         const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('body.sk-held, .sk-knife.grab, .rl-ruler.grab, #pcRoom:not([hidden]):not(.rest)');   // ✂️ 칼 · 📏 자를 잡고 있는 동안은 핀셋이 안 따라와요 (도련 10-19)
         const PIN_AREA = '#innerPage, #pelRoom, #pmRoom, #pcbRoom, #spkBoard, .modal.snb-on .snb-sheets';   // 🪡 핀셋이 갈 수 있는 곳 (📄 모조지 종이 #pmRoom : 오린 스티커를 핀셋으로 떼요 · 도련 10-21)
-        const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .spk-fly, .el-peel-back'));
+        const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.snb-ghost, .pin-cur, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
             if (top && !pinBusy() && top.closest('.modal.snb-on')) return true;   // 📒 수첩 · 🪟 고르는 창 : 어디서든 핀셋 · 가위가 마우스를 따라와요 (카테고리 · 칸 · 버튼도 · 도련 10-22)

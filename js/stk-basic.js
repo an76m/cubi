@@ -2,7 +2,7 @@
    🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 처음부터 누구나 받는 기본 스티커
    - 제가 그린 것 : 🧩 조각 봉투 · 📄 모조지스티커 (그림은 모두 이 파일 안의 SVG · 파일 없음)
    - 🖼️ 개발자 그림 : Cloudflare 그림 보관함의 기본스티커 (js/elements.js basicKit) 중 씰 말고 나머지 종류
-       🏷️ 씰(옛 포인트스티커 폴더) · 🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
+       🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
        📄 모조지는 모조지스티커/모양/… · 모조지스티커/배경/… (도련 10-25 · 폴더 이름이 '배경'으로 시작하면 배경 모조지 = 종이 전체가 무늬 · 통째로 떼기)
    - sbShelf(종류) → 진열대 칸 [{ cnt, look, thumbs, bigs, sec, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
    - hold: true = 만들어 두고 아직 안 보여 줘요
@@ -91,8 +91,8 @@
             { id: 's-sea', g: '여름', k: ['whale', 'shell', 'starfish', 'watermelon', 'icecream', 'sunglass', 'sun', 'drop', 'cloud'] }
         ];
         const sbOn = a => a.filter(x => !x.hold);
-        /* 🖼️ 여러 개 묶음 미리보기 (씰 종이 · 포인트 · 조각 · 모조지스티커 같은 모양) : 작은 칸에 최대한 많이 · 2줄 · 넘치는 건 안 보여요 (개수는 카드 글씨가 총개수) */
-        const SRV = { mini: null, piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();   // 받은 목록 · 그림 (앱을 켠 동안)
+        /* 🖼️ 여러 개 묶음 미리보기 (씰 종이 · 조각 · 모조지스티커 같은 모양) : 작은 칸에 최대한 많이 · 2줄 · 넘치는 건 안 보여요 (개수는 카드 글씨가 총개수) */
+        const SRV = { piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();   // 받은 목록 · 그림 (앱을 켠 동안)
         const kitCat = c => (window.kitName ? kitName(String(c || '')) : String(c || '')).slice(0, 24);   // '1. 동물' → '동물'
         /* 📄 모조지스티커 '모양' · '배경' (도련 10-23) : 포장기 폴더 이름이 '배경' 으로 시작하면 배경 모조지 (예 모조지스티커/배경_체크/분홍체크.png)
            - 모양 = 그림 모양대로 ✂️ 가위로 오려 써요 (지금까지 것) · 배경 = 종이 전체가 무늬 → 🪡 핀셋으로 통째로 떼어 맨 뒤에 깔아요 (가위로 오려도 돼요)
@@ -137,10 +137,10 @@
         const sbDie = url => window.pelBake ? pelBake(url) : sbData(url).then(d => d.src);   // 하얀 다이컷 테두리 (js/stickerpeel.js)
         /* =====================================================================
            🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 기본스티커(Cloudflare) + 제가 그린 봉투 · 모조지
-           kind = 'piece' · 'paper' · 'mini'(옛 포인트 폴더 → 씰) · 'tape' · 'tk' · 'leaf' · 'memo' · 카테고리 · 이름 없이 (도련 10-25 : 현실 문구점도 그렇게 팔아요)
+           kind = 'piece' · 'paper' · 'tape' · 'tk' · 'leaf' · 'memo' · 카테고리 · 이름 없이 (도련 10-25 : 현실 문구점도 그렇게 팔아요)
            → [{ cnt : 개수 글, look : 'grid' · 'tape' · 'tkimg' · 'leafimg' · 'memoimg' · 'sheet', thumbs : [작은 그림], bigs : [🔍 확대 그림], sec : 모조지 '모양' · '배경', take() → ownTake 에 넘길 종이 }]
            ===================================================================== */
-        const sbOwnK = { piece: 'piece', paper: 'paper', mini: 'seal', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };   // mini = 옛 포인트스티커 폴더 → 이제 씰 (10-25)
+        const sbOwnK = { piece: 'piece', paper: 'paper', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };
         async function sbShelf(kind) {
             const out = [], k = sbOwnK[kind];
             let list = []; try { list = await sbList(kind); } catch (e) {}
@@ -152,8 +152,6 @@
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src], x: { bg: 1 } }) });
                 else if (kind === 'paper') out.push({ sec: '모양', bigs, pv: x.pv, cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: [await pmMakeSheet(await Promise.all(urls.map(u => sbData(kitAt(u, 600)).then(d => d.src))))] }) });
-                else if (kind === 'mini') out.push({ bigs, pv: x.pv, cnt: `씰 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
-                    take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
                 else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
                     take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
                         const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
