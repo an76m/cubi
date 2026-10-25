@@ -97,6 +97,11 @@
         return `<button type="button" class="bk-sh ${cls}${e.n === 1 && !e.q0 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="${esc(KIND_NAME[e.k] || '스티커')}">${inner}</button>`;
     }
     const KIND_NAME = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', memo: '메모지', tk: '떡메모지', leaf: '속지' };
+    /* 바구니 꼬리표 : 무엇이 몇 개 (도련 10-25 · '5장'만으로는 헷갈려요) */
+    function bkCount(n) {
+        const u = { tape: ['테이프', '롤'], tk: ['떡메', '묶음'], memo: ['메모지', '묶음'], leaf: ['속지', '장'] }[B.kind] || ['스티커', '장'];
+        return `${u[0]} ${n}${u[1]}`;
+    }
     function bkDraw() {
         const wrap = bq('abBody'); if (!wrap) return;
         const guest = ownMode() === 'mem';
@@ -107,8 +112,8 @@
             return;
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
-        wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${B.list.length}장</span></div>`
-            + `<div class="bk-tools"><button type="button" class="btn ab-go" onclick="abDesk()">📒 정리하기</button></div>` + note;
+        wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${bkCount(B.list.length)}</span></div>`
+            + `<div class="bk-tools"><button type="button" class="ab-go" onclick="abDesk()">📒 바구니스티커 정리하기</button></div>` + note;
         bkPlace(show, false);
         bkWire();
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
@@ -249,7 +254,7 @@
         if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; }
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;
         const V = B.view || 'bin', sc = wrap.closest('.modal-content'), keep = sc ? sc.scrollTop : 0;
-        const tabs = V === 'bin' || V === 'album' ? `<div class="ab-tabs"><button type="button" class="${V === 'bin' ? 'on' : ''}" onclick="bkView('bin')">🧺 바구니 <small>${B.list.length}장</small></button>`
+        const tabs = V === 'bin' || V === 'album' ? `<div class="ab-tabs"><button type="button" class="${V === 'bin' ? 'on' : ''}" onclick="bkView('bin')">🧺 바구니</button>`
             + `<button type="button" class="${V === 'album' ? 'on' : ''}" onclick="bkView('album')">📒 스티커첩</button></div>` : '';
         wrap.innerHTML = tabs + '<div class="ab-body" id="abBody"></div>';
         if (V === 'bin') bkDraw(); else if (V === 'album') abAlbum(); else if (V === 'bd') abBinder(); else if (V === 'rl') abRel(); else if (V === 'desk') abDeskDraw();

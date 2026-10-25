@@ -4198,3 +4198,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-got { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 16px; border-radius: 12px; background: #fff0f4; border: 1.5px solid #ffc6d6; }
 .sh-got b { font-size: 15px; color: #c2457a; }
 .sh-got small { font-size: 12px; color: #8a6a78; text-align: center; word-break: keep-all; }
+/* 🧺 종류 창 : 위 탭은 작게 · 아래 정리하기는 크게 (도련 10-25) */
+.ab-tabs { margin-bottom: 8px; padding: 3px; border-radius: 13px; }
+.ab-tabs button { min-height: 34px; font-size: 13px; border-radius: 10px; }
+.ab-go { width: min(100%, 340px); min-height: 52px; margin-top: 4px; border: 0; border-radius: 18px; background: #ff6b88; color: #fff; font: inherit; font-size: 16px; font-weight: 800; box-shadow: 0 3px 0 #e04f6e, 0 6px 14px rgba(224,79,110,.25); cursor: pointer; }
+.ab-go:active { transform: translateY(2px); box-shadow: 0 1px 0 #e04f6e; }
