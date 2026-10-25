@@ -35,7 +35,7 @@
             if (/\/카페\/카페\.json$/.test(path)) return '☕ 카페 기록';
             if (/\/검색\//.test(path)) return '🔍 검색 목록';
             const parts = path.split('/'), i = parts.indexOf('원본');
-            if (i > 1) return parts[1] === '스티커' ? `🏷️ ${parts[2]} 스티커` : /배경지/.test(parts[i - 1]) ? '🎨 배경지' : /페이지/.test(parts[i - 1]) ? '📔 페이지' : '📦 ' + parts[i - 1];
+            if (i > 1) return parts[1] === '스티커' ? `🏷️ ${parts[2] === '공유' ? parts[3] : parts[2]} 스티커` : /배경지/.test(parts[i - 1]) ? '🎨 배경지' : /페이지/.test(parts[i - 1]) ? '📔 페이지' : '📦 ' + parts[i - 1];
             if (/\/인형극\//.test(path)) return '🎭 인형극 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/인형\//.test(path)) return '👧 인형 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/목록\//.test(path)) return '📋 모음 목록';

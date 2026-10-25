@@ -26,7 +26,7 @@
         const bookPath = kind => DAKKU_PATH.concat(DK_KINDS.includes(kind) ? kind : DK_KINDS[0]);
         const SETTINGS_PATH = [TOP_FOLDER_NAME, '설정'], SETTINGS_FILE_NAME = '설정.json';
         const CAFE_PATH = [TOP_FOLDER_NAME, '카페'], CAFE_FILE_NAME = '카페.json';
-        const STICKER_PATH = [TOP_FOLDER_NAME, '스티커'];          // 스티커 / 씰 / 내씰 …
+        const STICKER_PATH = [TOP_FOLDER_NAME, '스티커'];          // 스티커 / 목록.json · 씰 · 조각 … (내 종이 · js/own.js) · 스티커 / 공유 / 씰 / 내씰 … (공유하기)
         const PAGE_PATH = [TOP_FOLDER_NAME, '다이어리'];           // 하단 메뉴 '다이어리' : 다이어리 / 페이지 · 배경지
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
