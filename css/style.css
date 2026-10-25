@@ -4122,7 +4122,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ab-it { position: absolute; width: 72px; height: 72px; padding: 0; border: 0; background: none; transform: translate(-50%, -50%) rotate(var(--r, 0deg)); cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
 .ab-it img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 2px 2px rgba(110,80,95,.25)); }
 .ab-it.lift { transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(1.12); z-index: 5; cursor: grabbing; }
-.ab-rel.desk .ab-it { width: 46px; height: 46px; pointer-events: none; }
+.ab-rel.desk .ab-it { width: 46px; height: 46px; }   /* ✋ 끌어 자리 옮기기 (도련 10-25) */
 .ab-strip { display: flex; gap: 10px; overflow-x: auto; padding: 10px 10px 12px; margin-bottom: 10px; border-radius: 16px; background: repeating-linear-gradient(45deg, #e0b38b 0 6px, #d8a77b 6px 12px); box-shadow: inset 0 3px 8px rgba(120,70,30,.28); scrollbar-width: thin; touch-action: pan-x; }
 .ab-sc { flex: none; display: flex; align-items: center; border-radius: 11px; padding: 2px; touch-action: pan-x; }
 .ab-sc .bk-sh { touch-action: pan-x; cursor: grab; }

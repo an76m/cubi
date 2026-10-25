@@ -445,6 +445,7 @@
             + '<div class="bk-tools"><button type="button" class="btn ab-done" onclick="bkView(\'bin\')">다 했어요</button></div>';
         body.onpointerdown = ev => {
             if (ev.button > 0) return;
+            const ri = ev.target.closest('#abRel .ab-it'); if (ri) { abItGrab(ri, ev); return; }   // ✋ 이형지에 놓은 스티커 = 자리 옮기기
             const sc = ev.target.closest('.ab-sc'), st = ev.target.closest('.ab-st:not(.hole)'), src = sc || st; if (!src) return;
             AB.drag = { kind: sc ? 'sheet' : 'st', src, id: sc ? sc.dataset.id : D.pick, slot: st ? +st.dataset.slot : -1, x0: ev.clientX, y0: ev.clientY, pid: ev.pointerId, on: false, ghost: null };
         };
@@ -573,6 +574,13 @@
         if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
         if (B.desk && !B.desk.pick && B.view === 'desk') bkView();               // 종이를 다 옮겼으면 다시 그려요
     }
+    /* ✋ 정리 책상 이형지 위에 놓은 스티커 옮기기 (도련 10-25 · 떼는 판이 떠 있어도 js/stickerpeel.js 가 여기로 넘겨줘요) */
+    function abItGrab(it, ev) {
+        const D = B.desk, box = bq('abRel'); if (!D || !box || !it) return;
+        if (ev.preventDefault) ev.preventDefault();
+        const r0 = it.getBoundingClientRect();
+        AB.drag = { kind: 'move', desk: true, it, id: it.dataset.id, rid: D.rl, x0: ev.clientX, y0: ev.clientY, ox: ev.clientX - (r0.left + r0.width / 2), oy: ev.clientY - (r0.top + r0.height / 2), br: box.getBoundingClientRect(), on: false, pid: ev.pointerId };
+    }
     /* 끌기 (정리 책상 : 종이 → 포켓 · 스티커 → 이형지 / 이형지 펼침 : 자리 옮기기) */
     document.addEventListener('pointermove', ev => {
         const d = AB.drag; if (!d || d.pid !== ev.pointerId) return;
@@ -609,7 +617,9 @@
         if (d.kind === 'move') {
             d.it.classList.remove('lift');
             if (!ok) return;
-            if (!d.on) { bkOpenSheet(d.id); return; }
+            if (!d.on) { if (!d.desk) bkOpenSheet(d.id); return; }
+            const op = AB.rel.find(o => o.tmp === d.id);
+            if (op) { op.pos.x = d.x; op.pos.y = d.y; const r = abRlOf(d.rid), t = r && r.it.find(o => o.s === d.id); if (t) { t.x = d.x; t.y = d.y; } return; }   // 아직 저장 전 = 저장할 자리만 바꿔요
             const fn = a => { const r = a.rl.find(x => x.id === d.rid), t = r && r.it.find(o => o.s === d.id); if (t) { t.x = d.x; t.y = d.y; } };
             abQueue(fn);
             return;
@@ -630,7 +640,7 @@
     document.addEventListener('pointercancel', abUp);
 
     window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abPage = abPage; window.abRPage = abRPage; window.abLabel = abLabel; window.abColor = abColor;
-    window.abDesk = abDesk; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abNextTarget = abNextTarget;
+    window.abDesk = abDesk; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
        카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
