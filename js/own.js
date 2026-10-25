@@ -307,9 +307,10 @@
         }
         /* ---------- 📒 스티커첩 (도련 10-25) : 바인더 = 종이째 포켓에 · 이형지 = 낱개로 떼어 모으기
            album = { bd : [{ id, k : 종류, lb : 라벨, c : 표지 색 번호, n : 포켓 수, p : { 포켓 번호 : 종이 id } }],
-                     rl : [{ id, k, lb, it : [{ s : 종이 id(한 칸짜리), x, y : 0~1 자리, r : 기울기 }] }], g : { 종류 : 1 (처음 선물 받음) } }
+                     rl : [{ id, k, lb, n : 쪽 수, it : [{ s : 종이 id(한 칸짜리), pg : 쪽, x, y : 0~1 자리, r : 기울기 }] }] (🤍 이형지북), g : { 종류 : 1 (처음 선물 받음) } }
+           · 바인더 1권 = 속지 10장(20쪽 × 4포켓 = 80) · 이형지북 1권 = 20쪽 (한 쪽에 OWN_REL_MAX 개) · 진열대 기본스티커처럼 몇 권이든 공짜로 더 받아요 (도련 10-25)
            · 정리한 종이는 바구니에서 빠져 보여요 · 다 쓴 종이는 저절로 빠져요 · 목록과 같은 파일(암호화)이라 다른 기기에서도 그대로 ---------- */
-        const OWN_REL_MAX = 24;
+        const OWN_REL_MAX = 24;                                                   // 이형지 한 쪽에 붙는 수
         function ownAlbumClean(a, list) {
             const alive = new Set((list || []).filter(ownAlive).map(e => e.id));
             const o = { bd: [], rl: [], g: {} };
@@ -318,11 +319,12 @@
                 (Array.isArray(a.bd) ? a.bd : []).forEach(b => {
                     if (!b || !b.id) return;
                     const p = {}; Object.keys(b.p || {}).forEach(i => { if (alive.has(b.p[i])) p[i] = b.p[i]; });
-                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, n: Math.max(4, Math.min(40, +b.n || 8)), p });
+                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, n: Math.max(4, Math.min(200, +b.n || 80)), p });
                 });
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;
-                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), it: (Array.isArray(r.it) ? r.it : []).filter(t => t && alive.has(t.s)).map(t => ({ s: t.s, x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0 })) });
+                    const n = Math.max(1, Math.min(100, +r.n || 20));
+                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && alive.has(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0 })) });
                 });
             }
             return o;
@@ -348,7 +350,8 @@
                 const list = await ownIdxRead(), a = ownAlbumClean(O.albumR, list);
                 const rel = a.rl.find(r => r.id === relId);
                 if (!rel) { const er = new Error('gone'); er.code = 'gone'; throw er; }
-                if (rel.it.length >= OWN_REL_MAX) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
+                const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+pos.pg || 0)));
+                if (rel.it.filter(t => t.pg === pg).length >= OWN_REL_MAX) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
                 const e = list.find(x => x.id === srcId);
                 if (!e || !ownAlive(e) || e.q0 || ownPendGet().some(p => p.s === srcId && p.k === slot)) return '';
                 let s; try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') return ''; throw er; }
@@ -365,7 +368,7 @@
                     if (end) list.splice(list.indexOf(e), 1);
                     else { if (e.th && !e.us) e.th = await ownThumb(s.imgs); e.f = await ownFileNew(s); }
                     list.push(ne);
-                    rel.it.push({ s: nid, x: Math.max(0, Math.min(1, +pos.x || 0)), y: Math.max(0, Math.min(1, +pos.y || 0)), r: +pos.r || 0 });
+                    rel.it.push({ s: nid, pg, x: Math.max(0, Math.min(1, +pos.x || 0)), y: Math.max(0, Math.min(1, +pos.y || 0)), r: +pos.r || 0 });
                     await ownIdxWrite(list, ownAlbumClean(a, list));
                 } catch (er) { ownFileKill(ne.f).catch(() => {}); if (e.f !== old) ownFileKill(e.f).catch(() => {}); throw er; }
                 await ownFileKill(old).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 :', er));
@@ -385,7 +388,7 @@
             if (c === 'corrupt') return '스티커 보관함을 읽을 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 말랑달콤 폴더이거나 파일이 깨졌어요.</span>';
             if (c === 'full') return '☁ 구글 드라이브 저장공간이 가득 찼어요.';
             if (c === 'auth') return '다시 로그인해 주세요.';
-            if (c === 'relfull') return '이 이형지는 가득 찼어요. 다른 이형지를 골라 주세요.';
+            if (c === 'relfull') return '이 쪽은 가득 찼어요. 다른 쪽에 붙여 주세요.';
             if (c === 'gone') return '스티커첩이 바뀌었어요. 다시 열어 주세요.';
             return '인터넷 연결을 확인한 뒤 다시 해 주세요.';
         }

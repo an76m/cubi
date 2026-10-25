@@ -233,10 +233,10 @@
 
 
     /* ---------- 📒 스티커첩 (도련 10-25) : 종류 창 = [🧺 바구니 | 📒 스티커첩] 탭
-       · 📒 바인더 = 종이째 포켓에 꽂기 (한 쪽 4포켓) · 🤍 이형지 = 한 칸씩 떼어 모으기 (🏷️ 씰 · 😀 이모지 · 🧩 조각만)
+       · 📒 바인더 = 종이째 포켓에 꽂기 (속지 10장 = 20쪽 · 한 쪽 4포켓) · 🤍 이형지북 = 한 칸씩 떼어 모으기 (20쪽 · 🏷️ 씰 · 😀 이모지 · 🧩 조각만)
        · 📒 정리하기(정리 책상) : 위 = 바구니 종이 한 줄 · 아래 = 바인더 포켓 / 이형지 → 끌어 놓거나 · 톡 고르고 톡 놓기
        · 이형지로 옮겨도 쓴 게 아니에요 (한 칸짜리 새 종이가 돼요 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelMove)
-       · 처음 연 종류마다 바인더 1권(8포켓) + 이형지 2장 선물 · 더는 🏪 문구점에서 (준비 중)
+       · 처음 연 종류마다 바인더 1권 + 이형지북 1권 · [＋ 받기] 칸에서 몇 권이든 공짜로 더 받아요 (진열대 기본스티커처럼 · 도련 10-25)
        · 정리한 모습은 보관함 목록(암호화)에 같이 저장 → 다른 기기에서도 그대로 ---------- */
     const AB = { drag: null, busy: false };
     const REL_KINDS = new Set(['seal', 'emoji', 'piece']);
@@ -249,10 +249,19 @@
         await ownAlbum(a => {
             if (a.g[k]) return;
             a.g[k] = 1;
-            a.bd.push({ id: 'b' + abRid(), k, lb: '', c: Math.max(0, Object.keys(BK_KINDS).indexOf(k)) % AB_COL.length, n: 8, p: {} });
-            if (REL_KINDS.has(k)) for (let i = 0; i < 2; i++) a.rl.push({ id: 'r' + abRid() + i, k, lb: '', it: [] });
+            a.bd.push(abNewBd(k, a));
+            if (REL_KINDS.has(k)) a.rl.push(abNewRl(k));
         });
         return ownAlbumGet(false);
+    }
+    const AB_BD_N = 80, AB_RL_N = 20;                                         // 바인더 = 속지 10장(20쪽 × 4포켓) · 이형지북 = 20쪽
+    const abNewBd = (k, a) => ({ id: 'b' + abRid(), k, lb: '', c: (Math.max(0, Object.keys(BK_KINDS).indexOf(k)) + a.bd.filter(b => b.k === k).length) % AB_COL.length, n: AB_BD_N, p: {} });
+    const abNewRl = k => ({ id: 'r' + abRid(), k, lb: '', n: AB_RL_N, it: [] });
+    /* ＋ 받기 : 바인더 · 이형지북을 공짜로 한 권 더 (기본스티커처럼 몇 번이든) */
+    async function abNew(t) {
+        const k = B.kind; let id = '';
+        await abDo(ownAlbum(a => { const x = t === 'bd' ? abNewBd(k, a) : abNewRl(k); id = x.id; (t === 'bd' ? a.bd : a.rl).push(x); }));
+        if (id && navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
     }
     /* 정리한 종이는 바구니에서 빠져요 */
     function abSplit() {
@@ -278,21 +287,20 @@
         AB.busy = true; const b = bq('abBody'); if (b) b.classList.add('busy');
         try { return await p; } catch (e) { abErr(e); bkRender(true); } finally { AB.busy = false; const b2 = bq('abBody'); if (b2) b2.classList.remove('busy'); }
     }
-    function abBuy() { showMsg('🏪 바인더 · 이형지는 <b>문구점</b>에서 곧 팔아요!<br><span style="font-size:12px;color:#777;">지금은 처음 선물로 받은 것을 써 주세요.</span>'); }
     function abOpen(v, id) { B.cur = id; B.pg = 0; bkView(v); }
     const abChip = b => { const c = abCol(b); return `<i class="ab-chip" style="--c1:${c[0]};--c2:${c[1]}"></i>`; };
 
     /* 📒 스티커첩 탭 : 바인더 표지 · 이형지 */
     function abAlbum() {
         const body = bq('abBody'), a = B.album, bds = abMine(a.bd), rls = abMine(a.rl);
-        const plus = t => `<button type="button" class="ab-plus" onclick="abBuy()"><b>＋</b>문구점에서<br>${t} 사기</button>`;
-        const bd = bds.map(b => { const c = abCol(b); return `<button type="button" class="ab-bd" style="--c1:${c[0]};--c2:${c[1]}" onclick="abOpen('bd','${esc(b.id)}')"><span class="ab-cover">${b.lb ? `<i class="ab-lb">${esc(b.lb)}</i>` : ''}</span><small>${Object.keys(b.p).length} / ${b.n}장</small></button>`; }).join('');
-        const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개</small></button>`).join('');
-        body.innerHTML = `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus('바인더')}</div></div>`
-            + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus('이형지')}</div></div>` : '')
-            + '<p class="bk-note">톡 하면 펼쳐져요 · 라벨은 내 마음대로 붙여요<br>정리는 🧺 바구니 → 📒 정리하기에서 해요</p>';
+        const plus = (t, nm) => `<button type="button" class="ab-plus" onclick="abNew('${t}')"><b>＋</b>새 ${nm}<br>받기</button>`;
+        const bd = bds.map(b => { const c = abCol(b); return `<button type="button" class="ab-bd" style="--c1:${c[0]};--c2:${c[1]}" onclick="abOpen('bd','${esc(b.id)}')"><span class="ab-cover">${b.lb ? `<i class="ab-lb">${esc(b.lb)}</i>` : ''}</span><small>${Object.keys(b.p).length}장 꽂힘</small></button>`; }).join('');
+        const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개 · ${r.n}쪽</small></button>`).join('');
+        body.innerHTML = `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus('bd', '바인더')}</div></div>`
+            + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지북</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus('rl', '이형지북')}</div></div>` : '')
+            + '<p class="bk-note">톡 하면 펼쳐져요 · 라벨은 내 마음대로 붙여요 · ＋ 칸에서 몇 권이든 더 받아요<br>정리는 🧺 바구니 → 📒 정리하기에서 해요</p>';
     }
-    function abRelMini(r) { return r.it.slice(0, 14).map(t => { const e = B.byId.get(t.s); return e && e.th ? `<img src="${esc(e.th)}" alt="" style="left:${(t.x * 100).toFixed(1)}%;top:${(t.y * 100).toFixed(1)}%;--r:${(+t.r).toFixed(1)}deg">` : ''; }).join(''); }
+    function abRelMini(r) { return r.it.filter(t => !t.pg).slice(0, 14).map(t => { const e = B.byId.get(t.s); return e && e.th ? `<img src="${esc(e.th)}" alt="" style="left:${(t.x * 100).toFixed(1)}%;top:${(t.y * 100).toFixed(1)}%;--r:${(+t.r).toFixed(1)}deg">` : ''; }).join(''); }
 
     /* 📒 바인더 : 한 쪽 4포켓 · 쪽 넘기기 */
     const abBdOf = id => (B.album.bd || []).find(b => b.id === id);
@@ -309,8 +317,10 @@
         const c = abCol(b), pages = Math.ceil(b.n / AB_PER);
         B.pg = Math.max(0, Math.min(pages - 1, B.pg || 0));
         return `<div class="ab-binder" style="--c1:${c[0]};--c2:${c[1]}"><div class="ab-rings"><i></i><i></i><i></i></div><div class="ab-page" id="abPage">${abPockets(b, desk)}</div></div>`
-            + `<div class="ab-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="abPage(-1)"${B.pg ? '' : ' disabled'}>‹</button><span>${B.pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="abPage(1)"${B.pg < pages - 1 ? '' : ' disabled'}>›</button></div>`;
+            + abNavHtml(B.pg, pages, 'abPage');
     }
+    const abNavHtml = (pg, pages, fn) => `<div class="ab-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="${fn}(-1)"${pg ? '' : ' disabled'}>‹</button><span>${pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="${fn}(1)"${pg < pages - 1 ? '' : ' disabled'}>›</button></div>`;
+    function abRPage(d) { const D = B.desk; if (!D) return; D.rpg = (D.rpg || 0) + d; bkView(); }
     function abPage(d) { B.pg = (B.pg || 0) + d; bkView(); }
     const abHead = (back, go, extra) => `<div class="ab-head"><button type="button" class="ab-back" onclick="bkView('${go}')">‹ ${back}</button>${extra || ''}</div>`;
     const abLbIn = (t, x) => `<input class="ab-lbin" value="${esc(x.lb)}" placeholder="라벨 쓰기" maxlength="8" aria-label="라벨" onchange="abLabel('${t}','${esc(x.id)}',this.value)">`;
@@ -324,13 +334,16 @@
     function abColor(id) { abDo(ownAlbum(a => { const b = a.bd.find(o => o.id === id); if (b) b.c = ((b.c || 0) + 1) % AB_COL.length; })); }
 
     /* 🤍 이형지 : 톡 = 꺼내 쓰기 · 끌기 = 자리 옮기기 */
-    function abRelItems(r) {
-        return r.it.map(t => { const e = B.byId.get(t.s); return e ? `<button type="button" class="ab-it" data-id="${esc(t.s)}" style="left:${(t.x * 100).toFixed(2)}%;top:${(t.y * 100).toFixed(2)}%;--r:${(+t.r).toFixed(1)}deg" aria-label="스티커"><img src="${esc(e.th || '')}" alt="" draggable="false"></button>` : ''; }).join('');
+    function abRelItems(r, pg) {
+        return r.it.filter(t => (t.pg || 0) === pg).map(t => { const e = B.byId.get(t.s); return e ? `<button type="button" class="ab-it" data-id="${esc(t.s)}" style="left:${(t.x * 100).toFixed(2)}%;top:${(t.y * 100).toFixed(2)}%;--r:${(+t.r).toFixed(1)}deg" aria-label="스티커"><img src="${esc(e.th || '')}" alt="" draggable="false"></button>` : ''; }).join('');
     }
     function abRel() {
         const body = bq('abBody'), r = abRlOf(B.cur); if (!r) { bkView('album'); return; }
+        B.pg = Math.max(0, Math.min(r.n - 1, B.pg || 0));
+        const items = abRelItems(r, B.pg);
         body.innerHTML = abHead('스티커첩', 'album', abLbIn('rl', r))
-            + `<div class="ab-rel" id="abRel">${abRelItems(r)}${r.it.length ? '' : '<span class="ab-relhint">비어 있어요<br>🧺 바구니 → 📒 정리하기에서 떼어 붙여요</span>'}</div>`
+            + `<div class="ab-rel" id="abRel">${items}${items ? '' : `<span class="ab-relhint">${r.it.length ? '이 쪽은 비어 있어요' : '비어 있어요<br>🧺 바구니 → 📒 정리하기에서 떼어 붙여요'}</span>`}</div>`
+            + abNavHtml(B.pg, r.n, 'abPage')
             + '<p class="bk-note">스티커를 톡 = 다이어리에 붙이러 가요 (붙이면 사라져요) · 끌기 = 자리 옮기기</p>';
         const box = bq('abRel');
         box.onpointerdown = ev => {
@@ -352,7 +365,7 @@
         const D = B.desk; if (!D) return;
         const L = abMine(D.mode === 'bd' ? B.album.bd : B.album.rl); if (L.length < 2) return;
         const i = L.findIndex(x => x.id === (D.mode === 'bd' ? D.bd : D.rl)), nx = L[(i + 1) % L.length].id;
-        if (D.mode === 'bd') { D.bd = nx; B.pg = 0; } else D.rl = nx;
+        if (D.mode === 'bd') { D.bd = nx; B.pg = 0; } else { D.rl = nx; D.rpg = 0; }
         bkView();
     }
     function abDeskDraw() {
@@ -369,14 +382,18 @@
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
             const panel = !D.pick ? '<div class="ab-peelhint">⬆ 위 줄에서 종이를 톡 골라요</div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>'
                 : `<div class="ab-peel${D.sheet.baked ? ' baked' : ''}" id="abPeel">${D.sheet.imgs.map((u, i) => u == null ? '<b class="ab-st hole"></b>' : `<button type="button" class="ab-st${D.sel === i ? ' on' : ''}" data-slot="${i}" aria-label="스티커"><img src="${esc(u)}" alt="" draggable="false"></button>`).join('')}</div>`;
-            if (r) { D.rl = r.id; main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()"><i class="ab-chip rl"></i>${esc(r.lb || '라벨 없는 이형지')}${L.length > 1 ? ' ▾' : ''}</button><small>${r.it.length} / ${window.OWN_REL_MAX || 24}개</small></div>`
-                + `<div class="ab-rel desk${D.sel >= 0 ? ' ready' : ''}" id="abRel">${abRelItems(r)}<span class="ab-relhint">${D.sel >= 0 ? '붙일 자리를 톡!' : D.sheet ? '스티커를 끌어 와 붙여요' : ''}</span></div>`; }
-            else main = panel + bkMsg('이형지가 없어요.');
+            if (r) {
+                D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
+                const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
+                main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()"><i class="ab-chip rl"></i>${esc(r.lb || '라벨 없는 이형지북')}${L.length > 1 ? ' ▾' : ''}</button><small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
+                    + `<div class="ab-rel desk${D.sel >= 0 ? ' ready' : ''}" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sel >= 0 ? '붙일 자리를 톡!' : D.sheet ? '스티커를 끌어 와 붙여요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
+            }
+            else main = panel + bkMsg('이형지북이 없어요.');
         }
         body.innerHTML = abHead('바구니', 'bin', '<b class="ab-ttl">📒 정리하기</b>')
-            + (relOk ? `<div class="ab-tabs sm"><button type="button" class="${D.mode === 'bd' ? 'on' : ''}" onclick="abMode('bd')">📒 바인더에 꽂기</button><button type="button" class="${D.mode === 'rl' ? 'on' : ''}" onclick="abMode('rl')">🤍 이형지에 붙이기</button></div>` : '')
+            + (relOk ? `<div class="ab-tabs sm"><button type="button" class="${D.mode === 'bd' ? 'on' : ''}" onclick="abMode('bd')">📒 바인더에 꽂기</button><button type="button" class="${D.mode === 'rl' ? 'on' : ''}" onclick="abMode('rl')">🤍 이형지북에 붙이기</button></div>` : '')
             + `<div class="ab-strip" id="abStrip">${strip}</div>` + main
-            + `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 스티커를 끌어 이형지에 붙여요<br>이형지로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`
+            + `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 스티커를 끌어 이형지북에 붙여요<br>이형지북으로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`
             + '<div class="bk-tools"><button type="button" class="btn ab-done" onclick="bkView(\'bin\')">다 했어요</button></div>';
         body.onpointerdown = ev => {
             if (ev.button > 0 || AB.busy) return;
@@ -420,6 +437,7 @@
         const r = box.getBoundingClientRect();
         const pos = { x: Math.max(.08, Math.min(.92, (cx - r.left) / r.width)), y: Math.max(.1, Math.min(.9, (cy - r.top) / r.height)), r: Math.round((Math.random() - .5) * 24) };
         const src = D.sheet.id; D.sel = -1;
+        pos.pg = D.rpg || 0;
         const nid = await abDo(ownRelMove(src, slot, D.rl, pos));
         if (nid === undefined) { D.sheet = null; return; }                       // 실패 (알림은 abDo)
         if (!nid) { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); D.sheet = null; bkRender(true); return; }
@@ -482,11 +500,11 @@
     document.addEventListener('pointerup', abUp);
     document.addEventListener('pointercancel', abUp);
 
-    window.bkView = bkView; window.abOpen = abOpen; window.abBuy = abBuy; window.abPage = abPage; window.abLabel = abLabel; window.abColor = abColor;
+    window.bkView = bkView; window.abOpen = abOpen; window.abNew = abNew; window.abPage = abPage; window.abRPage = abRPage; window.abLabel = abLabel; window.abColor = abColor;
     window.abDesk = abDesk; window.abMode = abMode; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
-       카테고리 · 스티커 이름 없이 (현실 문구점도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
+       카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
     const SH = { kind: '', items: [], zoom: -1, seq: 0 };
     const kitThumb = (u, w) => window.kitSize ? kitSize(u, w) : u;
     /* 종류 : [아이콘 이름, 창 이름, 상품 만들기] (진열대 첫 창의 아이콘 순서 = 이 순서) */
