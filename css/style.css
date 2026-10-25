@@ -4386,4 +4386,10 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 #basketModal .obj-win > .modal-title.mt-bar::before { content: ''; position: absolute; inset: 3px; border: 1.3px dashed rgba(255,255,255,.85); border-radius: 11px; pointer-events: none; }
 #basketModal .obj-win .mt-text { display: inline-block !important; width: auto !important; max-width: none !important; padding: 0 !important; overflow: visible !important; background: none !important; clip-path: none !important; color: #fff !important; font-size: 16px; font-weight: 900; white-space: nowrap; text-shadow: 1.4px 0 0 #7b5a63, -1.4px 0 0 #7b5a63, 0 1.4px 0 #7b5a63, 0 -1.4px 0 #7b5a63, 1px 1px 0 #7b5a63, -1px -1px 0 #7b5a63, 1px -1px 0 #7b5a63, -1px 1px 0 #7b5a63; }
 #basketModal .obj-win .mt-x { position: absolute !important; left: auto !important; right: 8px !important; top: 50% !important; translate: 0 -50%; width: 28px !important; height: 28px !important; border: 1.5px solid #7b5a63 !important; box-shadow: 0 2px 0 rgba(123,90,99,.25); }
+/* 🏪 기본 스티커 진열대 차양 (도련 10-26) : 차양을 길게 내려 제목 간판은 차양 한가운데 · ✕ 는 차양 오른쪽 끝 가운데 · 차양 끝과 진열장 사이는 조금 떠 있어요 (기둥은 그만큼 짧게) */
+#shelfModal .obj-win .st2-awning { height: 58px; }
+#shelfModal .obj-win .st2-sign { position: absolute; left: 50%; top: 12px; margin: 0; translate: -50% 0; }
+#shelfModal .obj-win > .modal-title.mt-bar { right: -4px; top: 13px; }
+#shelfModal .obj-win .st2-case { margin-top: 21px; }
+#shelfModal .st2-pole { top: 56px; }
 
