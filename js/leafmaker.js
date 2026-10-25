@@ -157,7 +157,7 @@
             finally { if (btn) btn.disabled = false; }
             closeModal('leafMakeModal');
             if (!keep && window.bkOpenSheet) { bkOpenSheet(id); return; }
-            showMsg(`${name}를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🧺 내 바구니에서 꺼내 써요.</span>`);
+            showMsg(`${name}를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🗄️ 내 서랍에서 꺼내 써요.</span>`);
         }
 
         /* 🧻 떡메 : 🧺 바구니에 넣고 · 📌 이면 바로 묶음으로 */

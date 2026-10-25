@@ -115,7 +115,7 @@
                 <div class="cw-stk"><img src="${capsUrl(k)}" alt="${k.name}"></div>
                 <div class="gp-t">🎁 첫 선물이 도착했어요!</div>
                 <p class="gp-s">말랑달콤에 온 걸 환영해요 💕<br><b>움직이는 캡슐 스티커</b> <em>'${k.name}'</em>를 선물로 드려요</p>
-                <div class="gp-until">✨ 스티커 → <b>🧺 내 바구니</b>에 넣어 뒀어요</div>
+                <div class="gp-until">✨ 스티커 → <b>🗄️ 내 서랍</b> 바구니에 넣어 뒀어요</div>
                 ${capsGuide(true)}
                 <button type="button" class="btn btn-primary gp-close">닫기</button>
               </div>`;
@@ -392,7 +392,7 @@
                 box.innerHTML = `<h3>🎉 당첨!</h3>
                     <img class="gc-prize gc-stk" alt="${k.name}" src="${capsUrl(k)}">
                     <p><b>🎁 ${k.name}</b><br>캡슐 스티커가 <b>🧺 바구니</b>에 쏙 들어갔어요 💝</p>
-                    <p class="gc-small">✨ 스티커 → 🧺 내 바구니에서 떼어 붙여요 · 한 번 붙이면 끝이에요</p>
+                    <p class="gc-small">✨ 스티커 → 🗄️ 내 서랍에서 떼어 붙여요 · 한 번 붙이면 끝이에요</p>
                     <button class="gc-main" type="button" onclick="capsTakeOut()">📌 지금 꺼내서 붙이기</button>`;
                 gc.own = capsToBasket(k);
                 gq('gcSay').textContent = '축하해요! 정말 운이 좋아요!';

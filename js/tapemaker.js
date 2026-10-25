@@ -163,7 +163,7 @@
             catch (e) { showMsg('⚠ 테이프를 바구니에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
             closeTapeMaker();
             if (stick) { if (window.bkOpenSheet) bkOpenSheet(id); return; }
-            showMsg('🎀 만든 테이프를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🧺 내 바구니에서 꺼내 붙여요.</span>');
+            showMsg('🎀 만든 테이프를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 🗄️ 내 서랍에서 꺼내 붙여요.</span>');
         }
 
         function openTapeMaker() {
