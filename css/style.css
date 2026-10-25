@@ -4184,3 +4184,4 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-ik { min-height: 34px; padding: 0 12px; border: 1.5px dashed #f2b8cb; border-radius: 17px; background: #fff; color: #8a4a64; font: inherit; font-size: 12.5px; cursor: pointer; }
 .sh-ik.on { border-style: solid; border-color: #ff6b88; background: #ffeef3; color: #c2457a; font-weight: 800; }
 .ab-plus { word-break: keep-all; }
+.sh-desc { margin-top: -6px; font-size: 12px; color: #a08890; text-align: center; word-break: keep-all; }
