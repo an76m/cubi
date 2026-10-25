@@ -557,7 +557,7 @@
            - 가장 나중에 뜬 창이 맨 위 (z 1001) */
         (function winOne() {
             const KEEP = new Set(['customAlertModal']), CAB = 'gdCabModal';
-            const STK = new Set(['stickerMakeModal', 'basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 진열대 · 10-25)
+            const STK = new Set(['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 진열대 · 10-25)
             const pair = (a, b) => (a === CAB && STK.has(b)) || (b === CAB && STK.has(a));
             const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
             const vis = m => m.style.display === 'flex' || m.style.display === 'block';
@@ -590,11 +590,11 @@
             /* ☕ 카페에 있는 동안은 손에 든 문구(핀셋 · 가위 · 칼 · 필기구 …)를 숨겨요 → 카페 창이 다 닫히면 다시 (도련 10-21 · css body.cafe-on)
                - 카페에서 연 창(배경화면 · 포춘카드 …)도 카페 · 다른 하단 메뉴를 누르면 카페 끝 */
             /* 🔁 하단 메뉴 다이어리 · 스티커 · 문구함 : 그 창이 떠 있을 때 다시 누르면 닫혀요 (⚙ 설정처럼 · 도련 10-22) */
-            const TOG = { 'tb-skin': 'skinModal', 'tb-sticker': 'stickerMakeModal', 'tb-gd': 'gdCabModal' };
+            const TOG = { 'tb-skin': ['skinModal'], 'tb-sticker': ['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal'], 'tb-gd': ['gdCabModal'] };   // ✨ 스티커 = 수납함 바로 (도련 10-26 · 스티커 창 없앰)
             document.addEventListener('click', e => {
                 const b = e.target.closest && e.target.closest('.toolbar .tb-btn'); if (!b) return;
                 const k = Object.keys(TOG).find(c => b.classList.contains(c)); if (!k) return;
-                const m = document.getElementById(TOG[k]); if (!m || !vis(m)) return;
+                const m = TOG[k].map(id => document.getElementById(id)).find(x => x && vis(x)); if (!m) return;
                 e.preventDefault(); e.stopPropagation(); shut(m);
             }, true);
             let cafeT = 0;

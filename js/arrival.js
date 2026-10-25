@@ -56,7 +56,7 @@
         document.addEventListener('click', e => {
             const tb = e.target.closest && e.target.closest('.tb-sticker[data-nw-any]'); if (!tb) return;
             setTimeout(() => tb.dataset.nwAny.split(',').forEach(k => {
-                const seen = [...document.querySelectorAll('#stickerMakeModal [data-nw="' + k + '"]')].some(b => b.offsetParent);
+                const seen = [...document.querySelectorAll('#basketModal [data-nw="' + k + '"]')].some(b => b.offsetParent);
                 if (!seen && nwOn(k)) nwClear(k);
             }), 0);
         }, true);

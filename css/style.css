@@ -2667,7 +2667,6 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
 /* ===== ✨ 스티커 창 모으기 (20261007-07) ===== */
                          /* 목록 창의 카테고리 줄은 연결용으로만 남김 (버튼은 ✨ 스티커 창에 있어요) */
-#stickerMakeModal .service-btn { position: relative; }
 /* ===== ✨ 스티커 창 · ✂️ 스티커만들기 창 3×3 메뉴 + 종류 창 카테고리 4개 ===== */
 .stk-menu { gap: 10px; }
 .stk-menu .service-btn { padding: 14px 4px 12px; font-size: 13.5px; word-break: keep-all; }
@@ -3686,7 +3685,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1.5초) */
 /* ☕ 카페에 있는 동안은 손에 든 문구를 숨겨요 (js/settings.js · 도련 10-21) */
 body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
-body:has(#gdCabModal[style*="display: flex"], #stickerMakeModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
+body:has(#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 진열대 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
    🚪 스티커 떼는 창(흰 종이 · 조각 봉투)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
 
@@ -3944,8 +3943,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ct-room .snd-fx.ct-snd { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 54px; z-index: 2; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 📒 수첩 .snb-on 과 같게 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
-#skinModal, #patternModal, #makerModal, #stickerMakeModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
-#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerMakeModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
+#skinModal, #patternModal, #makerModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
+#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
 
 /* 📄 모조지스티커 기본 칸 : 위 줄 모양 · 배경 / 아래 줄 카테고리 (js/stk-basic.js sbCatsPaper · 📒 수첩 제목 아래에도 그대로 · 도련 10-23) */
 
@@ -3983,7 +3982,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 :root, .inner-page .canvas-area, .lf-slide, .lf-pick .lf-sw, .lm-box, .dmk-rfth { --lf-holes: linear-gradient(transparent, transparent) !important; }
 
 /* ═══════ 🎒 유한 스티커 (10-25 · js/own.js · js/basket.js) : ✨ 스티커 창 2칸 · 🧺 내 바구니 · 🏪 진열대 ═══════ */
-#stickerMakeModal .stk-menu.stk-two, #stickerToolModal .stk-menu.stk-two { grid-template-columns: repeat(2, minmax(0, 150px)); justify-content: center; column-gap: 26px; }
+#stickerToolModal .stk-menu.stk-two { grid-template-columns: repeat(2, minmax(0, 150px)); justify-content: center; column-gap: 26px; }
 /* 🧺 바구니 : 뒷벽 · 종이 더미 · 앞 테두리(종이 아래쪽이 바구니 안에 쏙 들어간 것처럼) */
 .bk-content { width: min(94vw, 460px); }
 .bk-wrap { position: relative; }
@@ -3996,7 +3995,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
     box-shadow: inset 0 0 0 1.5px rgba(160,100,45,.35), inset 0 6px 16px rgba(120,70,30,.32), inset 0 -4px 10px rgba(120,70,30,.18); }
 .bk-pile { position: absolute; inset: 18px; touch-action: none; }
 .bk-tag { position: absolute; right: 20px; bottom: 4px; z-index: 100000; pointer-events: none; background: #fffaf2; color: #8a6450; font-size: 11.5px; font-weight: 800; padding: 2px 9px; border-radius: 4px; transform: rotate(-4deg); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-.bk-bin.empty { height: 200px; }
+.bk-bin.empty { }   /* 빈 바구니도 크게 (도련 10-26 · 시선이 먼저 가게) */
 .bk-sh { position: absolute; left: 0; top: 0; width: 86px; padding: 6px; border: 1px solid #ece6ee; border-radius: 9px; background: linear-gradient(135deg, #fdfdff, #f4f6fb);
     box-shadow: 0 2px 6px rgba(110,80,95,.22); transform: rotate(var(--r, 0deg)); cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .bk-sh.one { width: 74px; }
@@ -4329,4 +4328,16 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .ab-toast.show { opacity: .9; transform: translate(0, 0); }
 .ab-toast.ok { background: rgba(94,66,80,.45); }
 .ab-toast .ab-spin { width: 10px; height: 10px; border-width: 1.5px; }
+/* 🧺 빈 바구니 안내 · 아래 버튼 둘 (도련 10-26 · 처음 쓰는 사람용) */
+.bk-bin.empty { position: relative; }
+.bk-say { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(80%, 260px); padding: 16px 14px; border: 2px dashed rgba(255, 255, 255, .85); border-radius: 18px; background: rgba(255, 252, 247, .9); color: #7a4f5e; font: inherit; line-height: 1.5; cursor: pointer; box-shadow: 0 4px 12px rgba(120, 80, 60, .18); }
+.bk-say b { font-size: 16px; color: #b23b6c; }
+.bk-say span { font-size: 13.5px; }
+.bk-say em { font-style: normal; font-weight: 800; color: #d64a70; }
+.bk-tools2 { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bk-tools2 .bk-act { width: min(100%, 300px); min-height: 44px; justify-content: center; font-size: 14.5px; font-weight: 700; }
+.bk-act.glow { animation: bkGlow 1.4s ease-out 1; }
+@keyframes bkGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 60, 90, 0); } 20%, 60% { box-shadow: 0 0 0 4px rgba(240, 60, 90, .55), 0 0 18px 6px rgba(240, 60, 90, .45); } 40%, 80% { box-shadow: 0 0 0 2px rgba(240, 60, 90, .25), 0 0 8px 2px rgba(240, 60, 90, .2); } }
+/* ✂️ 수납함 아래 나만의 스티커 만들기 : 처음엔 눈에 안 띄게 */
+.obj-make { display: block; margin: 14px auto 0; padding: 6px 14px; border: 1.5px solid rgba(123, 90, 99, .3); border-radius: 16px; background: rgba(255, 255, 255, .85); color: #8a6a78; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
 

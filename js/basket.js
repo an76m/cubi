@@ -53,7 +53,6 @@
 
     /* ---------- 🧺 내 바구니 ---------- */
     function openBasket() {                                                   // 첫 창 : 종류 아이콘 8개
-        if (vis('stickerMakeModal')) closeModal('stickerMakeModal');
         if (vis('basketKindModal')) closeModal('basketKindModal');
         openModal('basketModal');
     }
@@ -120,17 +119,24 @@
         const guest = ownMode() === 'mem';
         const note = `<p class="bk-note">${guest ? '👀 구경만 할 때는 창을 닫거나 새로고침하면 바구니도 비워져요.' : '🔥 받은 · 만든 스티커는 내 드라이브 <b>말랑달콤</b> 폴더에 보관돼요. 폴더를 지우면 모두 사라지고 되돌릴 수 없어요.'}</p>`;
         if (!B.list.length) {
-            wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div></div>`
-                + bkMsg(`${esc(BK_KINDS[B.kind] || '')} 바구니가 비어 있어요.<br>🏪 기본 스티커 진열대에서 받아 오거나<br>✂️ 나만의 스티커를 만들어 보세요!`) + note;
+            wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🧺 바구니가 텅 비었어요</b><span>아래 <em>기본스티커 받기</em>로<br>스티커를 받아 채워요</span></button></div>`
+                + bkTools(false) + note;
             return;
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
         wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${bkCount(B.list.length)}</span></div>`
-            + `<div class="bk-tools"><button type="button" class="ab-go" onclick="abDesk()">📒 바구니스티커 정리하기</button></div>` + note;
+            + bkTools(true) + note;
         bkPlace(show, false);
         bkWire();
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
         wrap.querySelectorAll('#bkPile img').forEach(im => { if (!im.complete) im.addEventListener('load', again, { once: true }); });
+    }
+    /* 아래 버튼 : 📒 정리하기 (스티커가 있을 때) · 🏪 기본스티커 받기 (늘) — 둘 다 평범하게 (도련 10-26 · 처음 쓰는 사람이 '받아야 한다'를 알게) */
+    const bkTools = has => `<div class="bk-tools bk-tools2">${has ? '<button type="button" class="btn bk-act" onclick="abDesk()">📒 바구니스티커 정리하기</button>' : ''}<button type="button" class="btn bk-act" id="bkGet" onclick="openShelf()">🏪 기본스티커 받기</button></div>`;
+    function bkGlowGet() {                                                   // 빈 바구니 안내를 누르면 → 받기 버튼이 붉게 반짝
+        const b = bq('bkGet'); if (!b) return;
+        b.classList.remove('glow'); void b.offsetWidth; b.classList.add('glow');
+        b.addEventListener('animationend', () => b.classList.remove('glow'), { once: true });
     }
     /* 자리 잡기 : 기억한 자리 · 없으면 그 종이만의 자리 (위에서 내려다본 바구니 · 바닥 전체에 흩어져요) */
     function bkPlace(show, anim) {
@@ -638,7 +644,7 @@
     document.addEventListener('pointercancel', abUp);
 
     window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abPage = abPage; window.abRPage = abRPage; window.abLabel = abLabel; window.abColor = abColor;
-    window.abDesk = abDesk; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
+    window.abDesk = abDesk; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
        카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
@@ -725,7 +731,6 @@
     }
     /* 진열대 첫 창 : 종류 아이콘 (🌸 계절은 이벤트 때만) */
     function openShelf() {
-        if (vis('stickerMakeModal')) closeModal('stickerMakeModal');
         if (vis('basketModal')) closeModal('basketModal');
         if (vis('basketKindModal')) closeModal('basketKindModal');
         if (vis('shelfKindModal')) closeModal('shelfKindModal');
