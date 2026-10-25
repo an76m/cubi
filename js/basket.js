@@ -858,6 +858,70 @@
         }
     }
 
+
+    /* ---------- 🎨 진열대 · 수납함 물건 그림 (도련 10-25 · 입체감 있는 손그림 SVG · 그림 파일 없이) ----------
+       stkArt(종류) → SVG 글 (72×64) · 진열대 선반(.st2-goods) · 수납 바구니 위 살짝 보이는 물건(.bk2-peek)에 넣어요 */
+    let ART_N = 0;
+    function stkArt(k) {
+        const u = 'a' + (++ART_N), sh = `<filter id="${u}s" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-color="#6e4050" flood-opacity=".28"/></filter>`;
+        const gl = (x, y, w, h, r) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="url(#${u}gl)"/>`;   // 반짝 (위쪽 하이라이트)
+        const glDef = `<linearGradient id="${u}gl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>`;
+        const heart = (x, y, s, c1, c2, id) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 4C0-1 7-2 8 3 9-2 16-1 16 4 16 9 8 13 8 13 8 13 0 9 0 4Z" fill="#fff" transform="translate(-1.6 -1.6) scale(1.2)"/><path d="M0 4C0-1 7-2 8 3 9-2 16-1 16 4 16 9 8 13 8 13 8 13 0 9 0 4Z" fill="url(#${id})"/><ellipse cx="4.5" cy="3.2" rx="2.2" ry="1.3" fill="#fff" opacity=".7"/></g><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`;
+        const star = (x, y, s, id) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M8 0l2.4 5 5.4.7-4 3.8 1 5.4L8 12.3 3.2 14.9l1-5.4-4-3.8L5.6 5z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M8 0l2.4 5 5.4.7-4 3.8 1 5.4L8 12.3 3.2 14.9l1-5.4-4-3.8L5.6 5z" fill="url(#${id})"/><path d="M6 4l2-3 1 3" fill="#fff" opacity=".6"/></g><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset="1" stop-color="#f7c34a"/></linearGradient></defs>`;
+        const dot = (x, y, r, c1, c2, id) => `<circle cx="${x}" cy="${y}" r="${r + 1.6}" fill="#fff"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/><ellipse cx="${x - r * .35}" cy="${y - r * .4}" rx="${r * .4}" ry="${r * .25}" fill="#fff" opacity=".7"/><defs><radialGradient id="${id}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient></defs>`;
+        const A = {
+            seal: () => `<rect x="9" y="12" width="40" height="48" rx="5" fill="#f7f4fa" transform="rotate(-9 29 36)" filter="url(#${u}s)"/>
+                <rect x="22" y="5" width="42" height="54" rx="5" fill="url(#${u}p)" filter="url(#${u}s)"/>
+                ${heart(27, 12, .95, '#ffb7cc', '#ff7fa3', u + 'h')}${star(45, 10, .95, u + 'y')}${dot(33, 41, 6, '#d6ecff', '#7fbdf0', u + 'b')}${heart(44, 36, .8, '#e0d2ff', '#a98bf0', u + 'v')}
+                ${gl(22, 5, 42, 20, 5)}<defs><linearGradient id="${u}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#eef1f8"/></linearGradient></defs>`,
+            piece: () => `<path d="M14 10h44v44a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6z" fill="url(#${u}p)" filter="url(#${u}s)"/>
+                <rect x="14" y="10" width="44" height="8" fill="#c7b3f2"/><path d="M14 14h44" stroke="#a88ce6" stroke-width="1.6" stroke-dasharray="3 2"/>
+                ${heart(21, 26, .85, '#ffb7cc', '#ff7fa3', u + 'h')}${star(38, 30, .85, u + 'y')}${dot(28, 47, 5, '#c9f0dc', '#6fcfa0', u + 'g')}
+                <path d="M18 20v34a4 4 0 0 0 4 4" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".55"/>
+                <defs><linearGradient id="${u}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4eeff" stop-opacity=".95"/><stop offset="1" stop-color="#ddd0fb" stop-opacity=".95"/></linearGradient></defs>`,
+            paper: () => `<path d="M16 4h32l10 10v46H16z" fill="url(#${u}p)" filter="url(#${u}s)"/><path d="M48 4v10h10z" fill="#e6e0d8"/>
+                <circle cx="29" cy="22" r="7" fill="none" stroke="#f19ab3" stroke-width="1.8" stroke-dasharray="3 2.4"/>
+                <path d="M34 38c0-4 6-5 7-1 1-4 7-3 7 1 0 4-7 8-7 8s-7-4-7-8z" fill="none" stroke="#7fbdf0" stroke-width="1.8" stroke-dasharray="3 2.4"/>
+                <rect x="21" y="44" width="11" height="9" rx="2" fill="none" stroke="#f3c45c" stroke-width="1.8" stroke-dasharray="3 2.4"/>
+                <defs><linearGradient id="${u}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffefb"/><stop offset="1" stop-color="#f4efe6"/></linearGradient></defs>`,
+            tape: () => { const roll = (cx, cy, R, c1, c2, id) => `<g filter="url(#${u}s)"><path d="M${cx - R} ${cy}v8a${R} ${R * .42} 0 0 0 ${R * 2} 0v-8z" fill="${c2}"/><ellipse cx="${cx}" cy="${cy}" rx="${R}" ry="${R * .42}" fill="url(#${id})"/><ellipse cx="${cx}" cy="${cy}" rx="${R * .5}" ry="${R * .21}" fill="#f2dcbc"/><ellipse cx="${cx}" cy="${cy + .6}" rx="${R * .34}" ry="${R * .14}" fill="#fff8ee"/></g><defs><pattern id="${id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${c1}"/><rect width="3" height="6" fill="#fff" opacity=".75"/></pattern></defs>`;
+                return `<path d="M44 40 L66 46 L64 50 L67 54 L44 49z" fill="#bfe3ff" opacity=".9"/>${roll(22, 38, 17, '#ff9fbd', '#f07fa2', u + 'a')}${roll(48, 22, 14, '#9fd0f5', '#79b6e6', u + 'b')}`; },
+            tk: () => `<g filter="url(#${u}s)"><path d="M12 22l8-8h40l-8 8z" fill="#fff6c6"/><path d="M52 22l8-8v34l-8 8z" fill="#efdf9a"/>
+                <rect x="12" y="22" width="40" height="34" fill="url(#${u}p)"/></g><rect x="12" y="22" width="40" height="7" fill="#ff9fb8"/>
+                <path d="M12 48h40M12 51h40M12 54h40" stroke="#eadb9a" stroke-width="1"/><path d="M53 24l6-6M53 30l6-6M53 36l6-6" stroke="#e2d185" stroke-width=".8"/>
+                <defs><linearGradient id="${u}p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7c9"/><stop offset="1" stop-color="#ffeea0"/></linearGradient></defs>`,
+            leaf: () => `<rect x="12" y="10" width="36" height="50" rx="3" fill="#eaf4ff" transform="rotate(-7 30 35)" filter="url(#${u}s)"/>
+                <rect x="24" y="6" width="36" height="52" rx="3" fill="url(#${u}p)" filter="url(#${u}s)"/>
+                <path d="M30 18h26M30 24h26M30 30h26M30 36h26M30 42h26M30 48h26" stroke="#cfe2f5" stroke-width="1"/><path d="M33 8v48" stroke="#ffb3c9" stroke-width="1"/>
+                <circle cx="27.5" cy="16" r="1.8" fill="#dfe8f2"/><circle cx="27.5" cy="32" r="1.8" fill="#dfe8f2"/><circle cx="27.5" cy="48" r="1.8" fill="#dfe8f2"/>
+                ${gl(24, 6, 36, 16, 3)}<defs><linearGradient id="${u}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#f3f8fd"/></linearGradient></defs>`,
+            emoji: () => { const face = (cx, cy, r, c1, c2, id, blush) => `<g filter="url(#${u}s)"><circle cx="${cx}" cy="${cy}" r="${r + 3}" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/></g>
+                    <ellipse cx="${cx - r * .36}" cy="${cy - r * .12}" rx="${r * .09}" ry="${r * .14}" fill="#6b4a3a"/><ellipse cx="${cx + r * .36}" cy="${cy - r * .12}" rx="${r * .09}" ry="${r * .14}" fill="#6b4a3a"/>
+                    <path d="M${cx - r * .35} ${cy + r * .25}q${r * .35} ${r * .32} ${r * .7} 0" stroke="#6b4a3a" stroke-width="${r * .1}" fill="none" stroke-linecap="round"/>
+                    <circle cx="${cx - r * .62}" cy="${cy + r * .18}" r="${r * .15}" fill="${blush}" opacity=".7"/><circle cx="${cx + r * .62}" cy="${cy + r * .18}" r="${r * .15}" fill="${blush}" opacity=".7"/>
+                    <ellipse cx="${cx - r * .35}" cy="${cy - r * .55}" rx="${r * .32}" ry="${r * .16}" fill="#fff" opacity=".7"/>
+                    <defs><radialGradient id="${id}" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient></defs>`;
+                return face(26, 28, 15, '#fff1a8', '#ffcf45', u + 'a', '#ff9fb8') + face(49, 41, 12, '#ffe0cc', '#ffad80', u + 'b', '#ff8fab'); },
+            memo: () => `<g filter="url(#${u}s)"><path d="M14 12h44v38l-10 10H14z" fill="url(#${u}p)"/><path d="M58 50l-10 10V54a4 4 0 0 1 4-4z" fill="#efe2b0"/></g>
+                <rect x="28" y="7" width="18" height="9" fill="#ff9fb8" opacity=".85" transform="rotate(-5 37 11)"/>
+                <path d="M21 26h28M21 33h28M21 40h20" stroke="#ead9a0" stroke-width="1.4" stroke-linecap="round"/>
+                <defs><linearGradient id="${u}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf0"/><stop offset="1" stop-color="#fff3c4"/></linearGradient></defs>`,
+            tool: () => `<g filter="url(#${u}s)"><rect x="10" y="6" width="34" height="52" rx="4" fill="url(#${u}c)"/><rect x="10" y="6" width="8" height="52" rx="3" fill="#ef86a8"/></g>
+                <circle cx="14" cy="16" r="2" fill="#fff"/><circle cx="14" cy="32" r="2" fill="#fff"/><circle cx="14" cy="48" r="2" fill="#fff"/>
+                <rect x="22" y="14" width="18" height="8" rx="1.5" fill="#fffaf2"/>
+                <g filter="url(#${u}s)"><rect x="36" y="12" width="26" height="44" rx="3" fill="url(#${u}r)" stroke="#e3dbe8" stroke-width=".8"/></g>
+                ${heart(41, 20, .55, '#ffb7cc', '#ff7fa3', u + 'h')}${dot(53, 40, 3.6, '#d6ecff', '#7fbdf0', u + 'b')}<path d="M38 50l22-28" stroke="#fff" stroke-width="3" opacity=".6"/>
+                ${gl(10, 6, 34, 14, 4)}<defs><linearGradient id="${u}c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc4d6"/><stop offset="1" stop-color="#ff9fbd"/></linearGradient><linearGradient id="${u}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#f1edf5"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>`,
+        };
+        return A[k] ? `<svg viewBox="0 0 72 64" aria-hidden="true"><defs>${sh}${glDef}</defs>${A[k]()}</svg>` : '';
+    }
+    function stkArtFill() {                                                   // 진열대 · 수납함의 물건 자리에 그림을 넣어요 (한 번)
+        document.querySelectorAll('.st2-slot').forEach(b => { const k = (b.className.match(/\bg-(\w+)/) || [])[1], g = b.querySelector('.st2-goods'); if (k && g && !g.dataset.art) { g.innerHTML = stkArt(k); g.dataset.art = 1; g.classList.add('art'); } });
+        document.querySelectorAll('.bk2-bin').forEach(b => { const k = (b.className.match(/\bb-(\w+)/) || [])[1], g = b.querySelector('.bk2-peek'); if (k && g && !g.dataset.art) { g.innerHTML = stkArt(k); g.dataset.art = 1; g.classList.add('art'); } });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stkArtFill); else stkArtFill();
+    window.stkArt = stkArt;
+
     window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
     window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shCat = shCat; window.shTake = shTake;
 })();

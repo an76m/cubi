@@ -4318,3 +4318,8 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .g-memo .st2-goods::after { left: 27px; top: 2px; width: 18px; height: 10px; background: rgba(255,159,184,.85); transform: rotate(-4deg); }
 .g-tool .st2-goods::before { left: 8px; top: 4px; width: 38px; height: 54px; background: #ffb3c9; border-radius: 3px 7px 7px 3px; box-shadow: inset 7px 0 0 #f08fae, 0 2px 3px rgba(0,0,0,.15); }
 .g-tool .st2-goods::after { left: 34px; top: 8px; width: 30px; height: 48px; background: linear-gradient(155deg, #fff, #f0edf3); border: 1px solid #e3dce6; border-radius: 3px; }
+/* 🎨 물건 그림 (SVG · 입체감) : 모양으로 그리던 것은 숨겨요 */
+.st2-goods.art::before, .st2-goods.art::after { display: none; }
+.st2-goods.art { width: 76px; height: 66px; }
+.st2-goods.art svg, .bk2-peek.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.bk2-peek.art { width: 62px !important; height: 54px !important; top: -16px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; transform: translateX(-50%) rotate(var(--pr, -6deg)); }
