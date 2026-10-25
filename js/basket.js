@@ -199,10 +199,11 @@
         B.opening = id;
         const card = document.querySelector(`.bk-sh[data-id="${CSS.escape(id)}"]`); if (card) card.classList.add('busy');
         try {
-            const r = await ownSheet(id);
+            const c = DS.m.has(id) ? await dsPrep(id).catch(() => null) : null;   // ⚡ 꺼내 둔 종이는 미리 읽어 둔 것으로 바로 (도련 10-26 · A → B 바꾸기 빠르게)
+            const r = c ? { s: c.s } : await ownSheet(id);
             if (!r) { showMsg('이 스티커는 이미 다 썼어요.<br><span style="font-size:12px;color:#777;">다른 기기에서 썼을 수도 있어요.</span>'); if (vis('basketKindModal')) bkRender(true); return; }
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
-            const die = async a => !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요)
+            const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
             if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at }); }
             else if (s.k === 'piece') {
@@ -904,7 +905,7 @@
     }
     function dsFront(d) { d.el.style.zIndex = ++DS.z; }
     function dsDrop(id) {
-        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id);
+        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); DS.c.delete(id);
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
     }
     function dsTake(id, at, keep) {
@@ -917,7 +918,7 @@
             d.el.className = 'dsk'; d.el.dataset.id = id; dsLayer().appendChild(d.el); DS.m.set(id, d); dsWire(d);
         }
         if (at) { d.x = at.x; d.y = at.y; }
-        dsPaint(d); dsFront(d);
+        dsPaint(d); dsFront(d); dsPrep(id).catch(() => {});
         d.el.classList.remove('pop'); void d.el.offsetWidth; d.el.classList.add('pop');
         if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
         if (!keep && vis('basketKindModal')) {                                 // 톡 · 오래 누르기 : 바구니가 비켰다가 다시 떠요 (끌어서 꺼낼 땐 그대로)
@@ -925,6 +926,26 @@
             setTimeout(() => { if (![...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex') && !dsRoomOn()) bkReopen(); }, 420);
         }
         return d;
+    }
+    /* ⚡ 꺼낸 종이는 미리 읽고 하얀 테두리까지 구워 둬요 → 톡 하면 바로 열려요 · 떼는 화면을 닫으면 다시 읽어 둬요 (쓴 자리 반영) */
+    DS.c = new Map();
+    function dsPrep(id) {
+        if (DS.c.has(id)) return DS.c.get(id).then(v => v && dsFresh(id, v));
+        const p = (async () => {
+            const r = await ownSheet(id); if (!r) return null;
+            const s = r.s; let baked = null;
+            if ((s.k === 'seal' || s.k === 'piece') && !s.baked && window.pelBake) baked = await Promise.all(s.imgs.map(u => u ? pelBake(u).catch(() => u) : null));
+            return { s, baked };
+        })();
+        DS.c.set(id, p); p.then(v => { if (!v) DS.c.delete(id); }, () => DS.c.delete(id));
+        return p;
+    }
+    function dsFresh(id, v) {                                                 // 그사이 이 기기에서 뗀 자리는 비워요 (쓴 기록 · 목록)
+        const e = dsEntry(id), used = new Set((e && e.u) || []);
+        (window.ownPendGet ? ownPendGet() : []).forEach(p => { if (p.s === id && !p.q) used.add(p.k); });
+        if (!used.size) return v;
+        const imgs = v.s.imgs.map((u, i) => used.has(i) ? null : u);
+        return { s: Object.assign({}, v.s, { imgs }), baked: v.baked && v.baked.map((u, i) => used.has(i) ? null : u) };
     }
     function dsMove(d, x, y) { d.x = x; d.y = y; const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (x - w / 2) + 'px'; d.el.style.top = (y - h / 2) + 'px'; }
     function dsWire(d) {
@@ -955,7 +976,7 @@
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
         const prev = DS.act ? DS.m.get(DS.act) : null;
-        if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsPaint(prev); } }
+        if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); DS.c.delete(prev.id); dsPrep(prev.id).catch(() => {}); dsPaint(prev); } }
         const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
         const win = !['tape', 'memo', 'leaf'].includes(e.k);                   // 테이프 · 메모지 · 속지는 페이지에 바로 (창 없음)
         if (win) { DS.act = d.id; d.el.classList.add('act'); document.body.classList.add('dsk-on'); }
@@ -966,7 +987,7 @@
             const on = dsRoomOn(); if (on) { seen = true; return; }
             if (!seen && DS.act === d.id && B.opening) return;
             clearInterval(DS.t); if (DS.act !== d.id) return;
-            DS.act = ''; d.el.classList.remove('act'); document.body.classList.remove('dsk-on'); dsPaint(d); setTimeout(() => DS.m.has(d.id) && dsPaint(d), 1500);
+            DS.act = ''; d.el.classList.remove('act'); document.body.classList.remove('dsk-on'); DS.c.delete(d.id); if (DS.m.has(d.id)) dsPrep(d.id).catch(() => {}); dsPaint(d); setTimeout(() => DS.m.has(d.id) && dsPaint(d), 1500);
         }, 250);
     }
     if (window.ownOnChange) ownOnChange(() => DS.m.forEach(d => { if (DS.act !== d.id) dsPaint(d); }));   // 쓴 양이 바뀌면 다시 그려요
