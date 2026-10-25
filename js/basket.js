@@ -610,7 +610,8 @@
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }   // take() : 새 종이 id(씰) 또는 종이 정보
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = x.tool ? '✓ 서랍에 쏙!' : '✓ 바구니에 쏙!';
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
-            setTimeout(() => { btn.classList.remove('got'); btn.textContent = '🧺 받기'; btn.disabled = false; }, 1400);
+            const z = SH.zoom;                                                    // 받으면 확대 창이 저절로 닫혀요 (또 누르지 않게 · 도련 10-25)
+            setTimeout(() => { if (SH.zoom === z && btn.isConnected) shZoomOff(); }, 750);
         } catch (e) {
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
