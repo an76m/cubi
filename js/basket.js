@@ -108,7 +108,7 @@
         const note = `<p class="bk-note">${guest ? '👀 구경만 할 때는 창을 닫거나 새로고침하면 바구니도 비워져요.' : '🔥 받은 · 만든 스티커는 내 드라이브 <b>말랑달콤</b> 폴더에 보관돼요. 폴더를 지우면 모두 사라지고 되돌릴 수 없어요.'}</p>`;
         if (!B.list.length) {
             wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div></div>`
-                + bkMsg(`${esc(BK_KINDS[B.kind] || '')} 바구니가 비어 있어요.<br>🏪 진열대에서 받아 오거나<br>✂️ 나만의 스티커를 만들어 보세요!`) + note;
+                + bkMsg(`${esc(BK_KINDS[B.kind] || '')} 바구니가 비어 있어요.<br>🏪 기본 스티커 진열대에서 받아 오거나<br>✂️ 나만의 스티커를 만들어 보세요!`) + note;
             return;
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
@@ -271,12 +271,12 @@
     /* 📒 스티커첩 탭 : 바인더 표지 · 이형지 */
     function abAlbum() {
         const body = bq('abBody'), a = B.album, bds = abMine(a.bd), rls = abMine(a.rl);
-        const plus = nm => `<button type="button" class="ab-plus" onclick="abGoShelf()"><b>🏪</b>진열대에서<br>${nm} 받아 오기</button>`;
+        const plus = () => `<button type="button" class="ab-plus" onclick="abGoShelf()"><b>🏪</b>기본 스티커<br>진열대에서 받기</button>`;
         const bd = bds.map(b => { const c = abCol(b); return `<button type="button" class="ab-bd" style="--c1:${c[0]};--c2:${c[1]}" onclick="abOpen('bd','${esc(b.id)}')"><span class="ab-cover">${b.lb ? `<i class="ab-lb">${esc(b.lb)}</i>` : ''}</span><small>${Object.keys(b.p).length}장 꽂힘</small></button>`; }).join('');
         const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개 · ${r.n}쪽</small></button>`).join('');
-        body.innerHTML = `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus('바인더')}</div></div>`
-            + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지북</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus('이형지북')}</div></div>` : '')
-            + '<p class="bk-note">바인더 · 이형지북은 🏪 진열대 → 🗂️ 정리 도구에서 받아 와요 · 칸이 다 차면 또 받아 와요<br>톡 하면 펼쳐져요 · 정리는 🧺 바구니 → 📒 정리하기에서 해요</p>';
+        body.innerHTML = `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus()}</div></div>`
+            + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지북</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus()}</div></div>` : '')
+            + '<p class="bk-note">바인더 · 이형지북은 🏪 기본 스티커 진열대 → 🗂️ 정리 도구에서 받아 와요 · 칸이 다 차면 또 받아 와요<br>톡 하면 펼쳐져요 · 정리는 🧺 바구니 → 📒 정리하기에서 해요</p>';
     }
     function abRelMini(r) { return r.it.filter(t => !t.pg).slice(0, 14).map(t => { const e = B.byId.get(t.s); return e && e.th ? `<img src="${esc(e.th)}" alt="" style="left:${(t.x * 100).toFixed(1)}%;top:${(t.y * 100).toFixed(1)}%;--r:${(+t.r).toFixed(1)}deg">` : ''; }).join(''); }
 
@@ -354,8 +354,8 @@
         let main;
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
-            if (b) { D.bd = b.id; const full = Object.keys(b.p).length >= b.n; main = (full ? bkMsg('📒 이 바인더는 가득 찼어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 진열대에서 새 바인더 받아 오기</button>') : '') + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()">${abChip(b)}${esc(b.lb || '라벨 없는 바인더')}${L.length > 1 ? ' ▾' : ''}</button><small>${Object.keys(b.p).length} / ${b.n}장</small></div>` + abBinderHtml(b, true); }
-            else main = bkMsg('아직 바인더가 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 진열대에서 바인더 받아 오기</button>');
+            if (b) { D.bd = b.id; const full = Object.keys(b.p).length >= b.n; main = (full ? bkMsg('📒 이 바인더는 가득 찼어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 새 바인더 받아 오기</button>') : '') + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()">${abChip(b)}${esc(b.lb || '라벨 없는 바인더')}${L.length > 1 ? ' ▾' : ''}</button><small>${Object.keys(b.p).length} / ${b.n}장</small></div>` + abBinderHtml(b, true); }
+            else main = bkMsg('아직 바인더가 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 바인더 받아 오기</button>');
         } else {
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
             const panel = !D.pick ? '<div class="ab-peelhint">⬆ 위 줄에서 종이를 톡 골라요</div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>'
@@ -366,7 +366,7 @@
                 main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()"><i class="ab-chip rl"></i>${esc(r.lb || '라벨 없는 이형지북')}${L.length > 1 ? ' ▾' : ''}</button><small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
                     + `<div class="ab-rel desk${D.sel >= 0 ? ' ready' : ''}" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sel >= 0 ? '붙일 자리를 톡!' : D.sheet ? '스티커를 끌어 와 붙여요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
             }
-            else main = panel + bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 진열대에서 이형지북 받아 오기</button>');
+            else main = panel + bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 이형지북 받아 오기</button>');
         }
         body.innerHTML = abHead('바구니', 'bin', '<b class="ab-ttl">📒 정리하기</b>')
             + (relOk ? `<div class="ab-tabs sm"><button type="button" class="${D.mode === 'bd' ? 'on' : ''}" onclick="abMode('bd')">📒 바인더에 꽂기</button><button type="button" class="${D.mode === 'rl' ? 'on' : ''}" onclick="abMode('rl')">🤍 이형지북에 붙이기</button></div>` : '')
@@ -544,9 +544,9 @@
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
         const box = bq('shkWrap'); SH.kind = k; SH.items = []; shZoomOff();
         const seq = ++SH.seq;
-        box.innerHTML = bkMsg('진열대를 채우는 중…'); box.scrollTop = 0;
+        box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…'); box.scrollTop = 0;
         let items = [];
-        try { items = await K[1](); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
+        try { items = await K[1](); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 기본 스티커 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
         if (seq !== SH.seq) return;                                              // 그사이 다른 종류를 열었어요
         SH.items = items;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
@@ -606,7 +606,7 @@
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
-            const where = x.tool ? `🗄️ 내 서랍 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `🗄️ 내 서랍 · ${esc(BK_KINDS[into] || '')} 바구니`;
+            const where = x.tool ? `🗄️ 내 스티커 수납함 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `🗄️ 내 스티커 수납함 · ${esc(BK_KINDS[into] || '')} 바구니`;
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${x.tool ? '📒 스티커첩에서 보기' : '🧺 바구니에서 보기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div>`;
         } catch (e) {
