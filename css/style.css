@@ -4223,3 +4223,4 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ab-pk .bk-sh .bk-grid { gap: 4px; }
 .ab-pk .bk-sh.k-tape > *, .ab-pk .bk-sh.k-tk > *, .ab-pk .bk-sh.k-memo > *, .ab-pk .bk-sh.k-leaf > * { zoom: 1.5; }
 .ab-page { grid-auto-rows: minmax(140px, auto); }
+.sh-nav { margin: 14px 0 6px; }

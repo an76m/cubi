@@ -172,8 +172,7 @@
             if (!basicKitP || (force && !basicKitTry)) basicKitP = basicKitLoop();
             return basicKitP;
         }
-        /* ⚡ 앱을 켜자마자 새 목록을 미리 받아 둬요 (예전 목록은 보여 주지 않아요 · 진열대를 열 때쯤이면 이미 와 있어요 · 도련 10-25) */
-        setTimeout(() => { try { basicKit(); } catch (e) {} }, 300);
+        /* (미리 받기는 안 해요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 진열대를 열 때 받아요) */
         window.basicKit = basicKit; window.kitSize = kitSize; window.kitName = libCatName;
 
 

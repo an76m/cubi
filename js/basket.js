@@ -93,19 +93,7 @@
         bkView();
     }
     const bkSig = () => { try { return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album]); } catch (e) { return String(Math.random()); } };
-    /* ⚡ 미리 읽어 두기 : 로그인(또는 폴더 · 구경만)이 되면 한가할 때 바구니 목록을 한 번 읽어 둬요 → 처음 열 때도 바로 */
-    (function bkWarm() {
-        let who = '';
-        setInterval(() => {
-            try {
-                if (!window.ownMode || !ownMode() || document.hidden) return;
-                const w = (ownMode() === 'mem' ? 'guest' : (typeof COLL !== 'undefined' && COLL.who) || 'me');
-                if (w === who) return;
-                who = w;
-                ownList(false).catch(() => { who = ''; });
-            } catch (e) {}
-        }, 2500);
-    })();
+    /* (바구니 미리 읽기 bkWarm 도 지웠어요 · 도련 10-25 → 처음 열 때 한 번 읽고, 그다음부터는 기억한 목록으로 바로 그려요) */
     /* 바구니 카드 : 종류마다 모양 · 남은 양은 두께(--q)로만 */
     const kitImg = u => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
     function bkCard(e) {
@@ -618,7 +606,7 @@
         const K = SH_KINDS[k]; if (!K) return;
         closeModal('shelfModal'); openModal('shelfKindModal');
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
-        const box = bq('shkWrap'); SH.kind = k; SH.items = []; shZoomOff();
+        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; shZoomOff();
         const seq = ++SH.seq;
         box.scrollTop = 0;
         if (!SH.cache[k]) box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…');
@@ -629,30 +617,32 @@
         shDraw(k);
         if (SH_LATE[k] && !items.late) shLate(k).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품
     }
+    /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽에 SH_PER 개 · 지금 쪽을 보는 동안 다음 쪽 그림을 미리 받아 둬요 */
+    const SH_PER = 12;
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
-        const top = box.scrollTop, secs = k === 'paper' ? ['모양', '배경'] : [''];
+        const secs = k === 'paper' ? ['모양', '배경'] : [''];
+        const order = secs.flatMap(sec => items.map((x, i) => [x, i]).filter(([x]) => !sec || (x.sec || '모양') === sec));   // 📄 모조지는 모양 → 배경 차례
+        const pages = Math.max(1, Math.ceil(order.length / SH_PER));
+        SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
+        const page = order.slice(SH.pg * SH_PER, (SH.pg + 1) * SH_PER);
+        const nav = pages > 1 ? `<div class="ab-nav sh-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="shPage(-1)"${SH.pg ? '' : ' disabled'}>‹</button><span>${SH.pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="shPage(1)"${SH.pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : '';
         box.innerHTML = secs.map(sec => {
-            const its = items.map((x, i) => [x, i]).filter(([x]) => !sec || (x.sec || '모양') === sec); if (!its.length) return '';
+            const its = page.filter(([x]) => !sec || (x.sec || '모양') === sec); if (!its.length) return '';
             return (sec ? `<h4 class="sh-sign"><span>${sec === '배경' ? '📄 배경 (통째로 떼기)' : '✂️ 모양 (가위로 오리기)'}</span></h4>` : '') + `<div class="sh-grid">${its.map(([x, i]) => shCard(x, i)).join('')}</div>`;
-        }).join('');
-        box.scrollTop = top;
+        }).join('') + nav;
+        shPreload(order.slice((SH.pg + 1) * SH_PER, (SH.pg + 2) * SH_PER));          // 다음 쪽 미리
     }
-    /* ⚡ 미리 준비 : 앱이 한가할 때 기본스티커 목록 · 매대 · 그린 씰 종이를 미리 채워 둬요 (처음 열 때도 바로) */
-    function shWarm() {
-        const idle = fn => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 400));
-        const ks = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo', 'tool'];
-        let i = 0;
-        const next = () => idle(async () => {
-            const k = ks[i++];
-            if (!k) { idle(() => shLate('seal').catch(() => {})); return; }
-            try { await shItems(k); } catch (e) {}
-            next();
-        });
-        next();
+    function shPage(d) { SH.pg = (SH.pg || 0) + d; shDraw(SH.kind); const box = bq('shkWrap'); if (box) box.scrollTop = 0; }
+    function shPreload(list) {
+        const seen = SH.pre || (SH.pre = new Set());
+        list.forEach(([x]) => (x.thumbs || []).forEach(u => {
+            if (!u || /^data:/.test(u) || seen.has(u)) return;
+            seen.add(u); const im = new Image(); im.decoding = 'async'; im.src = u;
+        }));
     }
-    setTimeout(shWarm, 3500);
+    /* (미리 채우기 shWarm 은 지웠어요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 진열대를 열 때 채우고 그다음부터 기억해요) */
     function shLook(x, big) {
         if (x.look === 'binder') { const c = AB_COL[x.c]; return `<div class="sh-tool"><span class="ab-cover" style="--c1:${c[0]};--c2:${c[1]}"></span></div>`; }
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
@@ -714,5 +704,5 @@
     }
 
     window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
-    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shTake = shTake;
+    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shTake = shTake;
 })();
