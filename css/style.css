@@ -4261,7 +4261,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-sign { width: max-content; margin: -4px auto 0; padding: 6px 18px; background: #fff; border: 1.7px solid #7b5a63; border-radius: 12px; box-shadow: 0 3px 0 #ffd0de; font-size: 15px; font-weight: 700; letter-spacing: .5px; color: #c2457a; position: relative; z-index: 1; transform: rotate(-1.5deg); }   /* 차양 물결에 살짝 겹친 카드 간판 */
 .st2-case { margin-top: 12px; padding: 0 10px 10px; background: #fffdfb; border: 1.5px solid rgba(123,90,99,.35); border-radius: 14px; box-shadow: 0 3px 0 #ffe0ea; }   /* 하얀 진열장 · 나무 X */
 .st2-row { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 14px 8px 0; }
-.st2-row::before { content: ''; position: absolute; left: -4px; right: -4px; top: 2px; bottom: 0; z-index: 1; background: linear-gradient(118deg, transparent 0 16%, rgba(255,255,255,.55) 17% 22%, transparent 23% 26%, rgba(255,255,255,.4) 27% 28.5%, transparent 29.5%), linear-gradient(118deg, transparent 0 66%, rgba(255,255,255,.45) 67% 70%, transparent 71%), rgba(214, 236, 255, .26); pointer-events: none; }   /* 🫧 쇼케이스 유리 = 연한 하늘색 + 대각선 반사 (이름표 줄까지) */
+.st2-row::before { content: ''; position: absolute; left: -4px; right: -4px; top: 2px; bottom: 0; z-index: 1; background: linear-gradient(118deg, transparent 0 16%, rgba(255,255,255,.55) 17% 22%, transparent 23% 26%, rgba(255,255,255,.4) 27% 28.5%, transparent 29.5%), linear-gradient(118deg, transparent 0 66%, rgba(255,255,255,.45) 67% 70%, transparent 71%), rgba(214, 236, 255, .18); pointer-events: none; }   /* 🫧 쇼케이스 유리 = 연한 하늘색 + 대각선 반사 (이름표 줄까지) */
 .st2-plank { height: 5px; margin: 6px 0 0; border-radius: 3px; background: #ffe3ec; box-shadow: inset 0 0 0 1.2px rgba(123,90,99,.35); }   /* 얇은 핑크 선반 (흐린 선) */
 
 .st2-slot { display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -4316,7 +4316,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-pole { position: absolute; top: 30px; bottom: 30px; width: 7px; border-radius: 4px; background: linear-gradient(90deg, #fff, #ffd6e4); box-shadow: inset 0 0 0 1.4px #7b5a63; }
 .st2-pole.l { left: 4px; } .st2-pole.r { right: 4px; }
 .obj-win .st2-sign { z-index: 3; }
-.obj-win .st2-case { position: relative; z-index: 1; margin-top: 10px; border: 1.7px solid #7b5a63; background: #f3f9ff; box-shadow: inset 0 -6px 0 #e6f0fb; }   /* 진열장 바탕도 연한 하늘색 */
+.obj-win .st2-case { position: relative; z-index: 1; margin-top: 10px; border: 1.7px solid #7b5a63; background: #f6fbff; box-shadow: inset 0 -6px 0 #e9f2fb; }   /* 진열장 바탕도 연한 하늘색 */
 .bk2-base { position: relative; z-index: 1; height: 14px; margin: -2px -5px 0; border-radius: 5px 5px 8px 8px; background: linear-gradient(#ffe6ee, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }   /* 수납장 바닥판 (두께) */
 .st2-base { position: relative; z-index: 1; height: 16px; margin: -2px -6px 0; border-radius: 6px 6px 8px 8px; background: linear-gradient(#ffe0ea, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }
 @media (max-height: 700px) { #shelfModal .obj-win .st2-goods.art { width: 60px; height: 52px; } #shelfModal .obj-win .st2-row { padding-top: 8px; } }   /* 📱 낮은 화면 */
