@@ -970,10 +970,28 @@
             p.on = true; d.el.classList.add('lift'); d.x = ev.clientX + p.dx; d.y = ev.clientY + p.dy;
             const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
         });
-        const up = ev => { if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift'); if (!was.on && ev.type === 'pointerup') dsOpen(d); };
+        const up = ev => {
+            if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift');
+            if (ev.type !== 'pointerup') return;
+            if (!was.on) { dsOpen(d); return; }
+            if (d.el.classList.contains('big')) dsUse(d);                     // 커진 테이프 · 메모지 · 속지를 끌어 놓으면 = 써요
+        };
         d.el.addEventListener('pointerup', up); d.el.addEventListener('pointercancel', up);
         d.el.addEventListener('click', ev => { if (ev.target.closest('.dsk-x')) { ev.stopPropagation(); dsDrop(d.id); } });
     }
+    /* 📏 테이프 · 메모지 · 속지 : 톡 = 크게 보기 (아직 안 써요) → 커진 것을 톡 하거나 끌어 놓으면 = 페이지에 써요 · 다른 곳을 누르면 작아져요 */
+    function dsBig(d) {
+        DS.m.forEach(o => { if (o !== d && o.el.classList.contains('big')) { o.el.classList.remove('big'); dsPaint(o); } });
+        d.el.classList.add('big'); dsPaint(d); dsFront(d);
+        if (!d.el.querySelector('.dsk-say')) d.el.insertAdjacentHTML('beforeend', '<span class="dsk-say">톡 하거나 페이지로 끌어 놓으면 써요</span>');
+    }
+    function dsSmall(d) { if (!d.el.classList.contains('big')) return; d.el.classList.remove('big'); dsPaint(d); }
+    async function dsUse(d) {
+        dsSmall(d);
+        await bkOpenSheet(d.id);
+        setTimeout(() => DS.m.has(d.id) && dsPaint(d), 500);
+    }
+    document.addEventListener('pointerdown', ev => { DS.m.forEach(o => { if (o.el.classList.contains('big') && !o.el.contains(ev.target)) dsSmall(o); }); }, true);   // 다른 곳 = 작아져요
     function dsShut() {                                                       // 열린(맨 위) 종이의 떼는 화면 닫기
         if (window.closeStickerPeel && bq('pelRoom') && bq('pelRoom').classList.contains('show')) closeStickerPeel();
         if (window.closePieceBag && bq('pcbRoom') && bq('pcbRoom').classList.contains('show')) closePieceBag();
@@ -985,10 +1003,10 @@
         const prev = DS.act ? DS.m.get(DS.act) : null;
         if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsMoveFromPeel(prev); dsReload(prev.id); dsPaint(prev); } }
         const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
-        const win = !['tape', 'memo', 'leaf'].includes(e.k);                   // 테이프 · 메모지 · 속지는 페이지에 바로 (창 없음)
-        if (win) { DS.act = d.id; d.el.classList.add('act'); document.body.classList.add('dsk-on'); }
+        const win = !['tape', 'memo', 'leaf'].includes(e.k);                   // 테이프 · 메모지 · 속지는 창이 없어요
+        if (!win) { if (d.el.classList.contains('big')) dsUse(d); else dsBig(d); return; }   // 늘 '커진 다음에 써요' (도련 10-26 · 크게 보려고 눌렀다가 써 버리지 않게)
+        DS.act = d.id; d.el.classList.add('act'); document.body.classList.add('dsk-on');
         DS.at = { x: d.x, y: d.y }; await bkOpenSheet(d.id); DS.at = null;
-        if (!win) { setTimeout(() => dsPaint(d), 400); return; }
         clearInterval(DS.t); let seen = false;
         DS.t = setInterval(() => {                                            // 떼는 화면이 닫히면 종이를 다시 그려요 (쓴 자리 · 다 쓰면 치워요)
             const on = dsRoomOn(); if (on) { seen = true; return; }
