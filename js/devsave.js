@@ -187,10 +187,11 @@
         const vRes = (st, obj) => new Response(obj === undefined ? '' : typeof obj === 'string' ? obj : JSON.stringify(obj), { status: st, headers: { 'Content-Type': 'application/json' } });
         const vFile = p => { const e = V.idx.get(p); return { id: vId(p), name: vName(p), mimeType: e.k === 'd' ? FOLDER : 'application/json', modifiedTime: vIso(e.mt || 0), size: String(e.size || 0), trashed: false }; };
         function vQuery(q) {
-            const c = { name: null, parent: null, folder: null, trashed: false };
+            const c = { name: null, names: null, parent: null, folder: null, trashed: false };
             for (const part of q.split(' and ')) {
                 let m;
                 if ((m = /^name='((?:\\.|[^'\\])*)'$/.exec(part))) c.name = m[1].replace(/\\(.)/g, '$1');
+                else if (/^\(name='.*'\)$/.test(part)) c.names = [...part.matchAll(/name='((?:\\.|[^'\\])*)'/g)].map(x => x[1].replace(/\\(.)/g, '$1'));   // (name='가' or name='나') · 🎒 수납함 두 파일 한 번에 (js/own.js)
                 else if ((m = /^'([^']*)' in parents$/.exec(part))) c.parent = m[1];
                 else if ((m = /^mimeType(!?)='(.*)'$/.exec(part))) c.folder = m[1] ? (m[2] === FOLDER ? false : null) : (m[2] === FOLDER ? true : null);
                 else if ((m = /^trashed=(true|false)$/.exec(part))) c.trashed = m[1] === 'true';
@@ -202,6 +203,7 @@
             V.idx.forEach((e, p) => {
                 if (pp != null && vParent(p) !== pp) return;
                 if (c.name != null && vName(p) !== c.name) return;
+                if (c.names && !c.names.includes(vName(p))) return;
                 if (c.folder === true && e.k !== 'd') return;
                 if (c.folder === false && e.k !== 'f') return;
                 out.push(p);

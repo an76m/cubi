@@ -6,7 +6,7 @@
      · 같은 날짜 · 같은 파일은 백업 것으로 덮어써요 · 나머지는 그대로
      · 구글 드라이브에서 '말랑달콤' 폴더를 내려받은 zip 도 돼요
    - 하드 → 구글 로그인으로 옮길 때도 이 기능으로 폴더를 통째로 옮겨요 (js/devsave.js)
-   - 🎒 유한 스티커 보관함(말랑달콤/스티커/보관함)은 백업 · 불러오기 · 옮기기에서 빼요 : 쓴 스티커가 되살아나면 안 돼요 (도련 10-25 · js/own.js)
+   - 🎒 유한 스티커 수납함(말랑달콤/스티커/수납함)은 백업 · 불러오기 · 옮기기에서 빼요 : 쓴 스티커가 되살아나면 안 돼요 (도련 10-25 · js/own.js)
    - 드라이브와 말하는 함수(getFolder · driveList · readFileText · driveUpsert)만 써요 → 구글이든 이 기기 폴더든 같은 코드 (js/drive.js · js/devsave.js vfsFetch)
    ※ 예전 json 백업(📂 PC로 백업)은 없앴어요 : 1년치를 글자 하나에 담다가 폰이 멈추거나 한 글자만 깨져도 전부 못 읽어서 */
 
@@ -51,7 +51,7 @@
                 const at = name.indexOf(BK_TOP + '/');
                 if (name.endsWith('/') || at < 0) continue;
                 const path = name.slice(at).split('/').filter(s => s && s !== '.' && s !== '..').join('/');
-                if (path.length <= BK_TOP.length || !/\.json$/i.test(path) || path.startsWith(BK_TOP + '/휴지통/') || path.startsWith(BK_TOP + '/스티커/보관함/')) continue;   // 🎒 유한 스티커 보관함은 넣지 않아요
+                if (path.length <= BK_TOP.length || !/\.json$/i.test(path) || path.startsWith(BK_TOP + '/휴지통/') || path.startsWith(BK_TOP + '/스티커/수납함/')) continue;   // 🎒 유한 스티커 수납함은 넣지 않아요
                 out.push({ path, text: async () => {
                     const ds = lo + 30 + v.getUint16(lo + 26, true) + v.getUint16(lo + 28, true), raw = u8.subarray(ds, ds + csize);
                     if (method === 0) return utf.decode(raw);
@@ -73,7 +73,7 @@
             const walk = async (id, path) => {
                 for (const f of await driveList(`'${id}' in parents and trashed=false`, 'id,name,mimeType')) {
                     if (f.mimeType === FOLDER_MIME && path === BK_TOP && f.name === '휴지통') continue;   // 🗑 휴지통은 백업 · 옮기기에서 빼요
-                    if (f.mimeType === FOLDER_MIME && path === BK_TOP + '/스티커' && f.name === '보관함') continue;   // 🎒 유한 스티커 보관함도 빼요 (불러오기로 쓴 스티커가 되살아나지 않게 · js/own.js)
+                    if (f.mimeType === FOLDER_MIME && path === BK_TOP + '/스티커' && f.name === '수납함') continue;   // 🎒 유한 스티커 수납함도 빼요 (불러오기로 쓴 스티커가 되살아나지 않게 · js/own.js)
                     if (f.mimeType === FOLDER_MIME) await walk(f.id, path + '/' + f.name);
                     else if (/\.json$/i.test(f.name)) files.push({ id: f.id, path: path + '/' + f.name });
                 }

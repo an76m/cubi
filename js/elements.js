@@ -134,10 +134,22 @@
                 if (!res.ok) throw new Error('server');
                 const d = await res.json();
                 if (!d || !Array.isArray(d.images)) throw new Error('server');
+                kitKeep(d);
                 return kitParse(d);
             } finally { clearTimeout(timer); }
         }
         try { localStorage.removeItem('malang_kit_list'); } catch (e) {}       // 예전 목록 기억은 안 써요 (도련 10-25 · 늘 새 목록만) → v711 때 남은 것 치우기
+        /* 🖼️ 이 기기에 보관한 그림 중 새 목록에 없는 것은 바로 지워요 (sw.js · 목록에 있는 그림 지문만 남겨요) */
+        function kitKeep(d) {
+            try {
+                const sw = navigator.serviceWorker && navigator.serviceWorker.controller; if (!sw) return;
+                const keep = new Set(), add = f => { const m = typeof f === 'string' && /^([0-9a-f]{16})\./.exec(f); if (m) keep.add(m[1]); };
+                (d.images || []).forEach(x => x && add(x.f));
+                (d.sheets || []).forEach(x => x && (x.fs || []).forEach(add));
+                Object.values(d.kits || {}).forEach(a => (Array.isArray(a) ? a : []).forEach(x => { if (!x) return; add(x.f); (x.fs || []).forEach(add); }));
+                sw.postMessage({ type: 'kit-keep', keep: [...keep] });
+            } catch (e) {}
+        }
         function kitParse(d) {
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });

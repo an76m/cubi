@@ -240,7 +240,7 @@
        · 이형지로 옮겨도 쓴 게 아니에요 (한 칸짜리 새 종이가 돼요 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelMove)
        · 바인더 · 이형지북도 🏪 진열대 → 🗂️ 정리 도구에서 받아 와야 내 것이 돼요 (공짜여도 받아서 가지고 · 칸이 차면 또 받아요 · 도련 10-25)
          → 처음부터 '받아서 가진 것을 쓰면 줄어든다'를 알게 해요 (처음 선물 · ＋ 버튼 없음)
-       · 정리한 모습은 보관함 목록(암호화)에 같이 저장 → 다른 기기에서도 그대로 ---------- */
+       · 정리한 모습은 수납함의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
     const AB = { drag: null, busy: false };
     const REL_KINDS = new Set(['seal', 'emoji', 'piece']);
     const AB_COL = [['#ffb3c9', '#f08fae'], ['#bfe3ff', '#8cc4ee'], ['#c6ecd6', '#8fd0ac'], ['#ffe08f', '#f0c35a'], ['#d8c8f6', '#b49de8'], ['#ffc8a8', '#f4a27a']];
@@ -286,7 +286,7 @@
     }
     /* 💾 모아서 한 번에 저장 (도련 10-25) : 꽂기 · 빼기 · 라벨 · 표지 · 자리 옮기기는 화면에 바로 → 손을 멈추고 1.2초 뒤(또는 다 했어요 · 창 닫기) 한 번에
        · 저장하는 동안 새로 한 정리는 다음 번에 또 한 번에 · 스티커첩 파일(작은 파일)만 써요 */
-    AB.pend = []; AB.fly = null; AB.flushT = 0;
+    AB.pend = []; AB.fly = null; AB.flushT = 0; AB.rel = []; AB.relFly = null;   // rel : 🤍 이형지북에 붙인 것 (모아서 ownRelBatch)
     function abQueue(fn) {
         try { fn(B.album); } catch (e) {}
         AB.pend.push(fn); B.sig = bkSig();
@@ -295,14 +295,31 @@
     }
     async function abFlush() {
         clearTimeout(AB.flushT);
-        if (AB.fly || !AB.pend.length || !window.ownAlbum) return AB.fly;
-        const fns = AB.pend; AB.pend = []; AB.fly = fns;
+        if (AB.fly || AB.relFly || (!AB.pend.length && !AB.rel.length) || !window.ownAlbum) return;
         abToast('💾 저장하는 중…', 'on');
-        try { await ownAlbum(a => fns.forEach(fn => { try { fn(a); } catch (e) {} })); AB.fly = null; if (!AB.pend.length) abToast('✓ 저장했어요', 'ok'); }
-        catch (e) { AB.fly = null; abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
-        if (AB.pend.length) { AB.flushT = setTimeout(abFlush, 300); }
+        if (AB.pend.length) {
+            const fns = AB.pend; AB.pend = []; AB.fly = fns;
+            try { await ownAlbum(a => fns.forEach(fn => { try { fn(a); } catch (e) {} })); AB.fly = null; }
+            catch (e) { AB.fly = null; abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
+        }
+        if (AB.rel.length && window.ownRelBatch) {                               // 🤍 이형지북 : 여러 장을 한 번에 (목록 · 스티커첩 한 번씩)
+            const ops = AB.rel; AB.rel = []; AB.relFly = ops;
+            try {
+                const ids = await ownRelBatch(ops.map(o => ({ s: o.src, k: o.k, rl: o.rl, pos: o.pos })));
+                AB.relFly = null;
+                if (ids.some(x => !x)) { showMsg('이미 썼거나 자리가 없는 스티커는 붙이지 못했어요.'); B.sig = ''; bkRender(true); }
+            } catch (e) { AB.relFly = null; abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
+        }
+        if (!AB.pend.length && !AB.rel.length) abToast('✓ 저장했어요', 'ok');
+        else AB.flushT = setTimeout(abFlush, 300);
     }
-    function abReapply() { (AB.fly || []).concat(AB.pend).forEach(fn => { try { fn(B.album); } catch (e) {} }); }
+    function abReapply() {
+        (AB.fly || []).concat(AB.pend).forEach(fn => { try { fn(B.album); } catch (e) {} });
+        (AB.relFly || []).concat(AB.rel).forEach(o => {                         // 아직 저장 안 된 이형지북 스티커도 다시 얹어요
+            const r = (B.album.rl || []).find(x => x.id === o.rl); if (!r || r.it.some(t => t.s === o.tmp)) return;
+            B.byId.set(o.tmp, { id: o.tmp, th: o.img }); r.it.push({ s: o.tmp, pg: o.pos.pg, x: o.pos.x, y: o.pos.y, r: o.pos.r });
+        });
+    }
     document.addEventListener('visibilitychange', () => { if (document.hidden) abFlush(); });
     window.addEventListener('pagehide', () => abFlush());
     function abToast(t, kind) {
@@ -474,11 +491,11 @@
             relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
             const sm = document.querySelector('.ab-target small'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${window.OWN_REL_MAX || 24}개`;
         }
+        AB.rel.push({ src, k, rl: D.rl, pos, tmp, img });                      // 모아서 저장 (손을 멈추면 · 다 했어요 · 창 닫기)
         B.sig = bkSig();
         if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
-        abDo(ownRelMove(src, k, D.rl, pos), '🤍 이형지북에 붙이는 중…', '✓ 이형지북에 붙였어요').then(nid => {
-            if (nid === '') { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); B.sig = ''; bkRender(true); }
-        });
+        clearTimeout(AB.flushT); AB.flushT = setTimeout(abFlush, 1200);
+        abToast('정리 중… (손을 멈추면 저장해요)', 'on');
     }
     function abSay(el, t) { const s = el.querySelector('span'); if (!s) return; const o = s.textContent; s.textContent = t; setTimeout(() => { if (s.isConnected) s.textContent = o; }, 1300); }
     async function abLoadSheet(id) {
