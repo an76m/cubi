@@ -742,7 +742,7 @@
         const K = SH_KINDS[k]; if (!K) return;
         closeModal('shelfModal'); openModal('shelfKindModal');
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
-        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = ''; shZoomOff();
+        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = ''; SH.got = new Set(); shZoomOff();
         const seq = ++SH.seq;
         box.scrollTop = 0;
         if (!SH.cache[k]) box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…');
@@ -814,7 +814,7 @@
     }
     function shCard(x, i) {
         return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
-            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button><button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">🧺 받기</button></div></div>`;   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
+            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button>${SH.got && SH.got.has(i) ? '<button type="button" class="sh-take sh-get got" disabled>✓ 바구니에 쏙</button>' : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">🧺 받기</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (진열대 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
@@ -848,7 +848,7 @@
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙';
-            setTimeout(() => { if (!btn.isConnected) return; btn.classList.remove('got'); btn.textContent = '🧺 받기'; btn.disabled = false; }, 1800);
+            (SH.got || (SH.got = new Set())).add(i);                            // 창을 닫았다 열면 다시 받기
         } catch (e) {
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
@@ -865,6 +865,7 @@
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }   // take() : 새 종이 id(씰) 또는 종이 정보
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
+            (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;                       // 확대에서 받아도 카드 버튼은 초록
             const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
             const where = x.tool ? `🗄️ 내 스티커 수납함 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `🗄️ 내 스티커 수납함 · ${esc(BK_KINDS[into] || '')} 바구니`;
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
