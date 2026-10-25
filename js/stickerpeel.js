@@ -201,7 +201,7 @@
             const S = pelS; if (!S.on) return;
             if (S.rel) {                                                         // 🤍 정리 책상 : 창이 닫혔으면 같이 닫고 · 자리가 움직였으면 따라가요
                 if (S.rel.alive && !S.rel.alive()) { closeStickerPeel(); return; }
-                if (!S.drag) { const A = S.rel.at(), o = S.relA; if (!o || Math.abs(A.top - o.top) > .5 || Math.abs(A.left - o.left) > .5 || Math.abs(A.width - o.width) > .5) { S.relA = { top: A.top, left: A.left, width: A.width }; pelLayout(); } }
+                if (!S.drag || S.drag.mode === 'win') { const A = S.rel.at(), o = S.relA; if (!o || Math.abs(A.top - o.top) > .5 || Math.abs(A.left - o.left) > .5 || Math.abs(A.width - o.width) > .5) { S.relA = { top: A.top, left: A.left, width: A.width }; pelLayout(); } }
             }
             const ctx = S.ctx, st = S.st, a = S.a;
             ctx.setTransform(S.DPR, 0, 0, S.DPR, 0, 0); ctx.clearRect(0, 0, S.W, S.H);
@@ -312,6 +312,12 @@
                 hid.forEach(el => { el.style.pointerEvents = el.dataset.pe || ''; delete el.dataset.pe; });
                 const sc = under && under.closest('.ab-sc');
                 if (sc && window.abTapSheet) { abTapSheet(sc.dataset.id); return; }   // 위 줄의 다른 종이
+                const tt = under && !under.closest('button') && under.closest('.modal-title'), box = tt && tt.closest('.modal-content');
+                if (box) {                                                       // ✋ 창 제목 줄 = 창 옮기기 (떼는 판이 떠 있어도 · 도련 10-25 · js/skins.js setupSkinWindows 와 같게)
+                    S.drag = { mode: 'win', box, last: P, x: P[0], y: P[1], ox: parseFloat(box.style.left) || 0, oy: parseFloat(box.style.top) || 0 };
+                    try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
+                    return;
+                }
                 const btn = under && under.closest('button, input, label');
                 if (btn) { if (btn.matches('input')) btn.focus(); else btn.click(); }
                 return;
@@ -323,6 +329,13 @@
             const P = [e.clientX, e.clientY], now = performance.now();
             if (P[0] === d.last[0] && P[1] === d.last[1]) return;              // ✏️ 펜슬은 제자리에서 누르는 힘만 바뀌어도 움직임이 와요 → 무시 (소리가 끊기지 않게)
             if (d.mode === 'board') { pelShift(P[0] - d.last[0], P[1] - d.last[1]); d.last = P; return; }
+            if (d.mode === 'win') {                                              // ✋ 창 옮기기 (화면 밖으로는 못 나가요)
+                const b = d.box, r = b.getBoundingClientRect(), px = parseFloat(b.style.left) || 0, py = parseFloat(b.style.top) || 0, bl = r.left - px, bt = r.top - py;
+                b.style.position = 'relative';
+                b.style.left = Math.max(-bl, Math.min(Math.max(-bl, innerWidth - r.width - bl), d.ox + P[0] - d.x)) + 'px';
+                b.style.top = Math.max(-bt, Math.min(Math.max(-bt, innerHeight - r.height - bt), d.oy + P[1] - d.y)) + 'px';
+                b.dispatchEvent(new Event('dk-move')); d.last = P; return;
+            }
             const sp = Math.hypot(P[0] - d.last[0], P[1] - d.last[1]) / Math.max(1, now - d.lt); d.last = P; d.lt = now;
             if (d.mode === 'peel') {
                 const dx = P[0] - d.start[0], dy = P[1] - d.start[1], k = Math.min(1, .45 + Math.hypot(dx, dy) / 220);   // 끈적임
@@ -358,6 +371,7 @@
         }
         function pelUp() {
             const S = pelS, d = S.drag; if (!d) return;
+            if (d.mode === 'win') { S.drag = null; return; }
             const st = S.st; pelNoise(0); S.drag = null;
             if (st.grow) { st.s = st.grow.goal; st.grow = null; }                    // 다 커지기 전에 놓으면 진짜 크기로
             if (d.mode === 'board') return;
