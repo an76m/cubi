@@ -745,10 +745,10 @@
         const wait = imgs.map(im => im.complete ? 0 : new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }));
         Promise.race([Promise.all(wait), new Promise(r => setTimeout(r, 15000))]).then(() => {
             if (seq !== SH.seq) return;
-            const s = (a, b) => ((b - a) / 1000).toFixed(1) + '초', end = performance.now(), sw = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+            const s = (a, b) => ((b - a) / 1000).toFixed(1) + '초', end = performance.now();
             let d = document.getElementById('shTimeBox');
             if (!d) { d = document.createElement('div'); d.id = 'shTimeBox'; d.onclick = () => d.remove(); document.body.appendChild(d); }
-            d.innerHTML = `<b>⏱ 시험용 시간 (톡 = 닫기)</b>${T.mem ? '기억해 둔 진열대 (목록 · 만들기 건너뜀)<br>' : `목록 받기 ${s(T.t0, T.list)}<br>진열대 만들기 ${s(T.list, T.build)}<br>`}화면 그리기 ${s(T.build, drawn)}<br>첫 쪽 그림 ${imgs.length}장 ${s(drawn, end)}<br><b>합계 ${s(T.t0, end)}</b><br><small>그림 보관함 ${sw ? '켜짐' : '꺼짐'}</small>`;
+            d.innerHTML = `<b>⏱ 시험용 시간 (톡 = 닫기)</b>${T.mem ? '기억해 둔 진열대 (목록 · 만들기 건너뜀)<br>' : `목록 받기 ${s(T.t0, T.list)}<br>진열대 만들기 ${s(T.list, T.build)}<br>`}화면 그리기 ${s(T.build, drawn)}<br>첫 쪽 그림 ${imgs.length}장 ${s(drawn, end)}<br><b>합계 ${s(T.t0, end)}</b>`;
             clearTimeout(d._t); d._t = setTimeout(() => d.remove(), 20000);
         });
     }
