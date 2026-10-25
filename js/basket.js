@@ -644,7 +644,7 @@
     document.addEventListener('pointercancel', abUp);
 
     window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abPage = abPage; window.abRPage = abRPage; window.abLabel = abLabel; window.abColor = abColor;
-    window.abDesk = abDesk; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
+    window.abDesk = abDesk; window.shQuick = shQuick; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 진열대 (도련 10-25) : 아이콘 8개 → 그 종류의 진열대 창 → 🔍 확대 → 🧺 받기
        카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
@@ -770,7 +770,7 @@
         SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
         const nav = pages > 1 ? `<div class="ab-nav sh-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="shPage(-1)"${SH.pg ? '' : ' disabled'}>‹</button><span>${SH.pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="shPage(1)"${SH.pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : '';
-        box.innerHTML = tabs + (page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')) + nav;
+        box.innerHTML = tabs + (page.length ? `<div class="sh-case"><div class="sh-awn" aria-hidden="true"></div><div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div></div>` : bkMsg('아직 진열된 것이 없어요.')) + nav;   // 🏪 작은 진열장 (차양 · 선반 · 도련 10-26)
         shFit(box);
         shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리
     }
@@ -813,7 +813,7 @@
     }
     function shCard(x, i) {
         return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
-            + `<button type="button" class="sh-take" onclick="shZoom(${i})">🔍 확대</button></div>`;
+            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button><button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">🧺 받기</button></div></div>`;   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (진열대 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
@@ -836,6 +836,24 @@
     }
     function shToolKind(k) { SH.toolKind = k; if (SH.zoom >= 0) shZoom(SH.zoom); }
     function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; if (SH.redraw) { SH.redraw = false; shDraw(SH.kind); } }
+    /* 🧺 카드에서 바로 받기 (확대 없이 · 도련 10-26) : 받으면 잠깐 '✓ 바구니에 쏙' → 다시 받기 (정리 도구는 넣을 서랍을 골라야 해서 확대로) */
+    async function shQuick(i, btn) {
+        const x = SH.items[i]; if (!x || btn.disabled) return;
+        if (x.tool) { shZoom(i); return; }
+        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
+        btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
+        try {
+            if (x.def) await ownTake(x.def);
+            else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }
+            if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
+            btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙';
+            setTimeout(() => { if (!btn.isConnected) return; btn.classList.remove('got'); btn.textContent = '🧺 받기'; btn.disabled = false; }, 1800);
+        } catch (e) {
+            console.warn(e);
+            btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
+            showMsg('⚠ 스티커를 받지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
+        }
+    }
     async function shTake(btn) {
         const x = SH.items[SH.zoom]; if (!x || btn.disabled) return;
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
