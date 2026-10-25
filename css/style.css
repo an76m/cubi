@@ -4249,3 +4249,72 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ab-peelzone { display: flex; align-items: flex-end; justify-content: center; height: 140px; margin-bottom: 10px; padding-bottom: 4px; border: 1.5px dashed #f2c7d6; border-radius: 12px; font-size: 11.5px; color: #a08890; }
 body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .pin-cur { z-index: 2147483000 !important; }
 .pel-room.pel-rel { background: transparent; }
+
+/* 🧺 내 스티커 수납함 = 수납 바구니 선반 · 🏪 기본 스티커 진열대 = 가게 선반 (도련 10-25 · 이름표를 골라요 · 디지털 아이콘 대신) */
+.bk2-say { margin: 0 0 6px; font-size: 12.5px; color: #8a6a78; text-align: center; }
+.bk2-shelf { width: 100%; max-width: 360px; margin: 0 auto; }
+.bk2-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 16px 8px 0; align-items: end; }
+.bk2-bin { position: relative; height: 96px; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bk2-bin:active { transform: translateY(2px); }
+.bk2-box { position: absolute; left: 0; right: 0; bottom: 0; height: 66px; border-radius: 6px 6px 14px 14px; background: repeating-linear-gradient(0deg, var(--b1) 0 4px, var(--b2) 4px 8px); box-shadow: inset 0 6px 0 var(--b3), 0 3px 5px rgba(120,80,100,.2); }
+.bk2-tag { position: absolute; left: 50%; bottom: 11px; transform: translateX(-50%) rotate(var(--tr, -2deg)); padding: 4px 9px 4px 14px; background: #e9cfa3; clip-path: polygon(12% 0, 100% 0, 100% 100%, 12% 100%, 0 50%); font-family: 'Gaegu', cursive; font-size: 15px; font-weight: 700; color: #6e4a30; white-space: nowrap; }
+.bk2-peek { position: absolute; left: 50%; top: 4px; transform: translateX(-50%) rotate(var(--pr, -8deg)); width: 34px; height: 28px; border-radius: 3px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.bk2-empty { height: 66px; border: 1.5px dashed #e8d3c4; border-radius: 6px 6px 14px 14px; }
+.bk2-plank { height: 11px; border-radius: 3px; background: linear-gradient(#ffffff, #efe4dc); box-shadow: 0 3px 4px rgba(110,80,70,.18); }
+.b-seal  { --b1: #ffd3e1; --b2: #ffc2d5; --b3: #ffb0c8; }
+.b-piece { --b1: #e2d8fb; --b2: #d6c9f6; --b3: #c7b6ef; --tr: 2deg; }
+.b-paper { --b1: #d5ecff; --b2: #c4e2fb; --b3: #aed4f3; }
+.b-tape  { --b1: #d6f1e2; --b2: #c6ead5; --b3: #a9dcbf; --tr: 2deg; }
+.b-tk    { --b1: #fff0bf; --b2: #ffe7a6; --b3: #f5d68a; --tr: -3deg; }
+.b-leaf  { --b1: #ffe0cf; --b2: #ffd2bb; --b3: #ffbf9e; --tr: 2deg; }
+.b-emoji { --b1: #fff6d6; --b2: #ffefbf; --b3: #f7df95; }
+.b-memo  { --b1: #ffd8e6; --b2: #ffcadb; --b3: #ffb4cb; --tr: 3deg; }
+.b-piece .bk2-peek { width: 26px; height: 26px; border-radius: 50%; background: #d8c8f6; }
+.b-paper .bk2-peek { width: 28px; height: 34px; border-radius: 2px; background: #fffdf7; --pr: 8deg; }
+.b-tape .bk2-peek { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, #fff 0 5px, transparent 6px), repeating-linear-gradient(45deg, #ffc6d9 0 4px, #fff 4px 8px); --pr: 0deg; }
+.b-tk .bk2-peek { width: 38px; height: 28px; background: linear-gradient(#ff9fb8 0 6px, #fff3b8 6px); box-shadow: 0 3px 0 #f0e2a0, 0 1px 3px rgba(0,0,0,.15); --pr: 0deg; }
+.b-leaf .bk2-peek { width: 26px; height: 38px; background: repeating-linear-gradient(#fff 0 6px, #dbeaf7 6px 7px); --pr: -6deg; }
+.b-emoji .bk2-peek { width: 30px; height: 30px; border-radius: 50%; background: #ffe08f; --pr: 0deg; }
+.b-memo .bk2-peek { width: 34px; height: 30px; background: #fffbe6; --pr: 5deg; }
+.go-link { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px auto 0; padding: 6px 12px; border: 0; background: none; font: inherit; cursor: pointer; }
+.go-link span { font-family: 'Gaegu', cursive; font-size: 19px; font-weight: 700; color: #8a4a64; border-bottom: 2px dashed #f2b8cb; }
+.go-ic { width: 40px; height: 30px; border-radius: 3px; box-shadow: 0 2px 4px rgba(110,70,40,.2); }
+.go-shop { background: linear-gradient(repeating-linear-gradient(90deg, #ff9fb8 0 7px, #fff 7px 14px) top / 100% 9px no-repeat), #fff7ef; background: repeating-linear-gradient(90deg, #ff9fb8 0 7px, #fff 7px 14px) top / 100% 9px no-repeat, #fff7ef; }
+.go-drawer { background: radial-gradient(ellipse 8px 3px at 50% 50%, #b88a52 98%, transparent) , linear-gradient(#f5d8ad, #ebc38f); box-shadow: inset 0 -4px 0 #d3a46c, 0 2px 4px rgba(110,70,40,.2); }
+#basketModal .sub-modal-btns, #shelfModal .sub-modal-btns { margin-top: 0; }
+
+#shelfModal .modal-title .mt-text { visibility: hidden; }     /* 간판이 제목이에요 (✕ 는 그대로) */
+#shelfModal .modal-title { margin-bottom: -38px; position: relative; z-index: 2; }
+.st2-store { width: 100%; max-width: 360px; margin: 0 auto; }
+.st2-awning { height: 40px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ff9fb8 0 30px, #fff 30px 60px); box-shadow: 0 3px 5px rgba(150,80,100,.18); position: relative; }
+.st2-awning::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 13px; background: radial-gradient(circle at 15px 0, #ff9fb8 13px, transparent 14px) 0 0 / 60px 13px repeat-x, radial-gradient(circle at 15px 0, #fff 13px, transparent 14px) 30px 0 / 60px 13px repeat-x; }
+.st2-sign { width: max-content; margin: 2px auto 0; padding: 5px 20px; background: #a8784a; border-radius: 6px; box-shadow: inset 0 0 0 3px #8e6238, 0 3px 5px rgba(90,50,20,.25); font-family: 'Gaegu', cursive; font-size: 21px; font-weight: 700; color: #fff6e6; position: relative; z-index: 1; }
+.st2-case { margin-top: 12px; padding: 0 8px; background: #fff3e8; border-radius: 8px; box-shadow: inset 0 0 0 6px #e7c79e; }
+.st2-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 14px 8px 0; }
+.st2-plank { height: 11px; margin: 6px -8px 0; background: linear-gradient(#e7c79e, #d5ad7c); box-shadow: 0 3px 3px rgba(110,70,40,.2); }
+.st2-row:nth-last-of-type(1) + .st2-plank, .st2-case > .st2-plank:last-of-type { border-radius: 0 0 6px 6px; }
+.st2-slot { display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.st2-slot:active { transform: translateY(2px); }
+.st2-goods { position: relative; display: block; width: 70px; height: 60px; }
+.st2-goods::before, .st2-goods::after { content: ''; position: absolute; }
+.st2-tag { margin-top: 4px; padding: 2px 7px; background: #fff; border: 1.5px solid #ff9fb8; border-radius: 4px; font-family: 'Gaegu', cursive; font-size: 15px; font-weight: 700; color: #8a4a64; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.st2-season { display: block; margin: 8px auto 10px; padding: 3px 12px; border: 1.5px solid #ff9fb8; border-radius: 4px; background: #fff; font-family: 'Gaegu', cursive; font-size: 15px; font-weight: 700; color: #8a4a64; cursor: pointer; }
+.st2-season[hidden] { display: none; }
+/* 진열된 물건 (그림 대신 모양으로) */
+.g-seal .st2-goods::before { left: 6px; top: 8px; width: 44px; height: 50px; background: #fff; border-radius: 4px; transform: rotate(-6deg); box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-seal .st2-goods::after { left: 20px; top: 2px; width: 44px; height: 54px; border-radius: 4px; box-shadow: 0 2px 3px rgba(0,0,0,.15); background: radial-gradient(circle, #ffb3c9 4px, transparent 4.5px) 3px 4px / 13px 13px, #fff; background-clip: content-box; padding: 4px; box-sizing: border-box; }
+.g-piece .st2-goods::before { left: 10px; top: 2px; width: 50px; height: 56px; border-radius: 4px 4px 8px 8px; background: repeating-linear-gradient(90deg, #c9b6f0 0 4px, transparent 4px 8px) top / 100% 11px no-repeat, linear-gradient(#f2e9ff, #e3d6fb); box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-piece .st2-goods::after { left: 22px; top: 22px; width: 26px; height: 14px; background: radial-gradient(circle, #ffb3c9 6px, transparent 7px) 0 0 / 14px 14px no-repeat, radial-gradient(circle, #ffe08f 5px, transparent 6px) 14px 2px / 12px 12px no-repeat; }
+.g-paper .st2-goods::before { left: 13px; top: 0; width: 44px; height: 58px; background: #fffdf8; border-radius: 2px; box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-paper .st2-goods::after { left: 20px; top: 10px; width: 14px; height: 14px; border: 2px dashed #e8a3b8; border-radius: 50%; box-shadow: 16px 20px 0 -2px transparent; }
+.g-tape .st2-goods::before { left: 4px; top: 14px; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle, #fff3e8 0 8px, transparent 9px), repeating-linear-gradient(45deg, #ffc6d9 0 5px, #fff 5px 10px); box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-tape .st2-goods::after { left: 32px; top: 6px; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, #fff3e8 0 6px, transparent 7px), repeating-linear-gradient(45deg, #bfe3ff 0 5px, #fff 5px 10px); box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-tk .st2-goods::before { left: 11px; top: 10px; width: 48px; height: 42px; border-radius: 3px; background: linear-gradient(#ff9fb8 0 8px, #fff3b8 8px); box-shadow: 0 6px 0 #efe0a0, 0 8px 4px rgba(0,0,0,.12); }
+.g-leaf .st2-goods::before { left: 10px; top: 6px; width: 38px; height: 52px; background: #f1f8ff; border-radius: 3px; transform: rotate(-5deg); box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-leaf .st2-goods::after { left: 22px; top: 2px; width: 38px; height: 54px; background: repeating-linear-gradient(#fff 0 7px, #dbeaf7 7px 8px); border-radius: 3px; box-shadow: 0 2px 3px rgba(0,0,0,.15); }
+.g-emoji .st2-goods::before { left: 8px; top: 10px; width: 32px; height: 32px; border-radius: 50%; background: #ffe08f; box-shadow: 0 0 0 4px #fff, 0 2px 4px rgba(0,0,0,.15); }
+.g-emoji .st2-goods::after { left: 36px; top: 24px; width: 26px; height: 26px; border-radius: 50%; background: #ffc8a8; box-shadow: 0 0 0 4px #fff, 0 2px 4px rgba(0,0,0,.15); }
+.g-memo .st2-goods::before { left: 11px; top: 8px; width: 48px; height: 46px; background: #fffbe6; border-radius: 3px; box-shadow: 0 4px 0 #f1e8c8, 0 6px 4px rgba(0,0,0,.12); }
+.g-memo .st2-goods::after { left: 27px; top: 2px; width: 18px; height: 10px; background: rgba(255,159,184,.85); transform: rotate(-4deg); }
+.g-tool .st2-goods::before { left: 8px; top: 4px; width: 38px; height: 54px; background: #ffb3c9; border-radius: 3px 7px 7px 3px; box-shadow: inset 7px 0 0 #f08fae, 0 2px 3px rgba(0,0,0,.15); }
+.g-tool .st2-goods::after { left: 34px; top: 8px; width: 30px; height: 48px; background: linear-gradient(155deg, #fff, #f0edf3); border: 1px solid #e3dce6; border-radius: 3px; }
