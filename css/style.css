@@ -4305,7 +4305,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .obj-feet { display: flex; justify-content: space-between; padding: 0 22px; }
 .obj-feet i { width: 22px; height: 10px; margin-top: -1px; border-radius: 0 0 7px 7px; background: #f2a9c0; box-shadow: inset 0 0 0 1.5px #7b5a63; }
 /* 🧺 수납장 : 윗판 · 이름 카드 · 다리 */
-#basketModal .obj-win { margin-top: 30px; }
+#basketModal .obj-win { margin-top: 44px; }
 .obj-lbl { position: absolute; left: 50%; top: -30px; translate: -50% 0; rotate: -1.5deg; z-index: 3; padding: 5px 16px; border-radius: 12px; background: #fff; border: 1.7px solid #7b5a63; box-shadow: 0 3px 0 #ffd0de; font-size: 14px; font-weight: 700; color: #c2457a; white-space: nowrap; }
 .bk2-top { position: relative; z-index: 2; height: 14px; margin: 0 -8px -2px; border-radius: 8px; background: linear-gradient(#ffe6ee, #ffcfdd); box-shadow: inset 0 0 0 1.7px #7b5a63; }
 .obj-win .bk2-shelf { max-width: none; margin: 0; border: 1.7px solid #7b5a63; border-radius: 4px 4px 12px 12px; background: linear-gradient(90deg, #ffe9f0, #fff6f9 14%, #fff6f9 86%, #ffe9f0); box-shadow: inset 0 -6px 0 #ffe3ec; }
@@ -4339,7 +4339,9 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .bk-act.glow { animation: bkGlow 1.4s ease-out 1; }
 @keyframes bkGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 60, 90, 0); } 20%, 60% { box-shadow: 0 0 0 4px rgba(240, 60, 90, .55), 0 0 18px 6px rgba(240, 60, 90, .45); } 40%, 80% { box-shadow: 0 0 0 2px rgba(240, 60, 90, .25), 0 0 8px 2px rgba(240, 60, 90, .2); } }
 /* ✂️ 수납함 아래 나만의 스티커 만들기 : 처음엔 눈에 안 띄게 */
-.obj-make { display: flex; align-items: center; gap: 6px; margin: 16px auto 0; padding: 8px 18px; border: 1.7px solid #7b5a63; border-radius: 20px; background: linear-gradient(#ffffff, #fff1f5); color: #b23b6c; font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 #f2b8cb, 0 5px 10px rgba(120,60,80,.15); }   /* ✂️ 버튼처럼 (도련 10-26) */
+.obj-make { position: relative; display: flex; align-items: center; gap: 7px; margin: 30px auto 0; padding: 10px 22px; border: 1.7px solid #7b5a63; border-radius: 14px; background: linear-gradient(#fff8fa, #ffe1ea); outline: 1.5px dashed rgba(194, 69, 122, .45); outline-offset: -6px; color: #b23b6c; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; rotate: -1.5deg; box-shadow: 0 3px 0 #f2b8cb, 0 6px 12px rgba(120,60,80,.16); }   /* ✂️ 수납함 밑에 고리로 매단 팻말 버튼 (도련 10-26 · 수납함은 벽에 붙어 있어요) */
+.obj-make::before, .obj-make::after { content: ''; position: absolute; bottom: 100%; width: 5px; height: 32px; border-radius: 3px; background: repeating-linear-gradient(to bottom, #8f6f79 0 4px, #d9c3ca 4px 5px, #8f6f79 5px 9px, transparent 9px 11px); box-shadow: 0 0 0 1px rgba(255,255,255,.6); left: 26px; rotate: 1.5deg; }   /* 🔗 고리 사슬 */
+.obj-make::after { left: auto; right: 26px; }
 .obj-make:active { transform: translateY(2px); box-shadow: 0 1px 0 #f2b8cb; }
 /* 🏪 진열대 종류 창 = 작은 진열장 (도련 10-26 · 휑하지 않게 · 스티커 크기는 예전 그대로 : 이름표는 카드 아래 끝에 겹쳐 한 줄 아껴요) : 차양 · 연한 하늘 유리 진열장 · 칸마다 핑크 선반 · 이름표 · [확대][받기] */
 .sh-case { position: relative; margin: 12px 0 0; padding: 16px 4px 2px; border: 1.7px solid #7b5a63; border-radius: 14px; background: linear-gradient(#f6fbff, #fffdfb 70%); box-shadow: 0 3px 0 #ffe0ea, inset 0 0 0 4px rgba(255,255,255,.7); }
@@ -4377,4 +4379,11 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 #shelfKindModal .obj-win .mt-text { display: inline-block; width: auto !important; max-width: 100% !important; padding: 0 !important; background: none !important; clip-path: none !important; color: #fff !important; font-size: 19px; font-weight: 900; letter-spacing: .5px; text-shadow: 1.5px 0 0 #7b5a63, -1.5px 0 0 #7b5a63, 0 1.5px 0 #7b5a63, 0 -1.5px 0 #7b5a63, 1px 1px 0 #7b5a63, -1px -1px 0 #7b5a63, 1px -1px 0 #7b5a63, -1px 1px 0 #7b5a63, 0 3px 0 rgba(123,90,99,.35); }
 #shelfKindModal .obj-win .mt-back { position: absolute; left: 10px; top: 50%; translate: 0 -50%; padding: 4px 9px !important; border: 1.5px solid #7b5a63 !important; border-radius: 10px !important; background: #fff !important; color: #c2457a !important; font-size: 11.5px; font-weight: 800; box-shadow: 0 2px 0 rgba(123,90,99,.25); max-width: none !important; }
 #shelfKindModal .obj-win .mt-x { position: absolute; right: 10px; top: 50%; translate: 0 -50%; width: 28px !important; height: 28px !important; border-radius: 50% !important; border: 1.5px solid #7b5a63 !important; background: #fff !important; color: #d94f7a !important; font-size: 13px; font-weight: 900; box-shadow: 0 2px 0 rgba(123,90,99,.25); }   /* ✕ 도 간판 안 오른쪽 (도련 10-26) */
+/* 🗄️ 수납함 = 벽에 붙은 수납장 (도련 10-26) : 제목 · ✕ 를 한 이름판에 · 다리 없이 · 밑에 고리로 ✂️ 팻말 */
+#basketModal .obj-lbl { display: none; }
+#basketModal .obj-feet { display: none; }
+#basketModal .obj-win > .modal-title.mt-bar { position: absolute; left: -8px; right: -8px; top: -40px; z-index: 6; display: flex; align-items: center; justify-content: center; width: auto; height: 44px; margin: 0; padding: 0 44px; border: 1.7px solid #7b5a63; border-radius: 14px 14px 6px 6px; background: linear-gradient(#ffb8cc, #ff94b2); box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 3px 0 rgba(123,90,99,.25); }   /* 수납장 폭 전체 이름판 · ✕ 는 끝에 (도련 10-26) */
+#basketModal .obj-win > .modal-title.mt-bar::before { content: ''; position: absolute; inset: 3px; border: 1.3px dashed rgba(255,255,255,.85); border-radius: 11px; pointer-events: none; }
+#basketModal .obj-win .mt-text { display: inline-block !important; width: auto !important; max-width: none !important; padding: 0 !important; overflow: visible !important; background: none !important; clip-path: none !important; color: #fff !important; font-size: 16px; font-weight: 900; white-space: nowrap; text-shadow: 1.4px 0 0 #7b5a63, -1.4px 0 0 #7b5a63, 0 1.4px 0 #7b5a63, 0 -1.4px 0 #7b5a63, 1px 1px 0 #7b5a63, -1px -1px 0 #7b5a63, 1px -1px 0 #7b5a63, -1px 1px 0 #7b5a63; }
+#basketModal .obj-win .mt-x { position: absolute !important; left: auto !important; right: 8px !important; top: 50% !important; translate: 0 -50%; width: 28px !important; height: 28px !important; border: 1.5px solid #7b5a63 !important; box-shadow: 0 2px 0 rgba(123,90,99,.25); }
 
