@@ -105,7 +105,7 @@
             const s = (a, b) => a && b ? ((b - a) / 1000).toFixed(1) + '초' : '-', end = performance.now(), kb = n => n ? Math.round(n / 1024) + 'KB' : '-';
             let d = document.getElementById('shTimeBox');
             if (!d) { d = document.createElement('div'); d.id = 'shTimeBox'; d.onclick = () => d.remove(); document.body.appendChild(d); }
-            d.innerHTML = `<b>⏱ 시험용 바구니 시간 (톡 = 닫기)</b>${T.peek ? '기억한 목록으로 먼저 그림<br>' : ''}앞 작업 기다림 ${s(O2.q, O2.s)}<br>폴더 찾기 ${s(O2.s, O2.dir)}<br>파일 찾기 ${s(O2.dir, O2.find)}<br>목록 읽기 ${s(O2.find, O2.idx)} (${kb(O2.sz && O2.sz[0])})<br>스티커첩 읽기 ${s(O2.find, O2.alb)} (${kb(O2.sz && O2.sz[1])})<br>여는 중 합계 ${s(T.t0, T.open)}<br>그리기 ${s(T.open, drawn)}<br>그림 ${imgs.length}장 ${s(drawn, end)}<br><b>합계 ${s(T.t0, end)}</b>`;
+            d.innerHTML = `<b>⏱ 시험용 바구니 시간 (톡 = 닫기)</b>${T.peek ? '기억한 목록으로 먼저 그림<br>' : ''}${O2.fast ? '⚡ 기억한 파일 번호로 바로 읽음<br>' : ''}앞 작업 기다림 ${s(O2.q, O2.s)}<br>폴더 찾기 ${s(O2.s, O2.dir)}<br>파일 찾기 ${s(O2.dir, O2.find)}<br>목록 읽기 ${s(O2.find, O2.idx)} (${kb(O2.sz && O2.sz[0])})<br>스티커첩 읽기 ${s(O2.find, O2.alb)} (${kb(O2.sz && O2.sz[1])})<br>여는 중 합계 ${s(T.t0, T.open)}<br>그리기 ${s(T.open, drawn)}<br>그림 ${imgs.length}장 ${s(drawn, end)}<br><b>합계 ${s(T.t0, end)}</b>`;
             clearTimeout(d._t); d._t = setTimeout(() => d.remove(), 30000);
         });
     }

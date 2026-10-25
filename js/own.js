@@ -103,7 +103,7 @@
             let saved;
             try { saved = await driveUpsert(d, OWN_IDX, O.idxF && O.idxF.id, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; O.idxF = null; saved = await driveUpsert(await ownDir(true), OWN_IDX, null, body); }
-            O.idxF = { id: saved.id, modifiedTime: saved.modifiedTime };
+            O.idxF = { id: saved.id, modifiedTime: saved.modifiedTime }; ownFilesNow();
         }
         async function ownFileNew(sheet) {
             const body = await ownLock(sheet);
@@ -150,6 +150,21 @@
             return O.idx;
         }
         /* ⚡ 수납함 열기 : 목록 파일 · 스티커첩 파일을 동시에 읽어요 (하나씩 읽던 것보다 빨라요 · 도련 10-25) */
+        /* ⚡ 목록 · 스티커첩 파일 번호를 기억해요 (계정마다 · 도련 10-25) : 다음에 열 때 폴더 찾기 · 파일 찾기 없이 바로 읽어요 (1.7초 → 약 1초)
+           그다음 뒤에서 한 번 찾아 보고, 다른 기기에서 새로 만들었거나 바뀌었으면 다시 읽어 바구니를 고쳐 그려요 (ownTell) */
+        const OWN_FILES_LS = 'malang_own_files';
+        const ownFilesGet = () => { try { return (JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {})[O.kw] || null; } catch (e) { return null; } };
+        function ownFilesSet(v) { try { const o = JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {}; o[O.kw] = v; localStorage.setItem(OWN_FILES_LS, JSON.stringify(o)); } catch (e) {} }
+        const ownFilesNow = () => ownFilesSet({ i: O.idxF ? O.idxF.id : '', a: O.albF ? O.albF.id : '' });
+        async function ownFilesCheck(mem) {                                      // 뒤에서 : 기억한 번호가 아직 맞는지
+            try {
+                const d = await ownDir(false); if (!d) return;
+                const fs = await driveList(`'${d}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (name='${OWN_IDX}' or name='${OWN_ALB}')`, 'id,name');
+                const i = (fs.find(x => x.name === OWN_IDX) || {}).id || '', a = (fs.find(x => x.name === OWN_ALB) || {}).id || '';
+                if (i === mem.i && a === mem.a) return;
+                ownFilesSet({ i, a }); O.idxAt = 0; await ownOpen(true); ownTell();
+            } catch (e) { console.warn(e); }
+        }
         async function ownOpen(force) {
             ownReady();
             if (O.idx && O.album && !force && performance.now() - O.idxAt < OWN_FRESH) return { list: O.idx, album: O.album };
@@ -157,6 +172,16 @@
             return ownSerial(async () => {
                 TT.s = performance.now();
                 let pi, pa;                                                      // 목록 · 스티커첩 파일을 한 번에 찾아요
+                const mem = ownMode() !== 'mem' ? ownFilesGet() : null;
+                if (mem && mem.i) {                                              // ⚡ 기억한 번호로 바로 (둘 다 동시에)
+                    const [list, alb] = await Promise.all([ownIdxRead({ id: mem.i }).then(r => { TT.idx = performance.now(); return r; }), ownAlbRead(mem.a ? { id: mem.a } : null).then(r => { TT.alb = performance.now(); return r; })]).catch(() => [null, null]);
+                    if (list && O.idxF && (!mem.a || O.albF)) {
+                        TT.dir = TT.find = TT.s; TT.fast = 1;
+                        ownIdxApply(list); O.album = ownAlbumClean(alb, null); TT.end = performance.now();
+                        setTimeout(() => ownFilesCheck(mem), 0);
+                        return { list: O.idx, album: O.album };
+                    }
+                }
                 if (ownMode() !== 'mem') {
                     const d = await ownDir(false); TT.dir = performance.now();
                     if (!d) { pi = pa = null; }
@@ -169,6 +194,7 @@
                 const [list, alb] = await Promise.all([ownIdxRead(pi).then(r => { TT.idx = performance.now(); return r; }), ownAlbRead(pa).then(r => { TT.alb = performance.now(); return r; })]);   // 동시에 읽어요
                 ownIdxApply(list);
                 O.album = ownAlbumClean(alb, null); TT.end = performance.now();
+                if (ownMode() !== 'mem') ownFilesNow();
                 return { list: O.idx, album: O.album };
             });
         }
@@ -389,7 +415,7 @@
             let saved;
             try { saved = await driveUpsert(await ownDir(true), OWN_ALB, O.albF && O.albF.id, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; O.albF = null; saved = await driveUpsert(await ownDir(true), OWN_ALB, null, body); }
-            O.albF = { id: saved.id, modifiedTime: saved.modifiedTime };
+            O.albF = { id: saved.id, modifiedTime: saved.modifiedTime }; ownFilesNow();
         }
         async function ownAlbumGet(force) {
             ownReady();
