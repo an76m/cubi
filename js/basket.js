@@ -905,7 +905,7 @@
     }
     function dsFront(d) { d.el.style.zIndex = ++DS.z; }
     function dsDrop(id) {
-        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); DS.c.delete(id);
+        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id);
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
     }
     function dsTake(id, at, keep) {
@@ -928,16 +928,21 @@
         return d;
     }
     /* ⚡ 꺼낸 종이는 미리 읽고 하얀 테두리까지 구워 둬요 → 톡 하면 바로 열려요 · 떼는 화면을 닫으면 다시 읽어 둬요 (쓴 자리 반영) */
-    DS.c = new Map();
+    DS.c = new Map(); DS.v = new Map();                                        // c = 읽는 중(약속) · v = 마지막으로 읽어 둔 것
     function dsPrep(id) {
+        if (DS.v.has(id)) return Promise.resolve(dsFresh(id, DS.v.get(id)));   // ⚡ 읽어 둔 게 있으면 기다리지 않아요 (새로 읽기는 뒤에서)
         if (DS.c.has(id)) return DS.c.get(id).then(v => v && dsFresh(id, v));
+        return dsLoad(id);
+    }
+    function dsReload(id) { if (!DS.m.has(id)) return; DS.c.delete(id); dsLoad(id).catch(() => {}); }   // 뒤에서 다시 읽어 두기 (읽는 동안은 예전 것 + 뗀 기록으로)
+    function dsLoad(id) {
         const p = (async () => {
             const r = await ownSheet(id); if (!r) return null;
             const s = r.s; let baked = null;
             if ((s.k === 'seal' || s.k === 'piece') && !s.baked && window.pelBake) baked = await Promise.all(s.imgs.map(u => u ? pelBake(u).catch(() => u) : null));
             return { s, baked };
         })();
-        DS.c.set(id, p); p.then(v => { if (!v) DS.c.delete(id); }, () => DS.c.delete(id));
+        DS.c.set(id, p); p.then(v => { if (!v) { DS.c.delete(id); DS.v.delete(id); } else DS.v.set(id, v); }, () => DS.c.delete(id));
         return p;
     }
     function dsFresh(id, v) {                                                 // 그사이 이 기기에서 뗀 자리는 비워요 (쓴 기록 · 목록)
@@ -947,6 +952,7 @@
         const imgs = v.s.imgs.map((u, i) => used.has(i) ? null : u);
         return { s: Object.assign({}, v.s, { imgs }), baked: v.baked && v.baked.map((u, i) => used.has(i) ? null : u) };
     }
+    function dsMoveFromPeel(d) { const a = window.pelLastAt && pelLastAt(); if (a && a.id === d.id) { d.x = a.x; d.y = a.y; } }   // 떼는 화면에서 옮긴 자리에서 작아져요 (도련 10-26)
     function dsMove(d, x, y) { d.x = x; d.y = y; const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (x - w / 2) + 'px'; d.el.style.top = (y - h / 2) + 'px'; }
     function dsWire(d) {
         let p = null;
@@ -976,7 +982,7 @@
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
         const prev = DS.act ? DS.m.get(DS.act) : null;
-        if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); DS.c.delete(prev.id); dsPrep(prev.id).catch(() => {}); dsPaint(prev); } }
+        if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsMoveFromPeel(prev); dsReload(prev.id); dsPaint(prev); } }
         const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
         const win = !['tape', 'memo', 'leaf'].includes(e.k);                   // 테이프 · 메모지 · 속지는 페이지에 바로 (창 없음)
         if (win) { DS.act = d.id; d.el.classList.add('act'); document.body.classList.add('dsk-on'); }
@@ -987,7 +993,7 @@
             const on = dsRoomOn(); if (on) { seen = true; return; }
             if (!seen && DS.act === d.id && B.opening) return;
             clearInterval(DS.t); if (DS.act !== d.id) return;
-            DS.act = ''; d.el.classList.remove('act'); document.body.classList.remove('dsk-on'); DS.c.delete(d.id); if (DS.m.has(d.id)) dsPrep(d.id).catch(() => {}); dsPaint(d); setTimeout(() => DS.m.has(d.id) && dsPaint(d), 1500);
+            DS.act = ''; d.el.classList.remove('act'); document.body.classList.remove('dsk-on'); dsMoveFromPeel(d); dsReload(d.id); dsPaint(d); setTimeout(() => DS.m.has(d.id) && dsPaint(d), 1500);
         }, 250);
     }
     if (window.ownOnChange) ownOnChange(() => DS.m.forEach(d => { if (DS.act !== d.id) dsPaint(d); }));   // 쓴 양이 바뀌면 다시 그려요

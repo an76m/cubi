@@ -151,7 +151,8 @@
             return true;
         }
         function closeStickerPeel() {
-            const S = pelS, rel = S.rel; S.on = false; S.drag = null; S.rel = null; pelNoise(0); cancelAnimationFrame(S.raf);
+            const S = pelS, rel = S.rel; if (!rel && S.board && S.own) S.lastAt = { id: S.own.id, x: S.board.cx, y: S.board.cy };   // 🗂️ 꺼내 둔 종이로 돌아갈 자리 (basket.js dsMoveFromPeel)
+            S.on = false; S.drag = null; S.rel = null; pelNoise(0); cancelAnimationFrame(S.raf);
             const r = pelq('pelRoom'); if (r) r.classList.remove('show', 'pel-rel');
             document.body.classList.remove('fc-lock');
             if (rel) { if (rel.close) rel.close(); return; }                     // 🤍 정리 책상은 그대로
@@ -451,4 +452,4 @@
             pelGain.gain.setTargetAtTime(v, ac.currentTime, .03);
         }
 
-        window.openStickerPeel = openStickerPeel; window.pelBake = pelBake; window.closeStickerPeel = closeStickerPeel; window.pelRelayout = pelRelayout;
+        window.openStickerPeel = openStickerPeel; window.pelBake = pelBake; window.closeStickerPeel = closeStickerPeel; window.pelRelayout = pelRelayout; window.pelLastAt = () => pelS.lastAt || null;
