@@ -119,7 +119,7 @@
         const guest = ownMode() === 'mem';
         const note = `<p class="bk-note">${guest ? '👀 구경만 할 때는 창을 닫거나 새로고침하면 바구니도 비워져요.' : '🔥 받은 · 만든 스티커는 내 드라이브 <b>말랑달콤</b> 폴더에 보관돼요. 폴더를 지우면 모두 사라지고 되돌릴 수 없어요.'}</p>`;
         if (!B.list.length) {
-            wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🧺 바구니가 텅 비었어요</b><span>아래 <em>기본스티커 받기</em>로<br>스티커를 받아 채워요</span></button></div>`
+            wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🧺 스티커 바구니가 텅 비었어요</b><span>아래 <em>기본스티커 받기</em>로<br>스티커를 받아 채워요</span></button></div>`
                 + bkTools(false) + note;
             return;
         }
