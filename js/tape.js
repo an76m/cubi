@@ -74,13 +74,23 @@
             placeTape(tapeUrl(t));
         }
         /* 테이프 그림 하나를 다이어리에 붙이기 (🎀 마스킹테이프 · 🎀 내 마스킹테이프 공용) */
-        function placeTape(url, own) {                                       // own = { id } : 🎒 내 테이프 롤 (붙인 길이만큼 줄어요)
+        function placeTape(url, own, at) {                                   // own = { id } : 🎒 내 테이프 롤 (붙인 길이만큼 줄어요) · at = { x1, y1, x2, y2 } 화면 자리 : 롤에서 뽑은 그대로 (js/basket.js dsPull)
             const left = own && window.ownQtyLeft ? ownQtyLeft(own.id) : 0;
             if (own && left < 20) { showMsg('🎀 이 테이프는 다 썼어요.'); return false; }
             if (!addImage(url)) return false;
             const el = document.querySelector('#canvasArea .element-box:last-child');
-            const w = own ? Math.min(170, left) : 170;
-            if (el) { el.style.width = w + 'px'; el.style.height = '30px'; el.dataset.rotation = -8; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, 'rotate(-8deg)'); selectElement(el); }
+            const cv = document.getElementById('canvasArea'), cr = cv.getBoundingClientRect(), k = cr.width / (cv.offsetWidth || cr.width) || 1;
+            const want = at ? Math.hypot(at.x2 - at.x1, at.y2 - at.y1) / k : 170, deg = at ? Math.round(Math.atan2(at.y2 - at.y1, at.x2 - at.x1) * 180 / Math.PI) : -8;
+            const w = Math.round(own ? Math.min(want, left) : want);
+            if (el) {
+                el.style.width = w + 'px'; el.style.height = '30px'; el.dataset.rotation = deg; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, `rotate(${deg}deg)`);
+                if (at) {                                                        // 뽑은 테이프의 가운데에 (돌려도 가운데는 그대로)
+                    const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${deg}deg)`; };
+                    put(0, 0); const b = el.getBoundingClientRect();
+                    put(Math.round(((at.x1 + at.x2) / 2 - (b.left + b.width / 2)) / k), Math.round(((at.y1 + at.y2) / 2 - (b.top + b.height / 2)) / k));
+                }
+                selectElement(el);
+            }
             if (own && el && window.ownQty) {
                 el.dataset.own = own.id; el.dataset.ownUsed = w; el.dataset.ownMax = left;   // 이 테이프가 늘어날 수 있는 끝 = 롤에 남아 있던 만큼
                 if (typeof saveData === 'function') saveData(false);

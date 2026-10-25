@@ -4432,3 +4432,5 @@ body.dsk-on #dskLayer { z-index: 1660; }
 .dg-foot b { color: #9a6200; }
 body.dg-on .toolbar .tb-sticker { box-shadow: 0 0 0 3px rgba(245, 165, 36, .35), 0 0 14px 3px rgba(245, 165, 36, .35); }
 body.cafe-on .dg-note { visibility: hidden; }
+/* 🎀 롤에서 뽑는 테이프 (도련 10-26 · js/basket.js dsPull) : 롤 밑에서 풀려 나와요 */
+.dsk-pull { position: absolute; transform-origin: 0 50%; background-repeat: repeat-x; background-size: auto 100%; opacity: .92; box-shadow: 0 1px 3px rgba(110, 80, 95, .2); pointer-events: none; }

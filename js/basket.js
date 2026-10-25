@@ -100,7 +100,7 @@
     function bkCard(e) {
         const used = new Set(e.u), cols = Math.ceil(Math.sqrt(e.n)), x = e.x || {}, q = e.q0 ? Math.max(.08, e.q / e.q0) : 1;
         let inner, cls = 'k-' + e.k;
-        const qtyTxt = e.q0 ? (e.k === 'tape' ? (Math.max(0, e.q) / e.q0 * 10).toFixed(1).replace(/\.0$/, '') + 'm' : Math.max(0, e.q) + '장') : '';   // 남은 길이 (한 롤 = 10m) · 남은 장수 (도련 10-26)
+        const qtyTxt = e.q0 && e.k !== 'tape' ? Math.max(0, e.q) + '장' : '';   // 남은 장수 (도련 10-26) · 🎀 테이프는 숫자 없이 롤 두께로만 (진짜 마테처럼 · 도련 10-26)
         if (e.k === 'tape') inner = `<span class="bk-roll" style="--q:${q.toFixed(2)}"><i style="background-image:url(&quot;${esc(e.th || '')}&quot;)"></i>${qtyTxt ? `<b class="bk-qty">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'tk') inner = `<span class="bk-pad" style="--q:${q.toFixed(2)}">${window.tkMiniHtml ? tkMiniHtml(x.pad || 'memo', x.pad === 'my' ? { src: e.th, glue: x.glue || '' } : null) : ''}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'memo') inner = `<span class="bk-pad bk-memo" style="--q:${q.toFixed(2)}">${x.pp && x.pp !== 'img' ? `<span class="pp-chip pp-${esc(x.pp)}"></span>` : `<img src="${esc(e.th || '')}" alt="" draggable="false">`}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
@@ -214,7 +214,7 @@
                 ok = window.openPieceBag && await openPieceBag(srcs, { t: s.nm || '말랑달콤 조각', s: '', own: { id, slots } });
             }
             else if (s.k === 'paper') { if (window.stkLeave) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
-            else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }); }   // 페이지에 바로 · 비켰다 다시 떠요 (stkBlink)
+            else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }, DS.tape); }   // 페이지에 바로 (DS.tape : 롤에서 뽑은 자리 · 길이 · 방향) · 비켰다 다시 떠요 (stkBlink)
             else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave) stkLeave(); tkOwnOpen(x.pad || 'memo', x.pad === 'my' ? { src: s.imgs[0], glue: x.glue || '' } : null, { id }); ok = true; }
             else if (s.k === 'memo') ok = bkMemo(id, s, x);
             else if (s.k === 'leaf') ok = bkLeaf(id, s, x);
@@ -893,7 +893,7 @@
        다꾸러처럼 쓸 것을 다 꺼내 놓고 써요 : 바구니에서 톡 · 오래 누르기 · 창 밖으로 끌기 = 페이지 위에 스티커창이 놓여요 (몇 장이든 · 언제든 더)
        윈도우 창처럼 맨 위 한 장만 '열려' 떼어져요 : 다른 종이를 톡 = 그 종이가 맨 위로 + 떼는 화면 · 끌기 = 옮기기 · ✕ = 치우기
        저장하지 않아요 (앱을 끄면 사라져요) · 다 쓴 종이는 저절로 치워져요 */
-    const DS = { m: new Map(), z: 1, act: '', t: 0, at: null };
+    const DS = { m: new Map(), z: 1, act: '', t: 0, at: null, tape: null };
     const DS_ROOMS = ['pelRoom', 'pcbRoom', 'pmRoom', 'tkRoom'];
     function dsLayer() { let l = bq('dskLayer'); if (!l) { l = document.createElement('div'); l.id = 'dskLayer'; document.body.appendChild(l); } return l; }
     function dsEntry(id) { const pk = window.ownPeek ? ownPeek() : null, L = (pk && pk.list) || B.all || []; return L.find(e => e.id === id) || null; }
@@ -964,16 +964,19 @@
             if (ev.target.closest('.dsk-x')) return;
             ev.preventDefault(); dsFront(d);
             p = { x0: ev.clientX, y0: ev.clientY, dx: d.x - ev.clientX, dy: d.y - ev.clientY, on: false, id: ev.pointerId };
+            if (d.el.classList.contains('big')) { const e = dsEntry(d.id); if (e && e.k === 'tape') p.pull = dsPullStart(d, e); }   // 🎀 커진 테이프 롤 = 끌어서 뽑아 써요
             try { d.el.setPointerCapture(ev.pointerId); } catch (er) {}
         });
         d.el.addEventListener('pointermove', ev => {
             if (!p || ev.pointerId !== p.id) return;
             if (!p.on && Math.hypot(ev.clientX - p.x0, ev.clientY - p.y0) < 7) return;
+            if (p.pull) { p.on = true; dsPullMove(p.pull, ev.clientX, ev.clientY); return; }
             p.on = true; d.el.classList.add('lift'); d.x = ev.clientX + p.dx; d.y = ev.clientY + p.dy;
             const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
         });
         const up = ev => {
             if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift');
+            if (was.pull) { const t = dsPullEnd(was.pull, ev.type === 'pointerup' && was.on); if (t) { DS.tape = t; dsUse(d); return; } if (was.on) return; }
             if (ev.type !== 'pointerup') return;
             if (!was.on) { dsOpen(d); return; }
             if (d.el.classList.contains('big')) dsUse(d);                     // 커진 테이프 · 메모지 · 속지를 끌어 놓으면 = 써요
@@ -985,12 +988,37 @@
     function dsBig(d) {
         DS.m.forEach(o => { if (o !== d && o.el.classList.contains('big')) { o.el.classList.remove('big'); dsPaint(o); } });
         d.el.classList.add('big'); dsPaint(d); dsFront(d);
-        if (!d.el.querySelector('.dsk-say')) d.el.insertAdjacentHTML('beforeend', '<span class="dsk-say">톡 하거나 페이지로 끌어 놓으면 써요</span>');
+        const e = dsEntry(d.id), say = e && e.k === 'tape' ? '롤에서 끌어서 뽑아 써요' : '톡 하거나 페이지로 끌어 놓으면 써요';
+        if (!d.el.querySelector('.dsk-say')) d.el.insertAdjacentHTML('beforeend', `<span class="dsk-say">${say}</span>`);
+    }
+    /* 🎀 테이프 뽑아 쓰기 (도련 10-26) : 커진 롤을 잡고 끌면 테이프가 롤에서 풀려 나와 손을 따라와요
+       - 끄는 동안 롤이 얇아져요 (숫자는 없어요) · 롤에 남은 만큼만 · 손을 떼면 그 길이 · 그 방향 그대로 페이지에 (tape.js placeTape at)
+       - 조금만 끌었으면(20px 안) 안 붙여요 */
+    function dsPullStart(d, e) {
+        const roll = d.el.querySelector('.bk-roll'), cv = bq('canvasArea'); if (!roll || !cv) return null;
+        const r = roll.getBoundingClientRect(), cr = cv.getBoundingClientRect(), k = cr.width / (cv.offsetWidth || cr.width) || 1;
+        const st = document.createElement('div'); st.className = 'dsk-pull';
+        st.style.backgroundImage = `url("${e.th || ''}")`; st.style.height = (30 * k) + 'px'; st.style.zIndex = d.el.style.zIndex;
+        d.el.parentNode.insertBefore(st, d.el);
+        return { d, e, roll, st, k, cx: r.left + r.width / 2, cy: r.top + r.height / 2, max: Math.max(0, (window.ownQtyLeft ? ownQtyLeft(d.id) : e.q) || 0) * k, L: 0, x: 0, y: 0 };
+    }
+    function dsPullMove(P, x, y) {
+        const a = Math.atan2(y - P.cy, x - P.cx), L = Math.min(P.max, Math.hypot(x - P.cx, y - P.cy));
+        P.L = L; P.a = a; P.x = P.cx + Math.cos(a) * L; P.y = P.cy + Math.sin(a) * L;
+        const h = P.st.offsetHeight;
+        P.st.style.left = P.cx + 'px'; P.st.style.top = (P.cy - h / 2) + 'px'; P.st.style.width = L + 'px'; P.st.style.transform = `rotate(${a}rad)`;
+        if (P.e.q0) P.roll.style.setProperty('--q', Math.max(0, (P.e.q - L / P.k) / P.e.q0).toFixed(3));   // 롤이 얇아져요
+    }
+    function dsPullEnd(P, use) {
+        if (!P) return null;
+        P.st.remove();
+        if (!use || P.L < 20 * P.k) { if (P.e.q0) P.roll.style.setProperty('--q', Math.max(0, P.e.q / P.e.q0).toFixed(3)); return null; }
+        return { x1: P.cx, y1: P.cy, x2: P.x, y2: P.y };
     }
     function dsSmall(d) { if (!d.el.classList.contains('big')) return; d.el.classList.remove('big'); dsPaint(d); }
     async function dsUse(d) {
         dsSmall(d);
-        await bkOpenSheet(d.id);
+        try { await bkOpenSheet(d.id); } finally { DS.tape = null; }
         setTimeout(() => DS.m.has(d.id) && dsPaint(d), 500);
     }
     document.addEventListener('pointerdown', ev => { DS.m.forEach(o => { if (o.el.classList.contains('big') && !o.el.contains(ev.target)) dsSmall(o); }); }, true);   // 다른 곳 = 작아져요
