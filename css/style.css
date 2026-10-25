@@ -4185,3 +4185,13 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-ik.on { border-style: solid; border-color: #ff6b88; background: #ffeef3; color: #c2457a; font-weight: 800; }
 .ab-plus { word-break: keep-all; }
 .sh-desc { margin-top: -6px; font-size: 12px; color: #a08890; text-align: center; word-break: keep-all; }
+/* 🧺 바구니 안 종이 2배 (도련 10-25 · 바인더 포켓 · 정리 책상 줄은 그대로) */
+.bk-pile .bk-sh { width: 172px; padding: 10px; border-radius: 14px; }
+.bk-pile .bk-sh.one { width: 148px; }
+.bk-pile .bk-grid { gap: 5px; }
+.bk-pile .bk-sh.k-tape > *, .bk-pile .bk-sh.k-tk > *, .bk-pile .bk-sh.k-memo > *, .bk-pile .bk-sh.k-leaf > * { zoom: 2; }
+@media (max-width: 480px) {
+  .bk-pile .bk-sh { width: 148px; padding: 8px; }
+  .bk-pile .bk-sh.one { width: 128px; }
+  .bk-pile .bk-sh.k-tape > *, .bk-pile .bk-sh.k-tk > *, .bk-pile .bk-sh.k-memo > *, .bk-pile .bk-sh.k-leaf > * { zoom: 1.8; }
+}

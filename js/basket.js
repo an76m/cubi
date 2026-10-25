@@ -3,10 +3,10 @@
    - ✨ 스티커 창 → 🧺 내 바구니 : 종류 아이콘 8개 → 종류마다 바구니 하나 (도련 10-25 · 온갖 종류가 한데 섞이지 않게) · 위에서 내려다본 바구니
    - 바구니 안 : 받거나 만든 스티커 종이가 마구 쌓여요 (정리 · 카테고리 · 찾기 · 이름 없음 = 진짜 바구니처럼)
        · 종이는 살짝 기울고 겹쳐 쌓여요 · 새로 들어온 종이가 맨 위
-       · 종이를 끌면 옆으로 치워져요(맨 위로) → 아래 깔린 종이를 찾아요 · 🔀 뒤적이기 = 통째로 휘저어 섞기
+       · 종이를 끌면 옆으로 치워져요(맨 위로) → 아래 깔린 종이를 찾아요 (🔀 뒤적이기는 도련 10-25 지움)
        · 종이를 톡 = 그 종이가 하얀 떼는 창으로 나와요 (뗀 자리는 비어 있어요 · js/stickerpeel.js) → 붙이면 그 칸은 영원히 사라져요
        · 다 쓴 종이는 바구니에서 사라져요 · 종이 자리 · 쌓인 순서는 이 기기에만 기억 (localStorage · 드라이브에 쓰지 않아요)
-       · 화면에는 맨 위 BK_MAX 장만 그려요 (수백 장이어도 버벅이지 않게 · 🔀 뒤적이면 아래 것이 올라와요)
+       · 화면에는 맨 위 BK_MAX 장만 그려요 (수백 장이어도 버벅이지 않게)
        · 나중에 🗂️ 바인더 · 바구니 · 라벨을 사서 정리하는 기능을 이 위에 얹어요 (도련 10-25)
    - ✨ 스티커 창 → 🏪 진열대 : 종류 아이콘 8개 → 그 종류의 진열대 창 (카테고리 · 이름 없이 · 새로 들어온 것이 맨 앞 · 도련 10-25)
        · 🔍 확대 = 그 스티커 전체 모습 + 아래 🧺 받기
@@ -108,7 +108,7 @@
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
         wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${B.list.length}장</span></div>`
-            + `<div class="bk-tools"><button type="button" class="btn bk-mix" onclick="bkMix()">🔀 뒤적이기</button><button type="button" class="btn ab-go" onclick="abDesk()">📒 정리하기</button></div>` + note;
+            + `<div class="bk-tools"><button type="button" class="btn ab-go" onclick="abDesk()">📒 정리하기</button></div>` + note;
         bkPlace(show, false);
         bkWire();
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
@@ -161,21 +161,6 @@
         };
         pile.onpointerup = up; pile.onpointercancel = up;
     }
-    /* 🔀 뒤적이기 : 아래 깔린 종이가 위로 올라오게 통째로 휘저어요 */
-    function bkMix() {
-        const L = bkLay(), ord = bkOrder().map(e => e.id);
-        for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]]; }
-        bkSetOrder(ord);
-        ord.forEach(id => { L.p[id] = [Math.random(), Math.random(), (Math.random() - .5) * 34]; });
-        bkLaySave();
-        const byId = new Map(B.list.map(e => [e.id, e])), show = ord.map(id => byId.get(id)).slice(-BK_MAX), pile = bq('bkPile');
-        if (!pile) return;
-        const have = new Set([...pile.querySelectorAll('.bk-sh')].map(c => c.dataset.id));
-        if (show.some(e => !have.has(e.id))) { pile.innerHTML = show.map(bkCard).join(''); requestAnimationFrame(() => bkPlace(show, true)); }   // 아래 것이 올라왔어요
-        else bkPlace(show, true);
-        if (navigator.vibrate) try { navigator.vibrate([6, 40, 6]); } catch (e) {}
-    }
-
     /* ---------- 종이 열기 : 종류마다 원래 연출로 (뗀 자리 · 쓴 양은 이미 빠져 있어요) ---------- */
     async function bkOpenSheet(id) {
         if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
@@ -619,6 +604,6 @@
         }
     }
 
-    window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkMix = bkMix; window.bkOpenSheet = bkOpenSheet;
+    window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
     window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shTake = shTake;
 })();
