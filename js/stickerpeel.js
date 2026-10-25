@@ -143,6 +143,7 @@
             S.rel = (opt && opt.rel) || null; S.relA = null; pelq('pelRoom').classList.toggle('pel-rel', !!S.rel);
             S.own = own; S.ts = !!(opt && opt.ts); S.drag = null; S.gone = 0; S.back = 0; S.mv = { x: 0, y: 0 }; S.on = true;
             pelLayout();
+            if (opt && opt.at && S.board && !S.rel) pelShift(opt.at.x - S.board.cx, opt.at.y - S.board.cy);   // 🗂️ 꺼내 둔 종이를 열면 그 자리에서 (basket.js dsOpen)
             pelq('pelRoom').classList.add('show'); document.body.classList.add('fc-lock');
             S.hint = '';
             pelSay(S.rel ? '🪡 핀셋으로 <b>가장자리</b>를 집어 떼어 <b>이형지북</b> 위에 놓아요' : pelLeft() > 1 ? `씰이 <b>${pelLeft()}개</b> 있어요! <b>가장자리</b>를 집어 하나씩 떼어 보세요` : '스티커 <b>가장자리</b>를 손톱으로 집듯이 잡고 천천히 떼어 보세요');

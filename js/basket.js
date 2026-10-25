@@ -164,19 +164,24 @@
             const r = c.getBoundingClientRect(), pr = pile.getBoundingClientRect();
             B.drag = { c, id: c.dataset.id, x0: ev.clientX, y0: ev.clientY, ox: ev.clientX - r.left, oy: ev.clientY - r.top, pr, moved: false, pid: ev.pointerId };
             try { pile.setPointerCapture(ev.pointerId); } catch (e) {}
+            const d0 = B.drag; d0.hold = setTimeout(() => { if (B.drag !== d0 || d0.moved) return; B.drag = null; dsTake(d0.id); }, 450);   // 오래 누르기 = 꺼내기
         };
         pile.onpointermove = ev => {
             const d = B.drag; if (!d || ev.pointerId !== d.pid) return;
             if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 7) return;
-            if (!d.moved) { d.moved = true; d.c.classList.remove('anim'); d.c.classList.add('lift'); d.c.style.zIndex = ++B.top; }
+            if (!d.moved) { d.moved = true; clearTimeout(d.hold); d.c.classList.remove('anim'); d.c.classList.add('lift'); d.c.style.zIndex = ++B.top; }
+            const mc = pile.closest('.modal-content'), mr = mc && mc.getBoundingClientRect();
+            d.out = !!mr && (ev.clientX < mr.left || ev.clientX > mr.right || ev.clientY < mr.top || ev.clientY > mr.bottom);   // 바구니 창 밖 = 꺼내기
+            pile.classList.toggle('dsk-out', d.out);
             const W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             d.c.style.left = Math.max(-cw * .25, Math.min(W - cw * .75, ev.clientX - d.pr.left - d.ox)) + 'px';
             d.c.style.top = Math.max(-ch * .3, Math.min(H - ch * .6, ev.clientY - d.pr.top - d.oy)) + 'px';
         };
         const up = ev => {
             const d = B.drag; if (!d || (ev && ev.pointerId !== d.pid)) return;
-            B.drag = null; d.c.classList.remove('lift');
-            if (!d.moved) { if (ev && ev.type === 'pointerup') bkOpenSheet(d.id); return; }
+            B.drag = null; d.c.classList.remove('lift'); clearTimeout(d.hold); pile.classList.remove('dsk-out');
+            if (!d.moved) { if (ev && ev.type === 'pointerup') dsTake(d.id); return; }   // 톡 = 꺼내기 (도련 10-26 · 바구니는 잠깐 비켰다 다시 떠요)
+            if (d.out && ev && ev.type === 'pointerup') { dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true); bkPlace(bkOrder().slice(-BK_MAX), false); return; }   // 끌어서 창 밖에 놓기 = 그 자리에 꺼내기 (바구니는 그대로)
             const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             const rot = parseFloat(d.c.style.getPropertyValue('--r')) || 0;
             L.p[d.id] = [Math.max(0, Math.min(1, parseFloat(d.c.style.left) / Math.max(1, W - cw))), Math.max(0, Math.min(1, parseFloat(d.c.style.top) / Math.max(1, H - ch))), rot];
@@ -197,7 +202,7 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
             const die = async a => !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts }); }
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at }); }
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
                 if (window.stkLeave) stkLeave();
@@ -877,6 +882,88 @@
         }
     }
 
+
+    /* ---------- 🗂️ 꺼내 둔 스티커창 (도련 10-26) ----------
+       다꾸러처럼 쓸 것을 다 꺼내 놓고 써요 : 바구니에서 톡 · 오래 누르기 · 창 밖으로 끌기 = 페이지 위에 스티커창이 놓여요 (몇 장이든 · 언제든 더)
+       윈도우 창처럼 맨 위 한 장만 '열려' 떼어져요 : 다른 종이를 톡 = 그 종이가 맨 위로 + 떼는 화면 · 끌기 = 옮기기 · ✕ = 치우기
+       저장하지 않아요 (앱을 끄면 사라져요) · 다 쓴 종이는 저절로 치워져요 */
+    const DS = { m: new Map(), z: 1, act: '', t: 0, at: null };
+    const DS_ROOMS = ['pelRoom', 'pcbRoom', 'pmRoom', 'tkRoom'];
+    function dsLayer() { let l = bq('dskLayer'); if (!l) { l = document.createElement('div'); l.id = 'dskLayer'; document.body.appendChild(l); } return l; }
+    function dsEntry(id) { const pk = window.ownPeek ? ownPeek() : null, L = (pk && pk.list) || B.all || []; return L.find(e => e.id === id) || null; }
+    const dsLeft = e => !!e && (e.q0 ? e.q > 0 : (e.u || []).length < e.n);
+    const dsRoomOn = () => DS_ROOMS.some(id => { const r = bq(id); return r && r.classList.contains('show'); });
+    function dsPaint(d) {
+        const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
+        d.el.innerHTML = `<button type="button" class="dsk-x" aria-label="치우기">✕</button>${bkCard(e)}`;
+        const w = d.el.offsetWidth || 110, h = d.el.offsetHeight || 120;
+        d.x = Math.max(w / 2 + 4, Math.min(innerWidth - w / 2 - 4, d.x)); d.y = Math.max(h / 2 + 50, Math.min(innerHeight - h / 2 - 90, d.y));
+        d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
+    }
+    function dsFront(d) { d.el.style.zIndex = ++DS.z; }
+    function dsDrop(id) { const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); }
+    function dsTake(id, at, keep) {
+        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+        const e = dsEntry(id) || B.byId.get(id); if (!dsLeft(e)) { showMsg('이 스티커는 이미 다 썼어요.'); return; }
+        let d = DS.m.get(id);
+        if (!d) {
+            const n = DS.m.size;
+            d = { id, el: document.createElement('div'), x: innerWidth * .3 + (n % 5) * 26, y: innerHeight * .32 + (n % 5) * 30 };
+            d.el.className = 'dsk'; d.el.dataset.id = id; dsLayer().appendChild(d.el); DS.m.set(id, d); dsWire(d);
+        }
+        if (at) { d.x = at.x; d.y = at.y; }
+        dsPaint(d); dsFront(d);
+        d.el.classList.remove('pop'); void d.el.offsetWidth; d.el.classList.add('pop');
+        if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
+        if (!keep && vis('basketKindModal')) {                                 // 톡 · 오래 누르기 : 바구니가 비켰다가 다시 떠요 (끌어서 꺼낼 땐 그대로)
+            closeModal('basketKindModal');
+            setTimeout(() => { if (![...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex') && !dsRoomOn()) bkReopen(); }, 420);
+        }
+    }
+    function dsWire(d) {
+        let p = null;
+        d.el.addEventListener('pointerdown', ev => {
+            if (ev.button > 0) return;
+            if (ev.target.closest('.dsk-x')) return;
+            ev.preventDefault(); dsFront(d);
+            p = { x0: ev.clientX, y0: ev.clientY, dx: d.x - ev.clientX, dy: d.y - ev.clientY, on: false, id: ev.pointerId };
+            try { d.el.setPointerCapture(ev.pointerId); } catch (er) {}
+        });
+        d.el.addEventListener('pointermove', ev => {
+            if (!p || ev.pointerId !== p.id) return;
+            if (!p.on && Math.hypot(ev.clientX - p.x0, ev.clientY - p.y0) < 7) return;
+            p.on = true; d.el.classList.add('lift'); d.x = ev.clientX + p.dx; d.y = ev.clientY + p.dy;
+            const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
+        });
+        const up = ev => { if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift'); if (!was.on && ev.type === 'pointerup') dsOpen(d); };
+        d.el.addEventListener('pointerup', up); d.el.addEventListener('pointercancel', up);
+        d.el.addEventListener('click', ev => { if (ev.target.closest('.dsk-x')) { ev.stopPropagation(); dsDrop(d.id); } });
+    }
+    function dsShut() {                                                       // 열린(맨 위) 종이의 떼는 화면 닫기
+        if (window.closeStickerPeel && bq('pelRoom') && bq('pelRoom').classList.contains('show')) closeStickerPeel();
+        if (window.closePieceBag && bq('pcbRoom') && bq('pcbRoom').classList.contains('show')) closePieceBag();
+        if (window.closePaperSheet && bq('pmRoom') && bq('pmRoom').classList.contains('show')) closePaperSheet();
+        if (window.closeTteokRoom && bq('tkRoom') && bq('tkRoom').classList.contains('show')) closeTteokRoom();
+    }
+    async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
+        if (B.opening) return;
+        const prev = DS.act ? DS.m.get(DS.act) : null;
+        if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsPaint(prev); } }
+        const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
+        const win = !['tape', 'memo', 'leaf'].includes(e.k);                   // 테이프 · 메모지 · 속지는 페이지에 바로 (창 없음)
+        if (win) { DS.act = d.id; d.el.classList.add('act'); document.body.classList.add('dsk-on'); }
+        DS.at = { x: d.x, y: d.y }; await bkOpenSheet(d.id); DS.at = null;
+        if (!win) { setTimeout(() => dsPaint(d), 400); return; }
+        clearInterval(DS.t); let seen = false;
+        DS.t = setInterval(() => {                                            // 떼는 화면이 닫히면 종이를 다시 그려요 (쓴 자리 · 다 쓰면 치워요)
+            const on = dsRoomOn(); if (on) { seen = true; return; }
+            if (!seen && DS.act === d.id && B.opening) return;
+            clearInterval(DS.t); if (DS.act !== d.id) return;
+            DS.act = ''; d.el.classList.remove('act'); document.body.classList.remove('dsk-on'); dsPaint(d); setTimeout(() => DS.m.has(d.id) && dsPaint(d), 1500);
+        }, 250);
+    }
+    if (window.ownOnChange) ownOnChange(() => DS.m.forEach(d => { if (DS.act !== d.id) dsPaint(d); }));   // 쓴 양이 바뀌면 다시 그려요
+    window.dsTake = dsTake;
 
     /* ---------- 🎨 진열대 · 수납함 물건 그림 (도련 10-25 · 입체감 있는 손그림 SVG · 그림 파일 없이) ----------
        stkArt(종류) → SVG 글 (72×64 · 진한 갈색 아웃라인 #7b5a63) · 진열대 선반(.st2-goods) · 수납 바구니 위 살짝 보이는 물건(.bk2-peek)에 넣어요 */
