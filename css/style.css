@@ -4252,15 +4252,17 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 
 /* 🧺 내 스티커 수납함 = 수납 바구니 선반 · 🏪 기본 스티커 진열대 = 가게 선반 (도련 10-25 · 이름표를 골라요 · 디지털 아이콘 대신) */
 .bk2-shelf { width: 100%; max-width: 360px; margin: 0 auto; }
-.bk2-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 16px 8px 0; align-items: end; }
-.bk2-bin { position: relative; height: 96px; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bk2-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 8px 0; align-items: end; }
+.bk2-bin { position: relative; height: 82px; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .bk2-bin:active { transform: translateY(2px); }
-.bk2-box { position: absolute; left: 0; right: 0; bottom: 0; height: 66px; box-sizing: border-box; border: 1.7px solid #7b5a63; border-radius: 6px 6px 14px 14px; background: repeating-linear-gradient(0deg, var(--b1) 0 4px, var(--b2) 4px 8px); box-shadow: inset 0 5px 0 var(--b3), 0 3px 5px rgba(120,80,100,.2); }   /* 아웃라인은 border로 (inset 띠가 덮어 끊기지 않게) */
-.bk2-tag { position: absolute; left: 50%; bottom: 11px; transform: translateX(-50%) rotate(var(--tr, -2deg)); filter: drop-shadow(1.4px 0 0 #7b5a63) drop-shadow(-1.4px 0 0 #7b5a63) drop-shadow(0 1.4px 0 #7b5a63) drop-shadow(0 -1.4px 0 #7b5a63); }   /* 꼬리표 모양 둘레 아웃라인 */
-.bk2-tag > span { display: block; padding: 4px 9px 4px 14px; background: #e9cfa3; clip-path: polygon(12% 0, 100% 0, 100% 100%, 12% 100%, 0 50%); font-size: 12px; font-weight: 700; color: #6e4a30; white-space: nowrap; }
+.bk2-box { position: absolute; left: 50%; bottom: 0; width: 62px; height: 40px; transform: translateX(-50%); box-sizing: border-box; border: 1.7px solid #7b5a63; border-radius: 7px 7px 15px 15px; background: repeating-linear-gradient(0deg, var(--b1) 0 4px, var(--b2) 4px 8px); box-shadow: inset 0 5px 0 var(--b3), 0 2px 3px rgba(120,80,100,.18); }   /* 작고 귀여운 바구니 (아웃라인은 border 로 · 끊기지 않게) */
+.bk2-box::before { content: ''; position: absolute; left: 50%; top: 11px; width: 18px; height: 6px; margin-left: -9px; border-radius: 4px; background: #7b5a63; opacity: .5; }   /* 손잡이 구멍 */
+.bk2-tag { position: absolute; left: 50%; bottom: -33px; z-index: 2; transform: translateX(-50%) rotate(var(--tr, -2deg)); }   /* 이름표는 바구니 밖 · 선반 아래에 달려요 */
+.bk2-tag > span { display: flex; align-items: center; gap: 4px; padding: 3px 9px 3px 6px; background: #fff; border: 1.5px solid #7b5a63; border-radius: 10px; font-size: 11.5px; font-weight: 700; color: #8a4a64; white-space: nowrap; box-shadow: 0 2px 0 rgba(123,90,99,.15); }
+.bk2-tag > span::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--b3); box-shadow: 0 0 0 1.2px #7b5a63; }
 .bk2-peek { position: absolute; left: 50%; top: 4px; transform: translateX(-50%) rotate(var(--pr, -8deg)); width: 34px; height: 28px; border-radius: 3px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-.bk2-empty { height: 66px; border: 1.5px dashed #e8d3c4; border-radius: 6px 6px 14px 14px; }
-.bk2-plank { height: 11px; border-radius: 3px; background: linear-gradient(#ffffff, #efe4dc); box-shadow: inset 0 0 0 1.7px #7b5a63, 0 3px 4px rgba(110,80,70,.18); }
+.bk2-empty { justify-self: center; width: 62px; height: 40px; box-sizing: border-box; border: 1.5px dashed #ecc9d6; border-radius: 7px 7px 15px 15px; }
+.bk2-plank { height: 6px; margin-bottom: 30px; border-radius: 3px; background: #ffe0ea; box-shadow: inset 0 0 0 1.5px #7b5a63; }   /* 얇은 선반 */
 .b-seal  { --b1: #ffd3e1; --b2: #ffc2d5; --b3: #ffb0c8; }
 .b-piece { --b1: #e2d8fb; --b2: #d6c9f6; --b3: #c7b6ef; --tr: 2deg; }
 .b-paper { --b1: #d5ecff; --b2: #c4e2fb; --b3: #aed4f3; }
@@ -4283,11 +4285,13 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-store { width: 100%; max-width: 360px; margin: 0 auto; }
 .st2-awning { height: 40px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ff9fb8 0 30px, #fff 30px 60px); filter: drop-shadow(1.4px 0 0 #7b5a63) drop-shadow(-1.4px 0 0 #7b5a63) drop-shadow(0 1.4px 0 #7b5a63) drop-shadow(0 -1.4px 0 #7b5a63) drop-shadow(0 3px 3px rgba(150,80,100,.18)); position: relative; }   /* 차양 + 물결 둘레 아웃라인 */
 .st2-awning::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 13px; background: radial-gradient(circle at 15px 0, #ff9fb8 13px, transparent 14px) 0 0 / 60px 13px repeat-x, radial-gradient(circle at 15px 0, #fff 13px, transparent 14px) 30px 0 / 60px 13px repeat-x; }
-.st2-sign { width: max-content; margin: 2px auto 0; padding: 5px 20px; background: #a8784a; border-radius: 6px; box-shadow: inset 0 0 0 1.7px #7b5a63, inset 0 0 0 4px #8e6238, 0 3px 5px rgba(90,50,20,.25); font-size: 17px; font-weight: 700; color: #fff6e6; position: relative; z-index: 1; }
-.st2-case { margin-top: 12px; padding: 0 8px; background: #fff3e8; border-radius: 8px; box-shadow: inset 0 0 0 1.7px #7b5a63, inset 0 0 0 7px #e7c79e, inset 0 0 0 8.7px #7b5a63; }
+.st2-sign { width: max-content; margin: 16px auto 0; padding: 6px 18px; background: #fff; border: 1.7px solid #7b5a63; border-radius: 12px; box-shadow: 0 3px 0 #ffd0de; font-size: 15px; font-weight: 700; letter-spacing: .5px; color: #c2457a; position: relative; z-index: 1; transform: rotate(-1.5deg); }   /* 차양에 매단 카드 간판 */
+.st2-sign::before, .st2-sign::after { content: ''; position: absolute; top: -17px; width: 1.5px; height: 16px; background: #7b5a63; left: 22px; }
+.st2-sign::after { left: auto; right: 22px; }
+.st2-case { margin-top: 12px; padding: 0 10px 10px; background: #fffdfb; border: 1.7px solid #7b5a63; border-radius: 14px; box-shadow: 0 3px 0 #ffe0ea; }   /* 하얀 진열장 · 나무 X */
 .st2-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 14px 8px 0; }
-.st2-plank { height: 11px; margin: 6px -8px 0; background: linear-gradient(#e7c79e, #d5ad7c); box-shadow: inset 0 0 0 1.7px #7b5a63, 0 3px 3px rgba(110,70,40,.2); }
-.st2-row:nth-last-of-type(1) + .st2-plank, .st2-case > .st2-plank:last-of-type { border-radius: 0 0 6px 6px; }
+.st2-plank { height: 5px; margin: 6px 0 0; border-radius: 3px; background: #ffd6e4; box-shadow: inset 0 0 0 1.5px #7b5a63; }   /* 얇은 핑크 선반 */
+
 .st2-slot { display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .st2-slot:active { transform: translateY(2px); }
 .st2-goods { position: relative; display: block; width: 70px; height: 60px; }
@@ -4317,4 +4321,4 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-goods.art::before, .st2-goods.art::after { display: none; }
 .st2-goods.art { width: 76px; height: 66px; }
 .st2-goods.art svg, .bk2-peek.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.bk2-peek.art { width: 62px !important; height: 54px !important; top: -16px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; transform: translateX(-50%) rotate(var(--pr, -6deg)); }
+.bk2-peek.art { width: 54px !important; height: 47px !important; top: -2px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; transform: translateX(-50%) rotate(var(--pr, -6deg)); }
