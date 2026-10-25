@@ -153,19 +153,22 @@
         async function ownOpen(force) {
             ownReady();
             if (O.idx && O.album && !force && performance.now() - O.idxAt < OWN_FRESH) return { list: O.idx, album: O.album };
+            const TT = window.OWN_T = { q: performance.now() };                    // ⏱ 시험용 시간 재기 (바구니 · 원인 찾으면 지워요)
             return ownSerial(async () => {
+                TT.s = performance.now();
                 let pi, pa;                                                      // 목록 · 스티커첩 파일을 한 번에 찾아요
                 if (ownMode() !== 'mem') {
-                    const d = await ownDir(false);
+                    const d = await ownDir(false); TT.dir = performance.now();
                     if (!d) { pi = pa = null; }
                     else {
                         const fs = await driveList(`'${d}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (name='${OWN_IDX}' or name='${OWN_ALB}')`, 'id,name,modifiedTime,size');
                         pi = fs.find(x => x.name === OWN_IDX) || null; pa = fs.find(x => x.name === OWN_ALB) || null;
+                        TT.find = performance.now(); TT.sz = [pi && pi.size, pa && pa.size];
                     }
                 }
-                const [list, alb] = await Promise.all([ownIdxRead(pi), ownAlbRead(pa)]);   // 동시에 읽어요
+                const [list, alb] = await Promise.all([ownIdxRead(pi).then(r => { TT.idx = performance.now(); return r; }), ownAlbRead(pa).then(r => { TT.alb = performance.now(); return r; })]);   // 동시에 읽어요
                 ownIdxApply(list);
-                O.album = ownAlbumClean(alb, null);
+                O.album = ownAlbumClean(alb, null); TT.end = performance.now();
                 return { list: O.idx, album: O.album };
             });
         }
