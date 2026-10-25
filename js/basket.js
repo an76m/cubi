@@ -915,6 +915,29 @@
         };
         return A[k] ? `<svg viewBox="0 0 72 64" aria-hidden="true"><defs>${sh}${glDef}</defs>${A[k]()}</svg>` : '';
     }
+    /* 📦 진열대 · 수납함 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
+    (function objMovable() {
+        const go = () => ['basketModal', 'shelfModal'].forEach(id => {
+            const w = document.querySelector('#' + id + ' > .obj-win'); if (!w || w.dataset.mv) return; w.dataset.mv = 1;
+            let d = null, swallow = false;
+            w.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('.mt-x')) return; d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId }; });
+            w.addEventListener('pointermove', e => {
+                if (!d || e.pointerId !== d.id) return;
+                const dx = e.clientX - d.x, dy = e.clientY - d.y;
+                if (!d.on) { if (Math.hypot(dx, dy) < 8) return; d.on = true; w.setPointerCapture(e.pointerId); w.classList.add('moving'); }
+                const r = w.getBoundingClientRect(), bl = r.left - (parseFloat(w.style.left) || 0), bt = r.top - (parseFloat(w.style.top) || 0);
+                w.style.left = Math.max(8 - bl, Math.min(innerWidth - 8 - r.width - bl, d.ox + dx)) + 'px';
+                w.style.top = Math.max(40 - bt, Math.min(innerHeight - 8 - r.height - bt, d.oy + dy)) + 'px';
+                e.preventDefault();
+            });
+            const end = () => { if (d && d.on) { swallow = true; setTimeout(() => { swallow = false; }, 0); w.classList.remove('moving'); } d = null; };
+            w.addEventListener('pointerup', end); w.addEventListener('pointercancel', end);
+            w.addEventListener('click', e => { if (swallow) { e.stopPropagation(); e.preventDefault(); swallow = false; } }, true);
+            addEventListener('resize', () => { w.style.left = w.style.top = ''; });
+        });
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+    })();
+
     function stkArtFill() {                                                   // 진열대 · 수납함의 물건 자리에 그림을 넣어요 (한 번)
         document.querySelectorAll('.st2-slot').forEach(b => { const k = (b.className.match(/\bg-(\w+)/) || [])[1], g = b.querySelector('.st2-goods'); if (k && g && !g.dataset.art) { g.innerHTML = stkArt(k); g.dataset.art = 1; g.classList.add('art'); } });
         document.querySelectorAll('.bk2-bin').forEach(b => { const k = (b.className.match(/\bb-(\w+)/) || [])[1], g = b.querySelector('.bk2-peek'); if (k && g && !g.dataset.art) { g.innerHTML = stkArt(k); g.dataset.art = 1; g.classList.add('art'); } });

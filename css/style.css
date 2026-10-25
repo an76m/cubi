@@ -4283,8 +4283,6 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .b-memo .bk2-peek { width: 34px; height: 30px; background: #fffbe6; --pr: 5deg; }
 #basketModal .sub-modal-btns, #shelfModal .sub-modal-btns { margin-top: 0; }
 
-#shelfModal .modal-title .mt-text { visibility: hidden; }     /* 간판이 제목이에요 (✕ 는 그대로) */
-#shelfModal .modal-title { margin-bottom: -38px; position: relative; z-index: 2; }
 .st2-store { width: 100%; max-width: 360px; margin: 0 auto; }
 .st2-awning { height: 40px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ff9fb8 0 30px, #fff 30px 60px); filter: drop-shadow(1.4px 0 0 #7b5a63) drop-shadow(-1.4px 0 0 #7b5a63) drop-shadow(0 1.4px 0 #7b5a63) drop-shadow(0 -1.4px 0 #7b5a63) drop-shadow(0 3px 3px rgba(150,80,100,.18)); position: relative; }   /* 차양 + 물결 둘레 아웃라인 */
 .st2-awning::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 13px; background: radial-gradient(circle at 15px 0, #ff9fb8 13px, transparent 14px) 0 0 / 60px 13px repeat-x, radial-gradient(circle at 15px 0, #fff 13px, transparent 14px) 30px 0 / 60px 13px repeat-x; }
@@ -4326,3 +4324,27 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .g-piece { --gr: 5deg; } .g-paper { --gr: -4deg; } .g-tape { --gr: 4deg; } .g-tk { --gr: -6deg; } .g-leaf { --gr: 6deg; } .g-emoji { --gr: -4deg; } .g-memo { --gr: 5deg; } .g-tool { --gr: -5deg; }
 .st2-goods.art svg, .bk2-peek.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .bk2-peek.art { width: 54px !important; height: 47px !important; top: -2px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; transform: translateX(-50%) rotate(var(--pr, -6deg)); }
+
+/* 📦 진열대 · 수납함 = 창 없이 물건처럼 (도련 10-25 · 시안 '물건처럼' · 🗄️ 문구함처럼 다이어리 위에 둥 · 아무 데나 잡고 끌면 옮겨져요 js/basket.js objMovable) */
+#basketModal > .modal-content.obj-win, #shelfModal > .modal-content.obj-win { position: relative; width: min(310px, 88vw); max-width: none; max-height: none; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 12px rgba(120, 60, 80, .28)); touch-action: none; user-select: none; -webkit-user-select: none; }
+#basketModal .dk-tape, #shelfModal .dk-tape { display: none; }   /* 모서리 테이프 없이 */
+.obj-win.moving { cursor: grabbing; }
+#basketModal .obj-win > .modal-title.mt-bar, #shelfModal .obj-win > .modal-title.mt-bar { position: absolute; right: -12px; top: -18px; z-index: 6; margin: 0; padding: 0; width: auto; height: auto; }   /* ✕ 만 물건 오른쪽 위 모서리에 */
+#basketModal .obj-win .mt-text, #basketModal .obj-win .mt-back, #shelfModal .obj-win .mt-text, #shelfModal .obj-win .mt-back { display: none; }
+#basketModal .obj-win .mt-x, #shelfModal .obj-win .mt-x { position: static; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; box-shadow: 0 2px 4px rgba(120, 60, 80, .2); }
+.obj-feet { display: flex; justify-content: space-between; padding: 0 22px; }
+.obj-feet i { width: 22px; height: 10px; margin-top: -1px; border-radius: 0 0 7px 7px; background: #f2a9c0; box-shadow: inset 0 0 0 1.5px #7b5a63; }
+/* 🧺 수납장 : 윗판 · 이름 카드 · 다리 */
+#basketModal .obj-win { margin-top: 30px; }
+.obj-lbl { position: absolute; left: 50%; top: -30px; translate: -50% 0; rotate: -1.5deg; z-index: 3; padding: 5px 16px; border-radius: 12px; background: #fff; border: 1.7px solid #7b5a63; box-shadow: 0 3px 0 #ffd0de; font-size: 14px; font-weight: 700; color: #c2457a; white-space: nowrap; }
+.bk2-top { position: relative; z-index: 2; height: 14px; margin: 0 -8px -2px; border-radius: 8px; background: linear-gradient(#ffe6ee, #ffcfdd); box-shadow: inset 0 0 0 1.7px #7b5a63; }
+.obj-win .bk2-shelf { max-width: none; margin: 0; border: 1.7px solid #7b5a63; border-radius: 4px 4px 12px 12px; background: linear-gradient(90deg, #ffe9f0, #fff6f9 14%, #fff6f9 86%, #ffe9f0); box-shadow: inset 0 -6px 0 #ffe3ec; }
+/* 🏪 가판대 : 차양 기둥 · 받침판 · 다리 */
+.obj-win .st2-store { position: relative; max-width: none; }
+.obj-win .st2-awning { margin: 0 -10px; border-radius: 12px 12px 0 0; z-index: 2; }
+.st2-pole { position: absolute; top: 30px; bottom: 30px; width: 7px; border-radius: 4px; background: linear-gradient(90deg, #fff, #ffd6e4); box-shadow: inset 0 0 0 1.4px #7b5a63; }
+.st2-pole.l { left: 4px; } .st2-pole.r { right: 4px; }
+.obj-win .st2-sign { z-index: 3; }
+.obj-win .st2-case { position: relative; z-index: 1; margin-top: 10px; border: 1.7px solid #7b5a63; box-shadow: inset 0 -6px 0 #ffeef3; }
+.st2-base { position: relative; z-index: 1; height: 16px; margin: -2px -6px 0; border-radius: 6px 6px 8px 8px; background: linear-gradient(#ffe0ea, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }
+@media (max-height: 700px) { #shelfModal .obj-win .st2-goods.art { width: 60px; height: 52px; } #shelfModal .obj-win .st2-row { padding-top: 8px; } }   /* 📱 낮은 화면 */
