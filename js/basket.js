@@ -319,6 +319,8 @@
     function abRPage(d) { const D = B.desk; if (!D) return; D.rpg = (D.rpg || 0) + d; bkView(); }
     function abPage(d) { B.pg = (B.pg || 0) + d; bkView(); }
     const abHead = (back, go, extra) => `<div class="ab-head"><button type="button" class="ab-back" onclick="bkView('${go}')">‹ ${back}</button>${extra || ''}</div>`;
+    /* 🏷️ 정리 책상에서 바로 라벨 붙이기 (첩이 여러 개일 때 무엇인지 알게 · 도련 10-25) */
+    const abLbDesk = (t, x) => `<label class="ab-lbdesk"><span aria-hidden="true">🏷️</span><input value="${esc(x.lb)}" placeholder="라벨 붙이기" maxlength="8" aria-label="라벨" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()" onchange="abLabel('${t}','${esc(x.id)}',this.value)"></label>`;
     const abLbIn = (t, x) => `<input class="ab-lbin" value="${esc(x.lb)}" placeholder="라벨 쓰기" maxlength="8" aria-label="라벨" onchange="abLabel('${t}','${esc(x.id)}',this.value)">`;
     function abBinder() {
         const body = bq('abBody'), b = abBdOf(B.cur); if (!b) { bkView('album'); return; }
@@ -372,7 +374,7 @@
         let main;
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
-            if (b) { D.bd = b.id; const full = Object.keys(b.p).length >= b.n; main = (full ? bkMsg('📒 이 바인더는 가득 찼어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 새 바인더 받아 오기</button>') : '') + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()">${abChip(b)}${esc(b.lb || '라벨 없는 바인더')}${L.length > 1 ? ' ▾' : ''}</button><small>${Object.keys(b.p).length} / ${b.n}장</small></div>` + abBinderHtml(b, true); }
+            if (b) { D.bd = b.id; const full = Object.keys(b.p).length >= b.n; main = (full ? bkMsg('📒 이 바인더는 가득 찼어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 새 바인더 받아 오기</button>') : '') + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 바인더 고르기">${abChip(b)}${L.length > 1 ? `${L.findIndex(x => x.id === b.id) + 1} / ${L.length} ▾` : '바인더'}</button>${abLbDesk('bd', b)}<small>${Object.keys(b.p).length} / ${b.n}장</small></div>` + abBinderHtml(b, true); }
             else main = bkMsg('아직 바인더가 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 바인더 받아 오기</button>');
         } else {
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
@@ -381,7 +383,7 @@
             if (r) {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
-                main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()"><i class="ab-chip rl"></i>${esc(r.lb || '라벨 없는 이형지북')}${L.length > 1 ? ' ▾' : ''}</button><small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
+                main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 이형지북 고르기"><i class="ab-chip rl"></i>${L.length > 1 ? `${L.findIndex(x => x.id === r.id) + 1} / ${L.length} ▾` : '이형지북'}</button>${abLbDesk('rl', r)}<small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
                     + `<div class="ab-rel desk${D.sel >= 0 ? ' ready' : ''}" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sel >= 0 ? '붙일 자리를 톡!' : D.sheet ? '스티커를 끌어 와 붙여요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
             }
             else main = panel + bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본 스티커 진열대에서 이형지북 받아 오기</button>');

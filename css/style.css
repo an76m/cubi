@@ -4211,3 +4211,15 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .ab-toast.ok { background: rgba(214,74,112,.95); }
 .ab-spin { width: 14px; height: 14px; border-radius: 50%; border: 2.4px solid rgba(255,255,255,.35); border-top-color: #fff; animation: abSpin .7s linear infinite; }
 @keyframes abSpin { to { transform: rotate(360deg); } }
+/* 🏷️ 정리 책상 라벨 · 포켓 안 종이는 칸에 꽉 차게 (도련 10-25) */
+.ab-target .ab-pick { flex: none; max-width: none; padding: 0 12px; }
+.ab-target small { flex: none; }
+.ab-lbdesk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; min-height: 38px; padding: 0 10px; border: 1.5px dashed #ff9fb8; border-radius: 10px; background: #fffaf2; transform: rotate(-1deg); }
+.ab-lbdesk input { flex: 1; min-width: 0; border: 0; background: transparent; color: #7b4a5e; font: inherit; font-size: 14px; font-weight: 800; outline: none; }
+.ab-lbdesk input::placeholder { color: #c99aab; font-weight: 400; }
+.ab-lbdesk:focus-within { border-style: solid; border-color: #ff6b88; }
+.ab-pk { padding: 5px; }
+.ab-pk .bk-sh { width: 100%; padding: 6px; border-radius: 8px; }
+.ab-pk .bk-sh .bk-grid { gap: 4px; }
+.ab-pk .bk-sh.k-tape > *, .ab-pk .bk-sh.k-tk > *, .ab-pk .bk-sh.k-memo > *, .ab-pk .bk-sh.k-leaf > * { zoom: 1.5; }
+.ab-page { grid-auto-rows: minmax(140px, auto); }
