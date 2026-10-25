@@ -4355,4 +4355,26 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .sh-btns .sh-take { padding: 5px 9px; font-size: 12px; white-space: nowrap; }
 .sh-btns .sh-zoombtn { background: #fff; color: #c2457a; box-shadow: inset 0 0 0 1.5px #f2a7c0, 0 2px 0 rgba(0,0,0,.06); }
 .sh-btns .sh-get.got { background: #7cc7a0; }
+/* 📦 진열대 종류 창 = 창 없이 진열장 하나 (도련 10-26 · 시안 '쪽 넘기기 A') : 입간판 제목 · ‹ 진열대 꼬리표 · ✕ · 차양 · 유리 칸 · 받침 서랍(‹ 쪽 ›) · 다리 */
+#shelfKindModal > .modal-content.obj-win { position: relative; width: min(94vw, 420px); max-width: none; max-height: none; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 12px rgba(120, 60, 80, .28)); touch-action: none; user-select: none; -webkit-user-select: none; }
+#shelfKindModal .dk-tape { display: none; }
+#shelfKindModal > .modal-content.obj-win { margin-bottom: 64px; }   /* 하단 메뉴에 안 가리게 조금 위로 */
+#shelfKindModal .obj-win .sh-wrap { padding: 0; }
+#shelfKindModal .obj-win .sh-case { margin: 0; border-radius: 0; border-bottom: 0; padding-top: 22px; }
+#shelfKindModal .obj-win .sh-awn { left: -4px; right: -4px; top: -2px; border-radius: 0; }   /* 차양은 간판 바로 밑에 붙어요 */
+#shelfKindModal .obj-win .sh-case > .ab-tabs { margin: 0 0 8px; }
+#shelfKindModal .obj-win #shkWrap > .bk-msg, #shelfKindModal .obj-win .sh-case > .bk-msg { margin: 0; padding: 30px 14px; border-radius: 14px; background: #fffdf8; }
+.sh-base { position: relative; display: flex; align-items: center; justify-content: center; min-height: 46px; margin: 0 -6px; border: 1.7px solid #7b5a63; border-radius: 6px 6px 12px 12px; background: linear-gradient(#ffe6ee, #ffcadb); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .6); }   /* 받침 서랍 */
+.sh-base .sh-nav { margin: 0; gap: 16px; }
+.sh-base .ab-nb { width: 32px; height: 32px; border: 1.7px solid #7b5a63; background: radial-gradient(circle at 40% 35%, #fff, #ffe6ee); color: #b23b6c; font-weight: 900; font-size: 17px; box-shadow: 0 2px 0 #e9a8bd; }
+.sh-base .sh-nav span { padding: 3px 14px; border-radius: 8px; background: #fff; border: 1.2px solid rgba(123, 90, 99, .35); font-size: 13px; font-weight: 800; color: #8a4a64; }
+#shelfKindModal .obj-win .sh-zoom { inset: 30px -4px 0; border-radius: 16px; border: 1.7px solid #7b5a63; background: rgba(255, 252, 248, .97); }
+/* 🪧 가게 간판 (도련 10-26 · 참고 : 가게 앞 간판 · 게임 상점 창) : 제목 줄 = 진열장 맨 위의 간판 하나 · ‹ 진열대 · ✕ 도 간판에 붙어 있어요 */
+#shelfKindModal .obj-win > .modal-title.mt-bar { position: relative; z-index: 4; display: flex; align-items: center; justify-content: center; height: 54px; margin: 0 -10px; padding: 0 44px; border: 2px solid #7b5a63; border-radius: 16px 16px 8px 8px;
+    background: radial-gradient(circle at 12% 30%, #fff 0 1.6px, transparent 2.2px), radial-gradient(circle at 20% 72%, #fff 0 1.2px, transparent 1.8px), radial-gradient(circle at 86% 26%, #fff 0 1.6px, transparent 2.2px), radial-gradient(circle at 78% 70%, #fff 0 1.2px, transparent 1.8px), linear-gradient(#ffb8cc, #ff94b2);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.45), inset 0 -4px 0 rgba(200,70,110,.25), 0 3px 0 rgba(123,90,99,.25); }
+#shelfKindModal .obj-win > .modal-title.mt-bar::before { content: ''; position: absolute; inset: 4px; border: 1.5px dashed rgba(255,255,255,.85); border-radius: 12px 12px 5px 5px; pointer-events: none; }   /* 간판 바느질 점선 */
+#shelfKindModal .obj-win .mt-text { display: inline-block; width: auto !important; max-width: 100% !important; padding: 0 !important; background: none !important; clip-path: none !important; color: #fff !important; font-size: 19px; font-weight: 900; letter-spacing: .5px; text-shadow: 1.5px 0 0 #7b5a63, -1.5px 0 0 #7b5a63, 0 1.5px 0 #7b5a63, 0 -1.5px 0 #7b5a63, 1px 1px 0 #7b5a63, -1px -1px 0 #7b5a63, 1px -1px 0 #7b5a63, -1px 1px 0 #7b5a63, 0 3px 0 rgba(123,90,99,.35); }
+#shelfKindModal .obj-win .mt-back { position: absolute; left: 10px; top: 50%; translate: 0 -50%; padding: 4px 9px !important; border: 1.5px solid #7b5a63 !important; border-radius: 10px !important; background: #fff !important; color: #c2457a !important; font-size: 11.5px; font-weight: 800; box-shadow: 0 2px 0 rgba(123,90,99,.25); max-width: none !important; }
+#shelfKindModal .obj-win .mt-x { position: absolute; right: 10px; top: 50%; translate: 0 -50%; width: 28px !important; height: 28px !important; border-radius: 50% !important; border: 1.5px solid #7b5a63 !important; background: #fff !important; color: #d94f7a !important; font-size: 13px; font-weight: 900; box-shadow: 0 2px 0 rgba(123,90,99,.25); }   /* ✕ 도 간판 안 오른쪽 (도련 10-26) */
 

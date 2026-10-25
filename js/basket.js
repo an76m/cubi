@@ -770,7 +770,8 @@
         SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
         const nav = pages > 1 ? `<div class="ab-nav sh-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="shPage(-1)"${SH.pg ? '' : ' disabled'}>‹</button><span>${SH.pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="shPage(1)"${SH.pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : '';
-        box.innerHTML = tabs + (page.length ? `<div class="sh-case"><div class="sh-awn" aria-hidden="true"></div><div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div></div>` : bkMsg('아직 진열된 것이 없어요.')) + nav;   // 🏪 작은 진열장 (차양 · 선반 · 도련 10-26)
+        box.innerHTML = `<div class="sh-case"><div class="sh-awn" aria-hidden="true"></div>${tabs}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>`
+            + `<div class="sh-base">${nav}</div><div class="obj-feet"><i></i><i></i></div>`;   // 🏪 작은 진열장 (차양 · 칸 · 선반 · 받침 서랍의 ‹ 쪽 › · 다리 · 도련 10-26 · 창 없이 물건처럼)
         shFit(box);
         shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리
     }
@@ -781,7 +782,7 @@
         const set = () => { box.style.setProperty('--sh-h', h + 'px'); box.style.setProperty('--sh-z', (h / 130).toFixed(3)); };
         set();
         for (let i = 0; i < 10; i++) {
-            const over = mc.scrollHeight - mc.clientHeight;
+            const over = mc.classList.contains('obj-win') ? mc.getBoundingClientRect().height - (innerHeight - 190) : mc.scrollHeight - mc.clientHeight;   // 📦 창 없는 진열장은 화면 높이에 맞춰요
             if (over <= 1 || h <= 64) break;
             h = Math.max(64, h - Math.ceil(over / SH_ROWS) - 1); set();
         }
@@ -934,10 +935,10 @@
     }
     /* 📦 진열대 · 수납함 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
     (function objMovable() {
-        const go = () => ['basketModal', 'shelfModal'].forEach(id => {
+        const go = () => ['basketModal', 'shelfModal', 'shelfKindModal'].forEach(id => {
             const w = document.querySelector('#' + id + ' > .obj-win'); if (!w || w.dataset.mv) return; w.dataset.mv = 1;
             let d = null, swallow = false;
-            w.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('.mt-x')) return; d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId }; });
+            w.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('.mt-x, .modal-title, .sh-zoom')) return; d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId }; });   // 제목 줄은 js/skins.js 가 옮겨요 (두 번 안 움직이게) · 확대 창 안은 끌기 X
             w.addEventListener('pointermove', e => {
                 if (!d || e.pointerId !== d.id) return;
                 const dx = e.clientX - d.x, dy = e.clientY - d.y;
