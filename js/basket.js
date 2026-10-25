@@ -73,16 +73,39 @@
         const wrap = bq('bkWrap'); if (!wrap) return;
         if (!window.ownList) { wrap.innerHTML = bkMsg('🧺 바구니를 준비하고 있어요.'); return; }
         if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 바구니를 쓸 수 있어요.'); return; }
-        if (!wrap.querySelector('.ab-tabs, .ab-head')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
+        /* ⚡ 먼저 : 마지막으로 읽은 목록으로 바로 그려요 (드라이브를 기다리지 않게) → 그다음 새로 읽어 달라졌을 때만 다시 그려요 */
+        const peek = force && window.ownPeek ? ownPeek() : null;
+        if (peek) { B.all = peek.list.slice(); B.album = peek.album; abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
+        else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
         try {
             B.all = (await ownList(force)).slice();
             B.album = window.ownAlbumGet ? await ownAlbumGet(false) : { bd: [], rl: [], g: {} };
         }
-        catch (e) { wrap.innerHTML = bkMsg('⚠ 바구니를 열지 못했어요.<br>' + ownErrText(e), '<button type="button" class="btn bk-again" onclick="bkRender(true)">🔄 다시 열기</button>'); return; }
+        catch (e) {
+            if (peek) { console.warn(e); return; }                              // 보던 목록은 그대로 두어요
+            wrap.innerHTML = bkMsg('⚠ 바구니를 열지 못했어요.<br>' + ownErrText(e), '<button type="button" class="btn bk-again" onclick="bkRender(true)">🔄 다시 열기</button>'); return;
+        }
+        const sig = bkSig();
+        if (peek && sig === B.sig && wrap.querySelector('.ab-body')) return;    // 그대로면 다시 그리지 않아요
+        B.sig = sig;
         abSplit();
         if (B.drag || AB.drag) return;                                          // 끄는 중에는 다시 그리지 않아요 (놓으면 그려요)
         bkView();
     }
+    const bkSig = () => { try { return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album]); } catch (e) { return String(Math.random()); } };
+    /* ⚡ 미리 읽어 두기 : 로그인(또는 폴더 · 구경만)이 되면 한가할 때 바구니 목록을 한 번 읽어 둬요 → 처음 열 때도 바로 */
+    (function bkWarm() {
+        let who = '';
+        setInterval(() => {
+            try {
+                if (!window.ownMode || !ownMode() || document.hidden) return;
+                const w = (ownMode() === 'mem' ? 'guest' : (typeof COLL !== 'undefined' && COLL.who) || 'me');
+                if (w === who) return;
+                who = w;
+                ownList(false).catch(() => { who = ''; });
+            } catch (e) {}
+        }, 2500);
+    })();
     /* 바구니 카드 : 종류마다 모양 · 남은 양은 두께(--q)로만 */
     const kitImg = u => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
     function bkCard(e) {
@@ -525,8 +548,7 @@
             kit.sheets.slice().reverse().forEach(x => out.push(x.us));               // 새로 들어온 것(뒤 번호)이 맨 앞
             kit.images.slice().reverse().forEach(x => out.push([x.u]));              // 낱장
             const items = out.map(us => ({ cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
-            for (const p of (window.spkPackList ? spkPackList() : [])) { const srcs = await p.srcs(); items.push({ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }); }   // 제가 그린 씰 종이 (예전 포인트스티커 · js/stickerpack.js)
-            return items.concat(window.sbShelf ? await sbShelf('mini') : []);         // 옛 포인트스티커 폴더 그림도 씰로
+            return items.concat(window.sbShelf ? await sbShelf('mini') : []);         // 옛 포인트스티커 폴더 그림도 씰로 (제가 그린 씰 종이는 SH_LATE 로 뒤에 붙어요)
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
         paper: ['모조지스티커', async () => window.sbShelf ? sbShelf('paper') : []],
@@ -552,6 +574,27 @@
             return srcs.length ? [{ cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }] : [];
         }],
     };
+    /* ⚡ 늦게 붙는 상품 : 그리는 데 시간이 걸리는 것(제가 그린 씰 종이 · 캔버스)은 먼저 연 뒤 뒤에 붙여요 (도련 10-25 · 빨리 열리게) */
+    const SH_LATE = {
+        seal: async () => {
+            const out = [];
+            await Promise.all((window.spkPackList ? spkPackList() : []).map(async (p, i) => { const srcs = await p.srcs(); out[i] = { cnt: `씰 ${srcs.length}개`, look: 'grid', thumbs: srcs, def: { k: 'seal', imgs: srcs, baked: true } }; }));
+            return out.filter(Boolean);
+        },
+    };
+    SH.cache = {};                                                            // 한 번 채운 매대는 기억해요 (다시 열면 바로)
+    async function shItems(k) {
+        if (SH.cache[k]) return SH.cache[k];
+        const items = await SH_KINDS[k][1]();
+        if (k !== 'season') SH.cache[k] = items;
+        return items;
+    }
+    function shLate(k) {
+        const c = SH.cache[k];
+        if (!SH_LATE[k] || !c) return Promise.resolve(null);
+        if (!c.lateP) c.lateP = SH_LATE[k]().then(extra => { c.push(...extra); c.late = true; return extra; });
+        return c.lateP;
+    }
     const shSeasonOn = () => typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN && typeof SEASON_STICKERS !== 'undefined';
     /* 😀 이모지 → 그림 (64px · 작게 콕) */
     function shEmoji(ch) {
@@ -577,18 +620,39 @@
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
         const box = bq('shkWrap'); SH.kind = k; SH.items = []; shZoomOff();
         const seq = ++SH.seq;
-        box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…'); box.scrollTop = 0;
+        box.scrollTop = 0;
+        if (!SH.cache[k]) box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…');
         let items = [];
-        try { items = await K[1](); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 기본 스티커 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
+        try { items = await shItems(k); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 기본 스티커 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
         if (seq !== SH.seq) return;                                              // 그사이 다른 종류를 열었어요
         SH.items = items;
+        shDraw(k);
+        if (SH_LATE[k] && !items.late) shLate(k).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품
+    }
+    function shDraw(k) {
+        const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
-        const secs = k === 'paper' ? ['모양', '배경'] : [''];
+        const top = box.scrollTop, secs = k === 'paper' ? ['모양', '배경'] : [''];
         box.innerHTML = secs.map(sec => {
             const its = items.map((x, i) => [x, i]).filter(([x]) => !sec || (x.sec || '모양') === sec); if (!its.length) return '';
             return (sec ? `<h4 class="sh-sign"><span>${sec === '배경' ? '📄 배경 (통째로 떼기)' : '✂️ 모양 (가위로 오리기)'}</span></h4>` : '') + `<div class="sh-grid">${its.map(([x, i]) => shCard(x, i)).join('')}</div>`;
         }).join('');
+        box.scrollTop = top;
     }
+    /* ⚡ 미리 준비 : 앱이 한가할 때 기본스티커 목록 · 매대 · 그린 씰 종이를 미리 채워 둬요 (처음 열 때도 바로) */
+    function shWarm() {
+        const idle = fn => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 400));
+        const ks = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo', 'tool'];
+        let i = 0;
+        const next = () => idle(async () => {
+            const k = ks[i++];
+            if (!k) { idle(() => shLate('seal').catch(() => {})); return; }
+            try { await shItems(k); } catch (e) {}
+            next();
+        });
+        next();
+    }
+    setTimeout(shWarm, 3500);
     function shLook(x, big) {
         if (x.look === 'binder') { const c = AB_COL[x.c]; return `<div class="sh-tool"><span class="ab-cover" style="--c1:${c[0]};--c2:${c[1]}"></span></div>`; }
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
@@ -627,7 +691,7 @@
         if (album) { B.view = 'album'; bkView('album'); }
     }
     function shToolKind(k) { SH.toolKind = k; if (SH.zoom >= 0) shZoom(SH.zoom); }
-    function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; }
+    function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; if (SH.redraw) { SH.redraw = false; shDraw(SH.kind); } }
     async function shTake(btn) {
         const x = SH.items[SH.zoom]; if (!x || btn.disabled) return;
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }

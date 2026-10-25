@@ -329,6 +329,11 @@
             }
             return o;
         }
+        /* ⚡ 마지막으로 읽은 목록 (드라이브를 기다리지 않고 바로 그려요 · 그 뒤 새로 읽어 바뀐 게 있으면 다시 그려요 · 도련 10-25) */
+        function ownPeek() {
+            if (!ownMode() || !O.idx || O.kw !== ownWho()) return null;
+            return { list: O.idx, album: O.album || ownAlbumClean(null, O.idx) };
+        }
         async function ownAlbumGet(force) { await ownList(force); return O.album || ownAlbumClean(null, O.idx); }
         /* 스티커첩 고치기 : fn(album, list) 이 album 을 고쳐요 (차례대로 · 드라이브의 지금 모습 위에) */
         async function ownAlbum(fn) {
@@ -396,4 +401,4 @@
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q;
         window.ownOnChange = ownOnChange; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownRelMove = ownRelMove; window.ownSheetImgs = ownSheetImgs; window.OWN_REL_MAX = OWN_REL_MAX;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownRelMove = ownRelMove; window.ownSheetImgs = ownSheetImgs; window.OWN_REL_MAX = OWN_REL_MAX;

@@ -134,6 +134,13 @@
                 if (!res.ok) throw new Error('server');
                 const d = await res.json();
                 if (!d || !Array.isArray(d.images)) throw new Error('server');
+                try { localStorage.setItem(KIT_LS, JSON.stringify(d)); } catch (e) {}   // ⚡ 다음에 켤 때 바로 (진열대가 빨리 열려요 · 도련 10-25)
+                return kitParse(d);
+            } finally { clearTimeout(timer); }
+        }
+        const KIT_LS = 'malang_kit_list';
+        function kitParse(d) {
+            {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
                 const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, 30).map(kitUrl);
                 const kits = {};
@@ -146,24 +153,30 @@
                     sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && { c: String(x.c || ''), us: us(x.fs) }).filter(x => x && x.us.length),
                     kits
                 };
-            } finally { clearTimeout(timer); }
+            }
         }
+        function kitCached() { try { const d = JSON.parse(localStorage.getItem(KIT_LS) || 'null'); return d && Array.isArray(d.images) ? kitParse(d) : null; } catch (e) { return null; } }
         /* 기본스티커 목록 (앱을 켠 동안 한 번) : { images, sheets, kits }
            실패하면 받을 때까지 5초마다 알아서 다시 해요 (js/drive.js keepTrying · 창을 닫아도 뒤에서 계속)
            씰 · 포인트 · 조각 · 모조지스티커 · 테이프 · 메모지 · 떡메 · 속지 창이 모두 이 목록 하나를 같이 기다려요 */
         let basicKitP = null, basicKitTry = 0;
-        async function basicKitLoop() {
+        async function basicKitLoop(keep) {
             basicKitTry = 1;
             try {
                 return await keepTrying(fetchLibraryList, {
                     stop: e => e && e.message === 'setup',                     // 서버 주소가 없으면 기다려도 소용없어요
                     onTry: n => { basicKitTry = n; document.dispatchEvent(new CustomEvent('basickit-retry', { detail: { n: n - 1 } })); }
                 });
-            } catch (e) { basicKitP = null; throw e; }
+            } catch (e) { if (!keep) basicKitP = null; throw e; }
             finally { basicKitTry = 0; }
         }
+        /* ⚡ 지난번 목록이 있으면 그걸로 바로 열고 · 새 목록은 뒤에서 받아 다음부터 써요 */
         function basicKit(force) {
-            if (!basicKitP || (force && !basicKitTry)) basicKitP = basicKitLoop();
+            if (!basicKitP || (force && !basicKitTry)) {
+                const c = !force && kitCached();
+                if (c) { basicKitP = Promise.resolve(c); basicKitLoop(true).then(v => { basicKitP = Promise.resolve(v); }).catch(() => {}); }
+                else basicKitP = basicKitLoop();
+            }
             return basicKitP;
         }
         window.basicKit = basicKit; window.kitSize = kitSize; window.kitName = libCatName;
