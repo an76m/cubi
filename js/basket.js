@@ -75,12 +75,10 @@
         if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 바구니를 쓸 수 있어요.'); return; }
         /* ⚡ 먼저 : 마지막으로 읽은 목록으로 바로 그려요 (드라이브를 기다리지 않게) → 그다음 새로 읽어 달라졌을 때만 다시 그려요 */
         const peek = force && window.ownPeek ? ownPeek() : null;
-        const T = { t0: performance.now(), peek: !!peek }; window.OWN_T = null;   // ⏱ 시험용 시간 재기 (bkTime · 원인 찾으면 지워요)
         if (peek) { B.all = peek.list.slice(); B.album = JSON.parse(JSON.stringify(peek.album)); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
         else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
         try {
             const got = window.ownOpen ? await ownOpen(force) : { list: await ownList(force), album: { bd: [], rl: [], g: {} } };   // 목록 · 스티커첩을 동시에
-            T.open = performance.now();
             B.all = got.list.slice();
             B.album = JSON.parse(JSON.stringify(got.album));
             abReapply();                                                        // 아직 저장 안 된 정리는 그 위에 다시 (화면이 되돌아가지 않게)
@@ -90,24 +88,11 @@
             wrap.innerHTML = bkMsg('⚠ 바구니를 열지 못했어요.<br>' + ownErrText(e), '<button type="button" class="btn bk-again" onclick="bkRender(true)">🔄 다시 열기</button>'); return;
         }
         const sig = bkSig();
-        if (sig === B.sig && wrap.querySelector('.ab-body')) { bkTime(T, wrap); return; }   // 그대로면 다시 그리지 않아요 (깜빡이지 않게)
+        if (sig === B.sig && wrap.querySelector('.ab-body')) return;            // 그대로면 다시 그리지 않아요 (깜빡이지 않게)
         B.sig = sig;
         abSplit();
         if (B.drag || AB.drag) return;                                          // 끄는 중에는 다시 그리지 않아요 (놓으면 그려요)
         bkView();
-        bkTime(T, wrap);
-    }
-    /* ⏱ 시험용 (도련 10-25 · '바구니를 여는 중' 이 오래 걸려요 · 어디서 걸리는지) : 드라이브 폴더 찾기 · 파일 찾기 · 목록/스티커첩 읽기(받기+풀기) · 그리기 · 그림 · 원인 찾으면 지워요 */
-    function bkTime(T, wrap) {
-        const drawn = performance.now(), O2 = window.OWN_T || {};
-        const imgs = [...wrap.querySelectorAll('img')].filter(i => !i.complete);
-        Promise.race([Promise.all(imgs.map(im => new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }))), new Promise(r => setTimeout(r, 15000))]).then(() => {
-            const s = (a, b) => a && b ? ((b - a) / 1000).toFixed(1) + '초' : '-', end = performance.now(), kb = n => n ? Math.round(n / 1024) + 'KB' : '-';
-            let d = document.getElementById('shTimeBox');
-            if (!d) { d = document.createElement('div'); d.id = 'shTimeBox'; d.onclick = () => d.remove(); document.body.appendChild(d); }
-            d.innerHTML = `<b>⏱ 시험용 바구니 시간 (톡 = 닫기)</b>${T.peek ? '기억한 목록으로 먼저 그림<br>' : ''}${O2.fast ? '⚡ 기억한 파일 번호로 바로 읽음<br>' : ''}앞 작업 기다림 ${s(O2.q, O2.s)}<br>폴더 찾기 ${s(O2.s, O2.dir)}<br>파일 찾기 ${s(O2.dir, O2.find)}<br>목록 읽기 ${s(O2.find, O2.idx)} (${kb(O2.sz && O2.sz[0])})<br>스티커첩 읽기 ${s(O2.find, O2.alb)} (${kb(O2.sz && O2.sz[1])})<br>여는 중 합계 ${s(T.t0, T.open)}<br>그리기 ${s(T.open, drawn)}<br>그림 ${imgs.length}장 ${s(drawn, end)}<br><b>합계 ${s(T.t0, end)}</b>`;
-            clearTimeout(d._t); d._t = setTimeout(() => d.remove(), 30000);
-        });
     }
     const bkSig = () => { try { return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album]); } catch (e) { return String(Math.random()); } };
     /* (바구니 미리 읽기 bkWarm 도 지웠어요 · 도련 10-25 → 처음 열 때 한 번 읽고, 그다음부터는 기억한 목록으로 바로 그려요) */
