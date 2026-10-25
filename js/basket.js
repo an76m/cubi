@@ -739,24 +739,11 @@
         openModal('shelfModal');
     }
     /* 그 종류의 진열대 창 */
-    /* ⏱ 시험용 (도련 10-25 · 진열대가 다시 켠 뒤 처음 열 때 3초쯤 · 어디서 걸리는지 찾기) : 목록 받기 · 진열대 만들기 · 첫 쪽 그림 다 뜰 때까지 · 원인 찾으면 이 함수와 T 줄을 지워요 */
     function shPicsReady(box) {                                              // 지금 쪽 그림(묶음 미리보기 포함)이 다 뜰 때까지 (최대 8초)
         const urls = [...box.querySelectorAll('img')].map(i => i.complete ? null : i).filter(Boolean), pv = [...new Set([...box.querySelectorAll('svg.sh-pv image')].map(i => i.getAttribute('href')))];
         const wait = urls.map(im => new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }))
             .concat(pv.map(u => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = u; })));
         return Promise.race([Promise.all(wait), new Promise(r => setTimeout(r, 8000))]);
-    }
-    function shTime(T, box, seq) {
-        const imgs = [...box.querySelectorAll('img')].concat([...new Set([...box.querySelectorAll('svg.sh-pv image')].map(i => i.getAttribute('href')))].map(u => { const im = new Image(); im.src = u; return im; })), drawn = performance.now();   // 🖼️ 묶음 미리보기 파일도 셈
-        const wait = imgs.map(im => im.complete ? 0 : new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }));
-        Promise.race([Promise.all(wait), new Promise(r => setTimeout(r, 15000))]).then(() => {
-            if (seq !== SH.seq) return;
-            const s = (a, b) => ((b - a) / 1000).toFixed(1) + '초', end = performance.now();
-            let d = document.getElementById('shTimeBox');
-            if (!d) { d = document.createElement('div'); d.id = 'shTimeBox'; d.onclick = () => d.remove(); document.body.appendChild(d); }
-            d.innerHTML = `<b>⏱ 시험용 시간 (톡 = 닫기)</b>${T.mem ? '기억해 둔 진열대 (목록 · 만들기 건너뜀)<br>' : `목록 받기 ${s(T.t0, T.list)}<br>진열대 만들기 ${s(T.list, T.build)}<br>`}화면 그리기 ${s(T.build, drawn)}<br>첫 쪽 그림 ${imgs.length}장 ${s(drawn, end)}<br><b>합계 ${s(T.t0, end)}</b>`;
-            clearTimeout(d._t); d._t = setTimeout(() => d.remove(), 20000);
-        });
     }
     async function shOpenKind(k) {
         const K = SH_KINDS[k]; if (!K) return;
@@ -766,13 +753,11 @@
         const seq = ++SH.seq;
         box.scrollTop = 0;
         if (!SH.cache[k]) box.innerHTML = bkMsg('기본 스티커 진열대를 채우는 중…');
-        const T = { t0: performance.now(), mem: !!SH.cache[k] }; { const o = document.getElementById('shTimeBox'); if (o) o.remove(); }                  // ⏱ 시험용 시간 재기 (shTime · 원인 찾으면 지워요)
         let items = [];
-        try { if (!T.mem && window.basicKit) { await basicKit(); } T.list = performance.now(); items = await shItems(k); T.build = performance.now(); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 기본 스티커 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
+        try { items = await shItems(k); } catch (e) { console.warn(e); if (seq === SH.seq) box.innerHTML = bkMsg('⚠ 기본 스티커 진열대를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.', `<button type="button" class="btn bk-again" onclick="shOpenKind('${k}')">🔄 다시 불러오기</button>`); return; }
         if (seq !== SH.seq) return;                                              // 그사이 다른 종류를 열었어요
         SH.items = items;
         shDraw(k);
-        shTime(T, box, seq);
         if (SH_LATE[k] && !items.late) shPicsReady(box).then(() => seq === SH.seq ? shLate(k) : null).then(() => { if (seq !== SH.seq) return; if (SH.zoom < 0) shDraw(k); else SH.redraw = true; }).catch(e => console.warn(e));   // 뒤에 붙는 상품   // 제가 그린 씰 종이는 첫 쪽 그림이 다 뜬 뒤에 (같이 그리면 첫 쪽이 늦게 떠요 · 도련 10-25)
     }
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
