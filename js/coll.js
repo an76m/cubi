@@ -398,13 +398,18 @@
         }
 
         /* ---------- 로그인할 때 (js/drive.js loadFromDrive) ---------- */
-        async function collLogin() {
+        /* 지금 계정 (드라이브 permissionId) · 🔐 배치.json 을 열기 전에 먼저 (js/drive.js loadFromDrive) */
+        async function collWhoami() {
             let who = 'me';
             try {
                 const res = await gfetch('https://www.googleapis.com/drive/v3/about?fields=user(permissionId)');
                 if (res.ok) who = ((await res.json()).user || {}).permissionId || who;
             } catch (e) {}
             if (who !== COLL.who) { COLL.map.clear(); COLL.who = who; }
+            return who;
+        }
+        async function collLogin() {
+            if (!COLL.who || COLL.who === 'guest') await collWhoami();
             for (const fn of COLL.loginHooks) { try { await fn(); } catch (e) { console.warn('모음 준비 실패:', e); } }
             setTimeout(collPump, 1500);
         }
@@ -502,7 +507,7 @@
         window.stkColl = stkColl; window.collHash = collHash;
         window.collOf = collOf; window.collAdd = collAdd; window.collSet = collSet; window.collRemove = collRemove; window.collItem = collItem;
         window.collAll = collAll; window.collEnt = collEnt; window.collGrid = collGrid; window.collThumb = collThumb; window.collNewId = collNewId;
-        window.collLogin = collLogin; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
+        window.collLogin = collLogin; window.collWhoami = collWhoami; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['coll'] = true;

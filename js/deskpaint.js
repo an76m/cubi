@@ -3,7 +3,7 @@
    - 소품 그림(PNG 투명한 곳 = 마스크) 안에서만 칠해져요 : 🖌 붓 (색 · 굵기) · 🧽 지우개 (이번에 칠한 것만) · 🖼 이미지 (내 컴퓨터 그림을 올려 크기 · 회전 · 위치 → 📌 붙이기)
    - 외곽선(어두운 선)은 칠 위에 그대로 다시 얹어서 진짜 칠한 것처럼 보여요
    - ✓ 완료 = 칠한 모습을 그림 한 장으로 합쳐 그 소품의 원래 파일에 덮어써요 (되돌리기 없음 · 현실처럼 · 도련 10-27)
-       종류 폴더 / 받은-<c>.json 의 item.img · 🎁 기본세트 소품은 처음 칠할 때 선물.json 에서 빠져 종류 폴더에 자기 파일이 생겨요
+       종류 폴더 / 받은-<c>.json 의 item = 🔐 { s: 암호 } → 열면 { u, id, from, img } (스티커처럼 계정마다 다른 열쇠) · 🎁 기본세트 소품은 처음 칠할 때 선물.json 에서 빠져 종류 폴더에 자기 파일이 생겨요
        목록(배치.json)에는 p: 1 (칠함) 만 · 그림은 그 파일에서 읽어요 (js/desk.js dkArtLoad)
    - 꾸미는 중(🛠 확정 전)이어도 완료하면 바로 저장돼요 (취소해도 칠한 것은 남아요) */
 
@@ -135,10 +135,13 @@
         /* 저장 : 그 소품의 종류 폴더 파일에 덮어쓰기 (🎁 선물이면 처음 한 번 선물.json 에서 빼고 파일 만들기) */
         async function dpSave(o, url) {
             const C = dkColl(o.id); if (!C) throw new Error('coll');
-            const gift = !!o.g, item = { id: o.id, from: gift ? 'gift' : 'basic', img: url, painted: Date.now() };
+            const gift = !!o.g;
             DK.art[o.u] = url; dkArtPaint(o.u);
-            if (o.c && !gift) await collSet(C, o.c, item, '', { id: o.id });
-            else { delete o.g; o.c = await collAdd(C, item, '', { id: o.id }); }
+            if (o.c && !gift) {                                                   // 그림만 바꾸고 나머지(받은 곳 · 나중에 붙을 정보)는 그대로 · 🔐 다시 암호화
+                let old = null; try { old = await dkUnseal(await collItem(C, o.c)); } catch (e) { console.warn(e); }
+                const item = Object.assign({}, old && old.u === o.u ? old : { u: o.u, id: o.id, from: 'basic' }, { img: url, painted: Date.now() });
+                await collSet(C, o.c, await dkSeal(item), '', { id: o.id });
+            } else { delete o.g; o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: 'gift', img: url, painted: Date.now() }), '', { id: o.id }); }
             o.p = 1;
             dkPersist(o);
             if (gift) giftWrite();

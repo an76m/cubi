@@ -1476,14 +1476,14 @@
                   종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
            마지막 하나 남은 것 · 페이지에 꺼내 둔 것은 못 버려요 */
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
-        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string') : null; };
+        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string' && !seen.has(o.id) && seen.add(o.id)) : null; };   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
         const gdColl = id => { const g = cabGOf(id); return typeof collOf === 'function' && GD_DIRS[g] ? collOf(dirPath(GD_DIRS[g]), '받은-') : null; };
         const gdAdding = new Set();                                            // 파일을 만드는 중인 디자인 (두 번 만들지 않게)
         async function gdFileAdd(o, from) {
             const C = gdColl(o.id); if (!C || o.c || gdAdding.has(o.id)) return;
             gdAdding.add(o.id);
-            try { o.c = await collAdd(C, { id: o.id, from }, '', { id: o.id }); } catch (e) { console.warn('문구 파일', e); }
+            try { o.c = await collAdd(C, { s: await ownLock({ u: o.id, id: o.id, from }) }, '', { id: o.id }); } catch (e) { console.warn('문구 파일', e); }   // 🔐 스티커처럼 암호화 (문구는 디자인마다 하나 = 고유 번호도 디자인 id)
             finally { gdAdding.delete(o.id); }
         }
         let gdFiling = false;

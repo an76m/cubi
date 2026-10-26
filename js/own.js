@@ -52,23 +52,29 @@
             O.key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
             return O.key;
         }
+        const OWN_KEYS = new Map();                                          // 계정을 정해서 열 때 (🔐 배치.json 은 로그인하는 중에 열어요 · 아직 구경 모드일 때도 그 계정 열쇠로)
+        async function ownKeyOf(who) {
+            if (!who) return ownKey();
+            if (!OWN_KEYS.has(who)) OWN_KEYS.set(who, crypto.subtle.digest('SHA-256', ownEnc(OWN_SALT + '|' + who)).then(raw => crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt'])));
+            return OWN_KEYS.get(who);
+        }
         const ownZip = async (b, how) => new Uint8Array(await new Response(new Blob([b]).stream().pipeThrough(how)).arrayBuffer());
         const ownB64 = u8 => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).slice(String(r.result).indexOf(',') + 1)); r.onerror = no; r.readAsDataURL(new Blob([u8])); });
         function ownUnB64(s) { const t = atob(s), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; }
-        async function ownLock(obj) {
+        async function ownLock(obj, who) {
             let b = ownEnc(JSON.stringify(obj)), z = 0;
             if (window.CompressionStream) { b = await ownZip(b, new CompressionStream('gzip')); z = 1; }
             const iv = crypto.getRandomValues(new Uint8Array(12));
-            const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await ownKey(), b));
+            const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await ownKeyOf(who), b));
             const out = new Uint8Array(13 + ct.length); out[0] = z; out.set(iv, 1); out.set(ct, 13);
             return JSON.stringify({ v: 1, d: await ownB64(out) });
         }
-        async function ownUnlock(text) {
+        async function ownUnlock(text, who) {
             let o; try { o = JSON.parse(text); } catch (e) { o = null; }
             if (!o || typeof o.d !== 'string') { const er = new Error('corrupt'); er.code = 'corrupt'; throw er; }
             const u = ownUnB64(o.d);
             let b;
-            try { b = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u.slice(1, 13) }, await ownKey(), u.slice(13))); }
+            try { b = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u.slice(1, 13) }, await ownKeyOf(who), u.slice(13))); }
             catch (e) { const er = new Error('locked'); er.code = 'corrupt'; throw er; }   // 다른 계정 열쇠 · 깨진 파일 → 절대 덮어쓰지 않아요
             if (u[0]) b = await ownZip(b, new DecompressionStream('gzip'));
             return JSON.parse(ownDec(b));

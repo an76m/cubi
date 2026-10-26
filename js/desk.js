@@ -55,17 +55,22 @@
         const dkStarter = () => DESK_ITEMS.map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {})) : dkStarter();
+            const seenU = new Set();
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {})) : dkStarter();
             DK.fresh = !Array.isArray(v);                                         // 아직 목록이 없어요 → 🎁 기본세트 (드라이브를 읽은 뒤 giftEnsure)
             DK.items = L; DK.seen = JSON.stringify(L);
         }
         /* 🗂 종류 폴더 파일 (js/coll.js) */
         const dkColl = id => { const c = dkCat(id); return typeof collOf === 'function' && c && typeof DESK_DIRS !== 'undefined' ? collOf(dirPath(DESK_DIRS[c.kind]), '받은-') : null; };
         const dkAdding = new Set();                                                // 파일을 만드는 중인 소품 u (두 번 만들지 않게)
+        /* 🔐 종류 폴더 파일 내용 · 선물.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js)
+              파일 안에 고유 번호 u · 목록(배치.json · 암호화)에 있는 u 만 내 것 · 같은 u 는 하나만 */
+        const dkSeal = async o => ({ s: await ownLock(o) });
+        const dkUnseal = async it => it && typeof it.s === 'string' ? ownUnlock(it.s) : null;
         async function dkFileAdd(o, from) {
             const C = dkColl(o.id); if (!C || o.c || dkAdding.has(o.u)) return;
             dkAdding.add(o.u);
-            try { o.c = await collAdd(C, { id: o.id, from }, '', { id: o.id }); const cur = DK.items.find(x => x.u === o.u); if (cur) cur.c = o.c; }   // 그사이 목록을 다시 읽었어도 그 소품에
+            try { o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from }), '', { id: o.id }); const cur = DK.items.find(x => x.u === o.u); if (cur) cur.c = o.c; }   // 그사이 목록을 다시 읽었어도 그 소품에
             catch (e) { console.warn('소품 파일', e); }
             finally { dkAdding.delete(o.u); }
         }
@@ -84,7 +89,7 @@
                 try {
                     const b = giftBody(), dir = await getFolder(dirPath(DIRS.starter), true), cur = await findFile(dir, GIFT_NAME);
                     if (!b.desk.length && !b.gd.length) { if (cur) await driveTrash(cur.id); }
-                    else await driveUpsert(dir, GIFT_NAME, cur && cur.id, JSON.stringify(b));
+                    else await driveUpsert(dir, GIFT_NAME, cur && cur.id, await ownLock(b));   // 🔐
                     giftLate = false;
                 } catch (e) { console.warn('기본세트', e); giftLate = true; }
             });
@@ -93,13 +98,14 @@
         async function giftRead() {
             const dir = await getFolder(dirPath(DIRS.starter), false), f = dir && await findFile(dir, GIFT_NAME);
             if (!f) return null;
-            try { const o = JSON.parse(await readFileText(f.id) || 'null'); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }
+            const o = await ownUnlock(await readFileText(f.id));                  // 🔐 못 열면 에러 → 선물을 다시 주지 않아요
+            return o && typeof o === 'object' ? o : null;
         }
         /* 드라이브를 읽은 뒤 : 소품 · 문구 목록이 아직 없으면 → 선물.json 이 있으면 되살리고 · 없으면 처음 선물 (책상 소품 모두 + 문구 모두) */
         let giftBusy = false;
         async function giftEnsure() {
             const gdNull = window.gdOwnList ? gdOwnList() === null : false;
-            if (giftBusy || DK.edit || typeof drive === 'undefined' || !drive.ready || (!DK.fresh && !gdNull)) { if (giftLate) giftWrite(); return; }
+            if (giftBusy || DK.edit || typeof drive === 'undefined' || !drive.ready || drive.deskLocked || (!DK.fresh && !gdNull)) { if (giftLate) giftWrite(); return; }   // 🔐 배치.json 을 못 열었으면 선물을 다시 주지 않아요
             giftBusy = true;
             try {
                 let had = null; if (giftOn()) { try { had = await giftRead(); } catch (e) { console.warn('기본세트', e); return; } }   // 못 읽으면 다음에 (선물을 두 번 주지 않게)
@@ -236,7 +242,7 @@
         async function dkArtLoad(o) {
             if (!o.p || !o.c || DK.art[o.u]) { if (DK.art[o.u]) dkArtPaint(o.u); return; }
             const C = dkColl(o.id); if (!C) return;
-            try { const it = await collItem(C, o.c); if (it && typeof it.img === 'string') { DK.art[o.u] = it.img; dkArtPaint(o.u); } } catch (e) { console.warn('칠한 소품', e); }
+            try { const it = await dkUnseal(await collItem(C, o.c)); if (it && it.u === o.u && typeof it.img === 'string') { DK.art[o.u] = it.img; dkArtPaint(o.u); } } catch (e) { console.warn('칠한 소품', e); }   // 다른 소품 파일(u 가 다름)이면 안 써요
         }
         /* 🛠 꾸미는 중에도 바로 저장해야 하는 것 (칠하기 · 받기) : 취소해도 남게 들어오기 전 모습에도 같이 넣어요 */
         function dkPersist(it) {

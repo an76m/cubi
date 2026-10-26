@@ -440,8 +440,16 @@
             const f = dir && await findFile(dir, F.name);
             if (!f) return null;
             drive[F.prop] = f;
-            return parseJsonObject(await readFileText(f.id), which);
+            return parseJsonObject(await keyFileText(which, f.id), which);
         }
+        /* 🔐 책상배치 / 배치.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js ownLock / ownUnlock)
+           못 열면 (다른 계정 · 깨짐) 읽기 실패 → 아무것도 바꾸지 않고 덮어쓰지도 않아요 */
+        async function keyFileText(which, id) {
+            const t = await readFileText(id);
+            if (which !== 'desk' || !t.trim()) return t;
+            try { return JSON.stringify(await ownUnlock(t, COLL.who)); } catch (e) { throw corruptError(which); }
+        }
+        const keyFileSeal = async (which, body) => which === 'desk' ? ownLock(JSON.parse(body), COLL.who) : body;
 
         /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 일기기본 · 📕 장 · 다이어리.json : 일기노트 · 일기바인더 안 그 권 것만) */
         function idxOfKey(key, create) {
@@ -569,7 +577,11 @@
         async function loadFromDrive() {
             resetDriveCaches(); drive.rootId = null;
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
-            const [settings, cafe, desk] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe'), fetchKeyFile('desk')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
+            const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
+            if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
+            let desk = null; drive.deskLocked = false;
+            try { desk = await fetchKeyFile('desk'); }
+            catch (e) { if (e && e.type === 'corrupt') drive.deskLocked = true; else throw e; }   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 책상은 처음 모습만 보여 주고 · 그 파일은 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();
@@ -583,6 +595,7 @@
             drive.needAuth = false; drive.error = false; drive.full = false;
             lastRemoteCheck = Date.now();
             applyLoadedData();
+            if (drive.deskLocked) showMsg('🔐 책상 정보(책상배치 / 배치.json)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>');
             updateBadge();
             prefetchInitial();                             // 기다리지 않고 백그라운드로 3일치 미리 읽기
         }
@@ -640,7 +653,7 @@
         /* 다른 기기가 고친 설정 파일 내용을 지금 메모리에 합치기
            mine : 이 기기에서 고쳤는데 아직 못 올린 키 → 그건 내 것 그대로 · 나머지는 드라이브 것으로 */
         async function mergeKeyFile(which, cur, mine) {
-            const obj = parseJsonObject(await readFileText(cur.id), which) || {};
+            const obj = parseJsonObject(await keyFileText(which, cur.id), which) || {};
             const keep = k => mine.has(k) || drive.dirtyKeys.has(k);
             let changed = false;
             Object.keys(obj).forEach(k => {
@@ -752,19 +765,20 @@
         /* 설정.json · 카페.json 올리기 : 덮어쓰기 전에 드라이브 파일이 바뀌었는지 보고, 바뀌었으면 합친 뒤에 */
         async function writeKeyFile(which, mine) {
             const F = KEY_FILES[which];
+            if (which === 'desk' && drive.deskLocked) return;                   // 🔐 못 연 배치.json 은 덮어쓰지 않아요
             const dir = await getFolder(F.path, true);
             const known = drive[F.prop];
             let cur = known ? await driveMeta(known.id) : null;
             if (!cur) cur = await findFile(dir, F.name);                              // 처음이거나 지워졌으면 이름으로 한 번 더 찾기
             if (cur && (!known || cur.id !== known.id || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, mine);
             let body = settingsBody(which);
-            let saved = await driveUpsert(dir, F.name, cur && cur.id, body);
+            let saved = await driveUpsert(dir, F.name, cur && cur.id, await keyFileSeal(which, body));
             if (!cur) {                                                             // 📄📄 다른 기기가 거의 동시에 같은 파일을 먼저 만들었으면 : 그 파일에 합쳐서 하나로
                 const first = await findFile(dir, F.name);
                 if (first && first.id !== saved.id) {
                     await mergeKeyFile(which, first, mine);
                     body = settingsBody(which);
-                    const fin = await driveUpsert(dir, F.name, first.id, body);
+                    const fin = await driveUpsert(dir, F.name, first.id, await keyFileSeal(which, body));
                     await driveTrash(saved.id);
                     saved = fin;
                 }
@@ -1446,6 +1460,7 @@
                 for (const which of Object.keys(KEY_FILES)) {
                     const F = KEY_FILES[which], known = drive[F.prop];
                     if (Array.from(drive.dirtyKeys).some(k => !isOwnFile(k) && keyFile(k) === which)) continue;   // 올릴 때 합쳐요
+                    if (which === 'desk' && drive.deskLocked) continue;
                     const dir = await getFolder(F.path, false);
                     const cur = dir && (known && await driveMeta(known.id) || await findFile(dir, F.name));
                     if (gen !== drive.gen) return;
