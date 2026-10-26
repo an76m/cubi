@@ -994,7 +994,8 @@
         function showGate(state, msg) {
             const g = document.getElementById('driveGate'), c = g.querySelector('.gate-card'), m = document.getElementById('gateMsg');
             if (!m) return;
-            g.style.display = 'flex';
+            g.style.display = 'flex'; g.classList.remove('leave');
+            if (state === 'login') gateOpened = false;                              // 🚪 로그인 화면을 봤으면 닫힐 때 문이 열려요
             msg = String(msg || '').replace(/^\s*☁\s*/, '');                    // 🎀 구름 글자 대신 하트 세 개가 기다려 줘요
             if (g.dataset.state !== state || m.innerHTML !== msg) { c.classList.remove('gate-swap'); void c.offsetWidth; c.classList.add('gate-swap'); }   // 같은 카드 안에서 스르륵 바뀌어요
             g.dataset.state = state;
@@ -1005,7 +1006,21 @@
             requestAnimationFrame(gateFit);
         }
 
-        function hideGate() { document.getElementById('driveGate').style.display = 'none'; }
+        /* 🚪 → 🪑 (도련 10-26) : 💻 PC · 아이패드 = 로그인하면 문 쪽으로 다가가며 빛 → 빈 책상 위에 다이어리 (📱 폰은 지금 그대로)
+           - 앱을 켜고 처음 한 번만 (백업 · 불러오기 진행 표시로 덮개를 다시 쓸 때는 그냥 닫혀요)
+           - 폰 / 넓은 화면 = 화면의 짧은 쪽 600px (폰은 가로로 돌려도 폰) */
+        let gateOpened = false;                                                  // showGate 보다 먼저 (처음 켤 때 'wait' → 자동 로그인도 문이 열려요)
+        const deskWide = () => Math.min(innerWidth, innerHeight) >= 600;
+        function deskSync() { document.documentElement.classList.toggle('desk-on', deskWide()); }
+        function hideGate() {
+            const g = document.getElementById('driveGate');
+            if (gateOpened || !deskWide() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
+            gateOpened = true;
+            g.classList.add('leave');
+            setTimeout(() => { const d = document.getElementById('deskBg'); if (d) { d.classList.remove('in'); void d.offsetWidth; d.classList.add('in'); } }, 1500);
+            setTimeout(() => { if (!g.classList.contains('leave')) return; g.classList.remove('leave'); g.style.display = 'none'; }, 2250);
+        }
+        window.addEventListener('resize', deskSync); deskSync();
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
            그림은 화면을 꽉 채우고(cover) · 알림판 자리(그림 픽셀)를 화면 자리로 바꿔 카드 가운데를 맞추고 · 카드가 타원 안에 들어가게 줄여요 */
         const GATE_ART = {                                                      // ob : 레이스까지 포함한 알림판 바깥 (그림 픽셀) · 화면에 다 보이는 만큼 그림을 키워요 (커튼은 반쯤 잘려도 돼요 · 도련 10-26)
@@ -1021,7 +1036,7 @@
             const bx = Math.min(0, Math.max(W - A.w * s, W / 2 - A.cx * s)), by = Math.min(0, Math.max(H - A.h * s, H - A.bot * s));   // ↔ 알림판은 가로 가운데 · ↕ 그림 위(커튼)부터 · 알림판 아래가 잘리면 그만큼만 올려요
             g.style.backgroundSize = `${A.w * s}px ${A.h * s}px`; g.style.backgroundPosition = `${bx}px ${by}px`;
             const ow = A.ow * s, oh = A.oh * s;
-            c.style.left = (bx + A.cx * s) + 'px'; c.style.top = (by + A.cy * s) + 'px';
+            c.style.left = (bx + A.cx * s) + 'px'; c.style.top = (by + A.cy * s) + 'px'; g.style.transformOrigin = `${bx + A.cx * s}px ${by + (A.cy + 40) * s}px`;   // 🚪 문 열 때 다가가는 곳 (알림판 조금 아래 = 문 가운데)
             c.style.setProperty('--gs', 1);
             const cw = c.offsetWidth, ch = c.offsetHeight; if (!cw || !ch) return;
             const k = Math.min(1.8, Math.sqrt(1.25 / ((cw / ow) ** 2 + (ch / oh) ** 2)));   // 알림판 끝에 닿을 만큼 크게 (네모 카드의 모서리 = 타원 둘레)

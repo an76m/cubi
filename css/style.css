@@ -4450,3 +4450,17 @@ body.cafe-on .dg-note { visibility: hidden; }
     .gate-art .gate-card { width: 270px; gap: 8px; }
     .gate-art .gate-card > .gate-pick { width: 270px; max-width: 270px; }
 }
+
+/* 🪑 책상 배경 + 🚪 문 열기 (도련 10-26 · 💻 PC · 아이패드만 · html.desk-on = 화면 짧은 쪽 600px 이상 · js/drive.js deskSync · hideGate)
+   책상 = img/desk-wide.webp (연한 핑크 픽셀 4px · 빈 책상과 벽) · 나중에 소품을 올려요 · 지금은 배경 무늬 대신 책상이 보여요 */
+.desk-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background: #fadfe8 url(../img/desk-wide.webp) center bottom / cover no-repeat; image-rendering: pixelated; transform-origin: 50% 60%; }
+html.desk-on .desk-bg { display: block; }
+html.desk-on .bg-pattern-layer { display: none; }
+.desk-bg.in { animation: deskIn 1.4s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes deskIn { from { transform: scale(1.12); } }
+.drive-gate::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #fff 0, #fff4f8 25%, #ffe3ee 55%, rgba(255, 227, 238, 0) 80%); }
+.drive-gate.leave { pointer-events: none; animation: gateKnob .28s ease .15s, gateFade .75s ease 1.5s forwards; transition: transform 1.3s cubic-bezier(.4, 0, .8, .5) .45s, filter 1.3s ease .45s; transform: scale(2.4); filter: brightness(1.25); }
+.drive-gate.leave .gate-card { transition: opacity .35s ease, translate .35s ease; opacity: 0; translate: -50% calc(-50% - 10px); }
+.drive-gate.leave::after { transition: opacity .8s ease .8s; opacity: 1; }
+@keyframes gateKnob { 30% { translate: 2px 0; } 60% { translate: -2px 0; } }
+@keyframes gateFade { to { opacity: 0; } }
