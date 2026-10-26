@@ -22,10 +22,12 @@
             { id: 'pencup', src: 'img/desk/pencup.webp', w: 100, h: 155, x: 840, y: 531, name: '연필꽂이' },
             { id: 'bookbox', src: 'img/desk/bookbox.webp', w: 200, h: 154, x: 230, y: 357, name: '책 상자' },
             { id: 'magfile', src: 'img/desk/magfile.webp', w: 130, h: 332, x: 1080, y: 429, name: '파일꽂이' },
+            { id: 'clock', src: 'img/desk/clock.webp', w: 96, h: 118, x: 1316, y: 414, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
+            { id: 'dclock', src: 'img/desk/dclock.webp', w: 130, h: 82, x: 300, y: 228, name: '디지털 시계', lcd: [12, 18.9, 87.9, 71.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
             { id: 'drawer', src: 'img/desk/drawer.webp', w: 230, h: 247, x: 1250, y: 514, name: '서랍장', surf: [[18, 6, 224]] }
         ];
         const dkDef = el => DESK_ITEMS.find(d => d.id === el.dataset.id) || {};
-        const DK_POS = 'malang_desk_pos4', DK_SNAP = 'malang_desk_snap';
+        const DK_POS = 'malang_desk_pos5', DK_SNAP = 'malang_desk_snap';
         const dkGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
         const dkSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
         const DK = { s: 1, sel: null, snap: dkGet(DK_SNAP, true) };
@@ -34,10 +36,10 @@
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             const pos = dkGet(DK_POS, {});
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp" alt="" draggable="false">
-                ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return `<img class="desk-item${it.wall ? ' wall' : ''}" data-id="${it.id}" src="${it.src}" alt="${it.name}" draggable="false" style="left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px">`; }).join('')}
+                ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return deskItemHtml(it, p); }).join('')}
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"><button type="button" class="desk-snap" onclick="deskSnapToggle()"></button></div></div>`;
-            bg.querySelectorAll('.desk-item').forEach(deskWire); deskZAll();
+            bg.querySelectorAll('.desk-item').forEach(deskWire); deskZAll(); deskTick();
             deskTipPaint(); deskFit();
         }
         /* 물건을 올릴 수 있는 면들 (화면에 있는 소품 기준 · 그림 px) */
@@ -66,6 +68,28 @@
             items.forEach(el => { el.style.zIndex = get(el, 0); });
         }
         const deskZ = () => deskZAll();
+        function deskItemHtml(it, p) {
+            const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '');
+            let over = '';
+            if (it.clock) {                                                         // 🕰 바늘 (지금 시각 · deskTick)
+                const c = it.clock, d = c.r * 2, hh = d * it.w / it.h;
+                over = `<svg class="dk-hands" viewBox="-50 -50 100 100" aria-hidden="true" style="left:${c.cx}%;top:${c.cy}%;width:${d}%;height:${hh}%"><line class="hr" x1="0" y1="6" x2="0" y2="-24"/><line class="mn" x1="0" y1="8" x2="0" y2="-38"/><line class="sc" x1="0" y1="10" x2="0" y2="-41"/><circle r="4.5"/></svg>`;
+            }
+            if (it.lcd) { const [l, t, r, b] = it.lcd; over = `<span class="dk-lcd" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b></span>`; }
+            return `<div class="${cls}" data-id="${it.id}" role="img" aria-label="${it.name}" style="${st}"><img src="${it.src}" alt="" draggable="false">${over}</div>`;
+        }
+        /* 🕰 ⏰ 시계는 지금 시각 (1초마다 · 책상이 보일 때만) */
+        function deskTick() {
+            if (!document.documentElement.classList.contains('desk-on')) return;
+            const n = new Date(), h = n.getHours(), m = n.getMinutes(), sec = n.getSeconds();
+            document.querySelectorAll('#deskStage .dk-hands').forEach(sv => {
+                sv.querySelector('.hr').setAttribute('transform', `rotate(${(h % 12) * 30 + m * .5})`);
+                sv.querySelector('.mn').setAttribute('transform', `rotate(${m * 6 + sec * .1})`);
+                sv.querySelector('.sc').setAttribute('transform', `rotate(${sec * 6})`);
+            });
+            document.querySelectorAll('#deskStage .dk-lcd b').forEach(b => { b.innerHTML = `${String(h).padStart(2, '0')}<i${sec % 2 ? ' class="off"' : ''}>:</i>${String(m).padStart(2, '0')}`; });
+        }
+        setInterval(deskTick, 1000);
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
             const W = innerWidth, H = innerHeight, s = Math.max(W / DESK_W, H / DESK_H);
