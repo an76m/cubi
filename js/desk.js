@@ -22,6 +22,7 @@
             { id: 'pencup', src: 'img/desk/pencup.webp', w: 100, h: 155, x: 840, y: 531, name: '연필꽂이' },
             { id: 'bookbox', src: 'img/desk/bookbox2.webp', w: 200, h: 154, x: 230, y: 357, name: '책 상자' },
             { id: 'magfile', src: 'img/desk/magfile2.webp', w: 130, h: 313, x: 1080, y: 448, name: '파일꽂이' },
+            { id: 'polaroid', src: 'img/desk/polaroid.webp', w: 96, h: 152, x: 1290, y: 150, name: '폴라로이드', wall: 1, photo: [6.7, 22.1, 92.9, 86.0] },   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', src: 'img/desk/clock.webp', w: 96, h: 118, x: 1316, y: 414, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', src: 'img/desk/dclock.webp', w: 130, h: 82, x: 300, y: 228, name: '디지털 시계', lcd: [12, 18.9, 87.9, 71.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
             { id: 'drawer', src: 'img/desk/drawer.webp', w: 230, h: 247, x: 1250, y: 514, name: '서랍장', surf: [[18, 6, 224]] }
@@ -87,7 +88,7 @@
                 sv.querySelector('.mn').setAttribute('transform', `rotate(${m * 6 + sec * .1})`);
                 sv.querySelector('.sc').setAttribute('transform', `rotate(${sec * 6})`);
             });
-            document.querySelectorAll('#deskStage .dk-lcd b').forEach(b => { b.innerHTML = `${String(h).padStart(2, '0')}<i${sec % 2 ? ' class="off"' : ''}>:</i>${String(m).padStart(2, '0')}`; });
+            document.querySelectorAll('#deskStage .dk-lcd b').forEach(b => { b.innerHTML = `${h % 12 || 12}<i${sec % 2 ? ' class="off"' : ''}>:</i>${String(m).padStart(2, '0')}<small>${h < 12 ? 'AM' : 'PM'}</small>`; });   // 12시간 (21시 → 9 PM · 도련 10-26)
         }
         setInterval(deskTick, 1000);
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)

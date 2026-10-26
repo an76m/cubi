@@ -4487,4 +4487,5 @@ html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolb
 .dk-lcd { position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .dk-lcd b { font-family: 'Jua', 'Gowun Dodum', sans-serif; font-weight: 400; font-size: 30px; letter-spacing: 1px; color: #4f6f93; text-shadow: 0 0 6px rgba(255, 255, 255, .7); }
 .dk-lcd i { font-style: normal; } .dk-lcd i.off { opacity: .25; }
+.dk-lcd small { font-size: 11px; margin-left: 3px; letter-spacing: 0; vertical-align: 2px; }
 
