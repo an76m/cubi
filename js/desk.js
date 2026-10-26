@@ -111,9 +111,9 @@
                 if (!had && giftOn()) giftWrite();
             } finally { giftBusy = false; }
         }
-        window.deskGiftWrite = giftWrite;
+        window.deskGiftWrite = giftWrite; window.deskGiftBusy = () => giftBusy || DK.fresh;
         async function dkFilesFill() {                                             // 파일이 아직 없는 소품 (🎁 기본 세트 선물 · 다른 기기 것은 이미 있어요) → 만들기 · 드라이브를 읽은 뒤에만
-            if (DK.filing || DK.edit || typeof drive === 'undefined' || !drive.ready) return;
+            if (DK.filing || DK.edit || DK.fresh || giftBusy || typeof drive === 'undefined' || !drive.ready) return;   // 🎁 선물을 정하는 중이면 기다려요 (선물은 종류 폴더에 안 만들어요)
             const need = DK.items.filter(o => !o.c && !o.g && !dkAdding.has(o.u)); if (!need.length) return;
             DK.filing = true;
             try { for (const o of need) await dkFileAdd(o, 'basic'); }

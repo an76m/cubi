@@ -1489,7 +1489,7 @@
         let gdFiling = false;
         const gdRec = o => o.c ? { id: o.id, c: o.c } : o.g ? { id: o.id, g: 1 } : { id: o.id };
         async function gdFilesFill() {                                         // 선물이 아닌데 파일이 아직 없는 문구 → 종류 폴더에 (드라이브를 읽은 뒤에만 · js/desk.js 가 불러요)
-            if (gdFiling || typeof drive === 'undefined' || !drive.ready) return;
+            if (gdFiling || typeof drive === 'undefined' || !drive.ready || (window.deskGiftBusy && deskGiftBusy())) return;   // 🎁 선물을 정하는 중이면 기다려요
             const L = gdOwnList(); if (!L) return;
             const need = L.filter(o => !o.c && !o.g && !gdAdding.has(o.id));
             if (!need.length) return;
