@@ -17,26 +17,29 @@
        화면이 좁아 기능 소품이 잘려 보이면 보이는 곳 안쪽으로 당겨 맨 앞에 보여 줘요 (저장한 자리는 그대로)
    - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 모두 책상 위) · 🏪 기본샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
        보관함 ↔ 책상 · 🗑 버리기 = 🛠 책상 꾸미기에서 (▤ 하단 메뉴 화면이면 📦 소품 보관함 창) · 버린 것은 기본샵에서 다시 받아요
-   - 저장 : 설정.json 'diary_desk_items' [{u: 하나하나 id, id: 소품 종류, at: 'desk' | 'box', x, y}] · 'diary_desk_fn' {기능: u} · 게스트는 이 기기 malang_desk_items · malang_desk_fn
-       기본 세트의 u = 소품 종류 id (그래서 처음 기능 연결이 그대로 맞아요)
+   - 저장 (도련 10-27)
+       책상배치 / 배치.json : 'diary_desk_items' [{u: 하나하나 id, id: 소품, at: 'desk' | 'box', x, y, c: 종류 폴더 파일 id}] · 'diary_desk_fn' {기능: u} (js/drive.js DESK_KEYS · 게스트는 이 기기)
+       종류 폴더 (서랍장 · 시계 … js/drive.js DESK_DIRS · 소품의 kind) / 받은-<c>.json = 가진 소품 하나에 파일 하나 (js/coll.js 모음 · 뒤에서 차례로 올려요)
+         기본 세트 선물 · 기본샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
+       기본 세트의 u = 소품 id (그래서 처음 기능 연결이 그대로 맞아요) · 파일이 아직 없는 것(c 없음)은 드라이브를 읽은 뒤 만들어요
    ※ 소품 종류 = DESK_ITEMS (기본샵 카탈로그) */
 
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
         const DESK_ITEMS = [                                                      // 기본 소품 (도련 10-26 · 크기는 참고 그림의 책상 대비 비율) · wall = 벽에 거는 것 (책상 자석 없음 · 늘 뒤)
             // surf = 위에 물건을 올릴 수 있는 면 [소품 안 세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 그림 px) · 올려 둔 물건은 함께 움직이고 그 소품보다 앞에 보여요
-            { id: 'corkboard', src: 'img/desk/corkboard.webp', w: 520, h: 406, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
-            { id: 'wallshelf', src: 'img/desk/wallshelf.webp', w: 430, h: 233, x: 160, y: 110, name: '벽 선반', wall: 1, surf: [[56, 10, 421], [200, 10, 421]] },
-            { id: 'drawer-pink', src: 'img/desk/drawer-pink.webp', w: 330, h: 272, x: 170, y: 489, name: '핑크 서랍장', surf: [[22, 8, 322]] },
-            { id: 'riser', src: 'img/desk/riser.webp', w: 470, h: 94, x: 560, y: 667, name: '모니터 받침대', surf: [[19, 3, 467]] },
-            { id: 'basket', src: 'img/desk/basket.webp', w: 170, h: 153, x: 600, y: 533, name: '책 바구니' },
-            { id: 'pencup', src: 'img/desk/pencup.webp', w: 100, h: 155, x: 840, y: 531, name: '연필꽂이' },
-            { id: 'bookbox', src: 'img/desk/bookbox2.webp', w: 200, h: 154, x: 230, y: 357, name: '책 상자' },
-            { id: 'magfile', src: 'img/desk/magfile2.webp', w: 130, h: 313, x: 1080, y: 448, name: '파일꽂이' },
-            { id: 'polaroid', src: 'img/desk/polaroid2.webp', w: 126, h: 152, x: 1275, y: 150, name: '폴라로이드', wall: 1, photo: [17.1, 22.2, 82.9, 86.2] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
-            { id: 'clock', src: 'img/desk/clock.webp', w: 96, h: 118, x: 1316, y: 414, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
-            { id: 'dclock', src: 'img/desk/dclock.webp', w: 130, h: 82, x: 300, y: 228, name: '디지털 시계', lcd: [12, 18.9, 87.9, 71.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
-            { id: 'drawer', src: 'img/desk/drawer.webp', w: 230, h: 247, x: 1250, y: 514, name: '서랍장', surf: [[18, 6, 224]] }
+            { id: 'corkboard', kind: 'board', src: 'img/desk/corkboard.webp', w: 520, h: 406, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
+            { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp', w: 430, h: 233, x: 160, y: 110, name: '벽 선반', wall: 1, surf: [[56, 10, 421], [200, 10, 421]] },
+            { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp', w: 330, h: 272, x: 170, y: 489, name: '핑크 서랍장', surf: [[22, 8, 322]] },
+            { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp', w: 470, h: 94, x: 560, y: 667, name: '모니터 받침대', surf: [[19, 3, 467]] },
+            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp', w: 170, h: 153, x: 600, y: 533, name: '책 바구니' },
+            { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp', w: 100, h: 155, x: 840, y: 531, name: '연필꽂이' },
+            { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp', w: 200, h: 154, x: 230, y: 357, name: '책 상자' },
+            { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp', w: 130, h: 313, x: 1080, y: 448, name: '파일꽂이' },
+            { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp', w: 126, h: 152, x: 1275, y: 150, name: '폴라로이드', wall: 1, photo: [17.1, 22.2, 82.9, 86.2] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
+            { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp', w: 96, h: 118, x: 1316, y: 414, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
+            { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp', w: 130, h: 82, x: 300, y: 228, name: '디지털 시계', lcd: [12, 18.9, 87.9, 71.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
+            { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp', w: 230, h: 247, x: 1250, y: 514, name: '서랍장', surf: [[18, 6, 224]] }
         ];
         const dkCat = id => DESK_ITEMS.find(d => d.id === id) || null;
         const dkDef = el => dkCat(el.dataset.id) || {};
@@ -50,8 +53,27 @@
         const dkStarter = () => DESK_ITEMS.map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id)).map(o => ({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 })) : dkStarter();
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {})) : dkStarter();
             DK.items = L; DK.seen = JSON.stringify(L);
+        }
+        /* 🗂 종류 폴더 파일 (js/coll.js) */
+        const dkColl = id => { const c = dkCat(id); return typeof collOf === 'function' && c && typeof DESK_DIRS !== 'undefined' ? collOf(dirPath(DESK_DIRS[c.kind]), '받은-') : null; };
+        const dkAdding = new Set();                                                // 파일을 만드는 중인 소품 u (두 번 만들지 않게)
+        async function dkFileAdd(o, from) {
+            const C = dkColl(o.id); if (!C || o.c || dkAdding.has(o.u)) return;
+            dkAdding.add(o.u);
+            try { o.c = await collAdd(C, { id: o.id, from }, '', { id: o.id }); const cur = DK.items.find(x => x.u === o.u); if (cur) cur.c = o.c; }   // 그사이 목록을 다시 읽었어도 그 소품에
+            catch (e) { console.warn('소품 파일', e); }
+            finally { dkAdding.delete(o.u); }
+        }
+        function dkFileDel(o) { const C = dkColl(o.id); if (C && o.c) collRemove(C, o.c).catch(e => console.warn('소품 파일', e)); }
+        async function dkFilesFill() {                                             // 파일이 아직 없는 소품 (🎁 기본 세트 선물 · 다른 기기 것은 이미 있어요) → 만들기 · 드라이브를 읽은 뒤에만
+            if (DK.filing || DK.edit || typeof drive === 'undefined' || !drive.ready) return;
+            const need = DK.items.filter(o => !o.c && !dkAdding.has(o.u)); if (!need.length) return;
+            DK.filing = true;
+            try { for (const o of need) await dkFileAdd(o, o.u === o.id ? 'gift' : 'basic'); }
+            finally { DK.filing = false; }
+            if (!DK.edit) dkSave();
         }
         function dkSave() { if (DK.edit) return; DK.seen = JSON.stringify(DK.items); if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, DK.items); }
         const dkOnDesk = () => DK.items.filter(o => o.at === 'desk');
@@ -127,9 +149,10 @@
             if (document.getElementById('deskStage')) deskFnPaint();
         }
         function deskSyncItems() {                                                 // 드라이브 설정을 읽은 뒤 · 다른 기기에서 바뀌었으면 다시 그려요
-            if (DK.drag || DK.edit || !document.getElementById('deskStage')) return;
+            if (DK.drag || DK.edit || DK.filing || !document.getElementById('deskStage')) return;
             const prev = DK.seen; dkLoad();
             if (DK.seen !== prev) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); }
+            dkFilesFill(); if (window.gdFilesFill) gdFilesFill();
         }
 
         function deskBuild() {
@@ -181,6 +204,7 @@
             const o = DK.items.find(x => x.u === u); if (!o || dkFnBlock(u, '버릴')) return;
             const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 버릴까요?<br><small>버린 소품은 🏪 기본샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기') : true;
             if (!ok) return;
+            if (!DK.edit) dkFileDel(o);                                        // 🛠 꾸미는 중이면 확정할 때
             DK.items = DK.items.filter(x => x.u !== u); dkSave(); deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
         }
         /* 🏪 기본샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
@@ -189,10 +213,16 @@
             if (!force && DK.items.some(o => o.id === id)) return 'have';
             const it = { u: id + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), id, at: 'box', x: c.x, y: c.y };
             DK.items.push(it);
-            if (DK.edit && DK.back) {                                            // 🛠 꾸미는 중에 받은 것은 취소해도 남아요 (받은 것은 바로 저장)
-                const b = JSON.parse(DK.back.items); b.push(Object.assign({}, it)); DK.back.items = JSON.stringify(b);
+            const keep = () => {                                                  // 🛠 꾸미는 중에 받은 것은 취소해도 남아요 (받은 것은 바로 저장)
+                if (!(DK.edit && DK.back)) return false;
+                const b = JSON.parse(DK.back.items), i = b.findIndex(x => x.u === it.u);
+                if (i >= 0) b[i] = Object.assign({}, it); else b.push(Object.assign({}, it));
+                DK.back.items = JSON.stringify(b);
                 if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, b);
-            }
+                return true;
+            };
+            keep();
+            dkFileAdd(it, 'basic').then(() => { if (it.c && !keep()) dkSave(); });   // 🗂 종류 폴더에 파일 하나
             dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             return 'ok';
         }
@@ -230,7 +260,9 @@
             if (ok) {
                 const miss = DK_FN_NEED.filter(k => !DK.editFn[k]);
                 if (miss.length) { if (window.showMsg) showMsg(`아직 연결 안 된 기능이 있어요.<br><b>${miss.map(k => { const f = DK_FNS.find(x => x[0] === k); return f[3] + ' ' + f[1]; }).join(' · ')}</b><br><small>소품을 톡 하고 위 칩에서 골라 주세요</small>`); return; }
-                const fn = DK.editFn; DK.edit = false; dkSave();
+                const fn = DK.editFn, gone = JSON.parse(DK.back.items).filter(b => !DK.items.some(x => x.u === b.u));
+                DK.edit = false; dkSave();
+                gone.forEach(dkFileDel);                                         // 🗑 버린 소품의 파일
                 if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, fn);
             } else {
                 DK.edit = false; DK.items = JSON.parse(DK.back.items); DK.seen = DK.back.items;

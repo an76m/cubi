@@ -15,7 +15,9 @@
                       / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실 · 행운
                       / 설정 / 설정.json                                ⚙ 설정 탭 값
                       / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js)
-                      / 책상배치 · 서랍장 · 시계 … (⏸ 보류 · 가질 때 생겨요)
+                      / 책상배치 / 배치.json                            🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 가진 문구 목록 (js/desk.js · js/skins.js)
+                      / 서랍장 · 시계 · 책꽂이 … (DESK_DIRS) / 받은-<id>.json · 받은-목록N.json   🪑 가진 책상 소품 하나에 파일 하나 (기본 · 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내-)
+                      / 핀셋 · 가위 · 펀칭기 … (GD_DIRS) / 같은 방식                      ✏️ 가진 문구 (js/coll.js 모음)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
@@ -29,11 +31,15 @@
             pageDeco: '페이지꾸밈', pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
             stkList: '스티커목록', doll: '인형', puppet: '인형극', cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치'
         };
+        /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
+        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', photo: '벽사진', basket: '바구니' };
+        const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자' };
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
         const DAY_PATH = dirPath(DIRS.day), DAY_PRE = '기본-';      // 📔 기본 다이어리 : 말랑달콤 / 일기기본 / 기본-2026-10-26.json
         const DK_KINDS = ['노트', '바인더'];                         // 📕 유한 다이어리 : 말랑달콤 / 일기노트 · 일기바인더 / <권 id>-…json
         const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
+        const DESK_PATH = dirPath(DIRS.deskLayout), DESK_FILE_NAME = '배치.json';
         const CAFE_PATH = dirPath(DIRS.cafe), CAFE_FILE_NAME = '카페.json';
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
@@ -85,7 +91,7 @@
             rootId: null, wiped: false,   // 🗑 이 창이 본 말랑달콤 폴더 · 지워진 걸 알아챈 뒤 (rootGone · rootReset : 더 올리지 않고 처음 상태로 다시 열기)
             gen: 0,            // 다시 불러오기 할 때마다 증가 (예전 요청의 결과가 뒤늦게 섞이는 것 방지)
             inflight: null,    // 지금 업로드 중인 키
-            settingsFile: null, cafeFile: null,   // { id, modifiedTime } : 마지막으로 읽거나 쓴 때의 드라이브 파일 (두 기기 확인용)
+            settingsFile: null, cafeFile: null, deskFile: null,   // { id, modifiedTime } : 마지막으로 읽거나 쓴 때의 드라이브 파일 (두 기기 확인용)
             cafeBase: new Map(),         // ☕ 카페 기록 : 마지막으로 드라이브에서 읽거나 올린 값 (두 기기가 같은 항목을 고쳤을 때 합치는 기준)
             dayMeta: new Map(),          // 'diary_2026_10_09' → 읽거나 쓴 때의 드라이브 파일 수정 시각 ('' = 그때 파일이 없었음)
             full: false,                 // 구글 저장공간이 꽉 참
@@ -188,17 +194,19 @@
         function keyLabel(k) { const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
-        function keyFile(k) { return CAFE_KEYS.includes(k) ? 'cafe' : 'settings'; }
+        function keyFile(k) { return CAFE_KEYS.includes(k) ? 'cafe' : DESK_KEYS.includes(k) ? 'desk' : 'settings'; }
         /* 설정 파일 2개 : 어디에 · 무슨 이름으로 · drive 의 어느 칸에 기억 */
         const KEY_FILES = {
             settings: { path: SETTINGS_PATH, name: SETTINGS_FILE_NAME, prop: 'settingsFile' },
-            cafe: { path: CAFE_PATH, name: CAFE_FILE_NAME, prop: 'cafeFile' }
+            cafe: { path: CAFE_PATH, name: CAFE_FILE_NAME, prop: 'cafeFile' },
+            desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' }   // 🪑 책상배치 / 배치.json
         };
 
         /* 🔐 암호 보관 : 출석 · 화분 기록은 설정.json 에서 무엇인지 알아볼 수 없게 저장해요
            - 이름도 뜻 없는 글자 (VAULT_KEYS) · 내용은 뒤섞은 글자 + 앞 7자리 확인 표시
            - 누가 글자를 하나라도 고치면 확인 표시가 맞지 않아서 그 기록은 버리고 처음부터 (고칠 이유가 없게) */
         const VAULT_KEYS = ['zq7k2m', 'xr4p9w'];
+        const DESK_KEYS = ['diary_desk_items', 'diary_desk_fn', 'diary_gd_own'];   // 🪑 책상배치 / 배치.json 으로 가는 키
         const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best', 'diary_luck_seed']);   // ☕ 카페.json 으로 가는 키
         const VAULT_SALT = 'mL4q!z9Rw2';
         function vaultHash(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36).padStart(7, '0').slice(-7); }
@@ -419,7 +427,7 @@
             drive.folderIds.clear(); drive.folderBusy.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
             drive.books.clear(); drive.bookBusy.clear();
-            drive.settingsFile = null; drive.cafeFile = null;
+            drive.settingsFile = null; drive.cafeFile = null; drive.deskFile = null;
         }
 
         /* ---------- 읽기 : 설정 / 하루치 ---------- */
@@ -560,7 +568,7 @@
         async function loadFromDrive() {
             resetDriveCaches(); drive.rootId = null;
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
-            const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
+            const [settings, cafe, desk] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe'), fetchKeyFile('desk')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();
@@ -568,6 +576,7 @@
             if (settings) Object.keys(settings).forEach(k => { if (isSettingKey(k) && keyFile(k) === 'settings') store.putLoaded(k, JSON.stringify(settings[k])); });
             drive.cafeBase = new Map();
             if (cafe) Object.keys(cafe).forEach(k => { if (keyFile(k) === 'cafe') { store.putLoaded(k, JSON.stringify(cafe[k])); drive.cafeBase.set(k, JSON.stringify(cafe[k])); } });
+            if (desk) Object.keys(desk).forEach(k => { if (keyFile(k) === 'desk') store.putLoaded(k, JSON.stringify(desk[k])); });
             if (typeof collLogin === 'function') await collLogin();          // 🎨 지금 쓰는 내 페이지 · 배경지 원본 (js/coll.js)
             drive.ready = true; drive.guest = false;
             drive.needAuth = false; drive.error = false; drive.full = false;

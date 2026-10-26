@@ -1471,10 +1471,32 @@
         const cabK = id => id.split(':')[1];
         const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본샵에 있는 모든 디자인
         /* ✏️ 내 문구 (도련 10-27) : 처음엔 기본 세트 선물(모두) · 🏪 기본샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
-           저장 : 설정.json 'diary_gd_own' [디자인 id] (없으면 = 기본 세트 모두) · 게스트는 이 기기 malang_gd_own
+           저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id}] (없으면 = 기본 세트 모두 → 드라이브를 읽은 뒤 목록 + 파일을 만들어요) · 게스트는 이 기기 malang_gd_own
+                  종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
            마지막 하나 남은 것 · 페이지에 꺼내 둔 것은 못 버려요 */
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
-        const gdOwnSet = () => { const v = prefGet(GD_OWN, GD_OWN_L); return Array.isArray(v) ? new Set(v) : null; };
+        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : o).filter(o => o && typeof o.id === 'string') : null; };
+        const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
+        const gdColl = id => { const g = cabGOf(id); return typeof collOf === 'function' && GD_DIRS[g] ? collOf(dirPath(GD_DIRS[g]), '받은-') : null; };
+        const gdAdding = new Set();                                            // 파일을 만드는 중인 디자인 (두 번 만들지 않게)
+        async function gdFileAdd(o, from) {
+            const C = gdColl(o.id); if (!C || o.c || gdAdding.has(o.id)) return;
+            gdAdding.add(o.id);
+            try { o.c = await collAdd(C, { id: o.id, from }, '', { id: o.id }); } catch (e) { console.warn('문구 파일', e); }
+            finally { gdAdding.delete(o.id); }
+        }
+        let gdFiling = false;
+        async function gdFilesFill() {                                         // 🎁 기본 세트 선물 · 파일이 아직 없는 문구 → 목록 + 파일 (드라이브를 읽은 뒤에만 · js/desk.js 가 불러요)
+            if (gdFiling || typeof drive === 'undefined' || !drive.ready) return;
+            const L = gdOwnList() || cabAllIds().map(id => ({ id, gift: 1 })), need = L.filter(o => !o.c && !gdAdding.has(o.id));
+            if (!need.length) return;
+            gdFiling = true;
+            try { for (const o of need) { await gdFileAdd(o, o.gift ? 'gift' : 'basic'); delete o.gift; } }
+            finally { gdFiling = false; }
+            const now = gdOwnList(), fin = now ? now.map(o => o.c ? o : (L.find(x => x.id === o.id && x.c) || o)) : L;   // 그사이 받거나 버린 것은 그대로
+            prefSet(GD_OWN, GD_OWN_L, fin.map(o => o.c ? { id: o.id, c: o.c } : { id: o.id }));
+        }
+        window.gdFilesFill = gdFilesFill;
         const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : all; };
         const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
         const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
@@ -1587,8 +1609,9 @@
             if (cabOwn(g).length <= 1) { showMsg(`마지막 하나 남은 ${jo(kind, '은', '는')} 버릴 수 없어요.`); return; }
             if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
             if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 버릴까요?<br><small>버린 문구는 🏪 기본샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기')) return;
-            const st = gdOwnSet() || new Set(cabAllIds()); st.delete(id);
-            prefSet(GD_OWN, GD_OWN_L, [...st]);
+            const L = gdOwnList() || cabAllIds().map(x => ({ id: x })), o = L.find(x => x.id === id);
+            prefSet(GD_OWN, GD_OWN_L, L.filter(x => x.id !== id));
+            const C = gdColl(id); if (C && o && o.c) collRemove(C, o.c).catch(e => console.warn('문구 파일', e));   // 🗑 그 파일도
             if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]);
             gdCabRender();
         }
@@ -1596,9 +1619,10 @@
         /* 🏪 기본샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) })));
         function gdGive(id) {
-            const st = gdOwnSet(); if (!st || st.has(id)) return 'have';
+            const L = gdOwnList(); if (!L || L.some(o => o.id === id)) return 'have';
             if (!cabAllIds().includes(id)) return 'no';
-            st.add(id); prefSet(GD_OWN, GD_OWN_L, [...st]);
+            const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L);
+            gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.id === id); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now); } });   // 🗂 종류 폴더에 파일 하나
             if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();
             return 'ok';
         }
