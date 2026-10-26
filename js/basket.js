@@ -695,6 +695,13 @@
             out.push({ cnt: `이형지 ${AB_RL_N}쪽 · 스티커 ${AB_RL_N * (window.OWN_REL_MAX || 24)}개`, desc: `한 쪽에 ${window.OWN_REL_MAX || 24}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', tool: 'rl' });
             return out;
         }],
+        gd: ['문구', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
+            const L = window.gdShopList ? gdShopList() : [], ic = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏' };
+            SH_CATS.gd = [...new Map(L.map(x => [x.g, `${ic[x.g] || '✏️'} ${x.kind}`]))];
+            return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, give: () => gdGive(x.id) }));
+        }],
+        desk: ['책상 소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
+            cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name }))],
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
             const k = seasonNow(), srcs = (SEASON_STICKERS[k] || []).map(x => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x.svg));
@@ -765,9 +772,9 @@
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
-    const SH_CATS = { paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']],
+    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']],
         emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
-    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : k === 'emoji' ? x.cat : '';
+    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
@@ -809,6 +816,8 @@
     /* (미리 채우기 shWarm 은 지웠어요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 기본샵을 열 때 채우고 그다음부터 기억해요) */
     function shLook(x, big) {
         if (x.look === 'binder') { const c = AB_COL[x.c]; return `<div class="sh-tool"><span class="ab-cover" style="--c1:${c[0]};--c2:${c[1]}"></span></div>`; }
+        if (x.look === 'gd') return `<div class="sh-tool sh-gd">${x.art || ''}</div>`;
+        if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
@@ -824,7 +833,7 @@
     }
     function shCard(x, i) {
         return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
-            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shInto()}', 0)">✓ 바구니에 쏙</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">🧺 받기</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
+            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">🔍 확대</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shInto()}', 0)">${shGotText(x)}</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">${x.give ? '🎁 받기' : '🧺 받기'}</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (기본샵 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
@@ -837,11 +846,26 @@
             pick = `<div class="sh-into"><small>넣을 서랍</small><div>${ks.map(k => `<button type="button" class="sh-ik${k === SH.toolKind ? ' on' : ''}" onclick="shToolKind('${k}')">${esc(BK_KINDS[k])}</button>`).join('')}</div></div>`;
         }
         z.innerHTML = `<div class="sh-zcard"><div class="sh-zlook k-${esc(SH.kind)}">${shLook(x, true)}</div><small class="sh-cnt">${esc(x.cnt || '')}</small>${x.desc ? `<small class="sh-desc">${esc(x.desc)}</small>` : ''}${pick}`
-            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">🧺 받기</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div></div>`;
+            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">${x.give ? '🎁 받기' : '🧺 받기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div></div>`;
         z.hidden = false;
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
+    const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : '✓ 보관함에 쏙';
+    /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
+    async function shGive(x) {
+        let r = await x.give(false);
+        if (r === 'have' && SH.kind === 'gd') { showMsg('✏️ 이미 문구함에 있어요.'); return false; }
+        if (r === 'have') {
+            const c = x.name.charCodeAt(x.name.length - 1) - 0xAC00, j = c >= 0 && c < 11172 && c % 28 ? '이' : '가';
+            if (!await showAsk(`🪑 ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '그만두기')) return false;
+            r = await x.give(true);
+        }
+        if (r !== 'ok') { showMsg('⚠ 받지 못했어요.'); return false; }
+        if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
+        return true;
+    }
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
+        if (k === 'gd' || k === 'desk') { shZoomOff(); closeModal('shelfKindModal'); if (k === 'gd' && window.openGdCab) openGdCab(); if (k === 'desk' && window.deskBoxOpen) deskBoxOpen(); return; }   // ✏️ 문구함 · 📦 소품 보관함
         shZoomOff(); closeModal('shelfKindModal');
         bkOpenKind(k);
         if (album) { B.view = 'album'; bkView('album'); }
@@ -852,6 +876,11 @@
     async function shQuick(i, btn) {
         const x = SH.items[i]; if (!x || btn.disabled) return;
         if (x.tool) { shZoom(i); return; }
+        if (x.give) {
+            if (!await shGive(x)) return;
+            btn.classList.add('got'); btn.textContent = shGotText(x); btn.onclick = () => shGoSee(SH.kind, 0);
+            (SH.got || (SH.got = new Set())).add(i); return;
+        }
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         try {
@@ -868,6 +897,14 @@
     }
     async function shTake(btn) {
         const x = SH.items[SH.zoom]; if (!x || btn.disabled) return;
+        if (x.give) {
+            if (!await shGive(x)) return;
+            (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;
+            const box = btn.closest('.sh-zbtns'), k = SH.kind;
+            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${k === 'gd' ? '🗄️ 문구함' : '📦 소품 보관함'}에 넣었어요</small></div>`
+                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${k}', 0)">${k === 'gd' ? '🗄️ 문구함에서 보기' : '📦 보관함에서 보기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div>`;
+            return;
+        }
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         try {

@@ -1469,7 +1469,15 @@
         const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
         const cabK = id => id.split(':')[1];
-        const cabOwn = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);
+        const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본샵에 있는 모든 디자인
+        /* ✏️ 내 문구 (도련 10-27) : 처음엔 기본 세트 선물(모두) · 🏪 기본샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
+           저장 : 설정.json 'diary_gd_own' [디자인 id] (없으면 = 기본 세트 모두) · 게스트는 이 기기 malang_gd_own
+           마지막 하나 남은 것 · 페이지에 꺼내 둔 것은 못 버려요 */
+        const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
+        const gdOwnSet = () => { const v = prefGet(GD_OWN, GD_OWN_L); return Array.isArray(v) ? new Set(v) : null; };
+        const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : all; };
+        const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
+        const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
         const cabName = id => cabTool(id) ? (cabKinds(id.split(':')[0]).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;
         const cabArt = id => !cabTool(id) ? gdArt(id) : id.startsWith('knife') ? (window.skKnifeSvg ? skKnifeSvg(cabK(id)) : '') : (window.rlCupSvg ? rlCupSvg(cabK(id), 150) : '');
         const cabIsOn = id => !cabTool(id) ? !!gdEl(id) : id.startsWith('knife') ? !!(window.skKindNow && skKindNow() === cabK(id)) : !!(window.rlKindNow && rlKindNow() === cabK(id));
@@ -1485,8 +1493,8 @@
         const gdOwn = g => g === 'clip' ? CLIPS.map(c => 'clip:' + c[0]) : Object.keys(GD).filter(id => GD[id].g === g);   // 가진 디자인 (📦 문구점이 생기면 여기에)
         function gdMain(g) { const own = cabOwn(g), m = (prefGet(GD_MAIN, GD_MAIN_L) || {})[g]; return own.includes(m) ? m : own[0]; }
         function gdMainSet(g, id) { const m = Object.assign({}, prefGet(GD_MAIN, GD_MAIN_L) || {}); if (m[g] === id) return; m[g] = id; prefSet(GD_MAIN, GD_MAIN_L, m); }
-        const gdOnPage = g => cabOwn(g).filter(cabIsOn);
-        let cabOpen = null, cabPress = null;
+        const gdOnPage = g => cabAll(g).filter(cabIsOn);
+        let cabOpen = null, cabPress = null, cabBin = null;                    // cabBin = 🗑 버리기 중인 서랍
         const CAB_PER = 6, cabPage = {};                                        // 서랍 속은 6개씩 칸을 넘겨 봐요 (📦 문구점에서 사서 아무리 많아져도 서랍장 길이는 그대로 · 도련 10-19)
         const CAB_CUP = `<svg viewBox="0 0 80 92" aria-hidden="true"><path d="M27 52 L22 8 Q22 3 26 4 L29 52" fill="#ffe27a" stroke="#d9aa2b" stroke-width="1.2"/><path d="M22.6 12 L24 4 L26 12z" fill="#7a5a3a"/>
             <path d="M37 52 V6 Q40 0 43 6 V52" fill="#9fd0f7" stroke="#5f9fd6" stroke-width="1.2"/><path d="M38.6 9 L40 2 L41.4 9z" fill="#3d6f9a"/>
@@ -1501,8 +1509,9 @@
                 const own = cabOwn(g), pages = Math.ceil(own.length / CAB_PER); if (!own.length) return '';
                 if (open && cabPage[g] == null) cabPage[g] = Math.max(0, own.indexOf(main)) / CAB_PER | 0;   // 처음엔 주로 쓰는 것이 있는 칸
                 const pg = Math.min(pages - 1, Math.max(0, cabPage[g] || 0));
-                const tray = open ? `<div class="gdc-tray" data-g="${g}"><div class="gdc-grid">${own.slice(pg * CAB_PER, pg * CAB_PER + CAB_PER).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${cabIsOn(id) ? ' on' : ''}" onclick="gdCabItem('${g}', '${id}')"><span class="gdc-ic ${g}">${cabArt(id)}</span><small>${cabName(id)}</small></button>`).join('')}</div>${pages > 1
-                    ? `<div class="gdc-pg"><button type="button" aria-label="앞 칸" onclick="gdCabPage('${g}', -1)"${pg ? '' : ' disabled'}>‹</button>${Array.from({ length: pages }, (_, i) => `<i${i === pg ? ' class="on"' : ''}></i>`).join('')}<button type="button" aria-label="다음 칸" onclick="gdCabPage('${g}', 1)"${pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : ''}</div>` : '';
+                const tray = open ? `<div class="gdc-tray" data-g="${g}"><div class="gdc-grid">${own.slice(pg * CAB_PER, pg * CAB_PER + CAB_PER).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${cabIsOn(id) ? ' on' : ''}${cabBin === g ? ' bin' : ''}" onclick="${cabBin === g ? `gdCabBinTap('${id}')` : `gdCabItem('${g}', '${id}')`}"><span class="gdc-ic ${g}">${cabArt(id)}</span><small>${cabName(id)}</small></button>`).join('')}</div>${pages > 1
+                    ? `<div class="gdc-pg"><button type="button" aria-label="앞 칸" onclick="gdCabPage('${g}', -1)"${pg ? '' : ' disabled'}>‹</button>${Array.from({ length: pages }, (_, i) => `<i${i === pg ? ' class="on"' : ''}></i>`).join('')}<button type="button" aria-label="다음 칸" onclick="gdCabPage('${g}', 1)"${pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : ''}`
+                    + `<div class="gdc-binrow"><button type="button" class="gdc-bin${cabBin === g ? ' on' : ''}" onclick="gdCabBinMode('${g}')">${cabBin === g ? '✓ 다 버렸어요' : '🗑 버리기'}</button><button type="button" class="gdc-shop" onclick="gdCabShop()">🏪 더 받기</button></div></div>` : '';
                 return `<div class="gdc-row${open ? ' open' : ''}"><button type="button" class="gdc-dr${on ? ' out' : ''}" data-g="${g}">
                     <span class="gdc-in"><span class="gdc-ic ${g}">${cabArt(main)}</span></span>
                     <span class="gdc-tag">${n}${own.length > 1 ? `<small>${cabName(main).replace(/^기본\s*/, '')} · ${own.length}개</small>` : ''}</span>
@@ -1527,7 +1536,7 @@
         }
         function openGdCab() {
             if (typeof isCoverOpen === 'undefined' || !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            cabOpen = null; gdCabRender(); openModal('gdCabModal');
+            cabOpen = null; cabBin = null; gdCabRender(); openModal('gdCabModal');
         }
         /* ✋ 서랍장 옮기기 (도련 10-21) : 서랍장 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡 · 꾹은 그대로 서랍 (끌면 톡 · 꾹은 안 돼요)
            - 서랍 속(골라 담기 칸 · 옆으로 밀기)과 ✕ 는 끌기 아님 · 화면 밖으로는 못 나가요 · 닫았다 열어도 그 자리 · 화면 크기가 바뀌면 가운데로 */
@@ -1562,7 +1571,7 @@
             if (on.length) on.forEach(cabFlip); else cabFlip(gdMain(g));
             gdCabRender();
         }
-        function gdCabPull(g) { cabOpen = cabOpen === g ? null : g; delete cabPage[g]; gdCabRender(); }   // 서랍 쭉 열기 · 닫기
+        function gdCabPull(g) { cabOpen = cabOpen === g ? null : g; cabBin = null; delete cabPage[g]; gdCabRender(); }   // 서랍 쭉 열기 · 닫기
         function gdCabPage(g, d) { const n = Math.ceil(cabOwn(g).length / CAB_PER); cabPage[g] = Math.min(n - 1, Math.max(0, (cabPage[g] || 0) + d)); gdCabRender(); }
         function gdCabItem(g, id) {                                             // 서랍 안 디자인 톡 : 주로 쓰는 것 + 페이지에 (다시 톡 = 치우기)
             const was = cabIsOn(id);
@@ -1570,6 +1579,30 @@
             cabFlip(id); if (!was) gdMainSet(g, id);
             gdCabRender();
         }
+        /* 🗑 버리기 · 🏪 받기 (도련 10-27) */
+        function gdCabBinMode(g) { cabBin = cabBin === g ? null : g; gdCabRender(); }
+        async function gdCabBinTap(id) {
+            const g = cabGOf(id), n = cabName(id) || '이 문구', kind = (GD_CAB.find(x => x[0] === g) || [])[1] || '';
+            const jo = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
+            if (cabOwn(g).length <= 1) { showMsg(`마지막 하나 남은 ${jo(kind, '은', '는')} 버릴 수 없어요.`); return; }
+            if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
+            if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 버릴까요?<br><small>버린 문구는 🏪 기본샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기')) return;
+            const st = gdOwnSet() || new Set(cabAllIds()); st.delete(id);
+            prefSet(GD_OWN, GD_OWN_L, [...st]);
+            if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]);
+            gdCabRender();
+        }
+        function gdCabShop() { closeModal('gdCabModal'); if (window.openShelf) { openShelf(); shOpenKind('gd'); } }
+        /* 🏪 기본샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
+        const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) })));
+        function gdGive(id) {
+            const st = gdOwnSet(); if (!st || st.has(id)) return 'have';
+            if (!cabAllIds().includes(id)) return 'no';
+            st.add(id); prefSet(GD_OWN, GD_OWN_L, [...st]);
+            if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();
+            return 'ok';
+        }
+        window.gdCabBinMode = gdCabBinMode; window.gdCabBinTap = gdCabBinTap; window.gdCabShop = gdCabShop; window.gdShopList = gdShopList; window.gdGive = gdGive;
         function gdCabCup() { closeModal('gdCabModal'); if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo(); if (window.openDraw) openDraw(); }   // ✏️ 연필꽂이 : 들고 있던 문구는 그 자리에 내려놓고 (도련 10-21)
         window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
         window.gdScs = gdScs; window.gdLetGo = () => { if (gdHeld) gdLet(); }; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;

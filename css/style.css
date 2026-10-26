@@ -3920,6 +3920,11 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .gdc-it.main { border-color: #ffb3c8; background: #fff; }
 .gdc-it.main::before { content: '★'; position: absolute; left: 3px; top: 1px; font-size: 10px; color: #ff8fb1; }   /* 주로 쓰는 것 */
 .gdc-it.on { box-shadow: 0 0 0 2px #6fcca8; }
+.gdc-it.bin { border-color: #e7a0a0; background: #fff1f1; animation: gdcBin .9s ease-in-out infinite alternate; }   /* 🗑 버리기 중 : 톡 = 버리기 (js/skins.js gdCabBinTap) */
+@keyframes gdcBin { from { rotate: -2deg; } to { rotate: 2deg; } }
+.gdc-binrow { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+.gdc-binrow button { border: 1.5px solid #e9c2cf; background: #fff; color: #9b6b7b; border-radius: 12px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.gdc-binrow .gdc-bin.on { border-color: #e7a0a0; color: #b84a4a; background: #fff1f1; }
 .gdc-it.on::after { content: '✓'; position: absolute; right: -4px; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #6fcca8; color: #fff; font-size: 10px; font-weight: 900; line-height: 15px; text-align: center; }
 .gdc-it:active { transform: scale(.94); }
 .gdc-tip { margin: 14px 0 0; text-align: center; font-size: 11px; color: #8a6a72; background: rgba(255, 255, 255, .85); border-radius: 10px; padding: 3px 8px; }
@@ -4145,6 +4150,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 🗂️ 기본샵 정리 도구 (바인더 · 이형지북) */
 .sh-tool { display: grid; place-items: center; width: 100%; min-height: 128px; padding: 6px 0; }
 .sh-tool .ab-cover, .sh-tool .ab-rlsheet { pointer-events: none; }
+.sh-tool.sh-gd svg { width: 78%; height: auto; max-height: 120px; pointer-events: none; }   /* ✏️ 문구 · 🪑 책상 소품 (도련 10-27) */
+.sh-tool.sh-desk img { max-width: 86%; max-height: 120px; object-fit: contain; pointer-events: none; }
 .sh-zlook .sh-tool { min-height: 0; padding: 18px 0; }
 .sh-zlook .sh-tool .ab-cover { width: 150px; height: 190px; }
 .sh-zlook .sh-tool .ab-rlsheet { width: 150px; height: 196px; }
@@ -4468,6 +4475,20 @@ html.desk-show .desk-item { pointer-events: none; }
 .desk-item[data-fn]:hover { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 9px rgba(255, 255, 255, .95)); }
 body.dg-on .desk-item.fn-sticker { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 12px rgba(245, 165, 36, .85)); }   /* 🩷 다꾸하는 법 메모 : 스티커 소품이 빛나요 */
 /* ⚙️ 설정 🪑 화면 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
+.desk-tip { white-space: nowrap; } .desk-tip .desk-snap + .desk-snap { margin-left: 6px; }
+.desk-snap.dk-del { border-color: #e7a0a0; color: #b84a4a; }
+html.desk-on.desk-lack .toolbar, html.desk-on.desk-lack:not(.desk-show) .toolbar { display: flex !important; }   /* 🛟 기능을 붙일 소품이 모자라면 하단 메뉴를 보여요 */
+.dk-box-open { width: 100%; justify-content: center; margin-top: 4px; }
+/* 📦 소품 보관함 (js/desk.js deskBoxRender) */
+.dkb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; max-height: 60vh; overflow: auto; padding: 4px 2px; }
+.dkb-it { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 6px; border-radius: 14px; background: #fff; border: 1.5px solid #f3d3de; text-align: center; }
+.dkb-it.in { border-color: #e98aab; background: #fff6f9; }
+.dkb-pic { width: 84px; height: 84px; display: flex; align-items: center; justify-content: center; }
+.dkb-pic img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.dkb-it b { font-size: 13px; color: #6a4f5a; } .dkb-it small { font-size: 11px; color: #a08a94; }
+.dkb-btns { display: flex; gap: 4px; margin-top: 2px; } .dkb-btns .btn { padding: 4px 8px; font-size: 12px; } .dkb-btns .dkb-del { color: #b84a4a; }
+.dkb-empty { grid-column: 1 / -1; text-align: center; color: #a08a94; font-size: 13px; padding: 24px 0; }
+.st2-row .st2-more .st2-emo { font-size: 34px; line-height: 1; display: flex; align-items: center; justify-content: center; height: 100%; }
 .desk-set { display: none; }
 html.desk-wide .desk-set { display: block; }
 .dk-fn-list { display: grid; gap: 6px; margin-top: 8px; }
