@@ -1,10 +1,10 @@
 /* 말랑달콤 다이어리 - js/desk.js
    🪑 책상 꾸미기 (도련 10-26 · 💻 PC · 아이패드만 = html.desk-on · 📱 폰은 없어요)
-   - 책상 그림(img/desk-wide.webp · 1672×941)과 소품을 한 무대(#deskStage)에 · 무대는 책상 그림 크기 그대로 화면을 꽉 채우게(cover · 아래 맞춤) 늘었다 줄었다
+   - 책상 그림(img/desk-wide.webp · 1672×941 · 갈색 선 일러스트 (10-26 픽셀아트 → 일러스트))과 소품을 한 무대(#deskStage)에 · 무대는 책상 그림 크기 그대로 화면을 꽉 채우게(cover · 아래 맞춤) 늘었다 줄었다
      → 소품 자리는 늘 책상 그림 기준 좌표(px)로 저장해요 · 화면 크기가 바뀌어도 같은 자리
    - 소품은 마우스 · 손가락으로 끌어서 옮겨요 · 톡 = 고르기 (점선 테두리 + 위에 작은 버튼)
    - 🧲 딱 맞추기 (켬 / 끔 · 고른 소품 위 버튼 · 이 기기에 기억) :
-       켬 = 책상 픽셀 한 칸(4px)에 맞춰 놓이고 · 책상 뒤쪽 선(벽에 붙이기) · 양옆 벽 모서리 가까이 가면 착 붙어요 (분홍 안내선)
+       켬 = 4px 칸에 맞춰 놓이고 · 책상 뒤쪽 선(벽에 붙이기) · 양옆 벽 모서리 가까이 가면 착 붙어요 (분홍 안내선)
        끔 = 손이 가는 그대로 부드럽게
        💻 끄는 동안 Shift 를 누르고 있으면 잠깐 반대로
    - 지금 자리는 이 기기에만 기억해요 (나중에 소품을 사고 팔게 되면 드라이브에 저장)
@@ -12,7 +12,7 @@
 
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 4;
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
-        const DESK_ITEMS = [{ id: 'drawer', src: 'img/desk/drawer.webp', w: 260, h: 277, x: 1200, y: 484, name: '서랍장' }];   // y = 위쪽 (다리가 책상 뒤쪽 선 조금 앞)
+        const DESK_ITEMS = [{ id: 'drawer', src: 'img/desk/drawer.webp', w: 270, h: 290, x: 1200, y: 471, name: '서랍장' }];   // y = 위쪽 (다리가 책상 뒤쪽 선 조금 앞)
         const DK_POS = 'malang_desk_pos', DK_SNAP = 'malang_desk_snap';
         const dkGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
         const dkSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
