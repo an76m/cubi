@@ -1002,8 +1002,26 @@
             const login = state === 'login';
             document.getElementById('gateLoginBtn').style.display = login ? 'flex' : 'none';
             document.getElementById('gateGuestBtn').style.display = login ? 'flex' : 'none';
+            requestAnimationFrame(gateFit);
         }
+
         function hideGate() { document.getElementById('driveGate').style.display = 'none'; }
+        /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
+           그림은 화면을 꽉 채우고(cover) · 알림판 자리(그림 픽셀)를 화면 자리로 바꿔 카드 가운데를 맞추고 · 카드가 타원 안에 들어가게 줄여요 */
+        const GATE_ART = { wide: { w: 1672, h: 941, cx: 835, cy: 516, ow: 895, oh: 488 }, tall: { w: 941, h: 1672, cx: 471, cy: 809, ow: 498, oh: 838 } };
+        function gateFit() {
+            const g = document.getElementById('driveGate'), c = g && g.querySelector('.gate-card');
+            if (!c || g.style.display === 'none') return;
+            g.classList.add('gate-art');
+            const W = innerWidth, H = innerHeight, A = W / H < 1 ? GATE_ART.tall : GATE_ART.wide, s = Math.max(W / A.w, H / A.h);
+            const ow = A.ow * s, oh = A.oh * s;
+            c.style.left = ((W - A.w * s) / 2 + A.cx * s) + 'px'; c.style.top = ((H - A.h * s) / 2 + A.cy * s) + 'px';
+            c.style.setProperty('--gs', 1);
+            const cw = c.offsetWidth, ch = c.offsetHeight; if (!cw || !ch) return;
+            const k = Math.min(1.25, Math.sqrt(.9 / ((cw / ow) ** 2 + (ch / oh) ** 2)));   // 네모 카드의 모서리가 타원 밖으로 안 나가게
+            c.style.setProperty('--gs', k.toFixed(3));
+        }
+        window.addEventListener('resize', () => requestAnimationFrame(gateFit)); requestAnimationFrame(gateFit);
 
         /* ☁ 경고 알림 : 평소 저장은 알리지 않아요 · 게스트 · 로그인 만료 · 공간 꽉 참 · 저장 실패처럼 눌러야 하는 것만 떠요
            (로그인 만료 · 공간 · 실패 경고는 해결될 때까지 떠 있음) */

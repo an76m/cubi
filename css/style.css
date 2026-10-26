@@ -4434,3 +4434,19 @@ body.dg-on .toolbar .tb-sticker { box-shadow: 0 0 0 3px rgba(245, 165, 36, .35),
 body.cafe-on .dg-note { visibility: hidden; }
 /* 🎀 롤에서 뽑는 테이프 (도련 10-26 · js/basket.js dsPull) : 롤 밑에서 풀려 나와요 */
 .dsk-pull { position: absolute; transform-origin: 0 50%; background-repeat: repeat-x; background-size: auto 100%; opacity: .92; box-shadow: 0 1px 3px rgba(110, 80, 95, .2); pointer-events: none; }
+
+/* 🚪 로그인 화면 = 커튼 달린 분홍 문 + 레이스 알림판 (도련 10-26 · img/gate-wide.webp 💻 아이패드 · PC / img/gate-tall.webp 📱 폰)
+   카드는 알림판 가운데에 붙고 알림판 안에 들어가게 크기를 맞춰요 (js/drive.js gateFit · 그림 속 알림판 자리) */
+.drive-gate.gate-art { background: #f3c4bd url(../img/gate-wide.webp) center / cover no-repeat; }
+@media (max-aspect-ratio: 1/1) { .drive-gate.gate-art { background-image: url(../img/gate-tall.webp); } }
+.gate-art .gate-card { position: absolute; left: 50%; top: 50%; translate: -50% -50%; scale: var(--gs, 1); transform-origin: 50% 50%; background: none; box-shadow: none; padding: 0; }
+.gate-art .gate-card::before, .gate-art .gate-book { display: none; }
+@media (min-aspect-ratio: 1/1) {                                          /* 💻 가로 알림판 : 버튼 두 개를 나란히 */
+    .gate-art .gate-card { display: grid; grid-template-columns: repeat(2, 300px); column-gap: 22px; row-gap: 10px; justify-items: center; width: auto; }
+    .gate-art .gate-card > * { grid-column: 1 / -1; }
+    .gate-art .gate-card > .gate-pick { grid-column: auto; width: 300px; }
+}
+@media (max-aspect-ratio: 1/1) {                                          /* 📱 세로 알림판 : 좁고 길게 (글씨가 덜 작아지게) */
+    .gate-art .gate-card { width: 270px; gap: 8px; }
+    .gate-art .gate-card > .gate-pick { width: 270px; max-width: 270px; }
+}
