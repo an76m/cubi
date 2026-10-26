@@ -16,6 +16,7 @@
                       / 설정 / 설정.json                                ⚙ 설정 탭 값
                       / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js)
                       / 책상배치 / 배치.json                            🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 가진 문구 목록 (js/desk.js · js/skins.js)
+                      / 기본세트 / 선물.json                            🎁 처음 한 번 받는 서비스 (책상 소품 + 문구 · 한 파일 · 버리면 여기서 빠져요 · 예외 · js/desk.js)
                       / 서랍장 · 시계 · 책꽂이 … (DESK_DIRS) / 받은-<id>.json · 받은-목록N.json   🪑 가진 책상 소품 하나에 파일 하나 (기본 · 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내-)
                       / 핀셋 · 가위 · 펀칭기 … (GD_DIRS) / 같은 방식                      ✏️ 가진 문구 (js/coll.js 모음)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
@@ -29,7 +30,7 @@
         const DIRS = {
             day: '일기기본', note: '일기노트', binder: '일기바인더',
             pageDeco: '페이지꾸밈', pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
-            stkList: '스티커목록', doll: '인형', puppet: '인형극', cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치'
+            stkList: '스티커목록', doll: '인형', puppet: '인형극', cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치', starter: '기본세트'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
         const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', photo: '벽사진', basket: '바구니' };
