@@ -207,7 +207,7 @@
            - 이름도 뜻 없는 글자 (VAULT_KEYS) · 내용은 뒤섞은 글자 + 앞 7자리 확인 표시
            - 누가 글자를 하나라도 고치면 확인 표시가 맞지 않아서 그 기록은 버리고 처음부터 (고칠 이유가 없게) */
         const VAULT_KEYS = ['zq7k2m', 'xr4p9w'];
-        const DESK_KEYS = ['diary_desk_items', 'diary_desk_fn', 'diary_gd_own'];   // 🪑 책상배치 / 배치.json 으로 가는 키
+        const DESK_KEYS = ['diary_desk_items', 'diary_desk_fn', 'diary_gd_own', 'diary_share_got'];   // + 📥 이미 불러온 공유 파일 번호 (js/itemshare.js)   // 🪑 책상배치 / 배치.json 으로 가는 키
         const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best', 'diary_luck_seed']);   // ☕ 카페.json 으로 가는 키
         const VAULT_SALT = 'mL4q!z9Rw2';
         function vaultHash(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36).padStart(7, '0').slice(-7); }

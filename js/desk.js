@@ -309,6 +309,7 @@
                 deskWire(at.previousElementSibling);
                 dkArtLoad(o);
             });
+            DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); });          // 📦 보관함의 칠한 소품 그림도
             deskZAll(); deskTick(); deskFnPaint(); deskFit();
         }
         /* 🎨 칠한 소품 (p: 1) = 종류 폴더 파일에 칠한 그림이 들어 있어요 (js/deskpaint.js) → 읽어서 그 소품 그림만 바꿔요 */
@@ -328,7 +329,7 @@
             if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, b);
         }
         /* 고른 소품 위 버튼 : 🎨 칠하기 · 📦 보관함에 넣기 · 🗑 버리기 */
-        function deskTipAct(a) { const el = DK.sel; if (!el) return; const u = el.dataset.u; deskSelect(null); if (a === 'paint') { if (window.dpOpen) dpOpen(u); } else if (a === 'box') deskPut(u, 'box'); else deskDiscard(u); }
+        function deskTipAct(a) { const el = DK.sel; if (!el) return; const u = el.dataset.u; deskSelect(null); if (a === 'paint') { if (window.dpOpen) dpOpen(u); } else if (a === 'share') { if (window.ishSaveDesk) ishSaveDesk(u); } else if (a === 'box') deskPut(u, 'box'); else deskDiscard(u); }
         function dkFnBlock(u, what) {                                              // 기능 소품은 못 넣고 못 버려요 (🛠 꾸미기에서는 돼요 · 기능이 빠지고 확정 때 확인)
             if (DK.edit) { Object.keys(DK.editFn).forEach(k => { if (DK.editFn[k] === u) delete DK.editFn[k]; }); return false; }
             const fn = dkFnOf(u); if (!fn) return false;
@@ -352,22 +353,35 @@
         }
         /* 🏪 기본샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
         function deskGive(id, force) {
-            const c = dkCat(id); if (!c) return 'no';
+            if (!dkCat(id)) return 'no';
             if (!force && DK.items.some(o => o.id === id)) return 'have';
+            deskReceive(id, 'basic');
+            return 'ok';
+        }
+        /* 새 소품 하나 들어오기 (🏪 기본샵 · 📥 공유 파일) = 무조건 이 계정의 새 1개 : 새 u + 🔐 내 열쇠로 종류 폴더 파일 · img = 칠한 그림(공유받은 것) */
+        function deskReceive(id, from, img) {
+            const c = dkCat(id); if (!c) return null;
             const it = { u: id + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), id, at: 'box', x: c.x, y: c.y };
+            if (img) { it.p = 1; DK.art[it.u] = img; }
             DK.items.push(it);
             const keep = () => {                                                  // 🛠 꾸미는 중에 받은 것은 취소해도 남아요 (받은 것은 바로 저장)
                 if (!(DK.edit && DK.back)) return false;
                 const b = JSON.parse(DK.back.items), i = b.findIndex(x => x.u === it.u);
-                if (i >= 0) b[i] = Object.assign({}, it); else b.push(Object.assign({}, it));
+                if (i >= 0) b[i] = JSON.parse(JSON.stringify(it)); else b.push(JSON.parse(JSON.stringify(it)));
                 DK.back.items = JSON.stringify(b);
                 if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, b);
                 return true;
             };
             keep();
-            dkFileAdd(it, 'basic').then(() => { if (it.c && !keep()) dkSave(); });   // 🗂 종류 폴더에 파일 하나
+            const done = () => { const cur = DK.items.find(x => x.u === it.u); if (cur && it.c) cur.c = it.c; if (it.c && !keep()) dkSave(); };
+            const C = dkColl(id);
+            if (img && C) {                                                       // 🗂 칠한 그림째 파일 하나
+                dkAdding.add(it.u);
+                dkSeal({ u: it.u, id, from, img }).then(sl => collAdd(C, sl, '', { id })).then(cid => { it.c = cid; done(); })
+                    .catch(e => console.warn('소품 파일', e)).finally(() => dkAdding.delete(it.u));
+            } else dkFileAdd(it, from).then(done);                                // 🗂 종류 폴더에 파일 하나
             dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
-            return 'ok';
+            return it;
         }
         const deskShopList = () => DESK_ITEMS.map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall }));
         /* 📦 소품 보관함 창 */
@@ -423,7 +437,7 @@
             const hint = bar.querySelector('.dke-hint'); if (hint) hint.textContent = miss.length ? '연결할 기능 : ' + miss.map(k => DK_FNS.find(x => x[0] === k)[1]).join(' · ') : '끌어서 옮기고 · 톡 해서 기능을 연결해요';
             const L = DK.items.filter(o => o.at === 'box');
             tray.innerHTML = `<b class="dke-tt">📦 보관함</b>` + (L.length ? L.map(o => `<button type="button" class="dke-it" onclick="deskPut('${o.u}', 'desk')" title="책상에 놓기"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt=""><small>${dkName(o)}</small></button>`).join('') : '<small class="dke-none">비어 있어요 · 소품을 고르고 📦 넣기</small>')
-                + `<button type="button" class="dke-shop" onclick="deskEditShop()">🏪 기본샵</button>`;
+                + `<button type="button" class="dke-shop" onclick="deskEditShop()">🏪 기본샵</button><button type="button" class="dke-shop" onclick="ishPick()">📥 불러오기</button>`;
         }
         function deskEditShop() { if (window.openShelf) { openShelf(); shOpenKind('desk'); } }   // 받으면 바로 아래 보관함 줄에 (꾸미기는 그대로)
         document.addEventListener('keydown', ev => { if (DK.edit && ev.key === 'Escape' && !document.querySelector('.modal[style*="flex"], .modal[style*="block"]')) deskEditEnd(false); });
@@ -613,7 +627,7 @@
             const u = el.dataset.u, m = DK.editFn || {};
             tip.innerHTML = `<div class="dkt-fn">${DK_FNS.map(([k, n, , ic]) => `<button type="button" class="dkt-chip${m[k] === u ? ' on' : ''}${DK_FN_NEED.includes(k) && !m[k] ? ' need' : ''}" onclick="deskFnPick('${k}')">${ic} ${n}</button>`).join('')}</div>`
                 + `<div class="dkt-act"><button type="button" class="desk-snap${DK.snap ? '' : ' off'}" onclick="deskSnapToggle()" title="💻 끄는 동안 Shift 를 누르면 잠깐 반대로">${DK.snap ? '🧲 딱 맞추기 켬' : '〰️ 딱 맞추기 끔'}</button>`
-                + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button><button type="button" class="desk-snap dk-del" onclick="deskTipAct('del')">🗑 버리기</button></div>`;
+                + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('share')">📤 저장</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button><button type="button" class="desk-snap dk-del" onclick="deskTipAct('del')">🗑 버리기</button></div>`;
             deskTipPlace();
         }
         function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); }
@@ -625,6 +639,6 @@
         window.addEventListener('resize', () => requestAnimationFrame(deskFit));
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', deskBuild); else deskBuild();
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
-        window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
+        window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
         window.deskFnPick = deskFnPick; window.deskEditOpen = deskEditOpen; window.deskEditEnd = deskEditEnd; window.deskEditFromSettings = deskEditFromSettings; window.deskEditShop = deskEditShop;
         window.deskMiniPaint = deskMiniPaint; window.deskTapAt = deskTapAt;  window.deskModeRender = deskModeRender; window.deskFnItemName = deskFnItemName;

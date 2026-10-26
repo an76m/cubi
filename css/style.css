@@ -4452,6 +4452,15 @@ html.desk-edit .dke-tray { display: flex; position: fixed; left: 50%; bottom: 12
 .dkt-chip.on { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; }
 .dkt-chip.need { border-color: #f5a524; border-style: dashed; }
 .dkt-act { display: flex; justify-content: center; gap: 6px; }
+/* 📤 📥 공유 파일 (js/itemshare.js) */
+.ish-in { width: calc(100% - 16px); margin: 10px auto 0; justify-content: center; font-size: 13px; }
+.ish-card { width: min(92vw, 460px); max-height: 80vh; display: flex; flex-direction: column; gap: 10px; }
+.ish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; overflow: auto; max-height: 52vh; padding: 4px; }
+.ish-it { position: relative; display: flex; justify-content: center; padding: 6px; border-radius: 12px; border: 2px solid #f0dbe3; background: #fff; cursor: pointer; }
+.ish-it input { position: absolute; left: 6px; top: 6px; z-index: 2; width: 18px; height: 18px; accent-color: #e2557f; }
+.ish-it:has(input:checked) { border-color: #e2557f; background: #fff3f7; }
+.ish-card-in { pointer-events: none; transform: scale(.8); transform-origin: 50% 50%; }
+.ish-card-in .bk-sh { position: static !important; transform: none !important; left: auto !important; top: auto !important; }
 /* 🎨 소품 꾸미기 (js/deskpaint.js) */
 .dp-wrap { display: none; position: fixed; inset: 0; z-index: 1100; align-items: center; justify-content: center; background: rgba(90, 50, 70, .28); padding: 12px; }
 .dp-wrap.on { display: flex; }

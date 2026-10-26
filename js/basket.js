@@ -133,7 +133,18 @@
         wrap.querySelectorAll('#bkPile img').forEach(im => { if (!im.complete) im.addEventListener('load', again, { once: true }); });
     }
     /* 아래 버튼 : 📒 정리하기 (스티커가 있을 때) · 🏪 기본스티커 받기 (늘) — 둘 다 평범하게 (도련 10-26 · 처음 쓰는 사람이 '받아야 한다'를 알게) */
-    const bkTools = has => `<div class="bk-tools bk-tools2">${has ? '<button type="button" class="btn bk-act" onclick="abDesk()">📒 바구니스티커 정리하기</button>' : ''}<button type="button" class="btn bk-act" id="bkGet" onclick="bkGetKind()">🏪 기본${esc(BK_KINDS[B.kind] || '스티커')} 받기</button></div>`;   // 그 종류 기본샵으로 바로 (도련 10-26 · 기본샵 첫 화면을 거치지 않게)
+    const bkTools = has => `<div class="bk-tools bk-tools2">${has ? '<button type="button" class="btn bk-act" onclick="abDesk()">📒 바구니스티커 정리하기</button><button type="button" class="btn bk-act bk-share" onclick="bkShare()">📤 공유 파일로 저장</button>' : ''}<button type="button" class="btn bk-act" id="bkGet" onclick="bkGetKind()">🏪 기본${esc(BK_KINDS[B.kind] || '스티커')} 받기</button></div>`;   // 그 종류 기본샵으로 바로 (도련 10-26 · 기본샵 첫 화면을 거치지 않게)
+    /* 📤 이 바구니의 종이를 골라 공유 파일로 (js/itemshare.js · 내 것은 그대로 · 받은 사람의 새 1개) */
+    function bkShare() {
+        if (!B.list.length || !window.ishSaveStickers) return;
+        const el = document.createElement('div'); el.className = 'shx-pop ish-pick';
+        el.innerHTML = `<div class="alert-card ish-card"><b class="shx-t">📤 공유할 ${esc(BK_KINDS[B.kind] || '스티커')}를 골라요</b><div class="ish-grid">${B.list.slice().reverse().map(e => `<label class="ish-it"><input type="checkbox" value="${esc(e.id)}"><span class="ish-card-in">${bkCard(e)}</span></label>`).join('')}</div>`
+            + `<div class="alert-btns"><button type="button" class="btn btn-primary" data-ok>다음</button><button type="button" class="btn" data-no>취소</button></div></div>`;
+        document.body.appendChild(el);
+        el.querySelector('[data-no]').onclick = () => el.remove();
+        el.querySelector('[data-ok]').onclick = () => { const ids = [...el.querySelectorAll('input:checked')].map(i => i.value); if (!ids.length) return; el.remove(); ishSaveStickers(ids, BK_KINDS[B.kind] || '스티커'); };
+    }
+    window.bkShare = bkShare;
     function bkGetKind() { const k = B.kind; if (vis('basketKindModal')) closeModal('basketKindModal'); if (SH_KINDS[k]) shOpenKind(k); else openShelf(); }
     function bkGlowGet() {                                                   // 빈 바구니 안내를 누르면 → 받기 버튼이 붉게 반짝
         const b = bq('bkGet'); if (!b) return;
