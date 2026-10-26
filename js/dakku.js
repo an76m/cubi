@@ -119,7 +119,7 @@
     const MAP = {
         '이모지': 'emoji', '계절 스티커': 'season', '캡슐스티커': 'caps', '마스킹테이프': 'tape', '조각스티커': 'piece', '씰스티커': 'seal', '모조지스티커': 'paper', '속지': 'leaf', '메모지': 'memo', '떡메모지': 'tteok',
         '포토부스': 'booth', '사진찍기': 'cam', '사진고르기': 'pick', '사진찍어 만들기': 'cam', '조각스티커 만들기': 'piece', '씰스티커 만들기': 'seal', '모조지스티커 만들기': 'paper', '앨범골라 만들기': 'pick', '글씨 스티커': 'text', '글씨스티커 만들기': 'text', '마스킹테이프 만들기': 'tapemk', '속지 만들기': 'leafmk', '떡메모지 만들기': 'tteokmk',
-        '내 서랍': 'drawer', '내 스티커 수납함': 'drawer', '기본샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
+        '내 서랍': 'drawer', '기본샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '매일': 'sprout', '운세·마음': 'ball', '인형 꾸미기': 'doll', '게임': 'game', '펫 키우기': 'paw', '함께하기': 'letter',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '오늘의 질문': 'ask', '오늘의 행운': 'clover', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',

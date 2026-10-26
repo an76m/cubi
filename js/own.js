@@ -635,8 +635,8 @@
         function ownErrText(e) {
             const c = e && e.code;
             if (c === 'ready') return '구글 계정으로 로그인하거나 📁 폴더에 저장할 때 쓸 수 있어요.';
-            if (c === 'crypto') return '이 브라우저에서는 스티커 수납함을 열 수 없어요.';
-            if (c === 'corrupt') return '스티커 수납함을 읽을 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 말랑달콤 폴더이거나 파일이 깨졌어요.</span>';
+            if (c === 'crypto') return '이 브라우저에서는 스티커를 열 수 없어요.';
+            if (c === 'corrupt') return '스티커 목록을 읽을 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 말랑달콤 폴더이거나 파일이 깨졌어요.</span>';
             if (c === 'full') return '☁ 구글 드라이브 저장공간이 가득 찼어요.';
             if (c === 'auth') return '다시 로그인해 주세요.';
             if (c === 'relfull') return '이 쪽은 가득 찼어요. 다른 쪽에 붙여 주세요.';

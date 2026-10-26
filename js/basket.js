@@ -256,7 +256,7 @@
        · 이형지로 옮겨도 쓴 게 아니에요 (한 칸짜리 새 종이가 돼요 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelMove)
        · 바인더 · 이형지북도 🏪 기본샵 → 🗂️ 정리 도구에서 받아 와야 내 것이 돼요 (공짜여도 받아서 가지고 · 칸이 차면 또 받아요 · 도련 10-25)
          → 처음부터 '받아서 가진 것을 쓰면 줄어든다'를 알게 해요 (처음 선물 · ＋ 버튼 없음)
-       · 정리한 모습은 수납함의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
+       · 정리한 모습은 스티커목록의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
     const AB = { drag: null, busy: false };
     const REL_KINDS = new Set(['seal', 'emoji', 'piece']);
     const AB_COL = [['#ffb3c9', '#f08fae'], ['#bfe3ff', '#8cc4ee'], ['#c6ecd6', '#8fd0ac'], ['#ffe08f', '#f0c35a'], ['#d8c8f6', '#b49de8'], ['#ffc8a8', '#f4a27a']];
@@ -915,7 +915,7 @@
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;                       // 확대에서 받아도 카드 버튼은 초록
             const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
-            const where = x.tool ? `🗄️ 내 스티커 수납함 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `🗄️ 내 스티커 수납함 · ${esc(BK_KINDS[into] || '')} 바구니`;
+            const where = x.tool ? `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 바구니`;
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${x.tool ? '📒 스티커첩에서 보기' : '🧺 바구니에서 보기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div>`;
         } catch (e) {
@@ -1085,8 +1085,8 @@
     if (window.ownOnChange) ownOnChange(() => DS.m.forEach(d => { if (DS.act !== d.id) dsPaint(d); }));   // 쓴 양이 바뀌면 다시 그려요
     window.dsTake = dsTake;
 
-    /* ---------- 🎨 기본샵 · 수납함 물건 그림 (도련 10-25 · 입체감 있는 손그림 SVG · 그림 파일 없이) ----------
-       stkArt(종류) → SVG 글 (72×64 · 진한 갈색 아웃라인 #7b5a63) · 기본샵 선반(.st2-goods) · 수납 바구니 위 살짝 보이는 물건(.bk2-peek)에 넣어요 */
+    /* ---------- 🎨 기본샵 물건 그림 (도련 10-25 · 입체감 있는 손그림 SVG · 그림 파일 없이) ----------
+       stkArt(종류) → SVG 글 (72×64 · 진한 갈색 아웃라인 #7b5a63) · 기본샵 선반(.st2-goods)에 넣어요 */
     let ART_N = 0;
     function stkArt(k) {
         const u = 'a' + (++ART_N), sh = `<filter id="${u}s" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-color="#6e4050" flood-opacity=".28"/></filter>`;
@@ -1141,9 +1141,9 @@
         };
         return A[k] ? `<svg viewBox="0 0 72 64" aria-hidden="true"><defs>${sh}${glDef}</defs>${A[k]()}</svg>` : '';
     }
-    /* 📦 기본샵 · 수납함 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
+    /* 📦 기본샵 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
     (function objMovable() {
-        const go = () => ['basketModal', 'shelfModal', 'shelfKindModal'].forEach(id => {
+        const go = () => ['shelfModal', 'shelfKindModal'].forEach(id => {
             const w = document.querySelector('#' + id + ' > .obj-win'); if (!w || w.dataset.mv) return; w.dataset.mv = 1;
             let d = null, swallow = false;
             w.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('.mt-x, .modal-title, .sh-zoom')) return; d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId }; });   // 제목 줄은 js/skins.js 가 옮겨요 (두 번 안 움직이게) · 확대 창 안은 끌기 X
@@ -1164,9 +1164,8 @@
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
     })();
 
-    function stkArtFill() {                                                   // 기본샵 · 수납함의 물건 자리에 그림을 넣어요 (한 번)
+    function stkArtFill() {                                                   // 기본샵의 물건 자리에 그림을 넣어요 (한 번)
         document.querySelectorAll('.st2-slot').forEach(b => { const k = (b.className.match(/\bg-(\w+)/) || [])[1], g = b.querySelector('.st2-goods'); if (k && g && !g.dataset.art) { g.innerHTML = stkArt(k); g.dataset.art = 1; g.classList.add('art'); } });
-        document.querySelectorAll('.bk2-bin').forEach(b => { const k = (b.className.match(/\bb-(\w+)/) || [])[1], g = b.querySelector('.bk2-peek'); if (k && g && !g.dataset.art) { g.innerHTML = stkArt(k); g.dataset.art = 1; g.classList.add('art'); } });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stkArtFill); else stkArtFill();
     window.stkArt = stkArt;

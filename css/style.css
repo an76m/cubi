@@ -4227,38 +4227,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .pin-cur { z-index: 2147483000 !important; }
 .pel-room.pel-rel { background: transparent; }
 
-/* 🧺 내 스티커 수납함 = 수납 바구니 선반 · 🏪 기본샵 = 가게 선반 (도련 10-25 · 이름표를 골라요 · 디지털 아이콘 대신) */
-.bk2-shelf { box-sizing: border-box; width: 100%; max-width: 360px; margin: 6px auto 0; padding: 0 8px; background: #fff4f8; border: 1.5px solid rgba(123,90,99,.35); border-radius: 14px; box-shadow: 0 3px 0 #ffe0ea; overflow: hidden; }   /* 연핑크 수납장 (칸막이 없이 선반만) */
-.bk2-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 0 0; align-items: end; }
-.bk2-shelf > .bk2-row:first-child { padding-top: 18px; }
-.bk2-bin { position: relative; height: 82px; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.bk2-bin:active { transform: translateY(2px); }
-.bk2-box { position: absolute; left: 50%; bottom: 0; width: 62px; height: 40px; transform: translateX(-50%); box-sizing: border-box; border: 1.7px solid #7b5a63; border-radius: 7px 7px 15px 15px; background: repeating-linear-gradient(0deg, var(--b1) 0 4px, var(--b2) 4px 8px); box-shadow: inset 0 5px 0 var(--b3), 0 2px 3px rgba(120,80,100,.18); }   /* 작고 귀여운 바구니 (아웃라인은 border 로 · 끊기지 않게) */
-.bk2-box::before { content: ''; position: absolute; left: 50%; top: 6px; width: 18px; height: 6px; margin-left: -9px; border-radius: 4px; background: #7b5a63; opacity: .5; }   /* 손잡이 구멍 */
-.bk2-tag { position: absolute; left: 50%; bottom: 3px; z-index: 2; transform: translateX(-50%) rotate(var(--tr, -2deg)); }   /* 이름표는 바구니 앞 아래쪽 (바구니보다 넓으면 밖으로 나와요) */
-.bk2-tag > span { display: flex; align-items: center; gap: 4px; padding: 3px 9px 3px 6px; background: #fff; border: 1.5px solid #7b5a63; border-radius: 10px; font-size: 11.5px; font-weight: 700; color: #8a4a64; white-space: nowrap; box-shadow: 0 2px 0 rgba(123,90,99,.15); }
-.bk2-tag > span::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--b3); box-shadow: 0 0 0 1.2px #7b5a63; }
-.bk2-peek { position: absolute; left: 50%; top: 4px; transform: translateX(-50%) rotate(var(--pr, -8deg)); width: 34px; height: 28px; border-radius: 3px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-.bk2-empty { justify-self: center; width: 62px; height: 40px; box-sizing: border-box; border: 1.5px dashed #ecc9d6; border-radius: 7px 7px 15px 15px; }
-.bk2-plank { height: 6px; margin: 0 -8px; border-radius: 0; background: #ffe6ee; box-shadow: inset 0 0 0 1.2px rgba(123,90,99,.35); }   /* 얇은 선반 (수납장 끝까지) */
-.bk2-shelf > .bk2-plank:last-child { display: none; }   /* 맨 아래는 수납장 바닥 */
-.bk2-empty { margin-bottom: 4px; }
-.b-seal  { --b1: #ffd3e1; --b2: #ffc2d5; --b3: #ffb0c8; }
-.b-piece { --b1: #e2d8fb; --b2: #d6c9f6; --b3: #c7b6ef; --tr: 2deg; }
-.b-paper { --b1: #d5ecff; --b2: #c4e2fb; --b3: #aed4f3; }
-.b-tape  { --b1: #d6f1e2; --b2: #c6ead5; --b3: #a9dcbf; --tr: 2deg; }
-.b-tk    { --b1: #fff0bf; --b2: #ffe7a6; --b3: #f5d68a; --tr: -3deg; }
-.b-leaf  { --b1: #ffe0cf; --b2: #ffd2bb; --b3: #ffbf9e; --tr: 2deg; }
-.b-emoji { --b1: #fff6d6; --b2: #ffefbf; --b3: #f7df95; }
-.b-memo  { --b1: #ffd8e6; --b2: #ffcadb; --b3: #ffb4cb; --tr: 3deg; }
-.b-piece .bk2-peek { width: 26px; height: 26px; border-radius: 50%; background: #d8c8f6; }
-.b-paper .bk2-peek { width: 28px; height: 34px; border-radius: 2px; background: #fffdf7; --pr: 8deg; }
-.b-tape .bk2-peek { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, #fff 0 5px, transparent 6px), repeating-linear-gradient(45deg, #ffc6d9 0 4px, #fff 4px 8px); --pr: 0deg; }
-.b-tk .bk2-peek { width: 38px; height: 28px; background: linear-gradient(#ff9fb8 0 6px, #fff3b8 6px); box-shadow: 0 3px 0 #f0e2a0, 0 1px 3px rgba(0,0,0,.15); --pr: 0deg; }
-.b-leaf .bk2-peek { width: 26px; height: 38px; background: repeating-linear-gradient(#fff 0 6px, #dbeaf7 6px 7px); --pr: -6deg; }
-.b-emoji .bk2-peek { width: 30px; height: 30px; border-radius: 50%; background: #ffe08f; --pr: 0deg; }
-.b-memo .bk2-peek { width: 34px; height: 30px; background: #fffbe6; --pr: 5deg; }
-#basketModal .sub-modal-btns, #shelfModal .sub-modal-btns { margin-top: 0; }
+/* 🏪 기본샵 = 가게 선반 (도련 10-25 · 이름표를 골라요 · 디지털 아이콘 대신) */
+#shelfModal .sub-modal-btns { margin-top: 0; }
 
 .st2-store { width: 100%; max-width: 360px; margin: 0 auto; }
 .st2-awning { height: 40px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ff9fb8 0 30px, #fff 30px 60px); filter: drop-shadow(1.4px 0 0 #7b5a63) drop-shadow(-1.4px 0 0 #7b5a63) drop-shadow(0 1.4px 0 #7b5a63) drop-shadow(0 -1.4px 0 #7b5a63) drop-shadow(0 3px 3px rgba(150,80,100,.18)); position: relative; }   /* 차양 + 물결 둘레 아웃라인 */
@@ -4298,23 +4268,17 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-goods.art::before, .st2-goods.art::after { display: none; }
 .st2-goods.art { width: 76px; height: 66px; transform: rotate(var(--gr, -5deg)); }   /* 살짝 틀어 놓아요 (수납함처럼) */
 .g-piece { --gr: 5deg; } .g-paper { --gr: -4deg; } .g-tape { --gr: 4deg; } .g-tk { --gr: -6deg; } .g-leaf { --gr: 6deg; } .g-emoji { --gr: -4deg; } .g-memo { --gr: 5deg; } .g-tool { --gr: -5deg; }
-.st2-goods.art svg, .bk2-peek.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.bk2-peek.art { width: 54px !important; height: 47px !important; top: -2px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; transform: translateX(-50%) rotate(var(--pr, -6deg)); }
+.st2-goods.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 /* 📦 기본샵 · 수납함 = 창 없이 물건처럼 (도련 10-25 · 시안 '물건처럼' · 🗄️ 문구함처럼 다이어리 위에 둥 · 아무 데나 잡고 끌면 옮겨져요 js/basket.js objMovable) */
-#basketModal > .modal-content.obj-win, #shelfModal > .modal-content.obj-win { position: relative; width: min(310px, 88vw); max-width: none; max-height: none; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 12px rgba(120, 60, 80, .28)); touch-action: none; user-select: none; -webkit-user-select: none; }
-#basketModal .dk-tape, #shelfModal .dk-tape { display: none; }   /* 모서리 테이프 없이 */
+#shelfModal .dk-tape { display: none; }   /* 모서리 테이프 없이 */
+#shelfModal > .modal-content.obj-win { position: relative; width: min(310px, 88vw); max-width: none; max-height: none; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 12px rgba(120, 60, 80, .28)); touch-action: none; user-select: none; -webkit-user-select: none; }
 .obj-win.moving { cursor: grabbing; }
-#basketModal .obj-win > .modal-title.mt-bar, #shelfModal .obj-win > .modal-title.mt-bar { position: absolute; right: -12px; top: -18px; z-index: 6; margin: 0; padding: 0; width: auto; height: auto; }   /* ✕ 만 물건 오른쪽 위 모서리에 */
-#basketModal .obj-win .mt-text, #basketModal .obj-win .mt-back, #shelfModal .obj-win .mt-text, #shelfModal .obj-win .mt-back { display: none; }
-#basketModal .obj-win .mt-x, #shelfModal .obj-win .mt-x { position: static; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; box-shadow: 0 2px 4px rgba(120, 60, 80, .2); }
+#shelfModal .obj-win .mt-x { position: static; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; box-shadow: 0 2px 4px rgba(120, 60, 80, .2); }
+#shelfModal .obj-win .mt-text, #shelfModal .obj-win .mt-back { display: none; }
+#shelfModal .obj-win > .modal-title.mt-bar { position: absolute; right: -12px; top: -18px; z-index: 6; margin: 0; padding: 0; width: auto; height: auto; }   /* ✕ 만 물건 오른쪽 위 모서리에 */
 .obj-feet { display: flex; justify-content: space-between; padding: 0 22px; }
 .obj-feet i { width: 22px; height: 10px; margin-top: -1px; border-radius: 0 0 7px 7px; background: #f2a9c0; box-shadow: inset 0 0 0 1.5px #7b5a63; }
-/* 🧺 수납장 : 윗판 · 이름 카드 · 다리 */
-#basketModal .obj-win { margin-top: 44px; }
-.obj-lbl { position: absolute; left: 50%; top: -30px; translate: -50% 0; rotate: -1.5deg; z-index: 3; padding: 5px 16px; border-radius: 12px; background: #fff; border: 1.7px solid #7b5a63; box-shadow: 0 3px 0 #ffd0de; font-size: 14px; font-weight: 700; color: #c2457a; white-space: nowrap; }
-.bk2-top { position: relative; z-index: 2; height: 14px; margin: 0 -8px -2px; border-radius: 8px; background: linear-gradient(#ffe6ee, #ffcfdd); box-shadow: inset 0 0 0 1.7px #7b5a63; }
-.obj-win .bk2-shelf { max-width: none; margin: 0; border: 1.7px solid #7b5a63; border-radius: 4px 4px 12px 12px; background: linear-gradient(90deg, #ffe9f0, #fff6f9 14%, #fff6f9 86%, #ffe9f0); box-shadow: inset 0 -6px 0 #ffe3ec; }
 /* 🏪 가판대 : 차양 기둥 · 받침판 · 다리 */
 .obj-win .st2-store { position: relative; max-width: none; }
 .obj-win .st2-awning { margin: 0 -10px; border-radius: 12px 12px 0 0; z-index: 2; }
@@ -4322,7 +4286,6 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-pole.l { left: 4px; } .st2-pole.r { right: 4px; }
 .obj-win .st2-sign { z-index: 3; }
 .obj-win .st2-case { position: relative; z-index: 1; margin-top: 10px; border: 1.7px solid #7b5a63; background: #f6fbff; box-shadow: inset 0 -6px 0 #e9f2fb; }   /* 진열장 바탕도 연한 하늘색 */
-.bk2-base { position: relative; z-index: 1; height: 14px; margin: -2px -5px 0; border-radius: 5px 5px 8px 8px; background: linear-gradient(#ffe6ee, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }   /* 수납장 바닥판 (두께) */
 .st2-base { position: relative; z-index: 1; height: 16px; margin: -2px -6px 0; border-radius: 6px 6px 8px 8px; background: linear-gradient(#ffe0ea, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }
 @media (max-height: 700px) { #shelfModal .obj-win .st2-goods.art { width: 60px; height: 52px; } #shelfModal .obj-win .st2-row { padding-top: 8px; } }   /* 📱 낮은 화면 */
 /* 🫧 아이콘 둘레만 유리 하늘색을 은은하게 걷어요 (도련 10-25 · 아이콘이 잘 보이게 · 가장자리는 흐리게 번져서 티 안 나게) */
@@ -4344,11 +4307,6 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .bk-tools2 .bk-act { width: min(100%, 300px); min-height: 44px; justify-content: center; font-size: 14.5px; font-weight: 700; }
 .bk-act.glow { animation: bkGlow 1.4s ease-out 1; }
 @keyframes bkGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 60, 90, 0); } 20%, 60% { box-shadow: 0 0 0 4px rgba(240, 60, 90, .55), 0 0 18px 6px rgba(240, 60, 90, .45); } 40%, 80% { box-shadow: 0 0 0 2px rgba(240, 60, 90, .25), 0 0 8px 2px rgba(240, 60, 90, .2); } }
-/* ✂️ 수납함 아래 나만의 스티커 만들기 : 처음엔 눈에 안 띄게 */
-.obj-make { position: relative; display: flex; align-items: center; gap: 7px; margin: 30px auto 0; padding: 10px 22px; border: 1.7px solid #7b5a63; border-radius: 14px; background: linear-gradient(#fff8fa, #ffe1ea); outline: 1.5px dashed rgba(194, 69, 122, .45); outline-offset: -6px; color: #b23b6c; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; rotate: -1.5deg; box-shadow: 0 3px 0 #f2b8cb, 0 6px 12px rgba(120,60,80,.16); }   /* ✂️ 수납함 밑에 고리로 매단 팻말 버튼 (도련 10-26 · 수납함은 벽에 붙어 있어요) */
-.obj-make::before, .obj-make::after { content: ''; position: absolute; bottom: 100%; width: 5px; height: 32px; border-radius: 3px; background: repeating-linear-gradient(to bottom, #8f6f79 0 4px, #d9c3ca 4px 5px, #8f6f79 5px 9px, transparent 9px 11px); box-shadow: 0 0 0 1px rgba(255,255,255,.6); left: 26px; rotate: 1.5deg; }   /* 🔗 고리 사슬 */
-.obj-make::after { left: auto; right: 26px; }
-.obj-make:active { transform: translateY(2px); box-shadow: 0 1px 0 #f2b8cb; }
 /* 🏪 기본샵 종류 창 = 작은 진열장 (도련 10-26 · 휑하지 않게 · 스티커 크기는 예전 그대로 : 이름표는 카드 아래 끝에 겹쳐 한 줄 아껴요) : 차양 · 연한 하늘 유리 진열장 · 칸마다 핑크 선반 · 이름표 · [확대][받기] */
 .sh-case { position: relative; margin: 12px 0 0; padding: 16px 4px 2px; border: 1.7px solid #7b5a63; border-radius: 14px; background: linear-gradient(#f6fbff, #fffdfb 70%); box-shadow: 0 3px 0 #ffe0ea, inset 0 0 0 4px rgba(255,255,255,.7); }
 .sh-awn { position: absolute; left: -6px; right: -6px; top: -11px; height: 16px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ff9fb8 0 20px, #fff 20px 40px); filter: drop-shadow(1.2px 0 0 #7b5a63) drop-shadow(-1.2px 0 0 #7b5a63) drop-shadow(0 1.2px 0 #7b5a63) drop-shadow(0 -1.2px 0 #7b5a63) drop-shadow(0 2px 2px rgba(150,80,100,.18)); }
@@ -4376,13 +4334,6 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .sh-base .ab-nb { width: 32px; height: 32px; border: 1.7px solid #7b5a63; background: radial-gradient(circle at 40% 35%, #fff, #ffe6ee); color: #b23b6c; font-weight: 900; font-size: 17px; box-shadow: 0 2px 0 #e9a8bd; }
 .sh-base .sh-nav span { padding: 3px 14px; border-radius: 8px; background: #fff; border: 1.2px solid rgba(123, 90, 99, .35); font-size: 13px; font-weight: 800; color: #8a4a64; }
 #shelfKindModal .obj-win .sh-zoom { inset: 30px -4px 0; border-radius: 16px; border: 1.7px solid #7b5a63; background: rgba(255, 252, 248, .97); }
-/* 🗄️ 수납함 = 벽에 붙은 수납장 (도련 10-26) : 제목 · ✕ 를 한 이름판에 · 다리 없이 · 밑에 고리로 ✂️ 팻말 */
-#basketModal .obj-lbl { display: none; }
-#basketModal .obj-feet { display: none; }
-#basketModal .obj-win > .modal-title.mt-bar { position: absolute; left: -8px; right: -8px; top: -40px; z-index: 6; display: flex; align-items: center; justify-content: center; width: auto; height: 44px; margin: 0; padding: 0 44px; border: 1.7px solid #7b5a63; border-radius: 14px 14px 6px 6px; background: linear-gradient(#ffb8cc, #ff94b2); box-shadow: inset 0 2px 0 rgba(255,255,255,.45), 0 3px 0 rgba(123,90,99,.25); }   /* 수납장 폭 전체 이름판 · ✕ 는 끝에 (도련 10-26) */
-#basketModal .obj-win > .modal-title.mt-bar::before { content: ''; position: absolute; inset: 3px; border: 1.3px dashed rgba(255,255,255,.85); border-radius: 11px; pointer-events: none; }
-#basketModal .obj-win .mt-text { display: inline-block !important; width: auto !important; max-width: none !important; padding: 0 !important; overflow: visible !important; background: none !important; clip-path: none !important; color: #fff !important; font-size: 16px; font-weight: 900; white-space: nowrap; text-shadow: 1.4px 0 0 #7b5a63, -1.4px 0 0 #7b5a63, 0 1.4px 0 #7b5a63, 0 -1.4px 0 #7b5a63, 1px 1px 0 #7b5a63, -1px -1px 0 #7b5a63, 1px -1px 0 #7b5a63, -1px 1px 0 #7b5a63; }
-#basketModal .obj-win .mt-x { position: absolute !important; left: auto !important; right: 8px !important; top: 50% !important; translate: 0 -50%; width: 28px !important; height: 28px !important; border: 1.5px solid #7b5a63 !important; box-shadow: 0 2px 0 rgba(123,90,99,.25); }
 /* 🏪 기본샵 차양 (도련 10-26) : 차양을 길게 내려 제목 간판은 차양 한가운데 · ✕ 는 차양 오른쪽 끝 가운데 · 차양 끝과 진열장 사이는 조금 떠 있어요 (기둥은 그만큼 짧게) */
 #shelfModal .obj-win .st2-awning { height: 58px; }
 #shelfModal .obj-win .st2-sign { position: absolute; left: 50%; top: 12px; margin: 0; translate: -50% 0; }
