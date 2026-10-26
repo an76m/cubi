@@ -12,8 +12,14 @@
 
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 4;
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
-        const DESK_ITEMS = [{ id: 'drawer', src: 'img/desk/drawer.webp', w: 270, h: 290, x: 1200, y: 471, name: '서랍장' }];   // y = 위쪽 (다리가 책상 뒤쪽 선 조금 앞)
-        const DK_POS = 'malang_desk_pos', DK_SNAP = 'malang_desk_snap';
+        const DESK_ITEMS = [                                                      // 기본 소품 (도련 10-26 · 크기는 참고 그림의 책상 대비 비율) · wall = 벽에 거는 것 (책상 자석 없음 · 늘 뒤)
+            { id: 'corkboard', src: 'img/desk/corkboard.webp', w: 520, h: 406, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
+            { id: 'drawer-pink', src: 'img/desk/drawer-pink.webp', w: 330, h: 272, x: 170, y: 489, name: '핑크 서랍장' },
+            { id: 'basket', src: 'img/desk/basket.webp', w: 170, h: 153, x: 540, y: 608, name: '책 바구니' },
+            { id: 'pencup', src: 'img/desk/pencup.webp', w: 100, h: 155, x: 745, y: 606, name: '연필꽂이' },
+            { id: 'drawer', src: 'img/desk/drawer.webp', w: 230, h: 247, x: 1250, y: 514, name: '서랍장' }
+        ];
+        const DK_POS = 'malang_desk_pos2', DK_SNAP = 'malang_desk_snap';
         const dkGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
         const dkSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
         const DK = { s: 1, sel: null, snap: dkGet(DK_SNAP, true) };
@@ -22,11 +28,14 @@
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             const pos = dkGet(DK_POS, {});
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp" alt="" draggable="false">
-                ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return `<img class="desk-item" data-id="${it.id}" src="${it.src}" alt="${it.name}" draggable="false" style="left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px">`; }).join('')}
+                ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return `<img class="desk-item${it.wall ? ' wall' : ''}" data-id="${it.id}" src="${it.src}" alt="${it.name}" draggable="false" style="left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px">`; }).join('')}
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"><button type="button" class="desk-snap" onclick="deskSnapToggle()"></button></div></div>`;
-            bg.querySelectorAll('.desk-item').forEach(deskWire);
+            bg.querySelectorAll('.desk-item').forEach(el => { deskWire(el); deskZ(el); });
             deskTipPaint(); deskFit();
+        }
+        function deskZ(el) {                                                       // 앞뒤 : 아래쪽(앞)에 놓인 것이 앞 · 벽에 건 것은 늘 뒤
+            el.style.zIndex = el.classList.contains('wall') ? 1 : 10 + Math.round(parseFloat(el.style.top) + parseFloat(el.style.height));
         }
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
@@ -49,16 +58,16 @@
                 let x = p.l + (ev.clientX - p.x0) / DK.s, y = p.t + (ev.clientY - p.y0) / DK.s;
                 const snap = DK.snap !== ev.shiftKey, w = el.offsetWidth, h = el.offsetHeight;
                 let gh = null, gv = null;
-                if (snap) {
-                    x = Math.round(x / DESK_PX) * DESK_PX; y = Math.round(y / DESK_PX) * DESK_PX;   // 책상 픽셀 한 칸
+                if (snap && !el.classList.contains('wall')) {
+                    x = Math.round(x / DESK_PX) * DESK_PX; y = Math.round(y / DESK_PX) * DESK_PX;   // 4px 칸
                     const M = 22;                                                // 이만큼 가까우면 착 붙어요 (그림 px)
                     const foot = DESK_EDGE.back + 40;                            // 다리가 놓일 자리 = 뒤쪽 선 조금 앞 (벽에 붙인 느낌)
                     if (Math.abs(y + h - foot) < M) { y = foot - h; gh = DESK_EDGE.back; }
                     if (Math.abs(x - DESK_EDGE.left) < M) { x = DESK_EDGE.left; gv = DESK_EDGE.left; }
                     else if (Math.abs(x + w - DESK_EDGE.right) < M) { x = DESK_EDGE.right - w; gv = DESK_EDGE.right; }
-                }
+                } else if (snap) { x = Math.round(x / DESK_PX) * DESK_PX; y = Math.round(y / DESK_PX) * DESK_PX; }   // 벽에 건 것은 칸만
                 x = Math.max(-w / 2, Math.min(DESK_W - w / 2, x)); y = Math.max(0, Math.min(DESK_H - h / 2, y));
-                el.style.left = x + 'px'; el.style.top = y + 'px';
+                el.style.left = x + 'px'; el.style.top = y + 'px'; deskZ(el);
                 deskGuide(gh, gv); deskTipPlace();
             });
             const up = ev => {

@@ -4458,14 +4458,15 @@ html.desk-on:not(.desk-show) .desk-bg { z-index: 5; pointer-events: auto; }   /*
 .desk-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
 .desk-room { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
 .desk-item { position: absolute; cursor: grab; touch-action: none; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)); }   /* 책상 위에 서 있는 그림자 */
+.desk-item.wall { filter: drop-shadow(0 6px 5px rgba(150, 90, 110, .22)); }
 .desk-item.lift { cursor: grabbing; filter: drop-shadow(0 18px 12px rgba(150, 70, 100, .3)); }
 .desk-item.sel { outline: 3px dashed rgba(226, 85, 127, .7); outline-offset: 6px; }
 html.desk-show .desk-item { pointer-events: none; }
-.desk-guide { position: absolute; display: none; pointer-events: none; }
+.desk-guide { position: absolute; display: none; pointer-events: none; z-index: 4999; }
 .desk-guide.on { display: block; }
 .desk-guide.h { left: 0; right: 0; height: 0; border-top: 3px dashed #e2557f; }
 .desk-guide.v { top: 0; bottom: 0; width: 0; border-left: 3px dashed #e2557f; }
-.desk-tip { position: absolute; display: none; translate: -50% calc(-100% - 14px); transform-origin: 50% 100%; z-index: 2; }
+.desk-tip { position: absolute; display: none; translate: -50% calc(-100% - 14px); transform-origin: 50% 100%; z-index: 5000; }
 .desk-tip.on { display: block; }
 .desk-snap { height: 38px; padding: 0 14px; border-radius: 19px; border: 2px solid #e98aab; background: #fff; color: #c2457a; font: inherit; font-size: 14px; font-weight: 800; white-space: nowrap; cursor: pointer; box-shadow: 0 3px 8px rgba(150, 70, 100, .2); }
 .desk-snap.off { border-color: #c9b6d9; color: #7d6a94; }
