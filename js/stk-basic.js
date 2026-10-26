@@ -1,10 +1,10 @@
 /* 말랑달콤 다이어리 - js/stk-basic.js
-   🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 처음부터 누구나 받는 기본 스티커
+   🏪 기본샵 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 처음부터 누구나 받는 기본 스티커
    - 제가 그린 것 : 🧩 조각 봉투 · 📄 모조지스티커 (그림은 모두 이 파일 안의 SVG · 파일 없음)
    - 🖼️ 개발자 그림 : Cloudflare 그림 보관함의 기본스티커 (js/elements.js basicKit) 중 씰 말고 나머지 종류
        🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
        📄 모조지는 모조지스티커/모양/… · 모조지스티커/배경/… (도련 10-25 · 폴더 이름이 '배경'으로 시작하면 배경 모조지 = 종이 전체가 무늬 · 통째로 떼기)
-   - sbShelf(종류) → 진열대 칸 [{ cnt, look, thumbs, bigs, sec, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
+   - sbShelf(종류) → 기본샵 칸 [{ cnt, look, thumbs, bigs, sec, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
    - hold: true = 만들어 두고 아직 안 보여 줘요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 칸만 '준비 중') */
 
@@ -136,7 +136,7 @@
         }
         const sbDie = url => window.pelBake ? pelBake(url) : sbData(url).then(d => d.src);   // 하얀 다이컷 테두리 (js/stickerpeel.js)
         /* =====================================================================
-           🏪 진열대 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 기본스티커(Cloudflare) + 제가 그린 봉투 · 모조지
+           🏪 기본샵 상품 (🎒 유한 스티커 10-25 · js/basket.js) : 기본스티커(Cloudflare) + 제가 그린 봉투 · 모조지
            kind = 'piece' · 'paper' · 'tape' · 'tk' · 'leaf' · 'memo' · 카테고리 · 이름 없이 (도련 10-25 : 현실 문구점도 그렇게 팔아요)
            → [{ cnt : 개수 글, look : 'grid' · 'tape' · 'tkimg' · 'leafimg' · 'memoimg' · 'sheet', thumbs : [작은 그림], bigs : [🔍 확대 그림], sec : 모조지 '모양' · '배경', take() → ownTake 에 넘길 종이 }]
            ===================================================================== */

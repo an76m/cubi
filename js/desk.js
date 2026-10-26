@@ -65,6 +65,9 @@
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
                 const fn = of[el.dataset.id], f = fn && DK_FNS.find(x => x[0] === fn), d = dkDef(el);
                 DK_FNS.forEach(x => el.classList.remove('fn-' + x[0]));
+                let tag = el.querySelector('.dk-fn-tag');                         // 🏷 기능 라벨 (도련 10-27 · 기능 개발하는 동안 알아보게)
+                if (f) { if (!tag) { tag = document.createElement('span'); tag.className = 'dk-fn-tag'; tag.setAttribute('aria-hidden', 'true'); el.appendChild(tag); } tag.textContent = f[3] + ' ' + f[1]; }
+                else if (tag) tag.remove();
                 if (f) { el.dataset.fn = fn; el.classList.add('fn-' + fn); el.title = f[1]; el.setAttribute('role', 'button'); el.setAttribute('aria-label', `${d.name} · ${f[1]}`); }
                 else { delete el.dataset.fn; el.removeAttribute('title'); el.setAttribute('role', 'img'); el.setAttribute('aria-label', d.name || ''); }
             });
@@ -205,7 +208,7 @@
             const st = document.getElementById('deskStage'); if (!st) return;
             const W = innerWidth, H = innerHeight, s = Math.max(W / DESK_W, H / DESK_H);
             const tx = (W - DESK_W * s) / 2, ty = H - DESK_H * s;
-            DK.s = s; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+            DK.s = s; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`; st.style.setProperty('--dk-inv', (1 / s).toFixed(3));
             deskKeepIn(-tx / s, -ty / s, (W - tx) / s, (H - ty) / s);
             deskTipPlace();
         }

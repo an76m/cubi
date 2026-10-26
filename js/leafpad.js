@@ -345,10 +345,10 @@
         }
         window.spawnTteok = spawnTteok; window.closeTteokRoom = closeTteokRoom; window.tkNoteDress = tkNoteDress;
         window.tkMiniHtml = tkMiniHtml;
-        window.tkShelf = () => TK_PADS.map(([k, n]) => ({ k, n, g: TK_CAT[k] || '기본' }));                              // 🏪 진열대 (js/basket.js)
-        window.leafShelf = () => LEAFS.filter(([k]) => k !== 'line').map(([k, n]) => ({ k, n, g: LEAF_CAT[k] || '기본' }));   // 줄노트 = 다이어리 원래 종이라 진열대에 없어요
+        window.tkShelf = () => TK_PADS.map(([k, n]) => ({ k, n, g: TK_CAT[k] || '기본' }));                              // 🏪 기본샵 (js/basket.js)
+        window.leafShelf = () => LEAFS.filter(([k]) => k !== 'line').map(([k, n]) => ({ k, n, g: LEAF_CAT[k] || '기본' }));   // 줄노트 = 다이어리 원래 종이라 기본샵에 없어요
 
-/* 📃 그림 속지(lf-my) 칸 : 그림의 가로:세로를 --lf-r 로 (도련 10-24 · 🏪 진열대 · 🧺 바구니 칸) */
+/* 📃 그림 속지(lf-my) 칸 : 그림의 가로:세로를 --lf-r 로 (도련 10-24 · 🏪 기본샵 · 🧺 바구니 칸) */
 (function () {
     const seen = new WeakSet();
     const fit = el => {

@@ -112,7 +112,7 @@
            - 다이어리 안에서는 주소로 바꿔서 써요 : images [{ u, c }] · sheets [{ c, us }] · kits [{ c, us }] · [{ c, u }]
            - c = 기본스티커/씰스티커 아래 폴더 이름 = 카테고리 ('' 이면 '기본' 카테고리) · 나머지 종류는 js/stk-basic.js 가 각 창의 기본 칸에 제가 그린 그림과 섞어서 보여요
            - 카테고리만 이름이 보여요 ('1. 캐릭터' 처럼 앞 번호는 순서용 · 화면에는 '캐릭터') · 스티커 이름은 없어요
-           - 목록은 앱을 켠 동안 한 번만 받아요 (basicKit) · 🏪 진열대가 써요 (js/basket.js · 🎒 유한 스티커 10-25 : 예전 그림 모음 목록 창은 없앴어요) */
+           - 목록은 앱을 켠 동안 한 번만 받아요 (basicKit) · 🏪 기본샵이 써요 (js/basket.js · 🎒 유한 스티커 10-25 : 예전 그림 모음 목록 창은 없앴어요) */
         const KIT_BASE = 'https://malang-img.pages.dev';                    // ← 🖼️ 그림 보관함 (Cloudflare Pages 주소 · 끝에 / 없이)
         const KIT_THUMB = new Set();                                         // 미리보기(t/)가 따로 있는 그림 지문
         const kitOk = f => typeof f === 'string' && /^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$/.test(f);
@@ -142,7 +142,7 @@
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
                 const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, 30).map(kitUrl);
-                const pv = a => Array.isArray(a) && /^[0-9a-f]{16}$/.test(a[0]) && a.slice(1).every(n => typeof n === 'number' && n >= 0) ? { u: KIT_BASE + '/p/' + a[0] + '.webp', y: a[1], h: a[2], H: a[3], w: a[4] } : null;   // 🖼️ 묶음 미리보기 (포장기가 8장씩 한 파일에 세로로 · pa = [지문, y, 높이, 전체 높이, 폭] · 진열대 카드용)
+                const pv = a => Array.isArray(a) && /^[0-9a-f]{16}$/.test(a[0]) && a.slice(1).every(n => typeof n === 'number' && n >= 0) ? { u: KIT_BASE + '/p/' + a[0] + '.webp', y: a[1], h: a[2], H: a[3], w: a[4] } : null;   // 🖼️ 묶음 미리보기 (포장기가 8장씩 한 파일에 세로로 · pa = [지문, y, 높이, 전체 높이, 폭] · 기본샵 카드용)
                 const kits = {};
                 Object.keys(d.kits && typeof d.kits === 'object' ? d.kits : {}).forEach(k => {
                     kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f) } : null)
@@ -173,7 +173,7 @@
             if (!basicKitP || (force && !basicKitTry)) basicKitP = basicKitLoop();
             return basicKitP;
         }
-        /* (미리 받기는 안 해요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 진열대를 열 때 받아요) */
+        /* (미리 받기는 안 해요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 기본샵을 열 때 받아요) */
         window.basicKit = basicKit; window.kitSize = kitSize; window.kitName = libCatName;
 
 
