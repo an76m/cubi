@@ -1017,10 +1017,20 @@
             if (gateOpened || !deskWide() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
             gateOpened = true;
             g.classList.add('leave');
-            setTimeout(() => { const d = document.getElementById('deskBg'); if (d) { d.classList.remove('in'); void d.offsetWidth; d.classList.add('in'); } }, 1500);
-            setTimeout(() => { if (!g.classList.contains('leave')) return; g.classList.remove('leave'); g.style.display = 'none'; }, 2250);
+            setTimeout(() => { if (!g.classList.contains('leave')) return; g.classList.remove('leave'); g.style.display = 'none'; }, 2200);
         }
         window.addEventListener('resize', deskSync); deskSync();
+        /* 🪑 임시 (소품이 생기기 전까지) : 책상 빈 곳을 두 번 톡 = 수첩 · 하단 메뉴 보이기 / 숨기기 (html.desk-show) */
+        let deskTapAt = 0, deskTapXY = [0, 0];
+        document.addEventListener('pointerup', ev => {
+            if (!document.documentElement.classList.contains('desk-on')) return;
+            const t = ev.target;
+            if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;
+            if (t !== document.body && t !== document.documentElement && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg')))) return;
+            const now = performance.now(), near = Math.hypot(ev.clientX - deskTapXY[0], ev.clientY - deskTapXY[1]) < 30;
+            if (now - deskTapAt < 350 && near) { deskTapAt = 0; document.documentElement.classList.toggle('desk-show'); return; }
+            deskTapAt = now; deskTapXY = [ev.clientX, ev.clientY];
+        });
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
            그림은 화면을 꽉 채우고(cover) · 알림판 자리(그림 픽셀)를 화면 자리로 바꿔 카드 가운데를 맞추고 · 카드가 타원 안에 들어가게 줄여요 */
         const GATE_ART = {                                                      // ob : 레이스까지 포함한 알림판 바깥 (그림 픽셀) · 화면에 다 보이는 만큼 그림을 키워요 (커튼은 반쯤 잘려도 돼요 · 도련 10-26)

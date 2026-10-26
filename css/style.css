@@ -4456,11 +4456,11 @@ body.cafe-on .dg-note { visibility: hidden; }
 .desk-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background: #fadfe8 url(../img/desk-wide.webp) center bottom / cover no-repeat; image-rendering: pixelated; transform-origin: 50% 60%; }
 html.desk-on .desk-bg { display: block; }
 html.desk-on .bg-pattern-layer { display: none; }
-.desk-bg.in { animation: deskIn 1.4s cubic-bezier(.2, .7, .2, 1) both; }
-@keyframes deskIn { from { transform: scale(1.12); } }
-.drive-gate::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #fff 0, #fff4f8 25%, #ffe3ee 55%, rgba(255, 227, 238, 0) 80%); }
-.drive-gate.leave { pointer-events: none; animation: gateKnob .28s ease .15s, gateFade .75s ease 1.5s forwards; transition: transform 1.3s cubic-bezier(.4, 0, .8, .5) .45s, filter 1.3s ease .45s; transform: scale(2.4); filter: brightness(1.25); }
+.drive-gate::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #ffd3e2 0, #ffdbe7 30%, #fbd0de 60%, rgba(251, 208, 222, .6) 85%); }   /* 🩷 핑크빛 (흰빛 아님 · 도련 10-26) */
+.drive-gate.leave { pointer-events: none; animation: gateFade .75s ease 1.4s forwards; transition: transform 1.3s cubic-bezier(.4, 0, .8, .5) .3s; transform: scale(2.4); }   /* 흔들림 · 하얗게 밝아지기 없음 (도련 10-26) */
 .drive-gate.leave .gate-card { transition: opacity .35s ease, translate .35s ease; opacity: 0; translate: -50% calc(-50% - 10px); }
-.drive-gate.leave::after { transition: opacity .8s ease .8s; opacity: 1; }
-@keyframes gateKnob { 30% { translate: 2px 0; } 60% { translate: -2px 0; } }
+.drive-gate.leave::after { transition: opacity .8s ease .65s; opacity: 1; }
 @keyframes gateFade { to { opacity: 0; } }
+/* 🪑 책상에 집중 (도련 10-26) : 넓은 화면은 수첩 · 하단 메뉴를 숨기고 책상만 · 책상 소품이 생기기 전까지 임시로 책상을 두 번 톡 하면 보였다 숨었다 (js/drive.js deskTap) */
+html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolbar { display: none !important; }
+
