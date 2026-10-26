@@ -1008,17 +1008,23 @@
         function hideGate() { document.getElementById('driveGate').style.display = 'none'; }
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
            그림은 화면을 꽉 채우고(cover) · 알림판 자리(그림 픽셀)를 화면 자리로 바꿔 카드 가운데를 맞추고 · 카드가 타원 안에 들어가게 줄여요 */
-        const GATE_ART = { wide: { w: 1672, h: 941, cx: 835, cy: 516, ow: 895, oh: 488 }, tall: { w: 941, h: 1672, cx: 471, cy: 809, ow: 498, oh: 838 } };
+        const GATE_ART = {                                                      // ob : 레이스까지 포함한 알림판 바깥 (그림 픽셀) · 화면에 다 보이는 만큼 그림을 키워요 (커튼은 반쯤 잘려도 돼요 · 도련 10-26)
+            wide: { w: 1672, h: 941, cx: 835, cy: 516, ow: 895, oh: 488, obw: 1150, obh: 660 },
+            tall: { w: 941, h: 1672, cx: 471, cy: 809, ow: 498, oh: 838, obw: 630, obh: 1000 }
+        };
         function gateFit() {
             const g = document.getElementById('driveGate'), c = g && g.querySelector('.gate-card');
             if (!c || g.style.display === 'none') return;
             g.classList.add('gate-art');
-            const W = innerWidth, H = innerHeight, A = W / H < 1 ? GATE_ART.tall : GATE_ART.wide, s = Math.max(W / A.w, H / A.h);
+            const W = innerWidth, H = innerHeight, A = W / H < 1 ? GATE_ART.tall : GATE_ART.wide;
+            const s = Math.max(W / A.w, H / A.h, Math.min(W / A.obw, H / A.obh));   // 꽉 채우기(cover)보다 작아지지는 않게
+            const bx = Math.min(0, Math.max(W - A.w * s, W / 2 - A.cx * s)), by = Math.min(0, Math.max(H - A.h * s, H / 2 - A.cy * s));   // 알림판을 화면 가운데로 (그림 끝이 보이지 않는 만큼)
+            g.style.backgroundSize = `${A.w * s}px ${A.h * s}px`; g.style.backgroundPosition = `${bx}px ${by}px`;
             const ow = A.ow * s, oh = A.oh * s;
-            c.style.left = ((W - A.w * s) / 2 + A.cx * s) + 'px'; c.style.top = ((H - A.h * s) / 2 + A.cy * s) + 'px';
+            c.style.left = (bx + A.cx * s) + 'px'; c.style.top = (by + A.cy * s) + 'px';
             c.style.setProperty('--gs', 1);
             const cw = c.offsetWidth, ch = c.offsetHeight; if (!cw || !ch) return;
-            const k = Math.min(1.25, Math.sqrt(.9 / ((cw / ow) ** 2 + (ch / oh) ** 2)));   // 네모 카드의 모서리가 타원 밖으로 안 나가게
+            const k = Math.min(1.8, Math.sqrt(1.25 / ((cw / ow) ** 2 + (ch / oh) ** 2)));   // 알림판 끝에 닿을 만큼 크게 (네모 카드의 모서리 = 타원 둘레)
             c.style.setProperty('--gs', k.toFixed(3));
         }
         window.addEventListener('resize', () => requestAnimationFrame(gateFit)); requestAnimationFrame(gateFit);
