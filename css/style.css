@@ -4462,6 +4462,17 @@ html.desk-on:not(.desk-show) .desk-bg { z-index: 5; pointer-events: auto; }   /*
 .desk-item.lift { cursor: grabbing; filter: drop-shadow(0 18px 12px rgba(150, 70, 100, .3)); }
 .desk-item.sel { outline: 3px dashed rgba(226, 85, 127, .7); outline-offset: 6px; }
 html.desk-show .desk-item { pointer-events: none; }
+.desk-item[data-fn] { cursor: pointer; }   /* 🔗 기능 소품 : 톡 = 그 기능 · 끌면 옮기기 (js/desk.js deskRun) */
+.desk-item[data-fn]:hover { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 9px rgba(255, 255, 255, .95)); }
+body.dg-on .desk-item.fn-sticker { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 12px rgba(245, 165, 36, .85)); }   /* 🩷 다꾸하는 법 메모 : 스티커 소품이 빛나요 */
+/* ⚙️ 설정 🪑 화면 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
+.desk-set { display: none; }
+html.desk-wide .desk-set { display: block; }
+.dk-fn-list { display: grid; gap: 6px; margin-top: 8px; }
+.dk-fn-list[hidden] { display: none; }
+.dk-fn-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: #6a4f5a; font-weight: 400; }
+.dk-fn-row select { flex: none; width: 60%; }
+.form-group label.dk-fn-row { display: flex; margin: 0; }
 .desk-guide { position: absolute; display: none; pointer-events: none; z-index: 4999; }
 .desk-guide.on { display: block; }
 .desk-guide.h { left: 0; right: 0; height: 0; border-top: 3px dashed #e2557f; }

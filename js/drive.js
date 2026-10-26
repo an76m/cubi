@@ -992,10 +992,22 @@
            - 폰 / 넓은 화면 = 화면의 짧은 쪽 600px (폰은 가로로 돌려도 폰) */
         let gateOpened = false;                                                  // showGate 보다 먼저 (처음 켤 때 'wait' → 자동 로그인도 문이 열려요)
         const deskWide = () => Math.min(innerWidth, innerHeight) >= 600;
-        function deskSync() { document.documentElement.classList.toggle('desk-on', deskWide()); }
+        /* 🪑 화면 고르기 (도련 10-27 · ⚙️ 설정 📖 다이어리 칸 · 💻 PC · 아이패드만) : 책상 = 하단 메뉴 없이 책상 소품을 눌러 열기 (기본) · 하단 메뉴 = 책상 없이 배경지 + 아래 버튼 (폰과 같아요)
+           저장 : 설정.json 'diary_desk_mode' ('desk' | 'menu') · 게스트는 이 기기 'malang_desk_mode' · 📱 폰은 늘 하단 메뉴 */
+        const DESK_MODE_KEY = 'diary_desk_mode', DESK_MODE_LOCAL = 'malang_desk_mode';
+        const deskModeGet = () => prefGet(DESK_MODE_KEY, DESK_MODE_LOCAL) === 'menu' ? 'menu' : 'desk';
+        const deskUse = () => deskWide() && deskModeGet() === 'desk';
+        function deskSync() {
+            const H = document.documentElement, on = deskUse();
+            H.classList.toggle('desk-wide', deskWide());
+            if (!on && H.classList.contains('desk-show')) { H.classList.remove('desk-show'); const m = document.getElementById('deskDiary'); if (m) m.style.visibility = ''; }   // 하단 메뉴로 바꾸면 펴 둔 다이어리는 그대로 보여요
+            if (on && !H.classList.contains('desk-on') && window.deskMiniPaint) deskMiniPaint();   // 책상으로 바꾸면 책상 위 다이어리는 지금 겉표지
+            H.classList.toggle('desk-on', on);
+        }
+        function deskModeSet(v) { prefSet(DESK_MODE_KEY, DESK_MODE_LOCAL, v === 'menu' ? 'menu' : 'desk'); deskSync(); if (window.deskModeRender) deskModeRender(); }
         function hideGate() {
             const g = document.getElementById('driveGate');
-            if (gateOpened || !deskWide() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
+            if (gateOpened || !deskUse() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
             gateOpened = true;
             g.classList.add('leave');
             setTimeout(() => { if (!g.classList.contains('leave')) return; g.classList.remove('leave'); g.style.display = 'none'; }, 2200);
@@ -1011,6 +1023,7 @@
             const t = ev.target;
             if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;
             if (t !== document.body && t !== H && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg') || t.classList.contains('desk-stage')))) return;
+            if (window.deskTapAt && deskTapAt(ev.clientX, ev.clientY)) return;   // 다이어리 옆으로 보이는 소품을 톡 = 그 소품의 기능 (js/desk.js)
             if (window.deskCloseDiary) deskCloseDiary();
         });
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)

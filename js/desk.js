@@ -8,7 +8,12 @@
        끔 = 손이 가는 그대로 부드럽게
        💻 끄는 동안 Shift 를 누르고 있으면 잠깐 반대로
    - 지금 자리는 이 기기에만 기억해요 (나중에 소품을 사고 팔게 되면 드라이브에 저장)
-   ※ 소품 = DESK_ITEMS · 나중에 소품 ↔ 기능 연결(설정)을 붙여요 */
+   - 🔗 소품 ↔ 기능 (도련 10-27 · ⚙️ 설정 📖 다이어리 칸 🪑 화면) : 하단 메뉴 기능(다이어리 · 스티커 · 문구함 · 카페 · 설정)마다 소품 하나
+       톡 = 그 기능 (숨긴 하단 메뉴 버튼을 대신 눌러요 · 하는 일이 똑같아요) · 끌기 = 옮기기 · 기능 없는 소품은 톡 = 고르기
+       기능은 늘 다섯 개 다 소품에 붙어 있어요 (이미 쓰는 소품을 고르면 서로 바꿔요 · 설정을 못 열게 되는 일이 없게)
+       화면이 좁아 기능 소품이 잘려 보이면 보이는 곳 안쪽으로 당겨 보여 줘요 (저장한 자리는 그대로)
+       저장 : 설정.json 'diary_desk_fn' {기능: 소품 id} · 게스트는 이 기기 'malang_desk_fn'
+   ※ 소품 = DESK_ITEMS */
 
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
@@ -31,11 +36,72 @@
         const DK_POS = 'malang_desk_pos5', DK_SNAP = 'malang_desk_snap';
         const dkGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
         const dkSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-        const DK = { s: 1, sel: null, snap: dkGet(DK_SNAP, true) };
+        const DK = { s: 1, sel: null, snap: dkGet(DK_SNAP, true), base: {} };     // base = 저장한 자리 (화면이 좁아 당겨 보여 줘도 그대로)
+        /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼, 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
+        const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️']];
+        const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock' };
+        const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
+        function deskFnMap() {                                                    // 늘 다섯 기능 모두 · 서로 다른 소품
+            const v = typeof prefGet === 'function' ? prefGet(DK_FN_KEY, DK_FN_LOCAL) : null, got = v && typeof v === 'object' ? v : {};
+            const ids = DESK_ITEMS.map(d => d.id), used = new Set(), m = {};
+            DK_FNS.forEach(([k]) => {
+                let id = got[k];
+                if (!ids.includes(id) || used.has(id)) id = !used.has(DK_FN_DEF[k]) && !Object.values(got).includes(DK_FN_DEF[k]) ? DK_FN_DEF[k] : ids.find(i => !used.has(i) && !Object.values(got).includes(i));
+                if (!id) id = ids.find(i => !used.has(i));
+                m[k] = id; used.add(id);
+            });
+            return m;
+        }
+        function deskFnSet(fn, id) {
+            const m = deskFnMap(); if (!(fn in m) || !DESK_ITEMS.some(d => d.id === id)) return;
+            const other = Object.keys(m).find(k => k !== fn && m[k] === id);
+            if (other) m[other] = m[fn];                                         // 이미 쓰던 소품이면 서로 바꿔요
+            m[fn] = id;
+            if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, m);
+            deskFnPaint(); deskModeRender(); deskFit();
+        }
+        function deskFnPaint() {
+            const m = deskFnMap(), of = {}; Object.keys(m).forEach(k => { of[m[k]] = k; });
+            document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+                const fn = of[el.dataset.id], f = fn && DK_FNS.find(x => x[0] === fn), d = dkDef(el);
+                DK_FNS.forEach(x => el.classList.remove('fn-' + x[0]));
+                if (f) { el.dataset.fn = fn; el.classList.add('fn-' + fn); el.title = f[1]; el.setAttribute('role', 'button'); el.setAttribute('aria-label', `${d.name} · ${f[1]}`); }
+                else { delete el.dataset.fn; el.removeAttribute('title'); el.setAttribute('role', 'img'); el.setAttribute('aria-label', d.name || ''); }
+            });
+        }
+        function deskFnItemName(fn) { const d = DESK_ITEMS.find(x => x.id === deskFnMap()[fn]); return d ? d.name : ''; }
+        /* 기능 실행 = 숨긴 하단 메뉴 버튼을 대신 눌러요 (필기 붙이기 · 카페 · 다시 누르면 닫기 … 하단 메뉴와 똑같이)
+           스티커 · 문구함 · 카페는 다이어리에 쓰는 거라 책상에 놓인 다이어리를 먼저 펴요 */
+        function deskRun(fn) {
+            const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
+            const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
+            if (fn !== 'skin' && fn !== 'set' && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }
+            else setTimeout(go, 0);
+        }
+        /* 다이어리를 펴 둔 동안 : 소품은 다이어리 뒤라 직접 안 눌려요 → 빈 곳을 톡 한 자리에 기능 소품이 맨 앞에 보이면 그 기능 (js/drive.js) */
+        function deskTapAt(x, y) {
+            if (!document.documentElement.classList.contains('desk-on')) return false;
+            const top = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => { const r = el.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; })
+                .sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
+            if (!top || !top.dataset.fn) return false;
+            deskRun(top.dataset.fn); return true;
+        }
+        /* ⚙️ 설정 🪑 화면 칸 그리기 (js/drive.js deskModeSet · js/show.js 가 설정을 다시 읽을 때도) */
+        function deskModeRender() {
+            const mode = typeof deskModeGet === 'function' ? deskModeGet() : 'desk';
+            document.querySelectorAll('#deskModePick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === mode));
+            const box = document.getElementById('deskFnList'); if (!box) return;
+            box.hidden = mode !== 'desk';
+            const m = deskFnMap();
+            box.innerHTML = DK_FNS.map(([k, name, , ic]) => `<label class="dk-fn-row"><span>${ic} ${name}</span><select class="btn" onchange="deskFnSet('${k}', this.value)">`
+                + DESK_ITEMS.map(d => `<option value="${d.id}"${m[k] === d.id ? ' selected' : ''}>${d.name}</option>`).join('') + '</select></label>').join('');
+            if (document.getElementById('deskStage')) deskFnPaint();
+        }
 
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             const pos = dkGet(DK_POS, {});
+            DESK_ITEMS.forEach(it => { const p = pos[it.id] || it; DK.base[it.id] = { x: p.x, y: p.y }; });
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp" alt="" draggable="false">
                 ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return deskItemHtml(it, p); }).join('')}
                 <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="dk-top"><div class="diary-book dk-mini"></div></div><i class="dk-edge"></i></div>
@@ -47,7 +113,7 @@
             dd.addEventListener('pointerup', ev => { if (dn && Math.hypot(ev.clientX - dn[0], ev.clientY - dn[1]) < 8) deskOpenDiary(); dn = null; });
             dd.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); deskOpenDiary(); } });
             deskMiniPaint();
-            deskTipPaint(); deskFit();
+            deskFnPaint(); deskTipPaint(); deskFit(); deskModeRender();
         }
         /* 물건을 올릴 수 있는 면들 (화면에 있는 소품 기준 · 그림 px) */
         function deskSurfs(skip) {
@@ -138,14 +204,31 @@
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
             const W = innerWidth, H = innerHeight, s = Math.max(W / DESK_W, H / DESK_H);
-            DK.s = s; st.style.transform = `translate(${(W - DESK_W * s) / 2}px, ${H - DESK_H * s}px) scale(${s})`;
+            const tx = (W - DESK_W * s) / 2, ty = H - DESK_H * s;
+            DK.s = s; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+            deskKeepIn(-tx / s, -ty / s, (W - tx) / s, (H - ty) / s);
             deskTipPlace();
+        }
+        /* 기능 소품이 화면 밖으로 많이 잘리면 (좁은 창 · 세운 아이패드) 보이는 곳 안쪽으로 당겨 보여 줘요 · 저장한 자리(DK.base)는 그대로 · 넓어지면 제자리 */
+        function deskKeepIn(x0, y0, x1, y1) {
+            if (DK.drag) return;
+            const M = 12, moved = [];
+            document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+                const b = DK.base[el.dataset.id]; if (!b) return;
+                let x = b.x, y = b.y; const w = parseFloat(el.style.width), h = parseFloat(el.style.height);
+                if (el.dataset.fn) {
+                    const vis = Math.max(0, Math.min(x + w, x1) - Math.max(x, x0)) * Math.max(0, Math.min(y + h, y1) - Math.max(y, y0)) / (w * h);
+                    if (vis < .7) { x = Math.max(x0 + M, Math.min(x1 - M - w, x)); y = Math.max(y0 + M, Math.min(y1 - M - h, y)); moved.push(el); }
+                }
+                el.style.left = x + 'px'; el.style.top = y + 'px';
+            });
+            deskZAll();
+            moved.forEach(el => { el.style.zIndex = 2900; });                    // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게)
         }
         function deskWire(el) {
             let p = null;
             el.addEventListener('pointerdown', ev => {
                 if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
-                deskSelect(el);
                 p = { id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, l: parseFloat(el.style.left), t: parseFloat(el.style.top), on: false };
                 if (dkDef(el).surf) {                                            // 위에 올려 둔 물건은 함께 움직여요
                     const mine = deskSurfs(null).filter(s => s.el === el);
@@ -156,6 +239,7 @@
             el.addEventListener('pointermove', ev => {
                 if (!p || ev.pointerId !== p.id) return;
                 if (!p.on && Math.hypot(ev.clientX - p.x0, ev.clientY - p.y0) < 4) return;
+                if (!p.on) { deskSelect(el); DK.drag = true; }
                 p.on = true; el.classList.add('lift');
                 let x = p.l + (ev.clientX - p.x0) / DK.s, y = p.t + (ev.clientY - p.y0) / DK.s;
                 const snap = DK.snap !== ev.shiftKey, w = el.offsetWidth, h = el.offsetHeight;
@@ -178,10 +262,14 @@
                 deskGuide(gh, gv); deskTipPlace();
             });
             const up = ev => {
-                if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null);
-                if (!was.on) return;
+                if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null); DK.drag = false;
+                if (!was.on) {                                                   // 톡 : 기능 소품 = 그 기능 · 아니면 고르기
+                    if (ev.type === 'pointercancel') return;
+                    if (el.dataset.fn) { deskSelect(null); deskRun(el.dataset.fn); } else deskSelect(el);
+                    return;
+                }
                 const pos = dkGet(DK_POS, {});
-                [el].concat((was.riders || []).map(r => r.o)).forEach(o => { pos[o.dataset.id] = { x: parseFloat(o.style.left), y: parseFloat(o.style.top) }; });
+                [el].concat((was.riders || []).map(r => r.o)).forEach(o => { const v = { x: parseFloat(o.style.left), y: parseFloat(o.style.top) }; pos[o.dataset.id] = v; DK.base[o.dataset.id] = v; });
                 dkSet(DK_POS, pos);
             };
             el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
@@ -213,3 +301,4 @@
         window.addEventListener('resize', () => requestAnimationFrame(deskFit));
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', deskBuild); else deskBuild();
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
+        window.deskMiniPaint = deskMiniPaint; window.deskTapAt = deskTapAt; window.deskFnSet = deskFnSet; window.deskModeRender = deskModeRender; window.deskFnItemName = deskFnItemName;
