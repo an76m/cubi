@@ -4477,7 +4477,7 @@ html.desk-on .bg-pattern-layer { display: none; }
 .drive-gate.leave .gate-card { transition: opacity .35s ease, translate .35s ease; opacity: 0; translate: -50% calc(-50% - 10px); }
 .drive-gate.leave::after { transition: opacity .8s ease .65s; opacity: 1; }
 @keyframes gateFade { to { opacity: 0; } }
-/* 🪑 책상에 집중 (도련 10-26) : 넓은 화면은 수첩 · 하단 메뉴를 숨기고 책상만 · 책상 소품이 생기기 전까지 임시로 책상을 두 번 톡 하면 보였다 숨었다 (js/drive.js deskTap) */
+/* 🪑 책상에 집중 (도련 10-26) : 넓은 화면은 수첩 · 하단 메뉴를 숨기고 책상만 · 책상 위 다이어리를 톡 하면 떠올라요 (html.desk-show · js/desk.js deskOpenDiary) */
 html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolbar { display: none !important; }
 .desk-item > img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 .dk-hands { position: absolute; translate: -50% -50%; overflow: visible; pointer-events: none; }
@@ -4488,4 +4488,11 @@ html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolb
 .dk-lcd b { font-family: 'Jua', 'Gowun Dodum', sans-serif; font-weight: 400; font-size: 30px; letter-spacing: 1px; color: #4f6f93; text-shadow: 0 0 6px rgba(255, 255, 255, .7); }
 .dk-lcd i { font-style: normal; } .dk-lcd i.off { opacity: .25; }
 .dk-lcd small { font-size: 11px; margin-left: 3px; letter-spacing: 0; vertical-align: 2px; }
+/* 📔 책상에 눕혀 놓은 다이어리 (js/desk.js) : 지금 겉표지를 작게 복사 · 원근으로 눕혀요 */
+.dk-diary { position: absolute; left: 736px; top: 612px; width: 200px; height: 238px; z-index: 3000; cursor: pointer; transform: perspective(900px) rotateX(58deg); transform-origin: 50% 100%; filter: drop-shadow(0 10px 8px rgba(150, 70, 100, .3)); outline: none; }
+.dk-diary:hover, .dk-diary:focus-visible { filter: drop-shadow(0 10px 8px rgba(150, 70, 100, .3)) drop-shadow(0 0 10px rgba(255, 255, 255, .9)); }
+.dk-mini { position: relative; width: 200px; height: 238px; pointer-events: none; }
+.dk-mini .cover-page { top: 0 !important; bottom: 0; height: 100%; display: flex !important; }
+.dk-mini .cover-notice, .dk-mini .drag-hint { display: none !important; }
+html.desk-show .dk-diary { visibility: hidden; }
 

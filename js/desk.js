@@ -38,9 +38,15 @@
             const pos = dkGet(DK_POS, {});
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp" alt="" draggable="false">
                 ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return deskItemHtml(it, p); }).join('')}
+                <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="diary-book dk-mini"></div></div>
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"><button type="button" class="desk-snap" onclick="deskSnapToggle()"></button></div></div>`;
             bg.querySelectorAll('.desk-item').forEach(deskWire); deskZAll(); deskTick();
+            const dd = document.getElementById('deskDiary'); let dn = null;
+            dd.addEventListener('pointerdown', ev => { dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
+            dd.addEventListener('pointerup', ev => { if (dn && Math.hypot(ev.clientX - dn[0], ev.clientY - dn[1]) < 8) deskOpenDiary(); dn = null; });
+            dd.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); deskOpenDiary(); } });
+            deskMiniPaint();
             deskTipPaint(); deskFit();
         }
         /* 물건을 올릴 수 있는 면들 (화면에 있는 소품 기준 · 그림 px) */
@@ -91,6 +97,39 @@
             document.querySelectorAll('#deskStage .dk-lcd b').forEach(b => { b.innerHTML = `${h % 12 || 12}<i${sec % 2 ? ' class="off"' : ''}>:</i>${String(m).padStart(2, '0')}<small>${h < 12 ? 'AM' : 'PM'}</small>`; });   // 12시간 (21시 → 9 PM · 도련 10-26)
         }
         setInterval(deskTick, 1000);
+        /* 📔 책상 가운데 다이어리 (도련 10-26) : 지금 다이어리의 겉표지를 작게 · 책상에 눕혀 놓아요
+           - 톡 = 다이어리가 그 자리에서 떠올라 화면 가운데로 → 겉표지가 넘어가며 다꾸 시작 (하단 메뉴도 함께)
+           - 책상 빈 곳을 톡 = 다시 책상에 내려놓아요 (펼친 채로 · 다음에 톡 하면 펼친 쪽 그대로 · js/drive.js)
+           - 나중에 : 마지막으로 다꾸한 다이어리가 놓여요 (지금은 기본 다이어리 하나) */
+        function deskMiniPaint() {
+            const box = document.querySelector('#deskDiary .dk-mini'), cv = document.getElementById('coverPage'); if (!box || !cv) return;
+            const c = cv.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+            c.style.display = ''; c.classList.remove('cv-plain'); c.setAttribute('aria-hidden', 'true');
+            box.replaceChildren(c);
+        }
+        let deskAnim = false;
+        function deskOpenDiary() {
+            const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
+            if (deskAnim || !mini || !w || H.classList.contains('desk-show')) return;
+            deskAnim = true; deskSelect(null);
+            const r0 = mini.getBoundingClientRect();
+            H.classList.add('desk-show'); mini.style.visibility = 'hidden';
+            const r1 = w.getBoundingClientRect(), k = r0.width / r1.width;
+            const dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
+            const tb = document.querySelector('.toolbar'); if (tb) tb.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, delay: 250, fill: 'backwards' });
+            const a = w.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+            a.onfinish = a.oncancel = () => { deskAnim = false; if (typeof isCoverOpen !== 'undefined' && !isCoverOpen && window.openCoverAnimated) setTimeout(openCoverAnimated, 120); };   // 겉표지가 넘어가요
+        }
+        function deskCloseDiary() {
+            const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
+            if (deskAnim || !mini || !w || !H.classList.contains('desk-show')) return;
+            deskAnim = true;
+            const r1 = w.getBoundingClientRect(); mini.style.visibility = ''; const r0 = mini.getBoundingClientRect(); mini.style.visibility = 'hidden';
+            const k = r0.width / r1.width, dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
+            const tb = document.querySelector('.toolbar'); if (tb) tb.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }).onfinish = function () { this.cancel(); };
+            const a = w.animate([{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }], { duration: 480, easing: 'cubic-bezier(.5, 0, .6, 1)', fill: 'forwards' });
+            a.onfinish = () => { H.classList.remove('desk-show'); a.cancel(); mini.style.visibility = ''; deskMiniPaint(); deskAnim = false; };
+        }
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
             const W = innerWidth, H = innerHeight, s = Math.max(W / DESK_W, H / DESK_H);
@@ -168,4 +207,4 @@
         }, true);
         window.addEventListener('resize', () => requestAnimationFrame(deskFit));
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', deskBuild); else deskBuild();
-        window.deskSnapToggle = deskSnapToggle;
+        window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
