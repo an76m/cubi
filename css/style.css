@@ -4440,7 +4440,7 @@ html.desk-edit .dk-diary { pointer-events: none; opacity: .55; }
 html.desk-edit .dke-bar { display: flex; position: fixed; left: 50%; top: 12px; translate: -50% 0; z-index: 900; align-items: center; gap: 10px; padding: 8px 10px 8px 16px; border-radius: 18px; background: rgba(255, 255, 255, .95); border: 2px solid #e98aab; box-shadow: 0 4px 14px rgba(150, 70, 100, .2); white-space: nowrap; max-width: calc(100vw - 24px); }
 .dke-bar .dke-tt { color: #c2457a; font-size: 15px; } .dke-bar .dke-hint { color: #8d7380; font-size: 12px; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .dke-bar .btn { padding: 6px 14px; } .dke-bar .dke-ok { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; } .dke-bar .dke-ok.dim { opacity: .45; }
-html.desk-edit .dke-tray { display: flex; position: fixed; left: 50%; bottom: 12px; translate: -50% 0; z-index: 900; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 18px; background: rgba(255, 255, 255, .95); border: 2px solid #f0c3d2; box-shadow: 0 4px 14px rgba(150, 70, 100, .2); max-width: calc(100vw - 24px); overflow-x: auto; }
+html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !important; display: flex; position: fixed; left: 50%; bottom: 12px; translate: -50% 0; z-index: 900; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 18px; background: rgba(255, 255, 255, .95); border: 2px solid #f0c3d2; box-shadow: 0 4px 14px rgba(150, 70, 100, .2); max-width: calc(100vw - 24px); overflow-x: auto; }
 .dke-tray .dke-tt { color: #c2457a; font-size: 13px; white-space: nowrap; } .dke-none { color: #a08a94; font-size: 12px; white-space: nowrap; }
 .dke-it { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 74px; padding: 4px; border: 1.5px solid #f3d3de; border-radius: 12px; background: #fff; cursor: pointer; font: inherit; }
 .dke-it img { width: 56px; height: 48px; object-fit: contain; } .dke-it small { font-size: 10.5px; color: #6a4f5a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -4487,6 +4487,10 @@ html.desk-edit .dke-tray { display: flex; position: fixed; left: 50%; bottom: 12
 .dkb-pic img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .dkb-it b { font-size: 13px; color: #6a4f5a; } .dkb-it small { font-size: 11px; color: #a08a94; }
 .dkb-btns { display: flex; gap: 4px; margin-top: 2px; } .dkb-btns .btn { padding: 4px 8px; font-size: 12px; } .dkb-btns .dkb-del { color: #b84a4a; }
+.dk-tabs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; grid-column: 1 / -1; }   /* 🗂 보관함 종류 칸 (서랍장 · 시계 …) */
+.dk-tab { border: 1.5px solid #ecd0da; background: #fff; color: #7b5a63; border-radius: 12px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.dk-tab small { margin-left: 4px; color: #b598a4; font-size: 10.5px; } .dk-tab.on { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; } .dk-tab.on small { color: #ffe3ec; }
+.dke-row { display: flex; align-items: center; gap: 8px; overflow-x: auto; } .dke-tabs { padding-bottom: 2px; }
 .dkb-empty { grid-column: 1 / -1; text-align: center; color: #a08a94; font-size: 13px; padding: 24px 0; }
 .st2-row .st2-more .st2-emo { font-size: 34px; line-height: 1; display: flex; align-items: center; justify-content: center; height: 100%; }
 .desk-set { display: none; }
