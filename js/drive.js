@@ -1026,7 +1026,8 @@
             if (!document.documentElement.classList.contains('desk-on')) return;
             const t = ev.target;
             if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;
-            if (t !== document.body && t !== document.documentElement && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg')))) return;
+            if (t.closest && (t.closest('.desk-item') || t.closest('#deskTip'))) return;
+            if (t !== document.body && t !== document.documentElement && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg') || t.classList.contains('desk-stage')))) return;
             const now = performance.now(), near = Math.hypot(ev.clientX - deskTapXY[0], ev.clientY - deskTapXY[1]) < 30;
             if (now - deskTapAt < 350 && near) { deskTapAt = 0; document.documentElement.classList.toggle('desk-show'); return; }
             deskTapAt = now; deskTapXY = [ev.clientX, ev.clientY];
