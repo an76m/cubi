@@ -7,7 +7,7 @@
    - 📁 폴더 : 말랑달콤 / 휴지통 칸 (js/devsave.js) · 30일 또는 폰 · 아이패드 50MB (PC 폴더 200MB) 넘으면 오래된 것부터 비워요
    - 되살릴 자리에 그새 새로 쓴 게 있으면 "어느 쪽을 남길까요?" → 안 고른 쪽은 휴지통으로 */
 
-        const TR_TOP = '말랑달콤';
+        const TR_TOP = '말랑달콤';   // drive.js 보다 먼저 불러와서 글자로 (TOP_FOLDER_NAME 과 같아요)
         const trq = id => document.getElementById(id);
         const trEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -16,7 +16,7 @@
             if (oldText == null || oldText === '' || oldText === 'null') return;
             try {
                 if (drive.local) { if (window.dvTrash) await dvTrash.put(path, oldText); return; }
-                const dir = await getFolder([TR_TOP, '휴지통'], true);
+                const dir = await getFolder(dirPath(DIRS.trash), true);
                 const b = 'diary_boundary_' + Math.random().toString(36).slice(2);
                 const meta = { name: path.split('/').pop(), mimeType: 'application/json', parents: [dir], appProperties: { orig: path.slice(0, 110) } };
                 const mp = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${oldText}\r\n--${b}--`;
@@ -24,18 +24,23 @@
                 if (res.ok) await driveTrash((await res.json()).id);
             } catch (e) { console.warn('덮어쓰기 전 모습을 휴지통에 넣지 못했어요 (저장은 그대로 해요):', path, e); }
         }
-        const dayPathOf = key => { const d = parseDayKey(key); return d ? DAY_PATH.concat(yearFolderName(d.y), monthFolderName(d.m), dayFileName(d.d)).join('/') : ''; };
+        const dayPathOf = key => { const d = parseDayKey(key); return d ? DAY_PATH.concat(dayFileName(d.y, d.m, d.d)).join('/') : ''; };
         function trashKeepDay(key, oldText) { const p = dayPathOf(key); return p ? trashKeep(p, oldText) : Promise.resolve(); }
 
         /* ---------- 이름 : 경로 → 사람이 알아보는 말 ---------- */
         function trLabel(path) {
-            let m = /\/다꾸\/[^/]+\/(\d{4})년\/?(\d{1,2})월\/?(\d{1,2})일\.json$/.exec(path);
+            let m = /(?:^|\/)기본-(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);           // 📁 폴더 한 줄 (10-26) : 말랑달콤 / 폴더 / 파일
             if (m) return `📔 ${m[1]}년 ${+m[2]}월 ${+m[3]}일 일기`;
             if (/\/설정\/설정\.json$/.test(path)) return '⚙ 설정';
-            if (/\/카페\/카페\.json$/.test(path)) return '☕ 카페 기록';
-            if (/\/검색\//.test(path)) return '🔍 검색 목록';
-            const parts = path.split('/'), i = parts.indexOf('원본');
-            if (i > 1) return parts[1] === '스티커' ? `🏷️ ${parts[2] === '공유' ? parts[3] : parts[2]} 스티커` : /배경지/.test(parts[i - 1]) ? '🎨 배경지' : /페이지/.test(parts[i - 1]) ? '📔 페이지' : '📦 ' + parts[i - 1];
+            if (/\/카페기록\/카페\.json$/.test(path)) return '☕ 카페 기록';
+            if (/\/검색-[^/]*\.json$/.test(path)) return '🔍 검색 목록';
+            const parts = path.split('/'), dir = parts.length > 2 ? parts[parts.length - 2] : '', file = parts[parts.length - 1] || '';
+            if (/^(내|받은)-목록\d+\.json$/.test(file)) return '📋 모음 목록';
+            if (/^(내|받은)-/.test(file)) {
+                const stk = typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir);
+                return stk ? `🏷️ ${dir} 스티커` : dir === DIRS.pattern ? '🎨 배경지' : dir === DIRS.pageDeco ? '📔 페이지' : '📦 ' + dir;
+            }
+            if (dir === DIRS.note || dir === DIRS.binder) return '📕 ' + (/-(\d+)페이지\.json$/.test(file) ? file.replace(/^.*-(\d+)페이지\.json$/, '$1페이지') : /-표지\.json$/.test(file) ? '표지' : '다이어리');
             if (/\/인형극\//.test(path)) return '🎭 인형극 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/인형\//.test(path)) return '👧 인형 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/목록\//.test(path)) return '📋 모음 목록';

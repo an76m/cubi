@@ -6,11 +6,11 @@
        · 그 칸의 그림을 지운 새 파일을 만들고 옛 파일은 완전 삭제 (구글 드라이브 휴지통 · 옛 버전 기록에도 안 남아요)
        · 마지막 칸을 쓰면 종이 파일도 완전 삭제 → 🧺 바구니에서 사라져요
    - 다른 기기에서 이미 쓴 칸이면 : 붙이려던 스티커를 페이지에서 빼고 알려 줘요 (늘 드라이브의 지금 모습을 다시 읽고 고쳐요)
-   - 저장 (도련 10-26) : 내 드라이브 말랑달콤 / 스티커 / 목록.json (바구니 목록) · 스티커첩.json (바인더 · 이형지북) · 목록_백업.json · 스티커첩_백업.json
-                       말랑달콤 / 스티커 / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / <id>.json (종이 한 장씩 · 종류 폴더)
+   - 저장 (도련 10-26 · 폴더 한 줄 확정) : 말랑달콤 / 스티커목록 / 목록.json (바구니 목록) · 스티커첩.json (바인더 · 이형지북) · 목록_백업.json · 스티커첩_백업.json
+                       말랑달콤 / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / <id>.json (종이 한 장씩 · 종류 폴더 · 말랑달콤 바로 아래)
        · 종류는 받을 때 정해지고 바뀌지 않아요 → 파일이 폴더 사이를 옮겨 다니지 않아요 (바구니 · 바인더 · 이형지 위치는 목록 · 스티커첩에만 · 기록이 한 곳이라 어긋나지 않게)
        · 받은 곳(기본 · 만든 것 · 선물 …)도 폴더로 나누지 않아요 (종이 파일 안 from)
-       · 예전 '수납함' 폴더는 안 써요 (개발 중이라 옮기는 코드 없음) · 공유하기 폴더는 스티커 / 공유 / 씰 / 내씰 · 받은씰 … (js/coll.js stkColl)
+       · 예전 '스티커 / 수납함' · '스티커 / 씰' 폴더는 안 써요 (개발 중이라 옮기는 코드 없음) · 공유하기는 같은 종류 폴더에 내-/받은- 이름으로 (js/coll.js stkColl · 보류)
        · 🛟 백업 : 목록을 잘 읽은 날 하루 한 번 _백업 파일로 복사 → 목록이 없어지거나 깨지면 백업 + 종류 폴더의 종이 파일로 되살려요 (ownRescue)
        · 모두 암호화(AES-GCM · 계정마다 다른 열쇠) → 드라이브에서 열어 봐도 그림이 아니고, 다른 계정으로 옮겨도 못 열어요
        · 📦 백업 · 📥 불러오기에서 빼요 (불러오기로 쓴 스티커가 되살아나지 않게 · js/backup.js)
@@ -24,8 +24,9 @@
    - 종이 파일 : { v, id, k, from, nm, ts, baked : 하얀 테두리를 이미 둘렀는지, imgs : [그림 data · 쓴 칸은 null], wh : [[가로, 세로]], q0 · q, x : 종류마다 정보 }
    ※ 파일 불러오는 순서 : drive → coll → … → own → basket (index.html) */
 
-        const OWN_DIR = [TOP_FOLDER_NAME, '스티커'], OWN_IDX = '목록.json', OWN_SALT = 'malang-own|v1|softsweetdiary';
-        const OWN_KIND = { seal: '씰', piece: '조각', paper: '모조지', tape: '마테', tk: '떡메', memo: '메모지', leaf: '속지' };   // 종이 파일이 사는 종류 폴더
+        const OWN_DIR = dirPath(DIRS.stkList), OWN_IDX = '목록.json', OWN_SALT = 'malang-own|v1|softsweetdiary';
+        const OWN_KIND = { seal: '씰', piece: '조각', paper: '모조지', tape: '마테', tk: '떡메', memo: '메모지', leaf: '속지' };   // 종이 파일이 사는 종류 폴더 (말랑달콤 바로 아래 · js/backup.js 가 이 목록으로 백업에서 빼요)
+        const ownKindPath = k => dirPath(OWN_KIND[k] || '기타');
         const OWN_IDX_BK = '목록_백업.json', OWN_ALB_BK = '스티커첩_백업.json', OWN_BK_LS = 'malang_own_bk';
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
         const OWN_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
@@ -75,9 +76,9 @@
 
         /* ---------- 저장소 (드라이브 · 이 기기 폴더는 js/drive.js 함수 그대로 · 구경만은 메모리) ---------- */
         const ownRid = () => Date.now().toString(36) + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-        /* ⚡ 스티커 폴더 주소 기억 (이 기기 · 계정마다) : 처음 열 때 말랑달콤 → 스티커를 하나씩 찾지 않아요 · 주소만이라 예전 내용이 보일 일은 없어요
+        /* ⚡ 스티커목록 폴더 주소 기억 (이 기기 · 계정마다) : 처음 열 때 말랑달콤 → 스티커목록을 하나씩 찾지 않아요 · 주소만이라 예전 내용이 보일 일은 없어요
            · 기억한 폴더가 지워졌거나 휴지통이면 다시 찾아요 (driveMeta) */
-        const OWN_DIR_LS = 'malang_own_dir2';                              // 2 : 수납함 폴더를 없앤 뒤 (10-26 · 예전 주소를 쓰지 않게)
+        const OWN_DIR_LS = 'malang_own_dir3';                              // 3 : 스티커목록 폴더 (10-26 폴더 한 줄 · 예전 주소를 쓰지 않게)
         async function ownDir(create) {
             const key = OWN_DIR.join('/');
             if (drive.folderIds.has(key)) return drive.folderIds.get(key);
@@ -129,8 +130,8 @@
             }
             const files = [];
             await Promise.all(Object.values(OWN_KIND).map(async n => {
-                const kd = await getFolder(OWN_DIR.concat(n), false); if (!kd) return;
-                (await driveList(`'${kd}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).forEach(x => { if (/\.json$/i.test(x.name)) files.push(x); });
+                const kd = await getFolder(dirPath(n), false); if (!kd) return;
+                (await driveList(`'${kd}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).forEach(x => { if (/^[a-z0-9]+\.json$/i.test(x.name)) files.push(x); });   // 내 종이만 (공유하기 내-/받은- 파일은 빼요)
             }));
             if (!bkOk && !files.length) return none();
             const got = new Map(); let i = 0;
@@ -194,7 +195,7 @@
         async function ownFileNew(sheet) {
             const body = await ownLock(sheet);
             if (ownMode() === 'mem') { const id = 'm' + ownRid(); O.mem.files.set(id, body); return id; }
-            const dir = () => getFolder(OWN_DIR.concat(OWN_KIND[sheet.k] || '기타'), true);   // 종류 폴더 (스티커 / 씰 …)
+            const dir = () => getFolder(ownKindPath(sheet.k), true);   // 종류 폴더 (말랑달콤 / 씰 …)
             let saved;
             try { saved = await driveUpsert(await dir(), ownRid() + '.json', null, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; saved = await driveUpsert(await dir(), ownRid() + '.json', null, body); }
@@ -239,7 +240,7 @@
         /* ⚡ 바구니 열기 : 목록 파일 · 스티커첩 파일을 동시에 읽어요 (하나씩 읽던 것보다 빨라요 · 도련 10-25) */
         /* ⚡ 목록 · 스티커첩 파일 번호를 기억해요 (계정마다 · 도련 10-25) : 다음에 열 때 폴더 찾기 · 파일 찾기 없이 바로 읽어요 (1.7초 → 약 1초)
            그다음 뒤에서 한 번 찾아 보고, 다른 기기에서 새로 만들었거나 바뀌었으면 다시 읽어 바구니를 고쳐 그려요 (ownTell) */
-        const OWN_FILES_LS = 'malang_own_files2';
+        const OWN_FILES_LS = 'malang_own_files3';
         const ownFilesGet = () => { try { return (JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {})[O.kw] || null; } catch (e) { return null; } };
         function ownFilesSet(v) { try { const o = JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {}; o[O.kw] = v; localStorage.setItem(OWN_FILES_LS, JSON.stringify(o)); } catch (e) {} }
         const ownFilesNow = () => ownFilesSet({ i: O.idxF ? O.idxF.id : '', a: O.albF ? O.albF.id : '' });
@@ -483,7 +484,7 @@
             if (!ownMode() || !O.idx || !O.album || O.kw !== ownWho()) return null;
             return { list: O.idx, album: O.album };
         }
-        /* 📒 스티커첩은 작은 파일 하나 (스티커/스티커첩.json · 암호화) : 바인더에 꽂을 때 큰 목록 파일을 건드리지 않아서 빨라요 (도련 10-25) */
+        /* 📒 스티커첩은 작은 파일 하나 (스티커목록/스티커첩.json · 암호화) : 바인더에 꽂을 때 큰 목록 파일을 건드리지 않아서 빨라요 (도련 10-25) */
         const OWN_ALB = '스티커첩.json';
         async function ownAlbRead(pre) {                                         // pre : 이미 찾은 스티커첩 파일 (ownOpen · null = 없음)
             if (ownMode() === 'mem') return O.mem.alb ? JSON.parse(JSON.stringify(O.mem.alb)) : null;
@@ -644,6 +645,6 @@
         }
 
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
-        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q;
+        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
         window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs; window.OWN_REL_MAX = OWN_REL_MAX;

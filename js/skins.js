@@ -545,7 +545,7 @@
         ];
         const DY_DEF = 'basic';                                                // 처음 설치하면 기본 다이어리
         const DY_TAB = ['다이어리', '노트', '바인더'];                         // 고르기 창 위 카테고리 = k (도련 · 10-18 : 실물 모양으로 · 저장 폴더는 나누지 않아요 · 다이어리.json kind)
-        /* 📕 유한 다이어리 저장 규칙 (도련 · 10-17) : 말랑달콤 / 다꾸 / 디자인 (규격) [n권] / …
+        /* 📕 유한 다이어리 저장 규칙 (도련 · 10-17 · 10-26 폴더 한 줄 : 말랑달콤 / 일기노트 · 일기바인더 / <권 id>-… · 아래 폴더 이름 규칙은 이제 안내용) : 말랑달콤 / 다꾸 / 디자인 (규격) [n권] / …
            - 한 권에 폴더 하나 · 그 안 '다이어리.json' 에 id · 디자인 · 규격 · 페이지 수 · 장마다 처음 꾸민 날 (days)
            - 앱은 폴더 이름이 아니라 다이어리.json 의 id 로 찾아요 → 폴더 이름은 사람이 드라이브에서 알아보는 용도
            - 이름 : 드라이브 · 폴더에 못 쓰는 글자는 빼고 · 디자인 이름은 20자까지 · 같은 이름이 있으면 2권, 3권 …
@@ -1978,7 +1978,7 @@
         function dkPath(date) {                                                // 💾 저장 알림에 보여 줄 자리
             if (!dkIs(date) || !dkType()) return '';
             const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
-            return `다꾸/${b ? b.kind : o.kind}/${b ? b.name : dkFolderName(o.design, o.spec)}/${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;
+            return `${(b ? b.kind : o.kind) === '바인더' ? DIRS.binder : DIRS.note}/${id}-${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;   // 폴더 한 줄 (10-26)
         }
         function dkCv() { return !!dkType() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
         function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } const b = document.getElementById('diaryBook'); if (b) b.classList.toggle('dk-cv', cv); bdSync(); }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)

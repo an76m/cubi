@@ -342,7 +342,7 @@
             const label = h.name === DV_TOP ? '' : h.name;                   // 안내문에는 고른 폴더 이름만 (말랑달콤은 말하지 않아요 · 도련)
             if (h.name === DV_TOP) return { top: h, label };
             try { return { top: await h.getDirectoryHandle(DV_TOP), label }; } catch (e) {}
-            for (const n of ['다꾸', '다이어리', '설정', '스티커']) { try { await h.getDirectoryHandle(n); return { top: h, label }; } catch (e) {} }   // 이름을 바꾼 말랑달콤 폴더
+            for (const n of [DIRS.day, DIRS.settings, DIRS.stkList]) { try { await h.getDirectoryHandle(n); return { top: h, label }; } catch (e) {} }   // 이름을 바꾼 말랑달콤 폴더
             return { top: await h.getDirectoryHandle(DV_TOP, { create: true }), label };
         }
         /* 📁 폴더 고르기 · 시작 (say : 다 되면 안내창) → 성공하면 true */

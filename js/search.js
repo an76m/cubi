@@ -2,8 +2,8 @@
    🔍 일기 검색 : 지금까지 쓴 일기에서 낱말을 찾아요 (다이어리 위쪽 날짜 뒤의 🔍)
    - 글상자 · 오늘의 질문 대답 · 이모지 스티커 · 운세/꿈해몽/행운 카드 글 · 기분/날씨 도장 이름까지 찾아요
    - 빠르게 찾으려고 '검색 목록'을 다이어리마다 품고 있어요 (글만 담겨요 · 도련 10-18 : 이름 = '검색-' + 담긴 폴더 이름)
-       📔 기본 : 말랑달콤 / 다꾸 / 기본 / 2026년 / 검색-2026년.json (한 해에 파일 1개)
-       📕 노트 · 바인더 : 말랑달콤 / 다꾸 / 바인더 / 6공바인더(A5) / 검색-6공바인더(A5).json (한 권에 파일 1개)
+       📔 기본 : 말랑달콤 / 일기기본 / 검색-기본-2026.json (한 해에 파일 1개 · 폴더 한 줄 10-26)
+       📕 노트 · 바인더 : 말랑달콤 / 일기노트 · 일기바인더 / 검색-<권 id>.json (한 권에 파일 1개)
      일기를 저장하면 검색 목록도 고쳐 두었다가, 20초 뒤(또는 화면을 닫을 때) 한 번에 올려요
      올리기 전에 다른 기기가 그 파일을 고쳤으면 : 그 파일 위에 이 기기에서 바뀐 날만 얹어서 올려요
    - 검색 창을 처음 열 때 (기기마다 · 접속할 때마다 한 번) 드라이브의 일기 목록과 맞춰 봐요
@@ -44,7 +44,7 @@
         const srScope = key => { const p = parseDayKey(key); if (p) return 'y' + p.y; const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
         /* 목록 파일 자리 : { dir, name } (create : 폴더가 없으면 만들기) */
         async function srLoc(s, create) {
-            if (s[0] === 'y') return { dir: await getFolder(DAY_PATH.concat(s.slice(1) + '년'), create), name: `${SR_PREFIX}${s.slice(1)}년.json` };
+            if (s[0] === 'y') return { dir: await getFolder(DAY_PATH, create), name: `${SR_PREFIX}기본-${s.slice(1)}.json` };
             const b = await getBookIndex(s.slice(1), create);
             return { dir: b ? b.folderId : null, name: b ? `${SR_PREFIX}${b.name}.json` : '' };
         }
@@ -135,23 +135,19 @@
             if (sr.synced || !srOn()) return;
             if (sr.syncing) return sr.syncing;
             sr.syncing = (async () => {
-                const rootId = await getFolder(DAY_PATH, false);
-                if (!rootId) { sr.synced = true; return; }
-                const years = (await driveList(`'${rootId}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name'))
-                    .map(f => +((/^(\d{4})년$/.exec(f.name) || [])[1])).filter(Boolean).sort();
+                const idx = await getMonthIndex(0, 0, false);                     // 일기기본 폴더 하나에 모든 날 (폴더 한 줄 · 10-26)
+                if (!idx) { sr.synced = true; return; }
+                const byYear = new Map();
+                idx.files.forEach((f, name) => { const r = DAY_FILE_RE.exec(name); if (!r) return; const y = +r[1]; if (!byYear.has(y)) byYear.set(y, []); byYear.get(y).push([r, f]); });
                 const need = [];
-                for (const y of years) {
+                for (const y of [...byYear.keys()].sort()) {
                     const Y = await srYear('y' + y), seen = new Set();
-                    for (let m = 1; m <= 12; m++) {
-                        const idx = await getMonthIndex(y, m, false); if (!idx) continue;
-                        idx.files.forEach((f, name) => {
-                            const d = (/^(\d{1,2})일\.json$/.exec(name) || [])[1]; if (!d) return;
-                            const date = new Date(y, m - 1, +d), key = getDateKey(date), day = srDayOf(key), e = Y.d[day];
-                            seen.add(day);
-                            if (drive.loadedDays.has(key) || drive.dirtyKeys.has(key)) { srApply(Y, key); if (Y.d[day] && !Y.d[day][1]) Y.d[day][1] = f.modifiedTime || ''; return; }
-                            if (!e || (e[1] && f.modifiedTime && e[1] < f.modifiedTime) || !e[1]) need.push({ Y, date, key, day, f });
-                        });
-                    }
+                    byYear.get(y).forEach(([r, f]) => {
+                        const date = new Date(y, +r[2] - 1, +r[3]), key = getDateKey(date), day = srDayOf(key), e = Y.d[day];
+                        seen.add(day);
+                        if (drive.loadedDays.has(key) || drive.dirtyKeys.has(key)) { srApply(Y, key); if (Y.d[day] && !Y.d[day][1]) Y.d[day][1] = f.modifiedTime || ''; return; }
+                        if (!e || (e[1] && f.modifiedTime && e[1] < f.modifiedTime) || !e[1]) need.push({ Y, date, key, day, f });
+                    });
                     Object.keys(Y.d).forEach(day => { if (!seen.has(day) && !store.getItem('diary_' + day.replace(/-/g, '_'))) srSet(Y, day, null); });
                 }
                 for (let i = 0; i < need.length; i += 4) {                          // 목록에 없는 날만 읽어서 채우기 (4개씩)

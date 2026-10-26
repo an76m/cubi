@@ -9,7 +9,7 @@
          · 꾸민 페이지가 있는 내지는 뺄 수 없고, 꾸민 페이지가 있으면 표지는 같은 크기로만 바꿔요 · 뒤에 내지를 더 끼우는 건 언제나
    - 만든 노트 · 조립한 바인더 = 다이어리 종류 하나 (js/skins.js DY_TYPES 와 같은 모양 + my · pg · lv) → 고르면 그 권이 열려요
    - 바로 꺼내 쓰려고 설정.json 'diary_mine' 에 모두 (게스트는 이 기기 'malang_diary_mine') · 조립한 바인더는 여기에만
-   - 꾸민 내용 : 다꾸 / 노트 · 바인더 / <이름(크기)> / 1페이지.json … (js/drive.js · 이름은 빈칸 없이)
+   - 꾸민 내용 : 일기노트 · 일기바인더 / <권 id>-1페이지.json … (js/drive.js · 폴더 한 줄 10-26)
    - 내지 : 구간에 없는 페이지는 줄노트 · 그 페이지에서 속지를 바꾸면 그 페이지만 바뀌어요 (js/elements.js · js/leafpad.js dkLeafOf)
    - 지우기는 목록에서만 (꾸민 내용은 드라이브에 그대로) */
 
@@ -24,13 +24,13 @@
         const DMK_PG = { min: 10, max: 200, def: 30 }, DMK_BIND_MAX = 600;     // 바인더 한 권에 끼울 수 있는 페이지
         /* 종류 : note 노트 · cover 바인더 표지 · refill 내지 · binder 조립한 바인더 (모음 폴더가 없어요 · 설정에만) */
         const DMK_T = {
-            note: { k: '노트', path: ['노트', '내노트'], name: '노트', icon: '📓' },
-            cover: { k: '바인더', path: ['바인더', '내바인더'], name: '바인더 표지', icon: '🗂️' },
-            refill: { k: '바인더', path: ['바인더', '내지'], name: '내지', icon: '📄' },
+            note: { k: '노트', path: DIRS.noteCover, name: '노트', icon: '📓' },          // 말랑달콤 / 노트표지 / 내-…
+            cover: { k: '바인더', path: DIRS.binderCover, name: '바인더 표지', icon: '🗂️' },   // 말랑달콤 / 바인더표지 / 내-…
+            refill: { k: '바인더', path: DIRS.refill, name: '내지', icon: '📄' },          // 말랑달콤 / 바인더내지 / 내-…
             binder: { k: '바인더', path: null, name: '바인더', icon: '🗂️' }
         };
         const dmkEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        const dmkColl = t => collOf(PAGE_PATH.concat(DMK_T[t].path));
+        const dmkColl = t => collOf(dirPath(DMK_T[t].path), '내-');
         const dmkQ = id => document.getElementById(id);
         const dmkShut = (...ids) => ids.forEach(id => { if (dmkQ(id)) closeModal(id); });
         const dmkLeafName = v => (DMK_LEAFS.find(l => l[0] === v) || DMK_LEAFS[0])[1];

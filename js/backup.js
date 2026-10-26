@@ -6,12 +6,20 @@
      · 같은 날짜 · 같은 파일은 백업 것으로 덮어써요 · 나머지는 그대로
      · 구글 드라이브에서 '말랑달콤' 폴더를 내려받은 zip 도 돼요
    - 하드 → 구글 로그인으로 옮길 때도 이 기능으로 폴더를 통째로 옮겨요 (js/devsave.js)
-   - 🎒 유한 스티커(말랑달콤/스티커 · 공유 폴더만 빼고 전부)는 백업 · 불러오기 · 옮기기에서 빼요 : 쓴 스티커가 되살아나면 안 돼요 (도련 10-25 · 10-26 수납함 폴더 없앰 · js/own.js)
+   - 🎒 유한 스티커(말랑달콤/스티커목록 전부 · 씰 · 조각 … 종류 폴더의 내 종이)는 백업 · 불러오기 · 옮기기에서 빼요 : 쓴 스티커가 되살아나면 안 돼요
+     종류 폴더 안 공유하기 파일(내- · 받은-)만 넣어요 · 종류 목록은 js/own.js OWN_KIND 에서 (종류가 늘어도 자동 · 도련 10-26 폴더 한 줄)
    - 드라이브와 말하는 함수(getFolder · driveList · readFileText · driveUpsert)만 써요 → 구글이든 이 기기 폴더든 같은 코드 (js/drive.js · js/devsave.js vfsFetch)
    ※ 예전 json 백업(📂 PC로 백업)은 없앴어요 : 1년치를 글자 하나에 담다가 폰이 멈추거나 한 글자만 깨져도 전부 못 읽어서 */
 
-        const BK_TOP = '말랑달콤';
-        const BK_DAY_RE = /\/다꾸\/[^/]+\/\d{4}년\/?\d{1,2}월\/?\d{1,2}일\.json$/;
+        const BK_TOP = '말랑달콤';   // drive.js 보다 먼저 불러와서 글자로 (TOP_FOLDER_NAME 과 같아요)
+        const BK_DAY_RE = /\/일기기본\/기본-\d{4}-\d{2}-\d{2}\.json$/;
+        /* 백업에서 빼는 것 (path = 말랑달콤/폴더/파일) : 휴지통 · 스티커목록 · 스티커 종류 폴더의 내 종이 (공유하기 내-/받은- 파일만 넣어요) */
+        function bkSkip(path) {
+            const parts = path.split('/'), dir = parts[1] || '', file = parts[parts.length - 1] || '';
+            if (dir === DIRS.trash || dir === DIRS.stkList) return true;
+            if (typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir)) return !/^(내|받은)-/.test(file);
+            return false;
+        }
 
         /* ---------- zip 만들기 · 읽기 (압축 없이 담기 · 읽기는 압축 0 · 8 둘 다) ---------- */
         const BK_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
@@ -51,7 +59,7 @@
                 const at = name.indexOf(BK_TOP + '/');
                 if (name.endsWith('/') || at < 0) continue;
                 const path = name.slice(at).split('/').filter(s => s && s !== '.' && s !== '..').join('/');
-                if (path.length <= BK_TOP.length || !/\.json$/i.test(path) || path.startsWith(BK_TOP + '/휴지통/') || (path.startsWith(BK_TOP + '/스티커/') && !path.startsWith(BK_TOP + '/스티커/공유/'))) continue;   // 🎒 유한 스티커는 넣지 않아요 (공유하기 폴더만)
+                if (path.length <= BK_TOP.length || !/\.json$/i.test(path) || bkSkip(path)) continue;   // 🗑 휴지통 · 🎒 유한 스티커는 넣지 않아요
                 out.push({ path, text: async () => {
                     const ds = lo + 30 + v.getUint16(lo + 26, true) + v.getUint16(lo + 28, true), raw = u8.subarray(ds, ds + csize);
                     if (method === 0) return utf.decode(raw);
@@ -72,10 +80,9 @@
             const files = [];
             const walk = async (id, path) => {
                 for (const f of await driveList(`'${id}' in parents and trashed=false`, 'id,name,mimeType')) {
-                    if (f.mimeType === FOLDER_MIME && path === BK_TOP && f.name === '휴지통') continue;   // 🗑 휴지통은 백업 · 옮기기에서 빼요
-                    if (path === BK_TOP + '/스티커' && f.name !== '공유') continue;   // 🎒 유한 스티커(목록 · 종류 폴더의 종이 파일)도 빼요 · 공유하기 폴더만 (불러오기로 쓴 스티커가 되살아나지 않게 · js/own.js)
+                    if (f.mimeType === FOLDER_MIME && path === BK_TOP && (f.name === DIRS.trash || f.name === DIRS.stkList)) continue;   // 🗑 휴지통 · 🎒 스티커목록은 통째로 빼요
                     if (f.mimeType === FOLDER_MIME) await walk(f.id, path + '/' + f.name);
-                    else if (/\.json$/i.test(f.name)) files.push({ id: f.id, path: path + '/' + f.name });
+                    else if (/\.json$/i.test(f.name) && !bkSkip(path + '/' + f.name)) files.push({ id: f.id, path: path + '/' + f.name });   // 🎒 스티커 종류 폴더의 내 종이는 빼요 (불러오기로 쓴 스티커가 되살아나지 않게)
                 }
             };
             await walk(top, BK_TOP);
@@ -93,9 +100,9 @@
         /* 하나로 모인 파일은 통째로 덮지 않고 합쳐요 (도련 · 2026-10-13 · 경우의 수 점검)
            - 설정.json · 카페.json : 키마다 (같은 키는 넣는 쪽) → 받는 쪽에만 있던 설정 · 카페 기록이 사라지지 않게
            - 검색-*.json (해마다 · 권마다 검색 목록) : 날짜(장)마다 합치기
-           - 모음 목록(목록/목록N.json) : 넣지 않아요 → 원본은 모두 들어가고, 모음을 처음 열 때 원본을 보고 목록을 다시 맞춰요 (js/coll.js collCheck)
+           - 모음 목록(내-목록N.json · 받은-목록N.json) : 넣지 않아요 → 원본은 모두 들어가고, 모음을 처음 열 때 원본을 보고 목록을 다시 맞춰요 (js/coll.js collCheck)
              (목록 안에는 그쪽 저장소의 파일 번호가 들어 있어서 다른 곳에 그대로 넣으면 맞지 않아요) */
-        const bkKind = p => /\/설정\/설정\.json$|\/카페\/카페\.json$/.test(p) ? 'keys' : /\/검색-[^/]+\.json$/.test(p) ? 'search' : /\/목록\/목록\d+\.json$/.test(p) ? 'skip' : '';
+        const bkKind = p => /\/설정\/설정\.json$|\/카페기록\/카페\.json$/.test(p) ? 'keys' : /\/검색-[^/]+\.json$/.test(p) ? 'search' : /\/(내|받은)-목록\d+\.json$/.test(p) ? 'skip' : '';
         function bkMerge(kind, curText, body) {
             let a, b; try { a = JSON.parse(curText); b = JSON.parse(body); } catch (e) { return body; }
             if (!a || typeof a !== 'object' || !b || typeof b !== 'object') return body;

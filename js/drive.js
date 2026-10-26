@@ -3,31 +3,38 @@
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
         /* =====================================================================
            ☁ 구글 드라이브 저장소 : 내 드라이브의 '말랑달콤' 폴더 하나에 모두 모여요
-             말랑달콤 / 설정 / 설정.json                       ⚙ 설정 탭 값 (글꼴 · 소리 · 고른 페이지 등)
-                      / 카페 / 카페.json                       ☕ 출석 · 화분 · 달력 · D-day …
-                      / 카페 / 인형 / 로라.json                👧 인형 하나에 파일 하나 (js/doll-store.js)
-                      / 다이어리 / 노트 / 내노트 · 받은노트 / 목록 · 원본       📓 노트 디자인 (표지 · 내지 · 페이지 수 · 크기) · 다이어리 만들기가 생기면 (아직 저장하는 곳 없음)
-                      / 다이어리 / 바인더 / 내바인더 · 받은바인더 / 목록 · 원본 🗂️ 바인더 디자인 · 위와 같음 · 꾸민 내용은 늘 다꾸 / 권 폴더에
-                      (다이어리 / 페이지 / 내페이지 · 받은페이지 : 🎨 페이지 색상설정 · 🎀 꾸미기 저장용 · 10-18 두 기능을 숨겨서 새로 생기지 않아요 · js/settings.js pgColl)
-                      / 다이어리 / 배경지 / 내배경지 · 받은배경지 / 목록 · 원본   📂
-                      / 스티커 / 씰 · 조각 · 모조지 · 마테 · 떡메 · 속지 / 내X · 받은X / 목록 · 원본
-                      / 다꾸 / 기본 / 2026년 / 10월 / 9일.json        📔 기본 다이어리 · 하루에 파일 1개
-                      / 다꾸 / 기본 / 2026년 / 검색-2026년.json        🔍 다이어리마다 검색 목록 (권 폴더엔 검색-권이름.json · js/search.js)
-                      / 다꾸 / 노트 · 바인더 / 6공바인더(A5) / 다이어리.json · 표지.json · 1페이지.json · 2페이지.json …   📕 유한 다이어리 한 권에 폴더 하나 · 종류(다이어리.json kind)별 칸 · 늘 페이지 기준 (js/skins.js dkFolderName)
+           📁 폴더 구조 확정 (도련 10-26 · 다시 바꾸지 않아요) : 말랑달콤 바로 아래에 폴더만 한 줄로 · 폴더 안에는 파일만 (폴더 안에 폴더 없음)
+              - 새 아이디어 = 이름이 '종류'인 폴더 하나만 추가 (DIRS) · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
+              - 파일은 폴더 사이를 옮겨 다니지 않아요 (위치 · 출처는 파일 안이나 목록 파일에만)
+             말랑달콤 / 일기기본 / 기본-2026-10-26.json · 검색-기본-2026.json      📔 기본 다이어리 (하루에 파일 1개)
+                      / 일기노트 · 일기바인더 / <권 id>-다이어리.json · <권 id>-표지.json · <권 id>-3페이지.json · 검색-<권 id>.json   📕 권 id 를 이름 앞에
+                      / 페이지꾸밈 · 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
+                      / 스티커목록 / 목록.json · 스티커첩.json · 백업          🎒 유한 스티커 (js/own.js)
+                      / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)
+                      / 인형 · 인형극 / <이름>.json                     👧 🎭 (js/doll-store.js · js/puppet.js)
+                      / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실 · 행운
+                      / 설정 / 설정.json                                ⚙ 설정 탭 값
+                      / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js)
+                      / 책상배치 · 서랍장 · 시계 … (⏸ 보류 · 가질 때 생겨요)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
+           - 개발 중이라 예전 폴더(다꾸 · 스티커 · 다이어리 · 카페 …)에서 옮기는 코드는 없어요
            ===================================================================== */
         const GOOGLE_CLIENT_ID = '1020129080030-42dun4pqvve1pjg9r21m62dd71h6hui5.apps.googleusercontent.com'; // ← 본인 OAuth 클라이언트 ID로 교체
         const TOP_FOLDER_NAME = '말랑달콤';                         // 최상위 폴더
-        const DAKKU_PATH = [TOP_FOLDER_NAME, '다꾸'];               // ✏ 일기 쓰고 스티커 꾸미는 곳 (도련 · 10-17)
-        const DAY_PATH = DAKKU_PATH.concat('기본');                // 📔 기본 다이어리 : 말랑달콤 / 다꾸 / 기본 / 2026년 / 10월 / 9일.json
-        const DK_KINDS = ['노트', '바인더'];                         // 📕 유한 다이어리 칸 : 말랑달콤 / 다꾸 / 노트 · 바인더 / 권 폴더 (도련 · 10-18)
-        const bookPath = kind => DAKKU_PATH.concat(DK_KINDS.includes(kind) ? kind : DK_KINDS[0]);
-        const SETTINGS_PATH = [TOP_FOLDER_NAME, '설정'], SETTINGS_FILE_NAME = '설정.json';
-        const CAFE_PATH = [TOP_FOLDER_NAME, '카페'], CAFE_FILE_NAME = '카페.json';
-        const STICKER_PATH = [TOP_FOLDER_NAME, '스티커'];          // 스티커 / 목록.json · 씰 · 조각 … (내 종이 · js/own.js) · 스티커 / 공유 / 씰 / 내씰 … (공유하기)
-        const PAGE_PATH = [TOP_FOLDER_NAME, '다이어리'];           // 하단 메뉴 '다이어리' : 다이어리 / 페이지 · 배경지
+        /* 📁 폴더 이름은 여기 한 곳에서만 (도련 10-26 · 새 폴더 = 한 줄 추가) · 스티커 종류 폴더는 js/own.js OWN_KIND */
+        const DIRS = {
+            day: '일기기본', note: '일기노트', binder: '일기바인더',
+            pageDeco: '페이지꾸밈', pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
+            stkList: '스티커목록', doll: '인형', puppet: '인형극', cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치'
+        };
+        const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
+        const DAY_PATH = dirPath(DIRS.day), DAY_PRE = '기본-';      // 📔 기본 다이어리 : 말랑달콤 / 일기기본 / 기본-2026-10-26.json
+        const DK_KINDS = ['노트', '바인더'];                         // 📕 유한 다이어리 : 말랑달콤 / 일기노트 · 일기바인더 / <권 id>-…json
+        const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
+        const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
+        const CAFE_PATH = dirPath(DIRS.cafe), CAFE_FILE_NAME = '카페.json';
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
         const DRIVE_SCOPE = USE_APP_DATA_FOLDER
@@ -42,12 +49,12 @@
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         const DAY_KEY_RE = /^diary_(\d{4})_(\d{2})_(\d{2})$/;
         const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/;   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
-        const DK_INFO = '다이어리.json';
+        const DK_INFO = '다이어리.json', dkInfoName = id => `${id}-${DK_INFO}`;   // 📕 권 정보 파일 : <권 id>-다이어리.json
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
-           - 날짜 데이터  : diary_2026_09_10  → 말랑달콤/다꾸/기본/2026년/9월/10일.json
-           - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/다꾸/딸기우유 (6공 A5)/3페이지.json · dkb_<권 id> → 같은 폴더 다이어리.json
-           - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페/카페.json) */
+           - 날짜 데이터  : diary_2026_09_10  → 말랑달콤/일기기본/기본-2026-09-10.json
+           - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/일기바인더/<권 id>-3페이지.json · dkb_<권 id> → <권 id>-다이어리.json
+           - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페기록/카페.json) */
         const store = {
             _m: new Map(),
             _silent: false,
@@ -87,10 +94,9 @@
             dayLoads: new Map(),         // 읽는 중인 날짜 요청
             folderIds: new Map(),        // 폴더 경로 → 폴더 id 캐시
             folderBusy: new Map(),
-            monthIndex: new Map(),       // '2026/9' → { folderId, files: Map(파일명 → 파일정보) } 캐시
+            monthIndex: new Map(),       // 'all' → { folderId, files: Map(파일명 → 파일정보) } : 일기기본 폴더 전체 (한 폴더 · 도련 10-26)
             monthBusy: new Map(),
             books: new Map(), bookBusy: new Map(),   // 📕 권 id → { folderId, files } (monthIndex 와 같은 모양)
-            bookScan: null,              // 📕 다꾸 안 권 폴더 : 권 id → { folderId, name } (다이어리.json 의 id 로 찾아요)
             get dirty() { return this.dirtyKeys.size > 0; }
         };
         let uploadTimer = null, dirtySince = 0;   // dirtySince : 아직 안 올린 첫 변경 시각 (UPLOAD_MAX_WAIT_MS)
@@ -169,10 +175,10 @@
         const qName = n => String(n).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
         /* ---------- 폴더 / 파일 이름 규칙 ----------
-           말랑달콤 / 다꾸 / 기본 / 2026년 / 9월 / 10일.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
-        const yearFolderName = y => `${y}년`;
-        const monthFolderName = m => `${m}월`;
-        const dayFileName = d => `${d}일.json`;
+           말랑달콤 / 일기기본 / 기본-2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
+        const pad2 = n => String(n).padStart(2, '0');
+        const dayFileName = (y, m, d) => `${DAY_PRE}${y}-${pad2(m)}-${pad2(d)}.json`;
+        const DAY_FILE_RE = /^기본-(\d{4})-(\d{2})-(\d{2})\.json$/;
         function dayKeyOf(y, m, d) { return `diary_${y}_${String(m).padStart(2, '0')}_${String(d).padStart(2, '0')}`; }
         function parseDayKey(k) { const r = DAY_KEY_RE.exec(k); return r ? { y: +r[1], m: +r[2], d: +r[3] } : null; }
         function isDayKey(k) { return DAY_KEY_RE.test(k); }
@@ -255,7 +261,7 @@
         function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d; }
         function dayPathText(date) {                                       // 안내문용 : 맨 위 폴더 이름은 빼요 (도련 · 2026-10-13)
             const dk = window.dkPath && dkPath(date); if (dk) return dk;     // 📕 유한 다이어리 장 (js/skins.js)
-            return `${DAY_PATH.slice(1).join('/')}/${yearFolderName(date.getFullYear())}/${monthFolderName(date.getMonth() + 1)}/${dayFileName(date.getDate())}`;
+            return `${DAY_PATH.slice(1).join('/')}/${dayFileName(date.getFullYear(), date.getMonth() + 1, date.getDate())}`;
         }
         function corruptError(what) { const er = new Error('corrupt'); er.type = 'corrupt'; er.what = what; return er; }
 
@@ -341,7 +347,7 @@
             return mineWrote(await res.json()).id;
         }
 
-        /* names = ['말랑달콤','설정'] / ['말랑달콤','다꾸','기본','2026년','9월'] …
+        /* names = ['말랑달콤','설정'] / ['말랑달콤','일기기본'] … (늘 말랑달콤 바로 아래 한 칸 · 도련 10-26)
            create=false : 있으면 찾기만 (읽을 때) / create=true : 없으면 만들기 (저장할 때) */
         async function getFolder(names, create) {
             const key = names.join('/');
@@ -369,9 +375,19 @@
             try { return await p; } finally { drive.folderBusy.delete(busyKey); }
         }
 
-        /* 한 달 폴더 안의 파일 목록을 한 번만 가져와 기억 → 같은 달의 날짜들은 목록 조회 없이 바로 읽음 */
+        /* 📔 일기기본 폴더의 파일 목록을 한 번만 가져와 기억 (한 폴더에 모든 날 · 도련 10-26) → 날짜마다 목록 조회 없이 바로 읽음
+           - 예전 이름(getMonthIndex)은 그대로 · 어느 달을 물어도 같은 목록 (파일 이름에 날짜가 다 들어 있어요)
+           - 이름으로 걸러 찾지 않고 폴더를 통째로 읽어요 (이름 검색은 빠뜨릴 수 있어서 · 빠뜨리면 같은 날 파일을 또 만들어요) */
+        function dayIdxOf(folderId, files) {
+            const e = { folderId, files: new Map(), dups: new Map() };
+            files.forEach(f => {                                                         // 같은 이름이 여러 개면 가장 오래된 것을 쓰고, 나머지는 dups 에 (dayDupFix 가 하나로 정리)
+                if (!e.files.has(f.name)) e.files.set(f.name, f);
+                else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
+            });
+            return e;
+        }
         async function getMonthIndex(y, m, create) {
-            const key = `${y}/${m}`;
+            const key = 'all';
             let entry = drive.monthIndex.get(key);
             if (entry) return entry;
             if (drive.monthBusy.has(key)) {
@@ -379,25 +395,30 @@
                 if (entry || !create) return entry;
             }
             const p = (async () => {
-                const folderId = await getFolder([...DAY_PATH, yearFolderName(y), monthFolderName(m)], create);
+                const folderId = await getFolder(DAY_PATH, create);
                 if (!folderId) return null;
                 const files = await driveList(`'${folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-                const e = { folderId, files: new Map(), dups: new Map() };
-                files.forEach(f => {                                                         // 같은 이름이 여러 개면 가장 오래된 것을 쓰고, 나머지는 dups 에 (dayDupFix 가 하나로 정리)
-                    if (!e.files.has(f.name)) e.files.set(f.name, f);
-                    else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
-                });
+                const e = dayIdxOf(folderId, files);
                 drive.monthIndex.set(key, e);
                 return e;
             })();
             drive.monthBusy.set(key, p);
             try { return await p; } finally { drive.monthBusy.delete(key); }
         }
+        /* 그날 파일만 드라이브에서 다시 보기 (다른 기기 변경 확인 · 폴더를 통째로 다시 읽지 않아요) */
+        async function dayRefresh(key) {
+            const idx = drive.monthIndex.get('all'), d = parseDayKey(key);
+            if (!idx || !d) return;
+            const name = dayFileName(d.y, d.m, d.d), fs = await driveList(`name='${qName(name)}' and '${idx.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
+            if (!fs.length) { idx.files.delete(name); return; }
+            idx.files.set(name, fs[0]);
+            if (fs.length > 1) idx.dups.set(name, fs); else idx.dups.delete(name);
+        }
 
         function resetDriveCaches() {
             drive.folderIds.clear(); drive.folderBusy.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
-            drive.books.clear(); drive.bookBusy.clear(); drive.bookScan = null;
+            drive.books.clear(); drive.bookBusy.clear();
             drive.settingsFile = null; drive.cafeFile = null;
         }
 
@@ -413,13 +434,17 @@
             return parseJsonObject(await readFileText(f.id), which);
         }
 
-        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 달 폴더 · 📕 장 · 다이어리.json : 권 폴더) */
+        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 일기기본 · 📕 장 · 다이어리.json : 일기노트 · 일기바인더 안 그 권 것만) */
         function idxOfKey(key, create) {
             const d = parseDayKey(key); if (d) return getMonthIndex(d.y, d.m, create);
             const p = parsePageKey(key), b = BOOK_KEY_RE.exec(key);
             return p || b ? getBookIndex(p ? p.b : b[1], create) : Promise.resolve(null);
         }
-        function fileOfKey(key) { const d = parseDayKey(key); if (d) return dayFileName(d.d); const p = parsePageKey(key); return p ? (p.n ? p.n + '페이지.json' : '표지.json') : DK_INFO; }   // 0장 = 📕 표지
+        function fileOfKey(key) {
+            const d = parseDayKey(key); if (d) return dayFileName(d.y, d.m, d.d);
+            const p = parsePageKey(key); if (p) return `${p.b}-${p.n ? p.n + '페이지' : '표지'}.json`;   // 0장 = 📕 표지
+            const b = BOOK_KEY_RE.exec(key); return b ? dkInfoName(b[1]) : '';
+        }
         async function fetchKey(key, meta) {
             const idx = await idxOfKey(key, false), name = fileOfKey(key);
             if (idx) await dayDupFix(idx, name, key);
@@ -431,35 +456,12 @@
         }
         const fetchDay = (date, meta) => fetchKey(getDateKey(date), meta);
 
-        /* 📕 유한 다이어리 권 폴더 찾기 : 다꾸 / 노트 · 바인더 안 폴더마다 다이어리.json 의 id 를 읽어요 (폴더 이름은 사람이 알아보는 용도 · 같은 이름 폴더를 합치지 않아요) */
-        function dkScan() {
-            if (drive.bookScan) return drive.bookScan;
-            const p = drive.bookScan = (async () => {
-                const out = new Map();
-                await Promise.all(DK_KINDS.map(async kind => {
-                    const root = await getFolder(bookPath(kind), false); if (!root) return;
-                    const dirs = await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name');
-                    await Promise.all(dirs.map(async d => {
-                        const f = await findFile(d.id, DK_INFO); if (!f) return;
-                        try { const o = parseJsonObject(await readFileText(f.id), DK_INFO); if (o && o.id && !out.has(o.id)) out.set(o.id, { folderId: d.id, name: d.name, kind }); } catch (e) {}
-                    }));
-                }));
-                return out;
-            })();
-            p.catch(() => { if (drive.bookScan === p) drive.bookScan = null; });
-            return p;
-        }
-        /* 권 폴더 안 파일 목록 · create=true 면 없을 때 폴더와 다이어리.json 을 만들어요 (첫 장을 저장할 때) */
-        /* ⚡ 권 id → 폴더 id 를 이 기기에 기억 (다음 로그인부터 첫 장이 빨리 열려요) */
-        const DK_FID = 'dk_folder_ids';
-        function dkFidGet() { try { return JSON.parse(localStorage.getItem(DK_FID)) || {}; } catch (e) { return {}; } }
-        function dkFidSet(o) { try { localStorage.setItem(DK_FID, JSON.stringify(o)); } catch (e) {} }
-        function dkIdxOf(hit, files, id) {
-            const e = { folderId: hit.folderId, name: hit.name, kind: hit.kind, files: new Map(), dups: new Map() };
-            files.forEach(f => {
-                if (!e.files.has(f.name)) e.files.set(f.name, f);
-                else { const a = e.dups.get(f.name) || [e.files.get(f.name)]; a.push(f); e.dups.set(f.name, a); }
-            });
+        /* 📕 유한 다이어리 한 권 = 일기노트 · 일기바인더 폴더 안 '<권 id>-' 로 시작하는 파일들 (도련 10-26 · 권 폴더 없음)
+           - 종류(노트 · 바인더)는 다이어리.json 정보로 · 모르면 두 폴더 모두 봐요
+           - create=true 면 없을 때 <권 id>-다이어리.json 을 만들어요 (첫 장을 저장할 때) */
+        function dkIdxOf(folderId, kind, files, id) {
+            const pre = id + '-', e = dayIdxOf(folderId, files.filter(f => f.name.startsWith(pre)));
+            e.name = id; e.kind = kind;
             drive.books.set(id, e);
             return e;
         }
@@ -471,28 +473,17 @@
                 if (entry || !create) return entry;
             }
             const p = (async () => {
-                const memo = dkFidGet(), mm = memo[id], fid = mm && mm.f;
-                if (fid) {                                 // ⚡ 이 기기에서 찾았던 권 폴더면 폴더 훑기(6번 왕복)를 건너뛰고 바로 목록 1번
-                    try {
-                        const files = await driveList(`'${fid}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-                        if (files.some(f => f.name === DK_INFO)) return dkIdxOf({ folderId: fid, name: mm.n || '', kind: mm.k || '' }, files, id);
-                    } catch (e) {}
-                    delete memo[id]; dkFidSet(memo);                  // 폴더가 지워졌거나 다른 계정이면 원래대로 훑기
+                const info = typeof dkInfoOf === 'function' ? dkInfoOf(id) : { kind: '' };
+                const kinds = DK_KINDS.includes(info.kind) ? [info.kind].concat(DK_KINDS.filter(k => k !== info.kind)) : DK_KINDS.slice();
+                for (const kind of kinds) {                                // 정보 파일이 있는 폴더 = 그 권의 자리
+                    const dir = await getFolder(bookPath(kind), false); if (!dir) continue;
+                    const files = await driveList(`'${dir}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
+                    if (files.some(f => f.name === dkInfoName(id))) return dkIdxOf(dir, kind, files, id);
                 }
-                const scan = await dkScan();
-                let hit = scan.get(id);
-                if (!hit) {
-                    if (!create) return null;
-                    const info = dkInfoOf(id), root = await getFolder(bookPath(info.kind), true);
-                    const taken = (await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'name')).map(f => f.name);
-                    const name = dkFolderName(info.design, info.spec, taken);
-                    hit = { folderId: await createFolder(name, root), name, kind: info.kind };
-                    await driveUpsert(hit.folderId, DK_INFO, null, JSON.stringify(info));
-                    scan.set(id, hit);
-                }
-                const files = await driveList(`'${hit.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-                const m2 = dkFidGet(); m2[id] = { f: hit.folderId, n: hit.name, k: hit.kind }; dkFidSet(m2);
-                return dkIdxOf(hit, files, id);
+                if (!create) return null;
+                const kind = DK_KINDS.includes(info.kind) ? info.kind : DK_KINDS[0], dir = await getFolder(bookPath(kind), true);
+                const saved = await driveUpsert(dir, dkInfoName(id), null, JSON.stringify(info));
+                return dkIdxOf(dir, kind, [{ id: saved.id, name: dkInfoName(id), modifiedTime: saved.modifiedTime }], id);
             })();
             drive.bookBusy.set(id, p);
             try { return await p; } finally { drive.bookBusy.delete(id); }
@@ -776,7 +767,7 @@
         async function writeDay(key) {
             const val = store.getItem(key);
             const name = fileOfKey(key), lab = keyLabel(key);
-            const idx = await idxOfKey(key, val !== null);                          // 올릴 때만 년도·달 폴더 (📕 권 폴더) 를 만들어요
+            const idx = await idxOfKey(key, val !== null);                          // 올릴 때만 폴더 (📕 권 정보 파일) 를 만들어요
             if (!idx) return;                                                       // 지울 날인데 폴더도 없음
             await dayDupFix(idx, name, key);
             const f = idx.files.get(name);
@@ -827,16 +818,16 @@
             const id = BOOK_KEY_RE.exec(key)[1];
             let val = store.getItem(key);
             if (val === null) return;
-            const idx = await getBookIndex(id, true);
-            const f = idx.files.get(DK_INFO);
+            const idx = await getBookIndex(id, true), nm = dkInfoName(id);
+            const f = idx.files.get(nm);
             let cur = f ? await driveMeta(f.id) : null;
-            if (!cur) cur = await findFile(idx.folderId, DK_INFO);
+            if (!cur) cur = await findFile(idx.folderId, nm);
             if (cur && cur.modifiedTime !== (drive.dayMeta.get(key) || '')) {
                 let theirs = null; try { theirs = parseJsonObject(await readFileText(cur.id), key); } catch (e) { if (e.type !== 'corrupt') throw e; }
                 if (theirs) { val = JSON.stringify(dkInfoMerge(JSON.parse(val), theirs)); store.putLoaded(key, val); }
             }
-            const saved = await driveUpsert(idx.folderId, DK_INFO, cur && cur.id, val);
-            idx.files.set(DK_INFO, { id: saved.id, name: DK_INFO, modifiedTime: saved.modifiedTime });
+            const saved = await driveUpsert(idx.folderId, nm, cur && cur.id, val);
+            idx.files.set(nm, { id: saved.id, name: nm, modifiedTime: saved.modifiedTime });
             drive.dayMeta.set(key, saved.modifiedTime);
         }
         /* 그날이 지금 펼쳐 둔 페이지면 다시 그리기 · 검색 목록도 */
@@ -929,21 +920,11 @@
             const rootId = await getFolder(DAY_PATH, false);
             const out = new Map();
             if (!rootId) return [];
-            const years = (await driveList(`'${rootId}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name'))
-                .map(f => ({ f, r: /^(\d{4})년$/.exec(f.name) })).filter(x => x.r);
-            const monthGroups = await Promise.all(years.map(async yx => {
-                const ms = await driveList(`'${yx.f.id}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name');
-                return ms.map(f => ({ f, y: +yx.r[1], r: /^(\d{1,2})월$/.exec(f.name) })).filter(x => x.r);
-            }));
-            await Promise.all([].concat(...monthGroups).map(async mx => {
-                const files = await driveList(`'${mx.f.id}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,size');
-                files.forEach(f => {
-                    const r = /^(\d{1,2})일\.json$/.exec(f.name);
-                    if (!r) return;
-                    const key = dayKeyOf(mx.y, +mx.r[1], +r[1]);
-                    if (!out.has(key)) out.set(key, { key, id: f.id, size: +f.size || 0 });
-                });
-            }));
+            (await driveList(`'${rootId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,size')).forEach(f => {
+                const r = DAY_FILE_RE.exec(f.name); if (!r) return;
+                const key = dayKeyOf(+r[1], +r[2], +r[3]);
+                if (!out.has(key)) out.set(key, { key, id: f.id, size: +f.size || 0 });
+            });
             return Array.from(out.values());
         }
 
@@ -1450,7 +1431,7 @@
                 const keys = isCoverOpen ? [currentDate, addDays(currentDate, -1), addDays(currentDate, 1)].map(getDateKey) : [];
                 const bk = keys.map(parsePageKey).find(Boolean);
                 if (bk) { keys.unshift('dkb_' + bk.b); drive.books.delete(bk.b); }       // 📕 권 폴더 목록을 새로 · 다이어리.json 도
-                keys.map(parseDayKey).filter(Boolean).forEach(d => drive.monthIndex.delete(`${d.y}/${d.m}`));   // 달 폴더 목록을 새로 (수정 시각이 들어 있어요)
+                for (const k of keys) if (parseDayKey(k)) { try { await dayRefresh(k); } catch (e) {} }   // 그날 파일만 새로 (수정 시각이 들어 있어요)
                 let any = false;
                 for (const key of keys) {
                     if (!drive.loadedDays.has(key) || drive.dirtyKeys.has(key) || drive.inflight === key) continue;

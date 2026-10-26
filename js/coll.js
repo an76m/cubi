@@ -1,7 +1,9 @@
 /* 말랑달콤 다이어리 - js/coll.js
    📚 모음 저장소 : 스티커 · 페이지 · 배경지처럼 '하나씩 늘어나는 것'을 드라이브에 담는 공통 코드
-   - 드라이브 : <모음 폴더> / 목록 / 목록1.json · 목록2.json …   작은 그림(썸네일) 100개씩 묶음 · 화면에 보이는 묶음만 읽어요
-                <모음 폴더> / 원본 / 1760000000000.json          하나에 파일 하나 (이름 = 만든 시각 ms) · 눌렀을 때만 읽어요
+   - 드라이브 (도련 10-26 · 폴더 한 줄 확정 : 모음 폴더 안에 폴더 없음 · 한 폴더에 '내-' · '받은-' 두 모음이 이름으로 나뉘어 살아요)
+                <모음 폴더> / 내-목록1.json · 내-목록2.json …   작은 그림(썸네일) 100개씩 묶음 · 화면에 보이는 묶음만 읽어요
+                <모음 폴더> / 내-1760000000000.json             하나에 파일 하나 (이름 = 머리말 + 만든 시각 ms) · 눌렀을 때만 읽어요
+                (받은 것은 받은-목록1.json · 받은-<id>.json)
        목록 한 칸 : { id, th : 작은 그림, x : 칸에 보일 작은 정보, f : 원본 파일 id, m : 고친 시각 }
        원본       : { v:1, id, th, x, m, item : 진짜 내용 } → 목록이 없어져도 원본만 있으면 목록을 다시 만들 수 있어요
    - 이 기기 (IndexedDB 'mallang-coll')
@@ -69,13 +71,19 @@
         }
 
         /* ---------- 모음 ---------- */
-        /* names : 드라이브 폴더 경로 ['말랑달콤','스티커','공유','씰','내씰'] → 모음 하나 (같은 경로는 늘 같은 것) */
-        function collOf(names) {
-            const key = names.join('/');
+        /* names : 드라이브 폴더 경로 ['말랑달콤','배경지'] · pre : 파일 이름 머리말 ('내-' · '받은-') → 모음 하나 (같은 경로 · 머리말은 늘 같은 것) */
+        const collKeyOf = (names, pre) => names.join('/') + '|' + (pre || '');
+        function collOf(names, pre) {
+            pre = pre || '';
+            const key = collKeyOf(names, pre);
             let C = COLL.map.get(key);
-            if (!C) { C = { key, names, lists: null, idx: null, pend: [], gone: new Set(), checked: false, onChange: null }; COLL.map.set(key, C); }
+            if (!C) { C = { key, names, pre, lists: null, idx: null, pend: [], gone: new Set(), checked: false, onChange: null }; COLL.map.set(key, C); }
             return C;
         }
+        const collEsc = t => String(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const collListRe = C => new RegExp('^' + collEsc(C.pre) + '목록(\\d+)\\.json$');   // 목록 묶음 파일
+        const collItemRe = C => new RegExp('^' + collEsc(C.pre) + '([\\w-]{1,30})\\.json$');   // 원본 파일 (목록 파일은 한글이라 안 걸려요)
+        const collListName = (C, n) => `${C.pre}목록${n}.json`, collItemName = (C, id) => `${C.pre}${id}.json`;
         const collKey = (C, x) => `${COLL.who || 'me'}|${C.key}|${x}`;
         function collNewId() {
             let t = Date.now();
@@ -99,10 +107,10 @@
                     const g = await collGet('local', collKey(C, 'g'));
                     (g && Array.isArray(g.lists) ? g.lists : []).forEach(l => lists.push({ n: +l.n || 1, f: null, items: collClean(l.items) }));
                 } else {
-                    const dir = await getFolder(C.names.concat('목록'), false);
+                    const dir = await getFolder(C.names, false), re = collListRe(C);
                     if (dir) {
                         const fs = await driveList(`'${dir}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime');
-                        fs.forEach(f => { const r = /^목록(\d+)\.json$/.exec(f.name); if (r && !lists.some(l => l.n === +r[1])) lists.push({ n: +r[1], f, items: null }); });
+                        fs.forEach(f => { const r = re.exec(f.name); if (r && !lists.some(l => l.n === +r[1])) lists.push({ n: +r[1], f, items: null }); });
                     }
                     await collPendLoad(C);
                 }
@@ -151,8 +159,8 @@
             let fid = e && e.f, o = null;
             for (let round = 0; round < 2 && !o; round++) {
                 if (!fid || round) {
-                    const dir = await getFolder(C.names.concat('원본'), false);
-                    const f = dir && await findFile(dir, id + '.json');
+                    const dir = await getFolder(C.names, false);
+                    const f = dir && await findFile(dir, collItemName(C, id));
                     if (!f) break;
                     fid = f.id;
                 }
@@ -187,7 +195,7 @@
             }
             await collIndex(C);
             C.pend.push(Object.assign({ _item: item }, ent));
-            await collQueue({ op: 'add', names: C.names, id, ent, item });
+            await collQueue({ op: 'add', names: C.names, pre: C.pre, id, ent, item });
             return id;
         }
         async function collSet(C, id, item, th, x) {
@@ -200,7 +208,7 @@
             }
             collPatch(C, id, ent, item);
             collCache(collKey(C, 'o' + id), item, ent.m);
-            await collQueue({ op: 'put', names: C.names, id, ent, item, base: old.m || 0, f: old.f || '' });
+            await collQueue({ op: 'put', names: C.names, pre: C.pre, id, ent, item, base: old.m || 0, f: old.f || '' });
         }
         async function collRemove(C, id) {
             const old = collEnt(C, id) || {};
@@ -212,7 +220,7 @@
             C.gone.add(id);
             C.pend = C.pend.filter(e => e.id !== id);
             collDel('orig', collKey(C, 'o' + id));
-            await collQueue({ op: 'del', names: C.names, id, f: old.f || '' });
+            await collQueue({ op: 'del', names: C.names, pre: C.pre, id, f: old.f || '' });
         }
         /* 화면용 목록에서 그 칸 바꾸기 */
         function collPatch(C, id, ent, item) {
@@ -240,7 +248,7 @@
         }
         /* 다시 열었을 때 아직 못 올린 것도 화면에 보이게 */
         async function collPendLoad(C) {
-            const ops = (await collScan('outbox', (k, v) => v && v.who === COLL.who && v.names && v.names.join('/') === C.key)) || [];
+            const ops = (await collScan('outbox', (k, v) => v && v.who === COLL.who && v.names && collKeyOf(v.names, v.pre) === C.key)) || [];
             ops.forEach(({ v }) => {
                 if (v.op === 'add' && !C.pend.some(e => e.id === v.id) && !C.gone.has(v.id)) C.pend.push(Object.assign({ _item: v.item }, v.ent));
                 if (v.op === 'del') { C.gone.add(v.id); C.pend = C.pend.filter(e => e.id !== v.id); }
@@ -270,9 +278,9 @@
             return COLL.pumping;
         }
         async function collDo(v) {
-            const C = collOf(v.names), name = v.id + '.json';
+            const C = collOf(v.names, v.pre), name = collItemName(C, v.id);
             if (v.op === 'del') {
-                const dir = await getFolder(v.names.concat('원본'), false);
+                const dir = await getFolder(C.names, false);
                 let cur = v.f ? await driveMeta(v.f) : null;
                 if (!cur && dir) cur = await findFile(dir, name);
                 if (cur) await driveTrash(cur.id);
@@ -280,7 +288,7 @@
                 C.gone.delete(v.id);
                 return;
             }
-            const dir = await getFolder(v.names.concat('원본'), true);
+            const dir = await getFolder(C.names, true);
             let cur = v.f ? await driveMeta(v.f) : null;
             if (!cur) cur = await findFile(dir, name);
             if (v.op === 'put' && cur && v.base && Date.parse(cur.modifiedTime) > v.base + 2000) {       // 📱 다른 기기가 그 사이 고쳤어요
@@ -308,7 +316,7 @@
         /* 목록 묶음 고치기 : 고치기 직전에 드라이브 파일을 다시 보고 그 위에 (ent = null 이면 빼기) */
         async function collListEdit(C, id, ent, isNew) {
             const lists = await collIndex(C);
-            const listDir = await getFolder(C.names.concat('목록'), true);
+            const listDir = await getFolder(C.names, true);
             let L = null;
             if (!isNew) for (let i = lists.length - 1; i >= 0 && !L; i--) { if ((await collLoad(C, lists[i])).some(e => e.id === id)) L = lists[i]; }
             if (!L) {
@@ -316,7 +324,7 @@
                 L = lists[lists.length - 1];
                 if (!L || (await collLoad(C, L)).length >= COLL_PER) { L = { n: (L ? L.n : 0) + 1, f: null, items: [] }; lists.push(L); }
             }
-            const name = `목록${L.n}.json`;
+            const name = collListName(C, L.n);
             let cur = L.f ? await driveMeta(L.f.id) : null;
             if (!cur) cur = await findFile(listDir, name);
             if (cur && (!L.f || cur.id !== L.f.id || cur.modifiedTime !== L.f.modifiedTime)) { L.f = cur; L.items = null; await collLoad(C, L); }   // 다른 기기가 고쳤어요 → 다시 읽은 위에
@@ -348,12 +356,12 @@
             C.checked = true;
             try {
                 await collPump();
-                const dir = await getFolder(C.names.concat('원본'), false);
+                const dir = await getFolder(C.names, false), re = collItemRe(C);
                 const lists = await collIndex(C);
                 for (const L of lists) await collLoad(C, L);
                 const have = new Map();
                 if (dir) (await driveList(`'${dir}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name')).forEach(f => {
-                    const r = /^([\w-]{1,30})\.json$/.exec(f.name); if (r && !have.has(r[1])) have.set(r[1], f.id);
+                    const r = re.exec(f.name); if (r && !have.has(r[1])) have.set(r[1], f.id);
                 });
                 const busy = new Set(((await collScan('outbox', (k, v) => v && v.who === COLL.who)) || []).map(o => o.v.id));
                 const inList = new Set();
@@ -378,10 +386,10 @@
                 let changed = !!path;
                 if (!path) {
                     try {
-                        const dir = await getFolder(C.names.concat('목록'), false);
+                        const dir = await getFolder(C.names, false), re = collListRe(C);
                         const fs = dir ? await driveList(`'${dir}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime') : [];
-                        const now = fs.filter(f => /^목록\d+\.json$/.test(f.name)).map(f => f.name + f.modifiedTime).sort().join();
-                        const was = C.lists.filter(L => L.f).map(L => `목록${L.n}.json` + L.f.modifiedTime).sort().join();
+                        const now = fs.filter(f => re.test(f.name)).map(f => f.name + f.modifiedTime).sort().join();
+                        const was = C.lists.filter(L => L.f).map(L => collListName(C, L.n) + L.f.modifiedTime).sort().join();
                         changed = now !== was;
                     } catch (e) { continue; }
                 }
@@ -485,9 +493,9 @@
             if (collOnline() && !C.checked) collCheck(C);
         }
 
-        /* ---------- ✨ 스티커 모음 : 말랑달콤 / 스티커 / 씰 / 내씰 · 받은씰 … ---------- */
+        /* ---------- ✨ 스티커 모음 (공유하기 · 보류) : 말랑달콤 / 씰 / 내-… · 받은-… (내 종이와 같은 종류 폴더 · 폴더 한 줄 10-26) ---------- */
         const STK_FOLDERS = { seal: '씰', piece: '조각', paper: '모조지', tape: '마테', tk: '떡메', leaf: '속지' };   // tk = 🧻 떡메 (js/leafpad.js)
-        function stkColl(kind, got) { const n = STK_FOLDERS[kind]; return collOf(STICKER_PATH.concat('공유', n, (got ? '받은' : '내') + n)); }   // 📤 공유하기 전용 (스티커 / 공유 / 씰 / 내씰 · 도련 10-26 : 스티커 / 씰 은 내 종이 파일 자리 · js/own.js)
+        function stkColl(kind, got) { return collOf(dirPath(STK_FOLDERS[kind]), got ? '받은-' : '내-'); }   // 📤 공유하기 전용 (스티커 / 공유 / 씰 / 내씰 · 도련 10-26 : 스티커 / 씰 은 내 종이 파일 자리 · js/own.js)
         /* 글자 → 짧은 확인 글자 (같은 그림인지 보기) */
         function collHash(s) { s = String(s || ''); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); }
 
