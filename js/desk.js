@@ -38,7 +38,7 @@
             const pos = dkGet(DK_POS, {});
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp" alt="" draggable="false">
                 ${DESK_ITEMS.map(it => { const p = pos[it.id] || it; return deskItemHtml(it, p); }).join('')}
-                <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="diary-book dk-mini"></div></div>
+                <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="dk-top"><div class="diary-book dk-mini"></div></div><i class="dk-edge"></i></div>
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"><button type="button" class="desk-snap" onclick="deskSnapToggle()"></button></div></div>`;
             bg.querySelectorAll('.desk-item').forEach(deskWire); deskZAll(); deskTick();
@@ -108,25 +108,30 @@
             box.replaceChildren(c);
         }
         let deskAnim = false;
+        const DK_OPENED = 'malang_desk_opened';                                  // 겉표지를 한 번 직접 펼쳤어요 → 그다음부터는 펼친 채로 떠요
+        function deskCoverNow() {                                                 // 겉표지를 움직임 없이 바로 펼쳐요 (js/page.js beginCurl · endCurl)
+            try { if (typeof isCoverOpen !== 'undefined' && !isCoverOpen && typeof turn !== 'undefined' && !turn && window.beginCurl && beginCurl(true, 1)) endCurl(true); } catch (e) { console.warn(e); }
+        }
         function deskOpenDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
             const r0 = mini.getBoundingClientRect();
             H.classList.add('desk-show'); mini.style.visibility = 'hidden';
+            if (dkGet(DK_OPENED, false)) deskCoverNow();                         // 처음엔 사용자가 직접 겉표지를 넘겨요 (도련 10-26)
             const r1 = w.getBoundingClientRect(), k = r0.width / r1.width;
             const dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
-            const tb = document.querySelector('.toolbar'); if (tb) tb.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, delay: 250, fill: 'backwards' });
             const a = w.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)' });
-            a.onfinish = a.oncancel = () => { deskAnim = false; if (typeof isCoverOpen !== 'undefined' && !isCoverOpen && window.openCoverAnimated) setTimeout(openCoverAnimated, 120); };   // 겉표지가 넘어가요
+            a.onfinish = a.oncancel = () => { deskAnim = false; };
         }
         function deskCloseDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || !H.classList.contains('desk-show')) return;
+            if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
+            if (typeof isCoverOpen !== 'undefined' && isCoverOpen) dkSet(DK_OPENED, true);
             deskAnim = true;
-            const r1 = w.getBoundingClientRect(); mini.style.visibility = ''; const r0 = mini.getBoundingClientRect(); mini.style.visibility = 'hidden';
+            const r1 = w.getBoundingClientRect(), r0 = mini.getBoundingClientRect();
             const k = r0.width / r1.width, dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
-            const tb = document.querySelector('.toolbar'); if (tb) tb.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }).onfinish = function () { this.cancel(); };
             const a = w.animate([{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }], { duration: 480, easing: 'cubic-bezier(.5, 0, .6, 1)', fill: 'forwards' });
             a.onfinish = () => { H.classList.remove('desk-show'); a.cancel(); mini.style.visibility = ''; deskMiniPaint(); deskAnim = false; };
         }
