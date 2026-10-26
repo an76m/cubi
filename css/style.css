@@ -4452,6 +4452,24 @@ html.desk-edit .dke-tray { display: flex; position: fixed; left: 50%; bottom: 12
 .dkt-chip.on { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; }
 .dkt-chip.need { border-color: #f5a524; border-style: dashed; }
 .dkt-act { display: flex; justify-content: center; gap: 6px; }
+/* 🎨 소품 꾸미기 (js/deskpaint.js) */
+.dp-wrap { display: none; position: fixed; inset: 0; z-index: 1100; align-items: center; justify-content: center; background: rgba(90, 50, 70, .28); padding: 12px; }
+.dp-wrap.on { display: flex; }
+.dp-card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(680px, 100%); max-height: calc(100vh - 24px); overflow: auto; padding: 16px 18px; border-radius: 22px; background: #fffaf7; border: 2px solid #f3c6d4; box-shadow: 0 10px 30px rgba(120, 60, 90, .25); box-sizing: border-box; }
+.dp-head { text-align: center; } .dp-head b { display: block; color: #c2457a; font-size: 17px; } .dp-head small { color: #a08a94; font-size: 12px; }
+.dp-stage { padding: 12px; border-radius: 16px; background: repeating-conic-gradient(#fff 0 25%, #f7eef2 0 50%) 0 0 / 18px 18px; border: 1.5px dashed #f0c3d2; }
+.dp-stage canvas { display: block; touch-action: none; }
+.dp-tabs { display: flex; gap: 6px; } .dp-tabs button { border: 1.5px solid #ecd0da; background: #fff; color: #7b5a63; border-radius: 14px; padding: 6px 14px; font: inherit; font-size: 13.5px; cursor: pointer; }
+.dp-tabs button.on { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; }
+.dp-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: #8d7380; } .dp-row[hidden] { display: none; }
+.dp-row input[type=range] { width: 140px; }
+.dp-sw { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.dp-sw button, .dp-more { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1.5px #e7cdd7; cursor: pointer; padding: 0; }
+.dp-sw button.on { box-shadow: 0 0 0 3px #e2557f; }
+.dp-more { position: relative; overflow: hidden; background: conic-gradient(#ff8fb1, #ffd36b, #9bd9b5, #9ccfee, #c9b3f2, #ff8fb1); }
+.dp-more input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; }
+.dp-file { cursor: pointer; }
+.dp-btns { display: flex; gap: 10px; } .dp-btns .btn { min-width: 96px; justify-content: center; } .dp-btns .dp-ok { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; }
 /* 📦 소품 보관함 (js/desk.js deskBoxRender) */
 .dkb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; max-height: 60vh; overflow: auto; padding: 4px 2px; }
 .dkb-it { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 6px; border-radius: 14px; background: #fff; border: 1.5px solid #f3d3de; text-align: center; }
