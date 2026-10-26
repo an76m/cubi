@@ -581,7 +581,7 @@
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
             let desk = null; drive.deskLocked = false;
             try { desk = await fetchKeyFile('desk'); }
-            catch (e) { if (e && e.type === 'corrupt') drive.deskLocked = true; else throw e; }   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 책상은 처음 모습만 보여 주고 · 그 파일은 절대 덮어쓰지 않아요
+            catch (e) { if (e && e.type === 'corrupt') drive.deskLocked = true; else throw e; }   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();
@@ -595,7 +595,6 @@
             drive.needAuth = false; drive.error = false; drive.full = false;
             lastRemoteCheck = Date.now();
             applyLoadedData();
-            if (drive.deskLocked) showMsg('🔐 책상 정보(책상배치 / 배치.json)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>');
             updateBadge();
             prefetchInitial();                             // 기다리지 않고 백그라운드로 3일치 미리 읽기
         }

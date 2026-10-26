@@ -1503,7 +1503,8 @@
             const all = cabAllIds();
             prefSet(GD_OWN, GD_OWN_L, (ids ? ids.filter(id => all.includes(id)) : all).map(id => ({ id, g: 1 })));
         }
-        window.gdFilesFill = gdFilesFill; window.gdGiftSet = gdGiftSet; window.gdOwnList = gdOwnList;
+        function gdSetList(L) { const all = cabAllIds(); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && all.includes(o.id)).map(gdRec)); }   // 🛟 되살린 목록 (js/desk.js giftEnsure)
+        window.gdFilesFill = gdFilesFill; window.gdGiftSet = gdGiftSet; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
         const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : all; };
         const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
         const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
