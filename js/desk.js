@@ -20,8 +20,8 @@
             { id: 'riser', src: 'img/desk/riser.webp', w: 470, h: 94, x: 560, y: 667, name: '모니터 받침대', surf: [[19, 3, 467]] },
             { id: 'basket', src: 'img/desk/basket.webp', w: 170, h: 153, x: 600, y: 533, name: '책 바구니' },
             { id: 'pencup', src: 'img/desk/pencup.webp', w: 100, h: 155, x: 840, y: 531, name: '연필꽂이' },
-            { id: 'bookbox', src: 'img/desk/bookbox.webp', w: 200, h: 154, x: 230, y: 357, name: '책 상자' },
-            { id: 'magfile', src: 'img/desk/magfile.webp', w: 130, h: 332, x: 1080, y: 429, name: '파일꽂이' },
+            { id: 'bookbox', src: 'img/desk/bookbox2.webp', w: 200, h: 154, x: 230, y: 357, name: '책 상자' },
+            { id: 'magfile', src: 'img/desk/magfile2.webp', w: 130, h: 313, x: 1080, y: 448, name: '파일꽂이' },
             { id: 'clock', src: 'img/desk/clock.webp', w: 96, h: 118, x: 1316, y: 414, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', src: 'img/desk/dclock.webp', w: 130, h: 82, x: 300, y: 228, name: '디지털 시계', lcd: [12, 18.9, 87.9, 71.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
             { id: 'drawer', src: 'img/desk/drawer.webp', w: 230, h: 247, x: 1250, y: 514, name: '서랍장', surf: [[18, 6, 224]] }
