@@ -759,6 +759,7 @@
     }
     /* 기본샵 첫 창 : 종류 아이콘 (🌸 계절은 이벤트 때만) */
     function openShelf() {
+        if (window.shopSceneOn && shopSceneOn()) { if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); } return; }   // 🏪 가게 안이면 고르는 창만 닫고 가게 그대로 (js/shopscene.js)
         if (vis('basketModal')) closeModal('basketModal');
         if (vis('basketKindModal')) closeModal('basketKindModal');
         if (vis('shelfKindModal')) closeModal('shelfKindModal');
@@ -876,6 +877,7 @@
         return true;
     }
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
+        if (window.shopSceneOn && shopSceneOn()) shopSceneClose();          // 🏪 가게에서 나와서
         if (k === 'gd' || k === 'desk') { shZoomOff(); closeModal('shelfKindModal'); if (k === 'gd' && window.openGdCab) openGdCab(); if (k === 'desk' && window.deskBoxOpen) deskBoxOpen(); return; }   // ✏️ 문구함 · 📦 소품 보관함
         shZoomOff(); closeModal('shelfKindModal');
         bkOpenKind(k);
