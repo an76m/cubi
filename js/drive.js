@@ -33,7 +33,7 @@
             stkList: '스티커목록', doll: '인형', puppet: '인형극', cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치', starter: '기본세트'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
-        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', photo: '벽사진', basket: '바구니' };
+        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', photo: '벽사진', basket: '바구니', lamp: '조명', doll: '인형' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
         const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자' };
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
         const DAY_PATH = dirPath(DIRS.day), DAY_PRE = '기본-';      // 📔 기본 다이어리 : 말랑달콤 / 일기기본 / 기본-2026-10-26.json
