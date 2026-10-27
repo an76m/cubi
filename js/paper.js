@@ -42,4 +42,4 @@
         }
         window.applyPaper = applyPaper;
         window.setPaper = setPaper;
-        window.memoShelf = () => PAPERS.filter(p => p.id).map(p => ({ id: p.id, name: p.name, g: PAPER_CAT[p.id] || '기본' }));   // 🏪 기본샵 · '기본'(글상자)은 늘 쓸 수 있어요 (js/basket.js)
+        window.memoShelf = () => PAPERS.filter(p => p.id).map(p => ({ id: p.id, name: p.name, g: PAPER_CAT[p.id] || '기본' }));   // 🏪 기본상품 샵 · '기본'(글상자)은 늘 쓸 수 있어요 (js/basket.js)

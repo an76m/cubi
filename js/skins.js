@@ -1469,8 +1469,8 @@
         const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
         const cabK = id => id.split(':')[1];
-        const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본샵에 있는 모든 디자인
-        /* ✏️ 내 문구 (도련 10-27) : 처음엔 기본 세트 선물(모두) · 🏪 기본샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
+        const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
+        /* ✏️ 내 문구 (도련 10-27) : 처음엔 기본 세트 선물(모두) · 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
            저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 기본 세트 모두 → 드라이브를 읽은 뒤 js/desk.js giftEnsure) · 게스트는 이 기기 malang_gd_own
                   🎁 처음 선물은 기본세트 / 선물.json 한 파일 (서비스 · 예외 · 버리면 거기서 빠져요)
                   종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
@@ -1616,7 +1616,7 @@
             const jo = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
             if (cabOwn(g).length <= 1) { showMsg(`마지막 하나 남은 ${jo(kind, '은', '는')} 버릴 수 없어요.`); return; }
             if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
-            if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 버릴까요?<br><small>버린 문구는 🏪 기본샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기')) return;
+            if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 버릴까요?<br><small>버린 문구는 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기')) return;
             const L = gdOwnList() || cabAllIds().map(x => ({ id: x, g: 1 })), o = L.find(x => x.id === id);
             prefSet(GD_OWN, GD_OWN_L, L.filter(x => x.id !== id).map(gdRec));
             if (o && o.g) { if (window.deskGiftWrite) deskGiftWrite(); }      // 🎁 선물이면 선물.json 에서 빼요
@@ -1625,7 +1625,7 @@
             gdCabRender();
         }
         function gdCabShop() { closeModal('gdCabModal'); if (window.openShelf) { openShelf(); shOpenKind('gd'); } }
-        /* 🏪 기본샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
+        /* 🏪 기본상품 샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) })));
         function gdGive(id) {
             const L = gdOwnList(); if (!L || L.some(o => o.id === id)) return 'have';

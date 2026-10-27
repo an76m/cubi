@@ -8,23 +8,23 @@
        끔 = 손이 가는 그대로 부드럽게
        💻 끄는 동안 Shift 를 누르고 있으면 잠깐 반대로
    - 🔗 소품 ↔ 기능 (도련 10-27 · ⚙️ 설정 📖 다이어리 칸 🪑 화면) : 기능마다 책상 위 소품 하나 (라벨이 붙어요)
-       하단 메뉴 기능(다이어리 · 스티커 · 문구함 · 카페 · 설정) = 숨긴 하단 메뉴 버튼을 대신 눌러요 (하는 일이 똑같아요) · 🏪 기본샵 · 📦 소품 보관함은 바로 열어요
+       하단 메뉴 기능(다이어리 · 스티커 · 문구함 · 카페 · 설정) = 숨긴 하단 메뉴 버튼을 대신 눌러요 (하는 일이 똑같아요) · 🏪 기본상품 샵 · 📦 소품 보관함은 바로 열어요
        평소 책상 = 톡 하면 그 기능만 · 소품은 안 움직여요
    - 🛠 책상 꾸미기 (도련 10-27 · 배치 + 기능 연결을 한곳에서) : 🛠 소품(처음 = 서랍장) 또는 ⚙️ 설정 🪑 화면 칸 버튼으로 들어가요 (html.desk-edit)
        끌기 = 옮기기 · 톡 = 고르기 → 위에 기능 칩(톡 = 이 소품에 연결 · 다시 톡 = 빼기 · 다른 소품에 있던 기능은 옮겨 와요) · 🧲 · 📦 넣기 · 🗑 버리기
        아래 📦 보관함 줄 : 톡 = 책상에 놓기 · 위 막대 [취소] = 들어오기 전 그대로 · [✓ 확정] = 그때 저장
        확정은 다이어리 · 스티커 · 문구함 · 카페 · 설정 다섯 기능이 모두 연결돼야 눌려요 (설정을 못 열게 되는 일이 없게) · 꾸미는 동안은 아무것도 저장 안 해요
        화면이 좁아 기능 소품이 잘려 보이면 보이는 곳 안쪽으로 당겨 맨 앞에 보여 줘요 (저장한 자리는 그대로)
-   - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 모두 책상 위) · 🏪 기본샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
-       보관함 ↔ 책상 · 🗑 버리기 = 🛠 책상 꾸미기에서 (▤ 하단 메뉴 화면이면 📦 소품 보관함 창) · 버린 것은 기본샵에서 다시 받아요
+   - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 모두 책상 위) · 🏪 기본상품 샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
+       보관함 ↔ 책상 · 🗑 버리기 = 🛠 책상 꾸미기에서 (▤ 하단 메뉴 화면이면 📦 소품 보관함 창) · 버린 것은 기본상품 샵에서 다시 받아요
    - 저장 (도련 10-27)
        책상배치 / 배치.json : 'diary_desk_items' [{u: 하나하나 id, id: 소품, at: 'desk' | 'box', x, y, c: 종류 폴더 파일 id}] · 'diary_desk_fn' {기능: u} (js/drive.js DESK_KEYS · 게스트는 이 기기)
        종류 폴더 (서랍장 · 시계 … js/drive.js DESK_DIRS · 소품의 kind) / 받은-<c>.json = 가진 소품 하나에 파일 하나 (js/coll.js 모음 · 뒤에서 차례로 올려요)
-         기본 세트 선물 · 기본샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
+         기본 세트 선물 · 기본상품 샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
        🎁 기본세트 (도련 10-27 · 서비스 = 예외) : 처음 한 번 받는 책상 소품 + 문구는 종류 폴더가 아니라 기본세트 / 선물.json 한 파일 (g: 1 · 첫 접속 요청 3~4번)
          버리면 선물.json 에서 빠져요 (다 비면 파일도 지워요) · 그 뒤에 받는 것부터 종류 폴더 · 배치.json 이 없어지면 🛟 되살리기 (giftEnsure)
        기본 세트의 u = 소품 id (그래서 처음 기능 연결이 그대로 맞아요) · 선물이 아닌데 파일이 아직 없는 것(c 없음)은 드라이브를 읽은 뒤 만들어요
-   ※ 소품 종류 = DESK_ITEMS (기본샵 카탈로그) */
+   ※ 소품 종류 = DESK_ITEMS (기본상품 샵 카탈로그) */
 
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
@@ -208,7 +208,7 @@
 
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
-            ['shop', '기본샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];
+            ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];
         const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', edit: 'drawer' };
         const DK_FN_NEED = ['skin', 'sticker', 'gd', 'cafe', 'set'];                // 꼭 있어야 하는 기능 (하단 메뉴 다섯 개)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
@@ -247,7 +247,7 @@
         }
         function deskFnItemName(fn) { const o = DK.items.find(x => x.u === deskFnMap()[fn]); return o ? dkName(o) : ''; }
         /* 기능 실행 = 숨긴 하단 메뉴 버튼을 대신 눌러요 (필기 붙이기 · 카페 · 다시 누르면 닫기 … 하단 메뉴와 똑같이)
-           스티커 · 문구함 · 카페는 다이어리에 쓰는 거라 책상에 놓인 다이어리를 먼저 펴요 · 🏪 기본샵 · 📦 보관함은 바로 */
+           스티커 · 문구함 · 카페는 다이어리에 쓰는 거라 책상에 놓인 다이어리를 먼저 펴요 · 🏪 기본상품 샵 · 📦 보관함은 바로 */
         function deskRun(fn) {
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
@@ -346,19 +346,19 @@
         }
         async function deskDiscard(u) {
             const o = DK.items.find(x => x.u === u); if (!o || dkFnBlock(u, '버릴')) return;
-            const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 버릴까요?<br><small>버린 소품은 🏪 기본샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기') : true;
+            const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 버릴까요?<br><small>버린 소품은 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기') : true;
             if (!ok) return;
             DK.items = DK.items.filter(x => x.u !== u); dkSave();
             if (!DK.edit) dkFileDel(o);                                        // 🛠 꾸미는 중이면 확정할 때 (선물이면 선물.json 에서 빼요) deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
         }
-        /* 🏪 기본샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
+        /* 🏪 기본상품 샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
         function deskGive(id, force) {
             if (!dkCat(id)) return 'no';
             if (!force && DK.items.some(o => o.id === id)) return 'have';
             deskReceive(id, 'basic');
             return 'ok';
         }
-        /* 새 소품 하나 들어오기 (🏪 기본샵 · 📥 공유 파일) = 무조건 이 계정의 새 1개 : 새 u + 🔐 내 열쇠로 종류 폴더 파일 · img = 칠한 그림(공유받은 것) */
+        /* 새 소품 하나 들어오기 (🏪 기본상품 샵 · 📥 공유 파일) = 무조건 이 계정의 새 1개 : 새 u + 🔐 내 열쇠로 종류 폴더 파일 · img = 칠한 그림(공유받은 것) */
         function deskReceive(id, from, img) {
             const c = dkCat(id); if (!c) return null;
             const it = { u: id + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), id, at: 'box', x: c.x, y: c.y };
@@ -399,7 +399,7 @@
         function deskTrayTab(k) { DK.trayKind = k; deskEditPaint(); }
         function deskBoxRender() {
             const box = document.getElementById('deskBoxList'); if (!box) return;
-            if (!DK.items.length) { box.innerHTML = '<p class="dkb-empty">아직 소품이 없어요.<br>🏪 기본샵에서 받아 와요</p>'; return; }
+            if (!DK.items.length) { box.innerHTML = '<p class="dkb-empty">아직 소품이 없어요.<br>🏪 기본상품 샵에서 받아 와요</p>'; return; }
             const T = dkTabs(DK.items, 'boxKind', 'deskBoxTab');
             const order = T.rows.slice().sort((a, b) => (a.at === b.at ? 0 : a.at === 'box' ? -1 : 1));   // 보관 중인 것이 먼저
             box.innerHTML = `<div class="dk-tabs">${T.html}</div>` + order.map(o => {
@@ -450,7 +450,7 @@
             const hint = bar.querySelector('.dke-hint'); if (hint) hint.textContent = miss.length ? '연결할 기능 : ' + miss.map(k => DK_FNS.find(x => x[0] === k)[1]).join(' · ') : '끌어서 옮기고 · 톡 해서 기능을 연결해요';
             const all = DK.items.filter(o => o.at === 'box'), T = dkTabs(all, 'trayKind', 'deskTrayTab'), L = T.rows;
             tray.innerHTML = (T.html ? `<div class="dk-tabs dke-tabs"><b class="dke-tt">📦 보관함</b>${T.html}</div>` : '') + `<div class="dke-row">${T.html ? '' : '<b class="dke-tt">📦 보관함</b>'}` + (L.length ? L.map(o => `<button type="button" class="dke-it" onclick="deskPut('${o.u}', 'desk')" title="책상에 놓기"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt=""><small>${dkName(o)}</small></button>`).join('') : '<small class="dke-none">비어 있어요 · 소품을 고르고 📦 넣기</small>')
-                + `<button type="button" class="dke-shop" onclick="deskEditShop()">🏪 기본샵</button><button type="button" class="dke-shop" onclick="ishPick()">📥 불러오기</button></div>`;
+                + `<button type="button" class="dke-shop" onclick="deskEditShop()">🏪 기본상품 샵</button><button type="button" class="dke-shop" onclick="ishPick()">📥 불러오기</button></div>`;
         }
         function deskEditShop() { if (window.openShelf) { openShelf(); shOpenKind('desk'); } }   // 받으면 바로 아래 보관함 줄에 (꾸미기는 그대로)
         document.addEventListener('keydown', ev => { if (DK.edit && ev.key === 'Escape' && !document.querySelector('.modal[style*="flex"], .modal[style*="block"]')) deskEditEnd(false); });

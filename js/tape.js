@@ -108,5 +108,5 @@
         window.tapeRecvHtml = tapeRecvHtml; window.tapeFreeHtml = tapeFreeHtml; window.addFreeTape = addFreeTape;
         window.isTapeSrc = isTapeSrc;
         window.placeTape = placeTape;
-        window.tapeShelf = () => tapeFreeList().map(t => ({ id: t.id, g: t.g || '기본', name: t.name || '', url: tapeUrl(t) }))   // 🏪 기본샵 (js/basket.js)
-            .concat(TAPES.filter(t => tapeHas(t.id)).map(t => ({ id: t.id, g: '💗 선물 받은 테이프', name: t.name || '', url: tapeUrl(t) })));   // 💗 저금통 · 선물로 열린 테이프도 그 기간엔 기본샵에서 받아요
+        window.tapeShelf = () => tapeFreeList().map(t => ({ id: t.id, g: t.g || '기본', name: t.name || '', url: tapeUrl(t) }))   // 🏪 기본상품 샵 (js/basket.js)
+            .concat(TAPES.filter(t => tapeHas(t.id)).map(t => ({ id: t.id, g: '💗 선물 받은 테이프', name: t.name || '', url: tapeUrl(t) })));   // 💗 저금통 · 선물로 열린 테이프도 그 기간엔 기본상품 샵에서 받아요

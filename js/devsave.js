@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/devsave.js
    📁 로그인 없이 쓰기 : 이 기기의 '말랑달콤' 폴더에 저장 (도련 · 2026-10-13)
-   - 첫 화면 '로그인 없이 다꾸하기' → "일기를 어디에 둘까요?"  📁 폴더 · 👀 구경만
+   - 첫 화면 '로그인 없이 다꾸하기' → 묻지 않고 바로 이 기기 저장공간(idb)에 (도련 10-28) · 📁 PC 폴더(dir)는 '다시 오셨네요' 화면의 다른 폴더 고르기
    - 📁 폴더를 고른 사람은 구글로 로그인했을 때와 저장 · 불러오기 · 폴더 모양 · 기능이 모두 같아요
      → 드라이브에 말을 거는 곳(drive.js gfetch) 하나만 '이 기기 폴더'로 바꿔 끼워요 (vfsFetch : 드라이브 API 흉내)
      → 일기 · 설정 · 카페 · 스티커 모음 · 내가 만든 스티커 · 페이지 · 인형 · 인형극 · 검색 목록 … 드라이브에 저장되던 것 모두
@@ -324,18 +324,12 @@
             if (c && c.dataset.orig) { c.innerHTML = c.dataset.orig; delete c.dataset.orig; }
             showGate('login', '');
         }
-        function dvChoose() {
-            const pc = dvCanDir();
-            const c = dvCard(`<div class="gate-title dv-title">일기를 어디에 둘까요?</div>
-                <button type="button" class="dv-opt on" data-v="folder"><b>📁 폴더</b><span>${pc ? '저장할 폴더를 고르면 쓰는 대로 자동으로 저장해요. 백업을 푼 폴더를 고르면 그대로 이어서 써요.' : '이 기기 폴더에 쓰는 대로 자동으로 저장해요. 다음에 열면 그대로 이어서 써요.'}</span></button>
-                <button type="button" class="dv-opt" data-v="look"><b>👀 구경만</b><span>저장하지 않아요. 닫거나 새로고침하면 쓴 일기가 사라져요.</span></button>
-                <p class="dv-foot">나중에 구글로 로그인하면 내 드라이브로 옮길 수 있어요.</p>
-                <button type="button" class="gate-guest dv-restore">📥 다른 기기에서 받은 백업 파일(zip)로 시작하기</button>
-                <button type="button" class="gate-guest dv-back">← 돌아가기</button>`);
-            c.querySelector('[data-v="folder"]').onclick = () => dvPickFolder(true);
-            c.querySelector('[data-v="look"]').onclick = () => { dvBack(); enterGuestMode(); };
-            c.querySelector('.dv-restore').onclick = () => bkPickFile(dvStartWithBackup);
-            c.querySelector('.dv-back').onclick = dvBack;
+        /* '로그인 없이 다꾸하기' → 묻는 창 없이 바로 이 기기 저장공간(idb)으로 시작 → 💻 책상 · 📱 겉표지 (도련 10-28 · "어디에 둘까요?" 창 없앰) */
+        async function dvChoose() {
+            try { await dvDb(); } catch (e) { enterGuestMode(); showMsg('⚠ 이 브라우저에서는 저장할 수 없어서 구경만 할 수 있어요.<br><span style="font-size:12px;color:#777;">시크릿 모드라면 일반 창으로 열어 주세요.</span>'); return; }
+            dvSetMode('idb'); showGate('wait', '📔 다이어리를 펴는 중…');
+            try { await dvStart('idb'); }
+            catch (e) { console.warn(e); dvSetMode(''); dvQuit(); enterGuestMode(); showMsg('⚠ 이 기기에 저장하지 못해서 구경만 할 수 있어요.'); }
         }
         /* 고른 곳 → 말랑달콤 폴더 : 고른 게 말랑달콤 폴더(또는 백업을 푼 폴더)면 그대로 · 아니면 그 안에 (있으면 그것 · 없으면 만들기) */
         async function dvTopOf(h) {
@@ -367,14 +361,6 @@
                 if (say) showMsg(n ? `📁 ${dvFolder(t.label)}의 일기 <b>${n}일치</b>로 이어서 쓸게요!` : `📁 ${dvFolder(t.label)}에 저장할게요!<br><span style="font-size:12px;color:#777;">쓰는 대로 자동으로 저장되고, 다음에 열면 그대로 이어서 써요.</span>`);
                 return true;
             } catch (e) { console.warn(e); dvSetMode(''); dvQuit(); dvBack(); showMsg('⚠ 그 폴더에는 저장할 수 없어요. 다른 폴더를 골라 주세요.'); return false; }
-        }
-        /* 📥 새 기기 : 백업 zip 으로 시작 → "이 기기에 저장할까요?" → (PC) 저장할 곳 고르기 → 넣기 */
-        async function dvStartWithBackup(file) {
-            const b = await bkOpen(file); if (!b) return;
-            const pc = dvCanDir();
-            if (!(await showMsg(`📥 백업 파일에 일기 <b>${b.days}일치</b> · 파일 ${b.items.length}개가 있어요.<br><b>이 기기</b>에 저장할까요?${pc ? '<br><span style="font-size:12px;color:#777;">다음 창에서 저장할 폴더를 골라 주세요.</span>' : ''}`, true))) return;
-            if (!(await dvPickFolder(false))) return;
-            await bkApply(b, '이 기기 폴더');
         }
         function dvAskAgain() {
             const n = dvFolder(V.label);

@@ -557,7 +557,7 @@
            - 가장 나중에 뜬 창이 맨 위 (z 1001) */
         (function winOne() {
             const KEEP = new Set(['customAlertModal']), CAB = 'gdCabModal';
-            const STK = new Set(['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 기본샵 · 10-25)
+            const STK = new Set(['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 기본상품 샵 · 10-25)
             const pair = (a, b) => (a === CAB && STK.has(b)) || (b === CAB && STK.has(a));
             const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
             const vis = m => m.style.display === 'flex' || m.style.display === 'block';
