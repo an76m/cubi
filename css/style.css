@@ -4584,6 +4584,9 @@ html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolb
 .dk-edge::after { content: ''; position: absolute; left: 0; top: -2px; width: 14px; height: 19px; border-radius: 9px 0 0 12px;   /* 둥근 책등 */
     background: linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 60%, #fff), color-mix(in srgb, var(--primary-accent) 40%, #fff)); }
 html.desk-show .dk-diary { visibility: hidden; }
+html.desk-show .dk-diary.dk-fly { visibility: visible; }   /* 떠오르기 · 내려놓기 동안 : 책상 위 다이어리는 두께(옆면)만 (js/desk.js · 도련 10-28) */
+.dk-diary.dk-fly .dk-top { visibility: hidden; }
+.dk-edge { transform-origin: 50% 0; }
 html.dk-landing .diary-wrapper :is(.dg-note, .bd-tool, .cover-notice, .drag-hint, .drive-badge) { opacity: 0 !important; transition: opacity .25s ease; }   /* 🪑 책상에 내려앉는 동안 화면 도구는 스르르 (js/desk.js · 도련 10-28) */
 html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에서는 하단 메뉴를 안 보여요 (도련 10-26 · 소품으로 대신) */
 

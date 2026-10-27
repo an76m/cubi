@@ -569,10 +569,11 @@
             if (deskAnim || !mini || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
             H.classList.add('desk-show');                                         // 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
-            const tf = dkDeskTf(w, mini); mini.style.visibility = 'hidden';
+            const tf = dkDeskTf(w, mini); mini.classList.add('dk-fly');             // 책상 위 다이어리는 두께(옆면)만 남겨 두고 들리는 순간 줄어들며 사라져요
+            const eg = mini.querySelector('.dk-edge'), ea = eg && eg.animate([{ opacity: 1, transform: 'scaleY(1)' }, { opacity: 0, transform: 'scaleY(0)', offset: .3 }, { opacity: 0, transform: 'scaleY(0)' }], { duration: 640, easing: 'ease-out', fill: 'forwards' });
             H.classList.add('dk-landing'); requestAnimationFrame(() => requestAnimationFrame(() => H.classList.remove('dk-landing')));   // 화면 도구(안내 쪽지 · 핀셋)는 떠오르며 스르르
             const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
-            a.onfinish = a.oncancel = () => { w.style.transformOrigin = ''; deskAnim = false; };
+            a.onfinish = a.oncancel = () => { w.style.transformOrigin = ''; mini.style.visibility = 'hidden'; mini.classList.remove('dk-fly'); if (ea) ea.cancel(); deskAnim = false; };
         }
         function deskCloseDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
@@ -583,7 +584,9 @@
             deskMiniPaint();                                                      // 책상 위 다이어리를 지금 모양으로 먼저 그려 두고 (숨긴 채) 그 자리로
             H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
             const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w, mini) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
-            a.onfinish = () => { mini.style.visibility = ''; H.classList.remove('desk-show', 'dk-landing'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
+            mini.style.visibility = ''; mini.classList.add('dk-fly');             // 📏 두께(옆면)는 책이 작아지며 책상에 닿는 마지막 구간에 같이 자라나요 (도련 10-28)
+            const eg = mini.querySelector('.dk-edge'), ea = eg && eg.animate([{ opacity: 0, transform: 'scaleY(0)' }, { opacity: 0, transform: 'scaleY(0)', offset: .62 }, { opacity: 1, transform: 'scaleY(1)' }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
+            a.onfinish = () => { mini.classList.remove('dk-fly'); if (ea) ea.cancel(); mini.style.visibility = ''; H.classList.remove('desk-show', 'dk-landing'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
         }
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
