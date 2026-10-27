@@ -250,13 +250,13 @@
         }
         function deskFnItemName(fn) { const o = DK.items.find(x => x.u === deskFnMap()[fn]); return o ? dkName(o) : ''; }
         /* 기능 실행 = 숨긴 하단 메뉴 버튼을 대신 눌러요 (필기 붙이기 · 카페 · 다시 누르면 닫기 … 하단 메뉴와 똑같이)
-           스티커 · 문구함 · 카페는 다이어리에 쓰는 거라 책상에 놓인 다이어리를 먼저 펴요 · 🏪 기본상품 샵 · 📦 보관함은 바로 */
+           스티커 · 카페는 다이어리에 쓰는 거라 책상에 놓인 다이어리를 먼저 펴요 · 문구함은 펴지 않고 그대로 열어요 (꺼낼 때만 다이어리가 필요) · 🏪 기본상품 샵 · 📦 보관함은 바로 */
         function deskRun(fn) {
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
             const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
-            if (fn !== 'skin' && fn !== 'set' && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }
+            if (!['skin', 'set', 'gd'].includes(fn) && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }   // 📔 다이어리 · ⚙ 설정 · ✏️ 문구함은 다이어리를 띄우지 않아요 (도련 10-28)
             else setTimeout(go, 0);
         }
         /* 다이어리를 펴 둔 동안 : 소품은 다이어리 뒤라 직접 안 눌려요 → 빈 곳을 톡 한 자리에 기능 소품이 맨 앞에 보이면 그 기능 (js/drive.js) */

@@ -1249,6 +1249,7 @@
         })();
         const gdScr = p => { const { r, k } = gdK(); return [r.left + p.x * k, r.top + p.y * k]; };   // 다이어리 자리 → 화면
         function gdPick(id) {                                                   // 🗄️ 문구함 서랍 톡 : 놓기 ↔ 치우기 (아래 cabFlip)
+            if (gdInfo(id) && !isCoverOpen && document.documentElement.classList.contains('desk-on')) { showMsg('📔 책상 위 다이어리를 펴면 문구를 꺼낼 수 있어요.'); return; }
             if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
             const el = gdEl(id);
             if (el) { if (gdHeld === id) gdLet(); el.remove(); }
@@ -1565,7 +1566,8 @@
             });
         }
         function openGdCab() {
-            if (typeof isCoverOpen === 'undefined' || !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            const onDesk = document.documentElement.classList.contains('desk-on');   // 🪑 책상에서는 다이어리를 띄우지 않고 문구함만 열어요 (도련 10-28)
+            if (!onDesk && (typeof isCoverOpen === 'undefined' || !isCoverOpen)) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             cabOpen = null; cabBin = null; gdCabRender(); openModal('gdCabModal');
         }
         /* ✋ 서랍장 옮기기 (도련 10-21) : 서랍장 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡 · 꾹은 그대로 서랍 (끌면 톡 · 꾹은 안 돼요)
