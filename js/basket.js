@@ -798,9 +798,9 @@
         const pages = Math.max(1, Math.ceil(list.length / per));
         SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
-        const nav = pages > 1 ? `<div class="ab-nav sh-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="shPage(-1)"${SH.pg ? '' : ' disabled'}>‹</button><span>${SH.pg + 1} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="shPage(1)"${SH.pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : '';
-        box.innerHTML = `<div class="sh-case"><div class="sh-awn" aria-hidden="true"></div>${tabs}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>`
-            + `<div class="sh-base">${nav}</div><div class="obj-feet"><i></i><i></i></div>`;   // 🏪 작은 진열장 (차양 · 칸 · 선반 · 받침 서랍의 ‹ 쪽 › · 다리 · 도련 10-26 · 창 없이 물건처럼)
+        const arw = (d, on, lb) => `<button type="button" class="sh-arw ${d < 0 ? 'l' : 'r'}" aria-label="${lb}" onclick="shPage(${d})"${on ? '' : ' disabled'}><svg viewBox="0 0 40 54" aria-hidden="true"><path d="M30 5 L7 27 L30 49 Q35 51 35 45 L35 9 Q35 3 30 5Z"/><path class="hl" d="M27 13 L15 25"/></svg></button>`;
+        const nav = pages > 1 ? arw(-1, SH.pg > 0, '앞 쪽') + arw(1, SH.pg < pages - 1, '다음 쪽') + `<div class="sh-pgno">${SH.pg + 1} / ${pages}</div>` : '';   // ◀ ▶ 창 양옆 · 쪽 번호는 아래 가운데 (도련 10-28 시안)
+        box.innerHTML = `<div class="sh-case">${tabs}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>${nav}`;   // 🎀 레이스 창 (도련 10-28 시안 · 테두리는 shkFrame)
         shFit(box);
         shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리
     }
@@ -1154,6 +1154,49 @@
         };
         return A[k] ? `<svg viewBox="0 0 72 64" aria-hidden="true"><defs>${sh}${glDef}</defs>${A[k]()}</svg>` : '';
     }
+    /* 🎀 상품 창 테두리 (도련 10-28 시안) : 하얀 물결 레이스 + 파스텔 별 줄 · 그림 파일 없이 SVG 로 · 창 크기가 바뀌면 다시 그려요 */
+    function shkFrame() {
+        const w = document.querySelector('#shelfKindModal > .modal-content'), f = w && w.querySelector('.shk-frame'); if (!f) return;
+        const W = Math.round(w.offsetWidth), H = Math.round(w.offsetHeight); if (W < 60 || H < 60 || f.dataset.wh === W + 'x' + H) return; f.dataset.wh = W + 'x' + H;
+        const ring = (ins, rad, step) => {                                     // 둥근 네모 둘레에 고르게 놓은 점
+            const x0 = ins, y0 = ins, w2 = W - 2 * ins, h2 = H - 2 * ins, sw = w2 - 2 * rad, sh = h2 - 2 * rad, q = Math.PI * rad / 2;
+            const sides = [sw, q, sh, q, sw, q, sh, q], L = 2 * sw + 2 * sh + 4 * q, n = Math.max(8, Math.round(L / step)), pts = [];
+            const C = [[x0 + w2 - rad, y0 + rad], [x0 + w2 - rad, y0 + h2 - rad], [x0 + rad, y0 + h2 - rad], [x0 + rad, y0 + rad]];
+            for (let i = 0; i < n; i++) {
+                let d = i * L / n, k = 0; while (k < 7 && d > sides[k]) { d -= sides[k]; k++; }
+                if (k === 0) pts.push([x0 + rad + d, y0]); else if (k === 2) pts.push([x0 + w2, y0 + rad + d]);
+                else if (k === 4) pts.push([x0 + w2 - rad - d, y0 + h2]); else if (k === 6) pts.push([x0, y0 + h2 - rad - d]);
+                else { const j = (k - 1) / 2, a = -Math.PI / 2 + j * Math.PI / 2 + d / rad, [cx, cy] = C[j]; pts.push([cx + rad * Math.cos(a), cy + rad * Math.sin(a)]); }
+            }
+            return pts;
+        };
+        const star = (x, y, r) => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; d += (i ? 'L' : 'M') + (x + rr * Math.cos(a)).toFixed(1) + ' ' + (y + rr * Math.sin(a)).toFixed(1); } return d + 'Z'; };
+        const COL = ['#f6b3c7', '#b7d3f3', '#c9bcec'];                          // 분홍 · 하늘 · 연보라
+        const lace = ring(14, 30, 25).map(([x, y]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14"/>`).join('');
+        const stars = ring(27, 22, 40).map(([x, y], i) => `<path d="${star(x, y, 6.5)}" fill="${COL[i % 3]}" stroke="${COL[i % 3]}"/>`).join('');
+        f.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        f.innerHTML = `<g fill="#fff">${lace}<rect x="14" y="14" width="${W - 28}" height="${H - 28}" rx="30"/></g><g stroke-width="1.2" stroke-linejoin="round">${stars}</g>`;
+    }
+    (function shkFrameWatch() {
+        const go = () => { const w = document.querySelector('#shelfKindModal > .modal-content'); if (!w || w.dataset.fr) return; w.dataset.fr = 1; new ResizeObserver(() => shkFrame()).observe(w); };
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', go) : go();
+    })();
+    /* 👆 상품 창 바깥을 누르면 닫혀요 (도련 10-28 · ✕ 없음) = 예전 '‹ 기본상품 샵' 과 같아요 : 🏪 가게 안이면 가게 그대로 · ▤ 하단 메뉴 · 📱 폰은 기본상품 샵 창으로
+       · 다른 창(🗄️ 문구함 · 확인 창 · 꺼내 둔 스티커창) · 가게 진열대 이름표를 누른 것은 닫지 않아요 */
+    (function shkOutside() {
+        let down = null;
+        document.addEventListener('pointerdown', e => {
+            const m = document.getElementById('shelfKindModal');
+            down = m && m.style.display === 'flex' && !e.target.closest('.modal-content, .alert-card, #customAlertModal, #dskLayer, .shop-spot, .shop-x') ? [e.clientX, e.clientY] : null;
+        }, true);
+        document.addEventListener('pointerup', e => {
+            if (!down) return; const [x, y] = down; down = null;
+            if (Math.hypot(e.clientX - x, e.clientY - y) > 10) return;          // 끌기는 아니에요
+            const m = document.getElementById('shelfKindModal'); if (!m || m.style.display !== 'flex') return;
+            e.preventDefault(); openShelf();
+            const eat = ev => { ev.stopPropagation(); ev.preventDefault(); }; addEventListener('click', eat, { capture: true, once: true }); setTimeout(() => removeEventListener('click', eat, true), 400);   // 닫는 톡이 밑의 것까지 누르지 않게
+        }, true);
+    })();
     /* 📦 기본상품 샵 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
     (function objMovable() {
         const go = () => ['shelfModal', 'shelfKindModal'].forEach(id => {
