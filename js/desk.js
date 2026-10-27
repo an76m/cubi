@@ -417,7 +417,7 @@
         /* ---------- 🛠 책상 꾸미기 (도련 10-27) ---------- */
         function deskEditOpen() {
             const H = document.documentElement; if (!H.classList.contains('desk-on') || DK.edit) return;
-            if (H.classList.contains('desk-show')) { H.classList.remove('desk-show'); const m = document.getElementById('deskDiary'); if (m) m.style.visibility = ''; deskMiniPaint(); }   // 펴 둔 다이어리는 책상에 내려놓고
+            if (H.classList.contains('desk-show')) { deskMiniPaint(); H.classList.remove('desk-show'); const m = document.getElementById('deskDiary'); if (m) m.style.visibility = ''; }   // 펴 둔 다이어리는 책상에 내려놓고 (펼친 모양은 보일 때 그려요)
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
             DK.back = { items: JSON.stringify(DK.items), fn: JSON.stringify(deskFnMap()) };   // 취소하면 이대로
             DK.editFn = JSON.parse(DK.back.fn); DK.edit = true;
@@ -507,33 +507,71 @@
            - 책상 빈 곳을 톡 = 다시 책상에 내려놓아요 (js/drive.js) · 펼친 채로 내려놓으면 다음에 펼친 쪽 그대로 · 접은 채로면 접은 채로 (도련 10-28)
            - 로그인(앱을 연) 뒤 처음 톡 = 늘 접힌 겉표지로 떠요 (기기에 '펼친 적 있음'을 저장하지 않아요 · 도련 10-28)
            - 나중에 : 마지막으로 다꾸한 다이어리가 놓여요 (지금은 기본 다이어리 하나) */
+        /* 📔 책상 위 다이어리 그리기 (도련 10-28 · A) : 접혀 있으면 겉표지 · 펼쳐 있으면 펼친 두 쪽(그날 꾸민 것 그대로)을 작게 복사해 눕혀요
+           · 펼친 모양은 가로가 두 배 (가운데 · 아래 끝은 그대로) · 크기는 다이어리가 보일 때 재 두고(DK_SZ) 숨어 있으면 마지막 값 */
+        const DK_MW = 200, DK_MH = 238;                                           // 접힌 다이어리 (책상 그림 px)
+        let DK_SZ = null;                                                         // { bw, bh, vx, vw, vh } 책 크기 · 화면에 보이는 펼친 자리(책 왼쪽에서 vx 만큼 · 두 쪽 또는 📱 한 쪽씩 보기면 한 쪽)
+        const dkOpenNow = () => typeof isCoverOpen !== 'undefined' && isCoverOpen;
+        const dkVis = (bk, ip) => bk.classList.contains('dy-one') ? bk : ip;      // 보이는 것 : 두 쪽(innerPage) · 한 쪽씩 보기면 책 자리만
+        function dkMeasure() {
+            const bk = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'); if (!bk || !ip) return DK_SZ;
+            const rb = bk.getBoundingClientRect(), rv = dkVis(bk, ip).getBoundingClientRect();
+            if (rb.width > 50 && rv.width > 50) DK_SZ = { bw: bk.offsetWidth, bh: bk.offsetHeight, vx: rb.left - rv.left, vw: rv.width, vh: rv.height };
+            return DK_SZ;
+        }
         function deskMiniPaint() {
-            const box = document.querySelector('#deskDiary .dk-mini'), cv = document.getElementById('coverPage'); if (!box || !cv) return;
-            const c = cv.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-            c.style.display = ''; c.classList.remove('cv-plain'); c.setAttribute('aria-hidden', 'true');
-            box.replaceChildren(c);
+            const mini = document.getElementById('deskDiary'), box = mini && mini.querySelector('.dk-mini'), cv = document.getElementById('coverPage'); if (!box || !cv) return;
+            const strip = c => { c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id')); c.setAttribute('aria-hidden', 'true'); return c; };
+            const Z = dkOpenNow() && (dkMeasure() || DK_SZ);
+            if (!Z) {                                                             // 📕 접힘 = 겉표지
+                mini.classList.remove('open'); mini.style.removeProperty('--dkw'); mini.style.removeProperty('--dkh');
+                const c = strip(cv.cloneNode(true)); c.style.display = ''; c.classList.remove('cv-plain');
+                box.replaceChildren(c); return;
+            }
+            const W = Math.round(DK_MW * Z.vw / Z.bw), k = W / Z.vw, H = Math.round(Z.vh * k);   // 📖 펼침 = 보이는 쪽을 실제 크기로 복사해 줄여요 (붙인 것 자리가 그대로)
+            const src = document.getElementById('diaryBook'), bk = strip(src.cloneNode(true));
+            const cs0 = src.querySelectorAll('canvas'), cs1 = bk.querySelectorAll('canvas');   // ✨ 캔버스로 그린 것(반짝이 스티커 등)은 복사로는 비어서 그림을 옮겨 그려요
+            cs1.forEach((c, i) => { const o = cs0[i]; if (!o || !o.width || !o.height) return; try { c.width = o.width; c.height = o.height; c.getContext('2d').drawImage(o, 0, 0); } catch (e) {} });
+            const ts0 = src.querySelectorAll('textarea'), ts1 = bk.querySelectorAll('textarea');   // ✍️ 글상자에 쓴 글도 복사로는 안 옮겨져서 넣어 줘요
+            ts1.forEach((t, i) => { const o = ts0[i]; if (o) { t.value = o.value; t.textContent = o.value; t.scrollTop = o.scrollTop; } });
+            bk.querySelectorAll('.cover-page').forEach(e => e.remove());
+            bk.querySelectorAll('.drive-badge, .handle, .rot-zone, .dg-note, .bd-tool').forEach(e => e.remove());   // 화면 도구(안내 쪽지 · 핀셋)는 빼요
+            bk.classList.remove('dk-mini', 'dy-anim'); bk.style.position = 'absolute'; bk.style.left = Z.vx + 'px'; bk.style.top = '0'; bk.style.width = Z.bw + 'px'; bk.style.height = Z.bh + 'px'; bk.style.margin = '0';
+            const wrap = document.createElement('div'); wrap.className = 'dk-open-wrap';
+            wrap.style.cssText = `position:absolute;left:0;top:0;width:${Z.vw}px;height:${Z.vh}px;overflow:hidden;transform:scale(${k});transform-origin:0 0;`;
+            wrap.appendChild(bk);
+            mini.classList.add('open'); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px');
+            box.replaceChildren(wrap);
         }
         let deskAnim = false;
+        /* 떠오르기 · 내려놓기 : 펼쳐 있으면 두 쪽(innerPage) · 접혀 있으면 다이어리 상자를 책상 위 다이어리 자리와 맞춰요 */
+        function dkFly(w) {
+            const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook'), open = dkOpenNow() && ip && bk && ip.offsetWidth > 50;
+            const rw = w.getBoundingClientRect(), r1 = open ? dkVis(bk, ip).getBoundingClientRect() : rw;
+            w.style.transformOrigin = `${r1.left + r1.width / 2 - rw.left}px ${r1.top + r1.height / 2 - rw.top}px`;   // 보이는 것의 가운데를 기준으로 줄이고 키워요
+            return r1;
+        }
+        const dkTf = (r0, r1) => `translate(${r0.left + r0.width / 2 - (r1.left + r1.width / 2)}px, ${r0.top + r0.height / 2 - (r1.top + r1.height / 2)}px) scale(${r0.width / r1.width}) perspective(900px) rotateX(58deg)`;
         function deskOpenDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
-            const r0 = mini.getBoundingClientRect();
+            const r0 = mini.querySelector('.dk-top').getBoundingClientRect();
             H.classList.add('desk-show'); mini.style.visibility = 'hidden';
-            const r1 = w.getBoundingClientRect(), k = r0.width / r1.width;
-            const dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
-            const a = w.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)' });
-            a.onfinish = a.oncancel = () => { deskAnim = false; };
+            const r1 = dkFly(w);                                                  // 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
+            const a = w.animate([{ transform: dkTf(r0, r1) }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+            a.onfinish = a.oncancel = () => { w.style.transformOrigin = ''; deskAnim = false; dkMeasure(); };
         }
         function deskCloseDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || !H.classList.contains('desk-show')) return;
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
             deskAnim = true;
-            const r1 = w.getBoundingClientRect(), r0 = mini.getBoundingClientRect();
-            const k = r0.width / r1.width, dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
-            const a = w.animate([{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }], { duration: 480, easing: 'cubic-bezier(.5, 0, .6, 1)', fill: 'forwards' });
-            a.onfinish = () => { H.classList.remove('desk-show'); a.cancel(); mini.style.visibility = ''; deskMiniPaint(); deskAnim = false; };
+            try { if (dkOpenNow() && typeof saveData === 'function') saveData(false); } catch (e) {}
+            deskMiniPaint();                                                      // 책상 위 다이어리를 지금 모양으로 (펼침 · 접힘) 먼저 그려 두고 그 자리로
+            const r1 = dkFly(w), r0 = mini.querySelector('.dk-top').getBoundingClientRect();
+            const a = w.animate([{ transform: 'none' }, { transform: dkTf(r0, r1) }], { duration: 520, easing: 'cubic-bezier(.5, 0, .6, 1)', fill: 'forwards' });
+            a.onfinish = () => { H.classList.remove('desk-show'); a.cancel(); w.style.transformOrigin = ''; mini.style.visibility = ''; deskAnim = false; };
         }
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;

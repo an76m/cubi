@@ -131,11 +131,11 @@
         .element-box.lifting:not([class*="fr-"]) > :not(.handle):not(.rot-zone), .element-box.lifting[class*="fr-"] { filter: drop-shadow(3px 7px 6px rgba(120, 70, 90, .28)); }
         .element-box img { width: 100%; height: 100%; pointer-events: none; display: block; -webkit-user-drag: none; -webkit-touch-callout: none; }
         /* 🪄 실제 문구처럼 : 스티커는 살짝 두께 그림자 · 이모지 스티커는 하얀 칼선 · 📄 모조지스티커는 얇은 종이 그림자 (🎀 테이프 · 🧻 떡메 · 📷 액자는 따로) */
-        #canvasArea .element-box:not([class*="fr-"]):not(.tk-note):not(.is-tape):not([data-float]):not([data-ts]) > img { filter: drop-shadow(0 1px .8px rgba(90, 60, 70, .2)) drop-shadow(0 2px 3px rgba(90, 60, 70, .08)); }
-        #canvasArea .element-box[data-float] > img { filter: drop-shadow(0 .6px .6px rgba(90, 70, 50, .22)); }
+        :is(#canvasArea, .dk-open-wrap .canvas-area) .element-box:not([class*="fr-"]):not(.tk-note):not(.is-tape):not([data-float]):not([data-ts]) > img { filter: drop-shadow(0 1px .8px rgba(90, 60, 70, .2)) drop-shadow(0 2px 3px rgba(90, 60, 70, .08)); }
+        :is(#canvasArea, .dk-open-wrap .canvas-area) .element-box[data-float] > img { filter: drop-shadow(0 .6px .6px rgba(90, 70, 50, .22)); }
         /* 옮기는 동안 살짝 뜬 그림자 (위 두 줄보다 강하게 · 모든 스티커 · 사진 · 메모 공통) */
         #canvasArea .element-box.lifting:not([class*="fr-"]) > :not(.handle):not(.rot-zone), #canvasArea .element-box.lifting[class*="fr-"] { filter: drop-shadow(3px 8px 7px rgba(120, 70, 90, .3)) !important; }
-        #canvasArea .element-box > span { filter: drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 1px 1px rgba(90, 60, 70, .28)); }
+        :is(#canvasArea, .dk-open-wrap .canvas-area) .element-box > span { filter: drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 1px 1px rgba(90, 60, 70, .28)); }
         .element-box textarea {
             background: transparent; border: none; resize: none; outline: none;
             width: 100%; height: 100%;
@@ -3032,7 +3032,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 #cmvModes .dmv-tab { font-size: 13px; }
 /* 🪄 일기 안의 움직이는 캐릭터 : 그림은 그대로 두고 (투명하게) 그 위에 움직이는 캔버스를 겹쳐요 */
 .element-box > canvas.gl-live { position: absolute; left: 6px; top: 6px; width: calc(100% - 12px); height: calc(100% - 12px); pointer-events: none; display: block; }
-#canvasArea .element-box > canvas.gl-live { filter: drop-shadow(0 1px .8px rgba(90, 60, 70, .2)) drop-shadow(0 2px 3px rgba(90, 60, 70, .08)); }
+:is(#canvasArea, .dk-open-wrap .canvas-area) .element-box > canvas.gl-live { filter: drop-shadow(0 1px .8px rgba(90, 60, 70, .2)) drop-shadow(0 2px 3px rgba(90, 60, 70, .08)); }
 @media (max-width: 560px) {
     .dmv-stagewrap { width: min(100%, calc(36vh * 300 / 470)); }
     .dmv-main { display: block; overflow-x: clip; }
@@ -3746,21 +3746,21 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dy-th[data-b="tn"]::after { content: ''; left: 50%; top: -3px; bottom: -3px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #e7768f; }
 .dy-th[data-b="hard"]::after { content: ''; right: 7px; top: -3px; bottom: -3px; width: 4px; border-radius: 2px; background: #4a3a44; }
 .dy-th[data-b="spread"]::after { content: ''; left: 56%; top: 4px; bottom: -8px; width: 3px; border-radius: 0 0 2px 2px; background: #e7768f; }
-/* 📖 펼침면 (js/skins.js dySize · dyViewSet) : 책(#diaryBook)은 한 쪽 크기 · 속지는 두 배로 넓어져 왼쪽으로 한 쪽만큼 · 📱 폰은 반쪽씩 */
-#diaryBook.dy-sp .inner-page { left: -100%; width: 200%; }
-#diaryBook.dy-sp .inner-page .page-header { width: min(calc(var(--dy-w) - 16px), max(calc(var(--dy-w) * .74), 290px)); }
-#diaryBook.dy-one .inner-page { transform: translateX(50%); }
-#diaryBook.dy-one .inner-page .page-header { translate: calc(var(--dy-w) * -.5) 0; }
-#diaryBook.dy-one .inner-page.dy-at-r { transform: none; }
-#diaryBook.dy-one .inner-page.dy-at-r .page-header { translate: calc(var(--dy-w) * .5) 0; }
+/* 📖 펼침면 (js/skins.js dySize · dyViewSet · 🪑 책상 위 펼친 다이어리 복사본 .dk-open-wrap 도 같이 · 도련 10-28) : 책(#diaryBook)은 한 쪽 크기 · 속지는 두 배로 넓어져 왼쪽으로 한 쪽만큼 · 📱 폰은 반쪽씩 */
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-sp .inner-page { left: -100%; width: 200%; }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-sp .inner-page .page-header { width: min(calc(var(--dy-w) - 16px), max(calc(var(--dy-w) * .74), 290px)); }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page { transform: translateX(50%); }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page .page-header { translate: calc(var(--dy-w) * -.5) 0; }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page.dy-at-r { transform: none; }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page.dy-at-r .page-header { translate: calc(var(--dy-w) * .5) 0; }
 /* 📱 폰 한 쪽 보기 : 페이지 위 알림(☁ 저장 경고 · 불러오는 중)도 지금 보이는 쪽 안에 (도련 10-19) */
-#diaryBook.dy-one .drive-badge { max-width: 34%; }
-#diaryBook.dy-one .inner-page.dy-at-r .drive-badge { left: calc(50% + 8px); }
-#diaryBook.dy-one .inner-page .cv-loading { left: 25%; }
-#diaryBook.dy-one .inner-page.dy-at-r .cv-loading { left: 75%; }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .drive-badge { max-width: 34%; }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page.dy-at-r .drive-badge { left: calc(50% + 8px); }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page .cv-loading { left: 25%; }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page.dy-at-r .cv-loading { left: 75%; }
 #diaryBook.dy-anim .inner-page { transition: transform .35s ease; }
-#diaryBook.dy-one { clip-path: inset(-80px 0 -80px -80px); }
-#diaryBook.dy-one.dy-r { clip-path: inset(-80px -80px -80px 0); }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one { clip-path: inset(-80px 0 -80px -80px); }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-one.dy-r { clip-path: inset(-80px -80px -80px 0); }
 
 /* 📕 표지 꾸미기 (js/skins.js dkCoverEdit · dkCoverPaint) : 표꾸 화면(0장) = 접힌 겉표지처럼 앞표지 한 쪽 · 그 다이어리 색 · 닫힌 겉표지도 그 색 + 앞표지에 붙인 것 */
 .inner-page.dk-cover .canvas-area { background: none !important; box-shadow: none !important; }
@@ -4567,13 +4567,18 @@ html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolb
 .dk-lcd i { font-style: normal; } .dk-lcd i.off { opacity: .25; }
 .dk-lcd small { font-size: 11px; margin-left: 3px; letter-spacing: 0; vertical-align: 2px; }
 /* 📔 책상에 눕혀 놓은 다이어리 (js/desk.js) : 지금 겉표지를 작게 복사 · 원근으로 눕히고 · 앞쪽에 책 두께(종이 단면 + 아래 표지)를 그려요 (도련 10-26) */
-.dk-diary { position: absolute; left: 736px; top: 610px; width: 200px; height: 256px; z-index: 3000; cursor: pointer; outline: none; filter: drop-shadow(0 12px 9px rgba(150, 70, 100, .32)); }
+.dk-diary { position: absolute; left: calc(836px - var(--dkw, 200px) / 2); top: calc(848px - var(--dkh, 238px)); width: var(--dkw, 200px); height: calc(var(--dkh, 238px) + 18px); z-index: 3000; cursor: pointer; outline: none; filter: drop-shadow(0 12px 9px rgba(150, 70, 100, .32)); }
 .dk-diary:hover, .dk-diary:focus-visible { filter: drop-shadow(0 12px 9px rgba(150, 70, 100, .32)) drop-shadow(0 0 10px rgba(255, 255, 255, .95)); }
-.dk-top { position: absolute; left: 0; top: 0; width: 200px; height: 238px; transform: perspective(900px) rotateX(58deg); transform-origin: 50% 100%; border-radius: 8px 12px 12px 8px; overflow: hidden; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-accent) 45%, #fff); }
-.dk-mini { position: relative; width: 200px; height: 238px; pointer-events: none; }
+.dk-top { position: absolute; left: 0; top: 0; width: var(--dkw, 200px); height: var(--dkh, 238px); transform: perspective(900px) rotateX(58deg); transform-origin: 50% 100%; border-radius: 8px 12px 12px 8px; overflow: hidden; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-accent) 45%, #fff); }
+.dk-mini { position: relative; width: var(--dkw, 200px); height: var(--dkh, 238px); pointer-events: none; }
+.dk-diary.open .dk-mini { overflow: hidden; }   /* 📖 펼친 채로 내려놓은 다이어리 = 두 쪽 (js/desk.js deskMiniPaint · 도련 10-28) */
+.dk-diary.open .dk-top { border-radius: 8px; }
+.dk-diary.open .dk-edge { border-radius: 3px 3px 10px 10px; }
+.dk-diary.open .dk-edge::after { left: calc(50% - 7px); border-radius: 0 0 7px 7px; }   /* 가운데 책등 */
+.dk-diary.open .dk-edge::before { left: 5px; }
 .dk-mini .cover-page { top: 0 !important; bottom: 0; height: 100%; display: flex !important; border-radius: 0 !important; }
 .dk-mini .cover-notice, .dk-mini .drag-hint { display: none !important; }
-.dk-edge { position: absolute; left: 0; top: 237px; width: 200px; height: 19px; border-radius: 3px 4px 10px 12px;   /* 아래 표지 (앞으로 살짝 나와요) */
+.dk-edge { position: absolute; left: 0; top: calc(var(--dkh, 238px) - 1px); width: var(--dkw, 200px); height: 19px; border-radius: 3px 4px 10px 12px;   /* 아래 표지 (앞으로 살짝 나와요) */
     background: linear-gradient(color-mix(in srgb, var(--primary-accent) 38%, #fff), color-mix(in srgb, var(--primary-accent) 55%, #fff)); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary-accent) 65%, #fff); }
 .dk-edge::before { content: ''; position: absolute; left: 12px; right: 5px; top: 1px; height: 13px; border-radius: 0 2px 3px 2px;   /* 종이 단면 */
     background: repeating-linear-gradient(#fffaf3 0 2px, #eadccb 2px 3px); box-shadow: inset 0 1px 1px rgba(150, 110, 90, .25), inset -1px 0 0 rgba(150, 110, 90, .2); }
