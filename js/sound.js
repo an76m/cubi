@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/sound.js
    🔊 연출 소리 : 카페 연출의 효과음을 한곳에서 켜고 꺼요 (모든 소리는 파일 없이 브라우저가 만들어요)
-   - 쓰는 곳 : 포춘카드 · 꿈해몽 · 토정비결 · 심리테스트 · 이름 궁합 · 익명 편지함 · 랜덤박스 · 오락실
+   - 쓰는 곳 : 포춘카드 · 꿈해몽 · 토정비결 · 심리테스트 · 이름 궁합 · 익명 편지함 · 랜덤박스 · 오락실 · 🏪 기본샵 문 종소리 (sndShopBell · js/shopscene.js)
    - 연출 화면 첫 화면의 🔊 버튼 = 설정의 '✨ 연출 소리' 스위치 (하나를 끄면 모두 꺼져요)
    - 소리 크기 : 연출 소리의 크기
    - 설정 저장 : 내 드라이브 설정.json 'diary_sound' (이 기기에도 같이 기억 → 로그인 전에도 바로 적용)
@@ -71,6 +71,28 @@
             });
         }
 
+        /* 🔔 기본샵 문 종소리 '딸랑~' (도련 10-27 · 시안 1번 · 작은 놋쇠 종 : 크게 한 번 + 작게 두 번 · 비정수 배음 · 높은 배음은 빨리 · 짧은 방 울림) */
+        function sndShopBell() {
+            const ac = sndFx(); if (!ac) return;                                 // ✨ 연출 소리를 끄면 조용히
+            const t0 = ac.currentTime + .02, bus = ac.createGain(); bus.gain.value = .1; bus.connect(snd.out);
+            const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 4.5; lg.gain.value = .006; lfo.connect(lg).connect(bus.gain); lfo.start(t0); lfo.stop(t0 + 1.7);   // 살짝 흔들리는 맥놀이
+            [[.023, .22], [.041, .16], [.067, .1], [.093, .07]].forEach(([d, g]) => { const dl = ac.createDelay(.2), gg = ac.createGain(); dl.delayTime.value = d; gg.gain.value = g; bus.connect(dl).connect(gg).connect(snd.out); });
+            const P = [[1, 1, 1.6], [2.32, .55, 2.6], [3.97, .38, 4.2], [5.86, .22, 6.5], [8.1, .12, 9]], DET = [.0009, -.0012, .0005, -.0007, .0011];
+            [[0, 1, 1, 1], [.11, .55, 1.03, .9], [.24, .3, .98, .8]].forEach(([at, a, df, br]) => {
+                const t = t0 + at;
+                P.forEach(([r, pa, k], i) => {
+                    const o = ac.createOscillator(), g = ac.createGain();
+                    o.frequency.value = 2100 * df * r * (1 + DET[i]);
+                    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a * pa * (i ? br : 1), t + .002); g.gain.setTargetAtTime(0, t + .002, 1 / k);
+                    o.connect(g).connect(bus); o.start(t); o.stop(t + 1.6);
+                });
+                const len = Math.floor(ac.sampleRate * .012), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0), ns = ac.createBufferSource(), ng = ac.createGain();
+                for (let j = 0; j < len; j++) d[j] = (Math.random() * 2 - 1) * Math.exp(-j / ac.sampleRate * 900) * .25;   // 딱 부딪히는 소리
+                ns.buffer = buf; ng.gain.value = a; ns.connect(ng).connect(bus); ns.start(t);
+            });
+        }
+        window.sndShopBell = sndShopBell;
+
         /* ---------- 🔊 연출 소리 켜고 끄기 (연출 화면의 버튼 · 설정 공용) ---------- */
         function sndToggleFx() {
             const on = !sndOn();
@@ -92,7 +114,7 @@
         function sndRenderSettings() {
             const box = document.getElementById('sndSwitches'); if (!box) return;
             const o = sndPref();
-            box.innerHTML = `<label class="show-row"><span><b>✨ 연출 소리</b><small>운세 · 테스트 · 궁합 · 편지 · 랜덤박스 · 오락실</small></span><input type="checkbox" class="show-sw" ${o.fx ? 'checked' : ''} onchange="sndSet('fx', this.checked); if (this.checked) sndChime()"></label>`
+            box.innerHTML = `<label class="show-row"><span><b>✨ 연출 소리</b><small>운세 · 테스트 · 궁합 · 편지 · 랜덤박스 · 오락실 · 가게 종소리</small></span><input type="checkbox" class="show-sw" ${o.fx ? 'checked' : ''} onchange="sndSet('fx', this.checked); if (this.checked) sndChime()"></label>`
                 + `<div class="snd-vol"><span>🔈</span><input type="range" min="0" max="100" step="5" value="${o.vol}" oninput="sndVol(this.value)" onchange="sndVol(this.value, true)" aria-label="연출 소리 크기"><span>🔊</span><b id="sndVolNum">${o.vol}</b></div>`;
         }
         function sndVol(v, done) {

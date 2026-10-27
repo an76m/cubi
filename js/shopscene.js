@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/shopscene.js
    🏪 기본샵 가게 (도련 10-27 · 🪑 책상 화면에서 🏪 기본샵 소품을 누르면)
-   - 분홍 문(img/shop-door.webp · 알림판에 '기본샵') 이 화면을 채우고 → 로그인 화면처럼 문 쪽으로 다가가며 연핑크 빛 → 가게 안(img/shop-inside.webp)
+   - 분홍 문(img/shop-door.webp · 알림판에 '기본샵') 이 화면을 채우고 → 🔔 딸랑~ (설정 ✨ 연출 소리) · 로그인 화면처럼 문 쪽으로 다가가며 연핑크 빛 → 가게 안(img/shop-inside.webp)
    - 가게 안 진열대마다 이름표 = 기본샵 메뉴 (씰 · 조각 · 모조지 · 마테 · 떡메 · 속지 · 이모지 · 메모지 · 정리 도구 · 문구 · 책상 소품 · 🌸 계절은 이벤트 때만)
        톡 = 그 상품을 고르는 창 (js/basket.js shOpenKind) · 창의 '‹ 기본샵' = 창만 닫고 가게 안 그대로
    - 그림은 화면을 꽉 채우고(cover) · 이름표 자리는 그림 픽셀 기준 → 화면 자리로 · 화면 밖으로 잘리면 안쪽으로 당겨요
@@ -61,7 +61,8 @@
             el.classList.remove('inside', 'enter', 'leave'); el.classList.add('on');
             requestAnimationFrame(() => { shopFit(); requestAnimationFrame(shopFit); });
             const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const go = () => { el.classList.add('enter'); setTimeout(() => { el.classList.add('inside'); el.classList.remove('enter'); SC.busy = false; shopFit(); }, quiet ? 0 : 1700); };
+            /* 🔔 문 열며 딸랑~ (✨ 연출 소리를 끄면 안 나요 · js/sound.js sndShopBell) */
+            const go = () => { if (window.sndShopBell) sndShopBell(); el.classList.add('enter'); setTimeout(() => { el.classList.add('inside'); el.classList.remove('enter'); SC.busy = false; shopFit(); }, quiet ? 0 : 1700); };
             const img = el.querySelector('.shop-door img');
             const start = () => setTimeout(go, quiet ? 0 : 700);                   // 문을 잠깐 보여 주고
             if (img.complete) start(); else img.addEventListener('load', start, { once: true });
