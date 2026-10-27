@@ -38,7 +38,7 @@
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
             { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자' },
             { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이' },
-            { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-831', w: 126, h: 152, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.1, 22.2, 82.9, 86.2] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
+            { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-836', w: 126, h: 151, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.5, 22.3, 82.6, 85.9] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1258, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
             { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-833', w: 230, h: 244, x: 1250, y: 517, name: '서랍장', surf: [[12, 6, 224]] },
