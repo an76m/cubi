@@ -504,7 +504,8 @@
         setInterval(deskTick, 1000);
         /* 📔 책상 가운데 다이어리 (도련 10-26) : 지금 다이어리의 겉표지를 작게 · 책상에 눕혀 놓아요
            - 톡 = 다이어리가 그 자리에서 떠올라 화면 가운데로 → 겉표지가 넘어가며 다꾸 시작 (하단 메뉴도 함께)
-           - 책상 빈 곳을 톡 = 다시 책상에 내려놓아요 (펼친 채로 · 다음에 톡 하면 펼친 쪽 그대로 · js/drive.js)
+           - 책상 빈 곳을 톡 = 다시 책상에 내려놓아요 (js/drive.js) · 펼친 채로 내려놓으면 다음에 펼친 쪽 그대로 · 접은 채로면 접은 채로 (도련 10-28)
+           - 로그인(앱을 연) 뒤 처음 톡 = 늘 접힌 겉표지로 떠요 (기기에 '펼친 적 있음'을 저장하지 않아요 · 도련 10-28)
            - 나중에 : 마지막으로 다꾸한 다이어리가 놓여요 (지금은 기본 다이어리 하나) */
         function deskMiniPaint() {
             const box = document.querySelector('#deskDiary .dk-mini'), cv = document.getElementById('coverPage'); if (!box || !cv) return;
@@ -513,17 +514,12 @@
             box.replaceChildren(c);
         }
         let deskAnim = false;
-        const DK_OPENED = 'malang_desk_opened';                                  // 겉표지를 한 번 직접 펼쳤어요 → 그다음부터는 펼친 채로 떠요
-        function deskCoverNow() {                                                 // 겉표지를 움직임 없이 바로 펼쳐요 (js/page.js beginCurl · endCurl)
-            try { if (typeof isCoverOpen !== 'undefined' && !isCoverOpen && typeof turn !== 'undefined' && !turn && window.beginCurl && beginCurl(true, 1)) endCurl(true); } catch (e) { console.warn(e); }
-        }
         function deskOpenDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
             const r0 = mini.getBoundingClientRect();
             H.classList.add('desk-show'); mini.style.visibility = 'hidden';
-            if (dkGet(DK_OPENED, false)) deskCoverNow();                         // 처음엔 사용자가 직접 겉표지를 넘겨요 (도련 10-26)
             const r1 = w.getBoundingClientRect(), k = r0.width / r1.width;
             const dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
             const a = w.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${k}) perspective(900px) rotateX(58deg)` }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)' });
@@ -533,7 +529,6 @@
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || !H.classList.contains('desk-show')) return;
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
-            if (typeof isCoverOpen !== 'undefined' && isCoverOpen) dkSet(DK_OPENED, true);
             deskAnim = true;
             const r1 = w.getBoundingClientRect(), r0 = mini.getBoundingClientRect();
             const k = r0.width / r1.width, dx = r0.left + r0.width / 2 - (r1.left + r1.width / 2), dy = r0.top + r0.height / 2 - (r1.top + r1.height / 2);
