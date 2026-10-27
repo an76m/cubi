@@ -4567,23 +4567,23 @@ html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolb
 .dk-lcd i { font-style: normal; } .dk-lcd i.off { opacity: .25; }
 .dk-lcd small { font-size: 11px; margin-left: 3px; letter-spacing: 0; vertical-align: 2px; }
 /* 📔 책상에 눕혀 놓은 다이어리 (js/desk.js) : 지금 겉표지를 작게 복사 · 원근으로 눕히고 · 앞쪽에 책 두께(종이 단면 + 아래 표지)를 그려요 (도련 10-26) */
-.dk-diary { position: absolute; left: calc(836px - var(--dkw, 200px) / 2); top: calc(848px - var(--dkh, 238px)); width: var(--dkw, 200px); height: calc(var(--dkh, 238px) + 18px); z-index: 3000; cursor: pointer; outline: none; filter: drop-shadow(0 12px 9px rgba(150, 70, 100, .32)); }
+.dk-diary { position: absolute; left: calc(836px - var(--dkw, 200px) / 2); top: calc(848px - var(--dkh, 383px)); width: var(--dkw, 200px); height: calc(var(--dkh, 383px) + 18px); z-index: 3000; cursor: pointer; pointer-events: none; outline: none; filter: drop-shadow(0 12px 9px rgba(150, 70, 100, .32)); }
 .dk-diary:hover, .dk-diary:focus-visible { filter: drop-shadow(0 12px 9px rgba(150, 70, 100, .32)) drop-shadow(0 0 10px rgba(255, 255, 255, .95)); }
-.dk-top { position: absolute; left: 0; top: 0; width: var(--dkw, 200px); height: var(--dkh, 238px); transform: perspective(900px) rotateX(58deg); transform-origin: 50% 100%; border-radius: 8px 12px 12px 8px; overflow: hidden; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-accent) 45%, #fff); }
-.dk-mini { position: relative; width: var(--dkw, 200px); height: var(--dkh, 238px); pointer-events: none; }
-.dk-diary.open .dk-mini { overflow: hidden; }   /* 📖 펼친 채로 내려놓은 다이어리 = 두 쪽 (js/desk.js deskMiniPaint · 도련 10-28) */
+.dk-top { position: absolute; left: 0; top: 0; width: var(--dkw, 200px); height: var(--dkh, 383px); transform: perspective(900px) rotateX(71deg); transform-origin: 50% 100%; pointer-events: auto; border-radius: 8px 12px 12px 8px; overflow: hidden; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-accent) 45%, #fff); }
+.dk-mini { position: relative; width: var(--dkw, 200px); height: var(--dkh, 383px); pointer-events: none; overflow: hidden; }
+/* 📖 펼친 채로 내려놓은 다이어리 = 두 쪽 (js/desk.js deskMiniPaint · 도련 10-28) · 접힘 · 펼침 모두 다이어리를 같은 비율로 복사 · 71° 로 눕혀요 (DK_TILT) */
 .dk-diary.open .dk-top { border-radius: 8px; }
 .dk-diary.open .dk-edge { border-radius: 3px 3px 10px 10px; }
 .dk-diary.open .dk-edge::after { left: calc(50% - 7px); border-radius: 0 0 7px 7px; }   /* 가운데 책등 */
 .dk-diary.open .dk-edge::before { left: 5px; }
-.dk-mini .cover-page { top: 0 !important; bottom: 0; height: 100%; display: flex !important; border-radius: 0 !important; }
 .dk-mini .cover-notice, .dk-mini .drag-hint { display: none !important; }
-.dk-edge { position: absolute; left: 0; top: calc(var(--dkh, 238px) - 1px); width: var(--dkw, 200px); height: 19px; border-radius: 3px 4px 10px 12px;   /* 아래 표지 (앞으로 살짝 나와요) */
+.dk-edge { position: absolute; left: 0; top: calc(var(--dkh, 383px) - 1px); width: var(--dkw, 200px); height: 19px; pointer-events: auto; border-radius: 3px 4px 10px 12px;   /* 아래 표지 (앞으로 살짝 나와요) */
     background: linear-gradient(color-mix(in srgb, var(--primary-accent) 38%, #fff), color-mix(in srgb, var(--primary-accent) 55%, #fff)); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary-accent) 65%, #fff); }
 .dk-edge::before { content: ''; position: absolute; left: 12px; right: 5px; top: 1px; height: 13px; border-radius: 0 2px 3px 2px;   /* 종이 단면 */
     background: repeating-linear-gradient(#fffaf3 0 2px, #eadccb 2px 3px); box-shadow: inset 0 1px 1px rgba(150, 110, 90, .25), inset -1px 0 0 rgba(150, 110, 90, .2); }
 .dk-edge::after { content: ''; position: absolute; left: 0; top: -2px; width: 14px; height: 19px; border-radius: 9px 0 0 12px;   /* 둥근 책등 */
     background: linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 60%, #fff), color-mix(in srgb, var(--primary-accent) 40%, #fff)); }
 html.desk-show .dk-diary { visibility: hidden; }
+html.dk-landing .diary-wrapper :is(.dg-note, .bd-tool, .cover-notice, .drag-hint, .drive-badge) { opacity: 0 !important; transition: opacity .25s ease; }   /* 🪑 책상에 내려앉는 동안 화면 도구는 스르르 (js/desk.js · 도련 10-28) */
 html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에서는 하단 메뉴를 안 보여요 (도련 10-26 · 소품으로 대신) */
 

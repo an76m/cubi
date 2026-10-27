@@ -509,58 +509,70 @@
            - 나중에 : 마지막으로 다꾸한 다이어리가 놓여요 (지금은 기본 다이어리 하나) */
         /* 📔 책상 위 다이어리 그리기 (도련 10-28 · A) : 접혀 있으면 겉표지 · 펼쳐 있으면 펼친 두 쪽(그날 꾸민 것 그대로)을 작게 복사해 눕혀요
            · 펼친 모양은 가로가 두 배 (가운데 · 아래 끝은 그대로) · 크기는 다이어리가 보일 때 재 두고(DK_SZ) 숨어 있으면 마지막 값 */
-        const DK_MW = 200, DK_MH = 238;                                           // 접힌 다이어리 (책상 그림 px)
-        let DK_SZ = null;                                                         // { bw, bh, vx, vw, vh } 책 크기 · 화면에 보이는 펼친 자리(책 왼쪽에서 vx 만큼 · 두 쪽 또는 📱 한 쪽씩 보기면 한 쪽)
+        let deskAnim = false;                                                     // 떠오르기 · 내려놓기 움직이는 중
+        const DK_MW = 200, DK_TILT = 71;                                          // 책상 위 다이어리 한 쪽 폭 (책상 그림 px) · 눕힌 각도 (css .dk-top 과 같게)
+        let DK_SZ = null;                                                         // { bw, bh, vx, vy, vw, vh } 책 크기 · 보이는 것(겉표지 / 펼친 두 쪽 / 📱 한 쪽)의 자리와 크기
         const dkOpenNow = () => typeof isCoverOpen !== 'undefined' && isCoverOpen;
-        const dkVis = (bk, ip) => bk.classList.contains('dy-one') ? bk : ip;      // 보이는 것 : 두 쪽(innerPage) · 한 쪽씩 보기면 책 자리만
-        function dkMeasure() {
-            const bk = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'); if (!bk || !ip) return DK_SZ;
-            const rb = bk.getBoundingClientRect(), rv = dkVis(bk, ip).getBoundingClientRect();
-            if (rb.width > 50 && rv.width > 50) DK_SZ = { bw: bk.offsetWidth, bh: bk.offsetHeight, vx: rb.left - rv.left, vw: rv.width, vh: rv.height };
+        const dkVisEl = (bk, ip, cv) => dkOpenNow() ? (bk.classList.contains('dy-one') ? bk : ip) : cv;   // 펼침 = 두 쪽(한 쪽씩 보기면 책 자리) · 접힘 = 겉표지
+        function dkMeasure() {                                                    // 다이어리가 숨어 있으면 안 보이게 잠깐 펴서 재요
+            const w = document.getElementById('diaryWrapper'), bk = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'), cv = document.getElementById('coverPage');
+            if (!w || !bk || !ip || !cv) return DK_SZ;
+            const hid = !w.offsetWidth;
+            if (hid) { w.style.setProperty('display', 'block', 'important'); w.style.setProperty('visibility', 'hidden', 'important'); }
+            try {
+                const rb = bk.getBoundingClientRect(), rv = dkVisEl(bk, ip, cv).getBoundingClientRect();
+                if (rb.width > 50 && rv.width > 50) DK_SZ = { bw: bk.offsetWidth, bh: bk.offsetHeight, vx: rb.left - rv.left, vy: rb.top - rv.top, vw: rv.width, vh: rv.height };
+            } finally { if (hid) { w.style.removeProperty('display'); w.style.removeProperty('visibility'); } }
             return DK_SZ;
         }
+        /* 📔 책상 위 다이어리 (도련 10-28) : 지금 다이어리를 통째로 복사해 같은 비율로 줄여 눕혀요 = 떠 있던 다이어리와 모양이 똑같아요
+           · 접힘 = 겉표지 · 펼침 = 두 쪽 (붙인 스티커 · 글 그대로) · 놓는 순간 한 번만 복사 (놓여 있는 동안은 다시 계산하지 않아요) */
         function deskMiniPaint() {
-            const mini = document.getElementById('deskDiary'), box = mini && mini.querySelector('.dk-mini'), cv = document.getElementById('coverPage'); if (!box || !cv) return;
-            const strip = c => { c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id')); c.setAttribute('aria-hidden', 'true'); return c; };
-            const Z = dkOpenNow() && (dkMeasure() || DK_SZ);
-            if (!Z) {                                                             // 📕 접힘 = 겉표지
-                mini.classList.remove('open'); mini.style.removeProperty('--dkw'); mini.style.removeProperty('--dkh');
-                const c = strip(cv.cloneNode(true)); c.style.display = ''; c.classList.remove('cv-plain');
-                box.replaceChildren(c); return;
-            }
-            const W = Math.round(DK_MW * Z.vw / Z.bw), k = W / Z.vw, H = Math.round(Z.vh * k);   // 📖 펼침 = 보이는 쪽을 실제 크기로 복사해 줄여요 (붙인 것 자리가 그대로)
-            const src = document.getElementById('diaryBook'), bk = strip(src.cloneNode(true));
+            const mini = document.getElementById('deskDiary'), box = mini && mini.querySelector('.dk-mini'), src = document.getElementById('diaryBook'); if (!box || !src) return;
+            const Z = dkMeasure(); if (!Z) return;
+            const open = dkOpenNow(), k = DK_MW / Z.bw, W = Math.round(Z.vw * k), H = Math.round(Z.vh * k);
+            const bk = src.cloneNode(true);
             const cs0 = src.querySelectorAll('canvas'), cs1 = bk.querySelectorAll('canvas');   // ✨ 캔버스로 그린 것(반짝이 스티커 등)은 복사로는 비어서 그림을 옮겨 그려요
             cs1.forEach((c, i) => { const o = cs0[i]; if (!o || !o.width || !o.height) return; try { c.width = o.width; c.height = o.height; c.getContext('2d').drawImage(o, 0, 0); } catch (e) {} });
             const ts0 = src.querySelectorAll('textarea'), ts1 = bk.querySelectorAll('textarea');   // ✍️ 글상자에 쓴 글도 복사로는 안 옮겨져서 넣어 줘요
             ts1.forEach((t, i) => { const o = ts0[i]; if (o) { t.value = o.value; t.textContent = o.value; t.scrollTop = o.scrollTop; } });
-            bk.querySelectorAll('.cover-page').forEach(e => e.remove());
-            bk.querySelectorAll('.drive-badge, .handle, .rot-zone, .dg-note, .bd-tool').forEach(e => e.remove());   // 화면 도구(안내 쪽지 · 핀셋)는 빼요
-            bk.classList.remove('dk-mini', 'dy-anim'); bk.style.position = 'absolute'; bk.style.left = Z.vx + 'px'; bk.style.top = '0'; bk.style.width = Z.bw + 'px'; bk.style.height = Z.bh + 'px'; bk.style.margin = '0';
+            bk.removeAttribute('id'); bk.querySelectorAll('[id]').forEach(e => e.removeAttribute('id')); bk.setAttribute('aria-hidden', 'true');
+            bk.querySelectorAll(open ? '.cover-page' : '.inner-page').forEach(e => e.remove());
+            if (!open) bk.querySelectorAll('.cover-page').forEach(c => { c.style.display = ''; c.classList.remove('cv-plain'); });
+            bk.querySelectorAll('.drive-badge, .handle, .rot-zone, .dg-note, .bd-tool, .cover-notice, .drag-hint').forEach(e => e.remove());   // 화면 도구(안내 쪽지 · 핀셋 · 밀어서 열기)는 빼요
+            bk.classList.remove('dy-anim'); bk.style.position = 'absolute'; bk.style.left = Z.vx + 'px'; bk.style.top = Z.vy + 'px'; bk.style.width = Z.bw + 'px'; bk.style.height = Z.bh + 'px'; bk.style.margin = '0';
             const wrap = document.createElement('div'); wrap.className = 'dk-open-wrap';
             wrap.style.cssText = `position:absolute;left:0;top:0;width:${Z.vw}px;height:${Z.vh}px;overflow:hidden;transform:scale(${k});transform-origin:0 0;`;
             wrap.appendChild(bk);
-            mini.classList.add('open'); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px');
+            mini.classList.toggle('open', open); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px'); mini.dataset.sz = dkMiniKey(Z);
             box.replaceChildren(wrap);
         }
-        let deskAnim = false;
-        /* 떠오르기 · 내려놓기 : 펼쳐 있으면 두 쪽(innerPage) · 접혀 있으면 다이어리 상자를 책상 위 다이어리 자리와 맞춰요 */
-        function dkFly(w) {
-            const ip = document.getElementById('innerPage'), bk = document.getElementById('diaryBook'), open = dkOpenNow() && ip && bk && ip.offsetWidth > 50;
-            const rw = w.getBoundingClientRect(), r1 = open ? dkVis(bk, ip).getBoundingClientRect() : rw;
-            w.style.transformOrigin = `${r1.left + r1.width / 2 - rw.left}px ${r1.top + r1.height / 2 - rw.top}px`;   // 보이는 것의 가운데를 기준으로 줄이고 키워요
-            return r1;
+        const dkMiniKey = Z => [Math.round(Z.vw * DK_MW / Z.bw), Math.round(Z.vh * DK_MW / Z.bw), dkOpenNow() ? 1 : 0].join('x');
+        /* 다이어리 크기가 정해진 뒤(로그인 · 화면 크기 바뀜) 책상 위 다이어리 크기가 다르면 다시 그려요 (처음 켤 때는 다이어리 크기가 정해지기 전이라 · 도련 10-28) */
+        function deskMiniSync() {
+            const mini = document.getElementById('deskDiary'); if (!mini || deskAnim || document.documentElement.classList.contains('desk-show')) return;
+            const Z = dkMeasure(); if (Z && mini.dataset.sz !== dkMiniKey(Z)) deskMiniPaint();
         }
-        const dkTf = (r0, r1) => `translate(${r0.left + r0.width / 2 - (r1.left + r1.width / 2)}px, ${r0.top + r0.height / 2 - (r1.top + r1.height / 2)}px) scale(${r0.width / r1.width}) perspective(900px) rotateX(58deg)`;
+        /* 떠오르기 · 내려놓기 : 떠 있는 다이어리가 책상 위 다이어리와 '똑같은 계산'(아래 끝 기준 · 같은 원근 · 같은 각도)으로 내려앉아요 → 놓이는 순간 모양이 그대로 이어져요
+           dkDeskTf(w, mini) = 책상 위에 놓인 모양의 transform (w 의 기준점 = 보이는 것의 아래 가운데) */
+        function dkDeskTf(w, mini) {
+            const bk = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'), cv = document.getElementById('coverPage');
+            const rw = w.getBoundingClientRect(), rv = dkVisEl(bk, ip, cv).getBoundingClientRect();
+            const ox = rv.left + rv.width / 2 - rw.left, oy = rv.bottom - rw.top;
+            w.style.transformOrigin = `${ox}px ${oy}px`;
+            const R = mini.getBoundingClientRect(), s = DK.s || 1, mh = parseFloat(mini.style.getPropertyValue('--dkh')) || 0;
+            const k = R.width / s / rv.width, bx = R.left + R.width / 2, by = R.top + mh * s;
+            return `translate(${bx - rw.left - ox}px, ${by - rw.top - oy}px) scale(${s}) perspective(900px) rotateX(${DK_TILT}deg) scale(${k})`;
+        }
         function deskOpenDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
-            const r0 = mini.querySelector('.dk-top').getBoundingClientRect();
-            H.classList.add('desk-show'); mini.style.visibility = 'hidden';
-            const r1 = dkFly(w);                                                  // 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
-            const a = w.animate([{ transform: dkTf(r0, r1) }, { transform: 'none' }], { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)' });
-            a.onfinish = a.oncancel = () => { w.style.transformOrigin = ''; deskAnim = false; dkMeasure(); };
+            H.classList.add('desk-show');                                         // 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
+            const tf = dkDeskTf(w, mini); mini.style.visibility = 'hidden';
+            H.classList.add('dk-landing'); requestAnimationFrame(() => requestAnimationFrame(() => H.classList.remove('dk-landing')));   // 화면 도구(안내 쪽지 · 핀셋)는 떠오르며 스르르
+            const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+            a.onfinish = a.oncancel = () => { w.style.transformOrigin = ''; deskAnim = false; };
         }
         function deskCloseDiary() {
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
@@ -568,10 +580,10 @@
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
             deskAnim = true;
             try { if (dkOpenNow() && typeof saveData === 'function') saveData(false); } catch (e) {}
-            deskMiniPaint();                                                      // 책상 위 다이어리를 지금 모양으로 (펼침 · 접힘) 먼저 그려 두고 그 자리로
-            const r1 = dkFly(w), r0 = mini.querySelector('.dk-top').getBoundingClientRect();
-            const a = w.animate([{ transform: 'none' }, { transform: dkTf(r0, r1) }], { duration: 520, easing: 'cubic-bezier(.5, 0, .6, 1)', fill: 'forwards' });
-            a.onfinish = () => { H.classList.remove('desk-show'); a.cancel(); w.style.transformOrigin = ''; mini.style.visibility = ''; deskAnim = false; };
+            deskMiniPaint();                                                      // 책상 위 다이어리를 지금 모양으로 먼저 그려 두고 (숨긴 채) 그 자리로
+            H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
+            const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w, mini) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
+            a.onfinish = () => { mini.style.visibility = ''; H.classList.remove('desk-show', 'dk-landing'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
         }
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
@@ -580,6 +592,7 @@
             DK.s = s; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`; st.style.setProperty('--dk-inv', (1 / s).toFixed(3));
             deskKeepIn(-tx / s, -ty / s, (W - tx) / s, (H - ty) / s);
             deskTipPlace();
+            deskMiniSync();
         }
         /* 기능 소품이 화면 밖으로 많이 잘리면 (좁은 창 · 세운 아이패드) 보이는 곳 안쪽으로 당겨 보여 줘요 · 저장한 자리(DK.base)는 그대로 · 넓어지면 제자리 */
         function deskKeepIn(x0, y0, x1, y1) {
@@ -687,4 +700,4 @@
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
         window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskBoxTab = deskBoxTab; window.deskTrayTab = deskTrayTab; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
         window.deskFnPick = deskFnPick; window.deskEditOpen = deskEditOpen; window.deskEditEnd = deskEditEnd; window.deskEditFromSettings = deskEditFromSettings; window.deskEditShop = deskEditShop;
-        window.deskMiniPaint = deskMiniPaint; window.deskTapAt = deskTapAt;  window.deskModeRender = deskModeRender; window.deskFnItemName = deskFnItemName;
+        window.deskMiniPaint = deskMiniPaint; window.deskMiniSync = deskMiniSync; window.deskTapAt = deskTapAt;  window.deskModeRender = deskModeRender; window.deskFnItemName = deskFnItemName;
