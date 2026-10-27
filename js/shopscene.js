@@ -23,7 +23,7 @@
             let el = document.getElementById('shopScene'); if (el) return el;
             el = document.createElement('div'); el.id = 'shopScene'; el.className = 'shop-scene';
             el.innerHTML = `<div class="shop-in"><img class="shop-room" src="img/shop-inside.webp?v=20261009-815" alt="" draggable="false"><div class="shop-spots"></div></div>
-                <div class="shop-door"><img src="img/shop-door.webp?v=20261009-815" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
+                <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <button type="button" class="shop-x" aria-label="책상으로" onclick="shopSceneClose()">✕</button>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (!SC.on) return; if (!shopWide()) { shopSceneClose(); setTimeout(() => window.openShelf && openShelf(), 400); return; } shopFit(); });   // 좁아지면 (폰 크기) 가게를 닫고 기본상품 샵 창
