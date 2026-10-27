@@ -7,8 +7,8 @@
    - ✕ (오른쪽 위) = 책상으로 · ▤ 하단 메뉴 화면에서는 예전처럼 기본상품 샵 창 (js/basket.js openShelf)
    - 💻 PC · 아이패드만 (도련 10-27 · html.desk-on = 화면 짧은 쪽 600px 이상 + 🪑 책상 화면) · 📱 폰 · 하단 메뉴 화면은 늘 예전 기본상품 샵 창 · 가게 안에서 화면이 좁아지면 가게를 닫고 기본상품 샵 창으로 */
 
-        const SHOP_W = 1673, SHOP_H = 940, DOOR_W = 1672, DOOR_H = 941;
-        const SHOP_SIGN = { cx: 834, cy: 424, w: 420, h: 170 };                   // 문 알림판 안쪽 (그림 px)
+        const SHOP_W = 1672, SHOP_H = 941, DOOR_W = 1672, DOOR_H = 941;
+        const SHOP_SIGN = { cx: 835, cy: 431, w: 393, h: 148 };                   // 문 알림판 안쪽 (그림 px · 10-28 새 그림)
         const SHOP_SPOTS = [                                                      // [종류, 이름, x, y] 가게 그림 px (진열대마다)
             ['seal', '씰스티커', 640, 690], ['piece', '조각스티커', 850, 690], ['paper', '모조지스티커', 1060, 690],
             ['tape', '마스킹테이프', 945, 560], ['tk', '떡메모지', 880, 300], ['memo', '메모지', 760, 385],
@@ -22,8 +22,8 @@
         function shopBuild() {
             let el = document.getElementById('shopScene'); if (el) return el;
             el = document.createElement('div'); el.id = 'shopScene'; el.className = 'shop-scene';
-            el.innerHTML = `<div class="shop-in"><img class="shop-room" src="img/shop-inside.webp" alt="" draggable="false"><div class="shop-spots"></div></div>
-                <div class="shop-door"><img src="img/shop-door.webp" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
+            el.innerHTML = `<div class="shop-in"><img class="shop-room" src="img/shop-inside.webp?v=20261009-815" alt="" draggable="false"><div class="shop-spots"></div></div>
+                <div class="shop-door"><img src="img/shop-door.webp?v=20261009-815" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <button type="button" class="shop-x" aria-label="책상으로" onclick="shopSceneClose()">✕</button>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (!SC.on) return; if (!shopWide()) { shopSceneClose(); setTimeout(() => window.openShelf && openShelf(), 400); return; } shopFit(); });   // 좁아지면 (폰 크기) 가게를 닫고 기본상품 샵 창
