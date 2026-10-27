@@ -4396,8 +4396,8 @@ body.cafe-on .dg-note { visibility: hidden; }
 
 /* 🚪 로그인 화면 = 커튼 달린 분홍 문 + 레이스 알림판 (도련 10-26 · img/gate-wide.webp 💻 아이패드 · PC / img/gate-tall.webp 📱 폰)
    카드는 알림판 가운데에 붙고 알림판 안에 들어가게 크기를 맞춰요 (js/drive.js gateFit · 그림 속 알림판 자리) */
-.drive-gate.gate-art { background: #f3c4bd url(../img/gate-wide.webp?v=20261009-812) center / cover no-repeat; }
-@media (max-aspect-ratio: 1/1) { .drive-gate.gate-art { background-image: url(../img/gate-tall.webp?v=20261009-812); } }
+.drive-gate.gate-art { background: #f3c4bd url(../img/gate-wide.webp?v=20261009-813) center / cover no-repeat; }
+@media (max-aspect-ratio: 1/1) { .drive-gate.gate-art { background-image: url(../img/gate-tall.webp?v=20261009-813); } }
 .gate-art .gate-card { position: absolute; left: 50%; top: 50%; translate: -50% -50%; scale: var(--gs, 1); transform-origin: 50% 50%; background: none; box-shadow: none; padding: 0; animation: none; }   /* 창 튀어나오기(winPop)는 끔 : translate 를 써서 오른쪽에서 미끄러져 들어와 보였어요 (도련 10-26) */
 .gate-art .gate-card::before { display: none; }   /* 📔 움직이는 작은 다이어리는 그대로 (도련 10-26) */
 /* 🎨 문 그림 톤에 맞춘 글자 · 아이콘 (도련 10-28 : 연보라 가는 선 #9a6eaa · 파스텔 분홍 · 크림) */
