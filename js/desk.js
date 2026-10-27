@@ -31,17 +31,17 @@
         const DESK_ITEMS = [                                                      // 기본 소품 (도련 10-26 · 크기는 참고 그림의 책상 대비 비율) · wall = 벽에 거는 것 (책상 자석 없음 · 늘 뒤)
             // surf = 위에 물건을 올릴 수 있는 면 [소품 안 세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 그림 px) · 올려 둔 물건은 함께 움직이고 그 소품보다 앞에 보여요
             { id: 'corkboard', kind: 'board', src: 'img/desk/corkboard.webp?v=20261009-832', w: 520, h: 393, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
-            { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-831', w: 430, h: 233, x: 160, y: 110, name: '벽 선반', wall: 1, surf: [[56, 10, 421], [200, 10, 421]] },
-            { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-831', w: 330, h: 272, x: 170, y: 489, name: '핑크 서랍장', surf: [[22, 8, 322]] },
-            { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-831', w: 470, h: 94, x: 560, y: 667, name: '모니터 받침대', surf: [[19, 3, 467]] },
-            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-831', w: 170, h: 153, x: 600, y: 533, name: '책 바구니' },
-            { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-831', w: 100, h: 155, x: 840, y: 531, name: '연필꽂이' },
-            { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 359, name: '책 상자' },
+            { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-833', w: 430, h: 248, x: 160, y: 104, name: '벽 선반', wall: 1, surf: [[50, 10, 421], [211, 10, 421]] },
+            { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]] },
+            { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
+            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니' },
+            { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
+            { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자' },
             { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이' },
             { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-831', w: 126, h: 152, x: 1275, y: 150, name: '폴라로이드', wall: 1, photo: [17.1, 22.2, 82.9, 86.2] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1316, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
-            { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-831', w: 130, h: 82, x: 300, y: 228, name: '디지털 시계', lcd: [12, 18.9, 87.9, 71.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
-            { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-831', w: 230, h: 247, x: 1250, y: 514, name: '서랍장', surf: [[18, 6, 224]] }
+            { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
+            { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-833', w: 230, h: 244, x: 1250, y: 517, name: '서랍장', surf: [[12, 6, 224]] }
         ];
         const dkCat = id => DESK_ITEMS.find(d => d.id === id) || null;
         const dkDef = el => dkCat(el.dataset.id) || {};
