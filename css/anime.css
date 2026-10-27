@@ -3,7 +3,7 @@
    - 선 = 흰빛 섞인 파스텔 (--an-ol) · 그림 속 선 · 그라데이션은 js/anime.js 가 단색 · 파스텔로
    - 끄려면 html 에서 class 'an' 을 빼요 (js/anime.js ANIME_ON) */
 html.an {
-  --an-ol: #bba6d6; --an-sh: #e2b6d6; --an-wsh: #f0dcea;   /* 그림자 = 진한 장밋빛 라일락 (도련 10-28 : 흰 그림자는 안 예뻐요) */ --an-ink: #9a84bd;
+  --an-ol: #bba6d6; --an-sh: #e2b6d6; --an-wsh: rgba(176, 150, 214, .35);   /* 창 그림자 = 연보라 반투명 (도련 10-28) */   /* 그림자 = 진한 장밋빛 라일락 (도련 10-28 : 흰 그림자는 안 예뻐요) */ --an-ink: #9a84bd;
   --an-pk: #ffb7cb; --an-pk2: #f6a0ba; --an-pkl: #e48fae;
   --an-cr: #fffaf3; --an-cr2: #f1e8f8; --an-crl: #c8b3e3;
   --an-mt: #a5e2c7; --an-mt2: #8fd3b5; --an-mtl: #6fc39f;
@@ -16,18 +16,16 @@ html.an .modal .dk-tape.l, html.an .dk-tape.l { background: #ffc6d6 !important; 
 html.an .modal .dk-tape.r, html.an .dk-tape.r { background: #bfead6 !important; border: 1.3px solid var(--an-ol); opacity: 1 !important; }
 html.an .modal .dk-die { filter: none !important; }
 html.an .modal .service-btn .dk-lb { border: 1.3px solid var(--an-ol) !important; background: #fff !important; box-shadow: none; color: var(--an-ink) !important; }
-/* ---------- 🔘 버튼 = 동그란 알약 · 연한 단색으로 꽉 채워요 (대각선 그늘 · 그림자 없음 · 도련 10-28) ---------- */
-html.an .btn:not(.service-btn), html.an .bk-act, html.an .dk-cta, html.an .sh-take, html.an .sh-zoombtn, html.an .bk-again {
-  border-radius: 999px !important; border: 1.5px solid #cdb6ea !important; color: #8463b8 !important; text-shadow: none !important; clip-path: none !important;
-  background: #efe5fc !important; box-shadow: none !important; }                              /* 보통 = 연라벤더 */
+/* ---------- 🔘 버튼 = 동그란 알약 · 단색 (도련 10-28 통일) : 보통 · 고르지 않은 것 = 흰색 / 고른 것 · 주인공 버튼 = 연분홍 ---------- */
+html.an .btn:not(.service-btn), html.an .bk-act, html.an .dk-cta, html.an .sh-take, html.an .sh-zoombtn, html.an .bk-again, html.an .stk-tab, html.an .dv-opt {
+  border-radius: 999px !important; border: 1.5px solid #f2b6c9 !important; border-style: solid !important; color: #7b5a6b !important; text-shadow: none !important; clip-path: none !important;
+  background: #fff !important; box-shadow: none !important; }
 html.an .btn:not(.service-btn):active, html.an .sh-take:active, html.an .dk-cta:active { translate: 0 1px; }
-/* 주인공 버튼 (확인 · 만들기 · 받아 오기 …) = 연분홍 */
-html.an .dk-cta, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an .bk-act:not(.bk-share), html.an #bkGet {
+/* 연분홍 = 고른 것(.on · aria) + 주인공 버튼 (확인 · 만들기 · 받기 · 받아 오기 · 저장) */
+html.an .btn.on, html.an .stk-tab.on, html.an .dv-opt.on, html.an button[aria-pressed="true"], html.an [aria-selected="true"].btn, html.an .btn.active, html.an .btn.sel,
+html.an .dk-cta, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an .bk-act:not(.bk-share), html.an #bkGet, html.an .sh-take:not(.sh-zoombtn) {
   border-color: #f2a6bf !important; color: #c8457a !important; background: #ffe0ea !important; }
-/* 받기 = 연민트 */
-html.an .sh-take:not(.sh-zoombtn) { border-color: #8fd3b5 !important; color: #2f7a5c !important; background: #d9f4e7 !important; }
-/* 확대 · 취소처럼 작은 보조 버튼 = 크림 */
-html.an .sh-zoombtn, html.an #customAlertCancelBtn { border-color: #e5cfb5 !important; color: #a0764e !important; background: #fff4e3 !important; }
+html.an .btn.on small, html.an .btn.on span { color: inherit; }
 html.an .dk-cta { height: 52px !important; font-size: 19px !important; }
 html.an .dk-cta::before, html.an .dk-cta::after { display: none !important; }
 /* 🎀 창 제목만 리본 (연분홍 단색 · 양 끝 V 홈) */
@@ -53,7 +51,7 @@ html.an .sh-look { background: #fff !important; box-shadow: 0 0 0 1.3px var(--an
 html.an .sh-paper, html.an .sh-tool { box-shadow: none !important; }
 html.an .ab-tabs { background: var(--an-cr) !important; box-shadow: 0 0 0 1.4px var(--an-crl) !important; border-radius: 999px !important; padding: 4px !important; }
 html.an .ab-tabs button { border-radius: 999px !important; color: #a68dc8 !important; background: none !important; box-shadow: none !important; }
-html.an .ab-tabs button.on { background: #ffe0ea !important; color: #c8457a !important; box-shadow: 0 0 0 1.5px var(--an-pkl) !important; }
+html.an .ab-tabs button.on { background: #ffe0ea !important; color: #c8457a !important; color: #c8457a !important; box-shadow: 0 0 0 1.5px var(--an-pkl) !important; }
 /* ---------- 📔 다이어리 (도련 10-28 시안) : 코랄 표지가 둘레로 · 크림 낱장 겹침 · 파스텔 선 ---------- */
 html.an #diaryBook .cover-page { box-shadow: 0 0 0 1.1px var(--an-ol), 6px 7px 0 var(--an-sh) !important; }
 html.an #diaryBook .cv-lace { background: radial-gradient(circle at 50% 0, #fff 2.2cqw, var(--an-ol) 2.2cqw 2.4cqw, transparent 2.45cqw) 0 0 / 5cqw 5cqw !important; filter: none !important; }
