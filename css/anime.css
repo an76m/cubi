@@ -3,7 +3,7 @@
    - 선 = 흰빛 섞인 파스텔 (--an-ol) · 그림 속 선 · 그라데이션은 js/anime.js 가 단색 · 파스텔로
    - 끄려면 html 에서 class 'an' 을 빼요 (js/anime.js ANIME_ON) */
 html.an {
-  --an-ol: #bba6d6; --an-sh: #eee7f8; --an-ink: #9a84bd;
+  --an-ol: #bba6d6; --an-sh: #e2b6d6;   /* 그림자 = 진한 장밋빛 라일락 (도련 10-28 : 흰 그림자는 안 예뻐요) */ --an-ink: #9a84bd;
   --an-pk: #ffb7cb; --an-pk2: #f6a0ba; --an-pkl: #e48fae;
   --an-cr: #fffaf3; --an-cr2: #f1e8f8; --an-crl: #c8b3e3;
   --an-mt: #a5e2c7; --an-mt2: #8fd3b5; --an-mtl: #6fc39f;
@@ -16,21 +16,26 @@ html.an .modal .dk-tape.l, html.an .dk-tape.l { background: #ffc6d6 !important; 
 html.an .modal .dk-tape.r, html.an .dk-tape.r { background: #bfead6 !important; border: 1.3px solid var(--an-ol); opacity: 1 !important; }
 html.an .modal .dk-die { filter: drop-shadow(2.5px 2.5px 0 var(--an-sh)) !important; }
 html.an .modal .service-btn .dk-lb { border: 1.3px solid var(--an-ol) !important; background: #fff !important; box-shadow: 2px 2px 0 var(--an-sh); color: var(--an-ink) !important; }
-/* ---------- 🔘 버튼 = 평면 투톤 알약 ---------- */
+/* ---------- 🔘 버튼 = 평면 투톤 (글씨는 진하게 · 주인공 버튼과 창 제목은 리본) ---------- */
 html.an .btn:not(.service-btn), html.an .bk-act, html.an .dk-cta, html.an .sh-take, html.an .sh-zoombtn, html.an .bk-again, html.an .modal .modal-title.mt-bar .mt-text {
   font-family: 'Jua', var(--system-font), sans-serif !important; font-weight: 400 !important; letter-spacing: .3px;
-  border-radius: 999px !important; border: 1.5px solid var(--an-crl) !important; color: var(--an-ink) !important; text-shadow: none !important;
+  border-radius: 999px !important; border: 1.5px solid var(--an-crl) !important; color: #8a6ab8 !important; text-shadow: none !important;
   background: linear-gradient(var(--an-2t), var(--an-cr) 58%, var(--an-cr2) 58%) !important; box-shadow: 3px 4px 0 var(--an-sh) !important; }
-html.an .btn:not(.service-btn):active, html.an .dk-cta:active, html.an .sh-take:active { translate: 1px 2px; box-shadow: 1px 1px 0 var(--an-sh) !important; }
-/* 분홍 = 주인공 버튼 (확인 · 만들기 · 창 제목 · 저장 같은 주요 버튼) */
+html.an .btn:not(.service-btn):active, html.an .sh-take:active { translate: 1px 2px; box-shadow: 1px 1px 0 var(--an-sh) !important; }
+/* 🎀 리본 (주인공 버튼 · 창 제목) : 연분홍 + 칼같은 그늘 · 진분홍 글씨 · 양 끝 V 홈 */
 html.an .dk-cta, html.an .modal .modal-title.mt-bar .mt-text, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an .bk-act:not(.bk-share), html.an #bkGet {
-  border-color: var(--an-pkl) !important; color: #fff !important; background: linear-gradient(var(--an-2t), var(--an-pk) 58%, var(--an-pk2) 58%) !important; }
-/* 민트 = 받기 */
-html.an .sh-take:not(.sh-zoombtn) { border-color: var(--an-mtl) !important; color: #fff !important; background: linear-gradient(var(--an-2t), var(--an-mt) 58%, var(--an-mt2) 58%) !important; }
-html.an .dk-cta { height: 52px !important; font-size: 19px !important; }
-html.an .dk-cta::before { inset: 5px 8px !important; border: 1.5px dashed rgba(255,255,255,.95) !important; border-radius: 999px !important; }
-html.an .dk-cta::after { background: #ffe58a !important; outline: 1.3px solid var(--an-ol); }
-html.an .modal .modal-title.mt-bar .mt-text { clip-path: none !important; font-size: 18px !important; padding: 5px 24px !important; overflow: visible !important; }
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important; color: #c8457a !important;
+  background: linear-gradient(var(--an-2t), #ffd3df 58%, #fbbfd0 58%) !important;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 13px) 50%, 100% 100%, 0 100%, 13px 50%) !important; padding-left: 28px !important; padding-right: 28px !important; }
+html.an .dk-cta:active, html.an #bkGet:active, html.an .bk-act:not(.bk-share):active { translate: 0 1px; }
+/* 리본 안쪽 흰 박음질 (창 제목 · 큰 버튼) */
+html.an .modal .modal-title.mt-bar .mt-text { outline: 1.5px dashed rgba(255,255,255,.95) !important; outline-offset: -5px !important; }
+/* 민트 = 받기 (진초록 글씨) */
+html.an .sh-take:not(.sh-zoombtn) { border-color: var(--an-mtl) !important; color: #2f7a5c !important; background: linear-gradient(var(--an-2t), #c4ecd9 58%, #ade2ca 58%) !important; }
+html.an .dk-cta { height: 52px !important; font-size: 19px !important; width: calc(100% - 4px) !important; }
+html.an .dk-cta::before { inset: 6px 22px !important; border: 1.5px dashed rgba(255,255,255,.95) !important; border-radius: 0 !important; }
+html.an .dk-cta::after { display: none !important; }
+html.an .modal .modal-title.mt-bar .mt-text { font-size: 18px !important; padding: 6px 34px !important; overflow: visible !important; }
 html.an .modal .mt-x, html.an .modal .mt-back { background: var(--an-cr) !important; border: 1.4px solid var(--an-ol) !important; box-shadow: 2.5px 2.5px 0 var(--an-sh) !important; color: #e07595 !important; }
 /* ---------- 🧺 바구니 · 🏪 기본상품 샵 ---------- */
 html.an .bk-bin { background: #ecc39b !important; border: 1.6px solid var(--an-ol) !important; box-shadow: inset 0 7px 0 #d9a97c, 4px 4px 0 var(--an-sh) !important; }
@@ -41,7 +46,7 @@ html.an #shelfKindModal .shk-frame { filter: drop-shadow(1.2px 0 0 var(--an-ol))
 html.an #shelfKindModal > .modal-content.obj-win { filter: none !important; }
 html.an #shelfKindModal .obj-win .sh-wrap { background: var(--an-cr) !important; box-shadow: inset 0 0 0 1.4px var(--an-ol) !important; }
 html.an #shelfKindModal .obj-win > .modal-title.mt-bar { filter: drop-shadow(1.2px 0 0 var(--an-ol)) drop-shadow(-1.2px 0 0 var(--an-ol)) drop-shadow(0 1.2px 0 var(--an-ol)) drop-shadow(0 -1.2px 0 var(--an-ol)) drop-shadow(3px 3px 0 var(--an-sh)) !important; }
-html.an #shelfKindModal .obj-win .mt-text { border: 0 !important; box-shadow: none !important; border-radius: 6px !important; padding: 7px 24px !important; outline-color: #fff !important; color: #fff !important; background: var(--an-pk) !important; }
+html.an #shelfKindModal .obj-win .mt-text { border: 0 !important; box-shadow: none !important; border-radius: 6px !important; padding: 7px 24px !important; outline-color: #fff !important; color: #c8457a !important; background: linear-gradient(var(--an-2t), #ffd3df 58%, #fbbfd0 58%) !important; clip-path: none !important; }
 html.an #shelfKindModal .sh-arw { filter: drop-shadow(3px 3px 0 var(--an-sh)) !important; }
 html.an #shelfKindModal .sh-arw path:not(.hl) { stroke: var(--an-ol) !important; stroke-width: 2.4 !important; fill: var(--an-pk) !important; }
 html.an #shelfKindModal .sh-arw path.hl { display: none; }
@@ -50,16 +55,25 @@ html.an .sh-look { background: #fff !important; box-shadow: 0 0 0 1.3px var(--an
 html.an .sh-paper, html.an .sh-tool { box-shadow: none !important; }
 html.an .ab-tabs { background: var(--an-cr) !important; box-shadow: 0 0 0 1.4px var(--an-crl), 3px 4px 0 var(--an-sh) !important; border-radius: 999px !important; padding: 4px !important; }
 html.an .ab-tabs button { border-radius: 999px !important; color: #a68dc8 !important; font-family: 'Jua', var(--system-font), sans-serif !important; background: none !important; box-shadow: none !important; }
-html.an .ab-tabs button.on { background: linear-gradient(var(--an-2t), var(--an-pk) 58%, var(--an-pk2) 58%) !important; color: #fff !important; box-shadow: 0 0 0 1.5px var(--an-pkl) !important; }
-/* ---------- 📔 다이어리 (색은 그대로 · 파스텔 선 · 평면) ---------- */
+html.an .ab-tabs button.on { background: linear-gradient(var(--an-2t), #ffd3df 58%, #fbbfd0 58%) !important; color: #c8457a !important; box-shadow: 0 0 0 1.5px var(--an-pkl) !important; }
+/* ---------- 📔 다이어리 (도련 10-28 시안) : 코랄 표지가 둘레로 · 크림 낱장 겹침 · 인덱스 탭(js/anime.js) · 파스텔 선 ---------- */
 html.an #diaryBook .cover-page { box-shadow: 0 0 0 1.1px var(--an-ol), 6px 7px 0 var(--an-sh) !important; }
 html.an #diaryBook .cv-lace { background: radial-gradient(circle at 50% 0, #fff 2.2cqw, var(--an-ol) 2.2cqw 2.4cqw, transparent 2.45cqw) 0 0 / 5cqw 5cqw !important; filter: none !important; }
 html.an #diaryBook .cover-title .cv-lt, html.an #diaryBook .cv-berry svg { filter: drop-shadow(.55px 0 0 var(--an-ol)) drop-shadow(-.55px 0 0 var(--an-ol)) drop-shadow(0 .55px 0 var(--an-ol)) drop-shadow(0 -.55px 0 var(--an-ol)); }
-html.an .inner-page .canvas-area { box-shadow: 0 0 0 2px var(--page-bg), 0 0 0 4px var(--border-color), 0 0 0 5.2px var(--an-ol), 6px 7px 0 var(--an-sh) !important; }
-html.an .inner-page .dy-cov { background: var(--dy-c) !important; box-shadow: 0 0 0 1.2px var(--an-ol), 6px 7px 0 var(--an-sh) !important; }
-html.an .inner-page .dy-fold { background: linear-gradient(90deg, transparent 47%, var(--an-ol) 47% 53%, transparent 53%) !important; opacity: .35; }
-html.an .inner-page .page-header { box-shadow: 0 0 0 1.2px var(--an-ol), 3px 3px 0 var(--an-sh) !important; }
-html.an .inner-page .ps-st { box-shadow: inset 0 0 0 1.4px var(--an-ol) !important; }
+html.an .inner-page { --page-bg: #fffcf6; }
+html.an .inner-page .dy-cov { inset: -4.2cqw -3.4cqw -4.6cqw -3.4cqw !important; border-radius: 2.6cqw !important; background: #f2789a !important; box-shadow: 0 0 0 1.4px var(--an-ol), 6px 7px 0 var(--an-sh) !important; }
+html.an .inner-page .canvas-area { background-color: #fffcf6 !important; border-radius: 1.4cqw !important;
+  box-shadow: 0 0 0 1.3px var(--an-ol), 2.5px 3px 0 0 #fffcf6, 2.5px 3px 0 1.3px var(--an-ol), 5px 6px 0 0 #fbf4ea, 5px 6px 0 1.3px var(--an-ol) !important; }
+html.an .inner-page .dy-fold { background: linear-gradient(90deg, transparent calc(50% - .7px), var(--an-ol) calc(50% - .7px) calc(50% + .7px), transparent calc(50% + .7px)) !important; opacity: 1; }
+html.an .inner-page .page-header { background: #fffcf6 !important; border: 1.3px solid var(--an-ol) !important; box-shadow: 3px 3px 0 var(--an-sh) !important; }
+html.an .inner-page .ps-st { background: #fffcf6 !important; box-shadow: inset 0 0 0 1.4px var(--an-ol) !important; }
+html.an .an-tab { position: absolute; z-index: 0; width: 22px; height: 40px; border: 1.3px solid var(--an-ol); border-radius: 7px; pointer-events: none; box-sizing: border-box; }
+html.an .an-tab.r { right: calc(-3.4cqw - 12px); } html.an .an-tab.t { width: 40px; height: 22px; top: calc(-4.2cqw - 12px); }
+html.an .an-tab.c1 { background: #ffe28a; } html.an .an-tab.c2 { background: #bfead6; } html.an .an-tab.c3 { background: #d9c8f5; } html.an .an-tab.c4 { background: #ffb3c8; }
+html.an .inner-page.dy-bo .an-tab, html.an .inner-page.dk-cover .an-tab { display: none; }
+/* ✂️ 문구 도구(페이지 위 핀셋 · 칼 …) · 기본상품 샵 도구 그림 : 파스텔 아웃라인 */
+html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-tool svg, html.an .pc-held svg { filter: drop-shadow(1.1px 0 0 var(--an-ol)) drop-shadow(-1.1px 0 0 var(--an-ol)) drop-shadow(0 1.1px 0 var(--an-ol)) drop-shadow(0 -1.1px 0 var(--an-ol)) drop-shadow(3px 3px 0 #e2b6d6); }
+html.an .bd-tool, html.an .pc-tool { filter: none !important; }
 /* ---------- 🪑 책상 라벨 · 📱 하단 메뉴 ---------- */
 html.an .dk-fn-tag { box-shadow: 0 0 0 1.2px var(--an-ol), 2px 2px 0 var(--an-sh) !important; border-color: transparent !important; background-image: none !important; font-family: 'Jua', var(--system-font), sans-serif !important; font-weight: 400 !important; color: var(--an-ink) !important; }
 html.an .toolbar { background: var(--an-cr) !important; border: 1.6px solid var(--an-ol) !important; box-shadow: 4px 5px 0 var(--an-sh) !important; backdrop-filter: none !important; }
@@ -67,3 +81,15 @@ html.an .tb-btn { border: 1.5px solid var(--an-ol) !important; box-shadow: 3px 3
 html.an .tb-btn::before { display: none !important; }   /* 반짝 하이라이트 없음 */
 /* ---------- 🧚 로그인 요정 버튼 : 바닥 그림자 연보라 ---------- */
 html.an .gf-btn svg { filter: drop-shadow(3px 3px 0 var(--an-sh)); }
+
+/* ---------- ✏️ 필기구통 (js/draw.js pcBuild) : 평면 투톤 분홍 통 · 흰 물방울 · 파스텔 선 ---------- */
+html.an .pc-back { background: #d9759a !important; box-shadow: 0 0 0 1.4px var(--an-ol); }
+html.an .pc-front { background: radial-gradient(circle, #fff 0 2.2px, transparent 2.6px) 0 0 / 12px 12px, linear-gradient(100deg, #ffc2d3 64%, #f7a8be 64%) !important;
+  border: 1.6px solid var(--an-ol); box-shadow: 6px 7px 0 var(--an-sh) !important; }
+html.an .pc-front::before { border-color: #ffe1ea !important; border-bottom-color: var(--an-ol) !important; }
+html.an .pc-front::after, html.an .pc-front i { background: #ffe1ea !important; border-top: 1.3px solid var(--an-ol); border-bottom: 1.3px solid var(--an-ol); }
+html.an .pc-box { background: var(--an-cr) !important; border: 1.5px dashed #f2a0bb !important; outline: 1.5px solid var(--an-ol) !important; outline-offset: 3px; box-shadow: 4px 5px 0 var(--an-sh) !important; color: #c8457a !important; }
+html.an .pc-box b { font-family: 'Jua', var(--system-font), sans-serif; font-weight: 400; }
+html.an .pc-box em { background: linear-gradient(var(--an-2t), #ffd3df 58%, #fbbfd0 58%) !important; color: #c8457a !important; box-shadow: none !important; border-radius: 0 !important; clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%, 9px 50%); padding: 5px 20px !important; font-family: 'Jua', var(--system-font), sans-serif; font-weight: 400 !important; }
+html.an .pc-hint, html.an .pc-tipnote { background: var(--an-cr) !important; border: 1.4px solid var(--an-ol) !important; box-shadow: 3px 3px 0 var(--an-sh) !important; }
+html.an .pc-x { background: var(--an-cr) !important; border: 1.4px solid var(--an-ol) !important; box-shadow: 2.5px 2.5px 0 var(--an-sh) !important; color: #e07595 !important; }
