@@ -27,13 +27,6 @@
     let todo = new Set(), tm = 0;
     const run = () => { tm = 0; const L = todo; todo = new Set(); L.forEach(n => { if (!n.isConnected) return; if (n.tagName === 'svg') flat(n); n.querySelectorAll && n.querySelectorAll('svg:not([data-an])').forEach(flat); }); };
     const add = n => { if (n.nodeType !== 1) return; todo.add(n); if (!tm) tm = setTimeout(run, 60); };
-    /* 📔 다이어리 인덱스 탭 (도련 10-28 시안) : 속지 오른쪽 · 위로 삐죽 (css .an-tab) */
-    function tabs() {
-        const ip = document.getElementById('innerPage'); if (!ip || ip.querySelector('.an-tab')) return;
-        [['r c1', 'top:14%'], ['r c2', 'top:25%'], ['r c3', 'top:36%'], ['r c4', 'top:47%']].forEach(([c, st]) => {
-            const t = document.createElement('i'); t.className = 'an-tab ' + c; t.setAttribute('aria-hidden', 'true'); t.style.cssText = st; ip.insertBefore(t, ip.firstChild);
-        });
-    }
-    const go = () => { add(document.body); tabs(); new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(add))).observe(document.body, { childList: true, subtree: true }); };
+    const go = () => { add(document.body); new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(add))).observe(document.body, { childList: true, subtree: true }); };
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', go) : go();
 })();
