@@ -505,7 +505,7 @@
             modal.dataset.mt = '1';
             if (title.classList.contains('mt-bar')) return;                                   // 이미 직접 만든 제목 줄 (카페)
             const btns = [...box.querySelectorAll('button')];
-            const closeBtn = btns.filter(b => b.textContent.trim() === '닫기' && !b.classList.contains('mt-keep')).pop();   // mt-keep = 아래 닫기 버튼도 그대로 보여요
+            const closeBtn = btns.filter(b => b.textContent.trim() === '닫기').pop();
             const backBtn = btns.find(b => /^←/.test(b.textContent.trim()));
             const mk = (txt, label, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mt-btn ' + cls; b.textContent = txt === '<' ? '‹ ' + label.replace(/ 메뉴$/, '') : txt; b.setAttribute('aria-label', label); b.onclick = e => { e.stopPropagation(); fn(); }; return b; };
             const span = document.createElement('span'); span.className = 'mt-text';

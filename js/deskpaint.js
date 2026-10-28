@@ -6,7 +6,7 @@
      🛠 책상 꾸미기 하단 ✔ 완료 = 그 소품의 원래 파일에 덮어써요 (js/desk.js dkArtDraft · dkArtCommit) · ✕ 취소 = 처음 그림
        종류 폴더 / 받은-<c>.json 의 item = 🔐 { s: 암호 } → 열면 { u, id, from, img } (스티커처럼 계정마다 다른 열쇠) · 🎁 기본세트 소품은 처음 칠할 때 선물.json 에서 빠져 종류 폴더에 자기 파일이 생겨요
        목록(배치.json)에는 p: 1 (칠함) 만 · 그림은 그 파일에서 읽어요 (js/desk.js dkArtLoad)
-   - 창마다 완료는 없어요 : 완료는 하단 하나 (도련 10-28) */
+   - 창마다 완료는 없어요 : 완료는 하단 하나 · 닫기 = 오른쪽 위 ✕ 하나 (도련 10-28) */
 
         const DP = { o: null, W: 0, H: 0, base: null, ink: null, paint: null, tmp: null, view: null, tool: 'brush', color: '#ff9fbd', size: 22, decal: null, dirty: false, last: null, k: 1 };
         const DP_COLORS = ['#ff9fbd', '#ffd36b', '#9bd9b5', '#9ccfee', '#c9b3f2', '#ffffff', '#f6e6d0', '#8a5a3c', '#5e4250', '#e2557f'];
@@ -33,7 +33,7 @@
             DP.ink.getContext('2d').putImageData(ink, 0, 0);
             let w = document.getElementById('dpWrap');
             if (!w) { w = document.createElement('div'); w.id = 'dpWrap'; w.className = 'dp-wrap'; document.body.appendChild(w); }
-            w.innerHTML = `<div class="dp-card" role="dialog" aria-label="소품 꾸미기">
+            w.innerHTML = `<div class="dp-card" role="dialog" aria-label="소품 꾸미기"><button type="button" class="dp-x" data-a="ok" aria-label="닫기">✕</button>
                 <div class="dp-head"><b>🎨 ${dkName(o)} 꾸미기</b><small>소품 모양 안에만 칠해져요 · 닫고 책상에서 어울리는지 봐요</small></div>
                 <div class="dp-stage"><canvas id="dpView"></canvas></div>
                 <div class="dp-tabs"><button type="button" data-t="brush">🖌 붓</button><button type="button" data-t="erase">🧽 지우개</button><button type="button" data-t="img">🖼 이미지</button></div>
@@ -41,8 +41,7 @@
                 <div class="dp-row dp-sz"><small>굵기</small><input type="range" min="2" max="90" value="${DP.size}" data-k="size"></div>
                 <div class="dp-row dp-im" hidden><label class="btn dp-file">📁 이미지 고르기<input type="file" accept="image/*" hidden></label>
                     <small>크기</small><input type="range" min="5" max="300" value="100" data-k="ds"><small>회전</small><input type="range" min="-180" max="180" value="0" data-k="dr">
-                    <button type="button" class="btn dp-stick" disabled>📌 붙이기</button></div>
-                <div class="dp-btns"><button type="button" class="btn" data-a="ok">닫기</button></div></div>`;
+                    <button type="button" class="btn dp-stick" disabled>📌 붙이기</button></div></div>`;
             DP.view = w.querySelector('#dpView'); DP.view.width = W; DP.view.height = H;
             const k = Math.min((Math.min(innerWidth, 680) - 56) / W, (innerHeight * .5) / H, 3); DP.k = k;
             DP.view.style.width = Math.round(W * k) + 'px'; DP.view.style.height = Math.round(H * k) + 'px';
@@ -120,7 +119,7 @@
             const b = document.querySelector('#dpWrap .dp-stick'); if (b) b.disabled = true; dpRender();
         }
         function dpClose() { const w = document.getElementById('dpWrap'); if (w) { w.classList.remove('on'); w.innerHTML = ''; } DP.o = null; DP.view = null; }
-        async function dpDone() {                                                 // 닫기 = 책상에 미리 보기 (저장은 하단 ✔ 완료)
+        async function dpDone() {                                                 // ✕ 닫기 = 책상에 미리 보기 (저장은 하단 ✔ 완료)
             if (!DP.dirty && !DP.decal) { dpClose(); return; }
             const out = dpCv(DP.W, DP.H); dpCompose(out.getContext('2d'), true);
             let url = out.toDataURL('image/webp', .9); if (!/^data:image\/webp/.test(url)) url = out.toDataURL('image/png');

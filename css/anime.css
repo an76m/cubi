@@ -243,3 +243,6 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 @media (max-width: 480px) { .dcs-paper { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .dcs-warn { margin: 4px 0 0; text-align: center; color: #c8457a; font-size: 12.5px; font-weight: 700; word-break: keep-all; }
+/* 🎨 색칠 창 ✕ 닫기 (도련 10-28 · 닫기 버튼 없이 오른쪽 위 ✕ 하나 · 다른 창 ✕ 와 같은 모양) */
+.dp-card { position: relative; }
+.dp-x { position: absolute; right: 12px; top: 12px; width: 28px; height: 28px; border-radius: 50%; border: 1.4px solid var(--an-ol, #bba6d6); background: var(--an-cr, #fffaf3); color: #e07595; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; display: grid; place-items: center; padding: 0; z-index: 2; }
