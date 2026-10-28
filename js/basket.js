@@ -467,15 +467,8 @@
         }
         const tabsH = relOk ? `<div class="ab-tabs sm"><button type="button" class="${D.mode === 'bd' ? 'on' : ''}" onclick="abMode('bd')">📒 바인더에 꽂기</button><button type="button" class="${D.mode === 'rl' ? 'on' : ''}" onclick="abMode('rl')">🤍 이형지북에 붙이기</button></div>` : '';
         const noteH = `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 🪡 핀셋으로 떼어 이형지북에 붙여요<br>이형지북으로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`;
-        if (abSpace()) {                                                      // 🪑 정리 공간 : 바구니 · 정리북을 책상 위에 펼쳐 두고 (둘 다 손잡이를 끌어 옮겨요)
-            const kn = (bq('bkTitle') || {}).textContent || '';
-            const main2 = D.mode === 'rl' ? main.replace(/<div class="ab-peel(?:hint|zone)"[\s\S]*?<\/div>/, '') : main;   // 🤍 떼는 판 자리는 바구니 쪽에
-            const peelH = D.mode === 'rl' ? (main.match(/<div class="ab-peel(?:hint|zone)"[\s\S]*?<\/div>/) || [''])[0] : '';
-            body.innerHTML = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 바구니</button><b class="ab-ttl">📒 정리하기<small>${esc(kn.replace(/^\S+\s*/, ''))}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`
-                + `<div class="abs-room" id="absRoom">`
-                + `<section class="abs-box abs-basket" data-p="basket"><div class="abs-grip" title="끌어서 옮기기"><b>🧺 바구니</b><small>${B.list.length}장</small><i aria-hidden="true">⠿</i></div><div class="ab-strip" id="abStrip">${strip}</div>${peelH}</section>`
-                + `<section class="abs-box abs-book${D.mode === 'rl' ? ' rl' : ''}" data-p="book"><div class="abs-grip" title="끌어서 옮기기"><b>${D.mode === 'rl' ? '🤍 이형지북' : '📒 바인더'}</b><i aria-hidden="true">⠿</i></div>${main2}${noteH}</section>`
-                + `</div>`;
+        if (abSpace()) {                                                      // 🪑 정리 공간 : 진짜 같은 바구니 · 바인더 · 이형지북 (js 아래 abSpaceHtml)
+            body.innerHTML = abSpaceHtml(D, strip, tabsH);
             abSpacePlace();
         } else
         body.innerHTML = abHead('바구니', 'bin', '<b class="ab-ttl">📒 정리하기</b>')
@@ -502,17 +495,71 @@
     /* 🪑 정리 공간 (도련 10-29 · 💻 컴퓨터 · 📲 패드) : 창 대신 화면 전체가 정리하는 책상 · 🧺 바구니와 📒 정리북(바인더 · 이형지북)이 펼쳐져 있어요
        · 둘 다 위쪽 손잡이를 끌어 원하는 자리로 (다이어리처럼) → 정리북을 왼쪽 · 바구니를 오른쪽에 두는 것도 마음대로
        · 놓은 자리는 이 기기에 기억해요 (localStorage malang_ab_space · 화면 크기 비율) · 📱 폰은 예전 창 그대로 */
-    const ABS_LOCAL = 'malang_ab_space', ABS_DEF = { basket: [.03, .04], book: [.42, .04] };
+    const ABS_LOCAL = 'malang_ab_space', ABS_DEF = { basket: [.02, .03], book: [-1, .03] };
     const abSpace = () => !window.dvDev || dvDev() !== 'phone';
     function abSpaceGet() { let v = null; try { v = JSON.parse(localStorage.getItem(ABS_LOCAL)); } catch (e) {} return Object.assign({}, ABS_DEF, v && typeof v === 'object' ? v : {}); }
     function abSpacePlace() {
         const room = bq('absRoom'); if (!room) return;
         const P = abSpaceGet(), W = room.clientWidth, H = room.clientHeight;
         room.querySelectorAll('.abs-box').forEach(bx => {
-            const f = P[bx.dataset.p] || ABS_DEF[bx.dataset.p];
-            bx.style.left = Math.max(0, Math.min(W - bx.offsetWidth, f[0] * W)) + 'px'; bx.style.top = Math.max(0, Math.min(H - 48, f[1] * H)) + 'px';   // 책상 밖으로 안 나가요
+            const f = P[bx.dataset.p] || ABS_DEF[bx.dataset.p], x = f[0] < 0 ? W - bx.offsetWidth - 24 : f[0] * W;   // 처음 = 바구니 왼쪽 · 정리북 오른쪽 끝
+            bx.style.left = Math.max(0, Math.min(W - bx.offsetWidth, x)) + 'px'; bx.style.top = Math.max(0, Math.min(H - 48, f[1] * H)) + 'px';   // 책상 밖으로 안 나가요
             bx.onpointerdown = ev => { if (ev.target.closest('.abs-grip')) abSpaceGrab(bx, ev); else abSpaceTop(bx); };
         });
+    }
+    /* 🪑 정리 공간 그림 (도련 10-29 · 아웃라인 + 한 색 · 그라데이션 · 그림자 없이)
+       · 🧺 큰 등나무 바구니 : 뒷벽(안쪽) 위에 종이가 잔뜩 · 앞 테두리 · 양쪽 손잡이 · 종이가 많으면 안에서 위아래로 넘겨 봐요
+       · 📒 바인더 : 표지째 펼친 두 쪽 (가운데 6공 링) · 한 쪽 = 투명 포켓 4개 → 두 쪽씩 넘겨요
+       · 🤍 이형지북 : 왼쪽 스프링 · 반짝이는 이형지 한 쪽 · 뒤로 겹친 종이 · 아래 🟩 커팅 매트 = 떼는 자리 (바구니 아래) */
+    const ABS_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';
+    function abSpaceHtml(D, strip, tabsH) {
+        const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
+        const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 바구니</button><b class="ab-ttl">📒 정리하기<small>${esc(kn)}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
+        const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
+        /* 🧺 바구니 */
+        const peel = D.mode !== 'rl' ? '' : `<div class="abx-mat">${!D.pick ? '<div class="ab-peelhint">⬆ 바구니에서 종이를 톡 골라요</div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>' : '<div class="ab-peelzone" id="abPeelZone"><span>🪡 핀셋으로 떼어 이형지북에 붙여요</span></div>'}</div>`;
+        const basket = `<section class="abs-box abs-basket" data-p="basket">${grip('🧺 바구니', B.list.length + '장')}`
+            + `<div class="abx-basket"><i class="abx-hd l" aria-hidden="true"></i><i class="abx-hd r" aria-hidden="true"></i><div class="abx-in"><div class="ab-strip" id="abStrip">${strip}</div></div><i class="abx-front" aria-hidden="true"></i><i class="abx-rim" aria-hidden="true"></i><i class="abx-cloth" aria-hidden="true"></i></div>${peel}</section>`;
+        /* 📒 바인더 · 🤍 이형지북 */
+        let book;
+        if (D.mode === 'bd') {
+            const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
+            if (!b) book = `<div class="abx-none">${bkMsg('아직 바인더가 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 바인더 받아 오기</button>')}</div>`;
+            else {
+                D.bd = b.id; const c = abCol(b), pages = Math.ceil(b.n / AB_PER), full = Object.keys(b.p).length >= b.n;
+                B.pg = Math.max(0, Math.min(pages - 1, B.pg || 0)); B.pg -= B.pg % 2;   // 두 쪽씩 (왼쪽 = 짝수 쪽)
+                const pg = p => p < pages ? `<div class="abx-pg">${abPocketsAt(b, p)}<b class="abx-no">${p + 1}</b></div>` : '<div class="abx-pg end"></div>';
+                book = abSpaceTag('bd', b, L, `${Object.keys(b.p).length} / ${b.n}장`)
+                    + (full ? `<div class="abx-full">📒 가득 찼어요 · <button type="button" class="ab-mini" onclick="abGoShelf()">🏪 새 바인더 받기</button></div>` : '')
+                    + `<div class="abx-binder" style="--c1:${c[0]};--c2:${c[1]}"><div class="abx-spread" id="abPage">${pg(B.pg)}${pg(B.pg + 1)}</div><div class="abx-rings" aria-hidden="true">${ABS_RING.repeat(3)}<span></span>${ABS_RING.repeat(3)}</div></div>`
+                    + `<div class="ab-nav abx-nav"><button type="button" class="ab-nb" aria-label="앞 쪽" onclick="abPage(-2)"${B.pg ? '' : ' disabled'}>‹</button><span>${B.pg + 1}${B.pg + 1 < pages ? '–' + (B.pg + 2) : ''} / ${pages}쪽</span><button type="button" class="ab-nb" aria-label="다음 쪽" onclick="abPage(2)"${B.pg + 2 < pages ? '' : ' disabled'}>›</button></div>`;
+            }
+        } else {
+            const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
+            if (!r) book = `<div class="abx-none">${bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 이형지북 받아 오기</button>')}</div>`;
+            else {
+                D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
+                const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
+                book = abSpaceTag('rl', r, L, `이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개`)
+                    + `<div class="abx-rlbook"><div class="abx-coil" aria-hidden="true">${'<i></i>'.repeat(14)}</div><div class="abx-stack" aria-hidden="true"></div>`
+                    + `<div class="ab-rel desk abx-wax" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sheet ? '떼어 낸 스티커를 여기에 놓아요' : ''}</span><b class="abx-no">${D.rpg + 1}</b></div></div>`
+                    + abNavHtml(D.rpg, r.n, 'abRPage').replace('class="ab-nav"', 'class="ab-nav abx-nav"');
+            }
+        }
+        const tip = D.mode === 'bd' ? '종이를 끌어 빈 포켓에 꽂아요 · 꽂힌 종이를 톡 = 바구니로' : '종이를 톡 → 매트 위에 펼쳐져요 · 🪡 떼어 이형지북에 붙여요';
+        return bar + `<div class="abs-room" id="absRoom">${basket}<section class="abs-box abs-book ${D.mode}" data-p="book">${grip(D.mode === 'rl' ? '🤍 이형지북' : '📒 바인더')}${book}<p class="abx-tip">${tip}</p></section></div>`;
+    }
+    /* 책 위에 붙은 이름표 : 다른 책 고르기 · 🏷️ 라벨 · 몇 장 */
+    function abSpaceTag(t, x, L, cnt) {
+        return `<div class="abx-tag"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 ${t === 'bd' ? '바인더' : '이형지북'} 고르기">${t === 'bd' ? abChip(x) : '<i class="ab-chip rl"></i>'}${L.length > 1 ? `${L.findIndex(o => o.id === x.id) + 1} / ${L.length} ▾` : t === 'bd' ? '바인더' : '이형지북'}</button>${abLbDesk(t, x)}<small class="abx-cnt">${cnt}</small></div>`;
+    }
+    function abPocketsAt(b, p) {
+        let h = '';
+        for (let i = p * AB_PER; i < Math.min(b.n, (p + 1) * AB_PER); i++) {
+            const e = b.p[i] && B.byId.get(b.p[i]);
+            h += e ? `<div class="ab-pk full" data-pk="${i}">${bkCard(e)}</div>` : `<div class="ab-pk" data-pk="${i}"><span>여기에 꽂기</span></div>`;
+        }
+        return h;
     }
     function abSpaceTop(bx) { document.querySelectorAll('#absRoom .abs-box').forEach(o => o.classList.toggle('top', o === bx)); }
     function abSpaceGrab(bx, ev) {                                            // ✋ 손잡이를 끌어 옮기기
@@ -567,7 +614,7 @@
         if (rel && img) { B.byId.set(tmp, { id: tmp, th: img }); rel.it.push({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }); }
         if (relEl && img) {
             relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
-            const sm = document.querySelector('.ab-target small'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${window.OWN_REL_MAX || 24}개`;
+            const sm = document.querySelector('.ab-target small, .abx-cnt'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${window.OWN_REL_MAX || 24}개`;
         }
         AB.rel.push({ src, k, rl: D.rl, pos, tmp, img });                      // 모아서 저장 (손을 멈추면 · 다 했어요 · 창 닫기)
         B.sig = bkSig();
@@ -626,7 +673,7 @@
         } else bkView();
         B.sig = bkSig();
     }
-    function abDeskCounts() { const D = B.desk, b = D && abBdOf(D.bd), sm = document.querySelector('.ab-target small'); if (b && sm) sm.textContent = `${Object.keys(b.p).length} / ${b.n}장`; }
+    function abDeskCounts() { const D = B.desk, b = D && abBdOf(D.bd), sm = document.querySelector('.ab-target small, .abx-cnt'); if (b && sm) sm.textContent = `${Object.keys(b.p).length} / ${b.n}장`; }
     async function abPutSt(slot, cx, cy, box) {
         const D = B.desk; if (!D || !D.sheet || D.sheet.imgs[slot] == null) return;
         const r = box.getBoundingClientRect();
