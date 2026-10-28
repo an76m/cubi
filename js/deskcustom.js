@@ -1,28 +1,23 @@
 /* 말랑달콤 다이어리 - js/deskcustom.js
    🎨 책상 소품 꾸미기 창 (도련 10-28) = 🎨 색칠(모든 소품) + 그 소품만의 탭 + 👆 누르는 곳
    - 💡 스탠드 : 켜고 끄기 · 불빛 색            (톡 = 켜고 끄기)
-   - 🔊 인형   : 샘플 소리 · 내 소리 파일        (톡 = 소리 + 통통)
    - 🔢 디지털 시계 : 숫자 글꼴 · 색  · ⏰ 알람 (시계 모두 · 울리면 시계를 톡 = 끄기)
    - 🖼 사진   : 내 사진 넣기 · 그림 그리기(🎨 색칠 창)
    - 👆 누르는 곳 : 기능(다이어리 · 설정 …)이 연결된 소품만 · 네모 안 = 소품 동작 · 나머지 그림 = 연결된 기능
        네모가 소품의 85% 이상이면 기능을 누를 자리가 없어서 고쳐 달라고 해요 · 너무 작으면(그림 px 28 미만) 안 돼요
-   저장 : 배치.json 의 소품 o.cs = { on, light, snd, font, ink, alarm: { t, on }, area: [l, t, r, b] (%) } (js/desk.js dkPersist)
-          내 소리 파일 = 그 소품의 종류 폴더 파일(칠한 그림과 같은 파일)의 snd (🔐 암호 · dpSave 와 같은 길)
+   저장 : 배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%) } (js/desk.js dkPersist)
    ※ 소품 종류를 더하면 DC_KINDS 에 탭 · 동작 · 기본 누르는 곳만 더해요 */
 (function () {
     const DC_KINDS = {
         lamp: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },
-        doll: { tabs: ['sound'], act: 'doll', area: [0, 0, 100, 100] },
         clock: { tabs: ['digits', 'alarm'], act: null, area: null },
         photo: { tabs: ['photo'], act: null, area: null }
     };
-    const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', sound: '🔊 소리', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', area: '👆 누르는 곳' };
+    const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', area: '👆 누르는 곳' };
     const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];
     const DC_INK = ['#4f6f93', '#c8457a', '#8f7bd6', '#2f7a5c', '#d98a1e', '#5e4250'];
     const DC_FONT = [['Jua', '말랑'], ["'Press Start 2P'", '픽셀'], ['Gaegu', '손글씨'], ["'Do Hyeon'", '또박']];
-    const DC_SND = [['squeak', '뾱'], ['boing', '띠용'], ['bell', '딸랑'], ['pop', '뿅'], ['twinkle', '반짝'], ['purr', '쪽']];
-    const DC_SND_MAX = 800 * 1024;                                            // 내 소리 파일 (800KB 까지)
-    const DC = { u: null, tab: 'paint', area: null, ring: null, sndCache: {} };
+    const DC = { u: null, tab: 'paint', area: null, ring: null, };
 
     const dcItem = u => DK.items.find(x => x.u === u);
     const dcCat = o => (o && dkCat(o.id)) || {};
@@ -53,9 +48,6 @@
         if (T === 'paint') box.innerHTML = `<p class="dcs-p">소품 모양 안에 붓으로 칠하거나 그림을 붙여요.</p><button type="button" class="btn primary dcs-big" onclick="dcPaint()">🎨 색칠하러 가기</button>`;
         else if (T === 'light') box.innerHTML = `<div class="dcs-row"><b>불</b><button type="button" class="btn${cs.on ? ' primary' : ''}" onclick="dcLamp()">${cs.on ? '💡 켜짐' : '🌙 꺼짐'}</button></div>`
             + `<div class="dcs-row"><b>불빛 색</b>${sw(DC_LIGHT, cs.light || DC_LIGHT[0], 'dcLight')}</div><p class="dcs-p">책상에서 스탠드를 톡 하면 켜고 꺼요.</p>`;
-        else if (T === 'sound') box.innerHTML = `<div class="dcs-snd">${DC_SND.map(([k, n]) => `<button type="button" class="btn${cs.snd === k ? ' primary' : ''}" onclick="dcSnd('${k}')">🔊 ${n}</button>`).join('')}`
-            + `<button type="button" class="btn${cs.snd === 'file' ? ' primary' : ''}" onclick="dcSndFile()">📁 내 소리 파일</button><button type="button" class="btn${!cs.snd ? ' primary' : ''}" onclick="dcSnd('')">🔇 소리 없음</button></div>`
-            + `<p class="dcs-p">책상에서 인형을 톡 하면 소리가 나요 · 내 소리 파일은 800KB 까지 (mp3 · m4a · wav · ogg)</p>`;
         else if (T === 'digits') box.innerHTML = `<div class="dcs-row"><b>글꼴</b><div class="dcs-font">${DC_FONT.map(([f, n]) => `<button type="button" class="btn${(cs.font || DC_FONT[0][0]) === f ? ' primary' : ''}" style="font-family:${f}" onclick="dcFont(&quot;${f.replace(/'/g, '&#39;')}&quot;)">${n} 12:34</button>`).join('')}</div></div>`
             + `<div class="dcs-row"><b>숫자 색</b>${sw(DC_INK, cs.ink || DC_INK[0], 'dcInk')}</div>`;
         else if (T === 'alarm') { const a = cs.alarm || { t: '07:30', on: false };
@@ -75,34 +67,6 @@
     /* ⏰ */
     function dcAlarm(t, on) { const o = dcItem(DC.u); if (!o) return; const a = dcCs(o).alarm = Object.assign({ t: '07:30', on: false }, o.cs.alarm); if (t) { a.t = t; a.on = true; } if (on != null) a.on = on; delete a.last; dcSave(o); dcBody(); }
     function dcRingTest() { dcBeep(); }
-    /* 🔊 */
-    function dcSnd(k) { const o = dcItem(DC.u); if (!o) return; if (k) dcCs(o).snd = k; else delete dcCs(o).snd; dcSave(o); dcBody(); if (k) dcPlay(o); }
-    function dcSndFile() {
-        const o = dcItem(DC.u); if (!o) return;
-        const f = document.createElement('input'); f.type = 'file'; f.accept = 'audio/*';
-        f.onchange = () => { const file = f.files && f.files[0]; if (!file) return;
-            if (file.size > DC_SND_MAX) { if (window.showMsg) showMsg('🔊 소리 파일이 너무 커요.<br><small>800KB 까지 넣을 수 있어요 (짧은 소리로 골라 주세요)</small>'); return; }
-            const rd = new FileReader(); rd.onload = async () => {
-                try { await dcFileSave(o, 'snd', rd.result); DC.sndCache[o.u] = rd.result; dcCs(o).snd = 'file'; dcSave(o); dcBody(); dcPlay(o); }
-                catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 소리 파일을 저장하지 못했어요.'); } };
-            rd.readAsDataURL(file); };
-        f.click();
-    }
-    async function dcFileSave(o, key, url) {                                 // 그 소품의 종류 폴더 파일에 한 칸 더 (칠한 그림 · 선물 처리는 dpSave 와 같아요)
-        const C = dkColl(o.id); if (!C) throw new Error('coll');
-        if (o.c && !o.g) {
-            let old = null; try { old = await dkUnseal(await collItem(C, o.c)); } catch (e) { console.warn(e); }
-            const item = Object.assign({}, old && old.u === o.u ? old : { u: o.u, id: o.id, from: 'basic' }, { [key]: url });
-            await collSet(C, o.c, await dkSeal(item), '', { id: o.id });
-        } else { const gift = !!o.g; delete o.g; o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: gift ? 'gift' : 'basic', [key]: url }), '', { id: o.id }); if (gift && window.giftWrite) giftWrite(); }
-        dkPersist(o);
-    }
-    async function dcSndUrl(o) {
-        if (DC.sndCache[o.u]) return DC.sndCache[o.u];
-        const C = o.c && dkColl(o.id); if (!C) return null;
-        try { const it = await dkUnseal(await collItem(C, o.c)); if (it && it.u === o.u && typeof it.snd === 'string') return (DC.sndCache[o.u] = it.snd); } catch (e) { console.warn(e); }
-        return null;
-    }
     const dcAc = () => (window.sndCtx ? sndCtx() : null);
     const dcBus = (ac, v) => { const g = ac.createGain(); g.gain.value = v; g.connect(window.sndOut ? sndOut() : ac.destination); return g; };
     function dcTone(ac, bus, t, f0, f1, dur, type, vol) {
@@ -110,23 +74,6 @@
         o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
         g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .5, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + dur);
         o.connect(g).connect(bus); o.start(t); o.stop(t + dur + .02);
-    }
-    function dcSample(k) {                                                    // 🎵 말랑달콤 샘플 소리 (파일 없이 브라우저가 만들어요)
-        const ac = dcAc(); if (!ac) return; const t = ac.currentTime + .02, b = dcBus(ac, .35);
-        if (k === 'squeak') { dcTone(ac, b, t, 700, 1500, .12, 'sine', .6); dcTone(ac, b, t + .13, 900, 1700, .1, 'sine', .5); }
-        else if (k === 'boing') { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(520, t + .08); o.frequency.exponentialRampToValueAtTime(240, t + .45);
-            const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = 18; lg.gain.value = 40; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + .5);
-            g.gain.setValueAtTime(.6, t); g.gain.exponentialRampToValueAtTime(.001, t + .5); o.connect(g).connect(b); o.start(t); o.stop(t + .52); }
-        else if (k === 'bell') { if (window.sndShopBell && window.sndOn && sndOn()) { sndShopBell(); return; } [0, .12].forEach(d => { dcTone(ac, b, t + d, 2100, 0, .9, 'sine', .35); dcTone(ac, b, t + d, 5200, 0, .4, 'sine', .12); }); }
-        else if (k === 'pop') dcTone(ac, b, t, 900, 220, .16, 'triangle', .7);
-        else if (k === 'twinkle') [1047, 1319, 1568, 2093].forEach((f, i) => dcTone(ac, b, t + i * .08, f, 0, .35, 'sine', .35));
-        else if (k === 'purr') { dcTone(ac, b, t, 1300, 2300, .07, 'sine', .45); dcTone(ac, b, t + .05, 2600, 900, .09, 'triangle', .25); }
-    }
-    async function dcPlay(o) {
-        const k = o.cs && o.cs.snd; if (!k) return;
-        if (k !== 'file') { dcSample(k); return; }
-        const url = await dcSndUrl(o); if (!url) return;
-        try { const a = new Audio(url); a.volume = .8; a.play().catch(() => {}); } catch (e) {}
     }
     function dcBeep() {                                                       // ⏰ 알람 소리 (삐삐삐 · 소리 크기는 🔊 설정 슬라이더)
         const ac = dcAc(); if (!ac) return; const t = ac.currentTime + .02, b = dcBus(ac, .3);
@@ -156,9 +103,9 @@
         const it = dcCat(o), fn = dcFnOf(o.u), f = DK_FNS.find(x => x[0] === fn), K = dcKind(o);
         if (!DC.area) DC.area = dcArea(o).slice();
         const k = Math.min(240 / it.w, 220 / it.h), W = Math.round(it.w * k), H = Math.round(it.h * k), [l, t, r, b] = DC.area;
-        box.innerHTML = `<p class="dcs-p">분홍 네모 안을 톡 = ${K.act === 'lamp' ? '💡 켜고 끄기' : '🔊 소리'} · 나머지 그림 = ${f ? f[3] + ' ' + f[1] : '기능'}</p>`
+        box.innerHTML = `<p class="dcs-p">분홍 네모 안을 톡 = 💡 켜고 끄기 · 나머지 그림 = ${f ? f[3] + ' ' + f[1] : '기능'}</p>`
             + `<div class="dcs-area" id="dcsArea" style="width:${W}px;height:${H}px"><img src="${dkSrc(o)}" alt="" draggable="false"><i class="dcs-fn"></i>`
-            + `<div class="dcs-box" id="dcsBox" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><span>${K.act === 'lamp' ? '💡' : '🔊'}</span><b class="dcs-h" id="dcsH"></b></div></div>`
+            + `<div class="dcs-box" id="dcsBox" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><span>💡</span><b class="dcs-h" id="dcsH"></b></div></div>`
             + `<div class="dcs-row dcs-end"><button type="button" class="btn" onclick="dcAreaReset()">↺ 처음대로</button><button type="button" class="btn primary" onclick="dcAreaSave()">✔ 저장</button></div>`;
         const A = document.getElementById('dcsArea'), Bx = document.getElementById('dcsBox'), Hd = document.getElementById('dcsH');
         let d = null;
@@ -203,7 +150,6 @@
             if (px < l || px > r || py < t || py > b) return false;
         }
         if (K.act === 'lamp') { dcCs(o).on = !o.cs.on; dcSave(o); }
-        else if (K.act === 'doll') { el.classList.remove('boing'); void el.offsetWidth; el.classList.add('boing'); if (o.cs && o.cs.snd) dcPlay(o); else if (window.showMsg && !el.dataset.fn) { /* 소리가 없으면 통통만 */ } }
         return true;
     }
     /* ⏰ 알람 : 1초마다 (책상 화면) · 그 분 0초 ~ 59초 사이 한 번 · 하루 한 번 (alarm.last = 날짜) */
@@ -219,6 +165,6 @@
     }, 1000);
 
     window.dcOpen = dcOpen; window.dcTab = dcTab; window.dcPaint = dcPaint; window.dcLamp = dcLamp; window.dcLight = dcLight; window.dcFont = dcFont; window.dcInk = dcInk;
-    window.dcAlarm = dcAlarm; window.dcRingTest = dcRingTest; window.dcSnd = dcSnd; window.dcSndFile = dcSndFile; window.dcPhoto = dcPhoto;
+    window.dcAlarm = dcAlarm; window.dcRingTest = dcRingTest; window.dcPhoto = dcPhoto;
     window.dcAreaReset = dcAreaReset; window.dcAreaSave = dcAreaSave; window.dcApply = dcApply; window.dcApplyAll = dcApplyAll; window.dcTap = dcTap;
 })();
