@@ -28,19 +28,19 @@
     function dcSave(o) { dkPersist(o); dcApply(o.u); }
 
     /* ---------- 🪟 꾸미기 창 ---------- */
-    function dcOpen(u) {
+    function dcOpen(u, keep) {
         const o = dcItem(u); if (!o) return;
         DC.u = u; DC.area = null;
         const K = dcKind(o), tabs = ['paint'].concat(K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []);
-        if (K && K.act && dcFnOf(u)) tabs.push('area');
-        if (!tabs.includes(DC.tab)) DC.tab = tabs[1] || 'paint';
+        if (K && K.act && dcFnOf(u)) tabs.unshift('area');   /* 👆 누르는 곳 = 맨 앞 · 꾸미기 열면 바로 보여 줌 */
+        if (!keep || !tabs.includes(DC.tab)) DC.tab = tabs[0] === 'area' ? 'area' : (tabs[1] || 'paint');
         const t = document.getElementById('deskCsTitle'); if (t) t.textContent = '🎨 ' + dkName(o) + ' 꾸미기';
         const bar = document.getElementById('deskCsTabs');
         if (bar) bar.innerHTML = tabs.map(k => `<button type="button" class="dcs-tab${k === DC.tab ? ' on' : ''}" onclick="dcTab('${k}')">${DC_TAB[k]}</button>`).join('');
         dcBody();
         if (window.openModal) openModal('deskCsModal');
     }
-    function dcTab(k) { DC.tab = k; DC.area = null; dcOpen(DC.u); }
+    function dcTab(k) { DC.tab = k; DC.area = null; dcOpen(DC.u, 1); }
     function dcBody() {
         const o = dcItem(DC.u), box = document.getElementById('deskCsBody'); if (!o || !box) return;
         const cs = dcCs(o), sw = (L, cur, fn) => `<div class="dcs-sw">${L.map(c => `<button type="button" class="${c === cur ? 'on' : ''}" style="--c:${c}" onclick="${fn}('${c}')" aria-label="${c}"></button>`).join('')}</div>`;
