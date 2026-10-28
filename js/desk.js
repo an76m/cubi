@@ -765,7 +765,7 @@
             if (!el || !DK.edit) { tip.innerHTML = ''; return; }
             const u = el.dataset.u, m = DK.editFn || {};
             const f = Object.keys(m).find(k => m[k] === u), fi = f && DK_FNS.find(x => x[0] === f);
-            tip.innerHTML = `<div class="dkt-act"><button type="button" class="desk-snap${fi ? ' on' : ''}" onclick="deskFnOpen()">🔗 ${fi ? fi[3] + ' ' + fi[1] : '기능 연결'}</button>`   // 기능 연결은 창으로 (도련 10-28)
+            tip.innerHTML = `<div class="dkt-act"><button type="button" class="desk-snap${fi ? ' on' : ''}" onclick="deskFnOpen()">🔗 기능 연결</button>`   // 기능 연결은 창으로 (도련 10-28) · 연결돼도 글은 늘 '기능 연결' (기능 이름이면 샵 가는 버튼으로 착각 · 도련 10-28)
                 + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button></div>`;   // 🧲 딱 맞추기 = 작업대 · 📤 저장(공유)은 숨김 · 🗑 버리기는 📦 소품함에서
             deskTipPlace();
         }
