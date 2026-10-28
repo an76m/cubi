@@ -476,7 +476,6 @@
             L.forEach(o => { o.at = 'box'; }); dkSave(); deskItemsRender(); deskModeRender(); deskBoxRender(); deskEditPaint();
         }
         function deskBoxOpen() {                                                  // 📦 소품함 (💻 책상 · ▤ 하단 메뉴 모두 같은 창)
-            if (DK.edit) return;
             deskBoxRender(); if (window.openModal) openModal('deskBoxModal'); requestAnimationFrame(deskBoxTabShow);
         }
         /* ---------- 🛠 책상 꾸미기 (도련 10-27) ---------- */
@@ -488,10 +487,19 @@
             DK.editFn = JSON.parse(DK.back.fn); DK.edit = true;
             H.classList.add('desk-edit'); H.classList.remove('desk-lack');
             deskSelect(null); deskFnPaint(); deskEditPaint();
+            dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
+            setTimeout(() => { if (DK.edit) deskBoxOpen(); }, 650);              // 📦 소품함을 열어 둬요 (오른쪽 · 책상을 보며 꺼내기)
+        }
+        function dkEditHello() {                                                  // 🎀 리본이 톡 떴다가 스르르 (1.3초)
+            const old = document.getElementById('dkeHello'); if (old) old.remove();
+            const d = document.createElement('div'); d.id = 'dkeHello'; d.className = 'dke-hello'; d.setAttribute('aria-hidden', 'true');
+            d.innerHTML = '<i>✨</i><b>🛠 꾸미기 시작!</b><i>✨</i>'; document.body.appendChild(d);
+            setTimeout(() => d.remove(), 1500);
         }
         function deskEditFromSettings() { if (window.closeModal) closeModal('settingsModal'); deskEditOpen(); }
         function deskEditEnd(ok) {
             if (!DK.edit) return;
+            if (window.closeModal) closeModal('deskBoxModal');
             if (ok) {
                 const miss = DK_FN_NEED.filter(k => !DK.editFn[k]);
                 if (miss.length) { if (window.showMsg) showMsg(`아직 연결 안 된 기능이 있어요.<br><b>${miss.map(k => { const f = DK_FNS.find(x => x[0] === k); return f[3] + ' ' + f[1]; }).join(' · ')}</b><br><small>소품을 톡 하고 위 칩에서 골라 주세요</small>`); return; }
@@ -508,6 +516,7 @@
         }
         /* 위 막대 (확정 가능 여부) · 아래 📦 보관함 줄 */
         function deskEditPaint() {
+            dkSnapBtn();
             const bar = document.getElementById('deskEditBar'), tray = document.getElementById('deskEditTray'); if (!bar || !tray) return;
             if (!DK.edit) return;
             const miss = DK_FN_NEED.filter(k => !DK.editFn[k]);
@@ -757,7 +766,8 @@
                 + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('share')">📤 저장</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button><button type="button" class="desk-snap dk-del" onclick="deskTipAct('del')">🗑 버리기</button></div>`;
             deskTipPlace();
         }
-        function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); }
+        function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); dkSnapBtn(); }
+        function dkSnapBtn() { const b = document.getElementById('dkeSnap'); if (b) { b.textContent = DK.snap ? '🧲 딱 맞추기' : '〰️ 자유롭게'; b.classList.toggle('on', DK.snap); } }
         document.addEventListener('pointerdown', ev => {                          // 다른 곳을 누르면 고르기 끝
             if (!DK.sel) return; const t = ev.target;
             if (t.closest && (t.closest('.desk-item') || t.closest('#deskTip') || t.closest('#deskEditBar') || t.closest('#deskEditTray') || t.closest('.modal'))) return;
