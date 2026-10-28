@@ -69,13 +69,12 @@
             r.setAttribute('role', 'dialog'); r.setAttribute('aria-label', '보관함');
             const kinds = PK_KINDS.filter(g => g.list().length);
             r.innerHTML = `<div class="pk-case" id="pkCase">
-                <div class="pk-body">
+                <div class="pk-body"><button type="button" class="x-only pk-x" id="pkDone" aria-label="닫기">✕</button>
                     <div class="pk-in">
                         <p class="pk-tip" id="pkTip"></p>
                         <div class="pk-tabs" role="tablist">${kinds.map(g => `<button type="button" class="pk-tab" role="tab" data-k="${g.k}">${g.lb}<b data-n="${g.k}"></b></button>`).join('')}</div>
                         <div class="pk-tray" id="pkTray"><div class="pk-strip" id="pkStrip">${pkLap(kinds, false)}${pkLap(kinds, true).repeat(3)}</div></div>
                     </div>
-                    <button type="button" class="pk-done" id="pkDone">닫기</button>
                 </div>
             </div>`;
             document.body.appendChild(r);
@@ -83,7 +82,7 @@
             r.querySelectorAll('.pk-t').forEach(b => b.onclick = () => pkToggle(b));
             r.querySelectorAll('.pk-tab').forEach(b => b.onclick = () => pkTab(b.dataset.k));
             pkBand(pkq('pkTray'));
-            pkq('pkDone').onclick = pkClose;
+            pkq('pkDone').onclick = pkClose; r.addEventListener('click', e => { if (e.target === r) pkClose(); });   // ✕ 또는 창 밖 (도련 10-28)
             r.addEventListener('keydown', e => { if (e.key === 'Escape') pkClose(); });
             return r;
         }

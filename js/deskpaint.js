@@ -53,6 +53,7 @@
             w.querySelector('[data-k="dr"]').oninput = e => { if (DP.decal) { DP.decal.r = e.target.value * Math.PI / 180; dpRender(); } };
             w.querySelector('.dp-file input').onchange = e => dpPick(e.target.files && e.target.files[0]);
             w.querySelector('.dp-stick').onclick = dpStick;
+            w.onclick = e => { if (e.target === w) dpDone(); };                 // 창 밖을 눌러도 ✕ 와 같아요 (도련 10-28)
             w.querySelector('[data-a="ok"]').onclick = dpDone;
             dpWire(DP.view);
             dpTool('brush'); dpColor(DP.color); dpRender();

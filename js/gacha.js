@@ -117,9 +117,9 @@
                 <p class="gp-s">말랑달콤에 온 걸 환영해요 💕<br><b>움직이는 캡슐 스티커</b> <em>'${k.name}'</em>를 선물로 드려요</p>
                 <div class="gp-until">✨ 스티커 → 그 종류 <b>바구니</b>에 넣어 뒀어요</div>
                 ${capsGuide(true)}
-                <button type="button" class="btn btn-primary gp-close">닫기</button>
+                <button type="button" class="gp-close x-only" aria-label="닫기">✕</button>
               </div>`;
-            el.querySelector('.gp-close').onclick = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260); };
+            { const bye = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260); }; el.querySelector('.gp-close').onclick = bye; el.addEventListener('click', e => { if (e.target === el) bye(); }); }   // ✕ 또는 창 밖 (도련 10-28)
             document.body.appendChild(el);
             requestAnimationFrame(() => el.classList.add('on'));
             setTimeout(() => { if (typeof sndChime === 'function') sndChime(); }, 500);

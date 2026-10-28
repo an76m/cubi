@@ -246,3 +246,12 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 /* 🎨 색칠 창 ✕ 닫기 (도련 10-28 · 닫기 버튼 없이 오른쪽 위 ✕ 하나 · 다른 창 ✕ 와 같은 모양) */
 .dp-card { position: relative; }
 .dp-x { position: absolute; right: 12px; top: 12px; width: 28px; height: 28px; border-radius: 50%; border: 1.4px solid var(--an-ol, #bba6d6); background: var(--an-cr, #fffaf3); color: #e07595; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; display: grid; place-items: center; padding: 0; z-index: 2; }
+
+/* ✕ 닫기는 동그라미 없이 ✕ 글자만 (도련 10-28) · 창 밖을 눌러도 닫혀요 · 화면에 보이는 '닫기' 버튼은 없어요
+   .mt-x = 창 제목 ✕ (js/settings.js mtDecorate) · .dp-x = 🎨 색칠 창 · .x-only = 선물 카드 · 배경화면 보기 · 필통 · 인형방 */
+html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-only, #shelfModal .obj-win .mt-x {
+  background: none !important; border: 0 !important; box-shadow: none !important; outline: 0; color: #e07595 !important; font-size: 19px !important; font-weight: 800; line-height: 1; padding: 0 !important; width: 32px !important; height: 32px !important; min-width: 0 !important; display: grid; place-items: center; cursor: pointer; }
+.x-only { position: absolute; right: 10px; top: 10px; z-index: 3; font-family: inherit; }
+.gp-card .gp-close.x-only { width: 32px; margin: 0; }
+.wl-view-box, .pk-body { position: relative; }
+.dr-head-btns .x-only { position: static; }

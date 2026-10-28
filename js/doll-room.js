@@ -83,7 +83,7 @@
                 <span class="dr-stats" id="drStats"></span>
                 <div class="dr-head-btns">
                   <button class="btn" type="button" onclick="dollSaveToList(true)">💾 저장</button>
-                  <button class="btn" type="button" onclick="closeDollRoom()">✕ 닫기</button>
+                  <button class="x-only" type="button" onclick="closeDollRoom()" aria-label="닫기">✕</button>
                 </div>
               </div>
               <div class="dr-steps" id="drSteps"></div>

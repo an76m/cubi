@@ -103,12 +103,11 @@
             const w = (wl.items || []).find(x => x.no === no), v = document.getElementById('wlView');
             if (!w || !v) return;
             v.innerHTML = `
-              <div class="wl-view-box ${w.kind}">
+              <div class="wl-view-box ${w.kind}"><button type="button" class="x-only" onclick="wlUnview()" aria-label="닫기">✕</button>
                 <div class="wl-view-frame wl-dev ${w.kind}"><span class="wl-scr"><img src="${wlImg(w.img, WL_PX[w.kind === 'pc' ? 'pc' : 'phone'])}" alt="" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer" onerror="if(!this.dataset.b){this.dataset.b=1;this.src='${wlImg2(w.img, WL_PX[w.kind === 'pc' ? 'pc' : 'phone'])}'}"></span></div>
                 <div class="wl-view-t">${wlEsc(w.name)} <b>${wlMine[w.no] ? '✅ 내 배경화면' : wlWon(w.price)}</b></div>
                 <div class="wl-view-s">움직이는 모습은 <a href="#" class="wl-link" onclick="goCafe(); return false;">👭 말랑달콤 모임방</a>에서 볼 수 있어요</div>
                 <div class="wl-view-btns">
-                  <button type="button" class="btn" onclick="wlUnview()">닫기</button>
                   <button type="button" class="btn btn-primary pg-copy" onclick="wlUnview(); ${wlMine[w.no] ? 'wlLinkPop' : 'wlPick'}(${w.no})">${wlMine[w.no] ? '🎁 받기' : '💬 주문'}</button>
                 </div>
               </div>`;
@@ -206,10 +205,10 @@
                     <div class="wl-lp-btns"><button type="button" class="btn wl-lp-open" data-n="${n}">🔗 링크 열기</button><button type="button" class="btn wl-lp-copy" data-n="${n}">📋 복사</button></div></div></li>`; }).join('')}
                 </ul>
                 <div class="gp-until">💡 이 링크는 <b>📱 말랑달콤 배경화면</b> 창에서 구입한 배경화면의 <b>받기</b> 버튼을 눌러도 언제든 다시 볼 수 있어요</div>
-                <button type="button" class="btn btn-primary gp-close">닫기</button>
+                <button type="button" class="gp-close x-only" aria-label="닫기">✕</button>
               </div>`;
             const shut = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260); };
-            el.querySelector('.gp-close').onclick = shut;
+            el.querySelector('.gp-close').onclick = shut; el.addEventListener('click', e => { if (e.target === el) shut(); });   // ✕ 또는 창 밖 (도련 10-28)
             el.querySelectorAll('.wl-lp-open').forEach(b => { b.onclick = () => window.open(wlMine[b.dataset.n].u, '_blank', 'noopener'); });
             el.querySelectorAll('.wl-lp-copy').forEach(b => { b.onclick = async () => {
                 const u = wlMine[b.dataset.n].u;

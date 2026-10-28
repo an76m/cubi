@@ -190,10 +190,10 @@
                 <p class="gp-s">고마운 마음을 담아 보냈어요<br>아래에서 <b>무엇이 어디에 생겼는지</b> 확인해 주세요</p>
                 <ul class="gp-list ar-list">${rows.join('')}</ul>
                 <div class="gp-until">🔔 해당 메뉴 버튼에 <b>NEW</b> 표시를 붙여 두었어요 · 버튼을 누르면 사라져요</div>
-                <button type="button" class="btn btn-primary gp-close">닫기</button>
+                <button type="button" class="gp-close x-only" aria-label="닫기">✕</button>
               </div>`;
             const shut = () => { localStorage.removeItem(AR_PENDING); el.classList.add('out'); setTimeout(() => el.remove(), 260); };
-            el.querySelector('.gp-close').onclick = shut;
+            el.querySelector('.gp-close').onclick = shut; el.addEventListener('click', e => { if (e.target === el) shut(); });   // ✕ 또는 창 밖 (도련 10-28)
             el.querySelectorAll('.ar-go').forEach(b => { b.onclick = () => { shut(); setTimeout(() => arGo(b.dataset.go), 280); }; });
             el.querySelectorAll('.wl-lp-open').forEach(b => { b.onclick = () => window.open(wlMine[b.dataset.n].u, '_blank', 'noopener'); });
             el.querySelectorAll('.wl-lp-copy').forEach(b => { b.onclick = async () => {
