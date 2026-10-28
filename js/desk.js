@@ -259,7 +259,7 @@
             if (fn === 'skin' && window.dyOpen) { setTimeout(() => dyOpen('다이어리'), 0); return; }   // 📔 책상에서는 바로 다이어리 보관소 (배경지는 책상에서 못 써서 메뉴를 건너뛰어요 · 도련 10-28)
             const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
-            if (!['skin', 'set', 'gd', 'sticker'].includes(fn) && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }   // ⭐ 스티커도 다이어리를 안 띄워요 (도련 10-28 · 책상 위 바인더가 공중에 뜨지 않게) · 📔 다이어리 · ⚙ 설정 · ✏️ 문구함은 다이어리를 띄우지 않아요 (도련 10-28)
+            if (!['skin', 'set', 'gd', 'sticker', 'cafe'].includes(fn) && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }   // ⭐ 스티커 · ☕ 카페도 다이어리를 안 띄워요 (도련 10-28 · 책상 위 바인더가 공중에 뜨지 않게) · 📔 다이어리 · ⚙ 설정 · ✏️ 문구함은 다이어리를 띄우지 않아요 (도련 10-28)
             else setTimeout(go, 0);
         }
         /* 다이어리를 펴 둔 동안 : 소품은 다이어리 뒤라 직접 안 눌려요 → 빈 곳을 톡 한 자리에 기능 소품이 맨 앞에 보이면 그 기능 (js/drive.js) */
