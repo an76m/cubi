@@ -284,3 +284,7 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .iv-c.ds { position: relative; padding: 6px; overflow: hidden; } .iv-c.ds .ds-sw { border: 1px solid var(--an-ol, #bba6d6); }
 .iv-c.ds em { position: absolute; right: 4px; top: 4px; font-style: normal; font-size: 11px; color: #c8457a; background: #fff; border-radius: 50%; width: 18px; height: 18px; display: grid; place-items: center; }
 .ds-del { position: absolute; left: 3px; bottom: 3px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; background: #fff; border: 1px solid var(--an-ol, #bba6d6); cursor: pointer; }
+/* 📔 보관소 거르기 칩 (종류가 두 가지 이상일 때만 · js/dyyear.js) */
+.dyy-chips { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; }
+.dyy-chips button { padding: 4px 12px; border-radius: 999px; border: 1.5px solid #f2b6c9; background: #fff; color: #7b5a6b; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.dyy-chips button.on { background: #ffe0ea; border-color: #e88fb0; color: #c8457a; }

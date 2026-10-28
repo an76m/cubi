@@ -211,15 +211,29 @@
         };
 
         /* 📔 보관소 칸 (js/skins.js dyTabSet) : 최신 권부터 · 🗑 버리기 */
+        /* 📔 보관소 = 다이어리 책꽂이 하나 (도련 10-28) : 날짜바인더 · 날짜노트 · 페이지바인더 · 페이지노트 모두 한곳 (현실 책꽂이처럼)
+             · 순서 = 지금 펼친 것 → 최근 해 → 먼저 받은 것 · 칸마다 종류 표시 (📅 날짜 바인더 …)
+             · 종류가 두 가지 이상 생기면 위에 거르기 칩 (전체 · 날짜형 · 페이지형) · 지금은 날짜 바인더만이라 칩이 안 보여요 */
+        const DYY_KINDS = [['date', '📅 날짜형'], ['page', '📄 페이지형']];
+        let dyyFilter = 'all';
+        const dyyKindOf = () => 'date';                                       // 지금 받은 권은 모두 날짜형 바인더 (날짜노트 · 페이지형은 팔 때 여기에)
+        const dyyKindName = () => '📅 날짜 바인더';
+        function dyyFilterSet(v) { dyyFilter = v; if (window.dyTabSet) dyTabSet('free'); }
         function dyyCells() {
-            const base = DY_TYPES.find(t => t.id === DY_DEF), L = dyyBooks().slice().reverse();
-            if (!L.length) return `<div class="cs-empty">📔 다이어리가 없어요.<br>🏪 기본상품 샵 → 📔 다이어리에서 받아 주세요.<br><button type="button" class="btn primary" style="margin-top:10px" onclick="closeModal('dyModal'); dyyShop()">🏪 받으러 가기</button></div>`;
-            return L.map(b => {
+            const base = DY_TYPES.find(t => t.id === DY_DEF), cur = dyyBookId();
+            const all = dyyBooks().slice().sort((a, b) => (b.id === cur) - (a.id === cur) || b.y - a.y || b.n - a.n);
+            if (!all.length) return `<div class="cs-empty">📔 다이어리가 없어요.<br>🏪 기본상품 샵 → 📔 다이어리에서 받아 주세요.<br><button type="button" class="btn primary" style="margin-top:10px" onclick="closeModal('dyModal'); dyyShop()">🏪 받으러 가기</button></div>`;
+            const kinds = DYY_KINDS.filter(([k]) => all.some(b => dyyKindOf(b) === k));
+            if (kinds.length < 2 || !kinds.some(([k]) => k === dyyFilter)) dyyFilter = 'all';
+            const chips = kinds.length > 1 ? `<div class="dyy-chips">${[['all', '전체']].concat(kinds).map(([k, n]) => `<button type="button" class="${k === dyyFilter ? 'on' : ''}" onclick="dyyFilterSet('${k}')">${n}</button>`).join('')}</div>` : '';
+            const L = dyyFilter === 'all' ? all : all.filter(b => dyyKindOf(b) === dyyFilter);
+            return chips + L.map(b => {
                 const sk = typeof skinPresets !== 'undefined' ? skinPresets[b.c] : null;
-                return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(base, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${dyyTitle(b)}</span><small>6공 바인더 · ${base.n}</small>`
+                return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(base, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${dyyTitle(b)}</span><small>${dyyKindName(b)} · ${base.n}</small>`
                     + `<span class="dy-del" role="button" tabindex="0" title="버리기" aria-label="버리기" onclick="event.stopPropagation(); dyyDiscard('${b.id}')">🗑</span></button>`;
             }).join('');
         }
+        window.dyyFilterSet = dyyFilterSet;
         const dyyOnId = () => dyyBookId();                                     // 보관소에서 지금 펼친 권 표시 (js/skins.js dyRender)
 
         window.dyyBooks = dyyBooks; window.dyyBookId = dyyBookId; window.dyyHas = dyyHas; window.dyyYear = dyyYear; window.dyyIn = dyyIn; window.dyyClamp = dyyClamp; window.dyySync = dyySync; window.dyySelect = dyySelect;
