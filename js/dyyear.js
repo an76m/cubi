@@ -5,7 +5,7 @@
        · 바인더 색 4가지 (분홍 · 녹색 · 보라 · 노랑 = js/app.js skinPresets) · 색을 바꾸려면 🏪 기본상품 샵에서 그 색 바인더를 새로 받아요
        · 같은 것도 또 받을 수 있어요 (2026 노랑을 또 받으면 새 2026 노랑 한 권) · 다이어리끼리 기록을 나누지 않아요
        · 권 id '2026mint2' = 해 · 색 · 그 해 그 색 몇 번째 ('diary_book_n' · 버려도 번호는 다시 안 써요 → 되살려도 안 겹쳐요)
-       · 저장 : diary_2026mint2_2026_10_28 → 말랑달콤 / 일기기본 / 2026 녹색 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
+       · 저장 : diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜바인더 / 2026 녹색 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
        · 📅 달력 · 🗂 꾸민 페이지만 보기 · 🔍 검색은 펼친 권 것만
    - 받은 권 'diary_years' ['2026pink1', '2026mint2'] · 펼친 권 'diary_year' (설정.json · 게스트는 이 기기)
    - 처음 온 다꾸러는 그 해 분홍 바인더를 선물로 받아요 (한 번만 · 다 버려도 다시 주지 않아요 → 샵에서 받아요)
@@ -17,6 +17,7 @@
    ※ js/skins.js · js/bin.js 다음에 읽어요 (dyStep · dyOpenDate · dkEnd · dyTabSet · dfDays · js/page.js getDateKey · goToDate · beginCurl · js/search.js 가 여기 함수를 불러요) */
 
         const DYY_KEY = 'diary_years', DYY_LOCAL = 'malang_years', DYY_OPEN = 'diary_year', DYY_OPEN_L = 'malang_year', DYY_N = 'diary_book_n', DYY_N_L = 'malang_book_n';
+        const DYY_INFO = 'diary_book_info', DYY_INFO_L = 'malang_book_info';   // 권마다 받은 곳 · 받은 날 { '2026pink1': { from: 'basic', at: '2026-10-28' } } (무료 · 유료는 폴더가 아니라 여기에 · 도련 10-28)
         const DYY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
         const dyyThis = () => new Date().getFullYear();
         const dyyOf = id => { const m = /^(\d{4})(pink|mint|purple|yellow)(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], c: m[2], n: +m[3] } : null; };
@@ -59,6 +60,11 @@
             if (dyyBasic() && typeof currentSkinId !== 'undefined' && currentSkinId !== b.c && typeof applySkinPreset === 'function') applySkinPreset(b.c);
         }
         /* 새 권 id (그 해 그 색 번호는 늘 새로 · 버린 것 · 되살린 것과 안 겹쳐요) */
+        function dyyInfoSet(id, from) {
+            const o = Object.assign({}, prefGet(DYY_INFO, DYY_INFO_L) || {}), t = new Date();
+            if (from) o[id] = { from, at: `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }; else delete o[id];
+            prefSet(DYY_INFO, DYY_INFO_L, o);
+        }
         function dyyNewId(y, c) {
             const k = `${y}${c}`, cnt = Object.assign({}, prefGet(DYY_N, DYY_N_L) || {});
             const used = dyyIds().concat((window.binList ? binList() : []).filter(e => e.k === 'dy').map(e => e.id)).map(dyyOf).filter(b => b && b.y === y && b.c === c).map(b => b.n);
@@ -69,7 +75,7 @@
 
         /* 🎁 처음 온 다꾸러 : 그 해 분홍 바인더 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) */
         function dyySync() {
-            if (prefGet(DYY_KEY, DYY_LOCAL) === null) { const id = dyyNewId(dyyThis(), 'pink'); prefSet(DYY_KEY, DYY_LOCAL, [id]); prefSet(DYY_OPEN, DYY_OPEN_L, id); }
+            if (prefGet(DYY_KEY, DYY_LOCAL) === null) { const id = dyyNewId(dyyThis(), 'pink'); prefSet(DYY_KEY, DYY_LOCAL, [id]); prefSet(DYY_OPEN, DYY_OPEN_L, id); dyyInfoSet(id, 'gift'); }   // 🎁 처음 선물
             dyyPaint();
             dyyFit();
             if (window.dyRender) dyRender();
@@ -162,6 +168,7 @@
         function dyyGive(y, c) {
             const id = dyyNewId(y, c);
             prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id]));
+            dyyInfoSet(id, 'basic');                                           // 🏪 기본상품 샵 (나중 유료 = 'shop')
             dyySelect(id);
             return 'ok';
         }
@@ -199,6 +206,7 @@
                 store.keys().filter(k => k.startsWith(pre)).forEach(k => { store.putLoaded(k, null); drive.dirtyKeys.delete(k); drive.loadedDays.delete(k); });
                 if (drive.guest) Object.keys(localStorage).filter(k => k.startsWith(pre)).forEach(k => { try { localStorage.removeItem(k); } catch (x) {} });
                 drive.monthIndex.delete('all:' + e.id);
+                dyyInfoSet(e.id, null);
             }
         };
 

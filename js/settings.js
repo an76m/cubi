@@ -151,8 +151,8 @@
             const st = document.getElementById('driveStatusText');
             if (st) st.textContent = drive.guest && typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST ? '💻 로컬 테스트 · 이 브라우저에만 저장 (처음부터 : 주소 뒤에 ?reset)'
                 : drive.guest ? '☁ 구글 드라이브에 연결되지 않음 (저장 안 됨)'
-                : drive.local ? `📁 로그인 없이 · ${dvWhere()}에 저장 중 (일기기본 / 기본-년-월-일.json)`
-                : drive.ready ? `☁ 연결됨 · 구글 드라이브에 저장 중 (일기기본 / 기본-년-월-일.json)` : '☁ 연결 안 됨';
+                : drive.local ? `📁 로그인 없이 · ${dvWhere()}에 저장 중 (날짜바인더 / 2026 분홍 1 / 년-월-일.json)`
+                : drive.ready ? `☁ 연결됨 · 구글 드라이브에 저장 중 (날짜바인더 / 2026 분홍 1 / 년-월-일.json)` : '☁ 연결 안 됨';
         }
 
         /* =====================================================================

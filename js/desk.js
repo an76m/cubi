@@ -64,6 +64,7 @@
             DK.items = L; DK.seen = JSON.stringify(L);
         }
         /* 🗂 종류 폴더 파일 (js/coll.js) */
+        const dkKN = k => ({ basket: '바구니' })[k] || DESK_DIRS[k];         // 소품함에 보일 종류 이름 (폴더는 '소품바구니' · 🧺 스티커 바구니와 헷갈리지 않게 · 도련 10-28)
         const dkColl = id => { const c = dkCat(id); return typeof collOf === 'function' && c && typeof DESK_DIRS !== 'undefined' ? collOf(dirPath(DESK_DIRS[c.kind]), '받은-') : null; };
         const dkAdding = new Set();                                                // 파일을 만드는 중인 소품 u (두 번 만들지 않게)
         /* 🔐 종류 폴더 파일 내용 · 선물.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js)
@@ -447,7 +448,7 @@
             if (!have.includes(DK[key])) DK[key] = have[0] || '';
             const k = DK[key];
             return { kind: k, rows: list.filter(o => dkKindOf(o) === k),
-                html: have.length ? have.map(x => `<button type="button" class="dk-tab${x === k ? ' on' : ''}" onclick="${fn}('${x}')">${DESK_DIRS[x]}<small>${list.filter(o => dkKindOf(o) === x).length}</small></button>`).join('') : '' };
+                html: have.length ? have.map(x => `<button type="button" class="dk-tab${x === k ? ' on' : ''}" onclick="${fn}('${x}')">${dkKN(x)}<small>${list.filter(o => dkKindOf(o) === x).length}</small></button>`).join('') : '' };
         }
         function deskBoxTab(k) { DK.boxKind = k; DK.boxSel = null; deskBoxRender(); requestAnimationFrame(() => window.deskBoxTabShow && deskBoxTabShow()); }
         function deskTrayTab(k) { DK.trayKind = k; deskEditPaint(); }
@@ -461,7 +462,7 @@
             if (DK.boxKind !== 'all' && !kinds.includes(DK.boxKind)) DK.boxKind = 'all';
             const k = DK.boxKind, rows = k === 'all' ? DK.items.slice() : DK.items.filter(o => dkKindOf(o) === k);
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
-            const side = [['all', '전체', DK.items.length]].concat(kinds.map(kk => [kk, DESK_DIRS[kk], DK.items.filter(o => dkKindOf(o) === kk).length]))
+            const side = [['all', '전체', DK.items.length]].concat(kinds.map(kk => [kk, dkKN(kk), DK.items.filter(o => dkKindOf(o) === kk).length]))
                 .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('');
             const cells = rows.map(o => `<button type="button" class="iv-c ${o.at === 'desk' ? 'desk' : 'box'}${o.u === DK.boxSel ? ' sel' : ''}" title="${dkName(o)}" onclick="deskBoxPick('${o.u}')"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt="" loading="lazy">${o.at === 'desk' ? '<em>🪑</em>' : ''}</button>`);
             const none = k === 'all' ? '' : `<button type="button" class="iv-c no" title="책상에서 모두 넣기" onclick="deskBoxAllIn()"><b>⊘</b></button>`;

@@ -3,22 +3,24 @@
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
         /* =====================================================================
            ☁ 구글 드라이브 저장소 : 내 드라이브의 '말랑달콤' 폴더 하나에 모두 모여요
-           📁 폴더 구조 확정 (도련 10-26 · 다시 바꾸지 않아요) : 말랑달콤 바로 아래에 폴더만 한 줄로 · 폴더 안에는 파일만 (폴더 안에 폴더 없음)
-              - 새 아이디어 = 이름이 '종류'인 폴더 하나만 추가 (DIRS) · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
-              - 파일은 폴더 사이를 옮겨 다니지 않아요 (위치 · 출처는 파일 안이나 목록 파일에만)
-             말랑달콤 / 일기기본 / 기본-2026-10-26.json · 검색-기본-2026.json      📔 기본 다이어리 (하루에 파일 1개)
-                      / 일기노트 · 일기바인더 / <권 id>-다이어리.json · <권 id>-표지.json · <권 id>-3페이지.json · 검색-<권 id>.json   📕 권 id 를 이름 앞에
+           📁 폴더 구조 (도련 10-26 · 10-28 고침) : 말랑달콤 바로 아래에 '종류' 폴더만 한 줄로 · 무료 · 유료 · 이벤트 · 공유 모두 종류가 같으면 같은 폴더 (받은 곳은 파일 안 · 목록에)
+              - 상품 하나 = 따로 하나 (현실처럼 · 같은 것도 또 받아요) : 파일이 여러 개인 상품(📔 다이어리)은 한 개에 폴더 하나 · 파일 하나인 상품(🪑 소품 · ✏️ 문구)은 한 개에 파일 하나
+              - 🏷️ 스티커는 예외 (바구니 ↔ 스티커첩으로 옮겨 다녀서 목록 하나 · js/own.js)
+              - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
+             말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-10-28.json · 검색.json   📔 날짜형 바인더 1년치 (기본으로 주는 것 · 한 권 = 폴더 · '해 디자인 번호' · js/dyyear.js)
+                      / 날짜노트 / 2027 딸기 1 / …                       📔 날짜형 노트 1년치 (나중 · 유료)
+                      / 페이지바인더 · 페이지노트 / <권 id>-다이어리.json · <권 id>-3페이지.json …   📕 페이지형 30장 (지금 숨김 · 팔 때 한 권 = 폴더로)
                       / 페이지꾸밈 · 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
                       / 스티커목록 / 목록.json · 스티커첩.json · 백업          🎒 유한 스티커 (js/own.js)
                       / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)
+                      / 서랍장 · 시계 · 책꽂이 … 소품바구니 … (DESK_DIRS) / 받은-<id>.json · 받은-목록N.json   🪑 책상 소품 하나에 파일 하나
+                      / 핀셋 · 가위 · 펀칭기 … (GD_DIRS) / 같은 방식                      ✏️ 문구 하나에 파일 하나 (js/coll.js 모음)
+                      / 기본세트 / 선물.json                            🎁 처음 한 번 받는 서비스 (책상 소품 + 문구 · 한 파일 · 버리면 여기서 빠져요 · 예외 · js/desk.js)
+                      / 책상배치 / 배치.json · 배치_백업.json             🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 커스텀 · 가진 문구 목록 (js/desk.js · js/skins.js)
                       / 인형 · 인형극 / <이름>.json                     👧 🎭 (js/doll-store.js · js/puppet.js)
                       / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실 · 행운
-                      / 설정 / 설정.json                                ⚙ 설정 탭 값
-                      / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js)
-                      / 책상배치 / 배치.json                            🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 가진 문구 목록 (js/desk.js · js/skins.js)
-                      / 기본세트 / 선물.json                            🎁 처음 한 번 받는 서비스 (책상 소품 + 문구 · 한 파일 · 버리면 여기서 빠져요 · 예외 · js/desk.js)
-                      / 서랍장 · 시계 · 책꽂이 … (DESK_DIRS) / 받은-<id>.json · 받은-목록N.json   🪑 가진 책상 소품 하나에 파일 하나 (기본 · 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내-)
-                      / 핀셋 · 가위 · 펀칭기 … (GD_DIRS) / 같은 방식                      ✏️ 가진 문구 (js/coll.js 모음)
+                      / 설정 / 설정.json                                ⚙ 설정 탭 값 · 받은 다이어리 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js)
+                      / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js · 구글은 드라이브 휴지통)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
@@ -28,16 +30,16 @@
         const TOP_FOLDER_NAME = '말랑달콤';                         // 최상위 폴더
         /* 📁 폴더 이름은 여기 한 곳에서만 (도련 10-26 · 새 폴더 = 한 줄 추가) · 스티커 종류 폴더는 js/own.js OWN_KIND */
         const DIRS = {
-            day: '일기기본', note: '일기노트', binder: '일기바인더',
+            day: '날짜바인더', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜노트)
             pageDeco: '페이지꾸밈', pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
             stkList: '스티커목록', doll: '인형', puppet: '인형극', cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치', starter: '기본세트'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
-        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', photo: '벽사진', basket: '바구니', lamp: '조명', doll: '인형' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
+        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', photo: '벽사진', basket: '소품바구니', lamp: '조명', doll: '인형' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
         const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자' };
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
-        const DAY_PATH = dirPath(DIRS.day), DAY_PRE = '기본-';      // 📔 기본 다이어리 : 말랑달콤 / 일기기본 / 기본-2026-10-26.json
-        const DK_KINDS = ['노트', '바인더'];                         // 📕 유한 다이어리 : 말랑달콤 / 일기노트 · 일기바인더 / <권 id>-…json
+        const DAY_PATH = dirPath(DIRS.day);                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-10-28.json
+        const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
         const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
         const DESK_PATH = dirPath(DIRS.deskLayout), DESK_FILE_NAME = '배치.json';
@@ -55,7 +57,7 @@
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         /* 📔 날짜 다이어리 = 한 권에 폴더 하나 (도련 10-28 · js/dyyear.js) : 권 id '2026mint2' = 해 · 바인더 색 · 그 해 그 색 몇 번째 (지워도 번호는 다시 안 써요)
-             diary_2026mint2_2026_10_28 → 말랑달콤 / 일기기본 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
+             diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜바인더 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
         const DAY_KEY_RE = /^diary_(\d{4}(?:pink|mint|purple|yellow)\d+)_(\d{4})_(\d{2})_(\d{2})$/;
         const DYB_RE = /^(\d{4})(pink|mint|purple|yellow)(\d+)$/, DYB_COLOR = { pink: '분홍', mint: '녹색', purple: '보라', yellow: '노랑' };
         function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${DYB_COLOR[r[2]]} ${r[3]}` : ''; }   // 폴더 이름 '2026 녹색 2'
@@ -65,8 +67,8 @@
         const DK_INFO = '다이어리.json', dkInfoName = id => `${id}-${DK_INFO}`;   // 📕 권 정보 파일 : <권 id>-다이어리.json
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
-           - 날짜 데이터  : diary_2026pink1_2026_09_10  → 말랑달콤/일기기본/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
-           - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/일기바인더/<권 id>-3페이지.json · dkb_<권 id> → <권 id>-다이어리.json
+           - 날짜 데이터  : diary_2026pink1_2026_09_10  → 말랑달콤/날짜바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
+           - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/페이지바인더/<권 id>-3페이지.json · dkb_<권 id> → <권 id>-다이어리.json
            - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페기록/카페.json) */
         const store = {
             _m: new Map(),
@@ -107,7 +109,7 @@
             dayLoads: new Map(),         // 읽는 중인 날짜 요청
             folderIds: new Map(),        // 폴더 경로 → 폴더 id 캐시
             folderBusy: new Map(),
-            monthIndex: new Map(),       // 'all' → { folderId, files: Map(파일명 → 파일정보) } : 일기기본 폴더 전체 (한 폴더 · 도련 10-26)
+            monthIndex: new Map(),       // 'all' → { folderId, files: Map(파일명 → 파일정보) } : 📔 권 폴더마다 ('all:<권 id>')
             monthBusy: new Map(),
             books: new Map(), bookBusy: new Map(),   // 📕 권 id → { folderId, files } (monthIndex 와 같은 모양)
             get dirty() { return this.dirtyKeys.size > 0; }
@@ -188,7 +190,7 @@
         const qName = n => String(n).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
         /* ---------- 폴더 / 파일 이름 규칙 ----------
-           말랑달콤 / 일기기본 / 기본-2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
+           말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
         const pad2 = n => String(n).padStart(2, '0');
         const dayFileName = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}.json`;   // 권 폴더 안 (dyBookDir)
         const DAY_FILE_RE = /^(\d{4})-(\d{2})-(\d{2})\.json$/;
@@ -364,7 +366,7 @@
             return mineWrote(await res.json()).id;
         }
 
-        /* names = ['말랑달콤','설정'] / ['말랑달콤','일기기본'] … (늘 말랑달콤 바로 아래 한 칸 · 도련 10-26)
+        /* names = ['말랑달콤','설정'] / ['말랑달콤','날짜바인더'] … (늘 말랑달콤 바로 아래 한 칸 · 도련 10-26)
            create=false : 있으면 찾기만 (읽을 때) / create=true : 없으면 만들기 (저장할 때) */
         async function getFolder(names, create) {
             const key = names.join('/');
@@ -392,7 +394,7 @@
             try { return await p; } finally { drive.folderBusy.delete(busyKey); }
         }
 
-        /* 📔 일기기본 폴더의 파일 목록을 한 번만 가져와 기억 (한 폴더에 모든 날 · 도련 10-26) → 날짜마다 목록 조회 없이 바로 읽음
+        /* 📔 그 권 폴더의 파일 목록을 한 번만 가져와 기억 (한 권에 모든 날) → 날짜마다 목록 조회 없이 바로 읽음
            - 예전 이름(getMonthIndex)은 그대로 · 어느 달을 물어도 같은 목록 (파일 이름에 날짜가 다 들어 있어요)
            - 이름으로 걸러 찾지 않고 폴더를 통째로 읽어요 (이름 검색은 빠뜨릴 수 있어서 · 빠뜨리면 같은 날 파일을 또 만들어요) */
         function dayIdxOf(folderId, files) {
@@ -460,7 +462,7 @@
         }
         const keyFileSeal = async (which, body) => which === 'desk' ? ownLock(JSON.parse(body), COLL.who) : body;
 
-        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 일기기본 · 📕 장 · 다이어리.json : 일기노트 · 일기바인더 안 그 권 것만) */
+        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 날짜바인더 / 그 권 · 📕 장 · 다이어리.json : 페이지노트 · 페이지바인더 안 그 권 것만) */
         function idxOfKey(key, create) {
             const d = parseDayKey(key); if (d) return getMonthIndex(d.y, d.m, create, d.b);
             const p = parsePageKey(key), b = BOOK_KEY_RE.exec(key);
@@ -482,7 +484,7 @@
         }
         const fetchDay = (date, meta) => fetchKey(getDateKey(date), meta);
 
-        /* 📕 유한 다이어리 한 권 = 일기노트 · 일기바인더 폴더 안 '<권 id>-' 로 시작하는 파일들 (도련 10-26 · 권 폴더 없음)
+        /* 📕 페이지형 한 권 = 페이지노트 · 페이지바인더 폴더 안 '<권 id>-' 로 시작하는 파일들 (도련 10-26 · 권 폴더 없음)
            - 종류(노트 · 바인더)는 다이어리.json 정보로 · 모르면 두 폴더 모두 봐요
            - create=true 면 없을 때 <권 id>-다이어리.json 을 만들어요 (첫 장을 저장할 때) */
         function dkIdxOf(folderId, kind, files, id) {
