@@ -67,7 +67,7 @@ html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-t
 html.an .bd-tool:not(.need), html.an .pc-tool, html.an .twz, html.an .sk-knife, html.an .scs-cur { filter: none !important; }   /* 문구 그림자 없음 · 알려 주는 반짝(.need)은 그대로 */
 /* ---------- 🪑 책상 라벨 · 📱 하단 메뉴 ---------- */
 html.an .dk-fn-tag { box-shadow: 0 0 0 1.2px var(--an-ol) !important; border-color: transparent !important; background-image: none !important; color: var(--an-ink) !important; }
-html.an .toolbar { background: var(--an-cr) !important; border: 1.6px solid var(--an-ol) !important; box-shadow: 4px 5px 0 var(--an-sh) !important; backdrop-filter: none !important; }
+html.an .toolbar { background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }   /* 하단 메뉴 = 버튼만 (흰 네모 · 그림자 없음 · 도련 10-28) */
 html.an .tb-btn { border: 1.5px solid var(--an-ol) !important; box-shadow: none !important; background-image: none !important; }
 html.an .tb-btn::before { display: none !important; }   /* 반짝 하이라이트 없음 */
 /* ---------- 🧚 로그인 요정 버튼 : 바닥 그림자 연보라 ---------- */
