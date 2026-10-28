@@ -212,8 +212,8 @@
 
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
-            ['shop', '기본상품 샵', '', '🏪'], ['box', '소품함', '', '📦'], ['edit', '책상 꾸미기', '', '🛠']];
-        const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', box: 'drawer-pink', edit: 'drawer' };   // 📦 소품함 = 핑크 서랍장 (도련 10-28)
+            ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
+        const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품
         const DK_FN_NEED = ['skin', 'sticker', 'gd', 'cafe', 'set'];                // 꼭 있어야 하는 기능 (하단 메뉴 다섯 개)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         function deskFnMap() {                                                    // 모든 기능 · 서로 다른 책상 위 소품 (모자라면 그 기능은 빠져요 → 하단 메뉴가 보여요)
