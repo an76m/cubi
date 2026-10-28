@@ -24,16 +24,16 @@
                 if (res.ok) await driveTrash((await res.json()).id);
             } catch (e) { console.warn('덮어쓰기 전 모습을 휴지통에 넣지 못했어요 (저장은 그대로 해요):', path, e); }
         }
-        const dayPathOf = key => { const d = parseDayKey(key); return d ? DAY_PATH.concat(dayFileName(d.y, d.m, d.d, d.c)).join('/') : ''; };
+        const dayPathOf = key => { const d = parseDayKey(key); return d ? dyBookDir(d.b).concat(dayFileName(d.y, d.m, d.d)).join('/') : ''; };
         function trashKeepDay(key, oldText) { const p = dayPathOf(key); return p ? trashKeep(p, oldText) : Promise.resolve(); }
 
         /* ---------- 이름 : 경로 → 사람이 알아보는 말 ---------- */
         function trLabel(path) {
-            let m = /(?:^|\/)(기본|녹색|보라|노랑)-(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);           // 📁 폴더 한 줄 (10-26) : 말랑달콤 / 폴더 / 파일 · 📔 바인더 색마다
-            if (m) return `📔 ${m[2]}년 ${+m[3]}월 ${+m[4]}일 일기${m[1] === '기본' ? '' : ' (' + m[1] + ' 바인더)'}`;
+            let m = /\/(\d{4} (?:분홍|녹색|보라|노랑) \d+)\/(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);   // 📔 말랑달콤 / 일기기본 / 2026 녹색 2 / 2026-10-28.json
+            if (m) return `📔 ${m[2]}년 ${+m[3]}월 ${+m[4]}일 일기 (${m[1]})`;
             if (/\/설정\/설정\.json$/.test(path)) return '⚙ 설정';
             if (/\/카페기록\/카페\.json$/.test(path)) return '☕ 카페 기록';
-            if (/\/검색-[^/]*\.json$/.test(path)) return '🔍 검색 목록';
+            if (/\/검색(-[^/]*)?\.json$/.test(path)) return '🔍 검색 목록';
             const parts = path.split('/'), dir = parts.length > 2 ? parts[parts.length - 2] : '', file = parts[parts.length - 1] || '';
             if (/^(내|받은)-목록\d+\.json$/.test(file)) return '📋 모음 목록';
             if (/^(내|받은)-/.test(file)) {
@@ -59,14 +59,14 @@
             return map;
         }
         async function trList() {
-            if (drive.local) return (await dvTrash.list()).filter(e => !/\/목록\/목록\d+\.json$|\/검색\//.test(e.path)).map(e => Object.assign({ dev: true }, e));
+            if (drive.local) return (await dvTrash.list()).filter(e => !/\/목록\/목록\d+\.json$|\/검색\/|\/검색(-[^/]*)?\.json$/.test(e.path)).map(e => Object.assign({ dev: true }, e));
             const map = await trGoogleFolders();
             const fs = await driveList(`trashed=true and mimeType!='${FOLDER_MIME}'`, 'id,name,parents,modifiedTime,size,trashedTime,appProperties');
             const out = [];
             fs.forEach(f => {
                 const orig = f.appProperties && f.appProperties.orig, par = (f.parents || [])[0];
                 const path = orig || (map.has(par) ? map.get(par) + '/' + f.name : '');
-                if (!path || !/\.json$/i.test(path) || /\/목록\/목록\d+\.json$|\/검색\//.test(path)) return;   // 모음 목록 · 검색 목록은 앱이 알아서 다시 만들어요
+                if (!path || !/\.json$/i.test(path) || /\/목록\/목록\d+\.json$|\/검색\/|\/검색(-[^/]*)?\.json$/.test(path)) return;   // 모음 목록 · 검색 목록은 앱이 알아서 다시 만들어요
                 out.push({ id: f.id, path, at: Date.parse(f.trashedTime || f.modifiedTime) || 0, size: +f.size || 0 });
             });
             return out;
@@ -92,6 +92,7 @@
             return true;
         }
         async function trEmpty(list) {
+            if (window.binList) for (const e of binList()) await binPurge(e);   // 🗑 버린 상품도 영구 삭제 (js/bin.js)
             if (drive.local) { await dvTrash.empty(); return; }
             for (const e of list) { try { await gfetch(`${DRIVE_API}/${e.id}`, { method: 'DELETE' }); } catch (x) {} }
         }
@@ -122,11 +123,23 @@
             try { list = await keepTrying(trList, { alive: () => ktShown(box), onTry: n => { box.innerHTML = `<div class="tr-empty-msg">${KT_MSG(n)}</div>`; } }); }
             catch (e) { if (ktShown(box)) box.innerHTML = '<div class="tr-empty-msg">⚠ 불러오지 못했어요.</div>'; return; }
             list.sort((a, b) => b.at - a.at);
-            const size = list.reduce((s, e) => s + (e.size || 0), 0);
-            tot.textContent = list.length ? `${list.length}개 · ${trSize(size)}` : '';
-            emp.disabled = !list.length;
-            if (!list.length) { box.innerHTML = '<div class="tr-empty-msg">휴지통이 비어 있어요.</div>'; return; }
+            const goods = window.binList ? binList().sort((a, b) => b.at - a.at) : [];   // 🗑 버린 상품 (다이어리 · 소품 · 문구 … js/bin.js) : 맨 위
+            const size = list.reduce((s, e) => s + (e.size || 0), 0), n = list.length + goods.length;
+            tot.textContent = n ? `${n}개${list.length ? ' · ' + trSize(size) : ''}` : '';
+            emp.disabled = !n;
+            if (!n) { box.innerHTML = '<div class="tr-empty-msg">휴지통이 비어 있어요.</div>'; return; }
             box.textContent = '';
+            goods.forEach(e => {
+                const row = document.createElement('div'); row.className = 'tr-row tr-goods';
+                row.innerHTML = `<span class="tr-what"><b></b><small>${trWhen(e.at)}에 버림 · ${binLeft(e)}일 뒤 영구 삭제</small></span><button type="button" class="btn tr-back">되살리기</button>`;
+                row.querySelector('b').textContent = BIN_KINDS[e.k].name(e);
+                row.querySelector('.tr-back').onclick = async ev => {
+                    ev.currentTarget.disabled = true;
+                    try { await binRestore(e); showMsg(`<b>${trEsc(BIN_KINDS[e.k].name(e))}</b><br>되살렸어요!`); openTrash(); }
+                    catch (x) { console.warn(x); showMsg('⚠ 되살리지 못했어요. 잠시 후 다시 해 주세요.'); ev.currentTarget.disabled = false; }
+                };
+                box.appendChild(row);
+            });
             list.forEach(e => {
                 const row = document.createElement('div'); row.className = 'tr-row';
                 row.innerHTML = `<span class="tr-what"><b></b><small>${trWhen(e.at)}에 지움 · ${trSize(e.size || 0)}</small></span><button type="button" class="btn tr-back">되살리기</button>`;
@@ -139,7 +152,7 @@
                 box.appendChild(row);
             });
             emp.onclick = async () => {
-                if (!(await showMsg(`휴지통의 ${list.length}개를 모두 지울까요?<br><span style="font-size:12px;color:#777;">비우면 다시 살릴 수 없어요.</span>`, true))) return;
+                if (!(await showMsg(`휴지통의 ${list.length + goods.length}개를 모두 지울까요?<br><span style="font-size:12px;color:#777;">비우면 다시 살릴 수 없어요.</span>`, true))) return;
                 emp.disabled = true;
                 try { await trEmpty(list); } catch (x) { console.warn(x); }
                 openTrash();

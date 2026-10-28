@@ -41,10 +41,10 @@
         }
         /* 키 → 목록 안의 이름 (기본 = '2026-10-18' · 유한 = 'p3') · 키 → 목록 (기본 = 'y2026' 해마다 · 유한 = 'b<권 id>' 권마다) */
         const srDayOf = key => { const p = parseDayKey(key); if (p) return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`; const q = parsePageKey(key); return q ? 'p' + q.n : ''; };
-        const srScope = key => { const p = parseDayKey(key); if (p) return 'y' + p.y + (p.c ? '-' + p.c : '');   /* 📔 바인더 색마다 (y2026 · y2026-mint) */ const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
+        const srScope = key => { const p = parseDayKey(key); if (p) return 'd' + p.b;   /* 📔 권마다 (d2026mint2) */ const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
         /* 목록 파일 자리 : { dir, name } (create : 폴더가 없으면 만들기) */
         async function srLoc(s, create) {
-            if (s[0] === 'y') { const [y, c] = s.slice(1).split('-'); return { dir: await getFolder(DAY_PATH, create), name: `${SR_PREFIX}${DYC_FILE[c || '']}-${y}.json` }; }   // 검색-기본-2026.json · 검색-녹색-2026.json
+            if (s[0] === 'd') return { dir: await getFolder(dyBookDir(s.slice(1)), create), name: '검색.json' };   // 📔 그 권 폴더 / 검색.json
             const b = await getBookIndex(s.slice(1), create);
             return { dir: b ? b.folderId : null, name: b ? `${SR_PREFIX}${b.name}.json` : '' };
         }
@@ -135,20 +135,20 @@
             if (sr.synced || !srOn()) return;
             if (sr.syncing) return sr.syncing;
             sr.syncing = (async () => {
-                const idx = await getMonthIndex(0, 0, false);                     // 일기기본 폴더 하나에 모든 날 (폴더 한 줄 · 10-26)
+                const bk = window.dyyBookId ? dyyBookId() : '', idx = bk ? await getMonthIndex(0, 0, false, bk) : null;   // 📔 펼친 권 폴더의 모든 날
                 if (!idx) { sr.synced = true; return; }
-                const byYear = new Map();                                          // 목록마다 (해 · 바인더 색)
-                idx.files.forEach((f, name) => { const r = parseDayFile(name); if (!r) return; const s = 'y' + r.y + (r.c ? '-' + r.c : ''); if (!byYear.has(s)) byYear.set(s, []); byYear.get(s).push([r, f]); });
+                const byYear = new Map([['d' + bk, []]]);
+                idx.files.forEach((f, name) => { const r = parseDayFile(name); if (r) byYear.get('d' + bk).push([r, f]); });
                 const need = [];
-                for (const sc of [...byYear.keys()].sort()) {
-                    const Y = await srYear(sc), seen = new Set(), col = sc.split('-')[1] || '';
+                for (const sc of byYear.keys()) {
+                    const Y = await srYear(sc), seen = new Set();
                     byYear.get(sc).forEach(([r, f]) => {
-                        const key = dayKeyOf(r.y, r.m, r.d, r.c), day = srDayOf(key), e = Y.d[day];
+                        const key = dayKeyOf(r.y, r.m, r.d, bk), day = srDayOf(key), e = Y.d[day];
                         seen.add(day);
                         if (drive.loadedDays.has(key) || drive.dirtyKeys.has(key)) { srApply(Y, key); if (Y.d[day] && !Y.d[day][1]) Y.d[day][1] = f.modifiedTime || ''; return; }
                         if (!e || (e[1] && f.modifiedTime && e[1] < f.modifiedTime) || !e[1]) need.push({ Y, key, day, f });
                     });
-                    Object.keys(Y.d).forEach(day => { const [a, b, c] = day.split('-').map(Number); if (!seen.has(day) && !store.getItem(dayKeyOf(a, b, c, col))) srSet(Y, day, null); });
+                    Object.keys(Y.d).forEach(day => { const [a, b, c] = day.split('-').map(Number); if (!seen.has(day) && !store.getItem(dayKeyOf(a, b, c, bk))) srSet(Y, day, null); });
                 }
                 for (let i = 0; i < need.length; i += 4) {                          // 목록에 없는 날만 읽어서 채우기 (4개씩)
                     if (progress) progress(i, need.length);
@@ -207,8 +207,8 @@
             srSchedule();
         }
         function srAll() {                                                          // [{ day, text }] (최신 날 먼저 · 📕 유한은 day = 'p장' · 뒤 장 먼저)
-            const bk = srBook(), cur = bk ? 'b' + dkId(true) : '', map = new Map(), col = window.dyyColor ? dyyColor() : '';
-            const mine = s => bk ? s === cur : s[0] === 'y' && (s.split('-')[1] || '') === col;   // 📔 펼친 바인더 것만 (다이어리끼리 기록을 나누지 않아요)
+            const bk = srBook(), cur = bk ? 'b' + dkId(true) : 'd' + (window.dyyBookId ? dyyBookId() : ''), map = new Map();
+            const mine = s => s === cur;                                            // 📔 펼친 권 것만 (다이어리끼리 기록을 나누지 않아요)
             sr.years.forEach((Y, s) => { if (mine(s)) Object.keys(Y.d).forEach(day => map.set(day, Y.d[day][0])); });
             store.keys().forEach(k => { const day = srDayOf(k), s = srScope(k); if (day && mine(s) && (!srOn() || drive.loadedDays.has(k) || drive.dirtyKeys.has(k))) { let raw = null; try { raw = JSON.parse(store.getItem(k)); } catch (e) {} const t = srText(raw); if (t) map.set(day, t); else map.delete(day); } });
             const order = bk ? (a, b) => +b[0].slice(1) - +a[0].slice(1) : (a, b) => a[0] < b[0] ? 1 : -1;

@@ -208,7 +208,8 @@
 
         function getDateKey(date) {
             const dk = window.dkKey && dkKey(date); if (dk) return dk;       // 📕 유한 다이어리 장 (2000년 날짜) → dkp_권_장 (js/skins.js)
-            return dayKeyOf(date.getFullYear(), date.getMonth() + 1, date.getDate(), window.dyyColor ? dyyColor() : '');   // 📔 펼친 바인더 색마다 따로 (js/dyyear.js)
+            const b = window.dyyBookId && dyyBookId(); if (!b) return 'nobook';   // 📔 다이어리가 없으면 어디에도 저장 안 되는 키 (펼치지도 못해요)
+            return dayKeyOf(date.getFullYear(), date.getMonth() + 1, date.getDate(), b);   // 📔 펼친 권마다 따로 (js/dyyear.js)
         }
 
         let turn = null;
@@ -272,6 +273,7 @@
 
         function beginCurl(isCover, dir) {
             if (turn) return false;
+            if (isCover && window.dyyNone && dyyNone()) return false;              // 📔 다이어리가 한 권도 없어요 → 알려 주고 안 펼쳐요 (js/dyyear.js)
             if (isCover && dir !== 1) return false;
             const keep = !isCover && dir === 1 && !!window.dkUnfold && dkUnfold();   // 📕 표꾸 화면에서 넘기면 겉표지를 여는 것처럼 (열리면서 가운데로 · js/skins.js)
             if (keep) isCover = true;

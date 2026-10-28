@@ -265,3 +265,7 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .sh-zlook .sh-dyb { transform: scale(1.6); margin: 40px 0; }
 .dy-yr .dy-stage { position: relative; }
 .dy-yr-n { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); padding: 1px 8px; border-radius: 999px; background: #fff; border: 1.2px solid var(--an-ol, #bba6d6); color: #c8457a; font: 800 12px/1.3 'Jua', sans-serif; }
+/* 📔 보관소 🗑 버리기 (js/dyyear.js dyyDiscard) */
+.dy-yr { position: relative; }
+.dy-del { position: absolute; left: 6px; top: 6px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; font-size: 14px; background: #fff; border: 1.2px solid var(--an-ol, #bba6d6); cursor: pointer; }
+.tr-goods b::after { content: ''; }

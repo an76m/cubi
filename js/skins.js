@@ -2087,15 +2087,16 @@
            - 꾸민 날 목록 : 드라이브의 날짜 파일 목록 (켜져 있으면 처음 한 번 · driveEnumerateAll) + 이 기기에서 읽거나 고친 날
            - 📕 유한 다이어리 : 열면 켜고 끄기와 상관없이 마지막으로 꾸민 장 · 켜면 꾸민 장 + 마지막으로 꾸민 다음 빈 장 하나만 넘겨요 */
         const DF_KEY = 'diary_filled', DF_LOCAL = 'malang_filled';
-        let dfList = null, dfGen = -1, dfLoading = null;
+        let dfList = null, dfGen = -1, dfLoading = null, dfBook = '';
         const dfOn = () => prefGet(DF_KEY, DF_LOCAL) === 'on';
         function dfSet(on) { prefSet(DF_KEY, DF_LOCAL, on ? 'on' : 'off'); dfRender(); if (on) dfFix(); }
         function dfRender() { const s = document.getElementById('dyFillSw'); if (s) s.checked = dfOn(); }
         function dfLoad() {
-            if (dfGen !== drive.gen) { dfList = null; dfGen = drive.gen; }
-            if (dfList || dfLoading || !dfOn() || drive.guest || !drive.ready) return dfLoading;
+            const bk = window.dyyBookId ? dyyBookId() : '';                  // 📔 펼친 권 것만 (권이 바뀌면 다시)
+            if (dfGen !== drive.gen || dfBook !== bk) { dfList = null; dfGen = drive.gen; dfBook = bk; }
+            if (dfList || dfLoading || !dfOn() || drive.guest || !drive.ready || !bk) return dfLoading;
             const gen = drive.gen;
-            dfLoading = driveEnumerateAll().then(a => { if (gen === drive.gen) dfList = new Set(a.map(f => f.key)); }).catch(() => {}).finally(() => { dfLoading = null; });
+            dfLoading = driveEnumerateAll(bk).then(a => { if (gen === drive.gen && dfBook === bk) dfList = new Set(a.map(f => f.key)); }).catch(() => {}).finally(() => { dfLoading = null; });
             return dfLoading;
         }
         function dfHas(k) {                                                    // 읽었거나 고친 날은 지금 내용으로 · 아니면 드라이브 목록으로
@@ -2120,8 +2121,8 @@
         function dfDays() {                                                    // 꾸민 날 (오래된 날부터)
             const keys = new Set(dfList || []);
             store.keys().forEach(k => { if (DAY_KEY_RE.test(k)) keys.add(k); });
-            const col = window.dyyColor ? dyyColor() : '';                     // 📔 펼친 바인더 것만 (js/dyyear.js)
-            return [...keys].filter(k => parseDayKey(k).c === col).filter(dfHas).sort();
+            const bk = window.dyyBookId ? dyyBookId() : '';                   // 📔 펼친 권 것만 (js/dyyear.js)
+            return [...keys].filter(k => parseDayKey(k).b === bk).filter(dfHas).sort();
         }
         const dfDate = k => { const p = parseDayKey(k); return new Date(p.y, p.m - 1, p.d); };
         /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */
