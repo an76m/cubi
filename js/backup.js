@@ -12,7 +12,7 @@
    ※ 예전 json 백업(📂 PC로 백업)은 없앴어요 : 1년치를 글자 하나에 담다가 폰이 멈추거나 한 글자만 깨져도 전부 못 읽어서 */
 
         const BK_TOP = '말랑달콤';   // drive.js 보다 먼저 불러와서 글자로 (TOP_FOLDER_NAME 과 같아요)
-        const BK_DAY_RE = /\/일기기본\/기본-\d{4}-\d{2}-\d{2}\.json$/;
+        const BK_DAY_RE = /\/일기기본\/(기본|녹색|보라|노랑)-\d{4}-\d{2}-\d{2}\.json$/;   // 📔 바인더 색마다
         /* 백업에서 빼는 것 (path = 말랑달콤/폴더/파일) : 휴지통 · 스티커목록 · 스티커 종류 폴더의 내 종이 (공유하기 내-/받은- 파일만 넣어요) */
         function bkSkip(path) {
             const parts = path.split('/'), dir = parts[1] || '', file = parts[parts.length - 1] || '';

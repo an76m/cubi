@@ -24,13 +24,13 @@
                 if (res.ok) await driveTrash((await res.json()).id);
             } catch (e) { console.warn('덮어쓰기 전 모습을 휴지통에 넣지 못했어요 (저장은 그대로 해요):', path, e); }
         }
-        const dayPathOf = key => { const d = parseDayKey(key); return d ? DAY_PATH.concat(dayFileName(d.y, d.m, d.d)).join('/') : ''; };
+        const dayPathOf = key => { const d = parseDayKey(key); return d ? DAY_PATH.concat(dayFileName(d.y, d.m, d.d, d.c)).join('/') : ''; };
         function trashKeepDay(key, oldText) { const p = dayPathOf(key); return p ? trashKeep(p, oldText) : Promise.resolve(); }
 
         /* ---------- 이름 : 경로 → 사람이 알아보는 말 ---------- */
         function trLabel(path) {
-            let m = /(?:^|\/)기본-(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);           // 📁 폴더 한 줄 (10-26) : 말랑달콤 / 폴더 / 파일
-            if (m) return `📔 ${m[1]}년 ${+m[2]}월 ${+m[3]}일 일기`;
+            let m = /(?:^|\/)(기본|녹색|보라|노랑)-(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);           // 📁 폴더 한 줄 (10-26) : 말랑달콤 / 폴더 / 파일 · 📔 바인더 색마다
+            if (m) return `📔 ${m[2]}년 ${+m[3]}월 ${+m[4]}일 일기${m[1] === '기본' ? '' : ' (' + m[1] + ' 바인더)'}`;
             if (/\/설정\/설정\.json$/.test(path)) return '⚙ 설정';
             if (/\/카페기록\/카페\.json$/.test(path)) return '☕ 카페 기록';
             if (/\/검색-[^/]*\.json$/.test(path)) return '🔍 검색 목록';

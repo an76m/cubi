@@ -2120,7 +2120,8 @@
         function dfDays() {                                                    // 꾸민 날 (오래된 날부터)
             const keys = new Set(dfList || []);
             store.keys().forEach(k => { if (DAY_KEY_RE.test(k)) keys.add(k); });
-            return [...keys].filter(dfHas).sort();
+            const col = window.dyyColor ? dyyColor() : '';                     // 📔 펼친 바인더 것만 (js/dyyear.js)
+            return [...keys].filter(k => parseDayKey(k).c === col).filter(dfHas).sort();
         }
         const dfDate = k => { const p = parseDayKey(k); return new Date(p.y, p.m - 1, p.d); };
         /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */
@@ -2202,7 +2203,7 @@
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyYear ? 'y' + dyyYear() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;

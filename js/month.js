@@ -106,7 +106,7 @@
             for (let d = 1; d <= last; d++) {
                 const date = new Date(y, m, d), key = getDateKey(date);
                 const loaded = !files || drive.loadedDays.has(key) || (typeof drive !== 'undefined' && drive.dirtyKeys && drive.dirtyKeys.has(key));
-                const f = files && files.get(dayFileName(y, m + 1, d));
+                const f = files && files.get(fileOfKey(key));   // 📔 펼친 바인더의 파일
                 let has = false, big = false;
                 if (loaded) has = !!store.getItem(key);
                 else if (f) { has = true; big = (+f.size || 0) > MO_LIGHT; }

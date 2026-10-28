@@ -831,7 +831,7 @@
         if (x.look === 'gd') return `<div class="sh-tool sh-gd">${x.art || ''}</div>`;
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
-        if (x.look === 'diary') return `<div class="sh-tool sh-dy"><span class="sh-dyb"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`;   // 📔 연핑크 6공 바인더
+        if (x.look === 'diary') { const k = typeof skinPresets !== 'undefined' && skinPresets[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;

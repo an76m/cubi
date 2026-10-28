@@ -208,7 +208,7 @@
 
         function getDateKey(date) {
             const dk = window.dkKey && dkKey(date); if (dk) return dk;       // 📕 유한 다이어리 장 (2000년 날짜) → dkp_권_장 (js/skins.js)
-            return `diary_${date.getFullYear()}_${String(date.getMonth() + 1).padStart(2, '0')}_${String(date.getDate()).padStart(2, '0')}`;
+            return dayKeyOf(date.getFullYear(), date.getMonth() + 1, date.getDate(), window.dyyColor ? dyyColor() : '');   // 📔 펼친 바인더 색마다 따로 (js/dyyear.js)
         }
 
         let turn = null;
