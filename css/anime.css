@@ -400,3 +400,12 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 /* 🧺 톡 = 그 종이를 맨 위로 (겹친 바구니에서 보기 · 도련 10-29) · 끄는 종이는 떼는 판 위로 */
 .abs-basket .ab-sc.up .bk-sh { outline: 3px solid #ffb3c9; outline-offset: 2px; }
 body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
+/* 🤍 이형지북 처음 안내 : 바구니 → 🟩 매트 화살표 (매트에 종이를 펼치면 사라져요 · 도련 10-29) */
+.abx-row { position: relative; }
+.abx-guide { position: absolute; z-index: 6; left: calc(var(--bw, 340px) - 150px); top: 16%; width: 230px; pointer-events: none; animation: abxNudge 1.3s ease-in-out infinite alternate; }
+.abx-guide b { display: block; width: max-content; max-width: 210px; padding: 8px 14px; border: 2px solid var(--ol); border-radius: 14px; background: #ffd3e2; color: #8a2f58; font-size: 14px; line-height: 1.35; text-align: center; }
+.abx-guide svg { display: block; width: 150px; height: 80px; margin: 2px 0 0 40px; }
+@keyframes abxNudge { from { transform: translate(0, 0); } to { transform: translate(10px, 4px); } }
+@media (prefers-reduced-motion: reduce) { .abx-guide { animation: none; } }
+.abx-mat .ab-peelhint { flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.5; }
+.abx-mat .ab-peelhint small { font-size: 12px; }

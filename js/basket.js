@@ -515,15 +515,19 @@
        · 📒 바인더 : 표지째 펼친 두 쪽 (가운데 6공 링) · 한 쪽 = 투명 포켓 4개 → 두 쪽씩 넘겨요
        · 🤍 이형지북 : 왼쪽 스프링 · 반짝이는 이형지 한 쪽 · 뒤로 겹친 종이 · 아래 🟩 커팅 매트 = 떼는 자리 (바구니 아래) */
     const ABS_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';
+    /* 🤍 이형지북 처음 안내 (도련 10-29) : 종이를 매트에 펼치기 전까지 바구니 → 매트 화살표 + 한 줄 (바구니 판에 붙어 같이 움직여요) */
+    const ABS_GUIDE = '<div class="abx-guide" aria-hidden="true"><b>붙일 스티커 종이를<br>초록 매트로 끌어다 놓아요</b>'
+        + '<svg viewBox="0 0 170 90"><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#8d6f7f" stroke-width="17" stroke-linecap="round"/><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#ff8fb4" stroke-width="11" stroke-linecap="round"/>'
+        + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
         const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 바구니</button><b class="ab-ttl">📒 정리하기<small>${esc(kn)}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */
-        const peel = D.mode !== 'rl' ? '' : `<div class="abx-mat">${!D.pick ? '<div class="ab-peelhint">⬅ 바구니에서 종이를 톡 골라요<br><small>여기에 크게 펼쳐져요</small></div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>' : '<div class="ab-peelzone" id="abPeelZone"></div>'}</div>`;   // 🟩 커팅 매트 = 바구니 오른쪽에 붙어 같이 움직여요 (도련 10-29)
+        const peel = D.mode !== 'rl' ? '' : `<div class="abx-mat">${!D.pick ? '<div class="ab-peelhint">여기에 놓으면<br>스티커 종이가 펼쳐져요<br><small>🪡 핀셋으로 떼어 이형지북에 붙여요</small></div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>' : '<div class="ab-peelzone" id="abPeelZone"></div>'}</div>`;   // 🟩 커팅 매트 = 바구니 오른쪽에 붙어 같이 움직여요 (도련 10-29)
         const basket = `<section class="abs-box abs-basket" data-p="basket">${grip('🧺 바구니', nIn + '장')}`
-            + `<div class="abx-row"><div class="bk-bin abx-bin"><div class="ab-strip" id="abStrip">${strip}</div><span class="bk-tag">스티커 ${nIn}장</span></div>${peel}</div></section>`;
+            + `<div class="abx-row"><div class="bk-bin abx-bin"><div class="ab-strip" id="abStrip">${strip}</div><span class="bk-tag">스티커 ${nIn}장</span></div>${peel}${D.mode === 'rl' && !D.pick && nIn ? ABS_GUIDE : ''}</div></section>`;
         /* 📒 바인더 · 🤍 이형지북 */
         let book;
         if (D.mode === 'bd') {
