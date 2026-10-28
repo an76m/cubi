@@ -130,7 +130,7 @@
 
         /* src : 그림 하나 또는 여러 개 [src, …] */
         async function openStickerPeel(src, opt) {                       // opt.ts : 🔤 글씨스티커 (붙인 뒤 📷 사진 꾸미기 창이 안 떠요)
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
+            if (!(opt && opt.rel) && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
             const list = Array.isArray(src) ? src : [src], own = (opt && opt.own) || null;
             let imgs;
             try { imgs = await Promise.all(list.map(u => u ? pelLoad(u) : null)); } catch (e) { showMsg('스티커를 열지 못했어요.'); return false; }
