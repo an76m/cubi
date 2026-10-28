@@ -35,6 +35,7 @@
         }
         function showRenderSwitches() {
             if (window.clearSecRender) clearSecRender();
+            if (window.glowRender) glowRender();                              // ✨ 빛 번짐 (js/glow.js)
             handRender();                                       // ✋ 쓰는 손 (js/drive.js)                 // 🪡 핀셋 (js/elements.js)
             if (window.dvRender) dvRender();
             if (window.deskModeRender) deskModeRender();        // 🪑 화면 : 책상 · 하단 메뉴 (js/desk.js)
