@@ -447,7 +447,7 @@
         function deskTrayTab(k) { DK.trayKind = k; deskEditPaint(); }
         /* 📦 소품함 = 게임 인벤토리 (도련 10-28 시안) : 위 = 종류 탭(소품 그림) · 칸 = 내 소품 (🪑 민트 = 책상 위 · 연핑크 = 보관 중 · 보라 = 고른 것)
            · 첫 칸 ⊘ = 그 종류를 책상에서 모두 넣기 · 아래 = 넣기 / 책상에 놓기 · 🗑 버리기 · 🏪 받기 · 💻 책상에서는 오른쪽에 떠서 책상을 보며 꺼내요 */
-        const DK_BOX_MIN = 12;                                                    // 칸이 모자라 보이지 않게 빈칸을 채워요
+        const DK_BOX_MIN = 16;   // 4줄 (도련 10-28)                                                    // 칸이 모자라 보이지 않게 빈칸을 채워요
         function deskBoxRender() {
             const box = document.getElementById('deskBoxList'); if (!box) return;
             const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k));
@@ -456,16 +456,16 @@
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
             const icon = kk => { const d = DESK_ITEMS.find(x => x.kind === kk); return d ? d.src : ''; };
             const tabs = kinds.map(kk => { const n = DK.items.filter(o => dkKindOf(o) === kk).length;
-                return `<button type="button" class="iv-tab${kk === k ? ' on' : ''}" title="${DESK_DIRS[kk]}" aria-label="${DESK_DIRS[kk]}" onclick="deskBoxTab('${kk}')"><img src="${icon(kk)}" alt=""><i>${n || ''}</i></button>`; }).join('');
+                return `<button type="button" class="iv-tab${kk === k ? ' on' : ''}" title="${DESK_DIRS[kk]}" aria-label="${DESK_DIRS[kk]}" onclick="deskBoxTab('${kk}')">${DESK_DIRS[kk]}<i>${n || ''}</i></button>`; }).join('');   // 글씨 탭 (도련 10-28)
             const cells = rows.map(o => `<button type="button" class="iv-c ${o.at === 'desk' ? 'desk' : 'box'}${o.u === DK.boxSel ? ' sel' : ''}" title="${dkName(o)}" onclick="deskBoxPick('${o.u}')"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt="" loading="lazy">${o.at === 'desk' ? '<em>🪑</em>' : ''}</button>`);
             const none = `<button type="button" class="iv-c no" title="책상에서 모두 넣기" onclick="deskBoxAllIn()"><b>⊘</b></button>`;
             const fill = Math.max(0, DK_BOX_MIN - 1 - cells.length);
             const o = rows.find(x => x.u === DK.boxSel);
             const act = o ? (o.at === 'box' ? `<button type="button" class="btn primary" onclick="deskPut('${o.u}', 'desk')">🪑 책상에 놓기</button>` : `<button type="button" class="btn" onclick="deskPut('${o.u}', 'box')">📦 넣기</button>`)
                 + `<button type="button" class="btn iv-del" onclick="deskDiscard('${o.u}')" aria-label="버리기">🗑</button>`
-                : `<p class="iv-hint">${rows.length ? '소품을 톡 골라요' : `아직 ${DESK_DIRS[k] || ''} 소품이 없어요`}</p>`;
+                : '';   // 안내 글 없이 (도련 10-28)
             box.innerHTML = `<div class="iv-tabs">${tabs}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
-                + `<div class="iv-name">${o ? `<b>${dkName(o)}</b><small>${o.at === 'desk' ? '🪑 책상 위' : '📦 보관 중'}</small>` : ''}</div><div class="iv-foot">${act}</div></div>`;
+                + `<div class="iv-name">${o ? `<b>${dkName(o)}</b><small>${o.at === 'desk' ? '🪑 책상 위' : '📦 보관 중'}</small>` : ''}</div>${o ? `<div class="iv-foot">${act}</div>` : ''}</div>`;
         }
         window.deskBoxTabShow = deskBoxTabShow;
         function deskBoxTabShow() { const t = document.querySelector('#deskBoxList .iv-tab.on'); if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
