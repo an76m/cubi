@@ -261,9 +261,52 @@
             else setTimeout(go, 0);
         }
         /* 다이어리를 펴 둔 동안 : 소품은 다이어리 뒤라 직접 안 눌려요 → 빈 곳을 톡 한 자리에 기능 소품이 맨 앞에 보이면 그 기능 (js/drive.js) */
+        /* 👆 그림 모양대로 누르기 (도련 10-28) : 소품 네모 칸이 아니라 '그림이 그려진 곳'만 그 소품이에요
+           · 그림의 투명한 곳을 누르면 그 아래 소품(또는 책상)이 눌려요 → 큰 스탠드 뒤의 시계도 그림 전체가 버튼 · 사용자가 칠하거나 바꾼 그림도 자동
+           · 그림마다 작은 투명도 지도(가로 최대 160칸)를 한 번 만들어 기억해요 · 테두리 근처는 조금 넉넉하게(주변 2칸) */
+        const DK_HIT = new Map();                                                 // src → { w, h, a: Uint8Array } | 'wait'
+        function dkHitMap(img) {
+            const src = img.currentSrc || img.src; if (!src) return null;
+            const m = DK_HIT.get(src); if (m && m !== 'wait') return m; if (m === 'wait') return null;
+            if (!img.complete || !img.naturalWidth) { DK_HIT.set(src, 'wait'); img.addEventListener('load', () => { DK_HIT.delete(src); }, { once: true }); return null; }
+            try {
+                const k = Math.min(1, 160 / img.naturalWidth), w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+                const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, w, h);
+                const d = x.getImageData(0, 0, w, h).data, a = new Uint8Array(w * h); for (let i = 0; i < a.length; i++) a[i] = d[i * 4 + 3];
+                const r = { w, h, a }; DK_HIT.set(src, r); return r;
+            } catch (e) { return null; }                                         // 읽을 수 없는 그림이면 네모 전체
+        }
+        function dkSolidAt(el, cx, cy) {                                         // 그 소품 그림이 (cx, cy) 화면 자리에 그려져 있나요
+            const img = el.querySelector(':scope > img'), r = (img || el).getBoundingClientRect();
+            if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return false;
+            const m = img && dkHitMap(img); if (!m) return true;
+            const px = Math.floor((cx - r.left) / r.width * m.w), py = Math.floor((cy - r.top) / r.height * m.h);
+            for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const x = px + dx, y = py + dy; if (x >= 0 && y >= 0 && x < m.w && y < m.h && m.a[y * m.w + x] > 40) return true; }
+            return false;
+        }
+        function dkItemsAt(cx, cy) {                                              // 그 자리의 소품 (위에 보이는 것부터)
+            const seen = new Set();
+            return document.elementsFromPoint(cx, cy).map(e => e.closest && e.closest('#deskStage .desk-item')).filter(e => e && !seen.has(e) && seen.add(e));
+        }
+        (function dkHitWire() {                                                   // 투명한 곳을 누르면 그 아래 소품으로 넘겨요
+            let off = [];
+            const back = () => { off.forEach(e => { e.style.pointerEvents = ''; }); off = []; };
+            document.addEventListener('pointerdown', ev => {
+                if (ev.dkPass || !ev.target.closest || !ev.target.closest('#deskStage .desk-item')) return;
+                const L = dkItemsAt(ev.clientX, ev.clientY), i = L.findIndex(e => dkSolidAt(e, ev.clientX, ev.clientY));
+                if (i === 0) return;                                              // 맨 위 소품의 그림 위 = 그대로
+                ev.stopPropagation(); ev.preventDefault();
+                back(); off = i < 0 ? L : L.slice(0, i); off.forEach(e => { e.style.pointerEvents = 'none'; });
+                const t = document.elementFromPoint(ev.clientX, ev.clientY); if (!t) { back(); return; }
+                const n = new PointerEvent('pointerdown', { bubbles: true, cancelable: true, composed: true, clientX: ev.clientX, clientY: ev.clientY, screenX: ev.screenX, screenY: ev.screenY, pointerId: ev.pointerId, pointerType: ev.pointerType, isPrimary: ev.isPrimary, button: ev.button, buttons: ev.buttons });
+                n.dkPass = true; t.dispatchEvent(n);
+                const end = () => { setTimeout(back, 60); removeEventListener('pointerup', end, true); removeEventListener('pointercancel', end, true); };
+                addEventListener('pointerup', end, true); addEventListener('pointercancel', end, true);
+            }, true);
+        })();
         function deskTapAt(x, y) {
             if (!document.documentElement.classList.contains('desk-on') || DK.edit) return false;
-            const top = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => { const r = el.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; })
+            const top = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => dkSolidAt(el, x, y))   // 그림 모양대로
                 .sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
             if (!top || !top.dataset.fn) return false;
             deskRun(top.dataset.fn); return true;
