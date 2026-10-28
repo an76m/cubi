@@ -296,7 +296,7 @@
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;
         if (B.view === 'album' && !abHasAlbum()) B.view = 'bin';               // 정리한 게 없으면 스티커첩 탭도 없어요
         const V = B.view || 'bin', sc = wrap.closest('.modal-content'), keep = sc ? sc.scrollTop : 0;
-        { const m = bq('basketKindModal'); if (m) m.classList.toggle('ab-space', V === 'desk' && abSpace()); }   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
+        { const m = bq('basketKindModal'); if (m) { m.classList.toggle('ab-space', V === 'desk' && abSpace()); m.classList.toggle('abs-rl', V === 'desk' && abSpace() && !!B.desk && B.desk.mode === 'rl'); } }   // abs-rl : 🪡 핀셋이 저절로 (js/elements.js pinForce)   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
         const tabs = (V === 'bin' || V === 'album') && abHasAlbum() ? `<div class="ab-tabs"><button type="button" class="${V === 'bin' ? 'on' : ''}" onclick="bkView('bin')">🧺 바구니</button>`
             + `<button type="button" class="${V === 'album' ? 'on' : ''}" onclick="bkView('album')">📒 스티커첩</button></div>` : '';
         wrap.innerHTML = tabs + '<div class="ab-body" id="abBody"></div>';
@@ -504,7 +504,7 @@
         abSpaceFit(room, W, H);
         room.querySelectorAll('.abs-box').forEach(bx => {
             const f = P[bx.dataset.p] || ABS_DEF[bx.dataset.p], x = f[0] < 0 ? W - bx.offsetWidth - 24 : f[0] * W;   // 처음 = 바구니 왼쪽 · 정리북 오른쪽 끝
-            bx.style.left = Math.max(0, Math.min(W - bx.offsetWidth, x)) + 'px'; bx.style.top = Math.max(0, Math.min(H - 48, f[1] * H)) + 'px';   // 책상 밖으로 안 나가요
+            bx.style.left = Math.max(0, Math.min(W - bx.offsetWidth, x)) + 'px'; bx.style.top = Math.max(0, Math.min(H - bx.offsetHeight, f[1] * H)) + 'px';   // 책상 밖으로 안 나가요
             bx.onpointerdown = ev => { if (ev.target.closest('.abs-grip')) abSpaceGrab(bx, ev); else abSpaceTop(bx); };
         });
     }
@@ -518,9 +518,9 @@
         const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 바구니</button><b class="ab-ttl">📒 정리하기<small>${esc(kn)}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */
-        const peel = D.mode !== 'rl' ? '' : `<div class="abx-mat">${!D.pick ? '<div class="ab-peelhint">⬆ 바구니에서 종이를 톡 골라요</div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>' : '<div class="ab-peelzone" id="abPeelZone"><span>🪡 핀셋으로 떼어 이형지북에 붙여요</span></div>'}</div>`;
+        const peel = D.mode !== 'rl' ? '' : `<div class="abx-mat">${!D.pick ? '<div class="ab-peelhint">⬅ 바구니에서 종이를 톡 골라요<br><small>여기에 크게 펼쳐져요</small></div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>' : '<div class="ab-peelzone" id="abPeelZone"></div>'}</div>`;   // 🟩 커팅 매트 = 바구니 오른쪽에 붙어 같이 움직여요 (도련 10-29)
         const basket = `<section class="abs-box abs-basket" data-p="basket">${grip('🧺 바구니', B.list.length + '장')}`
-            + `<div class="bk-bin abx-bin"><div class="ab-strip" id="abStrip">${strip}</div><span class="bk-tag">스티커 ${B.list.length}장</span></div>${peel}</section>`;
+            + `<div class="abx-row"><div class="bk-bin abx-bin"><div class="ab-strip" id="abStrip">${strip}</div><span class="bk-tag">스티커 ${B.list.length}장</span></div>${peel}</div></section>`;
         /* 📒 바인더 · 🤍 이형지북 */
         let book;
         if (D.mode === 'bd') {
@@ -579,10 +579,10 @@
     /* 📐 크기 맞추기 : 바구니는 세로로 길게 (책상 높이 가득) · 바인더 · 이형지북은 실제 A5 속지 비율(148 × 210)로 남은 자리를 가득 */
     function abSpaceFit(room, W, H) {
         const bk = room.querySelector('.abs-basket'), bo = room.querySelector('.abs-book'); if (!bk || !bo) return;
-        const bw = Math.round(Math.max(270, Math.min(430, W * .27))), mat = bk.querySelector('.abx-mat');
-        bk.style.width = bw + 'px';
-        bk.style.setProperty('--bh', Math.max(240, H - 58 - (mat ? 206 : 0)) + 'px');   // 이름표 · 아래 여백만 빼고 가득
-        const R = 148 / 210, availW = W - bw - 56, availH = H - (bo.classList.contains('bd') ? 196 : 200);   // 이름표 · 라벨 줄 · 넘기기 줄
+        const mat = bk.querySelector('.abx-mat'), bw = Math.round(Math.max(250, Math.min(mat ? 380 : 430, W * (mat ? .24 : .27)))), mw = mat ? Math.round(Math.max(240, Math.min(360, W * .22))) : 0;
+        bk.style.width = (bw + (mat ? mw + 12 : 0)) + 'px'; bk.style.setProperty('--bw', bw + 'px'); bk.style.setProperty('--mw', mw + 'px');
+        bk.style.setProperty('--bh', Math.max(240, H - 58) + 'px');            // 이름표 · 아래 여백만 빼고 가득 (🟩 매트도 같은 높이로 옆에)
+        const R = 148 / 210, availW = W - bk.offsetWidth - 56, availH = H - (bo.classList.contains('bd') ? 196 : 200);   // 이름표 · 라벨 줄 · 넘기기 줄
         let ph = availH, pw = ph * R;
         if (bo.classList.contains('bd')) {
             const two = !!bo.querySelector('.abx-binder.two'), extra = two ? 86 : 78, n = two ? 2 : 1;
@@ -595,6 +595,8 @@
         bo.style.setProperty('--ph', Math.round(ph) + 'px');
     }
     window.abSide = abSide;
+    window.abGripAt = (el, ev) => { const bx = el && el.closest('.abs-box'); if (bx) abSpaceGrab(bx, ev); };   // 🤍 떼는 판이 떠 있어도 이름표를 끌면 옮겨져요 (js/stickerpeel.js)
+    window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abSpace() && vis('basketKindModal');   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
     function abSpaceTop(bx) { document.querySelectorAll('#absRoom .abs-box').forEach(o => o.classList.toggle('top', o === bx)); }
     function abSpaceGrab(bx, ev) {                                            // ✋ 손잡이를 끌어 옮기기
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation(); abSpaceTop(bx);
@@ -603,7 +605,7 @@
         const mv = e => {
             if (e.pointerId !== ev.pointerId) return;
             bx.style.left = Math.max(0, Math.min(R.width - bx.offsetWidth, l0 + e.clientX - x0)) + 'px';
-            bx.style.top = Math.max(0, Math.min(R.height - 48, t0 + e.clientY - y0)) + 'px';
+            bx.style.top = Math.max(0, Math.min(R.height - bx.offsetHeight, t0 + e.clientY - y0)) + 'px';   // 아래로도 책상 밖으로 안 나가요
             if (AB.peelOn && window.pelRelayout) pelRelayout();
         };
         const up = e => {

@@ -345,11 +345,15 @@ html.an .dy-gap { background: linear-gradient(90deg, #9d88c2 0 .3cqw, color-mix(
 .abs-basket .ab-stripempty { width: 100%; padding: 40px 8px; color: #8a6450; font-size: 13px; text-align: center; text-shadow: none; }
 .abs-basket .bk-tag { z-index: 2; }
 
-/* 🟩 커팅 매트 (이형지북에 붙일 때 · 바구니 아래 · 여기서 종이를 펼쳐 떼요) */
-.abx-mat { width: 100%; margin-top: 12px; padding: 10px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 12px; background-color: #8fceb4;
-    background-image: repeating-linear-gradient(0deg, transparent 0 23px, #a9dcc6 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, #a9dcc6 23px 24px); }
-.abx-mat .ab-peelhint, .abx-mat .ab-peelzone { margin: 0; border: 1.6px dashed #fff; background: rgba(255,255,255,.18); color: #fff; font-weight: 700; }
-.abx-mat .ab-peelzone { height: 150px; }
+/* 🟩 커팅 매트 (이형지북에 붙일 때 · 바구니 오른쪽에 붙어 같이 움직여요 · 고른 종이가 여기 크게 펼쳐져요 · 도련 10-29) */
+.abx-row { display: flex; align-items: stretch; gap: 12px; width: 100%; }
+.abx-row .abx-bin { flex: none; width: var(--bw, 340px); }
+.abx-mat { flex: none; width: var(--mw, 300px); height: var(--bh, 520px); padding: 12px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 14px; background-color: #8fceb4;
+    background-image: repeating-linear-gradient(0deg, transparent 0 23px, #a9dcc6 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, #a9dcc6 23px 24px); display: flex; }
+.abx-mat .ab-peelhint, .abx-mat .ab-peelzone { flex: 1; margin: 0; border: 1.6px dashed #fff; border-radius: 10px; background: rgba(255,255,255,.14); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; text-align: center; height: auto; padding: 10px; }
+.abx-mat .ab-peelhint small { font-weight: 400; opacity: .9; }
+/* 🪡 정리 공간 이형지북 : 핀셋이 창 위로 (저절로 들려요 · js/elements.js pinForce) */
+body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur { z-index: 2147483000 !important; }
 
 /* 📒 6공 바인더 (펼친 두 쪽 · 가운데 링 · A5 속지 비율 · 크기는 js abSpaceFit 가 --ph 로) · 한 쪽만 볼 때는 링이 그 쪽 옆 (홀수 쪽 = 왼쪽 쪽 → 링이 오른쪽) */
 .abs-book { width: 700px; }

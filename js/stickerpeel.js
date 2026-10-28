@@ -94,6 +94,20 @@
         /* 🤍 이형지북 모드 : 정한 자리에 한 줄로 (넘치면 옆으로 밀어요) */
         function pelRelLayout() {
             const S = pelS, A = S.rel.at(), it = S.items, n = it.length, G = 10;
+            if (A.height >= 220) {                                              // 🟩 넓은 매트 (정리 공간 · 도련 10-29) : 종이를 크게 펼쳐요 (칸이 가장 커지게 줄을 나눠서)
+                let best = null;
+                for (let c = 1; c <= n; c++) { const r = Math.ceil(n / c), cs = Math.min((A.width - PEL_PAD * 2 - (c - 1) * G) / c, (A.height - PEL_PAD * 2 - (r - 1) * G) / r); if (!best || cs > best.cs) best = { c, r, cs }; }
+                const cs = Math.max(40, Math.min(200, best.cs)), w = best.c * cs + (best.c - 1) * G + PEL_PAD * 2, h = best.r * cs + (best.r - 1) * G + PEL_PAD * 2;
+                const cx = A.left + A.width / 2, cy = A.top + A.height / 2;
+                S.board = { cx, cy, w, h };
+                it.forEach((o, i) => {
+                    const [iw, ih] = o.a ? [o.a.w - o.a.m * 2, o.a.h - o.a.m * 2] : (o.wh || [cs, cs]), sc = Math.min(1.6, cs / Math.max(iw || cs, ih || cs, 1));
+                    const p = { cx: cx - w / 2 + PEL_PAD + (i % best.c) * (cs + G) + cs / 2, cy: cy - h / 2 + PEL_PAD + Math.floor(i / best.c) * (cs + G) + cs / 2 };
+                    o.slot = { cx: p.cx, cy: p.cy, w: (iw || cs) * sc, h: (ih || cs) * sc };
+                    if (o.st.state === 'on') Object.assign(o.st, p, { s: sc, rot: 0 });
+                });
+                S.mv.x = 0; S.mv.y = 0; pelKeep(); return;
+            }
             const cs = Math.max(48, Math.min(110, A.height - PEL_PAD * 2)), w = n * cs + (n - 1) * G + PEL_PAD * 2, h = cs + PEL_PAD * 2;
             const cx = w <= A.width ? A.left + A.width / 2 : A.left + w / 2 + S.mv.x, cy = A.top + A.height / 2;
             S.board = { cx, cy, w, h };
@@ -109,11 +123,11 @@
         function pelShift(dx, dy) {
             const S = pelS, B = S.board;
             if (S.rel) {                                                         // 🤍 옆으로만 밀어요 (정한 자리 안에서)
-                const A = S.rel.at(); dy = 0;
+                const A = S.rel.at(); dy = A.height >= 220 ? A.top + A.height / 2 - B.cy : 0;
                 if (B.w <= A.width) dx = A.left + A.width / 2 - B.cx;
                 else { const L = B.cx - B.w / 2 + dx; if (L > A.left) dx = A.left - (B.cx - B.w / 2); if (L + B.w < A.left + A.width) dx = A.left + A.width - (B.cx + B.w / 2); }
-                B.cx += dx; S.mv.x += dx;
-                for (const o of S.items) { if (o.st.state === 'on') o.st.cx += dx; if (o.slot) o.slot.cx += dx; }
+                B.cx += dx; B.cy += dy; S.mv.x += dx;
+                for (const o of S.items) { if (o.st.state === 'on') { o.st.cx += dx; o.st.cy += dy; } if (o.slot) { o.slot.cx += dx; o.slot.cy += dy; } }
                 return;
             }
             dx = Math.max(B.w / 2 - B.cx, Math.min(S.W - B.w / 2 - B.cx, dx)); dy = Math.max(B.h / 2 - B.cy, Math.min(S.H - B.h / 2 - B.cy, dy));
@@ -294,7 +308,7 @@
             }
             /* 스티커 안쪽 가장자리는 넉넉히(PEL_GRAB) · 바깥(종이 빈 곳)은 조금만(PEL_GRAB_OUT) → 나머지 빈 곳은 종이 옮기기 */
             if (bp && Math.sqrt(best) < (hit === bo ? PEL_GRAB : PEL_GRAB_OUT)) {
-                if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
+                if (!S.rel && window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🤍 이형지북 정리는 핀셋이 늘 들려 있어요 (도련 10-29)   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
                 pelPick(bo); const st = S.st, C = pelToStage(st, bp[0], bp[1]); st.snap = null;
                 S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
                 try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
@@ -312,6 +326,8 @@
                 hid.forEach(el => { el.dataset.pe = el.style.pointerEvents; el.style.pointerEvents = 'none'; });
                 const under = document.elementFromPoint(P[0], P[1]);
                 hid.forEach(el => { el.style.pointerEvents = el.dataset.pe || ''; delete el.dataset.pe; });
+                const gp = under && under.closest('.abs-grip');
+                if (gp && window.abGripAt) { abGripAt(gp, e); return; }        // ✋ 정리 공간 이름표 = 바구니 · 정리북 옮기기 (떼는 판이 떠 있어도 · 도련 10-29)
                 const ri = under && under.closest('#abRel .ab-it');
                 if (ri && window.abItGrab) { abItGrab(ri, e); return; }       // ✋ 이형지에 놓은 스티커 = 자리 옮기기 (js/basket.js)
                 const sc = under && under.closest('.ab-sc');
