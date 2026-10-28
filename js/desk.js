@@ -342,6 +342,7 @@
             dd.addEventListener('pointerdown', ev => { dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
             dd.addEventListener('pointerup', ev => { if (dn && !DK.edit && Math.hypot(ev.clientX - dn[0], ev.clientY - dn[1]) < 8) deskOpenDiary(); dn = null; });
             dd.addEventListener('keydown', ev => { if (!DK.edit && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); deskOpenDiary(); } });
+            if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
             deskMiniPaint();
             deskTipPaint(); deskModeRender();
@@ -458,12 +459,20 @@
         function deskBoxRender() {                                                // B : 왼쪽 = 종류 세로 목록(따로 스크롤) · 오른쪽 = 칸(따로 스크롤) · 도련 10-28
             const box = document.getElementById('deskBoxList'); if (!box) return;
             const keep = box.querySelector('.iv-side'), sTop = keep ? keep.scrollTop : null, gTop = (box.querySelector('.iv-in') || {}).scrollTop || 0;
-            const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k));
-            if (DK.boxKind !== 'all' && !kinds.includes(DK.boxKind)) DK.boxKind = 'all';
+            const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k)), SK = window.dsBoxCells ? [['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']] : [];   // 🧱 🪵 = js/deskskin.js
+            if (DK.boxKind !== 'all' && !kinds.includes(DK.boxKind) && !SK.some(x => x[0] === DK.boxKind)) DK.boxKind = 'all';
             const k = DK.boxKind, rows = k === 'all' ? DK.items.slice() : DK.items.filter(o => dkKindOf(o) === k);
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
             const side = [['all', '전체', DK.items.length]].concat(kinds.map(kk => [kk, dkKN(kk), DK.items.filter(o => dkKindOf(o) === kk).length]))
+                .concat(SK.map(([kk, n]) => [kk, n, dsCount(kk)]))
                 .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('');
+            if (SK.some(x => x[0] === k)) {                                       // 🧱 벽지 · 🪵 책상 : 톡 = 쓰기 · 🗑 버리기 (js/deskskin.js)
+                const cs = dsBoxCells(k);
+                box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${cs.join('')}${'<span class="iv-c empty"></span>'.repeat(Math.max(0, DK_BOX_MIN - cs.length))}</div>`
+                    + `<div class="iv-name"><b>${dsName(k)}</b><small>톡 = ${k === 'wallpaper' ? '벽 전체에 바르기' : '책상 바꾸기'}${DK.edit ? ' · ✔ 완료 때 저장' : ''}</small></div></div></div>`;
+                const sd2 = box.querySelector('.iv-side'); if (sd2 && sTop != null) sd2.scrollTop = sTop;
+                return;
+            }
             const cells = rows.map(o => `<button type="button" class="iv-c ${o.at === 'desk' ? 'desk' : 'box'}${o.u === DK.boxSel ? ' sel' : ''}" title="${dkName(o)}" onclick="deskBoxPick('${o.u}')"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt="" loading="lazy">${o.at === 'desk' ? '<em>🪑</em>' : ''}</button>`);
             const none = k === 'all' ? '' : `<button type="button" class="iv-c no" title="책상에서 모두 넣기" onclick="deskBoxAllIn()"><b>⊘</b></button>`;
             const fill = Math.max(0, DK_BOX_MIN - (none ? 1 : 0) - cells.length);
@@ -493,6 +502,7 @@
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
             DK.back = { items: JSON.stringify(DK.items), fn: JSON.stringify(deskFnMap()) };   // 취소하면 이대로
             DK.editFn = JSON.parse(DK.back.fn); DK.edit = true;
+            if (window.dsEditStart) dsEditStart();                                // 🧱 🪵 벽지 · 책상도 완료 때 저장 (js/deskskin.js)
             H.classList.add('desk-edit'); H.classList.remove('desk-lack');
             deskSelect(null); deskFnPaint(); deskEditPaint();
             dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
@@ -520,6 +530,7 @@
                 dkArtUndo();                                                      // 🎨 색칠 미리 보기는 처음 그림으로
             }
             DK.editFn = null; DK.back = null;
+            if (window.dsEditEnd) dsEditEnd(!!ok);                                // 🧱 🪵 완료 = 저장 · 취소 = 처음대로
             document.documentElement.classList.remove('desk-edit');
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
         }

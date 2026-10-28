@@ -273,3 +273,14 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .sh-tool.sh-bg { min-height: 128px; }
 .sh-bgsw { display: block; width: 92px; height: 110px; border-radius: 10px; border: 1.5px solid var(--an-ol, #bba6d6); box-shadow: 4px 5px 0 rgba(176, 150, 214, .3); background-size: auto; pointer-events: none; }
 .sh-zlook .sh-bgsw { width: 180px; height: 220px; }
+
+/* 🧱 벽지 · 🪵 책상 (js/deskskin.js) : 방 그림 위 (소품 아래) · 견본 */
+.desk-stage > .desk-skin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.ds-sw { display: block; width: 100%; height: 100%; border-radius: 8px; pointer-events: none; }
+.ds-sw.basic.w { background: linear-gradient(90deg, #f8d1de 0 10%, #fdecf2 10% 90%, #f8d1de 90%); }
+.ds-sw.basic.t { background: linear-gradient(#f8d1de 0 70%, #fdecf2 70% 76%, #f5c0d0 76% 86%, #ea9bb4 86%); }
+.sh-tool.sh-ds { min-height: 128px; } .sh-tool.sh-ds .ds-sw { width: 120px; height: 72px; border: 1.5px solid var(--an-ol, #bba6d6); box-shadow: 4px 5px 0 rgba(176, 150, 214, .3); }
+.sh-zlook .sh-ds .ds-sw { width: 260px; height: 150px; }
+.iv-c.ds { position: relative; padding: 6px; overflow: hidden; } .iv-c.ds .ds-sw { border: 1px solid var(--an-ol, #bba6d6); }
+.iv-c.ds em { position: absolute; right: 4px; top: 4px; font-style: normal; font-size: 11px; color: #c8457a; background: #fff; border-radius: 50%; width: 18px; height: 18px; display: grid; place-items: center; }
+.ds-del { position: absolute; left: 3px; bottom: 3px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; background: #fff; border: 1px solid var(--an-ol, #bba6d6); cursor: pointer; }

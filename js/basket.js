@@ -713,7 +713,7 @@
             return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, give: () => gdGive(x.id) }));
         }],
         desk: ['책상 소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
-            cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name }))],
+            cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
             const k = seasonNow(), srcs = (SEASON_STICKERS[k] || []).map(x => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x.svg));
@@ -785,7 +785,7 @@
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
-    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
+    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기'], ['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
         emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
     const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
     function shDraw(k) {
@@ -832,6 +832,7 @@
         if (x.look === 'gd') return `<div class="sh-tool sh-gd">${x.art || ''}</div>`;
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
+        if (x.look === 'dskin') return `<div class="sh-tool sh-ds">${window.dsSwatch ? dsSwatch(x.sid) : ''}</div>`;   // 🧱 🪵 견본
         if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
         if (x.look === 'diary') { const k = typeof skinPresets !== 'undefined' && skinPresets[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
