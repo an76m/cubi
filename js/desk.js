@@ -488,7 +488,6 @@
             H.classList.add('desk-edit'); H.classList.remove('desk-lack');
             deskSelect(null); deskFnPaint(); deskEditPaint();
             dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
-            setTimeout(() => { if (DK.edit) deskBoxOpen(); }, 650);              // 📦 소품함을 열어 둬요 (오른쪽 · 책상을 보며 꺼내기)
         }
         function dkEditHello() {                                                  // 🎀 리본이 톡 떴다가 스르르 (1.3초)
             const old = document.getElementById('dkeHello'); if (old) old.remove();
@@ -761,11 +760,21 @@
             const tip = document.getElementById('deskTip'), el = DK.sel; if (!tip) return;
             if (!el || !DK.edit) { tip.innerHTML = ''; return; }
             const u = el.dataset.u, m = DK.editFn || {};
-            tip.innerHTML = `<div class="dkt-fn">${DK_FNS.map(([k, n, , ic]) => `<button type="button" class="dkt-chip${m[k] === u ? ' on' : ''}${DK_FN_NEED.includes(k) && !m[k] ? ' need' : ''}" onclick="deskFnPick('${k}')">${ic} ${n}</button>`).join('')}</div>`
-                + `<div class="dkt-act"><button type="button" class="desk-snap${DK.snap ? '' : ' off'}" onclick="deskSnapToggle()" title="💻 끄는 동안 Shift 를 누르면 잠깐 반대로">${DK.snap ? '🧲 딱 맞추기 켬' : '〰️ 딱 맞추기 끔'}</button>`
-                + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('share')">📤 저장</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button><button type="button" class="desk-snap dk-del" onclick="deskTipAct('del')">🗑 버리기</button></div>`;
+            const f = Object.keys(m).find(k => m[k] === u), fi = f && DK_FNS.find(x => x[0] === f);
+            tip.innerHTML = `<div class="dkt-act"><button type="button" class="desk-snap${fi ? ' on' : ''}" onclick="deskFnOpen()">🔗 ${fi ? fi[3] + ' ' + fi[1] : '기능 연결'}</button>`   // 기능 연결은 창으로 (도련 10-28)
+                + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button></div>`;   // 🧲 딱 맞추기 = 작업대 · 📤 저장(공유)은 숨김 · 🗑 버리기는 📦 소품함에서
             deskTipPlace();
         }
+        /* 🔗 기능 연결 창 (도련 10-28) : 고른 소품에 기능 하나 · 다시 누르면 풀기 */
+        function deskFnOpen() {
+            const el = DK.sel; if (!DK.edit || !el) return;
+            const u = el.dataset.u, m = DK.editFn || {}, o = DK.items.find(x => x.u === u), box = document.getElementById('deskFnList'); if (!box) return;
+            const tt = document.getElementById('deskFnTitle'); if (tt) tt.textContent = o ? dkName(o) + '에 연결할 기능' : '';
+            box.innerHTML = DK_FNS.map(([k, n, , ic]) => { const mine = m[k] === u, other = m[k] && !mine ? DK.items.find(x => x.u === m[k]) : null;
+                return `<button type="button" class="btn${mine ? ' on' : ''}" onclick="deskFnPick('${k}'); deskFnOpen()"><b>${ic} ${n}</b><small>${mine ? '✔ 연결됨 · 누르면 풀기' : other ? '지금 : ' + dkName(other) : DK_FN_NEED.includes(k) ? '꼭 필요해요' : ''}</small></button>`; }).join('');
+            if (window.openModal) openModal('deskFnModal');
+        }
+        window.deskFnOpen = deskFnOpen;
         function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); dkSnapBtn(); }
         function dkSnapBtn() { const b = document.getElementById('dkeSnap'); if (b) { b.textContent = DK.snap ? '🧲 딱 맞추기' : '〰️ 자유롭게'; b.classList.toggle('on', DK.snap); } }
         document.addEventListener('pointerdown', ev => {                          // 다른 곳을 누르면 고르기 끝

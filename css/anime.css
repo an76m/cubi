@@ -146,3 +146,13 @@ html.desk-edit .dke-tray { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .dke-hello, html.desk-edit .dke-bar, html.desk-edit .desk-stage::after { animation: none; } }
 /* 꾸미는 중 소품함 : 작업대 아래로 */
 html.desk-edit #deskBoxModal { padding-top: 70px; }
+/* v841 (도련) : 작업대는 아래로 (위는 방 공간) · 🔗 기능 연결 창 */
+html.desk-edit .dke-bar { top: auto !important; bottom: 0 !important; border-radius: 18px 18px 0 0 !important; border-bottom: 0 !important; border-top: 2px solid #c9a27a !important; padding: 18px 16px 12px !important; box-shadow: 0 -5px 0 rgba(176, 150, 214, .35) !important; animation-name: dkeRise; }
+@keyframes dkeRise { from { translate: 0 100%; } }
+html.desk-edit .dke-bar .dke-ruler { bottom: auto; top: 4px; }
+html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
+.dkf-tt { margin: 0 0 10px; text-align: center; color: #7b5a6b; font-weight: 700; }
+.dkf-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.dkf-list .btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 8px !important; border-radius: 16px !important; height: auto; }
+.dkf-list .btn small { font-size: 11px; color: #a08a94; min-height: 14px; }
+.dkf-list .btn.on small { color: #c8457a; }
