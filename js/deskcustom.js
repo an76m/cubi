@@ -3,21 +3,28 @@
    - 💡 스탠드 : 켜고 끄기 · 불빛 색            (톡 = 켜고 끄기)
    - 🔢 디지털 시계 : 숫자 글꼴 · 색  · ⏰ 알람 (시계 모두 · 울리면 시계를 톡 = 끄기)
    - 🖼 사진   : 내 사진 넣기 · 그림 그리기(🎨 색칠 창)
+   - 📝 게시판 : 메모지 고르기 + 글 쓰기 → 게시판에 붙이기 (최대 8장 · 끌어서 옮기기 · 톡 = 고치기 · 떼기)
    - 👆 누르는 곳 : 기능(다이어리 · 설정 …)이 연결된 소품만 · 네모 안 = 소품 동작 · 나머지 그림 = 연결된 기능
        네모가 소품의 85% 이상이면 기능을 누를 자리가 없어서 고쳐 달라고 해요 · 너무 작으면(그림 px 28 미만) 안 돼요
-   저장 : 배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%) } (js/desk.js dkPersist)
+   저장 : 배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%), memos: [{ p, t, x, y, r }] } (js/desk.js dkPersist)
    ※ 소품 종류를 더하면 DC_KINDS 에 탭 · 동작 · 기본 누르는 곳만 더해요 */
 (function () {
     const DC_KINDS = {
         lamp: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },
         clock: { tabs: ['digits', 'alarm'], act: null, area: null },
-        photo: { tabs: ['photo'], act: null, area: null }
+        photo: { tabs: ['photo'], act: null, area: null },
+        board: { tabs: ['memo'], act: null, area: null }
     };
-    const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', area: '👆 누르는 곳' };
+    const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', memo: '📝 메모', area: '👆 누르는 곳' };
     const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];
     const DC_INK = ['#4f6f93', '#c8457a', '#8f7bd6', '#2f7a5c', '#d98a1e', '#5e4250'];
     const DC_FONT = [['Jua', '말랑'], ["'Press Start 2P'", '픽셀'], ['Gaegu', '손글씨'], ["'Do Hyeon'", '또박']];
-    const DC = { u: null, tab: 'paint', area: null, ring: null, };
+    const DC = { u: null, tab: 'paint', area: null, ring: null, mi: -1, mp: 'post' };
+    /* 📝 메모지 : [종류, 이름] (모양은 css/anime.css .dk-memo.m-종류) · 게시판 코르크 칸 (그림 %) */
+    const DC_PAPER = [['post', '포스트잇'], ['pink', '줄노트'], ['grid', '모눈'], ['mint', '민트'], ['lilac', '체크'], ['letter', '편지지']];
+    const DC_CORK = [6, 25, 95, 94], DC_MEMO_MAX = 8;
+    const dcEsc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const dcMemoHtml = (m, i, sel) => `<div class="dk-memo m-${m.p}${sel ? ' sel' : ''}" data-i="${i}" style="left:${m.x}%;top:${m.y}%;--r:${m.r || 0}deg"><p>${dcEsc(m.t)}</p></div>`;
 
     const dcItem = u => DK.items.find(x => x.u === u);
     const dcCat = o => (o && dkCat(o.id)) || {};
@@ -33,6 +40,7 @@
         DC.u = u; DC.area = null;
         const K = dcKind(o), tabs = ['paint'].concat(K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []);
         if (K && K.act && dcFnOf(u)) tabs.unshift('area');   /* 👆 누르는 곳 = 맨 앞 · 꾸미기 열면 바로 보여 줌 */
+        if (!keep) DC.mi = -1;
         if (!keep || !tabs.includes(DC.tab)) DC.tab = tabs[0] === 'area' ? 'area' : (tabs[1] || 'paint');
         const t = document.getElementById('deskCsTitle'); if (t) t.textContent = '🎨 ' + dkName(o) + ' 꾸미기';
         const bar = document.getElementById('deskCsTabs');
@@ -56,6 +64,7 @@
                 + `<p class="dcs-p">다이어리가 열려 있을 때 그 시각이 되면 시계가 울려요 · 울리는 시계를 톡 하면 꺼져요</p>`; }
         else if (T === 'photo') box.innerHTML = `<p class="dcs-p">사진 칸에 내 사진을 넣거나, 직접 그림을 그려요.</p><div class="dcs-snd"><button type="button" class="btn primary" onclick="dcPhoto()">🖼 내 사진 넣기</button><button type="button" class="btn" onclick="dcPaint()">✏️ 그림 그리기</button></div><p class="dcs-p">넣으면 되돌릴 수 없어요 (색칠과 같아요)</p>`;
         else if (T === 'area') dcAreaBody(box, o);
+        else if (T === 'memo') dcMemoBody(box, o);
     }
     function dcPaint() { const u = DC.u; if (window.closeModal) closeModal('deskCsModal'); if (window.dpOpen) dpOpen(u); }
     /* 💡 */
@@ -127,6 +136,43 @@
         dcCs(o).area = [l, t, r, b]; dcSave(o); if (window.showMsg) showMsg('👆 누르는 곳을 저장했어요!');
     }
 
+    /* 📝 메모 : 위 = 게시판 미리 보기 (메모 톡 = 고르기 · 끌기 = 옮기기) · 아래 = 메모지 + 글 */
+    const dcMemos = o => (dcCs(o).memos = o.cs.memos || []);
+    function dcMemoBody(box, o) {
+        const it = dcCat(o), L = dcMemos(o), k = Math.min(300 / it.w, 230 / it.h), W = Math.round(it.w * k), H = Math.round(it.h * k);
+        if (DC.mi >= L.length) DC.mi = -1;
+        const m = L[DC.mi], p = m ? m.p : DC.mp;
+        box.innerHTML = `<p class="dcs-p">${L.length ? '메모를 톡 = 고치기 · 끌어서 옮겨요' : '메모지를 고르고 글을 써서 붙여 보세요'}</p>`
+            + `<div class="dcs-board" id="dcsBoard" style="width:${W}px;height:${H}px"><div class="dcs-bin" style="width:${it.w}px;height:${it.h}px;transform:scale(${k})"><img src="${dkSrc(o)}" alt="" draggable="false"><div class="dk-memos">${L.map((x, i) => dcMemoHtml(x, i, i === DC.mi)).join('')}</div></div></div>`
+            + `<div class="dcs-paper">${DC_PAPER.map(([c, n]) => `<button type="button" class="${c === p ? 'on' : ''}" onclick="dcMemoPaper('${c}')"><i class="dk-memo m-${c}"></i><span>${n}</span></button>`).join('')}</div>`
+            + `<textarea class="dcs-memo-t" id="dcsMemoT" maxlength="40" rows="2" placeholder="메모에 쓸 말 (40자까지)">${dcEsc(m ? m.t : DC.draft || '')}</textarea>`
+            + `<div class="dcs-row dcs-end">${m ? `<button type="button" class="btn" onclick="dcMemoNew()">➕ 새 메모</button><button type="button" class="btn" onclick="dcMemoDel()">🗑 떼기</button>`
+                : `<button type="button" class="btn primary" onclick="dcMemoAdd()">📌 붙이기 <small>${L.length}/${DC_MEMO_MAX}</small></button>`}</div>`;
+        const T = document.getElementById('dcsMemoT'), B = document.getElementById('dcsBoard');
+        T.addEventListener('input', () => { const n = L[DC.mi]; if (!n) { DC.draft = T.value; return; } n.t = T.value; const e = B.querySelector(`.dk-memo[data-i="${DC.mi}"] p`); if (e) e.textContent = n.t; });
+        T.addEventListener('change', () => { if (L[DC.mi]) dcSave(o); });
+        let d = null;
+        const pct = ev => { const r = B.getBoundingClientRect(); return [(ev.clientX - r.left) / r.width * 100, (ev.clientY - r.top) / r.height * 100]; };
+        B.addEventListener('pointerdown', ev => { const e = ev.target.closest('.dk-memo'); if (!e) return; ev.preventDefault();
+            const i = +e.dataset.i, n = L[i]; d = { i, e, p: pct(ev), a: [n.x, n.y], mv: false }; try { B.setPointerCapture(ev.pointerId); } catch (x) {} });
+        B.addEventListener('pointermove', ev => { if (!d) return; const [x, y] = pct(ev), dx = x - d.p[0], dy = y - d.p[1]; if (!d.mv && Math.hypot(dx, dy) < 2) return; d.mv = true;
+            const n = L[d.i]; n.x = Math.round(Math.max(DC_CORK[0] + 8, Math.min(DC_CORK[2] - 8, d.a[0] + dx)) * 10) / 10; n.y = Math.round(Math.max(DC_CORK[1] + 10, Math.min(DC_CORK[3] - 10, d.a[1] + dy)) * 10) / 10;
+            d.e.style.left = n.x + '%'; d.e.style.top = n.y + '%'; });
+        const up = () => { if (!d) return; const q = d; d = null; if (q.mv) dcSave(o); else { DC.mi = q.i === DC.mi ? -1 : q.i; dcBody(); } };
+        B.addEventListener('pointerup', up); B.addEventListener('pointercancel', up);
+    }
+    function dcMemoPaper(c) { const o = dcItem(DC.u); if (!o) return; const m = dcMemos(o)[DC.mi]; if (m) { m.p = c; dcSave(o); } else DC.mp = c; dcBody(); }
+    function dcMemoNew() { DC.mi = -1; DC.draft = ''; dcBody(); const t = document.getElementById('dcsMemoT'); if (t) t.focus(); }
+    function dcMemoAdd() {
+        const o = dcItem(DC.u); if (!o) return; const L = dcMemos(o), t = (document.getElementById('dcsMemoT') || {}).value || '';
+        if (!t.trim()) { if (window.showMsg) showMsg('📝 메모에 쓸 말을 적어 주세요.'); return; }
+        if (L.length >= DC_MEMO_MAX) { if (window.showMsg) showMsg(`📌 게시판에는 메모를 ${DC_MEMO_MAX}장까지 붙일 수 있어요.<br><small>다 쓴 메모를 떼고 붙여 주세요</small>`); return; }
+        const [l, tp, r, b] = DC_CORK, n = L.length, col = n % 4, row = Math.floor(n / 4) % 2;   // 빈칸부터 차례로 (4 × 2)
+        L.push({ p: DC.mp, t: t.trim(), x: Math.round(l + (r - l) * (col + .5) / 4 + (Math.random() * 4 - 2)), y: Math.round(tp + (b - tp) * (row + .5) / 2 + (Math.random() * 4 - 2)), r: Math.round(Math.random() * 10 - 5) });
+        DC.mi = -1; DC.draft = ''; dcSave(o); dcBody();
+    }
+    function dcMemoDel() { const o = dcItem(DC.u); if (!o) return; dcMemos(o).splice(DC.mi, 1); DC.mi = -1; dcSave(o); dcBody(); }
+
     /* ---------- 🪑 책상 위 모습 (불빛 · 숫자) ---------- */
     function dcApply(u) {
         const o = dcItem(u), el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!o || !el) return;
@@ -134,6 +180,10 @@
         if (kind === 'lamp') {
             let g = el.querySelector('.dk-glow'); if (!g) { g = document.createElement('i'); g.className = 'dk-glow'; g.setAttribute('aria-hidden', 'true'); el.insertBefore(g, el.firstChild); }
             el.classList.toggle('lit', !!cs.on); el.style.setProperty('--lt', cs.light || DC_LIGHT[0]);
+        }
+        if (kind === 'board') {                                               // 📝 붙인 메모 (누르면 그대로 게시판 기능 · 메모는 못 눌러요)
+            let w = el.querySelector(':scope > .dk-memos'); if (!w) { w = document.createElement('div'); w.className = 'dk-memos'; w.setAttribute('aria-hidden', 'true'); el.appendChild(w); }
+            w.innerHTML = (cs.memos || []).map((m, i) => dcMemoHtml(m, i)).join('');
         }
         const lcd = el.querySelector('.dk-lcd b'); if (lcd) { lcd.style.fontFamily = cs.font ? `${cs.font}, 'Jua', sans-serif` : ''; lcd.style.color = cs.ink || ''; lcd.style.fontSize = cs.font && /Press/.test(cs.font) ? '19px' : ''; }
     }
@@ -165,6 +215,7 @@
     }, 1000);
 
     window.dcOpen = dcOpen; window.dcTab = dcTab; window.dcPaint = dcPaint; window.dcLamp = dcLamp; window.dcLight = dcLight; window.dcFont = dcFont; window.dcInk = dcInk;
+    window.dcMemoPaper = dcMemoPaper; window.dcMemoNew = dcMemoNew; window.dcMemoAdd = dcMemoAdd; window.dcMemoDel = dcMemoDel;
     window.dcAlarm = dcAlarm; window.dcRingTest = dcRingTest; window.dcPhoto = dcPhoto;
     window.dcAreaReset = dcAreaReset; window.dcAreaSave = dcAreaSave; window.dcApply = dcApply; window.dcApplyAll = dcApplyAll; window.dcTap = dcTap;
 })();

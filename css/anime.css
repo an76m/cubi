@@ -211,3 +211,33 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .desk-item.ring { animation: dkRing .18s linear infinite; }
 @keyframes dkRing { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
 @media (prefers-reduced-motion: reduce) { .desk-item.ring { animation: none; } }
+
+/* 📝 게시판 메모 (도련 10-28 · js/deskcustom.js dcMemoBody · dcApply) : 크기는 게시판 그림 px 기준 · 종류 = .m-post .m-pink .m-grid .m-mint .m-lilac .m-letter */
+.dk-memos { position: absolute; inset: 0; pointer-events: none; }
+.dk-memo { position: absolute; width: 92px; min-height: 84px; padding: 16px 8px 8px; box-sizing: border-box; transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+    background: var(--mb, #fff3b0); border: 1.4px solid var(--ml, #e6cf74); border-radius: 3px; box-shadow: 2px 3px 0 rgba(150, 110, 80, .18); }
+.dk-memo p { margin: 0; font-family: 'Gaegu', 'Jua', sans-serif; font-weight: 700; font-size: 15px; line-height: 1.15; color: #5e4250; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; text-align: center; }
+.dk-memo.m-pink p { line-height: 18px; }
+.dk-memo::before { content: ''; position: absolute; left: 50%; top: -6px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--pin, #f07aa3); border: 1.4px solid rgba(94, 66, 80, .55); box-shadow: inset -2px -2px 0 rgba(0, 0, 0, .12); }
+.dk-memo.m-post { --mb: #fff3b0; --ml: #e6cf74; border-radius: 2px 2px 14px 2px; }
+.dk-memo.m-post::before, .dk-memo.m-mint::before { width: 40px; height: 13px; margin-left: -20px; top: -7px; border-radius: 2px; border: 0; box-shadow: none; background: rgba(255, 200, 220, .75); transform: rotate(-4deg); }
+.dk-memo.m-mint::before { background: rgba(200, 225, 255, .8); transform: rotate(3deg); }
+.dk-memo.m-pink { --mb: #ffe6ee; --ml: #f2b6c9; --pin: #8fb8e8; background-image: repeating-linear-gradient(to bottom, transparent 0 17px, #f7c3d3 17px 18px); background-position: 0 16px; }
+.dk-memo.m-grid { --mb: #e8f5ff; --ml: #a9cdee; --pin: #f6c445; background-image: linear-gradient(#cfe4f7 1px, transparent 1px), linear-gradient(90deg, #cfe4f7 1px, transparent 1px); background-size: 9px 9px; }
+.dk-memo.m-mint { --mb: #ddf6e8; --ml: #9fd8b8; }
+.dk-memo.m-lilac { --mb: #f1e9ff; --ml: #c8b3e3; --pin: #f07aa3; background-image: linear-gradient(45deg, rgba(200, 179, 227, .3) 25%, transparent 25%, transparent 75%, rgba(200, 179, 227, .3) 75%), linear-gradient(45deg, rgba(200, 179, 227, .3) 25%, transparent 25%, transparent 75%, rgba(200, 179, 227, .3) 75%); background-size: 14px 14px; background-position: 0 0, 7px 7px; }
+.dk-memo.m-letter { --mb: #fffdf7; --ml: #e9c9a8; --pin: #9ad1b0; border-top: 9px solid #ffc6d8; padding-top: 10px; }
+.dk-memo.sel { outline: 2.5px solid #e88fb0; outline-offset: 3px; }
+/* 꾸미기 창 */
+.dcs-board { position: relative; margin: 4px auto 10px; touch-action: none; user-select: none; overflow: hidden; border-radius: 10px; }
+.dcs-bin { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.dcs-bin > img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.dcs-board .dk-memos { pointer-events: auto; } .dcs-board .dk-memo { cursor: grab; }
+.dcs-paper { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin: 4px 0 8px; }
+.dcs-paper button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 5px; border-radius: 12px; border: 1.5px solid #f2b6c9; background: #fff; color: #7b5a6b; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.dcs-paper button.on { background: #ffe0ea; border-color: #e88fb0; color: #c8457a; }
+.dcs-paper .dk-memo { position: relative; width: 30px; min-height: 28px; height: 28px; padding: 0; transform: rotate(-3deg); box-shadow: none; }
+.dcs-paper .dk-memo::before { transform: scale(.55); }
+.dcs-paper .dk-memo.m-letter { border-top-width: 5px; }
+.dcs-memo-t { display: block; width: 100%; box-sizing: border-box; resize: none; font-family: 'Gaegu', 'Jua', sans-serif; font-weight: 700; font-size: 17px; padding: 8px 12px; border-radius: 14px; border: 1.5px solid #c8b3e3; background: #fff; color: #5e4250; }
+@media (max-width: 480px) { .dcs-paper { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
