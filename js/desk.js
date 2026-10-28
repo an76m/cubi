@@ -256,6 +256,7 @@
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
             if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }                // 📦 소품함 (다이어리를 띄우지 않아요)
+            if (fn === 'skin' && window.dyOpen) { setTimeout(() => dyOpen('다이어리'), 0); return; }   // 📔 책상에서는 바로 다이어리 보관소 (배경지는 책상에서 못 써서 메뉴를 건너뛰어요 · 도련 10-28)
             const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
             if (!['skin', 'set', 'gd'].includes(fn) && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }   // 📔 다이어리 · ⚙ 설정 · ✏️ 문구함은 다이어리를 띄우지 않아요 (도련 10-28)

@@ -288,3 +288,4 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .dyy-chips { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; }
 .dyy-chips button { padding: 4px 12px; border-radius: 999px; border: 1.5px solid #f2b6c9; background: #fff; color: #7b5a6b; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .dyy-chips button.on { background: #ffe0ea; border-color: #e88fb0; color: #c8457a; }
+html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는 보관소만 (‹ 다이어리 메뉴 = 배경지는 책상에서 못 써요 · 도련 10-28) */
