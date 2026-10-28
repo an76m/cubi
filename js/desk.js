@@ -371,8 +371,11 @@
             try { const it = await dkUnseal(await collItem(C, o.c)); if (it && it.u === o.u && typeof it.img === 'string') { DK.art[o.u] = it.img; dkArtPaint(o.u); } } catch (e) { console.warn('칠한 소품', e); }   // 다른 소품 파일(u 가 다름)이면 안 써요
         }
         /* 🛠 꾸미는 중에도 바로 저장해야 하는 것 (칠하기 · 받기) : 취소해도 남게 들어오기 전 모습에도 같이 넣어요 */
-        function dkPersist(it) {
+        /* 💾 소품 정보 저장 : 🛠 꾸미는 동안(커스텀 · 색칠 미리 보기)은 저장하지 않고 들고만 있다가 하단 ✔ 완료 때 한꺼번에 (취소 = 처음대로 · 도련 10-28 : 완료는 하나)
+             sys = 알람이 울린 날처럼 꾸미기와 상관없는 기록 → 꾸미는 중에도 바로 (취소해도 남아요) */
+        function dkPersist(it, sys) {
             if (!(DK.edit && DK.back)) { dkSave(); return; }
+            if (!sys) return;
             const b = JSON.parse(DK.back.items), i = b.findIndex(x => x.u === it.u), rec = JSON.parse(JSON.stringify(it));
             if (i >= 0) b[i] = Object.assign(rec, { x: b[i].x, y: b[i].y, at: b[i].at }); else b.push(rec);   // 자리는 들어오기 전 그대로
             DK.back.items = JSON.stringify(b);
@@ -510,14 +513,38 @@
                 DK.edit = false; dkSave();
                 gone.filter(o => !o.g).forEach(dkFileDel); if (gone.some(o => o.g)) giftWrite();   // 🗑 버린 소품의 파일 · 🎁 선물.json
                 if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, fn);
+                dkArtCommit();                                                    // 🎨 색칠 · 🖼 사진 미리 보기 → 진짜 저장 (💾 저장 중)
             } else {
                 DK.edit = false; DK.items = JSON.parse(DK.back.items); DK.seen = DK.back.items;
+                dkArtUndo();                                                      // 🎨 색칠 미리 보기는 처음 그림으로
             }
             DK.editFn = null; DK.back = null;
             document.documentElement.classList.remove('desk-edit');
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
         }
         /* 위 막대 (확정 가능 여부) · 아래 📦 보관함 줄 */
+        /* 🎨 색칠 · 🖼 사진 미리 보기 (도련 10-28) : 창을 닫으면 책상에 칠한 모습만 보여 주고 (어울리나 전체로 보기) · 하단 ✔ 완료 때 파일에 저장 · ✕ 취소 = 처음 그림
+             DK.artPend { u: 칠한 그림 } · DK.artOld { u: 칠하기 전 그림(없으면 null) } */
+        function dkArtDraft(o, url) {
+            if (!DK.edit) return window.dpSave ? dpSave(o, url) : null;           // 꾸미기 밖이면 바로 저장
+            DK.artPend = DK.artPend || {}; DK.artOld = DK.artOld || {};
+            if (!(o.u in DK.artOld)) DK.artOld[o.u] = DK.art[o.u] || null;
+            DK.artPend[o.u] = url; DK.art[o.u] = url; dkArtPaint(o.u);
+            if (window.deskBoxRender) deskBoxRender();
+        }
+        function dkArtUndo() {
+            const old = DK.artOld || {}; Object.keys(old).forEach(u => { if (old[u]) DK.art[u] = old[u]; else delete DK.art[u]; dkArtPaint(u); });
+            DK.artPend = DK.artOld = null;
+        }
+        async function dkArtCommit() {
+            const P = DK.artPend || {}, L = Object.keys(P).map(u => [DK.items.find(x => x.u === u), P[u]]).filter(x => x[0]);   // 버린 소품은 빼고
+            DK.artPend = DK.artOld = null; if (!L.length) return;
+            if (window.saveBusy) saveBusy('💾 꾸민 소품 저장 중…');
+            let bad = 0; for (const [o, url] of L) { try { await dpSave(o, url); } catch (e) { console.warn(e); bad++; } }
+            if (window.saveBusy) await saveBusy(false);
+            if (bad && window.showMsg) showMsg('⚠ 꾸민 소품을 저장하지 못했어요.<br><small>인터넷 연결을 확인하고 다시 꾸며 주세요</small>');
+        }
+        window.dkArtDraft = dkArtDraft;
         function deskEditPaint() {
             dkSnapBtn();
             const bar = document.getElementById('deskEditBar'), tray = document.getElementById('deskEditTray'); if (!bar || !tray) return;

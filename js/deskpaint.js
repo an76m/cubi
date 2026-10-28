@@ -2,10 +2,11 @@
    🎨 책상 소품 꾸미기 (도련 10-27 · 🛠 책상 꾸미기에서 소품을 고르고 🎨 꾸미기)
    - 소품 그림(PNG 투명한 곳 = 마스크) 안에서만 칠해져요 : 🖌 붓 (색 · 굵기) · 🧽 지우개 (이번에 칠한 것만) · 🖼 이미지 (내 컴퓨터 그림을 올려 크기 · 회전 · 위치 → 📌 붙이기)
    - 외곽선(어두운 선)은 칠 위에 그대로 다시 얹어서 진짜 칠한 것처럼 보여요
-   - ✓ 완료 = 칠한 모습을 그림 한 장으로 합쳐 그 소품의 원래 파일에 덮어써요 (되돌리기 없음 · 현실처럼 · 도련 10-27)
+   - 닫기 = 칠한 모습을 그림 한 장으로 합쳐 책상에 미리 보여 줘요 (어울리는지 전체로 보기 · 다시 열면 이어서 칠해요 · 도련 10-28)
+     🛠 책상 꾸미기 하단 ✔ 완료 = 그 소품의 원래 파일에 덮어써요 (js/desk.js dkArtDraft · dkArtCommit) · ✕ 취소 = 처음 그림
        종류 폴더 / 받은-<c>.json 의 item = 🔐 { s: 암호 } → 열면 { u, id, from, img } (스티커처럼 계정마다 다른 열쇠) · 🎁 기본세트 소품은 처음 칠할 때 선물.json 에서 빠져 종류 폴더에 자기 파일이 생겨요
        목록(배치.json)에는 p: 1 (칠함) 만 · 그림은 그 파일에서 읽어요 (js/desk.js dkArtLoad)
-   - 꾸미는 중(🛠 확정 전)이어도 완료하면 바로 저장돼요 (취소해도 칠한 것은 남아요) */
+   - 창마다 완료는 없어요 : 완료는 하단 하나 (도련 10-28) */
 
         const DP = { o: null, W: 0, H: 0, base: null, ink: null, paint: null, tmp: null, view: null, tool: 'brush', color: '#ff9fbd', size: 22, decal: null, dirty: false, last: null, k: 1 };
         const DP_COLORS = ['#ff9fbd', '#ffd36b', '#9bd9b5', '#9ccfee', '#c9b3f2', '#ffffff', '#f6e6d0', '#8a5a3c', '#5e4250', '#e2557f'];
@@ -33,7 +34,7 @@
             let w = document.getElementById('dpWrap');
             if (!w) { w = document.createElement('div'); w.id = 'dpWrap'; w.className = 'dp-wrap'; document.body.appendChild(w); }
             w.innerHTML = `<div class="dp-card" role="dialog" aria-label="소품 꾸미기">
-                <div class="dp-head"><b>🎨 ${dkName(o)} 꾸미기</b><small>소품 모양 안에만 칠해져요 · 완료하면 되돌릴 수 없어요</small></div>
+                <div class="dp-head"><b>🎨 ${dkName(o)} 꾸미기</b><small>소품 모양 안에만 칠해져요 · 닫고 책상에서 어울리는지 봐요</small></div>
                 <div class="dp-stage"><canvas id="dpView"></canvas></div>
                 <div class="dp-tabs"><button type="button" data-t="brush">🖌 붓</button><button type="button" data-t="erase">🧽 지우개</button><button type="button" data-t="img">🖼 이미지</button></div>
                 <div class="dp-row dp-pen"><span class="dp-sw">${DP_COLORS.map(c => `<button type="button" style="--c:${c}" data-c="${c}" aria-label="색 ${c}"></button>`).join('')}<label class="dp-more" title="다른 색"><input type="color" value="${DP.color}"></label></span></div>
@@ -41,7 +42,7 @@
                 <div class="dp-row dp-im" hidden><label class="btn dp-file">📁 이미지 고르기<input type="file" accept="image/*" hidden></label>
                     <small>크기</small><input type="range" min="5" max="300" value="100" data-k="ds"><small>회전</small><input type="range" min="-180" max="180" value="0" data-k="dr">
                     <button type="button" class="btn dp-stick" disabled>📌 붙이기</button></div>
-                <div class="dp-btns"><button type="button" class="btn" data-a="no">취소</button><button type="button" class="btn dp-ok" data-a="ok">✓ 완료</button></div></div>`;
+                <div class="dp-btns"><button type="button" class="btn" data-a="ok">닫기</button></div></div>`;
             DP.view = w.querySelector('#dpView'); DP.view.width = W; DP.view.height = H;
             const k = Math.min((Math.min(innerWidth, 680) - 56) / W, (innerHeight * .5) / H, 3); DP.k = k;
             DP.view.style.width = Math.round(W * k) + 'px'; DP.view.style.height = Math.round(H * k) + 'px';
@@ -53,7 +54,6 @@
             w.querySelector('[data-k="dr"]').oninput = e => { if (DP.decal) { DP.decal.r = e.target.value * Math.PI / 180; dpRender(); } };
             w.querySelector('.dp-file input').onchange = e => dpPick(e.target.files && e.target.files[0]);
             w.querySelector('.dp-stick').onclick = dpStick;
-            w.querySelector('[data-a="no"]').onclick = dpCancel;
             w.querySelector('[data-a="ok"]').onclick = dpDone;
             dpWire(DP.view);
             dpTool('brush'); dpColor(DP.color); dpRender();
@@ -120,17 +120,12 @@
             const b = document.querySelector('#dpWrap .dp-stick'); if (b) b.disabled = true; dpRender();
         }
         function dpClose() { const w = document.getElementById('dpWrap'); if (w) { w.classList.remove('on'); w.innerHTML = ''; } DP.o = null; DP.view = null; }
-        async function dpCancel() {
-            if ((DP.dirty || DP.decal) && window.showAsk && !await showAsk('칠한 것을 버리고 나갈까요?', '버리고 나가기', '더 꾸미기')) return;
-            dpClose();
-        }
-        async function dpDone() {
+        async function dpDone() {                                                 // 닫기 = 책상에 미리 보기 (저장은 하단 ✔ 완료)
             if (!DP.dirty && !DP.decal) { dpClose(); return; }
-            if (window.showAsk && !await showAsk(`🎨 이대로 ${josa(dkName(DP.o), '을', '를')} 칠할까요?<br><small>칠한 것은 되돌릴 수 없어요</small>`, '완료', '더 꾸미기')) return;
             const out = dpCv(DP.W, DP.H); dpCompose(out.getContext('2d'), true);
             let url = out.toDataURL('image/webp', .9); if (!/^data:image\/webp/.test(url)) url = out.toDataURL('image/png');
             const o = DP.o; dpClose();
-            try { await dpSave(o, url); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 꾸민 소품을 저장하지 못했어요.'); }
+            try { await dkArtDraft(o, url); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 꾸민 소품을 저장하지 못했어요.'); }
         }
         /* 저장 : 그 소품의 종류 폴더 파일에 덮어쓰기 (🎁 선물이면 처음 한 번 선물.json 에서 빼고 파일 만들기) */
         async function dpSave(o, url) {

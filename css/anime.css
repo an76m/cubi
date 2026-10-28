@@ -242,3 +242,4 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .dcs-memo-t { display: block; width: 100%; box-sizing: border-box; resize: none; font-family: 'Gaegu', 'Jua', sans-serif; font-weight: 700; font-size: 17px; padding: 8px 12px; border-radius: 14px; border: 1.5px solid #c8b3e3; background: #fff; color: #5e4250; }
 @media (max-width: 480px) { .dcs-paper { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
+.dcs-warn { margin: 4px 0 0; text-align: center; color: #c8457a; font-size: 12.5px; font-weight: 700; word-break: keep-all; }

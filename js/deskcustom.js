@@ -6,7 +6,8 @@
    - 📝 게시판 : 메모지 고르기 + 글 쓰기 → 게시판에 붙이기 (최대 8장 · 끌어서 옮기기 · 톡 = 고치기 · 떼기)
    - 👆 누르는 곳 : 기능(다이어리 · 설정 …)이 연결된 소품만 · 네모 안 = 소품 동작 · 나머지 그림 = 연결된 기능
        네모가 소품의 85% 이상이면 기능을 누를 자리가 없어서 고쳐 달라고 해요 · 너무 작으면(그림 px 28 미만) 안 돼요
-   저장 : 배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%), memos: [{ p, t, x, y, r }] } (js/desk.js dkPersist)
+   저장 : 바꾸면 바로 책상에 보이고 · 🛠 책상 꾸미기 하단 ✔ 완료 때 한꺼번에 저장 (취소 = 처음대로 · 창마다 완료 없음 · 도련 10-28)
+          배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%), memos: [{ p, t, x, y, r }] } (js/desk.js dkPersist)
    ※ 소품 종류를 더하면 DC_KINDS 에 탭 · 동작 · 기본 누르는 곳만 더해요 */
 (function () {
     const DC_KINDS = {
@@ -62,7 +63,7 @@
             box.innerHTML = `<div class="dcs-row"><b>시각</b><input type="time" class="dcs-time" value="${a.t}" onchange="dcAlarm(this.value, null)"></div>`
                 + `<div class="dcs-row"><b>알람</b><button type="button" class="btn${a.on ? ' primary' : ''}" onclick="dcAlarm(null, ${!a.on})">${a.on ? '⏰ 켜짐' : '💤 꺼짐'}</button><button type="button" class="btn" onclick="dcRingTest()">🔔 들어 보기</button></div>`
                 + `<p class="dcs-p">다이어리가 열려 있을 때 그 시각이 되면 시계가 울려요 · 울리는 시계를 톡 하면 꺼져요</p>`; }
-        else if (T === 'photo') box.innerHTML = `<p class="dcs-p">사진 칸에 내 사진을 넣거나, 직접 그림을 그려요.</p><div class="dcs-snd"><button type="button" class="btn primary" onclick="dcPhoto()">🖼 내 사진 넣기</button><button type="button" class="btn" onclick="dcPaint()">✏️ 그림 그리기</button></div><p class="dcs-p">넣으면 되돌릴 수 없어요 (색칠과 같아요)</p>`;
+        else if (T === 'photo') box.innerHTML = `<p class="dcs-p">사진 칸에 내 사진을 넣거나, 직접 그림을 그려요.</p><div class="dcs-snd"><button type="button" class="btn primary" onclick="dcPhoto()">🖼 내 사진 넣기</button><button type="button" class="btn" onclick="dcPaint()">✏️ 그림 그리기</button></div><p class="dcs-p">책상 꾸미기 아래 ✔ 완료를 누르면 저장돼요</p>`;
         else if (T === 'area') dcAreaBody(box, o);
         else if (T === 'memo') dcMemoBody(box, o);
     }
@@ -101,7 +102,7 @@
                 const sw = w / k, sh = h / k; x.save(); x.beginPath(); x.rect(L, T, w, h); x.clip();
                 x.drawImage(pic, (pic.naturalWidth - sw) / 2, (pic.naturalHeight - sh) / 2, sw, sh, L, T, w, h); x.restore();
                 let url = c.toDataURL('image/webp', .9); if (!/^data:image\/webp/.test(url)) url = c.toDataURL('image/png');
-                try { if (window.dpSave) await dpSave(o, url); if (window.closeModal) closeModal('deskCsModal'); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 사진을 넣지 못했어요.'); }
+                try { if (window.dkArtDraft) await dkArtDraft(o, url); if (window.closeModal) closeModal('deskCsModal'); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 사진을 넣지 못했어요.'); }
                 URL.revokeObjectURL(pic.src); };
             pic.onload = go; base.onload = go; base.crossOrigin = 'anonymous';
             pic.src = URL.createObjectURL(file); base.src = dkSrc(o); };
@@ -115,7 +116,7 @@
         box.innerHTML = `<p class="dcs-p">분홍 네모 안을 톡 = 💡 켜고 끄기 · 나머지 그림 = ${f ? f[3] + ' ' + f[1] : '기능'}</p>`
             + `<div class="dcs-area" id="dcsArea" style="width:${W}px;height:${H}px"><img src="${dkSrc(o)}" alt="" draggable="false"><i class="dcs-fn"></i>`
             + `<div class="dcs-box" id="dcsBox" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><span>💡</span><b class="dcs-h" id="dcsH"></b></div></div>`
-            + `<div class="dcs-row dcs-end"><button type="button" class="btn" onclick="dcAreaReset()">↺ 처음대로</button><button type="button" class="btn primary" onclick="dcAreaSave()">✔ 저장</button></div>`;
+            + `<p class="dcs-warn" id="dcsWarn" hidden></p><div class="dcs-row dcs-end"><button type="button" class="btn" onclick="dcAreaReset()">↺ 처음대로</button></div>`;
         const A = document.getElementById('dcsArea'), Bx = document.getElementById('dcsBox'), Hd = document.getElementById('dcsH');
         let d = null;
         const pct = ev => { const R = A.getBoundingClientRect(); return [(ev.clientX - R.left) / R.width * 100, (ev.clientY - R.top) / R.height * 100]; };
@@ -125,15 +126,18 @@
             if (d.m === 'move') { const w = a[2] - a[0], h = a[3] - a[1], nl = Math.max(0, Math.min(100 - w, a[0] + dx)), nt = Math.max(0, Math.min(100 - h, a[1] + dy)); DC.area = [nl, nt, nl + w, nt + h]; }
             else DC.area = [a[0], a[1], Math.max(a[0] + 8, Math.min(100, a[2] + dx)), Math.max(a[1] + 8, Math.min(100, a[3] + dy))];
             paint(); });
-        const up = () => { d = null; }; Bx.addEventListener('pointerup', up); Bx.addEventListener('pointercancel', up);
+        const up = () => { if (!d) return; d = null; dcAreaSave(); }; Bx.addEventListener('pointerup', up); Bx.addEventListener('pointercancel', up);
     }
-    function dcAreaReset() { const o = dcItem(DC.u); if (!o) return; DC.area = (dcKind(o).area || [0, 0, 100, 100]).slice(); dcBody(); }
+    function dcAreaReset() { const o = dcItem(DC.u); if (!o) return; DC.area = (dcKind(o).area || [0, 0, 100, 100]).slice(); delete dcCs(o).area; dcSave(o); dcBody(); }
+    /* 네모를 놓으면 바로 적용 (저장은 하단 ✔ 완료) · 안 되는 크기면 창 안에 빨간 글로 알려 주고 적용 안 해요 */
     function dcAreaSave() {
         const o = dcItem(DC.u); if (!o) return; const it = dcCat(o), [l, t, r, b] = DC.area.map(v => Math.round(v * 10) / 10);
-        const fn = dcFnOf(o.u), f = DK_FNS.find(x => x[0] === fn);
-        if (fn && (r - l) * (b - t) >= 8500) { if (window.showMsg) showMsg(`📌 이 소품에는 <b>${f ? f[3] + ' ' + f[1] : '기능'}</b>이 연결돼 있어요.<br>기능을 누를 자리가 남도록 분홍 네모를 줄여 주세요.`); return; }
-        if ((r - l) * it.w / 100 < 28 || (b - t) * it.h / 100 < 28) { if (window.showMsg) showMsg('👆 누르는 곳이 너무 작아요.<br><small>손가락으로 누를 수 있게 조금 키워 주세요</small>'); return; }
-        dcCs(o).area = [l, t, r, b]; dcSave(o); if (window.showMsg) showMsg('👆 누르는 곳을 저장했어요!');
+        const fn = dcFnOf(o.u), f = DK_FNS.find(x => x[0] === fn), W = document.getElementById('dcsWarn');
+        const bad = fn && (r - l) * (b - t) >= 8500 ? `📌 <b>${f ? f[3] + ' ' + f[1] : '기능'}</b>을 누를 자리가 남도록 분홍 네모를 줄여 주세요`
+            : (r - l) * it.w / 100 < 28 || (b - t) * it.h / 100 < 28 ? '👆 너무 작아요 · 손가락으로 누를 수 있게 조금 키워 주세요' : '';
+        if (W) { W.innerHTML = bad; W.hidden = !bad; }
+        if (bad) return;
+        dcCs(o).area = [l, t, r, b]; dcSave(o);
     }
 
     /* 📝 메모 : 위 = 게시판 미리 보기 (메모 톡 = 고르기 · 끌기 = 옮기기) · 아래 = 메모지 + 글 */
@@ -208,7 +212,7 @@
         if (typeof DK === 'undefined' || !DK.items || DC.ring) return;
         const n = new Date(), hm = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'), day = n.toDateString();
         const o = DK.items.find(x => x.at === 'desk' && x.cs && x.cs.alarm && x.cs.alarm.on && x.cs.alarm.t === hm && x.cs.alarm.last !== day); if (!o) return;
-        o.cs.alarm.last = day; dkPersist(o);
+        o.cs.alarm.last = day; dkPersist(o, 1);
         const el = document.querySelector(`#deskStage .desk-item[data-u="${o.u}"]`); if (el) el.classList.add('ring');
         DC.ring = o.u; dcBeep(); let k = 0; DC.ringT = setInterval(() => { if (++k > 20) dcRingStop(); else dcBeep(); }, 1500);   // 30초 동안
         if (window.showMsg) showMsg(`⏰ ${hm} 알람이에요!`).then(() => dcRingStop());
