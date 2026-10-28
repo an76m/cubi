@@ -162,3 +162,27 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .iv-tab i { position: static; margin-left: 3px; font-size: 10px; }
 .iv-in { max-height: min(58vh, 470px); }
 .iv-name:empty { display: none; }
+/* v843 소품함 B : 왼쪽 종류 목록(따로 스크롤 · 전체는 위에 고정) + 오른쪽 칸 (따로 스크롤) */
+#deskBoxModal > .modal-content.iv-win { width: min(94vw, 520px); }
+.iv-body { display: flex; gap: 8px; height: min(62vh, 520px); }
+.iv-side { flex: 0 0 112px; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; padding: 6px; background: #fff2f6; border: 2px solid #c8b3e3; border-radius: 16px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #c8b3e3 transparent;
+  -webkit-mask: linear-gradient(#000 calc(100% - 18px), transparent); mask: linear-gradient(#000 calc(100% - 18px), transparent); padding-bottom: 18px; }   /* 아래가 흐려지면 '더 있어요' */
+.iv-side .iv-tab { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 4px; flex: none; padding: 8px 10px; border-radius: 10px; cursor: pointer; color: #7b5a6b; font-size: 13px; font-weight: 700; }
+.iv-side .iv-tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iv-side .iv-tab i { font-style: normal; font-size: 11px; color: #b49fdc; }
+.iv-side .iv-tab:hover { background: #fff; }
+.iv-side .iv-tab.on { background: #ffe0ea; color: #c8457a; } .iv-side .iv-tab.on i { color: #e88fb0; }
+.iv-side .iv-tab.all { position: sticky; top: -6px; z-index: 1; background: #fff2f6; margin: -6px -6px 2px; padding: 10px 16px; border-radius: 14px 14px 0 0; border-bottom: 1.5px dashed #e9c6dc; }
+.iv-side .iv-tab.all.on { background: #ffe0ea; }
+.iv-body .iv-box { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.iv-body .iv-in { flex: 1; grid-template-columns: repeat(3, minmax(0, 1fr)); max-height: none; align-content: start; overscroll-behavior: contain; }
+@media (max-width: 480px) {                                                  /* 📱 좁으면 목록을 위 가로 칩으로 */
+  .iv-body { flex-direction: column; height: min(64vh, 560px); }
+  .iv-side { flex: none; flex-direction: row; overflow-x: auto; overflow-y: hidden; -webkit-mask: none; mask: none; padding: 5px; }
+  .iv-side .iv-tab { padding: 6px 10px; } .iv-side .iv-tab.all { position: static; margin: 0; padding: 6px 10px; border: 0; border-radius: 10px; }
+  .iv-body .iv-in { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.iv-body .iv-in { min-height: 0; grid-auto-rows: max-content; }
+.iv-body .iv-in > .iv-c { height: auto; align-self: start; }
+@media (max-width: 480px) { .iv-body { height: min(54vh, 470px); } }
+.iv-body .iv-box { min-height: 0; } .iv-body .iv-in { overflow-y: auto; }
