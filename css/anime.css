@@ -296,3 +296,6 @@ html.an .dy-gap::before { background: #f1eef8 !important; box-shadow: 0 0 0 .3cq
 html.an .dy-gap { background: linear-gradient(90deg, #9d88c2 0 .3cqw, color-mix(in srgb, var(--dy-c) 70%, #fff) .3cqw calc(100% - .3cqw), #9d88c2 calc(100% - .3cqw)) !important; box-shadow: none !important; }   /* 가운데 틈 = 표지 안쪽 한 색 + 양쪽 선 */
 /* 🗂️ 책상 위에 눕힌 다이어리의 링 (도련 10-28) : 눕히면(rotateX 71°) 링이 납작해져서 · 책상 위 복사본에서만 링을 세로로 늘려 두면 눕힌 뒤에 둥글게 선 링처럼 보여요 (구멍 자리가 기준) */
 .dk-mini .dy-rings i { transform: scaleY(3.6); transform-origin: 50% 72%; }
+
+/* 📖 날짜바 양 끝 왼쪽 · 오른쪽 페이지 스위치 (도련 10-29) : 켜진 버튼 공통 네모(aria-pressed) 없이 그림만 · 켜짐/꺼짐은 진하기로 */
+.page-header .page-side, .page-header .page-side[aria-pressed="true"] { border: 0 !important; background: none !important; box-shadow: none !important; }

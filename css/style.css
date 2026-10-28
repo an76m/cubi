@@ -112,6 +112,11 @@
             display: flex; align-items: center; justify-content: center; color: inherit; transition: transform .15s ease, opacity .15s ease; }
         @media (hover: hover) { .page-arrow:hover { opacity: .75; } }
         .page-arrow:active { transform: scale(.88); }
+        /* 📖 날짜바 양 끝 왼쪽 · 오른쪽 페이지 스위치 (도련 10-29 · js/skins.js dvToggle) : 켜짐 = 날짜 색 · 꺼짐 = 연하게 */
+        .page-side { width: 26px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; color: inherit; opacity: .3; transition: transform .15s ease, opacity .15s ease; }
+        .page-side.on { opacity: 1; }
+        .page-side:active { transform: scale(.88); }
 
         .canvas-area {
             flex: 1; position: relative; overflow: hidden; touch-action: none; -webkit-tap-highlight-color: transparent;
@@ -3748,7 +3753,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dy-th[data-b="spread"]::after { content: ''; left: 56%; top: 4px; bottom: -8px; width: 3px; border-radius: 0 0 2px 2px; background: #e7768f; }
 /* 📖 펼침면 (js/skins.js dySize · dyViewSet · 🪑 책상 위 펼친 다이어리 복사본 .dk-open-wrap 도 같이 · 도련 10-28) : 책(#diaryBook)은 한 쪽 크기 · 속지는 두 배로 넓어져 왼쪽으로 한 쪽만큼 · 📱 폰은 반쪽씩 */
 :is(#diaryBook, .dk-open-wrap > .diary-book).dy-sp .inner-page { left: -100%; width: 200%; }
-:is(#diaryBook, .dk-open-wrap > .diary-book).dy-sp .inner-page .page-header { width: min(calc(var(--dy-w) - 16px), max(calc(var(--dy-w) * .74), 290px)); }
+:is(#diaryBook, .dk-open-wrap > .diary-book).dy-sp .inner-page .page-header { width: min(calc(var(--dy-w) - 16px), max(calc(var(--dy-w) * .88), 320px)); }   /* 양 끝 왼쪽 · 오른쪽 페이지 스위치 자리까지 (도련 10-29 · 74% → 88%) */
 :is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page { transform: translateX(50%); }
 :is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page .page-header { translate: calc(var(--dy-w) * -.5) 0; }
 :is(#diaryBook, .dk-open-wrap > .diary-book).dy-one .inner-page.dy-at-r { transform: none; }

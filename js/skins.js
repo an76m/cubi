@@ -572,26 +572,39 @@
         const dyFind = id => DY_TYPES.find(t => t.id === id) || (typeof dmkGet === 'function' ? dmkGet(id) : null);   // 📓 내가 만든 노트 · 바인더도 (js/dymaker.js)
         const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || DY_TYPES.find(t => t.id === DY_DEF);
         /* 📖 펼침면 (도련 · 10-17) : 모든 다이어리는 펼친 두 쪽이 하루예요
-           - 저장은 늘 두 쪽짜리 종이 하나 (getPageSize = 두 쪽 크기) · 보는 방법만 기기마다 설정에서 골라요 (📖 양쪽 · 📄 한쪽)
+           - 저장은 늘 두 쪽짜리 종이 하나 (getPageSize = 두 쪽 크기) · 보는 방법만 기기마다 설정 · 날짜바 스위치로 골라요 (⬅ 왼쪽 페이지 · ➡ 오른쪽 페이지)
            - spread : 💻 컴퓨터 · 📲 패드 양쪽 = 두 쪽이 다 보여요 (다이어리를 열면 #diaryWrapper 왼쪽에 한 쪽만큼 자리를 비워 가운데로)
            - swipe  : 📱 폰 양쪽 = 반쪽씩 · 밀면 같은 날 왼쪽 ↔ 오른쪽 · 끝에서 한 번 더 밀면 장이 넘어가요 (다음 날은 왼쪽부터 · 전날은 오른쪽부터)
-           - right  : 한쪽 = 오른쪽 쪽만 · 예전 한 쪽 다이어리처럼 바로 다음 날 · 전날로 넘어가요 (왼쪽 쪽은 안 보여요)
+           - right  : 오른쪽 페이지만 = 오른쪽 쪽만 · 바로 다음 날 · 전날로 넘어가요 (왼쪽 쪽은 안 보여요)
+           - left   : 왼쪽 페이지만 = 왼쪽 쪽만 · 넘기는 건 right 와 같고 보이는 쪽만 왼쪽
            - #diaryBook 은 한 쪽 크기 그대로 · #innerPage 가 두 배로 넓어져 왼쪽으로 한 쪽만큼 나가요 (css #diaryBook.dy-sp) → 책은 오른쪽 쪽 자리 */
-        const DV_KEY = 'diary_view', DV_LOCAL = 'malang_view', DV_DEF = { phone: 'one', pad: 'two', pc: 'two' };   // 📱 폰은 한쪽이 기본 (도련 · 10-17)
+        /* 📖 보는 쪽 (도련 10-29) : 기기마다 ⬅ 왼쪽 페이지 · ➡ 오른쪽 페이지 스위치 두 개 (둘 다 켜면 양쪽) · 둘 다 끌 수는 없어요
+           - 'lr' 양쪽 (💻 📲 = 펼쳐서 · 📱 = 밀어서) · 'l' 왼쪽 페이지만 · 'r' 오른쪽 페이지만 (한 쪽만 켜면 그 쪽이 날짜바 가운데 · 넘기면 바로 다음 날)
+           - ⚙ 설정 📖 페이지 보기 (기기마다) + 날짜바 양 끝 스위치 (이 기기 · 작업하다 바로 접었다 펴기) · 같은 값이에요 */
+        const DV_KEY = 'diary_view', DV_LOCAL = 'malang_view', DV_DEF = { phone: 'lr', pad: 'lr', pc: 'lr' };   // 기본 = 둘 다 켜기 (도련 10-29)
+        const DV_OK = ['lr', 'l', 'r'];
         function dvDev() {                                                     // 이 기기 : 폰(화면 짧은 쪽 600 미만) · 패드(손가락 화면) · 컴퓨터
             if (Math.min(screen.width, screen.height) < 600) return 'phone';
             return navigator.maxTouchPoints > 0 && matchMedia('(any-pointer: coarse)').matches ? 'pad' : 'pc';
         }
-        function dvCfg() { const v = prefGet(DV_KEY, DV_LOCAL); return Object.assign({}, DV_DEF, v && typeof v === 'object' ? v : {}); }
-        function dvSet(k, v) { const c = dvCfg(); c[k] = v === 'one' ? 'one' : 'two'; prefSet(DV_KEY, DV_LOCAL, c); dvRender(); if (k === dvDev()) dyLoad(); }
+        function dvCfg() { const v = prefGet(DV_KEY, DV_LOCAL), c = Object.assign({}, DV_DEF, v && typeof v === 'object' ? v : {}); Object.keys(DV_DEF).forEach(k => { if (!DV_OK.includes(c[k])) c[k] = DV_DEF[k]; }); return c; }
+        function dvSet(k, v) { const c = dvCfg(); c[k] = DV_OK.includes(v) ? v : 'lr'; prefSet(DV_KEY, DV_LOCAL, c); dvRender(); if (k === dvDev()) dyLoad(); }
+        function dvToggle(k, side) {                                           // 스위치 하나 켜기 · 끄기 (남은 하나는 못 꺼요)
+            const cur = dvCfg()[k], on = { l: cur.includes('l'), r: cur.includes('r') };
+            on[side] = !on[side]; if (!on.l && !on.r) return;
+            dvSet(k, (on.l ? 'l' : '') + (on.r ? 'r' : ''));
+        }
         function dvRender() {
             const c = dvCfg(), me = dvDev();
             document.querySelectorAll('#dvPick [data-k]').forEach(row => {
                 row.classList.toggle('me', row.dataset.k === me);
-                row.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === c[row.dataset.k]));
+                row.querySelectorAll('[data-s]').forEach(b => { const on = c[row.dataset.k].includes(b.dataset.s); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
             });
+            document.querySelectorAll('#pageHeader > .page-side').forEach(b => { const on = c[me].includes(b.dataset.s); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
         }
-        const dyMode = () => dkCv() || dvCfg()[dvDev()] === 'one' ? 'right' : dvDev() === 'phone' ? 'swipe' : 'spread';   // 📕 표꾸 중엔 접힌 겉표지처럼 앞표지 한 쪽만
+        /* 날짜바 양 끝 스위치 그림 : 펼친 두 쪽 중 그 쪽만 칠한 모양 (js/page.js 넘기는 장 복사본도 같은 모양) */
+        const dvSideSvg = s => `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="2.6" y="5" width="8.6" height="14" rx="1.8" fill="currentColor" fill-opacity="${s === 'l' ? '.9' : '0'}" stroke="currentColor" stroke-width="1.8"/><rect x="12.8" y="5" width="8.6" height="14" rx="1.8" fill="currentColor" fill-opacity="${s === 'r' ? '.9' : '0'}" stroke="currentColor" stroke-width="1.8"/></svg>`;
+        const dyMode = () => { if (dkCv()) return 'right'; const v = dvCfg()[dvDev()]; return v === 'r' ? 'right' : v === 'l' ? 'left' : dvDev() === 'phone' ? 'swipe' : 'spread'; };   // 📕 표꾸 중엔 접힌 겉표지처럼 앞표지 한 쪽만
         let dyView = 'l';                                                      // 📱 지금 보는 쪽 (l 왼쪽 · r 오른쪽)
         function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요
             const t = dyNow(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H;
@@ -607,7 +620,7 @@
             return r;
         }
         const dyUnderR = (dir, cover) => dyMode() === 'right' || (dyMode() === 'swipe' && !cover && dir === -1);   // 넘길 때 밑에 보일 장이 오른쪽 쪽인지 (js/page.js beginCurl)
-        function dyViewSet(v, anim) {                                          // 📱 왼쪽 · 오른쪽 쪽 보기 (한쪽 보기는 늘 오른쪽)
+        function dyViewSet(v, anim) {                                          // 📱 왼쪽 · 오른쪽 쪽 보기 (오른쪽 페이지만 = 늘 오른쪽 · 왼쪽 페이지만 = 늘 왼쪽)
             const m = dyMode(); dyView = m === 'right' || (m === 'swipe' && v === 'r') ? 'r' : 'l';
             const book = document.getElementById('diaryBook'); if (!book) return;
             book.classList.toggle('dy-anim', !!anim);
@@ -1887,6 +1900,7 @@
             if (!page || !cv || !book) return;
             const t = dyNow(), mode = dyMode();
             book.classList.add('dy-sp'); book.classList.toggle('dy-one', mode !== 'spread');
+            dvRender();                                                        // 📖 날짜바 양 끝 왼쪽 · 오른쪽 페이지 스위치
             book.style.setProperty('--dy-w', book.clientWidth + 'px');
             if (mode !== 'swipe') dyViewSet(mode === 'right' ? 'r' : 'l');
             if (wr) wr.style.marginLeft = mode === 'spread' && isCoverOpen ? book.clientWidth + 'px' : '';   // 💻 펼침면을 화면 가운데로
@@ -2211,7 +2225,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
