@@ -301,6 +301,7 @@
                 back(); off = i < 0 ? L : L.slice(0, i); off.forEach(e => { e.style.pointerEvents = 'none'; });
                 const t = document.elementFromPoint(ev.clientX, ev.clientY); if (!t) { back(); return; }
                 const n = new PointerEvent('pointerdown', { bubbles: true, cancelable: true, composed: true, clientX: ev.clientX, clientY: ev.clientY, screenX: ev.screenX, screenY: ev.screenY, pointerId: ev.pointerId, pointerType: ev.pointerType, isPrimary: ev.isPrimary, button: ev.button, buttons: ev.buttons });
+                try { if (ev.target.hasPointerCapture && ev.target.hasPointerCapture(ev.pointerId)) ev.target.releasePointerCapture(ev.pointerId); } catch (e) {}   // 📱 터치(아이패드)는 처음 누른 그림이 손가락을 붙잡아서 손 뗀 신호가 아래 소품에 안 가요 → 놓아 줘요 (도련 10-28 : 스탠드 뒤 시계 ⚙ 설정이 안 열림)
                 n.dkPass = true; t.dispatchEvent(n);
                 const end = () => { setTimeout(back, 60); removeEventListener('pointerup', end, true); removeEventListener('pointercancel', end, true); };
                 addEventListener('pointerup', end, true); addEventListener('pointercancel', end, true);
