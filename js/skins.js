@@ -535,7 +535,7 @@
            다꾸러가 실제로 많이 쓰는 모양 · 크기만 (도련 · 10-17)
            ⚠ 브랜드 이름은 절대 쓰지 않아요 (도련 · 10-18 : 팔 때 큰일나요) → 종류 · 규격 이름으로만 (화면 · 폴더 이름 · 코드 모두) */
         const DY_TYPES = [
-            { id: 'basic', k: '다이어리', g: '기본', n: '기본', mm: '85×165', b: 'thin', r: 165 / 85, c: '#f7a8c0' },
+            { id: 'basic', k: '다이어리', g: '기본', n: 'A6', mm: '105×148', b: 'ring', r: 148 / 105, c: '#ffc6d6' },   // 📔 기본 = 연핑크 6공 바인더 A6 · 1년짜리 날짜 (도련 10-28 · js/dyyear.js)
             { id: 'ring-a5', k: '바인더', g: '6공 바인더', n: 'A5', mm: '148×210', b: 'ring', r: 210 / 148, c: '#ff9dbb' },
             { id: 'ring-a6', k: '바인더', g: '6공 바인더', n: 'A6', mm: '105×148', b: 'ring', r: 148 / 105, c: '#c4b2f2' },
             { id: 'leather-slim', k: '노트', g: '가죽 노트', n: '슬림', mm: '110×210', b: 'tn', r: 210 / 110, c: '#a3714f' },
@@ -2073,7 +2073,8 @@
         }
         let dkEndAt = 0;
         async function dkEnd(dir) {                                            // 마지막 장에서 더 넘기려고 할 때 (js/page.js beginCurl)
-            if (dir < 0 || !dkType() || !dkIs(currentDate) || dkNo(currentDate) < dkNow().pages || performance.now() - dkEndAt < 2500) return;
+            if (!dkType()) { if (window.dyyEnd) dyyEnd(dir); return; }       // 📔 기본 다이어리 : 그 해 끝 (js/dyyear.js)
+            if (dir < 0 || !dkIs(currentDate) || dkNo(currentDate) < dkNow().pages || performance.now() - dkEndAt < 2500) return;
             dkEndAt = performance.now();
             if (await showMsg('📕 이 다이어리의 <b>마지막 장</b>이에요.<br>📔 기본 다이어리로 넘어갈까요?', true)) dySet(DY_DEF);
             dkEndAt = performance.now();
@@ -2109,10 +2110,11 @@
                 const nx = (f.length ? f[f.length - 1] : 0) + 1, list = f.concat(nx <= o.pages ? [nx] : []).filter(x => dir > 0 ? x > n : x < n);
                 return list.length ? dkDate(dir > 0 ? list[0] : list[list.length - 1]) : null;
             }
-            if (!dfOn()) return addDays(date, dir);
+            const yin = d => window.dyyIn ? dyyIn(d) : d;                     // 📔 기본 다이어리는 펼친 해 안에서만 (js/dyyear.js · 넘어가면 null → dkEnd)
+            if (!dfOn()) return yin(addDays(date, dir));
             dfLoad();
-            if (!dfList && !drive.guest) return addDays(date, dir);           // 목록을 받기 전에는 하루씩
-            const cur = getDateKey(date), list = dfDays().filter(k => dir > 0 ? k > cur : k < cur);
+            if (!dfList && !drive.guest) return yin(addDays(date, dir));      // 목록을 받기 전에는 하루씩
+            const cur = getDateKey(date), list = dfDays().filter(k => (dir > 0 ? k > cur : k < cur) && yin(dfDate(k)));
             return list.length ? dfDate(dir > 0 ? list[0] : list[list.length - 1]) : null;
         }
         function dfDays() {                                                    // 꾸민 날 (오래된 날부터)
@@ -2124,10 +2126,13 @@
         /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */
         function dyOpenDate() {
             if (dkType()) { const f = dkFilled(dkNow()); return dkDate(f.length ? f[f.length - 1] : 1); }   // 📕 유한 : 마지막으로 꾸민 장
-            if (!dfOn()) return null;
+            if (window.dyyOnOpen) dyyOnOpen();                                 // 📔 새해인데 올해 다이어리가 없으면 알려요 (js/dyyear.js)
+            const yc = d => window.dyyClamp ? dyyClamp(d) : d;                 // 📔 펼친 해 안의 날 (js/dyyear.js dyyClamp)
+            const keep = () => window.dyyClamp ? yc(new Date(currentDate)) : null;   // 그대로 (펼친 해 밖이면 그 해 안으로)
+            if (!dfOn()) return keep();
             dfLoad();
-            if (!dfList && !drive.guest) return null;
-            const d = dfDays(); return d.length ? dfDate(d[d.length - 1]) : null;
+            if (!dfList && !drive.guest) return keep();
+            const d = dfDays().filter(k => !window.dyyIn || dyyIn(dfDate(k))); return d.length ? dfDate(d[d.length - 1]) : keep();
         }
         /* 목록을 받은 뒤 · 켰을 때 : 지금 빈 페이지를 보고 있으면 마지막으로 꾸민 날로 */
         async function dfFix() {
@@ -2153,7 +2158,7 @@
         /* 10-24 도련 : 📔 다이어리 = 기본(4색) · 내가만든(🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 예전 📔 페이지 목록의 칸을 옮겨 왔어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
         const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind) : [];   // 규격 6종은 나중에 문구점 바탕
-        const dyHide = (kind, v) => kind === '다이어리' ? !['free', 'mine'].includes(v) : v === 'free';
+        const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (내가만든 칸 숨김 · 도련 10-28)
         window.dyMineRefresh = () => { if (dyMineOpen()) dyMineRender(); };   // 🗑 지운 뒤 · 저장한 뒤 바로 (js/settings.js deleteSkin)
         const dyMineOpen = () => { const m = document.getElementById('dyModal'); return !!m && m.style.display === 'flex' && dyKind === '다이어리' && dyTab === 'mine'; };
         /* 📔 다이어리 → 내가만든 : 내 페이지 모음 (드라이브 내페이지 · js/settings.js pgColl · 지우기 🗑 · 💾 는 페이지 목록과 같아요) */
@@ -2166,7 +2171,7 @@
         }
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
-            document.getElementById('dyTitle').textContent = DY_ICON[dyKind] + ' ' + dyKind;
+            document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? '📔 다이어리 보관소' : DY_ICON[dyKind] + ' ' + dyKind;
             const bar = document.getElementById('dyTabs');
             const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
@@ -2178,6 +2183,7 @@
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             if (dyKind === '다이어리' && g === 'mine') { dyMineRender(); return; }
+            if (dyKind === '다이어리' && window.dyyCells) { document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${dyyCells()}</div>`; dyRender(); return; }   // 📔 보관소 : 받은 해 (js/dyyear.js)
             const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${dyKind} 만들기(준비중)가 열리면 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + dyKind + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
@@ -2196,7 +2202,7 @@
             dyRender();
         }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? DY_DEF + ':' + currentSkinId : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyYear ? 'y' + dyyYear() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;

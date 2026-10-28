@@ -12,7 +12,7 @@
             dday: false,      // ⏳ D-day (⚙ 설정 스위치 · 페이지 왼쪽 위 D-day · 카페에서 만들어요)
             pattern: true,    // (10-18 다시 보이게) 🌈 배경지 · 🖼️ 이미지로 배경지 · 🖌️ 그려서 배경지 (🎨 페이지 창)
             studio: true,     // (10-23 다시 보이게 · 도련) 🎀 페이지 꾸미기 (🎨 페이지 창 · 10-18 숨김 : 실물 다이어리 · 속지 방향과 안 맞아요)
-            skin: true,       // (10-23 다시 보이게 · 도련) 📔 페이지 · 🎨 페이지 색상설정 (다이어리 창 · 10-18 숨김 · 기능은 그대로)
+            skin: false,      // (10-28 숨김 · 도련 : 다이어리 창 = 기본 다이어리 보관소 · 스킨은 나중에 샵에서) ✨ 나만의 다이어리 (🎨 색상설정 · 🎀 꾸미기 · 기능은 그대로)
             dybook: false,    // (10-23 숨김 · 도련 : 다이어리 창은 다이어리 · 배경지만) 📓 노트 · 🗂️ 바인더 · 📕 표지 꾸미기 (다이어리 창 · 10-18 확정 · 내가만든 칸에서 노트 · 바인더 만들기 js/dymaker.js)
             patmake: true,    // (10-23 다시 보이게 · 도련) 🖼️ 이미지로 배경지 버튼 (다이어리 창 · 10-18 확정)
             patmine: true,    // 🌈 배경지 창의 '내가만든' 칸 (10-23 숨김 → 10-24 다시 보이게 · 도련 : 만든 배경지를 고르고 지울 수 있게 · js/skins.js openPatternList)
@@ -26,7 +26,7 @@
         };
         /* 💻 내 컴퓨터(index.html 더블클릭 · localhost)에서는 모든 기능이 보여요 → 새 기능 소개 영상용 (사이트는 위 FEATURES 그대로) */
         const FT_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share', 'dybook'];   // 🙈 로컬에서도 숨겨요 (10-23 : 노트 · 바인더 · 표지 꾸미기 · 배경지 창 내가만든 칸)   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
+        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share', 'dybook', 'skin'];   // 🙈 로컬에서도 숨겨요 (10-23 : 노트 · 바인더 · 표지 꾸미기 · 배경지 창 내가만든 칸)   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
         function ftOn(name) { if (FT_OFF_LOCAL.includes(name) && FEATURES[name] === false) return false; return FT_LOCAL || !(name in FEATURES) || FEATURES[name] !== false; }
         (function () {
             const root = document.documentElement;

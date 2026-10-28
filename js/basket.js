@@ -265,7 +265,7 @@
        · 📒 바인더 = 종이째 포켓에 꽂기 (속지 10장 = 20쪽 · 한 쪽 4포켓) · 🤍 이형지북 = 한 칸씩 떼어 모으기 (20쪽 · 🏷️ 씰 · 😀 이모지 · 🧩 조각만)
        · 📒 정리하기(정리 책상) : 위 = 바구니 종이 한 줄 · 아래 = 바인더 포켓 / 이형지 → 끌어 놓거나 · 톡 고르고 톡 놓기
        · 이형지로 옮겨도 쓴 게 아니에요 (한 칸짜리 새 종이가 돼요 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelMove)
-       · 바인더 · 이형지북도 🏪 기본상품 샵 → 🗂️ 정리 도구에서 받아 와야 내 것이 돼요 (공짜여도 받아서 가지고 · 칸이 차면 또 받아요 · 도련 10-25)
+       · 바인더 · 이형지북도 🏪 기본상품 샵 → 📔 다이어리에서 받아 와야 내 것이 돼요 (공짜여도 받아서 가지고 · 칸이 차면 또 받아요 · 도련 10-25)
          → 처음부터 '받아서 가진 것을 쓰면 줄어든다'를 알게 해요 (처음 선물 · ＋ 버튼 없음)
        · 정리한 모습은 스티커목록의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
     const AB = { drag: null, busy: false };
@@ -278,7 +278,7 @@
     const AB_BD_N = 80, AB_RL_N = 20;                                         // 바인더 = 속지 10장(20쪽 × 4포켓) · 이형지북 = 20쪽
     const abNewBd = (k, c) => ({ id: 'b' + abRid(), k, lb: '', c: (+c || 0) % AB_COL.length, n: AB_BD_N, p: {} });
     const abNewRl = k => ({ id: 'r' + abRid(), k, lb: '', n: AB_RL_N, it: [] });
-    /* 🏪 기본상품 샵 → 🗂️ 정리 도구에서 받기 (그 종류 서랍으로) */
+    /* 🏪 기본상품 샵 → 📔 다이어리(스티커 정리)에서 받기 (그 종류 서랍으로) */
     function abTakeTool(t, k, c) { return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(t === 'bd' ? abNewBd(k, c) : abNewRl(k)); }); }
     function abGoShelf() { SH.toolKind = B.kind; openShelf(); shOpenKind('tool'); }
     /* 정리한 종이는 바구니에서 빠져요 */
@@ -370,7 +370,7 @@
         const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개 · ${r.n}쪽</small></button>`).join('');
         body.innerHTML = `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus()}</div></div>`
             + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지북</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus()}</div></div>` : '')
-            + '<p class="bk-note">바인더 · 이형지북은 🏪 기본상품 샵 → 🗂️ 정리 도구에서 받아 와요 · 칸이 다 차면 또 받아 와요<br>톡 하면 펼쳐져요 · 정리는 🧺 바구니 → 📒 정리하기에서 해요</p>';
+            + '<p class="bk-note">바인더 · 이형지북은 🏪 기본상품 샵 → 📔 다이어리에서 받아 와요 · 칸이 다 차면 또 받아 와요<br>톡 하면 펼쳐져요 · 정리는 🧺 바구니 → 📒 정리하기에서 해요</p>';
     }
     function abRelMini(r) { return r.it.filter(t => !t.pg).slice(0, 14).map(t => { const e = B.byId.get(t.s); return e && e.th ? `<img src="${esc(e.th)}" alt="" style="left:${(t.x * 100).toFixed(1)}%;top:${(t.y * 100).toFixed(1)}%;--r:${(+t.r).toFixed(1)}deg">` : ''; }).join(''); }
 
@@ -701,8 +701,8 @@
             return out;
         }],
         memo: ['메모지', async () => (window.sbShelf ? await sbShelf('memo') : []).concat((window.memoShelf ? memoShelf() : []).map(p => ({ cnt: `${OWN_Q.memo}장`, look: 'memo', pp: p.id, def: { k: 'memo', imgs: [''], x: { pp: p.id }, noTh: true } })))],
-        tool: ['정리 도구', async () => {                                       // 🗂️ 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
-            const out = AB_COL.map((c, i) => ({ cnt: `속지 10장 · 시트 ${AB_BD_N}장 꽂아요`, desc: `한 쪽에 ${AB_PER}포켓 · 앞뒤 ${AB_BD_N / AB_PER}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', c: i, tool: 'bd' }));
+        tool: ['다이어리', async () => {                                        // 📔 날짜형 다이어리 (해마다 기본 다이어리 · js/dyyear.js · 도련 10-28) + 🗂️ 스티커 정리 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
+            const out = (window.dyyShopList ? dyyShopList() : []).concat(AB_COL.map((c, i) => ({ cnt: `속지 10장 · 시트 ${AB_BD_N}장 꽂아요`, desc: `한 쪽에 ${AB_PER}포켓 · 앞뒤 ${AB_BD_N / AB_PER}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', c: i, tool: 'bd' })));
             out.push({ cnt: `이형지 ${AB_RL_N}쪽 · 스티커 ${AB_RL_N * (window.OWN_REL_MAX || 24)}개`, desc: `한 쪽에 ${window.OWN_REL_MAX || 24}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', tool: 'rl' });
             return out;
         }],
@@ -723,7 +723,7 @@
     async function shItems(k) {
         if (SH.cache[k]) return SH.cache[k];
         const items = await SH_KINDS[k][1]();
-        if (k !== 'season') SH.cache[k] = items;
+        if (k !== 'season' && k !== 'tool') SH.cache[k] = items;   // 📔 다이어리는 해마다 바뀌어서 늘 새로
         return items;
     }
     const shSeasonOn = () => typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN && typeof SEASON_STICKERS !== 'undefined';
@@ -771,7 +771,7 @@
         const K = SH_KINDS[k]; if (!K) return;
         closeModal('shelfModal'); openModal('shelfKindModal');
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
-        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = ''; SH.got = new Set(); shZoomOff();
+        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = SH.wantCat && SH.wantCat.k === k ? SH.wantCat.c : ''; SH.wantCat = null; SH.got = new Set(); shZoomOff();
         const seq = ++SH.seq;
         box.scrollTop = 0;
         if (!SH.cache[k]) box.innerHTML = bkMsg('기본상품 샵을 채우는 중…');
@@ -782,11 +782,11 @@
         shDraw(k);
     }
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
-       · 📄 모조지 = [✂️ 모양 | 📄 배경] · 🗂️ 정리 도구 = [📒 바인더 | 🤍 이형지북] 칸으로 나눠요 */
+       · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
-    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['bd', '📒 바인더'], ['rl', '🤍 이형지북']],
+    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
         emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
-    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? x.tool : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' ? x.sec : '';
+    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
@@ -831,6 +831,7 @@
         if (x.look === 'gd') return `<div class="sh-tool sh-gd">${x.art || ''}</div>`;
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
+        if (x.look === 'diary') return `<div class="sh-tool sh-dy"><span class="sh-dyb"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`;   // 📔 연핑크 6공 바인더
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
@@ -858,15 +859,17 @@
             pick = `<div class="sh-into"><small>넣을 서랍</small><div>${ks.map(k => `<button type="button" class="sh-ik${k === SH.toolKind ? ' on' : ''}" onclick="shToolKind('${k}')">${esc(BK_KINDS[k])}</button>`).join('')}</div></div>`;
         }
         z.innerHTML = `<div class="sh-zcard"><div class="sh-zlook k-${esc(SH.kind)}">${shLook(x, true)}</div><small class="sh-cnt">${esc(x.cnt || '')}</small>${x.desc ? `<small class="sh-desc">${esc(x.desc)}</small>` : ''}${pick}`
-            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">${x.give ? '🎁 받기' : '🧺 받기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div></div>`;
+            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">${x.give ? '🎁 받기' : '🧺 받기'}</button></div></div>`;
         z.hidden = false;
+        z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = 확대 밖을 톡 (도련 10-28 · 닫기 버튼 없음)
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
-    const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : '✓ 보관함에 쏙';
+    const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : SH.kind === 'tool' ? '✓ 보관소에 쏙' : '✓ 보관함에 쏙';
     /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
     async function shGive(x) {
         let r = await x.give(false);
         if (r === 'have' && SH.kind === 'gd') { showMsg('✏️ 이미 문구함에 있어요.'); return false; }
+        if (r === 'have' && SH.kind === 'tool') { showMsg(`📔 ${x.name}는 이미 받았어요.<br><small>📒 다이어리 → 📔 다이어리 보관소에 있어요</small>`); return false; }
         if (r === 'have') {
             const c = x.name.charCodeAt(x.name.length - 1) - 0xAC00, j = c >= 0 && c < 11172 && c % 28 ? '이' : '가';
             if (!await showAsk(`🪑 ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '그만두기')) return false;
@@ -878,11 +881,13 @@
     }
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
         if (window.shopSceneOn && shopSceneOn()) shopSceneClose();          // 🏪 가게에서 나와서
+        if (k === 'tool') { shZoomOff(); closeModal('shelfKindModal'); if (window.dyOpen) dyOpen('다이어리'); return; }   // 📔 다이어리 보관소
         if (k === 'gd' || k === 'desk') { shZoomOff(); closeModal('shelfKindModal'); if (k === 'gd' && window.openGdCab) openGdCab(); if (k === 'desk' && window.deskBoxOpen) deskBoxOpen(); return; }   // ✏️ 문구함 · 📦 소품 보관함
         shZoomOff(); closeModal('shelfKindModal');
         bkOpenKind(k);
         if (album) { B.view = 'album'; bkView('album'); }
     }
+    window.SH_SET_CAT = (k, c) => { SH.wantCat = { k, c }; };             // 📔 새해 다이어리 받으러 갈 때 그 칸부터 (js/dyyear.js)
     function shToolKind(k) { SH.toolKind = k; if (SH.zoom >= 0) shZoom(SH.zoom); }
     function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; if (SH.redraw) { SH.redraw = false; shDraw(SH.kind); } }
     /* 🧺 카드에서 바로 받기 (확대 없이 · 도련 10-26) : 받으면 잠깐 '✓ 바구니에 쏙' → 다시 받기 (정리 도구는 넣을 서랍을 골라야 해서 확대로) */
@@ -914,8 +919,9 @@
             if (!await shGive(x)) return;
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;
             const box = btn.closest('.sh-zbtns'), k = SH.kind;
-            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${k === 'gd' ? '🗄️ 문구함' : '📦 소품 보관함'}에 넣었어요</small></div>`
-                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${k}', 0)">${k === 'gd' ? '🗄️ 문구함에서 보기' : '📦 보관함에서 보기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div>`;
+            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : '📦 소품 보관함';
+            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${nm}에 넣었어요</small></div>`
+                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${k}', 0)">${nm}에서 보기</button></div>`;
             return;
         }
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
@@ -930,7 +936,7 @@
             const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
             const where = x.tool ? `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 바구니`;
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
-                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${x.tool ? '📒 스티커첩에서 보기' : '🧺 바구니에서 보기'}</button><button type="button" class="btn" onclick="shZoomOff()">닫기</button></div>`;
+                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${x.tool ? '📒 스티커첩에서 보기' : '🧺 바구니에서 보기'}</button></div>`;
         } catch (e) {
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;

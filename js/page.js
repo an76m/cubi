@@ -411,6 +411,7 @@
 
         /* 📅 원하는 날짜 페이지로 가기 (표지가 닫혀 있으면 열고, 다른 날짜면 저장한 뒤 그 날로) → 그날 일기를 다 불러온 뒤 done() */
         function goToDate(target, done) {
+            if (window.dyyGuard && !dyyGuard(target)) return;                // 📔 그 해 기본 다이어리가 없으면 못 가요 (js/dyyear.js)
             const ready = () => {
                 const key = getDateKey(currentDate); let n = 0;
                 const w = () => {
