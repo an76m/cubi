@@ -420,7 +420,7 @@
                 if (p.u) {                                                     // 🌈 받은 배경지 : 🗑 버리기 (휴지통 30일 · js/bgown.js)
                     const wrap = document.createElement('div'); wrap.className = 'pat-item-wrap';
                     const acts = document.createElement('div'); acts.className = 'pat-actions';
-                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn'; del.textContent = '🗑'; del.title = '버리기';
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn'; del.textContent = '🗑'; del.title = '휴지통';
                     del.onclick = () => bgoDiscard(p.u);
                     acts.append(del); wrap.append(card, acts); frag.appendChild(wrap);
                 } else if (p.tier === 'my') {                                  // 내가만든 · 공유받은 : 파일 저장(내가만든만) · 삭제
@@ -1548,7 +1548,7 @@
                 const pg = Math.min(pages - 1, Math.max(0, cabPage[g] || 0));
                 const tray = open ? `<div class="gdc-tray" data-g="${g}"><div class="gdc-grid">${own.slice(pg * CAB_PER, pg * CAB_PER + CAB_PER).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${cabIsOn(id) ? ' on' : ''}${cabBin === g ? ' bin' : ''}" onclick="${cabBin === g ? `gdCabBinTap('${id}')` : `gdCabItem('${g}', '${id}')`}"><span class="gdc-ic ${g}">${cabArt(id)}</span><small>${cabName(id)}</small></button>`).join('')}</div>${pages > 1
                     ? `<div class="gdc-pg"><button type="button" aria-label="앞 칸" onclick="gdCabPage('${g}', -1)"${pg ? '' : ' disabled'}>‹</button>${Array.from({ length: pages }, (_, i) => `<i${i === pg ? ' class="on"' : ''}></i>`).join('')}<button type="button" aria-label="다음 칸" onclick="gdCabPage('${g}', 1)"${pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : ''}`
-                    + `<div class="gdc-binrow"><button type="button" class="gdc-bin${cabBin === g ? ' on' : ''}" onclick="gdCabBinMode('${g}')">${cabBin === g ? '✓ 다 버렸어요' : '🗑 버리기'}</button><button type="button" class="gdc-shop" onclick="gdCabShop()">🏪 더 받기</button></div></div>` : '';
+                    + `<div class="gdc-binrow"><button type="button" class="gdc-bin${cabBin === g ? ' on' : ''}" onclick="gdCabBinMode('${g}')">${cabBin === g ? '✓ 다 했어요' : '🗑 휴지통'}</button><button type="button" class="gdc-shop" onclick="gdCabShop()">🏪 더 받기</button></div></div>` : '';
                 return `<div class="gdc-row${open ? ' open' : ''}"><button type="button" class="gdc-dr${on ? ' out' : ''}" data-g="${g}">
                     <span class="gdc-in"><span class="gdc-ic ${g}">${cabArt(main)}</span></span>
                     <span class="gdc-tag">${n}${own.length > 1 ? `<small>${cabName(main).replace(/^기본\s*/, '')} · ${own.length}개</small>` : ''}</span>
@@ -1624,7 +1624,7 @@
             const jo = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
             if (cabOwn(g).length <= 1) { showMsg(`마지막 하나 남은 ${jo(kind, '은', '는')} 버릴 수 없어요.`); return; }
             if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
-            if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 버릴까요?<br><small>버린 문구는 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기')) return;
+            if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 휴지통에 버릴까요?<br><small>버린 문구는 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '🗑 휴지통', '취소')) return;
             const L = gdOwnList() || cabAllIds().map(x => ({ id: x, g: 1 })), o = L.find(x => x.id === id);
             prefSet(GD_OWN, GD_OWN_L, L.filter(x => x.id !== id).map(gdRec));
             if (o && o.g) { if (window.deskGiftWrite) deskGiftWrite(); }      // 🎁 선물이면 선물.json 에서 빼요

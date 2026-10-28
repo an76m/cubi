@@ -148,7 +148,7 @@
                 t.textContent = '✏️ 만들다 만 인형이 있어요. 이어서 만들까요?';
                 const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = '이어서 만들기';
                 b.onclick = () => openDollRoom(dr.editId || null, sanitizeDoll(dr.doll), dr.step);
-                const x = document.createElement('button'); x.className = 'btn'; x.type = 'button'; x.textContent = '버리기';
+                const x = document.createElement('button'); x.className = 'btn'; x.type = 'button'; x.textContent = '지우기';   // 만들다 만 인형 지우기 (휴지통에 안 가요)
                 x.onclick = () => { clearDraft(); renderDollPicker(); };
                 note.append(t, b, x);
             } else note.style.display = 'none';

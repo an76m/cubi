@@ -116,7 +116,7 @@
             const known = targetId && list.find(e => e.id === targetId);
             const cur = targetId ? await driveMeta(targetId) : await findFile(folderId, fname);
             if (cur && (!known || Date.parse(cur.modifiedTime) !== known.time)) {
-                const yes = await showAsk(`📱 다른 기기에서 '${dollText(d.name, 12)}' 인형을 ${known ? '고쳤어요' : '만들었어요'}.<br>지금 인형으로 바꿀까요?`, '👧 지금 인형으로', '그만두기');
+                const yes = await showAsk(`📱 다른 기기에서 '${dollText(d.name, 12)}' 인형을 ${known ? '고쳤어요' : '만들었어요'}.<br>지금 인형으로 바꿀까요?`, '👧 지금 인형으로', '취소');
                 if (!yes) { dollCache.list = null; return null; }          // 다음에 목록을 새로 읽어요
                 writeId = cur.id;
             } else if (targetId && !cur) writeId = null;                   // 그 사이 지워졌으면 새로 만들어요

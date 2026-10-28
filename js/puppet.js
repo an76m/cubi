@@ -110,7 +110,7 @@
             let id = PS.id;
             const cur = id ? await driveMeta(id) : null;
             if (cur && PS.mt && cur.modifiedTime !== PS.mt &&
-                !(await showAsk('📱 다른 기기에서 이 인형극을 고쳤어요.<br>지금 것으로 바꿀까요?', '🎭 지금 것으로', '그만두기'))) return false;
+                !(await showAsk('📱 다른 기기에서 이 인형극을 고쳤어요.<br>지금 것으로 바꿀까요?', '🎭 지금 것으로', '취소'))) return false;
             if (!cur) id = null;
             let saved;
             try { saved = await driveUpsert(dir, name + '.json', id, JSON.stringify(body)); }

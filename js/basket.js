@@ -875,7 +875,7 @@
         if (r === 'have' && SH.kind === 'tool') { showMsg(`📔 ${x.name}는 이미 받았어요.<br><small>📒 다이어리 → 📔 다이어리 보관소에 있어요</small>`); return false; }
         if (r === 'have') {
             const c = x.name.charCodeAt(x.name.length - 1) - 0xAC00, j = c >= 0 && c < 11172 && c % 28 ? '이' : '가';
-            if (!await showAsk(`🪑 ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '그만두기')) return false;
+            if (!await showAsk(`🪑 ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '취소')) return false;
             r = await x.give(true);
         }
         if (r !== 'ok') { showMsg('⚠ 받지 못했어요.'); return false; }

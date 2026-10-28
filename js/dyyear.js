@@ -230,7 +230,7 @@
             return chips + L.map(b => {
                 const sk = typeof skinPresets !== 'undefined' ? skinPresets[b.c] : null;
                 return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(base, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${dyyTitle(b)}</span><small>${dyyKindName(b)} · ${base.n}</small>`
-                    + `<span class="dy-del" role="button" tabindex="0" title="버리기" aria-label="버리기" onclick="event.stopPropagation(); dyyDiscard('${b.id}')">🗑</span></button>`;
+                    + `<span class="dy-del" role="button" tabindex="0" title="휴지통" aria-label="휴지통" onclick="event.stopPropagation(); dyyDiscard('${b.id}')">🗑</span></button>`;
             }).join('');
         }
         window.dyyFilterSet = dyyFilterSet;

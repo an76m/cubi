@@ -401,7 +401,7 @@
         }
         async function deskDiscard(u) {
             const o = DK.items.find(x => x.u === u); if (!o || dkFnBlock(u, '버릴')) return;
-            const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 버릴까요?<br><small>버린 소품은 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기') : true;
+            const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 휴지통에 버릴까요?<br><small>버린 소품은 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '🗑 휴지통', '취소') : true;
             if (!ok) return;
             DK.items = DK.items.filter(x => x.u !== u); dkSave();
             if (!DK.edit) dkFileDel(o);                                        // 🛠 꾸미는 중이면 확정할 때 (선물이면 선물.json 에서 빼요)
@@ -478,7 +478,7 @@
             const fill = Math.max(0, DK_BOX_MIN - (none ? 1 : 0) - cells.length);
             const o = rows.find(x => x.u === DK.boxSel);
             const act = o ? (o.at === 'box' ? `<button type="button" class="btn primary" onclick="deskPut('${o.u}', 'desk')">🪑 책상에 놓기</button>` : `<button type="button" class="btn" onclick="deskPut('${o.u}', 'box')">📦 넣기</button>`)
-                + `<button type="button" class="btn iv-del" onclick="deskDiscard('${o.u}')" aria-label="버리기">🗑</button>` : '';
+                + `<button type="button" class="btn iv-del" onclick="deskDiscard('${o.u}')" aria-label="휴지통">🗑</button>` : '';
             box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
                 + `<div class="iv-name">${o ? `<b>${dkName(o)}</b><small>${o.at === 'desk' ? '🪑 책상 위' : '📦 보관 중'}</small>` : ''}</div>${o ? `<div class="iv-foot">${act}</div>` : ''}</div></div>`;
             const sd = box.querySelector('.iv-side'); if (sd && sTop != null) sd.scrollTop = sTop;   // 왼쪽 목록은 보던 자리 그대로
