@@ -211,8 +211,8 @@
 
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
-            ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];
-        const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', edit: 'drawer' };
+            ['shop', '기본상품 샵', '', '🏪'], ['box', '소품함', '', '📦'], ['edit', '책상 꾸미기', '', '🛠']];
+        const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', box: 'drawer-pink', edit: 'drawer' };   // 📦 소품함 = 핑크 서랍장 (도련 10-28)
         const DK_FN_NEED = ['skin', 'sticker', 'gd', 'cafe', 'set'];                // 꼭 있어야 하는 기능 (하단 메뉴 다섯 개)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         function deskFnMap() {                                                    // 모든 기능 · 서로 다른 책상 위 소품 (모자라면 그 기능은 빠져요 → 하단 메뉴가 보여요)
@@ -254,6 +254,7 @@
         function deskRun(fn) {
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
+            if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }                // 📦 소품함 (다이어리를 띄우지 않아요)
             const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
             if (!['skin', 'set', 'gd'].includes(fn) && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }   // 📔 다이어리 · ⚙ 설정 · ✏️ 문구함은 다이어리를 띄우지 않아요 (도련 10-28)
@@ -352,7 +353,8 @@
             const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 버릴까요?<br><small>버린 소품은 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '버리기', '그만두기') : true;
             if (!ok) return;
             DK.items = DK.items.filter(x => x.u !== u); dkSave();
-            if (!DK.edit) dkFileDel(o);                                        // 🛠 꾸미는 중이면 확정할 때 (선물이면 선물.json 에서 빼요) deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
+            if (!DK.edit) dkFileDel(o);                                        // 🛠 꾸미는 중이면 확정할 때 (선물이면 선물.json 에서 빼요)
+            deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();   // (예전엔 위 주석 안에 들어가 있어서 버린 뒤 화면이 그대로였어요 · 10-28 고침)
         }
         /* 🏪 기본상품 샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
         function deskGive(id, force) {
@@ -398,24 +400,41 @@
             return { kind: k, rows: list.filter(o => dkKindOf(o) === k),
                 html: have.length ? have.map(x => `<button type="button" class="dk-tab${x === k ? ' on' : ''}" onclick="${fn}('${x}')">${DESK_DIRS[x]}<small>${list.filter(o => dkKindOf(o) === x).length}</small></button>`).join('') : '' };
         }
-        function deskBoxTab(k) { DK.boxKind = k; deskBoxRender(); }
+        function deskBoxTab(k) { DK.boxKind = k; DK.boxSel = null; deskBoxRender(); requestAnimationFrame(() => window.deskBoxTabShow && deskBoxTabShow()); }
         function deskTrayTab(k) { DK.trayKind = k; deskEditPaint(); }
+        /* 📦 소품함 = 게임 인벤토리 (도련 10-28 시안) : 위 = 종류 탭(소품 그림) · 칸 = 내 소품 (🪑 민트 = 책상 위 · 연핑크 = 보관 중 · 보라 = 고른 것)
+           · 첫 칸 ⊘ = 그 종류를 책상에서 모두 넣기 · 아래 = 넣기 / 책상에 놓기 · 🗑 버리기 · 🏪 받기 · 💻 책상에서는 오른쪽에 떠서 책상을 보며 꺼내요 */
+        const DK_BOX_MIN = 12;                                                    // 칸이 모자라 보이지 않게 빈칸을 채워요
         function deskBoxRender() {
             const box = document.getElementById('deskBoxList'); if (!box) return;
-            if (!DK.items.length) { box.innerHTML = '<p class="dkb-empty">아직 소품이 없어요.<br>🏪 기본상품 샵에서 받아 와요</p>'; return; }
-            const T = dkTabs(DK.items, 'boxKind', 'deskBoxTab');
-            const order = T.rows.slice().sort((a, b) => (a.at === b.at ? 0 : a.at === 'box' ? -1 : 1));   // 보관 중인 것이 먼저
-            box.innerHTML = `<div class="dk-tabs">${T.html}</div>` + order.map(o => {
-                const c = dkCat(o.id), fn = o.at === 'desk' ? dkFnOf(o.u) : '', f = fn && DK_FNS.find(x => x[0] === fn);
-                return `<div class="dkb-it${o.at === 'box' ? ' in' : ''}"><span class="dkb-pic"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt="" loading="lazy"></span><b>${dkName(o)}</b>`
-                    + `<small>${o.at === 'box' ? '📦 보관 중' : '🪑 책상 위'}${f ? ` · ${f[3]} ${f[1]}` : ''}</small><div class="dkb-btns">`
-                    + (o.at === 'box' ? `<button type="button" class="btn" onclick="deskPut('${o.u}', 'desk')">🪑 놓기</button>` : `<button type="button" class="btn" onclick="deskPut('${o.u}', 'box')">📦 넣기</button>`)
-                    + `<button type="button" class="btn dkb-del" onclick="deskDiscard('${o.u}')">🗑</button></div></div>`;
-            }).join('');
+            const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k));
+            if (!kinds.includes(DK.boxKind)) DK.boxKind = kinds.find(k => DK.items.some(o => dkKindOf(o) === k)) || kinds[0];
+            const k = DK.boxKind, rows = DK.items.filter(o => dkKindOf(o) === k);
+            if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
+            const icon = kk => { const d = DESK_ITEMS.find(x => x.kind === kk); return d ? d.src : ''; };
+            const tabs = kinds.map(kk => { const n = DK.items.filter(o => dkKindOf(o) === kk).length;
+                return `<button type="button" class="iv-tab${kk === k ? ' on' : ''}" title="${DESK_DIRS[kk]}" aria-label="${DESK_DIRS[kk]}" onclick="deskBoxTab('${kk}')"><img src="${icon(kk)}" alt=""><i>${n || ''}</i></button>`; }).join('');
+            const cells = rows.map(o => `<button type="button" class="iv-c ${o.at === 'desk' ? 'desk' : 'box'}${o.u === DK.boxSel ? ' sel' : ''}" title="${dkName(o)}" onclick="deskBoxPick('${o.u}')"><img src="${dkSrc(o)}" data-art-u="${o.u}" alt="" loading="lazy">${o.at === 'desk' ? '<em>🪑</em>' : ''}</button>`);
+            const none = `<button type="button" class="iv-c no" title="책상에서 모두 넣기" onclick="deskBoxAllIn()"><b>⊘</b></button>`;
+            const fill = Math.max(0, DK_BOX_MIN - 1 - cells.length);
+            const o = rows.find(x => x.u === DK.boxSel);
+            const act = o ? (o.at === 'box' ? `<button type="button" class="btn primary" onclick="deskPut('${o.u}', 'desk')">🪑 책상에 놓기</button>` : `<button type="button" class="btn" onclick="deskPut('${o.u}', 'box')">📦 넣기</button>`)
+                + `<button type="button" class="btn iv-del" onclick="deskDiscard('${o.u}')" aria-label="버리기">🗑</button>`
+                : `<p class="iv-hint">${rows.length ? '소품을 톡 골라요' : `아직 ${DESK_DIRS[k] || ''} 소품이 없어요`}</p>`;
+            box.innerHTML = `<div class="iv-tabs">${tabs}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
+                + `<div class="iv-name">${o ? `<b>${dkName(o)}</b><small>${o.at === 'desk' ? '🪑 책상 위' : '📦 보관 중'}</small>` : ''}</div><div class="iv-foot">${act}</div></div>`;
         }
-        function deskBoxOpen() {                                                  // 🪑 책상 화면이면 🛠 꾸미기(아래 보관함 줄) · ▤ 하단 메뉴 화면이면 보관함 창
-            if (document.documentElement.classList.contains('desk-on')) { deskEditOpen(); return; }
-            deskBoxRender(); if (window.openModal) openModal('deskBoxModal');
+        window.deskBoxTabShow = deskBoxTabShow;
+        function deskBoxTabShow() { const t = document.querySelector('#deskBoxList .iv-tab.on'); if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+        function deskBoxPick(u) { DK.boxSel = DK.boxSel === u ? null : u; deskBoxRender(); }
+        function deskBoxAllIn() {                                                // ⊘ 이 종류를 책상에서 모두 보관함으로 (기능 소품은 그대로)
+            const L = DK.items.filter(o => dkKindOf(o) === DK.boxKind && o.at === 'desk' && !dkFnOf(o.u));
+            if (!L.length) { if (window.showMsg) showMsg('책상 위에 넣을 수 있는 소품이 없어요.<br><small>기능이 연결된 소품은 🛠 책상 꾸미기에서 바꿔요</small>'); return; }
+            L.forEach(o => { o.at = 'box'; }); dkSave(); deskItemsRender(); deskModeRender(); deskBoxRender(); deskEditPaint();
+        }
+        function deskBoxOpen() {                                                  // 📦 소품함 (💻 책상 · ▤ 하단 메뉴 모두 같은 창)
+            if (DK.edit) return;
+            deskBoxRender(); if (window.openModal) openModal('deskBoxModal'); requestAnimationFrame(deskBoxTabShow);
         }
         /* ---------- 🛠 책상 꾸미기 (도련 10-27) ---------- */
         function deskEditOpen() {
@@ -704,6 +723,6 @@
         window.addEventListener('resize', () => requestAnimationFrame(deskFit));
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', deskBuild); else deskBuild();
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
-        window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskBoxTab = deskBoxTab; window.deskTrayTab = deskTrayTab; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
+        window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskBoxPick = deskBoxPick; window.deskBoxAllIn = deskBoxAllIn; window.deskBoxTab = deskBoxTab; window.deskTrayTab = deskTrayTab; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
         window.deskFnPick = deskFnPick; window.deskEditOpen = deskEditOpen; window.deskEditEnd = deskEditEnd; window.deskEditFromSettings = deskEditFromSettings; window.deskEditShop = deskEditShop;
         window.deskMiniPaint = deskMiniPaint; window.deskMiniSync = deskMiniSync; window.deskTapAt = deskTapAt;  window.deskModeRender = deskModeRender; window.deskFnItemName = deskFnItemName;
