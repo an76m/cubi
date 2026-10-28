@@ -97,13 +97,14 @@
             if (A.height >= 220) {                                              // 🟩 넓은 매트 (정리 공간 · 도련 10-29) : 종이를 크게 펼쳐요 (칸이 가장 커지게 줄을 나눠서)
                 let best = null;
                 for (let c = 1; c <= n; c++) { const r = Math.ceil(n / c), cs = Math.min((A.width - PEL_PAD * 2 - (c - 1) * G) / c, (A.height - PEL_PAD * 2 - (r - 1) * G) / r); if (!best || cs > best.cs) best = { c, r, cs }; }
-                const cap = (S.rel.px && S.rel.px()) || 200;                     // 실제 크기 (이형지북에 붙는 크기 · js/basket.js rel.px)
-                if (best.cs > cap) { best.c = Math.max(1, Math.min(n, Math.floor((A.width - PEL_PAD * 2 + G) / (cap + G)))); best.r = Math.ceil(n / best.c); }
-                const cs = Math.max(30, Math.min(cap, best.cs)), w = best.c * cs + (best.c - 1) * G + PEL_PAD * 2, h = best.r * cs + (best.r - 1) * G + PEL_PAD * 2;
+                const rk = (S.rel.scale && S.rel.scale()) || 0;                  // 🤍 이형지북 배율 (다이어리 페이지 → 이형지북 페이지 · js/basket.js) · 매트에도 붙을 크기 그대로
+                const nat = it.map(o => o.a ? Math.max(o.a.w - o.a.m * 2, o.a.h - o.a.m * 2) : Math.max(...(o.wh || [54, 54]), 1)), need = rk ? Math.max(...nat) * rk : 200;
+                if (best.cs > need) { best.c = Math.max(1, Math.min(n, Math.floor((A.width - PEL_PAD * 2 + G) / (need + G)))); best.r = Math.ceil(n / best.c); }
+                const cs = Math.max(30, Math.min(need, best.cs)), fit = rk ? cs / need : 0, w = best.c * cs + (best.c - 1) * G + PEL_PAD * 2, h = best.r * cs + (best.r - 1) * G + PEL_PAD * 2;
                 const cx = A.left + A.width / 2, cy = A.top + A.height / 2;
                 S.board = { cx, cy, w, h };
                 it.forEach((o, i) => {
-                    const [iw, ih] = o.a ? [o.a.w - o.a.m * 2, o.a.h - o.a.m * 2] : (o.wh || [cs, cs]), sc = cs / Math.max(iw || cs, ih || cs, 1);
+                    const [iw, ih] = o.a ? [o.a.w - o.a.m * 2, o.a.h - o.a.m * 2] : (o.wh || [cs, cs]), sc = rk ? rk * fit : cs / Math.max(iw || cs, ih || cs, 1);   // 매트가 좁으면 다 같이 조금 줄여요
                     const p = { cx: cx - w / 2 + PEL_PAD + (i % best.c) * (cs + G) + cs / 2, cy: cy - h / 2 + PEL_PAD + Math.floor(i / best.c) * (cs + G) + cs / 2 };
                     o.slot = { cx: p.cx, cy: p.cy, w: (iw || cs) * sc, h: (ih || cs) * sc };
                     if (o.st.state === 'on') Object.assign(o.st, p, { s: sc, rot: 0 });
@@ -413,7 +414,8 @@
                 S.hint = ''; pelSay('🤍 <b>이형지북</b> 위에 놓아야 붙어요'); return;
             }
             st.state = 'done';
-            S.rel.drop(k, { x: (st.cx - R0.left) / R0.width, y: (st.cy - R0.top) / R0.height, r: Math.round(st.rot * 180 / Math.PI) });
+            const a0 = S.items[k] && S.items[k].a;                               // 진짜 크기 (다이어리에 붙였을 때의 그림 크기)
+            S.rel.drop(k, Object.assign({ x: (st.cx - R0.left) / R0.width, y: (st.cy - R0.top) / R0.height, r: Math.round(st.rot * 180 / Math.PI) }, a0 ? { w: a0.w - a0.m * 2, h: a0.h - a0.m * 2 } : {}));
             const left = S.items.filter(o => o.st.state === 'on');
             if (!left.length) { closeStickerPeel(); return; }
             pelPick(left[0]); pelLayout();

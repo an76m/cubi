@@ -314,7 +314,8 @@
     }
     /* 💾 모아서 한 번에 저장 (도련 10-25) : 꽂기 · 빼기 · 라벨 · 표지 · 자리 옮기기는 화면에 바로 → 손을 멈추고 1.2초 뒤(또는 다 했어요 · 창 닫기) 한 번에
        · 저장하는 동안 새로 한 정리는 다음 번에 또 한 번에 · 스티커첩 파일(작은 파일)만 써요 */
-    AB.pend = []; AB.fly = null; AB.flushT = 0; AB.rel = []; AB.relFly = null;   // rel : 🤍 이형지북에 붙인 것 (모아서 ownRelBatch)
+    AB.pend = []; AB.fly = null; AB.flushT = 0; AB.rel = []; AB.relFly = null;   // hi : 이형지북 스티커 큰 그림 (id → 그림 · 작은 미리보기 대신 · abRelHi)
+    AB.hi = new Map(); AB.hiBusy = new Set();   // rel : 🤍 이형지북에 붙인 것 (모아서 ownRelBatch)
     function abQueue(fn) {
         try { fn(B.album); } catch (e) {}
         AB.pend.push(fn); B.sig = bkSig();
@@ -344,7 +345,7 @@
         (AB.fly || []).concat(AB.pend).forEach(fn => { try { fn(B.album); } catch (e) {} });
         (AB.relFly || []).concat(AB.rel).forEach(o => {                         // 아직 저장 안 된 이형지북 스티커도 다시 얹어요
             const r = (B.album.rl || []).find(x => x.id === o.rl); if (!r || r.it.some(t => t.s === o.tmp)) return;
-            B.byId.set(o.tmp, { id: o.tmp, th: o.img }); r.it.push({ s: o.tmp, pg: o.pos.pg, x: o.pos.x, y: o.pos.y, r: o.pos.r });
+            B.byId.set(o.tmp, { id: o.tmp, th: o.img }); AB.hi.set(o.tmp, o.img); r.it.push(Object.assign({ s: o.tmp, pg: o.pos.pg, x: o.pos.x, y: o.pos.y, r: o.pos.r }, o.pos.w ? { w: Math.round(o.pos.w), h: Math.round(o.pos.h) } : {}));
         });
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden) abFlush(); });
@@ -410,7 +411,7 @@
 
     /* 🤍 이형지 : 톡 = 꺼내 쓰기 · 끌기 = 자리 옮기기 */
     function abRelItems(r, pg) {
-        return r.it.filter(t => (t.pg || 0) === pg).map(t => { const e = B.byId.get(t.s); return e ? `<button type="button" class="ab-it" data-id="${esc(t.s)}" style="left:${(t.x * 100).toFixed(2)}%;top:${(t.y * 100).toFixed(2)}%;--r:${(+t.r).toFixed(1)}deg" aria-label="스티커"><img src="${esc(e.th || '')}" alt="" draggable="false"></button>` : ''; }).join('');
+        return r.it.filter(t => (t.pg || 0) === pg).map(t => { const e = B.byId.get(t.s); return e ? `<button type="button" class="ab-it" data-id="${esc(t.s)}" style="left:${(t.x * 100).toFixed(2)}%;top:${(t.y * 100).toFixed(2)}%;--r:${(+t.r).toFixed(1)}deg${t.w ? `;--iw:${t.w};--ih:${t.h}` : ''}" aria-label="스티커"><img src="${esc(AB.hi.get(t.s) || e.th || '')}" alt="" draggable="false"></button>` : ''; }).join('');
     }
     function abRel() {
         const body = bq('abBody'), r = abRlOf(B.cur); if (!r) { bkView('album'); return; }
@@ -504,6 +505,7 @@
         const P = abSpaceGet(), W = room.clientWidth, H = room.clientHeight;
         abSpaceFit(room, W, H);
         abPilePlace();
+        { const rl = bq('abRel'); if (rl) { rl.style.setProperty('--rk', abRelK().toFixed(4)); abRelHi(); } }   // 🤍 진짜 크기 · 큰 그림
         room.querySelectorAll('.abs-box').forEach(bx => {
             const f = P[bx.dataset.p] || ABS_DEF[bx.dataset.p], x = f[0] < 0 ? W - bx.offsetWidth - 24 : f[0] * W;   // 처음 = 바구니 왼쪽 · 정리북 오른쪽 끝
             bx.style.left = Math.max(0, Math.min(W - bx.offsetWidth, x)) + 'px'; bx.style.top = Math.max(0, Math.min(H - bx.offsetHeight, f[1] * H)) + 'px';   // 책상 밖으로 안 나가요
@@ -632,6 +634,16 @@
     window.abSide = abSide;
     window.abGripAt = (el, ev) => { const bx = el && el.closest('.abs-box'); if (bx) abSpaceGrab(bx, ev); };   // 🤍 떼는 판이 떠 있어도 이름표를 끌면 옮겨져요 (js/stickerpeel.js)
     window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abSpace() && vis('basketKindModal');   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
+    /* 🤍 이형지북 배율 = 이형지북 한 쪽 폭 ÷ 다이어리 한 쪽 폭 (둘 다 A5 비율) → 다이어리에 붙였을 때와 같은 크기로 보여요 (도련 10-29) */
+    function abRelK() { const r = bq('abRel'), dw = window.dySize ? dySize().w : 440; return r && dw ? r.clientWidth / dw : .5; }
+    /* 큰 그림으로 바꿔 보여요 (목록의 작은 미리보기는 흐려서 · 그 쪽에 보이는 것만 · 한 번 받으면 기억) */
+    function abRelHi() {
+        const box = bq('abRel'); if (!box || !window.ownSheetImgs) return;
+        [...box.querySelectorAll('.ab-it')].map(b => b.dataset.id).filter(id => id && !id.startsWith('tmp') && !AB.hi.has(id) && !AB.hiBusy.has(id)).slice(0, 24).forEach(id => {
+            AB.hiBusy.add(id);
+            ownSheetImgs(id).then(r => { const u = r && r.imgs && r.imgs[0]; if (!u) return; AB.hi.set(id, u); const im = document.querySelector(`#abRel .ab-it[data-id="${CSS.escape(id)}"] img`); if (im) im.src = u; }).catch(() => {}).finally(() => AB.hiBusy.delete(id));
+        });
+    }
     function abSpaceTop(bx) { document.querySelectorAll('#absRoom .abs-box').forEach(o => o.classList.toggle('top', o === bx)); }
     function abSpaceGrab(bx, ev) {                                            // ✋ 손잡이를 끌어 옮기기
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation(); abSpaceTop(bx);
@@ -665,7 +677,7 @@
             at: () => { const z = bq('abPeelZone'); return z ? z.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: 130, right: innerWidth, bottom: 130 }; },
             target: () => { const r = bq('abRel'); return r ? r.getBoundingClientRect() : null; },
             alive: () => vis('basketKindModal') && B.view === 'desk' && !!bq('abPeelZone'),
-            px: () => { if (!abSpace()) return 0; const it = document.querySelector('#abRel .ab-it'); return it ? it.offsetWidth : 54; },   // 🟩 매트 위 스티커 = 이형지북에 붙는 실제 크기 (도련 10-29)
+            scale: () => abSpace() ? abRelK() : 0,                              // 🟩 매트 위 스티커 = 이형지북에 붙는 진짜 크기 (도련 10-29)
             drop: (k, pos) => abRelDrop(id, k, pos),
             close: () => {
                 if (AB.peelOn !== id) return;
@@ -679,13 +691,13 @@
     }
     function abRelDrop(src, k, pos) {
         const D = B.desk; if (!D) return;
-        pos = { x: Math.max(.08, Math.min(.92, pos.x)), y: Math.max(.1, Math.min(.9, pos.y)), r: Math.max(-25, Math.min(25, pos.r || 0)), pg: D.rpg || 0 };
+        pos = Object.assign({ x: Math.max(.08, Math.min(.92, pos.x)), y: Math.max(.1, Math.min(.9, pos.y)), r: Math.max(-25, Math.min(25, pos.r || 0)), pg: D.rpg || 0 }, pos.w > 0 && pos.h > 0 ? { w: Math.round(pos.w), h: Math.round(pos.h) } : {});   // w · h = 진짜 크기
         let img = '';
         if (D.sheet && D.sheet.id === src) { img = D.sheet.imgs[k] || ''; D.sheet.imgs[k] = null; }
         const tmp = 'tmp' + Date.now() + k, rel = abRlOf(D.rl), relEl = bq('abRel');                // 화면에는 바로 붙여 보여요
-        if (rel && img) { B.byId.set(tmp, { id: tmp, th: img }); rel.it.push({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }); }
+        if (rel && img) { B.byId.set(tmp, { id: tmp, th: img }); AB.hi.set(tmp, img); rel.it.push(Object.assign({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }, pos.w ? { w: Math.round(pos.w), h: Math.round(pos.h) } : {})); }
         if (relEl && img) {
-            relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
+            relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg${pos.w ? `;--iw:${Math.round(pos.w)};--ih:${Math.round(pos.h)}` : ''}" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
             const sm = document.querySelector('.ab-target small, .abx-cnt'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${window.OWN_REL_MAX || 24}개`;
         }
         AB.rel.push({ src, k, rl: D.rl, pos, tmp, img });                      // 모아서 저장 (손을 멈추면 · 다 했어요 · 창 닫기)

@@ -480,7 +480,7 @@
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;
                     const n = Math.max(1, Math.min(100, +r.n || 20));
-                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0 })) });
+                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0, ...(+t.w > 0 && +t.h > 0 ? { w: Math.round(+t.w), h: Math.round(+t.h) } : {}) })) });   // w · h = 스티커 진짜 크기 (다이어리에 붙였을 때 · 도련 10-29)
                 });
             }
             return o;
@@ -612,7 +612,7 @@
                             jobs.push(ownFileNew(one).then(f => { ne.f = f; made.push(f); }));   // ⚡ 새 종이 파일은 한꺼번에 올려요
                             sh.imgs[op.k] = null; any = true;
                             list.push(ne);
-                            rel.it.push({ s: nid, pg, x: Math.max(0, Math.min(1, +op.pos.x || 0)), y: Math.max(0, Math.min(1, +op.pos.y || 0)), r: +op.pos.r || 0 });
+                            rel.it.push(Object.assign({ s: nid, pg, x: Math.max(0, Math.min(1, +op.pos.x || 0)), y: Math.max(0, Math.min(1, +op.pos.y || 0)), r: +op.pos.r || 0 }, +op.pos.w > 0 && +op.pos.h > 0 ? { w: Math.round(+op.pos.w), h: Math.round(+op.pos.h) } : {}));
                             out[i] = nid;
                         }
                         if (!any) continue;
