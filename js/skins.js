@@ -314,7 +314,7 @@
             const box = document.getElementById('patCats'); if (!box) return;
             box.hidden = patTier !== 'free';
             if (box.hidden) return;
-            box.innerHTML = PAT_SUBS.map(([v, n]) => `<button type="button" class="lib-cat${v === patSub ? ' on' : ''}" onclick="setPatSub('${v}')">${n}<small>${BG_PATTERNS.filter(p => p.tier === 'free' && patG(p) === v).length}</small></button>`).join('');
+            box.innerHTML = PAT_SUBS.map(([v, n]) => `<button type="button" class="lib-cat${v === patSub ? ' on' : ''}" onclick="setPatSub('${v}')">${n}<small>${window.bgoItems ? bgoItems(v).length : 0}</small></button>`).join('');
         }
         function setPatSub(v) { patSub = v; patPage = 0; renderPatternList(); }
         window.setPatSub = setPatSub;
@@ -323,7 +323,7 @@
             const my = tab => typeof patListItems === 'function' ? patListItems(tab).items : [];   // 🌈 내가만든 · 받은 : 모음의 작은 그림 (js/pattern-maker.js)
             if (patTier === 'mine') return my('mine');
             if (patTier === 'share') return my('share').concat(cm);
-            if (patTier === 'free') return BG_PATTERNS.filter(p => p.tier === 'free' && patG(p) === patSub);   // 기본 칸 : 🎨 단색 · ☁️ 패턴 (10-23 도련)
+            if (patTier === 'free') return window.bgoItems ? bgoItems(patSub) : [];   // 기본 칸 = 🌈 내 배경지 보관함 (받은 것만 · 🎨 단색 · ☁️ 패턴 · js/bgown.js · 도련 10-28)
             return [];
         }
         function patPerPage() { return patLayout.rows * patLayout.cols; }
@@ -398,7 +398,7 @@
             document.getElementById('patStatus').textContent = items.length
                 ? `${patTier === 'free' && patSub === 'solid' ? '단색' : '패턴'} ${items.length}${more ? '개 넘게' : '개'} · 누르면 전체 배경에 적용돼요`
                 : more ? '불러오는 중…'
-                : ({ mine: '아직 만든 배경지가 없어요. 🖼️ 이미지로 · 🖌️ 그려서 배경지에서 만들어 보세요!', share: '아직 공유받은 배경지가 없어요.', event: '🎁 아직 받은 이벤트 배경지가 없어요.', shop: '' }[patTier] ?? '아직 준비된 배경지가 없어요.');
+                : ({ free: '아직 받은 배경지가 없어요. 🏪 기본상품 샵 → 🌈 배경지에서 받아요!', mine: '아직 만든 배경지가 없어요. 🖼️ 이미지로 · 🖌️ 그려서 배경지에서 만들어 보세요!', share: '아직 공유받은 배경지가 없어요.', event: '🎁 아직 받은 이벤트 배경지가 없어요.', shop: '' }[patTier] ?? '아직 준비된 배경지가 없어요.');
             patPage = pages ? Math.max(0, Math.min(pages - (more ? 0 : 1), patPage)) : 0;
             const start = patPage * per;
             const frag = document.createDocumentFragment();
@@ -417,7 +417,13 @@
                 card.append(sw);                                               // 썸네일 (+ 공유받은 것은 by 만든 사람)
                 if (p.by) { const by = document.createElement('small'); by.className = 'shx-by'; by.textContent = 'by ' + p.by; card.append(by); }
                 card.onclick = () => { if (!patSwiped) selectBgPattern(p.id, p.tier === 'my' ? p.got : null); };
-                if (p.tier === 'my') {                                         // 내가만든 · 공유받은 : 파일 저장(내가만든만) · 삭제
+                if (p.u) {                                                     // 🌈 받은 배경지 : 🗑 버리기 (휴지통 30일 · js/bgown.js)
+                    const wrap = document.createElement('div'); wrap.className = 'pat-item-wrap';
+                    const acts = document.createElement('div'); acts.className = 'pat-actions';
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn'; del.textContent = '🗑'; del.title = '버리기';
+                    del.onclick = () => bgoDiscard(p.u);
+                    acts.append(del); wrap.append(card, acts); frag.appendChild(wrap);
+                } else if (p.tier === 'my') {                                  // 내가만든 · 공유받은 : 파일 저장(내가만든만) · 삭제
                     const wrap = document.createElement('div');
                     wrap.className = 'pat-item-wrap';
                     const acts = document.createElement('div');

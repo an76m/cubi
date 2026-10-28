@@ -269,3 +269,7 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .dy-yr { position: relative; }
 .dy-del { position: absolute; left: 6px; top: 6px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; font-size: 14px; background: #fff; border: 1.2px solid var(--an-ol, #bba6d6); cursor: pointer; }
 .tr-goods b::after { content: ''; }
+/* 🌈 배경지 샵 견본 (js/basket.js look 'bg') */
+.sh-tool.sh-bg { min-height: 128px; }
+.sh-bgsw { display: block; width: 92px; height: 110px; border-radius: 10px; border: 1.5px solid var(--an-ol, #bba6d6); box-shadow: 4px 5px 0 rgba(176, 150, 214, .3); background-size: auto; pointer-events: none; }
+.sh-zlook .sh-bgsw { width: 180px; height: 220px; }

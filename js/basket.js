@@ -706,6 +706,7 @@
             out.push({ cnt: `이형지 ${AB_RL_N}쪽 · 스티커 ${AB_RL_N * (window.OWN_REL_MAX || 24)}개`, desc: `한 쪽에 ${window.OWN_REL_MAX || 24}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', tool: 'rl' });
             return out;
         }],
+        bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)
         gd: ['문구', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
             const L = window.gdShopList ? gdShopList() : [], ic = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏' };
             SH_CATS.gd = [...new Map(L.map(x => [x.g, `${ic[x.g] || '✏️'} ${x.kind}`]))];
@@ -784,9 +785,9 @@
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
-    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
+    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기']], paper: [['모양', '✂️ 모양'], ['배경', '📄 배경']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
         emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
-    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' ? x.sec : '';
+    const shCatOf = (k, x) => k === 'paper' ? (x.sec || '모양') : k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
@@ -831,6 +832,7 @@
         if (x.look === 'gd') return `<div class="sh-tool sh-gd">${x.art || ''}</div>`;
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
+        if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
         if (x.look === 'diary') { const k = typeof skinPresets !== 'undefined' && skinPresets[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
@@ -864,7 +866,7 @@
         z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = 확대 밖을 톡 (도련 10-28 · 닫기 버튼 없음)
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
-    const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : SH.kind === 'tool' ? '✓ 보관소에 쏙' : '✓ 보관함에 쏙';
+    const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : SH.kind === 'tool' ? '✓ 보관소에 쏙' : SH.kind === 'bg' ? '✓ 배경지에 쏙' : '✓ 보관함에 쏙';
     /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
     async function shGive(x) {
         let r = await x.give(false);
@@ -882,6 +884,7 @@
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
         if (window.shopSceneOn && shopSceneOn()) shopSceneClose();          // 🏪 가게에서 나와서
         if (k === 'tool') { shZoomOff(); closeModal('shelfKindModal'); if (window.dyOpen) dyOpen('다이어리'); return; }   // 📔 다이어리 보관소
+        if (k === 'bg') { shZoomOff(); closeModal('shelfKindModal'); if (typeof openPatternList === 'function') openPatternList('free'); return; }   // 🌈 배경지 보관함
         if (k === 'gd' || k === 'desk') { shZoomOff(); closeModal('shelfKindModal'); if (k === 'gd' && window.openGdCab) openGdCab(); if (k === 'desk' && window.deskBoxOpen) deskBoxOpen(); return; }   // ✏️ 문구함 · 📦 소품 보관함
         shZoomOff(); closeModal('shelfKindModal');
         bkOpenKind(k);
@@ -919,7 +922,7 @@
             if (!await shGive(x)) return;
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;
             const box = btn.closest('.sh-zbtns'), k = SH.kind;
-            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : '📦 소품 보관함';
+            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${nm}에 넣었어요</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${k}', 0)">${nm}에서 보기</button></div>`;
             return;

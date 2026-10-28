@@ -1003,6 +1003,7 @@
             handLoad();                                                      // ✋ 쓰는 손
             if (typeof dyLoad === 'function') dyLoad();                     // 📒 고른 다이어리 (js/skins.js)
             if (typeof dyySync === 'function') dyySync();                   // 📔 처음 온 다꾸러 = 그 해 기본 다이어리 선물 (js/dyyear.js)
+            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 분홍 단색 배경지 (js/bgown.js)
             if (typeof nwRefresh === 'function') nwRefresh();               // ✨ NEW 표시 (☁ diary_new · js/arrival.js)
             if (typeof svcDailyBadges === 'function') svcDailyBadges();     // 🔔 오늘 이미 본 알림 (☁ diary_daily_seen · js/service.js)
             const pd = document.getElementById('pageDateDisplay');          // 📅 날짜 바 페이지 수 ↔ 날짜 (☁ diary_bkview · js/skins.js)
@@ -1234,6 +1235,7 @@
             drive.guest = true; drive.ready = false;
             if (typeof collGuestStart === 'function') collGuestStart();    // 게스트 모음은 이 기기에 (js/coll.js)
             if (typeof dyySync === 'function') dyySync();                   // 📔 그 해 기본 다이어리 (js/dyyear.js)
+            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 분홍 단색 배경지 (js/bgown.js)
             hideGate(); updateBadge();
         }
 

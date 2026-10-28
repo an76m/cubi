@@ -13,9 +13,9 @@
             ['seal', '씰스티커', 640, 690], ['piece', '조각스티커', 850, 690], ['paper', '모조지스티커', 1060, 690],
             ['tape', '마스킹테이프', 945, 560], ['tk', '떡메모지', 880, 300], ['memo', '메모지', 760, 385],
             ['emoji', '이모지', 430, 320], ['leaf', '속지', 160, 370], ['tool', '다이어리', 150, 175],
-            ['gd', '문구', 1575, 250], ['desk', '책상 소품', 1300, 330], ['season', '🌸 계절 스티커', 1420, 640]
+            ['gd', '문구', 1575, 250], ['desk', '책상 소품', 1300, 330], ['bg', '배경지', 520, 470], ['season', '🌸 계절 스티커', 1420, 640]
         ];
-        const SHOP_ICON = { gd: '✂️', desk: '🪑', season: '🌸' };
+        const SHOP_ICON = { gd: '✂️', desk: '🪑', bg: '🌈', season: '🌸' };
         const SC = { on: false, busy: false };
 
         function shopCover(W, H) { const s = Math.max(innerWidth / W, innerHeight / H); return { s, x: (innerWidth - W * s) / 2, y: (innerHeight - H * s) / 2 }; }
