@@ -332,65 +332,61 @@ html.an .dy-gap { background: linear-gradient(90deg, #9d88c2 0 .3cqw, color-mix(
 .abs-box.lift .abs-grip { cursor: grabbing; background: #ffe6ef; }
 .abx-tip { margin: 8px 0 0; padding: 4px 12px; border-radius: 999px; background: rgba(255,250,242,.85); color: #8a6a78; font-size: 11.5px; text-align: center; }
 
-/* 🧺 등나무 바구니 */
-.abs-basket { width: min(36vw, 470px); }
-.abx-basket { position: relative; width: 100%; padding: 0 14px; box-sizing: border-box; }
-.abx-in { position: relative; height: clamp(260px, 48vh, 470px); border: 2px solid var(--ol); border-bottom: 0; border-radius: 26px 26px 0 0; background-color: #d39a55;
-    background-image: repeating-linear-gradient(90deg, transparent 0 22px, #c48945 22px 25px), repeating-linear-gradient(0deg, #dcaa66 0 9px, #cf9450 9px 18px); overflow: hidden; }
-.abs-basket .ab-strip { position: absolute; inset: 10px 8px 0; margin: 0; padding: 8px 8px 74px; border-radius: 0; background: none !important; box-shadow: none !important;
-    display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 2px 6px; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
-.abs-basket .ab-sc { padding: 0; margin: -4px 0; border-radius: 10px; touch-action: none; transform: rotate(var(--tilt, 0deg)); }
-.abs-basket .ab-sc:nth-child(3n+1) { --tilt: -5deg; } .abs-basket .ab-sc:nth-child(3n+2) { --tilt: 3deg; } .abs-basket .ab-sc:nth-child(4n) { --tilt: -1.5deg; } .abs-basket .ab-sc:nth-child(5n) { --tilt: 6deg; }
-.abs-basket .ab-sc .bk-sh { touch-action: none; border: 1.6px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; }
+/* 🧺 바구니 = 바구니 화면과 같은 상자 (도련 10-29 · 세로로 길게) */
+.abs-basket { width: 340px; }
+.abx-bin { width: 100%; max-width: none; height: var(--bh, 520px); margin: 0; }
+.abs-basket .ab-strip { position: absolute; inset: 14px; z-index: 1; margin: 0; padding: 18px 10px 36px; border-radius: 20px; background: none !important; box-shadow: none !important;
+    display: flex; flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }   /* 종이가 기울어 수북이 겹쳐요 */
+.abs-basket .ab-sc { flex: none; width: 78%; padding: 0; margin: 0 0 -22%; border-radius: 12px; touch-action: none; transform: translateX(var(--sx, 0)) rotate(var(--tilt, 0deg)); position: relative; }
+.abs-basket .ab-sc:nth-child(4n+1) { --tilt: -7deg; --sx: -8%; } .abs-basket .ab-sc:nth-child(4n+2) { --tilt: 5deg; --sx: 9%; } .abs-basket .ab-sc:nth-child(4n+3) { --tilt: -3deg; --sx: -2%; } .abs-basket .ab-sc:nth-child(4n) { --tilt: 8deg; --sx: 7%; }
+.abs-basket .ab-sc:last-child { margin-bottom: 0; }
+.abs-basket .ab-sc .bk-sh { width: 100% !important; max-width: none; padding: 10px; touch-action: none; border-radius: 14px; }
 .abs-basket .ab-sc.on { outline: 3px solid #ff6b88; outline-offset: 2px; background: none; }
-.abs-basket .ab-stripempty { width: 100%; padding: 40px 8px; color: #fff8ec; font-size: 13px; text-align: center; text-shadow: none; }
-.abx-front { position: absolute; left: 0; right: 0; bottom: 0; height: 74px; border: 2px solid var(--ol); border-top: 0; border-radius: 0 0 30px 30px; pointer-events: none; z-index: 2; background-color: #e2b06a;
-    background-image: repeating-linear-gradient(90deg, transparent 0 22px, #d39a55 22px 25px), repeating-linear-gradient(0deg, #e7b974 0 9px, #d9a35c 9px 18px); }
-.abx-rim { position: absolute; left: -2px; right: -2px; bottom: 66px; height: 18px; border: 2px solid var(--ol); border-radius: 10px; background: #c98a44; pointer-events: none; z-index: 3;
-    background-image: repeating-linear-gradient(115deg, transparent 0 8px, #b97b38 8px 11px); }
-.abx-hd { position: absolute; bottom: 64px; width: 30px; height: 26px; border: 7px solid #c98a44; border-radius: 16px; box-shadow: 0 0 0 2px var(--ol), inset 0 0 0 2px var(--ol); z-index: 1; pointer-events: none; }   /* 양쪽 고리 손잡이 */
-.abx-hd.l { left: -14px; } .abx-hd.r { right: -14px; }
-/* 🎀 분홍 깅엄 천 (앞 테두리에 걸쳐 둔) */
-.abx-cloth { position: absolute; left: 22%; width: 34%; bottom: 46px; height: 46px; z-index: 4; pointer-events: none; border: 2px solid var(--ol); border-bottom: 0; border-radius: 6px 6px 0 0; transform: rotate(-3deg);
-    background-color: #fff3f6; background-image: repeating-linear-gradient(90deg, rgba(255,150,180,.45) 0 8px, transparent 8px 16px), repeating-linear-gradient(0deg, rgba(255,150,180,.45) 0 8px, transparent 8px 16px); }
-.abx-cloth::after { content: ''; position: absolute; left: -2px; right: -2px; bottom: -9px; height: 10px; background: radial-gradient(circle at 6px 0, #fff3f6 5px, var(--ol) 5px 6.6px, transparent 6.6px) 0 0 / 12px 10px repeat-x; }
+.abs-basket .ab-stripempty { width: 100%; padding: 40px 8px; color: #8a6450; font-size: 13px; text-align: center; text-shadow: none; }
+.abs-basket .bk-tag { z-index: 2; }
+
 /* 🟩 커팅 매트 (이형지북에 붙일 때 · 바구니 아래 · 여기서 종이를 펼쳐 떼요) */
 .abx-mat { width: 100%; margin-top: 12px; padding: 10px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 12px; background-color: #8fceb4;
     background-image: repeating-linear-gradient(0deg, transparent 0 23px, #a9dcc6 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, #a9dcc6 23px 24px); }
 .abx-mat .ab-peelhint, .abx-mat .ab-peelzone { margin: 0; border: 1.6px dashed #fff; background: rgba(255,255,255,.18); color: #fff; font-weight: 700; }
 .abx-mat .ab-peelzone { height: 150px; }
 
-/* 📒 6공 바인더 (펼친 두 쪽 · 가운데 링) */
-.abs-book { width: min(58vw, 780px); }
-.abs-book.rl { width: min(46vw, 560px); }
+/* 📒 6공 바인더 (펼친 두 쪽 · 가운데 링 · A5 속지 비율 · 크기는 js abSpaceFit 가 --ph 로) · 한 쪽만 볼 때는 링이 그 쪽 옆 (홀수 쪽 = 왼쪽 쪽 → 링이 오른쪽) */
+.abs-book { width: 700px; }
 .abx-tag { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 8px; }
 .abx-tag .ab-pick { flex: none; max-width: none; border: 1.6px solid var(--ol) !important; }
 .abx-tag .ab-lbdesk { background: #fffdf6; border-color: var(--ol); transform: rotate(-1deg); }
 .abx-cnt { flex: none; padding: 3px 9px; border-radius: 999px; background: #fffaf2; color: #8a5a6e; font-size: 11.5px; font-weight: 700; }
+.abx-side { flex: none; width: 34px; height: 34px; padding: 0; border: 1.6px solid var(--ol); border-radius: 10px; background: #fffaf2; color: #c8457a; opacity: .45; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.abx-side.on { opacity: 1; background: #ffe6ef; }
 .abx-full { margin: 0 0 6px; font-size: 12px; color: #b23b6c; }
-.abx-binder { position: relative; width: 100%; padding: 14px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 18px; background: var(--c1);
-    background-image: repeating-linear-gradient(90deg, transparent 0 calc(50% - 22px), var(--c2) calc(50% - 22px) calc(50% + 22px), transparent calc(50% + 22px) 100%); }
+.abx-binder { position: relative; width: 100%; padding: 14px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 18px; background: var(--c1); }
+.abx-binder.two { background-image: linear-gradient(90deg, transparent calc(50% - 22px), var(--c2) calc(50% - 22px) calc(50% + 22px), transparent calc(50% + 22px)); }
+.abx-binder.one.even { padding-right: 64px; background-image: linear-gradient(90deg, transparent calc(100% - 52px), var(--c2) calc(100% - 52px)); }
+.abx-binder.one.odd { padding-left: 64px; background-image: linear-gradient(90deg, var(--c2) 52px, transparent 52px); }
 .abx-spread { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
-.abx-pg { position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(clamp(118px, 19vh, 172px), auto); gap: 10px; padding: 14px 14px 26px; border: 1.6px solid var(--ol); border-radius: 6px; background: #fffefb; }
+.abx-binder.one .abx-spread { grid-template-columns: 1fr; }
+.abx-pg { position: relative; box-sizing: border-box; height: var(--ph, 520px); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3.2%; padding: 6% 5% 9%; border: 1.6px solid var(--ol); border-radius: 6px; background: #fffefb; }
 .abx-pg.end { background: #fbf6ef; background-image: repeating-linear-gradient(0deg, transparent 0 22px, #f1e6d8 22px 23px); }
-.abx-pg .ab-pk { position: relative; padding: 10px 8px 8px; border: 1.6px solid #9cbfd8; border-radius: 4px; background: #eaf4fb; color: #7d9db6; font-size: 11.5px; overflow: hidden; }
-.abx-pg .ab-pk::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 9px; background: #d4e7f5; border-bottom: 1.4px solid #9cbfd8; pointer-events: none; }   /* 포켓 입구 */
-.abx-pg .ab-pk::after { content: ''; position: absolute; right: 10%; top: 18%; width: 6px; height: 34%; border-radius: 3px; background: rgba(255,255,255,.75); transform: rotate(14deg); pointer-events: none; }   /* 비닐 반짝 */
+.abx-pg .ab-pk { position: relative; min-height: 0; padding: 12% 7% 7%; border: 1.6px solid #9cbfd8; border-radius: 4px; background: #eaf4fb; color: #7d9db6; font-size: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.abx-pg .ab-pk::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 7%; background: #d4e7f5; border-bottom: 1.4px solid #9cbfd8; pointer-events: none; }   /* 포켓 입구 */
+.abx-pg .ab-pk::after { content: ''; position: absolute; right: 10%; top: 16%; width: 6px; height: 30%; border-radius: 3px; background: rgba(255,255,255,.75); transform: rotate(14deg); pointer-events: none; z-index: 2; }   /* 비닐 반짝 */
 .abx-pg .ab-pk.full { background: #eaf4fb; border-color: #9cbfd8; }
-.abx-pg .ab-pk.full::after { z-index: 2; }
 .abx-pg .ab-pk.ab-over { border: 2px dashed #ff6b88; background: #ffeef3; }
-.abs-book .abx-pg .ab-pk .bk-sh { width: min(150px, 100%) !important; border: 1.4px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; }
-.abx-no { position: absolute; bottom: 6px; left: 50%; translate: -50% 0; font-size: 10.5px; color: #b49aa8; font-weight: 700; pointer-events: none; }
+.abs-book .abx-pg .ab-pk .bk-sh { width: 100% !important; max-width: 100%; max-height: 100%; box-sizing: border-box; padding: 6%; border: 1.4px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; border-radius: 8px; }   /* 종이가 포켓에 꽉 (실제처럼) */
+.abx-no { position: absolute; bottom: 2.4%; left: 50%; translate: -50% 0; font-size: 11px; color: #b49aa8; font-weight: 700; pointer-events: none; }
 .abx-rings { position: absolute; left: 50%; top: 22px; bottom: 22px; width: 76px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
+.abx-binder.one.even .abx-rings { left: calc(100% - 52px); }
+.abx-binder.one.odd .abx-rings { left: 52px; }
 .abx-rings span { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 */
 .abx-rings svg { flex: none; width: 76px; height: 22px; }
-.abx-nav { margin-top: 10px; }
+.abx-nav { margin-top: 8px; }
 
 /* 🤍 스프링 이형지북 (왼쪽 스프링 · 반짝이는 이형지 · 뒤로 겹친 종이) */
 .abx-rlbook { position: relative; width: 100%; padding: 14px 14px 14px 34px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 8px 18px 18px 8px; background: #cbb8ec; }
 .abx-stack { position: absolute; left: 34px; right: 8px; top: 20px; bottom: 8px; border: 1.6px solid var(--ol); border-radius: 4px; background: #f6f3fa; }
 .abx-stack::after { content: ''; position: absolute; left: -1.6px; right: 3px; top: -8px; bottom: 3px; border: 1.6px solid var(--ol); border-radius: 4px; background: #fbf9fd; }
-.abs-book .ab-rel.abx-wax { position: relative; height: clamp(300px, 54vh, 540px); border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; margin-right: 8px; margin-bottom: 8px;
+.abs-book .ab-rel.abx-wax { position: relative; height: var(--ph, 520px); border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; margin-right: 8px; margin-bottom: 8px;
     background-color: #fdfcff; background-image: repeating-linear-gradient(125deg, transparent 0 46px, #f2eef9 46px 70px, transparent 70px 96px, #f7f4fb 96px 104px) !important; }
 .abs-book .ab-rel.abx-wax.ab-over, .abs-book .ab-rel.abx-wax.ready { outline: 2px dashed #ff6b88; outline-offset: -6px; }
 .abs-book .ab-rel.abx-wax .ab-it { width: 54px; height: 54px; }
