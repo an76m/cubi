@@ -581,7 +581,7 @@
         /* 📖 보는 쪽 (도련 10-29) : 기기마다 ⬅ 왼쪽 페이지 · ➡ 오른쪽 페이지 스위치 두 개 (둘 다 켜면 양쪽) · 둘 다 끌 수는 없어요
            - 'lr' 양쪽 (💻 📲 = 펼쳐서 · 📱 = 밀어서) · 'l' 왼쪽 페이지만 · 'r' 오른쪽 페이지만 (한 쪽만 켜면 그 쪽이 날짜바 가운데 · 넘기면 바로 다음 날)
            - ⚙ 설정 📖 페이지 보기 (기기마다) + 날짜바 양 끝 스위치 (이 기기 · 작업하다 바로 접었다 펴기) · 같은 값이에요 */
-        const DV_KEY = 'diary_view', DV_LOCAL = 'malang_view', DV_DEF = { phone: 'lr', pad: 'lr', pc: 'lr' };   // 기본 = 둘 다 켜기 (도련 10-29)
+        const DV_KEY = 'diary_view', DV_LOCAL = 'malang_view', DV_DEF = { phone: 'r', pad: 'lr', pc: 'lr' };   // 기본 = 📱 폰은 오른쪽 페이지만 · 📲 💻 는 둘 다 (도련 10-29)
         const DV_OK = ['lr', 'l', 'r'];
         function dvDev() {                                                     // 이 기기 : 폰(화면 짧은 쪽 600 미만) · 패드(손가락 화면) · 컴퓨터
             if (Math.min(screen.width, screen.height) < 600) return 'phone';
