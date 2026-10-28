@@ -289,3 +289,8 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .dyy-chips button { padding: 4px 12px; border-radius: 999px; border: 1.5px solid #f2b6c9; background: #fff; color: #7b5a6b; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .dyy-chips button.on { background: #ffe0ea; border-color: #e88fb0; color: #c8457a; }
 html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는 보관소만 (‹ 다이어리 메뉴 = 배경지는 책상에서 못 써요 · 도련 10-28) */
+
+/* 🗂️ 6공 바인더 링 = 애니 스타일 (도련 10-28 : 아웃라인 + 원색 하나 · 그림자 없음 · 그라데이션 없음) */
+html.an .dy-rings i { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cellipse cx='30' cy='43' rx='8.5' ry='6' fill='%238a789e' stroke='%239d88c2' stroke-width='1.5'/%3E%3Cellipse cx='170' cy='43' rx='8.5' ry='6' fill='%238a789e' stroke='%239d88c2' stroke-width='1.5'/%3E%3Cpath d='M30 42 C30 6 170 6 170 42' fill='none' stroke='%239d88c2' stroke-width='14.5' stroke-linecap='round'/%3E%3Cpath d='M30 42 C30 6 170 6 170 42' fill='none' stroke='%23f1eef8' stroke-width='11.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat !important; filter: none !important; }
+html.an .dy-gap::before { background: #f1eef8 !important; box-shadow: 0 0 0 .3cqw #9d88c2 !important; }   /* 링 기둥 : 한 색 + 선 (그림자 없음 · 도련 10-28) */
+html.an .dy-gap { background: linear-gradient(90deg, #9d88c2 0 .3cqw, color-mix(in srgb, var(--dy-c) 70%, #fff) .3cqw calc(100% - .3cqw), #9d88c2 calc(100% - .3cqw)) !important; box-shadow: none !important; }   /* 가운데 틈 = 표지 안쪽 한 색 + 양쪽 선 */
