@@ -147,4 +147,4 @@
             if (gift) giftWrite();
             if (window.deskBoxRender) deskBoxRender(); if (window.deskEditPaint) deskEditPaint();
         }
-        window.dpOpen = dpOpen;
+        window.dpOpen = dpOpen; window.dpSave = dpSave;

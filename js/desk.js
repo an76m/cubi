@@ -59,7 +59,7 @@
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
             const seenU = new Set();
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {})) : dkStarter();
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {})) : dkStarter();
             DK.fresh = !Array.isArray(v);                                         // 아직 목록이 없어요 → 🎁 기본세트 (드라이브를 읽은 뒤 giftEnsure)
             DK.items = L; DK.seen = JSON.stringify(L);
         }
@@ -308,7 +308,9 @@
             if (!document.documentElement.classList.contains('desk-on') || DK.edit) return false;
             const top = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => dkSolidAt(el, x, y))   // 그림 모양대로
                 .sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
-            if (!top || !top.dataset.fn) return false;
+            if (!top) return false;
+            if (window.dcTap && dcTap(top, x, y)) return true;
+            if (!top.dataset.fn) return false;
             deskRun(top.dataset.fn); return true;
         }
         /* ⚙️ 설정 🪑 화면 칸 그리기 (js/drive.js deskModeSet · js/show.js 가 설정을 다시 읽을 때도 → 다른 기기에서 바뀐 소품도 여기서 다시) */
@@ -357,6 +359,7 @@
                 dkArtLoad(o);
             });
             DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); });          // 📦 보관함의 칠한 소품 그림도
+            if (window.dcApplyAll) dcApplyAll();                                  // 💡 불빛 · 🔢 숫자 (js/deskcustom.js)
             deskZAll(); deskTick(); deskFnPaint(); deskFit();
         }
         /* 🎨 칠한 소품 (p: 1) = 종류 폴더 파일에 칠한 그림이 들어 있어요 (js/deskpaint.js) → 읽어서 그 소품 그림만 바꿔요 */
@@ -376,7 +379,7 @@
             if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, b);
         }
         /* 고른 소품 위 버튼 : 🎨 칠하기 · 📦 보관함에 넣기 · 🗑 버리기 */
-        function deskTipAct(a) { const el = DK.sel; if (!el) return; const u = el.dataset.u; deskSelect(null); if (a === 'paint') { if (window.dpOpen) dpOpen(u); } else if (a === 'share') { if (window.ishSaveDesk) ishSaveDesk(u); } else if (a === 'box') deskPut(u, 'box'); else deskDiscard(u); }
+        function deskTipAct(a) { const el = DK.sel; if (!el) return; const u = el.dataset.u; deskSelect(null); if (a === 'paint') { if (window.dcOpen) dcOpen(u); else if (window.dpOpen) dpOpen(u); }   /* 🎨 꾸미기 창 (색칠 + 소품별 · js/deskcustom.js) */ else if (a === 'share') { if (window.ishSaveDesk) ishSaveDesk(u); } else if (a === 'box') deskPut(u, 'box'); else deskDiscard(u); }
         function dkFnBlock(u, what) {                                              // 기능 소품은 못 넣고 못 버려요 (🛠 꾸미기에서는 돼요 · 기능이 빠지고 확정 때 확인)
             if (DK.edit) { Object.keys(DK.editFn).forEach(k => { if (DK.editFn[k] === u) delete DK.editFn[k]; }); return false; }
             const fn = dkFnOf(u); if (!fn) return false;
@@ -726,7 +729,7 @@
             });
             const up = ev => {
                 if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null); DK.drag = false;
-                if (was.tap) { if (ev.type !== 'pointercancel' && el.dataset.fn && Math.hypot(ev.clientX - was.x0, ev.clientY - was.y0) < 10) deskRun(el.dataset.fn); return; }   // 평소 톡 = 그 기능
+                if (was.tap) { if (ev.type !== 'pointercancel' && Math.hypot(ev.clientX - was.x0, ev.clientY - was.y0) < 10) { if (window.dcTap && dcTap(el, ev.clientX, ev.clientY)) return; if (el.dataset.fn) deskRun(el.dataset.fn); } return; }   // 평소 톡 = 소품 동작(누르는 곳 · js/deskcustom.js) 아니면 그 기능   // 평소 톡 = 그 기능
                 if (!was.on) { if (ev.type !== 'pointercancel') deskSelect(el); return; }   // 🛠 톡 = 고르기
                 [el].concat((was.riders || []).map(r => r.o)).forEach(o => {      // 📦 내 소품 목록에 자리 저장 (설정.json)
                     const v = { x: Math.round(parseFloat(o.style.left)), y: Math.round(parseFloat(o.style.top)) }, it = DK.items.find(x => x.u === o.dataset.u);

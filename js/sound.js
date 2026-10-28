@@ -91,7 +91,7 @@
                 ns.buffer = buf; ng.gain.value = a; ns.connect(ng).connect(bus); ns.start(t);
             });
         }
-        window.sndShopBell = sndShopBell;
+        window.sndShopBell = sndShopBell; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
 
         /* ---------- 🔊 연출 소리 켜고 끄기 (연출 화면의 버튼 · 설정 공용) ---------- */
         function sndToggleFx() {
