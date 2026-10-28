@@ -447,7 +447,7 @@
         const body = bq('abBody'), D = B.desk; if (!D) { bkView('bin'); return; }
         const relOk = REL_KINDS.has(B.kind); if (!relOk) D.mode = 'bd';
         if (D.pick && !B.list.some(e => e.id === D.pick)) { D.pick = ''; D.sheet = null; D.sel = -1; }
-        const strip = B.list.length ? B.list.slice().sort((a, b) => b.at - a.at).map(e => `<div class="ab-sc${D.pick === e.id ? ' on' : ''}" data-id="${esc(e.id)}">${bkCard(e)}</div>`).join('') : '<span class="ab-stripempty">바구니가 비었어요</span>';
+        const strip = B.list.length ? B.list.slice().sort((a, b) => b.at - a.at).map(e => `<div class="ab-sc${D.pick === e.id ? ' on' : ''}${B.up === e.id ? ' up' : ''}" data-id="${esc(e.id)}">${bkCard(e)}</div>`).join('') : '<span class="ab-stripempty">바구니가 비었어요</span>';
         let main;
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
@@ -594,6 +594,10 @@
         }
         bo.style.setProperty('--ph', Math.round(ph) + 'px');
     }
+    /* 🧺 톡 = 맨 위로 (겹친 종이 중 그 종이를 올려서 봐요) · 🟩 매트 위인지 (떼는 판이 위에 떠 있어도 자리로 봐요) */
+    function abRaise(id) { B.up = id; document.querySelectorAll('#abStrip .ab-sc').forEach(x => x.classList.toggle('up', x.dataset.id === id)); }
+    function abOnMat(x, y) { const m = document.querySelector('#absRoom .abx-mat'), r = m && m.getBoundingClientRect(); return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; }
+    window.abSheetDown = (sc, ev) => { if (!sc || ev.button > 0) return; AB.drag = { kind: 'sheet', src: sc, id: sc.dataset.id, slot: -1, x0: ev.clientX, y0: ev.clientY, pid: ev.pointerId, on: false, ghost: null }; };   // 떼는 판이 떠 있어도 바구니 종이를 끌어요 (js/stickerpeel.js)
     window.abSide = abSide;
     window.abGripAt = (el, ev) => { const bx = el && el.closest('.abs-box'); if (bx) abSpaceGrab(bx, ev); };   // 🤍 떼는 판이 떠 있어도 이름표를 끌면 옮겨져요 (js/stickerpeel.js)
     window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abSpace() && vis('basketKindModal');   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
@@ -630,6 +634,7 @@
             at: () => { const z = bq('abPeelZone'); return z ? z.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: 130, right: innerWidth, bottom: 130 }; },
             target: () => { const r = bq('abRel'); return r ? r.getBoundingClientRect() : null; },
             alive: () => vis('basketKindModal') && B.view === 'desk' && !!bq('abPeelZone'),
+            px: () => { if (!abSpace()) return 0; const it = document.querySelector('#abRel .ab-it'); return it ? it.offsetWidth : 54; },   // 🟩 매트 위 스티커 = 이형지북에 붙는 실제 크기 (도련 10-29)
             drop: (k, pos) => abRelDrop(id, k, pos),
             close: () => {
                 if (AB.peelOn !== id) return;
@@ -784,12 +789,17 @@
             return;
         }
         if (!ok) return;
-        if (!d.on) { if (d.kind === 'sheet') abTapSheet(d.id); else abTapSt(d.slot); return; }
+        if (!d.on) {
+            if (d.kind !== 'sheet') { abTapSt(d.slot); return; }
+            if (abSpace()) abRaise(d.id);                                       // 🪑 정리 공간 : 톡 = 그 종이를 맨 위로 올려 봐요
+            if (!(abSpace() && B.desk && B.desk.mode === 'rl')) abTapSheet(d.id);   // 🤍 이형지북은 톡으로 매트에 안 가요 (끌어서 매트에 놓아야 · 도련 10-29)
+            return;
+        }
         const el = document.elementFromPoint(ev.clientX, ev.clientY);
         if (d.kind === 'sheet') {
             const pk = el && el.closest('.ab-pk:not(.full)');
             if (pk && B.desk && B.desk.mode === 'bd') abPutSheet(d.id, +pk.dataset.pk);
-            else if (B.desk && B.desk.mode === 'rl') abTapSheet(d.id);
+            else if (B.desk && B.desk.mode === 'rl' && (!abSpace() || abOnMat(ev.clientX, ev.clientY))) { if (B.desk.pick !== d.id) abTapSheet(d.id); }   // 🟩 매트 위에 놓으면 펼쳐져요
         } else {
             const box = el && el.closest('#abRel');
             if (box) abPutSt(d.slot, ev.clientX, ev.clientY, box);

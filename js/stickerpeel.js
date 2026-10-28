@@ -97,11 +97,13 @@
             if (A.height >= 220) {                                              // 🟩 넓은 매트 (정리 공간 · 도련 10-29) : 종이를 크게 펼쳐요 (칸이 가장 커지게 줄을 나눠서)
                 let best = null;
                 for (let c = 1; c <= n; c++) { const r = Math.ceil(n / c), cs = Math.min((A.width - PEL_PAD * 2 - (c - 1) * G) / c, (A.height - PEL_PAD * 2 - (r - 1) * G) / r); if (!best || cs > best.cs) best = { c, r, cs }; }
-                const cs = Math.max(40, Math.min(200, best.cs)), w = best.c * cs + (best.c - 1) * G + PEL_PAD * 2, h = best.r * cs + (best.r - 1) * G + PEL_PAD * 2;
+                const cap = (S.rel.px && S.rel.px()) || 200;                     // 실제 크기 (이형지북에 붙는 크기 · js/basket.js rel.px)
+                if (best.cs > cap) { best.c = Math.max(1, Math.min(n, Math.floor((A.width - PEL_PAD * 2 + G) / (cap + G)))); best.r = Math.ceil(n / best.c); }
+                const cs = Math.max(30, Math.min(cap, best.cs)), w = best.c * cs + (best.c - 1) * G + PEL_PAD * 2, h = best.r * cs + (best.r - 1) * G + PEL_PAD * 2;
                 const cx = A.left + A.width / 2, cy = A.top + A.height / 2;
                 S.board = { cx, cy, w, h };
                 it.forEach((o, i) => {
-                    const [iw, ih] = o.a ? [o.a.w - o.a.m * 2, o.a.h - o.a.m * 2] : (o.wh || [cs, cs]), sc = Math.min(1.6, cs / Math.max(iw || cs, ih || cs, 1));
+                    const [iw, ih] = o.a ? [o.a.w - o.a.m * 2, o.a.h - o.a.m * 2] : (o.wh || [cs, cs]), sc = cs / Math.max(iw || cs, ih || cs, 1);
                     const p = { cx: cx - w / 2 + PEL_PAD + (i % best.c) * (cs + G) + cs / 2, cy: cy - h / 2 + PEL_PAD + Math.floor(i / best.c) * (cs + G) + cs / 2 };
                     o.slot = { cx: p.cx, cy: p.cy, w: (iw || cs) * sc, h: (ih || cs) * sc };
                     if (o.st.state === 'on') Object.assign(o.st, p, { s: sc, rot: 0 });
@@ -331,7 +333,7 @@
                 const ri = under && under.closest('#abRel .ab-it');
                 if (ri && window.abItGrab) { abItGrab(ri, e); return; }       // ✋ 이형지에 놓은 스티커 = 자리 옮기기 (js/basket.js)
                 const sc = under && under.closest('.ab-sc');
-                if (sc && window.abTapSheet) { abTapSheet(sc.dataset.id); return; }   // 위 줄의 다른 종이
+                if (sc && window.abSheetDown) { abSheetDown(sc, e); return; }   // 바구니의 다른 종이 : 톡 = 맨 위로 · 끌어서 매트에 놓기 (js/basket.js abUp)
                 const tt = under && !under.closest('button') && under.closest('.modal-title'), box = tt && tt.closest('.modal-content');
                 if (box) {                                                       // ✋ 창 제목 줄 = 창 옮기기 (떼는 판이 떠 있어도 · 도련 10-25 · js/skins.js setupSkinWindows 와 같게)
                     S.drag = { mode: 'win', box, last: P, x: P[0], y: P[1], ox: parseFloat(box.style.left) || 0, oy: parseFloat(box.style.top) || 0 };

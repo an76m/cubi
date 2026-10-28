@@ -399,3 +399,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abx-coil i { display: block; width: 46px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; position: relative; }
 .abx-coil i::after { content: ''; position: absolute; right: 6px; top: 1px; width: 6px; height: 6px; border-radius: 50%; background: #8a789e; }
 .abx-none { width: 100%; padding: 30px 14px; border: 2px dashed var(--ol); border-radius: 18px; background: rgba(255,250,242,.9); }
+/* 🧺 톡 = 그 종이를 맨 위로 (겹친 바구니에서 보기 · 도련 10-29) · 끄는 종이는 떼는 판 위로 */
+.abs-basket .ab-sc.up { z-index: 5; }
+.abs-basket .ab-sc.up .bk-sh { outline: 3px solid #ffb3c9; outline-offset: 2px; }
+body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
