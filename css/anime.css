@@ -63,8 +63,8 @@ html.an .inner-page .dy-fold { background: linear-gradient(90deg, transparent ca
 html.an .inner-page .page-header { background: var(--page-bg) !important; border: 1.3px solid var(--an-ol) !important; box-shadow: 3px 3px 0 var(--an-sh) !important; }
 html.an .inner-page .ps-st { background: var(--page-bg) !important; box-shadow: inset 0 0 0 1.4px var(--an-ol) !important; }
 /* ✂️ 문구 도구(페이지 위 핀셋 · 칼 …) · 기본상품 샵 도구 그림 : 파스텔 아웃라인 */
-html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-tool svg, html.an .pc-held svg { filter: drop-shadow(1.1px 0 0 var(--an-ol)) drop-shadow(-1.1px 0 0 var(--an-ol)) drop-shadow(0 1.1px 0 var(--an-ol)) drop-shadow(0 -1.1px 0 var(--an-ol)) !important; }   /* 문구는 선만 · 그림자 없음 (번져 보여요 · 도련 10-28) */
-html.an .bd-tool:not(.need), html.an .pc-tool { filter: none !important; }   /* 문구 그림자 없음 · 알려 주는 반짝(.need)은 그대로 */
+html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-tool svg, html.an .pc-held svg, html.an .twz svg, html.an .sk-knife svg, html.an .rl-ruler svg, html.an .scs-cur svg { filter: none !important; }   /* 문구 = 창 테두리처럼 얇고 또렷한 연보라 선 (js/anime.js 가 선 · 조각 둘레를 1.4px 로 · 도련 10-28) · 그림자 없음 */
+html.an .bd-tool:not(.need), html.an .pc-tool, html.an .twz, html.an .sk-knife, html.an .scs-cur { filter: none !important; }   /* 문구 그림자 없음 · 알려 주는 반짝(.need)은 그대로 */
 /* ---------- 🪑 책상 라벨 · 📱 하단 메뉴 ---------- */
 html.an .dk-fn-tag { box-shadow: 0 0 0 1.2px var(--an-ol) !important; border-color: transparent !important; background-image: none !important; color: var(--an-ink) !important; }
 html.an .toolbar { background: var(--an-cr) !important; border: 1.6px solid var(--an-ol) !important; box-shadow: 4px 5px 0 var(--an-sh) !important; backdrop-filter: none !important; }
@@ -241,3 +241,4 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .dcs-paper .dk-memo.m-letter { border-top-width: 5px; }
 .dcs-memo-t { display: block; width: 100%; box-sizing: border-box; resize: none; font-family: 'Gaegu', 'Jua', sans-serif; font-weight: 700; font-size: 17px; padding: 8px 12px; border-radius: 14px; border: 1.5px solid #c8b3e3; background: #fff; color: #5e4250; }
 @media (max-width: 480px) { .dcs-paper { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
