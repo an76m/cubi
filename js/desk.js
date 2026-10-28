@@ -460,7 +460,7 @@
         function deskBoxRender() {                                                // B : 왼쪽 = 종류 세로 목록(따로 스크롤) · 오른쪽 = 칸(따로 스크롤) · 도련 10-28
             const box = document.getElementById('deskBoxList'); if (!box) return;
             const keep = box.querySelector('.iv-side'), sTop = keep ? keep.scrollTop : null, gTop = (box.querySelector('.iv-in') || {}).scrollTop || 0;
-            const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k)), SK = window.dsBoxCells ? [['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']] : [];   // 🧱 🪵 = js/deskskin.js
+            const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k)), SK = window.dsBoxCells ? [['wallpaper', '벽지'], ['desktop', '책상']] : [];   // 다른 칸처럼 글씨만 (도련 10-28)   // 🧱 🪵 = js/deskskin.js
             if (DK.boxKind !== 'all' && !kinds.includes(DK.boxKind) && !SK.some(x => x[0] === DK.boxKind)) DK.boxKind = 'all';
             const k = DK.boxKind, rows = k === 'all' ? DK.items.slice() : DK.items.filter(o => dkKindOf(o) === k);
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
