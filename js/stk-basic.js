@@ -3,7 +3,7 @@
    - 제가 그린 것 : 🧩 조각 봉투 · 📄 모조지스티커 (그림은 모두 이 파일 안의 SVG · 파일 없음)
    - 🖼️ 개발자 그림 : Cloudflare 그림 보관함의 기본스티커 (js/elements.js basicKit) 중 씰 말고 나머지 종류
        🧩 조각 · 📄 모조지 = 숫자 폴더 1개가 한 묶음 (낱장 폴더는 그림 1개가 한 묶음) · 🎀 테이프 · 🧻 떡메 · 📃 속지 · 📝 메모지 = 그림 1장이 1종
-       📄 모조지는 모조지스티커/모양/… · 모조지스티커/배경/… (도련 10-25 · 폴더 이름이 '배경'으로 시작하면 배경 모조지 = 종이 전체가 무늬 · 통째로 떼기)
+       📄 모조지 = 받은 그림 한 장이 종이 한 장 (도련 10-29 · 모양 · 배경 구분 없음 · ✂️ 오리기 · 🪡 통째로 떼기 둘 다)
    - sbShelf(종류) → 기본상품 샵 칸 [{ cnt, look, thumbs, bigs, sec, take() }] · take() = 받을 때 그림을 받아 내 종이로 (js/own.js ownTake)
    - hold: true = 만들어 두고 아직 안 보여 줘요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 칸만 '준비 중') */
@@ -94,11 +94,6 @@
         /* 🖼️ 여러 개 묶음 미리보기 (씰 종이 · 조각 · 모조지스티커 같은 모양) : 작은 칸에 최대한 많이 · 2줄 · 넘치는 건 안 보여요 (개수는 카드 글씨가 총개수) */
         const SRV = { piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();   // 받은 목록 · 그림 (앱을 켠 동안)
         const kitCat = c => (window.kitName ? kitName(String(c || '')) : String(c || '')).slice(0, 24);   // '1. 동물' → '동물'
-        /* 📄 모조지스티커 '모양' · '배경' (도련 10-23) : 포장기 폴더 이름이 '배경' 으로 시작하면 배경 모조지 (예 모조지스티커/배경_체크/분홍체크.png)
-           - 모양 = 그림 모양대로 ✂️ 가위로 오려 써요 (지금까지 것) · 배경 = 종이 전체가 무늬 → 🪡 핀셋으로 통째로 떼어 맨 뒤에 깔아요 (가위로 오려도 돼요)
-           - 화면 카테고리 이름은 '배경' 뒤 글자 ('배경_체크' → '체크' · 그냥 '배경' 폴더는 '배경') */
-        const SB_BG = /^배경(?:\s*[_\-·.]\s*|\s+|$)/;
-        const sbIsBg = c => SB_BG.test(kitCat(c));
         const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
         const kitAt = (u, w) => window.kitSize ? kitSize(u, w) : u;           // 크기에 맞는 주소 (js/elements.js)
         const thumb = (u, w) => kitAt(u, w || 160);
@@ -148,10 +143,8 @@
                 const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
                 if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
-                else if (kind === 'paper' && sbIsBg(x.c)) out.push({ sec: '배경', bigs, cnt: '통째로 떼기', look: 'sheet', thumbs: [thumb(urls[0], 240)],
-                    take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src], x: { bg: 1 } }) });
-                else if (kind === 'paper') out.push({ sec: '모양', bigs, pv: x.pv, cnt: `그림 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
-                    take: async () => ({ k, imgs: [await pmMakeSheet(await Promise.all(urls.map(u => sbData(kitAt(u, 600)).then(d => d.src))))] }) });
+                else if (kind === 'paper') out.push({ bigs, cnt: '모조지 한 장', look: 'sheet', thumbs: [thumb(urls[0], 240)],   // 📄 받은 그림 한 장 = 모조지 한 장 (도련 10-29 · 모양 · 배경 구분 없음 · 오릴지 통째로 뗄지는 다꾸러가)
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src] }) });
                 else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
                     take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
                         const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
@@ -166,7 +159,7 @@
             if (kind === 'piece') sbOn(SB_BAGS).forEach(b => { const srcs = b.k.map(q => sbSvg(q, true));
                 out.push({ cnt: `조각 ${b.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: srcs, baked: true }) }); });
             if (kind === 'paper') sbOn(SB_SHEETS).forEach(sh => { const srcs = sh.k.map(q => sbSvg(q, false));
-                out.push({ sec: '모양', cnt: `그림 ${sh.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: [await pmMakeSheet(srcs)] }) }); });
+                out.push({ cnt: `그림 ${sh.k.length}개`, look: 'grid', thumbs: srcs, take: async () => ({ k, imgs: [await pmMakeSheet(srcs)] }) }); });
             return out;
         }
         const collHashS = s => { s = String(s); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };

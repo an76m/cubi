@@ -19,7 +19,7 @@
 
         const PM_W = 360, PM_HR = 2, PM_OUT = 420;
         const PM_HINT = '✂️ <b>가위</b>를 들고 원하는 그림 둘레를 <b>한 바퀴</b> 따라 그려 오려요';
-        const PM_HINT_BG = '🪡 <b>핀셋</b>으로 종이를 누른 채 끌면 <b>통째로</b> 떼어져요 · ✂️ 가위로 원하는 모양만 오려도 돼요';   // 📄 배경 모조지 (도련 10-23)
+        const PM_HINT_BG = '✂️ <b>가위</b>로 원하는 그림을 오리거나 · 🪡 <b>핀셋</b>으로 종이를 누른 채 끌면 <b>통째로</b> 떼어져요';   // 📄 배경 모조지 (도련 10-23)
         const pmHint = () => pmS.bg ? PM_HINT_BG : PM_HINT;
         const pmScs = () => !window.gdScs || gdScs(), pmTwz = () => !window.gdTwz || gdTwz();   // ✂️ 오리기는 가위로 · 🪡 떼기는 핀셋으로 (js/skins.js 문구함)
         const PM_PENS = ['#2f2a2c', '#7a4b3a', '#d0566b', '#3f6fb5'];
@@ -93,7 +93,7 @@
             S.own = o.own || null; if (S.own && !S.own.a0) S.own.a0 = pmInk0();
             S.pieces = []; S.fades = []; S.drag = null; S.edit = null; S.mv = { x: 0, y: 0 }; S.gone = 0; S.back = 0; S.on = true;
             S.note = o.el && o.el.isConnected ? o.el : null;
-            S.bg = !!o.bg;                                                           // 📄 배경 모조지 : 🪡 핀셋으로 통째로 떼기 · 붙이면 맨 뒤
+            S.bg = true;                                                             // 📄 모든 모조지 (도련 10-29 · 모양 · 배경 구분 없음) : ✂️ 가위로 오리기 · 🪡 핀셋으로 통째로 떼기 (통째로 뗀 종이만 맨 뒤) — 고르는 건 다꾸러
             pmLayout();
             pmq('pmPens').hidden = true;
             const room = pmq('pmRoom'); room.classList.toggle('pm-note', !!S.note); room.classList.add('show');
@@ -418,7 +418,7 @@
                 put(x, y);
                 const b = el.getBoundingClientRect();
                 put(Math.round(x + (st.cx - (b.left + b.width / 2)) / k), Math.round(y + (st.cy - (b.top + b.height / 2)) / k));
-                if (st.bg || S.bg) {                                                       // 📄 배경 모조지 : 다른 스티커 · 글 뒤 맨 아래에 깔려요 (↕️ 순서 메뉴와 같은 방법 · js/elements.js layerMove)
+                if (st.bg) {                                                               // 통째로 뗀 종이만 (가위로 오린 건 보통 스티커처럼 위에)                                                       // 📄 배경 모조지 : 다른 스티커 · 글 뒤 맨 아래에 깔려요 (↕️ 순서 메뉴와 같은 방법 · js/elements.js layerMove)
                     const L = [...pg.querySelectorAll(':scope > .element-box')].filter(x => x !== el).map((x, i) => [x, parseInt(x.style.zIndex) || 1, i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(a => a[0]);
                     [el].concat(L).forEach((x, n) => { x.style.zIndex = n + 1; });
                     if (typeof zIndexCounter !== 'undefined') zIndexCounter = L.length + 2;
