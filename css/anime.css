@@ -442,7 +442,7 @@ html .sh-take.got, html.an .sh-take.got, html.an .sh-take.got:not(.sh-zoombtn) {
 .dk-sp-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .dk-sp-art .cover-page > * { display: none !important; }
 .dk-spine::before { content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px; width: 1.5px; border-radius: 1px; background: rgba(255, 255, 255, .7); }   /* 둥근 책등 빛 한 줄 */
-.dk-spine b { display: none; }
+.dk-spine > b { display: none; }
 .dk-diary.dk-fly .dk-spine { visibility: hidden; }
 html.desk-edit .dk-diary { opacity: 1 !important; cursor: grab; }
 html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-edit .dk-diary .dk-edge { outline: 2px dashed #ff8fb4; outline-offset: 3px; }
@@ -453,12 +453,6 @@ html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-
 .dk-pose button.on { background: #ffd3e2; }
 
 /* 🏷️ 다이어리 라벨 (도련 10-29 · js/desk.js dkyLabelPaint) : 사용자가 붙이고 꾸며요 · 📚 책등 / 📔 앞면 자리 따로 */
-.dky-lb { position: absolute; z-index: 3; translate: -50% -50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; padding: .2em .45em; white-space: nowrap; font-size: calc(var(--fb, 22px) * var(--fs, 1)); border: 1px solid #a080a5; border-radius: .25em; line-height: 1.1; overflow: hidden; pointer-events: none; font-weight: 700; }
-.dky-lb > i { font-style: normal; white-space: nowrap; }
-.dky-lb.side { --fb: 8px; border-radius: 3px; } .dky-lb.front { --fb: 22px; }
-.dky-lb.v > i { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: -.05em; }
-.dky-lb.clear { border-color: transparent; }
-.dky-lb.ol > i { -webkit-text-stroke: .16em var(--oc, #fff); paint-order: stroke fill; }
 .dky-lb.ph { opacity: .55; }
 html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dashed #ff6b88; outline-offset: 2px; }
 .dk-pose .dky-lbb { background: #fff1c4; }
@@ -538,18 +532,23 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkh-pick { position: fixed; z-index: 2147482500; translate: -50% calc(-100% - 10px); display: flex; gap: 6px; padding: 6px; border: 1.6px solid #8d6f7f; border-radius: 999px; background: #fffaf2; white-space: nowrap; }
 .dkh-pick[hidden] { display: none; }
 .dkh-pick button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 14px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
-/* 🏷 소품 이름표 (도련 10-30 · js/desk.js dknPaintAll · 다이어리 라벨처럼) */
-.dkn-tag { position: absolute; z-index: 4; translate: -50% -50%; display: inline-flex; align-items: center; gap: .25em; padding: .18em .5em; border: 1.5px solid #a080a5; border-radius: .35em; white-space: nowrap; pointer-events: none; font-size: calc(18px * var(--fs, 1)); line-height: 1.1; font-weight: 700; }
-.dkn-tag b { font-weight: 700; }
+/* 🏷 이름표 = 소품 · 📔 다이어리 모두 이 모양 하나 (도련 10-30 · js/desk.js dknBuild · 바꾸면 한 번에 다) · --nb = 기본 글씨 크기 */
+.dkn-tag { position: absolute; z-index: 4; translate: -50% -50%; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: .25em; padding: .18em .5em; border: 1.5px solid #a080a5; border-radius: .35em; white-space: nowrap; pointer-events: none; font-size: calc(var(--nb, 18px) * var(--fs, 1)); line-height: 1.1; font-weight: 700; }
+.dkn-tag .dkn-t { font-weight: 700; }
 .dkn-tag .dkn-ic { font-style: normal; display: inline-flex; gap: .1em; height: 1.25em; align-items: center; }
 .dkn-tag .dkn-ic svg { height: 1.25em; width: auto; }
 .dkn-tag.clear { border-color: transparent; }
-.dkn-tag.ol b { -webkit-text-stroke: .16em var(--oc, #fff); paint-order: stroke fill; }
+.dkn-tag.ol .dkn-t { -webkit-text-stroke: .16em var(--oc, #fff); paint-order: stroke fill; }
+.dkn-tag.v { flex-direction: column; padding: .45em .18em; }
+.dkn-tag.v .dkn-t { display: block; text-align: center; line-height: 1.05; white-space: normal; }
+.dkn-tag.v .dkn-sp { display: block; height: .35em; }
+.dkn-tag.v .dkn-t br:last-child { display: none; }
+.dkn-tag.v .dkn-ic { flex-direction: column; height: auto; }
+.dkn-tag.dky-lb.side { --nb: 8px; border-width: 1px; } .dkn-tag.dky-lb.front { --nb: 22px; }   /* 📔 다이어리 책등 · 앞면 */
+.dkn-tag.ph { opacity: .55; }
 .dkn-seg, .dkn-ic-b { border: 1.4px solid #e8b9c6; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 12.5px; padding: 4px 10px; cursor: pointer; }
 .dkn-ic-b { padding: 2px 6px; font-size: 16px; } .dkn-ic-b:first-of-type { font-size: 12.5px; padding: 4px 10px; }
 .dkn-seg.on, .dkn-ic-b.on { background: #ffd3e2; border-color: #ff6b88; }
 #dknPanel .dky-row { flex-wrap: wrap; }
 .dkn-done { margin: 2px auto 0; border: 1.6px solid #e88fb0; border-radius: 999px; background: #ffd3e2; color: #8a2f58; font: inherit; font-size: 14px; font-weight: 700; padding: 7px 22px; cursor: pointer; }
 .dk-fn-tag[hidden] { display: none !important; }
-.dky-lb .dkn-ic { font-style: normal; margin-right: .2em; }
-.dky-lb.v .dkn-ic { margin: 0 0 .15em; }

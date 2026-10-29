@@ -770,7 +770,7 @@
         }
         /* 🏷 소품 이름표 (도련 10-30 : 연결한 소품을 까먹지 않게 · 다이어리 라벨처럼) : 글씨 · 아이콘 · 둘 다 · 라벨 바탕 · 아웃라인 · 글꼴 · 색 · 자리 · 크기
            it.tag = { on, m: 'ti' | 't' | 'i', t: 직접 쓴 글(없으면 연결한 종류 이름), ic: 아이콘(없으면 종류 아이콘), f, c, bx, bg, ol, oc, x, y, s } · 🛠 꾸미기 → 고른 소품 칩 '🏷 이름표' */
-        const DKN0 = { on: false, m: 'ti', t: '', ic: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', x: .5, y: .45, s: 1 };   // 처음 자리 = 소품 가운데 (위에 올린 소품 · 기능 이름표에 가리지 않게)
+        const DKN0 = { on: false, m: 'ti', t: '', ic: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', x: .5, y: .45, s: 1, v: 0 };   // 처음 자리 = 소품 가운데 (위에 올린 소품 · 기능 이름표에 가리지 않게)
         const DKN_IC = ['⭐', '🌸', '🎀', '💖', '🍓', '🧸', '✂️', '📎', '🖍️', '📒', '🗂️', '🌈'];
         const dknFn = o => { const m = DK.edit && DK.editFn ? DK.editFn : deskFnMap(), k = o && Object.keys(m).find(x => m[x] === o.u); return k ? DK_FNS.find(x => x[0] === k) : null; };
         /* 이름표 처음 값 : 기능이 붙은 소품은 예전 기능 이름표처럼 (켜짐 · 아래쪽) → 고치면 그때부터 내 이름표 (도련 10-30 : 이미 붙어 있던 이름표도 이 창으로) */
@@ -780,23 +780,29 @@
             const ks = (dkHomes()[o.u] || []).filter(k => DKH_NAMES[k]), f = dknFn(o);
             return ks.length ? { t: ks.map(k => DKH_NAMES[k]).join(' · '), ic: ks.map(dknKindIc).join('') } : f ? { t: f[1], ic: f[3] } : { t: dkName(o), ic: '🏷️' };
         }
+        /* 🏷 이름표 하나 만들기 = 소품 · 📔 다이어리 모두 이것 하나 (도련 10-30 : 이름표를 바꾸면 한 번에 다 바뀌게) · 모양은 css .dkn-tag
+           g = { on, m, t, ic, f, c, bx, bg, ol, oc, x, y, s, v } · a = 비워 둘 때 { t, ic } · cls = 더 붙일 class */
+        function dknBuild(g, a, cls) {
+            const b = document.createElement('span'); b.className = 'dkn-tag' + (cls ? ' ' + cls : '') + (g.bx ? '' : ' clear') + (g.ol ? ' ol' : '') + (g.v ? ' v' : '');
+            const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === g.f);
+            Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: g.c, background: g.bx ? g.bg : 'transparent', fontFamily: fo ? fo.css : '' });
+            b.style.setProperty('--fs', g.s); b.style.setProperty('--oc', g.oc);
+            b.innerHTML = (g.m !== 't' ? `<i class="dkn-ic">${g.ic || a.ic}</i>` : '') + (g.m !== 'i' ? `<span class="dkn-t">${g.v ? [...String(g.t || a.t)].map(ch => ch === ' ' ? '<i class="dkn-sp"></i>' : ch.replace(/</g, '&lt;') + '<br>').join('') : String(g.t || a.t).replace(/</g, '&lt;')}</span>` : '');   // 세로쓰기 = 한 글자씩 아래로 (글자 사이 빈칸이 넘치던 것 막기)
+            if (!g.t && g.m !== 'i') b.classList.add('ph');
+            return b;
+        }
         function dknPaintAll() {
-            document.querySelectorAll('#deskStage .dkn-tag').forEach(x => x.remove());
+            document.querySelectorAll('#deskStage .desk-item > .dkn-tag').forEach(x => x.remove());   // 📔 다이어리 이름표는 그대로
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
                 const o = DK.items.find(x => x.u === el.dataset.u), ft = el.querySelector(':scope > .dk-fn-tag');
                 if (ft) ft.hidden = !!(o && o.tag);                               // 내 이름표를 만들면 예전 기능 이름표는 숨겨요
                 const g = dknOf(o); if (!o || !o.tag || !g.on) return;
-                const a = dknAuto(o), b = document.createElement('span'); b.className = 'dkn-tag' + (g.bx ? '' : ' clear') + (g.ol ? ' ol' : '');
-                const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === g.f);
-                Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: g.c, background: g.bx ? g.bg : 'transparent', fontFamily: fo ? fo.css : '' });
-                b.style.setProperty('--fs', g.s); b.style.setProperty('--oc', g.oc);
-                b.innerHTML = (g.m !== 't' ? `<i class="dkn-ic">${g.ic || a.ic}</i>` : '') + (g.m !== 'i' ? `<b>${(g.t || a.t).replace(/</g, '&lt;')}</b>` : '');
-                el.appendChild(b);
+                const b = dknBuild(g, dknAuto(o)); b.classList.remove('ph'); el.appendChild(b);
             });
             if (typeof dkLayers === 'function') dkLayers();                       // 앞벽 위에도 한 장 (바구니 안에 든 게 있을 때)
         }
-        /* 🏷 이름표 창 (소품 · 📔 다이어리 같이 · 도련 10-30) : set = 바꾸는 함수 이름 · close = 닫는 코드 · a = 비워 둘 때 글 · 아이콘 · vt = 세로쓰기 칸 */
-        function dknHtml(g, set, close, sub, a, vt) {
+        /* 🏷 이름표 창 (소품 · 📔 다이어리 같이 · 도련 10-30) : set = 바꾸는 함수 이름 · close = 닫는 코드 · a = 비워 둘 때 글 · 아이콘 */
+        function dknHtml(g, set, close, sub, a) {
             const fl = typeof fontList !== 'undefined' ? fontList : [], q = v => String(v).replace(/"/g, '&quot;');
             const sw = (arr, cur, k) => arr.map(c => `<button type="button" class="dky-sw${c === cur ? ' on' : ''}" style="--c:${c}" onclick="${set}('${k}','${c}')" aria-label="${c}"></button>`).join('');
             const seg = [['ti', '아이콘 + 글씨'], ['t', '글씨만'], ['i', '아이콘만']].map(([v, n]) => `<button type="button" class="dkn-seg${g.m === v ? ' on' : ''}" onclick="${set}('m','${v}')">${n}</button>`).join('');
@@ -808,7 +814,7 @@
                 + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.bx ? 'checked' : ''} onchange="${set}('bx', this.checked)"> 라벨</label>${g.bx ? sw(DKY_BC, g.bg, 'bg') : ''}</div>`
                 + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.ol ? 'checked' : ''} onchange="${set}('ol', this.checked)"> 아웃라인</label>${g.ol ? sw(DKY_OC, g.oc, 'oc') : ''}</div>`
                 + `<div class="dky-row"><span>가로</span><input type="range" min="0" max="1" step="0.01" value="${g.x}" oninput="${set}('x', this.value, 1)"><span>세로</span><input type="range" min="0" max="1" step="0.01" value="${g.y}" oninput="${set}('y', this.value, 1)"></div>`
-                + `<div class="dky-row"><span>크기</span><input type="range" min="0.4" max="3" step="0.05" value="${g.s}" oninput="${set}('s', this.value, 1)">${vt ? `<label class="dky-tg"><input type="checkbox" ${g.v ? 'checked' : ''} onchange="${set}('v', this.checked)"> 세로쓰기</label>` : ''}</div>` : '')
+                + `<div class="dky-row"><span>크기</span><input type="range" min="0.4" max="3" step="0.05" value="${g.s}" oninput="${set}('s', this.value, 1)"><label class="dky-tg"><input type="checkbox" ${g.v ? 'checked' : ''} onchange="${set}('v', this.checked)"> 세로쓰기</label></div>` : '')
                 + `<div class="dky-row"><button type="button" class="dkn-done" onclick="${close}">✔ 다 됐어요</button></div>`;
         }
         function dknPanel(show) {
@@ -817,13 +823,13 @@
             if (!show || !o) { if (pn) pn.hidden = true; return; }   // 🛠 꾸미기 · 상품을 넣으며 '붙이기'를 골랐을 때 (그때는 바로 저장)
             if (!pn) { pn = document.createElement('div'); pn.id = 'dknPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); pn.addEventListener('click', e => e.stopPropagation()); }
             pn.dataset.u = o.u;
-            pn.innerHTML = dknHtml(dknOf(o), 'dknSet', 'dknPanel(false)', dkName(o), dknAuto(o), false);
+            pn.innerHTML = dknHtml(dknOf(o), 'dknSet', 'dknPanel(false)', dkName(o), dknAuto(o));
             pn.hidden = false;
         }
         function dknSet(k, v, live) {
             const pn = document.getElementById('dknPanel'), o = pn && DK.items.find(x => x.u === pn.dataset.u); if (!o) return;
             const g = o.tag = dknOf(o);
-            if (k === 'x' || k === 'y' || k === 's') g[k] = +v; else if (k === 'on' || k === 'bx' || k === 'ol') g[k] = !!v; else if (k === 't') g.t = String(v).slice(0, 20); else g[k] = v;
+            if (k === 'x' || k === 'y' || k === 's') g[k] = +v; else if (k === 'v') g.v = v ? 1 : 0; else if (k === 'on' || k === 'bx' || k === 'ol') g[k] = !!v; else if (k === 't') g.t = String(v).slice(0, 20); else g[k] = v;
             if (!DK.edit) dkSave();                                              // 평소(상품을 넣으며)에는 바로 저장 · 🛠 꾸미기는 ✔ 완료 때
             dknPaintAll(); if (!live) dknPanel(o.u);
         }
@@ -967,14 +973,7 @@
             el.querySelectorAll('.dky-lb').forEach(x => x.remove());
             if (!L.on || (!L.t && L.m !== 'i' && !DK.dyEdit)) return;
             const host = el.querySelector(fc === 'side' ? ':scope > .dk-spine' : ':scope > .dk-top'); if (!host) return;
-            const b = document.createElement('span'); b.className = 'dky-lb ' + fc + (g.v ? ' v' : '') + (L.bx ? '' : ' clear') + (L.ol ? ' ol' : '');
-            const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === L.f);
-            Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: L.c, background: L.bx ? L.bg : 'transparent', fontFamily: fo ? fo.css : '' });
-            b.style.setProperty('--fs', g.s); b.style.setProperty('--oc', L.oc);
-            const tx = document.createElement('i'); b.appendChild(tx);
-            if (L.m !== 't') { const ic = document.createElement('em'); ic.className = 'dkn-ic'; ic.textContent = L.ic || '📔'; tx.appendChild(ic); }   // 🏷 아이콘 (도련 10-30 · 소품 이름표와 같게)
-            if (L.m !== 'i') tx.appendChild(document.createTextNode(L.t || '이름표'));
-            if (!L.t && L.m !== 'i') b.classList.add('ph');
+            const b = dknBuild(Object.assign({}, L, g), { t: '이름표', ic: '📔' }, 'dky-lb ' + fc);   // 🏷 소품 이름표와 같은 것 하나 (dknBuild)
             host.appendChild(b);
         }
         function dkyLbGrab(ev, b) {                                               // 🛠 라벨 끌어 옮기기 (그 면 안에서)
@@ -992,7 +991,7 @@
             if (!show || !DK.dyEdit) { if (pn) pn.hidden = true; return; }
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkyLbPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             const st = DK.dyEdit, L = st.lb = dkyLb(st), fc = dkyFace(st.p), g = L[fc];   // 🏷 소품 이름표와 같은 창 (도련 10-30)
-            pn.innerHTML = dknHtml(Object.assign({}, L, g), 'dkyLbSet', 'dkyLbPanel(false)', (fc === 'side' ? '📚 책등' : '📔 앞면') + ' · 끌어 옮겨요', { t: '예 : 2026 · 일기', ic: '📔' }, true);
+            pn.innerHTML = dknHtml(Object.assign({}, L, g), 'dkyLbSet', 'dkyLbPanel(false)', (fc === 'side' ? '📚 책등' : '📔 앞면') + ' · 끌어 옮겨요', { t: '예 : 2026 · 일기', ic: '📔' });
             pn.hidden = false;
         }
         function dkyLbSet(k, v, live) {
