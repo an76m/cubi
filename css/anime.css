@@ -550,3 +550,6 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkn-seg.on, .dkn-ic-b.on { background: #ffd3e2; border-color: #ff6b88; }
 #dknPanel .dky-row { flex-wrap: wrap; }
 .dkn-done { margin: 2px auto 0; border: 1.6px solid #e88fb0; border-radius: 999px; background: #ffd3e2; color: #8a2f58; font: inherit; font-size: 14px; font-weight: 700; padding: 7px 22px; cursor: pointer; }
+.dk-fn-tag[hidden] { display: none !important; }
+.dky-lb .dkn-ic { font-style: normal; margin-right: .2em; }
+.dky-lb.v .dkn-ic { margin: 0 0 .15em; }
