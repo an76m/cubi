@@ -30,6 +30,13 @@
             a.textContent = ok; b.textContent = no;
             try { return await showMsg(msg, true); } finally { a.textContent = oa; b.textContent = ob; }
         }
+        /* 버튼 셋으로 묻기 [no] [ok] [extra] (도련 10-30 · 🛍️ 소품에 두 번째 상품 : 취소 · 바꾸기 · 추가) : 결과 false / true / 'extra' */
+        async function showAsk3(msg, ok, no, extra) {
+            const box = document.querySelector('#customAlertModal .alert-btns'), a = document.getElementById('customAlertConfirmBtn');
+            const x = document.createElement('button'); x.className = 'btn'; x.type = 'button'; x.textContent = extra; x.style.cssText = 'flex:1; justify-content:center;'; x.onclick = () => closeMsg('extra');
+            box.appendChild(x);
+            try { return await showAsk(msg, ok, no); } finally { x.remove(); }
+        }
         function closeMsg(res) {
             document.getElementById('customAlertModal').style.display = 'none';
             if (msgResolve) {

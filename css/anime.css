@@ -574,3 +574,25 @@ html.desk-show .dk-bag { visibility: hidden; }
 /* 😀 고른 이모지 빼기 ✕ (이름표 아이콘 줄) */
 .dkn-my { position: relative; display: inline-flex; }
 .dkn-my-x { position: absolute; top: -6px; right: -6px; width: 17px; height: 17px; padding: 0; border: 1.4px solid #e88fb0; border-radius: 50%; background: #fff; color: #c8457a; font-size: 10px; line-height: 1; font-weight: 700; cursor: pointer; display: grid; place-items: center; }
+/* 👆 칸 (누르는 곳 · 도련 10-30 · js/desk.js dkzDraw) : 한 소품에 여러 상품 = 다꾸러가 그린 칸마다 다른 창 */
+.dkz-bk { position: fixed; inset: 0; z-index: 2147482700; display: grid; place-items: center; background: transparent; }
+.dkz-win { width: min(94vw, 400px); box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; color: #6a4f5a; font-size: 13px; box-shadow: 4px 4px 0 #e6dcf8; }
+.dkz-win .dky-row > b { color: #c8457a; font-size: 15px; }
+.dkz-p { margin: 0; text-align: center; line-height: 1.5; }
+.dkz-pic { position: relative; margin: 2px auto; touch-action: none; user-select: none; cursor: crosshair; background: #fff; border: 1.5px solid #f0d6de; border-radius: 10px; }
+.dkz-pic > img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.dkz-old { position: absolute; border: 2px dashed #b9a6d8; border-radius: 6px; box-sizing: border-box; pointer-events: none; display: grid; place-items: center; }
+.dkz-old span, .dkz-box span { font-size: 11px; font-weight: 700; color: #6a4f5a; background: #fffaf2; border-radius: 6px; padding: 1px 5px; pointer-events: none; white-space: nowrap; }
+.dkz-box { position: absolute; border: 2px solid #e88fb0; background: rgba(255, 159, 189, .32); border-radius: 6px; cursor: move; display: grid; place-items: center; box-sizing: border-box; }
+.dkz-box[hidden] { display: none; }
+.dkz-h { position: absolute; right: -9px; bottom: -9px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #e88fb0; cursor: nwse-resize; }
+.dkz-warn { margin: 0; text-align: center; color: #c8457a; font-weight: 700; }
+.dkz-warn[hidden] { display: none; }
+.dkz-btns { display: flex; gap: 8px; }
+.dkz-btns .btn { flex: 1; justify-content: center; }
+.dkz-btns .dkz-ok { background: #ffd3e2; border-color: #e88fb0; color: #8a2f58; font-weight: 700; }
+.dkz-btns .dkz-ok:disabled { opacity: .45; cursor: default; }
+.dkz-show { position: absolute; z-index: 5; pointer-events: none; }
+.dkz-show i { position: absolute; border: 2px dashed #e88fb0; border-radius: 6px; box-sizing: border-box; background: rgba(255, 211, 226, .25); }   /* 칸 이름 = 왼쪽 위 (가운데 이름표와 겹치지 않게) */
+.dkz-show span { position: absolute; left: 2px; top: 2px; font-size: 10px; font-weight: 700; color: #8a2f58; background: #fffaf2; border-radius: 5px; padding: 0 4px; white-space: nowrap; line-height: 1.5; }
+.dkh-pick .dkh-pt { align-self: center; padding: 0 4px 0 8px; color: #9a7d8a; font-weight: 700; }
