@@ -76,6 +76,7 @@
         /* 🏪 → 🚪 내 방 문 → 🪑 책상 (도련 10-30) : 문이 스르르 나타나 잠깐 → 문 쪽으로 다가가며 연핑크 → 책상 · quick = 바로 (보관함으로 · 화면이 좁아질 때) */
         function shopSceneClose(quick) {
             const el = document.getElementById('shopScene'); if (!el || !SC.on || (SC.busy && !quick)) return;
+            if (quick !== true && window.bagBusy && bagBusy()) { const al = document.getElementById('customAlertModal'); if (window.showMsg && !(al && al.style.display === 'flex')) { const ok = document.getElementById('customAlertConfirmBtn'); if (ok) ok.textContent = '확인'; showMsg('🛍️ 상품을 담는 중이에요'); } return; }   // 받는 중 · 봉투 안내가 끝나기 전에는 못 나가요 (도련 10-30) · 묻는 창(하나 더 받기)이 떠 있으면 그 창을 덮지 않고 · 안내 버튼은 늘 '확인'
             ['shelfKindModal', 'shelfModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; const L = window.SHOP_BAG || []; window.SHOP_BAG = []; if (L.length && window.deskBagAdd) setTimeout(() => deskBagAdd(L), 250); };   // 🛍️ 산 것을 봉투에 담아 책상 위에 (js/desk.js)
             if (quick === true || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }

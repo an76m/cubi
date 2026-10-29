@@ -1087,7 +1087,8 @@
         z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = 확대 밖을 톡 (도련 10-28 · 닫기 버튼 없음)
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
-    const shGotText = () => '보관함 확인';                                 // 받은 뒤 버튼 = 늘 '보관함 확인' (도련 10-29 · 연녹색)
+    const shInShop = () => !!(window.shopSceneOn && shopSceneOn());           // 🏪 가게 안 (PC · 아이패드)
+    const shGotText = () => shInShop() ? '🛍️ 봉투에 담았어요' : '보관함 확인';   // 받은 뒤 버튼 (연녹색) · 가게 안 = 봉투에 담겼다는 표시만 (누르면 '내 방에서 봉투를 열어요' · 도련 10-30 : 봉투 → 책상 → 소품에 넣는 과정을 겪게) · 폰(가게 없음) = 예전처럼 보관함으로
     /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
     /* 🛍️ 받기가 다 끝나면 쇼핑백 (도련 10-29) : 받는 중인 개수를 세다가 0 이 되는 순간 한 번 · 하나라도 받았으면
        - 이어서 여러 개 = 마지막이 끝날 때 한 번 · 샵 창을 닫았거나 책상이 보여도 화면 맨 위에 떠요 · 실패해도 숫자는 내려요 */
@@ -1123,6 +1124,7 @@
     }
     function bagHide() { const el = bq('shBag'); if (!el || !el.classList.contains('on')) return; el.classList.add('bye'); clearTimeout(BAG.t); BAG.t = setTimeout(() => el.classList.remove('on', 'bye'), 320); }
     window.bagShow = bagShow; window.BAG_SVG = BAG_SVG;
+    window.bagBusy = () => BAG.n > 0 || !!(bq('shBag') && bq('shBag').classList.contains('on'));   // 🛍️ 받는 중 · 봉투 안내가 떠 있는 중 (🚪 내 방으로 못 가요 · js/shopscene.js)
     async function shGive(x) {
         bagStart(); let ok = false;
         try { ok = await shGive0(x); return ok; } finally { bagEnd(ok); }
@@ -1141,6 +1143,7 @@
         return true;
     }
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
+        if (shInShop()) { showMsg('🛍️ 봉투에 담았어요!<br><span style="font-size:12px;color:#777;">🚪 내 방으로 돌아가 책상 위 봉투를 열어 보세요.</span>'); return; }   // 가게 안에서는 바로 가지 않아요 (도련 10-30)
         if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true);      // 🏪 가게에서 나와서 (바로)
         if (k === 'tool') { shZoomOff(); closeModal('shelfKindModal'); if (window.dyOpen) dyOpen('다이어리'); return; }   // 📔 다이어리 보관소
         if (k === 'bg') { shZoomOff(); closeModal('shelfKindModal'); if (typeof openPatternList === 'function') openPatternList('free'); return; }   // 🌈 배경지 보관함
@@ -1184,7 +1187,7 @@
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;
             const box = btn.closest('.sh-zbtns'), k = SH.kind;
             const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
-            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${nm}에 넣었어요</small></div>`
+            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${shInShop() ? '봉투에 담았어요 · 내 방에서 꺼내요' : nm + '에 넣었어요'}</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${k}', 0)">${shGotText()}</button></div>`;
             return;
         }
@@ -1201,7 +1204,7 @@
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;                       // 확대에서 받아도 카드 버튼은 초록
             const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
             const where = x.tool ? `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 바구니`;
-            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
+            if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${shInShop() ? '봉투에 담았어요 · 내 방에서 꺼내요' : where + '에 넣었어요'}</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${shGotText()}</button></div>`;
         } catch (e) {
             console.warn(e);
