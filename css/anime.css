@@ -596,3 +596,5 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkz-show i { position: absolute; border: 2px dashed #e88fb0; border-radius: 6px; box-sizing: border-box; background: rgba(255, 211, 226, .25); }   /* 칸 이름 = 왼쪽 위 (가운데 이름표와 겹치지 않게) */
 .dkz-show span { position: absolute; left: 2px; top: 2px; font-size: 10px; font-weight: 700; color: #8a2f58; background: #fffaf2; border-radius: 5px; padding: 0 4px; white-space: nowrap; line-height: 1.5; }
 .dkh-pick .dkh-pt { align-self: center; padding: 0 4px 0 8px; color: #9a7d8a; font-weight: 700; }
+.dkz-show i.on { border-style: solid; border-width: 2.5px; background: rgba(255, 211, 226, .45); }   /* 👆 지금 고친 칸 */
+.dkt-zt { color: #8a2f58; font-size: 13px; background: #fffaf2; border: 1.5px solid #e88fb0; border-radius: 999px; padding: 3px 12px; }
