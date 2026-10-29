@@ -1088,7 +1088,38 @@
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
     const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : SH.kind === 'tool' ? '✓ 보관소에 쏙' : SH.kind === 'bg' ? '✓ 배경지에 쏙' : '✓ 보관함에 쏙';
     /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
+    /* 🛍️ 받기가 다 끝나면 쇼핑백 (도련 10-29) : 받는 중인 개수를 세다가 0 이 되는 순간 한 번 · 하나라도 받았으면
+       - 이어서 여러 개 = 마지막이 끝날 때 한 번 · 샵 창을 닫았거나 책상이 보여도 화면 맨 위에 떠요 · 실패해도 숫자는 내려요 */
+    const BAG = { n: 0, ok: 0 };
+    const bagStart = () => { BAG.n++; };
+    function bagEnd(ok) {
+        BAG.n = Math.max(0, BAG.n - 1); if (ok) BAG.ok++;
+        if (BAG.n || !BAG.ok) { if (!BAG.n) BAG.ok = 0; return; }
+        BAG.ok = 0; bagShow();
+    }
+    const BAG_SVG = `<svg viewBox="0 0 260 290" aria-hidden="true"><g stroke="#5f1a2c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+<path d="M104 78 C98 8 162 8 156 78" fill="none" stroke="#7a5128" stroke-width="6.5"/><path d="M104 78 C98 8 162 8 156 78" fill="none" stroke="#c99556" stroke-width="3.2"/>
+<path d="M62 84 C56 140 48 214 50 252 Q51 271 72 272 H188 Q209 271 210 252 C212 214 204 140 198 84 Z" fill="#9a2236"/>
+<path d="M74 108 C70 170 66 220 68 262" fill="none" stroke="#84192d" stroke-width="2.2"/><path d="M186 108 C190 170 194 220 192 262" fill="none" stroke="#84192d" stroke-width="2.2"/><path d="M60 240 Q130 250 200 240" fill="none" stroke="#84192d" stroke-width="2"/>
+<path d="M62 64 Q96 60 130 62 Q164 60 198 64 L199 92 Q182 98 164 94 Q147 100 130 95 Q113 100 96 94 Q78 98 61 92 Z" fill="#84192d"/>
+<path d="M64 70 Q130 64 196 70" fill="none" stroke-width="1.6" stroke="#b03a4e"/><circle cx="104" cy="78" r="3.5" fill="#c99556" stroke-width="2"/><circle cx="156" cy="78" r="3.5" fill="#c99556" stroke-width="2"/>
+<path d="M96 120 Q130 117 164 120 L166 206 Q130 209 94 206 Z" fill="#fff6e8"/>
+<g transform="translate(130 138) scale(.9)"><path d="M-3 3 L-13 30 L-6 26 L-3 33 L2 6 Z" fill="#ff8fb4"/><path d="M3 3 L14 29 L7 26 L4 32 L-1 6 Z" fill="#ff8fb4"/><path d="M0 0 C-11 -17 -31 -13 -27 0 C-24 9 -8 6 0 0 Z" fill="#ffb3c9"/><path d="M0 0 C11 -17 31 -13 27 0 C24 9 8 6 0 0 Z" fill="#ffb3c9"/><rect x="-6" y="-6" width="12" height="11" rx="4" fill="#ff8fb4"/></g>
+<text x="130" y="182" text-anchor="middle" font-size="13" font-weight="800" fill="#9a2236" stroke="none" letter-spacing="2">말랑달콤</text><path d="M108 192 H152" fill="none" stroke="#9a2236" stroke-width="1.4" stroke-dasharray="3 3"/></g></svg>`;
+    function bagShow() {
+        let el = bq('shBag');
+        if (!el) { el = document.createElement('div'); el.id = 'shBag'; el.className = 'sh-bag'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.onclick = () => bagHide(); document.body.appendChild(el); }
+        el.innerHTML = BAG_SVG + '<b>상품을 담았어요</b><small>바구니로 가져갈게요</small>';
+        el.classList.remove('bye'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+        clearTimeout(BAG.t); BAG.t = setTimeout(bagHide, 2200);
+    }
+    function bagHide() { const el = bq('shBag'); if (!el || !el.classList.contains('on')) return; el.classList.add('bye'); clearTimeout(BAG.t); BAG.t = setTimeout(() => el.classList.remove('on', 'bye'), 320); }
+    window.bagShow = bagShow;
     async function shGive(x) {
+        bagStart(); let ok = false;
+        try { ok = await shGive0(x); return ok; } finally { bagEnd(ok); }
+    }
+    async function shGive0(x) {
         let r = await x.give(false);
         if (r === 'have' && SH.kind === 'gd') { showMsg('✏️ 이미 문구함에 있어요.'); return false; }
         if (r === 'have' && SH.kind === 'tool') { showMsg(`📔 ${x.name}는 이미 받았어요.<br><small>📒 다이어리 → 📔 다이어리 보관소에 있어요</small>`); return false; }
@@ -1124,9 +1155,11 @@
         }
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
+        bagStart(); let bagOk = false;
         try {
             if (x.def) await ownTake(x.def);
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }
+            bagOk = true;
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙'; btn.disabled = false; btn.onclick = () => shGoSee(shInto(), 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             (SH.got || (SH.got = new Set())).add(i);                            // 창을 닫았다 열면 다시 받기
@@ -1134,7 +1167,7 @@
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
             showMsg('⚠ 스티커를 받지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
-        }
+        } finally { bagEnd(bagOk); }
     }
     async function shTake(btn) {
         const x = SH.items[SH.zoom]; if (!x || btn.disabled) return;
@@ -1149,10 +1182,12 @@
         }
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
+        bagStart(); let bagOk = false;
         try {
             if (x.tool) { if (!window.ownAlbum) throw new Error('ready'); await abTakeTool(x.tool, SH.toolKind, x.c); }
             else if (x.def) await ownTake(x.def);
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }   // take() : 새 종이 id(씰) 또는 종이 정보
+            bagOk = true;
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;                       // 확대에서 받아도 카드 버튼은 초록
@@ -1164,7 +1199,7 @@
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
             showMsg('⚠ 스티커를 받지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
-        }
+        } finally { bagEnd(bagOk); }
     }
 
 

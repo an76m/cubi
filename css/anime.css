@@ -418,3 +418,16 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 .bk-lay > img { position: absolute; object-fit: contain; pointer-events: none; }
 .bk-sh:has(> .bk-lay) { padding: 6px; }
 .sh-paper.sh-lay { display: block; padding: 6px; }
+
+/* 🛍️ 받기가 다 끝나면 쇼핑백 (도련 10-29 · js/basket.js bagShow) : 화면 가운데 작게 톡 · 2초쯤 뒤 스르르 · 누르면 바로 닫혀요 · 어떤 창 위에도 */
+.sh-bag { position: fixed; left: 50%; top: 50%; z-index: 2147483100; display: none; flex-direction: column; align-items: center; gap: 4px;
+    translate: -50% -50%; padding: 14px 22px 12px; border: 2px solid #8d6f7f; border-radius: 22px; background: #fffaf2; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.sh-bag.on { display: flex; animation: shBagIn .42s cubic-bezier(.3, 1.5, .5, 1) both; }
+.sh-bag.bye { animation: shBagOut .3s ease both; }
+.sh-bag svg { width: 96px; height: 107px; display: block; animation: shBagSwing 1.1s ease-in-out .35s both; transform-origin: 50% 8%; }
+.sh-bag b { color: #8f2038; font-size: 14px; }
+.sh-bag small { color: #9a7d8a; font-size: 11.5px; }
+@keyframes shBagIn { from { opacity: 0; scale: .6; translate: -50% -30%; } to { opacity: 1; scale: 1; translate: -50% -50%; } }
+@keyframes shBagOut { to { opacity: 0; scale: .85; translate: -50% -42%; } }
+@keyframes shBagSwing { 0% { rotate: 0deg; } 30% { rotate: -6deg; } 60% { rotate: 4deg; } 100% { rotate: 0deg; } }
+@media (prefers-reduced-motion: reduce) { .sh-bag.on, .sh-bag svg { animation: none; } }
