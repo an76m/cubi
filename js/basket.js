@@ -189,8 +189,9 @@
             if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 7) return;
             if (!d.moved) { d.moved = true; clearTimeout(d.hold); d.c.classList.remove('anim'); d.c.classList.add('lift'); d.c.style.zIndex = ++B.top; }
             const bin = pile.closest('.bk-bin'), br = bin && bin.getBoundingClientRect();
-            if (!d.desk && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
-                d.desk = dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true); d.c.style.visibility = 'hidden';
+            if (!d.desk && !d.no && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
+                d.desk = dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true);
+                if (d.desk) d.c.style.visibility = 'hidden'; else d.no = true;   // 못 꺼냈으면(다이어리가 닫혀 있음 등) 종이는 바구니에 그대로 보여요 · 안내도 한 번만 (도련 10-30)
             }
             if (d.desk) { dsMove(d.desk, ev.clientX, ev.clientY); return; }
             const W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
