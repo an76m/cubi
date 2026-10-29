@@ -56,7 +56,8 @@
         }
         /* 펼친 권의 색을 다이어리에 (테두리 · 페이지 색 = js/settings.js applySkinPreset) */
         function dyyPaint() {
-            const b = dyyBook(); if (!b) return;
+            const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
+            if (!b) return;
             if (dyyBasic() && typeof currentSkinId !== 'undefined' && currentSkinId !== b.c && typeof applySkinPreset === 'function') applySkinPreset(b.c);
         }
         /* 새 권 id (그 해 그 색 번호는 늘 새로 · 버린 것 · 되살린 것과 안 겹쳐요) */
