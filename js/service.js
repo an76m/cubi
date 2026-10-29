@@ -36,7 +36,7 @@
                 '@keyframes env{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-3px)}}' +
                 '</style>' +
                 '</defs>' +
-                '<rect x="3" y="3" width="354" height="194" rx="22" fill="#fff6f9" stroke="#bba6d6" stroke-width="2.5"/>' +   // 🎬 애니 스타일 (도련 10-28) : 연핑크 단색 바탕 · 파스텔 연보라 선 · 그라데이션 · 흰 점선 없음
+                '<rect x="3" y="3" width="354" height="194" rx="22" fill="#ffe9f1" stroke="#bba6d6" stroke-width="2.5"/>' +   // 🎬 애니 스타일 (도련 10-28) : 연핑크 단색 바탕 · 파스텔 연보라 선 · 그라데이션 · 흰 점선 없음
                 '<g fill="#fff" stroke="#bba6d6" stroke-width="1.6"><circle cx="318" cy="182" r="10"/><circle cx="334" cy="176" r="13"/><circle cx="348" cy="186" r="9"/><circle cx="14" cy="186" r="9"/><circle cx="28" cy="178" r="12"/><circle cx="44" cy="186" r="9"/></g>' +
                 '<g class="fl"><path d="M38 52 C 30 44 34 34 42 38 C 50 34 54 44 46 52 L 42 56Z" fill="#ffb3c8" stroke="#bba6d6" stroke-width="1.4"/></g>' +
                 '<g class="fl b"><path d="M318 46 C 312 40 315 32 321 35 C 327 32 330 40 324 46 L 321 49Z" fill="#c9b5ff" stroke="#bba6d6" stroke-width="1.4"/></g>' +
