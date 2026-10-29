@@ -931,7 +931,7 @@
             return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, give: () => gdGive(x.id) }));
         }],
         desk: ['책상 소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
-            cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
+            cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
             const k = seasonNow(), srcs = (SEASON_STICKERS[k] || []).map(x => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(x.svg));
@@ -1092,6 +1092,12 @@
        - 이어서 여러 개 = 마지막이 끝날 때 한 번 · 샵 창을 닫았거나 책상이 보여도 화면 맨 위에 떠요 · 실패해도 숫자는 내려요 */
     const BAG = { n: 0, ok: 0 };
     const bagStart = () => { BAG.n++; };
+    function bagNote(x, k, al) {                                             // 🛍️ 가게 안에서 받은 것 = 봉투에 (내 방으로 돌아가면 책상 위 봉투 · js/desk.js deskBagAdd)
+        if (!(window.shopSceneOn && shopSceneOn())) return;
+        const o = { k, n: String(x.name || x.cnt || BK_KINDS[k] || '').slice(0, 30) };
+        if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
+        (window.SHOP_BAG = window.SHOP_BAG || []).push(o);
+    }
     function bagEnd(ok) {
         BAG.n = Math.max(0, BAG.n - 1); if (ok) BAG.ok++;
         if (BAG.n || !BAG.ok) { if (!BAG.n) BAG.ok = 0; return; }
@@ -1113,7 +1119,6 @@
         el.classList.remove('bye'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
         clearTimeout(BAG.t); BAG.t = setTimeout(bagHide, 2200);
         if (window.sndBag) sndBag();                                         // 🔔 띠링~ (설정에서 소리를 끄면 조용히)
-        if (window.shopSceneOn && shopSceneOn()) window.SHOP_BOUGHT = true;   // 🛍️ 가게에서 샀어요 → 내 방으로 돌아가면 책상 위에 봉투 (js/desk.js deskBagDrop)
     }
     function bagHide() { const el = bq('shBag'); if (!el || !el.classList.contains('on')) return; el.classList.add('bye'); clearTimeout(BAG.t); BAG.t = setTimeout(() => el.classList.remove('on', 'bye'), 320); }
     window.bagShow = bagShow; window.BAG_SVG = BAG_SVG;
@@ -1151,7 +1156,7 @@
         const x = SH.items[i]; if (!x || btn.disabled) return;
         if (x.tool) { shZoom(i); return; }
         if (x.give) {
-            if (!await shGive(x)) return;
+            if (!await shGive(x)) return; bagNote(x, SH.kind);
             btn.classList.add('got'); btn.textContent = shGotText(x); btn.onclick = () => shGoSee(SH.kind, 0);
             (SH.got || (SH.got = new Set())).add(i); return;
         }
@@ -1161,7 +1166,7 @@
         try {
             if (x.def) await ownTake(x.def);
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }
-            bagOk = true;
+            bagOk = true; bagNote(x, shInto());
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = shGotText(); btn.disabled = false; btn.onclick = () => shGoSee(shInto(), 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             (SH.got || (SH.got = new Set())).add(i);                            // 창을 닫았다 열면 다시 받기
@@ -1174,7 +1179,7 @@
     async function shTake(btn) {
         const x = SH.items[SH.zoom]; if (!x || btn.disabled) return;
         if (x.give) {
-            if (!await shGive(x)) return;
+            if (!await shGive(x)) return; bagNote(x, SH.kind);
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;
             const box = btn.closest('.sh-zbtns'), k = SH.kind;
             const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
@@ -1189,7 +1194,7 @@
             if (x.tool) { if (!window.ownAlbum) throw new Error('ready'); await abTakeTool(x.tool, SH.toolKind, x.c); }
             else if (x.def) await ownTake(x.def);
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }   // take() : 새 종이 id(씰) 또는 종이 정보
-            bagOk = true;
+            bagOk = true; bagNote(x, x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind), x.tool);
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             (SH.got || (SH.got = new Set())).add(SH.zoom); SH.redraw = true;                       // 확대에서 받아도 카드 버튼은 초록

@@ -314,6 +314,7 @@
                 .sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
             if (!top) return false;
             if (window.dcTap && dcTap(top, x, y)) return true;
+            if (dkHomeTap(top, x, y)) return true;
             if (!top.dataset.fn) return false;
             deskRun(top.dataset.fn); return true;
         }
@@ -365,7 +366,7 @@
             });
             DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); });          // 📦 보관함의 칠한 소품 그림도
             if (window.dcApplyAll) dcApplyAll();                                  // 💡 불빛 · 🔢 숫자 (js/deskcustom.js)
-            deskZAll(); deskTick(); deskFnPaint(); deskFit();
+            deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint();
         }
         /* 🎨 칠한 소품 (p: 1) = 종류 폴더 파일에 칠한 그림이 들어 있어요 (js/deskpaint.js) → 읽어서 그 소품 그림만 바꿔요 */
         const dkSrc = o => DK.art[o.u] || (dkCat(o.id) || {}).src || '';
@@ -680,20 +681,94 @@
             st.lz = (st.lz || 0) + d; dkLayers(); const got = (DK.lzDone && DK.lzDone.get(el)) || 0; if (got !== st.lz) st.lz = got; if (!st.lz) delete st.lz; dkLayers();
         }
         window.deskLayer = deskLayer; window.dkyLayer = dkyLayer;
-        /* 🛍️ 가게에서 사 온 봉투 (도련 10-30) : 기본상품 샵에서 하나라도 받고 내 방으로 돌아오면 책상 앞쪽에 봉투가 똑바로 놓여 있어요 · 톡 = 집어 들고 사라져요
-           - 이번에 켠 동안만 (저장하지 않아요) · 여러 번 사 오면 봉투가 하나 더 (최대 3개) · 다른 소품보다 앞 */
-        function deskBagDrop() {
-            const st = document.getElementById('deskStage'); if (!st || !window.BAG_SVG) return;
-            const n = st.querySelectorAll('.dk-bag').length; if (n >= 3) return;
-            const b = document.createElement('button'); b.type = 'button'; b.className = 'dk-bag'; b.setAttribute('aria-label', '사 온 봉투');
-            const x = 836 + [0, -260, 260][n], y = 830;                          // 책상 앞쪽 · 똑바로 (도련 10-30 : 떨어지지 않고 · 2배)
-            b.style.left = (x - 120) + 'px'; b.style.top = (y - 268) + 'px';
-            b.innerHTML = window.BAG_SVG;
-            b.addEventListener('pointerdown', e => e.stopPropagation());
-            b.addEventListener('click', e => { e.stopPropagation(); if (b.classList.contains('bye')) return; b.classList.add('bye'); setTimeout(() => b.remove(), 450); });
-            st.appendChild(b);
+        /* 🛍️ 가게에서 사 온 봉투 (도련 10-30) : 기본상품 샵 가게에서 산 것이 봉투에 담겨 책상 앞쪽에 똑바로 놓여요 (최대 3개 · 저장 = 'diary_desk_bags')
+           - 봉투 톡 = 봉투 속 상품 카드 → 카드를 아무 책상 소품에 끌어다 넣으면 그 소품이 그 상품 종류의 집 ('diary_desk_home' {u: [종류]})
+           - 집이 된 소품을 톡 = 그 종류 창 (기능도 있으면 고르기) · 🪑 책상 소품을 산 거면 끌어다 놓은 자리에 그 소품이 바로 놓여요
+           - 다 꺼내면 봉투는 사라져요 · 진짜 상품은 살 때 이미 보관함에 들어가 있어요 (봉투는 정리하는 재미) */
+        const DKB_KEY = 'diary_desk_bags', DKB_LOCAL = 'malang_desk_bags', DKH_KEY = 'diary_desk_home', DKH_LOCAL = 'malang_desk_home';
+        const DKH_NAMES = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지', memo: '메모지', gd: '문구', tool: '다이어리', bg: '배경지', desk: '책상 소품' };
+        const dkBags = () => { const v = typeof prefGet === 'function' ? prefGet(DKB_KEY, DKB_LOCAL) : null; return Array.isArray(v) ? v.filter(b => b && Array.isArray(b.it) && b.it.length) : []; };
+        const dkBagsSet = v => { if (typeof prefSet === 'function') prefSet(DKB_KEY, DKB_LOCAL, v); };
+        const dkHomes = () => { const v = typeof prefGet === 'function' ? prefGet(DKH_KEY, DKH_LOCAL) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
+        const dkHomesSet = v => { if (typeof prefSet === 'function') prefSet(DKH_KEY, DKH_LOCAL, v); };
+        const dkKindIc = it => it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`;
+        function deskBagAdd(L) {
+            if (!Array.isArray(L) || !L.length) return;
+            const B = dkBags(); if (B.length >= 3) B[B.length - 1].it = B[B.length - 1].it.concat(L); else B.push({ t: Date.now(), it: L });
+            dkBagsSet(B); deskBagsPaint();
         }
-        window.deskBagDrop = deskBagDrop;
+        function deskBagsPaint() {
+            const st = document.getElementById('deskStage'); if (!st || !window.BAG_SVG) return;
+            st.querySelectorAll('.dk-bag').forEach(x => x.remove());
+            dkBags().forEach((bg, n) => {
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'dk-bag'; b.setAttribute('aria-label', `사 온 봉투 (${bg.it.length}개)`);
+                const x = 836 + [0, -260, 260][n], y = 830;                      // 책상 앞쪽 · 똑바로 (도련 10-30 : 2배)
+                b.style.left = (x - 120) + 'px'; b.style.top = (y - 268) + 'px';
+                b.innerHTML = window.BAG_SVG + `<b class="dk-bag-n">${bg.it.length}</b>`;
+                b.addEventListener('pointerdown', e => e.stopPropagation());
+                b.addEventListener('click', e => { e.stopPropagation(); deskBagOpen(n); });
+                st.appendChild(b);
+            });
+        }
+        window.deskBagDrop = () => deskBagsPaint();
+        /* 봉투 속 : 화면 맨 위 카드 줄 (봉투 위) · 카드를 끌어 책상 소품에 */
+        function deskBagOpen(n) {
+            let pn = document.getElementById('dkBagPanel');
+            const B = dkBags(), bg = B[n];
+            if (!bg) { if (pn) pn.hidden = true; return; }
+            if (!pn) { pn = document.createElement('div'); pn.id = 'dkBagPanel'; pn.className = 'dkb-pn'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
+            pn.dataset.n = n;
+            pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>카드를 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 그 창이 열려요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
+                + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}<b>${(it.n || DKH_NAMES[it.k] || '').replace(/</g, '&lt;')}</b><small>${DKH_NAMES[it.k] || ''}</small></div>`).join('')}</div>`;
+            pn.querySelectorAll('.dkb-card').forEach(c => c.addEventListener('pointerdown', e => dkbGrab(e, n, +c.dataset.j, c)));
+            pn.hidden = false;
+        }
+        function dkbTake(n, j) {                                                  // 카드 하나 꺼냈어요 → 봉투에서 빼요 (다 비면 봉투도)
+            const B = dkBags(); if (!B[n]) return; B[n].it.splice(j, 1); if (!B[n].it.length) B.splice(n, 1);
+            dkBagsSet(B); deskBagsPaint(); deskBagOpen(B[n] ? n : -1);
+        }
+        function dkbGrab(ev, n, j, card) {
+            if (ev.button > 0) return; ev.preventDefault();
+            const it = (dkBags()[n] || { it: [] }).it[j]; if (!it) return;
+            const gh = card.cloneNode(true); gh.className = 'dkb-card dkb-ghost'; document.body.appendChild(gh);
+            const place = (x, y) => { gh.style.left = x + 'px'; gh.style.top = y + 'px'; };
+            place(ev.clientX, ev.clientY); card.classList.add('dkb-out');
+            let hi = null;
+            const at = (x, y) => { gh.style.display = 'none'; const t = document.elementFromPoint(x, y); gh.style.display = ''; return t && t.closest ? t.closest('#deskStage .desk-item') : null; };
+            const mv = e => { if (e.pointerId !== ev.pointerId) return; place(e.clientX, e.clientY); const t = at(e.clientX, e.clientY); if (t !== hi) { if (hi) hi.classList.remove('dkh-hi'); hi = t; if (hi) hi.classList.add('dkh-hi'); } };
+            const up = e => {
+                if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
+                if (hi) hi.classList.remove('dkh-hi'); gh.remove(); card.classList.remove('dkb-out');
+                if (e.type === 'pointercancel') return;
+                const t = at(e.clientX, e.clientY), stg = document.getElementById('deskStage');
+                if (it.k === 'desk' && it.id && dkCat(it.id)) {                    // 🪑 산 소품 = 놓은 자리에 바로
+                    const o = [...DK.items].reverse().find(x => x.id === it.id && x.at === 'box'), R = stg && stg.getBoundingClientRect();
+                    const onStage = R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel');
+                    if (!onStage) return;
+                    if (o) { const c = dkCat(o.id), s = DK.s || 1, dx = (e.clientX - R.left) / s, dy = (e.clientY - R.top) / s; o.x = Math.round(Math.max(0, Math.min(DESK_W - c.w, dx - c.w / 2))); o.y = Math.round(Math.max(0, Math.min(DESK_H - c.h, dy - c.h))); o.at = 'desk'; dkSave(); deskItemsRender(); deskModeRender(); }
+                    dkbTake(n, j); return;
+                }
+                if (!t) return;                                                   // 소품 밖 = 다시 봉투로
+                const H = dkHomes(), u = t.dataset.u, L = H[u] = (H[u] || []).filter(k => k !== it.k); L.push(it.k); dkHomesSet(H);
+                t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600);
+                dkbTake(n, j);
+            };
+            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+        }
+        /* 집이 된 소품 톡 = 그 종류 창 · 여러 개(또는 기능도 있으면) = 고르기 */
+        function dkHomeTap(el, cx, cy) {
+            const H = dkHomes(), L = (H[el.dataset.u] || []).filter(k => DKH_NAMES[k]); if (!L.length) return false;
+            const fn = el.dataset.fn, f = fn && DK_FNS.find(x => x[0] === fn);
+            if (L.length === 1 && !f) { dkHomeOpen(L[0]); return true; }
+            let pk = document.getElementById('dkHomePick'); if (!pk) { pk = document.createElement('div'); pk.id = 'dkHomePick'; pk.className = 'dkh-pick'; document.body.appendChild(pk); pk.addEventListener('pointerdown', e => e.stopPropagation()); }
+            pk.innerHTML = (f ? `<button type="button" onclick="dkHomeGo('fn:${fn}')">${f[3]} ${f[1]}</button>` : '') + L.map(k => `<button type="button" onclick="dkHomeGo('${k}')">${DKH_NAMES[k]}</button>`).join('');
+            pk.style.left = cx + 'px'; pk.style.top = cy + 'px'; pk.hidden = false;
+            setTimeout(() => addEventListener('pointerdown', function off(e) { if (!pk.contains(e.target)) { pk.hidden = true; removeEventListener('pointerdown', off, true); } }, true), 0);
+            return true;
+        }
+        function dkHomeGo(k) { const pk = document.getElementById('dkHomePick'); if (pk) pk.hidden = true; if (k.startsWith('fn:')) deskRun(k.slice(3)); else dkHomeOpen(k); }
+        function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
+        window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen; window.dkHomeGo = dkHomeGo;
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
             const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '');
@@ -1020,7 +1095,7 @@
             });
             const up = ev => {
                 if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null); DK.drag = false;
-                if (was.tap) { if (ev.type !== 'pointercancel' && Math.hypot(ev.clientX - was.x0, ev.clientY - was.y0) < 10) { if (window.dcTap && dcTap(el, ev.clientX, ev.clientY)) return; if (el.dataset.fn) deskRun(el.dataset.fn); } return; }   // 평소 톡 = 소품 동작(누르는 곳 · js/deskcustom.js) 아니면 그 기능   // 평소 톡 = 그 기능
+                if (was.tap) { if (ev.type !== 'pointercancel' && Math.hypot(ev.clientX - was.x0, ev.clientY - was.y0) < 10) { if (window.dcTap && dcTap(el, ev.clientX, ev.clientY)) return; if (dkHomeTap(el, ev.clientX, ev.clientY)) return; if (el.dataset.fn) deskRun(el.dataset.fn); } return; }   // 🛍️ 상품을 넣은 소품 = 그 창   // 평소 톡 = 소품 동작(누르는 곳 · js/deskcustom.js) 아니면 그 기능   // 평소 톡 = 그 기능
                 if (!was.on) { if (ev.type !== 'pointercancel') deskSelect(el); return; }   // 🛠 톡 = 고르기
                 [el].concat((was.riders || []).map(r => r.o)).forEach(o => {      // 📦 내 소품 목록에 자리 저장 (설정.json)
                     const v = { x: Math.round(parseFloat(o.style.left)), y: Math.round(parseFloat(o.style.top)) }, it = DK.items.find(x => x.u === o.dataset.u);
