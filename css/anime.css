@@ -453,14 +453,12 @@ html.desk-edit .dk-diary.pose-on .dk-pose { display: flex; }
 .dk-pose button.on { background: #ffd3e2; }
 
 /* 🏷️ 다이어리 라벨 (도련 10-29 · js/desk.js dkyLabelPaint) : 사용자가 붙이고 꾸며요 · 📚 책등 / 📔 앞면 자리 따로 */
-.dky-lb { position: absolute; z-index: 3; translate: -50% -50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; padding: .15em .25em; border: 1px solid #a080a5; border-radius: 4px; line-height: 1.1; overflow: hidden; pointer-events: none; font-weight: 700; }
-.dky-lb > i { font-style: normal; white-space: nowrap; font-size: calc(var(--fb, 22px) * var(--fs, 1)); }
+.dky-lb { position: absolute; z-index: 3; translate: -50% -50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; padding: .2em .45em; white-space: nowrap; font-size: calc(var(--fb, 22px) * var(--fs, 1)); border: 1px solid #a080a5; border-radius: .25em; line-height: 1.1; overflow: hidden; pointer-events: none; font-weight: 700; }
+.dky-lb > i { font-style: normal; white-space: nowrap; }
 .dky-lb.side { --fb: 8px; border-radius: 3px; } .dky-lb.front { --fb: 22px; }
 .dky-lb.v > i { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: -.05em; }
 .dky-lb.clear { border-color: transparent; }
 .dky-lb.ph { opacity: .55; }
-.dky-rs { position: absolute; right: 0; bottom: 0; width: 12px; height: 12px; background: #ff6b88; border-radius: 3px 0 3px 0; cursor: nwse-resize; text-decoration: none; }
-.dky-lb.side .dky-rs { width: 7px; height: 7px; }
 html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dashed #ff6b88; outline-offset: 2px; }
 .dk-pose .dky-lbb { background: #fff1c4; }
 .dky-lbp { position: fixed; left: 50%; top: 14px; translate: -50% 0; z-index: 2147482500; width: min(94vw, 460px); box-sizing: border-box; padding: 10px 12px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #6a4f5a; }
