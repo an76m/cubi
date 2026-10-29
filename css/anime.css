@@ -497,3 +497,15 @@ html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dash
 .dk-diary.p-front .dk-top { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-accent) 45%, #fff), 0 0 0 3.2px var(--ink); border-radius: 0 0 12px 8px; }   /* 앞표지 선 · 위는 두께와 이어져서 각지게 */
 html:not(.desk-edit) .dk-diary.p-side .dk-spine { box-shadow: 0 0 0 1.3px var(--ink); }
 .dk-diary.p-side .dk-spine { top: calc(var(--dkh, 383px) * (1 - var(--dks, .4)) - var(--dkth, 0px)); height: calc(var(--dkh, 383px) * var(--dks, .4) + var(--dkth, 0px)); border-radius: 7px; }   /* 책등이 두께만큼 위로 이어져요 */
+
+/* 🚪 기본상품 샵 → 내 방 문 → 책상 (도련 10-30 · js/shopscene.js shopSceneClose) */
+.shop-home { position: absolute; inset: 0; z-index: 4; opacity: 0; pointer-events: none; }
+.shop-home img { position: absolute; user-select: none; -webkit-user-drag: none; }
+.shop-home::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #ffd3e2 0, #ffdbe7 30%, #fbd0de 60%, rgba(251, 208, 222, .6) 85%); }
+.shop-scene.home .shop-home { opacity: 1; transition: opacity .45s ease; }
+.shop-scene.home-go .shop-home { transition: transform 1.2s cubic-bezier(.4, 0, .8, .5), opacity .5s ease .9s; transform: scale(2.4); }
+.shop-scene.home-go .shop-home::after { transition: opacity .8s ease .3s; opacity: 1; }
+.shop-scene.home-go .shop-sign.home { transition: opacity .3s ease; opacity: 0; }
+.shop-scene.home .shop-x { opacity: 0; pointer-events: none; }
+.shop-sign.home b { color: #c8457a; }
+.shop-x { width: auto !important; height: auto !important; padding: 9px 16px; border-radius: 999px !important; font-size: 15px !important; white-space: nowrap; }   /* ✕ → 🚪 내 방으로 */

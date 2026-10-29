@@ -1134,7 +1134,7 @@
         return true;
     }
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
-        if (window.shopSceneOn && shopSceneOn()) shopSceneClose();          // 🏪 가게에서 나와서
+        if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true);      // 🏪 가게에서 나와서 (바로)
         if (k === 'tool') { shZoomOff(); closeModal('shelfKindModal'); if (window.dyOpen) dyOpen('다이어리'); return; }   // 📔 다이어리 보관소
         if (k === 'bg') { shZoomOff(); closeModal('shelfKindModal'); if (typeof openPatternList === 'function') openPatternList('free'); return; }   // 🌈 배경지 보관함
         if (k === 'gd' || k === 'desk') { shZoomOff(); closeModal('shelfKindModal'); if (k === 'gd' && window.openGdCab) openGdCab(); if (k === 'desk' && window.deskBoxOpen) deskBoxOpen(); return; }   // ✏️ 문구함 · 📦 소품 보관함
