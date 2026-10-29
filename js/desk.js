@@ -682,7 +682,7 @@
             sp.style.borderColor = getComputedStyle(cv).borderTopColor;
         }
         /* 🏷️ 라벨 (도련 10-29) : 사용자가 알아서 붙여요 · 켜기/끄기 · 글 · 글꼴 · 글 색 · 라벨 색 · 크기 · 세로쓰기 · 자리 (모습마다 따로 : 📚 책등 / 📔 앞면) · 🛠 꾸미기에서만 */
-        const DKY_LB0 = { on: false, t: '', f: 'sys', c: '#8a2f58', bg: '#fffaf3', side: { x: .5, y: .3, s: 1, v: 1 }, front: { x: .5, y: .78, s: 1, v: 0 } };
+        const DKY_LB0 = { on: false, t: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', side: { x: .5, y: .3, s: 1, v: 1 }, front: { x: .5, y: .78, s: 1, v: 0 } };
         const dkyLb = st => { const L = Object.assign({}, DKY_LB0, (st && st.lb) || {}); L.side = Object.assign({}, DKY_LB0.side, L.side || {}); L.front = Object.assign({}, DKY_LB0.front, L.front || {}); return L; };
         const dkyFace = p => p === 'side' ? 'side' : 'front';
         function dkyLabelPaint() {
@@ -691,10 +691,10 @@
             el.querySelectorAll('.dky-lb').forEach(x => x.remove());
             if (!L.on || (!L.t && !DK.dyEdit)) return;
             const host = el.querySelector(fc === 'side' ? '.dk-spine' : '.dk-top'); if (!host) return;
-            const b = document.createElement('span'); b.className = 'dky-lb ' + fc + (g.v ? ' v' : '') + (L.bg === 'none' ? ' clear' : '');
+            const b = document.createElement('span'); b.className = 'dky-lb ' + fc + (g.v ? ' v' : '') + (L.bx ? '' : ' clear') + (L.ol ? ' ol' : '');
             const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === L.f);
-            Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: L.c, background: L.bg === 'none' ? 'transparent' : L.bg, fontFamily: fo ? fo.css : '' });
-            b.style.setProperty('--fs', g.s);
+            Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: L.c, background: L.bx ? L.bg : 'transparent', fontFamily: fo ? fo.css : '' });
+            b.style.setProperty('--fs', g.s); b.style.setProperty('--oc', L.oc);
             const tx = document.createElement('i'); tx.textContent = L.t || '라벨'; b.appendChild(tx); if (!L.t) b.classList.add('ph');
             host.appendChild(b);
         }
@@ -706,7 +706,8 @@
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         }
         const DKY_TC = ['#8a2f58', '#5b3f4a', '#c8457a', '#7a5bb8', '#3d7fc4', '#2f8a5a', '#d08a2a', '#ffffff'];
-        const DKY_BC = ['#fffaf3', '#ffd3e2', '#e6dcf8', '#d6ecfb', '#dff4e7', '#fff1c4', '#5b3f4a', 'none'];
+        const DKY_BC = ['#fffaf3', '#ffd3e2', '#e6dcf8', '#d6ecfb', '#dff4e7', '#fff1c4', '#5b3f4a', '#8a2f58'];
+        const DKY_OC = ['#ffffff', '#5b3f4a', '#8a2f58', '#ffd3e2', '#fff1c4', '#d6ecfb', '#2a2a2a', '#d08a2a'];
         function dkyLbPanel(show) {                                               // 🏷️ 라벨 꾸미기 창 (꾸미기 동안 화면 아래)
             let pn = document.getElementById('dkyLbPanel');
             if (!show || !DK.dyEdit) { if (pn) pn.hidden = true; return; }
@@ -716,7 +717,8 @@
             pn.innerHTML = `<div class="dky-row"><b>🏷️ 라벨</b><label class="dky-tg"><input type="checkbox" ${L.on ? 'checked' : ''} onchange="dkyLbSet('on', this.checked)"> 붙이기</label><small>${fc === 'side' ? '📚 책등' : '📔 앞면'} · 라벨과 글씨는 한몸 · 끌어 옮겨요</small><button type="button" class="dky-x" onclick="dkyLbPanel(false)" aria-label="닫기">✕</button></div>`
                 + (L.on ? `<div class="dky-row"><input class="dky-t" maxlength="20" placeholder="라벨 글 (예 : 2026 · 일기)" value="${String(L.t).replace(/"/g, '&quot;')}" oninput="dkyLbSet('t', this.value, 1)">`
                 + `<select onchange="dkyLbSet('f', this.value)">${fl.map(o => `<option value="${o.id}"${o.id === L.f ? ' selected' : ''}>${o.name.replace(/ \(Local\)$/, '')}</option>`).join('')}</select></div>`
-                + `<div class="dky-row"><span>글 색</span>${sw(DKY_TC, L.c, 'c')}</div><div class="dky-row"><span>라벨</span>${sw(DKY_BC, L.bg, 'bg')}</div>`
+                + `<div class="dky-row"><span>글 색</span>${sw(DKY_TC, L.c, 'c')}</div><div class="dky-row"><label class="dky-tg"><input type="checkbox" ${L.bx ? 'checked' : ''} onchange="dkyLbSet('bx', this.checked)"> 라벨</label>${L.bx ? sw(DKY_BC, L.bg, 'bg') : ''}</div>`
+                + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${L.ol ? 'checked' : ''} onchange="dkyLbSet('ol', this.checked)"> 아웃라인</label>${L.ol ? sw(DKY_OC, L.oc, 'oc') : ''}</div>`
                 + `<div class="dky-row"><span>가로</span><input type="range" min="0" max="1" step="0.01" value="${g.x}" oninput="dkyLbSet('x', this.value, 1)"><span>세로</span><input type="range" min="0" max="1" step="0.01" value="${g.y}" oninput="dkyLbSet('y', this.value, 1)"></div>`
                 + `<div class="dky-row"><span>글씨</span><input type="range" min="0.4" max="3" step="0.05" value="${g.s}" oninput="dkyLbSet('s', this.value, 1)"><label class="dky-tg"><input type="checkbox" ${g.v ? 'checked' : ''} onchange="dkyLbSet('v', this.checked)"> 세로쓰기</label></div>`
                 : '');
@@ -724,7 +726,7 @@
         }
         function dkyLbSet(k, v, live) {
             const st = DK.dyEdit; if (!st) return; const L = st.lb = dkyLb(st), g = L[dkyFace(st.p)];
-            if (k === 's' || k === 'x' || k === 'y') g[k] = +v; else if (k === 'v') g.v = v ? 1 : 0; else if (k === 'on') L.on = !!v; else if (k === 't') L.t = String(v).slice(0, 20); else L[k] = v;
+            if (k === 's' || k === 'x' || k === 'y') g[k] = +v; else if (k === 'v') g.v = v ? 1 : 0; else if (k === 'on' || k === 'bx' || k === 'ol') L[k] = !!v; else if (k === 't') L.t = String(v).slice(0, 20); else L[k] = v;
             dkyLabelPaint(); if (!live) dkyLbPanel(true);
         }
         window.dkyLbPanel = dkyLbPanel; window.dkyLbSet = dkyLbSet;

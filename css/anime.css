@@ -458,6 +458,7 @@ html.desk-edit .dk-diary.pose-on .dk-pose { display: flex; }
 .dky-lb.side { --fb: 8px; border-radius: 3px; } .dky-lb.front { --fb: 22px; }
 .dky-lb.v > i { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: -.05em; }
 .dky-lb.clear { border-color: transparent; }
+.dky-lb.ol > i { -webkit-text-stroke: .16em var(--oc, #fff); paint-order: stroke fill; }
 .dky-lb.ph { opacity: .55; }
 html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dashed #ff6b88; outline-offset: 2px; }
 .dk-pose .dky-lbb { background: #fff1c4; }
@@ -473,5 +474,4 @@ html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dash
 .dky-tg { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer; }
 .dky-sw { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #a080a5; background: var(--c); cursor: pointer; padding: 0; }
 .dky-sw.on { box-shadow: 0 0 0 2.5px #fffaf2, 0 0 0 4.5px #ff6b88; }
-.dky-sw.none { background: repeating-linear-gradient(45deg, #fff 0 4px, #f3d6df 4px 8px); }
 .dky-row > span { width: auto; min-width: 30px; }
