@@ -590,18 +590,10 @@
             return (surfs || deskSurfs(el)).find(s => s.el !== el && b >= s.y - 8 && b <= s.y + 14 && cx >= s.x0 && cx <= s.x1) || null;
         }
         /* 앞뒤 : 아래쪽(앞)에 놓인 것이 앞 · 벽에 건 것은 늘 뒤 · 다른 소품 위에 올린 것은 그 소품 바로 앞 */
-        const DK_ZS = 8;                                                         // 바닥 1px 마다 z 8칸 : 소품 · 그 안에 넣은 것(최대 6) · 앞벽
-        function deskZAll() {
-            const items = [...document.querySelectorAll('#deskStage .desk-item')], bot = el => parseFloat(el.style.top) + parseFloat(el.style.height);
-            const z = new Map(), surfs = deskSurfs(null), get = (el, depth) => {
-                if (z.has(el)) return z.get(el);
-                const on = depth < 6 ? deskOn(el, surfs) : null;
-                const v = on ? get(on.el, depth + 1) + 1 : el.classList.contains('wall') ? 1 : 10 + Math.round(Math.min(950, bot(el))) * DK_ZS;
-                z.set(el, v); return v;
-            };
-            items.forEach(el => { el.style.zIndex = get(el, 0); });
-            dkLayers();
-        }
+        /* 앞뒤 (도련 10-29 · 사실적으로) : 모든 소품 + 📔 다이어리 + 앞벽을 한 줄로 세워 차례대로 z
+           - 벽에 건 것 < 책상 위 (바닥이 아래일수록 앞) · 다른 소품 위에 올린 것 = 그 소품 바로 앞 (같은 면 위끼리는 바닥 순서)
+           - 담는 소품 안 = 담는 소품 → 안에 든 것(바닥 순서) → 앞벽 → 위에 올린 것 · 다이어리도 똑같이 (늘 맨 앞이 아니에요) */
+        function deskZAll() { dkLayers(); }
         /* 🧺 넣을 수 있는 소품 (도련 10-29 · 사실적으로 · 자유롭게) : 소품 정보에 front(앞벽 마스크) + mouth(입구)가 있으면 = '담는 소품'
            - 넣는 것 = 책상 위 모든 소품(벽에 건 것 · 다른 담는 소품은 빼고) + 📔 다이어리 : 바닥 가운데가 입구 안이면 담는 소품과 앞벽 사이
            - 여러 개 = 바닥이 아래인 것이 앞 · 담는 소품을 옮기면 안에 든 것도 같이 · 크기 · 자리는 사용자 마음 (맞춰 주지 않아요)
@@ -617,35 +609,56 @@
             return best;
         }
         const dkyIn = st => dkBoxAt(st.x, st.y, null);
-        /* 끄는 동안 : 입구 폭 안 · 앞벽 위에서 바구니 바닥보다 조금 아래(16px)까지 = 안에 넣는 것 → 바닥에 닿게 (바닥 밑으로 빠지지 않아요 · 도련 10-29 : 다이어리가 살짝 아래로 놓여 안 들어가던 것) */
+        /* 끄는 동안 : 입구 폭 안 · 앞벽 위에서 바구니 바닥보다 조금 아래(6px)까지 = 안에 넣는 것 → 바닥에 닿게 (바닥 밑으로 빠지지 않아요 · 도련 10-29 : 다이어리가 살짝 아래로 놓여 안 들어가던 것) */
         function dkBoxFloor(x, y, skip) {
             let r = null;
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
                 if (el === skip || !dkIsBox(el)) return;
                 const L = parseFloat(el.style.left), T = parseFloat(el.style.top), w = parseFloat(el.style.width), h = parseFloat(el.style.height), [m0, m1, m2] = dkDef(el).mouth;
-                if (x >= L + w * m0 / 100 && x <= L + w * m1 / 100 && y >= T + h * m2 / 100 && y <= T + h + 16 && (!r || +el.style.zIndex > +r.el.style.zIndex)) r = { el, y: Math.min(y, T + h - 3) };
+                if (x >= L + w * m0 / 100 && x <= L + w * m1 / 100 && y >= T + h * m2 / 100 && y <= T + h + 6 && (!r || +el.style.zIndex > +r.el.style.zIndex)) r = { el, y: Math.min(y, T + h - 3) };
             });
             return r ? r.y : y;
         }
         const dkItemBox = el => (el.classList.contains('wall') || dkIsBox(el)) ? null : dkBoxAt(parseFloat(el.style.left) + parseFloat(el.style.width) / 2, parseFloat(el.style.top) + parseFloat(el.style.height), el);
         function dkLayers() {
             const stg = document.getElementById('deskStage'); if (!stg) return;
-            const dy = document.getElementById('deskDiary'), inside = new Map();       // 담는 소품 → [{ el, b : 바닥 }]
-            const put = (box, el, b) => { if (!inside.has(box)) inside.set(box, []); inside.get(box).push({ el, b }); };
-            stg.querySelectorAll('.desk-item').forEach(el => { const box = dkItemBox(el); if (box) put(box, el, parseFloat(el.style.top) + parseFloat(el.style.height)); });
-            if (dy) { const st = dkyGet(), box = dkyIn(st); if (box) put(box, dy, st.y); }
-            inside.forEach((L, box) => { const bz = +box.style.zIndex || 0; L.sort((a, b) => a.b - b.b).forEach((o, i) => { o.el.style.zIndex = bz + 1 + Math.min(i, DK_ZS - 3); }); });   // 위(뒤)에 놓인 것부터
+            const items = [...stg.querySelectorAll('.desk-item')], dy = document.getElementById('deskDiary'), surfs = deskSurfs(null);
+            const bot = el => parseFloat(el.style.top) + parseFloat(el.style.height);
+            const par = new Map();                                                // 무엇의 [안 'in' | 위 'on'] 인지
+            items.forEach(el => { const b = dkItemBox(el); if (b) { par.set(el, { el: b, k: 'in' }); return; } const on = deskOn(el, surfs); if (on) par.set(el, { el: on.el, k: 'on' }); });
+            let st = null;
+            if (dy) {
+                st = dkyGet(); const b = dkyIn(st);
+                if (b) par.set(dy, { el: b, k: 'in' });
+                else { const on = surfs.find(s => st.y >= s.y - 8 && st.y <= s.y + 14 && st.x >= s.x0 && st.x <= s.x1); if (on) par.set(dy, { el: on.el, k: 'on' }); }
+            }
+            const keyMemo = new Map(), bOf = el => el === dy ? st.y : bot(el);
+            const key = (el, d) => {                                              // 사전 순서로 비교하는 자리 열쇠
+                if (keyMemo.has(el)) return keyMemo.get(el);
+                const p = d < 6 ? par.get(el) : null;
+                const k = p ? key(p.el, d + 1).concat([p.k === 'in' ? 1 : 3, bOf(el)]) : [el !== dy && el.classList.contains('wall') ? -1 : 0, bOf(el)];
+                keyMemo.set(el, k); return k;
+            };
+            const fronts = new Map();                                             // 담는 소품 → 안에 든 게 있나
+            par.forEach(p => { if (p.k === 'in') fronts.set(p.el, true); });
+            const list = items.map(el => ({ el, k: key(el, 0) }));
+            if (dy) list.push({ el: dy, k: key(dy, 0) });
+            fronts.forEach((v, b) => list.push({ el: b, front: 1, k: key(b, 0).concat([2]) }));
+            const cmp = (a, b) => { for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i] === undefined) return -1; if (b[i] === undefined) return 1; if (a[i] !== b[i]) return a[i] - b[i]; } return 0; };
+            list.sort((a, b) => cmp(a.k, b.k));
+            const fz = new Map();
+            list.forEach((o, i) => { const z = 10 + i * 2; if (o.front) fz.set(o.el, z); else o.el.style.zIndex = DK.pull && DK.pull.has(o.el) ? 8900 : z; });
             const keep = new Set();
-            stg.querySelectorAll('.desk-item').forEach(el => {
-                if (!dkIsBox(el)) return; const d = dkDef(el), u = el.dataset.u, on = inside.has(el); keep.add(u);
+            items.forEach(el => {
+                if (!dkIsBox(el)) return; const d = dkDef(el), u = el.dataset.u, on = fz.has(el); keep.add(u);
                 let f = [...stg.querySelectorAll('.dk-front')].find(x => x.dataset.fu === u);
                 if (!f) { f = document.createElement('div'); f.className = 'dk-front'; f.dataset.fu = u; f.innerHTML = `<i class="dk-fm"><img data-art-u="${u}" alt="" draggable="false"></i>`; f.style.setProperty('--fm', `url("${new URL(d.front, location.href).href}")`); el.after(f); }   // 마스크 주소는 css 파일 기준이 아니라 이 페이지 기준으로
                 const im = f.querySelector('img'), src = el.querySelector(':scope > img').src; if (im.src !== src) im.src = src;
-                Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: (+el.style.zIndex || 0) + DK_ZS - 1, display: on ? '' : 'none' });
+                Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: on ? fz.get(el) : 0, display: on ? '' : 'none' });
                 f.querySelectorAll('.dk-fn-tag').forEach(x => x.remove()); const tg = el.querySelector('.dk-fn-tag'); if (tg && on) f.appendChild(tg.cloneNode(true));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
             });
             stg.querySelectorAll('.dk-front').forEach(f => { if (!keep.has(f.dataset.fu)) f.remove(); });
-            if (dy) { const inb = [...inside.values()].some(L => L.some(o => o.el === dy)); if (!inb) dy.style.zIndex = 9000; dy.classList.toggle('in-box', inb); }   // 밖이면 늘 맨 앞
+            if (dy) dy.classList.toggle('in-box', !!(par.get(dy) && par.get(dy).k === 'in'));
         }
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
@@ -914,9 +927,8 @@
                 }
                 el.style.left = x + 'px'; el.style.top = y + 'px';
             });
+            DK.pull = new Set(moved);                                            // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게 · dkLayers)
             deskZAll();
-            moved.forEach(el => { el.style.zIndex = 8900; });                    // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게)
-            dkLayers();
         }
         function deskWire(el) {
             let p = null;
