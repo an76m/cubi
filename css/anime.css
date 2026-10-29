@@ -438,7 +438,9 @@ html .sh-take.got, html.an .sh-take.got, html.an .sh-take.got:not(.sh-zoombtn) {
 .dk-diary.p-front .dk-edge, .dk-diary.p-side .dk-edge, .dk-diary.p-side .dk-top { display: none; }
 .dk-spine { display: none; }
 .dk-diary.p-side .dk-spine { display: block; position: absolute; left: calc(50% - 12px); top: calc(var(--dkh, 383px) * (1 - var(--dks, .4))); width: 24px; height: calc(var(--dkh, 383px) * var(--dks, .4));
-    box-sizing: border-box; pointer-events: auto; border: 1.5px solid #ffb6c1; border-radius: 7px; background-color: #fff5f7; }   /* 겉표지와 같은 깅엄 (js dkySpinePaint) */
+    box-sizing: border-box; pointer-events: auto; border: 1.5px solid #ffb6c1; border-radius: 7px; background-color: #fff5f7; overflow: hidden; }   /* 겉표지 그대로 (js dkySpinePaint · .dk-sp-art) */
+.dk-sp-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.dk-sp-art .cover-page > * { display: none !important; }
 .dk-spine::before { content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px; width: 1.5px; border-radius: 1px; background: rgba(255, 255, 255, .7); }   /* 둥근 책등 빛 한 줄 */
 .dk-spine b { display: none; }
 .dk-diary.dk-fly .dk-spine { visibility: hidden; }
@@ -449,3 +451,25 @@ html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-
 html.desk-edit .dk-diary.pose-on .dk-pose { display: flex; }
 .dk-pose button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
 .dk-pose button.on { background: #ffd3e2; }
+
+/* 🏷️ 다이어리 라벨 (도련 10-29 · js/desk.js dkyLabelPaint) : 사용자가 붙이고 꾸며요 · 📚 책등 / 📔 앞면 자리 따로 */
+.dky-lb { position: absolute; z-index: 3; translate: -50% -50%; scale: var(--ls, 1); padding: .25em .45em; border: 1px solid #a080a5; border-radius: .35em; line-height: 1.15; white-space: nowrap; pointer-events: none; font-weight: 700; }
+.dky-lb.side { font-size: 8px; } .dky-lb.front { font-size: 22px; }
+.dky-lb.v { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: -.05em; padding: .45em .2em; }
+.dky-lb.clear { border-color: transparent; }
+.dky-lb.ph { opacity: .55; font-style: italic; }
+html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dashed #ff6b88; outline-offset: 2px; }
+.dk-pose .dky-lbb { background: #fff1c4; }
+.dky-lbp { position: fixed; left: 50%; bottom: 74px; translate: -50% 0; z-index: 2147482500; width: min(94vw, 460px); box-sizing: border-box; padding: 10px 12px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #6a4f5a; }
+.dky-lbp[hidden] { display: none; }
+.dky-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dky-row > b { color: #c8457a; font-size: 15px; } .dky-row > small { color: #9a7d8a; flex: 1; }
+.dky-row > span { width: 34px; flex: none; font-weight: 700; }
+.dky-x { margin-left: auto; border: 0; background: none; color: #e07ba0; font-size: 20px; cursor: pointer; }
+.dky-t { flex: 1; min-width: 140px; padding: 6px 10px; border: 1.5px solid #e8b9c6; border-radius: 10px; font: inherit; font-size: 14px; }
+.dky-row select { padding: 5px; border: 1.5px solid #e8b9c6; border-radius: 10px; font: inherit; max-width: 150px; }
+.dky-row input[type=range] { flex: 1; }
+.dky-tg { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; cursor: pointer; }
+.dky-sw { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #a080a5; background: var(--c); cursor: pointer; padding: 0; }
+.dky-sw.on { box-shadow: 0 0 0 2.5px #fffaf2, 0 0 0 4.5px #ff6b88; }
+.dky-sw.none { background: repeating-linear-gradient(45deg, #fff 0 4px, #f3d6df 4px 8px); }

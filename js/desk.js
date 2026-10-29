@@ -337,11 +337,11 @@
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp?v=20261009-831" alt="" draggable="false">
-                <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="dk-top"><div class="diary-book dk-mini"></div></div><i class="dk-edge"></i><i class="dk-spine"><b></b></i><div class="dk-pose" id="dkPose"><button type="button" data-p="side" onclick="dkyPose(\'side\')">📚 꽂기</button><button type="button" data-p="front" onclick="dkyPose(\'front\')">📔 세우기</button><button type="button" data-p="lay" onclick="dkyPose(\'lay\')">🛏 눕히기</button></div></div>
+                <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="dk-top"><div class="diary-book dk-mini"></div></div><i class="dk-edge"></i><i class="dk-spine"><b></b></i><div class="dk-pose" id="dkPose"><button type="button" data-p="side" onclick="dkyPose(\'side\')">📚 꽂기</button><button type="button" data-p="front" onclick="dkyPose(\'front\')">📔 세우기</button><button type="button" data-p="lay" onclick="dkyPose(\'lay\')">🛏 눕히기</button><button type="button" class="dky-lbb" onclick="dkyLbPanel(true)">🏷️ 라벨</button></div></div>
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>`;
             const dd = document.getElementById('deskDiary'); let dn = null;
-            dd.addEventListener('pointerdown', ev => { if (ev.target.closest('.dk-pose')) { ev.stopPropagation(); return; } if (DK.edit) { dkyGrab(ev); return; } dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
+            dd.addEventListener('pointerdown', ev => { if (ev.target.closest('.dk-pose')) { ev.stopPropagation(); return; } if (DK.edit) { const lb = ev.target.closest('.dky-lb'); if (lb) dkyLbGrab(ev, lb); else dkyGrab(ev); return; } dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
             dd.addEventListener('pointerup', ev => { if (dn && !DK.edit && Math.hypot(ev.clientX - dn[0], ev.clientY - dn[1]) < 8) deskOpenDiary(); dn = null; });
             dd.addEventListener('keydown', ev => { if (!DK.edit && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); deskOpenDiary(); } });
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
@@ -505,7 +505,7 @@
             DK.back = { items: JSON.stringify(DK.items), fn: JSON.stringify(deskFnMap()) };   // 취소하면 이대로
             DK.editFn = JSON.parse(DK.back.fn); DK.edit = true;
             if (window.dsEditStart) dsEditStart();                                // 🧱 🪵 벽지 · 책상도 완료 때 저장 (js/deskskin.js)
-            DK.dyEdit = Object.assign({}, dkyGet()); dkyApply();                // 📔 다이어리 자리 · 모습
+            DK.dyEdit = JSON.parse(JSON.stringify(dkyGet())); dkyApply();                // 📔 다이어리 자리 · 모습
             H.classList.add('desk-edit'); H.classList.remove('desk-lack');
             deskSelect(null); deskFnPaint(); deskEditPaint();
             dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
@@ -534,7 +534,7 @@
             }
             DK.editFn = null; DK.back = null;
             if (window.dsEditEnd) dsEditEnd(!!ok);                                // 🧱 🪵 완료 = 저장 · 취소 = 처음대로
-            { const v = DK.dyEdit; DK.dyEdit = null; if (ok && v && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, { x: v.x, y: v.y, p: v.p }); const m = document.getElementById('deskDiary'); if (m) m.classList.remove('pose-on'); dkyApply(); }
+            { const v = DK.dyEdit; DK.dyEdit = null; if (ok && v && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, { x: v.x, y: v.y, p: v.p, lb: dkyLb(v) }); dkyLbPanel(false); const m = document.getElementById('deskDiary'); if (m) m.classList.remove('pose-on'); dkyLbPanel(false); dkyApply(); }
             document.documentElement.classList.remove('desk-edit');
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
         }
@@ -668,13 +668,64 @@
             box.replaceChildren(wrap);
             dkySpinePaint(k);
         }
-        /* 📚 책등 = 지금 다이어리 겉표지와 같은 무늬 · 색 · 테두리 (세운 크기만큼 줄여서 · 도련 10-29 : 다른 다이어리처럼 보이지 않게) */
+        /* 📚 책등 = 지금 다이어리 겉표지 그대로 (도련 10-29 : 앞모습과 같은 무늬 간격) : 겉표지를 속은 빼고(바탕만) 복사해 세운 크기로 줄여 가운데 한 줄만 보여요 */
+        let DK_CVZ = null;                                                        // 접혀 있을 때 잰 겉표지 자리 { vx, vy, vw }
         function dkySpinePaint(k) {
-            const sp = document.querySelector('#deskDiary .dk-spine'), cv = document.getElementById('coverPage'); if (!sp || !cv) return;
-            const c = getComputedStyle(cv), f = k * DKY_S, sc = v => v.replace(/([\d.]+)px/g, (m, n) => (+n * f).toFixed(2) + 'px');
-            sp.style.backgroundColor = c.backgroundColor; sp.style.backgroundImage = c.backgroundImage; sp.style.backgroundSize = sc(c.backgroundSize); sp.style.backgroundPosition = 'center top';
-            sp.style.borderColor = c.borderTopColor;
+            const sp = document.querySelector('#deskDiary .dk-spine'), cv = document.getElementById('coverPage'), Z = DK_SZ; if (!sp || !cv || !Z) return;
+            if (!dkOpenNow()) DK_CVZ = { vx: Z.vx, vy: Z.vy, vw: Z.vw };
+            const C = DK_CVZ || { vx: 0, vy: -48, vw: Z.bw }, f = k * DKY_S, sw = 24;
+            const book = document.createElement('div'); book.className = 'diary-book dk-sp-book';
+            book.style.cssText = `position:absolute;left:${C.vx * f - C.vw / 2 * f + sw / 2}px;top:${C.vy * f}px;width:${Z.bw}px;height:${Z.bh}px;margin:0;transform:scale(${f});transform-origin:0 0;pointer-events:none;`;
+            const c = cv.cloneNode(false); c.removeAttribute('id'); c.style.display = ''; c.classList.remove('cv-plain'); book.appendChild(c);
+            let art = sp.querySelector('.dk-sp-art'); if (!art) { art = document.createElement('i'); art.className = 'dk-sp-art'; sp.prepend(art); }
+            art.replaceChildren(book);
+            sp.style.borderColor = getComputedStyle(cv).borderTopColor;
         }
+        /* 🏷️ 라벨 (도련 10-29) : 사용자가 알아서 붙여요 · 켜기/끄기 · 글 · 글꼴 · 글 색 · 라벨 색 · 크기 · 세로쓰기 · 자리 (모습마다 따로 : 📚 책등 / 📔 앞면) · 🛠 꾸미기에서만 */
+        const DKY_LB0 = { on: false, t: '', f: 'sys', c: '#8a2f58', bg: '#fffaf3', side: { x: .5, y: .3, s: 1, v: 1 }, front: { x: .5, y: .78, s: 1, v: 0 } };
+        const dkyLb = st => { const L = Object.assign({}, DKY_LB0, (st && st.lb) || {}); L.side = Object.assign({}, DKY_LB0.side, L.side || {}); L.front = Object.assign({}, DKY_LB0.front, L.front || {}); return L; };
+        const dkyFace = p => p === 'side' ? 'side' : 'front';
+        function dkyLabelPaint() {
+            const el = document.getElementById('deskDiary'); if (!el) return;
+            const st = dkyGet(), L = dkyLb(st), fc = dkyFace(st.p), g = L[fc];
+            el.querySelectorAll('.dky-lb').forEach(x => x.remove());
+            if (!L.on || (!L.t && !DK.dyEdit)) return;
+            const host = el.querySelector(fc === 'side' ? '.dk-spine' : '.dk-top'); if (!host) return;
+            const b = document.createElement('span'); b.className = 'dky-lb ' + fc + (g.v ? ' v' : '') + (L.bg === 'none' ? ' clear' : '');
+            const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === L.f);
+            Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: L.c, background: L.bg === 'none' ? 'transparent' : L.bg, fontFamily: fo ? fo.css : '', '--ls': g.s });
+            b.textContent = L.t || '라벨'; if (!L.t) b.classList.add('ph');
+            host.appendChild(b);
+        }
+        function dkyLbGrab(ev, b) {                                               // 🛠 라벨 끌어 옮기기 (그 면 안에서)
+            ev.preventDefault(); ev.stopPropagation();
+            const st = DK.dyEdit, L = st.lb = dkyLb(st), g = L[dkyFace(st.p)], host = b.parentElement, R = host.getBoundingClientRect(), gx = g.x, gy = g.y, x0 = ev.clientX, y0 = ev.clientY;
+            const vert = st.p === 'lay';                                          // 눕힌 면은 위아래가 납작해 보여요 (대충 맞춰요)
+            const mv = e => { if (e.pointerId !== ev.pointerId) return; g.x = Math.max(0, Math.min(1, gx + (e.clientX - x0) / R.width)); g.y = Math.max(0, Math.min(1, gy + (e.clientY - y0) / R.height)); dkyLabelPaint(); };
+            const up = e => { if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); dkyLbPanel(true); };
+            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+        }
+        const DKY_TC = ['#8a2f58', '#5b3f4a', '#c8457a', '#7a5bb8', '#3d7fc4', '#2f8a5a', '#d08a2a', '#ffffff'];
+        const DKY_BC = ['#fffaf3', '#ffd3e2', '#e6dcf8', '#d6ecfb', '#dff4e7', '#fff1c4', '#5b3f4a', 'none'];
+        function dkyLbPanel(show) {                                               // 🏷️ 라벨 꾸미기 창 (꾸미기 동안 화면 아래)
+            let pn = document.getElementById('dkyLbPanel');
+            if (!show || !DK.dyEdit) { if (pn) pn.hidden = true; return; }
+            if (!pn) { pn = document.createElement('div'); pn.id = 'dkyLbPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
+            const st = DK.dyEdit, L = st.lb = dkyLb(st), fc = dkyFace(st.p), g = L[fc], fl = typeof fontList !== 'undefined' ? fontList : [];
+            const sw = (arr, cur, k) => arr.map(c => `<button type="button" class="dky-sw${c === cur ? ' on' : ''}${c === 'none' ? ' none' : ''}" style="--c:${c === 'none' ? '#fff' : c}" onclick="dkyLbSet('${k}','${c}')" aria-label="${c}"></button>`).join('');
+            pn.innerHTML = `<div class="dky-row"><b>🏷️ 라벨</b><label class="dky-tg"><input type="checkbox" ${L.on ? 'checked' : ''} onchange="dkyLbSet('on', this.checked)"> 붙이기</label><small>${fc === 'side' ? '📚 책등' : '📔 앞면'} · 라벨을 끌어 옮겨요</small><button type="button" class="dky-x" onclick="dkyLbPanel(false)" aria-label="닫기">✕</button></div>`
+                + (L.on ? `<div class="dky-row"><input class="dky-t" maxlength="20" placeholder="라벨 글 (예 : 2026 · 일기)" value="${String(L.t).replace(/"/g, '&quot;')}" oninput="dkyLbSet('t', this.value, 1)">`
+                + `<select onchange="dkyLbSet('f', this.value)">${fl.map(o => `<option value="${o.id}"${o.id === L.f ? ' selected' : ''}>${o.name.replace(/ \(Local\)$/, '')}</option>`).join('')}</select></div>`
+                + `<div class="dky-row"><span>글 색</span>${sw(DKY_TC, L.c, 'c')}</div><div class="dky-row"><span>라벨</span>${sw(DKY_BC, L.bg, 'bg')}</div>`
+                + `<div class="dky-row"><span>크기</span><input type="range" min="0.4" max="3" step="0.05" value="${g.s}" oninput="dkyLbSet('s', this.value, 1)"><label class="dky-tg"><input type="checkbox" ${g.v ? 'checked' : ''} onchange="dkyLbSet('v', this.checked)"> 세로쓰기</label></div>` : '');
+            pn.hidden = false;
+        }
+        function dkyLbSet(k, v, live) {
+            const st = DK.dyEdit; if (!st) return; const L = st.lb = dkyLb(st), g = L[dkyFace(st.p)];
+            if (k === 's') g.s = +v; else if (k === 'v') g.v = v ? 1 : 0; else if (k === 'on') L.on = !!v; else if (k === 't') L.t = String(v).slice(0, 20); else L[k] = v;
+            dkyLabelPaint(); if (!live) dkyLbPanel(true);
+        }
+        window.dkyLbPanel = dkyLbPanel; window.dkyLbSet = dkyLbSet;
         const dkMiniKey = Z => [Math.round(Z.vw * DK_MW / Z.bw), Math.round(Z.vh * DK_MW / Z.bw), dkOpenNow() ? 1 : 0].join('x');
         /* 다이어리 크기가 정해진 뒤(로그인 · 화면 크기 바뀜) 책상 위 다이어리 크기가 다르면 다시 그려요 (처음 켤 때는 다이어리 크기가 정해지기 전이라 · 도련 10-28) */
         function deskMiniSync() {
@@ -704,6 +755,7 @@
             ['side', 'front', 'lay'].forEach(p => el.classList.toggle('p-' + p, st.p === p));
             el.style.setProperty('--ax', st.x + 'px'); el.style.setProperty('--ay', st.y + 'px'); el.style.setProperty('--dks', DKY_S);
             el.querySelectorAll('.dk-pose button').forEach(b => b.classList.toggle('on', b.dataset.p === st.p));
+            dkyLabelPaint(); if (DK.dyEdit) { const pn = document.getElementById('dkyLbPanel'); if (pn && !pn.hidden) dkyLbPanel(true); }
         }
         function dkyPose(p) { if (!DK.dyEdit) return; DK.dyEdit.p = p; dkyApply(); }
         function dkyGrab(ev) {                                                    // 🛠 끌어 옮기기 · 톡 = 모습 고르기
