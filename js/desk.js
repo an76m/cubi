@@ -694,7 +694,23 @@
             wrap.appendChild(bk);
             mini.classList.toggle('open', open); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px'); mini.dataset.sz = dkMiniKey(Z);
             box.replaceChildren(wrap);
-            dkySpinePaint(k);
+            dkySpinePaint(k); dkyThickPaint(W, H);
+        }
+        /* 📚 📔 세운 다이어리 두께 (도련 10-29 : 일러스트 책처럼 두께가 보여야 예뻐요) : 위로 = 표지 테두리 안에 종이 단면 (평면 색 + 선) · 📔 앞모습 · 📚 책등 모두 */
+        const DKY_TH = { dy: 10 };                                                // 두께 = 위로 (일러스트 책처럼 살짝 위에서 본 모습 · 도련 10-29)
+        function dkyThickPaint(W, H) {
+            const el = document.getElementById('deskDiary'), cv = document.getElementById('coverPage'); if (!el || !W || !H) return;
+            el.querySelectorAll('.dk-th').forEach(x => x.remove());
+            const fh = H * DKY_S, fw = W * DKY_S, { dy } = DKY_TH, c = cv ? getComputedStyle(cv).borderTopColor : '#ffb6c1';
+            el.style.setProperty('--dk-cv', c);
+            const ln = (x0, y0, x1, y1) => `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}"/>`;
+            const svg = (cls, l, w, inner) => `<svg class="dk-th ${cls}" aria-hidden="true" style="left:${l}px;top:${H - fh - dy}px;width:${w}px;height:${fh + dy}px" viewBox="0 0 ${w} ${fh + dy}">${inner}</svg>`;
+            // 위 면 : 뒤표지(위로 올라온 판) 안에 종이 단면 (크림 + 줄) → 그 앞에 📔 앞표지(.dk-top) · 📚 책등(.dk-spine)
+            const top = w => `<rect class="bk" x=".7" y=".7" width="${w - 1.4}" height="${dy + 8}" rx="3.5"/>`
+                + `<rect class="pp" x="2.6" y="2.6" width="${w - 5.2}" height="${dy + 4}" rx="1.5"/>`
+                + `<g class="ln">${ln(5, 5.2, w - 5, 5.2)}${ln(5, 7.8, w - 5, 7.8)}${ln(5, 10.4, w - 5, 10.4)}</g>`;
+            const sw = 24, F = top(fw), S = top(sw);
+            el.insertAdjacentHTML('afterbegin', svg('front', (W - fw) / 2, fw, F) + svg('side', W / 2 - sw / 2, sw, S));
         }
         /* 📚 책등 = 지금 다이어리 겉표지 그대로 (도련 10-29 : 앞모습과 같은 무늬 간격) : 겉표지를 속은 빼고(바탕만) 복사해 세운 크기로 줄여 가운데 한 줄만 보여요 */
         let DK_CVZ = null;                                                        // 접혀 있을 때 잰 겉표지 자리 { vx, vy, vw }
