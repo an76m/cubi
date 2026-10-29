@@ -627,8 +627,8 @@ html.desk-show .dk-bag { visibility: hidden; }
 #dkPose.on { border-radius: 18px; border-width: 2px; padding: 8px 10px; box-shadow: 3px 3px 0 #e6dcf8; }
 
 /* ═══ 📔 파스텔 바인더 = 도련 시안4 그대로 (10-30 · /home 시안 : 다이어리_시안4.png) ═══
-   표지 = 다이어리 색 단색 + 작은 땡땡이 · 진하고 굵은 선(--dyv-ol · 시안 그대로 · 이 다이어리만 애니 연한 선 규칙의 예외) · 딱 떨어지는 그늘
-   가운데 책등 = 한 톤 진한 단색 · 링 6개 = 굵은 파스텔 핑크 + 진한 선 + 그늘 한 톤 · 종이 = 둥근 모서리 + 진한 선 + 뒤로 두 장 · 속지 = --page-bg (아주 연한 다이어리 색) · 줄 없음
+   표지 = 다이어리 색 단색 + 작은 땡땡이 · 선은 모두 같은 한 줄 2px(--dyv-ol · 이 다이어리만 애니 연한 선 규칙의 예외 · 여러 겹 선 없음) · 딱 떨어지는 그늘(선 없이)
+   가운데 책등 = 한 톤 진한 단색 · 링 6개 = 굵은 파스텔 핑크 + 진한 선 + 그늘 한 톤 · 종이 = 둥근 모서리 + 선 한 줄 · 속지 = --page-bg (아주 연한 다이어리 색) · 줄 없음
    닫은 겉표지 = 같은 표지 + 책등 + 해 이름판(.cv-year · js/dyyear.js dyyPaint) · 흰 박음질 · 탭 · 고무줄 · 리본 · 참 · 레이스 · 깅엄 없음 */
 html.an .inner-page, html.an .cover-page, html.an .dk-fold-f {
   --dyv: color-mix(in srgb, var(--dy-c, var(--border-color)), var(--primary-accent) 12%);
@@ -639,14 +639,14 @@ html.an .inner-page, html.an .cover-page, html.an .dk-fold-f {
   --dyv-dots: radial-gradient(circle, var(--dyv-dot) 1.05cqw, transparent 1.12cqw) 3cqw 3cqw / 12.5cqw 12.5cqw, radial-gradient(circle, var(--dyv-dot) 1.05cqw, transparent 1.12cqw) 9.25cqw 9.25cqw / 12.5cqw 12.5cqw;
 }
 /* 표지 (펼친 모습 둘레) */
-html.an .inner-page .dy-cov { inset: -8cqw -8.2cqw -8.6cqw -8.2cqw !important; border-radius: 7.5cqw !important; background: var(--dyv-dots), var(--dyv) !important; box-shadow: 0 0 0 3px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh), 8px 9px 0 3px var(--dyv-ol) !important; }
-/* 종이 = 둥근 모서리 + 진한 선 + 뒤로 두 장 (양옆 · 아래) · 속지 무늬를 고르지 않았으면 줄 없는 빈 종이 */
+html.an .inner-page .dy-cov { inset: -8cqw -8.2cqw -8.6cqw -8.2cqw !important; border-radius: 7.5cqw !important; background: var(--dyv-dots), var(--dyv) !important; box-shadow: 0 0 0 2px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh) !important; }
+/* 종이 = 둥근 모서리 + 선 한 줄 (양옆 · 아래) · 속지 무늬를 고르지 않았으면 줄 없는 빈 종이 */
 html.an .inner-page .canvas-area { --pg2: color-mix(in srgb, var(--page-bg), var(--dyv) 26%); --pg3: color-mix(in srgb, var(--page-bg), var(--dyv) 44%);
   border-radius: 4cqw !important;
-  box-shadow: 0 0 0 3px var(--dyv-ol), 0 4px 0 6px var(--pg2), 0 4px 0 8.5px var(--dyv-ol), 0 8px 0 12px var(--pg3), 0 8px 0 14.5px var(--dyv-ol) !important; }
+  box-shadow: 0 0 0 2px var(--dyv-ol) !important; }   /* 선 한 줄 (겹친 종이 선 없음 · 도련 10-30) */
 html.an .inner-page .canvas-area:not([class*="lf-"]) { background: var(--page-bg) !important; }
 /* 가운데 책등 */
-html.an .dy-gap { top: -1.2cqw !important; bottom: -1.2cqw !important; width: 17cqw !important; margin-left: -8.5cqw !important; background: var(--dyv-sp) !important; box-shadow: inset 3px 0 0 var(--dyv-ol), inset -3px 0 0 var(--dyv-ol) !important; }
+html.an .dy-gap { top: -1.2cqw !important; bottom: -1.2cqw !important; width: 17cqw !important; margin-left: -8.5cqw !important; background: var(--dyv-sp) !important; box-shadow: inset 2px 0 0 var(--dyv-ol), inset -2px 0 0 var(--dyv-ol) !important; }
 html.an .inner-page.dy-bo .dy-gap { width: .35cqw !important; margin-left: -.175cqw !important; }
 html.an .dy-gap::before { background: transparent !important; box-shadow: none !important; }
 /* 링 6개 (선 · 핑크 · 그늘 세 겹 = 같은 모양 마스크 · 선 색은 다이어리를 따라가요) */
@@ -656,10 +656,10 @@ html.an .dy-rings i::before { background: #ffb7cf; -webkit-mask: url("data:image
 html.an .dy-rings i::after { background: #f58fb3; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cpath d='M45 27 C63 11 137 11 155 27' fill='none' stroke='%23000' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cpath d='M45 27 C63 11 137 11 155 27' fill='none' stroke='%23000' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
 /* 닫은 겉표지 (책상 위 다이어리도) */
 html.an .cover-page, html.an .cover-page.cv-book { background: var(--dyv-dots), var(--dyv) !important; border: 0 !important; border-radius: 3cqw 6.5cqw 6.5cqw 3cqw !important; }
-html.an #diaryBook .cover-page { box-shadow: 0 0 0 3px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh), 8px 9px 0 3px var(--dyv-ol) !important; }
-html.an .cover-page::before { width: 10cqw !important; border-radius: 3cqw 0 0 3cqw; background: var(--dyv-sh) !important; box-shadow: 3px 0 0 var(--dyv-ol); }
+html.an #diaryBook .cover-page { box-shadow: 0 0 0 2px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh) !important; }
+html.an .cover-page::before { width: 10cqw !important; border-radius: 3cqw 0 0 3cqw; background: var(--dyv-sh) !important; box-shadow: 2px 0 0 var(--dyv-ol); }
 html.an .cover-page .cv-lace, html.an .cover-page .cover-title, html.an .cover-page .cover-subtitle, html.an .cover-page .cv-berry { display: none !important; }
 .cv-year { display: none; }
-html.an .cover-page .cv-year:not(:empty) { display: block; position: absolute; left: 22cqw; top: 15cqw; width: 52cqw; padding: 3.2cqw 0; box-sizing: border-box; text-align: center; background: #fffdfb; border: 3px solid var(--dyv-ol); border-radius: 4cqw; color: var(--dyv-ol); font-size: 10cqw; font-weight: 900; letter-spacing: 1.2cqw; line-height: 1; z-index: 1; }
+html.an .cover-page .cv-year:not(:empty) { display: block; position: absolute; left: 22cqw; top: 15cqw; width: 52cqw; padding: 3.2cqw 0; box-sizing: border-box; text-align: center; background: #fffdfb; border: 2px solid var(--dyv-ol); border-radius: 4cqw; color: var(--dyv-ol); font-size: 10cqw; font-weight: 900; letter-spacing: 1.2cqw; line-height: 1; z-index: 1; }
 html.an .cover-page .cover-notice { margin-top: 26cqw; }
 html.an .cover-page.cv-book .cv-year { display: none !important; }   /* 📓 다른 종류 다이어리는 해 이름판 없음 */
