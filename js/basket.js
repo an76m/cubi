@@ -1109,7 +1109,7 @@
     function bagShow() {
         let el = bq('shBag');
         if (!el) { el = document.createElement('div'); el.id = 'shBag'; el.className = 'sh-bag'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.onclick = () => bagHide(); document.body.appendChild(el); }
-        el.innerHTML = BAG_SVG + '<b>상품을 담았어요</b><small>바구니로 가져갈게요</small>';
+        el.innerHTML = '<i class="sh-bag-in">' + BAG_SVG + '</i>'; el.setAttribute('aria-label', '상품을 담았어요');   // 봉투만 (도련 10-29 · 흰 창 · 글 없이)
         el.classList.remove('bye'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
         clearTimeout(BAG.t); BAG.t = setTimeout(bagHide, 2200);
     }
