@@ -550,20 +550,22 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkn-ic-b { padding: 2px 6px; font-size: 16px; } .dkn-ic-b:first-of-type { font-size: 12.5px; padding: 4px 10px; }
 .dkn-seg.on, .dkn-ic-b.on { background: #ffd3e2; border-color: #ff6b88; }
 #dknPanel .dky-row { flex-wrap: wrap; }
-#dknPanel, #dkyLbPanel { max-height: calc(100dvh - 28px); overflow-y: auto; }   /* 😀 모든 이모지를 펼쳐도 화면 안에 */
+#dknPanel, #dkyLbPanel { max-height: calc(100dvh - 28px); overflow-y: auto; }   /* 작은 화면에서도 창 안에 */
 /* 🎨 내 마음대로 색 : 준비된 색 뒤 동그라미 (안 골랐을 때 = 🎨 · 고르면 그 색) */
 .dkn-cc { position: relative; display: inline-grid; place-items: center; overflow: hidden; box-sizing: border-box; }
 .dkn-cc input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
 .dkn-cc:not(.on):not(.my)::after { content: '🎨'; font-size: 13px; line-height: 1; pointer-events: none; }
-/* 😀 모든 이모지 */
+/* 😀 모든 이모지 = 이름표 창 위에 따로 뜨는 창 (스티커 쪽 이모지 그대로 · 창 밖 누르면 닫혀요) */
 .dkn-emo-b { font-size: 12.5px; }
-.dkn-emo { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1.5px solid #e8b9c6; border-radius: 14px; background: #fff; }
+.dkn-emo-bk { position: fixed; inset: 0; z-index: 2147482600; display: grid; place-items: center; background: transparent; }
+.dkn-emo-bk[hidden] { display: none; }
+.dkn-emo-win { width: min(92vw, 420px); max-height: min(78dvh, 520px); box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; color: #6a4f5a; font-size: 13px; box-shadow: 4px 4px 0 #e6dcf8; }
 .dkn-emo-q { padding: 6px 10px; border: 1.5px solid #e8b9c6; border-radius: 10px; font: inherit; font-size: 13px; min-width: 0; }
-.dkn-emo-tabs { display: flex; gap: 2px; flex-wrap: wrap; }
-.dkn-emo-tab { border: 1.4px solid transparent; border-radius: 10px; background: none; font-size: 18px; padding: 2px 5px; cursor: pointer; line-height: 1.2; }
+.dkn-emo-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.dkn-emo-tab { border: 1.4px solid #e8b9c6; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 12px; padding: 3px 8px; cursor: pointer; }
 .dkn-emo-tab.on { background: #ffd3e2; border-color: #ff6b88; }
-.dkn-emo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); max-height: 176px; overflow-y: auto; overscroll-behavior: contain; }
-.dkn-emo-grid button { border: 1.4px solid transparent; border-radius: 9px; background: none; font-size: 22px; line-height: 1; padding: 5px 0; cursor: pointer; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+.dkn-emo-grid { flex: 1; min-height: 120px; display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); align-content: start; overflow-y: auto; overscroll-behavior: contain; border: 1.5px solid #f0d6de; border-radius: 12px; background: #fff; padding: 4px; }
+.dkn-emo-grid button { border: 1.4px solid transparent; border-radius: 9px; background: none; font-size: 24px; line-height: 1; padding: 6px 0; cursor: pointer; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
 .dkn-emo-grid button:hover { background: #fff0f5; }
 .dkn-emo-grid button.on { background: #ffd3e2; border-color: #ff6b88; }
 .dkn-emo-none { grid-column: 1 / -1; color: #9a7d8a; padding: 10px 4px; }

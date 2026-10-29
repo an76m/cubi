@@ -1006,6 +1006,11 @@
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
     const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기'], ['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
         emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
+    /* 😀 스티커 쪽 이모지 그대로 (🏪 기본상품 샵 이모지 칸과 같은 글자 · 같은 묶음) → [[묶음 이름, [글자…]], …] · 🏷 이름표 아이콘 고르기가 써요 (js/desk.js) */
+    window.shEmoCats = async () => {
+        const L = await shItems('emoji');
+        return SH_CATS.emoji.map(([c, n]) => [n, L.filter(x => x.cat === c).flatMap(x => x.chars)]).filter(x => x[1].length);
+    };
     const shCatOf = (k, x) => k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
