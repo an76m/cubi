@@ -696,21 +696,34 @@
             box.replaceChildren(wrap);
             dkySpinePaint(k); dkyThickPaint(W, H);
         }
-        /* 📚 📔 세운 다이어리 두께 (도련 10-29 : 일러스트 책처럼 두께가 보여야 예뻐요) : 위로 = 표지 테두리 안에 종이 단면 (평면 색 + 선) · 📔 앞모습 · 📚 책등 모두 */
-        const DKY_TH = { dy: 10 };                                                // 두께 = 위로 (일러스트 책처럼 살짝 위에서 본 모습 · 도련 10-29)
+        /* 📚 📔 세운 다이어리 두께 (도련 10-29 : 일러스트 책처럼 · 도련 포토샵 시안) : 표지가 그대로 위로 이어지고(무늬 · 선 그대로) 그 안에 종이 단면
+           📔 앞모습 = 겉표지 윗부분을 위로 한 번 더(.dk-thf) + 종이(왼 · 위 · 아래 테 · 오른쪽 = 책장이라 열림)
+           📚 책등 = 책등을 위로 늘이고(css --dkth) 그 윗부분 안에 종이(양옆 테 · 위 = 책장이라 열림) */
+        const DKY_TH = { dy: 15 };
         function dkyThickPaint(W, H) {
             const el = document.getElementById('deskDiary'), cv = document.getElementById('coverPage'); if (!el || !W || !H) return;
-            el.querySelectorAll('.dk-th').forEach(x => x.remove());
-            const fh = H * DKY_S, fw = W * DKY_S, { dy } = DKY_TH, c = cv ? getComputedStyle(cv).borderTopColor : '#ffb6c1';
-            el.style.setProperty('--dk-cv', c);
+            el.querySelectorAll('.dk-th, .dk-thf').forEach(x => x.remove());
+            const fh = H * DKY_S, fw = W * DKY_S, { dy } = DKY_TH, cc = cv ? getComputedStyle(cv).borderTopColor : '#ffb6c1';
+            el.style.setProperty('--dk-cv', cc); el.style.setProperty('--dkth', dy + 'px');
             const ln = (x0, y0, x1, y1) => `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}"/>`;
-            const svg = (cls, l, w, inner) => `<svg class="dk-th ${cls}" aria-hidden="true" style="left:${l}px;top:${H - fh - dy}px;width:${w}px;height:${fh + dy}px" viewBox="0 0 ${w} ${fh + dy}">${inner}</svg>`;
-            // 위 면 : 뒤표지(위로 올라온 판) 안에 종이 단면 (크림 + 줄) → 그 앞에 📔 앞표지(.dk-top) · 📚 책등(.dk-spine)
-            const top = w => `<rect class="bk" x=".7" y=".7" width="${w - 1.4}" height="${dy + 8}" rx="3.5"/>`
-                + `<rect class="pp" x="2.6" y="2.6" width="${w - 5.2}" height="${dy + 4}" rx="1.5"/>`
-                + `<g class="ln">${ln(5, 5.2, w - 5, 5.2)}${ln(5, 7.8, w - 5, 7.8)}${ln(5, 10.4, w - 5, 10.4)}</g>`;
-            const sw = 24, F = top(fw), S = top(sw);
-            el.insertAdjacentHTML('afterbegin', svg('front', (W - fw) / 2, fw, F) + svg('side', W / 2 - sw / 2, sw, S));
+            const svg = (cls, l, w, h, inner) => `<svg class="dk-th ${cls}" aria-hidden="true" style="left:${l}px;top:${H - fh - dy}px;width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}">${inner}</svg>`;
+            const o = .8, c = 3.4;                                                 // o = 선 반 · c = 표지 테 두께
+            // 📔 겉표지 윗부분 복사 (무늬 그대로 위로 이어져요)
+            const top = el.querySelector('.dk-top'), wf = document.createElement('div'); wf.className = 'dk-thf';
+            wf.style.cssText = `left:${(W - fw) / 2}px;top:${H - fh - dy}px;width:${fw}px;height:${dy + 2}px`;
+            if (top) { const t = top.cloneNode(true); t.classList.add('dk-top-cl'); t.querySelectorAll('.dky-lb').forEach(x => x.remove()); t.style.left = -(W - fw) / 2 + 'px'; t.style.top = -(H - fh) + 'px'; wf.appendChild(t); }
+            const y0 = o + c, y1 = dy - 2, x0 = o + c;
+            const F = `<polygon class="pp" points="${x0 + 1},${y1} ${x0 + 2.2},${y0} ${fw - 1.6},${y0} ${fw - 1.6},${y1}"/>`
+                + `<g class="ln">${[.3, .55, .8].map(t => ln(x0 + 4, y0 + (y1 - y0) * t, fw - 2.4, y0 + (y1 - y0) * t)).join('')}</g>`
+                + `<path class="ed" d="M${fw - 1.6},${y0} H${x0 + 2.2} L${x0 + 1},${y1} H${fw - 1.6}"/>`                                    // 종이 둘레 (오른쪽 = 책장 열림)
+                + `<path class="ed" d="M${o},${dy + 2} V${o + 3} Q${o},${o} ${o + 3},${o} H${fw - o - 3} Q${fw - o},${o} ${fw - o},${o + 3} V${dy + 2}"/>`;   // 바깥 선 (앞표지 선과 이어져요)
+            // 📚 책등 윗부분 안 종이
+            const sw = 24, S = `<rect class="pp" x="${c + o}" y="1.6" width="${sw - 2 * (c + o)}" height="${dy - 3.2}"/>`
+                + `<g class="ln">${[.3, .5, .7].map(t => ln(c + o + (sw - 2 * (c + o)) * t, 2.6, c + o + (sw - 2 * (c + o)) * t, dy - 2.4)).join('')}</g>`
+                + `<path class="ed" d="M${c + o},1.6 V${dy - 1.6} H${sw - c - o} V1.6"/>`;
+            el.insertAdjacentHTML('afterbegin', svg('front', (W - fw) / 2, fw, dy + 2, F));
+            el.insertBefore(wf, el.firstChild);
+            const sp = el.querySelector('.dk-spine'); if (sp) sp.insertAdjacentHTML('afterend', svg('side', W / 2 - sw / 2, sw, dy, S));
         }
         /* 📚 책등 = 지금 다이어리 겉표지 그대로 (도련 10-29 : 앞모습과 같은 무늬 간격) : 겉표지를 속은 빼고(바탕만) 복사해 세운 크기로 줄여 가운데 한 줄만 보여요 */
         let DK_CVZ = null;                                                        // 접혀 있을 때 잰 겉표지 자리 { vx, vy, vw }
