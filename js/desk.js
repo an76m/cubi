@@ -35,7 +35,7 @@
             { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-833', w: 430, h: 248, x: 160, y: 104, name: '벽 선반', wall: 1, surf: [[50, 10, 421], [211, 10, 421]] },
             { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]] },
             { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
-            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-911', mouth: [5, 95, 55] },
+            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-916', mouth: [5, 95, 54] },
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
             { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자' },
             { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51] },
@@ -676,9 +676,9 @@
         /* 📔 책상 위 다이어리 (도련 10-28) : 지금 다이어리를 통째로 복사해 같은 비율로 줄여 눕혀요 = 떠 있던 다이어리와 모양이 똑같아요
            · 접힘 = 겉표지 · 펼침 = 두 쪽 (붙인 스티커 · 글 그대로) · 놓는 순간 한 번만 복사 (놓여 있는 동안은 다시 계산하지 않아요) */
         function deskMiniPaint() {
-            const mini = document.getElementById('deskDiary'), box = mini && mini.querySelector('.dk-mini'), src = document.getElementById('diaryBook'); if (!box || !src) return;
+            const mini = document.getElementById('deskDiary'), box = mini && mini.querySelector(':scope > .dk-top > .dk-mini'), src = document.getElementById('diaryBook'); if (!box || !src) return;
             const Z = dkMeasure(); if (!Z) return;
-            const open = dkOpenNow(), k = DK_MW / Z.bw, W = Math.round(Z.vw * k), H = Math.round(Z.vh * k);
+            const open = dkOpenNow(), k = DK_MW / Z.bw; let W = Math.round(Z.vw * k), H = Math.round(Z.vh * k);
             const bk = src.cloneNode(true);
             const cs0 = src.querySelectorAll('canvas'), cs1 = bk.querySelectorAll('canvas');   // ✨ 캔버스로 그린 것(반짝이 스티커 등)은 복사로는 비어서 그림을 옮겨 그려요
             cs1.forEach((c, i) => { const o = cs0[i]; if (!o || !o.width || !o.height) return; try { c.width = o.width; c.height = o.height; c.getContext('2d').drawImage(o, 0, 0); } catch (e) {} });
@@ -692,8 +692,12 @@
             const wrap = document.createElement('div'); wrap.className = 'dk-open-wrap';
             wrap.style.cssText = `position:absolute;left:0;top:0;width:${Z.vw}px;height:${Z.vh}px;overflow:hidden;transform:scale(${k});transform-origin:0 0;`;
             wrap.appendChild(bk);
-            mini.classList.toggle('open', open); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px'); mini.dataset.sz = dkMiniKey(Z);
             box.replaceChildren(wrap);
+            if (!open) {                                                          // 📔 접힘 = 복사한 겉표지 크기 그대로 (잰 값이 다른 때 것이면 아래가 비어 잘려 보였어요 · 도련 10-29)
+                const c = wrap.querySelector('.cover-page');
+                if (c && c.offsetWidth > 50 && c.offsetHeight > 50) { bk.style.left = -c.offsetLeft + 'px'; bk.style.top = -c.offsetTop + 'px'; wrap.style.width = c.offsetWidth + 'px'; wrap.style.height = c.offsetHeight + 'px'; W = Math.round(c.offsetWidth * k); H = Math.round(c.offsetHeight * k); }
+            }
+            mini.classList.toggle('open', open); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px'); mini.dataset.sz = dkMiniKey(Z);
             dkySpinePaint(k); dkyThickPaint(W, H);
         }
         /* 📚 📔 세운 다이어리 두께 (도련 10-29 : 일러스트 책처럼 · 도련 포토샵 시안) : 표지가 그대로 위로 이어지고(무늬 · 선 그대로) 그 안에 종이 단면
@@ -709,7 +713,7 @@
             const svg = (cls, l, w, h, inner) => `<svg class="dk-th ${cls}" aria-hidden="true" style="left:${l}px;top:${H - fh - dy}px;width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}">${inner}</svg>`;
             const o = .8, c = 3.4;                                                 // o = 선 반 · c = 표지 테 두께
             // 📔 겉표지 윗부분 복사 (무늬 그대로 위로 이어져요)
-            const top = el.querySelector('.dk-top'), wf = document.createElement('div'); wf.className = 'dk-thf';
+            const top = el.querySelector(':scope > .dk-top'), wf = document.createElement('div'); wf.className = 'dk-thf';
             wf.style.cssText = `left:${(W - fw) / 2}px;top:${H - fh - dy}px;width:${fw}px;height:${dy + 2}px`;
             if (top) { const t = top.cloneNode(true); t.classList.add('dk-top-cl'); t.querySelectorAll('.dky-lb').forEach(x => x.remove()); t.style.left = -(W - fw) / 2 + 'px'; t.style.top = -(H - fh) + 'px'; wf.appendChild(t); }
             const y0 = o + c, y1 = dy - 2, x0 = o + c;
@@ -747,7 +751,7 @@
             const st = dkyGet(), L = dkyLb(st), fc = dkyFace(st.p), g = L[fc];
             el.querySelectorAll('.dky-lb').forEach(x => x.remove());
             if (!L.on || (!L.t && !DK.dyEdit)) return;
-            const host = el.querySelector(fc === 'side' ? '.dk-spine' : '.dk-top'); if (!host) return;
+            const host = el.querySelector(fc === 'side' ? ':scope > .dk-spine' : ':scope > .dk-top'); if (!host) return;
             const b = document.createElement('span'); b.className = 'dky-lb ' + fc + (g.v ? ' v' : '') + (L.bx ? '' : ' clear') + (L.ol ? ' ol' : '');
             const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === L.f);
             Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: L.c, background: L.bx ? L.bg : 'transparent', fontFamily: fo ? fo.css : '' });
@@ -836,7 +840,7 @@
             w.style.transformOrigin = `${ox}px ${oy}px`;
             const p = dkyGet().p;
             if (p !== 'lay') {                                                    // 📚 📔 세운 다이어리 : 그 자리 높이에 맞게 · 📚 꽂기는 옆으로 돌아 책등만 (rotateY)
-                const T = mini.querySelector(p === 'side' ? '.dk-spine' : '.dk-top').getBoundingClientRect(), k = T.height / rv.height;
+                const T = mini.querySelector(p === 'side' ? ':scope > .dk-spine' : ':scope > .dk-top').getBoundingClientRect(), k = T.height / rv.height;
                 return `translate(${T.left + T.width / 2 - rw.left - ox}px, ${T.bottom - rw.top - oy}px) scale(${k})` + (p === 'side' ? ' perspective(1400px) rotateY(-84deg)' : '');
             }
             const R = mini.getBoundingClientRect(), s = DK.s || 1, mh = parseFloat(mini.style.getPropertyValue('--dkh')) || 0;
