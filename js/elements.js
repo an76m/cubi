@@ -202,7 +202,7 @@
         const EL_LOCK_MS = 24 * 3600 * 1000;
         const elLocked = el => !!el && !!el.dataset && Date.now() - (+el.dataset.lt || 0) > EL_LOCK_MS;
         const elTouch = el => { if (el && el.dataset) el.dataset.lt = Date.now(); };
-        function elLockSay(x, y) { if (window.twzSay) twzSay(x, y, '🔒 꾹 붙어 있어요 · 손댄 지 24시간이 지나 고정됐어요', 2200); else showMsg('🔒 꾹 붙어 있어요<br><small>손댄 지 24시간이 지나 고정됐어요 · 덧붙이기만 돼요</small>'); }
+        function elLockSay(x, y) { if (window.twzSay) twzSay(x, y, '하루가 지나 고정됐어요', 2000); else showMsg('하루가 지나 고정됐어요'); }   // 도련 10-29 : 짧게
         window.elLocked = elLocked; window.elLockSay = elLockSay; window.elTouch = elTouch;
         document.addEventListener('input', e => { const b = e.target && e.target.closest && e.target.closest('#canvasArea > .element-box'); if (b && !elLocked(b)) elTouch(b); }, true);   // ✏️ 글을 고치면 다시 24시간
         document.addEventListener('focusin', e => {                           // 🔒 열어 둔 사이에 24시간이 지난 글
