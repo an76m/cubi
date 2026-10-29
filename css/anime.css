@@ -448,7 +448,7 @@ html.desk-edit .dk-diary { opacity: 1 !important; cursor: grab; }
 html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-edit .dk-diary .dk-edge { outline: 2px dashed #ff8fb4; outline-offset: 3px; }
 .dk-diary.lift { cursor: grabbing; }
 .dk-pose { display: none; position: absolute; left: 50%; top: calc(var(--dkh, 383px) + 26px); translate: -50% 0; gap: 6px; padding: 6px; border: 1.6px solid #8d6f7f; border-radius: 999px; background: #fffaf2; pointer-events: auto; white-space: nowrap; z-index: 2; }
-html.desk-edit .dk-diary.pose-on .dk-pose { display: flex; }
+#dkPose.on { display: flex; position: fixed; z-index: 9700; translate: -50% 0; }   /* 화면 맨 위 한 겹 (js dkyMenu) */
 .dk-pose button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
 .dk-pose button.on { background: #ffd3e2; }
 
@@ -481,7 +481,7 @@ html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dash
 .dk-fm { position: absolute; inset: 0; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
 .dk-fm > img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
 .dk-front .dk-fn-tag { top: auto; bottom: 0; translate: -50% 55%; transform-origin: 50% 50%; }
-html.desk-edit .dk-diary.pose-on { z-index: 9600 !important; }
+
 .desk-guide { z-index: 9790; } .desk-tip { z-index: 9800; }   /* 소품 z 가 넓어져서 (바닥 × 8) 그보다 위 */   /* 🛠 모습 고르는 동안은 맨 앞 · 끄는 동안은 입구에 닿자마자 쏙 (도련 10-29) */
 
 /* 📚 📔 세운 다이어리 두께 (도련 10-29 · js/desk.js dkyThickPaint · 도련 포토샵 시안) : 표지가 위로 이어지고 그 안에 종이 단면 */
