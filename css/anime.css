@@ -202,9 +202,9 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .dcs-area { position: relative; margin: 6px auto; touch-action: none; user-select: none; }
 .dcs-area > img { width: 100%; height: 100%; display: block; pointer-events: none; }
 .dcs-area .dcs-fn { position: absolute; inset: 0; background: rgba(143, 123, 214, .16); border-radius: 8px; pointer-events: none; }
-.dcs-box { position: absolute; border: 2px solid #e88fb0; background: rgba(255, 159, 189, .32); border-radius: 8px; cursor: move; display: grid; place-items: center; box-sizing: border-box; }
+.dcs-box { position: absolute; border: 2px solid #5fbf9a; background: rgba(127, 214, 180, .32); border-radius: 8px; cursor: move; display: grid; place-items: center; box-sizing: border-box; }
 .dcs-box span { font-size: 20px; pointer-events: none; }
-.dcs-h { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #e88fb0; cursor: nwse-resize; }
+.dcs-h { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #5fbf9a; cursor: nwse-resize; }
 .desk-item .dk-glow { position: absolute; left: -45%; top: 22%; width: 95%; height: 110%; pointer-events: none; opacity: 0; transition: opacity .35s;
   background: radial-gradient(ellipse 55% 60% at 60% 20%, var(--lt, #fff3c4) 0%, color-mix(in srgb, var(--lt, #fff3c4) 45%, transparent) 45%, transparent 72%); mix-blend-mode: screen; filter: blur(2px); }
 .desk-item.lit .dk-glow { opacity: .9; }

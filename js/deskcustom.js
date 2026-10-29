@@ -108,12 +108,12 @@
             pic.src = URL.createObjectURL(file); base.src = dkSrc(o); };
         f.click();
     }
-    /* 👆 누르는 곳 : 그림 위 분홍 네모 (끌어 옮기기 · 오른쪽 아래 점 = 크기) · 보라 = 연결된 기능 */
+    /* 👆 누르는 곳 : 그림 위 민트 네모 (👆 상품 칸 분홍과 나눠요 · 도련 10-30) (끌어 옮기기 · 오른쪽 아래 점 = 크기) · 보라 = 연결된 기능 */
     function dcAreaBody(box, o) {
         const it = dcCat(o), fn = dcFnOf(o.u), f = DK_FNS.find(x => x[0] === fn), K = dcKind(o);
         if (!DC.area) DC.area = dcArea(o).slice();
         const k = Math.min(240 / it.w, 220 / it.h), W = Math.round(it.w * k), H = Math.round(it.h * k), [l, t, r, b] = DC.area;
-        box.innerHTML = `<p class="dcs-p">분홍 네모 안을 톡 = 💡 켜고 끄기 · 나머지 그림 = ${f ? f[3] + ' ' + f[1] : '기능'}</p>`
+        box.innerHTML = `<p class="dcs-p">민트 네모 안을 톡 = 💡 켜고 끄기 · 나머지 그림 = ${f ? f[3] + ' ' + f[1] : '기능'}</p>`
             + `<div class="dcs-area" id="dcsArea" style="width:${W}px;height:${H}px"><img src="${dkSrc(o)}" alt="" draggable="false"><i class="dcs-fn"></i>`
             + `<div class="dcs-box" id="dcsBox" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><span>💡</span><b class="dcs-h" id="dcsH"></b></div></div>`
             + `<p class="dcs-warn" id="dcsWarn" hidden></p><div class="dcs-row dcs-end"><button type="button" class="btn" onclick="dcAreaReset()">↺ 처음대로</button></div>`;
@@ -133,7 +133,7 @@
     function dcAreaSave() {
         const o = dcItem(DC.u); if (!o) return; const it = dcCat(o), [l, t, r, b] = DC.area.map(v => Math.round(v * 10) / 10);
         const fn = dcFnOf(o.u), f = DK_FNS.find(x => x[0] === fn), W = document.getElementById('dcsWarn');
-        const bad = fn && (r - l) * (b - t) >= 8500 ? `📌 <b>${f ? f[3] + ' ' + f[1] : '기능'}</b>을 누를 자리가 남도록 분홍 네모를 줄여 주세요`
+        const bad = fn && (r - l) * (b - t) >= 8500 ? `📌 <b>${f ? f[3] + ' ' + f[1] : '기능'}</b>을 누를 자리가 남도록 민트 네모를 줄여 주세요`
             : (r - l) * it.w / 100 < 28 || (b - t) * it.h / 100 < 28 ? '👆 너무 작아요 · 손가락으로 누를 수 있게 조금 키워 주세요' : '';
         if (W) { W.innerHTML = bad; W.hidden = !bad; }
         if (bad) return;
@@ -198,7 +198,7 @@
         const o = dcItem(el.dataset.u); if (!o) return false;
         if (DC.ring === o.u) { dcRingStop(); return true; }                  // ⏰ 울리는 시계 = 끄기
         const K = dcKind(o); if (!K || !K.act) return false;
-        if (el.dataset.fn) {                                                  // 기능이 있으면 분홍 네모 안만 소품 동작
+        if (el.dataset.fn) {                                                  // 기능이 있으면 민트 네모 안만 소품 동작
             const im = el.querySelector(':scope > img') || el, R = im.getBoundingClientRect(), [l, t, r, b] = dcArea(o);
             const px = (x - R.left) / R.width * 100, py = (y - R.top) / R.height * 100;
             if (px < l || px > r || py < t || py > b) return false;
