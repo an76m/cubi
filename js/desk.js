@@ -15,7 +15,7 @@
        아래 📦 보관함 줄 : 톡 = 책상에 놓기 · 위 막대 [취소] = 들어오기 전 그대로 · [✓ 확정] = 그때 저장
        확정은 다이어리 · 스티커 · 문구함 · 카페 · 설정 다섯 기능이 모두 연결돼야 눌려요 (설정을 못 열게 되는 일이 없게) · 꾸미는 동안은 아무것도 저장 안 해요
        화면이 좁아 기능 소품이 잘려 보이면 보이는 곳 안쪽으로 당겨 맨 앞에 보여 줘요 (저장한 자리는 그대로)
-   - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 모두 책상 위) · 🏪 기본상품 샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
+   - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 중 nost 가 아닌 것 · 책상 위) · 🏪 기본상품 샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
        보관함 ↔ 책상 · 🗑 버리기 = 🛠 책상 꾸미기에서 (▤ 하단 메뉴 화면이면 📦 소품 보관함 창) · 버린 것은 기본상품 샵에서 다시 받아요
    - 저장 (도련 10-27)
        책상배치 / 배치.json : 'diary_desk_items' [{u: 하나하나 id, id: 소품, at: 'desk' | 'box', x, y, c: 종류 폴더 파일 id}] · 'diary_desk_fn' {기능: u} (js/drive.js DESK_KEYS · 게스트는 이 기기)
@@ -37,8 +37,9 @@
             { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
             { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-919', mouth: [5, 95, 54] },
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
-            { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자' },
-            { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51] },
+            { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자', nost: 1 },   // nost = 🎁 기본 세트에서 빼요 (🏪 샵에는 그대로 · 도련 10-30)
+            { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51], nost: 1 },
+            { id: 'shopshelf', kind: 'bookshelf', src: 'img/desk/shopshelf.webp?v=20261009-945', w: 109, h: 280, x: 1090, y: 481, name: '가게 진열장' },   // 🏪 처음부터 기본상품 샵 (도련 10-30 · 파일꽂이 자리)
             { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-836', w: 126, h: 151, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.5, 22.3, 82.6, 85.9] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1258, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
@@ -56,7 +57,7 @@
 
         /* 📦 내 소품 목록 */
         const DK_ITEMS_KEY = 'diary_desk_items', DK_ITEMS_LOCAL = 'malang_desk_items';
-        const dkStarter = () => DESK_ITEMS.map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
+        const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
             const seenU = new Set();
@@ -214,7 +215,7 @@
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
-        const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품
+        const DK_FN_DEF = { sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'shopshelf', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품 · 📔 다이어리는 처음엔 소품 없음 (책 상자를 기본 세트에서 뺐어요 · 도련 10-30 · 🔗 기능 연결로 붙여요)
         const DK_EDIT_NEED = ['edit'];
         const dkHasWin = (m, k) => !!m[k] || Object.values(dkHomes()).some(L => L.some(e => e.k === k));   // 소품 전체 또는 👆 칸 어디든                                            // 🛠 꾸미기 ✔ 완료에 꼭 있어야 하는 건 책상 꾸미기 하나 (도련 10-30 · 나머지는 풀어도 저장)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
@@ -233,6 +234,7 @@
             Object.keys(got).forEach(k => { const u = got[k]; if (k.startsWith('h:') && dkWin(k) && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 🛍️ 상품 창 (저절로 붙이지 않아요)
             DK_FNS.forEach(([k]) => {
                 let u = got[k];
+                if (u === undefined && !DK_FN_DEF[k]) return;                       // 처음 소품이 없는 기능 (📔 다이어리) = 아무 소품에나 붙이지 않아요
                 if (u === '') return;                                             // 다꾸러가 🛠 꾸미기에서 일부러 푼 기능 = 그대로 비워 둬요 (저절로 다시 붙이지 않기 · 도련 10-30)
                 if (!ids.includes(u) || used.has(u)) u = ids.includes(DK_FN_DEF[k]) && !used.has(DK_FN_DEF[k]) && !claimed.includes(DK_FN_DEF[k]) ? DK_FN_DEF[k] : ids.find(i => !used.has(i) && !claimed.includes(i));
                 if (!u) u = ids.find(i => !used.has(i));
@@ -1175,10 +1177,10 @@
         /* 📔 책상 위 다이어리 자리 · 모습 (도련 10-29) : 📚 꽂기(옆모습 · 책등) · 📔 세우기(앞모습) · 🛏 눕히기
            - 🛠 책상 꾸미기에서만 끌어 옮기고 · 톡 = 모습 고르기 · ✔ 완료 때 저장 (✕ 취소 = 그대로) · 평소에는 누르면 떠올라요 (넣으면 고른 모습 그대로 돌아가요)
            - 'diary_desk_dy' { x, y : 책상 그림 px (바닥 가운데) · p : side · front · lay } (배치.json · js/drive.js DESK_KEYS)
-           - 처음 = 파일꽂이 오른쪽 옆에 📚 꽂기 (도련 : 파일꽂이와 서랍장 사이) */
+           - 처음 = 가게 진열장 오른쪽 옆에 📚 꽂기 (진열장과 서랍장 사이) */
         const DKY_KEY = 'diary_desk_dy', DKY_LOCAL = 'malang_desk_dy', DKY_S = .4;   // 세우면 실제 A6 크기쯤 (파일꽂이와 어울리게)
         function dkyDef() {
-            const m = DK.items.find(o => o.id === 'magfile' && o.at === 'desk'), d = DK.items.find(o => o.id === 'drawer' && o.at === 'desk'), mc = dkCat('magfile');
+            const m = DK.items.find(o => o.id === 'shopshelf' && o.at === 'desk'), d = DK.items.find(o => o.id === 'drawer' && o.at === 'desk'), mc = dkCat('shopshelf');
             if (m && mc) { const x1 = m.x + mc.w, x2 = d && d.x > x1 ? d.x : x1 + 50; return { x: Math.round((x1 + x2) / 2), y: Math.round(m.y + mc.h - 3), p: 'side' }; }
             return { x: 1222, y: 758, p: 'side' };
         }
