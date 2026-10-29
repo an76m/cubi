@@ -590,42 +590,52 @@
             return (surfs || deskSurfs(el)).find(s => s.el !== el && b >= s.y - 8 && b <= s.y + 14 && cx >= s.x0 && cx <= s.x1) || null;
         }
         /* 앞뒤 : 아래쪽(앞)에 놓인 것이 앞 · 벽에 건 것은 늘 뒤 · 다른 소품 위에 올린 것은 그 소품 바로 앞 */
+        const DK_ZS = 8;                                                         // 바닥 1px 마다 z 8칸 : 소품 · 그 안에 넣은 것(최대 6) · 앞벽
         function deskZAll() {
             const items = [...document.querySelectorAll('#deskStage .desk-item')], bot = el => parseFloat(el.style.top) + parseFloat(el.style.height);
             const z = new Map(), surfs = deskSurfs(null), get = (el, depth) => {
                 if (z.has(el)) return z.get(el);
                 const on = depth < 6 ? deskOn(el, surfs) : null;
-                const v = on ? get(on.el, depth + 1) + 1 : el.classList.contains('wall') ? 1 : 10 + Math.round(Math.min(950, bot(el))) * 3;   // 3칸 간격 = 소품 · 꽂힌 다이어리 · 앞벽
+                const v = on ? get(on.el, depth + 1) + 1 : el.classList.contains('wall') ? 1 : 10 + Math.round(Math.min(950, bot(el))) * DK_ZS;
                 z.set(el, v); return v;
             };
             items.forEach(el => { el.style.zIndex = get(el, 0); });
             dkLayers();
         }
-        /* 🧺 앞벽 (도련 10-29) : 앞벽이 있는 소품 = 같은 그림을 앞벽 마스크로 잘라 한 겹 더 (소품 바로 앞) · 칠한 그림도 그대로 따라가요
-           다이어리 바닥이 입구(mouth) 안 = 소품과 앞벽 사이 → 꽂힌 것처럼 · 밖이면 늘 맨 앞 · 크기 · 자리는 사용자 마음 (맞춰 주지 않아요) */
-        function dkyIn(st) {
+        /* 🧺 넣을 수 있는 소품 (도련 10-29 · 사실적으로 · 자유롭게) : 소품 정보에 front(앞벽 마스크) + mouth(입구)가 있으면 = '담는 소품'
+           - 넣는 것 = 책상 위 모든 소품(벽에 건 것 · 다른 담는 소품은 빼고) + 📔 다이어리 : 바닥 가운데가 입구 안이면 담는 소품과 앞벽 사이
+           - 여러 개 = 바닥이 아래인 것이 앞 · 담는 소품을 옮기면 안에 든 것도 같이 · 크기 · 자리는 사용자 마음 (맞춰 주지 않아요)
+           - 앞벽 = 같은 그림을 앞벽 마스크로 잘라 한 겹 더 (칠한 그림도 그대로) · 안에 든 게 있을 때만 */
+        const dkIsBox = el => { const d = dkDef(el); return !!(d.front && d.mouth); };
+        function dkBoxAt(x, y, skip) {
             let best = null;
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
-                const d = dkDef(el); if (!d.front || !d.mouth) return;
-                const L = parseFloat(el.style.left), T = parseFloat(el.style.top), w = parseFloat(el.style.width), h = parseFloat(el.style.height), [m0, m1, m2] = d.mouth;
-                if (st.x >= L + w * m0 / 100 && st.x <= L + w * m1 / 100 && st.y >= T + h * m2 / 100 && st.y <= T + h + 2 && (!best || +el.style.zIndex > +best.style.zIndex)) best = el;
+                if (el === skip || !dkIsBox(el)) return;
+                const L = parseFloat(el.style.left), T = parseFloat(el.style.top), w = parseFloat(el.style.width), h = parseFloat(el.style.height), [m0, m1, m2] = dkDef(el).mouth;
+                if (x >= L + w * m0 / 100 && x <= L + w * m1 / 100 && y >= T + h * m2 / 100 && y <= T + h + 2 && (!best || +el.style.zIndex > +best.style.zIndex)) best = el;
             });
             return best;
         }
+        const dkyIn = st => dkBoxAt(st.x, st.y, null);
+        const dkItemBox = el => (el.classList.contains('wall') || dkIsBox(el)) ? null : dkBoxAt(parseFloat(el.style.left) + parseFloat(el.style.width) / 2, parseFloat(el.style.top) + parseFloat(el.style.height), el);
         function dkLayers() {
             const stg = document.getElementById('deskStage'); if (!stg) return;
-            const keep = new Set(), dy = document.getElementById('deskDiary'), box = dy ? dkyIn(dkyGet()) : null;
+            const dy = document.getElementById('deskDiary'), inside = new Map();       // 담는 소품 → [{ el, b : 바닥 }]
+            const put = (box, el, b) => { if (!inside.has(box)) inside.set(box, []); inside.get(box).push({ el, b }); };
+            stg.querySelectorAll('.desk-item').forEach(el => { const box = dkItemBox(el); if (box) put(box, el, parseFloat(el.style.top) + parseFloat(el.style.height)); });
+            if (dy) { const st = dkyGet(), box = dkyIn(st); if (box) put(box, dy, st.y); }
+            inside.forEach((L, box) => { const bz = +box.style.zIndex || 0; L.sort((a, b) => a.b - b.b).forEach((o, i) => { o.el.style.zIndex = bz + 1 + Math.min(i, DK_ZS - 3); }); });   // 위(뒤)에 놓인 것부터
+            const keep = new Set();
             stg.querySelectorAll('.desk-item').forEach(el => {
-                const d = dkDef(el); if (!d.front) return; const u = el.dataset.u; keep.add(u);
+                if (!dkIsBox(el)) return; const d = dkDef(el), u = el.dataset.u, on = inside.has(el); keep.add(u);
                 let f = [...stg.querySelectorAll('.dk-front')].find(x => x.dataset.fu === u);
                 if (!f) { f = document.createElement('div'); f.className = 'dk-front'; f.dataset.fu = u; f.innerHTML = `<i class="dk-fm"><img data-art-u="${u}" alt="" draggable="false"></i>`; f.style.setProperty('--fm', `url("${new URL(d.front, location.href).href}")`); el.after(f); }   // 마스크 주소는 css 파일 기준이 아니라 이 페이지 기준으로
                 const im = f.querySelector('img'), src = el.querySelector(':scope > img').src; if (im.src !== src) im.src = src;
-                Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: (+el.style.zIndex || 0) + 2, display: el === box ? '' : 'none' });   // 다이어리가 꽂힌 소품만 앞벽을 겹쳐요
-                f.querySelectorAll('.dk-fn-tag').forEach(x => x.remove()); const tg = el.querySelector('.dk-fn-tag'); if (tg && el === box) f.appendChild(tg.cloneNode(true));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
+                Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: (+el.style.zIndex || 0) + DK_ZS - 1, display: on ? '' : 'none' });
+                f.querySelectorAll('.dk-fn-tag').forEach(x => x.remove()); const tg = el.querySelector('.dk-fn-tag'); if (tg && on) f.appendChild(tg.cloneNode(true));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
             });
             stg.querySelectorAll('.dk-front').forEach(f => { if (!keep.has(f.dataset.fu)) f.remove(); });
-            if (!dy) return;
-            dy.style.zIndex = box ? (+box.style.zIndex || 0) + 1 : ''; dy.classList.toggle('in-box', !!box);
+            if (dy) { const inb = [...inside.values()].some(L => L.some(o => o.el === dy)); if (!inb) dy.style.zIndex = 9000; dy.classList.toggle('in-box', inb); }   // 밖이면 늘 맨 앞
         }
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
@@ -895,7 +905,7 @@
                 el.style.left = x + 'px'; el.style.top = y + 'px';
             });
             deskZAll();
-            moved.forEach(el => { el.style.zIndex = 2900; });                    // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게)
+            moved.forEach(el => { el.style.zIndex = 8900; });                    // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게)
             dkLayers();
         }
         function deskWire(el) {
@@ -907,6 +917,11 @@
                 if (dkDef(el).surf) {                                            // 위에 올려 둔 물건은 함께 움직여요
                     const mine = deskSurfs(null).filter(s => s.el === el);
                     p.riders = [...document.querySelectorAll('#deskStage .desk-item')].filter(o => o !== el && deskOn(o, mine)).map(o => ({ o, dx: parseFloat(o.style.left) - p.l, dy: parseFloat(o.style.top) - p.t }));
+                }
+                if (dkIsBox(el)) {                                               // 🧺 담는 소품 = 안에 든 소품 · 다이어리도 함께
+                    const ins = [...document.querySelectorAll('#deskStage .desk-item')].filter(o => o !== el && dkItemBox(o) === el && !(p.riders || []).some(r => r.o === o)).map(o => ({ o, dx: parseFloat(o.style.left) - p.l, dy: parseFloat(o.style.top) - p.t }));
+                    if (ins.length) p.riders = (p.riders || []).concat(ins);
+                    if (DK.dyEdit && dkyIn(DK.dyEdit) === el) p.dyr = { dx: DK.dyEdit.x - p.l, dy: DK.dyEdit.y - p.t };
                 }
                 try { el.setPointerCapture(ev.pointerId); } catch (e) {}
             });
@@ -932,6 +947,7 @@
                 x = Math.max(-w / 2, Math.min(DESK_W - w / 2, x)); y = Math.max(0, Math.min(DESK_H - h / 2, y));
                 el.style.left = x + 'px'; el.style.top = y + 'px';
                 if (p.riders) p.riders.forEach(r => { r.o.style.left = (x + r.dx) + 'px'; r.o.style.top = (y + r.dy) + 'px'; });
+                if (p.dyr && DK.dyEdit) { DK.dyEdit.x = Math.round(x + p.dyr.dx); DK.dyEdit.y = Math.round(y + p.dyr.dy); const dd = document.getElementById('deskDiary'); if (dd) { dd.style.setProperty('--ax', DK.dyEdit.x + 'px'); dd.style.setProperty('--ay', DK.dyEdit.y + 'px'); } }
                 deskZAll();
                 deskGuide(gh, gv); deskTipPlace();
             });
