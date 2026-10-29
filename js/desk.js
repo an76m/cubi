@@ -215,7 +215,6 @@
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
         const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품
-        const DK_FN_NEED = ['skin', 'sticker', 'gd', 'cafe', 'set'];                // 하단 메뉴 다섯 개 (하나라도 빠지면 하단 메뉴를 보여요 · desk-lack)
         const DK_EDIT_NEED = ['edit'];                                            // 🛠 꾸미기 ✔ 완료에 꼭 있어야 하는 건 책상 꾸미기 하나 (도련 10-30 · 나머지는 풀어도 저장)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         function deskFnMap() {                                                    // 모든 기능 · 서로 다른 책상 위 소품 (모자라면 그 기능은 빠져요 → 하단 메뉴가 보여요)
@@ -241,7 +240,7 @@
         }
         function deskFnPaint() {
             const m = deskFnMap(), of = {}; Object.keys(m).forEach(k => { of[m[k]] = k; });
-            if (!DK.edit) document.documentElement.classList.toggle('desk-lack', DK_FN_NEED.some(k => !m[k]));   // 소품이 모자라 기능이 빠지면 하단 메뉴를 보여요 (안전)
+            if (!DK.edit) document.documentElement.classList.toggle('desk-lack', DK_EDIT_NEED.some(k => !m[k]));   // 🛟 🛠 책상 꾸미기가 빠졌을 때만 하단 메뉴 (도련 10-30 : 다른 기능을 풀었다고 하단 메뉴가 뜨지 않게)
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
                 const fn = of[el.dataset.u], f = fn && DK_FNS.find(x => x[0] === fn), d = dkDef(el);
                 DK_FNS.forEach(x => el.classList.remove('fn-' + x[0]));
