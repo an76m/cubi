@@ -366,7 +366,7 @@
             });
             DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); });          // 📦 보관함의 칠한 소품 그림도
             if (window.dcApplyAll) dcApplyAll();                                  // 💡 불빛 · 🔢 숫자 (js/deskcustom.js)
-            deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint();
+            dknPaintAll(); deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint();
         }
         /* 🎨 칠한 소품 (p: 1) = 종류 폴더 파일에 칠한 그림이 들어 있어요 (js/deskpaint.js) → 읽어서 그 소품 그림만 바꿔요 */
         const dkSrc = o => DK.art[o.u] || (dkCat(o.id) || {}).src || '';
@@ -536,7 +536,7 @@
             }
             DK.editFn = null; DK.back = null;
             if (window.dsEditEnd) dsEditEnd(!!ok);                                // 🧱 🪵 완료 = 저장 · 취소 = 처음대로
-            { const v = DK.dyEdit; DK.dyEdit = null; if (ok && v && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, Object.assign({ x: v.x, y: v.y, p: v.p, lb: dkyLb(v) }, v.lz ? { lz: v.lz } : {})); dkyMenu(false); dkyLbPanel(false); dkyApply(); }
+            { const v = DK.dyEdit; DK.dyEdit = null; if (ok && v && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, Object.assign({ x: v.x, y: v.y, p: v.p, lb: dkyLb(v) }, v.lz ? { lz: v.lz } : {})); dkyMenu(false); dkyLbPanel(false); dknPanel(false); dkyApply(); }
             document.documentElement.classList.remove('desk-edit');
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
         }
@@ -666,7 +666,7 @@
                 if (!f) { f = document.createElement('div'); f.className = 'dk-front'; f.dataset.fu = u; f.innerHTML = `<i class="dk-fm"><img data-art-u="${u}" alt="" draggable="false"></i>`; f.style.setProperty('--fm', `url("${new URL(d.front, location.href).href}")`); el.after(f); }   // 마스크 주소는 css 파일 기준이 아니라 이 페이지 기준으로
                 const im = f.querySelector('img'), src = el.querySelector(':scope > img').src; if (im.src !== src) im.src = src;
                 Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: on ? fz.get(el) : 0, display: on ? '' : 'none' });
-                f.querySelectorAll('.dk-fn-tag').forEach(x => x.remove()); const tg = el.querySelector('.dk-fn-tag'); if (tg && on) f.appendChild(tg.cloneNode(true));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
+                f.querySelectorAll('.dk-fn-tag, .dkn-tag').forEach(x => x.remove()); if (on) el.querySelectorAll(':scope > .dk-fn-tag, :scope > .dkn-tag').forEach(tg => f.appendChild(tg.cloneNode(true)));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
             });
             stg.querySelectorAll('.dk-front').forEach(f => { if (!keep.has(f.dataset.fu)) f.remove(); });
             if (dy) dy.classList.toggle('in-box', !!(par.get(dy) && par.get(dy).k === 'in'));
@@ -749,12 +749,71 @@
                     dkbTake(n, j); return;
                 }
                 if (!t) return;                                                   // 소품 밖 = 다시 봉투로
-                const H = dkHomes(), u = t.dataset.u, L = H[u] = (H[u] || []).filter(k => k !== it.k); L.push(it.k); dkHomesSet(H);
-                t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600);
-                dkbTake(n, j);
+                dkbHome(t, it, n, j);
             };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         }
+        /* 한 종류 = 소품 하나 (도련 10-30) : 다른 소품에 이미 그 종류 자리가 있으면 '옮길까요?' → 옮기면 예전 자리는 풀려요 · 취소 = 카드는 봉투에 그대로 */
+        async function dkbHome(t, it, n, j) {
+            const H = dkHomes(), u = t.dataset.u, was = Object.keys(H).find(x => x !== u && (H[x] || []).includes(it.k) && document.querySelector(`#deskStage .desk-item[data-u="${x}"]`));
+            if (was) {
+                const o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', ow = DK.items.find(x => x.u === was);
+                if (!await showAsk(`${DKH_NAMES[it.k]} 자리가 ${ow ? dkName(ow) : '다른 소품'}에 있어요.<br>${josa(nm, '으로', '로')} 옮길까요?`, '옮기기', '취소')) return;
+            }
+            Object.keys(H).forEach(x => { if (x !== u) { H[x] = (H[x] || []).filter(k => k !== it.k); if (!H[x].length) delete H[x]; } });
+            const L = H[u] = (H[u] || []).filter(k => k !== it.k); L.push(it.k); dkHomesSet(H);
+            const o = DK.items.find(x => x.u === u); if (o && !o.tag) { o.tag = { on: true }; dkSave(); }   // 🏷 처음 집이 되면 이름표를 붙여 둬요 (까먹지 않게 · 끌 수 있어요)
+            dknPaintAll();
+            t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600);
+            dkbTake(n, j);
+        }
+        /* 🏷 소품 이름표 (도련 10-30 : 연결한 소품을 까먹지 않게 · 다이어리 라벨처럼) : 글씨 · 아이콘 · 둘 다 · 라벨 바탕 · 아웃라인 · 글꼴 · 색 · 자리 · 크기
+           it.tag = { on, m: 'ti' | 't' | 'i', t: 직접 쓴 글(없으면 연결한 종류 이름), ic: 아이콘(없으면 종류 아이콘), f, c, bx, bg, ol, oc, x, y, s } · 🛠 꾸미기 → 고른 소품 칩 '🏷 이름표' */
+        const DKN0 = { on: false, m: 'ti', t: '', ic: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', x: .5, y: .12, s: 1 };
+        const DKN_IC = ['⭐', '🌸', '🎀', '💖', '🍓', '🧸', '✂️', '📎', '🖍️', '📒', '🗂️', '🌈'];
+        const dknOf = o => Object.assign({}, DKN0, (o && o.tag) || {});
+        const dknKindIc = k => ({ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[k] || (window.stkArt ? stkArt(k) : '🎁'));
+        function dknPaintAll() {
+            const H = dkHomes();
+            document.querySelectorAll('#deskStage .dkn-tag').forEach(x => x.remove());
+            document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+                const ks = (H[el.dataset.u] || []).filter(k => DKH_NAMES[k]), o = DK.items.find(x => x.u === el.dataset.u), g = dknOf(o);
+                if (!ks.length || !g.on) return;
+                const b = document.createElement('span'); b.className = 'dkn-tag' + (g.bx ? '' : ' clear') + (g.ol ? ' ol' : '');
+                const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === g.f);
+                Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: g.c, background: g.bx ? g.bg : 'transparent', fontFamily: fo ? fo.css : '' });
+                b.style.setProperty('--fs', g.s); b.style.setProperty('--oc', g.oc);
+                const ic = g.m !== 't' ? `<i class="dkn-ic">${g.ic || ks.map(dknKindIc).join('')}</i>` : '', tx = g.m !== 'i' ? `<b>${(g.t || ks.map(k => DKH_NAMES[k]).join(' · ')).replace(/</g, '&lt;')}</b>` : '';
+                b.innerHTML = ic + tx; el.appendChild(b);
+            });
+            if (typeof dkLayers === 'function') dkLayers();                       // 앞벽 위에도 한 장 (바구니 안에 든 게 있을 때)
+        }
+        function dknPanel(show) {
+            let pn = document.getElementById('dknPanel');
+            const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u);
+            if (!show || !o || !DK.edit) { if (pn) pn.hidden = true; return; }
+            if (!pn) { pn = document.createElement('div'); pn.id = 'dknPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
+            const g = dknOf(o), ks = (dkHomes()[o.u] || []).filter(k => DKH_NAMES[k]), fl = typeof fontList !== 'undefined' ? fontList : [];
+            const sw = (arr, cur, k) => arr.map(c => `<button type="button" class="dky-sw${c === cur ? ' on' : ''}" style="--c:${c}" onclick="dknSet('${k}','${c}')" aria-label="${c}"></button>`).join('');
+            const seg = [['ti', '아이콘 + 글씨'], ['t', '글씨만'], ['i', '아이콘만']].map(([v, n]) => `<button type="button" class="dkn-seg${g.m === v ? ' on' : ''}" onclick="dknSet('m','${v}')">${n}</button>`).join('');
+            pn.innerHTML = `<div class="dky-row"><b>🏷 이름표</b><label class="dky-tg"><input type="checkbox" ${g.on ? 'checked' : ''} onchange="dknSet('on', this.checked)"> 붙이기</label><small>${ks.map(k => DKH_NAMES[k]).join(' · ')}</small><button type="button" class="dky-x" onclick="dknPanel(false)" aria-label="닫기">✕</button></div>`
+                + (g.on ? `<div class="dky-row">${seg}</div>`
+                + (g.m !== 'i' ? `<div class="dky-row"><input class="dky-t" maxlength="16" placeholder="${ks.map(k => DKH_NAMES[k]).join(' · ').replace(/"/g, '')}" value="${String(g.t).replace(/"/g, '&quot;')}" oninput="dknSet('t', this.value, 1)"><select onchange="dknSet('f', this.value)">${fl.map(f => `<option value="${f.id}"${f.id === g.f ? ' selected' : ''}>${f.name.replace(/ \(Local\)$/, '')}</option>`).join('')}</select></div>` : '')
+                + (g.m !== 't' ? `<div class="dky-row"><span>아이콘</span><button type="button" class="dkn-ic-b${!g.ic ? ' on' : ''}" onclick="dknSet('ic','')">기본</button>${DKN_IC.map(c => `<button type="button" class="dkn-ic-b${g.ic === c ? ' on' : ''}" onclick="dknSet('ic','${c}')">${c}</button>`).join('')}</div>` : '')
+                + `<div class="dky-row"><span>글 색</span>${sw(DKY_TC, g.c, 'c')}</div>`
+                + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.bx ? 'checked' : ''} onchange="dknSet('bx', this.checked)"> 라벨</label>${g.bx ? sw(DKY_BC, g.bg, 'bg') : ''}</div>`
+                + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.ol ? 'checked' : ''} onchange="dknSet('ol', this.checked)"> 아웃라인</label>${g.ol ? sw(DKY_OC, g.oc, 'oc') : ''}</div>`
+                + `<div class="dky-row"><span>가로</span><input type="range" min="0" max="1" step="0.01" value="${g.x}" oninput="dknSet('x', this.value, 1)"><span>세로</span><input type="range" min="0" max="1" step="0.01" value="${g.y}" oninput="dknSet('y', this.value, 1)"></div>`
+                + `<div class="dky-row"><span>크기</span><input type="range" min="0.5" max="2.5" step="0.05" value="${g.s}" oninput="dknSet('s', this.value, 1)"></div>` : '');
+            pn.hidden = false;
+        }
+        function dknSet(k, v, live) {
+            const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o) return;
+            const g = o.tag = dknOf(o);
+            if (k === 'x' || k === 'y' || k === 's') g[k] = +v; else if (k === 'on' || k === 'bx' || k === 'ol') g[k] = !!v; else if (k === 't') g.t = String(v).slice(0, 16); else g[k] = v;
+            dknPaintAll(); if (!live) dknPanel(true);
+        }
+        window.dknPanel = dknPanel; window.dknSet = dknSet;
         /* 집이 된 소품 톡 = 그 종류 창 · 여러 개(또는 기능도 있으면) = 고르기 */
         function dkHomeTap(el, cx, cy) {
             const H = dkHomes(), L = (H[el.dataset.u] || []).filter(k => DKH_NAMES[k]); if (!L.length) return false;
@@ -1113,6 +1172,7 @@
         }
         function deskSelect(el) {
             document.querySelectorAll('.desk-item.sel').forEach(o => o !== el && o.classList.remove('sel'));
+            if (DK.sel !== el) dknPanel(false);
             DK.sel = el; if (el) { el.classList.add('sel'); dkyMenu(false); }   // 소품을 고르면 다이어리 창은 닫아요
             const tip = document.getElementById('deskTip'); if (tip) tip.classList.toggle('on', !!el);
             deskTipPaint();
@@ -1133,7 +1193,7 @@
             const f = Object.keys(m).find(k => m[k] === u), fi = f && DK_FNS.find(x => x[0] === f);
             tip.innerHTML = `<div class="dkt-act"><button type="button" class="desk-snap${fi ? ' on' : ''}" onclick="deskFnOpen()">🔗 기능 연결</button>`   // 기능 연결은 창으로 (도련 10-28) · 연결돼도 글은 늘 '기능 연결' (기능 이름이면 샵 가는 버튼으로 착각 · 도련 10-28)
                 + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button></div>`
-                + `<div class="dkt-act"><button type="button" class="desk-snap" onclick="deskLayer(1)">⬆ 앞으로</button><button type="button" class="desk-snap" onclick="deskLayer(-1)">⬇ 뒤로</button>${(DK.items.find(x => x.u === u) || {}).lz ? '<button type="button" class="desk-snap" onclick="deskLayer(0)">↺ 자동</button>' : ''}</div>`;   // 🗂 레이어 (도련 10-29 : 자동 + 손으로)   // 🧲 딱 맞추기 = 작업대 · 📤 저장(공유)은 숨김 · 🗑 버리기는 📦 소품함에서
+                + `<div class="dkt-act">${(dkHomes()[u] || []).length ? '<button type="button" class="desk-snap" onclick="dknPanel(true)">🏷 이름표</button>' : ''}<button type="button" class="desk-snap" onclick="deskLayer(1)">⬆ 앞으로</button><button type="button" class="desk-snap" onclick="deskLayer(-1)">⬇ 뒤로</button>${(DK.items.find(x => x.u === u) || {}).lz ? '<button type="button" class="desk-snap" onclick="deskLayer(0)">↺ 자동</button>' : ''}</div>`;   // 🗂 레이어 (도련 10-29 : 자동 + 손으로)   // 🧲 딱 맞추기 = 작업대 · 📤 저장(공유)은 숨김 · 🗑 버리기는 📦 소품함에서
             deskTipPlace();
         }
         /* 🔗 기능 연결 창 (도련 10-28) : 고른 소품에 기능 하나 · 다시 누르면 풀기 */
