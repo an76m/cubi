@@ -429,3 +429,5 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 @keyframes shBagIn { from { opacity: 0; scale: .5; } to { opacity: 1; scale: 1; } }
 @keyframes shBagOut { to { opacity: 0; scale: .8; } }
 @media (prefers-reduced-motion: reduce) { .sh-bag.on, .sh-bag-in { animation: none; } }
+/* 🏪 받은 뒤 버튼 '보관함 확인' = 연녹색 (도련 10-29) */
+html .sh-take.got, html.an .sh-take.got, html.an .sh-take.got:not(.sh-zoombtn) { background: #dff4e7 !important; border: 1.5px solid #7cc7a0 !important; color: #2f8a5a !important; }

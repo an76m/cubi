@@ -1086,7 +1086,7 @@
         z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = 확대 밖을 톡 (도련 10-28 · 닫기 버튼 없음)
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
-    const shGotText = x => !x.give ? '✓ 바구니에 쏙' : SH.kind === 'gd' ? '✓ 문구함에 쏙' : SH.kind === 'tool' ? '✓ 보관소에 쏙' : SH.kind === 'bg' ? '✓ 배경지에 쏙' : '✓ 보관함에 쏙';
+    const shGotText = () => '보관함 확인';                                 // 받은 뒤 버튼 = 늘 '보관함 확인' (도련 10-29 · 연녹색)
     /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
     /* 🛍️ 받기가 다 끝나면 쇼핑백 (도련 10-29) : 받는 중인 개수를 세다가 0 이 되는 순간 한 번 · 하나라도 받았으면
        - 이어서 여러 개 = 마지막이 끝날 때 한 번 · 샵 창을 닫았거나 책상이 보여도 화면 맨 위에 떠요 · 실패해도 숫자는 내려요 */
@@ -1162,7 +1162,7 @@
             else { const r = await x.take(); if (r && typeof r === 'object') await ownTake(r); }
             bagOk = true;
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
-            btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = '✓ 바구니에 쏙'; btn.disabled = false; btn.onclick = () => shGoSee(shInto(), 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
+            btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = shGotText(); btn.disabled = false; btn.onclick = () => shGoSee(shInto(), 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             (SH.got || (SH.got = new Set())).add(i);                            // 창을 닫았다 열면 다시 받기
         } catch (e) {
             console.warn(e);
@@ -1178,7 +1178,7 @@
             const box = btn.closest('.sh-zbtns'), k = SH.kind;
             const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${nm}에 넣었어요</small></div>`
-                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${k}', 0)">${nm}에서 보기</button></div>`;
+                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${k}', 0)">${shGotText()}</button></div>`;
             return;
         }
         if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
@@ -1195,7 +1195,7 @@
             const box = btn.closest('.sh-zbtns'), into = x.tool ? SH.toolKind : (SH.kind === 'season' ? 'seal' : SH.kind);
             const where = x.tool ? `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 스티커첩` : `✨ 스티커 · ${esc(BK_KINDS[into] || '')} 바구니`;
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${where}에 넣었어요</small></div>`
-                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${x.tool ? '📒 스티커첩에서 보기' : '🧺 바구니에서 보기'}</button></div>`;
+                + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${into}', ${x.tool ? 1 : 0})">${shGotText()}</button></div>`;
         } catch (e) {
             console.warn(e);
             btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
