@@ -196,7 +196,21 @@
             return [Math.max(L - W / 2, Math.min(PW - W / 2, x)), Math.max(-H / 2, Math.min(PH - H / 2, y))];
         }
         window.elKeepCenter = elKeepCenter;
+        /* 🔒 붙인 것은 마지막으로 손댄 때부터 24시간이 지나면 고정 (도련 10-29 · 스티커 · 글 · 테이프 … 하나하나 따로)
+           - el.dataset.lt = 마지막으로 손댄 시각 (ms · 저장 lt) · 시각이 없는 예전 것은 고정
+           - 고정된 것 : 옮기기 · 돌리기 · 크기 · 글 고치기 · 메뉴(순서 · 🗑 삭제) 모두 안 돼요 → 덧붙이기만 · 건드리면 '꾹 붙어 있어요' */
+        const EL_LOCK_MS = 24 * 3600 * 1000;
+        const elLocked = el => !!el && !!el.dataset && Date.now() - (+el.dataset.lt || 0) > EL_LOCK_MS;
+        const elTouch = el => { if (el && el.dataset) el.dataset.lt = Date.now(); };
+        function elLockSay(x, y) { if (window.twzSay) twzSay(x, y, '🔒 꾹 붙어 있어요 · 손댄 지 24시간이 지나 고정됐어요', 2200); else showMsg('🔒 꾹 붙어 있어요<br><small>손댄 지 24시간이 지나 고정됐어요 · 덧붙이기만 돼요</small>'); }
+        window.elLocked = elLocked; window.elLockSay = elLockSay; window.elTouch = elTouch;
+        document.addEventListener('input', e => { const b = e.target && e.target.closest && e.target.closest('#canvasArea > .element-box'); if (b && !elLocked(b)) elTouch(b); }, true);   // ✏️ 글을 고치면 다시 24시간
+        document.addEventListener('focusin', e => {                           // 🔒 열어 둔 사이에 24시간이 지난 글
+            const t = e.target, b = t && t.tagName === 'TEXTAREA' && t.closest('#canvasArea > .element-box');
+            if (b && elLocked(b)) { t.readOnly = true; t.blur(); const r = b.getBoundingClientRect(); elLockSay(r.left + r.width / 2, r.top + r.height / 2); }
+        }, true);
         function makeTransformable(el) {
+            if (!el.dataset.lt) elTouch(el);                                  // 새로 붙인 것 = 지금부터 24시간
             zRoom(); el.style.zIndex = zIndexCounter++;
             const p0 = 100 + (window.dyVisX ? dyVisX() : 0);                   // 새로 놓는 자리 : 보이는 쪽의 왼쪽 위 (📱 한쪽 보기 · 오른쪽 쪽이면 오른쪽 쪽에 · 도련 10-19)
             let posX = p0, posY = 100, scale = 1, rotation = 0; el._p0 = p0;
@@ -261,6 +275,8 @@
             }
 
             const onStart = (e) => {
+                if (elLocked(el)) { const p0 = getClientPos(e); e.stopPropagation(); if (e.cancelable) e.preventDefault(); actionType = null; elLockSay(p0.x, p0.y); return; }   // 🔒 고정
+                elTouch(el);                                                    // 손댔어요 → 다시 24시간
                 /* 두 번째 손가락이 다른 것 위에 닿으면 고른 걸 바꾸지 않음 */
                 if (e.touches && e.touches.length > 1 && selectedElement && selectedElement !== el) return;
                 selectElement(el);
@@ -405,6 +421,8 @@
 
             el.addEventListener('wheel', (e) => {
                 if (EL_SCALE_LOCK) return;                                      // 🔒 크기 막기 : 휠로 크기가 안 바뀌어요
+                if (elLocked(el)) return;                                       // 🔒 고정 (도련 10-29)
+                elTouch(el);
                 e.preventDefault();
                 scale = parseFloat(el.dataset.scale) || 1;
                 posX = parseFloat(el.dataset.posX) || 0;
@@ -922,6 +940,7 @@
                 if (w) item.w = Math.round(w);
                 if (h) item.h = Math.round(h);
                 item.z = parseInt(el.style.zIndex) || 1;
+                if (+el.dataset.lt) item.lt = +el.dataset.lt;                 // 🔒 마지막으로 손댄 시각 (24시간 뒤 고정)
                 item.bw = el.offsetWidth; item.bh = el.offsetHeight;
                 if (img && el.dataset.float) item.fm = 1;
                 if (img && el.dataset.cm) { try { item.cm = JSON.parse(el.dataset.cm); } catch (e) {} }   // 🪄 움직이는 캐릭터 : 칠한 곳 · 움직임 설정 (js/char-move.js)
@@ -1016,7 +1035,9 @@
                 el.appendChild(span);
             }
 
+            el.dataset.lt = +data.lt || 1;                                    // 🔒 시각이 없는 예전 것 = 고정
             if (interactive) makeTransformable(el);
+            { const ta = el.querySelector('textarea'); if (ta && interactive && elLocked(el)) ta.readOnly = true; }   // 🔒 고정된 글은 못 고쳐요
 
             if (data.bs === 'l' || data.bs === 'r') el.dataset.bs = data.bs;
             if (data.ph && /^[\d.,|-]{1,800}$/.test(data.ph)) { el.dataset.ph = data.ph; if (window.bdPhPaint) bdPhPaint(el); }

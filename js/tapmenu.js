@@ -107,6 +107,7 @@
 
         /* 📌 놓아 둔 그림 · 글 위에서 나오는 메뉴 : 🎨 다듬기(js/elements.js elEditable) · ✥ 글씨체 · 사진 꾸미기(js/page.js openTextPanel) · ↕️ 순서 · 🗑️ 삭제 */
         function tmOpenElem(el, x, y, byTouch) {
+            if (window.elLocked && elLocked(el)) { elLockSay(x, y); return; }   // 🔒 고정된 것은 메뉴(순서 · 삭제 …)도 안 돼요 (도련 10-29)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
             if (typeof dw !== 'undefined' && dw.on && !dw.rest) return;
             if (!el || !el.isConnected) return;
