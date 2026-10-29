@@ -211,8 +211,16 @@
         pile.onpointerup = up; pile.onpointercancel = up;
     }
     /* ---------- 종이 열기 : 종류마다 원래 연출로 (뗀 자리 · 쓴 양은 이미 빠져 있어요) ---------- */
+    /* 🪑 책상 모드에서 다이어리가 책상에 누워 있으면 먼저 들어 올려요 (도련 10-29 : 누운 다이어리는 그림 복사본이라 붙인 스티커를 옮기거나 돌릴 수 없어요) */
+    async function bkLift() {
+        const H = document.documentElement;
+        if (!H.classList.contains('desk-on') || H.classList.contains('desk-show') || !window.deskOpenDiary) return;
+        deskOpenDiary(); await new Promise(r => setTimeout(r, 680));
+    }
+    window.bkLift = bkLift;
     async function bkOpenSheet(id) {
         if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+        await bkLift();
         if (B.opening || !window.ownSheet) return;
         B.opening = id;
         const card = document.querySelector(`.bk-sh[data-id="${CSS.escape(id)}"]`); if (card) card.classList.add('busy');
@@ -1301,6 +1309,7 @@
     }
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
+        await bkLift();
         const prev = DS.act ? DS.m.get(DS.act) : null;
         if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsMoveFromPeel(prev); dsReload(prev.id); dsPaint(prev); } }
         const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
