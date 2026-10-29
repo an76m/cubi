@@ -468,7 +468,7 @@ html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-
 
 /* 🏷️ 다이어리 라벨 (도련 10-29 · js/desk.js dkyLabelPaint) : 사용자가 붙이고 꾸며요 · 📚 책등 / 📔 앞면 자리 따로 */
 .dky-lb.ph { opacity: .55; }
-html.desk-edit .dky-lb { pointer-events: auto; cursor: move; outline: 1.5px dashed #ff6b88; outline-offset: 2px; }
+html.desk-edit .dky-lb { pointer-events: none; }   /* 🏷 다이어리 이름표는 눌리지 않아요 (도련 10-30 · 고치기 = 메뉴 🏷 이름표) */
 .dk-pose .dky-lbb { background: #fff1c4; }
 .dky-lbp { position: fixed; left: 50%; top: 14px; translate: -50% 0; z-index: 2147482500; width: min(94vw, 460px); box-sizing: border-box; padding: 10px 12px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #6a4f5a; }
 .dky-lbp[hidden] { display: none; }

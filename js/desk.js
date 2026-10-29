@@ -370,7 +370,7 @@
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>`;
             const dd = document.getElementById('deskDiary'); let dn = null;
-            dd.addEventListener('pointerdown', ev => { if (ev.target.closest('.dk-pose')) { ev.stopPropagation(); return; } if (DK.edit) { const lb = ev.target.closest('.dky-lb'); if (lb) dkyLbGrab(ev, lb); else dkyGrab(ev); return; } dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
+            dd.addEventListener('pointerdown', ev => { if (ev.target.closest('.dk-pose')) { ev.stopPropagation(); return; } if (DK.edit) { dkyGrab(ev); return; }   /* 🏷 이름표 글씨를 눌러도 다이어리 (도련 10-30 : 이름표 창은 메뉴 🏷 이름표로만 · 글 자리는 창의 가로 · 세로로만) */ dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
             dd.addEventListener('pointerup', ev => { if (dn && !DK.edit && Math.hypot(ev.clientX - dn[0], ev.clientY - dn[1]) < 8) deskOpenDiary(); dn = null; });
             dd.addEventListener('keydown', ev => { if (!DK.edit && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); deskOpenDiary(); } });
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
@@ -1147,13 +1147,6 @@
             const b = dknBuild(Object.assign({}, L, g), { t: '이름표', ic: '📔' }, 'dky-lb ' + fc);   // 🏷 소품 이름표와 같은 것 하나 (dknBuild)
             host.appendChild(b);
         }
-        function dkyLbGrab(ev, b) {                                               // 🛠 라벨 끌어 옮기기 (그 면 안에서)
-            ev.preventDefault(); ev.stopPropagation();
-            const st = DK.dyEdit, L = st.lb = dkyLb(st), g = L[dkyFace(st.p)], host = b.parentElement, R = host.getBoundingClientRect(), gx = g.x, gy = g.y, x0 = ev.clientX, y0 = ev.clientY;
-            const mv = e => { if (e.pointerId !== ev.pointerId) return; g.x = Math.max(0, Math.min(1, gx + (e.clientX - x0) / R.width)); g.y = Math.max(0, Math.min(1, gy + (e.clientY - y0) / R.height)); dkyLabelPaint(); };
-            const up = e => { if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); dkyLbPanel(true); };
-            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
-        }
         const DKY_TC = ['#8a2f58', '#5b3f4a', '#c8457a', '#7a5bb8', '#3d7fc4', '#2f8a5a', '#d08a2a', '#ffffff'];
         const DKY_BC = ['#fffaf3', '#ffd3e2', '#e6dcf8', '#d6ecfb', '#dff4e7', '#fff1c4', '#5b3f4a', '#8a2f58'];
         const DKY_OC = ['#ffffff', '#5b3f4a', '#8a2f58', '#ffd3e2', '#fff1c4', '#d6ecfb', '#2a2a2a', '#d08a2a'];
@@ -1162,7 +1155,7 @@
             if (!show || !DK.dyEdit) { if (pn) pn.hidden = true; dknEmoClose(); return; }
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkyLbPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             const st = DK.dyEdit, L = st.lb = dkyLb(st), fc = dkyFace(st.p), g = L[fc];   // 🏷 소품 이름표와 같은 창 (도련 10-30)
-            pn.innerHTML = dknHtml(Object.assign({}, L, g), 'dkyLbSet', 'dkyLbPanel(false)', (fc === 'side' ? '📚 책등' : '📔 앞면') + ' · 끌어 옮겨요', { t: '예 : 2026 · 일기', ic: '📔' });
+            pn.innerHTML = dknHtml(Object.assign({}, L, g), 'dkyLbSet', 'dkyLbPanel(false)', (fc === 'side' ? '📚 책등' : '📔 앞면') + ' · 자리는 가로 · 세로로', { t: '예 : 2026 · 일기', ic: '📔' });
             pn.hidden = false;
         }
         function dkyLbSet(k, v, live) {
