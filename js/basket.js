@@ -105,9 +105,14 @@
         else if (e.k === 'tk') inner = `<span class="bk-pad" style="--q:${q.toFixed(2)}">${window.tkMiniHtml ? tkMiniHtml(x.pad || 'memo', x.pad === 'my' ? { src: e.th, glue: x.glue || '' } : null) : ''}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'memo') inner = `<span class="bk-pad bk-memo" style="--q:${q.toFixed(2)}">${x.pp && x.pp !== 'img' ? `<span class="pp-chip pp-${esc(x.pp)}"></span>` : `<img src="${esc(e.th || '')}" alt="" draggable="false">`}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'leaf') inner = `<span class="lf-pick bk-leaf"><i class="lf-sw ${x.lf && x.lf !== 'my' ? 'lf-' + esc(x.lf) : 'lf-my'}"${!x.lf || x.lf === 'my' ? ` style="--lf-img:url('${esc(e.th || '')}')"` : ''}></i></span>`;
+        else if (e.L && e.us) inner = abLayHtml(e.L, e.us.map(u => window.kitSize ? kitSize(u, 96) : u), used);   // 🗺️ 시트 배치 그대로 (뗀 자리는 빈 종이)
         else if (e.th) inner = `<img src="${esc(e.th)}" alt="" draggable="false">`;
         else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : kitImg(u)).join('')}</i>`;
         return `<button type="button" class="bk-sh ${cls}${e.n === 1 && !e.q0 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="${esc(KIND_NAME[e.k] || '스티커')}">${inner}</button>`;
+    }
+    /* 🗺️ 시트 배치 그대로 (도련 10-29) : 흰 종이 (가로÷세로 = L.r) 위 원래 자리 · 크기 (% 라 카드 · 확대 어디서나) */
+    function abLayHtml(L, srcs, used) {
+        return `<i class="bk-lay" style="--r:${(+L.r).toFixed(4)}">${L.b.map((v, i) => used && used.has(i) ? '' : `<img src="${esc(srcs[i] || '')}" alt="" loading="lazy" draggable="false" style="left:${(v[0] * 100).toFixed(2)}%;top:${(v[1] * 100).toFixed(2)}%;width:${(v[2] * 100).toFixed(2)}%;height:${(v[3] * 100).toFixed(2)}%" onerror="this.style.visibility='hidden'">`).join('')}</i>`;
     }
     const KIND_NAME = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', memo: '메모지', tk: '떡메모지', leaf: '속지' };
     /* 바구니 꼬리표 : 무엇이 몇 개 (도련 10-25 · '5장'만으로는 헷갈려요) */
@@ -218,7 +223,7 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at }); }
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null }); }
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
                 if (window.stkLeave) stkLeave();
@@ -673,7 +678,7 @@
         const imgs = D.sheet.baked || !window.pelBake ? D.sheet.imgs : await Promise.all(D.sheet.imgs.map(u => u ? pelBake(u).catch(() => u) : null));   // 하얀 테두리 (⚙ 설정을 따라요)
         const D2 = B.desk;
         if (!D2 || !D2.sheet || D2.sheet.id !== id || D2.mode !== 'rl' || B.view !== 'desk') { if (AB.peelOn === id) AB.peelOn = ''; return; }
-        const ok = await openStickerPeel(imgs, { rel: {
+        const ok = await openStickerPeel(imgs, { L: D.sheet.L || null, rel: {
             at: () => { const z = bq('abPeelZone'); return z ? z.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: 130, right: innerWidth, bottom: 130 }; },
             target: () => { const r = bq('abRel'); return r ? r.getBoundingClientRect() : null; },
             alive: () => vis('basketKindModal') && B.view === 'desk' && !!bq('abPeelZone'),
@@ -709,7 +714,7 @@
     async function abLoadSheet(id) {
         let r = null; try { r = await ownSheetImgs(id); } catch (e) { abErr(e); }
         const D = B.desk; if (!D || D.pick !== id) return;
-        if (!r || !r.imgs.some(u => u != null)) { D.pick = ''; D.sheet = null; } else D.sheet = { id, imgs: r.imgs, baked: r.baked };
+        if (!r || !r.imgs.some(u => u != null)) { D.pick = ''; D.sheet = null; } else D.sheet = { id, imgs: r.imgs, baked: r.baked, L: r.L };
         if (B.view === 'desk' && !AB.drag) bkView();
     }
     function abTapSheet(id) {
@@ -880,9 +885,9 @@
     const SH_KINDS = {
         seal: ['씰스티커', async () => {
             const kit = await basicKit(), out = [];
-            kit.sheets.slice().reverse().forEach(x => out.push([x.us, x.pv]));       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
+            kit.sheets.slice().reverse().forEach(x => out.push([x.us, x.pv, x.L]));       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
             kit.images.slice().reverse().forEach(x => out.push([[x.u]]));            // 낱장
-            const items = out.map(([us, pv]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '') }));
+            const items = out.map(([us, pv, L]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, L, thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '', L) }));   // 🗺️ L = 시트 배치 그대로
             return items;
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
@@ -1049,6 +1054,7 @@
         if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(src[0])}')"></i></span>`;
         if (x.look === 'memo') return `<div class="sh-memo"><span class="pp-chip pp-${esc(x.pp)}"></span></div>`;
         if (!big && x.pv && x.look === 'grid') { const p = x.pv; return `<div class="sh-paper"><svg class="sh-pv" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><svg width="${p.w}" height="${p.h}"><image href="${esc(p.u)}" x="0" y="${-p.y}" width="${p.w}" height="${p.H}"/></svg></svg></div>`; }   // 🖼️ 묶음 미리보기 (작은 그림 수십 장 대신 · 포장기 p/ 한 파일에서 내 칸만 잘라 보여요)
+        if (x.L && x.look === 'grid' && (big || !x.pv)) return `<div class="sh-paper sh-lay">${abLayHtml(x.L, src)}</div>`;   // 🗺️ 시트 배치 그대로
         if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }

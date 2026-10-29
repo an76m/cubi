@@ -138,6 +138,13 @@
             } finally { clearTimeout(timer); }
         }
         try { localStorage.removeItem('malang_kit_list'); } catch (e) {}       // 예전 목록 기억은 안 써요 (도련 10-25 · 늘 새 목록만) → v711 때 남은 것 치우기
+        /* 🗺️ 씰 시트 배치 (도련 10-29 · 포장기 L = { r : 가로÷세로, b : [그림마다 [x, y, w, h] 0~1] }) : 그림 순서와 맞춰서 (못 쓰는 그림은 같이 빼요) */
+        function kitLay(x) {
+            const L = x && x.L, fs = Array.isArray(x && x.fs) ? x.fs : [];
+            if (!L || !(+L.r > 0) || !Array.isArray(L.b) || L.b.length !== fs.length) return {};
+            const b = fs.map((f, i) => kitOk(f) ? L.b[i] : null).filter((v, i) => kitOk(fs[i])).slice(0, 30);
+            return b.every(v => Array.isArray(v) && v.length === 4 && v.every(n => typeof n === 'number' && isFinite(n))) ? { L: { r: +L.r, b } } : {};
+        }
         function kitParse(d) {
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
@@ -150,7 +157,7 @@
                 });
                 return {
                     images: d.images.filter(x => x && kitOk(x.f)).map(x => ({ u: kitUrl(x.f), c: String(x.c || '') })),
-                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && { c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) }).filter(x => x && x.us.length),
+                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && Object.assign({ c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) }, kitLay(x))).filter(x => x && x.us.length),
                     kits
                 };
             }

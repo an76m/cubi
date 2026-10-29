@@ -412,3 +412,9 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 /* 🤍 이형지북 스티커 = 다이어리에 붙였을 때와 같은 크기 (w · h × 배율 --rk · js abRelK · 도련 10-29) */
 .abs-book .ab-rel.abx-wax .ab-it[style*="--iw"] { width: calc(var(--iw) * var(--rk, .5) * 1px); height: calc(var(--ih) * var(--rk, .5) * 1px); }
 .abs-basket .ab-stripempty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0; }
+
+/* 🗺️ 씰 시트 배치 그대로 (도련 10-29 · js/basket.js abLayHtml) : 흰 종이 위 원래 자리 · 크기 */
+.bk-lay { position: relative; display: block; width: 100%; aspect-ratio: var(--r, .7); background: #fff; border-radius: 6px; overflow: hidden; }
+.bk-lay > img { position: absolute; object-fit: contain; pointer-events: none; }
+.bk-sh:has(> .bk-lay) { padding: 6px; }
+.sh-paper.sh-lay { display: block; padding: 6px; }

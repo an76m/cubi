@@ -297,12 +297,15 @@
             ownReady();
             const id = ownRid(), imgs = sheet.imgs.slice(0, 40);
             const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'kit', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
+            const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? { r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) } : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
+            if (L) full.L = L;
             const ent = { id, f: '', k: full.k, n: imgs.length, u: [], at: Date.now(), from: full.from, nm: full.nm };
             const q0 = sheet.q0 || OWN_Q[full.k];
             if (q0) { full.q0 = full.q = q0; ent.q0 = ent.q = q0; }
             if (full.ts) ent.ts = 1;
             if (sheet.b) full.b = sheet.b;                                        // 🛟 되살릴 때 들어갈 바구니 (😀 이모지)
             if (meta && meta.us) ent.us = meta.us.slice(0, 40);
+            if (L) ent.L = L;                                                     // 바구니 카드도 배치 그대로
             if (meta && meta.th) ent.th = meta.th;
             if (sheet.b) ent.b = sheet.b;                                         // 들어갈 바구니 (😀 이모지는 씰이지만 이모지 바구니로)
             if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg };   // 바구니 모양 (떡메 종류 · 속지 무늬 · 메모지 모양)
@@ -443,9 +446,9 @@
             const b = await res.blob();
             return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = no; r.readAsDataURL(b); });
         }
-        async function ownTakeKit(us, nm) {
+        async function ownTakeKit(us, nm, L) {
             const imgs = await Promise.all(us.map(ownBlobUrl));
-            return ownAdd({ k: 'seal', from: 'kit', nm, baked: false, imgs, wh: await ownSizes(imgs) }, { us });
+            return ownAdd({ k: 'seal', from: 'kit', nm, baked: !!L, imgs, wh: await ownSizes(imgs), L }, { us });   // 🗺️ 배치 시트는 하얀 테두리째 잘라서 더 두르지 않아요
         }
         /* ✂️ 만든 씰 : 하얀 테두리를 이미 두른 그림들 → 내 종이로 */
         async function ownTakeMine(srcs, opt) {
@@ -635,7 +638,7 @@
             });
         }
         /* 종이의 그림들 (정리 책상에서 낱개로 보여 주기 · 쓰는 중인 칸은 비어요) */
-        async function ownSheetImgs(id) { const r = await ownSheet(id); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked } : null; }
+        async function ownSheetImgs(id) { const r = await ownSheet(id); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null } : null; }
 
         /* 실패 이유 → 알림 글 */
         function ownErrText(e) {
