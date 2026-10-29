@@ -425,7 +425,7 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 .sh-bag.bye { animation: shBagOut .3s ease both; }
 .sh-bag-in { display: block; animation: gateBob 2.4s ease-in-out .45s infinite; }
 .sh-bag svg { width: min(330px, 70vw); height: auto; aspect-ratio: 260 / 290; display: block; }   /* 3배 (도련 10-29) */
-.sh-bag-msg { padding: 5px 14px; border-radius: 6px; background: #fdeee8; color: #a02a45; font-size: 15px; font-weight: 800; white-space: nowrap; }
+.sh-bag-msg { padding: 5px 14px; border-radius: 6px; background: #a02a45; color: #fdeee8; font-size: 15px; font-weight: 800; white-space: nowrap; }
 @keyframes shBagIn { from { opacity: 0; scale: .5; } to { opacity: 1; scale: 1; } }
 @keyframes shBagOut { to { opacity: 0; scale: .8; } }
 @media (prefers-reduced-motion: reduce) { .sh-bag.on, .sh-bag-in { animation: none; } }
