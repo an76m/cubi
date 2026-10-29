@@ -29,15 +29,16 @@
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
         const DESK_ITEMS = [                                                      // 기본 소품 (도련 10-26 · 크기는 참고 그림의 책상 대비 비율) · wall = 벽에 거는 것 (책상 자석 없음 · 늘 뒤)
+            // front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] → 다이어리 바닥이 그 안이면 '꽂힘' = 소품과 앞벽 사이 (도련 10-29)
             // surf = 위에 물건을 올릴 수 있는 면 [소품 안 세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 그림 px) · 올려 둔 물건은 함께 움직이고 그 소품보다 앞에 보여요
             { id: 'corkboard', kind: 'board', src: 'img/desk/corkboard.webp?v=20261009-832', w: 520, h: 393, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
             { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-833', w: 430, h: 248, x: 160, y: 104, name: '벽 선반', wall: 1, surf: [[50, 10, 421], [211, 10, 421]] },
             { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]] },
             { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
-            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니' },
+            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-911', mouth: [5, 95, 55] },
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
             { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자' },
-            { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이' },
+            { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51] },
             { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-836', w: 126, h: 151, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.5, 22.3, 82.6, 85.9] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1258, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
@@ -594,10 +595,37 @@
             const z = new Map(), surfs = deskSurfs(null), get = (el, depth) => {
                 if (z.has(el)) return z.get(el);
                 const on = depth < 6 ? deskOn(el, surfs) : null;
-                const v = on ? get(on.el, depth + 1) + 1 : el.classList.contains('wall') ? 1 : 10 + Math.round(bot(el)) * 2;
+                const v = on ? get(on.el, depth + 1) + 1 : el.classList.contains('wall') ? 1 : 10 + Math.round(Math.min(950, bot(el))) * 3;   // 3칸 간격 = 소품 · 꽂힌 다이어리 · 앞벽
                 z.set(el, v); return v;
             };
             items.forEach(el => { el.style.zIndex = get(el, 0); });
+            dkLayers();
+        }
+        /* 🧺 앞벽 (도련 10-29) : 앞벽이 있는 소품 = 같은 그림을 앞벽 마스크로 잘라 한 겹 더 (소품 바로 앞) · 칠한 그림도 그대로 따라가요
+           다이어리 바닥이 입구(mouth) 안 = 소품과 앞벽 사이 → 꽂힌 것처럼 · 밖이면 늘 맨 앞 · 크기 · 자리는 사용자 마음 (맞춰 주지 않아요) */
+        function dkyIn(st) {
+            let best = null;
+            document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+                const d = dkDef(el); if (!d.front || !d.mouth) return;
+                const L = parseFloat(el.style.left), T = parseFloat(el.style.top), w = parseFloat(el.style.width), h = parseFloat(el.style.height), [m0, m1, m2] = d.mouth;
+                if (st.x >= L + w * m0 / 100 && st.x <= L + w * m1 / 100 && st.y >= T + h * m2 / 100 && st.y <= T + h + 2 && (!best || +el.style.zIndex > +best.style.zIndex)) best = el;
+            });
+            return best;
+        }
+        function dkLayers() {
+            const stg = document.getElementById('deskStage'); if (!stg) return;
+            const keep = new Set(), dy = document.getElementById('deskDiary'), box = dy ? dkyIn(dkyGet()) : null;
+            stg.querySelectorAll('.desk-item').forEach(el => {
+                const d = dkDef(el); if (!d.front) return; const u = el.dataset.u; keep.add(u);
+                let f = [...stg.querySelectorAll('.dk-front')].find(x => x.dataset.fu === u);
+                if (!f) { f = document.createElement('div'); f.className = 'dk-front'; f.dataset.fu = u; f.innerHTML = `<i class="dk-fm"><img data-art-u="${u}" alt="" draggable="false"></i>`; f.style.setProperty('--fm', `url("${new URL(d.front, location.href).href}")`); el.after(f); }   // 마스크 주소는 css 파일 기준이 아니라 이 페이지 기준으로
+                const im = f.querySelector('img'), src = el.querySelector(':scope > img').src; if (im.src !== src) im.src = src;
+                Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: (+el.style.zIndex || 0) + 2, display: el === box ? '' : 'none' });   // 다이어리가 꽂힌 소품만 앞벽을 겹쳐요
+                f.querySelectorAll('.dk-fn-tag').forEach(x => x.remove()); const tg = el.querySelector('.dk-fn-tag'); if (tg && el === box) f.appendChild(tg.cloneNode(true));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
+            });
+            stg.querySelectorAll('.dk-front').forEach(f => { if (!keep.has(f.dataset.fu)) f.remove(); });
+            if (!dy) return;
+            dy.style.zIndex = box ? (+box.style.zIndex || 0) + 1 : ''; dy.classList.toggle('in-box', !!box);
         }
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
@@ -759,7 +787,7 @@
             ['side', 'front', 'lay'].forEach(p => el.classList.toggle('p-' + p, st.p === p));
             el.style.setProperty('--ax', st.x + 'px'); el.style.setProperty('--ay', st.y + 'px'); el.style.setProperty('--dks', DKY_S);
             el.querySelectorAll('.dk-pose button').forEach(b => b.classList.toggle('on', b.dataset.p === st.p));
-            dkyLabelPaint(); if (DK.dyEdit) { const pn = document.getElementById('dkyLbPanel'); if (pn && !pn.hidden) dkyLbPanel(true); }
+            dkLayers(); dkyLabelPaint(); if (DK.dyEdit) { const pn = document.getElementById('dkyLbPanel'); if (pn && !pn.hidden) dkyLbPanel(true); }
         }
         function dkyPose(p) { if (!DK.dyEdit) return; DK.dyEdit.p = p; dkyApply(); }
         function dkyGrab(ev) {                                                    // 🛠 끌어 옮기기 · 톡 = 모습 고르기
@@ -835,6 +863,7 @@
             });
             deskZAll();
             moved.forEach(el => { el.style.zIndex = 2900; });                    // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게)
+            dkLayers();
         }
         function deskWire(el) {
             let p = null;
