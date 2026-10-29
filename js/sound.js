@@ -91,6 +91,20 @@
                 ns.buffer = buf; ng.gain.value = a; ns.connect(ng).connect(bus); ns.start(t);
             });
         }
+        /* 🛍️ 상품을 담았어요 '띠링~' (도련 10-29 · 소리 시안 C 의 방울 두 번만) : 1760 → 2349 Hz · 배음 2 · 3 배 · 0.18초쯤 스르르 */
+        function sndBag() {
+            const ac = sndFx(); if (!ac) return;
+            const t0 = ac.currentTime + .02;
+            [[0, 1760, .6], [.1, 2349, .45]].forEach(([at, f, a]) => {
+                const t = t0 + at;
+                [[1, 1], [2, .3], [3, .12]].forEach(([m, pa]) => {
+                    const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f * m;
+                    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.16 * a * pa, t + .005); g.gain.setTargetAtTime(0.0001, t + .005, .175);
+                    o.connect(g).connect(snd.out); o.start(t); o.stop(t + .9);
+                });
+            });
+        }
+        window.sndBag = sndBag;
         window.sndShopBell = sndShopBell; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
 
         /* ---------- 🔊 연출 소리 켜고 끄기 (연출 화면의 버튼 · 설정 공용) ---------- */
