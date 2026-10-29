@@ -842,12 +842,12 @@
             el.querySelectorAll('.dk-pose button').forEach(b => b.classList.toggle('on', b.dataset.p === st.p));
             dkLayers(); dkyLabelPaint(); if (DK.dyEdit) { const pn = document.getElementById('dkyLbPanel'); if (pn && !pn.hidden) dkyLbPanel(true); }
         }
-        function dkyPose(p) { if (!DK.dyEdit) return; DK.dyEdit.p = p; dkyApply(); }
+        function dkyPose(p) { if (!DK.dyEdit) return; DK.dyEdit.p = p; const el = document.getElementById('deskDiary'); if (el) el.classList.remove('pose-on'); dkyApply(); }   // 고르면 창을 닫아요 → 바로 제자리(바구니 안이면 안) 모습
         function dkyGrab(ev) {                                                    // 🛠 끌어 옮기기 · 톡 = 모습 고르기
             if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
             const el = document.getElementById('deskDiary'), st = DK.dyEdit, x0 = ev.clientX, y0 = ev.clientY, sx = st.x, sy = st.y, s = DK.s || 1; let moved = false;
             document.querySelectorAll('.desk-item.sel').forEach(x => x.classList.remove('sel')); if (window.deskSelect) deskSelect(null);
-            const mv = e => { if (e.pointerId !== ev.pointerId) return; const dx = (e.clientX - x0) / s, dy = (e.clientY - y0) / s; if (!moved && Math.hypot(dx, dy) < 5) return; moved = true; el.classList.add('lift');
+            const mv = e => { if (e.pointerId !== ev.pointerId) return; const dx = (e.clientX - x0) / s, dy = (e.clientY - y0) / s; if (!moved && Math.hypot(dx, dy) < 5) return; moved = true; el.classList.add('lift'); el.classList.remove('pose-on');   // 끌면 모습 고르기 창은 닫아요 (열려 있으면 맨 앞이라 바구니에 안 들어가 보였어요 · 도련 10-29)
                 st.x = Math.round(Math.max(40, Math.min(1632, sx + dx))); st.y = Math.round(dkBoxFloor(st.x, Math.max(120, Math.min(930, sy + dy)), null)); dkyApply(); };
             const up = e => { if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); el.classList.remove('lift'); if (!moved) el.classList.toggle('pose-on'); };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
