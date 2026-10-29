@@ -431,3 +431,25 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 @media (prefers-reduced-motion: reduce) { .sh-bag.on, .sh-bag-in { animation: none; } }
 /* 🏪 받은 뒤 버튼 '보관함 확인' = 연녹색 (도련 10-29) */
 html .sh-take.got, html.an .sh-take.got, html.an .sh-take.got:not(.sh-zoombtn) { background: #dff4e7 !important; border: 1.5px solid #7cc7a0 !important; color: #2f8a5a !important; }
+
+/* 📔 책상 위 다이어리 자리 · 모습 (도련 10-29 · js/desk.js dky) : --ax · --ay = 바닥 가운데 (책상 그림 px) · 📚 꽂기 = 책등 · 📔 세우기 = 앞모습 · 🛏 눕히기 = 예전 그대로 */
+.dk-diary { left: calc(var(--ax, 836px) - var(--dkw, 200px) / 2) !important; top: calc(var(--ay, 848px) - var(--dkh, 383px)) !important; }
+.dk-diary.p-front .dk-top { transform: scale(var(--dks, .4)); transform-origin: 50% 100%; overflow: visible; }
+.dk-diary.p-front .dk-edge, .dk-diary.p-side .dk-edge, .dk-diary.p-side .dk-top { display: none; }
+.dk-spine { display: none; }
+.dk-diary.p-side .dk-spine { display: block; position: absolute; left: calc(50% - 14px); top: calc(var(--dkh, 383px) * (1 - var(--dks, .4))); width: 28px; height: calc(var(--dkh, 383px) * var(--dks, .4));
+    box-sizing: border-box; pointer-events: auto; border: 1.6px solid #a080a5; border-radius: 6px 6px 4px 4px;
+    background-color: color-mix(in srgb, var(--primary-accent) 38%, #fff);
+    background-image: repeating-linear-gradient(90deg, transparent 0 5px, color-mix(in srgb, var(--primary-accent) 22%, transparent) 5px 10px), repeating-linear-gradient(0deg, transparent 0 5px, color-mix(in srgb, var(--primary-accent) 22%, transparent) 5px 10px); }   /* 깅엄 책등 */
+.dk-spine::before, .dk-spine::after { content: ''; position: absolute; left: -1.6px; right: -1.6px; height: 9px; border: 1.6px solid #a080a5; background: color-mix(in srgb, var(--primary-accent) 60%, #fff); }
+.dk-spine::before { top: -1.6px; border-radius: 6px 6px 2px 2px; } .dk-spine::after { bottom: -1.6px; border-radius: 2px 2px 4px 4px; }
+.dk-spine b { position: absolute; left: 3px; right: 3px; top: 32%; height: 34px; border: 1.4px solid #a080a5; border-radius: 3px; background: #fffaf3; }   /* 책등 라벨 */
+.dk-spine b::after { content: '♥'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #f08aa8; }
+.dk-diary.dk-fly .dk-spine { visibility: hidden; }
+html.desk-edit .dk-diary { opacity: 1 !important; cursor: grab; }
+html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-edit .dk-diary .dk-edge { outline: 2px dashed #ff8fb4; outline-offset: 3px; }
+.dk-diary.lift { cursor: grabbing; }
+.dk-pose { display: none; position: absolute; left: 50%; top: calc(var(--dkh, 383px) + 26px); translate: -50% 0; gap: 6px; padding: 6px; border: 1.6px solid #8d6f7f; border-radius: 999px; background: #fffaf2; pointer-events: auto; white-space: nowrap; z-index: 2; }
+html.desk-edit .dk-diary.pose-on .dk-pose { display: flex; }
+.dk-pose button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
+.dk-pose button.on { background: #ffd3e2; }
