@@ -787,7 +787,7 @@
             const fo = (typeof fontList !== 'undefined' ? fontList : []).find(x => x.id === g.f);
             Object.assign(b.style, { left: (g.x * 100) + '%', top: (g.y * 100) + '%', color: g.c, background: g.bx ? g.bg : 'transparent', fontFamily: fo ? fo.css : '' });
             b.style.setProperty('--fs', g.s); b.style.setProperty('--oc', g.oc);
-            b.innerHTML = (g.m !== 't' ? `<i class="dkn-ic">${g.ic || a.ic}</i>` : '') + (g.m !== 'i' ? `<span class="dkn-t">${g.v ? [...String(g.t || a.t)].map(ch => ch === ' ' ? '<i class="dkn-sp"></i>' : ch.replace(/</g, '&lt;') + '<br>').join('') : String(g.t || a.t).replace(/</g, '&lt;')}</span>` : '');   // 세로쓰기 = 한 글자씩 아래로 (글자 사이 빈칸이 넘치던 것 막기)
+            b.innerHTML = (g.m !== 't' ? `<i class="dkn-ic">${g.ic ? String(g.ic).replace(/[&<>"]/g, '') : a.ic}</i>` : '') + (g.m !== 'i' ? `<span class="dkn-t">${g.v ? [...String(g.t || a.t)].map(ch => ch === ' ' ? '<i class="dkn-sp"></i>' : ch.replace(/</g, '&lt;') + '<br>').join('') : String(g.t || a.t).replace(/</g, '&lt;')}</span>` : '');   // 세로쓰기 = 한 글자씩 아래로 (글자 사이 빈칸이 넘치던 것 막기)
             if (!g.t && g.m !== 'i') b.classList.add('ph');
             return b;
         }
@@ -804,12 +804,14 @@
         /* 🏷 이름표 창 (소품 · 📔 다이어리 같이 · 도련 10-30) : set = 바꾸는 함수 이름 · close = 닫는 코드 · a = 비워 둘 때 글 · 아이콘 */
         function dknHtml(g, set, close, sub, a) {
             const fl = typeof fontList !== 'undefined' ? fontList : [], q = v => String(v).replace(/"/g, '&quot;');
-            const sw = (arr, cur, k) => arr.map(c => `<button type="button" class="dky-sw${c === cur ? ' on' : ''}" style="--c:${c}" onclick="${set}('${k}','${c}')" aria-label="${c}"></button>`).join('');
+            const sw = (arr, cur, k) => arr.map(c => `<button type="button" class="dky-sw${c === cur ? ' on' : ''}" style="--c:${c}" onclick="${set}('${k}','${c}')" aria-label="${c}"></button>`).join('') + dknCc(arr, cur, k, set);
+            const icMy = g.ic && !DKN_IC.includes(g.ic) ? `<button type="button" class="dkn-ic-b on" onclick="${set}('ic','${q(g.ic)}')">${q(g.ic)}</button>` : '';   // 😀 모든 이모지에서 고른 것
             const seg = [['ti', '아이콘 + 글씨'], ['t', '글씨만'], ['i', '아이콘만']].map(([v, n]) => `<button type="button" class="dkn-seg${g.m === v ? ' on' : ''}" onclick="${set}('m','${v}')">${n}</button>`).join('');
             return `<div class="dky-row"><b>🏷 이름표</b><label class="dky-tg"><input type="checkbox" ${g.on ? 'checked' : ''} onchange="${set}('on', this.checked)"> 붙이기</label><small>${sub}</small><button type="button" class="dky-x" onclick="${close}" aria-label="닫기">✕</button></div>`
                 + (g.on ? `<div class="dky-row">${seg}</div>`
                 + (g.m !== 'i' ? `<div class="dky-row"><input class="dky-t" maxlength="20" placeholder="${q(a.t)}" value="${q(g.t)}" oninput="${set}('t', this.value, 1)"><select onchange="${set}('f', this.value)">${fl.map(f => `<option value="${f.id}"${f.id === g.f ? ' selected' : ''}>${f.name.replace(/ \(Local\)$/, '')}</option>`).join('')}</select></div>` : '')
-                + (g.m !== 't' ? `<div class="dky-row"><span>아이콘</span><button type="button" class="dkn-ic-b${!g.ic ? ' on' : ''}" onclick="${set}('ic','')">기본 ${a.ic.length < 9 ? a.ic : ''}</button>${DKN_IC.map(c => `<button type="button" class="dkn-ic-b${g.ic === c ? ' on' : ''}" onclick="${set}('ic','${c}')">${c}</button>`).join('')}</div>` : '')
+                + (g.m !== 't' ? `<div class="dky-row"><span>아이콘</span><button type="button" class="dkn-ic-b${!g.ic ? ' on' : ''}" onclick="${set}('ic','')">기본 ${a.ic.length < 9 ? a.ic : ''}</button>${DKN_IC.map(c => `<button type="button" class="dkn-ic-b${g.ic === c ? ' on' : ''}" onclick="${set}('ic','${c}')">${c}</button>`).join('')}${icMy}<button type="button" class="dkn-seg dkn-emo-b${DKN_EMO.open ? ' on' : ''}" onclick="dknEmoToggle('${set}')">😀 모든 이모지</button></div>`
+                + (DKN_EMO.open ? dknEmoHtml(set, g.ic) : '') : '')
                 + `<div class="dky-row"><span>글 색</span>${sw(DKY_TC, g.c, 'c')}</div>`
                 + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.bx ? 'checked' : ''} onchange="${set}('bx', this.checked)"> 라벨</label>${g.bx ? sw(DKY_BC, g.bg, 'bg') : ''}</div>`
                 + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.ol ? 'checked' : ''} onchange="${set}('ol', this.checked)"> 아웃라인</label>${g.ol ? sw(DKY_OC, g.oc, 'oc') : ''}</div>`
@@ -817,10 +819,58 @@
                 + `<div class="dky-row"><span>크기</span><input type="range" min="0.4" max="3" step="0.05" value="${g.s}" oninput="${set}('s', this.value, 1)"><label class="dky-tg"><input type="checkbox" ${g.v ? 'checked' : ''} onchange="${set}('v', this.checked)"> 세로쓰기</label></div>` : '')
                 + `<div class="dky-row"><button type="button" class="dkn-done" onclick="${close}">✔ 다 됐어요</button></div>`;
         }
+        /* 🎨 내 마음대로 색 (도련 10-30) : 준비된 색 뒤 동그라미 하나 = 색 고르기 창 · 고른 색이 준비된 색에 없으면 이 동그라미가 그 색으로 골라져 있어요
+           끄는 동안(oninput)은 이름표만 바로 바꾸고 창은 다시 그리지 않아요 (다시 그리면 색 고르기 창이 닫혀요) */
+        function dknCc(arr, cur, k, set) {
+            const my = !!cur && !arr.includes(cur), hex = /^#[0-9a-f]{6}$/i.test(cur || '') ? cur : '#ffffff';
+            return `<label class="dky-sw dkn-cc${my ? ' on' : ''}" style="--c:${my ? hex : '#fff'}" title="내 마음대로 색"><input type="color" value="${hex}" oninput="this.parentNode.style.setProperty('--c',this.value);this.parentNode.classList.add('my');${set}('${k}',this.value,1)" onchange="${set}('${k}',this.value)"></label>`;
+        }
+        /* 😀 모든 이모지 (도련 10-30) : 이름표 아이콘 줄 '😀 모든 이모지' → 종류 탭 · 한국어 이름으로 찾기 · 키보드 이모지 붙여넣기
+           목록 = js/emoji-data.js (emojibase-data · 처음 열 때만 불러와요) · 고른 것 = g.ic 에 이모지 글자 그대로 (최대 3개) */
+        const DKN_EMO = { open: false, c: 0, qs: '', cur: '', L: null };
+        const DKN_EMO_RX = /\p{Extended_Pictographic}|\p{Regional_Indicator}|⃣/u;
+        function dknEmoRe(set) { if (set === 'dkyLbSet') dkyLbPanel(true); else { const pn = document.getElementById('dknPanel'); if (pn && !pn.hidden) dknPanel(pn.dataset.u); } }
+        function dknEmoLoad(cb) {
+            if (window.EMO_DATA) { DKN_EMO.L = DKN_EMO.L || EMO_DATA.map(([n, ic, es, ks]) => ({ n, ic, e: es.split('|'), k: ks.split('|') })); return cb(); }
+            const s = document.createElement('script'), ref = document.querySelector('script[src*="js/desk.js"]'), v = ref && ref.src.includes('?') ? ref.src.slice(ref.src.indexOf('?')) : '';
+            s.src = 'js/emoji-data.js' + v; s.onload = () => dknEmoLoad(cb);
+            s.onerror = () => { s.remove(); DKN_EMO.open = false; cb(); if (window.showMsg) showMsg('😢 이모지 목록을 못 불러왔어요.<br><small>인터넷 연결을 확인해 주세요</small>'); };
+            document.head.appendChild(s);
+        }
+        function dknEmoToggle(set) { DKN_EMO.open = !DKN_EMO.open; if (DKN_EMO.open) dknEmoLoad(() => dknEmoRe(set)); else dknEmoRe(set); }
+        function dknEmoCells() {
+            const L = DKN_EMO.L; if (!L) return '';
+            let es; const qv = DKN_EMO.qs.trim();
+            if (qv) { es = []; L.forEach(c => c.e.forEach((e, i) => { if (es.length < 300 && c.k[i].includes(qv)) es.push(e); })); if (!es.length) return '<small class="dkn-emo-none">못 찾았어요 · 다른 말로 찾아 보세요</small>'; }
+            else es = L[DKN_EMO.c].e;
+            return es.map(e => `<button type="button" data-e="${e}"${e === DKN_EMO.cur ? ' class="on"' : ''}>${e}</button>`).join('');
+        }
+        function dknEmoHtml(set, cur) {
+            DKN_EMO.cur = cur || '';
+            if (!DKN_EMO.L) return '<div class="dkn-emo"><small>이모지를 불러오는 중…</small></div>';
+            const tabs = DKN_EMO.L.map((c, i) => `<button type="button" class="dkn-emo-tab${i === DKN_EMO.c && !DKN_EMO.qs ? ' on' : ''}" onclick="dknEmoCat(${i},'${set}')" title="${c.n}">${c.ic}</button>`).join('');
+            return `<div class="dkn-emo"><input class="dkn-emo-q" placeholder="🔍 이름으로 찾기 (예 : 고양이) · 이모지를 붙여 넣어도 돼요" value="${String(DKN_EMO.qs).replace(/"/g, '&quot;')}" oninput="dknEmoFind(this,'${set}')">`
+                + `<div class="dkn-emo-tabs">${tabs}</div><div class="dkn-emo-grid" onclick="dknEmoPick(event,'${set}')">${dknEmoCells()}</div></div>`;
+        }
+        function dknEmoCat(i, set) { DKN_EMO.c = i; DKN_EMO.qs = ''; dknEmoRe(set); }
+        function dknEmoKeep(set, fn) {                                            // 고른 뒤 창을 다시 그려도 보던 자리 그대로
+            const gr = document.querySelector('.dky-lbp:not([hidden]) .dkn-emo-grid'), sc = gr ? gr.scrollTop : 0; fn();
+            const g2 = document.querySelector('.dky-lbp:not([hidden]) .dkn-emo-grid'); if (g2) g2.scrollTop = sc;
+        }
+        function dknEmoPick(ev, set) { const b = ev.target.closest('button[data-e]'); if (b) dknEmoKeep(set, () => window[set]('ic', b.dataset.e)); }
+        function dknEmoFind(inp, set) {
+            const v = inp.value, seg = typeof Intl !== 'undefined' && Intl.Segmenter ? [...new Intl.Segmenter().segment(v)].map(x => x.segment) : [...v];
+            const em = seg.filter(ch => DKN_EMO_RX.test(ch)).slice(0, 3).join('');
+            if (em) { DKN_EMO.qs = ''; window[set]('ic', em); return; }              // ⌨️ 키보드 이모지 · 붙여넣기 = 바로 아이콘
+            DKN_EMO.qs = v.trim();
+            const pn = inp.closest('.dky-lbp'), gr = pn && pn.querySelector('.dkn-emo-grid'); if (gr) { gr.innerHTML = dknEmoCells(); gr.scrollTop = 0; }
+            pn && pn.querySelectorAll('.dkn-emo-tab').forEach((t, i) => t.classList.toggle('on', !DKN_EMO.qs && i === DKN_EMO.c));
+        }
+        window.dknEmoToggle = dknEmoToggle; window.dknEmoCat = dknEmoCat; window.dknEmoPick = dknEmoPick; window.dknEmoFind = dknEmoFind;
         function dknPanel(show) {
             let pn = document.getElementById('dknPanel');
             const u = show === true ? (DK.sel && DK.sel.dataset.u) || (pn && pn.dataset.u) : show, o = u && DK.items.find(x => x.u === u);   // 고른 소품이 바뀌어도 창은 그 소품 그대로 (체크하면 창이 닫히던 것 · 도련 10-30)
-            if (!show || !o) { if (pn) pn.hidden = true; return; }   // 🛠 꾸미기 · 상품을 넣으며 '붙이기'를 골랐을 때 (그때는 바로 저장)
+            if (!show || !o) { if (pn) pn.hidden = true; DKN_EMO.open = false; return; }   // 🛠 꾸미기 · 상품을 넣으며 '붙이기'를 골랐을 때 (그때는 바로 저장)
             if (!pn) { pn = document.createElement('div'); pn.id = 'dknPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); pn.addEventListener('click', e => e.stopPropagation()); }
             pn.dataset.u = o.u;
             pn.innerHTML = dknHtml(dknOf(o), 'dknSet', 'dknPanel(false)', dkName(o), dknAuto(o));
@@ -829,8 +879,8 @@
         function dknSet(k, v, live) {
             const pn = document.getElementById('dknPanel'), o = pn && DK.items.find(x => x.u === pn.dataset.u); if (!o) return;
             const g = o.tag = dknOf(o);
-            if (k === 'x' || k === 'y' || k === 's') g[k] = +v; else if (k === 'v') g.v = v ? 1 : 0; else if (k === 'on' || k === 'bx' || k === 'ol') g[k] = !!v; else if (k === 't') g.t = String(v).slice(0, 20); else g[k] = v;
-            if (!DK.edit) dkSave();                                              // 평소(상품을 넣으며)에는 바로 저장 · 🛠 꾸미기는 ✔ 완료 때
+            if (k === 'x' || k === 'y' || k === 's') g[k] = +v; else if (k === 'v') g.v = v ? 1 : 0; else if (k === 'on' || k === 'bx' || k === 'ol') g[k] = !!v; else if (k === 't') g.t = String(v).slice(0, 20); else if (k === 'ic') g.ic = String(v).slice(0, 40); else g[k] = v;
+            if (!DK.edit) dkSave();                                             // 평소(상품을 넣으며)에는 바로 저장 · 🛠 꾸미기는 ✔ 완료 때
             dknPaintAll(); if (!live) dknPanel(o.u);
         }
         window.dknPanel = dknPanel; window.dknSet = dknSet;
@@ -988,7 +1038,7 @@
         const DKY_OC = ['#ffffff', '#5b3f4a', '#8a2f58', '#ffd3e2', '#fff1c4', '#d6ecfb', '#2a2a2a', '#d08a2a'];
         function dkyLbPanel(show) {                                               // 🏷 이름표 꾸미기 창 (꾸미기 동안 화면 위 · 소품 이름표와 같은 창)
             let pn = document.getElementById('dkyLbPanel');
-            if (!show || !DK.dyEdit) { if (pn) pn.hidden = true; return; }
+            if (!show || !DK.dyEdit) { if (pn) pn.hidden = true; DKN_EMO.open = false; return; }
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkyLbPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             const st = DK.dyEdit, L = st.lb = dkyLb(st), fc = dkyFace(st.p), g = L[fc];   // 🏷 소품 이름표와 같은 창 (도련 10-30)
             pn.innerHTML = dknHtml(Object.assign({}, L, g), 'dkyLbSet', 'dkyLbPanel(false)', (fc === 'side' ? '📚 책등' : '📔 앞면') + ' · 끌어 옮겨요', { t: '예 : 2026 · 일기', ic: '📔' });
