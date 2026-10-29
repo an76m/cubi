@@ -77,7 +77,7 @@
         function shopSceneClose(quick) {
             const el = document.getElementById('shopScene'); if (!el || !SC.on || (SC.busy && !quick)) return;
             ['shelfKindModal', 'shelfModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
-            const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; };
+            const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; if (window.SHOP_BOUGHT) { window.SHOP_BOUGHT = false; if (window.deskBagDrop) setTimeout(deskBagDrop, 250); } };   // 🛍️ 산 게 있으면 책상 위에 봉투
             if (quick === true || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }
             SC.busy = true; shopFit(); el.classList.add('home');
             setTimeout(() => el.classList.add('home-go'), 1000);

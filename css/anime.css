@@ -509,3 +509,12 @@ html:not(.desk-edit) .dk-diary.p-side .dk-spine { box-shadow: 0 0 0 1.3px var(--
 .shop-scene.home .shop-x { opacity: 0; pointer-events: none; }
 .shop-sign.home b { color: #c8457a; }
 .shop-x { width: auto !important; height: auto !important; padding: 9px 16px; border-radius: 999px !important; font-size: 15px !important; white-space: nowrap; }   /* ✕ → 🚪 내 방으로 */
+
+/* 🛍️ 가게에서 사 온 봉투 (도련 10-30 · js/desk.js deskBagDrop) : 위에서 툭 떨어져 살짝 출렁 · 톡 = 집어 들고 사라져요 */
+.dk-bag { position: absolute; width: 120px; height: 134px; padding: 0; border: 0; background: none; cursor: pointer; z-index: 8800; transform-origin: 50% 100%; rotate: var(--tilt, 0deg); filter: drop-shadow(0 8px 6px rgba(150, 70, 100, .28)); animation: dkBagDrop .75s cubic-bezier(.3, 0, .4, 1) both; pointer-events: auto; }
+.dk-bag svg { width: 100%; height: 100%; display: block; }
+.dk-bag.bye { animation: dkBagBye .45s ease forwards; }
+html.desk-show .dk-bag { visibility: hidden; }
+@keyframes dkBagDrop { 0% { translate: 0 -260px; opacity: 0; } 15% { opacity: 1; } 62% { translate: 0 0; scale: 1.06 .9; } 80% { translate: 0 -10px; scale: .98 1.03; } 100% { translate: 0 0; scale: 1; } }
+@keyframes dkBagBye { 30% { translate: 0 -24px; scale: 1.05; } 100% { translate: 0 -90px; scale: .7; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dk-bag, .dk-bag.bye { animation-duration: .01s; } }

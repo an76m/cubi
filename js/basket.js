@@ -1113,9 +1113,10 @@
         el.classList.remove('bye'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
         clearTimeout(BAG.t); BAG.t = setTimeout(bagHide, 2200);
         if (window.sndBag) sndBag();                                         // 🔔 띠링~ (설정에서 소리를 끄면 조용히)
+        if (window.shopSceneOn && shopSceneOn()) window.SHOP_BOUGHT = true;   // 🛍️ 가게에서 샀어요 → 내 방으로 돌아가면 책상 위에 봉투 (js/desk.js deskBagDrop)
     }
     function bagHide() { const el = bq('shBag'); if (!el || !el.classList.contains('on')) return; el.classList.add('bye'); clearTimeout(BAG.t); BAG.t = setTimeout(() => el.classList.remove('on', 'bye'), 320); }
-    window.bagShow = bagShow;
+    window.bagShow = bagShow; window.BAG_SVG = BAG_SVG;
     async function shGive(x) {
         bagStart(); let ok = false;
         try { ok = await shGive0(x); return ok; } finally { bagEnd(ok); }

@@ -680,6 +680,20 @@
             st.lz = (st.lz || 0) + d; dkLayers(); const got = (DK.lzDone && DK.lzDone.get(el)) || 0; if (got !== st.lz) st.lz = got; if (!st.lz) delete st.lz; dkLayers();
         }
         window.deskLayer = deskLayer; window.dkyLayer = dkyLayer;
+        /* 🛍️ 가게에서 사 온 봉투 (도련 10-30) : 기본상품 샵에서 하나라도 받고 내 방으로 돌아오면 책상 앞쪽에 봉투가 툭 · 톡 = 집어 들고 사라져요
+           - 이번에 켠 동안만 (저장하지 않아요) · 여러 번 사 오면 봉투가 하나 더 (최대 3개) · 다른 소품보다 앞 */
+        function deskBagDrop() {
+            const st = document.getElementById('deskStage'); if (!st || !window.BAG_SVG) return;
+            const n = st.querySelectorAll('.dk-bag').length; if (n >= 3) return;
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'dk-bag'; b.setAttribute('aria-label', '사 온 봉투');
+            const x = 836 + [0, -150, 150][n] + Math.round(Math.random() * 40 - 20), y = 812 + Math.round(Math.random() * 16);
+            b.style.left = (x - 60) + 'px'; b.style.top = (y - 134) + 'px'; b.style.setProperty('--tilt', (Math.random() * 10 - 5).toFixed(1) + 'deg');
+            b.innerHTML = window.BAG_SVG;
+            b.addEventListener('pointerdown', e => e.stopPropagation());
+            b.addEventListener('click', e => { e.stopPropagation(); if (b.classList.contains('bye')) return; b.classList.add('bye'); setTimeout(() => b.remove(), 450); });
+            st.appendChild(b);
+        }
+        window.deskBagDrop = deskBagDrop;
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
             const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '');
