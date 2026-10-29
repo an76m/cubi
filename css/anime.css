@@ -437,14 +437,10 @@ html .sh-take.got, html.an .sh-take.got, html.an .sh-take.got:not(.sh-zoombtn) {
 .dk-diary.p-front .dk-top { transform: scale(var(--dks, .4)); transform-origin: 50% 100%; overflow: visible; }
 .dk-diary.p-front .dk-edge, .dk-diary.p-side .dk-edge, .dk-diary.p-side .dk-top { display: none; }
 .dk-spine { display: none; }
-.dk-diary.p-side .dk-spine { display: block; position: absolute; left: calc(50% - 14px); top: calc(var(--dkh, 383px) * (1 - var(--dks, .4))); width: 28px; height: calc(var(--dkh, 383px) * var(--dks, .4));
-    box-sizing: border-box; pointer-events: auto; border: 1.6px solid #a080a5; border-radius: 6px 6px 4px 4px;
-    background-color: color-mix(in srgb, var(--primary-accent) 38%, #fff);
-    background-image: repeating-linear-gradient(90deg, transparent 0 5px, color-mix(in srgb, var(--primary-accent) 22%, transparent) 5px 10px), repeating-linear-gradient(0deg, transparent 0 5px, color-mix(in srgb, var(--primary-accent) 22%, transparent) 5px 10px); }   /* 깅엄 책등 */
-.dk-spine::before, .dk-spine::after { content: ''; position: absolute; left: -1.6px; right: -1.6px; height: 9px; border: 1.6px solid #a080a5; background: color-mix(in srgb, var(--primary-accent) 60%, #fff); }
-.dk-spine::before { top: -1.6px; border-radius: 6px 6px 2px 2px; } .dk-spine::after { bottom: -1.6px; border-radius: 2px 2px 4px 4px; }
-.dk-spine b { position: absolute; left: 3px; right: 3px; top: 32%; height: 34px; border: 1.4px solid #a080a5; border-radius: 3px; background: #fffaf3; }   /* 책등 라벨 */
-.dk-spine b::after { content: '♥'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #f08aa8; }
+.dk-diary.p-side .dk-spine { display: block; position: absolute; left: calc(50% - 12px); top: calc(var(--dkh, 383px) * (1 - var(--dks, .4))); width: 24px; height: calc(var(--dkh, 383px) * var(--dks, .4));
+    box-sizing: border-box; pointer-events: auto; border: 1.5px solid #ffb6c1; border-radius: 7px; background-color: #fff5f7; }   /* 겉표지와 같은 깅엄 (js dkySpinePaint) */
+.dk-spine::before { content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px; width: 1.5px; border-radius: 1px; background: rgba(255, 255, 255, .7); }   /* 둥근 책등 빛 한 줄 */
+.dk-spine b { display: none; }
 .dk-diary.dk-fly .dk-spine { visibility: hidden; }
 html.desk-edit .dk-diary { opacity: 1 !important; cursor: grab; }
 html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-edit .dk-diary .dk-edge { outline: 2px dashed #ff8fb4; outline-offset: 3px; }

@@ -666,6 +666,14 @@
             wrap.appendChild(bk);
             mini.classList.toggle('open', open); mini.style.setProperty('--dkw', W + 'px'); mini.style.setProperty('--dkh', H + 'px'); mini.dataset.sz = dkMiniKey(Z);
             box.replaceChildren(wrap);
+            dkySpinePaint(k);
+        }
+        /* 📚 책등 = 지금 다이어리 겉표지와 같은 무늬 · 색 · 테두리 (세운 크기만큼 줄여서 · 도련 10-29 : 다른 다이어리처럼 보이지 않게) */
+        function dkySpinePaint(k) {
+            const sp = document.querySelector('#deskDiary .dk-spine'), cv = document.getElementById('coverPage'); if (!sp || !cv) return;
+            const c = getComputedStyle(cv), f = k * DKY_S, sc = v => v.replace(/([\d.]+)px/g, (m, n) => (+n * f).toFixed(2) + 'px');
+            sp.style.backgroundColor = c.backgroundColor; sp.style.backgroundImage = c.backgroundImage; sp.style.backgroundSize = sc(c.backgroundSize); sp.style.backgroundPosition = 'center top';
+            sp.style.borderColor = c.borderTopColor;
         }
         const dkMiniKey = Z => [Math.round(Z.vw * DK_MW / Z.bw), Math.round(Z.vh * DK_MW / Z.bw), dkOpenNow() ? 1 : 0].join('x');
         /* 다이어리 크기가 정해진 뒤(로그인 · 화면 크기 바뀜) 책상 위 다이어리 크기가 다르면 다시 그려요 (처음 켤 때는 다이어리 크기가 정해지기 전이라 · 도련 10-28) */
