@@ -549,3 +549,4 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkn-ic-b { padding: 2px 6px; font-size: 16px; } .dkn-ic-b:first-of-type { font-size: 12.5px; padding: 4px 10px; }
 .dkn-seg.on, .dkn-ic-b.on { background: #ffd3e2; border-color: #ff6b88; }
 #dknPanel .dky-row { flex-wrap: wrap; }
+.dkn-done { margin: 2px auto 0; border: 1.6px solid #e88fb0; border-radius: 999px; background: #ffd3e2; color: #8a2f58; font: inherit; font-size: 14px; font-weight: 700; padding: 7px 22px; cursor: pointer; }

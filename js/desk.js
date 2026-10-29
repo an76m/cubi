@@ -763,14 +763,14 @@
             Object.keys(H).forEach(x => { if (x !== u) { H[x] = (H[x] || []).filter(k => k !== it.k); if (!H[x].length) delete H[x]; } });
             const L = H[u] = (H[u] || []).filter(k => k !== it.k); L.push(it.k); dkHomesSet(H);
             const o = DK.items.find(x => x.u === u);
-            if (o && !o.tag) { o.tag = { on: !!await showAsk(`🏷 ${o ? dkName(o) : ''}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); }   // 🏷 처음 집이 될 때 물어봐요 (도련 10-30) · 고친 건 🛠 책상 꾸미기에서
+            if (o && !o.tag) { o.tag = { on: !!await showAsk(`🏷 ${o ? dkName(o) : ''}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(o.u), 50); }   // 🏷 처음 집이 될 때 물어봐요 · 붙이기 = 바로 이름표 꾸미기 창 (도련 10-30 : 알아서 붙이지 말고 사용자가 꾸며서) · 나중에 고치기는 🛠 책상 꾸미기
             dknPaintAll();
             t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600);
             dkbTake(n, j);
         }
         /* 🏷 소품 이름표 (도련 10-30 : 연결한 소품을 까먹지 않게 · 다이어리 라벨처럼) : 글씨 · 아이콘 · 둘 다 · 라벨 바탕 · 아웃라인 · 글꼴 · 색 · 자리 · 크기
            it.tag = { on, m: 'ti' | 't' | 'i', t: 직접 쓴 글(없으면 연결한 종류 이름), ic: 아이콘(없으면 종류 아이콘), f, c, bx, bg, ol, oc, x, y, s } · 🛠 꾸미기 → 고른 소품 칩 '🏷 이름표' */
-        const DKN0 = { on: false, m: 'ti', t: '', ic: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', x: .5, y: .12, s: 1 };
+        const DKN0 = { on: false, m: 'ti', t: '', ic: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', x: .5, y: .45, s: 1 };   // 처음 자리 = 소품 가운데 (위에 올린 소품 · 기능 이름표에 가리지 않게)
         const DKN_IC = ['⭐', '🌸', '🎀', '💖', '🍓', '🧸', '✂️', '📎', '🖍️', '📒', '🗂️', '🌈'];
         const dknOf = o => Object.assign({}, DKN0, (o && o.tag) || {});
         const dknKindIc = k => ({ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[k] || (window.stkArt ? stkArt(k) : '🎁'));
@@ -792,7 +792,7 @@
         function dknPanel(show) {
             let pn = document.getElementById('dknPanel');
             const u = show === true ? (DK.sel && DK.sel.dataset.u) || (pn && pn.dataset.u) : show, o = u && DK.items.find(x => x.u === u);   // 고른 소품이 바뀌어도 창은 그 소품 그대로 (체크하면 창이 닫히던 것 · 도련 10-30)
-            if (!show || !o || !DK.edit) { if (pn) pn.hidden = true; return; }
+            if (!show || !o) { if (pn) pn.hidden = true; return; }   // 🛠 꾸미기 · 상품을 넣으며 '붙이기'를 골랐을 때 (그때는 바로 저장)
             if (!pn) { pn = document.createElement('div'); pn.id = 'dknPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); pn.addEventListener('click', e => e.stopPropagation()); }
             pn.dataset.u = o.u;
             const g = dknOf(o), ks = (dkHomes()[o.u] || []).filter(k => DKH_NAMES[k]), fl = typeof fontList !== 'undefined' ? fontList : [];
@@ -806,13 +806,15 @@
                 + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.bx ? 'checked' : ''} onchange="dknSet('bx', this.checked)"> 라벨</label>${g.bx ? sw(DKY_BC, g.bg, 'bg') : ''}</div>`
                 + `<div class="dky-row"><label class="dky-tg"><input type="checkbox" ${g.ol ? 'checked' : ''} onchange="dknSet('ol', this.checked)"> 아웃라인</label>${g.ol ? sw(DKY_OC, g.oc, 'oc') : ''}</div>`
                 + `<div class="dky-row"><span>가로</span><input type="range" min="0" max="1" step="0.01" value="${g.x}" oninput="dknSet('x', this.value, 1)"><span>세로</span><input type="range" min="0" max="1" step="0.01" value="${g.y}" oninput="dknSet('y', this.value, 1)"></div>`
-                + `<div class="dky-row"><span>크기</span><input type="range" min="0.5" max="2.5" step="0.05" value="${g.s}" oninput="dknSet('s', this.value, 1)"></div>` : '');
+                + `<div class="dky-row"><span>크기</span><input type="range" min="0.5" max="2.5" step="0.05" value="${g.s}" oninput="dknSet('s', this.value, 1)"></div>` : '')
+                + `<div class="dky-row"><button type="button" class="dkn-done" onclick="dknPanel(false)">✔ 다 됐어요</button></div>`;
             pn.hidden = false;
         }
         function dknSet(k, v, live) {
             const pn = document.getElementById('dknPanel'), o = pn && DK.items.find(x => x.u === pn.dataset.u); if (!o) return;
             const g = o.tag = dknOf(o);
             if (k === 'x' || k === 'y' || k === 's') g[k] = +v; else if (k === 'on' || k === 'bx' || k === 'ol') g[k] = !!v; else if (k === 't') g.t = String(v).slice(0, 16); else g[k] = v;
+            if (!DK.edit) dkSave();                                              // 평소(상품을 넣으며)에는 바로 저장 · 🛠 꾸미기는 ✔ 완료 때
             dknPaintAll(); if (!live) dknPanel(o.u);
         }
         window.dknPanel = dknPanel; window.dknSet = dknSet;
