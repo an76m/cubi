@@ -571,3 +571,6 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkn-emo-none { grid-column: 1 / -1; color: #9a7d8a; padding: 10px 4px; }
 .dkn-done { margin: 2px auto 0; border: 1.6px solid #e88fb0; border-radius: 999px; background: #ffd3e2; color: #8a2f58; font: inherit; font-size: 14px; font-weight: 700; padding: 7px 22px; cursor: pointer; }
 .dk-fn-tag[hidden] { display: none !important; }
+/* 😀 고른 이모지 빼기 ✕ (이름표 아이콘 줄) */
+.dkn-my { position: relative; display: inline-flex; }
+.dkn-my-x { position: absolute; top: -6px; right: -6px; width: 17px; height: 17px; padding: 0; border: 1.4px solid #e88fb0; border-radius: 50%; background: #fff; color: #c8457a; font-size: 10px; line-height: 1; font-weight: 700; cursor: pointer; display: grid; place-items: center; }

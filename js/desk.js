@@ -215,7 +215,8 @@
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
         const DK_FN_DEF = { skin: 'bookbox', sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'magfile', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품
-        const DK_FN_NEED = ['skin', 'sticker', 'gd', 'cafe', 'set'];                // 꼭 있어야 하는 기능 (하단 메뉴 다섯 개)
+        const DK_FN_NEED = ['skin', 'sticker', 'gd', 'cafe', 'set'];                // 하단 메뉴 다섯 개 (하나라도 빠지면 하단 메뉴를 보여요 · desk-lack)
+        const DK_EDIT_NEED = ['edit'];                                            // 🛠 꾸미기 ✔ 완료에 꼭 있어야 하는 건 책상 꾸미기 하나 (도련 10-30 · 나머지는 풀어도 저장)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         function deskFnMap() {                                                    // 모든 기능 · 서로 다른 책상 위 소품 (모자라면 그 기능은 빠져요 → 하단 메뉴가 보여요)
             if (DK.edit) return DK.editFn;                                        // 🛠 꾸미는 동안은 고치는 중인 연결
@@ -223,6 +224,7 @@
             const ids = dkOnDesk().map(o => o.u), claimed = Object.values(got), used = new Set(), m = {};
             DK_FNS.forEach(([k]) => {
                 let u = got[k];
+                if (u === '') return;                                             // 다꾸러가 🛠 꾸미기에서 일부러 푼 기능 = 그대로 비워 둬요 (저절로 다시 붙이지 않기 · 도련 10-30)
                 if (!ids.includes(u) || used.has(u)) u = ids.includes(DK_FN_DEF[k]) && !used.has(DK_FN_DEF[k]) && !claimed.includes(DK_FN_DEF[k]) ? DK_FN_DEF[k] : ids.find(i => !used.has(i) && !claimed.includes(i));
                 if (!u) u = ids.find(i => !used.has(i));
                 if (u) { m[k] = u; used.add(u); }
@@ -523,11 +525,12 @@
             if (!DK.edit) return;
             if (window.closeModal) closeModal('deskBoxModal');
             if (ok) {
-                const miss = ['edit'].filter(k => !DK.editFn[k]);                 // 꼭 있어야 하는 건 🛠 책상 꾸미기 하나 (도련 10-30 · 나머지는 풀어도 돼요 → 하단 메뉴가 보여요)
+                const miss = DK_EDIT_NEED.filter(k => !DK.editFn[k]);                 // 꼭 있어야 하는 건 🛠 책상 꾸미기 하나 (도련 10-30 · 나머지는 풀어도 돼요 → 하단 메뉴가 보여요)
                 if (miss.length) { if (window.showMsg) showMsg(`아직 연결 안 된 기능이 있어요.<br><b>${miss.map(k => { const f = DK_FNS.find(x => x[0] === k); return f[3] + ' ' + f[1]; }).join(' · ')}</b><br><small>소품을 톡 하고 위 칩에서 골라 주세요</small>`); return; }
                 const fn = DK.editFn, gone = JSON.parse(DK.back.items).filter(b => !DK.items.some(x => x.u === b.u));
                 DK.edit = false; dkSave();
                 gone.filter(o => !o.g).forEach(dkFileDel); if (gone.some(o => o.g)) giftWrite();   // 🗑 버린 소품의 파일 · 🎁 선물.json
+                DK_FNS.forEach(([k]) => { if (!fn[k]) fn[k] = ''; });             // 푼 기능은 '' 로 (deskFnMap 이 다시 붙이지 않게)
                 if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, fn);
                 dkArtCommit();                                                    // 🎨 색칠 · 🖼 사진 미리 보기 → 진짜 저장 (💾 저장 중)
             } else {
@@ -567,7 +570,7 @@
             dkSnapBtn();
             const bar = document.getElementById('deskEditBar'), tray = document.getElementById('deskEditTray'); if (!bar || !tray) return;
             if (!DK.edit) return;
-            const miss = DK_FN_NEED.filter(k => !DK.editFn[k]);
+            const miss = DK_EDIT_NEED.filter(k => !DK.editFn[k]);
             const ok = bar.querySelector('.dke-ok'); if (ok) ok.classList.toggle('dim', !!miss.length);
             const hint = bar.querySelector('.dke-hint'); if (hint) hint.textContent = miss.length ? '연결할 기능 : ' + miss.map(k => DK_FNS.find(x => x[0] === k)[1]).join(' · ') : '끌어서 옮기고 · 톡 해서 기능을 연결해요';
             const all = DK.items.filter(o => o.at === 'box'), T = dkTabs(all, 'trayKind', 'deskTrayTab'), L = T.rows;
@@ -805,7 +808,7 @@
         function dknHtml(g, set, close, sub, a) {
             const fl = typeof fontList !== 'undefined' ? fontList : [], q = v => String(v).replace(/"/g, '&quot;');
             const sw = (arr, cur, k) => arr.map(c => `<button type="button" class="dky-sw${c === cur ? ' on' : ''}" style="--c:${c}" onclick="${set}('${k}','${c}')" aria-label="${c}"></button>`).join('') + dknCc(arr, cur, k, set);
-            const icMy = g.ic && !DKN_IC.includes(g.ic) ? `<button type="button" class="dkn-ic-b on" onclick="${set}('ic','${q(g.ic)}')">${q(g.ic)}</button>` : '';   // 😀 모든 이모지에서 고른 것
+            const icMy = g.ic && !DKN_IC.includes(g.ic) ? `<span class="dkn-my"><button type="button" class="dkn-ic-b on" onclick="${set}('ic','${q(g.ic)}')">${q(g.ic)}</button><button type="button" class="dkn-my-x" onclick="${set}('ic','')" aria-label="이모지 빼기" title="빼기">✕</button></span>` : '';   // 😀 모든 이모지에서 고른 것 · ✕ = 빼기 (기본 아이콘으로)
             const seg = [['ti', '아이콘 + 글씨'], ['t', '글씨만'], ['i', '아이콘만']].map(([v, n]) => `<button type="button" class="dkn-seg${g.m === v ? ' on' : ''}" onclick="${set}('m','${v}')">${n}</button>`).join('');
             return `<div class="dky-row"><b>🏷 이름표</b><label class="dky-tg"><input type="checkbox" ${g.on ? 'checked' : ''} onchange="${set}('on', this.checked)"> 붙이기</label><small>${sub}</small><button type="button" class="dky-x" onclick="${close}" aria-label="닫기">✕</button></div>`
                 + (g.on ? `<div class="dky-row">${seg}</div>`
