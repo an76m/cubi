@@ -35,7 +35,7 @@
             { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-833', w: 430, h: 248, x: 160, y: 104, name: '벽 선반', wall: 1, surf: [[50, 10, 421], [211, 10, 421]] },
             { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]] },
             { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
-            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-916', mouth: [5, 95, 54] },
+            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-919', mouth: [5, 95, 54] },
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
             { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자' },
             { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51] },
@@ -617,6 +617,16 @@
             return best;
         }
         const dkyIn = st => dkBoxAt(st.x, st.y, null);
+        /* 끄는 동안 : 입구 폭 안 · 앞벽 위에서 바구니 바닥보다 조금 아래(16px)까지 = 안에 넣는 것 → 바닥에 닿게 (바닥 밑으로 빠지지 않아요 · 도련 10-29 : 다이어리가 살짝 아래로 놓여 안 들어가던 것) */
+        function dkBoxFloor(x, y, skip) {
+            let r = null;
+            document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+                if (el === skip || !dkIsBox(el)) return;
+                const L = parseFloat(el.style.left), T = parseFloat(el.style.top), w = parseFloat(el.style.width), h = parseFloat(el.style.height), [m0, m1, m2] = dkDef(el).mouth;
+                if (x >= L + w * m0 / 100 && x <= L + w * m1 / 100 && y >= T + h * m2 / 100 && y <= T + h + 16 && (!r || +el.style.zIndex > +r.el.style.zIndex)) r = { el, y: Math.min(y, T + h - 3) };
+            });
+            return r ? r.y : y;
+        }
         const dkItemBox = el => (el.classList.contains('wall') || dkIsBox(el)) ? null : dkBoxAt(parseFloat(el.style.left) + parseFloat(el.style.width) / 2, parseFloat(el.style.top) + parseFloat(el.style.height), el);
         function dkLayers() {
             const stg = document.getElementById('deskStage'); if (!stg) return;
@@ -838,7 +848,7 @@
             const el = document.getElementById('deskDiary'), st = DK.dyEdit, x0 = ev.clientX, y0 = ev.clientY, sx = st.x, sy = st.y, s = DK.s || 1; let moved = false;
             document.querySelectorAll('.desk-item.sel').forEach(x => x.classList.remove('sel')); if (window.deskSelect) deskSelect(null);
             const mv = e => { if (e.pointerId !== ev.pointerId) return; const dx = (e.clientX - x0) / s, dy = (e.clientY - y0) / s; if (!moved && Math.hypot(dx, dy) < 5) return; moved = true; el.classList.add('lift');
-                st.x = Math.round(Math.max(40, Math.min(1632, sx + dx))); st.y = Math.round(Math.max(120, Math.min(930, sy + dy))); dkyApply(); };
+                st.x = Math.round(Math.max(40, Math.min(1632, sx + dx))); st.y = Math.round(dkBoxFloor(st.x, Math.max(120, Math.min(930, sy + dy)), null)); dkyApply(); };
             const up = e => { if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); el.classList.remove('lift'); if (!moved) el.classList.toggle('pose-on'); };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         }
@@ -945,6 +955,7 @@
                     else if (Math.abs(x + w - DESK_EDGE.right) < M) { x = DESK_EDGE.right - w; gv = DESK_EDGE.right; }
                 }
                 x = Math.max(-w / 2, Math.min(DESK_W - w / 2, x)); y = Math.max(0, Math.min(DESK_H - h / 2, y));
+                if (!el.classList.contains('wall') && !dkIsBox(el)) y = dkBoxFloor(x + w / 2, y + h, el) - h;   // 🧺 담는 소품 안이면 바닥에 닿게
                 el.style.left = x + 'px'; el.style.top = y + 'px';
                 if (p.riders) p.riders.forEach(r => { r.o.style.left = (x + r.dx) + 'px'; r.o.style.top = (y + r.dy) + 'px'; });
                 if (p.dyr && DK.dyEdit) { DK.dyEdit.x = Math.round(x + p.dyr.dx); DK.dyEdit.y = Math.round(y + p.dyr.dy); const dd = document.getElementById('deskDiary'); if (dd) { dd.style.setProperty('--ax', DK.dyEdit.x + 'px'); dd.style.setProperty('--ay', DK.dyEdit.y + 'px'); } }
