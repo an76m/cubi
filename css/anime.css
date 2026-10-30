@@ -63,7 +63,7 @@ html.an .inner-page .dy-fold { background: linear-gradient(90deg, transparent ca
 html.an .inner-page .page-header { background: var(--page-bg) !important; border: 1.3px solid var(--an-ol) !important; box-shadow: 3px 3px 0 var(--an-sh) !important; }
 html.an .inner-page .ps-st { background: var(--page-bg) !important; box-shadow: inset 0 0 0 1.4px var(--an-ol) !important; }
 /* ✂️ 문구 도구(페이지 위 핀셋 · 칼 …) · 기본상품 샵 도구 그림 : 파스텔 아웃라인 */
-html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-tool svg, html.an .pc-held svg, html.an .twz svg, html.an .sk-knife svg, html.an .rl-ruler svg, html.an .scs-cur svg { filter: none !important; }   /* 문구 = 창 테두리처럼 얇고 또렷한 연보라 선 (js/anime.js 가 선 · 조각 둘레를 1.4px 로 · 도련 10-28) · 그림자 없음 */
+html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-tool svg, html.an .pc-held svg, html.an .twz svg, html.an .sk-knife svg, html.an .rl-ruler svg, html.an .scs-cur svg { filter: none !important; }   /* 문구 = 다이어리 선과 같은 진한 선 2px (js/anime.js · 아래 --tool-ol · 도련 10-30) · 그림자 없음 */
 html.an .bd-tool:not(.need), html.an .pc-tool, html.an .twz, html.an .sk-knife, html.an .scs-cur { filter: none !important; }   /* 문구 그림자 없음 · 알려 주는 반짝(.need)은 그대로 */
 /* ---------- 🪑 책상 라벨 · 📱 하단 메뉴 ---------- */
 html.an .dk-fn-tag { box-shadow: 0 0 0 1.2px var(--an-ol) !important; border-color: transparent !important; background-image: none !important; color: var(--an-ink) !important; }
@@ -666,3 +666,5 @@ html.an .cover-page.cv-book .cv-year { display: none !important; }   /* 📓 다
 /* 📢 겉표지 공지 카드 · 밀어서 열기 = 왼쪽 책등을 뺀 표지의 가운데 (도련 10-30) */
 html.an .cover-page .cover-notice:not(.img) { width: 72cqw; }   /* 스샷 자리 (책등과 오른쪽 끝 사이 가운데) */
 html.an .cover-page .cover-notice, html.an .cover-page .drag-hint { translate: 5cqw 0; }
+/* ✂️ 문구 선 = 📔 다이어리 선과 같은 색 (도련 10-30 · js/anime.js thin · 펼친 다이어리 색을 진하게 = --dyv-ol 과 같은 공식) */
+html.an { --tool-ol: color-mix(in srgb, var(--primary-accent) 68%, #3a2a55); }
