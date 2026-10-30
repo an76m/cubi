@@ -1401,14 +1401,30 @@
             const H = document.documentElement, mini = document.getElementById('deskDiary'), w = document.getElementById('diaryWrapper');
             if (deskAnim || !mini || !w || !H.classList.contains('desk-show')) return;
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
+            if (dkOpenNow()) {                                                    // 📕 펼친 채로는 책상에 안 놓아요 (도련 10-30) : 먼저 저장 → 왼쪽 쪽이 오른쪽으로 덮이며 접혀요 → 겉표지로 내려앉아요
+                try { if (typeof saveData === 'function') saveData(false); } catch (e) {}
+                deskAnim = true;
+                const ip = document.getElementById('innerPage'), done = () => { dkFoldShut(); deskAnim = false; requestAnimationFrame(() => requestAnimationFrame(deskCloseDiary)); };
+                if (!ip || matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
+                const a = ip.animate([{ transform: 'none', opacity: 1 }, { transform: 'scaleX(.5)', opacity: .6 }], { duration: 280, easing: 'ease-in' });
+                ip.style.transformOrigin = '100% 50%'; a.onfinish = a.oncancel = () => { ip.style.transformOrigin = ''; done(); };
+                return;
+            }
             deskAnim = true;
-            try { if (dkOpenNow() && typeof saveData === 'function') saveData(false); } catch (e) {}
             deskMiniPaint();                                                      // 책상 위 다이어리를 지금 모양으로 먼저 그려 두고 (숨긴 채) 그 자리로
             H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
             const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w, mini) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
             mini.style.visibility = ''; mini.classList.add('dk-fly');             // 📏 두께(옆면)는 책이 작아지며 책상에 닿는 마지막 구간에 같이 자라나요 (도련 10-28)
             const eg = mini.querySelector('.dk-edge'), ea = eg && eg.animate([{ opacity: 0, transform: 'scaleY(0)' }, { opacity: 0, transform: 'scaleY(0)', offset: .62 }, { opacity: 1, transform: 'scaleY(1)' }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
             a.onfinish = () => { mini.classList.remove('dk-fly'); if (ea) ea.cancel(); mini.style.visibility = ''; H.classList.remove('desk-show', 'dk-landing'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
+        }
+        function dkFoldShut() {                                                   // 겉표지로 덮어요 (다시 펴면 밀어서 열기부터)
+            if (!dkOpenNow()) return;
+            isCoverOpen = false; selectedElement = null;
+            const ip = document.getElementById('innerPage'), cp = document.getElementById('coverPage');
+            if (ip) ip.style.display = 'none'; if (cp) cp.style.display = '';
+            if (typeof refreshLayout === 'function') refreshLayout();
+            if (typeof updateTextPanel === 'function') updateTextPanel();
         }
         function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
             const st = document.getElementById('deskStage'); if (!st) return;
