@@ -359,6 +359,23 @@
             giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); });
         }
 
+        /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 + ☕ 카페 칸 전부 (카페 창 #svcCats 의 칸을 열 때마다 복사 · 새 칸이 생기면 저절로 · 알림 숫자도 그대로)
+           칸 톡 = 이동 창 닫고 → 카페 칸이면 카페 창의 그 칸 · 준비중 · 따로 여는 것(인형 · 펫 …)은 그것만 */
+        function deskMoveOpen() {
+            const box = document.getElementById('moveCafe');
+            if (box) {
+                if (typeof svcDailyBadges === 'function') svcDailyBadges();
+                box.innerHTML = '';
+                document.querySelectorAll('#svcCats > .svc-cat:not(.svc-extra):not([hidden])').forEach(b => {
+                    const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+                    const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
+                    c.addEventListener('click', () => { closeModal('moveModal'); if (cat) openModal('serviceModal'); b.click(); });
+                    box.appendChild(c);
+                });
+            }
+            openModal('moveModal');
+        }
+        window.deskMoveOpen = deskMoveOpen;
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();
@@ -366,7 +383,7 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <button type="button" class="desk-shop-go" id="deskShopGo" onclick="openModal('moveModal')" aria-label="이동">🚪 이동</button>`;   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
+                <button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskMoveOpen()" aria-label="이동">🚪 이동</button>`;   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
             dkyApply();
