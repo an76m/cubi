@@ -139,7 +139,6 @@ html.desk-edit .dke-bar { top: 0 !important; left: 0 !important; right: 0; trans
 @keyframes dkeDrop { from { translate: 0 -100%; } }
 .dke-bar .dke-ruler { position: absolute; left: 0; right: 0; bottom: 4px; height: 8px; background: repeating-linear-gradient(90deg, #c9a27a 0 1.5px, transparent 1.5px 12px), #ffe9a8; border-top: 1px solid #e0c28a; border-bottom: 1px solid #e0c28a; pointer-events: none; }
 html.desk-edit .dke-bar .dke-tt { color: #9a6a3c; }
-html.desk-edit .dke-bar .dke-hint { color: #a07a52; }
 html.desk-edit .dke-bar .dke-snap.on { border-color: #8fd3b5 !important; background: #d9f4e7 !important; color: #2f7a5c !important; }
 /* 아래 보관함 줄은 쓰지 않아요 (📦 소품함이 대신) */
 html.desk-edit .dke-tray { display: none !important; }
