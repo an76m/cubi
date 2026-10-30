@@ -293,7 +293,14 @@
     const abNewBd = (k, c) => ({ id: 'b' + abRid(), k, lb: '', c: (+c || 0) % AB_COL.length, n: AB_BD_N, p: {} });
     const abNewRl = k => ({ id: 'r' + abRid(), k, lb: '', n: AB_RL_N, it: [] });
     /* 🏪 기본상품 샵 → 📔 다이어리(스티커 정리)에서 받기 (그 종류 서랍으로) */
-    function abTakeTool(t, k, c) { return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(t === 'bd' ? abNewBd(k, c) : abNewRl(k)); }); }
+    function abTakeTool(t, k, c) { const o = t === 'bd' ? abNewBd(k, c) : abNewRl(k); window.abLastGiven = { id: o.id, t: Date.now() }; return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(o); }).then(r => { if (window.dkDeskBooks) dkDeskBooks(true); return r; }); }   // 🛍️ 봉투 카드가 이 책을 기억해요 · 📔 책상에도 (js/desk.js)
+    /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색] }] · 톡 = 그 종류 창에서 그 책 펼치기 */
+    window.abDeskList = async () => {
+        if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
+        let a; try { a = await ownAlbumGet(); } catch (e) { return []; }
+        return (a.bd || []).map(b => ({ id: b.id, t: 'bd', k: b.k, lb: b.lb || '', col: abCol(b) })).concat((a.rl || []).map(r => ({ id: r.id, t: 'rl', k: r.k, lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'] })));
+    };
+    window.abOpenAt = (k, v, id) => { bkOpenKind(k); B.view = v; B.cur = id; B.pg = 0; try { bkView(v); } catch (e) {} };
     function abGoShelf() { SH.toolKind = B.kind; openShelf(); shOpenKind('tool'); }
     /* 정리한 종이는 바구니에서 빠져요 */
     function abSplit() {
@@ -1104,6 +1111,7 @@
         const o = { k, n: String(x.name || x.cnt || BK_KINDS[k] || '').slice(0, 30) };
         if (al) o.n = x.tool === 'bd' ? '스티커 바인더' : '이형지북';           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
         if (x.look === 'dskin') { o.ds = x.sec === 'wallpaper' ? 'wall' : 'top'; o.n = String(x.name || '').slice(0, 30); }   // 🧱 벽지 · 🪵 책상 (책상 소품이 아니에요)
+        if (al && window.abLastGiven && Date.now() - abLastGiven.t < 8000) o.b = abLastGiven.id;   // 📒 🤍 = 그 책 (책상에 끌어 놓으면 그 자리)
         if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
         if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
         (window.SHOP_BAG = window.SHOP_BAG || []).push(o);

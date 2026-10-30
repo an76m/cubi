@@ -696,3 +696,13 @@ html.desk-edit .dk-vol.pose-on .dv-cv, html.desk-edit .dk-vol.lift .dv-cv { outl
 .dkv-menu button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
 .dkv-menu button.on { background: #ffd3e2; }
 .dk-pose .dky-arc { background: #f3eefc; }
+/* 📒 🤍 책상 위 스티커첩 (도련 10-30) : 바인더 = 그 책 색 · 이형지북 = 반투명 흰 종이 느낌 · 땡땡이 없이 */
+.dk-vol.alb .dv-cv { background: var(--dyv); }
+.dk-vol.alb.p-side .dv-cv { background: var(--dyv-sh); }
+.dk-vol.alb.rl .dv-cv { background: repeating-linear-gradient(#fbf8ff 0 5px, #efe8fa 5px 6px); }
+.dk-vol.alb .dv-cv b { font-size: 11px; letter-spacing: 0; }
+.dk-vol.alb.p-side .dv-cv b { font-size: 11px; padding: 3px 1px; }
+/* 🛍️ 봉투 : 평소 = 끌어 옮기기 · 톡 = 열기 / 🛠 꾸미는 동안은 안 눌려요 */
+.dk-bag { touch-action: none; }
+.dk-bag.lift { cursor: grabbing; filter: drop-shadow(4px 6px 0 rgba(150, 110, 170, .25)); }
+html.desk-edit .dk-bag { pointer-events: none; opacity: .55; }
