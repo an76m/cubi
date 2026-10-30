@@ -241,27 +241,27 @@
         }
         /* 읽기 · 쓰기 (로그인 → 드라이브 설정 / 게스트 → 이 기기) */
         function vaultGet(key, sync) {
-            try { const raw = sync ? store.getItem(key) : localStorage.getItem(key); return raw ? vaultOpen(JSON.parse(raw)) : null; } catch (e) { return null; }
+            try { const raw = sync ? store.getItem(key) : drive.guest ? localStorage.getItem(key) : null; /* 고르기 전엔 브라우저 옛 기억을 안 읽어요 */ return raw ? vaultOpen(JSON.parse(raw)) : null; } catch (e) { return null; }
         }
         function vaultPut(key, obj, sync) {
             const t = JSON.stringify(vaultSeal(obj));
-            try { if (sync) store.setItem(key, t); else localStorage.setItem(key, t); } catch (e) {}
+            try { if (sync) store.setItem(key, t); else if (drive.guest) localStorage.setItem(key, t); } catch (e) {}
         }
-        /* ☁ 설정 값 하나 (JSON) : 로그인 → 설정.json 의 key · 이 기기 local 에도 같이 (드라이브를 읽기 전 · 게스트는 이 기기 값)
-           쓰는 곳 : 🗂 고르는 창 칸 · 🎵 배경음악 · 🔮 토정비결 생일 · ✏️ 닉네임 */
-        /* ☁ 로그인 중에는 드라이브(설정.json) 것만 믿어요 : 드라이브에 없으면 처음 상태 (도련 10-20 · 말랑달콤 폴더를 지우면 모든 기기가 처음부터)
-           브라우저 기억(local)은 게스트 · 드라이브를 읽기 전에 화면을 빨리 띄울 때만 */
+        /* 💾 설정 하나 읽기 · 쓰기 (도련 10-30 · 인수인계서 '드라이브가 기준 · localStorage 는 게스트 · 기기 설정만')
+           - 로그인 = 드라이브(설정.json · 배치.json …)만 · 브라우저에는 사본을 남기지 않아요 (드라이브를 지워도 옛 기억이 되살아나던 것)
+           - 게스트 = 이 기기 브라우저만 · 로그인 · 게스트를 고르기 전에는 처음 값 (읽은 뒤 applyLoadedData 가 다시 그려요)
+           - 앱이 갑자기 꺼져 못 올린 것은 따로 (gdrive_pending_backup · 계정 확인 · 올리면 지움) */
         function prefGet(key, local) {
             let v = null;
             if (drive.ready && !drive.guest) { try { v = store.getItem(key); } catch (e) {} }
-            else { try { v = localStorage.getItem(local); } catch (e) {} }
+            else if (drive.guest) { try { v = localStorage.getItem(local); } catch (e) {} }
             if (v === null) return null;
             try { return JSON.parse(v); } catch (e) { return v; }
         }
         function prefSet(key, local, val) {
             const t = JSON.stringify(val);
             try { if (drive.ready && !drive.guest) store.setItem(key, t); } catch (e) {}
-            try { localStorage.setItem(local, t); } catch (e) {}
+            if (drive.guest) try { localStorage.setItem(local, t); } catch (e) {}
         }
         /* ✏️ 내 닉네임 (배경지 · 공유 · 인형 · 인형극 '만든 사람' 칸에 미리 채워요) */
         const NICK_KEY = 'diary_nick', NICK_LOCAL = 'malang_pattern_nick';
@@ -1232,9 +1232,7 @@
         function enterGuestMode() {
             drive.guest = true; drive.ready = false;
             if (typeof collGuestStart === 'function') collGuestStart();    // 게스트 모음은 이 기기에 (js/coll.js)
-            if (typeof dyySync === 'function') dyySync();                   // 📔 그 해 기본 다이어리 (js/dyyear.js)
-            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 분홍 단색 배경지 (js/bgown.js)
-            if (typeof dsSync === 'function') dsSync();                     // 🧱 🪵 기본 벽지 · 책상 (js/deskskin.js)
+            applyLoadedData();                                              // 이 기기에 저장한 게스트 설정으로 다시 그려요 (고르기 전엔 처음 값이라 · 📔 다이어리 · 🌈 배경지 · 🧱 벽지도 여기서)
             hideGate(); updateBadge();
         }
 

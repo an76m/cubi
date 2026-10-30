@@ -9,14 +9,13 @@
         const PSY_KEY = 'diary_psy', PSY_LOCAL = 'malang_psy';
         const psy = { built: false, test: null, qi: 0, ans: [], order: [], res: null, timer: 0 };
         const pyq = id => document.getElementById(id);
-        const psySync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         const psyEsc = htmlEsc;   // 🧰 js/util.js
 
-        function psyMine() { try { return JSON.parse((psySync() ? store.getItem(PSY_KEY) : localStorage.getItem(PSY_LOCAL)) || '{}') || {}; } catch (e) { return {}; } }
+        function psyMine() { const o = prefGet(PSY_KEY, PSY_LOCAL); return o && typeof o === 'object' ? o : {}; }   // 💾 js/drive.js
         function psyKeep(id, i) {
             const o = psyMine(); if (o[id] === i) return;
-            o[id] = i; const t = JSON.stringify(o);
-            try { if (psySync()) store.setItem(PSY_KEY, t); else localStorage.setItem(PSY_LOCAL, t); } catch (e) {}
+            o[id] = i;
+            prefSet(PSY_KEY, PSY_LOCAL, o);
         }
 
         /* ---------- 화면 ---------- */

@@ -256,7 +256,7 @@
                 const fs = await driveList(`'${d}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (name='${OWN_IDX}' or name='${OWN_ALB}')`, 'id,name');
                 const i = (fs.find(x => x.name === OWN_IDX) || {}).id || '', a = (fs.find(x => x.name === OWN_ALB) || {}).id || '';
                 if (i === mem.i && a === mem.a) return;
-                if (mem.i && mem.i !== i) await ownSerial(async () => {      // 🛟 기억한 목록이 휴지통 · 다른 파일이 된 사이에 거기에 받은 종이를 썼을 수 있어요 (도련 10-29 : 받은 씰이 잠깐 보였다 사라짐)
+                if (mem.i && i && mem.i !== i) await ownSerial(async () => {   /* 살아 있는 목록이 없으면 (말랑달콤 · 스티커목록을 지웠으면) 합치지 않아요 = 처음부터 (도련 10-30 · 드라이브가 기준) */      // 🛟 기억한 목록이 휴지통 · 다른 파일이 된 사이에 거기에 받은 종이를 썼을 수 있어요 (도련 10-29 : 받은 씰이 잠깐 보였다 사라짐)
                     let old = []; try { old = ownIdxClean((await ownUnlock(await readFileText(mem.i))).list); } catch (e) { return; }   // → 살아 있는 목록에 합쳐요 (없는 것만 더해요)
                     let live = []; if (i) { try { live = ownIdxClean((await ownUnlock(await readFileText(i))).list); } catch (e) { return; } }
                     const have = new Set(live.map(e => e.id)), add = old.filter(e => !have.has(e.id));

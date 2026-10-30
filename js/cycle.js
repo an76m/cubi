@@ -13,7 +13,6 @@
         const CY_FLOW = ['', '적음', '보통', '많음'];
         const cy = { built: false, y: 0, m: 0, d: {}, sel: '' };
         const cyq = id => document.getElementById(id);
-        const cySync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
 
         /* ---------- 날짜 ---------- */
         const cyKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -24,13 +23,12 @@
         /* ---------- 저장 ---------- */
         function cyRead() {
             let o = null;
-            try { o = JSON.parse(cySync() ? store.getItem(CY_KEY) : localStorage.getItem(CY_LOCAL)); } catch (e) {}
+            o = prefGet(CY_KEY, CY_LOCAL);                                   // 💾 js/drive.js
             return o && typeof o === 'object' && o.d && typeof o.d === 'object' ? o.d : {};
         }
         function cyWrite() {
             Object.keys(cy.d).forEach(k => { const v = cy.d[k]; if (!v.p && !(v.s && v.s.length)) delete cy.d[k]; });
-            const t = JSON.stringify({ d: cy.d });
-            try { if (cySync()) store.setItem(CY_KEY, t); else localStorage.setItem(CY_LOCAL, t); } catch (e) {}
+            prefSet(CY_KEY, CY_LOCAL, { d: cy.d });
         }
 
         /* ---------- 계산 ---------- */

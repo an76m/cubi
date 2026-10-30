@@ -10,20 +10,15 @@
         const SND_KEY = 'diary_sound', SND_LOCAL = 'malang_sound';
         const SND_DEF = { fx: true, vol: 70 };
         const snd = { ac: null, out: null, unlocked: false };
-        const sndSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
 
         /* ---------- 설정 ---------- */
         function sndPref() {
-            let o = null;
-            try { if (sndSync()) o = JSON.parse(store.getItem(SND_KEY) || 'null'); } catch (e) {}
-            if (!o) { try { o = JSON.parse(localStorage.getItem(SND_LOCAL) || 'null'); } catch (e) {} }
+            const o = prefGet(SND_KEY, SND_LOCAL);                               // 💾 js/drive.js
             return Object.assign({}, SND_DEF, o || {});
         }
         function sndSet(k, v) {
             const o = sndPref(); o[k] = v;
-            const t = JSON.stringify({ fx: o.fx, vol: o.vol });
-            try { if (sndSync()) store.setItem(SND_KEY, t); } catch (e) {}
-            try { localStorage.setItem(SND_LOCAL, t); } catch (e) {}
+            prefSet(SND_KEY, SND_LOCAL, { fx: o.fx, vol: o.vol });
             if (k === 'vol' && snd.out) snd.out.gain.value = sndGain(o);
             if (k === 'fx' && !v) document.dispatchEvent(new Event('snd-fx-off'));
             sndMark();

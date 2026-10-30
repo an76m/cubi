@@ -1195,7 +1195,7 @@
         }
         let toolN = 0;
         const gdArt = (id, t = gdInfo(id)) => t.g === 'tweez' ? (typeof pinSvg === 'function' ? pinSvg() : '') : t.g === 'clip' ? clipSvg(t.c) : toolSvg(t.g);
-        let gdHeld = null, gdG = null, gdInit = false, gdBook = null;
+        let gdHeld = null, gdG = null, gdInit = false, gdBook = null, gdClipSig = '';
         const gdScs = () => !!gdHeld && (gdInfo(gdHeld) || {}).g === 'scissors';           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
         const gdIp = () => document.getElementById('innerPage');
         const gdEl = id => { const ip = gdIp(); return ip ? [...ip.querySelectorAll(':scope > .bd-tool')].find(x => x.dataset.t === id) || null : null; };
@@ -1860,12 +1860,14 @@
                 if (el.classList.contains('edge')) o[c] = { f: Math.round(+el.dataset.f * 1e4) / 1e4 };
                 else { const m = gdMid(el); o[c] = { x: Math.round((m.x - cv.offsetLeft) / W * 1e4) / 1e4, y: Math.round((m.y - cv.offsetTop) / H * 1e4) / 1e4 }; }
             });
-            const all = Object.assign({}, prefGet(GD_CLIP, GD_CLIP_L) || {}); all[gdBook] = o; prefSet(GD_CLIP, GD_CLIP_L, all);
+            const all = Object.assign({}, prefGet(GD_CLIP, GD_CLIP_L) || {}); all[gdBook] = o; prefSet(GD_CLIP, GD_CLIP_L, all); gdClipSig = JSON.stringify(o);
         }
         function gdSync() {                                                     // dyDeco 끝에서 : 📎 그 권의 집게 · 🪡 처음 열면 핀셋
             const ip = gdIp(), cv = document.getElementById('canvasArea'); if (!ip || !cv) return;
             const book = dyNow().id, saved = (prefGet(GD_CLIP, GD_CLIP_L) || {})[book] || {};
-            if (gdBook !== book) {                                              // 다른 권 = 그 권의 집게로
+            const sig = JSON.stringify(saved), busy = (gdHeld && gdHeld.startsWith('clip:')) || (gdG && gdG.k === 'rail');
+            if (gdBook !== book || (sig !== gdClipSig && !busy)) {             // 다른 권 = 그 권의 집게로 · 드라이브를 읽은 뒤 저장이 달라졌어도 (도련 10-30 : 읽기 전 모습이 남지 않게)
+                gdClipSig = sig;
                 ip.querySelectorAll(':scope > .bd-tool.clip').forEach(el => { if (gdHeld === el.dataset.t) gdHeld = null; el.remove(); });
                 gdBook = book;
                 Object.keys(saved).forEach(c => { if (CLIPS.some(x => x[0] === c)) gdMake('clip:' + c); });

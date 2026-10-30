@@ -60,14 +60,12 @@
             if (k === 'lose') { [659, 587, 523, 440].forEach((f, i) => ritTone(f, .9, .08, 'sine', i * .28, RIT_BELL)); }
         }
         const lkq = id => document.getElementById(id);
-        const lkSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         function lkDay(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
         function lkSeed() {
-            let v = null;
-            try { v = +(lkSync() ? store.getItem(LK_KEY) : localStorage.getItem(LK_LOCAL)); } catch (e) {}
+            let v = +prefGet(LK_KEY, LK_LOCAL);                                   // 💾 js/drive.js
             if (!(v > 0)) {
                 v = 1 + Math.floor(Math.random() * 999999);
-                try { if (lkSync()) store.setItem(LK_KEY, String(v)); else localStorage.setItem(LK_LOCAL, String(v)); } catch (e) {}
+                prefSet(LK_KEY, LK_LOCAL, v);
             }
             return v;
         }

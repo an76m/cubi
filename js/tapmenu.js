@@ -32,15 +32,13 @@
         const CLR_KEY = 'diary_clear_sec', CLR_LOCAL = 'malang_clear_sec', CLR_DEF = 5, CLR_MIN = 1, CLR_MAX = 15;
         function clearSec() {
             let v = null;
-            try { v = (typeof drive !== 'undefined' && drive.ready && !drive.guest) ? store.getItem(CLR_KEY) : localStorage.getItem(CLR_LOCAL); } catch (e) {}
-            let n = NaN; try { n = Number(JSON.parse(v)); } catch (e) {}
+            v = typeof prefGet === 'function' ? prefGet(CLR_KEY, CLR_LOCAL) : null;   // 💾 js/drive.js
+            const n = Number(v);
             return isFinite(n) && n >= CLR_MIN ? Math.min(CLR_MAX, n) : CLR_DEF;
         }
         function clearSecSet(n) {
             n = Math.max(CLR_MIN, Math.min(CLR_MAX, Math.round(Number(n)) || CLR_DEF));
-            const t = JSON.stringify(n);
-            try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest) store.setItem(CLR_KEY, t); } catch (e) {}
-            try { localStorage.setItem(CLR_LOCAL, t); } catch (e) {}
+            prefSet(CLR_KEY, CLR_LOCAL, n);
             const b = document.getElementById('clearSecVal'); if (b) b.textContent = n + '초';
         }
         function clearSecRender() {

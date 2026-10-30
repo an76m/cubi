@@ -25,19 +25,16 @@
         const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 처음 쓸 때 만들어요
         const PK_DEF = PK_PENS.slice(0, 8).map(c => 'pen:' + c).concat(PK_HIS.slice(0, 6).map(c => 'hi:' + c), ['erase:0', 'erase:2']);   // 처음 연필꽂이
         const pkq = id => document.getElementById(id);
-        const pkSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof store !== 'undefined';
         const pk = { on: false, pick: null, busy: false, tab: 'pen', x: 0, w: 1, v: 0, raf: 0, go: null, drag: null, moved: false };   // x = 민 거리(px) · w = 한 바퀴 길이
 
         function pkRead() {
             let v = null;
-            try { v = JSON.parse(pkSync() ? store.getItem(PK_KEY) : localStorage.getItem(PK_LOCAL)); } catch (e) {}
+            v = prefGet(PK_KEY, PK_LOCAL);                                   // 💾 js/drive.js
             const ok = Array.isArray(v) ? v.filter(id => pkAll().some(t => t.id === id)) : [];
             return ok.length ? ok : PK_DEF.slice();
         }
         function pkWrite(ids) {
-            const t = JSON.stringify(ids);
-            try { if (pkSync()) store.setItem(PK_KEY, t); } catch (e) {}
-            try { localStorage.setItem(PK_LOCAL, t); } catch (e) {}
+            prefSet(PK_KEY, PK_LOCAL, ids);
         }
         /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
         function pkCupList() {

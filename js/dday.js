@@ -12,16 +12,14 @@
         const DD_KINDS = { until: '다가오는 날', since: '시작한 날부터', yearly: '해마다 (생일 · 기념일)' };
         const dd = { built: false, list: [], edit: null };
         const ddq = id => document.getElementById(id);
-        const ddSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         const ddEsc = htmlEsc;   // 🧰 js/util.js
 
         function ddRead() {
-            let a = null; try { a = JSON.parse(ddSync() ? store.getItem(DD_KEY) : localStorage.getItem(DD_LOCAL)); } catch (e) {}
+            const a = prefGet(DD_KEY, DD_LOCAL);                                  // 💾 js/drive.js
             return Array.isArray(a) ? a.filter(x => x && x.n && /^\d{4}-\d{2}-\d{2}$/.test(x.d)) : [];
         }
         function ddWrite() {
-            const t = JSON.stringify(dd.list);
-            try { if (ddSync()) store.setItem(DD_KEY, t); else localStorage.setItem(DD_LOCAL, t); } catch (e) {}
+            prefSet(DD_KEY, DD_LOCAL, dd.list);
             ddRender();
         }
         const ddDate = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };

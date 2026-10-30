@@ -14,9 +14,8 @@
             ['die', '🏷️ 씰 하얀 테두리', '씰 · 조각스티커 둘레에 하얀 칼선 (새로 붙이는 것부터)']
         ].filter(x => x[3] !== 'season' || (typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN))   // 계절 기능이 닫혀 있으면 스위치도 숨겨요 (js/season.js)
           .filter(x => typeof ftOn !== 'function' || ftOn(x[0]));   // 🔓 숨긴 기능(⏳ D-day 등)은 스위치도 숨겨요 (js/features.js)
-        const showSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         function showRead() {
-            let o = null; try { o = JSON.parse(showSync() ? store.getItem(SHOW_KEY) : localStorage.getItem(SHOW_LOCAL)); } catch (e) {}
+            const o = prefGet(SHOW_KEY, SHOW_LOCAL);                              // 💾 js/drive.js
             return o && typeof o === 'object' ? o : {};
         }
         const SHOW_OFF = { die: 1 };                                          // 기본이 꺼짐인 것
@@ -29,8 +28,7 @@
         function showSet(k, on) {
             const o = showRead();
             if (on === !SHOW_OFF[k]) delete o[k]; else o[k] = on ? 1 : 0;
-            const t = JSON.stringify(o);
-            try { if (showSync()) store.setItem(SHOW_KEY, t); else localStorage.setItem(SHOW_LOCAL, t); } catch (e) {}
+            prefSet(SHOW_KEY, SHOW_LOCAL, o);
             showApply();
         }
         function showRenderSwitches() {

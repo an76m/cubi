@@ -870,13 +870,11 @@
 
         /* ---------- 오락실 본체 ---------- */
         const ar = { built: false, open: false, game: null, inst: null, state: 'lobby', score: 0, t: 0, raf: 0, last: 0, ac: null, best: {}, ptr: null, keys: {} };
-        const arSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;     // 로그인 → 드라이브 설정 / 게스트 → 이 기기
         function arReadBest() {
-            try { return JSON.parse(arSync() ? store.getItem(ARCADE_BEST_SYNC) : localStorage.getItem(ARCADE_BEST_KEY)) || {}; } catch (e) { return {}; }
+            const o = prefGet(ARCADE_BEST_SYNC, ARCADE_BEST_KEY); return o && typeof o === 'object' ? o : {};   // 💾 로그인 → 드라이브 / 게스트 → 이 기기 (js/drive.js)
         }
         function arSaveBest() {
-            const t = JSON.stringify(ar.best);
-            try { if (arSync()) store.setItem(ARCADE_BEST_SYNC, t); else localStorage.setItem(ARCADE_BEST_KEY, t); } catch (e) {}
+            prefSet(ARCADE_BEST_SYNC, ARCADE_BEST_KEY, ar.best);
         }
         const aq = id => document.getElementById(id);
         const arTouch = () => matchMedia('(pointer: coarse)').matches;
