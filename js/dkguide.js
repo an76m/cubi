@@ -2,12 +2,12 @@
    🩷 처음 쓰는 사람용 '다꾸하는 법' 메모 (도련 10-26 · 시안 A)
    - 다이어리를 펼치면 빈 페이지 위에 테이프로 붙인 메모 한 장 : 바구니에 받고 → 꺼내고 → 핀셋으로 붙여요
    - 막지 않아요 (메모는 눌리지 않고 ✕ 만 눌려요) · 아래 ✨ 스티커 버튼이 살짝 빛나요 (🪑 책상 화면이면 스티커가 붙은 소품)
-   - 스티커를 처음 페이지에 붙이면(own.js ownOp) 또는 ✕ 를 누르면 사라지고 다시 안 떠요 (이 기기 localStorage)
+   - 스티커를 처음 페이지에 붙이면(own.js ownOp) 또는 ✕ 를 누르면 사라지고 다시 안 떠요 (설정 'diary_dg_done' · 폴더를 지우면 다시)
    - 예전 '스티커는 핀셋으로 집어서 옮겨요' 첫 알림은 이 메모가 대신해요 (손으로 스티커를 만지면 뜨는 핀셋 알림은 그대로 · js/skins.js twzSay)
    ※ 메모는 #innerPage 안 · #canvasArea 밖 (일기로 저장되지 않게) */
 
-        const DG_LS = 'malang_dg_done';
-        const dgIsDone = () => { try { return !!localStorage.getItem(DG_LS); } catch (e) { return false; } };
+        const DG_KEY = 'diary_dg_done', DG_LS = 'malang_dg_done';             // 💾 본 표시 = 로그인 → 드라이브 설정 · 게스트 → 이 기기 (도련 10-31 : 말랑달콤 폴더를 지우면 다시 떠요 · js/drive.js prefGet)
+        const dgIsDone = () => !!prefGet(DG_KEY, DG_LS);
         function dgPlace() {                                                     // 보이는 쪽 가운데 위 (📱 한쪽 보기면 그 쪽 · 💻 펼친 두 쪽이면 왼쪽 쪽 : 오른쪽엔 핀셋이 있어요)
             const el = document.getElementById('dgNote'), cv = document.getElementById('canvasArea');
             if (!el || !cv || !el.parentElement) return;
@@ -45,7 +45,7 @@
             requestAnimationFrame(() => el.classList.add('on'));
         }
         function dgDone() {
-            try { localStorage.setItem(DG_LS, '1'); } catch (e) {}
+            prefSet(DG_KEY, DG_LS, 1);
             document.body.classList.remove('dg-on');
             const el = document.getElementById('dgNote'); if (!el) return;
             el.classList.remove('on'); setTimeout(() => el.remove(), 300);
