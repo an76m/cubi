@@ -1216,13 +1216,20 @@
             const M = dkyMap(); M[id] = Object.assign({}, dkyOk(M[id]) ? M[id] : {}, { x, y, p: (M[id] && M[id].p) || 'front' });   // 처음 = 앞을 보고 세워요
             if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }   // 봉투에서 꺼냈어요
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
-            dkDeskBooks(); return true;
+            dkDeskBooks(); dkvFront(id); return true;
         }
         function dkvHome(id) {                                                    // 📚 다이어리 줄의 빈자리에 (자리를 지우면 dkyPosOf 가 줄지어 세워요)
             const M = dkyMap(); delete M[id];
             if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
-            dkDeskBooks();
+            dkDeskBooks(); dkvFront(id);
+        }
+        /* 📔 봉투에서 꺼내 놓은 권은 겹친 소품보다 앞에 (도련 10-31 : 소품 뒤에 숨었어요) · ⬆ 앞으로(dkvLayer)와 같은 방법 = 겹친 것만 세어 맨 앞 */
+        function dkvFront(id) {
+            const put = lz => { const M = dkyMap(); M[id] = Object.assign({}, dkyPosOf(id)); if (lz) M[id].lz = lz; else delete M[id].lz; if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M); dkLayers(); };
+            put(99);
+            const el = document.querySelector(`#deskStage .dk-vol[data-b="${id}"]`);
+            put((DK.lzDone && el && DK.lzDone.get(el)) || 0);
         }
         window.dkVolsPaint = dkVolsPaint; window.dkDeskBooks = dkDeskBooks; window.dkvPose = dkvPose;
 
