@@ -1220,7 +1220,11 @@
         const dkyOk = v => v && isFinite(+v.x) && isFinite(+v.y) && ['side', 'front', 'lay'].includes(v.p);
         const dkvBooks = () => window.dyyBooks ? dyyBooks() : [];
         /* 📒 스티커 바인더 · 🤍 이형지북도 책상에 (도련 10-30) : js/basket.js abDeskList 로 읽어 둔 것 (DK.albs) · 톡 = 그 종류 창에서 그 책 */
-        const dkvAll = () => dkvBooks().map(b => Object.assign({ t: 'dy' }, b)).concat((DK.albs || []).map(a => Object.assign({}, a)));
+        /* 🛍️ 가게에서 산 다이어리 · 스티커첩 = 봉투 속 (도련 10-30 : 꺼내 놓기 전엔 책상에 없어요) · 'diary_desk_dy' 의 _bag = [id] · 꺼내 놓으면 빠져요 (dkvPlace) */
+        const dkBagged = () => { const b = dkyMap()._bag; return Array.isArray(b) ? b : []; };
+        function dkBagHold(id) { const M = dkyMap(); M._bag = dkBagged().filter(x => x !== id).concat([id]); if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M); }
+        window.dkBagHold = dkBagHold;
+        const dkvAll = () => { const bg = dkBagged(); return dkvBooks().map(b => Object.assign({ t: 'dy' }, b)).concat((DK.albs || []).map(a => Object.assign({}, a))).filter(x => !bg.includes(x.id)); };
         const dkvOf = id => dkvAll().find(x => x.id === id);
         function dkyPosOf(id) {                                                   // 그 권 자리 (없으면 줄지어 꽂힌 자리)
             const M = dkyMap(); if (dkyOk(M[id])) return M[id];
@@ -1319,7 +1323,7 @@
         function dkDeskBooks(alb) {
             if (!document.getElementById('deskStage')) return;
             if ((alb || !DK.albs) && window.abDeskList && !DK.albGet) { DK.albGet = true; abDeskList().then(L => { DK.albGet = false; const was = JSON.stringify(DK.albs || null); DK.albs = L; if (was !== JSON.stringify(L)) dkVolsPaint(); }).catch(() => { DK.albGet = false; }); }   // 📒 🤍 스티커첩 (한 번 읽어 두고 · 받으면 다시)
-            if (!DK.edit) { const el = document.getElementById('deskDiary'); if (el) el.hidden = !dkvBooks().length && !(typeof dkType === 'function' && dkType()); }
+            if (!DK.edit) { const el = document.getElementById('deskDiary'), c = dkyCur(); if (el) el.hidden = (!dkvBooks().length || (c && dkBagged().includes(c))) && !(typeof dkType === 'function' && dkType()); }   // 펼쳐 둔 권이 아직 봉투 속이면 책상에 없어요
             dkyApply(); dkVolsPaint();
             if (!document.documentElement.classList.contains('desk-show') && !deskAnim) deskMiniPaint();
         }
@@ -1329,6 +1333,7 @@
             if (cx < R.left || cx > R.right || cy < R.top || cy > R.bottom) return false;
             const s = DK.s || 1, x = Math.round(Math.max(40, Math.min(1632, (cx - R.left) / s))), y = Math.round(dkBoxFloor(x, Math.max(120, Math.min(930, (cy - R.top) / s + 60)), null));
             const M = dkyMap(); M[id] = Object.assign({}, dkyOk(M[id]) ? M[id] : {}, { x, y, p: (M[id] && M[id].p) || 'side' });
+            if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }   // 봉투에서 꺼냈어요
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
             dkDeskBooks(); return true;
         }

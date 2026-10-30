@@ -293,7 +293,7 @@
     const abNewBd = (k, c) => ({ id: 'b' + abRid(), k, lb: '', c: (+c || 0) % AB_COL.length, n: AB_BD_N, p: {} });
     const abNewRl = k => ({ id: 'r' + abRid(), k, lb: '', n: AB_RL_N, it: [] });
     /* 🏪 기본상품 샵 → 📔 다이어리(스티커 정리)에서 받기 (그 종류 서랍으로) */
-    function abTakeTool(t, k, c) { const o = t === 'bd' ? abNewBd(k, c) : abNewRl(k); window.abLastGiven = { id: o.id, t: Date.now() }; return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(o); }).then(r => { if (window.dkDeskBooks) dkDeskBooks(true); return r; }); }   // 🛍️ 봉투 카드가 이 책을 기억해요 · 📔 책상에도 (js/desk.js)
+    function abTakeTool(t, k, c) { const o = t === 'bd' ? abNewBd(k, c) : abNewRl(k); window.abLastGiven = { id: o.id, t: Date.now() }; if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(o.id); return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(o); }).then(r => { if (window.dkDeskBooks) dkDeskBooks(true); return r; }); }   // 🛍️ 봉투 카드가 이 책을 기억해요 · 📔 책상에도 (js/desk.js)
     /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색] }] · 톡 = 그 종류 창에서 그 책 펼치기 */
     window.abDeskList = async () => {
         if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
