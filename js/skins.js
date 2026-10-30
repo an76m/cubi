@@ -1492,11 +1492,11 @@
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
         const cabK = id => id.split(':')[1];
         const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
-        /* ✏️ 내 문구 (도련 10-27) : 처음엔 기본 세트 선물(모두) · 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
-           저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 기본 세트 모두 → 드라이브를 읽은 뒤 js/desk.js giftEnsure) · 게스트는 이 기기 malang_gd_own
+        /* ✏️ 내 문구 (도련 10-27) : 처음엔 아무것도 없어요 (도련 10-31 · 🪡 핀셋도) · 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
+           저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
                   🎁 처음 선물은 기본세트 / 선물.json 한 파일 (서비스 · 예외 · 버리면 거기서 빠져요)
                   종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
-           마지막 하나 남은 것 · 페이지에 꺼내 둔 것은 못 버려요 */
+           페이지에 꺼내 둔 것은 못 버려요 (마지막 하나도 버릴 수 있어요) */
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
         const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string' && !seen.has(o.id) && seen.add(o.id)) : null; };   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
@@ -1521,13 +1521,9 @@
             const now = gdOwnList() || [];
             prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.id === o.id && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
         }
-        function gdGiftSet(ids) {                                               // 🎁 처음 선물 (ids = 선물.json 에서 되살린 것 · null = 모두)
-            const all = cabAllIds();
-            prefSet(GD_OWN, GD_OWN_L, (ids ? ids.filter(id => all.includes(id)) : all).map(id => ({ id, g: 1 })));
-        }
         function gdSetList(L) { const all = cabAllIds(); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && all.includes(o.id)).map(gdRec)); }   // 🛟 되살린 목록 (js/desk.js giftEnsure)
-        window.gdFilesFill = gdFilesFill; window.gdGiftSet = gdGiftSet; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
-        const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : all; };
+        window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
+        const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : []; };   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
         const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
         const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
         const cabName = id => cabTool(id) ? (cabKinds(id.split(':')[0]).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;
@@ -1571,7 +1567,7 @@
             };
             cab.innerHTML = `<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
                 <button type="button" class="gdc-cup" aria-label="연필꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>연필꽂이</small></button>
-                <div class="gdc-body">${GD_CAB.map(dr).join('')}</div>
+                <div class="gdc-body">${GD_CAB.map(dr).join('') || '<div class="gdc-none">아직 문구가 없어요<br><button type="button" class="btn" onclick="gdCabShop()">🏪 기본상품 샵에서 받아 오기</button></div>'}</div>
                 <p class="gdc-tip">톡 = 꺼내기 · 손잡이·꾹 = 골라 담기<br>잡고 끌면 서랍장이 옮겨져요</p>`;
             cab.querySelectorAll('.gdc-dr[data-g]').forEach(b => {
                 const g = b.dataset.g;
@@ -1637,10 +1633,9 @@
         async function gdCabBinTap(id) {
             const g = cabGOf(id), n = cabName(id) || '이 문구', kind = (GD_CAB.find(x => x[0] === g) || [])[1] || '';
             const jo = josa;   // 🧰 js/util.js
-            if (cabOwn(g).length <= 1) { showMsg(`마지막 하나 남은 ${jo(kind, '은', '는')} 버릴 수 없어요.`); return; }
             if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
             if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 휴지통에 버릴까요?<br><small>버린 문구는 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '🗑 휴지통', '취소')) return;
-            const L = gdOwnList() || cabAllIds().map(x => ({ id: x, g: 1 })), o = L.find(x => x.id === id);
+            const L = gdOwnList() || [], o = L.find(x => x.id === id);
             prefSet(GD_OWN, GD_OWN_L, L.filter(x => x.id !== id).map(gdRec));
             if (o && o.g) { if (window.deskGiftWrite) deskGiftWrite(); }      // 🎁 선물이면 선물.json 에서 빼요
             else { const C = gdColl(id); if (C && o && o.c) collRemove(C, o.c).catch(e => console.warn('문구 파일', e)); }   // 🗑 그 파일도
@@ -1651,7 +1646,7 @@
         /* 🏪 기본상품 샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) })));
         function gdGive(id) {
-            const L = gdOwnList(); if (!L || L.some(o => o.id === id)) return 'have';
+            const L = gdOwnList() || []; if (L.some(o => o.id === id)) return 'have';
             if (!cabAllIds().includes(id)) return 'no';
             const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
             gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.id === id); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 종류 폴더에 파일 하나
@@ -1888,7 +1883,7 @@
             if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나
                 gdInit = true;
                 setTimeout(() => {
-                    if (!gdEl('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
+                    if (!gdEl('twz') && cabOwn(cabGOf('twz')).includes('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
                     setTimeout(() => { if (isCoverOpen && window.dgShow) dgShow(); }, 450);   // 🩷 처음 쓰는 사람용 다꾸하는 법 메모 (js/dkguide.js · 예전 '핀셋으로 집어서 옮겨요' 첫 알림 대신 · 도련 10-26)
                 }, 900);
             }

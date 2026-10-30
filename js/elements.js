@@ -978,8 +978,9 @@
             if (pageStamps.we) day.we = pageStamps.we;
             const lfDef = (window.dkLeafOf && dkLeafOf(currentDate)) || 'line';   // 📓 만든 노트는 페이지마다 정해 둔 내지가 기본 (js/dymaker.js)
             if (typeof pageLeaf !== 'undefined' && pageLeaf !== lfDef) { day.lf = pageLeaf; if (pageLeaf === 'my') day.lfi = pageLeafImg; }   // 📃 속지 (js/leafpad.js · 기본 내지는 저장 안 함)
-            const has = !!(elementsData.length || day.mo || day.we || day.lf);
-            if (has) store.setItem(dayKey, JSON.stringify(day));
+            const has = !!(elementsData.length || day.mo || day.we || day.lf), txt = has ? JSON.stringify(day) : null;
+            if (txt !== store.getItem(dayKey) && window.deskLastDeco) deskLastDeco();   // 📔 꾸민 게 바뀌었으면 = 마지막으로 다꾸한 다이어리 (로그인하면 이 권이 떠요 · js/desk.js)
+            if (has) store.setItem(dayKey, txt);
             else store.removeItem(dayKey);   // 빈 페이지는 파일에 남기지 않음
             if (window.dkMark) dkMark(dayKey, has);                             // 📕 유한 다이어리 : 장을 처음 꾸민 날 (js/skins.js)
             if (typeof searchTouch === 'function') searchTouch(dayKey);          // 🔍 검색 목록 고치기 (js/search.js)

@@ -670,3 +670,5 @@ html.desk-edit .dk-bag { pointer-events: none; opacity: .55; }
 /* 📔 책상 위 다이어리 = 모든 권 같은 틀 (.dk-vol · 도련 10-30) : #deskDiary 는 떠오르기 · 내려앉기 · 레이어 기준점으로만 (안 보이고 안 눌려요) · 펼쳐 보는 동안 그 권 그림은 숨어요 */
 #deskDiary { position: absolute; width: 0; height: 0; visibility: hidden !important; pointer-events: none !important; }
 html.desk-show .dk-vol.cur { visibility: hidden; }
+
+.gdc-none { padding: 22px 8px; text-align: center; color: #9a7d8a; font-size: 13px; line-height: 1.7; } .gdc-none .btn { margin-top: 8px; }   /* ✏️ 문구함이 비었을 때 (도련 10-31 · 처음엔 문구 없음) */

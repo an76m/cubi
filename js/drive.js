@@ -988,6 +988,7 @@
         async function postLoginTasks() {
             await recoverPendingBackup();
             if (window.dfFix) dfFix();                                       // 🗂 꾸민 페이지만 보기 : 꾸민 날 목록 (js/skins.js)
+            if (window.deskLoginShow) deskLoginShow();                       // 📔 로그인하면 늘 다이어리 겉표지 (js/desk.js)
         }
 
         /* 드라이브에서 불러온 데이터를 화면에 반영 */

@@ -191,7 +191,7 @@
                         (files ? files.gd : []).forEach(f => { if (!seen.has(f.id)) { seen.add(f.id); L.push({ id: f.id, c: f.c }); } });
                         (had && Array.isArray(had.gd) ? had.gd : []).forEach(id => { if (!seen.has(id)) { seen.add(id); L.push({ id, g: 1 }); } });
                         gdSetList(L);
-                    } else if (window.gdGiftSet) gdGiftSet(null);
+                    } else if (window.gdSetList) gdSetList([]);                 // 🎁 처음 온 다꾸러 = 문구 없음 (🏪 기본상품 샵에서 받아요 · 도련 10-31)
                 }
                 if (!back && giftOn()) giftWrite();
             } finally { giftBusy = false; }
@@ -213,7 +213,6 @@
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
-        const DK_FN_DEF = { sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품 · 📔 다이어리 · 🏪 기본상품 샵은 처음엔 소품 없음 (샵 = 책상 오른쪽 위 버튼 · 도련 10-30 · 🔗 기능 연결로 붙여요)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         /* 🪟 누르면 열리는 창 = 기능 + 상품 창 한 목록 (도련 10-30 : 모든 창이 🔗 기능 연결 목록에) · [id, 이름, 하단 메뉴 버튼, 아이콘, 묶음 'fn' | 'h']
            상품 창 id = 'h:' + 종류 (h:seal …) · 저장 : 소품 전체 = diary_desk_fn {창: 소품} · 👆 칸 = diary_desk_home {소품: [{k: 창, r, tag}]} · 한 창 = 한 자리 */
@@ -223,19 +222,12 @@
         const dkWins = () => DK_FNS.map(f => f.concat('fn')).concat(Object.keys(DKH_NAMES).filter(k => !DK_HSAME[k]).map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k] || '🎁', 'h']));
         const dkWin = id => (id && dkWins().find(x => x[0] === id)) || null;
         window.dkWin = dkWin;
-        function deskFnMap() {                                                    // 모든 기능 · 서로 다른 책상 위 소품 (모자라면 그 기능은 빠져요 → 하단 메뉴가 보여요)
+        function deskFnMap() {                                                    // 연결한 기능 → 책상 위 소품 (소품마다 하나)
             if (DK.edit) return DK.editFn;                                        // 🛠 꾸미는 동안은 고치는 중인 연결
             const v = typeof prefGet === 'function' ? prefGet(DK_FN_KEY, DK_FN_LOCAL) : null, got = v && typeof v === 'object' ? v : {};
-            const ids = dkOnDesk().map(o => o.u), claimed = Object.values(got), used = new Set(), m = {};
+            const ids = dkOnDesk().map(o => o.u), used = new Set(), m = {};
             Object.keys(got).forEach(k => { const u = got[k]; if (k.startsWith('h:') && dkWin(k) && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 🛍️ 상품 창 (저절로 붙이지 않아요)
-            DK_FNS.forEach(([k]) => {
-                let u = got[k];
-                if (u === undefined && !DK_FN_DEF[k]) return;                       // 처음 소품이 없는 기능 (📔 다이어리) = 아무 소품에나 붙이지 않아요
-                if (u === '') return;                                             // 다꾸러가 🛠 꾸미기에서 일부러 푼 기능 = 그대로 비워 둬요 (저절로 다시 붙이지 않기 · 도련 10-30)
-                if (!ids.includes(u) || used.has(u)) u = ids.includes(DK_FN_DEF[k]) && !used.has(DK_FN_DEF[k]) && !claimed.includes(DK_FN_DEF[k]) ? DK_FN_DEF[k] : ids.find(i => !used.has(i) && !claimed.includes(i));
-                if (!u) u = ids.find(i => !used.has(i));
-                if (u) { m[k] = u; used.add(u); }
-            });
+            DK_FNS.forEach(([k]) => { const u = got[k]; if (u && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 다꾸러가 연결한 것만 (처음엔 아무것도 · 저절로 붙이지 않아요 · 도련 10-31)
             return m;
         }
         const dkFnOf = u => { const m = deskFnMap(); return Object.keys(m).find(k => m[k] === u) || ''; };
@@ -563,7 +555,6 @@
                 const fn = DK.editFn, gone = JSON.parse(DK.back.items).filter(b => !DK.items.some(x => x.u === b.u));
                 DK.edit = false; dkSave();
                 gone.filter(o => !o.g).forEach(dkFileDel); if (gone.some(o => o.g)) giftWrite();   // 🗑 버린 소품의 파일 · 🎁 선물.json
-                DK_FNS.forEach(([k]) => { if (!fn[k]) fn[k] = ''; });             // 푼 기능은 '' 로 (deskFnMap 이 다시 붙이지 않게)
                 if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, fn);
                 dkArtCommit();                                                    // 🎨 색칠 · 🖼 사진 미리 보기 → 진짜 저장 (💾 저장 중)
             } else {
@@ -1444,6 +1435,19 @@
         }, true);
         window.addEventListener('resize', () => requestAnimationFrame(deskFit));
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', deskBuild); else deskBuild();
+        /* 📔 로그인하면 늘 다이어리 겉표지가 떠요 (도련 10-31) : 처음 온 다꾸러 = 기본 다이어리 · 쓰던 다꾸러 = 마지막으로 다꾸한 다이어리 (설정 'diary_last_deco' · js/elements.js saveData)
+           js/drive.js postLoginTasks 끝에서 (구글 · 이 기기 폴더 모두) */
+        const DK_LAST = 'diary_last_deco', DK_LAST_L = 'malang_last_deco';
+        function deskLoginShow() {
+            if (!document.documentElement.classList.contains('desk-on') || !document.getElementById('deskStage')) return;
+            setTimeout(() => {                                                    // 로그인 문이 걷힌 뒤 (권 목록도 다 읽은 뒤)
+                const last = prefGet(DK_LAST, DK_LAST_L), own = window.dyyBooks ? dyyBooks().map(b => b.id) : [];   // 버린 권이면 그대로
+                if (last && own.includes(last) && last !== dkyCur() && window.dyySelect) { dyySelect(last); dkDeskBooks(); }
+                requestAnimationFrame(() => deskOpenDiary());                     // 이미 떠 있으면 그대로 (권만 바뀌어요)
+            }, 350);
+        }
+        function deskLastDeco() { const id = dkyCur(); if (id && prefGet(DK_LAST, DK_LAST_L) !== id) prefSet(DK_LAST, DK_LAST_L, id); }   // 꾸민 내용이 바뀌었을 때만 (js/elements.js)
+        window.deskLoginShow = deskLoginShow; window.deskLastDeco = deskLastDeco;
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
         window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskBoxPick = deskBoxPick; window.deskBoxAllIn = deskBoxAllIn; window.deskBoxTab = deskBoxTab; window.deskTrayTab = deskTrayTab; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
         window.deskFnPick = deskFnPick; window.deskEditOpen = deskEditOpen; window.deskEditEnd = deskEditEnd; window.deskEditFromSettings = deskEditFromSettings; window.deskEditShop = deskEditShop;
