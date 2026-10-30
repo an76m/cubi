@@ -625,11 +625,11 @@ html.an .cover-page.cv-book .cv-year { display: none !important; }   /* 📓 다
 html.an .cover-page .cover-notice:not(.img) { width: 72cqw; }   /* 스샷 자리 (책등과 오른쪽 끝 사이 가운데) */
 html.an .cover-page .cover-notice, html.an .cover-page .drag-hint { translate: 5cqw 0; }
 /* 🏪 책상 오른쪽 위 = 기본상품 샵 바로 가기 (도련 10-30 · js/desk.js deskBuild · 책상만 볼 때 · 다이어리를 펼치거나 🛠 꾸미는 동안은 숨겨요) */
-.desk-top-r { position: absolute; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 9600; display: flex; gap: 8px; }   /* 🪑 오른쪽 위 : 🛠 책상 꾸미기 · 🚪 이동 (도련 10-31) */
+.desk-top-r { position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 995; display: flex; gap: 8px; }   /* 🪑 오른쪽 위 : 🛠 책상 꾸미기 · 🚪 이동 (도련 10-31) */
 .desk-shop-go { display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px; border: 2px solid #e88fb0; border-radius: 999px; background: #fff; color: #c2457a; font: inherit; font-size: 15px; font-weight: 800; white-space: nowrap; cursor: pointer; box-shadow: 3px 3px 0 #e6dcf8; }
 .desk-shop-go:hover { background: #fff0f5; }
 .desk-shop-go:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
-html.desk-show .desk-top-r, html.desk-edit .desk-top-r { display: none; }
+html:not(.desk-on) .desk-top-r, html.desk-edit .desk-top-r, body:has(.shop-scene.on) .desk-top-r { display: none; }   /* 다이어리를 펼쳐도 보여요 (도련 10-31) · 창(.modal 1000)보다는 아래 */
 /* 📔 책상 = 다이어리 보관소 (도련 10-30 · js/desk.js dkVolsPaint) : 펼쳐 두지 않은 권 = 가벼운 표지 그림 (파스텔 바인더 · 그 권 색 · 해 이름판) */
 .dk-vol { position: absolute; cursor: pointer; touch-action: none; user-select: none; }
 html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }

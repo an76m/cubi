@@ -374,7 +374,8 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><button type="button" class="desk-shop-go" onclick="deskRun('edit')">🛠 책상 꾸미기</button><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskMoveOpen()" aria-label="이동">🚪 이동</button></div>`;   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
+                <div class="desk-top-r"><button type="button" class="desk-shop-go" onclick="deskTopGo(() => deskRun('edit'))">🛠 책상 꾸미기</button><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">🚪 이동</button></div>`;
+            const tr = bg.querySelector('.desk-top-r'); if (tr) document.body.appendChild(tr);   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
             dkyApply();
@@ -1475,6 +1476,25 @@
         }
         function deskLastDeco() { const id = dkyCur(); if (id && prefGet(DK_LAST, DK_LAST_L) !== id) prefSet(DK_LAST, DK_LAST_L, id); }   // 꾸민 내용이 바뀌었을 때만 (js/elements.js)
         window.deskLoginShow = deskLoginShow; window.deskLastDeco = deskLastDeco;
+        /* 🪑 오른쪽 위 🛠 책상 꾸미기 · 🚪 이동 (도련 10-31) : 다이어리가 떠 있으면 먼저 저장 → 접히며 제자리 → 저장이 잘 됐을 때만 그 버튼 일 */
+        let deskTopBusy = false;
+        async function deskTopGo(run) {
+            const H = document.documentElement;
+            if (!H.classList.contains('desk-show')) { run(); return; }
+            if (deskTopBusy || deskAnim) return;
+            deskTopBusy = true;
+            try {
+                if (typeof isCoverOpen !== 'undefined' && isCoverOpen && typeof saveData === 'function') {
+                    try { await saveData(false); }
+                    catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 다이어리를 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 뒤 다시 눌러 주세요</span>'); return; }
+                }
+                deskCloseDiary();
+                const t0 = Date.now();
+                while ((H.classList.contains('desk-show') || deskAnim) && Date.now() - t0 < 6000) await new Promise(r => setTimeout(r, 80));
+                if (!H.classList.contains('desk-show')) run();
+            } finally { deskTopBusy = false; }
+        }
+        window.deskTopGo = deskTopGo;
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
         window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskBoxPick = deskBoxPick; window.deskBoxAllIn = deskBoxAllIn; window.deskBoxTab = deskBoxTab; window.deskTrayTab = deskTrayTab; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
         window.deskFnPick = deskFnPick; window.deskEditOpen = deskEditOpen; window.deskEditEnd = deskEditEnd; window.deskEditFromSettings = deskEditFromSettings; window.deskEditShop = deskEditShop;
