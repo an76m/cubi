@@ -1386,7 +1386,7 @@
             document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
             if (gdHeld === 'twz') return;                                      // 🪡 핀셋은 밖으로도
             if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
-            if (!gdIn(e.clientX, e.clientY)) { gdLet(); return; }               // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표
+            if (!gdIn(e.clientX, e.clientY) && gdInfo(gdHeld).g !== 'clip') { gdLet(); return; }   // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표 · 📎 집게는 페이지 밖에서 무는 도구라 밖으로도 따라와요 (도련 10-30 · 내려놓기는 다이어리 밖을 누를 때)
             if (gdInfo(gdHeld).g === 'punch' && e.pointerType !== 'touch' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }   // 🕳️ 가장자리에 착
             gdFollow(e.clientX, e.clientY, e);
         }, true);
