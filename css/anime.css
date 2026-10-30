@@ -685,9 +685,12 @@ html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }
 .dk-vol.p-front::before { content: ''; position: absolute; left: 6px; right: 4px; top: 0; height: 12px; box-sizing: border-box; border: 2px solid var(--dyv-ol); border-bottom: 0; border-radius: 6px 8px 0 0; background: repeating-linear-gradient(var(--page-bg, #fff8fb) 0 2px, color-mix(in srgb, var(--dyv) 45%, #fff) 2px 3px); }
 .dk-vol.p-front .dv-cv b { left: 26px; right: 8px; top: 18px; font-size: 13px; padding: 4px 0; text-align: center; border-radius: 6px; }
 /* 🛏 눕히기 = 위에서 본 표지 + 아래 종이 두께 */
-.dk-vol.p-lay .dv-cv { bottom: 9px; border-radius: 8px; clip-path: none; }
-.dk-vol.p-lay .dv-pg { position: absolute; left: 3px; right: 3px; bottom: 0; height: 12px; box-sizing: border-box; border: 2px solid var(--dyv-ol); border-top: 0; border-radius: 0 0 6px 6px; background: repeating-linear-gradient(var(--page-bg, #fff8fb) 0 2px, color-mix(in srgb, var(--dyv) 45%, #fff) 2px 3px); }
-.dk-vol.p-lay .dv-cv b { left: 50%; top: 50%; translate: -50% -50%; font-size: 11px; padding: 2px 8px; border-radius: 5px; }
+.dk-vol.p-lay .dv-cv { top: auto; bottom: 13px; height: 287px; transform: perspective(900px) rotateX(71deg); transform-origin: 50% 100%; border-radius: 6px 10px 10px 6px; box-shadow: inset 18px 0 0 var(--dyv-sh), inset 20px 0 0 var(--dyv-ol); }   /* 🛏 눕히기 = 펼쳐 둔 권처럼 표지를 비스듬히 (도련 10-30) */
+.dk-vol.p-lay .dv-pg { position: absolute; left: 0; right: 0; bottom: 0; height: 15px; box-sizing: border-box; border: 2px solid var(--dyv-ol); border-top: 0; border-radius: 0 0 10px 10px; background: linear-gradient(90deg, var(--dyv-sh) 0 16px, transparent 16px), repeating-linear-gradient(var(--page-bg, #fff8fb) 0 2px, color-mix(in srgb, var(--dyv) 45%, #fff) 2px 3px); }
+.dk-vol.p-lay .dv-cv b { left: 50%; top: 9%; translate: -50% 0; font-size: 26px; padding: 4px 18px; border-radius: 8px; }
+.dk-vol.has-lb .dv-cv > b { display: none; }   /* 🏷 이름표를 붙이면 해 이름판 대신 */
+.dk-vol .dkn-tag.dky-lb.side { --nb: 8px; } .dk-vol .dkn-tag.dky-lb.front { --nb: 13px; } .dk-vol.p-lay .dkn-tag.dky-lb.front { --nb: 30px; }
+.dkv-menu .dky-lbb { background: #fff1c4; }
 html.desk-edit .dk-vol.pose-on .dv-cv, html.desk-edit .dk-vol.lift .dv-cv { outline: 3px solid #ff6b88; outline-offset: 2px; }
 /* 🛠 다이어리 권 모습 창 = 펼쳐 둔 권의 📔 모습 창과 같은 카드 */
 .dkv-menu { position: fixed; z-index: 9700; translate: -50% 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 420px; padding: 8px 10px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; box-shadow: 3px 3px 0 #e6dcf8; }
@@ -695,7 +698,6 @@ html.desk-edit .dk-vol.pose-on .dv-cv, html.desk-edit .dk-vol.lift .dv-cv { outl
 .dkv-menu .dkt-hd { flex: 0 0 100%; }
 .dkv-menu button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
 .dkv-menu button.on { background: #ffd3e2; }
-.dk-pose .dky-arc { background: #f3eefc; }
 /* 📒 🤍 책상 위 스티커첩 (도련 10-30) : 바인더 = 그 책 색 · 이형지북 = 반투명 흰 종이 느낌 · 땡땡이 없이 */
 .dk-vol.alb .dv-cv { background: var(--dyv); }
 .dk-vol.alb.p-side .dv-cv { background: var(--dyv-sh); }
