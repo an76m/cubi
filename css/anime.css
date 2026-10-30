@@ -575,7 +575,7 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkt-hd small { font-size: 12px; font-weight: 700; color: #9a7d8a; }
 .dkt-chip { font-size: 12px; font-weight: 800; color: #fff; background: #ff6b88; border-radius: 999px; padding: 1px 9px; line-height: 1.6; }
 .dkt-chip.lv { background: #a58fd6; }
-.desk-tip.on::after { content: ''; position: absolute; left: 50%; width: 14px; height: 14px; background: #fffaf2; border: 2px solid #8d6f7f; translate: -50% 0; rotate: 45deg; }
+.desk-tip.on::after { content: ''; position: absolute; left: calc(50% + var(--ax, 0px)); width: 14px; height: 14px; background: #fffaf2; border: 2px solid #8d6f7f; translate: -50% 0; rotate: 45deg; }
 .desk-tip.on::after { bottom: -9px; border-top: 0; border-left: 0; }
 .desk-tip.on.below::after { bottom: auto; top: -9px; border: 2px solid #8d6f7f; border-right: 0; border-bottom: 0; }
 /* 👆 고른 칸 = 칸 밖은 하얗게 가려요 */

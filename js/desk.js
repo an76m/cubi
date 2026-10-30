@@ -1379,6 +1379,15 @@
             tip.classList.toggle('below', below);
             tip.style.left = Math.max(170 * k, Math.min(DESK_W - 170 * k, L + el.offsetWidth / 2)) + 'px'; tip.style.top = (below ? T + el.offsetHeight : T) + 'px';
             tip.style.scale = k.toFixed(3);                                       // 버튼은 화면에서 늘 같은 크기
+            tip.style.setProperty('--ax', '0px');                                 // 📐 화면 (또는 책상을 자르는 틀) 밖으로 나가면 안으로 밀어요 · 꼬리는 소품을 그대로 가리켜요 (도련 10-30)
+            let B = { left: 0, right: innerWidth };
+            for (let n = st; n && n !== document.body; n = n.parentElement) { if (getComputedStyle(n).overflowX !== 'visible') { const r = n.getBoundingClientRect(); B = { left: Math.max(B.left, r.left), right: Math.min(B.right, r.right) }; } }
+            const r = tip.getBoundingClientRect(), pad = 6;
+            const dx = r.left < B.left + pad ? B.left + pad - r.left : r.right > B.right - pad ? B.right - pad - r.right : 0;
+            if (dx) {
+                tip.style.left = (parseFloat(tip.style.left) + dx / DK.s) + 'px';
+                tip.style.setProperty('--ax', Math.max(-(r.width / 2 - 22), Math.min(r.width / 2 - 22, -dx)) + 'px');
+            }
         }
         function deskTipPaint() {                                                 // 🛠 고른 소품 위 : 기능 칩 + 🧲 · 📦 넣기 · 🗑 버리기
             const tip = document.getElementById('deskTip'), el = DK.sel; if (!tip) return;
