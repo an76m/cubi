@@ -723,10 +723,10 @@
             let x = 836, y = 830;
             for (let r = 0; r < 40; r++) { const c = SL.map(v => [v + 36 * r, 830 - 14 * r]).find(([a, b]) => free(a, b)); if (c) { [x, y] = c; break; } }   // 비어 있는 자리부터 · 다 차면 조금씩 비켜서 겹쳐요
             B.push({ t: Date.now(), it: L, x, y });
-            dkBagsSet(B); dkBagLog('봉투 추가', { 담은것: L.length, 봉투수: B.length }); deskBagsPaint();
+            dkBagsSet(B); deskBagsPaint();
         }
         function deskBagsPaint() {
-            const st = document.getElementById('deskStage'); dkBagLog('deskBagsPaint 불림', { deskStage: !!st, BAG_SVG: !!window.BAG_SVG }); if (!st || !window.BAG_SVG) return;
+            const st = document.getElementById('deskStage'); if (!st || !window.BAG_SVG) return;
             st.querySelectorAll('.dk-bag').forEach(x => x.remove());
             dkBags().forEach((bg, n) => {
                 const b = document.createElement('button'); b.type = 'button'; b.className = 'dk-bag'; b.setAttribute('aria-label', `사 온 봉투 (${bg.it.length}개)`);
@@ -739,29 +739,16 @@
             });
             dkBagHint();
         }
-        /* 🛍️ 사 온 봉투 알려 주기 (도련 10-31 : 처음 쓰는 사람은 봉투를 어떻게 할지 몰라요) : 책상에 봉투가 있으면 늘 책상 아래 가운데 안내 한 줄 */
+        /* 🛍️ 사 온 봉투 알려 주기 (도련 10-31 : 처음 쓰는 사람은 봉투를 어떻게 할지 몰라요) : 책상에 봉투가 있으면 늘 · 마지막에 놓인 봉투 바로 아래 (아래가 모자라면 위) */
         function dkBagHint() {
-            let h = document.getElementById('deskBagHint'); const bg = document.getElementById('deskBg');
-            dkBagLog('dkBagHint 불림', { deskBg: !!bg, 봉투수: dkBags().length, 안내있음: !!h });   // 🔍 임시 (도련 10-31 · 안내가 안 보이는 원인 찾기)
-            if (!bg) return;
-            const on = dkBags().length > 0;
-            if (!h) { if (!on) return; h = document.createElement('div'); h.id = 'deskBagHint'; h.className = 'desk-hint'; h.innerHTML = '🛍️ <b>봉투를 눌러</b> 받은 것을 꺼내 보세요'; bg.appendChild(h); }
-            h.hidden = !on;
-            setTimeout(() => dkBagLog('그린 뒤', bagHintDebug(true)), 50);
+            const st = document.getElementById('deskStage'); if (!st) return;
+            let h = document.getElementById('deskBagHint'); const B = dkBags();
+            if (!B.length) { if (h) h.hidden = true; return; }
+            if (!h) { h = document.createElement('div'); h.id = 'deskBagHint'; h.className = 'desk-hint'; h.innerHTML = '🛍️ <b>봉투를 눌러</b> 받은 것을 꺼내 보세요'; }
+            if (h.parentElement !== st) st.appendChild(h);
+            const [x, y] = dkBagXY(B[B.length - 1], B.length - 1), low = y + 70 > DESK_H;
+            h.classList.toggle('up', low); h.style.left = x + 'px'; h.style.top = (low ? y - 268 - 12 : y + 12) + 'px'; h.hidden = false;
         }
-        /* 🔍 임시 : 봉투 안내 확인 (F12 콘솔에 [봉투안내] · 콘솔에서 bagHintDebug() 로도) */
-        function dkBagLog(t, o) { try { console.log('[봉투안내] ' + t, o); } catch (e) {} }
-        function bagHintDebug(quiet) {
-            const H = document.documentElement, h = document.getElementById('deskBagHint'), cs = h && getComputedStyle(h), r = h && h.getBoundingClientRect();
-            const o = { 화면: innerWidth + '×' + innerHeight, 'desk-on': H.classList.contains('desk-on'), 'desk-show': H.classList.contains('desk-show'), 'desk-edit': H.classList.contains('desk-edit'),
-                봉투수: dkBags().length, 책상봉투그림: document.querySelectorAll('#deskStage .dk-bag').length, 안내있음: !!h, hidden: h ? h.hidden : null,
-                display: cs && cs.display, visibility: cs && cs.visibility, opacity: cs && cs.opacity, zIndex: cs && cs.zIndex, 자리: r ? [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] : null,
-                위에덮은것: r && r.width ? (e => e && (e.id || e.className || e.tagName))(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)) : null,
-                부모: h && h.parentElement ? (h.parentElement.id || h.parentElement.className) : null, 부모display: h && h.parentElement ? getComputedStyle(h.parentElement).display : null };
-            if (!quiet) dkBagLog('지금 상태', o);
-            return o;
-        }
-        window.bagHintDebug = bagHintDebug;
         /* 🛍️ 봉투 : 톡 = 열기 · 끌기 = 옮기기 (평소 책상에서만 · 🛠 꾸미는 동안은 안 눌려요 · 도련 10-30) · 자리 = 'diary_desk_bags' 의 그 봉투 x · y */
         function dkBagDown(ev, b, n, x0, y0) {
             ev.stopPropagation(); if (ev.button > 0 || DK.edit) return; ev.preventDefault();
@@ -772,7 +759,7 @@
             const up = e => { if (e.pointerId !== ev.pointerId) return; b.removeEventListener('pointermove', mv); b.removeEventListener('pointerup', up); b.removeEventListener('pointercancel', up); b.classList.remove('lift');
                 if (e.type === 'pointercancel') return;
                 if (!moved) { deskBagOpen(n); return; }
-                const B = dkBags(); if (B[n]) { B[n].x = x; B[n].y = y; dkBagsSet(B); } };
+                const B = dkBags(); if (B[n]) { B[n].x = x; B[n].y = y; dkBagsSet(B); dkBagHint(); } };   // 🛍️ 안내도 봉투 따라
             b.addEventListener('pointermove', mv); b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
         }
         window.deskBagDrop = () => deskBagsPaint();
