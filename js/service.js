@@ -179,7 +179,7 @@
         window.openNotice = openNotice;
 
         /* =====================================================================
-           ☕ 카페 창 : 카테고리 6개(매일 · 운세·마음 · 인형 꾸미기 · 게임 · 보고·듣기 · 함께하기) → 그 안의 놀이
+           ☕ 카페 창 : 카테고리 (달력 · 타로카페 · 인형방 · 오락실 · 펫 키우기 · 꿀농장 · 여행 · 보고·듣기 · 우체통 · 도련 10-31 이름 바꿈) → 그 안의 놀이
            - 아직 안 만든 기능은 버튼에 '(준비중)'이 붙어 있고, 누르면 안내 메시지만 떠요.
              기능을 만들면 index.html 버튼의 class 에서 'soon' 과 <small>(준비중)</small> 을 빼고 아래 함수 내용을 바꾸면 돼요.
            ===================================================================== */
@@ -194,7 +194,7 @@
             document.getElementById('svcBack').classList.add('mt-none');      // 맨 처음 화면에서는 ← 숨김
             svcDailyBadges();
         }
-        /* 🌱 매일 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 화분 물 주기 · 오늘의 행운 · 오늘의 질문)
+        /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 화분 물 주기 · 오늘의 행운 · 오늘의 질문)
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
            - 다음 날이 되면 새것이니까 다시 알려 줘요 · 이미 한 것은 처음부터 안 붙어요 */
         const SVC_SEEN = 'malang_daily_seen', SVC_SEEN_KEY = 'diary_daily_seen';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20) · 오늘 이미 알려 준 것 { d: '2026-10-06', ids: [버튼 id…] }
@@ -228,16 +228,16 @@
             mark('svcCatDaily', (stamp ? 1 : 0) + (water ? 1 : 0) + (luck ? 1 : 0) + (ques ? 1 : 0) || '');
             mark('ctDaily', (stamp ? 1 : 0) + (water ? 1 : 0) + (luck ? 1 : 0) + (ques ? 1 : 0) || '');      // 🏡 카페 마을의 매일 집에도
         }
-        /* 🌱 매일 칸의 버튼을 누르면 그 버튼만 '알려 줌' 처리 (다른 버튼의 표시는 건드리지 않아요) */
+        /* 🌱 달력 칸의 버튼을 누르면 그 버튼만 '알려 줌' 처리 (다른 버튼의 표시는 건드리지 않아요) */
         document.addEventListener('click', e => {
             const b = e.target.closest && e.target.closest('#svcPanel-daily .service-btn[id]');
             if (!b || !b.querySelector('.svc-badge')) return;
             svcSeenAdd([b.id]);
             setTimeout(svcDailyBadges, 0);
         }, true);
-        const SVC_CAT_NAMES = { daily: '🌱 매일', fortune: '🔮 운세·마음', make: '🧸 인형 꾸미기', game: '🕹️ 게임', watch: '🎧 보고·듣기', together: '💌 함께하기' };
+        const SVC_CAT_NAMES = { daily: '🌱 달력', fortune: '🔮 타로카페', make: '🧸 인형방', game: '🕹️ 오락실', watch: '🎧 보고·듣기', together: '💌 우체통' };
         function svcOpenCat(id) {
-            if (id === 'make') return openDollSoon();                         // 🧸 인형 꾸미기 = 준비중 (어디서 열어도 · 10-23 도련)
+            if (id === 'make') return openDollSoon();                         // 🧸 인형방 = 준비중 (어디서 열어도 · 10-23 도련)
             const panel = document.getElementById('svcPanel-' + id); if (!panel) return;
             document.getElementById('svcCats').hidden = true;
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = p !== panel; });
@@ -250,8 +250,8 @@
         function comingSoon(name) { showMsg(name + ' 기능은 준비 중이에요.<br>조금만 기다려 주세요!'); }
         function openShop(at) { window.open('shop/' + (at || ''), '_blank'); }      // at : 문구점 안의 칸 (예 '#/c/스티커')
         function openPet() { comingSoon('🐾 펫 키우기'); }
-        function openHoney() { comingSoon('🍯 꿀 만들기'); }
-        function openDollSoon() { comingSoon('🧸 인형 꾸미기'); }   // 🚧 인형 꾸미기 = 준비중 (10-23 도련 · 인형방 · 인형극 창은 안 열어요 · 코드는 그대로 · 다시 열려면 index.html 버튼을 svcOpenCat('make') 로)
+        function openHoney() { comingSoon('🍯 꿀농장'); }
+        function openDollSoon() { comingSoon('🧸 인형방'); }   // 🚧 인형방 = 준비중 (10-23 도련 · 인형방 · 인형극 창은 안 열어요 · 코드는 그대로 · 다시 열려면 index.html 버튼을 svcOpenCat('make') 로)
         if (typeof window.openPuppetShow !== 'function') window.openPuppetShow = () => comingSoon('🎭 인형극');   // js/puppet.js 가 없을 때만
         function openSweetVideo() { comingSoon('🎬 달콤영상'); }
         function openFortune() { if (typeof openFortuneCard === 'function') openFortuneCard(); else comingSoon('🔮 포춘카드'); }   // js/fortune.js
@@ -398,15 +398,15 @@
            - 그림 : img/cafe-town.webp (1672×941 · 도련이 준 그림 · 이름표도 그림 안에 있어요)
            - 📱 폰(짧은 쪽 600px 미만)은 예전 카페 버튼 창 · 패드 · PC 는 그림 전체가 화면 안에 꼭 맞게 (창 크기 따라 · 남는 곳은 흐린 그림)
            - CT_SPOTS : 그림 위 누르는 칸 [x0, y0, x1, y1] (그림 픽셀) · 칸을 바꾸려면 숫자만 고치면 돼요
-           - 매일 · 운세 · 인형 · 게임 · 함께하기 = 카페 창의 그 칸을 바로 (‹ 카페 단추는 숨김 · ✕ 로 닫으면 다시 마을)
+           - 달력 · 타로카페 · 인형방 · 오락실 · 우체통 = 카페 창의 그 칸을 바로 (‹ 카페 단추는 숨김 · ✕ 로 닫으면 다시 마을)
            - 가운데 카페 건물은 아직 연결 없음 (숨겨 둔 저금통 · 문구점 · 보고·듣기 자리로 쓸 수 있어요) */
         const CT_W = 1672, CT_H = 941;
         const CT_SPOTS = [
-            ['daily', '🌱 매일', [0, 0, 490, 235]], ['fortune', '🔮 운세·마음', [935, 0, 1275, 245]], ['make', '🧸 인형 꾸미기', [1300, 120, 1672, 360]],
-            ['game', '🕹️ 게임', [30, 280, 410, 510]], ['pet', '🐾 펫 키우기', [1270, 360, 1672, 595]], ['honey', '🍯 꿀 만들기', [55, 540, 410, 830]],
-            ['window', '🪟 힐링창문', [600, 630, 1045, 862]], ['together', '💌 함께하기', [1270, 610, 1672, 830]]
+            ['daily', '🌱 달력', [0, 0, 490, 235]], ['fortune', '🔮 타로카페', [935, 0, 1275, 245]], ['make', '🧸 인형방', [1300, 120, 1672, 360]],
+            ['game', '🕹️ 오락실', [30, 280, 410, 510]], ['pet', '🐾 펫 키우기', [1270, 360, 1672, 595]], ['honey', '🍯 꿀농장', [55, 540, 410, 830]],
+            ['window', '🪟 여행', [600, 630, 1045, 862]], ['together', '💌 우체통', [1270, 610, 1672, 830]]
         ];
-        const CT_SOON = [[215, 802], [961, 829], [1578, 514], [1472, 332]];   // 🚧 (준비중) 빨간 글씨 = 그림 속 이름 바로 아래 [가운데 x, 위 y] (그림 픽셀) · 꿀 만들기 · 힐링창문 · 펫 키우기 · 인형 꾸미기 (도련 10-23) · 열리면 여기서 빼요
+        const CT_SOON = [[215, 802], [961, 829], [1578, 514], [1472, 332]];   // 🚧 (준비중) 빨간 글씨 = 그림 속 이름 바로 아래 [가운데 x, 위 y] (그림 픽셀) · 꿀농장 · 여행 · 펫 키우기 · 인형 꾸미기 (도련 10-23) · 열리면 여기서 빼요
         function ctBuild() {
             let el = document.getElementById('cafeTown'); if (el) return el;
             el = document.createElement('div'); el.id = 'cafeTown'; el.className = 'ct-room';
@@ -521,7 +521,7 @@
         function ctGo(id) {
             if (id === 'pet') return openPet();
             if (id === 'honey') return openHoney();
-            if (id === 'window') return comingSoon('🪟 힐링창문');
+            if (id === 'window') return comingSoon('🪟 여행');
             if (id === 'make') return openDollSoon();
             openModal('serviceModal'); svcOpenCat(id);
             document.getElementById('svcBack').classList.add('mt-none');    // 마을에서 왔으니 ‹ 카페 대신 ✕ = 마을로

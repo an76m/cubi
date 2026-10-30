@@ -120,7 +120,7 @@
         '이모지': 'emoji', '계절 스티커': 'season', '캡슐스티커': 'caps', '마스킹테이프': 'tape', '조각스티커': 'piece', '씰스티커': 'seal', '모조지스티커': 'paper', '속지': 'leaf', '메모지': 'memo', '떡메모지': 'tteok',
         '포토부스': 'booth', '사진찍기': 'cam', '사진고르기': 'pick', '사진찍어 만들기': 'cam', '조각스티커 만들기': 'piece', '씰스티커 만들기': 'seal', '모조지스티커 만들기': 'paper', '앨범골라 만들기': 'pick', '글씨 스티커': 'text', '글씨스티커 만들기': 'text', '마스킹테이프 만들기': 'tapemk', '속지 만들기': 'leafmk', '떡메모지 만들기': 'tteokmk',
         '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
-        '매일': 'sprout', '운세·마음': 'ball', '인형 꾸미기': 'doll', '게임': 'game', '펫 키우기': 'paw', '함께하기': 'letter',
+        '펫 키우기': 'paw',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '오늘의 질문': 'ask', '오늘의 행운': 'clover', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
         '포춘카드': 'card', '꿈해몽': 'moon', '토정비결': 'scroll', '이름 궁합': 'hearts', '심리테스트': 'mind',
@@ -166,7 +166,7 @@
             if (t.length) { const lb = document.createElement('span'); lb.className = 'dk-lb' + (name.includes('\n') ? ' l2' : ''); lb.textContent = name; t[0].replaceWith(lb); t.slice(1).forEach(n => n.remove()); }   // &#10; = 두 줄 이름 (다이어리 / 색상설정)
             die(ic, b.dataset.ico || MAP[name.replace(/\s+/g, ' ')], i);                     // data-ico = 아이콘을 직접 (두 줄 이름 등)
         });
-        box.querySelectorAll('.svc-cat').forEach((c, i) => { const ic = c.querySelector('.svc-cat-icon'), b = c.querySelector('b'); if (ic && b && !ic.querySelector('svg')) die(ic, MAP[b.textContent.trim()], i + 1); else if (ic) die(ic, '', i + 1); });
+        box.querySelectorAll('.svc-cat').forEach((c, i) => { const ic = c.querySelector('.svc-cat-icon'), b = c.querySelector('b'); if (ic && b && !ic.querySelector('svg')) die(ic, c.dataset.ico || MAP[b.textContent.trim()], i + 1); else if (ic) die(ic, '', i + 1); });
         box.querySelectorAll('.save-choice').forEach((c, i) => { const ic = c.querySelector('.save-choice-icon'), b = c.querySelector('b'); if (ic && b) die(ic, /PNG/.test(b.textContent) ? 'pick' : 'cloud', i); });
         /* 구역 제목 : 마스킹테이프 (노랑 · 분홍 · 민트 돌아가며) */
         const first = box.querySelector('.modal-title');                     // 창 제목(첫 번째)은 리본 · 나머지 제목은 테이프
