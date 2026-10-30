@@ -802,7 +802,16 @@
                 }
                 if (it.ds) { const R = stg && stg.getBoundingClientRect(); if (R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel')) dkbTake(n, j); return; }   // 🧱 🪵 벽지 · 책상 = 이미 📦 소품함에 · 책상에 놓으면 꺼낸 걸로
                 if (it.al && it.b) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }   // 📒 🤍 새 스티커첩 = 놓은 자리에 그 책
-                if (it.k === 'tool' && it.b) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }   // 📔 새 다이어리 = 놓은 자리에 그 권 (소품에 넣지 않아요)
+                if (it.k === 'tool' && it.b) {                                    // 📔 새 다이어리 : 빈 곳 = 놓은 자리에 그 권 · 소품 위 = 책상에 놓을지 · 소품 안에 넣을지 물어봐요 (도련 10-31)
+                    if (!t) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }
+                    const o = DK.items.find(x => x.u === t.dataset.u), nm = o ? dkName(o) : '이 소품', cx = e.clientX, cy = e.clientY;
+                    showAsk(`📔 새 다이어리를 어디에 둘까요?<br><span style="font-size:12px;color:#777;">소품 안에 넣으면 ${josa(nm, '을', '를')} 눌렀을 때 📔 다이어리 보관소가 열려요</span>`, `🧺 ${nm} 안에 넣기`, '📚 책상에 놓기').then(inside => {
+                        if (!inside) { if (dkvPlace(it.b, cx, cy)) dkbTake(n, j); return; }
+                        dkBagHold(it.b); dkDeskBooks();                           // 책상에 안 나와요 · 보관소에 있어요
+                        dkbHome(t, it, n, j);                                     // 이 소품 = 📔 다이어리 보관소 창 (DK_HSAME tool → skin)
+                    });
+                    return;
+                }
                 if (!t) return;                                                   // 소품 밖 = 다시 봉투로
                 dkbHome(t, it, n, j);
             };
