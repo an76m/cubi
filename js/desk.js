@@ -1484,15 +1484,28 @@
             if (deskTopBusy || deskAnim) return;
             deskTopBusy = true;
             try {
-                if (typeof isCoverOpen !== 'undefined' && isCoverOpen && typeof saveData === 'function') {
-                    try { await saveData(false); }
-                    catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 다이어리를 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 뒤 다시 눌러 주세요</span>'); return; }
-                }
+                if (typeof isCoverOpen !== 'undefined' && isCoverOpen && typeof saveData === 'function') await deskSaveSure();
                 deskCloseDiary();
                 const t0 = Date.now();
                 while ((H.classList.contains('desk-show') || deskAnim) && Date.now() - t0 < 6000) await new Promise(r => setTimeout(r, 80));
                 if (!H.classList.contains('desk-show')) run();
             } finally { deskTopBusy = false; }
+        }
+        /* 💾 저장은 실패하면 안 돼요 (도련 10-31) : 될 때까지 다시 · 늦어지면 왜 늦는지 알려 줘요 (화면 위 '저장 중' 표시 = js/elements.js saveBusy) */
+        async function deskSaveSure() {
+            const why = () => {                                                   // 지금 저장할 수 없는 이유 (saveData 는 이때 조용히 건너뛰어요)
+                if (typeof drive === 'undefined' || drive.guest) return '';
+                const k = typeof getDateKey === 'function' ? getDateKey(currentDate) : '';
+                if (!drive.ready) return '드라이브에 다시 연결하는 중이에요';
+                if (k && !drive.loadedDays.has(k)) { if (typeof ensureKeyLoaded === 'function') ensureKeyLoaded(k).catch(() => {}); return '이 날짜를 드라이브에서 아직 불러오는 중이에요'; }
+                return '';
+            };
+            for (let n = 0; ; n++) {
+                let r = why();
+                if (!r) { try { await saveData(false); if (n && window.saveBusy) await saveBusy(false); return; } catch (e) { console.warn('저장', e); r = '저장하다 문제가 생겼어요'; } }
+                if (window.saveBusy) saveBusy(`💾 저장이 늦어지고 있어요 · ${r} · 다시 저장하는 중 (${n + 1}번째)`);
+                await new Promise(ok => setTimeout(ok, Math.min(1000 * (n + 1), 5000)));   // 1초 · 2초 … 5초마다
+            }
         }
         window.deskTopGo = deskTopGo;
         window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary;
