@@ -1644,12 +1644,14 @@
         }
         function gdCabShop() { closeModal('gdCabModal'); if (window.openShelf) { openShelf(); shOpenKind('gd'); } }
         /* 🏪 기본상품 샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
-        const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) })));
+        const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) }))).concat(window.pkShopList ? pkShopList() : []);   // + ✏️ 필기구 (도련 10-31 · js/pencase.js)
         function gdGive(id) {
             const L = gdOwnList() || []; if (L.some(o => o.id === id)) return 'have';
-            if (!cabAllIds().includes(id)) return 'no';
+            const pen = !!(window.pkIsId && pkIsId(id));
+            if (!pen && !cabAllIds().includes(id)) return 'no';
             const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
             gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.id === id); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 종류 폴더에 파일 하나
+            if (pen && window.pkAdd) pkAdd(id);                                // ✏️ 연필꽂이에도
             if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();
             return 'ok';
         }

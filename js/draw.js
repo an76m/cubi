@@ -44,6 +44,10 @@
         function openDraw() {
             if (dw.on) { penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 연필꽂이를 다시 펼쳐요 (쓴 것 · 구석 연필꽂이 그대로)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (window.pkHas && !pkHas()) {                                      // ✏️ 필기구가 없으면 연필꽂이를 못 써요 (도련 10-31 · 🏪 기본상품 샵에서 받아요)
+                showAsk('✏️ 아직 필기구가 없어요.<br><span style="font-size:12px;color:#777;">🏪 기본상품 샵 → 문구에서 색연필 · 형광펜 · 지우개를 받아 와요</span>', '🏪 받으러 가기', '닫기').then(go => { if (go && window.gdCabShop) gdCabShop(); });
+                return;
+            }
             if (selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
             penMkLayer(); dw.strokes = []; dw.hist = []; dw.cur = null; dw.on = true; dw.rest = false;
             document.body.classList.add('draw-on');
