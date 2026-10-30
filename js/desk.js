@@ -536,7 +536,7 @@
             DK.back = { items: JSON.stringify(DK.items), fn: JSON.stringify(deskFnMap()), home: JSON.stringify(dkHomes()) };   // 취소하면 이대로 (👆 칸 · 칸 이름표도)
             DK.editFn = JSON.parse(DK.back.fn); DK.edit = true;
             if (window.dsEditStart) dsEditStart();                                // 🧱 🪵 벽지 · 책상도 완료 때 저장 (js/deskskin.js)
-            DK.dyEdit = JSON.parse(JSON.stringify(dkyGet())); DK.volEdit = {}; dkyApply();   // 📔 다이어리 자리 · 모습 (펼쳐 둔 권 + 나머지 권)
+            DK.dyEdit = null; DK.volEdit = {}; dkyApply();                         // 📔 다이어리 자리 · 모습 = 모든 권 같은 틀 (.dk-vol · 펼쳐 볼 권도 · 도련 10-30)
             H.classList.add('desk-edit'); H.classList.remove('desk-lack');
             deskSelect(null); deskFnPaint(); deskEditPaint();
             dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
@@ -568,7 +568,7 @@
             DK.editFn = null; DK.back = null;
             if (window.dsEditEnd) dsEditEnd(!!ok);                                // 🧱 🪵 완료 = 저장 · 취소 = 처음대로
             { const v = DK.dyEdit, VE = DK.volEdit; DK.dyEdit = null; DK.volEdit = null; dkvMenu(null);
-              if (ok && v && typeof prefSet === 'function') { const M = Object.assign(dkyMap(), VE || {}); M[dkyCur() || '_'] = Object.assign({ x: v.x, y: v.y, p: v.p, lb: dkyLb(v) }, v.lz ? { lz: v.lz } : {}); prefSet(DKY_KEY, DKY_LOCAL, M); }   /* 권마다 자리 */ dkyMenu(false); dkyLbPanel(false); dknPanel(false); dkyApply(); }
+              if (ok && VE && typeof prefSet === 'function') { const M = Object.assign(dkyMap(), VE); if (v) M[dkyCur() || '_'] = Object.assign({ x: v.x, y: v.y, p: v.p, lb: dkyLb(v) }, v.lz ? { lz: v.lz } : {}); prefSet(DKY_KEY, DKY_LOCAL, M); }   /* 권마다 자리 */ dkyMenu(false); dkyLbPanel(false); dknPanel(false); dkyApply(); }
             document.documentElement.classList.remove('desk-edit'); dkSelPaint();
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
         }
@@ -1196,7 +1196,7 @@
             const Z = dkMeasure(); if (Z && mini.dataset.sz !== dkMiniKey(Z)) deskMiniPaint();
         }
         /* 떠오르기 · 내려놓기 : 떠 있는 다이어리가 책상 위 다이어리와 '똑같은 계산'(아래 끝 기준 · 같은 원근 · 같은 각도)으로 내려앉아요 → 놓이는 순간 모양이 그대로 이어져요
-           dkDeskTf(w, mini) = 책상 위에 놓인 모양의 transform (w 의 기준점 = 보이는 것의 아래 가운데) */
+           dkDeskTf(w) = 책상 위에 놓인 모양의 transform (w 의 기준점 = 보이는 것의 아래 가운데) */
         /* 📔 책상 위 다이어리 자리 · 모습 (도련 10-29) : 📚 꽂기(옆모습 · 책등) · 📔 세우기(앞모습) · 🛏 눕히기
            - 🛠 책상 꾸미기에서만 끌어 옮기고 · 톡 = 모습 고르기 · ✔ 완료 때 저장 (✕ 취소 = 그대로) · 평소에는 누르면 떠올라요 (넣으면 고른 모습 그대로 돌아가요)
            - 'diary_desk_dy' { x, y : 책상 그림 px (바닥 가운데) · p : side · front · lay } (배치.json · js/drive.js DESK_KEYS)
@@ -1206,6 +1206,7 @@
         function dkyGet() {                                                       // 펼쳐 둔 권의 자리 (권마다 따로 · 아래 📔 책상 = 다이어리 보관소)
             if (DK.dyEdit) return DK.dyEdit;
             const c = dkyCur(), M = dkyMap();
+            if (c && DK.volEdit) return dkvPos(c);                                 // 🛠 꾸미는 동안 = 고치는 중인 자리
             return c ? dkyPosOf(c) : dkyOk(M._) ? M._ : dkyDef();                  // _ = 날짜형이 아닌 다이어리를 펼쳐 둔 때
         }
         /* ═══ 📔 책상 = 다이어리 보관소 (도련 10-30 : 현실처럼 받은 다이어리는 모두 책상에) ═══
@@ -1238,9 +1239,9 @@
             const st = document.getElementById('deskStage'); if (!st) return;
             st.querySelectorAll('.dk-vol').forEach(x => x.remove());
             const cur = dkyCur(), at = st.querySelector('.dk-diary');
-            dkvAll().filter(b => b.id !== cur).forEach(b => {
+            dkvAll().forEach(b => {                                               // 📔 모든 권 = 이 틀 하나 (펼쳐 볼 권도 · .cur · 새로 그리지 않기 · 도련 10-30)
                 const v = dkvPos(b.id), [w, h] = DKV_SZ[v.p] || DKV_SZ.side, C = b.col ? ['', b.col[0], b.col[1]] : DKV_COL[b.c] || DKV_COL.pink;
-                const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t !== 'dy' ? ' alb ' + b.t : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
+                const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t !== 'dy' ? ' alb ' + b.t : '') + (b.id === cur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
                 Object.assign(el.style, { left: Math.round(v.x - w / 2) + 'px', top: Math.round(v.y - h) + 'px', width: w + 'px', height: h + 'px' });
                 el.style.setProperty('--dy-c', C[1]); el.style.setProperty('--primary-accent', C[2]);
                 const lb = b.t === 'dy' ? b.y : (b.t === 'bd' ? '📒' : '🤍') + (v.p === 'side' ? '' : ' ' + String(b.lb || DKH_NAMES[b.k] || '').replace(/</g, '&lt;').slice(0, 6));   // 📒 🤍 = 아이콘 + 종류(이름표)
@@ -1316,6 +1317,7 @@
         function dkVolOpen(id) {
             const a = dkvOf(id); if (a && a.t !== 'dy') { if (window.abOpenAt) abOpenAt(a.k, a.t, a.id); return; }   // 📒 🤍 = 그 종류 창에서 그 책 펼치기
             if (deskAnim || !window.dyySelect) return;
+            if (id === dkyCur()) { deskOpenDiary(); return; }                       // 펼쳐 볼 권 = 바로
             dyySelect(id);                                                        // → dyyPaint → dkDeskBooks (펼쳐 둔 권이 바뀌어 자리도 바뀌어요)
             dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary());
         }
@@ -1371,18 +1373,19 @@
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         }
         window.dkyPose = dkyPose;
-        function dkDeskTf(w, mini) {
+        /* 떠오르기 · 내려앉기 = 책상 위 그 권 그림(.dk-vol.cur)에서 · 그 그림으로 (모든 권이 같은 틀이라 놓인 모습 그대로 이어져요) */
+        function dkDeskTf(w) {
             const bk = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'), cv = document.getElementById('coverPage');
+            const vo = document.querySelector('#deskStage .dk-vol.cur'), f = vo && vo.querySelector('.dv-cv'); if (!f) return 'none';
             const rw = w.getBoundingClientRect(), rv = dkVisEl(bk, ip, cv).getBoundingClientRect();
             const ox = rv.left + rv.width / 2 - rw.left, oy = rv.bottom - rw.top;
             w.style.transformOrigin = `${ox}px ${oy}px`;
-            const p = dkyGet().p;
-            if (p !== 'lay') {                                                    // 📚 📔 세운 다이어리 : 그 자리 높이에 맞게 · 📚 꽂기는 옆으로 돌아 책등만 (rotateY)
-                const T = mini.querySelector(p === 'side' ? ':scope > .dk-spine' : ':scope > .dk-top').getBoundingClientRect(), k = T.height / rv.height;
+            const p = dkyGet().p, s = DK.s || 1;
+            if (p !== 'lay') {                                                    // 📚 📔 세운 권 : 그 표지 높이에 맞게 · 📚 꽂기는 옆으로 돌아 책등만
+                const T = f.getBoundingClientRect(), k = T.height / rv.height;
                 return `translate(${T.left + T.width / 2 - rw.left - ox}px, ${T.bottom - rw.top - oy}px) scale(${k})` + (p === 'side' ? ' perspective(1400px) rotateY(-84deg)' : '');
             }
-            const R = mini.getBoundingClientRect(), s = DK.s || 1, mh = parseFloat(mini.style.getPropertyValue('--dkh')) || 0;
-            const k = R.width / s / rv.width, bx = R.left + R.width / 2, by = R.top + mh * s;
+            const R = vo.getBoundingClientRect(), k = (DKV_SZ.lay[0]) / rv.width, bx = R.left + R.width / 2, by = R.bottom - 13 * s;   // 🛏 눕힌 표지 = 같은 각도 (css .dk-vol.p-lay .dv-cv)
             return `translate(${bx - rw.left - ox}px, ${by - rw.top - oy}px) scale(${s}) perspective(900px) rotateX(${DK_TILT}deg) scale(${k})`;
         }
         function deskOpenDiary() {
@@ -1391,7 +1394,7 @@
             deskAnim = true; deskSelect(null);
             H.classList.add('desk-show');                                         // 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
             if (typeof refreshLayout === 'function') refreshLayout();             // 📐 떠오르기 전에 크기 · 펼침면을 지금 화면(하단 메뉴 포함)에 맞춰요 (숨어 있는 동안 맞춘 크기로 크게 떴다가 줄던 것 · 도련 10-28)
-            const tf = dkDeskTf(w, mini); mini.classList.add('dk-fly');             // 책상 위 다이어리는 두께(옆면)만 남겨 두고 들리는 순간 줄어들며 사라져요
+            const tf = dkDeskTf(w); mini.classList.add('dk-fly');             // 책상 위 다이어리는 두께(옆면)만 남겨 두고 들리는 순간 줄어들며 사라져요
             const eg = mini.querySelector('.dk-edge'), ea = eg && eg.animate([{ opacity: 1, transform: 'scaleY(1)' }, { opacity: 0, transform: 'scaleY(0)', offset: .3 }, { opacity: 0, transform: 'scaleY(0)' }], { duration: 640, easing: 'ease-out', fill: 'forwards' });
             H.classList.add('dk-landing'); requestAnimationFrame(() => requestAnimationFrame(() => H.classList.remove('dk-landing')));   // 화면 도구(안내 쪽지 · 핀셋)는 떠오르며 스르르
             const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
@@ -1413,7 +1416,7 @@
             deskAnim = true;
             deskMiniPaint();                                                      // 책상 위 다이어리를 지금 모양으로 먼저 그려 두고 (숨긴 채) 그 자리로
             H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
-            const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w, mini) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
+            const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
             mini.style.visibility = ''; mini.classList.add('dk-fly');             // 📏 두께(옆면)는 책이 작아지며 책상에 닿는 마지막 구간에 같이 자라나요 (도련 10-28)
             const eg = mini.querySelector('.dk-edge'), ea = eg && eg.animate([{ opacity: 0, transform: 'scaleY(0)' }, { opacity: 0, transform: 'scaleY(0)', offset: .62 }, { opacity: 1, transform: 'scaleY(1)' }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
             a.onfinish = () => { mini.classList.remove('dk-fly'); if (ea) ea.cancel(); mini.style.visibility = ''; H.classList.remove('desk-show', 'dk-landing'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };

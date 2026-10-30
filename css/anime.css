@@ -708,3 +708,6 @@ html.desk-edit .dk-vol.pose-on .dv-cv, html.desk-edit .dk-vol.lift .dv-cv { outl
 .dk-bag { touch-action: none; }
 .dk-bag.lift { cursor: grabbing; filter: drop-shadow(4px 6px 0 rgba(150, 110, 170, .25)); }
 html.desk-edit .dk-bag { pointer-events: none; opacity: .55; }
+/* 📔 책상 위 다이어리 = 모든 권 같은 틀 (.dk-vol · 도련 10-30) : #deskDiary 는 떠오르기 · 내려앉기 · 레이어 기준점으로만 (안 보이고 안 눌려요) · 펼쳐 보는 동안 그 권 그림은 숨어요 */
+#deskDiary { visibility: hidden !important; pointer-events: none !important; }
+html.desk-show .dk-vol.cur { visibility: hidden; }
