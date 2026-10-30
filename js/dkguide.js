@@ -21,7 +21,7 @@
         function dgFoot() {                                                      // 🪑 책상 화면이면 스티커가 붙은 소품 이름 (js/desk.js · 도련 10-27)
             const n = document.documentElement.classList.contains('desk-on') && window.deskFnItemName ? deskFnItemName('sticker') : '';
             if (!n) return '아래 <b>스티커</b>를 눌러 시작해요';
-            const c = n.charCodeAt(n.length - 1) - 0xAC00, j = c >= 0 && c < 11172 && c % 28 ? '을' : '를';
+            const j = josaOf(n, '을', '를');
             return `책상의 <b>${n}</b>${j} 눌러 시작해요`;
         }
         function dgShow() {

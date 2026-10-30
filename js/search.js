@@ -16,7 +16,7 @@
         const sr = { years: new Map(), synced: false, syncing: null, timer: 0, built: false, q: '' };
         const srq = id => document.getElementById(id);
         const srOn = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
-        const srEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const srEsc = htmlEsc;   // 🧰 js/util.js
 
         /* 하루치 일기 → 찾을 수 있는 글 */
         function srText(raw) {

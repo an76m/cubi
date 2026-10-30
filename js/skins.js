@@ -1634,7 +1634,7 @@
         function gdCabBinMode(g) { cabBin = cabBin === g ? null : g; gdCabRender(); }
         async function gdCabBinTap(id) {
             const g = cabGOf(id), n = cabName(id) || '이 문구', kind = (GD_CAB.find(x => x[0] === g) || [])[1] || '';
-            const jo = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
+            const jo = josa;   // 🧰 js/util.js
             if (cabOwn(g).length <= 1) { showMsg(`마지막 하나 남은 ${jo(kind, '은', '는')} 버릴 수 없어요.`); return; }
             if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
             if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 휴지통에 버릴까요?<br><small>버린 문구는 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '🗑 휴지통', '취소')) return;

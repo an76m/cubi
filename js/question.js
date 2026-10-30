@@ -75,7 +75,7 @@
                 } catch (e) {}
             }
             if (!qa.open) return;
-            const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const esc = htmlEsc;   // 🧰 js/util.js
             box.innerHTML = found.length
                 ? found.map(f => `<div class="qa-old"><small>${f.y}년의 나</small><p>${esc(f.a) || '(대답이 비어 있어요)'}</p></div>`).join('')
                 : '<div class="qa-none">💌 내년 오늘, 같은 질문이 다시 찾아와요.<br>그때 오늘의 대답을 여기서 다시 만날 수 있어요.</div>';

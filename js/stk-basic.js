@@ -94,7 +94,7 @@
         /* 🖼️ 여러 개 묶음 미리보기 (씰 종이 · 조각 · 모조지스티커 같은 모양) : 작은 칸에 최대한 많이 · 2줄 · 넘치는 건 안 보여요 (개수는 카드 글씨가 총개수) */
         const SRV = { piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();   // 받은 목록 · 그림 (앱을 켠 동안)
         const kitCat = c => (window.kitName ? kitName(String(c || '')) : String(c || '')).slice(0, 24);   // '1. 동물' → '동물'
-        const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const esc = htmlEsc;   // 🧰 js/util.js
         const kitAt = (u, w) => window.kitSize ? kitSize(u, w) : u;           // 크기에 맞는 주소 (js/elements.js)
         const thumb = (u, w) => kitAt(u, w || 160);
         async function sbList(kind) {                                   // [{ c, urls }] (묶음) · [{ c, url }] (1장) · c = 카테고리 (그대로 · 화면에는 앞 번호 뺀 이름)

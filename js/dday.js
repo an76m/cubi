@@ -13,7 +13,7 @@
         const dd = { built: false, list: [], edit: null };
         const ddq = id => document.getElementById(id);
         const ddSync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
-        const ddEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const ddEsc = htmlEsc;   // 🧰 js/util.js
 
         function ddRead() {
             let a = null; try { a = JSON.parse(ddSync() ? store.getItem(DD_KEY) : localStorage.getItem(DD_LOCAL)); } catch (e) {}

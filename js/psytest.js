@@ -10,7 +10,7 @@
         const psy = { built: false, test: null, qi: 0, ans: [], order: [], res: null, timer: 0 };
         const pyq = id => document.getElementById(id);
         const psySync = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
-        const psyEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const psyEsc = htmlEsc;   // 🧰 js/util.js
 
         function psyMine() { try { return JSON.parse((psySync() ? store.getItem(PSY_KEY) : localStorage.getItem(PSY_LOCAL)) || '{}') || {}; } catch (e) { return {}; } }
         function psyKeep(id, i) {

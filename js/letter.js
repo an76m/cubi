@@ -38,7 +38,7 @@
         const lb = { built: false, tab: 'in', data: null, busy: false, paper: 'pink', sticker: '💌', replyTo: null, open: null, getting: false, just: 0, empty: false };
         const lbq = id => document.getElementById(id);
         const lbLogged = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && !!drive.token;
-        const lbEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const lbEsc = htmlEsc;   // 🧰 js/util.js
         const lbPaper = id => LB_PAPERS.find(p => p.id === id) || LB_PAPERS[0];
         const lbWhen = at => { const m = /(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/.exec(at || ''); return m ? `${+m[2]}월 ${+m[3]}일 ${m[4]}:${m[5]}` : ''; };
 

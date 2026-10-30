@@ -18,7 +18,7 @@
         const DV_DB = 'malang-device', DV_TOP = '말랑달콤';
         const V = { on: false, mode: '', top: null, label: '', idx: new Map(), stale: false, last: 0 };   // top : PC 의 말랑달콤 폴더 손잡이
         const dvCanDir = () => typeof window.showDirectoryPicker === 'function';
-        const dvEsc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+        const dvEsc = htmlEsc;   // 🧰 js/util.js
 
         /* ---------- 작은 저장소 (IndexedDB) : vmeta 파일 정보 · vdata 내용 · meta PC 폴더 손잡이 ---------- */
         let dvDbP = null;

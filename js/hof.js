@@ -25,7 +25,7 @@
         const hq = id => document.getElementById(id);
         const hofOn = () => !!HOF_API_URL;
         const hofLogged = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && !!drive.token;
-        const hofEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const hofEsc = htmlEsc;   // 🧰 js/util.js
         const hofNum = n => Number(n || 0).toLocaleString('ko-KR');
 
         async function hofCall(action, data) {

@@ -29,7 +29,7 @@
             refill: { k: '바인더', path: DIRS.refill, name: '내지', icon: '📄' },          // 말랑달콤 / 바인더내지 / 내-…
             binder: { k: '바인더', path: null, name: '바인더', icon: '🗂️' }
         };
-        const dmkEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const dmkEsc = htmlEsc;   // 🧰 js/util.js
         const dmkColl = t => collOf(dirPath(DMK_T[t].path), '내-');
         const dmkQ = id => document.getElementById(id);
         const dmkShut = (...ids) => ids.forEach(id => { if (dmkQ(id)) closeModal(id); });

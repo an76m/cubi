@@ -18,7 +18,7 @@
 
 (function () {
     const bq = id => document.getElementById(id);
-    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const esc = htmlEsc;   // 🧰 js/util.js
     const BK_LAY = 'malang_bk_lay', BK_MAX = 150;
     const B = { list: [], all: [], kind: '', view: 'bin', cur: '', pg: 0, desk: null, album: null, byId: new Map(), opening: '', lay: null, drag: null, top: 0 };   // list = 지금 연 바구니(한 종류) · all = 모든 종이
     const BK_KINDS = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지', memo: '메모지' };
@@ -1150,7 +1150,7 @@
         if (r === 'have' && SH.kind === 'gd') { showMsg('✏️ 이미 문구함에 있어요.'); return false; }
         if (r === 'have' && SH.kind === 'tool') { showMsg(`📔 ${x.name}는 이미 받았어요.<br><small>📒 다이어리 → 📔 다이어리 보관소에 있어요</small>`); return false; }
         if (r === 'have') {
-            const c = x.name.charCodeAt(x.name.length - 1) - 0xAC00, j = c >= 0 && c < 11172 && c % 28 ? '이' : '가';
+            const j = josaOf(x.name, '이', '가');
             if (!await showAsk(`🪑 ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '취소')) return false;
             r = await x.give(true);
         }

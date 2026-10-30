@@ -21,7 +21,7 @@
 
         const dm = { built: false, open: false, mood: 'happy', loaded: null, last: null, cat: '전체', from: 'write' };
         const dq = id => document.getElementById(id);
-        const dmEsc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const dmEsc = htmlEsc;   // 🧰 js/util.js
 
         /* 상징 사전 불러오기 (처음 한 번) */
         function dmLoad() {

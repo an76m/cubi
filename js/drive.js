@@ -1040,15 +1040,12 @@
         function deskSync() {
             const H = document.documentElement, on = deskUse();
             H.classList.toggle('desk-wide', deskWide());
-            if (!on && H.classList.contains('desk-show')) { H.classList.remove('desk-show'); const m = document.getElementById('deskDiary'); if (m) m.style.visibility = ''; }   // 하단 메뉴로 바꾸면 펴 둔 다이어리는 그대로 보여요
-            if (on && !H.classList.contains('desk-on') && window.deskMiniPaint) deskMiniPaint();   // 책상으로 바꾸면 책상 위 다이어리는 지금 겉표지
+            if (!on && H.classList.contains('desk-show')) H.classList.remove('desk-show');   // 하단 메뉴로 바꾸면 펴 둔 다이어리는 그대로 보여요
             H.classList.toggle('desk-on', on);
-            if (on && window.deskMiniSync) deskMiniSync();                     // 책상 위 다이어리 크기를 지금 다이어리에 맞춰요
         }
         function deskModeSet(v) { prefSet(DESK_MODE_KEY, DESK_MODE_LOCAL, v === 'menu' ? 'menu' : 'desk'); deskSync(); if (window.deskModeRender) deskModeRender(); }
         function hideGate() {
             const g = document.getElementById('driveGate');
-            if (window.deskMiniSync) requestAnimationFrame(() => deskMiniSync());   // 📔 다이어리를 다 불러온 뒤 책상 위 다이어리를 맞춰요
             if (gateOpened || !deskUse() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
             gateOpened = true;
             g.classList.add('leave');

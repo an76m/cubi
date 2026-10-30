@@ -24,7 +24,7 @@
     /* 📝 메모지 : [종류, 이름] (모양은 css/anime.css .dk-memo.m-종류) · 게시판 코르크 칸 (그림 %) */
     const DC_PAPER = [['post', '포스트잇'], ['pink', '줄노트'], ['grid', '모눈'], ['mint', '민트'], ['lilac', '체크'], ['letter', '편지지']];
     const DC_CORK = [6, 25, 95, 94], DC_MEMO_MAX = 8;
-    const dcEsc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const dcEsc = t => htmlEsc(t || '');   // 🧰 js/util.js
     const dcMemoHtml = (m, i, sel) => `<div class="dk-memo m-${m.p}${sel ? ' sel' : ''}" data-i="${i}" style="left:${m.x}%;top:${m.y}%;--r:${m.r || 0}deg"><p>${dcEsc(m.t)}</p></div>`;
 
     const dcItem = u => DK.items.find(x => x.u === u);

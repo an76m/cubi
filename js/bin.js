@@ -37,7 +37,7 @@
             try { for (const e of binList().filter(x => !binLeft(x))) await binPurge(e); } finally { binBusy = false; }
         }
         /* 묻기 · 알리기 (모든 상품 같은 말) */
-        const binJosa = (w, a, b) => { const c = String(w || '').charCodeAt(String(w || '').length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
+        const binJosa = josa;   // 🧰 js/util.js
         function binAsk(name, extra) {
             return showAsk(`🗑 <b>${binJosa(name, '을', '를')}</b> 휴지통에 버릴까요?${extra ? `<br><small>${extra}</small>` : ''}`, '🗑 휴지통', '취소');   // 버튼 = 휴지통 · 취소 (도련 10-28 : '버리기'는 지우는지 애매 · '그만두기'는 잘 안 쓰는 말)
         }

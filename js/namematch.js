@@ -52,7 +52,7 @@
         };
         const nm = { built: false, rel: 'love', res: null, timer: [], noise: null };
         const nmq = id => document.getElementById(id);
-        const nmEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const nmEsc = htmlEsc;   // 🧰 js/util.js
 
         /* ---------- 계산 ---------- */
         function nmStroke(ch) {
@@ -242,7 +242,7 @@
             requestAnimationFrame(() => { nmq('nmFill').style.width = r1.pct + '%'; });
             setTimeout(() => res.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
         }
-        const nmJosa = w => (w.charCodeAt(w.length - 1) - 0xAC00) % 28 ? '이' : '가';     // 받침 있으면 '이' · 없으면 '가'
+        const nmJosa = w => josaOf(w, '이', '가');   // 🧰 js/util.js     // 받침 있으면 '이' · 없으면 '가'
 
         /* ---------- 📌 궁합 카드 ---------- */
         function nmCardSvg() {

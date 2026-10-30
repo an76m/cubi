@@ -19,7 +19,7 @@
         const FP_ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
         const fp = { el: null, open: false, on: false, unsub: null, nick: '', view: 'home', sel: 0, convs: new Map(), cur: '', ring: [], calling: null, busy: false, err: '', toastT: 0, ringT: 0, buzzT: 0, tone: null, nickTry: null };
         const fpq = s => fp.el && fp.el.querySelector(s);
-        const fpEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const fpEsc = htmlEsc;   // 🧰 js/util.js
         const fpUsable = () => typeof fbUsable === 'function' && fbUsable();
 
         /* ---------- 연락처 (내 전화기의 닉네임 목록) ---------- */

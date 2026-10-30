@@ -85,7 +85,7 @@ html.an .pc-hint, html.an .pc-tipnote { background: var(--an-cr) !important; bor
 html.an .pc-x { background: var(--an-cr) !important; border: 1.4px solid var(--an-ol) !important; box-shadow: none !important; color: #e07595 !important; }
 
 /* 🔘 버튼 그림자는 모두 없음 (도련 10-28) */
-html.an button:not(.desk-item):not(.gf-btn), html.an .btn, html.an [role="button"]:not(.dk-diary) { box-shadow: none !important; }
+html.an button:not(.desk-item):not(.gf-btn), html.an .btn, html.an [role="button"] { box-shadow: none !important; }
 html.an .modal .ab-tabs button.on { box-shadow: 0 0 0 1.5px var(--an-pkl) !important; }
 /* 버튼 안쪽 흰 점선 · 테두리 점선도 없음 (모든 창) */
 html.an .btn::before, html.an #customAlertConfirmBtn::before, html.an .btn-primary::before { display: none !important; }
@@ -128,13 +128,12 @@ html.desk-edit .desk-stage::after { content: ''; position: absolute; inset: 0; z
 html.desk-edit .desk-item { outline: 2px dashed rgba(166, 141, 200, .75); outline-offset: 3px; border-radius: 6px; }
 /* 🎯 고른 것 = 그림 모양 따라 핑크 선 (도련 10-30 시안 · 번짐 없는 딱 떨어지는 선 · js/desk.js dkSelPaint) */
 html.desk-edit .desk-item.sel, html.desk-edit .desk-item.lift { outline: none; }
-html.desk-edit .desk-item.sel:not(.zsel) > img, html.desk-edit .desk-item.lift > img, html.desk-edit .dk-diary.pose-on { filter: drop-shadow(3px 0 0 #ff6b88) drop-shadow(-3px 0 0 #ff6b88) drop-shadow(0 3px 0 #ff6b88) drop-shadow(0 -3px 0 #ff6b88); }
-html.desk-edit .dk-diary.pose-on .dk-top, html.desk-edit .dk-diary.pose-on .dk-spine, html.desk-edit .dk-diary.pose-on .dk-edge { outline: none; }
+html.desk-edit .desk-item.sel:not(.zsel) > img, html.desk-edit .desk-item.lift > img { filter: drop-shadow(3px 0 0 #ff6b88) drop-shadow(-3px 0 0 #ff6b88) drop-shadow(0 3px 0 #ff6b88) drop-shadow(0 -3px 0 #ff6b88); }
 /* 들어 있는 곳 · 같이 움직이는 것 = 연보라 점선 (+ '○○ 안 / 위') */
-html.desk-edit .desk-item.dk-host, html.desk-edit .dk-diary.dk-host { outline: 2.5px dashed #a58fd6; outline-offset: 5px; border-radius: 12px; }
+html.desk-edit .desk-item.dk-host { outline: 2.5px dashed #a58fd6; outline-offset: 5px; border-radius: 12px; }
 .dk-hostlb { position: absolute; z-index: 9750; background: #f3eefc; border: 1.6px solid #a58fd6; color: #6d58a8; border-radius: 999px; font-size: 12px; font-weight: 800; padding: 0 9px; line-height: 1.6; white-space: nowrap; pointer-events: none; }
 /* 나머지 = 연하게 */
-html.desk-edit.dk-sel-on .desk-item.dk-dim > img, html.desk-edit.dk-sel-on .dk-front.dk-dim img, html.desk-edit.dk-sel-on .dk-diary.dk-dim { filter: saturate(.45) brightness(1.1) contrast(.85); }
+html.desk-edit.dk-sel-on .desk-item.dk-dim > img, html.desk-edit.dk-sel-on .dk-front.dk-dim img, html.desk-edit.dk-sel-on .dk-vol.dk-dim { filter: saturate(.45) brightness(1.1) contrast(.85); }
 /* 4 작업대 (위) : 크림 나무판 + 줄자 · 버튼은 앱 규칙 (흰 / 연분홍) */
 html.desk-edit .dke-bar { top: 0 !important; left: 0 !important; right: 0; translate: none !important; width: auto; justify-content: center; border-radius: 0 0 18px 18px !important; border: 0 !important; border-bottom: 2px solid #c9a27a !important;
   background: #f6dfbf !important; box-shadow: 0 5px 0 rgba(176, 150, 214, .35) !important; padding: 10px 16px 18px !important; animation: dkeDrop .4s cubic-bezier(.3, 1.4, .5, 1) both; }
@@ -309,7 +308,6 @@ html.an .dy-rings i { background: url("data:image/svg+xml,%3Csvg xmlns='http://w
 html.an .dy-gap::before { background: #f1eef8 !important; box-shadow: 0 0 0 .3cqw #9d88c2 !important; }   /* 링 기둥 : 한 색 + 선 (그림자 없음 · 도련 10-28) */
 html.an .dy-gap { background: linear-gradient(90deg, #9d88c2 0 .3cqw, color-mix(in srgb, var(--dy-c) 70%, #fff) .3cqw calc(100% - .3cqw), #9d88c2 calc(100% - .3cqw)) !important; box-shadow: none !important; }   /* 가운데 틈 = 표지 안쪽 한 색 + 양쪽 선 */
 /* 🗂️ 책상 위에 눕힌 다이어리의 링 (도련 10-28) : 눕히면(rotateX 71°) 링이 납작해져서 · 책상 위 복사본에서만 링을 세로로 늘려 두면 눕힌 뒤에 둥글게 선 링처럼 보여요 (구멍 자리가 기준) */
-.dk-mini .dy-rings i { transform: scaleY(3.6); transform-origin: 50% 72%; }
 
 /* 📖 날짜바 양 끝 왼쪽 · 오른쪽 페이지 스위치 (도련 10-29) : 켜진 버튼 공통 네모(aria-pressed) 없이 그림만 · 켜짐/꺼짐은 진하기로 */
 .page-header .page-side, .page-header .page-side[aria-pressed="true"] { border: 0 !important; background: none !important; box-shadow: none !important; }
@@ -447,29 +445,10 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 html .sh-take.got, html.an .sh-take.got, html.an .sh-take.got:not(.sh-zoombtn) { background: #dff4e7 !important; border: 1.5px solid #7cc7a0 !important; color: #2f8a5a !important; }
 
 /* 📔 책상 위 다이어리 자리 · 모습 (도련 10-29 · js/desk.js dky) : --ax · --ay = 바닥 가운데 (책상 그림 px) · 📚 꽂기 = 책등 · 📔 세우기 = 앞모습 · 🛏 눕히기 = 예전 그대로 */
-.dk-diary { left: calc(var(--ax, 836px) - var(--dkw, 200px) / 2) !important; top: calc(var(--ay, 848px) - var(--dkh, 383px)) !important; }
-.dk-diary.p-front .dk-top { transform: scale(var(--dks, .4)); transform-origin: 50% 100%; overflow: visible; }
-.dk-diary.p-front .dk-edge, .dk-diary.p-side .dk-edge, .dk-diary.p-side .dk-top { display: none; }
-.dk-spine { display: none; }
-.dk-diary.p-side .dk-spine { display: block; position: absolute; left: calc(50% - 12px); top: calc(var(--dkh, 383px) * (1 - var(--dks, .4))); width: 24px; height: calc(var(--dkh, 383px) * var(--dks, .4));
-    box-sizing: border-box; pointer-events: auto; border: 1.5px solid #ffb6c1; border-radius: 7px; background-color: #fff5f7; overflow: hidden; }   /* 겉표지 그대로 (js dkySpinePaint · .dk-sp-art) */
-.dk-sp-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.dk-sp-art .cover-page > * { display: none !important; }
-.dk-spine::before { content: ''; position: absolute; left: 3px; top: 3px; bottom: 3px; width: 1.5px; border-radius: 1px; background: rgba(255, 255, 255, .7); }   /* 둥근 책등 빛 한 줄 */
-.dk-spine > b { display: none; }
-.dk-diary.dk-fly .dk-spine { visibility: hidden; }
-html.desk-edit .dk-diary { opacity: 1 !important; cursor: grab; }
-html.desk-edit .dk-diary .dk-top, html.desk-edit .dk-diary .dk-spine, html.desk-edit .dk-diary .dk-edge { outline: 2px dashed #ff8fb4; outline-offset: 3px; }
-.dk-diary.lift { cursor: grabbing; }
-.dk-pose { display: none; position: absolute; left: 50%; top: calc(var(--dkh, 383px) + 26px); translate: -50% 0; gap: 6px; padding: 6px; border: 1.6px solid #8d6f7f; border-radius: 999px; background: #fffaf2; pointer-events: auto; white-space: nowrap; z-index: 2; }
-#dkPose.on { display: flex; position: fixed; z-index: 9700; translate: -50% 0; }   /* 화면 맨 위 한 겹 (js dkyMenu) */
-.dk-pose button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
-.dk-pose button.on { background: #ffd3e2; }
 
 /* 🏷️ 다이어리 라벨 (도련 10-29 · js/desk.js dkyLabelPaint) : 사용자가 붙이고 꾸며요 · 📚 책등 / 📔 앞면 자리 따로 */
 .dky-lb.ph { opacity: .55; }
 html.desk-edit .dky-lb { pointer-events: none; }   /* 🏷 다이어리 이름표는 눌리지 않아요 (도련 10-30 · 고치기 = 메뉴 🏷 이름표) */
-.dk-pose .dky-lbb { background: #fff1c4; }
 .dky-lbp { position: fixed; left: 50%; top: 14px; translate: -50% 0; z-index: 2147482500; width: min(94vw, 460px); box-sizing: border-box; padding: 10px 12px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #6a4f5a; }
 .dky-lbp[hidden] { display: none; }
 .dky-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -493,18 +472,6 @@ html.desk-edit .dky-lb { pointer-events: none; }   /* 🏷 다이어리 이름�
 .desk-guide { z-index: 9790; } .desk-tip { z-index: 9800; }   /* 소품 z 가 넓어져서 (바닥 × 8) 그보다 위 */   /* 🛠 모습 고르는 동안은 맨 앞 · 끄는 동안은 입구에 닿자마자 쏙 (도련 10-29) */
 
 /* 📚 📔 세운 다이어리 두께 (도련 10-29 · js/desk.js dkyThickPaint · 도련 포토샵 시안) : 표지가 위로 이어지고 그 안에 종이 단면 */
-.dk-diary { --ink: color-mix(in srgb, var(--dk-cv, #ffb6c1) 40%, #6b4252); }
-.dk-th, .dk-thf { display: none; position: absolute; overflow: visible; pointer-events: none; }
-.dk-thf { overflow: hidden; border-radius: 3px 3px 0 0; }
-.dk-thf .dk-top-cl { box-shadow: none !important; outline: none !important; pointer-events: none; }
-.dk-diary.p-front .dk-th.front, .dk-diary.p-front .dk-thf, .dk-diary.p-side .dk-th.side { display: block; }
-.dk-diary.dk-fly .dk-th, .dk-diary.dk-fly .dk-thf { visibility: hidden; }
-.dk-th .pp { fill: #fffaf3; stroke: none; }
-.dk-th .ed { fill: none; stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
-.dk-th .ln line { stroke: #e3c6b4; stroke-width: 1.1; }
-.dk-diary.p-front .dk-top { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-accent) 45%, #fff), 0 0 0 3.2px var(--ink); border-radius: 0 0 12px 8px; }   /* 앞표지 선 · 위는 두께와 이어져서 각지게 */
-html:not(.desk-edit) .dk-diary.p-side .dk-spine { box-shadow: 0 0 0 1.3px var(--ink); }
-.dk-diary.p-side .dk-spine { top: calc(var(--dkh, 383px) * (1 - var(--dks, .4)) - var(--dkth, 0px)); height: calc(var(--dkh, 383px) * var(--dks, .4) + var(--dkth, 0px)); border-radius: 7px; }   /* 책등이 두께만큼 위로 이어져요 */
 
 /* 🚪 기본상품 샵 → 내 방 문 → 책상 (도련 10-30 · js/shopscene.js shopSceneClose) */
 .shop-home { position: absolute; inset: 0; z-index: 4; opacity: 0; pointer-events: none; }
@@ -561,7 +528,7 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkn-ic-b { padding: 2px 6px; font-size: 16px; } .dkn-ic-b:first-of-type { font-size: 12.5px; padding: 4px 10px; }
 .dkn-seg.on, .dkn-ic-b.on { background: #ffd3e2; border-color: #ff6b88; }
 #dknPanel .dky-row { flex-wrap: wrap; }
-#dknPanel, #dkyLbPanel { max-height: calc(100dvh - 28px); overflow-y: auto; }   /* 작은 화면에서도 창 안에 */
+#dknPanel, #dkvLbPanel { max-height: calc(100dvh - 28px); overflow-y: auto; }   /* 작은 화면에서도 창 안에 */
 /* 🎨 내 마음대로 색 : 준비된 색 뒤 동그라미 (안 골랐을 때 = 🎨 · 고르면 그 색) */
 .dkn-cc { position: relative; display: inline-grid; place-items: center; overflow: hidden; box-sizing: border-box; }
 .dkn-cc input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
@@ -611,20 +578,15 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkt-hd small { font-size: 12px; font-weight: 700; color: #9a7d8a; }
 .dkt-chip { font-size: 12px; font-weight: 800; color: #fff; background: #ff6b88; border-radius: 999px; padding: 1px 9px; line-height: 1.6; }
 .dkt-chip.lv { background: #a58fd6; }
-.desk-tip.on::after, #dkPose.on::after { content: ''; position: absolute; left: 50%; width: 14px; height: 14px; background: #fffaf2; border: 2px solid #8d6f7f; translate: -50% 0; rotate: 45deg; }
+.desk-tip.on::after { content: ''; position: absolute; left: 50%; width: 14px; height: 14px; background: #fffaf2; border: 2px solid #8d6f7f; translate: -50% 0; rotate: 45deg; }
 .desk-tip.on::after { bottom: -9px; border-top: 0; border-left: 0; }
 .desk-tip.on.below::after { bottom: auto; top: -9px; border: 2px solid #8d6f7f; border-right: 0; border-bottom: 0; }
-#dkPose.on::after { top: -9px; border-right: 0; border-bottom: 0; }
-#dkPose.on { flex-wrap: wrap; justify-content: center; max-width: 640px; }
-#dkPose .dkt-hd { flex: 0 0 100%; }
-.dk-pose:not(.on) .dkt-hd:empty { display: none; }
 /* 👆 고른 칸 = 칸 밖은 하얗게 가려요 */
 .dkz-show.veil { overflow: hidden; border-radius: 4px; }
 .dkz-show.veil i.on { box-shadow: 0 0 0 9999px rgba(255, 255, 255, .55); }
 /* 🛠 책상 꾸미기 메뉴 = 창 하나 (도련 10-30 : 제목 · 버튼이 따로 떠 있지 않게 한 장에 붙여요) */
 .desk-tip.on { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; box-shadow: 3px 3px 0 #e6dcf8; }
 .desk-tip .desk-snap { box-shadow: none; height: 34px; border-width: 1.6px; }
-#dkPose.on { border-radius: 18px; border-width: 2px; padding: 8px 10px; box-shadow: 3px 3px 0 #e6dcf8; }
 
 /* ═══ 📔 파스텔 바인더 = 도련 시안4 그대로 (10-30 · /home 시안 : 다이어리_시안4.png) ═══
    표지 = 다이어리 색 단색 + 작은 땡땡이 · 바깥 선(표지 둘레) 3.5px · 안쪽 선은 모두 같은 한 줄 2px(--dyv-ol · 이 다이어리만 애니 연한 선 규칙의 예외 · 여러 겹 선 없음) · 딱 떨어지는 그늘(선 없이)
@@ -709,5 +671,5 @@ html.desk-edit .dk-vol.pose-on .dv-cv, html.desk-edit .dk-vol.lift .dv-cv { outl
 .dk-bag.lift { cursor: grabbing; filter: drop-shadow(4px 6px 0 rgba(150, 110, 170, .25)); }
 html.desk-edit .dk-bag { pointer-events: none; opacity: .55; }
 /* 📔 책상 위 다이어리 = 모든 권 같은 틀 (.dk-vol · 도련 10-30) : #deskDiary 는 떠오르기 · 내려앉기 · 레이어 기준점으로만 (안 보이고 안 눌려요) · 펼쳐 보는 동안 그 권 그림은 숨어요 */
-#deskDiary { visibility: hidden !important; pointer-events: none !important; }
+#deskDiary { position: absolute; width: 0; height: 0; visibility: hidden !important; pointer-events: none !important; }
 html.desk-show .dk-vol.cur { visibility: hidden; }

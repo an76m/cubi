@@ -17,7 +17,7 @@
         const AR_NEW = 'malang_new', AR_NEW_KEY = 'diary_new';   // ☁ 설정.json (기기마다 같아요 · PC에서 본 NEW 는 패드에서도 사라져요 · 도련 10-20) · 메뉴에 붙일 NEW { me, tape: {id|all: 1}, caps: {…}, coin: 1, wall: {번호: 1} }
         const arRead = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
         const arWrite = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-        const arEsc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const arEsc = htmlEsc;   // 🧰 js/util.js
         const arMe = () => (typeof pr !== 'undefined' && pr.me) || '';
         const arDayOk = u => /^\d{4}-\d{2}-\d{2}$/.test(u || '');
 
