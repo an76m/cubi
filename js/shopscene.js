@@ -4,7 +4,7 @@
    - 가게 안 진열대마다 이름표 = 기본상품 샵 메뉴 (씰 · 조각 · 모조지 · 마테 · 떡메 · 속지 · 이모지 · 메모지 · 정리 도구 · 문구 · 책상 소품 · 🌸 계절은 이벤트 때만)
        톡 = 그 상품을 고르는 창 (js/basket.js shOpenKind) · 창의 '‹ 기본상품 샵' = 창만 닫고 가게 안 그대로
    - 그림은 화면을 꽉 채우고(cover) · 이름표 자리는 그림 픽셀 기준 → 화면 자리로 · 화면 밖으로 잘리면 안쪽으로 당겨요
-   - 🚪 내 방으로 (오른쪽 위) = 내 방 문(img/room-door.webp)을 지나 책상으로 (도련 10-30) · ▤ 하단 메뉴 화면에서는 예전처럼 기본상품 샵 창 (js/basket.js openShelf)
+   - 🚪 이동 (오른쪽 위 · 도련 10-31) → 이동 창 (js/desk.js deskMoveOpen) 의 🚪 내 방 = 내 방 문(img/room-door.webp)을 지나 책상으로 (도련 10-30) · ▤ 하단 메뉴 화면에서는 예전처럼 기본상품 샵 창 (js/basket.js openShelf)
    - 💻 PC · 아이패드만 (도련 10-27 · html.desk-on = 화면 짧은 쪽 600px 이상 + 🪑 책상 화면) · 📱 폰 · 하단 메뉴 화면은 늘 예전 기본상품 샵 창 · 가게 안에서 화면이 좁아지면 가게를 닫고 기본상품 샵 창으로 */
 
         const SHOP_W = 1672, SHOP_H = 941, DOOR_W = 1672, DOOR_H = 941;
@@ -26,7 +26,7 @@
             el.innerHTML = `<div class="shop-in"><img class="shop-room" src="img/shop-inside.webp?v=20261009-815" alt="" draggable="false"><div class="shop-spots"></div></div>
                 <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
-                <button type="button" class="shop-x" onclick="shopSceneClose()">🚪 내 방으로</button>`;
+                <button type="button" class="shop-x" onclick="deskMoveOpen()">🚪 이동</button>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (!SC.on) return; if (!shopWide()) { shopSceneClose(true); setTimeout(() => window.openShelf && openShelf(), 400); return; } shopFit(); });   // 좁아지면 (폰 크기) 가게를 닫고 기본상품 샵 창
             return el;

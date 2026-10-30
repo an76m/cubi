@@ -356,10 +356,11 @@
             giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); });
         }
 
-        /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 + ☕ 카페 칸 전부 (카페 창 #svcCats 의 칸을 열 때마다 복사 · 새 칸이 생기면 저절로 · 알림 숫자도 그대로)
+        /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 (가게 안에서는 🚪 내 방) + ☕ 카페 칸 전부 (카페 창 #svcCats 의 칸을 열 때마다 복사 · 새 칸이 생기면 저절로 · 알림 숫자도 그대로)
            칸 톡 = 이동 창 닫고 → 카페 칸이면 카페 창의 그 칸 · 준비중 · 따로 여는 것(인형 · 펫 …)은 그것만 */
         function deskMoveOpen() {
-            const box = document.getElementById('moveCafe');
+            const box = document.getElementById('moveCafe'), inShop = !!(window.shopSceneOn && shopSceneOn());
+            ['moveShop', 'moveRoom'].forEach((id, i) => { const b = document.getElementById(id); if (b) b.hidden = !!i !== inShop; });   // 🏪 가게 안 = 🚪 내 방 · 책상 = 🏪 기본상품 샵
             if (box) {
                 if (typeof svcDailyBadges === 'function') svcDailyBadges();
                 box.innerHTML = '';

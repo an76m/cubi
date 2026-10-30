@@ -1110,6 +1110,7 @@
 
         /* ===== ☕ 카페 카테고리 (1단계 카테고리 → 2단계 놀이) ===== */
         .svc-cats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .svc-cat[hidden] { display: none !important; }   /* 🚪 이동 창 : 책상 = 🏪 기본상품 샵 · 가게 안 = 🚪 내 방 */
         .svc-cat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 14px 8px 12px; border-radius: 18px; cursor: pointer; font-family: inherit;
             border: 2px solid var(--border-color); background: linear-gradient(180deg, #fff 0%, var(--page-bg) 100%); color: #444; transition: transform .15s, box-shadow .15s; }
         @media (hover: hover) { .svc-cat:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,.08); } }
