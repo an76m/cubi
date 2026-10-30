@@ -39,7 +39,6 @@
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
             { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자', nost: 1 },   // nost = 🎁 기본 세트에서 빼요 (🏪 샵에는 그대로 · 도련 10-30)
             { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51], nost: 1 },
-            { id: 'shopshelf', kind: 'bookshelf', src: 'img/desk/shopshelf.webp?v=20261009-946', w: 108, h: 280, x: 1091, y: 481, name: '가게 진열장' },   // 🏪 처음부터 기본상품 샵 (도련 10-30 · 파일꽂이 자리)
             { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-836', w: 126, h: 151, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.5, 22.3, 82.6, 85.9] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1258, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
@@ -215,7 +214,7 @@
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
         const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
-        const DK_FN_DEF = { sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', shop: 'shopshelf', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품 · 📔 다이어리는 처음엔 소품 없음 (책 상자를 기본 세트에서 뺐어요 · 도련 10-30 · 🔗 기능 연결로 붙여요)
+        const DK_FN_DEF = { sticker: 'basket', gd: 'pencup', cafe: 'corkboard', set: 'clock', edit: 'drawer' };   // 핑크 서랍장은 기능 없는 소품 · 📔 다이어리 · 🏪 기본상품 샵은 처음엔 소품 없음 (샵 = 책상 오른쪽 위 버튼 · 도련 10-30 · 🔗 기능 연결로 붙여요)
         const DK_EDIT_NEED = ['edit'];
         const dkHasWin = (m, k) => !!m[k] || Object.values(dkHomes()).some(L => L.some(e => e.k === k));   // 소품 전체 또는 👆 칸 어디든                                            // 🛠 꾸미기 ✔ 완료에 꼭 있어야 하는 건 책상 꾸미기 하나 (도련 10-30 · 나머지는 풀어도 저장)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
@@ -1178,13 +1177,9 @@
         /* 📔 책상 위 다이어리 자리 · 모습 (도련 10-29) : 📚 꽂기(옆모습 · 책등) · 📔 세우기(앞모습) · 🛏 눕히기
            - 🛠 책상 꾸미기에서만 끌어 옮기고 · 톡 = 모습 고르기 · ✔ 완료 때 저장 (✕ 취소 = 그대로) · 평소에는 누르면 떠올라요 (넣으면 고른 모습 그대로 돌아가요)
            - 'diary_desk_dy' { x, y : 책상 그림 px (바닥 가운데) · p : side · front · lay } (배치.json · js/drive.js DESK_KEYS)
-           - 처음 = 가게 진열장 오른쪽 옆에 📚 꽂기 (진열장과 서랍장 사이) */
+           - 처음 = 서랍장 왼쪽 옆에 📚 꽂기 */
         const DKY_KEY = 'diary_desk_dy', DKY_LOCAL = 'malang_desk_dy', DKY_S = .4;   // 세우면 실제 A6 크기쯤 (파일꽂이와 어울리게)
-        function dkyDef() {
-            const m = DK.items.find(o => o.id === 'shopshelf' && o.at === 'desk'), d = DK.items.find(o => o.id === 'drawer' && o.at === 'desk'), mc = dkCat('shopshelf');
-            if (m && mc) { const x1 = m.x + mc.w, x2 = d && d.x > x1 ? d.x : x1 + 50; return { x: Math.round((x1 + x2) / 2), y: Math.round(m.y + mc.h - 3), p: 'side' }; }
-            return { x: 1222, y: 758, p: 'side' };
-        }
+        const dkyDef = () => ({ x: 1222, y: 758, p: 'side' });
         function dkyGet() {
             if (DK.dyEdit) return DK.dyEdit;
             const v = typeof prefGet === 'function' ? prefGet(DKY_KEY, DKY_LOCAL) : null;
