@@ -713,7 +713,7 @@
             st.lz = (st.lz || 0) + d; dkLayers(); const got = (DK.lzDone && DK.lzDone.get(el)) || 0; if (got !== st.lz) st.lz = got; if (!st.lz) delete st.lz; dkLayers();
         }
         window.deskLayer = deskLayer; window.dkyLayer = dkyLayer;
-        /* 🛍️ 가게에서 사 온 봉투 (도련 10-30) : 기본상품 샵 가게에서 산 것이 봉투에 담겨 책상 앞쪽에 똑바로 놓여요 (최대 3개 · 저장 = 'diary_desk_bags')
+        /* 🛍️ 가게에서 사 온 봉투 (도련 10-30) : 기본상품 샵 가게에서 산 것이 봉투에 담겨 책상 앞쪽에 똑바로 놓여요 (끝없이 · 저장 = 'diary_desk_bags')
            - 봉투 톡 = 봉투 속 상품 카드 → 카드를 아무 책상 소품에 끌어다 넣으면 그 소품이 그 상품 종류의 집 ('diary_desk_home' {u: [{ k: 종류, r: 누르는 곳 | null, tag }]})
            - 👆 한 소품에 여러 상품 (도련 10-30 · 서랍마다 다른 종류) : 첫 상품 = 소품 전체(r null) · 두 번째부터 [취소] [바꾸기] [➕ 추가]
              추가 = 다꾸러가 소품 그림 위에 누르는 곳을 직접 그려요 (앱이 알아서 정하지 않아요 · r = [l, t, r, b] % ) · 칸마다 이름표 · 고치기 · 빼기는 🛠 책상 꾸미기에서 칸을 톡
@@ -731,9 +731,14 @@
         const dkHomesSet = v => { if (typeof prefSet === 'function') prefSet(DKH_KEY, DKH_LOCAL, v); };
         const dkbSub = it => it.ds ? (it.ds === 'wall' ? '벽지' : '책상') : it.al ? `${DKH_NAMES[it.k] || ''} 스티커첩` : DKH_NAMES[it.k] || '';   // 카드 아래 작은 글 = 무엇인지
         const dkKindIc = it => it.ds ? `<i>${it.ds === 'wall' ? '🧱' : '🪵'}</i>` : it.al ? `<i>${it.n === '이형지북' ? '🤍' : '📒'}</i>` : it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`;
+        const dkBagXY = (bg, n) => isFinite(+bg.x) && isFinite(+bg.y) ? [+bg.x, +bg.y] : [836 + [0, -260, 260, -520, 520][n % 5] + 36 * Math.floor(n / 5), 830 - 14 * Math.floor(n / 5)];
         function deskBagAdd(L) {
             if (!Array.isArray(L) || !L.length) return;
-            const B = dkBags(); if (B.length >= 3) B[B.length - 1].it = B[B.length - 1].it.concat(L); else B.push({ t: Date.now(), it: L });
+            const B = dkBags(), at = B.map((b, i) => dkBagXY(b, i));             // 🛍️ 봉투는 끝없이 늘어요 (도련 10-30 : 정리는 다꾸러 마음 · 알림 없음)
+            const SL = [836, 576, 1096, 316, 1356], free = (x, y) => !at.some(p => Math.abs(p[0] - x) < 110 && Math.abs(p[1] - y) < 60);
+            let x = 836, y = 830;
+            for (let r = 0; r < 40; r++) { const c = SL.map(v => [v + 36 * r, 830 - 14 * r]).find(([a, b]) => free(a, b)); if (c) { [x, y] = c; break; } }   // 비어 있는 자리부터 · 다 차면 조금씩 비켜서 겹쳐요
+            B.push({ t: Date.now(), it: L, x, y });
             dkBagsSet(B); deskBagsPaint();
         }
         function deskBagsPaint() {
@@ -741,7 +746,7 @@
             st.querySelectorAll('.dk-bag').forEach(x => x.remove());
             dkBags().forEach((bg, n) => {
                 const b = document.createElement('button'); b.type = 'button'; b.className = 'dk-bag'; b.setAttribute('aria-label', `사 온 봉투 (${bg.it.length}개)`);
-                const x = isFinite(+bg.x) ? +bg.x : 836 + [0, -260, 260][n], y = isFinite(+bg.y) ? +bg.y : 830;   // 책상 앞쪽 · 똑바로 (도련 10-30 : 2배) · 옮긴 자리 = bg.x · bg.y
+                const [x, y] = dkBagXY(bg, n);                                   // 책상 앞쪽 · 똑바로 (도련 10-30 : 2배) · 자리 = bg.x · bg.y
                 b.style.left = (x - 120) + 'px'; b.style.top = (y - 268) + 'px';
                 b.innerHTML = window.BAG_SVG + `<b class="dk-bag-n">${bg.it.length}</b>`;
                 b.addEventListener('click', e => e.stopPropagation());
