@@ -666,3 +666,8 @@ html.an .cover-page.cv-book .cv-year { display: none !important; }   /* 📓 다
 /* 📢 겉표지 공지 카드 · 밀어서 열기 = 왼쪽 책등을 뺀 표지의 가운데 (도련 10-30) */
 html.an .cover-page .cover-notice:not(.img) { width: 72cqw; }   /* 스샷 자리 (책등과 오른쪽 끝 사이 가운데) */
 html.an .cover-page .cover-notice, html.an .cover-page .drag-hint { translate: 5cqw 0; }
+/* 🏪 책상 오른쪽 위 = 기본상품 샵 바로 가기 (도련 10-30 · js/desk.js deskBuild · 책상만 볼 때 · 다이어리를 펼치거나 🛠 꾸미는 동안은 숨겨요) */
+.desk-shop-go { position: absolute; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 9600; display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px; border: 2px solid #e88fb0; border-radius: 999px; background: #fff; color: #c2457a; font: inherit; font-size: 15px; font-weight: 800; white-space: nowrap; cursor: pointer; box-shadow: 3px 3px 0 #e6dcf8; }
+.desk-shop-go:hover { background: #fff0f5; }
+.desk-shop-go:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
+html.desk-show .desk-shop-go, html.desk-edit .desk-shop-go { display: none; }

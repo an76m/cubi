@@ -370,7 +370,8 @@
             bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp?v=20261009-831" alt="" draggable="false">
                 <div class="dk-diary" id="deskDiary" role="button" tabindex="0" aria-label="다이어리 펴기"><div class="dk-top"><div class="diary-book dk-mini"></div></div><i class="dk-edge"></i><i class="dk-spine"><b></b></i><div class="dk-pose" id="dkPose"><b class="dkt-hd" id="dkPoseHd"></b><button type="button" data-p="side" onclick="dkyPose(\'side\')">📚 꽂기</button><button type="button" data-p="front" onclick="dkyPose(\'front\')">📔 세우기</button><button type="button" data-p="lay" onclick="dkyPose(\'lay\')">🛏 눕히기</button><button type="button" class="dky-lbb" onclick="dkyLbPanel(true)">🏷 이름표</button><button type="button" class="dkl" onclick="dkyLayer(1)">⬆ 앞으로</button><button type="button" class="dkl" onclick="dkyLayer(-1)">⬇ 뒤로</button></div></div>
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
-                <div class="desk-tip" id="deskTip"></div></div>`;
+                <div class="desk-tip" id="deskTip"></div></div>
+                <button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskRun('shop')" aria-label="기본상품 샵으로 가기">🏪 기본상품 샵</button>`;   /* 🏪 오른쪽 위 바로 가기 (도련 10-30 · 책상만 볼 때) */
             const dd = document.getElementById('deskDiary'); let dn = null;
             dd.addEventListener('pointerdown', ev => { if (ev.target.closest('.dk-pose')) { ev.stopPropagation(); return; } if (DK.edit) { dkyGrab(ev); return; }   /* 🏷 이름표 글씨를 눌러도 다이어리 (도련 10-30 : 이름표 창은 메뉴 🏷 이름표로만 · 글 자리는 창의 가로 · 세로로만) */ dn = [ev.clientX, ev.clientY]; ev.stopPropagation(); });
             dd.addEventListener('pointerup', ev => { if (dn && !DK.edit && Math.hypot(ev.clientX - dn[0], ev.clientY - dn[1]) < 8) deskOpenDiary(); dn = null; });
