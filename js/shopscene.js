@@ -26,7 +26,7 @@
             el.innerHTML = `<div class="shop-in"><img class="shop-room" src="img/shop-inside.webp?v=20261009-815" alt="" draggable="false"><div class="shop-spots"></div></div>
                 <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
-                <button type="button" class="shop-x" onclick="deskMoveOpen()">🚪 이동</button>`;
+                <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (!SC.on) return; if (!shopWide()) { shopSceneClose(true); setTimeout(() => window.openShelf && openShelf(), 400); return; } shopFit(); });   // 좁아지면 (폰 크기) 가게를 닫고 기본상품 샵 창
             return el;

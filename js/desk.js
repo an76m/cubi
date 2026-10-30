@@ -360,7 +360,8 @@
                 document.querySelectorAll('#svcCats > .svc-cat:not(.svc-extra):not([hidden])').forEach(b => {
                     const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
                     const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
-                    c.addEventListener('click', () => { closeModal('moveModal'); if (cat) openModal('serviceModal'); b.click(); });
+                    const soon = /준비중/.test(b.textContent);                    // 🚧 (준비중) 칸 = 이동 창은 그대로 · 그 위에 준비중 알림 (도련 10-31)
+                    c.addEventListener('click', () => { if (soon) { b.click(); return; } closeModal('moveModal'); if (cat) openModal('serviceModal'); b.click(); });
                     box.appendChild(c);
                 });
             }
@@ -374,7 +375,7 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><button type="button" class="desk-shop-go" onclick="deskTopGo(() => deskRun('edit'))">🛠 책상 꾸미기</button><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">🚪 이동</button></div>`;
+                <div class="desk-top-r"><button type="button" class="desk-shop-go" onclick="deskTopGo(() => deskRun('edit'))">책상 꾸미기</button><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
             const tr = bg.querySelector('.desk-top-r'); if (tr) document.body.appendChild(tr);   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
