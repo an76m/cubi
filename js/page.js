@@ -511,9 +511,7 @@
                 if (d.started && turn) {
                     const complete = turn.d > turn.W * 0.35;
                     animateCurlTo(complete ? turn.W : 0, complete);
-                } else if (!d.started && !isCoverOpen && e.target.closest && e.target.closest('#coverPage')) {
-                    openCoverAnimated();
-                }
+                }                                                                // 겉표지는 톡으로 안 열려요 · 밀어서만 (도련 10-31 : 현실처럼)
             };
             window.addEventListener('pointerup', endDrag);
             window.addEventListener('pointercancel', endDrag);

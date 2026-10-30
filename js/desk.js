@@ -345,6 +345,7 @@
             if (DK.drag || DK.edit || DK.filing || !document.getElementById('deskStage')) return;
             const prev = DK.seen; dkLoad();
             if (DK.seen !== prev) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); }
+            deskBagsPaint();                                                       // 🛍️ 봉투 · 처음 봉투 안내도 드라이브 것으로
             giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); });
         }
 
@@ -736,6 +737,15 @@
                 b.addEventListener('pointerdown', e => dkBagDown(e, b, n, x, y));
                 st.appendChild(b);
             });
+            dkBagHint();
+        }
+        /* 🛍️ 처음 사 온 봉투 알려 주기 (도련 10-31 : 처음 쓰는 사람은 봉투를 어떻게 할지 몰라요) : 책상 아래 가운데 안내 한 줄 · 봉투를 한 번 열면 다시 안 떠요 (설정 'diary_bag_seen' · 폴더를 지우면 다시) */
+        const DKB_SEEN = 'diary_bag_seen', DKB_SEEN_L = 'malang_bag_seen';
+        function dkBagHint() {
+            let h = document.getElementById('deskBagHint'); const bg = document.getElementById('deskBg'); if (!bg) return;
+            const on = dkBags().length > 0 && !prefGet(DKB_SEEN, DKB_SEEN_L);
+            if (!h) { if (!on) return; h = document.createElement('div'); h.id = 'deskBagHint'; h.className = 'desk-hint'; h.innerHTML = '🛍️ <b>봉투를 눌러</b> 받은 것을 꺼내 보세요'; bg.appendChild(h); }
+            h.hidden = !on;
         }
         /* 🛍️ 봉투 : 톡 = 열기 · 끌기 = 옮기기 (평소 책상에서만 · 🛠 꾸미는 동안은 안 눌려요 · 도련 10-30) · 자리 = 'diary_desk_bags' 의 그 봉투 x · y */
         function dkBagDown(ev, b, n, x0, y0) {
@@ -756,9 +766,10 @@
             let pn = document.getElementById('dkBagPanel');
             const B = dkBags(), bg = B[n];
             if (!bg) { if (pn) pn.hidden = true; return; }
+            if (!prefGet(DKB_SEEN, DKB_SEEN_L)) { prefSet(DKB_SEEN, DKB_SEEN_L, 1); dkBagHint(); }   // 🛍️ 한 번 열었으니 안내는 그만
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkBagPanel'; pn.className = 'dkb-pn'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             pn.dataset.n = n;
-            pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>카드를 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 그 창이 열려요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
+            pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>상품을 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 상품을 사용할 수 있어요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
                 + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}<b>${htmlEsc(it.n || DKH_NAMES[it.k] || '')}</b><small>${dkbSub(it)}</small></div>`).join('')}</div>`;
             pn.querySelectorAll('.dkb-card').forEach(c => c.addEventListener('pointerdown', e => dkbGrab(e, n, +c.dataset.j, c)));
             pn.hidden = false;
@@ -1062,7 +1073,7 @@
            - 'diary_desk_dy' { x, y : 책상 그림 px (바닥 가운데) · p : side · front · lay } (배치.json · js/drive.js DESK_KEYS)
            - 처음 = 서랍장 왼쪽 옆에 📚 꽂기 */
         const DKY_KEY = 'diary_desk_dy', DKY_LOCAL = 'malang_desk_dy';   // 세우면 실제 A6 크기쯤 (파일꽂이와 어울리게)
-        const dkyDef = () => ({ x: 1222, y: 758, p: 'side' });
+        const dkyDef = () => ({ x: 1196, y: 758, p: 'front' });                 // 📔 처음 = 앞을 보고 세워요 (도련 10-31 · 다꾸러가 바꾸기 전까지)
         function dkyGet() {                                                       // 펼쳐 둔 권의 자리 (권마다 따로 · 아래 📔 책상 = 다이어리 보관소)
             const c = dkyCur(), M = dkyMap();
             if (c && DK.volEdit) return dkvPos(c);                                 // 🛠 꾸미는 동안 = 고치는 중인 자리
@@ -1089,7 +1100,7 @@
         function dkyPosOf(id) {                                                   // 그 권 자리 (없으면 줄지어 꽂힌 자리)
             const M = dkyMap(); if (dkyOk(M[id])) return M[id];
             const L = dkvAll().filter(b => !dkyOk(M[b.id])), k = Math.max(0, L.findIndex(b => b.id === id));
-            return { x: 1222 - 28 * k, y: 758, p: 'side' };
+            return { x: 1196 - (DKV_SZ.front[0] + 10) * k, y: 758, p: 'front' };   // 처음 = 앞을 보고 나란히 (도련 10-31)
         }
         const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${(DKV_COL[b.c] || DKV_COL.pink)[0]}${b.n > 1 ? ' ' + b.n : ''}`;
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : '📔';
