@@ -1291,7 +1291,7 @@
             if (prev) {
                 const fl = e && e.pointerType === 'touch' && gdFloatAt(prev);  // 👆 터치 (✏️ 펜은 마우스처럼 바꿔 들어요) : 떠 있던 것은 그 자리에서 아래로 톡 떨어져요 (도련 10-19 · 누른 자리로 순간이동하지 않게)
                 const m = fl || (el.classList.contains('edge') ? gdTo(x, y) : gdMid(el));   // 🖱 마우스 : 손에 든 채 따라오던 자리 = 누른 자리라 서로 바꿔요
-                prev.classList.remove('held'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
+                prev.classList.remove('held', 'rim-ok'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
                 if (fl) { prev.classList.remove('drop'); void prev.offsetWidth; prev.classList.add('drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
                 gdHome(prev);                                                   // 📥 페이지 밖이었으면 페이지 안으로
             }
@@ -1310,7 +1310,7 @@
         function gdLet() {                                                      // 내려놓기 (지금 자리에)
             const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
             if (!el) return;
-            el.classList.remove('held', 'snap');
+            el.classList.remove('held', 'snap', 'rim-ok');
             gdHome(el);                                                         // 📥 페이지 밖이었으면 페이지 안으로
             if (id.startsWith('clip:')) gdClipSave();
         }
@@ -1387,7 +1387,8 @@
             if (gdHeld === 'twz') return;                                      // 🪡 핀셋은 밖으로도
             if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
             if (!gdIn(e.clientX, e.clientY) && gdInfo(gdHeld).g !== 'clip') { gdLet(); return; }   // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표 · 📎 집게는 페이지 밖에서 무는 도구라 밖으로도 따라와요 (도련 10-30 · 내려놓기는 다이어리 밖을 누를 때)
-            if (gdInfo(gdHeld).g === 'punch' && e.pointerType !== 'touch' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }   // 🕳️ 가장자리에 착
+            if (gdInfo(gdHeld).g === 'punch' && e.pointerType !== 'touch' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }
+            if (gdInfo(gdHeld).g === 'clip') gdClipHint(e.clientX, e.clientY);   // 📎 꽂히는 자리면 반짝   // 🕳️ 가장자리에 착
             gdFollow(e.clientX, e.clientY, e);
         }, true);
         ['pointerup', 'pointercancel'].forEach(k => window.addEventListener(k, e => {
@@ -1834,7 +1835,7 @@
         function gdClipPut(el, f) {
             const R = gdRail(); if (!R) return;
             const [x, y, deg] = R.rail.at(f * R.rail.L);
-            el.classList.add('edge'); el.classList.remove('held'); el.dataset.f = f;
+            el.classList.add('edge'); el.classList.remove('held', 'rim-ok'); el.dataset.f = f;
             Object.assign(el.style, { left: (R.cv.offsetLeft + x - CLIP_GX) + 'px', top: (R.cv.offsetTop + y - CLIP_GY) + 'px', transform: `rotate(${deg}deg)` });
         }
         function gdRailNear(x, y, f0, span) {                                   // 그 자리에서 가장 가까운 테두리 자리 (f0 근처만 · 없으면 한 바퀴 전부)
@@ -1844,9 +1845,16 @@
             return { f: (((best / L) % 1) + 1) % 1, d: Math.sqrt(bd) };
         }
         function gdRailMove(el, x, y) { const n = gdRailNear(x, y, +el.dataset.f || 0, .2); gdClipPut(el, n.f); }
+        /* 📎 꽂히는 자리 알려 주기 (도련 10-30 : 어디에 물리는지 몰라서 자꾸 헛누름) : 들고 테두리 가까이 가면 집게가 반짝 · 그때 누르면 꽂혀요 (gdClipSnap 과 같은 거리) */
+        const GD_RIM = 34;
+        const gdRimOk = (x, y) => { const R = gdRail(); if (!R) return false; const n = gdRailNear(x, y), { k } = gdK(); return n.d * k <= GD_RIM; };
+        function gdClipHint(x, y) {
+            const el = gdHeld && gdEl(gdHeld); if (!el) return;
+            el.classList.toggle('rim-ok', gdRimOk(x, y));
+        }
         function gdClipSnap(x, y) {
             const el = gdEl(gdHeld), n = gdRailNear(x, y), { k } = gdK(); if (!el) return;
-            if (n.d * k > 34) return;                                           // 테두리 근처가 아니면 옮겨지기만
+            if (n.d * k > GD_RIM) return;                                       // 테두리 근처가 아니면 옮겨지기만
             gdHeld = null; document.body.classList.remove('gd-on');
             gdClipPut(el, n.f); el.classList.add('snap'); setTimeout(() => el.classList.remove('snap'), 200);
             gdClipSave();

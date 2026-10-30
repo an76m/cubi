@@ -3676,6 +3676,8 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .scs-aim::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: #ff3f8e; }   /* 가운데 점 */
 .scs-aim[hidden] { display: none; }
 .bd-tool.held { z-index: 10060; pointer-events: none; filter: drop-shadow(5px 14px 10px rgba(80, 50, 60, .3)); transition: none; }
+.bd-tool.clip.held.rim-ok, html.an .bd-tool.clip.held.rim-ok { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px #ff6fa8) drop-shadow(0 0 16px rgba(255, 111, 168, .75)) !important; animation: gdRimOk .7s ease-in-out infinite alternate; }   /* 📎 여기 누르면 꽂혀요 (도련 10-30 · js/skins.js gdClipHint) */
+@keyframes gdRimOk { from { scale: 1; } to { scale: 1.06; } }
 .bd-tool.edge { z-index: 10041; filter: drop-shadow(0 3px 4px rgba(50, 35, 45, .32)); cursor: grab; }
 .bd-tool.punch.press svg { transform: scale(.9); }
 /* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
