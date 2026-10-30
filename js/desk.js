@@ -739,11 +739,10 @@
             });
             dkBagHint();
         }
-        /* 🛍️ 처음 사 온 봉투 알려 주기 (도련 10-31 : 처음 쓰는 사람은 봉투를 어떻게 할지 몰라요) : 책상 아래 가운데 안내 한 줄 · 봉투를 한 번 열면 다시 안 떠요 (설정 'diary_bag_seen' · 폴더를 지우면 다시) */
-        const DKB_SEEN = 'diary_bag_seen', DKB_SEEN_L = 'malang_bag_seen';
+        /* 🛍️ 사 온 봉투 알려 주기 (도련 10-31 : 처음 쓰는 사람은 봉투를 어떻게 할지 몰라요) : 책상에 봉투가 있으면 늘 책상 아래 가운데 안내 한 줄 */
         function dkBagHint() {
             let h = document.getElementById('deskBagHint'); const bg = document.getElementById('deskBg'); if (!bg) return;
-            const on = dkBags().length > 0 && !prefGet(DKB_SEEN, DKB_SEEN_L);
+            const on = dkBags().length > 0;
             if (!h) { if (!on) return; h = document.createElement('div'); h.id = 'deskBagHint'; h.className = 'desk-hint'; h.innerHTML = '🛍️ <b>봉투를 눌러</b> 받은 것을 꺼내 보세요'; bg.appendChild(h); }
             h.hidden = !on;
         }
@@ -766,7 +765,6 @@
             let pn = document.getElementById('dkBagPanel');
             const B = dkBags(), bg = B[n];
             if (!bg) { if (pn) pn.hidden = true; return; }
-            if (!prefGet(DKB_SEEN, DKB_SEEN_L)) { prefSet(DKB_SEEN, DKB_SEEN_L, 1); dkBagHint(); }   // 🛍️ 한 번 열었으니 안내는 그만
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkBagPanel'; pn.className = 'dkb-pn'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             pn.dataset.n = n;
             pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>상품을 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 상품을 사용할 수 있어요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
