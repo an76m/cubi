@@ -1844,10 +1844,11 @@
         function gdRailMove(el, x, y) { const n = gdRailNear(x, y, +el.dataset.f || 0, .2); gdClipPut(el, n.f); }
         /* 📎 꽂히는 자리 알려 주기 (도련 10-30 : 어디에 물리는지 몰라서 자꾸 헛누름) : 들고 테두리 가까이 가면 집게가 반짝 · 그때 누르면 꽂혀요 (gdClipSnap 과 같은 거리) */
         const GD_RIM = 34;
-        const gdRimOk = (x, y) => { const R = gdRail(); if (!R) return false; const n = gdRailNear(x, y), { k } = gdK(); return n.d * k <= GD_RIM; };
-        function gdClipHint(x, y) {
-            const el = gdHeld && gdEl(gdHeld); if (!el) return;
-            el.classList.toggle('rim-ok', gdRimOk(x, y));
+        function gdClipHint(x, y) {                                             // + 그 테두리 방향으로 미리 돌아가요 (도련 10-31 · 꽂힐 모습 그대로 · 아래 = 거꾸로 · 옆 = 옆으로)
+            const el = gdHeld && gdEl(gdHeld), R = el && gdRail(); if (!R) return;
+            const n = gdRailNear(x, y), { k } = gdK(), ok = n.d * k <= GD_RIM;
+            el.classList.toggle('rim-ok', ok);
+            el.style.transform = ok ? `rotate(${R.rail.at(n.f * R.rail.L)[2]}deg)` : '';
         }
         function gdClipSnap(x, y) {
             const el = gdEl(gdHeld), n = gdRailNear(x, y), { k } = gdK(); if (!el) return;
