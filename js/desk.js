@@ -729,7 +729,8 @@
             return H;
         };
         const dkHomesSet = v => { if (typeof prefSet === 'function') prefSet(DKH_KEY, DKH_LOCAL, v); };
-        const dkKindIc = it => it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`;
+        const dkbSub = it => it.ds ? (it.ds === 'wall' ? '벽지' : '책상') : it.al ? `${DKH_NAMES[it.k] || ''} 스티커첩` : DKH_NAMES[it.k] || '';   // 카드 아래 작은 글 = 무엇인지
+        const dkKindIc = it => it.ds ? `<i>${it.ds === 'wall' ? '🧱' : '🪵'}</i>` : it.al ? `<i>${it.n === '이형지북' ? '🤍' : '📒'}</i>` : it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`;
         function deskBagAdd(L) {
             if (!Array.isArray(L) || !L.length) return;
             const B = dkBags(); if (B.length >= 3) B[B.length - 1].it = B[B.length - 1].it.concat(L); else B.push({ t: Date.now(), it: L });
@@ -757,7 +758,7 @@
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkBagPanel'; pn.className = 'dkb-pn'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             pn.dataset.n = n;
             pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>카드를 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 그 창이 열려요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
-                + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}<b>${(it.n || DKH_NAMES[it.k] || '').replace(/</g, '&lt;')}</b><small>${DKH_NAMES[it.k] || ''}</small></div>`).join('')}</div>`;
+                + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}<b>${(it.n || DKH_NAMES[it.k] || '').replace(/</g, '&lt;')}</b><small>${dkbSub(it)}</small></div>`).join('')}</div>`;
             pn.querySelectorAll('.dkb-card').forEach(c => c.addEventListener('pointerdown', e => dkbGrab(e, n, +c.dataset.j, c)));
             pn.hidden = false;
         }
@@ -786,6 +787,7 @@
                     if (o) { const c = dkCat(o.id), s = DK.s || 1, dx = (e.clientX - R.left) / s, dy = (e.clientY - R.top) / s; o.x = Math.round(Math.max(0, Math.min(DESK_W - c.w, dx - c.w / 2))); o.y = Math.round(Math.max(0, Math.min(DESK_H - c.h, dy - c.h))); o.at = 'desk'; dkSave(); deskItemsRender(); deskModeRender(); }
                     dkbTake(n, j); return;
                 }
+                if (it.ds) { const R = stg && stg.getBoundingClientRect(); if (R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel')) dkbTake(n, j); return; }   // 🧱 🪵 벽지 · 책상 = 이미 📦 소품함에 · 책상에 놓으면 꺼낸 걸로
                 if (it.k === 'tool' && it.b) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }   // 📔 새 다이어리 = 놓은 자리에 그 권 (소품에 넣지 않아요)
                 if (!t) return;                                                   // 소품 밖 = 다시 봉투로
                 dkbHome(t, it, n, j);

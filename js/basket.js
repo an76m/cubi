@@ -1102,6 +1102,8 @@
     function bagNote(x, k, al) {                                             // 🛍️ 가게 안에서 받은 것 = 봉투에 (내 방으로 돌아가면 책상 위 봉투 · js/desk.js deskBagAdd)
         if (!(window.shopSceneOn && shopSceneOn())) return;
         const o = { k, n: String(x.name || x.cnt || BK_KINDS[k] || '').slice(0, 30) };
+        if (al) o.n = x.tool === 'bd' ? '스티커 바인더' : '이형지북';           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
+        if (x.look === 'dskin') { o.ds = x.sec === 'wallpaper' ? 'wall' : 'top'; o.n = String(x.name || '').slice(0, 30); }   // 🧱 벽지 · 🪵 책상 (책상 소품이 아니에요)
         if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
         if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
         (window.SHOP_BAG = window.SHOP_BAG || []).push(o);
