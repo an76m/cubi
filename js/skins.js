@@ -1356,7 +1356,8 @@
                 return true;
             }
             if (gdHeld && gdHeld !== 'twz') {
-                if (!inDy || !gdIn(e.clientX, e.clientY)) { gdLet(); return false; }   // 👆 다이어리 밖을 누르면 내려놓아요
+                const rim = (gdInfo(gdHeld) || {}).g === 'clip' && gdIn(e.clientX, e.clientY) && !e.target.closest('.modal, .desk-tip, .dky-lbp, #deskStage .desk-item');   // 📎 집게는 종이 바로 바깥(테두리 둘레)을 눌러도 꽂혀요 (도련 10-30 : 왼쪽 · 아래는 바깥이 다이어리가 아니라 안 꽂혔어요)
+                if ((!inDy && !rim) || !gdIn(e.clientX, e.clientY)) { gdLet(); return false; }   // 👆 다이어리 밖을 누르면 내려놓아요
                 if (e.target.closest('.page-header, button, textarea, input, select')) return false;
                 gdEat(e); gdFollow(e.clientX, e.clientY, e); gdUse(e); return true;
             }

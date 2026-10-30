@@ -66,7 +66,6 @@ html.an .inner-page .ps-st { background: var(--page-bg) !important; box-shadow: 
 html.an .bd-tool svg, html.an .sh-tool svg, html.an .gdc-wrap svg, html.an .pc-tool svg, html.an .pc-held svg, html.an .twz svg, html.an .sk-knife svg, html.an .rl-ruler svg, html.an .scs-cur svg { filter: none !important; }   /* 문구 = 조각마다 제 색의 진한 선 (js/anime.js darkC · 페이지 위 2px · 목록 아이콘 1.2px · 도련 10-30) · 그림자 없음 */
 html.an .bd-tool:not(.need), html.an .pc-tool, html.an .twz, html.an .sk-knife, html.an .scs-cur { filter: none !important; }   /* 문구 그림자 없음 · 알려 주는 반짝(.need)은 그대로 */
 /* ---------- 🪑 책상 라벨 · 📱 하단 메뉴 ---------- */
-html.an .dk-fn-tag { box-shadow: 0 0 0 1.2px var(--an-ol) !important; border-color: transparent !important; background-image: none !important; color: var(--an-ink) !important; }
 html.an .toolbar { background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }   /* 하단 메뉴 = 버튼만 (흰 네모 · 그림자 없음 · 도련 10-28) */
 html.an .tb-btn { border: 1.5px solid var(--an-ol) !important; box-shadow: none !important; background-image: none !important; }
 html.an .tb-btn::before { display: none !important; }   /* 반짝 하이라이트 없음 */
@@ -467,7 +466,6 @@ html.desk-edit .dky-lb { pointer-events: none; }   /* 🏷 다이어리 이름�
 .dk-front { position: absolute; pointer-events: none; }
 .dk-fm { position: absolute; inset: 0; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
 .dk-fm > img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
-.dk-front .dk-fn-tag { top: auto; bottom: 0; translate: -50% 55%; transform-origin: 50% 50%; }
 
 .desk-guide { z-index: 9790; } .desk-tip { z-index: 9800; }   /* 소품 z 가 넓어져서 (바닥 × 8) 그보다 위 */   /* 🛠 모습 고르는 동안은 맨 앞 · 끄는 동안은 입구에 닿자마자 쏙 (도련 10-29) */
 
@@ -548,7 +546,6 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkn-emo-grid button.on { background: #ffd3e2; border-color: #ff6b88; }
 .dkn-emo-none { grid-column: 1 / -1; color: #9a7d8a; padding: 10px 4px; }
 .dkn-done { margin: 2px auto 0; border: 1.6px solid #e88fb0; border-radius: 999px; background: #ffd3e2; color: #8a2f58; font: inherit; font-size: 14px; font-weight: 700; padding: 7px 22px; cursor: pointer; }
-.dk-fn-tag[hidden] { display: none !important; }
 /* 😀 고른 이모지 빼기 ✕ (이름표 아이콘 줄) */
 .dkn-my { position: relative; display: inline-flex; }
 .dkn-my-x { position: absolute; top: -6px; right: -6px; width: 17px; height: 17px; padding: 0; border: 1.4px solid #e88fb0; border-radius: 50%; background: #fff; color: #c8457a; font-size: 10px; line-height: 1; font-weight: 700; cursor: pointer; display: grid; place-items: center; }

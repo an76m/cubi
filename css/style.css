@@ -4438,9 +4438,6 @@ html.desk-on:not(.desk-show) .desk-bg { z-index: 5; pointer-events: auto; }   /*
 .desk-item.sel { outline: 3px dashed rgba(226, 85, 127, .7); outline-offset: 6px; }
 html.desk-show .desk-item { pointer-events: none; }
 .desk-item[data-fn] { cursor: pointer; }
-.dk-fn-tag { position: absolute; left: 50%; top: 0; translate: -50% -110%; scale: var(--dk-inv, 1); transform-origin: 50% 100%; pointer-events: none; white-space: nowrap;   /* 🏷 기능 라벨 (화면에서 늘 같은 크기) */
-    padding: 3px 10px; border-radius: 12px; background: rgba(255, 255, 255, .92); border: 1.5px solid #e98aab; color: #c2457a; font-size: 13px; font-weight: 800; box-shadow: 0 2px 6px rgba(150, 70, 100, .18); }   /* 🔗 기능 소품 : 톡 = 그 기능 · 끌면 옮기기 (js/desk.js deskRun) */
-.desk-item:not(.wall) .dk-fn-tag { top: auto; bottom: 0; translate: -50% 55%; transform-origin: 50% 50%; }   /* 책상 위 소품은 라벨을 아래쪽에 (위에 올린 소품에 가리지 않게) */
 .desk-item[data-fn]:hover { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 9px rgba(255, 255, 255, .95)); }
 body.dg-on .desk-item.fn-sticker { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 12px rgba(245, 165, 36, .85)); }   /* 🩷 다꾸하는 법 메모 : 스티커 소품이 빛나요 */
 /* ⚙️ 설정 🪑 화면 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
