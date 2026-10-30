@@ -671,3 +671,28 @@ html.an .cover-page .cover-notice, html.an .cover-page .drag-hint { translate: 5
 .desk-shop-go:hover { background: #fff0f5; }
 .desk-shop-go:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
 html.desk-show .desk-shop-go, html.desk-edit .desk-shop-go { display: none; }
+/* 📔 책상 = 다이어리 보관소 (도련 10-30 · js/desk.js dkVolsPaint) : 펼쳐 두지 않은 권 = 가벼운 표지 그림 (파스텔 바인더 · 그 권 색 · 해 이름판) */
+.dk-vol { position: absolute; cursor: pointer; touch-action: none; user-select: none; }
+html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }
+.dk-vol { --dyv: color-mix(in srgb, var(--dy-c), var(--primary-accent) 12%); --dyv-ol: color-mix(in srgb, var(--primary-accent) 68%, #3a2a55); --dyv-sh: color-mix(in srgb, var(--dyv), #5b3f7a 22%); --dyv-dot: color-mix(in srgb, var(--dyv), #fff 52%); }
+.dk-vol .dv-cv { position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--dyv-ol); background: radial-gradient(circle, var(--dyv-dot) 1.6px, transparent 1.9px) 4px 4px / 12px 12px, var(--dyv); }
+.dk-vol .dv-cv b { position: absolute; font-style: normal; font-weight: 900; color: var(--dyv-ol); background: #fffdfb; border: 1.5px solid var(--dyv-ol); line-height: 1; white-space: nowrap; }
+/* 📚 꽂기 = 책등 (해를 세로로) */
+.dk-vol.p-side .dv-cv { border-radius: 6px 6px 4px 4px; background: var(--dyv-sh); box-shadow: inset 0 9px 0 -6px var(--dyv), inset 0 -9px 0 -6px var(--dyv); }
+.dk-vol.p-side .dv-cv b { left: 50%; top: 20px; translate: -50% 0; writing-mode: vertical-rl; font-size: 10px; padding: 4px 1px; border-radius: 4px; letter-spacing: 1px; }
+/* 📔 세우기 = 앞모습 (위로 종이 두께 · 왼쪽 책등) */
+.dk-vol.p-front .dv-cv { top: 8px; border-radius: 3px 10px 10px 3px; box-shadow: inset 14px 0 0 var(--dyv-sh), inset 16px 0 0 var(--dyv-ol); }
+.dk-vol.p-front::before { content: ''; position: absolute; left: 6px; right: 4px; top: 0; height: 12px; box-sizing: border-box; border: 2px solid var(--dyv-ol); border-bottom: 0; border-radius: 6px 8px 0 0; background: repeating-linear-gradient(var(--page-bg, #fff8fb) 0 2px, color-mix(in srgb, var(--dyv) 45%, #fff) 2px 3px); }
+.dk-vol.p-front .dv-cv b { left: 26px; right: 8px; top: 18px; font-size: 13px; padding: 4px 0; text-align: center; border-radius: 6px; }
+/* 🛏 눕히기 = 위에서 본 표지 + 아래 종이 두께 */
+.dk-vol.p-lay .dv-cv { bottom: 9px; border-radius: 8px; clip-path: none; }
+.dk-vol.p-lay .dv-pg { position: absolute; left: 3px; right: 3px; bottom: 0; height: 12px; box-sizing: border-box; border: 2px solid var(--dyv-ol); border-top: 0; border-radius: 0 0 6px 6px; background: repeating-linear-gradient(var(--page-bg, #fff8fb) 0 2px, color-mix(in srgb, var(--dyv) 45%, #fff) 2px 3px); }
+.dk-vol.p-lay .dv-cv b { left: 50%; top: 50%; translate: -50% -50%; font-size: 11px; padding: 2px 8px; border-radius: 5px; }
+html.desk-edit .dk-vol.pose-on .dv-cv, html.desk-edit .dk-vol.lift .dv-cv { outline: 3px solid #ff6b88; outline-offset: 2px; }
+/* 🛠 다이어리 권 모습 창 = 펼쳐 둔 권의 📔 모습 창과 같은 카드 */
+.dkv-menu { position: fixed; z-index: 9700; translate: -50% 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 420px; padding: 8px 10px; border: 2px solid #8d6f7f; border-radius: 18px; background: #fffaf2; box-shadow: 3px 3px 0 #e6dcf8; }
+.dkv-menu[hidden] { display: none; }
+.dkv-menu .dkt-hd { flex: 0 0 100%; }
+.dkv-menu button { border: 1.4px solid #e88fb0; border-radius: 999px; background: #fff; color: #8a2f58; font: inherit; font-size: 15px; font-weight: 700; padding: 6px 12px; cursor: pointer; }
+.dkv-menu button.on { background: #ffd3e2; }
+.dk-pose .dky-arc { background: #f3eefc; }

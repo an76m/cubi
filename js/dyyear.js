@@ -57,6 +57,7 @@
         /* 펼친 권의 색을 다이어리에 (테두리 · 페이지 색 = js/settings.js applySkinPreset) */
         function dyyPaint() {
             const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
+            if (window.dkDeskBooks) setTimeout(dkDeskBooks, 0);              // 📔 책상 = 다이어리 보관소 (펼쳐 둔 권 · 나머지 권 다시 · js/desk.js)
             if (!b) return;
             if (dyyBasic() && typeof currentSkinId !== 'undefined' && currentSkinId !== b.c && typeof applySkinPreset === 'function') applySkinPreset(b.c);
         }
@@ -170,6 +171,7 @@
             const id = dyyNewId(y, c);
             prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id]));
             dyyInfoSet(id, 'basic');                                           // 🏪 기본상품 샵 (나중 유료 = 'shop')
+            window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (끌어 놓으면 책상 그 자리 · js/basket.js bagNote)
             dyySelect(id);
             return 'ok';
         }
@@ -182,6 +184,7 @@
             if (open && typeof isCoverOpen !== 'undefined' && isCoverOpen && !turn && typeof saveData === 'function') saveData(false);
             prefSet(DYY_KEY, DYY_LOCAL, dyyIds().filter(x => x !== b.id));
             await binAdd({ k: 'dy', id: b.id });
+            if (window.dkDeskBooks) dkDeskBooks();                             // 📔 책상에서도 사라져요
             const next = dyyBook();
             if (open) { if (next) { dyyOpenSet(next.id); if (dyyBasic()) dyyReload(); } else dyyShut(); }
             if (window.dyTabSet) dyTabSet('free');
@@ -199,7 +202,7 @@
         /* 🗑 휴지통 (js/bin.js · js/trash.js) : 되살리기 = 받은 권으로 다시 · 영구 삭제 = 그 권 폴더째 */
         BIN_KINDS.dy = {
             name: e => { const b = dyyOf(e.id); return b ? `📔 ${dyyTitle(b)} 다이어리` : '📔 다이어리'; },
-            restore: e => { prefSet(DYY_KEY, DYY_LOCAL, dyyIds().filter(x => x !== e.id).concat([e.id])); if (!dyyBookId() || dyyBookId() === e.id) { dyyOpenSet(e.id); dyyFit(); } if (window.dyRender) dyRender(); },
+            restore: e => { prefSet(DYY_KEY, DYY_LOCAL, dyyIds().filter(x => x !== e.id).concat([e.id])); if (!dyyBookId() || dyyBookId() === e.id) { dyyOpenSet(e.id); dyyFit(); } if (window.dyRender) dyRender(); if (window.dkDeskBooks) dkDeskBooks(); },
             purge: async e => {
                 const dir = !drive.guest ? await getFolder(dyBookDir(e.id), false) : null;
                 if (dir) { const res = await gfetch(`${DRIVE_API}/${dir}`, { method: 'DELETE' }); if (!res.ok && res.status !== 404) throw new Error('purge ' + res.status); }
