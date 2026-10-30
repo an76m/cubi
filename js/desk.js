@@ -806,7 +806,7 @@
                     if (!t) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }
                     const o = DK.items.find(x => x.u === t.dataset.u), nm = o ? dkName(o) : '이 소품', cx = e.clientX, cy = e.clientY;
                     showAsk(`📔 새 다이어리를 어디에 둘까요?<br><span style="font-size:12px;color:#777;">소품 안에 넣으면 ${josa(nm, '을', '를')} 눌렀을 때 📔 다이어리 보관소가 열려요</span>`, `🧺 ${nm} 안에 넣기`, '📚 책상에 놓기').then(inside => {
-                        if (!inside) { if (dkvPlace(it.b, cx, cy)) dkbTake(n, j); return; }
+                        if (!inside) { dkvHome(it.b); dkbTake(n, j); return; }     // 📚 소품 뒤에 숨지 않게 = 다이어리 줄 빈자리에 앞을 보고
                         dkBagHold(it.b); dkDeskBooks();                           // 책상에 안 나와요 · 보관소에 있어요
                         dkbHome(t, it, n, j);                                     // 이 소품 = 📔 다이어리 보관소 창 (DK_HSAME tool → skin)
                     });
@@ -1212,10 +1212,16 @@
             const stg = document.getElementById('deskStage'), R = stg && stg.getBoundingClientRect(); if (!R) return false;
             if (cx < R.left || cx > R.right || cy < R.top || cy > R.bottom) return false;
             const s = DK.s || 1, x = Math.round(Math.max(40, Math.min(1632, (cx - R.left) / s))), y = Math.round(dkBoxFloor(x, Math.max(120, Math.min(930, (cy - R.top) / s + 60)), null));
-            const M = dkyMap(); M[id] = Object.assign({}, dkyOk(M[id]) ? M[id] : {}, { x, y, p: (M[id] && M[id].p) || 'side' });
+            const M = dkyMap(); M[id] = Object.assign({}, dkyOk(M[id]) ? M[id] : {}, { x, y, p: (M[id] && M[id].p) || 'front' });   // 처음 = 앞을 보고 세워요
             if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }   // 봉투에서 꺼냈어요
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
             dkDeskBooks(); return true;
+        }
+        function dkvHome(id) {                                                    // 📚 다이어리 줄의 빈자리에 (자리를 지우면 dkyPosOf 가 줄지어 세워요)
+            const M = dkyMap(); delete M[id];
+            if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }
+            if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
+            dkDeskBooks();
         }
         window.dkVolsPaint = dkVolsPaint; window.dkDeskBooks = dkDeskBooks; window.dkvPose = dkvPose;
 
