@@ -383,7 +383,7 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskMoveOpen()" aria-label="이동">🚪 이동</button>`;   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
+                <div class="desk-top-r"><button type="button" class="desk-shop-go" onclick="deskRun('edit')">🛠 책상 꾸미기</button><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskMoveOpen()" aria-label="이동">🚪 이동</button></div>`;   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
             dkyApply();
