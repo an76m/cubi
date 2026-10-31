@@ -163,5 +163,6 @@
         /* 설정을 불러온 뒤 · 페이지를 바꿀 때 (js/elements.js 의 loadData 에서 불러요) */
         function ddRefresh() { dd.list = ddRead(); ddRender(); }
         window.openDday = openDday;
+        window.ddayList = () => ddRead();                                     // 📅 달력 화면 (js/calroom.js)
         window.ddRefresh = ddRefresh;
         window.ddStaticHtml = ddStaticHtml;

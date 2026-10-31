@@ -1,0 +1,59 @@
+/* 📅 달력 (도련 10-31 · 시안 A-2 · js/calroom.js) : 💻 📲 만 · 그림 1672 × 941 을 화면에 맞게 줄여요 */
+.cr-room { position: fixed; inset: 0; z-index: 1500; display: none; background: #fdd4d9; overflow: hidden; font-family: inherit; color: #5b3240; }
+.cr-room.show { display: block; animation: crIn .25s ease both; }
+@keyframes crIn { from { opacity: 0; } }
+body.cal-on .desk-top-r { display: none; }
+.cr-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
+.cr-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; }
+.cr-room button { font: inherit; cursor: pointer; }
+
+/* 제목 · 달 넘기기 (달력 위 띠) */
+.cr-ttl { position: absolute; left: 836px; top: 116px; translate: -50% 0; display: flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px; background: #fff7f2; border: 2.5px solid #5b3240; white-space: nowrap; }
+.cr-ttl span { min-width: 120px; text-align: center; font-weight: 900; font-size: 26px; color: #c2457a; letter-spacing: 1px; }
+.cr-ttl small { font-size: 16px; color: #8a5a6a; font-weight: 700; margin-right: 6px; letter-spacing: 0; }
+.cr-nav { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #ffe3ec; color: #c2457a; font-size: 24px !important; font-weight: 900; line-height: 1; padding: 0 0 3px; }
+.cr-nav:hover { background: #ffd0de; }
+
+/* 달력 칸 (그림 칸 위에 새로 · 5줄 · 6줄) */
+.cr-grid { position: absolute; left: 367px; top: 550px; width: 938px; height: 315px; background: #fdf3ec; border: 2.5px solid #5b3240; border-radius: 8px; box-sizing: border-box; overflow: hidden; }
+.cr-wd { position: absolute; top: 0; height: 22px; line-height: 22px; text-align: center; font-size: 13px; font-weight: 800; color: #8a5a6a; background: #ffe9ef; border-bottom: 1.6px solid #5b3240; box-sizing: border-box; }
+.cr-wd.sun { color: #e2557f; } .cr-wd.sat { color: #5a86c8; }
+.cr-c { position: absolute; box-sizing: border-box; border-right: 1.6px solid #5b3240; border-bottom: 1.6px solid #5b3240; }
+.cr-c.cr-empty { background: rgba(240, 220, 214, .35); }
+.cr-n { position: absolute; left: 7px; top: 3px; font-size: 16px; font-weight: 800; color: #5b3240; }
+.cr-c.sun .cr-n { color: #e2557f; } .cr-c.sat .cr-n { color: #5a86c8; }
+.cr-c.today { box-shadow: inset 0 0 0 3px #e2557f; }
+.cr-c.today .cr-n { left: 4px; padding: 0 7px; border-radius: 999px; background: #e2557f; color: #fff !important; }
+.cr-stamp { position: absolute; right: 6px; bottom: 5px; width: 30px; height: 30px; border-radius: 50%; border: 2.2px solid #e2557f; color: #e2557f; display: grid; place-items: center; font-size: 15px; rotate: -12deg; background: rgba(255, 240, 245, .7); }
+.cr-per { position: absolute; left: 0; right: 0; bottom: 0; height: 11px; background: #f7a3b8; }
+.cr-per.s { left: 6px; border-radius: 6px 0 0 6px; } .cr-per.e { right: 6px; border-radius: 0 6px 6px 0; } .cr-per.s.e { border-radius: 6px; }
+.cr-per.pre { height: 5px; bottom: 3px; background: repeating-linear-gradient(90deg, #f7a3b8 0 8px, transparent 8px 13px); }
+.cr-flag { position: absolute; left: 5px; right: 5px; bottom: 13px; padding: 1px 6px; border-radius: 6px; background: #fff3c4; border: 1.6px solid #c9962b; color: #7a5a1a; font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 오른쪽 · 왼쪽 카드 */
+.cr-side { position: absolute; width: 280px; display: grid; gap: 12px; }
+.cr-r { left: 1360px; top: 150px; } .cr-l { left: 32px; top: 560px; }
+#crRight { display: grid; gap: 12px; }
+.cr-card { display: block; width: 100%; box-sizing: border-box; text-align: left; padding: 12px 16px; border-radius: 16px; background: #fffaf5; border: 2.5px solid #5b3240; box-shadow: 4px 4px 0 #e9c4cf; color: #5b3240; font-size: 15px; font-weight: 700; line-height: 1.5; }
+button.cr-card:hover { background: #fff0f5; }
+.cr-card b { color: #c2457a; font-size: 17px; }
+.cr-card small { font-size: 12px; color: #9a7d8a; font-weight: 700; }
+.cr-h { font-size: 13px; color: #8a5a6a; font-weight: 800; margin-bottom: 4px; }
+.cr-show { padding: 14px 14px 10px; }
+.cr-show .cr-h, .cr-more .cr-h { margin: 0 0 8px 4px; font-size: 14px; }
+.cr-row { display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; padding: 0 12px; border: 0; border-radius: 14px; background: none; font-size: 18px !important; font-weight: 900; color: #b59aa5; text-align: left; }
+.cr-row + .cr-row { margin-top: 5px; }
+.cr-row.on, .cr-more .cr-row { background: #fff0f5; color: #5b3240; }
+.cr-row:hover { background: #ffe3ec; }
+.cr-ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 18px; background: #ffe3ec; flex: none; }
+.cr-sw { width: 22px; height: 8px; border-radius: 4px; background: #f7a3b8; display: block; }
+.cr-sw.pre { height: 5px; border-radius: 0; background: repeating-linear-gradient(90deg, #f7a3b8 0 5px, transparent 5px 8px); }
+.cr-tg { margin-left: auto; width: 46px; height: 26px; border-radius: 13px; background: #e6d3da; position: relative; flex: none; transition: background .15s; }
+.cr-tg::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+.cr-row.on .cr-tg { background: #e2557f; } .cr-row.on .cr-tg::after { left: 23px; }
+.cr-go { margin-left: auto; color: #e2557f; font-size: 22px; }
+.cr-btn { width: 100%; height: 50px; border-radius: 999px; background: #e2557f; color: #fff; font-weight: 900; font-size: 18px !important; border: 2.5px solid #5b3240; box-shadow: 3px 3px 0 #b8324f; }
+.cr-btn:hover { filter: brightness(1.05); }
+.cr-btn.done { background: #fff0f5; color: #c2457a; box-shadow: 3px 3px 0 #e9c4cf; }
+.cr-x { position: absolute; right: 22px; top: 18px; width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid #5b3240; background: #fffaf5; color: #c2457a; font-size: 24px !important; font-weight: 900; box-shadow: 3px 3px 0 #e9c4cf; }
+.cr-x:hover { background: #fff0f5; }

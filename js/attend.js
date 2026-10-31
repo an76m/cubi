@@ -235,3 +235,4 @@
         function attendDone() { const T = atToday(), a = atRead()[atYm(T.y, T.m)]; return !!a && a.includes(T.d); }   // 오늘 도장 찍었나요?
         window.openAttend = openAttend;
         window.attendDone = attendDone;
+        window.attendInfo = (y, m) => { atS.d = atRead(); return { days: (atS.d[atYm(y, m)] || []).slice(), streak: atStreak(), today: attendDone() }; };   // 📅 달력 화면 (js/calroom.js)

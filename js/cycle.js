@@ -164,3 +164,7 @@
             document.body.classList.remove('fc-lock');
         }
         window.openCycle = openCycle;
+        window.cycleInfo = () => {                                             // 📅 달력 화면 (js/calroom.js) : 생리한 날 · 예정일 · 다음 예정
+            cy.d = cyRead(); const st = cyStats(), pr = cyPredict(st);
+            return { per: Object.keys(cy.d).filter(k => cy.d[k].p), pre: Object.keys(pr).filter(k => pr[k] === 'pp'), next: st.next ? cyKey(st.next) : '', late: st.late, has: !!st.last };
+        };
