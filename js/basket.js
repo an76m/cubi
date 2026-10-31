@@ -1018,6 +1018,41 @@
         const L = await shItems('emoji');
         return SH_CATS.emoji.map(([c, n]) => [n, L.filter(x => x.cat === c).flatMap(x => x.chars)]).filter(x => x[1].length);
     };
+    /* 💡 매대 사용 팁 (도련 10-31 · 처음 온 사람이 우리 앱만의 쓰는 법을 알게 · 다꾸러라면 다 아는 건 빼요) : 종류 = 글 한 줄 · 칸이 있는 종류 = { 칸: 글 } */
+    const SH_TIPS = {
+        seal: '받으면 🧺 바구니에 들어가요 · 씰 종이를 펼쳐 <b>🪡 핀셋</b>으로 하나씩 떼어 붙여요 · 붙인 만큼 줄어요',
+        piece: '봉투째 받아요 · 봉투 윗부분 점선을 옆으로 쓱 밀어 뜯으면 조각이 쏟아져요 · <b>🪡 핀셋</b>으로 집어 뒷종이를 벗겨 붙여요',
+        paper: '<b>✂️ 가위</b>로 그림 둘레를 한 바퀴 오린 다음 <b>🪡 핀셋</b>으로 떼어 붙여요 · 가위 · 핀셋은 ✏️ 문구 칸에서 받아요',
+        tape: '한 롤씩 받아요 · 붙인 길이만큼 롤이 줄어요 · 붙인 뒤 ↔ 손잡이로 길이를 늘였다 줄였다 해요',
+        tk: '한 묶음 50장 · 묶음을 톡 = 맨 윗장이 뜯겨 페이지에 붙어요 · 한 장 쓸 때마다 한 장씩 줄어요',
+        leaf: '한 장으로 <b>그날 페이지 바탕</b>을 통째로 바꿔요 (줄노트 · 모눈 · 도트 …) · 깔면 그 한 장은 사라져요',
+        emoji: '씰 종이 한 장에 16개 · 씰스티커처럼 <b>🪡 핀셋</b>으로 떼어 붙여요',
+        memo: '한 묶음 50장 · 한 장씩 페이지에 놓고 글을 써요 · 쓴 만큼 줄어요',
+        season: '이벤트 기간에만 나오는 스티커예요 · 기간이 지나면 매대에서 사라져요',
+        bg: '받은 배경지는 🌈 배경지 창에 모여요 · 같은 것도 또 받을 수 있어요',
+        tool: {
+            dy: '<b>1월 1일 ~ 12월 31일</b>, 하루에 한 쪽씩 쓰는 1년 다이어리예요 · 색마다 따로 한 권 · 해가 바뀌면 여기서 새해 다이어리를 받아요',
+            bd: '일기장이 아니라 <b>스티커 보관용</b>이에요 · 🧺 바구니의 스티커 종이를 포켓에 종이째 꽂아 정리해요 · 꽂아도 줄지 않아요',
+            rl: '스티커를 <b>한 칸씩 떼어 모아 두는 책</b>이에요 (씰 · 이모지 · 조각) · 🪡 핀셋으로 떼어 옮겨요 · 옮겨도 줄지 않아요'
+        },
+        gd: {
+            tweez: '<b>스티커는 핀셋을 들어야 만질 수 있어요</b> · 문구함에서 꺼내 톡 = 손에 들기 · 집어서 옮기고 돌리고 뜯어서 버려요',
+            clip: '들고 다이어리 테두리 가까이 가면 반짝 → 누르면 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가고 톡 하면 빠져요 · 여러 개 꽂아요',
+            punch: '바인더 링을 열고 꺼낸 종이에 구멍을 뚫어요 · 구멍 자리 가까이 가면 착 붙고 누르면 철컥 · 위에 붙은 스티커도 같이 뚫려요',
+            tape: '들고 끌면 끈 만큼 테이프가 발라져요 · 바른 테이프는 핀셋으로 옮기거나 떼어 낼 수 있어요',
+            scissors: '<b>📄 모조지스티커는 가위로만</b> 오려요 · 그림 둘레를 한 바퀴 따라 그려 처음 자리로 돌아오면 그 모양대로 오려져요',
+            knife: '붙인 스티커를 끝에서 끝까지 가로질러 그으면 <b>두 조각</b>이 돼요 · 필요 없는 조각은 버려요 (씰 · 조각 · 모조지 · 테이프 · 떡메)',
+            ruler: '페이지에 깔아 두는 도구예요 · 가장자리에 대고 칼 · 펜을 그으면 반듯하게 · 일기에는 저장되지 않아요 · ⚙ 설정 → 📏 자 맞추기로 진짜 cm 를 맞춰요',
+            pen: '받은 필기구는 연필꽂이 앞 <b>보관함</b>에 모여요 · 보관함에서 연필꽂이에 꽂은 것만 꺼내 써요'
+        },
+        desk: {
+            desk: '받으면 📦 소품 보관함으로 · 🛠 책상 꾸미기에서 책상에 놓아요 · 소품에 기능(다이어리 · 스티커 · 문구함 …)을 이어 두면 소품을 눌러 바로 열려요',
+            wall: '벽에 거는 소품이에요 · 🛠 책상 꾸미기에서 벽에 걸어요 · 기능을 이어 둘 수도 있어요',
+            wallpaper: '방 벽 전체가 바뀌어요 · 🛠 책상 꾸미기 → 📦 소품함에서 골라요',
+            desktop: '책상 상판이 바뀌어요 · 🛠 책상 꾸미기 → 📦 소품함에서 골라요'
+        }
+    };
+    const shTip = k => { const t = SH_TIPS[k]; const s = t && typeof t === 'object' ? t[SH.cat] : t; return s ? `<p class="sh-tip">💡 ${s}</p>` : ''; };
     const shCatOf = (k, x) => k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
@@ -1032,7 +1067,7 @@
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
         const arw = (d, on, lb) => `<button type="button" class="sh-arw ${d < 0 ? 'l' : 'r'}" aria-label="${lb}" onclick="shPage(${d})"${on ? '' : ' disabled'}><svg viewBox="0 0 40 54" aria-hidden="true"><path d="M30 5 L7 27 L30 49 Q35 51 35 45 L35 9 Q35 3 30 5Z"/><path class="hl" d="M27 13 L15 25"/></svg></button>`;
         const nav = pages > 1 ? arw(-1, SH.pg > 0, '앞 쪽') + arw(1, SH.pg < pages - 1, '다음 쪽') + `<div class="sh-pgno">${SH.pg + 1} / ${pages}</div>` : '';   // ◀ ▶ 창 양옆 · 쪽 번호는 아래 가운데 (도련 10-28 시안)
-        box.innerHTML = `<div class="sh-case">${tabs}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>${nav}`;   // 🎀 레이스 창 (도련 10-28 시안 · 테두리는 shkFrame)
+        box.innerHTML = `<div class="sh-case">${tabs}${shTip(k)}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>${nav}`;   // 🎀 레이스 창 (도련 10-28 시안 · 테두리는 shkFrame)
         shFit(box);
         shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리
     }

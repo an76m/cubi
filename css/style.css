@@ -4097,6 +4097,8 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 🏪 기본상품 샵 한 쪽 = 3줄 · 확대 버튼 줄 맞춤 · 얇은 점선 (도련 10-25) */
 #shelfKindModal .sh-wrap { max-height: none; overflow: visible; }
 .sh-cats { margin: 0 0 8px; }
+.sh-tip { margin: 0 2px 8px; padding: 7px 10px; border-radius: 10px; background: #fff6f9; border: 1.5px dashed #f2bfd0; font-size: 12px; line-height: 1.5; color: #8a5a6a; word-break: keep-all; text-align: left; }   /* 💡 매대 사용 팁 (도련 10-31 · js/basket.js SH_TIPS) */
+.sh-tip b { color: #c2457a; }
 .sh-grid { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: 10px 10px; padding: 4px 4px 2px; }
 .sh-grid .sh-item { flex: none; min-width: 0; padding-bottom: 8px; border-bottom: 1px dashed #f6c3d5; }
 .sh-grid .sh-look { flex: none; height: var(--sh-h, 140px); align-items: center; overflow: hidden; }
