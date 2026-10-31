@@ -1,4 +1,4 @@
-/* 🏪 문방구 앞 캡슐기계 (도련 10-31 · 시안 B · js/gacha.js gcSceneBuild) : 💻 📲 만 · 그림 1672 × 941 가운데 기계 = 우리 기계 · 📱 폰은 예전 기계 그대로 */
+/* 🏪 문방구 앞 캡슐기계 (도련 10-31 · 시안 B · js/gacha.js gcSceneBuild) : 💻 📲 만 · 그림 1672 × 941 맨 오른쪽 기계 = 우리 기계 (오른쪽 벽 = 메뉴판) · 📱 폰은 예전 기계 그대로 */
 .gc-room.gc-scene { padding: 0; overflow: hidden; background: #f7df90; }
 .gcs-blur { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(22px); pointer-events: none; }   /* 그림 밖(패드 위아래) = 흐린 그림 */
 .gcs-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
@@ -8,7 +8,7 @@
 html body.gacha-on #moveModal { z-index: 1650 !important; }                                       /* 이동 창은 캡슐기계 위에 */
 
 /* 제목 · 코인 (왼쪽 위) */
-.gc-scene .gc-head { position: absolute; left: 24px; top: 20px; gap: 12px; padding: 8px 12px 8px 18px; border-radius: 999px; background: #fffdf6; border: 2.5px solid #2a2a2a; box-shadow: 3px 4px 0 rgba(0, 0, 0, .15); }
+.gc-scene .gc-head { position: absolute; left: 1170px; top: 92px; gap: 12px; padding: 8px 12px 8px 18px; border-radius: 999px; background: #fffdf6; border: 2.5px solid #2a2a2a; box-shadow: 3px 4px 0 rgba(0, 0, 0, .15); }
 .gc-scene .gc-title { font-size: 26px; flex: none; }
 .gc-scene .gc-chip { font-size: 15px; padding: 4px 12px 4px 5px; }
 .gc-scene .gc-coin-ico { width: 24px; height: 24px; font-size: 12px; }
@@ -17,9 +17,9 @@ html body.gacha-on #moveModal { z-index: 1650 !important; }                     
 /* 기계 = 그림 자리로 */
 .gc-scene .gc-machine { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; max-width: none; margin: 0; display: block; pointer-events: none; }
 .gc-scene .gc-machine > * { pointer-events: auto; }
-.gc-scene .gc-dome { position: absolute; left: 702px; top: 129px; width: 272px; height: 284px; max-width: none; border: 0; border-radius: 0; box-shadow: none; background: linear-gradient(#eef8fc, #dceef6); }
+.gc-scene .gc-dome { position: absolute; left: 821px; top: 129px; width: 272px; height: 284px; max-width: none; border: 0; border-radius: 0; box-shadow: none; background: linear-gradient(#eef8fc, #dceef6); }
 .gc-scene .gc-dome::after { left: 8px; top: 6px; width: 22px; height: 110px; border-radius: 0; background: linear-gradient(rgba(255, 255, 255, .8), rgba(255, 255, 255, 0)); transform: skewX(-18deg); }
-.gc-scene .gc-body { position: absolute; left: 686px; top: 416px; width: 304px; height: 244px; max-width: none; background: none; box-shadow: none; border-radius: 6px; }
+.gc-scene .gc-body { position: absolute; left: 805px; top: 416px; width: 304px; height: 244px; max-width: none; background: none; box-shadow: none; border-radius: 6px; }
 .gc-scene .gc-chute { display: none; }
 .gc-scene .gc-label { top: -280px; left: 50%; right: auto; translate: -50% 0; white-space: nowrap; padding: 5px 14px 6px; border-radius: 10px; background: #fffdf6; border: 2.5px solid #2a2a2a; box-shadow: 2px 3px 0 rgba(0, 0, 0, .18); color: #e2342f; font-size: 18px; letter-spacing: 1.5px; font-weight: 900; text-shadow: none; pointer-events: none; z-index: 1; }   /* 유리 위 라벨 스티커 */
 .gc-scene .gc-label small { color: #555; opacity: 1; font-size: 12px; font-weight: 800; letter-spacing: 0; }
@@ -35,13 +35,18 @@ html body.gacha-on #moveModal { z-index: 1650 !important; }                     
 @keyframes gcsGlow { 50% { box-shadow: 0 0 0 6px #fff6a8, 0 0 26px 8px rgba(255, 240, 120, .9); } }
 .gc-scene .gc-crank-hint { left: 212px; right: auto; top: 66px; width: 72px; font-size: 15px; line-height: 1.35; white-space: pre-line; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); word-break: keep-all; }   /* 손잡이 오른쪽 빈 곳 (LED 안쪽 · 도련 10-31) */
 /* 캡슐 나오는 곳 */
-.gc-scene .gc-tray { position: absolute; left: 786px; top: 566px; width: 104px; height: 84px; place-items: center; }
+.gc-scene .gc-tray { position: absolute; left: 905px; top: 566px; width: 104px; height: 84px; place-items: center; }
 .gc-scene .gc-capsule { margin-top: 0; transform-origin: 50% 50%; scale: .85; }
 .gc-scene .gc-tap { top: 96px; white-space: nowrap; padding: 4px 12px; border-radius: 999px; background: #fffdf6; border: 2px solid #2a2a2a; color: #5a3a20; font-size: 14px; }
 
 /* 글 · 버튼 · 결과 = 오른쪽 카드 */
-.gc-scene .gc-wrap { position: absolute; left: 1384px; top: 100px; width: 270px; max-width: none; max-height: 820px; overflow-y: auto; box-sizing: border-box; padding: 14px; gap: 12px;
+.gc-scene .gc-wrap { position: absolute; left: 1170px; top: 170px; width: 430px; max-width: none; max-height: 700px; overflow-y: auto; box-sizing: border-box; padding: 22px; gap: 16px;   /* 🪧 메뉴판 = 오른쪽 넓은 벽 (도련 10-31 · 그림을 왼쪽으로 옮긴 새 그림) */
     background: rgba(255, 253, 246, .97); border: 2.5px solid #2a2a2a; border-radius: 18px; box-shadow: 3px 4px 0 rgba(0, 0, 0, .15); scrollbar-width: thin; }
-.gc-scene .gc-say { font-size: 17px; }
-.gc-scene .gc-prize { width: 170px; }
-.gc-scene .gc-odds table { font-size: 13px; }
+.gc-scene .gc-say { font-size: 22px; line-height: 1.5; }
+.gc-scene .gc-main { font-size: 22px; padding: 14px 18px; border-radius: 16px; }
+.gc-scene .gc-odds { font-size: 17px; padding: 12px 16px; }
+.gc-scene .gc-odds table { font-size: 15px; }
+.gc-scene .gc-sound { font-size: 15px; }
+.gc-scene .gc-result h3 { font-size: 30px; }
+.gc-scene .gc-result p { font-size: 16px; }
+.gc-scene .gc-prize { width: 220px; }

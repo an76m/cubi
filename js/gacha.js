@@ -135,7 +135,7 @@
             closeGacha(); if (window.bkOpenSheet) bkOpenSheet(id);
         }
         /* ---------- 🏪 문방구 앞 캡슐기계 (도련 10-31 · 시안 B · 💻 📲 만 · 📱 폰은 예전 기계 그대로) ----------
-           - 그림(img/gacha-room.webp · 도련 그림 1672 × 941) 가운데 기계 = 우리 기계 : 유리 안 = 캡슐 (그림체처럼 굵은 선) · 동전 구멍 · 손잡이 · 나오는 곳 = 그림 그 자리
+           - 그림(img/gacha-room.webp · 도련 그림 1672 × 941) 맨 오른쪽 기계 = 우리 기계 (10-31 새 그림 · 기계 셋이 왼쪽 · 오른쪽 넓은 벽 = 메뉴판) : 유리 안 = 캡슐 (그림체처럼 굵은 선) · 동전 구멍 · 손잡이 · 나오는 곳 = 그림 그 자리
            - 원래 기계의 부분(캡슐 · 동전 · 손잡이 · LED · 캡슐 나오는 곳)을 그림 자리로 옮겨요 (새로 만들지 않아요) · 글 · 버튼 · 결과 = 오른쪽 카드
            - 양옆 기계 = 다음 테마 (준비중) · 닫기 대신 '이동' (장소 · data-place="gacha" · body.gacha-on) */
         const GCS_W = 1672, GCS_H = 941;
@@ -145,13 +145,13 @@
             const cv = gq('gcCanvas'); cv.width = gc.W; cv.height = gc.H;
             el.classList.add('gc-scene');
             const st = document.createElement('div'); st.className = 'gcs-stage'; st.id = 'gcsStage';
-            st.innerHTML = `<img class="gcs-bg" src="img/gacha-room.webp?v=20261009-1019" alt="" draggable="false">
-                <span class="gcs-soon" style="left:478px">🐾 동물 캡슐 · 준비중</span><span class="gcs-soon" style="left:1196px">🚀 우주 캡슐 · 준비중</span>
+            st.innerHTML = `<img class="gcs-bg" src="img/gacha-room.webp?v=20261009-1022" alt="" draggable="false">
+                <span class="gcs-soon" style="left:238px">🐾 동물 캡슐 · 준비중</span><span class="gcs-soon" style="left:596px">🦖 공룡 캡슐 · 준비중</span>
                 <button type="button" class="gcs-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;
             const wrap = el.querySelector('.gc-wrap');
             st.appendChild(el.querySelector('.gc-head')); st.appendChild(el.querySelector('.gc-machine')); st.appendChild(wrap);
             el.insertBefore(st, el.firstChild);
-            const blur = document.createElement('img'); blur.className = 'gcs-blur'; blur.src = 'img/gacha-room.webp?v=20261009-1019'; blur.alt = ''; el.insertBefore(blur, st);
+            const blur = document.createElement('img'); blur.className = 'gcs-blur'; blur.src = 'img/gacha-room.webp?v=20261009-1022'; blur.alt = ''; el.insertBefore(blur, st);
             addEventListener('resize', () => { if (gc.open) gcSceneFit(); });
         }
         function gcSceneFit() {
