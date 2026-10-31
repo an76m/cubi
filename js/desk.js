@@ -61,7 +61,7 @@
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
             const seenU = new Set();
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요)
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요)
             DK.fresh = !Array.isArray(v);                                         // 아직 목록이 없어요 → 🎁 기본세트 (드라이브를 읽은 뒤 giftEnsure)
             DK.items = L; DK.seen = JSON.stringify(L);
         }
@@ -298,7 +298,7 @@
             const img = el.querySelector(':scope > img'), r = (img || el).getBoundingClientRect();
             if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return false;
             const m = img && dkHitMap(img); if (!m) return true;
-            const px = Math.floor((cx - r.left) / r.width * m.w), py = Math.floor((cy - r.top) / r.height * m.h);
+            const fx = el.classList.contains('dk-fl') ? r.right - cx : cx - r.left, px = Math.floor(fx / r.width * m.w), py = Math.floor((cy - r.top) / r.height * m.h);
             for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const x = px + dx, y = py + dy; if (x >= 0 && y >= 0 && x < m.w && y < m.h && m.a[y * m.w + x] > 40) return true; }
             return false;
         }
@@ -820,7 +820,9 @@
                     const o = [...DK.items].reverse().find(x => x.id === it.id && x.at === 'box'), R = stg && stg.getBoundingClientRect();
                     const onStage = R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel');
                     if (!onStage) return;
-                    if (o) { const c = dkCat(o.id), s = DK.s || 1, dx = (e.clientX - R.left) / s, dy = (e.clientY - R.top) / s; o.x = Math.round(Math.max(0, Math.min(DESK_W - c.w, dx - c.w / 2))); o.y = Math.round(Math.max(0, Math.min(DESK_H - c.h, dy - c.h))); o.at = 'desk'; dkSave(); deskItemsRender(); deskModeRender(); }
+                    if (o) { const c = dkCat(o.id), s = DK.s || 1, dx = (e.clientX - R.left) / s, dy = (e.clientY - R.top) / s; o.x = Math.round(Math.max(0, Math.min(DESK_W - c.w, dx - c.w / 2))); o.y = Math.round(Math.max(0, Math.min(DESK_H - c.h, dy - c.h))); o.at = 'desk'; o.lz = 99; deskItemsRender();   // 🛍️ 꺼낸 소품 = 겹친 소품들보다 앞에 (도련 10-31 · 뒤로 가면 소품 안에 들어간 줄 알아요)
+                        const nel = stg.querySelector(`.desk-item[data-u="${o.u}"]`), got = (DK.lzDone && nel && DK.lzDone.get(nel)) || 0; if (got > 0) o.lz = got; else delete o.lz;
+                        dkSave(); dkLayers(); deskModeRender(); }
                     dkbTake(n, j); return;
                 }
                 if (it.ds) { const R = stg && stg.getBoundingClientRect(); if (R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel')) dkbTake(n, j); return; }   // 🧱 🪵 벽지 · 책상 = 이미 📦 소품함에 · 책상에 놓으면 꺼낸 걸로
@@ -1068,7 +1070,7 @@
         window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen;
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
-            const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '');
+            const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '') + (p.fl && dkFlipOk(it) ? ' dk-fl' : '');   // ↔ 좌우 바꾼 소품 (그림만 · 바늘은 그대로)
             let over = '';
             if (it.clock) {                                                         // 🕰 바늘 (지금 시각 · deskTick)
                 const c = it.clock, d = c.r * 2, hh = d * it.w / it.h;
@@ -1447,6 +1449,14 @@
                 tip.style.setProperty('--ax', Math.max(-(r.width / 2 - 22), Math.min(r.width / 2 - 22, -dx)) + 'px');
             }
         }
+        /* ↔ 좌우 바꾸기 (도련 10-31 · 스탠드처럼) : 그림만 거울처럼 · 저장 fl: 1 · 화면 · 위에 올리는 면 · 넣는 입구가 있는 소품은 그림과 자리가 어긋나서 빼요 */
+        const dkFlipOk = c => !!c && !c.lcd && !c.photo && !c.front && !c.surf;
+        function deskFlip() {
+            const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o || !dkFlipOk(dkCat(o.id))) return;
+            if (o.fl) delete o.fl; else o.fl = 1;
+            el.classList.toggle('dk-fl', !!o.fl); dkSave(); dkLayers(); deskTipPaint();
+        }
+        window.deskFlip = deskFlip;
         function deskTipPaint() {                                                 // 🛠 고른 소품 위 : 기능 칩 + 🧲 · 📦 넣기 · 🗑 버리기
             const tip = document.getElementById('deskTip'), el = DK.sel; if (!tip) return;
             if (!el || !DK.edit) { tip.innerHTML = ''; return; }
@@ -1462,7 +1472,7 @@
             tip.innerHTML = `<b class="dkt-hd"><span class="dkt-chip">🪑 소품</span>${me ? htmlEsc(dkName(me)) : ''}${bo ? `<small>🧺 ${htmlEsc(dkName(bo))} 안</small>` : ''}</b>`
                 + `<div class="dkt-act"><button type="button" class="desk-snap${fi ? ' on' : ''}" onclick="deskFnOpen(false)">🔗 기능 연결</button>`   // 기능 연결은 창으로 (도련 10-28) · 연결돼도 글은 늘 '기능 연결' (기능 이름이면 샵 가는 버튼으로 착각 · 도련 10-28)
                 + `<button type="button" class="desk-snap" onclick="deskTipAct('paint')">🎨 꾸미기</button><button type="button" class="desk-snap" onclick="deskTipAct('box')">📦 넣기</button></div>`
-                + `<div class="dkt-act"><button type="button" class="desk-snap" onclick="dknPanel(true)">🏷 소품 이름표</button><button type="button" class="desk-snap" onclick="deskLayer(1)">⬆ 앞으로</button><button type="button" class="desk-snap" onclick="deskLayer(-1)">⬇ 뒤로</button>${(DK.items.find(x => x.u === u) || {}).lz ? '<button type="button" class="desk-snap" onclick="deskLayer(0)">↺ 자동</button>' : ''}</div>`;   // 🗂 레이어 (도련 10-29 : 자동 + 손으로)   // 🧲 딱 맞추기 = 작업대 · 📤 저장(공유)은 숨김 · 🗑 버리기는 📦 소품함에서
+                + `<div class="dkt-act"><button type="button" class="desk-snap" onclick="dknPanel(true)">🏷 소품 이름표</button><button type="button" class="desk-snap" onclick="deskLayer(1)">⬆ 앞으로</button><button type="button" class="desk-snap" onclick="deskLayer(-1)">⬇ 뒤로</button>${me && dkFlipOk(dkCat(me.id)) ? `<button type="button" class="desk-snap${me.fl ? ' on' : ''}" onclick="deskFlip()">↔ 좌우</button>` : ''}${(DK.items.find(x => x.u === u) || {}).lz ? '<button type="button" class="desk-snap" onclick="deskLayer(0)">↺ 자동</button>' : ''}</div>`;   // 🗂 레이어 (도련 10-29 : 자동 + 손으로)   // 🧲 딱 맞추기 = 작업대 · 📤 저장(공유)은 숨김 · 🗑 버리기는 📦 소품함에서
             deskTipPlace();
         }
         /* 🔗 기능 연결 창 (도련 10-28) : 고른 소품에 기능 하나 · 다시 누르면 풀기 */

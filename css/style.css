@@ -4459,6 +4459,7 @@ html.desk-on .bg-pattern-layer { display: none; }
 /* 🪑 책상에 집중 (도련 10-26) : 넓은 화면은 수첩 · 하단 메뉴를 숨기고 책상만 · 책상 위 다이어리를 톡 하면 떠올라요 (html.desk-show · js/desk.js deskOpenDiary) */
 html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolbar { display: none !important; }
 .desk-item > img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.desk-item.dk-fl > img { transform: scaleX(-1); }   /* ↔ 좌우 바꾼 소품 (도련 10-31 · js/desk.js deskFlip · 바늘 · 이름표는 그대로) */
 .dk-hands { position: absolute; translate: -50% -50%; overflow: visible; pointer-events: none; }
 .dk-hands line { stroke: #6b4a3f; stroke-linecap: round; }
 .dk-hands .hr { stroke-width: 5; } .dk-hands .mn { stroke-width: 3.5; } .dk-hands .sc { stroke: #e2557f; stroke-width: 1.6; }

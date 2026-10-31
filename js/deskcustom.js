@@ -200,7 +200,7 @@
         const K = dcKind(o); if (!K || !K.act) return false;
         if (el.dataset.fn) {                                                  // 기능이 있으면 민트 네모 안만 소품 동작
             const im = el.querySelector(':scope > img') || el, R = im.getBoundingClientRect(), [l, t, r, b] = dcArea(o);
-            const px = (x - R.left) / R.width * 100, py = (y - R.top) / R.height * 100;
+            const px = (el.classList.contains('dk-fl') ? R.right - x : x - R.left) / R.width * 100, py = (y - R.top) / R.height * 100;
             if (px < l || px > r || py < t || py > b) return false;
         }
         if (K.act === 'lamp') { dcCs(o).on = !o.cs.on; dcSave(o); }
