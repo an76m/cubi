@@ -351,17 +351,24 @@
 
         /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 (가게 안에서는 🚪 내 방) + ☕ 카페 칸 전부 (카페 창 #svcCats 의 칸을 열 때마다 복사 · 새 칸이 생기면 저절로 · 알림 숫자도 그대로)
            칸 톡 = 이동 창 닫고 → 카페 칸이면 카페 창의 그 칸 · 준비중 · 따로 여는 것(인형 · 펫 …)은 그것만 */
+        /* 📍 지금 있는 장소 = 이동 창 칸의 data-place 이름표와 같은 이름 (새 장소 = 여기 한 줄 + 칸에 이름표) */
+        function deskHere() {
+            if (window.shopSceneOn && shopSceneOn()) return 'shop';
+            if (document.body.classList.contains('post-on')) return 'post';
+            if (document.body.classList.contains('cal-on')) return 'cal';
+            return 'room';
+        }
         function deskMoveOpen() {
-            const box = document.getElementById('moveCafe'), inShop = !!(window.shopSceneOn && shopSceneOn()), inCal = document.body.classList.contains('cal-on');
-            const sh = document.getElementById('moveShop'), rm = document.getElementById('moveRoom');
-            if (sh) sh.hidden = inShop; if (rm) rm.hidden = !inShop && !inCal;   // 🏪 가게 안 = 🚪 내 방 · 📅 달력 = 🚪 내 방 + 🏪 샵 · 책상 = 🏪 기본상품 샵
+            const box = document.getElementById('moveCafe'), here = deskHere();
+            document.querySelectorAll('#moveModal > .modal-content > .svc-cats > [data-place]').forEach(b => { b.hidden = b.dataset.place === here; });   // 📍 지금 있는 곳은 목록에서 빼요 (도련 10-31 · 규칙 하나 · 칸마다 data-place 이름표)
             const fill = () => {
                 box.innerHTML = '';
                 document.querySelectorAll('#svcCats > .svc-cat:not(.svc-extra):not([hidden])').forEach(b => {
+                    if (b.dataset.place && b.dataset.place === here) return;
                     const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
                     const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
                     const stay = /준비중/.test(b.textContent) || b.hasAttribute('data-keep');   // 🚧 (준비중) · 👭 모임방(새 창) = 이동 창 · 지금 장소 그대로 (도련 10-31)
-                    c.addEventListener('click', () => { if (stay) { b.click(); return; } closeModal('moveModal'); deskLeave(); if (cat) openModal('serviceModal'); b.click(); });
+                    c.addEventListener('click', () => { if (stay) { b.click(); return; } closeModal('moveModal'); deskLeave(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true); if (cat) openModal('serviceModal'); b.click(); });
                     box.appendChild(c);
                 });
             };
