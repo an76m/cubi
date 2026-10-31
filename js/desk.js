@@ -352,8 +352,9 @@
         /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 (가게 안에서는 🚪 내 방) + ☕ 카페 칸 전부 (카페 창 #svcCats 의 칸을 열 때마다 복사 · 새 칸이 생기면 저절로 · 알림 숫자도 그대로)
            칸 톡 = 이동 창 닫고 → 카페 칸이면 카페 창의 그 칸 · 준비중 · 따로 여는 것(인형 · 펫 …)은 그것만 */
         function deskMoveOpen() {
-            const box = document.getElementById('moveCafe'), inShop = !!(window.shopSceneOn && shopSceneOn());
-            ['moveShop', 'moveRoom'].forEach((id, i) => { const b = document.getElementById(id); if (b) b.hidden = !!i !== inShop; });   // 🏪 가게 안 = 🚪 내 방 · 책상 = 🏪 기본상품 샵
+            const box = document.getElementById('moveCafe'), inShop = !!(window.shopSceneOn && shopSceneOn()), inCal = document.body.classList.contains('cal-on');
+            const sh = document.getElementById('moveShop'), rm = document.getElementById('moveRoom');
+            if (sh) sh.hidden = inShop; if (rm) rm.hidden = !inShop && !inCal;   // 🏪 가게 안 = 🚪 내 방 · 📅 달력 = 🚪 내 방 + 🏪 샵 · 책상 = 🏪 기본상품 샵
             if (box) {
                 if (typeof svcDailyBadges === 'function') svcDailyBadges();
                 box.innerHTML = '';
@@ -361,13 +362,16 @@
                     const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
                     const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
                     const soon = /준비중/.test(b.textContent);                    // 🚧 (준비중) 칸 = 이동 창은 그대로 · 그 위에 준비중 알림 (도련 10-31)
-                    c.addEventListener('click', () => { if (soon) { b.click(); return; } closeModal('moveModal'); if (cat) openModal('serviceModal'); b.click(); });
+                    c.addEventListener('click', () => { if (soon) { b.click(); return; } closeModal('moveModal'); deskLeave(); if (cat) openModal('serviceModal'); b.click(); });
                     box.appendChild(c);
                 });
             }
             openModal('moveModal');
         }
         window.deskMoveOpen = deskMoveOpen;
+        function deskLeave() { if (window.closeCalRoom) closeCalRoom(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
+        function deskGoRoom() { if (window.shopSceneOn && shopSceneOn()) shopSceneClose(); else deskLeave(); }   // 🚪 내 방 = 가게 · 달력에서 책상으로
+        window.deskLeave = deskLeave; window.deskGoRoom = deskGoRoom;
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();

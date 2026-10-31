@@ -33,7 +33,7 @@
                     <div class="cr-box" id="crAt"><div class="cr-h">📅 출석 도장</div></div>
                     <div class="cr-box" id="crDd"><div class="cr-h">⏳ D-day</div></div>
                 </div>
-                <button type="button" class="cr-x" aria-label="닫기" onclick="closeCalRoom()">✕</button>
+                <button type="button" class="cr-go desk-shop-go" onclick="deskMoveOpen()">이동</button>   <!-- 🚪 닫기 대신 이동 (도련 10-31 · 벽 달력도 한 장소) -->
             </div>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (crOn()) crFit(); });
