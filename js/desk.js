@@ -356,6 +356,7 @@
             if (window.shopSceneOn && shopSceneOn()) return 'shop';
             if (document.body.classList.contains('post-on')) return 'post';
             if (document.body.classList.contains('tarot-on')) return 'tarot';
+            if (document.body.classList.contains('gacha-on')) return 'gacha';
             if (document.body.classList.contains('cal-on')) return 'cal';
             return 'room';
         }
@@ -380,7 +381,7 @@
             openModal('moveModal');
         }
         window.deskMoveOpen = deskMoveOpen;
-        function deskLeave() { if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeTarotRoom) closeTarotRoom(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
+        function deskLeave() { if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
             if (window.shopSceneOn && shopSceneOn()) { shopSceneClose(); return; }
             if (window.roomGo) roomGo(deskLeave); else deskLeave();

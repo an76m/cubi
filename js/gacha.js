@@ -29,7 +29,7 @@
         const GC_CAPS = ['#ff7aa8', '#6cc4ff', '#9be27a', '#c79bff', '#ff9f5a', '#5fe0c9'];
         const GC_BULBS = ['#ff4d6d', '#ffd23f', '#3ddc84', '#4dabff', '#c77dff'];
 
-        const gc = {
+        const gc = { W: 500, H: 460, box: false,
             built: false, open: false, stage: 'idle', outcome: null, prizes: null,
             turned: 0, ticks: 0, lastAng: null, dragged: false, taps: 0,
             balls: [], mixing: false, frozen: false, swirl: 1, swirlFlip: 0,
@@ -134,6 +134,31 @@
             const id = await gc.own; if (!id) { showMsg('🧺 바구니에 넣지 못했어요.<br>인터넷 연결을 확인해 주세요.'); return; }
             closeGacha(); if (window.bkOpenSheet) bkOpenSheet(id);
         }
+        /* ---------- 🏪 문방구 앞 캡슐기계 (도련 10-31 · 시안 B · 💻 📲 만 · 📱 폰은 예전 기계 그대로) ----------
+           - 그림(img/gacha-room.webp · 도련 그림 1672 × 941) 가운데 기계 = 우리 기계 : 유리 안 = 캡슐 (그림체처럼 굵은 선) · 동전 구멍 · 손잡이 · 나오는 곳 = 그림 그 자리
+           - 원래 기계의 부분(캡슐 · 동전 · 손잡이 · LED · 캡슐 나오는 곳)을 그림 자리로 옮겨요 (새로 만들지 않아요) · 글 · 버튼 · 결과 = 오른쪽 카드
+           - 양옆 기계 = 다음 테마 (준비중) · 닫기 대신 '이동' (장소 · data-place="gacha" · body.gacha-on) */
+        const GCS_W = 1672, GCS_H = 941;
+        const gcSceneUse = () => !!(window.calRoomUse && calRoomUse());
+        function gcSceneBuild(el) {
+            gc.box = true; gc.W = 480; gc.H = 500;                                 // 네모 유리 (그림의 창 272 × 284 와 같은 비율)
+            const cv = gq('gcCanvas'); cv.width = gc.W; cv.height = gc.H;
+            el.classList.add('gc-scene');
+            const st = document.createElement('div'); st.className = 'gcs-stage'; st.id = 'gcsStage';
+            st.innerHTML = `<img class="gcs-bg" src="img/gacha-room.webp?v=20261009-1019" alt="" draggable="false">
+                <span class="gcs-soon" style="left:478px">🐾 동물 캡슐 · 준비중</span><span class="gcs-soon" style="left:1196px">🚀 우주 캡슐 · 준비중</span>
+                <button type="button" class="gcs-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;
+            const wrap = el.querySelector('.gc-wrap');
+            st.appendChild(el.querySelector('.gc-head')); st.appendChild(el.querySelector('.gc-machine')); st.appendChild(wrap);
+            el.insertBefore(st, el.firstChild);
+            const blur = document.createElement('img'); blur.className = 'gcs-blur'; blur.src = 'img/gacha-room.webp?v=20261009-1019'; blur.alt = ''; el.insertBefore(blur, st);
+            addEventListener('resize', () => { if (gc.open) gcSceneFit(); });
+        }
+        function gcSceneFit() {
+            const st = gq('gcsStage'); if (!st) return;
+            const s = Math.min(innerWidth / GCS_W, innerHeight / GCS_H);
+            st.style.transform = `translate(${(innerWidth - GCS_W * s) / 2}px, ${(innerHeight - GCS_H * s) / 2}px) scale(${s})`;
+        }
         /* ---------- 화면 만들기 ---------- */
         function gcBuild() {
             if (gc.built) return;
@@ -175,10 +200,11 @@
               </div>
               <canvas class="gc-burst" id="gcBurst"></canvas>`;
             document.body.appendChild(el);
+            if (gcSceneUse()) gcSceneBuild(el);                                    // 💻 📲 = 문방구 앞 캡슐기계 그림 (도련 10-31 · 시안 B)
 
             /* 기계 안 캡슐 */
-            const W = 500, H = 460;
-            gc.balls = Array.from({ length: 22 }, (_, i) => ({
+            const W = gc.W, H = gc.H;
+            gc.balls = Array.from({ length: gc.box ? 34 : 22 }, (_, i) => ({
                 x: 70 + Math.random() * (W - 140), y: 120 + Math.random() * (H - 200),
                 vx: 0, vy: 0, r: 34 + Math.random() * 6, c: GC_CAPS[i % GC_CAPS.length], a: Math.random() * 6
             }));
@@ -223,14 +249,16 @@
             gq('gcOdds').innerHTML = rate === undefined ? '<tr><td>확률을 불러오는 중…</td><td></td></tr>'
                 : `<tr><td>🎁 움직이는 캡슐 스티커 (30일 선물권)</td><td>${pct(rate)}</td></tr><tr><td>🍀 꽝 (오늘의 한마디)</td><td>${pct(1000000 - rate)}</td></tr>`;
         }
-        function gcGoAttend() { closeGacha(); if (typeof openAttend === 'function') openAttend(); }
+        function gcGoAttend() { closeGacha(); if (window.openCalRoom && window.calRoomUse && calRoomUse()) openCalRoom(); else if (typeof openAttend === 'function') openAttend(); }   // 💻 📲 = 벽걸이 달력으로
 
         /* ---------- 열기 · 닫기 ---------- */
         async function openGacha() {
             if (typeof closeModal === 'function') closeModal('serviceModal');
+            if (gcSceneUse() && window.deskLeave) deskLeave();                     // 🏪 장소 : 달력 · 우체통 · 타로카페에 있었으면 떠나요
             gcBuild();
             gcUnlockAudio();                                   // 카페에서 누른 순간에 소리 미리 깨우기
             gq('gachaRoom').classList.add('show');
+            if (gc.box) { gcSceneFit(); document.body.classList.add('cal-on', 'gacha-on'); }   // cal-on = 장소에 있어요 (책상 버튼 숨김)
             gc.open = true;
             gcReset();
             gc.lastT = 0; gc.acc = 0;
@@ -249,6 +277,7 @@
             gc.timers.forEach(clearTimeout); gc.timers = [];
             gcStopRumble();
             const room = gq('gachaRoom'); if (room) room.classList.remove('show');
+            if (document.body.classList.contains('gacha-on')) document.body.classList.remove('cal-on', 'gacha-on');
         }
         function gcLater(fn, ms) { const t = setTimeout(fn, ms); gc.timers.push(t); return t; }
 
@@ -409,7 +438,7 @@
         /* ---------- 기계 안 공 · 전구 그리기 ---------- */
         function gcStep() {
             if (gc.frozen) return;
-            const W = 500, H = 460, floor = H - 8, cx = W / 2, cy = H * .55, R = W / 2 - 10, balls = gc.balls;
+            const W = gc.W, H = gc.H, floor = H - 8, cx = W / 2, cy = H * .55, R = W / 2 - 10, balls = gc.balls;
             if (gc.mixing && --gc.swirlFlip <= 0) { gc.swirl = Math.random() < .5 ? -1 : 1; gc.swirlFlip = 40 + Math.random() * 70; }
             for (const b of balls) {
                 b.vy += .5;
@@ -427,6 +456,7 @@
                 if (b.y + b.r > floor) { b.y = floor - b.r; b.vy = -Math.abs(b.vy) * e; b.vx *= .92; }
                 if (b.x - b.r < 10) { b.x = 10 + b.r; b.vx = Math.abs(b.vx) * e; }
                 if (b.x + b.r > W - 10) { b.x = W - 10 - b.r; b.vx = -Math.abs(b.vx) * e; }
+                if (gc.box) { if (b.y - b.r < 10) { b.y = 10 + b.r; b.vy = Math.abs(b.vy) * e; } continue; }   // 🏪 네모 유리 = 천장
                 const ddx = b.x - cx, ddy = b.y - cy, d = Math.hypot(ddx, ddy);
                 if (b.y < cy && d + b.r > R) {
                     const nx = ddx / d, ny = ddy / d, k = (R - b.r) / d;
@@ -449,6 +479,14 @@
             const pad = 4, sz = Math.ceil((r + pad) * 2), cv = document.createElement('canvas');
             cv.width = cv.height = sz;
             const g = cv.getContext('2d'); g.translate(sz / 2, sz / 2);
+            if (gc.box) {                                                      // 🏪 그림체 캡슐 : 위 = 색 · 아래 = 흰색 · 굵은 검은 선 · 반짝
+                g.beginPath(); g.arc(0, 0, r - 2, 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill();
+                g.beginPath(); g.arc(0, 0, r - 2, Math.PI, 0); g.closePath(); g.fillStyle = color; g.fill();
+                g.lineWidth = 3; g.strokeStyle = '#2a2a2a'; g.beginPath(); g.moveTo(-r + 2, 0); g.lineTo(r - 2, 0); g.stroke();
+                g.lineWidth = 4; g.beginPath(); g.arc(0, 0, r - 2, 0, Math.PI * 2); g.stroke();
+                g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(-r * .38, -r * .45, r * .22, r * .13, -.6, 0, Math.PI * 2); g.fill();
+                return cv;
+            }
             g.beginPath(); g.arc(0, 0, r, Math.PI, 0); g.closePath(); g.fillStyle = color; g.fill();
             g.beginPath(); g.arc(0, 0, r, 0, Math.PI); g.closePath(); g.fillStyle = 'rgba(235,245,255,.85)'; g.fill();
             g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.12)'; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke();
