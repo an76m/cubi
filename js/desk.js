@@ -385,7 +385,7 @@
         window.deskMoveOpen = deskMoveOpen;
         /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · ✂️ 스티커 만들기 · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
            다른 곳에 갔다 내 방으로 돌아올 때마다(deskGoRoom) 보이는 메뉴가 다음 것으로 돌아가요 (이 창이 열려 있는 동안만 기억 · 처음 = 책상 꾸미기) */
-        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 만들기', () => openModal('stickerToolModal')], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()]];
+        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 만들기', () => openModal('stickerToolModal')], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['스티커 고르기', () => window.stpOpen && stpOpen()]];   // 🍽 오늘 쓸 스티커 (js/stktray.js · 도련 11-01)
         const DTM = { i: 0 };
         function dtmPaint() {
             const m = document.getElementById('deskTopMenu'); if (!m) return;

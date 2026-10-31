@@ -988,8 +988,23 @@
         const u = c.toDataURL('image/png');
         return window.pelBake ? pelBake(u).catch(() => u) : u;
     }
+    /* 🚶 기본상품 샵은 걸어가서 (도련 11-01) : 💻 📲 책상 화면에서는 어디서 '받기'를 눌러도 이동 → 🏪 기본상품 샵 과 똑같이 가게로 들어가요
+       (책상에서 바로 받는 창이 뜨지 않게 · 가게 안에서는 진열대 이름표로) · 📱 폰 · 하단 메뉴 화면 = 예전 기본상품 샵 창 그대로 */
+    const shMustWalk = () => document.documentElement.classList.contains('desk-on') && !(window.shopSceneOn && shopSceneOn());
+    function shWalk() {
+        if (SH.walking) return; SH.walking = true; setTimeout(() => { SH.walking = false; }, 1500);
+        const go = () => { ['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal', 'deskBoxModal', 'gdCabModal', 'moveModal'].forEach(id => { if (vis(id)) closeModal(id); });
+            if (window.deskLeave) deskLeave(); if (window.deskRun) deskRun('shop'); };
+        if (document.documentElement.classList.contains('desk-edit')) {                // 🛠 꾸미는 중이면 먼저 마칠지 물어봐요
+            showAsk('🛠 책상 꾸미기를 마치고<br>🏪 기본상품 샵으로 갈까요?', '저장하고 가기', '그대로 꾸미기').then(ok => { if (ok && window.deskEditEnd) { deskEditEnd(true); setTimeout(go, 300); } });
+            return;
+        }
+        if (window.deskTopGo) deskTopGo(go); else go();                       // 📔 펼친 다이어리는 저장하고 접은 뒤 (위 버튼들과 같게)
+    }
+    window.shWalk = shWalk;
     /* 기본상품 샵 첫 창 : 종류 아이콘 (🌸 계절은 이벤트 때만) */
     function openShelf() {
+        if (shMustWalk()) { shWalk(); return; }
         if (window.shopSceneOn && shopSceneOn()) { if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); } return; }   // 🏪 가게 안이면 고르는 창만 닫고 가게 그대로 (js/shopscene.js)
         if (vis('basketModal')) closeModal('basketModal');
         if (vis('basketKindModal')) closeModal('basketKindModal');
@@ -1000,6 +1015,7 @@
     /* 그 종류의 기본상품 샵 창 */
     async function shOpenKind(k) {
         const K = SH_KINDS[k]; if (!K) return;
+        if (shMustWalk()) { shWalk(); return; }                                // 💻 📲 책상 = 가게로 걸어가요 (가게 안 진열대에서만 이 창)
         closeModal('shelfModal'); openModal('shelfKindModal');
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
         const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = SH.wantCat && SH.wantCat.k === k ? SH.wantCat.c : ''; SH.wantCat = null; SH.got = new Set(); shZoomOff();
@@ -1557,6 +1573,19 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stkArtFill); else stkArtFill();
     window.stkArt = stkArt;
 
+    /* 🍽 오늘 쓸 스티커 (js/stktray.js · 도련 11-01) 가 바구니 카드 · 목록 · 종이 열기를 그대로 써요 (새로 만들지 않아요) */
+    const bkFree = got => {                                                   // 바구니에 있는 종이 (스티커첩에 꽂은 것 · 페이지에 꺼내 둔 것 빼고)
+        const a = (got && got.album) || { bd: [], rl: [] }, placed = new Set();
+        (a.bd || []).forEach(b => Object.values(b.p || {}).forEach(id => placed.add(id)));
+        (a.rl || []).forEach(r => (r.it || []).forEach(t => placed.add(t.s)));
+        return ((got && got.list) || []).filter(e => !placed.has(e.id) && !DS.m.has(e.id));
+    };
+    window.bkTrayApi = {
+        kinds: BK_KINDS, kindOf: bkKindOf, card: bkCard, open: bkOpenSheet,
+        ok: () => !!(window.ownList && window.ownMode && ownMode()),
+        peek: () => { const p = window.ownPeek ? ownPeek() : null; return p ? bkFree(p) : null; },
+        load: async force => bkFree(window.ownOpen ? await ownOpen(force) : { list: await ownList(force), album: { bd: [], rl: [] } })
+    };
     window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
     window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shCat = shCat; window.shTake = shTake;
 })();

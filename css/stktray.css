@@ -1,0 +1,49 @@
+/* 🍽 오늘 쓸 스티커 (도련 11-01 · js/stktray.js) : 💻 📲 책상만 · 고르는 화면 + 책상 위 버튼 · 은빛 쟁반 */
+.stp { position: fixed; inset: 0; z-index: 1450; display: none; flex-direction: column; background: #fff8f1 radial-gradient(#f6e3ea 1.5px, transparent 1.6px) 0 0 / 20px 20px; color: #5b3240; }
+.stp.show { display: flex; animation: crIn .2s ease both; }
+.stp button { font-family: inherit; cursor: pointer; }
+.stp-bar { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; }
+.stp-bar b { font-size: 22px; color: #c2457a; }
+.stp-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr); gap: 22px; padding: 0 22px 22px; }
+.stp-l { min-height: 0; display: flex; flex-direction: column; gap: 12px; background: #fffdfb; border: 2.5px solid #f2c9d6; border-radius: 22px; padding: 14px; box-shadow: 0 6px 18px rgba(194, 69, 122, .08); }
+.stp-kinds { flex: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.stp-k { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 2px solid #f2c9d6; background: #fff; color: #9a6a7d; font-weight: 800; font-size: 14px; }
+.stp-k small { min-width: 18px; padding: 0 6px; border-radius: 999px; background: #fde7ef; color: #c2457a; font-size: 11px; line-height: 18px; text-align: center; }
+.stp-k.on { background: #ffe0ea; border-color: #e88fb0; color: #c2457a; }
+.stp-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 14px; align-content: start; padding: 4px; scrollbar-width: thin; }
+.stp-empty { grid-column: 1 / -1; margin: 40px 0; text-align: center; color: #b08a9a; font-size: 15px; line-height: 1.7; }
+.stp-c { position: relative; touch-action: none; cursor: grab; transition: transform .12s; }
+.stp-c:hover { transform: translateY(-3px); }
+.stp-c .bk-sh { position: relative !important; left: auto; top: auto; width: 100% !important; max-width: none; transform: none; pointer-events: none; }
+.stp-c.stp-out { opacity: .35; }
+.stp-ghost { position: fixed; z-index: 3000; translate: -50% -50%; pointer-events: none; rotate: -4deg; filter: drop-shadow(0 10px 14px rgba(90, 40, 70, .3)); }
+/* 은빛 쟁반 : 평평하고 넓고 끝이 둥근 */
+.stp-r { min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+.stp-tray, .dtr-tray { position: relative; border-radius: 46px; padding: 18px; background: linear-gradient(160deg, #fbfcfd 0%, #e3e8ee 38%, #c9d0d8 62%, #eef1f4 100%);
+    box-shadow: inset 0 2px 0 #fff, inset 0 -3px 0 rgba(120, 130, 145, .35), 0 10px 22px rgba(90, 100, 120, .25), 0 0 0 2px #b9c1cb; }
+.stp-tray::before, .dtr-tray::before { content: ''; position: absolute; inset: 12px; border-radius: 36px; background: linear-gradient(160deg, #eef2f5, #d9dfe5 60%, #e9edf1); box-shadow: inset 0 3px 8px rgba(110, 120, 135, .35), inset 0 -1px 0 #fff; pointer-events: none; }
+.stp-tray { flex: 1; min-height: 0; transition: box-shadow .15s; }
+.stp-tray.hot { box-shadow: inset 0 2px 0 #fff, 0 0 0 4px #ffd36b, 0 0 28px 6px rgba(255, 211, 107, .6); }
+.stp-tin, .dtr-in { position: relative; z-index: 1; height: 100%; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; align-content: start; padding: 14px; box-sizing: border-box; scrollbar-width: thin; }
+.stp-hint { grid-column: 1 / -1; margin: 60px 0; text-align: center; color: #7b8592; font-weight: 800; line-height: 1.7; }
+.stp-note { flex: none; margin: 0; padding: 12px 16px; border-radius: 16px; background: #fff; border: 2px dashed #f2bfd0; font-size: 14px; line-height: 1.65; color: #7a5566; word-break: keep-all; }
+.stp-note b { color: #c2457a; }
+.stp-go { flex: none; padding: 14px; border-radius: 16px; border: 2px solid #e88fb0; background: #ffe0ea; color: #c2457a; font-size: 19px; font-weight: 900; box-shadow: 0 4px 0 #f0b6c8; }
+.stp-go:active { translate: 0 2px; box-shadow: 0 2px 0 #f0b6c8; }
+
+/* 책상 위쪽 가운데 버튼 · 쟁반 */
+.dtr-btn { position: fixed; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 995; }   /* 가운데는 transform 으로 (누를 때 translate 가 바뀌어도 안 튀게) */
+.dtr-btn[hidden] { display: none; }
+.dtr-btn.on { background: #ffe0ea; }
+.dtr-pn { position: fixed; left: 18px; top: 70px; z-index: 996; width: 440px; max-width: calc(100vw - 36px); display: flex; flex-direction: column; gap: 8px; }
+.dtr-pn[hidden] { display: none; }
+.dtr-hd { display: flex; align-items: baseline; justify-content: center; gap: 8px; padding: 6px 10px; border-radius: 999px; background: #fff; border: 2px solid #e88fb0; cursor: grab; touch-action: none; user-select: none; color: #c2457a; font-size: 15px; }
+.dtr-hd small { color: #b08a9a; font-size: 11px; font-weight: 700; }
+.dtr-tray { height: min(36vh, 290px); }   /* 평평하고 넓은 쟁반 */
+.dtr-in { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+.dtr-in .stp-c { cursor: pointer; }
+.dtr-ft { display: flex; gap: 6px; justify-content: center; }
+.dtr-mini { padding: 6px 12px; border-radius: 999px; border: 2px solid #e2c4cf; background: #fff; color: #9a6a7d; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
+/* 장소 · 꾸미기 · 가게 · 고르는 화면에서는 숨겨요 (책상 오른쪽 위 버튼과 같게) */
+html:not(.desk-on) .dtr-btn, html.desk-edit .dtr-btn, body.cal-on .dtr-btn, body:has(.shop-scene.on) .dtr-btn, body:has(#stkPick.show) .dtr-btn,
+html:not(.desk-on) .dtr-pn, html.desk-edit .dtr-pn, body.cal-on .dtr-pn, body:has(.shop-scene.on) .dtr-pn, body:has(#stkPick.show) .dtr-pn { display: none; }
