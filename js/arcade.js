@@ -887,7 +887,7 @@
             el.innerHTML = `
               <div class="ar-lobby" id="arLobby">
                 <div class="ar-head">
-                  <div class="ar-sign"><span class="ar-neon">MALANG ARCADE</span><b>🕹️ 말랑 오락실</b></div>
+                  <div class="ar-sign"><span class="ar-neon">MALANG ARCADE</span><b>🕹️ 뿅뿅오락실</b></div>
                   ${typeof sndFxBtn === 'function' ? sndFxBtn('ar-ibtn') : ''}
                   <button class="ar-ibtn ar-plain" type="button" onclick="closeArcade()" aria-label="닫기">✕</button>
                 </div>
