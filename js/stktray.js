@@ -105,7 +105,7 @@
     function dtrPaint() {
         const b = dtrBuild(), A = API(); if (!A) return;
         const p = A.peek(); if (p) { T.list = p; const M = byId(); T.ids = T.ids.filter(id => M.has(id)); }   // 다 쓴 종이는 저절로 빠져요
-        b.hidden = !T.ids.length; b.textContent = `🍽 오늘 쓸 스티커 ${T.ids.length}`;
+        b.hidden = !T.ids.length; if (!b.firstChild) b.innerHTML = '<span>오늘 쓸 스티커</span><i class="dtr-sw" aria-hidden="true"></i>';   // 켜고 끄는 스위치 (개수 대신 · 도련 11-01)
         if (!T.ids.length) dtrShow(false);
         const M = byId(), box = q('dtrIn');
         if (box) box.innerHTML = T.ids.map(id => M.get(id)).filter(Boolean).map(e => `<div class="stp-c in" data-id="${htmlEsc(e.id)}">${A.card(e)}</div>`).join('');
@@ -113,7 +113,7 @@
     function dtrShow(on) {
         T.open = !!on && T.ids.length > 0;
         const p = q('dtrPanel'), b = q('dtrBtn'); if (!p) return;
-        p.hidden = !T.open; if (b) b.classList.toggle('on', T.open);
+        p.hidden = !T.open; if (b) { b.classList.toggle('on', T.open); b.setAttribute('aria-pressed', String(T.open)); }
         if (T.open && T.pos) Object.assign(p.style, { left: T.pos[0] + 'px', top: T.pos[1] + 'px' });
     }
     function dtrEnd() {
