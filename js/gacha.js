@@ -334,7 +334,7 @@
             gcLater(() => {
                 gc.stage = 'turning'; gc.turned = 0; gc.ticks = 0;
                 const c = gq('gcCrank'); c.disabled = false; c.classList.add('ready');
-                gq('gcCrankHint').textContent = '손잡이를 한 바퀴 돌려요 ↻';
+                gq('gcCrankHint').textContent = gc.box ? '손잡이를\n돌려요' : '손잡이를 한 바퀴 돌려요 ↻';   // 🏪 그림 기계 = 짧게 (손잡이 오른쪽 · 도련 10-31)
                 gq('gcSay').textContent = '손잡이를 끝까지 돌려 주세요!';
                 c.focus({ preventScroll: true });
             }, Math.max(350, 800 - (performance.now() - t0)));    // 코인이 다 떨어진 뒤에 손잡이 (서버가 늦게 답해도 바로 이어져요)

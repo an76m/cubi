@@ -33,7 +33,7 @@ html body.gacha-on #moveModal { z-index: 1650 !important; }                     
 .gc-scene .gc-bar::after { display: none; }
 .gc-scene .gc-crank.ready { animation: gcsGlow 1.1s ease-in-out infinite; }
 @keyframes gcsGlow { 50% { box-shadow: 0 0 0 6px #fff6a8, 0 0 26px 8px rgba(255, 240, 120, .9); } }
-.gc-scene .gc-crank-hint { left: 4px; right: auto; top: 140px; width: 94px; font-size: 13px; line-height: 1.35; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); word-break: keep-all; }
+.gc-scene .gc-crank-hint { left: 212px; right: auto; top: 66px; width: 72px; font-size: 15px; line-height: 1.35; white-space: pre-line; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); word-break: keep-all; }   /* 손잡이 오른쪽 빈 곳 (LED 안쪽 · 도련 10-31) */
 /* 캡슐 나오는 곳 */
 .gc-scene .gc-tray { position: absolute; left: 786px; top: 566px; width: 104px; height: 84px; place-items: center; }
 .gc-scene .gc-capsule { margin-top: 0; transform-origin: 50% 50%; scale: .85; }
