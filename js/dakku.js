@@ -122,7 +122,7 @@
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '문방구 캡슐기계': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
         '포춘카드': 'card', '꿈해몽': 'moon', '토정비결': 'scroll', '이름 궁합': 'hearts', '심리테스트': 'mind',
-        '인형방': 'doll', '인형극': 'dollshow', '오락실': 'joy', '명예의 전당': 'trophy', '익명 편지함': 'letter', '말랑달콤 모임방': 'people',
+        '인형방': 'doll', '인형극': 'dollshow', '오락실': 'joy', '명예의 전당': 'trophy', '익명 편지함': 'letter', '말랑달콤 다꾸러 모임방': 'people',
         '설정': 'gear', '건의함': 'letter', '다이어리 잠금': 'lock', '배경음악': 'music', '앱으로 설치하기': 'install'
     };
     const own = el => [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();

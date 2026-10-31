@@ -7,7 +7,7 @@
        받은 배경화면은 이 기기에 `malang_mywalls` 로 남겨 두고, 로그인할 때마다 서버 답(walls)으로 새로 맞춰요 (wlSetMine)
    - 목록 : '말랑달콤 사람들' 시트의 '배경화면' 탭 (말랑달콤사람들_앱스크립트.gs · 주소?action=walls · 로그인 없이 누구나)
        그림 · 미리보기 영상은 주인의 구글 드라이브에 있어요 (깃허브에는 올리지 않아요)
-       목록 카드 : 드라이브 그림(jpg)을 기기 안에 (📱 휴대폰 탭 = 휴대폰 · 💻 PC 탭 = 아이패드) · 누르면 크게 보기 · 움직이는 모습은 네이버 카페(말랑달콤 모임방)에서 홍보해요
+       목록 카드 : 드라이브 그림(jpg)을 기기 안에 (📱 휴대폰 탭 = 휴대폰 · 💻 PC 탭 = 아이패드) · 누르면 크게 보기 · 움직이는 모습은 네이버 카페(말랑달콤 다꾸러 모임방)에서 홍보해요
    - 다이어리를 열고 3초 뒤 · ☕ 카페를 열 때 목록을 미리 받아 둬요 (wlPrefetch) · 지난번 목록은 이 기기에 남겨 두고 열자마자 보여 줘요
    - 📖 설정 방법 : wallguide.html (사기 전에 내 기기에서 되는지 확인 · 채팅방에서 파일 보낼 때 이 주소도 함께)
    - 채팅방 주소 · QR 코드는 💗 저금통과 같아요 (an.txt · js/piggy.js 의 pigLoadChat · pigQr)
@@ -69,7 +69,7 @@
             box.innerHTML = `
               <div class="wl-hero">
                 <div class="wl-hero-t">✨ 매일 보는 화면을 말랑달콤하게</div>
-                <div class="wl-hero-s">움직이는 모습은 <a href="#" class="wl-link" onclick="goCafe(); return false;">👭 말랑달콤 모임방</a>에서 볼 수 있어요</div>
+                <div class="wl-hero-s">움직이는 모습은 <a href="#" class="wl-link" onclick="goCafe(); return false;">👭 말랑달콤 다꾸러 모임방</a>에서 볼 수 있어요</div>
                 <button type="button" class="btn wl-guide" onclick="wlGuide()">📖 내 기기에 설정하는 방법</button>
               </div>
               <div class="pg-tabs">
@@ -106,7 +106,7 @@
               <div class="wl-view-box ${w.kind}"><button type="button" class="x-only" onclick="wlUnview()" aria-label="닫기">✕</button>
                 <div class="wl-view-frame wl-dev ${w.kind}"><span class="wl-scr"><img src="${wlImg(w.img, WL_PX[w.kind === 'pc' ? 'pc' : 'phone'])}" alt="" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer" onerror="if(!this.dataset.b){this.dataset.b=1;this.src='${wlImg2(w.img, WL_PX[w.kind === 'pc' ? 'pc' : 'phone'])}'}"></span></div>
                 <div class="wl-view-t">${wlEsc(w.name)} <b>${wlMine[w.no] ? '✅ 내 배경화면' : wlWon(w.price)}</b></div>
-                <div class="wl-view-s">움직이는 모습은 <a href="#" class="wl-link" onclick="goCafe(); return false;">👭 말랑달콤 모임방</a>에서 볼 수 있어요</div>
+                <div class="wl-view-s">움직이는 모습은 <a href="#" class="wl-link" onclick="goCafe(); return false;">👭 말랑달콤 다꾸러 모임방</a>에서 볼 수 있어요</div>
                 <div class="wl-view-btns">
                   <button type="button" class="btn btn-primary pg-copy" onclick="wlUnview(); ${wlMine[w.no] ? 'wlLinkPop' : 'wlPick'}(${w.no})">${wlMine[w.no] ? '🎁 받기' : '💬 주문'}</button>
                 </div>
