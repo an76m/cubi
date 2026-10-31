@@ -254,7 +254,7 @@
         function openPodcast() { comingSoon('🎙️ 팟캐스트'); }
         function openAudiobook() { comingSoon('📖 오디오북'); }
         function openMusic() { comingSoon('🎧 음악듣기'); }      // AI로 만든 음악 목록 (툴바 🎵 배경음악과는 다른 기능)
-        function openRandomBox() { if (typeof openGacha === 'function') openGacha(); else comingSoon('🎁 랜덤박스'); }   // js/gacha.js
+        function openRandomBox() { if (typeof openGacha === 'function') openGacha(); else comingSoon('🎁 캡슐뽑기기계'); }   // js/gacha.js
 
         /* =====================================================================
            💌 건의함 : 작성한 내용을 구글 시트(Apps Script)로 전송

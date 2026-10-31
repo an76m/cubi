@@ -120,7 +120,7 @@
         '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '펫 키우기': 'paw',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
-        '출석 도장판': 'cal', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
+        '출석 도장판': 'cal', '캡슐뽑기기계': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
         '포춘카드': 'card', '꿈해몽': 'moon', '토정비결': 'scroll', '이름 궁합': 'hearts', '심리테스트': 'mind',
         '인형방': 'doll', '인형극': 'dollshow', '오락실': 'joy', '명예의 전당': 'trophy', '익명 편지함': 'letter', '말랑달콤 모임방': 'people',
         '설정': 'gear', '건의함': 'letter', '다이어리 잠금': 'lock', '배경음악': 'music', '앱으로 설치하기': 'install'
