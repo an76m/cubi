@@ -272,7 +272,7 @@ ${hearts}
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(nmCardSvg()))) return;
             const el = document.querySelector('#canvasArea .element-box:last-child'); if (el) el.style.width = '160px';
-            closeNameMatch();
+            closeNameMatch(); if (window.closeTarotRoom) closeTarotRoom();   // 🔮 타로카페에서 붙였으면 그 화면도 닫고 책상으로
         }
 
         function openNameMatch() {

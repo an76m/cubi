@@ -256,7 +256,7 @@ ${emo.slice(1).map((e, i) => `<text x="${side[i][0]}" y="${side[i][1]}" font-siz
         function dmStick() {
             if (!dm.last || !dm.last.hits.length || !dm.cardUrl) return;
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { closeDream(); showMsg('먼저 다이어리를 열어주세요!'); return; }
-            closeDream();
+            closeDream(); if (window.closeTarotRoom) closeTarotRoom();   // 🔮 타로카페에서 붙였으면 그 화면도 닫고 책상으로
             if (typeof addImage === 'function' && addImage(dm.cardUrl)) {
                 const box = document.querySelector('#canvasArea .element-box:last-child'); if (box) box.style.width = '170px';
             }

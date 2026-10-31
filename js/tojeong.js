@@ -300,7 +300,7 @@
         function tjStick() {
             if (!tj.last) return;
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { closeTojeong(); showMsg('먼저 다이어리를 열어주세요!'); return; }
-            closeTojeong();
+            closeTojeong(); if (window.closeTarotRoom) closeTarotRoom();   // 🔮 타로카페에서 붙였으면 그 화면도 닫고 책상으로
             if (typeof addImage === 'function' && addImage(tjSvgUrl(tjStickSvg(tj.last.g, tj.last.r)))) {
                 const box = document.querySelector('#canvasArea .element-box:last-child'); if (box) box.style.width = '230px';
             }

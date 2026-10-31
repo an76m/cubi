@@ -215,7 +215,7 @@
         function fcStick() {
             if (!fc.card || fc.card.bad) { return; }
             if (typeof addImage !== 'function') return;
-            closeFortuneCard();
+            closeFortuneCard(); if (window.closeTarotRoom) closeTarotRoom();   // 🔮 타로카페에서 붙였으면 그 화면도 닫고 책상으로
             addImage(fc.card.src);
         }
 
