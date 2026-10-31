@@ -48,3 +48,18 @@ body.tarot-on .desk-top-r { display: none; }
 @keyframes troSh { 0%, 55% { left: -300px; } 100% { left: 1200px; } }
 @keyframes troDust { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: .9; } 85% { opacity: .7; } 100% { opacity: 0; transform: translate(var(--x), -260px); } }
 @media (prefers-reduced-motion: reduce) { .tro-fx, .tro-fx * { animation: none !important; } .tro-tw, .tro-dust, .tro-sheen { display: none; } }
+
+/* 🚪 타로카페 문 (도련 10-31 · 기본상품 샵 들어갈 때처럼 · js/tarotroom.js troDoor) : 문 → 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 */
+.tro-door { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #241a3a; }
+.tro-door.on { display: block; animation: troDoorIn .35s ease; }
+.tro-door.leave { animation: troDoorOut .4s ease forwards; }
+.tro-door-in { position: absolute; inset: 0; }
+.tro-door-in img { position: absolute; user-select: none; -webkit-user-drag: none; }
+.tro-door-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;   /* 보랏빛 · 금빛 (그림 색) */
+    background: radial-gradient(circle at 50% 38%, #fff1c9 0, #e9c27a 12%, #9b6fc9 34%, #4a2f7a 62%, #241a3a 88%); }
+.tro-door-sign { position: absolute; translate: -50% -50%; white-space: nowrap; pointer-events: none; font-family: 'Song Myung', 'Nanum Myeongjo', serif; font-weight: 400; letter-spacing: .12em;
+    color: #f1cf86; text-shadow: 0 2px 0 #3a2550, 0 0 18px rgba(241, 207, 134, .65); }
+.tro-door.enter .tro-door-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
+.tro-door.enter .tro-door-in::after { transition: opacity .8s ease .45s; opacity: 1; }
+.tro-door.enter .tro-door-sign { transition: opacity .3s ease; opacity: 0; }
+@keyframes troDoorIn { from { opacity: 0; } } @keyframes troDoorOut { to { opacity: 0; } }

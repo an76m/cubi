@@ -56,9 +56,30 @@
             const s = Math.min(innerWidth / TRO_W, innerHeight / TRO_H);
             st.style.transform = `translate(${(innerWidth - TRO_W * s) / 2}px, ${(innerHeight - TRO_H * s) / 2}px) scale(${s})`;
         }
+        /* 🚪 타로카페 문 (도련 10-31 · 기본상품 샵 들어갈 때처럼) : 보라 나무문(img/tarot-door.webp) 이 화면을 채우고 → 🔔 스르릉~ (✨ 연출 소리)
+           → 둥근 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
+        const TRO_DOOR = { cx: 836, cy: 290, sy: 668 };                             // 달 창 가운데 · 문 위 '타로카페' 글자 자리 (그림 px)
+        let troDoorBusy = false;
+        function troDoorFit(d) {
+            const s = Math.max(innerWidth / TRO_W, innerHeight / TRO_H), x = (innerWidth - TRO_W * s) / 2, y = (innerHeight - TRO_H * s) / 2;
+            Object.assign(d.querySelector('img').style, { width: TRO_W * s + 'px', height: TRO_H * s + 'px', left: x + 'px', top: y + 'px' });
+            Object.assign(d.querySelector('.tro-door-sign').style, { left: x + TRO_DOOR.cx * s + 'px', top: y + TRO_DOOR.sy * s + 'px', fontSize: 64 * s + 'px' });
+            d.querySelector('.tro-door-in').style.transformOrigin = `${x + TRO_DOOR.cx * s}px ${y + TRO_DOOR.cy * s}px`;
+        }
+        function troDoor() {
+            if (troDoorBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            let d = troq('troDoor');
+            if (!d) { d = document.createElement('div'); d.id = 'troDoor'; d.className = 'tro-door'; d.innerHTML = '<div class="tro-door-in"><img src="img/tarot-door.webp?v=20261009-1024" alt="" draggable="false"><div class="tro-door-sign">✦ 타로카페 ✦</div></div>'; document.body.appendChild(d); }
+            troDoorBusy = true; troDoorFit(d);
+            d.classList.remove('enter', 'leave'); d.classList.add('on');
+            const go = () => { if (window.sndTarotDoor) sndTarotDoor(); d.classList.add('enter'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'enter', 'leave'); troDoorBusy = false; }, 400); }, 1700); };
+            const img = d.querySelector('img'), start = () => setTimeout(go, 750);   // 문을 잠깐 보여 주고
+            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        }
         function openTarotRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.deskLeave) deskLeave();                                   // 달력 · 우체통에 있었으면 떠나요
+            troDoor();                                                           // 🚪 문을 지나 들어가요 (방은 문 뒤에서 미리 열어 둬요)
             const el = troBuild();
             troFit(); el.classList.add('show'); document.body.classList.add('cal-on', 'tarot-on');   // cal-on = 장소에 있어요 (이동 창 · 책상 버튼 숨김)
         }

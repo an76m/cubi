@@ -86,6 +86,18 @@
                 ns.buffer = buf; ng.gain.value = a; ns.connect(ng).connect(bus); ns.start(t);
             });
         }
+        /* 🔮 타로카페 문 '스르릉~' (도련 10-31 · 신비한 풍경 : 높은 방울 다섯이 차례로 · 길게 남는 울림 · ✨ 연출 소리를 끄면 조용히) */
+        function sndTarotDoor() {
+            const ac = sndFx(); if (!ac) return;
+            const t0 = ac.currentTime + .03, bus = ac.createGain(); bus.gain.value = .09; bus.connect(snd.out);
+            const dl = ac.createDelay(1), fb = ac.createGain(); dl.delayTime.value = .27; fb.gain.value = .35; bus.connect(dl).connect(fb).connect(dl); fb.connect(snd.out);   // 길게 남는 울림
+            [1760, 1318.5, 1568, 2093, 2637].forEach((f, i) => {
+                const t = t0 + i * .13, o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain(), g2 = ac.createGain();
+                o.frequency.value = f; o2.frequency.value = f * 2.76; g2.gain.value = .18;
+                g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.9 - i * .1, t + .004); g.gain.setTargetAtTime(0, t + .004, .5);
+                o.connect(g); o2.connect(g2).connect(g); g.connect(bus); o.start(t); o2.start(t); o.stop(t + 2.4); o2.stop(t + 2.4);
+            });
+        }
         /* 🛍️ 상품을 담았어요 '띠링~' (도련 10-29 · 소리 시안 C 의 방울 두 번만) : 1760 → 2349 Hz · 배음 2 · 3 배 · 0.18초쯤 스르르 */
         function sndBag() {
             const ac = sndFx(); if (!ac) return;
@@ -100,7 +112,7 @@
             });
         }
         window.sndBag = sndBag;
-        window.sndShopBell = sndShopBell; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
+        window.sndShopBell = sndShopBell; window.sndTarotDoor = sndTarotDoor; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
 
         /* ---------- 🔊 연출 소리 켜고 끄기 (연출 화면의 버튼 · 설정 공용) ---------- */
         function sndToggleFx() {
