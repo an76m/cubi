@@ -370,7 +370,10 @@
         }
         window.deskMoveOpen = deskMoveOpen;
         function deskLeave() { if (window.closeCalRoom) closeCalRoom(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
-        function deskGoRoom() { if (window.shopSceneOn && shopSceneOn()) shopSceneClose(); else deskLeave(); }   // 🚪 내 방 = 가게 · 달력에서 책상으로
+        function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
+            if (window.shopSceneOn && shopSceneOn()) { shopSceneClose(); return; }
+            if (window.roomGo) roomGo(deskLeave); else deskLeave();
+        }
         window.deskLeave = deskLeave; window.deskGoRoom = deskGoRoom;
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;

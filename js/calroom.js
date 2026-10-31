@@ -102,7 +102,7 @@
             el.classList.remove('show'); document.body.classList.remove('cal-on');
             crGiveBack();
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && crOn() && !(crq('atFlipWrap') && !crq('atFlipWrap').hidden) && !document.querySelector('.modal[style*="flex"]')) closeCalRoom(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && crOn() && !(crq('atFlipWrap') && !crq('atFlipWrap').hidden) && !document.querySelector('.modal[style*="flex"]')) { if (window.deskGoRoom) deskGoRoom(); else closeCalRoom(); } });   // Esc = 🚪 내 방으로 (문 연출)
         window.openCalRoom = openCalRoom; window.closeCalRoom = closeCalRoom; window.crMove = crMove; window.crToggle = crToggle; window.crPick = crPick;
         window.calRoomUse = () => Math.min(innerWidth, innerHeight) >= 600;      // 💻 📲 만 (📱 폰 = 예전 카페 칸)
 

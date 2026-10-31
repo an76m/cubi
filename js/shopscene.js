@@ -50,12 +50,30 @@
             door.style.width = DOOR_W * D.s + 'px'; door.style.height = DOOR_H * D.s + 'px'; door.style.left = D.x + 'px'; door.style.top = D.y + 'px';
             sign.style.left = (D.x + SHOP_SIGN.cx * D.s) + 'px'; sign.style.top = (D.y + SHOP_SIGN.cy * D.s) + 'px';
             sign.style.width = SHOP_SIGN.w * D.s + 'px'; sign.style.height = SHOP_SIGN.h * D.s + 'px'; sign.style.fontSize = (SHOP_SIGN.h * D.s * .34) + 'px';   // '기본상품 샵' 다섯 글자가 판 안에 넉넉히 (도련 10-28)
-            const hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');   // 🚪 내 방 문 (같은 크기 그림)
+            homeFit(el);
+            el.querySelector('.shop-door').style.transformOrigin = `${D.x + SHOP_SIGN.cx * D.s}px ${D.y + 560 * D.s}px`;   // 문 손잡이 쪽으로 다가가요
+        }
+        function homeFit(el) {                                                  // 🚪 내 방 문 (가게 · 다른 장소에서 돌아올 때 같은 문 · roomGo)
+            const D = shopCover(DOOR_W, DOOR_H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
             hm.style.width = DOOR_W * D.s + 'px'; hm.style.height = DOOR_H * D.s + 'px'; hm.style.left = D.x + 'px'; hm.style.top = D.y + 'px';
             hs.style.left = (D.x + HOME_SIGN.cx * D.s) + 'px'; hs.style.top = (D.y + HOME_SIGN.cy * D.s) + 'px'; hs.style.width = HOME_SIGN.w * D.s + 'px'; hs.style.height = HOME_SIGN.h * D.s + 'px'; hs.style.fontSize = (HOME_SIGN.h * D.s * .36) + 'px';
             el.querySelector('.shop-home').style.transformOrigin = `${D.x + HOME_SIGN.cx * D.s}px ${D.y + 600 * D.s}px`;
-            el.querySelector('.shop-door').style.transformOrigin = `${D.x + SHOP_SIGN.cx * D.s}px ${D.y + 560 * D.s}px`;   // 문 손잡이 쪽으로 다가가요
         }
+        /* 🚪 다른 장소 → 내 방 (도련 10-31 : 장소를 옮기는 느낌 · 📅 달력 … 어디서든 가게에서 돌아올 때와 같은 연출)
+           내 방 문이 그 장소 위로 스르르 → (문 뒤에서 그 장소를 닫아요 = leave) → 문 쪽으로 다가가며 연핑크 → 책상 */
+        let roomBusy = false;
+        function roomGo(leave) {
+            if (roomBusy) return;
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { leave(); return; }
+            let el = document.getElementById('roomGo');
+            if (!el) { el = document.createElement('div'); el.id = 'roomGo'; el.className = 'shop-scene room-go'; el.innerHTML = `<div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>`; document.body.appendChild(el); }
+            roomBusy = true; homeFit(el);
+            el.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('home')));
+            setTimeout(leave, 550);
+            setTimeout(() => el.classList.add('home-go'), 1000);
+            setTimeout(() => { el.classList.add('leave'); setTimeout(() => { el.classList.remove('on', 'home', 'home-go', 'leave'); roomBusy = false; }, 380); }, 2300);
+        }
+        window.roomGo = roomGo;
         /* 🚪 → 🩷 → 🏪 */
         const shopWide = () => document.documentElement.classList.contains('desk-on');
         function shopSceneOpen() {

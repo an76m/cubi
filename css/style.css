@@ -4474,6 +4474,8 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .shop-scene { display: none; position: fixed; inset: 0; z-index: 990; overflow: hidden; background: #fadfe8; }
 .shop-scene.on { display: block; animation: shopIn .35s ease; }
 .shop-scene.leave { animation: shopOut .38s ease forwards; }
+#roomGo { z-index: 1700; background: transparent; pointer-events: auto; }   /* 🚪 다른 장소 → 내 방 문 (js/shopscene.js roomGo · 📅 달력 1500 보다 위) */
+#roomGo.on { animation: none; }
 @keyframes shopIn { from { opacity: 0; } } @keyframes shopOut { to { opacity: 0; } }
 .shop-in, .shop-door { position: absolute; inset: 0; }
 .shop-room, .shop-door img { position: absolute; user-select: none; -webkit-user-drag: none; }
