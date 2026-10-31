@@ -52,11 +52,11 @@
             } catch (e) { return { ok: false, error: 'network' }; }
         }
         const GC_ERR = {
-            setup: '🎁 캡슐뽑기기계를 준비하고 있어요. 조금만 기다려 주세요!',
+            setup: '🎁 문방구 캡슐기계를 준비하고 있어요. 조금만 기다려 주세요!',
             login: '☁ 구글 계정으로 로그인하면 하루 한 번 돌릴 수 있어요.',
             auth: '☁ 로그인 정보를 확인하지 못했어요. 다이어리를 새로고침해 주세요.',
-            network: '📶 캡슐뽑기기계 서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.',
-            server: '⚠ 캡슐뽑기기계 서버에 문제가 생겼어요. 잠시 후 다시 해 주세요.',
+            network: '📶 문방구 캡슐기계 서버에 연결하지 못했어요. 잠시 후 다시 해 주세요.',
+            server: '⚠ 문방구 캡슐기계 서버에 문제가 생겼어요. 잠시 후 다시 해 주세요.',
             nocoin: '🪙 코인이 없어요. 📅 출석 도장판에 숨은 코인을 찾아보세요!'
         };
 
@@ -84,7 +84,7 @@
               <ol>
                 <li><b>🚪 이동 → 📅 벽걸이 달력 → 출석 도장</b>에서 하루 한 번 도장을 찍어요</li>
                 <li>한 달에 몇 번, 도장 밑에 숨은 <b>🪙 코인</b>이 나와요</li>
-                <li><b>🚪 이동 → 🎁 캡슐뽑기기계</b>에 코인을 넣고 캡슐을 뽑아요</li>
+                <li><b>🚪 이동 → 🎁 문방구 캡슐기계</b>에 코인을 넣고 캡슐을 뽑아요</li>
                 <li>나온 스티커는 <b>30일 동안</b> 여기 <b>🎁 캡슐 스티커</b> 칸에서 붙일 수 있어요</li>
               </ol>
               <button type="button" class="btn cs-guide-go" onclick="capsGoAttend()">📅 출석 도장 찍으러 가기</button>
@@ -144,7 +144,7 @@
             el.innerHTML = `
               <div class="gc-wrap">
                 <div class="gc-head">
-                  <div class="gc-title">🎁 캡슐뽑기기계</div>
+                  <div class="gc-title">🎁 문방구 캡슐기계</div>
                   <span class="gc-chip" id="gcChip"><span class="gc-coin-ico">C</span><span id="gcChipText">코인 확인 중…</span></span>
                   <button class="gc-x" type="button" onclick="closeGacha()" aria-label="닫기">✕</button>
                 </div>

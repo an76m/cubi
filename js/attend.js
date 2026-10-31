@@ -85,7 +85,7 @@
                   <div><small>모은 도장</small><b id="atTotal">0</b>개</div>
                 </div>
                 <button class="at-go" type="button" id="atGo" onclick="atPress()"></button>
-                <p class="at-tip">🪙 달력 어딘가에 <b>코인</b>이 숨어 있어요. 도장을 찍으면 그날 칸이 뒤집혀요. 코인이 나오면 🎁 캡슐뽑기기계에서 캡슐을 뽑을 수 있어요!<br>숨은 날에 도장을 못 찍으면 그 코인은 사라져요.</p>
+                <p class="at-tip">🪙 달력 어딘가에 <b>코인</b>이 숨어 있어요. 도장을 찍으면 그날 칸이 뒤집혀요. 코인이 나오면 🎁 문방구 캡슐기계에서 캡슐을 뽑을 수 있어요!<br>숨은 날에 도장을 못 찍으면 그 코인은 사라져요.</p>
               </div>
               <div class="at-flip-wrap" id="atFlipWrap" hidden>
                 <div class="at-flip-stage">
@@ -175,7 +175,7 @@
             if (hit) {
                 atSfx.win(); atConfetti();
                 atq('atFlipMsg').innerHTML = '🎉 <b>숨은 코인</b>을 찾았어요!';
-                atq('atFlipBtns').innerHTML = `<button class="at-go" type="button" onclick="atToBox()">🎁 캡슐뽑기기계에서 캡슐 뽑기</button>
+                atq('atFlipBtns').innerHTML = `<button class="at-go" type="button" onclick="atToBox()">🎁 문방구 캡슐기계에서 캡슐 뽑기</button>
                     <button class="at-pop-later" type="button" onclick="atFlipClose()">나중에 뽑을게요</button>`;
             } else {
                 atSfx.miss();

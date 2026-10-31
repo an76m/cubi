@@ -123,7 +123,7 @@
         function sndRenderSettings() {
             const box = document.getElementById('sndSwitches'); if (!box) return;
             const o = sndPref();
-            box.innerHTML = `<label class="show-row"><span><b>✨ 연출 소리</b><small>운세 · 테스트 · 궁합 · 편지 · 캡슐뽑기기계 · 오락실 · 가게 종소리</small></span><input type="checkbox" class="show-sw" ${o.fx ? 'checked' : ''} onchange="sndSet('fx', this.checked); if (this.checked) sndChime()"></label>`
+            box.innerHTML = `<label class="show-row"><span><b>✨ 연출 소리</b><small>운세 · 테스트 · 궁합 · 편지 · 문방구 캡슐기계 · 오락실 · 가게 종소리</small></span><input type="checkbox" class="show-sw" ${o.fx ? 'checked' : ''} onchange="sndSet('fx', this.checked); if (this.checked) sndChime()"></label>`
                 + `<div class="snd-vol"><span>🔈</span><input type="range" min="0" max="100" step="5" value="${o.vol}" oninput="sndVol(this.value)" onchange="sndVol(this.value, true)" aria-label="연출 소리 크기"><span>🔊</span><b id="sndVolNum">${o.vol}</b></div>`;
         }
         function sndVol(v, done) {
