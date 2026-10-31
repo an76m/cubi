@@ -232,6 +232,7 @@
         function svcOpenCat(id) {
             if (id === 'make') return openDollSoon();                         // 🧸 인형방 = 준비중 (어디서 열어도 · 10-23 도련)
             if (id === 'daily' && window.openCalRoom && calRoomUse()) return openCalRoom();   // 📅 💻 📲 = 달력 한 장 (출석 · 생리 · D-day · 도련 10-31 · js/calroom.js)
+            if (id === 'game' && window.openArcRoom && calRoomUse()) return openArcRoom();   // 🕹️ 💻 📲 = 뿅뿅오락실 장소 (화면마다 게임 · 도련 11-01 · js/arcroom.js)
             if (id === 'fortune' && window.openTarotRoom && calRoomUse()) return openTarotRoom();   // 🔮 💻 📲 = 타로카페 (카드 다섯 장 = 메뉴 · 도련 10-31 · js/tarotroom.js)
             if (id === 'together' && window.openPostRoom && calRoomUse()) return openPostRoom();   // 📮 💻 📲 = 별밤 우체통 (익명 편지함 · 건의함 · 도련 10-31 · js/postroom.js)
             const panel = document.getElementById('svcPanel-' + id); if (!panel) return;

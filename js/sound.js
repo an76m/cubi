@@ -87,6 +87,16 @@
             });
         }
         /* 🔮 타로카페 문 '스르릉~' (도련 10-31 · 신비한 풍경 : 높은 방울 다섯이 차례로 · 길게 남는 울림 · ✨ 연출 소리를 끄면 조용히) */
+        /* 🕹️ 오락실 문 '띠리링~' (도련 11-01 · 옛날 오락기 코인 소리 : 네모 소리 B5 → E6 + 짧은 올림 · ✨ 연출 소리를 끄면 조용히) */
+        function sndArcadeDoor() {
+            const ac = sndFx(); if (!ac) return;
+            const t0 = ac.currentTime + .03, bus = ac.createGain(); bus.gain.value = .05; bus.connect(snd.out);
+            [[988, 0, .08], [1319, .08, .32], [1568, .5, .07], [2093, .58, .07], [2637, .66, .2]].forEach(([f, at, d]) => {
+                const o = ac.createOscillator(), g = ac.createGain(), t = t0 + at; o.type = 'square'; o.frequency.value = f;
+                g.gain.setValueAtTime(1, t); g.gain.setValueAtTime(1, t + d * .7); g.gain.linearRampToValueAtTime(0, t + d);
+                o.connect(g).connect(bus); o.start(t); o.stop(t + d + .02);
+            });
+        }
         function sndTarotDoor() {
             const ac = sndFx(); if (!ac) return;
             const t0 = ac.currentTime + .03, bus = ac.createGain(); bus.gain.value = .09; bus.connect(snd.out);
@@ -112,7 +122,7 @@
             });
         }
         window.sndBag = sndBag;
-        window.sndShopBell = sndShopBell; window.sndTarotDoor = sndTarotDoor; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
+        window.sndShopBell = sndShopBell; window.sndTarotDoor = sndTarotDoor; window.sndArcadeDoor = sndArcadeDoor; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
 
         /* ---------- 🔊 연출 소리 켜고 끄기 (연출 화면의 버튼 · 설정 공용) ---------- */
         function sndToggleFx() {

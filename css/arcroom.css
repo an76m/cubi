@@ -1,0 +1,58 @@
+/* 🕹️ 뿅뿅오락실 장소 (도련 11-01 · js/arcroom.js) : 💻 📲 만 · 그림 1672 × 941 화면 꽉 · 오락기 화면마다 게임 */
+.aro-room { position: fixed; inset: 0; z-index: 1500; display: none; overflow: hidden; background: #f7c9d6; font-family: inherit; }
+.aro-room.show { display: block; animation: crIn .25s ease both; }
+.aro-room button { font-family: inherit; cursor: pointer; }
+body.arc-on .desk-top-r { display: none; }
+.aro-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
+.aro-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; }
+.aro-ttl { position: absolute; left: 18px; top: 14px; z-index: 2; padding: 6px 18px; border-radius: 14px; background: #fff; border: 2.5px solid #e88fb0; color: #d94f7a; font-weight: 900; font-size: 22px; letter-spacing: 2px; box-shadow: 3px 3px 0 #f6c6d6; pointer-events: none; }
+.aro-go { position: absolute; right: 18px; top: 14px; z-index: 2; transform: scale(1.15); transform-origin: 100% 0; }
+
+/* 오락기 화면 (200 × 150 → 화면 네 모서리) */
+.aro-scr { position: absolute; left: 0; top: 0; width: 200px; height: 150px; padding: 0; border: 0; transform-origin: 0 0; overflow: hidden; border-radius: 8px;
+    background: radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--c) 60%, #2a1438), #1c0f2a 86%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, .65); animation: aroFlick 5s ease-in-out infinite; }
+.aro-scr::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(transparent 0 3px, rgba(0, 0, 0, .2) 3px 4px); pointer-events: none; }   /* 옛날 화면 가로줄 */
+.aro-scr::after { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, .22), transparent 42%); pointer-events: none; }   /* 유리 반사 */
+.aro-scr i { font-style: normal; font-size: 60px; line-height: 1; filter: drop-shadow(0 0 10px var(--c)); animation: aroBob 2.4s ease-in-out infinite; }
+.aro-scr b { color: #fff; font-size: 23px; letter-spacing: 1px; text-shadow: 0 0 8px var(--c), 0 2px 0 #000; white-space: nowrap; }
+.aro-scr[data-i]:hover { filter: brightness(1.3); box-shadow: inset 0 0 0 5px #ffe36b, inset 0 0 20px rgba(0, 0, 0, .4); }
+.aro-scr.deco { background: #1c0f2a; animation: none; }
+.aro-scr.deco b { font-family: 'Press Start 2P', monospace; font-size: 15px; color: #ffe36b; text-shadow: 0 0 8px #ffb000; animation: aroBlink 1.2s steps(1) infinite; }
+.aro-scr:nth-of-type(3n) { animation-delay: -1.7s; } .aro-scr:nth-of-type(3n+1) { animation-delay: -3.1s; }
+.aro-scr:nth-of-type(2n) i { animation-delay: -1.2s; }
+
+/* 간판 · 설명 */
+.aro-sign { position: absolute; padding: 6px 16px; border-radius: 14px; background: #fff; border: 2.5px solid #e88fb0; color: #d94f7a; font-weight: 900; font-size: 19px; box-shadow: 3px 4px 0 #f6c6d6; white-space: nowrap; pointer-events: none; }
+.aro-sign small { margin-left: 6px; color: #b07a90; font-size: 12px; font-weight: 700; }
+.aro-tip { position: absolute; z-index: 3; translate: -50% -100%; padding: 10px 18px; border-radius: 16px; background: #fff; border: 2.5px solid #e88fb0; box-shadow: 3px 4px 0 #f6c6d6; text-align: center; pointer-events: none; white-space: nowrap; color: #6a3a52; }
+.aro-tip[hidden] { display: none; }
+.aro-tip b { display: block; font-size: 20px; color: #d94f7a; } .aro-tip small { display: block; font-size: 13px; margin: 2px 0 6px; }
+.aro-tip em { display: inline-block; font-style: normal; padding: 3px 14px; border-radius: 999px; background: #ffe36b; font-weight: 900; font-size: 13px; color: #6a4a00; }
+
+/* ✨ 연출 */
+.aro-fx { position: absolute; inset: 0; pointer-events: none; }
+.aro-glow { background: radial-gradient(ellipse at 50% 0%, rgba(255, 220, 240, .45), transparent 55%), radial-gradient(ellipse at 50% 60%, transparent 60%, rgba(214, 90, 140, .22)); animation: aroPulse 6s ease-in-out infinite; }
+.aro-px { position: absolute; font-style: normal; font-size: 18px; font-family: 'Press Start 2P', monospace; text-shadow: 0 0 8px currentColor; opacity: 0; animation: aroUp var(--d) linear var(--l) infinite; }
+.aro-tw { position: absolute; width: 16px; height: 16px; opacity: 0; animation: aroTw var(--d) ease-in-out var(--l) infinite; }
+.aro-tw::before, .aro-tw::after { content: ''; position: absolute; left: 50%; top: 50%; width: 16px; height: 2px; margin: -1px -8px; background: linear-gradient(90deg, transparent, #fff, transparent); }
+.aro-tw::after { transform: rotate(90deg); }
+@keyframes aroFlick { 0%, 100% { filter: brightness(1); } 47% { filter: brightness(1); } 50% { filter: brightness(1.18); } 53% { filter: brightness(.95); } }
+@keyframes aroBob { 50% { transform: translateY(-6px); } }
+@keyframes aroBlink { 50% { opacity: 0; } }
+@keyframes aroPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes aroUp { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: .9; } 85% { opacity: .6; } 100% { opacity: 0; transform: translate(var(--x), -280px); } }
+@keyframes aroTw { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .aro-room *, .aro-room *::before, .aro-room *::after { animation: none !important; } .aro-px, .aro-tw { display: none; } }
+
+/* 🚪 오락실 문 (js/arcroom.js aroDoor) */
+.aro-door { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #fbd9e3; }
+.aro-door.on { display: block; animation: troDoorIn .35s ease; }
+.aro-door.leave { animation: troDoorOut .4s ease forwards; }
+.aro-door-in { position: absolute; inset: 0; }
+.aro-door-in img { position: absolute; user-select: none; -webkit-user-drag: none; }
+.aro-door-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 62%, #fffbe6 0, #ffe9a8 14%, #ffc4dc 38%, #f7a9c6 66%, #f5b8cd 90%); }
+.aro-door-sign { position: absolute; translate: -50% -50%; white-space: nowrap; pointer-events: none; padding: .15em .7em; border-radius: .5em; background: #fff; border: .07em solid #e88fb0; color: #d94f7a; font-family: 'Jua', sans-serif; letter-spacing: .08em; box-shadow: 0 .08em 0 #f6c6d6; }
+.aro-door.enter .aro-door-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
+.aro-door.enter .aro-door-in::after { transition: opacity .8s ease .45s; opacity: 1; }
+.aro-door.enter .aro-door-sign { transition: opacity .3s ease; opacity: 0; }

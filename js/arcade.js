@@ -1001,12 +1001,18 @@
         }
         function closeArcade() {
             arStopLoop();
-            ar.open = false; ar.game = null; ar.inst = null; ar.state = 'lobby';
+            ar.open = false; ar.game = null; ar.inst = null; ar.state = 'lobby'; ar.room = false;
             const r = aq('arcadeRoom'); if (r) r.classList.remove('show');
             document.body.classList.remove('fc-lock');
         }
+        /* 🕹️ 오락실 장소에서 바로 한 게임 (도련 11-01 · js/arcroom.js) : 오락실 창을 열고 그 게임으로 · '오락실로' · ✕ · Esc = 창을 닫고 오락실 장소 그대로 */
+        function arcadePlay(id) {
+            const g = ARCADE_GAMES.find(x => x.id === id); if (!g) return;
+            openArcade(); ar.room = true; arOpenGame(g);
+        }
+        window.arcadePlay = arcadePlay; window.arcadeGames = () => ARCADE_GAMES.map(g => ({ id: g.id, name: g.name, icon: g.icon, color: g.color, desc: g.desc, group: g.group || 'arcade' }));
         function arBackToLobby() {
-            arStopLoop();
+            if (ar.room) { closeArcade(); return; }                              // 🕹️ 장소에서 연 게임 = 장소로 돌아가요
             ar.game = null; ar.inst = null; ar.state = 'lobby';
             aq('arPlay').hidden = true; aq('arLobby').hidden = false;
             document.querySelectorAll('[data-best]').forEach(s => { const v = ar.best[s.dataset.best]; s.textContent = v ? 'BEST ' + v : 'NEW'; });
