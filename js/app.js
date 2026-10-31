@@ -147,7 +147,7 @@ let fontList = [
             yellow: { bg: '#fff4d6', cover: 'linear-gradient(135deg, #ffcf6b, #fff1c4)', page: '#fffaeb', border: '#f5d58a', accent: '#e39a1f' }
         };
 
-        window.onload = () => {
+        window.onload = () => oneReady(() => {                                  // 🔒 이 창이 다이어리를 맡았을 때만 시작 (한 기기에 하나 · js/onlyone.js)
             setupCurlDrag();
             loadCustomSkins();
             setupFontSelects();
@@ -157,7 +157,7 @@ let fontList = [
             setupPageMove();
             initDrive();
             loadCoverNotice();
-        };
+        });
 
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */

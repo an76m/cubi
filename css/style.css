@@ -422,6 +422,7 @@
         /* 💌 전송 중… 창 */
         .sending-overlay { position: fixed; inset: 0; z-index: 2900; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.35); }
         .sending-overlay[hidden] { display: none; }
+        .sending-overlay.one-block { z-index: 10000; background: #ffe6f0; }   /* 🔒 다른 창에서 이미 열려 있어요 (js/onlyone.js) = 화면 전체를 덮어요 */
         .sending-card { background: #fff; border: 3px solid var(--border-color); border-radius: 20px; padding: 22px 20px 18px; width: min(85vw, 300px);
             text-align: center; box-shadow: 0 12px 30px rgba(0,0,0,.22); animation: winPop .3s cubic-bezier(.2,.9,.3,1.3); }
         .sending-spinner { width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%; border: 5px solid var(--border-color); border-top-color: var(--primary-accent); animation: sendSpin .9s linear infinite; }
