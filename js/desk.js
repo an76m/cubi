@@ -221,7 +221,8 @@
         const DK_HIC = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', leaf: '📃', emoji: '😀', memo: '📝', gd: '✂️', tool: '📔', bg: '🌈', desk: '🪑' };
         const DK_HSAME = { tool: 'skin', gd: 'gd' };                             // 같은 창이 열리는 상품 = 기본 기능으로 (📔 다이어리 보관소 · ✏️ 문구함)
         const dkWinOfKind = k => DK_HSAME[k] || 'h:' + k;
-        const dkWins = () => DK_FNS.map(f => f.concat('fn')).concat(Object.keys(DKH_NAMES).filter(k => !DK_HSAME[k]).map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k] || '🎁', 'h']));
+        const DK_FN_OFF = ['cafe', 'shop', 'edit'];                              // 🔗 기능 연결 목록에서 뺀 것 (도련 11-01 · ☕ 카페 · 🏪 기본상품 샵 · 🛠 책상 꾸미기 = 이동 · 오른쪽 위 메뉴로)
+        const dkWins = () => DK_FNS.filter(f => !DK_FN_OFF.includes(f[0])).map(f => f.concat('fn')).concat(Object.keys(DKH_NAMES).filter(k => !DK_HSAME[k]).map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k] || '🎁', 'h']));
         const dkWin = id => (id && dkWins().find(x => x[0] === id)) || null;
         window.dkWin = dkWin;
         function deskFnMap() {                                                    // 연결한 기능 → 책상 위 소품 (소품마다 하나)
@@ -229,7 +230,7 @@
             const v = typeof prefGet === 'function' ? prefGet(DK_FN_KEY, DK_FN_LOCAL) : null, got = v && typeof v === 'object' ? v : {};
             const ids = dkOnDesk().map(o => o.u), used = new Set(), m = {};
             Object.keys(got).forEach(k => { const u = got[k]; if (k.startsWith('h:') && dkWin(k) && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 🛍️ 상품 창 (저절로 붙이지 않아요)
-            DK_FNS.forEach(([k]) => { const u = got[k]; if (u && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 다꾸러가 연결한 것만 (처음엔 아무것도 · 저절로 붙이지 않아요 · 도련 10-31)
+            DK_FNS.forEach(([k]) => { if (DK_FN_OFF.includes(k)) return; const u = got[k]; if (u && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 다꾸러가 연결한 것만 (처음엔 아무것도 · 저절로 붙이지 않아요 · 도련 10-31)
             return m;
         }
         const dkFnOf = u => { const m = deskFnMap(); return Object.keys(m).find(k => m[k] === u) || ''; };
