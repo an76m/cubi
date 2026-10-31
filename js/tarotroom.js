@@ -15,6 +15,18 @@
             ['🦉 이름 궁합', '둘의 이름으로', () => window.openNameMatch ? openNameMatch() : comingSoon('💕 이름 궁합'), '1108,658 1282,662 1338,858 1148,850', [1236, 862]]
         ];
         const troq = id => document.getElementById(id);
+        /* ✨ 신비 연출 (도련 10-31 · 시안에서 고른 것 · 배경음악 없음) : 별 반짝 · 달빛 · 촛불 일렁임 · 수정구슬 소용돌이 · 빛가루 · 카드 금빛 스침 · 가장자리 어둠 숨쉬기
+           모두 CSS 움직임 (그림 위에 얹기만 · 누르는 것 없음) · 동작 줄이기 설정이면 멈춰요 (css/tarotroom.css) */
+        function troFx() {
+            const R = (a, b) => a + Math.random() * (b - a);
+            let tw = '', du = '';
+            for (let i = 0; i < 46; i++) { const x = R(0, 1672), y = R(0, 560); if (x > 250 && x < 460 && y > 150) continue; tw += `<i class="tro-tw${Math.random() < .3 ? ' x' : ''}" style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;--d:${R(2, 5).toFixed(1)}s;--l:-${R(0, 5).toFixed(1)}s"></i>`; }
+            for (let i = 0; i < 34; i++) du += `<i class="tro-dust" style="left:${R(150, 1550).toFixed(0)}px;top:${R(500, 930).toFixed(0)}px;--d:${R(7, 13).toFixed(1)}s;--l:-${R(0, 13).toFixed(1)}s;--x:${R(-60, 60).toFixed(0)}px"></i>`;
+            return `<div class="tro-fx tro-vig"></div><div class="tro-fx tro-moon"></div><div class="tro-fx tro-stars">${tw}</div>
+                <div class="tro-fx tro-cglow"></div><div class="tro-fx tro-flame"></div>
+                <div class="tro-fx tro-ball"><i></i><b></b></div>
+                <div class="tro-fx tro-sheen"><i></i></div><div class="tro-fx tro-dusts">${du}</div>`;
+        }
         const troOn = () => !!troq('tarotRoom') && troq('tarotRoom').classList.contains('show');
 
         function troBuild() {
@@ -22,6 +34,7 @@
             el = document.createElement('div'); el.id = 'tarotRoom'; el.className = 'tro-room';
             el.innerHTML = `<img class="tro-blur" src="img/tarot-room.webp?v=20261009-1018" alt="" draggable="false">
                 <div class="tro-stage" id="trStage"><img class="tro-bg" src="img/tarot-room.webp?v=20261009-1018" alt="" draggable="false">
+                    ${troFx()}
                     <div class="tro-ttl">🔮 타로카페<small>오늘은 어떤 카드를 뒤집어 볼까요?</small></div>
                     <svg class="tro-cards" viewBox="0 0 ${TRO_W} ${TRO_H}" aria-hidden="true">${TRO_CARDS.map((c, i) => `<polygon class="tro-card" data-i="${i}" points="${c[3]}"/>`).join('')}</svg>
                     ${TRO_CARDS.map((c, i) => `<button type="button" class="tro-tag" data-i="${i}" style="left:${c[4][0]}px;top:${c[4][1]}px">${c[0]}<small>${c[1]}</small></button>`).join('')}

@@ -20,3 +20,31 @@ body.tarot-on .desk-top-r { display: none; }
 .tro-tag small { display: block; font-size: 12px; font-weight: 700; color: #9a7a6a; text-align: center; margin-top: 1px; }
 .tro-tag.hov { background: linear-gradient(#ffeec2, #ffd98a); transform: translateY(-2px); }
 @media (prefers-reduced-motion: reduce) { .tro-card, .tro-tag { transition: none; } }
+
+/* ✨ 신비 연출 (도련 10-31 · 시안에서 고른 7가지 · 배경음악 없음) : 그림 위에 얹기만 해요 (누르는 것 없음) */
+.tro-fx { position: absolute; pointer-events: none; }
+.tro-vig { inset: 0; background: radial-gradient(ellipse at 50% 55%, transparent 55%, rgba(10, 5, 40, .55)); animation: troPulse 8s ease-in-out infinite; }   /* 🌌 가장자리 어둠 숨쉬기 */
+.tro-moon { left: 740px; top: 40px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 220, 160, .35), transparent 62%); mix-blend-mode: screen; animation: troPulse 6s ease-in-out infinite; }   /* 🌙 달빛 */
+.tro-stars { inset: 0; }
+.tro-tw { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff6d8; box-shadow: 0 0 6px 2px rgba(255, 236, 170, .9); opacity: 0; animation: troTw var(--d) ease-in-out var(--l) infinite; }   /* ✨ 별 반짝 */
+.tro-tw.x { width: 14px; height: 14px; background: none; box-shadow: none; }
+.tro-tw.x::before, .tro-tw.x::after { content: ''; position: absolute; left: 50%; top: 50%; width: 14px; height: 2px; margin: -1px -7px; background: linear-gradient(90deg, transparent, #fff3c8, transparent); }
+.tro-tw.x::after { transform: rotate(90deg); }
+.tro-cglow { left: 340px; top: 40px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 200, 120, .28), transparent 65%); mix-blend-mode: screen; animation: troCg 3.1s ease-in-out infinite; }   /* 🕯️ 촛불 둘레 빛 */
+.tro-flame { left: 478px; top: 150px; width: 48px; height: 80px; border-radius: 50%; background: radial-gradient(ellipse at 50% 60%, rgba(255, 240, 190, .9), rgba(255, 190, 90, .45) 35%, transparent 70%); mix-blend-mode: screen; transform-origin: 50% 90%; animation: troFl 2.4s ease-in-out infinite; }   /* 🕯️ 불꽃 일렁임 */
+.tro-ball { left: 590px; top: 300px; width: 230px; height: 230px; border-radius: 50%; overflow: hidden; mix-blend-mode: screen; }   /* 🔮 수정구슬 속 소용돌이 */
+.tro-ball i { position: absolute; inset: -30%; background: conic-gradient(from 0deg, transparent, rgba(190, 150, 255, .35), transparent 30%, rgba(140, 200, 255, .3), transparent 60%, rgba(255, 180, 230, .3), transparent 85%); filter: blur(14px); animation: troSpin 9s linear infinite; }
+.tro-ball b { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 55%, rgba(220, 200, 255, .35), transparent 60%); animation: troPulse 4s ease-in-out infinite; }
+.tro-sheen { left: 300px; top: 610px; width: 1060px; height: 260px; overflow: hidden; mix-blend-mode: screen;   /* 🃏 카드 위 금빛 스침 (7초마다 · 가장자리는 흐리게) */
+    -webkit-mask: radial-gradient(ellipse 50% 50% at 50% 50%, #000 60%, transparent 100%); mask: radial-gradient(ellipse 50% 50% at 50% 50%, #000 60%, transparent 100%); }
+.tro-sheen i { position: absolute; top: -40px; left: -300px; width: 160px; height: 340px; background: linear-gradient(90deg, transparent, rgba(255, 235, 180, .28), transparent); transform: skewX(-20deg); animation: troSh 7s ease-in-out infinite; }
+.tro-dusts { inset: 0; }
+.tro-dust { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #ffe9b0; box-shadow: 0 0 8px 3px rgba(255, 220, 150, .7); opacity: 0; animation: troDust var(--d) linear var(--l) infinite; }   /* 💫 떠다니는 빛가루 */
+@keyframes troPulse { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+@keyframes troTw { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes troFl { 0%, 100% { transform: scale(1, 1) rotate(0); } 20% { transform: scale(.92, 1.06) rotate(-3deg); } 45% { transform: scale(1.05, .95) rotate(2deg); } 70% { transform: scale(.96, 1.04) rotate(-1deg); } }
+@keyframes troCg { 0%, 100% { opacity: .75; } 30% { opacity: 1; } 55% { opacity: .6; } 80% { opacity: .95; } }
+@keyframes troSpin { to { transform: rotate(360deg); } }
+@keyframes troSh { 0%, 55% { left: -300px; } 100% { left: 1200px; } }
+@keyframes troDust { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: .9; } 85% { opacity: .7; } 100% { opacity: 0; transform: translate(var(--x), -260px); } }
+@media (prefers-reduced-motion: reduce) { .tro-fx, .tro-fx * { animation: none !important; } .tro-tw, .tro-dust, .tro-sheen { display: none; } }
