@@ -1,10 +1,10 @@
 /* 📅 달력 (도련 10-31 · js/calroom.js) : 💻 📲 만 · 그림 1672 × 941 을 화면에 맞게 줄여요 · 양옆 = 원래 창(출석 · 생리 · D-day)의 부분을 옮겨 와요 */
-.cr-room { position: fixed; inset: 0; z-index: 1500; display: none; background: #fdd4d8; overflow: hidden; color: #5b3240; }
+.cr-room { position: fixed; inset: 0; z-index: 1500; display: none; background: repeating-linear-gradient(90deg, #fff8f1 0 26px, #fbeee6 26px 52px); overflow: hidden; color: #5b3240; }   /* 🧱 크림 스트라이프 벽지 = 화면 전체 (도련 10-31 · 달력 그림은 바탕을 떼어 낸 것) */
 .cr-room.show { display: block; animation: crIn .25s ease both; }
 @keyframes crIn { from { opacity: 0; } }
 body.cal-on .desk-top-r { display: none; }
 .cr-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
-.cr-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; }
+.cr-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; filter: drop-shadow(0 14px 16px rgba(90, 60, 50, .22)); }   /* 벽에 걸린 그림자 */
 .cr-room button { font-family: inherit; cursor: pointer; }
 
 /* 제목 · 달 넘기기 (달력 위 띠) */

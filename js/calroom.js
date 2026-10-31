@@ -22,7 +22,7 @@
         function crBuild() {
             let el = crq('calRoom'); if (el) return el;
             el = document.createElement('div'); el.id = 'calRoom'; el.className = 'cr-room';
-            el.innerHTML = `<div class="cr-stage" id="crStage"><img class="cr-bg" src="img/cal-room.webp?v=20261009-997" alt="" draggable="false">
+            el.innerHTML = `<div class="cr-stage" id="crStage"><img class="cr-bg" src="img/cal-room.webp?v=20261009-999" alt="" draggable="false">
                 <div class="cr-ttl"><button type="button" class="cr-nav" onclick="crMove(-1)" aria-label="지난달">‹</button><span id="crTitle"></span><button type="button" class="cr-nav" onclick="crMove(1)" aria-label="다음 달">›</button></div>
                 <div class="cr-grid" id="crGrid"></div>
                 <div class="cr-side cr-l">
