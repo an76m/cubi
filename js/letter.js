@@ -267,6 +267,7 @@ ${lines.map((l, i) => `<text x="26" y="${top + i * gap}" font-size="15" fill="#5
             if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(lbCardSvg(x)))) return;
             const el = document.querySelector('#canvasArea .element-box:last-child'); if (el) el.style.width = '170px';
             closeLetterBox();
+            if (window.closePostRoom) closePostRoom();                         // 📮 우체통에서 붙였으면 책상으로
         }
 
         function openLetterBox() {

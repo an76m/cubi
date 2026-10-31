@@ -86,6 +86,7 @@
         }
         function openCalRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
+            if (window.closePostRoom) closePostRoom();
             const el = crBuild(), T = new Date(); cr.y = T.getFullYear(); cr.m = T.getMonth();
             if (!cr.moved.length) {
                 crBorrow(crq('crAt'), attendPrep(), ['#atGo', '.at-stats', '.at-tip']);
