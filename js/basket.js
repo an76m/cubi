@@ -52,14 +52,17 @@
     }
 
     /* ---------- 🧺 내 바구니 ---------- */
-    function openBasket() {                                                   // 첫 창 : 종류 아이콘 8개
+    function openBasket(sort) {                                               // 첫 창 : 종류 아이콘 8개 · sort = 📒 스티커 정리로 왔어요 (종류를 고르면 바로 정리 책상 · 도련 11-01)
         if (vis('basketKindModal')) closeModal('basketKindModal');
+        B.wantSort = !!sort;
+        const t = document.querySelector('#basketModal .modal-title'); if (t) t.textContent = sort ? '📒 정리할 스티커 고르기' : '스티커';
         openModal('basketModal');
     }
+    window.bkSortOpen = () => openBasket(true);
     function bkOpenKind(k, keep) {                                            // 그 종류의 창 (🧺 바구니 · 📒 스티커첩)
         if (!BK_KINDS[k]) return;
         if (B.kind !== k || !keep) { B.view = 'bin'; B.cur = ''; B.pg = 0; B.desk = null; }   // keep : 떼는 창에서 돌아올 때 보던 화면 그대로
-        B.kind = k;
+        B.kind = k; B.sortGo = !!B.wantSort; B.wantSort = false;
         if (vis('basketModal')) closeModal('basketModal');
         const t = bq('bkTitle'); if (t) t.textContent = '🗄️ ' + BK_KINDS[k];
         const w = bq('bkWrap'); if (w) w.innerHTML = '';
@@ -312,6 +315,7 @@
     }
     /* 화면 바꾸기 : bin (바구니) · album (스티커첩) · bd (바인더 펼침) · rl (이형지 펼침) · desk (정리 책상) */
     function bkView(v) {
+        if (!v && B.sortGo && B.view === 'bin' && B.list && B.list.length) { B.sortGo = false; abDesk(); return; }   // 📒 스티커 정리로 왔으면 바로 정리 책상
         if (v && B.view === 'desk' && v !== 'desk') { abFlush(); if (AB.peelOn && window.closeStickerPeel) closeStickerPeel(); }   // 정리 책상을 나가면 바로 저장 · 띄운 종이도 닫아요
         if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; }
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;

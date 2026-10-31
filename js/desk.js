@@ -383,8 +383,27 @@
             openModal('moveModal');
         }
         window.deskMoveOpen = deskMoveOpen;
+        /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · ✂️ 스티커 만들기 · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
+           다른 곳에 갔다 내 방으로 돌아올 때마다(deskGoRoom) 보이는 메뉴가 다음 것으로 돌아가요 (이 창이 열려 있는 동안만 기억 · 처음 = 책상 꾸미기) */
+        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 만들기', () => openModal('stickerToolModal')], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()]];
+        const DTM = { i: 0 };
+        function dtmPaint() {
+            const m = document.getElementById('deskTopMenu'); if (!m) return;
+            m.querySelector('.dtm-main').textContent = DTM_ITEMS[DTM.i][0];
+            m.querySelector('.dtm-list').innerHTML = DTM_ITEMS.map((x, i) => i === DTM.i ? '' : `<button type="button" class="desk-shop-go" onclick="dtmRun(${i})">${x[0]}</button>`).join('');
+        }
+        function dtmToggle(on) {
+            const m = document.getElementById('deskTopMenu'); if (!m) return;
+            const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
+            L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-tg').setAttribute('aria-expanded', String(open));
+        }
+        function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (it) deskTopGo(it[1]); }
+        function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
+        document.addEventListener('pointerdown', e => { const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false); }, true);
+        window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
         function deskLeave() { if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
+            dtmNext();                                                           // 🔽 돌아올 때마다 오른쪽 위 메뉴가 다음 것으로 (도련 11-01)
             if (window.shopSceneOn && shopSceneOn()) { shopSceneClose(); return; }
             if (window.roomGo) roomGo(deskLeave); else deskLeave();
         }
@@ -396,8 +415,8 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><button type="button" class="desk-shop-go" onclick="deskTopGo(() => deskRun('edit'))">책상 꾸미기</button><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
-            const tr = bg.querySelector('.desk-top-r'); if (tr) document.body.appendChild(tr);   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
+                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="dtm-tg" onclick="dtmToggle()" aria-label="다른 메뉴 보기" aria-expanded="false"><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5 6 6.5 11 1.5"/></svg></button><button type="button" class="desk-shop-go dtm-main" onclick="dtmRun(DTM.i)"></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
+            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); }   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
             dkyApply();

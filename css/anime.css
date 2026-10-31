@@ -680,3 +680,12 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
 @keyframes deskHintIn { from { opacity: 0; } }
 @keyframes deskHintBob { to { margin-top: -4px; } }
 @media (prefers-reduced-motion: reduce) { .desk-hint { animation: none; } }
+/* 🔽 오른쪽 위 메뉴 셋 (도련 11-01 · js/desk.js DTM) : ▾ + 지금 메뉴 · ▾ = 나머지 둘이 아래로 */
+.dtm { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.dtm-tg { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #e88fb0; background: #fff; color: #c2457a; display: grid; place-items: center; padding: 0; cursor: pointer; }
+.dtm-tg svg { width: 12px; height: 8px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+.dtm.open .dtm-tg svg { transform: rotate(180deg); }
+.dtm-tg:hover { background: #fff0f5; }
+.dtm-list { position: absolute; right: 0; top: calc(100% + 6px); display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.dtm-list[hidden] { display: none; }
+.dtm-list .desk-shop-go { justify-content: center; white-space: nowrap; box-shadow: 0 4px 12px rgba(150, 70, 100, .15); }
