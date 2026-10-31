@@ -355,16 +355,19 @@
             const box = document.getElementById('moveCafe'), inShop = !!(window.shopSceneOn && shopSceneOn()), inCal = document.body.classList.contains('cal-on');
             const sh = document.getElementById('moveShop'), rm = document.getElementById('moveRoom');
             if (sh) sh.hidden = inShop; if (rm) rm.hidden = !inShop && !inCal;   // 🏪 가게 안 = 🚪 내 방 · 📅 달력 = 🚪 내 방 + 🏪 샵 · 책상 = 🏪 기본상품 샵
-            if (box) {
-                if (typeof svcDailyBadges === 'function') svcDailyBadges();
+            const fill = () => {
                 box.innerHTML = '';
                 document.querySelectorAll('#svcCats > .svc-cat:not(.svc-extra):not([hidden])').forEach(b => {
                     const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
                     const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
-                    const soon = /준비중/.test(b.textContent);                    // 🚧 (준비중) 칸 = 이동 창은 그대로 · 그 위에 준비중 알림 (도련 10-31)
-                    c.addEventListener('click', () => { if (soon) { b.click(); return; } closeModal('moveModal'); deskLeave(); if (cat) openModal('serviceModal'); b.click(); });
+                    const stay = /준비중/.test(b.textContent) || b.hasAttribute('data-keep');   // 🚧 (준비중) · 👭 모임방(새 창) = 이동 창 · 지금 장소 그대로 (도련 10-31)
+                    c.addEventListener('click', () => { if (stay) { b.click(); return; } closeModal('moveModal'); deskLeave(); if (cat) openModal('serviceModal'); b.click(); });
                     box.appendChild(c);
                 });
+            };
+            if (box) {
+                fill();
+                if (typeof svcDailyBadges === 'function') Promise.resolve(svcDailyBadges()).then(() => { if (getComputedStyle(document.getElementById('moveModal')).display !== 'none') fill(); });   // 🌷 물 주기 표시는 조금 늦게 와요
             }
             openModal('moveModal');
         }

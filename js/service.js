@@ -194,7 +194,7 @@
             document.getElementById('svcBack').classList.add('mt-none');      // 맨 처음 화면에서는 ← 숨김
             svcDailyBadges();
         }
-        /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 화분 물 주기 · 오늘의 행운 · 오늘의 질문)
+        /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 🌷 화분 물 주기는 화분 칸에)
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
            - 다음 날이 되면 새것이니까 다시 알려 줘요 · 이미 한 것은 처음부터 안 붙어요 */
         const SVC_SEEN = 'malang_daily_seen', SVC_SEEN_KEY = 'diary_daily_seen';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20) · 오늘 이미 알려 준 것 { d: '2026-10-06', ids: [버튼 id…] }
@@ -217,20 +217,16 @@
             };
             const seen = svcSeenGet(), fresh = id => !seen.includes(id);
             const stamp = typeof attendDone === 'function' && !attendDone() && fresh('svcBtnAttend');
-            const luck = typeof luckDone === 'function' && !luckDone() && fresh('svcBtnLuck');
-            const ques = typeof questionDone === 'function' && !questionDone() && fresh('svcBtnQuestion');
             let water = false;
             if (typeof plantStatus === 'function' && fresh('svcBtnPlant')) { try { const p = await plantStatus(); water = !p.watered && p.wrote; } catch (e) {} }
             mark('svcBtnAttend', stamp ? '오늘 아직!' : '');
-            mark('svcBtnLuck', luck ? '🍀 NEW' : '');
-            mark('svcBtnQuestion', ques ? '💬 NEW' : '');
             mark('svcBtnPlant', water ? '💧 물 주기' : '');
-            mark('svcCatDaily', (stamp ? 1 : 0) + (water ? 1 : 0) + (luck ? 1 : 0) + (ques ? 1 : 0) || '');
-            mark('ctDaily', (stamp ? 1 : 0) + (water ? 1 : 0) + (luck ? 1 : 0) + (ques ? 1 : 0) || '');      // 🏡 카페 마을의 매일 집에도
+            mark('svcCatDaily', stamp ? 1 : '');
+            mark('ctDaily', stamp ? 1 : '');      // 🏡 카페 마을의 매일 집에도
         }
         /* 🌱 달력 칸의 버튼을 누르면 그 버튼만 '알려 줌' 처리 (다른 버튼의 표시는 건드리지 않아요) */
         document.addEventListener('click', e => {
-            const b = e.target.closest && e.target.closest('#svcPanel-daily .service-btn[id]');
+            const b = e.target.closest && e.target.closest('#svcPanel-daily .service-btn[id], #svcBtnPlant');
             if (!b || !b.querySelector('.svc-badge')) return;
             svcSeenAdd([b.id]);
             setTimeout(svcDailyBadges, 0);
@@ -238,8 +234,8 @@
         const SVC_CAT_NAMES = { daily: '🌱 달력', fortune: '🔮 타로카페', make: '🧸 인형방', game: '🕹️ 오락실', watch: '🎧 보고·듣기', together: '💌 우체통' };
         function svcOpenCat(id) {
             if (id === 'make') return openDollSoon();                         // 🧸 인형방 = 준비중 (어디서 열어도 · 10-23 도련)
-            if (id === 'daily' && window.openCalRoom && calRoomUse()) return openCalRoom();
-            if (id === 'together' && window.openPostRoom && calRoomUse()) return openPostRoom();   // 📮 💻 📲 = 별밤 우체통 (익명 편지함 · 건의함 · 도련 10-31 · js/postroom.js)   // 📅 💻 📲 = 달력 한 장 (출석 · 생리 · D-day · 도련 10-31 · js/calroom.js)
+            if (id === 'daily' && window.openCalRoom && calRoomUse()) return openCalRoom();   // 📅 💻 📲 = 달력 한 장 (출석 · 생리 · D-day · 도련 10-31 · js/calroom.js)
+            if (id === 'together' && window.openPostRoom && calRoomUse()) return openPostRoom();   // 📮 💻 📲 = 별밤 우체통 (익명 편지함 · 건의함 · 도련 10-31 · js/postroom.js)
             const panel = document.getElementById('svcPanel-' + id); if (!panel) return;
             document.getElementById('svcCats').hidden = true;
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = p !== panel; });

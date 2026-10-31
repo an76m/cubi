@@ -77,8 +77,6 @@
       wall: `<rect x="13" y="5" width="22" height="38" rx="5" fill="#fff" ${K}/><rect x="16" y="10" width="16" height="27" rx="2" fill="#ffd6e1"/><path d="M16 30l5-5 4 4 3-3 4 4v5a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2z" fill="#9ed7c0"/><circle cx="27.5" cy="16" r="2.4" fill="#ffd36b"/>`,
       cal: `${calTop('#ff9fb8')}<circle cx="24" cy="29.5" r="6" fill="none" stroke="#ff6b88" stroke-width="2"/><path d="M21 29.5l2.2 2.2 4-4.2" fill="none" stroke="#ff6b88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
       calheart: `${calTop('#ffb4c8')}<path d="${heart(24, 25, .7)}" fill="#ff8fab"/>`,
-      ask: `${bubble('?', '#cfe5ff', 20)}`,
-      clover: `<path d="M24 26c3 6 4 11 2 16" ${S}/><g fill="#9ed7c0" ${K}><path d="${heart(24, 15.5, .62)}" transform="rotate(0 24 24)"/><path d="${heart(24, 15.5, .62)}" transform="rotate(90 24 24)"/><path d="${heart(24, 15.5, .62)}" transform="rotate(180 24 24)"/><path d="${heart(24, 15.5, .62)}" transform="rotate(270 24 24)"/></g><circle cx="24" cy="24" r="2" fill="#7fc6a8"/>`,
       dday: `<path d="M13 7h22M13 41h22" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/><path d="M15 7h18c0 8-6 11-6 17s6 9 6 17H15c0-8 6-11 6-17s-6-9-6-17z" fill="#fff" ${K}/><path d="M18.5 14h11c-1 3-5.5 5-5.5 8-0-3-4.5-5-5.5-8zM17 40c.5-4 4-6 7-8 3 2 6.5 4 7 8z" fill="#ffd36b"/>`,
       card: `<rect x="17" y="8" width="22" height="31" rx="3" fill="#d8c8f6" ${K} transform="rotate(12 28 24)"/><rect x="9" y="9" width="22" height="31" rx="3" fill="#fff" ${K} transform="rotate(-8 20 24)"/><path d="${star(20, 24.5, 7, 3)}" fill="#ffd36b" ${T} transform="rotate(-8 20 24)"/>`,
       moon: `<path d="M27 7a17 17 0 1 0 14 25A13.5 13.5 0 1 1 27 7z" fill="#ffe08f" ${K}/>${face(18, 26, 6)}<ellipse cx="14" cy="30" rx="2.2" ry="1.4" fill="#ff9fb5" opacity=".8"/>${spark(36, 13, 4.5)}`,
@@ -122,7 +120,7 @@
         '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '펫 키우기': 'paw',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
-        '출석 도장판': 'cal', '오늘의 질문': 'ask', '오늘의 행운': 'clover', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
+        '출석 도장판': 'cal', '랜덤박스': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
         '포춘카드': 'card', '꿈해몽': 'moon', '토정비결': 'scroll', '이름 궁합': 'hearts', '심리테스트': 'mind',
         '인형방': 'doll', '인형극': 'dollshow', '오락실': 'joy', '명예의 전당': 'trophy', '익명 편지함': 'letter', '말랑달콤 모임방': 'people',
         '설정': 'gear', '건의함': 'letter', '다이어리 잠금': 'lock', '배경음악': 'music', '앱으로 설치하기': 'install'
