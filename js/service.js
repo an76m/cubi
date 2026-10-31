@@ -228,7 +228,7 @@
             svcSeenAdd([b.id]);
             setTimeout(svcDailyBadges, 0);
         }, true);
-        const SVC_CAT_NAMES = { daily: '🌱 달력', fortune: '🔮 타로카페', make: '🧸 인형방', game: '🕹️ 오락실', watch: '🎧 보고·듣기', together: '💌 우체통' };
+        const SVC_CAT_NAMES = { daily: '📅 벽걸이 달력', fortune: '🔮 타로카페', make: '🧸 인형방', game: '🕹️ 오락실', watch: '🎧 보고·듣기', together: '💌 우체통' };
         function svcOpenCat(id) {
             if (id === 'make') return openDollSoon();                         // 🧸 인형방 = 준비중 (어디서 열어도 · 10-23 도련)
             if (id === 'daily' && window.openCalRoom && calRoomUse()) return openCalRoom();   // 📅 💻 📲 = 달력 한 장 (출석 · 생리 · D-day · 도련 10-31 · js/calroom.js)
@@ -397,7 +397,7 @@
            - 가운데 카페 건물은 아직 연결 없음 (숨겨 둔 저금통 · 문구점 · 보고·듣기 자리로 쓸 수 있어요) */
         const CT_W = 1672, CT_H = 941;
         const CT_SPOTS = [
-            ['daily', '🌱 달력', [0, 0, 490, 235]], ['fortune', '🔮 타로카페', [935, 0, 1275, 245]], ['make', '🧸 인형방', [1300, 120, 1672, 360]],
+            ['daily', '📅 벽걸이 달력', [0, 0, 490, 235]], ['fortune', '🔮 타로카페', [935, 0, 1275, 245]], ['make', '🧸 인형방', [1300, 120, 1672, 360]],
             ['game', '🕹️ 오락실', [30, 280, 410, 510]], ['pet', '🐾 펫 키우기', [1270, 360, 1672, 595]], ['honey', '🍯 꿀농장', [55, 540, 410, 830]],
             ['window', '🪟 여행', [600, 630, 1045, 862]], ['together', '💌 우체통', [1270, 610, 1672, 830]]
         ];
