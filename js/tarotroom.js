@@ -32,14 +32,13 @@
         function troBuild() {
             let el = troq('tarotRoom'); if (el) return el;
             el = document.createElement('div'); el.id = 'tarotRoom'; el.className = 'tro-room';
-            el.innerHTML = `<img class="tro-blur" src="img/tarot-room.webp?v=20261009-1018" alt="" draggable="false">
-                <div class="tro-stage" id="trStage"><img class="tro-bg" src="img/tarot-room.webp?v=20261009-1018" alt="" draggable="false">
+            el.innerHTML = `<div class="tro-stage" id="trStage"><img class="tro-bg" src="img/tarot-room.webp?v=20261009-1018" alt="" draggable="false">
                     ${troFx()}
-                    <div class="tro-ttl">🔮 타로카페<small>오늘은 어떤 카드를 뒤집어 볼까요?</small></div>
                     <svg class="tro-cards" viewBox="0 0 ${TRO_W} ${TRO_H}" aria-hidden="true">${TRO_CARDS.map((c, i) => `<polygon class="tro-card" data-i="${i}" points="${c[3]}"/>`).join('')}</svg>
-                    ${TRO_CARDS.map((c, i) => `<button type="button" class="tro-tag" data-i="${i}" style="left:${c[4][0]}px;top:${c[4][1]}px">${c[0]}<small>${c[1]}</small></button>`).join('')}
-                    <button type="button" class="tro-go desk-shop-go" onclick="deskMoveOpen()">이동</button>
-                </div>`;
+                </div>
+                <div class="tro-ttl">🔮 타로카페<small>오늘은 어떤 카드를 뒤집어 볼까요?</small></div>
+                ${TRO_CARDS.map((c, i) => `<button type="button" class="tro-tag" data-i="${i}">${c[0]}<small>${c[1]}</small></button>`).join('')}
+                <button type="button" class="tro-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;   // 제목 · 이름표 · 이동 = 화면 위 (그림이 잘려도 화면 안에)
             document.body.appendChild(el);
             const hov = (i, on) => el.querySelectorAll(`[data-i="${i}"]`).forEach(x => x.classList.toggle('hov', on));
             el.querySelectorAll('[data-i]').forEach(x => {
@@ -51,10 +50,12 @@
             addEventListener('resize', () => { if (troOn()) troFit(); });
             return el;
         }
-        function troFit() {
-            const st = troq('trStage'); if (!st) return;
-            const s = Math.min(innerWidth / TRO_W, innerHeight / TRO_H);
-            st.style.transform = `translate(${(innerWidth - TRO_W * s) / 2}px, ${(innerHeight - TRO_H * s) / 2}px) scale(${s})`;
+        function troFit() {                                                      // 그림 = 화면 꽉 (coverFit · 카드 쪽이 보이게) · 제목 · 이름표는 그림 자리를 따라가되 화면 밖이면 안으로
+            const st = troq('trStage'), el = troq('tarotRoom'); if (!st) return;
+            const { s, x, y } = coverFit(TRO_W, TRO_H, [290, 1370, 300, 905]);
+            st.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+            const t = el.querySelector('.tro-ttl'); Object.assign(t.style, { left: x + 836 * s + 'px', top: Math.max(10, y + 92 * s) + 'px', scale: String(s) });
+            el.querySelectorAll('.tro-tag').forEach(b => { const [tx, ty] = TRO_CARDS[+b.dataset.i][4], h = (b.offsetHeight || 54) * s, w = (b.offsetWidth || 120) * s / 2 + 8; Object.assign(b.style, { left: Math.max(w, Math.min(innerWidth - w, x + tx * s)) + 'px', top: Math.min(y + ty * s, innerHeight - h - 8) + 'px', scale: String(s) }); });
         }
         /* 🚪 타로카페 문 (도련 10-31 · 기본상품 샵 들어갈 때처럼) : 보라 나무문(img/tarot-door.webp) 이 화면을 채우고 → 🔔 스르릉~ (✨ 연출 소리)
            → 둥근 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */

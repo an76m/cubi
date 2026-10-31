@@ -146,18 +146,17 @@
             el.classList.add('gc-scene');
             const st = document.createElement('div'); st.className = 'gcs-stage'; st.id = 'gcsStage';
             st.innerHTML = `<img class="gcs-bg" src="img/gacha-room.webp?v=20261009-1022" alt="" draggable="false">
-                <span class="gcs-soon" style="left:238px">🐾 동물 캡슐 · 준비중</span><span class="gcs-soon" style="left:596px">🦖 공룡 캡슐 · 준비중</span>
-                <button type="button" class="gcs-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;
+                <span class="gcs-soon" style="left:238px">🐾 동물 캡슐 · 준비중</span><span class="gcs-soon" style="left:596px">🦖 공룡 캡슐 · 준비중</span>`;
             const wrap = el.querySelector('.gc-wrap');
             st.appendChild(el.querySelector('.gc-head')); st.appendChild(el.querySelector('.gc-machine')); st.appendChild(wrap);
             el.insertBefore(st, el.firstChild);
-            const blur = document.createElement('img'); blur.className = 'gcs-blur'; blur.src = 'img/gacha-room.webp?v=20261009-1022'; blur.alt = ''; el.insertBefore(blur, st);
+            const go = document.createElement('button'); go.type = 'button'; go.className = 'gcs-go desk-shop-go'; go.textContent = '이동'; go.onclick = () => deskMoveOpen(); el.appendChild(go);   // 🚪 화면 오른쪽 위 (그림이 잘려도)
             addEventListener('resize', () => { if (gc.open) gcSceneFit(); });
         }
         function gcSceneFit() {
             const st = gq('gcsStage'); if (!st) return;
-            const s = Math.min(innerWidth / GCS_W, innerHeight / GCS_H);
-            st.style.transform = `translate(${(innerWidth - GCS_W * s) / 2}px, ${(innerHeight - GCS_H * s) / 2}px) scale(${s})`;
+            const { s, x, y } = coverFit(GCS_W, GCS_H, [790, 1615, 60, 700]);   // 그림 = 화면 꽉 (기본상품 샵처럼 · 흐린 배경 없이) · 우리 기계 + 메뉴판은 늘 보이게
+            st.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
         }
         /* ---------- 화면 만들기 ---------- */
         function gcBuild() {

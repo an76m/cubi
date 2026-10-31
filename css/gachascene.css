@@ -1,10 +1,9 @@
 /* 🏪 문방구 앞 캡슐기계 (도련 10-31 · 시안 B · js/gacha.js gcSceneBuild) : 💻 📲 만 · 그림 1672 × 941 맨 오른쪽 기계 = 우리 기계 (오른쪽 벽 = 메뉴판) · 📱 폰은 예전 기계 그대로 */
 .gc-room.gc-scene { padding: 0; overflow: hidden; background: #f7df90; }
-.gcs-blur { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(22px); pointer-events: none; }   /* 그림 밖(패드 위아래) = 흐린 그림 */
 .gcs-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
 .gcs-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; }
 .gcs-soon { position: absolute; top: 600px; translate: -50% 0; white-space: nowrap; background: #fffdf6; border: 2.5px solid #2a2a2a; border-radius: 999px; padding: 4px 14px; font-weight: 900; font-size: 16px; color: #7a5a3a; pointer-events: none; }
-.gcs-go { position: absolute; right: 22px; top: 18px; transform: scale(1.25); transform-origin: 100% 0; }
+.gcs-go { position: absolute; right: 18px; top: 14px; z-index: 3; transform: scale(1.15); transform-origin: 100% 0; }   /* 화면 오른쪽 위 (그림이 잘려도) */
 html body.gacha-on #moveModal { z-index: 1650 !important; }                                       /* 이동 창은 캡슐기계 위에 */
 
 /* 제목 · 코인 (왼쪽 위) */
