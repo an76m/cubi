@@ -12,7 +12,7 @@
     const q = id => document.getElementById(id);
     const T = { ids: [], draft: [], kind: 'seal', list: [], noted: false, open: false, pos: null };
     const API = () => window.bkTrayApi;
-    const NOTE = '🧺 여기 담은 스티커는 <b>지금 다꾸할 때 쓸 스티커</b>예요.<br>앱을 닫으면 다꾸가 끝난 걸로 알고 쟁반을 비워요.<br>담은 스티커는 <b>원래 바구니로 돌아가니</b> 걱정하지 마세요!';
+    const NOTE = '🧺 여기 담은 스티커는 <b>지금 다꾸할 때 쓸 스티커</b>예요.<br>앱을 닫으면 <b>쟁반은 비워져요.</b><br>사용 안 된 스티커는 <b>원래 바구니로 돌아가니</b> 걱정하지 마세요!';
     const byId = () => new Map(T.list.map(e => [e.id, e]));
 
     /* ---------- 고르는 화면 ---------- */
