@@ -44,6 +44,8 @@
             { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
             { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-833', w: 230, h: 244, x: 1250, y: 517, name: '서랍장', surf: [[12, 6, 224]] },
             { id: 'lamp', kind: 'lamp', src: 'img/desk/lamp.webp?v=20261009-835', w: 200, h: 309, x: 1270, y: 220, name: '스탠드' },          // 🆕 10-28 도련 그림
+            { id: 'wallclock', kind: 'clock', src: 'img/desk/wallclock.webp?v=20261009-1025', w: 128, h: 128, x: 1132, y: 96, name: '벽시계', wall: 1, clock: { cx: 50, cy: 50, r: 43.5 } },   // 🆕 10-31 도련 그림 · 🕰 지금 시각 바늘
+            { id: 'lamp2', kind: 'lamp', src: 'img/desk/lamp2.webp?v=20261009-1025', w: 128, h: 216, x: 196, y: 304, name: '초록 스탠드' },          // 🆕 10-31 도련 그림 · 핑크 서랍장 위
             { id: 'bunny', kind: 'doll', src: 'img/desk/bunny.webp?v=20261009-834', w: 64, h: 117, x: 955, y: 568, name: '토끼 인형' },
             { id: 'bear', kind: 'doll', src: 'img/desk/bear.webp?v=20261009-835', w: 88, h: 108, x: 412, y: 412, name: '곰 인형' }
         ];
