@@ -194,7 +194,7 @@
             document.getElementById('svcBack').classList.add('mt-none');      // 맨 처음 화면에서는 ← 숨김
             svcDailyBadges();
         }
-        /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 🌷 화분 물 주기는 화분 칸에)
+        /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 🌷 화분은 준비중이라 표시 없음)
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
            - 다음 날이 되면 새것이니까 다시 알려 줘요 · 이미 한 것은 처음부터 안 붙어요 */
         const SVC_SEEN = 'malang_daily_seen', SVC_SEEN_KEY = 'diary_daily_seen';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20) · 오늘 이미 알려 준 것 { d: '2026-10-06', ids: [버튼 id…] }
@@ -217,16 +217,13 @@
             };
             const seen = svcSeenGet(), fresh = id => !seen.includes(id);
             const stamp = typeof attendDone === 'function' && !attendDone() && fresh('svcBtnAttend');
-            let water = false;
-            if (typeof plantStatus === 'function' && fresh('svcBtnPlant')) { try { const p = await plantStatus(); water = !p.watered && p.wrote; } catch (e) {} }
             mark('svcBtnAttend', stamp ? '오늘 아직!' : '');
-            mark('svcBtnPlant', water ? '💧 물 주기' : '');
             mark('svcCatDaily', stamp ? 1 : '');
             mark('ctDaily', stamp ? 1 : '');      // 🏡 카페 마을의 매일 집에도
         }
         /* 🌱 달력 칸의 버튼을 누르면 그 버튼만 '알려 줌' 처리 (다른 버튼의 표시는 건드리지 않아요) */
         document.addEventListener('click', e => {
-            const b = e.target.closest && e.target.closest('#svcPanel-daily .service-btn[id], #svcBtnPlant');
+            const b = e.target.closest && e.target.closest('#svcPanel-daily .service-btn[id]');
             if (!b || !b.querySelector('.svc-badge')) return;
             svcSeenAdd([b.id]);
             setTimeout(svcDailyBadges, 0);
