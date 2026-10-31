@@ -6,17 +6,17 @@
        🩷 생리 달력 (js/cycle.js) = 지금 상태 · 고른 날(생리 중 · 양 · 몸 상태) · 평균 주기 · 기간 · 안내
        ⏳ D-day (js/dday.js) = 목록 (📌 페이지에 보이기 · 📔 일기에 붙이기 · ✏️ 고치기 · 🗑️ 지우기) · ＋ 만들기
    - 달력 칸을 누르면 = 그날 고르기 (생리 기록할 날 · 만들던 D-day 날짜)
-   - 위 버튼 줄 = 오른쪽 메뉴(📅 출석 · 🩷 생리 · ⏳ D-day) 보이기 · 숨기기 (도련 10-31 · 달력 칸 표시는 늘 다 보여요) · 설정 'diary_cal_menu'
+   - 위 버튼 줄 = 오른쪽 메뉴(📅 출석 · ⏳ D-day · 🩷 생리 · 생리는 처음엔 꺼 둠) 보이기 · 숨기기 (도련 10-31 · 달력 칸 표시는 늘 다 보여요) · 설정 'diary_cal_menu'
    - 달력은 왼쪽으로 · 메뉴는 오른쪽 한 줄에 · 그림 1672 × 941 을 화면에 맞게 줄여요 (책상처럼) */
 
         const CR_W = 1672, CR_H = 941, CR_DX = -220, CR_GRID = [366 + CR_DX, 446, 1305 + CR_DX, 876];   // 그림 아래 빈 곳 [왼 · 위 · 오른 · 아래] · 달력 = 왼쪽으로 220 (CR_DX · 오른쪽 메뉴 자리)
         const CR_MENU = 'diary_cal_menu', CR_MENU_L = 'malang_cal_menu';
-        const CR_ITEMS = [['at', '📅', '출석 도장', 'crAt'], ['cy', '🩷', '생리', 'crCy'], ['dd', '⏳', 'D-day', 'crDd']];   // [키 · 아이콘 · 이름 · 오른쪽 메뉴 칸]
+        const CR_ITEMS = [['at', '📅', '출석 도장', 'crAt'], ['dd', '⏳', 'D-day', 'crDd'], ['cy', '🩷', '생리', 'crCy']];   // [키 · 아이콘 · 이름 · 오른쪽 메뉴 칸]
         const CR_WD = ['일', '월', '화', '수', '목', '금', '토'];
         const cr = { y: 0, m: 0, moved: [], t: 0 };
         const crq = id => document.getElementById(id);
         const crKey = (y, m, d) => y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-        const crMenu = () => Object.assign({ at: 1, cy: 1, dd: 1 }, prefGet(CR_MENU, CR_MENU_L) || {});
+        const crMenu = () => Object.assign({ at: 1, dd: 1, cy: 0 }, prefGet(CR_MENU, CR_MENU_L) || {});
         const crOn = () => !!crq('calRoom') && crq('calRoom').classList.contains('show');
         const crDate = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
 
@@ -29,8 +29,8 @@
                 <div class="cr-tabs" id="crTabs"></div>   <!-- 위 버튼 줄 = 오른쪽 메뉴 보이기 · 숨기기 -->
                 <div class="cr-side cr-r">
                     <div class="cr-box" id="crAt"><div class="cr-h">📅 출석 도장</div></div>
-                    <div class="cr-box" id="crCy"><div class="cr-h">🩷 생리</div></div>
                     <div class="cr-box" id="crDd"><div class="cr-h">⏳ D-day</div></div>
+                    <div class="cr-box" id="crCy"><div class="cr-h">🩷 생리</div></div>
                     <div class="cr-none" id="crNone">위 버튼을 눌러 메뉴를 열어 보세요</div>
                 </div>
                 <button type="button" class="cr-go desk-shop-go" onclick="deskMoveOpen()">이동</button>   <!-- 🚪 닫기 대신 이동 (도련 10-31 · 벽 달력도 한 장소) -->
