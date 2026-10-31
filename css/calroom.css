@@ -15,7 +15,7 @@ body.cal-on .desk-top-r { display: none; }
 .cr-nav:hover { background: #ffd0de; }
 
 /* 달력 칸 (그림 아래 빈 곳 · 5줄 · 6줄) */
-.cr-grid { position: absolute; left: 366px; top: 446px; width: 939px; height: 430px; background: #fdf3ec; border: 2.5px solid #5b3240; border-radius: 10px; box-sizing: border-box; overflow: hidden; }
+.cr-grid { position: absolute; left: 146px; top: 446px; width: 939px; height: 430px; background: #fdf3ec; border: 2.5px solid #5b3240; border-radius: 10px; box-sizing: border-box; overflow: hidden; }
 .cr-wd { position: absolute; top: 0; height: 26px; line-height: 26px; text-align: center; font-size: 14px; font-weight: 800; color: #8a5a6a; background: #ffe9ef; border-bottom: 1.6px solid #5b3240; box-sizing: border-box; }
 .cr-wd.sun { color: #e2557f; } .cr-wd.sat { color: #5a86c8; }
 .cr-c { position: absolute; box-sizing: border-box; border: 0; border-right: 1.6px solid #5b3240; border-bottom: 1.6px solid #5b3240; background: none; padding: 0; text-align: left; color: inherit; }
@@ -38,18 +38,17 @@ button.cr-c:hover { background: #fff0f5; }
 
 /* 양옆 (원래 창 부분) */
 .cr-side { position: absolute; top: 18px; bottom: 18px; width: 300px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; scrollbar-width: thin; padding: 2px 6px 8px 2px; }
-.cr-l { left: 18px; } .cr-r { left: 1350px; top: 84px; }
+.cr-r { left: 1140px; width: 512px; top: 84px; }                          /* 오른쪽 메뉴 (달력은 왼쪽으로 220 · js CR_DX) */
+.cr-room [hidden] { display: none !important; }
+.cr-bg, .cr-ttl { margin-left: -220px; }
+.cr-tabs { position: absolute; left: 1140px; top: 18px; display: flex; gap: 8px; }   /* 위 버튼 줄 = 오른쪽 메뉴 보이기 · 숨기기 (도련 10-31) */
+.cr-tab { display: flex; align-items: center; gap: 6px; height: 46px; padding: 0 18px; border-radius: 999px; background: #fffaf5; border: 2.5px solid #d9c2ca; color: #b59aa5; font-size: 17px; font-weight: 900; box-shadow: 3px 3px 0 #efdde3; }
+.cr-tab span { font-size: 18px; filter: grayscale(1); opacity: .6; }
+.cr-tab.on { background: #fff0f5; border-color: #5b3240; color: #5b3240; box-shadow: 3px 3px 0 #e9c4cf; }
+.cr-tab.on span { filter: none; opacity: 1; }
+.cr-none { margin-top: 40px; text-align: center; color: #b59aa5; font-size: 16px; font-weight: 800; }
 .cr-box, .cr-card { flex: none; box-sizing: border-box; padding: 12px; border-radius: 18px; background: #fffaf5; border: 2.5px solid #5b3240; box-shadow: 4px 4px 0 #e9c4cf; display: flex; flex-direction: column; gap: 10px; }
 .cr-h { font-size: 14px; color: #8a5a6a; font-weight: 900; margin: 0 0 0 4px; }
-.cr-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 10px; border: 0; border-radius: 12px; background: none; font-size: 16px; font-weight: 900; color: #b59aa5; text-align: left; }
-.cr-row + .cr-row { margin-top: -4px; }
-.cr-row.on { background: #fff0f5; color: #5b3240; }
-.cr-ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; background: #ffe3ec; flex: none; }
-.cr-sw { width: 20px; height: 7px; border-radius: 4px; background: #f7a3b8; display: block; }
-.cr-sw.pre { height: 5px; border-radius: 0; background: repeating-linear-gradient(90deg, #f7a3b8 0 5px, transparent 5px 8px); }
-.cr-tg { margin-left: auto; width: 42px; height: 24px; border-radius: 12px; background: #e6d3da; position: relative; flex: none; transition: background .15s; }
-.cr-tg::after { content: ''; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .15s; }
-.cr-row.on .cr-tg { background: #e2557f; } .cr-row.on .cr-tg::after { left: 21px; }
 .cr-go { position: absolute; right: 22px; top: 18px; transform: scale(1.25); transform-origin: 100% 0; }   /* 🚪 이동 = 책상 오른쪽 위 버튼과 같은 모양 */
 body.cal-on #moveModal { z-index: 1550 !important; }                                                                            /* 이동 창은 달력 위에 */
 
