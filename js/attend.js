@@ -166,7 +166,7 @@
             const ticks = setInterval(() => atSfx.tick(), 140);
             const [r] = await Promise.all([ask, atLater(AT_SPIN_MIN)]);
             clearInterval(ticks);
-            if (!atq('attendRoom').classList.contains('show')) return;
+            if (atq('atFlipWrap').hidden) return;                    // 창을 닫았어요 (📅 달력 화면에서도 · 그 화면을 닫으면 숨어요)
             const hit = !!(r && r.ok && r.hit);
             atq('atFront').classList.add(hit ? 'coin' : 'miss');
             atq('atFront').innerHTML = hit ? '<span class="at-coin">C</span><b>코인!</b>' : `<em style="--c:${s.c}">${s.e}</em><b>${T.d}일 도장</b>`;
@@ -187,7 +187,7 @@
         }
         function atLater(ms) { return new Promise(r => setTimeout(r, ms)); }
         function atFlipClose() { const w = atq('atFlipWrap'); if (w) w.hidden = true; }
-        function atToBox() { atFlipClose(); closeAttend(); if (typeof openGacha === 'function') openGacha(); }
+        function atToBox() { atFlipClose(); closeAttend(); if (window.closeCalRoom) closeCalRoom(); if (typeof openGacha === 'function') openGacha(); }
 
         /* 소리 (연출 소리가 꺼져 있으면 조용히 · js/sound.js) */
         function atTone(f, dur, type, vol, at) {
@@ -235,4 +235,6 @@
         function attendDone() { const T = atToday(), a = atRead()[atYm(T.y, T.m)]; return !!a && a.includes(T.d); }   // 오늘 도장 찍었나요?
         window.openAttend = openAttend;
         window.attendDone = attendDone;
-        window.attendInfo = (y, m) => { atS.d = atRead(); return { days: (atS.d[atYm(y, m)] || []).slice(), streak: atStreak(), today: attendDone() }; };   // 📅 달력 화면 (js/calroom.js)
+        /* 📅 달력 화면 (js/calroom.js · 도련 10-31) : 이 도장판의 버튼 · 숫자 · 뒤집기를 달력 화면으로 옮겨 그대로 써요 */
+        window.attendPrep = () => { atBuild(); atS.d = atRead(); const T = atToday(); atS.y = T.y; atS.m = T.m; atRender(); return atq('attendRoom'); };
+        window.attendInfo = (y, m) => ({ days: (atS.d[atYm(y, m)] || []).slice(), stamp: d => atStamp(y, m, d) });

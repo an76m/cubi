@@ -147,7 +147,7 @@
             if (typeof addImage !== 'function' || !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg))) return;
             const el = document.querySelector('#canvasArea .element-box:last-child'); if (el) el.style.width = '170px';
-            closeDday();
+            closeDday(); if (window.closeCalRoom) closeCalRoom();               // 📅 달력 화면에서 붙였으면 그 화면도 닫고 일기로
         }
 
         function openDday() {
@@ -163,6 +163,10 @@
         /* 설정을 불러온 뒤 · 페이지를 바꿀 때 (js/elements.js 의 loadData 에서 불러요) */
         function ddRefresh() { dd.list = ddRead(); ddRender(); }
         window.openDday = openDday;
-        window.ddayList = () => ddRead();                                     // 📅 달력 화면 (js/calroom.js)
+        /* 📅 달력 화면 (js/calroom.js · 도련 10-31) : 이 창의 목록 · 만들기를 달력 화면으로 옮겨 그대로 써요 */
+        window.ddayPrep = () => { ddBuild(); dd.list = ddRead(); ddFormClose(); ddRenderList(); return ddq('ddayRoom'); };
+        window.ddayList = () => dd.list;
+        window.ddayCount = (x, base) => ddCount(x, base);
+        window.ddayFormDate = k => { const i = ddq('ddDate'); if (i && !ddq('ddFormBox').hidden) i.value = k; };   // 달력에서 날짜를 누르면 만들던 D-day 날짜로
         window.ddRefresh = ddRefresh;
         window.ddStaticHtml = ddStaticHtml;

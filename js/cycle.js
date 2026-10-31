@@ -164,7 +164,6 @@
             document.body.classList.remove('fc-lock');
         }
         window.openCycle = openCycle;
-        window.cycleInfo = () => {                                             // 📅 달력 화면 (js/calroom.js) : 생리한 날 · 예정일 · 다음 예정
-            cy.d = cyRead(); const st = cyStats(), pr = cyPredict(st);
-            return { per: Object.keys(cy.d).filter(k => cy.d[k].p), pre: Object.keys(pr).filter(k => pr[k] === 'pp'), next: st.next ? cyKey(st.next) : '', late: st.late, has: !!st.last };
-        };
+        /* 📅 달력 화면 (js/calroom.js · 도련 10-31) : 이 창의 '오늘 · 고른 날 · 통계'를 달력 화면으로 옮겨 그대로 써요 · 달력 칸은 그 화면이 그려요 */
+        window.cyclePrep = k => { cyBuild(); cy.d = cyRead(); const t = new Date(); cy.y = t.getFullYear(); cy.m = t.getMonth(); cy.sel = k || cyKey(t); cyRender(); return cyq('cycleRoom'); };
+        window.cycleInfo = () => { const st = cyStats(), pr = cyPredict(st), m = {}; Object.keys(pr).forEach(k => { m[k] = pr[k]; }); Object.keys(cy.d).forEach(k => { if (cy.d[k].p) m[k] = 'p'; }); return { mark: m, sel: cy.sel, sym: k => !!(cy.d[k] && cy.d[k].s && cy.d[k].s.length) }; };
