@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/plant.js
-   🌷 화분 키우기 : 일기를 쓴 날마다 물을 한 번 줄 수 있어요. (카페 → 매일 → 🌷 화분 키우기)
+   🌷 화분 키우기 : 일기를 쓴 날마다 물을 한 번 줄 수 있어요. (이동 → 🌷 베란다 화분)
    - 물을 준 횟수만큼 자라요 : 씨앗 → 새싹 → 잎 → 꽃봉오리 → 꽃 → 열매
    - 열매를 따면 🧺 열매 도감(4가지)에 모이고, 새 씨앗을 심어요. (어떤 씨앗인지는 꽃이 필 때까지 비밀)
    - '이렇게 키워요' 안내 : 일기 쓰기 → 물 주기 → 물 10번 꽃 → 물 14번 열매 (처음엔 맨 위 · 물을 한 번 주면 아래로)
@@ -125,7 +125,7 @@
             const el = document.createElement('div');
             el.id = 'plantRoom'; el.className = 'pl-room';
             el.innerHTML = `
-              <div class="pl-bar"><span class="pl-sp"></span><b>🌷 화분 키우기</b><button class="pl-x" type="button" onclick="closePlant()" aria-label="닫기">✕</button></div>
+              <div class="pl-bar"><span class="pl-sp"></span><b>🌷 베란다 화분</b><button class="pl-x" type="button" onclick="closePlant()" aria-label="닫기">✕</button></div>
               <div class="pl-wrap">
                 <div class="pl-window">
                   <div class="pl-sun" id="plSun"></div>
