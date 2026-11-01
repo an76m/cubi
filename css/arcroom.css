@@ -58,10 +58,9 @@ body.arc-on .desk-top-r { display: none; }
 .aro-door.enter .aro-door-sign { transition: opacity .3s ease; opacity: 0; }
 
 /* 🏆 명예의 전당 트로피 (도련 11-01 · js/arcroom.js AROTROPHY) : 트로피 + 밑에 알림글 · 톡 = 순위 */
-.aro-hof { position: absolute; left: 366px; top: 168px; width: 200px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.aro-hof { position: absolute; left: 366px; top: 168px; width: 200px; padding: 0; border: 0; background: none; pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 2; }
 .aro-hof .aro-tro { width: 176px; height: 186px; overflow: visible; filter: drop-shadow(0 0 14px rgba(255, 210, 63, .85)) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); animation: aroBob 2.6s ease-in-out infinite; }
 .aro-hof .aro-sign { position: relative; margin-top: -4px; }
-.aro-hof:hover .aro-tro { filter: drop-shadow(0 0 22px #ffe36b) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); }
 .aro-tro-sp { position: absolute; font-style: normal; color: #fff6b0; font-size: 20px; text-shadow: 0 0 8px #ffd23f; animation: aroBlink 1.8s steps(1) infinite; animation-delay: var(--l, 0s); pointer-events: none; }
 .aro-tro-rays { transform-origin: 85px 62px; animation: aroSpin 14s linear infinite; }
 @keyframes aroSpin { to { transform: rotate(360deg); } }
@@ -74,20 +73,20 @@ body.arc-on .desk-top-r { display: none; }
 .aro-bd-tabs { display: flex; gap: 4px; }
 .aro-bd-tabs button { padding: 3px 9px; border-radius: 10px; border: 2px solid #fff; background: rgba(255, 255, 255, .35); color: #fff; font-weight: 900; font-size: 13px; cursor: pointer; }
 .aro-bd-tabs button.on { background: #fff; color: #d94f7a; }
-.aro-bd-scr { flex: 1; min-height: 0; border-radius: 12px; background: #1c0f2a; border: 3px solid #7a3b63; box-shadow: inset 0 0 18px rgba(255, 126, 182, .35); padding: 6px 10px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-.aro-bd-scr::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(transparent 0 3px, rgba(0, 0, 0, .18) 3px 4px); }
+.aro-bd-scr { flex: 1; min-height: 0; border-radius: 12px; background: #fff8fb; border: 3px solid #f0a0c0; box-shadow: inset 0 0 14px rgba(255, 159, 196, .35); padding: 6px 10px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.aro-bd-scr::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle, rgba(255, 182, 211, .25) 0 2px, transparent 3px) 0 0 / 18px 18px; }
 .aro-bd-game { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-bottom: 5px; border-bottom: 2px dashed rgba(255, 126, 182, .45); }
-.aro-bd-game b { flex: 1; text-align: center; color: #ffe36b; font-size: 18px; text-shadow: 0 0 8px #ffb000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aro-bd-game button { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #ff7eb6; background: #3a1d4d; color: #ff9fc4; font-size: 13px; cursor: pointer; position: relative; z-index: 1; }
+.aro-bd-game b { flex: 1; text-align: center; color: #d94f7a; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aro-bd-game button { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #ff7eb6; background: #fff; color: #ff7eb6; font-size: 13px; cursor: pointer; position: relative; z-index: 1; }
 .aro-bd-game button:hover { background: #ff7eb6; color: #fff; }
 .aro-bd-list { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-.aro-bd-row { display: flex; align-items: center; gap: 8px; color: #e9dcff; font-size: 16px; padding: 3px 4px; border-radius: 8px; }
-.aro-bd-row span { width: 28px; text-align: center; font-size: 18px; font-weight: 900; color: #c9a7ff; }
+.aro-bd-row { display: flex; align-items: center; gap: 8px; color: #6b4a63; font-size: 16px; padding: 3px 4px; border-radius: 8px; }
+.aro-bd-row span { width: 28px; text-align: center; font-size: 18px; font-weight: 900; color: #b48ae0; }
 .aro-bd-row em { flex: 1; font-style: normal; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aro-bd-row b { color: #7fd3ff; font-family: 'Press Start 2P', monospace; font-size: 12px; text-shadow: 0 0 6px #3aa8ff; }
-.aro-bd-row.t1 { background: rgba(255, 210, 63, .16); } .aro-bd-row.t1 em { color: #ffe36b; }
-.aro-bd-msg { margin: 0; text-align: center; color: #ffb3d1; font-size: 15px; line-height: 1.6; font-weight: 700; }
-.aro-bd-champ { margin: 4px 0 0; text-align: center; color: #ffe36b; font-size: 13px; font-weight: 800; }
+.aro-bd-row b { color: #3d8fd1; font-family: 'Press Start 2P', monospace; font-size: 12px; }
+.aro-bd-row.t1 { background: #fff1b8; } .aro-bd-row.t1 em { color: #c47e00; }
+.aro-bd-msg { margin: 0; text-align: center; color: #c76a92; font-size: 15px; line-height: 1.6; font-weight: 700; }
+.aro-bd-champ { margin: 4px 0 0; text-align: center; color: #c47e00; font-size: 13px; font-weight: 800; }
 .aro-bd-more { align-self: center; padding: 4px 16px; border-radius: 12px; border: 2px solid #fff; background: #fff; color: #d94f7a; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 3px 0 #e0628f; }
 .aro-bd-more:hover { background: #fff6b0; }
 @media (prefers-reduced-motion: reduce) { .aro-board::before { animation: none; } }

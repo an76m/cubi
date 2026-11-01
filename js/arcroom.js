@@ -20,8 +20,7 @@
             ['simon', [[1559, 321], [1598, 393], [1521, 514], [1486, 431]]],
             ['', [[1625, 430], [1671, 538], [1582, 671], [1541, 562]]]
         ];
-        const ARO_HOF = { id: 'hof', name: '명예의 전당', icon: '🏆', color: '#f0b429', desc: '이번 주 · 역대 순위를 봐요' };
-        /* 🏆 명예의 전당 트로피 (도련 11-01 · 왼쪽 줄과 뒤 벽 사이 · 톡 = 순위) */
+        /* 🏆 명예의 전당 트로피 (도련 11-01 · 왼쪽 줄과 뒤 벽 사이 · 꾸밈만 = 눌러도 그대로 · 순위는 순위판) */
         const AROTROPHY = `<svg class="aro-tro" viewBox="0 0 170 180" aria-hidden="true">
             <defs>
                 <linearGradient id="aroG" x1="0" x2="1"><stop offset="0" stop-color="#e09a00"/><stop offset=".28" stop-color="#ffc21a"/><stop offset=".4" stop-color="#ffe98a"/><stop offset=".52" stop-color="#ffc21a"/><stop offset="1" stop-color="#c47e00"/></linearGradient>
@@ -73,7 +72,7 @@
                         return g ? `<button type="button" class="aro-scr" data-i="${i}" style="--c:${g.color};transform:${aroH(q)}" aria-label="${g.name}"><i>${g.icon}</i><b>${g.name}</b></button>`
                             : `<div class="aro-scr deco" style="transform:${aroH(q)}"><b>INSERT COIN</b></div>`; }).join('')}
                     ${aroFx()}
-                    <button type="button" class="aro-hof" id="aroHof" aria-label="명예의 전당">${AROTROPHY}<span class="aro-sign">🏆 명예의 전당</span></button>
+                    <div class="aro-hof" id="aroHof">${AROTROPHY}<span class="aro-sign">🏆 명예의 전당</span></div>
                     <div class="aro-board" id="aroBoard">
                         <div class="aro-bd-top"><b>🏆 명예의 전당</b><span class="aro-bd-tabs"><button type="button" data-t="week">이번 주</button><button type="button" data-t="all">역대</button></span></div>
                         <div class="aro-bd-scr">
@@ -97,13 +96,6 @@
                 b.addEventListener('pointerleave', () => { tip.hidden = true; });
                 b.addEventListener('click', () => { tip.hidden = true; if (window.arcadePlay) arcadePlay(id); });
             });
-            const hb = aroq('aroHof');
-            hb.addEventListener('pointerenter', () => {
-                Object.assign(tip.style, { left: '690px', top: '290px' });
-                tip.innerHTML = `<b>${ARO_HOF.icon} ${ARO_HOF.name}</b><small>${ARO_HOF.desc}</small><em>🏆 순위 보기</em>`; tip.hidden = false;
-            });
-            hb.addEventListener('pointerleave', () => { tip.hidden = true; });
-            hb.addEventListener('click', () => { tip.hidden = true; if (window.openHof) openHof(); });
             const bd = aroq('aroBoard');
             bd.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBdGo(+b.dataset.d); }));
             bd.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBd.tab = b.dataset.t; aroBdShow(); }));
