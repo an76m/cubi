@@ -50,20 +50,12 @@ html body.gacha-on #moveModal { z-index: 1650 !important; }                     
 .gc-scene .gc-result p { font-size: 16px; }
 .gc-scene .gc-prize { width: 220px; }
 
-/* 🚶 문방구 앞으로 다가가요 (도련 11-01 · js/gacha.js gcsApproach) : 길에서 본 문방구 → 캡슐기계 쪽으로 걸어가듯 커지며 (살짝 위아래로 흔들리는 걸음) → 따뜻한 빛 → 캡슐기계 앞 */
+/* 🏪 문방구 앞 전환 (도련 11-01 · js/gacha.js gcsApproach · 타로카페 · 오락실 문과 같은 전환) : 길에서 본 문방구 → 캡슐기계 쪽으로 커지며 따뜻한 빛 → 캡슐기계 앞 */
 .gcs-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #f6d79a; }
 .gcs-walk.on { display: block; animation: troDoorIn .35s ease; }
 .gcs-walk.leave { animation: troDoorOut .45s ease forwards; }
 .gcs-walk-in { position: absolute; inset: 0; }
 .gcs-walk-in img { position: absolute; user-select: none; -webkit-user-drag: none; }
-.gcs-walk-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 246, 214, .0) 0, rgba(255, 236, 190, .55) 55%, #f7df90 100%); }
-.gcs-walk.go .gcs-walk-in { animation: gcsWalk 1.9s cubic-bezier(.45, 0, .75, .6) forwards; }
-.gcs-walk.go .gcs-walk-in::after { transition: opacity .7s ease 1.2s; opacity: 1; }
-@keyframes gcsWalk {
-    0% { transform: translate(0, 0) scale(1); }
-    20% { transform: translate(calc(var(--dx) * .12), calc(var(--dy) * .12 - 4px)) scale(calc(1 + (var(--k) - 1) * .09)); }
-    40% { transform: translate(calc(var(--dx) * .3), calc(var(--dy) * .3 + 3px)) scale(calc(1 + (var(--k) - 1) * .22)); }
-    60% { transform: translate(calc(var(--dx) * .52), calc(var(--dy) * .52 - 4px)) scale(calc(1 + (var(--k) - 1) * .42)); }
-    80% { transform: translate(calc(var(--dx) * .78), calc(var(--dy) * .78 + 3px)) scale(calc(1 + (var(--k) - 1) * .7)); }
-    100% { transform: translate(var(--dx), var(--dy)) scale(var(--k)); }
-}
+.gcs-walk-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #fffbe9 0, #ffefc0 18%, #f9d98f 45%, #f4c76f 75%, #f7df90 100%); }
+.gcs-walk.go .gcs-walk-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
+.gcs-walk.go .gcs-walk-in::after { transition: opacity .8s ease .45s; opacity: 1; }
