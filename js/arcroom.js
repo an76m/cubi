@@ -2,7 +2,7 @@
    🕹️ 뿅뿅오락실 장소 (도련 11-01 · 타로카페처럼) : 💻 PC · 📲 아이패드에서 '뿅뿅오락실' 칸을 누르면 (📱 폰은 예전 카페 칸 그대로 · calRoomUse)
    - 🚪 들어갈 때 = 분홍 유리문(img/arcade-door.webp) → 🔔 띠리링~ (✨ 연출 소리 · sndArcadeDoor) → 손잡이 사이로 다가가며 분홍 · 노랑 빛 → 오락실
    - 오락실 그림(img/arcade-room.webp) 속 오락기 화면마다 게임 하나 (화면 기울기 그대로 · 네 모서리에 맞춰 늘여요)
-       가운데 섬 + 왼쪽 앞 = 🕹️ 오락실 게임 6 · 뒤쪽 벽 + 오른쪽 줄 = 🧠 두뇌 게임 7 · 왼쪽 줄 끝 = 🏆 명예의 전당 · 남는 화면 = INSERT COIN
+       가운데 섬 + 왼쪽 앞 = 🕹️ 오락실 게임 6 · 뒤쪽 벽 + 오른쪽 줄 = 🧠 두뇌 게임 7 · 남는 화면 = INSERT COIN · 🏆 명예의 전당 = 왼쪽 줄과 뒤 벽 사이 트로피 (밑에 알림글 · 도련 11-01) · 알림글은 이것만
        화면 톡 = 그 게임 바로 (js/arcade.js arcadePlay · 끝나고 '오락실로' · ✕ = 이 장소로) · 마우스를 올리면 화면이 밝아지고 설명
    - ✨ 연출 : 화면 깜빡임 · 떠오르는 픽셀 하트 · 별 · 바닥 반짝이 · 분홍 불빛 숨쉬기 (CSS 만 · 동작 줄이기면 멈춰요)
    - 그림 = 화면 꽉 (coverFit · 섬 · 오른쪽 줄이 보이게) · 닫기 없이 '이동' (data-place="game" · body.arc-on) */
@@ -13,7 +13,7 @@
             ['shooter', [[509, 482], [618, 405], [684, 539], [585, 628]]], ['breakout', [[647, 387], [703, 329], [765, 438], [714, 500]]],
             ['maze', [[730, 318], [774, 270], [827, 365], [788, 415]]], ['mole', [[796, 279], [835, 219], [881, 305], [848, 347]]],
             ['snake', [[81, 195], [177, 167], [218, 261], [122, 295]]], ['runner', [[217, 155], [300, 132], [335, 217], [254, 245]]],
-            ['hof', [[331, 122], [397, 105], [428, 181], [363, 203]]],
+            ['', [[331, 122], [397, 105], [428, 181], [363, 203]]],
             ['memory', [[535, 77], [628, 81], [615, 158], [519, 148]]], ['slide', [[901, 87], [995, 94], [979, 171], [885, 156]]],
             ['stroop', [[1028, 98], [1130, 102], [1118, 181], [1015, 167]]], ['math', [[1167, 105], [1265, 114], [1250, 196], [1151, 181]]],
             ['digits', [[1454, 172], [1484, 219], [1431, 304], [1399, 245]]], ['flash', [[1504, 239], [1537, 298], [1472, 397], [1444, 329]]],
@@ -21,6 +21,18 @@
             ['', [[1625, 430], [1671, 538], [1582, 671], [1541, 562]]]
         ];
         const ARO_HOF = { id: 'hof', name: '명예의 전당', icon: '🏆', color: '#f0b429', desc: '이번 주 · 역대 순위를 봐요' };
+        /* 🏆 명예의 전당 트로피 (도련 11-01 · 왼쪽 줄과 뒤 벽 사이 · 톡 = 순위) */
+        const AROTROPHY = `<svg class="aro-tro" viewBox="0 0 120 130" aria-hidden="true">
+            <defs><linearGradient id="aroG" x1="0" x2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset=".45" stop-color="#fff3a8"/><stop offset=".6" stop-color="#ffd23f"/><stop offset="1" stop-color="#e9a400"/></linearGradient></defs>
+            <path d="M30 22 C8 22 6 52 34 58 M90 22 C112 22 114 52 86 58" fill="none" stroke="#e9a400" stroke-width="7" stroke-linecap="round"/>
+            <path d="M28 12 H92 V34 C92 58 76 70 60 70 C44 70 28 58 28 34 Z" fill="url(#aroG)" stroke="#c98200" stroke-width="3"/>
+            <path d="M60 24 l4.5 9 10 1.4 -7.2 7 1.7 10 -9 -4.7 -9 4.7 1.7 -10 -7.2 -7 10 -1.4z" fill="#ff7eb6" stroke="#fff" stroke-width="1.5"/>
+            <rect x="53" y="69" width="14" height="16" fill="url(#aroG)" stroke="#c98200" stroke-width="3"/>
+            <path d="M40 85 H80 L84 96 H36 Z" fill="url(#aroG)" stroke="#c98200" stroke-width="3" stroke-linejoin="round"/>
+            <rect x="30" y="96" width="60" height="22" rx="5" fill="#ff8fb8" stroke="#d94f7a" stroke-width="3"/>
+            <rect x="44" y="102" width="32" height="10" rx="2" fill="#fff3a8" stroke="#c98200" stroke-width="1.5"/>
+            <path d="M36 16 Q34 30 40 42" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+        </svg><i class="aro-tro-sp" style="left:8px;top:14px">✦</i><i class="aro-tro-sp" style="right:6px;top:4px;--l:-.9s">✦</i><i class="aro-tro-sp" style="right:14px;top:62px;--l:-1.6s">✧</i>`;
         const aroq = id => document.getElementById(id);
         const aroOn = () => !!aroq('arcRoom') && aroq('arcRoom').classList.contains('show');
         /* 200 × 150 네모 → 화면 네 모서리 (원근 그대로 · matrix3d) */
@@ -40,16 +52,14 @@
         }
         function aroBuild() {
             let el = aroq('arcRoom'); if (el) return el;
-            const G = window.arcadeGames ? arcadeGames() : [], gOf = id => id === 'hof' ? ARO_HOF : G.find(g => g.id === id);
+            const G = window.arcadeGames ? arcadeGames() : [], gOf = id => G.find(g => g.id === id);
             el = document.createElement('div'); el.id = 'arcRoom'; el.className = 'aro-room';
             el.innerHTML = `<div class="aro-stage" id="aroStage"><img class="aro-bg" src="img/arcade-room.webp?v=20261009-1035" alt="" draggable="false">
                     ${ARO_SCR.map(([id, q], i) => { const g = gOf(id);
                         return g ? `<button type="button" class="aro-scr" data-i="${i}" style="--c:${g.color};transform:${aroH(q)}" aria-label="${g.name}"><i>${g.icon}</i><b>${g.name}</b></button>`
                             : `<div class="aro-scr deco" style="transform:${aroH(q)}"><b>INSERT COIN</b></div>`; }).join('')}
                     ${aroFx()}
-                    <span class="aro-sign" style="left:430px;top:270px;rotate:-8deg">🕹️ 오락실 게임</span>
-                    <span class="aro-sign" style="left:1010px;top:40px">🧠 두뇌 게임<small>기억력 · 집중력 · 계산력</small></span>
-                    <span class="aro-sign" style="left:300px;top:52px;rotate:-6deg">🏆 명예의 전당</span>
+                    <button type="button" class="aro-hof" id="aroHof" aria-label="명예의 전당">${AROTROPHY}<span class="aro-sign">🏆 명예의 전당</span></button>
                     <div class="aro-tip" id="aroTip" hidden></div>
                 </div>
                 <div class="aro-ttl">🕹️ 뿅뿅오락실</div>
@@ -61,11 +71,18 @@
                 b.addEventListener('pointerenter', () => {
                     const top = q.reduce((m, p) => p[1] < m[1] ? p : m, q[0]);
                     Object.assign(tip.style, { left: Math.max(150, Math.min(ARO_W - 150, top[0])) + 'px', top: Math.max(120, top[1] - 12) + 'px' });
-                    tip.innerHTML = `<b>${g.icon} ${g.name}</b><small>${g.desc || ''}</small><em>${id === 'hof' ? '🏆 순위 보기' : '▶ 게임 시작'}</em>`; tip.hidden = false;
+                    tip.innerHTML = `<b>${g.icon} ${g.name}</b><small>${g.desc || ''}</small><em>▶ 게임 시작</em>`; tip.hidden = false;
                 });
                 b.addEventListener('pointerleave', () => { tip.hidden = true; });
-                b.addEventListener('click', () => { tip.hidden = true; if (id === 'hof') { if (window.openHof) openHof(); } else if (window.arcadePlay) arcadePlay(id); });
+                b.addEventListener('click', () => { tip.hidden = true; if (window.arcadePlay) arcadePlay(id); });
             });
+            const hb = aroq('aroHof');
+            hb.addEventListener('pointerenter', () => {
+                Object.assign(tip.style, { left: '660px', top: '250px' });
+                tip.innerHTML = `<b>${ARO_HOF.icon} ${ARO_HOF.name}</b><small>${ARO_HOF.desc}</small><em>🏆 순위 보기</em>`; tip.hidden = false;
+            });
+            hb.addEventListener('pointerleave', () => { tip.hidden = true; });
+            hb.addEventListener('click', () => { tip.hidden = true; if (window.openHof) openHof(); });
             addEventListener('resize', () => { if (aroOn()) aroFit(); });
             return el;
         }

@@ -57,3 +57,11 @@ body.arc-on .desk-top-r { display: none; }
 .aro-door.enter .aro-door-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
 .aro-door.enter .aro-door-in::after { transition: opacity .8s ease .45s; opacity: 1; }
 .aro-door.enter .aro-door-sign { transition: opacity .3s ease; opacity: 0; }
+
+/* 🏆 명예의 전당 트로피 (도련 11-01 · js/arcroom.js AROTROPHY) : 트로피 + 밑에 알림글 · 톡 = 순위 */
+.aro-hof { position: absolute; left: 392px; top: 140px; width: 140px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.aro-hof .aro-tro { width: 112px; height: 122px; filter: drop-shadow(0 0 14px rgba(255, 210, 63, .85)) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); animation: aroBob 2.6s ease-in-out infinite; }
+.aro-hof .aro-sign { position: relative; margin-top: 4px; rotate: -6deg; }
+.aro-hof:hover .aro-tro { filter: drop-shadow(0 0 22px #ffe36b) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); }
+.aro-tro-sp { position: absolute; font-style: normal; color: #fff6b0; font-size: 20px; text-shadow: 0 0 8px #ffd23f; animation: aroBlink 1.8s steps(1) infinite; animation-delay: var(--l, 0s); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .aro-hof .aro-tro, .aro-tro-sp { animation: none; } }
