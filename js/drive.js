@@ -996,7 +996,7 @@
             loadUIFont();
             if (isCoverOpen) loadData();
             updateStorageInfo();
-            if (typeof lockAfterLoad === 'function') lockAfterLoad();       // 🔒 다이어리 잠금 (js/lock.js)
+            if (typeof lockAfterLoad === 'function') lockAfterLoad();       // 🔒 다이어리앱 잠금 (js/lock.js)
             if (typeof showApply === 'function') showApply();               // 👀 페이지에 보이는 것 (js/show.js)
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ D-day (js/dday.js)
             if (typeof bgmLoadPref === 'function') bgmLoadPref();           // 🎵 배경음악 음량 · 반복 · 섞기 (js/bgm.js)

@@ -131,7 +131,7 @@
             cyq('cyStats').innerHTML = `<div><small>평균 주기</small><b>${st.cycle}일</b></div><div><small>평균 기간</small><b>${st.len}일</b></div><div><small>기록한 생리</small><b>${st.ps.length}번</b></div>`
                 + (st.real < 2 ? '<p>기록이 2번 넘게 쌓이면 내 주기로 계산해요 (지금은 28일 기준)</p>' : '');
             const lockOn = (() => { try { return !!JSON.parse(store.getItem('diary_lock') || localStorage.getItem('malang_lock')); } catch (e) { return false; } })();
-            cyq('cyLockTip').innerHTML = lockOn ? '' : '<br>🔐 <b>⚙ 설정 → 🔒 다이어리 잠금</b>을 켜 두면 더 안심이에요.';
+            cyq('cyLockTip').innerHTML = lockOn ? '' : '<br>🔐 <b>⚙ 설정 → 🔒 다이어리앱 잠금</b>을 켜 두면 더 안심이에요.';
         }
         function cyPick(k) { cy.sel = k; cyRender(); }
         function cyToggleP(k) {

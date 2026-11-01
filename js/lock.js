@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/lock.js
-   🔒 다이어리 잠금 : 다이어리를 열 때 4자리 비밀번호를 물어봐요 (⚙ 설정 → 🔒 다이어리 잠금)
+   🔒 다이어리앱 잠금 : 다이어리를 열 때 4자리 비밀번호를 물어봐요 (⚙ 설정 → 🔒 다이어리앱 잠금)
    - 비밀번호는 그대로 저장하지 않고, 풀 수 없는 암호(해시)로 바꿔 설정(설정.json)에 저장 → 다른 기기에서도 같은 비밀번호
      이 기기에도 한 벌 기억해서, 드라이브를 불러오기 전에도 잠금 화면이 먼저 떠요
    - 자동 잠금 : 다이어리를 열 때만 / 잠깐(1분 · 5분) 나갔다 돌아와도
@@ -116,7 +116,7 @@
         /* 비밀번호를 잊었을 때 : 주인 구글 계정으로 다시 로그인 → 잠금 풀기 */
         async function lockForgot() {
             const rec = lk2.rec || lockRead();
-            const yes = await showMsg('다이어리 주인의 <b>구글 계정으로 다시 로그인</b>하면 잠금이 풀려요.<br><span style="font-size:12px;color:#777;">풀린 뒤 ⚙ 설정 → 🔒 다이어리 잠금에서 새 비밀번호를 정할 수 있어요.</span>', true);
+            const yes = await showMsg('다이어리 주인의 <b>구글 계정으로 다시 로그인</b>하면 잠금이 풀려요.<br><span style="font-size:12px;color:#777;">풀린 뒤 ⚙ 설정 → 🔒 다이어리앱 잠금에서 새 비밀번호를 정할 수 있어요.</span>', true);
             if (!yes) return;
             try {
                 await requestToken('select_account');
@@ -124,7 +124,7 @@
                 if (rec && rec.u && who !== rec.u) { showMsg('⚠ 다이어리 주인의 구글 계정이 아니에요.'); return; }
                 if (!drive.ready) await loadFromDrive();
                 lockWrite(null); lk2.after = null; lk2.unlockedOnce = true; lockClose(); lockRenderSettings();
-                showMsg('🔓 잠금을 풀었어요.<br><span style="font-size:12px;color:#777;">다시 잠그려면 ⚙ 설정 → 🔒 다이어리 잠금</span>');
+                showMsg('🔓 잠금을 풀었어요.<br><span style="font-size:12px;color:#777;">다시 잠그려면 ⚙ 설정 → 🔒 다이어리앱 잠금</span>');
             } catch (e) { showMsg('⚠ 구글 로그인을 하지 못했어요. 다시 해 주세요.'); }
         }
 
@@ -143,7 +143,7 @@
             if (r && r.a > 0 && lk2.hiddenAt && Date.now() - lk2.hiddenAt >= r.a * 60000 && !lk2.open) lockNeed();
         });
 
-        /* ---------- ⚙ 설정 → 🔒 다이어리 잠금 ---------- */
+        /* ---------- ⚙ 설정 → 🔒 다이어리앱 잠금 ---------- */
         function openLockSettings() {
             if (typeof closeModal === 'function') closeModal('settingsMenuModal');
             lockRenderSettings();

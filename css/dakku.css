@@ -69,7 +69,7 @@
 .modal .service-btn small { font-size: 10px; color: var(--dk-soft); margin-top: -2px; line-height: 1.25; }
 .modal .service-btn.soon { opacity: .5; }
 
-/* ⚙ 설정 메뉴 : 2×2 (설정 · 건의함 · 다이어리 잠금 · 앱으로 설치하기) */
+/* ⚙ 설정 메뉴 : 2×2 (설정 · 건의함 · 다이어리앱 잠금 · 앱으로 설치하기) */
 .modal-content.settings-menu { max-width: 330px; }
 .modal .settings-grid { grid-template-columns: repeat(2, 1fr); }
 

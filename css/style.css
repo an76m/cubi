@@ -1529,7 +1529,7 @@
 
         .season-corner { position: absolute; right: 4px; bottom: 4px; width: 76px; height: 76px; background: center / contain no-repeat; pointer-events: none; z-index: 0; opacity: .9; }
 
-        /* ===== 🔒 다이어리 잠금 (js/lock.js) ===== */
+        /* ===== 🔒 다이어리앱 잠금 (js/lock.js) ===== */
         .lock-screen { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 20px;
             background: radial-gradient(circle at 30% 20%, #ffe3ec, transparent 60%), radial-gradient(circle at 80% 90%, #e6dcff, transparent 55%), #fff5f8; }
         .lock-screen[hidden] { display: none; }
