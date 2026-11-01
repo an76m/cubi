@@ -45,3 +45,14 @@ body.post-on .desk-top-r { display: none; }
 /* 💌 익명 편지함 (원래 창의 부분) */
 .pr-room #lbBack { width: 34px; height: 34px; }
 @media (prefers-reduced-motion: reduce) { .pr-star { animation: none; } }
+
+/* 🌙 강변 우체통 전환 (도련 11-01 · js/postroom.js prApproach · 타로카페 · 오락실 · 캡슐기계와 같은 전환) : 처음부터 불투명 · 그림만 스르르 → 우체통 쪽으로 커지며 노란 · 보랏빛 */
+.pr-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #3b3566; }
+.pr-walk.on { display: block; }
+.pr-walk.on .pr-walk-in img { animation: troDoorIn .35s ease; }
+.pr-walk.leave { animation: troDoorOut .4s ease forwards; }
+.pr-walk-in { position: absolute; inset: 0; }
+.pr-walk-in img { position: absolute; user-select: none; -webkit-user-drag: none; }
+.pr-walk-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--lx, 50%) var(--ly, 50%), #fff6d8 0, #ffe29a 14%, #c9a3e6 40%, #6b5a9a 70%, #3b3566 92%); }
+.pr-walk.go .pr-walk-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
+.pr-walk.go .pr-walk-in::after { transition: opacity .8s ease .45s; opacity: 1; }

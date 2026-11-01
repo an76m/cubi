@@ -85,9 +85,26 @@
             const s = v === 'lb' ? prq('prLbIn') : prq('prFbIn'); if (s) s.scrollTop = 0;
             if (v === 'fb') prq('feedbackInput').focus();
         }
+        /* 🌙 강변 우체통 전환 (도련 11-01 · 타로카페 · 오락실 · 캡슐기계와 같은 전환) : 밤 강변 길(img/post-street.webp) → 가로등 아래 빨간 우체통 쪽으로 커지며 노란 · 보랏빛 → 우체통 · 동작 줄이기면 바로 */
+        let prGoBusy = false;
+        function prApproach() {
+            if (prGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            let d = prq('prGo');
+            if (!d) { d = document.createElement('div'); d.id = 'prGo'; d.className = 'pr-walk'; d.innerHTML = '<div class="pr-walk-in"><img src="img/post-street.webp?v=20261009-1041" alt="" draggable="false"></div>'; document.body.appendChild(d); }
+            prGoBusy = true;
+            const { s, x, y } = coverFit(PR_W, PR_H, [700, 1420, 100, 700]);
+            Object.assign(d.querySelector('img').style, { width: PR_W * s + 'px', height: PR_H * s + 'px', left: x + 'px', top: y + 'px' });
+            const inn = d.querySelector('.pr-walk-in'), ox = x + 1062 * s, oy = y + 450 * s;   // 빨간 우체통 (그림 px)
+            inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');   // 빛도 우체통에서 번져요
+            d.classList.remove('go', 'leave'); d.classList.add('on');
+            const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); prGoBusy = false; }, 400); }, 1700); };
+            const img = d.querySelector('img'), start = () => setTimeout(go, 750);
+            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        }
         function openPostRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.closeCalRoom) closeCalRoom();
+            prApproach();                                                        // 🌙 강변 길 → 우체통 (우체통은 뒤에서 미리 열어 둬요)
             const el = prBuild();
             prGiveBack(); prShow('cats');
             prFit(); el.classList.add('show'); document.body.classList.add('cal-on', 'post-on');   // cal-on = 장소에 있어요 (이동 창 · 책상 버튼 숨김)
