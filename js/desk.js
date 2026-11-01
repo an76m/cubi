@@ -373,14 +373,7 @@
             if (document.body.classList.contains('cal-on')) return 'cal';
             return 'room';
         }
-        function mvMore(on) {                                                     // 🚪 이동 창 ▾ = 📲 앱으로 설치하기 (도련 11-01)
-            const L = document.getElementById('mvList'), b = document.querySelector('#moveModal .mv-more'); if (!L) return;
-            const open = on === undefined ? L.hidden : on; L.hidden = !open; if (b) b.setAttribute('aria-expanded', String(open));
-        }
-        window.mvMore = mvMore;
-        document.addEventListener('pointerdown', e => { const L = document.getElementById('mvList'); if (L && !L.hidden && !e.target.closest('.mv-list, .mv-more')) mvMore(false); }, true);
         function deskMoveOpen() {
-            mvMore(false);
             const box = document.getElementById('moveCafe'), here = deskHere();
             document.querySelectorAll('#moveModal > .modal-content > .svc-cats > [data-place]').forEach(b => { b.hidden = b.dataset.place === here; });   // 📍 지금 있는 곳은 목록에서 빼요 (도련 10-31 · 규칙 하나 · 칸마다 data-place 이름표)
             const fill = () => {
