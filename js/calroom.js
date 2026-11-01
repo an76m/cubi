@@ -95,11 +95,11 @@
         function crApproach() {
             if (crGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             let d = crq('crGo');
-            if (!d) { d = document.createElement('div'); d.id = 'crGo'; d.className = 'pr-walk cr-walk'; d.innerHTML = '<div class="pr-walk-in"><img src="img/cal-living.webp?v=20261009-1044" alt="" draggable="false"></div>'; document.body.appendChild(d); }
+            if (!d) { d = document.createElement('div'); d.id = 'crGo'; d.className = 'pr-walk cr-walk'; d.innerHTML = '<div class="pr-walk-in"><img src="img/cal-living.webp?v=20261009-1045" alt="" draggable="false"></div>'; document.body.appendChild(d); }
             crGoBusy = true;
-            const { s, x, y } = coverFit(CR_W, CR_H, [620, 1320, 60, 640]);
+            const { s, x, y } = coverFit(CR_W, CR_H, [820, 1460, 60, 640]);
             Object.assign(d.querySelector('img').style, { width: CR_W * s + 'px', height: CR_H * s + 'px', left: x + 'px', top: y + 'px' });
-            const inn = d.querySelector('.pr-walk-in'), ox = x + 972 * s, oy = y + 262 * s;   // 벽걸이 달력 (그림 px)
+            const inn = d.querySelector('.pr-walk-in'), ox = x + 1142 * s, oy = y + 278 * s;   // 벽걸이 달력 (그림 px)
             inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');
             d.classList.remove('go', 'leave'); d.classList.add('on');
             const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); crGoBusy = false; }, 400); }, 1700); };
