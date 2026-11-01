@@ -693,3 +693,5 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
 .dkz-slot b { font-size: 14px; } .dkz-slot small { font-size: 11px; color: #a0607e; }
 .dkz-slot:hover, .dkz-slot:focus-visible { background: rgba(255, 233, 160, .85); border: 3px solid #ff7eb6; transform: scale(1.03); outline: none; }
 .dkz-slot.on { background: rgba(255, 214, 230, .8); border-style: solid; }
+.dkz-slot:disabled { cursor: default; background: rgba(120, 100, 110, .28); border-style: dotted; opacity: .7; transform: none; }
+.dkz-slot:disabled b, .dkz-slot:disabled small { color: #6b5560; }

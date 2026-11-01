@@ -757,7 +757,7 @@
            - 집이 된 소품을 톡 = 그 종류 창 (기능도 있으면 고르기) · 🪑 책상 소품을 산 거면 끌어다 놓은 자리에 그 소품이 바로 놓여요
            - 다 꺼내면 봉투는 사라져요 · 진짜 상품은 살 때 이미 보관함에 들어가 있어요 (봉투는 정리하는 재미) */
         const DKB_KEY = 'diary_desk_bags', DKB_LOCAL = 'malang_desk_bags', DKH_KEY = 'diary_desk_home', DKH_LOCAL = 'malang_desk_home';
-        const DKH_NAMES = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지', memo: '메모지', gd: '문구', tool: '다이어리', bg: '배경지', desk: '책상 소품' };
+        const DKH_NAMES = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지스티커', memo: '메모지', gd: '문구', tool: '다이어리', bg: '배경지', desk: '책상 소품' };
         const dkBags = () => { const v = typeof prefGet === 'function' ? prefGet(DKB_KEY, DKB_LOCAL) : null; return Array.isArray(v) ? v.filter(b => b && Array.isArray(b.it) && b.it.length) : []; };
         const dkBagsSet = v => { if (typeof prefSet === 'function') prefSet(DKB_KEY, DKB_LOCAL, v); };
         const dkHomes = () => {
@@ -828,7 +828,7 @@
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkBagPanel'; pn.className = 'dkb-pn'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             pn.dataset.n = n;
             pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>상품을 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 상품을 사용할 수 있어요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
-                + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}<b>${htmlEsc(it.n || DKH_NAMES[it.k] || '')}</b><small>${dkbSub(it)}</small></div>`).join('')}</div>`;
+                + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}${DKB_STK.includes(it.k) && !it.al ? `<b>${DKH_NAMES[it.k]}</b>` : `<b>${htmlEsc(it.n || DKH_NAMES[it.k] || '')}</b><small>${dkbSub(it)}</small>`}</div>`).join('')}</div>`;
             pn.querySelectorAll('.dkb-card').forEach(c => c.addEventListener('pointerdown', e => dkbGrab(e, n, +c.dataset.j, c)));
             pn.hidden = false;
         }
@@ -892,12 +892,13 @@
                 return;
             }
             const S = dkSlots(o.id), M = deskFnMap(), H = dkHomes(), zones = H[u] || [];
-            let s = -1;
+            let s = -1, old = '';                                                // old = 바꾸기로 밀려난 것 (어디로 옮길지 물어봐요 · 도련 11-01)
             if (S) {
                 s = await dkzChoose(t, o, win); if (s < 0) return;               // 🗄️ 서랍장 그림에서 칸 고르기 (도련 11-01)
                 const same = zones.find(e => e.k === win); if (same && same.s === s) { dkbPulse(t); dkbTake(n, j); return; }   // 이미 이 칸에
                 const cur = zones.find(e => e.s === s);
                 if (cur && !await showAsk(`${nm} ${DK_SLOT_NM[s]} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>${josa(K, '으로', '로')} 바꿀까요?`, '바꾸기', '취소')) return;
+                if (cur) old = cur.k;
             } else if (M[win] === u) { dkbPulse(t); dkbTake(n, j); return; }
             const wasU = M[win] || Object.keys(H).find(x => H[x].some(e => e.k === win)), ow = wasU && DK.items.find(x => x.u === wasU);
             if (ow && !(S && wasU === u)) {
@@ -910,20 +911,40 @@
             DK_FNS.forEach(([k]) => { if (!M2[k]) M2[k] = ''; });                   // 빠진 기능은 '' (저절로 다시 붙이지 않게)
             if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
             deskFnPaint();
+            if (old) { dknPaintAll(); await dkzRehome(old, u); }                 // 🗄️ 밀려난 것 = 빈 서랍으로 옮기기
             if (S) { if (await showAsk(`🏷 ${DK_SLOT_NM[s]} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, win); setTimeout(() => dknPanel(u + '|' + win), 50); } }
             else if (!o.tag) { o.tag = { on: !!await showAsk(`🏷 ${nm}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(u), 50); }
             dknPaintAll(); dkbPulse(t); dkbTake(n, j);
         }
         /* ---------- 🗄️ 서랍 칸 (도련 11-01 : 칸 자리는 미리 정해 둬요 · DK_HOLD) ---------- */
-        /* 🗄️ 서랍 고르기 (도련 11-01) : 상품을 서랍장에 넣을 때 그 서랍장 그림이 크게 뜨고 칸을 직접 눌러요 · 칸마다 지금 든 것 · 결과 = 칸 번호 (취소 = -1) */
-        async function dkzChoose(t, o, win) {
+        /* 🗄️ 서랍 고르기 (도련 11-01) : 상품을 서랍장에 넣을 때 그 서랍장 그림이 크게 뜨고 칸을 직접 눌러요 · 칸마다 지금 든 것 · 결과 = 칸 번호 (취소 = -1 · '다른 서랍장' = 'more')
+           op = { free : 빈 칸만 누를 수 있게, ask : 위 글, no : 취소 글, more : 세 번째 버튼 글 } */
+        async function dkzChoose(t, o, win, op) {
+            op = op || {};
             const S = dkSlots(o.id), im = t.querySelector(':scope > img'), Z = dkHomes()[t.dataset.u] || [], [, K, , ic] = dkWin(win);
-            const html = `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl ? ' style="transform:scaleX(-1)"' : ''}>`
-                + S.map((r, i) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k);
-                    return `<button type="button" class="dkz-slot${c && c.k === win ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%" onclick="closeMsg('s${i}')"><b>${DK_SLOT_NM[i]} 서랍</b><small>${w ? (c.k === win ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
+            const html = (op.ask || `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요`) + (op.free ? `<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o))} · 빈 서랍만 고를 수 있어요</span>` : '')
+                + `<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl ? ' style="transform:scaleX(-1)"' : ''}>`
+                + S.map((r, i) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k), off = op.free && c;
+                    return `<button type="button" class="dkz-slot${c && c.k === win ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"${off ? ' disabled' : ` onclick="closeMsg('s${i}')"`}><b>${DK_SLOT_NM[i]} 서랍</b><small>${w ? (c.k === win ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
             const a = document.getElementById('customAlertConfirmBtn'); a.style.display = 'none';
-            let r; try { r = await showAsk(html, '', '취소'); } finally { a.style.display = ''; }
-            return typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
+            let r; try { r = op.more ? await showAsk3(html, '', op.no || '취소', op.more) : await showAsk(html, '', op.no || '취소'); } finally { a.style.display = ''; }
+            return r === 'extra' ? 'more' : typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
+        }
+        /* 🗄️ 바꾸기로 밀려난 것 옮기기 (도련 11-01) : 빈 서랍(이 서랍장 먼저 · 다른 서랍장)을 골라요 · 안 옮기면 서랍에서만 빠져요 (바구니 · 보관함에는 그대로) */
+        async function dkzRehome(k, u0) {
+            const [, K, , ic] = dkWin(k), H = dkHomes();
+            const C = dkOnDesk().filter(x => dkSlots(x.id) && dkHoldOk(x.id).includes(k) && dkSlots(x.id).some((r, i) => !(H[x.u] || []).some(e => e.s === i)))
+                .sort((a, b) => (b.u === u0) - (a.u === u0));
+            const out = () => showMsg(`${ic} ${josa(K, '은', '는')} 서랍에서 빠졌어요.<br><span style="font-size:12px;color:#777;">스티커는 바구니에 그대로 있어요 · 🛠 책상 꾸미기 → 🔗 기능 연결에서 다시 넣을 수 있어요</span>`);
+            if (!C.length) { await out(); return; }
+            for (let i = 0; ; i = (i + 1) % C.length) {
+                const o = C[i], t = document.querySelector(`#deskStage .desk-item[data-u="${o.u}"]`); if (!t) { await out(); return; }
+                const s = await dkzChoose(t, o, k, { free: true, ask: `${ic} 원래 있던 <b>${htmlEsc(josa(K, '은', '는'))}</b> 어느 서랍으로 옮길까요?`, no: '옮기지 않기', more: C.length > 1 ? '다른 서랍장' : '' });
+                if (s === 'more') continue;
+                if (s < 0) { await out(); return; }
+                const H2 = dkHomes(); H2[o.u] = (H2[o.u] || []).filter(e => e.s !== s && e.k !== k); H2[o.u].push({ k, s, r: dkSlots(o.id)[s] }); dkHomesSet(H2);
+                dknPaintAll(); dkbPulse(t); return;
+            }
         }
         function dkzTagOn(u, k) { const H = dkHomes(), e = (H[u] || []).find(x => x.k === k && x.r); if (!e) return; e.tag = Object.assign({}, e.tag || {}, { on: true }); dkHomesSet(H); dknPaintAll(); }
         const dkzPct = (el, cx, cy) => { const im = el.querySelector(':scope > img') || el, q = im.getBoundingClientRect(); return [(cx - q.left) / q.width * 100, (cy - q.top) / q.height * 100]; };   // 소품 그림 안 %
