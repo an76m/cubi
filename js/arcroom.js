@@ -22,17 +22,31 @@
         ];
         const ARO_HOF = { id: 'hof', name: '명예의 전당', icon: '🏆', color: '#f0b429', desc: '이번 주 · 역대 순위를 봐요' };
         /* 🏆 명예의 전당 트로피 (도련 11-01 · 왼쪽 줄과 뒤 벽 사이 · 톡 = 순위) */
-        const AROTROPHY = `<svg class="aro-tro" viewBox="0 0 120 130" aria-hidden="true">
-            <defs><linearGradient id="aroG" x1="0" x2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset=".45" stop-color="#fff3a8"/><stop offset=".6" stop-color="#ffd23f"/><stop offset="1" stop-color="#e9a400"/></linearGradient></defs>
-            <path d="M30 22 C8 22 6 52 34 58 M90 22 C112 22 114 52 86 58" fill="none" stroke="#e9a400" stroke-width="7" stroke-linecap="round"/>
-            <path d="M28 12 H92 V34 C92 58 76 70 60 70 C44 70 28 58 28 34 Z" fill="url(#aroG)" stroke="#c98200" stroke-width="3"/>
-            <path d="M60 24 l4.5 9 10 1.4 -7.2 7 1.7 10 -9 -4.7 -9 4.7 1.7 -10 -7.2 -7 10 -1.4z" fill="#ff7eb6" stroke="#fff" stroke-width="1.5"/>
-            <rect x="53" y="69" width="14" height="16" fill="url(#aroG)" stroke="#c98200" stroke-width="3"/>
-            <path d="M40 85 H80 L84 96 H36 Z" fill="url(#aroG)" stroke="#c98200" stroke-width="3" stroke-linejoin="round"/>
-            <rect x="30" y="96" width="60" height="22" rx="5" fill="#ff8fb8" stroke="#d94f7a" stroke-width="3"/>
-            <rect x="44" y="102" width="32" height="10" rx="2" fill="#fff3a8" stroke="#c98200" stroke-width="1.5"/>
-            <path d="M36 16 Q34 30 40 42" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".75"/>
-        </svg><i class="aro-tro-sp" style="left:8px;top:14px">✦</i><i class="aro-tro-sp" style="right:6px;top:4px;--l:-.9s">✦</i><i class="aro-tro-sp" style="right:14px;top:62px;--l:-1.6s">✧</i>`;
+        const AROTROPHY = `<svg class="aro-tro" viewBox="0 0 170 180" aria-hidden="true">
+            <defs>
+                <linearGradient id="aroG" x1="0" x2="1"><stop offset="0" stop-color="#e09a00"/><stop offset=".28" stop-color="#ffc21a"/><stop offset=".4" stop-color="#ffe98a"/><stop offset=".52" stop-color="#ffc21a"/><stop offset="1" stop-color="#c47e00"/></linearGradient>
+                <linearGradient id="aroP" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffb3d1"/><stop offset="1" stop-color="#ff6fa5"/></linearGradient>
+                <radialGradient id="aroR"><stop offset="0" stop-color="#fff6b0" stop-opacity=".95"/><stop offset=".55" stop-color="#ffd23f" stop-opacity=".35"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></radialGradient>
+            </defs>
+            <g class="aro-tro-rays"><circle cx="85" cy="62" r="72" fill="url(#aroR)"/>${Array.from({ length: 12 }, (_, i) => `<path d="M85 62 L${85 + 82 * Math.cos((i * 30 - 4) * Math.PI / 180)} ${62 + 82 * Math.sin((i * 30 - 4) * Math.PI / 180)} L${85 + 82 * Math.cos((i * 30 + 4) * Math.PI / 180)} ${62 + 82 * Math.sin((i * 30 + 4) * Math.PI / 180)}Z" fill="#fff3a8" opacity=".35"/>`).join('')}</g>
+            <g fill="#7cc576" stroke="#4f9a52" stroke-width="1.5">${[[30,104,-40],[24,88,-60],[22,72,-80],[24,56,-100],[30,42,-120]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="5.5" transform="rotate(${r} ${x} ${y})"/><ellipse cx="${170 - x}" cy="${y}" rx="11" ry="5.5" transform="rotate(${-r} ${170 - x} ${y})"/>`).join('')}</g>
+            <path d="M36 112 Q46 124 64 122 M134 112 Q124 124 106 122" fill="none" stroke="#4f9a52" stroke-width="3" stroke-linecap="round"/>
+            <path d="M52 34 C22 30 20 74 56 80 M118 34 C148 30 150 74 114 80" fill="none" stroke="#d98e00" stroke-width="9" stroke-linecap="round"/>
+            <path d="M52 34 C26 31 25 72 56 78 M118 34 C144 31 145 72 114 78" fill="none" stroke="#ffe066" stroke-width="4" stroke-linecap="round"/>
+            <path d="M48 22 H122 V50 C122 80 104 96 85 96 C66 96 48 80 48 50 Z" fill="url(#aroG)" stroke="#b97400" stroke-width="3.5"/>
+            <path d="M48 22 H122 V30 H48 Z" fill="#ff8fb8" stroke="#b97400" stroke-width="2"/>
+            <circle cx="62" cy="26" r="2.6" fill="#fff"/><circle cx="85" cy="26" r="2.6" fill="#fff"/><circle cx="108" cy="26" r="2.6" fill="#fff"/>
+            <path d="M85 40 l6 12.2 13.4 2 -9.7 9.4 2.3 13.4 -12 -6.3 -12 6.3 2.3 -13.4 -9.7 -9.4 13.4 -2z" fill="url(#aroP)" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M58 32 Q55 56 66 76" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+            <path d="M85 4 l3.2 6.5 7.1 1 -5.2 5 1.2 7.1 -6.3 -3.4 -6.3 3.4 1.2 -7.1 -5.2 -5 7.1 -1z" fill="#ffe066" stroke="#b97400" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M76 96 H94 L91 112 H79 Z" fill="url(#aroG)" stroke="#b97400" stroke-width="3"/>
+            <ellipse cx="85" cy="104" rx="5" ry="3.4" fill="#c9a7ff" stroke="#fff" stroke-width="1.2"/>
+            <path d="M58 112 H112 L118 126 H52 Z" fill="url(#aroG)" stroke="#b97400" stroke-width="3" stroke-linejoin="round"/>
+            <rect x="44" y="126" width="82" height="30" rx="7" fill="url(#aroP)" stroke="#d94f7a" stroke-width="3.5"/>
+            <rect x="58" y="133" width="54" height="16" rx="3" fill="#fff3a8" stroke="#b97400" stroke-width="2"/>
+            <text x="85" y="145.5" text-anchor="middle" font-size="11" font-weight="900" fill="#b97400" font-family="sans-serif">No.1</text>
+            <path d="M44 150 L30 168 L40 166 L44 176 L56 156 Z M126 150 L140 168 L130 166 L126 176 L114 156 Z" fill="#ff7eb6" stroke="#d94f7a" stroke-width="2" stroke-linejoin="round"/>
+        </svg><i class="aro-tro-sp" style="left:2px;top:30px">✦</i><i class="aro-tro-sp" style="right:0;top:8px;--l:-.9s">✦</i><i class="aro-tro-sp" style="right:8px;top:96px;--l:-1.6s">✧</i><i class="aro-tro-sp" style="left:14px;top:120px;--l:-.5s;font-size:15px">✧</i>`;
         const aroq = id => document.getElementById(id);
         const aroOn = () => !!aroq('arcRoom') && aroq('arcRoom').classList.contains('show');
         /* 200 × 150 네모 → 화면 네 모서리 (원근 그대로 · matrix3d) */
@@ -62,7 +76,6 @@
                     <button type="button" class="aro-hof" id="aroHof" aria-label="명예의 전당">${AROTROPHY}<span class="aro-sign">🏆 명예의 전당</span></button>
                     <div class="aro-tip" id="aroTip" hidden></div>
                 </div>
-                <div class="aro-ttl">🕹️ 뿅뿅오락실</div>
                 <button type="button" class="aro-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;
             document.body.appendChild(el);
             const tip = aroq('aroTip');
@@ -78,7 +91,7 @@
             });
             const hb = aroq('aroHof');
             hb.addEventListener('pointerenter', () => {
-                Object.assign(tip.style, { left: '660px', top: '250px' });
+                Object.assign(tip.style, { left: '690px', top: '290px' });
                 tip.innerHTML = `<b>${ARO_HOF.icon} ${ARO_HOF.name}</b><small>${ARO_HOF.desc}</small><em>🏆 순위 보기</em>`; tip.hidden = false;
             });
             hb.addEventListener('pointerleave', () => { tip.hidden = true; });

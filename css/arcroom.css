@@ -5,7 +5,6 @@
 body.arc-on .desk-top-r { display: none; }
 .aro-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
 .aro-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; }
-.aro-ttl { position: absolute; left: 18px; top: 14px; z-index: 2; padding: 6px 18px; border-radius: 14px; background: #fff; border: 2.5px solid #e88fb0; color: #d94f7a; font-weight: 900; font-size: 22px; letter-spacing: 2px; box-shadow: 3px 3px 0 #f6c6d6; pointer-events: none; }
 .aro-go { position: absolute; right: 18px; top: 14px; z-index: 2; transform: scale(1.15); transform-origin: 100% 0; }
 
 /* 오락기 화면 (200 × 150 → 화면 네 모서리) */
@@ -59,9 +58,11 @@ body.arc-on .desk-top-r { display: none; }
 .aro-door.enter .aro-door-sign { transition: opacity .3s ease; opacity: 0; }
 
 /* 🏆 명예의 전당 트로피 (도련 11-01 · js/arcroom.js AROTROPHY) : 트로피 + 밑에 알림글 · 톡 = 순위 */
-.aro-hof { position: absolute; left: 392px; top: 140px; width: 140px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; z-index: 2; }
-.aro-hof .aro-tro { width: 112px; height: 122px; filter: drop-shadow(0 0 14px rgba(255, 210, 63, .85)) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); animation: aroBob 2.6s ease-in-out infinite; }
-.aro-hof .aro-sign { position: relative; margin-top: 4px; rotate: -6deg; }
+.aro-hof { position: absolute; left: 366px; top: 168px; width: 200px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.aro-hof .aro-tro { width: 176px; height: 186px; overflow: visible; filter: drop-shadow(0 0 14px rgba(255, 210, 63, .85)) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); animation: aroBob 2.6s ease-in-out infinite; }
+.aro-hof .aro-sign { position: relative; margin-top: -4px; rotate: -6deg; }
 .aro-hof:hover .aro-tro { filter: drop-shadow(0 0 22px #ffe36b) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); }
 .aro-tro-sp { position: absolute; font-style: normal; color: #fff6b0; font-size: 20px; text-shadow: 0 0 8px #ffd23f; animation: aroBlink 1.8s steps(1) infinite; animation-delay: var(--l, 0s); pointer-events: none; }
-@media (prefers-reduced-motion: reduce) { .aro-hof .aro-tro, .aro-tro-sp { animation: none; } }
+.aro-tro-rays { transform-origin: 85px 62px; animation: aroSpin 14s linear infinite; }
+@keyframes aroSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .aro-hof .aro-tro, .aro-tro-sp, .aro-tro-rays { animation: none; } }
