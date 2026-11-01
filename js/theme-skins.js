@@ -9,6 +9,14 @@
    - 서버 선물로 줄 때는 themeGrant('id') 를 불러요 (다음 단계) */
 
 /* 🧁 테마 = 서버 상품 (상품공방 '테마' · js/prod.js · 도련 11-02 : 예전 4개는 기본상품샵/테마 로 옮겼어요) · 속성 = desc · how · free · skin (위 설명 그대로) */
-const THEME_SKINS = (window.prodList ? prodList('테마') : []).filter(x => x.P.skin && typeof x.P.skin === 'object' && !x.P.숨김)
-    .map(x => ({ id: x.id, name: String(x.P.이름 || ''), desc: String(x.P.desc || ''), how: String(x.P.how || ''), free: !!x.P.free, skin: x.P.skin }));
+const THEME_SKINS = [];
+function themeBuild() {                                                       // 🧁 서버 + 📦 내 사본 (가진 테마는 서버에서 숨겨도 그대로)
+    const mine = typeof currentSkinId === 'string' && currentSkinId.startsWith('th:') ? currentSkinId.slice(3) : '';
+    THEME_SKINS.length = 0;
+    (window.prodList ? prodList('테마') : []).filter(x => x.P.skin && typeof x.P.skin === 'object' && (!x.P.숨김 || x.id === mine))
+        .forEach(x => THEME_SKINS.push({ id: x.id, name: String(x.P.이름 || ''), desc: String(x.P.desc || ''), how: String(x.P.how || ''), free: !!x.P.free, skin: x.P.skin }));
+}
+themeBuild();
+if (window.prodHook) prodHook(themeBuild);
+(window.SNAP_OWN = window.SNAP_OWN || {})['테마'] = () => (typeof currentSkinId === 'string' && currentSkinId.startsWith('th:') ? [currentSkinId.slice(3)] : []);   // 📦 사본 (지금 쓰는 테마)
 

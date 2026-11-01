@@ -22,9 +22,15 @@
     const rlPpc = () => rlSaved() || rlGuess();
 
     /* ---------- 📏 자 종류 (🗄️ 문구함 '자' 서랍에서 골라요 · js/skins.js) : 몸통 · 테두리 · 눈금 색 · 새 자 = 한 줄 추가 (id 는 바꾸지 않기) ---------- */
-    const RL_KINDS = (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler:') && x.P.틀)   // 🧁 서버 상품 (상품공방 '문구' · 틀 = 몸통 bd · 테두리 ln · 눈금 ink · ht · 받침 cup · 도련 11-02)
-        .map(x => Object.assign({ bd: ['rgba(255,255,255,.5)', 'rgba(236,244,255,.42)'], ln: '#aebbd0', ink: '#55607a', ht: '#ffb3c8', cup: 'rgba(240,246,255,.85)' }, x.P.틀, { id: x.id.slice(6), name: String(x.P.이름 || '') }));
-    if (!RL_KINDS.length) RL_KINDS.push({ id: 'clear', name: '자', bd: ['rgba(255,255,255,.5)', 'rgba(236,244,255,.42)'], ln: '#aebbd0', ink: '#55607a', ht: '#ffb3c8', cup: 'rgba(240,246,255,.85)' });   // 목록이 비어도 자는 그려져야 해서 (투명 자 모양 하나)
+    const RL_KINDS = [];
+    const RL_DEF = { bd: ['rgba(255,255,255,.5)', 'rgba(236,244,255,.42)'], ln: '#aebbd0', ink: '#55607a', ht: '#ffb3c8', cup: 'rgba(240,246,255,.85)' };
+    function rlKindsBuild() {                                                  // 🧁 서버 + 📦 내 사본 (상품공방 '문구' · 틀 = 몸통 bd · 테두리 ln · 눈금 ink · ht · 받침 cup · 도련 11-02)
+        RL_KINDS.length = 0;
+        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler:') && x.P.틀).forEach(x => RL_KINDS.push(Object.assign({}, RL_DEF, x.P.틀, { id: x.id.slice(6), name: String(x.P.이름 || '') })));
+        if (!RL_KINDS.length) RL_KINDS.push(Object.assign({ id: 'clear', name: '자' }, RL_DEF));   // 목록이 비어도 자는 그려져야 해서
+    }
+    rlKindsBuild();
+    if (window.prodHook) prodHook(rlKindsBuild);
     const rlKind = id => RL_KINDS.find(k => k.id === id) || RL_KINDS[0];
     R.kind = RL_KINDS[0].id;
 

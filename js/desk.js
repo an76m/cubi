@@ -33,7 +33,7 @@
              front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] · area = 💡 누르면 동작하는 곳 (그림 % · js/deskcustom.js) · cork = 📝 메모 붙는 곳 (그림 %)
              slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (그림 %) · surf = 올리는 면 [세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 px) · clock = 바늘 { cx, cy, r } · lcd · photo = [왼 · 위 · 오른 · 아래] %
            처음선물 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
-        const DESK_ITEMS = (window.prodList ? prodList('책상소품') : []).map(x => {
+        const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
             const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
             if (!x.u.디자인 || !o.kind) return null;
             Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름 || ''), w: +o.w || 120, h: +o.h || 120, x: +o.x || 700, y: +o.y || 560 });
@@ -41,8 +41,15 @@
             if (P.처음선물) delete o.nost; else o.nost = 1;
             if (P.숨김) o.off = 1;
             return o;
-        }).filter(Boolean);
-        const DK_CAT = new Map(DESK_ITEMS.map(d => [d.id, d]));                 // 소품이 많아져도 바로 찾기
+        };
+        const DK_GHOST = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect x="4" y="4" width="72" height="72" rx="14" fill="#fff" stroke="#e8c6d4" stroke-width="3" stroke-dasharray="6 5"/><text x="40" y="50" font-size="30" text-anchor="middle" fill="#d9a3b8">?</text></svg>');
+        const DESK_ITEMS = [], DK_CAT = new Map();                                // 소품이 많아져도 바로 찾기
+        function dkBuild() {                                                       // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
+            DESK_ITEMS.length = 0; DK_CAT.clear();
+            (window.prodList ? prodList('책상소품') : []).forEach(x => { const o = dkItemOf(x); if (o) { DESK_ITEMS.push(o); DK_CAT.set(o.id, o); } });
+            const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;   // 가졌는데 서버에도 사본에도 없는 것 = 자리만 지키는 '?' (지워지지 않게 · 사본을 읽으면 제 모습)
+            (Array.isArray(v) ? v : []).forEach(o => { if (o && typeof o.id === 'string' && !DK_CAT.has(o.id)) { const g = { id: o.id, kind: 'doll', src: DK_GHOST, name: '불러오는 중', w: 80, h: 80, x: 700, y: 560, nost: 1, off: 1, ghost: 1 }; DK_CAT.set(o.id, g); } });
+        }
         const dkCat = id => DK_CAT.get(id) || null;
         const dkDef = el => dkCat(el.dataset.id) || {};
         const DK_SNAP = 'malang_desk_snap';
@@ -51,6 +58,10 @@
 
         /* 📦 내 소품 목록 */
         const DK_ITEMS_KEY = 'diary_desk_items', DK_ITEMS_LOCAL = 'malang_desk_items';
+        dkBuild();
+        if (window.prodHook) prodHook(dkBuild);
+        (window.SNAP_OWN = window.SNAP_OWN || {})['책상소품'] = () => (DK.items || []).map(o => o.id).concat(((prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) || [])).map(o => o && o.id));   // 📦 사본 (js/snap.js)
+        document.addEventListener('prod-change', () => { try { if (document.getElementById('deskStage') && !DK.edit) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); } } catch (e) {} });
         const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
@@ -201,7 +212,7 @@
             finally { DK.filing = false; }
             if (!DK.edit) dkSave();
         }
-        function dkSave() { if (DK.edit) return; DK.seen = JSON.stringify(DK.items); if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, DK.items); }
+        function dkSave() { if (DK.edit) return; DK.seen = JSON.stringify(DK.items); if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, DK.items); if (window.snapSoon) snapSoon(); }   // 📦 새로 가진 소품 = 사본
         const dkOnDesk = () => DK.items.filter(o => o.at === 'desk');
         const dkName = o => { const c = dkCat(o.id), same = DK.items.filter(x => x.id === o.id); return (c ? c.name : '') + (same.length > 1 ? ' ' + (same.indexOf(o) + 1) : ''); };
         /* josa = 🧰 js/util.js */
@@ -533,7 +544,7 @@
             dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             return it;
         }
-        const deskShopList = () => DESK_ITEMS.filter(d => !d.off).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall }));
+        const deskShopList = () => (window.prodShelf ? prodShelf('책상소품') : []).map(dkItemOf).filter(Boolean).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall }));   // 🏪 샵 = 늘 서버 모습
         /* 📦 소품 보관함 창 */
         /* 🗂 보관함 종류 칸 (도련 10-27 · 드라이브 종류 폴더와 같은 이름 : 서랍장 · 시계 · 책꽂이 … · 많아져도 찾기 쉽게) : 가진 종류만 · [이름 개수] */
         const dkKinds = () => typeof DESK_DIRS !== 'undefined' ? Object.keys(DESK_DIRS) : [];
@@ -559,7 +570,7 @@
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
             const side = [['all', '전체', DK.items.length]].concat(kinds.map(kk => [kk, dkKN(kk), DK.items.filter(o => dkKindOf(o) === kk).length]))
                 .concat(SK.map(([kk, n]) => [kk, n, dsCount(kk)]))
-                .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('');
+                .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('') + (window.snapBtnHtml ? snapBtnHtml() : '');   // ✨ 새 모습 (js/snap.js · 있을 때만)
             if (SK.some(x => x[0] === k)) {                                       // 🧱 벽지 · 🪵 책상 : 톡 = 쓰기 · 🗑 버리기 (js/deskskin.js)
                 const cs = dsBoxCells(k);
                 box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${cs.join('')}${'<span class="iv-c empty"></span>'.repeat(Math.max(0, DK_BOX_MIN - cs.length))}</div>`
@@ -1172,7 +1183,7 @@
            - 평소 다이어리 권 톡 = 그 권 펼치기 · 🛠 꾸미기 = 끌어 옮기기 · 톡 = 모습 (📚 꽂기 · 📔 세우기 · 🛏 눕히기) · 바구니 · 받침 위도 소품처럼 (dkLayers)
            - 🛍️ 봉투의 새 다이어리 카드 = 끌어 놓은 자리에 그 권 · 📔 보관소 창은 뒤에서만 (📱 폰 · 못 찾을 때 · 🛠 다이어리 메뉴 '📔 보관소') · 📦 소품함에는 안 들어가요 */
         const DKV_SZ = { side: [24, 127], front: [80, 120], lay: [150, 86] };      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
-        let DKV_C = null;                                                          // 🧁 다이어리 색 (서버 상품 · js/app.js DIARY_COLORS · app.js 가 이 파일보다 뒤라 처음 쓸 때 만들어요)
+        let DKV_C = null; if (window.prodHook) prodHook(() => { DKV_C = null; });                                                          // 🧁 다이어리 색 (서버 상품 · js/app.js DIARY_COLORS · app.js 가 이 파일보다 뒤라 처음 쓸 때 만들어요)
         const dkvCol = c => { if (!DKV_C) { DKV_C = Object.fromEntries(DIARY_COLORS.map(x => [x[0], [x[1], skinPresets[x[0]].border, skinPresets[x[0]].accent]])); }
             return DKV_C[c] || DKV_C.pink || Object.values(DKV_C)[0] || ['분홍', '#ffb6c1', '#ff6b81']; };
         const dkyCur = () => (window.dyyBookId && (typeof dkType !== 'function' || !dkType()) ? dyyBookId() : '') || '';

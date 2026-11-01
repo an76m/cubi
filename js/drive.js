@@ -605,6 +605,7 @@
             drive.ready = true; drive.guest = false;
             drive.needAuth = false; drive.error = false; drive.full = false;
             lastRemoteCheck = Date.now();
+            if (typeof snapLogin === 'function') await snapLogin().catch(e => console.warn('📦 사본', e));   // 📦 받은 상품 사본 (js/snap.js · 책상 · 문구를 그리기 전에)
             applyLoadedData();
             updateBadge();
             prefetchInitial();                             // 기다리지 않고 백그라운드로 3일치 미리 읽기
@@ -996,7 +997,7 @@
             loadUIFont();
             if (isCoverOpen) loadData();
             updateStorageInfo();
-            if (typeof lockAfterLoad === 'function') lockAfterLoad();       // 🔒 다이어리앱 잠금 (js/lock.js)
+            if (typeof lockAfterLoad === 'function') lockAfterLoad();       // 🔒 다이어리 잠금 (js/lock.js)
             if (typeof showApply === 'function') showApply();               // 👀 페이지에 보이는 것 (js/show.js)
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ D-day (js/dday.js)
             if (typeof bgmLoadPref === 'function') bgmLoadPref();           // 🎵 배경음악 음량 · 반복 · 섞기 (js/bgm.js)
@@ -1232,6 +1233,7 @@
         function enterGuestMode() {
             drive.guest = true; drive.ready = false;
             if (typeof collGuestStart === 'function') collGuestStart();    // 게스트 모음은 이 기기에 (js/coll.js)
+            if (typeof snapLogin === 'function') snapLogin().catch(e => console.warn('📦 사본', e));   // 📦 받은 상품 사본 (이 기기 · 읽으면 다시 그려요)
             applyLoadedData();                                              // 이 기기에 저장한 게스트 설정으로 다시 그려요 (고르기 전엔 처음 값이라 · 📔 다이어리 · 🌈 배경지 · 🧱 벽지도 여기서)
             hideGate(); updateBadge();
         }

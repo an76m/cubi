@@ -9,12 +9,13 @@
         const BGO_KEY = 'diary_bg_own', BGO_LOCAL = 'malang_bg_own', BGO_FIRST = 'c-pink';
         const bgoPat = id => BG_PATTERNS.find(p => p.id === id) || null;   // 🧁 숨긴 배경지(off)도 가진 사람은 그대로
         const bgoU = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        function bgoOwned() { const v = prefGet(BGO_KEY, BGO_LOCAL); return Array.isArray(v) ? v.filter(x => x && x.u && bgoPat(x.p)) : []; }
+        function bgoOwned() { const v = prefGet(BGO_KEY, BGO_LOCAL); return Array.isArray(v) ? v.filter(x => x && x.u && typeof x.p === 'string') : []; }   // 목록에 없는 것도 남겨요 (지우지 않게 · 보일 땐 bgoItems 가 걸러요)
+        (window.SNAP_OWN = window.SNAP_OWN || {})['배경지'] = (() => bgoOwned().map(x => x.p).concat(typeof bgPattern !== 'undefined' && bgPattern && !/^(my|cm):/.test(bgPattern.id) ? [bgPattern.id] : []));   // 📦 사본 (js/snap.js)
         /* 🎁 처음 온 다꾸러 = 분홍 단색 하나 (한 번만 · 다 버려도 다시 주지 않아요) */
         function bgoSync() { if (prefGet(BGO_KEY, BGO_LOCAL) === null) prefSet(BGO_KEY, BGO_LOCAL, [{ u: bgoU(), p: BGO_FIRST }]); }
         /* 🌈 배경지 창 '기본' 칸 (js/skins.js patItems) : 받은 것 (같은 것도 따로 · 새로 받은 것이 앞) */
-        function bgoItems(sub) { return bgoOwned().slice().reverse().map(x => Object.assign({}, bgoPat(x.p), { u: x.u })).filter(p => !sub || patG(p) === sub); }
-        function bgoGive(pid) { const p0 = bgoPat(pid); if (!p0 || p0.tier !== 'free') return 'fail'; prefSet(BGO_KEY, BGO_LOCAL, bgoOwned().concat([{ u: bgoU(), p: pid }])); if (typeof renderPatternList === 'function') renderPatternList(); return 'ok'; }
+        function bgoItems(sub) { return bgoOwned().filter(x => bgoPat(x.p)).reverse().map(x => Object.assign({}, bgoPat(x.p), { u: x.u })).filter(p => !sub || patG(p) === sub); }
+        function bgoGive(pid) { const p0 = bgoPat(pid); if (!p0 || p0.tier !== 'free') return 'fail'; prefSet(BGO_KEY, BGO_LOCAL, bgoOwned().concat([{ u: bgoU(), p: pid }])); if (window.snapSoon) snapSoon(); if (typeof renderPatternList === 'function') renderPatternList(); return 'ok'; }
         /* 🗑 버리기 (마지막 하나도) */
         async function bgoDiscard(u) {
             const it = bgoOwned().find(x => x.u === u); if (!it) return;

@@ -485,7 +485,7 @@
                 (Array.isArray(a.bd) ? a.bd : []).forEach(b => {
                     if (!b || !b.id) return;
                     const p = {}; Object.keys(b.p || {}).forEach(i => { if (ok(b.p[i])) p[i] = b.p[i]; });
-                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, n: Math.max(4, Math.min(200, +b.n || 80)), p });
+                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, pid: String(b.pid || '').slice(0, 60), n: Math.max(4, Math.min(200, +b.n || 80)), p });   // pid = 바인더 상품 id (📦 사본 색)
                 });
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;

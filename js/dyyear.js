@@ -18,9 +18,11 @@
 
         const DYY_KEY = 'diary_years', DYY_LOCAL = 'malang_years', DYY_OPEN = 'diary_year', DYY_OPEN_L = 'malang_year', DYY_N = 'diary_book_n', DYY_N_L = 'malang_book_n';
         const DYY_INFO = 'diary_book_info', DYY_INFO_L = 'malang_book_info';   // 권마다 받은 곳 · 받은 날 { '2026pink1': { from: 'basic', at: '2026-10-28' } } (무료 · 유료는 폴더가 아니라 여기에 · 도련 10-28)
-        const DYY_COLORS = DIARY_COLORS.map(c => [c[0], c[1]]);   // 🧁 서버 상품 (js/app.js · 상품공방 '다이어리')
+        const DYY_COLORS = [];                                                // 🧁 다이어리 색 (js/app.js DIARY_COLORS · 서버 + 📦 사본)
+        const dyyColorsBuild = () => { DYY_COLORS.length = 0; DIARY_COLORS.forEach(c => DYY_COLORS.push([c[0], c[1]])); };
+        dyyColorsBuild(); if (window.prodHook) prodHook(dyyColorsBuild);
         const dyyThis = () => new Date().getFullYear();
-        const dyyOf = id => { const m = /^(\d{4})(pink|mint|purple|yellow)(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], c: m[2], n: +m[3] } : null; };
+        const dyyOf = id => { const m = /^(\d{4})([a-z][\w-]*?)(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], c: m[2], n: +m[3] } : null; };   // 색 = 다이어리 상품 id (끝이 숫자가 아니게)
         const dyyCName = c => (DYY_COLORS.find(x => x[0] === c) || DYY_COLORS[0])[1];
         const dyyTitle = b => `${b.y} ${dyyCName(b.c)}${b.n > 1 ? ' ' + b.n : ''}`;   // 보관소 · 메시지에 보일 이름 (2026 녹색 · 2026 녹색 2)
         const dyyIds = () => { const v = prefGet(DYY_KEY, DYY_LOCAL); return Array.isArray(v) ? [...new Set(v.map(String))].filter(id => dyyOf(id)) : []; };
@@ -169,7 +171,7 @@
         }
         function dyyGive(y, c) {
             const id = dyyNewId(y, c);
-            prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id]));
+            prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id])); if (window.snapSoon) snapSoon();   // 📦 사본
             dyyInfoSet(id, 'basic');                                           // 🏪 기본상품 샵 (나중 유료 = 'shop')
             window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (끌어 놓으면 책상 그 자리 · js/basket.js bagNote)
             if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(id);   // 🏪 가게에서 산 것 = 봉투 속 (책상에 꺼내 놓을 때까지 책상에 없어요 · 펼쳐 둔 권도 그대로 · 도련 10-30)

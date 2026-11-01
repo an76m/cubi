@@ -165,7 +165,9 @@
                모두의 페이지는 색도 같이 적어 둬서, 목록에서 빠져도 쓰던 색이 유지돼요. (내 페이지는 그림이 커서 이름만)
            ===================================================================== */
         const SKIN_KEY = 'diary_skin';
-        const SKIN_PRESET_NAMES = Object.fromEntries(DIARY_COLORS.map(c => [c[0], c[3] || c[1]]));   // 🧁 상품 속성 '스킨이름'
+        const SKIN_PRESET_NAMES = {};                                          // 🧁 상품 속성 '스킨이름' (서버 + 📦 사본)
+        const skinNamesBuild = () => { Object.keys(SKIN_PRESET_NAMES).forEach(k => delete SKIN_PRESET_NAMES[k]); DIARY_COLORS.forEach(c => { SKIN_PRESET_NAMES[c[0]] = c[3] || c[1]; }); };
+        skinNamesBuild(); if (window.prodHook) prodHook(skinNamesBuild);
         const SKIN_NAME_MAX = 20;
         const MY_SKIN_MAX = Infinity;      // 🎨 내 페이지 개수 제한 없음 (끝없이 저장)
         /* 새 내 페이지를 더 넣을 수 없으면 알리고 true (같은 이름 덮어쓰기는 괜찮아요) */
