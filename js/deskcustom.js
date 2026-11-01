@@ -8,7 +8,7 @@
        네모가 소품의 85% 이상이면 기능을 누를 자리가 없어서 고쳐 달라고 해요 · 너무 작으면(그림 px 28 미만) 안 돼요
    저장 : 바꾸면 바로 책상에 보이고 · 🛠 책상 꾸미기 하단 ✔ 완료 때 한꺼번에 저장 (취소 = 처음대로 · 창마다 완료 없음 · 도련 10-28)
           배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%), memos: [{ p, t, x, y, r }] } (js/desk.js dkPersist)
-   ※ 소품 종류를 더하면 DC_KINDS 에 탭 · 동작 · 기본 누르는 곳만 더해요 */
+   ※ 소품 종류를 더하면 DC_KINDS 에 탭 · 동작 · 기본 누르는 곳만 더해요 · 그림마다 다르면 DESK_ITEMS 에 area(누르는 곳) · cork(메모 붙는 곳) (도련 11-01) */
 (function () {
     const DC_KINDS = {
         lamp: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },
@@ -32,7 +32,8 @@
     const dcKind = o => DC_KINDS[dcCat(o).kind] || null;
     const dcCs = o => (o.cs = o.cs || {});
     const dcFnOf = u => { const m = DK.edit ? (DK.editFn || {}) : deskFnMap(); return Object.keys(m).find(k => m[k] === u) || ''; };
-    const dcArea = o => (o.cs && o.cs.area) || (dcKind(o) || {}).area || [0, 0, 100, 100];
+    const dcArea = o => (o.cs && o.cs.area) || dcCat(o).area || (dcKind(o) || {}).area || [0, 0, 100, 100];   // 내가 정한 곳 → 그 소품 그림(DESK_ITEMS area) → 종류 기본
+    const dcCork = o => dcCat(o).cork || DC_CORK;                           // 📝 메모 붙는 곳 = 그 게시판 그림(DESK_ITEMS cork) → 기본 (도련 11-01 · 게시판이 늘어도)
     function dcSave(o) { dkPersist(o); dcApply(o.u); }
 
     /* ---------- 🪟 꾸미기 창 ---------- */
@@ -160,7 +161,7 @@
         B.addEventListener('pointerdown', ev => { const e = ev.target.closest('.dk-memo'); if (!e) return; ev.preventDefault();
             const i = +e.dataset.i, n = L[i]; d = { i, e, p: pct(ev), a: [n.x, n.y], mv: false }; try { B.setPointerCapture(ev.pointerId); } catch (x) {} });
         B.addEventListener('pointermove', ev => { if (!d) return; const [x, y] = pct(ev), dx = x - d.p[0], dy = y - d.p[1]; if (!d.mv && Math.hypot(dx, dy) < 2) return; d.mv = true;
-            const n = L[d.i]; n.x = Math.round(Math.max(DC_CORK[0] + 8, Math.min(DC_CORK[2] - 8, d.a[0] + dx)) * 10) / 10; n.y = Math.round(Math.max(DC_CORK[1] + 10, Math.min(DC_CORK[3] - 10, d.a[1] + dy)) * 10) / 10;
+            const n = L[d.i], C = dcCork(o); n.x = Math.round(Math.max(C[0] + 8, Math.min(C[2] - 8, d.a[0] + dx)) * 10) / 10; n.y = Math.round(Math.max(C[1] + 10, Math.min(C[3] - 10, d.a[1] + dy)) * 10) / 10;
             d.e.style.left = n.x + '%'; d.e.style.top = n.y + '%'; });
         const up = () => { if (!d) return; const q = d; d = null; if (q.mv) dcSave(o); else { DC.mi = q.i === DC.mi ? -1 : q.i; dcBody(); } };
         B.addEventListener('pointerup', up); B.addEventListener('pointercancel', up);
@@ -171,7 +172,7 @@
         const o = dcItem(DC.u); if (!o) return; const L = dcMemos(o), t = (document.getElementById('dcsMemoT') || {}).value || '';
         if (!t.trim()) { if (window.showMsg) showMsg('📝 메모에 쓸 말을 적어 주세요.'); return; }
         if (L.length >= DC_MEMO_MAX) { if (window.showMsg) showMsg(`📌 게시판에는 메모를 ${DC_MEMO_MAX}장까지 붙일 수 있어요.<br><small>다 쓴 메모를 떼고 붙여 주세요</small>`); return; }
-        const [l, tp, r, b] = DC_CORK, n = L.length, col = n % 4, row = Math.floor(n / 4) % 2;   // 빈칸부터 차례로 (4 × 2)
+        const [l, tp, r, b] = dcCork(o), n = L.length, col = n % 4, row = Math.floor(n / 4) % 2;   // 빈칸부터 차례로 (4 × 2)
         L.push({ p: DC.mp, t: t.trim(), x: Math.round(l + (r - l) * (col + .5) / 4 + (Math.random() * 4 - 2)), y: Math.round(tp + (b - tp) * (row + .5) / 2 + (Math.random() * 4 - 2)), r: Math.round(Math.random() * 10 - 5) });
         DC.mi = -1; DC.draft = ''; dcSave(o); dcBody();
     }

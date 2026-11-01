@@ -30,10 +30,12 @@
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
         const DESK_ITEMS = [                                                      // 기본 소품 (도련 10-26 · 크기는 참고 그림의 책상 대비 비율) · wall = 벽에 거는 것 (책상 자석 없음 · 늘 뒤)
             // front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] → 다이어리 바닥이 그 안이면 '꽂힘' = 소품과 앞벽 사이 (도련 10-29)
+            // area = 💡 스탠드처럼 누르면 동작하는 곳 (그림 % · 없으면 종류 기본 · js/deskcustom.js) · cork = 📝 게시판 메모 붙는 곳 (그림 %)
+            // slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (소품 그림 %) · 칸 수는 자유 (위에서부터) · 서랍장(kind drawer)이면 꼭 (도련 11-01 · 새 서랍장 = 이 한 줄만 · 도구/서랍칸찾기.py 로 % 뽑기)
             // surf = 위에 물건을 올릴 수 있는 면 [소품 안 세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 그림 px) · 올려 둔 물건은 함께 움직이고 그 소품보다 앞에 보여요
             { id: 'corkboard', kind: 'board', src: 'img/desk/corkboard.webp?v=20261009-832', w: 520, h: 393, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
             { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-833', w: 430, h: 248, x: 160, y: 104, name: '벽 선반', wall: 1, surf: [[50, 10, 421], [211, 10, 421]] },
-            { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]] },
+            { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]], slots: [[4, 14, 96, 40], [4, 42, 96, 67], [4, 70, 96, 95]] },
             { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
             { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-919', mouth: [5, 95, 54] },
             { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
@@ -42,14 +44,15 @@
             { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-836', w: 126, h: 151, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.5, 22.3, 82.6, 85.9] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
             { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1258, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
             { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
-            { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-833', w: 230, h: 244, x: 1250, y: 517, name: '서랍장', surf: [[12, 6, 224]] },
+            { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-833', w: 230, h: 244, x: 1250, y: 517, name: '서랍장', surf: [[12, 6, 224]], slots: [[5, 14, 95, 39], [5, 40, 95, 66], [5, 67, 95, 91]] },
             { id: 'lamp', kind: 'lamp', src: 'img/desk/lamp.webp?v=20261009-835', w: 200, h: 309, x: 1270, y: 220, name: '스탠드' },          // 🆕 10-28 도련 그림
             { id: 'wallclock', kind: 'clock', src: 'img/desk/wallclock.webp?v=20261009-1025', w: 128, h: 128, x: 1132, y: 96, name: '벽시계', wall: 1, clock: { cx: 50, cy: 50, r: 43.5 } },   // 🆕 10-31 도련 그림 · 🕰 지금 시각 바늘
             { id: 'lamp2', kind: 'lamp', src: 'img/desk/lamp2.webp?v=20261009-1025', w: 128, h: 216, x: 196, y: 304, name: '초록 스탠드' },          // 🆕 10-31 도련 그림 · 핑크 서랍장 위
             { id: 'bunny', kind: 'doll', src: 'img/desk/bunny.webp?v=20261009-834', w: 64, h: 117, x: 955, y: 568, name: '토끼 인형' },
             { id: 'bear', kind: 'doll', src: 'img/desk/bear.webp?v=20261009-835', w: 88, h: 108, x: 412, y: 412, name: '곰 인형' }
         ];
-        const dkCat = id => DESK_ITEMS.find(d => d.id === id) || null;
+        const DK_CAT = new Map(DESK_ITEMS.map(d => [d.id, d]));                 // 소품이 많아져도 바로 찾기
+        const dkCat = id => DK_CAT.get(id) || null;
         const dkDef = el => dkCat(el.dataset.id) || {};
         const DK_SNAP = 'malang_desk_snap';
         const dkGet = lsGet, dkSet = lsSet;                                     // 🧰 js/util.js
@@ -226,13 +229,26 @@
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
            서랍 칸 = 소품 그림 % [왼 · 위 · 오른 · 아래] 미리 정해 둠 (다꾸러가 그리지 않아요) · 새 소품 = 종류(kind)만 맞으면 저절로 · 서랍장 그림이 새로 생기면 칸 자리만 더해요 */
         const DK_FN_OK = ['skin', 'sticker', 'gd'];
+        const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo'];   // 스티커 종류 (서랍 칸 하나 = 한 종류 · 상품 창 h:종류)
+        /* 소품 종류(kind)마다 넣을 수 있는 것 : all = 소품 전체에 하나 · ok = 서랍 칸마다 하나 (칸 자리 = DESK_ITEMS 의 slots) · 없는 종류 = 연결 없음 (인형 · 시계 …)
+           새 종류가 생기면 여기 한 줄 + js/drive.js DESK_DIRS 폴더 이름 한 줄 */
         const DK_HOLD = {
             pencup: { all: ['gd'] }, basket: { all: ['skin'] }, bookshelf: { all: ['skin'] },
-            drawer: { ok: ['gd', 'skin', 'h:seal', 'h:piece', 'h:paper', 'h:tape', 'h:tk', 'h:leaf', 'h:emoji', 'h:memo'], slots: { 'drawer-pink': [[4, 14, 96, 40], [4, 42, 96, 67], [4, 70, 96, 95]], drawer: [[5, 14, 95, 39], [5, 40, 95, 66], [5, 67, 95, 91]] } }
+            drawer: { ok: ['gd', 'skin'].concat(DKB_STK.map(k => 'h:' + k)) }
         };
-        const DK_SLOT_NM = ['위', '가운데', '아래', '네 번째', '다섯 번째'];
+        (function dkCheck() {                                                    // 🔎 개발용 점검 (소품을 추가할 때 빠뜨린 것 · 콘솔에만)
+            const seen = new Set();
+            DESK_ITEMS.forEach(d => {
+                if (seen.has(d.id)) console.warn('🪑 소품 id 가 겹쳐요', d.id); seen.add(d.id);
+                if (typeof DESK_DIRS !== 'undefined' && !DESK_DIRS[d.kind]) console.warn('🪑 js/drive.js DESK_DIRS 에 종류 폴더가 없어요', d.kind, d.id);
+                if (DK_HOLD[d.kind] && DK_HOLD[d.kind].ok && !(d.slots && d.slots.length)) console.warn('🪑 서랍 칸(slots)이 없어요', d.id);
+            });
+        })();
+        const DK_SLOT_NM = ['위', '가운데', '아래'];
+        const dkSlotNm = (i, n) => n > 3 ? `${i + 1}번째` : DK_SLOT_NM[i] || `${i + 1}번째`;   // 3칸 = 위 · 가운데 · 아래 · 더 많으면 번호
         const dkHold = id => { const c = dkCat(id); return (c && DK_HOLD[c.kind]) || null; };
-        const dkSlots = id => { const h = dkHold(id); return (h && h.slots && h.slots[id]) || null; };
+        const dkSlots = id => { const c = dkCat(id); return (c && c.slots && c.slots.length && dkHold(id) && dkHold(id).ok) ? c.slots : null; };   // 칸이 있는 소품 (서랍장)
+        const dkHolderKinds = w => Object.keys(DK_HOLD).filter(k => (DK_HOLD[k].all || DK_HOLD[k].ok).includes(w)).map(k => dkKN(k) || k).join(' · ');   // 이것을 넣을 수 있는 소품 종류 이름 (서랍장 · 연필꽂이 …)
         const dkHoldOk = id => { const h = dkHold(id); return h ? (h.all || h.ok) : []; };
         const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat(DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
         const dkWin = id => (id && dkWins().find(x => x[0] === id)) || null;
@@ -881,7 +897,6 @@
         /* 봉투 카드 넣기 (도련 11-01 · 현실처럼) : 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … · 서랍 한 칸 = 한 종류 · 도련 11-01) · 📔 다이어리 = 다이어리 · ✂️ 문구 = 문구함
            넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
            못 넣는 소품(인형 · 시계 …)이면 = 넣을 수 있는 소품 이름을 알려 줘요 · 🌈 배경지 = 보류 */
-        const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo'];
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
         const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
@@ -889,7 +904,7 @@
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', [, K, , ic] = dkWin(win);
             if (!o || !dkHoldOk(o.id).includes(win)) {                          // 🧸 못 넣는 소품 = 넣을 수 있는 소품 이름
                 const L = [...new Set(dkOnDesk().filter(x => dkHoldOk(x.id).includes(win)).map(dkName))];
-                showMsg(L.length ? `${ic} ${josa(K, '은', '는')} <b>${L.map(htmlEsc).join(' · ')}</b>에 넣을 수 있어요.` : `${ic} ${josa(K, '을', '를')} 넣을 수 있는 소품이 책상에 없어요.<br><span style="font-size:12px;color:#777;">${win === 'gd' ? '통 · 서랍장' : win === 'skin' ? '바구니 · 책 상자 · 파일꽂이 · 서랍장' : '서랍장'}을 놓아 주세요</span>`);
+                showMsg(L.length ? `${ic} ${josa(K, '은', '는')} <b>${L.map(htmlEsc).join(' · ')}</b>에 넣을 수 있어요.` : `${ic} ${josa(K, '을', '를')} 넣을 수 있는 소품이 책상에 없어요.<br><span style="font-size:12px;color:#777;">${dkHolderKinds(win)}을 놓아 주세요</span>`);
                 return;
             }
             const S = dkSlots(o.id), M = deskFnMap(), H = dkHomes(), zones = H[u] || [];
@@ -907,13 +922,13 @@
                 s = await dkzChoose(t, o, win); if (s < 0) return;               // 🗄️ 서랍장 그림에서 칸 고르기 (도련 11-01)
                 const same = zones.find(e => e.k === win); if (same && same.s === s) { dkbPulse(t); dkbTake(n, j); return; }   // 이미 이 칸에
                 const cur = zones.find(e => e.s === s);
-                if (cur && !agreed && !await showAsk(`${nm} ${DK_SLOT_NM[s]} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>${josa(K, '으로', '로')} 바꿀까요?`, '바꾸기', '취소')) return;
+                if (cur && !agreed && !await showAsk(`${nm} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>${josa(K, '으로', '로')} 바꿀까요?`, '바꾸기', '취소')) return;
                 if (cur) old = cur;
             } else if (M[win] === u) { dkbPulse(t); dkbTake(n, j); return; }
             const wasU = M[win] || Object.keys(H).find(x => H[x].some(e => e.k === win)), ow = wasU && DK.items.find(x => x.u === wasU);
             if (ow && !(S && wasU === u)) {
-                const we = !M[win] && (H[wasU] || []).find(e => e.k === win), at = dkName(ow) + (we ? ` ${DK_SLOT_NM[we.s]} 칸` : '');
-                if (!await showAsk(`${ic} ${josa(K, '이', '가')} ${at}에 있어요.<br>${nm}${S ? ' ' + DK_SLOT_NM[s] + ' 칸' : ''}으로 옮길까요?`, '옮기기', '취소')) return;
+                const we = !M[win] && (H[wasU] || []).find(e => e.k === win), at = dkName(ow) + (we ? ` ${dkSlotNm(we.s, (dkSlots(ow.id) || []).length)} 칸` : '');
+                if (!await showAsk(`${ic} ${josa(K, '이', '가')} ${at}에 있어요.<br>${nm}${S ? ' ' + dkSlotNm(s, S.length) + ' 칸' : ''}으로 옮길까요?`, '옮기기', '취소')) return;
             }
             const M2 = Object.assign({}, deskFnMap()); dkWinFree(win, M2);
             const prevE = Object.keys(H).map(x => H[x].find(e => e.k === win)).find(Boolean), keepTag = S && prevE && prevE.tag ? dkzTagMove(prevE.tag, prevE.r, S[s]) : null;   // 🏷 옮겨도 이름표는 따라가요 (도련 11-01)
@@ -923,7 +938,7 @@
             if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
             deskFnPaint();
             if (old) { dknPaintAll(); await dkzRehome(old.k, u, old); }                 // 🗄️ 밀려난 것 = 빈 서랍으로 옮기기
-            if (S) { if (!keepTag && await showAsk(`🏷 ${DK_SLOT_NM[s]} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, win); setTimeout(() => dknPanel(u + '|' + win), 50); } }
+            if (S) { if (!keepTag && await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, win); setTimeout(() => dknPanel(u + '|' + win), 50); } }
             else if (!o.tag) { o.tag = { on: !!await showAsk(`🏷 ${nm}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(u), 50); }
             dknPaintAll(); dkbPulse(t); dkbTake(n, j);
         }
@@ -936,7 +951,7 @@
             const html = (op.ask || `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요`) + (op.free ? `<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o))} · 빈 서랍만 고를 수 있어요</span>` : '')
                 + `<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl ? ' style="transform:scaleX(-1)"' : ''}>`
                 + S.map((r, i) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k), off = op.free && c;
-                    return `<button type="button" class="dkz-slot${c && c.k === win ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"${off ? ' disabled' : ` onclick="closeMsg('s${i}')"`}><b>${DK_SLOT_NM[i]} 서랍</b><small>${w ? (c.k === win ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
+                    return `<button type="button" class="dkz-slot${c && c.k === win ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"${off ? ' disabled' : ` onclick="closeMsg('s${i}')"`}><b>${dkSlotNm(i, S.length)} 서랍</b><small>${w ? (c.k === win ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
             const a = document.getElementById('customAlertConfirmBtn'); a.style.display = 'none';
             let r; try { r = op.more ? await showAsk3(html, '', op.no || '취소', op.more) : await showAsk(html, '', op.no || '취소'); } finally { a.style.display = ''; }
             return r === 'extra' ? 'more' : typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
@@ -1527,13 +1542,13 @@
             const el = DK.sel; if (!DK.edit || !el) return;
             const u = el.dataset.u, m = DK.editFn || {}, o = DK.items.find(x => x.u === u), box = document.getElementById('deskFnList'); if (!box || !o) return;
             const ok = dkHoldOk(o.id), S = dkSlots(o.id), H = dkHomes(); if (!ok.length) return;
-            const where = k => { if (m[k]) { const x = DK.items.find(y => y.u === m[k]); return x ? dkName(x) : ''; } const zu = Object.keys(H).find(y => H[y].some(e => e.k === k)), x = zu && DK.items.find(y => y.u === zu), e = x && H[zu].find(y => y.k === k); return x ? `${dkName(x)} ${DK_SLOT_NM[e.s] || ''} 칸` : ''; };
+            const where = k => { if (m[k]) { const x = DK.items.find(y => y.u === m[k]); return x ? dkName(x) : ''; } const zu = Object.keys(H).find(y => H[y].some(e => e.k === k)), x = zu && DK.items.find(y => y.u === zu), e = x && H[zu].find(y => y.k === k); return x ? `${dkName(x)} ${dkSlotNm(e.s, (dkSlots(x.id) || []).length)} 칸` : ''; };
             const tt = document.getElementById('deskFnTitle'); if (tt) tt.textContent = dkName(o) + (S ? '의 서랍마다 넣을 것' : '에 넣을 것');
             const again = "document.getElementById('deskFnModal').style.display !== 'none' && deskFnOpen()";
             const btn = (k, mine, s) => { const [, n, , ic] = dkWin(k), w = mine ? '' : where(k);
                 return `<button type="button" class="btn${mine ? ' on' : ''}" onclick="deskFnPick('${k}'${S ? ',' + s : ''}).then(() => ${again})"><b>${ic} ${n}</b><small>${mine ? (S ? '✔ 이 칸' : '✔ 넣었어요 · 누르면 빼기') : w ? '지금 : ' + w : ''}</small></button>`; };
             box.innerHTML = S ? S.map((r, s) => { const cur = (H[u] || []).find(e => e.s === s);
-                    return `<h4 class="dkf-g">🗄️ ${DK_SLOT_NM[s]} 칸</h4>` + ok.map(k => btn(k, !!cur && cur.k === k, s)).join('') + (cur ? `<button type="button" class="btn" onclick="deskFnPick('', ${s}).then(() => ${again})"><b>비우기</b><small>이 칸을 빈 서랍으로</small></button>` : ''); }).join('')
+                    return `<h4 class="dkf-g">🗄️ ${dkSlotNm(s, S.length)} 칸</h4>` + ok.map(k => btn(k, !!cur && cur.k === k, s)).join('') + (cur ? `<button type="button" class="btn" onclick="deskFnPick('', ${s}).then(() => ${again})"><b>비우기</b><small>이 칸을 빈 서랍으로</small></button>` : ''); }).join('')
                     + '<p class="dkf-note">💡 같은 것은 한 곳에만 있어요 · 다른 칸이나 소품에 넣으면 그리로 옮겨요</p>'
                 : `<h4 class="dkf-g">🧺 넣을 수 있는 것</h4>` + ok.map(k => btn(k, m[k] === u)).join('');
             if (window.openModal) openModal('deskFnModal');
