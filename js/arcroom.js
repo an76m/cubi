@@ -2,7 +2,7 @@
    🕹️ 뿅뿅오락실 장소 (도련 11-01 · 타로카페처럼) : 💻 PC · 📲 아이패드에서 '뿅뿅오락실' 칸을 누르면 (📱 폰은 예전 카페 칸 그대로 · calRoomUse)
    - 🚪 들어갈 때 = 분홍 유리문(img/arcade-door.webp) → 🔔 띠리링~ (✨ 연출 소리 · sndArcadeDoor) → 손잡이 사이로 다가가며 분홍 · 노랑 빛 → 오락실
    - 오락실 그림(img/arcade-room.webp) 속 오락기 화면마다 게임 하나 (화면 기울기 그대로 · 네 모서리에 맞춰 늘여요)
-       가운데 섬 + 왼쪽 앞 = 🕹️ 오락실 게임 6 · 뒤쪽 벽 + 오른쪽 줄 = 🧠 두뇌 게임 7 · 남는 화면 = INSERT COIN · 🏆 명예의 전당 = 왼쪽 줄과 뒤 벽 사이 트로피 (밑에 알림글 · 도련 11-01) · 알림글은 이것만
+       가운데 섬 + 왼쪽 앞 = 🕹️ 오락실 게임 6 · 뒤쪽 벽 + 오른쪽 줄 = 🧠 두뇌 게임 7 · 남는 화면 = INSERT COIN · 🏆 명예의 전당 = 왼쪽 줄과 뒤 벽 사이 트로피 (밑에 알림글 · 도련 11-01) · 알림글은 이것만 · 왼쪽 앞 오락기 옆면 = 🏆 순위판 (게임별 TOP 5)
        화면 톡 = 그 게임 바로 (js/arcade.js arcadePlay · 끝나고 '오락실로' · ✕ = 이 장소로) · 마우스를 올리면 화면이 밝아지고 설명
    - ✨ 연출 : 화면 깜빡임 · 떠오르는 픽셀 하트 · 별 · 바닥 반짝이 · 분홍 불빛 숨쉬기 (CSS 만 · 동작 줄이기면 멈춰요)
    - 그림 = 화면 꽉 (coverFit · 섬 · 오른쪽 줄이 보이게) · 닫기 없이 '이동' (data-place="game" · body.arc-on) */
@@ -74,6 +74,14 @@
                             : `<div class="aro-scr deco" style="transform:${aroH(q)}"><b>INSERT COIN</b></div>`; }).join('')}
                     ${aroFx()}
                     <button type="button" class="aro-hof" id="aroHof" aria-label="명예의 전당">${AROTROPHY}<span class="aro-sign">🏆 명예의 전당</span></button>
+                    <div class="aro-board" id="aroBoard">
+                        <div class="aro-bd-top"><b>🏆 명예의 전당</b><span class="aro-bd-tabs"><button type="button" data-t="week">이번 주</button><button type="button" data-t="all">역대</button></span></div>
+                        <div class="aro-bd-scr">
+                            <div class="aro-bd-game"><button type="button" data-d="-1" aria-label="앞 게임">◀</button><b id="aroBdName"></b><button type="button" data-d="1" aria-label="다음 게임">▶</button></div>
+                            <div class="aro-bd-list" id="aroBdList"></div>
+                        </div>
+                        <button type="button" class="aro-bd-more">순위 전체 보기 ▸</button>
+                    </div>
                     <div class="aro-tip" id="aroTip" hidden></div>
                 </div>
                 <button type="button" class="aro-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;
@@ -96,8 +104,35 @@
             });
             hb.addEventListener('pointerleave', () => { tip.hidden = true; });
             hb.addEventListener('click', () => { tip.hidden = true; if (window.openHof) openHof(); });
+            const bd = aroq('aroBoard');
+            bd.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBdGo(+b.dataset.d); }));
+            bd.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBd.tab = b.dataset.t; aroBdShow(); }));
+            bd.querySelector('.aro-bd-more').addEventListener('click', () => { const g = aroBdGames()[aroBd.i]; if (window.openHof) openHof(g && g.id); });
             addEventListener('resize', () => { if (aroOn()) aroFit(); });
             return el;
+        }
+        /* 🏆 순위판 (도련 11-01 · 왼쪽 앞 오락기 옆면) : 게임 하나씩 TOP 5 · ◀ ▶ 로 넘기기 · 가만히 두면 8초마다 다음 게임 · 이번 주 / 역대 */
+        const aroBd = { i: 0, tab: 'week', t: 0, auto: true, n: 0 };
+        const aroBdGames = () => window.arcadeGames ? arcadeGames() : [];
+        function aroBdGo(d) { const G = aroBdGames(); if (!G.length) return; aroBd.i = (aroBd.i + d + G.length) % G.length; aroBdShow(); }
+        async function aroBdShow() {
+            const G = aroBdGames(), g = G[aroBd.i], L = aroq('aroBdList'); if (!g || !L) return;
+            aroq('aroBoard').querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === aroBd.tab));
+            aroq('aroBdName').textContent = `${g.icon} ${g.name}`;
+            const n = ++aroBd.n;
+            if (!window.hofBoardGet) { L.innerHTML = '<p class="aro-bd-msg">🏆 명예의 전당은 준비 중이에요</p>'; return; }
+            L.innerHTML = '<p class="aro-bd-msg">순위를 불러오는 중…</p>';
+            const r = await hofBoardGet(g.id); if (n !== aroBd.n) return;
+            if (!r.ok) { L.innerHTML = `<p class="aro-bd-msg">${r.error === 'off' ? '🏆 명예의 전당은 준비 중이에요' : hofErrText(r.error)}</p>`; return; }
+            const list = (aroBd.tab === 'week' ? r.week : r.all) || [], M = ['🥇', '🥈', '🥉'];
+            L.innerHTML = list.length
+                ? list.slice(0, 5).map((x, i) => `<div class="aro-bd-row${i < 3 ? ' t' + (i + 1) : ''}"><span>${M[i] || i + 1}</span><em>${htmlEsc(x.n)}</em><b>${Number(x.s || 0).toLocaleString('ko-KR')}</b></div>`).join('')
+                    + (aroBd.tab === 'week' && r.champ ? `<p class="aro-bd-champ">👑 지난주 챔피언 ${htmlEsc(r.champ.n)}</p>` : '')
+                : `<p class="aro-bd-msg">${aroBd.tab === 'week' ? '이번 주' : '아직'} 기록이 없어요<br>첫 주인공이 되어 보세요! ✨</p>`;
+        }
+        function aroBdStart() {
+            clearInterval(aroBd.t); aroBd.auto = true; aroBdShow();
+            if (!matchMedia('(prefers-reduced-motion: reduce)').matches) aroBd.t = setInterval(() => { if (aroOn() && aroBd.auto && !document.hidden && !document.querySelector('#hofRoom.show')) aroBdGo(1); }, 8000);
         }
         function aroFit() {
             const st = aroq('aroStage'); if (!st) return;
@@ -127,11 +162,13 @@
             aroDoor();
             const el = aroBuild();
             aroFit(); el.classList.add('show'); document.body.classList.add('cal-on', 'arc-on');   // cal-on = 장소에 있어요
+            aroBdStart();                                                        // 🏆 순위판
         }
         function closeArcRoom() {
             const el = aroq('arcRoom'); if (!el || !el.classList.contains('show')) return;
             el.classList.remove('show'); document.body.classList.remove('cal-on', 'arc-on');
             const t = aroq('aroTip'); if (t) t.hidden = true;
+            clearInterval(aroBd.t);
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && aroOn() && !document.querySelector('.modal[style*="flex"]') && !document.querySelector('#arcadeRoom.show, #hofRoom.show, .hof-room.show')) { if (window.deskGoRoom) deskGoRoom(); else closeArcRoom(); } });
         window.openArcRoom = openArcRoom; window.closeArcRoom = closeArcRoom;

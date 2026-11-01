@@ -178,6 +178,15 @@
             const r = hq('hofRoom'); if (r) r.classList.remove('show');
             if (!(typeof ar !== 'undefined' && ar.open)) document.body.classList.remove('fc-lock');
         }
+        /* 🕹️ 오락실 순위판 (js/arcroom.js · 도련 11-01) : 한 게임 순위 받기 (30초 동안은 받아 둔 것) */
+        async function hofBoardGet(g) {
+            if (!hofOn()) return { ok: false, error: 'off' };
+            const c = hof.cache[g]; if (c && Date.now() - c.at < 30000) return c.r;
+            const r = await hofCall('board', { game: g });
+            if (r && r.ok) { hof.cache[g] = { at: Date.now(), r }; if (r.me && r.me.nick) hof.nick = r.me.nick; }
+            return r || { ok: false, error: 'server' };
+        }
+        window.hofBoardGet = hofBoardGet; window.hofErrText = e => HOF_ERR[e] || HOF_ERR.server;
         window.openHof = openHof;
         window.hofStart = hofStart;
         window.hofOverBtn = hofOverBtn;
