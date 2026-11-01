@@ -60,7 +60,7 @@ body.arc-on .desk-top-r { display: none; }
 /* 🏆 명예의 전당 트로피 (도련 11-01 · js/arcroom.js AROTROPHY) : 트로피 + 밑에 알림글 · 톡 = 순위 */
 .aro-hof { position: absolute; left: 366px; top: 168px; width: 200px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; z-index: 2; }
 .aro-hof .aro-tro { width: 176px; height: 186px; overflow: visible; filter: drop-shadow(0 0 14px rgba(255, 210, 63, .85)) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); animation: aroBob 2.6s ease-in-out infinite; }
-.aro-hof .aro-sign { position: relative; margin-top: -4px; rotate: -6deg; }
+.aro-hof .aro-sign { position: relative; margin-top: -4px; }
 .aro-hof:hover .aro-tro { filter: drop-shadow(0 0 22px #ffe36b) drop-shadow(3px 5px 0 rgba(201, 130, 0, .35)); }
 .aro-tro-sp { position: absolute; font-style: normal; color: #fff6b0; font-size: 20px; text-shadow: 0 0 8px #ffd23f; animation: aroBlink 1.8s steps(1) infinite; animation-delay: var(--l, 0s); pointer-events: none; }
 .aro-tro-rays { transform-origin: 85px 62px; animation: aroSpin 14s linear infinite; }
