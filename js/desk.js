@@ -386,6 +386,7 @@
         function deskHere() {
             if (window.shopSceneOn && shopSceneOn()) return 'shop';
             if (document.body.classList.contains('post-on')) return 'post';
+            if (document.body.classList.contains('world-on')) return 'world';   // 🌳 말랑 광장 (js/world.js)
             if (document.body.classList.contains('tarot-on')) return 'tarot';
             if (document.body.classList.contains('arc-on')) return 'game';
             if (document.body.classList.contains('gacha-on')) return 'gacha';
@@ -431,7 +432,7 @@
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
         document.addEventListener('pointerdown', e => { const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false); }, true);
         window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
-        function deskLeave() { if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
+        function deskLeave() { if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeWorld) closeWorld(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
             dtmNext();                                                           // 🔽 돌아올 때마다 오른쪽 위 메뉴가 다음 것으로 (도련 11-01)
             if (window.shopSceneOn && shopSceneOn()) { shopSceneClose(); return; }
