@@ -63,3 +63,7 @@ body.cal-on #moveModal { z-index: 1550 !important; }                            
 .cr-room .dd-card { padding: 8px 10px; }
 .cr-room .dd-form { box-shadow: none; padding: 4px 2px; }
 .cr-room .at-flip-wrap { z-index: 10; }
+
+/* 🏠 거실 벽걸이 달력 전환 (도련 11-01 · js/calroom.js crApproach) : 우체통 전환(.pr-walk · css/postroom.css)을 같이 써요 · 색만 따뜻한 분홍 */
+.pr-walk.cr-walk { background: #f3d6cb; }
+.cr-walk .pr-walk-in::after { background: radial-gradient(circle at var(--lx, 50%) var(--ly, 50%), #fffaf4 0, #ffe9e6 16%, #f9cfd6 42%, #f3c4c4 70%, #f3d6cb 92%); }
