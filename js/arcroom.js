@@ -79,7 +79,6 @@
                             <div class="aro-bd-game"><button type="button" data-d="-1" aria-label="앞 게임">◀</button><b id="aroBdName"></b><button type="button" data-d="1" aria-label="다음 게임">▶</button></div>
                             <div class="aro-bd-list" id="aroBdList"></div>
                         </div>
-                        <button type="button" class="aro-bd-more">순위 전체 보기 ▸</button>
                     </div>
                     <div class="aro-tip" id="aroTip" hidden></div>
                 </div>
@@ -99,7 +98,6 @@
             const bd = aroq('aroBoard');
             bd.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBdGo(+b.dataset.d); }));
             bd.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBd.tab = b.dataset.t; aroBdShow(); }));
-            bd.querySelector('.aro-bd-more').addEventListener('click', () => { const g = aroBdGames()[aroBd.i]; if (window.openHof) openHof(g && g.id); });
             addEventListener('resize', () => { if (aroOn()) aroFit(); });
             return el;
         }
