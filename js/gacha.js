@@ -62,8 +62,13 @@
 
         /* ---------- 🎁 캡슐 스티커 선물권 [{ id, until:'yyyy-MM-dd' }] · 당첨된 순서 (서버가 정한 순서 그대로) ---------- */
         const CAPS_LOCAL = 'malang_caps';
-        const capsList = () => typeof CAPSULE_STICKERS !== 'undefined' ? CAPSULE_STICKERS : [];
-        const capsUrl = k => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(k.svg);
+        /* 🧁 캡슐 스티커 = 서버 상품 (상품공방 '캡슐스티커' · js/prod.js · 도련 11-02 · id 는 랜덤박스 서버 STICKER_IDS 와 같게) · 바구니에 넣을 땐 그림째(data 주소) */
+        const CAPS = (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.u && x.u.디자인).map(x => ({ id: x.id, name: String(x.P.이름 || ''), url: x.u.디자인 }));
+        const capsList = () => CAPS;
+        const capsUrl = k => k.url;
+        const capsData = async k => { const r = await fetch(k.url); if (!r.ok) throw new Error('caps'); const t = r.headers.get('content-type') || '';
+            if (/svg/.test(t) || /\.svg$/i.test(k.url)) return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(await r.text());
+            const b = await r.blob(); return await new Promise((ok, no) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = no; f.readAsDataURL(b); }); };
         const capsToday = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
         function capsPasses() {                       // 아직 안 끝난 것만
             let a; try { a = JSON.parse(localStorage.getItem(CAPS_LOCAL)); } catch (e) {}
@@ -128,7 +133,7 @@
         /* 🎒 캡슐 스티커 → 🧺 바구니에 한 장 (선물) · 새 종이 id */
         async function capsToBasket(k) {
             if (!k || !window.ownTake || !window.ownMode || !ownMode()) return '';
-            try { return await ownTake({ k: 'seal', from: 'gift', nm: k.name, imgs: [capsUrl(k)], baked: true }); } catch (e) { console.warn(e); return ''; }
+            try { return await ownTake({ k: 'seal', from: 'gift', nm: k.name, imgs: [await capsData(k)], baked: true }); } catch (e) { console.warn(e); return ''; }
         }
         async function capsTakeOut() {                                  // 당첨 화면 : 바구니에서 바로 꺼내 떼어 붙이기
             const id = await gc.own; if (!id) { showMsg('🧺 바구니에 넣지 못했어요.<br>인터넷 연결을 확인해 주세요.'); return; }

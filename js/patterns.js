@@ -1,57 +1,14 @@
 /* 말랑달콤 다이어리 - js/patterns.js
-   🎨 전체 배경에 까는 배경지 목록 (☁️ 말랑배경지)
-   - tier : 'free' = 🌈 배경지 '기본' 칸 (누구나) · 'off' = 목록에서 숨김 (예전에 고른 사람 배경은 그대로 보여요)
-   - 10-18 (도련) : 기본 칸은 페이지 4색(분홍 · 녹색 · 보라 · 노랑)의 바탕색만 · 속지(종이)는 안 바뀌고 배경에만 깔려요 · 줄무늬 · 도트 10개는 숨김
-   - css  : 배경에 그대로 들어가는 CSS 값 (이미지 파일 없이 동작)
-   - 새 배경지 추가 : 아래 목록에 { id, tier, name, css } 한 줄 추가. id는 저장에 쓰이므로 한 번 정하면 바꾸지 마세요.
+   🌈 배경지 목록 = 서버 상품 (🧁 상품공방 '배경지' · 도련 11-02 : 예전에 이 파일에 적어 두던 단색 · 무늬는 기본상품샵/배경지 로 옮겼어요)
+   - 상품 하나 → { id, tier: 'free', name, css, g } · 속성 css 가 있으면 그대로 · 없으면 디자인 그림을 무늬로 깔아요 (크기 = 그림 크기 · 속성 '무늬크기' px 로 바꿀 수 있어요)
+   - 분류 '단색' = 🎨 단색 칸 · 그 밖 = ☁️ 패턴 칸 · 
+   - 목록 = js/prod.js prodList (앱이 켜질 때 바로) · 숨긴 상품 = tier 'off' (진열 · 받기에서 빠지고 이미 쓰는 배경은 그대로) · 꾸미기 상품이라 디자인을 고치면 모두 새 모습
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → skins → service (index.html 참고) */
-const BG_PATTERNS = (() => {
-    const plaid = (deg) => `repeating-linear-gradient(${deg}, rgba(232,86,75,.75) 0 4px, transparent 4px 18px, rgba(84,138,214,.7) 18px 21px, transparent 21px 34px, rgba(242,192,48,.8) 34px 38px, transparent 38px 52px, rgba(92,176,104,.7) 52px 55px, transparent 55px 70px, rgba(242,138,58,.7) 70px 73px, transparent 73px 84px, rgba(232,86,75,.45) 84px 86px, transparent 86px 96px)`;
-
-    return [
-        /* ---------------- 🎨 기본 : 페이지 4색의 바탕색 (js/app.js skinPresets 의 bg) ---------------- */
-        { id: 'c-pink', tier: 'free', name: '분홍', css: { backgroundColor: '#ffe6f0' } },
-        { id: 'c-mint', tier: 'free', name: '녹색', css: { backgroundColor: '#e3f6ef' } },
-        { id: 'c-purple', tier: 'free', name: '보라', css: { backgroundColor: '#efe7fb' } },
-        { id: 'c-yellow', tier: 'free', name: '노랑', css: { backgroundColor: '#fff4d6' } },
-
-        /* ---------------- ☁️ 말랑패턴 : 심플한 줄무늬 · 도트 · 체크 (10-18 숨김 → 10-23 다시 보이게 · 도련) ---------------- */
-        { id: 'candy', tier: 'free', name: '사탕 스트라이프',
-          css: { backgroundColor: '#fdf0f4',
-            backgroundImage: 'repeating-linear-gradient(45deg, transparent 0 13px, rgba(255,255,255,.9) 13px 15px, transparent 15px 28px), repeating-linear-gradient(45deg, #fdf0f4 0 14px, #f7c3d1 14px 28px)' } },
-        { id: 'dots', tier: 'free', name: '딸기우유 도트',
-          css: { backgroundColor: '#ffe7ee',
-            backgroundImage: 'radial-gradient(circle, #ffffff 0 5px, transparent 5.5px), radial-gradient(circle, #ffffff 0 5px, transparent 5.5px)',
-            backgroundSize: '30px 30px, 30px 30px', backgroundPosition: '0 0, 15px 15px' } },
-        { id: 'pink-stripe', tier: 'free', name: '핑크 세로줄',
-          css: { backgroundColor: '#fff5f8',
-            backgroundImage: 'repeating-linear-gradient(90deg, #ffd6e2 0 18px, #fff5f8 18px 36px)' } },
-        { id: 'mint-stripe', tier: 'free', name: '민트 가로줄',
-          css: { backgroundColor: '#f1fbf6',
-            backgroundImage: 'repeating-linear-gradient(0deg, #cdeedd 0 14px, #f1fbf6 14px 28px, #e2f6ec 28px 30px, #f1fbf6 30px 44px)' } },
-        { id: 'blue-gingham', tier: 'free', name: '블루 깅엄',
-          css: { backgroundColor: '#eef4fc',
-            backgroundImage: 'repeating-linear-gradient(90deg, rgba(133,166,220,.36) 0 16px, transparent 16px 32px), repeating-linear-gradient(0deg, rgba(133,166,220,.36) 0 16px, transparent 16px 32px)' } },
-        { id: 'lavender-check', tier: 'free', name: '라벤더 체크',
-          css: { backgroundColor: '#f6f1fc',
-            backgroundImage: 'repeating-linear-gradient(90deg, rgba(186,160,226,.45) 0 3px, transparent 3px 26px), repeating-linear-gradient(0deg, rgba(186,160,226,.45) 0 3px, transparent 3px 26px)' } },
-        { id: 'scallop', tier: 'free', name: '구름 스캘럽',
-          css: { backgroundColor: '#d6ebf6',
-            backgroundImage: 'radial-gradient(circle at 50% 0, transparent 0 11px, #ffffff 11.5px 13px, transparent 13.5px), radial-gradient(circle at 50% 0, #eaf5fb 0 13px, transparent 13.5px)',
-            backgroundSize: '26px 20px', backgroundPosition: '0 0, 13px 10px' } },
-        { id: 'lemon-grid', tier: 'free', name: '레몬 격자',
-          css: { backgroundColor: '#fff8d6',
-            backgroundImage: 'radial-gradient(circle, #f2c94c 0 3px, transparent 3.5px), linear-gradient(90deg, rgba(242,201,76,.35) 0 2px, transparent 2px), linear-gradient(0deg, rgba(242,201,76,.35) 0 2px, transparent 2px)',
-            backgroundSize: '36px 36px', backgroundPosition: '-17px -17px, 0 0, 0 0' } },
-        { id: 'grid-paper', tier: 'free', name: '모눈종이',
-          css: { backgroundColor: '#fffdf7',
-            backgroundImage: 'linear-gradient(90deg, rgba(120,170,210,.35) 0 1px, transparent 1px), linear-gradient(0deg, rgba(120,170,210,.35) 0 1px, transparent 1px), linear-gradient(90deg, rgba(120,170,210,.15) 0 1px, transparent 1px), linear-gradient(0deg, rgba(120,170,210,.15) 0 1px, transparent 1px)',
-            backgroundSize: '80px 80px, 80px 80px, 16px 16px, 16px 16px' } },
-        { id: 'plaid', tier: 'free', name: '무지개 체크',
-          css: { backgroundColor: '#fcf6df', backgroundImage: `${plaid('90deg')}, ${plaid('0deg')}` } },
-
-    ];
-})();
+const BG_PATTERNS = (window.prodList ? prodList('배경지') : []).map(x => {
+    const P = x.P || {}, u = x.u && x.u.디자인, css = P.css && typeof P.css === 'object' ? P.css
+        : u ? { backgroundColor: '#ffffff', backgroundImage: `url('${u}')`, backgroundSize: (+P.무늬크기 > 0 ? +P.무늬크기 + 'px' : 'auto') } : null;
+    return css ? { id: x.id, tier: P.숨김 ? 'off' : 'free', name: String(P.이름 || ''), css, g: P.분류 === '단색' ? 'solid' : 'pat' } : null;
+}).filter(Boolean);
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['patterns'] = true;

@@ -28,29 +28,20 @@
 
         const DESK_W = 1672, DESK_H = 941, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
         const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
-        const DESK_ITEMS = [                                                      // 기본 소품 (도련 10-26 · 크기는 참고 그림의 책상 대비 비율) · wall = 벽에 거는 것 (책상 자석 없음 · 늘 뒤)
-            // front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] → 다이어리 바닥이 그 안이면 '꽂힘' = 소품과 앞벽 사이 (도련 10-29)
-            // area = 💡 스탠드처럼 누르면 동작하는 곳 (그림 % · 없으면 종류 기본 · js/deskcustom.js) · cork = 📝 게시판 메모 붙는 곳 (그림 %)
-            // slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (소품 그림 %) · 칸 수는 자유 (위에서부터) · 서랍장(kind drawer)이면 꼭 (도련 11-01 · 새 서랍장 = 이 한 줄만 · 도구/서랍칸찾기.py 로 % 뽑기)
-            // surf = 위에 물건을 올릴 수 있는 면 [소품 안 세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 그림 px) · 올려 둔 물건은 함께 움직이고 그 소품보다 앞에 보여요
-            { id: 'corkboard', kind: 'board', src: 'img/desk/corkboard.webp?v=20261009-832', w: 520, h: 393, x: 600, y: 90, name: '코르크 게시판', wall: 1 },
-            { id: 'wallshelf', kind: 'wallshelf', src: 'img/desk/wallshelf.webp?v=20261009-833', w: 430, h: 248, x: 160, y: 104, name: '벽 선반', wall: 1, surf: [[50, 10, 421], [211, 10, 421]] },
-            { id: 'drawer-pink', kind: 'drawer', src: 'img/desk/drawer-pink.webp?v=20261009-833', w: 330, h: 257, x: 170, y: 504, name: '핑크 서랍장', surf: [[16, 8, 322]], slots: [[4, 14, 96, 40], [4, 42, 96, 67], [4, 70, 96, 95]] },
-            { id: 'riser', kind: 'riser', src: 'img/desk/riser.webp?v=20261009-833', w: 470, h: 92, x: 560, y: 669, name: '모니터 받침대', surf: [[16, 3, 467]] },
-            { id: 'basket', kind: 'basket', src: 'img/desk/basket.webp?v=20261009-833', w: 170, h: 142, x: 600, y: 544, name: '책 바구니', front: 'img/desk/basket-front.webp?v=20261009-919', mouth: [5, 95, 54] },
-            { id: 'pencup', kind: 'pencup', src: 'img/desk/pencup.webp?v=20261009-833', w: 100, h: 148, x: 840, y: 538, name: '연필꽂이' },
-            { id: 'bookbox', kind: 'bookshelf', src: 'img/desk/bookbox2.webp?v=20261009-832', w: 200, h: 152, x: 230, y: 367, name: '책 상자', nost: 1 },   // nost = 🎁 기본 세트에서 빼요 (🏪 샵에는 그대로 · 도련 10-30)
-            { id: 'magfile', kind: 'bookshelf', src: 'img/desk/magfile2.webp?v=20261009-832', w: 110, h: 241, x: 1090, y: 520, name: '파일꽂이', front: 'img/desk/magfile2-front.webp?v=20261009-911', mouth: [4, 96, 51], nost: 1 },
-            { id: 'polaroid', kind: 'photo', src: 'img/desk/polaroid2.webp?v=20261009-836', w: 126, h: 151, x: 1395, y: 120, name: '폴라로이드', wall: 1, photo: [17.5, 22.3, 82.6, 85.9] },   // 줄에 집게로 건 사진 (줄이 양옆으로 이어져요)   // 📷 나중에 사용자 사진을 넣어 벽에 붙여요 (photo = 사진 자리 %)
-            { id: 'clock', kind: 'clock', src: 'img/desk/clock.webp?v=20261009-832', w: 96, h: 117, x: 1258, y: 415, name: '자명종 시계', clock: { cx: 50, cy: 59.5, r: 35.6 } },   // 🕰 지금 시각 바늘 (시계판 가운데 · 반지름 = 그림 폭 %)
-            { id: 'dclock', kind: 'clock', src: 'img/desk/dclock.webp?v=20261009-833', w: 130, h: 87, x: 300, y: 228, name: '디지털 시계', lcd: [10.7, 16, 89.1, 73.7] },   // ⏰ 화면에 지금 시각 (화면 자리 %)
-            { id: 'drawer', kind: 'drawer', src: 'img/desk/drawer.webp?v=20261009-833', w: 230, h: 244, x: 1250, y: 517, name: '서랍장', surf: [[12, 6, 224]], slots: [[5, 14, 95, 39], [5, 40, 95, 66], [5, 67, 95, 91]] },
-            { id: 'lamp', kind: 'lamp', src: 'img/desk/lamp.webp?v=20261009-835', w: 200, h: 309, x: 1270, y: 220, name: '스탠드' },          // 🆕 10-28 도련 그림
-            { id: 'wallclock', kind: 'clock', src: 'img/desk/wallclock.webp?v=20261009-1025', w: 128, h: 128, x: 1132, y: 96, name: '벽시계', wall: 1, clock: { cx: 50, cy: 50, r: 43.5 } },   // 🆕 10-31 도련 그림 · 🕰 지금 시각 바늘
-            { id: 'lamp2', kind: 'lamp', src: 'img/desk/lamp2.webp?v=20261009-1025', w: 128, h: 216, x: 196, y: 304, name: '초록 스탠드' },          // 🆕 10-31 도련 그림 · 핑크 서랍장 위
-            { id: 'bunny', kind: 'doll', src: 'img/desk/bunny.webp?v=20261009-834', w: 64, h: 117, x: 955, y: 568, name: '토끼 인형' },
-            { id: 'bear', kind: 'doll', src: 'img/desk/bear.webp?v=20261009-835', w: 88, h: 108, x: 412, y: 412, name: '곰 인형' }
-        ];
+        /* 🧁 소품 = 서버 상품 (상품공방 '책상소품' · js/prod.js · 도련 11-02 : 예전 목록 · img/desk 그림은 기본상품샵/책상소품 으로 옮겼어요)
+           속성 '소품' = { kind, w, h, x, y, wall, surf, slots, mouth, clock, lcd, photo, area, cork } (상품공방 📍 그림 위 자리에서 그려요) · 디자인 = 그림 · 앞벽 = 앞벽 마스크
+             front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] · area = 💡 누르면 동작하는 곳 (그림 % · js/deskcustom.js) · cork = 📝 메모 붙는 곳 (그림 %)
+             slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (그림 %) · surf = 올리는 면 [세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 px) · clock = 바늘 { cx, cy, r } · lcd · photo = [왼 · 위 · 오른 · 아래] %
+           처음선물 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
+        const DESK_ITEMS = (window.prodList ? prodList('책상소품') : []).map(x => {
+            const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
+            if (!x.u.디자인 || !o.kind) return null;
+            Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름 || ''), w: +o.w || 120, h: +o.h || 120, x: +o.x || 700, y: +o.y || 560 });
+            if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
+            if (P.처음선물) delete o.nost; else o.nost = 1;
+            if (P.숨김) o.off = 1;
+            return o;
+        }).filter(Boolean);
         const DK_CAT = new Map(DESK_ITEMS.map(d => [d.id, d]));                 // 소품이 많아져도 바로 찾기
         const dkCat = id => DK_CAT.get(id) || null;
         const dkDef = el => dkCat(el.dataset.id) || {};
@@ -542,7 +533,7 @@
             dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             return it;
         }
-        const deskShopList = () => DESK_ITEMS.map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall }));
+        const deskShopList = () => DESK_ITEMS.filter(d => !d.off).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall }));
         /* 📦 소품 보관함 창 */
         /* 🗂 보관함 종류 칸 (도련 10-27 · 드라이브 종류 폴더와 같은 이름 : 서랍장 · 시계 · 책꽂이 … · 많아져도 찾기 쉽게) : 가진 종류만 · [이름 개수] */
         const dkKinds = () => typeof DESK_DIRS !== 'undefined' ? Object.keys(DESK_DIRS) : [];
@@ -753,7 +744,7 @@
             items.forEach(el => {
                 if (!dkIsBox(el)) return; const d = dkDef(el), u = el.dataset.u, on = fz.has(el); keep.add(u);
                 let f = [...stg.querySelectorAll('.dk-front')].find(x => x.dataset.fu === u);
-                if (!f) { f = document.createElement('div'); f.className = 'dk-front'; f.dataset.fu = u; f.innerHTML = `<i class="dk-fm"><img data-art-u="${u}" alt="" draggable="false"></i>`; f.style.setProperty('--fm', `url("${new URL(d.front, location.href).href}")`); el.after(f); }   // 마스크 주소는 css 파일 기준이 아니라 이 페이지 기준으로
+                if (!f) { f = document.createElement('div'); f.className = 'dk-front'; f.dataset.fu = u; f.innerHTML = `<i class="dk-fm"><img data-art-u="${u}" alt="" draggable="false" crossorigin="anonymous"></i>`; f.style.setProperty('--fm', `url("${new URL(d.front, location.href).href}")`); el.after(f); }   // 마스크 주소는 css 파일 기준이 아니라 이 페이지 기준으로
                 const im = f.querySelector('img'), src = el.querySelector(':scope > img').src; if (im.src !== src) im.src = src;
                 Object.assign(f.style, { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height, zIndex: on ? fz.get(el) : 0, display: on ? '' : 'none' });
                 f.querySelectorAll('.dkn-tag').forEach(x => x.remove()); if (on) el.querySelectorAll(':scope > .dkn-tag').forEach(tg => f.appendChild(tg.cloneNode(true)));   // 🏷 기능 라벨이 앞벽에 가리지 않게 한 장 더
@@ -1138,7 +1129,7 @@
                 over = `<svg class="dk-hands" viewBox="-50 -50 100 100" aria-hidden="true" style="left:${c.cx}%;top:${c.cy}%;width:${d}%;height:${hh}%"><line class="hr" x1="0" y1="6" x2="0" y2="-24"/><line class="mn" x1="0" y1="8" x2="0" y2="-38"/><line class="sc" x1="0" y1="10" x2="0" y2="-41"/><circle r="4.5"/></svg>`;
             }
             if (it.lcd) { const [l, t, r, b] = it.lcd; over = `<span class="dk-lcd" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b></span>`; }
-            return `<div class="${cls}" data-id="${it.id}" data-u="${p.u || it.id}" role="img" aria-label="${it.name}" style="${st}"><img src="${(p.u && DK.art[p.u]) || it.src}" alt="" draggable="false">${over}</div>`;
+            return `<div class="${cls}" data-id="${it.id}" data-u="${p.u || it.id}" role="img" aria-label="${it.name}" style="${st}"><img src="${(p.u && DK.art[p.u]) || it.src}" alt="" draggable="false" crossorigin="anonymous">${over}</div>`;
         }
         /* 🕰 ⏰ 시계는 지금 시각 (1초마다 · 책상이 보일 때만) */
         function deskTick() {
@@ -1181,7 +1172,9 @@
            - 평소 다이어리 권 톡 = 그 권 펼치기 · 🛠 꾸미기 = 끌어 옮기기 · 톡 = 모습 (📚 꽂기 · 📔 세우기 · 🛏 눕히기) · 바구니 · 받침 위도 소품처럼 (dkLayers)
            - 🛍️ 봉투의 새 다이어리 카드 = 끌어 놓은 자리에 그 권 · 📔 보관소 창은 뒤에서만 (📱 폰 · 못 찾을 때 · 🛠 다이어리 메뉴 '📔 보관소') · 📦 소품함에는 안 들어가요 */
         const DKV_SZ = { side: [24, 127], front: [80, 120], lay: [150, 86] };      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
-        const DKV_COL = { pink: ['분홍', '#ffb6c1', '#ff6b81'], mint: ['녹색', '#a8dfc8', '#3fae86'], purple: ['보라', '#cdb8f2', '#8d63d8'], yellow: ['노랑', '#f5d58a', '#e39a1f'] };
+        let DKV_C = null;                                                          // 🧁 다이어리 색 (서버 상품 · js/app.js DIARY_COLORS · app.js 가 이 파일보다 뒤라 처음 쓸 때 만들어요)
+        const dkvCol = c => { if (!DKV_C) { DKV_C = Object.fromEntries(DIARY_COLORS.map(x => [x[0], [x[1], skinPresets[x[0]].border, skinPresets[x[0]].accent]])); }
+            return DKV_C[c] || DKV_C.pink || Object.values(DKV_C)[0] || ['분홍', '#ffb6c1', '#ff6b81']; };
         const dkyCur = () => (window.dyyBookId && (typeof dkType !== 'function' || !dkType()) ? dyyBookId() : '') || '';
         const dkyMap = () => { const v = typeof prefGet === 'function' ? prefGet(DKY_KEY, DKY_LOCAL) : null; return v && typeof v === 'object' && !('x' in v) ? v : {}; };
         const dkyOk = v => v && isFinite(+v.x) && isFinite(+v.y) && ['side', 'front', 'lay'].includes(v.p);
@@ -1198,7 +1191,7 @@
             const L = dkvAll().filter(b => !dkyOk(M[b.id])), k = Math.max(0, L.findIndex(b => b.id === id));
             return { x: 1196 - (DKV_SZ.front[0] + 10) * k, y: 758, p: 'front' };   // 처음 = 앞을 보고 나란히 (도련 10-31)
         }
-        const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${(DKV_COL[b.c] || DKV_COL.pink)[0]}${b.n > 1 ? ' ' + b.n : ''}`;
+        const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${dkvCol(b.c)[0]}${b.n > 1 ? ' ' + b.n : ''}`;
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : '📔';
         const dkvPos = id => (DK.volEdit && DK.volEdit[id]) || dkyPosOf(id);
         function dkVolsPaint() {
@@ -1206,7 +1199,7 @@
             st.querySelectorAll('.dk-vol').forEach(x => x.remove());
             const cur = dkyCur(), at = st.querySelector('.dk-diary');
             dkvAll().forEach(b => {                                               // 📔 모든 권 = 이 틀 하나 (펼쳐 볼 권도 · .cur · 새로 그리지 않기 · 도련 10-30)
-                const v = dkvPos(b.id), [w, h] = DKV_SZ[v.p] || DKV_SZ.side, C = b.col ? ['', b.col[0], b.col[1]] : DKV_COL[b.c] || DKV_COL.pink;
+                const v = dkvPos(b.id), [w, h] = DKV_SZ[v.p] || DKV_SZ.side, C = b.col ? ['', b.col[0], b.col[1]] : dkvCol(b.c);
                 const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t !== 'dy' ? ' alb ' + b.t : '') + (b.id === cur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
                 Object.assign(el.style, { left: Math.round(v.x - w / 2) + 'px', top: Math.round(v.y - h) + 'px', width: w + 'px', height: h + 'px' });
                 el.style.setProperty('--dy-c', C[1]); el.style.setProperty('--primary-accent', C[2]);

@@ -18,7 +18,7 @@
 
         const DYY_KEY = 'diary_years', DYY_LOCAL = 'malang_years', DYY_OPEN = 'diary_year', DYY_OPEN_L = 'malang_year', DYY_N = 'diary_book_n', DYY_N_L = 'malang_book_n';
         const DYY_INFO = 'diary_book_info', DYY_INFO_L = 'malang_book_info';   // 권마다 받은 곳 · 받은 날 { '2026pink1': { from: 'basic', at: '2026-10-28' } } (무료 · 유료는 폴더가 아니라 여기에 · 도련 10-28)
-        const DYY_COLORS = [['pink', '분홍'], ['mint', '녹색'], ['purple', '보라'], ['yellow', '노랑']];
+        const DYY_COLORS = DIARY_COLORS.map(c => [c[0], c[1]]);   // 🧁 서버 상품 (js/app.js · 상품공방 '다이어리')
         const dyyThis = () => new Date().getFullYear();
         const dyyOf = id => { const m = /^(\d{4})(pink|mint|purple|yellow)(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], c: m[2], n: +m[3] } : null; };
         const dyyCName = c => (DYY_COLORS.find(x => x[0] === c) || DYY_COLORS[0])[1];
@@ -165,7 +165,7 @@
         /* 🏪 기본상품 샵 → 📔 다이어리 → 날짜형 (js/basket.js) : 올해 바인더 4색 · 같은 것도 또 받아요 (받을 때마다 새 다이어리 한 권) */
         function dyyShopList() {
             const y = dyyThis();
-            return DYY_COLORS.map(([c, n]) => ({ cnt: `${y} 기본 다이어리 · ${n}`, desc: `${n} 6공 바인더 · A6 · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'diary', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, c), name: `${y} ${n} 다이어리` }));
+            return DIARY_COLORS.filter(c => !c[2]).map(([c, n]) => ({ cnt: `${y} 기본 다이어리 · ${n}`, desc: `${n} 6공 바인더 · A6 · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'diary', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, c), name: `${y} ${n} 다이어리` }));
         }
         function dyyGive(y, c) {
             const id = dyyNewId(y, c);

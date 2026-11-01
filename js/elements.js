@@ -145,6 +145,7 @@
             const b = fs.map((f, i) => kitOk(f) ? L.b[i] : null).filter((v, i) => kitOk(fs[i])).slice(0, 30);
             return b.every(v => Array.isArray(v) && v.length === 4 && v.every(n => typeof n === 'number' && isFinite(n))) ? { L: { r: +L.r, b } } : {};
         }
+        const kitP = P => P && typeof P === 'object' && !Array.isArray(P) ? P : {};   // 🧁 상품 속성 (이름 · 분류 · 순서 · 신상 · 종류별 값 · 상품공방이 넣어요)
         function kitParse(d) {
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
@@ -152,12 +153,12 @@
                 const pv = a => Array.isArray(a) && /^[0-9a-f]{16}$/.test(a[0]) && a.slice(1).every(n => typeof n === 'number' && n >= 0) ? { u: KIT_BASE + '/p/' + a[0] + '.webp', y: a[1], h: a[2], H: a[3], w: a[4] } : null;   // 🖼️ 묶음 미리보기 (포장기가 8장씩 한 파일에 세로로 · pa = [지문, y, 높이, 전체 높이, 폭] · 기본상품 샵 카드용)
                 const kits = {};
                 Object.keys(d.kits && typeof d.kits === 'object' ? d.kits : {}).forEach(k => {
-                    kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f) } : null)
+                    kits[k] = (Array.isArray(d.kits[k]) ? d.kits[k] : []).map(x => !x ? null : Array.isArray(x.fs) ? { c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa), P: kitP(x.P) } : kitOk(x.f) ? { c: String(x.c || ''), u: kitUrl(x.f), P: kitP(x.P) } : null)
                         .filter(x => x && (x.u || (x.us && x.us.length)));
                 });
                 return {
                     images: d.images.filter(x => x && kitOk(x.f)).map(x => ({ u: kitUrl(x.f), c: String(x.c || '') })),
-                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && Object.assign({ c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa) }, kitLay(x))).filter(x => x && x.us.length),
+                    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(x => x && Object.assign({ c: String(x.c || ''), us: us(x.fs), pv: pv(x.pa), P: kitP(x.P) }, kitLay(x))).filter(x => x && x.us.length),
                     kits
                 };
             }
@@ -954,7 +955,6 @@
                     if (el.dataset.caption) item.cp = el.dataset.caption;
                 }
                 if (textarea) {
-                    if (el.dataset.paper) item.pp = el.dataset.paper;            // 📝 글상자 모양 (js/paper.js)
                     if (el.dataset.tk) { item.tk = el.dataset.tk; item.tb = slimEnc(el.dataset.tkSrc); }   // 🧻 떡메 메모 : 종류 + 그림 그대로 (js/leafpad.js)
                     const fid = fontIdOf(textarea.dataset.font);
                     if (fid !== 'sys') item.f = fid;
@@ -1011,7 +1011,6 @@
                 if (!interactive) ta.readOnly = true;
                 styleTextarea(ta, data.fontFamily || SYSTEM_FONT, data.color, data.fontSize);   // 글씨체가 정해지지 않은 메모 = 기기 기본 폰트
                 el.appendChild(ta);
-                if (data.paper && /^[a-z]{1,10}$/.test(data.paper)) { el.classList.add('pp-' + data.paper); el.dataset.paper = data.paper; }
                 if (data.tk && data.tb && window.tkNoteDress) tkNoteDress(el, data.tk, data.tb);
                 if (window.mhlLook) mhlLook(ta, data.hl, data.pn);             // ✏️ 📒 형광펜 띠 · 색연필 글씨 (js/draw.js)
             } else if (data.type === 'doll') {

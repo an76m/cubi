@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/leafpad.js
-   📃 속지 · 🧻 떡메모지 (✨ 스티커 창의 맨 아랫줄 종이 칸 · 📝 메모지는 js/paper.js)
+   📃 속지 · 🧻 떡메모지 (🧁 샵 상품은 모두 그림 · 상품공방)
    - 📃 속지 : 그날 페이지 바탕을 통째로 바꿔요 (줄노트 · 모눈 · 도트 · 깅엄 · 크라프트 · 무지)
                날짜 파일에 lf 로 저장 (줄노트는 기본이라 저장 안 함) · 바탕 위에 붙인 것들은 그대로
    - 🧻 떡메모지 : 묶음을 톡 누르면 맨 윗장이 북 뜯겨서 테이프와 함께 페이지에 붙어요
@@ -28,8 +28,7 @@
         /* =====================================================================
            📃 속지
            ===================================================================== */
-        const LEAFS = [['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트'], ['plain', '무지']];
-        const LEAF_CAT = { line: '기본', plain: '기본', kraft: '기본', grid: '패턴', dot: '패턴', gingham: '체크' };   // 🗂 카테고리 칸 (js/stk-basic.js) · 이름은 안 보여요
+        const LEAFS = [['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트'], ['plain', '무지']];   // 다이어리 · 📓 만든 노트의 내지 (js/dymaker.js) · 🏪 샵 속지는 모두 그림('my' · 상품공방 · 도련 11-02)
         let pageLeaf = 'line', pageLeafImg = '';                           // 지금 페이지의 속지 (js/elements.js 저장 · 불러오기) · 'my' = 📃 속지 만들기로 만든 그림(pageLeafImg · js/leafmaker.js)
         const lfMyOk = img => /^data:image\/(jpeg|png|webp)/.test(img || '');
 
@@ -78,10 +77,9 @@
         /* =====================================================================
            🧻 떡메모지
            ===================================================================== */
-        const TK_PADS = [['memo', '메모'], ['check', '체크'], ['sky', '하늘'], ['todo', '투두']];
-        const TK_CAT = { memo: '기본', check: '체크', sky: '하늘', todo: '체크' };   // 🗂 카테고리 칸 (js/stk-basic.js) · 이름은 안 보여요
+        /* 🧻 떡메 = 모두 그림('my' · 🏪 상품공방 상품 · 🧻 떡메 만들기 · 도련 11-02 : 예전에 제가 CSS · SVG 로 그린 메모 · 체크 · 하늘 · 투두는 상품공방으로 옮겼어요) */
         const TK_W = 150, TK_H = 148;
-        const tk = { pad: 'memo', edge: 'top', my: null };              // my : 🧻 내가만든 · 공유받은 떡메 { src(앞면 그림 JPG), glue(풀칠 띠 색 · 빈 값 = 스킨 색) } (js/leafmaker.js)
+        const tk = { pad: 'my', edge: 'top', my: null };              // my : 🧻 내가만든 · 공유받은 떡메 { src(앞면 그림 JPG), glue(풀칠 띠 색 · 빈 값 = 스킨 색) } (js/leafmaker.js)
         const tkR = (a, b) => a + Math.random() * (b - a);
 
         function tkHex(c) {
@@ -95,9 +93,7 @@
 
         /* 묶음 위에 보이는 맨 윗장 (HTML) */
         function tkSheetHtml(id, my = tk.my) {
-            if (id === 'my') return `<div class="tk-sheet tk-my" style="background-image:url('${my && my.src || ''}')"></div>`;
-            const h = { memo: '<span class="hd">MEMO</span>', sky: '<span class="hd">오늘 하늘 ☁</span><i class="cl"></i>', todo: '<span class="hd">TO DO</span><ul><li></li><li></li><li></li><li></li></ul>' }[id] || '';
-            return `<div class="tk-sheet tk-${id}">${h}</div>`;
+            return `<div class="tk-sheet tk-my" style="background-image:url('${my && my.src || ''}')"></div>`;
         }
         /* 작은 떡메 묶음 그림 (목록 칸) · glue : 풀칠 띠 색 */
         function tkMiniHtml(id, my) {
@@ -133,26 +129,8 @@
 
         /* 페이지에 붙는 한 장 (SVG 그림 · 위쪽 12px 은 묶음에 붙어 있던 자리라 잘려 나가요) */
         function tkPieceSvg(id, sh, tape = true) {
-            const acc = tkAcc(), W = TK_W, H = TK_H, F = "font-family=\"'Fredoka','Arial Rounded MT Bold',sans-serif\" font-weight=\"700\"";
-            let face = '';
-            if (id === 'my') {
-                face = `<rect width="${W}" height="${H}" fill="#fff"/><image href="${tk.my && tk.my.src || ''}" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
-            } else if (id === 'memo') {
-                face = `<rect width="${W}" height="${H}" fill="#fff6cf"/>`;
-                for (let y = 61; y < H - 6; y += 22) face += `<rect x="0" y="${y}" width="${W}" height="1" fill="#f1d58a"/>`;
-                face += `<text x="12" y="27" ${F} font-size="17" letter-spacing="1" fill="#d98d2b">MEMO<tspan fill="${tkMix(acc, 1)}" dx="4">♡</tspan></text>`;
-            } else if (id === 'check') {
-                const c = tkMix(acc, .2);
-                face = `<defs><pattern id="tkc" width="18" height="18" patternUnits="userSpaceOnUse" y="-12"><rect width="18" height="18" fill="#fff"/><rect width="9" height="18" fill="${c}"/><rect width="18" height="9" fill="${c}"/><rect width="9" height="9" fill="${tkMix(acc, .36)}"/></pattern></defs><rect width="${W}" height="${H}" fill="url(#tkc)"/>`;
-            } else if (id === 'sky') {
-                face = `<defs><pattern id="tks" width="16" height="16" patternUnits="userSpaceOnUse" y="-12"><rect width="16" height="16" fill="#cfe8fb"/><circle cx="0" cy="0" r="2.3" fill="#fff"/><circle cx="16" cy="0" r="2.3" fill="#fff"/><circle cx="0" cy="16" r="2.3" fill="#fff"/><circle cx="16" cy="16" r="2.3" fill="#fff"/></pattern></defs><rect width="${W}" height="${H}" fill="url(#tks)"/>`
-                    + `<text x="12" y="31" font-family="'Gaegu','Apple SD Gothic Neo',sans-serif" font-weight="700" font-size="19" fill="#4c86b8">오늘 하늘 ☁</text>`
-                    + `<g fill="#fff"><rect x="84" y="${H - 34}" width="54" height="22" rx="11"/><circle cx="84" cy="${H - 37}" r="10"/><circle cx="133" cy="${H - 39}" r="8"/></g>`;
-            } else {
-                const ln = tkMix(acc, .3), bx = tkMix(acc, .6);
-                face = `<rect width="${W}" height="${H}" fill="#fffdfa"/><rect width="${W}" height="34" fill="${tkMix(acc, .22)}"/><text x="12" y="25" ${F} font-size="15" fill="${tkMix(acc, .88, [74, 32, 48])}">TO DO</text>`;
-                for (let i = 0; i < 4; i++) { const y = 46 + i * 22; face += `<rect x="12.8" y="${y + 6.5}" width="9" height="9" rx="2" fill="none" stroke="${bx}" stroke-width="1.6"/><path d="M12 ${y + 21.5}H${W - 12}" stroke="${ln}" stroke-dasharray="3 2"/>`; }
-            }
+            const acc = tkAcc(), W = TK_W, H = TK_H;
+            const face = `<rect width="${W}" height="${H}" fill="#fff"/><image href="${tk.my && tk.my.src || ''}" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
             const tr = tkR(-7, 7).toFixed(1), ta = tkMix(acc, .4), tb = tkMix(acc, .22);
             const tp = `<g transform="translate(75 0) rotate(${tr})" opacity=".82"><defs><pattern id="tkt" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="${tb}"/><rect width="6" height="12" fill="${ta}"/></pattern></defs>`
                 + `<polygon points="-29,-7.6 -26.7,-9 -24.4,-7.2 -22,-9 29,-9 26.7,-6.8 29,-4.5 26.7,-1.8 29,.9 26.7,3.6 29,6.3 27.3,9 -29,9 -26.7,6.3 -29,3.6 -26.7,.9 -29,-1.8 -26.7,-4.5" fill="url(#tkt)"/></g>`;
@@ -321,7 +299,7 @@
         /* 📝 페이지에 붙은 떡메 = 글상자(textarea) + 뒤에 깔린 떡메 그림 · 일기에는 글 + 떡메 종류(tk) + 그림 그대로(tb) 저장 (js/elements.js)
            옮길 때는 메모지처럼 살짝 떠서 · 짧게 톡 누르면 골라지면서 글쓰기 */
         function tkNoteDress(el, pad, src) {
-            if (pad !== 'my' && !TK_PADS.some(p => p[0] === pad)) pad = 'memo';
+            pad = 'my';
             el.classList.add('tk-note', 'tk-note-' + pad); el.dataset.tk = pad; el.dataset.tkSrc = src;
             const im = document.createElement('img'); im.className = 'tk-bg'; im.alt = ''; im.draggable = false; im.src = src;
             el.insertBefore(im, el.firstChild);
@@ -345,8 +323,6 @@
         }
         window.spawnTteok = spawnTteok; window.closeTteokRoom = closeTteokRoom; window.tkNoteDress = tkNoteDress;
         window.tkMiniHtml = tkMiniHtml;
-        window.tkShelf = () => TK_PADS.map(([k, n]) => ({ k, n, g: TK_CAT[k] || '기본' }));                              // 🏪 기본상품 샵 (js/basket.js)
-        window.leafShelf = () => LEAFS.filter(([k]) => k !== 'line').map(([k, n]) => ({ k, n, g: LEAF_CAT[k] || '기본' }));   // 줄노트 = 다이어리 원래 종이라 기본상품 샵에 없어요
 
 /* 📃 그림 속지(lf-my) 칸 : 그림의 가로:세로를 --lf-r 로 (도련 10-24 · 🏪 기본상품 샵 · 🧺 바구니 칸) */
 (function () {

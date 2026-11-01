@@ -14,7 +14,7 @@
 
         function dpOpen(u) {
             const o = DK.items.find(x => x.u === u); if (!o) return;
-            const im = new Image();
+            const im = new Image(); im.crossOrigin = 'anonymous';             // 🧁 소품 그림 = 서버 (칠하려면 CORS)
             im.onload = () => dpBuild(o, im);
             im.onerror = () => { if (window.showMsg) showMsg('⚠ 소품 그림을 불러오지 못했어요.'); };
             im.src = dkSrc(o);

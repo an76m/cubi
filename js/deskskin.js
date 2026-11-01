@@ -11,17 +11,16 @@
    ※ js/desk.js · js/bin.js 다음에 읽어요 (deskBoxRender · deskEditOpen · deskEditEnd · deskBuild 가 여기 함수를 불러요 · js/basket.js 샵) */
 
         const DS_KEY = 'diary_desk_skin', DS_LOCAL = 'malang_desk_skin';
-        /* 상품 : 벽지 (k 'wall') 8 · 책상 (k 'top') 6 */
-        const DS_CAT = [
-            { id: 'w-basic', k: 'wall', n: '기본 벽지' }, { id: 'w-mint', k: 'wall', n: '민트 벽지', c: '#e3f6ef' }, { id: 'w-purple', k: 'wall', n: '보라 벽지', c: '#efe7fb' }, { id: 'w-yellow', k: 'wall', n: '노랑 벽지', c: '#fff4d6' },
-            { id: 'w-stripe', k: 'wall', n: '줄무늬 벽지' }, { id: 'w-dot', k: 'wall', n: '도트 벽지' }, { id: 'w-check', k: 'wall', n: '체크 벽지' }, { id: 'w-flower', k: 'wall', n: '꽃무늬 벽지' },
-            { id: 'd-basic', k: 'top', n: '기본 책상' },
-            { id: 'd-wood', k: 'top', n: '원목 책상', t: ['#f0d2ab', '#e2bb8d', '#fbecd8', '#dcb284', '#c9976a'], grain: '#e4c095' },
-            { id: 'd-white', k: 'top', n: '화이트 책상', t: ['#fbf8f5', '#ece6e2', '#ffffff', '#efe9e5', '#ddd3cf'] },
-            { id: 'd-mint', k: 'top', n: '민트 책상', t: ['#d9f2e7', '#bfe6d4', '#f0fbf6', '#c4e9d8', '#9fd6bf'] },
-            { id: 'd-purple', k: 'top', n: '보라 책상', t: ['#ebe3fa', '#d8cbf3', '#f7f3ff', '#dcd0f5', '#c3b2ea'] },
-            { id: 'd-yellow', k: 'top', n: '노랑 책상', t: ['#fdf1cc', '#f6e0a1', '#fffaea', '#f7e3a9', '#eccd7e'] }
-        ];
+        /* 🧁 상품 = 서버 (상품공방 '벽지' · '책상판' · 도련 11-02) → { id, k: 'wall' | 'top', n, c(단색), t(책상색 5), grain, img · iw · ih(무늬 그림) }
+           목록 = js/prod.js prodList (켜질 때 바로 · 무늬 그림 크기 = wh) · 꾸미기 상품이라 디자인을 고치면 모두 새 모습 · 기본 벽지 · 책상 = 그림 그대로(얹지 않아요) · 숨김 = 샵에서만 빠져요 */
+        const DS_CAT = [['벽지', 'wall'], ['책상판', 'top']].flatMap(([kind, k]) => (window.prodList ? prodList(kind) : []).map(x => {
+            const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김 };
+            if (/^#[0-9a-f]{6}$/i.test(P.단색 || '')) c.c = P.단색;
+            if (Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);
+            const u = x.u && x.u.디자인, wh = (x.wh && x.wh.디자인) || [40, 40];
+            if (u && !c.c && !P.기본 && (k === 'wall' || P.나뭇결)) { c.img = u; c.iw = +wh[0] || 40; c.ih = +wh[1] || 40; }
+            return c;
+        }));
         const DS_BASIC = { wall: 'w-basic', top: 'd-basic' }, DS_OL = '#a080a5';
         const dsCat = id => DS_CAT.find(x => x.id === id) || null;
         const dsU = () => 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -42,14 +41,7 @@
             const T = tf ? ` patternTransform="${tf}"` : '', c = dsCat(id) || {};
             const P = (w, h, body) => `<pattern id="${pid}" width="${w}" height="${h}" patternUnits="userSpaceOnUse"${T}>${body}</pattern>`;
             if (c.c) return P(40, 40, `<rect width="40" height="40" fill="${c.c}"/>`);
-            if (id === 'w-stripe') return P(48, 48, '<rect width="48" height="48" fill="#fdecf2"/><rect width="24" height="48" fill="#f8d5e2"/>');
-            if (id === 'w-dot') return P(46, 46, '<rect width="46" height="46" fill="#fff8fb"/><circle cx="11" cy="11" r="6.5" fill="#f9cfdd"/><circle cx="34" cy="34" r="6.5" fill="#f9cfdd"/>');
-            if (id === 'w-check') return P(44, 44, '<rect width="44" height="44" fill="#f4fbf8"/><rect width="22" height="44" style="fill:rgba(150,212,190,.32)"/><rect width="44" height="22" style="fill:rgba(150,212,190,.32)"/>');
-            if (id === 'w-flower') {
-                const fl = (x, y, col) => [0, 72, 144, 216, 288].map(a => `<circle cx="${x + 6 * Math.cos(a * Math.PI / 180)}" cy="${y + 6 * Math.sin(a * Math.PI / 180)}" r="4.6" fill="${col}"/>`).join('') + `<circle cx="${x}" cy="${y}" r="3.4" fill="#ffe28a"/>`;
-                return P(90, 90, `<rect width="90" height="90" fill="#fff6f9"/>${fl(22, 24, '#ffc9da')}${fl(67, 68, '#d9c9f5')}<circle cx="64" cy="20" r="2.4" fill="#bfe6d4"/><circle cx="20" cy="70" r="2.4" fill="#bfe6d4"/>`);
-            }
-            if (id === 'd-wood') return P(240, 22, `<rect width="240" height="22" fill="${c.t[0]}"/><path d="M0 7 Q60 4 120 8 T240 6 M0 17 Q80 14 150 18 T240 16" fill="none" stroke="${c.grain}" stroke-width="2"/>`);
+            if (c.img) return P(c.iw, c.ih, `<image href="${c.img}" width="${c.iw}" height="${c.ih}"/>`);   // 🧁 무늬 그림 한 칸 (벽지 · 책상 나뭇결)
             return '';
         }
         /* 방 그림 위에 얹는 그림 (그림 px 1672 × 941 · 선은 방 그림과 같은 자리) */
@@ -64,8 +56,8 @@
                     + '<polygon points="0,0 140,0 140,720 0,776" style="fill:rgba(150,90,120,.07)"/><polygon points="1538,0 1672,0 1672,773 1538,720" style="fill:rgba(150,90,120,.07)"/>';   // 옆벽은 조금 그늘
             }
             if (t) {
-                if (d.grain) defs += dsPat(top, k + 'T');
-                body += `<polygon points="0,776 140,720 1538,720 1672,773 1672,866 0,866" fill="${d.grain ? `url(#${k}T)` : t[0]}"/>`
+                if (d.img) defs += dsPat(top, k + 'T');
+                body += `<polygon points="0,776 140,720 1538,720 1672,773 1672,866 0,866" fill="${d.img ? `url(#${k}T)` : t[0]}"/>`
                     + `<polygon points="140,721 1538,721 1585,740 1585,746 95,746 95,740" fill="${t[1]}"/>`   // 벽 아래 안쪽 그늘
                     + `<rect x="0" y="866" width="1672" height="13" fill="${t[2]}"/><rect x="0" y="879" width="1672" height="25" fill="${t[3]}"/><rect x="0" y="904" width="1672" height="37" fill="${t[4]}"/>`;
             }
@@ -130,15 +122,15 @@
             if (window.deskBoxRender) deskBoxRender();
             return 'ok';
         }
-        function dsShopList() { return DS_CAT.map(c => ({ cnt: c.n, look: 'dskin', sid: c.id, sec: c.k === 'wall' ? 'wallpaper' : 'desktop', give: () => dsGive(c.id), name: c.n })); }
+        function dsShopList() { return DS_CAT.filter(c => !c.off).map(c => ({ cnt: c.n, look: 'dskin', sid: c.id, sec: c.k === 'wall' ? 'wallpaper' : 'desktop', give: () => dsGive(c.id), name: c.n })); }
 
         /* 📦 소품함 🧱 벽지 · 🪵 책상 칸 (js/desk.js deskBoxRender) : 가진 것 · ✔ = 지금 쓰는 것 · 톡 = 쓰기 · 🗑 버리기 */
         function dsBoxCells(kind) {
             const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top';
-            return s.own.filter(x => dsCat(x.id).k === k).map(x => `<button type="button" class="iv-c ds${s[k] === x.u ? ' sel on' : ''}" title="${dsCat(x.id).n}" onclick="dsUse('${x.u}')">${dsSwatch(x.id)}${s[k] === x.u ? '<em>✔</em>' : ''}<span class="ds-del" role="button" tabindex="0" aria-label="휴지통" onclick="event.stopPropagation(); dsDiscard('${x.u}')">🗑</span></button>`);
+            return s.own.filter(x => dsCat(x.id) && dsCat(x.id).k === k).map(x => `<button type="button" class="iv-c ds${s[k] === x.u ? ' sel on' : ''}" title="${dsCat(x.id).n}" onclick="dsUse('${x.u}')">${dsSwatch(x.id)}${s[k] === x.u ? '<em>✔</em>' : ''}<span class="ds-del" role="button" tabindex="0" aria-label="휴지통" onclick="event.stopPropagation(); dsDiscard('${x.u}')">🗑</span></button>`);
         }
-        const dsCount = kind => dsCur().own.filter(x => dsCat(x.id).k === (kind === 'wallpaper' ? 'wall' : 'top')).length;
-        function dsName(kind) { const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top', id = dsOn(s, k); return id ? dsCat(id).n : (k === 'wall' ? '벽지 없음 (그림 그대로)' : '책상 꾸밈 없음 (그림 그대로)'); }
+        const dsCount = kind => dsCur().own.filter(x => dsCat(x.id) && dsCat(x.id).k === (kind === 'wallpaper' ? 'wall' : 'top')).length;
+        function dsName(kind) { const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top', id = dsOn(s, k); return id && dsCat(id) ? dsCat(id).n : (k === 'wall' ? '벽지 없음 (그림 그대로)' : '책상 꾸밈 없음 (그림 그대로)'); }
 
         window.dsSync = dsSync; window.dsPaint = dsPaint; window.dsEditStart = dsEditStart; window.dsEditEnd = dsEditEnd; window.dsUse = dsUse; window.dsDiscard = dsDiscard;
         window.dsGive = dsGive; window.dsShopList = dsShopList; window.dsSwatch = dsSwatch; window.dsBoxCells = dsBoxCells; window.dsCount = dsCount; window.dsName = dsName;

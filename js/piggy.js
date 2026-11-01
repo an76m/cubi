@@ -60,7 +60,8 @@
         /* ---------- 화면 만들기 ---------- */
         function pigBuild() {
             const box = document.getElementById('pigBody'); if (!box) return;
-            const tapes = typeof TAPES !== 'undefined' ? TAPES : [];
+            const tapes = window.sbGiftTapesNow ? sbGiftTapesNow() : [];   // 🎁 선물 테이프 = 서버 상품 (상품공방 '선물') · 아직 못 받았으면 받고 다시 그려요
+            if (!tapes.length && window.sbGiftTapes && !pigBuild.ask) { pigBuild.ask = 1; sbGiftTapes().then(L => { if (L.length) pigBuild(); }).catch(() => {}); }
             box.innerHTML = `
               <div class="pg-hero">${PIG_SVG}
                 <div class="pg-hero-t">말랑달콤 저금통</div>
@@ -81,7 +82,7 @@
                   <p class="pg-gift-d">🎀 마스킹테이프 <b>${tapes.length}가지</b></p>
                   <p class="pg-gift-d">사진 모서리나 글 위에 붙이는 다꾸 테이프예요. 붙인 뒤 길이도 마음대로!</p>
                   <p class="pg-where">📍 선물이 열리면 다이어리 아래 <b>✨ 스티커</b> → <b>🎀 마스킹테이프</b> 칸에 생겨요</p>
-                  <div class="pg-tapes">${tapes.map((t, i) => `<div class="pg-tp"><span style="background-image:url(&quot;${tapeUrl(t)}&quot;);--r:${(i % 3 - 1) * 3}deg"></span><small>${t.name}</small></div>`).join('')}</div>
+                  <div class="pg-tapes">${tapes.map((t, i) => `<div class="pg-tp"><span style="background-image:url(&quot;${t.url}&quot;);--r:${(i % 3 - 1) * 3}deg"></span><small>${t.name}</small></div>`).join('')}</div>
                 </div>
                 <ul class="pg-promise">
                   <li>💗 얼마를 넣어도 똑같이 <b>한 달 동안 모두</b> 쓸 수 있어요</li>

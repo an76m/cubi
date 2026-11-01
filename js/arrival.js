@@ -119,7 +119,7 @@
         };
         const arDay = u => { const d = new Date(u + 'T00:00:00'); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일`; };
         function arNames(kind, sig) {                   // 신호 → 보여 줄 묶음 [{ names:[…], until, more, add }] (같은 기간끼리 한 줄)
-            const lib = kind === 'tape' ? (typeof TAPES !== 'undefined' ? TAPES : [])
+            const lib = kind === 'tape' ? (window.sbGiftTapesNow ? sbGiftTapesNow() : [])   // 🎁 선물 테이프 = 서버 상품 (상품공방 '선물')
                 : (typeof capsList === 'function' ? capsList() : []);
             const whole = kind === 'tape' ? '마스킹테이프 전체' : '캡슐 스티커 전체';
             const groups = {};
@@ -148,7 +148,11 @@
         function arShow() {
             const p = arRead(AR_PENDING, null);
             if (!p || !p.g || p.me !== arMe()) return false;
-            const g = p.g, old = document.getElementById('arPop'); if (old) old.remove();
+            const g = p.g;
+            if (g.t && Object.keys(g.t).length && window.sbGiftTapes && !sbGiftTapesNow().length && !arShow.wait) {   // 🎁 선물 테이프 이름(서버)을 먼저 받고 띄워요 (못 받으면 그대로)
+                arShow.wait = 1; sbGiftTapes().catch(() => {}).then(() => { arShow(); arShow.wait = 0; }); return true;
+            }
+            const old = document.getElementById('arPop'); if (old) old.remove();
             const rows = []; let allMore = true, any = false;
             if (Array.isArray(g.c)) { any = true; allMore = false; rows.push(arRow('coin', `<b>코인 +${+g.c[0] || 0}개</b>${g.c[1] != null ? `<small class="gp-dd">지금 코인 <em>${+g.c[1]}개</em></small>` : ''}`, true)); }
             [['tape', g.t], ['caps', g.s]].forEach(([kind, sig]) => {

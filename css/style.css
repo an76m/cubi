@@ -1396,7 +1396,7 @@
 
            /* 🎀 남은 날 */
 
-        /* ===== 📝 글상자 모양 (js/paper.js) : .pp-이름 은 다이어리 글상자와 고르기 칩에 함께 쓰여요 ===== */
+        /* 📝 글상자 모양(.pp-이름 · js/paper.js)은 없앴어요 · 메모지 = 상품공방 그림 (도련 11-02) · 아래 칩 줄은 🖼 액자 고르기(#frameRow)가 써요 */
         .paper-row { align-items: flex-start; }
         .paper-row[hidden] { display: none; }
         .paper-row > label { padding-top: 10px; flex: none; }
@@ -1405,58 +1405,6 @@
             background: none; padding: 4px 3px; cursor: pointer; font-family: inherit; }
         .paper-chips button.on { border-color: var(--pick-line); background: #fff0f5; }
         .paper-chips small { font-size: 9px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        .pp-chip { position: relative; display: block; width: 34px; height: 24px; border-radius: 4px; background: #fff; border: 1px dashed #ddd; box-sizing: border-box; }
-        .pp-chip[class*=" pp-"] { border: none; padding: 0; }
-        .element-box[class*="pp-"] textarea { padding: 8px 10px; box-sizing: border-box; line-height: 1.55; }
-        .element-box[class*="pp-"] { padding: 0; }
-
-        /* 줄노트 · 모눈 */
-        .pp-line { background: linear-gradient(90deg, transparent 16px, #ffb3b3 16px 17px, transparent 17px), repeating-linear-gradient(#fff 0 25px, #cfe0f5 25px 26px); background-color: #fff;
-            box-shadow: 0 3px 8px rgba(0,0,0,.12); border-radius: 3px; }
-        .element-box.pp-line textarea { padding-left: 24px; line-height: 26px; padding-top: 4px; }
-        .pp-grid { background: #fff repeating-linear-gradient(0deg, #e2ecf8 0 1px, transparent 1px 12px), repeating-linear-gradient(90deg, #e2ecf8 0 1px, transparent 1px 12px);
-            background-color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.12); border-radius: 3px; }
-        /* 포스트잇 */
-        .pp-py, .pp-pp, .pp-pm, .pp-ps { --pc: #fff59a; background: linear-gradient(315deg, rgba(0,0,0,.1) 0 9px, transparent 9px), linear-gradient(var(--pc), var(--pc));
-            border-radius: 2px 2px 12px 2px; box-shadow: 0 8px 10px -6px rgba(0,0,0,.35); }
-        .pp-pp { --pc: #ffc8dc; } .pp-pm { --pc: #c6f2df; } .pp-ps { --pc: #cfe7ff; }
-        .pp-py::before, .pp-pp::before, .pp-pm::before, .pp-ps::before { content: ''; position: absolute; top: -7px; left: 50%; width: 40%; max-width: 60px; height: 14px;
-            transform: translateX(-50%) rotate(-3deg); background: rgba(255,255,255,.6); box-shadow: 0 1px 2px rgba(0,0,0,.08); pointer-events: none; }
-        .pp-chip.pp-py::before, .pp-chip.pp-pp::before, .pp-chip.pp-pm::before, .pp-chip.pp-ps::before { top: -3px; height: 7px; }
-        /* 말풍선 */
-        .pp-bw { background: #fff; border-radius: 18px; box-shadow: inset 0 0 0 2px #6b5a66, 0 3px 8px rgba(0,0,0,.08); }
-        .pp-bw::before { content: ''; position: absolute; left: 22%; bottom: -15px; border: 9px solid transparent; border-top: 15px solid #6b5a66; border-bottom: 0; pointer-events: none; }
-        .pp-bw::after { content: ''; position: absolute; left: calc(22% + 2.5px); bottom: -10px; border: 6.5px solid transparent; border-top: 11px solid #fff; border-bottom: 0; pointer-events: none; }
-        .pp-bp { background: #ffd6e5; border-radius: 20px; box-shadow: 0 3px 8px rgba(220,100,140,.18); }
-        .pp-bp::after { content: ''; position: absolute; left: 22%; bottom: -13px; border: 9px solid transparent; border-top: 14px solid #ffd6e5; border-bottom: 0; pointer-events: none; }
-        .pp-chip.pp-bw::before { bottom: -9px; border-width: 5px; border-top-width: 9px; } .pp-chip.pp-bw::after { bottom: -6px; border-width: 3.5px; border-top-width: 7px; left: calc(22% + 1.5px); }
-        .pp-chip.pp-bp::after { bottom: -8px; border-width: 5px; border-top-width: 8px; }
-        .pp-think { background: #fff; border-radius: 50% / 45%; box-shadow: inset 0 0 0 2px #8a7a96, 0 3px 8px rgba(0,0,0,.08); }
-        .pp-think::before, .pp-think::after { content: ''; position: absolute; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px #8a7a96; pointer-events: none; }
-        .pp-think::before { width: 16px; height: 13px; left: 16%; bottom: -14px; }
-        .pp-think::after { width: 9px; height: 8px; left: calc(16% - 10px); bottom: -24px; }
-        .pp-chip.pp-think::before { width: 8px; height: 6px; bottom: -7px; } .pp-chip.pp-think::after { width: 5px; height: 4px; bottom: -12px; left: calc(16% - 5px); }
-        .element-box.pp-think textarea { padding: 14px 18px; }
-        /* 찢은 종이 */
-        .pp-torn { background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M0 4 L8 1 L15 5 L24 2 L33 6 L41 2 L50 5 L60 1 L69 5 L78 2 L88 6 L97 2 L106 5 L116 1 L125 4 L134 1 L144 5 L153 2 L162 6 L172 2 L181 5 L191 1 L200 4 L200 96 L192 99 L183 95 L174 98 L165 94 L155 99 L146 95 L137 98 L127 94 L118 99 L109 95 L99 98 L90 94 L80 99 L71 95 L62 98 L52 94 L43 99 L34 95 L24 98 L15 94 L6 99 L0 96Z' fill='%23fffaf0'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
-            filter: drop-shadow(0 2px 3px rgba(0,0,0,.15)); }
-        .element-box.pp-torn textarea { padding: 12px 12px; }
-        /* 라벨 태그 */
-        .pp-tag { background: #fff1d6; border-radius: 6px 22px 22px 6px; box-shadow: inset 0 0 0 2px #e8c27a, 0 3px 6px rgba(0,0,0,.1); }
-        .pp-tag::before { content: ''; position: absolute; right: 10px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px #e8c27a; pointer-events: none; }
-        .pp-chip.pp-tag::before { width: 6px; height: 6px; margin-top: -3px; right: 5px; }
-        .element-box.pp-tag textarea { padding-right: 28px; }
-        /* 편지지 */
-        .pp-letter { background: repeating-linear-gradient(135deg, #ff8f8f 0 8px, #fff 8px 14px, #8fb8ff 14px 22px, #fff 22px 28px); padding: 5px !important; border-radius: 4px; box-shadow: 0 3px 8px rgba(0,0,0,.12); }
-        .element-box.pp-letter textarea { background: #fffdf6; }
-        .pp-chip.pp-letter { padding: 3px; } .pp-chip.pp-letter::after { content: ''; position: absolute; inset: 3px; background: #fffdf6; }
-        /* 점선 액자 */
-        .pp-frame { background: rgba(255,255,255,.75); border-radius: 14px; outline: 2px dashed #ff9ab3; outline-offset: -6px; }
-        .pp-chip.pp-frame { outline-offset: -4px; outline-width: 1.5px; }
-        /* 칠판 */
-        .pp-chalk { background: #2f5444; border-radius: 6px; box-shadow: inset 0 0 0 5px #b9855a, inset 0 0 0 6px #8a5c35, 0 4px 8px rgba(0,0,0,.2); }
-        .element-box.pp-chalk textarea { padding: 12px 14px; }
-        .pp-chip.pp-chalk { box-shadow: inset 0 0 0 3px #b9855a; }
 
         /* ===== 🖍️ 펜 · 형광펜 (js/draw.js) ===== */
         .draw-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 9700; touch-action: none; cursor: crosshair; }
@@ -2683,18 +2631,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .tk-stub { position: absolute; left: 0; top: 0; width: 150px; height: 22px; }
 .tk-stub .rim, .tk-stub .face { position: absolute; inset: 0; } .tk-stub .rim { background: #fffdf6; }
 .tk-sheet { position: absolute; left: 0; top: 0; width: 150px; height: 160px; }
-.tk-memo { background: repeating-linear-gradient(transparent 0 21px, #f1d58a 21px 22px) 0 52px / 100% calc(100% - 60px) no-repeat, #fff6cf; }
-.tk-memo .hd { position: absolute; left: 12px; top: 22px; font-family: 'Fredoka', 'Arial Rounded MT Bold', sans-serif; font-weight: 700; font-size: 17px; color: #d98d2b; letter-spacing: 1px; }
-.tk-memo .hd::after { content: '♡'; margin-left: 4px; color: var(--primary-accent); }
-.tk-check { background: linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 20%, transparent) 50%, transparent 0) 0 0 / 18px 18px, linear-gradient(color-mix(in srgb, var(--primary-accent) 20%, transparent) 50%, transparent 0) 0 0 / 18px 18px, #fff; }
-.tk-sky { background: radial-gradient(circle, #fff 2px, transparent 2.6px) 0 0 / 16px 16px, #cfe8fb; }
-.tk-sky .cl { position: absolute; right: 12px; bottom: 12px; width: 54px; height: 22px; background: #fff; border-radius: 20px; box-shadow: -12px -9px 0 -2px #fff, 10px -11px 0 -4px #fff; }
-.tk-sky .hd { position: absolute; left: 12px; top: 24px; font-family: 'Gaegu', 'Apple SD Gothic Neo', sans-serif; font-weight: 700; font-size: 19px; color: #4c86b8; }
-.tk-todo { background: #fffdfa; }
-.tk-todo .hd { position: absolute; left: 0; right: 0; top: 12px; height: 34px; padding: 13px 0 0 12px; box-sizing: border-box; background: color-mix(in srgb, var(--primary-accent) 22%, #fff); font-family: 'Fredoka', 'Arial Rounded MT Bold', sans-serif; font-weight: 700; font-size: 15px; color: color-mix(in srgb, var(--primary-accent) 88%, #4a2030); }
-.tk-todo ul { list-style: none; margin: 0; padding: 0; position: absolute; left: 12px; right: 12px; top: 58px; }
-.tk-todo li { height: 22px; border-bottom: 1px dashed color-mix(in srgb, var(--primary-accent) 30%, #fff); display: flex; align-items: center; gap: 6px; }
-.tk-todo li::before { content: ''; width: 9px; height: 9px; border: 1.6px solid color-mix(in srgb, var(--primary-accent) 60%, #fff); border-radius: 2px; }
+/* 🧻 떡메 무늬(메모 · 체크 · 하늘 · 투두)는 상품공방 그림으로 옮겼어요 (도련 11-02) */
 
 /* 📃 내가만든 속지 (js/leafmaker.js) : 그림째로 깔고 링 구멍은 그 위에 */
 .inner-page .canvas-area.lf-my, .lf-slide.lf-my, .lf-pick .lf-sw.lf-my { background: var(--lf-holes), var(--lf-img) center / 100% 100% no-repeat, var(--page-bg); }
@@ -3933,7 +3870,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .bk-pad { position: relative; display: block; }
 .bk-pad .tk-mini { pointer-events: none; }
 .bk-memo { width: 74px; }
-.bk-memo .pp-chip, .bk-memo img { display: block; width: 74px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(110,80,95,.2); }
+.bk-memo img { display: block; width: 74px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(110,80,95,.2); }
 .bk-leaf { display: block; width: 64px; pointer-events: none; }
 .bk-leaf .lf-sw { display: block; width: 64px; aspect-ratio: .7; border-radius: 4px; box-shadow: 0 2px 6px rgba(110,80,95,.22); container-type: inline-size; }
 .sh-emo b { display: grid; place-items: center; aspect-ratio: 1; font-size: 17px; font-weight: normal; line-height: 1; }
@@ -3943,7 +3880,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-leaf { display: block; width: 80px; pointer-events: none; }
 .sh-leaf .lf-sw { display: block; width: 80px; aspect-ratio: .7; border-radius: 4px; box-shadow: 0 2px 6px rgba(110,80,95,.2); container-type: inline-size; }
 .sh-memo { display: grid; place-items: center; width: 100%; min-height: 80px; }
-.sh-memo .pp-chip { width: 86px; height: 62px; box-shadow: 0 2px 5px rgba(110,80,95,.18); }
 .sh-paper.one img { display: block; width: 100%; height: auto; }
 .sh-paper svg.sh-pv { display: block; width: 100%; height: 100%; }   /* 🖼️ 묶음 미리보기 (p/ 파일 속 내 칸만) */
 /* 🏪 기본상품 샵 종류 창 (10-25) : 카테고리 없이 한 매대 · 🔍 확대 */
@@ -3964,7 +3900,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-zlook .sh-pad .tk-mini { transform: scale(2.2); transform-origin: 50% 0; margin-bottom: 96px; }
 .sh-zlook .sh-pad { min-height: 0; padding-top: 4px; }
 .sh-zlook .sh-leaf, .sh-zlook .sh-leaf .lf-sw { width: min(70vw, 240px); }
-.sh-zlook .sh-memo .pp-chip { width: 220px; height: 160px; }
 .sh-zbtns { display: flex; gap: 10px; }
 .sh-zbtns .sh-take { font-size: 14px; padding: 8px 20px; }
 .sh-content .modal-content, #shelfKindModal .modal-content { position: relative; }

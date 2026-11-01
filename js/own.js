@@ -161,7 +161,7 @@
                 if (!b) {
                     if (s.ts) e.ts = 1;
                     if (s.b) e.b = s.b;
-                    if (sx.pad || sx.lf || sx.pp || sx.glue || sx.bg) e.x = { pad: sx.pad, lf: sx.lf, pp: sx.pp, glue: sx.glue, bg: sx.bg };
+                    if (sx.pad || sx.lf || sx.pp || sx.glue || sx.bg) e.x = { pad: sx.pad, lf: sx.lf, pp: sx.pp, glue: sx.glue, bg: sx.bg, w: sx.w, h: sx.h, tc: sx.tc };   // w · h · tc = 그림 메모지 크기 · 글자색
                     if (e.k === 'tk' && sx.pad === 'my') e.th = s.imgs[0] || '';
                     else if (!(e.k === 'memo' && sx.pp && sx.pp !== 'img')) e.th = await ownThumb(s.imgs).catch(() => '');
                 } else if (e.th && !e.us && e.k !== 'tk' && e.k !== 'memo') e.th = await ownThumb(s.imgs).catch(() => e.th);   // 뗀 자리가 비게
@@ -315,7 +315,7 @@
             if (L) ent.L = L;                                                     // 바구니 카드도 배치 그대로
             if (meta && meta.th) ent.th = meta.th;
             if (sheet.b) ent.b = sheet.b;                                         // 들어갈 바구니 (😀 이모지는 씰이지만 이모지 바구니로)
-            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg };   // 바구니 모양 (떡메 종류 · 속지 무늬 · 메모지 모양)
+            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg, w: sheet.x.w, h: sheet.x.h, tc: sheet.x.tc };   // 바구니 모양 (떡메 종류 · 속지 무늬 · 메모지 모양)
             return ownSerial(async () => {
                 ent.f = await ownFileNew(full);
                 try {

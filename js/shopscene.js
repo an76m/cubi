@@ -33,7 +33,7 @@
         }
         function shopSpotsPaint() {
             const box = document.querySelector('#shopScene .shop-spots'); if (!box) return;
-            const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN && typeof SEASON_STICKERS !== 'undefined';
+            const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN;
             box.innerHTML = SHOP_SPOTS.filter(s => s[0] !== 'season' || season).map(([k, n]) => `<button type="button" class="shop-spot" data-k="${k}" onclick="shopSpot('${k}')"><i class="shop-ic">${SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')}</i><b>${n}</b></button>`).join('');
         }
         function shopFit() {

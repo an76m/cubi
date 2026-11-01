@@ -140,12 +140,12 @@ let fontList = [
             symbols: [[0x2702, 0x27B0], [0x1F300, 0x1F5FF]]
         };
 
-        const skinPresets = {
-            pink: { bg: '#ffe6f0', cover: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%)', page: '#fff0f5', border: '#ffb6c1', accent: '#ff6b81' },
-            mint: { bg: '#e3f6ef', cover: 'linear-gradient(135deg, #7fd6b4, #d4f5e6)', page: '#f2fbf7', border: '#a8dfc8', accent: '#3fae86' },
-            purple: { bg: '#efe7fb', cover: 'linear-gradient(135deg, #b79cf0, #efe3ff)', page: '#f8f3ff', border: '#cdb8f2', accent: '#8d63d8' },
-            yellow: { bg: '#fff4d6', cover: 'linear-gradient(135deg, #ffcf6b, #fff1c4)', page: '#fffaeb', border: '#f5d58a', accent: '#e39a1f' }
-        };
+        /* 🧁 다이어리 색 = 서버 상품 (상품공방 '다이어리' · js/prod.js · 도련 11-02) : id = 색 (pink · mint …) · 스킨 { bg, cover, page, border, accent } · 색이름 · 스킨이름
+           날짜형 다이어리 색 · 스킨 고르기 · 책상 위 다이어리 색이 모두 이 목록이에요 (DIARY_COLORS = [id, 색이름, 숨김]) */
+        const DY_PROD = (window.prodList ? prodList('다이어리') : []).filter(x => x.P.스킨 && typeof x.P.스킨 === 'object');
+        const skinPresets = Object.fromEntries(DY_PROD.map(x => [x.id, x.P.스킨]));
+        const DIARY_COLORS = DY_PROD.map(x => [x.id, String(x.P.색이름 || x.P.이름 || x.id), !!x.P.숨김, String(x.P.스킨이름 || '')]);
+        const skinPreset0 = () => skinPresets.pink || Object.values(skinPresets)[0] || { bg: '#ffe6f0', cover: '#ffb6c1', page: '#fff0f5', border: '#ffb6c1', accent: '#ff6b81' };   // 처음 다이어리 색 (분홍 · 없으면 첫 색)
 
         window.onload = () => oneReady(() => {                                  // 🔒 이 창이 다이어리를 맡았을 때만 시작 (한 기기에 하나 · js/onlyone.js)
             setupCurlDrag();

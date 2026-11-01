@@ -13,12 +13,9 @@
     'use strict';
     const q = id => document.getElementById(id);
     /* 🔪 칼 종류 (🗄️ 문구함 '칼' 서랍에서 골라요 · js/skins.js) : 손잡이 색만 달라요 · 새 칼 = 한 줄 추가 (id 는 바꾸지 않기) */
-    const KN_KINDS = [
-        { id: 'pink', name: '딸기 칼', hd: ['#ffb3cb', '#ff8fb1', '#f06f97'], ln: '#d95a84', pu: ['#ffe27a', '#e7b93d'] },
-        { id: 'sky', name: '하늘 칼', hd: ['#cfe9ff', '#9fd0f7', '#6fb2ea'], ln: '#4d93cf', pu: ['#fff2a8', '#e7cf5a'] },
-        { id: 'lemon', name: '레몬 칼', hd: ['#fff6b8', '#ffe57a', '#f6cb3c'], ln: '#d4a514', pu: ['#ffb3cb', '#e88aa8'] },
-        { id: 'lilac', name: '라일락 칼', hd: ['#eadcff', '#cfb6fb', '#b195ef'], ln: '#8a6bd4', pu: ['#bff0dc', '#7cc9a8'] }
-    ];
+    const KN_KINDS = (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife:') && x.P.틀)   // 🧁 서버 상품 (상품공방 '문구' · 틀 = 손잡이 hd 3색 · 선 ln · 누름 pu 2색 · 도련 11-02)
+        .map(x => Object.assign({ hd: ['#ffb3cb', '#ff8fb1', '#f06f97'], ln: '#d95a84', pu: ['#ffe27a', '#e7b93d'] }, x.P.틀, { id: x.id.slice(6), name: String(x.P.이름 || '') }));
+    if (!KN_KINDS.length) KN_KINDS.push({ id: 'pink', name: '칼', hd: ['#ffb3cb', '#ff8fb1', '#f06f97'], ln: '#d95a84', pu: ['#ffe27a', '#e7b93d'] });   // 목록이 비어도 칼은 그려져야 해서
     const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0];
     let knN = 0;                                       // 그림마다 색 이름(id)을 따로 : 같은 id 가 문구함 서랍에 먼저 있으면 그 색을 못 찾아 칼이 테두리만 보여요 (도련 10-19)
     function knifeSvg(id) {

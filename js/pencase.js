@@ -12,14 +12,14 @@
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 필기구 그대로) */
 
         const PK_KEY = 'diary_pencase', PK_LOCAL = 'malang_pencase', PK_MAX = 24;
-        const PK_PENS = ['#333333', '#e2556f', '#ff8a3d', '#3d9be0', '#4caf7a', '#8a6be0', '#8a5a44', '#ffffff',
-                         '#ff9ec1', '#ffd36b', '#a8e3a0', '#9fd3ff', '#c7a8ff', '#ff5c8a', '#2f6fb5', '#5c3a2e'];
-        const PK_HIS = ['#ffe14d', '#ff9ec4', '#9be59b', '#9fd3ff', '#ffc078', '#cdb4ff', '#ffb3d9', '#b3f0ff', '#d9ff8a'];
+        /* 🧁 필기구 = 서버 상품 (상품공방 '문구' · 문구종류 pen 색연필 · hi 형광펜 · erase 지우개 · 도련 11-02) : 색 · 지우개 크기(틀.size) · 그림은 앱이 색으로 그려요 */
+        const PK_PROD = window.prodList ? prodList('문구') : [];
+        const pkOf = k => PK_PROD.filter(x => x.P.문구종류 === k);
         /* 🗂 보관함 칸 (보이는 순서) · list = 그 종류 도구들 */
         const PK_KINDS = [
-            { k: 'pen', lb: '색연필', list: () => PK_PENS.map(c => ({ id: 'pen:' + c, tool: 'pen', color: c, size: 1 })) },
-            { k: 'hi', lb: '형광펜', list: () => PK_HIS.map(c => ({ id: 'hi:' + c, tool: 'hi', color: c, size: 1 })) },
-            { k: 'erase', lb: '지우개', list: () => [0, 1, 2].map(n => ({ id: 'erase:' + n, tool: 'erase', size: n, name: ['작은 지우개', '지우개', '큰 지우개'][n] })) }
+            { k: 'pen', lb: '색연필', list: () => pkOf('pen').map(x => ({ id: x.id, tool: 'pen', color: x.P.색 || x.id.slice(4), size: 1, off: !!x.P.숨김 })) },
+            { k: 'hi', lb: '형광펜', list: () => pkOf('hi').map(x => ({ id: x.id, tool: 'hi', color: x.P.색 || x.id.slice(3), size: 1, off: !!x.P.숨김 })) },
+            { k: 'erase', lb: '지우개', list: () => pkOf('erase').map(x => ({ id: x.id, tool: 'erase', size: +((x.P.틀 || {}).size) || 0, name: String(x.P.이름 || '지우개'), off: !!x.P.숨김 })) }
         ];
         let pkAllC = null;
         const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 처음 쓸 때 만들어요
@@ -198,7 +198,7 @@
             }, 60);
         }
         /* 🏪 기본상품 샵 '문구 → 필기구' (js/skins.js gdShopList · gdGive) */
-        const pkShopList = () => pkAll().map(t => ({ id: t.id, g: 'pen', kind: '필기구', name: pkName(t), art: pkSvg(t) }));
+        const pkShopList = () => pkAll().filter(t => !t.off).map(t => ({ id: t.id, g: 'pen', kind: '필기구', name: pkName(t), art: pkSvg(t) }));
         function pkAdd(id) {                                                    // 받은 필기구 = 연필꽂이에도 (고른 목록이 있을 때 · 24개까지)
             const v = prefGet(PK_KEY, PK_LOCAL);
             if (Array.isArray(v) && v.length && !v.includes(id) && v.length < PK_MAX) pkWrite(v.concat([id]));
