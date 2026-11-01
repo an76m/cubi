@@ -57,7 +57,7 @@
         async function sbShelf(kind) {
             const out = [], k = sbOwnK[kind];
             let list = []; try { list = await sbList(kind); } catch (e) {}
-            list.filter(x => !(x.P && x.P.선물)).reverse().forEach(x => {                   // 🎁 선물 전용(이벤트 · 저금통)은 진열 안 해요                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
+            list.filter(x => !(x.P && (x.P.선물 || x.P.스토어))).reverse().forEach(x => {     // 🎁 선물 전용(이벤트 · 저금통) · 💎 스토어(유료)는 무료 샵에 진열 안 해요                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
                 const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
                 if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
