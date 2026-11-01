@@ -153,6 +153,25 @@
             const go = document.createElement('button'); go.type = 'button'; go.className = 'gcs-go desk-shop-go'; go.textContent = '이동'; go.onclick = () => deskMoveOpen(); el.appendChild(go);   // 🚪 화면 오른쪽 위 (그림이 잘려도)
             addEventListener('resize', () => { if (gc.open) gcSceneFit(); });
         }
+        /* 🚶 문방구 앞으로 다가가요 (도련 11-01 · 타로카페 문처럼 · 이번엔 문 대신) : 길에서 본 문방구(img/gacha-street.webp) → 캡슐기계 셋 쪽으로 걸어가듯 다가가며 → 캡슐기계 앞 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
+        const GCS_GO = { cx: 1330, cy: 640 };                                     // 길 그림의 캡슐기계 셋 가운데 (그림 px)
+        let gcsGoBusy = false;
+        function gcsApproach() {
+            if (gcsGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            let d = gq('gcsGo');
+            if (!d) { d = document.createElement('div'); d.id = 'gcsGo'; d.className = 'gcs-walk'; d.innerHTML = '<div class="gcs-walk-in"><img src="img/gacha-street.webp?v=20261009-1038" alt="" draggable="false"></div>'; document.body.appendChild(d); }
+            gcsGoBusy = true;
+            const { s, x, y } = coverFit(GCS_W, GCS_H, [380, 1560, 60, 800]);
+            Object.assign(d.querySelector('img').style, { width: GCS_W * s + 'px', height: GCS_H * s + 'px', left: x + 'px', top: y + 'px' });
+            const ox = x + GCS_GO.cx * s, oy = y + GCS_GO.cy * s, inn = d.querySelector('.gcs-walk-in');
+            inn.style.transformOrigin = `${ox}px ${oy}px`;
+            const R = coverFit(GCS_W, GCS_H, [790, 1615, 60, 700]);                          // 다가간 끝 = 캡슐기계 화면의 기계 셋 자리 (그림이 이어지게)
+            inn.style.setProperty('--dx', (R.x + 596 * R.s - ox) + 'px'); inn.style.setProperty('--dy', (R.y + 470 * R.s - oy) + 'px'); inn.style.setProperty('--k', (1030 * R.s / (360 * s)).toFixed(3));
+            d.classList.remove('go', 'leave'); d.classList.add('on');
+            const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); gcsGoBusy = false; }, 450); }, 1900); };
+            const img = d.querySelector('img'), start = () => setTimeout(go, 700);   // 길을 잠깐 보여 주고
+            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        }
         function gcSceneFit() {
             const st = gq('gcsStage'); if (!st) return;
             const { s, x, y } = coverFit(GCS_W, GCS_H, [790, 1615, 60, 700]);   // 그림 = 화면 꽉 (기본상품 샵처럼 · 흐린 배경 없이) · 우리 기계 + 메뉴판은 늘 보이게
@@ -257,7 +276,7 @@
             gcBuild();
             gcUnlockAudio();                                   // 카페에서 누른 순간에 소리 미리 깨우기
             gq('gachaRoom').classList.add('show');
-            if (gc.box) { gcSceneFit(); document.body.classList.add('cal-on', 'gacha-on'); }   // cal-on = 장소에 있어요 (책상 버튼 숨김)
+            if (gc.box) { gcsApproach(); gcSceneFit(); document.body.classList.add('cal-on', 'gacha-on'); }   // 🚶 문방구 앞으로 다가가요   // cal-on = 장소에 있어요 (책상 버튼 숨김)
             gc.open = true;
             gcReset();
             gc.lastT = 0; gc.acc = 0;
