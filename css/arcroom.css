@@ -47,7 +47,8 @@ body.arc-on .desk-top-r { display: none; }
 
 /* 🚪 오락실 문 (js/arcroom.js aroDoor) */
 .aro-door { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #fbd9e3; }
-.aro-door.on { display: block; animation: troDoorIn .35s ease; }
+.aro-door.on { display: block; }   /* 처음부터 불투명 (뒤의 장소가 비치지 않게 · 도련 11-01) · 그림만 스르르 */
+.aro-door.on .aro-door-in img, .aro-door.on .aro-door-sign { animation: troDoorIn .35s ease; }
 .aro-door.leave { animation: troDoorOut .4s ease forwards; }
 .aro-door-in { position: absolute; inset: 0; }
 .aro-door-in img { position: absolute; user-select: none; -webkit-user-drag: none; }

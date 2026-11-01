@@ -50,7 +50,8 @@ body.tarot-on .desk-top-r { display: none; }
 
 /* 🚪 타로카페 문 (도련 10-31 · 기본상품 샵 들어갈 때처럼 · js/tarotroom.js troDoor) : 문 → 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 */
 .tro-door { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #241a3a; }
-.tro-door.on { display: block; animation: troDoorIn .35s ease; }
+.tro-door.on { display: block; }   /* 처음부터 불투명 (뒤의 타로카페가 먼저 비치지 않게 · 도련 11-01) · 그림만 스르르 */
+.tro-door.on .tro-door-in img, .tro-door.on .tro-door-sign { animation: troDoorIn .35s ease; }
 .tro-door.leave { animation: troDoorOut .4s ease forwards; }
 .tro-door-in { position: absolute; inset: 0; }
 .tro-door-in img { position: absolute; user-select: none; -webkit-user-drag: none; }

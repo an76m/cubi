@@ -52,7 +52,8 @@ html body.gacha-on #moveModal { z-index: 1650 !important; }                     
 
 /* 🏪 문방구 앞 전환 (도련 11-01 · js/gacha.js gcsApproach · 타로카페 · 오락실 문과 같은 전환) : 길에서 본 문방구 → 캡슐기계 쪽으로 커지며 따뜻한 빛 → 캡슐기계 앞 */
 .gcs-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #f6d79a; }
-.gcs-walk.on { display: block; animation: troDoorIn .35s ease; }
+.gcs-walk.on { display: block; }   /* 처음부터 불투명 (뒤의 캡슐기계가 먼저 비치지 않게 · 도련 11-01) · 그림만 스르르 */
+.gcs-walk.on .gcs-walk-in img { animation: troDoorIn .35s ease; }
 .gcs-walk.leave { animation: troDoorOut .45s ease forwards; }
 .gcs-walk-in { position: absolute; inset: 0; }
 .gcs-walk-in img { position: absolute; user-select: none; -webkit-user-drag: none; }
