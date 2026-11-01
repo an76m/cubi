@@ -1492,7 +1492,7 @@
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
         const cabK = id => id.split(':')[1];
         const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
-        /* ✏️ 내 문구 (도련 10-27) : 처음엔 아무것도 없어요 (도련 10-31 · 🪡 핀셋도) · 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
+        /* ✏️ 내 문구 (도련 10-27) : 처음엔 🎁 핀셋 + 필기구 5 (GD_STARTER · 도련 11-01) · 나머지는 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
            저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
                   🎁 처음 선물은 기본세트 / 선물.json 한 파일 (서비스 · 예외 · 버리면 거기서 빠져요)
                   종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
@@ -1521,7 +1521,10 @@
             const now = gdOwnList() || [];
             prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.id === o.id && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
         }
-        function gdSetList(L) { const all = cabAllIds(); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && all.includes(o.id)).map(gdRec)); }   // 🛟 되살린 목록 (js/desk.js giftEnsure)
+        function gdSetList(L) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && ok(o.id)).map(gdRec)); }   // ✏️ 필기구도 (되살릴 때 빠지던 것)
+        /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 연필꽂이에) · 나머지는 🏪 기본상품 샵 */
+        const GD_STARTER = ['twz', 'pen:#333333', 'pen:#e2556f', 'pen:#3d9be0', 'hi:#ffe14d', 'erase:1'];
+        window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
         window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
         const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : []; };   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
         const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;

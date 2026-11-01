@@ -1529,7 +1529,7 @@
 
         .season-corner { position: absolute; right: 4px; bottom: 4px; width: 76px; height: 76px; background: center / contain no-repeat; pointer-events: none; z-index: 0; opacity: .9; }
 
-        /* ===== 🔒 다이어리앱 잠금 (js/lock.js) ===== */
+        /* ===== 🔒 다이어리 잠금 (js/lock.js) ===== */
         .lock-screen { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 20px;
             background: radial-gradient(circle at 30% 20%, #ffe3ec, transparent 60%), radial-gradient(circle at 80% 90%, #e6dcff, transparent 55%), #fff5f8; }
         .lock-screen[hidden] { display: none; }
@@ -4292,6 +4292,7 @@ body.dsk-on #dskLayer { z-index: 1660; }
 .dg-line { display: block; width: 2px; height: 10px; margin: 2px 0 2px 18px; background: repeating-linear-gradient(#f2b8cb 0 3px, transparent 3px 6px); }
 .dg-foot { margin-top: 12px; padding-top: 9px; border-top: 1.5px dashed #f2cfdb; font-size: 12px; color: #7d6470; }
 .dg-foot b { color: #9a6200; }
+.dg-have { margin: 10px 0 0; padding: 6px 8px; border-radius: 8px; background: #fff3c4; font-size: 12px; font-weight: 700; color: #8a5a00; text-align: center; word-break: keep-all; }   /* 🎁 처음부터 있는 것 (도련 11-01) */
 body.dg-on .toolbar .tb-sticker { box-shadow: 0 0 0 3px rgba(245, 165, 36, .35), 0 0 14px 3px rgba(245, 165, 36, .35); }
 body.cafe-on .dg-note { visibility: hidden; }
 body.dg-on #deskShopGo { box-shadow: 3px 3px 0 #e6dcf8, 0 0 0 3px rgba(245, 165, 36, .35), 0 0 14px 3px rgba(245, 165, 36, .45); }   /* 🩷 메모가 떠 있으면 🚪 이동이 살짝 빛나요 (도련 10-31 · 시작하는 곳) */

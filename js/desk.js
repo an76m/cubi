@@ -168,7 +168,7 @@
         let giftBusy = false;
         async function giftEnsure() {
             let gdNull = window.gdOwnList ? gdOwnList() === null : false;
-            if (giftBusy || DK.edit || typeof drive === 'undefined' || !drive.ready || (drive.deskLocked && DK.lockTried) || (!DK.fresh && !gdNull && !drive.deskLocked)) { if (giftLate) giftWrite(); dkBackupWrite(); return; }
+            if (giftBusy || DK.edit || typeof drive === 'undefined' || !(drive.ready || drive.guest) || (drive.deskLocked && DK.lockTried) || (!DK.fresh && !gdNull && !drive.deskLocked)) { if (giftLate) giftWrite(); dkBackupWrite(); return; }
             giftBusy = true;
             try {
                 let had = null, bk = null, files = null;
@@ -196,7 +196,7 @@
                         (files ? files.gd : []).forEach(f => { if (!seen.has(f.id)) { seen.add(f.id); L.push({ id: f.id, c: f.c }); } });
                         (had && Array.isArray(had.gd) ? had.gd : []).forEach(id => { if (!seen.has(id)) { seen.add(id); L.push({ id, g: 1 }); } });
                         gdSetList(L);
-                    } else if (window.gdSetList) gdSetList([]);                 // 🎁 처음 온 다꾸러 = 문구 없음 (🏪 기본상품 샵에서 받아요 · 도련 10-31)
+                    } else if (window.gdSetList) gdSetList((window.gdStarter ? gdStarter() : []).map(id => ({ id, g: 1 })));   // 🎁 처음 온 다꾸러 = 핀셋 + 필기구 5 (선물.json · 나머지는 🏪 기본상품 샵 · 도련 11-01)
                 }
                 if (!back && giftOn()) giftWrite();
             } finally { giftBusy = false; }
