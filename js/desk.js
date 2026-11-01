@@ -878,7 +878,7 @@
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         }
         /* 봉투 카드 넣기 (도련 11-01 · 현실처럼) : 스티커 종류 = ⭐ 스티커 · 📔 다이어리 = 다이어리 · ✂️ 문구 = 문구함
-           넣을 수 있는 소품이면 = 그 소품(서랍장은 놓은 칸 · 칸 밖이면 빈 칸)에 · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
+           넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
            못 넣는 소품(인형 · 시계 …)이면 = 넣을 수 있는 소품 이름을 알려 줘요 · 🌈 배경지 = 보류 */
         const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo'];
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'sticker' : '';
@@ -894,9 +894,8 @@
             const S = dkSlots(o.id), M = deskFnMap(), H = dkHomes(), zones = H[u] || [];
             let s = -1;
             if (S) {
-                const p = dkzPct(t, cx, cy); s = S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]);
-                const same = zones.find(e => e.k === win); if (same && (s < 0 || same.s === s)) { dkbPulse(t); dkbTake(n, j); return; }   // 이미 이 서랍장에
-                if (s < 0) { s = S.findIndex((r, i) => !zones.some(e => e.s === i)); if (s < 0) s = 0; }   // 칸 밖 = 빈 칸 (없으면 맨 위)
+                s = await dkzChoose(t, o, win); if (s < 0) return;               // 🗄️ 서랍장 그림에서 칸 고르기 (도련 11-01)
+                const same = zones.find(e => e.k === win); if (same && same.s === s) { dkbPulse(t); dkbTake(n, j); return; }   // 이미 이 칸에
                 const cur = zones.find(e => e.s === s);
                 if (cur && !await showAsk(`${nm} ${DK_SLOT_NM[s]} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>${josa(K, '으로', '로')} 바꿀까요?`, '바꾸기', '취소')) return;
             } else if (M[win] === u) { dkbPulse(t); dkbTake(n, j); return; }
@@ -916,6 +915,16 @@
             dknPaintAll(); dkbPulse(t); dkbTake(n, j);
         }
         /* ---------- 🗄️ 서랍 칸 (도련 11-01 : 칸 자리는 미리 정해 둬요 · DK_HOLD) ---------- */
+        /* 🗄️ 서랍 고르기 (도련 11-01) : 상품을 서랍장에 넣을 때 그 서랍장 그림이 크게 뜨고 칸을 직접 눌러요 · 칸마다 지금 든 것 · 결과 = 칸 번호 (취소 = -1) */
+        async function dkzChoose(t, o, win) {
+            const S = dkSlots(o.id), im = t.querySelector(':scope > img'), Z = dkHomes()[t.dataset.u] || [], [, K, , ic] = dkWin(win);
+            const html = `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl ? ' style="transform:scaleX(-1)"' : ''}>`
+                + S.map((r, i) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k);
+                    return `<button type="button" class="dkz-slot${c && c.k === win ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%" onclick="closeMsg('s${i}')"><b>${DK_SLOT_NM[i]} 서랍</b><small>${w ? (c.k === win ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
+            const a = document.getElementById('customAlertConfirmBtn'); a.style.display = 'none';
+            let r; try { r = await showAsk(html, '', '취소'); } finally { a.style.display = ''; }
+            return typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
+        }
         function dkzTagOn(u, k) { const H = dkHomes(), e = (H[u] || []).find(x => x.k === k && x.r); if (!e) return; e.tag = Object.assign({}, e.tag || {}, { on: true }); dkHomesSet(H); dknPaintAll(); }
         const dkzPct = (el, cx, cy) => { const im = el.querySelector(':scope > img') || el, q = im.getBoundingClientRect(); return [(cx - q.left) / q.width * 100, (cy - q.top) / q.height * 100]; };   // 소품 그림 안 %
         const dkzHit = (L, p) => [...L].reverse().find(e => e.r && p[0] >= e.r[0] && p[0] <= e.r[2] && p[1] >= e.r[1] && p[1] <= e.r[3]);   // 겹치면 나중에 그린 칸
