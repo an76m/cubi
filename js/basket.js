@@ -21,7 +21,7 @@
     const esc = htmlEsc;   // 🧰 js/util.js
     const BK_LAY = 'malang_bk_lay', BK_MAX = 150;
     const B = { list: [], all: [], kind: '', view: 'bin', cur: '', pg: 0, desk: null, album: null, byId: new Map(), opening: '', lay: null, drag: null, top: 0 };   // list = 지금 연 바구니(한 종류) · all = 모든 종이
-    const BK_KINDS = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지', memo: '메모지' };
+    const BK_KINDS = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', memo: '메모지' };   // 😀 이모지 칸은 없앴어요 (도련 11-02 · 기기 이모지 그림 저작권)
     const bkKindOf = e => e.b || e.k;                                        // 들어갈 바구니 (😀 이모지는 b · 🌸 계절 · 🎁 캡슐 = 씰)
     const vis = id => { const m = bq(id); return !!m && m.style.display === 'flex'; };
 
@@ -286,7 +286,7 @@
          → 처음부터 '받아서 가진 것을 쓰면 줄어든다'를 알게 해요 (처음 선물 · ＋ 버튼 없음)
        · 정리한 모습은 스티커목록의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
     const AB = { drag: null, busy: false };
-    const REL_KINDS = new Set(['seal', 'emoji', 'piece']);
+    const REL_KINDS = new Set(['seal', 'piece']);
     /* 🧁 스티커첩 = 서버 상품 (상품공방 '스티커첩' · js/prod.js · 도련 11-02) : 바인더 = 분류 '바인더' 색 [겉, 테두리] (순서대로 · 가진 바인더는 몇 번째 색인지 c 로 기억) · 이형지북 = 분류 '이형지북' */
     const AB_BDP = [], AB_COL = [], AB_RL = { p: null };                         // 📦 서버 + 내 사본 (abBuild · 바인더마다 pid = 그 바인더 상품 id · 색을 id 로 찾아요)
     function abBuild() {
@@ -926,21 +926,6 @@
         tape: ['마스킹테이프', async () => window.sbShelf ? sbShelf('tape') : []],   // 🧁 테이프 · 떡메 · 속지 · 메모지 = 모두 서버 상품 (상품공방 · 도련 11-02)
         tk: ['떡메모지', async () => window.sbShelf ? sbShelf('tk') : []],
         leaf: ['속지', async () => window.sbShelf ? sbShelf('leaf') : []],
-        emoji: ['이모지', async () => {                                          // 😀 예전 이모지 창의 7묶음 전부 (도련 10-25) · 실제 그림 이모지로 보이는 것만 · 16개씩 씰 종이 한 장
-            if (typeof emojiRanges === 'undefined') return [];
-            const own = new Map(), out = [];                                     // 겹치는 번호는 더 좁은 묶음에 (🦀 게는 얼굴이 아니라 동물 · 기호는 남은 것)
-            for (const c of ['animals', 'food', 'activities', 'travel', 'objects', 'faces', 'symbols']) for (const [a, b] of (emojiRanges[c] || [])) for (let i = a; i <= b; i++) if (!own.has(i)) own.set(i, c);
-            for (const c of Object.keys(emojiRanges)) {
-                const chars = [];
-                for (const [a, b] of emojiRanges[c]) for (let i = a; i <= b; i++) if (own.get(i) === c && !chars.includes(i)) chars.push(i);
-                const ok = await shEmoOk(chars);
-                for (let i = 0; i < ok.length; i += 16) {
-                    const part = ok.slice(i, i + 16);
-                    out.push({ cnt: `씰 ${part.length}개`, look: 'emoji', chars: part, cat: c, take: async () => ({ k: 'seal', b: 'emoji', imgs: await Promise.all(part.map(shEmoji)), baked: true }) });
-                }
-            }
-            return out;
-        }],
         memo: ['메모지', async () => window.sbShelf ? sbShelf('memo') : []],
         tool: ['다이어리', async () => {                                        // 📔 날짜형 다이어리 (해마다 기본 다이어리 · js/dyyear.js · 도련 10-28) + 🗂️ 스티커 정리 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
             const out = (window.dyyShopList ? dyyShopList() : []).concat(AB_BDP.map((x, i) => x.P.숨김 || !prodServer('스티커첩').some(y => y.id === x.id) ? null : ({ cnt: `속지 10장 · 시트 ${AB_BD_N}장 꽂아요`, desc: `한 쪽에 ${AB_PER}포켓 · 앞뒤 ${AB_BD_N / AB_PER}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', c: i, tool: 'bd' })).filter(Boolean));
@@ -993,14 +978,6 @@
         }
         return res.length >= 20 ? res : res.concat(plain);                    // 색 이모지 글꼴이 없는 기기면 보이는 것 모두
     }
-    /* 😀 이모지 → 그림 (64px · 작게 콕) */
-    function shEmoji(ch) {
-        const c = document.createElement('canvas'); c.width = c.height = 64;
-        const x = c.getContext('2d'); x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '50px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-        x.fillText(ch, 32, 35);
-        const u = c.toDataURL('image/png');
-        return window.pelBake ? pelBake(u).catch(() => u) : u;
-    }
     /* 🚶 기본상품 샵은 걸어가서 (도련 11-01) : 💻 📲 책상 화면에서는 어디서 '받기'를 눌러도 이동 → 🏪 기본상품 샵 과 똑같이 가게로 들어가요
        (책상에서 바로 받는 창이 뜨지 않게 · 가게 안에서는 진열대 이름표로) · 📱 폰 · 하단 메뉴 화면 = 예전 기본상품 샵 창 그대로 */
     const shMustWalk = () => document.documentElement.classList.contains('desk-on') && !(window.shopSceneOn && shopSceneOn());
@@ -1044,13 +1021,20 @@
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
-    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기'], ['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']],   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
-        emoji: [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']] };
-    /* 😀 스티커 쪽 이모지 그대로 (🏪 기본상품 샵 이모지 칸과 같은 글자 · 같은 묶음) → [[묶음 이름, [글자…]], …] · 🏷 이름표 아이콘 고르기가 써요 (js/desk.js) */
-    window.shEmoCats = async () => {
-        const L = await shItems('emoji');
-        return SH_CATS.emoji.map(([c, n]) => [n, L.filter(x => x.cat === c).flatMap(x => x.chars)]).filter(x => x[1].length);
-    };
+    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기'], ['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']] };   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
+    /* 😀 이모지 글자 묶음 → [[묶음 이름, [글자…]], …] · 🏷 이름표 아이콘 고르기가 써요 (js/desk.js) */
+    const EMO_CATS = [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']];
+    let emoCatsP = null;
+    window.shEmoCats = () => emoCatsP || (emoCatsP = (async () => {         // 🏷 이름표 아이콘 고르기만 (글자 그대로 · 기기 글꼴 · 그림으로 굳히지 않아요 · 샵 상품 아님)
+        if (typeof emojiRanges === 'undefined') return [];
+        const own = new Map(), out = [];                                     // 겹치는 번호는 더 좁은 묶음에 (🦀 게는 얼굴이 아니라 동물 · 기호는 남은 것)
+        for (const c of ['animals', 'food', 'activities', 'travel', 'objects', 'faces', 'symbols']) for (const [a, b] of (emojiRanges[c] || [])) for (let i = a; i <= b; i++) if (!own.has(i)) own.set(i, c);
+        for (const [c, n] of EMO_CATS) {
+            const chars = []; for (const [a, b] of (emojiRanges[c] || [])) for (let i = a; i <= b; i++) if (own.get(i) === c && !chars.includes(i)) chars.push(i);
+            const ok = await shEmoOk(chars); if (ok.length) out.push([n, ok]);
+        }
+        return out;
+    })());
     /* 💡 매대 사용 팁 (도련 10-31 · 처음 온 사람이 우리 앱만의 쓰는 법을 알게 · 다꾸러라면 다 아는 건 빼요) : 종류 = 글 한 줄 · 칸이 있는 종류 = { 칸: 글 } */
     const SH_TIPS = {
         seal: '받으면 🧺 바구니에 들어가요 · 씰 종이를 펼쳐 <b>🪡 핀셋</b>으로 하나씩 떼어 붙여요 · 붙인 만큼 줄어요',
@@ -1059,7 +1043,6 @@
         tape: '한 롤씩 받아요 · 붙인 길이만큼 롤이 줄어요 · 붙인 뒤 ↔ 손잡이로 길이를 늘였다 줄였다 해요',
         tk: '한 묶음 50장 · 묶음을 톡 = 맨 윗장이 뜯겨 페이지에 붙어요 · 한 장 쓸 때마다 한 장씩 줄어요',
         leaf: '한 장으로 <b>그날 페이지 바탕</b>을 통째로 바꿔요 (줄노트 · 모눈 · 도트 …) · 깔면 그 한 장은 사라져요',
-        emoji: '씰 종이 한 장에 16개 · 씰스티커처럼 <b>🪡 핀셋</b>으로 떼어 붙여요',
         memo: '한 묶음 50장 · 한 장씩 페이지에 놓고 글을 써요 · 쓴 만큼 줄어요',
         season: '이벤트 기간에만 나오는 스티커예요 · 기간이 지나면 매대에서 사라져요',
         bg: '받은 배경지는 🌈 배경지 창에 모여요 · 같은 것도 또 받을 수 있어요',
@@ -1086,7 +1069,7 @@
         }
     };
     const shTip = k => { const t = SH_TIPS[k]; const s = t && typeof t === 'object' ? t[SH.cat] : t; return s ? `<p class="sh-tip">💡 ${s}</p>` : ''; };
-    const shCatOf = (k, x) => k === 'tool' ? (x.tool || x.cat) : k === 'emoji' ? x.cat : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
+    const shCatOf = (k, x) => k === 'tool' ? (x.tool || x.cat) : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
@@ -1135,7 +1118,6 @@
         if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
         if (x.look === 'diary') { const k = typeof skinPresets !== 'undefined' && skinPresets[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
-        if (x.look === 'emoji') return `<div class="sh-paper"><i class="bk-grid sh-emo" style="--c:${cols}">${x.chars.map(ch => `<b>${ch}</b>`).join('')}</i></div>`;
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: src[0] }) : ''}</div>`;
         if (x.look === 'leafimg') return `<span class="lf-pick sh-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(src[0])}')"></i></span>`;
@@ -1495,13 +1477,6 @@
                 <path d="M30 18h26M30 24h26M30 30h26M30 36h26M30 42h26M30 48h26" stroke="#cfe2f5" stroke-width="1"/><path d="M33 8v48" stroke="#ffb3c9" stroke-width="1"/>
                 <circle cx="27.5" cy="16" r="1.8" fill="#dfe8f2"/><circle cx="27.5" cy="32" r="1.8" fill="#dfe8f2"/><circle cx="27.5" cy="48" r="1.8" fill="#dfe8f2"/>
                 ${gl(24, 6, 36, 16, 3)}<defs><linearGradient id="${u}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#f3f8fd"/></linearGradient></defs>`,
-            emoji: () => { const face = (cx, cy, r, c1, c2, id, blush) => `<g filter="url(#${u}s)"><circle cx="${cx}" cy="${cy}" r="${r + 3}" fill="#fff" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})"/></g>
-                    <ellipse cx="${cx - r * .36}" cy="${cy - r * .12}" rx="${r * .09}" ry="${r * .14}" fill="#6b4a3a"/><ellipse cx="${cx + r * .36}" cy="${cy - r * .12}" rx="${r * .09}" ry="${r * .14}" fill="#6b4a3a"/>
-                    <path d="M${cx - r * .35} ${cy + r * .25}q${r * .35} ${r * .32} ${r * .7} 0" stroke="#6b4a3a" stroke-width="${r * .1}" fill="none" stroke-linecap="round"/>
-                    <circle cx="${cx - r * .62}" cy="${cy + r * .18}" r="${r * .15}" fill="${blush}" opacity=".7"/><circle cx="${cx + r * .62}" cy="${cy + r * .18}" r="${r * .15}" fill="${blush}" opacity=".7"/>
-                    <ellipse cx="${cx - r * .35}" cy="${cy - r * .55}" rx="${r * .32}" ry="${r * .16}" fill="#fff" opacity=".7"/>
-                    <defs><radialGradient id="${id}" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient></defs>`;
-                return face(26, 28, 15, '#fff1a8', '#ffcf45', u + 'a', '#ff9fb8') + face(49, 41, 12, '#ffe0cc', '#ffad80', u + 'b', '#ff8fab'); },
             memo: () => `<g filter="url(#${u}s)"><path d="M14 12h44v38l-10 10H14z" fill="url(#${u}p)" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/><path d="M58 50l-10 10V54a4 4 0 0 1 4-4z" fill="#efe2b0" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/></g>
                 <rect x="28" y="7" width="18" height="9" fill="#ff9fb8" opacity=".9" stroke="#7b5a63" stroke-width="1.2" transform="rotate(-5 37 11)"/>
                 <path d="M21 26h28M21 33h28M21 40h20" stroke="#ead9a0" stroke-width="1.4" stroke-linecap="round"/>

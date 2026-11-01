@@ -223,7 +223,7 @@
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         /* 🪟 누르면 열리는 창 = 기능 + 상품 창 한 목록 (도련 10-30 : 모든 창이 🔗 기능 연결 목록에) · [id, 이름, 하단 메뉴 버튼, 아이콘, 묶음 'fn' | 'h']
            상품 창 id = 'h:' + 종류 (h:seal …) · 저장 : 소품 전체 = diary_desk_fn {창: 소품} · 👆 칸 = diary_desk_home {소품: [{k: 창, r, tag}]} · 한 창 = 한 자리 */
-        const DK_HIC = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', leaf: '📃', emoji: '😀', memo: '📝', gd: '✂️', tool: '📔', bg: '🌈', desk: '🪑' };
+        const DK_HIC = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', leaf: '📃', memo: '📝', gd: '✂️', tool: '📔', bg: '🌈', desk: '🪑' };
         const DK_HSAME = { tool: 'skin', gd: 'gd' };                             // 같은 창이 열리는 상품 = 기본 기능으로 (📔 다이어리 보관소 · ✏️ 문구함)
         const dkWinOfKind = k => DK_HSAME[k] || 'h:' + k;
         const DK_FN_OFF = ['cafe', 'shop', 'edit'];                              // 🔗 기능 연결 목록에서 뺀 것 (도련 11-01 · ☕ 카페 · 🏪 기본상품 샵 · 🛠 책상 꾸미기 = 이동 · 오른쪽 위 메뉴로)
@@ -231,7 +231,7 @@
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
            서랍 칸 = 소품 그림 % [왼 · 위 · 오른 · 아래] 미리 정해 둠 (다꾸러가 그리지 않아요) · 새 소품 = 종류(kind)만 맞으면 저절로 · 서랍장 그림이 새로 생기면 칸 자리만 더해요 */
         const DK_FN_OK = ['skin', 'sticker', 'gd'];
-        const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo'];   // 스티커 종류 (서랍 칸 하나 = 한 종류 · 상품 창 h:종류)
+        const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];   // 스티커 종류 (서랍 칸 하나 = 한 종류 · 상품 창 h:종류)
         /* 소품 종류(kind)마다 넣을 수 있는 것 : all = 소품 전체에 하나 · ok = 서랍 칸마다 하나 (칸 자리 = DESK_ITEMS 의 slots) · 없는 종류 = 연결 없음 (인형 · 시계 …)
            새 종류가 생기면 여기 한 줄 + js/drive.js DESK_DIRS 폴더 이름 한 줄 */
         const DK_HOLD = {
@@ -776,7 +776,7 @@
            - 집이 된 소품을 톡 = 그 종류 창 (기능도 있으면 고르기) · 🪑 책상 소품을 산 거면 끌어다 놓은 자리에 그 소품이 바로 놓여요
            - 다 꺼내면 봉투는 사라져요 · 진짜 상품은 살 때 이미 보관함에 들어가 있어요 (봉투는 정리하는 재미) */
         const DKB_KEY = 'diary_desk_bags', DKB_LOCAL = 'malang_desk_bags', DKH_KEY = 'diary_desk_home', DKH_LOCAL = 'malang_desk_home';
-        const DKH_NAMES = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', emoji: '이모지스티커', memo: '메모지', gd: '문구', tool: '다이어리', bg: '배경지', desk: '책상 소품' };
+        const DKH_NAMES = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', memo: '메모지', gd: '문구', tool: '다이어리', bg: '배경지', desk: '책상 소품' };
         const dkBags = () => { const v = typeof prefGet === 'function' ? prefGet(DKB_KEY, DKB_LOCAL) : null; return Array.isArray(v) ? v.filter(b => b && Array.isArray(b.it) && b.it.length) : []; };
         const dkBagsSet = v => { if (typeof prefSet === 'function') prefSet(DKB_KEY, DKB_LOCAL, v); };
         const dkHomes = () => {
