@@ -222,26 +222,26 @@
         const DK_HSAME = { tool: 'skin', gd: 'gd' };                             // 같은 창이 열리는 상품 = 기본 기능으로 (📔 다이어리 보관소 · ✏️ 문구함)
         const dkWinOfKind = k => DK_HSAME[k] || 'h:' + k;
         const DK_FN_OFF = ['cafe', 'shop', 'edit'];                              // 🔗 기능 연결 목록에서 뺀 것 (도련 11-01 · ☕ 카페 · 🏪 기본상품 샵 · 🛠 책상 꾸미기 = 이동 · 오른쪽 위 메뉴로)
-        /* 🧺 넣을 수 있는 소품만 (도련 11-01 · 현실처럼) : 통 = ✏️ 문구함 · 바구니 · 책 상자 · 파일꽂이 = 📔 다이어리 · 서랍장 = 칸마다 문구함 · 다이어리 · ⭐ 스티커 중 하나
+        /* 🧺 넣을 수 있는 소품만 (도련 11-01 · 현실처럼) : 통 = ✏️ 문구함 · 바구니 · 책 상자 · 파일꽂이 = 📔 다이어리 · 서랍장 = 칸마다 문구함 · 다이어리 · 스티커 한 종류(씰스티커 · 마스킹테이프 …) 중 하나 (도련 11-01)
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
            서랍 칸 = 소품 그림 % [왼 · 위 · 오른 · 아래] 미리 정해 둠 (다꾸러가 그리지 않아요) · 새 소품 = 종류(kind)만 맞으면 저절로 · 서랍장 그림이 새로 생기면 칸 자리만 더해요 */
         const DK_FN_OK = ['skin', 'sticker', 'gd'];
         const DK_HOLD = {
             pencup: { all: ['gd'] }, basket: { all: ['skin'] }, bookshelf: { all: ['skin'] },
-            drawer: { ok: ['gd', 'skin', 'sticker'], slots: { 'drawer-pink': [[4, 14, 96, 40], [4, 42, 96, 67], [4, 70, 96, 95]], drawer: [[5, 14, 95, 39], [5, 40, 95, 66], [5, 67, 95, 91]] } }
+            drawer: { ok: ['gd', 'skin', 'h:seal', 'h:piece', 'h:paper', 'h:tape', 'h:tk', 'h:leaf', 'h:emoji', 'h:memo'], slots: { 'drawer-pink': [[4, 14, 96, 40], [4, 42, 96, 67], [4, 70, 96, 95]], drawer: [[5, 14, 95, 39], [5, 40, 95, 66], [5, 67, 95, 91]] } }
         };
         const DK_SLOT_NM = ['위', '가운데', '아래', '네 번째', '다섯 번째'];
         const dkHold = id => { const c = dkCat(id); return (c && DK_HOLD[c.kind]) || null; };
         const dkSlots = id => { const h = dkHold(id); return (h && h.slots && h.slots[id]) || null; };
         const dkHoldOk = id => { const h = dkHold(id); return h ? (h.all || h.ok) : []; };
-        const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn'));
+        const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat(DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
         const dkWin = id => (id && dkWins().find(x => x[0] === id)) || null;
         window.dkWin = dkWin;
         function deskFnMap() {                                                    // 연결한 기능 → 책상 위 소품 (소품마다 하나)
             if (DK.edit) return DK.editFn;                                        // 🛠 꾸미는 동안은 고치는 중인 연결
             const v = typeof prefGet === 'function' ? prefGet(DK_FN_KEY, DK_FN_LOCAL) : null, got = v && typeof v === 'object' ? v : {};
             const ids = dkOnDesk().map(o => o.u), used = new Set(), m = {};
-            Object.keys(got).forEach(k => { const u = got[k]; if (k.startsWith('h:') && dkWin(k) && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 🛍️ 상품 창 (저절로 붙이지 않아요)
+            Object.keys(got).forEach(k => { const u = got[k]; const o = k.startsWith('h:') && DK.items.find(x => x.u === u); if (o && dkWin(k) && !dkSlots(o.id) && dkHoldOk(o.id).includes(k) && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 서랍장 = 칸에만   // 🛍️ 상품 창 (저절로 붙이지 않아요)
             DK_FNS.forEach(([k]) => { const u = got[k], o = u && DK.items.find(x => x.u === u), h = o && dkHold(o.id); if (!h || !h.all || !h.all.includes(k)) return; if (u && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 다꾸러가 연결한 것만 (처음엔 아무것도 · 저절로 붙이지 않아요 · 도련 10-31)
             return m;
         }
@@ -877,11 +877,11 @@
             };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         }
-        /* 봉투 카드 넣기 (도련 11-01 · 현실처럼) : 스티커 종류 = ⭐ 스티커 · 📔 다이어리 = 다이어리 · ✂️ 문구 = 문구함
+        /* 봉투 카드 넣기 (도련 11-01 · 현실처럼) : 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … · 서랍 한 칸 = 한 종류 · 도련 11-01) · 📔 다이어리 = 다이어리 · ✂️ 문구 = 문구함
            넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
            못 넣는 소품(인형 · 시계 …)이면 = 넣을 수 있는 소품 이름을 알려 줘요 · 🌈 배경지 = 보류 */
         const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'emoji', 'memo'];
-        const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'sticker' : '';
+        const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
         const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             const win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
