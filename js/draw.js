@@ -6,10 +6,8 @@
    - 그림은 SVG 로 일기에 담겨요 (파일 없음) · 선을 아주 많이 그리면 그날 일기 파일이 조금 커져요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (펜 버튼만 '준비 중') */
 
-        const DRAW_PEN_COLORS = ['#333333', '#e2556f', '#ff8a3d', '#3d9be0', '#4caf7a', '#8a6be0', '#8a5a44', '#ffffff'];
-        const DRAW_HI_COLORS = ['#ffe14d', '#ff9ec4', '#9be59b', '#9fd3ff', '#ffc078', '#cdb4ff'];
         const DRAW_SIZES = { pen: [2, 4, 7], hi: [12, 18, 26], erase: [12, 24, 40] };
-        const dw = { on: false, tool: 'pen', color: { pen: DRAW_PEN_COLORS[0], hi: DRAW_HI_COLORS[0] }, size: { pen: 1, hi: 1, erase: 1 }, strokes: [], hist: [], cur: null, ring: null, svg: null, k: 1 };
+        const dw = { on: false, tool: 'pen', color: {}, size: { pen: 1, hi: 1, erase: 1 }, strokes: [], hist: [], cur: null, ring: null, svg: null, k: 1 };
         const drq = id => document.getElementById(id);
         const DRAW_NS = 'http://www.w3.org/2000/svg';
 
@@ -322,11 +320,7 @@
         const pcS = { tools: [], held: null, tip: null, carry: null, press: null, drag: null, z: 10 };
         const pcSvg = o => o.id && window.gdPicSvg ? gdPicSvg(o.id) : '';
         const pcTipOf = o => o.tip || [15, 2];                                  // 그림 안 닿는 점 = 쓰는끝 (30 × 150 · js/pencase.js pkTip)
-        function pcList() {                                // 👝 필통에서 고른 것만 (js/pencase.js · 없으면 기본 16자루)
-            if (window.pkCupList) return pkCupList();
-            const all = DRAW_PEN_COLORS.map(c => ({ tool: 'pen', color: c, size: 1 })).concat(DRAW_HI_COLORS.map(c => ({ tool: 'hi', color: c, size: 1 })), [{ tool: 'erase', size: 0 }, { tool: 'erase', size: 2 }]);
-            return [0, 8, 3, 14, 1, 11, 5, 9, 15, 2, 12, 6, 10, 4, 13, 7].map(i => all[i]).filter(Boolean);   // 섞어서 꽂아요
-        }
+        const pcList = () => window.pkCupList ? pkCupList() : [];          // 👝 보관함에서 고른 것만 (js/pencase.js · 🧁 상품 필기구 · 색 = 그 상품 색)
         function pcBuild() {
             let r = drq('pcRoom'); if (r) return r;
             r = document.createElement('div'); r.id = 'pcRoom'; r.className = 'pc-room'; r.hidden = true;

@@ -49,10 +49,6 @@
             return out;
         }
 
-        function pkColors(tool) {                                              // 고르는 창 모드 필기구 줄의 색 (그 종류를 하나도 안 골랐으면 null → 기본 색)
-            const on = new Set(pkRead()), c = pkAll().filter(t => t.tool === tool && on.has(t.id)).map(t => t.color);
-            return c.length ? c : null;
-        }
 
         /* ---------- 필통 그리기 ---------- */
         const pkSvg = t => window.gdPicSvg ? gdPicSvg(t.id) : '';             // 🎬 상품공방 그림 그대로 (js/gdpic.js · 도련 11-02 · 연필꽂이 · 보관함 · 손에 든 것 모두)
@@ -219,7 +215,7 @@
             if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length + (window.dkwCupToolN ? dkwCupToolN() : 0) < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // ✏️ 책상 연필꽂이의 다른 도구까지 24개
             if (window.pcRefill) pcRefill();
         }
-        window.openPencase = openPencase; window.pkCupList = pkCupList; window.pkColors = pkColors;
+        window.openPencase = openPencase; window.pkCupList = pkCupList;
         window.pkIsId = pkIsId; window.pkRead = pkRead; window.pkWrite = pkWrite; window.pkSvg = pkSvg; window.pkOwnIds = pkOwnIds; window.pkHas = () => pkOwnIds().length > 0; window.pkShopList = pkShopList; window.pkAdd = pkAdd;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

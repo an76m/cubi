@@ -3107,9 +3107,8 @@ body.pen-rest .draw-layer { pointer-events: none; }   /* ✏️ 필기구가 쉬
 .pc-mini[hidden] { display: none; }
 .pc-mini.over { transform: scale(1.22) rotate(-4deg); }
 .pc-mini-tops { position: absolute; left: 14px; right: 14px; top: 0; height: 40px; overflow: visible; display: flex; justify-content: space-around; align-items: flex-end; }
-.pc-mini-tops i { width: 8px; height: 40px; transform: rotate(-6deg); }   /* 작은 색연필 = js/draw.js penPencilSvg 그대로 (셀 애니 · 도련 11-02) */
+.pc-mini-tops i { width: 8px; height: 40px; transform: rotate(-6deg); }   /* 작은 색연필 = 연필꽂이 필기구 그림 그대로 (상품공방 그림 · 도련 11-02) */
 .pc-mini-tops i svg { display: block; width: 100%; height: 100%; }
-.pc-mini-tops i svg [vector-effect] { stroke-width: 1px; }
 .pc-mini-tops i:nth-child(2) { height: 46px; transform: rotate(4deg); }
 .pc-mini-cup { position: absolute; left: 10px; right: 10px; bottom: 0; height: 56px; border-radius: 3px 3px 12px 12px / 3px 3px 7px 7px; background: radial-gradient(circle, rgba(255,255,255,.75) 0 1.6px, transparent 2px) 0 0 / 7px 7px, linear-gradient(90deg, #f791b0, #ffd0dd 35%, #f48bab); box-shadow: 0 5px 12px rgba(150,70,100,.3); }
 .pc-tipnote { position: absolute; max-width: 220px; margin: 0; padding: 7px 12px; border-radius: 14px; background: rgba(255,255,255,.95); border: 1.5px solid var(--border-color, #ffb6c1); color: #7a5a66; font-size: 12.5px; word-break: keep-all; box-shadow: 0 3px 10px rgba(120,80,95,.15); transform: translateY(-100%); }
