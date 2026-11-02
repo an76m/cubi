@@ -720,3 +720,6 @@ html.an .pc-held, html.an .pc-held.carry, html.an .pc-held.laid { filter: none !
 .dkb-card > i.dkb-gd { display: flex; align-items: center; justify-content: center; overflow: visible; }
 .dkb-card > i.dkb-gd img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
 .dkb-card > i.dkb-gd.tall img { max-width: none; max-height: none; height: 62px; width: auto; transform: rotate(-40deg); }
+/* 🛍️ 봉투 속 카드 = 샵 진열 그림을 작게 (도련 11-03 · js/desk.js dkLkIc) : 샵 카드 크기(112 × 140)로 그려서 줄여요 */
+.dkb-card > i.dkb-lk { position: relative; overflow: visible; }
+.dkb-lkin { position: absolute; left: 50%; top: 50%; width: 112px; height: 140px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%) scale(.36); pointer-events: none; font-size: 14px; line-height: 1.4; }

@@ -1198,8 +1198,21 @@
         if (k === 'gd' && x.gid) o.gid = x.gid;                                 // ✏️ 문구 · 필기구 = 그 디자인 (봉투에서 꺼낼 때까지 문구함 · 연필꽂이에 없어요)
         { const L = x.look === 'dskin' ? window.dsLastGiven : k === 'desk' ? window.deskLastGiven : null; if (L && L.u && Date.now() - L.t < 8000) o.u = L.u; }   // 🪑 🧱 🪵 = 그 하나 (📦 소품함에 없어요)
         if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
+        if (k !== 'gd' && k !== 'desk') { const lk = shLookKeep(x); if (lk) o.lk = lk; }   // 🛍️ 봉투 카드 = 산 모습 그대로 (도련 11-03 · 샵 진열 그림과 같은 것 · js/desk.js dkKindIc)
         (window.SHOP_BAG = window.SHOP_BAG || []).push(o);
     }
+    /* 🛍️ 봉투 카드에 남길 '산 모습' (샵 shLook 에 필요한 것만 · 그림은 서버 주소라 작아요 · data 그림은 빼요) */
+    function shLookKeep(x) {
+        if (!x || !x.look) return null;
+        const o = {}, url = u => typeof u === 'string' && !/^data:/.test(u);
+        ['look', 'g', 'sid', 'pid', 'dc', 'yr', 'c'].forEach(k => { if (x[k] != null && typeof x[k] !== 'object') o[k] = x[k]; });
+        if (x.pv && url(x.pv.u)) o.pv = { u: x.pv.u, w: x.pv.w, h: x.pv.h, y: x.pv.y, H: x.pv.H };   // 🖼️ 묶음 미리보기 한 장
+        const th = (x.thumbs || []).filter(url);
+        if (th.length) { if (x.L && th.length <= 24 && !o.pv) { o.L = x.L; o.thumbs = th; } else o.thumbs = th.slice(0, 9); }
+        if (!o.pv && !o.thumbs && !['binder', 'relbook', 'dskin', 'bg', 'diary'].includes(o.look)) return null;   // 그릴 것이 없으면 = 예전 아이콘
+        return o;
+    }
+    window.shItemsOf = shItems; window.shLookKeep = shLookKeep; window.shLookMini = lk => { try { return lk && lk.look ? shLook(lk) : ''; } catch (e) { return ''; } };
     function bagEnd(ok) {
         BAG.n = Math.max(0, BAG.n - 1); if (ok) BAG.ok++;
         if (BAG.n || !BAG.ok) { if (!BAG.n) BAG.ok = 0; return; }

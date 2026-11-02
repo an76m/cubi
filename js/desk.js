@@ -829,7 +829,8 @@
         const dkHomesSet = v => { if (typeof prefSet === 'function') prefSet(DKH_KEY, DKH_LOCAL, v); };
         const dkbSub = it => it.ds ? (it.ds === 'wall' ? '벽지' : '책상') : it.al ? `${DKH_NAMES[it.k] || ''} 스티커첩` : DKH_NAMES[it.k] || '';   // 카드 아래 작은 글 = 무엇인지
         const dkGdIc = it => { const p = it.k === 'gd' && it.gid && window.gdPic ? gdPic(it.gid) : null; return p ? `<i class="dkb-gd${p.h / p.w > 2.2 ? ' tall' : ''}"><img src="${htmlEsc(p.u)}" alt="" draggable="false"></i>` : ''; };   // ✏️ 문구 = 그 상품 그림 (도련 11-03 · 현실처럼 · 길쭉한 필기구는 비스듬히)
-        const dkKindIc = it => dkGdIc(it) || (it.ds ? `<i>${it.ds === 'wall' ? '🧱' : '🪵'}</i>` : it.al ? `<i>${it.n === '이형지북' ? '🤍' : '📒'}</i>` : it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`);
+        const dkLkIc = it => { const h = it.lk && window.shLookMini ? shLookMini(it.lk) : ''; return h ? `<i class="dkb-lk"><span class="dkb-lkin k-${htmlEsc(it.k || '')}">${h}</span></i>` : ''; };   // 🛍️ 산 모습 그대로 (샵 진열 그림 · js/basket.js shLookKeep · 도련 11-03)
+        const dkKindIc = it => dkGdIc(it) || dkLkIc(it) || (it.ds ? `<i>${it.ds === 'wall' ? '🧱' : '🪵'}</i>` : it.al ? `<i>${it.n === '이형지북' ? '🤍' : '📒'}</i>` : it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`);
         const dkBagXY = (bg, n) => isFinite(+bg.x) && isFinite(+bg.y) ? [+bg.x, +bg.y] : [836 + [0, -260, 260, -520, 520][n % 5] + 36 * Math.floor(n / 5), 830 - 14 * Math.floor(n / 5)];
         function deskBagAdd(L) {
             if (!Array.isArray(L) || !L.length) return;
