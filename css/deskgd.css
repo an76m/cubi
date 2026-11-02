@@ -79,3 +79,12 @@
 .dkw-more[hidden] { display: none; }
 .dkw-more > b { background: #fff; border: 2px solid var(--dk); color: var(--dk); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; font-weight: 900; }
 .dkw-drawer { position: relative; }
+/* 🗑 버리기 (도련 11-02 · js/skins.js gdBin) */
+.dkw-bin { border: 2px solid var(--dk); background: #fff; color: var(--dk); height: 30px; min-width: 30px; padding: 0 8px; border-radius: 999px; font-size: 13px; font-weight: 900; flex: none; white-space: nowrap; }
+.dkw-bin.on { background: #e05a7d; border-color: #e05a7d; color: #fff; }
+.dkw-drawer.binning .dkw-it { animation: dkwWig .5s ease-in-out infinite alternate; }
+.dkw-drawer.binning .dkw-it .dkw-heart { visibility: hidden; }
+.dkw-drawer.binning .dkw-use { position: relative; }
+.dkw-drawer.binning .dkw-use::after { content: '🗑'; position: absolute; right: 2px; top: 2px; font-size: 13px; background: #fff; border-radius: 50%; width: 20px; height: 20px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+@keyframes dkwWig { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+@media (prefers-reduced-motion: reduce) { .dkw-drawer.binning .dkw-it { animation: none; } }

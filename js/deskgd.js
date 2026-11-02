@@ -203,11 +203,13 @@
             if (img) { const R = home.e.r || [0, 0, 100, 100], fl = el.classList.contains('dk-fl'), fx = (R[0] + (R[2] - R[0]) * .2) / 100; col = await dkwTint(img.src, fl ? 1 - fx : fx, ((R[1] + R[3]) / 2) / 100); }
             const c = dkwColors(col), r = dkwRoom('dkwTray');
             r.innerHTML = `<div class="dkw-drawer" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
-                <div class="dkw-dtop"><b>🗄️ 문구함</b><small>${home && el ? htmlEsc(dkName(DK.items.find(x => x.u === home.u)) + ' · ' + dkSlotNm(home.e.s, (dkSlots(DK.items.find(x => x.u === home.u).id) || []).length) + ' 칸') : '책상 서랍장 칸에 넣으면 그 서랍에서 열려요'}</small><span class="dkw-cnt" id="dkwCnt"></span><button type="button" class="dkw-dx" aria-label="닫기" onclick="dkwClose()">✕</button></div>
+                <div class="dkw-dtop"><b>🗄️ 문구함</b><small>${home && el ? htmlEsc(dkName(DK.items.find(x => x.u === home.u)) + ' · ' + dkSlotNm(home.e.s, (dkSlots(DK.items.find(x => x.u === home.u).id) || []).length) + ' 칸') : '책상 서랍장 칸에 넣으면 그 서랍에서 열려요'}</small><span class="dkw-cnt" id="dkwCnt"></span><button type="button" class="dkw-bin" id="dkwBin" aria-pressed="false" title="버리기">🗑</button><button type="button" class="dkw-dx" aria-label="닫기" onclick="dkwClose()">✕</button></div>
                 <div class="dkw-din" id="dkwIn"></div>
                 <span class="dkw-more" id="dkwMore" hidden><b>⬇ 아래로 더 있어요</b></span>
                 <div class="dkw-dfront"><span class="dkw-lbl">✏️ 문구함</span><i class="dkw-knob"></i></div>
                 <div class="dkw-foot"><span id="dkwTip"></span></div></div>`;
+            DKW.bin = false;
+            dkwq('dkwBin').onclick = () => { DKW.bin = !DKW.bin; dkwTrayPaint(); };   // 🗑 버리기 (도련 11-02 · 📱 문구함 서랍처럼 · 톡 = 휴지통으로 · js/skins.js gdBin)
             dkwShow(r); dkwTrayPaint();                                          // 보이게 한 뒤 그려요 (줄이 넘치는지 재야 해서)
             dkwFly(r.querySelector('.dkw-drawer'), el);
         }
@@ -232,12 +234,15 @@
             inn.onclick = e => {                                                   // 톡 = 꺼내 쓰기 · ♥ = 꽂기 / 빼기 (이어 붙인 것도 같아요)
                 const it = e.target.closest('.dkw-it'); if (!it) return; const row = it.closest('.dkw-row'); if (row && row._drag) return;   // 끌어서 넘긴 건 톡이 아니에요
                 const id = it.dataset.id;
+                if (DKW.bin) { gdBin(id).then(ok => { if (ok) dkwTrayPaint(); }); return; }   // 🗑 버리는 중 = 톡 = 휴지통으로
                 if (e.target.closest('.dkw-heart')) { if (dkwToggle(id, it)) { dkwSay(dkwInCup(id) ? `♥ ${dkwName(id)} → 연필꽂이에 꽂았어요` : `${dkwName(id)} → 서랍에 넣었어요`, it); dkwTrayPaint(); } return; }
                 if (e.target.closest('.dkw-use')) dkwUse(id);
             };
             const more = () => { const d = dkwq('dkwIn'), m = dkwq('dkwMore'); if (!d) return; const on = d.scrollHeight - d.scrollTop - d.clientHeight > 12; if (m) m.hidden = !on; };   // ⬇ 아래에 더 있어요 (칸막이 종류가 아주 많을 때만)
             inn.onscroll = more; requestAnimationFrame(more);
             const n = dkwq('dkwCnt'); if (n) n.innerHTML = `✏️ 연필꽂이 <b>${dkwCupN()}</b> / ${DKW_MAX}`;
+            { const t = inn.closest('.dkw-drawer'), bb = dkwq('dkwBin'); if (t) t.classList.toggle('binning', !!DKW.bin); if (bb) { bb.classList.toggle('on', !!DKW.bin); bb.setAttribute('aria-pressed', !!DKW.bin); bb.textContent = DKW.bin ? '✓ 다 했어요' : '🗑'; } }
+            if (DKW.bin) { const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '🗑 <b>버릴 문구를 톡</b> · 휴지통에 30일 보관했다가 지워져요 (⚙ 설정 → 🗑 휴지통에서 되살리기)'; return; }
             const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = (cup ? '톡 = 꺼내 쓰기 · <b>♥</b> = 연필꽂이에 꽂기 / 빼기' : '톡 = 꺼내 쓰기 · <b>♥</b> = 그리기 연필꽂이 · 책상에 연필꽂이를 놓으면 도구도 꽂아 둬요') + ' · 옆으로 밀면 더 있어요';
         }
         function dkwRowWire(r, off, card) {                                         // 한 줄 : 넘치면 끝없이 · 아니면 그대로

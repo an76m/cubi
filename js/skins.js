@@ -1503,7 +1503,7 @@
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
         const cabK = id => id.split(':')[1];
         const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
-        /* ✏️ 내 문구 (도련 10-27) : 처음엔 🎁 핀셋 + 필기구 5 (GD_STARTER · 도련 11-01) · 나머지는 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요
+        /* ✏️ 내 문구 (도련 10-27) : 처음엔 🎁 핀셋 + 필기구 5 (GD_STARTER · 도련 11-01) · 나머지는 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요 (→ 휴지통 30일 · gdBin)
            저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
                   🎁 처음 선물은 기본세트 / 선물.json 한 파일 (서비스 · 예외 · 버리면 거기서 빠져요)
                   종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
@@ -1644,18 +1644,40 @@
         }
         /* 🗑 버리기 · 🏪 받기 (도련 10-27) */
         function gdCabBinMode(g) { cabBin = cabBin === g ? null : g; gdCabRender(); }
-        async function gdCabBinTap(id) {
-            const g = cabGOf(id), n = cabName(id) || '이 문구', kind = (GD_CAB.find(x => x[0] === g) || [])[1] || '';
-            const jo = josa;   // 🧰 js/util.js
-            if (cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return; }
-            if (!await showAsk(`🗑 ${jo(n.includes(kind) ? n : n + ' ' + kind, '을', '를')} 휴지통에 버릴까요?<br><small>버린 문구는 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '🗑 휴지통', '취소')) return;
-            const L = gdOwnList() || [], o = L.find(x => x.id === id);
-            prefSet(GD_OWN, GD_OWN_L, L.filter(x => x.id !== id).map(gdRec));
-            if (o && o.g) { if (window.deskGiftWrite) deskGiftWrite(); }      // 🎁 선물이면 선물.json 에서 빼요
-            else { const C = gdColl(id); if (C && o && o.c) collRemove(C, o.c).catch(e => console.warn('문구 파일', e)); }   // 🗑 그 파일도
-            if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]);
-            gdCabRender();
+        async function gdCabBinTap(id) { if (await gdBin(id)) gdCabRender(); }
+        /* 🗑 문구 버리기 → 휴지통 30일 (js/bin.js · 도련 11-02 · 📱 문구함 서랍 · 👝 보관함 · 🪑 책상 문구함 모두 여기로) : 파일은 그대로 → 되살리면 내 문구로 · 30일 뒤 파일 삭제 */
+        const gdPenName = id => { const x = (window.prodList ? prodList('문구') : []).find(v => v.id === id), kk = { pen: '색연필', hi: '형광펜', erase: '지우개' }[id.split(':')[0]] || '필기구', n = x && x.P && x.P.이름 ? String(x.P.이름) : ''; return n.includes(kk) ? n : (n ? n + ' ' : '') + kk; };
+        function gdBinName(id) {
+            if (window.pkIsId && pkIsId(id)) return gdPenName(id);
+            const g = cabGOf(id), n = cabName(id) || '', kind = (GD_CAB.find(x => x[0] === g) || [])[1] || '문구';
+            return n.includes(kind) ? n : (n ? n + ' ' : '') + kind;
         }
+        async function gdBin(id) {
+            const o = (gdOwnList() || []).find(x => x.id === id); if (!o) return false;
+            const pen = !!(window.pkIsId && pkIsId(id));
+            if (!pen && cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return false; }
+            if (!window.binAsk || !await binAsk(gdBinName(id))) return false;
+            prefSet(GD_OWN, GD_OWN_L, (gdOwnList() || []).filter(x => x.id !== id).map(gdRec));
+            if (o.g && window.deskGiftWrite) deskGiftWrite();                     // 🎁 선물이면 선물.json 에서 빠져요 (되살리면 다시)
+            if (!pen) { const g = cabGOf(id); if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]); }
+            await binAdd({ k: 'gd', id, o: gdRec(o) });
+            gdBinAfter();
+            binTold('');
+            return true;
+        }
+        function gdBinAfter() { if (window.pcRefill) pcRefill(); if (window.dkwDeskSoon) dkwDeskSoon(); }   // ✏️ 연필꽂이 · 🪑 책상 문구 다시
+        (window.BIN_PRE = window.BIN_PRE || {}).gd = {
+            name: e => '✏️ ' + gdBinName(e.id),
+            restore: e => {
+                const L = gdOwnList() || [];
+                if (L.some(x => x.id === e.id)) { if (e.o.c) { const C = gdColl(e.id); if (C) collRemove(C, e.o.c).catch(() => {}); } return; }   // 그새 다시 받았으면 = 그대로 (버린 쪽 파일만 치워요)
+                L.push(e.o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec)); if (window.snapSoon) snapSoon();
+                if (e.o.g && window.deskGiftWrite) deskGiftWrite();
+                gdBinAfter();
+            },
+            purge: e => { if (!e.o.g && e.o.c) { const C = gdColl(e.id); if (C) return collRemove(C, e.o.c); } }
+        };
+        window.gdBin = gdBin;
         function gdCabShop() { closeModal('gdCabModal'); if (window.openShelf) { openShelf(); shOpenKind('gd'); } }
         /* 🏪 기본상품 샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
         const GD_OFF = new Set();                                              // 🧁 숨긴 문구 = 샵에서만 빠져요 (gdBuild)
@@ -1672,7 +1694,7 @@
         }
         gdBuild();
         if (window.prodHook) prodHook(gdBuild);
-        (window.SNAP_OWN = window.SNAP_OWN || {})['문구'] = () => (gdOwnList() || []).map(o => o.id);   // 📦 사본 (js/snap.js · 필기구 · 칼 · 자도)
+        (window.SNAP_OWN = window.SNAP_OWN || {})['문구'] = () => (gdOwnList() || []).map(o => o.id).concat(window.binList ? binList().filter(e => e.k === 'gd').map(e => e.id) : []);   // 🗑 휴지통에 있는 것도   // 📦 사본 (js/snap.js · 필기구 · 칼 · 자도)
         document.addEventListener('prod-change', () => { try { gdCabRender(); } catch (e) {} });
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).filter(id => !GD_OFF.has(id)).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) }))).concat(window.pkShopList ? pkShopList() : []);   // + ✏️ 필기구 (도련 10-31 · js/pencase.js)
         function gdGive(id) {

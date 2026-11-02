@@ -5,10 +5,11 @@
        설정.json 'diary_bin' [{ k: 종류, id, at: 버린 시각 }] (게스트는 이 기기 · 게스트는 휴지통이 없어서 바로 지워요)
    - 30일이 지나면 (다이어리를 열 때 · binSweep) 그 종류가 진짜로 지워요 (purge) · 🗑 휴지통 비우기도 같아요
    - 종류마다 BIN_KINDS[k] = { name(e) : 휴지통에 보일 이름, restore(e) : 되살리기, purge(e) : 영구 삭제 } (📔 js/dyyear.js …)
-   - ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 맨 위에 보여요 (js/trash.js) */
+   - ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 맨 위에 보여요 (js/trash.js)
+   - 종류 (도련 11-02 · 모든 상품) : dy 다이어리 · ds 벽지·책상판 · bg 배경지 · dk 책상 소품 · gd 문구(필기구도) · own 스티커·종이 (js/own.js) */
 
         const BIN_KEY = 'diary_bin', BIN_LOCAL = 'malang_bin', BIN_DAYS = 30;
-        const BIN_KINDS = {};
+        const BIN_KINDS = Object.assign({}, window.BIN_PRE);                      // 이 파일보다 먼저 읽는 것 (🪑 책상 소품 js/desk.js · ✏️ 문구 js/skins.js) 은 window.BIN_PRE 에 넣어 둬요
         function binList() { const v = prefGet(BIN_KEY, BIN_LOCAL); return Array.isArray(v) ? v.filter(e => e && e.k && e.id && BIN_KINDS[e.k]) : []; }
         const binSave = L => prefSet(BIN_KEY, BIN_LOCAL, L);
         const binSame = (a, b) => a.k === b.k && a.id === b.id;

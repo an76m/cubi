@@ -76,7 +76,7 @@
                 <div class="pk-body"><button type="button" class="x-only pk-x" id="pkDone" aria-label="닫기">✕</button>
                     <div class="pk-in">
                         <p class="pk-tip" id="pkTip"></p>
-                        <div class="pk-tabs" role="tablist">${kinds.map(g => `<button type="button" class="pk-tab" role="tab" data-k="${g.k}">${g.lb}<b data-n="${g.k}"></b></button>`).join('')}</div>
+                        <div class="pk-tabs" role="tablist">${kinds.map(g => `<button type="button" class="pk-tab" role="tab" data-k="${g.k}">${g.lb}<b data-n="${g.k}"></b></button>`).join('')}<button type="button" class="pk-tab pk-bin" id="pkBin" aria-pressed="false" title="버리기">🗑</button></div>
                         <div class="pk-tray" id="pkTray"><div class="pk-strip" id="pkStrip">${pkLap(kinds, false)}${pkLap(kinds, true).repeat(3)}</div></div>
                     </div>
                 </div>
@@ -84,7 +84,8 @@
             document.body.appendChild(r);
             addEventListener('resize', () => { if (pk.on) pkPlace(); });
             r.querySelectorAll('.pk-t').forEach(b => b.onclick = () => pkToggle(b));
-            r.querySelectorAll('.pk-tab').forEach(b => b.onclick = () => pkTab(b.dataset.k));
+            r.querySelectorAll('.pk-tab[data-k]').forEach(b => b.onclick = () => pkTab(b.dataset.k));
+            pkq('pkBin').onclick = () => { pk.bin = !pk.bin; pkRender(); };       // 🗑 버리기 (도련 11-02 · 톡 = 휴지통 30일 · js/skins.js gdBin)
             pkBand(pkq('pkTray'));
             pkq('pkDone').onclick = pkClose; r.addEventListener('click', e => { if (e.target === r) pkClose(); });   // ✕ 또는 창 밖 (도련 10-28)
             r.addEventListener('keydown', e => { if (e.key === 'Escape') pkClose(); });
@@ -153,17 +154,26 @@
         }
         function pkRender() {
             const on = pk.pick, r = pkq('pkRoom');
+            r.classList.toggle('binning', !!pk.bin); { const bb = pkq('pkBin'); if (bb) { bb.classList.toggle('on', !!pk.bin); bb.setAttribute('aria-pressed', !!pk.bin); bb.textContent = pk.bin ? '✓' : '🗑'; } }
             r.querySelectorAll('.pk-t').forEach(b => { const v = on.has(b.dataset.id); b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); });
             r.querySelectorAll('[data-n]').forEach(n => { const c = [...on].filter(id => id.split(':')[0] === n.dataset.n).length; n.textContent = c || ''; });
+            if (pk.bin) { pkq('pkTip').innerHTML = `🗑 <b>버릴 필기구를 톡</b><small>휴지통에 30일 보관했다가 지워져요 · 다 했으면 ✓</small>`; return; }
             pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개<small>♥ 고른 것만 연필꽂이에 꽂혀요</small>`;
         }
         function pkToggle(b) {
             const id = b.dataset.id, on = pk.pick;
+            if (pk.bin) { pkBinTap(id); return; }
             if (on.has(id)) { if (![...on].some(v => v !== id && /^(pen|hi):/.test(v)) && /^(pen|hi):/.test(id)) { pkSay('쓸 색연필 · 형광펜 하나는 꼭 꽂아 둬요 ✏️'); return; } on.delete(id); }
             else { if (on.size >= PK_MAX) { pkSay(`연필꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return; } on.add(id); }
             b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
             if (window.sfx) try { sfx('tick'); } catch (e) {}
             pkRender();
+        }
+        async function pkBinTap(id) {                                          // 🗑 버리면 보관함을 새로 (가진 필기구가 바뀌었어요)
+            if (!window.gdBin || pk.busy || !await gdBin(id)) return;
+            pk.pick.delete(id); pkWrite([...pk.pick]); pkStop();
+            const r = pkq('pkRoom'); pk.on = false; if (r) r.remove();
+            openPencase(true);
         }
         function pkSay(t) { const p = pkq('pkTip'); p.innerHTML = t; p.classList.remove('shake'); void p.offsetWidth; p.classList.add('shake'); clearTimeout(pk.tm); pk.tm = setTimeout(pkRender, 1600); }
 
@@ -178,8 +188,9 @@
         }
 
         /* ---------- 열고 닫기 (✏️ 연필꽂이 '보관함' 버튼) ---------- */
-        function openPencase() {
+        function openPencase(keepBin) {
             if (pk.on || pk.busy) return;
+            if (keepBin !== true) pk.bin = false;
             const r = pkBuild(); pk.on = true; pk.pick = new Set(pkRead());
             pkRender();
             const c = pkq('pkCase'); c.classList.remove('shut');

@@ -13,7 +13,7 @@
 .cr8-go { margin-left: auto; }
 .cr8-mat { position: relative; flex: 1; min-height: 0; margin: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); border: 4px solid var(--line); border-radius: 16px;
     background: var(--mat); background-image: linear-gradient(var(--mat2) 1px, transparent 1px), linear-gradient(90deg, var(--mat2) 1px, transparent 1px); background-size: 24px 24px;
-    display: grid; grid-template-columns: 180px minmax(0, 1fr) 340px; gap: 14px; padding: 14px; }
+    display: grid; grid-template-columns: 180px 340px minmax(0, 1fr); gap: 14px; padding: 14px; }   /* 종류 → 새로 만들기 → 내가 만든 것 (도련 11-02) */
 .cr8-mat::after { content: '말랑달콤 CUTTING MAT'; position: absolute; right: 16px; bottom: 4px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: rgba(60, 110, 80, .45); pointer-events: none; }
 .cr8-panel { background: rgba(255, 252, 248, .97); border: 3px solid var(--line); border-radius: 14px; box-shadow: 0 4px 0 rgba(107, 68, 56, .25); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .cr8-panel h3 { margin: 0; padding: 10px 12px 8px; font-size: 14px; border-bottom: 2px dashed #ecd6c8; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -64,3 +64,6 @@
 .cr8-room.narrow .cr8-x { display: block; }
 body.craft-on #moveModal { z-index: 1550 !important; }
 body.craft-on .desk-top-r { display: none; }
+.cr8-room:not(.narrow) .cr8-new { display: none; }   /* 💻 📲 = 가운데 칸이 늘 보여서 필요 없어요 (📱 만) */
+.cr8-room:not(.narrow) .cr8-work.detail .cr8-x { display: block; }
+.cr8-b.cr8-del { border-color: #e4b6c4; color: #a05a70; }

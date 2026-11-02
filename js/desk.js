@@ -60,7 +60,7 @@
         const DK_ITEMS_KEY = 'diary_desk_items', DK_ITEMS_LOCAL = 'malang_desk_items';
         dkBuild();
         if (window.prodHook) prodHook(dkBuild);
-        (window.SNAP_OWN = window.SNAP_OWN || {})['책상소품'] = () => (DK.items || []).map(o => o.id).concat(((prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) || [])).map(o => o && o.id));   // 📦 사본 (js/snap.js)
+        (window.SNAP_OWN = window.SNAP_OWN || {})['책상소품'] = () => (DK.items || []).map(o => o.id).concat(((prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) || [])).map(o => o && o.id), window.binList ? binList().filter(e => e.k === 'dk').map(e => e.o.id) : []);   // 🗑 휴지통에 있는 것도 (되살리면 그대로)   // 📦 사본 (js/snap.js)
         document.addEventListener('prod-change', () => { try { if (document.getElementById('deskStage') && !DK.edit) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); } } catch (e) {} });
         const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
         function dkLoad() {
@@ -523,14 +523,31 @@
             o.at = where; dkSave(); deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             if (DK.edit && where === 'desk') { const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (el) deskSelect(el); }   // 놓은 소품을 바로 골라 줘요
         }
-        async function deskDiscard(u) {
+        async function deskDiscard(u) {                                          // 🗑 버리기 → 휴지통 30일 (js/bin.js · 도련 11-02 · 파일은 그대로 두고 되살릴 수 있어요)
             const o = DK.items.find(x => x.u === u); if (!o || dkFnBlock(u, '버릴')) return;
-            const ok = window.showAsk ? await showAsk(`🗑 ${josa(dkName(o), '을', '를')} 휴지통에 버릴까요?<br><small>버린 소품은 🏪 기본상품 샵에서 다시 받을 수 있어요</small>`, '🗑 휴지통', '취소') : true;
-            if (!ok) return;
+            if (!window.binAsk || !await binAsk(dkName(o))) return;
             DK.items = DK.items.filter(x => x.u !== u); dkSave();
-            if (!DK.edit) dkFileDel(o);                                        // 🛠 꾸미는 중이면 확정할 때 (선물이면 선물.json 에서 빼요)
-            deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();   // (예전엔 위 주석 안에 들어가 있어서 버린 뒤 화면이 그대로였어요 · 10-28 고침)
+            deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
+            if (DK.edit) { if (window.showMsg) showMsg('🗑 버릴게요.<br><small>하단 ✔ 완료를 누르면 휴지통으로 가요 (✕ 취소 = 그대로)</small>'); return; }   // 🛠 꾸미는 중이면 확정할 때
+            await dkBin([o]); binTold('');
         }
+        /* 🗑 휴지통으로 (파일 · 🎁 선물은 그대로 기억 → 되살리면 소품함으로) */
+        async function dkBin(L) {
+            for (const o of L) await binAdd({ k: 'dk', id: o.u, o: Object.assign({ u: o.u, id: o.id }, o.c ? { c: o.c } : {}, o.g ? { g: 1 } : {}) });
+            if (L.some(o => o.g)) giftWrite();                                   // 🎁 선물이면 선물.json 에서 빠져요 (되살리면 다시)
+        }
+        (window.BIN_PRE = window.BIN_PRE || {}).dk = {
+            name: e => `🪑 ${(dkCat(e.o.id) || {}).name || '책상 소품'}`,
+            restore: e => {
+                if (!dkCat(e.o.id)) throw new Error('gone');
+                const back = Object.assign({ at: 'box', x: 0, y: 0 }, e.o);
+                if (!DK.items.some(x => x.u === back.u)) DK.items.push(back);
+                if (DK.edit && DK.back) { const b = JSON.parse(DK.back.items); if (!b.some(x => x.u === back.u)) { b.push(back); DK.back.items = JSON.stringify(b); } }
+                dkSave(); if (back.g) giftWrite();
+                deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
+            },
+            purge: e => { if (!e.o.g) dkFileDel(e.o); }                          // 🔥 종류 폴더 파일 (🎁 선물은 선물.json 에서 이미 빠졌어요)
+        };
         /* 🏪 기본상품 샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
         function deskGive(id, force) {
             if (!dkCat(id)) return 'no';
@@ -646,7 +663,7 @@
                 /* 기능을 하나도 연결하지 않아도 ✔ 확인 돼요 (도련 10-31 · 🛠 책상 꾸미기는 책상 오른쪽 위 버튼으로 늘 열려요) */
                 const fn = DK.editFn, gone = JSON.parse(DK.back.items).filter(b => !DK.items.some(x => x.u === b.u));
                 DK.edit = false; dkSave();
-                gone.filter(o => !o.g).forEach(dkFileDel); if (gone.some(o => o.g)) giftWrite();   // 🗑 버린 소품의 파일 · 🎁 선물.json
+                if (gone.length) dkBin(gone).then(() => binTold(''));   // 🗑 버린 소품 → 휴지통 (js/bin.js)
                 if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, fn);
                 dkArtCommit();                                                    // 🎨 색칠 · 🖼 사진 미리 보기 → 진짜 저장 (💾 저장 중)
             } else {

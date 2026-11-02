@@ -1,7 +1,8 @@
 /* 말랑달콤 다이어리 - js/craft.js
    🎨 다꾸 작업실 (도련 11-02 · 다꾸러용 상품공방) : 만드는 기능을 한 장소에 · 창이 뜨는 게 아니라 작업실로 들어가요 (스티커 정리 · 오늘 쓸 스티커처럼 화면 전체)
    - 들어오기 : 책상 오른쪽 위 메뉴 ✂️ 스티커 만들기 · 예전 ✂️ 스티커만들기 · 🖌️ 배경지 만들기 창을 여는 곳은 모두 여기로 (js/settings.js openModal)   (카페 · 이동 창 칸은 없어요 · 도련 11-02)
-   - 왼쪽 = 무엇을 만들까요 (CRAFT_KINDS) · 가운데 = 내가 만든 것 (🎒 내 것 중 만든 것 · js/own.js ownList from 'mine') · 오른쪽 = 새로 만들기 (그 종류에서 쓸 수 있는 방법만)
+   - 왼쪽 = 무엇을 만들까요 (CRAFT_KINDS) · 가운데 = 새로 만들기 (그 종류에서 쓸 수 있는 방법만) · 오른쪽 = 내가 만든 것 (🎒 내 것 중 만든 것 · js/own.js ownList from 'mine') · 고르면 가운데에 📌 꺼내 쓰기 · 🧺 · 🗑 버리기 (✕ = 다시 방법)
+       ＋ 새로 만들기 카드는 📱 폰에서만 (💻 📲 은 가운데 칸이 늘 보여요 · 도련 11-02)
        📱 폰 = 위 종류 칩 · 가운데 내가 만든 것 · 오른쪽 칸은 아래에서 올라와요
    - 만드는 화면은 지금 것을 그대로 열어요 (📸 포토부스 · 📷 사진 · 🖼️ 앨범 · 🔤 글씨 · 🎀 테이프 · 📃 속지 · 🧻 떡메 · 🧵 🖼 🖌 배경지) → 작업실은 뒤에 그대로 · 다 만들면 가운데가 저절로 새로
    - 🧩 새 종류 · 새 방법 = CRAFT_KINDS · CRAFT_WAYS 한 줄 (ft = 기능 공개 스위치 · js/features.js)
@@ -49,12 +50,12 @@
                     <button type="button" class="cr8-go desk-shop-go" id="crGo"></button></div>
                 <div class="cr8-mat">
                     <div class="cr8-panel cr8-kinds"><h3>무엇을 만들까요</h3><div class="cr8-klist" id="crKinds"></div></div>
+                    <div class="cr8-panel cr8-work" id="crWorkBox"><h3><span id="crWorkT"></span><button type="button" class="cr8-x" id="crSheetX" aria-label="닫기">✕</button></h3><div class="cr8-wk" id="crWork"></div></div>   <!-- 💻 📲 종류 → 새로 만들기 → 내가 만든 것 (도련 11-02 · 흐름대로) -->
                     <div class="cr8-panel cr8-mine"><h3><span id="crMineT"></span><small id="crMineN"></small></h3><div class="cr8-grid" id="crGrid"></div></div>
-                    <div class="cr8-panel cr8-work" id="crWorkBox"><h3><span id="crWorkT"></span><button type="button" class="cr8-x" id="crSheetX" aria-label="닫기">✕</button></h3><div class="cr8-wk" id="crWork"></div></div>
                 </div>`;
             document.body.appendChild(el);
             cq('crGo').onclick = () => { if (desk() && window.deskMoveOpen) deskMoveOpen(); else closeCraft(); };
-            cq('crSheetX').onclick = () => { C.sheet = false; paint(); };
+            cq('crSheetX').onclick = () => { C.sheet = false; C.sel = null; paint(); };   // 📱 아래 칸 닫기 · 💻 고른 것 풀고 만드는 방법으로
             return el;
         }
         /* 🎒 내가 만든 것 (from 'mine') */
@@ -78,7 +79,7 @@
             else if (!K.own) body = `<div class="cr8-empty">만든 ${K.n}은 <b>🌈 배경지</b> 창의 <b>내가만든</b> 칸에 있어요<br><button type="button" class="cr8-b" id="crBgList">🌈 내 배경지 보기</button></div>`;
             else if (C.loading) body = '<div class="cr8-empty">꺼내는 중…</div>';
             else body = C.mine.length ? C.mine.map((e, i) => `<button type="button" class="cr8-card${C.sel === i ? ' on' : ''}" data-i="${i}">${e.th ? `<img src="${htmlEsc(e.th)}" alt="">` : `<span class="cr8-ph">${K.ic}</span>`}<b>${htmlEsc(e.nm || K.n)}</b></button>`).join('')
-                : `<div class="cr8-empty">아직 만든 ${K.n}이 없어요<br>＋ 새로 만들기로 시작해요</div>`;
+                : `<div class="cr8-empty">아직 만든 ${K.n}이 없어요<br>${narrow() ? '＋ 새로 만들기로 시작해요' : '← 새로 만들기에서 시작해요'}</div>`;
             g.innerHTML = (K.soon ? '' : nw) + body;
             g.querySelectorAll('.cr8-card').forEach(c => c.onclick = () => { C.sel = c.dataset.new ? null : +c.dataset.i; C.sheet = true; paintMine(); paintWork(); });
             if (cq('crBgList')) cq('crBgList').onclick = () => { closeCraft(); if (window.openPatternList) openPatternList('mine'); else if (window.openModal) openModal('patternModal'); };
@@ -87,14 +88,17 @@
             const K = kindOf(C.k), w = cq('crWork'), box = cq('crWorkBox'); if (!w) return;
             box.classList.toggle('sheet', C.sheet);
             const e = C.sel != null ? C.mine[C.sel] : null;
+            box.classList.toggle('detail', !!e);
             if (e) {
                 cq('crWorkT').textContent = `${K.ic} ${e.nm || K.n}`;
                 w.innerHTML = `<div class="cr8-pv">${e.th ? `<img src="${htmlEsc(e.th)}" alt="">` : K.ic}</div>
                     <button type="button" class="cr8-b main" id="crUse">📌 다이어리에 꺼내 쓰기</button>
                     <button type="button" class="cr8-b" id="crBasket">🧺 바구니에서 보기</button>
+                    <button type="button" class="cr8-b cr8-del" id="crDel">🗑 버리기</button>
                     <p class="cr8-hint">들어 있는 곳 : ${K.to}</p>`;
                 cq('crUse').onclick = () => useMine(e.id);
                 cq('crBasket').onclick = () => { closeCraft(); if (window.openBasket) openBasket(); };
+                cq('crDel').onclick = async () => { if (window.ownDiscard && await ownDiscard([e.id], `${e.nm ? e.nm + ' ' : ''}${K.n}`)) { C.sel = null; C.sheet = false; loadMine(); } };   // 🗑 휴지통 30일 (js/own.js · 도련 11-02)
                 return;
             }
             cq('crWorkT').textContent = `${K.ic} 새 ${K.n} 만들기`;

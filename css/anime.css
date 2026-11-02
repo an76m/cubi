@@ -23,7 +23,7 @@ html.an .btn:not(.service-btn), html.an .bk-act, html.an .dk-cta, html.an .sh-ta
 html.an .btn:not(.service-btn):active, html.an .sh-take:active, html.an .dk-cta:active { translate: 0 1px; }
 /* 연분홍 = 고른 것(.on · aria) + 주인공 버튼 (확인 · 만들기 · 받기 · 받아 오기 · 저장) */
 html.an .btn.on, html.an .stk-tab.on, html.an .dv-opt.on, html.an button[aria-pressed="true"], html.an [aria-selected="true"].btn, html.an .btn.active, html.an .btn.sel,
-html.an .dk-cta, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an .bk-act:not(.bk-share), html.an #bkGet, html.an .sh-take:not(.sh-zoombtn) {
+html.an .dk-cta, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an .bk-act:not(.bk-share):not(.bk-binb), html.an #bkGet, html.an .sh-take:not(.sh-zoombtn) {
   border: 1.5px solid #e88fb0 !important; color: #c8457a !important; background: #ffe0ea !important; }   /* 연분홍 바탕에서도 선이 보이게 */
 html.an .btn.on small, html.an .btn.on span { color: inherit; }
 html.an .dk-cta { height: 52px !important; font-size: 19px !important; }

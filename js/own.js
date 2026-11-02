@@ -30,7 +30,8 @@
         const OWN_IDX_BK = '목록_백업.json', OWN_ALB_BK = '스티커첩_백업.json', OWN_BK_LS = 'malang_own_bk';
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
         const OWN_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
-        const ownAlive = e => e.q0 ? e.q > 0 : e.u.length < e.n;
+        const ownHas = e => e.q0 ? e.q > 0 : e.u.length < e.n;                  // 아직 남았어요
+        const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
         const O = { kw: '', key: null, idx: null, idxF: null, idxAt: 0, mem: null, album: null, albF: null, q: Promise.resolve(), subs: new Set(), replayed: '' };
 
         /* ---------- 어디에 (드라이브 · 이 기기 폴더 = 'drive' / 구경만 = 'mem' / 아직 = '') ---------- */
@@ -165,7 +166,7 @@
                     if (e.k === 'tk' && sx.pad === 'my') e.th = s.imgs[0] || '';
                     else if (!(e.k === 'memo' && sx.pp && sx.pp !== 'img')) e.th = await ownThumb(s.imgs).catch(() => '');
                 } else if (e.th && !e.us && e.k !== 'tk' && e.k !== 'memo') e.th = await ownThumb(s.imgs).catch(() => e.th);   // 뗀 자리가 비게
-                if (ownAlive(e)) list.push(e);
+                if (ownHas(e)) list.push(e);                                      // 🗑 버린 종이도 그대로 (백업의 bin 표시째)
             }
             list.sort((p, q) => (p.at || 0) - (q.at || 0));
             await ownIdxWrite(list);
@@ -660,6 +661,46 @@
             return '인터넷 연결을 확인한 뒤 다시 해 주세요.';
         }
 
+        /* ---------- 🗑 버리기 (도련 11-02 · 현실처럼 모든 상품) : 목록에 bin 표시만 → 30일 휴지통 (js/bin.js) → 되살리기 = 표시 빼기 · 영구 삭제 = 목록에서 빼고 종이 파일 완전 삭제 ---------- */
+        const OWN_ICON = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', memo: '📝', leaf: '📃' };
+        const OWN_KN = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', memo: '메모지', leaf: '속지' };
+        const ownBinName = e => `${OWN_ICON[e.kk] || '🏷️'} ${e.nm ? e.nm + ' ' : ''}${OWN_KN[e.kk] || '스티커'}`;
+        function ownBinSet(ids, on) {
+            ownReady();
+            return ownSerial(async () => {
+                const list = await ownIdxRead(), hit = list.filter(e => ids.includes(e.id));
+                if (!hit.length) return [];
+                hit.forEach(e => { if (on) e.bin = Date.now(); else delete e.bin; });
+                await ownIdxWrite(list);
+                O.idx = list.filter(ownAlive); O.idxAt = performance.now(); ownTell();
+                return hit.map(e => ({ id: e.id, f: e.f, kk: e.k, nm: e.nm || '' }));
+            });
+        }
+        function ownPurge(id, f) {
+            ownReady();
+            return ownSerial(async () => {
+                const list = await ownIdxRead(), i = list.findIndex(e => e.id === id);
+                const fid = i >= 0 ? list[i].f : f;                                // 버린 뒤 칸을 쓰면 파일 번호가 바뀌어요 → 목록의 지금 번호
+                if (i >= 0) { list.splice(i, 1); await ownIdxWrite(list); O.idx = list.filter(ownAlive); O.idxAt = performance.now(); }
+                await ownFileKill(fid);
+                ownTell();
+            });
+        }
+        /* 버리기 (여러 장 한 번에 · 묻기 · 알리기까지) : 🧺 바구니 · ✂️ 스티커 만들기 */
+        async function ownDiscard(ids, name) {
+            if (!ids.length || !window.binAsk || !await binAsk(name)) return false;
+            let got;
+            try { got = await ownBinSet(ids, true); } catch (e) { console.warn('🗑', e); showMsg('⚠ 버리지 못했어요. 잠시 후 다시 해 주세요.'); return false; }
+            for (const r of got) await binAdd(Object.assign({ k: 'own' }, r));
+            binTold('');
+            return true;
+        }
+        if (window.BIN_KINDS) BIN_KINDS.own = {
+            name: ownBinName,
+            restore: async e => { const r = await ownBinSet([e.id], false); if (!r.length) throw new Error('gone'); },
+            purge: e => ownPurge(e.id, e.f)
+        };
+        window.ownDiscard = ownDiscard;
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
