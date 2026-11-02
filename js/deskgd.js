@@ -132,7 +132,7 @@
                 ? `<div class="dkw-cupart" style="width:${W}px;height:${H}px"><img class="dkw-cupimg" src="${htmlEsc(src)}" alt=""${el && el.classList.contains('dk-fl') ? ' style="transform:scaleX(-1)"' : ''}><div class="dkw-tools" id="dkwTools"></div><i class="dkw-cupfm" style="--fm:url('${htmlEsc(new URL(d.front, location.href).href)}')"><img src="${htmlEsc(src)}" alt=""></i></div>`
                 : `<div class="dkw-cupart dkw-plain" style="width:${W}px;height:${H}px;--cb:${col.body};--cl:${col.line};--cm:${col.mid}"><i class="dkw-cupback"></i><div class="dkw-tools" id="dkwTools"></div><i class="dkw-cupfront"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 74c-9-6-10-13-5-15 2.4-.9 4.2.4 5 1.7.8-1.3 2.6-2.6 5-1.7 5 2 4 9-5 15z" fill="#fff" opacity=".85"/></svg></i></div>`;
             r.innerHTML = `<div class="dkw-cupbox">
-                <p class="dkw-hint">${tools.length ? '도구를 <b>톡</b> = 쏙 뽑아 손에 들어요' : '연필꽂이가 비었어요 · <b>🗄️ 문구함</b>에서 ♥ 를 눌러 꽂아요'}${out ? `<small>페이지에 꺼내 둔 도구 ${out}개</small>` : ''}</p>
+                <p class="dkw-hint">${tools.length ? '도구를 잡고 <b>위로 쏙</b> 끌어 올리면 손에 들어요' : '연필꽂이가 비었어요 · <b>🗄️ 문구함</b>에서 ♥ 를 눌러 꽂아요'}${out ? `<small>페이지에 꺼내 둔 도구 ${out}개</small>` : ''}</p>
                 ${art}
                 <div class="dkw-btns"><button type="button" class="dkw-b" onclick="dkwTrayOpen()">🗄️ 문구함</button><button type="button" class="dkw-b dkw-x" onclick="dkwClose()">닫기</button></div></div>`;
             dkwShow(r);
@@ -147,10 +147,35 @@
                 const h = Math.round(235 * (pen ? 1 : +dkwMeta(cabGOf(t.id)).len || 1) * (n > 14 ? .9 : 1));   // 꽂힌 길이 = 종류 표 len
                 return `<button type="button" class="dkw-t${pen ? ' pen' : ' ' + cabGOf(t.id)}" data-id="${htmlEsc(t.id)}" title="${htmlEsc(dkwName(t.id))}" style="left:${x.toFixed(1)}px;top:${(base - h + 40 + (i % 3) * 10).toFixed(1)}px;height:${h}px;--a:${a.toFixed(1)}deg;z-index:${i % 2 ? 2 : 1}">${dkwArt(t.id)}</button>`;
             }).join('');
-            box.querySelectorAll('.dkw-t').forEach(b => b.onclick = () => {
-                if (b.classList.contains('pull')) return;
-                b.classList.add('pull'); setTimeout(() => dkwUse(b.dataset.id), 330);
+            box.querySelectorAll('.dkw-t').forEach(dkwPullWire);
+        }
+        /* ✋ 뽑기 = 잡고 위로 끌어 올려요 (도련 11-02 · 톡 = 안 뽑혀요 · 현실처럼) : 110px 넘게 올리면 쏙 · 덜 올리고 놓으면 제자리로 */
+        const DKW_PULL = 110;
+        function dkwPullWire(b) {
+            let p = null;
+            const place = (dx, up) => { const k = 1 - Math.min(1, up / 90); b.style.transform = `translateX(-50%) translate(${dx.toFixed(1)}px, ${(-up).toFixed(1)}px) rotate(calc(var(--a) * ${k.toFixed(2)}))`; };
+            b.addEventListener('pointerdown', e => {
+                if (e.button > 0 || b.classList.contains('pull')) return;
+                e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (er) {}
+                p = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }; b.classList.add('grab');
             });
+            b.addEventListener('pointermove', e => {
+                if (!p || e.pointerId !== p.id) return;
+                const up = Math.max(0, p.y - e.clientY), dx = (e.clientX - p.x) * .25;
+                if (up > 4 || Math.abs(dx) > 2) p.moved = true;
+                place(dx, up);
+                if (up > DKW_PULL) {                                             // 쏙 뽑혔어요
+                    p = null; b.classList.remove('grab'); b.style.transform = ''; b.classList.add('pull');
+                    if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
+                    setTimeout(() => dkwUse(b.dataset.id), 260);
+                }
+            });
+            const end = e => {
+                if (!p || e.pointerId !== p.id) return;
+                const tap = !p.moved; p = null; b.classList.remove('grab'); b.style.transform = '';   // 덜 뽑았으면 제자리로 스르르
+                if (tap) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); dkwSay('✋ 잡고 위로 쏙 끌어 올려요', b); }
+            };
+            b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
         }
 
         /* ---------- 🗄️ 문구함 서랍 ---------- */
