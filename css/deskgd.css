@@ -43,15 +43,23 @@
 .dkw-cnt b { color: #c2457a; }
 .dkw-dx { border: 0; background: #fff; color: var(--dk); width: 30px; height: 30px; border-radius: 50%; font-size: 15px; font-weight: 900; flex: none; }
 .dkw-din { flex: 1 1 auto; min-height: 0; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); padding: 0 14px 14px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0; overscroll-behavior: contain; }   /* 칸막이가 많아지면 서랍 안을 위아래로 (칸막이 높이 = 들어 있는 만큼) */
-.dkw-sec { background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); border: 3px solid var(--dk); margin: -1.5px; padding: 8px 8px 10px; min-height: 120px; box-sizing: border-box; flex: 0 0 calc(50% + 3px); }
+.dkw-sec { background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); border: 3px solid var(--dk); margin: -1.5px; padding: 6px 8px 8px; min-height: 0; box-sizing: border-box; flex: 0 0 calc(100% + 3px); min-width: 0; }
 .dkw-sec.dkw-pen, .dkw-sec.wide { flex-basis: calc(100% + 3px); }
 .dkw-sec h4 { margin: 0 0 6px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; color: var(--dk); }
 .dkw-sec h4 small { font-weight: 800; opacity: .75; }
-.dkw-its { display: flex; flex-wrap: wrap; gap: 6px; }
+.dkw-rowbox { position: relative; }
+.dkw-row { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; }   /* 한 줄 · 옆으로 (끝없이 = js dkwRowWire) */
+.dkw-row::-webkit-scrollbar { display: none; }
+.dkw-row.drag, .dkw-row.drag * { cursor: grabbing; }
+.dkw-its { display: flex; flex-wrap: nowrap; gap: 6px; width: max-content; }
+.dkw-it { flex: none; }
+.dkw-go { position: absolute; top: 50%; translate: 0 -50%; z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--dk); background: #fff; color: var(--dk); font-size: 18px; font-weight: 900; line-height: 1; padding: 0; box-shadow: 0 2px 6px rgba(80, 40, 50, .2); }
+.dkw-go[hidden] { display: none; }
+.dkw-go.l { left: -6px; } .dkw-go.r { right: -6px; }
 .dkw-it { position: relative; width: 74px; }
 .dkw-use { width: 100%; border: 0; background: transparent; border-radius: 12px; padding: 4px 2px 5px; text-align: center; color: #5b3f4a; transition: transform .12s, background .12s; }
 .dkw-use:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .7); }
-.dkw-art { display: flex; justify-content: center; align-items: flex-end; height: 76px; }
+.dkw-art { display: flex; justify-content: center; align-items: flex-end; height: 66px; }
 .dkw-art > svg { height: 100%; width: auto; max-width: 70px; }
 .dkw-it.pen .dkw-art > svg, .dkw-pen .dkw-art > svg { height: 100%; }
 .dkw-use b { display: block; font-size: 10.5px; line-height: 1.25; margin-top: 3px; word-break: keep-all; }
