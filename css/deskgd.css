@@ -15,11 +15,15 @@
 .dkw-hint b { color: #c2457a; }
 .dkw-hint small { display: block; font-size: 11.5px; color: #a07f8b; font-weight: 700; }
 .dkw-cupart { position: relative; margin-top: 150px; }
-.dkw-cupimg, .dkw-cupfm { position: absolute; inset: 0; width: 100%; height: 100%; }
-.dkw-cupimg { z-index: 0; user-select: none; -webkit-user-drag: none; }
-.dkw-cupfm { z-index: 5; pointer-events: none; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
-.dkw-cupfm > img { display: block; width: 100%; height: 100%; }
 .dkw-tools { position: absolute; inset: 0; z-index: 2; }
+/* 연필꽂이 장면 = 소품 그림 · 꽂힌 도구 · 앞벽 (책상 위 .dkw-desk · 다가온 .dkw-cupart 같은 틀) */
+.dkw-cupimg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; user-select: none; -webkit-user-drag: none; }
+.dkw-cupfm { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.dkw-cupfm > i { position: absolute; inset: 0; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
+.dkw-cupfm img { display: block; width: 100%; height: 100%; }
+.dkw-desk { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.dkw-desk > .dkw-cupimg { display: none; }   /* 책상 위 = 소품 그림은 이미 있어요 */
+.dkw-desk .dkw-t { pointer-events: none; filter: none; transition: none; }
 .dkw-t { position: absolute; padding: 0; border: 0; background: none; touch-action: none; cursor: grab; transform-origin: 50% 100%; transform: translateX(-50%) rotate(var(--a)); transition: transform .18s, opacity .3s; filter: drop-shadow(0 2px 2px rgba(80, 40, 50, .18)); }
 .dkw-t > svg { display: block; height: 100%; width: auto; max-width: 90px; pointer-events: none; }
 .dkw-t:hover { transform: translateX(-50%) translateY(-12px) rotate(var(--a)); }
@@ -27,11 +31,6 @@
 .dkw-t.nudge { animation: dkwNudge .45s ease; }
 @keyframes dkwNudge { 30% { translate: 0 -16px; } 60% { translate: 0 -4px; } }
 .dkw-t.pull { transform: translateX(-50%) translateY(-460px) rotate(0deg); opacity: 0; transition: transform .35s ease-in, opacity .35s ease-in; }
-/* 그림에 앞벽이 없는 연필꽂이 = 그 소품 색으로 그린 컵 */
-.dkw-plain .dkw-cupback { position: absolute; left: 6%; right: 6%; top: 46%; height: 9%; border-radius: 50%; background: var(--cl); z-index: 0; }
-.dkw-plain .dkw-cupfront { position: absolute; left: 4%; right: 4%; top: 50%; bottom: 0; z-index: 5; background: linear-gradient(90deg, var(--cb), var(--cm) 30%, var(--cb) 70%); border: 5px solid var(--cl); border-radius: 10px 10px 26px 26px; clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%); pointer-events: none; }
-.dkw-plain .dkw-cupfront::before { content: ''; position: absolute; left: -5px; right: -5px; top: -5px; height: 18px; background: var(--cm); border: 5px solid var(--cl); border-radius: 8px; }
-.dkw-plain .dkw-cupfront svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .dkw-btns { display: flex; gap: 10px; }
 
 /* 🗄️ 문구함 서랍 */

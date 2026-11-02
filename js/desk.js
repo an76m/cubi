@@ -299,6 +299,7 @@
             deskFnPaint(); dknPaintAll(); dkzPaint(); deskTipPaint(); deskEditPaint();
         }
         function deskFnPaint() {
+            if (window.dkwDeskSoon) dkwDeskSoon();                                // ✏️ 책상 연필꽂이에 꽂힌 도구 (js/deskgd.js · 소품을 다시 그리거나 연결이 바뀌면)
             const m = deskFnMap(), of = {}; Object.keys(m).forEach(k => { of[m[k]] = k; });
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
                 const fn = of[el.dataset.u], f = dkWin(fn), d = dkDef(el);
