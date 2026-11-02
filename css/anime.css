@@ -704,3 +704,7 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
     #moveModal .svc-cat:not(.svc-extra) .svc-cat-icon { width: 38px; height: 38px; font-size: 24px; }
     #moveModal .svc-cat:not(.svc-extra) small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* ✨ 새 모습 (도련 11-02 · 소품함 맨 위 · 받은 상품을 말랑달콤이 고쳤을 때만 · js/snap.js snapBtnHtml) */
+.iv-new { display: flex; justify-content: center; margin: 0 0 8px; }
+.iv-new:has(> .snap-new[hidden]) { display: none; }

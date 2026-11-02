@@ -588,10 +588,10 @@
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
             const side = [['all', '전체', DK.items.length]].concat(kinds.map(kk => [kk, dkKN(kk), DK.items.filter(o => dkKindOf(o) === kk).length]))
                 .concat(SK.map(([kk, n]) => [kk, n, dsCount(kk)]))
-                .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('') + (window.snapBtnHtml ? snapBtnHtml() : '');   // ✨ 새 모습 (js/snap.js · 있을 때만)
+                .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('');   // ✨ 새 모습 (js/snap.js · 있을 때만)
             if (SK.some(x => x[0] === k)) {                                       // 🧱 벽지 · 🪵 책상 : 톡 = 쓰기 · 🗑 버리기 (js/deskskin.js)
                 const cs = dsBoxCells(k);
-                box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${cs.join('')}${'<span class="iv-c empty"></span>'.repeat(Math.max(0, DK_BOX_MIN - cs.length))}</div>`
+                box.innerHTML = `${window.snapBtnHtml ? `<div class="iv-new">${snapBtnHtml()}</div>` : ''}<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${cs.join('')}${'<span class="iv-c empty"></span>'.repeat(Math.max(0, DK_BOX_MIN - cs.length))}</div>`
                     + `<div class="iv-name"><b>${dsName(k)}</b><small>톡 = ${k === 'wallpaper' ? '벽 전체에 바르기' : '책상 바꾸기'}${DK.edit ? ' · ✔ 완료 때 저장' : ''}</small></div></div></div>`;
                 const sd2 = box.querySelector('.iv-side'); if (sd2 && sTop != null) sd2.scrollTop = sTop;
                 return;
@@ -602,7 +602,7 @@
             const o = rows.find(x => x.u === DK.boxSel);
             const act = o ? (o.at === 'box' ? `<button type="button" class="btn primary" onclick="deskPut('${o.u}', 'desk')">🪑 책상에 놓기</button>` : `<button type="button" class="btn" onclick="deskPut('${o.u}', 'box')">📦 넣기</button>`)
                 + `<button type="button" class="btn iv-del" onclick="deskDiscard('${o.u}')" aria-label="휴지통">🗑</button>` : '';
-            box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
+            box.innerHTML = `${window.snapBtnHtml ? `<div class="iv-new">${snapBtnHtml()}</div>` : ''}<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
                 + `<div class="iv-name">${o ? `<b>${dkName(o)}</b><small>${o.at === 'desk' ? '🪑 책상 위' : '📦 보관 중'}</small>` : ''}</div>${o ? `<div class="iv-foot">${act}</div>` : ''}</div></div>`;
             const sd = box.querySelector('.iv-side'); if (sd && sTop != null) sd.scrollTop = sTop;   // 왼쪽 목록은 보던 자리 그대로
             const g = box.querySelector('.iv-in'); if (g && DK.boxSel) g.scrollTop = gTop;
