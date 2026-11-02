@@ -1,0 +1,66 @@
+/* 🎨 다꾸 작업실 (도련 11-02 · js/craft.js) : 벽 + 커팅 매트 · 💻 📲 세 칸 · 📱 칩 + 카드 + 아래에서 올라오는 칸 · 만드는 창(.modal 1000)은 이 위에 떠요 */
+.cr8-room { position: fixed; inset: 0; z-index: 950; display: none; flex-direction: column; overflow: hidden; color: #5b3f4a; font-family: inherit;
+    --line: #6b4438; --mat: #bfe3cf; --mat2: #a9d6bd; --pk: #e88fb0; --deep: #c2457a;
+    background: linear-gradient(#fbe9ef, #f7dfe8 96px, #f3d9e2 96px 104px, #e9c9b0 104px); }
+.cr8-room.show { display: flex; animation: crIn .25s ease both; }
+.cr8-room button { font-family: inherit; cursor: pointer; }
+.cr8-wall { position: relative; height: 104px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left)); }
+.cr8-sign { background: #fff; border: 3px solid var(--line); border-radius: 12px; padding: 7px 16px; font-weight: 900; font-size: 18px; box-shadow: 3px 3px 0 #e6dcf8; white-space: nowrap; }
+.cr8-sign small { display: block; font-size: 11px; color: #a07f8b; font-weight: 700; }
+.cr8-garland { display: flex; gap: 6px; }
+.cr8-garland i { width: 20px; height: 24px; clip-path: polygon(0 0, 100% 0, 50% 100%); background: #ffb3cb; }
+.cr8-garland i:nth-child(2) { background: #ffe08a; } .cr8-garland i:nth-child(3) { background: #9fd0ff; } .cr8-garland i:nth-child(4) { background: #bfe9c9; } .cr8-garland i:nth-child(5) { background: #d9c8ff; }
+.cr8-go { margin-left: auto; }
+.cr8-mat { position: relative; flex: 1; min-height: 0; margin: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); border: 4px solid var(--line); border-radius: 16px;
+    background: var(--mat); background-image: linear-gradient(var(--mat2) 1px, transparent 1px), linear-gradient(90deg, var(--mat2) 1px, transparent 1px); background-size: 24px 24px;
+    display: grid; grid-template-columns: 180px minmax(0, 1fr) 340px; gap: 14px; padding: 14px; }
+.cr8-mat::after { content: '말랑달콤 CUTTING MAT'; position: absolute; right: 16px; bottom: 4px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: rgba(60, 110, 80, .45); pointer-events: none; }
+.cr8-panel { background: rgba(255, 252, 248, .97); border: 3px solid var(--line); border-radius: 14px; box-shadow: 0 4px 0 rgba(107, 68, 56, .25); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.cr8-panel h3 { margin: 0; padding: 10px 12px 8px; font-size: 14px; border-bottom: 2px dashed #ecd6c8; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cr8-panel h3 small { font-size: 11.5px; color: #a07f8b; font-weight: 700; }
+.cr8-x { display: none; border: 0; background: #fff0f5; color: var(--deep); width: 28px; height: 28px; border-radius: 50%; font-weight: 900; }
+/* 종류 */
+.cr8-klist { padding: 6px 8px 10px; overflow: auto; display: grid; gap: 2px; align-content: start; }
+.cr8-g { font-size: 11px; font-weight: 900; color: #a07f8b; padding: 8px 10px 2px; }
+.cr8-k { display: flex; align-items: center; border: 0; background: none; border-radius: 10px; padding: 8px 10px; font-size: 14px; font-weight: 800; color: inherit; text-align: left; }
+.cr8-k:hover { background: #fff0f5; }
+.cr8-k.on { background: var(--pk); color: #fff; }
+.cr8-k em { margin-left: auto; font-style: normal; font-size: 10px; font-weight: 900; background: #ffe9a8; color: #9a6b00; border-radius: 999px; padding: 1px 7px; }
+/* 내가 만든 것 */
+.cr8-grid { padding: 12px; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; align-content: start; }
+.cr8-card { border: 2px solid #f1d3dd; background: #fff; border-radius: 12px; padding: 6px; text-align: center; color: inherit; transition: transform .12s; min-height: 118px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.cr8-card:hover { transform: translateY(-3px); }
+.cr8-card.on { border-color: var(--deep); box-shadow: 0 0 0 3px #ffd6e2; }
+.cr8-card img { width: 100%; height: 82px; object-fit: contain; }
+.cr8-card b { display: block; width: 100%; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr8-ph { font-size: 40px; }
+.cr8-new { border-style: dashed; border-color: var(--pk); background: #fff8fb; color: var(--deep); font-weight: 900; font-size: 13px; }
+.cr8-new i { font-style: normal; font-size: 30px; line-height: 1; }
+.cr8-empty { grid-column: 1 / -1; text-align: center; color: #a07f8b; font-size: 13px; padding: 36px 10px; line-height: 1.9; }
+/* 만들기 */
+.cr8-wk { padding: 12px; overflow: auto; display: grid; gap: 10px; align-content: start; }
+.cr8-way { display: flex; gap: 10px; align-items: center; border: 2px solid #f1d3dd; background: #fff; border-radius: 14px; padding: 10px 12px; text-align: left; color: inherit; }
+.cr8-way:hover { border-color: var(--pk); background: #fff8fb; }
+.cr8-way i { font-style: normal; font-size: 24px; width: 44px; height: 44px; border-radius: 12px; background: #fff0f5; display: grid; place-items: center; flex: none; }
+.cr8-way b { display: block; font-size: 14px; }
+.cr8-way small { font-size: 11.5px; color: #a07f8b; font-weight: 700; line-height: 1.4; }
+.cr8-pv { background: repeating-conic-gradient(#f4eef1 0 25%, #fff 0 50%) 0 0 / 14px 14px; border-radius: 12px; border: 2px solid #f1d3dd; height: 190px; display: grid; place-items: center; font-size: 60px; }
+.cr8-pv img { max-width: 92%; max-height: 176px; }
+.cr8-b { border: 2px solid var(--pk); background: #fff; color: var(--deep); border-radius: 999px; padding: 9px 14px; font-size: 14px; font-weight: 800; }
+.cr8-b.main { background: var(--deep); border-color: var(--deep); color: #fff; }
+.cr8-hint { margin: 0; font-size: 12px; color: #a07f8b; line-height: 1.6; background: #fffaf0; border-radius: 10px; padding: 8px 10px; }
+/* 📱 좁은 화면 : 종류 = 칩 · 만들기 칸 = 아래에서 올라와요 */
+.cr8-room.narrow .cr8-wall { height: 70px; } .cr8-room.narrow .cr8-sign { font-size: 15px; padding: 5px 12px; } .cr8-room.narrow .cr8-sign small, .cr8-room.narrow .cr8-garland { display: none; }
+.cr8-room.narrow .cr8-mat { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 10px; padding: 10px; margin: 0 8px max(8px, env(safe-area-inset-bottom)); }
+.cr8-room.narrow .cr8-kinds { background: none; border: 0; box-shadow: none; }
+.cr8-room.narrow .cr8-kinds h3, .cr8-room.narrow .cr8-g { display: none; }
+.cr8-room.narrow .cr8-klist { display: flex; overflow-x: auto; padding: 0 0 2px; gap: 6px; scrollbar-width: none; }
+.cr8-room.narrow .cr8-k { flex: none; background: #fff; border: 2px solid #f1d3dd; border-radius: 999px; padding: 6px 12px; font-size: 13px; white-space: nowrap; }
+.cr8-room.narrow .cr8-k.on { background: var(--pk); border-color: var(--pk); }
+.cr8-room.narrow .cr8-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px; }
+.cr8-room.narrow .cr8-card { min-height: 96px; } .cr8-room.narrow .cr8-card img { height: 60px; }
+.cr8-room.narrow .cr8-work { position: fixed; left: 0; right: 0; bottom: 0; max-height: 78vh; z-index: 2; border-radius: 20px 20px 0 0; border-bottom: 0; transform: translateY(105%); transition: transform .28s cubic-bezier(.2, .9, .3, 1); box-shadow: 0 -8px 30px rgba(80, 40, 50, .3); padding-bottom: env(safe-area-inset-bottom); }
+.cr8-room.narrow .cr8-work.sheet { transform: none; }
+.cr8-room.narrow .cr8-x { display: block; }
+body.craft-on #moveModal { z-index: 1550 !important; }
+body.craft-on .desk-top-r { display: none; }

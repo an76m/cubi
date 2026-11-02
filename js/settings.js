@@ -538,6 +538,8 @@
         }
         document.querySelectorAll('.modal').forEach(mtDecorate);
         function openModal(id) {
+            if (id === 'stickerToolModal' && window.openCraft) { openCraft(); return; }   // 🎨 스티커 만들기 = 다꾸 작업실 (js/craft.js · 도련 11-02)
+            if (id === 'patMakeModal' && window.openCraft) { openCraft('bg'); return; }    // 🖌️ 배경지 만들기 = 다꾸 작업실 배경지 칸
             if (id === 'settingsModal') { saveData(false); updateStorageInfo(); refreshStorageStats(); if (typeof sndRenderSettings === 'function') sndRenderSettings(); }
             /* ☕ 서버 미리 깨우기는 그 기능을 열 때 그 서버 하나만 (포춘카드 · 오락실 → 명예의 전당 · 건의 보내기) · 랜덤박스 · 편지함은 열자마자 진짜 요청을 보내서 따로 안 깨워요 */
             if (id === 'serviceModal' && typeof wlPrefetch === 'function') wlPrefetch();     // 📱 배경화면 목록 미리 받아 두기 (js/wall.js · 받아 둔 건 한동안 다시 안 받아요)

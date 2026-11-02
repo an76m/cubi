@@ -402,6 +402,7 @@
         /* 📍 지금 있는 장소 = 이동 창 칸의 data-place 이름표와 같은 이름 (새 장소 = 여기 한 줄 + 칸에 이름표) */
         function deskHere() {
             if (window.shopSceneOn && shopSceneOn()) return 'shop';
+            if (document.body.classList.contains('craft-on')) return 'craft';   // 🎨 다꾸 작업실 (js/craft.js)
             if (document.body.classList.contains('post-on')) return 'post';
             if (document.body.classList.contains('world-on')) return 'world';   // 🌳 말랑 광장 (js/world.js)
             if (document.body.classList.contains('tarot-on')) return 'tarot';
@@ -431,9 +432,9 @@
             openModal('moveModal');
         }
         window.deskMoveOpen = deskMoveOpen;
-        /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · ✂️ 스티커 만들기 · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
+        /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · 🎨 다꾸 작업실 · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
            다른 곳에 갔다 내 방으로 돌아올 때마다(deskGoRoom) 보이는 메뉴가 다음 것으로 돌아가요 (이 창이 열려 있는 동안만 기억 · 처음 = 책상 꾸미기) */
-        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 만들기', () => openModal('stickerToolModal')], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['오늘 쓸 스티커', () => window.stpOpen && stpOpen()]];   // 🍽 오늘 쓸 스티커 (js/stktray.js · 도련 11-01)
+        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['다꾸 작업실', () => window.openCraft && openCraft()], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['오늘 쓸 스티커', () => window.stpOpen && stpOpen()]];   // 🍽 오늘 쓸 스티커 (js/stktray.js · 도련 11-01)
         const DTM = { i: 0 };
         function dtmPaint() {
             const m = document.getElementById('deskTopMenu'); if (!m) return;
@@ -449,7 +450,7 @@
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
         document.addEventListener('pointerdown', e => { const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false); }, true);
         window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
-        function deskLeave() { if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeWorld) closeWorld(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
+        function deskLeave() { if (window.closeCraft) closeCraft(); if (window.closeCalRoom) closeCalRoom(); if (window.closePostRoom) closePostRoom(); if (window.closeWorld) closeWorld(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
             dtmNext();                                                           // 🔽 돌아올 때마다 오른쪽 위 메뉴가 다음 것으로 (도련 11-01)
             if (window.shopSceneOn && shopSceneOn()) { shopSceneClose(); return; }
