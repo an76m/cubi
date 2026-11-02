@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/craft.js
    🎨 다꾸 작업실 (도련 11-02 · 다꾸러용 상품공방) : 만드는 기능을 한 장소에 · 창이 뜨는 게 아니라 작업실로 들어가요 (스티커 정리 · 오늘 쓸 스티커처럼 화면 전체)
-   - 들어오기 : 카페 창 · 이동 창 '🎨 다꾸 작업실' (data-place="craft") · 예전 ✂️ 스티커만들기 · 🖌️ 배경지 만들기 창을 여는 곳은 모두 여기로 (js/settings.js openModal)
+   - 들어오기 : 책상 오른쪽 위 메뉴 ✂️ 스티커 만들기 · 예전 ✂️ 스티커만들기 · 🖌️ 배경지 만들기 창을 여는 곳은 모두 여기로 (js/settings.js openModal)   (카페 · 이동 창 칸은 없어요 · 도련 11-02)
    - 왼쪽 = 무엇을 만들까요 (CRAFT_KINDS) · 가운데 = 내가 만든 것 (🎒 내 것 중 만든 것 · js/own.js ownList from 'mine') · 오른쪽 = 새로 만들기 (그 종류에서 쓸 수 있는 방법만)
        📱 폰 = 위 종류 칩 · 가운데 내가 만든 것 · 오른쪽 칸은 아래에서 올라와요
    - 만드는 화면은 지금 것을 그대로 열어요 (📸 포토부스 · 📷 사진 · 🖼️ 앨범 · 🔤 글씨 · 🎀 테이프 · 📃 속지 · 🧻 떡메 · 🧵 🖼 🖌 배경지) → 작업실은 뒤에 그대로 · 다 만들면 가운데가 저절로 새로
@@ -44,7 +44,7 @@
         function build() {
             let el = cq('craftRoom'); if (el) return el;
             el = document.createElement('div'); el.id = 'craftRoom'; el.className = 'cr8-room';
-            el.innerHTML = `<div class="cr8-wall"><div class="cr8-sign">🎨 다꾸 작업실<small>내가 쓸 꾸미기를 직접 만들어요</small></div>
+            el.innerHTML = `<div class="cr8-wall"><div class="cr8-sign">✂️ 스티커 만들기<small>내가 쓸 꾸미기를 직접 만들어요</small></div>
                     <div class="cr8-garland" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
                     <button type="button" class="cr8-go desk-shop-go" id="crGo"></button></div>
                 <div class="cr8-mat">
