@@ -292,5 +292,5 @@
         return true;
     }
 
-    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skHold = hold; window.skLetGo = () => { if (S.held) hold(false); }; window.skKindNow = () => S.on ? S.kind : null; window.skHeldNow = () => !!(S.on && S.held); window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
+    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skHold = hold; window.skLetGo = () => { if (S.held) hold(false); }; window.skKindNow = () => S.on ? S.kind : null; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
 })();

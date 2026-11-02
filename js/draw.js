@@ -85,7 +85,8 @@
             if (dw.cur) { dw.strokes.push(dw.cur); dw.cur = null; }
             dw.erasing = false; penRing(null);
             penFlush();
-            if (pcS.held) {                                                    // ✏️ 든 필기구는 사라지지 않고 그 자리에 내려놔요 (도련 10-21 · 톡 누르면 다시 들어요)
+            if (pcS.held && pcDesk()) pcLayDown();                             // 🪑 책상 = 페이지에 놓아요 (여러 개 · 아래 pcLayDown)
+            else if (pcS.held) {                                                    // ✏️ 든 필기구는 사라지지 않고 그 자리에 내려놔요 (도련 10-21 · 톡 누르면 다시 들어요)
                 pcS.laid = pcS.held; pcS.held = null; pcS.press = null; pcS.carry = null;
                 const h = drq('pcHeld'), b = h.getBoundingClientRect(); h.classList.remove('carry', 'in'); h.classList.add('laid');
                 h.style.transform = `translate(${b.left + b.width / 2}px, ${b.top + b.height / 2}px) rotate(-28deg) translate(-15px, -75px)`;   // 놓인 필기구는 🪡 놓인 핀셋과 같은 방향 (끝이 왼쪽 위 · 손잡이 오른쪽 아래 · css .bd-tool.tweez · 도련 10-21)
@@ -342,7 +343,7 @@
                 if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
             });
             const mini = drq('pcMini');
-            mini.onclick = () => { if (window.dkwAte && Date.now() - dkwAte < 600) return; if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.laid) { pcS.laid = null; drq('pcHeld').classList.remove('laid'); pcPutBack(); } else if (pcS.memo) pcMemoEnd(); else penDone(); };   // ✏️ 내려놓은 필기구도 쏙 빨려 들어가며 끝 (도련 10-21)   // 손이 비어 있으면 톡 = 끝
+            mini.onclick = () => { if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.laid) { pcS.laid = null; drq('pcHeld').classList.remove('laid'); pcPutBack(); } else if (pcS.memo) pcMemoEnd(); else penDone(); };   // ✏️ 내려놓은 필기구도 쏙 빨려 들어가며 끝 (도련 10-21)   // 손이 비어 있으면 톡 = 끝
             mini.addEventListener('pointerdown', e => { pcS.mini = null; if (pcS.held || pcS.memo || e.button > 0) return; pcS.mini = { id: e.pointerId, y: e.clientY, up: false }; });
             mini.addEventListener('pointermove', e => { const m = pcS.mini; if (m && m.id === e.pointerId && !m.up && m.y - e.clientY > 30) { m.up = true; pcReopen(); } });
             return r;
@@ -432,13 +433,7 @@
             note.innerHTML = pcS.memo ? '이제 글을 써요 · 다 쓰면 <b>구석 연필꽂이</b>을 톡 ✏️' : '다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️'; pcS.noteTm = setTimeout(() => { note.hidden = true; }, 4200);
         }
         /* 연필꽂이가 구석 작은 연필꽂이 자리로 쏙 줄어요 (손이 차면) */
-        function pcMiniPaint() {                           // 🪑 책상 모드 = 내 연필꽂이 소품 + 꽂힌 도구 (손에 든 · 내려놓은 것은 빼고 · js/deskgd.js) · 아니면 예전 작은 연필꽂이
-            const m = drq('pcMini'); if (!m) return;
-            const skip = [pcS.held, pcS.laid].filter(Boolean).map(o => o.id);
-            if (window.dkwMiniPaint && dkwMiniPaint(m, skip)) m.classList.add('desk'); else { m.classList.remove('desk'); m.style.width = m.style.height = ''; }
-        }
         function pcShrink() {
-            pcMiniPaint();
             const cup = drq('pcCup'); if (!cup || cup.classList.contains('gone')) return;
             drq('pcMini').hidden = false; pcLayout();
             const cr = cup.getBoundingClientRect(), mr = drq('pcMini').getBoundingClientRect();
@@ -476,6 +471,7 @@
             if (e.type !== 'pointercancel' && pcOverMini(x, y)) { pcPutBack(); return; }                 // 🖊️ 꽂으면 완료
             if (x < 6 || y < 6 || x > innerWidth - 6 || y > innerHeight - 6) { pcThrow(); return; }        // 화면 밖으로 휙
             if (pcS.memo) mfWrite();                                                                        // 📝 메모 : 손을 떼면 바로 써요 (자판이 올라와요)
+            else if (pcDesk()) penRest();                                                                   // 🪑 책상 = 꾹 집어 옮겨 놓으면 그 자리에 내려놔요 (도련 11-03)
         }
         /* 꾹 누르면 집어 들기 (그냥 쓰려고 누른 건 그대로 써져요) */
         document.addEventListener('pointerdown', e => {
@@ -662,16 +658,47 @@
             if (dw.on && !dw.rest && !e.target.closest('#penLayer')) e.stopPropagation();
         }, true);
         /* ✏️ 책상 연필꽂이 · 문구함 서랍에서 필기구를 뽑으면 (도련 11-02 · js/deskgd.js) : 그리기를 켜고 그 필기구를 바로 손에 (페이지 가운데) */
-        function drawWith(id) {
+        function drawWith(id, x, y) {                                       // x, y = 연필심 자리 (없으면 보이는 쪽 가운데)
             const all = typeof pkAll === 'function' ? pkAll() : [], w = all.find(x => x.id === id); if (!w) return false;
-            if (pcS.held) pcStow();
+            if (pcS.held && pcDesk()) { penFlush(); pcLayDown(); }             // 🪑 책상 = 들고 있던 필기구는 페이지에 놓고 (여러 개 꺼내기 · 도련 11-03)
+            else if (pcS.held) pcStow();
             openDraw(); if (!dw.on) return false;
             const o = (pcS.tools || []).find(x => x.id === w.id);
             if (!o) return false;
             const pg = drq('canvasArea'), r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect();
-            pcPick(o, { pointerId: -7, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+            pcPick(o, { pointerId: -7, clientX: x != null ? x : r.left + r.width / 2, clientY: y != null ? y : r.top + r.height / 2 });
             pcS.carry = null; drq('pcHeld').classList.remove('carry');                  // 손에 든 채 가운데 (🖱 마우스면 따라와요 · 👆 누른 곳에서 써요)
+            if (window.dkwDeskSoon) dkwDeskSoon();
             return true;
         }
+        /* ---------- ✏️ 🪑 책상 : 필기구 여러 개 꺼내기 (도련 11-03 · 현실처럼) ----------
+           손에는 하나 · 다른 필기구를 뽑거나 다른 문구를 들거나 꾹 집어 옮겨 놓으면 = 그 자리(페이지)에 놓여요 · 놓인 필기구 톡 = 다시 들기
+           치우기 = 다이어리 아래 '↩ 꺼낸 문구 정리' (js/deskgd.js) · 앱을 다시 켜면 없어요 (저장하지 않아요) · 📱 폰은 예전 그대로 */
+        const pcDesk = () => document.documentElement.classList.contains('desk-on');
+        pcS.lay = [];                                                         // [{ id, el }] 페이지에 놓인 필기구
+        function pcLayDown() {
+            const o = pcS.held, h = drq('pcHeld'), ip = drq('innerPage'); if (!o || !h || !ip) return;
+            const r = h.getBoundingClientRect(), k = typeof gdK === 'function' ? gdK().k : (ip.getBoundingClientRect().width / (ip.offsetWidth || 1)) || 1, ir = ip.getBoundingClientRect();
+            const cx = (r.left + r.width / 2 - ir.left) / k, cy = (r.top + r.height / 2 - ir.top) / k, W = o.box[0], H = o.box[1];
+            const el = document.createElement('div'); el.className = 'pc-lay'; el.dataset.id = o.id; el.innerHTML = pcSvg(o);
+            Object.assign(el.style, { left: (cx - W / 2) + 'px', top: (cy - H / 2) + 'px', width: W + 'px', height: H + 'px', transform: `rotate(${handLeft() ? 28 : -28}deg)` });
+            ip.appendChild(el); pcS.lay.push({ id: o.id, el });
+            pcS.held = null; pcS.laid = null; pcS.press = null; pcS.carry = null;
+            h.hidden = true; h.classList.remove('carry', 'in', 'laid');
+            if (window.dkwDeskSoon) dkwDeskSoon();
+        }
+        window.addEventListener('pointerdown', e => {                         // 놓인 필기구 톡 = 다시 들기 (그 자리에서)
+            const el = e.target && e.target.closest && e.target.closest('#innerPage > .pc-lay'); if (!el || e.button > 0) return;
+            e.preventDefault(); e.stopPropagation();
+            const id = el.dataset.id; pcS.lay = pcS.lay.filter(x => x.el !== el); el.remove();
+            if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo();
+            drawWith(id, e.clientX, e.clientY);
+        }, true);
+        window.pcOutIds = () => pcDesk() ? pcS.lay.filter(x => x.el.isConnected).map(x => x.id).concat(pcS.held && !pcS.memo ? [pcS.held.id] : []) : [];
+        window.pcReturn = id => {                                              // ↩ 제자리로 (js/deskgd.js 꺼낸 문구 정리)
+            pcS.lay.filter(x => x.id === id).forEach(x => x.el.remove()); pcS.lay = pcS.lay.filter(x => x.id !== id);
+            if (pcS.held && pcS.held.id === id) { penFlush(); pcStow(); if (dw.on) penRest(); }
+            if (window.dkwDeskSoon) dkwDeskSoon();
+        };
         window.openDraw = openDraw; window.drawWith = drawWith;
         document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) { penFlush(); } }, true);   // 🧭 하단 메뉴를 누르면 : 쓴 것만 페이지에 붙여요 · 필기구는 손에 그대로 (도련 10-21 · 🪟 고르는 창 모드는 ✓ 완료)

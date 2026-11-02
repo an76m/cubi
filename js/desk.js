@@ -1410,6 +1410,7 @@
         function deskCloseDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
             if (deskAnim || !w || !H.classList.contains('desk-show')) return;
+            if (window.penRest) penRest();                                        // ✏️ 든 필기구는 페이지에 놓고 쓴 것은 붙여요 (도련 11-03 · 손에 든 채 접히지 않게)
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
             if (dkOpenNow()) {                                                    // 📕 펼친 채로는 책상에 안 놓아요 (도련 10-30) : 먼저 저장 → 왼쪽 쪽이 오른쪽으로 덮이며 접혀요 → 겉표지로 내려앉아요
                 try { if (typeof saveData === 'function') saveData(false); } catch (e) {}
