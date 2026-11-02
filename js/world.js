@@ -12,8 +12,8 @@
        말풍선은 서버에 저장하지 않아요 · 걸러내기 없음 (도련 11-02 : 분위기를 보고 하나씩)
    - 닫기 없음 = 오른쪽 위 '이동' (다른 장소처럼) · Esc = 내 방 */
     (function () {
-        const WORLD_URL = '';                                                   // 🌐 광장 서버 주소 (https://malang-world.○○○.workers.dev · 도련이 올린 뒤 넣어요)
-        const W = 2400, H = 1600, V = '?v=20261009-1069', DIR = 'img/world/';
+        const WORLD_URL = 'https://malang-world.podcast20260131.workers.dev';                                                   // 🌐 광장 서버 주소 (https://malang-world.○○○.workers.dev · 도련이 올린 뒤 넣어요)
+        const W = 2400, H = 1600, V = '?v=20261009-1070', DIR = 'img/world/';
         const SPEED = 260, CH_H = 140, CH_R = 18, SAY_MAX = 60, SAY_MS = 7000;  // 걷는 빠르기 (땅 px / 초) · 인형 키 · 발 둘레 · 말풍선 글자 · 보이는 시간
         /* 물건 : [그림, 발끝 x, 발끝 y, 크기 배율, 못 지나가는 타원 [가로 반지름, 세로 반지름, 위로 올리기]] */
         const OBJ = [
