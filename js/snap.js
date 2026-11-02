@@ -7,7 +7,7 @@
        내용 { v, k: 종류, id, h: 모습 번호, P: 속성, f: { 역할: data 주소 }, wh }
    - 언제 만들어요 : 가진 상품 id 를 종류마다 모아서(snapOwn · 각 파일이 등록) 사본이 없는 것을 서버에서 받아 저장 (로그인 뒤 · 받기 뒤 · 30초마다)
    - ✨ 새 모습 : 서버 모습 번호(h)가 내 사본과 다르면 소품함 · 문구함에 '✨ 새 모습' → 다꾸러가 고르면 바꿔요 (snapWin)
-       🚑 꼭 고침 (상품 속성 '꼭고침') : 앱을 켤 때 저절로 바꾸고 알려요 (도련의 실수 고치기 · 다꾸러가 칠한 색 같은 자기 꾸밈은 그대로)
+       🚑 꼭 고침 (상품 속성 '꼭고침') : 앱을 켤 때 저절로 조용히 바꿔요 (알림 없음 · 도련 11-02) (도련의 실수 고치기 · 다꾸러가 칠한 색 같은 자기 꾸밈은 그대로)
    - 서버에서 사라진 상품 = 가진 다꾸러에게는 사본으로 그대로 (js/prod.js prodList) */
     (function () {
         const SNAP = { C: null, own: (window.SNAP_OWN = window.SNAP_OWN || {}), busy: false, again: false, timer: 0, told: false };   // own = 가진 id 목록 (각 파일이 window.SNAP_OWN[종류] = fn · 이 파일보다 먼저 읽는 파일도 있어서)
@@ -48,13 +48,11 @@
                     seen.add(o.k + '|' + o.id); put(o, e.id);
                 }));
             }
-            const fixed = [];
-            for (const [key, s] of PROD_SNAP) {                                     // 🚑 꼭 고침
+            for (const [key, s] of PROD_SNAP) {                                     // 🚑 꼭 고침 (알림 없이 조용히 · 도련 11-02)
                 const k = key.split('|')[0], x = prodServer(k).find(y => y.id === s.id);
-                if (x && x.P.꼭고침 && x.h && x.h !== s.h) { try { await make(k, x, s.cid); fixed.push(x.P.이름 || x.id); } catch (e) { console.warn('📦 꼭 고침', e); } }
+                if (x && x.P.꼭고침 && x.h && x.h !== s.h) { try { await make(k, x, s.cid); } catch (e) { console.warn('📦 꼭 고침', e); } }
             }
             prodRebuild();
-            if (fixed.length && window.showMsg) setTimeout(() => showMsg(`🚑 말랑달콤이 고친 모습으로 바꿨어요<br><span style="font-size:12px;color:#777;">${fixed.slice(0, 6).map(htmlEsc).join(' · ')}${fixed.length > 6 ? ' …' : ''}</span>`), 1500);
             snapSoon();
             snapBadge();
         }
