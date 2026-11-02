@@ -12,9 +12,9 @@
     if (!ANIME_ON) return;
     document.documentElement.classList.add('an');
     const WASH = .42, SKIP = '#canvasArea, .dk-open-wrap, .element-box', OL = '#bba6d6';
-    const ICON = '.gdc-wrap, .sh-tool';                                    /* 목록 속 작은 문구 아이콘 = 얇은 선 */
+    const ICON = '.gdc-wrap, .sh-tool, .dkw-art';                                    /* 목록 속 작은 문구 아이콘 = 얇은 선 */
     const METAL = '#d3d8e1';                                               /* 쇠 = 연한 은색 */
-    const TOOL = '.bd-tool, .sh-tool, .gdc-wrap, .pc-tool, .pc-held, .twz, .sk-knife, .rl-ruler, .scs-cur';   /* ✂️ 문구 (css/anime.css 와 같게) */
+    const TOOL = '.bd-tool, .sh-tool, .gdc-wrap, .pc-tool, .pc-held, .twz, .sk-knife, .rl-ruler, .scs-cur, .dkw-t, .dkw-art, .pk-t';   /* + 🪑 책상 연필꽂이 · 문구함 · 👝 보관함 (도련 11-02) */   /* ✂️ 문구 (css/anime.css 와 같게) */
     const isWhite = c => { const v = rgb(c); return !v || v[0] + v[1] + v[2] > 690; };
     const cv = document.createElement('canvas').getContext('2d');
     const rgb = c => { cv.fillStyle = '#000'; cv.fillStyle = c; const m = /^#([0-9a-f]{6})$/i.exec(cv.fillStyle); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; };

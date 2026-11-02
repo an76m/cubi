@@ -708,3 +708,12 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
 /* ✨ 새 모습 (도련 11-02 · 소품함 맨 위 · 받은 상품을 말랑달콤이 고쳤을 때만 · js/snap.js snapBtnHtml) */
 .iv-new { display: flex; justify-content: center; margin: 0 0 8px; }
 .iv-new:has(> .snap-new[hidden]) { display: none; }
+/* ✏️ 문구 셀 애니 (도련 11-02) : 그림자 · 음영 없이 단색 + 아웃라인 · 선 굵기는 크기에 맞게 (js/draw.js penPencilSvg · js/anime.js TOOL) */
+html.an .dkw-t, html.an .dkw-desk .dkw-t { filter: none !important; }
+html.an button.dkw-t svg [vector-effect="non-scaling-stroke"] { stroke-width: 3px; }              /* 🔍 크게 본 연필꽂이 */
+html.an i.dkw-t svg [vector-effect="non-scaling-stroke"], html.an .dkw-art svg [vector-effect="non-scaling-stroke"] { stroke-width: 1.4px; }   /* 책상 위 작은 연필꽂이 · 문구함 칸 */
+html.an .pk-ti { filter: saturate(.6) brightness(.97) !important; }
+html.an .pk-t.on .pk-ti, html.an .pk-room.binning .pk-ti { filter: none !important; }
+html.an .pc-mini { filter: none; }
+html.an .pc-mini-cup { background: radial-gradient(circle, #fff 0 1.6px, transparent 2px) 0 0 / 7px 7px, #ffc2d3 !important; border: 1.6px solid #c25a80; box-shadow: none !important; }
+html.an .pc-held, html.an .pc-held.carry, html.an .pc-held.laid { filter: none !important; }   /* 손에 든 필기구도 흐린 그림자 없이 */

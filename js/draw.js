@@ -257,29 +257,42 @@
             const n = parseInt(c.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, f = v => Math.round(v + (255 - v) * k);
             return `rgb(${f(r)},${f(g)},${f(b)})`;
         }
+        /* 🎬 셀 애니 스타일 (도련 11-02) : 그라데이션 · 음영 띠 · 글씨 없이 단색 조각 + 조각마다 제 색의 진한 아웃라인 (📔 다이어리 · 🪡 핀셋과 같은 그림체)
+           선 = 화면에서 늘 같은 굵기 (non-scaling · 기본 2px · 큰 연필꽂이 3px · 작은 아이콘 1.4px = css) · data-an = js/anime.js 가 다시 손대지 않아요 */
+        function penOl(c) {                            // 그 색을 진하게 (색은 그대로 · 밝기만 낮춰요 · js/anime.js darkC 와 같은 방법)
+            const m = /^#([0-9a-f]{6})$/i.exec(c || ''); if (!m) return '#7a5566';
+            const n = parseInt(m[1], 16); let r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+            if (r + g + b > 2.7) return '#a8949e';                                // 흰색 = 연한 회보라 선
+            const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn; let h = 0, sa = 0;
+            if (d) { sa = d / (1 - Math.abs(2 * l - 1)); h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+            return `hsl(${Math.round(h)} ${Math.round(Math.min(1, sa * 1.05) * 100)}% ${Math.round(Math.min(.9, Math.max(.25, l - .28)) * 100)}%)`;
+        }
+        const penLn = c => `stroke="${penOl(c)}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"`;
         function penPencilSvg(c, size) {               // 색연필 한 자루 (30 × 150) · 위가 연필심
-            const tip = [1.6, 2.6, 3.8][size], wood = '#f3d2a8', light = c === '#ffffff' ? '#f4f0f2' : penLighten(c, .28), dark = c === '#ffffff' ? '#ddd3d8' : penLighten(c, -0) ;
-            const lead = c === '#ffffff' ? '#e9e2e5' : c;
-            return `<svg viewBox="0 0 30 150" aria-hidden="true"><path d="M5 34 L15 2 L25 34 Z" fill="${wood}"/><path d="M5 34 Q8 31 10 34 Q12.5 31 15 34 Q17.5 31 20 34 Q22 31 25 34" fill="${wood}" stroke="#e2b88c" stroke-width=".8"/>`
-                + `<path d="M${15 - tip} 13 L15 2 L${15 + tip} 13 Z" fill="${lead}"/>`
-                + `<rect x="5" y="34" width="20" height="98" fill="${dark}"/><rect x="5" y="34" width="6.6" height="98" fill="${light}"/><rect x="18.4" y="34" width="6.6" height="98" fill="rgba(0,0,0,.12)"/>`
-                + `<rect x="5" y="34" width="20" height="98" fill="none" stroke="rgba(90,60,70,.18)" stroke-width=".8"/>`
-                + `<text x="15" y="90" font-size="7" fill="rgba(255,255,255,.75)" text-anchor="middle" transform="rotate(-90 15 90)" font-family="sans-serif">MALLANG</text>`
-                + `<rect x="5" y="132" width="20" height="9" fill="#e5c76b"/><path d="M5 135 H25 M5 138 H25" stroke="#c9a94d" stroke-width=".8"/><rect x="5.5" y="141" width="19" height="9" rx="3" fill="#ffadc4"/></svg>`;
+            const tip = [3, 4, 5.2][size] || 4, wood = '#f8dcb4', lead = c === '#ffffff' ? '#efe6ea' : c;
+            return `<svg viewBox="0 0 30 150" overflow="visible" data-an="1" aria-hidden="true">`
+                + `<path d="M5.5 34 L15 3 L24.5 34 Z" fill="${wood}" ${penLn('#e0b07a')}/>`
+                + `<path d="M${15 - tip} ${3 + tip * 2.6} L15 3 L${15 + tip} ${3 + tip * 2.6} Z" fill="${lead}" ${penLn(c)}/>`
+                + `<path d="M5.5 34 Q7.9 30.5 10.25 34 Q12.6 30.5 15 34 Q17.4 30.5 19.75 34 Q22.1 30.5 24.5 34 V132 H5.5 Z" fill="${c}" ${penLn(c)}/>`
+                + `<rect x="8.6" y="42" width="2.6" height="80" rx="1.3" fill="#fff" opacity=".5"/>`
+                + `<rect x="5.5" y="132" width="19" height="7" fill="#ffd66b" ${penLn('#ffd66b')}/>`
+                + `<path d="M5.5 139 H24.5 V144.5 Q24.5 149 20 149 H10 Q5.5 149 5.5 144.5 Z" fill="#ffadc4" ${penLn('#ffadc4')}/></svg>`;
         }
         function penMarkerSvg(c, size) {               // 뚜껑 연 형광펜 (30 × 150) · 위가 납작한 펜촉
-            const nib = [5, 7, 9][size];
-            return `<svg viewBox="0 0 30 150" aria-hidden="true"><path d="M${15 - nib} 18 L${15 - nib + 2} 4 L${15 + nib} 9 L${15 + nib} 18 Z" fill="${c}" stroke="rgba(0,0,0,.12)" stroke-width=".8"/>`
-                + `<path d="M4 30 Q4 18 9 18 H21 Q26 18 26 30 Z" fill="${penLighten(c, .1)}" stroke="rgba(0,0,0,.12)" stroke-width=".8"/>`
-                + `<rect x="3" y="30" width="24" height="116" rx="7" fill="${penLighten(c, .45)}" stroke="rgba(0,0,0,.1)" stroke-width=".8"/>`
-                + `<rect x="3" y="58" width="24" height="44" fill="#fff" opacity=".85"/><text x="15" y="80" font-size="7.5" font-weight="bold" fill="${c}" text-anchor="middle" transform="rotate(-90 15 80)" font-family="sans-serif">HIGH</text>`
-                + `<rect x="8" y="34" width="4" height="108" rx="2" fill="#fff" opacity=".35"/></svg>`;
+            const nib = [5, 7, 9][size] || 7, body = penLighten(c, .5);
+            return `<svg viewBox="0 0 30 150" overflow="visible" data-an="1" aria-hidden="true">`
+                + `<path d="M${15 - nib} 19 L${15 - nib + 2} 5 L${15 + nib} 10 L${15 + nib} 19 Z" fill="${c}" ${penLn(c)}/>`
+                + `<path d="M5 31 Q5 19 10 19 H20 Q25 19 25 31 Z" fill="${c}" ${penLn(c)}/>`
+                + `<rect x="4" y="31" width="22" height="114" rx="7" fill="${body}" ${penLn(c)}/>`
+                + `<rect x="4" y="64" width="22" height="32" fill="#fff" ${penLn(c)}/>`
+                + `<rect x="8" y="38" width="3" height="20" rx="1.5" fill="#fff" opacity=".6"/><rect x="8" y="102" width="3" height="36" rx="1.5" fill="#fff" opacity=".6"/></svg>`;
         }
         function penEraserSvg(size) {                  // 지우개 (작은 · 보통 · 큰) · 종이 띠를 두른 블록
-            const w = [14, 20, 27][size], x = 15 - w / 2;
-            return `<svg viewBox="0 0 30 150" aria-hidden="true"><rect x="${x}" y="36" width="${w}" height="110" rx="4" fill="#fffaf4" stroke="#e3d6cc" stroke-width="1"/>`
-                + `<rect x="${x}" y="70" width="${w}" height="70" fill="#8fc8e8"/><rect x="${x}" y="80" width="${w}" height="7" fill="#fff" opacity=".7"/>`
-                + `<path d="M${x + 2} 39 Q15 35 ${x + w - 2} 39" stroke="#cfc2b8" stroke-width="1" fill="none"/></svg>`;
+            const w = [14, 20, 27][size] || 20, x = 15 - w / 2, blue = '#8fc8e8';
+            return `<svg viewBox="0 0 30 150" overflow="visible" data-an="1" aria-hidden="true">`
+                + `<rect x="${x}" y="36" width="${w}" height="110" rx="4" fill="#fffaf4" ${penLn('#e8d6c8')}/>`
+                + `<rect x="${x}" y="70" width="${w}" height="66" fill="${blue}" ${penLn(blue)}/>`
+                + `<rect x="${x + 2}" y="80" width="${w - 4}" height="6" rx="2" fill="#fff"/></svg>`;
         }
         function penSetTool(t) {                       // 뽑은 필기구로 바꿔 들기 (색 · 굵기는 연필꽂이 필기구 그대로)
             dw.tool = t;
@@ -362,7 +375,7 @@
                 + `<button type="button" class="pc-x" aria-label="닫기">✕</button>`
                 + `<div class="pc-back"></div><div class="pc-tools" id="pcTools"></div><div class="pc-front"><i></i><button type="button" class="pc-box" aria-label="보관함 열기 (꽂을 필기구 고르기)"><small>색연필 · 형광펜 · 지우개</small><b>♡ 필기구 보관함</b><em>👆 눌러서 열기 ›</em></button></div></div>`
                 + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️</p>`
-                + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="연필꽂이 (꽂으면 완료)"><span class="pc-mini-tops"><i style="--c:#e2556f"></i><i style="--c:#3d9be0"></i><i style="--c:#ffe14d"></i></span><span class="pc-mini-cup"></span></button>`;
+                + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="연필꽂이 (꽂으면 완료)"><span class="pc-mini-tops">${['#e2556f', '#3d9be0', '#ffe14d'].map(c => `<i>${penPencilSvg(c, 1)}</i>`).join('')}</span><span class="pc-mini-cup"></span></button>`;
             document.body.appendChild(r);
             r.querySelector('.pc-box').onclick = () => { if (pcS.held) return; if (document.documentElement.classList.contains('desk-on') && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
