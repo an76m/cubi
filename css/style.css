@@ -3501,7 +3501,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.tweez.held { display: none; }
 .bd-tool.scissors { transform: rotate(-20deg); } .bd-tool.scissors.held { display: none; }   /* ✂️ 놓인 가위 · 든 동안은 .scs-cur 가 따라와요 (js/skins.js scs) */
 .scs-cur { position: fixed; left: 0; top: 0; z-index: 1700; pointer-events: none; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
-.scs-cur[hidden] { display: none; } .scs-cur svg { display: block; width: 100%; height: 100%; }
+.scs-cur[hidden] { display: none; } .scs-cur svg { display: block; width: 100%; height: 100%; overflow: visible; }   /* ✂️ 벌어진 날 · 손잡이가 그림 칸 밖으로 나가도 다 보여요 (도련 11-03) */
 /* 🎯 가위 조준 십자선 (FPS 게임처럼 · 도련 10-21 · js/skins.js SCS_LIFT) : 진짜 자르는 자리 = 가위 날 끝 · 💻 마우스 화살표(누르는 자리)는 그대로 보여요 */
 .scs-aim { position: fixed; left: -13px; top: -13px; width: 26px; height: 26px; z-index: 1701; pointer-events: none;
     background: linear-gradient(#ff3f8e, #ff3f8e) 50% 0 / 2.4px 9px no-repeat, linear-gradient(#ff3f8e, #ff3f8e) 50% 100% / 2.4px 9px no-repeat,
