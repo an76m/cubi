@@ -113,9 +113,9 @@
         }
         const dkwCupList = () => pkRead().concat(dkwCupTools().filter(id => !cabIsOn(id)));   // 꽂혀 있는 것 (페이지에 꺼내 둔 도구는 빼요)
         /* 연필꽂이 장면 = 그 소품 그림 + 꽂힌 도구 + 앞벽 (책상 위 작은 것 · 다가온 큰 것 모두 이것) */
-        function dkwCupScene(host, src, F, W, H, fl, big) {
+        function dkwCupScene(host, src, F, W, H, fl, big, skip) {               // skip = 빼고 그릴 것 (✏️ 손에 든 · 내려놓은 필기구)
             const m = F.mouth, mo = fl ? [100 - m[1], 100 - m[0], m[2]] : m;      // ↔ 좌우 바꾼 소품 = 입구도 반대로
-            const ids = dkwCupList(), n = ids.length, l = mo[0] / 100 * W, rr = mo[1] / 100 * W, top = mo[2] / 100 * H, base = top + (H - top) * .45;
+            const ids = dkwCupList().filter(id => !(skip && skip.includes(id))), n = ids.length, l = mo[0] / 100 * W, rr = mo[1] / 100 * W, top = mo[2] / 100 * H, base = top + (H - top) * .45;
             const sc = H / 330;                                                   // 다가온 연필꽂이 높이 330 기준
             const tools = ids.map((id, i) => {
                 const f = n === 1 ? .5 : i / (n - 1), x = l + (rr - l) * (.1 + .8 * f), a = (f - .5) * Math.min(36, 6 + n * 2.6), pen = dkwIsPen(id);
@@ -289,6 +289,17 @@
             el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); setTimeout(() => el.classList.remove('need'), 2600);
             dkwDeskSoon();
         }
+        /* ✏️ 그리는 동안 구석 작은 연필꽂이 = 책상 위 내 연필꽂이 그대로 (도련 11-03 · 소품 그림 + 꽂힌 도구 · 손에 든 것은 빼고) · 연필꽂이 소품이 없으면 false (예전 작은 연필꽂이) */
+        function dkwMiniPaint(box, skip) {
+            const el = dkwDesk() && dkwItemEl(dkwCupU()), img = el && el.querySelector(':scope > img'); if (!img) return false;
+            const F = dkwFrontFor(el) || { fm: '', mouth: [15, 85, 45] }, d = dkDef(el), r = (d.w || el.offsetWidth) / (d.h || el.offsetHeight || 1);
+            let H = 116, W = Math.round(H * r); if (W > 130) { W = 130; H = Math.round(W / r); }   // 예전 작은 연필꽂이(62 × 84)보다 조금 크게 (꽂힌 도구가 보이게)
+            box.style.width = W + 'px'; box.style.height = H + 'px';
+            let s = box.querySelector(':scope > .dkw-mini'); if (!s) { s = document.createElement('span'); s.className = 'dkw-mini'; box.appendChild(s); }
+            dkwCupScene(s, img.src, F, W, H, el.classList.contains('dk-fl'), false, skip);
+            return true;
+        }
+        window.dkwMiniPaint = dkwMiniPaint;
         window.dkwCupOpen = dkwCupOpen; window.dkwDeskPaint = dkwDeskPaint; window.dkwDeskSoon = () => dkwDeskSoon(); window.dkwTrayOpen = dkwTrayOpen; window.dkwClose = dkwClose; window.dkwCupToolN = dkwCupToolN; window.dkwUse = dkwUse;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

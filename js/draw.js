@@ -354,7 +354,7 @@
             cup.style.left = Math.round(r.left + r.width / 2 - cw / 2) + 'px';
             cup.style.top = Math.round(Math.max(8, r.top + r.height / 2 - ch / 2 + 10)) + 'px';
             const vv = window.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : innerHeight);   // 📱 자판이 올라오면 그 위로
-            if (mini) { mini.style.left = Math.round(r.right - 62 - 12) + 'px'; mini.style.top = Math.round(bot - 84 - 12) + 'px'; }
+            if (mini) { mini.style.left = Math.round(r.right - (mini.offsetWidth || 62) - 12) + 'px'; mini.style.top = Math.round(bot - (mini.offsetHeight || 84) - 12) + 'px'; }   // 🪑 책상 연필꽂이 모양이면 그 크기
             if (note) { note.style.right = Math.round(innerWidth - r.right + 10) + 'px'; note.style.top = Math.round(bot - 84 - 22) + 'px'; }
         }
         addEventListener('resize', () => { const r = drq('pcRoom'); if (r && !r.hidden) pcLayout(); });
@@ -432,7 +432,13 @@
             note.innerHTML = pcS.memo ? '이제 글을 써요 · 다 쓰면 <b>구석 연필꽂이</b>을 톡 ✏️' : '다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️'; pcS.noteTm = setTimeout(() => { note.hidden = true; }, 4200);
         }
         /* 연필꽂이가 구석 작은 연필꽂이 자리로 쏙 줄어요 (손이 차면) */
+        function pcMiniPaint() {                           // 🪑 책상 모드 = 내 연필꽂이 소품 + 꽂힌 도구 (손에 든 · 내려놓은 것은 빼고 · js/deskgd.js) · 아니면 예전 작은 연필꽂이
+            const m = drq('pcMini'); if (!m) return;
+            const skip = [pcS.held, pcS.laid].filter(Boolean).map(o => o.id);
+            if (window.dkwMiniPaint && dkwMiniPaint(m, skip)) m.classList.add('desk'); else { m.classList.remove('desk'); m.style.width = m.style.height = ''; }
+        }
         function pcShrink() {
+            pcMiniPaint();
             const cup = drq('pcCup'); if (!cup || cup.classList.contains('gone')) return;
             drq('pcMini').hidden = false; pcLayout();
             const cr = cup.getBoundingClientRect(), mr = drq('pcMini').getBoundingClientRect();
