@@ -3098,7 +3098,7 @@ body.pen-rest .draw-layer { pointer-events: none; }   /* ✏️ 필기구가 쉬
 .pc-box:hover { transform: translate(-50%, -50%) rotate(-3deg) scale(1.05); }
 .pc-box:active { transform: translate(-50%, -50%) rotate(-3deg) scale(.95); }
 .pc-cup.gone .pc-box { pointer-events: none; }
-.pc-held { position: absolute; left: 0; top: 0; width: 30px; height: 150px; transform-origin: 0 0; pointer-events: none; filter: drop-shadow(4px 8px 5px rgba(90,60,70,.28)); }
+.pc-held { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; filter: drop-shadow(4px 8px 5px rgba(90,60,70,.28)); }
 .pc-held.carry { filter: drop-shadow(10px 18px 9px rgba(90,60,70,.3)); }
 .pc-held.laid { pointer-events: auto; cursor: grab; filter: drop-shadow(2px 4px 3px rgba(90,60,70,.25)); }   /* ✏️ 다른 문구를 들면 필기구는 그 자리에 놓여요 · 톡 = 다시 들기 */
 .pc-room.rest { z-index: 900; }   /* 쉬는 동안은 창(스티커 · 문구함 …)이 위로 */
@@ -3261,7 +3261,7 @@ body.pen-rest .draw-layer { pointer-events: none; }   /* ✏️ 필기구가 쉬
 .sk-room { position: fixed; inset: 0; z-index: 905; pointer-events: none; }   /* 칼 · ✕ 만 눌려요 (도련 10-19 · 화면을 덮지 않게) */
 .sk-room[hidden] { display: none; }
 .sk-line { position: absolute; left: 0; top: 0; pointer-events: none; }
-.sk-knife { position: absolute; left: 0; top: 0; width: 40px; height: 120px; transform-origin: 13px 4px; pointer-events: auto; cursor: grab; touch-action: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
+.sk-knife { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: grab; touch-action: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
 .sk-knife svg { display: block; width: 100%; height: 100%; }
 .sk-knife.gone { opacity: 0; }
 .sk-knife.grab { cursor: grabbing; }
@@ -3290,7 +3290,7 @@ body.sk-held #innerPage { cursor: crosshair; }
 .twz-tip > b:first-child { color: #d6457a; margin-right: 6px; }
 .twz-room.bye .twz-tip { opacity: 0; }
 .twz-x { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%; border: none; background: #ffe3ec; color: #c2385c; font-weight: 900; font-size: 15px; cursor: pointer; pointer-events: auto; }
-.twz { position: absolute; left: 0; top: 0; width: 55.8px; height: 201.5px; transform-origin: 27.9px 4.65px; pointer-events: none; opacity: 0; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .25s ease; will-change: transform; }
+.twz { position: absolute; left: 0; top: 0; pointer-events: none; opacity: 0; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .25s ease; will-change: transform; }
 .twz.in { opacity: 1; }
 .twz.pin-cur { position: fixed; z-index: 2147483000; transition: none; }
 .twz.pin-cur.glide { transition: transform .6s cubic-bezier(.3, .7, .3, 1), opacity .25s; }   /* 👆 메뉴 · 창을 가리면 스르르 비켜요 (js/elements.js pinDodge) */
@@ -3303,8 +3303,8 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .twz.bye { opacity: 0; transition: opacity .38s ease; }
 .twz svg { display: block; overflow: visible; width: 100%; height: 100%; }
 .twz .twz-l, .twz .twz-r { transition: transform .12s ease; transform-box: view-box; }
-.twz .twz-l { transform-origin: 16px 126px; transform: rotate(-4deg); }
-.twz .twz-r { transform-origin: 20px 126px; transform: rotate(4deg); }
+.twz .twz-l { transform: rotate(-4deg); }   /* 축 = 상품 🔩 축 (js/gdpic.js) */
+.twz .twz-r { transform: rotate(4deg); }
 .twz.shut .twz-l, .twz.shut .twz-r { transform: rotate(0deg); }
 
 /* 📄 스티커가 페이지 밖으로 반쯤 삐져나가도 보여요 (진짜 다꾸처럼 · js/elements.js elKeepCenter) · PNG 저장 모양에서는 페이지 안만 */
@@ -3495,12 +3495,12 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 /* ✂️ 문구함 = 손에 드는 도구 (js/skins.js gdHold · 🪡 핀셋 · 📎 집게 · 🕳️ 펀칭기 · 🩹 양면테이프) : 놓인 것 · 손에 든 것(.held) · 테두리에 꽂힌 집게(.edge) */
 .bd-tool { position: absolute; z-index: 10040; cursor: pointer; touch-action: none; filter: drop-shadow(2px 6px 6px rgba(80, 50, 60, .28)); transition: filter .15s; }
 .bd-tool svg { display: block; width: 100%; height: 100%; transition: transform .1s; }
-.bd-tool.punch { width: 56px; height: 112px; } .bd-tool.tape { width: 132px; height: 74px; } .bd-tool.clip { width: 118px; height: 92px; transform-origin: 59px 66px; transition: filter .15s, opacity .3s; }
+.bd-tool.clip { transition: filter .15s, opacity .3s; }   /* 📐 크기 · 📎 무는 자리 = 상품 크기 · 쓰는끝 (js/skins.js gdMake · 도련 11-02) */
 .inner-page.dy-bo .bd-tool.clip, .inner-page.dy-bo-go .bd-tool.clip, .inner-page.dy-ring-open .bd-tool.clip { opacity: 0; pointer-events: none; }   /* 📎 바인더 링이 열려 표지가 사라지면 집게도 · 다시 끼우면 다시 (도련 10-18) */
-.bd-tool.tweez { width: 55.8px; height: 201.5px; transform: rotate(-28deg); }   /* 🪡 놓인 핀셋 (든 동안은 핀셋 화살표가 따라와요 · js/elements.js pinMove) */
+.bd-tool.tweez { transform: rotate(-28deg); }   /* 🪡 놓인 핀셋 (든 동안은 핀셋 화살표가 따라와요 · js/elements.js pinMove) */
 .bd-tool.tweez.held { display: none; }
-.bd-tool.scissors { width: 54px; height: 126px; transform: rotate(-20deg); } .bd-tool.scissors.held { display: none; }   /* ✂️ 놓인 가위 · 든 동안은 .scs-cur 가 따라와요 (js/skins.js scs) */
-.scs-cur { position: fixed; left: 0; top: 0; width: 54px; height: 126px; z-index: 1700; pointer-events: none; transform-origin: 27px 38px; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
+.bd-tool.scissors { transform: rotate(-20deg); } .bd-tool.scissors.held { display: none; }   /* ✂️ 놓인 가위 · 든 동안은 .scs-cur 가 따라와요 (js/skins.js scs) */
+.scs-cur { position: fixed; left: 0; top: 0; z-index: 1700; pointer-events: none; filter: drop-shadow(4px 10px 8px rgba(80, 50, 60, .3)); will-change: transform; }
 .scs-cur[hidden] { display: none; } .scs-cur svg { display: block; width: 100%; height: 100%; }
 /* 🎯 가위 조준 십자선 (FPS 게임처럼 · 도련 10-21 · js/skins.js SCS_LIFT) : 진짜 자르는 자리 = 가위 날 끝 · 💻 마우스 화살표(누르는 자리)는 그대로 보여요 */
 .scs-aim { position: fixed; left: -13px; top: -13px; width: 26px; height: 26px; z-index: 1701; pointer-events: none;

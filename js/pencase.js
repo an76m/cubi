@@ -15,10 +15,16 @@
         /* 🧁 필기구 = 서버 상품 (상품공방 '문구' · 문구종류 pen 색연필 · hi 형광펜 · erase 지우개 · 도련 11-02) : 색 · 지우개 크기(틀.size) · 그림은 앱이 색으로 그려요 */
         const pkOf = k => (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === k);   // 📦 내 사본이 있으면 사본 (js/prod.js)
         /* 🗂 보관함 칸 (보이는 순서) · list = 그 종류 도구들 */
+        /* 필기구 하나 = 상품 그대로 (색 · 굵기 · 이름 · 크기 · 쓰는끝 · 그림) · 하나라도 없으면 안 나와요 (🧁 상품공방이 검수 · 도련 11-02) */
+        function pkMake(x, tool) {
+            const P = x.P, p = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(p);
+            if (!p || !tip || !(+P.굵기 > 0) || !String(P.이름 || '') || (tool !== 'erase' && !/^#[0-9a-f]{6}$/i.test(P.색 || ''))) { console.warn('🧁 필기구 속성이 모자라요 :', x.id); return null; }
+            return { id: x.id, tool, color: tool === 'erase' ? '' : P.색, w: +P.굵기, name: String(P.이름), box: p.size, tip, off: !!P.숨김 };
+        }
         const PK_KINDS = [
-            { k: 'pen', lb: '색연필', list: () => pkOf('pen').map(x => ({ id: x.id, tool: 'pen', color: x.P.색 || x.id.slice(4), size: 1, off: !!x.P.숨김 })) },
-            { k: 'hi', lb: '형광펜', list: () => pkOf('hi').map(x => ({ id: x.id, tool: 'hi', color: x.P.색 || x.id.slice(3), size: 1, off: !!x.P.숨김 })) },
-            { k: 'erase', lb: '지우개', list: () => pkOf('erase').map(x => ({ id: x.id, tool: 'erase', size: +((x.P.틀 || {}).size) || 0, name: String(x.P.이름 || '지우개'), off: !!x.P.숨김 })) }
+            { k: 'pen', lb: '색연필', list: () => pkOf('pen').map(x => pkMake(x, 'pen')).filter(Boolean) },
+            { k: 'hi', lb: '형광펜', list: () => pkOf('hi').map(x => pkMake(x, 'hi')).filter(Boolean) },
+            { k: 'erase', lb: '지우개', list: () => pkOf('erase').map(x => pkMake(x, 'erase')).filter(Boolean) }
         ];
         let pkAllC = null;
         if (window.prodHook) prodHook(() => { pkAllC = null; });                // 사본을 읽으면 다시 만들어요
@@ -26,7 +32,7 @@
         /* ✏️ 가진 필기구 (도련 11-01 : 처음엔 🎁 5개 · js/skins.js GD_STARTER · 더는 🏪 기본상품 샵 '문구 → 필기구'에서 받아요) = 내 문구 목록 'diary_gd_own' 안의 필기구 (js/skins.js gdGive) */
         const pkIsId = id => pkAll().some(t => t.id === id);
         const pkOwnIds = () => { const L = window.gdOwnList ? gdOwnList() : null, H = window.deskBagHold ? deskBagHold() : null; return (L || []).map(o => o.id).filter(id => pkIsId(id) && !(H && H.g.has(id))); };   // 🛍️ 봉투 속 필기구는 꺼낼 때까지 없어요
-        const pkName = t => t.name || (t.tool === 'pen' ? '색연필' : '형광펜');
+        const pkName = t => t.name;
         const pkq = id => document.getElementById(id);
         const pk = { on: false, pick: null, busy: false, tab: 'pen', x: 0, w: 1, v: 0, raf: 0, go: null, drag: null, moved: false };   // x = 민 거리(px) · w = 한 바퀴 길이
 
@@ -42,7 +48,7 @@
         }
         /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
         function pkCupList() {
-            const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ id: t.id, tool: t.tool, color: t.color, size: t.size, kind: t.kind, tip: pkTip(t) }));
+            const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ id: t.id, tool: t.tool, color: t.color, w: t.w, kind: t.kind, tip: t.tip, box: t.box }));
             const pens = g('pen'), his = g('hi'), ers = g('erase'), out = [];
             while (pens.length || his.length) { if (pens.length) out.push(pens.shift()); if (pens.length) out.push(pens.shift()); if (his.length) out.push(his.shift()); }
             ers.forEach((e, i) => out.splice(Math.round((i + 1) * out.length / (ers.length + 1)) + i, 0, e));
@@ -52,11 +58,6 @@
 
         /* ---------- 필통 그리기 ---------- */
         const pkSvg = t => window.gdPicSvg ? gdPicSvg(t.id) : '';             // 🎬 상품공방 그림 그대로 (js/gdpic.js · 도련 11-02 · 연필꽂이 · 보관함 · 손에 든 것 모두)
-        /* 그림 안 닿는 점 = 쓰는끝 (그림 px) → 30 × 150 상자 (손에 든 필기구 · js/draw.js pcTipOf) · 없으면 위 가운데 */
-        function pkTip(t) {
-            const p = window.gdPic && gdPic(t.id); if (!p) return [15, 2];
-            return gdPicAt(p, p.tip || [p.w / 2, t.tool === 'erase' ? p.h * 37 / 150 : p.h * .02], 30, 150);
-        }
         function pkTool(t, copy) {
             const nm = pkName(t);   // 그림은 바닥에 맞춰 세워요 (모두 같은 줄에 서요)
             return `<button type="button" class="pk-t pk-${t.tool}" data-id="${t.id}" aria-pressed="false" aria-label="${nm}" title="${nm}"${copy ? ' tabindex="-1" aria-hidden="true"' : ''}><span class="pk-ti">${pkSvg(t).replace('<svg ', '<svg preserveAspectRatio="xMidYMax meet" ')}</span><i class="pk-tag">♥</i></button>`;

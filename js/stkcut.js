@@ -12,18 +12,22 @@
 (() => {
     'use strict';
     const q = id => document.getElementById(id);
-    /* 🔪 칼 종류 (🗄️ 문구함 '칼' 서랍에서 골라요 · js/skins.js) = 🧁 상품공방 '문구' 칼 (id knife:… · 그림 그대로 · js/gdpic.js · 도련 11-02) : 칼끝 = 쓰는끝 (40 × 120 상자) */
+    /* 🔪 칼 종류 (🗄️ 문구함 '칼' 서랍에서 골라요 · js/skins.js) = 🧁 상품공방 '문구' 칼 (id knife:… · 도련 11-02) : 그림 · 이름 · 크기 · 쓰는끝(칼끝) 그대로 · 하나라도 없으면 안 나와요 */
     const KN_KINDS = [];
     function knBuild() {
         KN_KINDS.length = 0;
-        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife:')).forEach(x => KN_KINDS.push({ id: x.id.slice(6), name: String(x.P.이름 || '') }));
+        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife:')).forEach(x => {
+            const p = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(p);
+            if (!tip || !String(x.P.이름 || '')) { console.warn('🧁 칼 속성이 모자라요 :', x.id); return; }
+            KN_KINDS.push({ id: x.id.slice(6), name: String(x.P.이름), box: p.size, tip });
+        });
     }
     knBuild();
     if (window.prodHook) prodHook(knBuild);
-    const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0] || { id: '', name: '칼' };
-    const knifeSvg = id => window.gdPicSvg ? gdPicSvg('knife:' + knKind(id).id) : '';
-    let KN_TIP = [13, 4];
-    function knTipSet() { const p = window.gdPic && gdPic('knife:' + S.kind); KN_TIP = p ? gdPicAt(p, p.tip || [p.w * 13 / 40, p.h * 4 / 120], 40, 120) : [13, 4]; if (S.kn) S.kn.style.transformOrigin = `${KN_TIP[0]}px ${KN_TIP[1]}px`; }
+    const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0] || null;
+    const knifeSvg = id => { const k = knKind(id); return k && window.gdPicSvg ? gdPicSvg('knife:' + k.id) : ''; };
+    let KN_TIP = null, KN_BOX = null;
+    function knTipSet() { const k = knKind(S.kind); KN_TIP = k.tip; KN_BOX = k.box; Object.assign(S.kn.style, { width: KN_BOX[0] + 'px', height: KN_BOX[1] + 'px', transformOrigin: `${KN_TIP[0]}px ${KN_TIP[1]}px` }); }   // 📐 상품 크기 · 칼끝에서 돌아요
     const KN_LAY = -28;                                // 놓인 칼 기울기 = 놓인 핀셋 (css .bd-tool.tweez)
     const KN_ANG = 215;                                // 기울기 (칼끝이 왼쪽 아래 · 손잡이는 오른쪽 위 = 글쓰기 필기구와 같은 방향)
     const S = { on: false, room: null, cv: null, kn: null, pts: null, down: false, id: null, busy: false, snap: null };
@@ -64,7 +68,7 @@
     function knifeAt(x, y) {
         const k = S.kn; if (!k) return; S.at = [x, y];                 // 지금 칼끝 자리
         if (!S.held) {                                  // 🔪 놓인 칼은 🪡 놓인 핀셋과 같은 방향 (칼끝 왼쪽 위 · 손잡이 오른쪽 아래 · 도련 10-21) · 칼 가운데는 든 칼과 같은 자리
-            const a = KN_ANG * Math.PI / 180, f = handLeft() ? -1 : 1, v = [20 - KN_TIP[0], 60 - KN_TIP[1]];
+            const a = KN_ANG * Math.PI / 180, f = handLeft() ? -1 : 1, v = [KN_BOX[0] / 2 - KN_TIP[0], KN_BOX[1] / 2 - KN_TIP[1]];
             const cx = x + f * (v[0] * Math.cos(a) - v[1] * Math.sin(a)), cy = y + v[0] * Math.sin(a) + v[1] * Math.cos(a);
             k.style.transform = `translate(${cx - KN_TIP[0]}px, ${cy - KN_TIP[1]}px) rotate(${KN_LAY}deg) translate(${-v[0]}px, ${-v[1]}px)`; return;
         }
@@ -84,6 +88,7 @@
         if (window.tmClose) tmClose();
         if (typeof selectedElement !== 'undefined' && selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         const r = build(); S.room = r; S.cv = q('skLine'); S.kn = q('skKnife'); S.on = true; S.pts = null; S.down = false;
+        if (!knKind(kind)) return;                                       // 🧁 칼 상품이 없어요
         S.kind = knKind(kind).id; S.kn.innerHTML = knifeSvg(kind); knTipSet();   // 고른 칼 그대로
         r.hidden = false; S.kn.classList.remove('gone', 'in'); size();
         if (x == null) { const b0 = q('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; x = b.left + b.width / 2; y = b.top + b.height / 2; }   // 📱 폰 = 보이는 오른쪽 쪽

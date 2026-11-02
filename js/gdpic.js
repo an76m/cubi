@@ -2,8 +2,9 @@
    🧁 문구 그림 (도련 11-02) : 모든 문구 = 🧁 상품공방에서 올린 그림 + 속성 그대로 · 앱은 모양을 그리지 않아요 (기능만 : 긋기 · 지우기 · 자르기 · 재기 · 집기)
    - 디자인 = 보이는 그림 (문구함 · 연필꽂이 · 손에 든 것 · 페이지에 놓인 것 · 샵)
    - 움직이는 조각 (같은 크기 · 같은 자리) : ✂️ 가위 = 날1 · 날2 (축에서 벌어져요) · 🪡 핀셋 = 왼팔 · 오른팔 (+ 몸 = 안 움직이는 가운데) · 조각이 다 없으면 디자인 그대로 (안 움직여요)
-   - 속성 : 쓰는끝 [x, y] (그림 px · 연필심 · 칼끝 · 핀셋 끝 · 가위가 자르는 자리) · 축 [x, y] · 색 (그어지는 선) · 눈금영역 · 눈금색 (자) · 틀.size (지우개 크기)
-   - 그림은 정한 상자(가로 × 세로)에 비율 그대로 가운데 (gdPicFit) · 상자 안 자리 = gdPicAt
+   - 속성 : 크기 [가로, 세로] (페이지 · 손에 든 크기) · 쓰는끝 [x, y] (그림 px · 연필심 · 칼끝 · 핀셋 끝 · 가위가 자르는 자리) · 축 [x, y] · 색 · 굵기 (그어지는 선) · 눈금영역 · 눈금색 (자)
+   - 앱은 빈 값을 짐작해서 채우지 않아요 (도련 11-02) : 그림 · 필요한 속성이 없으면 그 문구는 안 나와요 → 🧁 상품공방이 저장 · 포장할 때 검수해요 (GD_NEED)
+   - 그림은 크기 상자에 비율 그대로 가운데 (gdPicFit) · 상자 안 자리 = gdPicAt
    ※ js/prod.js 다음에 읽어요 */
 (function () {
     const PIC = {};
@@ -11,9 +12,9 @@
     function build() {
         Object.keys(PIC).forEach(k => delete PIC[k]);
         (window.prodList ? prodList('문구') : []).forEach(x => {
-            const u = x.u || {}, wh = (x.wh || {}).디자인; if (!u.디자인) return;
+            const u = x.u || {}, wh = pt((x.wh || {}).디자인), P = x.P || {}; if (!u.디자인 || !wh) { console.warn('🧁 문구 그림이 없어요 :', x.id); return; }
             const parts = {}; Object.keys(u).forEach(k => { if (k !== '디자인') parts[k] = u[k]; });
-            PIC[x.id] = { id: x.id, g: (x.P || {}).문구종류 || '', u: u.디자인, w: +(wh && wh[0]) || 100, h: +(wh && wh[1]) || 100, parts, tip: pt((x.P || {}).쓰는끝), axis: pt((x.P || {}).축), P: x.P || {} };
+            PIC[x.id] = { id: x.id, g: P.문구종류 || '', u: u.디자인, w: wh[0], h: wh[1], parts, size: pt(P.크기), tip: pt(P.쓰는끝), axis: pt(P.축), P };
         });
     }
     build();
@@ -26,14 +27,14 @@
         const p = PIC[id]; if (!p) return '';
         o = o || {};
         const img = u => `<image href="${esc(u)}" width="${p.w}" height="${p.h}" preserveAspectRatio="none"/>`;
-        const ax = p.axis || [p.w / 2, p.h / 2], ps = o.parts && o.parts.every(([n]) => p.parts[n]) ? o.parts : null;
+        const ps = p.axis && o.parts && o.parts.every(([n]) => p.parts[n]) ? o.parts : null, ax = p.axis;   // 조각 + 🔩 축이 다 있어야 움직여요
         const body = ps ? ps.map(([n, cls]) => `<g class="${cls}" style="transform-origin:${ax[0]}px ${ax[1]}px;transform-box:view-box">${img(p.parts[n])}</g>`).join('') + (o.over && p.parts[o.over] ? img(p.parts[o.over]) : '') : img(p.u);
         return `<svg viewBox="0 0 ${p.w} ${p.h}" data-an="1" aria-hidden="true"${o.attr || ''}>${body}${o.extra || ''}</svg>`;
     }
     window.gdPic = id => PIC[id] || null;
     window.gdPicOf = g => Object.values(PIC).filter(p => p.g === g);
     window.gdPicSvg = svg; window.gdPicFit = fit; window.gdPicAt = at;
-    window.gdPicMoves = (id, names) => { const p = PIC[id]; return !!p && names.every(n => p.parts[n]); };   // 움직이는 조각이 다 있나요
+    window.gdPicTip = p => p && p.size && p.tip ? at(p, p.tip, p.size[0], p.size[1]) : null;   // 🎯 쓰는끝 → 크기 상자 안 자리 (크기 · 쓰는끝이 없으면 null = 그 문구는 못 써요)
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

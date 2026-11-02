@@ -6,8 +6,7 @@
    - 그림은 SVG 로 일기에 담겨요 (파일 없음) · 선을 아주 많이 그리면 그날 일기 파일이 조금 커져요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (펜 버튼만 '준비 중') */
 
-        const DRAW_SIZES = { pen: [2, 4, 7], hi: [12, 18, 26], erase: [12, 24, 40] };
-        const dw = { on: false, tool: 'pen', color: {}, size: { pen: 1, hi: 1, erase: 1 }, strokes: [], hist: [], cur: null, ring: null, svg: null, k: 1 };
+        const dw = { on: false, tool: 'pen', color: {}, w: {},   /* w = 굵기 px (상품 '굵기' · 도련 11-02) */ strokes: [], hist: [], cur: null, ring: null, svg: null, k: 1 };
         const drq = id => document.getElementById(id);
         const DRAW_NS = 'http://www.w3.org/2000/svg';
 
@@ -125,7 +124,7 @@
             try { dw.svg.setPointerCapture(e.pointerId); } catch (err) {}
             const pt = penPointXY(at[0], at[1]);
             if (dw.tool === 'erase') { dw.erasing = true; dw.hist.push(dw.strokes); dw.erased = false; dw.inks = penInks(); penRing(pt); penEraseAt(pt); return; }
-            dw.cur = { tool: dw.tool, color: dw.color[dw.tool], w: DRAW_SIZES[dw.tool][dw.size[dw.tool]], pts: [pt] };
+            dw.cur = { tool: dw.tool, color: dw.color[dw.tool], w: dw.w[dw.tool], pts: [pt] };
             dw.snap = sn ? { sn, a: at, n: 1 } : null;
             penRender();
         }
@@ -168,7 +167,7 @@
         /* 🧽 지우개 : 동그라미에 닿은 부분만 지우고, 선이 끊기면 두 개로 나눠요 */
         function penRing(pt) {
             const c = dw.ring; if (!c) return;
-            c.setAttribute('r', DRAW_SIZES.erase[dw.size.erase] / 2);
+            c.setAttribute('r', dw.w.erase / 2);
             c.setAttribute('cx', pt ? pt[0] : -99); c.setAttribute('cy', pt ? pt[1] : -99);
         }
         function penDense(pts) {                       // 점 사이가 멀면 촘촘하게 (곧은 형광펜도 부분 지우기)
@@ -180,7 +179,7 @@
             return out;
         }
         function penEraseAt(pt) {
-            const r = DRAW_SIZES.erase[dw.size.erase] / 2;
+            const r = dw.w.erase / 2;
             const near = (p, s) => Math.hypot(p[0] - pt[0], p[1] - pt[1]) < r + s.w * .35;
             let hit = false;
             const out = [];
@@ -319,7 +318,7 @@
         const PC_ANG = -145;                               // 들고 있는 필기구 기울기 (연필심이 왼쪽 아래 · 몸통은 오른쪽 위)
         const pcS = { tools: [], held: null, tip: null, carry: null, press: null, drag: null, z: 10 };
         const pcSvg = o => o.id && window.gdPicSvg ? gdPicSvg(o.id) : '';
-        const pcTipOf = o => o.tip || [15, 2];                                  // 그림 안 닿는 점 = 쓰는끝 (30 × 150 · js/pencase.js pkTip)
+        const pcTipOf = o => o.tip;                                             // 그림 안 닿는 점 = 쓰는끝 (크기 상자 안 · js/gdpic.js gdPicTip)
         const pcList = () => window.pkCupList ? pkCupList() : [];          // 👝 보관함에서 고른 것만 (js/pencase.js · 🧁 상품 필기구 · 색 = 그 상품 색)
         function pcBuild() {
             let r = drq('pcRoom'); if (r) return r;
@@ -337,7 +336,7 @@
                 e.preventDefault(); e.stopPropagation();
                 const h = drq('pcHeld'); pcS.laid = null; h.classList.remove('laid');
                 penWake(false);
-                pcS.held = o; dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.size[o.tool] = o.size; penSetTool(o.tool);
+                pcS.held = o; dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.w[o.tool] = o.w; penSetTool(o.tool);
                 pcS.carry = { id: e.pointerId, off: [0, 0] }; h.classList.add('carry'); pcHeldAt(e.clientX, e.clientY);   // 집은 자리에 연필심 (다시 바로 든 모양으로)
                 window.toolGlow && toolGlow(h);
                 if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
@@ -423,8 +422,8 @@
             pcS.held = o;
             pcShrink();
             if (pcS.memo) mhlApply(pcS.memo, o);                                 // 📝 메모 : 고른 필기구로 글씨 모양이 바로 바뀌어요
-            else { dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.size[o.tool] = o.size; penSetTool(o.tool); }
-            const h = drq('pcHeld'); h.innerHTML = pcSvg(o); h.hidden = false; h.classList.add('carry');
+            else { dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.w[o.tool] = o.w; penSetTool(o.tool); }
+            const h = drq('pcHeld'); h.innerHTML = pcSvg(o); h.style.width = o.box[0] + 'px'; h.style.height = o.box[1] + 'px'; h.hidden = false; h.classList.add('carry');   // 📐 상품 크기
             pcS.carry = { id: e.pointerId, off: [0, 0] };                         // 뽑은 손 그대로 들고 있어요 (연필심 = 손가락)
             pcHeldAt(e.clientX, e.clientY);
             if (window.toolGlow) toolGlow(h);                                  // ✨ 뽑는 순간 한 번 반짝
@@ -458,7 +457,7 @@
             if (!pcS.held || !pcS.tip) return false;
             const a = PC_ANG * Math.PI / 180, ux = -Math.sin(a) * (handLeft() ? -1 : 1), uy = Math.cos(a), t = pcTipOf(pcS.held);
             const px = x - pcS.tip[0], py = y - pcS.tip[1], along = px * ux + py * uy, across = Math.abs(px * uy - py * ux);
-            return along > 22 + (t[1] - 2) && along < 150 - t[1] && across < 18;
+            return along > 22 + (t[1] - 2) && along < pcS.held.box[1] - t[1] && across < pcS.held.box[0] / 2 + 3;
         }
         const pcOverMini = (x, y) => { const m = drq('pcMini'); if (!m || m.hidden) return false; const r = m.getBoundingClientRect(); return x > r.left - 16 && x < r.right + 16 && y > r.top - 24 && y < r.bottom + 16; };
         function pcCarryMove(e) {
@@ -661,7 +660,7 @@
             const all = typeof pkAll === 'function' ? pkAll() : [], w = all.find(x => x.id === id); if (!w) return false;
             if (pcS.held) pcStow();
             openDraw(); if (!dw.on) return false;
-            const o = (pcS.tools || []).find(x => x.tool === w.tool && (w.tool === 'erase' ? +x.size === +w.size : String(x.color).toLowerCase() === String(w.color).toLowerCase()));
+            const o = (pcS.tools || []).find(x => x.id === w.id);
             if (!o) return false;
             const pg = drq('canvasArea'), r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect();
             pcPick(o, { pointerId: -7, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });

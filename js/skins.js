@@ -662,10 +662,9 @@
            - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 크기는 다이어리 크기와 상관없이 늘 같아요 */
         /* 🧁 문구 = 서버 상품 (상품공방 '문구' · js/prod.js · 도련 11-02) : 🎬 모양 = 상품공방 그림 그대로 (js/gdpic.js · 앱은 모양을 그리지 않아요 · 도련 11-02) · 종류(문구종류) · 이름 · 색 · 크기 · 쓰는 끝 · 처음선물 · 틀(칼 · 자 색) · 그림(속성 '그림' ✔ = 도련 그림으로 · 가위는 날이 움직여서 앱 모양)
            모양은 앱이 그려요 (집게 · 펀칭기 · 테이프 · 핀셋 · 가위 · 칼 · 자 · 필기구) · 상품이 정하는 건 어떤 디자인이 있는지 · 색 · 크기 */
-        const CLIPS = [];                                                      // CLIPS = [색 이름, 이름, 색] · 📦 내 사본이 있으면 사본 (gdBuild) · 그림 = js/gdpic.js
+        const CLIPS = [];                                                      // CLIPS = [색 이름, 이름] (📎 집게 id clip:색이름) · 📦 내 사본이 있으면 사본 (gdBuild) · 그림 = js/gdpic.js
         /* 📎 집게가 무는 테두리 : 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 모서리는 둥글게 돌아요
            - 집게 아랫입(종이를 무는 곳 59, 66)이 테두리 위 · 몸통은 늘 바깥쪽을 봐요 */
-        const CLIP_GX = 59, CLIP_GY = 66;
         function clipRail(W, H, r) {                                           // 테두리 길이 · 길이 → [x, y, 바깥 방향(도)]
             r = Math.max(0, Math.min(r, W / 2, H / 2));
             const a = Math.PI * r / 2, seg = [W - 2 * r, a, H - 2 * r, a, W - 2 * r, a, H - 2 * r, a], L = seg.reduce((x, y) => x + y, 0);
@@ -1169,7 +1168,7 @@
         window.twzSay = twzSay;
         window.scsSay = (x, y) => { twzSay(x, y, '✂️ 가위를 사용해 주세요'); gdNeed('scissors'); };   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
         const GD = {};                                                          // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터 · 가위 = 날이 종이를 무는 자리) · 🧁 서버 + 📦 사본 (gdBuild)
-        const gdInfo = id => { const c = String(id).startsWith('clip:') && CLIPS.find(x => 'clip:' + x[0] === id), d = GD[id]; return c ? Object.assign({ g: 'clip', n: c[1], c: c[2], w: 118, h: 92, hx: CLIP_GX, hy: CLIP_GY }, d ? { w: d.w, h: d.h, hx: d.hx, hy: d.hy } : {}) : d || null; };   // 📎 크기 · 무는 자리 = 상품 크기 · 쓰는끝 (없으면 기본)
+        const gdInfo = id => GD[id] || null;   // 📐 크기 · 쓰는끝 = 상품 그대로 (gdBuild · 없으면 그 문구는 안 나와요)
         const gdArt = id => window.gdPicSvg ? gdPicSvg(id) : '';                 // 🎬 상품공방 그림 그대로 (js/gdpic.js)
         let gdHeld = null, gdG = null, gdInit = false, gdBook = null, gdClipSig = '';
         const gdScs = () => !!gdHeld && (gdInfo(gdHeld) || {}).g === 'scissors';           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
@@ -1409,8 +1408,8 @@
             if (!scs.el) { scs.el = document.createElement('div'); scs.el.className = 'scs-cur'; document.body.appendChild(scs.el); }
             if (scs.id !== gdHeld) {                                            // 든 가위 그림 (가위마다) · 🎯 자르는 자리 = 쓰는끝 (그림 px → 54 × 126 상자)
                 scs.id = gdHeld; scs.el.innerHTML = scsSvg(gdHeld);
-                const p = window.gdPic && gdPic(gdHeld); scs.piv = p ? gdPicAt(p, p.tip || [p.w / 2, p.h * .3], 54, 126) : [27, 38];
-                scs.el.style.transformOrigin = `${scs.piv[0]}px ${scs.piv[1]}px`;
+                const p = window.gdPic && gdPic(gdHeld); scs.piv = gdPicTip(p);   // 📐 상품 크기 · 쓰는끝 (gdBuild 가 검수한 가위만 들 수 있어요)
+                Object.assign(scs.el.style, { width: p.size[0] + 'px', height: p.size[1] + 'px', transformOrigin: `${scs.piv[0]}px ${scs.piv[1]}px` });
             }
             if (!scs.aim) { scs.aim = document.createElement('div'); scs.aim.className = 'scs-aim'; scs.aim.setAttribute('aria-hidden', 'true'); document.body.appendChild(scs.aim); }
             if (!scs.cut && scs.on) {                                           // 들고 다닐 때도 가끔 싹둑 (귀엽게)
@@ -1440,7 +1439,7 @@
             if (scs.gx != null) { scs.x += (scs.gx - scs.x) * .12; scs.y += (scs.gy - scs.y) * .12; if (Math.hypot(scs.gx - scs.x, scs.gy - scs.y) < .5) { scs.x = scs.gx; scs.y = scs.gy; scs.gx = null; } }
             let d = ((scs.to - scs.ang + 540) % 360) - 180; scs.ang += d * (scs.cut ? .22 : .1);   // 손떨림에 덜덜 떨지 않게 부드럽게
             const k = t - scs.snip, o = k < 45 ? 1 - .92 * k / 45 : k < 120 ? .08 + .92 * (k - 45) / 75 : 1;   // 싹둑 : 0.045초에 닫고 0.075초에 다시 벌려요 (10-21 빠르게)
-            const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g.scs-a, g.scs-b'), pv = scs.piv || [27, 38];
+            const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g.scs-a, g.scs-b'), pv = scs.piv;
             if (g.length === 2) { scs.el.querySelector('g.scs-b').style.transform = `rotate(${-a}deg)`; scs.el.querySelector('g.scs-a').style.transform = `rotate(${a}deg)`; }   // 날1 · 날2 = 축에서 (js/gdpic.js transform-origin)
             scs.el.style.transform = `translate(${scs.x - pv[0]}px, ${scs.y - pv[1]}px) rotate(${scs.ang.toFixed(2)}deg)`;   // 자르는 자리가 십자선 위에
             if (scs.aim) scs.aim.style.transform = `translate(${scs.x}px, ${scs.y}px)`;   // 🎯 십자선 = 날 끝 (돌지 않아요)
@@ -1652,11 +1651,13 @@
             const L = window.prodList ? prodList('문구') : [], srv = window.prodServer ? prodServer('문구') : [];
             Object.keys(GD).forEach(k => delete GD[k]); CLIPS.length = 0; GD_STARTER.length = 0; GD_OFF.clear();
             L.forEach(x => {
-                const P = x.P || {}, w = x.wh && x.wh.디자인;
-                if (P.문구종류 === 'clip' && x.id.startsWith('clip:')) CLIPS.push([x.id.slice(5), String(P.이름 || ''), /^#[0-9a-f]{6}$/i.test(P.색 || '') ? P.색 : '#ff8fb1']);
-                if (['tweez', 'punch', 'tape', 'scissors', 'clip'].includes(P.문구종류) && Array.isArray(P.크기)) {   // 📐 페이지에 놓일 크기 · 쓰는끝(그림 px → 그 크기 상자 · js/gdpic.js)
-                    const ww = +P.크기[0] || 60, hh = +P.크기[1] || 60, pic = window.gdPic && gdPic(x.id), [hx, hy] = pic && pic.tip ? gdPicAt(pic, pic.tip, ww, hh) : [ww / 2, 0];
-                    GD[x.id] = { g: P.문구종류, n: String(P.이름 || ''), w: ww, h: hh, hx, hy }; }
+                const P = x.P || {};
+                if (['tweez', 'punch', 'tape', 'scissors', 'clip'].includes(P.문구종류)) {   // 📐 페이지에 놓일 크기 · 쓰는끝 (그림 px → 크기 상자 · js/gdpic.js) · 이름 · 하나라도 없으면 안 나와요 (🧁 상품공방이 검수)
+                    const pic = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(pic);
+                    if (!tip || !String(P.이름 || '') || (P.문구종류 === 'clip' && !x.id.startsWith('clip:'))) { console.warn('🧁 문구 속성이 모자라요 :', x.id); return; }
+                    GD[x.id] = { g: P.문구종류, n: String(P.이름), w: pic.size[0], h: pic.size[1], hx: tip[0], hy: tip[1] };
+                    if (P.문구종류 === 'clip') CLIPS.push([x.id.slice(5), String(P.이름)]);
+                }
             });
             srv.forEach(x => { if (x.P.처음선물) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
         }

@@ -644,15 +644,15 @@
            📌 삭제핀 (도련 · 10-17 · 페이지 빈 곳 메뉴 js/tapmenu.js) : 같은 핀셋인데 고른 것 하나가 아니라 페이지 위 무엇이든 집어서 뜯어요 (twzPin)
            - 집은 곳 맨 위의 스티커 · 사진 · 글 · 메모가 뜯겨요 · 하나를 버려도 핀셋은 남아서 계속 뜯을 수 있어요
            - 덜 뜯고 놓으면 다시 붙고 놓아줘요 · ✕ / Esc / 아무것도 없는 곳을 톡 = 그만두기 */
-        const TWZ_BOX = [55.8, 201.5], TWZ_ANG = 215; let TWZ_TIP = [27.9, 4.65];   // 크기 · 집게 끝(화면 px) · 기울기 = 필기구(draw.js PC_ANG)와 같아요
+        const TWZ_ANG = 215; let TWZ_BOX = [0, 0], TWZ_TIP = [0, 0];      // 크기 · 집게 끝 = 든 핀셋 상품 그대로 (pinSvg)   // 크기 · 집게 끝(화면 px) · 기울기 = 필기구(draw.js PC_ANG)와 같아요
         /* 🪡 핀셋 모양 = 🧁 상품공방 그림 그대로 (도련 11-02 · js/gdpic.js) : 📌 삭제핀 · 스티커 삭제핀 · 스티커 뜯는 핀셋이 모두 pinSvg() · 든 핀셋(없으면 첫 핀셋)
-           - 왼팔 · 오른팔 (+ 몸) 조각이 있으면 누를 때 오므려요 (css .twz.shut) · 집게 끝 = 쓰는끝 (55.8 × 201.5 상자) */
+           - 왼팔 · 오른팔 (+ 몸) 조각 · 🔩 축이 있으면 누를 때 오므려요 (css .twz.shut) · 크기 · 집게 끝 = 상품 크기 · 쓰는끝 */
         function pinSvg() {
-            const id = window.gdTwzId ? gdTwzId() : '', p = id && window.gdPic ? gdPic(id) : null; if (!p) return '';
-            TWZ_TIP = gdPicAt(p, p.tip || [p.w / 2, p.h * .03], TWZ_BOX[0], TWZ_BOX[1]);
+            const id = window.gdTwzId ? gdTwzId() : '', p = id && window.gdPic ? gdPic(id) : null, tip = window.gdPicTip && gdPicTip(p); if (!tip) return '';
+            TWZ_BOX = p.size; TWZ_TIP = tip;
             return gdPicSvg(id, { parts: [['왼팔', 'twz-l'], ['오른팔', 'twz-r']], over: '몸' });
         }
-        const pinOrg = el => { el.style.transformOrigin = `${TWZ_TIP[0]}px ${TWZ_TIP[1]}px`; };   // 집게 끝에서 돌아요
+        const pinOrg = el => { Object.assign(el.style, { width: TWZ_BOX[0] + 'px', height: TWZ_BOX[1] + 'px', transformOrigin: `${TWZ_TIP[0]}px ${TWZ_TIP[1]}px` }); };   // 📐 상품 크기 · 집게 끝에서 돌아요
         /* 🪡 핀셋 (도련 · 10-17 · 10-19) : 핀셋을 손에 든 동안 늘 보여요 · 절대 사라지지 않아요 · 🗄️ 문구함 🪡 핀셋 서랍 (js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
            - 쓰임이 없을 땐 그 자리에서 아주 느리게 위아래로 둥실 (공중에 떠서 기다리는 느낌) · 누르는 동안은 둥실 멈추고 집게가 오므라들어요
            - 💻 마우스 : 핀셋이 갈 수 있는 곳(pinOver : 페이지 · 🏷️ 씰 종이 · 🧩 조각 봉투 · 📒 수첩 속지 · 배경지)에선 마우스에 붙어 둥실거리며 따라와요
