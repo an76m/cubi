@@ -8,7 +8,7 @@
    - 🗄️ 서랍장 문구함 칸 (기능 'gd') 톡 = 그 서랍이 쭉 열려요 (dkwTrayOpen) : 칸막이 트레이에 가진 문구 전부
        필기구 · 자 · 칼 · 가위 · 핀셋 · 펀칭기 · 집게 · 양면테이프 (종류는 칸막이로만 나눠요)
        톡 = 꺼내 쓰기 · ♥ = 연필꽂이에 꽂기 / 빼기 (필기구 · 자 · 칼 · 가위 · 핀셋만 · 펀칭기 · 집게 · 양면테이프는 서랍에만)
-       서랍 색 = 그 서랍장 그림의 그 칸 색 · 🏪 더 받기 · 🧰 정리하기(버리기 · 예전 문구함 창)
+       서랍 색 = 그 서랍장 그림의 그 칸 색 
    - 경우의 수
        연필꽂이 + 문구함 칸 = 위 그대로 · 연필꽂이만 = 연필꽂이의 '🗄️ 문구함' 버튼 → 서랍(기본 색) · 문구함 칸만 = ♥ 는 필기구만(그리기 연필꽂이)
        둘 다 없으면 = 예전처럼 (🛠 책상 꾸미기에서 이어요)
@@ -55,16 +55,20 @@
             for (const u of Object.keys(H)) { const e = (H[u] || []).find(x => x.k === 'gd'); if (e) return { u, e, el: dkwItemEl(u) }; }
             return null;
         }
-        function dkwToggle(id) {                                                  // ♥ 연필꽂이에 꽂기 ↔ 빼기
+        function dkwToggle(id, at) {                                                  // ♥ 연필꽂이에 꽂기 ↔ 빼기
             const on = dkwInCup(id);
-            if (!on && dkwCupN() >= DKW_MAX) { dkwSay(`✏️ 연필꽂이에는 ${DKW_MAX}개까지 꽂을 수 있어요`); return false; }
+            if (!on && dkwCupN() >= DKW_MAX) { dkwSay(`✏️ 연필꽂이에는 ${DKW_MAX}개까지 꽂을 수 있어요`, at); return false; }
             if (dkwIsPen(id)) { const L = pkRead().filter(x => x !== id); if (!on) L.push(id); pkWrite(L); if (window.pcRefill) pcRefill(); }
             else { const L = dkwCupTools().filter(x => x !== id); if (!on) L.push(id); prefSet(DKW_CUP_KEY, DKW_CUP_L, L); }
             return true;
         }
-        function dkwSay(t) {                                                      // 열린 창 위 작은 말풍선
+        function dkwSay(t, at) {                                                  // 작은 말풍선 = 누른 것 바로 위 (눈이 가 있는 곳 · 도련 11-02) · at 이 없으면 열린 창 위쪽
             let b = dkwq('dkwSay'); if (!b) { b = document.createElement('div'); b.id = 'dkwSay'; b.className = 'dkw-say'; document.body.appendChild(b); }
-            b.textContent = t; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+            b.textContent = t; b.classList.remove('on');
+            const box = at || document.querySelector('#dkwTray:not([hidden]) .dkw-din, #dkwCup:not([hidden]) .dkw-cupart'), r = box ? box.getBoundingClientRect() : { left: innerWidth / 2, width: 0, top: innerHeight / 2 };
+            const hw = b.offsetWidth / 2 + 8, x = Math.max(hw, Math.min(innerWidth - hw, r.left + r.width / 2)), y = at ? r.top - 8 : r.top + 12;
+            b.style.left = x + 'px'; b.style.top = Math.max(b.offsetHeight + 8, y) + 'px';
+            void b.offsetWidth; b.classList.add('on');
             clearTimeout(DKW.sayT); DKW.sayT = setTimeout(() => b.classList.remove('on'), 2000);
         }
         /* 🎨 소품 그림의 색 (그 자리 둘레 평균 · 투명은 빼요) → 서랍 · 컵 색 */
@@ -161,8 +165,9 @@
             r.innerHTML = `<div class="dkw-drawer" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
                 <div class="dkw-dtop"><b>🗄️ 문구함</b><small>${home && el ? htmlEsc(dkName(DK.items.find(x => x.u === home.u)) + ' · ' + dkSlotNm(home.e.s, (dkSlots(DK.items.find(x => x.u === home.u).id) || []).length) + ' 칸') : '책상 서랍장 칸에 넣으면 그 서랍에서 열려요'}</small><span class="dkw-cnt" id="dkwCnt"></span><button type="button" class="dkw-dx" aria-label="닫기" onclick="dkwClose()">✕</button></div>
                 <div class="dkw-din" id="dkwIn"></div>
+                <span class="dkw-more" id="dkwMore" hidden><b>⬇ 아래로 더 있어요</b></span>
                 <div class="dkw-dfront"><span class="dkw-lbl">✏️ 문구함</span><i class="dkw-knob"></i></div>
-                <div class="dkw-foot"><span id="dkwTip"></span><button type="button" class="dkw-b" onclick="dkwClose(); gdCabShop()">🏪 더 받기</button><button type="button" class="dkw-b" onclick="dkwClose(); openGdCab()" title="버리기 · 주로 쓰는 것">🧰 정리하기</button></div></div>`;
+                <div class="dkw-foot"><span id="dkwTip"></span></div></div>`;
             dkwTrayPaint();
             dkwShow(r);
             dkwFly(r.querySelector('.dkw-drawer'), el);
@@ -177,12 +182,14 @@
             inn.innerHTML = secs.length ? secs.map(([k, nm, ids, wide]) => `<div class="dkw-sec dkw-${k}${wide ? ' wide' : ''}"><h4>${nm}<small>${ids.length}개</small></h4><div class="dkw-its">${ids.map(id => {
                 const can = dkwCanCup(id) && (cup || dkwIsPen(id)), on = can && dkwInCup(id), pg = !dkwIsPen(id) && cabIsOn(id), need = DKW.need && cabGOf(id) === DKW.need;
                 return `<div class="dkw-it${on ? ' in' : ''}${need ? ' need' : ''}" data-id="${htmlEsc(id)}"><button type="button" class="dkw-use" title="꺼내 쓰기"><span class="dkw-art">${dkwArt(id)}</span><b>${htmlEsc(dkwName(id))}</b>${pg ? '<em>페이지에</em>' : ''}</button>${can ? `<button type="button" class="dkw-heart${on ? ' on' : ''}" aria-label="연필꽂이에 꽂기" title="${on ? '연필꽂이에서 빼기' : '연필꽂이에 꽂기'}">♥</button>` : ''}</div>`;
-            }).join('')}</div></div>`).join('') : '<div class="dkw-none">아직 문구가 없어요<br><button type="button" class="dkw-b" onclick="dkwClose(); gdCabShop()">🏪 기본상품 샵에서 받아 오기</button></div>';
+            }).join('')}</div></div>`).join('') : '<div class="dkw-none">아직 문구가 없어요</div>';
             inn.querySelectorAll('.dkw-it').forEach(it => {
                 const id = it.dataset.id;
                 it.querySelector('.dkw-use').onclick = () => dkwUse(id);
-                const h = it.querySelector('.dkw-heart'); if (h) h.onclick = () => { if (dkwToggle(id)) { dkwSay(dkwInCup(id) ? `♥ ${dkwName(id)} → 연필꽂이에 꽂았어요` : `${dkwName(id)} → 서랍에 넣었어요`); dkwTrayPaint(); } };
+                const h = it.querySelector('.dkw-heart'); if (h) h.onclick = () => { if (dkwToggle(id, it)) { dkwSay(dkwInCup(id) ? `♥ ${dkwName(id)} → 연필꽂이에 꽂았어요` : `${dkwName(id)} → 서랍에 넣었어요`, it); dkwTrayPaint(); } };
             });
+            const more = () => { const d = dkwq('dkwIn'), m = dkwq('dkwMore'); if (!d) return; const on = d.scrollHeight - d.scrollTop - d.clientHeight > 12; if (m) m.hidden = !on; };   // ⬇ 아래에 더 있어요
+            inn.onscroll = more; requestAnimationFrame(more);
             const n = dkwq('dkwCnt'); if (n) n.innerHTML = `✏️ 연필꽂이 <b>${dkwCupN()}</b> / ${DKW_MAX}`;
             const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = cup ? '톡 = 꺼내 쓰기 · <b>♥</b> = 연필꽂이에 꽂기 / 빼기' : '톡 = 꺼내 쓰기 · <b>♥</b> = 그리기 연필꽂이 · 책상에 연필꽂이를 놓으면 도구도 꽂아 둬요';
         }
