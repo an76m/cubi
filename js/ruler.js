@@ -21,51 +21,45 @@
     function rlSaved() { try { const v = parseFloat(localStorage.getItem(PPC_KEY)); return v > 15 && v < 200 ? v : 0; } catch (e) { return 0; } }
     const rlPpc = () => rlSaved() || rlGuess();
 
-    /* ---------- 📏 자 종류 (🗄️ 문구함 '자' 서랍에서 골라요 · js/skins.js) : 몸통 · 테두리 · 눈금 색 · 새 자 = 한 줄 추가 (id 는 바꾸지 않기) ---------- */
+    /* ---------- 📏 자 종류 (🗄️ 문구함 '자' 서랍에서 골라요 · js/skins.js) = 🧁 상품공방 '문구' 자 (id ruler:… · 도련 11-02) ----------
+       모양 = 상품공방 그림 그대로 (세운 자 · js/gdpic.js) · 눈금 = 앱이 진짜 cm 로 (기능) : 눈금영역 [왼, 위, 오른, 아래] % (그 띠의 왼쪽 변부터 눈금) · 눈금색 */
     const RL_KINDS = [];
-    const RL_DEF = { bd: ['rgba(255,255,255,.5)', 'rgba(236,244,255,.42)'], ln: '#aebbd0', ink: '#55607a', ht: '#ffb3c8', cup: 'rgba(240,246,255,.85)' };
-    function rlKindsBuild() {                                                  // 🧁 서버 + 📦 내 사본 (상품공방 '문구' · 틀 = 몸통 bd · 테두리 ln · 눈금 ink · ht · 받침 cup · 도련 11-02)
+    function rlKindsBuild() {
         RL_KINDS.length = 0;
-        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler:') && x.P.틀).forEach(x => RL_KINDS.push(Object.assign({}, RL_DEF, x.P.틀, { id: x.id.slice(6), name: String(x.P.이름 || '') })));
-        if (!RL_KINDS.length) RL_KINDS.push(Object.assign({ id: 'clear', name: '자' }, RL_DEF));   // 목록이 비어도 자는 그려져야 해서
+        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler:')).forEach(x => {
+            const a = Array.isArray(x.P.눈금영역) && x.P.눈금영역.length === 4 ? x.P.눈금영역.map(Number) : [5, 3, 58, 91];
+            RL_KINDS.push({ id: x.id.slice(6), name: String(x.P.이름 || ''), area: a, ink: /^#[0-9a-f]{3,8}$/i.test(x.P.눈금색 || '') ? x.P.눈금색 : '#55607a' });
+        });
     }
     rlKindsBuild();
     if (window.prodHook) prodHook(rlKindsBuild);
-    const rlKind = id => RL_KINDS.find(k => k.id === id) || RL_KINDS[0];
-    R.kind = RL_KINDS[0].id;
+    const rlKind = id => RL_KINDS.find(k => k.id === id) || RL_KINDS[0] || { id: '', name: '자', area: [5, 3, 58, 91], ink: '#55607a' };
+    R.kind = rlKind().id;
+    const rlPicOf = K => window.gdPic ? gdPic('ruler:' + K.id) : null;
 
-    /* ---------- 자 그림 ---------- */
+    /* ---------- 자 그림 (페이지) : 세운 자 그림을 시계 방향으로 눕혀요 (그림 위 = 오른쪽 끝 · 왼쪽 변 = 위 · 눈금은 위 가장자리) · 눈금영역 길이 = L cm ---------- */
     function rlDraw() {
-        const K = rlKind(R.kind);
-        const p = R.ppc, L = R.L, pad = .6 * p, W = Math.round(L * p + pad * 2), H = Math.round(Math.max(52, Math.min(92, 1.45 * p)));
-        R.W = W; R.H = H;
+        const K = rlKind(R.kind), P = rlPicOf(K), p = R.ppc, L = R.L;
+        if (!P) { R.W = Math.round(L * p); R.H = 50; return ''; }
+        const a = K.area, len = (a[3] - a[1]) / 100 * P.h, s = L * p / len;
+        const W = Math.round(P.h * s), H = Math.round(P.w * s); R.W = W; R.H = H;
+        const x0 = (P.h - a[3] / 100 * P.h) * s, y0 = a[0] / 100 * P.w * s, ah = (a[2] - a[0]) / 100 * P.w * s;
         let tk = '', nm = '';
         for (let i = 0; i <= L * 10; i++) {
-            const x = (pad + i * p / 10).toFixed(2), cm = i % 10 === 0, len = cm ? H * .34 : i % 5 === 0 ? H * .24 : H * .14;
-            tk += `<line x1="${x}" y1="0" x2="${x}" y2="${len.toFixed(1)}" stroke-width="${cm ? 1.3 : .8}"/>`;
-            if (cm) nm += `<text x="${x}" y="${(H * .34 + 12).toFixed(1)}">${i / 10}</text>`;
+            const x = (x0 + i * p / 10).toFixed(2), cm = i % 10 === 0, l = ah * (cm ? .42 : i % 5 === 0 ? .3 : .18);
+            tk += `<line x1="${x}" y1="${y0.toFixed(1)}" x2="${x}" y2="${(y0 + l).toFixed(1)}" stroke-width="${cm ? 1.3 : .8}"/>`;
+            if (cm) nm += `<text x="${x}" y="${(y0 + ah * .42 + Math.min(11, ah * .3) + 2).toFixed(1)}">${i / 10}</text>`;
         }
-        let gl = '';                                       // 반짝이 (늘 같은 자리)
-        for (let i = 0; i < 26; i++) { const x = (i * 97 % 1000) / 1000 * (W - 20) + 10, y = H * .55 + ((i * 53) % 100) / 100 * (H * .3); gl += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(i % 3) * .5 + .7}"/>`; }
-        const heart = `<path transform="translate(${(pad - 1).toFixed(1)} ${(H * .7).toFixed(1)}) scale(.9)" d="M0 3c-2-3-6-1-5 2 1 2 5 5 5 5s4-3 5-5c1-3-3-5-5-2z" fill="${K.ht}"/>`;
-        return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">`
-            + `<defs><linearGradient id="rlMet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f8fb"/><stop offset=".5" stop-color="#c9d1dd"/><stop offset="1" stop-color="#a9b3c2"/></linearGradient>`
-            + `<linearGradient id="rlBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${K.bd[0]}"/><stop offset="1" stop-color="${K.bd[1]}"/></linearGradient></defs>`
-            + `<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="9" fill="url(#rlBody)" stroke="${K.ln}" stroke-width="1.5"/>`
-            + `<rect x="6" y="${(H * .5).toFixed(1)}" width="${W - 12}" height="${(H * .14).toFixed(1)}" rx="3" fill="#fff" opacity=".35"/>`
-            + `<g fill="#fff" opacity=".85">${gl}</g>`
-            + `<rect x="1.5" y="${H - 9}" width="${W - 3}" height="7.5" rx="3" fill="url(#rlMet)" stroke="#9aa4b4" stroke-width=".6"/>`   // 칼이 미끄러지는 쇠 띠
-            + `<g stroke="${K.ink}">${tk}</g><g fill="${K.ink}" font-size="10.5" font-family="sans-serif" font-weight="bold" text-anchor="middle">${nm}</g>`
-            + heart + `<text x="${(W * .25).toFixed(1)}" y="${(H - 14).toFixed(1)}" font-size="9.5" font-family="sans-serif" font-style="italic" fill="${K.ink}" opacity=".6" text-anchor="middle">mallang ♡ ruler · cm</text></svg>`;
+        return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" data-an="1" aria-hidden="true">`
+            + `<g transform="scale(${s.toFixed(5)}) translate(${P.h} 0) rotate(90)"><image href="${P.u}" width="${P.w}" height="${P.h}" preserveAspectRatio="none"/></g>`
+            + `<g stroke="${K.ink}">${tk}</g><g fill="${K.ink}" font-size="${Math.min(11, Math.max(7, ah * .3)).toFixed(1)}" font-family="sans-serif" font-weight="bold" text-anchor="middle">${nm}</g></svg>`;
     }
-    /* 🗄️ 문구함 서랍에 든 세운 자 (30 × h · 위가 0) */
-    function rlCupSvg(id, h) {
-        const K = rlKind(id); h = h || 300;
-        let tk = '';
-        for (let i = 0, y = 14; y < h - 22; i++, y += 5) { const l = i % 10 === 0 ? 11 : i % 5 === 0 ? 8 : 5; tk += `<line x1="1.5" y1="${y}" x2="${1.5 + l}" y2="${y}"/>`; }
-        return `<svg viewBox="0 0 30 ${h}" aria-hidden="true"><rect x=".75" y=".75" width="28.5" height="${h - 1.5}" rx="6" fill="${K.cup}" stroke="${K.ln}" stroke-width="1.5"/>`
-            + `<rect x="23" y="2" width="5.5" height="${h - 4}" rx="2" fill="#cdd5e0"/><g stroke="${K.ink}" stroke-width=".9">${tk}</g>`
-            + `<path transform="translate(15 ${h - 14})" d="M0 3c-2-3-6-1-5 2 1 2 5 5 5 5s4-3 5-5c1-3-3-5-5-2z" fill="${K.ht}"/></svg>`;
+    /* 🗄️ 문구함 · 연필꽂이에 든 세운 자 = 상품공방 그림 + 짧은 눈금 (그림 px) */
+    function rlCupSvg(id) {
+        const K = rlKind(id), P = rlPicOf(K); if (!P) return '';
+        const a = K.area, x0 = a[0] / 100 * P.w, y1 = a[1] / 100 * P.h, y2 = a[3] / 100 * P.h, aw = (a[2] - a[0]) / 100 * P.w, n = 150, st = (y2 - y1) / n;
+        let tk = ''; for (let i = 0; i <= n; i++) { const y = (y1 + i * st).toFixed(2), l = aw * (i % 10 === 0 ? .42 : i % 5 === 0 ? .3 : .18); tk += `<line x1="${x0.toFixed(2)}" y1="${y}" x2="${(x0 + l).toFixed(2)}" y2="${y}"/>`; }
+        return gdPicSvg('ruler:' + K.id, { extra: `<g stroke="${K.ink}" stroke-width="${Math.max(.4, P.w / 60).toFixed(2)}">${tk}</g>` });
     }
 
     /* ---------- 자 놓기 ---------- */

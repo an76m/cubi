@@ -42,7 +42,7 @@
         }
         /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
         function pkCupList() {
-            const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ tool: t.tool, color: t.color, size: t.size, kind: t.kind }));
+            const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ id: t.id, tool: t.tool, color: t.color, size: t.size, kind: t.kind, tip: pkTip(t) }));
             const pens = g('pen'), his = g('hi'), ers = g('erase'), out = [];
             while (pens.length || his.length) { if (pens.length) out.push(pens.shift()); if (pens.length) out.push(pens.shift()); if (his.length) out.push(his.shift()); }
             ers.forEach((e, i) => out.splice(Math.round((i + 1) * out.length / (ers.length + 1)) + i, 0, e));
@@ -55,8 +55,11 @@
         }
 
         /* ---------- 필통 그리기 ---------- */
-        function pkSvg(t) {                                                    // 연필꽂이와 같은 그림 · 세로로 서 있어요
-            return t.tool === 'erase' ? penEraserSvg(t.size) : t.tool === 'hi' ? penMarkerSvg(t.color, 1) : penPencilSvg(t.color, 1);
+        const pkSvg = t => window.gdPicSvg ? gdPicSvg(t.id) : '';             // 🎬 상품공방 그림 그대로 (js/gdpic.js · 도련 11-02 · 연필꽂이 · 보관함 · 손에 든 것 모두)
+        /* 그림 안 닿는 점 = 쓰는끝 (그림 px) → 30 × 150 상자 (손에 든 필기구 · js/draw.js pcTipOf) · 없으면 위 가운데 */
+        function pkTip(t) {
+            const p = window.gdPic && gdPic(t.id); if (!p) return [15, 2];
+            return gdPicAt(p, p.tip || [p.w / 2, t.tool === 'erase' ? p.h * 37 / 150 : p.h * .02], 30, 150);
         }
         function pkTool(t, copy) {
             const nm = pkName(t);   // 그림은 바닥에 맞춰 세워요 (모두 같은 줄에 서요)

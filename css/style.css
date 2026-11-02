@@ -3263,7 +3263,7 @@ body.pen-rest .draw-layer { pointer-events: none; }   /* ✏️ 필기구가 쉬
 .sk-room[hidden] { display: none; }
 .sk-line { position: absolute; left: 0; top: 0; pointer-events: none; }
 .sk-knife { position: absolute; left: 0; top: 0; width: 40px; height: 120px; transform-origin: 13px 4px; pointer-events: auto; cursor: grab; touch-action: none; filter: drop-shadow(2px 4px 4px rgba(120, 60, 90, .28)); transition: opacity .3s ease; will-change: transform; }
-.sk-knife svg { display: block; }
+.sk-knife svg { display: block; width: 100%; height: 100%; }
 .sk-knife.gone { opacity: 0; }
 .sk-knife.grab { cursor: grabbing; }
 .sk-knife.held { filter: drop-shadow(3px 9px 7px rgba(120, 60, 90, .34)); }   /* ✋ 손에 든 칼 (톡 = 내려놓기) */

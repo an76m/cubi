@@ -644,20 +644,15 @@
            📌 삭제핀 (도련 · 10-17 · 페이지 빈 곳 메뉴 js/tapmenu.js) : 같은 핀셋인데 고른 것 하나가 아니라 페이지 위 무엇이든 집어서 뜯어요 (twzPin)
            - 집은 곳 맨 위의 스티커 · 사진 · 글 · 메모가 뜯겨요 · 하나를 버려도 핀셋은 남아서 계속 뜯을 수 있어요
            - 덜 뜯고 놓으면 다시 붙고 놓아줘요 · ✕ / Esc / 아무것도 없는 곳을 톡 = 그만두기 */
-        const TWZ_SVG = '<svg viewBox="0 0 36 130" aria-hidden="true">'
-            + '<defs><linearGradient id="twzA" x1="0" x2="1"><stop offset="0" stop-color="#ffd1df"/><stop offset=".5" stop-color="#ff9dbb"/><stop offset="1" stop-color="#f3779c"/></linearGradient>'
-            + '<linearGradient id="twzT" x1="0" x2="1"><stop offset="0" stop-color="#fff6d8"/><stop offset="1" stop-color="#e9c46a"/></linearGradient></defs>'
-            + '<g class="twz-l"><path d="M16.2 3 L14.6 3 L5 96 Q4.6 118 16 126 L17 126 Z" fill="url(#twzA)" stroke="#d95a84" stroke-width="1"/><path d="M14.6 3 L16.2 3 L15.4 16 L13.4 16 Z" fill="url(#twzT)"/><circle cx="10" cy="70" r="2.2" fill="#fff" opacity=".8"/></g>'
-            + '<g class="twz-r"><path d="M19.8 3 L21.4 3 L31 96 Q31.4 118 20 126 L19 126 Z" fill="url(#twzA)" stroke="#d95a84" stroke-width="1"/><path d="M19.8 3 L21.4 3 L22.6 16 L20.6 16 Z" fill="url(#twzT)"/><circle cx="26" cy="70" r="2.2" fill="#fff" opacity=".8"/></g>'
-            + '<path d="M18 104c-2.6-3.4-7-1.6-6 1.8.8 2.6 6 5.8 6 5.8s5.2-3.2 6-5.8c1-3.4-3.4-5.2-6-1.8z" fill="#fff"/><rect x="12" y="118" width="12" height="7" rx="3.5" fill="#ffe27a" stroke="#e7b93d" stroke-width=".8"/></svg>';
-        const TWZ_Z = 1.55, TWZ_TIP = [18 * TWZ_Z, 3 * TWZ_Z], TWZ_ANG = 215;   // 크기 · 집게 끝(화면 px) · 기울기 = 필기구(draw.js PC_ANG)와 같아요
-        /* 🪡 핀셋 모양은 하나 (도련 · 10-17) : 📌 삭제핀 · 스티커 삭제핀 · 스티커 뜯는 핀셋이 모두 pinSvg() 를 써요
-           - 나중에 문구점에서 핀셋을 사서 바꾸면 PIN_SKINS 에 모양을 더하고 설정.json 'diary_pin' 에 그 이름을 적어요 → 세 곳이 모두 바뀌어요 */
-        const PIN_SKINS = { basic: TWZ_SVG }, PIN_KEY = 'diary_pin', PIN_LOCAL = 'malang_pin';
-        let pinSeq = 0;
-        function pinSvg() {   // 그라데이션 id 는 핀셋마다 따로 · 같은 id 가 숨은 핀셋에 있으면 색이 안 칠해지고 테두리만 보여요
-            const k = prefGet(PIN_KEY, PIN_LOCAL), n = ++pinSeq;
-            return (PIN_SKINS[k] || PIN_SKINS.basic).replace(/id="(\w+)"/g, `id="$1-${n}"`).replace(/url\(#(\w+)\)/g, `url(#$1-${n})`); }
+        const TWZ_BOX = [55.8, 201.5], TWZ_ANG = 215; let TWZ_TIP = [27.9, 4.65];   // 크기 · 집게 끝(화면 px) · 기울기 = 필기구(draw.js PC_ANG)와 같아요
+        /* 🪡 핀셋 모양 = 🧁 상품공방 그림 그대로 (도련 11-02 · js/gdpic.js) : 📌 삭제핀 · 스티커 삭제핀 · 스티커 뜯는 핀셋이 모두 pinSvg() · 든 핀셋(없으면 첫 핀셋)
+           - 왼팔 · 오른팔 (+ 몸) 조각이 있으면 누를 때 오므려요 (css .twz.shut) · 집게 끝 = 쓰는끝 (55.8 × 201.5 상자) */
+        function pinSvg() {
+            const id = window.gdTwzId ? gdTwzId() : '', p = id && window.gdPic ? gdPic(id) : null; if (!p) return '';
+            TWZ_TIP = gdPicAt(p, p.tip || [p.w / 2, p.h * .03], TWZ_BOX[0], TWZ_BOX[1]);
+            return gdPicSvg(id, { parts: [['왼팔', 'twz-l'], ['오른팔', 'twz-r']], over: '몸' });
+        }
+        const pinOrg = el => { el.style.transformOrigin = `${TWZ_TIP[0]}px ${TWZ_TIP[1]}px`; };   // 집게 끝에서 돌아요
         /* 🪡 핀셋 (도련 · 10-17 · 10-19) : 핀셋을 손에 든 동안 늘 보여요 · 절대 사라지지 않아요 · 🗄️ 문구함 🪡 핀셋 서랍 (js/skins.js gdHold) · 들어야 스티커를 만질 수 있어요
            - 쓰임이 없을 땐 그 자리에서 아주 느리게 위아래로 둥실 (공중에 떠서 기다리는 느낌) · 누르는 동안은 둥실 멈추고 집게가 오므라들어요
            - 💻 마우스 : 핀셋이 갈 수 있는 곳(pinOver : 페이지 · 🏷️ 씰 종이 · 🧩 조각 봉투 · 📒 수첩 속지 · 배경지)에선 마우스에 붙어 둥실거리며 따라와요
@@ -732,7 +727,7 @@
             clearInterval(pinWatch); if (pinEl) pinEl.remove(); pinEl = null; pinFollow = false; document.body.classList.remove('pin-on');
         }
         function pinStay() { pinFollow = false; document.body.classList.remove('pin-on'); if (pinEl && !pinHold) pinEl.classList.add('bob'); }   // 그 자리에 멈춰 둥실 (💻 마우스 화살표가 보여요)
-        const pinPut = (x, y) => { pinLast = [x, y]; pinEl.style.transform = `translate(${x - TWZ_TIP[0]}px, ${y - TWZ_TIP[1]}px)${handFlip()} rotate(${TWZ_ANG}deg)`; };
+        const pinPut = (x, y) => { pinLast = [x, y]; pinOrg(pinEl); pinEl.style.transform = `translate(${x - TWZ_TIP[0]}px, ${y - TWZ_TIP[1]}px)${handFlip()} rotate(${TWZ_ANG}deg)`; };
         function pinMove(e) {
             pinKind = pinDev(e);
             if (!pinEl) { if (pinOff()) return; pinStart(); }
@@ -827,7 +822,7 @@
             return { toLoc: (X, Y) => { const ux = (X - cx) / k, uy = (Y - cy) / k; return [(ux * Math.cos(-a) - uy * Math.sin(-a)) / s + t.W / 2, (ux * Math.sin(-a) + uy * Math.cos(-a)) / s + t.H / 2]; } };
         }
         function twzToolAt(x, y) {
-            const t = twz; if (!t) return; t.tip = [x, y]; t.tool.style.transform = `translate(${x - TWZ_TIP[0]}px, ${y - TWZ_TIP[1]}px)${handFlip()} rotate(${TWZ_ANG}deg)`;
+            const t = twz; if (!t) return; t.tip = [x, y]; pinOrg(t.tool); t.tool.style.transform = `translate(${x - TWZ_TIP[0]}px, ${y - TWZ_TIP[1]}px)${handFlip()} rotate(${TWZ_ANG}deg)`;
             t.room.querySelector('#twzDel').style.transform = `translate(${x + 10}px, ${y + 8}px)`;   // 🗑 삭제 표시는 핀셋 끝 옆에
         }
         /* 사각형을 반평면 (X - M)·n ≥ 0 (side = 1) / < 0 (side = -1) 으로 자른 다각형 */

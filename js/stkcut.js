@@ -12,33 +12,20 @@
 (() => {
     'use strict';
     const q = id => document.getElementById(id);
-    /* 🔪 칼 종류 (🗄️ 문구함 '칼' 서랍에서 골라요 · js/skins.js) : 손잡이 색만 달라요 · 새 칼 = 한 줄 추가 (id 는 바꾸지 않기) */
+    /* 🔪 칼 종류 (🗄️ 문구함 '칼' 서랍에서 골라요 · js/skins.js) = 🧁 상품공방 '문구' 칼 (id knife:… · 그림 그대로 · js/gdpic.js · 도련 11-02) : 칼끝 = 쓰는끝 (40 × 120 상자) */
     const KN_KINDS = [];
-    const KN_DEF = { hd: ['#ffb3cb', '#ff8fb1', '#f06f97'], ln: '#d95a84', pu: ['#ffe27a', '#e7b93d'] };
-    function knBuild() {                                                       // 🧁 서버 + 📦 내 사본 (상품공방 '문구' · 틀 = 손잡이 hd 3색 · 선 ln · 누름 pu 2색 · 도련 11-02)
+    function knBuild() {
         KN_KINDS.length = 0;
-        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife:') && x.P.틀).forEach(x => KN_KINDS.push(Object.assign({}, KN_DEF, x.P.틀, { id: x.id.slice(6), name: String(x.P.이름 || '') })));
-        if (!KN_KINDS.length) KN_KINDS.push(Object.assign({ id: 'pink', name: '칼' }, KN_DEF));   // 목록이 비어도 칼은 그려져야 해서
+        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife:')).forEach(x => KN_KINDS.push({ id: x.id.slice(6), name: String(x.P.이름 || '') }));
     }
     knBuild();
     if (window.prodHook) prodHook(knBuild);
-    const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0];
-    let knN = 0;                                       // 그림마다 색 이름(id)을 따로 : 같은 id 가 문구함 서랍에 먼저 있으면 그 색을 못 찾아 칼이 테두리만 보여요 (도련 10-19)
-    function knifeSvg(id) {
-        const k = knKind(id), n = ++knN, g = 'skHd_' + k.id + n, bl = 'skBl' + n;
-        return '<svg viewBox="0 0 40 120" width="40" height="120" aria-hidden="true">'
-        + `<defs><linearGradient id="${bl}" x1="0" x2="1"><stop offset="0" stop-color="#f4f7fb"/><stop offset=".55" stop-color="#cfd7e3"/><stop offset="1" stop-color="#aab5c6"/></linearGradient>`
-        + `<linearGradient id="${g}" x1="0" x2="1"><stop offset="0" stop-color="${k.hd[0]}"/><stop offset=".5" stop-color="${k.hd[1]}"/><stop offset="1" stop-color="${k.hd[2]}"/></linearGradient></defs>`
-        + `<path d="M13 4h14v30l-7 0-7-8z" fill="url(#${bl})" stroke="#8f9bb0" stroke-width="1"/>`                       // 칼날 (끝이 비스듬)
-        + '<path d="M13 4l7 0-7 8z" fill="#fff" opacity=".7"/><path d="M15 14h10M15 22h10" stroke="#9aa6ba" stroke-width=".8" stroke-dasharray="2 2"/>'   // 꺾는 칼날 줄
-        + `<rect x="8" y="32" width="24" height="84" rx="10" fill="url(#${g})" stroke="${k.ln}" stroke-width="1.2"/>`      // 말랑한 손잡이
-        + '<rect x="11" y="36" width="6" height="72" rx="3" fill="#fff" opacity=".45"/>'
-        + `<rect x="16" y="44" width="8" height="18" rx="4" fill="${k.pu[0]}" stroke="${k.pu[1]}" stroke-width="1"/>`            // 칼날 밀개
-        + '<path d="M20 86c-3-4-8-2-7 2 1 3 7 7 7 7s6-4 7-7c1-4-4-6-7-2z" fill="#fff"/>'                                   // 하트
-        + '<circle cx="20" cy="106" r="3" fill="#fff" opacity=".85"/></svg>';
-    }
+    const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0] || { id: '', name: '칼' };
+    const knifeSvg = id => window.gdPicSvg ? gdPicSvg('knife:' + knKind(id).id) : '';
+    let KN_TIP = [13, 4];
+    function knTipSet() { const p = window.gdPic && gdPic('knife:' + S.kind); KN_TIP = p ? gdPicAt(p, p.tip || [p.w * 13 / 40, p.h * 4 / 120], 40, 120) : [13, 4]; if (S.kn) S.kn.style.transformOrigin = `${KN_TIP[0]}px ${KN_TIP[1]}px`; }
     const KN_LAY = -28;                                // 놓인 칼 기울기 = 놓인 핀셋 (css .bd-tool.tweez)
-    const KN_TIP = [13, 4], KN_ANG = 215;              // 칼끝(그림 안 좌표) · 기울기 (칼끝이 왼쪽 아래 · 손잡이는 오른쪽 위 = 글쓰기 필기구와 같은 방향)
+    const KN_ANG = 215;                                // 기울기 (칼끝이 왼쪽 아래 · 손잡이는 오른쪽 위 = 글쓰기 필기구와 같은 방향)
     const S = { on: false, room: null, cv: null, kn: null, pts: null, down: false, id: null, busy: false, snap: null };
 
     /* 자를 수 있는 것 : 그림이 있는 스티커 · 테이프 · 떡메 */
@@ -97,7 +84,7 @@
         if (window.tmClose) tmClose();
         if (typeof selectedElement !== 'undefined' && selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         const r = build(); S.room = r; S.cv = q('skLine'); S.kn = q('skKnife'); S.on = true; S.pts = null; S.down = false;
-        S.kind = knKind(kind).id; S.kn.innerHTML = knifeSvg(kind);   // 고른 칼 그대로
+        S.kind = knKind(kind).id; S.kn.innerHTML = knifeSvg(kind); knTipSet();   // 고른 칼 그대로
         r.hidden = false; S.kn.classList.remove('gone', 'in'); size();
         if (x == null) { const b0 = q('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; x = b.left + b.width / 2; y = b.top + b.height / 2; }   // 📱 폰 = 보이는 오른쪽 쪽
         knifeAt(x, y);

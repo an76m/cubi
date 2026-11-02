@@ -660,19 +660,9 @@
         function dyLoad() { if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco(); }
         /* 📎 집게 (도련 10-18) : 다이어리 둘레(종이 테두리)를 물어요 · 다이어리 · 노트 · 바인더 모두 · 여러 개를 꺼내 원하는 만큼 꽂아요 (아래 ✂️ 문구함)
            - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 크기는 다이어리 크기와 상관없이 늘 같아요 */
-        /* 🧁 문구 = 서버 상품 (상품공방 '문구' · js/prod.js · 도련 11-02) : 종류(문구종류) · 이름 · 색 · 크기 · 쓰는 끝 · 처음선물 · 틀(칼 · 자 색) · 그림(속성 '그림' ✔ = 도련 그림으로 · 가위는 날이 움직여서 앱 모양)
+        /* 🧁 문구 = 서버 상품 (상품공방 '문구' · js/prod.js · 도련 11-02) : 🎬 모양 = 상품공방 그림 그대로 (js/gdpic.js · 앱은 모양을 그리지 않아요 · 도련 11-02) · 종류(문구종류) · 이름 · 색 · 크기 · 쓰는 끝 · 처음선물 · 틀(칼 · 자 색) · 그림(속성 '그림' ✔ = 도련 그림으로 · 가위는 날이 움직여서 앱 모양)
            모양은 앱이 그려요 (집게 · 펀칭기 · 테이프 · 핀셋 · 가위 · 칼 · 자 · 필기구) · 상품이 정하는 건 어떤 디자인이 있는지 · 색 · 크기 */
-        const GD_IMG = {}, CLIPS = [];                                         // GD_IMG = 도련 그림을 쓰는 문구 { id: [주소, 가로, 세로] } · CLIPS = [색 이름, 이름, 색] · 📦 내 사본이 있으면 사본 (gdBuild)
-        let clipN = 0;
-        function clipSvg(c) {                                                  // 평범한 더블 클립 (앞에서 본 모양 · 쇠 손잡이는 뒤로 젖혀서 위로 조금만 · 몸통은 고른 색)
-            const w = 'clipW' + (++clipN);                                     // 그라데이션 id 는 그림마다 따로 (숨은 창의 것을 빌리면 안 보여요)
-            return `<svg viewBox="0 0 64 50" aria-hidden="true"><defs><linearGradient id="${w}" x1="0" x2="1"><stop offset="0" stop-color="#8e949e"/><stop offset=".45" stop-color="#f4f5f8"/><stop offset="1" stop-color="#9aa0aa"/></linearGradient></defs>`
-                + `<path d="M15 10 Q14 1 22 1 H42 Q50 1 49 10" fill="none" stroke="url(#${w})" stroke-width="3.2" stroke-linejoin="round"/>`
-                + `<path d="M20 10 Q20 5 25 5 H39 Q44 5 44 10" fill="none" stroke="url(#${w})" stroke-width="2.6"/>`
-                + `<path d="M9 9 H55 L60 45 Q60 48 57 48 H7 Q4 48 4 45 Z" fill="${c}"/>`
-                + `<path d="M9 9 H55 L56.6 21 H7.4 Z" fill="#fff" fill-opacity=".22"/><path d="M4.6 40 H59.4 L60 45 Q60 48 57 48 H7 Q4 48 4 45 Z" fill="#000" fill-opacity=".18"/>`
-                + `<rect x="7" y="7" width="50" height="5" rx="2.5" fill="url(#${w})"/></svg>`;
-        }
+        const CLIPS = [];                                                      // CLIPS = [색 이름, 이름, 색] · 📦 내 사본이 있으면 사본 (gdBuild) · 그림 = js/gdpic.js
         /* 📎 집게가 무는 테두리 : 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 모서리는 둥글게 돌아요
            - 집게 아랫입(종이를 무는 곳 59, 66)이 테두리 위 · 몸통은 늘 바깥쪽을 봐요 */
         const CLIP_GX = 59, CLIP_GY = 66;
@@ -793,7 +783,7 @@
         }
         window.bdGapAt = bdGapAt;
         document.addEventListener('pointermove', e => {                        // 🖱 지나가면 보여요 · 겉표지를 밀어 펼친 손(마우스)이 그 자리에 머물러 있으면 안 보여요 (도련 10-18)
-            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt || (gdHeld && gdHeld !== 'twz')) return;   // ✂️ 문구함을 든 채면 안 보여요
+            if (e.pointerType !== 'mouse' || e.buttons || bdBusy || bdSt || (gdHeld && !gdIsTwz(gdHeld))) return;   // ✂️ 문구함을 든 채면 안 보여요
             if (!bdHit(e, true)) { bdArmed = true; return; }
             if (!bdArmed || !bdHit(e)) return;
             if (!bdShown()) bdShow(true);
@@ -1180,25 +1170,7 @@
         window.scsSay = (x, y) => { twzSay(x, y, '✂️ 가위를 사용해 주세요'); gdNeed('scissors'); };   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
         const GD = {};                                                          // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터 · 가위 = 날이 종이를 무는 자리) · 🧁 서버 + 📦 사본 (gdBuild)
         const gdInfo = id => { const c = String(id).startsWith('clip:') && CLIPS.find(x => 'clip:' + x[0] === id); return c ? { g: 'clip', n: c[1], c: c[2], w: 118, h: 92, hx: CLIP_GX, hy: CLIP_GY } : GD[id] || null; };
-        function toolSvg(g) {
-            if (g === 'scissors') return scsSvg(.35);
-            if (g === 'punch') return `<svg viewBox="0 0 64 128" aria-hidden="true">
-                <rect x="7" y="8" width="50" height="114" rx="12" fill="#3b3e45"/><rect x="9" y="10" width="46" height="110" rx="11" fill="#55595f"/>
-                <defs><linearGradient id="tpH${toolN}" x1="0" x2="1"><stop offset="0" stop-color="#e9e8e2"/><stop offset=".35" stop-color="#fbfbf8"/><stop offset=".75" stop-color="#f1f0eb"/><stop offset="1" stop-color="#d9d8d1"/></linearGradient></defs>
-                <path d="M14 30 Q14 4 32 4 Q50 4 50 30 L50 104 Q50 114 40 114 L24 114 Q14 114 14 104 Z" fill="url(#tpH${toolN++})" stroke="#cfcec7" stroke-width="1"/>
-                <circle cx="32" cy="24" r="9" fill="#c9ccd2" stroke="#9ea3ab" stroke-width="1.4"/><circle cx="32" cy="24" r="4.6" fill="#2d3036"/><circle cx="30.4" cy="22.4" r="1.4" fill="#fff" opacity=".7"/>
-                <path d="M20 108 h24" stroke="#c7c6bf" stroke-width="2" stroke-linecap="round"/><path d="M19 40 Q19 30 24 26" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".9"/></svg>`;
-            return `<svg viewBox="0 0 150 84" aria-hidden="true">
-                <path d="M14 58 Q4 58 6 48 Q8 40 18 40 Q16 22 34 16 Q50 10 64 20 Q76 8 96 10 Q120 12 128 30 Q146 34 144 52 Q142 70 122 72 L30 74 Q16 74 14 58 Z" fill="rgba(226, 238, 238, .78)" stroke="#aebfbf" stroke-width="1.6"/>
-                <path d="M6 60 L1 70 L14 70 Z" fill="#f4f4f1" stroke="#b7c3c3" stroke-width="1"/>
-                <circle cx="56" cy="44" r="21" fill="#bfe6dc" stroke="#7fc4b4" stroke-width="2"/><circle cx="56" cy="44" r="11" fill="#e9f6f2" stroke="#9bd2c4" stroke-width="1.5"/>
-                <circle cx="100" cy="42" r="22" fill="#f6f2e6" stroke="#d9d2bd" stroke-width="2"/><circle cx="100" cy="42" r="12" fill="#fffdf7" stroke="#e5dfcc" stroke-width="1.5"/>
-                <path d="M78 64 l8 -6 m-4 6 l8 -6 m-4 6 l8 -6" stroke="#c6d2d2" stroke-width="1.2"/>
-                <path d="M30 22 Q44 14 58 20" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"/></svg>`;
-        }
-        let toolN = 0;
-        const gdImgSvg = id => { const [u, w, h] = GD_IMG[id]; return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true"><image href="${u}" width="${w}" height="${h}"/></svg>`; };   // 🧁 도련 그림
-        const gdArt = (id, t = gdInfo(id)) => GD_IMG[id] ? gdImgSvg(id) : t.g === 'tweez' ? (typeof pinSvg === 'function' ? pinSvg() : '') : t.g === 'clip' ? clipSvg(t.c) : toolSvg(t.g);
+        const gdArt = id => window.gdPicSvg ? gdPicSvg(id) : '';                 // 🎬 상품공방 그림 그대로 (js/gdpic.js)
         let gdHeld = null, gdG = null, gdInit = false, gdBook = null, gdClipSig = '';
         const gdScs = () => !!gdHeld && (gdInfo(gdHeld) || {}).g === 'scissors';           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
         const gdIp = () => document.getElementById('innerPage');
@@ -1302,12 +1274,12 @@
             if (window.skLetGo) skLetGo();                                   // ✂️ 들고 있던 칼은 그 자리에 (js/stkcut.js)
             gdHeld = id; el.classList.remove('edge'); el.style.transform = ''; delete el.dataset.f; delete el.dataset.nh; el.classList.add('held');
             gdFollow(x, y, e);
-            if (id === 'twz' && e && window.pinAt) pinAt(e);
-            if (id !== 'twz') { if (gdScs()) { scs.ang = SCS_LAY; scs.to = SCS_REST; } setTimeout(() => toolGlow(gdScs() ? scs.el : el), 0); }   // ✂️ 놓인 모양에서 든 모양으로 스르르 돌아요 · ✨ 한 번 반짝                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
+            if (gdIsTwz(id) && e && window.pinAt) pinAt(e);
+            if (!gdIsTwz(id)) { if (gdScs()) { scs.ang = SCS_LAY; scs.to = SCS_REST; } setTimeout(() => toolGlow(gdScs() ? scs.el : el), 0); }   // ✂️ 놓인 모양에서 든 모양으로 스르르 돌아요 · ✨ 한 번 반짝                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
             if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
         }
         function gdFloatAt(el) {                                                // 떠 있는 문구함의 가운데 (다이어리 자리) : 🪡 핀셋 · ✂️ 가위는 화면 위에 따로 떠 있어요
-            const f = el.dataset.t === 'twz' ? document.querySelector('.twz.pin-cur') : gdInfo(el.dataset.t).g === 'scissors' ? scs.el : el;
+            const f = gdIsTwz(el.dataset.t) ? document.querySelector('.twz.pin-cur') : gdInfo(el.dataset.t).g === 'scissors' ? scs.el : el;
             const r = f && !f.hidden && f.getBoundingClientRect(); if (!r || !r.width) return null;
             return gdTo(r.left + r.width / 2, r.top + r.height / 2);
         }
@@ -1320,7 +1292,7 @@
         }
         function gdFollow(x, y, e) {                                            // 손끝(쓰는 끝) = 포인터
             const el = gdHeld && gdEl(gdHeld); if (!el) return;
-            if (gdHeld === 'twz') { document.body.classList.remove('gd-on'); return; }   // 🪡 핀셋은 원래 핀셋 화살표가 따라와요 (js/elements.js pinMove)
+            if (gdIsTwz(gdHeld)) { document.body.classList.remove('gd-on'); return; }   // 🪡 핀셋은 원래 핀셋 화살표가 따라와요 (js/elements.js pinMove)
             if (gdScs()) { document.body.classList.remove('gd-on'); scsPut(x, y, e, true); return; }   // ✂️ 가위는 화면 위에 떠서 따라와요 (📒 수첩 · 모조지 종이 위로도)
             const t = gdInfo(gdHeld), p = gdTo(x, y);
             el.style.left = (p.x - t.hx) + 'px'; el.style.top = (p.y - t.hy) + 'px';
@@ -1359,13 +1331,13 @@
                 else scsSnip();                                                 // 빈 곳 = 허공에 싹둑
                 return true;
             }
-            if (gdHeld && gdHeld !== 'twz') {
+            if (gdHeld && !gdIsTwz(gdHeld)) {
                 const rim = (gdInfo(gdHeld) || {}).g === 'clip' && gdIn(e.clientX, e.clientY) && !e.target.closest('.modal, .desk-tip, .dky-lbp, #deskStage .desk-item');   // 📎 집게는 종이 바로 바깥(테두리 둘레)을 눌러도 꽂혀요 (도련 10-30 : 왼쪽 · 아래는 바깥이 다이어리가 아니라 안 꽂혔어요)
                 if ((!inDy && !rim) || !gdIn(e.clientX, e.clientY)) { gdLet(); return false; }   // 👆 다이어리 밖을 누르면 내려놓아요
                 if (e.target.closest('.page-header, button, textarea, input, select')) return false;
                 gdEat(e); gdFollow(e.clientX, e.clientY, e); gdUse(e); return true;
             }
-            if (gdHeld !== 'twz' && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로)
+            if (!gdIsTwz(gdHeld) && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로)
                 const box = e.target.closest('#canvasArea > .element-box');
                 if (box && !box.querySelector('textarea')) { gdEat(e); twzSay(e.clientX, e.clientY); return true; }
             }
@@ -1382,13 +1354,13 @@
             const g = gdG;
             if (g && g.id === e.pointerId) {
                 if (g.k === 'tape') { const a = gdArea(); g.b = { x: Math.max(a.l, Math.min(a.r, e.clientX)), y: Math.max(a.t, Math.min(a.b, e.clientY)) }; gdFollow(g.b.x, g.b.y, e); gdTapePv(); }
-                else if (g.k === 'rail' && (g.moved || Math.hypot(e.clientX - g.x, e.clientY - g.y) > 6)) { g.moved = true; gdRailMove(g.el, e.clientX, e.clientY); if (gdHeld && gdHeld !== 'twz') gdFollow(e.clientX, e.clientY, e); }
+                else if (g.k === 'rail' && (g.moved || Math.hypot(e.clientX - g.x, e.clientY - g.y) > 6)) { g.moved = true; gdRailMove(g.el, e.clientX, e.clientY); if (gdHeld && !gdIsTwz(gdHeld)) gdFollow(e.clientX, e.clientY, e); }
                 return;
             }
             if (!gdHeld) return;
             const t = e.target && e.target.closest && e.target.closest('#innerPage > .bd-tool:not(.held):not(.edge)');
             document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
-            if (gdHeld === 'twz') return;                                      // 🪡 핀셋은 밖으로도
+            if (gdIsTwz(gdHeld)) return;                                      // 🪡 핀셋은 밖으로도
             if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
             if (!gdIn(e.clientX, e.clientY) && gdInfo(gdHeld).g !== 'clip') { gdLet(); return; }   // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표 · 📎 집게는 페이지 밖에서 무는 도구라 밖으로도 따라와요 (도련 10-30 · 내려놓기는 다이어리 밖을 누를 때)
             if (gdInfo(gdHeld).g === 'punch' && e.pointerType !== 'touch' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }
@@ -1414,19 +1386,7 @@
            - 진짜 자르는 자리 = 가위 날 끝 = 빨간 십자선 (.scs-aim · FPS 게임처럼) → 십자선이 지나간 대로 오려져요 (js/papermaker.js scsAim)
            - 💻 마우스는 화살표가 그대로 보여요 (누르는 자리) */
         const SCS_LIFT = 100;
-        const SCS_PIV = [27, 38];                                               // 🎯 가위 회색 날 가운데 (자르는 자리 · 도련 10-21) = 십자선 자리 = 가위가 도는 축 (css .scs-cur transform-origin 과 같게 · 날이 벌어지는 축은 하트 나사 27 70)
-        function scsSvg(o) {                                                    // o : 벌린 정도 0 ~ 1 · 손잡이 고리 2개 + 날 2개 + 나사
-            const a = (o * SCS_MAX).toFixed(2), n = toolN++;
-            const blade = (d, id) => `<path d="${d}" fill="url(#${id})" stroke="#8d97a8" stroke-width=".9" stroke-linejoin="round"/>`;
-            const ring = (cx, arm, col, ln) => `<path d="${arm}" fill="none" stroke="${ln}" stroke-width="8.4" stroke-linecap="round"/><path d="${arm}" fill="none" stroke="${col}" stroke-width="6.2" stroke-linecap="round"/>
-                <ellipse cx="${cx}" cy="106" rx="10.5" ry="13" fill="none" stroke="${ln}" stroke-width="7.6"/><ellipse cx="${cx}" cy="106" rx="10.5" ry="13" fill="none" stroke="${col}" stroke-width="5.4"/>
-                <path d="M${cx - 6} 98 Q${cx - 3} 94 ${cx + 1} 94" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>`;
-            return `<svg viewBox="0 0 54 126" overflow="visible" aria-hidden="true"><defs><linearGradient id="scM${n}" x1="0" x2="1"><stop offset="0" stop-color="#f6f8fb"/><stop offset=".5" stop-color="#d5dce6"/><stop offset="1" stop-color="#aeb8c7"/></linearGradient></defs>
-                <g class="scs-b" transform="rotate(${-a} 27 70)">${ring(40, 'M27 70 C30 78 35 86 39 93', '#9fd0f7', '#5f9fd6')}${blade('M27.4 76 C28 60 28.6 40 28.2 18 Q27.6 6 24.4 5 Q21.4 6 21 20 C20.6 40 22 60 23.2 72 Z', 'scM' + n)}</g>
-                <g class="scs-a" transform="rotate(${a} 27 70)">${ring(14, 'M27 70 C24 78 19 86 15 93', '#ff9fbd', '#e0729a')}${blade('M26.6 76 C26 60 25.4 40 25.8 18 Q26.4 6 29.6 5 Q32.6 6 33 20 C33.4 40 32 60 30.8 72 Z', 'scM' + n)}
-                  <path d="M31.2 14 C31.8 30 31.4 50 30.3 64" stroke="#fff" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".85"/></g>
-                <circle cx="27" cy="70" r="4.4" fill="#fff4f8" stroke="#c98aa0" stroke-width="1"/><path d="M27 72.6 l-2.2 -2.1 a1.25 1.25 0 0 1 2.2 -1.5 a1.25 1.25 0 0 1 2.2 1.5 z" fill="#ff7fa6"/></svg>`;   // 나사 : 작은 하트
-        }
+        const scsSvg = id => window.gdPicSvg ? gdPicSvg(id, { parts: [['날1', 'scs-b'], ['날2', 'scs-a']] }) : '';   // ✂️ 상품공방 그림 (날1 · 날2 가 축에서 벌어져요 · 조각이 없으면 디자인 그대로)
         const scs = { el: null, x: 0, y: 0, ang: SCS_REST, to: SCS_REST, snip: -1e9, raf: 0, cut: null, on: false, gx: null, gy: 0, dodgeT: 0 };
         /* ✂️ 가위가 갈 수 있는 곳 = 🪡 핀셋과 같은 규칙 (도련 10-21 · js/elements.js pinOver · pinRel · pinBusy) + 📄 모조지 종이 위
            - 💻 마우스 : 갈 수 없는 곳(하단메뉴 · 창 · 버튼 · 메뉴 · 날짜바)으로 가면 그 끝자리에 멈추고 화살표 · 돌아오면 다시 따라와요
@@ -1445,7 +1405,12 @@
             if (!force && !scs.cut && !scsRel(x, y, e)) { document.body.classList.remove('scs-on'); return; }
             scs.gx = null;                                                      // 비키던 중이면 그만
             y -= SCS_LIFT;
-            if (!scs.el) { scs.el = document.createElement('div'); scs.el.className = 'scs-cur'; scs.el.innerHTML = scsSvg(1); document.body.appendChild(scs.el); }
+            if (!scs.el) { scs.el = document.createElement('div'); scs.el.className = 'scs-cur'; document.body.appendChild(scs.el); }
+            if (scs.id !== gdHeld) {                                            // 든 가위 그림 (가위마다) · 🎯 자르는 자리 = 쓰는끝 (그림 px → 54 × 126 상자)
+                scs.id = gdHeld; scs.el.innerHTML = scsSvg(gdHeld);
+                const p = window.gdPic && gdPic(gdHeld); scs.piv = p ? gdPicAt(p, p.tip || [p.w / 2, p.h * .3], 54, 126) : [27, 38];
+                scs.el.style.transformOrigin = `${scs.piv[0]}px ${scs.piv[1]}px`;
+            }
             if (!scs.aim) { scs.aim = document.createElement('div'); scs.aim.className = 'scs-aim'; scs.aim.setAttribute('aria-hidden', 'true'); document.body.appendChild(scs.aim); }
             if (!scs.cut && scs.on) {                                           // 들고 다닐 때도 가끔 싹둑 (귀엽게)
                 scs.walk = (scs.walk || 0) + Math.hypot(x - scs.x, y - scs.y);
@@ -1474,9 +1439,9 @@
             if (scs.gx != null) { scs.x += (scs.gx - scs.x) * .12; scs.y += (scs.gy - scs.y) * .12; if (Math.hypot(scs.gx - scs.x, scs.gy - scs.y) < .5) { scs.x = scs.gx; scs.y = scs.gy; scs.gx = null; } }
             let d = ((scs.to - scs.ang + 540) % 360) - 180; scs.ang += d * (scs.cut ? .22 : .1);   // 손떨림에 덜덜 떨지 않게 부드럽게
             const k = t - scs.snip, o = k < 45 ? 1 - .92 * k / 45 : k < 120 ? .08 + .92 * (k - 45) / 75 : 1;   // 싹둑 : 0.045초에 닫고 0.075초에 다시 벌려요 (10-21 빠르게)
-            const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g');
-            g[0].setAttribute('transform', `rotate(${-a} 27 70)`); g[1].setAttribute('transform', `rotate(${a} 27 70)`);
-            scs.el.style.transform = `translate(${scs.x - SCS_PIV[0]}px, ${scs.y - SCS_PIV[1]}px) rotate(${scs.ang.toFixed(2)}deg)`;   // 나사가 십자선 위에
+            const a = (o * SCS_MAX).toFixed(2), g = scs.el.querySelectorAll('g.scs-a, g.scs-b'), pv = scs.piv || [27, 38];
+            if (g.length === 2) { scs.el.querySelector('g.scs-b').style.transform = `rotate(${-a}deg)`; scs.el.querySelector('g.scs-a').style.transform = `rotate(${a}deg)`; }   // 날1 · 날2 = 축에서 (js/gdpic.js transform-origin)
+            scs.el.style.transform = `translate(${scs.x - pv[0]}px, ${scs.y - pv[1]}px) rotate(${scs.ang.toFixed(2)}deg)`;   // 자르는 자리가 십자선 위에
             if (scs.aim) scs.aim.style.transform = `translate(${scs.x}px, ${scs.y}px)`;   // 🎯 십자선 = 날 끝 (돌지 않아요)
             scs.raf = requestAnimationFrame(scsFrame);
         }
@@ -1538,6 +1503,7 @@
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
         window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
         const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g), H = window.deskBagHold ? deskBagHold() : null; return st ? all.filter(id => st.has(id) && !(H && H.g.has(id))) : []; };   // 🛍️ 봉투 속 문구는 꺼낼 때까지 없어요 (💻 📲 · js/desk.js)   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
+        const gdIsTwz = id => !!id && cabGOf(id) === 'tweez';                    // 🪡 핀셋 (디자인이 여럿이어도 · 도련 11-02)
         const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
         const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
         const cabName = id => cabTool(id) ? (cabKinds(id.split(':')[0]).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;
@@ -1683,10 +1649,9 @@
         const GD_OFF = new Set();                                              // 🧁 숨긴 문구 = 샵에서만 빠져요 (gdBuild)
         function gdBuild() {                                                   // 🧁 문구 목록 = 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
             const L = window.prodList ? prodList('문구') : [], srv = window.prodServer ? prodServer('문구') : [];
-            Object.keys(GD_IMG).forEach(k => delete GD_IMG[k]); Object.keys(GD).forEach(k => delete GD[k]); CLIPS.length = 0; GD_STARTER.length = 0; GD_OFF.clear();
+            Object.keys(GD).forEach(k => delete GD[k]); CLIPS.length = 0; GD_STARTER.length = 0; GD_OFF.clear();
             L.forEach(x => {
                 const P = x.P || {}, w = x.wh && x.wh.디자인;
-                if (P.그림 && x.u.디자인 && w && P.문구종류 !== 'scissors') GD_IMG[x.id] = [x.u.디자인, +w[0] || 64, +w[1] || 64];
                 if (P.문구종류 === 'clip' && x.id.startsWith('clip:')) CLIPS.push([x.id.slice(5), String(P.이름 || ''), /^#[0-9a-f]{6}$/i.test(P.색 || '') ? P.색 : '#ff8fb1']);
                 if (['tweez', 'punch', 'tape', 'scissors'].includes(P.문구종류) && Array.isArray(P.크기)) { const [ww, hh] = P.크기, [hx, hy] = Array.isArray(P.쓰는끝) ? P.쓰는끝 : [ww / 2, 0]; GD[x.id] = { g: P.문구종류, n: String(P.이름 || ''), w: +ww, h: +hh, hx: +hx, hy: +hy }; }
             });
@@ -1938,7 +1903,7 @@
             if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나
                 gdInit = true;
                 setTimeout(() => {
-                    if (!gdEl('twz') && cabOwn(cabGOf('twz')).includes('twz')) { const el = gdMake('twz'), p = gdSpot('twz'); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
+                    const tw = gdMain('tweez'); if (tw && !gdEl(tw)) { const el = gdMake(tw), p = gdSpot(tw); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
                     setTimeout(() => { if (isCoverOpen && window.dgShow) dgShow(); }, 450);   // 🩷 처음 쓰는 사람용 다꾸하는 법 메모 (js/dkguide.js · 예전 '핀셋으로 집어서 옮겨요' 첫 알림 대신 · 도련 10-26)
                 }, 900);
             }
@@ -2288,7 +2253,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdHeld === 'twz'; window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
