@@ -126,7 +126,7 @@
         function dsGive(id) {
             if (!dsCat(id)) return 'fail';
             const it = { u: dsU(), id }, s = dsRead() || { own: [], wall: '', top: '' };
-            s.own.push(it); dsSave(s); if (window.snapSoon) snapSoon();
+            s.own.push(it); dsSave(s); if (window.snapSoon) snapSoon(); window.dsLastGiven = { u: it.u, t: Date.now() };   // 🛍️ 봉투 카드가 기억해요
             if (DS.edit) DS.edit.own.push(it);
             if (window.deskBoxRender) deskBoxRender();
             return 'ok';
@@ -134,11 +134,12 @@
         function dsShopList() { return DS_CAT.filter(c => !c.off).map(c => ({ cnt: c.n, look: 'dskin', sid: c.id, sec: c.k === 'wall' ? 'wallpaper' : 'desktop', give: () => dsGive(c.id), name: c.n })); }
 
         /* 📦 소품함 🧱 벽지 · 🪵 책상 칸 (js/desk.js deskBoxRender) : 가진 것 · ✔ = 지금 쓰는 것 · 톡 = 쓰기 · 🗑 버리기 */
+        const dsBagged = x => { const H = window.deskBagHold ? deskBagHold() : null; return !!H && H.u.has(x.u); };   // 🛍️ 봉투 속 = 꺼낼 때까지 없어요 (js/desk.js)
         function dsBoxCells(kind) {
             const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top';
-            return s.own.filter(x => dsCat(x.id) && dsCat(x.id).k === k).map(x => `<button type="button" class="iv-c ds${s[k] === x.u ? ' sel on' : ''}" title="${dsCat(x.id).n}" onclick="dsUse('${x.u}')">${dsSwatch(x.id)}${s[k] === x.u ? '<em>✔</em>' : ''}<span class="ds-del" role="button" tabindex="0" aria-label="휴지통" onclick="event.stopPropagation(); dsDiscard('${x.u}')">🗑</span></button>`);
+            return s.own.filter(x => dsCat(x.id) && dsCat(x.id).k === k && !dsBagged(x)).map(x => `<button type="button" class="iv-c ds${s[k] === x.u ? ' sel on' : ''}" title="${dsCat(x.id).n}" onclick="dsUse('${x.u}')">${dsSwatch(x.id)}${s[k] === x.u ? '<em>✔</em>' : ''}<span class="ds-del" role="button" tabindex="0" aria-label="휴지통" onclick="event.stopPropagation(); dsDiscard('${x.u}')">🗑</span></button>`);
         }
-        const dsCount = kind => dsCur().own.filter(x => dsCat(x.id) && dsCat(x.id).k === (kind === 'wallpaper' ? 'wall' : 'top')).length;
+        const dsCount = kind => dsCur().own.filter(x => dsCat(x.id) && dsCat(x.id).k === (kind === 'wallpaper' ? 'wall' : 'top') && !dsBagged(x)).length;
         function dsName(kind) { const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top', id = dsOn(s, k); return id && dsCat(id) ? dsCat(id).n : (k === 'wall' ? '벽지 없음 (그림 그대로)' : '책상 꾸밈 없음 (그림 그대로)'); }
 
         window.dsSync = dsSync; window.dsPaint = dsPaint; window.dsEditStart = dsEditStart; window.dsEditEnd = dsEditEnd; window.dsUse = dsUse; window.dsDiscard = dsDiscard;

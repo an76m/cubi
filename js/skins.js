@@ -1537,7 +1537,7 @@
         const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음선물' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
         window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
-        const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g); return st ? all.filter(id => st.has(id)) : []; };   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
+        const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g), H = window.deskBagHold ? deskBagHold() : null; return st ? all.filter(id => st.has(id) && !(H && H.g.has(id))) : []; };   // 🛍️ 봉투 속 문구는 꺼낼 때까지 없어요 (💻 📲 · js/desk.js)   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
         const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
         const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
         const cabName = id => cabTool(id) ? (cabKinds(id.split(':')[0]).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;

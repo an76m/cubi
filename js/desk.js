@@ -552,7 +552,7 @@
         function deskGive(id, force) {
             if (!dkCat(id)) return 'no';
             if (!force && DK.items.some(o => o.id === id)) return 'have';
-            deskReceive(id, 'basic');
+            const it = deskReceive(id, 'basic'); window.deskLastGiven = { u: it && it.u, t: Date.now() };   // 🛍️ 봉투 카드가 이 소품을 기억해요
             return 'ok';
         }
         /* 새 소품 하나 들어오기 (🏪 기본상품 샵 · 📥 공유 파일) = 무조건 이 계정의 새 1개 : 새 u + 🔐 내 열쇠로 종류 폴더 파일 · img = 칠한 그림(공유받은 것) */
@@ -602,9 +602,10 @@
             const keep = box.querySelector('.iv-side'), sTop = keep ? keep.scrollTop : null, gTop = (box.querySelector('.iv-in') || {}).scrollTop || 0;
             const kinds = dkKinds().filter(k => DESK_ITEMS.some(d => d.kind === k)), SK = window.dsBoxCells ? [['wallpaper', '벽지'], ['desktop', '책상']] : [];   // 다른 칸처럼 글씨만 (도련 10-28)   // 🧱 🪵 = js/deskskin.js
             if (DK.boxKind !== 'all' && !kinds.includes(DK.boxKind) && !SK.some(x => x[0] === DK.boxKind)) DK.boxKind = 'all';
-            const k = DK.boxKind, rows = k === 'all' ? DK.items.slice() : DK.items.filter(o => dkKindOf(o) === k);
+            const HB = deskBagHold(), IT = HB && HB.u.size ? DK.items.filter(o => !HB.u.has(o.u)) : DK.items;   // 🛍️ 봉투 속 소품은 꺼낼 때까지 없어요
+            const k = DK.boxKind, rows = k === 'all' ? IT.slice() : IT.filter(o => dkKindOf(o) === k);
             if (DK.boxSel && !rows.some(o => o.u === DK.boxSel)) DK.boxSel = null;
-            const side = [['all', '전체', DK.items.length]].concat(kinds.map(kk => [kk, dkKN(kk), DK.items.filter(o => dkKindOf(o) === kk).length]))
+            const side = [['all', '전체', IT.length]].concat(kinds.map(kk => [kk, dkKN(kk), IT.filter(o => dkKindOf(o) === kk).length]))
                 .concat(SK.map(([kk, n]) => [kk, n, dsCount(kk)]))
                 .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('');   // ✨ 새 모습 (js/snap.js · 있을 때만)
             if (SK.some(x => x[0] === k)) {                                       // 🧱 벽지 · 🪵 책상 : 톡 = 쓰기 · 🗑 버리기 (js/deskskin.js)
@@ -888,7 +889,8 @@
             pn.hidden = false;
         }
         function dkbTake(n, j) {                                                  // 카드 하나 꺼냈어요 → 봉투에서 빼요 (다 비면 봉투도)
-            const B = dkBags(); if (!B[n]) return; B[n].it.splice(j, 1); if (!B[n].it.length) B.splice(n, 1);
+            const B = dkBags(); if (!B[n]) return; const out = B[n].it[j]; B[n].it.splice(j, 1);
+            if (out && out.k === 'gd' && out.gid && window.pkAdd && window.pkIsId && pkIsId(out.gid)) setTimeout(() => pkAdd(out.gid), 0);   // ✏️ 꺼낸 필기구 = 연필꽂이에도 (봉투에 있는 동안 빠졌을 수 있어요) if (!B[n].it.length) B.splice(n, 1);
             dkBagsSet(B); deskBagsPaint(); deskBagOpen(B[n] ? n : -1);
         }
         function dkbGrab(ev, n, j, card) {
@@ -906,7 +908,7 @@
                 if (e.type === 'pointercancel') return;
                 const t = at(e.clientX, e.clientY), stg = document.getElementById('deskStage');
                 if (it.k === 'desk' && it.id && dkCat(it.id)) {                    // 🪑 산 소품 = 놓은 자리에 바로
-                    const o = [...DK.items].reverse().find(x => x.id === it.id && x.at === 'box'), R = stg && stg.getBoundingClientRect();
+                    const o = (it.u && DK.items.find(x => x.u === it.u)) || [...DK.items].reverse().find(x => x.id === it.id && x.at === 'box'), R = stg && stg.getBoundingClientRect();
                     const onStage = R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel');
                     if (!onStage) return;
                     if (o) { const c = dkCat(o.id), s = DK.s || 1, dx = (e.clientX - R.left) / s, dy = (e.clientY - R.top) / s; o.x = Math.round(Math.max(0, Math.min(DESK_W - c.w, dx - c.w / 2))); o.y = Math.round(Math.max(0, Math.min(DESK_H - c.h, dy - c.h))); o.at = 'desk'; o.lz = 99; deskItemsRender();   // 🛍️ 꺼낸 소품 = 겹친 소품들보다 앞에 (도련 10-31 · 뒤로 가면 소품 안에 들어간 줄 알아요)
@@ -1169,11 +1171,18 @@
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
         /* 🛍️ 봉투 속 = 아직 꺼내지 않았어요 (도련 11-02 · 현실처럼) : 💻 📲 책상에서는 봉투에서 꺼낼 때까지 바구니 · 스티커 정리 · 오늘 쓸 스티커 · 스티커첩 어디에도 없어요 (js/basket.js)
            s = 스티커 종이 id (카드 it.s · 살 때 적어 둬요) · b = 📒 🤍 스티커첩 id (카드 it.b) · 📱 폰은 그대로 다 보여요 (나중에 폰 정리할 때 · 도련) */
+        /* 모든 상품 (도련 11-02) : g = ✏️ 문구 · 필기구 (문구함 · 연필꽂이 · js/skins.js cabOwn · js/pencase.js pkOwnIds) · u = 🪑 소품 · 🧱 🪵 (📦 소품함) · d = 📔 다이어리 (보관소 · js/dyyear.js dyyCells) */
         function deskBagHold() {
             if (!document.documentElement.classList.contains('desk-on')) return null;
-            const s = new Set(), b = new Set();
-            dkBags().forEach(bg => bg.it.forEach(it => { (Array.isArray(it.s) ? it.s : []).forEach(id => s.add(id)); if (it.al && it.b) b.add(it.b); }));
-            return { s, b };
+            const s = new Set(), b = new Set(), g = new Set(), u = new Set(), d = new Set();
+            dkBags().forEach(bg => bg.it.forEach(it => {
+                (Array.isArray(it.s) ? it.s : []).forEach(id => s.add(id));
+                if (it.al && it.b) b.add(it.b);                                   // 📒 🤍 스티커첩
+                if (it.k === 'tool' && it.b) d.add(it.b);                          // 📔 다이어리 (보관소에도 없어요)
+                if (it.k === 'gd' && it.gid) g.add(it.gid);                        // ✏️ 문구 · 필기구 (디자인 id)
+                if (it.u) u.add(it.u);                                             // 🪑 소품 · 🧱 🪵 벽지 · 책상 (그 하나)
+            }));
+            return { s, b, g, u, d };
         }
         window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen; window.deskBagHold = deskBagHold;
         const deskZ = () => deskZAll();

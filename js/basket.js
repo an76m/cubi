@@ -967,7 +967,7 @@
         gd: ['문구', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
             const L = window.gdShopList ? gdShopList() : [], ic = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
             SH_CATS.gd = [...new Map(L.map(x => [x.g, `${ic[x.g] || '✏️'} ${x.kind}`]))];
-            return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, give: () => gdGive(x.id) }));
+            return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: () => gdGive(x.id) }));   // gid = 봉투 카드가 기억해요
         }],
         desk: ['책상 소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
             cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
@@ -1192,6 +1192,8 @@
         if (al && window.abLastGiven && Date.now() - abLastGiven.t < 8000) o.b = abLastGiven.id;   // 📒 🤍 = 그 책 (책상에 끌어 놓으면 그 자리)
         if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
         if (sid) o.s = [sid];
+        if (k === 'gd' && x.gid) o.gid = x.gid;                                 // ✏️ 문구 · 필기구 = 그 디자인 (봉투에서 꺼낼 때까지 문구함 · 연필꽂이에 없어요)
+        { const L = x.look === 'dskin' ? window.dsLastGiven : k === 'desk' ? window.deskLastGiven : null; if (L && L.u && Date.now() - L.t < 8000) o.u = L.u; }   // 🪑 🧱 🪵 = 그 하나 (📦 소품함에 없어요)
         if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
         (window.SHOP_BAG = window.SHOP_BAG || []).push(o);
     }

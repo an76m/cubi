@@ -25,7 +25,7 @@
         const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 처음 쓸 때 만들어요
         /* ✏️ 가진 필기구 (도련 11-01 : 처음엔 🎁 5개 · js/skins.js GD_STARTER · 더는 🏪 기본상품 샵 '문구 → 필기구'에서 받아요) = 내 문구 목록 'diary_gd_own' 안의 필기구 (js/skins.js gdGive) */
         const pkIsId = id => pkAll().some(t => t.id === id);
-        const pkOwnIds = () => { const L = window.gdOwnList ? gdOwnList() : null; return (L || []).map(o => o.id).filter(pkIsId); };
+        const pkOwnIds = () => { const L = window.gdOwnList ? gdOwnList() : null, H = window.deskBagHold ? deskBagHold() : null; return (L || []).map(o => o.id).filter(id => pkIsId(id) && !(H && H.g.has(id))); };   // 🛍️ 봉투 속 필기구는 꺼낼 때까지 없어요
         const pkName = t => t.name || (t.tool === 'pen' ? '색연필' : '형광펜');
         const pkq = id => document.getElementById(id);
         const pk = { on: false, pick: null, busy: false, tab: 'pen', x: 0, w: 1, v: 0, raf: 0, go: null, drag: null, moved: false };   // x = 민 거리(px) · w = 한 바퀴 길이

@@ -228,7 +228,8 @@
         function dyyFilterSet(v) { dyyFilter = v; if (window.dyTabSet) dyTabSet('free'); }
         function dyyCells() {
             const base = DY_TYPES.find(t => t.id === DY_DEF), cur = dyyBookId();
-            const all = dyyBooks().slice().sort((a, b) => (b.id === cur) - (a.id === cur) || b.y - a.y || b.n - a.n);
+            const H = window.deskBagHold ? deskBagHold() : null;                 // 🛍️ 봉투 속 다이어리는 꺼낼 때까지 보관소에 없어요 (💻 📲)
+            const all = dyyBooks().filter(b => !(H && H.d.has(b.id))).sort((a, b) => (b.id === cur) - (a.id === cur) || b.y - a.y || b.n - a.n);
             if (!all.length) return `<div class="cs-empty">📔 다이어리가 없어요.<br>🏪 기본상품 샵 → 📔 다이어리에서 받아 주세요.<br><button type="button" class="btn primary" style="margin-top:10px" onclick="closeModal('dyModal'); dyyShop()">🏪 받으러 가기</button></div>`;
             const kinds = DYY_KINDS.filter(([k]) => all.some(b => dyyKindOf(b) === k));
             if (kinds.length < 2 || !kinds.some(([k]) => k === dyyFilter)) dyyFilter = 'all';
