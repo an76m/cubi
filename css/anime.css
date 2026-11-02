@@ -696,15 +696,11 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
 .dkz-slot:disabled { cursor: default; background: rgba(120, 100, 110, .28); border-style: dotted; opacity: .7; transform: none; }
 .dkz-slot:disabled b, .dkz-slot:disabled small { color: #6b5560; }
 
-/* 🚪 이동 창 넓게 (도련 11-02) : 💻 PC · 📲 아이패드 = 가로로 넓혀서 모든 칸을 한눈에 (스크롤 없이) · 📱 폰은 예전 한 줄 그대로 */
+/* 🚪 이동 창 넓게 (도련 11-02) : 💻 PC · 📲 아이패드 = 가로 3칸 (4칸은 옆으로 너무 길어서 3칸으로 · 도련 11-02) · 📱 폰은 예전 한 줄 그대로 */
 @media (min-width: 600px) and (min-height: 600px) {
     #moveModal > .modal-content { box-sizing: border-box; width: min(92vw, 800px); max-width: none; max-height: 92vh; max-height: 92dvh; }
     #moveModal > .modal-content > .svc-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
     #moveModal .svc-cat:not(.svc-extra) { grid-column: auto; padding: 10px 12px; grid-template-columns: 40px minmax(0, 1fr) 10px; column-gap: 10px; }
     #moveModal .svc-cat:not(.svc-extra) .svc-cat-icon { width: 38px; height: 38px; font-size: 24px; }
     #moveModal .svc-cat:not(.svc-extra) small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-}
-@media (min-width: 1000px) and (min-height: 600px) {
-    #moveModal > .modal-content { width: min(92vw, 1080px); }
-    #moveModal > .modal-content > .svc-cats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
