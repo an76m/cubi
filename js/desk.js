@@ -189,6 +189,7 @@
                 if (DK.fresh) {
                     DK.items = back ? dkRebuild(had, bk, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
                     DK.fresh = false; dkSave();
+                    if (!back) dkStarterLinks();                                      // 🎁 처음 온 다꾸러 = 기본 연필꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02)
                     if (back && bk && bk.diary_desk_fn && typeof bk.diary_desk_fn === 'object' && typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, bk.diary_desk_fn);
                     deskItemsRender(); deskModeRender();
                 }
@@ -202,6 +203,18 @@
                 }
                 if (!back && giftOn()) giftWrite();
             } finally { giftBusy = false; }
+        }
+        /* 🎁 처음 연결 (도련 11-02 · 처음 받은 기본 세트에만 한 번) : ✏️ 기본 연필꽂이 = 연필꽂이 · 🗄️ 기본 서랍장 맨 아래 칸 = 문구함 (이름표도)
+           이미 연결이 있으면(다른 기기 · 되살리기) 그대로 · 그 뒤 다꾸러가 바꾸거나 뺀 연결은 손대지 않아요 */
+        function dkStarterLinks() {
+            if (typeof prefGet !== 'function' || DK.edit) return;
+            const desk = dkOnDesk(), v = prefGet(DK_FN_KEY, DK_FN_LOCAL), M = v && typeof v === 'object' ? Object.assign({}, v) : {};
+            const cup = desk.find(o => dkHoldOk(o.id).includes('pc') && !dkSlots(o.id));
+            if (cup && !('pc' in M)) { M.pc = cup.u; cup.tag = Object.assign({}, cup.tag || {}, { on: true, ic: '✏️' }); dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
+            const H = dkHomes(), has = Object.keys(H).some(u => H[u].some(e => e.k === 'gd'));
+            const dr = !has && desk.find(o => { const S = dkSlots(o.id); return S && dkHoldOk(o.id).includes('gd') && !(H[o.u] || []).some(e => e.s === S.length - 1); });
+            if (dr) { const S = dkSlots(dr.id), s = S.length - 1; H[dr.u] = (H[dr.u] || []).concat([{ k: 'gd', s, r: S[s], tag: { on: true } }]); dkHomesSet(H); }
+            deskFnPaint(); if (typeof dknPaintAll === 'function') dknPaintAll();
         }
         window.deskGiftWrite = giftWrite; window.deskGiftBusy = () => giftBusy || DK.fresh;
         async function dkFilesFill() {                                             // 파일이 아직 없는 소품 (🎁 기본 세트 선물 · 다른 기기 것은 이미 있어요) → 만들기 · 드라이브를 읽은 뒤에만
