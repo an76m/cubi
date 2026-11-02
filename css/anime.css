@@ -715,3 +715,8 @@ html.an .pk-t.on .pk-ti, html.an .pk-room.binning .pk-ti { filter: none !importa
 html.an .pc-mini { filter: none; }
 html.an .pc-mini-cup { background: radial-gradient(circle, #fff 0 1.6px, transparent 2px) 0 0 / 7px 7px, #ffc2d3 !important; border: 1.6px solid #c25a80; box-shadow: none !important; }
 html.an .pc-held, html.an .pc-held.carry, html.an .pc-held.laid { filter: none !important; }   /* 손에 든 필기구도 흐린 그림자 없이 */
+
+/* ✏️ 봉투 속 문구 = 그 상품 그림 (도련 11-03 · js/desk.js dkGdIc) · 길쭉한 필기구는 비스듬히 눕혀요 */
+.dkb-card > i.dkb-gd { display: flex; align-items: center; justify-content: center; overflow: visible; }
+.dkb-card > i.dkb-gd img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
+.dkb-card > i.dkb-gd.tall img { max-width: none; max-height: none; height: 62px; width: auto; transform: rotate(-40deg); }
