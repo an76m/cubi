@@ -124,7 +124,7 @@
             }).join('');
             host.innerHTML = `<img class="dkw-cupimg" src="${htmlEsc(src)}" alt=""${fl ? ' style="transform:scaleX(-1)"' : ''} draggable="false"><div class="dkw-tools">${tools}</div>`
                 + (!F.fm ? '' : `<i class="dkw-cupfm"${fl ? ' style="transform:scaleX(-1)"' : ''}><i style="--fm:url('${htmlEsc(F.fm)}')"><img src="${htmlEsc(src)}" alt="" draggable="false"></i></i>`);
-            if (big) host.querySelectorAll('.dkw-t').forEach(dkwPullWire);
+            if (big) { host.dataset.l = l.toFixed(1); host.dataset.r = rr.toFixed(1); host.querySelectorAll('.dkw-t').forEach(dkwPullWire); }   // ↔ 옆으로 밀 수 있는 곳 = 입구 안
         }
         /* 🪑 책상 위 연필꽂이에도 내가 꽂은 도구가 꽂혀 보여요 (바구니의 다이어리처럼 · 앞벽 뒤) */
         function dkwDeskPaint() {
@@ -143,7 +143,7 @@
             const n = dkwCupList().length, out = dkwCupTools().filter(cabIsOn).length, d = dkDef(el);
             const H = Math.min(380, Math.round(innerHeight * .5)), W = Math.round(H * (d.w || el.offsetWidth) / (d.h || el.offsetHeight));
             r.innerHTML = `<div class="dkw-cupbox">
-                <p class="dkw-hint">${n ? '도구를 잡고 <b>위로 쏙</b> 끌어 올리면 손에 들어요' : '연필꽂이가 비었어요 · <b>🗄️ 문구함</b>에서 ♥ 를 눌러 꽂아요'}${out ? `<small>페이지에 꺼내 둔 도구 ${out}개</small>` : ''}</p>
+                <p class="dkw-hint">${n ? '도구를 잡고 <b>위로 쏙</b> 끌어 올리면 손에 들어요 · <b>옆으로 밀면</b> 비켜나요' : '연필꽂이가 비었어요 · <b>🗄️ 문구함</b>에서 ♥ 를 눌러 꽂아요'}${out ? `<small>페이지에 꺼내 둔 도구 ${out}개</small>` : ''}</p>
                 <div class="dkw-cupart" style="width:${W}px;height:${H}px"></div>
                 <div class="dkw-btns"><button type="button" class="dkw-b" onclick="dkwTrayOpen()">🗄️ 문구함</button><button type="button" class="dkw-b dkw-x" onclick="dkwClose()">닫기</button></div></div>`;
             const host = r.querySelector('.dkw-cupart');
@@ -151,21 +151,26 @@
             dkwShow(r);
             dkwFly(host, el);
         }
-        /* ✋ 뽑기 = 잡고 위로 끌어 올려요 (도련 11-02 · 톡 = 안 뽑혀요 · 현실처럼) : 110px 넘게 올리면 쏙 · 덜 올리고 놓으면 제자리로 */
-        const DKW_PULL = 110;
+        /* ✋ 뽑기 = 잡고 위로 끌어 올려요 (도련 11-02 · 톡 = 안 뽑혀요 · 현실처럼) : 110px 넘게 올리면 쏙 · 덜 올리고 놓으면 제자리로
+           ↔ 옆으로 밀면 비켜나요 (도련 11-03 · 예전 연필꽂이처럼) : 놓아도 민 자리 · 기울기 그대로 · 잡은 것이 맨 앞 → 뒤에 가린 것을 골라요 */
+        const DKW_PULL = 110; let dkwZ = 10;
         function dkwPullWire(b) {
             let p = null;
-            const place = (dx, up) => { const k = 1 - Math.min(1, up / 90); b.style.transform = `translateX(-50%) translate(${dx.toFixed(1)}px, ${(-up).toFixed(1)}px) rotate(calc(var(--a) * ${k.toFixed(2)}))`; };
+            const place = up => { const k = 1 - Math.min(1, up / 90); b.style.transform = `translateX(-50%) translateY(${(-up).toFixed(1)}px) rotate(calc(var(--a) * ${k.toFixed(2)}))`; };
             b.addEventListener('pointerdown', e => {
                 if (e.button > 0 || b.classList.contains('pull')) return;
                 e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (er) {}
-                p = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }; b.classList.add('grab');
+                const host = b.parentNode.parentNode;
+                p = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, x0: parseFloat(b.style.left), a0: parseFloat(b.style.getPropertyValue('--a')) || 0, L: +host.dataset.l, R: +host.dataset.r };
+                b.classList.add('grab'); b.style.zIndex = ++dkwZ;                    // 잡은 것이 맨 앞
             });
             b.addEventListener('pointermove', e => {
                 if (!p || e.pointerId !== p.id) return;
-                const up = Math.max(0, p.y - e.clientY), dx = (e.clientX - p.x) * .25;
-                if (up > 4 || Math.abs(dx) > 2) p.moved = true;
-                place(dx, up);
+                const up = Math.max(0, p.y - e.clientY), dx = e.clientX - p.x;
+                if (up > 4 || Math.abs(dx) > 3) p.moved = true;
+                const x = Math.max(p.L, Math.min(p.R, p.x0 + dx));                   // ↔ 입구 안에서만
+                b.style.left = x.toFixed(1) + 'px'; b.style.setProperty('--a', Math.max(-24, Math.min(24, p.a0 + (x - p.x0) * .15)).toFixed(1) + 'deg');   // 민 쪽으로 기울어요
+                place(up);
                 if (up > DKW_PULL) {                                             // 쏙 뽑혔어요
                     p = null; b.classList.remove('grab'); b.style.transform = ''; b.classList.add('pull');
                     if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
@@ -174,8 +179,8 @@
             });
             const end = e => {
                 if (!p || e.pointerId !== p.id) return;
-                const tap = !p.moved; p = null; b.classList.remove('grab'); b.style.transform = '';   // 덜 뽑았으면 제자리로 스르르
-                if (tap) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); dkwSay('✋ 잡고 위로 쏙 끌어 올려요', b); }
+                const tap = !p.moved; p = null; b.classList.remove('grab'); b.style.transform = '';   // 덜 뽑았으면 쏙 내려가요 (민 자리는 그대로)
+                if (tap) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); dkwSay('✋ 잡고 위로 쏙 끌어 올려요 · 옆으로 밀면 비켜나요', b); }
             };
             b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
         }

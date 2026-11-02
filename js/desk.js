@@ -1255,7 +1255,8 @@
         function dkyPosOf(id) {                                                   // 그 권 자리 (없으면 줄지어 꽂힌 자리)
             const M = dkyMap(); if (dkyOk(M[id])) return M[id];
             const L = dkvAll().filter(b => !dkyOk(M[b.id])), k = Math.max(0, L.findIndex(b => b.id === id));
-            return { x: 1196 - (DKV_SZ.front[0] + 10) * k, y: 758, p: 'front' };   // 처음 = 앞을 보고 나란히 (도련 10-31)
+            if (!k) return { x: DESK_W / 2, y: 850, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
+            return { x: 1196 - (DKV_SZ.front[0] + 10) * (k - 1), y: 758, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
         }
         const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${dkvCol(b.c)[0]}${b.n > 1 ? ' ' + b.n : ''}`;
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : '📔';
