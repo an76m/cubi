@@ -17,12 +17,10 @@
    - 저장 : 필기구 = 예전 그대로 'diary_pencase' (js/pencase.js · 폰 그리기 연필꽂이와 같은 목록) · 도구 = 'diary_cup_tools' [id] (게스트 'malang_cup_tools' · 없으면 가진 도구 모두) */
 
         const DKW_CUP_KEY = 'diary_cup_tools', DKW_CUP_L = 'malang_cup_tools', DKW_MAX = 24;
-        /* 🧩 문구 종류는 이 파일에 적지 않아요 (앞으로 계속 늘어요) : 모두 js/skins.js GD_CAB 한 표 (cup · hand · sec · len) · 필기구 = js/pencase.js PK_KINDS
-             → 새 종류가 생기면 서랍 칸막이 · 연필꽂이 · 꺼내 쓰기가 저절로 (이 파일은 그대로) */
+        /* 🧩 문구 종류 = js/skins.js GD_CAB (종류마다 하는 일 hand) · 🧁 상품마다 = 상품공방 (도련 11-02) : 🗄️ 서랍칸 (칸막이 이름) · ✏️ 연필꽂이 (yes / no · 필기구는 늘) · 꽂이길이 · 이름
+             → 새 종류 · 새 상품이 생기면 서랍 칸막이 · 연필꽂이 · 꺼내 쓰기가 저절로 (이 파일은 그대로) */
         const dkwMeta = g => ((GD_CAB.find(x => x[0] === g) || [])[2]) || {};
-        const dkwKindName = g => (GD_CAB.find(x => x[0] === g) || [])[1] || '';
-        const dkwCupKinds = () => GD_CAB.filter(x => (x[2] || {}).cup).map(x => x[0]);   // 연필꽂이에 꽂을 수 있는 종류
-        const DKW_PEN_SEC = '필기구';                                            // 필기구 칸막이 (늘 맨 앞 · 색연필 · 형광펜 · 지우개 … PK_KINDS 가 늘면 저절로)
+        const dkwP = id => ((window.prodList ? prodList('문구') : []).find(x => x.id === id) || {}).P || {};   // 그 문구 상품 속성
         const DKW = { need: null, tint: new Map(), sayT: 0 };
         const dkwq = id => document.getElementById(id);
         const dkwDesk = () => document.documentElement.classList.contains('desk-on');
@@ -30,23 +28,12 @@
         const dkwPens = () => { const own = new Set(pkOwnIds()); return pkAll().filter(t => own.has(t.id)); };
         const dkwOwnOf = gs => gs.flatMap(g => cabOwn(g));
         const dkwIsPen = id => pkIsId(id);
-        function dkwCupTools() { const v = prefGet(DKW_CUP_KEY, DKW_CUP_L), own = dkwOwnOf(dkwCupKinds()).filter(dkwCanCup); return Array.isArray(v) ? v.filter(id => own.includes(id)) : own.slice(0, Math.max(0, DKW_MAX - pkRead().length)); }   // 처음 = 가진 도구 모두
+        function dkwCupTools() { const v = prefGet(DKW_CUP_KEY, DKW_CUP_L), own = dkwOwnOf(GD_CAB.map(x => x[0])).filter(dkwCanCup); return Array.isArray(v) ? v.filter(id => own.includes(id)) : own.slice(0, Math.max(0, DKW_MAX - pkRead().length)); }   // 처음 = 가진 도구 모두
         const dkwCupToolN = () => dkwCupTools().length;
         const dkwInCup = id => dkwIsPen(id) ? pkRead().includes(id) : dkwCupTools().includes(id);
         const dkwCupN = () => pkRead().length + dkwCupToolN();
-        function dkwCanCup(id) {                                                  // 연필꽂이에 꽂을 수 있나요 : 필기구 = 늘 · 그 밖 = 상품 속성 '연필꽂이'(예 / 아니오)가 먼저 · 없으면 종류 표(cup)
-            if (dkwIsPen(id)) return true;
-            const p = !cabTool(id) && window.prodList ? prodList('문구').find(x => x.id === id) : null, v = p && p.P.연필꽂이;
-            if (v === true || v === '예') return true; if (v === false || v === '아니오') return false;
-            return !!dkwMeta(cabGOf(id)).cup;
-        }
-        function dkwName(id) {                                                   // 상품 이름 (없으면 종류 이름 · 색 이름만 있으면 종류를 붙여요 : 검정 → 검정 집게)
-            const kn = dkwIsPen(id) ? pkName(pkAll().find(t => t.id === id) || {}) : dkwKindName(cabGOf(id));
-            const p = !cabTool(id) && window.prodList ? prodList('문구').find(x => x.id === id) : null;
-            let n = String((p && p.P.이름) || (dkwIsPen(id) ? '' : cabName(id)) || '').replace(/^기본\s*/, '').trim();
-            if (!n) return kn;
-            return kn && !n.includes(kn) && !n.includes(kn.slice(0, 2)) && n.length <= 4 ? `${n} ${kn}` : n;
-        }
+        const dkwCanCup = id => dkwIsPen(id) || dkwP(id).연필꽂이 === 'yes';       // 연필꽂이에 꽂을 수 있나요 : 필기구 = 늘 · 그 밖 = 상품 '연필꽂이'
+        const dkwName = id => String(dkwP(id).이름 || '');                      // 상품 이름 그대로 (상품공방에서 정해요)
         const dkwArt = id => { if (dkwIsPen(id)) { const t = pkAll().find(x => x.id === id); return t ? pkSvg(t) : ''; } return cabArt(id); };
         const dkwCupU = () => (deskFnMap() || {}).pc || '';
         const dkwItemEl = u => u ? document.querySelector(`#deskStage .desk-item[data-u="${u}"]`) : null;
@@ -132,7 +119,7 @@
             const sc = H / 330;                                                   // 다가온 연필꽂이 높이 330 기준
             const tools = ids.map((id, i) => {
                 const f = n === 1 ? .5 : i / (n - 1), x = l + (rr - l) * (.1 + .8 * f), a = (f - .5) * Math.min(36, 6 + n * 2.6), pen = dkwIsPen(id);
-                const h = Math.round(sc * 250 * (pen ? 1 : +dkwMeta(cabGOf(id)).len || 1) * (n > 14 ? .92 : 1)), y = base - h + (i % 3) * 7 * sc;
+                const h = Math.round(sc * 250 * +dkwP(id).꽂이길이 * (n > 14 ? .92 : 1)), y = base - h + (i % 3) * 7 * sc;
                 return `<${big ? 'button type="button"' : 'i'} class="dkw-t${pen ? ' pen' : ' ' + cabGOf(id)}" data-id="${htmlEsc(id)}"${big ? ` title="${htmlEsc(dkwName(id))}"` : ''} style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;height:${h}px;--a:${a.toFixed(1)}deg;z-index:${i % 2 ? 2 : 1}">${dkwArt(id)}</${big ? 'button' : 'i'}>`;
             }).join('');
             host.innerHTML = `<img class="dkw-cupimg" src="${htmlEsc(src)}" alt=""${fl ? ' style="transform:scaleX(-1)"' : ''} draggable="false"><div class="dkw-tools">${tools}</div>`
@@ -220,8 +207,8 @@
             const inn = dkwq('dkwIn'); if (!inn) return;
             const keep = {}; inn.querySelectorAll('.dkw-row').forEach(r => { keep[r.dataset.k] = r._off || 0; }); const top = inn.scrollTop;   // 넘긴 자리 기억
             const cup = !!dkwItemEl(dkwCupU());
-            const secs = [['pen', DKW_PEN_SEC, dkwPens().map(t => t.id)]], at = {};   // 칸막이 = 종류 표의 sec (같은 이름끼리 · 표 순서) · 없으면 종류 이름
-            GD_CAB.forEach(([g, nm, m]) => { const ids = cabOwn(g); if (!ids.length) return; const sn = (m && m.sec) || nm; if (at[sn] == null) { at[sn] = secs.length; secs.push(['s' + secs.length, sn, []]); } secs[at[sn]][2].push(...ids); });
+            const secs = [], at = {};                                          // 칸막이 = 상품 '서랍칸' (같은 이름끼리 · 필기구 먼저 · 그다음 종류 표 순서)
+            dkwPens().map(t => t.id).concat(GD_CAB.flatMap(([g]) => cabOwn(g))).forEach(id => { const sn = String(dkwP(id).서랍칸 || ''); if (!sn) return; if (at[sn] == null) { at[sn] = secs.length; secs.push([dkwIsPen(id) ? 'pen' : 's' + secs.length, sn, []]); } secs[at[sn]][2].push(id); });   // 필기구 칸 = 넓게 (css .dkw-pen)
             for (let i = secs.length - 1; i >= 0; i--) if (!secs[i][2].length) secs.splice(i, 1);
             const card = (id, copy) => {
                 const can = dkwCanCup(id) && (cup || dkwIsPen(id)), on = can && dkwInCup(id), pg = !dkwIsPen(id) && cabIsOn(id), need = DKW.need && cabGOf(id) === DKW.need;

@@ -35,8 +35,9 @@
            처음선물 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
         const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
             const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
-            if (!x.u.디자인 || !o.kind) return null;
-            Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름 || ''), w: +o.w || 120, h: +o.h || 120, x: +o.x || 700, y: +o.y || 560 });
+            const num = v => v !== '' && v != null && isFinite(+v);              // 🔎 크기 · 처음 자리 · 이름 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
+            if (!x.u.디자인 || !o.kind || !String(P.이름 || '') || !(+o.w > 0) || !(+o.h > 0) || !num(o.x) || !num(o.y)) { console.warn('🧁 소품 속성이 모자라요 :', x.id); return null; }
+            Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름), w: +o.w, h: +o.h, x: +o.x, y: +o.y });
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
             if (P.처음선물) delete o.nost; else o.nost = 1;
             if (P.숨김) o.off = 1;

@@ -17,7 +17,7 @@
        · 말랑달콤 폴더를 지우면 모두 사라지고 되돌릴 수 없어요 (진짜 문구를 불태운 것과 같아요 · 도련)
    - 📁 로그인 없이 폴더에 저장 = 드라이브와 똑같이 (js/devsave.js vfsFetch) · 👀 구경만 = 이 창을 닫으면 사라져요 (일기처럼)
    - 줄어드는 방식 (도련 10-25) : 칸 = 🏷️ 씰(😀 이모지 포함) · 🧩 조각 (뗀 칸만 비어요)
-                               수량 = 🎀 테이프 (붙인 길이만큼 · 한 롤 OWN_Q.tape px) · 🧻 떡메 · 📝 메모지 (한 장씩 · 한 묶음 50장) · 📃 속지 (깔면 끝)
+                               수량 = 🎀 테이프 (붙인 길이만큼 · 한 롤 = 상품 롤길이 px (내가 만든 것 OWN_MINE_Q)) · 🧻 떡메 · 📝 메모지 (한 장씩 · 한 묶음 50장) · 📃 속지 (깔면 끝)
                                종이 = 📄 모조지 (오린 자리만 비고 남은 종이는 계속 · 거의 다 오리면 끝)
    - 목록 한 칸 : { id, f : 종이 파일 id, k : 종류, n : 칸 수, u : [쓴 칸 번호] · q0 · q : 처음 · 남은 수량, at : 받은 때, from : 'kit' 기본 · 'mine' 만든 것 · 'gift' 선물,
                    nm : 이름, us : [기본스티커 그림 주소] (바구니 미리보기) · th : 작은 그림 · ts : 🔤 글씨스티커 }
@@ -29,7 +29,7 @@
         const ownKindPath = k => dirPath(OWN_KIND[k] || '기타');
         const OWN_IDX_BK = '목록_백업.json', OWN_ALB_BK = '스티커첩_백업.json', OWN_BK_LS = 'malang_own_bk';
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
-        const OWN_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
+        const OWN_MINE_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
         const ownHas = e => e.q0 ? e.q > 0 : e.u.length < e.n;                  // 아직 남았어요
         const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
         const O = { kw: '', key: null, idx: null, idxF: null, idxAt: 0, mem: null, album: null, albF: null, q: Promise.resolve(), subs: new Set(), replayed: '' };
@@ -308,7 +308,7 @@
             const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? { r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) } : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             if (L) full.L = L;
             const ent = { id, f: '', k: full.k, n: imgs.length, u: [], at: Date.now(), from: full.from, nm: full.nm };
-            const q0 = sheet.q0 || OWN_Q[full.k];
+            const q0 = sheet.q0 || (full.from === 'mine' ? OWN_MINE_Q[full.k] : 0);
             if (q0) { full.q0 = full.q = q0; ent.q0 = ent.q = q0; }
             if (full.ts) ent.ts = 1;
             if (sheet.b) full.b = sheet.b;                                        // 🛟 되살릴 때 들어갈 바구니 (😀 이모지)
@@ -474,9 +474,9 @@
         /* ---------- 📒 스티커첩 (도련 10-25) : 바인더 = 종이째 포켓에 · 이형지 = 낱개로 떼어 모으기
            album = { bd : [{ id, k : 종류, lb : 라벨, c : 표지 색 번호, n : 포켓 수, p : { 포켓 번호 : 종이 id } }],
                      rl : [{ id, k, lb, n : 쪽 수, it : [{ s : 종이 id(한 칸짜리), pg : 쪽, x, y : 0~1 자리, r : 기울기 }] }] (🤍 이형지북), g : { 종류 : 1 (처음 선물 받음) } }
-           · 바인더 1권 = 속지 10장(20쪽 × 4포켓 = 80) · 이형지북 1권 = 20쪽 (한 쪽에 OWN_REL_MAX 개) · 기본상품 샵 기본스티커처럼 몇 권이든 공짜로 더 받아요 (도련 10-25)
+           · 바인더 1권 = 상품 시트 수(장수) · 한 쪽 포켓 · 이형지북 1권 = 상품 쪽수 (한 쪽에 이형지북 상품 '포켓' 개) · 기본상품 샵 기본스티커처럼 몇 권이든 공짜로 더 받아요 (도련 10-25)
            · 정리한 종이는 바구니에서 빠져 보여요 · 다 쓴 종이는 저절로 빠져요 · 목록과 같은 파일(암호화)이라 다른 기기에서도 그대로 ---------- */
-        const OWN_REL_MAX = 24;                                                   // 이형지 한 쪽에 붙는 수
+        const ownRelCap = () => window.abRelCap ? abRelCap() : 0;               // 이형지 한 쪽에 붙는 수 = 🧁 이형지북 상품 '포켓' (js/basket.js · 도련 11-02)
         function ownAlbumClean(a, list) {
             const alive = list ? new Set(list.filter(ownAlive).map(e => e.id)) : null;   // list 없으면 다 쓴 종이 거르기는 안 해요 (화면에서 걸러요)
             const ok = id => !alive || alive.has(id);
@@ -486,11 +486,11 @@
                 (Array.isArray(a.bd) ? a.bd : []).forEach(b => {
                     if (!b || !b.id) return;
                     const p = {}; Object.keys(b.p || {}).forEach(i => { if (ok(b.p[i])) p[i] = b.p[i]; });
-                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, pid: String(b.pid || '').slice(0, 60), n: Math.max(4, Math.min(200, +b.n || 80)), p });   // pid = 바인더 상품 id (📦 사본 색)
+                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, pid: String(b.pid || '').slice(0, 60), n: Math.max(1, Math.min(400, +b.n || 1)), p });   // pid = 바인더 상품 id (📦 사본 색)
                 });
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;
-                    const n = Math.max(1, Math.min(100, +r.n || 20));
+                    const n = Math.max(1, Math.min(200, +r.n || 1));   // 📒 🤍 크기 = 받을 때 상품 값 (js/basket.js abNewBd · abNewRl)
                     o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0, ...(+t.w > 0 && +t.h > 0 ? { w: Math.round(+t.w), h: Math.round(+t.h) } : {}) })) });   // w · h = 스티커 진짜 크기 (다이어리에 붙였을 때 · 도련 10-29)
                 });
             }
@@ -566,7 +566,7 @@
                 const rel = a.rl.find(r => r.id === relId);
                 if (!rel) { const er = new Error('gone'); er.code = 'gone'; throw er; }
                 const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+pos.pg || 0)));
-                if (rel.it.filter(t => t.pg === pg).length >= OWN_REL_MAX) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
+                if (rel.it.filter(t => t.pg === pg).length >= ownRelCap()) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
                 const e = list.find(x => x.id === srcId);
                 if (!e || !ownAlive(e) || e.q0 || ownPendGet().some(p => p.s === srcId && p.k === slot)) return '';
                 let s; try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') return ''; throw er; }
@@ -613,7 +613,7 @@
                         for (const i of idxs) {
                             const op = ops[i], rel = a.rl.find(r => r.id === op.rl); if (!rel) continue;
                             const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+op.pos.pg || 0)));
-                            if (rel.it.filter(t => t.pg === pg).length >= OWN_REL_MAX) continue;
+                            if (rel.it.filter(t => t.pg === pg).length >= ownRelCap()) continue;
                             const img = sh.imgs[op.k]; if (img == null || pend.some(p => p.s === src && p.k === op.k)) continue;
                             const nid = ownRid();
                             const one = { v: 1, id: nid, k: e.k, from: 'rel', nm: sh.nm || '', ts: sh.ts ? 1 : 0, baked: !!sh.baked, imgs: [img], wh: [(sh.wh || [])[op.k] || [0, 0]], x: {} };
@@ -702,6 +702,6 @@
         };
         window.ownDiscard = ownDiscard;
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
-        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_Q = OWN_Q; window.OWN_KIND = OWN_KIND;
+        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs; window.OWN_REL_MAX = OWN_REL_MAX;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;

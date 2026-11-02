@@ -57,22 +57,24 @@
         async function sbShelf(kind) {
             const out = [], k = sbOwnK[kind];
             let list = []; try { list = await sbList(kind); } catch (e) {}
-            list.filter(x => !(x.P && (x.P.선물 || x.P.스토어))).reverse().forEach(x => {     // 🎁 선물 전용(이벤트 · 저금통) · 💎 스토어(유료)는 무료 샵에 진열 안 해요                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
+            const okN = v => +v > 0, okC = v => /^#[0-9a-f]{6}$/i.test(v || '');   // 🔎 상품 값은 상품공방이 정해요 (도련 11-02 · 빠지면 그 상품은 안 나와요 · 앱은 짐작하지 않아요)
+            const need = { tape: P => okN(P.롤길이) && okN(P.테이프폭), tk: P => okN(P.묶음장수) && okC(P.풀칠색), memo: P => okN(P.묶음장수) && okC(P.글자색), leaf: P => okN(P.묶음장수) }[kind];
+            list.filter(x => !(x.P && (x.P.선물 || x.P.스토어))).filter(x => !need || need(x.P || {}) || (console.warn('🧁 상품 속성이 모자라요 :', kind, x.P && x.P.id), false)).reverse().forEach(x => {     // 🎁 선물 전용(이벤트 · 저금통) · 💎 스토어(유료)는 무료 샵에 진열 안 해요                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
                 const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
                 if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
                 else if (kind === 'paper') out.push({ bigs, cnt: '모조지 한 장', look: 'sheet', thumbs: [thumb(urls[0], 240)],   // 📄 받은 그림 한 장 = 모조지 한 장 (도련 10-29 · 모양 · 배경 구분 없음 · 오릴지 통째로 뗄지는 다꾸러가)
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src] }) });
-                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],
-                    take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = 30, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
+                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],   // 🎀 한 롤 길이 · 폭 = 상품 (롤길이 · 테이프폭)
+                    take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = +x.P.테이프폭, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
                         const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
-                        return { k, imgs: [u], th: u }; } });
-                else if (kind === 'tk') out.push({ bigs, cnt: `${(window.OWN_Q || {}).tk || 50}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],
-                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], x: { pad: 'my' } }) });
-                else if (kind === 'leaf') out.push({ bigs, cnt: '한 장', look: 'leafimg', thumbs: [thumb(x.url, 240)],
-                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 900), true)).src], x: { lf: 'my' } }) });
-                else if (kind === 'memo') out.push({ bigs, cnt: `${(window.OWN_Q || {}).memo || 50}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],
-                    take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], x: { pp: 'img', w: d.w, h: d.h, tc: /^#[0-9a-f]{6}$/i.test(x.P.글자색 || '') ? x.P.글자색 : undefined } }; } });
+                        return { k, imgs: [u], th: u, q0: +x.P.롤길이 }; } });
+                else if (kind === 'tk') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],   // 🧻 한 묶음 · 풀칠 띠 색 = 상품
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], q0: +x.P.묶음장수, x: { pad: 'my', glue: x.P.풀칠색 } }) });
+                else if (kind === 'leaf') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'leafimg', thumbs: [thumb(x.url, 240)],
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 900), true)).src], q0: +x.P.묶음장수, x: { lf: 'my' } }) });
+                else if (kind === 'memo') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],   // 📝 한 묶음 · 글자색 = 상품
+                    take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], q0: +x.P.묶음장수, x: { pp: 'img', w: d.w, h: d.h, tc: x.P.글자색 } }; } });
             });
             return out;
         }

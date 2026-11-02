@@ -296,7 +296,7 @@
 
 
     /* ---------- 📒 스티커첩 (도련 10-25) : 종류 창 = [🧺 바구니 | 📒 스티커첩] 탭
-       · 📒 바인더 = 종이째 포켓에 꽂기 (속지 10장 = 20쪽 · 한 쪽 4포켓) · 🤍 이형지북 = 한 칸씩 떼어 모으기 (20쪽 · 🏷️ 씰 · 😀 이모지 · 🧩 조각만)
+       · 📒 바인더 = 종이째 포켓에 꽂기 (시트 수 · 한 쪽 포켓 = 그 바인더 상품) · 🤍 이형지북 = 한 칸씩 떼어 모으기 (20쪽 · 🏷️ 씰 · 😀 이모지 · 🧩 조각만)
        · 📒 정리하기(정리 책상) : 위 = 바구니 종이 한 줄 · 아래 = 바인더 포켓 / 이형지 → 끌어 놓거나 · 톡 고르고 톡 놓기
        · 이형지로 옮겨도 쓴 게 아니에요 (한 칸짜리 새 종이가 돼요 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelMove)
        · 바인더 · 이형지북도 🏪 기본상품 샵 → 📔 다이어리에서 받아 와야 내 것이 돼요 (공짜여도 받아서 가지고 · 칸이 차면 또 받아요 · 도련 10-25)
@@ -309,20 +309,22 @@
     function abBuild() {
         const L = window.prodList ? prodList('스티커첩') : [];
         AB_BDP.length = 0; AB_COL.length = 0;
-        L.filter(x => x.P.분류 !== '이형지북' && Array.isArray(x.P.색) && x.P.색.length >= 2).forEach(x => { AB_BDP.push(x); AB_COL.push(x.P.색.slice(0, 2)); });
-        if (!AB_COL.length) AB_COL.push(['#ffb3c9', '#f08fae']);              // (목록이 비면 그려질 색 하나)
-        AB_RL.p = L.find(x => x.P.분류 === '이형지북') || null;
+        const okC = v => /^#[0-9a-f]{6}$/i.test(v || ''), okN = v => +v > 0;     // 🔎 이름 · 색 · 포켓 · 장수 · 쪽수 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요)
+        L.filter(x => x.P.분류 === '바인더').forEach(x => { if (String(x.P.이름 || '') && Array.isArray(x.P.색) && okC(x.P.색[0]) && okC(x.P.색[1]) && okN(x.P.포켓) && okN(x.P.장수)) { AB_BDP.push(x); AB_COL.push(x.P.색.slice(0, 2)); } else console.warn('🧁 바인더 속성이 모자라요 :', x.id); });
+        AB_RL.p = L.find(x => x.P.분류 === '이형지북' && String(x.P.이름 || '') && okN(x.P.포켓) && okN(x.P.쪽수)) || null;
     }
     abBuild();
     if (window.prodHook) prodHook(abBuild);
     (window.SNAP_OWN = window.SNAP_OWN || {})['스티커첩'] = () => { const a = B.album || {}; return (a.bd || []).map(b => b.pid || (AB_BDP[(b.c || 0) % (AB_BDP.length || 1)] || {}).id).concat((a.rl && a.rl.length && AB_RL.p) ? [AB_RL.p.id] : []); };   // 📦 사본 (js/snap.js)
-    const AB_PER = 4;                                                         // 바인더 한 쪽 포켓 수
+    const abBdP = b => AB_BDP.find(x => x.id === b.pid) || AB_BDP[(b.c || 0) % (AB_BDP.length || 1)];   // 그 바인더 상품
+    const abPer = b => +abBdP(b).P.포켓;                                       // 한 쪽 포켓 수 = 상품 '포켓'
+    const abRelCap = () => AB_RL.p ? +AB_RL.p.P.포켓 : 0;                       // 이형지 한 쪽에 붙는 수 = 상품 '포켓' (js/own.js)
+    window.abRelCap = abRelCap;
     const abRid = () => Date.now().toString(36) + Math.floor(Math.random() * 1e8).toString(36);
     const abMine = arr => (arr || []).filter(x => x.k === B.kind);
     const abCol = b => { const p = b.pid && AB_BDP.find(x => x.id === b.pid); return p ? p.P.색.slice(0, 2) : AB_COL[(b.c || 0) % AB_COL.length]; };   // 받은 바인더 상품(pid) 색 → 없으면 순서
-    const AB_BD_N = 80, AB_RL_N = 20;                                         // 바인더 = 속지 10장(20쪽 × 4포켓) · 이형지북 = 20쪽
-    const abNewBd = (k, c) => { c = (+c || 0) % AB_COL.length; if (window.snapSoon) setTimeout(snapSoon, 3000); return { id: 'b' + abRid(), k, lb: '', c, pid: (AB_BDP[c] || {}).id || '', n: AB_BD_N, p: {} }; };
-    const abNewRl = k => ({ id: 'r' + abRid(), k, lb: '', n: AB_RL_N, it: [] });
+    const abNewBd = (k, c) => { c = (+c || 0) % AB_COL.length; if (window.snapSoon) setTimeout(snapSoon, 3000); return { id: 'b' + abRid(), k, lb: '', c, pid: (AB_BDP[c] || {}).id || '', n: +(AB_BDP[c] || {}).P.장수, p: {} }; };
+    const abNewRl = k => ({ id: 'r' + abRid(), k, lb: '', n: +AB_RL.p.P.쪽수, it: [] });   // 📒 바인더 = 시트 수 (장수) · 🤍 이형지북 = 쪽수 (상품)
     /* 🏪 기본상품 샵 → 📔 다이어리(스티커 정리)에서 받기 (그 종류 서랍으로) */
     function abTakeTool(t, k, c) { const o = t === 'bd' ? abNewBd(k, c) : abNewRl(k); window.abLastGiven = { id: o.id, t: Date.now() }; if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(o.id); return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(o); }).then(r => { if (window.dkDeskBooks) dkDeskBooks(true); return r; }); }   // 🛍️ 봉투 카드가 이 책을 기억해요 · 📔 책상에도 (js/desk.js)
     /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색] }] · 톡 = 그 종류 창에서 그 책 펼치기 */
@@ -448,14 +450,14 @@
     const abRlOf = id => (B.album.rl || []).find(r => r.id === id);
     function abPockets(b, desk) {
         let h = '';
-        for (let i = B.pg * AB_PER; i < Math.min(b.n, (B.pg + 1) * AB_PER); i++) {
+        for (let i = B.pg * abPer(b); i < Math.min(b.n, (B.pg + 1) * abPer(b)); i++) {
             const e = b.p[i] && B.byId.get(b.p[i]);
             h += e ? `<div class="ab-pk full" data-pk="${i}">${bkCard(e)}</div>` : `<div class="ab-pk" data-pk="${i}"><span>${desk ? '여기에 놓기' : '빈 포켓'}</span></div>`;
         }
         return h;
     }
     function abBinderHtml(b, desk) {
-        const c = abCol(b), pages = Math.ceil(b.n / AB_PER);
+        const c = abCol(b), pages = Math.ceil(b.n / abPer(b));
         B.pg = Math.max(0, Math.min(pages - 1, B.pg || 0));
         return `<div class="ab-binder" style="--c1:${c[0]};--c2:${c[1]}"><div class="ab-rings"><i></i><i></i><i></i></div><div class="ab-page" id="abPage">${abPockets(b, desk)}</div></div>`
             + abNavHtml(B.pg, pages, 'abPage');
@@ -529,7 +531,7 @@
             if (r) {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
-                main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 이형지북 고르기"><i class="ab-chip rl"></i>${L.length > 1 ? `${L.findIndex(x => x.id === r.id) + 1} / ${L.length} ▾` : '이형지북'}</button>${abLbDesk('rl', r)}<small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
+                main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 이형지북 고르기"><i class="ab-chip rl"></i>${L.length > 1 ? `${L.findIndex(x => x.id === r.id) + 1} / ${L.length} ▾` : '이형지북'}</button>${abLbDesk('rl', r)}<small>이 쪽 ${onPg} / ${abRelCap()}개</small></div>`
                     + `<div class="ab-rel desk" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sheet ? '떼어 낸 스티커를 여기에 놓아요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
             }
             else main = panel + abNoneMsg('rl');
@@ -603,7 +605,7 @@
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
             if (!b) book = `<div class="abx-none">${abNoneMsg('bd')}</div>`;
             else {
-                D.bd = b.id; const c = abCol(b), pages = Math.ceil(b.n / AB_PER), full = Object.keys(b.p).length >= b.n, side = abSideGet(), two = side === 'lr';
+                D.bd = b.id; const c = abCol(b), pages = Math.ceil(b.n / abPer(b)), full = Object.keys(b.p).length >= b.n, side = abSideGet(), two = side === 'lr';
                 B.pg = Math.max(0, Math.min(pages - 1, B.pg || 0)); if (two) B.pg -= B.pg % 2;   // 양쪽 = 두 쪽씩 (왼쪽 = 홀수 쪽) · 한 쪽 = 한 쪽씩 다 넘겨요
                 const pg = p => p < pages ? `<div class="abx-pg">${abPocketsAt(b, p)}<b class="abx-no">${p + 1}</b></div>` : '<div class="abx-pg end"></div>';
                 const sw = s2 => `<button type="button" class="abx-side${side.includes(s2) ? ' on' : ''}" aria-pressed="${side.includes(s2)}" title="${s2 === 'l' ? '왼쪽 페이지' : '오른쪽 페이지'}" onclick="abSide('${s2}')">${window.dvSideSvg ? dvSideSvg(s2) : s2}</button>`;
@@ -619,7 +621,7 @@
             else {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
-                book = abSpaceTag('rl', r, L, `이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개`)
+                book = abSpaceTag('rl', r, L, `이 쪽 ${onPg} / ${abRelCap()}개`)
                     + `<div class="abx-rlbook"><div class="abx-coil" aria-hidden="true">${'<i></i>'.repeat(14)}</div><div class="abx-stack" aria-hidden="true"></div>`
                     + `<div class="ab-rel desk abx-wax" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sheet ? '떼어 낸 스티커를 여기에 놓아요' : ''}</span><b class="abx-no">${D.rpg + 1}</b></div></div>`
                     + abNavHtml(D.rpg, r.n, 'abRPage').replace('class="ab-nav"', 'class="ab-nav abx-nav"');
@@ -633,7 +635,7 @@
     }
     function abPocketsAt(b, p) {
         let h = '';
-        for (let i = p * AB_PER; i < Math.min(b.n, (p + 1) * AB_PER); i++) {
+        for (let i = p * abPer(b); i < Math.min(b.n, (p + 1) * abPer(b)); i++) {
             const e = b.p[i] && B.byId.get(b.p[i]);
             h += e ? `<div class="ab-pk full" data-pk="${i}">${bkCard(e)}</div>` : `<div class="ab-pk" data-pk="${i}"><span>여기에 꽂기</span></div>`;
         }
@@ -765,7 +767,7 @@
         if (rel && img) { B.byId.set(tmp, { id: tmp, th: img }); AB.hi.set(tmp, img); rel.it.push(Object.assign({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }, pos.w ? { w: Math.round(pos.w), h: Math.round(pos.h) } : {})); }
         if (relEl && img) {
             relEl.insertAdjacentHTML('afterbegin', `<button type="button" class="ab-it" data-id="${tmp}" style="left:${(pos.x * 100).toFixed(2)}%;top:${(pos.y * 100).toFixed(2)}%;--r:${pos.r}deg${pos.w ? `;--iw:${Math.round(pos.w)};--ih:${Math.round(pos.h)}` : ''}" aria-label="스티커"><img src="${esc(img)}" alt="" draggable="false"></button>`);
-            const sm = document.querySelector('.ab-target small, .abx-cnt'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${window.OWN_REL_MAX || 24}개`;
+            const sm = document.querySelector('.ab-target small, .abx-cnt'); if (sm && rel) sm.textContent = `이 쪽 ${rel.it.filter(t => (t.pg || 0) === pos.pg).length} / ${abRelCap()}개`;
         }
         AB.rel.push({ src, k, rl: D.rl, pos, tmp, img });                      // 모아서 저장 (손을 멈추면 · 다 했어요 · 창 닫기)
         B.sig = bkSig();
@@ -959,8 +961,8 @@
         leaf: ['속지', async () => window.sbShelf ? sbShelf('leaf') : []],
         memo: ['메모지', async () => window.sbShelf ? sbShelf('memo') : []],
         tool: ['다이어리', async () => {                                        // 📔 날짜형 다이어리 (해마다 기본 다이어리 · js/dyyear.js · 도련 10-28) + 🗂️ 스티커 정리 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
-            const out = (window.dyyShopList ? dyyShopList() : []).concat(AB_BDP.map((x, i) => x.P.숨김 || !prodServer('스티커첩').some(y => y.id === x.id) ? null : ({ cnt: `속지 10장 · 시트 ${AB_BD_N}장 꽂아요`, desc: `한 쪽에 ${AB_PER}포켓 · 앞뒤 ${AB_BD_N / AB_PER}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', c: i, tool: 'bd' })).filter(Boolean));
-            if (AB_RL.p && !AB_RL.p.P.숨김) out.push({ cnt: `이형지 ${AB_RL_N}쪽 · 스티커 ${AB_RL_N * (window.OWN_REL_MAX || 24)}개`, desc: `한 쪽에 ${window.OWN_REL_MAX || 24}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', tool: 'rl' });
+            const out = (window.dyyShopList ? dyyShopList() : []).concat(AB_BDP.map((x, i) => x.P.숨김 || !prodServer('스티커첩').some(y => y.id === x.id) ? null : ({ cnt: `속지 ${Math.ceil(x.P.장수 / x.P.포켓 / 2)}장 · 시트 ${+x.P.장수}장 꽂아요`, desc: `한 쪽에 ${+x.P.포켓}포켓 · 앞뒤 ${Math.ceil(x.P.장수 / x.P.포켓)}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', c: i, tool: 'bd', name: String(x.P.이름) })).filter(Boolean));
+            if (AB_RL.p && !AB_RL.p.P.숨김) out.push({ cnt: `이형지 ${+AB_RL.p.P.쪽수}쪽 · 스티커 ${AB_RL.p.P.쪽수 * abRelCap()}개`, desc: `한 쪽에 ${abRelCap()}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', tool: 'rl', name: String(AB_RL.p.P.이름) });
             return out;
         }],
         bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)
@@ -973,7 +975,8 @@
             cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
-            const k = seasonNow(), L = window.prodShelf ? prodShelf('계절스티커').filter(x => (x.P.계절 || x.id) === k) : [];   // 🧁 계절 상품 (상품공방 · 도련 11-02) · 그림에 하얀 테두리가 이미 있어요
+            const md = new Date(Date.now() + 9 * 3600000).toISOString().slice(5, 10), inDays = v => { const m = /^(\d\d-\d\d)~(\d\d-\d\d)$/.exec(String(v || '').trim()); return !!m && (m[1] <= m[2] ? md >= m[1] && md <= m[2] : md >= m[1] || md <= m[2]); };   // 🔎 나오는 기간 = 상품 (MM-DD~MM-DD · 겨울처럼 해를 넘겨도)
+            const L = window.prodShelf ? prodShelf('계절스티커').filter(x => inDays(x.P.기간)) : [];   // 🧁 계절 상품 (상품공방 · 도련 11-02) · 그림에 하얀 테두리가 이미 있어요
             const asData = u => /\.svg$/i.test(u) ? fetch(u).then(r => r.text()).then(t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t)) : Promise.resolve(u);
             return L.map(x => { const us = Object.keys(x.u).sort().map(r => x.u[r]);
                 return { cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us, take: async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true }) }; }).filter(x => x.thumbs.length);
@@ -1187,7 +1190,7 @@
     function bagNote(x, k, al, sid) {                                        // sid = 받은 스티커 종이 id (봉투에서 꺼낼 때까지 바구니에 안 보여요 · js/desk.js deskBagHold)                                             // 🛍️ 가게 안에서 받은 것 = 봉투에 (내 방으로 돌아가면 책상 위 봉투 · js/desk.js deskBagAdd)
         if (!(window.shopSceneOn && shopSceneOn())) return;
         const o = { k, n: String(x.name || x.cnt || BK_KINDS[k] || '').slice(0, 30) };
-        if (al) o.n = x.tool === 'bd' ? '스티커 바인더' : '이형지북';           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
+        if (al) o.n = String(x.name || '').slice(0, 30);   // 📒 🤍 정리 도구 = 그 상품 이름           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
         if (x.look === 'dskin') { o.ds = x.sec === 'wallpaper' ? 'wall' : 'top'; o.n = String(x.name || '').slice(0, 30); }   // 🧱 벽지 · 🪵 책상 (책상 소품이 아니에요)
         if (al && window.abLastGiven && Date.now() - abLastGiven.t < 8000) o.b = abLastGiven.id;   // 📒 🤍 = 그 책 (책상에 끌어 놓으면 그 자리)
         if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)

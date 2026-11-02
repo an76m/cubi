@@ -17,18 +17,20 @@
         function dsBuild() {                                                       // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
             DS_CAT.length = 0;
             [['벽지', 'wall'], ['책상판', 'top']].forEach(([kind, k]) => (window.prodList ? prodList(kind) : []).forEach(x => {
-                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김 };
+                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, basic: !!P.기본, gift: !!P.처음선물 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
                 if (/^#[0-9a-f]{6}$/i.test(P.단색 || '')) c.c = P.단색;
                 if (Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);
-                const u = x.u && x.u.디자인, wh = (x.wh && x.wh.디자인) || [40, 40];
-                if (u && !c.c && !P.기본 && (k === 'wall' || P.나뭇결)) { c.img = u; c.iw = +wh[0] || 40; c.ih = +wh[1] || 40; }
-                DS_CAT.push(c);
+                const u = x.u && x.u.디자인, wh = x.wh && x.wh.디자인;
+                if (u && Array.isArray(wh) && !c.c && !P.기본 && (k === 'wall' || P.나뭇결)) { c.img = u; c.iw = +wh[0]; c.ih = +wh[1]; }
+                const ok = c.n && (P.기본 || (k === 'wall' ? c.c || c.img : c.t && (!P.나뭇결 || c.img)));
+                if (ok) DS_CAT.push(c); else console.warn('🧁 벽지 · 책상판 속성이 모자라요 :', x.id);
             }));
         }
         dsBuild();
         if (window.prodHook) prodHook(dsBuild);
         document.addEventListener('prod-change', () => { try { const st = document.getElementById('deskStage'); if (st) st.dataset.ds = ''; dsPaint(); } catch (e) {} });
-        const DS_BASIC = { wall: 'w-basic', top: 'd-basic' }, DS_OL = '#a080a5';
+        const DS_OL = '#a080a5';                                                // 방 그림(앱 배경) 선 색 · 기본 = 상품 '기본' (그림 그대로 · 얹지 않아요)
+        const dsBasic = id => !!(dsCat(id) || {}).basic;
         const dsCat = id => DS_CAT.find(x => x.id === id) || null;
         const dsU = () => 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         const DS = { edit: null, gone: [] };
@@ -39,9 +41,12 @@
         const dsSave = s => prefSet(DS_KEY, DS_LOCAL, { own: s.own, wall: s.wall, top: s.top });
         const dsOn = (s, k) => { const it = s.own.find(x => x.u === s[k]); return it ? it.id : ''; };   // 지금 쓰는 것 (없으면 '' = 그림 그대로)
 
-        /* 🎁 처음 온 다꾸러 = 기본 벽지 · 기본 책상 (한 번만 · 다 버려도 다시 주지 않아요) */
+        /* 🎁 처음 온 다꾸러 = 상품 '처음선물' 벽지 · 책상판 (상품공방 · 도련 11-02 · 한 번만 · 다 버려도 다시 주지 않아요) */
         function dsSync() {
-            if (prefGet(DS_KEY, DS_LOCAL) === null) { const a = dsU(), b = dsU() + 'b'; dsSave({ own: [{ u: a, id: 'w-basic' }, { u: b, id: 'd-basic' }], wall: a, top: b }); }
+            if (prefGet(DS_KEY, DS_LOCAL) === null) {
+                const own = DS_CAT.filter(c => c.gift).map(c => ({ u: dsU(), id: c.id })), first = k => (own.find(o => dsCat(o.id).k === k) || {}).u || '';
+                dsSave({ own, wall: first('wall'), top: first('top') });
+            }
             dsPaint();
         }
 
@@ -79,7 +84,7 @@
         function dsPaint() {
             const st = document.getElementById('deskStage'); if (!st) return;
             const s = dsCur(), w = dsOn(s, 'wall'), t = dsOn(s, 'top');
-            const html = dsSvg(w && w !== DS_BASIC.wall ? w : '', t && t !== DS_BASIC.top ? t : '');
+            const html = dsSvg(w && !dsBasic(w) ? w : '', t && !dsBasic(t) ? t : '');
             let el = st.querySelector(':scope > .desk-skin');
             if (st.dataset.ds === html) return; st.dataset.ds = html;
             if (el) el.remove();
@@ -88,8 +93,8 @@
         /* 견본 (샵 카드 · 소품함 칸) : 방 한 장을 작게 */
         function dsSwatch(id) {
             const c = dsCat(id); if (!c) return '';
-            if (c.k === 'wall') return id === DS_BASIC.wall ? '<span class="ds-sw basic w"></span>' : dsSvg(id, '', true);
-            return id === DS_BASIC.top ? '<span class="ds-sw basic t"></span>' : dsSvg('', id, true);
+            if (c.k === 'wall') return dsBasic(id) ? '<span class="ds-sw basic w"></span>' : dsSvg(id, '', true);
+            return dsBasic(id) ? '<span class="ds-sw basic t"></span>' : dsSvg('', id, true);
         }
 
         /* ---------- 🛠 책상 꾸미기 (js/desk.js) : 바꾸는 동안 들고 있다가 ✔ 완료 때 저장 · ✕ 취소 = 처음대로 ---------- */

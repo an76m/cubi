@@ -8,9 +8,10 @@ const BG_PATTERNS = [];
 function bgBuild() {                                                         // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
     BG_PATTERNS.length = 0;
     (window.prodList ? prodList('배경지') : []).forEach(x => {
-        const P = x.P || {}, u = x.u && x.u.디자인, css = P.css && typeof P.css === 'object' ? P.css
-            : u ? { backgroundColor: '#ffffff', backgroundImage: `url('${u}')`, backgroundSize: (+P.무늬크기 > 0 ? +P.무늬크기 + 'px' : 'auto') } : null;
-        if (css) BG_PATTERNS.push({ id: x.id, tier: P.숨김 ? 'off' : 'free', name: String(P.이름 || ''), css, g: P.분류 === '단색' ? 'solid' : 'pat' });
+        const P = x.P || {}, u = x.u && x.u.디자인, css = P.css && typeof P.css === 'object' ? P.css   // 🔎 바탕색 · 무늬 크기 · 이름 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요)
+            : u && /^#[0-9a-f]{6}$/i.test(P.바탕색 || '') && +P.무늬크기 > 0 ? { backgroundColor: P.바탕색, backgroundImage: `url('${u}')`, backgroundSize: +P.무늬크기 + 'px' } : null;
+        if (css && String(P.이름 || '')) BG_PATTERNS.push({ id: x.id, tier: P.숨김 ? 'off' : 'free', name: String(P.이름), css, g: P.분류 === '단색' ? 'solid' : 'pat' });
+        else console.warn('🧁 배경지 속성이 모자라요 :', x.id);
     });
 }
 bgBuild();

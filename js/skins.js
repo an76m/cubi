@@ -546,10 +546,10 @@
         function dyTypesBuild() {                                              // 🧁 서버 + 📦 내 사본
             DY_TYPES.length = 0;
             (window.prodList ? prodList('다이어리모양') : []).forEach(x => {
-                const P = x.P || {}; if (!(+P.r > 0)) return;
-                DY_TYPES.push({ id: x.id, k: String(P.k || '노트'), g: String(P.g || ''), n: String(P.n || ''), mm: String(P.mm || ''), b: String(P.b || 'ring'), r: +P.r, c: /^#[0-9a-f]{6}$/i.test(P.c || '') ? P.c : '#ffc6d6', off: !!P.숨김 });
+                const P = x.P || {};                                           // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 'basic' 은 상품공방이 꼭 있게 검수)
+                if (!(+P.r > 0) || !['다이어리', '노트', '바인더'].includes(P.k) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !/^#[0-9a-f]{6}$/i.test(P.c || '') || !String(P.g || '') || !String(P.n || '') || !String(P.mm || '')) { console.warn('🧁 다이어리모양 속성이 모자라요 :', x.id); return; }
+                DY_TYPES.push({ id: x.id, k: P.k, g: String(P.g), n: String(P.n), mm: String(P.mm), b: P.b, r: +P.r, c: P.c, off: !!P.숨김 });
             });
-            if (!DY_TYPES.some(t => t.id === 'basic')) DY_TYPES.unshift({ id: 'basic', k: '다이어리', g: '기본', n: 'A6', mm: '105×148', b: 'ring', r: 148 / 105, c: '#ffc6d6' });
         }
         dyTypesBuild();
         if (window.prodHook) prodHook(dyTypesBuild);
@@ -1459,9 +1459,7 @@
              🪑 { cup : ✏️ 책상 연필꽂이에 꽂을 수 있어요 (길쭉한 것 · 없으면 서랍에만) · hand : 꺼내면 바로 손에 들어요 (없으면 페이지에 놓여요)
                  sec : 🗄️ 문구함 서랍의 칸막이 이름 (같은 이름끼리 한 칸 · 없으면 종류 이름으로 한 칸) · len : 연필꽂이에 꽂힌 길이 (1 = 보통) }
              상품 하나만 다르게 = 상품공방 속성 '연필꽂이' (예 / 아니오 · js/deskgd.js dkwCanCup) */
-        const GD_CAB = [['tweez', '핀셋', { cup: 1, hand: 1, sec: '가위 · 핀셋', len: 1 }], ['clip', '집게', { sec: '집게 · 펀칭기 · 테이프' }], ['punch', '펀칭기', { sec: '집게 · 펀칭기 · 테이프' }],
-            ['tape', '양면테이프', { sec: '집게 · 펀칭기 · 테이프' }], ['scissors', '가위', { cup: 1, hand: 1, sec: '가위 · 핀셋', len: .95 }], ['knife', '칼', { cup: 1, hand: 1, sec: '자 · 칼', len: .95 }],
-            ['ruler', '자', { cup: 1, sec: '자 · 칼', len: 1.15 }]];
+        const GD_CAB = [['tweez', '핀셋', { hand: 1 }], ['clip', '집게', {}], ['punch', '펀칭기', {}], ['tape', '양면테이프', {}], ['scissors', '가위', { hand: 1 }], ['knife', '칼', { hand: 1 }], ['ruler', '자', {}]];   // 종류 = 하는 일 (hand = 꺼내면 손에) · 서랍칸 · 연필꽂이 · 꽂이길이 = 🧁 상품마다 (도련 11-02)
         const GD_MULTI = ['clip'], GD_TOOL = ['knife', 'ruler'];
         const cabHoldAgain = id => { if (id.startsWith('knife') && window.skHold) skHold(true); };   // ✋ 이미 꺼낸 도구를 다시 손에 (따로 그리는 도구 GD_TOOL · 새 도구 = 여기 한 줄)
         const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
@@ -1612,12 +1610,7 @@
         function gdCabBinMode(g) { cabBin = cabBin === g ? null : g; gdCabRender(); }
         async function gdCabBinTap(id) { if (await gdBin(id)) gdCabRender(); }
         /* 🗑 문구 버리기 → 휴지통 30일 (js/bin.js · 도련 11-02 · 📱 문구함 서랍 · 👝 보관함 · 🪑 책상 문구함 모두 여기로) : 파일은 그대로 → 되살리면 내 문구로 · 30일 뒤 파일 삭제 */
-        const gdPenName = id => { const x = (window.prodList ? prodList('문구') : []).find(v => v.id === id), kk = { pen: '색연필', hi: '형광펜', erase: '지우개' }[id.split(':')[0]] || '필기구', n = x && x.P && x.P.이름 ? String(x.P.이름) : ''; return n.includes(kk) ? n : (n ? n + ' ' : '') + kk; };
-        function gdBinName(id) {
-            if (window.pkIsId && pkIsId(id)) return gdPenName(id);
-            const g = cabGOf(id), n = cabName(id) || '', kind = (GD_CAB.find(x => x[0] === g) || [])[1] || '문구';
-            return n.includes(kind) ? n : (n ? n + ' ' : '') + kind;
-        }
+        const gdBinName = id => String((((window.prodList ? prodList('문구') : []).find(v => v.id === id) || {}).P || {}).이름 || '');   // 상품 이름 그대로
         async function gdBin(id) {
             const o = (gdOwnList() || []).find(x => x.id === id); if (!o) return false;
             const pen = !!(window.pkIsId && pkIsId(id));

@@ -145,8 +145,10 @@ let fontList = [
         const skinPresets = {}, DIARY_COLORS = [];
         function dyColorsBuild() {                                             // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
             Object.keys(skinPresets).forEach(k => delete skinPresets[k]); DIARY_COLORS.length = 0;
-            (window.prodList ? prodList('다이어리') : []).filter(x => x.P.스킨 && typeof x.P.스킨 === 'object').forEach(x => {
-                skinPresets[x.id] = x.P.스킨; DIARY_COLORS.push([x.id, String(x.P.색이름 || x.P.이름 || x.id), !!x.P.숨김, String(x.P.스킨이름 || '')]);
+            const okC = v => /^#[0-9a-f]{6}$/i.test(v || ''), ok = P => { const k = P.스킨; return k && typeof k === 'object' && String(k.cover || '') && ['border', 'accent', 'page', 'bg'].every(n => okC(k[n])) && String(P.색이름 || '') && String(P.스킨이름 || ''); };
+            (window.prodList ? prodList('다이어리') : []).forEach(x => {              // 🔎 색이름 · 스킨이름 · 스킨 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요)
+                if (!ok(x.P)) { console.warn('🧁 다이어리 속성이 모자라요 :', x.id); return; }
+                skinPresets[x.id] = x.P.스킨; DIARY_COLORS.push([x.id, String(x.P.색이름), !!x.P.숨김, String(x.P.스킨이름)]);
             });
         }
         dyColorsBuild();

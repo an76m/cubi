@@ -13,8 +13,8 @@ const THEME_SKINS = [];
 function themeBuild() {                                                       // 🧁 서버 + 📦 내 사본 (가진 테마는 서버에서 숨겨도 그대로)
     const mine = typeof currentSkinId === 'string' && currentSkinId.startsWith('th:') ? currentSkinId.slice(3) : '';
     THEME_SKINS.length = 0;
-    (window.prodList ? prodList('테마') : []).filter(x => x.P.skin && typeof x.P.skin === 'object' && (!x.P.숨김 || x.id === mine))
-        .forEach(x => THEME_SKINS.push({ id: x.id, name: String(x.P.이름 || ''), desc: String(x.P.desc || ''), how: String(x.P.how || ''), free: !!x.P.free, skin: x.P.skin }));
+    (window.prodList ? prodList('테마') : []).filter(x => x.P.skin && typeof x.P.skin === 'object' && String(x.P.이름 || '') && String(x.P.desc || '') && (x.P.free || String(x.P.how || '')) && (!x.P.숨김 || x.id === mine))   // 🔎 이름 · 설명 · 스킨 = 상품 그대로 (빠지면 안 나와요)
+        .forEach(x => THEME_SKINS.push({ id: x.id, name: String(x.P.이름), desc: String(x.P.desc), how: String(x.P.how || ''), free: !!x.P.free, skin: x.P.skin }));
 }
 themeBuild();
 if (window.prodHook) prodHook(themeBuild);
