@@ -1312,6 +1312,7 @@
             return document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('#innerPage > .bd-tool')).find(Boolean) || null;
         }
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
+            if (window.dkwDockDown && dkwDockDown(e)) { gdEat(e); return true; }   // 🗄️ 구석 문구 자리에 가져다 대면 제자리로 (💻 📲 책상 · js/deskgd.js)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
             const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool') || gdUnderRoom(e);

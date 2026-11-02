@@ -176,7 +176,7 @@
         else if (d.rot) {
             R.ang = rlSnapAng(Math.atan2(e.clientY - R.cy, e.clientX - R.cx) * 180 / Math.PI - d.a0);
             rlSay(Math.round(R.ang) + '°', R.cx, R.cy - R.H / 2 - 30);
-        } else { R.cx = e.clientX + d.off[0]; R.cy = e.clientY + d.off[1]; }
+        } else { R.cx = e.clientX + d.off[0]; R.cy = e.clientY + d.off[1]; if (window.dkwDockOver) dkwDockOver(e.clientX, e.clientY, true); }
         rlKeep(); rlPlace();
     }
     function rlUp(e) {
@@ -186,6 +186,7 @@
         if (d.two) { if (R.touch.size < 2) { R.drag = null; R.touch.clear(); R.el.classList.remove('grab'); rlSay(null); } return; }
         if (d.id !== e.pointerId) return;
         R.drag = null; R.el.classList.remove('grab'); rlSay(null);
+        if (!d.rot && window.dkwDockDrop && R.on && dkwDockDrop('ruler:' + R.kind, e.clientX, e.clientY)) return;   // 🗄️ 구석 문구 자리에 끌어다 놓으면 제자리로 (💻 📲 책상)
     }
     /* ---------- 아무것도 안 들고 가장자리를 쓸면 길이 재기 (js/draw.js penDown 이 불러요) ---------- */
     function rlMeasure(e) {

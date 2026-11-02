@@ -300,6 +300,60 @@
             return true;
         }
         window.dkwMiniPaint = dkwMiniPaint;
+
+        /* ---------- 🗄️ 구석 문구 자리 (도련 11-03 · 💻 📲 책상 · 현실처럼) ----------
+           페이지에 문구(핀셋 · 가위 · 칼 · 자 · 집게 · 펀칭기 · 양면테이프)를 꺼내 두면 페이지 왼쪽 아래에 내 연필꽂이 + 작은 문구함 서랍이 보여요
+           든 문구를 가져와 톡 (📏 자는 끌어다 놓기) = 제자리로 : 연필꽂이에 꽂는 것(♥)은 연필꽂이 · 나머지는 문구함 서랍
+           ✏️ 필기구는 예전처럼 오른쪽 아래 작은 연필꽂이 (js/draw.js) */
+        const dkwOut = () => GD_CAB.flatMap(([g]) => dkwOwnOf([g])).filter(id => !dkwIsPen(id) && cabIsOn(id));   // 페이지에 꺼내 둔 문구
+        const dkwHeldNow = () => (typeof gdHeld !== 'undefined' && gdHeld) || (window.skHeldNow && skHeldNow() && window.skKindNow ? 'knife:' + skKindNow() : '');
+        const dkwHomeOf = id => dkwCanCup(id) && dkwCupTools().includes(id) && dkwItemEl(dkwCupU()) ? 'cup' : 'tray';
+        function dkwDockEl() {
+            let d = dkwq('dkwDock'); if (d) return d;
+            d = document.createElement('div'); d.id = 'dkwDock'; d.className = 'dkw-dock'; d.hidden = true;
+            d.innerHTML = '<span class="dkw-dcup" aria-hidden="true"></span><span class="dkw-dtray" aria-hidden="true"><i></i><b>문구함</b></span>';
+            d.addEventListener('pointerdown', e => { if (!dkwHeldNow()) { e.preventDefault(); e.stopPropagation(); dkwSay('꺼낸 문구를 들고 와서 여기에 톡 · 📏 자는 끌어다 놓아요', d); } });   // 빈손으로 톡 = 알려 줘요
+            document.body.appendChild(d); return d;
+        }
+        const dkwDockOn = () => { const d = dkwq('dkwDock'); return d && !d.hidden ? d : null; };
+        const dkwDockHit = (x, y, pad) => { const d = dkwDockOn(); if (!d) return false; const r = d.getBoundingClientRect(), p = pad || 14; return x >= r.left - p && x <= r.right + p && y >= r.top - p && y <= r.bottom + p; };
+        let dkwDockSig = '';
+        async function dkwDockPaint() {
+            const d = dkwDockEl(), out = dkwDesk() && typeof isCoverOpen !== 'undefined' && isCoverOpen ? dkwOut() : [];
+            const cu = dkwCupU(), home = dkwGdHome(), sig = [out.join(','), cu, home && home.u, pkRead().join(','), dkwCupTools().join(',')].join('|');
+            if (!out.length) { d.hidden = true; dkwDockSig = ''; return; }
+            const pg = dkwq('canvasArea'); if (!pg) return;
+            const r0 = pg.getBoundingClientRect(), r = window.dyVisRect ? dyVisRect(r0) : r0, vv = window.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : innerHeight);
+            if (sig !== dkwDockSig) {
+                dkwDockSig = sig;
+                const cupEl = d.querySelector('.dkw-dcup'), ok = dkwMiniPaint(cupEl, out);   // ✏️ 내 연필꽂이 (꺼낸 것은 빼고)
+                cupEl.hidden = !ok;
+                const img = home && home.el && home.el.querySelector(':scope > img'); let col = null;
+                if (img) { const R = home.e.r || [0, 0, 100, 100], fl = home.el.classList.contains('dk-fl'), fx = (R[0] + (R[2] - R[0]) * .2) / 100; col = await dkwTint(img.src, fl ? 1 - fx : fx, ((R[1] + R[3]) / 2) / 100); }
+                const c = dkwColors(col), t = d.querySelector('.dkw-dtray'); t.style.setProperty('--db', c.body); t.style.setProperty('--dk', c.line); t.style.setProperty('--dl', c.light);
+            }
+            d.hidden = false;
+            d.style.left = Math.round(r.left + 12) + 'px'; d.style.top = Math.round(bot - d.offsetHeight - 12) + 'px';
+        }
+        function dkwBack(id, at) {                                                 // 제자리로 (페이지에서 치워요 = 연필꽂이 · 서랍에 다시 보여요)
+            const h = dkwHomeOf(id);
+            if (cabIsOn(id)) cabFlip(id);
+            if (window.skLetGo && id.startsWith('knife')) skLetGo();
+            dkwDockSig = ''; dkwDeskSoon(); setTimeout(dkwDockPaint, 60);
+            const d = dkwDockOn(); if (d) { d.classList.remove('over', 'eat'); void d.offsetWidth; d.classList.add('eat'); setTimeout(() => d.classList.remove('eat'), 420); }
+            dkwSay(h === 'cup' ? '✏️ 연필꽂이에 꽂았어요' : '🗄️ 문구함 서랍에 넣었어요', at || d);
+            if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
+        }
+        window.dkwDockDown = e => {                                               // js/skins.js gdDown 맨 앞 (다른 문구 손짓보다 먼저)
+            if (!dkwDockHit(e.clientX, e.clientY, 4)) return false;
+            const id = dkwHeldNow(); if (!id) return false;                       // 빈손 = 위 알려 주기
+            dkwBack(id); return true;
+        };
+        window.dkwDockOver = (x, y, on) => { const d = dkwDockOn(); if (d) d.classList.toggle('over', !!on && dkwDockHit(x, y)); };
+        window.dkwDockDrop = (id, x, y) => { if (!dkwDockHit(x, y)) { const d = dkwDockOn(); if (d) d.classList.remove('over'); return false; } dkwBack(id); return true; };
+        addEventListener('pointermove', e => { const d = dkwDockOn(); if (d) d.classList.toggle('over', !!dkwHeldNow() && dkwDockHit(e.clientX, e.clientY)); }, true);
+        setInterval(() => { try { dkwDockPaint(); } catch (er) {} }, 700);       // 꺼내고 치울 때 · 쪽을 넘길 때 (가벼워요 · 그림은 바뀔 때만)
+        addEventListener('resize', () => { try { dkwDockPaint(); } catch (er) {} });
         window.dkwCupOpen = dkwCupOpen; window.dkwDeskPaint = dkwDeskPaint; window.dkwDeskSoon = () => dkwDeskSoon(); window.dkwTrayOpen = dkwTrayOpen; window.dkwClose = dkwClose; window.dkwCupToolN = dkwCupToolN; window.dkwUse = dkwUse;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
