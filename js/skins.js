@@ -1898,10 +1898,10 @@
                 if (typeof s.f === 'number') gdClipPut(el, s.f); else gdCenter(el, cv.offsetLeft + s.x * cv.offsetWidth, cv.offsetTop + s.y * cv.offsetHeight);
             });
             gdHoleSync();
-            if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나
+            if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나 (📱 폰 · 💻 📲 책상은 연필꽂이 · 문구함에서 꺼내요 = 앱을 켜면 페이지에 꺼낸 문구가 없어요 · 도련 11-03)
                 gdInit = true;
                 setTimeout(() => {
-                    const tw = gdMain('tweez'); if (tw && !gdEl(tw)) { const el = gdMake(tw), p = gdSpot(tw); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
+                    const tw = !document.documentElement.classList.contains('desk-on') && gdMain('tweez'); if (tw && !gdEl(tw)) { const el = gdMake(tw), p = gdSpot(tw); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
                     setTimeout(() => { if (isCoverOpen && window.dgShow) dgShow(); }, 450);   // 🩷 처음 쓰는 사람용 다꾸하는 법 메모 (js/dkguide.js · 예전 '핀셋으로 집어서 옮겨요' 첫 알림 대신 · 도련 10-26)
                 }, 900);
             }

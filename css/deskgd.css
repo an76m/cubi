@@ -96,7 +96,7 @@
 .dkw-mini .dkw-t { pointer-events: none; filter: none; transition: none; }
 
 /* 🗄️ 구석 문구 자리 (도련 11-03 · js/deskgd.js dkwDockPaint) : 페이지 왼쪽 아래 · 내 연필꽂이 + 작은 문구함 서랍 · 든 문구를 가져와 톡 = 제자리로 */
-.dkw-dock { position: fixed; z-index: 640; display: flex; align-items: flex-end; gap: 8px; padding: 6px 8px; border-radius: 14px; background: rgba(255, 255, 255, .55); border: 2px dashed rgba(200, 120, 150, .55); cursor: pointer; transition: transform .18s, background .18s; touch-action: none; }
+.dkw-dock { position: fixed; z-index: 640; display: flex; align-items: flex-end; gap: 8px; padding: 5px 6px; border-radius: 14px; background: rgba(255, 255, 255, .55); border: 2px dashed rgba(200, 120, 150, .55); cursor: pointer; transition: transform .18s, background .18s; touch-action: none; }
 .dkw-dock[hidden] { display: none; }
 .dkw-dock.over { transform: scale(1.12); background: rgba(255, 236, 244, .92); border-color: #e0729a; }
 .dkw-dock.eat { animation: dkwEat .4s ease; }
@@ -105,5 +105,5 @@
 .dkw-dcup[hidden] { display: none; }
 .dkw-dtray { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 74px; height: 50px; border-radius: 6px; background: var(--db, #f8bfcd); border: 2.5px solid var(--dk, #b0607a); box-sizing: border-box; pointer-events: none; }
 .dkw-dtray i { position: absolute; left: 50%; top: 13px; width: 22px; height: 7px; margin-left: -11px; border-radius: 4px; background: var(--dl, #fff6f2); border: 2px solid var(--dk, #b0607a); }
-.dkw-dtray b { font-size: 10px; font-weight: 900; color: var(--dk, #b0607a); margin-bottom: 3px; }
+.dkw-dtray b { font-size: 11px; font-weight: 900; color: var(--dk, #b0607a); margin-bottom: 3px; }
 html:not(.desk-on) .dkw-dock { display: none !important; }
