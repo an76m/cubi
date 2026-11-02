@@ -77,12 +77,12 @@
         if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 바구니를 쓸 수 있어요.'); return; }
         /* ⚡ 먼저 : 마지막으로 읽은 목록으로 바로 그려요 (드라이브를 기다리지 않게) → 그다음 새로 읽어 달라졌을 때만 다시 그려요 */
         const peek = force && window.ownPeek ? ownPeek() : null;
-        if (peek) { B.all = peek.list.slice(); B.album = JSON.parse(JSON.stringify(peek.album)); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
+        if (peek) { B.all = peek.list.slice(); B.album = bkUnbag(JSON.parse(JSON.stringify(peek.album))); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
         else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🧺 바구니를 여는 중…');
         try {
             const got = window.ownOpen ? await ownOpen(force) : { list: await ownList(force), album: { bd: [], rl: [], g: {} } };   // 목록 · 스티커첩을 동시에
             B.all = got.list.slice();
-            B.album = JSON.parse(JSON.stringify(got.album));
+            B.album = bkUnbag(JSON.parse(JSON.stringify(got.album)));
             abReapply();                                                        // 아직 저장 안 된 정리는 그 위에 다시 (화면이 되돌아가지 않게)
         }
         catch (e) {
@@ -96,7 +96,7 @@
         if (B.drag || AB.drag) return;                                          // 끄는 중에는 다시 그리지 않아요 (놓으면 그려요)
         bkView();
     }
-    const bkSig = () => { try { return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album]); } catch (e) { return String(Math.random()); } };
+    const bkSig = () => { try { const H = bkHold(); return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album, H ? [[...H.s], [...H.b]] : 0]); } catch (e) { return String(Math.random()); } };
     /* (바구니 미리 읽기 bkWarm 도 지웠어요 · 도련 10-25 → 처음 열 때 한 번 읽고, 그다음부터는 기억한 목록으로 바로 그려요) */
     /* 바구니 카드 : 종류마다 모양 · 남은 양은 두께(--q)로만 */
     const kitImg = u => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
@@ -126,15 +126,16 @@
     function bkDraw() {
         const wrap = bq('abBody'); if (!wrap) return;
         const guest = ownMode() === 'mem';
+        const bagNt = B.bagN ? `<p class="bk-note bk-bagnote">🛍️ 책상 위 봉투에 <b>${bkCount(B.bagN)}</b>이 아직 있어요 · 봉투에서 꺼내 소품에 넣으면 여기에 보여요</p>` : '';
         const note = `<p class="bk-note">${guest ? '👀 구경만 할 때는 창을 닫거나 새로고침하면 바구니도 비워져요.' : '🔥 받은 · 만든 스티커는 내 드라이브 <b>말랑달콤</b> 폴더에 보관돼요. 폴더를 지우면 모두 사라지고 되돌릴 수 없어요.'}</p>`;
         if (!B.list.length) {
             wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🧺 스티커 바구니가 텅 비었어요</b><span>아래 <em>기본${esc(BK_KINDS[B.kind] || '스티커')} 받기</em>로<br>받아서 채워요</span></button></div>`
-                + bkTools(false) + note;
+                + bkTools(false) + bagNt + note;
             return;
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
         wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${bkCount(B.list.length)}</span></div>`
-            + bkTools(true) + note;
+            + bkTools(true) + bagNt + note;
         bkPlace(show, false);
         bkWire();
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
@@ -333,12 +334,26 @@
     window.abOpenAt = (k, v, id) => { bkOpenKind(k); B.view = v; B.cur = id; B.pg = 0; try { bkView(v); } catch (e) {} };
     function abGoShelf() { SH.toolKind = B.kind; openShelf(); shOpenKind('tool'); }
     /* 정리한 종이는 바구니에서 빠져요 */
+    /* 🛍️ 봉투 속 (💻 📲 책상 · 도련 11-02) : 꺼내기 전 = 보이지 않아요 · 저장은 하나씩 고치는 방식이라 보이는 것만 걸러도 안전해요 */
+    const bkHold = () => window.deskBagHold ? deskBagHold() : null;
+    function bkUnbag(a) {
+        const H = bkHold(); B.bagAl = { bd: [], rl: [] }; if (!H || !H.b.size) return a;
+        ['bd', 'rl'].forEach(t => { B.bagAl[t] = (a[t] || []).filter(b => H.b.has(b.id)); a[t] = (a[t] || []).filter(b => !H.b.has(b.id)); });
+        return a;
+    }
+    const abNoneMsg = t => {                                                  // 바인더 · 이형지북이 없어요 (봉투에 있으면 꺼내라고)
+        const nm = t === 'bd' ? '바인더' : '이형지북', jo = t === 'bd' ? '가' : '이';
+        if (abMine((B.bagAl || {})[t]).length) return bkMsg(`🛍️ ${nm}${jo} 아직 책상 위 봉투에 있어요.`, '<small>봉투에서 꺼내 책상에 놓으면 여기에서 써요</small>');
+        return bkMsg(`아직 ${nm}${jo} 없어요.`, `<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 ${nm} 받아 오기</button>`);
+    };
     function abSplit() {
         const a = B.album || { bd: [], rl: [] }, placed = new Set();
         (a.bd || []).forEach(b => Object.values(b.p || {}).forEach(id => placed.add(id)));
         (a.rl || []).forEach(r => (r.it || []).forEach(t => placed.add(t.s)));
         B.byId = new Map(B.all.map(e => [e.id, e]));
-        B.list = B.all.filter(e => bkKindOf(e) === B.kind && !placed.has(e.id) && !DS.m.has(e.id));   // 🗂️ 페이지에 꺼내 둔 종이는 바구니에 없어요 (✕ 로 치우면 돌아와요)
+        const H = bkHold(), bag = e => !!H && H.s.has(e.id);
+        B.bagN = B.all.filter(e => bkKindOf(e) === B.kind && bag(e)).length;   // 🛍️ 봉투에 아직 있는 것
+        B.list = B.all.filter(e => bkKindOf(e) === B.kind && !placed.has(e.id) && !DS.m.has(e.id) && !bag(e));   // 🗂️ 페이지에 꺼내 둔 종이는 바구니에 없어요 (✕ 로 치우면 돌아와요)
     }
     /* 화면 바꾸기 : bin (바구니) · album (스티커첩) · bd (바인더 펼침) · rl (이형지 펼침) · desk (정리 책상) */
     function bkView(v) {
@@ -506,7 +521,7 @@
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
             if (b) { D.bd = b.id; const full = Object.keys(b.p).length >= b.n; main = (full ? bkMsg('📒 이 바인더는 가득 찼어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 새 바인더 받아 오기</button>') : '') + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 바인더 고르기">${abChip(b)}${L.length > 1 ? `${L.findIndex(x => x.id === b.id) + 1} / ${L.length} ▾` : '바인더'}</button>${abLbDesk('bd', b)}<small>${Object.keys(b.p).length} / ${b.n}장</small></div>` + abBinderHtml(b, true); }
-            else main = bkMsg('아직 바인더가 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 바인더 받아 오기</button>');
+            else main = abNoneMsg('bd');
         } else {
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
             const panel = !D.pick ? '<div class="ab-peelhint">⬆ 위 줄에서 종이를 톡 골라요</div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>'
@@ -517,7 +532,7 @@
                 main = panel + `<div class="ab-target"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 이형지북 고르기"><i class="ab-chip rl"></i>${L.length > 1 ? `${L.findIndex(x => x.id === r.id) + 1} / ${L.length} ▾` : '이형지북'}</button>${abLbDesk('rl', r)}<small>이 쪽 ${onPg} / ${window.OWN_REL_MAX || 24}개</small></div>`
                     + `<div class="ab-rel desk" id="abRel">${abRelItems(r, D.rpg)}<span class="ab-relhint">${D.sheet ? '떼어 낸 스티커를 여기에 놓아요' : ''}</span></div>` + abNavHtml(D.rpg, r.n, 'abRPage');
             }
-            else main = panel + bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 이형지북 받아 오기</button>');
+            else main = panel + abNoneMsg('rl');
         }
         const tabsH = relOk ? `<div class="ab-tabs sm"><button type="button" class="${D.mode === 'bd' ? 'on' : ''}" onclick="abMode('bd')">📒 바인더에 꽂기</button><button type="button" class="${D.mode === 'rl' ? 'on' : ''}" onclick="abMode('rl')">🤍 이형지북에 붙이기</button></div>` : '';
         const noteH = `<p class="bk-note">${D.mode === 'bd' ? '종이를 끌어 빈 포켓에 놓아요 (톡 고르고 → 포켓 톡도 돼요)<br>꽂힌 종이를 톡 = 바구니로 다시 빼기' : '종이를 톡 고르면 펼쳐져요 · 🪡 핀셋으로 떼어 이형지북에 붙여요<br>이형지북으로 옮겨도 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)'}</p>`;
@@ -586,7 +601,7 @@
         let book;
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
-            if (!b) book = `<div class="abx-none">${bkMsg('아직 바인더가 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 바인더 받아 오기</button>')}</div>`;
+            if (!b) book = `<div class="abx-none">${abNoneMsg('bd')}</div>`;
             else {
                 D.bd = b.id; const c = abCol(b), pages = Math.ceil(b.n / AB_PER), full = Object.keys(b.p).length >= b.n, side = abSideGet(), two = side === 'lr';
                 B.pg = Math.max(0, Math.min(pages - 1, B.pg || 0)); if (two) B.pg -= B.pg % 2;   // 양쪽 = 두 쪽씩 (왼쪽 = 홀수 쪽) · 한 쪽 = 한 쪽씩 다 넘겨요
@@ -600,7 +615,7 @@
             }
         } else {
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
-            if (!r) book = `<div class="abx-none">${bkMsg('아직 이형지북이 없어요.', '<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 이형지북 받아 오기</button>')}</div>`;
+            if (!r) book = `<div class="abx-none">${abNoneMsg('rl')}</div>`;
             else {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 const onPg = r.it.filter(t => (t.pg || 0) === D.rpg).length;
@@ -1169,13 +1184,14 @@
        - 이어서 여러 개 = 마지막이 끝날 때 한 번 · 샵 창을 닫았거나 책상이 보여도 화면 맨 위에 떠요 · 실패해도 숫자는 내려요 */
     const BAG = { n: 0, ok: 0 };
     const bagStart = () => { BAG.n++; };
-    function bagNote(x, k, al) {                                             // 🛍️ 가게 안에서 받은 것 = 봉투에 (내 방으로 돌아가면 책상 위 봉투 · js/desk.js deskBagAdd)
+    function bagNote(x, k, al, sid) {                                        // sid = 받은 스티커 종이 id (봉투에서 꺼낼 때까지 바구니에 안 보여요 · js/desk.js deskBagHold)                                             // 🛍️ 가게 안에서 받은 것 = 봉투에 (내 방으로 돌아가면 책상 위 봉투 · js/desk.js deskBagAdd)
         if (!(window.shopSceneOn && shopSceneOn())) return;
         const o = { k, n: String(x.name || x.cnt || BK_KINDS[k] || '').slice(0, 30) };
         if (al) o.n = x.tool === 'bd' ? '스티커 바인더' : '이형지북';           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
         if (x.look === 'dskin') { o.ds = x.sec === 'wallpaper' ? 'wall' : 'top'; o.n = String(x.name || '').slice(0, 30); }   // 🧱 벽지 · 🪵 책상 (책상 소품이 아니에요)
         if (al && window.abLastGiven && Date.now() - abLastGiven.t < 8000) o.b = abLastGiven.id;   // 📒 🤍 = 그 책 (책상에 끌어 놓으면 그 자리)
         if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
+        if (sid) o.s = [sid];
         if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
         (window.SHOP_BAG = window.SHOP_BAG || []).push(o);
     }
@@ -1249,9 +1265,10 @@
         bagStart(); let bagOk = false;
         try {
             let real = into;                                                     // 🛍️ 봉투 = 실제로 들어간 바구니 (도련 11-01)
-            if (x.def) { await ownTake(x.def); real = bkKindOf(x.def); }
-            else { const r = await x.take(); if (r && typeof r === 'object') { await ownTake(r); real = bkKindOf(r); } }
-            bagOk = true; bagNote(x, real);
+            let sid = null;                                                      // 🛍️ 봉투 카드가 이 종이를 기억해요
+            if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
+            else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }
+            bagOk = true; bagNote(x, real, 0, sid);
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = shGotText(); btn.disabled = false; btn.onclick = () => shGoSee(into, 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             got.add(i);                                                          // 창을 닫았다 열면 다시 받기
@@ -1277,11 +1294,11 @@
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         bagStart(); let bagOk = false;
         try {
-            let real = into;                                                     // 🛍️ 봉투 = 실제로 들어간 바구니 (도련 11-01)
+            let real = into, sid = null;                                         // 🛍️ 봉투 = 실제로 들어간 바구니 (도련 11-01) · sid = 그 종이
             if (x.tool) { if (!window.ownAlbum) throw new Error('ready'); await abTakeTool(x.tool, tk, x.c); }   // 📒 🤍 정리 도구 = 그 종류 스티커첩
-            else if (x.def) { await ownTake(x.def); real = bkKindOf(x.def); }
-            else { const r = await x.take(); if (r && typeof r === 'object') { await ownTake(r); real = bkKindOf(r); } }   // take() : 새 종이 id(씰) 또는 종이 정보
-            bagOk = true; bagNote(x, real, x.tool);
+            else if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
+            else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }   // take() : 새 종이 id(씰) 또는 종이 정보
+            bagOk = true; bagNote(x, real, x.tool, sid);
             if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             got.add(zi); if (here()) SH.redraw = true;                           // 확대에서 받아도 카드 버튼은 초록
@@ -1583,7 +1600,8 @@
         const a = (got && got.album) || { bd: [], rl: [] }, placed = new Set();
         (a.bd || []).forEach(b => Object.values(b.p || {}).forEach(id => placed.add(id)));
         (a.rl || []).forEach(r => (r.it || []).forEach(t => placed.add(t.s)));
-        return ((got && got.list) || []).filter(e => !placed.has(e.id) && !DS.m.has(e.id));
+        const H = bkHold();
+        return ((got && got.list) || []).filter(e => !placed.has(e.id) && !DS.m.has(e.id) && !(H && H.s.has(e.id)));   // 🛍️ 봉투 속은 빼요
     };
     window.bkTrayApi = {
         kinds: BK_KINDS, kindOf: bkKindOf, card: bkCard, open: bkOpenSheet,

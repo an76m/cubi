@@ -1167,7 +1167,15 @@
             deskRun(z.k); return true;
         }
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
-        window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen;
+        /* 🛍️ 봉투 속 = 아직 꺼내지 않았어요 (도련 11-02 · 현실처럼) : 💻 📲 책상에서는 봉투에서 꺼낼 때까지 바구니 · 스티커 정리 · 오늘 쓸 스티커 · 스티커첩 어디에도 없어요 (js/basket.js)
+           s = 스티커 종이 id (카드 it.s · 살 때 적어 둬요) · b = 📒 🤍 스티커첩 id (카드 it.b) · 📱 폰은 그대로 다 보여요 (나중에 폰 정리할 때 · 도련) */
+        function deskBagHold() {
+            if (!document.documentElement.classList.contains('desk-on')) return null;
+            const s = new Set(), b = new Set();
+            dkBags().forEach(bg => bg.it.forEach(it => { (Array.isArray(it.s) ? it.s : []).forEach(id => s.add(id)); if (it.al && it.b) b.add(it.b); }));
+            return { s, b };
+        }
+        window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen; window.deskBagHold = deskBagHold;
         const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
             const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '') + (p.fl && dkFlipOk(it) ? ' dk-fl' : '');   // ↔ 좌우 바꾼 소품 (그림만 · 바늘은 그대로)
