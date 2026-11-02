@@ -34,10 +34,11 @@
             let v = null;
             v = prefGet(PK_KEY, PK_LOCAL);                                   // 💾 js/drive.js
             const own = pkOwnIds(), ok = Array.isArray(v) ? v.filter(id => own.includes(id)) : [];
+            if (Array.isArray(v) && v.includes('∅')) return ok;                 // ✏️ 일부러 다 뺐어요 (책상 연필꽂이 · js/deskgd.js)
             return ok.length ? ok : own.slice(0, PK_MAX);                       // 고른 게 없으면 = 가진 것 모두 (24개까지)
         }
         function pkWrite(ids) {
-            prefSet(PK_KEY, PK_LOCAL, ids);
+            prefSet(PK_KEY, PK_LOCAL, ids.length ? ids.filter(id => id !== '∅') : ['∅']);   // 하나도 없으면 '∅' (= 가진 것 모두로 돌아가지 않게)
         }
         /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
         function pkCupList() {
@@ -201,11 +202,11 @@
         const pkShopList = () => pkAll().filter(t => !t.off).map(t => ({ id: t.id, g: 'pen', kind: '필기구', name: pkName(t), art: pkSvg(t) }));
         function pkAdd(id) {                                                    // 받은 필기구 = 연필꽂이에도 (고른 목록이 있을 때 · 24개까지)
             const v = prefGet(PK_KEY, PK_LOCAL);
-            if (Array.isArray(v) && v.length && !v.includes(id) && v.length < PK_MAX) pkWrite(v.concat([id]));
+            if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length + (window.dkwCupToolN ? dkwCupToolN() : 0) < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // ✏️ 책상 연필꽂이의 다른 도구까지 24개
             if (window.pcRefill) pcRefill();
         }
         window.openPencase = openPencase; window.pkCupList = pkCupList; window.pkColors = pkColors;
-        window.pkIsId = pkIsId; window.pkHas = () => pkOwnIds().length > 0; window.pkShopList = pkShopList; window.pkAdd = pkAdd;
+        window.pkIsId = pkIsId; window.pkRead = pkRead; window.pkWrite = pkWrite; window.pkSvg = pkSvg; window.pkOwnIds = pkOwnIds; window.pkHas = () => pkOwnIds().length > 0; window.pkShopList = pkShopList; window.pkAdd = pkAdd;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['pencase'] = true;

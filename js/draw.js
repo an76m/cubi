@@ -364,7 +364,7 @@
                 + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️</p>`
                 + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="연필꽂이 (꽂으면 완료)"><span class="pc-mini-tops"><i style="--c:#e2556f"></i><i style="--c:#3d9be0"></i><i style="--c:#ffe14d"></i></span><span class="pc-mini-cup"></span></button>`;
             document.body.appendChild(r);
-            r.querySelector('.pc-box').onclick = () => { if (!pcS.held && window.openPencase) openPencase(); };   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
+            r.querySelector('.pc-box').onclick = () => { if (pcS.held) return; if (document.documentElement.classList.contains('desk-on') && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
             drq('pcHeld').addEventListener('pointerdown', e => {               // ✏️ 내려놓은 필기구를 톡 = 다시 들기 (다른 문구는 내려놔요 · 끌면 그대로 따라와요)
                 const o = pcS.laid; if (!o || e.button > 0) return;
@@ -690,5 +690,17 @@
         document.getElementById('diaryWrapper').addEventListener('pointerdown', e => {
             if (dw.on && !dw.rest && !e.target.closest('#penLayer')) e.stopPropagation();
         }, true);
-        window.openDraw = openDraw;
+        /* ✏️ 책상 연필꽂이 · 문구함 서랍에서 필기구를 뽑으면 (도련 11-02 · js/deskgd.js) : 그리기를 켜고 그 필기구를 바로 손에 (페이지 가운데) */
+        function drawWith(id) {
+            const all = typeof pkAll === 'function' ? pkAll() : [], w = all.find(x => x.id === id); if (!w) return false;
+            if (pcS.held) pcStow();
+            openDraw(); if (!dw.on) return false;
+            const o = (pcS.tools || []).find(x => x.tool === w.tool && (w.tool === 'erase' ? +x.size === +w.size : String(x.color).toLowerCase() === String(w.color).toLowerCase()));
+            if (!o) return false;
+            const pg = drq('canvasArea'), r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect();
+            pcPick(o, { pointerId: -7, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+            pcS.carry = null; drq('pcHeld').classList.remove('carry');                  // 손에 든 채 가운데 (🖱 마우스면 따라와요 · 👆 누른 곳에서 써요)
+            return true;
+        }
+        window.openDraw = openDraw; window.drawWith = drawWith;
         document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) { penFlush(); } }, true);   // 🧭 하단 메뉴를 누르면 : 쓴 것만 페이지에 붙여요 · 필기구는 손에 그대로 (도련 10-21 · 🪟 고르는 창 모드는 ✓ 완료)

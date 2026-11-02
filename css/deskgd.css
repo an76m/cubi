@@ -1,0 +1,67 @@
+/* 🪑 책상 모드 문구 (도련 11-02 · js/deskgd.js) : ✏️ 연필꽂이가 다가와요 · 🗄️ 문구함 서랍이 열려요 */
+.dkw-room { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; background: rgba(70, 40, 55, .42); opacity: 0; transition: opacity .2s; font-family: inherit; }
+.dkw-room.show { opacity: 1; }
+.dkw-room[hidden] { display: none; }
+.dkw-room button { font-family: inherit; cursor: pointer; }
+.dkw-b { border: 2px solid #e88fb0; background: #fff; color: #c2457a; border-radius: 999px; padding: 7px 15px; font-size: 14px; font-weight: 800; box-shadow: 2px 2px 0 #e6dcf8; white-space: nowrap; }
+.dkw-b:hover { background: #fff0f5; }
+.dkw-say { position: fixed; left: 50%; bottom: 34px; translate: -50% 0; z-index: 1400; background: #fff; border: 3px solid #e88fb0; color: #c2457a; font-weight: 900; font-size: 14px; padding: 9px 18px; border-radius: 999px; box-shadow: 3px 3px 0 #e6dcf8; opacity: 0; pointer-events: none; transition: opacity .2s; white-space: nowrap; }
+.dkw-say.on { opacity: 1; }
+
+/* ✏️ 연필꽂이 */
+.dkw-cupbox { display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; }
+.dkw-cupbox > * { pointer-events: auto; }
+.dkw-hint { margin: 0; background: rgba(255, 255, 255, .95); border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 800; color: #5b3f4a; text-align: center; }
+.dkw-hint b { color: #c2457a; }
+.dkw-hint small { display: block; font-size: 11.5px; color: #a07f8b; font-weight: 700; }
+.dkw-cupart { position: relative; margin-top: 150px; }
+.dkw-cupimg, .dkw-cupfm { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dkw-cupimg { z-index: 0; user-select: none; -webkit-user-drag: none; }
+.dkw-cupfm { z-index: 5; pointer-events: none; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
+.dkw-cupfm > img { display: block; width: 100%; height: 100%; }
+.dkw-tools { position: absolute; inset: 0; z-index: 2; }
+.dkw-t { position: absolute; padding: 0; border: 0; background: none; transform-origin: 50% 100%; transform: translateX(-50%) rotate(var(--a)); transition: transform .18s, opacity .3s; filter: drop-shadow(0 2px 2px rgba(80, 40, 50, .18)); }
+.dkw-t > svg { display: block; height: 100%; width: auto; max-width: 90px; pointer-events: none; }
+.dkw-t:hover { transform: translateX(-50%) translateY(-18px) rotate(var(--a)); }
+.dkw-t.pull { transform: translateX(-50%) translateY(-460px) rotate(0deg); opacity: 0; transition: transform .35s ease-in, opacity .35s ease-in; }
+/* 그림에 앞벽이 없는 연필꽂이 = 그 소품 색으로 그린 컵 */
+.dkw-plain .dkw-cupback { position: absolute; left: 6%; right: 6%; top: 46%; height: 9%; border-radius: 50%; background: var(--cl); z-index: 0; }
+.dkw-plain .dkw-cupfront { position: absolute; left: 4%; right: 4%; top: 50%; bottom: 0; z-index: 5; background: linear-gradient(90deg, var(--cb), var(--cm) 30%, var(--cb) 70%); border: 5px solid var(--cl); border-radius: 10px 10px 26px 26px; clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%); pointer-events: none; }
+.dkw-plain .dkw-cupfront::before { content: ''; position: absolute; left: -5px; right: -5px; top: -5px; height: 18px; background: var(--cm); border: 5px solid var(--cl); border-radius: 8px; }
+.dkw-plain .dkw-cupfront svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dkw-btns { display: flex; gap: 10px; }
+
+/* 🗄️ 문구함 서랍 */
+.dkw-drawer { width: min(900px, 94vw); max-height: 90vh; display: flex; flex-direction: column; filter: drop-shadow(0 14px 22px rgba(60, 30, 40, .3)); }
+.dkw-dtop { display: flex; align-items: center; gap: 10px; background: var(--db); border: 4px solid var(--dk); border-bottom: 0; border-radius: 18px 18px 0 0; padding: 10px 14px 8px; color: var(--dk); }
+.dkw-dtop b { font-size: 16px; font-weight: 900; }
+.dkw-dtop small { font-size: 12px; font-weight: 700; opacity: .85; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dkw-cnt { font-size: 12.5px; font-weight: 800; background: #fff; border: 2px solid var(--dk); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+.dkw-cnt b { color: #c2457a; }
+.dkw-dx { border: 0; background: #fff; color: var(--dk); width: 30px; height: 30px; border-radius: 50%; font-size: 15px; font-weight: 900; flex: none; }
+.dkw-din { flex: 1 1 auto; min-height: 0; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); padding: 0 14px 14px; overflow: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
+.dkw-sec { background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); border: 3px solid var(--dk); margin: -1.5px; padding: 8px 8px 10px; min-height: 120px; }
+.dkw-sec.dkw-pen, .dkw-sec.wide { grid-column: 1 / -1; }
+.dkw-sec h4 { margin: 0 0 6px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; color: var(--dk); }
+.dkw-sec h4 small { font-weight: 800; opacity: .75; }
+.dkw-its { display: flex; flex-wrap: wrap; gap: 6px; }
+.dkw-it { position: relative; width: 74px; }
+.dkw-use { width: 100%; border: 0; background: transparent; border-radius: 12px; padding: 4px 2px 5px; text-align: center; color: #5b3f4a; transition: transform .12s, background .12s; }
+.dkw-use:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .7); }
+.dkw-art { display: flex; justify-content: center; align-items: flex-end; height: 76px; }
+.dkw-art > svg { height: 100%; width: auto; max-width: 70px; }
+.dkw-it.pen .dkw-art > svg, .dkw-pen .dkw-art > svg { height: 100%; }
+.dkw-use b { display: block; font-size: 10.5px; line-height: 1.25; margin-top: 3px; word-break: keep-all; }
+.dkw-use em { display: inline-block; margin-top: 2px; font-style: normal; font-size: 9.5px; font-weight: 900; color: #fff; background: #8bc79a; border-radius: 999px; padding: 0 6px; }
+.dkw-it.in .dkw-use { background: rgba(255, 214, 226, .75); }
+.dkw-heart { position: absolute; right: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #f3c1d1; background: #fff; color: #e6c3cf; font-size: 13px; line-height: 1; padding: 0; }
+.dkw-heart.on { color: #ff6f9c; border-color: #ff9fbd; }
+.dkw-it.need .dkw-use { animation: gdNeedTool .65s ease-in-out 4 alternate; }
+.dkw-none { grid-column: 1 / -1; text-align: center; padding: 30px 10px; font-weight: 800; color: var(--dk); line-height: 2.2; }
+.dkw-dfront { height: 62px; margin: 0 10px; background: var(--db); border: 4px solid var(--dk); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; gap: 16px; flex: none; }
+.dkw-lbl { font-size: 13px; font-weight: 900; background: #fff; border: 2px solid var(--dk); color: var(--dk); border-radius: 6px; padding: 2px 10px; }
+.dkw-knob { width: 24px; height: 24px; border-radius: 50%; background: #ffd36b; border: 3px solid var(--dk); }
+.dkw-foot { display: flex; align-items: center; gap: 8px; justify-content: flex-end; padding: 10px 6px 0; flex-wrap: wrap; }
+.dkw-foot > span { flex: 1; min-width: 200px; color: #fff; font-size: 13px; font-weight: 800; text-shadow: 0 1px 3px rgba(60, 30, 40, .7); }
+.dkw-foot > span b { color: #ffd6e2; }
+@media (max-height: 700px) { .dkw-cupart { margin-top: 110px; } .dkw-art { height: 60px; } }

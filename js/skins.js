@@ -1171,6 +1171,7 @@
             const blink = el => { if (!el) return; el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
             const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
             if (on) { gdHome(on); blink(on); return; }
+            if (document.documentElement.classList.contains('desk-on') && window.dkwTrayOpen) { dkwTrayOpen(g); return; }   // 🪑 책상 = 서랍장 문구함 서랍이 열리고 그 문구가 깜박 (js/deskgd.js)
             const m = document.getElementById('gdCabModal');
             if (!m || m.style.display !== 'flex') openGdCab();
             blink(document.querySelector(`#gdCab .gdc-dr[data-g="${g}"]`));
@@ -1237,7 +1238,7 @@
         function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구함마다 조금씩 비켜서)
             const cv = document.getElementById('canvasArea'), r = dyVisRect(cv.getBoundingClientRect()), t = gdInfo(id);
             const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), tp = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
-            const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g], n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
+            const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g] || [0, 0],   /* 새 종류 = 가운데 */ n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
         }
         /* 🗄️ 문구함에 안 가리는 자리 (도련 10-21) : 문구함이 떠 있으면 꺼낸 문구가 그 밑에 깔리지 않게
@@ -1489,8 +1490,15 @@
              집게처럼 여러 개 쓰는 것은 여러 개 꺼낼 수 있어요 (GD_MULTI) · 핀셋 · 가위처럼 하나만 쓰는 것은 놓인 것이 바뀌어요
            - 주로 쓰는 것 : 'diary_gd_main' { 종류: id } · 지금은 종류마다 기본 1개 (집게는 6색) · 나중에 📦 문구점에서 산 것을 gdOwn 에 더해요
            - ✂️ 칼 · 📏 자 서랍 (GD_TOOL · 도련 10-19 · 펀칭기 · 가위처럼 문구함에서 꺼내 써요) : 톡 = 보이는 쪽 가운데에 자를 놓아요 · 칼을 들어요 (js/ruler.js rlShow · js/stkcut.js skKnife) · 다시 톡 = 넣기 */
-        const GD_CAB = [['tweez', '핀셋'], ['clip', '집게'], ['punch', '펀칭기'], ['tape', '양면테이프'], ['scissors', '가위'], ['knife', '칼'], ['ruler', '자']];
+        /* 🗄️ 문구 종류 = 이 표 한 곳 (새 종류 = 한 줄 · 순서 = 서랍 순서) : [종류, 이름, 🪑 책상 모드 (js/deskgd.js)]
+             🪑 { cup : ✏️ 책상 연필꽂이에 꽂을 수 있어요 (길쭉한 것 · 없으면 서랍에만) · hand : 꺼내면 바로 손에 들어요 (없으면 페이지에 놓여요)
+                 sec : 🗄️ 문구함 서랍의 칸막이 이름 (같은 이름끼리 한 칸 · 없으면 종류 이름으로 한 칸) · len : 연필꽂이에 꽂힌 길이 (1 = 보통) }
+             상품 하나만 다르게 = 상품공방 속성 '연필꽂이' (예 / 아니오 · js/deskgd.js dkwCanCup) */
+        const GD_CAB = [['tweez', '핀셋', { cup: 1, hand: 1, sec: '가위 · 핀셋', len: 1 }], ['clip', '집게', { sec: '집게 · 펀칭기 · 테이프' }], ['punch', '펀칭기', { sec: '집게 · 펀칭기 · 테이프' }],
+            ['tape', '양면테이프', { sec: '집게 · 펀칭기 · 테이프' }], ['scissors', '가위', { cup: 1, hand: 1, sec: '가위 · 핀셋', len: .95 }], ['knife', '칼', { cup: 1, hand: 1, sec: '자 · 칼', len: .95 }],
+            ['ruler', '자', { cup: 1, sec: '자 · 칼', len: 1.15 }]];
         const GD_MULTI = ['clip'], GD_TOOL = ['knife', 'ruler'];
+        const cabHoldAgain = id => { if (id.startsWith('knife') && window.skHold) skHold(true); };   // ✋ 이미 꺼낸 도구를 다시 손에 (따로 그리는 도구 GD_TOOL · 새 도구 = 여기 한 줄)
         const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
         const cabK = id => id.split(':')[1];

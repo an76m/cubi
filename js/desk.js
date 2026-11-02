@@ -218,7 +218,7 @@
         /* josa = 🧰 js/util.js */
 
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
-        const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
+        const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '🗄️'], ['pc', '연필꽂이', '', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         /* 🪟 누르면 열리는 창 = 기능 + 상품 창 한 목록 (도련 10-30 : 모든 창이 🔗 기능 연결 목록에) · [id, 이름, 하단 메뉴 버튼, 아이콘, 묶음 'fn' | 'h']
@@ -230,12 +230,12 @@
         /* 🧺 넣을 수 있는 소품만 (도련 11-01 · 현실처럼) : 통 = ✏️ 문구함 · 바구니 · 책 상자 · 파일꽂이 = 📔 다이어리 · 서랍장 = 칸마다 문구함 · 다이어리 · 스티커 한 종류(씰스티커 · 마스킹테이프 …) 중 하나 (도련 11-01)
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
            서랍 칸 = 소품 그림 % [왼 · 위 · 오른 · 아래] 미리 정해 둠 (다꾸러가 그리지 않아요) · 새 소품 = 종류(kind)만 맞으면 저절로 · 서랍장 그림이 새로 생기면 칸 자리만 더해요 */
-        const DK_FN_OK = ['skin', 'sticker', 'gd'];
+        const DK_FN_OK = ['skin', 'sticker', 'gd', 'pc'];   // ✏️ pc = 연필꽂이 (도련 11-02 · 꽂아 둔 문구 · js/deskgd.js) · 🗄️ gd = 문구함 (서랍장 칸 · 가진 문구 전부)
         const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];   // 스티커 종류 (서랍 칸 하나 = 한 종류 · 상품 창 h:종류)
         /* 소품 종류(kind)마다 넣을 수 있는 것 : all = 소품 전체에 하나 · ok = 서랍 칸마다 하나 (칸 자리 = DESK_ITEMS 의 slots) · 없는 종류 = 연결 없음 (인형 · 시계 …)
            새 종류가 생기면 여기 한 줄 + js/drive.js DESK_DIRS 폴더 이름 한 줄 */
         const DK_HOLD = {
-            pencup: { all: ['gd'] }, basket: { all: ['skin'] }, bookshelf: { all: ['skin'] },
+            pencup: { all: ['pc'] }, basket: { all: ['skin'] }, bookshelf: { all: ['skin'] },
             drawer: { ok: ['gd', 'skin'].concat(DKB_STK.map(k => 'h:' + k)) }
         };
         (function dkCheck() {                                                    // 🔎 개발용 점검 (소품을 추가할 때 빠뜨린 것 · 콘솔에만)
@@ -257,7 +257,9 @@
         window.dkWin = dkWin;
         function deskFnMap() {                                                    // 연결한 기능 → 책상 위 소품 (소품마다 하나)
             if (DK.edit) return DK.editFn;                                        // 🛠 꾸미는 동안은 고치는 중인 연결
-            const v = typeof prefGet === 'function' ? prefGet(DK_FN_KEY, DK_FN_LOCAL) : null, got = v && typeof v === 'object' ? v : {};
+            const v = typeof prefGet === 'function' ? prefGet(DK_FN_KEY, DK_FN_LOCAL) : null;
+            let got = v && typeof v === 'object' ? v : {};
+            if (!('pc' in got) && got.gd) { const o = DK.items.find(x => x.u === got.gd), c = o && dkCat(o.id); if (c && c.kind === 'pencup') got = Object.assign({}, got, { pc: got.gd, gd: '' }); }   // ✏️ 예전 연필꽂이 소품 = 문구함 → 이제 연필꽂이 (도련 11-02 · 문구함은 서랍장 칸에)
             const ids = dkOnDesk().map(o => o.u), used = new Set(), m = {};
             Object.keys(got).forEach(k => { const u = got[k]; const o = k.startsWith('h:') && DK.items.find(x => x.u === u); if (o && dkWin(k) && !dkSlots(o.id) && dkHoldOk(o.id).includes(k) && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 서랍장 = 칸에만   // 🛍️ 상품 창 (저절로 붙이지 않아요)
             DK_FNS.forEach(([k]) => { const u = got[k], o = u && DK.items.find(x => x.u === u), h = o && dkHold(o.id); if (!h || !h.all || !h.all.includes(k)) return; if (u && ids.includes(u) && !used.has(u)) { m[k] = u; used.add(u); } });   // 다꾸러가 연결한 것만 (처음엔 아무것도 · 저절로 붙이지 않아요 · 도련 10-31)
@@ -300,7 +302,9 @@
             if (fn && fn.startsWith('h:')) { dkHomeOpen(fn.slice(2)); return; }    // 🛍️ 상품 창 (그 종류 보관함)
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
-            if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }                // 📦 소품함 (다이어리를 띄우지 않아요)
+            if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }
+            if (fn === 'pc') { if (window.dkwCupOpen) setTimeout(dkwCupOpen, 0); return; }   // ✏️ 책상 위 연필꽂이 = 앞으로 다가와요 (js/deskgd.js)
+            if (fn === 'gd' && window.dkwTrayOpen && document.documentElement.classList.contains('desk-on')) { setTimeout(dkwTrayOpen, 0); return; }   // 🗄️ 서랍장 문구함 칸 = 서랍이 열려요 (📱 폰은 예전 문구함 창)                // 📦 소품함 (다이어리를 띄우지 않아요)
             if (fn === 'skin' && window.dyOpen) { setTimeout(() => dyOpen('다이어리'), 0); return; }   // 📔 책상에서는 바로 다이어리 보관소 (배경지는 책상에서 못 써서 메뉴를 건너뛰어요 · 도련 10-28)
             const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
@@ -903,7 +907,8 @@
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
         const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
-            const win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
+            let win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
+            if (win === 'gd') { const o0 = DK.items.find(x => x.u === t.dataset.u); if (o0 && dkHoldOk(o0.id).includes('pc')) win = 'pc'; }   // ✏️ 문구를 연필꽂이에 넣으면 = 그 연필꽂이를 내 연필꽂이로 (문구는 문구함에 · 꽂는 건 문구함에서)
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', [, K, , ic] = dkWin(win);
             if (!o || !dkHoldOk(o.id).includes(win)) {                          // 🧸 못 넣는 소품 = 넣을 수 있는 소품 이름
                 const L = [...new Set(dkOnDesk().filter(x => dkHoldOk(x.id).includes(win)).map(dkName))];
