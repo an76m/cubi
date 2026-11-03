@@ -1,7 +1,7 @@
 /* 말랑달콤 다이어리 - js/desktape.js
    🎀 마테 정리함 (도련 11-03 · 💻 📲 책상 · 현실처럼 : 다꾸러들은 마스킹테이프를 꺼내 세워 두고 골라 써요)
    - 책상소품 종류 'taperack' (상품공방 '마테 정리함') · 칸 = 상품 '소품.slots' (그림 위 세로 칸 · [왼, 위, 오른, 아래] %) · 앞벽 그림이 있으면 앞 가로대가 롤 앞을 가려요
-   - 🛍️ 봉투의 마스킹테이프 카드를 정리함에 끌어다 놓으면 = 놓은 칸(비었으면) 또는 빈 칸부터 꽂혀요 · 칸이 모자라면 안 들어가요 (봉투에 그대로)
+   - 🛍️ 봉투의 마스킹테이프 카드를 정리함에 끌어다 놓으면 = 정리함 그림이 크게 뜨고 꽂을 빈 칸을 골라요 (서랍장처럼 · 도련 11-04) · 칸이 모자라면 안 들어가요 (봉투에 그대로)
    - 꽂힌 롤 = 옆모습 (그 테이프 무늬 · 남은 길이만큼 지름이 줄어요) · 톡 = 다이어리를 펴고 바로 페이지에 붙여요 (정리함엔 그대로)
    - 🛠 책상 꾸미기에서만 : 롤을 끌어 다른 칸 · 다른 정리함으로 (차 있으면 서로 바꿔요) · 정리함 밖에 놓으면 서랍(마스킹테이프 칸)으로
    - 정리함에 꽂힌 테이프는 바구니 · 서랍 마스킹테이프 칸에 안 보여요 (js/desk.js deskBagHold 의 s 에 더해요 · 한 곳에만 있어요)
@@ -106,17 +106,35 @@
             if (window.placeTape) placeTape(s.s.imgs[0], { id });
         } catch (e) { console.warn(e); showMsg('⚠ 테이프를 꺼내지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
     }
-    /* 🛍️ 봉투 카드를 정리함에 (js/desk.js dkbHome 맨 앞) : 처리했으면 true */
+    /* 🎀 칸 고르기 (도련 11-04 · 서랍장 dkzChoose 처럼) : 정리함 그림이 크게 뜨고 빈 칸을 직접 눌러요 · 찬 칸 = 그 테이프가 보이고 못 눌러요 · 결과 = 칸 번호 (취소 = -1) */
+    async function pickSlot(t, ids, need) {
+        const S = slotsOf(t), im = t.querySelector(':scope > img'), o = DK.items.find(x => x.u === t.dataset.u);
+        const html = `🎀 <b>마스킹테이프</b>를 꽂을 칸을 눌러 주세요<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o) || '마테 정리함')} · 빈 칸만 고를 수 있어요${need > 1 ? ` · ${need}개는 고른 칸부터 빈 칸에 차례로` : ''}</span>`
+            + `<div class="dkz-pick dkt-pick"><img src="${im ? htmlEsc(im.src) : ''}" alt="">`
+            + S.map((r, i) => {
+                const id = ids[i], e = id && entry(id), pos = `left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%`;
+                return id ? `<button type="button" class="dkt-slot full" style="${pos}" disabled title="찬 칸">${e && e.th ? `<i style="background-image:url('${htmlEsc(e.th)}')"></i>` : ''}<b>${i + 1}</b></button>`
+                    : `<button type="button" class="dkt-slot" style="${pos}" onclick="closeMsg('s${i}')" title="${i + 1}번째 칸"><b>${i + 1}</b></button>`;
+            }).join('') + '</div>';
+        const a = document.getElementById('customAlertConfirmBtn'); if (a) a.style.display = 'none';
+        let r; try { r = await showAsk(html, '', '취소'); } finally { if (a) a.style.display = ''; }
+        return typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
+    }
+    /* 🛍️ 봉투 카드를 정리함에 (js/desk.js dkbHome 맨 앞) : 처리했으면 true · 칸은 고르는 창에서 (도련 11-04) */
     window.dktDrop = (t, it, n, j, cx, cy) => {
         if (!isRack(t)) return false;
         if (it.k !== 'tape' || !Array.isArray(it.s) || !it.s.length) { showMsg(`🎀 ${htmlEsc(dkName(DK.items.find(x => x.u === t.dataset.u)) || '마테 정리함')}에는 마스킹테이프만 꽂을 수 있어요.`); return true; }
-        const S = slotsOf(t), M = read(), ids = (M[t.dataset.u] || []).slice(0, S.length); while (ids.length < S.length) ids.push(null);
-        const free = ids.map((v, i) => v ? -1 : i).filter(i => i >= 0);
-        if (free.length < it.s.length) { showMsg(`🎀 마테 정리함 칸이 ${free.length ? `${free.length}칸밖에 안 남았어요` : '다 찼어요'}.<br><span style="font-size:12px;color:#777;">다른 정리함이나 서랍에 넣어요 · 🛠 책상 꾸미기에서 롤을 정리함 밖으로 빼면 서랍으로 가요</span>`); return true; }
-        const hit = slotAt(cx, cy), order = hit && hit.u === t.dataset.u && !ids[hit.i] ? [hit.i].concat(free.filter(i => i !== hit.i)) : free;   // 놓은 칸부터
-        it.s.forEach((id, k) => { ids[order[k]] = id; });
-        M[t.dataset.u] = ids; write(M);
-        dkbTake(n, j); dkbPulse(t); paint();
+        const S = slotsOf(t), now = () => { const ids = (read()[t.dataset.u] || []).slice(0, S.length); while (ids.length < S.length) ids.push(null); return ids; };
+        const freeOf = ids => ids.map((v, i) => v ? -1 : i).filter(i => i >= 0), full = f => showMsg(`🎀 마테 정리함 칸이 ${f ? `${f}칸밖에 안 남았어요` : '다 찼어요'}.<br><span style="font-size:12px;color:#777;">다른 정리함이나 서랍에 넣어요 · 🛠 책상 꾸미기에서 롤을 빼면 칸이 생겨요</span>`);
+        let ids = now(); if (freeOf(ids).length < it.s.length) { full(freeOf(ids).length); return true; }
+        (async () => {
+            const s = await pickSlot(t, ids, it.s.length); if (s < 0) return;
+            ids = now(); const free = freeOf(ids);                                // 고르는 동안 바뀌었을 수도 있어요
+            if (ids[s] || free.length < it.s.length) { full(free.length); return; }
+            const order = [s].concat(free.filter(i => i > s), free.filter(i => i < s));   // 고른 칸부터 오른쪽으로 · 모자라면 앞쪽 빈 칸
+            const M = read(); it.s.forEach((id, k) => { ids[order[k]] = id; }); M[t.dataset.u] = ids; write(M);
+            dkbTake(n, j); dkbPulse(t); paint();
+        })();
         return true;
     };
     document.addEventListener('prod-change', () => window.dktPaint());
