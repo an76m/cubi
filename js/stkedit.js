@@ -9,7 +9,7 @@
    - ✨ 반짝이 : 금 · 은 · 무지개 가루를 뿌려요 (그림 위에만)
    - ↶ 되돌리기 · 처음으로 · ✓ 다듬기 끝 → PNG 그림 (투명한 가장자리는 잘라내요)
    - 색 계산은 직접 해요 (캔버스 filter 를 못 쓰는 예전 사파리에서도 같은 결과)
-   openStickerEdit(src, opt) → Promise<'data:image/png…' | null(그만두기)>
+   openStickerEdit(src, opt) → Promise<'data:image/webp…' (사파리 png · jpeg) | null(그만두기)>
      opt.tools : 쓸 도구만 ['color', 'flip', …] (하나뿐이면 도구 줄을 숨겨요) · opt.max : 긴 변 (기본 600)
      opt.trim === false : 투명한 가장자리를 자르지 않아요 · opt.jpeg : JPG 로 · opt.matrix : 그림 대신 SVG feColorMatrix 값 (🎀 마테)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (🎨 다듬기 버튼만 안 보여요) */
@@ -302,14 +302,14 @@
             if (se.opt.matrix) return seFeMatrix();
             const out = seCompose(), c = seMk(se.W, se.H), x = c.getContext('2d'); x.drawImage(out, 0, 0);
             if (se.st.crop) { x.globalCompositeOperation = 'destination-in'; seCropPath(x, se.st.crop); x.fill(); x.globalCompositeOperation = 'source-over'; }
-            if (se.opt.trim === false) return se.opt.jpeg ? seJpeg(c) : c.toDataURL('image/png');   // 📃 속지 : 크기 그대로
+            if (se.opt.trim === false) return se.opt.jpeg ? seJpeg(c) : cvSmall(c);   // 📃 속지 : 크기 그대로 · 🗜 크롬 WebP 0.9 · 사파리 PNG/JPG (도련 11-04)
             const d = x.getImageData(0, 0, c.width, c.height).data; let l = c.width, t = c.height, r = -1, b = -1;
             for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d[(y * c.width + xx) * 4 + 3] > 8) { if (xx < l) l = xx; if (xx > r) r = xx; if (y < t) t = y; if (y > b) b = y; }
             if (r < 0) return null;                                              // 다 지웠어요
             const f = seMk(r - l + 1, b - t + 1); f.getContext('2d').drawImage(c, -l, -t);
-            return f.toDataURL('image/png');
+            return cvSmall(f);
         }
-        function seJpeg(c) { const j = seMk(c.width, c.height), x = j.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, j.width, j.height); x.drawImage(c, 0, 0); return j.toDataURL('image/jpeg', .9); }
+        function seJpeg(c) { const j = seMk(c.width, c.height), x = j.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, j.width, j.height); x.drawImage(c, 0, 0); return cvSmall(j); }   // 흰 바탕 → 크롬 WebP 0.9 · 사파리 JPG 0.9
 
         /* ---------- 열기 · 닫기 ---------- */
         function openStickerEdit(src, opt) {

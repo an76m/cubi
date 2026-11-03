@@ -68,7 +68,7 @@
         const lfMenu = () => ({ edit: pageLeaf === 'my' && !!window.openStickerEdit, off: pageLeaf !== 'line' });
         async function lfEdit() {
             if (pageLeaf !== 'my' || !window.openStickerEdit) return;
-            const img = pageLeafImg, out = await openStickerEdit(img, { tools: ['color'], max: 1000, trim: false, jpeg: !/^data:image\/png/.test(img) });
+            const img = pageLeafImg, out = await openStickerEdit(img, { tools: ['color'], max: 1000, trim: false, jpeg: !/^data:image\/(png|webp)/.test(img) });   // webp = 투명일 수 있어요 (도련 11-04)
             if (!out || pageLeafImg !== img) return;
             setPageLeaf('my', out); if (typeof saveData === 'function') saveData(false);
         }

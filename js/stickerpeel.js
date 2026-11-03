@@ -31,7 +31,7 @@
             const one = pelMk(c.width, c.height); one.getContext('2d').drawImage(im, b, b, iw, ih);
             if (die) x.drawImage(pelTint(pelGrow(pelTint(one, '#fff'), PEL_EDGE, 10), '#fff'), 0, 0);
             x.drawImage(one, 0, 0);
-            return c.toDataURL('image/png');
+            return cvSmall(c);                                                 // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
         }
 
         /* ---------- 떼기용 그림 (앞면 · 뒷면 · 가장자리 점) ---------- */

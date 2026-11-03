@@ -25,7 +25,7 @@
             if (!o || typeof o !== 'object') return null;
             const col = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v), s = +o.s;
             if (!/^[\w-]{1,20}$/.test(o.id || '') || !col(o.bg) || !(s >= 8 && s <= 60)) return null;
-            const re = o.m === 'd' ? /^data:image\/png;base64,[A-Za-z0-9+/=]+$/ : o.m === 'i' ? /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/ : null;
+            const re = o.m === 'd' ? /^data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+/=]+$/ : o.m === 'i' ? /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/ : null;
             return re && re.test(o.img || '') ? { id: o.id, m: o.m, bg: o.bg, s, img: o.img } : null;
         }
 
@@ -108,11 +108,11 @@
             }));
             c.restore();
         }
-        function tpmExport() {                                         // 그린 것 → 작은 투명 PNG (비었으면 '')
+        function tpmExport() {                                         // 그린 것 → 작은 투명 그림 (cvSmall · 비었으면 '')
             const src = tpmq('tpmPad'), N = TPM_PAD, d = tpmCtx().getImageData(0, 0, N, N).data;
             let any = false; for (let i = 3; i < d.length; i += 4) if (d[i]) { any = true; break; }
             if (!any) tpmS.dimg = '';
-            else { const c = document.createElement('canvas'); c.width = c.height = TPM_OUT; c.getContext('2d').drawImage(src, 0, 0, TPM_OUT, TPM_OUT); tpmS.dimg = c.toDataURL('image/png'); }
+            else { const c = document.createElement('canvas'); c.width = c.height = TPM_OUT; c.getContext('2d').drawImage(src, 0, 0, TPM_OUT, TPM_OUT); tpmS.dimg = cvSmall(c); }   // 🗜 크롬 WebP 0.9 · 사파리 PNG (도련 11-04)
             tpmDraw();
         }
         function tpmUndo() {

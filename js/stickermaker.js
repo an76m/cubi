@@ -285,7 +285,7 @@
             const w = x1 - x0 + 1, h = y1 - y0 + 1, k = Math.min(1, SM_OUT / Math.max(w, h));
             const o = document.createElement('canvas'); o.width = Math.round(w * k); o.height = Math.round(h * k);
             o.getContext('2d').drawImage(c, x0, y0, w, h, 0, 0, o.width, o.height);
-            return (smS[key] = o.toDataURL('image/png'));
+            return (smS[key] = cvSmall(o));                                     // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
         }
         /* 보관 창 칸 5개 (모든 보관 창 공통 · 속지 · 떡메 창도 같은 이름 js/leafpad.js)
            기본 = 처음부터 있는 것 · 내가만든 = 내가 만든 것 · 공유받은 = 다른 사람이 공유한 것 · 이벤트 = 개발자가 이벤트로 준 기간 있는 선물 · 문구점 = 🛍️ 문구점 */

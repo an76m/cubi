@@ -29,28 +29,55 @@
             img.src = resolveSrc(src);
             inlineImage(img);
         }
+        /* 🗜 앱에서 그림 굽기 = 하나로 (도련 11-04) : 크롬(PC · 맥 · 안드로이드) = WebP 0.9 (투명 그대로 · PNG 보다 약 80% · JPG 0.9 와 같거나 작아요)
+           WebP 로 못 굽는 브라우저(사파리 · 아이폰 · 아이패드의 모든 브라우저) = 투명한 곳이 있으면 PNG, 없으면 JPG 0.9
+           ⚠ WebP 1.0 은 쓰지 않아요 (무손실이 아니면서 JPG 의 2~6배) · 받은 서버 스티커(96색 무손실 WebP)는 굽지 않고 그대로 */
+        let cvWebpOk = null;
+        function cvSmall(c) {
+            if (cvWebpOk !== false) {
+                let u = ''; try { u = c.toDataURL('image/webp', .9); } catch (e) {}
+                cvWebpOk = u.startsWith('data:image/webp');
+                if (cvWebpOk) return u;
+            }
+            let clear = false;
+            try { const a = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < a.length; i += 4) if (a[i] < 255) { clear = true; break; } } catch (e) { clear = true; }
+            return clear ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .9);
+        }
+        window.cvSmall = cvSmall;
+
         /* 🖼️ 페이지 그림은 주소가 아닌 그림 그대로(data) 일기 JSON에 담아요 (확정 원칙)
            → 불러올 때 개발자 구글 드라이브 · 앱스크립트 트래픽 0 · 주소로 붙은 그림은 한 번 그려서 바꾼 뒤 저장
-           - 긴 변 최대 1000px · 투명한 곳이 있으면 PNG, 없으면 JPG */
+           - 긴 변 최대 1000px · cvSmall 로 굽기 (크롬 WebP 0.9 · 사파리 투명 PNG / 불투명 JPG) */
         const INLINE_MAX = 1000;
         function inlineImage(img) {
             const src = img.dataset.src;
             if (!src || src.startsWith('data:')) return;
             const im = new Image();
             im.crossOrigin = 'anonymous';
-            im.onload = () => {
-                if (img.dataset.src !== src || !im.naturalWidth) return;
+            const put = url => {
+                if (img.dataset.src !== src || !url) return;
+                img.dataset.src = url; img.src = url;
+                if (img.isConnected && typeof saveData === 'function') saveData(false);
+            };
+            const baked = () => {
                 try {
                     const k = Math.min(1, INLINE_MAX / Math.max(im.naturalWidth, im.naturalHeight));
                     const w = Math.max(1, Math.round(im.naturalWidth * k)), h = Math.max(1, Math.round(im.naturalHeight * k));
                     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-                    const x = cv.getContext('2d'); x.drawImage(im, 0, 0, w, h);
-                    const a = x.getImageData(0, 0, w, h).data; let clear = false;
-                    for (let i = 3; i < a.length; i += 16) if (a[i] < 255) { clear = true; break; }
-                    const url = clear ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', .9);
-                    img.dataset.src = url; img.src = url;
-                    if (img.isConnected && typeof saveData === 'function') saveData(false);
-                } catch (e) {}
+                    cv.getContext('2d').drawImage(im, 0, 0, w, h);
+                    return cvSmall(cv);
+                } catch (e) { return ''; }
+            };
+            im.onload = () => {
+                if (img.dataset.src !== src || !im.naturalWidth) return;
+                if (Math.max(im.naturalWidth, im.naturalHeight) > INLINE_MAX || /\.svg(\?|$)/i.test(src)) { put(baked()); return; }
+                // 줄일 필요가 없으면 받은 파일 그대로와 구운 것 중 작은 것 (서버 스티커 96색 무손실 WebP 는 보통 그대로 · 도련 11-04)
+                fetch(im.src).then(r => r.ok ? r.blob() : null).then(b => {
+                    if (!b || !/^image\/(png|jpeg|webp)$/.test(b.type)) { put(baked()); return; }
+                    const r = new FileReader();
+                    r.onload = () => { const a = String(r.result), c = baked(); put(c && c.length < a.length ? c : a); };
+                    r.onerror = () => put(baked()); r.readAsDataURL(b);
+                }).catch(() => put(baked()));
             };
             im.src = resolveSrc(src);
         }

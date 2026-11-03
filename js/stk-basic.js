@@ -26,19 +26,27 @@
                 return x.u ? { c, url: x.u, P: x.P || {} } : null;
             }).filter(Boolean));
         }
-        /* 주소 그림 → data 주소 (투명한 곳이 있으면 PNG · 없으면 JPG) · 한 번 받은 건 기억 */
+        /* 주소 그림 → data 주소 · 한 번 받은 건 기억
+           🗜 png · jpg · webp = 받은 파일 그대로 (서버 그림은 스티커 도구가 이미 줄였어요 · 96색 무손실 WebP 를 다시 굽지 않아요 · 도련 11-04)
+              svg 처럼 그대로 못 쓰는 것만 굽기 (cvSmall : 크롬 WebP 0.9 · 사파리 투명 PNG / 불투명 JPG) · jpeg = 예전 이름 (지금은 안 써요) */
         function sbData(url, jpeg) {
             if (sbCache.has(url)) return sbCache.get(url);
             const p = new Promise((ok, no) => {
                 const im = new Image(); im.crossOrigin = 'anonymous';
                 im.onload = () => {
-                    try {
-                        const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
-                        const x = c.getContext('2d'); x.drawImage(im, 0, 0);
-                        let clear = false;
-                        if (!jpeg) { const a = x.getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < a.length; i += 16) if (a[i] < 250) { clear = true; break; } }
-                        ok({ src: clear ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .88), w: c.width, h: c.height });
-                    } catch (e) { no(e); }
+                    const w = im.naturalWidth, h = im.naturalHeight;
+                    const bake = () => {
+                        try {
+                            const c = document.createElement('canvas'); c.width = w; c.height = h;
+                            c.getContext('2d').drawImage(im, 0, 0);
+                            ok({ src: cvSmall(c), w, h });
+                        } catch (e) { no(e); }
+                    };
+                    if (/\.svg(\?|$)/i.test(url)) { bake(); return; }
+                    fetch(im.src).then(r => r.ok ? r.blob() : null).then(b => {
+                        if (!b || !/^image\/(png|jpeg|webp)$/.test(b.type)) { bake(); return; }
+                        const r = new FileReader(); r.onload = () => ok({ src: String(r.result), w, h }); r.onerror = bake; r.readAsDataURL(b);
+                    }).catch(bake);
                 };
                 im.onerror = () => no(new Error('load'));
                 im.src = url;

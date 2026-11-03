@@ -266,7 +266,7 @@
         for (const [cv, t, side] of [[A, ta, 1], [Bc, tb, -1]]) {
             const w = t.x1 - t.x0 + 1, h = t.y1 - t.y0 + 1, o = document.createElement('canvas'); o.width = w; o.height = h;
             o.getContext('2d').drawImage(cv, t.x0, t.y0, w, h, 0, 0, w, h);
-            const url = o.toDataURL('image/png');
+            const url = cvSmall(o);                                              // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
             const lcx = (t.x0 + w / 2) / R + B + P - W / 2, lcy = (t.y0 + h / 2) / R + B + P - H / 2;   // 조각 가운데 (스티커 가운데 기준 · 돌리기 전)
             const gap = 2.5;                                                                         // 칼선 틈 : 두 조각이 살짝 벌어져요
             let pcx = cx + s * (lcx * Math.cos(rot) - lcy * Math.sin(rot)) + side * nv[0] * gap, pcy = cy + s * (lcx * Math.sin(rot) + lcy * Math.cos(rot)) + side * nv[1] * gap;
