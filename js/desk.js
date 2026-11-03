@@ -487,7 +487,7 @@
             });
             DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); });          // 📦 보관함의 칠한 소품 그림도
             if (window.dcApplyAll) dcApplyAll();                                  // 💡 불빛 · 🔢 숫자 (js/deskcustom.js)
-            dknPaintAll(); dkVolsPaint(); deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint();   // 📔 나머지 다이어리 권
+            dknPaintAll(); dkVolsPaint(); deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint(); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤   // 📔 나머지 다이어리 권
         }
         /* 🎨 칠한 소품 (p: 1) = 종류 폴더 파일에 칠한 그림이 들어 있어요 (js/deskpaint.js) → 읽어서 그 소품 그림만 바꿔요 */
         const dkSrc = o => DK.art[o.u] || (dkCat(o.id) || {}).src || '';
@@ -736,7 +736,7 @@
            - 넣는 것 = 책상 위 모든 소품(벽에 건 것 · 다른 담는 소품은 빼고) + 📔 다이어리 : 바닥 가운데가 입구 안이면 담는 소품과 앞벽 사이
            - 여러 개 = 바닥이 아래인 것이 앞 · 담는 소품을 옮기면 안에 든 것도 같이 · 크기 · 자리는 사용자 마음 (맞춰 주지 않아요)
            - 앞벽 = 같은 그림을 앞벽 마스크로 잘라 한 겹 더 (칠한 그림도 그대로) · 안에 든 게 있을 때만 */
-        const dkIsBox = el => { const d = dkDef(el); return !!(d.front && d.mouth); };
+        const dkIsBox = el => { const d = dkDef(el); return !!(d.front && d.mouth) && d.kind !== 'taperack'; };   // 🎀 마테 정리함 앞벽은 롤만 가려요 (소품을 담지 않아요)
         function dkBoxAt(x, y, skip) {
             let best = null;
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
@@ -943,6 +943,7 @@
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
         const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
+            if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)
             let win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
             if (win === 'gd') { const o0 = DK.items.find(x => x.u === t.dataset.u); if (o0 && dkHoldOk(o0.id).includes('pc')) win = 'pc'; }   // ✏️ 문구를 펜꽂이에 넣으면 = 그 펜꽂이를 내 펜꽂이로 (문구는 문구함에 · 꽂는 건 문구함에서)
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', [, K, , ic] = dkWin(win);
@@ -1186,6 +1187,7 @@
                 if (it.k === 'gd' && it.gid) g.add(it.gid);                        // ✏️ 문구 · 필기구 (디자인 id)
                 if (it.u) u.add(it.u);                                             // 🪑 소품 · 🧱 🪵 벽지 · 책상 (그 하나)
             }));
+            if (window.dktHeld) dktHeld().forEach(id => s.add(id));             // 🎀 마테 정리함에 꽂힌 테이프도 바구니 · 서랍엔 없어요 (js/desktape.js)
             return { s, b, g, u, d };
         }
         window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen; window.deskBagHold = deskBagHold;
