@@ -23,12 +23,16 @@
         dyyColorsBuild(); if (window.prodHook) prodHook(dyyColorsBuild);
         const dyyThis = () => new Date().getFullYear();
         const dyyOf = id => { const m = /^(\d{4})([a-z][\w-]*?)(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], c: m[2], n: +m[3] } : null; };   // 색 = 다이어리 상품 id (끝이 숫자가 아니게)
-        const dyyCName = c => (DYY_COLORS.find(x => x[0] === c) || DYY_COLORS[0])[1];
-        const dyyTitle = b => `${b.y} ${dyyCName(b.c)}${b.n > 1 ? ' ' + b.n : ''}`;   // 보관소 · 메시지에 보일 이름 (2026 녹색 · 2026 녹색 2)
+        /* 📓 날짜형 노트 (도련 11-04) : 권 id 의 색 앞에 'note-' (2026note-pink1) · 색 · 스킨은 같은 색 바인더와 같아요 · 저장 = 말랑달콤 / 날짜노트 (js/drive.js) · 모양 = js/skins.js dyLook */
+        const DYY_NOTE = 'note-';
+        const dyyIsNote = b => !!b && String(b.c || '').startsWith(DYY_NOTE);
+        const dyyColor = c => String(c || '').replace(/^note-/, '');            // 스킨 · 색 이름은 바인더 색 그대로
+        const dyyCName = c => (DYY_COLORS.find(x => x[0] === dyyColor(c)) || DYY_COLORS[0])[1];
+        const dyyTitle = b => `${b.y} ${dyyCName(b.c)}${dyyIsNote(b) ? ' 노트' : ''}${b.n > 1 ? ' ' + b.n : ''}`;   // 보관소 · 메시지에 보일 이름 (2026 녹색 · 2026 녹색 2 · 2026 분홍 노트)
         const dyyIds = () => { const v = prefGet(DYY_KEY, DYY_LOCAL); return Array.isArray(v) ? [...new Set(v.map(String))].filter(id => dyyOf(id)) : []; };
         function dyyBooks() {                                                  // 받은 권 (해 · 색 · 번호 순서)
-            const ord = c => DYY_COLORS.findIndex(x => x[0] === c);
-            return dyyIds().map(dyyOf).sort((a, b) => a.y - b.y || ord(a.c) - ord(b.c) || a.n - b.n);
+            const ord = c => DYY_COLORS.findIndex(x => x[0] === dyyColor(c));
+            return dyyIds().map(dyyOf).sort((a, b) => a.y - b.y || dyyIsNote(a) - dyyIsNote(b) || ord(a.c) - ord(b.c) || a.n - b.n);
         }
         const dyyHas = y => dyyBooks().some(b => b.y === +y);
         function dyyBook() {                                                   // 지금 펼친 권 (없으면 마지막 권 · 한 권도 없으면 null)
@@ -57,11 +61,14 @@
             return t.getFullYear() > y ? new Date(y, 11, 31) : new Date(y, 0, 1);
         }
         /* 펼친 권의 색을 다이어리에 (테두리 · 페이지 색 = js/settings.js applySkinPreset) */
+        let dyyLastNote = null;
         function dyyPaint() {
             const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
             if (window.dkDeskBooks) setTimeout(dkDeskBooks, 0);              // 📔 책상 = 다이어리 보관소 (펼쳐 둔 권 · 나머지 권 다시 · js/desk.js)
             if (!b) return;
-            if (dyyBasic() && typeof currentSkinId !== 'undefined' && currentSkinId !== b.c && typeof applySkinPreset === 'function') applySkinPreset(b.c);
+            if (dyyBasic() && typeof currentSkinId !== 'undefined' && currentSkinId !== dyyColor(b.c) && typeof applySkinPreset === 'function') applySkinPreset(dyyColor(b.c));
+            const nt = dyyBasic() && dyyIsNote(b);                             // 📓 바인더 ↔ 노트 = 크기 · 가운데 모양이 달라요 → 다시 그리기
+            if (nt !== dyyLastNote) { dyyLastNote = nt; if (typeof refreshLayout === 'function') setTimeout(refreshLayout, 0); }
         }
         /* 새 권 id (그 해 그 색 번호는 늘 새로 · 버린 것 · 되살린 것과 안 겹쳐요) */
         function dyyInfoSet(id, from) {
@@ -167,7 +174,9 @@
         /* 🏪 기본상품 샵 → 📔 다이어리 → 날짜형 (js/basket.js) : 올해 바인더 4색 · 같은 것도 또 받아요 (받을 때마다 새 다이어리 한 권) */
         function dyyShopList() {
             const y = dyyThis();
-            return DIARY_COLORS.filter(c => !c[2]).map(([c, n]) => ({ cnt: `${y} 기본 다이어리 · ${n}`, desc: `${n} 6공 바인더 · A6 · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'diary', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, c), name: `${y} ${n} 다이어리` }));
+            const L = DIARY_COLORS.filter(c => !c[2]), nt = window.dyNoteType && dyNoteType();
+            return L.map(([c, n]) => ({ cnt: `${y} 기본 다이어리 · ${n}`, desc: `${n} 6공 바인더 · A6 · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'diary', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, c), name: `${y} ${n} 다이어리` }))
+                .concat(nt && !nt.off ? L.map(([c, n]) => ({ cnt: `${y} 날짜형 노트 · ${n}`, desc: `${n} 노트 · ${nt.n} (${nt.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 노트 한 권 (다른 다이어리 기록과 따로)`, look: 'note', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, DYY_NOTE + c), name: `${y} ${n} 노트` })) : []);   // 📓 날짜형 노트 (도련 11-04)
         }
         function dyyGive(y, c) {
             const id = dyyNewId(y, c);
@@ -223,8 +232,8 @@
              · 종류가 두 가지 이상 생기면 위에 거르기 칩 (전체 · 날짜형 · 페이지형) · 지금은 날짜 바인더만이라 칩이 안 보여요 */
         const DYY_KINDS = [['date', '📅 날짜형'], ['page', '📄 페이지형']];
         let dyyFilter = 'all';
-        const dyyKindOf = () => 'date';                                       // 지금 받은 권은 모두 날짜형 바인더 (날짜노트 · 페이지형은 팔 때 여기에)
-        const dyyKindName = () => '📅 날짜 바인더';
+        const dyyKindOf = () => 'date';                                       // 받은 권은 모두 날짜형 (바인더 · 노트 · 페이지형은 팔 때 여기에)
+        const dyyKindName = b => dyyIsNote(b) ? '📓 날짜 노트' : '📅 날짜 바인더';
         function dyyFilterSet(v) { dyyFilter = v; if (window.dyTabSet) dyTabSet('free'); }
         function dyyCells() {
             const base = DY_TYPES.find(t => t.id === DY_DEF), cur = dyyBookId();
@@ -236,8 +245,8 @@
             const chips = kinds.length > 1 ? `<div class="dyy-chips">${[['all', '전체']].concat(kinds).map(([k, n]) => `<button type="button" class="${k === dyyFilter ? 'on' : ''}" onclick="dyyFilterSet('${k}')">${n}</button>`).join('')}</div>` : '';
             const L = dyyFilter === 'all' ? all : all.filter(b => dyyKindOf(b) === dyyFilter);
             return chips + L.map(b => {
-                const sk = typeof skinPresets !== 'undefined' ? skinPresets[b.c] : null;
-                return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(base, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${dyyTitle(b)}</span><small>${dyyKindName(b)} · ${base.n}</small>`
+                const sk = typeof skinPresets !== 'undefined' ? skinPresets[dyyColor(b.c)] : null, bt = dyyIsNote(b) ? (window.dyNoteType && dyNoteType()) || base : base;
+                return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(bt, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${dyyTitle(b)}</span><small>${dyyKindName(b)} · ${bt.n}</small>`
                     + `<span class="dy-del" role="button" tabindex="0" title="휴지통" aria-label="휴지통" onclick="event.stopPropagation(); dyyDiscard('${b.id}')">🗑</span></button>`;
             }).join('');
         }
@@ -246,7 +255,8 @@
 
         window.dyyBooks = dyyBooks; window.dyyBookId = dyyBookId; window.dyyHas = dyyHas; window.dyyYear = dyyYear; window.dyyIn = dyyIn; window.dyyClamp = dyyClamp; window.dyySync = dyySync; window.dyySelect = dyySelect;
         window.dyyGuard = dyyGuard; window.dyyEnd = dyyEnd; window.dyyOnOpen = dyyOnOpen; window.dyyShopList = dyyShopList; window.dyyCells = dyyCells; window.dyyShop = dyyShop; window.dyyOnId = dyyOnId; window.dyyPaint = dyyPaint;
-        window.dyyNone = dyyNone; window.dyyDiscard = dyyDiscard;
+        window.dyyNone = dyyNone; window.dyyDiscard = dyyDiscard; window.dyyColor = dyyColor; window.dyyIsNote = dyyIsNote;
+        window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트 (js/skins.js dyLook)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dyyear'] = true;

@@ -277,6 +277,8 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .sh-dyb b { font: 800 19px/1 'Jua', sans-serif; color: var(--dyi, #c8457a); letter-spacing: 1px; }
 .sh-dyb small { font: 700 9px/1 'Fredoka', 'Jua', sans-serif; color: var(--dyi, #e07595); opacity: .8; letter-spacing: 2px; }
 .sh-zlook .sh-dyb { transform: scale(1.6); margin: 40px 0; }
+.sh-dyb.sh-dyn { border-radius: 5px 9px 9px 5px; overflow: hidden; }   /* 📓 날짜형 노트 (도련 11-04) */
+.sh-dyn .sh-dys { position: absolute; left: 0; top: 0; bottom: 0; width: 9px; background: color-mix(in srgb, var(--dyb, #ffc6d6), #5b3f7a 22%); border-right: 1.5px solid var(--an-ol, #bba6d6); }
 .dy-yr .dy-stage { position: relative; }
 .dy-yr-n { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); padding: 1px 8px; border-radius: 999px; background: #fff; border: 1.2px solid var(--an-ol, #bba6d6); color: #c8457a; font: 800 12px/1.3 'Jua', sans-serif; }
 /* 📔 보관소 🗑 버리기 (js/dyyear.js dyyDiscard) */
@@ -646,6 +648,9 @@ html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }
 .dk-vol.p-lay .dv-cv { top: auto; bottom: 13px; height: 287px; transform: perspective(900px) rotateX(71deg); transform-origin: 50% 100%; border-radius: 6px 10px 10px 6px; box-shadow: inset 18px 0 0 var(--dyv-sh), inset 20px 0 0 var(--dyv-ol); }   /* 🛏 눕히기 = 펼쳐 둔 권처럼 표지를 비스듬히 (도련 10-30) */
 .dk-vol.p-lay .dv-pg { position: absolute; left: 0; right: 0; bottom: 0; height: 15px; box-sizing: border-box; border: 2px solid var(--dyv-ol); border-top: 0; border-radius: 0 0 10px 10px; background: linear-gradient(90deg, var(--dyv-sh) 0 16px, transparent 16px), repeating-linear-gradient(var(--page-bg, #fff8fb) 0 2px, color-mix(in srgb, var(--dyv) 45%, #fff) 2px 3px); }
 .dk-vol.p-lay .dv-cv b { left: 50%; top: 9%; translate: -50% 0; font-size: 26px; padding: 4px 18px; border-radius: 8px; }
+.dk-vol.note.p-front .dv-cv { border-radius: 4px 9px 9px 4px; box-shadow: inset 7px 0 0 var(--dyv-sh), inset 9px 0 0 var(--dyv-ol); }   /* 📓 날짜형 노트 = 얇은 책등 (도련 11-04) */
+.dk-vol.note.p-lay .dv-cv { box-shadow: inset 9px 0 0 var(--dyv-sh), inset 11px 0 0 var(--dyv-ol); }
+.dk-vol.note.p-side .dv-cv { border-radius: 4px; }
 .dk-vol.has-lb .dv-cv > b { display: none; }   /* 🏷 이름표를 붙이면 해 이름판 대신 */
 .dk-vol .dkn-tag.dky-lb.side { --nb: 8px; } .dk-vol .dkn-tag.dky-lb.front { --nb: 13px; } .dk-vol.p-lay .dkn-tag.dky-lb.front { --nb: 30px; }
 .dkv-menu .dky-lbb { background: #fff1c4; }

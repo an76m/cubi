@@ -1247,6 +1247,7 @@
         const DKV_SZ = { side: [24, 127], front: [80, 120], lay: [150, 86] };      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
         let DKV_C = null; if (window.prodHook) prodHook(() => { DKV_C = null; });                                                          // 🧁 다이어리 색 (서버 상품 · js/app.js DIARY_COLORS · app.js 가 이 파일보다 뒤라 처음 쓸 때 만들어요)
         const dkvCol = c => { if (!DKV_C) { DKV_C = Object.fromEntries(DIARY_COLORS.map(x => [x[0], [x[1], skinPresets[x[0]].border, skinPresets[x[0]].accent]])); }
+            c = window.dyyColor ? dyyColor(c) : c;                              // 📓 날짜형 노트 = 같은 색 바인더 색
             return DKV_C[c] || DKV_C.pink || Object.values(DKV_C)[0] || ['분홍', '#ffb6c1', '#ff6b81']; };
         const dkyCur = () => (window.dyyBookId && (typeof dkType !== 'function' || !dkType()) ? dyyBookId() : '') || '';
         const dkyMap = () => { const v = typeof prefGet === 'function' ? prefGet(DKY_KEY, DKY_LOCAL) : null; return v && typeof v === 'object' && !('x' in v) ? v : {}; };
@@ -1265,7 +1266,7 @@
             if (!k) return { x: DESK_W / 2, y: 850, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
             return { x: 1196 - (DKV_SZ.front[0] + 10) * (k - 1), y: 758, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
         }
-        const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${dkvCol(b.c)[0]}${b.n > 1 ? ' ' + b.n : ''}`;
+        const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${dkvCol(b.c)[0]}${window.dyyIsNote && dyyIsNote(b) ? ' 노트' : ''}${b.n > 1 ? ' ' + b.n : ''}`;
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : '📔';
         const dkvPos = id => (DK.volEdit && DK.volEdit[id]) || dkyPosOf(id);
         function dkVolsPaint() {
@@ -1274,7 +1275,7 @@
             const cur = dkyCur(), at = st.querySelector('.dk-diary');
             dkvAll().forEach(b => {                                               // 📔 모든 권 = 이 틀 하나 (펼쳐 볼 권도 · .cur · 새로 그리지 않기 · 도련 10-30)
                 const v = dkvPos(b.id), [w, h] = DKV_SZ[v.p] || DKV_SZ.side, C = b.col ? ['', b.col[0], b.col[1]] : dkvCol(b.c);
-                const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t !== 'dy' ? ' alb ' + b.t : '') + (b.id === cur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
+                const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t !== 'dy' ? ' alb ' + b.t : '') + (b.t === 'dy' && window.dyyIsNote && dyyIsNote(b) ? ' note' : '') + (b.id === cur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
                 Object.assign(el.style, { left: Math.round(v.x - w / 2) + 'px', top: Math.round(v.y - h) + 'px', width: w + 'px', height: h + 'px' });
                 el.style.setProperty('--dy-c', C[1]); el.style.setProperty('--primary-accent', C[2]);
                 const lb = b.t === 'dy' ? b.y : (b.t === 'bd' ? '📒' : '🤍') + (v.p === 'side' ? '' : ' ' + htmlEsc(String(b.lb || DKH_NAMES[b.k] || '').slice(0, 6)));   // 📒 🤍 = 아이콘 + 종류(이름표)

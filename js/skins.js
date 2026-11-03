@@ -548,7 +548,7 @@
             (window.prodList ? prodList('다이어리모양') : []).forEach(x => {
                 const P = x.P || {};                                           // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 'basic' 은 상품공방이 꼭 있게 검수)
                 if (!(+P.r > 0) || !['다이어리', '노트', '바인더'].includes(P.k) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !/^#[0-9a-f]{6}$/i.test(P.c || '') || !String(P.g || '') || !String(P.n || '') || !String(P.mm || '')) { console.warn('🧁 다이어리모양 속성이 모자라요 :', x.id); return; }
-                DY_TYPES.push({ id: x.id, k: P.k, g: String(P.g), n: String(P.n), mm: String(P.mm), b: P.b, r: +P.r, c: P.c, off: !!P.숨김 });
+                DY_TYPES.push({ id: x.id, k: P.k, g: String(P.g), n: String(P.n), mm: String(P.mm), b: P.b, r: +P.r, c: P.c, off: !!P.숨김, dn: !!P.날짜노트 });   // dn = 📓 날짜형 노트에 쓰는 모양 (도련 11-04)
             });
         }
         dyTypesBuild();
@@ -576,6 +576,10 @@
         const DY_H = 700;                                                      // 페이지 높이 기준
         const dyFind = id => DY_TYPES.find(t => t.id === id) || (typeof dmkGet === 'function' ? dmkGet(id) : null);   // 📓 내가 만든 노트 · 바인더도 (js/dymaker.js)
         const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || DY_TYPES.find(t => t.id === DY_DEF);
+        /* 📓 날짜형 노트 (도련 11-04) : 날짜형은 늘 'basic' 다이어리 (날짜 · 1년 · 보관소 = js/dyyear.js) · 펼친 권이 노트면 '모양'만 노트 (크기 · 가운데 묶음 · 링 없음)
+           노트 모양 = 상품공방 다이어리모양 중 '날짜노트' 를 켠 것 (숨김이면 샵에 노트가 안 나와요 · 가진 사람은 그대로) */
+        const dyNoteType = () => DY_TYPES.find(t => t.dn && !t.off) || DY_TYPES.find(t => t.dn) || null;
+        const dyLook = () => { const t = dyNow(); return t.id === DY_DEF && window.dyyIsNoteOpen && dyyIsNoteOpen() ? dyNoteType() || t : t; };
         /* 📖 펼침면 (도련 · 10-17) : 모든 다이어리는 펼친 두 쪽이 하루예요
            - 저장은 늘 두 쪽짜리 종이 하나 (getPageSize = 두 쪽 크기) · 보는 방법만 기기마다 설정 · 날짜바 스위치로 골라요 (⬅ 왼쪽 페이지 · ➡ 오른쪽 페이지)
            - spread : 💻 컴퓨터 · 📲 패드 양쪽 = 두 쪽이 다 보여요 (다이어리를 열면 #diaryWrapper 왼쪽에 한 쪽만큼 자리를 비워 가운데로)
@@ -615,7 +619,7 @@
            책등은 두 쪽 종이 위에 겹쳐 있어서, 좁아진 만큼 책 전체 가로도 줄여요 (보이는 종이 폭은 그대로) */
         const DY_SP_OLD = .17, DY_SP = .08;
         function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요 · pw = 책등과 상관없는 종이 한 쪽 폭
-            const t = dyNow(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H, pw = Math.round(ch / t.r) + PAGE_BORDER * 2;
+            const t = dyLook(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H, pw = Math.round(ch / t.r) + PAGE_BORDER * 2;
             const w = t.b === 'ring' ? Math.round(ch / t.r * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) + PAGE_BORDER * 2 : pw;
             return { w, pw, h: DY_H, two: dyMode() === 'spread' };
         }
@@ -689,7 +693,7 @@
         const PUNCHES = [['basic', '기본펀치', '#9aa0aa']];                      // 🕳️ 펀치 (나중에 문구점 · 예쁜 펀치)
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
-        const bdLay = () => { const t = dyNow(); return t.b === 'ring' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
+        const bdLay = () => { const t = dyLook(); return t.b === 'ring' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
         const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
         function bdGet() { if (!bdLay()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
         function bdPut(v) {
@@ -1927,7 +1931,7 @@
         function dyDeco() {                                                    // js/page.js refreshLayout 끝에서 불러요
             const page = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), book = document.getElementById('diaryBook'), wr = document.getElementById('diaryWrapper');
             if (!page || !cv || !book) return;
-            const t = dyNow(), mode = dyMode();
+            const t = dyLook(), mode = dyMode();
             book.classList.add('dy-sp'); book.classList.toggle('dy-one', mode !== 'spread');
             dvRender();                                                        // 📖 날짜바 양 끝 왼쪽 · 오른쪽 페이지 스위치
             book.style.setProperty('--dy-w', book.clientWidth + 'px');
@@ -1939,7 +1943,7 @@
             let hl = document.getElementById('dyHoleL'); if (!hl) { hl = document.createElement('div'); hl.id = 'dyHoleL'; hl.className = 'dy-deco'; hl.setAttribute('aria-hidden', 'true'); cv.after(hl); }
             const dk = t.id; if (bk.dataset.k !== dk) { const [b, f, h] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; hl.innerHTML = h; bk.dataset.k = fr.dataset.k = dk; }
             [bk, fr, hl].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
-            page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
+            page.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF || t.dn ? 'var(--border-color)' : t.c);   /* 📓 날짜형 노트도 그 권 색 */   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
             if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)
             dkCoverPaint();
@@ -2210,7 +2214,7 @@
         let dyKind = '다이어리', dyTab = 'free';
         /* 10-24 도련 : 📔 다이어리 = 기본(4색) · 내가만든(🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 예전 📔 페이지 목록의 칸을 옮겨 왔어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
-        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off) : [];   // 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.dn) : [];   /* 📓 날짜노트 모양은 날짜형에서만 */   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (내가만든 칸 숨김 · 도련 10-28)
         window.dyMineRefresh = () => { if (dyMineOpen()) dyMineRender(); };   // 🗑 지운 뒤 · 저장한 뒤 바로 (js/settings.js deleteSkin)
         const dyMineOpen = () => { const m = document.getElementById('dyModal'); return !!m && m.style.display === 'flex' && dyKind === '다이어리' && dyTab === 'mine'; };
@@ -2256,7 +2260,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyNoteType = dyNoteType; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
