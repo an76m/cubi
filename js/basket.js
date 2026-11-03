@@ -971,7 +971,7 @@
             SH_CATS.gd = [...new Map(L.map(x => [x.g, `${ic[x.g] || '✏️'} ${x.kind}`]))];
             return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: () => gdGive(x.id) }));   // gid = 봉투 카드가 기억해요
         }],
-        desk: ['책상 소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
+        desk: ['책상소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
             cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
@@ -1540,6 +1540,29 @@
                 <g filter="url(#${u}s)"><rect x="36" y="12" width="26" height="44" rx="3" fill="url(#${u}r)" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/></g>
                 ${heart(41, 20, .55, '#ffb7cc', '#ff7fa3', u + 'h')}${dot(53, 40, 3.6, '#d6ecff', '#7fbdf0', u + 'b')}<path d="M38 50l22-28" stroke="#fff" stroke-width="3" opacity=".6"/>
                 ${gl(10, 6, 34, 14, 4)}<defs><linearGradient id="${u}c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc4d6"/><stop offset="1" stop-color="#ff9fbd"/></linearGradient><linearGradient id="${u}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#f1edf5"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>`,
+            desk: () => `<g filter="url(#${u}s)">
+                <ellipse cx="20" cy="56.5" rx="12" ry="3.6" fill="#f58fb0" stroke="#7b5a63" stroke-width="1.7"/>
+                <path d="M19 55 L13 33 L30 17" fill="none" stroke="#7b5a63" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 55 L13 33 L30 17" fill="none" stroke="#ffb3c9" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="13" cy="33" r="3.2" fill="#ffd3e0" stroke="#7b5a63" stroke-width="1.5"/>
+                <path d="M24 12 Q33 4 42 13 L44 24 Q34 27 26 22 Z" fill="#ff9fbd" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M36 9 Q41 11 42 13 L44 24 Q40 25.5 37 25.6 Z" fill="#f07fa2"/>
+                <path d="M24 12 Q33 4 42 13 L44 24 Q34 27 26 22 Z" fill="none" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M27 21.6 Q35 25.5 43.6 23.6" fill="none" stroke="#fff3c4" stroke-width="2.4" stroke-linecap="round"/>
+                </g>
+                <g filter="url(#${u}s)">
+                <path d="M45 30 l2 -17 l3 0 l1 17z" fill="#ffd36e" stroke="#7b5a63" stroke-width="1.4" stroke-linejoin="round"/>
+                <path d="M47 13 l1.5 -5 l1.5 5z" fill="#ffe9c2" stroke="#7b5a63" stroke-width="1.2" stroke-linejoin="round"/>
+                <path d="M51 30 l3 -20 l3 .5 l-1 19.5z" fill="#9fd0f5" stroke="#7b5a63" stroke-width="1.4" stroke-linejoin="round"/>
+                <path d="M54 10 l2.2 -4.6 l.8 5.1z" fill="#ffe9c2" stroke="#7b5a63" stroke-width="1.2" stroke-linejoin="round"/>
+                <path d="M56.5 30 l5 -15 l2.8 1 l-4.3 14.5z" fill="#ff9fbd" stroke="#7b5a63" stroke-width="1.4" stroke-linejoin="round"/>
+                <path d="M61.5 15 l3.3 -3.6 l-.5 4.6z" fill="#ffe9c2" stroke="#7b5a63" stroke-width="1.2" stroke-linejoin="round"/>
+                <path d="M41 29 h26 l-2.4 27.5 a3 3 0 0 1 -3 2.7 h-15.2 a3 3 0 0 1 -3 -2.7z" fill="#a8e3cf" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/>
+                <path d="M58 29 h9 l-2.4 27.5 a3 3 0 0 1 -3 2.7 h-4.2z" fill="#86d1b6"/>
+                <path d="M41 29 h26 l-2.4 27.5 a3 3 0 0 1 -3 2.7 h-15.2 a3 3 0 0 1 -3 -2.7z" fill="none" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"/>
+                <rect x="40" y="27" width="28" height="4.6" rx="2.3" fill="#c9f0e2" stroke="#7b5a63" stroke-width="1.5"/>
+                <path d="M48 41.5c0-3 4.2-3.6 4.8-.6.6-3 4.8-2.4 4.8.6 0 2.9-4.8 5.6-4.8 5.6s-4.8-2.7-4.8-5.6z" fill="#ff8fb0" stroke="#7b5a63" stroke-width="1.2" stroke-linejoin="round"/>
+                </g>`,   // 🪑 책상소품 = 분홍 스탠드 + 펜꽂이 (도련 11-04 · 이모지 대신)
         };
         return A[k] ? `<svg viewBox="0 0 72 64" aria-hidden="true"><defs>${sh}${glDef}</defs>${A[k]()}</svg>` : '';
     }
