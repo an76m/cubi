@@ -529,7 +529,11 @@
             if (!isCoverOpen) { w.style.left = w.style.top = '0px'; return; }   // 겉표지는 늘 가운데 (옮긴 자리는 열고 나서부터)
             const r = w.getBoundingClientRect();
             const l = r.left - (parseFloat(w.style.left) || 0), t = r.top - (parseFloat(w.style.top) || 0);   // 옮기기 전 자리
-            pgmPos = { x: Math.round(clampNum(pgmPos.x, -l, window.innerWidth - l - r.width)), y: Math.round(clampNum(pgmPos.y, -t, window.innerHeight - t - r.height)) };
+            const cv = document.documentElement.classList.contains('desk-wide') && document.querySelector('#dyBack > .dy-cov');
+            if (cv) {                                                              // 💻 📲 펼친 다이어리는 왼쪽 · 오른쪽 · 아래로 반까지 화면 밖으로 (스티커 바인더를 옆에 펴 두고 쓰기 좋게 · 도련 11-03) · 위는 날짜바가 보이게 그대로
+                const F = cv.getBoundingClientRect(), fl = F.left - (parseFloat(w.style.left) || 0), ft = F.top - (parseFloat(w.style.top) || 0);
+                pgmPos = { x: Math.round(clampNum(pgmPos.x, -fl - F.width / 2, window.innerWidth - fl - F.width / 2)), y: Math.round(clampNum(pgmPos.y, -t, window.innerHeight - ft - F.height / 2)) };
+            } else pgmPos = { x: Math.round(clampNum(pgmPos.x, -l, window.innerWidth - l - r.width)), y: Math.round(clampNum(pgmPos.y, -t, window.innerHeight - t - r.height)) };
             w.style.left = pgmPos.x + 'px'; w.style.top = pgmPos.y + 'px';
         }
         function pgmOnBar(x, y) { const h = document.getElementById('pageHeader'), r = h && h.getBoundingClientRect(); return !!r && isCoverOpen && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; }

@@ -299,7 +299,7 @@
         const dkwOutName = id => dkwIsPen(id) ? ((pkAll().find(x => x.id === id) || {}).name || '필기구') : dkwName(id);
         /* 자리 = 페이지(글 쓰는 종이)를 절대 가리지 않아요 (도련 11-03) : 다이어리 아래 → 모자라면 다이어리 옆 (세로로) */
         function dkwBackSpot(el, w, h) {
-            const pg = dkwq('canvasArea'), cv = document.querySelector('#innerPage > .dy-cov') || dkwq('innerPage'); if (!pg || !cv) return;
+            const pg = dkwq('canvasArea'), cv = document.querySelector('#dyBack > .dy-cov') || dkwq('innerPage'); if (!pg || !cv) return;
             const P = pg.getBoundingClientRect(), B = cv.getBoundingClientRect(), vv = window.visualViewport, vb = vv ? vv.offsetTop + vv.height : innerHeight;
             const below = vb - P.bottom - 8;                                     // 종이 아래 (표지 테두리 · 책상)
             el.classList.toggle('side', below < h); el.style.transform = ''; el.style.transformOrigin = '';
