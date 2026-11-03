@@ -193,7 +193,7 @@
         }
         const lcd = el.querySelector('.dk-lcd b'); if (lcd) { lcd.style.fontFamily = cs.font ? `${cs.font}, 'Jua', sans-serif` : ''; lcd.style.color = cs.ink || ''; lcd.style.fontSize = cs.font && /Press/.test(cs.font) ? '19px' : ''; }
     }
-    /* 💡 불빛 (도련 11-03) : 상품 '소품.glow' = 점 [x, y] (소품 크기 % · 소품 밖도 돼요) 를 이은 모양 · 1 · 2번 점 가운데(갓 입구)에서 밝고 멀어질수록 조금씩 흐려져요 · 없으면 불빛 없어요 (검수 = 상품공방)
+    /* 💡 불빛 (도련 11-03) : 상품 '소품.glow' = 점 [x, y] (소품 크기 % · 소품 밖도 돼요) 를 이은 모양 · 1 · 2번 점 가운데(갓 입구)에서 밝고 멀어질수록 흐려져 끝은 0 (가장자리도 번져서 0) · 없으면 불빛 없어요 (검수 = 상품공방)
        불빛은 소품 안이 아니라 책상 위 따로 한 겹 (#deskStage > .dk-lights · 모든 소품 위) = 앞에 놓인 소품에도 빛이 비쳐요 · 스탠드를 옮기거나 돌리면 따라가요 */
     const DC_SVG = 'http://www.w3.org/2000/svg';
     function dcGlowPts(c) { return Array.isArray(c.glow) ? c.glow.filter(p => Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1])).map(p => [+p[0], +p[1]]) : []; }
@@ -209,13 +209,14 @@
         const xs = P.map(p => p[0]), ys = P.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
         const W = el.offsetWidth, H = el.offsetHeight;
         Object.assign(g.style, { left: (el.offsetLeft + x0 / 100 * W) + 'px', top: (el.offsetTop + y0 / 100 * H) + 'px', width: (w / 100 * W) + 'px', height: (h / 100 * H) + 'px', display: el.style.display === 'none' ? 'none' : '' });
+        g.style.filter = `blur(${Math.max(4, Math.min(w / 100 * W, h / 100 * H) * .035).toFixed(1)}px)`;   // 가장자리 = 부드럽게 0 으로 (불빛 크기에 맞춰 번져요)
         g.style.setProperty('--lt', el.style.getPropertyValue('--lt') || '#fff3c4');
         g.classList.toggle('on', el.classList.contains('lit'));
         const sig = JSON.stringify(P); if (g.dataset.sig === sig) return;
         const cx = (P[0][0] + P[1][0]) / 2, cy = (P[0][1] + P[1][1]) / 2, r = Math.max(...P.map(p => Math.hypot(p[0] - cx, p[1] - cy)));
         const id = 'dkg' + Math.random().toString(36).slice(2, 7);
         g.dataset.sig = sig; g.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`); g.setAttribute('preserveAspectRatio', 'none');
-        g.innerHTML = `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}"><stop offset="0" style="stop-color:var(--lt)" stop-opacity=".95"/><stop offset=".5" style="stop-color:var(--lt)" stop-opacity=".65"/><stop offset="1" style="stop-color:var(--lt)" stop-opacity=".2"/></radialGradient></defs><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="url(#${id})"/>`;
+        g.innerHTML = `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}"><stop offset="0" style="stop-color:var(--lt)" stop-opacity=".95"/><stop offset=".5" style="stop-color:var(--lt)" stop-opacity=".7"/><stop offset=".8" style="stop-color:var(--lt)" stop-opacity=".35"/><stop offset="1" style="stop-color:var(--lt)" stop-opacity="0"/></radialGradient></defs><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="url(#${id})"/>`;
     }
     function dcGlowPrune() {                                                   // 책상에서 빠진 스탠드의 불빛은 지워요
         const L = document.querySelector('#deskStage > .dk-lights'); if (!L) return;
