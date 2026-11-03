@@ -216,10 +216,9 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .dcs-box { position: absolute; border: 2px solid #5fbf9a; background: rgba(127, 214, 180, .32); border-radius: 8px; cursor: move; display: grid; place-items: center; box-sizing: border-box; }
 .dcs-box span { font-size: 20px; pointer-events: none; }
 .dcs-h { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #5fbf9a; cursor: nwse-resize; }
-.desk-item .dk-glow { position: absolute; left: -45%; top: 22%; width: 95%; height: 110%; pointer-events: none; opacity: 0; transition: opacity .35s;
-  background: radial-gradient(ellipse 55% 60% at 60% 20%, var(--lt, #fff3c4) 0%, color-mix(in srgb, var(--lt, #fff3c4) 45%, transparent) 45%, transparent 72%); mix-blend-mode: screen; filter: blur(2px); }
+.desk-item .dk-glow { position: absolute; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .35s; mix-blend-mode: screen; filter: blur(3px); }   /* 💡 모양 · 자리 = 상품 '소품.glow' (js/deskcustom.js dcGlow) */
 .desk-item.lit .dk-glow { opacity: .9; }
-.desk-item.dk-fl .dk-glow { left: 50%; transform: scaleX(-1); }   /* ↔ 좌우 바꾼 스탠드 = 불빛도 반대쪽 (도련 10-31) */
+.desk-item.dk-fl .dk-glow { transform: scaleX(-1); }   /* ↔ 좌우 바꾼 스탠드 = 불빛도 반대쪽 (도련 10-31) */
 .desk-item.ring { animation: dkRing .18s linear infinite; }
 @keyframes dkRing { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
 @media (prefers-reduced-motion: reduce) { .desk-item.ring { animation: none; } }

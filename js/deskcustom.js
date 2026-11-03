@@ -17,7 +17,8 @@
         board: { tabs: ['memo'], act: null, area: null }
     };
     const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', memo: '📝 메모', area: '👆 누르는 곳' };
-    const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];
+    const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];   // 다꾸러가 바꿔 고르는 색 (맨 앞 = 그 스탠드 상품의 불빛 색 '소품.glowC' · 상품공방)
+    const dcLights = o => { const c = dcCat(o).glowC; return /^#[0-9a-f]{6}$/i.test(c || '') ? [c.toLowerCase()].concat(DC_LIGHT.filter(x => x !== c.toLowerCase())) : DC_LIGHT; };
     const DC_INK = ['#4f6f93', '#c8457a', '#8f7bd6', '#2f7a5c', '#d98a1e', '#5e4250'];
     const DC_FONT = [['Jua', '말랑'], ["'Press Start 2P'", '픽셀'], ['Gaegu', '손글씨'], ["'Do Hyeon'", '또박']];
     const DC = { u: null, tab: 'paint', area: null, ring: null, mi: -1, mp: 'post' };
@@ -57,7 +58,7 @@
         const T = DC.tab;
         if (T === 'paint') box.innerHTML = `<p class="dcs-p">소품 모양 안에 붓으로 칠하거나 그림을 붙여요.</p><button type="button" class="btn primary dcs-big" onclick="dcPaint()">🎨 색칠하러 가기</button>`;
         else if (T === 'light') box.innerHTML = `<div class="dcs-row"><b>불</b><button type="button" class="btn${cs.on ? ' primary' : ''}" onclick="dcLamp()">${cs.on ? '💡 켜짐' : '🌙 꺼짐'}</button></div>`
-            + `<div class="dcs-row"><b>불빛 색</b>${sw(DC_LIGHT, cs.light || DC_LIGHT[0], 'dcLight')}</div><p class="dcs-p">책상에서 스탠드를 톡 하면 켜고 꺼요.</p>`;
+            + `<div class="dcs-row"><b>불빛 색</b>${sw(dcLights(o), cs.light || dcLights(o)[0], 'dcLight')}</div><p class="dcs-p">책상에서 스탠드를 톡 하면 켜고 꺼요.</p>`;
         else if (T === 'digits') box.innerHTML = `<div class="dcs-row"><b>글꼴</b><div class="dcs-font">${DC_FONT.map(([f, n]) => `<button type="button" class="btn${(cs.font || DC_FONT[0][0]) === f ? ' primary' : ''}" style="font-family:${f}" onclick="dcFont(&quot;${f.replace(/'/g, '&#39;')}&quot;)">${n} 12:34</button>`).join('')}</div></div>`
             + `<div class="dcs-row"><b>숫자 색</b>${sw(DC_INK, cs.ink || DC_INK[0], 'dcInk')}</div>`;
         else if (T === 'alarm') { const a = cs.alarm || { t: '07:30', on: false };
@@ -183,14 +184,28 @@
         const o = dcItem(u), el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!o || !el) return;
         const cs = o.cs || {}, kind = dcCat(o).kind;
         if (kind === 'lamp') {
-            let g = el.querySelector('.dk-glow'); if (!g) { g = document.createElement('i'); g.className = 'dk-glow'; g.setAttribute('aria-hidden', 'true'); el.insertBefore(g, el.firstChild); }
-            el.classList.toggle('lit', !!cs.on); el.style.setProperty('--lt', cs.light || DC_LIGHT[0]);
+            dcGlow(el, dcCat(o));                                              // 💡 불빛 모양 = 상품 '소품.glow' (상품공방에서 점을 찍어요 · 도련 11-03)
+            el.classList.toggle('lit', !!cs.on); el.style.setProperty('--lt', cs.light || dcLights(o)[0]);
         }
         if (kind === 'board') {                                               // 📝 붙인 메모 (누르면 그대로 게시판 기능 · 메모는 못 눌러요)
             let w = el.querySelector(':scope > .dk-memos'); if (!w) { w = document.createElement('div'); w.className = 'dk-memos'; w.setAttribute('aria-hidden', 'true'); el.appendChild(w); }
             w.innerHTML = (cs.memos || []).map((m, i) => dcMemoHtml(m, i)).join('');
         }
         const lcd = el.querySelector('.dk-lcd b'); if (lcd) { lcd.style.fontFamily = cs.font ? `${cs.font}, 'Jua', sans-serif` : ''; lcd.style.color = cs.ink || ''; lcd.style.fontSize = cs.font && /Press/.test(cs.font) ? '19px' : ''; }
+    }
+    /* 💡 불빛 (도련 11-03) : 상품 '소품.glow' = 점 [x, y] (소품 크기 %) 를 이은 모양 · 안쪽 = 갓 입구(첫 두 점 가운데)에서 밝고 멀어질수록 흐려져요 · 없으면 불빛 없어요 (검수 = 상품공방) */
+    function dcGlow(el, c) {
+        const P = Array.isArray(c.glow) ? c.glow.filter(p => Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1])).map(p => [+p[0], +p[1]]) : [];
+        let g = el.querySelector(':scope > .dk-glow'); const sig = JSON.stringify(P);
+        if (P.length < 3) { if (g) g.remove(); return; }
+        if (g && g.dataset.sig === sig) return;
+        if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); g.setAttribute('class', 'dk-glow'); g.setAttribute('aria-hidden', 'true'); el.insertBefore(g, el.firstChild); }
+        const xs = P.map(p => p[0]), ys = P.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
+        const cx = (P[0][0] + P[1][0]) / 2, cy = (P[0][1] + P[1][1]) / 2, r = Math.max(...P.map(p => Math.hypot(p[0] - cx, p[1] - cy)));
+        const id = 'dkg' + Math.random().toString(36).slice(2, 7);
+        g.dataset.sig = sig; g.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`); g.setAttribute('preserveAspectRatio', 'none');
+        Object.assign(g.style, { left: x0 + '%', top: y0 + '%', width: w + '%', height: h + '%', transformOrigin: `${((50 - x0) / w * 100).toFixed(2)}% 50%` });   // ↔ 돌리면 소품 가운데를 두고 (css .dk-fl .dk-glow)
+        g.innerHTML = `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}"><stop offset="0" style="stop-color:var(--lt)" stop-opacity=".95"/><stop offset=".5" style="stop-color:var(--lt)" stop-opacity=".5"/><stop offset="1" style="stop-color:var(--lt)" stop-opacity="0"/></radialGradient></defs><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="url(#${id})"/>`;
     }
     function dcApplyAll() { DK.items.forEach(o => { if (o.at === 'desk') dcApply(o.u); }); }
 
