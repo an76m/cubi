@@ -216,9 +216,9 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 .dcs-box { position: absolute; border: 2px solid #5fbf9a; background: rgba(127, 214, 180, .32); border-radius: 8px; cursor: move; display: grid; place-items: center; box-sizing: border-box; }
 .dcs-box span { font-size: 20px; pointer-events: none; }
 .dcs-h { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #5fbf9a; cursor: nwse-resize; }
-.desk-item .dk-glow { position: absolute; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .35s; mix-blend-mode: screen; filter: blur(3px); }   /* 💡 모양 · 자리 = 상품 '소품.glow' (js/deskcustom.js dcGlow) */
-.desk-item.lit .dk-glow { opacity: .9; }
-.desk-item.dk-fl .dk-glow { transform: scaleX(-1); }   /* ↔ 좌우 바꾼 스탠드 = 불빛도 반대쪽 (도련 10-31) */
+.dk-lights { position: absolute; inset: 0; z-index: 9500; pointer-events: none; }   /* 💡 불빛 = 책상 위 맨 위 한 겹 (옮기는 소품 8900 · 봉투 8800 보다 위 · 안내 · 메뉴 글씨만 그 위) (앞 소품에도 비쳐요 · js/deskcustom.js dcGlow · 도련 11-03) */
+.dk-lights .dk-glow { position: absolute; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .35s; mix-blend-mode: screen; filter: blur(4px); }
+.dk-lights .dk-glow.on { opacity: .62; }   /* 앞 소품이 비쳐 보일 만큼 */
 .desk-item.ring { animation: dkRing .18s linear infinite; }
 @keyframes dkRing { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
 @media (prefers-reduced-motion: reduce) { .desk-item.ring { animation: none; } }

@@ -184,8 +184,8 @@
         const o = dcItem(u), el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!o || !el) return;
         const cs = o.cs || {}, kind = dcCat(o).kind;
         if (kind === 'lamp') {
-            dcGlow(el, dcCat(o));                                              // 💡 불빛 모양 = 상품 '소품.glow' (상품공방에서 점을 찍어요 · 도련 11-03)
             el.classList.toggle('lit', !!cs.on); el.style.setProperty('--lt', cs.light || dcLights(o)[0]);
+            dcGlow(el, dcCat(o));                                              // 💡 불빛 모양 = 상품 '소품.glow' (상품공방에서 점을 찍어요 · 도련 11-03)
         }
         if (kind === 'board') {                                               // 📝 붙인 메모 (누르면 그대로 게시판 기능 · 메모는 못 눌러요)
             let w = el.querySelector(':scope > .dk-memos'); if (!w) { w = document.createElement('div'); w.className = 'dk-memos'; w.setAttribute('aria-hidden', 'true'); el.appendChild(w); }
@@ -193,21 +193,35 @@
         }
         const lcd = el.querySelector('.dk-lcd b'); if (lcd) { lcd.style.fontFamily = cs.font ? `${cs.font}, 'Jua', sans-serif` : ''; lcd.style.color = cs.ink || ''; lcd.style.fontSize = cs.font && /Press/.test(cs.font) ? '19px' : ''; }
     }
-    /* 💡 불빛 (도련 11-03) : 상품 '소품.glow' = 점 [x, y] (소품 크기 %) 를 이은 모양 · 안쪽 = 갓 입구(첫 두 점 가운데)에서 밝고 멀어질수록 흐려져요 · 없으면 불빛 없어요 (검수 = 상품공방) */
+    /* 💡 불빛 (도련 11-03) : 상품 '소품.glow' = 점 [x, y] (소품 크기 % · 소품 밖도 돼요) 를 이은 모양 · 1 · 2번 점 가운데(갓 입구)에서 밝고 멀어질수록 조금씩 흐려져요 · 없으면 불빛 없어요 (검수 = 상품공방)
+       불빛은 소품 안이 아니라 책상 위 따로 한 겹 (#deskStage > .dk-lights · 모든 소품 위) = 앞에 놓인 소품에도 빛이 비쳐요 · 스탠드를 옮기거나 돌리면 따라가요 */
+    const DC_SVG = 'http://www.w3.org/2000/svg';
+    function dcGlowPts(c) { return Array.isArray(c.glow) ? c.glow.filter(p => Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1])).map(p => [+p[0], +p[1]]) : []; }
     function dcGlow(el, c) {
-        const P = Array.isArray(c.glow) ? c.glow.filter(p => Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1])).map(p => [+p[0], +p[1]]) : [];
-        let g = el.querySelector(':scope > .dk-glow'); const sig = JSON.stringify(P);
+        const st = document.getElementById('deskStage'), u = el.dataset.u; if (!st) return;
+        let L = st.querySelector(':scope > .dk-lights');
+        if (!L) { L = document.createElement('div'); L.className = 'dk-lights'; L.setAttribute('aria-hidden', 'true'); st.appendChild(L); }
+        let g = [...L.children].find(x => x.dataset.gu === u);
+        const fl = el.classList.contains('dk-fl'), P = dcGlowPts(c).map(p => fl ? [100 - p[0], p[1]] : p);   // ↔ 돌린 스탠드 = 불빛도 반대쪽
         if (P.length < 3) { if (g) g.remove(); return; }
-        if (g && g.dataset.sig === sig) return;
-        if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); g.setAttribute('class', 'dk-glow'); g.setAttribute('aria-hidden', 'true'); el.insertBefore(g, el.firstChild); }
+        if (!g) { g = document.createElementNS(DC_SVG, 'svg'); g.setAttribute('class', 'dk-glow'); g.dataset.gu = u; L.appendChild(g); }
+        if (!el._dcGlowObs) { el._dcGlowObs = new MutationObserver(() => { const o = dcItem(el.dataset.u); if (o && el.isConnected) dcGlow(el, dcCat(o)); }); el._dcGlowObs.observe(el, { attributes: true, attributeFilter: ['style', 'class'] }); }   // 옮기기 · 크기 · 돌리기 · 켜고 끄기
         const xs = P.map(p => p[0]), ys = P.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
+        const W = el.offsetWidth, H = el.offsetHeight;
+        Object.assign(g.style, { left: (el.offsetLeft + x0 / 100 * W) + 'px', top: (el.offsetTop + y0 / 100 * H) + 'px', width: (w / 100 * W) + 'px', height: (h / 100 * H) + 'px', display: el.style.display === 'none' ? 'none' : '' });
+        g.style.setProperty('--lt', el.style.getPropertyValue('--lt') || '#fff3c4');
+        g.classList.toggle('on', el.classList.contains('lit'));
+        const sig = JSON.stringify(P); if (g.dataset.sig === sig) return;
         const cx = (P[0][0] + P[1][0]) / 2, cy = (P[0][1] + P[1][1]) / 2, r = Math.max(...P.map(p => Math.hypot(p[0] - cx, p[1] - cy)));
         const id = 'dkg' + Math.random().toString(36).slice(2, 7);
         g.dataset.sig = sig; g.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`); g.setAttribute('preserveAspectRatio', 'none');
-        Object.assign(g.style, { left: x0 + '%', top: y0 + '%', width: w + '%', height: h + '%', transformOrigin: `${((50 - x0) / w * 100).toFixed(2)}% 50%` });   // ↔ 돌리면 소품 가운데를 두고 (css .dk-fl .dk-glow)
-        g.innerHTML = `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}"><stop offset="0" style="stop-color:var(--lt)" stop-opacity=".95"/><stop offset=".5" style="stop-color:var(--lt)" stop-opacity=".5"/><stop offset="1" style="stop-color:var(--lt)" stop-opacity="0"/></radialGradient></defs><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="url(#${id})"/>`;
+        g.innerHTML = `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}"><stop offset="0" style="stop-color:var(--lt)" stop-opacity=".95"/><stop offset=".5" style="stop-color:var(--lt)" stop-opacity=".65"/><stop offset="1" style="stop-color:var(--lt)" stop-opacity=".2"/></radialGradient></defs><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="url(#${id})"/>`;
     }
-    function dcApplyAll() { DK.items.forEach(o => { if (o.at === 'desk') dcApply(o.u); }); }
+    function dcGlowPrune() {                                                   // 책상에서 빠진 스탠드의 불빛은 지워요
+        const L = document.querySelector('#deskStage > .dk-lights'); if (!L) return;
+        [...L.children].forEach(g => { const el = document.querySelector(`#deskStage .desk-item[data-u="${g.dataset.gu}"]`); if (!el) g.remove(); });
+    }
+    function dcApplyAll() { dcGlowPrune(); DK.items.forEach(o => { if (o.at === 'desk') dcApply(o.u); }); }
 
     /* ---------- 👆 톡 (js/desk.js deskWire · deskTapAt 이 먼저 물어봐요) → true 면 소품 동작을 했어요 ---------- */
     function dcTap(el, x, y) {
