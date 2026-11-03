@@ -1175,9 +1175,9 @@
             pick = `<div class="sh-into"><small>넣을 서랍</small><div>${ks.map(k => `<button type="button" class="sh-ik${k === SH.toolKind ? ' on' : ''}" onclick="shToolKind('${k}')">${esc(BK_KINDS[k])}</button>`).join('')}</div></div>`;
         }
         z.innerHTML = `<div class="sh-zcard"><div class="sh-zlook k-${esc(SH.kind)}">${shLook(x, true)}</div><small class="sh-cnt">${esc(x.cnt || '')}</small>${x.desc ? `<small class="sh-desc">${esc(x.desc)}</small>` : ''}${pick}`
-            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget" onclick="shTake(this)">${x.give ? '🎁 받기' : '🧺 받기'}</button></div></div>`;
+            + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zoombtn sh-zclose" onclick="shZoomOff()">닫기</button><button type="button" class="sh-take sh-zget" onclick="shTake(this)">${x.give ? '🎁 받기' : '🧺 받기'}</button></div></div>`;
         z.hidden = false;
-        z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = 확대 밖을 톡 (도련 10-28 · 닫기 버튼 없음)
+        z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = [닫기] 버튼 (도련 11-04) 또는 확대 밖을 톡
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
     const shInShop = () => !!(window.shopSceneOn && shopSceneOn());           // 🏪 가게 안 (PC · 아이패드)

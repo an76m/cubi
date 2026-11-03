@@ -3907,6 +3907,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .sh-zlook .sh-leaf, .sh-zlook .sh-leaf .lf-sw { width: min(70vw, 240px); }
 .sh-zbtns { display: flex; gap: 10px; }
 .sh-zbtns .sh-take { font-size: 14px; padding: 8px 20px; }
+.sh-zbtns .sh-zclose { background: #fff; color: #c2457a; box-shadow: inset 0 0 0 1.5px #f2a7c0, 0 2px 0 rgba(0,0,0,.06); }   /* 🔍 확대 닫기 (도련 11-04) */
 .sh-content .modal-content, #shelfKindModal .modal-content { position: relative; }
 
 

@@ -303,7 +303,7 @@
            sheet : { k, from, nm, ts, baked, imgs, wh } · meta : { us (kit 그림 주소) · th (작은 그림) } → id */
         async function ownAdd(sheet, meta) {
             ownReady();
-            const id = ownRid(), imgs = sheet.imgs.slice(0, 40);
+            const id = ownRid(), imgs = sheet.imgs.slice(0, 150);   // 시트 하나 = 그림 150장까지 (elements.js KIT_MAX 와 같게 · 도련 11-04)
             const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'kit', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
             const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? { r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) } : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             if (L) full.L = L;
@@ -312,7 +312,7 @@
             if (q0) { full.q0 = full.q = q0; ent.q0 = ent.q = q0; }
             if (full.ts) ent.ts = 1;
             if (sheet.b) full.b = sheet.b;                                        // 🛟 되살릴 때 들어갈 바구니 (😀 이모지)
-            if (meta && meta.us) ent.us = meta.us.slice(0, 40);
+            if (meta && meta.us) ent.us = meta.us.slice(0, 150);
             if (L) ent.L = L;                                                     // 바구니 카드도 배치 그대로
             if (meta && meta.th) ent.th = meta.th;
             if (sheet.b) ent.b = sheet.b;                                         // 들어갈 바구니 (😀 이모지는 씰이지만 이모지 바구니로)

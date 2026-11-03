@@ -22,7 +22,7 @@
             return (SRV[kind] = a.map(x => {
                 if (!x) return null;
                 const c = String(x.c || '').slice(0, 40);
-                if (Array.isArray(x.us)) return x.us.length ? { c, urls: x.us.slice(0, 30), pv: x.pv || null, P: x.P || {} } : null;
+                if (Array.isArray(x.us)) return x.us.length ? { c, urls: x.us.slice(0, 150), pv: x.pv || null, P: x.P || {} } : null;
                 return x.u ? { c, url: x.u, P: x.P || {} } : null;
             }).filter(Boolean));
         }

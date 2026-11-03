@@ -166,17 +166,18 @@
         }
         try { localStorage.removeItem('malang_kit_list'); } catch (e) {}       // 예전 목록 기억은 안 써요 (도련 10-25 · 늘 새 목록만) → v711 때 남은 것 치우기
         /* 🗺️ 씰 시트 배치 (도련 10-29 · 포장기 L = { r : 가로÷세로, b : [그림마다 [x, y, w, h] 0~1] }) : 그림 순서와 맞춰서 (못 쓰는 그림은 같이 빼요) */
+        const KIT_MAX = 150;                                                 // 🏷️ 시트 · 봉투 하나의 그림 수 (도련 11-04 : 30 이면 디저트 씰 73장이 30장만 보였어요)
         function kitLay(x) {
             const L = x && x.L, fs = Array.isArray(x && x.fs) ? x.fs : [];
             if (!L || !(+L.r > 0) || !Array.isArray(L.b) || L.b.length !== fs.length) return {};
-            const b = fs.map((f, i) => kitOk(f) ? L.b[i] : null).filter((v, i) => kitOk(fs[i])).slice(0, 30);
+            const b = fs.map((f, i) => kitOk(f) ? L.b[i] : null).filter((v, i) => kitOk(fs[i])).slice(0, KIT_MAX);
             return b.every(v => Array.isArray(v) && v.length === 4 && v.every(n => typeof n === 'number' && isFinite(n))) ? { L: { r: +L.r, b } } : {};
         }
         const kitP = P => P && typeof P === 'object' && !Array.isArray(P) ? P : {};   // 🧁 상품 속성 (이름 · 분류 · 순서 · 신상 · 종류별 값 · 상품공방이 넣어요)
         function kitParse(d) {
             {
                 (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
-                const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, 30).map(kitUrl);
+                const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, KIT_MAX).map(kitUrl);
                 const pv = a => Array.isArray(a) && /^[0-9a-f]{16}$/.test(a[0]) && a.slice(1).every(n => typeof n === 'number' && n >= 0) ? { u: KIT_BASE + '/p/' + a[0] + '.webp', y: a[1], h: a[2], H: a[3], w: a[4] } : null;   // 🖼️ 묶음 미리보기 (포장기가 8장씩 한 파일에 세로로 · pa = [지문, y, 높이, 전체 높이, 폭] · 기본상품 샵 카드용)
                 const kits = {};
                 Object.keys(d.kits && typeof d.kits === 'object' ? d.kits : {}).forEach(k => {
