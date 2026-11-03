@@ -39,9 +39,9 @@
 
         /* ---------- 그리기 모드 ---------- */
         function openDraw() {
-            if (dw.on) { penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 연필꽂이를 다시 펼쳐요 (쓴 것 · 구석 연필꽂이 그대로)
+            if (dw.on) { penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 펜꽂이를 다시 펼쳐요 (쓴 것 · 구석 펜꽂이 그대로)
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            if (window.pkHas && !pkHas()) {                                      // ✏️ 필기구가 없으면 연필꽂이를 못 써요 (도련 10-31 · 🏪 기본상품 샵에서 받아요)
+            if (window.pkHas && !pkHas()) {                                      // ✏️ 필기구가 없으면 펜꽂이를 못 써요 (도련 10-31 · 🏪 기본상품 샵에서 받아요)
                 showAsk('✏️ 아직 필기구가 없어요.<br><span style="font-size:12px;color:#777;">🏪 기본상품 샵 → 문구에서 색연필 · 형광펜 · 지우개를 받아 와요</span>', '🏪 받으러 가기', '닫기').then(go => { if (go && window.gdCabShop) gdCabShop(); });
                 return;
             }
@@ -49,7 +49,7 @@
             penMkLayer(); dw.strokes = []; dw.hist = []; dw.cur = null; dw.on = true; dw.rest = false;
             document.body.classList.add('draw-on');
             penSetTool(dw.tool);
-            pcOpen();                                                          // ✏️ 모든 기기 · 모드에서 연필꽂이 (아래 펜 창은 없앴어요 · 도련 10-22)
+            pcOpen();                                                          // ✏️ 모든 기기 · 모드에서 펜꽂이 (아래 펜 창은 없앴어요 · 도련 10-22)
             penRender();
         }
         function penMkLayer() {
@@ -65,15 +65,15 @@
             svg.addEventListener('pointercancel', penUp);
             svg.addEventListener('pointerleave', () => penRing(null));
         }
-        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 필기구는 구석 연필꽂이를 톡 눌러야만 끝나요
-           - 다른 문구를 들면 '쉬는 중' : 쓴 것은 페이지에 붙고 · 든 필기구는 구석 연필꽂이에 쏙 · 구석 연필꽂이는 그대로 보여요
-           - 다시 쓰려면 구석 연필꽂이를 위로 밀거나 🗄️ 문구함의 연필꽂이 → 필기구를 뽑으면 다른 문구는 내려놔요 */
+        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 필기구는 구석 펜꽂이를 톡 눌러야만 끝나요
+           - 다른 문구를 들면 '쉬는 중' : 쓴 것은 페이지에 붙고 · 든 필기구는 구석 펜꽂이에 쏙 · 구석 펜꽂이는 그대로 보여요
+           - 다시 쓰려면 구석 펜꽂이를 위로 밀거나 🗄️ 문구함의 펜꽂이 → 필기구를 뽑으면 다른 문구는 내려놔요 */
         function penFlush() {                                                  // 지금까지 쓴 것만 페이지에 붙이고 계속 써요
             const s = dw.strokes.slice(); if (!s.length) return;
             dw.strokes = []; dw.hist = []; dw.cur = null; penRender();
             penAttach(s);
         }
-        function pcStow() {                                                    // 든 필기구를 조용히 연필꽂이에 (끝내지 않아요)
+        function pcStow() {                                                    // 든 필기구를 조용히 펜꽂이에 (끝내지 않아요)
             const h = drq('pcHeld'); pcS.held = null; pcS.laid = null; pcS.press = null; pcS.carry = null; pcS.drag = null;
             if (h) { h.hidden = true; h.classList.remove('carry', 'in', 'laid'); }
             const n = drq('pcTipNote'); if (n) n.hidden = true;
@@ -251,7 +251,7 @@
             });
         }
         /* ---------- ✏️ 필기구 그림 = 🧁 상품공방 그림 그대로 (js/gdpic.js · js/pencase.js pkSvg · 도련 11-02 · 앱은 모양을 그리지 않아요 · 색 = 그어지는 선 색) ---------- */
-        function penSetTool(t) {                       // 뽑은 필기구로 바꿔 들기 (색 · 굵기는 연필꽂이 필기구 그대로)
+        function penSetTool(t) {                       // 뽑은 필기구로 바꿔 들기 (색 · 굵기는 펜꽂이 필기구 그대로)
             dw.tool = t;
             const l = drq('penLayer'); if (l) l.classList.toggle('erasing', t === 'erase');
             if (t !== 'erase') penRing(null);
@@ -310,12 +310,12 @@
             const r = drq('pcRoom'); if (r) r.classList.remove('rest');
         }
 
-        /* ---------- ✏️ 연필꽂이 (모든 기기 · 수첩 · 고르는 창 모드 공통 · 아래 펜 창은 10-22 없앰 · 도련)
-           - 예쁜 연필꽂이에 색연필 · 형광펜 · 지우개가 섞여 꽂혀 있어요 → 옆으로 끌면 비켜나고, 위로 쭉 끌면 쏙 뽑혀요
-           - 뽑으면 연필꽂이는 오른쪽 아래 구석의 작은 연필꽂이가 되고, 뽑은 필기구만 손에 들려요
+        /* ---------- ✏️ 펜꽂이 (모든 기기 · 수첩 · 고르는 창 모드 공통 · 아래 펜 창은 10-22 없앰 · 도련)
+           - 예쁜 펜꽂이에 색연필 · 형광펜 · 지우개가 섞여 꽂혀 있어요 → 옆으로 끌면 비켜나고, 위로 쭉 끌면 쏙 뽑혀요
+           - 뽑으면 펜꽂이는 오른쪽 아래 구석의 작은 펜꽂이가 되고, 뽑은 필기구만 손에 들려요
            - 쓰면 연필심(지우개는 바닥)이 손가락 · 마우스가 닿은 바로 그 자리를 따라가요
-           - 필기구를 꾹 누르면 집어 들어 옮겨요 → 작은 연필꽂이에 꽂으면 ✓ 완료 · 화면 밖으로 던지면 '지울까요?'
-           - 작은 연필꽂이를 톡 눌러도 꽂혀요 ---------- */
+           - 필기구를 꾹 누르면 집어 들어 옮겨요 → 작은 펜꽂이에 꽂으면 ✓ 완료 · 화면 밖으로 던지면 '지울까요?'
+           - 작은 펜꽂이를 톡 눌러도 꽂혀요 ---------- */
         const PC_ANG = -145;                               // 들고 있는 필기구 기울기 (연필심이 왼쪽 아래 · 몸통은 오른쪽 위)
         const pcS = { tools: [], held: null, tip: null, carry: null, press: null, drag: null, z: 10 };
         const pcSvg = o => o.id && window.gdPicSvg ? gdPicSvg(o.id) : '';
@@ -327,8 +327,8 @@
             r.innerHTML = `<div class="pc-cup" id="pcCup"><p class="pc-hint">도구를 골라 <b>위로 쏙</b> 뽑아요 · 옆으로 밀면 비켜나요</p>`
                 + `<button type="button" class="pc-x" aria-label="닫기">✕</button>`
                 + `<div class="pc-back"></div><div class="pc-tools" id="pcTools"></div><div class="pc-front"><i></i><button type="button" class="pc-box" aria-label="보관함 열기 (꽂을 필기구 고르기)"><small>색연필 · 형광펜 · 지우개</small><b>♡ 필기구 보관함</b><em>👆 눌러서 열기 ›</em></button></div></div>`
-                + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️</p>`
-                + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="연필꽂이 (꽂으면 완료)"><span class="pc-mini-tops">${pcList().slice(0, 3).map(o => `<i>${pcSvg(o)}</i>`).join('')}</span><span class="pc-mini-cup"></span></button>`;
+                + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 펜꽂이</b>에 꽂아요 ✏️</p>`
+                + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="펜꽂이 (꽂으면 완료)"><span class="pc-mini-tops">${pcList().slice(0, 3).map(o => `<i>${pcSvg(o)}</i>`).join('')}</span><span class="pc-mini-cup"></span></button>`;
             document.body.appendChild(r);
             r.querySelector('.pc-box').onclick = () => { if (pcS.held) return; if (document.documentElement.classList.contains('desk-on') && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
@@ -348,21 +348,21 @@
             mini.addEventListener('pointermove', e => { const m = pcS.mini; if (m && m.id === e.pointerId && !m.up && m.y - e.clientY > 30) { m.up = true; pcReopen(); } });
             return r;
         }
-        /* 페이지 가운데 길쭉한 연필꽂이 · 작은 연필꽂이는 페이지 오른쪽 아래 (하단 메뉴 밖으로 안 나가게) */
+        /* 페이지 가운데 길쭉한 펜꽂이 · 작은 펜꽂이는 페이지 오른쪽 아래 (하단 메뉴 밖으로 안 나가게) */
         function pcLayout() {
             const pg = drq('canvasArea'), cup = drq('pcCup'), mini = drq('pcMini'), note = drq('pcTipNote'); if (!pg || !cup) return;
             const r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect(), cw = cup.offsetWidth, ch = cup.offsetHeight;   // 📱 폰 = 보이는 오른쪽 쪽 가운데
             cup.style.left = Math.round(r.left + r.width / 2 - cw / 2) + 'px';
             cup.style.top = Math.round(Math.max(8, r.top + r.height / 2 - ch / 2 + 10)) + 'px';
             const vv = window.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : innerHeight);   // 📱 자판이 올라오면 그 위로
-            if (mini) { mini.style.left = Math.round(r.right - (mini.offsetWidth || 62) - 12) + 'px'; mini.style.top = Math.round(bot - (mini.offsetHeight || 84) - 12) + 'px'; }   // 🪑 책상 연필꽂이 모양이면 그 크기
+            if (mini) { mini.style.left = Math.round(r.right - (mini.offsetWidth || 62) - 12) + 'px'; mini.style.top = Math.round(bot - (mini.offsetHeight || 84) - 12) + 'px'; }   // 🪑 책상 펜꽂이 모양이면 그 크기
             if (note) { note.style.right = Math.round(innerWidth - r.right + 10) + 'px'; note.style.top = Math.round(bot - 84 - 22) + 'px'; }
         }
         addEventListener('resize', () => { const r = drq('pcRoom'); if (r && !r.hidden) pcLayout(); });
         if (window.visualViewport) visualViewport.addEventListener('resize', () => { const r = drq('pcRoom'); if (r && !r.hidden) { pcLayout(); if (pcS.memo) mfAim(); } });
         function pcPlace(o) {
             const lift = o.lift || 0, a = o.a * (1 - Math.min(1, lift / 90));
-            o.el.style.transform = `translate(${o.x}px, ${o.y - lift}px) rotate(${a}deg)`;   // 연필꽂이 바닥이 돌아가는 점
+            o.el.style.transform = `translate(${o.x}px, ${o.y - lift}px) rotate(${a}deg)`;   // 펜꽂이 바닥이 돌아가는 점
         }
         function pcOpen(memo) {
             const r = pcBuild(); r.hidden = false;
@@ -377,7 +377,7 @@
             const r = drq('pcRoom');
             if (r && !r.hidden && !pcS.held) pcFill();
         };
-        function pcFill() {                                // 연필꽂이에 필기구 꽂기 (👝 보관함에서 바꾸면 다시 꽂아요)
+        function pcFill() {                                // 펜꽂이에 필기구 꽂기 (👝 보관함에서 바꾸면 다시 꽂아요)
             const box = drq('pcTools'); box.textContent = '';
             const L = pcList().slice();                       // 👝 보관함에서 고른 것 (색연필 · 형광펜 · 지우개 · ✂️ 칼 · 📏 자는 🗄️ 문구함에서)
             const n = L.length;
@@ -416,7 +416,7 @@
             };
             el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
         }
-        /* 뽑기 : 연필꽂이는 구석의 작은 연필꽂이로 · 뽑은 필기구만 손에 */
+        /* 뽑기 : 펜꽂이는 구석의 작은 펜꽂이로 · 뽑은 필기구만 손에 */
         function pcPick(o, e) {
             if (dw.on) penWake(false);                                         // ✏️ 쉬다가 다시 뽑으면 다른 문구는 내려놔요
             pcS.drag = null; o.el.classList.remove('grab'); o.el.style.visibility = 'hidden';
@@ -430,9 +430,9 @@
             if (window.toolGlow) toolGlow(h);                                  // ✨ 뽑는 순간 한 번 반짝
             if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
             const note = drq('pcTipNote'); note.hidden = false; clearTimeout(pcS.noteTm);
-            note.innerHTML = pcS.memo ? '이제 글을 써요 · 다 쓰면 <b>구석 연필꽂이</b>을 톡 ✏️' : '다 쓰면 손에 든 것을 꾹 집어 <b>구석 연필꽂이</b>에 꽂아요 ✏️'; pcS.noteTm = setTimeout(() => { note.hidden = true; }, 4200);
+            note.innerHTML = pcS.memo ? '이제 글을 써요 · 다 쓰면 <b>구석 펜꽂이</b>을 톡 ✏️' : '다 쓰면 손에 든 것을 꾹 집어 <b>구석 펜꽂이</b>에 꽂아요 ✏️'; pcS.noteTm = setTimeout(() => { note.hidden = true; }, 4200);
         }
-        /* 연필꽂이가 구석 작은 연필꽂이 자리로 쏙 줄어요 (손이 차면) */
+        /* 펜꽂이가 구석 작은 펜꽂이 자리로 쏙 줄어요 (손이 차면) */
         function pcShrink() {
             const cup = drq('pcCup'); if (!cup || cup.classList.contains('gone')) return;
             drq('pcMini').hidden = false; pcLayout();
@@ -440,11 +440,11 @@
             cup.style.transform = `translate(${mr.left + mr.width / 2 - (cr.left + cr.width / 2)}px, ${mr.bottom - cr.bottom}px) scale(.22)`;
             cup.classList.add('gone');
         }
-        /* 구석 연필꽂이를 위로 밀면 다시 커져요 (손이 비어 있을 때 · 필기구를 더 뽑으려고) */
+        /* 구석 펜꽂이를 위로 밀면 다시 커져요 (손이 비어 있을 때 · 필기구를 더 뽑으려고) */
         function pcReopen() {
             const cup = drq('pcCup'); if (!cup || pcS.held) return;
             if (dw.rest) penWake(false);
-            if (pcS.laid) pcStow();                                            // 내려놓은 필기구는 연필꽂이에 다시 꽂아요
+            if (pcS.laid) pcStow();                                            // 내려놓은 필기구는 펜꽂이에 다시 꽂아요
             drq('pcMini').hidden = true; drq('pcTipNote').hidden = true;
             cup.classList.remove('gone'); cup.style.transform = '';
         }
@@ -496,7 +496,7 @@
             if (pcS.carry && pcS.carry.id === e.pointerId) pcCarryEnd(e);
         };
         document.addEventListener('pointerup', pcDocUp, true); document.addEventListener('pointercancel', pcDocUp, true);
-        /* 작은 연필꽂이에 쏙 꽂고 ✓ 완료 */
+        /* 작은 펜꽂이에 쏙 꽂고 ✓ 완료 */
         function pcPutBack() {
             const h = drq('pcHeld'), m = drq('pcMini').getBoundingClientRect();
             pcS.held = null; pcS.press = null; pcS.carry = null;
@@ -515,11 +515,11 @@
             const h = drq('pcHeld'); if (h) h.classList.remove('laid', 'carry');
         }
         /* ---------- ✏️ 📒 수첩 모드 : 메모에 글 쓰기 (도련 · 2026-10-13)
-           - 페이지의 메모(글상자 · 떡메)를 톡 눌러 쓰려는 순간 연필꽂이가 떠요 → 필기구를 위로 쏙 뽑아요
+           - 페이지의 메모(글상자 · 떡메)를 톡 눌러 쓰려는 순간 펜꽂이가 떠요 → 필기구를 위로 쏙 뽑아요
            - 색연필 = 그 색 · 연필 느낌 글씨 / 형광펜 = 글씨가 있는 줄마다 칠한 띠 / 지우개 = 원래 글씨로
            - 한 메모 = 마지막에 고른 필기구 하나 · 메모마다 저장돼요 (k 색 · hl 형광펜 색 · pn 연필 느낌)
            - 자판으로 쓰면 손에 든 필기구 끝이 커서를 따라가며 사각사각 움직여요
-           - 다 쓰면 구석 작은 연필꽂이를 톡 (또는 꾹 집어 꽂기 · 메모 밖을 눌러도 쏙 들어가요)
+           - 다 쓰면 구석 작은 펜꽂이를 톡 (또는 꾹 집어 꽂기 · 메모 밖을 눌러도 쏙 들어가요)
            - ✕ 를 누르면 필기구 없이 그대로 써요 ---------- */
         const mhlOk = c => /^#[0-9a-f]{6}$/i.test(c || '');
         function mhlLook(ta, hl, pn) {                                        // 불러올 때 · 고를 때
@@ -646,7 +646,7 @@
             const ta = pcS.memo; if (!ta || e.target !== ta) return;
             setTimeout(() => {
                 if (pcS.memo !== ta || document.activeElement === ta || pcS.carry || pcS.press || !pcS.held) return;
-                pcPutBack();                                                   // 메모 밖을 누르면 필기구는 쏙 연필꽂이로
+                pcPutBack();                                                   // 메모 밖을 누르면 필기구는 쏙 펜꽂이로
             }, 300);
         });
         document.addEventListener('selectionchange', () => { if (pcS.memo) mfAim(); });
@@ -657,7 +657,7 @@
         document.getElementById('diaryWrapper').addEventListener('pointerdown', e => {
             if (dw.on && !dw.rest && !e.target.closest('#penLayer')) e.stopPropagation();
         }, true);
-        /* ✏️ 책상 연필꽂이 · 문구함 서랍에서 필기구를 뽑으면 (도련 11-02 · js/deskgd.js) : 그리기를 켜고 그 필기구를 바로 손에 (페이지 가운데) */
+        /* ✏️ 책상 펜꽂이 · 문구함 서랍에서 필기구를 뽑으면 (도련 11-02 · js/deskgd.js) : 그리기를 켜고 그 필기구를 바로 손에 (페이지 가운데) */
         function drawWith(id, x, y) {                                       // x, y = 연필심 자리 (없으면 보이는 쪽 가운데)
             const all = typeof pkAll === 'function' ? pkAll() : [], w = all.find(x => x.id === id); if (!w) return false;
             if (pcS.held && pcDesk()) { penFlush(); pcLayDown(); }             // 🪑 책상 = 들고 있던 필기구는 페이지에 놓고 (여러 개 꺼내기 · 도련 11-03)

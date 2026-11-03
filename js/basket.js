@@ -1093,7 +1093,7 @@
             scissors: '<b>📄 모조지스티커는 가위로만</b> 오려요 · 그림 둘레를 한 바퀴 따라 그려 처음 자리로 돌아오면 그 모양대로 오려져요',
             knife: '붙인 스티커를 끝에서 끝까지 가로질러 그으면 <b>두 조각</b>이 돼요 · 필요 없는 조각은 버려요 (씰 · 조각 · 모조지 · 테이프 · 떡메)',
             ruler: '페이지에 깔아 두는 도구예요 · 가장자리에 대고 칼 · 펜을 그으면 반듯하게 · 일기에는 저장되지 않아요 · ⚙ 설정 → 📏 자 맞추기로 진짜 cm 를 맞춰요',
-            pen: '받은 필기구는 연필꽂이 앞 <b>보관함</b>에 모여요 · 보관함에서 연필꽂이에 꽂은 것만 꺼내 써요'
+            pen: '받은 필기구는 펜꽂이 앞 <b>보관함</b>에 모여요 · 보관함에서 펜꽂이에 꽂은 것만 꺼내 써요'
         },
         desk: {
             desk: '받으면 📦 소품 보관함으로 · 🛠 책상 꾸미기에서 책상에 놓아요 · 소품에 기능(다이어리 · 스티커 · 문구함 …)을 이어 두면 소품을 눌러 바로 열려요',
@@ -1195,7 +1195,7 @@
         if (al && window.abLastGiven && Date.now() - abLastGiven.t < 8000) o.b = abLastGiven.id;   // 📒 🤍 = 그 책 (책상에 끌어 놓으면 그 자리)
         if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
         if (sid) o.s = [sid];
-        if (k === 'gd' && x.gid) o.gid = x.gid;                                 // ✏️ 문구 · 필기구 = 그 디자인 (봉투에서 꺼낼 때까지 문구함 · 연필꽂이에 없어요)
+        if (k === 'gd' && x.gid) o.gid = x.gid;                                 // ✏️ 문구 · 필기구 = 그 디자인 (봉투에서 꺼낼 때까지 문구함 · 펜꽂이에 없어요)
         { const L = x.look === 'dskin' ? window.dsLastGiven : k === 'desk' ? window.deskLastGiven : null; if (L && L.u && Date.now() - L.t < 8000) o.u = L.u; }   // 🪑 🧱 🪵 = 그 하나 (📦 소품함에 없어요)
         if (k === 'desk' && x.id) o.id = x.id; if (k === 'desk' && x.src && !String(x.src).startsWith('data:')) o.src = x.src; if (al) o.al = 1;
         if (k !== 'gd' && k !== 'desk') { const lk = shLookKeep(x); if (lk) o.lk = lk; }   // 🛍️ 봉투 카드 = 산 모습 그대로 (도련 11-03 · 샵 진열 그림과 같은 것 · js/desk.js dkKindIc)

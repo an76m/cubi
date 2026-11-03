@@ -1094,7 +1094,7 @@
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
             bdFree.d = null; d.st.forEach(o => o.sh.el.classList.remove('lift'));
             if (d.moved) bdFreeSave();
-            if (!d.moved && !d.rot && e.type === 'pointerup') bdFreeMenu(e, d.side);   // 쪽을 톡 = 그 쪽에 빈 곳 메뉴 (연필꽂이 · 필통 … · 도련 10-18)
+            if (!d.moved && !d.rot && e.type === 'pointerup') bdFreeMenu(e, d.side);   // 쪽을 톡 = 그 쪽에 빈 곳 메뉴 (펜꽂이 · 필통 … · 도련 10-18)
         }, true));
         function bdFreeMenu(e, side) {
             if (!window.tmOpen) return;
@@ -1214,8 +1214,8 @@
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
         }
         /* 🗄️ 문구함에 안 가리는 자리 (도련 10-21) : 문구함이 떠 있으면 꺼낸 문구가 그 밑에 깔리지 않게
-           pref = 원래 자리(화면 가운데 [x, y]) · w, h = 화면에서의 크기 → 보이는 페이지 안 · 문구함(연필꽂이 포함)과 안 겹치는 가장 가까운 자리
-           - 📱 폰처럼 자리가 없으면 맨 위 ✏️ 연필꽂이 자리 (위쪽이 삐죽 나와 보여서 나온 걸 알 수 있어요) */
+           pref = 원래 자리(화면 가운데 [x, y]) · w, h = 화면에서의 크기 → 보이는 페이지 안 · 문구함(펜꽂이 포함)과 안 겹치는 가장 가까운 자리
+           - 📱 폰처럼 자리가 없으면 맨 위 ✏️ 펜꽂이 자리 (위쪽이 삐죽 나와 보여서 나온 걸 알 수 있어요) */
         function cabFree(w, h, pref) {
             const m = document.getElementById('gdCabModal'), cab = document.getElementById('gdCab'), cv = document.getElementById('canvasArea');
             if (!m || m.style.display !== 'flex' || !cab || !cv || !window.dyVisRect) return pref;
@@ -1232,10 +1232,10 @@
             }
             if (best) return [best.x, best.y];
             const n = gdIp() ? gdIp().querySelectorAll(':scope > .bd-tool').length % 4 : 0;   // 여러 개면 조금씩 비켜서
-            const p = [u.left + u.width / 2 + (n - 1.5) * 14, u.top]; p.cup = true;   // ✏️ 연필꽂이에 꽂힌 듯 (위쪽 반이 삐죽) · 문구함을 닫으면 페이지 안으로 (gdCabHome)
+            const p = [u.left + u.width / 2 + (n - 1.5) * 14, u.top]; p.cup = true;   // ✏️ 펜꽂이에 꽂힌 듯 (위쪽 반이 삐죽) · 문구함을 닫으면 페이지 안으로 (gdCabHome)
             return p;
         }
-        (function gdCabHome() {                                                 // 🗄️ 문구함을 닫으면 연필꽂이 자리에 꺼내 둔 문구는 페이지 안으로 스르르 (gdHome)
+        (function gdCabHome() {                                                 // 🗄️ 문구함을 닫으면 펜꽂이 자리에 꺼내 둔 문구는 페이지 안으로 스르르 (gdHome)
             const m = document.getElementById('gdCabModal'); if (!m) return;
             new MutationObserver(() => {
                 if (m.style.display === 'flex') return;
@@ -1299,7 +1299,7 @@
             document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구함
         }
         const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
-        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 다른 문구를 들면 필기구는 구석 연필꽂이에서 쉬어요 (끝은 구석 연필꽂이 톡만 · js/draw.js penRest) */
+        /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 다른 문구를 들면 필기구는 구석 펜꽂이에서 쉬어요 (끝은 구석 펜꽂이 톡만 · js/draw.js penRest) */
         /* ✨ 문구를 드는 순간 핑크빛으로 한 번 반짝 (도련 10-21 · 모든 문구 : 핀셋 · 가위 · 칼 · 필기구 · 펀칭기 · 테이프) */
         function toolGlow(el) { if (!el) return; el.classList.remove('pick-glow'); void el.offsetWidth; el.classList.add('pick-glow'); clearTimeout(el._glowT); el._glowT = setTimeout(() => el.classList.remove('pick-glow'), 900); }
         window.toolGlow = toolGlow;
@@ -1316,7 +1316,7 @@
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
             const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool') || gdUnderRoom(e);
             if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구함 = 들기
-                gdPenOff();                                                     // ✏️ 필기구를 쓰던 중이면 쓴 것은 붙이고 필기구는 연필꽂이에 → 이 문구를 들어요 (도련 10-21) · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
+                gdPenOff();                                                     // ✏️ 필기구를 쓰던 중이면 쓴 것은 붙이고 필기구는 펜꽂이에 → 이 문구를 들어요 (도련 10-21) · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
                 gdEat(e);
                 if (tool.classList.contains('edge')) gdG = { k: 'rail', el: tool, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
                 else gdHold(tool.dataset.t, e.clientX, e.clientY, e);
@@ -1391,7 +1391,7 @@
         /* ✂️ 가위가 갈 수 있는 곳 = 🪡 핀셋과 같은 규칙 (도련 10-21 · js/elements.js pinOver · pinRel · pinBusy) + 📄 모조지 종이 위
            - 💻 마우스 : 갈 수 없는 곳(하단메뉴 · 창 · 버튼 · 메뉴 · 날짜바)으로 가면 그 끝자리에 멈추고 화살표 · 돌아오면 다시 따라와요
            - 📱 📲 터치 : 가위와 상관있는 곳을 누를 때만 그 자리로 · 나머지는 그 자리에
-           - ✏️ 그리기 · ✂️ 칼 · 📏 자 · ✏️ 연필꽂이를 쓰는 동안은 안 따라와요 · 창 · 메뉴가 가리면 비켜요 (scsFrame · dodgeBy) */
+           - ✏️ 그리기 · ✂️ 칼 · 📏 자 · ✏️ 펜꽂이를 쓰는 동안은 안 따라와요 · 창 · 메뉴가 가리면 비켜요 (scsFrame · dodgeBy) */
         function scsRel(x, y, e) {
             const top = document.elementsFromPoint(x, y).find(n => !n.closest('.scs-cur, .pin-cur, .twz-say'));
             if (!top) return false;
@@ -1449,17 +1449,17 @@
         function scsCutStart(x, y, on) { if (!gdScs()) return false; scs.cut = { x, y: y - SCS_LIFT, acc: 0, on }; scsPut(x, y, null, true); return true; }   // x, y = 누르는 자리 (자르는 자리는 십자선)
         function scsCutEnd(done) { if (!scs.cut) return; scs.cut = null; scs.to = SCS_REST; if (done) scsSnip(); }
         /* 🗄️ 하단 메뉴 '문구함' : 화면 가운데 세로 서랍장 (도련 10-19)
-           - 서랍장 위에는 ✏️ 연필꽂이 (톡 = 그리기 · js/draw.js openDraw · 꽂을 필기구는 연필꽂이 앞 '보관함') · 서랍마다 이름표 : 핀셋 · 집게 · 펀칭기 · 양면테이프 · 가위 · 칼 · 자
+           - 서랍장 위에는 ✏️ 펜꽂이 (톡 = 그리기 · js/draw.js openDraw · 꽂을 필기구는 펜꽂이 앞 '보관함') · 서랍마다 이름표 : 핀셋 · 집게 · 펀칭기 · 양면테이프 · 가위 · 칼 · 자
            - 서랍 = 그 종류의 보관함 : 앞면 톡 = '주로 쓰는 것'을 바로 페이지에 (다시 톡 = 치우기 · 서랍이 빠끔 + '페이지에 ✓')
            - 손잡이 톡 · 서랍 꾹 = 서랍이 쭉 열려서 가진 디자인이 6개씩 보여요 (‹ › · 옆으로 밀어 넘기기 · 서랍 이름표에 몇 개인지) → 톡 = 그걸 '주로 쓰는 것'으로 + 페이지에 (다시 톡 = 치우기)
              집게처럼 여러 개 쓰는 것은 여러 개 꺼낼 수 있어요 (GD_MULTI) · 핀셋 · 가위처럼 하나만 쓰는 것은 놓인 것이 바뀌어요
            - 주로 쓰는 것 : 'diary_gd_main' { 종류: id } · 지금은 종류마다 기본 1개 (집게는 6색) · 나중에 📦 문구점에서 산 것을 gdOwn 에 더해요
            - ✂️ 칼 · 📏 자 서랍 (GD_TOOL · 도련 10-19 · 펀칭기 · 가위처럼 문구함에서 꺼내 써요) : 톡 = 보이는 쪽 가운데에 자를 놓아요 · 칼을 들어요 (js/ruler.js rlShow · js/stkcut.js skKnife) · 다시 톡 = 넣기 */
         /* 🗄️ 문구 종류 = 이 표 한 곳 (새 종류 = 한 줄 · 순서 = 서랍 순서) : [종류, 이름, 🪑 책상 모드 (js/deskgd.js)]
-             🪑 { cup : ✏️ 책상 연필꽂이에 꽂을 수 있어요 (길쭉한 것 · 없으면 서랍에만) · hand : 꺼내면 바로 손에 들어요 (없으면 페이지에 놓여요)
-                 sec : 🗄️ 문구함 서랍의 칸막이 이름 (같은 이름끼리 한 칸 · 없으면 종류 이름으로 한 칸) · len : 연필꽂이에 꽂힌 길이 (1 = 보통) }
-             상품 하나만 다르게 = 상품공방 속성 '연필꽂이' (예 / 아니오 · js/deskgd.js dkwCanCup) */
-        const GD_CAB = [['tweez', '핀셋', { hand: 1 }], ['clip', '집게', {}], ['punch', '펀칭기', {}], ['tape', '양면테이프', {}], ['scissors', '가위', { hand: 1 }], ['knife', '칼', { hand: 1 }], ['ruler', '자', {}]];   // 종류 = 하는 일 (hand = 꺼내면 손에) · 서랍칸 · 연필꽂이 · 꽂이길이 = 🧁 상품마다 (도련 11-02)
+             🪑 { cup : ✏️ 책상 펜꽂이에 꽂을 수 있어요 (길쭉한 것 · 없으면 서랍에만) · hand : 꺼내면 바로 손에 들어요 (없으면 페이지에 놓여요)
+                 sec : 🗄️ 문구함 서랍의 칸막이 이름 (같은 이름끼리 한 칸 · 없으면 종류 이름으로 한 칸) · len : 펜꽂이에 꽂힌 길이 (1 = 보통) }
+             상품 하나만 다르게 = 상품공방 속성 '펜꽂이' (예 / 아니오 · js/deskgd.js dkwCanCup) */
+        const GD_CAB = [['tweez', '핀셋', { hand: 1 }], ['clip', '집게', {}], ['punch', '펀칭기', {}], ['tape', '양면테이프', {}], ['scissors', '가위', { hand: 1 }], ['knife', '칼', { hand: 1 }], ['ruler', '자', {}]];   // 종류 = 하는 일 (hand = 꺼내면 손에) · 서랍칸 · 펜꽂이 · 꽂이길이 = 🧁 상품마다 (도련 11-02)
         const GD_MULTI = ['clip'], GD_TOOL = ['knife', 'ruler'];
         const cabHoldAgain = id => { if (id.startsWith('knife') && window.skHold) skHold(true); };   // ✋ 이미 꺼낸 도구를 다시 손에 (따로 그리는 도구 GD_TOOL · 새 도구 = 여기 한 줄)
         const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
@@ -1496,7 +1496,7 @@
             prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.id === o.id && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
         }
         function gdSetList(L) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && ok(o.id)).map(gdRec)); if (window.snapSoon) snapSoon(); }   // ✏️ 필기구도 (되살릴 때 빠지던 것)
-        /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 연필꽂이에) · 나머지는 🏪 기본상품 샵 */
+        /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 펜꽂이에) · 나머지는 🏪 기본상품 샵 */
         const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음선물' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
         window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
@@ -1544,7 +1544,7 @@
                     <span class="gdc-pull" role="button" aria-label="서랍 열기">${open ? '▲' : '▼'}</span><em class="gdc-out">페이지에 ✓${on > 1 ? ' ' + on : ''}</em></button>${tray}</div>`;
             };
             cab.innerHTML = `${window.snapBtnHtml ? snapBtnHtml() : ''}<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
-                <button type="button" class="gdc-cup" aria-label="연필꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>연필꽂이</small></button>
+                <button type="button" class="gdc-cup" aria-label="펜꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>펜꽂이</small></button>
                 <div class="gdc-body">${GD_CAB.map(dr).join('') || '<div class="gdc-none">아직 문구가 없어요<br><button type="button" class="btn" onclick="gdCabShop()">🏪 기본상품 샵에서 받아 오기</button></div>'}</div>
                 <p class="gdc-tip">톡 = 꺼내기 · 손잡이·꾹 = 골라 담기<br>잡고 끌면 서랍장이 옮겨져요</p>`;
             cab.querySelectorAll('.gdc-dr[data-g]').forEach(b => {
@@ -1583,7 +1583,7 @@
                     if (cabPress) { clearTimeout(cabPress.t); cabPress = null; }        // 끌기 시작 = 서랍 톡 · 꾹 취소
                 }
                 const r = w.getBoundingClientRect(), bl = r.left - (parseFloat(w.style.left) || 0), bt = r.top - (parseFloat(w.style.top) || 0);
-                const top = 56;                                                         // 위 연필꽂이도 화면 안에
+                const top = 56;                                                         // 위 펜꽂이도 화면 안에
                 w.style.left = Math.max(8 - bl, Math.min(innerWidth - 8 - r.width - bl, d.ox + dx)) + 'px';
                 w.style.top = Math.max(top - bt, Math.min(innerHeight - 8 - r.height - bt, d.oy + dy)) + 'px';
                 e.preventDefault();
@@ -1624,7 +1624,7 @@
             binTold('');
             return true;
         }
-        function gdBinAfter() { if (window.pcRefill) pcRefill(); if (window.dkwDeskSoon) dkwDeskSoon(); }   // ✏️ 연필꽂이 · 🪑 책상 문구 다시
+        function gdBinAfter() { if (window.pcRefill) pcRefill(); if (window.dkwDeskSoon) dkwDeskSoon(); }   // ✏️ 펜꽂이 · 🪑 책상 문구 다시
         (window.BIN_PRE = window.BIN_PRE || {}).gd = {
             name: e => '✏️ ' + gdBinName(e.id),
             restore: e => {
@@ -1665,12 +1665,12 @@
             if (!pen && !cabAllIds().includes(id)) return 'no';
             const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec)); if (window.snapSoon) snapSoon();   // 📦 사본
             gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.id === id); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 종류 폴더에 파일 하나
-            if (pen && window.pkAdd) pkAdd(id);                                // ✏️ 연필꽂이에도
+            if (pen && window.pkAdd) pkAdd(id);                                // ✏️ 펜꽂이에도
             if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();
             return 'ok';
         }
         window.gdCabBinMode = gdCabBinMode; window.gdCabBinTap = gdCabBinTap; window.gdCabShop = gdCabShop; window.gdShopList = gdShopList; window.gdGive = gdGive;
-        function gdCabCup() { closeModal('gdCabModal'); if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo(); if (window.openDraw) openDraw(); }   // ✏️ 연필꽂이 : 들고 있던 문구는 그 자리에 내려놓고 (도련 10-21)
+        function gdCabCup() { closeModal('gdCabModal'); if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo(); if (window.openDraw) openDraw(); }   // ✏️ 펜꽂이 : 들고 있던 문구는 그 자리에 내려놓고 (도련 10-21)
         window.openGdCab = openGdCab; window.gdCabTap = gdCabTap; window.gdCabCup = gdCabCup; window.gdCabItem = gdCabItem; window.gdCabPage = gdCabPage;
         window.gdScs = gdScs; window.gdLetGo = () => { if (gdHeld) gdLet(); }; window.scsCutStart = scsCutStart; window.scsCutEnd = scsCutEnd;
         window.gdToolTap = (el, e) => { if (el && !el.classList.contains('edge')) gdHold(el.dataset.t, e.clientX, e.clientY, e); };   // 📄 모조지 손가락 칸이 덮은 페이지 문구를 눌렀을 때 (js/papermaker.js)
@@ -1897,7 +1897,7 @@
                 if (typeof s.f === 'number') gdClipPut(el, s.f); else gdCenter(el, cv.offsetLeft + s.x * cv.offsetWidth, cv.offsetTop + s.y * cv.offsetHeight);
             });
             gdHoleSync();
-            if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나 (📱 폰 · 💻 📲 책상은 연필꽂이 · 문구함에서 꺼내요 = 앱을 켜면 페이지에 꺼낸 문구가 없어요 · 도련 11-03)
+            if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나 (📱 폰 · 💻 📲 책상은 펜꽂이 · 문구함에서 꺼내요 = 앱을 켜면 페이지에 꺼낸 문구가 없어요 · 도련 11-03)
                 gdInit = true;
                 setTimeout(() => {
                     const tw = !document.documentElement.classList.contains('desk-on') && gdMain('tweez'); if (tw && !gdEl(tw)) { const el = gdMake(tw), p = gdSpot(tw); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)

@@ -1,4 +1,4 @@
-/* ✂️ 스티커 칼 (도련 · 2026-10-17 · 10-19 연필꽂이 → 🗄️ 문구함) : 문구함 '칼' 서랍을 톡 = 칼을 들어요 (js/skins.js · 서랍에서 여러 칼 중 골라요 KN_KINDS)
+/* ✂️ 스티커 칼 (도련 · 2026-10-17 · 10-19 펜꽂이 → 🗄️ 문구함) : 문구함 '칼' 서랍을 톡 = 칼을 들어요 (js/skins.js · 서랍에서 여러 칼 중 골라요 KN_KINDS)
    - 귀여운 스티커 칼이 페이지 위에 놓여요 · 칼을 잡고 끌면 칼끝이 지나간 자리에 칼선이 그어져요 (도련 10-19 · 화면을 덮지 않아요 → 다른 버튼 · 핀셋 · 자를 그대로 써요)
    - 칼을 톡 = 손에 들기 (문구함에서 꺼내면 바로 들려 있어요) : 💻 칼이 마우스를 따라와요 · 페이지를 누르고 끌면 그 자리부터 칼선 · 👆 누른 자리로 칼이 가서 그어요
      칼을 다시 톡 = 그 자리에 내려놓기 · 🪡 핀셋 같은 다른 문구함을 톡 = 그걸로 바꿔 들기 (칼은 그 자리에) · 자에 붙은 채 자 밖으로 끌면 떨어져요
@@ -132,7 +132,7 @@
     /* ✋ 손에 든 칼 : 다른 문구함은 내려놓고 · 💻 마우스를 따라와요 · 페이지를 누르면 그 자리부터 칼선 */
     function hold(on) {
         if (!S.on) on = false;
-        if (on && window.penRest) penRest();            // ✏️ 필기구는 구석 연필꽂이에서 쉬어요
+        if (on && window.penRest) penRest();            // ✏️ 필기구는 구석 펜꽂이에서 쉬어요
         if (on && window.gdLetGo) gdLetGo();           // 🪡 핀셋 · 가위 … 들고 있던 것은 그 자리에
         S.held = !!on; document.body.classList.toggle('sk-held', S.held); document.body.classList.remove('sk-follow');
         if (S.kn) { S.kn.classList.toggle('held', S.held); if (S.at) knifeAt(S.at[0], S.at[1]); if (S.held && window.toolGlow) toolGlow(S.kn); }

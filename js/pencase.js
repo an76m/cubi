@@ -1,13 +1,13 @@
 /* 말랑달콤 다이어리 - js/pencase.js
-   👝 보관함 : 가진 필기구를 모두 보관하는 틴 케이스 → 연필꽂이에 꽂을 것만 골라요 (도련 · 2026-10-15 · 10-19 필통 → 보관함)
-   - ✏️ 연필꽂이 앞 '보관함' 버튼(js/draw.js pc-box)을 누르면 보이는 쪽(📱 폰 = 오른쪽) 한가운데에 열린 채로 나와요 · 뚜껑 · 고무밴드 · ✕ 없음
+   👝 보관함 : 가진 필기구를 모두 보관하는 틴 케이스 → 펜꽂이에 꽂을 것만 골라요 (도련 · 2026-10-15 · 10-19 필통 → 보관함)
+   - ✏️ 펜꽂이 앞 '보관함' 버튼(js/draw.js pc-box)을 누르면 보이는 쪽(📱 폰 = 오른쪽) 한가운데에 열린 채로 나와요 · 뚜껑 · 고무밴드 · ✕ 없음
    - 안에는 필기구가 한 줄로 세로로 서 있어요 · 안쪽 어디든 좌우로 밀면 끝없이 빙글빙글 넘어가요 (끝에 닿으면 처음 것이 다시 와요 · 휠 · ← → 키도)
      위 이름표(🗂 색연필 · 형광펜 · 지우개)를 누르면 그 종류로 휙 · 가운데 있는 종류에 불 · 숫자 = 그 종류에서 꽂은 개수
-     톡 누르면 연필꽂이에 꽂기 / 빼기 (꽂은 것은 쏙 올라오고 하트 꼬리표) · 도구가 늘어도 줄만 길어져요
-   - ✂️ 칼 · 📏 자는 연필꽂이 · 보관함에 없어요 → 🗄️ 문구함 서랍에서 펀칭기 · 가위처럼 꺼내 써요 (js/skins.js · 도련 10-19)
+     톡 누르면 펜꽂이에 꽂기 / 빼기 (꽂은 것은 쏙 올라오고 하트 꼬리표) · 도구가 늘어도 줄만 길어져요
+   - ✂️ 칼 · 📏 자는 펜꽂이 · 보관함에 없어요 → 🗄️ 문구함 서랍에서 펀칭기 · 가위처럼 꺼내 써요 (js/skins.js · 도련 10-19)
    - 도구 종류는 PK_KINDS 한 곳 · 새 색을 넣으면 저절로 나와요
-   - '닫기' 를 누르면 저장 → 연필꽂이에는 고른 것만 다시 꽂혀요 (js/draw.js pcList · penSetTool)
-   - 연필꽂이에는 1 ~ 24 개 (너무 많으면 고르기 어려워요)
+   - '닫기' 를 누르면 저장 → 펜꽂이에는 고른 것만 다시 꽂혀요 (js/draw.js pcList · penSetTool)
+   - 펜꽂이에는 1 ~ 24 개 (너무 많으면 고르기 어려워요)
    저장 : 'diary_pencase'(설정.json) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', …]
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 필기구 그대로) */
 
@@ -40,13 +40,13 @@
             let v = null;
             v = prefGet(PK_KEY, PK_LOCAL);                                   // 💾 js/drive.js
             const own = pkOwnIds(), ok = Array.isArray(v) ? v.filter(id => own.includes(id)) : [];
-            if (Array.isArray(v) && v.includes('∅')) return ok;                 // ✏️ 일부러 다 뺐어요 (책상 연필꽂이 · js/deskgd.js)
+            if (Array.isArray(v) && v.includes('∅')) return ok;                 // ✏️ 일부러 다 뺐어요 (책상 펜꽂이 · js/deskgd.js)
             return ok.length ? ok : own.slice(0, PK_MAX);                       // 고른 게 없으면 = 가진 것 모두 (24개까지)
         }
         function pkWrite(ids) {
             prefSet(PK_KEY, PK_LOCAL, ids.length ? ids.filter(id => id !== '∅') : ['∅']);   // 하나도 없으면 '∅' (= 가진 것 모두로 돌아가지 않게)
         }
-        /* 연필꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
+        /* 펜꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
         function pkCupList() {
             const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ id: t.id, tool: t.tool, color: t.color, w: t.w, kind: t.kind, tip: t.tip, box: t.box }));
             const pens = g('pen'), his = g('hi'), ers = g('erase'), out = [];
@@ -57,7 +57,7 @@
 
 
         /* ---------- 필통 그리기 ---------- */
-        const pkSvg = t => window.gdPicSvg ? gdPicSvg(t.id) : '';             // 🎬 상품공방 그림 그대로 (js/gdpic.js · 도련 11-02 · 연필꽂이 · 보관함 · 손에 든 것 모두)
+        const pkSvg = t => window.gdPicSvg ? gdPicSvg(t.id) : '';             // 🎬 상품공방 그림 그대로 (js/gdpic.js · 도련 11-02 · 펜꽂이 · 보관함 · 손에 든 것 모두)
         function pkTool(t, copy) {
             const nm = pkName(t);   // 그림은 바닥에 맞춰 세워요 (모두 같은 줄에 서요)
             return `<button type="button" class="pk-t pk-${t.tool}" data-id="${t.id}" aria-pressed="false" aria-label="${nm}" title="${nm}"${copy ? ' tabindex="-1" aria-hidden="true"' : ''}><span class="pk-ti">${pkSvg(t).replace('<svg ', '<svg preserveAspectRatio="xMidYMax meet" ')}</span><i class="pk-tag">♥</i></button>`;
@@ -158,13 +158,13 @@
             r.querySelectorAll('.pk-t').forEach(b => { const v = on.has(b.dataset.id); b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); });
             r.querySelectorAll('[data-n]').forEach(n => { const c = [...on].filter(id => id.split(':')[0] === n.dataset.n).length; n.textContent = c || ''; });
             if (pk.bin) { pkq('pkTip').innerHTML = `🗑 <b>버릴 필기구를 톡</b><small>휴지통에 30일 보관했다가 지워져요 · 다 했으면 ✓</small>`; return; }
-            pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개<small>♥ 고른 것만 연필꽂이에 꽂혀요</small>`;
+            pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개<small>♥ 고른 것만 펜꽂이에 꽂혀요</small>`;
         }
         function pkToggle(b) {
             const id = b.dataset.id, on = pk.pick;
             if (pk.bin) { pkBinTap(id); return; }
             if (on.has(id)) { if (![...on].some(v => v !== id && /^(pen|hi):/.test(v)) && /^(pen|hi):/.test(id)) { pkSay('쓸 색연필 · 형광펜 하나는 꼭 꽂아 둬요 ✏️'); return; } on.delete(id); }
-            else { if (on.size >= PK_MAX) { pkSay(`연필꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return; } on.add(id); }
+            else { if (on.size >= PK_MAX) { pkSay(`펜꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return; } on.add(id); }
             b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
             if (window.sfx) try { sfx('tick'); } catch (e) {}
             pkRender();
@@ -187,7 +187,7 @@
             c.style.setProperty('--s', s.toFixed(3)); c.style.setProperty('--x', Math.round(x) + 'px'); c.style.setProperty('--y', Math.round(y) + 'px');
         }
 
-        /* ---------- 열고 닫기 (✏️ 연필꽂이 '보관함' 버튼) ---------- */
+        /* ---------- 열고 닫기 (✏️ 펜꽂이 '보관함' 버튼) ---------- */
         function openPencase(keepBin) {
             if (pk.on || pk.busy) return;
             if (keepBin !== true) pk.bin = false;
@@ -202,7 +202,7 @@
             pk.busy = true;
             const r = pkq('pkRoom'), c = pkq('pkCase');
             pkWrite([...pk.pick]); pkStop();
-            if (window.pcRefill) pcRefill();                                     // 연필꽂이 · 아래 창 색 줄 다시
+            if (window.pcRefill) pcRefill();                                     // 펜꽂이 · 아래 창 색 줄 다시
             c.classList.add('shut');
             setTimeout(() => {
                 r.classList.remove('show');
@@ -211,9 +211,9 @@
         }
         /* 🏪 기본상품 샵 '문구 → 필기구' (js/skins.js gdShopList · gdGive) */
         const pkShopList = () => pkAll().filter(t => !t.off).map(t => ({ id: t.id, g: 'pen', kind: '필기구', name: pkName(t), art: pkSvg(t) }));
-        function pkAdd(id) {                                                    // 받은 필기구 = 연필꽂이에도 (고른 목록이 있을 때 · 24개까지)
+        function pkAdd(id) {                                                    // 받은 필기구 = 펜꽂이에도 (고른 목록이 있을 때 · 24개까지)
             const v = prefGet(PK_KEY, PK_LOCAL);
-            if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length + (window.dkwCupToolN ? dkwCupToolN() : 0) < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // ✏️ 책상 연필꽂이의 다른 도구까지 24개
+            if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length + (window.dkwCupToolN ? dkwCupToolN() : 0) < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // ✏️ 책상 펜꽂이의 다른 도구까지 24개
             if (window.pcRefill) pcRefill();
         }
         window.openPencase = openPencase; window.pkCupList = pkCupList;

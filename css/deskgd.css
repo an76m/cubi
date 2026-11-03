@@ -1,4 +1,4 @@
-/* 🪑 책상 모드 문구 (도련 11-02 · js/deskgd.js) : ✏️ 연필꽂이가 다가와요 · 🗄️ 문구함 서랍이 열려요 */
+/* 🪑 책상 모드 문구 (도련 11-02 · js/deskgd.js) : ✏️ 펜꽂이가 다가와요 · 🗄️ 문구함 서랍이 열려요 */
 .dkw-room { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; background: rgba(70, 40, 55, .42); opacity: 0; transition: opacity .2s; font-family: inherit; }
 .dkw-room.show { opacity: 1; }
 .dkw-room[hidden] { display: none; }
@@ -8,7 +8,7 @@
 .dkw-say { position: fixed; left: 50%; top: 50%; translate: -50% -100%; z-index: 1400; background: #fff; border: 3px solid #e88fb0; color: #c2457a; font-weight: 900; font-size: 14px; padding: 9px 18px; border-radius: 999px; box-shadow: 3px 3px 0 #e6dcf8; opacity: 0; pointer-events: none; transition: opacity .2s; white-space: nowrap; }
 .dkw-say.on { opacity: 1; }
 
-/* ✏️ 연필꽂이 */
+/* ✏️ 펜꽂이 */
 .dkw-cupbox { display: flex; flex-direction: column; align-items: center; gap: 12px; pointer-events: none; }
 .dkw-cupbox > * { pointer-events: auto; }
 .dkw-hint { margin: 0; background: rgba(255, 255, 255, .95); border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 800; color: #5b3f4a; text-align: center; }
@@ -16,7 +16,7 @@
 .dkw-hint small { display: block; font-size: 11.5px; color: #a07f8b; font-weight: 700; }
 .dkw-cupart { position: relative; margin-top: 150px; }
 .dkw-tools { position: absolute; inset: 0; z-index: 2; }
-/* 연필꽂이 장면 = 소품 그림 · 꽂힌 도구 · 앞벽 (책상 위 .dkw-desk · 다가온 .dkw-cupart 같은 틀) */
+/* 펜꽂이 장면 = 소품 그림 · 꽂힌 도구 · 앞벽 (책상 위 .dkw-desk · 다가온 .dkw-cupart 같은 틀) */
 .dkw-cupimg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; user-select: none; -webkit-user-drag: none; }
 .dkw-cupfm { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .dkw-cupfm > i { position: absolute; inset: 0; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
@@ -111,7 +111,7 @@ html:not(.desk-on) .dkw-backbtn { display: none !important; }
 .dkw-strip .dkw-all { flex: none; width: 34px; height: 34px; padding: 0; border: 2px solid #e88fb0; border-radius: 50%; background: #fff; color: #c2457a; font: inherit; font-size: 17px; font-weight: 900; cursor: pointer; }
 .dkw-strip .dkw-sx { flex: none; border: 0; background: none; color: #c2457a; font-size: 15px; cursor: pointer; padding: 0 2px; }
 html:not(.desk-on) .dkw-strip { display: none !important; }
-/* ✏️ 책상에서는 필기구를 책상 연필꽂이에서 뽑아요 : 그리기 연필꽂이 · 구석 작은 연필꽂이 · 안내는 안 보여요 (📝 메모 쓰기는 그대로 · js/draw.js) */
+/* ✏️ 책상에서는 필기구를 책상 펜꽂이에서 뽑아요 : 그리기 펜꽂이 · 구석 작은 펜꽂이 · 안내는 안 보여요 (📝 메모 쓰기는 그대로 · js/draw.js) */
 html.desk-on #pcRoom:not(.memo) .pc-cup, html.desk-on #pcRoom:not(.memo) .pc-mini, html.desk-on #pcRoom:not(.memo) .pc-tipnote { display: none !important; }
 /* ✏️ 페이지에 놓은 필기구 (여러 개 · 톡 = 다시 들기 · js/draw.js pcLayDown) */
 .pc-lay { position: absolute; z-index: 10040; cursor: grab; touch-action: none; transform-origin: 50% 50%; filter: drop-shadow(2px 4px 3px rgba(90, 60, 70, .25)); }

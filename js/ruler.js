@@ -1,4 +1,4 @@
-/* 📏 자 (도련 · 2026-10-17 · 10-19 연필꽂이 → 🗄️ 문구함) : 문구함 '자' 서랍을 톡 = 보이는 쪽 가운데에 내려놓아요 · 다시 톡 = 넣기 (js/skins.js · 펀칭기 · 가위처럼)
+/* 📏 자 (도련 · 2026-10-17 · 10-19 펜꽂이 → 🗄️ 문구함) : 문구함 '자' 서랍을 톡 = 보이는 쪽 가운데에 내려놓아요 · 다시 톡 = 넣기 (js/skins.js · 펀칭기 · 가위처럼)
    - 자는 '깔아 두는 도구' · 손에는 지금처럼 필기구(또는 칼) 하나만 들어요 → 자 + 칼 · 자 + 색연필 · 자만 모두 돼요
    - 몸통을 끌면 옮기기 · 양 끝 동그란 손잡이로 돌리기(0 · 45 · 90° 근처에서 살짝 붙어요) · 두 손가락으로도 옮기고 돌려요
    - 가장자리에 대고 칼 · 색연필 · 형광펜을 그으면 자에 착 붙어 반듯하게 · 그은 길이가 cm 로 보여요
@@ -54,7 +54,7 @@
             + `<g transform="scale(${s.toFixed(5)}) translate(${P.h} 0) rotate(90)"><image href="${P.u}" width="${P.w}" height="${P.h}" preserveAspectRatio="none"/></g>`
             + `<g stroke="${K.ink}">${tk}</g><g fill="${K.ink}" font-size="${Math.min(11, Math.max(7, ah * .3)).toFixed(1)}" font-family="sans-serif" font-weight="bold" text-anchor="middle">${nm}</g></svg>`;
     }
-    /* 🗄️ 문구함 · 연필꽂이에 든 세운 자 = 상품공방 그림 + 짧은 눈금 (그림 px) */
+    /* 🗄️ 문구함 · 펜꽂이에 든 세운 자 = 상품공방 그림 + 짧은 눈금 (그림 px) */
     function rlCupSvg(id) {
         const K = rlKind(id); if (!K) return ''; const P = rlPicOf(K);
         const a = K.area, x0 = a[0] / 100 * P.w, y1 = a[1] / 100 * P.h, y2 = a[3] / 100 * P.h, aw = (a[2] - a[0]) / 100 * P.w, n = 150, st = (y2 - y1) / n;
