@@ -90,7 +90,7 @@
 @media (prefers-reduced-motion: reduce) { .dkw-drawer.binning .dkw-it { animation: none; } }
 
 /* ↩ 꺼낸 문구 정리 (도련 11-03 · js/deskgd.js dkwBackPaint) : 다이어리 아래 책상 위 버튼 → 카드 줄 (봉투 속처럼) → 톡 = 제자리로 */
-.dkw-backbtn { position: fixed; z-index: 650; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: 2.5px solid #c2457a; border-radius: 999px; background: #fff; color: #c2457a; font: inherit; font-size: 14px; font-weight: 900; box-shadow: 3px 3px 0 #e6dcf8; cursor: pointer; white-space: nowrap; }
+.dkw-backbtn { position: fixed; left: 50%; bottom: 14px; translate: -50% 0; z-index: 650; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: 2.5px solid #c2457a; border-radius: 999px; background: #fff; color: #c2457a; font: inherit; font-size: 14px; font-weight: 900; box-shadow: 3px 3px 0 #e6dcf8; cursor: pointer; white-space: nowrap; }
 .dkw-backbtn[hidden] { display: none; }
 .dkw-backbtn i { font-style: normal; font-size: 16px; }
 .dkw-backbtn b { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #c2457a; color: #fff; font-size: 12px; line-height: 20px; box-sizing: border-box; }
@@ -99,7 +99,7 @@ html:not(.desk-on) .dkw-backbtn { display: none !important; }
 .dkw-backbtn.side { flex-direction: column; gap: 2px; padding: 8px 6px; border-radius: 16px; font-size: 12px; white-space: normal; text-align: center; }
 .dkw-backbtn.side span { writing-mode: vertical-rl; letter-spacing: 1px; }
 /* 작은 목록 줄 (버튼 자리 · 종이를 가리지 않게 · 옆이면 세로) */
-.dkw-strip { position: fixed; z-index: 651; display: flex; align-items: center; gap: 5px; max-width: 94vw; padding: 4px 6px; border: 2.5px solid #c2457a; border-radius: 16px; background: #fffaf2; box-shadow: 3px 3px 0 #e6dcf8; overflow-x: auto; scrollbar-width: none; }
+.dkw-strip { position: fixed; left: 50%; bottom: 10px; translate: -50% 0; z-index: 651; display: flex; align-items: center; gap: 5px; max-width: 94vw; padding: 4px 6px; border: 2.5px solid #c2457a; border-radius: 16px; background: #fffaf2; box-shadow: 3px 3px 0 #e6dcf8; overflow-x: auto; scrollbar-width: none; }
 .dkw-strip[hidden] { display: none; }
 .dkw-strip.side { flex-direction: column; overflow-x: hidden; overflow-y: auto; max-height: 80vh; }
 .dkw-strip::-webkit-scrollbar { display: none; }

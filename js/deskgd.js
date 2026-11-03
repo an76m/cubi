@@ -297,24 +297,8 @@
         const dkwOutAll = () => dkwPenOut().concat(GD_CAB.flatMap(([g]) => dkwOwnOf([g])).filter(id => cabIsOn(id) && !(gdEl(id) && gdEl(id).classList.contains('edge'))));
         const dkwHomeOf = id => dkwIsPen(id) || (dkwCanCup(id) && dkwCupTools().includes(id)) ? (dkwItemEl(dkwCupU()) ? 'cup' : 'tray') : 'tray';
         const dkwOutName = id => dkwIsPen(id) ? ((pkAll().find(x => x.id === id) || {}).name || '필기구') : dkwName(id);
-        /* 자리 = 페이지(글 쓰는 종이)를 절대 가리지 않아요 (도련 11-03) : 다이어리 아래 → 모자라면 다이어리 옆 (세로로) */
-        function dkwBackSpot(el, w, h) {
-            const pg = dkwq('canvasArea'), cv = document.querySelector('#dyBack > .dy-cov') || dkwq('innerPage'); if (!pg || !cv) return;
-            const P = pg.getBoundingClientRect(), B = cv.getBoundingClientRect(), vv = window.visualViewport, vb = vv ? vv.offsetTop + vv.height : innerHeight;
-            const below = vb - P.bottom - 8;                                     // 종이 아래 (표지 테두리 · 책상)
-            el.classList.toggle('side', below < h); el.style.transform = ''; el.style.transformOrigin = '';
-            if (below >= h) {                                                    // 아래 : 표지 밖에 자리가 있으면 책상 위 가운데 · 없으면 표지 테두리 위
-                const top = vb - B.bottom - 8 >= h ? B.bottom + (vb - B.bottom - h) / 2 : P.bottom + 4 + (below - h) / 2;
-                el.style.left = Math.round(Math.max(6, Math.min(innerWidth - w - 6, B.left + B.width / 2 - w / 2))) + 'px'; el.style.top = Math.round(top) + 'px';
-            } else {                                                             // 옆 : 넓은 쪽 (표지 바깥 책상 위 · 모자라면 표지 테두리 위)
-                const L = P.left - 6, R = innerWidth - P.right - 6, right = R >= L, room = right ? R : L, out = right ? innerWidth - B.right : B.left;
-                const k = Math.min(1, Math.max(.5, (room - 2) / w)), W = w * k, H = h * k;   // 자리가 좁으면 작게 (종이는 안 가려요)
-                const x = right ? (out >= W + 12 ? B.right + (out - W) / 2 : P.right + 3) : (out >= W + 12 ? (out - W) / 2 : P.left - 3 - W);
-                if (k < 1) { el.style.transformOrigin = '0 0'; el.style.transform = `scale(${k.toFixed(3)})`; }
-                el.style.left = Math.round(x) + 'px';
-                el.style.top = Math.round(Math.max(8, Math.min(vb - H - 8, P.bottom - H))) + 'px';
-            }
-        }
+        /* 자리 = 화면 아래 가운데에 고정 (도련 11-03 · 다이어리를 따라다니지 않아요 · css .dkw-backbtn · .dkw-strip) */
+        function dkwBackSpot(el) { el.classList.remove('side'); el.style.left = el.style.top = el.style.transform = ''; }
         function dkwBackPaint() {                                                 // 버튼 (다이어리 아래 책상 위 · 종이를 가리지 않게)
             let b = dkwq('dkwBackBtn');
             const on = dkwDesk() && typeof isCoverOpen !== 'undefined' && isCoverOpen && document.documentElement.classList.contains('desk-show');
