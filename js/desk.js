@@ -63,7 +63,7 @@
         if (window.prodHook) prodHook(dkBuild);
         (window.SNAP_OWN = window.SNAP_OWN || {})['책상소품'] = () => (DK.items || []).map(o => o.id).concat(((prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) || [])).map(o => o && o.id), window.binList ? binList().filter(e => e.k === 'dk').map(e => e.o.id) : []);   // 🗑 휴지통에 있는 것도 (되살리면 그대로)   // 📦 사본 (js/snap.js)
         document.addEventListener('prod-change', () => { try { if (document.getElementById('deskStage') && !DK.edit) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); } } catch (e) {} });
-        const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => ({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }));   // 🎁 기본 세트 선물
+        const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => Object.assign({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }, d.turn && d.fl ? { fl: 1 } : {}));   // ↔ 처음엔 돌린 모습 (상품 '소품.fl')   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
             const seenU = new Set();
@@ -993,7 +993,7 @@
             op = op || {};
             const S = dkSlots(o.id), im = t.querySelector(':scope > img'), Z = dkHomes()[t.dataset.u] || [], [, K, , ic] = dkWin(win);
             const html = (op.ask || `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요`) + (op.free ? `<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o))} · 빈 서랍만 고를 수 있어요</span>` : '')
-                + `<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl ? ' style="transform:scaleX(-1)"' : ''}>`
+                + `<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl && dkFlipOk(dkCat(o.id)) ? ' style="transform:scaleX(-1)"' : ''}>`
                 + S.map((r, i) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k), off = op.free && c;
                     return `<button type="button" class="dkz-slot${c && c.k === win ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"${off ? ' disabled' : ` onclick="closeMsg('s${i}')"`}><b>${dkSlotNm(i, S.length)} 서랍</b><small>${w ? (c.k === win ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
             const a = document.getElementById('customAlertConfirmBtn'); a.style.display = 'none';
@@ -1574,8 +1574,8 @@
                 tip.style.setProperty('--ax', Math.max(-(r.width / 2 - 22), Math.min(r.width / 2 - 22, -dx)) + 'px');
             }
         }
-        /* ↔ 좌우 바꾸기 (도련 10-31 · 스탠드처럼) : 그림만 거울처럼 · 저장 fl: 1 · 화면 · 위에 올리는 면 · 넣는 입구가 있는 소품은 그림과 자리가 어긋나서 빼요 */
-        const dkFlipOk = c => !!c && !c.lcd && !c.photo && !c.front && !c.surf;
+        /* ↔ 좌우 바꾸기 (도련 10-31 · 11-03) : 현실에서 물건을 돌려 놓는 것 (그림 뒤집기가 아니에요) · 돌릴 수 있는 소품만 = 상품 '소품.turn' (지금 🪔 스탠드) · 저장 fl: 1 */
+        const dkFlipOk = c => !!c && !!c.turn;                                   // ↔ 좌우 = 현실에서 돌려 놓는 것 (그림 뒤집기가 아니에요 · 도련 11-03) → 상품 '소품.turn' (상품공방 · 지금은 🪔 스탠드만)
         function deskFlip() {
             const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o || !dkFlipOk(dkCat(o.id))) return;
             if (o.fl) delete o.fl; else o.fl = 1;
