@@ -17,8 +17,8 @@
         board: { tabs: ['memo'], act: null, area: null }
     };
     const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', memo: '📝 메모', area: '👆 누르는 곳' };
-    const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];   // 다꾸러가 바꿔 고르는 색 (맨 앞 = 그 스탠드 상품의 불빛 색 '소품.glowC' · 상품공방)
-    const dcLights = o => { const c = dcCat(o).glowC; return /^#[0-9a-f]{6}$/i.test(c || '') ? [c.toLowerCase()].concat(DC_LIGHT.filter(x => x !== c.toLowerCase())) : DC_LIGHT; };
+    const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];   // 💡 불빛 색 (맨 앞 = 기본 · 다꾸러가 바꿔 골라요 · 색은 앱 코드 · 모양만 상품공방 '소품.glow' · 도련 11-03)
+    const dcLights = () => DC_LIGHT;
     const DC_INK = ['#4f6f93', '#c8457a', '#8f7bd6', '#2f7a5c', '#d98a1e', '#5e4250'];
     const DC_FONT = [['Jua', '말랑'], ["'Press Start 2P'", '픽셀'], ['Gaegu', '손글씨'], ["'Do Hyeon'", '또박']];
     const DC = { u: null, tab: 'paint', area: null, ring: null, mi: -1, mp: 'post' };
