@@ -45,7 +45,7 @@
                 const id = ids[i]; if (!id || (T.list && !entry(id))) return '';
                 const e = entry(id), q = e && e.q0 ? Math.max(.25, Math.min(1, e.q / e.q0)) : 1, th = e && e.th ? e.th : '';
                 const H = (r[3] - r[1]) * (.55 + .45 * q), W = (r[2] - r[0]) * .86;   // 남은 길이만큼 지름이 줄어요
-                return `<button type="button" class="dkt-roll" data-i="${i}" data-id="${htmlEsc(id)}" title="🎀 마스킹테이프" style="left:${(r[0] + (r[2] - r[0] - W) / 2).toFixed(2)}%;top:${(r[3] - H).toFixed(2)}%;width:${W.toFixed(2)}%;height:${H.toFixed(2)}%"><i style="width:${(H / 100 * ih).toFixed(1)}px;height:${(W / 100 * iw).toFixed(1)}px;background-image:url(&quot;${htmlEsc(th)}&quot;)"></i></button>`;   // 무늬 = 테이프 결 그대로 세로로 (롤 둘레)
+                return `<button type="button" class="dkt-roll${window.dsHas && dsHas(id) ? ' dkt-out' : ''}" data-i="${i}" data-id="${htmlEsc(id)}" title="🎀 마스킹테이프" style="left:${(r[0] + (r[2] - r[0] - W) / 2).toFixed(2)}%;top:${(r[3] - H).toFixed(2)}%;width:${W.toFixed(2)}%;height:${H.toFixed(2)}%"><i style="width:${(H / 100 * ih).toFixed(1)}px;height:${(W / 100 * iw).toFixed(1)}px;background-image:url(&quot;${htmlEsc(th)}&quot;)"></i></button>`;   // 무늬 = 테이프 결 그대로 세로로 (롤 둘레)
             }).join('') + (d.front && img ? `<i class="dkt-front"><i style="--fm:url('${htmlEsc(new URL(d.front, location.href).href)}')"><img src="${htmlEsc(img.src)}" alt="" draggable="false"></i></i>` : '');
             host.querySelectorAll('.dkt-roll').forEach(b => wire(b, el));
         });
@@ -94,13 +94,16 @@
         }
         return null;
     }
-    async function use(id, b) {                                               // 🎀 톡 = 다이어리를 펴고 바로 페이지에 (정리함엔 그대로)
+    async function use(id, b) {                                               // 🎀 톡 = 다이어리를 펴고 롤을 페이지 위에 꺼내요 → 롤에서 끌어 뽑아 붙여요 (예전 바구니에서 꺼낸 롤과 같게 · 도련 11-03)
         if (b) { b.classList.remove('dkt-pick'); void b.offsetWidth; b.classList.add('dkt-pick'); }
         if (!window.dkwReady || !await dkwReady()) return;
-        try {
-            const r = window.ownSheet ? await ownSheet(id) : null;
-            if (!r) { showMsg('🎀 이 테이프는 다 썼어요.'); return; }
-            if (window.placeTape) placeTape(r.s.imgs[0], { id });
+        const cv = document.getElementById('canvasArea'), r0 = cv ? cv.getBoundingClientRect() : null, r = r0 && window.dyVisRect ? dyVisRect(r0) : r0;
+        const at = r ? { x: r.left + r.width * .5, y: r.top + r.height * .45 } : null;
+        if (window.dsTapeOut) { await dsTapeOut(id, at); setTimeout(paint, 50); return; }
+        try {                                                                  // (꺼내 둔 스티커창이 없으면 = 바로 붙여요)
+            const s = window.ownSheet ? await ownSheet(id) : null;
+            if (!s) { showMsg('🎀 이 테이프는 다 썼어요.'); return; }
+            if (window.placeTape) placeTape(s.s.imgs[0], { id });
         } catch (e) { console.warn(e); showMsg('⚠ 테이프를 꺼내지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
     }
     /* 🛍️ 봉투 카드를 정리함에 (js/desk.js dkbHome 맨 앞) : 처리했으면 true */

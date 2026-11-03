@@ -1339,7 +1339,7 @@
     const DS = { m: new Map(), z: 1, act: '', t: 0, at: null, tape: null };
     const DS_ROOMS = ['pelRoom', 'pcbRoom', 'pmRoom', 'tkRoom'];
     function dsLayer() { let l = bq('dskLayer'); if (!l) { l = document.createElement('div'); l.id = 'dskLayer'; document.body.appendChild(l); } return l; }
-    function dsEntry(id) { const pk = window.ownPeek ? ownPeek() : null, L = (pk && pk.list) || B.all || []; return L.find(e => e.id === id) || null; }
+    function dsEntry(id) { const pk = window.ownPeek ? ownPeek() : null, L = (pk && pk.list) || B.all || []; return L.find(e => e.id === id) || (DS.more || []).find(e => e.id === id) || null; }   // more = 바구니를 안 열었을 때 읽어 둔 목록 (🎀 마테 정리함)
     const dsLeft = e => !!e && (e.q0 ? e.q > 0 : (e.u || []).length < e.n);
     const dsRoomOn = () => DS_ROOMS.some(id => { const r = bq(id); return r && r.classList.contains('show'); });
     function dsPaint(d) {
@@ -1351,7 +1351,7 @@
     }
     function dsFront(d) { d.el.style.zIndex = ++DS.z; }
     function dsDrop(id) {
-        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id);
+        const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤이 다시 또렷하게
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
     }
     function dsTake(id, at, keep) {
@@ -1491,6 +1491,8 @@
     }
     if (window.ownOnChange) ownOnChange(() => DS.m.forEach(d => { if (DS.act !== d.id) dsPaint(d); }));   // 쓴 양이 바뀌면 다시 그려요
     window.dsTake = dsTake;
+    window.dsTapeOut = async (id, at) => { if (!dsEntry(id) && window.ownList) { try { DS.more = await ownList(); } catch (e) {} } const d = dsTake(id, at, true); if (d) { const e = dsEntry(id); if (e && e.k === 'tape') dsBig(d); } return !!d; };   // 🎀 마테 정리함에서 톡 = 롤을 페이지 위에 꺼내 크게 → 롤에서 끌어 뽑아 써요 (js/desktape.js · 도련 11-03)
+    window.dsHas = id => DS.m.has(id);
 
     /* ---------- 🎨 기본상품 샵 물건 그림 (도련 10-25 · 입체감 있는 손그림 SVG · 그림 파일 없이) ----------
        stkArt(종류) → SVG 글 (72×64 · 진한 갈색 아웃라인 #7b5a63) · 기본상품 샵 선반(.st2-goods)에 넣어요 */

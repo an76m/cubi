@@ -131,3 +131,4 @@ html.an .pc-lay { filter: none; }
 .dkt-front > i { position: absolute; inset: 0; -webkit-mask: var(--fm) 0 0 / 100% 100% no-repeat; mask: var(--fm) 0 0 / 100% 100% no-repeat; }
 .dkt-front img { display: block; width: 100%; height: 100%; }
 html.an .dkt-roll { border-color: var(--an-ol, #7a4a5a); }
+.dkt-roll.dkt-out { opacity: .28; }   /* 🎀 페이지에 꺼내 둔 롤 (✕ 로 치우면 다시 · js/basket.js dsTapeOut) */
