@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/doll-store.js
    👧 인형 저장소 : 구글 드라이브에 인형마다 파일 1개, 인형 이름으로 저장
-       내 드라이브 / 말랑달콤 / 인형 / 로라.json
+       내 드라이브 / 말랑달콤 / 인형돌 / 로라.json
        🎭 인형극 : 말랑달콤 / 인형극 / 상황극.json (js/puppet.js)
    - 다이어리(말랑달콤/다이어리)와는 다른 폴더라서 일기·설정 저장과 서로 영향을 주지 않아요.
    - 저장할 때만 그 인형 파일 하나를 올려요. (설정을 바꿀 때마다 인형까지 올라가지 않음)
@@ -9,7 +9,7 @@
    ※ 파일 불러오는 순서: … → pattern-maker → doll-render → doll-store → doll-room → service */
 
         const DOLL_FOLDERS = {
-            deco: dirPath(DIRS.doll),            // 👧 인형 꾸미기 : 말랑달콤 / 인형 / 로라.json (폴더 한 줄 · 10-26)
+            deco: dirPath(DIRS.doll),            // 👧 인형 꾸미기 : 말랑달콤 / 인형돌 / 로라.json (폴더 한 줄 · 책상 소품 '인형' 과 다른 폴더 · 도련 11-04)
             play: dirPath(DIRS.puppet)           // 🎭 인형극 : 말랑달콤 / 인형극 / 상황극.json (js/puppet.js)
         };
         const DOLL_MAX_COUNT = Infinity;                        // 인형 개수 제한 없음
