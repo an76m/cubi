@@ -1311,6 +1311,8 @@
             try { const r = cv.getBoundingClientRect(), k = cv.width / (r.width || 1), a = cv.getContext('2d').getImageData(Math.round((e.clientX - r.left) * k), Math.round((e.clientY - r.top) * k), 1, 1).data[3]; if (a > 40) return null; /* 흐린 배경(알파 ~26)은 빈 곳 */ } catch (er) { return null; }
             return document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('#innerPage > .bd-tool')).find(Boolean) || null;
         }
+        /* ✋ 핀셋 없이 손으로도 만지는 것 (도련 11-03 · 현실처럼) : 🎀 마스킹테이프 (핀셋도 돼요 · 키즈컷처럼 핀셋만 쓰는 테이프가 생기면 여기서 빼요) */
+        const gdHandOk = box => { const im = box && box.querySelector(':scope > img'); return !!im && typeof isTapeSrc === 'function' && isTapeSrc(im.dataset.src || im.getAttribute('src')); };
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
             if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
@@ -1337,9 +1339,9 @@
                 if (e.target.closest('.page-header, button, textarea, input, select')) return false;
                 gdEat(e); gdFollow(e.clientX, e.clientY, e); gdUse(e); return true;
             }
-            if (!gdIsTwz(gdHeld) && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로)
+            if (!gdIsTwz(gdHeld) && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로 · 🎀 마스킹테이프는 손으로도 · 도련 11-03)
                 const box = e.target.closest('#canvasArea > .element-box');
-                if (box && !box.querySelector('textarea')) { gdEat(e); twzSay(e.clientX, e.clientY); return true; }
+                if (box && !box.querySelector('textarea') && !gdHandOk(box)) { gdEat(e); twzSay(e.clientX, e.clientY); return true; }
             }
             return false;
         }

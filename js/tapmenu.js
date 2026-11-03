@@ -25,6 +25,7 @@
             if (window.twzSay) twzSay(x != null ? x : innerWidth / 2, y != null ? y : innerHeight / 2);
             return true;
         };
+        const tmHandOk = el => { const im = el && el.querySelector(':scope > img'); return !!im && typeof isTapeSrc === 'function' && isTapeSrc(im.dataset.src || im.getAttribute('src')); };   // 🎀 마스킹테이프는 손으로도 (도련 11-03 · js/skins.js gdHandOk 와 같게)
         let tmPinAt = null;                                                    // 빈 곳 메뉴를 연 화면 자리 (🗑 삭제이 거기서 나와요)
         const TM_ANCHOR_MS = 120000;
         /* ⏲ 자동으로 사라지는 시간 (설정에서 정해요) : 팝업메뉴가 닫히는 시간 = 그림 선택이 풀리는 시간 (한 값으로 통일)
@@ -116,7 +117,7 @@
                 ...(window.panelKindOf && panelKindOf(el) === 'photo' ? [{ key: 'p_frame', icon: TM_ICONS.frame, label: '사진 꾸미기', run: () => openTextPanel(el) }] : []),
                 // ...(window.elEditable && elEditable(el) ? [{ key: 'p_edit', icon: TM_ICONS.palette, label: '다듬기', run: () => elEdit(el) }] : []),   // 🎨 다듬기 숨김 (도련 · 2026-10-17 · 코드는 그대로)
                 { key: 'p_order', icon: TM_ICONS.order, label: '순서', run: (rect) => { selectElement(el); openLayerMenu(rect); } },
-                { key: 'p_trash', icon: TM_ICONS.pin, label: '삭제', run: () => { if (!el.querySelector('textarea') && tmNoTwz(x, y)) return; selectElement(el); deleteSelected(); } }   // 📌 이 스티커만 핀셋으로 (빈 곳 메뉴의 삭제핀은 무엇이든 · 도련 10-17)
+                { key: 'p_trash', icon: TM_ICONS.pin, label: '삭제', run: () => { if (!el.querySelector('textarea') && !tmHandOk(el) && tmNoTwz(x, y)) return; selectElement(el); deleteSelected(); } }   // 📌 이 스티커만 핀셋으로 (빈 곳 메뉴의 삭제핀은 무엇이든 · 도련 10-17)
             ], { x, y, above: !!byTouch }, 0, 'elem');
         }
 
