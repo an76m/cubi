@@ -15,10 +15,13 @@
     const isRack = el => !!el && dkDef(el).kind === 'taperack';
     const slotsOf = el => (dkDef(el).slots || []).filter(r => Array.isArray(r) && r.length === 4);
     const entry = id => (T.list || []).find(e => e.id === id) || null;
+    /* 🔑 누구의 목록인지 (도련 11-04 고침) : 로그인이 끝나기 전에 읽은 목록은 빈 목록이에요 → 그걸 믿고 칸을 비우면 꽂아 둔 테이프가 저장에서 사라졌어요
+       → 저장 모드 + 계정이 정해진 뒤에 읽은 목록만 믿어요 · 계정이 바뀌면 다시 읽어요 */
+    const who = () => { const m = window.ownMode ? window.ownMode() : ''; return m === 'drive' ? (typeof COLL !== 'undefined' && COLL.who ? 'drive|' + COLL.who : '') : m; };
     function load(force) {                                                    // 테이프 무늬 · 남은 길이 = 내 스티커 목록 (js/own.js)
-        if ((T.list && !force) || T.loading || !window.ownList) return;
-        T.loading = true;
-        ownList(!!force).then(L => { T.list = Array.isArray(L) ? L : []; T.fresh = !!force; paint(); }).catch(() => {}).finally(() => { T.loading = false; });
+        if ((T.list && !force && T.who === who()) || T.loading || !window.ownList || !who()) return;   // 아직 로그인 중 = 읽지 않아요
+        T.loading = true; const w = who();
+        ownList(!!force).then(L => { if (w !== who()) return; T.list = Array.isArray(L) ? L : []; T.who = w; T.fresh = !!force; paint(); }).catch(() => {}).finally(() => { T.loading = false; });
     }
     if (window.ownOnChange) ownOnChange(() => { T.fresh = false; load(true); });
     /* 정리함에 꽂힌 테이프 id (지금 책상에 있는 정리함만 · 다 쓴 · 버린 테이프는 빼요) */
@@ -37,7 +40,8 @@
             if (!isRack(el)) { if (host) host.remove(); return; }
             if (!host) { host = document.createElement('div'); host.className = 'dkt-rack'; el.appendChild(host); }
             const S = slotsOf(el), ids = (M[el.dataset.u] || []).slice(0, S.length);
-            if (T.list) ids.forEach((id, i) => { if (id && !entry(id)) { if (T.fresh) { ids[i] = null; dirty = true; } else load(true); } });   // 버렸거나 없어진 테이프는 빼요 (목록을 새로 읽고 나서만 · 방금 받은 것은 아직 목록에 없을 수 있어요)
+            const sure = T.list && T.fresh && T.who && T.who === who() && T.list.length > 0;   // 지금 계정의 목록을 방금 새로 읽었을 때만 (빈 목록 · 로그인 전 목록은 안 믿어요)
+            if (T.list) ids.forEach((id, i) => { if (id && !entry(id)) { if (sure) { ids[i] = null; dirty = true; } else if (!T.fresh) load(true); } });   /* 방금 읽은 목록이면 다시 읽지 않아요 (계속 읽기 막기) */   // 버렸거나 없어진 테이프는 빼요 (방금 받은 것은 아직 목록에 없을 수 있어요)
             if (dirty) M[el.dataset.u] = ids;
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
@@ -50,7 +54,7 @@
             host.querySelectorAll('.dkt-roll').forEach(b => wire(b, el));
         });
         if (dirty) write(M);
-        if (!T.list) load();
+        if (!T.list || T.who !== who()) load(true);
     }
     window.dktPaint = () => { try { paint(); } catch (e) { console.warn('🎀 마테 정리함', e); } };
     /* 롤 톡 = 바로 쓰기 · 🛠 꾸미기 = 끌어 옮기기 */
