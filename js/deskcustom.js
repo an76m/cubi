@@ -15,7 +15,8 @@
         clock: { tabs: ['digits', 'alarm'], act: null, area: null },
         photo: { tabs: ['photo'], act: null, area: null },
         board: { tabs: ['memo'], act: null, area: null },
-        lights: { tabs: [], act: 'lights', area: null }                     // 💡 전구줄 : 톡 = 켜고 끄기 (처음 = 켜짐 · js/desklights.js)
+        lights: { tabs: [], act: 'lights', area: null },                    // 💡 전구줄 : 톡 = 켜고 끄기 (처음 = 켜짐 · js/desklights.js)
+        peg: { tabs: ['photo'], act: null, area: null }                      // 📷 집게 사진 : 🖼 내 사진 넣기 (줄에 집기 = js/desklights.js)
     };
     const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', memo: '📝 메모', area: '👆 누르는 곳' };
     const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];   // 💡 불빛 색 (맨 앞 = 기본 · 다꾸러가 바꿔 골라요 · 색은 앱 코드 · 모양만 상품공방 '소품.glow' · 도련 11-03)

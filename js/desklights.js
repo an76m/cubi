@@ -4,7 +4,8 @@
    - 줄에 그림(전구)이 같은 간격으로 매달려요 · 그림 · 피봇 · 크기 · 개수 · 빛 색 · 깜빡임 = 상품 '소품.줄' (상품공방) · 깜빡임 종류의 동작 = 이 파일 DL_BLINK
    - 빛 = 책상 맨 위 한 겹 (#deskStage > .dk-lights · 스크린) · 톡 = 켜고 끄기 (o.cs.off · js/deskcustom.js dcTap)
    - 저장 : o.lp = 핀 [[줄 위 자리 0~1, x, y], …] (소품 네모 안 px) · o.lb = [가로, 세로] (핀을 옮기면 줄을 감싸게 다시 정해요)
-   상품 '소품.줄' = { len: 줄 길이(px), n: 전구 수, glowR: 빛 크기(전구 크기 ×), cols: [빛 색 …](전구마다 돌아가며), 그림: [{ f: 파일 이름(전구1 …), pv: [x, y](0~1), s: 크기(px) }](돌아가며), 깜빡임: [{ t, d: 초, v: 한 박자 초 }](차례대로 · 끝나면 처음부터) } */
+   📷 집게 사진 (종류 'peg') : 🛠 꾸미기에서 줄 위에 놓으면 그 자리에 집혀요 (o.on = { r: 줄 소품 u, t: 줄 위 자리 0~1 }) · 줄 따라 흔들리고 무게만큼 줄이 더 처져요 · 줄 밖에 놓으면 그냥 소품 · 집는 자리 = 상품 '소품.peg' [x, y] (소품 px)
+   상품 '소품.줄' = { lc: 줄 색, lw: 줄 굵기(px), len: 줄 길이(px), n: 전구 수 (0 = 줄만), glowR: 빛 크기(전구 크기 ×), cols: [빛 색 …](전구마다 돌아가며), 그림: [{ f: 파일 이름(전구1 …), pv: [x, y](0~1), s: 크기(px) }](돌아가며), 깜빡임: [{ t, d: 초, v: 한 박자 초 }](차례대로 · 끝나면 처음부터) } */
 (function () {
     const DL_N = 40, DL_G = 0.5, DL_IT = 40, DL_DAMP = 0.93, DL_FADE = 0.07, DL_M = 160;
     /* 깜빡임 종류 (상품공방 BL_KINDS 와 같게) : i = 전구 번호 · n = 전구 수 · t = 이 칸에서 지난 초 · v = 한 박자 초 → 0 ~ 1 */
@@ -16,7 +17,7 @@
     };
     const S = new Map();                                                      // u → 줄 상태
     const IMG = new Map();                                                    // 그림 주소 → Image
-    let run = false, T0 = performance.now(), last = T0;
+    let run = false, T0 = performance.now(), last = T0, PEGS = [];
     const cfgOf = c => (c && c.줄) || {};
     const itemOf = u => DK.items.find(x => x.u === u);
     const imgOf = src => { if (!IMG.has(src)) { const im = new Image(); im.src = src; IMG.set(src, im); } return IMG.get(src); };
@@ -57,6 +58,7 @@
     function step(st) {
         const P = st.pts, pins = [...st.pins].map(([k, p]) => [k, absPin(st, p)]);
         for (const p of P) { const vx = (p.x - p.px) * DL_DAMP, vy = (p.y - p.py) * DL_DAMP; p.px = p.x; p.py = p.y; p.x += vx; p.y += vy + DL_G; }
+        (st.load || []).forEach(i => { P[i].y += DL_G * 1.2; });              // 📷 집은 사진 무게
         for (let it = 0; it < DL_IT; it++) {
             for (let i = 0; i < DL_N - 1; i++) {
                 const a = P[i], b = P[i + 1], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1e-6, df = (d - st.seg) / d;
@@ -85,8 +87,8 @@
         g.setTransform(k, 0, 0, k, -ox * k, -oy * k); g.clearRect(ox, oy, W, H);
         x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath(); x.moveTo(P[0].x, P[0].y);   // 🔌 전기줄 : 얇은 검정
         for (let i = 1; i < DL_N - 1; i++) x.quadraticCurveTo(P[i].x, P[i].y, (P[i].x + P[i + 1].x) / 2, (P[i].y + P[i + 1].y) / 2);
-        x.lineTo(P[DL_N - 1].x, P[DL_N - 1].y); x.strokeStyle = '#111'; x.lineWidth = 2; x.stroke();
-        const n = Math.max(1, Math.min(60, Math.round(+c.n || 1))), B = (st.c.bulbs || []), cols = Array.isArray(c.cols) && c.cols.length ? c.cols : ['#ffe28c'], R = +c.glowR || 2;
+        x.lineTo(P[DL_N - 1].x, P[DL_N - 1].y); x.strokeStyle = /^#[0-9a-f]{6}$/i.test(c.lc || '') ? c.lc : '#111'; x.lineWidth = +c.lw > 0 ? +c.lw : 2; x.stroke();   // 줄 색 · 굵기 = 상품
+        const n = Math.max(0, Math.min(60, Math.round(+c.n || 0))), B = (st.c.bulbs || []), cols = Array.isArray(c.cols) && c.cols.length ? c.cols : ['#ffe28c'], R = +c.glowR || 2;
         const L = Array.isArray(c.깜빡임) ? c.깜빡임.filter(b => b && DL_BLINK[b.t]) : [], tot = L.reduce((a, b) => a + Math.max(.1, +b.d || 0), 0);
         let clip = null, tl = 0; if (tot) { let r = ((now - T0) / 1000) % tot; for (const b of L) { const d = Math.max(.1, +b.d || 0); if (r < d) { clip = b; tl = r; break; } r -= d; } }
         if (st.bright.length !== n) st.bright = Array(n).fill(on ? 1 : 0);
@@ -113,12 +115,13 @@
     function frame(now) {
         const dt = Math.min(.1, (now - last) / 1000); last = now;
         if (!S.size || !document.documentElement.classList.contains('desk-on')) { run = false; return; }
-        if (!document.hidden) S.forEach(st => { if (!st.el.isConnected) { dropState(st.u); return; } step(st); draw(st, now, dt); });
+        if (!document.hidden) { pegLoad(); S.forEach(st => { if (!st.el.isConnected) { dropState(st.u); return; } step(st); draw(st, now, dt); }); pegPlace(); }
         requestAnimationFrame(frame);
     }
     function dlPaint() {                                                      // js/desk.js deskItemsRender 끝에서
         const els = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => (dkCat(el.dataset.id) || {}).kind === 'lights');
         S.forEach((st, u) => { if (!els.includes(st.el)) dropState(u); });
+        PEGS = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => (dkCat(el.dataset.id) || {}).kind === 'peg');
         els.forEach(el => { const o = itemOf(el.dataset.u); if (o && Array.isArray(o.lb)) { el.style.width = o.lb[0] + 'px'; el.style.height = o.lb[1] + 'px'; } stateOf(el); });
         if (S.size && !run) { run = true; last = performance.now(); requestAnimationFrame(frame); }
     }
@@ -169,10 +172,34 @@
     }
     function dlSolid(el, cx, cy) {                                            // 톡 · 끌기 = 줄 · 전구 · 핀 위만 (빈 곳은 아래 소품으로 · js/desk.js dkSolidAt)
         const st = S.get(el.dataset.u); if (!st) return false;
-        const m = toDesk({ clientX: cx, clientY: cy }), r = 14 / (DK.s || 1), c = cfgOf(st.c), n = Math.max(1, Math.round(+c.n || 1)), B = st.c.bulbs || [];
+        const m = toDesk({ clientX: cx, clientY: cy }), r = 14 / (DK.s || 1), c = cfgOf(st.c), n = Math.max(0, Math.round(+c.n || 0)), B = st.c.bulbs || [];
         if (st.pts.some(p => Math.hypot(p.x - m.x, p.y - m.y) < r)) return true;
         for (let i = 0; i < n; i++) { const b = B.length ? B[i % B.length] : null, s = (b && +b.s) || 30, p = onRope(st.pts, (i + .5) / n); if (Math.hypot(p.x - m.x, p.y + s * .4 - m.y) < s * .6 + r * .5) return true; }
         return false;
     }
-    window.dlPaint = dlPaint; window.dlSolid = dlSolid;
+    /* ---------- 📷 집게 사진 ---------- */
+    const pegPt = el => { const c = dkCat(el.dataset.id) || {}; return Array.isArray(c.peg) ? [+c.peg[0] || 0, +c.peg[1] || 0] : [(c.w || el.offsetWidth) / 2, 4]; };
+    function pegLoad() {                                                      // 줄마다 집힌 자리 (무게)
+        S.forEach(st => { st.load = []; });
+        PEGS.forEach(el => { const o = itemOf(el.dataset.u), st = o && o.on && S.get(o.on.r); if (!st || el.classList.contains('lift')) return; st.load.push(Math.max(1, Math.min(DL_N - 2, Math.round(+o.on.t * (DL_N - 1))))); });
+    }
+    function pegPlace() {
+        PEGS.forEach(el => {
+            if (!el.isConnected) return; const o = itemOf(el.dataset.u), st = o && o.on && S.get(o.on.r);
+            if (el.classList.contains('lift') || !st) { el.style.rotate = ''; return; }   // 끄는 중 · 줄이 없으면 그 자리 그대로
+            const pg = pegPt(el), p = onRope(st.pts, Math.max(.01, Math.min(.99, +o.on.t))), sw = Math.max(-.3, Math.min(.3, -p.vx * .05));
+            el.style.left = (p.x - pg[0]) + 'px'; el.style.top = (p.y - pg[1]) + 'px';
+            el.style.transformOrigin = `${pg[0]}px ${pg[1]}px`; el.style.rotate = sw.toFixed(3) + 'rad';
+            el.style.zIndex = (parseInt(st.el.style.zIndex) || 10) + 1;       // 집힌 줄 바로 앞
+        });
+    }
+    function dlPegDrop(el) {                                                  // js/desk.js deskWire : 🛠 꾸미기에서 놓으면 = 줄 가까우면 집혀요
+        if ((dkCat(el.dataset.id) || {}).kind !== 'peg') return;
+        const o = itemOf(el.dataset.u); if (!o) return;
+        const pg = pegPt(el), a = { x: el.offsetLeft + pg[0], y: el.offsetTop + pg[1] }; let best = null;
+        S.forEach(st => { for (let i = 1; i < 200; i++) { const t = i / 200, p = onRope(st.pts, t), d = Math.hypot(p.x - a.x, p.y - a.y); if (d < 40 && (!best || d < best.d)) best = { d, r: st.u, t: +t.toFixed(4) }; } });
+        if (best) o.on = { r: best.r, t: best.t }; else delete o.on;
+        if (!run && S.size) { run = true; last = performance.now(); requestAnimationFrame(frame); }
+    }
+    window.dlPaint = dlPaint; window.dlSolid = dlSolid; window.dlPegDrop = dlPegDrop;
 })();
