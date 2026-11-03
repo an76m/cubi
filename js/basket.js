@@ -704,7 +704,7 @@
     window.abGripAt = (el, ev) => { const bx = el && el.closest('.abs-box'); if (bx) abSpaceGrab(bx, ev); };   // 🤍 떼는 판이 떠 있어도 이름표를 끌면 옮겨져요 (js/stickerpeel.js)
     window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abSpace() && vis('basketKindModal');   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
     /* 🤍 이형지북 배율 = 이형지북 한 쪽 폭 ÷ 다이어리 한 쪽 폭 (둘 다 A5 비율) → 다이어리에 붙였을 때와 같은 크기로 보여요 (도련 10-29) */
-    function abRelK() { const r = bq('abRel'), dw = window.dySize ? dySize().w : 440; return r && dw ? r.clientWidth / dw : .5; }
+    function abRelK() { const r = bq('abRel'), dw = window.dySize ? (dySize().pw || dySize().w) : 440;   /* pw = 바인더 책등 폭과 상관없는 종이 폭 (도련 11-04) */ return r && dw ? r.clientWidth / dw : .5; }
     /* 큰 그림으로 바꿔 보여요 (목록의 작은 미리보기는 흐려서 · 그 쪽에 보이는 것만 · 한 번 받으면 기억) */
     function abRelHi() {
         const box = bq('abRel'); if (!box || !window.ownSheetImgs) return;

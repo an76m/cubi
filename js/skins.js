@@ -611,9 +611,13 @@
         const dvSideSvg = s => `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="2.6" y="5" width="8.6" height="14" rx="1.8" fill="currentColor" fill-opacity="${s === 'l' ? '.9' : '0'}" stroke="currentColor" stroke-width="1.8"/><rect x="12.8" y="5" width="8.6" height="14" rx="1.8" fill="currentColor" fill-opacity="${s === 'r' ? '.9' : '0'}" stroke="currentColor" stroke-width="1.8"/></svg>`;
         const dyMode = () => { if (dkCv()) return 'right'; const v = dvCfg()[dvDev()]; return v === 'r' ? 'right' : v === 'l' ? 'left' : dvDev() === 'phone' ? 'swipe' : 'spread'; };   // 📕 표꾸 중엔 접힌 겉표지처럼 앞표지 한 쪽만
         let dyView = 'l';                                                      // 📱 지금 보는 쪽 (l 왼쪽 · r 오른쪽)
-        function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요
-            const t = dyNow(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H;
-            return { w: Math.round(ch / t.r) + PAGE_BORDER * 2, h: DY_H, two: dyMode() === 'spread' };
+        /* 🗂️ 바인더 가운데 책등 폭 = 책 한 쪽 폭의 8% (도련 11-04 : 현실 바인더처럼 좁게 · 예전 17%) · css/anime.css · style.css .dy-gap 과 같게
+           책등은 두 쪽 종이 위에 겹쳐 있어서, 좁아진 만큼 책 전체 가로도 줄여요 (보이는 종이 폭은 그대로) */
+        const DY_SP_OLD = .17, DY_SP = .08;
+        function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요 · pw = 책등과 상관없는 종이 한 쪽 폭
+            const t = dyNow(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H, pw = Math.round(ch / t.r) + PAGE_BORDER * 2;
+            const w = t.b === 'ring' ? Math.round(ch / t.r * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) + PAGE_BORDER * 2 : pw;
+            return { w, pw, h: DY_H, two: dyMode() === 'spread' };
         }
         function dyVisX() {                                                    // 지금 보이는 쪽의 왼쪽 끝 (페이지 px) : 📱 한쪽 · 밀어 보기에서 오른쪽 쪽을 보고 있으면 반 장만큼
             const b = document.getElementById('diaryBook'), cv = document.getElementById('canvasArea');

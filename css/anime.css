@@ -603,7 +603,7 @@ html.an .inner-page .canvas-area { --pg2: color-mix(in srgb, var(--page-bg), var
   box-shadow: 0 0 0 2px var(--dyv-ol) !important; }   /* 선 한 줄 (겹친 종이 선 없음 · 도련 10-30) */
 html.an .inner-page .canvas-area:not([class*="lf-"]) { background: var(--page-bg) !important; }
 /* 가운데 책등 */
-html.an .dy-gap { top: -1.2cqw !important; bottom: -1.2cqw !important; width: 17cqw !important; margin-left: -8.5cqw !important; background: var(--dyv-sp) !important; box-shadow: inset 2px 0 0 var(--dyv-ol), inset -2px 0 0 var(--dyv-ol) !important; }
+html.an .dy-gap { top: -1.2cqw !important; bottom: -1.2cqw !important; width: 8cqw !important; margin-left: -4cqw !important; background: var(--dyv-sp) !important; box-shadow: inset 2px 0 0 var(--dyv-ol), inset -2px 0 0 var(--dyv-ol) !important; }
 html.an .inner-page.dy-bo .dy-gap { width: .35cqw !important; margin-left: -.175cqw !important; }
 html.an .dy-gap::before { background: transparent !important; box-shadow: none !important; }
 /* 링 6개 (선 · 핑크 · 그늘 세 겹 = 같은 모양 마스크 · 선 색은 다이어리를 따라가요) */
