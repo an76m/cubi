@@ -63,7 +63,7 @@
         if (window.prodHook) prodHook(dkBuild);
         (window.SNAP_OWN = window.SNAP_OWN || {})['책상소품'] = () => (DK.items || []).map(o => o.id).concat(((prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) || [])).map(o => o && o.id), window.binList ? binList().filter(e => e.k === 'dk').map(e => e.o.id) : []);   // 🗑 휴지통에 있는 것도 (되살리면 그대로)   // 📦 사본 (js/snap.js)
         document.addEventListener('prod-change', () => { try { if (document.getElementById('deskStage') && !DK.edit) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); } } catch (e) {} });
-        const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => Object.assign({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }, d.turn && d.fl ? { fl: 1 } : {}));   // ↔ 처음엔 돌린 모습 (상품 '소품.fl')   // 🎁 기본 세트 선물
+        const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => Object.assign({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }, d.fl && dkFlipOk(d) ? { fl: 1 } : {}));   // ↔ 처음엔 돌린 모습 (상품 '소품.fl' · 상품공방)   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
             const seenU = new Set();
@@ -1574,8 +1574,9 @@
                 tip.style.setProperty('--ax', Math.max(-(r.width / 2 - 22), Math.min(r.width / 2 - 22, -dx)) + 'px');
             }
         }
-        /* ↔ 좌우 바꾸기 (도련 10-31 · 11-03) : 현실에서 물건을 돌려 놓는 것 (그림 뒤집기가 아니에요) · 돌릴 수 있는 소품만 = 상품 '소품.turn' (지금 🪔 스탠드) · 저장 fl: 1 */
-        const dkFlipOk = c => !!c && !!c.turn;                                   // ↔ 좌우 = 현실에서 돌려 놓는 것 (그림 뒤집기가 아니에요 · 도련 11-03) → 상품 '소품.turn' (상품공방 · 지금은 🪔 스탠드만)
+        /* ↔ 좌우 바꾸기 (도련 10-31 · 11-03) : 현실에서 물건을 돌려 놓는 것 (그림 뒤집기가 아니에요) · 돌릴 수 있는 종류만 = DK_TURN (지금 🪔 스탠드) · 저장 fl: 1 */
+        const DK_TURN = ['lamp'];                                                 // ↔ 좌우로 돌릴 수 있는 종류 = 🪔 스탠드 (현실에서 돌려 놓는 물건 · 그림 뒤집기가 아니에요 · 도련 11-03 · 불빛도 돌린 쪽으로)
+        const dkFlipOk = c => !!c && DK_TURN.includes(c.kind);
         function deskFlip() {
             const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o || !dkFlipOk(dkCat(o.id))) return;
             if (o.fl) delete o.fl; else o.fl = 1;
