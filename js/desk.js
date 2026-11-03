@@ -39,6 +39,7 @@
             if (!x.u.디자인 || !o.kind || !String(P.이름 || '') || !(+o.w > 0) || !(+o.h > 0) || !num(o.x) || !num(o.y)) { console.warn('🧁 소품 속성이 모자라요 :', x.id); return null; }
             Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름), w: +o.w, h: +o.h, x: +o.x, y: +o.y });
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
+            if (o.kind === 'lights') o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
             if (P.처음선물) delete o.nost; else o.nost = 1;
             if (P.숨김) o.off = 1;
             return o;
@@ -67,7 +68,7 @@
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
             const seenU = new Set();
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요)
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, o.g ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {}, Array.isArray(o.lp) ? { lp: o.lp } : {}, Array.isArray(o.lb) ? { lb: o.lb } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요) · 💡 전구줄 핀(lp) · 네모(lb)
             DK.fresh = !Array.isArray(v);                                         // 아직 목록이 없어요 → 🎁 기본세트 (드라이브를 읽은 뒤 giftEnsure)
             DK.items = L; DK.seen = JSON.stringify(L);
         }
@@ -342,6 +343,7 @@
             } catch (e) { return null; }                                         // 읽을 수 없는 그림이면 네모 전체
         }
         function dkSolidAt(el, cx, cy) {                                         // 그 소품 그림이 (cx, cy) 화면 자리에 그려져 있나요
+            if (el.classList.contains('dk-lt')) return !!(window.dlSolid && dlSolid(el, cx, cy));   // 💡 전구줄 = 줄 · 전구 위 (js/desklights.js)
             const img = el.querySelector(':scope > img'), r = (img || el).getBoundingClientRect();
             if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return false;
             const m = img && dkHitMap(img); if (!m) return true;
@@ -487,7 +489,7 @@
             });
             DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); });          // 📦 보관함의 칠한 소품 그림도
             if (window.dcApplyAll) dcApplyAll();                                  // 💡 불빛 · 🔢 숫자 (js/deskcustom.js)
-            dknPaintAll(); dkVolsPaint(); deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint(); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤   // 📔 나머지 다이어리 권
+            dknPaintAll(); dkVolsPaint(); deskZAll(); deskTick(); deskFnPaint(); deskFit(); deskBagsPaint(); if (window.dktPaint) dktPaint(); if (window.dlPaint) dlPaint();   // 💡 전구줄   // 🎀 마테 정리함 롤   // 📔 나머지 다이어리 권
         }
         /* 🎨 칠한 소품 (p: 1) = 종류 폴더 파일에 칠한 그림이 들어 있어요 (js/deskpaint.js) → 읽어서 그 소품 그림만 바꿔요 */
         const dkSrc = o => DK.art[o.u] || (dkCat(o.id) || {}).src || '';
