@@ -966,7 +966,7 @@
             return out;
         }],
         bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)
-        gd: ['문구', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
+        gd: ['문구용품', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
             const L = window.gdShopList ? gdShopList() : [], ic = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
             SH_CATS.gd = [...new Map(L.map(x => [x.g, `${ic[x.g] || '✏️'} ${x.kind}`]))];
             return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: () => gdGive(x.id) }));   // gid = 봉투 카드가 기억해요
