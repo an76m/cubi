@@ -205,16 +205,16 @@
                 if (!back && giftOn()) giftWrite();
             } finally { giftBusy = false; }
         }
-        /* 🎁 처음 연결 (도련 11-02 · 처음 받은 기본 세트에만 한 번) : ✏️ 기본 펜꽂이 = 펜꽂이 · 🗄️ 기본 서랍장 맨 아래 칸 = 문구함 (이름표도)
+        /* 🎁 처음 연결 (도련 11-02 · 처음 받은 기본 세트에만 한 번) : ✏️ 기본 펜꽂이 = 펜꽂이 · 🗄️ 기본 서랍장 맨 아래 칸 = 문구함 (이름표도 = 글 '펜꽂이' · '문구함' · 도련 11-03)
            이미 연결이 있으면(다른 기기 · 되살리기) 그대로 · 그 뒤 다꾸러가 바꾸거나 뺀 연결은 손대지 않아요 */
         function dkStarterLinks() {
             if (typeof prefGet !== 'function' || DK.edit) return;
             const desk = dkOnDesk(), v = prefGet(DK_FN_KEY, DK_FN_LOCAL), M = v && typeof v === 'object' ? Object.assign({}, v) : {};
             const cup = desk.find(o => dkHoldOk(o.id).includes('pc') && !dkSlots(o.id));
-            if (cup && !('pc' in M)) { M.pc = cup.u; if (!cup.tag) cup.tag = { on: true, ic: '✏️' }; dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
+            if (cup && !('pc' in M)) { M.pc = cup.u; if (!cup.tag) cup.tag = dknWordTag('pc'); dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
             const H = dkHomes(), has = Object.keys(H).some(u => H[u].some(e => e.k === 'gd'));
             const dr = !has && desk.find(o => { const S = dkSlots(o.id); return S && dkHoldOk(o.id).includes('gd') && !(H[o.u] || []).some(e => e.s === S.length - 1); });
-            if (dr) { const S = dkSlots(dr.id), s = S.length - 1; H[dr.u] = (H[dr.u] || []).concat([{ k: 'gd', s, r: S[s], tag: { on: true } }]); dkHomesSet(H); }
+            if (dr) { const S = dkSlots(dr.id), s = S.length - 1; H[dr.u] = (H[dr.u] || []).concat([{ k: 'gd', s, r: S[s], tag: dknWordTag('gd') }]); dkHomesSet(H); }
             deskFnPaint(); if (typeof dknPaintAll === 'function') dknPaintAll();
         }
         window.deskGiftWrite = giftWrite; window.deskGiftBusy = () => giftBusy || DK.fresh;
@@ -983,7 +983,7 @@
             deskFnPaint();
             if (old) { dknPaintAll(); await dkzRehome(old.k, u, old); }                 // 🗄️ 밀려난 것 = 빈 서랍으로 옮기기
             if (S) { if (!keepTag && await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, win); setTimeout(() => dknPanel(u + '|' + win), 50); } }
-            else if (!o.tag) { o.tag = { on: !!await showAsk(`🏷 ${nm}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(u), 50); }
+            else if (!o.tag) { o.tag = { m: 't', t: (dkWin(win) || [])[1] || '', on: !!await showAsk(`🏷 ${nm}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(u), 50); }
             dknPaintAll(); dkbPulse(t); dkbTake(n, j);
         }
         /* ---------- 🗄️ 서랍 칸 (도련 11-01 : 칸 자리는 미리 정해 둬요 · DK_HOLD) ---------- */
@@ -1024,7 +1024,7 @@
                 dknPaintAll(); dkbPulse(t); return;
             }
         }
-        function dkzTagOn(u, k) { const H = dkHomes(), e = (H[u] || []).find(x => x.k === k && x.r); if (!e) return; e.tag = Object.assign({}, e.tag || {}, { on: true }); dkHomesSet(H); dknPaintAll(); }
+        function dkzTagOn(u, k) { const H = dkHomes(), e = (H[u] || []).find(x => x.k === k && x.r); if (!e) return; e.tag = Object.assign(dknWordTag(k), e.tag || {}, { on: true }); dkHomesSet(H); dknPaintAll(); }
         const dkzPct = (el, cx, cy) => { const im = el.querySelector(':scope > img') || el, q = im.getBoundingClientRect(); return [(cx - q.left) / q.width * 100, (cy - q.top) / q.height * 100]; };   // 소품 그림 안 %
         const dkzHit = (L, p) => [...L].reverse().find(e => e.r && p[0] >= e.r[0] && p[0] <= e.r[2] && p[1] >= e.r[1] && p[1] <= e.r[3]);   // 겹치면 나중에 그린 칸
         /* 🛠 꾸미기 : 고른 소품의 칸을 점선으로 */
@@ -1059,7 +1059,8 @@
         /* 이름표 처음 값 : 기능이 붙은 소품은 예전 기능 이름표처럼 (켜짐 · 아래쪽) → 고치면 그때부터 내 이름표 (도련 10-30 : 이미 붙어 있던 이름표도 이 창으로) */
         const dknOf = o => Object.assign({}, DKN0, (o && o.tag) || {});         // 🏷 처음엔 꺼져 있고 글은 비어 있어요 (도련 10-30 : 정해진 이름이 저절로 붙지 않게 · 내가 적은 것만)
         const dknKindIc = k => ({ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[k] || (window.stkArt ? stkArt(k) : '🎁'));
-        const dknAuto = () => ({ t: '', ic: '🏷️' });                             // 비워 두면 = 글 없음 · 아이콘만 기본 🏷️
+        const dknAuto = () => ({ t: '', ic: '🏷️' });
+        const dknWordTag = k => ({ on: true, m: 't', t: (dkWin(k) || [])[1] || '' });   // 🏷 처음 붙는 이름표 = 아이콘 말고 글 (문구함 · 펜꽂이 · 씰스티커 … · 도련 11-03 · 🛠 꾸미기에서 바꿀 수 있어요)                             // 비워 두면 = 글 없음 · 아이콘만 기본 🏷️
         /* 🏷 이름표 하나 만들기 = 소품 · 📔 다이어리 모두 이것 하나 (도련 10-30 : 이름표를 바꾸면 한 번에 다 바뀌게) · 모양은 css .dkn-tag
            g = { on, m, t, ic, f, c, bx, bg, ol, oc, x, y, s, v } · a = 비워 둘 때 { t, ic } · cls = 더 붙일 class */
         function dknBuild(g, a, cls) {
