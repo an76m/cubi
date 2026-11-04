@@ -2087,12 +2087,13 @@
         const DY_KNAME = { '다이어리': '다이어리', '노트': '페이지노트', '바인더': '페이지바인더' };   // 다꾸러에게 보이는 이름 (도련 11-04 : 현실 이름 페이지노트 · 페이지바인더 · 만년형은 다꾸용 아님 · 도련 11-04)
         let dyKind = '다이어리', dyTab = 'free';
         /* 📔 다이어리 = 받은 권 보관소 (11-05 도련 : 나만의 다이어리 · 내가만든 칸 없앴어요)
-                       📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
+                       📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '페이지노트 만들기 · 페이지바인더 만들기' (11-05 들어가게)) */
         const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off) : [];   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? '📔 다이어리 보관소' : DY_ICON[dyKind] + ' ' + DY_KNAME[dyKind];
+            const ps = document.getElementById('dyPickS'); if (ps) ps.textContent = dyKind === '다이어리' ? '해마다 받은 기본 다이어리가 여기 쌓여요 · 톡 하면 그 해 다이어리를 펼쳐요' : `내가 만든 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요 · ✏️ 고치기`;
             const bar = document.getElementById('dyTabs');
             const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
@@ -2104,7 +2105,7 @@
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             if (dyKind === '다이어리' && window.dyyCells) { document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${dyyCells()}</div>`; dyRender(); return; }   // 📔 보관소 : 받은 해 (js/dyyear.js)
-            const list = dyItems(dyKind, g), empty = { mine: `아직 만든 ${DY_KNAME[dyKind]}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${DY_KNAME[dyKind]} 만들기(준비중)가 열리면 만든 ${DY_KNAME[dyKind]}가 여기에 들어와요.`, share: `아직 공유받은 ${DY_KNAME[dyKind]}가 없어요.`, event: `아직 받은 이벤트 ${DY_KNAME[dyKind]}가 없어요.`, shop: `문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.` }[g] || `아직 가진 ${DY_KNAME[dyKind]}가 없어요.<br>나중에 문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.`;
+            const list = dyItems(dyKind, g), empty = { mine: `아직 만든 ${DY_KNAME[dyKind]}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${DY_KNAME[dyKind]} 만들기로 만들어 보세요.`, share: `아직 공유받은 ${DY_KNAME[dyKind]}가 없어요.`, event: `아직 받은 이벤트 ${DY_KNAME[dyKind]}가 없어요.`, shop: `문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.` }[g] || `아직 가진 ${DY_KNAME[dyKind]}가 없어요.<br>나중에 문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.`;
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + DY_KNAME[dyKind] + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
