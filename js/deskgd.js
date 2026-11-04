@@ -309,7 +309,7 @@
             if (!p) { p = document.createElement('div'); p.id = 'dkwBackPn'; p.className = 'dkw-strip'; document.body.appendChild(p); p.addEventListener('pointerdown', e => e.stopPropagation()); }
             p.dataset.sig = out.join(',');
             p.innerHTML = out.map(id => `<button type="button" class="dkw-out" data-id="${htmlEsc(id)}" title="${htmlEsc(dkwOutName(id))} → ${dkwHomeOf(id) === 'cup' ? '펜꽂이' : '문구함'}" aria-label="${htmlEsc(dkwOutName(id))} 제자리로">${dkGdIc({ k: 'gd', gid: id }) || '<i>✂️</i>'}<span class="dkw-x" aria-hidden="true">✕</span></button>`).join('');
-            p.querySelectorAll('.dkw-out').forEach(c => c.onclick = () => { const id = c.dataset.id, h = dkwHomeOf(id), at = c.getBoundingClientRect(); dkwBackOne(id); dkwSay(h === 'cup' ? `✏️ ${dkwOutName(id)} → 펜꽂이` : `🗄️ ${dkwOutName(id)} → 문구함 서랍`, { getBoundingClientRect: () => at }); setTimeout(dkwBackPaint, 0); });
+            p.querySelectorAll('.dkw-out').forEach(c => c.onclick = () => { dkwBackOne(c.dataset.id); setTimeout(dkwBackPaint, 0); });   // 알림 글 없이 (도련 11-05)
             p.hidden = false;
         }
         function dkwBackOne(id, quiet) {                                           // 그 문구만 제자리로 (페이지에서 치워요)
