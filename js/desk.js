@@ -213,9 +213,13 @@
         async function dkStarterTapes() {
             try {
                 if (!window.sbStarterTapes || !window.ownTake || !(window.ownMode && ownMode())) return;
-                const L = await sbStarterTapes(), ids = [];
-                for (const t of L) { try { const sid = await ownTake(await t.take()); if (sid) ids.push(sid); } catch (e) { console.warn('🎁 처음 선물 테이프', t.id, e); } }
-                if (ids.length && window.dktStarter) dktStarter(ids);
+                const L = await sbStarterTapes(), ds = await Promise.all(L.map(t => t.take().catch(e => { console.warn('🎁 처음 선물 테이프', t.id, e); return null; })));   // 무늬는 한꺼번에 (빨라요)
+                const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d }).filter(Boolean);
+                if (window.dktStarterShow) dktStarterShow(its);                     // 👀 보이는 것부터 : 정리함에 바로 (도련 11-04)
+                for (const it of its) {                                               // 💾 드라이브 저장은 뒤에서 하나씩
+                    try { const sid = await ownTake(it.d); if (sid && window.dktStarterReal) dktStarterReal(it.tmp, sid); else if (window.dktStarterDrop) dktStarterDrop(it.tmp); }
+                    catch (e) { console.warn('🎁 처음 선물 테이프', e); if (window.dktStarterDrop) dktStarterDrop(it.tmp); }
+                }
             } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
         }
         function dkStarterLinks() {

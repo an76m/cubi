@@ -8,13 +8,13 @@
    - 저장 : 'diary_desk_tape' { 소품 u: [칸마다 테이프 id | null] } (게스트 'malang_desk_tape') */
 (function () {
     const DKT_KEY = 'diary_desk_tape', DKT_L = 'malang_desk_tape';
-    const T = { list: null, loading: false, drag: null, fresh: false };   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
+    const T = { list: null, loading: false, drag: null, fresh: false, tmp: new Map(), ov: {} };   // ov = { 정리함 u: [칸마다 임시 롤 id] } (저장 전 · 화면에만)   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
     const desk = () => document.documentElement.classList.contains('desk-on');
     const read = () => { const v = typeof prefGet === 'function' ? prefGet(DKT_KEY, DKT_L) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
     const write = v => { if (typeof prefSet === 'function') prefSet(DKT_KEY, DKT_L, v); };
     const isRack = el => !!el && dkDef(el).kind === 'taperack';
     const slotsOf = el => (dkDef(el).slots || []).filter(r => Array.isArray(r) && r.length === 4);
-    const entry = id => (T.list || []).find(e => e.id === id) || null;
+    const entry = id => (T.list || []).find(e => e.id === id) || T.tmp.get(id) || null;   // T.tmp = 🎁 아직 드라이브에 저장 중인 처음 선물 롤 (먼저 보여 줘요)
     /* 🔑 누구의 목록인지 (도련 11-04 고침) : 로그인이 끝나기 전에 읽은 목록은 빈 목록이에요 → 그걸 믿고 칸을 비우면 꽂아 둔 테이프가 저장에서 사라졌어요
        → 저장 모드 + 계정이 정해진 뒤에 읽은 목록만 믿어요 · 계정이 바뀌면 다시 읽어요 */
     const who = () => { const m = window.ownMode ? window.ownMode() : ''; return m === 'drive' ? (typeof COLL !== 'undefined' && COLL.who ? 'drive|' + COLL.who : '') : m; };
@@ -39,7 +39,8 @@
             let host = el.querySelector(':scope > .dkt-rack');
             if (!isRack(el)) { if (host) host.remove(); return; }
             if (!host) { host = document.createElement('div'); host.className = 'dkt-rack'; el.appendChild(host); }
-            const S = slotsOf(el), ids = (M[el.dataset.u] || []).slice(0, S.length);
+            const S = slotsOf(el), ids = (M[el.dataset.u] || []).slice(0, S.length), ov = T.ov[el.dataset.u] || [];
+            ov.forEach((id, i) => { if (id && !ids[i]) ids[i] = id; });   // 🎁 저장 중인 처음 선물 롤도 같이
             if (T.list && ids.some(id => id && !entry(id))) { if (!T.fresh) load(true); else if (!T.retry && (T.tries || 0) < 10) { T.tries = (T.tries || 0) + 1; T.retry = setTimeout(() => { T.retry = 0; T.fresh = false; load(true); }, 3000); } }   // 늦게 들어오는 롤 = 3초마다 다시 (10번까지)   /* 목록에 없는 롤 = 그리지만 않아요 · 칸에서 빼지 않아요 (도련 11-04 고침 : 드라이브는 방금 받은 롤이 목록 파일에 늦게 들어와서 처음 선물 롤이 칸에서 빠졌어요) · 빈 칸 정리는 새 롤을 꽂을 때 (dktDrop) */
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
@@ -96,7 +97,8 @@
         }
         return null;
     }
-    async function use(id, b) {                                               // 🎀 톡 = 다이어리를 펴고 롤을 페이지 위에 꺼내요 → 롤에서 끌어 뽑아 붙여요 (예전 바구니에서 꺼낸 롤과 같게 · 도련 11-03)
+    async function use(id, b) {
+        if (String(id).startsWith('tmp-')) { if (window.showMsg) showMsg('🎀 테이프를 내 서랍에 넣는 중이에요. 잠깐만요!'); return; }                                               // 🎀 톡 = 다이어리를 펴고 롤을 페이지 위에 꺼내요 → 롤에서 끌어 뽑아 붙여요 (예전 바구니에서 꺼낸 롤과 같게 · 도련 11-03)
         if (b) { b.classList.remove('dkt-pick'); void b.offsetWidth; b.classList.add('dkt-pick'); }
         if (!window.dkwReady || !await dkwReady()) return;
         const cv = document.getElementById('canvasArea'), r0 = cv ? cv.getBoundingClientRect() : null, r = r0 && window.dyVisRect ? dyVisRect(r0) : r0;
@@ -141,6 +143,24 @@
         return true;
     };
     /* 🎁 처음 선물 테이프를 정리함 빈 칸에 (도련 11-04 · js/desk.js giftEnsure) : 책상 위 첫 정리함부터 · 칸이 모자라면 남은 건 서랍(마스킹테이프 칸)에 · 넣은 수를 돌려줘요 */
+    /* 🎁 처음 선물 롤 먼저 보이기 (도련 11-04 : 보이는 것부터 빨리 · 드라이브 저장은 뒤에서) : items = [{ tmp, th, q0 }] → 빈 칸에 임시 롤 (화면에만)
+       → 저장이 끝나면 dktStarterReal(tmp, 진짜 id) = 그 칸에 진짜 롤로 저장 (목록에 들어오기 전에도 같은 모습) · 못 받으면 dktStarterDrop(tmp) */
+    window.dktStarterShow = items => {
+        const M = read(); let k = 0;
+        document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+            if (!isRack(el) || k >= items.length) return;
+            const S = slotsOf(el), cur = (M[el.dataset.u] || []).slice(0, S.length), ov = T.ov[el.dataset.u] = (T.ov[el.dataset.u] || []).slice(0, S.length);
+            for (let i = 0; i < S.length && k < items.length; i++) if (!cur[i] && !ov[i]) { const it = items[k++]; ov[i] = it.tmp; T.tmp.set(it.tmp, { id: it.tmp, k: 'tape', th: it.th, q: it.q0, q0: it.q0, u: [] }); }
+        });
+        paint(); return k;
+    };
+    window.dktStarterReal = (tmp, sid) => {
+        const e = T.tmp.get(tmp); if (e) T.tmp.set(sid, Object.assign({}, e, { id: sid }));   // 목록에 들어올 때까지 같은 모습
+        T.tmp.delete(tmp);
+        for (const u in T.ov) { const i = T.ov[u].indexOf(tmp); if (i < 0) continue; T.ov[u][i] = null; const M = read(), cur = (M[u] || []).slice(); while (cur.length <= i) cur.push(null); if (!cur[i]) { cur[i] = sid; M[u] = cur; write(M); } }
+        paint();
+    };
+    window.dktStarterDrop = tmp => { T.tmp.delete(tmp); for (const u in T.ov) { const i = T.ov[u].indexOf(tmp); if (i >= 0) T.ov[u][i] = null; } paint(); };
     window.dktStarter = ids => {
         const M = read(); let n = 0;
         document.querySelectorAll('#deskStage .desk-item').forEach(el => {
