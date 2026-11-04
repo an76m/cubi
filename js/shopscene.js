@@ -10,8 +10,8 @@
         const DOOR_W = 1672, DOOR_H = 941;
         const SHOP_SIGN = { cx: 835, cy: 431, w: 393, h: 148 };                   // 문 알림판 안쪽 (그림 px · 10-28 새 그림)
         /* 🏪 코너 그림 · 간판 · 아이콘 자리 = 서버 상품 '샵' (상품공방 🏪 샵 배치 · 도련 11-04 : 코너가 늘거나 종류가 늘어도 코드를 고치지 않게)
-           P.코너 = stk(입구 · 스티커) · tool · gd · desk · P.간판 = [가운데 x, y, 폭, 높이] · P.자리 = { 열쇠: [x, y] } · P.길 = { 코너: [x, y, l|r] } (입구의 다른 코너 팻말) · 모두 그림 px
-           코너 하나라도 없거나 모자라면 = 가게를 열지 않아요 (빈 값을 짐작하지 않아요 · 기본상품 샵 창으로) */
+           P.구역 = stk(입구 · 스티커) · tool · gd · desk · P.간판 = [가운데 x, y, 폭, 높이] · P.자리 = { 열쇠: [x, y] } · P.길 = { 구역: [x, y, l|r] } (입구의 다른 구역 가는 팻말) · 모두 그림 px
+           구역 하나라도 없거나 모자라면 = 가게를 열지 않아요 (빈 값을 짐작하지 않아요 · 기본상품 샵 창으로) */
         const SHOP_CN = ['stk', 'tool', 'gd', 'desk'];
         const SHOP_STK = [['seal', '씰스티커'], ['piece', '조각스티커'], ['paper', '모조지스티커'], ['tape', '마스킹테이프'], ['tk', '떡메모지'], ['memo', '메모지'], ['leaf', '속지'], ['season', '🌸 계절 스티커']];   // 🏷️ 입구 = 스티커 종류 (앱이 아는 종류 · 🌸 계절은 이벤트 때만 · 🌈 배경지는 가게에 안 나와요)
         const SHOP_ICON = { season: '🌸' };
@@ -19,10 +19,10 @@
         let SHOP_D = null;
         function shopData() {
             if (SHOP_D) return SHOP_D;
-            const ok = x => { const P = x.P, wh = x.wh.디자인; return SHOP_CN.includes(P.코너) && x.u.디자인 && Array.isArray(wh) && wh[0] > 0 && wh[1] > 0 && String(P.이름 || '') && Array.isArray(P.간판) && P.간판.length === 4 && P.간판.every(v => isFinite(+v)) && P.자리 && typeof P.자리 === 'object'; };
+            const ok = x => { const P = x.P, wh = x.wh.디자인; return SHOP_CN.includes(P.구역) && x.u.디자인 && Array.isArray(wh) && wh[0] > 0 && wh[1] > 0 && String(P.이름 || '') && Array.isArray(P.간판) && P.간판.length === 4 && P.간판.every(v => isFinite(+v)) && P.자리 && typeof P.자리 === 'object'; };
             const L = (window.prodShelf ? prodShelf('샵') : []), D = {};
-            L.forEach(x => { if (!ok(x)) { console.warn('🏪 샵 코너 속성이 모자라요 (상품공방 샵) :', x.id); return; } if (!D[x.P.코너]) D[x.P.코너] = { n: x.P.이름, img: x.u.디자인, W: x.wh.디자인[0], H: x.wh.디자인[1], sign: x.P.간판.map(Number), at: x.P.자리, ways: x.P.길 && typeof x.P.길 === 'object' ? x.P.길 : {} }; });
-            const miss = SHOP_CN.filter(c => !D[c]); if (miss.length) { console.warn('🏪 샵 코너가 없어요 (상품공방 샵) :', miss.join(' · ')); return null; }
+            L.forEach(x => { if (!ok(x)) { console.warn('🏪 샵 구역 속성이 모자라요 (상품공방 샵) :', x.id); return; } if (!D[x.P.구역]) D[x.P.구역] = { n: x.P.이름, img: x.u.디자인, W: x.wh.디자인[0], H: x.wh.디자인[1], sign: x.P.간판.map(Number), at: x.P.자리, ways: x.P.길 && typeof x.P.길 === 'object' ? x.P.길 : {} }; });
+            const miss = SHOP_CN.filter(c => !D[c]); if (miss.length) { console.warn('🏪 샵 구역이 없어요 (상품공방 샵) :', miss.join(' · ')); return null; }
             return (SHOP_D = D);
         }
         if (window.prodHook) prodHook(() => { SHOP_D = null; });
@@ -35,7 +35,7 @@
             let el = document.getElementById('shopScene'); if (el) return el;
             el = document.createElement('div'); el.id = 'shopScene'; el.className = 'shop-scene';
             el.innerHTML = `<div class="shop-in"><img class="shop-room" src="${shopC('').img}" alt="" draggable="false"><div class="shop-cs"><b></b></div><div class="shop-spots"></div></div>
-                <button type="button" class="shop-back" onclick="shopCorner('')">‹ 스티커 코너</button>
+                <button type="button" class="shop-back" onclick="shopCorner('')">‹ ${htmlEsc(shopC('').n)}</button>
                 <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
                 <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
@@ -48,12 +48,12 @@
             const C = SC.corner ? shopC(SC.corner) : null, M = shopC('');
             if (C) {                                                                // 🏪 코너 = 칸마다 아이콘 (표에 없는 칸 = 아래 줄에 차례로)
                 const cats = window.shCatList ? shCatList(SC.corner) || [] : []; let free = 0;
-                SC.spots = cats.map(([c, n, ic]) => { let p = C.at[c]; if (!p) { console.warn('🏪 코너 자리가 없어요 (상품공방 샵 배치) :', SC.corner, c); p = [300 + (free++ % 6) * 215, 820]; } return [c, n, p[0], p[1], ic]; });
+                SC.spots = cats.map(([c, n, ic]) => { let p = C.at[c]; if (!p) { console.warn('🏪 구역 아이콘 자리가 없어요 (상품공방 샵 배치) :', SC.corner, c); p = [300 + (free++ % 6) * 215, 820]; } return [c, n, p[0], p[1], ic]; });
             } else {
                 const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN;
                 let free = 0; const at = k => { const p = M.at[k]; if (Array.isArray(p)) return p; console.warn('🏪 입구 자리가 없어요 (상품공방 샵 배치) :', k); return [300 + (free++ % 6) * 215, 820]; };
                 SC.spots = SHOP_STK.filter(s => s[0] !== 'season' || season).map(([k, n]) => [k, n, ...at(k), SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')])
-                    .concat(SHOP_CN.filter(c => c !== 'stk' && Array.isArray(M.ways[c])).map(c => { const [x, y, d] = M.ways[c]; return [c, shopC(c).n, x, y, SHOP_WAY_IC[c] || (window.stkArt ? stkArt(c) : ''), d === 'r' ? 'r' : 'l']; }));   // 🪧 다른 코너 팻말 (이름 = 그 코너 이름)
+                    .concat(SHOP_CN.filter(c => c !== 'stk' && Array.isArray(M.ways[c])).map(c => { const [x, y, d] = M.ways[c]; return [c, shopC(c).n, x, y, SHOP_WAY_IC[c] || (window.stkArt ? stkArt(c) : ''), d === 'r' ? 'r' : 'l']; }));   // 🪧 다른 구역 가는 팻말 (이름 = 그 구역 이름 · '코너' 말 안 써요 · 도련 11-04)
             }
             box.innerHTML = SC.spots.map(([k, n, , , ic, d]) => d
                 ? `<button type="button" class="shop-spot shop-way ${d}" data-k="${k}" onclick="shopSpot('${k}')"><span class="sw-board">${d === 'l' ? '<i class="sw-ar">◀</i>' : ''}<i class="shop-ic">${ic}</i><b>${n}</b>${d === 'r' ? '<i class="sw-ar">▶</i>' : ''}</span><i class="sw-pole"></i></button>`   // 🪧 코너 팻말
