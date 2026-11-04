@@ -86,8 +86,6 @@
         @keyframes phIn { from { opacity: 0; } }
         .inner-page.ph-in .page-header { animation: phIn .5s ease both; }   /* 표지를 다 넘긴 뒤 날짜바가 스르륵 (js/page.js endCurl) */
         .inner-page.ph-wait .page-header { opacity: 0; }                    /* 표지를 넘기는 동안 밑 장의 날짜바는 숨겨요 */
-        .cover-title { font-size: 2.6rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin-bottom: 8px; }
-        .cover-subtitle { font-size: 1.2rem; opacity: 0.9; }
         .drag-hint { margin-top: 25px; font-size: 0.95rem; animation: bounce 1.5s infinite; }
 
         @keyframes bounce { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-8px); } }
@@ -2529,31 +2527,10 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
    크기는 cqw(다이어리 폭 기준)라서 페이지 크기를 바꿔도 비율이 그대로예요 */
 .diary-book { container-type: inline-size; }
 .cover-page { --cv-ink: color-mix(in srgb, var(--primary-accent) 90%, #5a1a30 10%);
-    --cv-die: drop-shadow(.5cqw 0 0 #fff) drop-shadow(-.5cqw 0 0 #fff) drop-shadow(0 .5cqw 0 #fff) drop-shadow(0 -.5cqw 0 #fff);
-    justify-content: flex-start; padding-top: 15cqw; color: var(--cv-ink);
-    background:
-        linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 30%, transparent) 50%, transparent 0) 0 0 / 9cqw 9cqw,
-        linear-gradient(color-mix(in srgb, var(--primary-accent) 30%, transparent) 50%, transparent 0) 0 0 / 9cqw 9cqw, color-mix(in srgb, var(--primary-accent) 7%, #fff); }
-.cover-page::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6cqw; pointer-events: none;
-    background: linear-gradient(90deg, rgba(0,0,0,.12), rgba(255,255,255,.18) 60%, rgba(0,0,0,.05)); }
-.cv-lace { position: absolute; left: 0; right: 0; height: 5cqw; pointer-events: none; background: radial-gradient(circle at 50% 0, #fff 2.2cqw, transparent 2.4cqw) 0 0 / 5cqw 5cqw; filter: drop-shadow(0 .4cqw 0 rgba(0,0,0,.05)); }
-.cv-lace.top { top: 0; } .cv-lace.bot { bottom: 0; transform: scaleY(-1); }
-.cover-page .cover-title { position: relative; margin: 0; padding-top: 2.4cqw; text-shadow: none; }
-.cover-page .cover-subtitle { position: relative; opacity: 1; margin-top: 1.4cqw; }
-.cv-berry svg { display: block; width: 100%; height: 100%; }
-/* 표지 제목 레터링 (⑤ 다꾸 손글씨) : 진분홍 · 연분홍 번갈아 + 하얀 테두리 · 색은 스킨을 따라가요 */
-.cv-lt { display: block; height: auto; overflow: visible; margin: 0 auto; }
-.cover-title .cv-lt { width: 76cqw; } .cover-subtitle .cv-lt { width: 50cqw; }
-.cv-lt .o path { fill: #fff; stroke: #fff; stroke-linejoin: round; stroke-linecap: round; }
-.cv-lt .f path { fill: var(--cv-ink); }
-.cv-lt .f2 path { fill: color-mix(in srgb, var(--primary-accent) 62%, #fff); }
-.cv-lt .dp path { fill: var(--cv-ink); stroke: var(--cv-ink); stroke-linejoin: round; }
-.cv-lt .hrt { fill: var(--primary-accent); stroke: #fff; stroke-width: 5; paint-order: stroke; }
-.cv-lt .spk { fill: #ffd36e; stroke: #fff; stroke-width: 5; paint-order: stroke; }
+    justify-content: flex-start; padding-top: 15cqw; color: var(--cv-ink); }   /* 표지 색 · 책등 = css/anime.css (파스텔 바인더 · 노트) */
+.cover-page::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6cqw; pointer-events: none; }
 .cover-page .cover-notice { position: relative; margin-top: 5cqw; }
 .cover-page .cover-notice img { box-shadow: none; }
-.cv-berry { position: absolute; right: 6cqw; bottom: 18%; width: 20cqw; height: 20cqw; transform: rotate(12deg); pointer-events: none;
-    filter: var(--cv-die); }
 .cover-page .drag-hint { position: absolute; bottom: 8cqw; left: 50%; margin: 0; font-size: 3cqw; font-weight: 700; white-space: nowrap; color: #7b5a63; animation: cvNudge 1.5s infinite; }
 @keyframes cvNudge { 0%, 100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% - 1.6cqw)); } }
 
@@ -3353,19 +3330,12 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .inner-page.dy-noholes .canvas-area:not([class*="lf-"]) { background:
         linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw,
         var(--page-bg); }
-.dy-cov { position: absolute; inset: -2.4cqw -2.4cqw -2.4cqw -2.4cqw; border-radius: 3cqw; background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); box-shadow: 0 2cqw 4cqw rgba(110, 60, 80, .25); }
-.inner-page[data-dy="tn"] .dy-cov { inset: -2cqw -2.6cqw -2cqw -2cqw; border-radius: 1.6cqw; background: linear-gradient(160deg, color-mix(in srgb, var(--dy-c) 75%, #fff), var(--dy-c)); }
-.inner-page[data-dy="hard"] .dy-cov { inset: -2cqw -3cqw -2cqw -2cqw; border-radius: 1.6cqw 4cqw 4cqw 1.6cqw; }
-.inner-page[data-dy="spread"] .dy-cov { inset: -2cqw -2.6cqw; border-radius: 2cqw; }
+.dy-cov { position: absolute; }   /* 표지 크기 · 색 = css/anime.css (바인더 · 📓 노트) */
 /* 🗂️ 6공 링 (도련 10-18) : 두 속지 사이가 떨어져 있고 (가운데로 표지 안쪽 · 링 받침) · 크고 쇠 느낌 나는 링이 양쪽 속지 구멍을 꿰어요 */
-.dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: 8cqw; margin-left: -4cqw;   /* 책등 = 8% (도련 11-04 · js/skins.js DY_SP) */ background:
-        linear-gradient(90deg, #fff 0 .35cqw, #e6d9df .35cqw .5cqw, #fbf7f9 .5cqw .8cqw, #e6d9df .8cqw .95cqw, transparent .95cqw calc(100% - .95cqw), #e6d9df calc(100% - .95cqw) calc(100% - .8cqw), #fbf7f9 calc(100% - .8cqw) calc(100% - .5cqw), #e6d9df calc(100% - .5cqw) calc(100% - .35cqw), #fff calc(100% - .35cqw)),
-        color-mix(in srgb, var(--dy-c) 55%, #fff);
-    box-shadow: inset 1.2cqw 0 1.2cqw -.6cqw rgba(70, 40, 55, .28), inset -1.2cqw 0 1.2cqw -.6cqw rgba(70, 40, 55, .28); }
-.dy-gap::before { content: ''; position: absolute; left: 50%; top: 4cqw; bottom: 4cqw; width: 4.4cqw; margin-left: -2.2cqw; border-radius: 1.6cqw;
-    background: linear-gradient(90deg, #8d939e, #e9ecf0 30%, #ffffff 45%, #c3c8d0 65%, #7f8692); box-shadow: 0 .3cqw .8cqw rgba(40, 30, 40, .3); }
+.dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: 8cqw; margin-left: -4cqw; }   /* 책등 = 8% (도련 11-04 · js/skins.js DY_SP) · 색 = css/anime.css */
+.dy-gap::before { content: ''; position: absolute; left: 50%; top: 4cqw; bottom: 4cqw; width: 4.4cqw; margin-left: -2.2cqw; }
 .dy-rings { position: absolute; left: calc(50% - 15cqw); top: 0; bottom: 0; width: 30cqw; }
-.dy-rings i { position: absolute; left: 0; width: 30cqw; height: 9cqw; margin-top: -6.3cqw; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.28' stop-color='%23d5d9e0'/%3E%3Cstop offset='.5' stop-color='%23888f9b'/%3E%3Cstop offset='.62' stop-color='%23c9ced6'/%3E%3Cstop offset='.85' stop-color='%23f4f5f7'/%3E%3Cstop offset='1' stop-color='%239aa1ac'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='30' cy='42' rx='8' ry='6' fill='%23584a52' fill-opacity='.45'/%3E%3Cellipse cx='170' cy='42' rx='8' ry='6' fill='%23584a52' fill-opacity='.45'/%3E%3Cpath d='M30 44 C30 10 170 10 170 44' fill='none' stroke='%23000' stroke-opacity='.22' stroke-width='12' transform='translate(0 5)' stroke-linecap='round'/%3E%3Cpath d='M30 42 C30 6 170 6 170 42' fill='none' stroke='url(%23m)' stroke-width='13' stroke-linecap='round'/%3E%3Cpath d='M34 36 C40 14 160 14 166 36' fill='none' stroke='%23fff' stroke-opacity='.85' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; filter: drop-shadow(0 .2cqw .2cqw rgba(40, 30, 40, .25)); }
+.dy-rings i { position: absolute; left: 0; width: 30cqw; height: 9cqw; margin-top: -6.3cqw; }   /* 링 그림 = css/anime.css */
 .dy-rings i:nth-child(1) { top: 7.5cqw; } .dy-rings i:nth-child(2) { top: 16.5cqw; } .dy-rings i:nth-child(3) { top: 25.5cqw; }
 .dy-rings i:nth-child(4) { bottom: 22.2cqw; } .dy-rings i:nth-child(5) { bottom: 13.2cqw; } .dy-rings i:nth-child(6) { bottom: 4.2cqw; }
 /* 📎 집게 = 장식 (도련 10-18 · 페이지 들림 연출은 뺐어요) · 왼쪽 쪽 위 가장자리에 꽂혀요 */
@@ -3621,8 +3591,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dk-fold-f { inset: 48px 0 0 0; overflow: hidden; border-radius: 15px 22px 22px 15px; box-shadow: 5px 10px 25px rgba(0,0,0,.12);   /* 넘어온 뒤 = 겉표지 */
     background: linear-gradient(90deg, rgba(0,0,0,.12), rgba(255,255,255,.18) 60%, rgba(0,0,0,.05)) 0 0 / 6cqw 100% no-repeat, linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); }
 .inner-page.dk-folding { clip-path: inset(-100px -100px -100px 50%); }   /* 접는 동안 진짜 왼쪽 쪽은 숨겨요 (넘어오는 장이 대신) */
-.cover-page.cv-book { background: linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); }
-.cover-page.cv-book .cv-lace, .cover-page.cv-book .cover-title, .cover-page.cv-book .cover-subtitle, .cover-page.cv-book .cv-berry { display: none; }
 .cv-deco { position: absolute; pointer-events: none; z-index: 3; text-align: left; color: initial; }
 .cover-page.cv-book .cover-notice.nt-none { display: none; }   /* 📓 노트 · 바인더 표지는 공지가 있을 때만 (js/service.js noticePaint · 기본 다이어리는 늘) */
 .cover-page.cv-book .drag-hint { z-index: 4; }   /* 꾸민 것은 공지 카드 위에 (눌러도 아래로 지나가요) */
