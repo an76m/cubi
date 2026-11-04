@@ -228,10 +228,10 @@
         /* 📔 보관소 = 다이어리 책꽂이 하나 (도련 10-28) : 날짜바인더 · 날짜노트 · 페이지바인더 · 페이지노트 모두 한곳 (현실 책꽂이처럼)
              · 순서 = 지금 펼친 것 → 최근 해 → 먼저 받은 것 · 칸마다 종류 표시 (📅 날짜 바인더 …)
              · 종류가 두 가지 이상 생기면 위에 거르기 칩 (전체 · 날짜형 · 페이지형) · 지금은 날짜 바인더만이라 칩이 안 보여요 */
-        const DYY_KINDS = [['date', '📅 날짜형'], ['page', '📄 페이지형']];
+        const DYY_KINDS = [['date', '📅 1년'], ['page', '♾️ 만년형']];   // 다꾸러에게 보이는 이름 (도련 11-04 : 날짜형 = 2026 바인더 · 2026 노트 · 페이지형 = 만년형 바인더 · 만년형 노트)
         let dyyFilter = 'all';
         const dyyKindOf = () => 'date';                                       // 받은 권은 모두 날짜형 (바인더 · 노트 · 페이지형은 팔 때 여기에)
-        const dyyKindName = b => dyyIsNote(b) ? '📓 날짜형 노트' : '📅 날짜형 바인더';
+        const dyyKindName = b => dyyIsNote(b) ? `📓 ${b.y} 노트` : `📔 ${b.y} 바인더`;
         const dyyType = b => { const d = dyyDesign(b); return d ? { id: DY_DEF, k: '다이어리', g: d.name, n: d.n, mm: d.mm, b: d.b, r: d.r, c: d.c } : null; };   // 📐 그 권의 모양 (js/skins.js dyNow 와 같은 모양)
         function dyyFilterSet(v) { dyyFilter = v; if (window.dyTabSet) dyTabSet('free'); }
         function dyyCells() {
