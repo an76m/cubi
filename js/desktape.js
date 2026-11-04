@@ -136,6 +136,7 @@
             ids = now(); const free = freeOf(ids);                                // 고르는 동안 바뀌었을 수도 있어요
             if (ids[s] || free.length < it.s.length) { full(free.length); return; }
             const order = [s].concat(free.filter(i => i > s), free.filter(i => i < s));   // 고른 칸부터 오른쪽으로 · 모자라면 앞쪽 빈 칸
+            try { const w = who(), L = await ownList(true); if (w === who() && Array.isArray(L)) { T.list = L; T.who = w; T.fresh = true; } } catch (e) {}   /* 🔑 방금 받은 테이프가 든 목록으로 (도련 11-04 고침 : 받기 전에 읽은 목록엔 없어서 안 보였고 · 목록이 있으면 '없는 테이프' 로 빠졌어요) */
             const M = read(); it.s.forEach((id, k) => { ids[order[k]] = id; }); M[t.dataset.u] = ids; write(M);
             dkbTake(n, j); dkbPulse(t); paint();
         })();
