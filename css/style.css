@@ -4400,7 +4400,12 @@ html.desk-on .bg-pattern-layer { display: none; }
 /* 🪑 책상에 집중 (도련 10-26) : 넓은 화면은 수첩 · 하단 메뉴를 숨기고 책상만 · 책상 위 다이어리를 톡 하면 떠올라요 (html.desk-show · js/desk.js deskOpenDiary) */
 html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolbar { display: none !important; }
 .desk-item > img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
-.desk-item.dk-fl > img { transform: scaleX(-1); }   /* ↔ 좌우 바꾼 소품 (도련 10-31 · js/desk.js deskFlip · 바늘 · 이름표는 그대로) */
+.desk-item.dk-fl > img { transform: scaleX(-1); }
+/* 🗄 서랍 열고 닫기 (도련 11-04 · js/desk.js dkDrawerPull) : 앞판 = 그림을 칸대로 잘라 앞으로 (아래로 조금 · 크게) · 뒤 = 서랍 속 (그림 · 없으면 그림자) */
+.dkd-hole { position: absolute; pointer-events: none; border-radius: 6%/10%; background: linear-gradient(#3e2430, #6b4452 60%, #8a5d6b); background-size: cover; background-position: center; box-shadow: inset 0 10px 14px rgba(0, 0, 0, .45); }
+.dkd-front { position: absolute; overflow: hidden; pointer-events: none; transform-origin: 50% 0; transition: transform .22s cubic-bezier(.2, .7, .3, 1.15), filter .22s; }
+.dkd-front > img { position: absolute; max-width: none; pointer-events: none; }
+.dkd-front.open { transform: translateY(16%) scale(1.06); filter: drop-shadow(0 10px 8px rgba(80, 30, 50, .35)); }   /* ↔ 좌우 바꾼 소품 (도련 10-31 · js/desk.js deskFlip · 바늘 · 이름표는 그대로) */
 .dk-hands { position: absolute; translate: -50% -50%; overflow: visible; pointer-events: none; }
 .dk-hands line { stroke: #6b4a3f; stroke-linecap: round; }
 .dk-hands .hr { stroke-width: 5; } .dk-hands .mn { stroke-width: 3.5; } .dk-hands .sc { stroke: #e2557f; stroke-width: 1.6; }

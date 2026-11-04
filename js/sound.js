@@ -66,6 +66,15 @@
             });
         }
 
+        /* 🗄 서랍 (도련 11-04 · js/desk.js dkDrawerPull) : 열 때 = 나무 서랍이 미끄러지는 '드르륵' (낮은 잡음 · 짧게) · 닫을 때 = 끝에 '탁' · ✨ 연출 소리를 끄면 조용히 */
+        function sndDrawer(open) {
+            const ac = sndFx(); if (!ac) return;
+            const t = ac.currentTime + .01, len = Math.floor(ac.sampleRate * .2), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+            for (let j = 0; j < len; j++) { const k = j / len, rough = .55 + .45 * Math.sin(j / ac.sampleRate * 2 * Math.PI * 38) ** 2; d[j] = (Math.random() * 2 - 1) * rough * Math.sin(Math.PI * Math.min(1, k * 1.4)) * (open ? 1 : (1 - k)); }
+            const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = buf; f.type = 'bandpass'; f.frequency.value = open ? 520 : 420; f.Q.value = .9; g.gain.value = .5;
+            s.connect(f).connect(g).connect(snd.out); s.start(t);
+            if (!open) { const o = ac.createOscillator(), og = ac.createGain(); o.frequency.value = 150; og.gain.setValueAtTime(0.0001, t + .17); og.gain.exponentialRampToValueAtTime(.22, t + .175); og.gain.exponentialRampToValueAtTime(0.0001, t + .26); o.connect(og).connect(snd.out); o.start(t + .16); o.stop(t + .28); }   // 탁
+        }
         /* 🔔 기본상품 샵 문 종소리 '딸랑~' (도련 10-27 · 시안 1번 · 작은 놋쇠 종 : 크게 한 번 + 작게 두 번 · 비정수 배음 · 높은 배음은 빨리 · 짧은 방 울림) */
         function sndShopBell() {
             const ac = sndFx(); if (!ac) return;                                 // ✨ 연출 소리를 끄면 조용히
@@ -122,7 +131,7 @@
             });
         }
         window.sndBag = sndBag;
-        window.sndShopBell = sndShopBell; window.sndTarotDoor = sndTarotDoor; window.sndArcadeDoor = sndArcadeDoor; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
+        window.sndDrawer = sndDrawer; window.sndShopBell = sndShopBell; window.sndTarotDoor = sndTarotDoor; window.sndArcadeDoor = sndArcadeDoor; window.sndCtx = sndCtx; window.sndOut = () => snd.out; window.sndOn = sndOn;   // 🪑 소품 소리 · 알람 (js/deskcustom.js)
 
         /* ---------- 🔊 연출 소리 켜고 끄기 (연출 화면의 버튼 · 설정 공용) ---------- */
         function sndToggleFx() {

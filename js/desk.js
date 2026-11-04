@@ -39,6 +39,7 @@
             if (!x.u.디자인 || !o.kind || !String(P.이름 || '') || !(+o.w > 0) || !(+o.h > 0) || !num(o.x) || !num(o.y)) { console.warn('🧁 소품 속성이 모자라요 :', x.id); return null; }
             Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름), w: +o.w, h: +o.h, x: +o.x, y: +o.y });
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
+            if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
             if (o.kind === 'lights') o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
             if (P.처음선물) delete o.nost; else o.nost = 1;
             if (P.숨김) o.off = 1;
@@ -1173,8 +1174,30 @@
         window.dknPanel = dknPanel; window.dknSet = dknSet;
         /* 👆 칸 톡 = 그 칸 창 (칸 밖 = 소품 전체 창 → deskTapAt 이 el.dataset.fn) */
         function dkHomeTap(el, cx, cy) {
-            const z = dkzHit(dkHomes()[el.dataset.u] || [], dkzPct(el, cx, cy)); if (!z) return false;
+            const p = dkzPct(el, cx, cy), z = dkzHit(dkHomes()[el.dataset.u] || [], p);
+            const o = DK.items.find(x => x.u === el.dataset.u), S = o && dkSlots(o.id), si = S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1;
+            if (si >= 0) { dkDrawerPull(el, S[si], z ? () => deskRun(z.k) : null); return true; }   // 🗄 서랍 = 쏙 열렸다가 (넣어 둔 것을 꺼내고) 닫혀요 · 빈 서랍도
+            if (!z) return false;
             deskRun(z.k); return true;
+        }
+        /* 🗄 서랍 열고 닫기 (도련 11-04 · 현실처럼) : 서랍 칸(상품 '소품.slots')대로 그림에서 앞판을 잘라 앞으로 당겨요 (조금 아래로 · 조금 크게)
+           원래 자리 = 서랍 속 (상품 '서랍속' 그림 · 없으면 그림자) · 다 열리면 넣어 둔 창을 열고 · 조금 뒤 닫혀요 · 손잡이 · 태슬도 앞판과 같이 */
+        function dkDrawerPull(el, r, run) {
+            const img = el.querySelector(':scope > img'), o = DK.items.find(x => x.u === el.dataset.u), c = o && dkCat(o.id);
+            if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front')) { if (run) run(); return; }
+            const W = r[2] - r[0], H = r[3] - r[1], box = `left:${r[0]}%;top:${r[1]}%;width:${W}%;height:${H}%`;
+            const hole = document.createElement('i'); hole.className = 'dkd-hole'; hole.style.cssText = box + (c && c.inside ? `;background-image:url("${c.inside}")` : '');
+            const fr = document.createElement('i'); fr.className = 'dkd-front'; fr.style.cssText = box;
+            fr.innerHTML = `<img src="${htmlEsc(img.src)}" alt="" draggable="false" style="left:${-r[0] / W * 100}%;top:${-r[1] / H * 100}%;width:${100 / W * 100}%;height:${100 / H * 100}%">`;
+            img.after(hole, fr);
+            if (window.sndDrawer) sndDrawer(true);
+            const tags = [...el.querySelectorAll(':scope > .dkn-tag')].filter(g => { const x = parseFloat(g.style.left), y = parseFloat(g.style.top); return x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3]; });   // 🏷 그 칸 이름표도 앞판과 같이
+            const ew = el.offsetWidth / 100, eh = el.offsetHeight / 100;
+            tags.forEach(g => { const x = parseFloat(g.style.left), y = parseFloat(g.style.top); g.dataset.dkd = `translate(${((x - (r[0] + W / 2)) * .06) * ew}px, ${((y - r[1]) * .06 + H * .16) * eh}px) scale(1.06)`; g.style.transition = 'transform .22s cubic-bezier(.2, .7, .3, 1.15)'; });
+            requestAnimationFrame(() => requestAnimationFrame(() => { fr.classList.add('open'); tags.forEach(g => { g.style.transform = g.dataset.dkd; }); }));
+            setTimeout(() => { if (run) run(); }, 240);
+            setTimeout(() => { fr.classList.remove('open'); tags.forEach(g => { g.style.transform = ''; }); if (window.sndDrawer) sndDrawer(false); }, 760);
+            setTimeout(() => { hole.remove(); fr.remove(); tags.forEach(g => { g.style.transition = ''; delete g.dataset.dkd; }); }, 1040);
         }
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
         /* 🛍️ 봉투 속 = 아직 꺼내지 않았어요 (도련 11-02 · 현실처럼) : 💻 📲 책상에서는 봉투에서 꺼낼 때까지 바구니 · 스티커 정리 · 오늘 쓸 스티커 · 스티커첩 어디에도 없어요 (js/basket.js)
