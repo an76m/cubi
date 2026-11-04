@@ -13,7 +13,6 @@
     const DC_KINDS = {
         lamp: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },
         clock: { tabs: ['digits', 'alarm'], act: null, area: null },
-        photo: { tabs: ['photo'], act: null, area: null },
         board: { tabs: ['memo'], act: null, area: null },
         lights: { tabs: [], act: 'lights', area: null },                    // 💡 전구줄 : 톡 = 켜고 끄기 (처음 = 켜짐 · js/desklights.js)
         peg: { tabs: ['photo'], act: null, area: null }                      // 📷 집게 사진 : 🖼 내 사진 넣기 (줄에 집기 = js/desklights.js)
