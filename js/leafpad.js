@@ -6,7 +6,7 @@
                뜯긴 한 장은 그림(SVG)으로 붙어서 다른 스티커처럼 옮기고 돌릴 수 있어요 (그날 파일 안에 같이 저장)
    - 🎒 유한 스티커 (10-25) : 🧺 바구니의 떡메 한 묶음(50장) = tkOwnOpen(종류, 내 그림, own) · 한 장 뜯어 붙일 때마다 한 장씩 줄어요 · 마지막 장이면 묶음이 사라져요 (js/own.js)
                📃 속지는 깔면 그 한 장이 사라져요 (js/basket.js)
-   ※ 색은 지금 스킨의 포인트 색을 따라가요 (떡메는 뜯는 순간의 색으로 남아요) */
+   ※ 색은 펼친 다이어리의 강조 색을 따라가요 (떡메는 뜯는 순간의 색으로 남아요) */
 
         const lfq = id => document.getElementById(id);
 
@@ -79,7 +79,7 @@
            ===================================================================== */
         /* 🧻 떡메 = 모두 그림('my' · 🏪 상품공방 상품 · 🧻 떡메 만들기 · 도련 11-02 : 예전에 제가 CSS · SVG 로 그린 메모 · 체크 · 하늘 · 투두는 상품공방으로 옮겼어요) */
         const TK_W = 150, TK_H = 148;
-        const tk = { pad: 'my', edge: 'top', my: null };              // my : 🧻 내가만든 · 공유받은 떡메 { src(앞면 그림 JPG), glue(풀칠 띠 색 · 빈 값 = 스킨 색) } (js/leafmaker.js)
+        const tk = { pad: 'my', edge: 'top', my: null };              // my : 🧻 내가만든 · 공유받은 떡메 { src(앞면 그림 JPG), glue(풀칠 띠 색 · 빈 값 = 다이어리 강조 색) } (js/leafmaker.js)
         const tkR = (a, b) => a + Math.random() * (b - a);
 
         function tkHex(c) {
@@ -89,7 +89,7 @@
             const r = /rgba?\(([^)]+)\)/.exec(c); return r ? r[1].split(',').slice(0, 3).map(v => parseFloat(v)) : [255, 107, 129];
         }
         const tkMix = (a, p, b = [255, 255, 255]) => 'rgb(' + a.map((v, i) => Math.round(v * p + b[i] * (1 - p))).join(',') + ')';
-        const tkAcc = () => tkHex(getComputedStyle(document.documentElement).getPropertyValue('--primary-accent'));
+        const tkAcc = () => tkHex(getComputedStyle(document.documentElement).getPropertyValue('--dy-accent'));
 
         /* 묶음 위에 보이는 맨 윗장 (HTML) */
         function tkSheetHtml(id, my = tk.my) {

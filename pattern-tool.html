@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>말랑달콤 패턴·스킨 등록 도구</title>
+<title>말랑달콤 패턴 등록 도구</title>
 <style>
     :root { --pink: #ff6b81; --line: #ffb6c1; --bg: #fff5f8; --ink: #444; --muted: #888; --ok: #2e7d32; }
     * { box-sizing: border-box; }
@@ -45,24 +45,18 @@
     details summary { cursor: pointer; font-weight: bold; }
     code { background: #f3f3f3; border-radius: 5px; padding: 0 5px; }
     .kind-title { font-weight: bold; margin: 14px 0 0; font-size: 13.5px; }
-    /* 스킨 미리보기 : 작은 다이어리 모양 */
-    .skin-sw { height: 120px; position: relative; border-bottom: 2px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .skin-sw .cv { width: 54px; height: 78px; border-radius: 6px 10px 10px 6px; box-shadow: 0 2px 4px rgba(0,0,0,.15); }
-    .skin-sw .pg { width: 70px; height: 84px; border-radius: 8px; border: 3px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
-    .skin-sw .pg i { display: block; width: 44px; height: 3px; border-radius: 2px; opacity: .45; }
-    .skin-sw .pg b { font-size: 10px; padding: 1px 7px; border-radius: 8px; color: #fff; }
 </style>
 </head>
 <body>
 <div class="wrap">
-    <h1>🎨 말랑달콤 패턴·스킨 등록 도구</h1>
-    <p class="sub">카페에서 받은 <b>패턴 파일</b>(malang_pattern_….malang.txt)과 <b>스킨 파일</b>(malang_skin_….malang.txt)을 넣고 <b>📦 등록 파일 만들기</b>를 누르면,
-        깃허브에 올릴 <code>js/community-patterns.js</code> · <code>js/community-skins.js</code>와 <code>patterns</code> 폴더의 이미지가 zip 하나로 만들어져요.<br>
+    <h1>🎨 말랑달콤 패턴 등록 도구</h1>
+    <p class="sub">카페에서 받은 <b>패턴 파일</b>(malang_pattern_….malang.txt)을 넣고 <b>📦 등록 파일 만들기</b>를 누르면,
+        깃허브에 올릴 <code>js/community-patterns.js</code>와 <code>patterns</code> 폴더의 이미지가 zip 하나로 만들어져요.<br>
         <b>이 파일 하나만</b> 있으면 돼요. 바탕화면이든 어디든 두고 더블클릭해서 여세요. (지금 등록된 목록은 다이어리 사이트에서 바로 읽어 와요)</p>
 
     <!-- 1. 지금 등록된 패턴 -->
     <div class="box">
-        <h2><span class="step">1</span>지금 등록된 패턴·스킨</h2>
+        <h2><span class="step">1</span>지금 등록된 패턴</h2>
         <div class="row">
             <label for="siteUrl">다이어리 사이트 주소</label>
             <input type="text" id="siteUrl" style="flex:1; min-width:240px;" placeholder="https://softsweetdiary.com/">
@@ -70,14 +64,11 @@
         </div>
         <div class="meta" style="margin-top:6px;">🎨 패턴 <span id="curInfo"></span> : <span id="loadStatus">사이트 주소를 넣고 🌐 최신 목록 불러오기를 눌러 주세요. (주소는 이 컴퓨터에 기억돼요)</span></div>
         <div class="note" id="staleNote" style="display:none;"></div>
-        <div class="meta" style="margin-top:4px;">🖌 스킨 <span id="skinCurInfo"></span> : <span id="skinLoadStatus">-</span></div>
-        <div class="note" id="skinStaleNote" style="display:none;"></div>
         <details style="margin-top:8px;">
             <summary class="meta">인터넷이 안 될 때 / 처음 등록할 때</summary>
             <div class="row" style="margin-top:8px;">
-                <button onclick="document.getElementById('curFile').click()">📂 community-patterns.js / community-skins.js 파일로 불러오기</button>
+                <button onclick="document.getElementById('curFile').click()">📂 community-patterns.js 파일로 불러오기</button>
                 <button onclick="startEmpty()">🆕 패턴은 처음 등록이에요</button>
-                <button onclick="startEmptySkins()">🆕 스킨은 처음 등록이에요</button>
             </div>
             <input type="file" id="curFile" accept=".js,.txt" multiple style="display:none" onchange="loadCurrentFile(event)">
         </details>
@@ -86,29 +77,22 @@
             <p class="meta" style="margin:8px 0 0;">🗑 내리기를 누른 뒤에도 <b>📦 등록 파일 만들기</b>를 눌러야 반영돼요.</p>
             <div class="grid" id="curGrid"></div>
         </details>
-        <details id="skinCurDetails">
-            <summary>등록된 스킨 보기 · 내리기</summary>
-            <p class="meta" style="margin:8px 0 0;">🗑 내리기를 누른 뒤에도 <b>📦 등록 파일 만들기</b>를 눌러야 반영돼요.</p>
-            <div class="grid" id="skinCurGrid"></div>
-        </details>
     </div>
 
     <!-- 2. 새 패턴 넣기 -->
     <div class="box">
-        <h2><span class="step">2</span>새 패턴·스킨 넣기</h2>
+        <h2><span class="step">2</span>새 패턴 넣기</h2>
         <div class="drop" id="drop" onclick="document.getElementById('newFiles').click()">
-            📥 카페에서 받은 패턴 파일·스킨 파일들을 여기에 <b>끌어다 놓거나</b> 눌러서 고르세요. (여러 개 · 섞어서 한 번에 가능, 알아서 나눠요)
+            📥 카페에서 받은 패턴 파일들을 여기에 <b>끌어다 놓거나</b> 눌러서 고르세요. (여러 개 한 번에 가능)
         </div>
         <input type="file" id="newFiles" multiple accept=".txt,.json,text/plain,application/json" style="display:none" onchange="addFiles(event.target.files); event.target.value='';">
         <details style="margin-top:10px;">
             <summary>📋 코드로 넣기 (카페 글에 붙여 넣은 코드)</summary>
-            <textarea id="pasteCode" placeholder='{"malang_pattern":1,...} 또는 {"malang_skin":1,...}'></textarea>
+            <textarea id="pasteCode" placeholder='{"malang_pattern":1,...}'></textarea>
             <div class="row"><button onclick="addPasted()">넣기</button></div>
         </details>
         <div class="kind-title">🎨 새 패턴</div>
         <div class="grid" id="newGrid"></div>
-        <div class="kind-title">🖌 새 스킨</div>
-        <div class="grid" id="skinNewGrid"></div>
     </div>
 
     <!-- 3. 만들기 -->
@@ -238,24 +222,6 @@
 
         const RECIPE_KIND_NAMES = { stripe: '줄무늬', dot: '도트', check: '깅엄 체크', grid: '격자', scallop: '물결', tile: '이미지/그림' };
 
-        /* 🎨 공유 스킨 : 색 5개뿐 → {"bg":"#ffe6f0","cover":"#ff9a9e","page":"#fff0f5","border":"#ffb6c1","accent":"#ff6b81"}
-           '#'+6자리 색만 통과 (하나라도 이상하면 null) */
-        const SKIN_COLOR_FIELDS = ['bg', 'cover', 'page', 'border', 'accent'];
-        function sanitizeSkin(input) {
-            let s = input;
-            if (typeof s === 'string') {
-                if (s.length > 2000) return null;
-                try { s = JSON.parse(s); } catch (e) { return null; }
-            }
-            if (!s || typeof s !== 'object' || Array.isArray(s)) return null;
-            const out = {};
-            for (const k of SKIN_COLOR_FIELDS) {
-                const c = recipeColor(s[k], null);
-                if (!c) return null;
-                out[k] = c;
-            }
-            return out;
-        }
 /* ===== pattern-recipe.js 끝 ===== */
 </script>
 <script>
@@ -267,10 +233,6 @@
     const SITE_KEY = 'malang_tool_site';
     const DEFAULT_SITE = 'https://softsweetdiary.com/';   // 말랑달콤 다이어리 사이트 주소
     const LAST_KEY = 'malang_tool_last_built';
-    const LAST_SKIN_KEY = 'malang_tool_last_built_skins';
-    let skinCurrent = [];     // 지금 등록된 스킨 [{no, name, by, skin, removed?}]
-    let skinIncoming = [];    // 새로 넣은 스킨   [{key, name, by, skin}]
-    let skinReady = false;    // 지금 등록된 스킨 목록을 불러왔는지
 
     function siteBase() {
         let u = document.getElementById('siteUrl').value.trim();
@@ -323,7 +285,6 @@
         try { localStorage.setItem(SITE_KEY, base); } catch (e) {}
         document.getElementById('siteUrl').value = base;
         document.getElementById('loadStatus').textContent = '⏳ 사이트에서 불러오는 중…';
-        loadSkinsFromSite(base);
         let got;
         try {
             const res = await fetch(base + 'js/community-patterns.js?t=' + Date.now(), { cache: 'no-store' });
@@ -396,9 +357,8 @@
             try {
                 const got = parseListText(txt);
                 const msg = `📂 파일에서 불러왔어요 · 총 ${got.list.length}개` + (got.when ? ` · 마지막 수정 ${got.when}` : '') + ' <b>(이 파일이 깃허브와 같은 최신 파일인지 꼭 확인!)</b>';
-                if (/COMMUNITY_SKINS/.test(txt)) useSkinList(got.list, msg);
-                else useList(got.list, msg);
-            } catch (err) { toast('⚠ community-patterns.js / community-skins.js 형식이 아니에요: ' + f.name); }
+                useList(got.list, msg);
+            } catch (err) { toast('⚠ community-patterns.js 형식이 아니에요: ' + f.name); }
         }));
     }
 
@@ -482,14 +442,12 @@
         }
         if (n) toast('📥 새로 ' + n + '개를 넣었어요');
         renderIncoming();
-        renderSkinIncoming();
     }
 
     function addPasted() {
         const ta = document.getElementById('pasteCode');
         if (addAny(ta.value, '붙여 넣은 코드')) { ta.value = ''; toast('📥 넣었어요'); }
         renderIncoming();
-        renderSkinIncoming();
     }
 
     function renderIncoming() {
@@ -525,11 +483,9 @@
 
     function updateBuildInfo() {
         const removed = current.filter(p => p.removed).length;
-        const sRemoved = skinCurrent.filter(p => p.removed).length;
         document.getElementById('buildInfo').textContent =
-            `🎨 패턴 : 새로 ${incoming.length}개` + (removed ? ` · 내리기 ${removed}개` : '') + ` → 총 ${current.length - removed + incoming.length}개` +
-            `  ·  🖌 스킨 : 새로 ${skinIncoming.length}개` + (sRemoved ? ` · 내리기 ${sRemoved}개` : '') + ` → 총 ${skinCurrent.length - sRemoved + skinIncoming.length}개`;
-        document.getElementById('buildBtn').disabled = !(listReady && skinReady);
+            `🎨 패턴 : 새로 ${incoming.length}개` + (removed ? ` · 내리기 ${removed}개` : '') + ` → 총 ${current.length - removed + incoming.length}개`;
+        document.getElementById('buildBtn').disabled = !listReady;
     }
 
     /* 끌어다 놓기 */
@@ -550,10 +506,9 @@
     }
 
     function build() {
-        if (!listReady || !skinReady) { toast('⚠ 먼저 1번에서 지금 등록된 패턴·스킨 목록을 불러와 주세요'); document.getElementById('siteUrl').focus(); return; }
+        if (!listReady) { toast('⚠ 먼저 1번에서 지금 등록된 패턴 목록을 불러와 주세요'); document.getElementById('siteUrl').focus(); return; }
         const keep = current.filter(p => !p.removed);
-        const skinKeep = skinCurrent.filter(p => !p.removed);
-        if (!incoming.length && !skinIncoming.length && !current.length && !skinCurrent.length) { toast('넣은 패턴·스킨이 없어요'); return; }
+        if (!incoming.length && !current.length) { toast('넣은 패턴이 없어요'); return; }
         const files = [];
         const out = keep.map(p => ({ no: p.no, name: p.name, by: p.by, recipe: p.recipe }));
         let no = maxNo();
@@ -581,43 +536,23 @@ ${out.map(p => JSON.stringify(p)).join(',\n')}
 `;
         files.unshift({ name: 'js/community-patterns.js', data: new TextEncoder().encode(js) });
 
-        /* 🖌 스킨 목록 : js/community-skins.js (이미지 없음, 색 5개뿐) */
-        const skinOut = skinKeep.map(p => ({ no: p.no, name: p.name, by: p.by, skin: p.skin }));
-        let sno = skinMaxNo();
-        skinIncoming.forEach(p => { sno += 1; skinOut.push({ no: sno, name: p.name || '모두의 스킨', by: p.by, skin: p.skin }); });
-        const sjs = `/* 말랑달콤 다이어리 - js/community-skins.js
-   🌟 카페에서 받아 등록한 모두의 스킨 목록
-   - 이 파일은 pattern-tool.html(패턴·스킨 등록 도구)이 자동으로 만들어요. 직접 고치지 않아도 돼요.
-   마지막 수정: ${stamp} · 총 ${skinOut.length}개 (사람들이 만들어 나눈 스킨이라 모두 누구나 써요) */
-const COMMUNITY_SKINS = /*DATA-START*/[
-${skinOut.map(p => JSON.stringify(p)).join(',\n')}
-]/*DATA-END*/;
-`;
-        files.splice(1, 0, { name: 'js/community-skins.js', data: new TextEncoder().encode(sjs) });
-        const newSkins = skinIncoming.length;
         const zip = makeZip(files);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
-        a.download = `malang_patterns_${today.replace(/-/g, '')}.zip`;   // 패턴 + 스킨 모두 들어 있음
+        a.download = `malang_patterns_${today.replace(/-/g, '')}.zip`;
         document.body.appendChild(a); a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
 
-        const imgs = files.length - 2;
+        const imgs = files.length - 1;
         const done = document.getElementById('done');
         done.style.display = 'block';
         done.innerHTML = `✅ <b>${a.download}</b> 파일을 만들었어요.<br>
             · 🎨 패턴 : 새로 등록 ${incoming.length}개${imgs ? ', 이미지 ' + imgs + '개' : ''} · 총 ${out.length}개<br>
-            · 🖌 스킨 : 새로 등록 ${newSkins}개 · 총 ${skinOut.length}개<br>
             ① zip 압축을 풀면 <code>js</code> 폴더${imgs ? '와 <code>patterns</code> 폴더' : ''}가 나와요.<br>
             ② 깃허브 저장소 첫 화면에서 <b>Add file → Upload files</b> 를 누르고, 그 폴더${imgs ? '들' : ''}을 통째로 끌어다 놓기 → <b>Commit changes</b><br>
-            ③ 1~2분 뒤부터 사용자 다이어리의 ☁️ 말랑패턴 목록과 스킨 목록(🌟 모두의 스킨)에 나타나요. (늦어도 10분 안에)<br>
+            ③ 1~2분 뒤부터 사용자 다이어리의 ☁️ 말랑패턴 목록에 나타나요. (늦어도 10분 안에)<br>
             ④ 다음에 등록할 때는 이 도구를 열고 🌐 최신 목록 불러오기부터 누르면 돼요. (내 컴퓨터에 따로 덮어쓸 필요 없어요)`;
         try { localStorage.setItem(LAST_KEY, JSON.stringify({ at: stamp, list: out })); } catch (e) {}
-        try { localStorage.setItem(LAST_SKIN_KEY, JSON.stringify({ at: stamp, list: skinOut })); } catch (e) {}
-        setSkinCurrent(skinOut);
-        document.getElementById('skinLoadStatus').textContent = `📦 방금 만든 목록 · 총 ${skinOut.length}개 · ${stamp}`;
-        skinIncoming = [];
-        renderSkinIncoming();
         /* 다음 작업을 위해 지금 결과를 '등록된 목록'으로 */
         setCurrent(out);
         document.getElementById('loadStatus').textContent = `📦 방금 만든 목록 · 총 ${out.length}개 · ${stamp}`;
@@ -658,185 +593,13 @@ ${skinOut.map(p => JSON.stringify(p)).join(',\n')}
     }
 
 
-    /* =====================================================================
-       🖌 스킨 (색 5개) : 목록 읽기 · 새 스킨 넣기 · 카드 그리기
-       ===================================================================== */
-    function skinMaxNo() { return skinCurrent.reduce((m, p) => Math.max(m, p.no), 0); }
-
-    function useSkinList(list, from) {
-        setSkinCurrent(list);
-        skinReady = true;
-        document.getElementById('skinStaleNote').style.display = 'none';
-        document.getElementById('skinLoadStatus').innerHTML = from;
-        renderSkinIncoming();
-    }
-    function lastBuiltSkins() {
-        try { const v = JSON.parse(localStorage.getItem(LAST_SKIN_KEY)); return v && Array.isArray(v.list) ? v : null; } catch (e) { return null; }
-    }
-
-    async function loadSkinsFromSite(base) {
-        document.getElementById('skinLoadStatus').textContent = '⏳ 사이트에서 불러오는 중…';
-        let got;
-        try {
-            const res = await fetch(base + 'js/community-skins.js?t=' + Date.now(), { cache: 'no-store' });
-            if (res.status === 404) got = { list: [], when: '', none: true };
-            else if (!res.ok) throw new Error('HTTP ' + res.status);
-            else got = parseListText(await res.text());
-        } catch (e) {
-            try { got = await loadSkinsViaScript(base); }
-            catch (e2) {
-                document.getElementById('skinLoadStatus').innerHTML = e2 && e2.message === 'reload'
-                    ? '⚠ 다시 불러오려면 이 도구 화면을 <b>새로고침(F5)</b> 해 주세요.'
-                    : '⚠ 사이트에서 스킨 목록을 읽지 못했어요. (안 되면 아래 \'인터넷이 안 될 때\'에서 파일로 불러오거나, 정말 처음이면 🆕 스킨은 처음 등록이에요)';
-                return;
-            }
-        }
-        const ok = `✅ 사이트에서 불러왔어요 · 총 ${got.list.length}개` + (got.when ? ` · 마지막 수정 ${got.when}` : '') + (got.none ? ' (아직 스킨 등록 파일이 없어요 · 처음 등록)' : '');
-        const lb = lastBuiltSkins();
-        const maxOf = l => l.reduce((m, p) => Math.max(m, parseInt(p.no, 10) || 0), 0);
-        if (lb && JSON.stringify(lb.list) !== JSON.stringify(got.list) && maxOf(lb.list) >= maxOf(got.list)) {
-            const note = document.getElementById('skinStaleNote');
-            note.style.display = 'block';
-            note.innerHTML = `⚠ 사이트 스킨 목록(${got.list.length}개)이 이 컴퓨터에서 <b>마지막으로 만든 목록(${lb.list.length}개, ${lb.at})</b>과 달라요.<br>
-                방금 깃허브에 올렸다면 사이트에 반영되기까지 최대 10분 걸려요. 잠시 후 다시 불러오거나, 아래에서 고르세요.<br>
-                <div class="row" style="margin-top:6px;"><button class="primary" id="useLastSkinBtn">마지막으로 만든 목록 쓰기 (${lb.list.length}개)</button><button id="useSiteSkinBtn">사이트 목록 쓰기 (${got.list.length}개)</button></div>`;
-            document.getElementById('useLastSkinBtn').onclick = () => useSkinList(lb.list, `✅ 마지막으로 만든 목록을 쓰는 중 · 총 ${lb.list.length}개 · ${lb.at}`);
-            document.getElementById('useSiteSkinBtn').onclick = () => useSkinList(got.list, ok);
-            document.getElementById('skinLoadStatus').textContent = '목록이 두 가지예요. 아래에서 골라 주세요.';
-            return;
-        }
-        useSkinList(got.list, ok);
-    }
-
-    let skinScriptTried = false;
-    function loadSkinsViaScript(base) {
-        return new Promise((resolve, reject) => {
-            if (skinScriptTried) return reject(new Error('reload'));
-            skinScriptTried = true;
-            const sc = document.createElement('script');
-            sc.src = base + 'js/community-skins.js?t=' + Date.now();
-            sc.onload = () => {
-                try { if (Array.isArray(COMMUNITY_SKINS)) return resolve({ list: COMMUNITY_SKINS, when: '' }); } catch (e) {}
-                reject(new Error('format'));
-            };
-            sc.onerror = () => reject(new Error('load'));
-            document.head.appendChild(sc);
-        });
-    }
-
-    function startEmptySkins() {
-        if (!confirm('정말 스킨은 처음 등록인가요?\n이미 등록된 스킨이 있다면 그 목록이 사라질 수 있어요. 그럴 땐 취소하고 🌐 최신 목록 불러오기를 눌러 주세요.')) return;
-        useSkinList([], '🆕 빈 목록으로 시작 (스킨 처음 등록)');
-    }
-
-    function setSkinCurrent(list) {
-        skinCurrent = [];
-        (Array.isArray(list) ? list : []).forEach(row => {
-            const no = parseInt(row && row.no, 10);
-            const skin = row && sanitizeSkin(row.skin);
-            if (!no || !skin || skinCurrent.some(p => p.no === no)) return;
-            skinCurrent.push({ no, name: recipeText(row.name, 20) || '모두의 스킨', by: recipeText(row.by, 12), skin });
-        });
-        renderSkinCurrent();
-    }
-
-    /* 작은 다이어리 모양 미리보기 : 전체 배경 · 겉표지 · 속지 · 테두리 · 포인트 */
-    function skinSwatch(c, label) {
-        const sw = document.createElement('div');
-        sw.className = 'skin-sw';
-        sw.style.background = c.bg;
-        sw.innerHTML = `<div class="cv"></div><div class="pg"><i></i><i></i><b>Aa</b></div><span class="no"></span>`;
-        sw.querySelector('.cv').style.background = c.cover;
-        const pg = sw.querySelector('.pg');
-        pg.style.background = c.page; pg.style.borderColor = c.border;
-        pg.querySelectorAll('i').forEach(i => { i.style.background = c.accent; });
-        pg.querySelector('b').style.background = c.accent;
-        sw.querySelector('.no').textContent = label;
-        sw.title = SKIN_COLOR_FIELDS.map(k => ({ bg: '전체 배경', cover: '겉표지', page: '속지', border: '테두리', accent: '포인트' })[k] + ' ' + c[k]).join(' · ');
-        return sw;
-    }
-
-    function renderSkinCurrent() {
-        const live = skinCurrent.filter(p => !p.removed);
-        document.getElementById('skinCurInfo').textContent = skinReady ? `(총 ${live.length}개)` : '';
-        const grid = document.getElementById('skinCurGrid');
-        grid.innerHTML = '';
-        if (!skinCurrent.length) { grid.innerHTML = '<div class="empty">아직 등록된 스킨이 없어요.</div>'; updateBuildInfo(); return; }
-        skinCurrent.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'card' + (p.removed ? ' removed' : '');
-            card.appendChild(skinSwatch(p.skin, '#' + p.no));
-            const f = document.createElement('div');
-            f.className = 'fields';
-            f.innerHTML = `<div><b></b> <span class="meta"></span></div>`;
-            f.querySelector('b').textContent = p.name;
-            f.querySelector('.meta').textContent = p.by ? 'by ' + p.by : '';
-            card.appendChild(f);
-            const acts = document.createElement('div');
-            acts.className = 'acts';
-            const del = document.createElement('button');
-            del.textContent = p.removed ? '↩ 되살리기' : '🗑 내리기';
-            del.onclick = () => { p.removed = !p.removed; renderSkinCurrent(); };
-            acts.appendChild(del);
-            card.appendChild(acts);
-            grid.appendChild(card);
-        });
-        updateBuildInfo();
-    }
-
-    /* 파일·코드 하나 → 스킨이면 스킨으로, 아니면 패턴으로 */
+    /* 파일·코드 하나 → 패턴 */
     function addAny(txt, source) {
-        const m = String(txt || '').match(/\{[\s\S]*\}/);
-        let o = null;
-        try { o = m ? JSON.parse(m[0]) : null; } catch (e) { o = null; }
-        if (o && (o.malang_skin || (o.skin && !o.recipe))) return addSkinParsed(o, source);
         return addParsed(parsePatternText(txt), source);
     }
-    function addSkinParsed(o, source) {
-        const skin = sanitizeSkin(o.skin);
-        if (!skin) { toast('⚠ 스킨 파일이 아니거나 깨진 파일이에요: ' + source); return false; }
-        const k = JSON.stringify(skin);
-        if (skinIncoming.some(x => JSON.stringify(x.skin) === k)) { toast('ℹ 이미 넣은 스킨이에요: ' + (o.name || source)); return false; }
-        if (skinCurrent.some(x => JSON.stringify(x.skin) === k)) { toast('ℹ 이미 등록된 스킨과 똑같아요: ' + (o.name || source)); return false; }
-        skinIncoming.push({ key: ++keySeq, name: recipeText(o.name, 20) || '모두의 스킨', by: recipeText(o.by, 12), skin });
-        return true;
-    }
-
-    function renderSkinIncoming() {
-        const grid = document.getElementById('skinNewGrid');
-        grid.innerHTML = '';
-        if (!skinIncoming.length) { grid.innerHTML = '<div class="empty">아직 넣은 새 스킨이 없어요.</div>'; updateBuildInfo(); return; }
-        const base = skinMaxNo();
-        skinIncoming.forEach((p, i) => {
-            const card = document.createElement('div');
-            card.className = 'card new';
-            card.appendChild(skinSwatch(p.skin, '새 #' + (base + i + 1)));
-            const f = document.createElement('div');
-            f.className = 'fields';
-            f.innerHTML = `<label>이름 <input type="text" maxlength="20"></label>
-                <label>만든 사람 <input type="text" maxlength="12"></label>`;
-            const [nameIn, byIn] = f.querySelectorAll('input');
-            nameIn.value = p.name; byIn.value = p.by;
-            nameIn.oninput = () => { p.name = recipeText(nameIn.value, 20); };
-            byIn.oninput = () => { p.by = recipeText(byIn.value, 12); };
-            card.appendChild(f);
-            const acts = document.createElement('div');
-            acts.className = 'acts';
-            const btn = (label, fn, dis) => { const b = document.createElement('button'); b.textContent = label; b.disabled = !!dis; b.onclick = fn; acts.appendChild(b); };
-            btn('◀ 앞으로', () => { [skinIncoming[i - 1], skinIncoming[i]] = [skinIncoming[i], skinIncoming[i - 1]]; renderSkinIncoming(); }, i === 0);
-            btn('뒤로 ▶', () => { [skinIncoming[i + 1], skinIncoming[i]] = [skinIncoming[i], skinIncoming[i + 1]]; renderSkinIncoming(); }, i === skinIncoming.length - 1);
-            btn('✕ 빼기', () => { skinIncoming.splice(i, 1); renderSkinIncoming(); });
-            card.appendChild(acts);
-            grid.appendChild(card);
-        });
-        updateBuildInfo();
-    }
-
     /* ---------- 시작 ---------- */
     renderCurrent();
     renderIncoming();
-    renderSkinCurrent();
-    renderSkinIncoming();
     let savedSite = '';
     try { savedSite = localStorage.getItem(SITE_KEY) || ''; } catch (e) {}
     document.getElementById('siteUrl').value = savedSite || DEFAULT_SITE;

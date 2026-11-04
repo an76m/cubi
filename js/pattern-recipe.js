@@ -109,29 +109,5 @@
             return null;
         }
 
-
-        /* 🎨 공유 스킨 : 색 5개뿐 → {"bg":"#ffe6f0","cover":"#ff9a9e","page":"#fff0f5","border":"#ffb6c1","accent":"#ff6b81"}
-           '#'+6자리 색만 통과 (하나라도 이상하면 null) */
-        const SKIN_COLOR_FIELDS = ['bg', 'cover', 'page', 'border', 'accent'];
-        function sanitizeSkin(input) {
-            let s = input;
-            if (typeof s === 'string') {
-                try { s = JSON.parse(s); } catch (e) { return null; }
-            }
-            if (!s || typeof s !== 'object' || Array.isArray(s)) return null;
-            const out = {};
-            for (const k of SKIN_COLOR_FIELDS) {
-                const c = recipeColor(s[k], null);
-                if (!c) return null;
-                out[k] = c;
-            }
-            ['menu', 'mf1', 'mf2', 'mf3', 'mf4', 'pbd', 'pfill', 'psel', 'wbd', 'wfill'].forEach(k => {          // 🔘 하단메뉴 · 📍 팝업메뉴 · 🪟 창 색 (있을 때만)
-                const c = s[k] != null ? recipeColor(s[k], null) : null;
-                if (c) out[k] = c;
-            });
-            if (typeof stuClean === 'function') stuClean(s, out);          // 🎀 꾸밈 · 아이콘 · 내 이미지 (js/skinstudio.js · 정해진 모양만 통과)
-            return out;
-        }
-
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['pattern-recipe'] = true;

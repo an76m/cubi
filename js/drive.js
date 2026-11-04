@@ -10,7 +10,7 @@
              말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json · 검색.json   📔 날짜형 바인더 1년치 (기본으로 주는 것 · 한 권 = 폴더 · '해 디자인 번호' · js/dyyear.js)
                       / 날짜형노트 / 2026 분홍 1 / …                       📓 날짜형 노트 1년치 (권 id 2026n-분홍노트-1 · 도련 11-04)
                       / 페이지바인더 · 페이지노트 / <권 id>-다이어리.json · <권 id>-3페이지.json …   📕 페이지형 30장 (지금 숨김 · 팔 때 한 권 = 폴더로)
-                      / 페이지꾸밈 · 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
+                      / 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
                       / 스티커목록 / 목록.json · 스티커첩.json · 백업          🎒 유한 스티커 (js/own.js)
                       / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)
                       / 서랍장 · 시계 · 책꽂이 … 소품바구니 · 인형 … (DESK_DIRS) / 받은-<id>.json · 받은-목록N.json   🪑 책상 소품 하나에 파일 하나 (인형 = 책상에 놓는 인형)
@@ -31,7 +31,7 @@
         /* 📁 폴더 이름은 여기 한 곳에서만 (도련 10-26 · 새 폴더 = 한 줄 추가) · 스티커 종류 폴더는 js/own.js OWN_KIND */
         const DIRS = {
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
-            pageDeco: '페이지꾸밈', pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
+            pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
             stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치', starter: '기본세트'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
@@ -765,9 +765,8 @@
         /* 다른 기기 설정이 들어왔을 때 화면에 바로 보이는 것만 다시 (글꼴 · 페이지 · 보이는 것 · D-day) */
         async function applyRemoteSettings() {
             try {
-                if (typeof pgPrepare === 'function') await pgPrepare();        // 고른 페이지 · 배경지가 바뀌었으면 그 원본부터 (js/settings.js · js/pattern-maker.js)
                 if (typeof patPrepare === 'function') await patPrepare();
-                loadCustomSkins();                                              // 페이지 · 배경지 다시 적용
+                if (typeof loadBgPattern === 'function') loadBgPattern();       // 배경지 다시 적용 (js/skins.js)
                 loadUIFont();
                 if (typeof showApply === 'function') showApply();
                 if (typeof ddRefresh === 'function') ddRefresh();
@@ -997,7 +996,7 @@
 
         /* 드라이브에서 불러온 데이터를 화면에 반영 */
         function applyLoadedData() {
-            loadCustomSkins();
+            if (typeof loadBgPattern === 'function') loadBgPattern();
             loadUIFont();
             if (isCoverOpen) loadData();
             updateStorageInfo();

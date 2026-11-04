@@ -10,11 +10,11 @@
    - 페이지에 붙은 한 장은 글 + 그림 그대로 그날 파일에 저장돼요 (tk: 'my' · tb · 인수인계 12번) */
 
         const LM_W = 900;
-        const LM_PAPERS = [['page', '스킨 색'], ['#ffffff', '하양'], ['#fffaf0', '미색'], ['#fff0f5', '분홍'], ['#eefaf4', '민트'], ['#eef5ff', '하늘'], ['#f6f0ff', '보라'], ['#e9d5b3', '크라프트']];
+        const LM_PAPERS = [['page', '다이어리 색'], ['#ffffff', '하양'], ['#fffaf0', '미색'], ['#fff0f5', '분홍'], ['#eefaf4', '민트'], ['#eef5ff', '하늘'], ['#f6f0ff', '보라'], ['#e9d5b3', '크라프트']];
         const LM_GUIDES = [['plain', '무지'], ['line', '줄'], ['grid', '모눈'], ['dot', '도트']];
         const LM_PENS = ['#5a3d4a', '#ff6b8b', '#ff9f43', '#ffd23f', '#4caf7a', '#3d9be0', '#8a6be0', '#ffffff'];
         const LM_SIZES = [['3', '가늘게'], ['7', '보통'], ['16', '굵게']];
-        const LM_GLUES = [['', '스킨 색'], ['#ffb3c6', '분홍'], ['#ffcf9e', '살구'], ['#ffe98a', '노랑'], ['#b9ebcf', '민트'], ['#b7dcff', '하늘'], ['#d6c6ff', '보라'], ['#d9bf94', '크라프트']];
+        const LM_GLUES = [['', '다이어리 색'], ['#ffb3c6', '분홍'], ['#ffcf9e', '살구'], ['#ffe98a', '노랑'], ['#b9ebcf', '민트'], ['#b7dcff', '하늘'], ['#d6c6ff', '보라'], ['#d9bf94', '크라프트']];
         const LM_TK_W = 300, LM_TK_H = 296;                              // 🧻 떡메 한 장 (TK_W × TK_H 의 2배 · js/leafpad.js)
         const lm = { built: false, for: 'leaf', glue: '', tab: 'photo', w: LM_W, h: 1400, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, paper: 'page', guide: 'plain',
             pen: LM_PENS[0], size: 7, erase: false, ink: null, undo: [], drag: null };
@@ -25,11 +25,11 @@
             if (lm.built) return; lm.built = true;
             const chips = (id, arr, on, fn) => { const b = lmq(id); b.innerHTML = arr.map(([v, n]) => `<button type="button" data-v="${v}" class="${v === on ? 'on' : ''}">${n}</button>`).join(''); b.onclick = e => { const t = e.target.closest('button'); if (!t) return; b.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === t)); fn(t.dataset.v); }; };
             chips('lmPaper', LM_PAPERS, lm.paper, v => { lm.paper = v; lmDraw(); });
-            lmq('lmPaper').querySelectorAll('button').forEach(b => { const c = b.dataset.v === 'page' ? 'var(--page-bg)' : b.dataset.v; b.insertAdjacentHTML('afterbegin', `<i style="background:${c}"></i>`); });
+            lmq('lmPaper').querySelectorAll('button').forEach(b => { const c = b.dataset.v === 'page' ? 'var(--dy-page)' : b.dataset.v; b.insertAdjacentHTML('afterbegin', `<i style="background:${c}"></i>`); });
             chips('lmGuide', LM_GUIDES, lm.guide, v => { lm.guide = v; lmDraw(); });
             chips('lmSize', LM_SIZES, String(lm.size), v => { lm.size = +v; });
             chips('lmGlue', LM_GLUES, lm.glue, v => { lm.glue = v; lmGlueShow(); });
-            lmq('lmGlue').querySelectorAll('button').forEach(b => b.insertAdjacentHTML('afterbegin', `<i style="background:${b.dataset.v || 'var(--primary-accent)'}"></i>`));
+            lmq('lmGlue').querySelectorAll('button').forEach(b => b.insertAdjacentHTML('afterbegin', `<i style="background:${b.dataset.v || 'var(--dy-accent)'}"></i>`));
             const pens = lmq('lmPens');
             pens.innerHTML = LM_PENS.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${c === lm.pen ? 'on' : ''}" aria-label="펜 색"></button>`).join('') + '<button type="button" data-c="erase" class="lm-eraser" aria-label="지우개">🧽</button>';
             pens.onclick = e => { const t = e.target.closest('button'); if (!t) return; pens.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === t)); lm.erase = t.dataset.c === 'erase'; if (!lm.erase) lm.pen = t.dataset.c; };
@@ -80,8 +80,8 @@
         /* 사진은 페이지를 꽉 채워요 (cover) · 확대한 만큼 손가락으로 옮길 수 있어요 */
         const lmCover = () => { const im = lm.img, k = Math.max(lm.w / im.width, lm.h / im.height) * lm.zoom; return { k, w: im.width * k, h: im.height * k }; };
         function lmClamp() { if (!lm.img) return; const c = lmCover(), mx = (c.w - lm.w) / 2, my = (c.h - lm.h) / 2; lm.ox = Math.max(-mx, Math.min(mx, lm.ox)); lm.oy = Math.max(-my, Math.min(my, lm.oy)); }
-        function lmPaperColor() { return lm.paper === 'page' ? (getComputedStyle(document.documentElement).getPropertyValue('--page-bg').trim() || '#fff0f5') : lm.paper; }
-        function lmAccent() { return getComputedStyle(document.documentElement).getPropertyValue('--primary-accent').trim() || '#ff6b81'; }
+        function lmPaperColor() { return lm.paper === 'page' ? (getComputedStyle(document.documentElement).getPropertyValue('--dy-page').trim() || '#fff0f5') : lm.paper; }
+        function lmAccent() { return getComputedStyle(document.documentElement).getPropertyValue('--dy-accent').trim() || '#ff6b81'; }
         /* 종이 → 사진 → 연하게(하얀 막) → 밑줄 → 그림 */
         function lmCompose(x) {
             const W = lm.w, H = lm.h, u = lm.for === 'tk' ? 6 : W / 100;     // 🧻 떡메는 줄 간격이 기본 메모 떡메와 비슷하게

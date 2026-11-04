@@ -6,8 +6,6 @@
         let selectedElement = null;
         let zIndexCounter = 10;
 
-        let customSkins = {};
-
         /* 페이지 크기 : 다이어리마다 정해져요 (js/skins.js dySize) */
         const PAGE_BORDER = 4, PAGE_HEADER_H = 48;
         let liveSize = null;
@@ -141,35 +139,33 @@ let fontList = [
         };
 
         /* 📔 날짜형 다이어리 디자인 = 서버 상품 (상품공방 '날짜형바인더' · '날짜형노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 디자인이 늘어도 코드는 그대로)
-           속성 : 이름 · 규격(n) · mm · r(세로÷가로) · b(묶는 방식) · 스킨 { bg, cover, page, border, accent } · 스킨목록(⚙ 스킨 고르기에 나와요) · 스킨이름 · 처음선물
-           DY_DESIGNS = 날짜형 디자인 모두 (권 · 가게 · 책상) · skinPresets = 디자인 id → 스킨 (펼친 권의 색) · DIARY_COLORS = 스킨 고르기에 나올 것 [id, 이름, 숨김, 스킨이름] */
-        const skinPresets = {}, DIARY_COLORS = [], DY_DESIGNS = [];
+           속성 : 이름 · 규격(n) · mm · r(세로÷가로) · b(묶는 방식) · 표지색 · 테두리색 · 강조색 · 속지색 · 처음선물
+           DY_DESIGNS = 날짜형 디자인 모두 (권 · 가게 · 책상) · DY_COL = 디자인 id → 그 권 색 { cover, page, border, accent } (펼친 권 = 다이어리에만 칠해요 · js/dyyear.js dyyColorPaint · 도련 11-05) */
+        const DY_COL = {}, DY_DESIGNS = [];
         const DY_DKINDS = [['날짜형바인더', '바인더', 'b'], ['날짜형노트', '노트', 'n']];   // [상품 종류, 모양, 권 id 글자 (2026b-분홍-1)]
         function dyColorsBuild() {                                             // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
-            Object.keys(skinPresets).forEach(k => delete skinPresets[k]); DIARY_COLORS.length = 0; DY_DESIGNS.length = 0;
-            const okC = v => /^#[0-9a-f]{6}$/i.test(v || ''), okSk = k => k && typeof k === 'object' && String(k.cover || '') && ['border', 'accent', 'page', 'bg'].every(n => okC(k[n]));
+            Object.keys(DY_COL).forEach(k => delete DY_COL[k]); DY_DESIGNS.length = 0;
+            const okC = v => /^#[0-9a-f]{6}$/i.test(v || '');
             DY_DKINDS.forEach(([K, kind, ch]) => (window.prodList ? prodList(K) : []).forEach(x => {   // 🔎 상품 그대로 (빠지면 안 나와요 · 상품공방이 검수)
                 const P = x.P || {};
-                if (!okSk(P.스킨) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b)) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }
-                skinPresets[x.id] = P.스킨;
-                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.스킨.border, off: !!P.숨김, gift: !!P.처음선물 });
-                if (P.스킨목록) DIARY_COLORS.push([x.id, String(P.이름), !!P.숨김, String(P.스킨이름 || P.이름)]);
+                if (!String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b)) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }
+                DY_COL[x.id] = { cover: String(P.표지색), page: P.속지색, border: P.테두리색, accent: P.강조색 };
+                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, off: !!P.숨김, gift: !!P.처음선물 });
             }));
         }
         dyColorsBuild();
         if (window.prodHook) prodHook(dyColorsBuild);
-        DY_DKINDS.forEach(([K, , ch]) => {                                      // 📦 사본 = 받은 권의 디자인 + 지금 스킨
+        DY_DKINDS.forEach(([K, , ch]) => {                                      // 📦 사본 = 받은 권의 디자인
             (window.SNAP_OWN = window.SNAP_OWN || {})[K] = () => {
                 let ids = []; try { ids = (prefGet('diary_years', 'malang_years') || []).map(id => (/^\d{4}([a-z])-(.+)-\d+$/.exec(String(id)) || [])).filter(m => m[1] === ch).map(m => m[2]); } catch (e) {}
-                if (typeof currentSkinId === 'string' && prodServer(K).some(x => x.id === currentSkinId)) ids.push(currentSkinId);
                 return ids.filter(Boolean);
             };
         });
-        const skinPreset0 = () => { const d = DY_DESIGNS.find(x => x.gift) || DY_DESIGNS[0]; return d ? skinPresets[d.id] : { bg: '#ffe6f0', cover: '#ffb6c1', page: '#fff0f5', border: '#ffb6c1', accent: '#ff6b81' }; };   // 처음 다이어리 색 = 처음 선물 디자인
 
         window.onload = () => oneReady(() => {                                  // 🔒 이 창이 다이어리를 맡았을 때만 시작 (한 기기에 하나 · js/onlyone.js)
             setupCurlDrag();
-            loadCustomSkins();
+            if (typeof loadBgPattern === 'function') loadBgPattern();   // 🌈 전체 배경지 (js/skins.js)
+            if (typeof seasonRestore === 'function') seasonRestore();   // 🌸 계절 테마 (js/season.js · 닫혀 있으면 아무것도 안 해요)
             setupFontSelects();
             setupPanelDrag();
             loadUIFont();

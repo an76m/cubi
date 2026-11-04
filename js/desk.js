@@ -1281,7 +1281,7 @@
            - 평소 다이어리 권 톡 = 그 권 펼치기 · 🛠 꾸미기 = 끌어 옮기기 · 톡 = 모습 (📚 꽂기 · 📔 세우기 · 🛏 눕히기) · 바구니 · 받침 위도 소품처럼 (dkLayers)
            - 🛍️ 봉투의 새 다이어리 카드 = 끌어 놓은 자리에 그 권 · 📔 보관소 창은 뒤에서만 (📱 폰 · 못 찾을 때 · 🛠 다이어리 메뉴 '📔 보관소') · 📦 소품함에는 안 들어가요 */
         const DKV_SZ = { side: [24, 127], front: [80, 120], lay: [150, 86] };      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
-        const dkvCol = c => { const k = typeof skinPresets !== 'undefined' && skinPresets[c]; return k ? ['', k.border, k.accent] : ['', '#ffb6c1', '#ff6b81']; };   // 🧁 그 권 디자인의 스킨 색 (js/app.js · 디자인 속성이 없으면 분홍으로 보여만 줘요)
+        const dkvCol = c => { const k = DY_COL[c]; return k ? ['', k.border, k.accent] : ['', '#ffb6c1', '#ff6b81']; };   // 🧁 그 권 디자인의 색 (js/app.js · 디자인 속성이 없으면 분홍으로 보여만 줘요)
         const dkyCur = () => (window.dyyBookId && (typeof dkType !== 'function' || !dkType()) ? dyyBookId() : '') || '';
         const dkyMap = () => { const v = typeof prefGet === 'function' ? prefGet(DKY_KEY, DKY_LOCAL) : null; return v && typeof v === 'object' && !('x' in v) ? v : {}; };
         const dkyOk = v => v && isFinite(+v.x) && isFinite(+v.y) && ['side', 'front', 'lay'].includes(v.p);

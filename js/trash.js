@@ -38,7 +38,7 @@
             if (/^(내|받은)-목록\d+\.json$/.test(file)) return '📋 모음 목록';
             if (/^(내|받은)-/.test(file)) {
                 const stk = typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir);
-                return stk ? `🏷️ ${dir} 스티커` : dir === DIRS.pattern ? '🎨 배경지' : dir === DIRS.pageDeco ? '📔 페이지' : '📦 ' + dir;
+                return stk ? `🏷️ ${dir} 스티커` : dir === DIRS.pattern ? '🎨 배경지' : '📦 ' + dir;
             }
             if (dir === DIRS.note || dir === DIRS.binder) return '📕 ' + (/-(\d+)페이지\.json$/.test(file) ? file.replace(/^.*-(\d+)페이지\.json$/, '$1페이지') : /-표지\.json$/.test(file) ? '표지' : '다이어리');
             if (/\/인형극\//.test(path)) return '🎭 인형극 ' + parts[parts.length - 1].replace(/\.json$/, '');

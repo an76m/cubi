@@ -1,13 +1,12 @@
 /* 말랑달콤 다이어리 - js/skins.js
-   🎨 페이지 메뉴 (기본페이지 · 말랑배경지) · 전체 배경지 적용/저장/불러오기
+   🌈 전체 배경지 적용/저장/불러오기 · 📒 다이어리 창 · 📔 다이어리 (스킨 · 나만의 다이어리는 11-05 도련 : 없앴어요)
    - 고른 배경지는 설정값 'diary_bg_pattern' 으로 저장 → 구글 드라이브 설정.json 에 함께 저장돼요
        예) "diary_bg_pattern": {"id":"tomato","scale":1}
    - 배경지 해제 시 이 값을 지워요 (설정.json 에서도 빠짐)
    - 목록 배치(한 줄에 몇 개·몇 줄·크기)는 기기마다 화면이 달라서 이 기기(localStorage)에만 기억
    - 배경지 출처 : 기본 제공(js/patterns.js) · 내 배경지('my:번호') · 등록된 사용자 배경지('cm:번호', 관리자가 승인한 것)
        등록된 사용자 배경지는 레시피를 함께 저장해서 {"id":"cm:3","scale":1,"r":{...}} 처럼 기록 → 목록에서 빠져도 배경은 유지
-   - 🌟 모두의 페이지(js/community-skins.js) 목록도 여기서 읽어요. 페이지 고르기·저장은 js/settings.js
-   ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → community-patterns → community-skins → pattern-recipe → skins → pattern-maker → service */
+   ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → community-patterns → pattern-recipe → skins → pattern-maker → service */
 
         const BG_PATTERN_KEY = 'diary_bg_pattern';
         const PATTERN_SCALE_MIN = 0.5, PATTERN_SCALE_MAX = 2;
@@ -104,33 +103,6 @@
             if (save) saveBgPattern();
         }
 
-        /* ---------- 스킨 메뉴 ---------- */
-        function openSkinBasic() {
-            closeModal('skinModal');
-            updatePatternUI();
-            openModal('skinBasicModal');
-        }
-
-        /* ---------- 🌟 모두의 스킨 (카페에서 받아 관리자가 등록 : js/community-skins.js) ----------
-           목록 한 줄 : {"no":1,"name":"봄날","by":"닉네임","skin":{색 5개}}  →  id 'cs:번호'
-           파일이 없거나 깨져도 다이어리는 정상 동작 (모두의 페이지만 안 보임) */
-        let communitySkinItems = null;
-        function getCommunitySkins() {
-            if (communitySkinItems) return communitySkinItems;
-            communitySkinItems = [];
-            const list = (typeof COMMUNITY_SKINS !== 'undefined' && Array.isArray(COMMUNITY_SKINS)) ? COMMUNITY_SKINS : [];
-            list.forEach(row => {
-                const no = parseInt(row && row.no, 10);
-                const skin = row && sanitizeSkin(row.skin);
-                if (!no || !skin || communitySkinItems.some(x => x.id === 'cs:' + no)) return;
-                communitySkinItems.push({
-                    id: 'cs:' + no, no,
-                    name: recipeText(row.name, 20) || '모두의 페이지', by: recipeText(row.by, 12), skin
-                });
-            });
-            return communitySkinItems;
-        }
-
         /* ---------- 스킨 창 : 제목을 끌어서 옮기기 · 👀 꾹 눌러 다이어리 보기 ----------
            페이지 색을 바꾸면서 뒤의 다이어리가 어떻게 바뀌는지 볼 수 있게 */
         (function setupSkinWindows() {
@@ -187,98 +159,6 @@
             openModal('skinModal');
         }
 
-        /* ---------- 📔 페이지 목록 (썸네일만 · 스티커 창과 같은 칸 5개 · 10-18 '기본' 칸 4색만 보여요 · 기본 다이어리에만 적용) ----------
-           기본 = 기본 페이지 4종 · 내가만든 = 🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 공유받은 = 📥 파일로 받은 것 + 🌟 모두의 페이지
-           이벤트 = 🌸 계절 테마 등 · 문구점 = 🎁 테마 페이지 + 🛍️ 문구점 가기
-           썸네일은 따로 저장하지 않고, 페이지에 저장된 색 5개 · 꾸밈 위치로 작은 다이어리를 바로 그려요 (요청 없음) */
-        let sklTab = 'free';
-        function openPageList(tab) {
-            closeModal('skinModal');
-            const bar = document.getElementById('pageTabs');
-            bar.innerHTML = stkTabsOn(v => sklItems(v).length, 'page').filter(([v]) => v === 'free').map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="sklSetTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
-            sklTab = tab || sklTabOf(currentSkinId);
-            if (!bar.querySelector(`[data-tab="${sklTab}"]`)) sklTab = 'free';
-            renderPageList();
-            openModal('pageListModal');
-        }
-        /* 지금 쓰는 페이지가 들어 있는 칸 */
-        function sklTabOf(id) {
-            if (hasOwn(skinPresets, id)) return 'free';
-            if (String(id).startsWith('cs:')) return 'share';
-            if (String(id).startsWith('th:')) return 'shop';
-            if (hasOwn(customSkins, id)) return customSkins[id].got ? 'share' : 'mine';
-            return 'free';
-        }
-        function sklSetTab(tab) { sklTab = tab; renderPageList(); const g = document.getElementById('pageGrid'); if (g) g.scrollTop = 0; }
-        function sklIsOpen() { const m = document.getElementById('pageListModal'); return !!m && m.style.display === 'flex'; }
-        /* 칸에 보일 페이지들 [{ id, skin, own(지울 수 있음) }] */
-        function sklItems(tab) {
-            if (tab === 'free') return DIARY_COLORS.filter(c => !c[2]).map(c => ({ id: c[0], skin: skinPresets[c[0]] }));   // ⚙ 스킨 고르기 = 상품 '스킨목록' 을 켠 날짜형 디자인 (도련 11-04)
-            if (tab === 'share') return skinCommunity().map(c => ({ id: c.id, skin: c.skin }));     // 📥 받은페이지는 모음에서 따로 (renderPageList)
-            if (tab === 'shop') return (typeof stuThemeList === 'function' ? stuThemeList() : []).filter(t => stuHasTheme(t.id))
-                .map(t => { const th = themeSkinOf(t.id); return th ? { id: 'th:' + t.id, skin: th.skin } : null; }).filter(Boolean);
-            return [];
-        }
-        function renderPageList() {
-            const g = document.getElementById('pageGrid');
-            if (!g) return;
-            document.querySelectorAll('#pageTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === sklTab));
-            const items = sklItems(sklTab);
-            let head = typeof dkType === 'function' && dkType() ? '<div class="cs-empty skl-wide">📒 지금은 기본 다이어리가 아니라서 색이 안 보여요.<br>고른 색은 기본 다이어리에서 보여요.</div>' : '';
-            if (sklTab === 'share' && (typeof ftOn !== 'function' || ftOn('share'))) head = '<div class="shx-bar in"><button type="button" class="shx-btn go" onclick="document.getElementById(\'skinFileInput\').click()">📥 파일 불러오기</button><small>카페에서 받은 페이지 파일을 골라요</small></div>';
-            if (sklTab === 'event' && typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN) head = '<div class="season-card skl-wide" id="seasonCard"></div>';
-            const empty = {
-                mine: '아직 만든 다이어리가 없어요.<br>🎨 다이어리 색상설정이나 🎀 다이어리 꾸미기에서 저장해 보세요!',
-                share: '아직 공유받은 페이지가 없어요.<br>카페에서 받은 파일을 📥 파일 불러오기로 넣어 보세요.',
-                event: '🎁 아직 받은 이벤트 페이지가 없어요.<br>이벤트 페이지가 오면 여기에 들어와요!'
-            }[sklTab];
-            const shop = sklTab === 'shop' ? `<button type="button" class="stk-go" onclick="openShop('#/c/페이지')"><span>🛍️</span><b>문구점에서 페이지 보기</b><small>새 창으로 열려요</small></button>` : '';
-            const cell = sklCell;
-            const coll = sklTab === 'mine' || sklTab === 'share';                    // 🎨 내가만든 · 📥 받은 페이지 : 모음에서 작은 그림으로 (js/coll.js)
-            g.innerHTML = head + (coll ? '<div class="cg-host"></div>' : '') + items.map(it => cell(it)).join('')
-                + (!coll && !items.length && !shop && empty && !(sklTab === 'event' && head) ? `<div class="cs-empty">${empty}</div>` : '') + shop;
-            if (coll) {
-                const got = sklTab === 'share', C = pgColl(got), tab = sklTab;
-                C.onChange = () => { if (sklIsOpen() && sklTab === tab) renderPageList(); };
-                collGrid(g.querySelector('.cg-host'), C, e => cell({ id: e.id, skin: e.th, own: true }, got, got && e.x && e.x.by), got && items.length ? '' : `<div class="cs-empty">${empty}</div>`);
-            }
-            if (head.includes('seasonCard') && typeof seasonRenderCard === 'function') seasonRenderCard();
-        }
-        /* 페이지 한 칸 (페이지 목록 · 📔 다이어리 창 '내가만든' 칸이 같이 써요) */
-        function sklCell(it, got, by) {
-            const on = it.id === currentSkinId && !(typeof dkType === 'function' && dkType()), safe = String(it.id).replace(/[\\'"<>&]/g, c => '&#' + c.charCodeAt(0) + ';');
-            const acts = it.own ? `<span class="skl-acts">${got || (typeof ftOn === 'function' && !ftOn('share')) ? '' : `<button type="button" title="파일로 저장 (카페에 올리기용)" onclick="downloadSkinFile('${safe}')">💾</button>`}<button type="button" title="지우기" onclick="deleteSkin('${safe}', ${got ? 1 : 0})">🗑</button></span>` : '';
-            return `<div class="skl-it${on ? ' on' : ''}" data-id="${safe}"><button type="button" class="skl-pick" aria-pressed="${on}" onclick="sklPick('${safe}'${it.own ? (got ? ', 1' : ', 0') : ''})">${sklThumb(it.skin)}${on ? '<span class="skl-on">✔ 사용 중</span>' : ''}</button>${by ? `<small class="shx-by">by ${String(by).replace(/[<>&"']/g, c => '&#' + c.charCodeAt(0) + ';')}</small>` : ''}${acts}</div>`;
-        }
-        /* 고르기 : 내 페이지는 원본을 읽은 뒤에 (got : 받은페이지 칸) · 📔 다이어리 창에서 고르면 기본 다이어리로 바꾸고 그 색 · 꾸밈 */
-        async function sklPick(id, got) {
-            if ((got != null) && !hasOwn(customSkins, id) && !(await pgEnsure(id, !!got))) { showMsg('⚠ 이 페이지를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); return; }
-            const dy = dyMineOpen();
-            if (dy && dyNow().id !== DY_DEF) dySet(DY_DEF);
-            if (applySkinPreset(id)) { renderPageList(); if (dy) dyMineRender(); }
-        }
-        /* 작은 다이어리 그림 : 바탕 · 겉표지 · 속지(테두리) · 하단메뉴 + 놓아 둔 꾸밈 (속지 · 머리 · 하단메뉴 자리) */
-        function sklThumb(skin) {
-            /* 기본 페이지 겉표지는 그라데이션이라 sanitizeSkin(색 #rrggbb 만)을 지나도록 잠깐 바꿨다가 돌려놓아요 */
-            const okCol = v => typeof v === 'string' && /^(#[0-9a-f]{3,8}|linear-gradient\([#0-9a-z%,.\s]+\))$/i.test(v);
-            const raw = skin && typeof skin === 'object' ? skin : {}, tmp = Object.assign({}, raw);
-            ['bg', 'cover', 'page', 'border', 'accent'].forEach(k => { if (okCol(raw[k]) && !/^#[0-9a-f]{6}$/i.test(raw[k])) tmp[k] = '#ffffff'; });
-            const c = typeof sanitizeSkin === 'function' ? sanitizeSkin(tmp) : null;
-            if (!c) return '<span class="skl-mini"></span>';
-            ['bg', 'cover', 'page', 'border', 'accent'].forEach(k => { if (okCol(raw[k])) c[k] = raw[k]; });
-            const pw = (document.getElementById('innerPage') || {}).offsetWidth || 340;
-            const bw = (document.querySelector('.toolbar') || {}).offsetWidth || 340;
-            const deco = where => (c.deco || []).filter(d => where.includes(d.a)).map(d => {
-                const ref = d.a === 'paper' || d.a === 'pill' ? pw : bw;
-                const x = /^b[1-4]$/.test(d.a) ? (+d.a[1] - .5) * 25 : d.x;
-                const w = Math.max(4, d.s / ref * 100);
-                return `<span class="skl-d" style="left:${x}%;top:${/^b[1-4]$/.test(d.a) ? 50 : d.y}%;width:${w}%;font-size:${(w * .8).toFixed(1)}cqw;transform:translate(-50%,-50%) rotate(${d.r || 0}deg)${d.f ? ' scaleX(-1)' : ''}">${typeof stuImgHtml === 'function' ? stuImgHtml(d.i, c.imgs || {}) : ''}</span>`;
-            }).join('');
-            return `<span class="skl-mini" style="background:${c.bg}">
-                <span class="skl-cv" style="background:${c.cover}"><span class="skl-pp" style="background:${c.page};border-color:${c.border}"><i class="skl-pill" style="background:${c.accent}"></i>${deco(['paper', 'pill'])}</span></span>
-                <span class="skl-bar" style="background:${c.page};border-color:${c.menu || c.border}">${[1, 2, 3, 4].map(n => `<i style="background:${c['mf' + n] || c.accent}"></i>`).join('')}${deco(['bar', 'b1', 'b2', 'b3', 'b4'])}</span></span>`;
-        }
-        window.openPageList = openPageList; window.sklSetTab = sklSetTab; window.sklPick = sklPick;
 
         /* ---------- 🌈 배경지 목록 (라이브러리처럼 페이지 넘기기 + 배치 설정) ---------- */
         const PAT_LAYOUT_KEY = 'malang_pattern_layout';
@@ -489,7 +369,7 @@
         }
         function resetPatLayout() { setPatLayout(Object.assign({}, PAT_DEFAULT_LAYOUT)); }
 
-        /* 지금 쓰는 패턴 이름 · 패턴 크기 · 해제 버튼 · 기본스킨 창 안내문 */
+        /* 지금 쓰는 패턴 이름 · 패턴 크기 · 해제 버튼 */
         function updatePatternUI() {
             const p = currentBgPattern();
             const cur = document.getElementById('patCurrent');
@@ -504,8 +384,6 @@
             }
             const clr = document.getElementById('patClearBtn');
             if (clr) clr.disabled = !p;
-            const note = document.getElementById('skinPatternNote');
-            if (note) note.style.display = p ? 'flex' : 'none';
         }
 
         /* 스마트폰 : 패턴 목록을 옆으로 밀어서 페이지 넘기기 */
@@ -1941,9 +1819,9 @@
             let hl = document.getElementById('dyHoleL'); if (!hl) { hl = document.createElement('div'); hl.id = 'dyHoleL'; hl.className = 'dy-deco'; hl.setAttribute('aria-hidden', 'true'); cv.after(hl); }
             const dk = t.id; if (bk.dataset.k !== dk) { const [b, f, h] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; hl.innerHTML = h; bk.dataset.k = fr.dataset.k = dk; }
             [bk, fr, hl].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
-            page.dataset.dy = book.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   /* 📔 날짜형 = 그 권 스킨 색 */   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
+            page.dataset.dy = book.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   /* 📔 날짜형 = 그 권 색 */   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
-            if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)
+            if (window.dyyColorPaint) dyyColorPaint();                         // 🎨 펼친 권의 색 (날짜형만 · js/dyyear.js)
             dkCoverPaint();
             bdSync();
             gdSync();                                                          // ✂️ 📎 집게 · 🪡 핀셋
@@ -2202,29 +2080,16 @@
             return `<span class="dy-th" data-b="${t.b}" style="--dy-c:${sk ? sk.border : t.c};${sk ? `--dy-p:${sk.page};` : ''}width:${W}px;height:${H}px"><i></i><i></i></span>`;
         }
         /* 다이어리 창의 📔 다이어리 · 📓 노트 · 🗂 바인더 버튼 (도련 10-18 · 스티커 창처럼 종류 버튼 → 칸 기본 · 내가만든 · 공유받은 · 이벤트 · 문구점)
-           다이어리 = 칸 없이 4색만 (js/app.js skinPresets · 고르면 기본 다이어리로 바꾸고 그 색 · id 'basic:색')
+           다이어리 = 📔 다이어리 보관소 (받은 권 · js/dyyear.js dyyCells)
            노트 · 바인더 = 기본 칸 없음 · 내가만든 (➕ 만들기 + 만든 것 · js/dymaker.js · 10-18 확정) · 공유받은 · 이벤트 · 문구점은 든 게 생기면
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' };
         const DY_KNAME = { '다이어리': '다이어리', '노트': '페이지노트', '바인더': '페이지바인더' };   // 다꾸러에게 보이는 이름 (도련 11-04 : 현실 이름 페이지노트 · 페이지바인더 · 만년형은 다꾸용 아님 · 도련 11-04)
-        const DY_COLORS = [];                                                  // 🧁 다이어리 색 (js/app.js · 서버 + 📦 사본 · 숨긴 색 빼고)
-        const dyColorsPick = () => { DY_COLORS.length = 0; DIARY_COLORS.filter(c => !c[2]).forEach(c => DY_COLORS.push([c[0], c[1]])); };
-        dyColorsPick(); if (window.prodHook) prodHook(dyColorsPick);
         let dyKind = '다이어리', dyTab = 'free';
-        /* 10-24 도련 : 📔 다이어리 = 기본(4색) · 내가만든(🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 예전 📔 페이지 목록의 칸을 옮겨 왔어요)
+        /* 📔 다이어리 = 받은 권 보관소 (11-05 도련 : 나만의 다이어리 · 내가만든 칸 없앴어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
-        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off) : [];   // 규격 6종은 나중에 문구점 바탕
-        const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (내가만든 칸 숨김 · 도련 10-28)
-        window.dyMineRefresh = () => { if (dyMineOpen()) dyMineRender(); };   // 🗑 지운 뒤 · 저장한 뒤 바로 (js/settings.js deleteSkin)
-        const dyMineOpen = () => { const m = document.getElementById('dyModal'); return !!m && m.style.display === 'flex' && dyKind === '다이어리' && dyTab === 'mine'; };
-        /* 📔 다이어리 → 내가만든 : 내 페이지 모음 (드라이브 내페이지 · js/settings.js pgColl · 지우기 🗑 · 💾 는 페이지 목록과 같아요) */
-        function dyMineRender() {
-            const box = document.getElementById('dyPickList'); if (!box) return;
-            box.innerHTML = '<div class="skl-grid dy-skl"><div class="cg-host"></div></div>';
-            const C = pgColl(false);
-            C.onChange = () => { if (dyMineOpen()) dyMineRender(); };
-            collGrid(box.querySelector('.cg-host'), C, e => sklCell({ id: e.id, skin: e.th, own: true }, false), '<div class="cs-empty">아직 만든 다이어리가 없어요.<br>🎨 다이어리 색상설정이나 🎀 다이어리 꾸미기에서 저장해 보세요!</div>');
-        }
+        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off) : [];   // 규격 6종은 나중에 문구점 바탕
+        const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? '📔 다이어리 보관소' : DY_ICON[dyKind] + ' ' + DY_KNAME[dyKind];
@@ -2238,28 +2103,20 @@
         function dyTabSet(g) {
             dyTab = g;
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
-            if (dyKind === '다이어리' && g === 'mine') { dyMineRender(); return; }
             if (dyKind === '다이어리' && window.dyyCells) { document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${dyyCells()}</div>`; dyRender(); return; }   // 📔 보관소 : 받은 해 (js/dyyear.js)
-            const list = dyItems(dyKind, g), base = dyNow(), empty = { mine: `아직 만든 ${DY_KNAME[dyKind]}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${DY_KNAME[dyKind]} 만들기(준비중)가 열리면 만든 ${DY_KNAME[dyKind]}가 여기에 들어와요.`, share: `아직 공유받은 ${DY_KNAME[dyKind]}가 없어요.`, event: `아직 받은 이벤트 ${DY_KNAME[dyKind]}가 없어요.`, shop: `문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.` }[g] || `아직 가진 ${DY_KNAME[dyKind]}가 없어요.<br>나중에 문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.`;
+            const list = dyItems(dyKind, g), empty = { mine: `아직 만든 ${DY_KNAME[dyKind]}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${DY_KNAME[dyKind]} 만들기(준비중)가 열리면 만든 ${DY_KNAME[dyKind]}가 여기에 들어와요.`, share: `아직 공유받은 ${DY_KNAME[dyKind]}가 없어요.`, event: `아직 받은 이벤트 ${DY_KNAME[dyKind]}가 없어요.`, shop: `문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.` }[g] || `아직 가진 ${DY_KNAME[dyKind]}가 없어요.<br>나중에 문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.`;
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + DY_KNAME[dyKind] + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
                 ? `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${dmkEsc(it.g)}</span><small>${it.n} · ${it.pg}페이지</small><span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkOpen('${dyKind}', '${it.id}')">✏️</span></button>`
-                : Array.isArray(it)
-                ? `<button type="button" class="dy-it" data-id="${DY_DEF}:${it[0]}" onclick="dyPickColor('${it[0]}')"><span class="dy-stage">${dyThumb(base, skinPresets[it[0]])}</span><span class="dy-n">${it[1]}</span><small>${base.mm}</small></button>`
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
             dyRender();
             if (g === 'mine' && dyKind !== '다이어리' && typeof dmkSync === 'function') dmkSync(dyKind);   // 드라이브의 내노트 · 내바인더 목록과 맞추기
         }
-        function dyPickColor(c) {                                              // 다이어리 4색 : 기본 다이어리로 바꾸고 그 색 (js/settings.js applySkinPreset)
-            if (dyNow().id !== DY_DEF) dySet(DY_DEF);
-            applySkinPreset(c);
-            dyRender();
-        }
         function dyClose() { closeModal('dyModal'); }
-        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

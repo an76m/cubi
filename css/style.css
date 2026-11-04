@@ -1,11 +1,12 @@
 /* 말랑달콤 다이어리 - 전체 디자인 (원래 index.html의 <style> 부분) */
         :root {
             --bg-color: #ffe6f0;
-            --cover-bg: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%);
+            --cover-bg: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%);   /* 🎨 앱 화면 기본 색 (늘 그대로 · 도련 11-05) */
             --page-bg: #fff0f5;
             --border-color: #ffb6c1;
-            --menu-border: var(--border-color);   /* 하단 메뉴 버튼 4개 테두리 · 스킨에 따로 정해 두면 그 색 */
+            --menu-border: var(--border-color);   /* 하단 메뉴 버튼 4개 테두리 */
             --primary-accent: #ff6b81;
+            --dy-cover: var(--cover-bg); --dy-page: var(--page-bg); --dy-border: var(--border-color); --dy-accent: var(--primary-accent);   /* 📔 펼친 권의 색 (js/dyyear.js dyyColorPaint 가 바꿔요 · 날짜형만) */
             --pick: #ffe6f0;              /* 🩷 선택 표시는 늘 파스텔 핑크 (도련 10-21 · 창의 고른 칸 · 탭 · 페이지 스티커 선택 손잡이 …) · 연해서 글씨는 흰색 말고 진한 장미색 */
             --pick-line: #ffb3d1;         /* 🩷 페이지 스티커 선택 손잡이 (너무 연하면 안 보여서 조금 진하게) */
             --pick-ink: #b1407a;
@@ -16,6 +17,8 @@
             --curl-shade-next: linear-gradient(to right, rgba(0,0,0,.08) 0%, rgba(255,255,255,.35) 45%, rgba(0,0,0,.10) 80%, rgba(0,0,0,.34) 100%);
             --curl-shade-prev: linear-gradient(to left,  rgba(0,0,0,.08) 0%, rgba(255,255,255,.35) 45%, rgba(0,0,0,.10) 80%, rgba(0,0,0,.34) 100%);
         }
+        /* 📔 다이어리 안만 그 권 색 (겉표지 · 속지 · 테두리 · 강조) · 창 · 하단메뉴 · 팝업메뉴는 앱 기본 색 그대로 (도련 11-05) */
+        #diaryWrapper, .mo-c, .lf-pick, .lf-slide { --cover-bg: var(--dy-cover); --page-bg: var(--dy-page); --border-color: var(--dy-border); --primary-accent: var(--dy-accent); }
 
         html, body {
             width: 100%; height: 100%; overflow: hidden; position: fixed;
@@ -39,7 +42,6 @@
         }
         .tb-btn::before { content: ''; position: absolute; top: calc(4px * var(--tb-bs, 1)); left: calc(10px * var(--tb-bs, 1)); width: calc(22px * var(--tb-bs, 1)); height: calc(7px * var(--tb-bs, 1)); border-radius: 50%; background: rgba(255,255,255,.55); pointer-events: none; }
         .tb-btn svg { position: relative; width: calc(var(--tb-ico, 26px) * var(--tb-bs, 1)); height: calc(var(--tb-ico, 26px) * var(--tb-bs, 1)); display: block; }
-        .tb-btn .stu-ico { width: calc(var(--tb-ico, 26px) * var(--tb-bs, 1)); height: calc(var(--tb-ico, 26px) * var(--tb-bs, 1)); } .tb-btn .stu-ico > b { font-size: calc(var(--tb-ico, 26px) * var(--tb-bs, 1) * .8); }
         .tb-btn span { position: relative; }
         @media (hover: hover) { .tb-btn:hover { transform: translateY(-2px); } }
         .tb-btn:active { transform: scale(.93); }
@@ -265,8 +267,6 @@
 
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 14px; margin-bottom: 4px; color: #555; }
-        .color-picker-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .color-picker-row input[type="color"] { cursor: pointer; border: none; background: none; width: 32px; height: 32px; }
 
         .element-box img.broken { min-width: 60px; min-height: 40px; background: #ffe3e3; border: 1px dashed var(--primary-accent); font-size: 11px; color: #d6487f; word-break: break-all; }   /* 🩷 안내 글씨는 핑크 (10-21) */
         /* 📚 이미지 라이브러리 : 페이지 넘기기 + 행·열·크기 설정 */
@@ -468,12 +468,6 @@
         /* 🎨 스킨 하위 창 공통 버튼 줄 (← 스킨 메뉴 / 닫기) */
         .sub-modal-btns { display: flex; gap: 8px; margin-top: 15px; flex-shrink: 0; }
         .sub-modal-btns .btn { flex: 1; justify-content: center; }
-        .skin-pattern-note {
-            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-            background: #fff0f5; border: 1px dashed var(--border-color); border-radius: 12px;
-            padding: 8px 10px; font-size: 13px; color: #555; line-height: 1.4;
-        }
-        .skin-pattern-note .btn { flex-shrink: 0; font-size: 12px; padding: 3px 8px; }
 
         /* 🌈 배경지 목록 */
         .pat-content { max-width: min(95vw, var(--pat-w, 420px)); min-width: min(90vw, 340px); }
@@ -506,10 +500,7 @@
         .pat-name { font-size: 12px; color: #444; text-align: center; line-height: 1.3; word-break: keep-all; }
         .pat-item.empty { visibility: hidden; pointer-events: none; }
 
-        /* 🎨 스킨 메뉴 구역 */
-        .skin-basic-btn { width: 100%; justify-content: center; padding: 10px; font-size: 15px; }
-        .skin-basic-btn small { font-weight: normal; color: #888; }
-        .skin-section-title { font-size: 13px; font-weight: bold; color: var(--primary-accent); margin: 14px 0 6px; }
+        /* 📒 메뉴 칸 */
         .service-btn small { font-size: 10.5px; font-weight: normal; color: #999; line-height: 1.2; }
         .pat-by { font-size: 10.5px; color: #999; text-align: center; margin-top: -3px; }
         .pat-item-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -642,48 +633,12 @@
         .save-choice-text small { font-size: 12px; color: #777; line-height: 1.45; }
         .save-chooser-note { font-size: 12px; color: #999; text-align: center; margin: 2px 0 10px; }
 
-        /* ===== 🎨 스킨 창 : 원래 크기의 2/3 · 제목을 끌어 옮기기 · 👀 꾹 눌러 보기 ===== */
-        .modal-content.skin-compact {
-            width: 66%; max-width: 280px; max-height: 54vh; padding: 12px 13px; border-radius: 16px; font-size: 12.5px;
-            transition: opacity .15s;
-        }
-        .skin-compact .modal-title { font-size: 1.05rem; margin-bottom: 6px; }
-        .skin-compact .modal-title.skin-sub-title { font-size: 0.9rem; margin-bottom: 6px; }
+        /* ===== 🪟 창 : 제목을 끌어 옮기기 · 👀 꾹 눌러 보기 ===== */
         .modal .drag-title { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none; }   /* ✋ 창 옮기기 (js/skins.js setupSkinWindows) */
-        .skin-compact .drag-title { cursor: move; touch-action: none; user-select: none; -webkit-user-select: none;
-            border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; }
-        .skin-compact .btn { font-size: 12px; }
-        .skin-compact .skin-basic-btn { padding: 6px; font-size: 13px; }
-        .skin-compact .skin-section-title { font-size: 12.5px; margin: 10px 0 5px; }
-        .skin-compact .service-grid { gap: 5px; }
-        .skin-compact .service-btn { padding: 6px 2px; font-size: 11.5px; }
-        .skin-compact .service-icon { font-size: 18px; }
-        .skin-compact .sub-modal-btns { margin-top: 10px; gap: 6px; }
-        .skin-compact .color-picker-row { margin-bottom: 3px; }
-        .skin-compact .color-picker-row input[type="color"] { width: 26px; height: 24px; }
-        .skin-compact .skin-pattern-note { font-size: 11px; padding: 5px 7px; }
-        .skin-compact.peeking, .skl-content.peeking, .dy-win.peeking { opacity: 0.06; }   /* 👀 꾹 눌러 보기 : 🎨 색상설정 · 📐 크기 · 📔 페이지 · 📒 다이어리 고르기 */
+        .dy-win.peeking { opacity: 0.06; }   /* 👀 꾹 눌러 보기 : 📒 다이어리 고르기 */
         .modal:has(> .peeking) > .dk-tape { opacity: 0.06; }   /* 꾹 눌러 보는 동안 창 모서리 테이프도 같이 */
         .skin-float-hint { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11px; color: #999; margin-bottom: 6px; }
         .skin-peek-btn { flex-shrink: 0; padding: 2px 7px !important; font-size: 11px !important; touch-action: none; user-select: none; -webkit-user-select: none; }
-        .skin-label { font-weight: bold; }
-        .skin-select-row { display: flex; gap: 5px; margin: 5px 0 8px; }
-        .skin-select-row select { flex: 1; min-width: 0; }
-        .skin-del-btn { background: #ff4757 !important; color: #fff !important; border: none !important; flex-shrink: 0; }
-        .skin-hr { border: 0; border-top: 1px dashed var(--border-color); margin: 8px 0; }
-        .skin-name-input { width: 100%; box-sizing: border-box; margin-top: 6px; text-align: left; }
-        .skin-compact select.btn, .skin-share-nick input { box-sizing: border-box; }
-        .skin-save-btn { width: 100%; margin-top: 6px; justify-content: center; background: var(--primary-accent) !important; color: #fff !important; }
-        .skin-share { margin-top: 8px; border: 1px dashed var(--border-color); border-radius: 10px; padding: 5px 7px; }
-        .skin-share summary { cursor: pointer; font-weight: bold; font-size: 12px; color: var(--primary-accent); }
-        .skin-share-body { display: grid; gap: 5px; margin-top: 6px; }
-        .skin-share-target { font-size: 11.5px; }
-        .skin-share-nick { display: flex; align-items: center; gap: 5px; font-size: 11.5px; }
-        .skin-share-nick input { flex: 1; min-width: 0; text-align: left; }
-        .skin-share-btns { display: flex; gap: 5px; }
-        .skin-share-btns .btn { flex: 1; justify-content: center; padding: 4px 2px; }
-        .skin-share-btns .btn:disabled { opacity: .45; cursor: default; }
-        .skin-share-note { font-size: 10.5px; color: #888; margin: 0; line-height: 1.45; }
 
         /* 💾 설정 : 구글 저장공간 게이지 */
         .ls-gauge { height: 14px; border-radius: 8px; background: #f1f1f1; border: 1px solid var(--border-color); overflow: hidden; margin-top: 6px; }
@@ -1458,18 +1413,6 @@
         .season-su i { top: auto; bottom: -30px; animation-name: ssRise; opacity: .7; }
         @keyframes ssFall { 0% { transform: translate(0, -30px) rotate(0); } 100% { transform: translate(var(--dx), 110vh) rotate(var(--r)); } }
         @keyframes ssRise { 0% { transform: translate(0, 30px) scale(.6); } 100% { transform: translate(var(--dx), -110vh) scale(1.2); } }
-        .season-card { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-        .ss-now { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; text-align: left; }
-        .ss-now span { font-size: 30px; }
-        .ss-now b { display: block; font-size: 15px; } .ss-now small { font-size: 12px; color: #777; }
-        .ss-now.ss-sp { background: linear-gradient(90deg, #ffe3ec, #fff5f8); } .ss-now.ss-su { background: linear-gradient(90deg, #d8f1ff, #f3fbff); }
-        .ss-now.ss-au { background: linear-gradient(90deg, #ffe4cc, #fff6ec); } .ss-now.ss-wi { background: linear-gradient(90deg, #e3ebfb, #f6f9ff); }
-        .ss-go { width: 100%; justify-content: center; font-weight: bold; }
-        .ss-go.on { background: var(--pick); color: var(--pick-ink); font-weight: bold; border-color: var(--pick-line); }
-        .ss-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-        .ss-list span { text-align: center; font-size: 22px; opacity: .45; } .ss-list span.on { opacity: 1; }
-        .ss-list small { display: block; font-size: 10.5px; color: #888; }
-        .ss-note { margin: 0; font-size: 12px; line-height: 1.6; color: #888; text-align: center; word-break: keep-all; }
         .cat-btn.ss-cat[hidden] { display: none; }
         .cat-btn.ss-cat:not(.active) { background: #fff4ea; border-color: #ffb27a; }
 
@@ -2330,13 +2273,6 @@
         .tap-menu-btn .tm-ic svg { display: block; width: 100%; height: 100%; }
         .tap-menu-btn:active { background: var(--pop-sel, #ffe9f0); color: var(--pop-sel-ink, #5a3d4a); }
         @media (hover: hover) { .tap-menu-btn:hover { background: var(--pop-sel, #ffe9f0); color: var(--pop-sel-ink, #5a3d4a); } }
-        .skin-grp { margin: 8px 0 0; border: 1.5px solid var(--border-color); border-radius: 12px; padding: 0 8px; }
-        .skin-grp > summary { cursor: pointer; font-weight: bold; font-size: 13px; padding: 7px 2px; color: #5a3d4a; list-style: none; }
-        .skin-grp > summary::-webkit-details-marker { display: none; }
-        .skin-grp > summary::after { content: '▾'; float: right; opacity: .6; }
-        .skin-grp[open] > summary::after { content: '▴'; }
-        .skin-grp[open] { padding-bottom: 6px; }
-        .skin-grp-note { font-size: 11px; color: #999; margin: 0 0 4px; }
         .tap-menu-btn:disabled { opacity: .35; cursor: default; background: transparent; }
         @keyframes tmPop { from { transform: scale(.85); } to { transform: scale(1); } }
 
@@ -2371,87 +2307,6 @@
 .nw-chip { position: absolute; top: 3px; right: 3px; z-index: 3; padding: 2px 5px; border-radius: 999px; background: #ff5c7c; color: #fff; font-style: normal; font-size: 9px; font-weight: 900; line-height: 1; box-shadow: 0 2px 5px rgba(255, 92, 124, .4); pointer-events: none; animation: svcBadge 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { [data-nw].nw-on::after, [data-nw-any].nw-on::after, .nw-chip { animation: none; } }
 
-        /* ===== 🎀 스킨 만들기 · 🎁 테마 보관함 (js/skinstudio.js) ===== */
-        /* 놓아 둔 꾸밈 : 평소엔 눌리지 않고 · 만드는 동안(body.stu-edit)만 끌 수 있어요 */
-        .stu-layer { position: absolute; left: 0; right: 0; top: 48px; bottom: 0; pointer-events: none; z-index: 4; }
-        .stu-deco { position: absolute !important; display: block; pointer-events: none; z-index: 6; line-height: 1; }
-        .stu-deco.back { z-index: -1; }
-        .stu-deco > svg, .stu-deco > img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.12)); -webkit-user-drag: none; }
-        .stu-deco > b { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: normal; font-size: calc(var(--s, 36px) * .8); }
-        .stu-ico { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; font-style: normal; flex: none; position: relative; }
-        .stu-ico > svg, .stu-ico > img { width: 100%; height: 100%; object-fit: contain; }
-        .stu-ico > b { font-weight: normal; font-size: 21px; line-height: 1; }
-        .tm-ic .stu-ico { width: 100%; height: 100%; }
-        .tm-ic .stu-ico > b { font-size: calc(var(--pop-ico, 28px) * var(--pop-s, 1) * .78); }
-        .page-arrow .stu-ico { width: 20px; height: 20px; } .page-arrow .stu-ico > b { font-size: 16px; }
-        .page-cal-btn .stu-ico, .page-search-btn .stu-ico { width: 21px; height: 21px; } .page-cal-btn .stu-ico > b, .page-search-btn .stu-ico > b { font-size: 17px; }
-        body.stu-edit .stu-deco { pointer-events: auto; cursor: move; touch-action: none; outline: 1px dashed rgba(120,120,120,.35); outline-offset: 2px; }
-        body.stu-edit .stu-deco.sel { outline: 2px dashed #ff8fbb; }
-        body.stu-edit .stu-layer { z-index: 8; }
-        .stu-fake { animation: none; z-index: 110; pointer-events: auto; }
-        .stu-fake .tap-menu-btn { pointer-events: none; }
-
-        /* 만드는 창 : 뒤 다이어리가 눌리도록 창 밖은 통과 · 아래쪽에 붙여 둠 (제목을 끌어 옮길 수 있어요) */
-        #stuModal { pointer-events: none; align-items: flex-end; padding-bottom: 8px; box-sizing: border-box; }
-        #stuModal .modal-content { pointer-events: auto; }
-        .modal-content.stu-win { width: min(94vw, 440px); max-width: 440px; max-height: 44vh; padding: 10px 12px; border-radius: 16px; font-size: 12.5px; display: flex; flex-direction: column; box-sizing: border-box; transition: opacity .15s; }
-        .stu-win.peeking { opacity: .06; }
-        .stu-win .modal-title { font-size: 1.02rem; margin-bottom: 6px; }
-        .stu-tabs { display: flex; gap: 5px; margin-bottom: 6px; }
-        .stu-tab { flex: 1; padding: 6px 2px; border: 1.5px solid var(--border-color); border-radius: 12px; background: #fff; font: inherit; font-size: 12px; font-weight: bold; color: #7a5a66; cursor: pointer; }
-        .stu-tab.on { background: var(--pick); border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
-        .stu-body { overflow-y: auto; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; padding-right: 2px; }
-        .stu-hint { font-size: 11.5px; color: #8a7a82; line-height: 1.5; margin: 2px 0 6px; }
-        .stu-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
-        .stu-chip { padding: 4px 8px; border: 1.5px solid var(--border-color); border-radius: 999px; background: #fff; font: inherit; font-size: 11.5px; color: #7a5a66; cursor: pointer; white-space: nowrap; }
-        .stu-chip.on { background: #ffe9f0; border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
-        .stu-cats .stu-chip { background: #faf6ff; }
-        .stu-cats .stu-chip.on { background: #efe6ff; border-color: #8e6fd6; color: #6a4fb8; }
-        .stu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 5px; margin-bottom: 8px; }
-        .stu-cell { aspect-ratio: 1; padding: 5px; border: 1.5px solid #eadde3; border-radius: 12px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 24px; line-height: 1; }
-        .stu-cell:active { transform: scale(.92); }
-        .stu-cell > svg, .stu-cell > img { width: 100%; height: 100%; object-fit: contain; }
-        .stu-cell > b { font-weight: normal; }
-        .stu-up { color: #8e6fd6; font-size: 20px; font-weight: bold; } .stu-up small { font-size: 9px; }
-        .stu-edit { background: #fff7fa; border: 1.5px solid #f3d6df; border-radius: 12px; padding: 7px 9px; margin-bottom: 8px; }
-        .stu-edit-t { font-weight: bold; font-size: 12px; color: #5a3d4a; margin-bottom: 5px; }
-        .stu-edit label { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 4px; color: #6a4f5a; }
-        .stu-edit input[type=range] { flex: 1; }
-        .stu-edit select { flex: 1; padding: 3px 6px; font-size: 12px; }
-        .stu-edit-btns { display: flex; gap: 4px; margin: 4px 0 6px; }
-        .stu-edit-btns .btn { flex: 1; padding: 5px 2px; font-size: 11.5px; justify-content: center; }
-        .stu-mini { width: 34px; height: 34px; padding: 3px; border: 1.5px solid #eadde3; border-radius: 10px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .stu-mini.on { border-color: #ff8fbb; background: #fff1f3; }
-        .stu-mini > svg, .stu-mini > img { width: 100%; height: 100%; object-fit: contain; }
-        .stu-mini > b { font-weight: normal; }
-        .stu-clear { width: 100%; justify-content: center; margin-top: 4px; font-size: 12px; }
-        .stu-sum { text-align: center; font-size: 12px; color: #6a4f5a; background: #fff7fa; border-radius: 10px; padding: 6px; margin: 4px 0 8px; }
-        .stu-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px; }
-        .stu-slot { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 2px; border: 1.5px solid #eadde3; border-radius: 12px; background: #fff; cursor: pointer; font: inherit; color: #6a4f5a; }
-        .stu-slot small { font-size: 9.5px; line-height: 1.2; text-align: center; }
-        .stu-slot.own { border-color: var(--primary-accent); background: #fff1f5; }
-        .stu-slot.on { border-color: #8e6fd6; background: #f3ecff; }
-        .stu-slot-ic { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #c9b9c0; }
-        .stu-slot-ic > svg, .stu-slot-ic > img { width: 100%; height: 100%; object-fit: contain; }
-        .stu-slot-ic > b { font-weight: normal; }
-        .stu-pick { border: 1.5px solid #e4d8f5; background: #fbf8ff; border-radius: 12px; padding: 7px 9px; }
-        .stu-empty { text-align: center; color: #aaa; padding: 20px 0; }
-
-        .th-note { font-size: 12px; color: #8a7a82; margin: 0 0 8px; line-height: 1.5; }
-        .th-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow-y: auto; }
-        .th-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 2px solid var(--border-color); border-radius: 16px; background: #fff; }
-        .th-card.on { border-color: var(--pick-line); background: #fff1f5; }
-        .th-card.locked { opacity: .6; }
-        .th-sw { flex: none; display: flex; gap: 3px; padding: 5px; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); }
-        .th-sw i { width: 12px; height: 28px; border-radius: 5px; display: block; border: 1px solid rgba(0,0,0,.08); }
-        .th-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-        .th-info b { font-size: 14px; color: #5a3d4a; }
-        .th-info small { font-size: 11.5px; color: #8a7a82; line-height: 1.4; }
-        .th-btn { flex: none; padding: 6px 12px; font-size: 12px; }
-
-        .stu-tab { font-size: 11.5px; padding: 6px 1px; }
-        .stu-lay-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 7px; color: #6a4f5a; }
-        .stu-lay-row span { flex: none; width: 118px; } .stu-lay-row input { flex: 1; } .stu-lay-row b { flex: none; width: 46px; text-align: right; font-weight: normal; color: #999; }
 
 /* 📱 설정 창: 가로로 밀리지 않고 세로로만 움직이게 */
 #settingsModal .modal-content { overflow-x: hidden; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
@@ -2460,7 +2315,6 @@
 #settingsModal .st-tabs { flex-shrink: 0; margin: 0 0 10px; }
 #settingsModal .st-pane:not(.on) { display: none; }
 #settingsModal .st-pane > .form-group:last-child { margin-bottom: 0; }
-#themeBoxBtn[hidden] { display: none; }
 .svc-cat[hidden] { display: none; }
 /* ===== 🎀 마스킹테이프 만들기 (js/tapemaker.js · 화면 모양은 .smk-* 를 같이 써요) ===== */
 .tpm-top { position: sticky; top: calc(max(10px, env(safe-area-inset-top)) + 48px); z-index: 2; display: flex; flex-direction: column; gap: 6px; padding: 4px 0 8px; background: #f6fbff; box-shadow: 0 6px 8px -6px rgba(0,0,0,.12); }
@@ -2481,12 +2335,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .service-btn[hidden] { display: none !important; }
 
 /* 🎀 페이지 꾸미기 창이 열려 있는 동안 : 이미 놓인 그림 · 글은 안 보이고 안 눌려요 (꾸밈이 대신 눌리도록) */
-body.stu-edit #canvasArea .element-box { visibility: hidden !important; pointer-events: none !important; }
 /* 고른 꾸밈의 네 꼭짓점 회전 칸 (기존 그림과 같은 방식 · 눈에 안 보임) */
-.stu-deco .rot-zone { width: 30px; height: 30px; }
-.stu-deco .rot-tl { left: -15px; top: -15px; } .stu-deco .rot-tr { right: -15px; top: -15px; }
-.stu-deco .rot-bl { left: -15px; bottom: -15px; } .stu-deco .rot-br { right: -15px; bottom: -15px; }
-body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; touch-action: none; }
 
 /* 📦 메모지 · 사진 꾸미기 창 접기 (제목 줄만 보임) */
 .text-panel.folded > :not(.text-panel-handle) { display: none !important; }
@@ -2495,7 +2344,6 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
 /* ===== 👆 버튼 누름 반응 (js/press.js 가 .pressing 을 붙여요 · css :active 도 같이) ===== */
 .pressing { scale: .95; filter: brightness(.93); transition: scale .07s ease-out, filter .07s ease-out; }
-.pressing:is(.tb-btn, .page-arrow, .lib-cat, .stu-cell) { scale: 1; }               /* 이미 자기 누름 모양이 있는 것은 그것만 */
 .smk-go { transition: transform .07s, box-shadow .07s, filter .07s; }
 .smk-go:active, .smk-go.pressing { scale: 1; transform: translateY(3px); box-shadow: 0 1px 0 #2f86c8; filter: brightness(.95); }
 .smk-go.smk-sub:active, .smk-go.smk-sub.pressing { box-shadow: 0 0 0 #cfe3f0; background: #eaf5ff; }
@@ -2683,33 +2531,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .shx-card .alert-btns { margin-top: 4px; }
 #stickerGrid[data-share] .smk-it .smk-n { bottom: 21px; }   /* 공유받은 칸 : by 닉네임 줄 위로 */
 
-/* ---------- 📔 페이지 목록 (썸네일만 · js/skins.js openPageList) ---------- */
-.skl-content { width: min(92vw, 420px); }
-.skl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-height: 58vh; overflow-y: auto; padding: 4px 2px; }
-.skl-grid > .shx-bar, .skl-grid > .cs-empty, .skl-grid > .stk-go, .skl-grid > .skl-wide { grid-column: 1 / -1; }
-.skl-grid .cs-empty, .dy-pick-list .cs-empty { text-align: center; padding: 18px 8px 6px; font-size: 13px; line-height: 1.8; color: #a08890; }
-.skl-grid .stk-go { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 16px 8px; border: 2px solid var(--border-color); border-radius: 16px; background: #fff; font: inherit; color: inherit; cursor: pointer; }
-.skl-grid .stk-go span { font-size: 2rem; line-height: 1; }
-.skl-grid .stk-go b { font-size: 14px; }
-.skl-grid .stk-go small { font-size: 11.5px; color: #a08890; }
-.skl-it { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.skl-pick { position: relative; display: block; width: 100%; padding: 4px; border: 2px solid transparent; border-radius: 14px; background: none; cursor: pointer; font: inherit; }
-.skl-pick:focus-visible { outline: 2px solid var(--pick-line); outline-offset: 2px; }
-@media (hover: hover) { .skl-pick:hover { border-color: var(--border-color); } }
-.skl-it.on .skl-pick { border-color: var(--pick-line); box-shadow: 0 0 0 3px rgba(255,156,195,.18); }
-.skl-on { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); white-space: nowrap; font-size: 10.5px; font-weight: bold; color: #fff; background: var(--primary-accent); border-radius: 999px; padding: 1px 7px; }
-.skl-acts { display: flex; gap: 4px; justify-content: center; }
-.skl-acts button { border: 1.5px solid var(--border-color); background: #fff; border-radius: 10px; padding: 1px 8px; font-size: 13px; cursor: pointer; }
-/* 작은 다이어리 : 바탕 · 겉표지 · 속지 · 하단메뉴 (색 · 꾸밈은 페이지에 저장된 그대로) */
-.skl-mini { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden; background: #f4f4f4; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); }
-.skl-cv { position: absolute; inset: 6% 8% 17% 8%; border-radius: 7px; }
-.skl-pp { position: absolute; inset: 7%; border: 2px solid; border-radius: 4px; overflow: hidden; container-type: inline-size; }
-.skl-pill { position: absolute; left: 30%; right: 30%; top: 5%; height: 5%; border-radius: 99px; opacity: .55; }
-.skl-bar { position: absolute; left: 10%; right: 10%; bottom: 4%; height: 10%; border: 1.5px solid; border-radius: 99px; display: flex; justify-content: space-around; align-items: center; container-type: inline-size; }
-.skl-bar > i { width: 14%; aspect-ratio: 1; border-radius: 50%; }
-.skl-d { position: absolute; display: block; aspect-ratio: 1; line-height: 1; pointer-events: none; }
-.skl-d > svg, .skl-d > img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.skl-d > b { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: normal; font-size: inherit; }
+.dy-pick-list .cs-empty { text-align: center; padding: 18px 8px 6px; font-size: 13px; line-height: 1.8; color: #a08890; }
 /* 🌈 배경지 : 칸 5개 · 지금 배경지 작은 그림 · 문구점 칸 */
 #patTabs { margin-bottom: 6px; }
 .pat-cur-sw { display: inline-block; width: 44px; height: 26px; border-radius: 8px; border: 1.5px solid var(--border-color); vertical-align: middle; }
@@ -2732,7 +2554,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 .snb-pick .btn b { font-size: 14px; }
 .snb-pick .btn small { font-size: 11px; color: #a08a94; font-weight: normal; }
 .snb-pick .btn.on { background: var(--pick); border-color: var(--pick-line); color: var(--pick-ink); font-weight: bold; }
-.snb-pick .btn.on small, .stk-tab.on small, .lib-cat.on small, .lib-layout-btn.on small, .bgm-tab.on small, .stu-tab.on small, .lb-tabs button.on small, .dd-kinds button.on small, .lm-chips button.on small { color: var(--pick-sub); font-weight: normal; opacity: 1; }   /* 🩷 고른 칸의 부제 : 제목(--pick-ink)보다 흐린 장미색 (도련 10-21) */
+.snb-pick .btn.on small, .stk-tab.on small, .lib-cat.on small, .lib-layout-btn.on small, .bgm-tab.on small, .lb-tabs button.on small, .dd-kinds button.on small, .lm-chips button.on small { color: var(--pick-sub); font-weight: normal; opacity: 1; }   /* 🩷 고른 칸의 부제 : 제목(--pick-ink)보다 흐린 장미색 (도련 10-21) */
 
                                   /* 수첩이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 */
 
@@ -3001,7 +2823,7 @@ body.stu-edit .stu-deco.sel .rot-zone { display: block; pointer-events: auto; to
 
 /* 🔓 기능 공개 스위치 (js/features.js) : 숨긴 기능의 버튼 · 칸 */
 .ft-no-cafe [data-ft~="cafe"], .ft-no-notebook [data-ft~="notebook"], .ft-no-dday [data-ft~="dday"], .ft-no-pattern [data-ft~="pattern"],
-.ft-no-studio [data-ft~="studio"], .ft-no-skin [data-ft~="skin"], .ft-no-dybook [data-ft~="dybook"], .ft-no-patmake [data-ft~="patmake"], .ft-no-patdraw [data-ft~="patdraw"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"], .ft-no-bdauto [data-ft~="bdauto"], .ft-no-world [data-ft~="world"] { display: none !important; }
+.ft-no-dybook [data-ft~="dybook"], .ft-no-patmake [data-ft~="patmake"], .ft-no-patdraw [data-ft~="patdraw"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"], .ft-no-bdauto [data-ft~="bdauto"], .ft-no-world [data-ft~="world"] { display: none !important; }
 
 /* 🆓 기본 스티커 : 🧩 봉투 · 📄 모조지스티커 카드 (js/stk-basic.js) */
 

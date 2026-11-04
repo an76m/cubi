@@ -1,10 +1,10 @@
 /* 말랑달콤 다이어리 - js/season.js
-   🌸☀️🍁⛄ 계절 테마 : 지금 계절에 맞는 다이어리 색 + 화면에 살랑살랑 날리는 꽃잎 · 물방울 · 낙엽 · 눈 (🎨 페이지 → 계절 테마)
+   🌸☀️🍁⛄ 계절 테마 : 화면에 살랑살랑 날리는 꽃잎 · 물방울 · 낙엽 · 눈 (다이어리 색은 안 바꿔요 · 도련 11-05 : 스킨 없앰)
    - 다이어리 페이지 오른쪽 아래에 계절 장식이 살짝 붙어요 (글 · 그림보다 뒤에 있어서 가리지 않아요)
    - 계절 : 봄 3~5월 · 여름 6~8월 · 가을 9~11월 · 겨울 12~2월 (계절이 바뀌면 테마도 저절로 바뀌어요)
    - 계절 스티커 : 🏪 기본상품 샵의 🌸 계절 스티커 코너 · 지금 계절 것만 받아요 (🎒 js/basket.js)
      이미 붙인 스티커는 계절이 지나도 일기에 그대로 남아요
-   - 켜고 끄기는 설정(설정.json)에 저장 ('diary_season' = 1) · 다른 페이지를 고르면 계절 테마는 꺼져요
+   - 켜고 끄기는 설정(설정.json)에 저장 ('diary_season' = 1) · 켜는 칸은 이벤트를 열 때 새로 만들어요 (예전 칸은 📔 페이지 목록과 같이 없앴어요)
    - 움직임 줄이기(기기 설정)를 켠 사람에게는 날리는 효과를 보여 주지 않아요
    ※ 이 파일이 없어도 다이어리는 정상 동작 (계절 테마만 안 보여요)
    🔒 SEASON_OPEN : 특별한 날(이벤트)에만 true 로 열어요. false 면 계절 스티커 칸 · 페이지의 계절 테마 · 설정의 계절 장식 스위치가 모두 숨고,
@@ -13,10 +13,10 @@
         const SEASON_OPEN = false;
         const SEASON_KEY = 'diary_season';
         const SEASONS = {
-            sp: { name: '봄', icon: '🌸', months: '3~5월', fx: '꽃잎', skin: { bg: '#ffeef3', cover: '#ffb7cb', page: '#fffafc', border: '#ffc9d8', accent: '#f06292' } },
-            su: { name: '여름', icon: '🌊', months: '6~8월', fx: '물방울', skin: { bg: '#e3f6ff', cover: '#6ec6f0', page: '#f7fdff', border: '#a9dcf5', accent: '#1e9bd7' } },
-            au: { name: '가을', icon: '🍁', months: '9~11월', fx: '낙엽', skin: { bg: '#fbefe3', cover: '#e8935a', page: '#fffaf3', border: '#f0c29b', accent: '#d0682c' } },
-            wi: { name: '겨울', icon: '⛄', months: '12~2월', fx: '눈송이', skin: { bg: '#eef3fb', cover: '#8fa9d8', page: '#fbfdff', border: '#c5d3ee', accent: '#5a74b8' } }
+            sp: { name: '봄', icon: '🌸' },
+            su: { name: '여름', icon: '🌊' },
+            au: { name: '가을', icon: '🍁' },
+            wi: { name: '겨울', icon: '⛄' }
         };
         /* 날리는 조각 그림 (작은 SVG) */
         const SEASON_FX = {
@@ -67,9 +67,8 @@
             c.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">${SEASON_CORNER[id]}</svg>`)}")`;
         }
         function seasonApply() {
-            const id = seasonNow(), S = SEASONS[id];
+            const id = seasonNow();
             document.body.dataset.season = id;
-            if (typeof setSkinVars === 'function') setSkinVars(S.skin);
             seasonFx(id); seasonCorner(id);
         }
         function seasonRestore() { if (seasonOn()) seasonApply(); else { delete document.body.dataset.season; seasonFx(null); seasonCorner(null); } }
@@ -78,35 +77,12 @@
             const on = !seasonOn();
             store.setItem(SEASON_KEY, on ? '1' : '0');
             if (on) { seasonApply(); }
-            else { delete document.body.dataset.season; seasonFx(null); seasonCorner(null); if (typeof restoreSkin === 'function') restoreSkin(); }
-            seasonRenderCard();
+            else { delete document.body.dataset.season; seasonFx(null); seasonCorner(null); }
         }
-        /* 다른 스킨을 고르면 계절 테마는 꺼져요 (js/settings.js 의 applySkinPreset 에서 불러요) */
-        function seasonStop() {
-            if (!seasonOn()) return;
-            store.setItem(SEASON_KEY, '0');
-            delete document.body.dataset.season; seasonFx(null); seasonCorner(null);
-            seasonRenderCard();
-        }
-
-        /* 🎨 스킨 창의 계절 테마 칸 */
-        function seasonRenderCard() {
-            const box = ssq('seasonCard'); if (!box) return;
-            const now = seasonNow(), on = seasonOn(), S = SEASONS[now];
-            box.innerHTML = `
-              <div class="ss-now ss-${now}"><span>${S.icon}</span><div><b>지금은 ${S.name}이에요</b><small>${S.name} 색으로 바뀌고, 화면에 ${S.fx}이 날려요</small></div></div>
-              <button type="button" class="btn ss-go${on ? ' on' : ''}" onclick="seasonToggle()">${on ? `✓ ${S.name} 테마 쓰는 중 · 끄기` : `${S.icon} ${S.name} 테마 켜기`}</button>
-              <div class="ss-list">${Object.keys(SEASONS).map(k => `<span class="${k === now ? 'on' : ''}">${SEASONS[k].icon}<small>${SEASONS[k].name} ${SEASONS[k].months}</small></span>`).join('')}</div>
-              <p class="ss-note">계절이 바뀌면 테마도 저절로 바뀌어요. ✏️ 스티커 창에서 <b>${S.name} 스티커</b>도 써 보세요!</p>`;
-        }
-
         (function seasonInit() {
-            const b = ssq('seasonTab'), sk = ssq('seasonSkin');
-            if (sk) sk.hidden = !SEASON_OPEN;
+            const b = ssq('seasonTab');
             if (!SEASON_OPEN) return;
             if (b) { const S = SEASONS[seasonNow()]; b.textContent = `${S.icon} ${S.name} 스티커`; b.hidden = false; }
-            seasonRenderCard();
         })();
         window.seasonToggle = seasonToggle;
-        window.seasonStop = seasonStop;
         window.seasonRestore = seasonRestore;

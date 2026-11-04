@@ -59,8 +59,6 @@
       binder: `<rect x="15" y="5" width="24" height="31" rx="2" fill="#fffaf0" ${K} transform="rotate(7 27 20)"/><path d="M20 12h12M20 16.5h12" stroke="#e8dccb" stroke-width="1.3" stroke-linecap="round" transform="rotate(7 27 20)"/><rect x="9" y="10" width="29" height="32" rx="4" fill="#d8c8f6" ${K}/><g fill="#eef2f7" ${K}><rect x="5" y="14" width="9" height="4" rx="2"/><rect x="5" y="24" width="9" height="4" rx="2"/><rect x="5" y="34" width="9" height="4" rx="2"/></g><rect x="19" y="17" width="14" height="9" rx="2" fill="#fff" ${T}/><path d="${heart(26, 19.3, .36)}" fill="#ff9fb8"/>${face(26, 33, 6)}<ellipse cx="21.6" cy="35.6" rx="1.8" ry="1.1" fill="#ff6f96" opacity=".65"/><ellipse cx="30.4" cy="35.6" rx="1.8" ry="1.1" fill="#ff6f96" opacity=".65"/>`,
       cover: `<rect x="10" y="7" width="27" height="35" rx="4" fill="#ffe08f" ${K}/><path d="M10 11a4 4 0 0 1 4-4h2v35h-2a4 4 0 0 1-4-4z" fill="#ffc96b" ${K}/><path d="${star(26.5, 18, 6.8, 3)}" fill="#ff9fb8" ${K}/><path d="${heart(29.5, 28.5, .55)}" fill="#fff" ${T}/><circle cx="21.5" cy="33" r="3.2" fill="#b9e6d3" ${T}/><g transform="rotate(38 38 36)"><rect x="35.5" y="22" width="5" height="17" rx="2.5" fill="#c8b5f2" ${K}/><path d="M35.5 37.5h5l-2.5 6z" fill="#ff8fab" ${K}/></g>${spark(41, 9, 4.4, '#fff')}${spark(14, 4, 3, '#ffe08f')}`,
       /* 🎨 페이지 */
-      palette: `<path d="M24 7C13 7 6 14.5 6 23.5S13.5 41 22 41c3 0 4-1.6 4-3.4 0-2.6-2.4-3-2.4-5.2 0-2 1.7-3.4 3.8-3.4h4.6C38 29 42 25.5 42 20.5 42 12.5 34 7 24 7z" fill="#fff3e3" ${K}/><g ${T}><circle cx="14.5" cy="23" r="3.3" fill="#ff9fb8"/><circle cx="19" cy="14.5" r="3.3" fill="#ffd36b"/><circle cx="28.5" cy="13" r="3.3" fill="#9ed7c0"/><circle cx="35.5" cy="19.5" r="3.3" fill="#a9c8f5"/></g>`,
-      bow: `<path d="M22 24l-6 15 4-1 2 4 3-17zM26 24l6 15-4-1-2 4-3-17z" fill="#ff9fb8" ${K}/><path d="M24 22C18 13 7 11 7 18.5S18 26 24 22z" fill="#ffb4c8" ${K}/><path d="M24 22c6-9 17-11 17-3.5S30 26 24 22z" fill="#ffb4c8" ${K}/><rect x="20.5" y="18.5" width="7" height="7" rx="2.5" fill="#ff8fab" ${K}/><path d="M11 17.5q2-2.5 5-2" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
       gift: `<rect x="9" y="20" width="30" height="21" rx="3" fill="#cfe5ff" ${K}/><rect x="7" y="14" width="34" height="8" rx="2.5" fill="#e3efff" ${K}/><rect x="21.5" y="14" width="5" height="27" fill="#ff9fb8" ${T}/><path d="M24 14c-3-6-11-7-10-2.5s7 3.5 10 2.5zM24 14c3-6 11-7 10-2.5s-7 3.5-10 2.5z" fill="#ffb4c8" ${K}/>`,
       candy: `<path d="M15 24L6 17v14z" fill="#ffd36b" ${K}/><path d="M33 24l9-7v14z" fill="#ffd36b" ${K}/><circle cx="24" cy="24" r="10.5" fill="#ffb4c8" ${K}/><path d="M24 24a3 3 0 1 1 3 3 6 6 0 0 1-6-6 8.5 8.5 0 0 1 10-4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
       folder: `<path d="M7 14a3 3 0 0 1 3-3h9l4 4h15a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3z" fill="#ffd98a" ${K}/><path d="M7 20.5h34v16.5a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3z" fill="#ffe7a8" ${K}/><path d="${heart(24, 25.5, .55)}" fill="#ff9fb8"/>`,
@@ -97,14 +95,12 @@
       cloud: `<path d="M13 36h23a7 7 0 0 0 1-14 10 10 0 0 0-19-3 8.5 8.5 0 0 0-5 17z" fill="#d4ecff" ${K}/>${face(24, 29, 7)}<ellipse cx="18" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/><ellipse cx="30" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/>`,
       heartS: `<path d="${heart(24, 30, 1.6)}" fill="#ff8fab" ${K}/><path d="M13 16q1.5-3.5 5-3.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
     };
-    /* ✨ 만들기 아이콘 (10-24 도련 : 다이어리 창의 나만의 다이어리 · 노트 만들기 · 바인더 만들기 · 배경지 만들기)
+    /* ✨ 만들기 아이콘 (10-24 도련 : 다이어리 창의 노트 만들기 · 바인더 만들기 · 배경지 만들기)
        본 아이콘을 조금 줄이고 오른쪽 아래에 분홍 ＋ 단추 (스티커 만들기 칸들과 같은 느낌) */
     const plus = `<circle cx="37.5" cy="37.5" r="8" fill="#ff8fab" ${K}/><path d="M37.5 33.6v7.8M33.6 37.5h7.8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`;
     const small = (k, x = 1, y = 0) => `<g transform="translate(${x} ${y}) scale(.84)">${ICON[k]}</g>`;
     ICON.notemk = small('note', 1, 1) + plus;
     ICON.bindmk = small('binder', 1, 0) + plus;
-    ICON.mydiary = `<g transform="translate(1 1) scale(.84)">${ICON.dybook}</g>`
-        + `<path d="M21 6.5l-4.8-3.4v6.8zM21 6.5l4.8-3.4v6.8z" fill="#ff8fab" ${K}/><circle cx="21" cy="6.5" r="2" fill="#ffd1dc" ${T}/>` + plus;   // 리본을 단 내 다이어리
     ICON.patmk = `<g transform="rotate(-7 21 24)"><rect x="6" y="8" width="29" height="32" rx="3.5" fill="#fff6cf" ${K}/>`
         + `<path d="M6 17h29M6 26h29M14.5 8v32M24 8v32" stroke="#ffc6d6" stroke-width="2.4" opacity=".75"/>`
         + `<g fill="#ff9fb8"><circle cx="10.2" cy="12.5" r="1.4"/><circle cx="19.3" cy="21.5" r="1.4"/><circle cx="29.3" cy="12.5" r="1.4"/><circle cx="10.2" cy="31" r="1.4"/><circle cx="29.3" cy="31" r="1.4"/></g></g>`
@@ -117,7 +113,7 @@
     const MAP = {
         '이모지': 'emoji', '계절 스티커': 'season', '캡슐스티커': 'caps', '마스킹테이프': 'tape', '조각스티커': 'piece', '씰스티커': 'seal', '모조지스티커': 'paper', '속지': 'leaf', '메모지': 'memo', '떡메모지': 'tteok',
         '포토부스': 'booth', '사진찍기': 'cam', '사진고르기': 'pick', '사진찍어 만들기': 'cam', '조각스티커 만들기': 'piece', '씰스티커 만들기': 'seal', '모조지스티커 만들기': 'paper', '앨범골라 만들기': 'pick', '글씨 스티커': 'text', '글씨스티커 만들기': 'text', '마스킹테이프 만들기': 'tapemk', '속지 만들기': 'leafmk', '떡메모지 만들기': 'tteokmk',
-        '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '페이지노트': 'note', '페이지바인더': 'binder', '페이지노트 만들기': 'notemk', '페이지바인더 만들기': 'bindmk', '표지 꾸미기': 'cover', '페이지': 'leaf', '페이지 색상설정': 'palette', '페이지 꾸미기': 'bow', '나만의 다이어리': 'mydiary', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
+        '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '페이지노트': 'note', '페이지바인더': 'binder', '페이지노트 만들기': 'notemk', '페이지바인더 만들기': 'bindmk', '표지 꾸미기': 'cover', '페이지': 'leaf', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '펫 키우기': 'paw',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '문방구 캡슐기계': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',
