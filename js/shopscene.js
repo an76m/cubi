@@ -23,7 +23,8 @@
             tool: { n: '다이어리 코너', img: 'img/shop-diary.webp?v=20261009-1132', W: 1670, H: 942, sign: [842, 132, 250, 100], at: { dy: [800, 450], bd: [570, 610], rl: [1075, 610] } },
             gd: { n: '문구 코너', img: 'img/shop-gd.webp?v=20261009-1132', W: 1670, H: 942, sign: [848, 122, 230, 90],
                 at: { pen: [430, 300], knife: [740, 300], tweez: [1000, 300], clip: [1300, 300], tape: [430, 600], scissors: [760, 600], punch: [1060, 600], ruler: [1270, 600] } },
-            desk: { n: '책상소품 코너', img: 'img/shop-desk.webp?v=20261009-1132', W: 1670, H: 942, sign: [838, 118, 230, 90], at: { desk: [680, 290], wall: [1490, 410], wallpaper: [300, 150], desktop: [840, 630] } }
+            desk: { n: '책상소품 코너', img: 'img/shop-desk.webp?v=20261009-1132', W: 1670, H: 942, sign: [838, 118, 230, 90], at: { bookshelf: [330, 260], drawer: [630, 270], riser: [860, 265], wallshelf: [1180, 255], lamp: [1330, 245], basket: [300, 385], board: [590, 385], pencup: [880, 395], clock: [1440, 395],
+                doll: [170, 500], taperack: [1555, 470], peg: [520, 140], lights: [1395, 120], wallpaper: [300, 140], desktop: [840, 635] } }   /* 🪑 소품 종류마다 (도련 11-04) */
         };
         const HOME_SIGN = { cx: 836, cy: 490, w: 420, h: 200 };                   // 🚪 내 방 문 타원 판 안쪽 (img/room-door.webp px · 도련 10-30)
         const SC = { on: false, busy: false, corner: '', spots: [] };

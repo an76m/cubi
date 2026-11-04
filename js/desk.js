@@ -583,7 +583,7 @@
             dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             return it;
         }
-        const deskShopList = () => (window.prodShelf ? prodShelf('책상소품') : []).map(dkItemOf).filter(Boolean).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall }));   // 🏪 샵 = 늘 서버 모습
+        const deskShopList = () => (window.prodShelf ? prodShelf('책상소품') : []).map(dkItemOf).filter(Boolean).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall, kind: d.kind }));   // 🏪 샵 = 늘 서버 모습 · kind = 코너 칸 (js/basket.js)
         /* 📦 소품 보관함 창 */
         /* 🗂 보관함 종류 칸 (도련 10-27 · 드라이브 종류 폴더와 같은 이름 : 서랍장 · 시계 · 책꽂이 … · 많아져도 찾기 쉽게) : 가진 종류만 · [이름 개수] */
         const dkKinds = () => typeof DESK_DIRS !== 'undefined' ? Object.keys(DESK_DIRS) : [];

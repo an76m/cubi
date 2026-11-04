@@ -971,7 +971,7 @@
             return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: () => gdGive(x.id) }));   // gid = 봉투 카드가 기억해요
         }],
         desk: ['책상소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
-            cnt: d.name, look: 'desk', src: d.src, sec: d.wall ? 'wall' : 'desk', give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
+            cnt: d.name, look: 'desk', src: d.src, sec: d.kind, wall: d.wall, give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
             const md = new Date(Date.now() + 9 * 3600000).toISOString().slice(5, 10), inDays = v => { const m = /^(\d\d-\d\d)~(\d\d-\d\d)$/.exec(String(v || '').trim()); return !!m && (m[1] <= m[2] ? md >= m[1] && md <= m[2] : md >= m[1] || md <= m[2]); };   // 🔎 나오는 기간 = 상품 (MM-DD~MM-DD · 겨울처럼 해를 넘겨도)
@@ -1060,13 +1060,17 @@
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
-    const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기'], ['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']] };   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
+    const SH_CATS = { bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']] };   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
     /* 🏪 코너 (도련 11-04) : 칸이 있는 종류(📔 다이어리 · ✂️ 문구 · 🪑 책상소품 · 🌈 배경지)는 창 안 칸 탭 대신 코너에서 칸을 골라요 (종류가 얼마나 늘지 몰라서 넓은 화면에)
        💻 가게 안 = 그 코너 그림 위 아이콘 (js/shopscene.js shopCorner) · 📱 폰 · 가게 밖 = 코너 진열대 창 (#shelfCornerModal) · 칸 하나 = 그 칸만 보이는 창 */
     const SH_CORNER = { tool: '📔 다이어리 코너', gd: '✂️ 문구 코너', desk: '🪑 책상소품 코너', bg: '🌈 배경지' };
     const SH_GD_IC = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
+    /* 🪑 책상소품 칸 = 소품 종류 (도련 11-04 : 스티커 · 문구처럼 종류 바로 · 상품 폴더 책상소품/<종류>/ 와 같은 이름) + 🧱 벽지 · 🪵 책상 · 상품이 있는 종류만 */
+    const SH_DK = { drawer: ['서랍장', '🗄️'], clock: ['시계', '⏰'], bookshelf: ['책꽂이', '📚'], pencup: ['펜꽂이', '🖊️'], riser: ['받침대', '🖥️'], basket: ['바구니', '🧺'], lamp: ['스탠드', '💡'], doll: ['인형', '🧸'], taperack: ['마테정리함', '🎀'],
+        wallshelf: ['벽선반', '🪜'], board: ['게시판', '📌'], lights: ['전구줄', '✨'], peg: ['집게사진', '📷'], wallpaper: ['벽지', '🧱'], desktop: ['책상', '🪵'] };
     function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
         if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, SH_GD_IC[x.g] || '✏️']])).values()]; }
+        if (k === 'desk') { const L = (window.deskShopList ? deskShopList().map(d => d.kind) : []).concat(window.dsShopList ? dsShopList().map(x => x.sec) : []); return Object.keys(SH_DK).filter(c => L.includes(c)).map(c => [c, SH_DK[c][0], SH_DK[c][1]]); }
         const c = SH_CATS[k]; return c ? c.map(([id, s]) => { const [ic, ...nm] = s.split(' '); return [id, nm.join(' '), ic]; }) : null;
     }
     function shCorner(k) {
@@ -1131,7 +1135,7 @@
             desktop: '책상 상판이 바뀌어요 · 🛠 책상 꾸미기 → 📦 소품함에서 골라요'
         }
     };
-    const shTip = k => { const t = SH_TIPS[k]; const s = t && typeof t === 'object' ? t[SH.cat] : t; return s ? `<p class="sh-tip">💡 ${s}</p>` : ''; };
+    const shTip = k => { const t = SH_TIPS[k]; const s = t && typeof t === 'object' ? t[SH.cat] || (k === 'desk' ? (SH.items.filter(x => x.sec === SH.cat).every(x => x.wall) ? t.wall : t.desk) : '') : t;   /* 🪑 소품 종류 = 모두 벽에 거는 것이면 벽 안내 */ return s ? `<p class="sh-tip">💡 ${s}</p>` : ''; };
     const shCatOf = (k, x) => k === 'tool' ? (x.tool || x.cat) : k === 'gd' ? x.g : k === 'desk' || k === 'bg' ? x.sec : '';
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
