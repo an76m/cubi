@@ -652,6 +652,7 @@
             H.classList.add('desk-edit');
             deskSelect(null); deskFnPaint(); deskEditPaint();
             dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
+            deskBoxOpen();                                                        // 📦 소품함도 같이 (도련 11-04)
         }
         function dkEditHello() {                                                  // 🎀 리본이 톡 떴다가 스르르 (1.3초)
             const old = document.getElementById('dkeHello'); if (old) old.remove();
