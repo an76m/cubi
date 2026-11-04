@@ -278,7 +278,6 @@
         const dkSlotNm = (i, n) => n > 3 ? `${i + 1}번째` : DK_SLOT_NM[i] || `${i + 1}번째`;   // 3칸 = 위 · 가운데 · 아래 · 더 많으면 번호
         const dkHold = id => { const c = dkCat(id); return (c && DK_HOLD[c.kind]) || null; };
         const dkSlots = id => { const c = dkCat(id); return (c && c.slots && c.slots.length && dkHold(id) && dkHold(id).ok) ? c.slots : null; };   // 칸이 있는 소품 (서랍장)
-        const dkHolderKinds = w => Object.keys(DK_HOLD).filter(k => (DK_HOLD[k].all || DK_HOLD[k].ok).includes(w)).map(k => dkKN(k) || k).join(' · ');   // 이것을 넣을 수 있는 소품 종류 이름 (서랍장 · 펜꽂이 …)
         const dkHoldOk = id => { const h = dkHold(id); return h ? (h.all || h.ok) : []; };
         const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat(DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
         const dkWin = id => (id && dkWins().find(x => x[0] === id)) || null;
@@ -902,7 +901,7 @@
             if (!bg) { if (pn) pn.hidden = true; return; }
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkBagPanel'; pn.className = 'dkb-pn'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             pn.dataset.n = n;
-            pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>상품을 책상 소품에 끌어다 넣어요 · 넣은 소품을 누르면 상품을 사용할 수 있어요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
+            pn.innerHTML = `<div class="dkb-top"><b>🛍️ 봉투 속</b><small>상품을 원하는 소품에 끌어다 넣어요<br>소품을 누르면 상품을 사용할 수 있어요</small><button type="button" class="dkb-x" onclick="deskBagOpen(-1)" aria-label="닫기">✕</button></div>`
                 + `<div class="dkb-cards">${bg.it.map((it, j) => `<div class="dkb-card" data-j="${j}">${dkKindIc(it)}${DKB_STK.includes(it.k) && !it.al ? `<b>${DKH_NAMES[it.k]}</b>` : `<b>${htmlEsc(it.n || DKH_NAMES[it.k] || '')}</b><small>${dkbSub(it)}</small>`}</div>`).join('')}</div>`;
             pn.querySelectorAll('.dkb-card').forEach(c => c.addEventListener('pointerdown', e => dkbGrab(e, n, +c.dataset.j, c)));
             pn.hidden = false;
@@ -955,7 +954,7 @@
         }
         /* 봉투 카드 넣기 (도련 11-01 · 현실처럼) : 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … · 서랍 한 칸 = 한 종류 · 도련 11-01) · 📔 다이어리 = 다이어리 · ✂️ 문구 = 문구함
            넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
-           못 넣는 소품(인형 · 시계 …)이면 = 넣을 수 있는 소품 이름을 알려 줘요 · 🌈 배경지 = 보류 */
+           못 넣는 소품(인형 · 시계 …)이면 = '○○에 넣을 수 없어요' 만 (넣을 곳은 안 알려요 · 도련 11-05) · 🌈 배경지 = 보류 */
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
         const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
@@ -963,9 +962,8 @@
             let win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
             if (win === 'gd') { const o0 = DK.items.find(x => x.u === t.dataset.u); if (o0 && dkHoldOk(o0.id).includes('pc')) win = 'pc'; }   // ✏️ 문구를 펜꽂이에 넣으면 = 그 펜꽂이를 내 펜꽂이로 (문구는 문구함에 · 꽂는 건 문구함에서)
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', [, K, , ic] = dkWin(win);
-            if (!o || !dkHoldOk(o.id).includes(win)) {                          // 🧸 못 넣는 소품 = 넣을 수 있는 소품 이름
-                const L = [...new Set(dkOnDesk().filter(x => dkHoldOk(x.id).includes(win)).map(dkName))];
-                showMsg(L.length ? `${ic} ${josa(K, '은', '는')} <b>${L.map(htmlEsc).join(' · ')}</b>에 넣을 수 있어요.` : `${ic} ${josa(K, '을', '를')} 넣을 수 있는 소품이 책상에 없어요.<br><span style="font-size:12px;color:#777;">${dkHolderKinds(win)}을 놓아 주세요</span>`);
+            if (!o || !dkHoldOk(o.id).includes(win)) {                          // 🧸 못 넣는 소품 = '○○에 넣을 수 없어요'
+                showMsg(`${ic} ${josa(K, '은', '는')} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`);   // 넣을 수 있는 곳은 안 알려요 (소품이 끝없이 늘어요 · 도련 11-05)
                 return;
             }
             const S = dkSlots(o.id), M = deskFnMap(), H = dkHomes(), zones = H[u] || [];
