@@ -20,7 +20,7 @@
            그림마다 위 가운데 구름 간판 = 코너 이름 (글씨는 앱이 써요 · sign = 간판 안쪽 [가운데 x, y, 폭, 높이] 그림 px) · 자리 = 그림 px · 표에 없는 새 칸은 아래 줄에 차례로 놓고 콘솔에 알려요 */
         const SHOP_MAIN = { n: '스티커 코너', img: 'img/shop-inside.webp?v=20261009-1132', W: 1670, H: 942, sign: [846, 98, 215, 80] };
         const SHOP_CORNERS = {
-            tool: { n: '다이어리 코너', img: 'img/shop-diary.webp?v=20261009-1132', W: 1670, H: 942, sign: [842, 132, 250, 100], at: { dy: [800, 450], bd: [570, 610], rl: [1075, 610] } },
+            tool: { n: '다이어리 코너', img: 'img/shop-diary.webp?v=20261009-1132', W: 1670, H: 942, sign: [842, 132, 250, 100], at: { dyb: [620, 450], dyn: [965, 450], bd: [570, 615], rl: [1075, 615] } },
             gd: { n: '문구 코너', img: 'img/shop-gd.webp?v=20261009-1132', W: 1670, H: 942, sign: [848, 122, 230, 90],
                 at: { pen: [430, 300], knife: [740, 300], tweez: [1000, 300], clip: [1300, 300], tape: [430, 600], scissors: [760, 600], punch: [1060, 600], ruler: [1270, 600] } },
             desk: { n: '책상소품 코너', img: 'img/shop-desk.webp?v=20261009-1132', W: 1670, H: 942, sign: [838, 118, 230, 90], at: { bookshelf: [330, 260], drawer: [630, 270], riser: [860, 265], wallshelf: [1180, 255], lamp: [1330, 245], basket: [300, 385], board: [590, 385], pencup: [880, 395], clock: [1440, 395],

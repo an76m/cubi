@@ -140,25 +140,32 @@ let fontList = [
             symbols: [[0x2702, 0x27B0], [0x1F300, 0x1F5FF]]
         };
 
-        /* 🧁 다이어리 색 = 서버 상품 (상품공방 '다이어리' · js/prod.js · 도련 11-02) : id = 색 (pink · mint …) · 스킨 { bg, cover, page, border, accent } · 색이름 · 스킨이름
-           날짜형 다이어리 색 · 스킨 고르기 · 책상 위 다이어리 색이 모두 이 목록이에요 (DIARY_COLORS = [id, 색이름, 숨김]) */
-        const skinPresets = {}, DIARY_COLORS = [];
+        /* 📔 날짜형 다이어리 디자인 = 서버 상품 (상품공방 '날짜형바인더' · '날짜형노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 디자인이 늘어도 코드는 그대로)
+           속성 : 이름 · 규격(n) · mm · r(세로÷가로) · b(묶는 방식) · 스킨 { bg, cover, page, border, accent } · 스킨목록(⚙ 스킨 고르기에 나와요) · 스킨이름 · 처음선물
+           DY_DESIGNS = 날짜형 디자인 모두 (권 · 가게 · 책상) · skinPresets = 디자인 id → 스킨 (펼친 권의 색) · DIARY_COLORS = 스킨 고르기에 나올 것 [id, 이름, 숨김, 스킨이름] */
+        const skinPresets = {}, DIARY_COLORS = [], DY_DESIGNS = [];
+        const DY_DKINDS = [['날짜형바인더', '바인더', 'b'], ['날짜형노트', '노트', 'n']];   // [상품 종류, 모양, 권 id 글자 (2026b-분홍-1)]
         function dyColorsBuild() {                                             // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
-            Object.keys(skinPresets).forEach(k => delete skinPresets[k]); DIARY_COLORS.length = 0;
-            const okC = v => /^#[0-9a-f]{6}$/i.test(v || ''), ok = P => { const k = P.스킨; return k && typeof k === 'object' && String(k.cover || '') && ['border', 'accent', 'page', 'bg'].every(n => okC(k[n])) && String(P.색이름 || '') && String(P.스킨이름 || ''); };
-            (window.prodList ? prodList('다이어리') : []).forEach(x => {              // 🔎 색이름 · 스킨이름 · 스킨 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요)
-                if (!ok(x.P)) { console.warn('🧁 다이어리 속성이 모자라요 :', x.id); return; }
-                skinPresets[x.id] = x.P.스킨; DIARY_COLORS.push([x.id, String(x.P.색이름), !!x.P.숨김, String(x.P.스킨이름)]);
-            });
+            Object.keys(skinPresets).forEach(k => delete skinPresets[k]); DIARY_COLORS.length = 0; DY_DESIGNS.length = 0;
+            const okC = v => /^#[0-9a-f]{6}$/i.test(v || ''), okSk = k => k && typeof k === 'object' && String(k.cover || '') && ['border', 'accent', 'page', 'bg'].every(n => okC(k[n]));
+            DY_DKINDS.forEach(([K, kind, ch]) => (window.prodList ? prodList(K) : []).forEach(x => {   // 🔎 상품 그대로 (빠지면 안 나와요 · 상품공방이 검수)
+                const P = x.P || {};
+                if (!okSk(P.스킨) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b)) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }
+                skinPresets[x.id] = P.스킨;
+                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.스킨.border, off: !!P.숨김, gift: !!P.처음선물 });
+                if (P.스킨목록) DIARY_COLORS.push([x.id, String(P.이름), !!P.숨김, String(P.스킨이름 || P.이름)]);
+            }));
         }
         dyColorsBuild();
         if (window.prodHook) prodHook(dyColorsBuild);
-        (window.SNAP_OWN = window.SNAP_OWN || {})['다이어리'] = () => {           // 📦 사본 = 받은 날짜형 다이어리 색 + 지금 스킨 색
-            let ids = []; try { ids = (prefGet('diary_years', 'malang_years') || []).map(id => (/^\d{4}([a-z][\w-]*?)\d+$/.exec(String(id)) || [])[1]); } catch (e) {}
-            if (typeof currentSkinId === 'string') ids.push(currentSkinId);
-            return ids.filter(Boolean);
-        };
-        const skinPreset0 = () => skinPresets.pink || Object.values(skinPresets)[0] || { bg: '#ffe6f0', cover: '#ffb6c1', page: '#fff0f5', border: '#ffb6c1', accent: '#ff6b81' };   // 처음 다이어리 색 (분홍 · 없으면 첫 색)
+        DY_DKINDS.forEach(([K, , ch]) => {                                      // 📦 사본 = 받은 권의 디자인 + 지금 스킨
+            (window.SNAP_OWN = window.SNAP_OWN || {})[K] = () => {
+                let ids = []; try { ids = (prefGet('diary_years', 'malang_years') || []).map(id => (/^\d{4}([a-z])-(.+)-\d+$/.exec(String(id)) || [])).filter(m => m[1] === ch).map(m => m[2]); } catch (e) {}
+                if (typeof currentSkinId === 'string' && prodServer(K).some(x => x.id === currentSkinId)) ids.push(currentSkinId);
+                return ids.filter(Boolean);
+            };
+        });
+        const skinPreset0 = () => { const d = DY_DESIGNS.find(x => x.gift) || DY_DESIGNS[0]; return d ? skinPresets[d.id] : { bg: '#ffe6f0', cover: '#ffb6c1', page: '#fff0f5', border: '#ffb6c1', accent: '#ff6b81' }; };   // 처음 다이어리 색 = 처음 선물 디자인
 
         window.onload = () => oneReady(() => {                                  // 🔒 이 창이 다이어리를 맡았을 때만 시작 (한 기기에 하나 · js/onlyone.js)
             setupCurlDrag();

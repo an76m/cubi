@@ -166,7 +166,7 @@
            ===================================================================== */
         const SKIN_KEY = 'diary_skin';
         const SKIN_PRESET_NAMES = {};                                          // 🧁 상품 속성 '스킨이름' (서버 + 📦 사본)
-        const skinNamesBuild = () => { Object.keys(SKIN_PRESET_NAMES).forEach(k => delete SKIN_PRESET_NAMES[k]); DIARY_COLORS.forEach(c => { SKIN_PRESET_NAMES[c[0]] = c[3] || c[1]; }); };
+        const skinNamesBuild = () => { Object.keys(SKIN_PRESET_NAMES).forEach(k => delete SKIN_PRESET_NAMES[k]); DY_DESIGNS.forEach(d => { SKIN_PRESET_NAMES[d.id] = d.name; }); DIARY_COLORS.forEach(c => { SKIN_PRESET_NAMES[c[0]] = c[3] || c[1]; }); };   // 📔 날짜형 디자인 이름 (스킨 고르기에 나오는 것은 '스킨이름')
         skinNamesBuild(); if (window.prodHook) prodHook(skinNamesBuild);
         const SKIN_NAME_MAX = 20;
         const MY_SKIN_MAX = Infinity;      // 🎨 내 페이지 개수 제한 없음 (끝없이 저장)
@@ -176,7 +176,8 @@
             showMsg(`내 페이지는 ${MY_SKIN_MAX}개까지 가질 수 있어요.<br>(내가만든 · 공유받은 합쳐서)<br>안 쓰는 페이지를 지우고 다시 해 주세요.`);
             return true;
         }
-        let currentSkinId = 'pink';
+        const skinId0 = () => (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).id || '';   // 처음 스킨 = 처음 선물 디자인 (js/app.js)
+        let currentSkinId = skinId0();
         let currentSkinInline = null;      // 목록에 없는 페이지를 쓰는 중일 때 그 색 (예: 내려간 모두의 페이지)
 
         /* 🐷 말랑달콤 저금통 : 마음을 넣어 준 사람에게만 보이는 선물 (🎀 마스킹테이프)
@@ -433,7 +434,7 @@
             if (!(await showMsg('이 다이어리를 지울까요?', true))) return;
             try { await collRemove(pgColl(!!got), id); } catch (e) { showMsg('⚠ 지우지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
             delete customSkins[id];
-            if (currentSkinId === id) applySkinPreset('pink');
+            if (currentSkinId === id) applySkinPreset(skinId0());
             renderSkinSelect();
             if (window.dyMineRefresh) dyMineRefresh();                          // 📔 다이어리 창 '내가만든' 칸도 바로 (10-24 : 다른 데 갔다 와야 지워져 보였어요)
         }

@@ -472,11 +472,11 @@
                 Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {}));
         }
         /* ---------- 📒 스티커첩 (도련 10-25) : 바인더 = 종이째 포켓에 · 이형지 = 낱개로 떼어 모으기
-           album = { bd : [{ id, k : 종류, lb : 라벨, c : 표지 색 번호, n : 포켓 수, p : { 포켓 번호 : 종이 id } }],
-                     rl : [{ id, k, lb, n : 쪽 수, it : [{ s : 종이 id(한 칸짜리), pg : 쪽, x, y : 0~1 자리, r : 기울기 }] }] (🤍 이형지북), g : { 종류 : 1 (처음 선물 받음) } }
+           album = { bd : [{ id, k : 종류, lb : 라벨, pid : 바인더 디자인 상품 id, n : 시트 수, p : { 포켓 번호 : 종이 id } }],
+                     rl : [{ id, k, lb, pid : 이형지북 디자인 상품 id, n : 쪽 수, it : [{ s : 종이 id(한 칸짜리), pg : 쪽, x, y : 0~1 자리, r : 기울기 }] }] (🤍 이형지북), g : { 종류 : 1 (처음 선물 받음) } }
            · 바인더 1권 = 상품 시트 수(장수) · 한 쪽 포켓 · 이형지북 1권 = 상품 쪽수 (한 쪽에 이형지북 상품 '포켓' 개) · 기본상품 샵 기본스티커처럼 몇 권이든 공짜로 더 받아요 (도련 10-25)
            · 정리한 종이는 바구니에서 빠져 보여요 · 다 쓴 종이는 저절로 빠져요 · 목록과 같은 파일(암호화)이라 다른 기기에서도 그대로 ---------- */
-        const ownRelCap = () => window.abRelCap ? abRelCap() : 0;               // 이형지 한 쪽에 붙는 수 = 🧁 이형지북 상품 '포켓' (js/basket.js · 도련 11-02)
+        const ownRelCap = r => window.abRelCap ? abRelCap(r) : 0;               // 이형지 한 쪽에 붙는 수 = 🧁 이형지북 상품 '포켓' (js/basket.js · 도련 11-02)
         function ownAlbumClean(a, list) {
             const alive = list ? new Set(list.filter(ownAlive).map(e => e.id)) : null;   // list 없으면 다 쓴 종이 거르기는 안 해요 (화면에서 걸러요)
             const ok = id => !alive || alive.has(id);
@@ -486,12 +486,12 @@
                 (Array.isArray(a.bd) ? a.bd : []).forEach(b => {
                     if (!b || !b.id) return;
                     const p = {}; Object.keys(b.p || {}).forEach(i => { if (ok(b.p[i])) p[i] = b.p[i]; });
-                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), c: +b.c || 0, pid: String(b.pid || '').slice(0, 60), n: Math.max(1, Math.min(400, +b.n || 1)), p });   // pid = 바인더 상품 id (📦 사본 색)
+                    o.bd.push({ id: String(b.id), k: String(b.k || 'seal'), lb: String(b.lb || '').slice(0, 12), pid: String(b.pid || '').slice(0, 60), n: Math.max(1, Math.min(400, +b.n || 1)), p });   // pid = 바인더 상품 id (📦 사본 색)
                 });
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;
                     const n = Math.max(1, Math.min(200, +r.n || 1));   // 📒 🤍 크기 = 받을 때 상품 값 (js/basket.js abNewBd · abNewRl)
-                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0, ...(+t.w > 0 && +t.h > 0 ? { w: Math.round(+t.w), h: Math.round(+t.h) } : {}) })) });   // w · h = 스티커 진짜 크기 (다이어리에 붙였을 때 · 도련 10-29)
+                    o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), pid: String(r.pid || '').slice(0, 60), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0, ...(+t.w > 0 && +t.h > 0 ? { w: Math.round(+t.w), h: Math.round(+t.h) } : {}) })) });   // w · h = 스티커 진짜 크기 (다이어리에 붙였을 때 · 도련 10-29)
                 });
             }
             return o;
@@ -566,7 +566,7 @@
                 const rel = a.rl.find(r => r.id === relId);
                 if (!rel) { const er = new Error('gone'); er.code = 'gone'; throw er; }
                 const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+pos.pg || 0)));
-                if (rel.it.filter(t => t.pg === pg).length >= ownRelCap()) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
+                if (rel.it.filter(t => t.pg === pg).length >= ownRelCap(rel)) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
                 const e = list.find(x => x.id === srcId);
                 if (!e || !ownAlive(e) || e.q0 || ownPendGet().some(p => p.s === srcId && p.k === slot)) return '';
                 let s; try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') return ''; throw er; }
@@ -613,7 +613,7 @@
                         for (const i of idxs) {
                             const op = ops[i], rel = a.rl.find(r => r.id === op.rl); if (!rel) continue;
                             const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+op.pos.pg || 0)));
-                            if (rel.it.filter(t => t.pg === pg).length >= ownRelCap()) continue;
+                            if (rel.it.filter(t => t.pg === pg).length >= ownRelCap(rel)) continue;
                             const img = sh.imgs[op.k]; if (img == null || pend.some(p => p.s === src && p.k === op.k)) continue;
                             const nid = ownRid();
                             const one = { v: 1, id: nid, k: e.k, from: 'rel', nm: sh.nm || '', ts: sh.ts ? 1 : 0, baked: !!sh.baked, imgs: [img], wh: [(sh.wh || [])[op.k] || [0, 0]], x: {} };

@@ -8,7 +8,7 @@
               - 🏷️ 스티커는 예외 (바구니 ↔ 스티커첩으로 옮겨 다녀서 목록 하나 · js/own.js)
               - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
              말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-10-28.json · 검색.json   📔 날짜형 바인더 1년치 (기본으로 주는 것 · 한 권 = 폴더 · '해 디자인 번호' · js/dyyear.js)
-                      / 날짜노트 / 2026 분홍 1 / …                       📓 날짜형 노트 1년치 (A6 얇은 노트 · 바인더와 같은 4색 · 권 id 2026note-pink1 · 도련 11-04)
+                      / 날짜노트 / 2026 분홍 1 / …                       📓 날짜형 노트 1년치 (권 id 2026n-분홍노트-1 · 도련 11-04)
                       / 페이지바인더 · 페이지노트 / <권 id>-다이어리.json · <권 id>-3페이지.json …   📕 페이지형 30장 (지금 숨김 · 팔 때 한 권 = 폴더로)
                       / 페이지꾸밈 · 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
                       / 스티커목록 / 목록.json · 스티커첩.json · 백업          🎒 유한 스티커 (js/own.js)
@@ -40,7 +40,7 @@
         const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자' };
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
         const DAY_PATH = dirPath(DIRS.day);                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-10-28.json
-        const NOTE_PATH = dirPath(DIRS.dayNote);                    // 📓 날짜형 노트 : 말랑달콤 / 날짜노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026note-pink1' · 도련 11-04)
+        const NOTE_PATH = dirPath(DIRS.dayNote);                    // 📓 날짜형 노트 : 말랑달콤 / 날짜노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
         const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
@@ -60,17 +60,18 @@
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         /* 📔 날짜 다이어리 = 한 권에 폴더 하나 (도련 10-28 · js/dyyear.js) : 권 id '2026mint2' = 해 · 바인더 색 · 그 해 그 색 몇 번째 (지워도 번호는 다시 안 써요)
              diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜바인더 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
-        const DAY_KEY_RE = /^diary_(\d{4}(?:note-)?(?:pink|mint|purple|yellow)\d+)_(\d{4})_(\d{2})_(\d{2})$/;   // 📓 노트 권 = 색 앞에 'note-'
-        const DYB_RE = /^(\d{4})(note-)?(pink|mint|purple|yellow)(\d+)$/, DYB_COLOR = { pink: '분홍', mint: '녹색', purple: '보라', yellow: '노랑' };
-        function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${DYB_COLOR[r[3]]} ${r[4]}` : ''; }   // 폴더 이름 '2026 녹색 2' (바인더 · 노트 모두 · 폴더가 달라요)
-        function dyBookOfName(n, note) { const r = /^(\d{4}) (분홍|녹색|보라|노랑) (\d+)$/.exec(n || ''); return r ? r[1] + (note ? 'note-' : '') + Object.keys(DYB_COLOR).find(k => DYB_COLOR[k] === r[2]) + r[3] : ''; }
-        const dyBookIsNote = b => { const r = DYB_RE.exec(b || ''); return !!(r && r[2]); };
+        /* 📔 날짜형 권 id '2026b-분홍-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 번호 (도련 11-04 · js/dyyear.js) · 디자인이 늘어도 코드는 그대로 */
+        const DAY_KEY_RE = /^diary_(\d{4}[bn]-.+-\d+)_(\d{4})_(\d{2})_(\d{2})$/;
+        const DYB_RE = /^(\d{4})([bn])-(.+)-(\d+)$/;
+        function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${r[3]} ${r[4]}` : ''; }   // 폴더 이름 '2026 분홍 2' (디자인 id · 바인더 · 노트는 폴더가 달라요)
+        function dyBookOfName(n, note) { const r = /^(\d{4}) (.+) (\d+)$/.exec(n || ''); return r ? `${r[1]}${note ? 'n' : 'b'}-${r[2]}-${r[3]}` : ''; }
+        const dyBookIsNote = b => { const r = DYB_RE.exec(b || ''); return !!(r && r[2] === 'n'); };
         const dyBookDir = b => (dyBookIsNote(b) ? NOTE_PATH : DAY_PATH).concat([dyBookName(b)]);
         const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/;   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
         const DK_INFO = '다이어리.json', dkInfoName = id => `${id}-${DK_INFO}`;   // 📕 권 정보 파일 : <권 id>-다이어리.json
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
-           - 날짜 데이터  : diary_2026pink1_2026_09_10  → 말랑달콤/날짜바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
+           - 날짜 데이터  : diary_2026b-분홍-1_2026_09_10  → 말랑달콤/날짜바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
            - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/페이지바인더/<권 id>-3페이지.json · dkb_<권 id> → <권 id>-다이어리.json
            - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페기록/카페.json) */
         const store = {

@@ -1245,10 +1245,7 @@
            - 평소 다이어리 권 톡 = 그 권 펼치기 · 🛠 꾸미기 = 끌어 옮기기 · 톡 = 모습 (📚 꽂기 · 📔 세우기 · 🛏 눕히기) · 바구니 · 받침 위도 소품처럼 (dkLayers)
            - 🛍️ 봉투의 새 다이어리 카드 = 끌어 놓은 자리에 그 권 · 📔 보관소 창은 뒤에서만 (📱 폰 · 못 찾을 때 · 🛠 다이어리 메뉴 '📔 보관소') · 📦 소품함에는 안 들어가요 */
         const DKV_SZ = { side: [24, 127], front: [80, 120], lay: [150, 86] };      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
-        let DKV_C = null; if (window.prodHook) prodHook(() => { DKV_C = null; });                                                          // 🧁 다이어리 색 (서버 상품 · js/app.js DIARY_COLORS · app.js 가 이 파일보다 뒤라 처음 쓸 때 만들어요)
-        const dkvCol = c => { if (!DKV_C) { DKV_C = Object.fromEntries(DIARY_COLORS.map(x => [x[0], [x[1], skinPresets[x[0]].border, skinPresets[x[0]].accent]])); }
-            c = window.dyyColor ? dyyColor(c) : c;                              // 📓 날짜형 노트 = 같은 색 바인더 색
-            return DKV_C[c] || DKV_C.pink || Object.values(DKV_C)[0] || ['분홍', '#ffb6c1', '#ff6b81']; };
+        const dkvCol = c => { const k = typeof skinPresets !== 'undefined' && skinPresets[c]; return k ? ['', k.border, k.accent] : ['', '#ffb6c1', '#ff6b81']; };   // 🧁 그 권 디자인의 스킨 색 (js/app.js · 디자인 속성이 없으면 분홍으로 보여만 줘요)
         const dkyCur = () => (window.dyyBookId && (typeof dkType !== 'function' || !dkType()) ? dyyBookId() : '') || '';
         const dkyMap = () => { const v = typeof prefGet === 'function' ? prefGet(DKY_KEY, DKY_LOCAL) : null; return v && typeof v === 'object' && !('x' in v) ? v : {}; };
         const dkyOk = v => v && isFinite(+v.x) && isFinite(+v.y) && ['side', 'front', 'lay'].includes(v.p);
@@ -1266,7 +1263,7 @@
             if (!k) return { x: DESK_W / 2, y: 850, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
             return { x: 1196 - (DKV_SZ.front[0] + 10) * (k - 1), y: 758, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
         }
-        const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : `${b.y} ${dkvCol(b.c)[0]}${window.dyyIsNote && dyyIsNote(b) ? ' 노트' : ''}${b.n > 1 ? ' ' + b.n : ''}`;
+        const dkvName = b => b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : (window.dyyTitle ? dyyTitle(b) : b.id);
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : '📔';
         const dkvPos = id => (DK.volEdit && DK.volEdit[id]) || dkyPosOf(id);
         function dkVolsPaint() {

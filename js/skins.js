@@ -213,7 +213,7 @@
         function sklIsOpen() { const m = document.getElementById('pageListModal'); return !!m && m.style.display === 'flex'; }
         /* 칸에 보일 페이지들 [{ id, skin, own(지울 수 있음) }] */
         function sklItems(tab) {
-            if (tab === 'free') return Object.keys(skinPresets).map(k => ({ id: k, skin: skinPresets[k] }));
+            if (tab === 'free') return DIARY_COLORS.filter(c => !c[2]).map(c => ({ id: c[0], skin: skinPresets[c[0]] }));   // ⚙ 스킨 고르기 = 상품 '스킨목록' 을 켠 날짜형 디자인 (도련 11-04)
             if (tab === 'share') return skinCommunity().map(c => ({ id: c.id, skin: c.skin }));     // 📥 받은페이지는 모음에서 따로 (renderPageList)
             if (tab === 'shop') return (typeof stuThemeList === 'function' ? stuThemeList() : []).filter(t => stuHasTheme(t.id))
                 .map(t => { const th = themeSkinOf(t.id); return th ? { id: 'th:' + t.id, skin: th.skin } : null; }).filter(Boolean);
@@ -540,20 +540,20 @@
            지금은 규격마다 한 권 (페이지 수 DK_PAGES) · 아래 📕 유한 다이어리
            다꾸러가 실제로 많이 쓰는 모양 · 크기만 (도련 · 10-17)
            ⚠ 브랜드 이름은 절대 쓰지 않아요 (도련 · 10-18 : 팔 때 큰일나요) → 종류 · 규격 이름으로만 (화면 · 폴더 이름 · 코드 모두) */
-        /* 🧁 다이어리 모양(규격) = 서버 상품 (상품공방 '다이어리모양' · js/prod.js · 도련 11-02) : { id, k 종류, g 이름, n 크기 이름, mm, b 묶는 방식(ring · tn · spread · hard · thin), r 세로÷가로, c 색 }
-           📔 basic = 기본 다이어리 (처음 설치 · 1년짜리 날짜형) · 목록에 없으면 다이어리를 열 수 없어서 그 하나는 늘 있어요 */
-        const DY_TYPES = [];
+        /* 🧁 페이지형 다이어리 디자인 = 서버 상품 (상품공방 '페이지형바인더' · '페이지형노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 지금 숨김 · 팔 때) : { id, k 종류, g 이름, n 규격, mm, b 묶는 방식(ring · tn · spread · hard · thin), r 세로÷가로, c 색 }
+           📔 날짜형(1년 · 기본)은 여기가 아니라 날짜형 디자인 (js/app.js DY_DESIGNS · js/dyyear.js) · 'basic' = 날짜형으로 쓰는 중 (dyNow 가 펼친 권의 모양을 줘요) */
+        const DY_TYPES = [], DY_PKINDS = [['페이지형바인더', '바인더'], ['페이지형노트', '노트']];
         function dyTypesBuild() {                                              // 🧁 서버 + 📦 내 사본
             DY_TYPES.length = 0;
-            (window.prodList ? prodList('다이어리모양') : []).forEach(x => {
-                const P = x.P || {};                                           // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 'basic' 은 상품공방이 꼭 있게 검수)
-                if (!(+P.r > 0) || !['다이어리', '노트', '바인더'].includes(P.k) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !/^#[0-9a-f]{6}$/i.test(P.c || '') || !String(P.g || '') || !String(P.n || '') || !String(P.mm || '')) { console.warn('🧁 다이어리모양 속성이 모자라요 :', x.id); return; }
-                DY_TYPES.push({ id: x.id, k: P.k, g: String(P.g), n: String(P.n), mm: String(P.mm), b: P.b, r: +P.r, c: P.c, off: !!P.숨김, dn: !!P.날짜노트 });   // dn = 📓 날짜형 노트에 쓰는 모양 (도련 11-04)
-            });
+            DY_PKINDS.forEach(([K, k]) => (window.prodList ? prodList(K) : []).forEach(x => {
+                const P = x.P || {};                                           // 🔎 상품 그대로 (빠지면 안 나와요)
+                if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !/^#[0-9a-f]{6}$/i.test(P.c || '') || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
+                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c: P.c, off: !!P.숨김 });
+            }));
         }
         dyTypesBuild();
         if (window.prodHook) prodHook(dyTypesBuild);
-        (window.SNAP_OWN = window.SNAP_OWN || {})['다이어리모양'] = () => { const v = prefGet('diary_type', 'malang_diary_type'); return typeof v === 'string' ? [v] : []; };   // 📦 사본 (지금 쓰는 모양)
+        DY_PKINDS.forEach(([K]) => { (window.SNAP_OWN = window.SNAP_OWN || {})[K] = () => { const v = prefGet('diary_type', 'malang_diary_type'); return typeof v === 'string' && prodServer(K).some(x => x.id === v) ? [v] : []; }; });   // 📦 사본 (지금 쓰는 모양)
         const DY_DEF = 'basic';                                                // 처음 설치하면 기본 다이어리
         const DY_TAB = ['다이어리', '노트', '바인더'];                         // 고르기 창 위 카테고리 = k (도련 · 10-18 : 실물 모양으로 · 저장 폴더는 나누지 않아요 · 다이어리.json kind)
         /* 📕 유한 다이어리 저장 규칙 (도련 · 10-17 · 10-26 폴더 한 줄 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-… · 아래 폴더 이름 규칙은 이제 안내용) : 말랑달콤 / 다꾸 / 디자인 (규격) [n권] / …
@@ -575,11 +575,9 @@
         }
         const DY_H = 700;                                                      // 페이지 높이 기준
         const dyFind = id => DY_TYPES.find(t => t.id === id) || (typeof dmkGet === 'function' ? dmkGet(id) : null);   // 📓 내가 만든 노트 · 바인더도 (js/dymaker.js)
-        const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || DY_TYPES.find(t => t.id === DY_DEF);
-        /* 📓 날짜형 노트 (도련 11-04) : 날짜형은 늘 'basic' 다이어리 (날짜 · 1년 · 보관소 = js/dyyear.js) · 펼친 권이 노트면 '모양'만 노트 (크기 · 가운데 묶음 · 링 없음)
-           노트 모양 = 상품공방 다이어리모양 중 '날짜노트' 를 켠 것 (숨김이면 샵에 노트가 안 나와요 · 가진 사람은 그대로) */
-        const dyNoteType = () => DY_TYPES.find(t => t.dn && !t.off) || DY_TYPES.find(t => t.dn) || null;
-        const dyLook = () => { const t = dyNow(); return t.id === DY_DEF && window.dyyIsNoteOpen && dyyIsNoteOpen() ? dyNoteType() || t : t; };
+        /* 📔 날짜형 = 'basic' (날짜 · 1년 · 보관소 = js/dyyear.js) · 모양 = 펼친 권의 디자인 (규격 · 묶음 · 도련 11-04 · js/dyyear.js dyyBookType) */
+        const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || (window.dyyBookType ? dyyBookType() : null);   // js/dyyear.js 가 이 파일 뒤라 처음엔 없어요
+        const dyLook = dyNow;
         /* 📖 펼침면 (도련 · 10-17) : 모든 다이어리는 펼친 두 쪽이 하루예요
            - 저장은 늘 두 쪽짜리 종이 하나 (getPageSize = 두 쪽 크기) · 보는 방법만 기기마다 설정 · 날짜바 스위치로 골라요 (⬅ 왼쪽 페이지 · ➡ 오른쪽 페이지)
            - spread : 💻 컴퓨터 · 📲 패드 양쪽 = 두 쪽이 다 보여요 (다이어리를 열면 #diaryWrapper 왼쪽에 한 쪽만큼 자리를 비워 가운데로)
@@ -1943,7 +1941,7 @@
             let hl = document.getElementById('dyHoleL'); if (!hl) { hl = document.createElement('div'); hl.id = 'dyHoleL'; hl.className = 'dy-deco'; hl.setAttribute('aria-hidden', 'true'); cv.after(hl); }
             const dk = t.id; if (bk.dataset.k !== dk) { const [b, f, h] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; hl.innerHTML = h; bk.dataset.k = fr.dataset.k = dk; }
             [bk, fr, hl].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
-            page.dataset.dy = book.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF || t.dn ? 'var(--border-color)' : t.c);   /* 📓 날짜형 노트도 그 권 색 */   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
+            page.dataset.dy = book.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   /* 📔 날짜형 = 그 권 스킨 색 */   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
             page.classList.add('dy-noholes');                                  // 펼침면은 링 구멍 대신 가운데 묶음 (링 · 밴드 · 실)
             if (typeof skinBookSync === 'function') skinBookSync();            // 📔 페이지 색은 기본 다이어리에만 (js/settings.js)
             dkCoverPaint();
@@ -2214,7 +2212,7 @@
         let dyKind = '다이어리', dyTab = 'free';
         /* 10-24 도련 : 📔 다이어리 = 기본(4색) · 내가만든(🎨 색상설정 · 🎀 꾸미기에서 저장한 것 · 예전 📔 페이지 목록의 칸을 옮겨 왔어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '노트 만들기 · 바인더 만들기(준비중)' 로 뺐어요) */
-        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.dn) : [];   /* 📓 날짜노트 모양은 날짜형에서만 */   // 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => kind === '다이어리' ? (tab === 'free' ? DY_COLORS : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off) : [];   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (내가만든 칸 숨김 · 도련 10-28)
         window.dyMineRefresh = () => { if (dyMineOpen()) dyMineRender(); };   // 🗑 지운 뒤 · 저장한 뒤 바로 (js/settings.js deleteSkin)
         const dyMineOpen = () => { const m = document.getElementById('dyModal'); return !!m && m.style.display === 'flex' && dyKind === '다이어리' && dyTab === 'mine'; };
@@ -2241,7 +2239,7 @@
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             if (dyKind === '다이어리' && g === 'mine') { dyMineRender(); return; }
             if (dyKind === '다이어리' && window.dyyCells) { document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${dyyCells()}</div>`; dyRender(); return; }   // 📔 보관소 : 받은 해 (js/dyyear.js)
-            const list = dyItems(dyKind, g), base = DY_TYPES.find(t => t.id === DY_DEF), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${dyKind} 만들기(준비중)가 열리면 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
+            const list = dyItems(dyKind, g), base = dyNow(), empty = { mine: `아직 만든 ${dyKind}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${dyKind} 만들기(준비중)가 열리면 만든 ${dyKind}가 여기에 들어와요.`, share: `아직 공유받은 ${dyKind}가 없어요.`, event: `아직 받은 이벤트 ${dyKind}가 없어요.`, shop: `문구점에서 산 ${dyKind}가 여기에 들어와요.` }[g] || `아직 가진 ${dyKind}가 없어요.<br>나중에 문구점에서 산 ${dyKind}가 여기에 들어와요.`;
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + dyKind + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
@@ -2260,7 +2258,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF + ':' + currentSkinId) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyNoteType = dyNoteType; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.dyPickColor = dyPickColor; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

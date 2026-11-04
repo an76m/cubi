@@ -1,38 +1,34 @@
 /* 말랑달콤 다이어리 - js/dyyear.js
    📔 기본 다이어리 = 1년짜리 날짜 다이어리 (도련 10-28)
-   - 6공 바인더 · A6 (105×148) · 1월 1일 ~ 12월 31일 · 내지는 한 가지 (바꾸고 싶으면 속지로 꾸며요)
-   - 다이어리 한 권 = 상품 하나 = 폴더 하나 (현실처럼 · 도련 10-28)
-       · 바인더 색 4가지 (분홍 · 녹색 · 보라 · 노랑 = js/app.js skinPresets) · 색을 바꾸려면 🏪 기본상품 샵에서 그 색 바인더를 새로 받아요
-       · 같은 것도 또 받을 수 있어요 (2026 노랑을 또 받으면 새 2026 노랑 한 권) · 다이어리끼리 기록을 나누지 않아요
-       · 권 id '2026mint2' = 해 · 색 · 그 해 그 색 몇 번째 ('diary_book_n' · 버려도 번호는 다시 안 써요 → 되살려도 안 겹쳐요)
-       · 저장 : diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜바인더 / 2026 녹색 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
+   - 1월 1일 ~ 12월 31일 · 내지는 한 가지 (바꾸고 싶으면 속지로 꾸며요)
+   - 📔 디자인 = 서버 상품 (상품공방 '날짜형바인더' · '날짜형노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · js/app.js DY_DESIGNS) · 모양(규격 · 묶음) · 스킨 · 이름 모두 그 상품
+   - 다이어리 한 권 = 디자인 하나를 받은 것 = 폴더 하나 (현실처럼 · 도련 10-28)
+       · 같은 것도 또 받을 수 있어요 (2026 분홍을 또 받으면 새 2026 분홍 한 권) · 다이어리끼리 기록을 나누지 않아요
+       · 권 id '2026b-분홍-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 그 해 그 디자인 몇 번째 ('diary_book_n' · 버려도 번호는 다시 안 써요 → 되살려도 안 겹쳐요)
+       · 저장 : diary_2026b-분홍-2_2026_10_28 → 말랑달콤 / 날짜바인더 (노트 = 날짜노트) / 2026 분홍 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
+       · ⚠ 디자인 id = 드라이브 폴더 이름이라 짧은 한글로 (분홍 · 딸기) · 한 번 올린 id 는 바꾸지 않아요
        · 📅 달력 · 🗂 꾸민 페이지만 보기 · 🔍 검색은 펼친 권 것만
-   - 받은 권 'diary_years' ['2026pink1', '2026mint2'] · 펼친 권 'diary_year' (설정.json · 게스트는 이 기기)
-   - 처음 온 다꾸러는 그 해 분홍 바인더를 선물로 받아요 (한 번만 · 다 버려도 다시 주지 않아요 → 샵에서 받아요)
+   - 받은 권 'diary_years' ['2026b-분홍-1', '2026n-녹색노트-2'] · 펼친 권 'diary_year' (설정.json · 게스트는 이 기기)
+   - 처음 온 다꾸러는 그 해 '처음선물' 디자인을 한 권씩 받아요 (상품 속성 · 한 번만 · 다 버려도 다시 주지 않아요 → 샵에서 받아요)
    - 해가 바뀌면 새 다이어리는 🏪 기본상품 샵 → 📔 다이어리 → 날짜형에서 받아요 (공짜여도 받으러 가는 습관 · 도련)
        · 받은 해의 12월 31일 다음으로 넘기거나 · 새해에 다이어리를 펼치면 "○○ 기본 다이어리를 받아 주세요" · 더 안 넘어가요
    - 📔 다이어리 보관소 (다이어리 창) : 받은 권이 쌓여요 · 톡 = 그 권을 펼쳐요 (그 색으로) · 🗑 = 버리기 (js/bin.js · 휴지통 30일 · 마지막 한 권도)
        · 다이어리가 한 권도 없으면 펼치지 못하고 "🏪 기본상품 샵에서 받아 주세요"
-   - 펼친 권의 색 = 다이어리 테두리 · 페이지 색 (applySkinPreset)
+   - 펼친 권의 스킨 = 다이어리 테두리 · 페이지 색 (applySkinPreset · 스킨 id = 디자인 id)
    ※ js/skins.js · js/bin.js 다음에 읽어요 (dyStep · dyOpenDate · dkEnd · dyTabSet · dfDays · js/page.js getDateKey · goToDate · beginCurl · js/search.js 가 여기 함수를 불러요) */
 
         const DYY_KEY = 'diary_years', DYY_LOCAL = 'malang_years', DYY_OPEN = 'diary_year', DYY_OPEN_L = 'malang_year', DYY_N = 'diary_book_n', DYY_N_L = 'malang_book_n';
-        const DYY_INFO = 'diary_book_info', DYY_INFO_L = 'malang_book_info';   // 권마다 받은 곳 · 받은 날 { '2026pink1': { from: 'basic', at: '2026-10-28' } } (무료 · 유료는 폴더가 아니라 여기에 · 도련 10-28)
-        const DYY_COLORS = [];                                                // 🧁 다이어리 색 (js/app.js DIARY_COLORS · 서버 + 📦 사본)
-        const dyyColorsBuild = () => { DYY_COLORS.length = 0; DIARY_COLORS.forEach(c => DYY_COLORS.push([c[0], c[1]])); };
-        dyyColorsBuild(); if (window.prodHook) prodHook(dyyColorsBuild);
+        const DYY_INFO = 'diary_book_info', DYY_INFO_L = 'malang_book_info';   // 권마다 받은 곳 · 받은 날 { '2026b-분홍-1': { from: 'basic', at: '2026-10-28' } } (무료 · 유료는 폴더가 아니라 여기에 · 도련 10-28)
         const dyyThis = () => new Date().getFullYear();
-        const dyyOf = id => { const m = /^(\d{4})([a-z][\w-]*?)(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], c: m[2], n: +m[3] } : null; };   // 색 = 다이어리 상품 id (끝이 숫자가 아니게)
-        /* 📓 날짜형 노트 (도련 11-04) : 권 id 의 색 앞에 'note-' (2026note-pink1) · 색 · 스킨은 같은 색 바인더와 같아요 · 저장 = 말랑달콤 / 날짜노트 (js/drive.js) · 모양 = js/skins.js dyLook */
-        const DYY_NOTE = 'note-';
-        const dyyIsNote = b => !!b && String(b.c || '').startsWith(DYY_NOTE);
-        const dyyColor = c => String(c || '').replace(/^note-/, '');            // 스킨 · 색 이름은 바인더 색 그대로
-        const dyyCName = c => (DYY_COLORS.find(x => x[0] === dyyColor(c)) || DYY_COLORS[0])[1];
-        const dyyTitle = b => `${b.y} ${dyyCName(b.c)}${dyyIsNote(b) ? ' 노트' : ''}${b.n > 1 ? ' ' + b.n : ''}`;   // 보관소 · 메시지에 보일 이름 (2026 녹색 · 2026 녹색 2 · 2026 분홍 노트)
+        const dyyOf = id => { const m = /^(\d{4})([a-z])-(.+)-(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], ch: m[2], c: m[3], n: +m[4] } : null; };   // c = 디자인 id · ch = 종류 글자 (js/app.js DY_DKINDS)
+        const dyyDesign = b => b ? DY_DESIGNS.find(d => d.id === b.c && d.ch === b.ch) || null : null;   // 그 권의 디자인 (서버에서 사라져도 📦 사본으로 있어요)
+        const dyyIsNote = b => !!b && b.ch === 'n';                            // 📓 날짜형 노트 (저장 = 말랑달콤 / 날짜노트 · js/drive.js)
+        const dyyColor = c => String(c || '');                                 // 스킨 id = 디자인 id
+        const dyyTitle = b => { const d = dyyDesign(b); return `${b.y} ${d ? d.name : b.c}${b.n > 1 ? ' ' + b.n : ''}`; };   // 보관소 · 메시지에 보일 이름 (2026 분홍 다이어리 · … 2)
         const dyyIds = () => { const v = prefGet(DYY_KEY, DYY_LOCAL); return Array.isArray(v) ? [...new Set(v.map(String))].filter(id => dyyOf(id)) : []; };
-        function dyyBooks() {                                                  // 받은 권 (해 · 색 · 번호 순서)
-            const ord = c => DYY_COLORS.findIndex(x => x[0] === dyyColor(c));
-            return dyyIds().map(dyyOf).sort((a, b) => a.y - b.y || dyyIsNote(a) - dyyIsNote(b) || ord(a.c) - ord(b.c) || a.n - b.n);
+        function dyyBooks() {                                                  // 받은 권 (해 · 바인더 → 노트 · 디자인 순서 · 번호 순서)
+            const ord = b => DY_DESIGNS.indexOf(dyyDesign(b));
+            return dyyIds().map(dyyOf).sort((a, b) => a.y - b.y || dyyIsNote(a) - dyyIsNote(b) || ord(a) - ord(b) || a.n - b.n);
         }
         const dyyHas = y => dyyBooks().some(b => b.y === +y);
         function dyyBook() {                                                   // 지금 펼친 권 (없으면 마지막 권 · 한 권도 없으면 null)
@@ -67,7 +63,7 @@
             if (window.dkDeskBooks) setTimeout(dkDeskBooks, 0);              // 📔 책상 = 다이어리 보관소 (펼쳐 둔 권 · 나머지 권 다시 · js/desk.js)
             if (!b) return;
             if (dyyBasic() && typeof currentSkinId !== 'undefined' && currentSkinId !== dyyColor(b.c) && typeof applySkinPreset === 'function') applySkinPreset(dyyColor(b.c));
-            const nt = dyyBasic() && dyyIsNote(b);                             // 📓 바인더 ↔ 노트 = 크기 · 가운데 모양이 달라요 → 다시 그리기
+            const d = dyyDesign(b), nt = dyyBasic() && d ? d.b + ':' + d.r : null;   // 📐 디자인마다 모양(묶음 · 크기)이 달라요 → 바뀌면 다시 그리기
             if (nt !== dyyLastNote) { dyyLastNote = nt; if (typeof refreshLayout === 'function') setTimeout(refreshLayout, 0); }
         }
         /* 새 권 id (그 해 그 색 번호는 늘 새로 · 버린 것 · 되살린 것과 안 겹쳐요) */
@@ -76,17 +72,20 @@
             if (from) o[id] = { from, at: `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }; else delete o[id];
             prefSet(DYY_INFO, DYY_INFO_L, o);
         }
-        function dyyNewId(y, c) {
-            const k = `${y}${c}`, cnt = Object.assign({}, prefGet(DYY_N, DYY_N_L) || {});
-            const used = dyyIds().concat((window.binList ? binList() : []).filter(e => e.k === 'dy').map(e => e.id)).map(dyyOf).filter(b => b && b.y === y && b.c === c).map(b => b.n);
+        function dyyNewId(y, d) {                                              // d = 디자인 (DY_DESIGNS)
+            const k = `${y}${d.ch}-${d.id}-`, cnt = Object.assign({}, prefGet(DYY_N, DYY_N_L) || {});
+            const used = dyyIds().concat((window.binList ? binList() : []).filter(e => e.k === 'dy').map(e => e.id)).map(dyyOf).filter(b => b && b.y === y && b.ch === d.ch && b.c === d.id).map(b => b.n);
             const n = Math.max(+cnt[k] || 0, ...used, 0) + 1;
             cnt[k] = n; prefSet(DYY_N, DYY_N_L, cnt);
             return k + n;
         }
 
-        /* 🎁 처음 온 다꾸러 : 그 해 분홍 바인더 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) */
+        /* 🎁 처음 온 다꾸러 : 그 해 '처음선물' 디자인마다 한 권 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) · 펼칠 권 = 첫 권 */
         function dyySync() {
-            if (prefGet(DYY_KEY, DYY_LOCAL) === null) { const id = dyyNewId(dyyThis(), 'pink'); prefSet(DYY_KEY, DYY_LOCAL, [id]); prefSet(DYY_OPEN, DYY_OPEN_L, id); dyyInfoSet(id, 'gift'); }   // 🎁 처음 선물
+            if (prefGet(DYY_KEY, DYY_LOCAL) === null) {                        // 🎁 처음 선물 (상품 속성 '처음선물' · 도련 11-04)
+                const ids = DY_DESIGNS.filter(d => d.gift).map(d => dyyNewId(dyyThis(), d));
+                prefSet(DYY_KEY, DYY_LOCAL, ids); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[0]); ids.forEach(id => dyyInfoSet(id, 'gift'));
+            }
             dyyPaint();
             dyyFit();
             if (window.dyRender) dyRender();
@@ -164,22 +163,21 @@
             if (y < dyyThis()) { await showMsg(`📔 ${y} 기본 다이어리가 없어요.`); return; }
             if (await showAsk(`🎉 ${y}년이 되었어요!<br><b>${y} 기본 다이어리</b>를 받아 주세요.<br><small>🏪 기본상품 샵 → 📔 다이어리에서 받아요</small>`, '🏪 받으러 가기', '나중에')) dyyShop();
         }
-        function dyyShop() { if (typeof openShelf === 'function') { if (window.SH_SET_CAT) SH_SET_CAT('tool', 'dy'); openShelf(); if (typeof shOpenKind === 'function') shOpenKind('tool'); } }
+        function dyyShop() { if (typeof openShelf === 'function') { const b = dyyBook(); if (window.SH_SET_CAT) SH_SET_CAT('tool', b && dyyIsNote(b) ? 'dyn' : 'dyb'); openShelf(); if (typeof shOpenKind === 'function') shOpenKind('tool'); } }
         /* 새해에 다이어리를 펼치면 (js/skins.js dyOpenDate) : 올해 다이어리가 없으면 한 번 알려요 */
         function dyyOnOpen() {
             if (!dyyBasic() || !dyyBook() || dyyHas(dyyThis()) || dyyYear() > dyyThis()) return;
             setTimeout(() => { if (performance.now() - dyyMsgAt < 2500) return; dyyMsgAt = performance.now(); dyyNeed(dyyThis()).then(() => { dyyMsgAt = performance.now(); }); }, 900);
         }
 
-        /* 🏪 기본상품 샵 → 📔 다이어리 → 날짜형 (js/basket.js) : 올해 바인더 4색 · 같은 것도 또 받아요 (받을 때마다 새 다이어리 한 권) */
+        /* 🏪 기본상품 샵 → 📔 다이어리 코너 → 날짜형 바인더 · 날짜형 노트 (js/basket.js) : 올해 디자인마다 · 같은 것도 또 받아요 (받을 때마다 새 다이어리 한 권) */
         function dyyShopList() {
             const y = dyyThis();
-            const L = DIARY_COLORS.filter(c => !c[2]), nt = window.dyNoteType && dyNoteType();
-            return L.map(([c, n]) => ({ cnt: `${y} 기본 다이어리 · ${n}`, desc: `${n} 6공 바인더 · A6 · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'diary', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, c), name: `${y} ${n} 다이어리` }))
-                .concat(nt && !nt.off ? L.map(([c, n]) => ({ cnt: `${y} 날짜형 노트 · ${n}`, desc: `${n} 노트 · ${nt.n} (${nt.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 노트 한 권 (다른 다이어리 기록과 따로)`, look: 'note', yr: y, dc: c, cat: 'dy', give: () => dyyGive(y, DYY_NOTE + c), name: `${y} ${n} 노트` })) : []);   // 📓 날짜형 노트 (도련 11-04)
+            return DY_DESIGNS.filter(d => !d.off && prodServer(d.K).some(x => x.id === d.id)).map(d => ({ cnt: `${y} ${d.name}`, desc: `${d.name} · ${d.kind === '노트' ? '노트' : '바인더'} · ${d.n} (${d.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`,
+                look: d.kind === '노트' ? 'note' : 'diary', yr: y, dc: d.id, cat: d.ch === 'n' ? 'dyn' : 'dyb', give: () => dyyGive(y, d), name: `${y} ${d.name}` }));
         }
-        function dyyGive(y, c) {
-            const id = dyyNewId(y, c);
+        function dyyGive(y, d) {
+            const id = dyyNewId(y, d);
             prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id])); if (window.snapSoon) snapSoon();   // 📦 사본
             dyyInfoSet(id, 'basic');                                           // 🏪 기본상품 샵 (나중 유료 = 'shop')
             window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (끌어 놓으면 책상 그 자리 · js/basket.js bagNote)
@@ -233,10 +231,11 @@
         const DYY_KINDS = [['date', '📅 날짜형'], ['page', '📄 페이지형']];
         let dyyFilter = 'all';
         const dyyKindOf = () => 'date';                                       // 받은 권은 모두 날짜형 (바인더 · 노트 · 페이지형은 팔 때 여기에)
-        const dyyKindName = b => dyyIsNote(b) ? '📓 날짜 노트' : '📅 날짜 바인더';
+        const dyyKindName = b => dyyIsNote(b) ? '📓 날짜형 노트' : '📅 날짜형 바인더';
+        const dyyType = b => { const d = dyyDesign(b); return d ? { id: DY_DEF, k: '다이어리', g: d.name, n: d.n, mm: d.mm, b: d.b, r: d.r, c: d.c } : null; };   // 📐 그 권의 모양 (js/skins.js dyNow 와 같은 모양)
         function dyyFilterSet(v) { dyyFilter = v; if (window.dyTabSet) dyTabSet('free'); }
         function dyyCells() {
-            const base = DY_TYPES.find(t => t.id === DY_DEF), cur = dyyBookId();
+            const cur = dyyBookId();
             const H = window.deskBagHold ? deskBagHold() : null;                 // 🛍️ 봉투 속 다이어리는 꺼낼 때까지 보관소에 없어요 (💻 📲)
             const all = dyyBooks().filter(b => !(H && H.d.has(b.id))).sort((a, b) => (b.id === cur) - (a.id === cur) || b.y - a.y || b.n - a.n);
             if (!all.length) return `<div class="cs-empty">📔 다이어리가 없어요.<br>🏪 기본상품 샵 → 📔 다이어리에서 받아 주세요.<br><button type="button" class="btn primary" style="margin-top:10px" onclick="closeModal('dyModal'); dyyShop()">🏪 받으러 가기</button></div>`;
@@ -245,8 +244,8 @@
             const chips = kinds.length > 1 ? `<div class="dyy-chips">${[['all', '전체']].concat(kinds).map(([k, n]) => `<button type="button" class="${k === dyyFilter ? 'on' : ''}" onclick="dyyFilterSet('${k}')">${n}</button>`).join('')}</div>` : '';
             const L = dyyFilter === 'all' ? all : all.filter(b => dyyKindOf(b) === dyyFilter);
             return chips + L.map(b => {
-                const sk = typeof skinPresets !== 'undefined' ? skinPresets[dyyColor(b.c)] : null, bt = dyyIsNote(b) ? (window.dyNoteType && dyNoteType()) || base : base;
-                return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(bt, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${dyyTitle(b)}</span><small>${dyyKindName(b)} · ${bt.n}</small>`
+                const sk = typeof skinPresets !== 'undefined' ? skinPresets[b.c] : null, bt = dyyType(b); if (!bt) return '';   // 디자인 속성이 없으면 (console.warn 이미) 안 보여요
+                return `<button type="button" class="dy-it dy-yr" data-id="${b.id}" onclick="dyySelect('${b.id}')"><span class="dy-stage">${dyThumb(bt, sk)}<b class="dy-yr-n">${b.y}</b></span><span class="dy-n">${htmlEsc(dyyTitle(b))}</span><small>${dyyKindName(b)} · ${bt.n}</small>`
                     + `<span class="dy-del" role="button" tabindex="0" title="휴지통" aria-label="휴지통" onclick="event.stopPropagation(); dyyDiscard('${b.id}')">🗑</span></button>`;
             }).join('');
         }
@@ -256,7 +255,9 @@
         window.dyyBooks = dyyBooks; window.dyyBookId = dyyBookId; window.dyyHas = dyyHas; window.dyyYear = dyyYear; window.dyyIn = dyyIn; window.dyyClamp = dyyClamp; window.dyySync = dyySync; window.dyySelect = dyySelect;
         window.dyyGuard = dyyGuard; window.dyyEnd = dyyEnd; window.dyyOnOpen = dyyOnOpen; window.dyyShopList = dyyShopList; window.dyyCells = dyyCells; window.dyyShop = dyyShop; window.dyyOnId = dyyOnId; window.dyyPaint = dyyPaint;
         window.dyyNone = dyyNone; window.dyyDiscard = dyyDiscard; window.dyyColor = dyyColor; window.dyyIsNote = dyyIsNote;
-        window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트 (js/skins.js dyLook)
+        window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트
+        window.dyyDesign = dyyDesign; window.dyyTitle = dyyTitle;
+        window.dyyBookType = () => dyyType(dyyBook()) || dyyType({ ch: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).ch, c: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).id });   // 📐 펼친 권 모양 (권이 없으면 처음선물 디자인 · js/skins.js dyNow)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dyyear'] = true;
