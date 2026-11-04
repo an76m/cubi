@@ -12,10 +12,12 @@
         const SHOP_SPOTS = [                                                      // [종류, 이름, x, y] 가게 그림 px (진열대마다)
             ['seal', '씰스티커', 640, 690], ['piece', '조각스티커', 850, 690], ['paper', '모조지스티커', 1060, 690],
             ['tape', '마스킹테이프', 945, 560], ['tk', '떡메모지', 922, 255], ['memo', '메모지', 760, 385],
-            ['leaf', '속지', 1347, 580], ['tool', '다이어리', 290, 470],
-            ['gd', '문구용품', 430, 320], ['desk', '책상소품', 1235, 330], ['bg:solid', '단색 배경지', 560, 520], ['bg:pat', '패턴 배경지', 690, 560], ['season', '🌸 계절 스티커', 1500, 765]
-        ];   // 📔 다이어리 · ✂️ 문구용품 · 🪑 책상소품 = 그 코너로 · 그 밖 = 그 상품 창 ('종류:칸' = 그 칸만)
-        const SHOP_ICON = { gd: '✂️', 'bg:solid': '🎨', 'bg:pat': '☁️', season: '🌸' };   // 🪑 책상소품 = basket.js stkArt('desk') 그림 (도련 11-04)
+            ['leaf', '속지', 1347, 580], ['season', '🌸 계절 스티커', 1500, 765]
+        ];   // 그 상품 창 ('종류:칸' = 그 칸만) · 🌈 배경지는 가게에 안 나와요 (도련 11-04)
+        const SHOP_ICON = { season: '🌸' };
+        /* 🪧 다른 코너로 가는 팻말 (도련 11-04 : 스티커 아이콘과 달리 '저쪽으로 가요' 길 안내 나무 팻말 · 화살표 쪽으로 걸어가요) : [코너, 이름, x, y, 방향 l · r] 그림 px */
+        const SHOP_WAYS = [['gd', '문구 코너', 235, 300, 'l'], ['tool', '다이어리 코너', 150, 530, 'l'], ['desk', '책상소품 코너', 1520, 310, 'r']];
+        const SHOP_WAY_IC = { gd: '✂️', tool: '📔' };                            // 🪑 = basket.js stkArt('desk')
         /* 🏪 코너 (도련 11-04 : 문을 열면 스티커 코너 · 옆으로 다이어리 · 문구 · 책상소품 코너 = 현실 가게처럼 구경) : 코너 그림 위에 칸(js/basket.js shCatList)마다 아이콘 · 왼쪽 위 ‹ 스티커 코너
            그림마다 위 가운데 구름 간판 = 코너 이름 (글씨는 앱이 써요 · sign = 간판 안쪽 [가운데 x, y, 폭, 높이] 그림 px) · 자리 = 그림 px · 표에 없는 새 칸은 아래 줄에 차례로 놓고 콘솔에 알려요 */
         const SHOP_MAIN = { n: '스티커 코너', img: 'img/shop-inside.webp?v=20261009-1132', W: 1670, H: 942, sign: [846, 98, 215, 80] };
@@ -50,19 +52,29 @@
                 SC.spots = cats.map(([c, n, ic]) => { let p = C.at[c]; if (!p) { console.warn('🏪 코너 자리가 없어요 (js/shopscene.js SHOP_CORNERS) :', SC.corner, c); p = [300 + (free++ % 6) * 215, 820]; } return [c, n, p[0], p[1], ic]; });
             } else {
                 const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN;
-                SC.spots = SHOP_SPOTS.filter(s => s[0] !== 'season' || season).map(([k, n, x, y]) => [k, n, x, y, SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')]);
+                SC.spots = SHOP_SPOTS.filter(s => s[0] !== 'season' || season).map(([k, n, x, y]) => [k, n, x, y, SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')])
+                    .concat(SHOP_WAYS.map(([k, n, x, y, d]) => [k, n, x, y, SHOP_WAY_IC[k] || (window.stkArt ? stkArt(k) : ''), d]));
             }
-            box.innerHTML = SC.spots.map(([k, n, , , ic]) => `<button type="button" class="shop-spot" data-k="${k}" onclick="shopSpot('${k}')"><i class="shop-ic">${ic}</i><b>${n}</b></button>`).join('');
+            box.innerHTML = SC.spots.map(([k, n, , , ic, d]) => d
+                ? `<button type="button" class="shop-spot shop-way ${d}" data-k="${k}" onclick="shopSpot('${k}')"><span class="sw-board">${d === 'l' ? '<i class="sw-ar">◀</i>' : ''}<i class="shop-ic">${ic}</i><b>${n}</b>${d === 'r' ? '<i class="sw-ar">▶</i>' : ''}</span><i class="sw-pole"></i></button>`   // 🪧 코너 팻말
+                : `<button type="button" class="shop-spot" data-k="${k}" onclick="shopSpot('${k}')"><i class="shop-ic">${ic}</i><b>${n}</b></button>`).join('');
             const room = el.querySelector('.shop-room'), src = (C || SHOP_MAIN).img; if (room.getAttribute('src') !== src) room.setAttribute('src', src);
             el.classList.toggle('corner', !!C); el.querySelector('.shop-cs b').textContent = (C || SHOP_MAIN).n;   // 🪧 간판 = 코너 이름
         }
-        /* 🚶 코너 옮기기 ('' = 스티커 코너 · 입구) : 살짝 어두워졌다 그 코너로 */
+        /* 🚶 코너 옮기기 ('' = 스티커 코너 · 입구 · 도련 11-04 연출) : 팻말 화살표 쪽으로 걸어가요 = 지금 코너가 반대쪽으로 밀려나며 흐려지고 → 새 코너가 그쪽에서 들어와요 (돌아올 땐 거꾸로) */
+        const shopWayDir = k => (SHOP_WAYS.find(w => w[0] === k) || [])[4] || 'l';   // 그 코너가 입구의 어느 쪽인지
         function shopCorner(k) {
             const el = document.getElementById('shopScene'); if (!el || !SC.on || SC.busy || (k && !SHOP_CORNERS[k]) || SC.corner === k) return;
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display && m.style.display !== 'none') { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
-            const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); el.classList.remove('walk'); };
+            const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); };
             if (matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return; }
-            el.classList.add('walk'); setTimeout(go, 260);
+            const d = shopWayDir(k || SC.corner), toL = k ? d === 'l' : d !== 'l';   // 왼쪽 코너로 = 화면이 오른쪽으로 밀려요 (내가 왼쪽으로 걸어가니까)
+            SC.busy = true; el.classList.remove('walk-in', 'from-l', 'from-r'); el.classList.add('walk-out', toL ? 'to-r' : 'to-l');
+            setTimeout(() => {
+                go(); el.classList.remove('walk-out', 'to-l', 'to-r'); el.classList.add('walk-in', toL ? 'from-l' : 'from-r');
+                requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('walk-on')));
+                setTimeout(() => { el.classList.remove('walk-in', 'walk-on', 'from-l', 'from-r'); SC.busy = false; }, 420);
+            }, 360);
         }
         function shopFit() {
             const el = document.getElementById('shopScene'); if (!el) return;

@@ -4039,6 +4039,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 
 .st2-slot { display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .st2-slot:active { transform: translateY(2px); }
+.st2-slot[hidden] { display: none; }   /* 🌈 배경지 = 지금은 샵에 안 나와요 (도련 11-04) */
 .st2-goods { position: relative; display: block; width: 70px; height: 60px; }
 .st2-goods::before, .st2-goods::after { content: ''; position: absolute; }
 .st2-tag { position: relative; z-index: 2; margin-top: 4px; padding: 2px 7px; background: #fff; border: 1.7px solid #7b5a63; border-radius: 4px; font-size: 12.5px; font-weight: 700; color: #8a4a64; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
@@ -4300,14 +4301,34 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .shop-x { position: absolute; right: 14px; top: 14px; z-index: 3; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 3px 10px rgba(150, 70, 100, .25); }
 .shop-scene:not(.inside) .shop-x { opacity: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .shop-spot { animation: none; } }
-/* 🏪 코너 (도련 11-04 · js/shopscene.js shopCorner) : 왼쪽 위 ‹ 스티커 코너 · 그림 위 구름 간판 = 코너 이름 (.shop-cs) · 옮길 때 살짝 어두워졌다가 */
+/* 🏪 코너 (도련 11-04 · js/shopscene.js shopCorner) : 왼쪽 위 ‹ 스티커 코너 · 그림 위 구름 간판 = 코너 이름 (.shop-cs)
+   🚶 옮길 때 = 팻말 쪽으로 걸어가요 : 지금 코너가 반대쪽으로 밀려나며 흐려지고 → 새 코너가 그쪽에서 들어와요 */
+.shop-scene.walk-out .shop-in { transition: transform .36s cubic-bezier(.5, 0, .9, .6), opacity .36s ease-in; opacity: 0; }
+.shop-scene.walk-out.to-r .shop-in { transform: translateX(16%) scale(1.04); }
+.shop-scene.walk-out.to-l .shop-in { transform: translateX(-16%) scale(1.04); }
+.shop-scene.walk-in .shop-in { transition: none; opacity: 0; }
+.shop-scene.walk-in.from-l .shop-in { transform: translateX(-16%) scale(1.04); }
+.shop-scene.walk-in.from-r .shop-in { transform: translateX(16%) scale(1.04); }
+.shop-scene.walk-in.walk-on .shop-in { transition: transform .4s cubic-bezier(.2, .6, .3, 1), opacity .32s ease-out; opacity: 1; transform: none; }
+/* 🪧 다른 코너 가는 길 = 나무 팻말 (스티커 아이콘과 다르게 · 화살표가 그쪽으로 콕콕 · 바람에 살랑) */
+.shop-spot.shop-way { padding: 0; gap: 0; border: 0; border-radius: 0; background: none; box-shadow: none; translate: -50% -78%; transform-origin: 50% 100%; animation: swSway 3.2s ease-in-out infinite; }
+.shop-spot.shop-way:hover { scale: 1.06; }
+.sw-board { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 2.5px solid #9c6a3d; border-radius: 10px; background: repeating-linear-gradient(0deg, transparent 0 9px, rgba(156, 106, 61, .14) 9px 10px), linear-gradient(#f8dcb0, #e8b47a); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .65), 0 4px 0 #8a5a30, 0 9px 14px rgba(110, 60, 30, .3); }
+.shop-way.l .sw-board { border-radius: 22px 10px 10px 22px; padding-left: 8px; }
+.shop-way.r .sw-board { border-radius: 10px 22px 22px 10px; padding-right: 8px; }
+.sw-board b { font-family: 'Jua', 'Gowun Dodum', sans-serif; font-weight: 400; font-size: 16px; color: #6b3f1d; white-space: nowrap; letter-spacing: .02em; }
+.shop-way .shop-ic { width: 26px; height: 24px; font-size: 19px; line-height: 24px; }
+.sw-ar { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #e2708f; color: #fff; font-size: 11px; font-style: normal; box-shadow: 0 2px 0 #b8506d; animation: swPoke 1.1s ease-in-out infinite; }
+.shop-way.r .sw-ar { --d: 3px; } .shop-way.l .sw-ar { --d: -3px; }
+.sw-pole { display: block; width: 9px; height: 30px; margin-top: -2px; border: 2px solid #8a5a30; border-top: 0; border-radius: 0 0 3px 3px; background: linear-gradient(90deg, #c08a55, #9c6a3d); }
+@keyframes swSway { 0%, 100% { rotate: -1.2deg; } 50% { rotate: 1.2deg; } }
+@keyframes swPoke { 0%, 100% { translate: 0 0; } 50% { translate: var(--d) 0; } }
+@media (prefers-reduced-motion: reduce) { .shop-spot.shop-way, .sw-ar { animation: none; } }
 .shop-cs { position: absolute; translate: -50% -50%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .shop-cs b { font-family: 'Jua', 'Gowun Dodum', sans-serif; font-weight: 400; color: #d94f7a; letter-spacing: .04em; line-height: 1; white-space: nowrap; text-shadow: 0 2px 0 #fff, 0 0 8px rgba(255, 255, 255, .9); }
 .shop-back { position: absolute; left: 14px; top: 14px; z-index: 3; padding: 9px 16px; border-radius: 999px; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font: inherit; font-size: 15px; font-weight: 900; white-space: nowrap; cursor: pointer; box-shadow: 0 3px 10px rgba(150, 70, 100, .25); }
 .shop-back:hover { background: #fff0f5; }
 .shop-scene:not(.corner) .shop-back, .shop-scene:not(.inside) .shop-back, .shop-scene.home .shop-back { display: none; }
-.shop-in::after { content: ''; position: absolute; inset: 0; background: #fff4f8; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
-.shop-scene.walk .shop-in::after { opacity: .85; }
 /* 📤 📥 공유 파일 (js/itemshare.js) */
 .ish-in { width: calc(100% - 16px); margin: 10px auto 0; justify-content: center; font-size: 13px; }
 .ish-card { width: min(92vw, 460px); max-height: 80vh; display: flex; flex-direction: column; gap: 10px; }
