@@ -1389,6 +1389,10 @@
         const w = d.el.offsetWidth || 110, h = d.el.offsetHeight || 120;
         d.x = Math.max(w / 2 + 4, Math.min(innerWidth - w / 2 - 4, d.x)); d.y = Math.max(h / 2 + 50, Math.min(innerHeight - h / 2 - 90, d.y));
         d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
+        if (e.k === 'tape') {                                                   // 🎀 ✕ = 롤 가운데 심 위 (도련 11-04 · 멀리 떨어져 있지 않게)
+            const x = d.el.querySelector('.dsk-x'), r = d.el.querySelector('.bk-roll');
+            if (x && r) { const a = r.getBoundingClientRect(), b = d.el.getBoundingClientRect(), s = b.width ? d.el.offsetWidth / b.width : 1; x.classList.add('mid'); x.style.left = ((a.left - b.left + a.width / 2) * s) + 'px'; x.style.top = ((a.top - b.top + a.height / 2) * s) + 'px'; }   // s = 톡 뜨는 동안 커졌다 작아지는 것 빼기
+        }
     }
     function dsFront(d) { d.el.style.zIndex = ++DS.z; }
     function dsDrop(id) {
@@ -1446,9 +1450,10 @@
         let p = null;
         d.el.addEventListener('pointerdown', ev => {
             if (ev.button > 0) return;
-            if (ev.target.closest('.dsk-x')) return;
+            const onX = !!ev.target.closest('.dsk-x'), tp = d.el.classList.contains('big') && (dsEntry(d.id) || {}).k === 'tape';
+            if (onX && !tp) return;                                            // 🎀 테이프 롤 ✕ (가운데) = 톡 = 치우기 · 끌면 = 뽑기
             ev.preventDefault(); dsFront(d);
-            p = { x0: ev.clientX, y0: ev.clientY, dx: d.x - ev.clientX, dy: d.y - ev.clientY, on: false, id: ev.pointerId };
+            p = { x0: ev.clientX, y0: ev.clientY, dx: d.x - ev.clientX, dy: d.y - ev.clientY, on: false, id: ev.pointerId, onX };
             d.el.classList.remove('rest');
             if (d.el.classList.contains('big')) { const e = dsEntry(d.id); if (e && e.k === 'tape') {   // 🎀 테이프 롤 : 끌면 = 뽑기 · 꾹 누르고 끌면 = 롤 옮기기 (도련 11-04)
                 p.tape = e; p.lp = setTimeout(() => { if (!p || p.on) return; p.mv = true; dsRewind(d); d.el.classList.add('lift'); if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {} }, 380);
@@ -1467,7 +1472,7 @@
             if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift'); clearTimeout(was.lp);
             if (was.pull) { dsPullEnd(was.pull, ev.type === 'pointerup' && was.on); if (was.on) return; }
             if (ev.type !== 'pointerup') return;
-            if (was.tape) { if (!was.on && !was.mv && !d.pull) dsBig(d); return; }   // 🎀 롤 톡 = 아무것도 안 써요 (뽑아서 ✂ 로 잘라요)
+            if (was.tape) { if (!was.on && !was.mv && was.onX) { dsDrop(d.id); return; } if (!was.on && !was.mv && !d.pull) dsBig(d); return; }   // 🎀 롤 톡 = 아무것도 안 써요 (뽑아서 ✂ 로 잘라요)
             if (!was.on) { dsOpen(d); return; }
             if (d.el.classList.contains('big')) dsUse(d);                     // 커진 테이프 · 메모지 · 속지를 끌어 놓으면 = 써요
         };
