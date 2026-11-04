@@ -40,9 +40,7 @@
             if (!isRack(el)) { if (host) host.remove(); return; }
             if (!host) { host = document.createElement('div'); host.className = 'dkt-rack'; el.appendChild(host); }
             const S = slotsOf(el), ids = (M[el.dataset.u] || []).slice(0, S.length);
-            const sure = T.list && T.fresh && T.who && T.who === who() && T.list.length > 0;   // 지금 계정의 목록을 방금 새로 읽었을 때만 (빈 목록 · 로그인 전 목록은 안 믿어요)
-            if (T.list) ids.forEach((id, i) => { if (id && !entry(id)) { if (sure) { ids[i] = null; dirty = true; } else if (!T.fresh) load(true); } });   /* 방금 읽은 목록이면 다시 읽지 않아요 (계속 읽기 막기) */   // 버렸거나 없어진 테이프는 빼요 (방금 받은 것은 아직 목록에 없을 수 있어요)
-            if (dirty) M[el.dataset.u] = ids;
+            if (T.list && ids.some(id => id && !entry(id))) { if (!T.fresh) load(true); else if (!T.retry && (T.tries || 0) < 10) { T.tries = (T.tries || 0) + 1; T.retry = setTimeout(() => { T.retry = 0; T.fresh = false; load(true); }, 3000); } }   // 늦게 들어오는 롤 = 3초마다 다시 (10번까지)   /* 목록에 없는 롤 = 그리지만 않아요 · 칸에서 빼지 않아요 (도련 11-04 고침 : 드라이브는 방금 받은 롤이 목록 파일에 늦게 들어와서 처음 선물 롤이 칸에서 빠졌어요) · 빈 칸 정리는 새 롤을 꽂을 때 (dktDrop) */
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
             host.innerHTML = S.map((r, i) => {
@@ -128,7 +126,7 @@
     window.dktDrop = (t, it, n, j, cx, cy) => {
         if (!isRack(t)) return false;
         if (it.k !== 'tape' || !Array.isArray(it.s) || !it.s.length) { showMsg(`🎀 ${htmlEsc(dkName(DK.items.find(x => x.u === t.dataset.u)) || '마테 정리함')}에는 마스킹테이프만 꽂을 수 있어요.`); return true; }
-        const S = slotsOf(t), now = () => { const ids = (read()[t.dataset.u] || []).slice(0, S.length); while (ids.length < S.length) ids.push(null); return ids; };
+        const S = slotsOf(t), now = () => { const ids = (read()[t.dataset.u] || []).slice(0, S.length).map(id => id && T.list && T.fresh && T.list.length && !entry(id) ? null : id); while (ids.length < S.length) ids.push(null); return ids; };   // 다 쓴 · 버린 롤 칸 = 빈 칸 (방금 새로 읽은 목록일 때만)
         const freeOf = ids => ids.map((v, i) => v ? -1 : i).filter(i => i >= 0), full = f => showMsg(`🎀 마테 정리함 칸이 ${f ? `${f}칸밖에 안 남았어요` : '다 찼어요'}.<br><span style="font-size:12px;color:#777;">다른 정리함이나 서랍에 넣어요 · 🛠 책상 꾸미기에서 롤을 빼면 칸이 생겨요</span>`);
         let ids = now(); if (freeOf(ids).length < it.s.length) { full(freeOf(ids).length); return true; }
         (async () => {
