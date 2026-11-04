@@ -142,6 +142,18 @@
         })();
         return true;
     };
+    /* 🎁 처음 선물 테이프를 정리함 빈 칸에 (도련 11-04 · js/desk.js giftEnsure) : 책상 위 첫 정리함부터 · 칸이 모자라면 남은 건 서랍(마스킹테이프 칸)에 · 넣은 수를 돌려줘요 */
+    window.dktStarter = ids => {
+        const M = read(); let n = 0;
+        document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+            if (!isRack(el) || n >= ids.length) return;
+            const S = slotsOf(el), cur = (M[el.dataset.u] || []).slice(0, S.length); while (cur.length < S.length) cur.push(null);
+            for (let i = 0; i < cur.length && n < ids.length; i++) if (!cur[i]) cur[i] = ids[n++];
+            M[el.dataset.u] = cur;
+        });
+        if (n) { write(M); T.fresh = false; load(true); }
+        return n;
+    };
     document.addEventListener('prod-change', () => window.dktPaint());
 })();
 

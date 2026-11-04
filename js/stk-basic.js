@@ -73,10 +73,7 @@
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
                 else if (kind === 'paper') out.push({ bigs, cnt: '모조지 한 장', look: 'sheet', thumbs: [thumb(urls[0], 240)],   // 📄 받은 그림 한 장 = 모조지 한 장 (도련 10-29 · 모양 · 배경 구분 없음 · 오릴지 통째로 뗄지는 다꾸러가)
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src] }) });
-                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)],   // 🎀 한 롤 길이 · 폭 = 상품 (롤길이 · 테이프폭)
-                    take: async () => { const d = await sbData(kitAt(x.url, 'h120')), h = +x.P.테이프폭, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
-                        const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
-                        return { k, imgs: [u], th: u, q0: +x.P.롤길이 }; } });
+                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)], take: () => sbTapeTake(x) });   // 🎀 한 롤 길이 · 폭 = 상품 (롤길이 · 테이프폭)
                 else if (kind === 'tk') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],   // 🧻 한 묶음 · 풀칠 띠 색 = 상품
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], q0: +x.P.묶음장수, x: { pad: 'my', glue: x.P.풀칠색 } }) });
                 else if (kind === 'leaf') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'leafimg', thumbs: [thumb(x.url, 240)],
@@ -86,12 +83,22 @@
             });
             return out;
         }
+        async function sbTapeTake(x) {                                           // 🎀 테이프 상품 → 내 종이로 받을 것 (js/own.js ownTake)
+            const d = await sbData(kitAt(x.url, 'h120')), h = +x.P.테이프폭, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
+            const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
+            return { k: 'tape', imgs: [u], th: u, q0: +x.P.롤길이 };
+        }
+        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 '처음선물') : 처음 온 다꾸러가 한 롤씩 받아요 → 책상 마테 정리함에 꽂아요 (js/desk.js giftEnsure · js/desktape.js dktStarter) */
+        async function sbStarterTapes() {
+            let list = []; try { list = await sbList('tape'); } catch (e) {}
+            return list.filter(x => x.P && x.P.처음선물 && !x.P.스토어 && +x.P.롤길이 > 0 && +x.P.테이프폭 > 0).map(x => ({ id: String(x.P.id || ''), take: () => sbTapeTake(x) }));
+        }
         const collHashS = s => { s = String(s); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
         /* 🎁 선물 전용 테이프 (이벤트 · 저금통 · 상품공방 '선물') : [{ id, name, url }] */
         let sbGift = null;
         async function sbGiftTapes() { return (sbGift = (await sbList('tape')).filter(x => x.P && x.P.선물).map(x => ({ id: String(x.P.id || ''), name: String(x.P.이름 || ''), url: x.url }))); }
         const sbGiftTapesNow = () => sbGift || [];                                      // 받기 전이면 [] (이름 대신 id 가 보여요)
-        window.sbShelf = sbShelf; window.sbDie = sbDie; window.sbGiftTapes = sbGiftTapes; window.sbGiftTapesNow = sbGiftTapesNow;
+        window.sbShelf = sbShelf; window.sbStarterTapes = sbStarterTapes; window.sbDie = sbDie; window.sbGiftTapes = sbGiftTapes; window.sbGiftTapesNow = sbGiftTapesNow;
     })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

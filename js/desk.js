@@ -192,7 +192,7 @@
                 if (DK.fresh) {
                     DK.items = back ? dkRebuild(had, bk, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
                     DK.fresh = false; dkSave();
-                    if (!back) dkStarterLinks();                                      // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02)
+                    if (!back) { dkStarterLinks(); dkStarterTapes(); }                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04)
                     if (back && bk && bk.diary_desk_fn && typeof bk.diary_desk_fn === 'object' && typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, bk.diary_desk_fn);
                     deskItemsRender(); deskModeRender();
                 }
@@ -209,6 +209,15 @@
         }
         /* 🎁 처음 연결 (도련 11-02 · 처음 받은 기본 세트에만 한 번) : ✏️ 기본 펜꽂이 = 펜꽂이 · 🗄️ 기본 서랍장 맨 아래 칸 = 문구함 (이름표도 = 글 '펜꽂이' · '문구함' · 도련 11-03)
            이미 연결이 있으면(다른 기기 · 되살리기) 그대로 · 그 뒤 다꾸러가 바꾸거나 뺀 연결은 손대지 않아요 */
+        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음선물') : 한 롤씩 받아서 (내 스티커 목록) 책상 마테 정리함 빈 칸에 꽂아요 · 정리함이 없으면 서랍 마스킹테이프 칸 */
+        async function dkStarterTapes() {
+            try {
+                if (!window.sbStarterTapes || !window.ownTake || !(window.ownMode && ownMode())) return;
+                const L = await sbStarterTapes(), ids = [];
+                for (const t of L) { try { const sid = await ownTake(await t.take()); if (sid) ids.push(sid); } catch (e) { console.warn('🎁 처음 선물 테이프', t.id, e); } }
+                if (ids.length && window.dktStarter) dktStarter(ids);
+            } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
+        }
         function dkStarterLinks() {
             if (typeof prefGet !== 'function' || DK.edit) return;
             const desk = dkOnDesk(), v = prefGet(DK_FN_KEY, DK_FN_LOCAL), M = v && typeof v === 'object' ? Object.assign({}, v) : {};
