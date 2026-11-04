@@ -540,9 +540,9 @@
            지금은 규격마다 한 권 (페이지 수 DK_PAGES) · 아래 📕 유한 다이어리
            다꾸러가 실제로 많이 쓰는 모양 · 크기만 (도련 · 10-17)
            ⚠ 브랜드 이름은 절대 쓰지 않아요 (도련 · 10-18 : 팔 때 큰일나요) → 종류 · 규격 이름으로만 (화면 · 폴더 이름 · 코드 모두) */
-        /* 🧁 페이지형 다이어리 디자인 = 서버 상품 (상품공방 '페이지형바인더' · '페이지형노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 지금 숨김 · 팔 때) : { id, k 종류, g 이름, n 규격, mm, b 묶는 방식(ring · tn · spread · hard · thin), r 세로÷가로, c 색 }
+        /* 🧁 페이지형 다이어리 디자인 = 서버 상품 (상품공방 '페이지바인더' · '페이지노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 지금 숨김 · 팔 때) : { id, k 종류, g 이름, n 규격, mm, b 묶는 방식(ring · tn · spread · hard · thin), r 세로÷가로, c 색 }
            📔 날짜형(1년 · 기본)은 여기가 아니라 날짜형 디자인 (js/app.js DY_DESIGNS · js/dyyear.js) · 'basic' = 날짜형으로 쓰는 중 (dyNow 가 펼친 권의 모양을 줘요) */
-        const DY_TYPES = [], DY_PKINDS = [['페이지형바인더', '바인더'], ['페이지형노트', '노트']];
+        const DY_TYPES = [], DY_PKINDS = [['페이지바인더', '바인더'], ['페이지노트', '노트']];
         function dyTypesBuild() {                                              // 🧁 서버 + 📦 내 사본
             DY_TYPES.length = 0;
             DY_PKINDS.forEach(([K, k]) => (window.prodList ? prodList(K) : []).forEach(x => {
