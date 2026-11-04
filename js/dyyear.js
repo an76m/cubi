@@ -5,7 +5,7 @@
    - 다이어리 한 권 = 디자인 하나를 받은 것 = 폴더 하나 (현실처럼 · 도련 10-28)
        · 같은 것도 또 받을 수 있어요 (2026 분홍을 또 받으면 새 2026 분홍 한 권) · 다이어리끼리 기록을 나누지 않아요
        · 권 id '2026b-분홍-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 그 해 그 디자인 몇 번째 ('diary_book_n' · 버려도 번호는 다시 안 써요 → 되살려도 안 겹쳐요)
-       · 저장 : diary_2026b-분홍-2_2026_10_28 → 말랑달콤 / 날짜바인더 (노트 = 날짜노트) / 2026 분홍 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
+       · 저장 : diary_2026b-분홍-2_2026_10_28 → 말랑달콤 / 날짜형바인더 (노트 = 날짜형노트) / 2026 분홍 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
        · ⚠ 디자인 id = 드라이브 폴더 이름이라 짧은 한글로 (분홍 · 딸기) · 한 번 올린 id 는 바꾸지 않아요
        · 📅 달력 · 🗂 꾸민 페이지만 보기 · 🔍 검색은 펼친 권 것만
    - 받은 권 'diary_years' ['2026b-분홍-1', '2026n-녹색노트-2'] · 펼친 권 'diary_year' (설정.json · 게스트는 이 기기)
@@ -22,7 +22,7 @@
         const dyyThis = () => new Date().getFullYear();
         const dyyOf = id => { const m = /^(\d{4})([a-z])-(.+)-(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], ch: m[2], c: m[3], n: +m[4] } : null; };   // c = 디자인 id · ch = 종류 글자 (js/app.js DY_DKINDS)
         const dyyDesign = b => b ? DY_DESIGNS.find(d => d.id === b.c && d.ch === b.ch) || null : null;   // 그 권의 디자인 (서버에서 사라져도 📦 사본으로 있어요)
-        const dyyIsNote = b => !!b && b.ch === 'n';                            // 📓 날짜형 노트 (저장 = 말랑달콤 / 날짜노트 · js/drive.js)
+        const dyyIsNote = b => !!b && b.ch === 'n';                            // 📓 날짜형 노트 (저장 = 말랑달콤 / 날짜형노트 · js/drive.js)
         const dyyColor = c => String(c || '');                                 // 스킨 id = 디자인 id
         const dyyTitle = b => { const d = dyyDesign(b); return `${b.y} ${d ? d.name : b.c}${b.n > 1 ? ' ' + b.n : ''}`; };   // 보관소 · 메시지에 보일 이름 (2026 분홍 다이어리 · … 2)
         const dyyIds = () => { const v = prefGet(DYY_KEY, DYY_LOCAL); return Array.isArray(v) ? [...new Set(v.map(String))].filter(id => dyyOf(id)) : []; };
@@ -225,7 +225,7 @@
         };
 
         /* 📔 보관소 칸 (js/skins.js dyTabSet) : 최신 권부터 · 🗑 버리기 */
-        /* 📔 보관소 = 다이어리 책꽂이 하나 (도련 10-28) : 날짜바인더 · 날짜노트 · 페이지바인더 · 페이지노트 모두 한곳 (현실 책꽂이처럼)
+        /* 📔 보관소 = 다이어리 책꽂이 하나 (도련 10-28) : 날짜형바인더 · 날짜형노트 · 페이지바인더 · 페이지노트 모두 한곳 (현실 책꽂이처럼)
              · 순서 = 지금 펼친 것 → 최근 해 → 먼저 받은 것 · 칸마다 종류 표시 (📅 날짜 바인더 …)
              · 종류가 두 가지 이상 생기면 위에 거르기 칩 (전체 · 날짜형 · 페이지형) · 지금은 날짜 바인더만이라 칩이 안 보여요 */
         const DYY_KINDS = [['date', '📅 1년'], ['page', '📄 페이지']];   // 다꾸러에게 보이는 이름 (도련 11-04 : 날짜형 = 2026 바인더 · 2026 노트 · 페이지노트 · 페이지바인더)

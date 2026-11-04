@@ -7,8 +7,8 @@
               - 상품 하나 = 따로 하나 (현실처럼 · 같은 것도 또 받아요) : 파일이 여러 개인 상품(📔 다이어리)은 한 개에 폴더 하나 · 파일 하나인 상품(🪑 소품 · ✏️ 문구)은 한 개에 파일 하나
               - 🏷️ 스티커는 예외 (바구니 ↔ 스티커첩으로 옮겨 다녀서 목록 하나 · js/own.js)
               - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
-             말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-10-28.json · 검색.json   📔 날짜형 바인더 1년치 (기본으로 주는 것 · 한 권 = 폴더 · '해 디자인 번호' · js/dyyear.js)
-                      / 날짜노트 / 2026 분홍 1 / …                       📓 날짜형 노트 1년치 (권 id 2026n-분홍노트-1 · 도련 11-04)
+             말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json · 검색.json   📔 날짜형 바인더 1년치 (기본으로 주는 것 · 한 권 = 폴더 · '해 디자인 번호' · js/dyyear.js)
+                      / 날짜형노트 / 2026 분홍 1 / …                       📓 날짜형 노트 1년치 (권 id 2026n-분홍노트-1 · 도련 11-04)
                       / 페이지바인더 · 페이지노트 / <권 id>-다이어리.json · <권 id>-3페이지.json …   📕 페이지형 30장 (지금 숨김 · 팔 때 한 권 = 폴더로)
                       / 페이지꾸밈 · 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
                       / 스티커목록 / 목록.json · 스티커첩.json · 백업          🎒 유한 스티커 (js/own.js)
@@ -30,7 +30,7 @@
         const TOP_FOLDER_NAME = '말랑달콤';                         // 최상위 폴더
         /* 📁 폴더 이름은 여기 한 곳에서만 (도련 10-26 · 새 폴더 = 한 줄 추가) · 스티커 종류 폴더는 js/own.js OWN_KIND */
         const DIRS = {
-            day: '날짜바인더', dayNote: '날짜노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜노트)
+            day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
             pageDeco: '페이지꾸밈', pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
             stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치', starter: '기본세트'
         };
@@ -39,8 +39,8 @@
         const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', basket: '소품바구니', lamp: '조명', doll: '인형', taperack: '마테정리함', lights: '전구줄', peg: '집게사진' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
         const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자' };
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
-        const DAY_PATH = dirPath(DIRS.day);                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-10-28.json
-        const NOTE_PATH = dirPath(DIRS.dayNote);                    // 📓 날짜형 노트 : 말랑달콤 / 날짜노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
+        const DAY_PATH = dirPath(DIRS.day);                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json
+        const NOTE_PATH = dirPath(DIRS.dayNote);                    // 📓 날짜형 노트 : 말랑달콤 / 날짜형노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
         const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
@@ -59,7 +59,7 @@
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         /* 📔 날짜 다이어리 = 한 권에 폴더 하나 (도련 10-28 · js/dyyear.js) : 권 id '2026mint2' = 해 · 바인더 색 · 그 해 그 색 몇 번째 (지워도 번호는 다시 안 써요)
-             diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜바인더 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
+             diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜형바인더 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
         /* 📔 날짜형 권 id '2026b-분홍-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 번호 (도련 11-04 · js/dyyear.js) · 디자인이 늘어도 코드는 그대로 */
         const DAY_KEY_RE = /^diary_(\d{4}[bn]-.+-\d+)_(\d{4})_(\d{2})_(\d{2})$/;
         const DYB_RE = /^(\d{4})([bn])-(.+)-(\d+)$/;
@@ -71,7 +71,7 @@
         const DK_INFO = '다이어리.json', dkInfoName = id => `${id}-${DK_INFO}`;   // 📕 권 정보 파일 : <권 id>-다이어리.json
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
-           - 날짜 데이터  : diary_2026b-분홍-1_2026_09_10  → 말랑달콤/날짜바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
+           - 날짜 데이터  : diary_2026b-분홍-1_2026_09_10  → 말랑달콤/날짜형바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
            - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/페이지바인더/<권 id>-3페이지.json · dkb_<권 id> → <권 id>-다이어리.json
            - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페기록/카페.json) */
         const store = {
@@ -194,7 +194,7 @@
         const qName = n => String(n).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
         /* ---------- 폴더 / 파일 이름 규칙 ----------
-           말랑달콤 / 날짜바인더 / 2026 분홍 1 / 2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
+           말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
         const pad2 = n => String(n).padStart(2, '0');
         const dayFileName = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}.json`;   // 권 폴더 안 (dyBookDir)
         const DAY_FILE_RE = /^(\d{4})-(\d{2})-(\d{2})\.json$/;
@@ -370,7 +370,7 @@
             return mineWrote(await res.json()).id;
         }
 
-        /* names = ['말랑달콤','설정'] / ['말랑달콤','날짜바인더'] … (늘 말랑달콤 바로 아래 한 칸 · 도련 10-26)
+        /* names = ['말랑달콤','설정'] / ['말랑달콤','날짜형바인더'] … (늘 말랑달콤 바로 아래 한 칸 · 도련 10-26)
            create=false : 있으면 찾기만 (읽을 때) / create=true : 없으면 만들기 (저장할 때) */
         async function getFolder(names, create) {
             const key = names.join('/');
@@ -466,7 +466,7 @@
         }
         const keyFileSeal = async (which, body) => which === 'desk' ? ownLock(JSON.parse(body), COLL.who) : body;
 
-        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 날짜바인더 / 그 권 · 📕 장 · 다이어리.json : 페이지노트 · 페이지바인더 안 그 권 것만) */
+        /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 날짜형바인더 / 그 권 · 📕 장 · 다이어리.json : 페이지노트 · 페이지바인더 안 그 권 것만) */
         function idxOfKey(key, create) {
             const d = parseDayKey(key); if (d) return getMonthIndex(d.y, d.m, create, d.b);
             const p = parsePageKey(key), b = BOOK_KEY_RE.exec(key);
@@ -955,7 +955,7 @@
         /* ---------- 전체 목록 (백업 / 용량 확인용) ---------- */
         async function driveEnumerateAll(only) {                           // 📔 권 폴더마다 (only = 그 권만 · 🗂 꾸민 페이지만 보기)
             const out = new Map();
-            for (const [path, note] of [[DAY_PATH, false], [NOTE_PATH, true]]) {   // 📔 날짜바인더 · 📓 날짜노트
+            for (const [path, note] of [[DAY_PATH, false], [NOTE_PATH, true]]) {   // 📔 날짜형바인더 · 📓 날짜형노트
                 const rootId = await getFolder(path, false); if (!rootId) continue;
                 for (const dir of await driveList(`'${rootId}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name')) {
                     const b = dyBookOfName(dir.name, note); if (!b || (only && b !== only)) continue;
