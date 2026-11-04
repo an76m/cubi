@@ -27,6 +27,13 @@
         }
         if (window.prodHook) prodHook(() => { SHOP_D = null; });
         const shopC = c => (shopData() || {})[c || 'stk'];
+        /* 🖼 구역 그림 미리 받기 (도련 11-04 : 처음 걸어갈 때 그림이 늦게 떠서 이름만 먼저 바뀌었어요) : 가게에 들어갈 때 모두 받아 두고 · 옮길 땐 그 그림이 준비된 뒤에 바꿔요 */
+        const SHOP_PIC = new Map();
+        function shopPic(src) {
+            if (!SHOP_PIC.has(src)) { const im = new Image(); im.src = src; SHOP_PIC.set(src, (im.decode ? im.decode() : Promise.resolve()).catch(() => {})); }
+            return SHOP_PIC.get(src);
+        }
+        const shopPicAll = () => { const D = shopData(); if (D) SHOP_CN.forEach(c => shopPic(D[c].img)); };
         const HOME_SIGN = { cx: 836, cy: 490, w: 420, h: 200 };                   // 🚪 내 방 문 타원 판 안쪽 (img/room-door.webp px · 도련 10-30)
         const SC = { on: false, busy: false, corner: '', spots: [] };
 
@@ -67,14 +74,15 @@
             const el = document.getElementById('shopScene'); if (!el || !SC.on || SC.busy || (k && (k === 'stk' || !shopC(k))) || SC.corner === k) return;
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display && m.style.display !== 'none') { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); };
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return; }
+            const pic = Promise.race([shopPic(shopC(k).img), new Promise(r => setTimeout(r, 4000))]);   // 그림이 준비되면 (늦어도 4초)
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { SC.busy = true; pic.then(() => { SC.busy = false; go(); }); return; }
             const d = shopWayDir(k || SC.corner), toL = k ? d === 'l' : d !== 'l';   // 왼쪽 코너로 = 화면이 오른쪽으로 밀려요 (내가 왼쪽으로 걸어가니까)
             SC.busy = true; el.classList.remove('walk-in', 'from-l', 'from-r'); el.classList.add('walk-out', toL ? 'to-r' : 'to-l');
-            setTimeout(() => {
+            Promise.all([pic, new Promise(r => setTimeout(r, 360))]).then(() => {
                 go(); el.classList.remove('walk-out', 'to-l', 'to-r'); el.classList.add('walk-in', toL ? 'from-l' : 'from-r');
                 requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('walk-on')));
                 setTimeout(() => { el.classList.remove('walk-in', 'walk-on', 'from-l', 'from-r'); SC.busy = false; }, 420);
-            }, 360);
+            });
         }
         function shopFit() {
             const el = document.getElementById('shopScene'); if (!el) return;
@@ -120,7 +128,7 @@
         function shopSceneOpen() {
             if (!shopWide() || !shopData()) { if (window.openShelf) openShelf(); return; }   // 📱 폰 · 하단 메뉴 화면 · 🏪 샵 코너가 없으면 = 예전 기본상품 샵 창
             if (SC.on || SC.busy) return;
-            const el = shopBuild(); SC.corner = ''; shopSpotsPaint();
+            const el = shopBuild(); SC.corner = ''; shopSpotsPaint(); shopPicAll();   // 🖼 구역 그림 미리
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
             SC.on = true; SC.busy = true;
             el.classList.remove('inside', 'enter', 'leave'); el.classList.add('on');
