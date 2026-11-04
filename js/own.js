@@ -274,8 +274,9 @@
                 let pi, pa;                                                      // 목록 · 스티커첩 파일을 한 번에 찾아요
                 const mem = ownMode() !== 'mem' ? ownFilesGet() : null;
                 if (mem && mem.i) {                                              // ⚡ 기억한 번호로 바로 (둘 다 동시에)
-                    const [list, alb] = await Promise.all([ownIdxRead({ id: mem.i }), ownAlbRead(mem.a ? { id: mem.a } : null)]).catch(() => [null, null]);
-                    if (list && O.idxF && (!mem.a || O.albF)) {
+                    const [list, alb, live] = await Promise.all([ownIdxRead({ id: mem.i }), ownAlbRead(mem.a ? { id: mem.a } : null), driveMeta(mem.i).catch(() => true)]).catch(() => [null, null, true]);
+                    if (!live) { ownFilesSet({ i: '', a: '' }); O.idxF = O.albF = null; }   /* 🗑 기억한 목록이 휴지통 (말랑달콤 · 스티커목록 폴더를 지웠어요) = 기억을 버리고 살아 있는 폴더에서 (도련 11-04 고침 : 휴지통 목록에 받은 씰이 들어갔다가 뒤에서 확인할 때 빈 목록이 됐어요) */
+                    else if (list && O.idxF && (!mem.a || O.albF)) {
                         ownIdxApply(list); O.album = ownAlbumClean(alb, null);
                         setTimeout(() => ownFilesCheck(mem), 0); setTimeout(ownBackup, 3000);
                         return { list: O.idx, album: O.album };
