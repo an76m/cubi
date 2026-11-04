@@ -13,17 +13,26 @@
             ['seal', '씰스티커', 640, 690], ['piece', '조각스티커', 850, 690], ['paper', '모조지스티커', 1060, 690],
             ['tape', '마스킹테이프', 945, 560], ['tk', '떡메모지', 922, 255], ['memo', '메모지', 760, 385],
             ['leaf', '속지', 1347, 580], ['tool', '다이어리', 290, 470],
-            ['gd', '문구용품', 430, 320], ['desk', '책상소품', 1235, 330], ['bg', '배경지', 625, 540], ['season', '🌸 계절 스티커', 1500, 765]
-        ];
-        const SHOP_ICON = { gd: '✂️', bg: '🌈', season: '🌸' };   // 🪑 책상소품 = basket.js stkArt('desk') 그림 (도련 11-04)
+            ['gd', '문구용품', 430, 320], ['desk', '책상소품', 1235, 330], ['bg:solid', '단색 배경지', 560, 520], ['bg:pat', '패턴 배경지', 690, 560], ['season', '🌸 계절 스티커', 1500, 765]
+        ];   // 📔 다이어리 · ✂️ 문구용품 · 🪑 책상소품 = 그 코너로 · 그 밖 = 그 상품 창 ('종류:칸' = 그 칸만)
+        const SHOP_ICON = { gd: '✂️', 'bg:solid': '🎨', 'bg:pat': '☁️', season: '🌸' };   // 🪑 책상소품 = basket.js stkArt('desk') 그림 (도련 11-04)
+        /* 🏪 코너 (도련 11-04 : 문을 열면 스티커 코너 · 옆으로 다이어리 · 문구 · 책상소품 코너 = 현실 가게처럼 구경) : 코너 그림 위에 칸(js/basket.js shCatList)마다 아이콘 · 왼쪽 위 ‹ 스티커 코너
+           ⚠ 코너 그림 3장은 도련이 만드는 중 → 지금은 가게 안 그림을 같이 써요 (그림이 오면 img · 자리만 바꿔요) · 자리 = 그림 px · 표에 없는 새 칸은 아래 줄에 차례로 놓고 콘솔에 알려요 */
+        const SHOP_CORNERS = {
+            tool: { n: '📔 다이어리 코너', img: 'img/shop-inside.webp?v=20261009-815', at: { dy: [430, 330], bd: [835, 330], rl: [1235, 330] } },
+            gd: { n: '✂️ 문구 코너', img: 'img/shop-inside.webp?v=20261009-815', at: { tweez: [300, 300], clip: [520, 300], punch: [760, 300], tape: [1000, 300], scissors: [1240, 300], knife: [1440, 300], ruler: [430, 560], pen: [835, 560] } },
+            desk: { n: '🪑 책상소품 코너', img: 'img/shop-inside.webp?v=20261009-815', at: { desk: [430, 330], wall: [1235, 330], wallpaper: [640, 650], desktop: [1060, 650] } }
+        };
+        const SHOP_MAIN_IMG = 'img/shop-inside.webp?v=20261009-815';
         const HOME_SIGN = { cx: 836, cy: 490, w: 420, h: 200 };                   // 🚪 내 방 문 타원 판 안쪽 (img/room-door.webp px · 도련 10-30)
-        const SC = { on: false, busy: false };
+        const SC = { on: false, busy: false, corner: '', spots: [] };
 
         function shopCover(W, H) { const s = Math.max(innerWidth / W, innerHeight / H); return { s, x: (innerWidth - W * s) / 2, y: (innerHeight - H * s) / 2 }; }
         function shopBuild() {
             let el = document.getElementById('shopScene'); if (el) return el;
             el = document.createElement('div'); el.id = 'shopScene'; el.className = 'shop-scene';
-            el.innerHTML = `<div class="shop-in"><img class="shop-room" src="img/shop-inside.webp?v=20261009-815" alt="" draggable="false"><div class="shop-spots"></div></div>
+            el.innerHTML = `<div class="shop-in"><img class="shop-room" src="${SHOP_MAIN_IMG}" alt="" draggable="false"><div class="shop-spots"></div></div>
+                <button type="button" class="shop-back" onclick="shopCorner('')">‹ 스티커 코너</button><div class="shop-ttl"></div>
                 <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
                 <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
@@ -32,16 +41,33 @@
             return el;
         }
         function shopSpotsPaint() {
-            const box = document.querySelector('#shopScene .shop-spots'); if (!box) return;
-            const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN;
-            box.innerHTML = SHOP_SPOTS.filter(s => s[0] !== 'season' || season).map(([k, n]) => `<button type="button" class="shop-spot" data-k="${k}" onclick="shopSpot('${k}')"><i class="shop-ic">${SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')}</i><b>${n}</b></button>`).join('');
+            const el = document.getElementById('shopScene'), box = el && el.querySelector('.shop-spots'); if (!box) return;
+            const C = SHOP_CORNERS[SC.corner];
+            if (C) {                                                                // 🏪 코너 = 칸마다 아이콘 (표에 없는 칸 = 아래 줄에 차례로)
+                const cats = window.shCatList ? shCatList(SC.corner) || [] : []; let free = 0;
+                SC.spots = cats.map(([c, n, ic]) => { let p = C.at[c]; if (!p) { console.warn('🏪 코너 자리가 없어요 (js/shopscene.js SHOP_CORNERS) :', SC.corner, c); p = [300 + (free++ % 6) * 215, 820]; } return [c, n, p[0], p[1], ic]; });
+            } else {
+                const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN;
+                SC.spots = SHOP_SPOTS.filter(s => s[0] !== 'season' || season).map(([k, n, x, y]) => [k, n, x, y, SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')]);
+            }
+            box.innerHTML = SC.spots.map(([k, n, , , ic]) => `<button type="button" class="shop-spot" data-k="${k}" onclick="shopSpot('${k}')"><i class="shop-ic">${ic}</i><b>${n}</b></button>`).join('');
+            const room = el.querySelector('.shop-room'), src = C ? C.img : SHOP_MAIN_IMG; if (room.getAttribute('src') !== src) room.setAttribute('src', src);
+            el.classList.toggle('corner', !!C); el.querySelector('.shop-ttl').textContent = C ? C.n : '';
+        }
+        /* 🚶 코너 옮기기 ('' = 스티커 코너 · 입구) : 살짝 어두워졌다 그 코너로 */
+        function shopCorner(k) {
+            const el = document.getElementById('shopScene'); if (!el || !SC.on || SC.busy || (k && !SHOP_CORNERS[k]) || SC.corner === k) return;
+            ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display && m.style.display !== 'none') { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
+            const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); el.classList.remove('walk'); };
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return; }
+            el.classList.add('walk'); setTimeout(go, 260);
         }
         function shopFit() {
             const el = document.getElementById('shopScene'); if (!el) return;
             const R = shopCover(SHOP_W, SHOP_H), room = el.querySelector('.shop-room');
             room.style.width = SHOP_W * R.s + 'px'; room.style.height = SHOP_H * R.s + 'px'; room.style.left = R.x + 'px'; room.style.top = R.y + 'px';
             el.querySelectorAll('.shop-spot').forEach(b => {
-                const sp = SHOP_SPOTS.find(s => s[0] === b.dataset.k); if (!sp) return;
+                const sp = SC.spots.find(s => s[0] === b.dataset.k); if (!sp) return;
                 const w = b.offsetWidth || 90, h = b.offsetHeight || 60, M = 10;
                 const x = Math.max(M + w / 2, Math.min(innerWidth - M - w / 2, R.x + sp[2] * R.s)), y = Math.max(M + 56 + h / 2, Math.min(innerHeight - M - h / 2, R.y + sp[3] * R.s));   // 화면 밖이면 안쪽으로 (위는 ✕ 자리 비우기)
                 b.style.left = x + 'px'; b.style.top = y + 'px';
@@ -79,7 +105,7 @@
         function shopSceneOpen() {
             if (!shopWide()) { if (window.openShelf) openShelf(); return; }        // 📱 폰 · 하단 메뉴 화면 = 예전 기본상품 샵 창
             if (SC.on || SC.busy) return;
-            const el = shopBuild(); shopSpotsPaint();
+            const el = shopBuild(); SC.corner = ''; shopSpotsPaint();
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
             SC.on = true; SC.busy = true;
             el.classList.remove('inside', 'enter', 'leave'); el.classList.add('on');
@@ -95,14 +121,19 @@
         function shopSceneClose(quick) {
             const el = document.getElementById('shopScene'); if (!el || !SC.on || (SC.busy && !quick)) return;
             if (quick !== true && window.bagBusy && bagBusy()) { const al = document.getElementById('customAlertModal'); if (window.showMsg && !(al && al.style.display === 'flex')) { const ok = document.getElementById('customAlertConfirmBtn'); if (ok) ok.textContent = '확인'; showMsg('🛍️ 상품을 담는 중이에요'); } return; }   // 받는 중 · 봉투 안내가 끝나기 전에는 못 나가요 (도련 10-30) · 묻는 창(하나 더 받기)이 떠 있으면 그 창을 덮지 않고 · 안내 버튼은 늘 '확인'
-            ['shelfKindModal', 'shelfModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
+            ['shelfKindModal', 'shelfCornerModal', 'shelfModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; const L = window.SHOP_BAG || []; window.SHOP_BAG = []; if (L.length && window.deskBagAdd) setTimeout(() => deskBagAdd(L), 250); };   // 🛍️ 산 것을 봉투에 담아 책상 위에 (js/desk.js)
             if (quick === true || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }
             SC.busy = true; shopFit(); el.classList.add('home');
             setTimeout(() => el.classList.add('home-go'), 1000);
             setTimeout(() => { el.classList.add('leave'); setTimeout(done, 380); }, 2300);
         }
-        function shopSpot(k) { if (SC.busy) return; if (window.shOpenKind) shOpenKind(k); }
+        function shopSpot(k) {
+            if (SC.busy || !window.shOpenKind) return;
+            if (SC.corner) { shOpenKind(SC.corner, k); return; }                  // 코너 안 = 그 칸만 보이는 창
+            if (SHOP_CORNERS[k]) { shopCorner(k); return; }                      // 📔 ✂️ 🪑 = 그 코너로
+            const [kk, c] = k.split(':'); shOpenKind(kk, c);
+        }
         const shopSceneOn = () => SC.on;
-        document.addEventListener('keydown', e => { if (SC.on && e.key === 'Escape' && !document.querySelector('.modal[style*="flex"], .modal[style*="block"]')) shopSceneClose(); });
-        window.shopSceneOpen = shopSceneOpen; window.shopSceneClose = shopSceneClose; window.shopSpot = shopSpot; window.shopSceneOn = shopSceneOn;
+        document.addEventListener('keydown', e => { if (SC.on && e.key === 'Escape' && !document.querySelector('.modal[style*="flex"], .modal[style*="block"]')) { if (SC.corner) shopCorner(''); else shopSceneClose(); } });   // 코너 안 = 스티커 코너로
+        window.shopSceneOpen = shopSceneOpen; window.shopSceneClose = shopSceneClose; window.shopSpot = shopSpot; window.shopSceneOn = shopSceneOn; window.shopCorner = shopCorner;

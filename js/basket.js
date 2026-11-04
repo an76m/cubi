@@ -967,8 +967,7 @@
         }],
         bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)
         gd: ['문구용품', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
-            const L = window.gdShopList ? gdShopList() : [], ic = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
-            SH_CATS.gd = [...new Map(L.map(x => [x.g, `${ic[x.g] || '✏️'} ${x.kind}`]))];
+            const L = window.gdShopList ? gdShopList() : [];                   // 칸 = 문구 종류 (shCatList)
             return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: () => gdGive(x.id) }));   // gid = 봉투 카드가 기억해요
         }],
         desk: ['책상소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
@@ -1017,7 +1016,7 @@
     const shMustWalk = () => document.documentElement.classList.contains('desk-on') && !(window.shopSceneOn && shopSceneOn());
     function shWalk() {
         if (SH.walking) return; SH.walking = true; setTimeout(() => { SH.walking = false; }, 1500);
-        const go = () => { ['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal', 'deskBoxModal', 'gdCabModal', 'moveModal'].forEach(id => { if (vis(id)) closeModal(id); });
+        const go = () => { ['basketModal', 'basketKindModal', 'shelfModal', 'shelfCornerModal', 'shelfKindModal', 'deskBoxModal', 'gdCabModal', 'moveModal'].forEach(id => { if (vis(id)) closeModal(id); });
             if (window.deskLeave) deskLeave(); if (window.deskRun) deskRun('shop'); };
         if (document.documentElement.classList.contains('desk-edit')) {                // 🛠 꾸미는 중이면 먼저 마칠지 물어봐요
             showAsk('🛠 책상 꾸미기를 마치고<br>🏪 기본상품 샵으로 갈까요?', '저장하고 가기', '그대로 꾸미기').then(ok => { if (ok && window.deskEditEnd) { deskEditEnd(true); setTimeout(go, 300); } });
@@ -1033,16 +1032,22 @@
         if (vis('basketModal')) closeModal('basketModal');
         if (vis('basketKindModal')) closeModal('basketKindModal');
         if (vis('shelfKindModal')) closeModal('shelfKindModal');
+        if (vis('shelfCornerModal')) closeModal('shelfCornerModal');
         const se = document.querySelector('#shelfModal [data-shk="season"]'); if (se) se.hidden = !shSeasonOn();
         openModal('shelfModal');
     }
     /* 그 종류의 기본상품 샵 창 */
-    async function shOpenKind(k) {
+    async function shOpenKind(k, c) {
         const K = SH_KINDS[k]; if (!K) return;
         if (shMustWalk()) { shWalk(); return; }                                // 💻 📲 책상 = 가게로 걸어가요 (가게 안 진열대에서만 이 창)
-        closeModal('shelfModal'); openModal('shelfKindModal');
-        const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + K[0];
-        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = SH.wantCat && SH.wantCat.k === k ? SH.wantCat.c : ''; SH.wantCat = null; SH.got = new Set(); shZoomOff();
+        if (!c && SH.wantCat && SH.wantCat.k === k) c = SH.wantCat.c;
+        SH.wantCat = null;
+        const cats = shCatList(k);
+        if (cats && !cats.some(x => x[0] === c)) { shCorner(k); return; }      // 🏪 칸이 있는 종류 = 먼저 코너 (창 안 칸 탭 없음 · 도련 11-04)
+        closeModal('shelfModal'); closeModal('shelfCornerModal'); openModal('shelfKindModal');
+        const cn = cats ? cats.find(x => x[0] === c) : null;
+        const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + (cn ? (k === 'bg' ? cn[1] + ' 배경지' : cn[1]) : K[0]);
+        const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = c || ''; SH.got = new Set(); shZoomOff();
         const seq = ++SH.seq;
         box.scrollTop = 0;
         if (!SH.cache[k]) box.innerHTML = bkMsg('기본상품 샵을 채우는 중…');
@@ -1056,6 +1061,30 @@
        · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
     const SH_CATS = { desk: [['desk', '🪑 책상 위'], ['wall', '🖼️ 벽에 걸기'], ['wallpaper', '🧱 벽지'], ['desktop', '🪵 책상']], bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']], tool: [['dy', '📔 날짜형'], ['bd', '📒 스티커 바인더'], ['rl', '🤍 이형지북']] };   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
+    /* 🏪 코너 (도련 11-04) : 칸이 있는 종류(📔 다이어리 · ✂️ 문구 · 🪑 책상소품 · 🌈 배경지)는 창 안 칸 탭 대신 코너에서 칸을 골라요 (종류가 얼마나 늘지 몰라서 넓은 화면에)
+       💻 가게 안 = 그 코너 그림 위 아이콘 (js/shopscene.js shopCorner) · 📱 폰 · 가게 밖 = 코너 진열대 창 (#shelfCornerModal) · 칸 하나 = 그 칸만 보이는 창 */
+    const SH_CORNER = { tool: '📔 다이어리 코너', gd: '✂️ 문구 코너', desk: '🪑 책상소품 코너', bg: '🌈 배경지' };
+    const SH_GD_IC = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
+    function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
+        if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, SH_GD_IC[x.g] || '✏️']])).values()]; }
+        const c = SH_CATS[k]; return c ? c.map(([id, s]) => { const [ic, ...nm] = s.split(' '); return [id, nm.join(' '), ic]; }) : null;
+    }
+    function shCorner(k) {
+        SH.corner = k;
+        if (window.shopSceneOn && shopSceneOn() && window.shopCorner && k !== 'bg') { ['shelfKindModal', 'shelfCornerModal'].forEach(id => { if (vis(id)) { shZoomOff(); closeModal(id); } }); shopCorner(k); return; }   // 💻 가게 안 = 코너로 걸어가요
+        const cats = shCatList(k) || [], rows = [];
+        for (let i = 0; i < cats.length; i += 3) rows.push(cats.slice(i, i + 3));
+        const tt = bq('shcTitle'); if (tt) tt.textContent = '🏪 ' + SH_CORNER[k];
+        const sg = bq('shcSign'); if (sg) sg.textContent = SH_CORNER[k].split(' ').slice(1).join(' ');
+        const cs = bq('shcCase'); if (cs) cs.innerHTML = rows.map(r => `<div class="st2-row">${r.map(([c, n, ic]) => `<button type="button" class="st2-slot st2-more" onclick="shOpenKind('${k}','${c}')"><i class="st2-goods art" data-art="1"><b class="st2-emo">${ic}</b></i><b class="st2-tag">${esc(n)}</b></button>`).join('')}</div><div class="st2-plank"></div>`).join('');
+        closeModal('shelfModal'); if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); }
+        openModal('shelfCornerModal');
+    }
+    function shBack() {                                                        // 창의 ← : 💻 가게 안 = 창만 닫기 (코너 그대로) · 코너에서 왔으면 코너 · 아니면 기본상품 샵
+        if (window.shopSceneOn && shopSceneOn()) { shZoomOff(); closeModal('shelfKindModal'); return; }
+        if (SH.corner && shCatList(SH.kind) && SH.corner === SH.kind) { shCorner(SH.kind); return; }
+        openShelf();
+    }
     /* 😀 이모지 글자 묶음 → [[묶음 이름, [글자…]], …] · 🏷 이름표 아이콘 고르기가 써요 (js/desk.js) */
     const EMO_CATS = [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']];
     let emoCatsP = null;
@@ -1107,9 +1136,7 @@
     function shDraw(k) {
         const box = bq('shkWrap'), items = SH.items; if (!box) return;
         if (!items.length) { box.innerHTML = bkMsg('아직 진열된 스티커가 없어요.'); return; }
-        const cats = SH_CATS[k];
-        if (cats && !cats.some(c => c[0] === SH.cat)) SH.cat = cats[0][0];
-        const tabs = cats ? `<div class="ab-tabs sm sh-cats${cats.length > 3 ? ' many' : ''}" style="--n:${cats.length}">${cats.map(c => { const [ic, ...nm] = c[1].split(' '); return `<button type="button" class="${c[0] === SH.cat ? 'on' : ''}" onclick="shCat('${c[0]}')">${cats.length > 3 ? `<b>${ic}</b><small>${nm.join(' ')}</small>` : c[1]}</button>`; }).join('')}</div>` : '';
+        const cats = shCatList(k);                                             // 칸 탭 없음 = 코너에서 고른 칸만 (도련 11-04)
         const list = items.map((x, i) => [x, i]).filter(([x]) => !cats || shCatOf(k, x) === SH.cat);
         const cols = SH_COLS, per = cols * SH_ROWS;
         const pages = Math.max(1, Math.ceil(list.length / per));
@@ -1117,7 +1144,7 @@
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
         const arw = (d, on, lb) => `<button type="button" class="sh-arw ${d < 0 ? 'l' : 'r'}" aria-label="${lb}" onclick="shPage(${d})"${on ? '' : ' disabled'}><svg viewBox="0 0 40 54" aria-hidden="true"><path d="M30 5 L7 27 L30 49 Q35 51 35 45 L35 9 Q35 3 30 5Z"/><path class="hl" d="M27 13 L15 25"/></svg></button>`;
         const nav = pages > 1 ? arw(-1, SH.pg > 0, '앞 쪽') + arw(1, SH.pg < pages - 1, '다음 쪽') + `<div class="sh-pgno">${SH.pg + 1} / ${pages}</div>` : '';   // ◀ ▶ 창 양옆 · 쪽 번호는 아래 가운데 (도련 10-28 시안)
-        box.innerHTML = `<div class="sh-case">${tabs}${shTip(k)}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>${nav}`;   // 🎀 레이스 창 (도련 10-28 시안 · 테두리는 shkFrame)
+        box.innerHTML = `<div class="sh-case">${shTip(k)}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>${nav}`;   // 🎀 레이스 창 (도련 10-28 시안 · 테두리는 shkFrame)
         shFit(box);
         shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리
     }
@@ -1133,7 +1160,6 @@
             h = Math.max(64, h - Math.ceil(over / SH_ROWS) - 1); set();
         }
     }
-    function shCat(c) { SH.cat = c; SH.pg = 0; shDraw(SH.kind); }
     function shPage(d) { SH.pg = (SH.pg || 0) + d; shDraw(SH.kind); const box = bq('shkWrap'); if (box) box.scrollTop = 0; }
     function shPreload(list) {
         const seen = SH.pre || (SH.pre = new Set());
@@ -1612,7 +1638,7 @@
     })();
     /* 📦 기본상품 샵 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
     (function objMovable() {
-        const go = () => ['shelfModal', 'shelfKindModal'].forEach(id => {
+        const go = () => ['shelfModal', 'shelfCornerModal', 'shelfKindModal'].forEach(id => {
             const w = document.querySelector('#' + id + ' > .obj-win'); if (!w || w.dataset.mv) return; w.dataset.mv = 1;
             let d = null, swallow = false;
             w.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('.mt-x, .modal-title, .sh-zoom')) return; d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId }; });   // 제목 줄은 js/skins.js 가 옮겨요 (두 번 안 움직이게) · 확대 창 안은 끌기 X
@@ -1654,5 +1680,5 @@
         load: async force => bkFree(window.ownOpen ? await ownOpen(force) : { list: await ownList(force), album: { bd: [], rl: [] } })
     };
     window.openBasket = openBasket; window.bkOpenKind = bkOpenKind; window.bkReopen = bkReopen; window.bkRender = bkRender; window.bkOpenSheet = bkOpenSheet;
-    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shCat = shCat; window.shTake = shTake;
+    window.openShelf = openShelf; window.shOpenKind = shOpenKind; window.shCorner = shCorner; window.shBack = shBack; window.shCatList = shCatList; window.shZoom = shZoom; window.shZoomOff = shZoomOff; window.shToolKind = shToolKind; window.shGoSee = shGoSee; window.shPage = shPage; window.shTake = shTake;
 })();
