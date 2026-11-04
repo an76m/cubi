@@ -4075,9 +4075,6 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .obj-win.moving { cursor: grabbing; }
 #shelfModal .obj-win .mt-x, #shelfCornerModal .obj-win .mt-x { position: static; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; box-shadow: 0 2px 4px rgba(120, 60, 80, .2); }
 #shelfModal .obj-win .mt-text, #shelfCornerModal .obj-win .mt-text, #shelfModal .obj-win .mt-back, #shelfCornerModal .obj-win .mt-back { display: none; }
-.sh-back { position: absolute; left: 6px; top: 8px; z-index: 7; padding: 5px 12px; border-radius: 999px; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font: inherit; font-size: 13px; font-weight: 900; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 6px rgba(150, 70, 100, .2); }   /* ‹ 뒤로 (🏪 코너 · 도련 11-04) */
-.sh-back:active { translate: 0 1px; }
-.sh-back.shc { left: -8px; top: -14px; }
 #shelfModal .obj-win > .modal-title.mt-bar, #shelfCornerModal .obj-win > .modal-title.mt-bar { position: absolute; right: -12px; top: -18px; z-index: 6; margin: 0; padding: 0; width: auto; height: auto; }   /* ✕ 만 물건 오른쪽 위 모서리에 */
 .obj-feet { display: flex; justify-content: space-between; padding: 0 22px; }
 .obj-feet i { width: 22px; height: 10px; margin-top: -1px; border-radius: 0 0 7px 7px; background: #f2a9c0; box-shadow: inset 0 0 0 1.5px #7b5a63; }

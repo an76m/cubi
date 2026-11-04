@@ -2206,7 +2206,7 @@
            노트 · 바인더 = 기본 칸 없음 · 내가만든 (➕ 만들기 + 만든 것 · js/dymaker.js · 10-18 확정) · 공유받은 · 이벤트 · 문구점은 든 게 생기면
            규격 6종은 DY_TYPES 에 그대로 (나중에 문구점 바탕) */
         const DY_ICON = { '다이어리': '📔', '노트': '📓', '바인더': '🗂️' };
-        const DY_KNAME = { '다이어리': '다이어리', '노트': '만년형 노트', '바인더': '만년형 바인더' };   // 다꾸러에게 보이는 이름 (페이지형 = 만년형 · 도련 11-04)
+        const DY_KNAME = { '다이어리': '다이어리', '노트': '페이지노트', '바인더': '페이지바인더' };   // 다꾸러에게 보이는 이름 (도련 11-04 : 현실 이름 페이지노트 · 페이지바인더 · 만년형은 다꾸용 아님 · 도련 11-04)
         const DY_COLORS = [];                                                  // 🧁 다이어리 색 (js/app.js · 서버 + 📦 사본 · 숨긴 색 빼고)
         const dyColorsPick = () => { DY_COLORS.length = 0; DIARY_COLORS.filter(c => !c[2]).forEach(c => DY_COLORS.push([c[0], c[1]])); };
         dyColorsPick(); if (window.prodHook) prodHook(dyColorsPick);
