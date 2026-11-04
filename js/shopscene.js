@@ -20,7 +20,7 @@
         const SHOP_WAY_IC = { gd: '✂️', tool: '📔' };                            // 🪑 = basket.js stkArt('desk')
         /* 🏪 코너 (도련 11-04 : 문을 열면 스티커 코너 · 옆으로 다이어리 · 문구 · 책상소품 코너 = 현실 가게처럼 구경) : 코너 그림 위에 칸(js/basket.js shCatList)마다 아이콘 · 왼쪽 위 ‹ 스티커 코너
            그림마다 위 가운데 구름 간판 = 코너 이름 (글씨는 앱이 써요 · sign = 간판 안쪽 [가운데 x, y, 폭, 높이] 그림 px) · 자리 = 그림 px · 표에 없는 새 칸은 아래 줄에 차례로 놓고 콘솔에 알려요 */
-        const SHOP_MAIN = { n: '스티커 코너', img: 'img/shop-inside.webp?v=20261009-1132', W: 1670, H: 942, sign: [846, 98, 215, 80] };
+        const SHOP_MAIN = { n: '스티커 코너', img: 'img/shop-inside.webp?v=20261009-1137', W: 1670, H: 942, sign: [846, 98, 215, 80] };
         const SHOP_CORNERS = {
             tool: { n: '다이어리 코너', img: 'img/shop-diary.webp?v=20261009-1136', W: 1670, H: 942, sign: [842, 132, 250, 100], at: { dyb: [620, 450], dyn: [965, 450], bd: [570, 615], rl: [1075, 615] } },
             gd: { n: '문구 코너', img: 'img/shop-gd.webp?v=20261009-1136', W: 1670, H: 942, sign: [848, 122, 230, 90],
