@@ -216,10 +216,9 @@
                 const L = await sbStarterTapes(), ds = await Promise.all(L.map(t => t.take().catch(e => { console.warn('🎁 처음 선물 테이프', t.id, e); return null; })));   // 무늬는 한꺼번에 (빨라요)
                 const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d }).filter(Boolean);
                 if (window.dktStarterShow) dktStarterShow(its);                     // 👀 보이는 것부터 : 정리함에 바로 (도련 11-04)
-                for (const it of its) {                                               // 💾 드라이브 저장은 뒤에서 하나씩
-                    try { const sid = await ownTake(it.d); if (sid && window.dktStarterReal) dktStarterReal(it.tmp, sid); else if (window.dktStarterDrop) dktStarterDrop(it.tmp); }
-                    catch (e) { console.warn('🎁 처음 선물 테이프', e); if (window.dktStarterDrop) dktStarterDrop(it.tmp); }
-                }
+                let ids = [];                                                         // 💾 드라이브 저장은 뒤에서 한 번에 (종이 파일 동시에 · 목록 한 번 · 도련 11-04)
+                try { ids = window.ownTakeMany ? await ownTakeMany(its.map(it => it.d)) : []; } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
+                its.forEach((it, i) => { if (ids[i] && window.dktStarterReal) dktStarterReal(it.tmp, ids[i]); else if (window.dktStarterDrop) dktStarterDrop(it.tmp); });
             } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
         }
         function dkStarterLinks() {

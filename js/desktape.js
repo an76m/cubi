@@ -8,7 +8,7 @@
    - 저장 : 'diary_desk_tape' { 소품 u: [칸마다 테이프 id | null] } (게스트 'malang_desk_tape') */
 (function () {
     const DKT_KEY = 'diary_desk_tape', DKT_L = 'malang_desk_tape';
-    const T = { list: null, loading: false, drag: null, fresh: false, tmp: new Map(), ov: {} };   // ov = { 정리함 u: [칸마다 임시 롤 id] } (저장 전 · 화면에만)   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
+    const T = { list: null, loading: false, drag: null, fresh: false, tmp: new Map(), ov: {}, wait: new Map() };   // wait = 임시 롤을 누르고 기다리는 중 (tmp → [ok])   // ov = { 정리함 u: [칸마다 임시 롤 id] } (저장 전 · 화면에만)   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
     const desk = () => document.documentElement.classList.contains('desk-on');
     const read = () => { const v = typeof prefGet === 'function' ? prefGet(DKT_KEY, DKT_L) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
     const write = v => { if (typeof prefSet === 'function') prefSet(DKT_KEY, DKT_L, v); };
@@ -98,7 +98,12 @@
         return null;
     }
     async function use(id, b) {
-        if (String(id).startsWith('tmp-')) { if (window.showMsg) showMsg('🎀 테이프를 내 서랍에 넣는 중이에요. 잠깐만요!'); return; }                                               // 🎀 톡 = 다이어리를 펴고 롤을 페이지 위에 꺼내요 → 롤에서 끌어 뽑아 붙여요 (예전 바구니에서 꺼낸 롤과 같게 · 도련 11-03)
+        if (String(id).startsWith('tmp-')) {                                  // 🎁 저장 중인 처음 선물 롤 = 저장이 끝나면 바로 꺼내요 (메시지 없이 · 도련 11-04)
+            if (b) { b.classList.remove('dkt-pick'); void b.offsetWidth; b.classList.add('dkt-pick'); }
+            const real = await new Promise(ok => { const w = T.wait.get(id) || []; w.push(ok); T.wait.set(id, w); setTimeout(() => ok(null), 30000); });
+            if (!real) { if (window.showMsg) showMsg('⚠ 테이프를 아직 못 받았어요.<br><small>인터넷 연결을 확인해 주세요</small>'); return; }
+            id = real; b = null;
+        }                                               // 🎀 톡 = 다이어리를 펴고 롤을 페이지 위에 꺼내요 → 롤에서 끌어 뽑아 붙여요 (예전 바구니에서 꺼낸 롤과 같게 · 도련 11-03)
         if (b) { b.classList.remove('dkt-pick'); void b.offsetWidth; b.classList.add('dkt-pick'); }
         if (!window.dkwReady || !await dkwReady()) return;
         const cv = document.getElementById('canvasArea'), r0 = cv ? cv.getBoundingClientRect() : null, r = r0 && window.dyVisRect ? dyVisRect(r0) : r0;
@@ -156,11 +161,11 @@
     };
     window.dktStarterReal = (tmp, sid) => {
         const e = T.tmp.get(tmp); if (e) T.tmp.set(sid, Object.assign({}, e, { id: sid }));   // 목록에 들어올 때까지 같은 모습
-        T.tmp.delete(tmp);
+        T.tmp.delete(tmp); (T.wait.get(tmp) || []).forEach(ok => ok(sid)); T.wait.delete(tmp);   // 누르고 기다리던 롤 = 이제 꺼내요
         for (const u in T.ov) { const i = T.ov[u].indexOf(tmp); if (i < 0) continue; T.ov[u][i] = null; const M = read(), cur = (M[u] || []).slice(); while (cur.length <= i) cur.push(null); if (!cur[i]) { cur[i] = sid; M[u] = cur; write(M); } }
         paint();
     };
-    window.dktStarterDrop = tmp => { T.tmp.delete(tmp); for (const u in T.ov) { const i = T.ov[u].indexOf(tmp); if (i >= 0) T.ov[u][i] = null; } paint(); };
+    window.dktStarterDrop = tmp => { T.tmp.delete(tmp); (T.wait.get(tmp) || []).forEach(ok => ok(null)); T.wait.delete(tmp); for (const u in T.ov) { const i = T.ov[u].indexOf(tmp); if (i >= 0) T.ov[u][i] = null; } paint(); };
     window.dktStarter = ids => {
         const M = read(); let n = 0;
         document.querySelectorAll('#deskStage .desk-item').forEach(el => {

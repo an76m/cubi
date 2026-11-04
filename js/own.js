@@ -302,8 +302,34 @@
 
         /* ---------- ➕ 새 종이 넣기 (받기 · 만들기 · 나중에 사기) ----------
            sheet : { k, from, nm, ts, baked, imgs, wh } · meta : { us (kit 그림 주소) · th (작은 그림) } → id */
-        async function ownAdd(sheet, meta) {
+        /* 📦 여러 장을 한 번에 (도련 11-04 · 처음 선물 테이프 10롤 = 하나씩이면 드라이브 30번 · 10초 넘게) : 종이 파일은 동시에 만들고 · 목록은 한 번만 읽고 써요 → [id …] */
+        async function ownAddMany(items) {
             ownReady();
+            const built = items.map(([sheet, meta]) => ownBuild(sheet, meta));
+            return ownSerial(async () => {
+                const one = b => ownFileNew(b.full).catch(e => { console.warn('📦 종이 만들기', e); return ''; });
+                const f0 = built.length ? await one(built[0]) : '';                   // 첫 장 = 종류 폴더를 만들어요 (동시에 만들면 폴더가 둘 생겨요)
+                const fs = [f0].concat(await Promise.all(built.slice(1).map(one))).slice(0, built.length);
+                const ok = built.filter((b, i) => { b.ent.f = fs[i]; return !!fs[i]; });
+                try {
+                    const list = await ownIdxRead(), have = new Set(ok.map(b => b.ent.id));
+                    const out = list.filter(x => !have.has(x.id)).concat(ok.map(b => b.ent));
+                    await ownIdxWrite(out);
+                    O.idx = out.filter(ownAlive); O.idxAt = performance.now();
+                } catch (e) { ok.forEach(b => ownFileKill(b.ent.f).catch(() => {})); throw e; }
+                ownTell();
+                return built.map(b => b.ent.f ? b.id : null);
+            });
+        }
+        async function ownTakeMany(ds) {                                         // ownTake 여러 장 (같은 모양)
+            const items = [];
+            for (const d of ds) {
+                const imgs = (d.imgs || []).slice(), th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));
+                items.push([{ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b }, Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {})]);
+            }
+            return ownAddMany(items);
+        }
+        function ownBuild(sheet, meta) {                                         // 종이 · 목록 한 칸 만들기 (저장 전)
             const id = ownRid(), imgs = sheet.imgs.slice(0, 150);   // 시트 하나 = 그림 150장까지 (elements.js KIT_MAX 와 같게 · 도련 11-04)
             const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'kit', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
             const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? { r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) } : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
@@ -317,7 +343,12 @@
             if (L) ent.L = L;                                                     // 바구니 카드도 배치 그대로
             if (meta && meta.th) ent.th = meta.th;
             if (sheet.b) ent.b = sheet.b;                                         // 들어갈 바구니 (😀 이모지는 씰이지만 이모지 바구니로)
-            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg, w: sheet.x.w, h: sheet.x.h, tc: sheet.x.tc };   // 바구니 모양 (떡메 종류 · 속지 무늬 · 메모지 모양)
+            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg, w: sheet.x.w, h: sheet.x.h, tc: sheet.x.tc };
+            return { id, full, ent };
+        }
+        async function ownAdd(sheet, meta) {
+            ownReady();
+            const { id, full, ent } = ownBuild(sheet, meta);
             return ownSerial(async () => {
                 ent.f = await ownFileNew(full);
                 try {
@@ -703,6 +734,6 @@
         };
         window.ownDiscard = ownDiscard;
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
-        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
+        window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
         window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
