@@ -1508,10 +1508,10 @@
         if (!P.cut) {
             P.cut = document.createElement('button'); P.cut.type = 'button'; P.cut.className = 'dsk-cut'; P.cut.textContent = '✂'; P.cut.title = '여기서 잘라 붙여요';
             P.cut.addEventListener('pointerdown', ev => ev.stopPropagation());
-            P.cut.addEventListener('click', ev => { ev.stopPropagation(); const d = P.d; if (d.pull !== P) return; const at = { x1: P.cx, y1: P.cy, x2: P.x, y2: P.y }; dsRewind(d); DS.tape = at; dsUse(d); });
+            P.cut.addEventListener('click', ev => { ev.stopPropagation(); const d = P.d; if (d.pull !== P) return; const r = P.cr || 0; if (P.L - r < 20 * P.k) { showMsg('🎀 조금 더 뽑아 주세요'); return; } const at = { x1: P.cx + Math.cos(P.a) * r, y1: P.cy + Math.sin(P.a) * r, x2: P.x, y2: P.y }; dsRewind(d); DS.tape = at; dsUse(d); });   // ✂ 자리 = 자르는 곳 (도련 11-04 : 롤 밑에 숨은 만큼 길어졌어요 · 보이는 만큼만)
             P.d.el.parentNode.appendChild(P.cut);
         }
-        const R0 = P.roll.getBoundingClientRect().width / 2 + 22, r = Math.min(P.L, R0);
+        const R0 = P.roll.getBoundingClientRect().width / 2 + 22, r = Math.min(P.L, R0); P.cr = r;
         P.cut.style.left = (P.cx + Math.cos(P.a) * r) + 'px'; P.cut.style.top = (P.cy + Math.sin(P.a) * r) + 'px'; P.cut.style.zIndex = (+P.d.el.style.zIndex || 1) + 1;
         P.cut.hidden = false;
     }
