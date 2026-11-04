@@ -290,41 +290,27 @@
             el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); setTimeout(() => el.classList.remove('need'), 2600);
             dkwDeskSoon();
         }
-        /* ---------- ↩ 꺼낸 문구 정리 (도련 11-03 · 💻 📲 책상 · 현실처럼 : 마음대로 꺼내고 골라서 치워요) ----------
-           페이지에 꺼낸 문구(필기구 여럿 · 핀셋 · 가위 · 칼 · 자 · 집게 · 펀칭기 · 양면테이프)가 있으면 다이어리 아래 책상 위에 '↩ 꺼낸 문구 정리' 버튼
-           버튼 톡 = 봉투 속처럼 아래에 카드 줄 → 카드 톡 = 그 문구만 제자리로 (펜꽂이 ♥ = 펜꽂이 · 나머지 = 문구함 서랍) · '모두 정리'
+        /* ---------- ↩ 꺼낸 문구 정리 (도련 11-03 · 11-05 : 버튼 없이 바로) ----------
+           페이지에 꺼낸 문구(필기구 여럿 · 핀셋 · 가위 · 칼 · 자 · 집게 · 펀칭기 · 양면테이프)가 있으면 화면 아래 가운데에 그 문구 그림 줄이 바로 보여요
+           그림 오른쪽 위 ✕ = 닫는다는 표시 · 그림(또는 ✕) 톡 = 그 문구만 제자리로 (펜꽂이 ♥ = 펜꽂이 · 나머지 = 문구함 서랍)
            📎 종이에 꽂아 둔 집게는 꾸밈이라 빼요 · 앱을 다시 켜면 꺼낸 문구가 없어요 (저장하지 않아요) */
         const dkwOutAll = () => dkwPenOut().concat(GD_CAB.flatMap(([g]) => dkwOwnOf([g])).filter(id => cabIsOn(id) && !(gdEl(id) && gdEl(id).classList.contains('edge'))));
         const dkwHomeOf = id => dkwIsPen(id) || (dkwCanCup(id) && dkwCupTools().includes(id)) ? (dkwItemEl(dkwCupU()) ? 'cup' : 'tray') : 'tray';
         const dkwOutName = id => dkwIsPen(id) ? ((pkAll().find(x => x.id === id) || {}).name || '필기구') : dkwName(id);
-        /* 자리 = 화면 아래 가운데에 고정 (도련 11-03 · 다이어리를 따라다니지 않아요 · css .dkw-backbtn · .dkw-strip) */
-        function dkwBackSpot(el) { el.classList.remove('side'); el.style.left = el.style.top = el.style.transform = ''; }
-        function dkwBackPaint() {                                                 // 버튼 (다이어리 아래 책상 위 · 종이를 가리지 않게)
-            let b = dkwq('dkwBackBtn');
+        function dkwBackPaint() {                                                 // 화면 아래 가운데 고정 (css .dkw-strip · 다이어리를 따라다니지 않아요)
             const on = dkwDesk() && typeof isCoverOpen !== 'undefined' && isCoverOpen && document.documentElement.classList.contains('desk-show');
             const out = on ? dkwOutAll() : [], p = dkwq('dkwBackPn');
-            if (!out.length) { if (b) b.hidden = true; if (p && !p.hidden) p.hidden = true; return; }
-            if (!b) { b = document.createElement('button'); b.type = 'button'; b.id = 'dkwBackBtn'; b.className = 'dkw-backbtn'; b.onclick = () => dkwBackOpen(); document.body.appendChild(b); }
-            const t = `<i>↩</i><span>꺼낸 문구 정리</span><b>${out.length}</b>`; if (b.innerHTML !== t) b.innerHTML = t;
-            b.title = '꺼낸 문구를 펜꽂이 · 문구함에 다시 넣어요';
-            if (p && !p.hidden) { b.hidden = true; if (p.dataset.sig !== out.join(',')) dkwBackOpen(true); else dkwBackSpot(p, p.offsetWidth, p.offsetHeight); return; }   // offsetWidth = 줄이기 전 크기   // 목록이 열리면 그 자리에 목록만
-            b.hidden = false; b.classList.remove('side');
-            dkwBackSpot(b, b.offsetWidth, b.offsetHeight);
+            if (!out.length) { if (p && !p.hidden) p.hidden = true; return; }
+            if (!p || p.hidden || p.dataset.sig !== out.join(',')) dkwBackOpen();
         }
-        function dkwBackOpen(keep) {                                              // 버튼 자리에 작은 목록 줄 (그림만 · 글씨 없이 · 도련 11-03)
+        function dkwBackOpen() {                                                  // 그림 줄 (글씨 없이 · 그림마다 ✕)
             let p = dkwq('dkwBackPn');
             const out = dkwOutAll(); if (!out.length) { if (p) p.hidden = true; return; }
             if (!p) { p = document.createElement('div'); p.id = 'dkwBackPn'; p.className = 'dkw-strip'; document.body.appendChild(p); p.addEventListener('pointerdown', e => e.stopPropagation()); }
             p.dataset.sig = out.join(',');
-            p.innerHTML = out.map(id => `<button type="button" class="dkw-out" data-id="${htmlEsc(id)}" title="${htmlEsc(dkwOutName(id))} → ${dkwHomeOf(id) === 'cup' ? '펜꽂이' : '문구함'}">${dkGdIc({ k: 'gd', gid: id }) || '<i>✂️</i>'}</button>`).join('')
-                + `<button type="button" class="dkw-all" title="모두 제자리로" aria-label="모두 제자리로">↩</button><button type="button" class="dkw-sx" aria-label="닫기">✕</button>`;
-            p.querySelector('.dkw-sx').onclick = () => { p.hidden = true; dkwBackPaint(); };
-            p.querySelector('.dkw-all').onclick = () => { const at = p.getBoundingClientRect(); dkwOutAll().forEach(id => dkwBackOne(id, true)); p.hidden = true; dkwSay('↩ 꺼낸 문구를 모두 제자리에 두었어요', { getBoundingClientRect: () => at }); dkwBackPaint(); };
-            p.querySelectorAll('.dkw-out').forEach(c => c.onclick = () => { const id = c.dataset.id, h = dkwHomeOf(id), at = c.getBoundingClientRect(); dkwBackOne(id); dkwSay(h === 'cup' ? `✏️ ${dkwOutName(id)} → 펜꽂이` : `🗄️ ${dkwOutName(id)} → 문구함 서랍`, { getBoundingClientRect: () => at }); setTimeout(() => { if (dkwOutAll().length) dkwBackOpen(true); dkwBackPaint(); }, 0); });
-            p.hidden = false; p.classList.remove('side'); p.style.transform = '';
-            const bt = dkwq('dkwBackBtn'); if (bt) bt.hidden = true;
-            dkwBackSpot(p, p.offsetWidth, p.offsetHeight);
-            if (p.classList.contains('side')) dkwBackSpot(p, p.offsetWidth, p.offsetHeight);   // 세로로 바뀐 크기로 한 번 더
+            p.innerHTML = out.map(id => `<button type="button" class="dkw-out" data-id="${htmlEsc(id)}" title="${htmlEsc(dkwOutName(id))} → ${dkwHomeOf(id) === 'cup' ? '펜꽂이' : '문구함'}" aria-label="${htmlEsc(dkwOutName(id))} 제자리로">${dkGdIc({ k: 'gd', gid: id }) || '<i>✂️</i>'}<span class="dkw-x" aria-hidden="true">✕</span></button>`).join('');
+            p.querySelectorAll('.dkw-out').forEach(c => c.onclick = () => { const id = c.dataset.id, h = dkwHomeOf(id), at = c.getBoundingClientRect(); dkwBackOne(id); dkwSay(h === 'cup' ? `✏️ ${dkwOutName(id)} → 펜꽂이` : `🗄️ ${dkwOutName(id)} → 문구함 서랍`, { getBoundingClientRect: () => at }); setTimeout(dkwBackPaint, 0); });
+            p.hidden = false;
         }
         function dkwBackOne(id, quiet) {                                           // 그 문구만 제자리로 (페이지에서 치워요)
             if (dkwIsPen(id)) { if (window.pcReturn) pcReturn(id); }
