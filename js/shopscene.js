@@ -7,7 +7,7 @@
    - 🚪 이동 (오른쪽 위 · 도련 10-31) → 이동 창 (js/desk.js deskMoveOpen) 의 🚪 내 방 = 내 방 문(img/room-door.webp)을 지나 책상으로 (도련 10-30) · ▤ 하단 메뉴 화면에서는 예전처럼 기본상품 샵 창 (js/basket.js openShelf)
    - 💻 PC · 아이패드만 (도련 10-27 · html.desk-on = 화면 짧은 쪽 600px 이상 + 🪑 책상 화면) · 📱 폰 · 하단 메뉴 화면은 늘 예전 기본상품 샵 창 · 가게 안에서 화면이 좁아지면 가게를 닫고 기본상품 샵 창으로 */
 
-        const SHOP_W = 1672, SHOP_H = 941, DOOR_W = 1672, DOOR_H = 941;
+        const DOOR_W = 1672, DOOR_H = 941;
         const SHOP_SIGN = { cx: 835, cy: 431, w: 393, h: 148 };                   // 문 알림판 안쪽 (그림 px · 10-28 새 그림)
         const SHOP_SPOTS = [                                                      // [종류, 이름, x, y] 가게 그림 px (진열대마다)
             ['seal', '씰스티커', 640, 690], ['piece', '조각스티커', 850, 690], ['paper', '모조지스티커', 1060, 690],
@@ -17,13 +17,14 @@
         ];   // 📔 다이어리 · ✂️ 문구용품 · 🪑 책상소품 = 그 코너로 · 그 밖 = 그 상품 창 ('종류:칸' = 그 칸만)
         const SHOP_ICON = { gd: '✂️', 'bg:solid': '🎨', 'bg:pat': '☁️', season: '🌸' };   // 🪑 책상소품 = basket.js stkArt('desk') 그림 (도련 11-04)
         /* 🏪 코너 (도련 11-04 : 문을 열면 스티커 코너 · 옆으로 다이어리 · 문구 · 책상소품 코너 = 현실 가게처럼 구경) : 코너 그림 위에 칸(js/basket.js shCatList)마다 아이콘 · 왼쪽 위 ‹ 스티커 코너
-           ⚠ 코너 그림 3장은 도련이 만드는 중 → 지금은 가게 안 그림을 같이 써요 (그림이 오면 img · 자리만 바꿔요) · 자리 = 그림 px · 표에 없는 새 칸은 아래 줄에 차례로 놓고 콘솔에 알려요 */
+           그림마다 위 가운데 구름 간판 = 코너 이름 (글씨는 앱이 써요 · sign = 간판 안쪽 [가운데 x, y, 폭, 높이] 그림 px) · 자리 = 그림 px · 표에 없는 새 칸은 아래 줄에 차례로 놓고 콘솔에 알려요 */
+        const SHOP_MAIN = { n: '스티커 코너', img: 'img/shop-inside.webp?v=20261009-1132', W: 1670, H: 942, sign: [846, 98, 215, 80] };
         const SHOP_CORNERS = {
-            tool: { n: '📔 다이어리 코너', img: 'img/shop-inside.webp?v=20261009-815', at: { dy: [430, 330], bd: [835, 330], rl: [1235, 330] } },
-            gd: { n: '✂️ 문구 코너', img: 'img/shop-inside.webp?v=20261009-815', at: { tweez: [300, 300], clip: [520, 300], punch: [760, 300], tape: [1000, 300], scissors: [1240, 300], knife: [1440, 300], ruler: [430, 560], pen: [835, 560] } },
-            desk: { n: '🪑 책상소품 코너', img: 'img/shop-inside.webp?v=20261009-815', at: { desk: [430, 330], wall: [1235, 330], wallpaper: [640, 650], desktop: [1060, 650] } }
+            tool: { n: '다이어리 코너', img: 'img/shop-diary.webp?v=20261009-1132', W: 1670, H: 942, sign: [842, 132, 250, 100], at: { dy: [800, 450], bd: [570, 610], rl: [1075, 610] } },
+            gd: { n: '문구 코너', img: 'img/shop-gd.webp?v=20261009-1132', W: 1670, H: 942, sign: [848, 122, 230, 90],
+                at: { pen: [430, 300], knife: [740, 300], tweez: [1000, 300], clip: [1300, 300], tape: [430, 600], scissors: [760, 600], punch: [1060, 600], ruler: [1270, 600] } },
+            desk: { n: '책상소품 코너', img: 'img/shop-desk.webp?v=20261009-1132', W: 1670, H: 942, sign: [838, 118, 230, 90], at: { desk: [680, 290], wall: [1490, 410], wallpaper: [300, 150], desktop: [840, 630] } }
         };
-        const SHOP_MAIN_IMG = 'img/shop-inside.webp?v=20261009-815';
         const HOME_SIGN = { cx: 836, cy: 490, w: 420, h: 200 };                   // 🚪 내 방 문 타원 판 안쪽 (img/room-door.webp px · 도련 10-30)
         const SC = { on: false, busy: false, corner: '', spots: [] };
 
@@ -31,8 +32,8 @@
         function shopBuild() {
             let el = document.getElementById('shopScene'); if (el) return el;
             el = document.createElement('div'); el.id = 'shopScene'; el.className = 'shop-scene';
-            el.innerHTML = `<div class="shop-in"><img class="shop-room" src="${SHOP_MAIN_IMG}" alt="" draggable="false"><div class="shop-spots"></div></div>
-                <button type="button" class="shop-back" onclick="shopCorner('')">‹ 스티커 코너</button><div class="shop-ttl"></div>
+            el.innerHTML = `<div class="shop-in"><img class="shop-room" src="${SHOP_MAIN.img}" alt="" draggable="false"><div class="shop-cs"><b></b></div><div class="shop-spots"></div></div>
+                <button type="button" class="shop-back" onclick="shopCorner('')">‹ 스티커 코너</button>
                 <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
                 <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
@@ -51,8 +52,8 @@
                 SC.spots = SHOP_SPOTS.filter(s => s[0] !== 'season' || season).map(([k, n, x, y]) => [k, n, x, y, SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')]);
             }
             box.innerHTML = SC.spots.map(([k, n, , , ic]) => `<button type="button" class="shop-spot" data-k="${k}" onclick="shopSpot('${k}')"><i class="shop-ic">${ic}</i><b>${n}</b></button>`).join('');
-            const room = el.querySelector('.shop-room'), src = C ? C.img : SHOP_MAIN_IMG; if (room.getAttribute('src') !== src) room.setAttribute('src', src);
-            el.classList.toggle('corner', !!C); el.querySelector('.shop-ttl').textContent = C ? C.n : '';
+            const room = el.querySelector('.shop-room'), src = (C || SHOP_MAIN).img; if (room.getAttribute('src') !== src) room.setAttribute('src', src);
+            el.classList.toggle('corner', !!C); el.querySelector('.shop-cs b').textContent = (C || SHOP_MAIN).n;   // 🪧 간판 = 코너 이름
         }
         /* 🚶 코너 옮기기 ('' = 스티커 코너 · 입구) : 살짝 어두워졌다 그 코너로 */
         function shopCorner(k) {
@@ -64,8 +65,9 @@
         }
         function shopFit() {
             const el = document.getElementById('shopScene'); if (!el) return;
-            const R = shopCover(SHOP_W, SHOP_H), room = el.querySelector('.shop-room');
-            room.style.width = SHOP_W * R.s + 'px'; room.style.height = SHOP_H * R.s + 'px'; room.style.left = R.x + 'px'; room.style.top = R.y + 'px';
+            const A = SHOP_CORNERS[SC.corner] || SHOP_MAIN, R = shopCover(A.W, A.H), room = el.querySelector('.shop-room'), cs = el.querySelector('.shop-cs');
+            room.style.width = A.W * R.s + 'px'; room.style.height = A.H * R.s + 'px'; room.style.left = R.x + 'px'; room.style.top = R.y + 'px';
+            const [sx, sy, sw, sh] = A.sign; Object.assign(cs.style, { left: R.x + sx * R.s + 'px', top: R.y + sy * R.s + 'px', width: sw * R.s + 'px', height: sh * R.s + 'px', fontSize: Math.min(sh * .44, sw / Math.max(4, cs.textContent.length) * 1.05) * R.s + 'px' });   // 🪧 글씨가 간판 안에 들어가게
             el.querySelectorAll('.shop-spot').forEach(b => {
                 const sp = SC.spots.find(s => s[0] === b.dataset.k); if (!sp) return;
                 const w = b.offsetWidth || 90, h = b.offsetHeight || 60, M = 10;

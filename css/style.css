@@ -4300,11 +4300,12 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .shop-x { position: absolute; right: 14px; top: 14px; z-index: 3; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 3px 10px rgba(150, 70, 100, .25); }
 .shop-scene:not(.inside) .shop-x { opacity: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .shop-spot { animation: none; } }
-/* 🏪 코너 (도련 11-04 · js/shopscene.js shopCorner) : 왼쪽 위 ‹ 스티커 코너 · 가운데 위 코너 이름 · 옮길 때 살짝 어두워졌다가 */
+/* 🏪 코너 (도련 11-04 · js/shopscene.js shopCorner) : 왼쪽 위 ‹ 스티커 코너 · 그림 위 구름 간판 = 코너 이름 (.shop-cs) · 옮길 때 살짝 어두워졌다가 */
+.shop-cs { position: absolute; translate: -50% -50%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.shop-cs b { font-family: 'Jua', 'Gowun Dodum', sans-serif; font-weight: 400; color: #d94f7a; letter-spacing: .04em; line-height: 1; white-space: nowrap; text-shadow: 0 2px 0 #fff, 0 0 8px rgba(255, 255, 255, .9); }
 .shop-back { position: absolute; left: 14px; top: 14px; z-index: 3; padding: 9px 16px; border-radius: 999px; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font: inherit; font-size: 15px; font-weight: 900; white-space: nowrap; cursor: pointer; box-shadow: 0 3px 10px rgba(150, 70, 100, .25); }
 .shop-back:hover { background: #fff0f5; }
-.shop-ttl { position: absolute; left: 50%; top: 16px; z-index: 3; translate: -50% 0; padding: 7px 18px; border-radius: 999px; border: 2px solid #f3b6c9; background: rgba(255, 255, 255, .92); color: #b23f6c; font-size: 15px; font-weight: 900; white-space: nowrap; pointer-events: none; }
-.shop-scene:not(.corner) .shop-back, .shop-scene:not(.corner) .shop-ttl, .shop-scene:not(.inside) .shop-back, .shop-scene:not(.inside) .shop-ttl, .shop-scene.home .shop-back, .shop-scene.home .shop-ttl { display: none; }
+.shop-scene:not(.corner) .shop-back, .shop-scene:not(.inside) .shop-back, .shop-scene.home .shop-back { display: none; }
 .shop-in::after { content: ''; position: absolute; inset: 0; background: #fff4f8; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
 .shop-scene.walk .shop-in::after { opacity: .85; }
 /* 📤 📥 공유 파일 (js/itemshare.js) */
