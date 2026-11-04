@@ -4205,6 +4205,7 @@ body.dg-on #deskShopGo { box-shadow: 3px 3px 0 #e6dcf8, 0 0 0 3px rgba(245, 165,
 .dsk-pull { cursor: grab; touch-action: none; }   /* 🎀 뽑아 둔 테이프 = 끝을 잡고 늘이기 · 되감기 */
 .dsk-cut { position: absolute; translate: -50% -50%; width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid #f39bb8; background: #fff; color: #d94f7a; font-size: 18px; line-height: 1; cursor: pointer; pointer-events: auto; box-shadow: 0 3px 8px rgba(194, 69, 122, .3); animation: dskCut .9s ease-in-out infinite alternate; }
 .dsk-cut[hidden] { display: none; }
+.bk-roll > .dsk-tab { position: absolute; right: -16px; top: 50%; width: 22px; height: 26%; translate: 0 -50%; transform: rotate(-8deg); background-size: auto 100%; background-repeat: repeat-x; border-radius: 0 3px 3px 0; box-shadow: 0 1px 3px rgba(110, 80, 95, .3); cursor: grab; pointer-events: auto; clip-path: polygon(0 0, 100% 0, 88% 25%, 100% 50%, 88% 75%, 100% 100%, 0 100%); }   /* 🎀 롤 끝 = 잡아 뽑는 곳 (도련 11-04) */
 .dsk-x.mid { right: auto; translate: -50% -50%; }   /* 🎀 테이프 롤 ✕ = 롤 가운데 */
 @keyframes dskCut { to { scale: 1.12; } }
 .dsk.big.rest { opacity: .72; transition: opacity .3s; }   /* 🎀 안 쓰는 테이프 롤 = 크기 그대로 · 살짝 흐리게 */

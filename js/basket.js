@@ -1116,7 +1116,7 @@
         seal: '받으면 🧺 바구니에 들어가요 · 씰 종이를 펼쳐 <b>🪡 핀셋</b>으로 하나씩 떼어 붙여요 · 붙인 만큼 줄어요',
         piece: '봉투째 받아요 · 봉투 윗부분 점선을 옆으로 쓱 밀어 뜯으면 조각이 쏟아져요 · <b>🪡 핀셋</b>으로 집어 뒷종이를 벗겨 붙여요',
         paper: '<b>✂️ 가위</b>로 그림 둘레를 한 바퀴 오린 다음 <b>🪡 핀셋</b>으로 떼어 붙여요 · 가위 · 핀셋은 ✏️ 문구 칸에서 받아요',
-        tape: '한 롤씩 받아요 · 롤에서 뽑아 대 보고 ✂ 로 잘라요 · 자른 만큼 롤이 얇아져요 · 붙인 뒤 ↔ 손잡이로 길이를 고쳐요',
+        tape: '한 롤씩 받아요 · 롤 끝을 잡아 뽑아 대 보고 ✂ 로 잘라요 · 자른 만큼 롤이 얇아져요',
         tk: '한 묶음 50장 · 묶음을 톡 = 맨 윗장이 뜯겨 페이지에 붙어요 · 한 장 쓸 때마다 한 장씩 줄어요',
         leaf: '한 장으로 <b>그날 페이지 바탕</b>을 통째로 바꿔요 (줄노트 · 모눈 · 도트 …) · 깔면 그 한 장은 사라져요',
         memo: '한 묶음 50장 · 한 장씩 페이지에 놓고 글을 써요 · 쓴 만큼 줄어요',
@@ -1389,6 +1389,7 @@
         const w = d.el.offsetWidth || 110, h = d.el.offsetHeight || 120;
         d.x = Math.max(w / 2 + 4, Math.min(innerWidth - w / 2 - 4, d.x)); d.y = Math.max(h / 2 + 50, Math.min(innerHeight - h / 2 - 90, d.y));
         d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
+        if (e.k === 'tape' && !d.pull) { const r = d.el.querySelector('.bk-roll'); if (r) { const t = document.createElement('span'); t.className = 'dsk-tab'; t.title = '끝을 잡아 뽑아요'; t.style.backgroundImage = `url("${e.th || ''}")`; r.appendChild(t); } }   // 🎀 롤 끝 (여기를 잡아 뽑아요 · 도련 11-04)
         if (e.k === 'tape') {                                                   // 🎀 ✕ = 롤 가운데 심 위 (도련 11-04 · 멀리 떨어져 있지 않게)
             const x = d.el.querySelector('.dsk-x'), r = d.el.querySelector('.bk-roll');
             if (x && r) { const a = r.getBoundingClientRect(), b = d.el.getBoundingClientRect(), s = b.width ? d.el.offsetWidth / b.width : 1; x.classList.add('mid'); x.style.left = ((a.left - b.left + a.width / 2) * s) + 'px'; x.style.top = ((a.top - b.top + a.height / 2) * s) + 'px'; }   // s = 톡 뜨는 동안 커졌다 작아지는 것 빼기
@@ -1455,24 +1456,24 @@
             ev.preventDefault(); dsFront(d);
             p = { x0: ev.clientX, y0: ev.clientY, dx: d.x - ev.clientX, dy: d.y - ev.clientY, on: false, id: ev.pointerId, onX };
             d.el.classList.remove('rest');
-            if (d.el.classList.contains('big')) { const e = dsEntry(d.id); if (e && e.k === 'tape') {   // 🎀 테이프 롤 : 끌면 = 뽑기 · 꾹 누르고 끌면 = 롤 옮기기 (도련 11-04)
-                p.tape = e; p.lp = setTimeout(() => { if (!p || p.on) return; p.mv = true; dsRewind(d); d.el.classList.add('lift'); if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {} }, 380);
+            if (d.el.classList.contains('big')) { const e = dsEntry(d.id); if (e && e.k === 'tape') {   // 🎀 테이프 롤 : 롤 끝(탭)을 끌면 = 뽑기 · 롤을 끌면 = 옮기기 (뽑아 둔 테이프도 같이 · 도련 11-04)
+                p.tape = e; p.end = !!ev.target.closest('.dsk-tab'); p.mv = !p.end;
             } }
             try { d.el.setPointerCapture(ev.pointerId); } catch (er) {}
         });
         d.el.addEventListener('pointermove', ev => {
             if (!p || ev.pointerId !== p.id) return;
             if (!p.on && Math.hypot(ev.clientX - p.x0, ev.clientY - p.y0) < 7) return;
-            if (p.tape && !p.mv && !p.pull) { clearTimeout(p.lp); if (d.pull) { p.on = true; return; } p.pull = dsPullStart(d, p.tape); }   // 뽑아 둔 테이프가 있으면 = 그 끝을 잡아요
+            if (p.tape && p.end && !p.pull) { if (d.pull) { p.on = true; return; } p.pull = dsPullStart(d, p.tape); }
             if (p.pull) { p.on = true; dsPullMove(p.pull, ev.clientX, ev.clientY); return; }
-            p.on = true; d.el.classList.add('lift'); d.x = ev.clientX + p.dx; d.y = ev.clientY + p.dy;
+            p.on = true; d.el.classList.add('lift'); const ox = d.x, oy = d.y; d.x = ev.clientX + p.dx; d.y = ev.clientY + p.dy; if (d.pull) dsPullShift(d.pull, d.x - ox, d.y - oy);   // 🎀 뽑아 둔 테이프도 롤과 같이
             const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (d.x - w / 2) + 'px'; d.el.style.top = (d.y - h / 2) + 'px';
         });
         const up = ev => {
-            if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift'); clearTimeout(was.lp);
+            if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift');
             if (was.pull) { dsPullEnd(was.pull, ev.type === 'pointerup' && was.on); if (was.on) return; }
             if (ev.type !== 'pointerup') return;
-            if (was.tape) { if (!was.on && !was.mv && was.onX) { dsDrop(d.id); return; } if (!was.on && !was.mv && !d.pull) dsBig(d); return; }   // 🎀 롤 톡 = 아무것도 안 써요 (뽑아서 ✂ 로 잘라요)
+            if (was.tape) { if (!was.on && was.onX) { dsDrop(d.id); return; } if (!was.on && !d.pull) dsBig(d); return; }   // 🎀 롤 톡 = 아무것도 안 써요 (뽑아서 ✂ 로 잘라요)
             if (!was.on) { dsOpen(d); return; }
             if (d.el.classList.contains('big')) dsUse(d);                     // 커진 테이프 · 메모지 · 속지를 끌어 놓으면 = 써요
         };
@@ -1483,7 +1484,7 @@
     function dsBig(d) {
         DS.m.forEach(o => { if (o !== d && o.el.classList.contains('big')) dsSmall(o); });
         d.el.classList.add('big'); d.el.classList.remove('rest'); dsPaint(d); dsFront(d);
-        const e = dsEntry(d.id), say = e && e.k === 'tape' ? '롤에서 끌어 뽑고 ✂ 로 잘라요 · 꾹 누르고 끌면 옮겨요' : '톡 하거나 페이지로 끌어 놓으면 써요';
+        const e = dsEntry(d.id), say = e && e.k === 'tape' ? '끝을 잡아 뽑고 ✂ 로 잘라요 · 롤을 끌면 옮겨요' : '톡 하거나 페이지로 끌어 놓으면 써요';
         if (!d.el.querySelector('.dsk-say')) d.el.insertAdjacentHTML('beforeend', `<span class="dsk-say">${say}</span>`);
     }
     /* 🎀 테이프 뽑아 쓰기 (도련 10-26) : 커진 롤을 잡고 끌면 테이프가 롤에서 풀려 나와 손을 따라와요
@@ -1496,6 +1497,12 @@
         const P = d && d.pull; if (!P) return; d.pull = null;
         P.st.remove(); if (P.cut) P.cut.remove();
         if (P.e.q0) P.roll.style.setProperty('--q', Math.max(0, P.e.q / P.e.q0).toFixed(3));
+        if (DS.m.has(d.id)) dsPaint(d);                                          // 롤 끝(탭) 다시
+    }
+    function dsPullShift(P, dx, dy) {                                         // 🎀 롤을 옮기면 뽑아 둔 테이프도 같이
+        P.cx += dx; P.cy += dy; P.x += dx; P.y += dy; const h = P.st.offsetHeight;
+        P.st.style.left = P.cx + 'px'; P.st.style.top = (P.cy - h / 2) + 'px';
+        if (P.cut && !P.cut.hidden) dsPullCutAt(P);
     }
     function dsPullCutAt(P) {                                                 // ✂ = 롤 입구 바로 옆 (테이프 위)
         if (!P.cut) {
@@ -1538,6 +1545,7 @@
         if (!P) return;
         if (!use || P.L < 20 * P.k) { P.d.pull = P; dsRewind(P.d); return; }
         P.d.pull = P; P.st.style.pointerEvents = 'auto'; dsPullCutAt(P);
+        const tb = P.d.el.querySelector('.dsk-tab'); if (tb) tb.remove();       // 뽑아 둔 동안은 테이프 끝이 탭
     }
     function dsSmall(d) {
         if (!d.el.classList.contains('big')) return;

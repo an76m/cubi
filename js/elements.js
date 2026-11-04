@@ -252,16 +252,10 @@
                 el.appendChild(z);
             });
 
-            /* 🎀 마스킹테이프 (js/tape.js) : ↔ 손잡이로 길이만 늘이고 줄이기 */
+            /* 🎀 마스킹테이프 (js/tape.js) : 자른 테이프는 길이를 못 바꿔요 (도련 11-04 · 현실처럼 = 길이는 롤에서 뽑을 때 · ↔ 손잡이 없앴어요) */
             let stretchHandle = null, initialW = 0;
             const tapeImg = el.querySelector('img');
-            if (tapeImg && typeof isTapeSrc === 'function' && isTapeSrc(tapeImg.dataset.src)) {
-                stretchHandle = document.createElement('div');
-                stretchHandle.className = 'handle stretch-handle';
-                el.classList.add('is-tape');
-                stretchHandle.innerHTML = '↔';
-                el.appendChild(stretchHandle);
-            }
+            if (tapeImg && typeof isTapeSrc === 'function' && isTapeSrc(tapeImg.dataset.src)) el.classList.add('is-tape');
 
             /* 🪶 끌어 옮기기 (맨 위 레이어로 · 놓은 뒤에도 맨 위)
                - 그림 스티커 · 이모지 : 🏷️ 씰스티커처럼 손가락을 따라 가장자리부터 떼어져요 (js/peelfx.js pfxSeal) → 다 떼면 떠서 따라오고, 놓으면 작아지며 붙어요 · 덜 떼고 놓으면 제자리에 다시 붙어요
