@@ -1,5 +1,5 @@
 /* 🪑 책상 모드 문구 (도련 11-02 · js/deskgd.js) : ✏️ 펜꽂이가 다가와요 · 🗄️ 문구함 서랍이 열려요 */
-.dkw-room { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; background: rgba(70, 40, 55, .42); opacity: 0; transition: opacity .2s; font-family: inherit; }
+.dkw-room { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; background: transparent; opacity: 0; transition: opacity .2s; font-family: inherit; }
 .dkw-room.show { opacity: 1; }
 .dkw-room[hidden] { display: none; }
 body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show) .dkw-room { z-index: 1700; }
@@ -68,9 +68,10 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-dfront { height: 62px; margin: 0 10px; background: var(--db); border: 4px solid var(--dk); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; gap: 16px; flex: none; }
 .dkw-lbl { font-size: 13px; font-weight: 900; background: #fff; border: 2px solid var(--dk); color: var(--dk); border-radius: 6px; padding: 2px 10px; }
 .dkw-knob { width: 24px; height: 24px; border-radius: 50%; background: #ffd36b; border: 3px solid var(--dk); }
-.dkw-foot { display: flex; align-items: center; gap: 8px; justify-content: flex-end; padding: 10px 6px 0; flex-wrap: wrap; }
-.dkw-foot > span { flex: 1; min-width: 200px; color: #fff; font-size: 13px; font-weight: 800; text-shadow: 0 1px 3px rgba(60, 30, 40, .7); }
-.dkw-foot > span b { color: #ffd6e2; }
+.dkw-foot { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 10px 6px 0; flex-wrap: wrap; }
+.dkw-foot > span { flex: 0 1 auto; min-width: 0; color: var(--dk, #5a3d4a); font-size: 13px; font-weight: 800; background: #fff; border: 2px solid var(--dk, #8d6f7f); border-radius: 999px; padding: 3px 12px; }   /* 화면을 어둡게 하지 않아서(도련 11-05) 안내는 흰 띠 위에 */
+.dkw-foot > span:empty { display: none; }
+.dkw-foot > span b { color: #c2457a; }
 @media (max-height: 700px) { .dkw-cupart { margin-top: 110px; } .dkw-art { height: 60px; } }
 .dkw-more { position: absolute; left: 18px; right: 18px; bottom: 102px; z-index: 3; height: 54px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; background: linear-gradient(transparent, var(--db) 75%); pointer-events: none; }   /* 아래에 더 있으면 끝을 서랍 색으로 흐리게 + 알림 */
 .dkw-more[hidden] { display: none; }
