@@ -1730,6 +1730,8 @@
         .pel-room { position: fixed; inset: 0; z-index: 1650; display: none; touch-action: none; }
         .pel-room.show { display: block; }
         .pel-room canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+        #pelRoom { pointer-events: none; } #pelRoom > canvas { pointer-events: none; }   /* 🏷️ 씰 떼는 화면 : 종이 자리(.pel-hit)만 손가락을 받아요 · 밖은 페이지 그대로 (도련 11-05) */
+        #pelRoom > .pel-hit { position: absolute; pointer-events: auto; touch-action: none; } #pelRoom > .pel-x { pointer-events: auto; }
         .pel-hint { position: absolute; left: 50%; top: max(14px, env(safe-area-inset-top)); transform: translateX(-50%); margin: 0; width: max-content; max-width: calc(100% - 124px); padding: 8px 14px; border: 1.5px solid var(--border-color); border-radius: 16px; background: rgba(255,255,255,.94); color: #7a5a66; font-size: 13.5px; line-height: 1.35; text-align: center; word-break: keep-all; pointer-events: none; box-shadow: 0 3px 10px rgba(120,80,95,.12); }
         .pel-hint.pop { animation: pelHintPop .22s ease; }
         @keyframes pelHintPop { 50% { transform: translateX(-50%) scale(1.06); } }

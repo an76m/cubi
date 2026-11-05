@@ -2,7 +2,7 @@
    🏷️ 씰스티커 떼어 붙이기 : 내스티커에서 고르거나 만들기에서 📌 붙이기를 누르면 페이지 앞에 스티커가 나와요 (🧩 조각스티커는 봉투 연출 js/piecebag.js)
    - 🏷️ 씰 : 하얀 네모(스티커 종이) 위에 씰이 있어요 → 가장자리를 잡고 떼어 원하는 곳에 놓으면 붙어요
              종이는 배경(화면) 한가운데에 나와요 · 사진고르기로 여러 장을 고르면 한 장의 종이에 씰이 여러 개 붙어 나와요 → 마지막 씰을 떼면 하얀 종이가 사라져요
-             하얀 종이의 빈 곳을 누른 채 끌면 종이째 화면 안에서 옮겨져요 · 종이 바깥 날짜바를 끌면 페이지가 옮겨져요
+             하얀 종이의 빈 곳을 누른 채 끌면 종이째 화면 안에서 옮겨져요 · 종이 바깥은 페이지 그대로 눌려요 (핀셋으로 붙인 스티커 옮기기 · 돌리기 · 날짜바 · 펜꽂이 · 도련 11-05 : 손가락은 #pelHit 만 받아요)
              소리 : 떼어 낼 때 '찌익' 소리만
    - pelBake(src) : 📸 포토부스 사진처럼 네모난 그림 둘레에 하얀 칼선 테두리를 둘러요 (원본 크기 그대로 PNG)
                     ⚙ 설정 '🏷️ 씰 하얀 테두리'가 꺼져 있으면(기본) 테두리 없이 크기만 맞춰요 (js/show.js showOn('die'))
@@ -54,9 +54,9 @@
             if (pelq('pelRoom')) return;
             const el = document.createElement('div');
             el.id = 'pelRoom'; el.className = 'pel-room';
-            el.innerHTML = `<canvas id="pelCv"></canvas><p class="pel-hint" id="pelHint"></p><button type="button" class="pel-x pel-bx" id="pelX" onclick="closeStickerPeel()" aria-label="닫기">✕</button>`;
+            el.innerHTML = `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><p class="pel-hint" id="pelHint"></p><button type="button" class="pel-x pel-bx" id="pelX" onclick="closeStickerPeel()" aria-label="닫기">✕</button>`;
             document.body.appendChild(el);
-            const cv = pelq('pelCv');
+            const cv = pelq('pelHit');                                          // 👆 손가락은 종이 자리(pelHit)만 받아요 · 그 밖은 페이지 그대로 (핀셋으로 붙인 스티커 옮기기 · 돌리기 · 펜꽂이 … · 도련 11-05)
             cv.addEventListener('pointerdown', pelDown); cv.addEventListener('pointermove', pelMove);
             cv.addEventListener('pointerup', pelUp); cv.addEventListener('pointercancel', pelUp);
             window.addEventListener('resize', () => { if (pelS.on) pelLayout(); });
@@ -276,7 +276,19 @@
                 const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));                // 뒷면 → 앞면으로 뒤집혀요
                 pelDraw(ctx, flip < 0 ? a.back : a.front, st, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), PEL_UP);
             }
+            pelHitPlace(bo);
             S.raf = requestAnimationFrame(pelFrame);
+        }
+        /* 👆 손가락 받는 자리 : 🤍 이형지북 · 떼는 중 · 뗀 스티커를 들고 있으면 화면 전체 · 아니면 하얀 종이 (+ 위 ✋ 테이프) · 종이가 사라졌으면 없음 */
+        function pelHitPlace(bo) {
+            const S = pelS, h = pelq('pelHit'); if (!h) return;
+            let r = null;
+            if (S.rel || S.drag || (S.st && S.st.state === 'free')) r = [0, 0, S.W, S.H];
+            else if (bo > 0 && S.board) { const B = S.board, m = PEL_GRAB; r = [B.cx - B.w / 2 - m, B.cy - B.h / 2 - m - 18, B.w + m * 2, B.h + m * 2 + 18]; }
+            const k = r ? r.map(v => Math.round(v)).join() : '';
+            if (h.dataset.r === k) return; h.dataset.r = k;
+            if (!r) { h.style.display = 'none'; return; }
+            h.style.display = ''; h.style.left = r[0] + 'px'; h.style.top = r[1] + 'px'; h.style.width = r[2] + 'px'; h.style.height = r[3] + 'px';
         }
         /* 🎒 뗀 자국 : 스티커가 있던 자리에 살짝 끈적한 흔적만 */
         function pelResidue(ctx, sl, bo) {
@@ -320,7 +332,7 @@
                 const t = pelTape();
                 if (P[0] > t.x - 8 && P[0] < t.x + t.w + 8 && P[1] > t.y - 8 && P[1] < t.y + t.h + 8) {
                     S.drag = { mode: 'board', last: P, lt: performance.now() };
-                    try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
+                    try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
                     pelSay('씰 종이를 옮기는 중… ✋'); return;
                 }
             }
@@ -336,14 +348,14 @@
                 if (!S.rel && window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🤍 이형지북 정리는 핀셋이 늘 들려 있어요 (도련 10-29)   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
                 pelPick(bo); const st = S.st, C = pelToStage(st, bp[0], bp[1]); st.snap = null;
                 S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
-                try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
+                try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
                 pelSay('살살… 천천히 당겨요'); return;
             }
             if (hit) { pelSay('가운데 말고 <b>가장자리</b>를 집어야 떨어져요'); pelWiggle(hit.st); return; }
             const B = S.board;                                                   // 하얀 종이 빈 곳 → 종이 옮기기
             if (B && Math.abs(P[0] - B.cx) <= B.w / 2 && Math.abs(P[1] - B.cy) <= B.h / 2) {
                 S.drag = { mode: 'board', last: P, lt: performance.now() };
-                try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
+                try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
                 return;
             }
             if (S.rel) {                                                         // 🤍 종이 밖 = 그 아래 버튼 (쪽 넘기기 · 다른 종이 고르기 …)
@@ -360,7 +372,7 @@
                 const tt = under && !under.closest('button') && under.closest('.modal-title'), box = tt && tt.closest('.modal-content');
                 if (box) {                                                       // ✋ 창 제목 줄 = 창 옮기기 (떼는 판이 떠 있어도 · 도련 10-25 · js/skins.js setupSkinWindows 와 같게)
                     S.drag = { mode: 'win', box, last: P, x: P[0], y: P[1], ox: parseFloat(box.style.left) || 0, oy: parseFloat(box.style.top) || 0 };
-                    try { S.cv.setPointerCapture(e.pointerId); } catch (er) {}
+                    try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
                     return;
                 }
                 const btn = under && under.closest('button, input, label');
