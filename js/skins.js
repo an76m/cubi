@@ -543,17 +543,21 @@
            - 📤 꺼내기 (펼침면 가운데 링 위 작은 버튼) : 링이 열리고 두 쪽이 빠져나와 가운데 틈이 닫혀 맞붙고 · 바인더(표지 · 링)는 빠지고 · 가운데에 테이프가 가로로 붙어요
              → 책상 위 종이 두 장 · 스티커가 가운데를 넘나들며 마음대로
            - 📥 끼우기 : 펀치를 꼭 거쳐요 (기본펀치는 처음부터 · ✂️ 문구함 → 🕳️ 펀치) · 6공 자리에 구멍이 뚫리고 (구멍에 걸친 꾸밈에도 구멍) · 테이프를 떼고 링에 끼워 닫아요
-           - 장마다 상태 : 설정 'diary_binder' { 권 id : { 장 : 1 꺼냄 | 2 구멍 뚫음 } } · 뚫은 구멍은 늘 남아요 (다시 꺼내도) */
+           - 장마다 상태 : 설정 'diary_binder' { 권 id : { 장(날짜형 = 'YYYY-MM-DD') : 1 꺼냄 | 2 구멍 뚫음 } } · 뚫은 구멍은 늘 남아요 (다시 꺼내도) */
         const BD_KEY = 'diary_binder', BD_LOCAL = 'malang_diary_binder';
         const PUNCHES = [['basic', '기본펀치', '#9aa0aa']];                      // 🕳️ 펀치 (나중에 문구점 · 예쁜 펀치)
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
-        const bdLay = () => { const t = dyLook(); return t.b === 'ring' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) > 0 && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
+        /* 📔 📕 날짜형 · 페이지형 바인더 모두 같은 기능 (도련 11-05 · 통합) : 권 = 페이지형 dyNow().id · 날짜형 펼친 권 id (2026b-분홍-1) · 장 = 페이지형 장 번호 · 날짜형 '2026-10-28'
+           diary_binder · diary_free · diary_holes 모두 { 권 : { 장 : … } } 한 모양 */
+        const bdBook = () => dkIs(currentDate) ? (dyNow() || {}).id || '' : (window.dyyBookId ? dyyBookId() : '');
+        const bdPg = () => { const d = currentDate; return dkIs(d) ? dkNo(d) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+        const bdLay = () => { const t = dyLook(); return !!t && t.b === 'ring' && isCoverOpen && !!bdBook() && (dkIs(currentDate) ? dkNo(currentDate) > 0 : !dkType()) && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
         const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
-        function bdGet() { if (!bdLay()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
+        function bdGet() { if (!bdLay()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
         function bdPut(v) {
-            const m = Object.assign({}, prefGet(BD_KEY, BD_LOCAL) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {});
-            b[dkNo(currentDate)] = v; m[id] = b; prefSet(BD_KEY, BD_LOCAL, m);
+            const m = Object.assign({}, prefGet(BD_KEY, BD_LOCAL) || {}), id = bdBook(), b = Object.assign({}, m[id] || {});
+            b[bdPg()] = v; m[id] = b; prefSet(BD_KEY, BD_LOCAL, m);
         }
         let bdBusy = false;
         function bdSync() {
@@ -660,7 +664,7 @@
         function bdMode() { return (!window.ftOn || ftOn('bdauto')) && prefGet('diary_binder_mode', 'malang_diary_binder_mode') === 'auto' ? 'auto' : 'hand'; }   // ⚡ 자동은 숨김 동안 늘 ✋ 수동 (js/features.js bdauto · 10-19)   // BDM_KEY · BDM_LOCAL (bdSync 가 먼저 불러도 되게)
         function bdModeSet(v) { prefSet(BDM_KEY, BDM_LOCAL, v === 'auto' ? 'auto' : 'hand'); bdModeRender(); bdSync(); }
         function bdModeRender() { const m = bdMode(); document.querySelectorAll('#bdModePick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === m)); }
-        const bdAt = () => dyNow().id + '|' + dkNo(currentDate);
+        const bdAt = () => bdBook() + '|' + bdPg();
         const BD_TMP = ['dy-bo-go', 'dy-bo-hold', 'dy-bo', 'dy-bo-back', 'dy-bo-tape', 'dy-bh-pop', 'dy-ring-open'];
         let bdSt = null, bdDg = null;                                          // bdSt { at : 그 장 · open : 링이 열렸음 } · bdDg = 끄는 중
         function bdStepEnd() {                                                  // 처음 모습으로 (다른 장으로 가면)
@@ -705,9 +709,9 @@
            - 저장 : 링을 연 장만 (설정 'diary_free' { 권 id : { 장 : [왼 x, y, 각도, 오른 x, y, 각도] } } · x · y 는 cqw) · 다른 장에 갔다 오거나 다시 열어도 그대로
              📥 바인더에 끼우면 그 장 기록은 지워요 (평범한 다꾸 · 다른 다이어리엔 아무것도 안 남아요 · 도련 10-18)
            - 📥 바인더 버튼(위 날짜바 오른쪽 끝) : 구멍 12개 · 두 쪽이 떨어져 있고 · 구멍을 가린 것 없고 · 책상에 안 붙어야 끼워져요 (bdBlock) */
-        function bdFreeGet() { const m = prefGet('diary_free', 'malang_diary_free') || {}, b = m[dyNow().id]; return (b && b[dkNo(currentDate)]) || null; }
+        function bdFreeGet() { const m = prefGet('diary_free', 'malang_diary_free') || {}, b = m[bdBook()]; return (b && b[bdPg()]) || null; }
         function bdFreePut(v) {
-            const m = Object.assign({}, prefGet('diary_free', 'malang_diary_free') || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
+            const m = Object.assign({}, prefGet('diary_free', 'malang_diary_free') || {}), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
             if (v) b[n] = v; else delete b[n];
             if (Object.keys(b).length) m[id] = b; else delete m[id];
             prefSet('diary_free', 'malang_diary_free', m);
@@ -1546,9 +1550,9 @@
            - 구멍은 꾸밈 위로 보여요 = 스티커째 뚫린 것처럼 (.bd-hl) · 링을 연 뒤 꺼낸 종이에서만 */
         const GD_HOLE = 'diary_holes', GD_HOLE_L = 'malang_diary_holes';
         function gdHoleMask() {   // GD_HOLE · GD_HOLE_L (bdSync 가 먼저 불러도 되게)
-            const m = prefGet('diary_holes', 'malang_diary_holes') || {}, b = m[dyNow().id] || {}; return +b[dkNo(currentDate)] || 0; }
+            const m = prefGet('diary_holes', 'malang_diary_holes') || {}, b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
         function gdHoleOn(bits) {                                                // bits : 뚫을 구멍 (1 << i)
-            const m = Object.assign({}, prefGet(GD_HOLE, GD_HOLE_L) || {}), id = dyNow().id, b = Object.assign({}, m[id] || {}), n = dkNo(currentDate);
+            const m = Object.assign({}, prefGet(GD_HOLE, GD_HOLE_L) || {}), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
             b[n] = (+b[n] || 0) | bits; m[id] = b; prefSet(GD_HOLE, GD_HOLE_L, m);
         }
         function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); }
