@@ -435,7 +435,7 @@
                     const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
                     const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
                     const stay = /준비중/.test(b.textContent) || b.hasAttribute('data-keep');   // 🚧 (준비중) · 👭 모임방(새 창) = 이동 창 · 지금 장소 그대로 (도련 10-31)
-                    c.addEventListener('click', () => { if (stay) { b.click(); return; } closeModal('moveModal'); deskLeave(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true); if (cat) openModal('serviceModal'); b.click(); });
+                    c.addEventListener('click', () => { if (stay) { b.click(); return; } closeModal('moveModal'); if (window.dsClear) dsClear(); deskLeave(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true); if (cat) openModal('serviceModal'); b.click(); });
                     box.appendChild(c);
                 });
             };

@@ -130,6 +130,7 @@
             if (SC.on || SC.busy) return;
             const el = shopBuild(); SC.corner = ''; shopSpotsPaint(); shopPicAll();   // 🖼 구역 그림 미리
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
+            if (window.dsClear) dsClear();                                       // 🧺 꺼내 둔 스티커는 바구니로 정리 (도련 11-05)
             SC.on = true; SC.busy = true;
             el.classList.remove('inside', 'enter', 'leave'); el.classList.add('on');
             requestAnimationFrame(() => { shopFit(); requestAnimationFrame(shopFit); });

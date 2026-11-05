@@ -1401,6 +1401,9 @@
         }
     }
     function dsFront(d) { d.el.style.zIndex = ++DS.z; }
+    /* 🚪 이동 (가게 · 다른 장소) = 꺼내 둔 종이는 모두 바구니로 정리 (도련 11-05 · 뽑아 둔 테이프는 되감겨요) */
+    function dsClear() { [...DS.m.keys()].forEach(dsDrop); }
+    window.dsClear = dsClear;
     function dsDrop(id) {
         const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); dsRewind(d); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤이 다시 또렷하게
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
