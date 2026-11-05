@@ -249,6 +249,7 @@
         deskOpenDiary(); await new Promise(r => setTimeout(r, 680));
     }
     window.bkLift = bkLift;
+    /* 서랍 창은 그대로 둔 채 떼는 화면이 그 위에 떠요 (💻 📲 · 도련 11-05) · 📱 폰만 화면이 좁아 서랍 창이 잠깐 비켜요 (js/stickermaker.js stkLeave) */
     async function bkOpenSheet(id, stay) {                                    // stay = 다이어리는 그대로 (🏷️ 씰만 · 꺼낸 종이 톡 · 도련 11-05)
         if (!stay) {
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
@@ -264,15 +265,15 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, stay: !!stay }); }
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, stay: !!stay }); }
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
-                if (window.stkLeave) stkLeave();
+                if (window.stkLeave && bkPhone()) stkLeave();
                 ok = window.openPieceBag && await openPieceBag(srcs, { t: s.nm || '말랑달콤 조각', s: '', own: { id, slots } });
             }
-            else if (s.k === 'paper') { if (window.stkLeave) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
+            else if (s.k === 'paper') { if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
             else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }, DS.tape); }   // 페이지에 바로 (DS.tape : 롤에서 뽑은 자리 · 길이 · 방향) · 비켰다 다시 떠요 (stkBlink)
-            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '' }, { id }); ok = true; }
+            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave && bkPhone()) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '' }, { id }); ok = true; }
             else if (s.k === 'memo') ok = bkMemo(id, s, x);
             else if (s.k === 'leaf') ok = bkLeaf(id, s, x);
             if (!ok && window.stkReturn) stkReturn(300);
