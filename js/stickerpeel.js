@@ -62,12 +62,14 @@
             window.addEventListener('resize', () => { if (pelS.on) pelLayout(); });
         }
         const pelPage = () => document.getElementById('canvasArea');
+        /* 📔 붙일 페이지가 보여요 (덮였거나 🪑 책상에 놓여 있으면 아니에요 → 종이 크기는 보통 크기 · 뗀 스티커는 종이로 돌아가요) */
+        const pelPageOn = () => { const pg = pelPage(), H = document.documentElement; return !!pg && (typeof isCoverOpen === 'undefined' || isCoverOpen) && !(H.classList.contains('desk-on') && !H.classList.contains('desk-show')) && pg.getBoundingClientRect().width > 40; };
         function pelLayout() {
             const S = pelS, cv = S.cv;
             S.DPR = Math.min(window.devicePixelRatio || 1, 3); S.W = window.innerWidth; S.H = window.innerHeight;
             cv.width = S.W * S.DPR; cv.height = S.H * S.DPR; S.fl = pelMk(cv.width, cv.height);
             /* 배경(화면) 가운데 하얀 종이 한 장 (크기는 페이지에 맞춰요) : 한 장이면 그 크기, 여러 장이면 칸을 나눠 나란히 */
-            const pg = pelPage(), r = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, width: S.W, height: S.H };
+            const pg = pelPageOn() ? pelPage() : null, r = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, width: Math.min(S.W, 1100), height: S.H };
             if (S.rel) return pelRelLayout();
             let cx = S.W / 2, cy = S.H / 2;
             cx += S.mv.x; cy += S.mv.y;                                          // 종이를 옮긴 만큼
@@ -168,7 +170,7 @@
 
         /* src : 그림 하나 또는 여러 개 [src, …] */
         async function openStickerPeel(src, opt) {                       // opt.ts : 🔤 글씨스티커 (붙인 뒤 📷 사진 꾸미기 창이 안 떠요)
-            if (!(opt && opt.rel) && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
+            if (!(opt && (opt.rel || opt.stay)) && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }   // stay = 다이어리가 책상에 있어도 스티커창만 (js/basket.js dsOpen · 도련 11-05)
             const list = Array.isArray(src) ? src : [src], own = (opt && opt.own) || null;
             let imgs;
             try { imgs = await Promise.all(list.map(u => u ? pelLoad(u) : null)); } catch (e) { showMsg('스티커를 열지 못했어요.'); return false; }
@@ -438,7 +440,9 @@
                 return;
             }
             if (navigator.vibrate) navigator.vibrate(8);
-            if (S.rel) pelRelDrop(); else pelStick();
+            if (S.rel) pelRelDrop();
+            else if (!pelPageOn()) { st.state = 'on'; st.snap = null; pelLayout(); S.hint = ''; pelSay('📔 다이어리를 펼치면 붙일 수 있어요'); }   // 붙일 페이지가 없으면 종이로 돌아가요
+            else pelStick();
         }
         /* 🤍 이형지북 위에 놓으면 그 자리에 · 밖이면 종이로 돌아가요 */
         function pelRelDrop() {

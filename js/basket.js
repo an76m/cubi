@@ -249,9 +249,11 @@
         deskOpenDiary(); await new Promise(r => setTimeout(r, 680));
     }
     window.bkLift = bkLift;
-    async function bkOpenSheet(id) {
-        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-        await bkLift();
+    async function bkOpenSheet(id, stay) {                                    // stay = 다이어리는 그대로 (🏷️ 씰만 · 꺼낸 종이 톡 · 도련 11-05)
+        if (!stay) {
+            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            await bkLift();
+        }
         if (B.opening || !window.ownSheet) return;
         B.opening = id;
         const card = document.querySelector(`.bk-sh[data-id="${CSS.escape(id)}"]`); if (card) card.classList.add('busy');
@@ -262,7 +264,7 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null }); }
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, stay: !!stay }); }
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
                 if (window.stkLeave) stkLeave();
@@ -1577,19 +1579,21 @@
         if (window.closePaperSheet && bq('pmRoom') && bq('pmRoom').classList.contains('show')) closePaperSheet();
         if (window.closeTteokRoom && bq('tkRoom') && bq('tkRoom').classList.contains('show')) closeTteokRoom();
     }
-    /* 📕 다이어리가 덮였거나 🪑 책상에 놓여 있으면 꺼낸 종이를 톡 해도 다이어리는 그대로 (도련 11-05 · 안내 없이 종이만 살짝 흔들) */
+    /* 📕 다이어리가 덮였거나 🪑 책상에 놓여 있으면 꺼낸 종이를 톡 해도 다이어리는 그대로 (도련 11-05 · 안내 없음)
+       🏷️ 씰 = 스티커창만 크게 (떼어 볼 수 있고 · 붙이려면 다이어리를 펼쳐요 · js/stickerpeel.js stay) · 조각 · 모조지 · 떡메 = 종이만 살짝 흔들 */
     const dsDyAway = () => (typeof isCoverOpen !== 'undefined' && !isCoverOpen) || (document.documentElement.classList.contains('desk-on') && !document.documentElement.classList.contains('desk-show'));
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
-        { const e0 = dsEntry(d.id); if (e0 && !['tape', 'memo', 'leaf'].includes(e0.k) && dsDyAway()) { d.el.animate([{ rotate: '0deg' }, { rotate: '-4deg' }, { rotate: '3deg' }, { rotate: '0deg' }], { duration: 360, easing: 'ease-in-out' }); return; } }
-        await bkLift();
+        const e0 = dsEntry(d.id), stay = dsDyAway();
+        if (e0 && stay && !['tape', 'memo', 'leaf', 'seal'].includes(e0.k)) { d.el.animate([{ rotate: '0deg' }, { rotate: '-4deg' }, { rotate: '3deg' }, { rotate: '0deg' }], { duration: 360, easing: 'ease-in-out' }); return; }
+        if (!stay) await bkLift();
         const prev = DS.act ? DS.m.get(DS.act) : null;
         if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsMoveFromPeel(prev); dsReload(prev.id); dsPaint(prev); } }
         const e = dsEntry(d.id); if (!dsLeft(e)) { dsDrop(d.id); return; }
         const win = !['tape', 'memo', 'leaf'].includes(e.k);                   // 테이프 · 메모지 · 속지는 창이 없어요
         if (!win) { if (e.k === 'tape') { dsBig(d); return; } if (d.el.classList.contains('big')) dsUse(d); else dsBig(d); return; }   // 늘 '커진 다음에 써요' (도련 10-26 · 크게 보려고 눌렀다가 써 버리지 않게)
         DS.act = d.id; d.el.classList.add('act'); document.body.classList.add('dsk-on');
-        DS.at = { x: d.x, y: d.y }; await bkOpenSheet(d.id); DS.at = null;
+        DS.at = { x: d.x, y: d.y }; await bkOpenSheet(d.id, stay); DS.at = null;
         clearInterval(DS.t); let seen = false;
         DS.t = setInterval(() => {                                            // 떼는 화면이 닫히면 종이를 다시 그려요 (쓴 자리 · 다 쓰면 치워요)
             const on = dsRoomOn(); if (on) { seen = true; return; }
