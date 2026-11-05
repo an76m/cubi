@@ -24,6 +24,10 @@
     const BK_KINDS = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', leaf: '속지', memo: '메모지' };   // 😀 이모지 칸은 없앴어요 (도련 11-02 · 기기 이모지 그림 저작권)
     const bkKindOf = e => e.b || e.k;                                        // 들어갈 바구니 (😀 이모지는 b · 🌸 계절 · 🎁 캡슐 = 씰)
     const vis = id => { const m = bq(id); return !!m && m.style.display === 'flex'; };
+    /* 📱 폰 = 톡 해서 꺼내요 (끌어내기 없음) · 💻 PC · 패드 = 바구니 밖으로 끌어내요 (톡 = 안 꺼내요) (도련 11-05)
+       폰 = 손가락 화면 + 짧은 변이 600px 보다 작아요 (아이패드 = 768 이상) · html.is-phone = 폰 크기 그대로 (css) */
+    const bkPhone = () => matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
+    document.documentElement.classList.toggle('is-phone', bkPhone());
 
     /* ---------- 종이 자리 (이 기기에만 : { o : [아래 → 위 id], p : { id : [x, y, 기울기] } }) ---------- */
     const bkWho = () => (window.ownMode && ownMode() === 'mem') ? 'guest' : ((typeof COLL !== 'undefined' && COLL.who) || 'me');
@@ -125,17 +129,17 @@
     }
     function bkDraw() {
         const wrap = bq('abBody'); if (!wrap) return;
-        const guest = ownMode() === 'mem';
         const bagNt = B.bagN ? `<p class="bk-note bk-bagnote">🛍️ 책상 위 봉투에 <b>${bkCount(B.bagN)}</b>이 아직 있어요 · 봉투에서 꺼내 소품에 넣으면 여기에 보여요</p>` : '';
-        const note = `<p class="bk-note">${guest ? '👀 구경만 할 때는 창을 닫거나 새로고침하면 바구니도 비워져요.' : '🔥 받은 · 만든 스티커는 내 드라이브 <b>말랑달콤</b> 폴더에 보관돼요. 폴더를 지우면 모두 사라지고 되돌릴 수 없어요.'}</p>`;
+        const nm = BK_KINDS[B.kind] || '스티커';                             // 이름이 모두 받침 없이 끝나요 → '는'
+        const how = `<p class="bk-how" id="bkHow">${bkPhone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 바구니 <b>밖으로 끌어내서</b> 써요`}</p>`;   // 🧺 쓰는 법 한 줄 (도련 11-05 : 보관 · 지우기 안내는 없앴어요)
         if (!B.list.length) {
             wrap.innerHTML = `<div class="bk-bin empty"><div class="bk-pile"></div><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🧺 스티커 바구니가 텅 비었어요</b><span>아래 <em>기본${esc(BK_KINDS[B.kind] || '스티커')} 받기</em>로<br>받아서 채워요</span></button></div>`
-                + bkTools(false) + bagNt + note;
+                + bkTools(false) + bagNt;
             return;
         }
         const ord = bkOrder(), show = ord.slice(-BK_MAX);
-        wrap.innerHTML = `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${bkCount(B.list.length)}</span></div>`
-            + bkTools(true) + bagNt + note;
+        wrap.innerHTML = how + `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div><span class="bk-tag">${bkCount(B.list.length)}</span></div>`
+            + bkTools(true) + bagNt;
         bkPlace(show, false);
         bkWire();
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (바구니 밖으로 안 삐져나오게)
@@ -171,6 +175,7 @@
     }
     window.bkBin = bkBin;
     function bkGetKind() { const k = B.kind; if (vis('basketKindModal')) closeModal('basketKindModal'); if (SH_KINDS[k]) shOpenKind(k); else openShelf(); }
+    function bkHowGlow() { const h = bq('bkHow'); if (!h) return; h.classList.remove('glow'); void h.offsetWidth; h.classList.add('glow'); }
     function bkGlowGet() {                                                   // 빈 바구니 안내를 누르면 → 받기 버튼이 붉게 반짝
         const b = bq('bkGet'); if (!b) return;
         b.classList.remove('glow'); void b.offsetWidth; b.classList.add('glow');
@@ -202,14 +207,14 @@
             const r = c.getBoundingClientRect(), pr = pile.getBoundingClientRect();
             B.drag = { c, id: c.dataset.id, x0: ev.clientX, y0: ev.clientY, ox: ev.clientX - r.left, oy: ev.clientY - r.top, pr, moved: false, pid: ev.pointerId };
             try { pile.setPointerCapture(ev.pointerId); } catch (e) {}
-            const d0 = B.drag; d0.hold = setTimeout(() => { if (B.drag !== d0 || d0.moved) return; B.drag = null; dsTake(d0.id); }, 450);   // 오래 누르기 = 꺼내기
+            const d0 = B.drag; if (bkPhone()) d0.hold = setTimeout(() => { if (B.drag !== d0 || d0.moved) return; B.drag = null; dsTake(d0.id); }, 450);   // 📱 오래 누르기 = 꺼내기
         };
         pile.onpointermove = ev => {
             const d = B.drag; if (!d || ev.pointerId !== d.pid) return;
             if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 7) return;
             if (!d.moved) { d.moved = true; clearTimeout(d.hold); d.c.classList.remove('anim'); d.c.classList.add('lift'); d.c.style.zIndex = ++B.top; }
             const bin = pile.closest('.bk-bin'), br = bin && bin.getBoundingClientRect();
-            if (!d.desk && !d.no && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
+            if (!d.desk && !d.no && !bkPhone() && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
                 d.desk = dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true);
                 if (d.desk) d.c.style.visibility = 'hidden'; else d.no = true;   // 못 꺼냈으면(다이어리가 닫혀 있음 등) 종이는 바구니에 그대로 보여요 · 안내도 한 번만 (도련 10-30)
             }
@@ -222,7 +227,7 @@
             const d = B.drag; if (!d || (ev && ev.pointerId !== d.pid)) return;
             B.drag = null; d.c.classList.remove('lift'); clearTimeout(d.hold);
             if (d.desk) { abSplit(); B.sig = bkSig(); bkDraw(); return; }       // 꺼낸 종이는 바구니에서 빠져요
-            if (!d.moved) { if (ev && ev.type === 'pointerup') dsTake(d.id); return; }   // 톡 = 꺼내기 (도련 10-26 · 바구니는 잠깐 비켰다 다시 떠요)
+            if (!d.moved) { if (ev && ev.type === 'pointerup') { if (bkPhone()) dsTake(d.id); else bkHowGlow(); } return; }   // 📱 톡 = 꺼내기 (바구니는 잠깐 비켰다 다시 떠요) · 💻 톡 = 쓰는 법이 반짝 (도련 11-05)
             const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             const rot = parseFloat(d.c.style.getPropertyValue('--r')) || 0;
             L.p[d.id] = [Math.max(0, Math.min(1, parseFloat(d.c.style.left) / Math.max(1, W - cw))), Math.max(0, Math.min(1, parseFloat(d.c.style.top) / Math.max(1, H - ch))), rot];
@@ -1374,7 +1379,7 @@
 
 
     /* ---------- 🗂️ 꺼내 둔 스티커창 (도련 10-26) ----------
-       다꾸러처럼 쓸 것을 다 꺼내 놓고 써요 : 바구니에서 톡 · 오래 누르기 · 창 밖으로 끌기 = 페이지 위에 스티커창이 놓여요 (몇 장이든 · 언제든 더)
+       다꾸러처럼 쓸 것을 다 꺼내 놓고 써요 : 💻 PC · 패드 = 바구니 밖으로 끌기 · 📱 폰 = 톡 · 오래 누르기 → 페이지 위에 스티커창이 놓여요 (몇 장이든 · 언제든 더 · 도련 11-05)
        윈도우 창처럼 맨 위 한 장만 '열려' 떼어져요 : 다른 종이를 톡 = 그 종이가 맨 위로 + 떼는 화면 · 끌기 = 옮기기 · ✕ = 치우기
        저장하지 않아요 (앱을 끄면 사라져요) · 다 쓴 종이는 저절로 치워져요 */
     const DS = { m: new Map(), z: 1, act: '', t: 0, at: null, tape: null };

@@ -3596,6 +3596,10 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .bk-hole { display: block; aspect-ratio: 1; border-radius: 7px; background: rgba(214,206,222,.3); outline: 1.2px dashed rgba(190,178,200,.6); outline-offset: -3px; }
 .bk-tools { display: flex; justify-content: center; margin: 8px 0 2px; }
 .bk-tools .btn { font-size: 13px; padding: 6px 14px; }
+.bk-how { margin: 0 4px 10px; padding: 6px 12px; border: 2px solid #8d6f7f; border-radius: 10px; background: #fff; color: #5a3d4a; font-size: 13.5px; font-weight: 700; line-height: 1.45; text-align: center; word-break: keep-all; }   /* 🧺 쓰는 법 한 줄 = 봉투 속 안내와 같은 강조 (도련 11-05) */
+.bk-how b { color: #c2457a; }
+.bk-how.glow { animation: bkHowGlow .9s ease-out; }
+@keyframes bkHowGlow { 0%, 60% { border-color: #e2557f; box-shadow: 0 0 0 4px rgba(226, 85, 127, .25); transform: scale(1.03); } 100% { border-color: #8d6f7f; box-shadow: none; transform: none; } }
 .bk-note { margin: 8px 4px 0; font-size: 11.5px; line-height: 1.5; color: #a08890; text-align: center; word-break: keep-all; }
 .bk-msg { padding: 18px 10px; text-align: center; font-size: 13.5px; line-height: 1.6; color: #8a6f7a; word-break: keep-all; }
 .bk-msg .bk-again { display: flex; margin: 10px auto 0; }
@@ -3747,6 +3751,8 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 /* 🧺 바구니 안 종이 2배 (도련 10-25 · 바인더 포켓 · 정리 책상 줄은 그대로) */
 .bk-pile .bk-sh { width: 172px; padding: 10px; border-radius: 14px; }
 .bk-pile .bk-sh.one { width: 148px; }
+html:not(.is-phone) .bk-pile .bk-sh:is(.k-seal, .k-piece, .k-paper) { width: 200px; }   /* 💻 PC · 패드 = 기본상품 샵 카드만큼 (도련 11-05) */
+html:not(.is-phone) .bk-pile .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width: 176px; }
 .bk-pile .bk-grid { gap: 5px; }
 .bk-pile .bk-sh.k-tape > *, .bk-pile .bk-sh.k-tk > *, .bk-pile .bk-sh.k-memo > *, .bk-pile .bk-sh.k-leaf > * { zoom: 2; }
 @media (max-width: 480px) {
@@ -3945,6 +3951,8 @@ body.dsk-on #dskLayer { z-index: 1660; }
 .dsk.lift { cursor: grabbing; filter: drop-shadow(0 12px 14px rgba(110,70,90,.3)); }
 .dsk .bk-sh { position: relative; left: auto; top: auto; width: 110px; transform: rotate(-2deg); pointer-events: none; }
 .dsk .bk-sh.one { width: 92px; }
+html:not(.is-phone) .dsk .bk-sh:is(.k-seal, .k-piece, .k-paper) { width: 200px; }   /* 💻 PC · 패드 = 꺼낸 종이도 샵 카드만큼 · 📱 폰은 그대로 (도련 11-05) */
+html:not(.is-phone) .dsk .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width: 176px; }
 .dsk.act { visibility: hidden; }   /* 지금 떼는 화면에 열린 종이 (그 자리에서 열려요) */
 .dsk.pop { animation: dskPop .28s ease-out; }
 @keyframes dskPop { from { transform: scale(.7); opacity: .3; } }
