@@ -2471,7 +2471,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .lm-tabs { grid-template-columns: 1fr 1fr !important; }
 .lm-tabs .stk-tab { font-size: 13px; padding: 8px 2px; }
 .lm-box { --lf-holes: radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y;
-    position: relative; container-type: inline-size; width: min(100%, 230px, 36vh * var(--lm-r, .64)); margin: 12px auto 10px; border-radius: 8px 12px 12px 8px; overflow: hidden;
+    position: relative; container-type: inline-size; flex-shrink: 0; width: min(100%, 230px, 36vh * var(--lm-r, .64)); margin: 12px auto 10px; border-radius: 8px 12px 12px 8px; overflow: hidden;
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--border-color), 3px 6px 16px rgba(0,0,0,.12); }
 .lm-box canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
 .lm-box.drawing canvas { cursor: crosshair; }
@@ -2494,7 +2494,8 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .lm-keep { width: 100%; justify-content: center; margin-top: 10px; font-size: 13.5px; }
 /* 🧻 떡메모지 만들기 (js/leafmaker.js · 속지 만들기 창을 같이 써요) : 링 구멍 대신 위에 풀칠 띠 */
 .lm-glue-box, .lm-glue { display: none; }
-.lm-tk .lm-holes { display: none; }
+.lm-tk .lm-holes, .lm-memo .lm-holes { display: none; }
+.lm-memo .lm-box { width: min(100%, 300px); }   /* 📝 메모지 = 가로로 긴 종이 */
 .lm-tk .lm-box { overflow: visible; border-radius: 2px; margin-top: 24px; }
 .lm-tk .lm-box canvas { border-radius: 2px; }
 .lm-tk .lm-glue { display: block; position: absolute; left: -1px; right: -1px; top: -13px; height: 15px; border-radius: 3px 3px 1px 1px; pointer-events: none;
@@ -3439,6 +3440,10 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dmk-chip small { font-size: 10px; font-weight: 600; opacity: .6; }
 .dmk-chip.on { border-color: var(--pick-line); background: color-mix(in srgb, var(--pick) 10%, #fff); color: var(--pick-ink); }
 .dmk-sw { display: flex; flex-wrap: wrap; gap: 7px; }
+.dmk-cpick { width: 30px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; }   /* 🎨 다른 색 (도련 11-05) */
+details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row > summary small { color: #a08890; font-weight: normal; font-size: 11px; }
+.dmk-cols { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
+.dmk-cl { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; color: #7a5a68; } .dmk-cl input { width: 38px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; }
 .dmk-c { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #fff; background: var(--c); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, #000 10%); cursor: pointer; padding: 0; }
 .dmk-c.on { box-shadow: 0 0 0 3px var(--pick-line); }
 .dmk-pg { display: flex; align-items: center; gap: 6px; }

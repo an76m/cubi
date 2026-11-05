@@ -1,7 +1,6 @@
 /* 말랑달콤 다이어리 - js/pattern-maker.js
    ✏️ 배경지 만들기 3종 · 📂 내 배경지 · 💾 배경지 파일 저장 · 🌟 카페에서 받아 등록한 사용자 배경지
-   - 🧵 무늬 메이커     : 줄무늬 · 도트 · 깅엄 체크 · 격자 · 물결 (색 · 굵기 · 간격 · 기울기)
-   - 🖼 이미지 배경지     : 내 사진/그림을 바둑판 · 엇갈림으로 반복
+   - 🧵 무늬 메이커     : js/maker.js 엔진 (상품공방 배경지 · 벽지와 같은 칸 · 도련 11-05) : 무늬 15가지 · 두 겹 · 칸 크기 · 굵기 · 기울기 · 진하기 · 내 사진 반복(바둑판 · 엇갈림 · 간격)
    - 🖌 그려서 만들기   : 한 칸을 그리면 이어 붙인 모습이 바로 보임 (이어그리기로 경계가 자연스럽게 연결)
    - 내 배경지 : 말랑달콤 / 배경지 / 내-목록N · 받은-목록N (작은 그림 100개씩) · 내-<id> · 받은-<id> (레시피 하나에 파일 하나) (js/coll.js)
        목록 칸은 작은 그림으로 그리고, 고를 때 원본을 읽어요 · 지금 고른 배경지 원본은 로그인할 때 먼저 읽어요
@@ -127,16 +126,15 @@
         let makerRecipe = null;          // 지금 미리보기 중인 레시피 (이미지·그림은 미리보기용 큰 이미지)
         let makerTimer = null;
 
-        const MAKER_TITLES = { weave: '🧵 무늬 메이커', image: '🖼️ 이미지로 배경지', draw: '🖌️ 그려서 배경지' };
+        const MAKER_TITLES = { weave: '🧵 무늬 메이커', draw: '🖌️ 그려서 배경지' };
 
         function openMaker(mode) {
-            makerMode = ['weave', 'image', 'draw'].includes(mode) ? mode : 'weave';
+            makerMode = mode === 'draw' ? 'draw' : 'weave';
             closeModal('skinModal');
             document.getElementById('makerTitle').textContent = MAKER_TITLES[makerMode];
-            ['weave', 'image', 'draw'].forEach(m => { document.getElementById('maker-' + m).style.display = m === makerMode ? 'block' : 'none'; });
+            ['weave', 'draw'].forEach(m => { document.getElementById('maker-' + m).style.display = m === makerMode ? 'block' : 'none'; });
             openModal('makerModal');
-            if (makerMode === 'weave') { setupWeaveUI(); updateWeave(); }
-            if (makerMode === 'image') { setupImageUI(); updateImagePattern(); }
+            if (makerMode === 'weave') setupWeaveUI();
             if (makerMode === 'draw') { setupDrawUI(); updateDrawPreview(); }
         }
 
@@ -152,14 +150,7 @@
 
         /* 저장·보내기용 최종 레시피 (이미지·그림은 용량에 맞게 다시 압축) */
         function finalMakerRecipe() {
-            if (makerMode === 'weave') return sanitizeRecipe(weaveRecipe());
-            if (makerMode === 'image') {
-                if (!imgState.img) { showMsg('🖼 먼저 이미지를 골라 주세요.'); return null; }
-                const t = buildImageTile(2);
-                const src = encodeTile(t.canvas, imgState.bg, t.scale);
-                if (!src) { showMsg('⚠ 이미지가 너무 복잡해서 저장할 수 없어요.<br>이미지 크기를 줄이거나 간격을 줄여 주세요.'); return null; }
-                return sanitizeRecipe({ v: 1, kind: 'tile', src, w: t.w, h: t.h, bg: imgState.bg, from: 'image' });
-            }
+            if (makerMode === 'weave') { const r = mkW && sanitizeRecipe(Object.assign({ kind: 'mk' }, mkW)); if (!r) showMsg('🧵 무늬나 그림을 하나 골라 주세요.'); return r; }
             if (makerMode === 'draw') {
                 if (!drawState.drawn) { showMsg('🖌 먼저 칸 안에 그림을 그려 주세요.'); return null; }
                 const src = encodeTile(drawBoard(), drawState.bg, 2);
@@ -268,154 +259,12 @@
         }
 
         /* =====================================================================
-           🧵 무늬 메이커 : 줄무늬 · 도트 · 깅엄 체크 · 격자 · 물결
+           🧵 무늬 메이커 = js/maker.js 만들기 칸 그대로 (상품공방 배경지와 같아요 · 도련 11-05)
            ===================================================================== */
-        const WEAVE_PRESETS = {
-            stripe:  { w: 14, g: 14, angle: 45, bg: '#fff0f5', c1: '#f7b8ca', a: 1 },
-            dot:     { w: 5,  g: 18, stagger: true, bg: '#ffe7ee', c1: '#ffffff', a: 1 },
-            check:   { w: 16, bg: '#eef4fc', c1: '#85a6dc', a: 0.36 },
-            grid:    { w: 2,  g: 24, bg: '#fffdf7', c1: '#78aad2', a: 0.45 },
-            scallop: { w: 13, bg: '#d6ebf6', c1: '#ffffff', a: 1 }
-        };
-        const WEAVE_LABELS = {
-            stripe:  { w: '줄 굵기', g: '줄 간격' },
-            dot:     { w: '점 크기', g: '점 간격' },
-            check:   { w: '칸 크기' },
-            grid:    { w: '선 굵기', g: '칸 크기' },
-            scallop: { w: '물결 크기' }
-        };
-        let weave = Object.assign({ kind: 'stripe' }, WEAVE_PRESETS.stripe);
-
+        let mkW = null;                                                        // 지금 만드는 레시피 (창을 닫았다 열어도 그대로)
         function setupWeaveUI() {
-            document.querySelectorAll('#weaveKinds .cat-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === weave.kind));
-            const lab = WEAVE_LABELS[weave.kind];
-            const show = (id, on) => { document.getElementById(id).style.display = on ? 'flex' : 'none'; };
-            document.getElementById('weaveWLabel').textContent = lab.w;
-            show('weaveGRow', !!lab.g);
-            if (lab.g) document.getElementById('weaveGLabel').textContent = lab.g;
-            show('weaveAngleRow', weave.kind === 'stripe');
-            show('weaveStaggerRow', weave.kind === 'dot');
-            document.getElementById('weaveBg').value = weave.bg;
-            document.getElementById('weaveC1').value = weave.c1;
-            document.getElementById('weaveA').value = weave.a;
-            document.getElementById('weaveW').value = weave.w;
-            document.getElementById('weaveG').value = weave.g != null ? weave.g : 12;
-            document.getElementById('weaveAngle').value = weave.angle != null ? weave.angle : 45;
-            document.getElementById('weaveStagger').checked = !!weave.stagger;
-            ['weaveBg', 'weaveC1', 'weaveA', 'weaveW', 'weaveG', 'weaveAngle'].forEach(id => bindRange(id, readWeaveUI));
-            const st = document.getElementById('weaveStagger');
-            if (!st._bound) { st._bound = true; st.addEventListener('change', readWeaveUI); }
-        }
-
-        function setWeaveKind(kind) {
-            if (!WEAVE_PRESETS[kind]) return;
-            weave = Object.assign({ kind }, WEAVE_PRESETS[kind]);
-            setupWeaveUI();
-            updateWeave();
-        }
-
-        function readWeaveUI() {
-            weave.bg = document.getElementById('weaveBg').value;
-            weave.c1 = document.getElementById('weaveC1').value;
-            weave.a = parseFloat(document.getElementById('weaveA').value);
-            weave.w = parseFloat(document.getElementById('weaveW').value);
-            weave.g = parseFloat(document.getElementById('weaveG').value);
-            weave.angle = parseFloat(document.getElementById('weaveAngle').value);
-            weave.stagger = document.getElementById('weaveStagger').checked;
-            updateWeave();
-        }
-
-        function weaveRecipe() { return Object.assign({ v: 1 }, weave); }
-
-        function updateWeave() {
-            document.getElementById('weaveAVal').textContent = Math.round(weave.a * 100) + '%';
-            document.getElementById('weaveWVal').textContent = weave.w + 'px';
-            document.getElementById('weaveGVal').textContent = (weave.g != null ? weave.g : 12) + 'px';
-            document.getElementById('weaveAngleVal').textContent = (weave.angle != null ? weave.angle : 45) + '°';
-            showMakerPreview(sanitizeRecipe(weaveRecipe()));
-        }
-
-        /* =====================================================================
-           🖼 내 이미지로 배경지 : 크기 · 간격 · 배치(바둑판/엇갈림) · 투명도 · 바탕색
-           ===================================================================== */
-        const imgState = { img: null, size: 70, gap: 24, layout: 'brick', alpha: 1, bg: '#fff8fb' };
-
-        function setupImageUI() {
-            document.getElementById('imgPatSize').value = imgState.size;
-            document.getElementById('imgPatGap').value = imgState.gap;
-            document.getElementById('imgPatAlpha').value = imgState.alpha;
-            document.getElementById('imgPatBg').value = imgState.bg;
-            document.querySelectorAll('#imgPatLayout .cat-btn').forEach(b => b.classList.toggle('active', b.dataset.layout === imgState.layout));
-            ['imgPatSize', 'imgPatGap', 'imgPatAlpha', 'imgPatBg'].forEach(id => bindRange(id, readImageUI));
-        }
-
-        function readImageUI() {
-            imgState.size = parseInt(document.getElementById('imgPatSize').value, 10);
-            imgState.gap = parseInt(document.getElementById('imgPatGap').value, 10);
-            imgState.alpha = parseFloat(document.getElementById('imgPatAlpha').value);
-            imgState.bg = document.getElementById('imgPatBg').value;
-            clearTimeout(makerTimer);
-            makerTimer = setTimeout(updateImagePattern, 60);
-        }
-
-        function setImageLayout(layout) {
-            imgState.layout = layout === 'grid' ? 'grid' : 'brick';
-            setupImageUI();
-            updateImagePattern();
-        }
-
-        function pickPatternImage(e) {
-            const file = e.target.files && e.target.files[0];
-            e.target.value = '';
-            if (!file) return;
-            if (file.type && !file.type.startsWith('image/')) { showMsg('이미지 파일만 쓸 수 있어요.'); return; }
-            const url = URL.createObjectURL(file);
-            const im = new Image();
-            im.onload = () => {
-                /* 너무 큰 사진은 미리 줄여 두기 (이후 계산을 가볍게) */
-                const max = 600, k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
-                const c = document.createElement('canvas');
-                c.width = Math.max(1, Math.round(im.naturalWidth * k));
-                c.height = Math.max(1, Math.round(im.naturalHeight * k));
-                c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-                URL.revokeObjectURL(url);
-                imgState.img = c;
-                document.getElementById('imgPatFileName').textContent = file.name;
-                updateImagePattern();
-            };
-            im.onerror = () => { URL.revokeObjectURL(url); showMsg('이미지를 열지 못했어요. 다른 이미지로 해 보세요.'); };
-            im.src = url;
-        }
-
-        /* 한 칸 만들기 : scale 배 해상도의 캔버스 + CSS 크기(w, h) */
-        function buildImageTile(scale) {
-            const { img, size, gap, layout, alpha } = imgState;
-            const cellW = size + gap, cellH = size + gap;
-            const w = cellW, h = layout === 'brick' ? cellH * 2 : cellH;
-            const c = document.createElement('canvas');
-            c.width = Math.round(w * scale); c.height = Math.round(h * scale);
-            const ctx = c.getContext('2d');
-            ctx.scale(scale, scale);
-            ctx.globalAlpha = alpha;
-            const k = Math.min(size / img.width, size / img.height);
-            const dw = img.width * k, dh = img.height * k;
-            const put = (cx, cy) => ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
-            put(cellW / 2, cellH / 2);
-            if (layout === 'brick') { put(0, cellH * 1.5); put(cellW, cellH * 1.5); }
-            return { canvas: c, w, h, scale };
-        }
-
-        function updateImagePattern() {
-            document.getElementById('imgPatSizeVal').textContent = imgState.size + 'px';
-            document.getElementById('imgPatGapVal').textContent = imgState.gap + 'px';
-            document.getElementById('imgPatAlphaVal').textContent = Math.round(imgState.alpha * 100) + '%';
-            if (!imgState.img) { showMakerPreview(null); return; }
-            const t = buildImageTile(2);
-            /* 미리보기는 용량 제한 없이 선명하게 (저장할 때 압축) */
-            makerRecipe = { v: 1, kind: 'tile', w: t.w, h: t.h, bg: imgState.bg, from: 'image' };
-            const el = document.getElementById('makerPreview');
-            paintPatternInto(el, { css: { backgroundColor: imgState.bg, backgroundImage: `url("${t.canvas.toDataURL('image/png')}")`, backgroundSize: `${t.w}px ${t.h}px` } });
-            document.getElementById('makerPreviewEmpty').style.display = 'none';
+            const host = document.getElementById('mkWeave'); if (!host || !window.MK) return;
+            MK.form(host, 'tile', mkW || { bg: '#fff6f9', L: [{ p: 'dot', c: '#f9cfdd', s: 40 }] }, r => { mkW = r; showMakerPreview(sanitizeRecipe(Object.assign({ kind: 'mk' }, r))); }, { imgPx: 400 });
         }
 
         /* =====================================================================

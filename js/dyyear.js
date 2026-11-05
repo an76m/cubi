@@ -58,8 +58,9 @@
         }
         /* 🎨 펼친 권의 색 → 다이어리에만 (--dy-cover · --dy-page · --dy-border · --dy-accent → css 가 다이어리 안에서 --cover-bg 들로 · 앱 화면은 늘 기본 색 · 도련 11-05)
            날짜형이 아닌 권(유한 다이어리)은 기본 색 */
-        function dyyColorPaint() {
-            const b = dyyBook(), k = b && dyyBasic() ? DY_COL[dyyColor(b.c)] : null, r = document.documentElement.style;
+        function dyyColorPaint() {   // 📓 🗂️ 페이지노트 · 바인더도 그 권 색 (상품 · 내가 만든 것 · t.cols · 도련 11-05)
+            const b = dyyBook(), t = !dyyBasic() && typeof dkType === 'function' ? dkType() : null, C = t && t.cols;
+            const k = b && dyyBasic() ? DY_COL[dyyColor(b.c)] : C ? { cover: C.표지색, page: C.속지색, border: C.테두리색, accent: C.강조색 } : null, r = document.documentElement.style;
             [['--dy-cover', 'cover'], ['--dy-page', 'page'], ['--dy-border', 'border'], ['--dy-accent', 'accent']].forEach(([v, n]) => k ? r.setProperty(v, k[n]) : r.removeProperty(v));
         }
         let dyyLastNote = null;
@@ -259,7 +260,7 @@
 
         window.dyyBooks = dyyBooks; window.dyyBookId = dyyBookId; window.dyyHas = dyyHas; window.dyyYear = dyyYear; window.dyyIn = dyyIn; window.dyyClamp = dyyClamp; window.dyySync = dyySync; window.dyySelect = dyySelect;
         window.dyyGuard = dyyGuard; window.dyyEnd = dyyEnd; window.dyyOnOpen = dyyOnOpen; window.dyyShopList = dyyShopList; window.dyyCells = dyyCells; window.dyyShop = dyyShop; window.dyyOnId = dyyOnId; window.dyyPaint = dyyPaint;
-        window.dyyNone = dyyNone; window.dyyDiscard = dyyDiscard; window.dyyColor = dyyColor; window.dyyColorPaint = dyyColorPaint; window.dyyIsNote = dyyIsNote;
+        window.dyyNone = dyyNone; window.dyyDiscard = dyyDiscard; window.dyyColor = dyyColor; window.dyyColorPaint = dyyColorPaint; window.dyyLeafNow = () => { const b = dyyBasic() && dyyBook(), d = b && DY_DESIGNS.find(x => x.id === dyyColor(b.c)); return d ? d.lf : ''; };   // 📔 날짜형 = 모든 날 같은 내지 (상품 '내지') window.dyyIsNote = dyyIsNote;
         window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트
         window.dyyDesign = dyyDesign; window.dyyTitle = dyyTitle;
         window.dyyBookType = () => dyyType(dyyBook()) || dyyType({ ch: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).ch, c: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).id });   // 📐 펼친 권 모양 (권이 없으면 처음선물 디자인 · js/skins.js dyNow)

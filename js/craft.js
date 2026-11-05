@@ -17,9 +17,9 @@
             text: ['🔤', '글씨 스티커', '글자 쓰기 → 글꼴 · 색 · 하얀 테두리', () => window.smOpenText && smOpenText(), 'stkmake'],
             tape: ['🎀', '마스킹테이프 만들기', '✏️ 한 칸을 그리면 쭉 이어져요 · 🖼️ 내 사진으로', () => window.openTapeMaker && openTapeMaker(), 'stkmake'],
             leaf: ['📃', '속지 만들기', '🖼️ 사진 불러오기 · ✏️ 종이 색 · 밑줄 위에 그리기', async () => { if (await diaryReady() && window.openLeafMaker) openLeafMaker(); }, 'stkmake'],      // 📔 속지 · 떡메 = 다이어리 쪽 크기로 만들어서 먼저 펴 둬요 (작업실 뒤에서)
+            memo: ['📝', '메모지 만들기', '🧵 종이 색 · 줄 · 무늬 · 테두리 · ✏️ 그리기 · 🖼️ 사진', async () => { if (await diaryReady() && window.openMemoMaker) openMemoMaker(); }, 'stkmake'],
             tk: ['🧻', '떡메모지 만들기', '🖼️ 사진 · ✏️ 그리기 · 🩷 풀칠 띠 색', async () => { if (await diaryReady() && window.openTteokMaker) openTteokMaker(); }, 'stkmake'],
-            weave: ['🧵', '무늬 메이커', '줄무늬 · 도트 · 깅엄 · 격자 · 물결', () => window.openMaker && openMaker('weave'), 'patmake'],
-            pimg: ['🖼', '이미지로 배경지', '내 사진 · 그림을 바둑판 · 엇갈림으로', () => window.openMaker && openMaker('image'), 'patmake'],
+            weave: ['🧵', '무늬 메이커', '무늬 15가지 · 두 겹 겹치기 · 기울기 · 내 사진 반복', () => window.openMaker && openMaker('weave'), 'patmake'],
             pdraw: ['🖌', '그려서 배경지', '한 칸을 그리면 이어 붙인 모습이 바로', () => window.openMaker && openMaker('draw'), 'patdraw']
         };
         /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
@@ -29,9 +29,9 @@
             { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam', 'album'], to: '🧺 바구니 · 📄 모조지 (가위로 오려 써요)' },
             { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['leaf'], to: '🧺 바구니 · 📃 속지' },
             { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['tk'], to: '🧺 바구니 · 🧻 떡메 한 묶음' },
-            { k: 'memo', ic: '📝', n: '메모지', own: 'memo', ways: [], soon: 1, to: '' },
+            { k: 'memo', ic: '📝', n: '메모지', own: 'memo', ways: ['memo'], to: '🧺 바구니 · 📝 메모지 한 묶음' },
             { g: '꾸미기', k: 'tape', ic: '🎀', n: '마스킹테이프', own: 'tape', ways: ['tape'], to: '🧺 바구니 · 🎀 한 롤' },
-            { k: 'bg', ic: '🌈', n: '배경지', ways: ['weave', 'pimg', 'pdraw'], to: '🌈 배경지 창 · 내가만든 칸', ft: 'pattern' }
+            { k: 'bg', ic: '🌈', n: '배경지', ways: ['weave', 'pdraw'], to: '🌈 배경지 창 · 내가만든 칸', ft: 'pattern' }
         ];
         const C = { on: false, k: 'seal', sel: null, mine: [], loading: false, sheet: false, off: null };
         const cq = id => document.getElementById(id);
