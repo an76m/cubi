@@ -17,8 +17,9 @@
         function bkSkip(path) {
             const parts = path.split('/'), dir = parts[1] || '', file = parts[parts.length - 1] || '';
             if (dir === DIRS.trash || dir === DIRS.stkList) return true;
-            if (dir === DIRS.deskLayout || dir === DIRS.starter || Object.values(DESK_DIRS).includes(dir) || Object.values(GD_DIRS).includes(dir)) return true;   // 🪑 ✏️ 책상 소품 · 문구 · 배치 · 기본세트도 스티커처럼 백업에서 빼요 (불러오기로 버린 것이 되살아나지 않게 · 도련 10-27)
+            if (dir === DIRS.deskLayout || dir === DIRS.starter || Object.values(DESK_DIRS).includes(dir) || Object.values(GD_DIRS).includes(dir) || Object.values(SKIN_DIRS).includes(dir)) return true;   // 🪑 ✏️ 책상 소품 · 문구 · 배치 · 기본세트도 스티커처럼 백업에서 빼요 (불러오기로 버린 것이 되살아나지 않게 · 도련 10-27)
             if (typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir)) return !/^(내|받은)-/.test(file);
+            if (dir === DIRS.pattern && /^받은-/.test(file)) return true;      // 🌈 샵에서 받은 배경지 파일 = 🔐 계정 열쇠 (책상 소품처럼 빼요 · 내가 만든 배경지 내- 는 넣어요 · 도련 11-05)
             return false;
         }
 

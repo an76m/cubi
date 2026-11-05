@@ -86,11 +86,55 @@
             return k + n;
         }
 
-        /* 🎁 처음 온 다꾸러 : 그 해 '처음선물' 디자인마다 한 권 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) · 펼칠 권 = 첫 권 */
+        /* 🗂 받은 권 = 권 폴더 + 다이어리.json (도련 11-05 · 상품 하나 = 파일 하나 · 안 쓴 권도) : 말랑달콤 / 날짜형바인더 · 날짜형노트 / 2026 분홍 1 / 다이어리.json 🔐 { id, from, at }
+             만들면 'diary_book_info' 그 권에 f: 1 (다시 확인하지 않아요) · 설정.json 에 받은 권 목록이 없어지면 = 권 폴더로 되살려요 · 🗑 영구 삭제 = 폴더째 */
+        const DYY_FILE = '다이어리.json';
+        const dyyOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
+        async function dyyFile(id, from) {
+            if (!dyyOnline() || typeof ownLock !== 'function') return;
+            try {
+                const dir = await getFolder(dyBookDir(id), true), cur = await findFile(dir, DYY_FILE);
+                if (!cur) { const I = (prefGet(DYY_INFO, DYY_INFO_L) || {})[id] || {}; await driveUpsert(dir, DYY_FILE, null, await ownLock({ id, from: I.from || from, at: I.at || '' })); }
+                const o = Object.assign({}, prefGet(DYY_INFO, DYY_INFO_L) || {}); o[id] = Object.assign({ from }, o[id] || {}, { f: 1 }); prefSet(DYY_INFO, DYY_INFO_L, o);
+            } catch (e) { console.warn('📔 다이어리.json', id, e); }
+        }
+        async function dyyRescue() {                                           // 🛟 권 폴더 → 받은 권 (못 읽으면 에러 → 다음에 다시)
+            const ids = [], gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'dy').map(e => e.id));
+            for (const [path, note] of [[DAY_PATH, false], [NOTE_PATH, true]]) {
+                const root = await getFolder(path, false); if (!root) continue;
+                for (const dir of await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name')) {
+                    const id = dyBookOfName(dir.name, note); if (!dyyOf(id) || gone.has(id) || ids.includes(id)) continue;
+                    const f = await findFile(dir.id, DYY_FILE);
+                    if (f) { let o = null; try { o = await ownUnlock(await readFileText(f.id)); } catch (e) {} if (!o || o.id !== id) continue; }   // 🔐 남의 것은 빼요 (다이어리.json 이 없는 예전 권은 폴더 그대로)
+                    ids.push(id);
+                }
+            }
+            return ids;
+        }
+        let dyyBusy = false;
+        function dyyGift() {                                                   // 🎁 처음 선물 (상품 속성 '처음선물' · 도련 11-04)
+            const ids = DY_DESIGNS.filter(d => d.gift).map(d => dyyNewId(dyyThis(), d));
+            prefSet(DYY_KEY, DYY_LOCAL, ids); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[0]); ids.forEach(id => dyyInfoSet(id, 'gift'));
+            return ids;
+        }
+        /* 🎁 처음 온 다꾸러 : 그 해 '처음선물' 디자인마다 한 권 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) · 펼칠 권 = 첫 권
+           🛟 로그인했는데 받은 권 목록이 없으면 = 먼저 권 폴더를 봐요 (있으면 되살리기 · 없으면 처음 선물 · 도련 11-05) */
         function dyySync() {
-            if (prefGet(DYY_KEY, DYY_LOCAL) === null) {                        // 🎁 처음 선물 (상품 속성 '처음선물' · 도련 11-04)
-                const ids = DY_DESIGNS.filter(d => d.gift).map(d => dyyNewId(dyyThis(), d));
-                prefSet(DYY_KEY, DYY_LOCAL, ids); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[0]); ids.forEach(id => dyyInfoSet(id, 'gift'));
+            if (prefGet(DYY_KEY, DYY_LOCAL) === null) {
+                if (!dyyOnline()) dyyGift();                                     // 👤 게스트 = 이 기기 목록만
+                else if (!dyyBusy) {
+                    dyyBusy = true;
+                    dyyRescue().then(ids => {
+                        if (prefGet(DYY_KEY, DYY_LOCAL) !== null) return [];             // 그사이 다른 기기에서
+                        if (!ids.length) return dyyGift().map(id => [id, 'gift']);
+                        prefSet(DYY_KEY, DYY_LOCAL, ids); prefSet(DYY_OPEN, DYY_OPEN_L, ids[ids.length - 1]);
+                        return ids.map(id => [id, 'basic']);
+                    }).then(L => Promise.all(L.map(([id, from]) => dyyFile(id, from)))).catch(e => console.warn('📔 다이어리 되살리기', e))
+                        .finally(() => { dyyBusy = false; dyyPaint(); dyyFit(); if (window.dyRender) dyRender(); if (window.dkDeskBooks) dkDeskBooks(); });
+                }
+            } else if (dyyOnline() && !dyyBusy) {                                // 다이어리.json 이 아직 없는 권 (예전에 받은 권도)
+                const I = prefGet(DYY_INFO, DYY_INFO_L) || {}, L = dyyIds().filter(id => !(I[id] && I[id].f));
+                if (L.length) { dyyBusy = true; (async () => { for (const id of L) await dyyFile(id, 'basic'); })().finally(() => { dyyBusy = false; }); }
             }
             dyyPaint();
             dyyFit();
@@ -186,6 +230,7 @@
             const id = dyyNewId(y, d);
             prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id])); if (window.snapSoon) snapSoon();   // 📦 사본
             dyyInfoSet(id, 'basic');                                           // 🏪 기본상품 샵 (나중 유료 = 'shop')
+            dyyFile(id, 'basic');                                              // 🗂 권 폴더 + 다이어리.json (도련 11-05)
             window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (끌어 놓으면 책상 그 자리 · js/basket.js bagNote)
             if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(id);   // 🏪 가게에서 산 것 = 봉투 속 (책상에 꺼내 놓을 때까지 책상에 없어요 · 펼쳐 둔 권도 그대로 · 도련 10-30)
             else dyySelect(id);

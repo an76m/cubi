@@ -506,5 +506,29 @@
         window.collAll = collAll; window.collEnt = collEnt; window.collGrid = collGrid; window.collThumb = collThumb; window.collNewId = collNewId;
         window.collLogin = collLogin; window.collWhoami = collWhoami; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
 
+        /* 🗂 상품 하나 = 파일 하나 (도련 11-05 · 목록에만 적던 것도 모두 : ✏️ 필기구 · 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 날짜형 다이어리)
+             말랑달콤 / <종류 폴더> / 받은-<시각>.json = 🔐 { u 하나하나 id, id 디자인, from 받은 곳 } (스티커처럼 계정마다 다른 열쇠 · js/own.js ownLock)
+             ofAdd = 만들기 (로그인 때만 · 게스트는 이 기기 목록만) → 파일 id (목록 칸의 c) · ofDel = 지우기 (🗑 휴지통 30일 뒤)
+             ofScan = 목록이 없어졌을 때 되살리기 (열리는 내 파일만 · 같은 u 는 새것 하나) · 드라이브를 못 읽으면 에러 (선물을 또 주지 않게) */
+        const ofColl = n => collOf(dirPath(n), '받은-');
+        async function ofAdd(n, it) {
+            if (!n || !collOnline() || typeof ownLock !== 'function') return '';
+            try { return await collAdd(ofColl(n), { s: await ownLock(it) }, '', { id: it.id }); } catch (e) { console.warn('🗂 파일', n, e); return ''; }
+        }
+        function ofDel(n, c) { if (n && c && collOnline()) return collRemove(ofColl(n), c).catch(e => console.warn('🗂 파일', n, e)); }
+        async function ofScan(n) {
+            const dir = await getFolder(dirPath(n), false); if (!dir) return [];
+            const out = new Map();
+            for (const f of await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime')) {
+                if (!/^받은-\d+\.json$/.test(f.name)) continue;                    // 목록 파일은 빼요
+                let w, it; try { w = JSON.parse(await readFileText(f.id)); it = w && w.item && typeof w.item.s === 'string' ? await ownUnlock(w.item.s) : null; } catch (e) { continue; }   // 🔐 남의 것 · 깨진 것은 무시
+                if (!it || typeof it.id !== 'string' || !w.id) continue;
+                const u = typeof it.u === 'string' ? it.u : it.id, r = { u, id: it.id, c: String(w.id), mt: String(f.modifiedTime || '') }, o = out.get(u);
+                if (!o || o.mt < r.mt) out.set(u, r);
+            }
+            return [...out.values()].sort((a, b) => a.mt.localeCompare(b.mt));
+        }
+        window.ofAdd = ofAdd; window.ofDel = ofDel; window.ofScan = ofScan;
+
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['coll'] = true;

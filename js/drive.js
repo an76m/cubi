@@ -14,7 +14,10 @@
                       / 스티커목록 / 목록.json · 스티커첩.json · 백업          🎒 유한 스티커 (js/own.js)
                       / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)
                       / 서랍장 · 시계 · 책꽂이 … 소품바구니 · 인형 … (DESK_DIRS) / 받은-<id>.json · 받은-목록N.json   🪑 책상 소품 하나에 파일 하나 (인형 = 책상에 놓는 인형)
-                      / 핀셋 · 가위 · 펀칭기 … (GD_DIRS) / 같은 방식                      ✏️ 문구 하나에 파일 하나 (js/coll.js 모음)
+                      / 핀셋 · 가위 · 펀칭기 … 색연필 · 형광펜 · 지우개 (GD_DIRS) / 같은 방식   ✏️ 문구 · 필기구 하나에 파일 하나 (js/coll.js 모음)
+                      / 벽지 · 책상판 (SKIN_DIRS) / 받은-<id>.json             🧱 🪵 책상 꾸밈 하나에 파일 하나 (도련 11-05 · js/coll.js ofAdd)
+                      / 배경지 / 받은-<id>.json                             🌈 샵에서 받은 배경지 하나에 파일 하나 (내가 만든 배경지 = 내-)
+                      / 날짜형바인더 · 날짜형노트 / <권 폴더> / 다이어리.json    📔 받은 권마다 🔐 { id, from, at } (안 쓴 권도 폴더 · 도련 11-05)
                       / 기본세트 / 선물.json                            🎁 처음 한 번 받는 서비스 (책상 소품 + 문구 · 한 파일 · 버리면 여기서 빠져요 · 예외 · js/desk.js)
                       / 책상배치 / 배치.json · 배치_백업.json             🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 커스텀 · 가진 문구 목록 (js/desk.js · js/skins.js)
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
@@ -37,7 +40,8 @@
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
         /* ⚠ pencup 폴더 = '연필꽂이' 그대로 (화면 이름만 펜꽂이 · 도련 11-03) */
         const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', basket: '소품바구니', lamp: '조명', doll: '인형', taperack: '마테정리함', lights: '전구줄', peg: '집게사진' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
-        const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자' };
+        const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자', pen: '색연필', hi: '형광펜', erase: '지우개' };   // ✏️ 필기구도 (도련 11-05 · 문구 상품 '문구종류' = 폴더)
+        const SKIN_DIRS = { wall: '벽지', top: '책상판' };            // 🧱 🪵 책상 꾸밈 (도련 11-05 · js/deskskin.js)
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
         const DAY_PATH = dirPath(DIRS.day);                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json
         const NOTE_PATH = dirPath(DIRS.dayNote);                    // 📓 날짜형 노트 : 말랑달콤 / 날짜형노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)

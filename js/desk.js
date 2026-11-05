@@ -131,7 +131,7 @@
             const day = new Date().toISOString().slice(0, 10), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
             let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
             if (m[who] === day) return;
-            const body = {}; ['diary_desk_items', 'diary_desk_fn', 'diary_gd_own'].forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });
+            const body = {}; ['diary_desk_items', 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin'].forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });
             if (!Array.isArray(body.diary_desk_items)) return;
             dkBkBusy = true;
             try {
@@ -141,6 +141,7 @@
             } catch (e) { console.warn('배치 백업', e); }
             finally { dkBkBusy = false; }
         }
+        window.deskBackupRead = dkBackupRead;                                       // 🧱 벽지 · 책상판 되살리기 (js/deskskin.js dsRescue · 쓰던 것)
         async function dkScan() {                                                   // 종류 폴더의 내 파일들 → { desk: [{u, id, c, p, mt}], gd: [...] }
             const out = { desk: [], gd: [] }, kinds = Object.values(DESK_DIRS).map(n => ['desk', n]).concat(Object.values(GD_DIRS).map(n => ['gd', n]));
             for (const [t, n] of kinds) {

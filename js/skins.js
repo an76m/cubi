@@ -1338,7 +1338,7 @@
         /* ✏️ 내 문구 (도련 10-27) : 처음엔 🎁 핀셋 + 필기구 5 (GD_STARTER · 도련 11-01) · 나머지는 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요 (→ 휴지통 30일 · gdBin)
            저장 : 책상배치 / 배치.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
                   🎁 처음 선물은 기본세트 / 선물.json 한 파일 (서비스 · 예외 · 버리면 거기서 빠져요)
-                  종류 폴더 (핀셋 · 가위 … js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
+                  종류 폴더 (핀셋 · 가위 … ✏️ 색연필 · 형광펜 · 지우개도 · 도련 11-05 · js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
            페이지에 꺼내 둔 것은 못 버려요 (마지막 하나도 버릴 수 있어요) */
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
         const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string' && !seen.has(o.id) && seen.add(o.id)) : null; };   // 같은 디자인은 하나만
