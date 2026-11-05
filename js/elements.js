@@ -703,6 +703,8 @@
         const pinDev = e => e.pointerType === 'mouse' || e.pointerType === 'pen' ? 'pc' : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pad';   // ✏️ 펜(애플 펜슬 · S펜)은 마우스처럼 : 닿기 전 떠 있는 펜 끝도 따라와요 (펜 호버 · 도련 10-21)
         function pinStart() {
             pinEl = document.createElement('div'); pinEl.className = 'twz pin-cur in bob'; pinEl.setAttribute('aria-hidden', 'true'); pinEl.innerHTML = pinSvg();
+            pinOrg(pinEl);                                                     // 📐 처음부터 상품 크기 (도련 11-05 : 처음 든 순간 크기 없이 그려져 화면만큼 커 보였어요)
+            if (!pinLast) { const c = document.getElementById('canvasArea'), r = c && c.getBoundingClientRect(); if (r && r.width) pinLast = [r.left + r.width / 2, r.top + r.height / 2]; }   // 처음 = 페이지 가운데 (왼쪽 위 0,0 에 뜨지 않게)
             document.body.appendChild(pinEl); pinFollow = false;
             if (window.toolGlow) toolGlow(pinEl);                              // ✨ 든 순간 한 번 반짝 (js/skins.js)
             if (pinLast) pinPut(...pinLast);

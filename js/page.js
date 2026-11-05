@@ -552,6 +552,16 @@
                 if (curlEdgeAt(e.clientX, book)) return;
                 pgmBegin(e);
             });
+            /* ✏️ 🪡 문구를 들고 있어도 (그리는 중 · 핀셋 · 가위 · 칼 …) 날짜바를 잡으면 다이어리가 옮겨져요 (도련 11-05)
+               그리는 중엔 날짜바가 펜 판 아래라 손가락이 안 닿아요 → 자리로 보고 먼저 받아요 · 날짜바의 버튼 위면 톡은 그대로 버튼 */
+            window.addEventListener('pointerdown', (e) => {
+                if (!isCoverOpen || turn || pgmDrag || (e.pointerType === 'mouse' && e.button !== 0) || !pgmOnBar(e.clientX, e.clientY)) return;
+                const t = e.target && e.target.closest ? e.target : document.body;
+                if (t.closest('input, select, .tap-menu, .modal, .dkw-room')) return;
+                const held = document.body.classList.contains('draw-on') || document.querySelector('#innerPage > .bd-tool.held, .sk-knife.held, .pc-held:not([hidden]), .pin-cur, .scs-cur');
+                if (!held || !pgmBegin(e)) return;
+                if (!t.closest('button')) { e.stopPropagation(); e.preventDefault(); }
+            }, true);
             window.addEventListener('pointermove', (e) => {
                 const d = pgmDrag; if (!d || d.id !== e.pointerId) return;
                 const dx = e.clientX - d.x, dy = e.clientY - d.y;
