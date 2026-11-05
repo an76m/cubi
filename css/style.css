@@ -1335,7 +1335,7 @@
 
         /* ===== 🖍️ 펜 · 형광펜 (js/draw.js) ===== */
         .draw-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 9700; touch-action: none; cursor: crosshair; }
-        body.draw-on .page-header { pointer-events: none; opacity: .45; }   /* 하단 메뉴는 그대로 눌려요 (누르면 그린 것을 붙이고 그리기 끝 · js/draw.js · 도련 10-19) */
+        body.draw-on .page-header { z-index: 9701; }   /* ✏️ 그리는 중에도 날짜바는 그대로 (투명해지지 않아요 · 펜 판 위 · 끌면 다이어리 옮기기 js/page.js · 버튼도 눌려요 · 도련 11-05 : 어떤 문구를 들어도 날짜바는 늘 그대로) */
         .draw-layer.erasing { cursor: none; }
         .draw-ring { fill: rgba(255,255,255,.55); stroke: #c98aa0; stroke-width: 1.5; stroke-dasharray: 3 2; pointer-events: none; }
 
