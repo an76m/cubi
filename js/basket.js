@@ -250,7 +250,12 @@
     }
     window.bkLift = bkLift;
     async function bkOpenSheet(id) {
-        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) {              // 📕 덮인 다이어리 : 🪑 책상이면 떠올라 펼쳐져요 (도련 11-05) · 아니면 먼저 열어 달라고
+            if (!document.documentElement.classList.contains('desk-on') || typeof openCoverAnimated !== 'function') { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            await bkLift(); openCoverAnimated();
+            for (let i = 0; i < 60 && (!isCoverOpen || (typeof turn !== 'undefined' && turn)); i++) await new Promise(r => setTimeout(r, 50));   // 표지가 다 넘어갈 때까지 (3초까지)
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+        }
         await bkLift();
         if (B.opening || !window.ownSheet) return;
         B.opening = id;
