@@ -24,13 +24,13 @@
         };
         /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
         const CRAFT_KINDS = [
-            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['booth', 'cam', 'album'], to: '🧺 바구니 · 🏷️ 씰' },
-            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam', 'album', 'text'], to: '🧺 바구니 · 🧩 조각 봉투' },
-            { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam', 'album'], to: '🧺 바구니 · 📄 모조지 (가위로 오려 써요)' },
-            { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['leaf'], to: '🧺 바구니 · 📃 속지' },
-            { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['tk'], to: '🧺 바구니 · 🧻 떡메 한 묶음' },
-            { k: 'memo', ic: '📝', n: '메모지', own: 'memo', ways: ['memo'], to: '🧺 바구니 · 📝 메모지 한 묶음' },
-            { g: '꾸미기', k: 'tape', ic: '🎀', n: '마스킹테이프', own: 'tape', ways: ['tape'], to: '🧺 바구니 · 🎀 한 롤' },
+            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 🏷️ 씰' },
+            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam', 'album', 'text'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
+            { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
+            { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['leaf'], to: '🗄️ 서랍 · 📃 속지' },
+            { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['tk'], to: '🗄️ 서랍 · 🧻 떡메 한 묶음' },
+            { k: 'memo', ic: '📝', n: '메모지', own: 'memo', ways: ['memo'], to: '🗄️ 서랍 · 📝 메모지 한 묶음' },
+            { g: '꾸미기', k: 'tape', ic: '🎀', n: '마스킹테이프', own: 'tape', ways: ['tape'], to: '🗄️ 서랍 · 🎀 한 롤' },
             { k: 'bg', ic: '🌈', n: '배경지', ways: ['weave', 'pdraw'], to: '🌈 배경지 창 · 내가만든 칸', ft: 'pattern' }
         ];
         const C = { on: false, k: 'seal', sel: null, mine: [], loading: false, sheet: false, off: null };
@@ -93,7 +93,7 @@
                 cq('crWorkT').textContent = `${K.ic} ${e.nm || K.n}`;
                 w.innerHTML = `<div class="cr8-pv">${e.th ? `<img src="${htmlEsc(e.th)}" alt="">` : K.ic}</div>
                     <button type="button" class="cr8-b main" id="crUse">📌 다이어리에 꺼내 쓰기</button>
-                    <button type="button" class="cr8-b" id="crBasket">🧺 바구니에서 보기</button>
+                    <button type="button" class="cr8-b" id="crBasket">🗄️ 서랍에서 보기</button>
                     <button type="button" class="cr8-b cr8-del" id="crDel">🗑 버리기</button>
                     <p class="cr8-hint">들어 있는 곳 : ${K.to}</p>`;
                 cq('crUse').onclick = () => useMine(e.id);

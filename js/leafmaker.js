@@ -4,7 +4,7 @@
    - ✏️ 직접 그리기 : 종이 위에 펜으로 그려요 (사진 위에 그려도 돼요)
    - 🧵 종이 꾸미기 : js/maker.js 종이 칸 (상품공방 속지 · 떡메 · 메모지와 같은 칸 · 도련 11-05) = 종이 색 · 줄(무지 · 줄 · 모눈 · 도트) · 줄 색 · 간격 · 위 여백 · 무늬 두 겹 · 테두리 · 모서리 · 머리글
    📝 메모지 만들기 (도련 11-05) : 같은 창을 메모지 모양으로 (lm.for = 'memo' · 440 × 300) → 🧺 바구니에 한 묶음
-   - 🎒 만든 속지 한 장 · 떡메 한 묶음은 🧺 바구니로 (10-25 · js/own.js) : 📃 오늘 페이지에 끼우기 · 📌 떡메 묶음으로 꺼내기 = 바구니에 넣고 바로 써요 · 🧺 바구니에 넣기
+   - 🎒 만든 속지 한 장 · 떡메 한 묶음은 🧺 바구니로 (10-25 · js/own.js) : 📃 오늘 페이지에 끼우기 · 📌 떡메 묶음으로 꺼내기 = 바구니에 넣고 바로 써요 · 🗄️ 서랍에 넣기
    - 페이지에는 그림(JPG)째로 그날 파일에 lfi 로 저장돼요 (주소 아님 · 인수인계 12번)
    ※ 링 구멍은 미리보기 · 페이지 모두 그 위에 그대로 보여요 (css/style.css --lf-holes)
    🧻 떡메모지 만들기 (✂️ 스티커만들기 → 🧻 떡메모지 만들기) : 같은 창을 떡메 모양으로 써요 (lm.for = 'tk')
@@ -52,7 +52,7 @@
             lmq('leafMakeModal').querySelector('.lm-content').classList.toggle('lm-memo', M);
             lmq('lmTitle').textContent = T ? '🧻 떡메모지 만들기' : M ? '📝 메모지 만들기' : '📃 속지 만들기';
             lmq('lmGo').textContent = T ? '📌 떡메 묶음으로 꺼내기' : M ? '📌 메모지 꺼내 쓰기' : '📃 오늘 페이지에 끼우기';
-            lmq('lmKeep').textContent = '🧺 바구니에 넣기';
+            lmq('lmKeep').textContent = '🗄️ 서랍에 넣기';
             lmGlueShow();
             const ca = lmq('canvasArea'), r = ca && ca.getBoundingClientRect();
             if (T) { lm.w = LM_TK_W; lm.h = LM_TK_H; }
@@ -131,7 +131,7 @@
         function lmClear() { lm.undo.push(lm.ink.getContext('2d').getImageData(0, 0, lm.w, lm.h)); lm.ink.getContext('2d').clearRect(0, 0, lm.w, lm.h); lmDraw(); }
 
         /* ---------- 다 만들었어요 : 🧺 바구니에 넣고 · 끼우기면 바로 꺼내 써요 ---------- */
-        async function lmDone(btn, keep) {                              // keep : 🧺 바구니에 넣기만 (오늘 페이지는 그대로)
+        async function lmDone(btn, keep) {                              // keep : 🗄️ 서랍에 넣기만 (오늘 페이지는 그대로)
             if (btn && btn.disabled) return;
             const c = document.createElement('canvas'); c.width = lm.w; c.height = lm.h; lmCompose(c.getContext('2d'));
             const src = c.toDataURL('image/jpeg', lm.for === 'leaf' ? .86 : .9);
@@ -144,11 +144,11 @@
             if (btn) btn.disabled = true;
             let id = '';
             try { id = await ownTake(d); }
-            catch (e) { showMsg('⚠ 바구니에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
+            catch (e) { showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
             finally { if (btn) btn.disabled = false; }
             closeModal('leafMakeModal');
             if (!keep && window.bkOpenSheet) { bkOpenSheet(id); return; }
-            showMsg(`${name}를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 바구니에서 꺼내 써요.</span>`);
+            showMsg(`${name}를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 서랍에서 꺼내 써요.</span>`);
         }
 
         /* 🧻 떡메 : 🧺 바구니에 넣고 · 📌 이면 바로 묶음으로 */

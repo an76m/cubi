@@ -6,13 +6,13 @@
        [🍽 스티커 담기] = 담기 끝 → 책상 위쪽 가운데에 '🍽 오늘 쓸 스티커 n' 버튼 (톡 = 쟁반 나왔다 · 들어갔다)
    - 쟁반의 스티커를 톡 = 바구니에서 누를 때와 똑같이 그 종이가 펼쳐져요 (js/basket.js bkOpenSheet) · 다 쓴 종이는 쟁반에서 저절로 빠져요
    - 담은 목록은 이 창이 열려 있는 동안만 (메모리 · 저장하지 않아요) : 앱을 닫으면 다꾸가 끝난 걸로 알고 비워요 · 스티커는 원래 바구니에 그대로
-     쟁반은 스티커를 옮기지 않고 '바구니의 이 종이'를 가리키기만 해요 (복사 · 이동 없음 → 늘어나거나 안 줄어드는 일 없음)
+     쟁반은 스티커를 옮기지 않고 '서랍의 이 종이'를 가리키기만 해요 (복사 · 이동 없음 → 늘어나거나 안 줄어드는 일 없음)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (메뉴의 오늘 쓸 스티커만 반응 없음) */
 (function () {
     const q = id => document.getElementById(id);
     const T = { ids: [], draft: [], kind: 'seal', list: [], noted: false, open: false, pos: null };
     const API = () => window.bkTrayApi;
-    const NOTE = '🧺 여기 담은 스티커는 <b>지금 다꾸할 때 쓸 스티커</b>예요.<br>앱을 닫으면 <b>쟁반은 비워져요.</b><br>사용 안 된 스티커는 <b>원래 바구니로 돌아가니</b> 걱정하지 마세요!';
+    const NOTE = '🧺 여기 담은 스티커는 <b>지금 다꾸할 때 쓸 스티커</b>예요.<br>앱을 닫으면 <b>쟁반은 비워져요.</b><br>사용 안 된 스티커는 <b>원래 서랍으로 돌아가니</b> 걱정하지 마세요!';
     const byId = () => new Map(T.list.map(e => [e.id, e]));
 
     /* ---------- 고르는 화면 ---------- */
@@ -117,7 +117,7 @@
         if (T.open && T.pos) Object.assign(p.style, { left: T.pos[0] + 'px', top: T.pos[1] + 'px' });
     }
     function dtrEnd() {
-        showAsk('🍽 다꾸를 마쳤나요?<br><span style="font-size:12px;color:#777;">쟁반을 비워요 · 스티커는 원래 바구니에 그대로 있어요</span>', '비우기', '취소')
+        showAsk('🍽 다꾸를 마쳤나요?<br><span style="font-size:12px;color:#777;">쟁반을 비워요 · 스티커는 원래 서랍에 그대로 있어요</span>', '비우기', '취소')
             .then(ok => { if (ok) { T.ids = []; T.draft = []; dtrPaint(); } });
     }
     function dtrDrag(p) {                                                     // 쟁반 머리를 잡고 끌어 옮겨요 (자리는 앱을 닫기 전까지만)

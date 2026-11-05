@@ -58,7 +58,7 @@
                     <p class="smk-hint">사진 가운데를 네모로 잘라서 테이프에 쭉 이어 붙여요</p>
                   </div>
                   <button type="button" class="smk-go" onclick="tpmFinish(true,this)">📌 다이어리에 붙이기</button>
-                  <button type="button" class="smk-go smk-sub" onclick="tpmFinish(false,this)">🧺 바구니에 넣기</button>
+                  <button type="button" class="smk-go smk-sub" onclick="tpmFinish(false,this)">🗄️ 서랍에 넣기</button>
                 </section>
               </div>`;
             document.body.appendChild(el);
@@ -136,10 +136,10 @@
             const o = tpmCur(), u = tpmUrl(o);                                // 🎒 만든 테이프 = 🧺 바구니에 한 롤 (붙인 길이만큼 줄어요 · js/own.js)
             let id = '';
             try { id = await ownTake({ k: 'tape', from: 'mine', imgs: [u], th: u }); }
-            catch (e) { showMsg('⚠ 테이프를 바구니에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
+            catch (e) { showMsg('⚠ 테이프를 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
             closeTapeMaker();
             if (stick) { if (window.bkOpenSheet) bkOpenSheet(id); return; }
-            showMsg('🎀 만든 테이프를 <b>🧺 바구니</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 바구니에서 꺼내 붙여요.</span>');
+            showMsg('🎀 만든 테이프를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 서랍에서 꺼내 붙여요.</span>');
         }
 
         function openTapeMaker() {

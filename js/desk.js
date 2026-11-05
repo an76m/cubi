@@ -972,7 +972,7 @@
                 if (S.every((r, i) => zones.some(e => e.s === i)) && !zones.some(e => e.k === win)) {
                     const other = dkOnDesk().find(x => x.u !== u && dkSlots(x.id) && dkHoldOk(x.id).includes(win) && dkSlots(x.id).some((r, i) => !(H[x.u] || []).some(e => e.s === i)));
                     const t2 = other && document.querySelector(`#deskStage .desk-item[data-u="${other.u}"]`);
-                    const q = `🗄️ ${htmlEsc(nm)}의 서랍 ${S.length}칸이 다 찼어요.<br>${ic} ${htmlEsc(josa(K, '은', '는'))} 어떻게 할까요?<br><span style="font-size:12px;color:#777;">${t2 ? `${htmlEsc(dkName(other))}에는 빈 서랍이 있어요 · ` : ''}서랍을 바꾸면 원래 있던 스티커는 빈 서랍으로 옮기거나 빼요 (바구니엔 그대로)</span>`;
+                    const q = `🗄️ ${htmlEsc(nm)}의 서랍 ${S.length}칸이 다 찼어요.<br>${ic} ${htmlEsc(josa(K, '은', '는'))} 어떻게 할까요?<br><span style="font-size:12px;color:#777;">${t2 ? `${htmlEsc(dkName(other))}에는 빈 서랍이 있어요 · ` : ''}서랍을 바꾸면 원래 있던 스티커는 빈 서랍으로 옮기거나 빼요 (스티커 서랍엔 그대로)</span>`;
                     const r = t2 ? await showAsk3(q, '서랍 바꾸기', '취소', `${dkName(other)}에 넣기`) : await showAsk(q, '서랍 바꾸기', '취소');
                     if (r === 'extra') { dkbHome(t2, it, n, j, cx, cy); return; }
                     if (!r) return; agreed = true;
@@ -1051,7 +1051,7 @@
             const [, K, , ic] = dkWin(k), H = dkHomes();
             const C = dkOnDesk().filter(x => dkSlots(x.id) && dkHoldOk(x.id).includes(k) && dkSlots(x.id).some((r, i) => !(H[x.u] || []).some(e => e.s === i)))
                 .sort((a, b) => (b.u === u0) - (a.u === u0));
-            const out = () => showMsg(`${ic} ${josa(K, '은', '는')} 서랍에서 빠졌어요.<br><span style="font-size:12px;color:#777;">스티커는 바구니에 그대로 있어요 · 🛠 책상 꾸미기 → 🔗 기능 연결에서 다시 넣을 수 있어요</span>`);
+            const out = () => showMsg(`${ic} ${josa(K, '은', '는')} 서랍에서 빠졌어요.<br><span style="font-size:12px;color:#777;">스티커는 스티커 서랍에 그대로 있어요 · 🛠 책상 꾸미기 → 🔗 기능 연결에서 다시 넣을 수 있어요</span>`);
             if (!C.length) { await out(); return; }
             for (let i = 0; ; i = (i + 1) % C.length) {
                 const o = C[i], t = document.querySelector(`#deskStage .desk-item[data-u="${o.u}"]`); if (!t) { await out(); return; }

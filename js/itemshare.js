@@ -80,7 +80,7 @@
                 }
             } catch (e) { console.warn(e); showMsg('⚠ 받다가 멈췄어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
             if (n || !skip) { got.push(body.t); if (typeof prefSet === 'function') prefSet(ISH_GOT, ISH_GOT_L, got.slice(-ISH_GOT_MAX)); }   // 하나라도 받았으면 이 파일은 끝
-            const where = body.kind === 'sticker' ? '✨ 스티커 → 바구니' : body.kind === 'desk' ? '📦 소품 보관함' : '🗄️ 문구함';
+            const where = body.kind === 'sticker' ? '✨ 스티커 → 서랍' : body.kind === 'desk' ? '📦 소품 보관함' : '🗄️ 문구함';
             showMsg(n ? `📥 받았어요! ${ISH_NAME[body.kind]} ${n}개${body.by ? ` <small>(by ${String(body.by).replace(/[<>&]/g, '')})</small>` : ''}<br><span style="font-size:12px;color:#777;">${where}에 넣었어요${skip ? ` · 이미 있는 ${skip}개는 건너뛰었어요` : ''}</span>`
                 : `받을 것이 없었어요${skip ? ` (이미 있는 ${skip}개)` : ''}.`);
         }
