@@ -1,14 +1,15 @@
-/* 말랑달콤 다이어리 - js/maker.js · MK v2 (도련 11-05)
+/* 말랑달콤 다이어리 - js/maker.js · MK v3 (도련 11-05)
    🧵 만들기 엔진 하나 = 앱 다꾸 작업실 · 🛠 상품공방이 똑같이 써요 (상품공방에는 이 파일을 통째로 넣어 둬요 · 버전 MK.v 가 같아야 해요)
    - 개발자가 상품공방에서 만드는 것 = 다꾸러가 앱에서 만드는 것 (기능 · 고를 거리 · 저장 모양이 같아요)
    - 무늬 (PATS) : 한 줄 = 한 무늬 · 새 무늬 = 여기 한 줄 → 배경지 · 벽지 · 마스킹테이프 · 떡메 · 메모지 · 속지 바탕에 저절로
    - 레시피 (다시 열어 고칠 수 있는 설정값) → 그림(svg) : tileSvg(배경지 · 벽지) · tapeSvg(마스킹테이프) · paperSvg(떡메 · 메모지 · 속지) · deskSvg(책상판)
        무늬 겹 L = [{ p 무늬, c 색, s 칸 크기 px, w 굵기·크기 %, r 기울기 °, o 진하기 }] (두 겹까지) · 그림 겹 im = { src, s 크기 px, m 'grid' 바둑판 | 'brick' 엇갈림 }
    - 값 표 : SPECS 다이어리 규격 · BINDS 묶는 방식 · LEAFS 내지 종류 · COLORS 고를 색 → 상품공방 · 앱이 같은 표를 써요
+   - 👀 보기 그림 : leafSvg(내지) · diarySvg(다이어리 4색 · 묶음 · 내지) · specSvg(규격 실제 비율) · roomSvg(벽지 · 책상판을 방 한 장에) → 상품공방이 눈으로 고르고 · 앱 책상도 roomSvg
    - form(host, kind, rec, onChange) = 만들기 칸 (색 · 무늬 · 크기 …) · draw(host, opt) = ✏️ 그리기 판 · 상품공방 · 앱 모두 이 칸 그대로
    ※ 다른 파일 없이 혼자 동작해요 (상품공방은 앱 파일 없이 열려요) */
 (function () {
-    const MK = { v: 2 };
+    const MK = { v: 3 };
     const NS = 'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"';
     const hex = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
     const num = (v, a, b, d) => { const n = parseFloat(v); return isNaN(n) ? d : Math.max(a, Math.min(b, Math.round(n * 100) / 100)); };
@@ -107,6 +108,78 @@
     MK.css = r => { r = MK.clean('tile', r); return { backgroundColor: r.bg, backgroundImage: `url("${MK.url(MK.tileSvg(r))}")`, backgroundSize: '100% 100%' }; };   // 크기 없는 그림 = 칸 크기 그대로 이어져요
     /* svg → png (캔버스 · 그림 겹이 있어도) */
     MK.png = (svg, W, H) => new Promise((ok, no) => { const i = new Image(); i.onload = () => { try { const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(i, 0, 0, W, H); ok(c.toDataURL('image/png')); } catch (e) { no(e); } }; i.onerror = no; i.src = MK.url(svg); });
+
+    /* ---------- 👀 보기 그림 (도련 11-05 · 상품공방에서 눈으로 고르기 · 앱과 같은 모습) ---------- */
+    const hx1 = (v, d) => (String(v || '').match(/#[0-9a-f]{6}/ig) || [d]);
+    const uid = () => 'v' + Math.random().toString(36).slice(2, 8);
+    /* 📃 내지 : 앱 css .lf-종류 와 같은 모습 (u = 쪽 폭의 1% · chip = 고르는 칸처럼 무늬를 크게) · cols = 다이어리 4색 */
+    MK.leafSvg = (lf, W, H, cols, chip) => {
+        cols = cols || {}; const bd = hx1(cols.테두리색, '#f6c9d6')[0], ac = hx1(cols.강조색, '#c8457a')[0], pg = hx1(cols.속지색, '#fffaf2')[0];
+        const u = W / 100 * (chip ? 1.9 : 1), k = uid(), P = (w, h, b, y) => `<pattern id="${k}" width="${w}" height="${h}" patternUnits="userSpaceOnUse"${y ? ` y="${y}"` : ''}>${b}</pattern>`;
+        let bg = pg, d = '';
+        if (lf === 'line') { const g = 7 * u; d = P(W, g, `<rect y="${g - 1}" width="${W}" height="1" fill="${bd}" opacity=".45"/>`, 2 * u); }
+        else if (lf === 'grid') { const g = 5 * u, c = mix(ac, '#ffffff', .83); bg = '#fffefc'; d = P(g, g, `<path d="M0 .5 H${g} M.5 0 V${g}" stroke="${c}"/>`); }
+        else if (lf === 'dot') { const g = 4.6 * u, c = mix(ac, '#ffffff', .62); bg = '#fffdfb'; d = P(g, g, `<circle cx="${g / 2}" cy="${g / 2}" r="${.45 * u}" fill="${c}"/>`); }
+        else if (lf === 'gingham') { const g = 7.4 * u; bg = '#ffffff'; d = P(g, g, `<rect width="${g / 2}" height="${g}" fill="${ac}" opacity=".16"/><rect width="${g}" height="${g / 2}" fill="${ac}" opacity=".16"/>`); }
+        else if (lf === 'kraft') { bg = '#e2cba6'; d = `<filter id="${k}n"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3"/><feColorMatrix values="0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .22 0"/></filter>`; }
+        const top = lf === 'kraft' ? `<rect width="${W}" height="${H}" filter="url(#${k}n)"/>` : d ? `<rect width="${W}" height="${H}" fill="url(#${k})"/>` : '';
+        return `<svg ${NS} width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${d}</defs><rect width="${W}" height="${H}" fill="${bg}"/>${top}</svg>`;
+    };
+    /* 📔 다이어리 : 덮은 표지 + 펼친 두 쪽 (o = { r 세로÷가로 · b 묶음 · lf 내지 · 표지색 · 테두리색 · 강조색 · 속지색 · H 높이 }) */
+    MK.diarySvg = o => {
+        o = o || {}; const H = o.H || 150, r = +o.r > .3 ? +o.r : 1.41, w = Math.round(H / r), k = uid();
+        const cv = hx1(o.표지색, '#ffc6d6'), c0 = cv[0], c1 = cv[1] || mix(c0, '#ffffff', .5), bd = hx1(o.테두리색, '#f6c9d6')[0], ac = hx1(o.강조색, '#c8457a')[0], b = o.b, band = '#e7768f';
+        const leaf = MK.url(MK.leafSvg(o.lf || 'plain', w, H, o));
+        /* 표지 (x 0) */
+        let cov = `<rect x="2" y="2" width="${w}" height="${H}" rx="6" fill="url(#${k}c)" stroke="${bd}" stroke-width="2.5"/>`;
+        if (b === 'ring') for (let y = 14; y < H - 8; y += 12) cov += `<ellipse cx="7" cy="${y + 2}" rx="4" ry="2.4" fill="#fff" stroke="#c9b6bd"/>`;
+        if (b === 'hard') cov += `<rect x="2" y="2" width="9" height="${H}" rx="4" fill="#000" opacity=".16"/>`;
+        if (b === 'thin') cov += `<path d="M7 8 V${H - 4}" stroke="#fff" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+        if (b === 'tn') cov += `<rect x="${w * .78}" y="0" width="4" height="${H + 4}" rx="2" fill="${band}"/>`;
+        if (b === 'spread') cov += `<rect x="${w * .55}" y="${H - 6}" width="4" height="14" rx="1.5" fill="${band}"/>`;
+        cov += `<rect x="${w * .25}" y="${H * .3}" width="${w * .5}" height="${H * .16}" rx="4" fill="#fff" opacity=".75"/><rect x="${w * .32}" y="${H * .36}" width="${w * .36}" height="3" rx="1.5" fill="${ac}"/>`;
+        /* 펼친 두 쪽 (x0 = 표지 오른쪽 + 사이) */
+        const x0 = w + 22, F = 5, sw = w * 2 + F * 2;
+        let sp = `<rect x="${x0}" y="2" width="${sw}" height="${H}" rx="6" fill="url(#${k}b)"/>`
+            + `<image href="${leaf}" x="${x0 + F}" y="${2 + F}" width="${w}" height="${H - F * 2}" preserveAspectRatio="none"/><image href="${leaf}" x="${x0 + F + w}" y="${2 + F}" width="${w}" height="${H - F * 2}" preserveAspectRatio="none"/>`
+            + `<rect x="${x0 + F + w - 10}" y="${2 + F}" width="20" height="${H - F * 2}" fill="url(#${k}s)"/>`;
+        const mx = x0 + F + w;
+        if (b === 'ring') for (let y = 12; y < H - 8; y += 12) sp += `<ellipse cx="${mx}" cy="${y + 2}" rx="6" ry="2.6" fill="#fff" stroke="#c9b6bd" stroke-width="1.2"/>`;
+        if (b === 'thin') sp += `<path d="M${mx} ${F + 6} V${H - F - 2}" stroke="${bd}" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+        if (b === 'tn') sp += `<rect x="${mx - 1.5}" y="0" width="3" height="${H + 4}" rx="1.5" fill="${band}"/>`;
+        if (b === 'hard') sp += `<rect x="${x0 + sw - 9}" y="0" width="4" height="${H + 4}" rx="2" fill="#4a3a44"/>`;
+        if (b === 'spread') sp += `<rect x="${mx + w * .12}" y="${F}" width="3" height="${H + 6}" rx="1.5" fill="${band}"/>`;
+        const W = x0 + sw + 4;
+        return `<svg ${NS} width="${W}" height="${H + 12}" viewBox="0 0 ${W} ${H + 12}"><defs><linearGradient id="${k}c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient>`
+            + `<linearGradient id="${k}b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mix(bd, '#ffffff', .38)}"/><stop offset="1" stop-color="${bd}"/></linearGradient>`
+            + `<linearGradient id="${k}s"><stop offset="0" stop-color="#785a5f" stop-opacity="0"/><stop offset=".5" stop-color="#785a5f" stop-opacity=".22"/><stop offset="1" stop-color="#785a5f" stop-opacity="0"/></linearGradient></defs>${cov}${sp}</svg>`;
+    };
+    /* 📐 규격 : 실제 크기 비율 (mm × k) */
+    MK.specSvg = (n, k) => { const s = MK.SPECS.find(x => x[0] === n); if (!s) return ''; k = k || .24; const w = s[1] * k, h = s[2] * k; return `<svg ${NS} width="${w + 4}" height="${h + 4}" viewBox="0 0 ${w + 4} ${h + 4}"><rect x="2" y="2" width="${w}" height="${h}" rx="3" fill="#fffaf2" stroke="#d9a9bb" stroke-width="1.5"/></svg>`; };
+    /* 🪟 방 한 장 (그림 px 1672 × 941 · 앱 책상 화면과 같은 선) : wall = { c 단색 | img · iw · ih } · top = { t 책상색 5 · img · iw · ih 나뭇결 } · sw = 견본 · ol = 선 색 */
+    MK.roomSvg = (wall, top, sw, ol) => {
+        if (!wall && !top) return '';
+        const k = sw ? 'm' + Math.random().toString(36).slice(2, 7) : 'dk', t = top && top.t;
+        const pat = (c, pid, tf) => { const T = tf ? ` patternTransform="${tf}"` : '', P = (w, h, b) => `<pattern id="${pid}" width="${w}" height="${h}" patternUnits="userSpaceOnUse"${T}>${b}</pattern>`;
+            return c.c ? P(40, 40, `<rect width="40" height="40" fill="${c.c}"/>`) : c.img ? P(c.iw, c.ih, `<image href="${c.img}" width="${c.iw}" height="${c.ih}"/>`) : ''; };
+        let defs = '', body = '';
+        if (wall) {
+            defs += pat(wall, k + 'W') + pat(wall, k + 'L', 'skewY(-21) scale(0.42 1)') + pat(wall, k + 'R', 'skewY(21) scale(0.42 1)');
+            body += `<polygon points="140,0 1538,0 1538,720 140,720" fill="url(#${k}W)"/>`
+                + `<polygon points="0,0 140,0 140,720 0,776" fill="url(#${k}L)"/><polygon points="1538,0 1672,0 1672,773 1538,720" fill="url(#${k}R)"/>`
+                + '<polygon points="0,0 140,0 140,720 0,776" style="fill:rgba(150,90,120,.07)"/><polygon points="1538,0 1672,0 1672,773 1538,720" style="fill:rgba(150,90,120,.07)"/>';   // 옆벽은 조금 그늘
+        }
+        if (t) {
+            if (top.img) defs += pat(top, k + 'T');
+            body += `<polygon points="0,776 140,720 1538,720 1672,773 1672,866 0,866" fill="${top.img ? `url(#${k}T)` : t[0]}"/>`
+                + `<polygon points="140,721 1538,721 1585,740 1585,746 95,746 95,740" fill="${t[1]}"/>`   // 벽 아래 안쪽 그늘
+                + `<rect x="0" y="866" width="1672" height="13" fill="${t[2]}"/><rect x="0" y="879" width="1672" height="25" fill="${t[3]}"/><rect x="0" y="904" width="1672" height="37" fill="${t[4]}"/>`;
+        }
+        const ln = `stroke="${ol || '#5b3f4a'}" stroke-width="3" fill="none" stroke-linejoin="round"`;
+        body += `<g ${ln}><path d="M140 0 V720 M1538 0 V720"/><polyline points="0,776 140,720 1538,720 1672,773"/><path d="M0 866 H1672 M0 904.5 H1672"/></g>`;
+        const vb = !sw ? '0 0 1672 941' : sw === 'all' ? '0 0 1672 941' : wall ? '0 0 1672 700' : '0 712 1672 229';   // 견본 = 벽만 · 책상만 · all = 방 전체
+        return `<svg ${sw ? 'class="ds-sw"' : 'class="desk-skin"'} ${NS} data-an="1" viewBox="${vb}" preserveAspectRatio="${sw ? 'xMidYMid slice' : 'none'}" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
+    };
 
     /* ---------- 만들기 칸 (form) ---------- */
     const CSS = `.mk{display:flex;flex-direction:column;gap:10px;font-size:13px;color:#5a3d4a}.mk-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mk-row>label{flex:none;width:72px;font-weight:700;font-size:12.5px}

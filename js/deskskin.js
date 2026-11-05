@@ -51,36 +51,8 @@
             dsPaint();
         }
 
-        /* ---------- 무늬 (SVG pattern) : 뒷벽 · 왼쪽 옆벽 · 오른쪽 옆벽은 같은 무늬를 원근대로 눕혀요 ---------- */
-        function dsPat(id, pid, tf) {
-            const T = tf ? ` patternTransform="${tf}"` : '', c = dsCat(id) || {};
-            const P = (w, h, body) => `<pattern id="${pid}" width="${w}" height="${h}" patternUnits="userSpaceOnUse"${T}>${body}</pattern>`;
-            if (c.c) return P(40, 40, `<rect width="40" height="40" fill="${c.c}"/>`);
-            if (c.img) return P(c.iw, c.ih, `<image href="${c.img}" width="${c.iw}" height="${c.ih}"/>`);   // 🧁 무늬 그림 한 칸 (벽지 · 책상 나뭇결)
-            return '';
-        }
-        /* 방 그림 위에 얹는 그림 (그림 px 1672 × 941 · 선은 방 그림과 같은 자리) */
-        function dsSvg(wall, top, sw) {
-            if (!wall && !top) return '';
-            const k = sw ? 'm' + Math.random().toString(36).slice(2, 7) : 'dk', d = top && dsCat(top), t = d && d.t;
-            let defs = '', body = '';
-            if (wall) {
-                defs += dsPat(wall, k + 'W') + dsPat(wall, k + 'L', 'skewY(-21) scale(0.42 1)') + dsPat(wall, k + 'R', 'skewY(21) scale(0.42 1)');
-                body += `<polygon points="140,0 1538,0 1538,720 140,720" fill="url(#${k}W)"/>`
-                    + `<polygon points="0,0 140,0 140,720 0,776" fill="url(#${k}L)"/><polygon points="1538,0 1672,0 1672,773 1538,720" fill="url(#${k}R)"/>`
-                    + '<polygon points="0,0 140,0 140,720 0,776" style="fill:rgba(150,90,120,.07)"/><polygon points="1538,0 1672,0 1672,773 1538,720" style="fill:rgba(150,90,120,.07)"/>';   // 옆벽은 조금 그늘
-            }
-            if (t) {
-                if (d.img) defs += dsPat(top, k + 'T');
-                body += `<polygon points="0,776 140,720 1538,720 1672,773 1672,866 0,866" fill="${d.img ? `url(#${k}T)` : t[0]}"/>`
-                    + `<polygon points="140,721 1538,721 1585,740 1585,746 95,746 95,740" fill="${t[1]}"/>`   // 벽 아래 안쪽 그늘
-                    + `<rect x="0" y="866" width="1672" height="13" fill="${t[2]}"/><rect x="0" y="879" width="1672" height="25" fill="${t[3]}"/><rect x="0" y="904" width="1672" height="37" fill="${t[4]}"/>`;
-            }
-            const ln = `stroke="var(--dsk-ol, ${DS_OL})" stroke-width="3" fill="none" stroke-linejoin="round"`;
-            body += `<g ${ln}><path d="M140 0 V720 M1538 0 V720"/><polyline points="0,776 140,720 1538,720 1672,773"/><path d="M0 866 H1672 M0 904.5 H1672"/></g>`;
-            const vb = !sw ? '0 0 1672 941' : wall ? '0 0 1672 700' : '0 712 1672 229';   // 견본 = 벽만 · 책상만
-            return `<svg ${sw ? 'class="ds-sw"' : 'class="desk-skin"'} data-an="1" viewBox="${vb}" preserveAspectRatio="${sw ? 'xMidYMid slice' : 'none'}" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
-        }
+        /* 방 그림 위에 얹는 그림 = js/maker.js MK.roomSvg (상품공방 미리보기와 같은 그림 · 도련 11-05) · 선 색은 방 그림 선 (css --dsk-ol) */
+        function dsSvg(wall, top, sw) { return MK.roomSvg(wall && dsCat(wall), top && dsCat(top), sw, `var(--dsk-ol, ${DS_OL})`); }
         /* 책상 화면에 그리기 (기본이면 아무것도 안 얹어요) */
         function dsPaint() {
             const st = document.getElementById('deskStage'); if (!st) return;
