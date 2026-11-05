@@ -106,7 +106,7 @@
                 let start = null;
                 box.addEventListener('pointerdown', e => {
                     if (e.button > 0 || modal.classList.contains('snb-on') || e.target.closest('button, input, select, textarea')) return;   // 제목 줄의 ← · ✕ · 👀 버튼은 끌기 아님
-                    if (!title.contains(e.target) && !(e.target === box && e.clientY <= title.getBoundingClientRect().bottom)) return;   // 제목 줄 · 그 위 빈 띠
+                    if (!title.contains(e.target) && !e.target.closest('.win-grip') && !(e.target === box && e.clientY <= title.getBoundingClientRect().bottom)) return;   // 제목 줄 · 그 위 빈 띠 · .win-grip = 제목 없는 창의 손잡이 (🗄️ 스티커 서랍 윗판 · 도련 11-05)
                     start = { x: e.clientX, y: e.clientY, ox: parseFloat(box.style.left) || 0, oy: parseFloat(box.style.top) || 0 };
                     box.setPointerCapture(e.pointerId);
                     e.preventDefault();

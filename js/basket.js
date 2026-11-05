@@ -129,18 +129,18 @@
         return `${u[0]} ${n}${u[1]}`;
     }
     /* 🗄️ 스티커 서랍 (도련 11-05 : 창 안의 바구니 → 서랍 하나만 · 문구함 서랍과 같은 셀 그림 = 단색 + 굵은 선)
-       위 = ‹ 스티커 · 이름 · 📒 정리 · 📤 공유 · 🗑 버리기 · ✕ · 안 = 쓰는 법 한 줄 + 종이 (끌어 치우기 · 💻 밖으로 끌어내기 · 📱 톡) · 앞판 = 🏪 받기 · 손잡이 · 몇 장 */
+       위 = 이름 · 📒 정리 · 📤 공유 · 🗑 버리기 (윗판을 잡고 옮겨요 · ‹ 스티커 · ✕ 없음 · 도련 11-05) · 안 = 쓰는 법 한 줄 + 종이 (끌어 치우기 · 💻 밖으로 끌어내기 · 📱 톡) · 앞판 = 🏪 받기 · 손잡이 · 몇 장 */
+    const BK_DRW_RGB = [245, 166, 190];                                       // 🎨 스티커 서랍 몸 색 (문구함보다 진하게 · 도련 11-05 채도 올리기)
     function bkDraw() {
         const wrap = bq('abBody'); if (!wrap) return;
-        const nm = BK_KINDS[B.kind] || '스티커', has = B.list.length > 0, c = dkwColors(null);   // 🎨 문구함 서랍과 같은 색 (js/deskgd.js) · 이름이 모두 받침 없이 끝나요 → '는'
+        const nm = BK_KINDS[B.kind] || '스티커', has = B.list.length > 0, c = dkwColors(BK_DRW_RGB);   // 🎨 문구함 서랍과 같은 색 (js/deskgd.js) · 이름이 모두 받침 없이 끝나요 → '는'
         const bagNt = B.bagN ? `<p class="bkd-bag">🛍️ 책상 위 봉투에 <b>${bkCount(B.bagN)}</b>이 아직 있어요 · 봉투에서 꺼내 소품에 넣으면 여기에 보여요</p>` : '';
         const how = has ? `<p class="bk-how" id="bkHow">${bkPhone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
         const ord = has ? bkOrder() : [], show = ord.slice(-BK_MAX);
         wrap.innerHTML = `<div class="bkd" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
-            <div class="bkd-top"><button type="button" class="bkd-chip bkd-back" onclick="openBasket()">‹ 스티커</button><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
-                ${tool(has, '📒', '정리', 'abDesk()')}${tool(has, '📤', '공유', 'bkShare()', 'bk-share')}${tool(has, '🗑', '버리기', 'bkBin()', 'bk-binb')}
-                <button type="button" class="bkd-x" aria-label="닫기" onclick="closeModal('basketKindModal')">✕</button></div>
+            <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
+                ${tool(has, '📒', '정리', 'abDesk()')}${tool(has, '📤', '공유', 'bkShare()', 'bk-share')}${tool(has, '🗑', '버리기', 'bkBin()', 'bk-binb')}</div>
             <div class="bkd-in">${how}${has
                 ? `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div></div>`
                 : `<div class="bk-bin empty"><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🗄️ 서랍이 텅 비었어요</b><span>앞의 <em>🏪 기본${esc(nm)} 받기</em>로<br>받아서 채워요</span></button></div>`}</div>
