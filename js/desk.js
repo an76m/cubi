@@ -1235,6 +1235,7 @@
             const key = el.dataset.u + '|' + r.join(',');
             if (DKD.cur && DKD.cur.key === key) { dkDrawerShut(true); return; }  // 다시 톡 = 닫기
             if (DKD.cur) dkDrawerShut(true);
+            dkdUnhide();
             const img = el.querySelector(':scope > img'), o = DK.items.find(x => x.u === el.dataset.u), c = o && dkCat(o.id);
             if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front')) { if (run) run(); return; }
             const W = r[2] - r[0], H = r[3] - r[1], box = `left:${r[0]}%;top:${r[1]}%;width:${W}%;height:${H}%`;
@@ -1250,19 +1251,21 @@
             const D = { key, hole, fr, tags, win: null, t: 0 };
             if (!run) { setTimeout(() => dkdFront(D), 760); return; }            // 든 게 없는 서랍 = 쏙 열렸다 닫혀요
             DKD.cur = D;
-            const before = new Set(dkdBoxes().map(x => x[0])), t0 = performance.now();
+            const now = dkdBoxes(), before = new Set(now.map(x => x[0])), t0 = performance.now();
             setTimeout(() => {
                 if (DKD.cur !== D) return;
+                now.forEach(x => x[1].classList.add('dk-keep')); document.documentElement.classList.add('dk-dropping');   // 새로 뜰 창은 자리 잡을 때까지 안 보여요 (가운데에 잠깐 떴다 사라지지 않게 · 도련 11-05)
                 run();
                 const look = () => {                                            // 새로 뜬 창을 찾아 위에서 내려오게
                     if (DKD.cur !== D) return;
                     const w = dkdBoxes().find(x => !before.has(x[0]));
-                    if (w) { dkdDrop(D, w); return; }
-                    if (performance.now() - t0 < 1800) setTimeout(look, 40); else dkDrawerShut(false);   // 창이 안 떴으면 서랍만 닫아요
+                    if (w) { dkdUnhide(); dkdDrop(D, w); return; }
+                    if (performance.now() - t0 < 1800) requestAnimationFrame(look); else { dkdUnhide(); dkDrawerShut(false); }   // 창이 안 떴으면 서랍만 닫아요
                 };
                 look();
             }, 240);
         }
+        function dkdUnhide() { document.documentElement.classList.remove('dk-dropping'); document.querySelectorAll('.dk-keep').forEach(h => h.classList.remove('dk-keep')); }
         function dkdDrop(D, [box, host]) {
             D.win = [box, host];
             box.getAnimations().forEach(a => a.cancel());                      // 다가오는 창 연출 대신
@@ -1276,7 +1279,7 @@
             setTimeout(() => { D.hole.remove(); D.fr.remove(); D.tags.forEach(g => { g.style.transition = ''; delete g.dataset.dkd; }); }, 280);
         }
         function dkDrawerShut(anim) {                                           // anim = 창이 위로 올라가며 사라져요 (서랍 톡 · 다른 서랍)
-            const D = DKD.cur; if (!D) return; DKD.cur = null; clearInterval(D.t);
+            const D = DKD.cur; if (!D) return; DKD.cur = null; clearInterval(D.t); dkdUnhide();
             dkdFront(D);
             const w = D.win; if (!w) return;
             const [box, host] = w, done = () => { host.classList.remove('dk-drop'); box.getAnimations().forEach(a => a.cancel()); };

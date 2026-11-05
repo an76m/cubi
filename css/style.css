@@ -4249,3 +4249,4 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .modal.dk-drop { align-items: flex-start !important; padding-top: 0 !important; }
 .modal.dk-drop > .modal-content { margin-top: 0 !important; }
 .dkw-room.dk-drop { place-items: start center; }
+html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:not(.dk-keep) > .dk-tape, html.dk-dropping .dkw-room:not(.dk-keep) > * { visibility: hidden !important; }   /* 서랍에서 뜰 창 = 맨 위에 자리 잡을 때까지 숨겨요 */
