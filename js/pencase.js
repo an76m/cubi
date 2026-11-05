@@ -213,7 +213,7 @@
         const pkShopList = () => pkAll().filter(t => !t.off).map(t => ({ id: t.id, g: 'pen', kind: '필기구', name: pkName(t), art: pkSvg(t) }));
         function pkAdd(id) {                                                    // 받은 필기구 = 펜꽂이에도 (고른 목록이 있을 때 · 24개까지)
             const v = prefGet(PK_KEY, PK_LOCAL);
-            if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length + (window.dkwCupToolN ? dkwCupToolN() : 0) < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // ✏️ 책상 펜꽂이의 다른 도구까지 24개
+            if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // 그리기 목록 (🪑 책상 펜꽂이는 따로 · js/deskgd.js 문구의 집)
             if (window.pcRefill) pcRefill();
         }
         window.openPencase = openPencase; window.pkCupList = pkCupList;

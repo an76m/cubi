@@ -38,8 +38,6 @@
 .dkw-dtop { display: flex; align-items: center; gap: 10px; background: var(--db); border: 4px solid var(--dk); border-bottom: 0; border-radius: 18px 18px 0 0; padding: 10px 14px 8px; color: var(--dk); }
 .dkw-dtop b { font-size: 16px; font-weight: 900; }
 .dkw-dtop small { font-size: 12px; font-weight: 700; opacity: .85; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dkw-cnt { font-size: 12.5px; font-weight: 800; background: #fff; border: 2px solid var(--dk); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
-.dkw-cnt b { color: #c2457a; }
 .dkw-dx { border: 0; background: #fff; color: var(--dk); width: 30px; height: 30px; border-radius: 50%; font-size: 15px; font-weight: 900; flex: none; }
 .dkw-din { flex: 1 1 auto; min-height: 0; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); padding: 0 14px 14px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0; overscroll-behavior: contain; }   /* 칸막이가 많아지면 서랍 안을 위아래로 (칸막이 높이 = 들어 있는 만큼) */
 .dkw-sec { background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); border: 3px solid var(--dk); margin: -1.5px; padding: 6px 8px 8px; min-height: 0; box-sizing: border-box; flex: 0 0 calc(100% + 3px); min-width: 0; }
@@ -63,9 +61,6 @@
 .dkw-it.pen .dkw-art > svg, .dkw-pen .dkw-art > svg { height: 100%; }
 .dkw-use b { display: block; font-size: 10.5px; line-height: 1.25; margin-top: 3px; word-break: keep-all; }
 .dkw-use em { display: inline-block; margin-top: 2px; font-style: normal; font-size: 9.5px; font-weight: 900; color: #fff; background: #8bc79a; border-radius: 999px; padding: 0 6px; }
-.dkw-it.in .dkw-use { background: rgba(255, 214, 226, .75); }
-.dkw-heart { position: absolute; right: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #f3c1d1; background: #fff; color: #e6c3cf; font-size: 13px; line-height: 1; padding: 0; }
-.dkw-heart.on { color: #ff6f9c; border-color: #ff9fbd; }
 .dkw-it.need .dkw-use { animation: gdNeedTool .65s ease-in-out 4 alternate; }
 .dkw-none { grid-column: 1 / -1; text-align: center; padding: 30px 10px; font-weight: 800; color: var(--dk); line-height: 2.2; }
 .dkw-dfront { height: 62px; margin: 0 10px; background: var(--db); border: 4px solid var(--dk); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; gap: 16px; flex: none; }
@@ -83,7 +78,6 @@
 .dkw-bin { border: 2px solid var(--dk); background: #fff; color: var(--dk); height: 30px; min-width: 30px; padding: 0 8px; border-radius: 999px; font-size: 13px; font-weight: 900; flex: none; white-space: nowrap; }
 .dkw-bin.on { background: #e05a7d; border-color: #e05a7d; color: #fff; }
 .dkw-drawer.binning .dkw-it { animation: dkwWig .5s ease-in-out infinite alternate; }
-.dkw-drawer.binning .dkw-it .dkw-heart { visibility: hidden; }
 .dkw-drawer.binning .dkw-use { position: relative; }
 .dkw-drawer.binning .dkw-use::after { content: '🗑'; position: absolute; right: 2px; top: 2px; font-size: 13px; background: #fff; border-radius: 50%; width: 20px; height: 20px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 @keyframes dkwWig { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
@@ -97,6 +91,10 @@
 .dkw-strip .dkw-out { flex: none; position: relative; width: 38px; height: 38px; padding: 0; border: 1.6px solid #e8b9c6; border-radius: 10px; background: #fff; cursor: pointer; }
 .dkw-strip .dkw-out:hover { border-color: #c2457a; background: #fff0f5; }
 .dkw-strip .dkw-x { position: absolute; top: -7px; right: -7px; width: 17px; height: 17px; border-radius: 50%; background: #c2457a; color: #fff; font-size: 10px; font-weight: 900; line-height: 17px; text-align: center; box-shadow: 0 0 0 1.5px #fff; pointer-events: none; }
+.dkw-out.dkw-ghost { position: fixed; z-index: 2147483000; width: 46px; height: 46px; padding: 0; translate: -50% -50%; border: 2px solid #c2457a; border-radius: 10px; background: #fff; pointer-events: none; box-shadow: 0 6px 14px rgba(90,40,60,.25); }   /* 끌어 옮기는 그림 (도련 11-05) */
+.dkw-out.dkw-ghost > i { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; overflow: hidden; } .dkw-out.dkw-ghost > i img { max-width: 34px; max-height: 34px; object-fit: contain; } .dkw-out.dkw-ghost .dkw-x { display: none; }
+.dkw-strip .dkw-out.dkb-out { opacity: .35; }
+.dkw-t.need { animation: gdNeedTool .65s ease-in-out 4 alternate; }
 .dkw-strip .dkw-out > i { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; overflow: hidden; font-style: normal; }
 .dkw-strip .dkw-out > i img { max-width: 30px; max-height: 30px; object-fit: contain; }
 .dkw-strip .dkw-out > i.tall img { max-width: none; max-height: none; height: 40px; width: auto; transform: rotate(-40deg); }

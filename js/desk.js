@@ -305,7 +305,7 @@
             if (S) {
                 const cur = (dkHomes()[u] || []).find(e => e.s === s); if (fn && cur && cur.k === fn) return;
                 const H0 = dkHomes(), pe = fn && Object.keys(H0).map(x => H0[x].find(e => e.k === fn)).find(Boolean);   // 🏷 옮겨도 이름표는 따라가요
-                if (fn) dkWinFree(fn, m);                                        // 다른 곳(다른 칸 포함)에 있으면 이리로 옮겨요
+                if (fn && fn !== 'gd') dkWinFree(fn, m);                         // 다른 곳(다른 칸 포함)에 있으면 이리로 옮겨요 · 🗄️ 문구함은 여러 칸 (도련 11-05 · 칸마다 넣은 문구)
                 const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); if (fn) H[u].push(Object.assign({ k: fn, s, r: S[s] }, pe && pe.tag ? { tag: dkzTagMove(pe.tag, pe.r, S[s]) } : {})); if (!H[u].length) delete H[u]; dkHomesSet(H);
                 DK.zone = fn ? `${u}|${fn}` : null;
             } else if (m[fn] === u) delete m[fn];                                 // 소품 전체 = 풀기
@@ -330,8 +330,7 @@
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
             if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }
-            if (fn === 'pc') { if (window.dkwCupOpen) setTimeout(dkwCupOpen, 0); return; }   // ✏️ 책상 위 펜꽂이 = 앞으로 다가와요 (js/deskgd.js)
-            if (fn === 'gd' && window.dkwTrayOpen && document.documentElement.classList.contains('desk-on')) { setTimeout(dkwTrayOpen, 0); return; }   // 🗄️ 서랍장 문구함 칸 = 서랍이 열려요 (📱 폰은 예전 문구함 창)                // 📦 소품함 (다이어리를 띄우지 않아요)
+            if ((fn === 'pc' || fn === 'gd') && window.dkwOpenFor && document.documentElement.classList.contains('desk-on')) { setTimeout(() => dkwOpenFor(''), 0); return; }   // ✏️ 🗄️ 문구가 든 곳 (펜꽂이 · 서랍은 소품을 누르면 그곳 · js/deskgd.js)   // 🗄️ 서랍장 문구함 칸 = 서랍이 열려요 (📱 폰은 예전 문구함 창)                // 📦 소품함 (다이어리를 띄우지 않아요)
             if (fn === 'skin' && window.dyOpen) { setTimeout(() => dyOpen('다이어리'), 0); return; }   // 📔 책상에서는 바로 다이어리 보관소 (배경지는 책상에서 못 써서 메뉴를 건너뛰어요 · 도련 10-28)
             const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
@@ -959,8 +958,8 @@
         const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)
+            if (it.k === 'gd' && it.gid) { if (await dkGdPut(it.gid, t)) { dkbPulse(t); dkbTake(n, j); } return; }   // ✏️ 문구 = 넣은 소품이 그 문구의 집 (도련 11-05)
             let win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
-            if (win === 'gd') { const o0 = DK.items.find(x => x.u === t.dataset.u); if (o0 && dkHoldOk(o0.id).includes('pc')) win = 'pc'; }   // ✏️ 문구를 펜꽂이에 넣으면 = 그 펜꽂이를 내 펜꽂이로 (문구는 문구함에 · 꽂는 건 문구함에서)
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', [, K, , ic] = dkWin(win);
             if (!o || !dkHoldOk(o.id).includes(win)) {                          // 🧸 못 넣는 소품 = '○○에 넣을 수 없어요'
                 showMsg(`${ic} ${josa(K, '은', '는')} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`);   // 넣을 수 있는 곳은 안 알려요 (소품이 끝없이 늘어요 · 도련 11-05)
@@ -1001,6 +1000,31 @@
             else if (!o.tag) { o.tag = { m: 't', t: (dkWin(win) || [])[1] || '', on: !!await showAsk(`🏷 ${nm}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(u), 50); }
             dknPaintAll(); dkbPulse(t); dkbTake(n, j);
         }
+        /* ✏️ 문구 넣기 (도련 11-05 · 현실처럼) : 넣은 곳 = 그 문구의 집 · 꺼내 쓰기도 거기서만 (js/deskgd.js 문구의 집)
+           펜꽂이 = 꽂을 수 있는 것만 (필기구 · 상품 '연필꽂이' yes) · 24개까지 · 서랍장 = 칸을 골라요 (한 칸에 문구 여러 종류 함께 · 다른 것이 든 칸이면 바꿀지 물어요)
+           봉투 카드 · 꺼낸 문구 줄에서 끌어 놓을 때 같이 써요 → true = 넣었어요 */
+        async function dkGdPut(id, t) {
+            const u = t.dataset.u, o = DK.items.find(x => x.u === u), ok = o ? dkHoldOk(o.id) : [], S = o && dkSlots(o.id), nm = o ? dkName(o) : '이 소품', gn = (window.dkwNameOf && dkwNameOf(id)) || '문구';
+            const no = () => { showMsg(`✏️ ${htmlEsc(josa(gn, '은', '는'))} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`); return false; };
+            if (!o || !window.dkwAtPut) return no();
+            if (S && ok.includes('gd')) {
+                const s = await dkzChoose(t, o, 'gd'); if (s < 0) return false;
+                const cur = (dkHomes()[u] || []).find(e => e.s === s);
+                if (cur && cur.k !== 'gd' && !await showAsk(`${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>문구함으로 바꿀까요?`, '바꾸기', '취소')) return false;
+                if (!cur || cur.k !== 'gd') {
+                    const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push({ k: 'gd', s, r: S[s] }); dkHomesSet(H);
+                    if (cur) { dknPaintAll(); await dkzRehome(cur.k, u, cur); }
+                    if (await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { const H2 = dkHomes(), e = (H2[u] || []).find(x => x.k === 'gd' && x.s === s); if (e) { e.tag = Object.assign(dknWordTag('gd'), { on: true }); dkHomesSet(H2); } }
+                }
+                dkwAtPut(id, u + ':' + s);
+            } else if (ok.includes('pc') && !S) {
+                if (!dkwCanCup(id)) return no();
+                if (dkwHere(u).length >= DKW_MAX) { showMsg(`✏️ ${htmlEsc(nm)}에는 ${DKW_MAX}개까지 꽂을 수 있어요.`); return false; }
+                dkwAtPut(id, u);
+            } else return no();
+            dknPaintAll(); deskFnPaint(); return true;
+        }
+        window.dkGdPut = dkGdPut;
         /* ---------- 🗄️ 서랍 칸 (도련 11-01 : 칸 자리는 미리 정해 둬요 · DK_HOLD) ---------- */
         /* 🗄️ 서랍 고르기 (도련 11-01) : 상품을 서랍장에 넣을 때 그 서랍장 그림이 크게 뜨고 칸을 직접 눌러요 · 칸마다 지금 든 것 · 결과 = 칸 번호 (취소 = -1 · '다른 서랍장' = 'more')
            op = { free : 빈 칸만 누를 수 있게, ask : 위 글, no : 취소 글, more : 세 번째 버튼 글 } */
@@ -1036,6 +1060,7 @@
                 if (s < 0) { await out(); return; }
                 const H2 = dkHomes(), R = dkSlots(o.id)[s]; H2[o.u] = (H2[o.u] || []).filter(e => e.s !== s && e.k !== k);
                 H2[o.u].push(Object.assign({ k, s, r: R }, oldE && oldE.tag ? { tag: dkzTagMove(oldE.tag, oldE.r, R) } : {})); dkHomesSet(H2);   // 🏷 이름표도 같이
+                if (k === 'gd' && oldE && window.dkwAtMove) dkwAtMove(u0 + ':' + oldE.s, o.u + ':' + s);   // ✏️ 문구함 서랍을 옮기면 안에 든 문구도 같이
                 dknPaintAll(); dkbPulse(t); return;
             }
         }
@@ -1186,9 +1211,12 @@
         function dkHomeTap(el, cx, cy) {
             const p = dkzPct(el, cx, cy), z = dkzHit(dkHomes()[el.dataset.u] || [], p);
             const o = DK.items.find(x => x.u === el.dataset.u), S = o && dkSlots(o.id), si = S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1;
-            if (si >= 0) { dkDrawerPull(el, S[si], z ? () => deskRun(z.k) : null); return true; }   // 🗄 서랍 = 쏙 열렸다가 (넣어 둔 것을 꺼내고) 닫혀요 · 빈 서랍도
+            const desk = document.documentElement.classList.contains('desk-on');
+            if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
+            const run = z && (z.k === 'gd' && desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, el.dataset.u + ':' + z.s) : () => deskRun(z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
+            if (si >= 0) { dkDrawerPull(el, S[si], run || null); return true; }   // 🗄 서랍 = 쏙 열렸다가 (넣어 둔 것을 꺼내고) 닫혀요 · 빈 서랍도
             if (!z) return false;
-            deskRun(z.k); return true;
+            run(); return true;
         }
         /* 🗄 서랍 열고 닫기 (도련 11-04 · 현실처럼) : 서랍 칸(상품 '소품.slots')대로 그림에서 앞판을 잘라 앞으로 당겨요 (조금 아래로 · 조금 크게)
            원래 자리 = 서랍 속 (상품 '서랍속' 그림 · 없으면 그림자) · 다 열리면 넣어 둔 창을 열고 · 조금 뒤 닫혀요 · 손잡이 · 태슬도 앞판과 같이 */
