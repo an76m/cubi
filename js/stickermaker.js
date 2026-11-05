@@ -372,20 +372,23 @@
         }
         /* ---------- ↩️ 바구니로 다시 : 🧺 바구니에서 종이를 열면 바구니는 비켜 주고, 떼는 창(🏷️ 흰 종이 …)이 닫히면 다시 떠요 ---------- */
         const STK_BLINK = 700;
-        let stkBackOn = false;
+        let stkBackOn = false, stkDrw = false;
         function stkLeave() {                                              // 🧺 바구니 → 떼는 창으로 (바구니가 떠 있을 때만 돌아올 자리로 기억)
             const m = smq('basketKindModal'); if (!m || m.style.display !== 'flex') return;
+            stkDrw = !!(window.dkDrawerOwns && dkDrawerOwns(m));              // 🗄 책상 서랍에서 내려온 서랍 창 (그사이 서랍을 닫으면 다시 안 떠요 · 도련 11-05)
             closeModal('basketKindModal'); stkBackOn = true;
         }
         function stkReturn(delay) {
-            if (!stkBackOn) return; stkBackOn = false;
+            if (!stkBackOn) return;
             setTimeout(() => {
+                stkBackOn = false;                                         // 다시 뜨기 직전까지는 '비켜 있어요' (책상 서랍이 그사이 닫히지 않게)
+                if (stkDrw && !(window.dkDrawerOwns && dkDrawerOwns(smq('basketKindModal')))) return;   // 서랍을 닫았으면 그대로 (열려 있으면 맨 위 그 자리로 다시 · .dk-drop)
                 if (document.body.classList.contains('fc-lock') || [...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex')) return;   // 그사이 다른 창이 떴으면 그대로
                 if (window.bkReopen) bkReopen(); else if (window.openBasket) openBasket();   // 보던 종류 바구니로
             }, delay || 280);
         }
         function stkBlink() { stkLeave(); stkReturn(STK_BLINK); }
-        window.stkLeave = stkLeave; window.stkReturn = stkReturn; window.stkBlink = stkBlink;
+        window.stkLeave = stkLeave; window.stkReturn = stkReturn; window.stkBlink = stkBlink; window.stkAway = () => stkBackOn;   // 바구니(서랍 창)가 잠깐 비켜 있어요 (js/desk.js dkdAway)
 
         /* ✂️ 스티커만들기 창의 📷 · 🖼️ · 🔤 버튼 (사진 고르는 창은 눌렀을 때 바로 열려야 해서 화면을 먼저 만들어 둬요) */
         function smOpenCam() { smBuild(); smq('smCam').click(); }

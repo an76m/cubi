@@ -1234,7 +1234,7 @@
         function dkDrawerPull(el, r, run) {
             const key = el.dataset.u + '|' + r.join(',');
             if (DKD.cur && DKD.cur.key === key) { dkDrawerShut(true); return; }  // 다시 톡 = 닫기
-            if (DKD.cur) dkDrawerShut(true);
+            if (DKD.cur) { const w = DKD.cur.win; dkDrawerShut(false); if (w) dkdHide(w[1]); }   // 다른 서랍 = 열린 서랍(앞판은 닫히고 · 창은 바로 치워요) → 이 서랍 창이 위에서 내려와요
             dkdUnhide();
             const img = el.querySelector(':scope > img'), o = DK.items.find(x => x.u === el.dataset.u), c = o && dkCat(o.id);
             if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front:not(.bye)')) { if (run) run(); return; }   // .bye = 닫히는 중인 앞판 (다른 서랍으로 바로 넘어가요)
@@ -1251,6 +1251,7 @@
             const D = { key, hole, fr, tags, win: null, t: 0 };
             if (!run) { setTimeout(() => dkdFront(D), 760); return; }            // 든 게 없는 서랍 = 쏙 열렸다 닫혀요
             DKD.cur = D;
+            dkdBoxes().forEach(([b, h]) => { if (h.id === 'basketKindModal' || h.id === 'dkwTray') dkdHide(h); });   // 서랍 밖에서 떠 있던 서랍 창(가운데)은 먼저 치워요 → 이 서랍에서 다시 내려와요 (도련 11-05)
             const now = dkdBoxes(), before = new Set(now.map(x => x[0])), t0 = performance.now();
             setTimeout(() => {
                 if (DKD.cur !== D) return;
@@ -1265,6 +1266,8 @@
                 look();
             }, 240);
         }
+        const dkdAway = () => document.body.classList.contains('fc-lock') || (window.stkAway && stkAway()) || !!document.querySelector('#pelRoom.show, #pcbRoom.show, #pmRoom.show, #tkRoom.show, #spkRoom.show');   // 🏷️ 떼는 화면 · 봉투 · 모조지 · 떡메 (서랍 창이 잠깐 비켜요 · js/stickermaker.js stkLeave)
+        function dkdHide(h) { if (h.classList.contains('modal')) { if (h.style.display === 'flex') closeModal(h.id); } else { h.classList.remove('show'); h.hidden = true; if (!document.querySelector('.dkw-room:not([hidden])')) document.documentElement.classList.remove('dkw-on'); } }   // 창 바로 치우기 (연출 없이)
         function dkdUnhide() { document.documentElement.classList.remove('dk-dropping'); document.querySelectorAll('.dk-keep').forEach(h => h.classList.remove('dk-keep')); }
         function dkdDrop(D, [box, host]) {
             D.win = [box, host];
@@ -1272,7 +1275,7 @@
             box.style.left = box.style.top = '';                               // 옮겨 둔 창도 화면 맨 위 가운데로
             host.classList.add('dk-drop');
             box.animate([{ translate: '0 calc(-100% - 24px)' }, { translate: '0 0' }], { duration: 420, easing: 'cubic-bezier(.2, .85, .3, 1.04)' });
-            D.t = setInterval(() => { if (DKD.cur === D && !dkdOn(host)) dkDrawerShut(false); }, 250);   // 창을 다른 데서 닫으면 서랍도
+            D.t = setInterval(() => { if (DKD.cur === D && !dkdOn(host) && !dkdAway()) dkDrawerShut(false); }, 250);   // 창을 다른 데서 닫으면 서랍도 (스티커를 떼러 잠깐 비킨 동안은 그대로 · 닫으면 다시 맨 위로)
         }
         function dkdFront(D) {
             D.fr.classList.remove('open'); D.fr.classList.add('bye'); D.tags.forEach(g => { g.style.transform = ''; }); if (window.sndDrawer) sndDrawer(false);

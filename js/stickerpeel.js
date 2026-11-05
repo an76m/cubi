@@ -248,7 +248,7 @@
             ctx.setTransform(S.DPR, 0, 0, S.DPR, 0, 0); ctx.clearRect(0, 0, S.W, S.H);
             const bo = S.gone ? Math.max(0, 1 - (t - S.gone) / 260)              // 마지막 스티커를 떼어 내면 스르르 사라져요 (📱 폰은 뗄 때마다)
                 : S.back ? Math.min(1, (t - S.back) / 260) : 1;                  // 📱 붙이고 나면 남은 스티커와 같이 다시 스르르
-            if (bo > 0 && !S.rel) { ctx.save(); ctx.globalAlpha = bo; ctx.fillStyle = 'rgba(90,60,70,.10)'; ctx.fillRect(0, 0, S.W, S.H); ctx.restore(); }   // 어둡게 깔기 (🤍 정리 책상은 안 깔아요)
+            /* 어둡게 깔기는 없앴어요 (도련 11-05 · 화면이 어두워지지 않게) */
             if (S.rel) { const A = S.rel.at(); ctx.save(); ctx.beginPath(); ctx.rect(A.left, A.top - 6, A.width, A.height + 12); ctx.clip(); }   // 🤍 종이는 정한 자리 안에서만 보여요 (옆으로 밀어 넘겨요)
             if (bo > 0) {                                                        // 🏷️ 하얀 네모 (스티커 종이)
                 const B = S.board, bx = B.cx - B.w / 2, by = B.cy - B.h / 2;
