@@ -21,7 +21,7 @@
     function load(force) {                                                    // 테이프 무늬 · 남은 길이 = 내 스티커 목록 (js/own.js)
         if ((T.list && !force && T.who === who()) || T.loading || !window.ownList || !who()) return;   // 아직 로그인 중 = 읽지 않아요
         T.loading = true; const w = who();
-        ownList(!!force).then(L => { if (w !== who()) return; T.list = Array.isArray(L) ? L : []; T.who = w; T.fresh = !!force; paint(); }).catch(() => {}).finally(() => { T.loading = false; });
+        ownList(!!force, 'tape').then(L => { if (w !== who()) return; T.list = Array.isArray(L) ? L : []; T.who = w; T.fresh = !!force; paint(); }).catch(() => {}).finally(() => { T.loading = false; });
     }
     if (window.ownOnChange) ownOnChange(() => { T.fresh = false; load(true); });
     /* 정리함에 꽂힌 테이프 id (지금 책상에 있는 정리함만 · 다 쓴 · 버린 테이프는 빼요) */
@@ -141,7 +141,7 @@
             ids = now(); const free = freeOf(ids);                                // 고르는 동안 바뀌었을 수도 있어요
             if (ids[s] || free.length < it.s.length) { full(free.length); return; }
             const order = [s].concat(free.filter(i => i > s), free.filter(i => i < s));   // 고른 칸부터 오른쪽으로 · 모자라면 앞쪽 빈 칸
-            try { const w = who(), L = await ownList(true); if (w === who() && Array.isArray(L)) { T.list = L; T.who = w; T.fresh = true; } } catch (e) {}   /* 🔑 방금 받은 테이프가 든 목록으로 (도련 11-04 고침 : 받기 전에 읽은 목록엔 없어서 안 보였고 · 목록이 있으면 '없는 테이프' 로 빠졌어요) */
+            try { const w = who(), L = await ownList(true, 'tape'); if (w === who() && Array.isArray(L)) { T.list = L; T.who = w; T.fresh = true; } } catch (e) {}   /* 🔑 방금 받은 테이프가 든 목록으로 (도련 11-04 고침 : 받기 전에 읽은 목록엔 없어서 안 보였고 · 목록이 있으면 '없는 테이프' 로 빠졌어요) */
             const M = read(); it.s.forEach((id, k) => { ids[order[k]] = id; }); M[t.dataset.u] = ids; write(M);
             dkbTake(n, j); dkbPulse(t); paint();
         })();

@@ -40,7 +40,7 @@
     }
     function bkLaySave() {
         const L = bkLay(), ids = new Set(B.all.map(e => e.id));
-        L.o = L.o.filter(id => ids.has(id)); Object.keys(L.p).forEach(id => { if (!ids.has(id)) delete L.p[id]; });   // 다 쓴 종이는 잊어요
+        L.o = L.o.slice(-5000); const keep = new Set(L.o.concat([...ids])); Object.keys(L.p).forEach(id => { if (!keep.has(id)) delete L.p[id]; });   // 다 쓴 종이는 잊어요 (목록이 종류마다라 다른 종류 종이는 몰라요 → 지우지 않고 오래된 것부터 5000장까지만 · 도련 11-05)
         if (bkWho() === 'guest') return;
         try { const all = JSON.parse(localStorage.getItem(BK_LAY) || '{}') || {}; all[L.w] = { o: L.o, p: L.p }; localStorage.setItem(BK_LAY, JSON.stringify(all)); } catch (e) {}
     }
@@ -81,11 +81,11 @@
         if (!window.ownList) { wrap.innerHTML = bkMsg('🗄️ 서랍을 준비하고 있어요.'); return; }
         if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 서랍을 쓸 수 있어요.'); return; }
         /* ⚡ 먼저 : 마지막으로 읽은 목록으로 바로 그려요 (드라이브를 기다리지 않게) → 그다음 새로 읽어 달라졌을 때만 다시 그려요 */
-        const peek = force && window.ownPeek ? ownPeek() : null;
+        const peek = force && window.ownPeek ? ownPeek(B.kind) : null;   // 그 종류만 (종류마다 목록 · 도련 11-05)
         if (peek) { B.all = peek.list.slice(); B.album = bkUnbag(JSON.parse(JSON.stringify(peek.album))); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
         else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🗄️ 서랍을 여는 중…');
         try {
-            const got = window.ownOpen ? await ownOpen(force) : { list: await ownList(force), album: { bd: [], rl: [], g: {} } };   // 목록 · 스티커첩을 동시에
+            const got = window.ownOpen ? await ownOpen(force, B.kind) : { list: await ownList(force, B.kind), album: { bd: [], rl: [], g: {} } };   // 그 종류의 목록 · 스티커첩을 동시에
             B.all = got.list.slice();
             B.album = bkUnbag(JSON.parse(JSON.stringify(got.album)));
             abReapply();                                                        // 아직 저장 안 된 정리는 그 위에 다시 (화면이 되돌아가지 않게)
@@ -338,7 +338,7 @@
     const abNewBd = (k, pid) => { const p = AB_BDP.find(x => x.id === pid); return { id: 'b' + abRid(), k, lb: '', pid: p.id, n: +p.P.장수, p: {} }; };
     const abNewRl = (k, pid) => { const p = AB_RL.find(x => x.id === pid); return { id: 'r' + abRid(), k, lb: '', pid: p.id, n: +p.P.쪽수, it: [] }; };   // 📒 바인더 = 시트 수 (장수) · 🤍 이형지북 = 쪽수 (상품)
     /* 🏪 기본상품 샵 → 📔 다이어리(스티커 정리)에서 받기 (그 종류 서랍으로) */
-    function abTakeTool(t, k, pid) { const o = t === 'bd' ? abNewBd(k, pid) : abNewRl(k, pid); window.abLastGiven = { id: o.id, t: Date.now() }; if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(o.id); return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(o); }).then(r => { if (window.dkDeskBooks) dkDeskBooks(true); return r; }); }   // 🛍️ 봉투 카드가 이 책을 기억해요 · 📔 책상에도 (js/desk.js)
+    function abTakeTool(t, k, pid) { const o = t === 'bd' ? abNewBd(k, pid) : abNewRl(k, pid); window.abLastGiven = { id: o.id, t: Date.now() }; if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(o.id); return ownAlbum(a => { (t === 'bd' ? a.bd : a.rl).push(o); }, [k]).then(r => { if (window.dkDeskBooks) dkDeskBooks(true); return r; }); }   // 🛍️ 봉투 카드가 이 책을 기억해요 · 📔 책상에도 (js/desk.js)
     /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색] }] · 톡 = 그 종류 창에서 그 책 펼치기 */
     window.abDeskList = async () => {
         if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
@@ -1391,7 +1391,7 @@
     const DS = { m: new Map(), z: 1, act: '', t: 0, at: null, tape: null };
     const DS_ROOMS = ['pelRoom', 'pcbRoom', 'pmRoom', 'tkRoom'];
     function dsLayer() { let l = bq('dskLayer'); if (!l) { l = document.createElement('div'); l.id = 'dskLayer'; document.body.appendChild(l); } return l; }
-    function dsEntry(id) { const pk = window.ownPeek ? ownPeek() : null, L = (pk && pk.list) || B.all || []; return L.find(e => e.id === id) || (DS.more || []).find(e => e.id === id) || null; }   // more = 바구니를 안 열었을 때 읽어 둔 목록 (🎀 마테 정리함)
+    function dsEntry(id) { const L = (window.ownSeen ? ownSeen() : []).concat(B.all || []); return L.find(e => e.id === id) || (DS.more || []).find(e => e.id === id) || null; }   // more = 바구니를 안 열었을 때 읽어 둔 목록 (🎀 마테 정리함)
     const dsLeft = e => !!e && (e.q0 ? e.q > 0 : (e.u || []).length < e.n);
     const dsRoomOn = () => DS_ROOMS.some(id => { const r = bq(id); return r && r.classList.contains('show'); });
     function dsPaint(d) {
@@ -1602,7 +1602,7 @@
     }
     if (window.ownOnChange) ownOnChange(() => DS.m.forEach(d => { if (DS.act !== d.id) dsPaint(d); }));   // 쓴 양이 바뀌면 다시 그려요
     window.dsTake = dsTake;
-    window.dsTapeOut = async (id, at) => { if (!dsEntry(id) && window.ownList) { try { DS.more = await ownList(); } catch (e) {} } const d = dsTake(id, at, true); if (d) { const e = dsEntry(id); if (e && e.k === 'tape') dsBig(d); } return !!d; };   // 🎀 마테 정리함에서 톡 = 롤을 페이지 위에 꺼내 크게 → 롤에서 끌어 뽑아 써요 (js/desktape.js · 도련 11-03)
+    window.dsTapeOut = async (id, at) => { if (!dsEntry(id) && window.ownList) { try { DS.more = await ownList(false, 'tape'); } catch (e) {} } const d = dsTake(id, at, true); if (d) { const e = dsEntry(id); if (e && e.k === 'tape') dsBig(d); } return !!d; };   // 🎀 마테 정리함에서 톡 = 롤을 페이지 위에 꺼내 크게 → 롤에서 끌어 뽑아 써요 (js/desktape.js · 도련 11-03)
     window.dsHas = id => DS.m.has(id);
 
     /* ---------- 🎨 기본상품 샵 물건 그림 (도련 10-25 · 입체감 있는 손그림 SVG · 그림 파일 없이) ----------

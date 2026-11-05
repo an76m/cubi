@@ -62,7 +62,7 @@
         async function loadMine() {
             const K = kindOf(C.k); C.mine = []; if (!K.own || !window.ownList) { paintMine(); return; }
             C.loading = true; paintMine();
-            try { const L = await ownList(); C.mine = (L || []).filter(e => e.from === 'mine' && e.k === K.own).sort((a, b) => (b.at || 0) - (a.at || 0)); } catch (e) { console.warn('🎨 내가 만든 것', e); }
+            try { const L = await ownList(false, K.own); C.mine = (L || []).filter(e => e.from === 'mine' && e.k === K.own).sort((a, b) => (b.at || 0) - (a.at || 0)); } catch (e) { console.warn('🎨 내가 만든 것', e); }
             C.loading = false; paintMine();
         }
         function paintKinds() {
