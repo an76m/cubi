@@ -116,6 +116,7 @@
             loadedDays: new Set(),       // 드라이브에서 이미 읽어 온 날짜 (없는 날짜도 '읽음' 처리)
             dayLoads: new Map(),         // 읽는 중인 날짜 요청
             folderIds: new Map(),        // 폴더 경로 → 폴더 id 캐시
+            alive: new Map(),            // 폴더 id → 살아 있다고 본 시각 (도련 11-05 · 30초 안에 또 확인하지 않아요 · 요청 줄이기)
             folderBusy: new Map(),
             monthIndex: new Map(),       // 'all' → { folderId, files: Map(파일명 → 파일정보) } : 📔 권 폴더마다 ('all:<권 id>')
             monthBusy: new Map(),
@@ -394,7 +395,7 @@
                     const again = await findFolder(name, parentId);                // 그 사이 다른 기기도 만들었으면 먼저 만든 쪽을 써요
                     if (again) id = again;
                 }
-                if (id) drive.folderIds.set(key, id);
+                if (id) { drive.folderIds.set(key, id); drive.alive.set(id, Date.now()); }   // 방금 찾거나 만든 폴더 = 살아 있어요
                 if (id && key === TOP_FOLDER_NAME) drive.rootId = id;          // 🗑 말랑달콤 폴더가 지워졌는지 볼 때 (rootGone)
                 return id || null;
             })();
@@ -444,7 +445,7 @@
         }
 
         function resetDriveCaches() {
-            drive.folderIds.clear(); drive.folderBusy.clear();
+            drive.folderIds.clear(); drive.folderBusy.clear(); drive.alive.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
             drive.books.clear(); drive.bookBusy.clear();
             drive.settingsFile = null; drive.cafeFile = null; drive.deskFile = null;
@@ -597,6 +598,7 @@
             resetDriveCaches(); drive.rootId = null;
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
+            drive.newbie = !drive.rootId;                                    // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
             let desk = null; drive.deskLocked = false;
             try { desk = await fetchKeyFile('desk'); }
@@ -637,7 +639,8 @@
             }
             /* 새 파일을 만들기 전에 폴더가 살아 있는지 드라이브에 직접 확인 : 휴지통에 들어간 폴더에 만들면 일기가 안 보이게 돼요
                → 폴더가 없거나 휴지통이면 기억해 둔 폴더를 모두 잊고 'gone' (부른 쪽이 폴더를 다시 찾아서 다시 저장해요) */
-            if (!(await driveMeta(folderId))) {
+            const seen = drive.alive.get(folderId);                              // 🔁 30초 안에 확인한 폴더는 다시 묻지 않아요 (처음 접속 · 여러 개 올릴 때 요청 줄이기 · 도련 11-05)
+            if (!(seen && Date.now() - seen < 30000) && !(await driveMeta(folderId))) {
                 resetDriveCaches();
                 const er = new Error('folder gone'); er.code = 'gone'; throw er;
             }
@@ -649,7 +652,8 @@
             const res = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', Object.assign({
                 method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: multipart
             }, keepaliveFor(multipart)));
-            if (!res.ok) throw await driveFail(res, 'create');                 // 404 'gone' : 폴더가 지워짐
+            if (!res.ok) { drive.alive.delete(folderId); throw await driveFail(res, 'create'); }   // 404 'gone' : 폴더가 지워짐
+            drive.alive.set(folderId, Date.now());
             return mineWrote(await res.json());
         }
 

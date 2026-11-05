@@ -21,7 +21,7 @@
        책상배치 / 배치.json : 'diary_desk_items' [{u: 하나하나 id, id: 소품, at: 'desk' | 'box', x, y, c: 종류 폴더 파일 id}] · 'diary_desk_fn' {기능: u} (js/drive.js DESK_KEYS · 게스트는 이 기기)
        종류 폴더 (서랍장 · 시계 … js/drive.js DESK_DIRS · 소품의 kind) / 받은-<c>.json = 가진 소품 하나에 파일 하나 (js/coll.js 모음 · 뒤에서 차례로 올려요)
          기본 세트 선물 · 기본상품 샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
-       🎁 기본세트 (도련 10-27 · 서비스 = 예외) : 처음 한 번 받는 책상 소품 + 문구는 종류 폴더가 아니라 기본세트 / 선물.json 한 파일 (g: 1 · 첫 접속 요청 3~4번)
+       🎁 기본세트 (도련 10-27 · 서비스 = 예외) : 처음 한 번 받는 책상 소품 + 문구 (+ 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 처음 다이어리 · 11-05) 는 종류 폴더가 아니라 기본세트 / 선물.json 한 파일 (g: 1 · 첫 접속 요청 3~4번)
          버리면 선물.json 에서 빠져요 (다 비면 파일도 지워요) · 그 뒤에 받는 것부터 종류 폴더 · 배치.json 이 없어지면 🛟 되살리기 (giftEnsure)
        기본 세트의 u = 소품 id (그래서 처음 기능 연결이 그대로 맞아요) · 선물이 아닌데 파일이 아직 없는 것(c 없음)은 드라이브를 읽은 뒤 만들어요
    ※ 소품 종류 = DESK_ITEMS (기본상품 샵 카탈로그) */
@@ -95,14 +95,16 @@
         let giftChain = Promise.resolve(), giftLate = false;
         function giftBody() {
             const gd = window.gdOwnList ? (gdOwnList() || []) : [];
-            return { v: 1, desk: DK.items.filter(o => o.g).map(o => ({ u: o.u, id: o.id })), gd: gd.filter(o => o.g).map(o => o.id) };
+            const more = n => { try { return window[n] ? window[n]() : []; } catch (e) { return []; } };   // 🧱 🪵 🌈 📔 처음 선물도 여기에 (도련 11-05 · 첫 접속 요청 줄이기 · js/deskskin.js · bgown.js · dyyear.js)
+            return { v: 1, desk: DK.items.filter(o => o.g).map(o => ({ u: o.u, id: o.id })), gd: gd.filter(o => o.g).map(o => o.id), ds: more('dsGiftOwn'), bg: more('bgoGiftOwn'), dy: more('dyyGiftOwn') };
         }
         function giftWrite() {                                                    // 지금 모습으로 덮어쓰기 (차례대로 · 실패하면 다음에 다시)
             if (!giftOn()) return giftChain;
+            if (DK.fresh || drive.deskLocked || (window.gdOwnList && gdOwnList() === null)) { giftLate = true; return giftChain; }   // 아직 책상 목록을 정하는 중 = 선물을 덮어쓰지 않아요 (giftEnsure 가 뒤에 써요)
             giftChain = giftChain.then(async () => {
                 try {
                     const b = giftBody(), dir = await getFolder(dirPath(DIRS.starter), true), cur = await findFile(dir, GIFT_NAME);
-                    if (!b.desk.length && !b.gd.length) { if (cur) await driveTrash(cur.id); }
+                    if (!b.desk.length && !b.gd.length && !b.ds.length && !b.bg.length && !b.dy.length) { if (cur) await driveTrash(cur.id); }
                     else await driveUpsert(dir, GIFT_NAME, cur && cur.id, await ownLock(b));   // 🔐
                     giftLate = false;
                 } catch (e) { console.warn('기본세트', e); giftLate = true; }
@@ -141,7 +143,7 @@
             } catch (e) { console.warn('배치 백업', e); }
             finally { dkBkBusy = false; }
         }
-        window.deskBackupRead = dkBackupRead;                                       // 🧱 벽지 · 책상판 되살리기 (js/deskskin.js dsRescue · 쓰던 것)
+        window.deskBackupRead = dkBackupRead; window.deskGiftRead = () => giftRead();   // 🛟 되살리기 (js/deskskin.js · bgown.js · dyyear.js)                                       // 🧱 벽지 · 책상판 되살리기 (js/deskskin.js dsRescue · 쓰던 것)
         async function dkScan() {                                                   // 종류 폴더의 내 파일들 → { desk: [{u, id, c, p, mt}], gd: [...] }
             const out = { desk: [], gd: [] }, kinds = Object.values(DESK_DIRS).map(n => ['desk', n]).concat(Object.values(GD_DIRS).map(n => ['gd', n]));
             for (const [t, n] of kinds) {

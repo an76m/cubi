@@ -262,7 +262,18 @@
                     const ops = (await collScan('outbox', (k, v) => v && v.who === COLL.who)) || [];
                     if (!ops.length) break;
                     const { k, v } = ops[0];
-                    try { await collDo(v); await collDel('outbox', k); }
+                    /* 🔁 같은 모음에 새로 넣은 것이 줄지어 있으면 = 원본은 하나씩 · 목록 파일은 한 번에 (도련 11-05 · 처음 접속 요청 줄이기) */
+                    const run = v.op === 'add' ? ops.slice(0, 40).filter((o, i, a) => a.slice(0, i + 1).every(x => x.v.op === 'add' && collKeyOf(x.v.names, x.v.pre) === collKeyOf(v.names, v.pre))) : [];
+                    if (run.length > 1) {
+                        try {
+                            const C = collOf(v.names, v.pre), ents = [];
+                            for (const o of run) ents.push(await collDo(o.v, o.k, true));
+                            await collListAdd(C, ents);
+                            for (const o of run) { await collDel('outbox', o.k); C.pend = C.pend.filter(e => e.id !== o.v.id); }
+                            continue;
+                        } catch (e) { if (e && e.code === 'auth') break; console.warn('모음 한꺼번에 올리기 → 하나씩', e); }
+                    }
+                    try { await collDo(v, k); await collDel('outbox', k); }
                     catch (e) {
                         if (e && e.code === 'auth') break;                              // 다시 로그인하면 이어서
                         if (e && e.code === 'full' && !COLL.fullTold) {
@@ -277,7 +288,7 @@
             })().finally(() => { COLL.pumping = null; });
             return COLL.pumping;
         }
-        async function collDo(v) {
+        async function collDo(v, k, noList) {
             const C = collOf(v.names, v.pre), name = collItemName(C, v.id);
             if (v.op === 'del') {
                 const dir = await getFolder(C.names, false);
@@ -290,7 +301,9 @@
             }
             const dir = await getFolder(C.names, true);
             let cur = v.f ? await driveMeta(v.f) : null;
-            if (!cur) cur = await findFile(dir, name);
+            if (v.op === 'add' && !v.tried && k != null) {                       // 🆕 처음 올리는 새것 = 같은 이름 파일이 있을 수 없어요 (찾지 않아요 · 끊겼다 다시 하면 그때 찾아요 · 요청 줄이기 · 도련 11-05)
+                v.tried = 1; await collTx('outbox', 'readwrite', st => st.put(v, k));
+            } else if (!cur) cur = await findFile(dir, name);
             if (v.op === 'put' && cur && v.base && Date.parse(cur.modifiedTime) > v.base + 2000) {       // 📱 다른 기기가 그 사이 고쳤어요
                 let theirs = null;
                 try { theirs = JSON.parse(await readFileText(cur.id) || 'null'); } catch (e) {}
@@ -310,11 +323,12 @@
             const saved = await driveUpsert(dir, name, cur && cur.id, body);
             const ent = Object.assign({}, v.ent, { f: saved.id, m: Date.parse(saved.modifiedTime) || v.ent.m });
             collCache(collKey(C, 'o' + v.id), v.item, ent.m);
+            if (noList) return ent;                                               // 목록은 부른 쪽이 한 번에 (collListAdd)
             await collListEdit(C, v.id, ent, v.op === 'add');
             C.pend = C.pend.filter(e => e.id !== v.id);
         }
         /* 목록 묶음 고치기 : 고치기 직전에 드라이브 파일을 다시 보고 그 위에 (ent = null 이면 빼기) */
-        async function collListEdit(C, id, ent, isNew) {
+        async function collListEdit(C, id, ent, isNew, more) {
             const lists = await collIndex(C);
             const listDir = await getFolder(C.names, true);
             let L = null;
@@ -333,6 +347,7 @@
             if (ent) { if (i >= 0) items[i] = ent; else items.push(ent); }
             else if (i >= 0) items.splice(i, 1);
             else return;
+            (more || []).forEach(e => { const j = items.findIndex(x => x.id === e.id); if (j >= 0) items[j] = e; else items.push(e); });   // 🔁 한 번에 더 넣을 것 (collListAdd)
             let saved = await driveUpsert(listDir, name, cur && cur.id, JSON.stringify({ v: 1, items }));
             if (!cur) {                                                               // 📄📄 다른 기기가 거의 동시에 같은 목록 파일을 먼저 만들었으면 : 그 파일에 합쳐서 하나로
                 const first = await findFile(listDir, name);
@@ -348,6 +363,18 @@
             L.f = { id: saved.id, name, modifiedTime: saved.modifiedTime };
             collPut('list', collKey(C, 'l' + L.n), { fid: saved.id, mt: saved.modifiedTime, items });
             if (typeof driveTell === 'function') driveTell({ t: 'coll', path: C.key });
+        }
+
+        /* 새것 여러 개를 목록에 한 번에 (묶음이 차면 다음 묶음 · 하나씩 넣기와 같은 규칙 · 도련 11-05) */
+        async function collListAdd(C, ents) {
+            const rest = ents.filter(Boolean);
+            while (rest.length) {
+                const lists = await collIndex(C);
+                let L = lists[lists.length - 1];
+                if (!L || (await collLoad(C, L)).length >= COLL_PER) { L = { n: (L ? L.n : 0) + 1, f: null, items: [] }; lists.push(L); }
+                const room = COLL_PER - (L.items || []).length, part = rest.splice(0, Math.max(1, room));
+                await collListEdit(C, part[0].id, part[0], true, part.slice(1));
+            }
         }
 
         /* ---------- 맞춰 보기 (접속마다 모음을 처음 열 때 한 번 · 뒤에서) ---------- */
