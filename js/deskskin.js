@@ -15,7 +15,7 @@
         /* 🧁 상품 = 서버 (상품공방 '벽지' · '책상판' · 도련 11-02) → { id, k: 'wall' | 'top', n, c(단색), t(책상색 5), grain, img · iw · ih(무늬 그림) }
            목록 = js/prod.js prodList (켜질 때 바로 · 무늬 그림 크기 = wh) · 꾸미기 상품이라 디자인을 고치면 모두 새 모습 · 기본 벽지 · 책상 = 그림 그대로(얹지 않아요) · 숨김 = 샵에서만 빠져요 */
         const DS_CAT = [];
-        function dsBuild() {                                                       // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
+        function dsBuild() {                                                       // 🧁 서버 상품 그대로 (js/prod.js)
             DS_CAT.length = 0;
             [['벽지', 'wall'], ['책상판', 'top']].forEach(([kind, k]) => (window.prodList ? prodList(kind) : []).forEach(x => {
                 const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, basic: !!P.기본, gift: !!P.처음선물 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
@@ -29,16 +29,12 @@
             }));
         }
         dsBuild();
-        if (window.prodHook) prodHook(dsBuild);
-        document.addEventListener('prod-change', () => { try { const st = document.getElementById('deskStage'); if (st) st.dataset.ds = ''; dsPaint(); } catch (e) {} });
         const DS_OL = '#a080a5';                                                // 방 그림(앱 배경) 선 색 · 기본 = 상품 '기본' (그림 그대로 · 얹지 않아요)
         const dsBasic = id => !!(dsCat(id) || {}).basic;
         const dsCat = id => DS_CAT.find(x => x.id === id) || null;
         const dsU = () => 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         const DS = { edit: null, gone: [] };
         function dsRead() { const v = prefGet(DS_KEY, DS_LOCAL); return v && typeof v === 'object' && Array.isArray(v.own) ? { own: v.own.filter(x => x && x.u && typeof x.id === 'string'), wall: v.wall || '', top: v.top || '' } : null; }
-        (window.SNAP_OWN = window.SNAP_OWN || {})['벽지'] = () => ((dsRead() || {}).own || []).map(x => x.id);   // 📦 사본 (js/snap.js)
-        window.SNAP_OWN['책상판'] = window.SNAP_OWN['벽지'];
         const dsCur = () => (typeof DK !== 'undefined' && DK.edit && DS.edit) || dsRead() || { own: [], wall: '', top: '' };
         const dsSave = s => prefSet(DS_KEY, DS_LOCAL, { own: s.own, wall: s.wall, top: s.top });
         const dsOn = (s, k) => { const it = s.own.find(x => x.u === s[k]); return it ? it.id : ''; };   // 지금 쓰는 것 (없으면 '' = 그림 그대로)
@@ -147,7 +143,7 @@
         function dsGive(id) {
             if (!dsCat(id)) return 'fail';
             const it = { u: dsU(), id }, s = dsRead() || { own: [], wall: '', top: '' };
-            s.own.push(it); dsSave(s); if (window.snapSoon) snapSoon(); window.dsLastGiven = { u: it.u, t: Date.now() };   // 🛍️ 봉투 카드가 기억해요
+            s.own.push(it); dsSave(s); window.dsLastGiven = { u: it.u, t: Date.now() };   // 🛍️ 봉투 카드가 기억해요
             if (DS.edit) DS.edit.own.push(it);
             if (window.deskBoxRender) deskBoxRender();
             dsFile(it, 'basic');                                               // 🗂 종류 폴더에 파일 하나 (도련 11-05)

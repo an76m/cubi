@@ -5,7 +5,7 @@
    - 목록 = js/prod.js prodList (앱이 켜질 때 바로) · 숨긴 상품 = tier 'off' (진열 · 받기에서 빠지고 이미 쓰는 배경은 그대로) · 꾸미기 상품이라 디자인을 고치면 모두 새 모습
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → skins → service (index.html 참고) */
 const BG_PATTERNS = [];
-function bgBuild() {                                                         // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
+function bgBuild() {                                                         // 🧁 서버 상품 그대로 (js/prod.js)
     BG_PATTERNS.length = 0;
     (window.prodList ? prodList('배경지') : []).forEach(x => {
         const P = x.P || {}, u = x.u && x.u.디자인, css = P.레시피 && typeof P.레시피 === 'object' && window.MK ? MK.css(P.레시피) : P.css && typeof P.css === 'object' ? P.css   // 🧵 레시피 = 무늬 메이커 (js/maker.js · 상품공방에서 만든 그대로 · 도련 11-05) · css = 개발자가 직접 쓴 것 · 🔎 그림만 올린 것 = 바탕색 · 무늬 크기
@@ -15,8 +15,6 @@ function bgBuild() {                                                         // 
     });
 }
 bgBuild();
-if (window.prodHook) prodHook(bgBuild);
-document.addEventListener('prod-change', () => { try { if (typeof renderBgPattern === 'function') renderBgPattern(); if (typeof renderPatternList === 'function') renderPatternList(); } catch (e) {} });
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['patterns'] = true;

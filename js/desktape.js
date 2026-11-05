@@ -177,7 +177,6 @@
         if (n) { write(M); T.fresh = false; load(true); }
         return n;
     };
-    document.addEventListener('prod-change', () => window.dktPaint());
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

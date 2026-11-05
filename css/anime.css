@@ -702,9 +702,6 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
     #moveModal .svc-cat:not(.svc-extra) small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
-/* ✨ 새 모습 (도련 11-02 · 소품함 맨 위 · 받은 상품을 말랑달콤이 고쳤을 때만 · js/snap.js snapBtnHtml) */
-.iv-new { display: flex; justify-content: center; margin: 0 0 8px; }
-.iv-new:has(> .snap-new[hidden]) { display: none; }
 /* ✏️ 문구 셀 애니 (도련 11-02) : 그림자 없이 (그림은 상품공방 그림 그대로 · js/gdpic.js) */
 html.an .dkw-t, html.an .dkw-desk .dkw-t { filter: none !important; }
 html.an .pk-ti { filter: saturate(.6) brightness(.97) !important; }

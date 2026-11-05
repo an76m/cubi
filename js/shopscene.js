@@ -25,7 +25,6 @@
             const miss = SHOP_CN.filter(c => !D[c]); if (miss.length) { console.warn('🏪 샵 구역이 없어요 (상품공방 샵) :', miss.join(' · ')); return null; }
             return (SHOP_D = D);
         }
-        if (window.prodHook) prodHook(() => { SHOP_D = null; });
         const shopC = c => (shopData() || {})[c || 'stk'];
         /* 🖼 구역 그림 미리 받기 (도련 11-04 : 처음 걸어갈 때 그림이 늦게 떠서 이름만 먼저 바뀌었어요) : 가게에 들어갈 때 모두 받아 두고 · 옮길 땐 그 그림이 준비된 뒤에 바꿔요 */
         const SHOP_PIC = new Map();

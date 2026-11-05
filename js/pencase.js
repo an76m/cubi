@@ -13,7 +13,7 @@
 
         const PK_KEY = 'diary_pencase', PK_LOCAL = 'malang_pencase', PK_MAX = 24;
         /* 🧁 필기구 = 서버 상품 (상품공방 '문구' · 문구종류 pen 색연필 · hi 형광펜 · erase 지우개 · 도련 11-02) : 색 · 지우개 크기(틀.size) · 그림은 앱이 색으로 그려요 */
-        const pkOf = k => (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === k);   // 📦 내 사본이 있으면 사본 (js/prod.js)
+        const pkOf = k => (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === k);   // 🧁 서버 상품 그대로 (js/prod.js)
         /* 🗂 보관함 칸 (보이는 순서) · list = 그 종류 도구들 */
         /* 필기구 하나 = 상품 그대로 (색 · 굵기 · 이름 · 크기 · 쓰는끝 · 그림) · 하나라도 없으면 안 나와요 (🧁 상품공방이 검수 · 도련 11-02) */
         function pkMake(x, tool) {
@@ -27,7 +27,6 @@
             { k: 'erase', lb: '지우개', list: () => pkOf('erase').map(x => pkMake(x, 'erase')).filter(Boolean) }
         ];
         let pkAllC = null;
-        if (window.prodHook) prodHook(() => { pkAllC = null; });                // 사본을 읽으면 다시 만들어요
         const pkAll = () => pkAllC || (pkAllC = PK_KINDS.reduce((a, g) => a.concat(g.list()), []));   // 처음 쓸 때 만들어요
         /* ✏️ 가진 필기구 (도련 11-01 : 처음엔 🎁 5개 · js/skins.js GD_STARTER · 더는 🏪 기본상품 샵 '문구 → 필기구'에서 받아요) = 내 문구 목록 'diary_gd_own' 안의 필기구 (js/skins.js gdGive) */
         const pkIsId = id => pkAll().some(t => t.id === id);

@@ -21,7 +21,7 @@
         const DYY_INFO = 'diary_book_info', DYY_INFO_L = 'malang_book_info';   // 권마다 받은 곳 · 받은 날 { '2026b-분홍-1': { from: 'basic', at: '2026-10-28' } } (무료 · 유료는 폴더가 아니라 여기에 · 도련 10-28)
         const dyyThis = () => new Date().getFullYear();
         const dyyOf = id => { const m = /^(\d{4})([a-z])-(.+)-(\d+)$/.exec(String(id || '')); return m ? { id: String(id), y: +m[1], ch: m[2], c: m[3], n: +m[4] } : null; };   // c = 디자인 id · ch = 종류 글자 (js/app.js DY_DKINDS)
-        const dyyDesign = b => b ? DY_DESIGNS.find(d => d.id === b.c && d.ch === b.ch) || null : null;   // 그 권의 디자인 (서버에서 사라져도 📦 사본으로 있어요)
+        const dyyDesign = b => b ? DY_DESIGNS.find(d => d.id === b.c && d.ch === b.ch) || null : null;   // 그 권의 디자인 (서버 상품 그대로)
         const dyyIsNote = b => !!b && b.ch === 'n';                            // 📓 날짜형 노트 (저장 = 말랑달콤 / 날짜형노트 · js/drive.js)
         const dyyColor = c => String(c || '');                                 // 색 id = 디자인 id
         const dyyTitle = b => { const d = dyyDesign(b); return `${b.y} ${d ? d.name : b.c}${b.n > 1 ? ' ' + b.n : ''}`; };   // 보관소 · 메시지에 보일 이름 (2026 분홍 다이어리 · … 2)
@@ -232,12 +232,12 @@
         /* 🏪 기본상품 샵 → 📔 다이어리 코너 → 날짜형 바인더 · 날짜형 노트 (js/basket.js) : 올해 디자인마다 · 같은 것도 또 받아요 (받을 때마다 새 다이어리 한 권) */
         function dyyShopList() {
             const y = dyyThis();
-            return DY_DESIGNS.filter(d => !d.off && prodServer(d.K).some(x => x.id === d.id)).map(d => ({ cnt: `${y} ${d.name}`, desc: `${d.name} · ${d.kind === '노트' ? '노트' : '바인더'} · ${d.n} (${d.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`,
+            return DY_DESIGNS.filter(d => !d.off && prodList(d.K).some(x => x.id === d.id)).map(d => ({ cnt: `${y} ${d.name}`, desc: `${d.name} · ${d.kind === '노트' ? '노트' : '바인더'} · ${d.n} (${d.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`,
                 look: d.kind === '노트' ? 'note' : 'diary', yr: y, dc: d.id, cat: d.ch === 'n' ? 'dyn' : 'dyb', give: () => dyyGive(y, d), name: `${y} ${d.name}` }));
         }
         function dyyGive(y, d) {
             const id = dyyNewId(y, d);
-            prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id])); if (window.snapSoon) snapSoon();   // 📦 사본
+            prefSet(DYY_KEY, DYY_LOCAL, dyyIds().concat([id]));
             dyyInfoSet(id, 'basic');                                           // 🏪 기본상품 샵 (나중 유료 = 'shop')
             dyyFile(id, 'basic');                                              // 🗂 권 폴더 + 다이어리.json (도련 11-05)
             window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (끌어 놓으면 책상 그 자리 · js/basket.js bagNote)

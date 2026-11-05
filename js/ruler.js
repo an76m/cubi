@@ -33,7 +33,6 @@
         });
     }
     rlKindsBuild();
-    if (window.prodHook) prodHook(rlKindsBuild);
     const rlKind = id => RL_KINDS.find(k => k.id === id) || RL_KINDS[0] || null;
     R.kind = RL_KINDS.length ? RL_KINDS[0].id : '';
     const rlPicOf = K => window.gdPic ? gdPic('ruler:' + K.id) : null;

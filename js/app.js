@@ -143,7 +143,7 @@ let fontList = [
            DY_DESIGNS = 날짜형 디자인 모두 (권 · 가게 · 책상) · DY_COL = 디자인 id → 그 권 색 { cover, page, border, accent } (펼친 권 = 다이어리에만 칠해요 · js/dyyear.js dyyColorPaint · 도련 11-05) */
         const DY_COL = {}, DY_DESIGNS = [];
         const DY_DKINDS = [['날짜형바인더', '바인더', 'b'], ['날짜형노트', '노트', 'n']];   // [상품 종류, 모양, 권 id 글자 (2026b-분홍-1)]
-        function dyColorsBuild() {                                             // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
+        function dyColorsBuild() {                                             // 🧁 서버 상품 그대로 (js/prod.js)
             Object.keys(DY_COL).forEach(k => delete DY_COL[k]); DY_DESIGNS.length = 0;
             const okC = v => /^#[0-9a-f]{6}$/i.test(v || '');
             DY_DKINDS.forEach(([K, kind, ch]) => (window.prodList ? prodList(K) : []).forEach(x => {   // 🔎 상품 그대로 (빠지면 안 나와요 · 상품공방이 검수)
@@ -154,13 +154,6 @@ let fontList = [
             }));
         }
         dyColorsBuild();
-        if (window.prodHook) prodHook(dyColorsBuild);
-        DY_DKINDS.forEach(([K, , ch]) => {                                      // 📦 사본 = 받은 권의 디자인
-            (window.SNAP_OWN = window.SNAP_OWN || {})[K] = () => {
-                let ids = []; try { ids = (prefGet('diary_years', 'malang_years') || []).map(id => (/^\d{4}([a-z])-(.+)-\d+$/.exec(String(id)) || [])).filter(m => m[1] === ch).map(m => m[2]); } catch (e) {}
-                return ids.filter(Boolean);
-            };
-        });
 
         window.onload = () => oneReady(() => {                                  // 🔒 이 창이 다이어리를 맡았을 때만 시작 (한 기기에 하나 · js/onlyone.js)
             setupCurlDrag();

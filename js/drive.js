@@ -22,7 +22,7 @@
                       / 책상배치 / 배치.json · 배치_백업.json             🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 커스텀 · 가진 문구 목록 (js/desk.js · js/skins.js)
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
                       / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실
-                      / 설정 / 설정.json · 상품-<번호>.json              ⚙ 설정 탭 값 · 받은 다이어리 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 📦 받은 상품 사본 (js/snap.js)
+                      / 설정 / 설정.json                                ⚙ 설정 탭 값 · 받은 다이어리 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 상품 모습은 늘 서버 그대로 (사본 없음 · 도련 11-05 · js/prod.js)
                       / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js · 구글은 드라이브 휴지통)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
@@ -615,7 +615,6 @@
             drive.ready = true; drive.guest = false;
             drive.needAuth = false; drive.error = false; drive.full = false;
             lastRemoteCheck = Date.now();
-            if (typeof snapLogin === 'function') await snapLogin().catch(e => console.warn('📦 사본', e));   // 📦 받은 상품 사본 (js/snap.js · 책상 · 문구를 그리기 전에)
             applyLoadedData();
             updateBadge();
             prefetchInitial();                             // 기다리지 않고 백그라운드로 3일치 미리 읽기
@@ -1244,7 +1243,6 @@
         function enterGuestMode() {
             drive.guest = true; drive.ready = false;
             if (typeof collGuestStart === 'function') collGuestStart();    // 게스트 모음은 이 기기에 (js/coll.js)
-            if (typeof snapLogin === 'function') snapLogin().catch(e => console.warn('📦 사본', e));   // 📦 받은 상품 사본 (이 기기 · 읽으면 다시 그려요)
             applyLoadedData();                                              // 이 기기에 저장한 게스트 설정으로 다시 그려요 (고르기 전엔 처음 값이라 · 📔 다이어리 · 🌈 배경지 · 🧱 벽지도 여기서)
             hideGate(); updateBadge();
         }

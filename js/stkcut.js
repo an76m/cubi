@@ -23,7 +23,6 @@
         });
     }
     knBuild();
-    if (window.prodHook) prodHook(knBuild);
     const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0] || null;
     const knifeSvg = id => { const k = knKind(id); return k && window.gdPicSvg ? gdPicSvg('knife:' + k.id) : ''; };
     let KN_TIP = null, KN_BOX = null;

@@ -397,7 +397,7 @@
         /* 🧁 페이지형 다이어리 디자인 = 서버 상품 (상품공방 '페이지바인더' · '페이지노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 지금 숨김 · 팔 때) : { id, k 종류, g 이름, n 규격, mm, b 묶는 방식(ring · tn · spread · hard · thin), r 세로÷가로, c 색 }
            📔 날짜형(1년 · 기본)은 여기가 아니라 날짜형 디자인 (js/app.js DY_DESIGNS · js/dyyear.js) · 'basic' = 날짜형으로 쓰는 중 (dyNow 가 펼친 권의 모양을 줘요) */
         const DY_TYPES = [], DY_PKINDS = [['페이지바인더', '바인더'], ['페이지노트', '노트']];
-        function dyTypesBuild() {                                              // 🧁 서버 + 📦 내 사본
+        function dyTypesBuild() {                                              // 🧁 서버 상품 그대로
             DY_TYPES.length = 0;
             DY_PKINDS.forEach(([K, k]) => (window.prodList ? prodList(K) : []).forEach(x => {
                 const P = x.P || {};                                           // 🔎 상품 그대로 (빠지면 안 나와요)
@@ -409,8 +409,6 @@
             }));
         }
         dyTypesBuild();
-        if (window.prodHook) prodHook(dyTypesBuild);
-        DY_PKINDS.forEach(([K]) => { (window.SNAP_OWN = window.SNAP_OWN || {})[K] = () => { const v = prefGet('diary_type', 'malang_diary_type'); return typeof v === 'string' && prodServer(K).some(x => x.id === v) ? [v] : []; }; });   // 📦 사본 (지금 쓰는 모양)
         const DY_DEF = 'basic';                                                // 처음 설치하면 기본 다이어리
         const DY_TAB = ['다이어리', '노트', '바인더'];                         // 고르기 창 위 카테고리 = k (도련 · 10-18 : 실물 모양으로 · 저장 폴더는 나누지 않아요 · 다이어리.json kind)
         /* 📕 유한 다이어리 저장 규칙 (도련 · 10-17 · 10-26 폴더 한 줄 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-… · 아래 폴더 이름 규칙은 이제 안내용) : 말랑달콤 / 다꾸 / 디자인 (규격) [n권] / …
@@ -525,7 +523,7 @@
            - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 크기는 다이어리 크기와 상관없이 늘 같아요 */
         /* 🧁 문구 = 서버 상품 (상품공방 '문구' · js/prod.js · 도련 11-02) : 🎬 모양 = 상품공방 그림 그대로 (js/gdpic.js · 앱은 모양을 그리지 않아요 · 도련 11-02) · 종류(문구종류) · 이름 · 색 · 크기 · 쓰는 끝 · 처음선물 · 틀(칼 · 자 색) · 그림(속성 '그림' ✔ = 도련 그림으로 · 가위는 날이 움직여서 앱 모양)
            모양은 앱이 그려요 (집게 · 펀칭기 · 테이프 · 핀셋 · 가위 · 칼 · 자 · 필기구) · 상품이 정하는 건 어떤 디자인이 있는지 · 색 · 크기 */
-        const CLIPS = [];                                                      // CLIPS = [색 이름, 이름] (📎 집게 id clip:색이름) · 📦 내 사본이 있으면 사본 (gdBuild) · 그림 = js/gdpic.js
+        const CLIPS = [];                                                      // CLIPS = [색 이름, 이름] (📎 집게 id clip:색이름) · 서버 상품 그대로 (gdBuild) · 그림 = js/gdpic.js
         /* 📎 집게가 무는 테두리 : 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 모서리는 둥글게 돌아요
            - 집게 아랫입(종이를 무는 곳 59, 66)이 테두리 위 · 몸통은 늘 바깥쪽을 봐요 */
         function clipRail(W, H, r) {                                           // 테두리 길이 · 길이 → [x, y, 바깥 방향(도)]
@@ -1034,7 +1032,7 @@
         }
         window.twzSay = twzSay;
         window.scsSay = (x, y) => { twzSay(x, y, '✂️ 가위를 사용해 주세요'); gdNeed('scissors'); };   // 📄 모조지스티커를 가위 없이 오리려고 하면 (js/papermaker.js · 도련 10-19)
-        const GD = {};                                                          // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터 · 가위 = 날이 종이를 무는 자리) · 🧁 서버 + 📦 사본 (gdBuild)
+        const GD = {};                                                          // w · h : 크기 · hx · hy : 쓰는 끝 (손끝 = 포인터 · 가위 = 날이 종이를 무는 자리) · 🧁 서버 상품 그대로 (gdBuild)
         const gdInfo = id => GD[id] || null;   // 📐 크기 · 쓰는끝 = 상품 그대로 (gdBuild · 없으면 그 문구는 안 나와요)
         const gdArt = id => window.gdPicSvg ? gdPicSvg(id) : '';                 // 🎬 상품공방 그림 그대로 (js/gdpic.js)
         let gdHeld = null, gdG = null, gdInit = false, gdBook = null, gdClipSig = '';
@@ -1364,7 +1362,7 @@
             const now = gdOwnList() || [];
             prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.id === o.id && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
         }
-        function gdSetList(L) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && ok(o.id)).map(gdRec)); if (window.snapSoon) snapSoon(); }   // ✏️ 필기구도 (되살릴 때 빠지던 것)
+        function gdSetList(L) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && ok(o.id)).map(gdRec)); }   // ✏️ 필기구도 (되살릴 때 빠지던 것)
         /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 펜꽂이에) · 나머지는 🏪 기본상품 샵 */
         const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음선물' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
@@ -1412,7 +1410,7 @@
                     <span class="gdc-tag">${n}${own.length > 1 ? `<small>${cabName(main).replace(/^기본\s*/, '')} · ${own.length}개</small>` : ''}</span>
                     <span class="gdc-pull" role="button" aria-label="서랍 열기">${open ? '▲' : '▼'}</span><em class="gdc-out">페이지에 ✓${on > 1 ? ' ' + on : ''}</em></button>${tray}</div>`;
             };
-            cab.innerHTML = `${window.snapBtnHtml ? snapBtnHtml() : ''}<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
+            cab.innerHTML = `<button type="button" class="gdc-x" aria-label="닫기" onclick="closeModal('gdCabModal')">✕</button>
                 <button type="button" class="gdc-cup" aria-label="펜꽂이 (그리기)" onclick="gdCabCup()">${CAB_CUP}<small>펜꽂이</small></button>
                 <div class="gdc-body">${GD_CAB.map(dr).join('') || '<div class="gdc-none">아직 문구가 없어요<br><button type="button" class="btn" onclick="gdCabShop()">🏪 기본상품 샵에서 받아 오기</button></div>'}</div>
                 <p class="gdc-tip">톡 = 꺼내기 · 손잡이·꾹 = 골라 담기<br>잡고 끌면 서랍장이 옮겨져요</p>`;
@@ -1499,7 +1497,7 @@
             restore: e => {
                 const L = gdOwnList() || [];
                 if (L.some(x => x.id === e.id)) { if (e.o.c) { const C = gdColl(e.id); if (C) collRemove(C, e.o.c).catch(() => {}); } return; }   // 그새 다시 받았으면 = 그대로 (버린 쪽 파일만 치워요)
-                L.push(e.o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec)); if (window.snapSoon) snapSoon();
+                L.push(e.o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
                 if (e.o.g && window.deskGiftWrite) deskGiftWrite();
                 gdBinAfter();
             },
@@ -1509,8 +1507,8 @@
         function gdCabShop() { closeModal('gdCabModal'); if (window.openShelf) { openShelf(); shOpenKind('gd'); } }
         /* 🏪 기본상품 샵 '문구' (js/basket.js) : 모든 디자인 · 받기 = 'have' (이미 있어요) / 'ok' */
         const GD_OFF = new Set();                                              // 🧁 숨긴 문구 = 샵에서만 빠져요 (gdBuild)
-        function gdBuild() {                                                   // 🧁 문구 목록 = 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
-            const L = window.prodList ? prodList('문구') : [], srv = window.prodServer ? prodServer('문구') : [];
+        function gdBuild() {                                                   // 🧁 문구 목록 = 서버 상품 그대로 (js/prod.js)
+            const L = window.prodList ? prodList('문구') : [];
             Object.keys(GD).forEach(k => delete GD[k]); CLIPS.length = 0; GD_STARTER.length = 0; GD_OFF.clear();
             L.forEach(x => {
                 const P = x.P || {};
@@ -1521,18 +1519,15 @@
                     if (P.문구종류 === 'clip') CLIPS.push([x.id.slice(5), String(P.이름)]);
                 }
             });
-            srv.forEach(x => { if (x.P.처음선물) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
+            L.forEach(x => { if (x.P.처음선물) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
         }
         gdBuild();
-        if (window.prodHook) prodHook(gdBuild);
-        (window.SNAP_OWN = window.SNAP_OWN || {})['문구'] = () => (gdOwnList() || []).map(o => o.id).concat(window.binList ? binList().filter(e => e.k === 'gd').map(e => e.id) : []);   // 🗑 휴지통에 있는 것도   // 📦 사본 (js/snap.js · 필기구 · 칼 · 자도)
-        document.addEventListener('prod-change', () => { try { gdCabRender(); } catch (e) {} });
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).filter(id => !GD_OFF.has(id)).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) }))).concat(window.pkShopList ? pkShopList() : []);   // + ✏️ 필기구 (도련 10-31 · js/pencase.js)
         function gdGive(id) {
             const L = gdOwnList() || []; if (L.some(o => o.id === id)) return 'have';
             const pen = !!(window.pkIsId && pkIsId(id));
             if (!pen && !cabAllIds().includes(id)) return 'no';
-            const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec)); if (window.snapSoon) snapSoon();   // 📦 사본
+            const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
             gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.id === id); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 종류 폴더에 파일 하나
             if (pen && window.pkAdd) pkAdd(id);                                // ✏️ 펜꽂이에도
             if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();

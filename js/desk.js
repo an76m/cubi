@@ -47,10 +47,10 @@
         };
         const DK_GHOST = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect x="4" y="4" width="72" height="72" rx="14" fill="#fff" stroke="#e8c6d4" stroke-width="3" stroke-dasharray="6 5"/><text x="40" y="50" font-size="30" text-anchor="middle" fill="#d9a3b8">?</text></svg>');
         const DESK_ITEMS = [], DK_CAT = new Map();                                // 소품이 많아져도 바로 찾기
-        function dkBuild() {                                                       // 🧁 서버 + 📦 내 사본 (js/prod.js · 사본을 읽으면 다시)
+        function dkBuild() {                                                       // 🧁 서버 상품 그대로 (js/prod.js)
             DESK_ITEMS.length = 0; DK_CAT.clear();
             (window.prodList ? prodList('책상소품') : []).forEach(x => { const o = dkItemOf(x); if (o) { DESK_ITEMS.push(o); DK_CAT.set(o.id, o); } });
-            const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;   // 가졌는데 서버에도 사본에도 없는 것 = 자리만 지키는 '?' (지워지지 않게 · 사본을 읽으면 제 모습)
+            const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;   // 가졌는데 서버에 없는 것 = 자리만 지키는 '?' (지워지지 않게 · 서버에 다시 올리면 제 모습)
             (Array.isArray(v) ? v : []).forEach(o => { if (o && typeof o.id === 'string' && !DK_CAT.has(o.id)) { const g = { id: o.id, kind: 'doll', src: DK_GHOST, name: '불러오는 중', w: 80, h: 80, x: 700, y: 560, nost: 1, off: 1, ghost: 1 }; DK_CAT.set(o.id, g); } });
         }
         const dkCat = id => DK_CAT.get(id) || null;
@@ -62,9 +62,6 @@
         /* 📦 내 소품 목록 */
         const DK_ITEMS_KEY = 'diary_desk_items', DK_ITEMS_LOCAL = 'malang_desk_items';
         dkBuild();
-        if (window.prodHook) prodHook(dkBuild);
-        (window.SNAP_OWN = window.SNAP_OWN || {})['책상소품'] = () => (DK.items || []).map(o => o.id).concat(((prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) || [])).map(o => o && o.id), window.binList ? binList().filter(e => e.k === 'dk').map(e => e.o.id) : []);   // 🗑 휴지통에 있는 것도 (되살리면 그대로)   // 📦 사본 (js/snap.js)
-        document.addEventListener('prod-change', () => { try { if (document.getElementById('deskStage') && !DK.edit) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); } } catch (e) {} });
         const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => Object.assign({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }, d.fl && dkFlipOk(d) ? { fl: 1 } : {}));   // ↔ 처음엔 돌린 모습 (상품 '소품.fl' · 상품공방)   // 🎁 기본 세트 선물
         function dkLoad() {
             const v = typeof prefGet === 'function' ? prefGet(DK_ITEMS_KEY, DK_ITEMS_LOCAL) : null;
@@ -150,7 +147,7 @@
                 const dir = await getFolder(dirPath(n), false); if (!dir) continue;
                 const fs = await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime');
                 for (const f of fs) {
-                    if (!/^(받은|내)-\d+\.json$/.test(f.name)) continue;             // 목록 · 사본 파일은 빼요
+                    if (!/^(받은|내)-\d+\.json$/.test(f.name)) continue;             // 목록 파일은 빼요
                     let w, it; try { w = JSON.parse(await readFileText(f.id)); it = await dkUnseal(w && w.item); } catch (e) { continue; }   // 🔐 남의 것 · 깨진 것은 무시
                     if (!it || typeof it.id !== 'string' || !w.id) continue;
                     out[t].push({ u: typeof it.u === 'string' ? it.u : it.id, id: it.id, c: String(w.id), p: typeof it.img === 'string' ? 1 : 0, mt: String(f.modifiedTime || '') });
@@ -243,7 +240,7 @@
             finally { DK.filing = false; }
             if (!DK.edit) dkSave();
         }
-        function dkSave() { if (DK.edit) return; DK.seen = JSON.stringify(DK.items); if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, DK.items); if (window.snapSoon) snapSoon(); }   // 📦 새로 가진 소품 = 사본
+        function dkSave() { if (DK.edit) return; DK.seen = JSON.stringify(DK.items); if (typeof prefSet === 'function') prefSet(DK_ITEMS_KEY, DK_ITEMS_LOCAL, DK.items); }
         const dkOnDesk = () => DK.items.filter(o => o.at === 'desk');
         const dkName = o => { const c = dkCat(o.id), same = DK.items.filter(x => x.id === o.id); return (c ? c.name : '') + (same.length > 1 ? ' ' + (same.indexOf(o) + 1) : ''); };
         /* josa = 🧰 js/util.js */
@@ -627,7 +624,7 @@
                 .map(([kk, n, c], i) => `<button type="button" class="iv-tab${kk === k ? ' on' : ''}${i === 0 ? ' all' : ''}" onclick="deskBoxTab('${kk}')"><span>${n}</span><i>${c || ''}</i></button>`).join('');   // ✨ 새 모습 (js/snap.js · 있을 때만)
             if (SK.some(x => x[0] === k)) {                                       // 🧱 벽지 · 🪵 책상 : 톡 = 쓰기 · 🗑 버리기 (js/deskskin.js)
                 const cs = dsBoxCells(k);
-                box.innerHTML = `${window.snapBtnHtml ? `<div class="iv-new">${snapBtnHtml()}</div>` : ''}<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${cs.join('')}${'<span class="iv-c empty"></span>'.repeat(Math.max(0, DK_BOX_MIN - cs.length))}</div>`
+                box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${cs.join('')}${'<span class="iv-c empty"></span>'.repeat(Math.max(0, DK_BOX_MIN - cs.length))}</div>`
                     + `<div class="iv-name"><b>${dsName(k)}</b><small>톡 = ${k === 'wallpaper' ? '벽 전체에 바르기' : '책상 바꾸기'}${DK.edit ? ' · ✔ 완료 때 저장' : ''}</small></div></div></div>`;
                 const sd2 = box.querySelector('.iv-side'); if (sd2 && sTop != null) sd2.scrollTop = sTop;
                 return;
@@ -638,7 +635,7 @@
             const o = rows.find(x => x.u === DK.boxSel);
             const act = o ? (o.at === 'box' ? `<button type="button" class="btn primary" onclick="deskPut('${o.u}', 'desk')">🪑 책상에 놓기</button>` : `<button type="button" class="btn" onclick="deskPut('${o.u}', 'box')">📦 넣기</button>`)
                 + `<button type="button" class="btn iv-del" onclick="deskDiscard('${o.u}')" aria-label="휴지통">🗑</button>` : '';
-            box.innerHTML = `${window.snapBtnHtml ? `<div class="iv-new">${snapBtnHtml()}</div>` : ''}<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
+            box.innerHTML = `<div class="iv-body"><div class="iv-side">${side}</div><div class="iv-box"><div class="iv-in">${none}${cells.join('')}${'<span class="iv-c empty"></span>'.repeat(fill)}</div>`
                 + `<div class="iv-name">${o ? `<b>${dkName(o)}</b><small>${o.at === 'desk' ? '🪑 책상 위' : '📦 보관 중'}</small>` : ''}</div>${o ? `<div class="iv-foot">${act}</div>` : ''}</div></div>`;
             const sd = box.querySelector('.iv-side'); if (sd && sTop != null) sd.scrollTop = sTop;   // 왼쪽 목록은 보던 자리 그대로
             const g = box.querySelector('.iv-in'); if (g && DK.boxSel) g.scrollTop = gTop;
