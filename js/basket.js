@@ -216,7 +216,7 @@
             const bin = pile.closest('.bk-bin'), br = bin && bin.getBoundingClientRect();
             if (!d.desk && !d.no && !bkPhone() && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
                 d.desk = dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true);
-                if (d.desk) d.c.style.visibility = 'hidden'; else d.no = true;   // 못 꺼냈으면(다이어리가 닫혀 있음 등) 종이는 바구니에 그대로 보여요 · 안내도 한 번만 (도련 10-30)
+                if (d.desk) d.c.style.visibility = 'hidden'; else d.no = true;   // 못 꺼냈으면(다 쓴 종이) 종이는 바구니에 그대로 보여요 · 안내도 한 번만 (도련 10-30)
             }
             if (d.desk) { dsMove(d.desk, ev.clientX, ev.clientY); return; }
             const W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
@@ -1405,8 +1405,7 @@
         const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); dsRewind(d); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤이 다시 또렷하게
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
     }
-    function dsTake(id, at, keep) {
-        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+    function dsTake(id, at, keep) {                                          // 다이어리를 안 열어도 꺼내 놓을 수 있어요 (도련 11-05 · 떼어 붙일 때만 다이어리가 열려 있어야 해요 · bkOpenSheet)
         const e = dsEntry(id) || B.byId.get(id); if (!dsLeft(e)) { showMsg('이 스티커는 이미 다 썼어요.'); return; }
         let d = DS.m.get(id);
         if (!d) {
