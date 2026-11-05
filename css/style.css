@@ -4245,3 +4245,7 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .bkd-bag { margin: 8px 10px 0; padding: 6px 10px; background: #fff; border: 2px solid var(--dk); border-radius: 10px; font-size: 12px; font-weight: 700; line-height: 1.45; text-align: center; word-break: keep-all; }
 @media (max-width: 480px) { .bkd-top .bkd-chip > span { display: none; } .bkd-front { gap: 8px; } .bkd-get { font-size: 12px; padding: 0 8px; } }   /* 📱 위 줄 = 아이콘만 */
 #basketKindModal.bk-drw > .dk-tape { display: none !important; }   /* 창 모서리 테이프도 없이 (서랍만) */
+/* 🗄 서랍에서 연 창 = 화면 맨 위에 붙어요 (js/desk.js dkDrawerPull · 위에서 내려오고 · 닫으면 위로 · 도련 11-05) */
+.modal.dk-drop { align-items: flex-start !important; padding-top: 0 !important; }
+.modal.dk-drop > .modal-content { margin-top: 0 !important; }
+.dkw-room.dk-drop { place-items: start center; }

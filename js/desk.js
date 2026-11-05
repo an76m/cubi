@@ -1214,13 +1214,27 @@
             const desk = document.documentElement.classList.contains('desk-on');
             if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
             const run = z && (z.k === 'gd' && desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, el.dataset.u + ':' + z.s) : () => deskRun(z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
-            if (si >= 0) { dkDrawerPull(el, S[si], run || null); return true; }   // 🗄 서랍 = 쏙 열렸다가 (넣어 둔 것을 꺼내고) 닫혀요 · 빈 서랍도
+            if (si >= 0) { dkDrawerPull(el, S[si], run || null); return true; }   // 🗄 서랍 = 톡 열기 · 다시 톡 닫기 (든 창이 위에서 내려와요 · 도련 11-05) · 빈 서랍은 쏙 열렸다 닫혀요
             if (!z) return false;
             run(); return true;
         }
         /* 🗄 서랍 열고 닫기 (도련 11-04 · 현실처럼) : 서랍 칸(상품 '소품.slots')대로 그림에서 앞판을 잘라 앞으로 당겨요 (조금 아래로 · 조금 크게)
            원래 자리 = 서랍 속 (상품 '서랍속' 그림 · 없으면 그림자) · 다 열리면 넣어 둔 창을 열고 · 조금 뒤 닫혀요 · 손잡이 · 태슬도 앞판과 같이 */
+        /* 🗄 서랍 열고 닫기 2 (도련 11-05 · 고개를 숙여 서랍을 여닫는 눈길) : 톡 = 열려요 · 다시 톡 = 닫혀요
+           열면 → 그 서랍에 든 창이 화면 위에서 아래로 내려와 화면 맨 위에 붙어요 (서랍은 열린 채) · 닫으면 → 창이 위로 올라가며 사라지고 서랍도 같이 닫혀요
+           창을 다른 데서 닫으면(✕ · 메뉴) 서랍도 닫혀요 · 든 게 없는 서랍(창 없음) = 예전처럼 쏙 열렸다 닫혀요 */
+        const DKD = { cur: null };
+        const dkdBoxes = () => {                                                // 지금 떠 있는 창 [창 상자, 바깥(모달 · 방)]
+            const L = [];
+            document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const b = m.querySelector(':scope > .modal-content'); if (b) L.push([b, m]); } });
+            document.querySelectorAll('.dkw-room:not([hidden])').forEach(r => { const b = r.firstElementChild; if (b) L.push([b, r]); });
+            return L;
+        };
+        const dkdOn = h => h && (h.classList.contains('modal') ? (h.style.display === 'flex' || h.style.display === 'block') : !h.hidden);
         function dkDrawerPull(el, r, run) {
+            const key = el.dataset.u + '|' + r.join(',');
+            if (DKD.cur && DKD.cur.key === key) { dkDrawerShut(true); return; }  // 다시 톡 = 닫기
+            if (DKD.cur) dkDrawerShut(true);
             const img = el.querySelector(':scope > img'), o = DK.items.find(x => x.u === el.dataset.u), c = o && dkCat(o.id);
             if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front')) { if (run) run(); return; }
             const W = r[2] - r[0], H = r[3] - r[1], box = `left:${r[0]}%;top:${r[1]}%;width:${W}%;height:${H}%`;
@@ -1233,10 +1247,46 @@
             const ew = el.offsetWidth / 100, eh = el.offsetHeight / 100;
             tags.forEach(g => { const x = parseFloat(g.style.left), y = parseFloat(g.style.top); g.dataset.dkd = `translate(${((x - (r[0] + W / 2)) * .06) * ew}px, ${((y - r[1]) * .06 + H * .16) * eh}px) scale(1.06)`; g.style.transition = 'transform .22s cubic-bezier(.2, .7, .3, 1.15)'; });
             requestAnimationFrame(() => requestAnimationFrame(() => { fr.classList.add('open'); tags.forEach(g => { g.style.transform = g.dataset.dkd; }); }));
-            setTimeout(() => { if (run) run(); }, 240);
-            setTimeout(() => { fr.classList.remove('open'); tags.forEach(g => { g.style.transform = ''; }); if (window.sndDrawer) sndDrawer(false); }, 760);
-            setTimeout(() => { hole.remove(); fr.remove(); tags.forEach(g => { g.style.transition = ''; delete g.dataset.dkd; }); }, 1040);
+            const D = { key, hole, fr, tags, win: null, t: 0 };
+            if (!run) { setTimeout(() => dkdFront(D), 760); return; }            // 든 게 없는 서랍 = 쏙 열렸다 닫혀요
+            DKD.cur = D;
+            const before = new Set(dkdBoxes().map(x => x[0])), t0 = performance.now();
+            setTimeout(() => {
+                if (DKD.cur !== D) return;
+                run();
+                const look = () => {                                            // 새로 뜬 창을 찾아 위에서 내려오게
+                    if (DKD.cur !== D) return;
+                    const w = dkdBoxes().find(x => !before.has(x[0]));
+                    if (w) { dkdDrop(D, w); return; }
+                    if (performance.now() - t0 < 1800) setTimeout(look, 40); else dkDrawerShut(false);   // 창이 안 떴으면 서랍만 닫아요
+                };
+                look();
+            }, 240);
         }
+        function dkdDrop(D, [box, host]) {
+            D.win = [box, host];
+            box.getAnimations().forEach(a => a.cancel());                      // 다가오는 창 연출 대신
+            box.style.left = box.style.top = '';                               // 옮겨 둔 창도 화면 맨 위 가운데로
+            host.classList.add('dk-drop');
+            box.animate([{ translate: '0 calc(-100% - 24px)' }, { translate: '0 0' }], { duration: 420, easing: 'cubic-bezier(.2, .85, .3, 1.04)' });
+            D.t = setInterval(() => { if (DKD.cur === D && !dkdOn(host)) dkDrawerShut(false); }, 250);   // 창을 다른 데서 닫으면 서랍도
+        }
+        function dkdFront(D) {
+            D.fr.classList.remove('open'); D.tags.forEach(g => { g.style.transform = ''; }); if (window.sndDrawer) sndDrawer(false);
+            setTimeout(() => { D.hole.remove(); D.fr.remove(); D.tags.forEach(g => { g.style.transition = ''; delete g.dataset.dkd; }); }, 280);
+        }
+        function dkDrawerShut(anim) {                                           // anim = 창이 위로 올라가며 사라져요 (서랍 톡 · 다른 서랍)
+            const D = DKD.cur; if (!D) return; DKD.cur = null; clearInterval(D.t);
+            dkdFront(D);
+            const w = D.win; if (!w) return;
+            const [box, host] = w, done = () => { host.classList.remove('dk-drop'); box.getAnimations().forEach(a => a.cancel()); };
+            if (!anim || !dkdOn(host)) { done(); return; }
+            box.animate([{ translate: '0 0' }, { translate: '0 calc(-100% - 24px)' }], { duration: 300, easing: 'cubic-bezier(.5, 0, .8, .4)', fill: 'forwards' }).onfinish = () => {
+                if (host.classList.contains('modal')) closeModal(host.id); else if (window.dkwClose) dkwClose();
+                setTimeout(done, 200);
+            };
+        }
+        window.dkDrawerShut = dkDrawerShut;
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
         /* 🛍️ 봉투 속 = 아직 꺼내지 않았어요 (도련 11-02 · 현실처럼) : 💻 📲 책상에서는 봉투에서 꺼낼 때까지 바구니 · 스티커 정리 · 오늘 쓸 스티커 · 스티커첩 어디에도 없어요 (js/basket.js)
            s = 스티커 종이 id (카드 it.s · 살 때 적어 둬요) · b = 📒 🤍 스티커첩 id (카드 it.b) · 📱 폰은 그대로 다 보여요 (나중에 폰 정리할 때 · 도련) */
