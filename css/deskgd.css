@@ -2,6 +2,8 @@
 .dkw-room { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; background: rgba(70, 40, 55, .42); opacity: 0; transition: opacity .2s; font-family: inherit; }
 .dkw-room.show { opacity: 1; }
 .dkw-room[hidden] { display: none; }
+body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show) .dkw-room { z-index: 1700; }
+body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show) .dkw-say { z-index: 1710; }   /* 🪡 스티커를 떼는 화면 위에서 핀셋을 찾으면 펜꽂이 · 서랍이 그 위로 (도련 11-05 : 떼는 화면 캔버스가 덮어 도구가 안 잡혔어요) */
 .dkw-room button { font-family: inherit; cursor: pointer; }
 .dkw-b { border: 2px solid #e88fb0; background: #fff; color: #c2457a; border-radius: 999px; padding: 7px 15px; font-size: 14px; font-weight: 800; box-shadow: 2px 2px 0 #e6dcf8; white-space: nowrap; }
 .dkw-b:hover { background: #fff0f5; }
