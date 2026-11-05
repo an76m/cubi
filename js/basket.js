@@ -250,12 +250,7 @@
     }
     window.bkLift = bkLift;
     async function bkOpenSheet(id) {
-        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) {              // 📕 덮인 다이어리 : 🪑 책상이면 떠올라 펼쳐져요 (도련 11-05) · 아니면 먼저 열어 달라고
-            if (!document.documentElement.classList.contains('desk-on') || typeof openCoverAnimated !== 'function') { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            await bkLift(); openCoverAnimated();
-            for (let i = 0; i < 60 && (!isCoverOpen || (typeof turn !== 'undefined' && turn)); i++) await new Promise(r => setTimeout(r, 50));   // 표지가 다 넘어갈 때까지 (3초까지)
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-        }
+        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
         await bkLift();
         if (B.opening || !window.ownSheet) return;
         B.opening = id;
@@ -1582,8 +1577,11 @@
         if (window.closePaperSheet && bq('pmRoom') && bq('pmRoom').classList.contains('show')) closePaperSheet();
         if (window.closeTteokRoom && bq('tkRoom') && bq('tkRoom').classList.contains('show')) closeTteokRoom();
     }
+    /* 📕 다이어리가 덮였거나 🪑 책상에 놓여 있으면 꺼낸 종이를 톡 해도 다이어리는 그대로 (도련 11-05 · 안내 없이 종이만 살짝 흔들) */
+    const dsDyAway = () => (typeof isCoverOpen !== 'undefined' && !isCoverOpen) || (document.documentElement.classList.contains('desk-on') && !document.documentElement.classList.contains('desk-show'));
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
+        { const e0 = dsEntry(d.id); if (e0 && !['tape', 'memo', 'leaf'].includes(e0.k) && dsDyAway()) { d.el.animate([{ rotate: '0deg' }, { rotate: '-4deg' }, { rotate: '3deg' }, { rotate: '0deg' }], { duration: 360, easing: 'ease-in-out' }); return; } }
         await bkLift();
         const prev = DS.act ? DS.m.get(DS.act) : null;
         if (DS.act) { dsShut(); DS.act = ''; if (prev) { prev.el.classList.remove('act'); dsMoveFromPeel(prev); dsReload(prev.id); dsPaint(prev); } }
