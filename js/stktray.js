@@ -22,8 +22,8 @@
         el.innerHTML = `<div class="stp-bar"><b>🍽 오늘 쓸 스티커 고르기</b><button type="button" class="desk-shop-go" onclick="stpClose()">닫기</button></div>
             <div class="stp-body">
                 <section class="stp-l"><div class="stp-kinds" id="stpKinds"></div><div class="stp-grid" id="stpGrid"></div></section>
-                <section class="stp-r"><div class="stp-tray" id="stpTray"><div class="stp-tin" id="stpTin"></div></div>
-                    <p class="stp-note">${NOTE}</p>
+                <section class="stp-r"><p class="stp-note">${NOTE}</p>   <!-- 안내 = 쟁반 위 (도련 11-05) -->
+                    <div class="stp-tray" id="stpTray"><div class="stp-tin" id="stpTin"></div></div>
                     <button type="button" class="stp-go" onclick="stpSave()">🍽 스티커 담기</button></section>
             </div>`;
         document.body.appendChild(el);
