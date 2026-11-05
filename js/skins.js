@@ -4,9 +4,8 @@
        예) "diary_bg_pattern": {"id":"tomato","scale":1}
    - 배경지 해제 시 이 값을 지워요 (설정.json 에서도 빠짐)
    - 목록 배치(한 줄에 몇 개·몇 줄·크기)는 기기마다 화면이 달라서 이 기기(localStorage)에만 기억
-   - 배경지 출처 : 기본 제공(js/patterns.js) · 내 배경지('my:번호') · 등록된 사용자 배경지('cm:번호', 관리자가 승인한 것)
-       등록된 사용자 배경지는 레시피를 함께 저장해서 {"id":"cm:3","scale":1,"r":{...}} 처럼 기록 → 목록에서 빠져도 배경은 유지
-   ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → community-patterns → pattern-recipe → skins → pattern-maker → service */
+   - 배경지 출처 : 받은 배경지(🌈 보관함 · js/bgown.js) · 내 배경지('my:번호' · js/pattern-maker.js)
+   ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → pattern-recipe → skins → pattern-maker → service */
 
         const BG_PATTERN_KEY = 'diary_bg_pattern';
         const PATTERN_SCALE_MIN = 0.5, PATTERN_SCALE_MAX = 2;
@@ -14,20 +13,14 @@
         let bgPattern = null;              // 지금 적용된 배경지 { id, scale, r? } (없으면 null)
 
         /* id로 패턴 찾기 → { id, tier, name, css, by? } */
-        function findBgPattern(id, inlineRecipe) {
+        function findBgPattern(id) {
             if (typeof id !== 'string') return null;
             if (id.startsWith('my:')) {
                 return (typeof getMyPatternItems === 'function' ? getMyPatternItems() : []).find(p => p.id === id) || null;
             }
-            if (id.startsWith('cm:')) {
-                const hit = (typeof getCommunityItems === 'function' ? getCommunityItems() : []).find(p => p.id === id);
-                if (hit) return hit;
-                const css = inlineRecipe ? recipeToCss(inlineRecipe) : null;   // 목록을 아직 못 받았으면 저장된 레시피로 그리기
-                return css ? { id, tier: 'free', name: '사용자 배경지', css } : null;
-            }
             return BG_PATTERNS.find(p => p.id === id) || null;
         }
-        function currentBgPattern() { return bgPattern ? findBgPattern(bgPattern.id, bgPattern.r) : null; }
+        function currentBgPattern() { return bgPattern ? findBgPattern(bgPattern.id) : null; }
         function clampPatternScale(v) {
             const n = parseFloat(v);
             return isNaN(n) ? 1 : Math.max(PATTERN_SCALE_MIN, Math.min(PATTERN_SCALE_MAX, Math.round(n * 100) / 100));
@@ -54,8 +47,6 @@
         function saveBgPattern() {
             if (bgPattern) {
                 const v = { id: bgPattern.id, scale: bgPattern.scale };
-                if (bgPattern.r) v.r = bgPattern.r;
-                if (bgPattern.g) v.g = 1;                                      // 받은배경지 칸 것 (다음에 열 때 어디서 읽을지 · js/pattern-maker.js)
                 store.setItem(BG_PATTERN_KEY, JSON.stringify(v));
             }
             else if (store.getItem(BG_PATTERN_KEY) !== null) store.removeItem(BG_PATTERN_KEY);
@@ -66,22 +57,18 @@
         function loadBgPattern() {
             let v = null;
             try { v = JSON.parse(store.getItem(BG_PATTERN_KEY)); } catch (e) { v = null; }
-            const r = v && v.r ? sanitizeRecipe(v.r) : null;
-            bgPattern = (v && typeof v === 'object' && findBgPattern(v.id, r))
+            bgPattern = (v && typeof v === 'object' && findBgPattern(v.id))
                 ? { id: v.id, scale: clampPatternScale(v.scale) } : null;
-            if (bgPattern && r) bgPattern.r = r;
             renderBgPattern();
         }
 
-        async function selectBgPattern(id, got) {
-            if (id.startsWith('my:') && !findBgPattern(id) && !(typeof patEnsure === 'function' && await patEnsure(id.slice(3), got == null ? null : !!got))) {
+        async function selectBgPattern(id) {
+            if (id.startsWith('my:') && !findBgPattern(id) && !(typeof patEnsure === 'function' && await patEnsure(id.slice(3)))) {
                 showMsg('⚠ 이 배경지를 불러오지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인해 주세요.</span>'); return;
             }
             const p = findBgPattern(id);
             if (!p) return;
             bgPattern = { id, scale: bgPattern ? bgPattern.scale : 1 };
-            if (p.recipe && id.startsWith('cm:')) bgPattern.r = p.recipe;      // 등록된 사용자 배경지는 레시피도 같이 저장
-            if (p.got) bgPattern.g = 1;
             renderBgPattern();
             saveBgPattern();
             renderPatternList();
@@ -199,16 +186,13 @@
         function setPatSub(v) { patSub = v; patPage = 0; renderPatternList(); }
         window.setPatSub = setPatSub;
         function patItems() {
-            const cm = typeof getCommunityItems === 'function' ? getCommunityItems() : [];
-            const my = tab => typeof patListItems === 'function' ? patListItems(tab).items : [];   // 🌈 내가만든 · 받은 : 모음의 작은 그림 (js/pattern-maker.js)
-            if (patTier === 'mine') return my('mine');
-            if (patTier === 'share') return my('share').concat(cm);
+            if (patTier === 'mine') return typeof patListItems === 'function' ? patListItems('mine').items : [];   // 🌈 내가만든 : 모음의 작은 그림 (js/pattern-maker.js)
             if (patTier === 'free') return window.bgoItems ? bgoItems(patSub) : [];   // 기본 칸 = 🌈 내 배경지 보관함 (받은 것만 · 🎨 단색 · ☁️ 패턴 · js/bgown.js · 도련 10-28)
             return [];
         }
         function patPerPage() { return patLayout.rows * patLayout.cols; }
-        /* 내가만든 · 공유받은 칸 : 아직 안 읽은 묶음이 있어요 */
-        function patMore() { return (patTier === 'mine' || patTier === 'share') && typeof patListItems === 'function' && patListItems(patTier).more; }
+        /* 내가만든 칸 : 아직 안 읽은 묶음이 있어요 */
+        function patMore() { return patTier === 'mine' && typeof patListItems === 'function' && patListItems(patTier).more; }
         function patPageCount() { const n = patItems().length; return n ? Math.ceil(n / patPerPage()) : 0; }
 
         function openPatternList(tier) {
@@ -216,10 +200,10 @@
             if (!STK_TABS.some(t => t[0] === tier)) {                                  // 칸을 안 정했으면 지금 쓰는 배경지가 있는 칸부터
                 const id = bgPattern ? String(bgPattern.id) : '';
                 const mine = id.startsWith('my:') && (getMyPatternItems().find(p => p.id === id) || {});
-                tier = id.startsWith('cm:') ? 'share' : mine ? (mine.got ? 'share' : 'mine') : 'free';
+                tier = mine ? 'mine' : 'free';
             }
             const bar = document.getElementById('patTabs');
-            if (bar) bar.innerHTML = stkTabsOn().filter(([v]) => v !== 'mine' || ftOn('patmine')).map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="setPatTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
+            if (bar) bar.innerHTML = stkTabsOn().filter(([v]) => v !== 'share' && (v !== 'mine' || ftOn('patmine'))).map(([v, n]) => `<button type="button" class="stk-tab" data-tab="${v}" onclick="setPatTab('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 받은 게 있을 때만 (js/stickermaker.js STK_HIDE)
             if (bar && !bar.querySelector(`[data-tab="${tier}"]`)) tier = 'free';
             closeModal('skinModal');
             setPatTab(tier);
@@ -271,14 +255,10 @@
                 const tier = patTier;
                 patListMore(tier).then(() => { if (patTier === tier) renderPatternList(); });
             }
-            const nickRow = document.getElementById('patNickRow');
-            if (nickRow) {
-                nickRow.style.display = patTier === 'share' && window.pickPatternFile ? 'flex' : 'none';   // 📥 파일 불러오기 (js/pattern-maker.js)
-            }
             document.getElementById('patStatus').textContent = items.length
                 ? `${patTier === 'free' && patSub === 'solid' ? '단색' : '패턴'} ${items.length}${more ? '개 넘게' : '개'} · 누르면 전체 배경에 적용돼요`
                 : more ? '불러오는 중…'
-                : ({ free: '아직 받은 배경지가 없어요. 🏪 기본상품 샵 → 🌈 배경지에서 받아요!', mine: '아직 만든 배경지가 없어요. 🖼️ 이미지로 · 🖌️ 그려서 배경지에서 만들어 보세요!', share: '아직 공유받은 배경지가 없어요.', event: '🎁 아직 받은 이벤트 배경지가 없어요.', shop: '' }[patTier] ?? '아직 준비된 배경지가 없어요.');
+                : ({ free: '아직 받은 배경지가 없어요. 🏪 기본상품 샵 → 🌈 배경지에서 받아요!', mine: '아직 만든 배경지가 없어요. 🖼️ 이미지로 · 🖌️ 그려서 배경지에서 만들어 보세요!', event: '🎁 아직 받은 이벤트 배경지가 없어요.', shop: '' }[patTier] ?? '아직 준비된 배경지가 없어요.');
             patPage = pages ? Math.max(0, Math.min(pages - (more ? 0 : 1), patPage)) : 0;
             const start = patPage * per;
             const frag = document.createDocumentFragment();
@@ -294,27 +274,23 @@
                 sw.appendChild(inner);
                 if (bgPattern && bgPattern.id === p.id) { const c = document.createElement('span'); c.className = 'pat-check'; c.textContent = '✔ 사용 중'; sw.appendChild(c); }
                 card.title = p.name || '';
-                card.append(sw);                                               // 썸네일 (+ 공유받은 것은 by 만든 사람)
-                if (p.by) { const by = document.createElement('small'); by.className = 'shx-by'; by.textContent = 'by ' + p.by; card.append(by); }
-                card.onclick = () => { if (!patSwiped) selectBgPattern(p.id, p.tier === 'my' ? p.got : null); };
+                card.append(sw);
+                card.onclick = () => { if (!patSwiped) selectBgPattern(p.id); };
                 if (p.u) {                                                     // 🌈 받은 배경지 : 🗑 버리기 (휴지통 30일 · js/bgown.js)
                     const wrap = document.createElement('div'); wrap.className = 'pat-item-wrap';
                     const acts = document.createElement('div'); acts.className = 'pat-actions';
                     const del = document.createElement('button'); del.type = 'button'; del.className = 'btn'; del.textContent = '🗑'; del.title = '휴지통';
                     del.onclick = () => bgoDiscard(p.u);
                     acts.append(del); wrap.append(card, acts); frag.appendChild(wrap);
-                } else if (p.tier === 'my') {                                  // 내가만든 · 공유받은 : 파일 저장(내가만든만) · 삭제
+                } else if (p.tier === 'my') {                                  // 내가만든 : 🗑 삭제
                     const wrap = document.createElement('div');
                     wrap.className = 'pat-item-wrap';
                     const acts = document.createElement('div');
                     acts.className = 'pat-actions';
-                    const send = document.createElement('button');
-                    send.type = 'button'; send.className = 'btn'; send.textContent = '💾'; send.title = '파일로 저장 (카페에 올리기용)';
-                    send.onclick = () => downloadMyPattern(p.uid);
                     const del = document.createElement('button');
                     del.type = 'button'; del.className = 'btn'; del.textContent = '🗑'; del.title = '삭제';
-                    del.onclick = () => deleteMyPattern(p.uid, p.got);
-                    if (p.got || (typeof ftOn === 'function' && !ftOn('share'))) acts.append(del); else acts.append(send, del);   // 💾 파일로 저장은 공유(카페)가 열릴 때만 (10-24)
+                    del.onclick = () => deleteMyPattern(p.uid);
+                    acts.append(del);
                     wrap.append(card, acts);
                     frag.appendChild(wrap);
                 } else frag.appendChild(card);

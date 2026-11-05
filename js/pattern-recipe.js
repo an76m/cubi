@@ -6,7 +6,7 @@
                      (등록된 배경지는 이미지를 patterns 폴더 파일로 떼어 내서 "src":"patterns/12.webp" 처럼 저장)
    - 다이어리는 레시피를 받을 때마다 sanitizeRecipe()로 검사한 뒤 recipeToCss()로 그려요.
      정해진 항목만 통과하므로 이상한 코드가 들어와도 화면을 망가뜨릴 수 없어요.
-   ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → community-patterns → pattern-recipe → skins → pattern-maker → service */
+   ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → pattern-recipe → skins → pattern-maker → service */
 
         const RECIPE_KINDS = ['mk', 'tile'];   // mk = 🧵 무늬 메이커 (js/maker.js · 상품공방과 같은 엔진 · 도련 11-05) · tile = 🖌 그려서 만든 한 칸
         const RECIPE_MAX_SRC = Infinity;       // 이미지 배경지 한 칸 용량 제한 없음

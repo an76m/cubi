@@ -1,14 +1,14 @@
-/* 말랑달콤 다이어리 - js/maker.js · MK v1 (도련 11-05)
+/* 말랑달콤 다이어리 - js/maker.js · MK v2 (도련 11-05)
    🧵 만들기 엔진 하나 = 앱 다꾸 작업실 · 🛠 상품공방이 똑같이 써요 (상품공방에는 이 파일을 통째로 넣어 둬요 · 버전 MK.v 가 같아야 해요)
    - 개발자가 상품공방에서 만드는 것 = 다꾸러가 앱에서 만드는 것 (기능 · 고를 거리 · 저장 모양이 같아요)
    - 무늬 (PATS) : 한 줄 = 한 무늬 · 새 무늬 = 여기 한 줄 → 배경지 · 벽지 · 마스킹테이프 · 떡메 · 메모지 · 속지 바탕에 저절로
    - 레시피 (다시 열어 고칠 수 있는 설정값) → 그림(svg) : tileSvg(배경지 · 벽지) · tapeSvg(마스킹테이프) · paperSvg(떡메 · 메모지 · 속지) · deskSvg(책상판)
        무늬 겹 L = [{ p 무늬, c 색, s 칸 크기 px, w 굵기·크기 %, r 기울기 °, o 진하기 }] (두 겹까지) · 그림 겹 im = { src, s 크기 px, m 'grid' 바둑판 | 'brick' 엇갈림 }
    - 값 표 : SPECS 다이어리 규격 · BINDS 묶는 방식 · LEAFS 내지 종류 · COLORS 고를 색 → 상품공방 · 앱이 같은 표를 써요
-   - form(host, kind, rec, onChange) = 만들기 칸 (색 · 무늬 · 크기 …) · 상품공방 · 앱 모두 이 칸 그대로
+   - form(host, kind, rec, onChange) = 만들기 칸 (색 · 무늬 · 크기 …) · draw(host, opt) = ✏️ 그리기 판 · 상품공방 · 앱 모두 이 칸 그대로
    ※ 다른 파일 없이 혼자 동작해요 (상품공방은 앱 파일 없이 열려요) */
 (function () {
-    const MK = { v: 1 };
+    const MK = { v: 2 };
     const NS = 'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"';
     const hex = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
     const num = (v, a, b, d) => { const n = parseFloat(v); return isNaN(n) ? d : Math.max(a, Math.min(b, Math.round(n * 100) / 100)); };
@@ -184,6 +184,129 @@
         });
         host.innerHTML = ''; host.appendChild(box); fire();
         return { get: () => MK.clean(kind, r) };
+    };
+    /* ---------- ✏️ 그리기 판 (draw) : 상품공방 직접 그리기 · 앱 그려서 배경지 · 마테 그리기가 같은 판 (도련 11-05) ----------
+       도구 : 펜 · 붓 · 지우개 · 선 · 네모 · 동그라미 · 하트 · 별 · 도장 · 채우기 · 글씨 · 스포이드 · 되돌리기 · 다시 · 비우기
+       opt = { W, H 판 크기 px · base 바탕 그림 주소 · vector (svg 바탕은 판 크기까지 키워요) · wrap 이어그리기 (true · false = 칸만 · 없으면 칸 없이 늘 꺼짐)
+               bg 바탕색 (색이면 바탕색 칸이 생겨요 · 그림은 투명 · 바탕색은 따로) · sizes [[이름, W, H]] 판 크기 고르기 (그린 것은 늘이고 줄여요) · resize 판 크기 숫자로
+               white 흰 바탕 칸 (상품공방) · view 판이 보이는 최대 너비 px · onChange(판) }
+       돌려주는 판 = { cv 캔버스 · bg · wrap · drawn() · blob() · url(type) · size(W, H) } */
+    MK.STAMPS = ['🌸', '⭐', '💖', '🍓', '🍀', '🎀', '🐰', '☁️', '🌙', '🍒', '🌷', '🐾', '🧸', '🍰', '🦋', '✨'];
+    const DTOOLS = [['pen', '✏️ 펜'], ['brush', '🖌 붓'], ['erase', '🧽 지우개'], ['line', '╱ 선'], ['rect', '▭ 네모'], ['ellipse', '◯ 동그라미'], ['heart', '♡ 하트'], ['star', '☆ 별'], ['stamp', '💮 도장'], ['fill', '🪣 채우기'], ['text', '🅰 글씨'], ['pick', '💧 스포이드']];
+    const SHAPES = ['line', 'rect', 'ellipse', 'heart', 'star'];
+    const DCSS = `.mk-dw{display:flex;flex-direction:column;gap:8px}.mk-dw-stage{position:relative;line-height:0;align-self:center;max-width:100%;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1.5px #f0d7e1;background:repeating-conic-gradient(#f4eef1 0 25%,#fff 0 50%) 0 0/16px 16px;touch-action:none}.mk-dw-stage canvas{display:block;width:100%;height:auto}.mk-dw-stage canvas+canvas{position:absolute;inset:0;pointer-events:none}
+.mk-dw-tools{display:flex;flex-wrap:wrap;gap:4px}.mk-dw-tools button{padding:4px 9px;border:1.5px solid #f0d7e1;border-radius:999px;background:#fff;cursor:pointer;font:inherit;font-size:12px;color:#7a5a68}.mk-dw-tools button.on{border-color:#c2457a;background:#fff0f5;color:#b1407a;font-weight:800}.mk-dw-stamps button{font-size:18px;padding:2px 6px}.mk-dw [hidden]{display:none!important}`;
+    MK.draw = (host, opt) => {
+        style(); opt = opt || {};
+        if (!document.getElementById('mkDwCss')) { const s = document.createElement('style'); s.id = 'mkDwCss'; s.textContent = DCSS; document.head.appendChild(s); }
+        const S = { tool: 'pen', col: '#ff6b81', size: 6, op: 100, fill: true, out: false, oc: '#5b3f4a', stamp: MK.STAMPS[0], text: '', wrap: opt.wrap === true, bg: hex(opt.bg) ? opt.bg : '', white: false, hist: [], redo: [], down: null, drawn: !!opt.base };
+        const box = document.createElement('div'); box.className = 'mk mk-dw';
+        const chips = (list, cls) => `<div class="mk-dw-tools ${cls || ''}">${list.map(([k, n]) => `<button type="button" data-k="${esc(k)}">${n}</button>`).join('')}</div>`;
+        box.innerHTML = `<div class="mk-dw-stage"${opt.view ? ` style="width:${opt.view}px"` : ''}><canvas></canvas><canvas></canvas></div>
+            ${chips(DTOOLS, 'mk-dw-t')}${chips(MK.STAMPS.map(s => [s, s]), 'mk-dw-stamps')}
+            <div class="mk-row mk-dw-txt"><label>글씨</label><input type="text" maxlength="40" placeholder="쓰고 판을 톡"></div>
+            <div class="mk-row"><label>색</label><div class="mk-cols mk-dw-col"></div></div>
+            <div class="mk-row"><label>굵기·크기</label><div class="mk-range"><input type="range" min="1" max="80" value="${S.size}" data-v="size"><b>${S.size}</b></div></div>
+            <div class="mk-row"><label>진하기</label><div class="mk-range"><input type="range" min="5" max="100" value="100" data-v="op"><b>100%</b></div></div>
+            <div class="mk-row mk-dw-sh"><label>도형</label><label style="width:auto;font-weight:400"><input type="checkbox" data-c="fill" checked> 안 채우기</label><label style="width:auto;font-weight:400"><input type="checkbox" data-c="out"> 테두리</label><input type="color" data-c="oc" value="${S.oc}" title="테두리 색"></div>
+            ${opt.wrap == null ? '' : `<div class="mk-row"><label>이어그리기</label><label style="width:auto;font-weight:400"><input type="checkbox" data-c="wrap"${S.wrap ? ' checked' : ''}> 판 밖으로 나간 곳이 반대쪽에 이어져요 (반복 무늬)</label></div>`}
+            ${S.bg ? '<div class="mk-row"><label>바탕색</label><div class="mk-cols mk-dw-bg"></div></div>' : ''}
+            ${opt.white ? '<div class="mk-row"><label>흰 바탕</label><label style="width:auto;font-weight:400"><input type="checkbox" data-c="white"> 저장할 때 흰 바탕 (끄면 투명)</label></div>' : ''}
+            ${opt.sizes ? `<div class="mk-row"><label>판 크기</label>${chips(opt.sizes.map(z => [z[1] + 'x' + z[2], z[0]]), 'mk-dw-z')}</div>` : ''}
+            ${opt.resize ? '<div class="mk-row"><label>판 크기</label><input type="number" data-n="W" style="width:64px"> × <input type="number" data-n="H" style="width:64px"><button type="button" class="btn" data-a="rs">바꾸기</button></div>' : ''}
+            <div class="mk-dw-tools"><button type="button" data-a="undo">↶ 되돌리기</button><button type="button" data-a="redo">↷ 다시</button><button type="button" data-a="clear">🗑 비우기</button></div>`;
+        host.innerHTML = ''; host.appendChild(box);
+        const q = s => box.querySelector(s), [cv, ov] = box.querySelectorAll('canvas'), x = cv.getContext('2d', { willReadFrequently: true }), o = ov.getContext('2d');
+        const api = { cv, get bg() { return S.bg; }, get wrap() { return S.wrap; }, drawn: () => S.drawn };
+        let tm = 0; const changed = now => { S.drawn = true; clearTimeout(tm); if (!opt.onChange) return; if (now) opt.onChange(api); else tm = setTimeout(() => opt.onChange(api), 90); };
+        const setSize = (w, h, how) => {                                       // how : 'keep' 그대로 · 'scale' 늘이고 줄여요
+            const old = how && cv.width ? (() => { const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; c.getContext('2d').drawImage(cv, 0, 0); return c; })() : null;
+            cv.width = ov.width = w; cv.height = ov.height = h;
+            if (old) how === 'scale' ? x.drawImage(old, 0, 0, w, h) : x.drawImage(old, 0, 0);
+            box.querySelectorAll('[data-n]').forEach(i => { i.value = i.dataset.n === 'W' ? w : h; });
+            box.querySelectorAll('.mk-dw-z button').forEach(b => b.classList.toggle('on', b.dataset.k === w + 'x' + h));
+        };
+        setSize(opt.W || 400, opt.H || 400);
+        if (opt.base) { const im = new Image(); im.onload = () => { const nw = im.naturalWidth || cv.width, nh = im.naturalHeight || cv.height, k = opt.vector ? Math.max(1, Math.max(opt.W, opt.H) / Math.max(nw, nh)) : 1; setSize(Math.round(nw * k), Math.round(nh * k)); x.drawImage(im, 0, 0, cv.width, cv.height); changed(true); }; im.src = opt.base; }
+        const paintCols = (sel, val, set) => { const w = q(sel); if (!w) return; w.innerHTML = MK.COLORS.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${c === val ? 'on' : ''}"></button>`).join('') + `<input type="color" value="${val}" title="다른 색">`;
+            w.onclick = e => { const b = e.target.closest('button'); if (!b) return; w.querySelectorAll('button').forEach(z => z.classList.toggle('on', z === b)); w.querySelector('input').value = b.dataset.c; set(b.dataset.c); };
+            w.querySelector('input').oninput = e => { w.querySelectorAll('button').forEach(z => z.classList.remove('on')); set(e.target.value); }; };
+        const setCol = c => { S.col = c; paintCols('.mk-dw-col', c, v => { S.col = v; }); };
+        setCol(S.col);
+        paintCols('.mk-dw-bg', S.bg, v => { S.bg = v; stageBg(); changed(true); });
+        const stageBg = () => { q('.mk-dw-stage').style.background = S.bg || ''; };
+        stageBg();
+        const ui = () => {
+            box.querySelectorAll('.mk-dw-t button').forEach(b => b.classList.toggle('on', b.dataset.k === S.tool));
+            box.querySelectorAll('.mk-dw-stamps button').forEach(b => b.classList.toggle('on', b.dataset.k === S.stamp));
+            q('.mk-dw-stamps').hidden = S.tool !== 'stamp'; q('.mk-dw-txt').hidden = S.tool !== 'text'; q('.mk-dw-sh').hidden = !SHAPES.includes(S.tool) || S.tool === 'line';
+        };
+        ui();
+        box.onclick = e => {
+            const b = e.target.closest('button'); if (!b) return;
+            const p = b.parentElement;
+            if (p.classList.contains('mk-dw-t')) { S.tool = b.dataset.k; ui(); }
+            else if (p.classList.contains('mk-dw-stamps')) { S.stamp = b.dataset.k; ui(); }
+            else if (p.classList.contains('mk-dw-z')) { const [w, h] = b.dataset.k.split('x').map(Number); snap(); setSize(w, h, 'scale'); changed(true); }
+            else if (b.dataset.a === 'undo') undo(); else if (b.dataset.a === 'redo') redo();
+            else if (b.dataset.a === 'clear') { snap(); x.clearRect(0, 0, cv.width, cv.height); changed(true); S.drawn = false; }
+            else if (b.dataset.a === 'rs') { const n = k => Math.max(8, Math.min(4000, +q(`[data-n="${k}"]`).value || cv[k === 'W' ? 'width' : 'height'])); snap(); setSize(n('W'), n('H'), 'keep'); changed(true); }
+        };
+        box.querySelectorAll('input[type=range]').forEach(i => i.oninput = () => { S[i.dataset.v] = +i.value; i.nextElementSibling.textContent = i.value + (i.dataset.v === 'op' ? '%' : ''); });
+        box.querySelectorAll('[data-c]').forEach(i => { if (i.tagName !== 'INPUT') return; i.oninput = i.onchange = () => { S[i.dataset.c] = i.type === 'checkbox' ? i.checked : i.value; }; });
+        q('.mk-dw-txt input').oninput = e => { S.text = e.target.value; };
+        /* 되돌리기 */
+        const snap = () => { S.hist.push(x.getImageData(0, 0, cv.width, cv.height)); if (S.hist.length > 40) S.hist.shift(); S.redo = []; };
+        const put = im => { if (im.width !== cv.width || im.height !== cv.height) setSize(im.width, im.height); x.putImageData(im, 0, 0); changed(true); };
+        const undo = () => { if (!S.hist.length) return; S.redo.push(x.getImageData(0, 0, cv.width, cv.height)); put(S.hist.pop()); };
+        const redo = () => { if (!S.redo.length) return; S.hist.push(x.getImageData(0, 0, cv.width, cv.height)); put(S.redo.pop()); };
+        const key = e => { if (!box.isConnected) { document.removeEventListener('keydown', key); return; } if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/INPUT|TEXTAREA/.test(document.activeElement && document.activeElement.tagName)) { e.preventDefault(); e.shiftKey ? redo() : undo(); } };
+        document.addEventListener('keydown', key);
+        /* 그리기 (이어그리기 = 아홉 군데에 같이) */
+        const each = (c, fn) => { const ox = S.wrap ? [-cv.width, 0, cv.width] : [0], oy = S.wrap ? [-cv.height, 0, cv.height] : [0]; ox.forEach(dx => oy.forEach(dy => { c.save(); c.translate(dx, dy); fn(c); c.restore(); })); };
+        const pen = c => { c.globalAlpha = S.op / 100; c.lineCap = c.lineJoin = 'round'; c.lineWidth = S.size; c.strokeStyle = c.fillStyle = S.col; if (S.tool === 'erase') c.globalCompositeOperation = 'destination-out'; if (S.tool === 'brush') { c.shadowColor = S.col; c.shadowBlur = S.size * .8; } };
+        const path = (c, k, x0, y0, x1, y1) => {
+            const l = Math.min(x0, x1), t = Math.min(y0, y1), w = Math.abs(x1 - x0), h = Math.abs(y1 - y0); c.beginPath();
+            if (k === 'rect') c.rect(l, t, w, h); else if (k === 'ellipse') c.ellipse(l + w / 2, t + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); else if (k === 'line') { c.moveTo(x0, y0); c.lineTo(x1, y1); }
+            else if (k === 'heart') { c.moveTo(l + w / 2, t + h * .95); c.bezierCurveTo(l - w * .1, t + h * .55, l + w * .02, t - h * .05, l + w / 2, t + h * .28); c.bezierCurveTo(l + w * .98, t - h * .05, l + w * 1.1, t + h * .55, l + w / 2, t + h * .95); c.closePath(); }
+            else if (k === 'star') { const cx = l + w / 2, cy = t + h / 2; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? .4 : 1; c[i ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * w / 2 * r, cy + Math.sin(a) * h / 2 * r); } c.closePath(); }
+        };
+        const shape = (c, p) => each(c, c => { pen(c); path(c, S.tool, S.down[0], S.down[1], p[0], p[1]); if (S.tool === 'line') { c.stroke(); return; } if (S.fill) c.fill(); if (S.out) { c.strokeStyle = S.oc; c.stroke(); } });
+        const flood = (sx, sy) => {
+            const W = cv.width, H = cv.height, im = x.getImageData(0, 0, W, H), d = im.data; sx = Math.floor(sx); sy = Math.floor(sy); if (sx < 0 || sy < 0 || sx >= W || sy >= H) return;
+            const at = (sy * W + sx) * 4, t = [d[at], d[at + 1], d[at + 2], d[at + 3]], c = [1, 3, 5].map(i => parseInt(S.col.substr(i, 2), 16)).concat(255);
+            if (t.every((v, i) => v === c[i])) return;
+            const same = i => Math.abs(d[i] - t[0]) <= 40 && Math.abs(d[i + 1] - t[1]) <= 40 && Math.abs(d[i + 2] - t[2]) <= 40 && Math.abs(d[i + 3] - t[3]) <= 40;
+            const seen = new Uint8Array(W * H), st = [[sx, sy]], nx = (a, b) => S.wrap ? [(a + W) % W, (b + H) % H] : [a, b];   // 이어그리기면 가장자리 너머로도 채워요
+            while (st.length) { const [px, py] = st.pop(); if (px < 0 || py < 0 || px >= W || py >= H) continue; const i = py * W + px; if (seen[i] || !same(i * 4)) continue; seen[i] = 1; d.set(c, i * 4); st.push(nx(px + 1, py), nx(px - 1, py), nx(px, py + 1), nx(px, py - 1)); }
+            x.putImageData(im, 0, 0);
+        };
+        const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * cv.width, (e.clientY - r.top) / r.height * cv.height]; };
+        cv.style.touchAction = 'none';
+        cv.onpointerdown = e => {
+            e.preventDefault(); const p = pos(e); try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+            if (S.tool === 'pick') { const d = x.getImageData(Math.floor(p[0]), Math.floor(p[1]), 1, 1).data; if (d[3]) { setCol('#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join('')); S.tool = 'pen'; ui(); } return; }
+            snap();
+            if (S.tool === 'fill') { flood(p[0], p[1]); changed(true); return; }
+            if (S.tool === 'stamp' || S.tool === 'text') {
+                const t = S.tool === 'stamp' ? S.stamp : S.text.trim(); if (!t) { S.hist.pop(); q('.mk-dw-txt input').focus(); return; }
+                each(x, c => { pen(c); c.font = S.tool === 'stamp' ? `${S.size * 3 + 14}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif` : `700 ${Math.max(10, S.size * 3)}px "Jua","Malgun Gothic",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, p[0], p[1]); });
+                changed(true); return;
+            }
+            S.down = S.last = p;
+            if (!SHAPES.includes(S.tool)) { each(x, c => { pen(c); c.beginPath(); c.arc(p[0], p[1], S.size / 2, 0, Math.PI * 2); c.fill(); }); changed(); }
+        };
+        cv.onpointermove = e => {
+            if (!S.down) return; const p = pos(e);
+            if (!SHAPES.includes(S.tool)) { const a = S.last; each(x, c => { pen(c); c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(p[0], p[1]); c.stroke(); }); S.last = p; changed(); return; }
+            o.clearRect(0, 0, ov.width, ov.height); shape(o, p);
+        };
+        cv.onpointerup = cv.onpointercancel = e => { if (!S.down) return; if (SHAPES.includes(S.tool)) { o.clearRect(0, 0, ov.width, ov.height); shape(x, pos(e)); } S.down = null; changed(true); };
+        const out = () => { if (!S.white) return cv; const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const y = c.getContext('2d'); y.fillStyle = '#fff'; y.fillRect(0, 0, c.width, c.height); y.drawImage(cv, 0, 0); return c; };
+        api.blob = () => new Promise(ok => out().toBlob(ok, 'image/png'));
+        api.url = t => out().toDataURL(t || 'image/png');
+        api.size = (w, h) => setSize(w, h, 'scale');
+        return api;
     };
     /* 사진 줄이기 (긴 쪽 px · png 투명 그대로 · 사진은 jpg) */
     function shrink(src, px) {

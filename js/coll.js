@@ -498,13 +498,10 @@
             if (collOnline() && !C.checked) collCheck(C);
         }
 
-        /* ---------- ✨ 스티커 모음 (공유하기 · 보류) : 말랑달콤 / 씰 / 내-… · 받은-… (내 종이와 같은 종류 폴더 · 폴더 한 줄 10-26) ---------- */
-        const STK_FOLDERS = { seal: '씰', piece: '조각', paper: '모조지', tape: '마테', tk: '떡메', leaf: '속지' };   // tk = 🧻 떡메 (js/leafpad.js)
-        function stkColl(kind, got) { return collOf(dirPath(STK_FOLDERS[kind]), got ? '받은-' : '내-'); }   // 📤 공유하기 전용 (스티커 / 공유 / 씰 / 내씰 · 도련 10-26 : 스티커 / 씰 은 내 종이 파일 자리 · js/own.js)
         /* 글자 → 짧은 확인 글자 (같은 그림인지 보기) */
         function collHash(s) { s = String(s || ''); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); }
 
-        window.stkColl = stkColl; window.collHash = collHash;
+        window.collHash = collHash;
         window.collOf = collOf; window.collAdd = collAdd; window.collSet = collSet; window.collRemove = collRemove; window.collItem = collItem;
         window.collAll = collAll; window.collEnt = collEnt; window.collGrid = collGrid; window.collThumb = collThumb; window.collNewId = collNewId;
         window.collLogin = collLogin; window.collWhoami = collWhoami; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;

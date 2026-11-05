@@ -1,45 +1,41 @@
 /* 말랑달콤 다이어리 - js/pattern-maker.js
-   ✏️ 배경지 만들기 3종 · 📂 내 배경지 · 💾 배경지 파일 저장 · 🌟 카페에서 받아 등록한 사용자 배경지
+   ✏️ 배경지 만들기 · 📂 내 배경지
    - 🧵 무늬 메이커     : js/maker.js 엔진 (상품공방 배경지 · 벽지와 같은 칸 · 도련 11-05) : 무늬 15가지 · 두 겹 · 칸 크기 · 굵기 · 기울기 · 진하기 · 내 사진 반복(바둑판 · 엇갈림 · 간격)
-   - 🖌 그려서 만들기   : 한 칸을 그리면 이어 붙인 모습이 바로 보임 (이어그리기로 경계가 자연스럽게 연결)
-   - 내 배경지 : 말랑달콤 / 배경지 / 내-목록N · 받은-목록N (작은 그림 100개씩) · 내-<id> · 받은-<id> (레시피 하나에 파일 하나) (js/coll.js)
+   - 🖌 그려서 만들기   : ✏️ 그리기 판 (MK.draw) · 한 칸을 그리면 이어 붙인 모습이 바로 보임 (이어그리기로 경계가 자연스럽게 연결)
+   - 내 배경지 : 말랑달콤 / 배경지 / 내-목록N (작은 그림 100개씩) · 내-<id> (레시피 하나에 파일 하나) (js/coll.js)
        목록 칸은 작은 그림으로 그리고, 고를 때 원본을 읽어요 · 지금 고른 배경지 원본은 로그인할 때 먼저 읽어요
    - 이름 · 만든 사람은 없어요 (스티커처럼 썸네일만)
-   - 💾 파일로 저장 : 파일 이름만 쓰면 '이름.json' 파일 하나(이미지 포함)를 내려받아요 → 사용자가 카페 글에 첨부 (js/sharebox.js shxAsk)
-   - 📥 파일 불러오기 : 🌈 배경지 → 공유받은 칸 맨 위 · 카페에서 받은 배경지 파일을 넣어요 (사용자끼리 주고받기, 개발자 등록 없음)
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → patterns → pattern-recipe → skins → pattern-maker → service */
 
         /* =====================================================================
            📂 내 배경지 (저장 · 불러오기 · 삭제)
            ===================================================================== */
         const MY_PATTERN_MAX = Infinity;           // 개수 제한 없음 (끝없이 저장)
-        const patColl = got => collOf(dirPath(DIRS.pattern), got ? '받은-' : '내-');   // 말랑달콤 / 배경지 / 내-… · 받은-… (폴더 한 줄 · 10-26)
-        let myPatterns = [];                       // 원본을 읽어 온 것만 [{ uid, r, got }] (지금 고른 것 · 눌러서 고른 것)
-        const patView = { mine: null, share: null };   // 목록 칸에 보이는 것 : { C, lists, next, items[] }
+        const patColl = () => collOf(dirPath(DIRS.pattern), '내-');   // 말랑달콤 / 배경지 / 내-… (폴더 한 줄 · 10-26)
+        let myPatterns = [];                       // 원본을 읽어 온 것만 [{ uid, r }] (지금 고른 것 · 눌러서 고른 것)
+        const patView = { mine: null };            // 목록 칸에 보이는 것 : { C, lists, next, items[] }
 
         /* 원본 읽기 (이미 있으면 바로) : 성공하면 true */
-        async function patEnsure(uid, got) {
+        async function patEnsure(uid) {
             if (myPatterns.some(m => m.uid === uid)) return true;
-            for (const g of got == null ? [false, true] : [!!got]) {
-                let r = null;
-                try { r = sanitizeRecipe(await collItem(patColl(g), uid)); } catch (e) {}
-                if (r) { myPatterns.push(Object.assign({ uid, r }, g ? { got: 1 } : {})); return true; }
-            }
-            return false;
+            let r = null;
+            try { r = sanitizeRecipe(await collItem(patColl(), uid)); } catch (e) {}
+            if (r) myPatterns.push({ uid, r });
+            return !!r;
         }
         /* 로그인할 때 · 다른 기기에서 고른 배경지가 바뀌었을 때 : 지금 고른 배경지 원본 먼저 */
         async function patPrepare() {
             let v = null;
             try { v = JSON.parse(store.getItem(BG_PATTERN_KEY)); } catch (e) {}
-            if (v && typeof v.id === 'string' && v.id.startsWith('my:')) await patEnsure(v.id.slice(3), v.g ? true : null);
+            if (v && typeof v.id === 'string' && v.id.startsWith('my:')) await patEnsure(v.id.slice(3));
         }
-        if (typeof COLL !== 'undefined') COLL.loginHooks.push(() => { myPatterns = []; patView.mine = patView.share = null; return patPrepare(); });
+        if (typeof COLL !== 'undefined') COLL.loginHooks.push(() => { myPatterns = []; patView.mine = null; return patPrepare(); });
 
         function getMyPatternItems() {
-            return myPatterns.map(m => ({ id: 'my:' + m.uid, uid: m.uid, tier: 'my', name: m.got ? '공유받은 배경지' : '내 배경지', got: !!m.got, css: recipeToCss(m.r), recipe: m.r }))
+            return myPatterns.map(m => ({ id: 'my:' + m.uid, uid: m.uid, tier: 'my', name: '내 배경지', css: recipeToCss(m.r), recipe: m.r }))
                 .filter(p => p.css);
         }
-        /* 목록 칸 (🌈 배경지 → 내가만든 · 공유받은) : 읽은 묶음까지의 작은 그림들 · more = 아직 안 읽은 묶음이 있어요 */
+        /* 목록 칸 (🌈 배경지 → 내가만든) : 읽은 묶음까지의 작은 그림들 · more = 아직 안 읽은 묶음이 있어요 */
         function patListItems(tab) {
             const v = patView[tab];
             if (!v) return { items: [], more: true };
@@ -47,7 +43,7 @@
         }
         /* 묶음 하나 더 읽기 (처음이면 가장 새 묶음부터) → 다 읽으면 다시 그려요 */
         async function patListMore(tab) {
-            const got = tab === 'share', C = patColl(got);
+            const C = patColl();
             let v = patView[tab];
             if (v && v.busy) return;
             if (!v) {
@@ -56,67 +52,44 @@
                 const live = () => patView[tab] === v && ktShown(document.getElementById('patternModal'));   // 🔁 배경지 창이 열려 있는 동안 받을 때까지 다시
                 try { v.lists = await keepTrying(() => collIndex(C), { alive: live }); } catch (e) { v.busy = false; v.next = -1; return; }
                 v.next = v.lists.length - 1;
-                v.items = C.pend.slice().reverse().map(e => patCell(e, got));
+                v.items = C.pend.slice().reverse().map(patCell);
             }
             v.busy = true;
             try {
                 while (v.next >= 0) {
                     const L = v.lists[v.next--], arr = await keepTrying(() => collLoad(C, L), { alive: () => patView[tab] === v && ktShown(document.getElementById('patternModal')) });
-                    v.items = v.items.concat(arr.slice().reverse().filter(e => !C.gone.has(e.id)).map(e => patCell(e, got)).filter(p => p.css));
+                    v.items = v.items.concat(arr.slice().reverse().filter(e => !C.gone.has(e.id)).map(patCell).filter(p => p.css));
                     if (arr.length) break;
                 }
             } catch (e) { v.next = -1; }
             v.busy = false;
             if (collOnline() && !C.checked) collCheck(C);
         }
-        const patCell = (e, got) => ({ id: 'my:' + e.id, uid: e.id, tier: 'my', got: !!got, name: got ? '공유받은 배경지' : '내 배경지', by: got && e.x && e.x.by ? recipeText(e.x.by, 12) : '', css: recipeToCss(e.th) });
+        const patCell = e => ({ id: 'my:' + e.id, uid: e.id, tier: 'my', name: '내 배경지', css: recipeToCss(e.th) });
         async function patThumb(r) { return r.kind === 'tile' && /^data:/.test(r.src) ? Object.assign({}, r, { src: await collThumb(r.src) || r.src }) : r; }
 
-        /* 넣기 → uid · got 이고 이미 있으면 'same' · 실패 null */
-        async function addMyPattern(r, got, by) {                       // got : 📥 파일로 불러온 배경지 (공유받은 칸) · by : 만든 사람
+        /* 넣기 → uid (이미 있으면 그 uid) · 실패 null */
+        async function addMyPattern(r) {
             const clean = sanitizeRecipe(r);
             if (!clean) { showMsg('⚠ 배경지를 저장하지 못했어요.<br>다시 만들어 주세요.'); return null; }
-            const h = collHash(JSON.stringify(clean)), C = patColl(got);
+            const h = collHash(JSON.stringify(clean)), C = patColl();
             try {
                 const same = (await collAll(C)).find(e => e.x && e.x.h === h);
-                if (same) return got ? 'same' : same.id;                    // 같은 배경지를 두 번 누르면 하나만
-                const uid = await collAdd(C, clean, await patThumb(clean), got && by ? { h, by } : { h });   // 화면은 바로 · 드라이브는 뒤에서
-                myPatterns.push(Object.assign({ uid, r: clean }, got ? { got: 1 } : {}));
-                patView[got ? 'share' : 'mine'] = null;
+                if (same) return same.id;                    // 같은 배경지를 두 번 누르면 하나만
+                const uid = await collAdd(C, clean, await patThumb(clean), { h });   // 화면은 바로 · 드라이브는 뒤에서
+                myPatterns.push({ uid, r: clean });
+                patView.mine = null;
                 return uid;
             } catch (e) { showMsg('⚠ 배경지를 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">인터넷 연결을 확인한 뒤 다시 해 주세요.</span>'); return null; }
         }
 
-        async function deleteMyPattern(uid, got) {
+        async function deleteMyPattern(uid) {
             if (!(await showMsg('이 배경지를 지울까요?', true))) return;
-            try { await collRemove(patColl(got), uid); } catch (e) { showMsg('⚠ 지우지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
+            try { await collRemove(patColl(), uid); } catch (e) { showMsg('⚠ 지우지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
             myPatterns = myPatterns.filter(x => x.uid !== uid);
-            patView[got ? 'share' : 'mine'] = null;
+            patView.mine = null;
             if (bgPattern && bgPattern.id === 'my:' + uid) clearBgPattern();
             renderPatternList();
-        }
-
-        /* =====================================================================
-           🌟 등록된 사용자 배경지 (js/community-patterns.js 의 COMMUNITY_PATTERNS)
-           - 이 파일이 없거나 깨져 있어도 다이어리는 그대로 동작 (목록에만 안 보임)
-           ===================================================================== */
-        let communityItems = null;
-
-        function getCommunityItems() {
-            if (communityItems) return communityItems;
-            communityItems = [];
-            const list = (typeof COMMUNITY_PATTERNS !== 'undefined' && Array.isArray(COMMUNITY_PATTERNS)) ? COMMUNITY_PATTERNS : [];
-            list.forEach(row => {
-                const no = parseInt(row && row.no, 10);
-                const r = row && sanitizeRecipe(row.recipe);
-                const css = r && recipeToCss(r);
-                if (!no || !css || communityItems.some(x => x.id === 'cm:' + no)) return;
-                communityItems.push({
-                    id: 'cm:' + no, tier: 'free',
-                    name: recipeText(row.name, 20) || '사용자 배경지', by: recipeText(row.by, 12), css, recipe: r
-                });
-            });
-            return communityItems;
         }
 
         /* =====================================================================
@@ -124,7 +97,6 @@
            ===================================================================== */
         let makerMode = 'weave';
         let makerRecipe = null;          // 지금 미리보기 중인 레시피 (이미지·그림은 미리보기용 큰 이미지)
-        let makerTimer = null;
 
         const MAKER_TITLES = { weave: '🧵 무늬 메이커', draw: '🖌️ 그려서 배경지' };
 
@@ -148,14 +120,14 @@
             document.getElementById('makerPreviewEmpty').style.display = css ? 'none' : 'flex';
         }
 
-        /* 저장·보내기용 최종 레시피 (이미지·그림은 용량에 맞게 다시 압축) */
+        /* 저장용 최종 레시피 (이미지·그림은 용량에 맞게 다시 압축) */
         function finalMakerRecipe() {
             if (makerMode === 'weave') { const r = mkW && sanitizeRecipe(Object.assign({ kind: 'mk' }, mkW)); if (!r) showMsg('🧵 무늬나 그림을 하나 골라 주세요.'); return r; }
             if (makerMode === 'draw') {
-                if (!drawState.drawn) { showMsg('🖌 먼저 칸 안에 그림을 그려 주세요.'); return null; }
-                const src = encodeTile(drawBoard(), drawState.bg, 2);
+                if (!mkD || !mkD.drawn()) { showMsg('🖌 먼저 칸 안에 그림을 그려 주세요.'); return null; }
+                const src = encodeTile(mkD.cv, mkD.bg, 2), t = mkD.cv.width / DRAW_SCALE;
                 if (!src) { showMsg('⚠ 그림이 너무 복잡해서 저장할 수 없어요.<br>칸 크기를 줄여서 다시 그려 주세요.'); return null; }
-                return sanitizeRecipe({ v: 1, kind: 'tile', src, w: drawState.tile, h: drawState.tile, bg: drawState.bg, from: 'draw' });
+                return sanitizeRecipe({ v: 1, kind: 'tile', src, w: t, h: t, bg: mkD.bg, from: 'draw' });
             }
             return null;
         }
@@ -168,54 +140,6 @@
             if (apply) selectBgPattern('my:' + uid);
             else showMsg('🌈 배경지 → 내가만든 칸에 저장했어요!');
         }
-
-        function makerDownload() {
-            const r = finalMakerRecipe();
-            if (!r) return;
-            downloadPatternFile(r);
-        }
-
-        /* ---------- 💾 배경지 파일 : 카페에 첨부해서 올리는 파일 (이미지까지 파일 하나에 들어 있음 · 파일 이름.json · 만든 사람 by) ---------- */
-        async function downloadPatternFile(r) {
-            if (!window.shxAsk) return;
-            const a = await shxAsk('💾 배경지 파일로 저장', '배경지', '');
-            if (!a) return;
-            shxDownload(Object.assign({ malang_pattern: 1 }, a.by ? { by: a.by } : {}, { recipe: r }), a.name);
-            showMsg('💾 <b>' + recipeText(a.name, 40) + '.json</b> 파일을 저장했어요!<br><br>말랑달콤 카페의 <b>배경지 게시판</b>에 첨부해서 올려 주세요.<br><span style="font-size:12px;color:#777;">받은 사람은 🌈 배경지 → 공유받은 → 📥 파일 불러오기로 넣어요.<br>아이패드 · 아이폰은 \'파일\' 앱 → 다운로드 폴더에 있어요.</span>');
-        }
-
-        async function downloadMyPattern(uid) {
-            await patEnsure(uid, false);
-            const m = myPatterns.find(x => x.uid === uid);
-            if (m) downloadPatternFile(m.r); else showMsg('⚠ 이 배경지를 불러오지 못했어요.');
-        }
-
-        /* 📥 배경지 → 공유받은 → 파일 불러오기 : 카페에서 받은 배경지 파일 (.json) */
-        function pickPatternFile() {
-            let inp = document.getElementById('patFileIn');
-            if (!inp) {
-                inp = document.createElement('input');
-                inp.type = 'file'; inp.id = 'patFileIn'; inp.hidden = true;
-                inp.accept = '.json,application/json';
-                inp.onchange = () => { const f = inp.files && inp.files[0]; inp.value = ''; if (f) importPatternFile(f); };
-                document.body.appendChild(inp);
-            }
-            inp.click();
-        }
-        async function importPatternFile(f) {
-            let o = null;
-            try { o = JSON.parse(await f.text()); } catch (e) {}
-            if (o && o.malang_skin) { showMsg('📔 페이지 파일이에요.<br><b>📔 페이지 → 공유받은</b> 칸의 📥 파일 불러오기로 넣어 주세요.'); return; }
-            if (o && o.malang_sticker) { showMsg('✨ 스티커 파일이에요.<br><b>✨ 스티커 → 그 종류 → 공유받은</b> 칸의 📥 파일 불러오기로 넣어 주세요.'); return; }
-            if (!o || o.malang_pattern !== 1 || !o.recipe) { showMsg('⚠ 말랑달콤 배경지 파일이 아니에요.<br><span style="font-size:12px;color:#777;">카페에서 받은 배경지 파일을 골라 주세요.</span>'); return; }
-            if (!sanitizeRecipe(o.recipe)) { showMsg('⚠ 배경지 파일을 읽을 수 없어요.'); return; }
-            const uid = await addMyPattern(o.recipe, true, recipeText(o.by, 12));
-            if (!uid) return;
-            if (uid === 'same') { showMsg('🌈 이미 가지고 있는 배경지예요.'); return; }
-            if (typeof renderPatternList === 'function') renderPatternList();
-            showMsg('🎉 배경지를 공유받은 칸에 넣었어요!');
-        }
-        window.pickPatternFile = pickPatternFile;
 
         /* 이미지·그림 한 칸을 레시피 용량(RECIPE_MAX_SRC) 안에 들어가도록 압축
            PNG(투명 유지) → WEBP(투명 유지) → JPEG(바탕색을 칠해서) 순서로, 안 되면 해상도를 낮춰 다시 시도 */
@@ -251,13 +175,6 @@
             return null;
         }
 
-        function bindRange(id, onInput) {
-            const el = document.getElementById(id);
-            if (!el || el._bound) return;
-            el._bound = true;
-            el.addEventListener('input', onInput);
-        }
-
         /* =====================================================================
            🧵 무늬 메이커 = js/maker.js 만들기 칸 그대로 (상품공방 배경지와 같아요 · 도련 11-05)
            ===================================================================== */
@@ -268,162 +185,20 @@
         }
 
         /* =====================================================================
-           🖌 그려서 만들기 : 펜 · 지우개 · 도장 · 이어그리기 · 되돌리기
+           🖌 그려서 만들기 = ✏️ 그리기 판 (js/maker.js MK.draw · 상품공방 직접 그리기와 같은 판 · 도련 11-05)
+           펜 · 붓 · 지우개 · 선 · 도형 · 도장 · 채우기 · 글씨 · 스포이드 · 이어그리기 · 바탕색 · 칸 크기 · 되돌리기
            ===================================================================== */
-        const DRAW_SCALE = 2;
-        const DRAW_STAMPS = ['🌸', '⭐', '💖', '🍓', '🍀', '🎀', '🐰', '☁️', '🌙', '🍒', '🌷', '🐾'];
-        const drawState = { tile: 80, tool: 'pen', color: '#ff6b81', brush: 4, stamp: '🌸', wrap: true, bg: '#fff8fb', drawn: false, undo: [] };
-        let drawing = null;
-
-        function drawBoard() { return document.getElementById('drawBoard'); }
-
+        const DRAW_SCALE = 2, DRAW_TILES = [40, 60, 80, 100, 120, 160];
+        let mkD = null;                                                  // 그리기 판 (처음 열 때 한 번)
         function setupDrawUI() {
-            const board = drawBoard();
-            if (!board._ready) {
-                board._ready = true;
-                board.width = board.height = drawState.tile * DRAW_SCALE;
-                board.addEventListener('pointerdown', drawStart);
-                board.addEventListener('pointermove', drawMove);
-                ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => board.addEventListener(t, drawEnd));
-                const st = document.getElementById('drawStamps');
-                DRAW_STAMPS.forEach(s => {
-                    const b = document.createElement('button');
-                    b.type = 'button'; b.className = 'cat-btn'; b.textContent = s; b.dataset.stamp = s;
-                    b.onclick = () => { drawState.stamp = s; setDrawTool('stamp'); };
-                    st.appendChild(b);
-                });
-                ['drawColor', 'drawBrush', 'drawBg'].forEach(id => bindRange(id, readDrawUI));
-                document.getElementById('drawWrap').addEventListener('change', readDrawUI);
-            }
-            document.getElementById('drawColor').value = drawState.color;
-            document.getElementById('drawBrush').value = drawState.brush;
-            document.getElementById('drawBg').value = drawState.bg;
-            document.getElementById('drawWrap').checked = drawState.wrap;
-            document.getElementById('drawTile').value = drawState.tile;
-            board.parentElement.style.backgroundColor = drawState.bg;
-            document.querySelectorAll('#drawTools .cat-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === drawState.tool));
-            document.querySelectorAll('#drawStamps .cat-btn').forEach(b => b.classList.toggle('active', drawState.tool === 'stamp' && b.dataset.stamp === drawState.stamp));
-            document.getElementById('drawBrushVal').textContent = drawState.brush;
+            if (mkD) return;
+            mkD = MK.draw(document.getElementById('mkDraw'), { W: 80 * DRAW_SCALE, H: 80 * DRAW_SCALE, wrap: true, bg: '#fff8fb', view: 220,
+                sizes: DRAW_TILES.map(t => [t + 'px', t * DRAW_SCALE, t * DRAW_SCALE]), onChange: updateDrawPreview });
         }
-
-        function readDrawUI() {
-            drawState.color = document.getElementById('drawColor').value;
-            drawState.brush = parseInt(document.getElementById('drawBrush').value, 10);
-            drawState.bg = document.getElementById('drawBg').value;
-            drawState.wrap = document.getElementById('drawWrap').checked;
-            drawBoard().parentElement.style.backgroundColor = drawState.bg;
-            document.getElementById('drawBrushVal').textContent = drawState.brush;
-            updateDrawPreview();
-        }
-
-        function setDrawTool(tool) {
-            drawState.tool = ['pen', 'eraser', 'stamp'].includes(tool) ? tool : 'pen';
-            setupDrawUI();
-        }
-
-        /* 칸 크기를 바꾸면 지금 그림을 새 크기에 맞춰 늘리거나 줄임 */
-        function changeDrawTile(v) {
-            const size = Math.max(30, Math.min(200, parseInt(v, 10) || 80));
-            if (size === drawState.tile) return;
-            const board = drawBoard();
-            const old = document.createElement('canvas');
-            old.width = board.width; old.height = board.height;
-            old.getContext('2d').drawImage(board, 0, 0);
-            drawState.tile = size;
-            board.width = board.height = size * DRAW_SCALE;
-            board.getContext('2d').drawImage(old, 0, 0, board.width, board.height);
-            drawState.undo = [];
-            updateDrawPreview();
-        }
-
-        function boardPoint(e) {
-            const b = drawBoard(), r = b.getBoundingClientRect();
-            return { x: (e.clientX - r.left) / r.width * b.width, y: (e.clientY - r.top) / r.height * b.height };
-        }
-
-        /* 이어그리기 : 칸 밖으로 나간 부분이 반대쪽에서 이어지도록 9군데에 같이 그림 */
-        function paintWrapped(fn) {
-            const b = drawBoard(), ctx = b.getContext('2d'), T = b.width;
-            const offs = drawState.wrap ? [-T, 0, T] : [0];
-            ctx.save();
-            ctx.globalCompositeOperation = drawState.tool === 'eraser' ? 'destination-out' : 'source-over';
-            offs.forEach(dx => offs.forEach(dy => { ctx.save(); ctx.translate(dx, dy); fn(ctx); ctx.restore(); }));
-            ctx.restore();
-        }
-
-        function pushUndo() {
-            const b = drawBoard();
-            drawState.undo.push(b.getContext('2d').getImageData(0, 0, b.width, b.height));
-            if (drawState.undo.length > 20) drawState.undo.shift();
-        }
-
-        function drawStart(e) {
-            e.preventDefault();
-            const board = drawBoard();
-            try { board.setPointerCapture(e.pointerId); } catch (err) {}
-            pushUndo();
-            const p = boardPoint(e);
-            if (drawState.tool === 'stamp') {
-                const fs = (drawState.brush * 3 + 14) * DRAW_SCALE;
-                paintWrapped(ctx => {
-                    ctx.font = `${fs}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillText(drawState.stamp, p.x, p.y);
-                });
-                drawState.drawn = true;
-                updateDrawPreview();
-                return;
-            }
-            drawing = { x: p.x, y: p.y };
-            const lw = drawState.brush * DRAW_SCALE;
-            paintWrapped(ctx => {
-                ctx.fillStyle = drawState.color;
-                ctx.beginPath(); ctx.arc(p.x, p.y, lw / 2, 0, Math.PI * 2); ctx.fill();
-            });
-            drawState.drawn = true;
-        }
-
-        function drawMove(e) {
-            if (!drawing) return;
-            e.preventDefault();
-            const p = boardPoint(e), from = drawing;
-            const lw = drawState.brush * DRAW_SCALE;
-            paintWrapped(ctx => {
-                ctx.strokeStyle = drawState.color; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(p.x, p.y); ctx.stroke();
-            });
-            drawing = p;
-            clearTimeout(makerTimer);
-            makerTimer = setTimeout(updateDrawPreview, 120);
-        }
-
-        function drawEnd() {
-            if (!drawing) return;
-            drawing = null;
-            updateDrawPreview();
-        }
-
-        function drawUndo() {
-            const img = drawState.undo.pop();
-            if (!img) return;
-            drawBoard().getContext('2d').putImageData(img, 0, 0);
-            updateDrawPreview();
-        }
-
-        async function drawClear() {
-            if (!drawState.drawn) return;
-            if (!(await showMsg('그린 그림을 모두 지울까요?', true))) return;
-            pushUndo();
-            const b = drawBoard();
-            b.getContext('2d').clearRect(0, 0, b.width, b.height);
-            drawState.drawn = false;
-            updateDrawPreview();
-        }
-
         function updateDrawPreview() {
-            const b = drawBoard();
-            const css = { backgroundColor: drawState.bg, backgroundImage: `url("${b.toDataURL('image/png')}")`, backgroundSize: `${drawState.tile}px ${drawState.tile}px` };
-            paintPatternInto(document.getElementById('makerPreview'), { css });
+            if (!mkD) return;
+            const t = mkD.cv.width / DRAW_SCALE;
+            paintPatternInto(document.getElementById('makerPreview'), { css: { backgroundColor: mkD.bg, backgroundImage: `url("${mkD.url()}")`, backgroundSize: `${t}px ${t}px` } });
             document.getElementById('makerPreviewEmpty').style.display = 'none';
         }
 

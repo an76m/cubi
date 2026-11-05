@@ -497,12 +497,10 @@
             position: absolute; left: 50%; bottom: 5px; transform: translateX(-50%); white-space: nowrap;
             background: var(--primary-accent); color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 10px;
         }
-        .pat-name { font-size: 12px; color: #444; text-align: center; line-height: 1.3; word-break: keep-all; }
         .pat-item.empty { visibility: hidden; pointer-events: none; }
 
         /* 📒 메뉴 칸 */
         .service-btn small { font-size: 10.5px; font-weight: normal; color: #999; line-height: 1.2; }
-        .pat-by { font-size: 10.5px; color: #999; text-align: center; margin-top: -3px; }
         .pat-item-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .pat-actions { display: flex; gap: 4px; justify-content: center; }
         .pat-actions .btn { padding: 1px 8px; font-size: 13px; }
@@ -515,36 +513,12 @@
         }
         .maker-preview-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #aaa; }
         .maker-section { font-size: 13px; color: #555; }
-        .maker-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; font-size: 13px; color: #555; }
-        .maker-row > label { flex-shrink: 0; min-width: 56px; }
-        .maker-row input[type="range"] { flex: 1; min-width: 90px; accent-color: var(--primary-accent); }
-        .maker-row input[type="color"] { width: 36px; height: 30px; padding: 0; border: 2px solid var(--border-color); border-radius: 8px; background: #fff; cursor: pointer; }
-        .maker-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-accent); }
-        .maker-row select.btn { padding: 3px 6px; font-size: 13px; }
-        .maker-val { width: 44px; text-align: right; font-variant-numeric: tabular-nums; color: #777; }
-        .maker-file { font-size: 12px; color: #888; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-        .maker-seg { display: flex; gap: 4px; flex-wrap: wrap; }
-        .maker-tip { font-size: 12px; color: #888; margin: 4px 0 8px; line-height: 1.5; }
-        .maker-tip-inline { font-size: 11.5px; color: #999; }
         .maker-actions { border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; }
-        .maker-name { flex: 1; min-width: 0; text-align: left; font-weight: normal; }
         .maker-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 4px; }
         .maker-btns .btn { justify-content: center; padding: 7px 6px; font-size: 13px; }
         .maker-btns .btn-primary { grid-column: 1 / -1; background: var(--primary-accent); border-color: var(--primary-accent); color: #fff; }
         #weaveKinds { margin-bottom: 10px; }
 
-        /* 🖌 그림판 */
-        .draw-wrap { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
-        .draw-board-box {
-            flex-shrink: 0; width: min(200px, 60vw); aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden;
-            border: 2px dashed var(--primary-accent); position: relative;
-        }
-        .draw-board { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
-        .draw-tools { flex: 1; min-width: 220px; }
-        .draw-stamps { display: flex; flex-wrap: wrap; gap: 3px; margin: 6px 0 8px; }
-        .draw-stamps .cat-btn { font-size: 16px; padding: 2px 6px; }
-
-        @media (max-width: 480px) { .draw-board-box { margin: 0 auto; } }
 
         /* 👧 내 인형들 */
         .doll-picker { max-width: 560px; }
@@ -1715,9 +1689,9 @@
         .smk-bag button::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 13px; background: linear-gradient(rgba(255,255,255,.85), rgba(240,232,236,.85)); border-bottom: 1.5px dashed rgba(190, 160, 172, .8); }
         .smk-bag img { position: relative; filter: drop-shadow(0 1px 1px rgba(90, 60, 70, .25)); }
         /* ✂️ 내가만든 칸 : 씰 · 사진 스티커는 하얀 스티커 대지 위 · 📄 모조지스티커는 도톰한 미색 종이 */
-        #stickerGrid[data-mine="seal"] .smk-it button, #stickerGrid[data-mine="piece"] .smk-it:not(.smk-bag) button, #stickerGrid[data-share="seal"] .smk-it button, #stickerGrid[data-share="piece"] .smk-it:not(.smk-bag) button { border-radius: 10px; background: linear-gradient(160deg, #fff 0%, #fdfbfc 60%, #f7f3f5 100%); border: 1.5px solid #efe4e8; box-shadow: inset 0 0 0 3px #fff, 0 1px 2px rgba(120, 80, 95, .12); }
-        #stickerGrid[data-mine="seal"] .smk-it img, #stickerGrid[data-mine="piece"] .smk-it:not(.smk-bag) img, #stickerGrid[data-share="seal"] .smk-it img, #stickerGrid[data-share="piece"] .smk-it:not(.smk-bag) img { filter: drop-shadow(1.2px 0 0 #fff) drop-shadow(-1.2px 0 0 #fff) drop-shadow(0 1.2px 0 #fff) drop-shadow(0 -1.2px 0 #fff) drop-shadow(0 1px 1.2px rgba(90, 60, 70, .3)); }
-        #stickerGrid[data-mine="paper"] .smk-it button, #stickerGrid[data-share="paper"] .smk-it button { border-radius: 3px; border: 1px solid #e9dfcd; box-shadow: 0 1px 2px rgba(110, 90, 60, .16), 0 3px 0 -1px #f4eee2, 0 3px 1px -1px rgba(110, 90, 60, .14);
+        #stickerGrid[data-mine="seal"] .smk-it button, #stickerGrid[data-mine="piece"] .smk-it:not(.smk-bag) button { border-radius: 10px; background: linear-gradient(160deg, #fff 0%, #fdfbfc 60%, #f7f3f5 100%); border: 1.5px solid #efe4e8; box-shadow: inset 0 0 0 3px #fff, 0 1px 2px rgba(120, 80, 95, .12); }
+        #stickerGrid[data-mine="seal"] .smk-it img, #stickerGrid[data-mine="piece"] .smk-it:not(.smk-bag) img { filter: drop-shadow(1.2px 0 0 #fff) drop-shadow(-1.2px 0 0 #fff) drop-shadow(0 1.2px 0 #fff) drop-shadow(0 -1.2px 0 #fff) drop-shadow(0 1px 1.2px rgba(90, 60, 70, .3)); }
+        #stickerGrid[data-mine="paper"] .smk-it button { border-radius: 3px; border: 1px solid #e9dfcd; box-shadow: 0 1px 2px rgba(110, 90, 60, .16), 0 3px 0 -1px #f4eee2, 0 3px 1px -1px rgba(110, 90, 60, .14);
             background: radial-gradient(rgba(150, 120, 80, .05) 1px, transparent 1.4px) 0 0 / 5px 5px, radial-gradient(rgba(255, 255, 255, .7) 1px, transparent 1.4px) 2px 3px / 7px 7px, #fbf7ee; }
         .smk-it i { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); font-style: normal; font-size: 11px; display: grid; place-items: center; cursor: pointer; color: #a07888; }
 
@@ -2322,11 +2296,7 @@
 .tpm-stage { display: flex; align-items: center; justify-content: center; height: 96px; overflow: hidden; border-radius: 18px; box-shadow: 0 6px 18px rgba(0,0,0,.1);
     background: repeating-conic-gradient(#eef3f7 0 25%, #fff 0 50%) 50% / 20px 20px; }
 .tpm-tape { flex: none; width: 170px; height: 30px; transform: scale(1.6) rotate(-4deg); background-size: 100% 100%; background-repeat: no-repeat; filter: drop-shadow(0 1px 1px rgba(0,0,0,.15)); }
-.tpm-pad { display: block; margin: 0 auto; width: min(300px, 82vw); height: auto; aspect-ratio: 1; border-radius: 14px; border: 2px dashed #9bb8cc; touch-action: none; cursor: crosshair; box-sizing: border-box; }
-.tpm-wrap { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 6px; font-size: 13.5px; } .tpm-wrap small { color: #6a8aa0; font-size: 12px; }
 .tpm-lead { margin: 4px 0 0; font-weight: bold; font-size: 14px; }
-.tpm-colors { flex-wrap: wrap; align-items: center; }
-.tpm-colors input[type="color"] { width: 28px; height: 28px; padding: 0; border: 2px solid #fff; border-radius: 50%; background: none; box-shadow: 0 0 0 1.5px #ccc; cursor: pointer; }
 
 /* 📱 아이패드 : 버튼을 한 번에 누르게 (두 번 탭 확대 대기 · 눌림 취소 없애기) */
 button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -2507,21 +2477,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 
 .smk-hint b { color: var(--primary-accent); } .smk-hint small { font-size: 11px; color: var(--dk-soft, #b48b97); }   /* 🔤 글씨스티커 : 엔터 안내 2줄 */
 
-/* 📤 스티커 공유 (js/sharebox.js) : 내가만든 칸 📤 공유하기 · 공유받은 칸 📥 파일 불러오기 · 고르기 체크 · 파일 이름 창 */
-.shx-bar { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; padding: 7px 9px; margin: 0 0 8px; border-radius: 14px; background: #fff5f8; border: 1.5px dashed #ffc2d4; }
-.shx-bar small { font-size: 11.5px; color: #a08890; }
-.shx-btn { border: 0; border-radius: 12px; padding: 7px 13px; font: inherit; font-size: 13px; font-weight: 700; color: #c2456f; background: #fff; box-shadow: 0 1px 3px rgba(194, 69, 111, .18); cursor: pointer; }
-.shx-btn.go { color: #fff; background: linear-gradient(135deg, #ff9fb8, #ff7b9c); }
-.shx-btn:disabled { opacity: .45; cursor: default; }
-.shx-cnt { flex: 1 1 100%; font-size: 13px; color: #8a5a6b; } .shx-cnt b { color: #ff6b8b; }
-.shx-bar.on .shx-btn.go { flex: 1; }
-.shx-on [data-shx] { cursor: pointer; }
-.shx-on [data-shx] > i { display: none; }
-.shx-on [data-shx]::after { content: ''; position: absolute; top: -4px; left: -4px; z-index: 2; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid #ffc2d4; box-sizing: border-box; display: grid; place-items: center; font-size: 11px; color: #fff; pointer-events: none; }
-.shx-on [data-shx].shx-ck::after { content: '✔'; background: #ff7b9c; border-color: #ff7b9c; }
-.shx-on [data-shx].shx-ck > button, .shx-on [data-shx].shx-ck > .lf-pick { outline: 2.5px solid #ff9fb8; outline-offset: 1px; }
-.shx-on [data-shx] * { pointer-events: none; }
-.shx-by { display: block; margin-top: 2px; font-size: 10.5px; color: #a08890; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 💾 파일 이름 창 (js/sharebox.js shxAsk) */
 .shx-pop { position: fixed; inset: 0; z-index: 2900; display: flex; align-items: center; justify-content: center; background: rgba(90, 61, 74, .18); }
 .shx-card { display: flex; flex-direction: column; gap: 10px; text-align: left; }
 .shx-card .shx-t { text-align: center; color: var(--primary-accent); font-size: 15px; }
@@ -2530,13 +2486,10 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .shx-card input:focus { border-color: #ff9fb8; }
 .shx-card small { font-size: 11.5px; color: #a08890; text-align: center; }
 .shx-card .alert-btns { margin-top: 4px; }
-#stickerGrid[data-share] .smk-it .smk-n { bottom: 21px; }   /* 공유받은 칸 : by 닉네임 줄 위로 */
 
 .dy-pick-list .cs-empty { text-align: center; padding: 18px 8px 6px; font-size: 13px; line-height: 1.8; color: #a08890; }
 /* 🌈 배경지 : 칸 5개 · 지금 배경지 작은 그림 · 문구점 칸 */
 #patTabs { margin-bottom: 6px; }
-.pat-cur-sw { display: inline-block; width: 44px; height: 26px; border-radius: 8px; border: 1.5px solid var(--border-color); vertical-align: middle; }
-.pat-cur-sw[hidden] { display: none; }
 .pat-grid > .stk-go { grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 16px 8px; border: 2px solid var(--border-color); border-radius: 16px; background: #fff; font: inherit; color: inherit; cursor: pointer; }
 .pat-grid > .stk-go span { font-size: 2rem; line-height: 1; }
 .pat-grid > .stk-go small { font-size: 11.5px; color: #a08890; }
