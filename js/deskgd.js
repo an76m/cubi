@@ -91,7 +91,7 @@
         function dkwRoom(id) {
             let r = dkwq(id); if (r) return r;
             r = document.createElement('div'); r.id = id; r.className = 'dkw-room'; r.hidden = true;
-            r.addEventListener('pointerdown', e => { if (e.target === r) dkwClose(); });
+            r.addEventListener('pointerdown', e => { if (e.target !== r) return; if (window.dkDrawerOwns && dkDrawerOwns(r) && window.deskTapAt && deskTapAt(e.clientX, e.clientY)) return; dkwClose(); });   // 🗄 서랍에서 내려온 창 밖 = 그 자리 책상 톡 (같은 서랍 = 닫기 · 다른 서랍 = 이건 닫고 그 서랍 · 도련 11-05)
             document.body.appendChild(r); return r;
         }
         function dkwFly(box, el) {                                                // 책상 위 그 소품 자리에서 커지며 나와요
@@ -102,6 +102,7 @@
             box.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: .4 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.2,.9,.3,1.08)' });
         }
         function dkwClose() {
+            const tr = dkwq('dkwTray'); if (tr && !tr.hidden && window.dkDrawerOwns && dkDrawerOwns(tr)) { dkDrawerShut(true); return; }   // 🗄 서랍에서 내려온 문구함 = 위로 올라가며 서랍도 닫혀요 (도련 11-05 · 그다음 이 함수가 다시 불려 닫아요)
             ['dkwCup', 'dkwTray'].forEach(id => { const r = dkwq(id); if (r && !r.hidden) { r.classList.remove('show'); setTimeout(() => { r.hidden = true; }, 180); } });
             document.documentElement.classList.remove('dkw-on');
             dkwDeskSoon();

@@ -1237,7 +1237,7 @@
             if (DKD.cur) dkDrawerShut(true);
             dkdUnhide();
             const img = el.querySelector(':scope > img'), o = DK.items.find(x => x.u === el.dataset.u), c = o && dkCat(o.id);
-            if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front')) { if (run) run(); return; }
+            if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front:not(.bye)')) { if (run) run(); return; }   // .bye = 닫히는 중인 앞판 (다른 서랍으로 바로 넘어가요)
             const W = r[2] - r[0], H = r[3] - r[1], box = `left:${r[0]}%;top:${r[1]}%;width:${W}%;height:${H}%`;
             const hole = document.createElement('i'); hole.className = 'dkd-hole'; hole.style.cssText = box + (c && c.inside ? `;background-image:url("${c.inside}")` : '');
             const fr = document.createElement('i'); fr.className = 'dkd-front'; fr.style.cssText = box;
@@ -1275,7 +1275,7 @@
             D.t = setInterval(() => { if (DKD.cur === D && !dkdOn(host)) dkDrawerShut(false); }, 250);   // 창을 다른 데서 닫으면 서랍도
         }
         function dkdFront(D) {
-            D.fr.classList.remove('open'); D.tags.forEach(g => { g.style.transform = ''; }); if (window.sndDrawer) sndDrawer(false);
+            D.fr.classList.remove('open'); D.fr.classList.add('bye'); D.tags.forEach(g => { g.style.transform = ''; }); if (window.sndDrawer) sndDrawer(false);
             setTimeout(() => { D.hole.remove(); D.fr.remove(); D.tags.forEach(g => { g.style.transition = ''; delete g.dataset.dkd; }); }, 280);
         }
         function dkDrawerShut(anim) {                                           // anim = 창이 위로 올라가며 사라져요 (서랍 톡 · 다른 서랍)
@@ -1290,6 +1290,7 @@
             };
         }
         window.dkDrawerShut = dkDrawerShut;
+        window.dkDrawerOwns = h => !!DKD.cur && !!DKD.cur.win && DKD.cur.win[1] === h;   // 이 창이 열린 서랍에서 나온 창이에요 (🗄️ 문구함 ✕ = 서랍 닫듯이 · js/deskgd.js dkwClose)
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
         /* 🛍️ 봉투 속 = 아직 꺼내지 않았어요 (도련 11-02 · 현실처럼) : 💻 📲 책상에서는 봉투에서 꺼낼 때까지 바구니 · 스티커 정리 · 오늘 쓸 스티커 · 스티커첩 어디에도 없어요 (js/basket.js)
            s = 스티커 종이 id (카드 it.s · 살 때 적어 둬요) · b = 📒 🤍 스티커첩 id (카드 it.b) · 📱 폰은 그대로 다 보여요 (나중에 폰 정리할 때 · 도련) */
