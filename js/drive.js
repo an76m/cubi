@@ -18,7 +18,7 @@
                       / 배경지 / 받은-<id>.json                             🌈 샵에서 받은 배경지 하나에 파일 하나 (내가 만든 배경지 = 내-)
                       / 날짜형바인더 · 날짜형노트 / <권 폴더> / 다이어리.json    📔 받은 권마다 🔐 { id, from, at } (안 쓴 권도 폴더 · 도련 11-05)
                       / 기본세트 / 선물.json                            🎁 처음 한 번 받는 서비스 (책상 소품 + 문구 · 한 파일 · 버리면 여기서 빠져요 · 예외 · js/desk.js)
-                      / 책상배치 / 배치.json · 배치_백업.json             🪑 책상 위 · 보관함 · 자리 · 기능 연결 · 커스텀 · 가진 문구 목록 (js/desk.js · js/skins.js)
+                      / 책상배치 / _소품목록.json · _문구목록.json · 배치.json · 설정.json · 배치_백업.json   🪑 🔐 가진 소품 · 가진 문구 · 책상 위 자리 · 기능 연결 · 벽지 (역할마다 파일 하나 · 도련 11-06 · DESK_FILE_KEYS)
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
                       / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실
                       / 설정 / 설정.json                                ⚙ 설정 탭 값 · 받은 다이어리 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 상품 모습은 늘 서버 그대로 (사본 없음 · 도련 11-05 · js/prod.js)
@@ -107,7 +107,7 @@
             rootId: null, wiped: false,   // 🗑 이 창이 본 말랑달콤 폴더 · 지워진 걸 알아챈 뒤 (rootGone · rootReset : 더 올리지 않고 처음 상태로 다시 열기)
             gen: 0,            // 다시 불러오기 할 때마다 증가 (예전 요청의 결과가 뒤늦게 섞이는 것 방지)
             inflight: null,    // 지금 업로드 중인 키
-            settingsFile: null, cafeFile: null, deskFile: null,   // { id, modifiedTime } : 마지막으로 읽거나 쓴 때의 드라이브 파일 (두 기기 확인용)
+            settingsFile: null, cafeFile: null, deskFile: null, deskOwnFile: null, gdOwnFile: null, deskSetFile: null,   // { id, modifiedTime } : 마지막으로 읽거나 쓴 때의 드라이브 파일 (두 기기 확인용)
             cafeBase: new Map(),         // ☕ 카페 기록 : 마지막으로 드라이브에서 읽거나 올린 값 (두 기기가 같은 항목을 고쳤을 때 합치는 기준)
             dayMeta: new Map(),          // 'diary_2026_10_09' → 읽거나 쓴 때의 드라이브 파일 수정 시각 ('' = 그때 파일이 없었음)
             full: false,                 // 구글 저장공간이 꽉 참
@@ -212,19 +212,30 @@
         function keyLabel(k) { const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
-        function keyFile(k) { return CAFE_KEYS.includes(k) ? 'cafe' : DESK_KEYS.includes(k) ? 'desk' : 'settings'; }
+        function keyFile(k) { if (CAFE_KEYS.includes(k)) return 'cafe'; for (const w of DESK_WHICH) if (DESK_FILE_KEYS[w].includes(k)) return w; return 'settings'; }
         /* 설정 파일 2개 : 어디에 · 무슨 이름으로 · drive 의 어느 칸에 기억 */
         const KEY_FILES = {
             settings: { path: SETTINGS_PATH, name: SETTINGS_FILE_NAME, prop: 'settingsFile' },
             cafe: { path: CAFE_PATH, name: CAFE_FILE_NAME, prop: 'cafeFile' },
-            desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' }   // 🪑 책상배치 / 배치.json
+            desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' },     // 🪑 책상배치 / 배치.json = 자리 (책상 위 · 문구의 집 · 다이어리 · 봉투)
+            dkown: { path: DESK_PATH, name: '_소품목록.json', prop: 'deskOwnFile' }, // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06)
+            gdown: { path: DESK_PATH, name: '_문구목록.json', prop: 'gdOwnFile' },   // 🔐 가진 문구 전부
+            deskset: { path: DESK_PATH, name: '설정.json', prop: 'deskSetFile' }     // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
         };
 
         /* 🔐 암호 보관 : 출석 · 화분 기록은 설정.json 에서 무엇인지 알아볼 수 없게 저장해요
            - 이름도 뜻 없는 글자 (VAULT_KEYS) · 내용은 뒤섞은 글자 + 앞 7자리 확인 표시
            - 누가 글자를 하나라도 고치면 확인 표시가 맞지 않아서 그 기록은 버리고 처음부터 (고칠 이유가 없게) */
         const VAULT_KEYS = ['zq7k2m', 'xr4p9w'];
-        const DESK_KEYS = ['diary_desk_items', 'diary_desk_fn', 'diary_gd_own', 'diary_share_got', 'diary_desk_skin', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home', 'diary_gd_at'];   // + ✏️ 문구의 집 (js/deskgd.js · 11-05)   // + 🛍️ 사 온 봉투 · 상품을 넣은 소품 (js/desk.js · 10-30)   // + 📔 책상 위 다이어리 자리 · 모습 (js/desk.js dky · 10-29)   // + 🧱 🪵 벽지 · 책상 (js/deskskin.js)   // + 📥 이미 불러온 공유 파일 번호 (js/itemshare.js)   // 🪑 책상배치 / 배치.json 으로 가는 키
+        /* 🪑 책상배치 폴더 = 역할마다 파일 하나 (도련 11-06 · 예전엔 배치.json 하나에 목록 · 자리 · 설정이 다 있었어요) · 모두 🔐 계정 열쇠 · 바뀐 파일만 올라가요 (소품을 옮기면 배치.json 만) */
+        const DESK_FILE_KEYS = {
+            desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
+            dkown: ['diary_desk_own'],                                                                        // 🔐 _소품목록.json
+            gdown: ['diary_gd_own'],                                                                          // 🔐 _문구목록.json
+            deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got']                                  // ⚙ 설정.json
+        };
+        const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
+        const isDeskFile = w => DESK_WHICH.includes(w);
         const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best']);   // ☕ 카페.json 으로 가는 키
         const VAULT_SALT = 'mL4q!z9Rw2';
         function vaultHash(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36).padStart(7, '0').slice(-7); }
@@ -447,7 +458,7 @@
             drive.folderIds.clear(); drive.folderBusy.clear(); drive.alive.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
             drive.books.clear(); drive.bookBusy.clear();
-            drive.settingsFile = null; drive.cafeFile = null; drive.deskFile = null;
+            drive.settingsFile = null; drive.cafeFile = null; drive.deskFile = null; drive.deskOwnFile = null; drive.gdOwnFile = null; drive.deskSetFile = null;
         }
 
         /* ---------- 읽기 : 설정 / 하루치 ---------- */
@@ -461,14 +472,27 @@
             drive[F.prop] = f;
             return parseJsonObject(await keyFileText(which, f.id), which);
         }
+        /* 🪑 책상배치 파일 4개 : 폴더 안을 한 번에 찾아(요청 1번) 있는 것만 동시에 읽어요 · 못 여는 파일이 하나라도 있으면 drive.deskLocked (덮어쓰지 않아요) */
+        async function fetchDeskFiles() {
+            DESK_WHICH.forEach(w => { drive[KEY_FILES[w].prop] = null; }); drive.deskNone = new Set();
+            const dir = await getFolder(DESK_PATH, false);
+            if (!dir) { DESK_WHICH.forEach(w => drive.deskNone.add(w)); return DESK_WHICH.map(() => null); }
+            const fs = await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (${DESK_WHICH.map(w => `name='${qName(KEY_FILES[w].name)}'`).join(' or ')})`, 'id,name,modifiedTime');
+            return Promise.all(DESK_WHICH.map(async w => {
+                const f = fs.find(x => x.name === KEY_FILES[w].name); if (!f) { drive.deskNone.add(w); return null; }   // 같은 이름이 둘이면 먼저 만든 것 (driveList = 만든 순서) · 없다고 본 파일은 처음 쓸 때 다시 찾지 않아요
+                drive[KEY_FILES[w].prop] = f;
+                try { return parseJsonObject(await keyFileText(w, f.id), w); }
+                catch (e) { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; }
+            }));
+        }
         /* 🔐 책상배치 / 배치.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js ownLock / ownUnlock)
            못 열면 (다른 계정 · 깨짐) 읽기 실패 → 아무것도 바꾸지 않고 덮어쓰지도 않아요 */
         async function keyFileText(which, id) {
             const t = await readFileText(id);
-            if (which !== 'desk' || !t.trim()) return t;
+            if (!isDeskFile(which) || !t.trim()) return t;
             try { return JSON.stringify(await ownUnlock(t, COLL.who)); } catch (e) { throw corruptError(which); }
         }
-        const keyFileSeal = async (which, body) => which === 'desk' ? ownLock(JSON.parse(body), COLL.who) : body;
+        const keyFileSeal = async (which, body) => isDeskFile(which) ? ownLock(JSON.parse(body), COLL.who) : body;
 
         /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 날짜형바인더 / 그 권 · 📕 장 · 다이어리.json : 페이지노트 · 페이지바인더 안 그 권 것만) */
         function idxOfKey(key, create) {
@@ -599,9 +623,8 @@
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             drive.newbie = !drive.rootId;                                    // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
-            let desk = null; drive.deskLocked = false;
-            try { desk = await fetchKeyFile('desk'); }
-            catch (e) { if (e && e.type === 'corrupt') drive.deskLocked = true; else throw e; }   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
+            drive.deskLocked = false;
+            const desks = await fetchDeskFiles();                            // 🪑 책상배치 파일 4개 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();
@@ -609,7 +632,7 @@
             if (settings) Object.keys(settings).forEach(k => { if (isSettingKey(k) && keyFile(k) === 'settings') store.putLoaded(k, JSON.stringify(settings[k])); });
             drive.cafeBase = new Map();
             if (cafe) Object.keys(cafe).forEach(k => { if (keyFile(k) === 'cafe') { store.putLoaded(k, JSON.stringify(cafe[k])); drive.cafeBase.set(k, JSON.stringify(cafe[k])); } });
-            if (desk) Object.keys(desk).forEach(k => { if (keyFile(k) === 'desk') store.putLoaded(k, JSON.stringify(desk[k])); });
+            DESK_WHICH.forEach((w, i) => { const o = desks[i]; if (o) Object.keys(o).forEach(k => { if (keyFile(k) === w) store.putLoaded(k, JSON.stringify(o[k])); }); });
             if (typeof collLogin === 'function') await collLogin();          // 🎨 지금 쓰는 내 페이지 · 배경지 원본 (js/coll.js)
             drive.ready = true; drive.guest = false;
             drive.needAuth = false; drive.error = false; drive.full = false;
@@ -783,11 +806,11 @@
         /* 설정.json · 카페.json 올리기 : 덮어쓰기 전에 드라이브 파일이 바뀌었는지 보고, 바뀌었으면 합친 뒤에 */
         async function writeKeyFile(which, mine) {
             const F = KEY_FILES[which];
-            if (which === 'desk' && drive.deskLocked) return;                   // 🔐 못 연 배치.json 은 덮어쓰지 않아요
+            if (isDeskFile(which) && drive.deskLocked) return;                  // 🔐 못 연 책상배치 파일이 있으면 덮어쓰지 않아요
             const dir = await getFolder(F.path, true);
             const known = drive[F.prop];
             let cur = known ? await driveMeta(known.id) : null;
-            if (!cur) cur = await findFile(dir, F.name);                              // 처음이거나 지워졌으면 이름으로 한 번 더 찾기
+            if (!cur && !(known == null && drive.deskNone && drive.deskNone.delete(which))) cur = await findFile(dir, F.name);   // 처음이거나 지워졌으면 이름으로 한 번 더 찾기 (방금 읽을 때 없던 책상배치 파일은 건너뛰어요 · 한 번만 · 다른 기기가 먼저 만들었으면 아래에서 합쳐요)
             if (cur && (!known || cur.id !== known.id || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, mine);
             let body = settingsBody(which);
             let saved = await driveUpsert(dir, F.name, cur && cur.id, await keyFileSeal(which, body));
@@ -1486,7 +1509,7 @@
                 for (const which of Object.keys(KEY_FILES)) {
                     const F = KEY_FILES[which], known = drive[F.prop];
                     if (Array.from(drive.dirtyKeys).some(k => !isOwnFile(k) && keyFile(k) === which)) continue;   // 올릴 때 합쳐요
-                    if (which === 'desk' && drive.deskLocked) continue;
+                    if (isDeskFile(which) && drive.deskLocked) continue;
                     const dir = await getFolder(F.path, false);
                     const cur = dir && (known && await driveMeta(known.id) || await findFile(dir, F.name));
                     if (gen !== drive.gen) return;
