@@ -23,7 +23,9 @@
                               설정.json        ⚙ 설정 탭 값 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
                               책상설정.json    ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
                               배치.json        📍 🔐 책상 위 소품 자리 · 문구의 집 · 책상 위 다이어리 · 봉투
-                              _소품목록.json · _문구목록.json · _다이어리목록.json · _배경지목록.json   🔐 가진 것 (이게 '가진 것' · DESK_FILE_KEYS)
+                              _소품목록.json · _문구목록.json · _다이어리목록.json · _배경지목록.json · _휴지통목록.json   🔐 가진 것 (이게 '가진 것' · DESK_FILE_KEYS)
+                              _다이어리상태.json   🔐 권마다 집게 · 구멍 · 링 · 꺼낸 장 (설정.json 을 가볍게)
+                              _내정보.json     🔐 잠금 · 별명 · 생년월일 · 연락처 (개인정보)
                               _선물.json       🎁 🔐 처음 선물 (상품공방 '처음선물' · 버리면 여기서 빠져요 · js/desk.js)
                               _백업.json       🛟 🔐 하루 한 번 위 목록 · 자리 · 책상 설정 (목록 파일이 없어지면 여기서 되살려요 · js/desk.js dkBackupWrite)
                       / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js · 구글은 드라이브 휴지통)
@@ -226,7 +228,10 @@
             gdown: { path: DESK_PATH, name: '_문구목록.json', prop: 'gdOwnFile' },   // 🔐 가진 문구 전부
             deskset: { path: DESK_PATH, name: '책상설정.json', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
             dyown: { path: DESK_PATH, name: '_다이어리목록.json', prop: 'dyOwnFile' }, // 🔐 받은 다이어리 · 내가 만든 노트 · 바인더 (도련 11-06)
-            bgown: { path: DESK_PATH, name: '_배경지목록.json', prop: 'bgOwnFile' }   // 🔐 가진 배경지 (도련 11-06)
+            bgown: { path: DESK_PATH, name: '_배경지목록.json', prop: 'bgOwnFile' },  // 🔐 가진 배경지 (도련 11-06)
+            binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
+            dystate: { path: DESK_PATH, name: '_다이어리상태.json', prop: 'dyStateFile' }, // 🔐 권마다 집게 · 구멍 · 링 · 꺼낸 장 · 페이지형 권 (도련 11-06 · 설정.json 을 가볍게)
+            me: { path: DESK_PATH, name: '_내정보.json', prop: 'meFile' }              // 🔐 잠금 · 별명 · 생년월일 · 연락처 (도련 11-06 · 개인정보)
         };
 
         /* 🔐 암호 보관 : 출석 · 화분 기록은 설정.json 에서 무엇인지 알아볼 수 없게 저장해요
@@ -235,12 +240,15 @@
         const VAULT_KEYS = ['zq7k2m', 'xr4p9w'];
         /* 🪑 책상배치 폴더 = 역할마다 파일 하나 (도련 11-06 · 예전엔 배치.json 하나에 목록 · 자리 · 설정이 다 있었어요) · 모두 🔐 계정 열쇠 · 바뀐 파일만 올라가요 (소품을 옮기면 배치.json 만) */
         const DESK_FILE_KEYS = {
-            desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_tape', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 🎀 정리함에 꽂힌 롤 (도련 11-06) · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
+            desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 🎀 정리함에 꽂힌 롤 · 👝 보관함에서 펜꽂이에 꽂은 필기구 (도련 11-06) · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
             dkown: ['diary_desk_own'],                                                                        // 🔐 _소품목록.json
             gdown: ['diary_gd_own'],                                                                          // 🔐 _문구목록.json
             deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got'],                                 // ⚙ 책상설정.json
             dyown: ['diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine'],                          // 🔐 _다이어리목록.json : 받은 권 · 권마다 받은 곳 · 권 번호 · 내가 만든 노트 · 바인더 (펼친 권 'diary_year' 는 설정.json)
-            bgown: ['diary_bg_own']                                                                           // 🔐 _배경지목록.json
+            bgown: ['diary_bg_own'],                                                                          // 🔐 _배경지목록.json
+            binown: ['diary_bin'],                                                                            // 🔐 _휴지통목록.json (js/bin.js)
+            dystate: ['diary_clips', 'diary_holes', 'diary_free', 'diary_binder', 'diary_books'],              // 🔐 _다이어리상태.json : 📎 집게 자리 · 🕳 구멍 · 💍 링 연 장 · 꺼낸 장 · 페이지형 규격 → 권 (js/skins.js)
+            me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts']                      // 🔐 _내정보.json : 🔒 잠금(해시) · 별명 · 생년월일 · 전화기 연락처
         };
         const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
         const isDeskFile = w => DESK_WHICH.includes(w);

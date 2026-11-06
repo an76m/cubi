@@ -547,7 +547,7 @@
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
         /* 📔 📕 날짜형 · 페이지형 바인더 모두 같은 기능 (도련 11-05 · 통합) : 권 = 페이지형 dyNow().id · 날짜형 펼친 권 id (2026b-분홍-1) · 장 = 페이지형 장 번호 · 날짜형 '2026-10-28'
-           diary_binder · diary_free · diary_holes 모두 { 권 : { 장 : … } } 한 모양 */
+           diary_binder · diary_free · diary_holes 모두 { 권 : { 장 : … } } 한 모양 (🔐 설정 / _다이어리상태.json · 도련 11-06) */
         const bdBook = () => dkIs(currentDate) ? (dyNow() || {}).id || '' : (window.dyyBookId ? dyyBookId() : '');
         const bdPg = () => { const d = currentDate; return dkIs(d) ? dkNo(d) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
         const bdLay = () => { const t = dyLook(); return !!t && t.b === 'ring' && isCoverOpen && !!bdBook() && (dkIs(currentDate) ? dkNo(currentDate) > 0 : !dkType()) && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)

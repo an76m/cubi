@@ -8,7 +8,7 @@
    - 도구 종류는 PK_KINDS 한 곳 · 새 색을 넣으면 저절로 나와요
    - '닫기' 를 누르면 저장 → 펜꽂이에는 고른 것만 다시 꽂혀요 (js/draw.js pcList · penSetTool)
    - 펜꽂이에는 1 ~ 24 개 (너무 많으면 고르기 어려워요)
-   저장 : 'diary_pencase'(설정.json) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', …]
+   저장 : 'diary_pencase'(🔐 설정 / 배치.json · 도련 11-06) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', …]
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 필기구 그대로) */
 
         const PK_KEY = 'diary_pencase', PK_LOCAL = 'malang_pencase', PK_MAX = 24;

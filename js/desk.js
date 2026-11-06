@@ -162,7 +162,7 @@
         }
         const dkBackupOnce = dkMemo(() => dkBackupRead0(), 30000);
         const dkBackupRead = () => dkBackupOnce();
-        const DK_BK_KEYS = [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
+        const DK_BK_KEYS = [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
         let dkBkBusy = false;
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
             if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit) return;
@@ -214,13 +214,25 @@
         }
         /* 드라이브를 읽은 뒤 : 소품 · 문구 목록이 아직 없으면 → 되살리기 (선물.json · 백업 · 종류 폴더) · 아무것도 없으면 처음 선물 (책상 소품 모두 + 문구 모두) */
         let giftBusy = false;
+        /* 🛟 _휴지통목록.json · _내정보.json 이 없어졌으면 = _백업.json 에서 (도련 11-06 · 하루 한 번만 물어봐요 · 처음 온 다꾸러는 안 물어요) */
+        const DK_KR = { binown: ['diary_bin'], me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts'] };
+        let dkKR = false;
+        async function dkKeyRescue() {
+            if (dkKR || !giftOn() || drive.newbie || !drive.deskNone || drive.deskLocked) return;
+            const need = Object.keys(DK_KR).filter(w => drive.deskNone.has(w)).flatMap(w => DK_KR[w]).filter(k => prefGet(k, '') == null); if (!need.length) return;
+            const day = new Date().toISOString().slice(0, 10); try { if (localStorage.getItem('malang_keyresc') === day) return; } catch (e) {}
+            dkKR = true;
+            try { const bk = await dkBackupRead(); need.forEach(k => { if (bk && bk[k] != null && prefGet(k, '') == null) prefSet(k, '', bk[k]); }); try { localStorage.setItem('malang_keyresc', day); } catch (e) {} }
+            catch (e) { console.warn('되살리기', e); dkKR = false; }
+        }
         async function giftEnsure() {
+            dkKeyRescue();
             if (DK.posLost && !DK.fresh && !DK.edit && !giftBusy && giftOn()) {        // 🛟 자리만 잃었어요 (배치.json 이 없어짐) : 가진 것은 목록 그대로 · 자리는 하루 한 번 백업에서 (없으면 보관함에)
                 DK.posLost = false;
                 try {
                     const bk = await dkBackupRead(), p = bk && bk[DK_POS_KEY];
                     if (p && typeof p === 'object' && !DK.edit) { DK.items = dkJoin(dkSplit(DK.items).own, p); dkSave(); deskItemsRender(); deskModeRender(); }
-                    ['diary_gd_at', 'diary_desk_tape'].forEach(k => { const v = bk && bk[k]; if (v && typeof v === 'object' && prefGet(k, '') == null) prefSet(k, '', v); });   // ✏️ 문구의 집 · 🎀 정리함 롤도 배치.json 에 있었어요 (도련 11-06)
+                    ['diary_gd_at', 'diary_desk_tape', 'diary_pencase'].forEach(k => { const v = bk && bk[k]; if (v && typeof v === 'object' && prefGet(k, '') == null) prefSet(k, '', v); });   // ✏️ 문구의 집 · 🎀 정리함 롤도 배치.json 에 있었어요 (도련 11-06)
                 } catch (e) { console.warn('배치 되살리기', e); }
             }
             let gdNull = window.gdOwnList ? gdOwnList() === null : false;

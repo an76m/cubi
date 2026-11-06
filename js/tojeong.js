@@ -10,7 +10,7 @@
    - 생년월일은 이 기기에만 기억해요. (드라이브 · 서버로 보내지 않아요)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (토정비결만 '준비 중') */
 
-        const TJ_BIRTH_KEY = 'diary_tojeong_birth', TJ_BIRTH_LOCAL = 'malang_tojeong_birth';   // 설정.json · 이 기기 (js/drive.js prefGet)
+        const TJ_BIRTH_KEY = 'diary_tojeong_birth', TJ_BIRTH_LOCAL = 'malang_tojeong_birth';   // 🔐 설정 / _내정보.json (도련 11-06) · 이 기기 (js/drive.js prefGet)
         const TJ_CG = [9, 8, 7, 6, 5, 9, 8, 7, 6, 5];               // 천간수 : 갑을병정무기경신임계
         const TJ_JJ = [9, 8, 7, 6, 5, 4, 9, 8, 7, 6, 5, 4];         // 지지수 : 자축인묘진사오미신유술해
         const TJ_ANIMAL = ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지'];
