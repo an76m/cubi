@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/desktape.js
    🎀 마테 정리함 (도련 11-03 · 💻 📲 책상 · 현실처럼 : 다꾸러들은 마스킹테이프를 꺼내 세워 두고 골라 써요)
-   - 책상소품 종류 'taperack' (상품공방 '마테 정리함') · 칸 = 상품 '소품.slots' (그림 위 세로 칸 · [왼, 위, 오른, 아래] %) · 앞벽 그림이 있으면 앞 가로대가 롤 앞을 가려요
+   - 상품 '담는것' = tape 인 책상소품 (상품공방 '마테 정리함' · 도련 11-06 · 종류가 달라도 돼요) · 칸 = 상품 '소품.slots' (그림 위 세로 칸 · [왼, 위, 오른, 아래] %) · 앞벽 그림이 있으면 앞 가로대가 롤 앞을 가려요
    - 🛍️ 봉투의 마스킹테이프 카드를 정리함에 끌어다 놓으면 = 정리함 그림이 크게 뜨고 꽂을 빈 칸을 골라요 (서랍장처럼 · 도련 11-04) · 칸이 모자라면 안 들어가요 (봉투에 그대로)
    - 꽂힌 롤 = 옆모습 (그 테이프 무늬 · 남은 길이만큼 지름이 줄어요) · 톡 = 다이어리를 펴고 바로 페이지에 붙여요 (정리함엔 그대로)
    - 🛠 책상 꾸미기에서만 : 롤을 끌어 다른 칸 · 다른 정리함으로 (차 있으면 서로 바꿔요) · 정리함 밖에 놓으면 서랍(마스킹테이프 칸)으로
@@ -12,7 +12,7 @@
     const desk = () => document.documentElement.classList.contains('desk-on');
     const read = () => { const v = typeof prefGet === 'function' ? prefGet(DKT_KEY, DKT_L) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
     const write = v => { if (typeof prefSet === 'function') prefSet(DKT_KEY, DKT_L, v); };
-    const isRack = el => !!el && dkDef(el).kind === 'taperack';
+    const isRack = el => !!el && dkDef(el).hold === 'tape';   // 🧺 상품 '담는것' = 마테 롤 (도련 11-06 · 종류가 아니라 상품)
     const slotsOf = el => (dkDef(el).slots || []).filter(r => Array.isArray(r) && r.length === 4);
     const entry = id => (T.list || []).find(e => e.id === id) || T.tmp.get(id) || null;   // T.tmp = 🎁 아직 드라이브에 저장 중인 처음 선물 롤 (먼저 보여 줘요)
     /* 🔑 누구의 목록인지 (도련 11-04 고침) : 로그인이 끝나기 전에 읽은 목록은 빈 목록이에요 → 그걸 믿고 칸을 비우면 꽂아 둔 테이프가 저장에서 사라졌어요
@@ -147,16 +147,18 @@
         })();
         return true;
     };
-    /* 🎁 처음 선물 테이프를 정리함에 (도련 11-04 · js/desk.js giftEnsure) : 책상 위 첫 정리함(처음 선물 정리함)의 상품공방 '정리함칸' 자리에 (도련 11-06 · 칸을 비운 롤은 안 꽂아요 · 스티커 서랍에만) */
+    /* 🎁 처음 선물 테이프를 정리함에 (도련 11-04 · js/desk.js giftEnsure) : 책상 위 정리함마다 상품 '처음담기' 칸 그대로 (도련 11-06 · 정리함이 여럿이어도 · 어느 정리함에도 없는 롤은 스티커 서랍에만) */
     /* 🎁 처음 선물 롤 먼저 보이기 (도련 11-04 : 보이는 것부터 빨리 · 드라이브 저장은 뒤에서) : items = [{ tmp, th, q0 }] → 빈 칸에 임시 롤 (화면에만)
        → 저장이 끝나면 dktStarterReal(tmp, 진짜 id) = 그 칸에 진짜 롤로 저장 (목록에 들어오기 전에도 같은 모습) · 못 받으면 dktStarterDrop(tmp) */
     window.dktStarterShow = items => {
-        const M = read(); let k = 0;
+        const M = read(), left = items.slice(); let k = 0;
         document.querySelectorAll('#deskStage .desk-item').forEach(el => {
-            if (!isRack(el) || k >= items.length) return;
+            const F = isRack(el) ? dkDef(el).firstIn : null; if (!Array.isArray(F)) return;   // 🎁 정리함 상품 '처음담기' = [칸마다 테이프 상품 id]
             const S = slotsOf(el), cur = (M[el.dataset.u] || []).slice(0, S.length), ov = T.ov[el.dataset.u] = (T.ov[el.dataset.u] || []).slice(0, S.length);
-            items.forEach(it => { const i = (+it.slot || 0) - 1; if (i < 0 || i >= S.length || cur[i] || ov[i]) return; ov[i] = it.tmp; k++; T.tmp.set(it.tmp, { id: it.tmp, k: 'tape', th: it.th, q: it.q0, q0: it.q0, u: [] }); });   // 🎀 상품공방 '정리함칸' 그대로 (도련 11-06 · 칸이 없거나 찼으면 안 꽂아요)
-            k = items.length;                                                     // 첫 정리함에만 (처음 선물 정리함)
+            for (let i = 0; i < S.length; i++) {
+                const at = F[i] ? left.findIndex(it => it.pid === F[i]) : -1; if (at < 0 || cur[i] || ov[i]) continue;
+                const it = left.splice(at, 1)[0]; ov[i] = it.tmp; k++; T.tmp.set(it.tmp, { id: it.tmp, k: 'tape', th: it.th, q: it.q0, q0: it.q0, u: [] });
+            }
         });
         paint(); return k;
     };

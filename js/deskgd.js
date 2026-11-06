@@ -38,18 +38,24 @@
         const dkwOut = id => dkwIsPen(id) ? dkwPenOut().includes(id) : cabIsOn(id);   // 페이지에 꺼내 둔 것 (손에 든 것 포함)
         function dkwAtPut(id, p) { const m = dkwAt(); m[id] = p; dkwAtSet(m); dkwDeskSoon(); }
         const dkwPlaceName = p => { const [u, s] = String(p || '').split(':'), o = DK.items.find(x => x.u === u); if (!o) return ''; const S = dkSlots(o.id); return dkName(o) + (s != null && S ? ' ' + dkSlotNm(+s, S.length) + ' 서랍' : ''); };
-        /* 집이 없는 문구 정리 : 🎁 처음 선물 = 상품공방 '처음자리' (✏️ 펜꽂이 · 🗄️ 문구함 · 🛍️ 봉투 · 도련 11-06) · 나머지 (집이 없어졌거나 집 없이 받은 것) = 봉투에 담아 책상에 (페이지에 꺼내 둔 것은 치울 때)
+        /* 집이 없는 문구 정리 : 🎁 처음 선물 = 담는 소품 상품 '처음담기' (✏️ 펜꽂이 · 🗄️ 문구함 칸 · 없으면 🛍️ 봉투 · 도련 11-06) · 나머지 (집이 없어졌거나 집 없이 받은 것) = 봉투에 담아 책상에 (페이지에 꺼내 둔 것은 치울 때)
            꾸미는 중 · 선물 받는 중 · 책상이 아직 없으면 기다려요 */
         function dkwSweep() {
             if (!dkwDesk() || DK.edit || !dkOnDesk().length || (window.deskGiftBusy && deskGiftBusy()) || !window.deskBagAdd) return;
             const at = dkwAt(), st = new Set(window.gdStarter ? gdStarter() : []), lost = []; let ch = false;
-            const fn = prefGet('diary_desk_fn', '') || {}, cups = dkOnDesk().filter(o => dkwIsCupU(o.u)), cup = cups.find(o => o.u === fn.pc) || cups[0];   // ✏️ 펜꽂이 기능으로 이은 것 먼저
-            const H = dkHomes(), gdU = Object.keys(H).find(u => H[u].some(e => e.k === 'gd')), gdAt = gdU ? `${gdU}:${H[gdU].find(e => e.k === 'gd').s}` : '';   // 🗄️ 문구함 서랍 칸
+            const desk = dkOnDesk(), H = dkHomes(), n = u => Object.values(at).filter(p => p === u).length;
+            const first = id => {                                                  // 🎁 처음 자리 = 책상 위 담는 소품 상품의 '처음담기' (도련 11-06 · 상품 순서 · 비어 있으면 봉투)
+                for (const o of desk) {
+                    const d = dkCat(o.id) || {}, F = d.firstIn; if (!F) continue;
+                    if (d.hold === 'pc' && Array.isArray(F) && F.includes(id) && dkwIsCupU(o.u) && dkwCanCup(id) && n(o.u) < DKW_MAX) return o.u;
+                    if (d.hold === 'drawer' && !Array.isArray(F)) for (const k of Object.keys(F)) { const s = Math.round(+k) - 1; if (Array.isArray(F[k]) && F[k].includes(id) && (H[o.u] || []).some(e => e.k === 'gd' && e.s === s)) return `${o.u}:${s}`; }
+                }
+                return '';
+            };
             dkwOwnAll().forEach(id => {
                 if (at[id] && dkwPlaceOk(at[id])) return;
-                const w = !at[id] && st.has(id) ? dkwP(id).처음자리 : '';          // 🎁 처음 선물 자리 = 상품공방 '처음자리' (도련 11-06 · 비우면 봉투)
-                if (w === 'cup' && cup && dkwCanCup(id) && dkwHere(cup.u).length < DKW_MAX) { at[id] = cup.u; ch = true; return; }
-                if (w === 'gd' && gdAt) { at[id] = gdAt; ch = true; return; }
+                const w = !at[id] && st.has(id) ? first(id) : '';
+                if (w) { at[id] = w; ch = true; return; }
                 if (dkwOut(id)) return;
                 if (at[id]) { delete at[id]; ch = true; }
                 lost.push(id);

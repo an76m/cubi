@@ -91,7 +91,7 @@
         async function sbStarter(kind) {
             let list = []; try { list = await sbList(kind); } catch (e) {}
             const L = list.filter(x => x.P && x.P.처음선물 && !x.P.스토어 && sbNeed(kind, x));
-            return sbCards(kind, L).map((c, i) => ({ id: String(L[i].P.id || ''), take: c.take, slot: Math.round(+L[i].P.정리함칸) || 0 }));   // 🎀 slot = 상품공방 '정리함칸' (몇 번째 칸 · 0 = 안 꽂아요)
+            return sbCards(kind, L).map((c, i) => ({ id: String(L[i].P.id || ''), take: c.take }));
         }
         async function sbTapeTake(x) {                                           // 🎀 테이프 상품 → 내 종이로 받을 것 (js/own.js ownTake)
             const d = await sbData(kitAt(x.url, 'h120')), h = +x.P.테이프폭, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);

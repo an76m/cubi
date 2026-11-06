@@ -33,6 +33,8 @@
              front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] · area = 💡 누르면 동작하는 곳 (그림 % · js/deskcustom.js) · cork = 📝 메모 붙는 곳 (그림 %)
              slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (그림 %) · surf = 올리는 면 [세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 px) · clock = 바늘 { cx, cy, r } · lcd · photo = [왼 · 위 · 오른 · 아래] %
            처음선물 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
+        const DKB_STK0 = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];
+        const DK_HOLD_OF = { pc: { all: ['pc'] }, skin: { all: ['skin'] }, drawer: { ok: ['gd', 'skin'].concat(DKB_STK0.map(k => 'h:' + k)) }, tape: null };   // 🧺 상품 '담는것' → 넣을 수 있는 창 (tape = 마테 롤만 · js/desktape.js)
         const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
             const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
             const num = v => v !== '' && v != null && isFinite(+v);              // 🔎 크기 · 처음 자리 · 이름 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
@@ -42,8 +44,13 @@
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
             if (o.kind === 'lights') o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
             if (P.처음선물) delete o.nost; else o.nost = 1;
-            if (P.처음연결 === 'pc' || P.처음연결 === 'gd') o.link = P.처음연결; else delete o.link;   // 🎁 처음 연결 · 문구함 칸 = 상품공방 (도련 11-06 · dkStarterLinks)
-            if (+P.문구함칸 > 0) o.gdSlot = Math.round(+P.문구함칸); else delete o.gdSlot;
+            /* 🧺 담는 소품 (도련 11-06 · 상품공방 '담는것' · 종류가 아니라 상품이 정해요 → 새 소품도 코드 없이) : tape 마테 롤 세워 꽂기 · pc 문구 꽂기 · skin 다이어리 · drawer 서랍 칸
+               🎁 처음 모습 = 상품 '처음연결' (pc · skin) · '처음칸' { 칸 번호: 창 } (서랍) · '처음담기' (tape = [칸마다 테이프 id] · pc = [문구 id] · drawer = { 칸 번호: [문구 id] }) */
+            if (Object.prototype.hasOwnProperty.call(DK_HOLD_OF, P.담는것)) o.hold = P.담는것; else delete o.hold;
+            if (P.처음연결 === 'pc' || P.처음연결 === 'skin') o.link = P.처음연결; else delete o.link;
+            const obj = v => v && typeof v === 'object' && !Array.isArray(v) ? v : null;
+            if (obj(P.처음칸)) o.firstSlots = P.처음칸; else delete o.firstSlots;
+            if (Array.isArray(P.처음담기) || obj(P.처음담기)) o.firstIn = P.처음담기; else delete o.firstIn;
             if (P.숨김) o.off = 1;
             return o;
         };
@@ -250,12 +257,12 @@
                 if (!back && giftOn()) giftWrite();
             } finally { giftBusy = false; }
         }
-        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음선물') : 한 롤씩 받아서 (내 스티커 목록) 상품공방 '정리함칸'에 꽂아요 (도련 11-06 · 칸을 비우면 안 꽂고 스티커 서랍에만) */
+        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음선물') : 한 롤씩 받아서 (내 스티커 목록) 책상 위 정리함 상품 '처음담기' 칸에 꽂아요 (도련 11-06 · 어느 정리함에도 없는 롤은 스티커 서랍에만) */
         async function dkStarterTapes() {
             try {
                 if (!window.sbStarterTapes || !window.ownTake || !(window.ownMode && ownMode())) return;
                 const L = await sbStarterTapes(), ds = await Promise.all(L.map(t => t.take().catch(e => { console.warn('🎁 처음 선물 테이프', t.id, e); return null; })));   // 무늬는 한꺼번에 (빨라요)
-                const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d, slot: L[i].slot }).filter(Boolean);   // 🎀 꽂을 칸 = 상품공방 '정리함칸'
+                const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d, pid: L[i].id }).filter(Boolean);   // 🎀 어느 칸 = 정리함 상품 '처음담기' (pid = 테이프 상품 id)
                 if (window.dktStarterShow) dktStarterShow(its);                     // 👀 보이는 것부터 : 정리함에 바로 (도련 11-04)
                 let ids = [];                                                         // 💾 드라이브 저장은 뒤에서 한 번에 (종이 파일 동시에 · 목록 한 번 · 도련 11-04)
                 try { ids = window.ownTakeMany ? await ownTakeMany(its.map(it => it.d)) : []; } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
@@ -275,17 +282,25 @@
                 if (cap && window.capsGiftPop) capsGiftPop(cap.cap);              // 🎁 캡슐 = '첫 선물이 도착했어요' 창 (js/gacha.js)
             } catch (e) { console.warn('🎁 처음 선물 스티커', e); }
         }
-        /* 🎁 처음 연결 (도련 11-06 · 상품공방 책상소품 '처음연결' · '문구함칸' · 앱은 그대로 따라 해요) : ✏️ 펜꽂이 기능 · 🗄️ 문구함 서랍 칸 (이름표도 = 글 '펜꽂이' · '문구함')
-           처음 선물로 놓인 소품 중 그 연결을 고른 것 (같은 연결을 여럿이 고르면 상품 순서 첫 번째) · 이미 연결이 있으면(다른 기기 · 되살리기) 그대로 */
+        /* 🎁 처음 연결 (도련 11-06 · 상품공방 책상소품 '처음연결' · '처음칸' · 앱은 그대로 따라 해요) : 소품 전체 = ✏️ 펜꽂이 · 📔 다이어리 기능 · 서랍 칸 = 🗄️ 문구함 · 📔 · 스티커 한 종류 (이름표 = 글)
+           처음 선물로 놓인 소품 · 상품 순서대로 · 한 창 = 한 자리 (먼저 고른 소품) · 이미 연결이 있으면(다른 기기 · 되살리기) 그대로 */
         function dkStarterLinks() {
             if (typeof prefGet !== 'function' || DK.edit) return;
-            const desk = dkOnDesk(), v = prefGet(DK_FN_KEY, DK_FN_LOCAL), M = v && typeof v === 'object' ? Object.assign({}, v) : {};
-            const pick = k => DESK_ITEMS.filter(d => d.link === k).map(d => desk.find(o => o.id === d.id)).find(Boolean);
-            const cup = pick('pc');
-            if (cup && dkHoldOk(cup.id).includes('pc') && !dkSlots(cup.id) && !('pc' in M)) { M.pc = cup.u; if (!cup.tag) cup.tag = dknWordTag('pc'); dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
-            const H = dkHomes(), has = Object.keys(H).some(u => H[u].some(e => e.k === 'gd'));
-            const dr = !has && pick('gd'), S = dr && dkSlots(dr.id), s = dr ? Math.round(+dkCat(dr.id).gdSlot) - 1 : -1;
-            if (S && s >= 0 && s < S.length && dkHoldOk(dr.id).includes('gd') && !(H[dr.u] || []).some(e => e.s === s)) { H[dr.u] = (H[dr.u] || []).concat([{ k: 'gd', s, r: S[s], tag: dknWordTag('gd') }]); dkHomesSet(H); }
+            const desk = dkOnDesk(), v = prefGet(DK_FN_KEY, DK_FN_LOCAL), M = v && typeof v === 'object' ? Object.assign({}, v) : {}, H = dkHomes();
+            const taken = k => k in M || Object.keys(H).some(u => (H[u] || []).some(e => e.k === k));
+            let chM = false, chH = false;
+            DESK_ITEMS.forEach(d => {
+                const o = desk.find(x => x.id === d.id); if (!o) return;
+                if (d.link && dkHoldOk(o.id).includes(d.link) && !dkSlots(o.id) && !taken(d.link) && !Object.values(M).includes(o.u)) { M[d.link] = o.u; if (!o.tag) o.tag = dknWordTag(d.link); chM = true; }
+                const S = dkSlots(o.id), F = d.firstSlots; if (!S || !F) return;
+                Object.keys(F).sort((a, b) => a - b).forEach(n => {
+                    const s = Math.round(+n) - 1, k = String(F[n] || '');
+                    if (!(s >= 0 && s < S.length) || !dkHoldOk(o.id).includes(k) || taken(k) || (H[o.u] || []).some(e => e.s === s)) return;
+                    H[o.u] = (H[o.u] || []).concat([{ k, s, r: S[s], tag: dknWordTag(k) }]); chH = true;
+                });
+            });
+            if (chM) { dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
+            if (chH) dkHomesSet(H);
             deskFnPaint(); if (typeof dknPaintAll === 'function') dknPaintAll();
         }
         window.deskGiftWrite = giftWrite; window.deskGiftBusy = () => giftBusy || DK.fresh;
@@ -316,24 +331,20 @@
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
            서랍 칸 = 소품 그림 % [왼 · 위 · 오른 · 아래] 미리 정해 둠 (다꾸러가 그리지 않아요) · 새 소품 = 종류(kind)만 맞으면 저절로 · 서랍장 그림이 새로 생기면 칸 자리만 더해요 */
         const DK_FN_OK = ['skin', 'sticker', 'gd', 'pc'];   // ✏️ pc = 펜꽂이 (도련 11-02 · 꽂아 둔 문구 · js/deskgd.js) · 🗄️ gd = 문구함 (서랍장 칸 · 가진 문구 전부)
-        const DKB_STK = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];   // 스티커 종류 (서랍 칸 하나 = 한 종류 · 상품 창 h:종류)
-        /* 소품 종류(kind)마다 넣을 수 있는 것 : all = 소품 전체에 하나 · ok = 서랍 칸마다 하나 (칸 자리 = DESK_ITEMS 의 slots) · 없는 종류 = 연결 없음 (인형 · 시계 …)
-           새 종류가 생기면 여기 한 줄 + js/drive.js DESK_DIRS 폴더 이름 한 줄 */
-        const DK_HOLD = {
-            pencup: { all: ['pc'] }, basket: { all: ['skin'] }, bookshelf: { all: ['skin'] },
-            drawer: { ok: ['gd', 'skin'].concat(DKB_STK.map(k => 'h:' + k)) }
-        };
+        const DKB_STK = DKB_STK0;   // 스티커 종류 (서랍 칸 하나 = 한 종류 · 상품 창 h:종류)
+        /* 넣을 수 있는 것 = 상품 '담는것' (도련 11-06 · 예전엔 종류마다 여기 한 줄) : all = 소품 전체에 하나 · ok = 서랍 칸마다 하나 (칸 자리 = 상품 slots) · 없으면 = 연결 없음 (인형 · 시계 …) · DK_HOLD_OF 는 위 (dkItemOf 보다 먼저) */
+
         (function dkCheck() {                                                    // 🔎 개발용 점검 (소품을 추가할 때 빠뜨린 것 · 콘솔에만)
             const seen = new Set();
             DESK_ITEMS.forEach(d => {
                 if (seen.has(d.id)) console.warn('🪑 소품 id 가 겹쳐요', d.id); seen.add(d.id);
                 if (typeof DESK_DIRS !== 'undefined' && !DESK_DIRS[d.kind]) console.warn('🪑 js/drive.js DESK_DIRS 에 종류 폴더가 없어요', d.kind, d.id);
-                if (DK_HOLD[d.kind] && DK_HOLD[d.kind].ok && !(d.slots && d.slots.length)) console.warn('🪑 서랍 칸(slots)이 없어요', d.id);
+                if ((d.hold === 'drawer' || d.hold === 'tape') && !(d.slots && d.slots.length)) console.warn('🪑 칸(slots)이 없어요', d.id); if ((d.hold === 'pc' || d.hold === 'skin') && !(d.front && d.mouth)) console.warn('🪑 입구 · 앞벽이 없어요', d.id);
             });
         })();
         const DK_SLOT_NM = ['위', '가운데', '아래'];
         const dkSlotNm = (i, n) => n > 3 ? `${i + 1}번째` : DK_SLOT_NM[i] || `${i + 1}번째`;   // 3칸 = 위 · 가운데 · 아래 · 더 많으면 번호
-        const dkHold = id => { const c = dkCat(id); return (c && DK_HOLD[c.kind]) || null; };
+        const dkHold = id => { const c = dkCat(id); return (c && DK_HOLD_OF[c.hold]) || null; };   // 🧺 상품 '담는것' (도련 11-06)
         const dkSlots = id => { const c = dkCat(id); return (c && c.slots && c.slots.length && dkHold(id) && dkHold(id).ok) ? c.slots : null; };   // 칸이 있는 소품 (서랍장)
         const dkHoldOk = id => { const h = dkHold(id); return h ? (h.all || h.ok) : []; };
         const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat(DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
@@ -807,7 +818,7 @@
            - 넣는 것 = 책상 위 모든 소품(벽에 건 것 · 다른 담는 소품은 빼고) + 📔 다이어리 : 바닥 가운데가 입구 안이면 담는 소품과 앞벽 사이
            - 여러 개 = 바닥이 아래인 것이 앞 · 담는 소품을 옮기면 안에 든 것도 같이 · 크기 · 자리는 사용자 마음 (맞춰 주지 않아요)
            - 앞벽 = 같은 그림을 앞벽 마스크로 잘라 한 겹 더 (칠한 그림도 그대로) · 안에 든 게 있을 때만 */
-        const dkIsBox = el => { const d = dkDef(el); return !!(d.front && d.mouth) && d.kind !== 'taperack'; };   // 🎀 마테 정리함 앞벽은 롤만 가려요 (소품을 담지 않아요)
+        const dkIsBox = el => { const d = dkDef(el); return !!(d.front && d.mouth) && d.hold !== 'tape'; };   // 🎀 마테 정리함 앞벽은 롤만 가려요 (소품을 담지 않아요)
         function dkBoxAt(x, y, skip) {
             let best = null;
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
