@@ -181,6 +181,7 @@
             S.items = imgs.map((im, i) => im ? { a: pelAsset(im), src: list[i], st: { state: 'on' } } : { a: null, src: '', st: { state: 'used' }, wh: own && own.wh && own.wh[i] });   // 🎒 null = 이미 쓴 칸
             pelPick(S.items.find(o => o.st.state === 'on'));
             S.L = opt && opt.L && Array.isArray(opt.L.b) && opt.L.b.length === list.length ? opt.L : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
+            S.sb = null; if (S.L && opt.sb) { try { S.sb = await pelLoad(opt.sb); } catch (e) {} }   // 🗂️ 내가 꾸민 시트의 바탕 (색 · 무늬 · 이름표 · js/sheetmaker.js)
             S.rel = (opt && opt.rel) || null; S.relA = null; pelq('pelRoom').classList.toggle('pel-rel', !!S.rel);
             S.own = own; S.ts = !!(opt && opt.ts); S.drag = null; S.gone = 0; S.back = 0; S.mv = { x: 0, y: 0 }; S.on = true;
             pelLayout();
@@ -255,8 +256,10 @@
             if (bo > 0) {                                                        // 🏷️ 하얀 네모 (스티커 종이)
                 const B = S.board, bx = B.cx - B.w / 2, by = B.cy - B.h / 2;
                 ctx.save(); ctx.globalAlpha = bo; ctx.shadowColor = 'rgba(120,80,95,.25)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4;
-                pelRR(ctx, bx, by, B.w, B.h, 14); const g = ctx.createLinearGradient(bx, by, bx + B.w, by + B.h);
-                g.addColorStop(0, '#fdfdff'); g.addColorStop(.5, '#f4f6fb'); g.addColorStop(1, '#fbfcff'); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+                pelRR(ctx, bx, by, B.w, B.h, 14);
+                if (S.sb && B.sheet) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fill(); ctx.shadowColor = 'transparent'; ctx.clip(); ctx.drawImage(S.sb, bx, by, B.w, B.h); ctx.restore(); }   // 🗂️ 내가 꾸민 시트 바탕
+                else { const g = ctx.createLinearGradient(bx, by, bx + B.w, by + B.h);
+                g.addColorStop(0, '#fdfdff'); g.addColorStop(.5, '#f4f6fb'); g.addColorStop(1, '#fbfcff'); ctx.fillStyle = g; ctx.fill(); ctx.restore(); }
             }
             if (bo > 0 && S.items.length > 1 && !S.rel) { ctx.save(); ctx.globalAlpha = bo; pelDrawTape(ctx); ctx.restore(); }   // 여러 개 씰 종이 : 위쪽 '✋ 잡고 옮겨요'
             const bx = pelq('pelX');                                             // ✕ : 하얀 종이 오른쪽 위 끝 (모조지스티커처럼 · 종이를 따라 다녀요)

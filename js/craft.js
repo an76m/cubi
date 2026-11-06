@@ -14,6 +14,7 @@
             booth: ['📸', '포토부스', '네컷 · 2×2 · 한 컷 · 필터 · 글씨 · 반짝이', () => window.openBooth && openBooth(), 'stkmake'],
             cam: ['📷', '사진 찍어 만들기', '찍은 사진을 모양대로 (동그라미 · 하트 · 별 … · ✂️ 손으로 오리기)', k => smGo(k, 'smOpenCam'), 'stkmake'],
             album: ['🖼️', '앨범에서 골라 만들기', '한 장 · 여러 장 한 번에 · 모양 고르기', k => smGo(k, 'smOpenFile'), 'stkmake'],
+            sheet: ['🗂️', '시트 꾸미기', '그림 여러 개를 한 장에 · 끌어서 자리 · 기본 씰처럼', () => window.openSheetMaker && openSheetMaker(), 'stkmake'],   // 🗂️ js/sheetmaker.js (도련 11-06)
             text: ['🔤', '글씨 스티커', '글자 쓰기 → 글꼴 · 색 · 하얀 테두리', () => window.smOpenText && smOpenText(), 'stkmake'],
             tape: ['🎀', '마스킹테이프 만들기', '✏️ 한 칸을 그리면 쭉 이어져요 · 🖼️ 내 사진으로', () => window.openTapeMaker && openTapeMaker(), 'stkmake'],
             leaf: ['📃', '속지 만들기', '🖼️ 사진 불러오기 · ✏️ 종이 색 · 밑줄 위에 그리기', async () => { if (await diaryReady() && window.openLeafMaker) openLeafMaker(); }, 'stkmake'],      // 📔 속지 · 떡메 = 다이어리 쪽 크기로 만들어서 먼저 펴 둬요 (작업실 뒤에서)
@@ -24,7 +25,7 @@
         };
         /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
         const CRAFT_KINDS = [
-            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['booth', 'cam', 'album', 'text'],   // 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
+            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['sheet', 'booth', 'cam', 'album', 'text'],   // 🗂️ 시트 꾸미기 맨 앞 · 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
             to: '🗄️ 서랍 · 🏷️ 씰' },
             { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
             { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },

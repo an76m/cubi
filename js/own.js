@@ -779,7 +779,7 @@
             });
         }
         /* 종이의 그림들 (정리 책상에서 낱개로 보여 주기 · 쓰는 중인 칸은 비어요) */
-        async function ownSheetImgs(id) { const r = await ownSheet(id); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null } : null; }
+        async function ownSheetImgs(id) { const r = await ownSheet(id); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null, sb: (r.s.x && r.s.x.sb) || '' } : null; }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
 
         /* 실패 이유 → 알림 글 */
         function ownErrText(e) {

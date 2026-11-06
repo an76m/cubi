@@ -1,0 +1,63 @@
+/* 🗂️ 시트 꾸미기 (도련 11-06 · js/sheetmaker.js) : 다꾸 작업실(.cr8-room 950) 위 · 알림창(.modal 1000) · 스티커 만들기(.smk-room 1600) 아래
+   💻 📲 세 칸 (시트 모양 · 그림 넣기 | 커팅 매트 위 시트 | 자리 잡기 · 마무리) · 📱 좁으면 위아래로 */
+.shm-room { position: fixed; inset: 0; z-index: 980; display: none; flex-direction: column; overflow: hidden; color: #5b3f4a; font-family: inherit;
+    --line: #6b4438; --pk: #e88fb0; --deep: #c2457a; background: linear-gradient(#fbe9ef, #f7dfe8 86px, #e9c9b0 86px); }
+.shm-room.show { display: flex; animation: crIn .25s ease both; }
+.shm-room button { font-family: inherit; cursor: pointer; color: inherit; }
+.shm-room [hidden] { display: none !important; }
+.shm-bar { flex: none; height: 86px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 max(18px, env(safe-area-inset-right)) 4px max(18px, env(safe-area-inset-left)); box-sizing: border-box; }
+.shm-sign { background: #fff; border: 3px solid var(--line); border-radius: 12px; padding: 7px 16px; font-weight: 900; font-size: 18px; box-shadow: 3px 3px 0 #e6dcf8; white-space: nowrap; }
+.shm-sign small { display: block; font-size: 11px; color: #a07f8b; font-weight: 700; }
+.shm-x { background: #fff; border: 2px solid var(--pk); border-radius: 999px; padding: 8px 18px; font-weight: 800; font-size: 14px; min-height: 40px; }
+.shm-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 250px minmax(0, 1fr) 250px; gap: 14px; padding: 14px; margin: 0 14px max(14px, env(safe-area-inset-bottom));
+    background: #bfe3cf; border: 4px solid var(--line); border-radius: 18px; box-sizing: border-box;
+    background-image: linear-gradient(rgba(107,68,56,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(107,68,56,.08) 1px, transparent 1px); background-size: 22px 22px; }
+.shm-panel { background: #fffdf8; border: 3px solid var(--line); border-radius: 16px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
+.shm-panel h4 { margin: 4px 0 0; font-size: 14px; font-weight: 900; color: #6b4a55; }
+.shm-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.shm-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.shm-c, .shm-b { background: #fff; border: 2px solid #ecc9d6; border-radius: 12px; padding: 7px 10px; font-size: 13px; font-weight: 800; min-height: 38px; }
+.shm-row .shm-c { flex: 1; }
+.shm-c.on { background: #fff0a8; border-color: #e7c24f; }
+.shm-b:hover, .shm-c:hover { border-color: var(--pk); }
+.shm-srcs { display: flex; flex-direction: column; gap: 6px; }
+.shm-src { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid #f1d3dd; border-radius: 14px; padding: 8px 10px; font-size: 14px; font-weight: 800; text-align: left; min-height: 46px; }
+.shm-src i { font-style: normal; font-size: 20px; width: 30px; height: 30px; display: grid; place-items: center; background: #fff1f6; border-radius: 9px; }
+.shm-src:hover { border-color: var(--pk); }
+.shm-hint { margin: 0; font-size: 12px; color: #a07f8b; line-height: 1.5; }
+.shm-lb { font-size: 13px; font-weight: 800; margin-top: 4px; } .shm-lb small { color: #a07f8b; font-weight: 700; }
+.shm-in { font-family: inherit; font-size: 15px; color: #5b3f4a; border: 2px solid #ecc9d6; border-radius: 10px; padding: 7px 9px; min-width: 0; }
+.shm-go { margin-top: auto; background: var(--pk); color: #fff !important; border: 0; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 900; min-height: 48px; box-shadow: 0 4px 0 var(--deep); }
+.shm-go:disabled { opacity: .5; cursor: default; }
+.shm-mat { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.shm-fit { position: relative; flex: none; }
+.shm-paper { position: absolute; left: 0; top: 0; transform-origin: 0 0; border-radius: 14px; box-shadow: 0 6px 0 rgba(107,68,56,.25), 0 0 0 3px var(--line); overflow: visible; touch-action: none; }
+.shm-paper.bg-white { background: #fff; }
+.shm-paper.bg-clear { background: repeating-conic-gradient(#eef3f7 0% 25%, #fff 0% 50%) 0 0 / 22px 22px; }
+.shm-paper.bg-kraft { background: #e2bf94; }
+.shm-paper.bg-holo { background: linear-gradient(135deg, #ffe3f1, #e1f3ff 35%, #fff6d6 65%, #eadfff); }
+.shm-ttl { position: absolute; left: 0; right: 0; top: 14px; margin: 0; text-align: center; font-size: 24px; font-weight: 800; color: #6b4a55; pointer-events: none; line-height: 1.2; }
+.shm-it { position: absolute; cursor: grab; touch-action: none; border-radius: 10px; outline: 2px dashed transparent; outline-offset: 3px; }
+.shm-it.sel { outline-color: #ff5f8f; }
+.shm-it img { width: 100%; height: 100%; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.shm-it i { position: absolute; inset: 0; pointer-events: none; -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
+.shm-it.fin-gloss i { background: linear-gradient(135deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.55) 44%, rgba(255,255,255,0) 58%); }
+.shm-it.fin-matte i { background: rgba(255,250,245,.16); }
+.shm-it.fin-holo i { background: linear-gradient(135deg, rgba(255,140,200,.32), rgba(140,220,255,.32), rgba(255,240,140,.32), rgba(190,150,255,.32)); }
+.shm-say { margin: 0; font-size: 13px; font-weight: 800; color: #2f5a49; text-align: center; }
+.shm-pick { position: absolute; inset: 0; z-index: 5; background: rgba(90,58,71,.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.shm-pick-box { width: min(640px, 100%); max-height: 80%; background: #fffdf8; border: 3px solid var(--line); border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; }
+.shm-pick-h { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 2px dashed #f1d3dd; }
+.shm-pick-g { padding: 12px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.shm-pk { aspect-ratio: 1; background: #fff; border: 2px solid #f1d3dd; border-radius: 12px; padding: 6px; }
+.shm-pk img { width: 100%; height: 100%; object-fit: contain; }
+.shm-pk.on { border-color: #e7c24f; background: #fff7cf; }
+/* 📱 좁은 화면 : 시트가 위 · 고르기 칸은 아래로 */
+@media (max-width: 760px) {
+    .shm-bar { height: 64px; } .shm-sign { font-size: 15px; padding: 5px 12px; } .shm-sign small { display: none; }
+    .shm-room { background: linear-gradient(#fbe9ef, #f7dfe8 64px, #e9c9b0 64px); }
+    .shm-body { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; margin: 0 8px max(8px, env(safe-area-inset-bottom)); padding: 10px; gap: 10px; }
+    .shm-mat { order: -1; height: 50vh; min-height: 300px; position: sticky; top: -10px; z-index: 2; background: #bfe3cf; margin: -10px -10px 0; padding: 10px 0 6px; }   /* 시트는 위에 붙어 있고 고르기 칸만 밀려요 */
+    .shm-panel { overflow: visible; }
+    .shm-srcs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

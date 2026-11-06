@@ -265,7 +265,7 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, stay: !!stay }); }
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, sb: x.sb || '', stay: !!stay }); }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
                 if (window.stkLeave && bkPhone()) stkLeave();
@@ -755,7 +755,7 @@
         const imgs = D.sheet.baked || !window.pelBake ? D.sheet.imgs : await Promise.all(D.sheet.imgs.map(u => u ? pelBake(u).catch(() => u) : null));   // 하얀 테두리 (⚙ 설정을 따라요)
         const D2 = B.desk;
         if (!D2 || !D2.sheet || D2.sheet.id !== id || D2.mode !== 'rl' || B.view !== 'desk') { if (AB.peelOn === id) AB.peelOn = ''; return; }
-        const ok = await openStickerPeel(imgs, { L: D.sheet.L || null, rel: {
+        const ok = await openStickerPeel(imgs, { L: D.sheet.L || null, sb: D.sheet.sb || '', rel: {
             at: () => { const z = bq('abPeelZone'); return z ? z.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: 130, right: innerWidth, bottom: 130 }; },
             target: () => { const r = bq('abRel'); return r ? r.getBoundingClientRect() : null; },
             alive: () => vis('basketKindModal') && B.view === 'desk' && !!bq('abPeelZone'),
@@ -791,7 +791,7 @@
     async function abLoadSheet(id) {
         let r = null; try { r = await ownSheetImgs(id); } catch (e) { abErr(e); }
         const D = B.desk; if (!D || D.pick !== id) return;
-        if (!r || !r.imgs.some(u => u != null)) { D.pick = ''; D.sheet = null; } else D.sheet = { id, imgs: r.imgs, baked: r.baked, L: r.L };
+        if (!r || !r.imgs.some(u => u != null)) { D.pick = ''; D.sheet = null; } else D.sheet = { id, imgs: r.imgs, baked: r.baked, L: r.L, sb: r.sb };
         if (B.view === 'desk' && !AB.drag) bkView();
     }
     function abTapSheet(id) {

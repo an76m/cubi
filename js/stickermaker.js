@@ -61,6 +61,9 @@
                         <button type="button" class="smk-go smk-sub" id="smGoMake" onclick="smKindGo(false,this)"></button>
                       </div>
                     </div>
+                    <div id="smSheetGo" class="smk-col" hidden>   <!-- 🗂️ 시트 꾸미기에서 왔을 때 : 만든 그림을 시트로 (js/sheetmaker.js · 도련 11-06) -->
+                      <button type="button" class="smk-go" onclick="smFinish('sheet',this)">🗂️ 시트에 넣기</button>
+                    </div>
                     <div id="smTextGo" class="smk-col">
                       <button type="button" class="smk-go" onclick="smFinish('text',this)">📌 다이어리에 붙이기</button>
                       <button type="button" class="smk-go smk-sub" onclick="smFinish('keep',this)">💾 씰스티커 내가만든에 저장만</button>
@@ -248,7 +251,8 @@
             const t = smS.mode === 'text';
             smq('smPhotoOpts').hidden = t;
             smq('smTextA').hidden = !t; smq('smTextB').hidden = !t;
-            smq('smPhotoGo').hidden = t; smq('smTextGo').hidden = !t;
+            const sh = !!smSheetTo;                                   // 🗂️ 시트 꾸미기에서 왔으면 '시트에 넣기' 하나만
+            smq('smPhotoGo').hidden = t || sh; smq('smTextGo').hidden = !t || sh; smq('smSheetGo').hidden = !sh;
             smq('smGoStick').innerHTML = smKindBtn(true); smq('smGoMake').innerHTML = smKindBtn(false);
             const many = !t && !!smS.many;                            // 여러 장 : 사진 줄 · 🔁 버튼이 보여요
             smq('smStrip').hidden = !many; smq('smAll').hidden = !many;
@@ -358,6 +362,7 @@
             if (window.bkOpenSheet && smAdd.last) bkOpenSheet(smAdd.last);
         }
         async function smDoFinish(act) {
+            if (act === 'sheet') return smSheetFinish();
             if (smS.many && smS.mode === 'photo') return smManyFinish(act);
             if (smS.mode === 'text' && !(smS.text || '').trim()) { showMsg('스티커에 쓸 글씨를 먼저 써 주세요.'); return; }
             const k = SM_STICK[act] || (act === 'piece' || act === 'seal' || act === 'paper' ? act : '') || (smS.mode === 'text' ? 'seal' : '');   // 🔤 글씨스티커는 🏷️ 씰스티커 → 내가만든에 보관
@@ -391,9 +396,24 @@
         window.stkLeave = stkLeave; window.stkReturn = stkReturn; window.stkBlink = stkBlink; window.stkAway = () => stkBackOn;   // 바구니(서랍 창)가 잠깐 비켜 있어요 (js/desk.js dkdAway)
 
         /* ✂️ 스티커만들기 창의 📷 · 🖼️ · 🔤 버튼 (사진 고르는 창은 눌렀을 때 바로 열려야 해서 화면을 먼저 만들어 둬요) */
-        function smOpenCam() { smBuild(); smq('smCam').click(); }
-        function smOpenFile() { smBuild(); smq('smFile').click(); }
-        function smOpenText() { smBuild(); smStartText(); }
+        /* 🗂️ 시트 꾸미기 (js/sheetmaker.js) : smSheetGo(fn) 로 열면 다 만든 그림(하얀 테두리째)을 fn([그림…]) 으로 넘기고 닫아요 · 저장은 시트 꾸미기에서 */
+        let smSheetTo = null;
+        function smSheetGo(fn, how) { smSheetTo = fn; smKind = 'seal'; if (how === 'cam') smOpenCamIn(); else if (how === 'text') smOpenTextIn(); else smOpenFileIn(); }
+        async function smSheetFinish() {
+            const fn = smSheetTo; if (!fn) return;
+            if (smS.mode === 'text' && !(smS.text || '').trim()) { showMsg('스티커에 쓸 글씨를 먼저 써 주세요.'); return; }
+            let out = [];
+            if (smS.many && smS.mode === 'photo') {
+                smKeep(); const back = smS.cur;
+                for (let i = 0; i < smS.many.length; i++) { smLoadPhoto(i); smS.out = ''; smS.outDie = ''; const src = smMake(true); if (!src) { smGo(i); showMsg(`✂️ ${i + 1}번째 사진의 모양을 먼저 그려 주세요.`); return; } out.push(src); }
+                smLoadPhoto(back); smS.out = ''; smS.outDie = '';
+            } else { const src = smMake(true); if (!src) { showMsg(smS.shape === 'free' ? '✂️ 오리고 싶은 모양을 먼저 그려 주세요.' : '스티커를 만들지 못했어요.'); return; } out = [src]; }
+            closeStickerMaker();
+            fn(out);
+        }
+        function smOpenCamIn() { smBuild(); smq('smCam').click(); }
+        function smOpenFileIn() { smBuild(); smq('smFile').click(); }
+        function smOpenTextIn() { smBuild(); smStartText(); }
         function smShow() {
             smBuild();
             smq('smRoom').classList.add('show'); smq('smRoom').querySelector('.smk-wrap').scrollTop = 0;
@@ -401,8 +421,9 @@
         }
         function closeStickerMaker() {
             const r = smq('smRoom'); if (r) r.classList.remove('show');
+            smSheetTo = null;                                                   // 🗂️ 시트 꾸미기로 넘기기는 한 번만
             document.body.classList.remove('fc-lock');
         }
         window.smPickKind = smPickKind; window.smKindGo = smKindGo; window.smKindAct = smKindAct; window.smKindBtn = smKindBtn;
-        window.smGo = smGo; window.smAllSame = smAllSame; window.smOpenCam = smOpenCam; window.smOpenFile = smOpenFile; window.smOpenText = smOpenText;
+        window.smGo = smGo; window.smAllSame = smAllSame; window.smOpenCam = () => { smSheetTo = null; smOpenCamIn(); }; window.smOpenFile = () => { smSheetTo = null; smOpenFileIn(); }; window.smOpenText = () => { smSheetTo = null; smOpenTextIn(); }; window.smSheetGo = smSheetGo;   // 보통으로 열면 🗂️ 시트로 넘기기는 꺼요 (고르기 창을 그냥 닫았을 때 남지 않게)
         window.smAdd = smAdd; window.smAddMsg = smAddMsg;
