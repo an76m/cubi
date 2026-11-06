@@ -378,13 +378,21 @@
                 if (folderMerging.has(id)) continue;
                 folderMerging.add(id);
                 try {
-                    const kids = await driveList(`'${id}' in parents and trashed=false`, 'id');
-                    for (const k of kids) {
-                        const res = await gfetch(`${DRIVE_API}/${k.id}?addParents=${keepId}&removeParents=${id}&fields=id`, {
-                            method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: '{}'
-                        });
-                        if (!res.ok) throw await driveFail(res, 'move');
+                    /* 🛟 드라이브는 방금 만든 파일이 목록에 늦게 나올 때가 있어요 → 옮긴 뒤 조금 기다렸다 다시 보고, 두 번 연달아 비어 있을 때만 휴지통으로 (도련 11-06 · 목록 파일이 든 폴더째 휴지통에 들어가던 것) */
+                    let empty = 0;
+                    for (let round = 0; round < 6 && empty < 2; round++) {
+                        if (round) await new Promise(r => setTimeout(r, 4000));
+                        const kids = await driveList(`'${id}' in parents and trashed=false`, 'id');
+                        if (!kids.length) { empty++; continue; }
+                        empty = 0;
+                        for (const k of kids) {
+                            const res = await gfetch(`${DRIVE_API}/${k.id}?addParents=${keepId}&removeParents=${id}&fields=id`, {
+                                method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: '{}'
+                            });
+                            if (!res.ok) throw await driveFail(res, 'move');
+                        }
                     }
+                    if (empty < 2) throw new Error('folder not empty yet');           // 아직 남은 게 있으면 휴지통에 넣지 않아요 (다음에 열 때 다시 합쳐요)
                     await driveTrash(id);
                     drive.monthIndex.clear();                               // 옮겨진 일기가 다시 보이도록
                 } catch (e) { console.warn('같은 이름 폴더를 합치지 못했어요:', e); }
@@ -671,11 +679,16 @@
         /* fileId가 있으면 그 파일을 덮어쓰고, 없으면 folderId 안에 새로 만듭니다 */
         async function driveUpsert(folderId, name, fileId, body) {
             if (fileId) {
-                const res = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime`, Object.assign({
+                const res = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime,trashed`, Object.assign({
                     method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body
                 }, keepaliveFor(body)));
-                if (res.ok) return mineWrote(await res.json());
-                throw await driveFail(res, 'update');                           // 404 'gone' : 그 사이 지워짐 → 캐시를 비우고 다시 시도
+                if (!res.ok) throw await driveFail(res, 'update');              // 404 'gone' : 그 사이 지워짐 → 캐시를 비우고 다시 시도
+                const j = await res.json();
+                if (!j.trashed) return mineWrote(j);
+                /* 🗑 휴지통에 들어간 파일 (폴더를 지웠거나 · 같은 이름 폴더 합치기로) : 번호로는 써지지만 드라이브 폴더에서는 안 보여요 (도련 11-06 마테 목록이 사라진 까닭)
+                   → 그 파일은 그대로 두고 지금 폴더에 새로 만들어요 (폴더도 휴지통이면 'gone' → 부른 쪽이 폴더를 다시 찾아요) */
+                console.warn('🗑 휴지통에 있는 파일에 쓰려고 했어요 → 지금 폴더에 새로 만들어요 :', name);
+                drive.alive.delete(folderId);
             }
             /* 새 파일을 만들기 전에 폴더가 살아 있는지 드라이브에 직접 확인 : 휴지통에 들어간 폴더에 만들면 일기가 안 보이게 돼요
                → 폴더가 없거나 휴지통이면 기억해 둔 폴더를 모두 잊고 'gone' (부른 쪽이 폴더를 다시 찾아서 다시 저장해요) */

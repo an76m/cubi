@@ -142,13 +142,31 @@
         }
 
         const ownIdxClean = (arr, k) => (Array.isArray(arr) ? arr : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { k: e.k || k, u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}));
+        /* 🗑 브라우저에 기억해 둔 파일 번호가 휴지통에 들어갔는지 (폴더를 지웠거나 · 같은 이름 폴더 합치기) : 번호로는 읽고 써져서 앱에선 멀쩡해 보이지만 드라이브 폴더에는 없어요 (도련 11-06)
+           → 이번에 처음 쓰는 기억 번호만 한 번 확인 · 휴지통이면 그 내용은 되살리기 바탕(base)으로만 쓰고, 지금 폴더에서 다시 찾아요 */
+        const OWN_LIVE = new Set();
+        async function ownLive(id) {
+            if (!id || OWN_LIVE.has(id)) return true;
+            const m = await driveMeta(id).catch(() => undefined);
+            if (m === undefined) return true;                                    // 확인을 못 하면 (인터넷) 예전처럼
+            if (m) { OWN_LIVE.add(id); return true; }
+            return false;
+        }
+        async function ownTrashText(id) { try { return await readFileText(id); } catch (e) { return ''; } }   // 휴지통 안 파일도 내용은 읽혀요
         async function ownIdxRead(k, pre) {                                      // pre : 이미 찾은 목록 파일 (ownOpenKind · null = 없음)
             ownReset();
             if (ownMode() === 'mem') return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() }));
             const d = ownK(k);
             const find = async () => { const dir = await ownKindDir(k, false); return dir ? findFile(dir, OWN_IDX) : null; };
             let f = pre;
-            if (f === undefined) { const m = d.f ? d.f.id : (ownFilesGet(k) || {}).i; f = m ? { id: m } : await find(); }   // ⚡ 아는 번호면 찾지 않고 바로 (도련 10-25)
+            if (f === undefined) {
+                const m = d.f ? d.f.id : (ownFilesGet(k) || {}).i;
+                if (m && (d.f || await ownLive(m))) f = { id: m };              // ⚡ 아는 번호면 찾지 않고 바로 (도련 10-25)
+                else {
+                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && Array.isArray(o0.list)) d.tBase = o0.list; } catch (e) {} console.warn('🗑 기억한 목록 파일이 휴지통에 있어요 → 지금 폴더에서 다시 찾아요 :', k); }
+                    f = await find();
+                }
+            }
             d.f = f;
             if (!f) return ownRescue(k, 'missing');
             let t;
@@ -174,14 +192,16 @@
             if (why === 'missing' && O.noR.has(nk)) return [];
             const dir = await ownKindDir(k, false); if (!dir) return none();
             let base = [], bkOk = false;
-            const bk = await findFile(dir, OWN_IDX_BK);
-            if (!bk && why === 'missing') return none();                         // 백업이 없으면 처음 쓰는 종류 (첫 종이를 받는 중일 수도 있어요)
+            const bk = await findFile(dir, OWN_IDX_BK), d0 = ownK(k);
             if (bk) {
                 try { base = ownIdxClean((await ownUnlock(await readFileText(bk.id))).list, k); bkOk = true; }
                 catch (e) { if (e && e.code === 'corrupt') return none(); throw e; }
             }
+            if (Array.isArray(d0.tBase)) { const tb = ownIdxClean(d0.tBase, k); tb.forEach(e => { if (!base.some(b => b.id === e.id)) base.push(e); }); if (tb.length) bkOk = true; d0.tBase = null; }   // 🗑 휴지통에 들어간 목록도 바탕으로 (받은 때 · 이름 · 바구니 미리보기)
+            /* 백업도 없으면 : 그 폴더에 종이 파일이 있을 때만 종이로 되살려요 (예전엔 '처음 쓰는 종류'로 보고 빈 목록 → 종이는 남았는데 안 보이던 것 · 도련 11-06) */
             const files = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).filter(x => /^[a-z0-9]+\.json$/i.test(x.name));   // 내 종이만 (_ 목록 · 스티커첩 · 백업 · 공유하기 내-/받은- 파일은 빼요)
-            if (!bkOk && !files.length) return none();
+            if (!bkOk && !files.length) return none();                          // 종이도 없으면 = 정말 처음 쓰는 종류
+            if (!bkOk && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) return none();   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
             const got = new Map(); let i = 0;
             await Promise.all(Array.from({ length: 4 }, async () => {
                 while (i < files.length) {
@@ -608,7 +628,14 @@
             const d = ownK(k);
             const find = async () => { const dir = await ownKindDir(k, false); return dir ? findFile(dir, OWN_ALB) : null; };
             let f = pre;
-            if (f === undefined) { const m = d.albF ? d.albF.id : (ownFilesGet(k) || {}).a; f = m ? { id: m } : await find(); }   // ⚡ 아는 번호면 바로
+            if (f === undefined) {
+                const m = d.albF ? d.albF.id : (ownFilesGet(k) || {}).a;
+                if (m && (d.albF || await ownLive(m))) f = { id: m };            // ⚡ 아는 번호면 바로
+                else {
+                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && o0.album && typeof o0.album === 'object') d.tAlb = o0.album; } catch (e) {} }
+                    f = await find();
+                }
+            }
             d.albF = f;
             if (!f) return ownAlbRescue(k, 'missing');
             let t; try { t = await readFileText(f.id); } catch (e) {
@@ -625,10 +652,12 @@
         async function ownAlbRescue(k, why) {
             const nk = O.kw + '|alb|' + k;
             if (why === 'missing' && O.noR.has(nk)) return null;
-            const dir = await ownKindDir(k, false), bk = dir ? await findFile(dir, OWN_ALB_BK) : null;
-            if (!bk) { if (why === 'missing') O.noR.add(nk); return null; }
-            let a; try { const o = await ownUnlock(await readFileText(bk.id)); a = o && o.album && typeof o.album === 'object' ? ownAlbPart(o.album, k) : null; }
-            catch (e) { if (e && e.code === 'corrupt') return null; throw e; }
+            const dir = await ownKindDir(k, false), bk = dir ? await findFile(dir, OWN_ALB_BK) : null, d0 = ownK(k), tA = d0.tAlb; d0.tAlb = null;
+            if (!bk && !tA) { if (why === 'missing') O.noR.add(nk); return null; }
+            let a = null;
+            if (bk) { try { const o = await ownUnlock(await readFileText(bk.id)); a = o && o.album && typeof o.album === 'object' ? ownAlbPart(o.album, k) : null; }
+                catch (e) { if (!(e && e.code === 'corrupt')) throw e; } }
+            if (!a && tA) a = ownAlbPart(tA, k);                                 // 🗑 휴지통에 들어간 스티커첩 (도련 11-06)
             if (!a) return null;
             await ownAlbWrite(k, ownAlbumClean(a, null));
             O.noR.delete(nk); ownRescueSay();
