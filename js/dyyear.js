@@ -117,8 +117,10 @@
         const dyyGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // 🎁 선물.json 다시 쓰기 (js/desk.js)
         window.dyyGiftOwn = () => dyyIds().filter(dyyIsGift);
         function dyyGift() {                                                   // 🎁 처음 선물 (상품 속성 '처음선물' · 도련 11-04)
-            const ids = DY_DESIGNS.filter(d => d.gift).map(d => dyyNewId(dyyThis(), d));
-            prefSet(DYY_KEY, DYY_LOCAL, ids); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[0]); ids.forEach(id => dyyInfoSet(id, 'gift'));
+            const G = DY_DESIGNS.filter(d => d.gift), ids = G.map(d => dyyNewId(dyyThis(), d)), fl = G.findIndex(d => d.float);
+            prefSet(DYY_KEY, DYY_LOCAL, ids); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[Math.max(0, fl)]); ids.forEach(id => dyyInfoSet(id, 'gift'));   // 펼쳐 둘 권 = 상품공방 '처음띄움' (없으면 첫 권)
+            if (window.deskVolInit) deskVolInit(G.map((d, i) => ({ id: ids[i], spot: d.desk, n: d.name })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
+            window.dkGiftFloat = fl >= 0 ? ids[fl] : (typeof DY_TYPES !== 'undefined' && DY_TYPES.some(p => p.gift && p.float)) ? 'pg' : '';   // 🎈 처음에 떠 있는 권 (js/desk.js deskLoginShow · 'pg' = 페이지 다이어리가 뒤에 떠요)
             dyyGiftTell();
             return ids;
         }

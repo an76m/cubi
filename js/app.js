@@ -150,7 +150,7 @@ let fontList = [
                 const P = x.P || {};
                 if (!String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !(window.MK && MK.LEAFS.some(l => l[0] === P.내지))) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 DY_COL[x.id] = { cover: String(P.표지색), page: P.속지색, border: P.테두리색, accent: P.강조색 };
-                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: P.내지, off: !!P.숨김, gift: !!P.처음선물 });
+                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: P.내지, off: !!P.숨김, gift: !!P.처음선물, desk: P.처음책상, float: !!P.처음띄움 });   // 🎁 처음 책상 자리 · 처음 떠 있는 권 = 상품공방 (도련 11-06 · js/desk.js deskVolInit)
             }));
         }
         dyColorsBuild();

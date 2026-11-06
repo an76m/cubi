@@ -256,6 +256,9 @@
                     : dmkClean({ id, t: 'binder', g: p.g, n: p.n, c: p.c, cols: p.cols, cv: 'p:' + p.id, cg: p.g, rf: [{ id: 'p:' + p.id, g: p.g + ' 내지', pg: p.pg, lv: p.lv.slice().reverse() }] });   // 🧩 dmkRmPick 과 같은 모양
             }).filter(Boolean);
             const m = Object.assign({}, dmkMap()); ds.forEach(d => { m[d.id] = d; }); prefSet(DMK_KEY, DMK_LOCAL, m);
+            if (window.deskVolInit) deskVolInit(ds.map((d, i) => ({ id: d.id, spot: gs[i].desk, n: d.g })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
+            const fl = ds.find((d, i) => gs[i].float);                          // 🎈 처음에 떠 있는 권 = 상품공방 '처음띄움'
+            if (fl && window.dkGiftFloat === 'pg') { window.dkGiftFloat = undefined; dySet(fl.id); if (document.documentElement.classList.contains('desk-on') && window.deskOpenDiary) { if (window.dkDeskBooks) dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary()); } }
             for (const d of ds.filter(d => d.t === 'note')) {                  // 📓 노트는 드라이브 노트표지 폴더에도 (dmkSave 처럼)
                 try { const item = Object.assign({}, d); delete item.u; d.u = await collAdd(dmkColl('note'), item, '', item); dmkPut(d); } catch (e) { console.warn('🎁 처음 선물 노트', e); }
             }

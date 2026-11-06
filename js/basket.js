@@ -1012,11 +1012,12 @@
     async function bkStarterTools() {
         const add = [], first = t => Object.keys(BK_KINDS).find(k => t === 'bd' || REL_KINDS.has(k));
         const kindOf = (t, x) => { const k = String(x.P.선물서랍 || ''); return BK_KINDS[k] && (t === 'bd' || REL_KINDS.has(k)) ? k : first(t); };
-        AB_BDP.filter(x => x.P.처음선물).forEach(x => { const k = kindOf('bd', x); if (k) add.push(['bd', abNewBd(k, x.id)]); });
-        AB_RL.filter(x => x.P.처음선물).forEach(x => { const k = kindOf('rl', x); if (k) add.push(['rl', abNewRl(k, x.id)]); });
+        AB_BDP.filter(x => x.P.처음선물).forEach(x => { const k = kindOf('bd', x); if (k) add.push(['bd', abNewBd(k, x.id), x.P]); });
+        AB_RL.filter(x => x.P.처음선물).forEach(x => { const k = kindOf('rl', x); if (k) add.push(['rl', abNewRl(k, x.id), x.P]); });
         if (!add.length || !window.ownAlbum) return [];
         const ks = [...new Set(add.map(([, o]) => o.k))];
         await ownAlbum(a => { add.forEach(([t, o]) => (t === 'bd' ? a.bd : a.rl).push(o)); }, ks);
+        if (window.deskVolInit) deskVolInit(add.map(([, o, P]) => ({ id: o.id, spot: P.처음책상, n: String(P.이름 || ''), al: 1, k: o.k })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
         return ks;
     }
     window.bkStarterSheets = bkStarterSheets; window.bkStarterTools = bkStarterTools;
