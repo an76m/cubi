@@ -124,12 +124,17 @@
                     const b = giftBody(), dir = await getFolder(dirPath(DIRS.settings), true), cur = await findFile(dir, GIFT_NAME);
                     if (!b.desk.length && !b.gd.length && !b.ds.length && !b.bg.length && !b.dy.length) { if (cur) await driveTrash(cur.id); }
                     else await driveUpsert(dir, GIFT_NAME, cur && cur.id, await ownLock(b));   // 🔐
+                    giftReadOnce.forget();
                     giftLate = false;
                 } catch (e) { console.warn('기본세트', e); giftLate = true; }
             });
             return giftChain;
         }
-        async function giftRead() {
+        /* 📖 되살리기는 여러 곳(책상 · 벽지 · 배경지 · 다이어리)이 한꺼번에 물어요 → 30초 안에는 한 번만 읽어요 (도련 11-06 · 쓰면 잊어요) */
+        const dkMemo = (fn, ms) => { let p = null, at = 0; const get = () => { if (!p || Date.now() - at > ms) { at = Date.now(); p = fn(); p.catch(() => { p = null; }); } return p; }; get.forget = () => { p = null; }; return get; };
+        const giftReadOnce = dkMemo(() => giftRead0(), 30000);
+        const giftRead = () => giftReadOnce();
+        async function giftRead0() {
             const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, GIFT_NAME);
             if (!f) return null;
             const o = await ownUnlock(await readFileText(f.id));                  // 🔐 못 열면 에러 → 선물을 다시 주지 않아요
@@ -140,23 +145,31 @@
              → 지금 가진 것만 살아나요 (버린 것은 파일이 없어서 안 살아나요 · 📦 zip 백업과는 달라요)
              처음 온 사람(선물.json · 백업 둘 다 없음)은 폴더를 뒤지지 않고 바로 선물 */
         const DK_BK_NAME = '_백업.json', DK_BK_LS = 'malang_desk_bk';   // 🛟 설정 폴더 (도련 11-06 · 소품 · 문구 · 다이어리 · 배경지 목록 + 자리 · 책상 설정)
-        async function dkBackupRead() {
+        async function dkBackupRead0() {                                           // 못 닿으면 에러 · 없거나 못 여는 백업은 null
             const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, DK_BK_NAME);
             if (!f) return null;
-            try { const o = await ownUnlock(await readFileText(f.id)); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
+            const t = await readFileText(f.id);
+            try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
+        const dkBackupOnce = dkMemo(() => dkBackupRead0(), 30000);
+        const dkBackupRead = () => dkBackupOnce();
+        const DK_BK_KEYS = [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
         let dkBkBusy = false;
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
             if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit) return;
             const day = new Date().toISOString().slice(0, 10), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
             let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
             if (m[who] === day) return;
-            const body = {}; [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'].forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });   // 🛟 목록 · 자리 · 설정을 한 백업에 (되살릴 때 맞춰 보려고)
+            const body = {}; DK_BK_KEYS.forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });   // 🛟 목록 · 자리 · 설정을 한 백업에 (되살릴 때 맞춰 보려고)
             if (!Array.isArray(body[DK_OWN_KEY])) return;
             dkBkBusy = true;
             try {
+                /* 🛡 아직 없는 목록(파일이 없어져서 되살리는 중 · 아직 못 읽음)은 예전 백업 값을 그대로 둬요 (도련 11-06 · 빈 채로 덮으면 되살릴 원본까지 사라져요) */
+                const old = DK_BK_KEYS.some(k => !(k in body)) ? await dkBackupRead0() : null;   // 못 닿으면 에러 → 이번엔 안 써요
+                if (old) DK_BK_KEYS.forEach(k => { if (!(k in body) && old[k] != null) body[k] = old[k]; });
                 const dir = await getFolder(dirPath(DIRS.settings), true), cur = await findFile(dir, DK_BK_NAME);
                 await driveUpsert(dir, DK_BK_NAME, cur && cur.id, await ownLock(body));
+                dkBackupOnce.forget();
                 m[who] = day; try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
             } catch (e) { console.warn('배치 백업', e); }
             finally { dkBkBusy = false; }
