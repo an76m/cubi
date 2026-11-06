@@ -54,7 +54,7 @@
                     <div class="cr8-panel cr8-mine"><h3><span id="crMineT"></span><small id="crMineN"></small></h3><div class="cr8-grid" id="crGrid"></div></div>
                 </div>`;
             document.body.appendChild(el);
-            cq('crGo').onclick = () => { if (desk() && window.deskMoveOpen) deskMoveOpen(); else closeCraft(); };
+            cq('crGo').onclick = () => closeCraft();   // 🖥 책상 = '닫기' (이동 메뉴 대신 그대로 책상으로 · 도련 11-06)
             cq('crSheetX').onclick = () => { C.sheet = false; C.sel = null; paint(); };   // 📱 아래 칸 닫기 · 💻 고른 것 풀고 만드는 방법으로
             return el;
         }
@@ -107,7 +107,7 @@
                 : `<p class="cr8-hint">🚧 ${K.n} 만들기는 곧 생겨요</p>`) + (K.to && ws.length ? `<p class="cr8-hint">만들면 : ${K.to} · 내 드라이브에만 저장돼요</p>` : '');
             w.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { const f = CRAFT_WAYS[b.dataset.w][3]; C.sheet = false; paintWork(); Promise.resolve().then(() => f(K.own || K.k)).catch(er => console.warn('🎨', er)); });
         }
-        function paint() { paintKinds(); paintMine(); paintWork(); cq('crGo').textContent = desk() ? '이동' : '✕ 나가기'; cq('craftRoom').classList.toggle('narrow', narrow()); }
+        function paint() { paintKinds(); paintMine(); paintWork(); cq('crGo').textContent = desk() ? '닫기' : '✕ 나가기'; cq('craftRoom').classList.toggle('narrow', narrow()); }
         async function diaryReady() {                                            // 📔 다이어리 펴기 (💻 📲 책상 = js/deskgd.js dkwReady · 📱 표지 열기)
             if (desk() && window.dkwReady) return dkwReady();
             if (typeof isCoverOpen !== 'undefined' && !isCoverOpen && window.openCoverAnimated) { openCoverAnimated(); for (let i = 0; i < 40 && !isCoverOpen; i++) await new Promise(r => setTimeout(r, 80)); }
@@ -133,7 +133,7 @@
             C.on = false; el.classList.remove('show'); document.body.classList.remove('cal-on', 'craft-on');
         }
         addEventListener('resize', () => { if (C.on) cq('craftRoom').classList.toggle('narrow', narrow()); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && C.on && !document.querySelector('.modal[style*="flex"]')) { if (desk() && window.deskGoRoom) deskGoRoom(); else closeCraft(); } });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && C.on && !document.querySelector('.modal[style*="flex"]')) closeCraft(); });   // Esc = 닫기와 같아요 (도련 11-06)
         window.openCraft = openCraft; window.closeCraft = closeCraft; window.craftOn = () => C.on;
         window.CRAFT_KINDS = CRAFT_KINDS; window.CRAFT_WAYS = CRAFT_WAYS;
     })();

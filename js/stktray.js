@@ -2,7 +2,7 @@
    🍽 오늘 쓸 스티커 (도련 11-01 · 💻 📲 책상만 · 📱 폰은 없어요)
    - 다꾸하기 전에 쓸 스티커를 골라 은빛 쟁반에 담아 두고, 다이어리를 펴서 쟁반에서 바로 꺼내 써요
    - 🔽 오른쪽 위 메뉴 '오늘 쓸 스티커' → 고르는 화면
-       왼쪽 위 = 스티커 종류 · 그 아래 = 가진 그 종류 스티커 (🧺 바구니에 있는 것) → 오른쪽 쟁반으로 끌어 놓거나 톡 · 쟁반의 것을 톡 = 다시 빼기
+       왼쪽 위 = 스티커 종류 · 그 아래 = 가진 그 종류 스티커 (🧺 바구니에 있는 것) → 오른쪽 쟁반으로 끌어 놓아 담기 (톡으로는 안 담겨요 · 도련 11-06) · 쟁반의 것을 톡 = 다시 빼기
        [🍽 스티커 담기] = 담기 끝 → 책상 위쪽 가운데에 '🍽 오늘 쓸 스티커 n' 버튼 (톡 = 쟁반 나왔다 · 들어갔다)
    - 쟁반의 스티커를 톡 = 바구니에서 누를 때와 똑같이 그 종이가 펼쳐져요 (js/basket.js bkOpenSheet) · 다 쓴 종이는 쟁반에서 저절로 빠져요
    - 담은 목록은 이 창이 열려 있는 동안만 (메모리 · 저장하지 않아요) : 앱을 닫으면 다꾸가 끝난 걸로 알고 비워요 · 스티커는 원래 바구니에 그대로
@@ -47,14 +47,14 @@
         q('stpGrid').innerHTML = L.length ? L.map(e => `<div class="stp-c" data-id="${htmlEsc(e.id)}">${A.card(e)}</div>`).join('')
             : `<p class="stp-empty">${T.list.some(e => A.kindOf(e) === T.kind) ? '이 종류는 다 쟁반에 담았어요 🍽' : '아직 이 종류 스티커가 없어요.<br>🏪 기본상품 샵에서 받아 오거나 ✂️ 직접 만들어요.'}</p>`;
         q('stpTin').innerHTML = T.draft.length ? T.draft.map(id => `<div class="stp-c in" data-id="${htmlEsc(id)}">${A.card(M.get(id))}</div>`).join('')
-            : '<p class="stp-hint">왼쪽 스티커를 이 쟁반으로<br>끌어 놓거나 톡 눌러 담아요</p>';
+            : '<p class="stp-hint">왼쪽 스티커를 이 쟁반으로<br>끌어 놓아 담아요</p>';
     }
     function stpKind(k) { T.kind = k; stpPaint(); }
     function stpMove(id, toTray) {
         if (toTray) { if (!T.draft.includes(id)) T.draft.push(id); } else T.draft = T.draft.filter(x => x !== id);
         stpPaint();
     }
-    /* 끌어 놓기 (조금만 움직이면 톡 = 담기 · 빼기) */
+    /* 끌어 놓기 (조금만 움직이면 톡 = 쟁반의 것 빼기 · 담기는 끌어 놓기로만 · 도련 11-06) */
     function stpDown(ev) {
         const c = ev.target.closest('.stp-c'); if (!c || ev.button > 0) return;
         ev.preventDefault();
@@ -69,7 +69,7 @@
             if (e.pointerId !== ev.pointerId) return;
             removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
             q('stpTray').classList.remove('hot'); c.classList.remove('stp-out');
-            if (!gh) { if (e.type !== 'pointercancel') stpMove(id, !inTray); return; }
+            if (!gh) { if (e.type !== 'pointercancel' && inTray) stpMove(id, false); return; }   // 톡 = 쟁반의 것만 빼기 · 담기는 끌어 놓기로만 (도련 11-06)
             gh.remove();
             const over = stpOverTray(e);
             if (!inTray && over) stpMove(id, true); else if (inTray && !over) stpMove(id, false);
