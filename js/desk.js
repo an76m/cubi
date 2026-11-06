@@ -18,10 +18,10 @@
    - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 중 nost 가 아닌 것 · 책상 위) · 🏪 기본상품 샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
        보관함 ↔ 책상 · 🗑 버리기 = 🛠 책상 꾸미기에서 (▤ 하단 메뉴 화면이면 📦 소품 보관함 창) · 버린 것은 기본상품 샵에서 다시 받아요
    - 저장 (도련 10-27)
-       책상배치 / 🔐 _소품목록.json 'diary_desk_own' [{u: 하나하나 id, id: 소품, c: 종류 폴더 파일 id, g · p · cs · tag}] (가진 것 전부) · 📍 배치.json 'diary_desk_pos' {u: {x, y, lz, fl, lp, lb, on}} (책상 위에 놓인 것만) · ⚙ 설정.json 'diary_desk_fn' {기능: u} (js/drive.js DESK_FILE_KEYS · 게스트는 이 기기 · 도련 11-06)
+       설정 / 🔐 _소품목록.json 'diary_desk_own' [{u: 하나하나 id, id: 소품, c: 종류 폴더 파일 id, g · p · cs · tag}] (가진 것 전부) · 📍 배치.json 'diary_desk_pos' {u: {x, y, lz, fl, lp, lb, on}} (책상 위에 놓인 것만) · ⚙ 책상설정.json 'diary_desk_fn' {기능: u} (js/drive.js DESK_FILE_KEYS · 게스트는 이 기기 · 도련 11-06)
        종류 폴더 (서랍장 · 시계 … js/drive.js DESK_DIRS · 소품의 kind) / 받은-<c>.json = 가진 소품 하나에 파일 하나 (js/coll.js 모음 · 뒤에서 차례로 올려요)
          기본 세트 선물 · 기본상품 샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
-       🎁 기본세트 (도련 10-27 · 서비스 = 예외) : 처음 한 번 받는 책상 소품 + 문구 (+ 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 처음 다이어리 · 11-05) 는 종류 폴더가 아니라 기본세트 / 선물.json 한 파일 (g: 1 · 첫 접속 요청 3~4번)
+       🎁 기본세트 (도련 10-27 · 서비스 = 예외) : 처음 한 번 받는 책상 소품 + 문구 (+ 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 처음 다이어리 · 11-05) 는 종류 폴더가 아니라 설정 / _선물.json 한 파일 (g: 1 · 첫 접속 요청 3~4번)
          버리면 선물.json 에서 빠져요 (다 비면 파일도 지워요) · 그 뒤에 받는 것부터 종류 폴더 · 배치.json 이 없어지면 🛟 되살리기 (giftEnsure)
        기본 세트의 u = 소품 id (그래서 처음 기능 연결이 그대로 맞아요) · 선물이 아닌데 파일이 아직 없는 것(c 없음)은 드라이브를 읽은 뒤 만들어요
    ※ 소품 종류 = DESK_ITEMS (기본상품 샵 카탈로그) */
@@ -107,8 +107,8 @@
             finally { dkAdding.delete(o.u); }
         }
         function dkFileDel(o) { if (o.g) { giftWrite(); return; } const C = dkColl(o.id); if (C && o.c) collRemove(C, o.c).catch(e => console.warn('소품 파일', e)); }
-        /* 🎁 기본세트 / 선물.json { desk: [{u, id}], gd: [디자인 id] } = 지금 가진 선물 (목록에서 g: 1 인 것) */
-        const GIFT_NAME = '선물.json';
+        /* 🎁 설정 / _선물.json { desk: [{u, id}], gd: [디자인 id] } = 지금 가진 선물 (목록에서 g: 1 인 것) */
+        const GIFT_NAME = '_선물.json';   // 🎁 설정 폴더 (도련 11-06 · 예전 기본세트 폴더)
         const giftOn = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof getFolder === 'function';
         let giftChain = Promise.resolve(), giftLate = false;
         function giftBody() {
@@ -121,7 +121,7 @@
             if (DK.fresh || drive.deskLocked || (window.gdOwnList && gdOwnList() === null)) { giftLate = true; return giftChain; }   // 아직 책상 목록을 정하는 중 = 선물을 덮어쓰지 않아요 (giftEnsure 가 뒤에 써요)
             giftChain = giftChain.then(async () => {
                 try {
-                    const b = giftBody(), dir = await getFolder(dirPath(DIRS.starter), true), cur = await findFile(dir, GIFT_NAME);
+                    const b = giftBody(), dir = await getFolder(dirPath(DIRS.settings), true), cur = await findFile(dir, GIFT_NAME);
                     if (!b.desk.length && !b.gd.length && !b.ds.length && !b.bg.length && !b.dy.length) { if (cur) await driveTrash(cur.id); }
                     else await driveUpsert(dir, GIFT_NAME, cur && cur.id, await ownLock(b));   // 🔐
                     giftLate = false;
@@ -130,18 +130,18 @@
             return giftChain;
         }
         async function giftRead() {
-            const dir = await getFolder(dirPath(DIRS.starter), false), f = dir && await findFile(dir, GIFT_NAME);
+            const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, GIFT_NAME);
             if (!f) return null;
             const o = await ownUnlock(await readFileText(f.id));                  // 🔐 못 열면 에러 → 선물을 다시 주지 않아요
             return o && typeof o === 'object' ? o : null;
         }
         /* 🛟 되살리기 (도련 10-27 · 스티커 ownRescue 와 같게) : 배치.json 이 없어지거나 깨지면
-             가진 것 = 종류 폴더의 내 파일(🔐 열리는 것만 · 같은 u 는 하나) + 선물.json · 자리 · 기능 연결 = 배치_백업.json (하루 한 번 드라이브 안에 복사)
+             가진 것 = 종류 폴더의 내 파일(🔐 열리는 것만 · 같은 u 는 하나) + 선물.json · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
              → 지금 가진 것만 살아나요 (버린 것은 파일이 없어서 안 살아나요 · 📦 zip 백업과는 달라요)
              처음 온 사람(선물.json · 백업 둘 다 없음)은 폴더를 뒤지지 않고 바로 선물 */
-        const DK_BK_NAME = '배치_백업.json', DK_BK_LS = 'malang_desk_bk';
+        const DK_BK_NAME = '_백업.json', DK_BK_LS = 'malang_desk_bk';   // 🛟 설정 폴더 (도련 11-06 · 소품 · 문구 · 다이어리 · 배경지 목록 + 자리 · 책상 설정)
         async function dkBackupRead() {
-            const dir = await getFolder(dirPath(DIRS.deskLayout), false), f = dir && await findFile(dir, DK_BK_NAME);
+            const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, DK_BK_NAME);
             if (!f) return null;
             try { const o = await ownUnlock(await readFileText(f.id)); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
@@ -151,11 +151,11 @@
             const day = new Date().toISOString().slice(0, 10), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
             let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
             if (m[who] === day) return;
-            const body = {}; [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at'].forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });   // 🛟 목록 · 자리 · 설정을 한 백업에 (되살릴 때 맞춰 보려고)
+            const body = {}; [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'].forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });   // 🛟 목록 · 자리 · 설정을 한 백업에 (되살릴 때 맞춰 보려고)
             if (!Array.isArray(body[DK_OWN_KEY])) return;
             dkBkBusy = true;
             try {
-                const dir = await getFolder(dirPath(DIRS.deskLayout), true), cur = await findFile(dir, DK_BK_NAME);
+                const dir = await getFolder(dirPath(DIRS.settings), true), cur = await findFile(dir, DK_BK_NAME);
                 await driveUpsert(dir, DK_BK_NAME, cur && cur.id, await ownLock(body));
                 m[who] = day; try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
             } catch (e) { console.warn('배치 백업', e); }
@@ -210,7 +210,7 @@
                     catch (e) { console.warn('기본세트 · 되살리기', e); return; }   // 못 읽으면 다음에 (선물을 두 번 주지 않게)
                     if (drive.deskLocked) {                                       // 🔐 배치.json 이 깨졌어요 : 내 선물.json · 백업이 열리면(내 열쇠가 맞아요) 되살려서 새로 쓰고 · 아니면 그대로 둬요 (남의 파일일 수 있어요)
                         DK.lockTried = true;
-                        if (!had && !bk) { if (window.showMsg) showMsg('🔐 책상 정보(책상배치 / 배치.json)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>'); return; }
+                        if (!had && !bk) { if (window.showMsg) showMsg('🔐 책상 정보(설정 폴더의 책상 · 목록 파일)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>'); return; }
                         drive.deskLocked = false; DK.fresh = true;
                     }
                     if (had || bk) { try { files = await dkScan(); } catch (e) { console.warn('되살리기', e); return; } }

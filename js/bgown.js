@@ -1,8 +1,8 @@
 /* 말랑달콤 다이어리 - js/bgown.js
    🌈 배경지 = 상품 (도련 10-28 · 다이어리처럼) : 🏪 기본상품 샵 → 🌈 배경지 (🎨 단색 · ☁️ 패턴) 에서 받아야 내 것 · 같은 것도 또 받아요 · 🗑 버리면 휴지통 30일
    - 🌈 배경지 창의 '기본' 칸 = 내 배경지 보관함 (받은 것만) · 처음 온 다꾸러는 상품공방에서 '처음선물'에 체크한 배경지를 들고 시작해요 (도련 11-06 · 앱이 정하지 않아요)
-   - 내 배경지 'diary_bg_own' [{ u: 하나하나 id, p: 배경지 id (js/patterns.js BG_PATTERNS = 서버 상품), c: 파일 id }] (설정.json · 게스트는 이 기기)
-       · 🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 배경지 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 내가 만든 배경지 = 내-) · 🎁 처음 선물(g: 1)은 기본세트 / 선물.json (첫 접속 요청 줄이기)
+   - 내 배경지 'diary_bg_own' [{ u: 하나하나 id, p: 배경지 id (js/patterns.js BG_PATTERNS = 서버 상품), c: 파일 id }] (🔐 설정 / _배경지목록.json · 게스트는 이 기기 · 도련 11-06)
+       · 🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 배경지 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 내가 만든 배경지 = 내-) · 🎁 처음 선물(g: 1)은 설정 / _선물.json (첫 접속 요청 줄이기)
        · 설정.json 에 목록이 없어지면 = 배경지 폴더 파일로 되살려요 · 🗑 버리면 휴지통 30일 → 파일 삭제
    - 쓰던 배경지를 버려서 같은 배경지가 하나도 안 남으면 배경을 빼요
    ※ js/skins.js · js/bin.js 다음에 읽어요 (patItems · patCatsPaint · renderPatternList 가 여기 함수를 불러요 · js/basket.js 샵) */
@@ -27,12 +27,13 @@
         function bgoGift() { prefSet(BGO_KEY, BGO_LOCAL, bgoFirst().map(x => Object.assign(x, { g: 1 }))); bgoGiftTell(); }
         async function bgoRescue() {                                           // 🛟 로그인했는데 목록이 없으면 = 배경지 폴더 + 선물.json (있으면 되살리기 · 처음 온 다꾸러만 선물)
             const F = await ofScan(DIRS.pattern);                                // 못 읽으면 에러 → 다음에 다시
-            const had = window.deskGiftRead ? await deskGiftRead() : null;
+            const had = window.deskGiftRead ? await deskGiftRead() : null, bk = window.deskBackupRead ? await deskBackupRead().catch(() => null) : null;
             if (prefGet(BGO_KEY, BGO_LOCAL) !== null) return;
             const gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'bg').map(e => e.id));
-            const L = F.filter(f => !gone.has(f.u)).map(f => ({ u: f.u, p: f.id, c: f.c }))
-                .concat((had && Array.isArray(had.bg) ? had.bg : []).filter(g => g && g.u && typeof g.p === 'string' && !gone.has(g.u) && !F.some(f => f.u === g.u)).map(g => ({ u: g.u, p: g.p, g: 1 })));
-            if (L.length || (had && Array.isArray(had.bg))) prefSet(BGO_KEY, BGO_LOCAL, L); else bgoGift();   // 선물.json 에 배경지 칸이 있는데 비었으면 = 다 버린 사람
+            const bkL = bk && Array.isArray(bk.diary_bg_own) ? bk.diary_bg_own.filter(x => x && x.u && typeof x.p === 'string' && !gone.has(x.u)) : null;   // 🛟 설정 / _백업.json (도련 11-06 · _배경지목록.json 이 없어졌어요)
+            const L = (bkL || []).concat(F.filter(f => !gone.has(f.u) && !(bkL || []).some(x => x.u === f.u)).map(f => ({ u: f.u, p: f.id, c: f.c })))
+                .concat((had && Array.isArray(had.bg) ? had.bg : []).filter(g => g && g.u && typeof g.p === 'string' && !gone.has(g.u) && !F.some(f => f.u === g.u) && !(bkL || []).some(x => x.u === g.u)).map(g => ({ u: g.u, p: g.p, g: 1 })));
+            if (L.length || (had && Array.isArray(had.bg)) || bkL) prefSet(BGO_KEY, BGO_LOCAL, L); else bgoGift();   // 선물.json 에 배경지 칸이 있는데 비었으면 = 다 버린 사람
         }
         function bgoSync() {
             if (prefGet(BGO_KEY, BGO_LOCAL) === null) {

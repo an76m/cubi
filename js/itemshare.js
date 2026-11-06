@@ -5,7 +5,7 @@
        저장해도 내 것은 그대로 · 💰 유료(from: 'paid')는 저장 안 돼요 (나중에 스토어 · 도련 10-27)
    - 📥 불러오기 : 공용 포장을 열고 → 이 계정에서 이미 불러온 파일 번호면 거절 (같은 파일로 두 개 만들기 막기)
        → 스티커 = js/own.js ownTake (새 번호 · 🔐 내 열쇠) · 책상 소품 = js/desk.js deskReceive (칠한 그림째 · 📦 보관함) · 문구 = gdGive (이미 있으면 건너뛰어요)
-       불러온 파일 번호는 책상배치 / 배치.json (🔐) 'diary_share_got' 에 기억해요
+       불러온 파일 번호는 설정 / 책상설정.json (🔐) 'diary_share_got' 에 기억해요
    - 파일 모양 : { malang_share: 1, kind, by, d: 공용 포장 } · 예전 공유 파일(malang_sticker · 포장 없음)은 안 받아요 (개발 중 · 옮기는 코드 없음) */
 
         const ISH_WHO = 'malang-share|v1';                                      // 🔐 공용 포장 열쇠 이름 (모든 앱이 같아요 · 바꾸면 예전 공유 파일을 못 열어요)

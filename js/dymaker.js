@@ -8,7 +8,7 @@
          · 끼울 때의 표지 · 내지 모양을 그대로 담아요 (나중에 표지 · 내지 디자인을 고쳐도 이미 조립한 바인더는 그대로 · 실물처럼)
          · 꾸민 페이지가 있는 내지는 뺄 수 없고, 꾸민 페이지가 있으면 표지는 같은 크기로만 바꿔요 · 뒤에 내지를 더 끼우는 건 언제나
    - 만든 노트 · 조립한 바인더 = 다이어리 종류 하나 (js/skins.js DY_TYPES 와 같은 모양 + my · pg · lv) → 고르면 그 권이 열려요
-   - 바로 꺼내 쓰려고 설정.json 'diary_mine' 에 모두 (게스트는 이 기기 'malang_diary_mine') · 조립한 바인더는 여기에만
+   - 바로 꺼내 쓰려고 🔐 설정 / _다이어리목록.json 'diary_mine' 에 모두 (도련 11-06) (게스트는 이 기기 'malang_diary_mine') · 조립한 바인더는 여기에만
    - 꾸민 내용 : 페이지노트 · 페이지바인더 / <권 id>-1페이지.json … (js/drive.js · 폴더 한 줄 10-26)
    - 내지 : 구간에 없는 페이지는 줄노트 · 그 페이지에서 속지를 바꾸면 그 페이지만 바뀌어요 (js/elements.js · js/leafpad.js dkLeafOf)
    - 지우기는 목록에서만 (꾸민 내용은 드라이브에 그대로)
@@ -262,6 +262,15 @@
             return ds.length;
         }
         window.dmkStarter = dmkStarter;
+        /* 🛟 _다이어리목록.json 이 없어져서 내가 만든 노트 · 바인더 목록이 없으면 = 설정 / _백업.json 에서 (도련 11-06 · 노트 · 표지 · 내지는 모음 폴더에서도 다시 맞춰요 dmkSync · 조립한 바인더는 백업에만) */
+        let dmkResc = false;
+        async function dmkRescue() {
+            if (dmkResc || prefGet(DMK_KEY, DMK_LOCAL) !== null || typeof drive === 'undefined' || !drive.ready || drive.guest || drive.newbie || !window.deskBackupRead) return;
+            dmkResc = true;
+            try { const bk = await deskBackupRead(), m = bk && bk.diary_mine; if (m && typeof m === 'object' && !Array.isArray(m) && prefGet(DMK_KEY, DMK_LOCAL) === null) prefSet(DMK_KEY, DMK_LOCAL, m); }
+            catch (e) { console.warn('📓 되살리기', e); } finally { dmkResc = false; }
+        }
+        window.dmkRescue = dmkRescue;
 
         /* ---------- 🧩 바인더 조립 : 표지 하나 + 같은 크기 내지를 차례로 끼워요 ---------- */
         let dmkRm = null;                                                      // { id(고칠 때), g, cv, c, cg, n, rf:[{ id, g, pg, lv }] }

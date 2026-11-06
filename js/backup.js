@@ -17,7 +17,8 @@
         function bkSkip(path) {
             const parts = path.split('/'), dir = parts[1] || '', file = parts[parts.length - 1] || '';
             if (dir === DIRS.trash || dir === DIRS.stkList) return true;
-            if (dir === DIRS.deskLayout || dir === DIRS.starter || Object.values(DESK_DIRS).includes(dir) || Object.values(GD_DIRS).includes(dir) || Object.values(SKIN_DIRS).includes(dir)) return true;   // 🪑 ✏️ 책상 소품 · 문구 · 배치 · 기본세트도 스티커처럼 백업에서 빼요 (불러오기로 버린 것이 되살아나지 않게 · 도련 10-27)
+            if (dir === DIRS.settings && file !== '설정.json') return true;   // ⚙ 설정 폴더 = 설정.json 만 (🔐 책상 · 가진 것 목록 · 선물 · 백업은 스티커처럼 계정 열쇠라 빼요 · 도련 11-06)
+            if (Object.values(DESK_DIRS).includes(dir) || Object.values(GD_DIRS).includes(dir) || Object.values(SKIN_DIRS).includes(dir)) return true;   // 🪑 ✏️ 책상 소품 · 문구 · 배치 · 기본세트도 스티커처럼 백업에서 빼요 (불러오기로 버린 것이 되살아나지 않게 · 도련 10-27)
             if (typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir)) return !/^(내|받은)-/.test(file);
             if (dir === DIRS.pattern && /^받은-/.test(file)) return true;      // 🌈 샵에서 받은 배경지 파일 = 🔐 계정 열쇠 (책상 소품처럼 빼요 · 내가 만든 배경지 내- 는 넣어요 · 도련 11-05)
             return false;
@@ -104,7 +105,7 @@
            - 검색-*.json (해마다 · 권마다 검색 목록) : 날짜(장)마다 합치기
            - 모음 목록(내-목록N.json · 받은-목록N.json) : 넣지 않아요 → 원본은 모두 들어가고, 모음을 처음 열 때 원본을 보고 목록을 다시 맞춰요 (js/coll.js collCheck)
              (목록 안에는 그쪽 저장소의 파일 번호가 들어 있어서 다른 곳에 그대로 넣으면 맞지 않아요) */
-        const bkKind = p => /\/설정\/설정\.json$|\/카페기록\/카페\.json$|\/책상배치\/배치\.json$/.test(p) ? 'keys' : /\/검색(-[^/]+)?\.json$/.test(p) ? 'search' : /\/(내|받은)-목록\d+\.json$/.test(p) ? 'skip' : '';
+        const bkKind = p => /\/설정\/설정\.json$|\/카페기록\/카페\.json$/.test(p) ? 'keys' : /\/검색(-[^/]+)?\.json$/.test(p) ? 'search' : /\/(내|받은)-목록\d+\.json$/.test(p) ? 'skip' : '';
         function bkMerge(kind, curText, body) {
             let a, b; try { a = JSON.parse(curText); b = JSON.parse(body); } catch (e) { return body; }
             if (!a || typeof a !== 'object' || !b || typeof b !== 'object') return body;

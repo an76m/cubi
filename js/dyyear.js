@@ -8,7 +8,7 @@
        · 저장 : diary_2026b-분홍-2_2026_10_28 → 말랑달콤 / 날짜형바인더 (노트 = 날짜형노트) / 2026 분홍 2 / 2026-10-28.json · 🔍 검색 = 그 폴더 / 검색.json (js/drive.js dyBookDir)
        · ⚠ 디자인 id = 드라이브 폴더 이름이라 짧은 한글로 (분홍 · 딸기) · 한 번 올린 id 는 바꾸지 않아요
        · 📅 달력 · 🗂 꾸민 페이지만 보기 · 🔍 검색은 펼친 권 것만
-   - 받은 권 'diary_years' ['2026b-분홍-1', '2026n-녹색노트-2'] · 펼친 권 'diary_year' (설정.json · 게스트는 이 기기)
+   - 받은 권 'diary_years' ['2026b-분홍-1', '2026n-녹색노트-2'] (🔐 설정 / _다이어리목록.json · 도련 11-06) · 펼친 권 'diary_year' (설정.json · 게스트는 이 기기)
    - 처음 온 다꾸러는 그 해 '처음선물' 디자인을 한 권씩 받아요 (상품 속성 · 한 번만 · 다 버려도 다시 주지 않아요 → 샵에서 받아요)
    - 해가 바뀌면 새 다이어리는 🏪 기본상품 샵 → 📔 다이어리 → 날짜형에서 받아요 (공짜여도 받으러 가는 습관 · 도련)
        · 받은 해의 12월 31일 다음으로 넘기거나 · 새해에 다이어리를 펼치면 "○○ 기본 다이어리를 받아 주세요" · 더 안 넘어가요
@@ -87,8 +87,8 @@
         }
 
         /* 🗂 받은 권 = 권 폴더 + 다이어리.json (도련 11-05 · 상품 하나 = 파일 하나 · 안 쓴 권도) : 말랑달콤 / 날짜형바인더 · 날짜형노트 / 2026 분홍 1 / 다이어리.json 🔐 { id, from, at }
-             만들면 'diary_book_info' 그 권에 f: 1 (다시 확인하지 않아요) · 설정.json 에 받은 권 목록이 없어지면 = 권 폴더 + 선물.json 으로 되살려요 · 🗑 영구 삭제 = 폴더째
-             🎁 처음 선물 권(info from 'gift')은 다이어리.json 대신 기본세트 / 선물.json 의 dy (첫 접속 요청 줄이기 · 폴더는 꾸미면 생겨요 · js/desk.js giftBody) */
+             만들면 'diary_book_info' 그 권에 f: 1 (다시 확인하지 않아요) · _다이어리목록.json 이 없어지면 = _백업.json + 권 폴더 + _선물.json 으로 되살려요 · 🗑 영구 삭제 = 폴더째
+             🎁 처음 선물 권(info from 'gift')은 다이어리.json 대신 설정 / _선물.json 의 dy (첫 접속 요청 줄이기 · 폴더는 꾸미면 생겨요 · js/desk.js giftBody) */
         const DYY_FILE = '다이어리.json';
         const dyyOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         async function dyyFile(id, from) {
@@ -129,12 +129,14 @@
                 if (!dyyOnline() || drive.newbie) dyyGift();                     // 👤 게스트 = 이 기기 목록만 · 🆕 처음 온 다꾸러 = 뒤지지 않고 바로 선물
                 else if (!dyyBusy) {
                     dyyBusy = true;
-                    Promise.all([dyyRescue(), window.deskGiftRead ? deskGiftRead() : null]).then(([ids, had]) => {
+                    Promise.all([dyyRescue(), window.deskGiftRead ? deskGiftRead() : null, window.deskBackupRead ? deskBackupRead().catch(() => null) : null]).then(([ids, had, bk]) => {
                         if (prefGet(DYY_KEY, DYY_LOCAL) !== null) return [];             // 그사이 다른 기기에서
                         const gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'dy').map(e => e.id));
                         const gifts = (had && Array.isArray(had.dy) ? had.dy : []).filter(id => dyyOf(id) && !gone.has(id));
-                        const all = [...new Set(ids.concat(gifts))];
-                        if (!all.length) { if (!had || !Array.isArray(had.dy)) dyyGift(); else prefSet(DYY_KEY, DYY_LOCAL, []); return []; }   // 선물.json 에 다이어리 칸이 있는데 비었으면 = 다 버린 사람
+                        const bkL = bk && Array.isArray(bk.diary_years) ? bk.diary_years : null;   // 🛟 설정 / _백업.json (도련 11-06 · _다이어리목록.json 이 없어졌어요)
+                        if (bk) { const I0 = prefGet(DYY_INFO, DYY_INFO_L); if (bk.diary_book_info && typeof bk.diary_book_info === 'object' && !I0) prefSet(DYY_INFO, DYY_INFO_L, bk.diary_book_info); if (bk.diary_book_n && typeof bk.diary_book_n === 'object' && !prefGet(DYY_N, DYY_N_L)) prefSet(DYY_N, DYY_N_L, bk.diary_book_n); }
+                        const all = [...new Set((bkL || []).filter(id => dyyOf(id) && !gone.has(id)).concat(ids, gifts))];
+                        if (!all.length) { if ((!had || !Array.isArray(had.dy)) && !bkL) dyyGift(); else prefSet(DYY_KEY, DYY_LOCAL, []); return []; }   // 선물.json 에 다이어리 칸이 있는데 비었으면 = 다 버린 사람
                         prefSet(DYY_KEY, DYY_LOCAL, all); prefSet(DYY_OPEN, DYY_OPEN_L, all[all.length - 1]);
                         gifts.forEach(id => dyyInfoSet(id, 'gift'));
                         return ids.filter(id => !gifts.includes(id)).map(id => [id, 'basic']);

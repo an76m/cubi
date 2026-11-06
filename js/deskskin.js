@@ -6,9 +6,9 @@
    - 벽지 = 뒷벽 + 양쪽 옆벽 전체 (옆벽은 원근대로 비스듬히 · 그늘 그대로) · 책상 = 그 아래 전부 (상판 · 앞면 두께 · 안쪽 그늘)
        방 그림(img/desk-wide.webp)은 그대로 두고 위에 그림(SVG)을 얹어요 · 선은 그림과 같은 자리에 다시 그어요 · 기본이면 안 얹어요
    - 처음 온 다꾸러 = 기본 벽지 · 기본 책상 하나씩 (한 번만 · 지금 그림 그대로)
-   - 저장 : 책상배치 / 배치.json 'diary_desk_skin' { own: [{ u, id, c }], wall: u, top: u } (게스트는 이 기기 malang_desk_skin)
-       🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 벽지 · 책상판 (js/drive.js SKIN_DIRS) / 받은-<c>.json 🔐 (js/coll.js ofAdd) · 🎁 처음 선물(g: 1)은 기본세트 / 선물.json (첫 접속 요청 줄이기 · js/desk.js giftBody)
-       배치.json 이 없어지면 = 종류 폴더 파일로 되살려요 (쓰던 것 = 배치_백업.json) · 🗑 버리면 휴지통 30일 → 파일 삭제 (js/bin.js · BIN_KINDS.ds)
+   - 저장 : 설정 / 🔐 책상설정.json 'diary_desk_skin' { own: [{ u, id, c }], wall: u, top: u } (게스트는 이 기기 malang_desk_skin)
+       🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 벽지 · 책상판 (js/drive.js SKIN_DIRS) / 받은-<c>.json 🔐 (js/coll.js ofAdd) · 🎁 처음 선물(g: 1)은 설정 / _선물.json (첫 접속 요청 줄이기 · js/desk.js giftBody)
+       배치.json 이 없어지면 = 종류 폴더 파일로 되살려요 (쓰던 것 = _백업.json) · 🗑 버리면 휴지통 30일 → 파일 삭제 (js/bin.js · BIN_KINDS.ds)
    ※ js/desk.js · js/bin.js 다음에 읽어요 (deskBoxRender · deskEditOpen · deskEditEnd · deskBuild 가 여기 함수를 불러요 · js/basket.js 샵) */
 
         const DS_KEY = 'diary_desk_skin', DS_LOCAL = 'malang_desk_skin';

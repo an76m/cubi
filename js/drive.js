@@ -17,11 +17,15 @@
                       / 벽지 · 책상판 (SKIN_DIRS) / 받은-<id>.json             🧱 🪵 책상 꾸밈 하나에 파일 하나 (도련 11-05 · js/coll.js ofAdd)
                       / 배경지 / 받은-<id>.json                             🌈 샵에서 받은 배경지 하나에 파일 하나 (내가 만든 배경지 = 내-)
                       / 날짜형바인더 · 날짜형노트 / <권 폴더> / 다이어리.json    📔 받은 권마다 🔐 { id, from, at } (안 쓴 권도 폴더 · 도련 11-05)
-                      / 기본세트 / 선물.json                            🎁 처음 한 번 받는 서비스 (책상 소품 + 문구 · 한 파일 · 버리면 여기서 빠져요 · 예외 · js/desk.js)
-                      / 책상배치 / _소품목록.json · _문구목록.json · 배치.json · 설정.json · 배치_백업.json   🪑 🔐 가진 소품 · 가진 문구 · 책상 위 자리 · 기능 연결 · 벽지 (역할마다 파일 하나 · 도련 11-06 · DESK_FILE_KEYS)
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
                       / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실
-                      / 설정 / 설정.json                                ⚙ 설정 탭 값 · 받은 다이어리 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 상품 모습은 늘 서버 그대로 (사본 없음 · 도련 11-05 · js/prod.js)
+                      / 설정 /                                          ⚙ 내 정보는 한 폴더에 (도련 11-06 · 예전 책상배치 · 기본세트 폴더를 합쳤어요 · 역할마다 파일 하나 · 바뀐 파일만 올라가요)
+                              설정.json        ⚙ 설정 탭 값 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
+                              책상설정.json    ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
+                              배치.json        📍 🔐 책상 위 소품 자리 · 문구의 집 · 책상 위 다이어리 · 봉투
+                              _소품목록.json · _문구목록.json · _다이어리목록.json · _배경지목록.json   🔐 가진 것 (이게 '가진 것' · DESK_FILE_KEYS)
+                              _선물.json       🎁 🔐 처음 선물 (상품공방 '처음선물' · 버리면 여기서 빠져요 · js/desk.js)
+                              _백업.json       🛟 🔐 하루 한 번 위 목록 · 자리 · 책상 설정 (목록 파일이 없어지면 여기서 되살려요 · js/desk.js dkBackupWrite)
                       / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js · 구글은 드라이브 휴지통)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
@@ -34,7 +38,7 @@
         const DIRS = {
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
             pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
-            stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통', deskLayout: '책상배치', starter: '기본세트'
+            stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
         /* ⚠ pencup 폴더 = '연필꽂이' 그대로 (화면 이름만 펜꽂이 · 도련 11-03) */
@@ -47,7 +51,7 @@
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
         const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
-        const DESK_PATH = dirPath(DIRS.deskLayout), DESK_FILE_NAME = '배치.json';
+        const DESK_PATH = SETTINGS_PATH, DESK_FILE_NAME = '배치.json';   // 🪑 책상 · 가진 것 목록도 설정 폴더에 (도련 11-06)
         const CAFE_PATH = dirPath(DIRS.cafe), CAFE_FILE_NAME = '카페.json';
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
@@ -217,10 +221,12 @@
         const KEY_FILES = {
             settings: { path: SETTINGS_PATH, name: SETTINGS_FILE_NAME, prop: 'settingsFile' },
             cafe: { path: CAFE_PATH, name: CAFE_FILE_NAME, prop: 'cafeFile' },
-            desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' },     // 🪑 책상배치 / 배치.json = 자리 (책상 위 · 문구의 집 · 다이어리 · 봉투)
+            desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' },     // 🪑 설정 / 배치.json = 자리 (책상 위 · 문구의 집 · 다이어리 · 봉투)
             dkown: { path: DESK_PATH, name: '_소품목록.json', prop: 'deskOwnFile' }, // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06)
             gdown: { path: DESK_PATH, name: '_문구목록.json', prop: 'gdOwnFile' },   // 🔐 가진 문구 전부
-            deskset: { path: DESK_PATH, name: '설정.json', prop: 'deskSetFile' }     // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
+            deskset: { path: DESK_PATH, name: '책상설정.json', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
+            dyown: { path: DESK_PATH, name: '_다이어리목록.json', prop: 'dyOwnFile' }, // 🔐 받은 다이어리 · 내가 만든 노트 · 바인더 (도련 11-06)
+            bgown: { path: DESK_PATH, name: '_배경지목록.json', prop: 'bgOwnFile' }   // 🔐 가진 배경지 (도련 11-06)
         };
 
         /* 🔐 암호 보관 : 출석 · 화분 기록은 설정.json 에서 무엇인지 알아볼 수 없게 저장해요
@@ -232,7 +238,9 @@
             desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
             dkown: ['diary_desk_own'],                                                                        // 🔐 _소품목록.json
             gdown: ['diary_gd_own'],                                                                          // 🔐 _문구목록.json
-            deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got']                                  // ⚙ 설정.json
+            deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got'],                                 // ⚙ 책상설정.json
+            dyown: ['diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine'],                          // 🔐 _다이어리목록.json : 받은 권 · 권마다 받은 곳 · 권 번호 · 내가 만든 노트 · 바인더 (펼친 권 'diary_year' 는 설정.json)
+            bgown: ['diary_bg_own']                                                                           // 🔐 _배경지목록.json
         };
         const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
         const isDeskFile = w => DESK_WHICH.includes(w);
@@ -472,7 +480,7 @@
             drive[F.prop] = f;
             return parseJsonObject(await keyFileText(which, f.id), which);
         }
-        /* 🪑 책상배치 파일 4개 : 폴더 안을 한 번에 찾아(요청 1번) 있는 것만 동시에 읽어요 · 못 여는 파일이 하나라도 있으면 drive.deskLocked (덮어쓰지 않아요) */
+        /* 🪑 설정 폴더의 책상 · 목록 파일 : 폴더 안을 한 번에 찾아(요청 1번) 있는 것만 동시에 읽어요 · 못 여는 파일이 하나라도 있으면 drive.deskLocked (덮어쓰지 않아요) */
         async function fetchDeskFiles() {
             DESK_WHICH.forEach(w => { drive[KEY_FILES[w].prop] = null; }); drive.deskNone = new Set();
             const dir = await getFolder(DESK_PATH, false);
@@ -485,7 +493,7 @@
                 catch (e) { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; }
             }));
         }
-        /* 🔐 책상배치 / 배치.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js ownLock / ownUnlock)
+        /* 🔐 설정 / 배치.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js ownLock / ownUnlock)
            못 열면 (다른 계정 · 깨짐) 읽기 실패 → 아무것도 바꾸지 않고 덮어쓰지도 않아요 */
         async function keyFileText(which, id) {
             const t = await readFileText(id);
@@ -624,7 +632,7 @@
             drive.newbie = !drive.rootId;                                    // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
             drive.deskLocked = false;
-            const desks = await fetchDeskFiles();                            // 🪑 책상배치 파일 4개 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
+            const desks = await fetchDeskFiles();                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();
@@ -1036,7 +1044,8 @@
             handLoad();                                                      // ✋ 쓰는 손
             if (typeof dyLoad === 'function') dyLoad();                     // 📒 고른 다이어리 (js/skins.js)
             if (typeof dyySync === 'function') dyySync();                   // 📔 처음 온 다꾸러 = 그 해 기본 다이어리 선물 (js/dyyear.js)
-            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 분홍 단색 배경지 (js/bgown.js)
+            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 상품공방 '처음선물' 배경지 · 목록이 없으면 되살리기 (js/bgown.js)
+            if (typeof dmkRescue === 'function') dmkRescue();               // 📓 🗂️ 내가 만든 노트 · 바인더 목록이 없으면 = 백업에서 (js/dymaker.js · 도련 11-06)
             if (typeof dsSync === 'function') dsSync();                     // 🧱 🪵 기본 벽지 · 기본 책상 (js/deskskin.js)
             if (typeof nwRefresh === 'function') nwRefresh();               // ✨ NEW 표시 (☁ diary_new · js/arrival.js)
             if (typeof svcDailyBadges === 'function') svcDailyBadges();     // 🔔 오늘 이미 본 알림 (☁ diary_daily_seen · js/service.js)
