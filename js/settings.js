@@ -338,5 +338,30 @@
         }
 
 
+        /* 🧹 브라우저 저장 지우기 (도련 11-06 · 시험할 때 남은 기억이 방해돼서) : ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 옆
+           - 이 기기 브라우저에 남은 것만 지워요 : localStorage · sessionStorage · IndexedDB 전부 · 캐시(Cache Storage) · OPFS · 서비스워커 → 새로고침
+           - ☁ 구글 드라이브 · 📁 내 폴더의 파일은 그대로예요 (지우지 않아요)
+           - 지우기 전에 아직 못 올린 것을 먼저 올려요 (mallang-pending 도 지워지니까) · 못 올렸으면 한 번 더 물어요
+           - 📁 폴더 저장은 폴더를 다시 골라야 해요 (폴더 열쇠 = malang-device) · 로그인도 다시 */
+        async function clearBrowserStore() {
+            if (!await showMsg('🧹 <b>이 기기 브라우저에 남은 기억</b>을 모두 지울까요?<br><span style="font-size:12px;color:#777;">☁ 구글 드라이브 · 📁 내 폴더의 파일은 그대로예요.<br>지운 뒤 새로고침되고, 로그인 · 폴더 고르기를 다시 해요.</span>', true)) return;
+            try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } catch (e) {}
+            if (typeof drive !== 'undefined' && drive.dirty && !await showMsg('⚠ 아직 드라이브에 올리지 못한 것이 있어요.<br>지우면 그 바뀐 내용은 사라져요. 그래도 지울까요?', true)) return;
+            const wait = (p, ms) => Promise.race([Promise.resolve(p).catch(() => {}), new Promise(r => setTimeout(r, ms || 3000))]);
+            try { localStorage.clear(); } catch (e) {}
+            try { sessionStorage.clear(); } catch (e) {}
+            try {
+                let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest'];
+                if (indexedDB.databases) { const L = await wait(indexedDB.databases(), 2000); if (Array.isArray(L)) names = names.concat(L.map(d => d.name).filter(Boolean)); }
+                await Promise.all([...new Set(names)].map(n => wait(new Promise(r => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }), 3000)));
+            } catch (e) {}
+            try { if (window.caches) { const K = await caches.keys(); await Promise.all(K.map(k => wait(caches.delete(k)))); } } catch (e) {}
+            try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); for await (const [n] of R.entries()) await wait(R.removeEntry(n, { recursive: true })); } } catch (e) {}
+            try { if (navigator.serviceWorker) { const S = await wait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(S)) await Promise.all(S.map(r => wait(r.unregister()))); } } catch (e) {}
+            location.reload();
+        }
+        window.clearBrowserStore = clearBrowserStore;
+
+
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['settings'] = true;
