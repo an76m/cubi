@@ -128,7 +128,8 @@
             if (!e || typeof e !== 'object') return null;
             const url = String(e.url || '').trim(), from = Date.parse(e.from), to = Date.parse(e.to);
             const lt = typeof FT_LOCAL !== 'undefined' && FT_LOCAL && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(url);   // 🧪 내 컴퓨터 시험 서버
-            if ((!lt && !/^https:\/\/[^\s"'<>]+$/.test(url)) || !(to > from)) return null;
+            if (!(to > from)) return null;
+            if (url && !lt && !/^https:\/\/[^\s"'<>]+$/.test(url)) return { name: String(e.name || '🎉 이벤트 광장').slice(0, 30), url: '', from, to };   // 주소는 없어도 돼요 (도련 11-06 · 들어갈 주소는 알림판이 알려 줘요)
             return { name: String(e.name || '🎉 이벤트 광장').slice(0, 30), url, from, to };
         }
         const evTime = t => new Date(t).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
@@ -166,13 +167,17 @@
                 b.classList.toggle('svc-ev-on', now >= e.from);
             });
         }
-        function openEventWorld() {
+        async function openEventWorld(again) {
             const L = NT.evLive;
             if (L && !(L.to && Date.now() >= L.to)) {
                 if (L.from && Date.now() < L.from) { showMsg(`🎉 <b>${htmlEsc(L.name)}</b><br><b>${evTime(L.from)}</b>에 열려요.<br><span style="font-size:12px;color:#777;">조금만 기다려 주세요!</span>`); return; }
                 if (window.openWorld) openWorld({ url: L.url, name: L.name }); evLiveCheck(true); return;
             }
             const e = NT.ev, now = Date.now();
+            if (e && !e.url && now >= e.from && now < e.to) {                     // 📢 공지로 알린 시간인데 알림판엔 아직 (집 PC 서버를 켜는 중)
+                if (!again) { await evLiveCheck(true); if (NT.evLive) return openEventWorld(true); }
+                showMsg(`🎉 <b>${htmlEsc(e.name)}</b><br>곧 열려요! 잠시 뒤에 다시 눌러 주세요.`); return;
+            }
             if (!e || now >= e.to) { showMsg('🎉 이벤트가 끝났어요.<br>다음 파티에서 또 만나요!'); evPaint(); return; }
             if (now < e.from) { showMsg(`🎉 <b>${htmlEsc(e.name)}</b><br><b>${evTime(e.from)}</b>에 열려요.<br><span style="font-size:12px;color:#777;">조금만 기다려 주세요!</span>`); return; }
             if (window.openWorld) openWorld({ url: e.url, name: e.name });
