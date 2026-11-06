@@ -68,6 +68,7 @@
             const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
             if (window.dkDeskBooks) setTimeout(dkDeskBooks, 0);              // 📔 책상 = 다이어리 보관소 (펼쳐 둔 권 · 나머지 권 다시 · js/desk.js)
             dyyColorPaint();
+            if (window.dkCoverPaint) dkCoverPaint();                           // 📢 📕 권을 바꾸면 그 상품의 공지 · 표지 꾸미기 (js/skins.js)
             if (!b) return;
             const d = dyyDesign(b), nt = dyyBasic() && d ? d.b + ':' + d.r : null;   // 📐 디자인마다 모양(묶음 · 크기)이 달라요 → 바뀌면 다시 그리기
             if (nt !== dyyLastNote) { dyyLastNote = nt; if (typeof refreshLayout === 'function') setTimeout(refreshLayout, 0); }
@@ -297,7 +298,7 @@
         let dyyFilter = 'all';
         const dyyKindOf = () => 'date';                                       // 받은 권은 모두 날짜형 (바인더 · 노트 · 페이지형은 팔 때 여기에)
         const dyyKindName = b => dyyIsNote(b) ? `📓 ${b.y} 노트` : `📔 ${b.y} 바인더`;
-        const dyyType = b => { const d = dyyDesign(b); return d ? { id: DY_DEF, k: '다이어리', g: d.name, n: d.n, mm: d.mm, b: d.b, r: d.r, c: d.c } : null; };   // 📐 그 권의 모양 (js/skins.js dyNow 와 같은 모양)
+        const dyyType = b => { const d = dyyDesign(b); return d ? { id: DY_DEF, k: '다이어리', g: d.name, n: d.n, mm: d.mm, b: d.b, r: d.r, c: d.c, ntOn: d.ntOn, cvOk: d.cvOk } : null; };   // 📐 그 권의 모양 (js/skins.js dyNow 와 같은 모양)
         function dyyFilterSet(v) { dyyFilter = v; if (window.dyTabSet) dyTabSet('free'); }
         function dyyCells() {
             const cur = dyyBookId();

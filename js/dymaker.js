@@ -91,6 +91,7 @@
 
         /* ---------- 내지 : 이 페이지의 기본 속지 (js/elements.js · js/leafpad.js) ---------- */
         function dkLeafOf(date) {
+            if (date && typeof dkIs === 'function' && dkIs(date) && !dkNo(date)) return '';   // 📕 표지엔 내지가 없어요
             const t = typeof dkType === 'function' && dkType(); if (!t) return window.dyyLeafNow ? dyyLeafNow() : '';   // 📔 날짜형 = 그 디자인 내지 (모든 날 같은 내지)
             if (!t.lv || !date || !dkIs(date)) return '';
             const n = dkNo(date); if (n < 1) return '';

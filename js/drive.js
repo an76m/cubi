@@ -206,9 +206,9 @@
         /* ---------- 폴더 / 파일 이름 규칙 ----------
            말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
         const pad2 = n => String(n).padStart(2, '0');
-        const dayFileName = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}.json`;   // 권 폴더 안 (dyBookDir)
+        const dayFileName = (y, m, d) => y === 1999 && m === 12 && d === 31 ? '표지.json' : `${y}-${pad2(m)}-${pad2(d)}.json`;   // 권 폴더 안 (dyBookDir) · 📕 1999-12-31 = 표지 (js/skins.js dkDate(0) · 도련 11-06)
         const DAY_FILE_RE = /^(\d{4})-(\d{2})-(\d{2})\.json$/;
-        function parseDayFile(n) { const r = DAY_FILE_RE.exec(n); return r ? { y: +r[1], m: +r[2], d: +r[3] } : null; }
+        function parseDayFile(n) { if (n === '표지.json') return { y: 1999, m: 12, d: 31 }; const r = DAY_FILE_RE.exec(n); return r ? { y: +r[1], m: +r[2], d: +r[3] } : null; }
         function dayKeyOf(y, m, d, b) { return `diary_${b}_${y}_${String(m).padStart(2, '0')}_${String(d).padStart(2, '0')}`; }   // b : 권 id
         function parseDayKey(k) { const r = DAY_KEY_RE.exec(k); return r ? { b: r[1], y: +r[2], m: +r[3], d: +r[4] } : null; }
         function isDayKey(k) { return DAY_KEY_RE.test(k); }

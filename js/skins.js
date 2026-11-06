@@ -405,7 +405,7 @@
                 if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || !(pg > 0) || !lf(P.내지) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 const lv = (Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], r[2]]);
                 const c = (String(P.표지색).match(/#[0-9a-f]{6}/i) || [P.테두리색])[0];   // 책 그림 색 = 표지 첫 색
-                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg, lv: lv.reverse().concat([[1, pg, P.내지]]), off: !!P.숨김, gift: !!P.처음선물 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter)   // 구간 먼저 찾고 · 없으면 기본 내지
+                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg, lv: lv.reverse().concat([[1, pg, P.내지]]), off: !!P.숨김, gift: !!P.처음선물 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
             }));
         }
         dyTypesBuild();
@@ -433,6 +433,12 @@
         /* 📔 날짜형 = 'basic' (날짜 · 1년 · 보관소 = js/dyyear.js) · 모양 = 펼친 권의 디자인 (규격 · 묶음 · 도련 11-04 · js/dyyear.js dyyBookType) */
         const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || (window.dyyBookType ? dyyBookType() : null);   // js/dyyear.js 가 이 파일 뒤라 처음엔 없어요
         const dyLook = dyNow;
+        /* 📢 📕 공지 카드 · 표지 꾸미기 = 펼친 권의 상품 체크 (상품공방 '공지' · '표지꾸미기' · 도련 11-06 · 앱은 따르기만)
+           - 공지 체크 : 평소에도 환영 카드 · 안 하면 평소엔 숨기고 새 공지(notice.json id 1 이상)가 오면 어느 다이어리든 보여요
+           - 📓 내가 만든 노트 · 바인더 (상품이 아니에요) : 공지 숨김 · 표지 꾸미기 됨 · 다이어리가 아직 없으면 공지 보여요 */
+        const dyNtOn = () => { const t = dyNow(); return !t || (!t.my && !!t.ntOn); };
+        const dyCvOk = () => { const t = dyNow(); return !!t && (t.my ? true : !!t.cvOk); };
+        window.dyNtOn = dyNtOn; window.dyCvOk = dyCvOk;
         /* 📖 펼침면 (도련 · 10-17) : 모든 다이어리는 펼친 두 쪽이 하루예요
            - 저장은 늘 두 쪽짜리 종이 하나 (getPageSize = 두 쪽 크기) · 보는 방법만 기기마다 설정 · 날짜바 스위치로 골라요 (⬅ 왼쪽 페이지 · ➡ 오른쪽 페이지)
            - spread : 💻 컴퓨터 · 📲 패드 양쪽 = 두 쪽이 다 보여요 (다이어리를 열면 #diaryWrapper 왼쪽에 한 쪽만큼 자리를 비워 가운데로)
@@ -1804,13 +1810,13 @@
             bdSync();
             gdSync();                                                          // ✂️ 📎 집게 · 🪡 핀셋
         }
-        /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 노트 · 바인더만 (기본 다이어리 표지는 못 꾸며요 · 다이어리를 살 이유)
-           - 표지 = 0장 (dkDate(0) · 키 dkp_<권 id>_0 · 권 폴더 표지.json) → 속지처럼 스티커 메뉴로 그대로 꾸며요
+        /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 상품공방 '표지꾸미기' 를 체크한 다이어리만 (도련 11-06 · dyCvOk)
+           - 표지 = 0장 (dkDate(0) = 1999-12-31) · 📓 🗂️ 페이지형 = 키 dkp_<권 id>_0 → <권 id>-표지.json · 📔 날짜형 = 그 권 1999-12-31 키 → 권 폴더 표지.json (js/drive.js dayFileName) → 속지처럼 스티커 메뉴로 그대로 꾸며요
            - 표꾸 화면 : 로그인 때 겉표지처럼 접힌 앞표지 한 쪽 (펼친 면의 오른쪽 쪽 자리) · 다음 장으로 넘기면 1장이에요
            - 닫힌 겉표지 : 그 다이어리 색 + 앞표지(오른쪽 쪽)에 붙인 것 (#cvDeco · 눌러도 그대로 열려요) */
         function dkCoverEdit() {
             closeModal('skinModal');
-            if (!dkType()) { showMsg('📕 기본 다이어리 표지는 꾸밀 수 없어요.<br><span style="font-size:12px;color:#777;">노트 · 바인더는 표지에 스티커를 붙여 꾸밀 수 있어요.</span>'); return; }
+            if (!dyCvOk()) { showMsg('📕 이 다이어리 표지는 꾸밀 수 없어요.'); return; }   // 🧁 상품공방 '표지꾸미기'
             if (!isCoverOpen || turn || dkCv()) { goToDate(dkDate(0)); return; }
             dkFold(() => goToDate(dkDate(0)));
         }
@@ -1868,11 +1874,13 @@
             loadData();
         }
         function dkCoverPaint() {
-            const cv = document.getElementById('coverPage'), t = dkType(); if (!cv) return;
+            const cv = document.getElementById('coverPage'), t = dkType(), can = dyCvOk(); if (!cv) return;
             cv.classList.toggle('cv-book', !!t);
+            cv.classList.toggle('cv-can', can);                                // 📕 꾸밀 수 있는 표지 (스티커가 밖으로 · css)
+            cv.classList.toggle('cv-ntoff', !dyNtOn());                        // 📢 평소엔 공지 카드 숨김 (새 공지는 보여요 · css .cv-ntoff .nt-none)
             let box = document.getElementById('cvDeco');
-            if (!t) { if (box) box.remove(); return; }
-            cv.style.setProperty('--dy-c', t.c);
+            if (!can) { if (box) box.remove(); return; }
+            cv.style.setProperty('--dy-c', t ? t.c : 'var(--border-color)');   // 📔 날짜형 = 그 권 테두리 색
             const key = getDateKey(dkDate(0));
             if (!drive.guest && drive.ready && !drive.loadedDays.has(key)) { if (box) box.innerHTML = ''; ensureKeyLoaded(key).then(ok => { if (ok && getDateKey(dkDate(0)) === key) dkCoverPaint(); }).catch(() => {}); return; }
             if (!box) { box = document.createElement('div'); box.id = 'cvDeco'; box.className = 'cv-deco'; box.setAttribute('aria-hidden', 'true'); cv.appendChild(box); }
@@ -1939,6 +1947,7 @@
         }
         const dkView = () => prefGet(DK_VIEW_KEY, DK_VIEW) === 'date' ? 'date' : 'page';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20)
         function dkLabel(date) {                                               // 위 바 가운데 글 (js/page.js formatDate)
+            if (dkIs(date) && !dkNo(date) && !dkType()) return '📕 표지 꾸미기';   // 📔 날짜형 표지
             if (!dkIs(date) || !dkType()) return '';
             const o = dkNow(), n = dkNo(date);
             if (!n) return '📕 표지 꾸미기';
@@ -1955,12 +1964,12 @@
             const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
             return `${(b ? b.kind : o.kind) === '바인더' ? DIRS.binder : DIRS.note}/${id}-${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;   // 폴더 한 줄 (10-26)
         }
-        function dkCv() { return !!dkType() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
+        function dkCv() { return dyCvOk() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
         function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } const b = document.getElementById('diaryBook'); if (b) b.classList.toggle('dk-cv', cv); bdSync(); }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)
         /* 고른 다이어리와 지금 펼친 날짜가 맞는지 (유한인데 진짜 날짜 · 기본인데 장 날짜 · 페이지 수를 넘음) → 맞는 곳으로 */
         function dkSync(load) {
-            const bk = !!dkType(), on = dkIs(currentDate);
-            if (bk !== on || (bk && dkNo(currentDate) > dkNow().pages)) {
+            const bk = !!dkType(), on = dkIs(currentDate), cvAt = on && dkNo(currentDate) === 0;   // 📕 표지(0장)는 꾸밀 수 있는 다이어리면 날짜형도 그대로
+            if (cvAt ? !dyCvOk() : (bk !== on || (bk && dkNo(currentDate) > dkNow().pages))) {
                 if (window.dyViewSet) dyViewSet('l');
                 currentDate.setTime((bk ? dyOpenDate() : dyOpenDate() || new Date()).getTime());
                 selectedElement = null;
@@ -1980,6 +1989,7 @@
         }
         let dkEndAt = 0;
         async function dkEnd(dir) {                                            // 마지막 장에서 더 넘기려고 할 때 (js/page.js beginCurl)
+            if (dkIs(currentDate) && !dkNo(currentDate)) return;               // 📕 표지에서 앞으로는 없어요
             if (!dkType()) { if (window.dyyEnd) dyyEnd(dir); return; }       // 📔 기본 다이어리 : 그 해 끝 (js/dyyear.js)
             if (dir < 0 || !dkIs(currentDate) || dkNo(currentDate) < dkNow().pages || performance.now() - dkEndAt < 2500) return;
             dkEndAt = performance.now();
@@ -2012,6 +2022,11 @@
         }
         /* 넘길 날 : 꺼져 있으면 하루 앞 · 뒤 / 켜져 있으면 꾸민 날 중 가장 가까운 날 (없으면 null = 안 넘어가요) */
         function dyStep(date, dir) {
+            if (!dkType() && dkIs(date) && !dkNo(date)) {                      // 📔 날짜형 표지 → 다음 = 오늘 (꾸민 날만 보기면 마지막으로 꾸민 날) · 앞 = 없음
+                if (dir < 0) return null;
+                const td = window.dyyClamp ? dyyClamp(new Date()) : new Date(), o = dfOn() ? dyOpenDate() : null;
+                return o && !dkIs(o) ? o : td;
+            }
             if (dkType() && dkIs(date)) {                                      // 📕 유한 : 1장 ~ 마지막 장
                 const o = dkNow(), n = dkNo(date), f = dkFilled(o);
                 if (!dfOn()) { const to = n + dir; return to >= 1 && to <= o.pages ? dkDate(to) : null; }
