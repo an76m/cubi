@@ -8,14 +8,15 @@
        네모가 소품의 85% 이상이면 기능을 누를 자리가 없어서 고쳐 달라고 해요 · 너무 작으면(그림 px 28 미만) 안 돼요
    저장 : 바꾸면 바로 책상에 보이고 · 🛠 책상 꾸미기 하단 ✔ 완료 때 한꺼번에 저장 (취소 = 처음대로 · 창마다 완료 없음 · 도련 10-28)
           배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%), memos: [{ p, t, x, y, r }] } (js/desk.js dkPersist)
-   ※ 소품 종류를 더하면 DC_KINDS 에 탭 · 동작 · 기본 누르는 곳만 더해요 · 그림마다 다르면 DESK_ITEMS 에 area(누르는 곳) · cork(메모 붙는 곳) (도련 11-01) */
+   ※ 기능 = 상품공방 '기능' (도련 11-06 · DC_CAN) · 새 동작을 만들면 DC_CAN 에 한 줄 (그 뒤로는 아무 소품에나 골라요) · 그림마다 다르면 DESK_ITEMS 에 area(누르는 곳) · cork(메모 붙는 곳) (도련 11-01) */
 (function () {
-    const DC_KINDS = {
-        lamp: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },
-        clock: { tabs: ['digits', 'alarm'], act: null, area: null },
-        board: { tabs: ['memo'], act: null, area: null },
-        lights: { tabs: [], act: 'lights', area: null },                    // 💡 전구줄 : 톡 = 켜고 끄기 (처음 = 켜짐 · js/desklights.js)
-        peg: { tabs: ['photo'], act: null, area: null }                      // 📷 집게 사진 : 🖼 내 사진 넣기 (줄에 집기 = js/desklights.js)
+    /* 🧩 기능마다 꾸미기 탭 · 톡 동작 · 기본 누르는 곳 (도련 11-06 · 상품 '기능' 을 합쳐요 · 예전엔 종류마다) */
+    const DC_CAN = {
+        light: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },     // 💡 불빛 : 톡 = 켜고 끄기 · 모양 = 상품 '소품.glow'
+        clock: { tabs: ['digits', 'alarm'] },                               // 🕰 시계 : 숫자(lcd 가 있을 때) · 알람
+        memo: { tabs: ['memo'] },                                           // 📝 메모 붙이기 (붙는 곳 = 상품 '소품.cork')
+        rope: { tabs: [], act: 'lights' },                                  // 🎐 전구줄 : 톡 = 켜고 끄기 (js/desklights.js)
+        peg: { tabs: ['photo'] }                                            // 📷 집게 사진 : 내 사진 넣기 (줄에 집기 = js/desklights.js)
     };
     const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', memo: '📝 메모', area: '👆 누르는 곳' };
     const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];   // 💡 불빛 색 (맨 앞 = 기본 · 다꾸러가 바꿔 골라요 · 색은 앱 코드 · 모양만 상품공방 '소품.glow' · 도련 11-03)
@@ -31,7 +32,7 @@
 
     const dcItem = u => DK.items.find(x => x.u === u);
     const dcCat = o => (o && dkCat(o.id)) || {};
-    const dcKind = o => DC_KINDS[dcCat(o).kind] || null;
+    const dcKind = o => { const C = (dcCat(o).can || []).map(f => DC_CAN[f]).filter(Boolean); if (!C.length) return null; const a = C.find(c => c.act); return { tabs: [].concat(...C.map(c => c.tabs)), act: a ? a.act : null, area: a && a.area ? a.area : null }; };   // 기능을 합쳐요 (톡 동작은 하나 · 앞 기능)
     const dcCs = o => (o.cs = o.cs || {});
     const dcFnOf = u => { const m = DK.edit ? (DK.editFn || {}) : deskFnMap(); return Object.keys(m).find(k => m[k] === u) || ''; };
     const dcArea = o => (o.cs && o.cs.area) || dcCat(o).area || (dcKind(o) || {}).area || [0, 0, 100, 100];   // 내가 정한 곳 → 그 소품 그림(DESK_ITEMS area) → 종류 기본
@@ -131,7 +132,7 @@
             paint(); });
         const up = () => { if (!d) return; d = null; dcAreaSave(); }; Bx.addEventListener('pointerup', up); Bx.addEventListener('pointercancel', up);
     }
-    function dcAreaReset() { const o = dcItem(DC.u); if (!o) return; DC.area = (dcKind(o).area || [0, 0, 100, 100]).slice(); delete dcCs(o).area; dcSave(o); dcBody(); }
+    function dcAreaReset() { const o = dcItem(DC.u); if (!o) return; DC.area = ((dcKind(o) || {}).area || [0, 0, 100, 100]).slice(); delete dcCs(o).area; dcSave(o); dcBody(); }
     /* 네모를 놓으면 바로 적용 (저장은 하단 ✔ 완료) · 안 되는 크기면 창 안에 빨간 글로 알려 주고 적용 안 해요 */
     function dcAreaSave() {
         const o = dcItem(DC.u); if (!o) return; const it = dcCat(o), [l, t, r, b] = DC.area.map(v => Math.round(v * 10) / 10);
@@ -183,12 +184,12 @@
     /* ---------- 🪑 책상 위 모습 (불빛 · 숫자) ---------- */
     function dcApply(u) {
         const o = dcItem(u), el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!o || !el) return;
-        const cs = o.cs || {}, kind = dcCat(o).kind;
-        if (kind === 'lamp') {
+        const cs = o.cs || {}, can = dcCat(o).can || [];
+        if (can.includes('light')) {
             el.classList.toggle('lit', !!cs.on); el.style.setProperty('--lt', cs.light || dcLights(o)[0]);
             dcGlow(el, dcCat(o));                                              // 💡 불빛 모양 = 상품 '소품.glow' (상품공방에서 점을 찍어요 · 도련 11-03)
         }
-        if (kind === 'board') {                                               // 📝 붙인 메모 (누르면 그대로 게시판 기능 · 메모는 못 눌러요)
+        if (can.includes('memo')) {                                               // 📝 붙인 메모 (누르면 그대로 게시판 기능 · 메모는 못 눌러요)
             let w = el.querySelector(':scope > .dk-memos'); if (!w) { w = document.createElement('div'); w.className = 'dk-memos'; w.setAttribute('aria-hidden', 'true'); el.appendChild(w); }
             w.innerHTML = (cs.memos || []).map((m, i) => dcMemoHtml(m, i)).join('');
         }

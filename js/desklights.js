@@ -119,9 +119,9 @@
         requestAnimationFrame(frame);
     }
     function dlPaint() {                                                      // js/desk.js deskItemsRender 끝에서
-        const els = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => (dkCat(el.dataset.id) || {}).kind === 'lights');
+        const els = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('rope'));   // 🎐 상품 '기능' rope (도련 11-06)
         S.forEach((st, u) => { if (!els.includes(st.el)) dropState(u); });
-        PEGS = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => (dkCat(el.dataset.id) || {}).kind === 'peg');
+        PEGS = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('peg'));
         els.forEach(el => { const o = itemOf(el.dataset.u); if (o && Array.isArray(o.lb)) { el.style.width = o.lb[0] + 'px'; el.style.height = o.lb[1] + 'px'; } stateOf(el); });
         if (S.size && !run) { run = true; last = performance.now(); requestAnimationFrame(frame); }
     }
@@ -194,7 +194,7 @@
         });
     }
     function dlPegDrop(el) {                                                  // js/desk.js deskWire : 🛠 꾸미기에서 놓으면 = 줄 가까우면 집혀요
-        if ((dkCat(el.dataset.id) || {}).kind !== 'peg') return;
+        if (!((dkCat(el.dataset.id) || {}).can || []).includes('peg')) return;
         const o = itemOf(el.dataset.u); if (!o) return;
         const pg = pegPt(el), a = { x: el.offsetLeft + pg[0], y: el.offsetTop + pg[1] }; let best = null;
         S.forEach(st => { for (let i = 1; i < 200; i++) { const t = i / 200, p = onRope(st.pts, t), d = Math.hypot(p.x - a.x, p.y - a.y); if (d < 40 && (!best || d < best.d)) best = { d, r: st.u, t: +t.toFixed(4) }; } });

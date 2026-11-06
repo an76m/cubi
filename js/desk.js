@@ -42,7 +42,11 @@
             Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름), w: +o.w, h: +o.h, x: +o.x, y: +o.y });
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
-            if (o.kind === 'lights') o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
+            o.kind = String(o.kind).replace(/[\/\\'"<>`]/g, '').slice(0, 20);   // 🆕 새 종류 = 상품공방 폴더 이름 그대로 (도련 11-06 · 드라이브 폴더 · 보관함 칸 이름)
+            const CAN = ['turn', 'light', 'clock', 'memo', 'rope', 'peg'];       // 🧩 고르는 기능 = 상품공방 '기능' (도련 11-06 · 종류가 아니라 상품이 정해요 · 새 소품도 코드 없이)
+            o.can = (Array.isArray(P.기능) ? P.기능 : []).filter(f => CAN.includes(f));
+            if (P.종류이름) o.kn = String(P.종류이름).slice(0, 12); if (P.종류아이콘) o.ki = String(P.종류아이콘).slice(0, 4);   // 🏪 샵 · 보관함 칸 이름 (새 종류)
+            if (o.can.includes('rope')) o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
             if (P.처음선물) delete o.nost; else o.nost = 1;
             /* 🧺 담는 소품 (도련 11-06 · 상품공방 '담는것' · 종류가 아니라 상품이 정해요 → 새 소품도 코드 없이) : tape 마테 롤 세워 꽂기 · pc 문구 꽂기 · skin 다이어리 · drawer 서랍 칸
                🎁 처음 모습 = 상품 '처음연결' (pc · skin) · '처음칸' { 칸 번호: 창 } (서랍) · '처음담기' (tape = [칸마다 테이프 id] · pc = [문구 id] · drawer = { 칸 번호: [문구 id] }) */
@@ -101,8 +105,11 @@
             DK.items = L; DK.seen = JSON.stringify(L);
         }
         /* 🗂 종류 폴더 파일 (js/coll.js) */
-        const dkKN = k => ({ basket: '바구니' })[k] || DESK_DIRS[k];         // 소품함에 보일 종류 이름 (폴더는 '소품바구니' · 🧺 스티커 바구니와 헷갈리지 않게 · 도련 10-28)
-        const dkColl = id => { const c = dkCat(id); return typeof collOf === 'function' && c && typeof DESK_DIRS !== 'undefined' ? collOf(dirPath(DESK_DIRS[c.kind]), '받은-') : null; };
+        const dkDirOf = k => (typeof DESK_DIRS !== 'undefined' && DESK_DIRS[k]) || String(k || '');   // 🆕 종류 폴더 = 표에 있으면 그 이름 · 새 종류면 종류 이름 그대로 (도련 11-06)
+        const dkDirs = () => [...new Set((typeof DESK_DIRS !== 'undefined' ? Object.values(DESK_DIRS) : []).concat(DESK_ITEMS.map(d => dkDirOf(d.kind)).filter(Boolean)))];
+        window.dkDirs = dkDirs;
+        const dkKN = k => ({ basket: '바구니' })[k] || (DESK_ITEMS.find(d => d.kind === k && d.kn) || {}).kn || dkDirOf(k);         // 소품함에 보일 종류 이름 (폴더는 '소품바구니' · 🧺 스티커 바구니와 헷갈리지 않게 · 도련 10-28)
+        const dkColl = id => { const c = dkCat(id); return typeof collOf === 'function' && c && typeof DESK_DIRS !== 'undefined' ? collOf(dirPath(dkDirOf(c.kind)), '받은-') : null; };
         const dkAdding = new Set();                                                // 파일을 만드는 중인 소품 u (두 번 만들지 않게)
         /* 🔐 종류 폴더 파일 내용 · 선물.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js)
               파일 안에 고유 번호 u · 목록(배치.json · 암호화)에 있는 u 만 내 것 · 같은 u 는 하나만 */
@@ -185,7 +192,7 @@
         }
         window.deskBackupRead = dkBackupRead; window.deskGiftRead = () => giftRead();   // 🛟 되살리기 (js/deskskin.js · bgown.js · dyyear.js)                                       // 🧱 벽지 · 책상판 되살리기 (js/deskskin.js dsRescue · 쓰던 것)
         async function dkScan() {                                                   // 종류 폴더의 내 파일들 → { desk: [{u, id, c, p, mt}], gd: [...] }
-            const out = { desk: [], gd: [] }, kinds = Object.values(DESK_DIRS).map(n => ['desk', n]).concat(Object.values(GD_DIRS).map(n => ['gd', n]));
+            const out = { desk: [], gd: [] }, kinds = dkDirs().map(n => ['desk', n]).concat(Object.values(GD_DIRS).map(n => ['gd', n]));
             for (const [t, n] of kinds) {
                 const dir = await getFolder(dirPath(n), false); if (!dir) continue;
                 const fs = await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime');
@@ -351,7 +358,6 @@
             const seen = new Set();
             DESK_ITEMS.forEach(d => {
                 if (seen.has(d.id)) console.warn('🪑 소품 id 가 겹쳐요', d.id); seen.add(d.id);
-                if (typeof DESK_DIRS !== 'undefined' && !DESK_DIRS[d.kind]) console.warn('🪑 js/drive.js DESK_DIRS 에 종류 폴더가 없어요', d.kind, d.id);
                 if ((d.hold === 'drawer' || d.hold === 'tape') && !(d.slots && d.slots.length)) console.warn('🪑 칸(slots)이 없어요', d.id); if ((d.hold === 'pc' || d.hold === 'skin') && !(d.front && d.mouth)) console.warn('🪑 입구 · 앞벽이 없어요', d.id);
             });
         })();
@@ -675,10 +681,10 @@
             dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             return it;
         }
-        const deskShopList = () => (window.prodShelf ? prodShelf('책상소품') : []).map(dkItemOf).filter(Boolean).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall, kind: d.kind }));   // 🏪 샵 = 늘 서버 모습 · kind = 코너 칸 (js/basket.js)
+        const deskShopList = () => (window.prodShelf ? prodShelf('책상소품') : []).map(dkItemOf).filter(Boolean).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall, kind: d.kind, kn: d.kn, ki: d.ki }));   // 🏪 샵 = 늘 서버 모습 · kind = 코너 칸 (js/basket.js)
         /* 📦 소품 보관함 창 */
         /* 🗂 보관함 종류 칸 (도련 10-27 · 드라이브 종류 폴더와 같은 이름 : 서랍장 · 시계 · 책꽂이 … · 많아져도 찾기 쉽게) : 가진 종류만 · [이름 개수] */
-        const dkKinds = () => typeof DESK_DIRS !== 'undefined' ? Object.keys(DESK_DIRS) : [];
+        const dkKinds = () => [...new Set((typeof DESK_DIRS !== 'undefined' ? Object.keys(DESK_DIRS) : []).concat(DESK_ITEMS.map(d => d.kind)))];   // 🆕 새 종류도 (도련 11-06)
         const dkKindOf = o => (dkCat(o.id) || {}).kind || '';
         function dkTabs(list, key, fn) {                                          // → { html, kind, rows } · key = DK 에 기억할 칸 이름
             const have = dkKinds().filter(k => list.some(o => dkKindOf(o) === k));
@@ -1397,7 +1403,7 @@
         function deskItemHtml(it, p) {
             const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '') + (p.fl && dkFlipOk(it) ? ' dk-fl' : '');   // ↔ 좌우 바꾼 소품 (그림만 · 바늘은 그대로)
             let over = '';
-            if (it.clock) {                                                         // 🕰 바늘 (지금 시각 · deskTick)
+            if (it.clock && (it.can || []).includes('clock')) {                     // 🕰 바늘 (상품 '기능' clock · 도련 11-06) (지금 시각 · deskTick)
                 const c = it.clock, d = c.r * 2, hh = d * it.w / it.h;
                 over = `<svg class="dk-hands" viewBox="-50 -50 100 100" aria-hidden="true" style="left:${c.cx}%;top:${c.cy}%;width:${d}%;height:${hh}%"><line class="hr" x1="0" y1="6" x2="0" y2="-24"/><line class="mn" x1="0" y1="8" x2="0" y2="-38"/><line class="sc" x1="0" y1="10" x2="0" y2="-41"/><circle r="4.5"/></svg>`;
             }
@@ -1794,8 +1800,8 @@
             }
         }
         /* ↔ 좌우 바꾸기 (도련 10-31 · 11-03) : 현실에서 물건을 돌려 놓는 것 (그림 뒤집기가 아니에요) · 돌릴 수 있는 종류만 = DK_TURN (지금 🪔 스탠드) · 저장 fl: 1 */
-        const DK_TURN = ['lamp'];                                                 // ↔ 좌우로 돌릴 수 있는 종류 = 🪔 스탠드 (현실에서 돌려 놓는 물건 · 그림 뒤집기가 아니에요 · 도련 11-03 · 불빛도 돌린 쪽으로)
-        const dkFlipOk = c => !!c && DK_TURN.includes(c.kind);
+        /* ↔ 돌릴 수 있는 소품 = 상품 '기능' turn (도련 11-06 · 예전엔 종류 lamp) */ const DK_TURN_OLD = null;   // 뒤집기가 아니에요 · 도련 11-03 · 불빛도 돌린 쪽으로)
+        const dkFlipOk = c => !!c && Array.isArray(c.can) && c.can.includes('turn');
         function deskFlip() {
             const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o || !dkFlipOk(dkCat(o.id))) return;
             if (o.fl) delete o.fl; else o.fl = 1;

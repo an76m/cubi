@@ -1115,7 +1115,11 @@
             const have = new Set((window.dyyShopList ? dyyShopList().map(x => x.cat) : []).concat(AB_BDP.some(x => !x.P.숨김) ? ['bd'] : [], AB_RL.some(x => !x.P.숨김) ? ['rl'] : []));
             return C.filter(c => have.has(c[0]));
         }
-        if (k === 'desk') { const L = (window.deskShopList ? deskShopList().map(d => d.kind) : []).concat(window.dsShopList ? dsShopList().map(x => x.sec) : []); return Object.keys(SH_DK).filter(c => L.includes(c)).map(c => [c, SH_DK[c][0], SH_DK[c][1]]); }
+        if (k === 'desk') {                                                   // 🆕 새 종류도 (도련 11-06 · 이름 · 아이콘 = 상품공방 '종류이름' · '종류아이콘' → 없으면 아래 표 → 종류 이름)
+            const D = window.deskShopList ? deskShopList() : [], L = D.map(d => d.kind).concat(window.dsShopList ? dsShopList().map(x => x.sec) : []);
+            const all = [...new Set(Object.keys(SH_DK).concat(L))].filter(c => L.includes(c));
+            return all.map(c => { const d = D.find(x => x.kind === c && (x.kn || x.ki)) || {}; return [c, d.kn || (SH_DK[c] || [])[0] || c, d.ki || (SH_DK[c] || [])[1] || '🪑']; });
+        }
         const c = SH_CATS[k]; return c ? c.map(([id, s]) => { const [ic, ...nm] = s.split(' '); return [id, nm.join(' '), ic]; }) : null;
     }
     function shCorner(k) {
