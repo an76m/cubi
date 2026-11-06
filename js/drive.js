@@ -20,7 +20,7 @@
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
                       / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실
                       / 설정 /                                          ⚙ 내 정보는 한 폴더에 (도련 11-06 · 예전 책상배치 · 기본세트 폴더를 합쳤어요 · 역할마다 파일 하나 · 바뀐 파일만 올라가요)
-                              설정.json        ⚙ 설정 탭 값 · 펼친 권 · 🗑 버린 상품 목록 (js/bin.js) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
+                              설정.json        ⚙ 설정 탭 값 · 펼친 권 · 본 것 표시 (🗺 인수인계 03_저장지도.md) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
                               책상설정.json    ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
                               배치.json        📍 🔐 책상 위 소품 자리 · 문구의 집 · 책상 위 다이어리 · 봉투
                               _소품목록.json · _문구목록.json · _다이어리목록.json · _배경지목록.json · _휴지통목록.json   🔐 가진 것 (이게 '가진 것' · DESK_FILE_KEYS)
@@ -122,7 +122,7 @@
             dayLoads: new Map(),         // 읽는 중인 날짜 요청
             folderIds: new Map(),        // 폴더 경로 → 폴더 id 캐시
             alive: new Map(),            // 폴더 id → 살아 있다고 본 시각 (도련 11-05 · 30초 안에 또 확인하지 않아요 · 요청 줄이기)
-            folderBusy: new Map(),
+            folderBusy: new Map(), folderMiss: new Map(),   // folderMiss = 방금 없다고 본 폴더 (15초 · 처음 온 다꾸러 말랑달콤 폴더를 여러 번 묻지 않게 · 도련 11-06)
             monthIndex: new Map(),       // 'all' → { folderId, files: Map(파일명 → 파일정보) } : 📔 권 폴더마다 ('all:<권 id>')
             monthBusy: new Map(),
             books: new Map(), bookBusy: new Map(),   // 📕 권 id → { folderId, files } (monthIndex 와 같은 모양)
@@ -406,6 +406,7 @@
         async function getFolder(names, create) {
             const key = names.join('/');
             if (drive.folderIds.has(key)) return drive.folderIds.get(key);
+            if (!create && drive.folderMiss.has(key) && Date.now() - drive.folderMiss.get(key) < 15000) return null;   // 🔁 방금 없던 폴더 (도련 11-06)
             const busyKey = key + '|' + (create ? 1 : 0);
             if (drive.folderBusy.has(busyKey)) return drive.folderBusy.get(busyKey);
             const p = (async () => {
@@ -415,13 +416,15 @@
                     if (!parentId) return null;
                 }
                 const name = names[names.length - 1];
-                let id = await findFolder(name, parentId);
+                const miss = drive.folderMiss.has(key) && Date.now() - drive.folderMiss.get(key) < 15000;   // 방금 없던 폴더 = 바로 만들어요 (만든 뒤 한 번 더 찾아서 둘이 되지 않게 · 도련 11-06)
+                let id = miss ? null : await findFolder(name, parentId);
                 if (!id && create) {
                     id = await createFolder(name, parentId);
                     const again = await findFolder(name, parentId);                // 그 사이 다른 기기도 만들었으면 먼저 만든 쪽을 써요
                     if (again) id = again;
                 }
-                if (id) { drive.folderIds.set(key, id); drive.alive.set(id, Date.now()); }   // 방금 찾거나 만든 폴더 = 살아 있어요
+                if (id) { drive.folderIds.set(key, id); drive.alive.set(id, Date.now()); drive.folderMiss.delete(key); }   // 방금 찾거나 만든 폴더 = 살아 있어요
+                else if (!create) drive.folderMiss.set(key, Date.now());
                 if (id && key === TOP_FOLDER_NAME) drive.rootId = id;          // 🗑 말랑달콤 폴더가 지워졌는지 볼 때 (rootGone)
                 return id || null;
             })();
@@ -471,10 +474,10 @@
         }
 
         function resetDriveCaches() {
-            drive.folderIds.clear(); drive.folderBusy.clear(); drive.alive.clear();
+            drive.folderIds.clear(); drive.folderBusy.clear(); drive.folderMiss.clear(); drive.alive.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
             drive.books.clear(); drive.bookBusy.clear();
-            drive.settingsFile = null; drive.cafeFile = null; drive.deskFile = null; drive.deskOwnFile = null; drive.gdOwnFile = null; drive.deskSetFile = null;
+            Object.values(KEY_FILES).forEach(F => { drive[F.prop] = null; });   // 설정 폴더 파일 모두 (도련 11-06 · 새 파일이 늘어도)
         }
 
         /* ---------- 읽기 : 설정 / 하루치 ---------- */
@@ -484,7 +487,7 @@
             drive[F.prop] = null;
             const dir = await getFolder(F.path, false);
             const f = dir && await findFile(dir, F.name);
-            if (!f) return null;
+            if (!f) { (drive.keyNone = drive.keyNone || new Set()).add(which); return null; }   // 없다고 본 파일 = 처음 쓸 때 다시 찾지 않아요 (도련 11-06)
             drive[F.prop] = f;
             return parseJsonObject(await keyFileText(which, f.id), which);
         }
@@ -634,7 +637,7 @@
         function prefetchAfterTurn(dir) { const d = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir); return prefetchDays(d ? [d] : []); }
 
         async function loadFromDrive() {
-            resetDriveCaches(); drive.rootId = null;
+            resetDriveCaches(); drive.rootId = null; drive.keyNone = new Set();
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             drive.newbie = !drive.rootId;                                    // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
@@ -826,7 +829,7 @@
             const dir = await getFolder(F.path, true);
             const known = drive[F.prop];
             let cur = known ? await driveMeta(known.id) : null;
-            if (!cur && !(known == null && drive.deskNone && drive.deskNone.delete(which))) cur = await findFile(dir, F.name);   // 처음이거나 지워졌으면 이름으로 한 번 더 찾기 (방금 읽을 때 없던 책상배치 파일은 건너뛰어요 · 한 번만 · 다른 기기가 먼저 만들었으면 아래에서 합쳐요)
+            if (!cur && !(known == null && ((drive.deskNone && drive.deskNone.delete(which)) || (drive.keyNone && drive.keyNone.delete(which))))) cur = await findFile(dir, F.name);   // 처음이거나 지워졌으면 이름으로 한 번 더 찾기 (방금 읽을 때 없던 책상배치 파일은 건너뛰어요 · 한 번만 · 다른 기기가 먼저 만들었으면 아래에서 합쳐요)
             if (cur && (!known || cur.id !== known.id || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, mine);
             let body = settingsBody(which);
             let saved = await driveUpsert(dir, F.name, cur && cur.id, await keyFileSeal(which, body));

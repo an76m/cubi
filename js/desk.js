@@ -119,7 +119,7 @@
         /* 🎁 설정 / _선물.json { desk: [{u, id}], gd: [디자인 id] } = 지금 가진 선물 (목록에서 g: 1 인 것) */
         const GIFT_NAME = '_선물.json';   // 🎁 설정 폴더 (도련 11-06 · 예전 기본세트 폴더)
         const giftOn = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof getFolder === 'function';
-        let giftChain = Promise.resolve(), giftLate = false;
+        let giftChain = Promise.resolve(), giftLate = false, giftWrote = false;
         function giftBody() {
             const gd = window.gdOwnList ? (gdOwnList() || []) : [];
             const more = n => { try { return window[n] ? window[n]() : []; } catch (e) { return []; } };   // 🧱 🪵 🌈 📔 처음 선물도 여기에 (도련 11-05 · 첫 접속 요청 줄이기 · js/deskskin.js · bgown.js · dyyear.js)
@@ -130,11 +130,11 @@
             if (DK.fresh || drive.deskLocked || (window.gdOwnList && gdOwnList() === null)) { giftLate = true; return giftChain; }   // 아직 책상 목록을 정하는 중 = 선물을 덮어쓰지 않아요 (giftEnsure 가 뒤에 써요)
             giftChain = giftChain.then(async () => {
                 try {
-                    const b = giftBody(), dir = await getFolder(dirPath(DIRS.settings), true), cur = await findFile(dir, GIFT_NAME);
+                    const b = giftBody(), dir = await getFolder(dirPath(DIRS.settings), true), cur = drive.newbie && !giftWrote ? null : await findFile(dir, GIFT_NAME);   // 🆕 처음 온 다꾸러 첫 쓰기 = 찾지 않아요 (도련 11-06)
                     if (!b.desk.length && !b.gd.length && !b.ds.length && !b.bg.length && !b.dy.length) { if (cur) await driveTrash(cur.id); }
                     else await driveUpsert(dir, GIFT_NAME, cur && cur.id, await ownLock(b));   // 🔐
                     giftReadOnce.forget();
-                    giftLate = false;
+                    giftLate = false; giftWrote = true;
                 } catch (e) { console.warn('기본세트', e); giftLate = true; }
             });
             return giftChain;
@@ -142,7 +142,7 @@
         /* 📖 되살리기는 여러 곳(책상 · 벽지 · 배경지 · 다이어리)이 한꺼번에 물어요 → 30초 안에는 한 번만 읽어요 (도련 11-06 · 쓰면 잊어요) */
         const dkMemo = (fn, ms) => { let p = null, at = 0; const get = () => { if (!p || Date.now() - at > ms) { at = Date.now(); p = fn(); p.catch(() => { p = null; }); } return p; }; get.forget = () => { p = null; }; return get; };
         const giftReadOnce = dkMemo(() => giftRead0(), 30000);
-        const giftRead = () => giftReadOnce();
+        const giftRead = () => drive.newbie && !giftWrote ? Promise.resolve(null) : giftReadOnce();   // 🆕 처음 온 다꾸러 = 아직 선물 파일이 없어요 (요청 줄이기 · 도련 11-06)
         async function giftRead0() {
             const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, GIFT_NAME);
             if (!f) return null;
@@ -161,11 +161,11 @@
             try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
         const dkBackupOnce = dkMemo(() => dkBackupRead0(), 30000);
-        const dkBackupRead = () => dkBackupOnce();
+        const dkBackupRead = () => drive.newbie && !dkBkWrote ? Promise.resolve(null) : dkBackupOnce();   // 🆕 처음 온 다꾸러 = 아직 백업이 없어요 (도련 11-06)
         const DK_BK_KEYS = [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
-        let dkBkBusy = false;
+        let dkBkBusy = false, dkBkWrote = false;
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
-            if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit) return;
+            if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit || DK.starting) return;   // DK.starting = 처음 선물을 넣는 중
             const day = new Date().toISOString().slice(0, 10), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
             let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
             if (m[who] === day) return;
@@ -174,11 +174,11 @@
             dkBkBusy = true;
             try {
                 /* 🛡 아직 없는 목록(파일이 없어져서 되살리는 중 · 아직 못 읽음)은 예전 백업 값을 그대로 둬요 (도련 11-06 · 빈 채로 덮으면 되살릴 원본까지 사라져요) */
-                const old = DK_BK_KEYS.some(k => !(k in body)) ? await dkBackupRead0() : null;   // 못 닿으면 에러 → 이번엔 안 써요
+                const old = DK_BK_KEYS.some(k => !(k in body)) && !(drive.newbie && !dkBkWrote) ? await dkBackupRead0() : null;   // 못 닿으면 에러 → 이번엔 안 써요
                 if (old) DK_BK_KEYS.forEach(k => { if (!(k in body) && old[k] != null) body[k] = old[k]; });
-                const dir = await getFolder(dirPath(DIRS.settings), true), cur = await findFile(dir, DK_BK_NAME);
+                const dir = await getFolder(dirPath(DIRS.settings), true), cur = drive.newbie && !dkBkWrote ? null : await findFile(dir, DK_BK_NAME);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
                 await driveUpsert(dir, DK_BK_NAME, cur && cur.id, await ownLock(body));
-                dkBackupOnce.forget();
+                dkBackupOnce.forget(); dkBkWrote = true;
                 m[who] = day; try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
             } catch (e) { console.warn('배치 백업', e); }
             finally { dkBkBusy = false; }
@@ -255,7 +255,7 @@
                 if (DK.fresh) {
                     DK.items = back ? dkRebuild(had, bk, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
                     DK.fresh = false; dkSave();
-                    if (!back) { dkStarterLinks(); dkStarterTapes(); dkStarterMore(); }                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04) · 그 밖의 스티커 · 스티커첩 · 페이지 다이어리 (도련 11-06)
+                    if (!back) { dkStarterLinks(); DK.starting = true; Promise.all([dkStarterTapes(), dkStarterMore()]).finally(() => { DK.starting = false; setTimeout(dkBackupWrite, 3000); }); }   // 🛟 첫 백업은 처음 선물을 다 넣은 뒤 (도련 11-06 · 마테 자리까지)                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04) · 그 밖의 스티커 · 스티커첩 · 페이지 다이어리 (도련 11-06)
                     if (back && bk && bk.diary_desk_fn && typeof bk.diary_desk_fn === 'object' && typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, bk.diary_desk_fn);
                     deskItemsRender(); deskModeRender();
                 }
