@@ -405,7 +405,7 @@
                 if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || !(pg > 0) || !lf(P.내지) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 const lv = (Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], r[2]]);
                 const c = (String(P.표지색).match(/#[0-9a-f]{6}/i) || [P.테두리색])[0];   // 책 그림 색 = 표지 첫 색
-                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg, lv: lv.reverse().concat([[1, pg, P.내지]]), off: !!P.숨김 });   // 구간 먼저 찾고 · 없으면 기본 내지
+                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg, lv: lv.reverse().concat([[1, pg, P.내지]]), off: !!P.숨김, gift: !!P.처음선물 && !P.스토어 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter)   // 구간 먼저 찾고 · 없으면 기본 내지
             }));
         }
         dyTypesBuild();

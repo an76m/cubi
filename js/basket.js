@@ -996,6 +996,30 @@
                 return { cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us, take: async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true }) }; }).filter(x => x.thumbs.length);
         }],
     };
+    /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음선물' 체크 = 처음 온 다꾸러에게 · 앱은 체크된 것만 줘요 · js/desk.js giftEnsure)
+       스티커 = 🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🧻 떡메 · 📃 속지 · 📝 메모지 · 🌸 계절 · 🎁 캡슐 (🎀 마스킹테이프는 마테 정리함에 꽂아서 따로 · dkStarterTapes)
+       → ownTakeMany 에 넘길 종이 [] · 그 종류 목록(_목록.json)에 들어가요 · 💎 스토어 상품은 빼요 · 숨김이어도 체크하면 줘요 */
+    async function bkStarterSheets() {
+        const jobs = [], one = f => jobs.push(Promise.resolve().then(f).catch(e => { console.warn('🎁 처음 선물 스티커', e); return null; }));
+        try { const kit = await basicKit(); kit.sheets.filter(x => x.P && x.P.처음선물 && !x.P.스토어).forEach(x => one(() => ownKitDesc(x.us, '', x.L))); } catch (e) { console.warn('🎁 처음 선물 씰', e); }
+        for (const kind of ['piece', 'paper', 'tk', 'leaf', 'memo']) (window.sbStarter ? await sbStarter(kind) : []).forEach(x => one(x.take));
+        const asData = u => /\.svg$/i.test(u) ? fetch(u).then(r => r.text()).then(t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t)) : Promise.resolve(u);
+        (window.prodList ? prodList('계절스티커') : []).filter(x => x.P.처음선물).forEach(x => { const us = Object.keys(x.u).sort().map(r => x.u[r]); if (us.length) one(async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true })); });
+        (window.capsStarter ? capsStarter() : []).forEach(f => one(f));        // 🎁 캡슐 (js/gacha.js)
+        return (await Promise.all(jobs)).filter(Boolean);
+    }
+    /* 🎁 처음 선물 📒 스티커바인더 · 🤍 이형지북 : 상품공방 '선물서랍' 종류의 스티커첩에 한 권씩 (없으면 첫 서랍) → [바뀐 종류] */
+    async function bkStarterTools() {
+        const add = [], first = t => Object.keys(BK_KINDS).find(k => t === 'bd' || REL_KINDS.has(k));
+        const kindOf = (t, x) => { const k = String(x.P.선물서랍 || ''); return BK_KINDS[k] && (t === 'bd' || REL_KINDS.has(k)) ? k : first(t); };
+        AB_BDP.filter(x => x.P.처음선물).forEach(x => { const k = kindOf('bd', x); if (k) add.push(['bd', abNewBd(k, x.id)]); });
+        AB_RL.filter(x => x.P.처음선물).forEach(x => { const k = kindOf('rl', x); if (k) add.push(['rl', abNewRl(k, x.id)]); });
+        if (!add.length || !window.ownAlbum) return [];
+        const ks = [...new Set(add.map(([, o]) => o.k))];
+        await ownAlbum(a => { add.forEach(([t, o]) => (t === 'bd' ? a.bd : a.rl).push(o)); }, ks);
+        return ks;
+    }
+    window.bkStarterSheets = bkStarterSheets; window.bkStarterTools = bkStarterTools;
     SH.cache = {};                                                            // 한 번 채운 매대는 기억해요 (다시 열면 바로)
     async function shItems(k) {
         if (SH.cache[k]) return SH.cache[k];

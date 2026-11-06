@@ -220,7 +220,7 @@
                 if (DK.fresh) {
                     DK.items = back ? dkRebuild(had, bk, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
                     DK.fresh = false; dkSave();
-                    if (!back) { dkStarterLinks(); dkStarterTapes(); }                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04)
+                    if (!back) { dkStarterLinks(); dkStarterTapes(); dkStarterMore(); }                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04) · 그 밖의 스티커 · 스티커첩 · 페이지 다이어리 (도련 11-06)
                     if (back && bk && bk.diary_desk_fn && typeof bk.diary_desk_fn === 'object' && typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, bk.diary_desk_fn);
                     deskItemsRender(); deskModeRender();
                 }
@@ -248,6 +248,19 @@
                 try { ids = window.ownTakeMany ? await ownTakeMany(its.map(it => it.d)) : []; } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
                 its.forEach((it, i) => { if (ids[i] && window.dktStarterReal) dktStarterReal(it.tmp, ids[i]); else if (window.dktStarterDrop) dktStarterDrop(it.tmp); });
             } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
+        }
+        /* 🎁 그 밖의 처음 선물 (도련 11-06 · 상품공방 '처음선물' 체크 = 처음 온 다꾸러에게 · 앱은 상품공방이 체크한 것만 줘요)
+           🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🧻 떡메 · 📃 속지 · 📝 메모지 · 🌸 계절 · 🎁 캡슐 = 그 종류 목록 (js/basket.js bkStarterSheets · 로그인 · 폴더 저장일 때)
+           📒 스티커바인더 · 🤍 이형지북 = 그 종류 스티커첩 (bkStarterTools) · 📓 페이지노트 · 🗂️ 페이지바인더 = 내가 만든 칸 (js/dymaker.js dmkStarter) */
+        async function dkStarterMore() {
+            try { if (window.dmkStarter) await dmkStarter(); } catch (e) { console.warn('🎁 처음 선물 다이어리', e); }
+            if (!window.ownTakeMany || !(window.ownMode && ownMode())) return;
+            try { if (window.bkStarterTools) await bkStarterTools(); } catch (e) { console.warn('🎁 처음 선물 스티커첩', e); }
+            try {
+                const ds = window.bkStarterSheets ? await bkStarterSheets() : []; if (!ds.length) return;
+                const ids = await ownTakeMany(ds), cap = ds.find((d, i) => d.cap && ids[i]);
+                if (cap && window.capsGiftPop) capsGiftPop(cap.cap);              // 🎁 캡슐 = '첫 선물이 도착했어요' 창 (js/gacha.js)
+            } catch (e) { console.warn('🎁 처음 선물 스티커', e); }
         }
         function dkStarterLinks() {
             if (typeof prefGet !== 'function' || DK.edit) return;

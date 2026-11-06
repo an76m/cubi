@@ -8,9 +8,8 @@
    - 서버 코드 : 랜덤박스_앱스크립트.gs (랜덤박스 시트 → 확장 프로그램 → Apps Script 에 붙여 넣기)
      배포한 웹 앱 주소를 아래 GACHA_API_URL 에 넣어요.
    - 로그인한 사용자만 돌릴 수 있어요 (구글 계정으로 하루 한 번을 확인하기 때문)
-   - 🎁 첫 선물 : 처음 로그인한 사람에게 캡슐 스티커 하나를 30일 선물권으로 줘요
-     '말랑달콤 사람들' 서버가 처음 온 사람이라고 알려 주면(js/presence.js · first) → 랜덤박스 서버 welcome ('코인' 탭에 줄이 없을 때만 · 한 번)
-     '첫 선물이 도착했어요' 창은 ✨ 스티커 → 🎁 캡슐 스티커 칸을 처음 눌렀을 때 떠요 (그때까지 이 기기에 'malang_welcome_pop' 으로 기억)
+   - 🎁 첫 선물 (도련 11-06) : 상품공방 캡슐스티커 '처음선물'에 체크한 것을 처음 온 다꾸러 바구니에 (capsStarter · js/desk.js giftEnsure)
+     앱 · 랜덤박스 서버가 고르지 않아요 (예전 서버 welcome 은 이제 부르지 않아요) · 하나도 체크하지 않으면 캡슐 첫 선물은 없어요
      → '첫 선물이 도착했어요' 창으로 움직이는 스티커를 보여 주고, 얻는 방법(출석 도장 → 코인 → 랜덤박스)을 알려 줘요
    - 이 파일이 없어도 다이어리는 정상 동작 (랜덤박스만 '준비 중')
    ※ 파일 불러오는 순서: … → service → gacha */
@@ -101,13 +100,11 @@
             if (typeof openAttend === 'function') openAttend();
         }
 
-        /* 🎁 첫 선물 : 처음 온 사람이면 js/presence.js 가 불러요 */
-        async function capsWelcome() {
-            const r = await gcApi('welcome');
-            if (!r || !r.ok || !r.gift) return;
-            const k = capsList().find(x => x.id === r.gift.id);
-            if (await capsToBasket(k)) capsWelcomePop(r.gift.id);             // 🎒 첫 선물도 바구니로 · 바로 알려요
-        }
+        /* 🎁 처음 선물 캡슐 (도련 11-06 · 상품공방 캡슐스티커 '처음선물' 체크 · 앱이 고르지 않아요 · js/basket.js bkStarterSheets → js/desk.js giftEnsure)
+           → [종이 만들기] · cap = 그 캡슐 id (받으면 '첫 선물이 도착했어요' 창 · capsGiftPop) */
+        const capsStarter = () => (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.P.처음선물 && x.u && x.u.디자인)
+            .map(x => { const k = { id: x.id, name: String(x.P.이름 || ''), url: x.u.디자인 }; return async () => ({ k: 'seal', from: 'gift', nm: k.name, imgs: [await capsData(k)], baked: true, cap: k.id }); });
+        window.capsStarter = capsStarter; window.capsGiftPop = id => capsWelcomePop(id);
         function capsWelcomePop(id, until) {
             const k = capsList().find(x => x.id === id); if (!k) return;
             const old = document.getElementById('capsWelcome'); if (old) old.remove();

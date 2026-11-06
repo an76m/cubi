@@ -13,7 +13,7 @@
        신호는 다이어리가 '받아서 저장했어요' 하고 알릴 때까지 서버에 남아 있어요 → 다이어리를 안 쓰는 동안 받은 선물도, 접속하면 바로 떠요
        🔔 선물 벨 (js/fbase.js) : 주인이 선물을 주는 순간 파이어스토어가 벨을 울려 줘요 → 그때 한 번만 물어봐요 (로그인 확인 없이 회원번호로 · 아주 가벼워요)
        벨이 안 될 때만(연결 안 됨 · 하루 무료량) 예전처럼 보고 있는 동안 10분마다 · 다이어리로 돌아오는 순간 물어봐요
-   - 처음 온 사람이면(답의 first) 🎁 캡슐 스티커 첫 선물을 받아요 → capsWelcome (js/gacha.js)
+   - 🎁 캡슐 스티커 첫 선물은 여기서 받지 않아요 (도련 11-06 · 상품공방 '처음선물' · js/desk.js giftEnsure)
    - 게스트는 보내지 않아요
    ※ 이 파일이 없어도 다이어리는 정상 동작 */
 
@@ -40,7 +40,6 @@
                 if (j && j.ok && j.me) pr.me = String(j.me);
                 if (j && j.ok && j.code) { pr.code = String(j.code); try { localStorage.setItem('malang_code', pr.code); } catch (e) {} }   // 🛍️ 문구점 주문에 저금 코드를 같이 적으려고 (shop/shop.js)
                 if (j && j.ok && j.gift) prGift(j.gift);
-                if (j && j.ok && j.first && typeof capsWelcome === 'function') capsWelcome();   // 🎁 처음 온 사람 → 캡슐 스티커 첫 선물 (js/gacha.js)
             } catch (e) { pr.last = Date.now() - PR_EVERY + 30000; }
         }
 

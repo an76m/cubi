@@ -62,12 +62,12 @@
            → [{ cnt : 개수 글, look : 'grid' · 'tape' · 'tkimg' · 'leafimg' · 'memoimg' · 'sheet', thumbs : [작은 그림], bigs : [🔍 확대 그림], sec : 모조지 '모양' · '배경', take() → ownTake 에 넘길 종이 }]
            ===================================================================== */
         const sbOwnK = { piece: 'piece', paper: 'paper', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };
-        async function sbShelf(kind) {
+        const sbOkN = v => +v > 0, sbOkC = v => /^#[0-9a-f]{6}$/i.test(v || '');   // 🔎 상품 값은 상품공방이 정해요 (도련 11-02 · 빠지면 그 상품은 안 나와요 · 앱은 짐작하지 않아요)
+        const SB_NEED = { tape: P => sbOkN(P.롤길이) && sbOkN(P.테이프폭), tk: P => sbOkN(P.묶음장수) && sbOkC(P.풀칠색), memo: P => sbOkN(P.묶음장수) && sbOkC(P.글자색), leaf: P => sbOkN(P.묶음장수) };
+        const sbNeed = (kind, x) => !SB_NEED[kind] || SB_NEED[kind](x.P || {}) || (console.warn('🧁 상품 속성이 모자라요 :', kind, x.P && x.P.id), false);
+        function sbCards(kind, list) {                                          // 상품 → 샵 칸 (take() = 받을 종이)
             const out = [], k = sbOwnK[kind];
-            let list = []; try { list = await sbList(kind); } catch (e) {}
-            const okN = v => +v > 0, okC = v => /^#[0-9a-f]{6}$/i.test(v || '');   // 🔎 상품 값은 상품공방이 정해요 (도련 11-02 · 빠지면 그 상품은 안 나와요 · 앱은 짐작하지 않아요)
-            const need = { tape: P => okN(P.롤길이) && okN(P.테이프폭), tk: P => okN(P.묶음장수) && okC(P.풀칠색), memo: P => okN(P.묶음장수) && okC(P.글자색), leaf: P => okN(P.묶음장수) }[kind];
-            list.filter(x => !(x.P && (x.P.선물 || x.P.스토어))).filter(x => !need || need(x.P || {}) || (console.warn('🧁 상품 속성이 모자라요 :', kind, x.P && x.P.id), false)).reverse().forEach(x => {     // 🎁 선물 전용(이벤트 · 저금통) · 💎 스토어(유료)는 무료 샵에 진열 안 해요                              // 새로 들어온 것(뒤 번호)이 맨 앞 (신상 매대처럼 · 도련 10-25)
+            list.forEach(x => {
                 const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
                 if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
@@ -83,22 +83,29 @@
             });
             return out;
         }
+        async function sbShelf(kind) {
+            let list = []; try { list = await sbList(kind); } catch (e) {}
+            return sbCards(kind, list.filter(x => !(x.P && (x.P.선물 || x.P.스토어))).filter(x => sbNeed(kind, x)).reverse());     // 🎁 선물 전용(이벤트 · 저금통) · 💎 스토어(유료)는 무료 샵에 진열 안 해요
+        }
+        /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음선물' · 앱은 상품공방이 체크한 것만 줘요) : 그 종류 [{ id, take }] · 선물 전용이어도 체크하면 줘요 · 💎 스토어는 빼요 */
+        async function sbStarter(kind) {
+            let list = []; try { list = await sbList(kind); } catch (e) {}
+            const L = list.filter(x => x.P && x.P.처음선물 && !x.P.스토어 && sbNeed(kind, x));
+            return sbCards(kind, L).map((c, i) => ({ id: String(L[i].P.id || ''), take: c.take }));
+        }
         async function sbTapeTake(x) {                                           // 🎀 테이프 상품 → 내 종이로 받을 것 (js/own.js ownTake)
             const d = await sbData(kitAt(x.url, 'h120')), h = +x.P.테이프폭, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
             const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
             return { k: 'tape', imgs: [u], th: u, q0: +x.P.롤길이 };
         }
         /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 '처음선물') : 처음 온 다꾸러가 한 롤씩 받아요 → 책상 마테 정리함에 꽂아요 (js/desk.js giftEnsure · js/desktape.js dktStarter) */
-        async function sbStarterTapes() {
-            let list = []; try { list = await sbList('tape'); } catch (e) {}
-            return list.filter(x => x.P && x.P.처음선물 && !x.P.스토어 && +x.P.롤길이 > 0 && +x.P.테이프폭 > 0).map(x => ({ id: String(x.P.id || ''), take: () => sbTapeTake(x) }));
-        }
+        const sbStarterTapes = () => sbStarter('tape');
         const collHashS = s => { s = String(s); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
         /* 🎁 선물 전용 테이프 (이벤트 · 저금통 · 상품공방 '선물') : [{ id, name, url }] */
         let sbGift = null;
         async function sbGiftTapes() { return (sbGift = (await sbList('tape')).filter(x => x.P && x.P.선물).map(x => ({ id: String(x.P.id || ''), name: String(x.P.이름 || ''), url: x.url }))); }
         const sbGiftTapesNow = () => sbGift || [];                                      // 받기 전이면 [] (이름 대신 id 가 보여요)
-        window.sbShelf = sbShelf; window.sbStarterTapes = sbStarterTapes; window.sbDie = sbDie; window.sbGiftTapes = sbGiftTapes; window.sbGiftTapesNow = sbGiftTapesNow;
+        window.sbShelf = sbShelf; window.sbStarterTapes = sbStarterTapes; window.sbStarter = sbStarter; window.sbDie = sbDie; window.sbGiftTapes = sbGiftTapes; window.sbGiftTapesNow = sbGiftTapesNow;
     })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

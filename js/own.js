@@ -386,7 +386,7 @@
             const items = [];
             for (const d of ds) {
                 const imgs = (d.imgs || []).slice(), th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));
-                items.push([{ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b }, Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {})]);
+                items.push([{ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b, L: d.L }, Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {})]);
             }
             return ownAddMany(items);
         }
@@ -550,6 +550,8 @@
             const b = await res.blob();
             return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = no; r.readAsDataURL(b); });
         }
+        /* 🎁 처음 선물 씰 (도련 11-06 · 상품공방 '처음선물') : 씰 시트 → ownTakeMany 에 넘길 종이 (ownTakeKit 과 같은 모양) */
+        async function ownKitDesc(us, nm, L) { return { k: 'seal', from: 'kit', nm, baked: !!L, imgs: await Promise.all(us.map(ownBlobUrl)), us, L }; }
         async function ownTakeKit(us, nm, L) {
             const imgs = await Promise.all(us.map(ownBlobUrl));
             return ownAdd({ k: 'seal', from: 'kit', nm, baked: !!L, imgs, wh: await ownSizes(imgs), L }, { us });   // 🗺️ 배치 시트는 하얀 테두리째 잘라서 더 두르지 않아요
@@ -852,5 +854,5 @@
         window.ownDiscard = ownDiscard;
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
-        window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
+        window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownKitDesc = ownKitDesc; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
         window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice();   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;

@@ -10,7 +10,7 @@ function bgBuild() {                                                         // 
     (window.prodList ? prodList('배경지') : []).forEach(x => {
         const P = x.P || {}, u = x.u && x.u.디자인, css = P.레시피 && typeof P.레시피 === 'object' && window.MK ? MK.css(P.레시피) : P.css && typeof P.css === 'object' ? P.css   // 🧵 레시피 = 무늬 메이커 (js/maker.js · 상품공방에서 만든 그대로 · 도련 11-05) · css = 개발자가 직접 쓴 것 · 🔎 그림만 올린 것 = 바탕색 · 무늬 크기
             : u && /^#[0-9a-f]{6}$/i.test(P.바탕색 || '') && +P.무늬크기 > 0 ? { backgroundColor: P.바탕색, backgroundImage: `url('${u}')`, backgroundSize: +P.무늬크기 + 'px' } : null;
-        if (css && String(P.이름 || '')) BG_PATTERNS.push({ id: x.id, tier: P.숨김 ? 'off' : 'free', name: String(P.이름), css, g: P.분류 === '단색' ? 'solid' : 'pat' });
+        if (css && String(P.이름 || '')) BG_PATTERNS.push({ id: x.id, tier: P.숨김 ? 'off' : 'free', name: String(P.이름), css, g: P.분류 === '단색' ? 'solid' : 'pat', gift: !!P.처음선물 && !P.스토어 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06)
         else console.warn('🧁 배경지 속성이 모자라요 :', x.id);
     });
 }

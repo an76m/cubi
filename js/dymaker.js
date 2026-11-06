@@ -244,6 +244,25 @@
             dmkClose();
         }
 
+        /* 🎁 처음 선물 📓 페이지노트 · 🗂️ 페이지바인더 (도련 11-06 · 상품공방 '처음선물' 체크 · 앱이 정하지 않아요 · js/desk.js giftEnsure)
+           그 상품 모양 그대로 한 권씩 '내가 만든' 칸에 (노트 = 노트표지 폴더에도 · 바인더 = 상품 표지 + 처음 끼워진 내지 · 조립한 것처럼) → 준 권 수 */
+        async function dmkStarter() {
+            const gs = (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.gift && DMK_SZ.some(s => s[0] === p.n));
+            if (!gs.length) return 0;
+            const t0 = Date.now(), ds = gs.map((p, i) => {
+                const id = 'my' + (t0 + i).toString(36);
+                return p.k === '노트'
+                    ? dmkClean({ id, t: 'note', g: p.g, n: p.n, b: p.b, c: p.c, cols: p.cols, cw: 1, pg: p.pg, lv: p.lv })
+                    : dmkClean({ id, t: 'binder', g: p.g, n: p.n, c: p.c, cols: p.cols, cv: 'p:' + p.id, cg: p.g, rf: [{ id: 'p:' + p.id, g: p.g + ' 내지', pg: p.pg, lv: p.lv.slice().reverse() }] });   // 🧩 dmkRmPick 과 같은 모양
+            }).filter(Boolean);
+            const m = Object.assign({}, dmkMap()); ds.forEach(d => { m[d.id] = d; }); prefSet(DMK_KEY, DMK_LOCAL, m);
+            for (const d of ds.filter(d => d.t === 'note')) {                  // 📓 노트는 드라이브 노트표지 폴더에도 (dmkSave 처럼)
+                try { const item = Object.assign({}, d); delete item.u; d.u = await collAdd(dmkColl('note'), item, '', item); dmkPut(d); } catch (e) { console.warn('🎁 처음 선물 노트', e); }
+            }
+            return ds.length;
+        }
+        window.dmkStarter = dmkStarter;
+
         /* ---------- 🧩 바인더 조립 : 표지 하나 + 같은 크기 내지를 차례로 끼워요 ---------- */
         let dmkRm = null;                                                      // { id(고칠 때), g, cv, c, cg, n, rf:[{ id, g, pg, lv }] }
         function dmkRoomOpen(id) {
