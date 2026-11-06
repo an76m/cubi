@@ -235,7 +235,7 @@
         const VAULT_KEYS = ['zq7k2m', 'xr4p9w'];
         /* 🪑 책상배치 폴더 = 역할마다 파일 하나 (도련 11-06 · 예전엔 배치.json 하나에 목록 · 자리 · 설정이 다 있었어요) · 모두 🔐 계정 열쇠 · 바뀐 파일만 올라가요 (소품을 옮기면 배치.json 만) */
         const DESK_FILE_KEYS = {
-            desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
+            desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_tape', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 🎀 정리함에 꽂힌 롤 (도련 11-06) · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
             dkown: ['diary_desk_own'],                                                                        // 🔐 _소품목록.json
             gdown: ['diary_gd_own'],                                                                          // 🔐 _문구목록.json
             deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got'],                                 // ⚙ 책상설정.json

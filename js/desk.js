@@ -162,7 +162,7 @@
         }
         const dkBackupOnce = dkMemo(() => dkBackupRead0(), 30000);
         const dkBackupRead = () => dkBackupOnce();
-        const DK_BK_KEYS = [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
+        const DK_BK_KEYS = [DK_OWN_KEY, DK_POS_KEY, 'diary_desk_fn', 'diary_gd_own', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
         let dkBkBusy = false;
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
             if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit) return;
@@ -220,6 +220,7 @@
                 try {
                     const bk = await dkBackupRead(), p = bk && bk[DK_POS_KEY];
                     if (p && typeof p === 'object' && !DK.edit) { DK.items = dkJoin(dkSplit(DK.items).own, p); dkSave(); deskItemsRender(); deskModeRender(); }
+                    ['diary_gd_at', 'diary_desk_tape'].forEach(k => { const v = bk && bk[k]; if (v && typeof v === 'object' && prefGet(k, '') == null) prefSet(k, '', v); });   // ✏️ 문구의 집 · 🎀 정리함 롤도 배치.json 에 있었어요 (도련 11-06)
                 } catch (e) { console.warn('배치 되살리기', e); }
             }
             let gdNull = window.gdOwnList ? gdOwnList() === null : false;

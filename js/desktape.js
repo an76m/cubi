@@ -5,7 +5,7 @@
    - 꽂힌 롤 = 옆모습 (그 테이프 무늬 · 남은 길이만큼 지름이 줄어요) · 톡 = 다이어리를 펴고 바로 페이지에 붙여요 (정리함엔 그대로)
    - 🛠 책상 꾸미기에서만 : 롤을 끌어 다른 칸 · 다른 정리함으로 (차 있으면 서로 바꿔요) · 정리함 밖에 놓으면 서랍(마스킹테이프 칸)으로
    - 정리함에 꽂힌 테이프는 바구니 · 서랍 마스킹테이프 칸에 안 보여요 (js/desk.js deskBagHold 의 s 에 더해요 · 한 곳에만 있어요)
-   - 저장 : 'diary_desk_tape' { 소품 u: [칸마다 테이프 id | null] } (게스트 'malang_desk_tape') */
+   - 저장 : 'diary_desk_tape' { 소품 u: [칸마다 테이프 id | null] } → 🔐 설정 / 배치.json (도련 11-06 · js/drive.js DESK_FILE_KEYS · 게스트 'malang_desk_tape') */
 (function () {
     const DKT_KEY = 'diary_desk_tape', DKT_L = 'malang_desk_tape';
     const T = { list: null, loading: false, drag: null, fresh: false, tmp: new Map(), ov: {}, wait: new Map() };   // wait = 임시 롤을 누르고 기다리는 중 (tmp → [ok])   // ov = { 정리함 u: [칸마다 임시 롤 id] } (저장 전 · 화면에만)   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
