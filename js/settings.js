@@ -361,6 +361,22 @@
             location.reload();
         }
         window.clearBrowserStore = clearBrowserStore;
+        /* 🧾 문제 기록 보기 (도련 11-06) : 말랑달콤 / 설정 / _기록.json + 이 창에서 아직 안 올린 것 · 새것부터 · 📋 복사 = Claude 에게 붙여 넣기 */
+        const DIAG_TXT = { start: '▶ 앱 시작', mkdir: '📁 폴더 만듦', dup: '📁📁 같은 이름 폴더가 여러 개', merge: '📁 폴더 합침 → 빈 폴더 휴지통', mergeFail: '⚠ 폴더 합치기 멈춤', trash: '🗑 휴지통으로', kill: '🔥 완전 삭제 (다 쓴 종이)', twrite: '⚠ 휴지통 파일에 쓰려다 새로 만듦', stale: '⚠ 기억한 파일이 휴지통에 있음', gone: '⚠ 폴더가 없어져서 다시 찾음', root: '🗑 말랑달콤 폴더가 지워진 걸 알아챔', rescue: '🛟 목록 되살림', rescueWait: '⏳ 목록이 없지만 방금 받은 종이라 기다림', noList: '📄 목록 없음 → 빈 목록', shrink: '⚠ 목록이 한꺼번에 줄었음' };
+        let diagLast = '';
+        async function openDiag() {
+            if (!window.diagRead) { showMsg('기록 장치를 불러오지 못했어요.'); return; }
+            const all = await diagRead(); diagLast = JSON.stringify(all.slice(-400));
+            const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+            const when = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
+            const rest = r => Object.entries(r).filter(([k]) => !['t', 'd', 'v', 'e', 'who'].includes(k)).map(([k, v]) => `${k}=${v}`).join(' ');
+            const rows = all.slice(-150).reverse().map(r => `<div style="padding:4px 0;border-bottom:1px dashed #f1d3dd"><b>${esc(DIAG_TXT[r.e] || r.e)}</b> <small style="color:#999">${esc(when(r.t))} · 기기 ${esc(r.d)} · v${esc(r.v)}</small><br><small style="color:#777;word-break:break-all">${esc(rest(r))}${r.who ? ' · ' + esc(r.who) : ''}</small></div>`).join('');
+            showMsg(`🧾 <b>문제 기록</b> <small style="color:#999">(최근 ${Math.min(150, all.length)}줄 · 모두 ${all.length}줄)</small>
+                <div style="max-height:46vh;overflow:auto;text-align:left;font-size:12px;margin:8px 0;padding:0 4px">${rows || '<p style="color:#999">아직 기록이 없어요.</p>'}</div>
+                <button type="button" class="btn" onclick="diagCopy(this)">📋 기록 복사 (Claude 에게 붙여 넣기)</button>`);
+        }
+        async function diagCopy(b) { try { await navigator.clipboard.writeText(diagLast); if (b) b.textContent = '✅ 복사했어요'; } catch (e) { if (b) b.textContent = '⚠ 복사하지 못했어요'; } }
+        window.openDiag = openDiag; window.diagCopy = diagCopy;
 
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */

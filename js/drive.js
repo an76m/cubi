@@ -53,6 +53,55 @@
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
         const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
+        /* =====================================================================
+           🧾 문제 기록 (도련 11-06 · 마테 목록이 사라졌을 때 원인을 알 수 없어서) : 파일을 지우거나 · 휴지통에 넣거나 · 폴더를 만들고 합치거나 · 되살릴 때마다 한 줄
+           - 저장 : 말랑달콤 / 설정 / _기록.json (글자 그대로 · 400줄까지 · 기기마다 섞여서 · 새 줄이 생기면 30초 안에 한 번) · 게스트는 이 창 메모리만
+           - 보기 : ⚙ 설정 → 💾 저장 → 🧾 문제 기록 (📋 복사 → Claude 에게 붙여 넣기)
+           - 일기 · 스티커 내용 · 계정은 적지 않아요 (언제 · 어느 기기 · 무엇을 · 어떤 파일 이름 · 번호 · 누가 불렀는지만)
+           ===================================================================== */
+        const DIAG_NAME = '_기록.json', DIAG_MAX = 400, DIAG_LS = 'malang_diag_q', DIAG = { q: [], t: 0, last: 0, busy: false, f: null };
+        try { const L = JSON.parse(localStorage.getItem(DIAG_LS) || '[]'); if (Array.isArray(L)) DIAG.q = L.slice(-100); } catch (e) {}   // 새로고침 · 앱이 꺼지기 전에 못 올린 기록
+        const diagKeep = () => { try { localStorage.setItem(DIAG_LS, JSON.stringify(DIAG.q.filter(r => !r.up).slice(-100))); } catch (e) {} };
+        const diagDev = (() => { try { let d = localStorage.getItem('malang_dev_id'); if (!d) { d = Math.random().toString(36).slice(2, 7); localStorage.setItem('malang_dev_id', d); } return d; } catch (e) { return 'x'; } })();
+        const diagVer = () => { try { const m = /[?&]v=([\w-]+)/.exec((document.querySelector('script[src*="js/drive.js"]') || {}).src || ''); return m ? m[1].replace(/^20261009-/, '') : ''; } catch (e) { return ''; } };
+        function diagWho() {                                                     // 누가 불렀는지 (함수 이름 두 개)
+            const L = String(new Error().stack || '').split('\n').slice(1).map(l => (/at (?:async )?([\w$.]+) /.exec(l) || [])[1]).filter(n => n && !/^(diag|diagWho|driveTrash|ownFileKill|Object\.|Promise|new |eval|async$)/.test(n));
+            return L.slice(0, 2).join('<');
+        }
+        function diag(e, o) {
+            try {
+                const r = Object.assign({ t: new Date().toISOString(), d: diagDev, v: diagVer(), e }, o || {});
+                if (!r.who && e !== 'start') r.who = diagWho();
+                DIAG.q.push(r); if (DIAG.q.length > DIAG_MAX) DIAG.q.splice(0, DIAG.q.length - DIAG_MAX); diagKeep();
+                console.info('🧾', e, o || '');
+                clearTimeout(DIAG.t); DIAG.t = setTimeout(diagFlush, Math.max(20000, 30000 - (Date.now() - DIAG.last)));   // 처음 접속 요청에 끼지 않게 20초 뒤부터
+            } catch (x) {}
+        }
+        async function diagFlush() {
+            if (DIAG.busy || typeof drive === 'undefined' || drive.guest || drive.wiped) return;
+            if (!drive.ready) { clearTimeout(DIAG.t); DIAG.t = setTimeout(diagFlush, 15000); return; }   // 로그인 · 읽기가 끝나면
+            const mine = DIAG.q.filter(r => !r.up); if (!mine.length) return;
+            DIAG.busy = true; DIAG.last = Date.now();
+            try {
+                const dir = await getFolder(SETTINGS_PATH, false); if (!dir) return;   // 설정 폴더가 있을 때만 (기록 때문에 말랑달콤 폴더를 새로 만들지 않아요)
+                const cur = await findFile(dir, DIAG_NAME);
+                let old = []; if (cur) { try { const o = JSON.parse(await readFileText(cur.id)); if (Array.isArray(o.ev)) old = o.ev; } catch (e) {} }
+                const key = r => r.t + r.d + r.e + (r.id || r.name || r.p || '');
+                const seen = new Set(old.map(key)), all = old.concat(mine.filter(r => !seen.has(key(r))).map(r => { const c = Object.assign({}, r); delete c.up; return c; }));
+                all.sort((a, b) => (a.t < b.t ? -1 : 1));
+                await driveUpsert(dir, DIAG_NAME, cur && cur.id, JSON.stringify({ v: 1, ev: all.slice(-DIAG_MAX) }));
+                mine.forEach(r => { r.up = 1; }); diagKeep();
+            } catch (e) { console.warn('🧾 문제 기록을 올리지 못했어요 (다음에 다시) :', e); }
+            finally { DIAG.busy = false; }
+        }
+        async function diagRead() {                                              // 보기 : 드라이브 것 + 아직 안 올린 것
+            let old = [];
+            try { if (drive.ready && !drive.guest) { const dir = await getFolder(SETTINGS_PATH, false), cur = dir && await findFile(dir, DIAG_NAME); if (cur) { const o = JSON.parse(await readFileText(cur.id)); if (Array.isArray(o.ev)) old = o.ev; } } } catch (e) {}
+            const key = r => r.t + r.d + r.e + (r.id || r.name || r.p || ''), seen = new Set(old.map(key));
+            return old.concat(DIAG.q.filter(r => !seen.has(key(r))).map(r => { const c = Object.assign({}, r); delete c.up; return c; })).sort((a, b) => (a.t < b.t ? -1 : 1));
+        }
+        window.diag = diag; window.diagRead = diagRead; window.diagFlush = diagFlush;
+        addEventListener('pagehide', () => { if (DIAG.q.some(r => !r.up)) diagFlush(); });
         const DESK_PATH = SETTINGS_PATH, DESK_FILE_NAME = '배치.json';   // 🪑 책상 · 가진 것 목록도 설정 폴더에 (도련 11-06)
         const CAFE_PATH = dirPath(DIRS.cafe), CAFE_FILE_NAME = '카페.json';
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
@@ -367,7 +416,7 @@
 
         async function findFolder(name, parentId) {
             const files = await driveList(`name='${qName(name)}' and mimeType='${FOLDER_MIME}' and '${parentId || DRIVE_PARENT_DEFAULT}' in parents and trashed=false`, 'id,name');
-            if (files.length > 1) mergeFolders(files[0].id, files.slice(1).map(f => f.id));   // 두 기기가 동시에 만든 같은 폴더 → 먼저 만든 쪽으로 합치기 (기다리지 않음)
+            if (files.length > 1) { diag('dup', { name, n: files.length, ids: files.map(f => f.id).join(',') }); mergeFolders(files[0].id, files.slice(1).map(f => f.id)); }   // 두 기기가 동시에 만든 같은 폴더 → 먼저 만든 쪽으로 합치기 (기다리지 않음)
             return files[0] ? files[0].id : null;
         }
         /* 같은 이름 폴더 합치기 : 나중 폴더 안의 것을 모두 먼저 폴더로 옮기고, 빈 폴더는 휴지통으로
@@ -379,7 +428,7 @@
                 folderMerging.add(id);
                 try {
                     /* 🛟 드라이브는 방금 만든 파일이 목록에 늦게 나올 때가 있어요 → 옮긴 뒤 조금 기다렸다 다시 보고, 두 번 연달아 비어 있을 때만 휴지통으로 (도련 11-06 · 목록 파일이 든 폴더째 휴지통에 들어가던 것) */
-                    let empty = 0;
+                    let empty = 0, diagMoved = 0;
                     for (let round = 0; round < 6 && empty < 2; round++) {
                         if (round) await new Promise(r => setTimeout(r, 4000));
                         const kids = await driveList(`'${id}' in parents and trashed=false`, 'id');
@@ -390,12 +439,14 @@
                                 method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: '{}'
                             });
                             if (!res.ok) throw await driveFail(res, 'move');
+                            diagMoved++;
                         }
                     }
                     if (empty < 2) throw new Error('folder not empty yet');           // 아직 남은 게 있으면 휴지통에 넣지 않아요 (다음에 열 때 다시 합쳐요)
+                    diag('merge', { id, keep: keepId, moved: diagMoved, trash: 1 });
                     await driveTrash(id);
                     drive.monthIndex.clear();                               // 옮겨진 일기가 다시 보이도록
-                } catch (e) { console.warn('같은 이름 폴더를 합치지 못했어요:', e); }
+                } catch (e) { console.warn('같은 이름 폴더를 합치지 못했어요:', e); diag('mergeFail', { id, keep: keepId, err: String(e && e.message || e).slice(0, 60) }); }
                 finally { folderMerging.delete(id); }
             }
         }
@@ -428,6 +479,7 @@
                 let id = miss ? null : await findFolder(name, parentId);
                 if (!id && create) {
                     id = await createFolder(name, parentId);
+                    diag('mkdir', { p: key, id, miss: miss ? 1 : 0 });
                     const again = await findFolder(name, parentId);                // 그 사이 다른 기기도 만들었으면 먼저 만든 쪽을 써요
                     if (again) id = again;
                 }
@@ -648,7 +700,7 @@
             resetDriveCaches(); drive.rootId = null; drive.keyNone = new Set();
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
-            drive.newbie = !drive.rootId;                                    // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
+            drive.newbie = !drive.rootId; diag('start', { mode: drive.local ? 'folder' : 'google', newbie: drive.newbie ? 1 : 0 });   // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
             drive.deskLocked = false;
             const desks = await fetchDeskFiles();                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
@@ -687,13 +739,14 @@
                 if (!j.trashed) return mineWrote(j);
                 /* 🗑 휴지통에 들어간 파일 (폴더를 지웠거나 · 같은 이름 폴더 합치기로) : 번호로는 써지지만 드라이브 폴더에서는 안 보여요 (도련 11-06 마테 목록이 사라진 까닭)
                    → 그 파일은 그대로 두고 지금 폴더에 새로 만들어요 (폴더도 휴지통이면 'gone' → 부른 쪽이 폴더를 다시 찾아요) */
-                console.warn('🗑 휴지통에 있는 파일에 쓰려고 했어요 → 지금 폴더에 새로 만들어요 :', name);
+                console.warn('🗑 휴지통에 있는 파일에 쓰려고 했어요 → 지금 폴더에 새로 만들어요 :', name); diag('twrite', { name, id: fileId });
                 drive.alive.delete(folderId);
             }
             /* 새 파일을 만들기 전에 폴더가 살아 있는지 드라이브에 직접 확인 : 휴지통에 들어간 폴더에 만들면 일기가 안 보이게 돼요
                → 폴더가 없거나 휴지통이면 기억해 둔 폴더를 모두 잊고 'gone' (부른 쪽이 폴더를 다시 찾아서 다시 저장해요) */
             const seen = drive.alive.get(folderId);                              // 🔁 30초 안에 확인한 폴더는 다시 묻지 않아요 (처음 접속 · 여러 개 올릴 때 요청 줄이기 · 도련 11-05)
             if (!(seen && Date.now() - seen < 30000) && !(await driveMeta(folderId))) {
+                diag('gone', { name, dir: folderId });
                 resetDriveCaches();
                 const er = new Error('folder gone'); er.code = 'gone'; throw er;
             }
@@ -711,6 +764,7 @@
         }
 
         async function driveTrash(fileId) {
+            diag('trash', { id: fileId });
             const res = await gfetch(`${DRIVE_API}/${fileId}?fields=id`, {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ trashed: true })
             });
@@ -959,7 +1013,7 @@
         }
         /* 지워졌으면 : 메모리 · 임시 보관본에 든 옛 내용을 올리지 않고 처음 상태로 다시 열어요 */
         async function rootReset() {
-            drive.wiped = true; clearTimeout(uploadTimer);
+            drive.wiped = true; clearTimeout(uploadTimer); diag('root', {});
             drive.dirtyKeys.clear(); clearPending();
             const { forget } = await readAllPending(); await forget();
             await showMsg('☁ 구글 드라이브의 <b>말랑달콤</b> 폴더가 지워졌어요.<br>처음 상태로 다시 열게요.');

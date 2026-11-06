@@ -163,7 +163,7 @@
                 const m = d.f ? d.f.id : (ownFilesGet(k) || {}).i;
                 if (m && (d.f || await ownLive(m))) f = { id: m };              // ⚡ 아는 번호면 찾지 않고 바로 (도련 10-25)
                 else {
-                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && Array.isArray(o0.list)) d.tBase = o0.list; } catch (e) {} console.warn('🗑 기억한 목록 파일이 휴지통에 있어요 → 지금 폴더에서 다시 찾아요 :', k); }
+                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && Array.isArray(o0.list)) d.tBase = o0.list; } catch (e) {} console.warn('🗑 기억한 목록 파일이 휴지통에 있어요 → 지금 폴더에서 다시 찾아요 :', k); if (window.diag) diag('stale', { k, f: '목록', id: m, base: d.tBase ? d.tBase.length : -1 }); }
                     f = await find();
                 }
             }
@@ -178,7 +178,8 @@
             if (!t.trim()) return ownRescue(k, 'missing');
             let o; try { o = await ownUnlock(t); } catch (e) { const r = await ownRescue(k, 'corrupt'); if (r) return r; throw e; }
             d.txt = t;                                                           // 🛟 잘 읽힌 목록만 백업해요 (ownBackup)
-            return ownIdxClean(o.list, k);
+            const L0 = ownIdxClean(o.list, k); d.n = L0.length;
+            return L0;
         }
         /* 🛟 목록 되살리기 (도련 10-26 · 11-05 종류마다) : 그 종류 목록 파일이 없어졌거나 깨졌을 때만
            - 그 종류 폴더의 백업 목록(받은 때 · 바구니 미리보기 · 이름)을 바탕으로, 그 폴더에 실제로 남은 종이 파일을 모두 읽어 맞춰요 (_ 로 시작하는 목록 · 스티커첩 · 백업 파일은 빼요)
@@ -188,7 +189,7 @@
            - 목록이 없고 백업도 없으면 처음 쓰는 종류 → [] (한 번 보고 나면 다시 찾지 않아요) · 목록이 깨졌으면 백업이 없어도 종이 파일로 되살려요 */
         async function ownRescue(k, why) {
             const nk = O.kw + '|' + k;
-            const none = () => { if (why === 'missing') { O.noR.add(nk); return []; } return null; };
+            const none = () => { if (why === 'missing') { O.noR.add(nk); if (window.diag) diag('noList', { k }); return []; } return null; };   // 🧾 목록 없음 = 빈 목록으로 (처음 쓰는 종류)
             if (why === 'missing' && O.noR.has(nk)) return [];
             const dir = await ownKindDir(k, false); if (!dir) return none();
             let base = [], bkOk = false;
@@ -201,7 +202,7 @@
             /* 백업도 없으면 : 그 폴더에 종이 파일이 있을 때만 종이로 되살려요 (예전엔 '처음 쓰는 종류'로 보고 빈 목록 → 종이는 남았는데 안 보이던 것 · 도련 11-06) */
             const files = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).filter(x => /^[a-z0-9]+\.json$/i.test(x.name));   // 내 종이만 (_ 목록 · 스티커첩 · 백업 · 공유하기 내-/받은- 파일은 빼요)
             if (!bkOk && !files.length) return none();                          // 종이도 없으면 = 정말 처음 쓰는 종류
-            if (!bkOk && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) return none();   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
+            if (!bkOk && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) { if (window.diag) diag('rescueWait', { k, papers: files.length }); return none(); }   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
             const got = new Map(); let i = 0;
             await Promise.all(Array.from({ length: 4 }, async () => {
                 while (i < files.length) {
@@ -230,6 +231,7 @@
                 if (ownHas(e)) list.push(e);                                      // 🗑 버린 종이도 그대로 (백업의 bin 표시째)
             }
             list.sort((p, q) => (p.at || 0) - (q.at || 0));
+            if (window.diag) diag('rescue', { k, why, n: list.length, papers: files.length, bk: bk ? 1 : 0, base: base.length });   // 🧾
             await ownIdxWrite(k, list);
             O.noR.delete(nk); ownRescueSay();
             return list;
@@ -260,6 +262,8 @@
             try { saved = await driveUpsert(await ownKindDir(k, true), OWN_IDX, d.f && d.f.id, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; d.f = null; saved = await driveUpsert(await ownKindDir(k, true), OWN_IDX, null, body); }
             d.f = { id: saved.id, modifiedTime: saved.modifiedTime }; ownFilesNow(k);
+            if (window.diag && d.n != null && list.length < d.n - 1) diag('shrink', { k, from: d.n, to: list.length });   // 🧾 목록이 한꺼번에 줄었어요 (다 쓴 종이 하나씩은 괜찮아요)
+            d.n = list.length;
         }
         async function ownFileNew(sheet) {
             const body = await ownLock(sheet);
@@ -277,6 +281,7 @@
         /* 🔥 완전 삭제 : 휴지통 · 옛 버전 기록에도 남지 않아요 (DELETE) */
         async function ownFileKill(fid) {
             if (!fid) return;
+            if (window.diag && ownMode() !== 'mem') diag('kill', { id: fid });   // 🧾 완전 삭제 (js/drive.js diag)
             if (ownMode() === 'mem') { O.mem.files.delete(fid); return; }
             const res = await gfetch(`${DRIVE_API}/${fid}`, { method: 'DELETE' });
             if (!res.ok && res.status !== 404) throw await driveFail(res, 'delete');
@@ -632,7 +637,7 @@
                 const m = d.albF ? d.albF.id : (ownFilesGet(k) || {}).a;
                 if (m && (d.albF || await ownLive(m))) f = { id: m };            // ⚡ 아는 번호면 바로
                 else {
-                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && o0.album && typeof o0.album === 'object') d.tAlb = o0.album; } catch (e) {} }
+                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && o0.album && typeof o0.album === 'object') d.tAlb = o0.album; } catch (e) {} if (window.diag) diag('stale', { k, f: '스티커첩', id: m }); }
                     f = await find();
                 }
             }
@@ -658,6 +663,7 @@
             if (bk) { try { const o = await ownUnlock(await readFileText(bk.id)); a = o && o.album && typeof o.album === 'object' ? ownAlbPart(o.album, k) : null; }
                 catch (e) { if (!(e && e.code === 'corrupt')) throw e; } }
             if (!a && tA) a = ownAlbPart(tA, k);                                 // 🗑 휴지통에 들어간 스티커첩 (도련 11-06)
+            if (window.diag) diag('rescue', { k, f: '스티커첩', why, bk: bk ? 1 : 0, ok: a ? 1 : 0 });
             if (!a) return null;
             await ownAlbWrite(k, ownAlbumClean(a, null));
             O.noR.delete(nk); ownRescueSay();
