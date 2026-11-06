@@ -24,8 +24,9 @@
         };
         /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
         const CRAFT_KINDS = [
-            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 🏷️ 씰' },
-            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam', 'album', 'text'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
+            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['booth', 'cam', 'album', 'text'],   // 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
+            to: '🗄️ 서랍 · 🏷️ 씰' },
+            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
             { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam', 'album'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
             { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['leaf'], to: '🗄️ 서랍 · 📃 속지' },
             { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['tk'], to: '🗄️ 서랍 · 🧻 떡메 한 묶음' },
