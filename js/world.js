@@ -212,7 +212,7 @@
             const el = q('wdSt'); if (!el) return;
             const n = S.ppl.size + 1;
             el.textContent = !online() ? '임시 · 혼자 걷기'
-                : N.st === 'on' ? (S.ev ? `${n}명 · 최대 ${N.max}명` : `${N.room}번 방 · ${n}명`) : N.st === 'again' ? '다른 창에서 들어갔어요' : N.st === 'login' ? '로그인이 필요해요' : N.st === 'full' ? '방이 모두 꽉 찼어요' : '연결하는 중…';
+                : N.st === 'on' ? (S.ev ? `${n}명 · 최대 ${N.max}명` : `${N.room}번 방 · ${n}명`) : N.st === 'again' ? '다른 창에서 들어갔어요' : N.st === 'login' ? '로그인이 필요해요' : N.st === 'full' ? '방이 모두 꽉 찼어요' : N.st === 'soon' ? '아직 안 열렸어요' : N.st === 'ended' ? '끝났어요' : '연결하는 중…';
             const inp = q('wdSayIn'); if (inp) inp.placeholder = !online() ? '말풍선 (지금은 나만 보여요)' : N.st === 'on' ? '말하기 (방 사람들에게 보여요)' : '연결되면 말할 수 있어요';
         }
         const send = o => { try { if (N.ws && N.ws.readyState === 1) { N.ws.send(JSON.stringify(o)); return true; } } catch (e) {} return false; };
@@ -242,6 +242,7 @@
                 if (e.code === 4001) { N.st = 'again'; status(); return; }               // 같은 계정이 다른 창 · 기기에서 들어갔어요
                 if (e.code === 4401) { N.st = 'login'; status(); return; }
                 if (e.code === 4409) { N.st = 'full'; status(); return; }
+                if (e.code === 4423 || e.code === 4410) { N.st = e.code === 4423 ? 'soon' : 'ended'; status(); return; }   // 📅 예약 : 아직 · 끝 (다시 연결하지 않아요)
                 if (!S.on) return;
                 N.st = 'wait'; status();
                 N.retry = Math.min(N.retry + 1, 6);
@@ -279,7 +280,9 @@
             else if (m.t === 'mv') { const p = S.ppl.get(m.id); if (p) { p.sp = null; p.tx = m.x; p.ty = m.y; p.face = m.f === -1 ? -1 : 1; } }
             else if (m.t === 'say') { const p = S.ppl.get(m.id); if (p) { p.say = String(m.s || '').slice(0, 100); p.sayT = performance.now() + SAY_MS; } }
             else if (m.t === 'out') { S.ppl.delete(m.id); status(); }
-            else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : 'wait'; status(); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
+            else if (m.t === 'end') { N.st = 'ended'; status(); if (window.showMsg) showMsg(String(m.s || '🎆 파티가 끝났어요!').slice(0, 80)); }   // 📅 끝 시간 (서버가 내보내요)
+            else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : m.e === 'soon' ? 'soon' : m.e === 'ended' ? 'ended' : 'wait'; status();
+                if ((m.e === 'soon' || m.e === 'ended') && window.showMsg) showMsg(m.e === 'soon' ? `🎉 아직 안 열렸어요.<br><b>${new Date(+m.from || Date.now()).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' })}</b>에 열려요.` : '🎆 파티가 끝났어요!<br>다음에 또 만나요.'); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
         }
         function netMoveOld() {
             const m = S.me, now = performance.now();
@@ -418,6 +421,7 @@
             if (document.hidden) cancelAnimationFrame(S.raf);
             else { S.last = 0; S.raf = requestAnimationFrame(loop); if (online() && !N.ws && N.st !== 'again') netOpen(); }   // 돌아오면 끊긴 연결 다시
         });
+        window.WORLD_BASE = () => (local() && window.WORLD_URL_TEST) || WORLD_URL;   // 🎉 이벤트 알림판 = 평소 광장 서버 /event (js/service.js evLiveCheck)
         window.openWorld = openWorld; window.closeWorld = closeWorld; window.worldOn = wOn; window.WORLD = S;
         window.worldReconnect = () => { N.retry = 0; netOpen(); };
         window.worldTapSt = () => { if (online() && S.on && N.st !== 'on' && N.st !== 'login') worldReconnect(); };   // '다른 창에서 들어갔어요' · '꽉 찼어요' 를 누르면 다시 들어가기

@@ -116,7 +116,7 @@
             if (NT.busy || (!force && Date.now() - NT.at < NOTICE_RECHECK_MS)) return;
             NT.busy = true;
             try { NT.cur = await noticeFetch(); NT.at = Date.now(); } finally { NT.busy = false; }
-            noticePaint(); evPaint();
+            noticePaint(); evPaint(); evLiveCheck(true);
         }
         /* =====================================================================
            🎉 이벤트 광장 입구 (도련 11-06) : notice.json 에 "ev" 칸을 넣으면 ☕ 카페 · 🚪 이동 창에 '🎉 이벤트 광장' 칸이 생겨요
@@ -132,7 +132,31 @@
             return { name: String(e.name || '🎉 이벤트 광장').slice(0, 30), url, from, to };
         }
         const evTime = t => new Date(t).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
+        /* 🎉 지금 열린 이벤트 (도련 11-06 · 집 PC 서버를 켜면 바로) : 평소 광장 서버 알림판 GET /event → { on, url, name, max, n }
+           - 묻는 때 : 앱을 켤 때 한 번 · ☕ 카페 · 🚪 이동 창을 열 때 (1분에 한 번까지 · 무료 한도를 아껴요)
+           - 켜져 있으면 notice.json 'ev' 보다 먼저 · 끄면 (2분 안에) 칸이 사라져요 */
+        let evLiveAt = 0;
+        async function evLiveCheck(force) {
+            if (!force && Date.now() - evLiveAt < 60000) return;
+            evLiveAt = Date.now();
+            const base = window.WORLD_BASE ? WORLD_BASE() : ''; if (!base) return;
+            try {
+                const r = await fetch(base.replace(/\/$/, '') + '/event', { cache: 'no-store' });
+                const o = r.ok ? await r.json() : null;
+                const lt = typeof FT_LOCAL !== 'undefined' && FT_LOCAL && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(String(o && o.url || ''));
+                NT.evLive = o && o.on && (lt || /^https:\/\/[^\s"'<>]+$/.test(String(o.url || ''))) ? { name: String(o.name || '🎉 이벤트 광장').slice(0, 30), url: String(o.url), n: +o.n || 0, max: +o.max || 0, from: +o.from || 0, to: +o.to || 0 } : null;   // 📅 from · to = 예약 (0 = ⚡ 번개)
+            } catch (e) { return; }
+            evPaint();
+        }
+        window.evLiveCheck = evLiveCheck;
         function evPaint() {
+            const L = NT.evLive;
+            if (L && !(L.to && Date.now() >= L.to)) {                            // 🎉 집 PC 이벤트 (⚡ 번개 = 바로 · 📅 예약 = 시간이 되면)
+                const soon = L.from && Date.now() < L.from;
+                document.querySelectorAll('.svc-ev').forEach(b => { b.hidden = false; const n = b.querySelector('b'), w = b.querySelector('small'); if (n) n.textContent = L.name;
+                    if (w) w.textContent = soon ? `${evTime(L.from)}에 열려요` : `지금 열려 있어요${L.max ? ` · ${L.n}/${L.max}명` : ''}${L.to ? ` · ${evTime(L.to)}까지` : ''}`; b.classList.toggle('svc-ev-on', !soon); });
+                return;
+            }
             const e = NT.ev, now = Date.now(), show = !!e && now >= e.from - 3600e3 && now < e.to;
             document.querySelectorAll('.svc-ev').forEach(b => {
                 b.hidden = !show; if (!show) return;
@@ -143,9 +167,14 @@
             });
         }
         function openEventWorld() {
+            const L = NT.evLive;
+            if (L && !(L.to && Date.now() >= L.to)) {
+                if (L.from && Date.now() < L.from) { showMsg(`🎉 <b>${htmlEsc(L.name)}</b><br><b>${evTime(L.from)}</b>에 열려요.<br><span style="font-size:12px;color:#777;">조금만 기다려 주세요!</span>`); return; }
+                if (window.openWorld) openWorld({ url: L.url, name: L.name }); evLiveCheck(true); return;
+            }
             const e = NT.ev, now = Date.now();
             if (!e || now >= e.to) { showMsg('🎉 이벤트가 끝났어요.<br>다음 파티에서 또 만나요!'); evPaint(); return; }
-            if (now < e.from) { showMsg(`🎉 <b>${htmlEsc(e.name)}</b>은<br><b>${evTime(e.from)}</b>에 열려요.<br><span style="font-size:12px;color:#777;">조금만 기다려 주세요!</span>`); return; }
+            if (now < e.from) { showMsg(`🎉 <b>${htmlEsc(e.name)}</b><br><b>${evTime(e.from)}</b>에 열려요.<br><span style="font-size:12px;color:#777;">조금만 기다려 주세요!</span>`); return; }
             if (window.openWorld) openWorld({ url: e.url, name: e.name });
         }
         window.openEventWorld = openEventWorld; window.evPaint = evPaint;
@@ -220,6 +249,7 @@
 
         /* ☕ 카페 : 1단계 카테고리 → 2단계 놀이 (카페를 열 때마다 카테고리부터 · js/settings.js openModal) */
         function svcShowCats() {
+            evLiveCheck();                                                       // 🎉 지금 열린 이벤트가 있나 (1분에 한 번까지)
             const cats = document.getElementById('svcCats'); if (!cats) return;
             cats.hidden = false;
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = true; });

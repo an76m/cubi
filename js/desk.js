@@ -513,6 +513,7 @@
             return 'room';
         }
         function deskMoveOpen() {
+            const evP = window.evLiveCheck ? evLiveCheck() : null;               // 🎉 지금 열린 이벤트 광장이 있나 (js/service.js · 1분에 한 번까지 · 알면 칸을 다시 채워요)
             const box = document.getElementById('moveCafe'), here = deskHere();
             document.querySelectorAll('#moveModal > .modal-content > .svc-cats > [data-place]').forEach(b => { b.hidden = b.dataset.place === here; });   // 📍 지금 있는 곳은 목록에서 빼요 (도련 10-31 · 규칙 하나 · 칸마다 data-place 이름표)
             const fill = () => {
@@ -526,6 +527,7 @@
                     box.appendChild(c);
                 });
             };
+            if (evP && box) evP.then(() => { const m = document.getElementById('moveModal'); if (m && m.style.display === 'flex') fill(); }).catch(() => {});
             if (box) {
                 fill();
                 if (typeof svcDailyBadges === 'function') Promise.resolve(svcDailyBadges()).then(() => { if (getComputedStyle(document.getElementById('moveModal')).display !== 'none') fill(); });   // 🌷 물 주기 표시는 조금 늦게 와요
