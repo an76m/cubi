@@ -10,6 +10,11 @@
        🔒 로그인한 다꾸러만 (게스트 · 이 기기 폴더 저장 = 못 들어와요) · 한 방 30명 · 꽉 차면 2번 방 …
        보내는 것 : 내 이름 · 인형 그림(작은 그림 한 장) · 위치(움직일 때 1초에 6번쯤) · 말풍선(60자)
        말풍선은 서버에 저장하지 않아요 · 걸러내기 없음 (도련 11-02 : 분위기를 보고 하나씩)
+   - 🧭 아끼는 방식 (도련 11-06) : 위치를 1초에 6번 보내던 것 → '가는 곳'이 바뀔 때만 go { x, y, tx, ty, s, f } (땅 톡 = 목적지 · 방향키 · 조이스틱 = 방향이 바뀔 때 · 걷는 중엔 1.5초마다 한 번 맞추기)
+       다른 다꾸러는 각자 화면에서 그 목적지로 걸어가요 (못 지나가는 곳도 똑같이) · 무료 한도 · 집 업로드를 몇십 배 아껴요 · 예전 앱의 mv 도 그대로 받아요
+       인형 그림은 키 96px 작은 그림 (9KB 까지) · 묶음 b { m: [[id, x, y, tx, ty, s, f] …] } 도 받아요 (집 PC 서버)
+   - 🎉 이벤트 광장 (도련 11-06) : openWorld({ url, name }) = 그 서버로 (집 PC + Cloudflare Tunnel · 도구/광장서버_집PC) · 입구는 notice.json 'ev' (js/service.js evPaint)
+       서버가 looks (이벤트옷 그림 주소) 를 주면 인형 대신 그 옷 (l = 몇 번 옷) · 나가면 내 인형으로 돌아와요
    - 닫기 없음 = 오른쪽 위 '이동' (다른 장소처럼) · Esc = 내 방 */
     (function () {
         const WORLD_URL = 'https://malang-world.podcast20260131.workers.dev';                                                   // 🌐 광장 서버 주소 (https://malang-world.○○○.workers.dev · 도련이 올린 뒤 넣어요)
@@ -36,7 +41,7 @@
         const q = id => document.getElementById(id);
         const wOn = () => S.on;
         const local = () => typeof FT_LOCAL !== 'undefined' && FT_LOCAL;
-        const wUrl = () => (local() && window.WORLD_URL_TEST) || WORLD_URL;          // 🧪 로컬 시험 서버
+        const wUrl = () => (S.ev && S.ev.url) || (local() && window.WORLD_URL_TEST) || WORLD_URL;   // 🎉 이벤트 광장 · 🧪 로컬 시험 서버
         const online = () => !!wUrl();
         const loggedIn = () => (local() && !!window.WORLD_TOK_TEST) || (typeof drive !== 'undefined' && drive.ready && !drive.guest && !drive.local);
 
@@ -65,12 +70,12 @@
             S.me.name = String(nick || name || '다꾸러').trim().slice(0, 12) || '다꾸러';
             if (D && typeof dollDataUrl === 'function') { const i = await load(dollDataUrl(D, { pfx: 'wd', bg: false, crop: true })); if (i) { S.me.img = i; S.me.ar = (i.naturalWidth || 208) / (i.naturalHeight || 470); pRas(S.me); } }   // 배경 없이 · 인형 둘레만
             S.net.myImg = '';
-            try {                                                                // 👭 다른 다꾸러에게 보낼 작은 그림 한 장 (키 150px)
+            S.me.img0 = S.me.img; S.me.ar0 = S.me.ar;                            // 🎉 이벤트옷을 입었다가 나오면 다시 이 인형
+            try {                                                                // 👭 다른 다꾸러에게 보낼 작은 그림 한 장 (키 96px · 9KB 까지 · 도련 11-06 집 업로드 아끼기)
                 if (S.me.img) {
-                    const c = document.createElement('canvas'); c.height = 150; c.width = Math.round(150 * S.me.ar);
+                    const c = document.createElement('canvas'); c.height = 96; c.width = Math.round(96 * S.me.ar);
                     c.getContext('2d').drawImage(S.me.img, 0, 0, c.width, c.height);
-                    let u = c.toDataURL('image/webp', .85); if (!/^data:image\/webp/.test(u)) u = c.toDataURL('image/png');
-                    if (u.length <= 68000) S.net.myImg = u;
+                    for (const qv of [.75, .55, .35]) { let u = c.toDataURL('image/webp', qv); if (!/^data:image\/webp/.test(u)) u = c.toDataURL('image/png'); if (u.length <= 9000) { S.net.myImg = u; break; } }
                 }
             } catch (e) { console.warn('🌳 인형 그림', e); }                        // (그림을 못 만들면 다른 사람에게는 기본 모습)
         }
@@ -115,11 +120,22 @@
                 m.walk = moved ? Math.min(1, m.walk + dt * 8) : Math.max(0, m.walk - dt * 6);
             } else m.walk = Math.max(0, m.walk - dt * 6);
             m.t += dt * (m.walk ? 1 : .35);
-            S.ppl.forEach(p => {                                                // 👭 다른 다꾸러 = 받은 자리로 부드럽게 따라가기
+            S.ppl.forEach(p => {                                                // 👭 다른 다꾸러
                 const ddx = p.tx - p.x, ddy = p.ty - p.y, d = Math.hypot(ddx, ddy);
-                if (d > 500) { p.x = p.tx; p.y = p.ty; }
+                let moving = d > 2;
+                if (p.sp != null) {                                             // 🧭 go = 그 목적지로 내 화면에서 걸어가요 (못 지나가는 곳도 나처럼 미끄러져요)
+                    moving = false;
+                    if (p.sp > 0 && d > 4) {
+                        const sp = Math.min(d, SPEED * p.sp * dt), ux = ddx / d * sp, uy = ddy / d * sp;
+                        if (!blocked(p.x + ux, p.y)) { p.x += ux; moving = true; }
+                        if (!blocked(p.x, p.y + uy)) { p.y += uy; moving = true; }
+                        if (!moving && d < 60) { p.x = p.tx; p.y = p.ty; }
+                        if (Math.abs(ddx) > .15 * d) p.face = ddx < 0 ? -1 : 1;
+                    }
+                }
+                else if (d > 500) { p.x = p.tx; p.y = p.ty; }                   // 예전 앱 (mv) = 받은 자리로 부드럽게 따라가기
                 else if (d > 1) { const sp = Math.min(d, SPEED * 1.25 * dt * (d > 80 ? 1.6 : 1)); p.x += ddx / d * sp; p.y += ddy / d * sp; }
-                p.walk = d > 2 ? Math.min(1, p.walk + dt * 8) : Math.max(0, p.walk - dt * 6);
+                p.walk = moving ? Math.min(1, p.walk + dt * 8) : Math.max(0, p.walk - dt * 6);
                 p.t += dt * (p.walk ? 1 : .35);
                 if (p.say && performance.now() > p.sayT) p.say = '';
             });
@@ -196,7 +212,7 @@
             const el = q('wdSt'); if (!el) return;
             const n = S.ppl.size + 1;
             el.textContent = !online() ? '임시 · 혼자 걷기'
-                : N.st === 'on' ? `${N.room}번 방 · ${n}명` : N.st === 'again' ? '다른 창에서 들어갔어요' : N.st === 'login' ? '로그인이 필요해요' : N.st === 'full' ? '방이 모두 꽉 찼어요' : '연결하는 중…';
+                : N.st === 'on' ? (S.ev ? `${n}명 · 최대 ${N.max}명` : `${N.room}번 방 · ${n}명`) : N.st === 'again' ? '다른 창에서 들어갔어요' : N.st === 'login' ? '로그인이 필요해요' : N.st === 'full' ? '방이 모두 꽉 찼어요' : '연결하는 중…';
             const inp = q('wdSayIn'); if (inp) inp.placeholder = !online() ? '말풍선 (지금은 나만 보여요)' : N.st === 'on' ? '말하기 (방 사람들에게 보여요)' : '연결되면 말할 수 있어요';
         }
         const send = o => { try { if (N.ws && N.ws.readyState === 1) { N.ws.send(JSON.stringify(o)); return true; } } catch (e) {} return false; };
@@ -216,7 +232,7 @@
                 if (N.ws !== ws) return;
                 N.retry = 0;
                 send({ t: 'me', n: S.me.name, img: N.myImg, x: Math.round(S.me.x), y: Math.round(S.me.y), f: S.me.face });
-                N.sx = S.me.x; N.sy = S.me.y; N.sf = S.me.face;
+                N.sx = S.me.x; N.sy = S.me.y; N.sf = S.me.face; N.lg = null;
                 clearInterval(N.ping); N.ping = setInterval(() => { try { ws.readyState === 1 && ws.send('ping'); } catch (e) {} }, 30000);   // 살아 있어요 (서버를 깨우지 않는 신호)
             };
             ws.onmessage = e => { if (N.ws === ws && e.data !== 'pong') { try { netMsg(JSON.parse(e.data)); } catch (er) { console.warn('🌳', er); } } };
@@ -245,6 +261,9 @@
             const p = old || person({ id: o.id, x: o.x, y: o.y });
             Object.assign(p, { name: String(o.n || '다꾸러').slice(0, 12), tx: +o.x || 1260, ty: +o.y || 1160, face: o.f === -1 ? -1 : 1 });
             if (!old) { p.x = p.tx; p.y = p.ty; }
+            if (o.tx != null) { p.sp = +o.s || 0; if (p.sp > 0) { p.tx = +o.tx; p.ty = +o.ty; } }   // 🧭 걷는 중에 들어왔으면 그 목적지로
+            const look = S.looks && o.l != null ? S.looks[o.l] : '';                  // 🎉 이벤트옷 (상품 서버 그림)
+            if (look) o = Object.assign({}, o, { img: look });
             if (o.img && o.img !== p.src) {
                 p.src = o.img; p.imgWant = true;
                 load(o.img).then(i => { if (i && p.src === o.img) { p.img = i; p.ar = (i.naturalWidth || 96) / (i.naturalHeight || 150); pRas(p); } });
@@ -253,18 +272,64 @@
         }
         function netMsg(m) {
             if (!m || typeof m !== 'object') return;
-            if (m.t === 'hi') { N.id = m.id; N.room = m.room; N.max = m.max; N.st = 'on'; S.ppl.clear(); (m.ppl || []).forEach(addP); status(); }
+            if (m.t === 'hi') { N.id = m.id; N.room = m.room; N.max = m.max; N.v2 = m.v >= 2; N.st = 'on'; S.ppl.clear(); lookSet(m); (m.ppl || []).forEach(addP); status(); }
             else if (m.t === 'in' || m.t === 're') { addP(m); status(); }
-            else if (m.t === 'mv') { const p = S.ppl.get(m.id); if (p) { p.tx = m.x; p.ty = m.y; p.face = m.f === -1 ? -1 : 1; } }
+            else if (m.t === 'go') goApply([m.id, m.x, m.y, m.tx, m.ty, m.s, m.f]);
+            else if (m.t === 'b') (Array.isArray(m.m) ? m.m : []).forEach(goApply);     // 📦 묶음 (집 PC 서버)
+            else if (m.t === 'mv') { const p = S.ppl.get(m.id); if (p) { p.sp = null; p.tx = m.x; p.ty = m.y; p.face = m.f === -1 ? -1 : 1; } }
             else if (m.t === 'say') { const p = S.ppl.get(m.id); if (p) { p.say = String(m.s || '').slice(0, 100); p.sayT = performance.now() + SAY_MS; } }
             else if (m.t === 'out') { S.ppl.delete(m.id); status(); }
             else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : 'wait'; status(); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
         }
-        function netMove() {                                                     // 움직일 때 1초에 6번쯤 · 멈추면 마지막 자리 한 번
-            if (N.st !== 'on') return;
+        function netMoveOld() {
             const m = S.me, now = performance.now();
             if ((Math.abs(m.x - N.sx) < 1 && Math.abs(m.y - N.sy) < 1 && m.face === N.sf) || now - N.sent < 160) return;
             if (send({ t: 'mv', x: Math.round(m.x), y: Math.round(m.y), f: m.face })) { N.sent = now; N.sx = m.x; N.sy = m.y; N.sf = m.face; }
+        }
+        /* 🧭 받은 '가는 곳' : [id, 지금 x, y, 목적지 tx, ty, 빠르기 s (0 = 멈춤), 방향 f] */
+        function goApply(a) {
+            if (!Array.isArray(a)) return;
+            const p = S.ppl.get(a[0]); if (!p) return;
+            const x = +a[1], y = +a[2], s = +a[5] || 0;
+            if (Math.hypot(p.x - x, p.y - y) > 120) { p.x = x; p.y = y; }       // 너무 어긋났으면 그 자리로
+            if (s > 0) { p.tx = +a[3]; p.ty = +a[4]; p.sp = s; } else { p.tx = x; p.ty = y; p.sp = 1; }   // 멈춤 = 멈춘 자리까지 걸어가서 서요
+            p.face = a[6] === -1 ? -1 : 1;
+        }
+        /* 🎉 이벤트옷 : 서버가 looks 를 주면 내 인형도 그 옷으로 (나가면 내 인형) */
+        function lookSet(m) {
+            S.looks = Array.isArray(m.looks) && m.looks.length ? m.looks.filter(u => typeof u === 'string' && /^https:\/\//.test(u)) : null;
+            const u = S.looks && m.l != null ? S.looks[m.l] : '';
+            if (!u) { lookOff(); return; }
+            load(u).then(i => { if (i && S.on && S.looks) { S.me.img = i; S.me.ar = (i.naturalWidth || 208) / (i.naturalHeight || 470); pRas(S.me); } });
+        }
+        function lookOff() { if (S.me.img0 && S.me.img !== S.me.img0) { S.me.img = S.me.img0; S.me.ar = S.me.ar0 || S.me.ar; pRas(S.me); } }
+        /* 🧭 내가 가는 곳 : 땅 톡 = 목적지 · 방향키 · 조이스틱 = 그 방향 멀리 · 아무것도 아니면 멈춤 */
+        function intent() {
+            const m = S.me, k = S.key; let dx = 0, dy = 0, s = 1;
+            if (k.ArrowLeft || k.a) dx -= 1; if (k.ArrowRight || k.d) dx += 1; if (k.ArrowUp || k.w) dy -= 1; if (k.ArrowDown || k.s) dy += 1;
+            if (S.joy && S.joy.on) { dx = S.joy.dx; dy = S.joy.dy; s = Math.min(1, Math.hypot(dx, dy)); }
+            const len = Math.hypot(dx, dy);
+            if (len > 0) { const ux = dx / len, uy = dy / len; return { k: 'd', a: Math.atan2(uy, ux), s, tx: Math.max(0, Math.min(W, m.x + ux * 900)), ty: Math.max(0, Math.min(H, m.y + uy * 900)) }; }
+            if (S.goal) return { k: 'g', s: 1, tx: S.goal.x, ty: S.goal.y };
+            return { k: 's', s: 0, tx: m.x, ty: m.y };
+        }
+        function netMove() {                                                     // 🧭 가는 곳이 바뀔 때만 (걷는 중엔 1.5초마다 한 번 맞추기 · 도련 11-06)
+            if (N.st !== 'on') return;
+            if (!N.v2) return netMoveOld();                                      // 예전 서버 (go 를 모르면) = 1초에 6번쯤 자리
+            const m = S.me, now = performance.now(), it = intent(), L = N.lg;
+            if (it.k === 's' && m.walk > .05) return;                            // 멈추는 중 (마지막 자리가 정해지면 보내요)
+            let need = !L;
+            if (L) {
+                if ((it.s > 0) !== (L.s > 0)) need = true;
+                else if (it.s > 0) {
+                    if (it.k === 'g') need = L.k !== 'g' || Math.hypot(it.tx - L.tx, it.ty - L.ty) > 30;
+                    else { const da = Math.abs(Math.atan2(Math.sin(it.a - L.a), Math.cos(it.a - L.a))); need = L.k !== 'd' || da > .21 || Math.abs(it.s - L.s) > .25; }
+                    if (now - N.sent > 1500) need = true;
+                } else need = Math.hypot(m.x - L.x, m.y - L.y) > 2 || m.face !== L.f;
+            }
+            if (!need || now - N.sent < 120) return;
+            const o = { t: 'go', x: Math.round(m.x), y: Math.round(m.y), tx: Math.round(it.tx), ty: Math.round(it.ty), s: Math.round(it.s * 100) / 100, f: m.face };
+            if (send(o)) { N.sent = now; N.lg = Object.assign({}, it, { x: m.x, y: m.y, f: m.face }); }
         }
 
         /* 화면 */
@@ -307,7 +372,7 @@
             });
             return el;
         }
-        async function openWorld() {
+        async function openWorld(opt) {
             if (online() && !loggedIn()) {                                       // 🔒 로그인한 다꾸러만 (도련 11-02)
                 if (window.showMsg) showMsg('🔒 말랑달콤 다꾸러 모임방은<br>로그인한 다꾸러만 들어올 수 있어요.<br><span style="font-size:12px;color:#777;">구글 로그인 뒤에 다시 와 주세요.</span>');
                 return;
@@ -317,6 +382,9 @@
             const el = build();
             el.classList.add('show'); document.body.classList.add('cal-on', 'world-on');
             S.on = true; S.key = {}; S.goal = null; N.room = 0;
+            S.ev = opt && typeof opt.url === 'string' && /^(https?|wss?):\/\//.test(opt.url) ? { url: opt.url, name: String(opt.name || '🎉 이벤트 광장').slice(0, 30) } : null;   // 🎉 이벤트 광장 (js/service.js openEventWorld)
+            const tt = el.querySelector('.wd-title'); if (tt && tt.firstChild) tt.firstChild.textContent = (S.ev ? S.ev.name : '🌳 말랑 광장') + ' ';
+            el.classList.toggle('wd-ev', !!S.ev);
             status();
             if (!S.built) { el.classList.add('loading'); await Promise.all([loadAll(), myDoll()]); S.built = true; el.classList.remove('loading'); }
             if (!S.on) return;
@@ -329,6 +397,7 @@
             const el = q('worldRoom'); if (!el || !S.on) return;
             S.on = false; cancelAnimationFrame(S.raf); S.joy = null; S.key = {};
             netClose();
+            S.ev = null; S.looks = null; lookOff();                              // 🎉 이벤트에서 나오면 평소 광장 · 내 인형
             el.classList.remove('show'); document.body.classList.remove('cal-on', 'world-on');
         }
         const typing = () => document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);

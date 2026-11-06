@@ -90,6 +90,7 @@
                 const res = await fetch(NOTICE_FILE + '?t=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) return null;
                 const o = await res.json();
+                NT.ev = evOf(o && o.ev);                                         // 🎉 이벤트 광장 (공지 id 와 상관없이)
                 const id = parseInt(o && o.id, 10);
                 if (!id || id < 1) return null;
                 return { id, title: String(o.title || '📢 말랑달콤 소식').slice(0, 60), date: String(o.date || '').slice(0, 20),
@@ -115,8 +116,40 @@
             if (NT.busy || (!force && Date.now() - NT.at < NOTICE_RECHECK_MS)) return;
             NT.busy = true;
             try { NT.cur = await noticeFetch(); NT.at = Date.now(); } finally { NT.busy = false; }
-            noticePaint();
+            noticePaint(); evPaint();
         }
+        /* =====================================================================
+           🎉 이벤트 광장 입구 (도련 11-06) : notice.json 에 "ev" 칸을 넣으면 ☕ 카페 · 🚪 이동 창에 '🎉 이벤트 광장' 칸이 생겨요
+             "ev": { "name": "🎄 크리스마스 파티", "url": "https://○○○○.trycloudflare.com", "from": "2026-12-24T20:00:00+09:00", "to": "2026-12-24T23:00:00+09:00" }
+           - from 1시간 전부터 칸이 보여요 (누르면 '○시에 열려요') · from ~ to 동안 들어가요 (js/world.js openWorld({ url, name })) · to 가 지나면 칸이 사라져요
+           - 서버 = 도련 집 PC (도구/광장서버_집PC · Cloudflare Tunnel 주소) · 평소 광장은 그대로 Cloudflare
+           ===================================================================== */
+        function evOf(e) {
+            if (!e || typeof e !== 'object') return null;
+            const url = String(e.url || '').trim(), from = Date.parse(e.from), to = Date.parse(e.to);
+            const lt = typeof FT_LOCAL !== 'undefined' && FT_LOCAL && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(url);   // 🧪 내 컴퓨터 시험 서버
+            if ((!lt && !/^https:\/\/[^\s"'<>]+$/.test(url)) || !(to > from)) return null;
+            return { name: String(e.name || '🎉 이벤트 광장').slice(0, 30), url, from, to };
+        }
+        const evTime = t => new Date(t).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
+        function evPaint() {
+            const e = NT.ev, now = Date.now(), show = !!e && now >= e.from - 3600e3 && now < e.to;
+            document.querySelectorAll('.svc-ev').forEach(b => {
+                b.hidden = !show; if (!show) return;
+                const n = b.querySelector('b'), w = b.querySelector('small');
+                if (n) n.textContent = e.name;
+                if (w) w.textContent = now < e.from ? `${evTime(e.from)}에 열려요` : `지금 열려 있어요 · ${evTime(e.to)}까지`;
+                b.classList.toggle('svc-ev-on', now >= e.from);
+            });
+        }
+        function openEventWorld() {
+            const e = NT.ev, now = Date.now();
+            if (!e || now >= e.to) { showMsg('🎉 이벤트가 끝났어요.<br>다음 파티에서 또 만나요!'); evPaint(); return; }
+            if (now < e.from) { showMsg(`🎉 <b>${htmlEsc(e.name)}</b>은<br><b>${evTime(e.from)}</b>에 열려요.<br><span style="font-size:12px;color:#777;">조금만 기다려 주세요!</span>`); return; }
+            if (window.openWorld) openWorld({ url: e.url, name: e.name });
+        }
+        window.openEventWorld = openEventWorld; window.evPaint = evPaint;
+        setInterval(() => { if (!document.hidden) evPaint(); }, 60000);
         /* 로그인 전에 이 기기에서 본 공지 → 드라이브 기록에도 */
         function noticeLoginCarry() {
             try {
