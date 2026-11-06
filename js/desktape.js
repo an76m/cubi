@@ -147,7 +147,7 @@
         })();
         return true;
     };
-    /* 🎁 처음 선물 테이프를 정리함 빈 칸에 (도련 11-04 · js/desk.js giftEnsure) : 책상 위 첫 정리함부터 · 칸이 모자라면 남은 건 서랍(마스킹테이프 칸)에 · 넣은 수를 돌려줘요 */
+    /* 🎁 처음 선물 테이프를 정리함에 (도련 11-04 · js/desk.js giftEnsure) : 책상 위 첫 정리함(처음 선물 정리함)의 상품공방 '정리함칸' 자리에 (도련 11-06 · 칸을 비운 롤은 안 꽂아요 · 스티커 서랍에만) */
     /* 🎁 처음 선물 롤 먼저 보이기 (도련 11-04 : 보이는 것부터 빨리 · 드라이브 저장은 뒤에서) : items = [{ tmp, th, q0 }] → 빈 칸에 임시 롤 (화면에만)
        → 저장이 끝나면 dktStarterReal(tmp, 진짜 id) = 그 칸에 진짜 롤로 저장 (목록에 들어오기 전에도 같은 모습) · 못 받으면 dktStarterDrop(tmp) */
     window.dktStarterShow = items => {
@@ -155,7 +155,8 @@
         document.querySelectorAll('#deskStage .desk-item').forEach(el => {
             if (!isRack(el) || k >= items.length) return;
             const S = slotsOf(el), cur = (M[el.dataset.u] || []).slice(0, S.length), ov = T.ov[el.dataset.u] = (T.ov[el.dataset.u] || []).slice(0, S.length);
-            for (let i = 0; i < S.length && k < items.length; i++) if (!cur[i] && !ov[i]) { const it = items[k++]; ov[i] = it.tmp; T.tmp.set(it.tmp, { id: it.tmp, k: 'tape', th: it.th, q: it.q0, q0: it.q0, u: [] }); }
+            items.forEach(it => { const i = (+it.slot || 0) - 1; if (i < 0 || i >= S.length || cur[i] || ov[i]) return; ov[i] = it.tmp; k++; T.tmp.set(it.tmp, { id: it.tmp, k: 'tape', th: it.th, q: it.q0, q0: it.q0, u: [] }); });   // 🎀 상품공방 '정리함칸' 그대로 (도련 11-06 · 칸이 없거나 찼으면 안 꽂아요)
+            k = items.length;                                                     // 첫 정리함에만 (처음 선물 정리함)
         });
         paint(); return k;
     };
@@ -166,17 +167,6 @@
         paint();
     };
     window.dktStarterDrop = tmp => { T.tmp.delete(tmp); (T.wait.get(tmp) || []).forEach(ok => ok(null)); T.wait.delete(tmp); for (const u in T.ov) { const i = T.ov[u].indexOf(tmp); if (i >= 0) T.ov[u][i] = null; } paint(); };
-    window.dktStarter = ids => {
-        const M = read(); let n = 0;
-        document.querySelectorAll('#deskStage .desk-item').forEach(el => {
-            if (!isRack(el) || n >= ids.length) return;
-            const S = slotsOf(el), cur = (M[el.dataset.u] || []).slice(0, S.length); while (cur.length < S.length) cur.push(null);
-            for (let i = 0; i < cur.length && n < ids.length; i++) if (!cur[i]) cur[i] = ids[n++];
-            M[el.dataset.u] = cur;
-        });
-        if (n) { write(M); T.fresh = false; load(true); }
-        return n;
-    };
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

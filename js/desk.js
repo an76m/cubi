@@ -42,6 +42,8 @@
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
             if (o.kind === 'lights') o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
             if (P.처음선물) delete o.nost; else o.nost = 1;
+            if (P.처음연결 === 'pc' || P.처음연결 === 'gd') o.link = P.처음연결; else delete o.link;   // 🎁 처음 연결 · 문구함 칸 = 상품공방 (도련 11-06 · dkStarterLinks)
+            if (+P.문구함칸 > 0) o.gdSlot = Math.round(+P.문구함칸); else delete o.gdSlot;
             if (P.숨김) o.off = 1;
             return o;
         };
@@ -248,14 +250,12 @@
                 if (!back && giftOn()) giftWrite();
             } finally { giftBusy = false; }
         }
-        /* 🎁 처음 연결 (도련 11-02 · 처음 받은 기본 세트에만 한 번) : ✏️ 기본 펜꽂이 = 펜꽂이 · 🗄️ 기본 서랍장 맨 아래 칸 = 문구함 (이름표도 = 글 '펜꽂이' · '문구함' · 도련 11-03)
-           이미 연결이 있으면(다른 기기 · 되살리기) 그대로 · 그 뒤 다꾸러가 바꾸거나 뺀 연결은 손대지 않아요 */
-        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음선물') : 한 롤씩 받아서 (내 스티커 목록) 책상 마테 정리함 빈 칸에 꽂아요 · 정리함이 없으면 서랍 마스킹테이프 칸 */
+        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음선물') : 한 롤씩 받아서 (내 스티커 목록) 상품공방 '정리함칸'에 꽂아요 (도련 11-06 · 칸을 비우면 안 꽂고 스티커 서랍에만) */
         async function dkStarterTapes() {
             try {
                 if (!window.sbStarterTapes || !window.ownTake || !(window.ownMode && ownMode())) return;
                 const L = await sbStarterTapes(), ds = await Promise.all(L.map(t => t.take().catch(e => { console.warn('🎁 처음 선물 테이프', t.id, e); return null; })));   // 무늬는 한꺼번에 (빨라요)
-                const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d }).filter(Boolean);
+                const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d, slot: L[i].slot }).filter(Boolean);   // 🎀 꽂을 칸 = 상품공방 '정리함칸'
                 if (window.dktStarterShow) dktStarterShow(its);                     // 👀 보이는 것부터 : 정리함에 바로 (도련 11-04)
                 let ids = [];                                                         // 💾 드라이브 저장은 뒤에서 한 번에 (종이 파일 동시에 · 목록 한 번 · 도련 11-04)
                 try { ids = window.ownTakeMany ? await ownTakeMany(its.map(it => it.d)) : []; } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
@@ -275,14 +275,17 @@
                 if (cap && window.capsGiftPop) capsGiftPop(cap.cap);              // 🎁 캡슐 = '첫 선물이 도착했어요' 창 (js/gacha.js)
             } catch (e) { console.warn('🎁 처음 선물 스티커', e); }
         }
+        /* 🎁 처음 연결 (도련 11-06 · 상품공방 책상소품 '처음연결' · '문구함칸' · 앱은 그대로 따라 해요) : ✏️ 펜꽂이 기능 · 🗄️ 문구함 서랍 칸 (이름표도 = 글 '펜꽂이' · '문구함')
+           처음 선물로 놓인 소품 중 그 연결을 고른 것 (같은 연결을 여럿이 고르면 상품 순서 첫 번째) · 이미 연결이 있으면(다른 기기 · 되살리기) 그대로 */
         function dkStarterLinks() {
             if (typeof prefGet !== 'function' || DK.edit) return;
             const desk = dkOnDesk(), v = prefGet(DK_FN_KEY, DK_FN_LOCAL), M = v && typeof v === 'object' ? Object.assign({}, v) : {};
-            const cup = desk.find(o => dkHoldOk(o.id).includes('pc') && !dkSlots(o.id));
-            if (cup && !('pc' in M)) { M.pc = cup.u; if (!cup.tag) cup.tag = dknWordTag('pc'); dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
+            const pick = k => DESK_ITEMS.filter(d => d.link === k).map(d => desk.find(o => o.id === d.id)).find(Boolean);
+            const cup = pick('pc');
+            if (cup && dkHoldOk(cup.id).includes('pc') && !dkSlots(cup.id) && !('pc' in M)) { M.pc = cup.u; if (!cup.tag) cup.tag = dknWordTag('pc'); dkSave(); prefSet(DK_FN_KEY, DK_FN_LOCAL, M); }
             const H = dkHomes(), has = Object.keys(H).some(u => H[u].some(e => e.k === 'gd'));
-            const dr = !has && desk.find(o => { const S = dkSlots(o.id); return S && dkHoldOk(o.id).includes('gd') && !(H[o.u] || []).some(e => e.s === S.length - 1); });
-            if (dr) { const S = dkSlots(dr.id), s = S.length - 1; H[dr.u] = (H[dr.u] || []).concat([{ k: 'gd', s, r: S[s], tag: dknWordTag('gd') }]); dkHomesSet(H); }
+            const dr = !has && pick('gd'), S = dr && dkSlots(dr.id), s = dr ? Math.round(+dkCat(dr.id).gdSlot) - 1 : -1;
+            if (S && s >= 0 && s < S.length && dkHoldOk(dr.id).includes('gd') && !(H[dr.u] || []).some(e => e.s === s)) { H[dr.u] = (H[dr.u] || []).concat([{ k: 'gd', s, r: S[s], tag: dknWordTag('gd') }]); dkHomesSet(H); }
             deskFnPaint(); if (typeof dknPaintAll === 'function') dknPaintAll();
         }
         window.deskGiftWrite = giftWrite; window.deskGiftBusy = () => giftBusy || DK.fresh;
