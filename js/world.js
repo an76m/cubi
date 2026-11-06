@@ -242,6 +242,7 @@
                 if (e.code === 4001) { N.st = 'again'; status(); return; }               // 같은 계정이 다른 창 · 기기에서 들어갔어요
                 if (e.code === 4401) { N.st = 'login'; status(); return; }
                 if (e.code === 4409) { N.st = 'full'; status(); return; }
+                if (e.code === 4403) { N.st = 'ended'; status(); return; }                // 🚪 상황판에서 내보냄
                 if (e.code === 4423 || e.code === 4410) { N.st = e.code === 4423 ? 'soon' : 'ended'; status(); return; }   // 📅 예약 : 아직 · 끝 (다시 연결하지 않아요)
                 if (!S.on) return;
                 N.st = 'wait'; status();
@@ -280,14 +281,23 @@
             else if (m.t === 'mv') { const p = S.ppl.get(m.id); if (p) { p.sp = null; p.tx = m.x; p.ty = m.y; p.face = m.f === -1 ? -1 : 1; } }
             else if (m.t === 'say') { const p = S.ppl.get(m.id); if (p) { p.say = String(m.s || '').slice(0, 100); p.sayT = performance.now() + SAY_MS; } }
             else if (m.t === 'out') { S.ppl.delete(m.id); status(); }
+            else if (m.t === 'notice') noticeToast(String(m.s || '').slice(0, 100));   // 📢 상황판 공지
             else if (m.t === 'end') { N.st = 'ended'; status(); if (window.showMsg) showMsg(String(m.s || '🎆 파티가 끝났어요!').slice(0, 80)); }   // 📅 끝 시간 (서버가 내보내요)
-            else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : m.e === 'soon' ? 'soon' : m.e === 'ended' ? 'ended' : 'wait'; status();
+            else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : m.e === 'soon' ? 'soon' : m.e === 'ended' || m.e === 'ban' ? 'ended' : 'wait'; status();
+                if (m.e === 'ban' && window.showMsg) showMsg('🚪 이번 파티에는 들어올 수 없어요.');
                 if ((m.e === 'soon' || m.e === 'ended') && window.showMsg) showMsg(m.e === 'soon' ? `🎉 아직 안 열렸어요.<br><b>${new Date(+m.from || Date.now()).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' })}</b>에 열려요.` : '🎆 파티가 끝났어요!<br>다음에 또 만나요.'); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
         }
         function netMoveOld() {
             const m = S.me, now = performance.now();
             if ((Math.abs(m.x - N.sx) < 1 && Math.abs(m.y - N.sy) < 1 && m.face === N.sf) || now - N.sent < 160) return;
             if (send({ t: 'mv', x: Math.round(m.x), y: Math.round(m.y), f: m.face })) { N.sent = now; N.sx = m.x; N.sy = m.y; N.sf = m.face; }
+        }
+        /* 📢 상황판 공지 : 화면 위 가운데 띠 (8초) */
+        function noticeToast(s) {
+            if (!s) return; const el = q('worldRoom'); if (!el) return;
+            let t = el.querySelector('.wd-notice'); if (!t) { t = document.createElement('div'); t.className = 'wd-notice'; el.appendChild(t); }
+            t.textContent = '📢 ' + s; t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
+            clearTimeout(noticeToast.t); noticeToast.t = setTimeout(() => t.classList.remove('on'), 8000);
         }
         /* 🧭 받은 '가는 곳' : [id, 지금 x, y, 목적지 tx, ty, 빠르기 s (0 = 멈춤), 방향 f] */
         function goApply(a) {
