@@ -1377,7 +1377,7 @@
             const desk = document.documentElement.classList.contains('desk-on');
             if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
             const run = z && (z.k === 'gd' && desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, el.dataset.u + ':' + z.s) : () => deskRun(z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
-            if (si >= 0) { dkDrawerPull(el, S[si], run || null); return true; }   // 🗄 서랍 = 톡 열기 · 다시 톡 닫기 (든 창이 위에서 내려와요 · 도련 11-05) · 빈 서랍은 쏙 열렸다 닫혀요
+            if (si >= 0) { dkDrawerPull(el, S[si], run || (!DK.edit && desk && dkHoldOk(o.id).length ? () => dkEmptyOpen(el.dataset.u, si) : null)); return true; }   // 🗄 서랍 = 톡 열기 · 다시 톡 닫기 (든 창이 위에서 내려와요 · 도련 11-05) · 빈 서랍 = 🔗 기능 연결 창이 내려와요 (도련 11-08)
             if (!z) return false;
             run(); return true;
         }
@@ -1920,6 +1920,30 @@
             if (window.openModal) openModal('deskFnModal');
         }
         window.deskFnOpen = deskFnOpen;
+        /* 🗄 빈 서랍 = 🔗 기능 연결 (도련 11-08) : 빈 서랍을 톡 → 서랍이 열리며 그 칸에 넣을 것을 고르는 창이 위에서 내려와요 (다른 서랍 창과 같은 연출 · dkDrawerPull)
+           고르면 바로 저장 → 창이 올라가며 서랍이 닫혀요 (다음에 톡 = 넣은 것이 열려요) · 안 고르고 서랍을 다시 톡 = 닫혀요 · 🛠 꾸미기의 기능 연결과 같은 규칙 (같은 것은 한 곳에만 · 다른 곳에 있으면 이리로 옮겨요) */
+        function dkEmptyOpen(u, s) {
+            const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), box = document.getElementById('deskFnList'); if (!S || !S[s] || !box || DK.edit) return;
+            const ok = dkHoldOk(o.id), M = deskFnMap(), H = dkHomes();
+            const where = k => { if (M[k]) { const x = DK.items.find(y => y.u === M[k]); return x ? dkName(x) : ''; } const zu = Object.keys(H).find(y => H[y].some(e => e.k === k)), x = zu && DK.items.find(y => y.u === zu), e = x && H[zu].find(y => y.k === k); return x ? `${dkName(x)} ${dkSlotNm(e.s, (dkSlots(x.id) || []).length)} 칸` : ''; };
+            const tt = document.getElementById('deskFnTitle'); if (tt) tt.textContent = `${dkName(o)} ${dkSlotNm(s, S.length)} 칸에 넣을 것`;
+            box.innerHTML = `<h4 class="dkf-g">🗄️ 빈 서랍이에요 · 넣을 것을 골라요</h4>` + ok.map(k => { const [, n, , ic] = dkWin(k), w = k === 'gd' ? '' : where(k);
+                    return `<button type="button" class="btn" onclick="dkEmptyPick('${u}', ${s}, '${k}')"><b>${ic} ${n}</b><small>${w ? '지금 : ' + htmlEsc(w) : ''}</small></button>`; }).join('')
+                + '<p class="dkf-note">💡 다른 곳에 있는 것은 이 서랍으로 옮겨요 · 안 넣으려면 서랍을 다시 톡</p>';
+            if (window.openModal) openModal('deskFnModal');
+        }
+        function dkEmptyPick(u, s, k) {
+            const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id); if (!S || !S[s] || DK.edit || !dkHoldOk(o.id).includes(k)) return;
+            const H0 = dkHomes(); if ((H0[u] || []).some(e => e.s === s)) return;   // 그새 찼으면 그대로
+            const pe = Object.keys(H0).map(x => H0[x].find(e => e.k === k)).find(Boolean);   // 🏷 옮겨도 이름표는 따라가요
+            const M2 = Object.assign({}, deskFnMap()); if (k !== 'gd') dkWinFree(k, M2);   // 🗄️ 문구함은 여러 칸 (칸마다 넣은 문구)
+            const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push(Object.assign({ k, s, r: S[s] }, pe && pe.tag && k !== 'gd' ? { tag: dkzTagMove(pe.tag, pe.r, S[s]) } : {})); dkHomesSet(H);
+            DK_FNS.forEach(([f]) => { if (!M2[f]) M2[f] = ''; });                  // 빠진 기능은 '' (저절로 다시 붙이지 않게)
+            if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
+            deskFnPaint(); dknPaintAll();
+            if (DKD.cur) dkDrawerShut(true); else if (window.closeModal) closeModal('deskFnModal');   // 창이 올라가며 서랍도 닫혀요
+        }
+        window.dkEmptyPick = dkEmptyPick;
         function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); dkSnapBtn(); }
         function dkSnapBtn() { const b = document.getElementById('dkeSnap'); if (b) { b.textContent = DK.snap ? '🧲 딱 맞추기' : '〰️ 자유롭게'; b.classList.toggle('on', DK.snap); } }
         document.addEventListener('pointerdown', ev => {                          // 다른 곳을 누르면 고르기 끝
