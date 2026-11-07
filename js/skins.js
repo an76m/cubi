@@ -402,10 +402,10 @@
             DY_PKINDS.forEach(([K, k]) => (window.prodList ? prodList(K) : []).forEach(x => {
                 const P = x.P || {};                                           // 🔎 상품 그대로 (빠지면 안 나와요)
                 const hx = v => /^#[0-9a-f]{6}$/i.test(v || ''), lf = v => window.MK && MK.LEAFS.some(l => l[0] === v), pg = Math.round(+P.쪽수);   // 📐 날짜형과 같은 설계도 (도련 11-05) : 4색 · 쪽수 · 내지(+ 구간)
-                if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || !(pg > 0) || !lf(P.내지) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
+                if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || (k === '노트' && (!(pg > 0) || !lf(P.내지))) ||   /* 🗂️ 페이지바인더 = 표지 (내지는 바인더내지 상품 · 981) */ !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 const lv = (Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], r[2]]);
                 const c = (String(P.표지색).match(/#[0-9a-f]{6}/i) || [P.테두리색])[0];   // 책 그림 색 = 표지 첫 색
-                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg, lv: lv.reverse().concat([[1, pg, P.내지]]), off: !!P.숨김, gift: !!P.처음선물 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
+                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg: k === '노트' ? pg : 0, lv: k === '노트' ? lv.reverse().concat([[1, pg, P.내지]]) : [], cvOnly: k === '바인더', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음선물 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
             }));
         }
         dyTypesBuild();
@@ -2084,7 +2084,7 @@
         let dyKind = '다이어리', dyTab = 'free';
         /* 📔 다이어리 = 받은 권 보관소 (11-05 도련 : 나만의 다이어리 · 내가만든 칸 없앴어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '페이지노트 만들기 · 페이지바인더 만들기' (11-05 들어가게)) */
-        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off) : [];   // 규격 6종은 나중에 문구점 바탕
+        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.cvOnly) : [];   /* 🗂️ 바인더 표지는 권이 아니에요 (🧩 조립) */   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;

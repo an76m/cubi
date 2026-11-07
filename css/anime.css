@@ -268,6 +268,15 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .sh-tool.sh-dy { min-height: 128px; }
 .sh-dyb { position: relative; display: grid; place-items: center; align-content: center; gap: 2px; width: 78px; height: 110px; border-radius: 6px 10px 10px 6px; background: radial-gradient(circle, rgba(255,255,255,.7) 0 2px, transparent 2.4px) 0 0 / 11px 11px, var(--dyb, #ffc6d6); border: 1.5px solid var(--an-ol, #bba6d6); box-shadow: 4px 5px 0 rgba(176, 150, 214, .3); pointer-events: none; }
 .sh-dyb .sh-dyr { position: absolute; left: -7px; top: 14px; bottom: 14px; width: 14px; background: radial-gradient(ellipse 6px 3.4px at 50% 50%, #fff 45%, #c9b6d6 50% 82%, transparent 86%) 0 0 / 14px 14.6px repeat-y; }
+.sh-rfl { position: relative; display: grid; place-items: center; align-content: center; gap: 4px; width: 74px; height: 104px; border-radius: 3px; background-color: #fffdfb; border: 1.5px solid var(--an-ol, #bba6d6); box-shadow: 3px 4px 0 rgba(176, 150, 214, .25), 6px 8px 0 -1px #fff, 6px 8px 0 .5px rgba(176, 150, 214, .35); pointer-events: none; }   /* 📄 바인더 내지 (981) */
+.sh-rfl .sh-rfh { position: absolute; left: 4px; top: 10px; bottom: 10px; width: 8px; background: radial-gradient(circle 2.6px at 50% 50%, #e9dff0 70%, transparent 76%) 0 0 / 8px 15px repeat-y; }
+.sh-rfl b { font-size: 22px; line-height: 1; }
+.sh-rfl.lf-line { background-image: linear-gradient(transparent 9px, #eadcf0 0); background-size: 100% 10px; }
+.sh-rfl.lf-grid { background-image: linear-gradient(#efe4f3 1px, transparent 0), linear-gradient(90deg, #efe4f3 1px, transparent 0); background-size: 8px 8px; }
+.sh-rfl.lf-dot { background-image: radial-gradient(circle 1px, #dccbe4 99%, transparent); background-size: 8px 8px; }
+.sh-rfl.lf-gingham { background-image: linear-gradient(rgba(255, 182, 193, .25) 50%, transparent 0), linear-gradient(90deg, rgba(255, 182, 193, .25) 50%, transparent 0); background-size: 12px 12px; }
+.sh-rfl.lf-kraft { background-color: #e7d3b5; }
+.sh-rfl small { font: 700 10px/1 'Jua', sans-serif; color: #9a86a8; letter-spacing: .5px; background: #fff; padding: 2px 5px; border-radius: 6px; }
 .sh-dyb b { font: 800 19px/1 'Jua', sans-serif; color: var(--dyi, #c8457a); letter-spacing: 1px; }
 .sh-dyb small { font: 700 9px/1 'Fredoka', 'Jua', sans-serif; color: var(--dyi, #e07595); opacity: .8; letter-spacing: 2px; }
 .sh-zlook .sh-dyb { transform: scale(1.6); margin: 40px 0; }

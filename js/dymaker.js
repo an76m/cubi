@@ -49,7 +49,8 @@
             const sz = DMK_SIZES[k].find(s => s[0] === d.n) || DMK_SIZES[k].find(s => s[0] === 'A5');
             const o = { id: d.id, t, k, g: String(d.g || '').slice(0, 20) || '내 ' + DMK_T[t].name, n: sz[0], mm: sz[1], r: sz[2], from: dyoFrom(d.from, 'mine') };
             if (t === 'dcover') { const D = window.dyyDesignOf ? dyyDesignOf(d.d) : null; return Object.assign(o, { y: Math.round(+d.y) || new Date().getFullYear(), d: String(d.d || ''), n: D ? D.n : o.n, mm: D ? D.mm : o.mm, r: D ? D.r : o.r, c: D ? D.c : DMK_COLORS[6], b: 'ring' }); }   // 📅 해가 적힌 표지 = 그 디자인 그대로
-            if (t === 'drefill') return Object.assign(o, { lf: DMK_LEAFS.some(l => l[0] === d.lf) ? d.lf : '' });   // 📅 날짜 내지 (해 없음)
+            if (d.pid) o.pid = String(d.pid).slice(0, 60);                      // 🏪 받은 상품 id
+            if (t === 'drefill') return Object.assign(o, { lf: DMK_LEAFS.some(l => l[0] === d.lf) ? d.lf : 'line' });   // 📅 날짜 내지 (해 없음 · 크기 n = 같은 크기 표지에만)
             const color = c => /^#[0-9a-f]{6}$/i.test(c || '') ? c : DMK_COLORS[k === '바인더' ? 6 : 0];
             if (t === 'note') { const pg = dmkPg(d.pg); return Object.assign(o, { my: 1, b: DMK_BINDS[k].some(x => x[0] === d.b) ? d.b : DMK_BINDS[k][0][0], c: color(d.c), cols: dmkCols(d.cols, color(d.c)), cw: !!(d.cw && d.cols), pg, lv: dmkLv(d.lv, pg) }); }
             if (t === 'cover') return Object.assign(o, { b: 'ring', c: color(d.c), cols: dmkCols(d.cols, color(d.c)), cw: !!(d.cw && d.cols) });
@@ -241,6 +242,10 @@
 
         /* 🎁 처음 선물 📓 페이지노트 · 🗂️ 페이지바인더 (도련 11-06 · 상품공방 '처음선물' 체크 · 앱이 정하지 않아요 · js/desk.js giftEnsure)
            그 상품 모양 그대로 한 권씩 📚 다이어리 목록에 (from gift · 바인더 = 상품 표지 + 처음 끼워진 내지 · 조립된 채로 · 재료 목록에는 없어요) → 준 권 수 */
+        function dmkGiftRefill(p) {                                            // 🎁 첫 선물 페이지바인더에 끼울 내지 = 표지 상품 '처음내지' (없으면 같은 크기 페이지 내지 · 그것도 없으면 줄노트 100쪽)
+            const R = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => r.t === 'page' && r.n === p.n), r = R.find(x => x.id === p.rf0) || R[0];
+            return r ? { id: 'p:' + r.id, g: r.g, pg: r.pg, lv: r.lv, from: 'gift' } : { id: 'p:' + p.id, g: p.g + ' 내지', pg: 100, lv: [[1, 100, 'line']], from: 'gift' };
+        }
         async function dmkStarter() {
             const gs = (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.gift && DMK_SZ.some(s => s[0] === p.n));
             if (!gs.length) return 0;
@@ -248,7 +253,7 @@
                 const id = 'my' + (t0 + i).toString(36);
                 return p.k === '노트'
                     ? dmkClean({ id, t: 'note', g: p.g, n: p.n, b: p.b, c: p.c, cols: p.cols, cw: 1, pg: p.pg, lv: p.lv, from: 'gift' })
-                    : dmkClean({ id, t: 'binder', g: p.g, n: p.n, c: p.c, cols: p.cols, cv: 'p:' + p.id, cg: p.g, cvf: 'gift', cvw: 1, rf: [{ id: 'p:' + p.id, g: p.g + ' 내지', pg: p.pg, lv: p.lv.slice().reverse(), from: 'gift' }], from: 'gift' });   // 🧩 조립한 것과 같은 모양
+                    : dmkClean({ id, t: 'binder', g: p.g, n: p.n, c: p.c, cols: p.cols, cv: 'p:' + p.id, cg: p.g, cvf: 'gift', cvw: 1, rf: [dmkGiftRefill(p)], from: 'gift' });   // 🧩 조립한 것과 같은 모양 (표지 + 처음 끼울 내지)
             }).filter(Boolean);
             const ids = new Set(ds.map(d => d.id)); dyoSet(dyoAll().filter(x => !ids.has(x.id)).concat(ds));   // 📚 한 번에
             if (window.deskVolInit) deskVolInit(ds.map((d, i) => ({ id: d.id, spot: gs[i].desk, n: d.g })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
@@ -265,12 +270,17 @@
         const dmkBkCover = b => ({ id: /^my/.test(b.cv) ? b.cv : dymNewId(), t: 'cover', g: b.cg || '표지', n: b.n, c: b.c, cols: b.cols, cw: b.cvw, from: b.cvf || 'mine' });   // 바인더에 끼운 표지 → 재료 모양
         const dmkBkRefill = (b, x) => ({ id: /^my/.test(x.id) ? x.id : dymNewId(), t: 'refill', g: x.g, n: b.n, pg: x.pg, lv: x.lv, from: x.from || 'mine' });
         const dmkRmDate = () => !!(dmkRm && dmkRm.cv && dmkRm.cv.t === 'dcover');
+        function dmkRmInit(id) {                                               // 조립 시작 ('' = 새 바인더 · 권 id = 고치기) · 🧩 책상 바인더 조립(js/binderroom.js)도 같이 써요
+            const old = id ? dmkGet(id) : null;
+            dmkRm = old && old.t === 'binder' ? { id: old.id, g: old.g, from: old.from, cv: dmkBkCover(old), rf: old.rf.map(x => dmkBkRefill(old, x)) } : { id: '', g: '', from: 'mine', cv: null, rf: [] };
+            dmkRm.o0 = { cv: dmkRm.cv, rf: dmkRm.rf.slice() };
+            return dmkRm;
+        }
+        const dmkRoomOn = () => !!(dmkQ('dmkRoom') && dmkQ('dmkRoom').style.display !== 'none');
+        function dmkRmRedraw() { if (dmkRoomOn()) dmkRoomRender(); if (window.bndRender) bndRender(); }
         async function dmkRoomOpen(id) {
-            if (id !== null) {                                                 // null = 표지 · 내지 만들기에서 돌아올 때 (하던 그대로)
-                const old = id ? dmkGet(id) : null;
-                dmkRm = old && old.t === 'binder' ? { id: old.id, g: old.g, from: old.from, cv: dmkBkCover(old), rf: old.rf.map(x => dmkBkRefill(old, x)) } : { id: '', g: '', from: 'mine', cv: null, rf: [] };
-                dmkRm.o0 = { cv: dmkRm.cv, rf: dmkRm.rf.slice() };
-            }
+            if (window.bndIsOpen && bndIsOpen()) { if (id !== null) dmkRmInit(id); bndRender(); return; }   // 🧩 책상 바인더 조립 중이면 그 화면에서
+            if (id !== null) dmkRmInit(id);                                    // null = 표지 · 내지 만들기에서 돌아올 때 (하던 그대로)
             dmkRoomBuild();
             dmkQ('dmkRoomName').value = dmkRm.g;
             dmkQ('dmkRoomDel').hidden = !dmkRm.id;
@@ -315,22 +325,22 @@
             if (c.t === 'dcover' && dmkRm.id) return;                          // 📅 날짜 표지는 새로 조립할 때만
             if (dmkRmLock() && c.n !== dmkRmN()) return;
             const wasDate = dmkRmDate();
-            if ((c.t === 'dcover') !== wasDate || (dmkRm.rf.length && c.n !== dmkRmN() && c.t !== 'dcover')) dmkRm.rf = [];   // 크기 · 종류가 다르면 끼운 내지는 빠져요 (꾸민 페이지가 없을 때만 여기까지 와요)
+            if ((c.t === 'dcover') !== wasDate || (dmkRm.rf.length && c.n !== dmkRmN())) dmkRm.rf = [];   // 크기 · 종류가 다르면 끼운 내지는 빠져요 (꾸민 페이지가 없을 때만 여기까지 와요)
             dmkRm.cv = c;
-            if (c.t === 'dcover' && dmkQ('dmkRoomName')) { dmkRm.g = c.g; dmkQ('dmkRoomName').value = c.g; }   // 📅 이름 = 그 해 디자인
-            dmkRoomRender();
+            if (c.t === 'dcover') { dmkRm.g = c.g; if (dmkQ('dmkRoomName')) dmkQ('dmkRoomName').value = c.g; }   // 📅 이름 = 그 해 디자인
+            dmkRmRedraw();
         }
         function dmkRmAdd(id) {
             const r = dmkRmPool('refill').find(x => x.id === id); if (!r || !dmkRm.cv) return;
-            if (dmkRmDate()) { if (r.t !== 'drefill') return; dmkRm.rf = [r]; }   // 📅 날짜 내지는 하나
+            if (dmkRmDate()) { if (r.t !== 'drefill' || r.n !== dmkRmN()) return; dmkRm.rf = [r]; }   // 📅 날짜 내지는 하나 (같은 크기)
             else {
                 if (r.t !== 'refill' || r.n !== dmkRmN()) return;
                 if (dmkRm.rf.reduce((s, x) => s + x.pg, 0) + r.pg > DMK_BIND_MAX) { showMsg(`바인더 한 권에는 ${DMK_BIND_MAX}페이지까지 끼울 수 있어요.`); return; }
                 dmkRm.rf.push(r);
             }
-            if (dmkQ('dmkRoom') && dmkQ('dmkRoom').style.display !== 'none') dmkRoomRender();
+            dmkRmRedraw();
         }
-        function dmkRmOut(i) { if (!dmkRmDate()) { const st = dmkRm.rf.slice(0, i).reduce((s, x) => s + x.pg, 0); if (st < dmkRmFilled()) return; } dmkRm.rf.splice(i, 1); dmkRoomRender(); }
+        function dmkRmOut(i) { if (!dmkRmDate()) { const st = dmkRm.rf.slice(0, i).reduce((s, x) => s + x.pg, 0); if (st < dmkRmFilled()) return; } dmkRm.rf.splice(i, 1); dmkRmRedraw(); }
         const dmkRfPg = x => x.t === 'drefill' ? 0 : x.pg;
         function dmkRoomPrev() {
             const cv = dmkRm.cv && dmkClean(dmkRm.cv), H = 96;
@@ -340,13 +350,14 @@
             dmkQ('dmkRoomPrev').innerHTML = `<span class="dmk-stack">${dmkCvThumb(cv.c, cv.r, H)}${pg ? `<span class="dmk-stack-n">${pg}</span>` : ''}</span><span class="dmk-prev-n">${dmkEsc(dmkRm.g || cv.g || '내 바인더')}<small>${sub}</small></span>`;
         }
         function dmkRoomRender() {
+            if (!dmkQ('dmkRoomCv') || !dmkRm) return;
             const lock = dmkRmLock(), filled = dmkRmFilled(), date = dmkRmDate(), n = dmkRmN(), yr = new Date().getFullYear();
             const covers = dmkRmPool('cover').filter(c => !(dmkRm.id && c.t === 'dcover'));
             const cur = dmkRm.cv ? [dmkClean(dmkRm.cv)] : [];
             const ed = (t, id) => `<span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkForm('${t}', '${id}')">✏️</span>`;
             const cvCard = (c, on) => {
                 const old = c.t === 'dcover' && c.y < yr, off = !on && (old || (lock && c.n !== n));
-                return `<button type="button" class="dmk-card${on ? ' on' : ''}" ${off ? 'disabled' : ''} onclick="dmkRmPick('${c.id}')" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 56)}<span>${dmkEsc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y : c.n}</small>${!on && c.t === 'cover' && dymGet(c.id) ? ed('cover', c.id) : ''}</button>`;
+                return `<button type="button" class="dmk-card${on ? ' on' : ''}" ${off ? 'disabled' : ''} onclick="dmkRmPick('${c.id}')" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 56)}<span>${dmkEsc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y : c.n}</small>${!on && c.t === 'cover' && c.from === 'mine' && dymGet(c.id) ? ed('cover', c.id) : ''}</button>`;
             };
             dmkQ('dmkRoomCv').innerHTML = `<button type="button" class="dmk-card dmk-new" onclick="dmkForm('cover')"><b>＋</b><span>새 표지</span></button>` + cur.map(c => cvCard(c, true)).join('') + covers.map(c => cvCard(c, false)).join('');
             let at = 0;
@@ -358,26 +369,28 @@
             }).join('') : `<div class="dmk-empty">아직 끼운 내지가 없어요. 아래에서 눌러 끼워요.</div>`;
             dmkQ('dmkRoomPg').textContent = dmkRm.rf.length && !date ? `${at}페이지` : '';
             dmkQ('dmkRoomRfHint').textContent = date ? '날짜 내지 하나 · 표지의 해를 따라가요' : '누르면 맨 뒤에 끼워요';
-            const refills = dmkRmPool('refill').filter(r => date ? r.t === 'drefill' : r.t === 'refill' && (!n || r.n === n));
+            const refills = dmkRmPool('refill').filter(r => (date ? r.t === 'drefill' : r.t === 'refill') && (!n || r.n === n));   // 같은 크기만
             dmkQ('dmkRoomRf').innerHTML = (date ? '' : `<button type="button" class="dmk-card dmk-new" onclick="dmkForm('refill')"><b>＋</b><span>새 내지</span></button>`) + refills.map(r => r.t === 'drefill'
                 ? `<button type="button" class="dmk-card" onclick="dmkRmAdd('${r.id}')">${dmkRfThumb([[1, 1, r.lf || 'line']], (dmkRm.cv && dmkClean(dmkRm.cv).r) || 1.4, 56)}<span>${dmkEsc(r.g)}</span><small>📅 날짜</small></button>`
-                : `<button type="button" class="dmk-card" ${n ? '' : 'disabled'} onclick="dmkRmAdd('${r.id}')">${dmkRfThumb(r.lv, r.r, 56)}<span>${dmkEsc(r.g)}</span><small>${r.n} · ${r.pg}p</small>${dymGet(r.id) ? ed('refill', r.id) : ''}</button>`).join('')
-                + (dmkRm.cv && !refills.length && !(date && dmkRm.rf.length) ? `<div class="dmk-empty">${date ? '날짜 내지가 없어요. 🏪 기본상품 샵에서 받아요.' : n + ' 크기 내지가 아직 없어요.'}</div>` : '');
+                : `<button type="button" class="dmk-card" ${n ? '' : 'disabled'} onclick="dmkRmAdd('${r.id}')">${dmkRfThumb(r.lv, r.r, 56)}<span>${dmkEsc(r.g)}</span><small>${r.n} · ${r.pg}p</small>${r.from === 'mine' && dymGet(r.id) ? ed('refill', r.id) : ''}</button>`).join('')
+                + (dmkRm.cv && !refills.length && !(date && dmkRm.rf.length) ? `<div class="dmk-empty">${date ? n + ' 크기 날짜 내지가 없어요. 🏪 기본상품 샵 → 📄 바인더 내지에서 받아요.' : n + ' 크기 내지가 아직 없어요.'}</div>` : '');
             dmkQ('dmkRoomOk').disabled = !(dmkRm.cv && dmkRm.rf.length);
             dmkRoomPrev();
         }
         function dmkRoomClose() { closeModal('dmkRoom'); dyOpen('바인더'); dyTabSet('mine'); }
-        async function dmkRoomSave() {
-            if (!dmkRm.cv || !dmkRm.rf.length) return;
+        async function dmkRoomSave(opt) {                                       // opt.quiet = 🧩 책상 바인더 조립 (다 되면 책상 위에 · 펼치지 않아요) → 권 id
+            const quiet = !!(opt && opt.quiet);
+            if (!dmkRm || !dmkRm.cv || !dmkRm.rf.length) return null;
+            if (!quiet && dmkQ('dmkRoomName')) dmkRm.g = dmkQ('dmkRoomName').value;
             try { if (!await dymReady()) return; } catch (e) { showMsg('⚠ 지금은 조립하지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
             const cv = dmkClean(dmkRm.cv);
             if (cv.t === 'dcover') {                                           // 📅 날짜형바인더 = 그 해 권 (js/dyyear.js)
                 const r = window.dyyAssemble ? dyyAssemble(cv, dmkClean(dmkRm.rf[0])) : null;
-                if (r === 'old') { showMsg(`📅 ${cv.y}년 표지는 해가 지나서 조립할 수 없어요.`); return; }
-                if (!r) { showMsg('⚠ 조립하지 못했어요.'); return; }
-                closeModal('dmkRoom'); dmkRm = null; return;
+                if (r === 'old') { showMsg(`📅 ${cv.y}년 표지는 해가 지나서 조립할 수 없어요.`); return null; }
+                if (!r) { showMsg('⚠ 조립하지 못했어요.'); return null; }
+                closeModal('dmkRoom'); dmkRm = null; return r;
             }
-            dmkRm.g = (dmkQ('dmkRoomName').value || '').trim().replace(/\s+/g, ' ') || '내 바인더';
+            dmkRm.g = String(dmkRm.g || '').trim().replace(/\s+/g, ' ') || '내 바인더';
             if (!dmkRm.id) dmkRm.id = dymNewId();
             const rf = dmkRm.rf.map(dmkClean).filter(Boolean);
             const d = dmkClean({ id: dmkRm.id, t: 'binder', g: dmkRm.g, n: cv.n, c: cv.c, cols: cv.cols, cv: cv.id, cg: cv.g, cvf: cv.from, cvw: cv.cw, rf: rf.map(x => ({ id: x.id, g: x.g, pg: x.pg, lv: x.lv, from: x.from })), from: dmkRm.from || 'mine' });
@@ -387,7 +400,8 @@
             used.forEach(id => { if (!had.has(id)) dymDel(id); });              // 새로 끼운 것 = 재료에서 빠져요
             dyoPut(d);
             closeModal('dmkRoom'); dmkRm = null;
-            dmkUse(d);
+            if (quiet) { if (window.dkDeskBooks) dkDeskBooks(); } else dmkUse(d);
+            return d.id;
         }
         async function dmkRoomDelete() {
             const d = dmkGet(dmkRm.id); if (!d) return;
@@ -399,7 +413,7 @@
 
         window.dmkOpen = dmkOpen; window.dmkForm = dmkForm; window.dmkSave = dmkSave; window.dmkDelete = dmkDelete; window.dmkDup = dmkDup; window.dmkClose = dmkClose; window.dmkPages = dmkPages; window.dmkLeafSet = dmkLeafSet; window.dmkColSet = dmkColSet; window.dmkLeafAdd = dmkLeafAdd; window.dmkLeafDel = dmkLeafDel; window.dmkLeafEdge = dmkLeafEdge;
         window.dmkRender = dmkRender; window.dmkPrevDraw = dmkPrevDraw; window.dmkAll = dmkAll; window.dmkParts = dmkParts; window.dmkGet = dmkGet; window.dmkSync = dmkSync; window.dmkEsc = dmkEsc; window.dkLeafOf = dkLeafOf;
-        window.dmkRoomOpen = dmkRoomOpen; window.dmkRoomSave = dmkRoomSave; window.dmkRoomClose = dmkRoomClose; window.dmkRoomDelete = dmkRoomDelete; window.dmkRoomPrev = dmkRoomPrev; window.dmkRmPick = dmkRmPick; window.dmkRmAdd = dmkRmAdd; window.dmkRmOut = dmkRmOut;
+        window.dmkRoomOpen = dmkRoomOpen; window.dmkRmInit = dmkRmInit; window.dmkRmPool = dmkRmPool; window.dmkRmDate = dmkRmDate; window.dmkRmN = dmkRmN; window.dmkRmFilled = dmkRmFilled; window.dmkRmLock = dmkRmLock; window.dmkRmState = () => dmkRm; window.dmkClean = dmkClean; window.dmkCvThumb = dmkCvThumb; window.dmkRfThumb = dmkRfThumb; window.dmkLvText = dmkLvText; window.dmkLeafName = dmkLeafName; window.dmkRoomSave = dmkRoomSave; window.dmkRoomClose = dmkRoomClose; window.dmkRoomDelete = dmkRoomDelete; window.dmkRoomPrev = dmkRoomPrev; window.dmkRmPick = dmkRmPick; window.dmkRmAdd = dmkRmAdd; window.dmkRmOut = dmkRmOut;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dymaker'] = true;
