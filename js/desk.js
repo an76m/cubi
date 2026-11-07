@@ -1942,6 +1942,7 @@
             if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
             deskFnPaint(); dknPaintAll();
             if (DKD.cur) dkDrawerShut(true); else if (window.closeModal) closeModal('deskFnModal');   // 창이 올라가며 서랍도 닫혀요
+            const [, n, , ic] = dkWin(k); setTimeout(() => { if (window.showMsg) showMsg(`🔗 연결되었어요!<br>${htmlEsc(dkName(o))} ${dkSlotNm(s, S.length)} 칸 = ${ic} <b>${htmlEsc(n)}</b><br><span style="font-size:12px;color:#777;">이제 이 서랍을 열면 ${htmlEsc(josa(n, '이', '가'))} 나와요</span>`); }, 380);   // ✅ 연결 알림 (도련 11-08 · 서랍이 다 닫힌 뒤)
         }
         window.dkEmptyPick = dkEmptyPick;
         function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); dkSnapBtn(); }
