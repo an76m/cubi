@@ -322,6 +322,7 @@
         document.addEventListener('click', e => {
             const m = e.target;
             if (!m.classList || !m.classList.contains('modal') || mdDown !== m || m.id === 'customAlertModal') return;
+            if (window.dkDrawerOwns && dkDrawerOwns(m)) { if (!(window.deskTapAt && deskTapAt(e.clientX, e.clientY))) dkDrawerShut(true); return; }   // 🗄 서랍에서 내려온 창 밖 = 그 자리 책상 톡 (같은 서랍 = 창이 올라가며 서랍 닫힘 · 다른 서랍 = 그 서랍) · 빈 곳 = 서랍 닫듯이 (도련 11-08)
             const x = m.querySelector('.mt-x'); if (x) x.click(); else closeModal(m.id);
         });
 
