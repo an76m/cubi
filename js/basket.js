@@ -1383,7 +1383,7 @@
             if (!await shGive(x)) return; bagNote(x, k);
             got.add(zi); if (here()) SH.redraw = true;
             const box = btn.closest('.sh-zbtns');
-            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? '📔 다이어리 보관소' : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
+            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? (x.cat === 'dyb' ? '🧩 바인더 재료 (다이어리 → 바인더 → 🧩 조립)' : '📔 다이어리 보관소') : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${shInShop() ? '봉투에 담았어요 · 내 방에서 꺼내요' : nm + '에 넣었어요'}</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${k}', 0)">${shGotText()}</button></div>`;
             return;

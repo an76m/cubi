@@ -181,7 +181,6 @@
         async function giftRead() {
             if (!giftGiven()) return null;
             const bk = await dkBackupRead().catch(() => null) || {};
-            const I = bk.diary_book_info && typeof bk.diary_book_info === 'object' ? bk.diary_book_info : {};
             /* 백업에 그 목록이 아직 없으면 (첫날) = 상품공방 '처음선물' 그대로 (선물 u = 상품 id) · 있으면 그 안의 from 선물 */
             const G = (k, first) => Array.isArray(bk[k]) ? bk[k].filter(isGift) : first();
             const ids = f => { try { return f() || []; } catch (e) { return []; } };
@@ -190,7 +189,7 @@
                 gd: G('diary_gd_own', () => ids(() => window.gdStarter && gdStarter()).map(id => ({ u: id, id }))).map(o => o.u || o.id),
                 ds: G('diary_skin_own', () => ids(() => window.dsGiftIds && dsGiftIds()).map(id => ({ u: id, id }))).map(o => ({ u: o.u, id: o.id })),
                 bg: G('diary_bg_own', () => ids(() => window.bgoGiftIds && bgoGiftIds()).map(id => ({ u: id, p: id }))).map(o => ({ u: o.u, p: o.p })),
-                dy: (Array.isArray(bk.diary_years) ? bk.diary_years : []).filter(id => I[id] && I[id].from === 'gift') };
+                dy: (Array.isArray(bk.diary_own) ? bk.diary_own : []).filter(x => x && x.from === 'gift') };   // 📚 권마다 한 줄 (날짜형 · 페이지형 · 981)
         }
         /* 🛟 되살리기 (도련 10-27 · 스티커 ownRescue 와 같게) : 배치.json 이 없어지거나 깨지면
              가진 것 = 종류 폴더의 내 파일(🔐 열리는 것만 · 같은 u 는 하나) + 선물.json · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
@@ -204,7 +203,7 @@
             try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
         /* 🛟 백 목록 백업 = 그 폴더 안에 (도련 11-07 · 스티커처럼) : 소품 / _목록_백업.json { 소품 · 벽지 · 책상판 } · 문구 / _목록_백업.json { 문구 } · 하루 한 번 · 목록 파일을 만든 뒤에만 */
-        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown'];   // 🛟 소품 · 문구 · 📔 다이어리 (도련 11-07)
+        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown', 'bcown', 'rfown'];   // 🛟 소품 · 문구 · 📔 다이어리 · 🧩 바인더 재료 (도련 11-07)
         async function dkBackRead(w) {
             const F = KEY_FILES[w], dir = await getFolder(F.path, false), f = dir && await findFile(dir, DK_BB_NAME);
             if (!f) return null;
