@@ -129,7 +129,7 @@
         let giftChain = Promise.resolve(), giftLate = false, giftWrote = false;
         function giftBody() {
             const gd = window.gdOwnList ? (gdOwnList() || []) : [];
-            const more = n => { try { return window[n] ? window[n]() : []; } catch (e) { return []; } };   // 🧱 🪵 🌈 📔 처음 선물도 여기에 (도련 11-05 · 첫 접속 요청 줄이기 · js/deskskin.js · bgown.js · dyyear.js)
+            const more = n => { try { return window[n] ? window[n]() : []; } catch (e) { return []; } };   // null = 아직 모르는 목록 (giftWrite 가 선물 파일 값을 그대로 둬요)   // 🧱 🪵 🌈 📔 처음 선물도 여기에 (도련 11-05 · 첫 접속 요청 줄이기 · js/deskskin.js · bgown.js · dyyear.js)
             return { v: 1, desk: DK.items.filter(o => o.g).map(o => ({ u: o.u, id: o.id })), gd: gd.filter(o => o.g).map(o => o.id), ds: more('dsGiftOwn'), bg: more('bgoGiftOwn'), dy: more('dyyGiftOwn') };
         }
         function giftWrite() {                                                    // 지금 모습으로 덮어쓰기 (차례대로 · 실패하면 다음에 다시)
@@ -138,6 +138,11 @@
             giftChain = giftChain.then(async () => {
                 try {
                     const b = giftBody(), dir = await getFolder(dirPath(DIRS.settings), true), cur = drive.newbie && !giftWrote ? null : await findFile(dir, GIFT_NAME);   // 🆕 처음 온 다꾸러 첫 쓰기 = 찾지 않아요 (도련 11-06)
+                    ['ds', 'bg', 'dy'].forEach(k => { if (!Array.isArray(b[k])) b[k] = null; });
+                    if (b.ds == null || b.bg == null || b.dy == null) {                // 💤 아직 안 읽은 목록 (배경지 = 창을 열 때 · 도련 11-07) = 그 칸은 지금 선물 파일 그대로
+                        const old = cur ? await giftReadOnce() : null;
+                        ['ds', 'bg', 'dy'].forEach(k => { if (b[k] == null) b[k] = old && Array.isArray(old[k]) ? old[k] : []; });
+                    }
                     if (!b.desk.length && !b.gd.length && !b.ds.length && !b.bg.length && !b.dy.length) { if (cur) await driveTrash(cur.id); }
                     else await driveUpsert(dir, GIFT_NAME, cur && cur.id, await ownLock(b));   // 🔐
                     giftReadOnce.forget();
