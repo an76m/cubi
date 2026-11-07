@@ -108,7 +108,8 @@
             dkOwnP = keyFileLoad('dkown').then(async ok => {
                 while (giftBusy) await new Promise(r => setTimeout(r, 120));      // 🎁 선물 · 되살리기를 정하는 중이면 끝난 뒤에
                 if (gen !== drive.gen || !ok) return false;
-                if (DK.edit) return true;
+                const ed = DK.edit && DK.back ? { items: DK.items, back: JSON.parse(DK.back.items) } : null;   // 🛠 꾸미는 중에 목록이 왔어요 (도련 11-08 : 꾸미기는 목록 없이 먼저 열려요)
+                if (DK.edit && !ed) return true;
                 const was = DK.seen; DK.partial = false;
                 const own = prefGet(DK_OWN_KEY, DK_OWN_LOCAL), pos = prefGet(DK_POS_KEY, DK_POS_LOCAL);   // 💤 안 읽은 동안 책상 위에서 바뀐 것(칠하기 · 파일 번호)은 배치.json 이 새것 → 목록에도
                 if (Array.isArray(own) && pos && typeof pos === 'object') {
@@ -117,7 +118,12 @@
                     if (ch) prefSet(DK_OWN_KEY, DK_OWN_LOCAL, L);
                 }
                 dkLoad();                                                         // 목록 + 지금 자리 (배치.json) → 가진 것 전부
-                if (DK.seen !== was) { deskItemsRender(); deskModeRender(); }
+                if (ed) {                                                         // 🛠 = 가진 것 전부(취소하면 이대로) + 기다리는 동안 꾸민 것 (옮긴 자리 · 보관함에 넣은 것)
+                    DK.back.items = JSON.stringify(DK.items);
+                    const E = new Map(ed.items.map(x => [x.u, x])), B = new Set(ed.back.map(x => x.u)), F = DK.items;
+                    DK.items = F.filter(x => E.has(x.u) || !B.has(x.u)).map(x => E.get(x.u) || x).concat(ed.items.filter(x => !F.some(y => y.u === x.u)));
+                    deskItemsRender(); deskModeRender(); if (DK.sel && !DK.sel.isConnected) deskSelect(null); deskEditPaint();
+                } else if (DK.seen !== was) { deskItemsRender(); deskModeRender(); }
                 if (window.dsAfterLoad) dsAfterLoad();                            // 🧱 🪵 벽지 · 책상판도 같은 파일 (js/deskskin.js)
                 if (DK.fresh || DK.posLost) giftEnsure();                         // 🛟 목록 파일이 없어졌어요 → 되살리기
                 else { DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); }); dkFilesFill(); }
@@ -816,7 +822,7 @@
         /* ---------- 🛠 책상 꾸미기 (도련 10-27) ---------- */
         function deskEditOpen() {
             const H = document.documentElement; if (!H.classList.contains('desk-on') || DK.edit) return;
-            if (DK.partial) { dkOwnReady().then(ok => { if (ok && !DK.partial) deskEditOpen(); }, () => { if (window.showMsg) showMsg('소품 목록을 읽지 못했어요.<br><small>인터넷을 확인하고 다시 눌러 주세요</small>'); }); return; }   // 💤 꾸미기 = 가진 것 전부가 있어야 해요
+            const wait = DK.partial;                                              // 💤 소품 목록을 아직 안 읽었어요 → 꾸미기는 바로 · 소품함은 다 읽은 뒤 (도련 11-08 · 오른쪽에 조용히 '불러오는 중')   // 💤 꾸미기 = 가진 것 전부가 있어야 해요
             if (H.classList.contains('desk-show')) { dkFoldShut(); H.classList.remove('desk-show'); }   // 펴 둔 다이어리는 접어서 책상에   // 펴 둔 다이어리는 책상에 내려놓고 (펼친 모양은 보일 때 그려요)
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
             DK.back = { items: JSON.stringify(DK.items), fn: JSON.stringify(deskFnMap()), home: JSON.stringify(dkHomes()) };   // 취소하면 이대로 (👆 칸 · 칸 이름표도)
@@ -826,7 +832,18 @@
             H.classList.add('desk-edit');
             deskSelect(null); deskFnPaint(); deskEditPaint();
             dkEditHello();                                                        // ✨ '꾸미기 시작!' 리본 (도련 10-28)
-            deskBoxOpen();                                                        // 📦 소품함도 같이 (도련 11-04)
+            if (!wait) { deskBoxOpen(); return; }                                 // 📦 소품함도 같이 (도련 11-04)
+            dkBoxWait(true);
+            dkOwnReady().then(ok => { dkBoxWait(false); if (!DK.edit) return; if (ok && !DK.partial) { if (!document.getElementById('deskBoxModal') || !/flex|block/.test(document.getElementById('deskBoxModal').style.display)) deskBoxOpen(); else deskBoxRender(); } else if (window.showMsg) showMsg('소품 목록을 읽지 못했어요.<br><small>인터넷을 확인하고 📦 소품함을 다시 눌러 주세요</small>'); },
+                () => { dkBoxWait(false); if (DK.edit && window.showMsg) showMsg('소품 목록을 읽지 못했어요.<br><small>인터넷을 확인하고 📦 소품함을 다시 눌러 주세요</small>'); });
+        }
+        /* 📦 소품함 준비 중 (도련 11-08) : 소품함이 뜰 오른쪽 자리에 작은 알약 하나 · 눌러지지 않아요 (책상은 그대로 만져요) */
+        function dkBoxWait(on) {
+            let w = document.getElementById('dkBoxWait');
+            if (!on) { if (w) { w.classList.add('bye'); setTimeout(() => w.remove(), 260); w.id = ''; } return; }
+            if (w) return;
+            w = document.createElement('div'); w.id = 'dkBoxWait'; w.className = 'dkb-wait'; w.setAttribute('role', 'status');
+            w.innerHTML = '<b>📦 소품함을 불러오는 중</b><i></i><i></i><i></i>'; document.body.appendChild(w);
         }
         function dkEditHello() {                                                  // 🎀 리본이 톡 떴다가 스르르 (1.3초)
             const old = document.getElementById('dkeHello'); if (old) old.remove();
@@ -837,6 +854,13 @@
         function deskEditFromSettings() { if (window.closeModal) closeModal('settingsModal'); deskEditOpen(); }
         function deskEditEnd(ok) {
             if (!DK.edit) return;
+            if (ok && DK.partial) {                                               // 💤 목록이 오기 전 ✔ = 목록을 다 읽고 나서 저장 (빠진 소품 없이 · 도련 11-08)
+                dkBoxWait(true);
+                dkOwnReady().then(r => { dkBoxWait(false); if (r && DK.edit && !DK.partial) deskEditEnd(true); else if (!r && window.showMsg) showMsg('소품 목록을 읽지 못해서 아직 저장하지 않았어요.<br><small>인터넷을 확인하고 ✔ 를 다시 눌러 주세요</small>'); },
+                    () => { dkBoxWait(false); if (window.showMsg) showMsg('소품 목록을 읽지 못해서 아직 저장하지 않았어요.<br><small>인터넷을 확인하고 ✔ 를 다시 눌러 주세요</small>'); });
+                return;
+            }
+            dkBoxWait(false);
             if (window.closeModal) closeModal('deskBoxModal');
             if (ok) {
                 /* 기능을 하나도 연결하지 않아도 ✔ 확인 돼요 (도련 10-31 · 🛠 책상 꾸미기는 책상 오른쪽 위 버튼으로 늘 열려요) */
@@ -1909,17 +1933,28 @@
             const u = el.dataset.u, m = DK.editFn || {}, o = DK.items.find(x => x.u === u), box = document.getElementById('deskFnList'); if (!box || !o) return;
             const ok = dkHoldOk(o.id), S = dkSlots(o.id), H = dkHomes(); if (!ok.length) return;
             const where = k => { if (m[k]) { const x = DK.items.find(y => y.u === m[k]); return x ? dkName(x) : ''; } const zu = Object.keys(H).find(y => H[y].some(e => e.k === k)), x = zu && DK.items.find(y => y.u === zu), e = x && H[zu].find(y => y.k === k); return x ? `${dkName(x)} ${dkSlotNm(e.s, (dkSlots(x.id) || []).length)} 칸` : ''; };
-            const tt = document.getElementById('deskFnTitle'); if (tt) tt.textContent = dkName(o) + (S ? '의 서랍마다 넣을 것' : '에 넣을 것');
+            const tt = document.getElementById('deskFnTitle'); if (tt) tt.textContent = dkName(o) + '에 넣을 것';
             const again = "document.getElementById('deskFnModal').style.display !== 'none' && deskFnOpen()";
             const btn = (k, mine, s) => { const [, n, , ic] = dkWin(k), w = mine ? '' : where(k);
                 return `<button type="button" class="btn${mine ? ' on' : ''}" onclick="deskFnPick('${k}'${S ? ',' + s : ''}).then(() => ${again})"><b>${ic} ${n}</b><small>${mine ? (S ? '✔ 이 칸' : '✔ 넣었어요 · 누르면 빼기') : w ? '지금 : ' + w : ''}</small></button>`; };
-            box.innerHTML = S ? S.map((r, s) => { const cur = (H[u] || []).find(e => e.s === s);
-                    return `<h4 class="dkf-g">🗄️ ${dkSlotNm(s, S.length)} 칸</h4>` + ok.map(k => btn(k, !!cur && cur.k === k, s)).join('') + (cur ? `<button type="button" class="btn" onclick="deskFnPick('', ${s}).then(() => ${again})"><b>비우기</b><small>이 칸을 빈 서랍으로</small></button>` : ''); }).join('')
+            const Z = H[u] || [];                                                // 🗄️ 서랍장 = ① 넣을 것 고르기 → ② 서랍장 그림에서 칸 고르기 (dkzChoose · 도련 11-08 · 칸마다 긴 목록을 내리지 않게)
+            box.innerHTML = S ? `<h4 class="dkf-g">① 넣을 것을 골라요 → ② 넣을 서랍을 골라요</h4>` + ok.map(k => { const [, n, , ic] = dkWin(k), mine = Z.filter(e => e.k === k), w = mine.length ? '' : where(k);
+                        return `<button type="button" class="btn${mine.length ? ' on' : ''}" onclick="deskFnSlotGo('${k}')"><b>${ic} ${n}</b><small>${mine.length ? '✔ ' + mine.map(e => dkSlotNm(e.s, S.length) + ' 칸').join(' · ') : w ? '지금 : ' + htmlEsc(w) : ''}</small></button>`; }).join('')
+                    + (Z.length ? `<h4 class="dkf-g">🗄️ 서랍 비우기</h4>` + Z.slice().sort((a, b) => a.s - b.s).map(e => { const [, n, , ic] = dkWin(e.k); return `<button type="button" class="btn" onclick="deskFnPick('', ${e.s}).then(() => ${again})"><b>${dkSlotNm(e.s, S.length)} 칸 비우기</b><small>${ic} ${n}</small></button>`; }).join('') : '')
                     + '<p class="dkf-note">💡 같은 것은 한 곳에만 있어요 · 다른 칸이나 소품에 넣으면 그리로 옮겨요</p>'
                 : `<h4 class="dkf-g">🧺 넣을 수 있는 것</h4>` + ok.map(k => btn(k, m[k] === u)).join('');
             if (window.openModal) openModal('deskFnModal');
         }
         window.deskFnOpen = deskFnOpen;
+        async function deskFnSlotGo(k) {                                          // ② 🗄️ 서랍장 그림에서 칸 고르기 (🧺 바구니에서 넣을 때와 같은 창 · dkzChoose)
+            const el = DK.sel; if (!DK.edit || !el) return; const u = el.dataset.u, o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id); if (!S) return;
+            const s = await dkzChoose(el, o, k); if (s < 0 || !DK.edit || DK.sel !== el) return;
+            const cur = (dkHomes()[u] || []).find(e => e.s === s); if (cur && cur.k === k) return;
+            if (cur && !await showAsk(`${dkSlotNm(s, S.length)} 서랍에는 ${htmlEsc(josa(dkWin(cur.k)[1], '이', '가'))} 들어 있어요.<br>${htmlEsc(josa(dkWin(k)[1], '으로', '로'))} 바꿀까요?`, '바꾸기', '취소')) return;
+            await deskFnPick(k, s);
+            const m = document.getElementById('deskFnModal'); if (m && m.style.display !== 'none') deskFnOpen();
+        }
+        window.deskFnSlotGo = deskFnSlotGo;
         /* 🗄 빈 서랍 = 🔗 기능 연결 (도련 11-08) : 빈 서랍을 톡 → 서랍이 열리며 그 칸에 넣을 것을 고르는 창이 위에서 내려와요 (다른 서랍 창과 같은 연출 · dkDrawerPull)
            고르면 바로 저장 → 창이 올라가며 서랍이 닫혀요 (다음에 톡 = 넣은 것이 열려요) · 안 고르고 서랍을 다시 톡 = 닫혀요 · 🛠 꾸미기의 기능 연결과 같은 규칙 (같은 것은 한 곳에만 · 다른 곳에 있으면 이리로 옮겨요) */
         function dkEmptyOpen(u, s) {

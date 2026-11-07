@@ -737,3 +737,13 @@ html.an .inner-page[data-dy="thin"] .dy-fold { width: 14cqw; background: linear-
 html.an #diaryBook[data-dy="thin"] .cover-page, html.an #diaryBook[data-dy="thin"] .cover-page.cv-book { background: var(--dyv) !important; border-radius: 1.6cqw 3.6cqw 3.6cqw 1.6cqw !important; }
 html.an #diaryBook[data-dy="thin"] .cover-page { box-shadow: 0 0 0 3px var(--dyv-ol), 6px 7px 0 0 var(--dyv-sh) !important; }
 html.an #diaryBook[data-dy="thin"] .cover-page::before { width: 3.2cqw !important; border-radius: 1.6cqw 0 0 1.6cqw; }
+/* 📦 소품함 준비 중 (도련 11-08) : 소품함이 뜰 오른쪽 자리에 작은 알약 · 눌러지지 않아요 (책상은 그대로 만져요) · 다 읽으면 소품함 창 */
+.dkb-wait { position: fixed; right: calc(4vw + min(47vw, 260px)); top: calc(50% - 40px); translate: 50% -50%; z-index: 900; pointer-events: none; display: flex; align-items: center; gap: 4px; padding: 9px 16px; background: rgba(239, 232, 252, .94); border: 2px solid #c8b3e3; border-radius: 999px; box-shadow: 0 3px 0 rgba(150, 120, 200, .18); color: #7a64b8; font-size: 13px; font-weight: 800; white-space: nowrap; animation: dkbwIn .35s ease both; transition: opacity .25s, scale .25s; }
+.dkb-wait b { margin-right: 2px; }
+.dkb-wait i { width: 5px; height: 5px; border-radius: 50%; background: #a98bf0; animation: dkbwDot 1.1s ease-in-out infinite; }
+.dkb-wait i:nth-of-type(2) { animation-delay: .18s; } .dkb-wait i:nth-of-type(3) { animation-delay: .36s; }
+.dkb-wait.bye { opacity: 0; scale: .92; }
+@keyframes dkbwIn { from { opacity: 0; scale: .9; } }
+@keyframes dkbwDot { 0%, 100% { opacity: .25; translate: 0 0; } 40% { opacity: 1; translate: 0 -3px; } }
+html:not(.desk-on) .dkb-wait { right: 50%; top: auto; bottom: 110px; translate: 50% 0; }
+@media (prefers-reduced-motion: reduce) { .dkb-wait, .dkb-wait i { animation: none; } }
