@@ -74,6 +74,7 @@
                         n++;
                     }
                 } else if (body.kind === 'desk') {
+                    if (window.deskOwnReady) await deskOwnReady();                  // 💤 먼저 가진 소품 목록 (도련 11-07)
                     for (const it of body.items) { if (it && window.deskReceive && deskReceive(it.id, 'share', typeof it.img === 'string' && /^data:image\//.test(it.img) ? it.img : '')) n++; else skip++; }
                 } else {
                     for (const it of body.items) { const r = it && window.gdGive ? gdGive(it.id) : 'no'; if (r === 'ok') n++; else skip++; }

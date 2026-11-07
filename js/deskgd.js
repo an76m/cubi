@@ -32,7 +32,7 @@
         const dkwAt = () => { const v = prefGet(DKW_AT_KEY, DKW_AT_L); return v && typeof v === 'object' && !Array.isArray(v) ? Object.assign({}, v) : {}; };
         const dkwAtSet = m => prefSet(DKW_AT_KEY, DKW_AT_L, m);
         const dkwOwnAll = () => dkwPens().map(t => t.id).concat(dkwOwnOf(GD_CAB.map(x => x[0])));   // 가진 문구 (봉투 속은 빼요)
-        const dkwIsCupU = u => { const o = DK.items.find(x => x.u === u); return !!o && dkHoldOk(o.id).includes('pc') && !dkSlots(o.id); };
+        const dkwIsCupU = u => { const o = DK.items.find(x => x.u === u); if (!o) return !!DK.partial; return dkHoldOk(o.id).includes('pc') && !dkSlots(o.id); };
         function dkwPlaceOk(p) { const [u, s] = String(p).split(':'); return s == null ? dkwIsCupU(u) : (dkHomes()[u] || []).some(e => e.k === 'gd' && e.s === +s); }
         const dkwHere = p => { const at = dkwAt(); return dkwOwnAll().filter(id => at[id] === p); };   // 그 집에 사는 문구
         const dkwOut = id => dkwIsPen(id) ? dkwPenOut().includes(id) : cabIsOn(id);   // 페이지에 꺼내 둔 것 (손에 든 것 포함)

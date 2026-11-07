@@ -1347,7 +1347,7 @@
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
         const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string' && !seen.has(o.id) && seen.add(o.id)) : null; };   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
-        const gdColl = id => { const g = cabGOf(id); return typeof collOf === 'function' && GD_DIRS[g] ? collOf(dirPath(GD_DIRS[g]), '받은-') : null; };
+        const gdColl = id => { const g = cabGOf(id); if (!(typeof collOf === 'function' && GD_DIRS[g])) return null; const C = collOf(dirPath(GD_DIRS[g]), '받은-'); C.noIdx = true; return C; };   // 원본 파일만 (받은-목록N.json 없음 · 가진 것 = _문구목록 · 도련 11-07)
         const gdAdding = new Set();                                            // 파일을 만드는 중인 디자인 (두 번 만들지 않게)
         async function gdFileAdd(o, from) {
             const C = gdColl(o.id); if (!C || o.c || gdAdding.has(o.id)) return;

@@ -185,17 +185,20 @@
 
         /* ---------- 넣기 · 고치기 · 빼기 (화면은 바로 · 드라이브는 뒤에서 차례대로) ---------- */
         /* th : 작은 그림 · x : 칸에 보일 작은 정보 · item : 진짜 내용 → 새 id */
-        async function collAdd(C, item, th, x) {
+        /* noIdx (도련 11-07) = 원본 파일만 · 목록 묶음(받은-목록N.json)은 안 만들어요 : 🪑 소품 · ✏️ 문구 · 🧱 벽지 · 🪵 책상판 · 🌈 샵 배경지 (가진 것 목록은 따로 있고 · 되살리기는 원본 파일을 직접 봐요 · 읽는 곳이 없어서) */
+        async function collAdd(C, item, th, x, noIdx) {
             const id = collNewId(), ent = { id, th: th || '', x: x || {}, f: '', m: Date.now() };
+            noIdx = !!(noIdx || C.noIdx);
             if (collGuest()) {
+                if (noIdx) { await collPut('local', collKey(C, 'o' + id), { item }); return id; }   // 게스트 = 원본만 이 기기에 (칠한 소품 그림 · 목록 묶음 없음)
                 await collIndex(C);
                 await collPut('local', collKey(C, 'o' + id), { item });
                 collGuestList(C, ent, null);
                 return id;
             }
-            await collIndex(C);
+            if (!noIdx) await collIndex(C);
             C.pend.push(Object.assign({ _item: item }, ent));
-            await collQueue({ op: 'add', names: C.names, pre: C.pre, id, ent, item });
+            await collQueue(Object.assign({ op: 'add', names: C.names, pre: C.pre, id, ent, item }, noIdx ? { noIdx: 1 } : {}));
             return id;
         }
         async function collSet(C, id, item, th, x) {
@@ -210,9 +213,11 @@
             collCache(collKey(C, 'o' + id), item, ent.m);
             await collQueue({ op: 'put', names: C.names, pre: C.pre, id, ent, item, base: old.m || 0, f: old.f || '' });
         }
-        async function collRemove(C, id) {
+        async function collRemove(C, id, noIdx) {
             const old = collEnt(C, id) || {};
+            noIdx = !!(noIdx || C.noIdx);
             if (collGuest()) {
+                if (noIdx) { await collDel('local', collKey(C, 'o' + id)); return; }
                 await collDel('local', collKey(C, 'o' + id));
                 collGuestList(C, null, id);
                 return;
@@ -220,7 +225,7 @@
             C.gone.add(id);
             C.pend = C.pend.filter(e => e.id !== id);
             collDel('orig', collKey(C, 'o' + id));
-            await collQueue({ op: 'del', names: C.names, pre: C.pre, id, f: old.f || '' });
+            await collQueue(Object.assign({ op: 'del', names: C.names, pre: C.pre, id, f: old.f || '' }, noIdx ? { noIdx: 1 } : {}));
         }
         /* 화면용 목록에서 그 칸 바꾸기 */
         function collPatch(C, id, ent, item) {
@@ -263,12 +268,12 @@
                     if (!ops.length) break;
                     const { k, v } = ops[0];
                     /* 🔁 같은 모음에 새로 넣은 것이 줄지어 있으면 = 원본은 하나씩 · 목록 파일은 한 번에 (도련 11-05 · 처음 접속 요청 줄이기) */
-                    const run = v.op === 'add' ? ops.slice(0, 40).filter((o, i, a) => a.slice(0, i + 1).every(x => x.v.op === 'add' && collKeyOf(x.v.names, x.v.pre) === collKeyOf(v.names, v.pre))) : [];
+                    const run = v.op === 'add' ? ops.slice(0, 40).filter((o, i, a) => a.slice(0, i + 1).every(x => x.v.op === 'add' && !x.v.noIdx === !v.noIdx && collKeyOf(x.v.names, x.v.pre) === collKeyOf(v.names, v.pre))) : [];
                     if (run.length > 1) {
                         try {
                             const C = collOf(v.names, v.pre), ents = [];
                             for (const o of run) ents.push(await collDo(o.v, o.k, true));
-                            await collListAdd(C, ents);
+                            if (!v.noIdx) await collListAdd(C, ents);
                             for (const o of run) { await collDel('outbox', o.k); C.pend = C.pend.filter(e => e.id !== o.v.id); }
                             continue;
                         } catch (e) { if (e && e.code === 'auth') break; console.warn('모음 한꺼번에 올리기 → 하나씩', e); }
@@ -295,7 +300,7 @@
                 let cur = v.f ? await driveMeta(v.f) : null;
                 if (!cur && dir) cur = await findFile(dir, name);
                 if (cur) await driveTrash(cur.id);
-                await collListEdit(C, v.id, null);
+                if (!v.noIdx) await collListEdit(C, v.id, null);
                 C.gone.delete(v.id);
                 return;
             }
@@ -324,6 +329,7 @@
             const ent = Object.assign({}, v.ent, { f: saved.id, m: Date.parse(saved.modifiedTime) || v.ent.m });
             collCache(collKey(C, 'o' + v.id), v.item, ent.m);
             if (noList) return ent;                                               // 목록은 부른 쪽이 한 번에 (collListAdd)
+            if (v.noIdx) { C.pend = C.pend.filter(e => e.id !== v.id); return; }  // 원본 파일만 (목록 묶음 없음)
             await collListEdit(C, v.id, ent, v.op === 'add');
             C.pend = C.pend.filter(e => e.id !== v.id);
         }
@@ -540,9 +546,9 @@
         const ofColl = n => collOf(dirPath(n), '받은-');
         async function ofAdd(n, it) {
             if (!n || !collOnline() || typeof ownLock !== 'function') return '';
-            try { return await collAdd(ofColl(n), { s: await ownLock(it) }, '', { id: it.id }); } catch (e) { console.warn('🗂 파일', n, e); return ''; }
+            try { return await collAdd(ofColl(n), { s: await ownLock(it) }, '', { id: it.id }, true); } catch (e) { console.warn('🗂 파일', n, e); return ''; }   // 원본 파일만 (받은-목록N.json 없음 · 도련 11-07)
         }
-        function ofDel(n, c) { if (n && c && collOnline()) return collRemove(ofColl(n), c).catch(e => console.warn('🗂 파일', n, e)); }
+        function ofDel(n, c) { if (n && c && collOnline()) return collRemove(ofColl(n), c, true).catch(e => console.warn('🗂 파일', n, e)); }
         async function ofScan(n) {
             const dir = await getFolder(dirPath(n), false); if (!dir) return [];
             const out = new Map();

@@ -274,7 +274,7 @@
             settings: { path: SETTINGS_PATH, name: SETTINGS_FILE_NAME, prop: 'settingsFile' },
             cafe: { path: CAFE_PATH, name: CAFE_FILE_NAME, prop: 'cafeFile' },
             desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' },     // 🪑 설정 / 배치.json = 자리 (책상 위 · 문구의 집 · 다이어리 · 봉투)
-            dkown: { path: DESK_PATH, name: '_소품목록.json', prop: 'deskOwnFile' }, // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06)
+            dkown: { path: DESK_PATH, name: '_소품목록.json', prop: 'deskOwnFile', lazy: 1 }, // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06) · 💤 앱을 켤 때 안 읽어요 = 책상은 배치.json 만으로 · 소품함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · js/desk.js dkOwnReady)
             gdown: { path: DESK_PATH, name: '_문구목록.json', prop: 'gdOwnFile' },   // 🔐 가진 문구 전부
             deskset: { path: DESK_PATH, name: '책상설정.json', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
             dyown: { path: DESK_PATH, name: '_다이어리목록.json', prop: 'dyOwnFile' }, // 🔐 받은 다이어리 · 내가 만든 노트 · 바인더 (도련 11-06)
