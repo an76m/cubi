@@ -88,8 +88,8 @@
             (L || []).forEach(o => {
                 if (!o || typeof o.u !== 'string') return;
                 const a = {}, b = {};
-                Object.keys(o).forEach(k => { if (k === 'at' || k === 'g') return; (DK_SPOT.includes(k) ? b : a)[k] = o[k]; });   // 🎁 선물 표시는 저장 안 해요 (_선물.json 주소로)
-                own.push(a); if (o.at !== 'box') { const w = Object.assign({}, a, b); delete w.u; pos[o.u] = w; }   // 📍 자리에 '무엇인지'(id · c · g · p · cs · tag)도 같이 = 앱을 켤 때 배치.json 만으로 책상을 그려요 (도련 11-07 · 목록은 보관함을 열 때)
+                Object.keys(o).forEach(k => { if (k === 'at') return; if (k === 'g') { if (o.g) a.from = 'gift'; return; } (DK_SPOT.includes(k) ? b : a)[k] = o[k]; });   // 🎁 선물 = 그 줄에 from: 'gift'
+                own.push(a); if (o.at !== 'box') { const w = Object.assign({}, a, b); delete w.u; delete w.from; pos[o.u] = w; }   // 📍 자리에 '무엇인지'(id · c · g · p · cs · tag)도 같이 = 앱을 켤 때 배치.json 만으로 책상을 그려요 (도련 11-07 · 목록은 보관함을 열 때)
             });
             return { own, pos };
         }
@@ -113,7 +113,7 @@
                 const own = prefGet(DK_OWN_KEY, DK_OWN_LOCAL), pos = prefGet(DK_POS_KEY, DK_POS_LOCAL);   // 💤 안 읽은 동안 책상 위에서 바뀐 것(칠하기 · 파일 번호)은 배치.json 이 새것 → 목록에도
                 if (Array.isArray(own) && pos && typeof pos === 'object') {
                     let ch = false;
-                    const L = own.map(o => { const p = o && pos[o.u]; if (!p || typeof p.id !== 'string') return o; const n = { u: o.u }; Object.keys(p).forEach(k => { if (!DK_SPOT.includes(k)) n[k] = p[k]; }); if (JSON.stringify(n) !== JSON.stringify(o)) ch = true; return n; });
+                    const L = own.map(o => { const p = o && pos[o.u]; if (!p || typeof p.id !== 'string') return o; const n = Object.assign({ u: o.u }, o.from ? { from: o.from } : {}); Object.keys(p).forEach(k => { if (!DK_SPOT.includes(k)) n[k] = p[k]; }); /* 🎁 받은 곳(from)은 목록에만 (그대로) */ if (JSON.stringify(n) !== JSON.stringify(o)) ch = true; return n; });
                     if (ch) prefSet(DK_OWN_KEY, DK_OWN_LOCAL, L);
                 }
                 dkLoad();                                                         // 목록 + 지금 자리 (배치.json) → 가진 것 전부
@@ -139,7 +139,7 @@
                 if (!pos || P.length !== v.length || (Array.isArray(bags) && bags.some(g => g && Array.isArray(g.it) && g.it.some(x => x && x.k === 'desk')))) setTimeout(() => dkOwnReady().catch(() => {}), 0);   // 자리가 없거나 예전 모양 · 🛍️ 책상 위 봉투가 있으면 (꺼낼 소품) = 바로 목록을 읽어요
             }
             const seenU = new Set();
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, giftHas('desk', o.u) ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {}, Array.isArray(o.lp) ? { lp: o.lp } : {}, Array.isArray(o.lb) ? { lb: o.lb } : {}, o.on && typeof o.on === 'object' && typeof o.on.r === 'string' ? { on: { r: o.on.r, t: +o.on.t || 0 } } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요) · 💡 전구줄 핀(lp) · 네모(lb) · 📷 집힌 줄(on)
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, isGift(o) ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {}, Array.isArray(o.lp) ? { lp: o.lp } : {}, Array.isArray(o.lb) ? { lb: o.lb } : {}, o.on && typeof o.on === 'object' && typeof o.on.r === 'string' ? { on: { r: o.on.r, t: +o.on.t || 0 } } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요) · 💡 전구줄 핀(lp) · 네모(lb) · 📷 집힌 줄(on)
             DK.posLost = !DK.partial && Array.isArray(v) && typeof prefGet === 'function' && prefGet(DK_POS_KEY, DK_POS_LOCAL) == null;   // 📍 목록은 있는데 배치.json(자리)이 없어요 → 백업 자리로 (giftEnsure)
             DK.fresh = !DK.partial && !Array.isArray(v);                          // 아직 목록이 없어요 → 🎁 기본세트 (드라이브를 읽은 뒤 giftEnsure)
             DK.items = L; DK.seen = JSON.stringify(L);
@@ -162,32 +162,35 @@
             catch (e) { console.warn('소품 파일', e); }
             finally { dkAdding.delete(o.u); }
         }
-        function dkFileDel(o) { if (o.g) return; const C = dkColl(o.id); if (C && o.c) collRemove(C, o.c).catch(e => console.warn('소품 파일', e)); }
-        /* 🎁 설정 / _선물.json 'diary_gift' = 처음 선물의 주소(u)만 (도련 11-07 · 원본은 백 목록 하나 · 이중 없음)
-             { desk: [u], gd: [u], ds: [u], bg: [u], dy: [권 id] } · 선물의 u = 상품 id (그래서 주소만으로 무슨 상품인지 알아요 · 백 목록이 아직 없어도 · 없어져도)
-             백 목록에는 선물 표시가 없어요 (읽을 때 이 주소로 g 를 붙이고 · 쓸 때 빼요) · 받기 = giftAdd · 버리기 = giftDel · 되돌리기 = giftAdd
-             앱을 켤 때 설정 폴더와 같이 읽어요 (js/drive.js KEY_FILES.gift) · 게스트는 이 기기 */
-        const DKG_KEY = 'diary_gift', DKG_LOCAL = 'malang_desk_gift', DKG_KS = ['desk', 'gd', 'ds', 'bg', 'dy'];
+        function dkFileDel(o) { if (!o.c) return; const C = dkColl(o.id); if (C && o.c) collRemove(C, o.c).catch(e => console.warn('소품 파일', e)); }
+        /* 🎁 처음 선물 = 누가 줬는지 기억하는 내 물건 (도련 11-07 · 선물 폴더 · _선물.json 없음)
+             받으면 그 종류 폴더 목록에 다른 것과 똑같이 한 줄 · 그 줄에 from: 'gift' (앱 안에서는 g: 1) · 스티커 종이의 from 과 같아요
+             처음 선물을 줬다 = 설정.json 'diary_gifted' (다시 주지 않아요 · 다 버린 사람도) */
         const giftOn = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof getFolder === 'function';
-        const giftRefs = () => { const v = typeof prefGet === 'function' ? prefGet(DKG_KEY, DKG_LOCAL) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : null; };
-        const giftHas = (k, u) => { const r = giftRefs(); return !!(r && Array.isArray(r[k]) && r[k].includes(u)); };
-        function giftPut(k, f) {
-            const r = Object.assign({}, giftRefs() || {}); DKG_KS.forEach(x => { if (!Array.isArray(r[x])) r[x] = []; });
-            const L = f(r[k].slice()); if (JSON.stringify(L) === JSON.stringify(r[k])) return; r[k] = L;
-            if (typeof prefSet === 'function') prefSet(DKG_KEY, DKG_LOCAL, r);
-        }
-        const giftAdd = (k, us) => giftPut(k, L => L.concat((Array.isArray(us) ? us : [us]).filter(u => u && !L.includes(u))));
-        const giftDel = (k, u) => giftPut(k, L => L.filter(x => x !== u));
-        window.giftHas = giftHas; window.giftAdd = giftAdd; window.giftDel = giftDel;
-        /* 📔 다이어리 선물 = 권 정보(받은 곳 gift · 아직 폴더 없음)로 정해요 → 바뀔 때 dy 칸만 다시 (js/dyyear.js dyyGiftOwn) */
-        function giftWrite() { try { const L = window.dyyGiftOwn ? dyyGiftOwn() : null; if (Array.isArray(L)) giftPut('dy', () => L.slice()); } catch (e) { console.warn('🎁', e); } return Promise.resolve(); }
+        const isGift = o => !!(o && (o.g || o.from === 'gift'));
+        window.isGift = isGift;
+        const GIFTED_KEY = 'diary_gifted', GIFTED_LOCAL = 'malang_gifted';
+        const giftGiven = () => typeof prefGet === 'function' && !!prefGet(GIFTED_KEY, GIFTED_LOCAL);
+        function giftMark() { if (!giftGiven() && typeof prefSet === 'function') prefSet(GIFTED_KEY, GIFTED_LOCAL, Date.now()); }
+        window.giftMark = giftMark; window.giftGiven = giftGiven;
+        function giftWrite() { return Promise.resolve(); }                       // (예전 _선물.json 다시 쓰기 · 이제 할 일 없음)
         /* 📖 되살리기는 여러 곳(책상 · 벽지 · 배경지 · 다이어리)이 한꺼번에 물어요 → 30초 안에는 한 번만 읽어요 (도련 11-06 · 쓰면 잊어요) */
         const dkMemo = (fn, ms) => { let p = null, at = 0; const get = () => { if (!p || Date.now() - at > ms) { at = Date.now(); p = fn(); p.catch(() => { p = null; }); } return p; }; get.forget = () => { p = null; }; return get; };
         /* 되살리기에 넘기는 모습 (예전 선물.json 모양 · 주소 → { u, id }) : 없으면 null */
-        function giftRead() {
-            const r = giftRefs(); if (!r) return Promise.resolve(null);
-            const A = k => Array.isArray(r[k]) ? r[k] : null, m = (k, f) => A(k) ? A(k).map(f) : undefined;
-            return Promise.resolve({ v: 2, desk: m('desk', u => ({ u, id: u })), gd: A('gd') || undefined, ds: m('ds', u => ({ u, id: u })), bg: m('bg', u => ({ u, p: u })), dy: A('dy') || undefined });
+        /* 되살리기에 넘기는 처음 선물 (예전 선물.json 모양) = 백업 속 from 선물 : 처음 선물을 준 적이 없으면 null */
+        async function giftRead() {
+            if (!giftGiven()) return null;
+            const bk = await dkBackupRead().catch(() => null) || {};
+            const I = bk.diary_book_info && typeof bk.diary_book_info === 'object' ? bk.diary_book_info : {};
+            /* 백업에 그 목록이 아직 없으면 (첫날) = 상품공방 '처음선물' 그대로 (선물 u = 상품 id) · 있으면 그 안의 from 선물 */
+            const G = (k, first) => Array.isArray(bk[k]) ? bk[k].filter(isGift) : first();
+            const ids = f => { try { return f() || []; } catch (e) { return []; } };
+            return { v: 3,
+                desk: G(DK_OWN_KEY, () => dkStarter().map(o => ({ u: o.u, id: o.id }))).map(o => ({ u: o.u, id: o.id })),
+                gd: G('diary_gd_own', () => ids(() => window.gdStarter && gdStarter()).map(id => ({ u: id, id }))).map(o => o.u || o.id),
+                ds: G('diary_skin_own', () => ids(() => window.dsGiftIds && dsGiftIds()).map(id => ({ u: id, id }))).map(o => ({ u: o.u, id: o.id })),
+                bg: G('diary_bg_own', () => ids(() => window.bgoGiftIds && bgoGiftIds()).map(id => ({ u: id, p: id }))).map(o => ({ u: o.u, p: o.p })),
+                dy: (Array.isArray(bk.diary_years) ? bk.diary_years : []).filter(id => I[id] && I[id].from === 'gift') };
         }
         /* 🛟 되살리기 (도련 10-27 · 스티커 ownRescue 와 같게) : 배치.json 이 없어지거나 깨지면
              가진 것 = 종류 폴더의 내 파일(🔐 열리는 것만 · 같은 u 는 하나) + 선물.json · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
@@ -210,10 +213,10 @@
         }
         const dkBackupOnce = dkMemo(async () => { const [a, ...bs] = await Promise.all([dkBackupRead0()].concat(DK_BB.map(w => keyMade(w) ? dkBackRead(w) : null))); return a || bs.some(Boolean) ? Object.assign({}, ...bs.filter(Boolean), a || {}) : null; }, 30000);   // 설정 백업 + 백 목록 백업 = 한 모습 (되살리기는 그대로)
         const dkBackupRead = () => drive.newbie && !dkBkWrote ? Promise.resolve(null) : dkBackupOnce();   // 🆕 처음 온 다꾸러 = 아직 백업이 없어요 (도련 11-06)
-        const DK_BK_KEYS = [DK_POS_KEY, 'diary_gift', 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
+        const DK_BK_KEYS = [DK_POS_KEY, 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
         let dkBkBusy = false, dkBkWrote = false;
         const DK_GK = { diary_desk_own: 'desk', diary_gd_own: 'gd', diary_skin_own: 'ds', diary_bg_own: 'bg' };
-        const dkBkReal = (bk, k) => !!(bk && Array.isArray(bk[k]) && bk[k].some(o => o && !o.g && !giftHas(DK_GK[k], o.u || o.id)));   // 선물 주소에 없는 것   // 백업에 선물 아닌 것이 있어요 = 받은 적 있는 사람
+        const dkBkReal = (bk, k) => !!(bk && Array.isArray(bk[k]) && bk[k].some(o => o && !isGift(o)));   // 선물 아닌 것 (받은 것)   // 백업에 선물 아닌 것이 있어요 = 받은 적 있는 사람
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
             if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit || DK.starting) return;   // DK.starting = 처음 선물을 넣는 중
             const day = new Date().toISOString().slice(0, 10), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
@@ -249,7 +252,7 @@
                     if (!/^(받은|내)-\d+\.json$/.test(f.name)) continue;             // 목록 파일은 빼요
                     let w, it; try { w = JSON.parse(await readFileText(f.id)); it = await dkUnseal(w && w.item); } catch (e) { continue; }   // 🔐 남의 것 · 깨진 것은 무시
                     if (!it || typeof it.id !== 'string' || !w.id) continue;
-                    out[t].push({ u: typeof it.u === 'string' ? it.u : it.id, id: it.id, c: String(w.id), p: typeof it.img === 'string' ? 1 : 0, mt: String(f.modifiedTime || '') });
+                    out[t].push(Object.assign({ u: typeof it.u === 'string' ? it.u : it.id, id: it.id, c: String(w.id), p: typeof it.img === 'string' ? 1 : 0, mt: String(f.modifiedTime || '') }, it.from === 'gift' ? { g: 1 } : {}));   /* 🎁 칠한 선물 파일 = 선물 기억도 */
                 }
             }
             const one = L => { const m = new Map(); L.sort((a, b) => b.mt.localeCompare(a.mt)).forEach(r => { if (!m.has(r.u)) m.set(r.u, r); }); return [...m.values()]; };   // 같은 u 는 하나 (새것)
@@ -314,8 +317,8 @@
                 if (window.gdOwnList) gdNull = gdOwnList() === null;
                 if (DK.fresh) {
                     DK.items = back ? dkRebuild(had, bk, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
-                    if (!back) giftAdd('desk', DK.items.map(o => o.u));                 // 🎁 선물 주소 (u = 상품 id)
-                    DK.fresh = false; dkSave(!lostD);                                  // 💤 선물뿐이면 메모리에만 (소품 / _목록 은 바뀔 때 처음 생겨요)
+                    if (!back) giftMark();                                             // 🎁 처음 선물을 줬어요 (다시 주지 않게)
+                    DK.fresh = false; dkSave();                                        // 🪑 소품 / _목록1.json (선물도 받은 것과 똑같이 · 도련 11-07)
                     if (lostD) diag('rescue', { w: 'dk', n: DK.items.length });
                     if (!back) { dkStarterLinks(); DK.starting = true; Promise.all([dkStarterTapes(), dkStarterMore()]).finally(() => { DK.starting = false; setTimeout(dkBackupWrite, 3000); }); }   // 🛟 첫 백업은 처음 선물을 다 넣은 뒤 (도련 11-06 · 마테 자리까지)                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04) · 그 밖의 스티커 · 스티커첩 · 페이지 다이어리 (도련 11-06)
                     if (back && bk && bk.diary_desk_fn && typeof bk.diary_desk_fn === 'object' && typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, bk.diary_desk_fn);
@@ -326,11 +329,10 @@
                         const seen = new Set((window.binList ? binList() : []).filter(e => e.k === 'gd').map(e => e.id)), L = [];   // 🗑 휴지통에 있는 것은 빼요
                         (files ? files.gd : []).forEach(f => { if (!seen.has(f.u)) { seen.add(f.u); L.push({ u: f.u, id: f.id, c: f.c }); } });   // ✏️ 하나하나 (같은 것이 여럿이어도 · 도련 11-07)
                         (had && Array.isArray(had.gd) ? had.gd : []).forEach(id => { if (!seen.has(id)) { seen.add(id); L.push({ u: id, id, g: 1 }); } });   // 🎁 선물 = u 가 디자인 id
-                        gdSetList(L, !lostG);
+                        gdSetList(L);
                         if (lostG) diag('rescue', { w: 'gd', n: L.length });
-                    } else if (window.gdSetList) gdSetList((window.gdStarter ? gdStarter() : []).map(id => ({ u: id, id, g: 1 })), true);   // 🎁 처음 온 다꾸러 = 핀셋 + 필기구 5 (선물.json · 나머지는 🏪 기본상품 샵 · 도련 11-01)
+                    } else if (window.gdSetList) { gdSetList((window.gdStarter ? gdStarter() : []).map(id => ({ u: id, id, g: 1 }))); giftMark(); }   // 🎁 처음 온 다꾸러 = 핀셋 + 필기구 5 (선물.json · 나머지는 🏪 기본상품 샵 · 도련 11-01)
                 }
-                giftWrite();                                                          // 📔 다이어리 선물 주소도 (권 정보로)
                 if (back) setTimeout(dkBackupWrite, 1500);                           // 🛟 되살렸거나 선물 그대로 = 하루 한 번 백업도 (도련 11-07)
             } finally { giftBusy = false; }
         }
@@ -695,7 +697,6 @@
         /* 🗑 휴지통으로 (파일 · 🎁 선물은 그대로 기억 → 되살리면 소품함으로) */
         async function dkBin(L) {
             for (const o of L) await binAdd({ k: 'dk', id: o.u, o: Object.assign({ u: o.u, id: o.id }, o.c ? { c: o.c } : {}, o.g ? { g: 1 } : {}) });
-            L.filter(o => o.g).forEach(o => giftDel('desk', o.u));                // 🎁 선물이면 선물.json 에서 주소를 빼요 (되살리면 다시)
         }
         (window.BIN_PRE = window.BIN_PRE || {}).dk = {
             name: e => `🪑 ${(dkCat(e.o.id) || {}).name || '책상 소품'}`,
@@ -705,7 +706,6 @@
                 const back = Object.assign({ at: 'box', x: 0, y: 0 }, e.o);
                 if (!DK.items.some(x => x.u === back.u)) DK.items.push(back);
                 if (DK.edit && DK.back) { const b = JSON.parse(DK.back.items); if (!b.some(x => x.u === back.u)) { b.push(back); DK.back.items = JSON.stringify(b); } }
-                if (back.g) giftAdd('desk', back.u);
                 dkSave();
                 deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
             },

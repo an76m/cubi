@@ -136,10 +136,9 @@
                 let old = null; try { old = await dkUnseal(await collItem(C, o.c)); } catch (e) { console.warn(e); }
                 const item = Object.assign({}, old && old.u === o.u ? old : { u: o.u, id: o.id, from: 'basic' }, { img: url, painted: Date.now() });
                 await collSet(C, o.c, await dkSeal(item), '', { id: o.id });
-            } else { delete o.g; o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: 'gift', img: url, painted: Date.now() }), '', { id: o.id }); }
+            } else { o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: 'gift', img: url, painted: Date.now() }), '', { id: o.id }); }
             o.p = 1;
             dkPersist(o);
-            if (gift && window.giftDel) giftDel('desk', o.u);                    // 🎁 칠한 선물 = 내 파일이 생겼어요 (선물 주소에서 빠져요)
             if (window.deskBoxRender) deskBoxRender(); if (window.deskEditPaint) deskEditPaint();
         }
         window.dpOpen = dpOpen; window.dpSave = dpSave;

@@ -1347,7 +1347,7 @@
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
         /* ✏️ 문구도 같은 것을 여러 개 (도련 11-07 · 현실처럼 · 10-28 에 정한 것) : 한 칸 = { u : 하나하나 id (처음 것 · 선물 = 디자인 id 그대로), id : 디자인, c : 파일, g : 선물 }
              문구함 · 페이지 · 문구의 집은 디자인마다 (같은 것은 한곳에 모여요 · 문구함에 ×2) · 버리면 하나씩 */
-        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => { const u = typeof o.u === 'string' && o.u ? o.u : o.id, g = window.giftHas ? giftHas('gd', u) : !!o.g; delete o.g; return Object.assign(o, { u }, g ? { g: 1 } : {}); }).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };   // 🎁 선물 = _선물.json 주소
+        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => { const u = typeof o.u === 'string' && o.u ? o.u : o.id, g = !!(o.g || o.from === 'gift'); delete o.g; delete o.from; return Object.assign(o, { u }, g ? { g: 1 } : {}); }).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };   // 🎁 선물 = _선물.json 주소
         const gdCount = id => (gdOwnList() || []).filter(o => o.id === id).length;
         const gdNewU = id => id + '~' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);   // 받은 것 = 늘 새 번호 (선물 u = 디자인 id 와 안 겹쳐요)   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
@@ -1360,7 +1360,7 @@
             finally { gdAdding.delete(u); }
         }
         let gdFiling = false;
-        const gdRec = o => Object.assign({ u: o.u || o.id, id: o.id }, o.c ? { c: o.c } : {});   // 🎁 선물 표시는 저장 안 해요 (_선물.json 주소로)
+        const gdRec = o => Object.assign({ u: o.u || o.id, id: o.id }, o.c ? { c: o.c } : {}, o.g ? { from: 'gift' } : {});   // 🎁 선물 = 그 줄에 from: 'gift' (도련 11-07)
         async function gdFilesFill() {                                         // 선물이 아닌데 파일이 아직 없는 문구 → 종류 폴더에 (드라이브를 읽은 뒤에만 · js/desk.js 가 불러요)
             if (gdFiling || typeof drive === 'undefined' || !drive.ready || (window.deskGiftBusy && deskGiftBusy())) return;   // 🎁 선물을 정하는 중이면 기다려요
             const L = gdOwnList(); if (!L) return;
@@ -1372,7 +1372,7 @@
             const now = gdOwnList() || [];
             prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.u === o.u && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
         }
-        function gdSetList(L, mem) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)), v = L.filter(o => o && ok(o.id)).map(gdRec); if (window.giftAdd) { const G = L.filter(o => o && o.g && ok(o.id)).map(o => o.u || o.id); if (G.length) giftAdd('gd', G); } if (mem && typeof drive !== 'undefined' && drive.ready && !drive.guest) store.putLoaded(GD_OWN, JSON.stringify(v)); else prefSet(GD_OWN, GD_OWN_L, v); }   // 💤 mem = 처음 선물 그대로 (문구 / _목록 은 바뀔 때 처음 · 도련 11-07)   // ✏️ 필기구도 (되살릴 때 빠지던 것)
+        function gdSetList(L, mem) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)), v = L.filter(o => o && ok(o.id)).map(gdRec); if (mem && typeof drive !== 'undefined' && drive.ready && !drive.guest) store.putLoaded(GD_OWN, JSON.stringify(v)); else prefSet(GD_OWN, GD_OWN_L, v); }   // 💤 mem = 처음 선물 그대로 (문구 / _목록 은 바뀔 때 처음 · 도련 11-07)   // ✏️ 필기구도 (되살릴 때 빠지던 것)
         /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 펜꽂이에) · 나머지는 🏪 기본상품 샵 */
         const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음선물' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
@@ -1495,7 +1495,6 @@
             if (last && !pen && cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return false; }
             if (!window.binAsk || !await binAsk(gdBinName(id) + (last ? '' : ` 하나 (${all.length}개 중)`))) return false;
             prefSet(GD_OWN, GD_OWN_L, (gdOwnList() || []).filter(x => x.u !== o.u).map(gdRec));
-            if (o.g && window.giftDel) giftDel('gd', o.u);                        // 🎁 선물이면 선물.json 에서 주소를 빼요 (되살리면 다시)
             if (!pen && last) { const g = cabGOf(id); if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]); }
             await binAdd({ k: 'gd', id: o.u, o: Object.assign(gdRec(o), o.g ? { g: 1 } : {}) });   // 🎁 휴지통엔 선물이었는지도 (되돌리면 다시 선물 주소에)
             gdBinAfter();
@@ -1509,7 +1508,6 @@
                 const L = gdOwnList() || [], o = Object.assign({ u: e.o.u || e.o.id }, e.o);
                 if (L.some(x => x.u === o.u)) return;                             // 이미 있어요 (같은 하나)
                 L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
-                if (e.o.g && window.giftAdd) giftAdd('gd', o.u);
                 gdBinAfter();
             },
             purge: e => { if (!e.o.g && e.o.c) { const C = gdColl(e.o.id || e.id); if (C) return collRemove(C, e.o.c); } }

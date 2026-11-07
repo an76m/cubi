@@ -120,8 +120,9 @@
         const dyyGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // 🎁 선물.json 다시 쓰기 (js/desk.js)
         window.dyyGiftOwn = () => dyyIds().filter(dyyIsGift);
         function dyyGift() {                                                   // 🎁 처음 선물 (상품 속성 '처음선물' · 도련 11-04) · 💤 로그인 = 메모리 + _선물.json (목록 파일은 바뀔 때 · 도련 11-07)
-            const G = DY_DESIGNS.filter(d => d.gift), ids = G.map(d => dyyNewId(dyyThis(), d, true)), fl = G.findIndex(d => d.float);
-            dyyPut(DYY_KEY, DYY_LOCAL, ids, true); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[Math.max(0, fl)]); ids.forEach(id => dyyInfoSet(id, 'gift', true));   // 펼쳐 둘 권 = 상품공방 '처음띄움' (없으면 첫 권)
+            const G = DY_DESIGNS.filter(d => d.gift), ids = G.map(d => dyyNewId(dyyThis(), d)), fl = G.findIndex(d => d.float);
+            prefSet(DYY_KEY, DYY_LOCAL, ids); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[Math.max(0, fl)]); ids.forEach(id => dyyInfoSet(id, 'gift'));   // 📔 선물 권도 다이어리 목록에 (받은 곳 gift · 도련 11-07)
+            if (window.giftMark) giftMark();   // 펼쳐 둘 권 = 상품공방 '처음띄움' (없으면 첫 권)
             if (window.deskVolInit) deskVolInit(G.map((d, i) => ({ id: ids[i], spot: d.desk, n: d.name })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
             window.dkGiftFloat = fl >= 0 ? ids[fl] : (typeof DY_TYPES !== 'undefined' && DY_TYPES.some(p => p.gift && p.float)) ? 'pg' : '';   // 🎈 처음에 떠 있는 권 (js/desk.js deskLoginShow · 'pg' = 페이지 다이어리가 뒤에 떠요)
             dyyGiftTell();
@@ -144,7 +145,7 @@
                         const gifts = (had && Array.isArray(had.dy) ? had.dy : []).filter(id => dyyOf(id) && !gone.has(id));
                         const bkL = bk && Array.isArray(bk.diary_years) ? bk.diary_years : null;   // 🛟 설정 / _백업.json (도련 11-06 · _다이어리목록.json 이 없어졌어요)
                         const all = [...new Set((bkL || []).filter(id => dyyOf(id) && !gone.has(id)).concat(ids, gifts))];
-                        const mem = all.every(id => gifts.includes(id));                // 선물뿐 = 아직 안 바뀐 사람 → 메모리에만 (목록 파일을 만들지 않아요 · 도련 11-07)
+                        const mem = false;                                              // 🛟 되살린 목록은 늘 파일로 (선물도 · 도련 11-07)
                         if (bk) { const I0 = prefGet(DYY_INFO, DYY_INFO_L); if (bk.diary_book_info && typeof bk.diary_book_info === 'object' && !I0) dyyPut(DYY_INFO, DYY_INFO_L, bk.diary_book_info, mem); if (bk.diary_book_n && typeof bk.diary_book_n === 'object' && !prefGet(DYY_N, DYY_N_L)) dyyPut(DYY_N, DYY_N_L, bk.diary_book_n, mem); }
                         if (!all.length) { if ((!had || !Array.isArray(had.dy)) && !bkL) dyyGift(); else dyyPut(DYY_KEY, DYY_LOCAL, [], true); return []; }   // 선물.json 에 다이어리 칸이 있는데 비었으면 = 다 버린 사람
                         dyyPut(DYY_KEY, DYY_LOCAL, all, mem); if (!all.includes(prefGet(DYY_OPEN, DYY_OPEN_L))) prefSet(DYY_OPEN, DYY_OPEN_L, all[all.length - 1]);   // 펼친 권이 목록에 있으면 그대로

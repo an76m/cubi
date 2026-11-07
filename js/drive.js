@@ -39,7 +39,7 @@
         const DIRS = {
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
             desk: '소품', gd: '문구',   /* 🪑 ✏️ 소품 · 문구 = 폴더 하나씩 (도련 11-07 · 종류가 섞여 있어요 · 종류는 파일 안 상품 id · 벽지 · 책상판도 소품) */
-            pattern: '배경지', noteCover: '노트표지', binderCover: '바인더표지', refill: '바인더내지',
+            pattern: '배경지', noteCover: '노트',   /* 📓 내가 만든 노트 한 권 설계도 (표지 + 내지 · 도련 11-07 이름 고침) */ binderCover: '바인더표지', refill: '바인더내지',
             stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
@@ -282,7 +282,6 @@
             bgown: { path: dirPath(DIRS.pattern), name: '_목록.json', prop: 'bgOwnFile', lazy: 1 },  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
             binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
             dystate: { path: DESK_PATH, name: '_다이어리상태.json', prop: 'dyStateFile' }, // 🔐 권마다 집게 · 구멍 · 링 · 꺼낸 장 · 페이지형 권 (도련 11-06 · 설정.json 을 가볍게)
-            gift: { path: DESK_PATH, name: '_선물.json', prop: 'giftFile' },        // 🎁 처음 선물 주소 (u 만 · 도련 11-07 · js/desk.js giftAdd)
             me: { path: DESK_PATH, name: '_내정보.json', prop: 'meFile' }              // 🔐 잠금 · 별명 · 생년월일 · 연락처 (도련 11-06 · 개인정보)
         };
 
@@ -300,7 +299,6 @@
             bgown: ['diary_bg_own'],                                                                          // 🔐 배경지 / _목록.json (💤 lazy)
             binown: ['diary_bin'],                                                                            // 🔐 _휴지통목록.json (js/bin.js)
             dystate: ['diary_clips', 'diary_holes', 'diary_free', 'diary_binder', 'diary_books'],              // 🔐 _다이어리상태.json : 📎 집게 자리 · 🕳 구멍 · 💍 링 연 장 · 꺼낸 장 · 페이지형 규격 → 권 (js/skins.js)
-            gift: ['diary_gift'],                                                                             // 🎁 _선물.json : { desk, gd, ds, bg : [u] · dy : [권 id] }
             me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts']                      // 🔐 _내정보.json : 🔒 잠금(해시) · 별명 · 생년월일 · 전화기 연락처
         };
         const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
@@ -576,6 +574,7 @@
         const chunkRe = F => new RegExp('^' + F.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)\\.json$');
         const chunkKey = e => e && typeof e === 'object' && typeof e.u === 'string' ? e.u : JSON.stringify(e);
         drive.chunks = {};                                                        // which → { files: Map(n → {id, modifiedTime, body}), of: Map(키 → Map(u → n)) }
+        const chunkBody = (which, o) => { const r = {}; (DESK_FILE_KEYS[which] || []).forEach(k => { if (o && Array.isArray(o[k])) r[k] = o[k]; }); return JSON.stringify(r); };   // 키 순서를 늘 같게 (같은 내용이면 다시 안 올려요)
         async function chunkList(which) {
             const F = KEY_FILES[which], dir = await getFolder(F.path, false); if (!dir) return { dir: null, fs: [] };
             const re = chunkRe(F), fs = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and name contains '${qName(F.name)}'`, 'id,name,modifiedTime')).map(f => { const m = re.exec(f.name); return m ? Object.assign({ n: +m[1] }, f) : null; }).filter(Boolean);
@@ -590,7 +589,7 @@
             const out = {}; let mt = '';
             const parts = await Promise.all(fs.map(async f => [f, parseJsonObject(await keyFileText(which, f.id), which) || {}]));
             parts.forEach(([f, o]) => {
-                C.files.set(f.n, { id: f.id, modifiedTime: f.modifiedTime, body: JSON.stringify(o) }); if ((f.modifiedTime || '') > mt) mt = f.modifiedTime || '';
+                C.files.set(f.n, { id: f.id, modifiedTime: f.modifiedTime, body: chunkBody(which, o) }); if ((f.modifiedTime || '') > mt) mt = f.modifiedTime || '';
                 keys.forEach(k => { if (!Array.isArray(o[k])) return; (out[k] = out[k] || []).push(...o[k]); o[k].forEach(e => C.of.get(k).set(chunkKey(e), f.n)); });
             });
             drive[F.prop] = { id: fs[0].id, name: F.name, modifiedTime: mt };
@@ -630,7 +629,7 @@
             if (drive.keyNone) drive.keyNone.delete(which);
             const B = chunkSplit(which), D = drive.chunks[which]; let mt = '', made = false;
             for (const n of [...new Set([...B.keys(), ...D.files.keys()])].sort((a, b) => a - b)) {
-                const body = JSON.stringify(B.get(n) || {}), cur = D.files.get(n);
+                const body = chunkBody(which, B.get(n) || {}), cur = D.files.get(n);
                 if (cur && cur.body === body) { if ((cur.modifiedTime || '') > mt) mt = cur.modifiedTime; continue; }
                 if (!B.has(n) && cur && n > 1) { await driveTrash(cur.id); D.files.delete(n); continue; }   // 다 빠진 뒤쪽 파일
                 const saved = await driveUpsert(dir, F.name + n + '.json', cur && cur.id, await ownLock(JSON.parse(body), COLL.who));

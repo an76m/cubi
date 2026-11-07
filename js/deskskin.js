@@ -39,7 +39,7 @@
         const DSO_KEY = 'diary_skin_own', DSO_LOCAL = 'malang_skin_own';
         const dsLazy = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof keyFileOn === 'function' && !keyFileOn('dkown');
         const dsOk = x => x && x.u && typeof x.id === 'string';
-        const dsG = x => { const y = Object.assign({}, x); delete y.g; return window.giftHas && giftHas('ds', y.u) ? Object.assign(y, { g: 1 }) : y; };   // 🎁 선물 = _선물.json 주소 (저장할 땐 빼요)
+        const dsG = x => { const y = Object.assign({}, x), g = !!(y.g || y.from === 'gift'); delete y.g; delete y.from; return g ? Object.assign(y, { g: 1 }) : y; };   // 🎁 선물 = 그 줄의 from: 'gift' (앱 안에서는 g)
         function dsRead() {
             const v = prefGet(DS_KEY, DS_LOCAL), f = v && typeof v === 'object' && !Array.isArray(v) ? v : null, o = prefGet(DSO_KEY, DSO_LOCAL);
             if (Array.isArray(o)) return { own: o.filter(dsOk).map(dsG), wall: (f && f.wall) || '', top: (f && f.top) || '' };
@@ -51,7 +51,7 @@
         function dsSave(s, mem) {
             prefSet(DS_KEY, DS_LOCAL, { wall: s.wall || '', top: s.top || '', wi: dsOn(s, 'wall'), ti: dsOn(s, 'top') });
             if (s.part) return;                                                    // 💤 가진 것을 모르면 고른 것만
-            const own = s.own.map(x => { const y = Object.assign({}, x); delete y.g; return y; });
+            const own = s.own.map(x => { const y = Object.assign({}, x); if (y.g) y.from = 'gift'; delete y.g; return y; });   // 🎁 선물 = from: 'gift'
             if (mem && dsOnline()) store.putLoaded(DSO_KEY, JSON.stringify(own)); else prefSet(DSO_KEY, DSO_LOCAL, own);   // 💤 mem = 처음 선물 그대로 (목록 파일은 바뀔 때)
         }
         const dsOn = (s, k) => { const it = s.own.find(x => x.u === s[k]); return it ? it.id : ''; };   // 지금 쓰는 것 (없으면 '' = 그림 그대로)
@@ -77,15 +77,14 @@
         window.dsGiftOwn = () => { const s = dsRead(); return !s || s.part ? null : s.own.filter(x => x.g).map(x => ({ u: x.u, id: x.id })); };   // null = 아직 몰라요 (선물.json 그대로)
         function dsGift() {
             const own = DS_CAT.filter(c => c.gift).map(c => ({ u: c.id, id: c.id, g: 1 })), first = k => (own.find(o => dsCat(o.id).k === k) || {}).u || '';   // 🎁 선물 u = 상품 id
-            if (window.giftAdd) giftAdd('ds', own.map(o => o.u));
-            dsSave({ own, wall: first('wall'), top: first('top') }, true);
+            dsSave({ own, wall: first('wall'), top: first('top') });
         }
         async function dsRescue() {                                              // 🛟 가진 것 · 고른 것 중 없어진 쪽 (가진 것을 읽은 뒤에)
             const had = window.deskGiftRead ? await deskGiftRead() : null;        // 🎁 선물.json (못 읽으면 에러 → 선물을 또 주지 않아요)
             const bk = window.deskBackupRead ? await deskBackupRead().catch(() => null) : null;
             let own = prefGet(DSO_KEY, DSO_LOCAL), lost = false;
             if (!Array.isArray(own)) {
-                lost = keyMade('dkown') || dkBkReal(bk, DSO_KEY);                   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
+                lost = keyMade('dkown') || dkBkReal(bk, DSO_KEY) || !!(window.giftGiven && giftGiven());                   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
                 const F = lost ? (await ofScan(DIRS.desk)).filter(f => dsCat(f.id)) : [];   // 🪑 소품 폴더의 벽지 · 책상판 (못 읽으면 에러 → 다음에 다시)
                 if (Array.isArray(prefGet(DSO_KEY, DSO_LOCAL))) return;               // 그사이 다른 기기에서
                 const gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'ds').map(e => e.id));
@@ -95,7 +94,7 @@
             }
             const f = prefGet(DS_KEY, DS_LOCAL) || {}, was = f.wall || f.top ? f : (bk && bk.diary_desk_skin && typeof bk.diary_desk_skin === 'object' ? bk.diary_desk_skin : {});
             const pick = k => (own.find(o => o.u === was[k] && dsCat(o.id).k === k) || own.find(o => dsCat(o.id).k === k) || {}).u || '';
-            dsSave({ own, wall: pick('wall'), top: pick('top') }, !lost && own.every(o => o.g));   // 선물뿐 = 메모리에만
+            dsSave({ own, wall: pick('wall'), top: pick('top') });
             if (lost) diag('rescue', { w: 'ds', n: own.length });
         }
         function dsSync() {
@@ -139,7 +138,7 @@
         function dsEditStart() { DS.edit = JSON.parse(JSON.stringify(dsRead() || { own: [], wall: '', top: '' })); DS.gone = []; }
         async function dsEditEnd(ok) {
             const e = DS.edit, gone = DS.gone; DS.edit = null; DS.gone = [];
-            if (ok && e) { dsSave(e); for (const g of gone) await binAdd(Object.assign({ k: 'ds', id: g.u, s: g.id }, g.c ? { c: g.c } : {}, g.g ? { g: 1 } : {})); gone.filter(g => g.g).forEach(g => { if (window.giftDel) giftDel('ds', g.u); }); }
+            if (ok && e) { dsSave(e); for (const g of gone) await binAdd(Object.assign({ k: 'ds', id: g.u, s: g.id }, g.c ? { c: g.c } : {}, g.g ? { g: 1 } : {})); }
             dsPaint();
             if (ok && gone.length) binTold(dsCur().own.length ? '' : '벽지 · 책상은 🏪 기본상품 샵 → 🪑 책상 소품에서 받을 수 있어요');
         }
@@ -157,13 +156,13 @@
             if (!await binAsk(dsCat(it.id).n)) return;
             s.own = s.own.filter(x => x.u !== u); ['wall', 'top'].forEach(k => { if (s[k] === u) s[k] = ''; });
             if (typeof DK !== 'undefined' && DK.edit && DS.edit) { DS.gone.push(it); dsPaint(); if (window.deskBoxRender) deskBoxRender(); if (window.showMsg) showMsg('🗑 버릴게요.<br><small>하단 ✔ 완료를 누르면 휴지통으로 가요 (✕ 취소 = 그대로)</small>'); return; }
-            dsSave(s); await binAdd(Object.assign({ k: 'ds', id: u, s: it.id }, it.c ? { c: it.c } : {}, it.g ? { g: 1 } : {})); if (it.g && window.giftDel) giftDel('ds', u);
+            dsSave(s); await binAdd(Object.assign({ k: 'ds', id: u, s: it.id }, it.c ? { c: it.c } : {}, it.g ? { g: 1 } : {})); 
             dsPaint(); if (window.deskBoxRender) deskBoxRender();
             await binTold(s.own.length ? '' : '벽지 · 책상은 🏪 기본상품 샵 → 🪑 책상 소품에서 받을 수 있어요');
         }
         BIN_KINDS.ds = {
             name: e => { const c = dsCat(e.s); return c ? (c.k === 'wall' ? '🧱 ' : '🪵 ') + c.n : '🪑 책상 꾸밈'; },
-            restore: async e => { await dsReady(); const s = dsRead() || { own: [], wall: '', top: '' }, it = Object.assign({ u: e.id, id: e.s }, e.c ? { c: e.c } : {}, e.g ? { g: 1 } : {}); if (dsCat(e.s) && !s.own.some(x => x.u === e.id)) s.own.push(it); dsSave(s); if (DS.edit && !DS.edit.own.some(x => x.u === e.id)) DS.edit.own.push(Object.assign({}, it)); if (e.g && window.giftAdd) giftAdd('ds', e.id); if (window.deskBoxRender) deskBoxRender(); },
+            restore: async e => { await dsReady(); const s = dsRead() || { own: [], wall: '', top: '' }, it = Object.assign({ u: e.id, id: e.s }, e.c ? { c: e.c } : {}, e.g ? { g: 1 } : {}); if (dsCat(e.s) && !s.own.some(x => x.u === e.id)) s.own.push(it); dsSave(s); if (DS.edit && !DS.edit.own.some(x => x.u === e.id)) DS.edit.own.push(Object.assign({}, it)); if (window.deskBoxRender) deskBoxRender(); },
             purge: e => ofDel(DIRS.desk, e.c)       // 🗂 종류 폴더 파일 (도련 11-05)
         };
         /* 🏪 받기 (js/basket.js) : 같은 것도 또 */
@@ -188,6 +187,7 @@
         const dsCount = kind => dsCur().own.filter(x => dsCat(x.id) && dsCat(x.id).k === (kind === 'wallpaper' ? 'wall' : 'top') && !dsBagged(x)).length;
         function dsName(kind) { const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top', id = dsOn(s, k); return id && dsCat(id) ? dsCat(id).n : (k === 'wall' ? '벽지 없음 (그림 그대로)' : '책상 꾸밈 없음 (그림 그대로)'); }
 
+        window.dsGiftIds = () => DS_CAT.filter(c => c.gift).map(c => c.id);   // 🎁 상품공방 처음선물 (되살리기 · js/desk.js giftRead)
         window.dsAfterLoad = () => {                                              // 💤 가진 것을 읽은 뒤 (js/desk.js dkOwnReady) : 없어진 쪽이 있으면 되살리기 · 아니면 파일이 아직 없는 것
             if (dsBusy || (typeof drive !== 'undefined' && drive.deskLocked)) return;
             dsBusy = true;
