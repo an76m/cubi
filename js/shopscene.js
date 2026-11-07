@@ -15,7 +15,7 @@
         const SHOP_CN = ['stk', 'tool', 'gd', 'desk'];
         const SHOP_STK = [['seal', '씰스티커'], ['piece', '조각스티커'], ['paper', '모조지스티커'], ['tape', '마스킹테이프'], ['tk', '떡메모지'], ['memo', '메모지'], ['leaf', '속지'], ['season', '🌸 계절 스티커']];   // 🏷️ 입구 = 스티커 종류 (앱이 아는 종류 · 🌸 계절은 이벤트 때만 · 🌈 배경지는 가게에 안 나와요)
         const SHOP_ICON = { season: '🌸' };
-        const SHOP_WAY_IC = { gd: '✂️', tool: '📔' };                            // 🪧 팻말 아이콘 · 🪑 = basket.js stkArt('desk')
+        const SHOP_WAY_IC = {};                                                   // 🪧 팻말 아이콘 = basket.js stkArt('tool' · 'gd' · 'desk') 손그림 (도련 11-07 · 이모지 대신)
         let SHOP_D = null;
         function shopData() {
             if (SHOP_D) return SHOP_D;

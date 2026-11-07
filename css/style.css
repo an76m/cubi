@@ -4162,6 +4162,8 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .dke-row { display: flex; align-items: center; gap: 8px; overflow-x: auto; } .dke-tabs { padding-bottom: 2px; }
 .dkb-empty { grid-column: 1 / -1; text-align: center; color: #a08a94; font-size: 13px; padding: 24px 0; }
 .st2-row .st2-more .st2-emo { font-size: 34px; line-height: 1; display: flex; align-items: center; justify-content: center; height: 100%; }
+.st2-row .st2-more .st2-emo svg { display: block; width: 100%; height: 100%; overflow: visible; }   /* 🎨 코너 칸 손그림 아이콘 (도련 11-07) */
+.st2-row .st2-more .st2-emo:has(svg) { width: 100%; }
 .desk-set { display: none; }
 html.desk-wide .desk-set { display: block; }
 .dk-fn-list { display: grid; gap: 6px; margin-top: 8px; }

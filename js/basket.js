@@ -1109,16 +1109,16 @@
     const SH_DK = { drawer: ['서랍장', '🗄️'], clock: ['시계', '⏰'], bookshelf: ['책꽂이', '📚'], pencup: ['펜꽂이', '🖊️'], riser: ['받침대', '🖥️'], basket: ['바구니', '🧺'], lamp: ['스탠드', '💡'], doll: ['인형', '🧸'], taperack: ['마테정리함', '🎀'],
         wallshelf: ['벽선반', '🪜'], board: ['게시판', '📌'], lights: ['전구줄', '✨'], peg: ['집게사진', '📷'], wallpaper: ['벽지', '🧱'], desktop: ['책상', '🪵'] };
     function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
-        if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, SH_GD_IC[x.g] || '✏️']])).values()]; }
+        if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, stkArt('gd:' + x.g) || SH_GD_IC[x.g] || stkArt('gd')]])).values()]; }   // 🎨 아이콘 = 손그림 (도련 11-07 · 그림이 없는 새 종류만 이모지)
         if (k === 'tool') {                                                  // 📔 다이어리 코너 = 다이어리 종류 (상품이 있는 것만 · 도련 11-04)
             const y = new Date().getFullYear(), C = [['dyb', `${y} 바인더 표지`, '📔'], ['dyr', `${y} 바인더 내지`, '📅'], ['pgb', '페이지 바인더 표지', '🗂️'], ['pgr', '페이지 바인더 내지', '📄'],   /* 다꾸러가 알아보기 쉽게 (도련 11-07 · 해 = 컴퓨터 날짜 · 해가 바뀌면 저절로) */ ['dyn', `${y} 노트`, '📓'], ['bd', '스티커 바인더', '📒'], ['rl', '이형지북', '🤍']];   /* 📔 다꾸러에게는 '날짜형' 대신 연도 (2026 바인더 · 2026 노트 · 도련 11-04) */
             const have = new Set((window.dyyShopList ? dyyShopList().map(x => x.cat) : []).concat(AB_BDP.some(x => !x.P.숨김) ? ['bd'] : [], AB_RL.some(x => !x.P.숨김) ? ['rl'] : []));
-            return C.filter(c => have.has(c[0]));
+            return C.filter(c => have.has(c[0])).map(([c, n, ic]) => [c, n, stkArt('tool:' + c) || ic]);   // 🎨 손그림 아이콘 (도련 11-07)
         }
         if (k === 'desk') {                                                   // 🆕 새 종류도 (도련 11-06 · 이름 · 아이콘 = 상품공방 '종류이름' · '종류아이콘' → 없으면 아래 표 → 종류 이름)
             const D = window.deskShopList ? deskShopList() : [], L = D.map(d => d.kind).concat(window.dsShopList ? dsShopList().map(x => x.sec) : []);
             const all = [...new Set(Object.keys(SH_DK).concat(L))].filter(c => L.includes(c));
-            return all.map(c => { const d = D.find(x => x.kind === c && (x.kn || x.ki)) || {}; return [c, d.kn || (SH_DK[c] || [])[0] || c, d.ki || (SH_DK[c] || [])[1] || '🪑']; });
+            return all.map(c => { const d = D.find(x => x.kind === c && (x.kn || x.ki)) || {}; return [c, d.kn || (SH_DK[c] || [])[0] || c, stkArt('desk:' + c) || d.ki || (SH_DK[c] || [])[1] || stkArt('desk')]; });   // 🎨 그림이 있는 종류 = 손그림 · 새 종류 = 상품공방 '종류아이콘' (도련 11-07)
         }
         const c = SH_CATS[k]; return c ? c.map(([id, s]) => { const [ic, ...nm] = s.split(' '); return [id, nm.join(' '), ic]; }) : null;
     }
@@ -1645,6 +1645,18 @@
         const heart = (x, y, s, c1, c2, id) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 4C0-1 7-2 8 3 9-2 16-1 16 4 16 9 8 13 8 13 8 13 0 9 0 4Z" fill="#fff" stroke="#7b5a63" stroke-width="1.4" stroke-linejoin="round" transform="translate(-1.6 -1.6) scale(1.2)"/><path d="M0 4C0-1 7-2 8 3 9-2 16-1 16 4 16 9 8 13 8 13 8 13 0 9 0 4Z" fill="url(#${id})"/><ellipse cx="4.5" cy="3.2" rx="2.2" ry="1.3" fill="#fff" opacity=".7"/></g><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`;
         const star = (x, y, s, id) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M8 0l2.4 5 5.4.7-4 3.8 1 5.4L8 12.3 3.2 14.9l1-5.4-4-3.8L5.6 5z" fill="#fff" stroke="#7b5a63" stroke-width="4.6" stroke-linejoin="round"/><path d="M8 0l2.4 5 5.4.7-4 3.8 1 5.4L8 12.3 3.2 14.9l1-5.4-4-3.8L5.6 5z" fill="#fff" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/><path d="M8 0l2.4 5 5.4.7-4 3.8 1 5.4L8 12.3 3.2 14.9l1-5.4-4-3.8L5.6 5z" fill="url(#${id})"/><path d="M6 4l2-3 1 3" fill="#fff" opacity=".6"/></g><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset="1" stop-color="#f7c34a"/></linearGradient></defs>`;
         const dot = (x, y, r, c1, c2, id) => `<circle cx="${x}" cy="${y}" r="${r + 1.6}" fill="#fff" stroke="#7b5a63" stroke-width="1.4"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/><ellipse cx="${x - r * .35}" cy="${y - r * .4}" rx="${r * .4}" ry="${r * .25}" fill="#fff" opacity=".7"/><defs><radialGradient id="${id}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient></defs>`;
+        /* 🎨 코너 칸 아이콘 도우미 (도련 11-07 · 다이어리 · 문구 · 책상소품도 스티커 아이콘처럼 · 이모지 대신) */
+        const O = 'stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round"', O2 = 'stroke="#7b5a63" stroke-width="1.2" stroke-linejoin="round"', S = `filter="url(#${u}s)"`;
+        const lg = (id, a, b, x2 = 0, y2 = 1) => `<linearGradient id="${u}${id}" x1="0" y1="0" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+        const F = id => `url(#${u}${id})`;
+        const wire = (d, c, w = 2.6) => `<path d="${d}" fill="none" stroke="#7b5a63" stroke-width="${w + 2.8}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+        const YR = new Date().getFullYear();
+        const cover = (id, c1, c2, sp, inner) => `<g ${S}><rect x="18" y="6" width="42" height="52" rx="5" fill="${F(id)}"/><rect x="18" y="6" width="9" height="52" rx="4" fill="${sp}"/><rect x="18" y="6" width="42" height="52" rx="5" fill="none" ${O}/></g>${inner}
+            ${[16, 32, 48].map(y => `<rect x="11" y="${y - 3}" width="13" height="6" rx="3" fill="none" stroke="#7b5a63" stroke-width="4.6"/><rect x="11" y="${y - 3}" width="13" height="6" rx="3" fill="none" stroke="#eef0f6" stroke-width="2.2"/>`).join('')}${gl(18, 6, 42, 16, 5)}<defs>${lg(id, c1, c2, 1, 1)}</defs>`;   // 📔 링 바인더 표지
+        const holes = () => [14, 26, 38, 50].map(y => `<circle cx="26.5" cy="${y}" r="1.9" fill="#ece5f3" stroke="#7b5a63" stroke-width="1"/>`).join('');
+        const book = (x, w, h, c, by) => `<rect x="${x}" y="${by - h}" width="${w}" height="${h}" rx="1" fill="${c}" ${O2}/><path d="M${x + 1} ${by - h + 3}h${w - 2}M${x + 1} ${by - 3}h${w - 2}" stroke="#fff" stroke-width="1" opacity=".7"/>`;
+        const roll = (cx, cy, r, c, id) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${u}${id})" ${O2}/><circle cx="${cx}" cy="${cy}" r="${r * .45}" fill="#f2dcbc" ${O2}/><circle cx="${cx}" cy="${cy}" r="${r * .2}" fill="#fff8ee"/><defs><pattern id="${u}${id}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="${c}"/><rect width="2.5" height="5" fill="#fff" opacity=".7"/></pattern></defs>`;
+        const spark = (x, y, s, c) => `<path d="M${x} ${y - 3 * s}l${s} ${2 * s} ${2 * s} ${s} -${2 * s} ${s} -${s} ${2 * s} -${s} -${2 * s} -${2 * s} -${s} ${2 * s} -${s}z" fill="${c}"/>`;
         const A = {
             seal: () => `<rect x="9" y="12" width="40" height="48" rx="5" fill="#f7f4fa" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round" transform="rotate(-9 29 36)" filter="url(#${u}s)"/>
                 <rect x="22" y="5" width="42" height="54" rx="5" fill="url(#${u}p)" stroke="#7b5a63" stroke-width="1.7" stroke-linejoin="round" filter="url(#${u}s)"/>
@@ -1704,6 +1716,148 @@
                 <rect x="40" y="27" width="28" height="4.6" rx="2.3" fill="#c9f0e2" stroke="#7b5a63" stroke-width="1.5"/>
                 <path d="M48 41.5c0-3 4.2-3.6 4.8-.6.6-3 4.8-2.4 4.8.6 0 2.9-4.8 5.6-4.8 5.6s-4.8-2.7-4.8-5.6z" fill="#ff8fb0" stroke="#7b5a63" stroke-width="1.2" stroke-linejoin="round"/>
                 </g>`,   // 🪑 책상소품 = 분홍 스탠드 + 펜꽂이 (도련 11-04 · 이모지 대신)
+            /* 📔 다이어리 코너 (도련 11-07) */
+            'tool:dyb': () => cover('dyb', '#ffcadb', '#ff9fbd', '#ef86a8', `<rect x="31" y="13" width="23" height="12" rx="3" fill="#fffaf2" ${O2}/><text x="42.5" y="21.8" text-anchor="middle" font-size="7.6" font-weight="700" font-family="Jua, sans-serif" fill="#e0668c">${YR}</text>${heart(35, 34, .95, '#fff', '#ffd6e2', u + 'dbh')}`),
+            'tool:pgb': () => cover('pgb', '#d2f3e7', '#8fd6bc', '#6fc3a5', `<rect x="31" y="13" width="23" height="12" rx="3" fill="#fffaf2" ${O2}/><path d="M35 17.6h15M35 21h10" stroke="#9fd3bf" stroke-width="1.5" stroke-linecap="round"/>${star(35, 32, 1, u + 'pbs')}`),
+            'tool:dyr': () => `<rect x="14" y="10" width="38" height="50" rx="3" fill="#eaf4ff" ${O} transform="rotate(-8 33 35)" ${S}/>
+                <g ${S}><rect x="22" y="6" width="38" height="52" rx="3" fill="#fff"/></g><path d="M22 9a3 3 0 0 1 3-3h32a3 3 0 0 1 3 3v8H22z" fill="${F('dyr')}"/>
+                <path d="M31 21v34M37.5 21v34M44 21v34M50.5 21v34M57 21v34M31 21h26M31 27.8h26M31 34.6h26M31 41.4h26M31 48.2h26M31 55h26" stroke="#f5c6d5" stroke-width="1"/>
+                <rect x="44" y="34.6" width="6.5" height="6.8" fill="#ffe3ec"/>${heart(44.6, 35.4, .37, '#ffb7cc', '#ff7fa3', u + 'drh')}
+                <rect x="22" y="6" width="38" height="52" rx="3" fill="none" ${O}/><path d="M22 17h38" stroke="#7b5a63" stroke-width="1.1"/>${holes()}
+                <circle cx="38" cy="11.5" r="1.4" fill="#fff"/><circle cx="44" cy="11.5" r="1.4" fill="#fff"/><circle cx="50" cy="11.5" r="1.4" fill="#fff"/><defs>${lg('dyr', '#ffc4d6', '#ff9fbd')}</defs>`,
+            'tool:pgr': () => `<rect x="14" y="10" width="38" height="50" rx="3" fill="#ffeef4" ${O} transform="rotate(-8 33 35)" ${S}/>
+                <g ${S}><rect x="22" y="6" width="38" height="52" rx="3" fill="${F('pgr')}" ${O}/></g>
+                <g fill="#b9cfe8">${[0, 1, 2, 3, 4].map(i => [0, 1, 2, 3, 4, 5, 6, 7, 8].map(j => `<circle cx="${33 + i * 5.5}" cy="${12 + j * 5.2}" r=".95"/>`).join('')).join('')}</g>
+                ${star(42, 40, .8, u + 'prs')}${holes()}${gl(22, 6, 38, 16, 3)}<defs>${lg('pgr', '#fff', '#f1f7fd', 1, 1)}</defs>`,
+            'tool:dyn': () => `<path d="M25 50v12l3-2.6 3 2.6V50" fill="#c7b3f2" ${O2}/>
+                <g ${S}><rect x="18" y="8" width="38" height="50" rx="3" fill="#fffaf0" ${O}/><rect x="14" y="6" width="38" height="50" rx="4" fill="${F('dyn')}" ${O}/></g>
+                <path d="M53.5 12v42M55 12v42" stroke="#e8dcc0" stroke-width=".9"/>
+                <rect x="43.5" y="6" width="3.8" height="50" fill="#ff9fbd" stroke="#7b5a63" stroke-width="1.1"/>
+                <rect x="18" y="15" width="21" height="11" rx="5.5" fill="#fff" ${O2}/><text x="28.5" y="23" text-anchor="middle" font-size="7" font-weight="700" font-family="Jua, sans-serif" fill="#d9a43a">${YR}</text>
+                ${heart(21, 33, .78, '#ffb7cc', '#ff7fa3', u + 'dnh')}${dot(33, 46, 3.4, '#d6ecff', '#7fbdf0', u + 'dnb')}${gl(14, 6, 38, 16, 4)}<defs>${lg('dyn', '#fff3c4', '#ffd98a', 1, 1)}</defs>`,
+            'tool:bd': () => `<g ${S}><rect x="12" y="6" width="48" height="52" rx="6" fill="${F('bd')}"/><rect x="12" y="6" width="10" height="52" rx="5" fill="#a98bf0"/><rect x="12" y="6" width="48" height="52" rx="6" fill="none" ${O}/></g>
+                <path d="M56 25h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7z" fill="#ff9fbd" ${O2}/><circle cx="61" cy="32" r="1.8" fill="#fff" ${O2}/>
+                <rect x="26" y="12" width="27" height="40" rx="3" fill="#fff" fill-opacity=".78" ${O2}/><path d="M26 32h27" stroke="#7b5a63" stroke-width="1" opacity=".45"/>
+                ${heart(29, 16, .62, '#ffb7cc', '#ff7fa3', u + 'bdh')}${star(40, 15, .62, u + 'bdy')}${dot(33, 43, 4, '#c9f0dc', '#6fcfa0', u + 'bdg')}${heart(40, 38, .55, '#d6ecff', '#7fbdf0', u + 'bdb')}
+                <path d="M30 50l19-34" stroke="#fff" stroke-width="2.4" opacity=".7"/>${gl(12, 6, 48, 16, 6)}<defs>${lg('bd', '#efe6ff', '#c7b1f5', 1, 1)}</defs>`,
+            'tool:rl': () => `<g ${S}><path d="M36 18Q22 12 5 16V57Q22 53 36 59Q50 53 67 57V16Q50 12 36 18Z" fill="#ff9fbd" ${O}/></g>
+                <path d="M36 15Q24 9 8 13V54Q24 50 36 56Z" fill="${F('rl')}" ${O}/><path d="M36 15Q48 9 64 13V54Q48 50 36 56Z" fill="${F('rl')}" ${O}/>
+                ${heart(12, 21, .72, '#ffb7cc', '#ff7fa3', u + 'rlh')}${dot(23, 42, 4.4, '#d6ecff', '#7fbdf0', u + 'rlb')}${star(43, 18, .78, u + 'rly')}${heart(47, 37, .66, '#e0d2ff', '#a98bf0', u + 'rlv')}
+                <path d="M13 50l14-24M42 49l13-22" stroke="#fff" stroke-width="2" opacity=".75"/><defs>${lg('rl', '#ffffff', '#e6ebf4', 1, 1)}</defs>`,
+            /* ✂️ 문구 코너 */
+            'gd:tweez': () => `${heart(8, 45, .7, '#ffb7cc', '#ff7fa3', u + 'twh')}
+                <g ${S}>${wire('M60 9L38 20L17 47', '#eef1f6', 3.4)}${wire('M60 9L46 34L21 50', '#dde2ec', 3.4)}</g>
+                <path d="M55.6 11.2L44.6 16.7M57.2 14L50.9 25.2" stroke="#ff9fbd" stroke-width="3.4" stroke-linecap="round"/>
+                <path d="M40 19.4L22 41" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/><circle cx="60" cy="9" r="3.4" fill="#f4f6fa" ${O2}/>${spark(12, 38, 1.1, '#ffd36e')}`,
+            'gd:clip': () => `<rect x="17" y="41" width="38" height="19" rx="2" fill="#fffaf2" ${O} transform="rotate(4 36 50)"/><path d="M22 52h26M22 56h20" stroke="#ead9c4" stroke-width="1.2" transform="rotate(4 36 50)"/>
+                <g ${S}>${wire('M25 29L19 8Q36 1 53 8L47 29', '#eef1f6', 2.8)}</g>
+                <g ${S}><path d="M12 34L22 25H50L60 34Z" fill="#ffd0de" ${O}/><path d="M12 34H60L57 50a3 3 0 0 1-3 2.6H18A3 3 0 0 1 15 50Z" fill="${F('clp')}" ${O}/></g>
+                <path d="M17 38H55" stroke="#fff" stroke-width="2" opacity=".55" stroke-linecap="round"/>${heart(29.6, 38.6, .8, '#fff', '#ffe0ea', u + 'clh')}<defs>${lg('clp', '#ff9fbd', '#f07fa2')}</defs>`,
+            'gd:punch': () => `<g ${S}><path d="M8 43a5 5 0 0 1 5-5H59a5 5 0 0 1 5 5V52a5 5 0 0 1-5 5H13a5 5 0 0 1-5-5Z" fill="${F('pnb')}" ${O}/><path d="M12 39Q12 21 30 19L60 28Q64 30 62 39Z" fill="${F('pnt')}" ${O}/></g>
+                <path d="M18 34Q19 25 30 23.5L50 29" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".75"/><path d="M14 46H58" stroke="#7b5a63" stroke-width="1.2" opacity=".45"/>
+                <circle cx="26" cy="51" r="2" fill="#fff" opacity=".7"/><circle cx="46" cy="51" r="2" fill="#fff" opacity=".7"/>
+                <circle cx="56" cy="13" r="2.6" fill="#ff9fbd" ${O2}/><circle cx="64" cy="19" r="2.2" fill="#ffd36e" ${O2}/><circle cx="48" cy="8" r="2" fill="#a8e3cf" ${O2}/><defs>${lg('pnb', '#c4e2fb', '#8ec3ee')}${lg('pnt', '#e6f3ff', '#b2d7f7')}</defs>`,
+            'gd:tape': () => `<path d="M5 58H32" stroke="#7b5a63" stroke-width="7.4" stroke-linecap="round"/><path d="M5 58H32" stroke="#ffd3e0" stroke-width="4.6" stroke-linecap="round"/><path d="M7 58H31" stroke="#fff" stroke-width="1.4" stroke-dasharray="2 3"/>
+                <g ${S}><path d="M22 10Q46 0 60 16Q66 30 54 42L34 55Q26 59 21 53L15 44Q10 22 22 10Z" fill="${F('tpb')}" ${O}/></g>
+                <path d="M23 54L31 57.6L25 60.6Z" fill="#f4f6fa" ${O2}/>
+                <circle cx="40" cy="25" r="11" fill="#fff" fill-opacity=".85" ${O2}/><circle cx="40" cy="25" r="7.5" fill="${F('tpr')}" stroke="#7b5a63" stroke-width="1"/><circle cx="40" cy="25" r="3" fill="#fff" stroke="#7b5a63" stroke-width="1"/>
+                <path d="M24 14Q40 6 54 15" stroke="#fff" stroke-width="2.4" fill="none" opacity=".6" stroke-linecap="round"/>${heart(25, 39, .55, '#fff', '#e3fff3', u + 'tph')}<defs>${lg('tpb', '#cdf2e4', '#86d1b6', 1, 1)}${lg('tpr', '#ffc4d6', '#ff9fbd')}</defs>`,
+            'gd:scissors': () => `<g ${S}><path d="M33 31L60 5Q66 5 64 11L40 35Z" fill="${F('scb')}" ${O}/><path d="M35 27L65 17Q68 21 63 24L39 34Z" fill="${F('scb')}" ${O}/></g>
+                <path d="M37 30L59 9" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+                <g ${S}><path d="M36 32L23 39M38 33L32 47" fill="none" stroke="#7b5a63" stroke-width="7.2" stroke-linecap="round"/><circle cx="17" cy="43" r="7.6" fill="none" stroke="#7b5a63" stroke-width="7.6"/><circle cx="30" cy="54.5" r="6.4" fill="none" stroke="#7b5a63" stroke-width="7.6"/></g>
+                <path d="M36 32L23 39M38 33L32 47" fill="none" stroke="#ff9fbd" stroke-width="4.4" stroke-linecap="round"/><circle cx="17" cy="43" r="7.6" fill="none" stroke="#ff9fbd" stroke-width="4.6"/><circle cx="30" cy="54.5" r="6.4" fill="none" stroke="#ff9fbd" stroke-width="4.6"/>
+                <path d="M11.5 39.5a7 7 0 0 1 4-3.6" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="37" cy="31.6" r="2.6" fill="#ffd36e" ${O2}/><defs>${lg('scb', '#f6f8fc', '#c9d1de', 1, 1)}</defs>`,
+            'gd:knife': () => `<g transform="rotate(-38 36 33)"><g ${S}><path d="M48 27H66L60 39H48Z" fill="${F('knb')}" ${O}/><rect x="6" y="26" width="44" height="14" rx="5" fill="${F('knn')}" ${O}/></g>
+                <path d="M55 27L52 39M60 27L57 39" stroke="#7b5a63" stroke-width=".9" opacity=".55"/><path d="M10 30h36" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/>
+                <path d="M11 34v4M14 34v4M17 34v4" stroke="#d9a43a" stroke-width="1.2" stroke-linecap="round"/><rect x="24" y="22.4" width="11" height="5.4" rx="2" fill="#ff9fbd" ${O2}/></g><defs>${lg('knb', '#f6f8fc', '#c9d1de')}${lg('knn', '#ffeaa6', '#f7c34a')}</defs>`,
+            'gd:ruler': () => `<g transform="rotate(-30 36 32)"><g ${S}><rect x="2" y="24" width="68" height="17" rx="3" fill="${F('rul')}" ${O}/></g>
+                <path d="${Array.from({ length: 13 }, (_, i) => `M${7 + i * 5} 24v${i % 2 ? 4 : 7}`).join('')}" stroke="#5aa98b" stroke-width="1.1" stroke-linecap="round"/>
+                <path d="M50 33.6c0-2.6 3.6-3.2 4.2-.5.6-2.7 4.2-2.1 4.2.5 0 2.6-4.2 4.8-4.2 4.8s-4.2-2.2-4.2-4.8z" fill="#fff" ${O2}/><rect x="4" y="36" width="40" height="2.6" rx="1.3" fill="#fff" opacity=".5"/></g><defs>${lg('rul', '#ddf7ee', '#a8e3cf')}</defs>`,
+            'gd:pen': () => `<g transform="rotate(-62 40 32)"><g ${S}><rect x="10" y="28" width="44" height="8" rx="3" fill="${F('pnc')}" ${O}/><path d="M54 28.6L62 32L54 35.4Z" fill="#eef1f6" ${O2}/></g><rect x="14" y="26" width="12" height="4" rx="1.5" fill="#79b6e6" ${O2}/><path d="M12 30.4h40" stroke="#fff" stroke-width="1.4" opacity=".6"/></g>
+                <g transform="rotate(-30 34 36)"><g ${S}><rect x="2" y="31" width="7" height="10" rx="2.4" fill="#ff9fbd" ${O}/><rect x="8" y="31" width="40" height="10" fill="${F('pcl')}" ${O}/><path d="M48 31L62 36L48 41Z" fill="#f6dcb5" ${O}/></g>
+                <rect x="7.4" y="31" width="4.4" height="10" fill="#eef1f6" ${O2}/><path d="M58.6 34.8L62 36L58.6 37.2Z" fill="#7b5a63"/><path d="M12 34h35" stroke="#fff" stroke-width="1.6" opacity=".6"/><path d="M12 38h35" stroke="#e7b84a" stroke-width="1"/></g>
+                <defs>${lg('pnc', '#c4e2fb', '#8ec3ee')}${lg('pcl', '#ffeaa6', '#f7c34a')}</defs>`,
+            gd: () => `<g transform="translate(17 -3) scale(.8)">${A['gd:pen']()}</g><g transform="translate(-6 6) scale(.92)">${A['gd:scissors']()}</g>`,   // ✂️ 문구 = 가위 + 연필 (첫 창 · 팻말)
+            /* 🪑 책상소품 코너 */
+            'desk:drawer': () => `<g ${S}><rect x="12" y="11" width="48" height="45" rx="4" fill="${F('drw')}" ${O}/><rect x="15" y="55" width="6" height="5" rx="1.5" fill="#e7b84a" ${O2}/><rect x="51" y="55" width="6" height="5" rx="1.5" fill="#e7b84a" ${O2}/><rect x="9" y="6" width="54" height="7" rx="3" fill="#ffc4d6" ${O}/></g>
+                ${[16, 29, 42].map((y, i) => `<rect x="16" y="${y}" width="40" height="11" rx="2.5" fill="${['#fff8de', '#ffeaf1', '#eaf4ff'][i]}" ${O2}/><circle cx="36" cy="${y + 5.5}" r="2.3" fill="#ff9fbd" stroke="#7b5a63" stroke-width="1.1"/>`).join('')}
+                ${heart(20, 18.6, .36, '#ffb7cc', '#ff7fa3', u + 'drh')}${gl(9, 6, 54, 12, 3)}<defs>${lg('drw', '#fff1b8', '#ffd77a')}</defs>`,
+            'desk:clock': () => `${wire('M25 53L20 60M47 53L52 60', '#ff9fbd', 2.2)}
+                <g ${S}><path d="M12 20A9 9 0 0 1 27 10Z" fill="#ffd36e" ${O}/><path d="M60 20A9 9 0 0 0 45 10Z" fill="#ffd36e" ${O}/></g><path d="M36 9v5" stroke="#7b5a63" stroke-width="2"/><circle cx="36" cy="8" r="2.6" fill="#ffd36e" ${O2}/>
+                <g ${S}><circle cx="36" cy="35" r="21" fill="${F('clk')}" ${O}/></g><circle cx="36" cy="35" r="15.5" fill="#fffdf8" ${O2}/>
+                <path d="M36 22.5v3M36 44.5v3M23.5 35h3M45.5 35h3" stroke="#e8a9bd" stroke-width="1.7" stroke-linecap="round"/><path d="M36 35V26.5M36 35l6.5 3.4" stroke="#7b5a63" stroke-width="2" stroke-linecap="round"/><circle cx="36" cy="35" r="1.9" fill="#ff7fa3"/>
+                <ellipse cx="25" cy="22" rx="6" ry="2.6" fill="#fff" opacity=".6" transform="rotate(-38 25 22)"/><defs>${lg('clk', '#ffcadb', '#ff8fb0')}</defs>`,
+            'desk:bookshelf': () => `<g ${S}><rect x="10" y="6" width="52" height="54" rx="3" fill="${F('bsf')}" ${O}/></g><rect x="14" y="10" width="44" height="21" rx="1.5" fill="#fbeedd" stroke="#7b5a63" stroke-width="1.1"/><rect x="14" y="35" width="44" height="21" rx="1.5" fill="#fbeedd" stroke="#7b5a63" stroke-width="1.1"/>
+                ${book(16, 5, 17, '#ff9fbd', 31)}${book(21.5, 6, 19, '#9fd0f5', 31)}${book(28, 4.5, 15, '#ffd36e', 31)}${book(33, 6, 18, '#c7b3f2', 31)}<g transform="rotate(16 42 31)">${book(39.5, 5, 16, '#a8e3cf', 31)}</g>
+                ${book(16, 6, 18, '#a8e3cf', 56)}${book(22.5, 5, 16, '#ffb3c9', 56)}${book(28, 6, 19, '#ffe9a0', 56)}
+                <path d="M45 46h10l-1.6 10h-6.8z" fill="#ffb3c9" ${O2}/><path d="M50 46C46 41 45 38 45.5 35 49 37 50.5 41 50 46 50.5 41 53 37 57 37 56 41 53 44 50 46Z" fill="#8fd6bc" ${O2}/>
+                <defs>${lg('bsf', '#f8dcbc', '#e7bb8c')}</defs>`,
+            'desk:pencup': () => `<path d="M18 32L13 12L18 11L23 32Z" fill="#c7b3f2" ${O2}/><path d="M15.4 16h2.4M16.2 20h2.4M17 24h2.4" stroke="#7b5a63" stroke-width=".9"/>
+                <path d="M24 32L26 11H30L31 32Z" fill="#ffd36e" ${O2}/><path d="M26 11L28 4.5L30 11Z" fill="#ffe9c2" ${O2}/><path d="M27.3 7L28 4.5L28.7 7Z" fill="#7b5a63"/>
+                <path d="M32 32L38 9L42 10L37 32Z" fill="#9fd0f5" ${O2}/><path d="M38 9L41 4.6L42 10Z" fill="#eef1f6" ${O2}/>
+                <path d="M38 32L48 12L51.6 13.6L43 32Z" fill="#ff9fbd" ${O2}/><path d="M48 12L52 8.6L51.6 13.6Z" fill="#ffe9c2" ${O2}/>
+                <g ${S}><path d="M16 29h40l-3.5 27.5a3.5 3.5 0 0 1-3.5 3H23a3.5 3.5 0 0 1-3.5-3z" fill="${F('pcp')}" ${O}/><rect x="14.5" y="26" width="43" height="6" rx="3" fill="#c9f0e2" ${O}/></g>
+                <path d="M47 35l-2 20" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>${heart(28, 38, .95, '#ffb7cc', '#ff7fa3', u + 'pch')}<defs>${lg('pcp', '#b9ebd9', '#86d1b6', 1, 0)}</defs>`,
+            'desk:riser': () => `<rect x="24" y="48" width="22" height="5.4" rx="1.5" fill="#c7b3f2" ${O2}/><rect x="26" y="42.6" width="19" height="5.4" rx="1.5" fill="#ffe9a0" ${O2}/>
+                <g ${S}><rect x="12" y="32" width="7" height="23" rx="2" fill="#f07fa2" ${O}/><rect x="53" y="32" width="7" height="23" rx="2" fill="#f07fa2" ${O}/><rect x="6" y="26" width="60" height="8" rx="3" fill="${F('rsr')}" ${O}/></g>
+                <rect x="8.4" y="27.4" width="55" height="2.4" rx="1.2" fill="#fff" opacity=".6"/>
+                <path d="M15 17h13l-1.7 9h-9.6z" fill="#fff3c4" ${O2}/><path d="M21.5 17C17.5 11 15.5 9 14.5 6 19.5 7 21.5 11 21.5 17 21.5 11 24.5 7 29.5 7 27.5 11 25.5 13 21.5 17Z" fill="#8fd6bc" ${O2}/>
+                <g transform="rotate(5 42 18)"><rect x="34" y="10" width="16" height="16" rx="2" fill="#fff" ${O2}/><rect x="37" y="13" width="10" height="10" rx="1" fill="#d6ecff"/>${heart(38.3, 15, .45, '#ffb7cc', '#ff7fa3', u + 'rsh')}</g>${spark(58, 15, 1.2, '#ffd36e')}<defs>${lg('rsr', '#ffd6e2', '#ff9fbd')}</defs>`,
+            'desk:basket': () => `${wire('M15 31Q15 5 36 5Q57 5 57 31', '#ecc893', 3)}
+                <rect x="20" y="13" width="13" height="18" rx="2" fill="#fff" ${O2} transform="rotate(-12 26 22)"/>${heart(21.5, 16, .45, '#ffb7cc', '#ff7fa3', u + 'bkh')}
+                <circle cx="44" cy="23" r="7.4" fill="${F('bkr')}" ${O2}/><circle cx="44" cy="23" r="3.2" fill="#f2dcbc" ${O2}/>
+                <g ${S}><path d="M10 31h52l-5.5 23a4 4 0 0 1-4 3h-33a4 4 0 0 1-4-3z" fill="${F('bsk')}" ${O}/></g>
+                <path d="M13 38.5H59M14.6 45H57.4M16.2 51.5H55.8" stroke="#e9c38f" stroke-width="3.4" stroke-dasharray="4 3"/><path d="M14.6 45H57.4" stroke="#e9c38f" stroke-width="3.4" stroke-dasharray="4 3" stroke-dashoffset="3.5"/>
+                <rect x="7" y="27" width="58" height="7" rx="3.5" fill="#f3d3a6" ${O}/><path d="M18 30.5l-7-4.6v9.2zM18 30.5l7-4.6v9.2z" fill="#ff9fbd" ${O2}/><circle cx="18" cy="30.5" r="2.2" fill="#ff7fa3" ${O2}/>
+                <defs>${lg('bsk', '#f6dbb2', '#deb07a')}${lg('bkr', '#bfe3ff', '#7fbdf0')}</defs>`,
+            'desk:lamp': () => `<path d="M31 26L26 58H66L54 26Z" fill="${F('lmg')}"/>
+                <ellipse cx="20" cy="56.5" rx="13" ry="4" fill="#c7b3f2" ${O}/>${wire('M20 55L13 33L31 16', '#e6dcff', 2.8)}<circle cx="13" cy="33" r="3.2" fill="#ffd3e0" ${O2}/>
+                <g ${S}><path d="M28 12Q39 2 51 12L55 26Q43 30 31 25Z" fill="${F('lms')}" ${O}/></g>
+                <path d="M31.5 24.6Q43 29 54.4 25.6" stroke="#fff3c4" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M33 11Q38 6.6 44 7.6" stroke="#fff" stroke-width="2" opacity=".75" fill="none" stroke-linecap="round"/>
+                ${spark(62, 36, 1.2, '#ffd36e')}${spark(36, 46, .9, '#ffd36e')}<defs>${lg('lms', '#fff0b0', '#f7c34a')}<linearGradient id="${u}lmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0" stop-opacity=".95"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></linearGradient></defs>`,
+            'desk:doll': () => `<g ${S}><ellipse cx="27" cy="16" rx="5.6" ry="13" fill="${F('dol')}" ${O} transform="rotate(-12 27 16)"/><ellipse cx="45" cy="16" rx="5.6" ry="13" fill="${F('dol')}" ${O} transform="rotate(12 45 16)"/>
+                <ellipse cx="36" cy="51" rx="15" ry="11" fill="${F('dol')}" ${O}/><ellipse cx="36" cy="34" rx="16.5" ry="13.5" fill="${F('dol')}" ${O}/></g>
+                <ellipse cx="27" cy="16" rx="2.6" ry="9" fill="#ffc4d6" transform="rotate(-12 27 16)"/><ellipse cx="45" cy="16" rx="2.6" ry="9" fill="#ffc4d6" transform="rotate(12 45 16)"/>
+                <circle cx="30" cy="34" r="2" fill="#7b5a63"/><circle cx="42" cy="34" r="2" fill="#7b5a63"/><circle cx="30.7" cy="33.3" r=".7" fill="#fff"/><circle cx="42.7" cy="33.3" r=".7" fill="#fff"/>
+                <ellipse cx="26.4" cy="39" rx="3" ry="1.8" fill="#ffb3c9" opacity=".85"/><ellipse cx="45.6" cy="39" rx="3" ry="1.8" fill="#ffb3c9" opacity=".85"/><path d="M34 38.6q2 2 2 0q0 2 2 0" stroke="#7b5a63" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                <ellipse cx="25" cy="57" rx="4.6" ry="3.6" fill="#fff" ${O2}/><ellipse cx="47" cy="57" rx="4.6" ry="3.6" fill="#fff" ${O2}/>
+                <path d="M36 47.4l-7.4-4.4v8.8zM36 47.4l7.4-4.4v8.8z" fill="#ff9fbd" ${O2}/><circle cx="36" cy="47.4" r="2.1" fill="#ff7fa3" ${O2}/><defs>${lg('dol', '#ffffff', '#ffe6ee')}</defs>`,
+            'desk:taperack': () => `<g ${S}><rect x="8" y="6" width="6" height="50" rx="2" fill="${F('trk')}" ${O}/><rect x="58" y="6" width="6" height="50" rx="2" fill="${F('trk')}" ${O}/><rect x="5" y="54" width="62" height="6" rx="2.5" fill="${F('trk')}" ${O}/></g>
+                <path d="M14 21H58M14 41H58" stroke="#7b5a63" stroke-width="3.6"/><path d="M14 21H58M14 41H58" stroke="#eef0f6" stroke-width="1.6"/>
+                ${roll(22, 21, 7, '#ff9fbd', 'tr1')}${roll(36, 21, 7, '#9fd0f5', 'tr2')}${roll(50, 21, 7, '#ffd36e', 'tr3')}${roll(29, 41, 7, '#a8e3cf', 'tr4')}${roll(43, 41, 7, '#c7b3f2', 'tr5')}
+                <rect x="8.6" y="8" width="2.2" height="44" rx="1.1" fill="#fff" opacity=".5"/><defs>${lg('trk', '#ffd6e2', '#f7a6c0')}</defs>`,
+            'desk:wallshelf': () => `<path d="M14 42.6V54L24 42.6ZM58 42.6V54L48 42.6Z" fill="#e2b07c" ${O2}/>
+                <path d="M20 37Q22 46 25 51" stroke="#6fc3a5" stroke-width="1.4" fill="none"/><ellipse cx="22.6" cy="44" rx="2.4" ry="1.4" fill="#8fd6bc" ${O2} transform="rotate(40 22.6 44)"/><ellipse cx="25" cy="51" rx="2.4" ry="1.4" fill="#8fd6bc" ${O2} transform="rotate(70 25 51)"/>
+                <path d="M9 27h13l-1.8 10h-9.4z" fill="#ffb3c9" ${O2}/><rect x="8" y="25" width="15" height="4" rx="1.5" fill="#ffc9d9" ${O2}/><path d="M15.5 25C11.5 17 10.5 13 11.5 9 15.5 12 16.5 18 15.5 25 17.5 18 21.5 13 25.5 13 23.5 18 19.5 22 15.5 25Z" fill="#8fd6bc" ${O2}/>
+                ${book(28, 5, 16, '#9fd0f5', 37)}${book(33.5, 5, 13, '#ffe9a0', 37)}${book(39, 5, 17, '#c7b3f2', 37)}
+                <g transform="rotate(7 55 27)"><rect x="47.5" y="17" width="15" height="19" rx="2" fill="#fff" ${O2}/><rect x="49.8" y="19.4" width="10.4" height="10.4" rx="1" fill="#ffe3ec"/>${star(50.6, 20, .55, u + 'wss')}</g>
+                <g ${S}><rect x="5" y="37" width="62" height="6" rx="2" fill="${F('wsb')}" ${O}/></g><rect x="7" y="38.2" width="58" height="1.8" rx=".9" fill="#fff" opacity=".55"/><defs>${lg('wsb', '#f8dcbc', '#e2b07c')}</defs>`,
+            'desk:board': () => `<g ${S}><rect x="6" y="8" width="60" height="48" rx="4" fill="${F('bdw')}" ${O}/></g><rect x="11" y="13" width="50" height="38" rx="2" fill="${F('bdc')}" stroke="#7b5a63" stroke-width="1.1"/>
+                <g fill="#c4935a" opacity=".45"><circle cx="15" cy="45" r=".8"/><circle cx="34" cy="16" r=".7"/><circle cx="56" cy="46" r=".8"/><circle cx="40" cy="47" r=".7"/><circle cx="14" cy="18" r=".7"/><circle cx="57" cy="16" r=".7"/></g>
+                <g transform="rotate(-6 23 25)"><rect x="15" y="17" width="16" height="16" fill="#fff3a8" ${O2}/><path d="M18 23h10M18 26.4h10M18 29.8h6" stroke="#e5d178" stroke-width="1"/></g>
+                <g transform="rotate(7 46 30)"><rect x="37" y="17" width="18" height="22" fill="#fff" ${O2}/><rect x="39.5" y="19.5" width="13" height="12" fill="#d6ecff"/>${heart(42, 22.2, .45, '#ffb7cc', '#ff7fa3', u + 'bdph')}</g>
+                <rect x="19" y="36" width="15" height="11" fill="#ffd3e0" ${O2} transform="rotate(4 26 41)"/>
+                ${dot(23, 18.4, 2, '#ffb7cc', '#ff7fa3', u + 'bp1')}${dot(46, 18, 2, '#d6ecff', '#7fbdf0', u + 'bp2')}${dot(26.4, 37, 1.8, '#c9f0dc', '#6fcfa0', u + 'bp3')}<defs>${lg('bdw', '#f8dcbc', '#e2b07c')}${lg('bdc', '#f0d3a6', '#dcae78')}</defs>`,
+            'desk:lights': () => { const P = [.1, .3, .5, .7, .9].map(t => [3 + 66 * t, 10 + 76 * t * (1 - t)]), C = ['#ffd36e', '#ff9fbd', '#9fd0f5', '#a8e3cf', '#c7b3f2'];
+                return `<path d="M3 10Q36 48 69 10" fill="none" stroke="#7b5a63" stroke-width="1.7"/><circle cx="3" cy="10" r="2" fill="#fff" ${O2}/><circle cx="69" cy="10" r="2" fill="#fff" ${O2}/>
+                ${P.map(([x, y], i) => `<circle cx="${x}" cy="${y + 10}" r="9" fill="${C[i]}" opacity=".3"/><g ${S}><ellipse cx="${x}" cy="${y + 10}" rx="4.4" ry="5.8" fill="${C[i]}" ${O2}/></g><rect x="${x - 2.4}" y="${y - .6}" width="4.8" height="4.6" rx="1" fill="#eef1f6" ${O2}/><ellipse cx="${x - 1.4}" cy="${y + 8}" rx="1.3" ry="2" fill="#fff" opacity=".8"/>`).join('')}
+                ${spark(20, 50, 1.1, '#ffd36e')}${spark(54, 51, .9, '#ff9fbd')}`; },
+            'desk:peg': () => { const P = [[19.5, -7], [50.5, 7]], C = [['#d6ecff', '#a9d3f5'], ['#ffe3ec', '#ffc0d3']];
+                return `<path d="M3 10Q36 36 69 10" fill="none" stroke="#c4935a" stroke-width="1.8"/><circle cx="3" cy="10" r="2" fill="#fff" ${O2}/><circle cx="69" cy="10" r="2" fill="#fff" ${O2}/>
+                ${P.map(([x, r], i) => { const y = 10 + 52 * ((x - 3) / 66) * (1 - (x - 3) / 66); return `<g transform="rotate(${r} ${x} ${y})"><g ${S}><rect x="${x - 12}" y="${y + 2}" width="24" height="30" rx="1.5" fill="#fff" ${O}/></g><rect x="${x - 9.5}" y="${y + 4.5}" width="19" height="18" fill="url(#${u}pg${i})"/>
+                    ${i ? star(x - 5, y + 7.6, .62, u + 'pgs') : heart(x - 5, y + 8.4, .62, '#ffb7cc', '#ff7fa3', u + 'pgh')}<path d="M${x - 9.5} ${y + 22.5}l6-6 4 4 3-3 6.5 5z" fill="#fff" opacity=".6"/>
+                    <rect x="${x - 2.4}" y="${y - 5}" width="4.8" height="11" rx="1.3" fill="#f3d3a6" ${O2}/><path d="M${x} ${y - 4}v9" stroke="#c4935a" stroke-width=".9"/></g><defs>${lg('pg' + i, C[i][0], C[i][1])}</defs>`; }).join('')}`; },
+            'desk:wallpaper': () => { const sh = 'M16 14H54V54Q46 50 35 56Q24 61 16 56Z';
+                return `<clipPath id="${u}wpc"><path d="${sh}"/></clipPath><g ${S}><path d="${sh}" fill="#fff6f9"/></g>
+                <g clip-path="url(#${u}wpc)">${[18, 28, 38, 48].map(x => `<rect x="${x}" y="10" width="4.6" height="54" fill="#ffd3e0"/>`).join('')}${[[24.6, 24], [34.6, 38], [44.6, 26], [24.6, 48], [44.6, 46]].map(([x, y], i) => i % 2 ? `<circle cx="${x}" cy="${y}" r="1.6" fill="#9fd0f5"/>` : `<path d="M${x - 2} ${y}c0-1.4 1.8-1.7 2-.3.2-1.4 2-1.1 2 .3 0 1.4-2 2.6-2 2.6s-2-1.2-2-2.6z" fill="#ff9fbd"/>`).join('')}</g>
+                <path d="${sh}" fill="none" ${O}/><g ${S}><rect x="10" y="6" width="50" height="12" rx="6" fill="${F('wpr')}" ${O}/></g><ellipse cx="54" cy="12" rx="3.4" ry="6" fill="#ffe3ec" ${O2}/><ellipse cx="54" cy="12" rx="1.3" ry="2.4" fill="#fff" ${O2}/>
+                <rect x="13" y="8" width="36" height="2.6" rx="1.3" fill="#fff" opacity=".6"/><defs>${lg('wpr', '#ffd6e2', '#ff9fbd')}</defs>`; },
+            'desk:desktop': () => `${wire('M10 36V60M50 36V60M64 26V50', '#e2b07c', 2.6)}
+                <g ${S}><path d="M6 30L20 20H68L54 30Z" fill="${F('dtp')}" ${O}/><path d="M6 30H54V36H6Z" fill="#e8b886" ${O}/><path d="M54 30L68 20V26L54 36Z" fill="#d39c64" ${O}/></g>
+                <rect x="16" y="36" width="26" height="8" rx="1.5" fill="#f3cf9f" ${O2}/><circle cx="29" cy="40" r="1.7" fill="#ff9fbd" ${O2}/>
+                <path d="M16 27H48M26 23.4H58" stroke="#dcab76" stroke-width="1" opacity=".7"/><path d="M21 28L26.4 24H38L32.6 28Z" fill="#ffb3c9" ${O2}/>
+                <rect x="45" y="14" width="8" height="9" rx="2" fill="#a8e3cf" ${O2}/><path d="M53 16.4h1.6a2 2 0 0 1 0 4H53" fill="none" ${O2}/><path d="M47 11q1-2 0-4M50.4 11q1-2 0-4" stroke="#d6cbe0" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+                <defs>${lg('dtp', '#f9e3c4', '#ecc391')}</defs>`,
         };
         return A[k] ? `<svg viewBox="0 0 72 64" aria-hidden="true"><defs>${sh}${glDef}</defs>${A[k]()}</svg>` : '';
     }
