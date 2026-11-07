@@ -7,10 +7,10 @@
               - 상품 하나 = 따로 하나 (현실처럼 · 같은 것도 또 받아요) : 파일이 여러 개인 상품(📔 다이어리)은 한 개에 폴더 하나 · 파일 하나인 상품(🪑 소품 · ✏️ 문구)은 한 개에 파일 하나
               - 🏷️ 스티커는 예외 (바구니 ↔ 스티커첩으로 옮겨 다녀서 목록 하나 · js/own.js)
               - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
-             말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json · 검색.json   📔 날짜형 바인더 1년치 (기본으로 주는 것 · 한 권 = 폴더 · '해 디자인 번호' · js/dyyear.js)
-                      / 날짜형노트 / 2026 분홍 1 / …                       📓 날짜형 노트 1년치 (권 id 2026n-분홍노트-1 · 도련 11-04)
-                      / 페이지바인더 · 페이지노트 / <권 id>-다이어리.json · <권 id>-3페이지.json …   📕 페이지형 30장 (지금 숨김 · 팔 때 한 권 = 폴더로)
-                      / 배경지 · 노트표지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
+             말랑달콤 / 다이어리 / 🔐 _목록.json · _목록_백업.json   📔 📕 가진 다이어리 전부 (날짜형 · 페이지형 · 내가 만든 노트 · 조립한 바인더 · 도련 11-07)
+                      / 다이어리 / 2026 분홍 1 / 2026-10-28.json · 표지.json · 검색.json · 다이어리.json   📔 날짜형 한 권 = 폴더 (노트 = 2026 분홍노트 1)
+                      / 다이어리 / dk… / 다이어리.json · 표지.json · 3페이지.json · 검색.json   📕 페이지형 한 권 = 폴더 (권 id)
+                      / 배경지 · 바인더표지 · 바인더내지 / 내-<id>.json · 받은-<id>.json · 내-목록1.json · 받은-목록1.json   📚 모음 (js/coll.js)
                       / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / _목록.json · _스티커첩.json · _백업 · <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)   🎒 유한 스티커 (js/own.js · 목록도 종류마다 · 11-05)
                       / 소품 / 🔐 _목록1.json · _목록2.json … (1000개씩 · 소품 + 벽지 · 책상판) · _목록_백업.json · 받은-<id>.json   🪑 백 = 가진 소품 전부 (서랍장 · 시계 … 종류가 섞여요 · 도련 11-07 · 💤 소품함을 열 때 읽어요)
                       / 문구 / 🔐 _목록1.json … · _목록_백업.json · 받은-<id>.json   ✏️ 백 = 가진 문구 전부 (같은 것도 여러 개 · 앱을 켤 때 읽어요 · 도련 11-07)
@@ -38,7 +38,7 @@
         /* 📁 폴더 이름은 여기 한 곳에서만 (도련 10-26 · 새 폴더 = 한 줄 추가) · 스티커 종류 폴더는 js/own.js OWN_KIND */
         const DIRS = {
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
-            desk: '소품', gd: '문구',   /* 🪑 ✏️ 소품 · 문구 = 폴더 하나씩 (도련 11-07 · 종류가 섞여 있어요 · 종류는 파일 안 상품 id · 벽지 · 책상판도 소품) */
+            desk: '소품', gd: '문구', diary: '다이어리',   /* 📔 📕 다이어리 = 폴더 하나 · 한 권 = 그 안의 폴더 하나 (날짜형 · 페이지형 모두 · 도련 11-07) */   /* 🪑 ✏️ 소품 · 문구 = 폴더 하나씩 (도련 11-07 · 종류가 섞여 있어요 · 종류는 파일 안 상품 id · 벽지 · 책상판도 소품) */
             pattern: '배경지', noteCover: '노트',   /* 📓 내가 만든 노트 한 권 설계도 (표지 + 내지 · 도련 11-07 이름 고침) */ binderCover: '바인더표지', refill: '바인더내지',
             stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통'
         };
@@ -49,10 +49,11 @@
         const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자', pen: '색연필', hi: '형광펜', erase: '지우개' };   // ✏️ 필기구도 (도련 11-05 · 문구 상품 '문구종류' = 폴더)
         const SKIN_DIRS = { wall: '벽지', top: '책상판' };            // 🧱 🪵 책상 꾸밈 (도련 11-05 · js/deskskin.js)
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
-        const DAY_PATH = dirPath(DIRS.day);                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json
-        const NOTE_PATH = dirPath(DIRS.dayNote);                    // 📓 날짜형 노트 : 말랑달콤 / 날짜형노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
+        const DIARY_PATH = dirPath(DIRS.diary);                     // 📔 말랑달콤 / 다이어리 / _목록.json · <권 폴더> / … (도련 11-07)
+        const DAY_PATH = DIARY_PATH;                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json
+        const NOTE_PATH = DIARY_PATH;                    // 📓 날짜형 노트 : 말랑달콤 / 날짜형노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
-        const bookPath = kind => dirPath(kind === '바인더' ? DIRS.binder : DIRS.note);
+        const bookPath = kind => DIARY_PATH;                        // 📕 페이지형도 다이어리 폴더 (권 폴더 = 권 id)
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
         /* =====================================================================
            🧾 문제 기록 (도련 11-06 · 마테 목록이 사라졌을 때 원인을 알 수 없어서) : 파일을 지우거나 · 휴지통에 넣거나 · 폴더를 만들고 합치거나 · 되살릴 때마다 한 줄
@@ -123,11 +124,16 @@
         const DAY_KEY_RE = /^diary_(\d{4}[bn]-.+-\d+)_(\d{4})_(\d{2})_(\d{2})$/;
         const DYB_RE = /^(\d{4})([bn])-(.+)-(\d+)$/;
         function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${r[3]} ${r[4]}` : ''; }   // 폴더 이름 '2026 분홍 2' (디자인 id · 바인더 · 노트는 폴더가 달라요)
-        function dyBookOfName(n, note) { const r = /^(\d{4}) (.+) (\d+)$/.exec(n || ''); return r ? `${r[1]}${note ? 'n' : 'b'}-${r[2]}-${r[3]}` : ''; }
+        function dyBookOfName(n, note) {                                   // 폴더 이름 → 권 id (노트인지 = 디자인으로 · 도련 11-07 다이어리 폴더 하나)
+            const r = /^(\d{4}) (.+) (\d+)$/.exec(n || ''); if (!r) return '';
+            if (note == null) { const d = (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).find(x => x.id === r[2]); note = d ? d.ch === 'n' : /노트$/.test(r[2]); }
+            return `${r[1]}${note ? 'n' : 'b'}-${r[2]}-${r[3]}`;
+        }
         const dyBookIsNote = b => { const r = DYB_RE.exec(b || ''); return !!(r && r[2] === 'n'); };
-        const dyBookDir = b => (dyBookIsNote(b) ? NOTE_PATH : DAY_PATH).concat([dyBookName(b)]);
+        const dyBookDir = b => DIARY_PATH.concat([dyBookName(b)]);         // 📔 다이어리 / 2026 분홍 1 (노트 = 2026 분홍노트 1 · 디자인 id 로 나뉘어요)
+        const dkBookDir = id => DIARY_PATH.concat([id]);                   // 📕 다이어리 / dk… (페이지형 한 권 = 폴더 하나 · 도련 11-07)
         const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/;   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
-        const DK_INFO = '다이어리.json', dkInfoName = id => `${id}-${DK_INFO}`;   // 📕 권 정보 파일 : <권 id>-다이어리.json
+        const DK_INFO = '다이어리.json', dkInfoName = id => DK_INFO;   // 📕 권 정보 파일 : 그 권 폴더 / 다이어리.json (도련 11-07 · 날짜형과 같은 이름)
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
            - 날짜 데이터  : diary_2026b-분홍-1_2026_09_10  → 말랑달콤/날짜형바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
@@ -278,7 +284,7 @@
             dkown: { path: dirPath(DIRS.desk), name: '_목록', chunk: 1000, prop: 'deskOwnFile', lazy: 1 },   // 🪑 백 = 소품 / _목록1.json · _목록2.json … (1000개씩 · 도련 11-07 · 벽지 · 책상판도) // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06) · 💤 앱을 켤 때 안 읽어요 = 책상은 배치.json 만으로 · 소품함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · js/desk.js dkOwnReady)
             gdown: { path: dirPath(DIRS.gd), name: '_목록', chunk: 1000, prop: 'gdOwnFile' },   // 🔐 가진 문구 전부 = 백 문구 / _목록1.json … (1000개씩 · 앱을 켤 때 읽어요 = 필기구 · 문구의 집 · 도련 11-07)
             deskset: { path: DESK_PATH, name: '책상설정.json', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
-            dyown: { path: DESK_PATH, name: '_다이어리목록.json', prop: 'dyOwnFile' }, // 🔐 받은 다이어리 · 내가 만든 노트 · 바인더 (도련 11-06)
+            dyown: { path: DIARY_PATH, name: '_목록.json', prop: 'dyOwnFile' },   // 🔐 백 = 다이어리 / _목록.json : 가진 다이어리 전부 (날짜형 권 · 권 정보 · 권 번호 · 내가 만든 노트 · 조립한 바인더 · 도련 11-07 · 앱을 켤 때 읽어요)
             bgown: { path: dirPath(DIRS.pattern), name: '_목록.json', prop: 'bgOwnFile', lazy: 1 },  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
             binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
             dystate: { path: DESK_PATH, name: '_다이어리상태.json', prop: 'dyStateFile' }, // 🔐 권마다 집게 · 구멍 · 링 · 꺼낸 장 · 페이지형 권 (도련 11-06 · 설정.json 을 가볍게)
@@ -303,8 +309,8 @@
         };
         const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
         const isDeskFile = w => DESK_WHICH.includes(w);
-        const DESK_START = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !KEY_FILES[w].chunk);
-        const DESK_START2 = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && KEY_FILES[w].chunk);   // 🚀 켤 때 읽는 백 목록 (✏️ 문구)          // 🚀 앱을 켤 때 읽는 것 (설정 폴더 · 💤 lazy 는 빼요 · 도련 11-07)
+        const DESK_START = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !KEY_FILES[w].chunk && KEY_FILES[w].path === DESK_PATH);
+        const DESK_START2 = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !DESK_START.includes(w));   // 🚀 켤 때 읽는 백 목록 (✏️ 문구 · 📔 다이어리 · 설정 폴더 밖 · 동시에)          // 🚀 앱을 켤 때 읽는 것 (설정 폴더 · 💤 lazy 는 빼요 · 도련 11-07)
         const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best']);   // ☕ 카페.json 으로 가는 키
         const VAULT_SALT = 'mL4q!z9Rw2';
         function vaultHash(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36).padStart(7, '0').slice(-7); }
@@ -638,7 +644,7 @@
             }
             const first = D.files.get(Math.min(...D.files.keys()));
             drive[F.prop] = first ? { id: first.id, name: F.name, modifiedTime: mt } : null;
-            if (made && KEY_MADE.includes(which)) { const m = Object.assign({}, prefGet(MADE_KEY, '') || {}); if (!m[which]) { m[which] = 1; prefSet(MADE_KEY, '', m); } }
+            if (made && KEY_MADE.includes(which)) { const m = Object.assign({}, prefGet(MADE_KEY, '') || {}); if (!m[which]) { m[which] = 1; prefSet(MADE_KEY, '', m); if (window.deskBackOne) deskBackOne(which); } }   // 🛟 처음 생긴 목록 = 바로 백업도
         }
         /* 💤 쓸 때 읽는 목록 파일 (도련 11-07 · 첫 접속자에게 필요한 파일만) : 그 창을 열거나 바꿀 때 한 번 · 없으면 그대로 (바뀔 때 처음 생겨요) · 못 열면 덮어쓰지 않아요
            → true = 읽었어요 (파일이 없어도) · 게스트 · 로그인 전 = 할 일 없음 · 못 닿으면 에러 (다음에 다시) */
@@ -683,7 +689,7 @@
         }
         function fileOfKey(key) {
             const d = parseDayKey(key); if (d) return dayFileName(d.y, d.m, d.d);
-            const p = parsePageKey(key); if (p) return `${p.b}-${p.n ? p.n + '페이지' : '표지'}.json`;   // 0장 = 📕 표지
+            const p = parsePageKey(key); if (p) return `${p.n ? p.n + '페이지' : '표지'}.json`;   // 0장 = 📕 표지 (그 권 폴더 안)
             const b = BOOK_KEY_RE.exec(key); return b ? dkInfoName(b[1]) : '';
         }
         async function fetchKey(key, meta) {
@@ -701,7 +707,7 @@
            - 종류(노트 · 바인더)는 다이어리.json 정보로 · 모르면 두 폴더 모두 봐요
            - create=true 면 없을 때 <권 id>-다이어리.json 을 만들어요 (첫 장을 저장할 때) */
         function dkIdxOf(folderId, kind, files, id) {
-            const pre = id + '-', e = dayIdxOf(folderId, files.filter(f => f.name.startsWith(pre)));
+            const e = dayIdxOf(folderId, files);
             e.name = id; e.kind = kind;
             drive.books.set(id, e);
             return e;
@@ -714,15 +720,11 @@
                 if (entry || !create) return entry;
             }
             const p = (async () => {
-                const info = typeof dkInfoOf === 'function' ? dkInfoOf(id) : { kind: '' };
-                const kinds = DK_KINDS.includes(info.kind) ? [info.kind].concat(DK_KINDS.filter(k => k !== info.kind)) : DK_KINDS.slice();
-                for (const kind of kinds) {                                // 정보 파일이 있는 폴더 = 그 권의 자리
-                    const dir = await getFolder(bookPath(kind), false); if (!dir) continue;
-                    const files = await driveList(`'${dir}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-                    if (files.some(f => f.name === dkInfoName(id))) return dkIdxOf(dir, kind, files, id);
-                }
+                const info = typeof dkInfoOf === 'function' ? dkInfoOf(id) : { kind: '' }, kind = DK_KINDS.includes(info.kind) ? info.kind : DK_KINDS[0];
+                const has = await getFolder(dkBookDir(id), false);            // 📕 그 권 폴더 (다이어리 / dk…)
+                if (has) { const files = await driveList(`'${has}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size'); return dkIdxOf(has, kind, files, id); }
                 if (!create) return null;
-                const kind = DK_KINDS.includes(info.kind) ? info.kind : DK_KINDS[0], dir = await getFolder(bookPath(kind), true);
+                const dir = await getFolder(dkBookDir(id), true);
                 const saved = await driveUpsert(dir, dkInfoName(id), null, JSON.stringify(info));
                 return dkIdxOf(dir, kind, [{ id: saved.id, name: dkInfoName(id), modifiedTime: saved.modifiedTime }], id);
             })();
@@ -805,7 +807,7 @@
             drive.newbie = !drive.rootId; diag('start', { mode: drive.local ? 'folder' : 'google', newbie: drive.newbie ? 1 : 0 });   // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
             drive.deskLocked = false;
-            const [desks, backs] = await Promise.all([fetchDeskFiles(), drive.newbie ? Promise.resolve(DESK_START2.map(() => null)) : Promise.all(DESK_START2.map(w => fetchChunked(w).catch(e => { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; })))]);   // ✏️ 백 문구 목록도 같이 (동시에)                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
+            const [desks, backs] = await Promise.all([fetchDeskFiles(), drive.newbie ? Promise.resolve(DESK_START2.map(() => null)) : Promise.all(DESK_START2.map(w => fetchKeyFile(w).catch(e => { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; })))]);   // ✏️ 백 문구 목록도 같이 (동시에)                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();
@@ -1019,7 +1021,7 @@
                 }
             }
             drive[F.prop] = { id: saved.id, name: F.name, modifiedTime: saved.modifiedTime };
-            if (KEY_MADE.includes(which)) { const m = Object.assign({}, prefGet(MADE_KEY, '') || {}); if (!m[which]) { m[which] = 1; prefSet(MADE_KEY, '', m); } }   // 📝 이 목록 파일을 만든 적 있어요 (없어지면 = 되살리기 · 표시가 없으면 = 아직 안 바뀐 선물 · 도련 11-07)
+            if (KEY_MADE.includes(which)) { const m = Object.assign({}, prefGet(MADE_KEY, '') || {}); if (!m[which]) { m[which] = 1; prefSet(MADE_KEY, '', m); if (window.deskBackOne) deskBackOne(which); } }   // 🛟 처음 생긴 목록 = 바로 백업도   // 📝 이 목록 파일을 만든 적 있어요 (없어지면 = 되살리기 · 표시가 없으면 = 아직 안 바뀐 선물 · 도련 11-07)
             if (which === 'cafe') { const o = JSON.parse(body); drive.cafeBase = new Map(Object.keys(o).map(k => [k, JSON.stringify(o[k])])); }
         }
 
@@ -1178,10 +1180,10 @@
         /* ---------- 전체 목록 (백업 / 용량 확인용) ---------- */
         async function driveEnumerateAll(only) {                           // 📔 권 폴더마다 (only = 그 권만 · 🗂 꾸민 페이지만 보기)
             const out = new Map();
-            for (const [path, note] of [[DAY_PATH, false], [NOTE_PATH, true]]) {   // 📔 날짜형바인더 · 📓 날짜형노트
+            for (const path of [DIARY_PATH]) {                                 // 📔 다이어리 폴더 하나 (날짜형 권 폴더만 · 페이지형 dk… 는 이름이 달라서 빠져요)
                 const rootId = await getFolder(path, false); if (!rootId) continue;
                 for (const dir of await driveList(`'${rootId}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name')) {
-                    const b = dyBookOfName(dir.name, note); if (!b || (only && b !== only)) continue;
+                    const b = dyBookOfName(dir.name); if (!b || (only && b !== only)) continue;
                     (await driveList(`'${dir.id}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,size')).forEach(f => {
                         const r = parseDayFile(f.name); if (!r) return;
                         const key = dayKeyOf(r.y, r.m, r.d, b);

@@ -27,7 +27,7 @@
         const DMK_PG = { min: 10, max: 200, def: 30 }, DMK_BIND_MAX = 600;     // 바인더 한 권에 끼울 수 있는 페이지
         /* 종류 : note 노트 · cover 바인더 표지 · refill 내지 · binder 조립한 바인더 (모음 폴더가 없어요 · 설정에만) */
         const DMK_T = {
-            note: { k: '노트', path: DIRS.noteCover, name: '노트', icon: '📓' },          // 말랑달콤 / 노트표지 / 내-…
+            note: { k: '노트', path: '', name: '노트', icon: '📓' },                       // 📓 내가 만든 노트 = 다이어리 / _목록.json 한 줄이 원본 (설계도 · 도련 11-07 · 노트 폴더 없음) · 꾸민 페이지 = 다이어리 / <권 id> /
             cover: { k: '바인더', path: DIRS.binderCover, name: '바인더 표지', icon: '🗂️' },   // 말랑달콤 / 바인더표지 / 내-…
             refill: { k: '바인더', path: DIRS.refill, name: '내지', icon: '📄' },          // 말랑달콤 / 바인더내지 / 내-…
             binder: { k: '바인더', path: null, name: '바인더', icon: '🗂️' }
@@ -214,10 +214,10 @@
             const T = DMK_T[dmk.t], fresh = !dmk.id;
             dmk.g = (dmkQ('dmkName').value || '').trim().replace(/\s+/g, ' ') || '내 ' + T.name;
             if (!dmk.id) dmk.id = 'my' + Date.now().toString(36);
-            const d = dmkClean(dmk), C = dmkColl(d.t);
+            const d = dmkClean(dmk), C = T.path ? dmkColl(d.t) : null;
             const item = Object.assign({}, d); delete item.u;
             dmkPut(d);                                                          // 화면은 바로 · 드라이브는 뒤에서 (js/coll.js)
-            try {
+            if (C) try {                                                      // 🎨 바인더 표지 · 내지 = 재료 모음 (노트는 목록 한 줄로 끝)
                 if (d.u) await collSet(C, d.u, item, '', item);
                 else { d.u = await collAdd(C, item, '', item); dmkPut(d); }
             } catch (e) { console.warn(e); }
@@ -241,7 +241,7 @@
             if (dyNow().id === d.id) dySet(DY_DEF);
             dmkPut({ id: d.id, del: true });
             if (dmkRm && dmkRm.cv === d.id) dmkRm.cv = '';
-            try { if (d.u) await collRemove(dmkColl(d.t), d.u); } catch (e) { console.warn(e); }
+            try { if (d.u && DMK_T[d.t].path) await collRemove(dmkColl(d.t), d.u); } catch (e) { console.warn(e); }
             dmkClose();
         }
 
@@ -260,9 +260,6 @@
             if (window.deskVolInit) deskVolInit(ds.map((d, i) => ({ id: d.id, spot: gs[i].desk, n: d.g })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
             const fl = ds.find((d, i) => gs[i].float);                          // 🎈 처음에 떠 있는 권 = 상품공방 '처음띄움'
             if (fl && window.dkGiftFloat === 'pg') { window.dkGiftFloat = undefined; dySet(fl.id); if (document.documentElement.classList.contains('desk-on') && window.deskOpenDiary) { if (window.dkDeskBooks) dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary()); } }
-            for (const d of ds.filter(d => d.t === 'note')) {                  // 📓 노트는 드라이브 노트표지 폴더에도 (dmkSave 처럼)
-                try { const item = Object.assign({}, d); delete item.u; d.u = await collAdd(dmkColl('note'), item, '', item); dmkPut(d); } catch (e) { console.warn('🎁 처음 선물 노트', e); }
-            }
             return ds.length;
         }
         window.dmkStarter = dmkStarter;

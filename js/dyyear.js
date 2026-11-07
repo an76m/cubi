@@ -104,7 +104,7 @@
         }
         async function dyyRescue() {                                           // 🛟 권 폴더 → 받은 권 (못 읽으면 에러 → 다음에 다시)
             const ids = [], gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'dy').map(e => e.id));
-            for (const [path, note] of [[DAY_PATH, false], [NOTE_PATH, true]]) {
+            for (const [path, note] of [[DIARY_PATH, null]]) {                // 📔 다이어리 폴더 하나 (노트인지 = 디자인으로 · 도련 11-07)
                 const root = await getFolder(path, false); if (!root) continue;
                 for (const dir of await driveList(`'${root}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`, 'id,name')) {
                     const id = dyBookOfName(dir.name, note); if (!dyyOf(id) || gone.has(id) || ids.includes(id)) continue;

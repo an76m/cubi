@@ -1965,7 +1965,7 @@
         function dkPath(date) {                                                // 💾 저장 알림에 보여 줄 자리
             if (!dkIs(date) || !dkType()) return '';
             const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
-            return `${(b ? b.kind : o.kind) === '바인더' ? DIRS.binder : DIRS.note}/${id}-${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;   // 폴더 한 줄 (10-26)
+            return `${DIRS.diary}/${id}/${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;   // 📕 다이어리 / 그 권 폴더 (도련 11-07)
         }
         function dkCv() { return dyCvOk() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
         function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } const b = document.getElementById('diaryBook'); if (b) b.classList.toggle('dk-cv', cv); bdSync(); }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)

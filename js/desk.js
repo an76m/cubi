@@ -204,7 +204,7 @@
             try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
         /* 🛟 백 목록 백업 = 그 폴더 안에 (도련 11-07 · 스티커처럼) : 소품 / _목록_백업.json { 소품 · 벽지 · 책상판 } · 문구 / _목록_백업.json { 문구 } · 하루 한 번 · 목록 파일을 만든 뒤에만 */
-        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown'];
+        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown'];   // 🛟 소품 · 문구 · 📔 다이어리 (도련 11-07)
         async function dkBackRead(w) {
             const F = KEY_FILES[w], dir = await getFolder(F.path, false), f = dir && await findFile(dir, DK_BB_NAME);
             if (!f) return null;
@@ -213,8 +213,25 @@
         }
         const dkBackupOnce = dkMemo(async () => { const [a, ...bs] = await Promise.all([dkBackupRead0()].concat(DK_BB.map(w => keyMade(w) ? dkBackRead(w) : null))); return a || bs.some(Boolean) ? Object.assign({}, ...bs.filter(Boolean), a || {}) : null; }, 30000);   // 설정 백업 + 백 목록 백업 = 한 모습 (되살리기는 그대로)
         const dkBackupRead = () => drive.newbie && !dkBkWrote ? Promise.resolve(null) : dkBackupOnce();   // 🆕 처음 온 다꾸러 = 아직 백업이 없어요 (도련 11-06)
-        const DK_BK_KEYS = [DK_POS_KEY, 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_years', 'diary_book_info', 'diary_book_n', 'diary_mine', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
+        const DK_BK_KEYS = [DK_POS_KEY, 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
         let dkBkBusy = false, dkBkWrote = false;
+        /* 🛟 백 목록 백업 하나 (그 폴더 / _목록_백업.json · 하루 한 번 · 만든 적 있고 읽은 목록만 · 모르는 키는 예전 백업 그대로)
+             목록 파일이 처음 생기면 바로 한 번 (첫날에 사라져도 되살리게 · js/drive.js KEY_MADE · 도련 11-07) */
+        async function dkBackOne(w, day) {
+            if (!giftOn() || !keyMade(w) || !keyFileOn(w)) return;
+            const who = (typeof COLL !== 'undefined' && COLL.who) || 'me', mk = who + '|' + w;
+            let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
+            if (day && m[mk] === day) return;
+            const ks = DESK_FILE_KEYS[w], b = {}; ks.forEach(k => { const v = prefGet(k, ''); if (v != null) b[k] = v; }); if (!Object.keys(b).length) return;
+            try {
+                if (ks.some(k => !(k in b))) { const o = await dkBackRead(w); if (o) ks.forEach(k => { if (!(k in b) && o[k] != null) b[k] = o[k]; }); }
+                const d = await getFolder(KEY_FILES[w].path, true), c = drive.newbie && !m[mk] ? null : await findFile(d, DK_BB_NAME);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
+                await driveUpsert(d, DK_BB_NAME, c && c.id, await ownLock(b));
+                m[mk] = new Date().toISOString().slice(0, 10); try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
+                dkBackupOnce.forget();
+            } catch (e) { console.warn('목록 백업', w, e); }
+        }
+        window.deskBackOne = w => { if (DK_BB.includes(w)) setTimeout(() => dkBackOne(w), 1500); };
         const DK_GK = { diary_desk_own: 'desk', diary_gd_own: 'gd', diary_skin_own: 'ds', diary_bg_own: 'bg' };
         const dkBkReal = (bk, k) => !!(bk && Array.isArray(bk[k]) && bk[k].some(o => o && !isGift(o)));   // 선물 아닌 것 (받은 것)   // 백업에 선물 아닌 것이 있어요 = 받은 적 있는 사람
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
@@ -230,13 +247,7 @@
                 if (old) DK_BK_KEYS.forEach(k => { if (!(k in body) && old[k] != null) body[k] = old[k]; });
                 const dir = await getFolder(dirPath(DIRS.settings), true), cur = drive.newbie && !dkBkWrote ? null : await findFile(dir, DK_BK_NAME);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
                 await driveUpsert(dir, DK_BK_NAME, cur && cur.id, await ownLock(body));
-                for (const w of DK_BB) {                                          // 🛟 백 목록 = 그 폴더 안에 (만든 적 있고 · 읽은 목록만 · 모르는 키는 예전 백업 그대로)
-                    if (!keyMade(w) || !keyFileOn(w)) continue;
-                    const ks = DESK_FILE_KEYS[w], b = {}; ks.forEach(k => { const v = prefGet(k, ''); if (v != null) b[k] = v; }); if (!Object.keys(b).length) continue;
-                    if (ks.some(k => !(k in b))) { const o = await dkBackRead(w); if (o) ks.forEach(k => { if (!(k in b) && o[k] != null) b[k] = o[k]; }); }
-                    const d = await getFolder(KEY_FILES[w].path, true), c = await findFile(d, DK_BB_NAME);
-                    await driveUpsert(d, DK_BB_NAME, c && c.id, await ownLock(b));
-                }
+                for (const w of DK_BB) await dkBackOne(w, day);                   // 🛟 백 목록 = 그 폴더 안에
                 dkBackupOnce.forget(); dkBkWrote = true;
                 m[who] = day; try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
             } catch (e) { console.warn('배치 백업', e); }

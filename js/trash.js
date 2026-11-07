@@ -29,7 +29,7 @@
 
         /* ---------- 이름 : 경로 → 사람이 알아보는 말 ---------- */
         function trLabel(path) {
-            let m = /\/날짜형(?:바인더|노트)\/(\d{4} .+ \d+)\/(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);   // 📔 말랑달콤 / 날짜형바인더 · 날짜형노트 / 2026 분홍 2 / 2026-10-28.json
+            let m = /\/(?:다이어리|날짜형(?:바인더|노트))\/(\d{4} .+ \d+)\/(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);   // 📔 다이어리 / 2026 분홍 2 / … (도련 11-07)   // 📔 말랑달콤 / 날짜형바인더 · 날짜형노트 / 2026 분홍 2 / 2026-10-28.json
             if (m) return `📔 ${m[2]}년 ${+m[3]}월 ${+m[4]}일 일기 (${m[1]})`;
             if (/\/설정\/설정\.json$/.test(path)) return '⚙ 설정';
             if (/\/카페기록\/카페\.json$/.test(path)) return '☕ 카페 기록';
@@ -40,6 +40,7 @@
                 const stk = typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir);
                 return stk ? `🏷️ ${dir} 스티커` : dir === DIRS.pattern ? '🎨 배경지' : '📦 ' + dir;
             }
+            if (parts.length > 3 && parts[parts.length - 3] === DIRS.diary && /^dk/.test(dir)) return '📕 ' + (/^(\d+)페이지\.json$/.test(file) ? file.replace(/^(\d+)페이지\.json$/, '$1페이지') : /^표지\.json$/.test(file) ? '표지' : '다이어리');   // 📕 다이어리 / dk… / 3페이지.json (도련 11-07)
             if (dir === DIRS.note || dir === DIRS.binder) return '📕 ' + (/-(\d+)페이지\.json$/.test(file) ? file.replace(/^.*-(\d+)페이지\.json$/, '$1페이지') : /-표지\.json$/.test(file) ? '표지' : '다이어리');
             if (/\/인형극\//.test(path)) return '🎭 인형극 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/인형\//.test(path)) return '👧 인형 ' + parts[parts.length - 1].replace(/\.json$/, '');

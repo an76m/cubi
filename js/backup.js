@@ -12,12 +12,13 @@
    ※ 예전 json 백업(📂 PC로 백업)은 없앴어요 : 1년치를 글자 하나에 담다가 폰이 멈추거나 한 글자만 깨져도 전부 못 읽어서 */
 
         const BK_TOP = '말랑달콤';   // drive.js 보다 먼저 불러와서 글자로 (TOP_FOLDER_NAME 과 같아요)
-        const BK_DAY_RE = /\/(날짜형바인더|날짜형노트)\/[^/]+\/(\d{4}-\d{2}-\d{2}|표지)\.json$/;   // 📔 권 폴더마다 (📕 표지.json 도)
+        const BK_DAY_RE = /\/다이어리\/\d{4} [^/]+\/(\d{4}-\d{2}-\d{2}|표지)\.json$/;   // 📔 다이어리 / 날짜형 권 폴더 (도련 11-07)   // 📔 권 폴더마다 (📕 표지.json 도)
         /* 백업에서 빼는 것 (path = 말랑달콤/폴더/파일) : 휴지통 · 스티커목록 · 스티커 종류 폴더의 내 종이 (공유하기 내-/받은- 파일만 넣어요) */
         function bkSkip(path) {
             const parts = path.split('/'), dir = parts[1] || '', file = parts[parts.length - 1] || '';
             if (dir === DIRS.trash || dir === DIRS.stkList) return true;
-            if (dir === DIRS.settings && file !== '설정.json') return true;   // ⚙ 설정 폴더 = 설정.json 만 (🔐 책상 · 가진 것 목록 · 선물 · 백업은 스티커처럼 계정 열쇠라 빼요 · 도련 11-06)
+            if (dir === DIRS.settings && file !== '설정.json') return true;
+            if (dir === DIRS.diary && parts.length === 3 && /^_/.test(file)) return true;   // 📔 다이어리 / _목록 · _목록_백업 = 🔐 계정 열쇠 (예전 설정의 _다이어리목록처럼 빼요 · 도련 11-07)   // ⚙ 설정 폴더 = 설정.json 만 (🔐 책상 · 가진 것 목록 · 선물 · 백업은 스티커처럼 계정 열쇠라 빼요 · 도련 11-06)
             if (dir === DIRS.desk || dir === DIRS.gd || Object.values(DESK_DIRS).includes(dir) || (window.dkDirs && dkDirs().includes(dir)) || Object.values(GD_DIRS).includes(dir) || Object.values(SKIN_DIRS).includes(dir)) return true;   // 🪑 ✏️ 책상 소품 · 문구 · 배치 · 기본세트도 스티커처럼 백업에서 빼요 (불러오기로 버린 것이 되살아나지 않게 · 도련 10-27)
             if (typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir)) return !/^(내|받은)-/.test(file);
             if (dir === DIRS.pattern && /^받은-/.test(file)) return true;      // 🌈 샵에서 받은 배경지 파일 = 🔐 계정 열쇠 (책상 소품처럼 빼요 · 내가 만든 배경지 내- 는 넣어요 · 도련 11-05)
