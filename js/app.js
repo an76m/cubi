@@ -154,18 +154,18 @@ let fontList = [
             }));
         }
         dyColorsBuild();
-        /* 📄 바인더 내지 = 서버 상품 (상품공방 '바인더내지' · 도련 11-07 · 981) : 종류 date 날짜 내지 (해 없음 · 끼운 표지의 해를 따라가요) · page 페이지 내지 (쪽수 · 내지 구간)
+        /* 📅 📄 바인더 내지 = 서버 상품 (상품공방 '날짜형내지' · '페이지내지' · 도련 11-07 · 종류 = 폴더) : date 날짜 내지 (해 없음 · 끼운 표지의 해를 따라가요) · page 페이지 내지 (쪽수 · 내지 구간)
            규격 = 같은 크기 표지에만 끼워요 · 🧩 받으면 바인더내지 재료 (js/dyyear.js dyyShopList · js/dymaker.js) */
         const DY_REFILLS = [];
         function dyRefillsBuild() {
             DY_REFILLS.length = 0;
             const lf = v => window.MK && MK.LEAFS.some(l => l[0] === v);
-            (window.prodList ? prodList('바인더내지') : []).forEach(x => {
-                const P = x.P || {}, t = P.종류 === 'date' || P.종류 === 'page' ? P.종류 : '', pg = Math.round(+P.쪽수);
-                if (!t || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !lf(P.내지) || (t === 'page' && !(pg > 0))) { console.warn('🧁 바인더 내지 속성이 모자라요 :', x.id); return; }
+            [['날짜형내지', 'date'], ['페이지내지', 'page']].forEach(([K, t]) => (window.prodList ? prodList(K) : []).forEach(x => {
+                const P = x.P || {}, pg = Math.round(+P.쪽수);
+                if (!String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !lf(P.내지) || (t === 'page' && !(pg > 0))) { console.warn('🧁 바인더 내지 속성이 모자라요 :', x.id); return; }
                 const lv = t === 'page' ? [[1, pg, P.내지]].concat((Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], r[2]])) : [];
-                DY_REFILLS.push({ id: x.id, t, g: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, lf: P.내지, pg: t === 'page' ? pg : 0, lv, off: !!P.숨김 });
-            });
+                DY_REFILLS.push({ id: x.id, K, t, g: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, lf: P.내지, pg: t === 'page' ? pg : 0, lv, off: !!P.숨김 });
+            }));
         }
         dyRefillsBuild();
 

@@ -1111,7 +1111,7 @@
     function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
         if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, SH_GD_IC[x.g] || '✏️']])).values()]; }
         if (k === 'tool') {                                                  // 📔 다이어리 코너 = 다이어리 종류 (상품이 있는 것만 · 도련 11-04)
-            const y = new Date().getFullYear(), C = [['dyb', `${y} 바인더 표지`, '📔'], ['dyr', '바인더 내지', '📄'], ['dyn', `${y} 노트`, '📓'], ['bd', '스티커 바인더', '📒'], ['rl', '이형지북', '🤍']];   /* 📔 다꾸러에게는 '날짜형' 대신 연도 (2026 바인더 · 2026 노트 · 도련 11-04) */
+            const y = new Date().getFullYear(), C = [['dyb', `${y} 바인더 표지`, '📔'], ['dyr', '날짜 내지', '📅'], ['pgb', '바인더 표지', '🗂️'], ['pgr', '페이지 내지', '📄'], ['dyn', `${y} 노트`, '📓'], ['bd', '스티커 바인더', '📒'], ['rl', '이형지북', '🤍']];   /* 📔 다꾸러에게는 '날짜형' 대신 연도 (2026 바인더 · 2026 노트 · 도련 11-04) */
             const have = new Set((window.dyyShopList ? dyyShopList().map(x => x.cat) : []).concat(AB_BDP.some(x => !x.P.숨김) ? ['bd'] : [], AB_RL.some(x => !x.P.숨김) ? ['rl'] : []));
             return C.filter(c => have.has(c[0]));
         }
@@ -1232,6 +1232,7 @@
         if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
         if (x.look === 'note') { const k = DY_COL[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb sh-dyn" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dys"></i><b>${x.yr}</b><small>NOTE</small></span></div>`; }   // 📓 날짜형 노트 (얇은 책등 · 링 없음 · 도련 11-04 시안 3번)
         if (x.look === 'refill') return `<div class="sh-tool sh-dy"><span class="sh-rfl lf-${x.lf || 'line'}"><i class="sh-rfh"></i><b>${x.rt === 'date' ? '📅' : '📄'}</b><small>${x.rt === 'date' ? 'DATE' : 'PAGE'} · ${x.n || ''}</small></span></div>`;   // 📄 바인더 내지 (6공 · 그 내지 무늬 · 도련 11-07)
+        if (x.look === 'pbinder') { const c = x.cols || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${c.테두리색 || '#ffc6d6'};--dyi:${c.강조색 || '#c8457a'}"><i class="sh-dyr"></i><b>${x.n || ''}</b><small>BINDER</small></span></div>`; }   // 🗂️ 페이지바인더 표지 (도련 11-07)
         if (x.look === 'diary') { const k = DY_COL[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
@@ -1384,7 +1385,7 @@
             if (!await shGive(x)) return; bagNote(x, k);
             got.add(zi); if (here()) SH.redraw = true;
             const box = btn.closest('.sh-zbtns');
-            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? (x.cat === 'dyb' || x.cat === 'dyr' ? '🧩 바인더 재료 (책상 오른쪽 위 메뉴 → 🧩 바인더 조립)' : '📔 다이어리 보관소') : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
+            const nm = k === 'gd' ? '🗄️ 문구함' : k === 'tool' ? (['dyb', 'dyr', 'pgb', 'pgr'].includes(x.cat) ? '🧩 바인더 재료 (책상 오른쪽 위 메뉴 → 🧩 바인더 조립)' : '📔 다이어리 보관소') : k === 'bg' ? '🌈 배경지' : '📦 소품 보관함';
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${shInShop() ? '봉투에 담았어요 · 내 방에서 꺼내요' : nm + '에 넣었어요'}</small></div>`
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${k}', 0)">${shGotText()}</button></div>`;
             return;

@@ -86,6 +86,7 @@
             const R = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => r.t === 'date' && r.n === d.n), r = R.find(x => x.id === d.rf0) || R[0];
             return r ? dyyRefillProd(r, from) : { id: dymNewId(), t: 'drefill', n: d.n, lf: d.lf || 'line', g: `${d.name} 날짜 내지`, from };
         }
+        async function dyyPCoverGive(p) { try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; } dymPut({ id: dymNewId(), t: 'cover', pid: p.id, g: p.g, n: p.n, c: p.c, cols: p.cols, cw: 1, from: 'basic' }); window.dyyLastGiven = null; return 'ok'; }   // 🏪 샵 페이지바인더 표지 = 🧩 재료
         async function dyyRefillGive(R) { try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; } dymPut(dyyRefillProd(R, 'basic')); window.dyyLastGiven = null; return 'ok'; }   // 🏪 샵 바인더 내지 = 🧩 재료
         function dyyNewId(y, d, mem) {                                         // d = 디자인 (DY_DESIGNS)
             const k = `${y}${d.ch}-${d.id}-`, cnt = Object.assign({}, prefGet(DYY_N, DYY_N_L) || {});
@@ -260,8 +261,10 @@
             return DY_DESIGNS.filter(d => !d.off && prodList(d.K).some(x => x.id === d.id)).map(d => d.ch === 'b'
                 ? { cnt: `${y} ${d.name} 표지`, desc: `${d.name} · 바인더 표지 · ${d.n} (${d.mm}) · 📅 ${y}년 · 🧩 바인더 조립에서 같은 크기 날짜 내지를 끼워 써요`, look: 'diary', yr: y, dc: d.id, cat: 'dyb', give: () => dyyGive(y, d), name: `${y} ${d.name} 표지` }
                 : { cnt: `${y} ${d.name}`, desc: `${d.name} · 노트 · ${d.n} (${d.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'note', yr: y, dc: d.id, cat: 'dyn', give: () => dyyGive(y, d), name: `${y} ${d.name}` })
-                .concat((typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => !r.off && prodList('바인더내지').some(x => x.id === r.id)).map(r => ({   // 📄 바인더 내지 (도련 11-07)
-                    cnt: r.g, desc: `${r.t === 'date' ? '📅 날짜 내지 · 끼운 표지의 해를 따라가요' : `📄 페이지 내지 · ${r.pg}쪽`} · ${r.n} (${r.mm}) · 🧩 같은 크기 바인더 표지에 끼워요`, look: 'refill', lf: r.lf, rt: r.t, n: r.n, cat: 'dyr', give: () => dyyRefillGive(r), name: r.g })));
+                .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.cvOnly && !p.off).map(p => ({   // 🗂️ 페이지바인더 표지 (도련 11-07)
+                    cnt: `${p.g} 표지`, desc: `${p.g} · 바인더 표지 · ${p.n} (${p.mm}) · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워 써요`, look: 'pbinder', cols: p.cols, n: p.n, cat: 'pgb', give: () => dyyPCoverGive(p), name: `${p.g} 표지` })))
+                .concat((typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => !r.off && prodList(r.K).some(x => x.id === r.id)).map(r => ({   // 📅 날짜 내지 · 📄 페이지 내지 (샵 칸도 둘 · 도련 11-07)
+                    cnt: r.g, desc: `${r.t === 'date' ? '📅 날짜 내지 · 끼운 표지의 해를 따라가요' : `📄 페이지 내지 · ${r.pg}쪽`} · ${r.n} (${r.mm}) · 🧩 같은 크기 바인더 표지에 끼워요`, look: 'refill', lf: r.lf, rt: r.t, n: r.n, cat: r.t === 'date' ? 'dyr' : 'pgr', give: () => dyyRefillGive(r), name: r.g })));
         }
         async function dyyGive(y, d) {
             if (d.ch === 'b') {                                                // 🗂️ 날짜형바인더 = 조립품 : 샵 = 해가 적힌 표지 → 🧩 바인더 재료 (도련 11-07 · 981)

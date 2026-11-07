@@ -373,7 +373,7 @@
             dmkQ('dmkRoomRf').innerHTML = (date ? '' : `<button type="button" class="dmk-card dmk-new" onclick="dmkForm('refill')"><b>＋</b><span>새 내지</span></button>`) + refills.map(r => r.t === 'drefill'
                 ? `<button type="button" class="dmk-card" onclick="dmkRmAdd('${r.id}')">${dmkRfThumb([[1, 1, r.lf || 'line']], (dmkRm.cv && dmkClean(dmkRm.cv).r) || 1.4, 56)}<span>${dmkEsc(r.g)}</span><small>📅 날짜</small></button>`
                 : `<button type="button" class="dmk-card" ${n ? '' : 'disabled'} onclick="dmkRmAdd('${r.id}')">${dmkRfThumb(r.lv, r.r, 56)}<span>${dmkEsc(r.g)}</span><small>${r.n} · ${r.pg}p</small>${r.from === 'mine' && dymGet(r.id) ? ed('refill', r.id) : ''}</button>`).join('')
-                + (dmkRm.cv && !refills.length && !(date && dmkRm.rf.length) ? `<div class="dmk-empty">${date ? n + ' 크기 날짜 내지가 없어요. 🏪 기본상품 샵 → 📄 바인더 내지에서 받아요.' : n + ' 크기 내지가 아직 없어요.'}</div>` : '');
+                + (dmkRm.cv && !refills.length && !(date && dmkRm.rf.length) ? `<div class="dmk-empty">${date ? n + ' 크기 날짜 내지가 없어요. 🏪 기본상품 샵 → 📅 날짜 내지에서 받아요.' : n + ' 크기 내지가 아직 없어요.'}</div>` : '');
             dmkQ('dmkRoomOk').disabled = !(dmkRm.cv && dmkRm.rf.length);
             dmkRoomPrev();
         }
