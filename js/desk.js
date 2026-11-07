@@ -1977,7 +1977,11 @@
             if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
             deskFnPaint(); dknPaintAll();
             if (DKD.cur) dkDrawerShut(true); else if (window.closeModal) closeModal('deskFnModal');   // 창이 올라가며 서랍도 닫혀요
-            const [, n, , ic] = dkWin(k); setTimeout(() => { if (window.showMsg) showMsg(`🔗 연결되었어요!<br>${htmlEsc(dkName(o))} ${dkSlotNm(s, S.length)} 칸 = ${ic} <b>${htmlEsc(n)}</b><br><span style="font-size:12px;color:#777;">이제 이 서랍을 열면 ${htmlEsc(josa(n, '이', '가'))} 나와요</span>`); }, 380);   // ✅ 연결 알림 (도련 11-08 · 서랍이 다 닫힌 뒤)
+            const keepTag = pe && pe.tag && k !== 'gd';                            // 🏷 옮겨 온 이름표가 있으면 묻지 않아요
+            if (!keepTag) setTimeout(async () => {                                // 🏷 서랍이 다 닫힌 뒤 = 봉투에서 서랍에 넣을 때와 같은 차례 (이름표 붙일까요? → 이름표 창 · 도련 11-08 · 연결 알림 대신)
+                if (DK.edit || !(dkHomes()[u] || []).some(e => e.s === s && e.k === k)) return;
+                if (await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, k); setTimeout(() => dknPanel(u + '|' + k), 50); }
+            }, 380);
         }
         window.dkEmptyPick = dkEmptyPick;
         function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); dkSnapBtn(); }
