@@ -4239,3 +4239,4 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .modal.dk-drop > .modal-content { margin-top: 0 !important; }
 .dkw-room.dk-drop { place-items: start center; }
 html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:not(.dk-keep) > .dk-tape, html.dk-dropping .dkw-room:not(.dk-keep) > * { visibility: hidden !important; }   /* 서랍에서 뜰 창 = 맨 위에 자리 잡을 때까지 숨겨요 */
+.gdc-it .gdc-n { position: absolute; top: 2px; right: 3px; font-size: 10px; font-weight: 900; color: #fff; background: #e88fb0; border-radius: 999px; padding: 0 5px; line-height: 15px; }   /* ✏️ 같은 문구 여러 개 (도련 11-07) */

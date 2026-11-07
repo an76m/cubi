@@ -983,7 +983,7 @@
         bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)
         gd: ['문구용품', async () => {                                              // ✏️ 문구함 문구 (도련 10-27 · 받으면 🗄️ 문구함으로 · 같은 것은 하나만)
             const L = window.gdShopList ? gdShopList() : [];                   // 칸 = 문구 종류 (shCatList)
-            return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: () => gdGive(x.id) }));   // gid = 봉투 카드가 기억해요
+            return L.map(x => ({ cnt: x.name, look: 'gd', art: x.art, g: x.g, gid: x.id, give: f => gdGive(x.id, f) }));   // gid = 봉투 카드가 기억해요
         }],
         desk: ['책상소품', async () => (window.deskShopList ? deskShopList() : []).map(d => ({   // 🪑 책상 소품 (도련 10-27 · 받으면 📦 소품 보관함으로 · 같은 것도 여러 개 · 받기 전에 물어봐요)
             cnt: d.name, look: 'desk', src: d.src, sec: d.kind, wall: d.wall, give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
@@ -1325,11 +1325,10 @@
     }
     async function shGive0(x) {
         let r = await x.give(false);
-        if (r === 'have' && SH.kind === 'gd') { showMsg('✏️ 이미 문구함에 있어요.'); return false; }
         if (r === 'have' && SH.kind === 'tool') { showMsg(`📔 ${x.name}는 이미 받았어요.<br><small>📒 다이어리 → 📔 다이어리 보관소에 있어요</small>`); return false; }
         if (r === 'have') {
             const j = josaOf(x.name, '이', '가');
-            if (!await showAsk(`🪑 ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '취소')) return false;
+            if (!await showAsk(`${SH.kind === 'gd' ? '✏️' : '🪑'} ${x.name}${j} 이미 있어요.<br>하나 더 받을까요?`, '하나 더 받기', '취소')) return false;   // ✏️ 문구도 같은 것을 또 (도련 11-07)
             r = await x.give(true);
         }
         if (r !== 'ok') { showMsg('⚠ 받지 못했어요.'); return false; }

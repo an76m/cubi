@@ -1345,30 +1345,34 @@
                   종류 폴더 (핀셋 · 가위 … ✏️ 색연필 · 형광펜 · 지우개도 · 도련 11-05 · js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
            페이지에 꺼내 둔 것은 못 버려요 (마지막 하나도 버릴 수 있어요) */
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
-        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string' && !seen.has(o.id) && seen.add(o.id)) : null; };   // 같은 디자인은 하나만
+        /* ✏️ 문구도 같은 것을 여러 개 (도련 11-07 · 현실처럼 · 10-28 에 정한 것) : 한 칸 = { u : 하나하나 id (처음 것 · 선물 = 디자인 id 그대로), id : 디자인, c : 파일, g : 선물 }
+             문구함 · 페이지 · 문구의 집은 디자인마다 (같은 것은 한곳에 모여요 · 문구함에 ×2) · 버리면 하나씩 */
+        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => Object.assign(o, { u: typeof o.u === 'string' && o.u ? o.u : o.id })).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };
+        const gdCount = id => (gdOwnList() || []).filter(o => o.id === id).length;
+        const gdNewU = id => (gdOwnList() || []).some(o => o.u === id) ? id + '~' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) : id;   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
-        const gdColl = id => { const g = cabGOf(id); if (!(typeof collOf === 'function' && GD_DIRS[g])) return null; const C = collOf(dirPath(GD_DIRS[g]), '받은-'); C.noIdx = true; return C; };   // 원본 파일만 (받은-목록N.json 없음 · 가진 것 = _문구목록 · 도련 11-07)
+        const gdColl = id => { const g = cabGOf(id); if (!(typeof collOf === 'function' && GD_DIRS[g])) return null; const C = collOf(dirPath(DIRS.gd), '받은-'); C.noIdx = true; return C; };   // ✏️ 문구 폴더 하나 (종류가 섞여요 · 원본 파일만 · 가진 것 = 문구 / _목록N · 도련 11-07)
         const gdAdding = new Set();                                            // 파일을 만드는 중인 디자인 (두 번 만들지 않게)
         async function gdFileAdd(o, from) {
-            const C = gdColl(o.id); if (!C || o.c || gdAdding.has(o.id)) return;
-            gdAdding.add(o.id);
-            try { o.c = await collAdd(C, { s: await ownLock({ u: o.id, id: o.id, from }) }, '', { id: o.id }); } catch (e) { console.warn('문구 파일', e); }   // 🔐 스티커처럼 암호화 (문구는 디자인마다 하나 = 고유 번호도 디자인 id)
-            finally { gdAdding.delete(o.id); }
+            const u = o.u || o.id, C = gdColl(o.id); if (!C || o.c || gdAdding.has(u)) return;
+            gdAdding.add(u);
+            try { o.c = await collAdd(C, { s: await ownLock({ u, id: o.id, from }) }, '', { id: o.id }); } catch (e) { console.warn('문구 파일', e); }   // 🔐 스티커처럼 암호화 · 하나하나 u
+            finally { gdAdding.delete(u); }
         }
         let gdFiling = false;
-        const gdRec = o => o.c ? { id: o.id, c: o.c } : o.g ? { id: o.id, g: 1 } : { id: o.id };
+        const gdRec = o => Object.assign({ u: o.u || o.id, id: o.id }, o.c ? { c: o.c } : o.g ? { g: 1 } : {});
         async function gdFilesFill() {                                         // 선물이 아닌데 파일이 아직 없는 문구 → 종류 폴더에 (드라이브를 읽은 뒤에만 · js/desk.js 가 불러요)
             if (gdFiling || typeof drive === 'undefined' || !drive.ready || (window.deskGiftBusy && deskGiftBusy())) return;   // 🎁 선물을 정하는 중이면 기다려요
             const L = gdOwnList(); if (!L) return;
-            const need = L.filter(o => !o.c && !o.g && !gdAdding.has(o.id));
+            const need = L.filter(o => !o.c && !o.g && !gdAdding.has(o.u));
             if (!need.length) return;
             gdFiling = true;
             try { for (const o of need) await gdFileAdd(o, 'basic'); }
             finally { gdFiling = false; }
             const now = gdOwnList() || [];
-            prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.id === o.id && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
+            prefSet(GD_OWN, GD_OWN_L, now.map(o => gdRec(o.c ? o : (need.find(x => x.u === o.u && x.c) || o))));   // 그사이 받거나 버린 것은 그대로
         }
-        function gdSetList(L) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)); prefSet(GD_OWN, GD_OWN_L, L.filter(o => o && ok(o.id)).map(gdRec)); }   // ✏️ 필기구도 (되살릴 때 빠지던 것)
+        function gdSetList(L, mem) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)), v = L.filter(o => o && ok(o.id)).map(gdRec); if (mem && typeof drive !== 'undefined' && drive.ready && !drive.guest) store.putLoaded(GD_OWN, JSON.stringify(v)); else prefSet(GD_OWN, GD_OWN_L, v); }   // 💤 mem = 처음 선물 그대로 (문구 / _목록 은 바뀔 때 처음 · 도련 11-07)   // ✏️ 필기구도 (되살릴 때 빠지던 것)
         /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 펜꽂이에) · 나머지는 🏪 기본상품 샵 */
         const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음선물' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
@@ -1408,7 +1412,7 @@
                 const own = cabOwn(g), pages = Math.ceil(own.length / CAB_PER); if (!own.length) return '';
                 if (open && cabPage[g] == null) cabPage[g] = Math.max(0, own.indexOf(main)) / CAB_PER | 0;   // 처음엔 주로 쓰는 것이 있는 칸
                 const pg = Math.min(pages - 1, Math.max(0, cabPage[g] || 0));
-                const tray = open ? `<div class="gdc-tray" data-g="${g}"><div class="gdc-grid">${own.slice(pg * CAB_PER, pg * CAB_PER + CAB_PER).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${cabIsOn(id) ? ' on' : ''}${cabBin === g ? ' bin' : ''}" onclick="${cabBin === g ? `gdCabBinTap('${id}')` : `gdCabItem('${g}', '${id}')`}"><span class="gdc-ic ${g}">${cabArt(id)}</span><small>${cabName(id)}</small></button>`).join('')}</div>${pages > 1
+                const tray = open ? `<div class="gdc-tray" data-g="${g}"><div class="gdc-grid">${own.slice(pg * CAB_PER, pg * CAB_PER + CAB_PER).map(id => `<button type="button" class="gdc-it${id === main ? ' main' : ''}${cabIsOn(id) ? ' on' : ''}${cabBin === g ? ' bin' : ''}" onclick="${cabBin === g ? `gdCabBinTap('${id}')` : `gdCabItem('${g}', '${id}')`}"><span class="gdc-ic ${g}">${cabArt(id)}</span><small>${cabName(id)}</small>${gdCount(id) > 1 ? `<b class="gdc-n">×${gdCount(id)}</b>` : ''}</button>`).join('')}</div>${pages > 1
                     ? `<div class="gdc-pg"><button type="button" aria-label="앞 칸" onclick="gdCabPage('${g}', -1)"${pg ? '' : ' disabled'}>‹</button>${Array.from({ length: pages }, (_, i) => `<i${i === pg ? ' class="on"' : ''}></i>`).join('')}<button type="button" aria-label="다음 칸" onclick="gdCabPage('${g}', 1)"${pg < pages - 1 ? '' : ' disabled'}>›</button></div>` : ''}`
                     + `<div class="gdc-binrow"><button type="button" class="gdc-bin${cabBin === g ? ' on' : ''}" onclick="gdCabBinMode('${g}')">${cabBin === g ? '✓ 다 했어요' : '🗑 휴지통'}</button><button type="button" class="gdc-shop" onclick="gdCabShop()">🏪 더 받기</button></div></div>` : '';
                 return `<div class="gdc-row${open ? ' open' : ''}"><button type="button" class="gdc-dr${on ? ' out' : ''}" data-g="${g}">
@@ -1485,29 +1489,30 @@
         /* 🗑 문구 버리기 → 휴지통 30일 (js/bin.js · 도련 11-02 · 📱 문구함 서랍 · 👝 보관함 · 🪑 책상 문구함 모두 여기로) : 파일은 그대로 → 되살리면 내 문구로 · 30일 뒤 파일 삭제 */
         const gdBinName = id => String((((window.prodList ? prodList('문구') : []).find(v => v.id === id) || {}).P || {}).이름 || '');   // 상품 이름 그대로
         async function gdBin(id) {
-            const o = (gdOwnList() || []).find(x => x.id === id); if (!o) return false;
+            const all = (gdOwnList() || []).filter(x => x.id === id); if (!all.length) return false;
+            const o = all.slice().reverse().find(x => !x.g) || all[all.length - 1], last = all.length === 1;   // 여럿이면 하나만 (나중에 받은 것부터 · 선물은 맨 나중에)
             const pen = !!(window.pkIsId && pkIsId(id));
-            if (!pen && cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return false; }
-            if (!window.binAsk || !await binAsk(gdBinName(id))) return false;
-            prefSet(GD_OWN, GD_OWN_L, (gdOwnList() || []).filter(x => x.id !== id).map(gdRec));
+            if (last && !pen && cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return false; }
+            if (!window.binAsk || !await binAsk(gdBinName(id) + (last ? '' : ` 하나 (${all.length}개 중)`))) return false;
+            prefSet(GD_OWN, GD_OWN_L, (gdOwnList() || []).filter(x => x.u !== o.u).map(gdRec));
             if (o.g && window.deskGiftWrite) deskGiftWrite();                     // 🎁 선물이면 선물.json 에서 빠져요 (되살리면 다시)
-            if (!pen) { const g = cabGOf(id); if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]); }
-            await binAdd({ k: 'gd', id, o: gdRec(o) });
+            if (!pen && last) { const g = cabGOf(id); if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]); }
+            await binAdd({ k: 'gd', id: o.u, o: gdRec(o) });
             gdBinAfter();
             binTold('');
             return true;
         }
         function gdBinAfter() { if (window.pcRefill) pcRefill(); if (window.dkwDeskSoon) dkwDeskSoon(); }   // ✏️ 펜꽂이 · 🪑 책상 문구 다시
         (window.BIN_PRE = window.BIN_PRE || {}).gd = {
-            name: e => '✏️ ' + gdBinName(e.id),
+            name: e => '✏️ ' + gdBinName((e.o && e.o.id) || e.id),
             restore: e => {
-                const L = gdOwnList() || [];
-                if (L.some(x => x.id === e.id)) { if (e.o.c) { const C = gdColl(e.id); if (C) collRemove(C, e.o.c).catch(() => {}); } return; }   // 그새 다시 받았으면 = 그대로 (버린 쪽 파일만 치워요)
-                L.push(e.o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
+                const L = gdOwnList() || [], o = Object.assign({ u: e.o.u || e.o.id }, e.o);
+                if (L.some(x => x.u === o.u)) return;                             // 이미 있어요 (같은 하나)
+                L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
                 if (e.o.g && window.deskGiftWrite) deskGiftWrite();
                 gdBinAfter();
             },
-            purge: e => { if (!e.o.g && e.o.c) { const C = gdColl(e.id); if (C) return collRemove(C, e.o.c); } }
+            purge: e => { if (!e.o.g && e.o.c) { const C = gdColl(e.o.id || e.id); if (C) return collRemove(C, e.o.c); } }
         };
         window.gdBin = gdBin;
         function gdCabShop() { closeModal('gdCabModal'); if (window.openShelf) { openShelf(); shOpenKind('gd'); } }
@@ -1529,13 +1534,13 @@
         }
         gdBuild();
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).filter(id => !GD_OFF.has(id)).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) }))).concat(window.pkShopList ? pkShopList() : []);   // + ✏️ 필기구 (도련 10-31 · js/pencase.js)
-        function gdGive(id) {
-            const L = gdOwnList() || []; if (L.some(o => o.id === id)) return 'have';
+        function gdGive(id, force) {                                          // 'have' = 이미 있어요 (묻고 나서 force = 하나 더 · 도련 11-07 현실처럼)
+            const L = gdOwnList() || [], had = L.some(o => o.id === id); if (had && !force) return 'have';
             const pen = !!(window.pkIsId && pkIsId(id));
             if (!pen && !cabAllIds().includes(id)) return 'no';
-            const o = { id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
-            gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.id === id); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 종류 폴더에 파일 하나
-            if (pen && window.pkAdd) pkAdd(id);                                // ✏️ 펜꽂이에도
+            const o = { u: gdNewU(id), id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
+            gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.u === o.u); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 문구 폴더에 파일 하나
+            if (pen && !had && window.pkAdd) pkAdd(id);                        // ✏️ 펜꽂이에도 (처음 것만)
             if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();
             return 'ok';
         }
