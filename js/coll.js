@@ -206,12 +206,12 @@
             const ent = { id, th: th == null ? old.th || '' : th, x: x || old.x || {}, f: old.f || '', m: Date.now() };
             if (collGuest()) {
                 await collPut('local', collKey(C, 'o' + id), { item });
-                collGuestList(C, ent, id);
+                if (!C.noIdx) collGuestList(C, ent, id);
                 return;
             }
-            collPatch(C, id, ent, item);
+            if (!C.noIdx) collPatch(C, id, ent, item);
             collCache(collKey(C, 'o' + id), item, ent.m);
-            await collQueue({ op: 'put', names: C.names, pre: C.pre, id, ent, item, base: old.m || 0, f: old.f || '' });
+            await collQueue(Object.assign({ op: 'put', names: C.names, pre: C.pre, id, ent, item, base: old.m || 0, f: old.f || '' }, C.noIdx ? { noIdx: 1 } : {}));   // 원본만 (목록 묶음 없음 · 칠한 소품 다시 칠하기)
         }
         async function collRemove(C, id, noIdx) {
             const old = collEnt(C, id) || {};
