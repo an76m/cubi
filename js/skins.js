@@ -553,15 +553,48 @@
         const PUNCH_KEY = 'diary_punch', PUNCH_LOCAL = 'malang_diary_punch';
         const punchNow = () => PUNCHES.find(p => p[0] === prefGet(PUNCH_KEY, PUNCH_LOCAL)) || PUNCHES[0];
         /* 📔 📕 날짜형 · 페이지형 바인더 모두 같은 기능 (도련 11-05 · 통합) : 권 = 페이지형 dyNow().id · 날짜형 펼친 권 id (2026b-분홍-1) · 장 = 페이지형 장 번호 · 날짜형 '2026-10-28'
-           diary_binder · diary_free · diary_holes 모두 { 권 : { 장 : … } } 한 모양 (🔐 설정 / _다이어리상태.json · 도련 11-06) */
+           diary_binder · diary_free · diary_holes 모두 { 권 : { 장 : … } } 한 모양 · 📎 diary_clips { 권 : { 색 : 자리 } }
+           💾 저장 = 그 권 폴더 / 상태.json 하나에 그 권 몫만 (도련 11-07 · 982 · 키 'dys_<권 폴더 id>' · js/drive.js STATE_KEY_RE) · 펼칠 때 그 권 것만 읽어요 · 버리면 폴더째 같이
+           부르는 곳은 예전 모양 그대로 (bsGet · bsSet = 지금 권만 담은 { 권 : 값 }) · 게스트 = 이 기기 */
+        const BS_LOCAL = { diary_clips: 'malang_diary_clips', diary_holes: 'malang_diary_holes', diary_free: 'malang_diary_free', diary_binder: 'malang_diary_binder' };
+        const bsCloud = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
+        function bsFid(b, make) {                                              // 권 → 그 권 폴더 id (📔 날짜형 = 권 id · 📕 페이지형 = dk… · 기본 다이어리 = 펼친 날짜형 권)
+            if (!b) return '';
+            if (b === DY_DEF) return window.dyyBookId ? dyyBookId() : '';
+            if (/^\d{4}[a-z]-.+-\d+$/.test(b)) return b;
+            const m = dkMap(); if (m[b]) return m[b];
+            return make && typeof dyNow === 'function' && dyNow().id === b ? dkId(true) || '' : '';
+        }
+        const bsWait = new Set();
+        function bsRead(f) {
+            const k = 'dys_' + f;
+            if (bsCloud() && drive.newbie && !drive.loadedDays.has(k)) drive.loadedDays.add(k);   // 🆕 처음 온 다꾸러 = 아직 상태가 없어요 (찾지 않아요)
+            if (bsCloud() && !drive.loadedDays.has(k) && !bsWait.has(k) && typeof ensureKeyLoaded === 'function') { bsWait.add(k); ensureKeyLoaded(k).then(ok => { bsWait.delete(k); if (ok) bsLoaded(); }); }   // 💤 처음 볼 때 그 권 상태.json 을 읽고 다시 그려요
+            try { const v = JSON.parse(store.getItem(k) || 'null'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; }
+        }
+        function bsGet(K) {
+            if (!bsCloud()) return prefGet(K, BS_LOCAL[K]) || {};
+            const out = {};
+            [bdBook(), typeof dyNow === 'function' ? (dyNow() || {}).id : ''].forEach(b => { const f = bsFid(b); if (f && !(b in out)) { const v = bsRead(f)[K]; if (v != null) out[b] = v; } });
+            return out;
+        }
+        function bsSet(K, m) {
+            if (!bsCloud()) { prefSet(K, BS_LOCAL[K], m); return; }
+            Object.keys(m || {}).forEach(b => {
+                const f = bsFid(b, true); if (!f) return;
+                const o = Object.assign({}, bsRead(f)); if (JSON.stringify(o[K]) === JSON.stringify(m[b])) return;
+                o[K] = m[b]; store.setItem('dys_' + f, JSON.stringify(o));
+            });
+        }
+        function bsLoaded() { try { if (typeof gdSync === 'function') gdSync(); if (typeof gdHoleSync === 'function') gdHoleSync(); if (typeof bdSync === 'function') bdSync(); } catch (e) { console.warn('📔 상태 다시 그리기', e); } }
         const bdBook = () => dkIs(currentDate) ? (dyNow() || {}).id || '' : (window.dyyBookId ? dyyBookId() : '');
         const bdPg = () => { const d = currentDate; return dkIs(d) ? dkNo(d) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
         const bdLay = () => { const t = dyLook(); return !!t && t.b === 'ring' && isCoverOpen && !!bdBook() && (dkIs(currentDate) ? dkNo(currentDate) > 0 : !dkType()) && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
         const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
-        function bdGet() { if (!bdLay()) return 0; const m = prefGet(BD_KEY, BD_LOCAL) || {}, b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
+        function bdGet() { if (!bdLay()) return 0; const m = bsGet(BD_KEY), b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
         function bdPut(v) {
-            const m = Object.assign({}, prefGet(BD_KEY, BD_LOCAL) || {}), id = bdBook(), b = Object.assign({}, m[id] || {});
-            b[bdPg()] = v; m[id] = b; prefSet(BD_KEY, BD_LOCAL, m);
+            const m = Object.assign({}, bsGet(BD_KEY)), id = bdBook(), b = Object.assign({}, m[id] || {});
+            b[bdPg()] = v; m[id] = b; bsSet(BD_KEY, m);
         }
         let bdBusy = false;
         function bdSync() {
@@ -713,12 +746,12 @@
            - 저장 : 링을 연 장만 (설정 'diary_free' { 권 id : { 장 : [왼 x, y, 각도, 오른 x, y, 각도] } } · x · y 는 cqw) · 다른 장에 갔다 오거나 다시 열어도 그대로
              📥 바인더에 끼우면 그 장 기록은 지워요 (평범한 다꾸 · 다른 다이어리엔 아무것도 안 남아요 · 도련 10-18)
            - 📥 바인더 버튼(위 날짜바 오른쪽 끝) : 구멍 12개 · 두 쪽이 떨어져 있고 · 구멍을 가린 것 없고 · 책상에 안 붙어야 끼워져요 (bdBlock) */
-        function bdFreeGet() { const m = prefGet('diary_free', 'malang_diary_free') || {}, b = m[bdBook()]; return (b && b[bdPg()]) || null; }
+        function bdFreeGet() { const m = bsGet('diary_free'), b = m[bdBook()]; return (b && b[bdPg()]) || null; }
         function bdFreePut(v) {
-            const m = Object.assign({}, prefGet('diary_free', 'malang_diary_free') || {}), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
+            const m = Object.assign({}, bsGet('diary_free')), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
             if (v) b[n] = v; else delete b[n];
             if (Object.keys(b).length) m[id] = b; else delete m[id];
-            prefSet('diary_free', 'malang_diary_free', m);
+            bsSet('diary_free', m);
         }
         function bdFreeSave() {
             const bk = document.getElementById('diaryBook'); if (!bdFree || !bk) return;
@@ -1554,10 +1587,10 @@
            - 구멍은 꾸밈 위로 보여요 = 스티커째 뚫린 것처럼 (.bd-hl) · 링을 연 뒤 꺼낸 종이에서만 */
         const GD_HOLE = 'diary_holes', GD_HOLE_L = 'malang_diary_holes';
         function gdHoleMask() {   // GD_HOLE · GD_HOLE_L (bdSync 가 먼저 불러도 되게)
-            const m = prefGet('diary_holes', 'malang_diary_holes') || {}, b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
+            const m = bsGet('diary_holes'), b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
         function gdHoleOn(bits) {                                                // bits : 뚫을 구멍 (1 << i)
-            const m = Object.assign({}, prefGet(GD_HOLE, GD_HOLE_L) || {}), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
-            b[n] = (+b[n] || 0) | bits; m[id] = b; prefSet(GD_HOLE, GD_HOLE_L, m);
+            const m = Object.assign({}, bsGet(GD_HOLE)), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
+            b[n] = (+b[n] || 0) | bits; m[id] = b; bsSet(GD_HOLE, m);
         }
         function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); }
         function gdHoles() {
@@ -1753,11 +1786,11 @@
                 if (el.classList.contains('edge')) o[c] = { f: Math.round(+el.dataset.f * 1e4) / 1e4 };
                 else { const m = gdMid(el); o[c] = { x: Math.round((m.x - cv.offsetLeft) / W * 1e4) / 1e4, y: Math.round((m.y - cv.offsetTop) / H * 1e4) / 1e4 }; }
             });
-            const all = Object.assign({}, prefGet(GD_CLIP, GD_CLIP_L) || {}); all[gdBook] = o; prefSet(GD_CLIP, GD_CLIP_L, all); gdClipSig = JSON.stringify(o);
+            const all = Object.assign({}, bsGet(GD_CLIP)); all[gdBook] = o; bsSet(GD_CLIP, all); gdClipSig = JSON.stringify(o);
         }
         function gdSync() {                                                     // dyDeco 끝에서 : 📎 그 권의 집게 · 🪡 처음 열면 핀셋
             const ip = gdIp(), cv = document.getElementById('canvasArea'); if (!ip || !cv) return;
-            const book = dyNow().id, saved = (prefGet(GD_CLIP, GD_CLIP_L) || {})[book] || {};
+            const book = dyNow().id === DY_DEF && window.dyyBookId ? dyyBookId() || DY_DEF : dyNow().id, saved = bsGet(GD_CLIP)[book] || bsGet(GD_CLIP)[dyNow().id] || {};   /* 📔 날짜형 = 권마다 (예전엔 모든 날짜형이 한 자리) */
             const sig = JSON.stringify(saved), busy = (gdHeld && gdHeld.startsWith('clip:')) || (gdG && gdG.k === 'rail');
             if (gdBook !== book || (sig !== gdClipSig && !busy)) {             // 다른 권 = 그 권의 집게로 · 드라이브를 읽은 뒤 저장이 달라졌어도 (도련 10-30 : 읽기 전 모습이 남지 않게)
                 gdClipSig = sig;

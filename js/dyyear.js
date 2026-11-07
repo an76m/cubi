@@ -156,6 +156,7 @@
                         const all = [], seen = new Set(), add = x => { if (ok(x) && !seen.has(x.id)) { seen.add(x.id); all.push(x); } };
                         (bkL || []).forEach(add); found.forEach(add); gifts.forEach(add);
                         if (bk && bk.diary_book_n && typeof bk.diary_book_n === 'object' && !prefGet(DYY_N, DYY_N_L)) dyyPut(DYY_N, DYY_N_L, bk.diary_book_n, false);
+                        if (bk && bk.diary_books && typeof bk.diary_books === 'object' && !prefGet('diary_books', 'malang_books')) prefSet('diary_books', 'malang_books', bk.diary_books);   // 📕 페이지형 규격 → 권 (982)
                         if (!all.length) { if (!had && !bkL) dyyGift(); else dyoSet([], true); return []; }   // 선물을 준 적이 있는데 비었으면 = 다 버린 사람
                         dyoSet(all);                                                     // 🛟 되살린 목록은 늘 파일로 (선물도 · 도련 11-07)
                         const dates = all.filter(x => x.t === 'date').map(x => x.id);

@@ -23,7 +23,7 @@
                               책상설정.json    ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
                               배치.json        📍 🔐 책상 위 소품 자리 · 문구의 집 · 책상 위 다이어리 · 봉투
                               _휴지통목록.json   🔐 버린 것 30일 (가진 것 목록은 모두 백 폴더 · 977 · 980 · 981)
-                              _다이어리상태.json   🔐 권마다 집게 · 구멍 · 링 · 꺼낸 장 (설정.json 을 가볍게)
+                              (권마다 집게 · 구멍 · 링 · 꺼낸 장 = 그 권 폴더 / 상태.json · 982)
                               _내정보.json     🔐 잠금 · 별명 · 생년월일 · 연락처 (개인정보)
                               _백업.json       🛟 🔐 하루 한 번 위 목록 · 자리 · 책상 설정 (목록 파일이 없어지면 여기서 되살려요 · js/desk.js dkBackupWrite)
                       / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js · 구글은 드라이브 휴지통)
@@ -131,7 +131,7 @@
         const dyBookIsNote = b => { const r = DYB_RE.exec(b || ''); return !!(r && r[2] === 'n'); };
         const dyBookDir = b => DIARY_PATH.concat([dyBookName(b)]);         // 📔 다이어리 / 2026 분홍 1 (노트 = 2026 분홍노트 1 · 디자인 id 로 나뉘어요)
         const dkBookDir = id => DIARY_PATH.concat([id]);                   // 📕 다이어리 / dk… (페이지형 한 권 = 폴더 하나 · 도련 11-07)
-        const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/;   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
+        const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/, STATE_KEY_RE = /^dys_(\d{4}[a-z]-.+-\d+|dk[0-9a-z]+)$/;   // 📔 📕 권마다 상태 = 그 권 폴더 / 상태.json (집게 · 구멍 · 링 · 꺼낸 장 · 도련 11-07 · 982 · js/skins.js bsGet)   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
         const DK_INFO = '다이어리.json', dkInfoName = id => DK_INFO;   // 📕 권 정보 파일 : 그 권 폴더 / 다이어리.json (도련 11-07 · 날짜형과 같은 이름)
 
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
@@ -269,9 +269,10 @@
         function parseDayKey(k) { const r = DAY_KEY_RE.exec(k); return r ? { b: r[1], y: +r[2], m: +r[3], d: +r[4] } : null; }
         function isDayKey(k) { return DAY_KEY_RE.test(k); }
         function parsePageKey(k) { const r = PAGE_KEY_RE.exec(k); return r ? { b: r[1], n: +r[2] } : null; }
-        const isPageKey = k => PAGE_KEY_RE.test(k), isBookKey = k => BOOK_KEY_RE.test(k);
-        const isOwnFile = k => isDayKey(k) || isPageKey(k) || isBookKey(k);    // 키 하나가 드라이브 파일 하나 (하루 · 장 · 다이어리.json)
-        function keyLabel(k) { const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
+        const isPageKey = k => PAGE_KEY_RE.test(k), isBookKey = k => BOOK_KEY_RE.test(k), isStateKey = k => STATE_KEY_RE.test(k);
+        const STATE_FILE = '상태.json';
+        const isOwnFile = k => isDayKey(k) || isPageKey(k) || isBookKey(k) || isStateKey(k);    // 키 하나가 드라이브 파일 하나 (하루 · 장 · 다이어리.json)
+        function keyLabel(k) { if (isStateKey(k)) return '다이어리 상태'; const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
         function keyFile(k) { if (CAFE_KEYS.includes(k)) return 'cafe'; for (const w of DESK_WHICH) if (DESK_FILE_KEYS[w].includes(k)) return w; return 'settings'; }
@@ -288,7 +289,7 @@
             rfown: { path: dirPath(DIRS.refill), name: '_목록.json', prop: 'rfOwnFile', lazy: 1 },        // 🧩 🔐 바인더내지 / _목록.json : 가진 내지 재료 (💤 · 981)
             bgown: { path: dirPath(DIRS.pattern), name: '_목록.json', prop: 'bgOwnFile', lazy: 1 },  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
             binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
-            dystate: { path: DESK_PATH, name: '_다이어리상태.json', prop: 'dyStateFile' }, // 🔐 권마다 집게 · 구멍 · 링 · 꺼낸 장 · 페이지형 권 (도련 11-06 · 설정.json 을 가볍게)
+
             me: { path: DESK_PATH, name: '_내정보.json', prop: 'meFile' }              // 🔐 잠금 · 별명 · 생년월일 · 연락처 (도련 11-06 · 개인정보)
         };
 
@@ -302,12 +303,12 @@
             dkown: ['diary_desk_own', 'diary_skin_own'],   /* 소품 + 🧱 🪵 벽지 · 책상판 (지금 고른 것은 책상설정.json 'diary_desk_skin') */                                                                        // 🔐 _소품목록.json
             gdown: ['diary_gd_own'],                                                                          // 🔐 _문구목록.json
             deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got'],                                 // ⚙ 책상설정.json
-            dyown: ['diary_own', 'diary_book_n'],                                                              // 🔐 다이어리 / _목록.json : 권마다 한 줄 · 날짜형 권 번호 (펼친 권 'diary_year' 는 설정.json · js/dyown.js)
+            dyown: ['diary_own', 'diary_book_n', 'diary_books'],   /* diary_books = 페이지형 규격 → 권 (982 · 여러 권을 잇는 표라 목록에) */                                                              // 🔐 다이어리 / _목록.json : 권마다 한 줄 · 날짜형 권 번호 (펼친 권 'diary_year' 는 설정.json · js/dyown.js)
             bcown: ['diary_cover_own'],                                                                       // 🧩 바인더표지 / _목록.json
             rfown: ['diary_refill_own'],                                                                      // 🧩 바인더내지 / _목록.json
             bgown: ['diary_bg_own'],                                                                          // 🔐 배경지 / _목록.json (💤 lazy)
             binown: ['diary_bin'],                                                                            // 🔐 _휴지통목록.json (js/bin.js)
-            dystate: ['diary_clips', 'diary_holes', 'diary_free', 'diary_binder', 'diary_books'],              // 🔐 _다이어리상태.json : 📎 집게 자리 · 🕳 구멍 · 💍 링 연 장 · 꺼낸 장 · 페이지형 규격 → 권 (js/skins.js)
+
             me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts']                      // 🔐 _내정보.json : 🔒 잠금(해시) · 별명 · 생년월일 · 전화기 연락처
         };
         const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
@@ -687,12 +688,14 @@
         /* 키 → 그 파일이 든 폴더 목록 · 파일 이름 (하루 : 날짜형바인더 / 그 권 · 📕 장 · 다이어리.json : 페이지노트 · 페이지바인더 안 그 권 것만) */
         function idxOfKey(key, create) {
             const d = parseDayKey(key); if (d) return getMonthIndex(d.y, d.m, create, d.b);
+            const st = STATE_KEY_RE.exec(key); if (st) return /^dk/.test(st[1]) ? getBookIndex(st[1], create) : getMonthIndex(0, 0, create, st[1]);   // 그 권 폴더
             const p = parsePageKey(key), b = BOOK_KEY_RE.exec(key);
             return p || b ? getBookIndex(p ? p.b : b[1], create) : Promise.resolve(null);
         }
         function fileOfKey(key) {
             const d = parseDayKey(key); if (d) return dayFileName(d.y, d.m, d.d);
             const p = parsePageKey(key); if (p) return `${p.n ? p.n + '페이지' : '표지'}.json`;   // 0장 = 📕 표지 (그 권 폴더 안)
+            if (isStateKey(key)) return STATE_FILE;
             const b = BOOK_KEY_RE.exec(key); return b ? dkInfoName(b[1]) : '';
         }
         async function fetchKey(key, meta) {
@@ -1079,17 +1082,19 @@
             drive.dayMeta.set(key, saved.modifiedTime);
         }
         /* 📕 다이어리.json 올리기 : 다른 기기가 고쳤으면 묻지 않고 합쳐요 (장마다 처음 꾸민 날 = 더 이른 날) */
+        /* 📔 📕 상태.json 합치기 : 다른 기기 것 위에 내 것 (칸마다 · 권마다 한 파일이라 묻지 않아요 · 982) */
+        const stateMerge = (mine, theirs) => { const o = Object.assign({}, theirs || {}); Object.keys(mine || {}).forEach(k => { o[k] = mine[k] && typeof mine[k] === 'object' && !Array.isArray(mine[k]) ? Object.assign({}, (theirs || {})[k] || {}, mine[k]) : mine[k]; }); return o; };
         async function writeBook(key) {
-            const id = BOOK_KEY_RE.exec(key)[1];
+            const st = isStateKey(key), id = st ? STATE_KEY_RE.exec(key)[1] : BOOK_KEY_RE.exec(key)[1];
             let val = store.getItem(key);
             if (val === null) return;
-            const idx = await getBookIndex(id, true), nm = dkInfoName(id);
+            const idx = await idxOfKey(key, true), nm = fileOfKey(key);
             const f = idx.files.get(nm);
             let cur = f ? await driveMeta(f.id) : null;
             if (!cur) cur = await findFile(idx.folderId, nm);
             if (cur && cur.modifiedTime !== (drive.dayMeta.get(key) || '')) {
                 let theirs = null; try { theirs = parseJsonObject(await readFileText(cur.id), key); } catch (e) { if (e.type !== 'corrupt') throw e; }
-                if (theirs) { val = JSON.stringify(dkInfoMerge(JSON.parse(val), theirs)); store.putLoaded(key, val); }
+                if (theirs) { val = JSON.stringify(st ? stateMerge(JSON.parse(val), theirs) : dkInfoMerge(JSON.parse(val), theirs)); store.putLoaded(key, val); }
             }
             const saved = await driveUpsert(idx.folderId, nm, cur && cur.id, val);
             idx.files.set(nm, { id: saved.id, name: nm, modifiedTime: saved.modifiedTime });
@@ -1106,7 +1111,7 @@
         /* 변경된 키 하나(또는 같은 설정 파일의 키 묶음)를 드라이브에 반영 */
         async function driveWriteKey(key, retried, mine) {
             try {
-                if (isBookKey(key)) await writeBook(key);
+                if (isBookKey(key) || isStateKey(key)) await writeBook(key);
                 else if (isOwnFile(key)) await writeDay(key);
                 else await writeKeyFile(keyFile(key), mine || new Set([key]));
             } catch (e) {
@@ -1599,14 +1604,15 @@
             const safe = [], cafe = [], askDays = [], askSet = [];
             for (const k of Object.keys(p.items)) {
                 const v = p.items[k];
-                if (!k.startsWith('diary_') && !VAULT_KEYS.includes(k) && !isPageKey(k) && !isBookKey(k)) continue;
+                if (!k.startsWith('diary_') && !VAULT_KEYS.includes(k) && !isPageKey(k) && !isBookKey(k) && !isStateKey(k)) continue;
                 if (!(v === null || typeof v === 'string')) continue;
                 const dk = isOwnFile(k);
                 let now;
                 if (dk) {
                     await ensureKeyLoaded(k);
                     if (!drive.loadedDays.has(k)) continue;                             // 드라이브 내용을 읽지 못하면 건드리지 않음
-                    if (isBookKey(k)) { if (v) store.setItem(k, JSON.stringify(dkInfoMerge(JSON.parse(v), JSON.parse(store.getItem(k) || '{}')))); continue; }   // 📕 다이어리.json 은 묻지 않고 합쳐요
+                    if (isBookKey(k)) { if (v) store.setItem(k, JSON.stringify(dkInfoMerge(JSON.parse(v), JSON.parse(store.getItem(k) || '{}')))); continue; }
+                    if (isStateKey(k)) { if (v) store.setItem(k, JSON.stringify(stateMerge(JSON.parse(v), JSON.parse(store.getItem(k) || '{}')))); continue; }   // 📔 상태.json 도 묻지 않고 합쳐요   // 📕 다이어리.json 은 묻지 않고 합쳐요
                     const idx = await idxOfKey(k, false);
                     const f = idx && idx.files.get(fileOfKey(k));
                     now = f ? f.modifiedTime || '' : '';
