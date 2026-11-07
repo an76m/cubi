@@ -2,6 +2,7 @@
    스티커/글/이미지 추가 · 라이브러리 · 요소 이동/회전/크기 · 페이지 내용 저장(saveData)/불러오기
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
         function addText() {
+            if (window.dyyPastSay && dyyPastSay()) return null;              // 🔒 지난 해 다이어리 = 보기만 (도련 11-07 · js/dyyear.js)
             const el = document.createElement('div');
             el.className = 'element-box';
             el.style.width = '160px';
@@ -84,6 +85,7 @@
 
         function addImage(src, fallback) {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어주세요!'); return false; }
+            if (window.dyyPastSay && dyyPastSay()) return false;             // 🔒 지난 해 다이어리 = 보기만
             const el = document.createElement('div');
             el.className = 'element-box';
             el.style.width = '150px';
@@ -937,6 +939,7 @@
 
         async function saveData(showAlert = false) {
             if (!isCoverOpen) return;
+            if (window.dyyPastLock && dyyPastLock()) return;                   // 🔒 지난 해 다이어리 = 저장하지 않아요 (펼칠 때 이미 지난 해였던 장만 · 자정 전에 쓰던 장은 저장해요)
             const canvas = document.getElementById('canvasArea');
             const r1 = v => Math.round((parseFloat(v) || 0) * 10) / 10;
             const elementsData = [];
@@ -1079,6 +1082,7 @@
         }
 
         function loadData() {
+            if (window.dyyPastMark) dyyPastMark();                              // 🔒 이 장을 펼친 때 지난 해 다이어리였는지
             if (window.dkSync) dkSync();                                        // 📕 고른 다이어리와 펼친 장이 맞게 (js/skins.js)
             liveSize = getPageSize();
             clearCanvas();

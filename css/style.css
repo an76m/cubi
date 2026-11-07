@@ -4240,3 +4240,5 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .dkw-room.dk-drop { place-items: start center; }
 html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:not(.dk-keep) > .dk-tape, html.dk-dropping .dkw-room:not(.dk-keep) > * { visibility: hidden !important; }   /* 서랍에서 뜰 창 = 맨 위에 자리 잡을 때까지 숨겨요 */
 .gdc-it .gdc-n { position: absolute; top: 2px; right: 3px; font-size: 10px; font-weight: 900; color: #fff; background: #e88fb0; border-radius: 999px; padding: 0 5px; line-height: 15px; }   /* ✏️ 같은 문구 여러 개 (도련 11-07) */
+/* 🔒 지난 해 다이어리 = 보기만 (도련 11-07 · js/dyyear.js dyyPastTag) */
+.dy-past-tag { position: absolute; right: 10px; top: 8px; z-index: 30; pointer-events: none; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .92); border: 1.5px solid #e3cbd8; color: #8b6a76; font-size: 12px; font-weight: 800; box-shadow: 0 2px 0 rgba(107, 68, 56, .12); }

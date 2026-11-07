@@ -1111,7 +1111,7 @@
     function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
         if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, SH_GD_IC[x.g] || '✏️']])).values()]; }
         if (k === 'tool') {                                                  // 📔 다이어리 코너 = 다이어리 종류 (상품이 있는 것만 · 도련 11-04)
-            const y = new Date().getFullYear(), C = [['dyb', `${y} 바인더 표지`, '📔'], ['dyr', '날짜 내지', '📅'], ['pgb', '바인더 표지', '🗂️'], ['pgr', '페이지 내지', '📄'], ['dyn', `${y} 노트`, '📓'], ['bd', '스티커 바인더', '📒'], ['rl', '이형지북', '🤍']];   /* 📔 다꾸러에게는 '날짜형' 대신 연도 (2026 바인더 · 2026 노트 · 도련 11-04) */
+            const y = new Date().getFullYear(), C = [['dyb', `${y} 바인더 표지`, '📔'], ['dyr', `${y} 바인더 내지`, '📅'], ['pgb', '페이지 바인더 표지', '🗂️'], ['pgr', '페이지 바인더 내지', '📄'],   /* 다꾸러가 알아보기 쉽게 (도련 11-07 · 해 = 컴퓨터 날짜 · 해가 바뀌면 저절로) */ ['dyn', `${y} 노트`, '📓'], ['bd', '스티커 바인더', '📒'], ['rl', '이형지북', '🤍']];   /* 📔 다꾸러에게는 '날짜형' 대신 연도 (2026 바인더 · 2026 노트 · 도련 11-04) */
             const have = new Set((window.dyyShopList ? dyyShopList().map(x => x.cat) : []).concat(AB_BDP.some(x => !x.P.숨김) ? ['bd'] : [], AB_RL.some(x => !x.P.숨김) ? ['rl'] : []));
             return C.filter(c => have.has(c[0]));
         }

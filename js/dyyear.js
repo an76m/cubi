@@ -70,6 +70,7 @@
             const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
             if (window.dkDeskBooks) setTimeout(dkDeskBooks, 0);              // 📔 책상 = 다이어리 보관소 (펼쳐 둔 권 · 나머지 권 다시 · js/desk.js)
             dyyColorPaint();
+            if (window.dyyPastMark) dyyPastTag();
             if (window.dkCoverPaint) dkCoverPaint();                           // 📢 📕 권을 바꾸면 그 상품의 공지 · 표지 꾸미기 (js/skins.js)
             if (!b) return;
             const d = dyyDesign(b), nt = dyyBasic() && d ? d.b + ':' + d.r : null;   // 📐 디자인마다 모양(묶음 · 크기)이 달라요 → 바뀌면 다시 그리기
@@ -295,6 +296,22 @@
             return id;
         }
         window.dyyAssemble = dyyAssemble;
+        /* 🔒 지난 해 다이어리 = 보기만 (도련 11-07 · A) : 날짜형(바인더 · 노트)은 그 해가 지나면 펼쳐 읽기 · 넘기기 · 검색만 · 쓰기 · 꾸미기 · 붙이기는 안 돼요
+             해 = 컴퓨터 날짜 (dyyThis) · 자정이 넘어도 그 전에 펼친 장은 저장해요 (그 다음 장부터 · js/elements.js loadData · saveData) · 붙여 둔 것은 이미 24시간 고정 */
+        const dyyPast = () => dyyBasic() && !!dyyBook() && dyyBook().y < dyyThis() && !(typeof dkIs === 'function' && typeof currentDate !== 'undefined' && dkIs(currentDate));
+        let dyyPastAt = false, dyyPastMsg = 0;
+        window.dyyPast = dyyPast;
+        window.dyyPastMark = () => { dyyPastAt = dyyPast(); dyyPastTag(); };
+        window.dyyPastLock = () => dyyPastAt && dyyPast();
+        window.dyyPastSay = () => { if (!dyyPast()) return false; if (performance.now() - dyyPastMsg > 1500) { dyyPastMsg = performance.now(); showMsg(`🔒 ${dyyBook().y} 다이어리는 해가 지나서 읽기만 할 수 있어요.<br><span style="font-size:12px;color:#777;">${dyyThis()} 다이어리는 🏪 기본상품 샵 → 📔 다이어리에서 받아요</span>`); } return true; };
+        function dyyPastTag() {                                                // 🔒 펼친 장 위 작은 표시
+            const ip = document.getElementById('innerPage'); if (!ip) return;
+            let t = document.getElementById('dyPastTag'); const on = dyyPast();
+            document.documentElement.classList.toggle('dy-past', on);
+            if (!on) { if (t) t.remove(); return; }
+            if (!t) { t = document.createElement('div'); t.id = 'dyPastTag'; t.className = 'dy-past-tag'; ip.appendChild(t); }
+            t.textContent = `🔒 ${dyyBook().y} · 읽기만`;
+        }
         window.dyyDesignOf = id => DY_DESIGNS.find(x => x.id === id && x.ch === 'b') || null;
 
         /* 🗑 버리기 (보관소 · 마지막 한 권도) : 묻고 → 버린 목록 (js/bin.js) → 펼친 권이었으면 다른 권 (없으면 덮어요) → 휴지통 안내 */
