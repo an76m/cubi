@@ -43,7 +43,7 @@
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
             o.kind = String(o.kind).replace(/[\/\\'"<>`]/g, '').slice(0, 20);   // 🆕 새 종류 = 상품공방 폴더 이름 그대로 (도련 11-06 · 드라이브 폴더 · 보관함 칸 이름)
-            const CAN = ['turn', 'light', 'clock', 'memo', 'rope', 'peg', 'label', 'camera'];   // label = 🏷️ 라벨 스티커 기계 (js/labeler.js) · camera = 📷 말랑 디카 (js/digicam.js · 도련 11-08)       // 🧩 고르는 기능 = 상품공방 '기능' (도련 11-06 · 종류가 아니라 상품이 정해요 · 새 소품도 코드 없이)
+            const CAN = ['turn', 'light', 'clock', 'memo', 'rope', 'peg', 'label', 'camera', 'print'];   // print = 🖨️ 말랑 스티커 프린터 (js/stickerprinter.js)   // label = 🏷️ 라벨 스티커 기계 (js/labeler.js) · camera = 📷 말랑 디카 (js/digicam.js · 도련 11-08)       // 🧩 고르는 기능 = 상품공방 '기능' (도련 11-06 · 종류가 아니라 상품이 정해요 · 새 소품도 코드 없이)
             o.can = (Array.isArray(P.기능) ? P.기능 : []).filter(f => CAN.includes(f));
             if (P.종류이름) o.kn = String(P.종류이름).slice(0, 12); if (P.종류아이콘) o.ki = String(P.종류아이콘).slice(0, 4);   // 🏪 샵 · 보관함 칸 이름 (새 종류)
             if (o.can.includes('rope')) o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)

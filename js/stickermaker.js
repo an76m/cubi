@@ -435,7 +435,15 @@
             render(ctx, guide) { smRender(ctx, guide !== false); },
             rect() { return smPhotoRect(); },
             make(kind) { return smMake(kind === 'paper' ? smS.border : true); },
-            finish(kind, stick) { smKind = SM_KIND[kind] ? kind : 'seal'; return smDoFinish(smKindAct(!!stick)); }
+            finish(kind, stick) { smKind = SM_KIND[kind] ? kind : 'seal'; return smDoFinish(smKindAct(!!stick)); },
+            finishMany(kind, stick, list, border) {                         // 🖨️ 스티커 프린터 (js/stickerprinter.js) : 여러 장 = 예전 앨범 여러 장과 같아요 (씰 = 종이 한 장 · 조각 = 봉투 하나 · 모조지 = 한 장)
+                smKind = SM_KIND[kind] ? kind : 'seal'; smSheetTo = null; smS.mode = 'photo'; smS.drawing = false; smS.border = border !== false;
+                const L = (list || []).map(m => ({ img: m.img, shape: m.shape, zoom: m.zoom, ox: m.ox, oy: m.oy, path: (m.path || []).slice() }));
+                if (L.length < 2) { smS.many = null; Object.assign(smS, L[0] || {}); }
+                else { smS.many = L; smS.cur = 0; Object.assign(smS, { img: L[0].img, shape: L[0].shape, zoom: L[0].zoom, ox: L[0].ox, oy: L[0].oy, path: L[0].path }); }
+                smS.out = ''; smS.outDie = '';
+                return smDoFinish(smKindAct(!!stick)).finally(() => { smS.many = null; });
+            }
         };
         window.smTextApi = {
             colors: SM_COLORS.slice(), defFont: SM_DEF_FONT,

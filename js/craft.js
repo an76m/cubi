@@ -13,7 +13,7 @@
         const CRAFT_WAYS = {
             booth: ['📸', '포토부스', '네컷 · 2×2 · 한 컷 · 필터 · 글씨 · 반짝이', () => window.openBooth && openBooth(), 'stkmake'],
             cam: ['📷', '사진 찍어 만들기', '📷 말랑 디카로 찍거나 골라 모양대로 (하트 · 별 … · ✂️ 손으로)', k => window.openDigicam ? openDigicam({ kind: k, el: window.dcActEl && dcActEl('camera') }) : smGo(k, 'smOpenCam'), 'stkmake'],   // 📷 js/digicam.js (도련 11-08)
-            album: ['🖼️', '앨범에서 골라 만들기', '한 장 · 여러 장 한 번에 · 모양 고르기', k => smGo(k, 'smOpenFile'), 'stkmake'],
+            album: ['🖼️', '앨범에서 골라 만들기', '🖨️ 스티커 프린터 · 한 장 · 여러 장 · 모양 고르기', k => window.openStickerPrinter ? openStickerPrinter({ kind: k, el: window.dcActEl && dcActEl('print') }) : smGo(k, 'smOpenFile'), 'stkmake'],   // 🖨️ js/stickerprinter.js (도련 11-08)
             sheet: ['🗂️', '시트 꾸미기', '그림 여러 개를 한 장에 · 끌어서 자리 · 기본 씰처럼', () => window.openSheetMaker && openSheetMaker(), 'stkmake'],   // 🗂️ js/sheetmaker.js (도련 11-06)
             text: ['🔤', '글씨 스티커', '🏷️ 라벨 기계 자판으로 쓰기', () => window.openLabeler ? openLabeler(window.dcLabelerEl && dcLabelerEl()) : window.smOpenText && smOpenText(), 'stkmake'],   // 🏷️ 라벨 스티커 기계 (js/labeler.js · 도련 11-08) · 책상에 있으면 거기서 떠올라요
             tape: ['🎀', '마스킹테이프 만들기', '✏️ 한 칸을 그리면 쭉 이어져요 · 🖼️ 내 사진으로', () => window.openTapeMaker && openTapeMaker(), 'stkmake'],

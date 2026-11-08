@@ -1106,7 +1106,7 @@
     const SH_CORNER = { tool: '📔 다이어리', gd: '✂️ 문구', desk: '🪑 책상소품', bg: '🌈 배경지' };   // 📱 구역 진열대 창 제목 · 간판 ('코너' 말 안 써요 · 도련 11-04)
     const SH_GD_IC = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
     /* 🪑 책상소품 칸 = 소품 종류 (도련 11-04 : 스티커 · 문구처럼 종류 바로 · 상품 폴더 책상소품/<종류>/ 와 같은 이름) + 🧱 벽지 · 🪵 책상 · 상품이 있는 종류만 */
-    const SH_DK = { drawer: ['서랍장', '🗄️'], clock: ['시계', '⏰'], bookshelf: ['책꽂이', '📚'], pencup: ['펜꽂이', '🖊️'], riser: ['받침대', '🖥️'], basket: ['바구니', '🧺'], lamp: ['스탠드', '💡'], doll: ['인형', '🧸'], taperack: ['마테정리함', '🎀'], labeler: ['라벨기', '🏷️'], digicam: ['디카', '📷'],
+    const SH_DK = { drawer: ['서랍장', '🗄️'], clock: ['시계', '⏰'], bookshelf: ['책꽂이', '📚'], pencup: ['펜꽂이', '🖊️'], riser: ['받침대', '🖥️'], basket: ['바구니', '🧺'], lamp: ['스탠드', '💡'], doll: ['인형', '🧸'], taperack: ['마테정리함', '🎀'], labeler: ['라벨기', '🏷️'], digicam: ['디카', '📷'], printer: ['프린터', '🖨️'],
         wallshelf: ['벽선반', '🪜'], board: ['게시판', '📌'], lights: ['전구줄', '✨'], peg: ['집게사진', '📷'], wallpaper: ['벽지', '🧱'], desktop: ['책상', '🪵'] };
     function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
         if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, stkArt('gd:' + x.g) || SH_GD_IC[x.g] || stkArt('gd')]])).values()]; }   // 🎨 아이콘 = 손그림 (도련 11-07 · 그림이 없는 새 종류만 이모지)
@@ -1830,6 +1830,10 @@
             'desk:digicam': () => `<g ${S}><rect x="15" y="12" width="9" height="5" rx="1.5" fill="#ff9fbd" ${O2}/><rect x="6" y="15" width="60" height="40" rx="9" fill="${F('dgc')}" ${O}/></g>
                 <rect x="47" y="20" width="13" height="6" rx="1.5" fill="#fff4c9" stroke="#7b5a63" stroke-width="1.2"/><circle cx="43" cy="37" r="13" fill="#ece6ee" stroke="#7b5a63" stroke-width="1.4"/><circle cx="43" cy="37" r="8.5" fill="#d6cddf" stroke="#7b5a63" stroke-width="1.2"/><rect x="38.5" y="32.5" width="9" height="9" rx="2.4" fill="#2b2430"/>
                 ${heart(17, 24, .32, '#ff9fbd', '#ff7fa3', u + 'dgh')}<path d="M14 46h12" stroke="#7b5a63" stroke-width="1.8" stroke-linecap="round"/>${gl(6, 15, 60, 10, 9)}<defs>${lg('dgc', '#ffd3e0', '#f7a6c0')}</defs>`,
+            'desk:printer': () => `<g ${S}><path d="M12 30C12 20 16 16 24 16H50C57 16 60 19 60 26V32H12Z" fill="#ffd9e5" ${O}/><rect x="6" y="28" width="60" height="28" rx="7" fill="${F('prt')}" ${O}/></g>
+                <rect x="20" y="9" width="32" height="12" rx="1.5" fill="#fff" stroke="#7b5a63" stroke-width="1.3"/><path d="M26 14h20" stroke="#ff9fbd" stroke-width="2" stroke-linecap="round"/><rect x="18" y="19" width="36" height="3" rx="1.5" fill="#7b5a63"/>
+                <rect x="49" y="24.5" width="5" height="2.6" rx="1.3" fill="#7fd3b0"/><circle cx="58" cy="25.6" r="2.4" fill="#fff" stroke="#7b5a63" stroke-width="1"/><path d="M6 46H66" stroke="#c9a3b3" stroke-width="1.2" stroke-dasharray="1 3"/><rect x="10" y="36" width="5" height="11" rx="2" fill="#f4b3c8" stroke="#7b5a63" stroke-width="1"/>
+                ${gl(6, 28, 60, 8, 7)}<defs>${lg('prt', '#ffe3ec', '#ffcfdf')}</defs>`,
             'desk:taperack': () => `<g ${S}><rect x="8" y="6" width="6" height="50" rx="2" fill="${F('trk')}" ${O}/><rect x="58" y="6" width="6" height="50" rx="2" fill="${F('trk')}" ${O}/><rect x="5" y="54" width="62" height="6" rx="2.5" fill="${F('trk')}" ${O}/></g>
                 <path d="M14 21H58M14 41H58" stroke="#7b5a63" stroke-width="3.6"/><path d="M14 21H58M14 41H58" stroke="#eef0f6" stroke-width="1.6"/>
                 ${roll(22, 21, 7, '#ff9fbd', 'tr1')}${roll(36, 21, 7, '#9fd0f5', 'tr2')}${roll(50, 21, 7, '#ffd36e', 'tr3')}${roll(29, 41, 7, '#a8e3cf', 'tr4')}${roll(43, 41, 7, '#c7b3f2', 'tr5')}
