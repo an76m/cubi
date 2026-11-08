@@ -18,7 +18,7 @@
             const parts = path.split('/'), dir = parts[1] || '', file = parts[parts.length - 1] || '';
             if (dir === DIRS.trash || dir === DIRS.stkList) return true;
             if (dir === DIRS.settings && file !== '설정.json') return true;
-            if ((dir === DIRS.diary || dir === DIRS.binderCover || dir === DIRS.refill) && parts.length === 3 && /^_/.test(file)) return true;   // 🧩 바인더 재료 목록도 🔐 (981)
+            if ((dir === DIRS.diary || dir === DIRS.binderCover || dir === DIRS.refill || dir === DIRS.stkBinder || dir === DIRS.relBook) && parts.length === 3 && /^_/.test(file)) return true;   // 📥 받은 스티커바인더 · 이형지북 목록도 🔐 (도련 11-08)   // 🧩 바인더 재료 목록도 🔐 (981)
             if (dir === DIRS.diary && parts.length === 3 && /^_/.test(file)) return true;   // 📔 다이어리 / _목록 · _목록_백업 = 🔐 계정 열쇠 (예전 설정의 _다이어리목록처럼 빼요 · 도련 11-07)   // ⚙ 설정 폴더 = 설정.json 만 (🔐 책상 · 가진 것 목록 · 선물 · 백업은 스티커처럼 계정 열쇠라 빼요 · 도련 11-06)
             if (dir === DIRS.desk || dir === DIRS.gd || Object.values(DESK_DIRS).includes(dir) || (window.dkDirs && dkDirs().includes(dir)) || Object.values(GD_DIRS).includes(dir) || Object.values(SKIN_DIRS).includes(dir)) return true;   // 🪑 ✏️ 책상 소품 · 문구 · 배치 · 기본세트도 스티커처럼 백업에서 빼요 (불러오기로 버린 것이 되살아나지 않게 · 도련 10-27)
             if (typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir)) return !/^(내|받은)-/.test(file);

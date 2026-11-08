@@ -209,7 +209,7 @@
             try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
         /* 🛟 백 목록 백업 = 그 폴더 안에 (도련 11-07 · 스티커처럼) : 소품 / _목록_백업.json { 소품 · 벽지 · 책상판 } · 문구 / _목록_백업.json { 문구 } · 하루 한 번 · 목록 파일을 만든 뒤에만 */
-        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown', 'bcown', 'rfown'];   // 🛟 소품 · 문구 · 📔 다이어리 · 🧩 바인더 재료 (도련 11-07)
+        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown', 'bcown', 'rfown', 'sbown', 'rlown'];   // + 📥 받은 스티커바인더 · 이형지북 (도련 11-08)   // 🛟 소품 · 문구 · 📔 다이어리 · 🧩 바인더 재료 (도련 11-07)
         async function dkBackRead(w) {
             const F = KEY_FILES[w], dir = await getFolder(F.path, false), f = dir && await findFile(dir, DK_BB_NAME);
             if (!f) return null;
@@ -366,7 +366,7 @@
         }
         /* 🎁 그 밖의 처음 선물 (도련 11-06 · 상품공방 '처음선물' 체크 = 처음 온 다꾸러에게 · 앱은 상품공방이 체크한 것만 줘요)
            🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🧻 떡메 · 📃 속지 · 📝 메모지 · 🌸 계절 · 🎁 캡슐 = 그 종류 목록 (js/basket.js bkStarterSheets · 로그인 · 폴더 저장일 때)
-           📒 스티커바인더 · 🤍 이형지북 = 그 종류 스티커첩 (bkStarterTools) · 📓 페이지노트 · 🗂️ 페이지바인더 = 내가 만든 칸 (js/dymaker.js dmkStarter) */
+           📒 스티커바인더 · 🤍 이형지북 = 📥 받은 목록 (종류 없이 · bkStarterTools · 도련 11-08) · 📓 페이지노트 · 🗂️ 페이지바인더 = 내가 만든 칸 (js/dymaker.js dmkStarter) */
         async function dkStarterMore() {
             try { if (window.dmkStarter) await dmkStarter(); } catch (e) { console.warn('🎁 처음 선물 다이어리', e); }
             if (!window.ownTakeMany || !(window.ownMode && ownMode())) return;
@@ -1669,6 +1669,7 @@
         function dkVolOpen(id) {
             const a = dkvOf(id);
             if (a && a.t === 'pg') { if (deskAnim) return; if (dyNow().id !== id) dySet(id); dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary()); return; }   // 📓 🗂️ 페이지 다이어리 = 그 권 펼치기 (도련 11-06)
+            if (a && a.t !== 'dy' && !a.k) { showMsg(`${a.t === 'bd' ? '📒 아직 정리할 스티커를 정하지 않은 바인더예요.' : '🤍 아직 정리할 스티커를 정하지 않은 이형지북이에요.'}<br><span style="font-size:12px;color:#777;">정리하고 싶은 스티커 서랍 → 📒 정리하기에서 📥 불러와 써요</span>`); return; }   // 📥 종류 없는 책 = 안내만 (도련 11-08)
             if (a && a.t !== 'dy') { if (window.abOpenAt) abOpenAt(a.k, a.t, a.id); return; }   // 📒 🤍 = 그 종류 창에서 그 책 펼치기
             if (deskAnim || !window.dyySelect) return;
             if (id === dkyCur()) { deskOpenDiary(); return; }                       // 펼쳐 볼 권 = 바로

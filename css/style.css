@@ -3722,6 +3722,13 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ab-target { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 8px; font-size: 12px; color: #8a5a6e; }
 .ab-pick { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; max-width: 70%; padding: 0 14px; border: 1.5px solid #f2b8cb; border-radius: 19px; background: #fff; color: #8a4a64; font: inherit; font-size: 13.5px; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .ab-chip { flex: none; display: inline-block; width: 12px; height: 15px; border-radius: 2px 4px 4px 2px; background: var(--c1); box-shadow: inset 3px 0 0 var(--c2); }
+/* 📥 받아 둔 책 불러오기 (도련 11-08 · js/basket.js abFreeHtml) */
+.ab-free { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+.ab-freeb { display: flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 2px solid #f3a6c0; box-shadow: 0 3px 0 #f3a6c0; font: inherit; color: #6b3f55; cursor: pointer; }
+.ab-freeb b { font-weight: 400; }
+.ab-freeb small { color: #a0889a; font-size: 11px; }
+.ab-freeb:active { transform: translateY(2px); box-shadow: 0 1px 0 #f3a6c0; }
+.ab-freeb .ab-chip.rl { --c1: #f6f2fb; --c2: #c9b8e6; }
 .ab-chip.rl { border-radius: 2px; background: #f4f2f6; border: 1px solid #d9d0dc; box-shadow: none; }
 .ab-peelhint { padding: 16px 8px; margin-bottom: 10px; border: 1.5px dashed #f2c7d6; border-radius: 12px; text-align: center; font-size: 12.5px; color: #8a6a78; }
 .ab-peel { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid #ece6ee; border-radius: 12px; background: linear-gradient(135deg, #fdfdff, #f2f4fa); box-shadow: 0 3px 10px rgba(110,80,95,.16); max-height: 200px; overflow-y: auto; }

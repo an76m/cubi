@@ -10,6 +10,7 @@
              말랑달콤 / 다이어리 / 🔐 _목록.json · _목록_백업.json   📔 📕 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from gift · basic · mine · 노트 = 바로 · 바인더 = 조립하면 · 도련 11-07 · js/dyown.js)
                       / 다이어리 / 2026 분홍 1 / 2026-10-28.json · 표지.json · 검색.json · 다이어리.json   📔 날짜형 한 권 = 폴더 (노트 = 2026 분홍노트 1)
                       / 다이어리 / dk… / 다이어리.json · 표지.json · 3페이지.json · 검색.json   📕 페이지형 한 권 = 폴더 (권 id)
+                      / 스티커바인더 · 이형지북 / 🔐 _목록.json · _목록_백업.json   📥 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 책 (불러오면 그 종류 _스티커첩.json 으로 · 빈 책은 돌아와요 · 💤 · 도련 11-08)
                       / 바인더표지 · 바인더내지 / 🔐 _목록.json · _목록_백업.json   🧩 바인더 재료 (받거나 만든 표지 · 내지 · 조립하면 빠져요 · 💤 쓸 때 읽어요 · 981)
                       / 배경지 / 내-<id>.json · 내-목록1.json   📚 내가 만든 배경지 모음 (js/coll.js)
                       / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / _목록.json · _스티커첩.json · _백업 · <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)   🎒 유한 스티커 (js/own.js · 목록도 종류마다 · 11-05)
@@ -38,7 +39,7 @@
         const DIRS = {
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
             desk: '소품', gd: '문구', diary: '다이어리',   /* 📔 📕 다이어리 = 폴더 하나 · 한 권 = 그 안의 폴더 하나 (날짜형 · 페이지형 모두 · 도련 11-07) */   /* 🪑 ✏️ 소품 · 문구 = 폴더 하나씩 (도련 11-07 · 종류가 섞여 있어요 · 종류는 파일 안 상품 id · 벽지 · 책상판도 소품) */
-            pattern: '배경지', noteCover: '노트',   /* 📓 내가 만든 노트 한 권 설계도 (표지 + 내지 · 도련 11-07 이름 고침) */ binderCover: '바인더표지', refill: '바인더내지',
+            pattern: '배경지', noteCover: '노트',   /* 📓 내가 만든 노트 한 권 설계도 (표지 + 내지 · 도련 11-07 이름 고침) */ binderCover: '바인더표지', refill: '바인더내지', stkBinder: '스티커바인더', relBook: '이형지북',   /* 📥 받은 스티커바인더 · 이형지북 (종류 없이 · 도련 11-08) */
             stkList: '스티커목록', doll: '인형돌', puppet: '인형극',   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
@@ -287,6 +288,8 @@
             dyown: { path: DIARY_PATH, name: '_목록.json', prop: 'dyOwnFile' },   // 🔐 백 = 다이어리 / _목록.json : 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from · 도련 11-07 · 981 · 앱을 켤 때 읽어요 · js/dyown.js)
             bcown: { path: dirPath(DIRS.binderCover), name: '_목록.json', prop: 'bcOwnFile', lazy: 1 },   // 🧩 🔐 바인더표지 / _목록.json : 가진 표지 재료 (💤 조립 · 만들기 · 받을 때 · 981)
             rfown: { path: dirPath(DIRS.refill), name: '_목록.json', prop: 'rfOwnFile', lazy: 1 },        // 🧩 🔐 바인더내지 / _목록.json : 가진 내지 재료 (💤 · 981)
+            sbown: { path: dirPath(DIRS.stkBinder), name: '_목록.json', prop: 'sbOwnFile', lazy: 1 },   // 📥 🔐 스티커바인더 / _목록.json : 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 바인더 (불러오면 그 종류 _스티커첩.json 으로 · 💤 · 도련 11-08 · js/basket.js FR)
+            rlown: { path: dirPath(DIRS.relBook), name: '_목록.json', prop: 'rlOwnFile', lazy: 1 },     // 📥 🔐 이형지북 / _목록.json : 같은 방식 (도련 11-08)
             bgown: { path: dirPath(DIRS.pattern), name: '_목록.json', prop: 'bgOwnFile', lazy: 1 },  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
             binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
 
@@ -306,6 +309,8 @@
             dyown: ['diary_own', 'diary_book_n', 'diary_books'],   /* diary_books = 페이지형 규격 → 권 (982 · 여러 권을 잇는 표라 목록에) */                                                              // 🔐 다이어리 / _목록.json : 권마다 한 줄 · 날짜형 권 번호 (펼친 권 'diary_year' 는 설정.json · js/dyown.js)
             bcown: ['diary_cover_own'],                                                                       // 🧩 바인더표지 / _목록.json
             rfown: ['diary_refill_own'],                                                                      // 🧩 바인더내지 / _목록.json
+            sbown: ['diary_sbd_own'],                                                                         // 📥 스티커바인더 / _목록.json
+            rlown: ['diary_rlb_own'],                                                                         // 📥 이형지북 / _목록.json
             bgown: ['diary_bg_own'],                                                                          // 🔐 배경지 / _목록.json (💤 lazy)
             binown: ['diary_bin'],                                                                            // 🔐 _휴지통목록.json (js/bin.js)
 
