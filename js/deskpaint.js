@@ -4,7 +4,7 @@
    - 외곽선(어두운 선)은 칠 위에 그대로 다시 얹어서 진짜 칠한 것처럼 보여요
    - 닫기 = 칠한 모습을 그림 한 장으로 합쳐 책상에 미리 보여 줘요 (어울리는지 전체로 보기 · 다시 열면 이어서 칠해요 · 도련 10-28)
      🛠 책상 꾸미기 하단 ✔ 완료 = 그 소품의 원래 파일에 덮어써요 (js/desk.js dkArtDraft · dkArtCommit) · ✕ 취소 = 처음 그림
-       종류 폴더 / 받은-<c>.json 의 item = 🔐 { s: 암호 } → 열면 { u, id, from, img } (스티커처럼 계정마다 다른 열쇠) · 🎁 기본세트 소품은 처음 칠할 때 선물.json 에서 빠져 종류 폴더에 자기 파일이 생겨요
+       소품 / 받은-<c>.json 의 item = 🔐 { s: 암호 } → 열면 { u, id, from, img } (스티커처럼 계정마다 다른 열쇠) · 🎁 처음 선물 소품은 처음 칠할 때 소품 폴더에 자기 파일이 생겨요 (목록 줄은 그대로 from 선물)
        목록(배치.json)에는 p: 1 (칠함) 만 · 그림은 그 파일에서 읽어요 (js/desk.js dkArtLoad)
    - 창마다 완료는 없어요 : 완료는 하단 하나 · 닫기 = 오른쪽 위 ✕ 하나 (도련 10-28) */
 
@@ -127,7 +127,7 @@
             const o = DP.o; dpClose();
             try { await dkArtDraft(o, url); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 꾸민 소품을 저장하지 못했어요.'); }
         }
-        /* 저장 : 그 소품의 종류 폴더 파일에 덮어쓰기 (🎁 선물이면 처음 한 번 선물.json 에서 빼고 파일 만들기) */
+        /* 저장 : 그 소품의 받은- 파일에 덮어쓰기 (🎁 선물이라 파일이 없으면 처음 한 번 파일 만들기) */
         async function dpSave(o, url) {
             const C = dkColl(o.id); if (!C) throw new Error('coll');
             const gift = !!o.g;

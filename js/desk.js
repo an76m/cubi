@@ -18,11 +18,11 @@
    - 📦 내 소품 (도련 10-27) : 처음엔 기본 세트 선물(DESK_ITEMS 중 nost 가 아닌 것 · 책상 위) · 🏪 기본상품 샵 '책상 소품'에서 더 받으면 📦 소품 보관함으로 (같은 것도 여러 개 · 받기 전에 물어봐요)
        보관함 ↔ 책상 · 🗑 버리기 = 🛠 책상 꾸미기에서 (▤ 하단 메뉴 화면이면 📦 소품 보관함 창) · 버린 것은 기본상품 샵에서 다시 받아요
    - 저장 (도련 10-27)
-       설정 / 🔐 _소품목록.json 'diary_desk_own' [{u: 하나하나 id, id: 소품, c: 종류 폴더 파일 id, g · p · cs · tag}] (가진 것 전부) · 📍 배치.json 'diary_desk_pos' {u: {x, y, lz, fl, lp, lb, on}} (책상 위에 놓인 것만) · ⚙ 책상설정.json 'diary_desk_fn' {기능: u} (js/drive.js DESK_FILE_KEYS · 게스트는 이 기기 · 도련 11-06)
-       종류 폴더 (서랍장 · 시계 … js/drive.js DESK_DIRS · 소품의 kind) / 받은-<c>.json = 가진 소품 하나에 파일 하나 (js/coll.js 모음 · 뒤에서 차례로 올려요)
-         기본 세트 선물 · 기본상품 샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
-       🎁 기본세트 (도련 10-27 · 서비스 = 예외) : 처음 한 번 받는 책상 소품 + 문구 (+ 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 처음 다이어리 · 11-05) 는 종류 폴더가 아니라 설정 / _선물.json 한 파일 (g: 1 · 첫 접속 요청 3~4번)
-         버리면 선물.json 에서 빠져요 (다 비면 파일도 지워요) · 그 뒤에 받는 것부터 종류 폴더 · 배치.json 이 없어지면 🛟 되살리기 (giftEnsure)
+       소품 / 🔐 _목록1.json … 'diary_desk_own' [{u: 하나하나 id, id: 소품, c: 받은- 파일 id, g · p · cs · tag}] (가진 것 전부 · 💤 dkOwnReady · 03_저장지도 1-1) · 📍 배치.json 'diary_desk_pos' {u: {x, y, lz, fl, lp, lb, on}} (책상 위에 놓인 것만) · ⚙ 책상설정.json 'diary_desk_fn' {기능: u} (js/drive.js DESK_FILE_KEYS · 게스트는 이 기기 · 도련 11-06)
+       소품 / 받은-<c>.json = 가진 소품 하나에 파일 하나 (종류가 섞여요 · 종류 = 파일 안 상품 id · DESK_DIRS 는 이름 표 · js/coll.js · 뒤에서 차례로 올려요)
+         기본상품 샵 · 나중에 유료 · 이벤트 · 공유 = 받은- · 내가 만든 것 = 내- · 버리면 그 파일도 지워요
+       🎁 처음 선물 (도련 11-07 · 선물 폴더 · _선물.json 없음) : 처음 한 번 받는 책상 소품 + 문구 (+ 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 처음 다이어리) = 그 목록에 한 줄 (from 선물 · g: 1) · 받은- 파일은 없어요
+         버리면 목록에서 빠져요 · 처음 선물을 줬다 = 설정.json diary_gifted · 목록 · 배치.json 이 없어지면 🛟 되살리기 (giftEnsure)
        기본 세트의 u = 소품 id (그래서 처음 기능 연결이 그대로 맞아요) · 선물이 아닌데 파일이 아직 없는 것(c 없음)은 드라이브를 읽은 뒤 만들어요
    ※ 소품 종류 = DESK_ITEMS (기본상품 샵 카탈로그) */
 
@@ -73,7 +73,7 @@
         const DK = { s: 1, sel: null, zone: null, snap: dkGet(DK_SNAP, true), base: {}, items: [], seen: '', art: {} };   // art = 🎨 칠한 그림 {u: 그림} (종류 폴더 파일에서 읽어 둔 것)   // base = 저장한 자리 (화면이 좁아 당겨 보여 줘도 그대로)
 
         /* 📦 내 소품 목록 */
-        /* 💾 저장은 둘로 나눠요 (도련 11-06) : 🔐 _소품목록.json 'diary_desk_own' = 가진 소품 전부 (이게 '가진 것') · 📍 배치.json 'diary_desk_pos' = 책상 위에 놓인 것의 자리만 { u: { x, y, lz, fl, lp, lb, on } }
+        /* 💾 저장은 둘로 나눠요 (도련 11-06) : 🔐 소품 / _목록N.json 'diary_desk_own' = 가진 소품 전부 (이게 '가진 것') · 📍 배치.json 'diary_desk_pos' = 책상 위에 놓인 것의 자리만 { u: { x, y, lz, fl, lp, lb, on } }
            · 화면 · 코드는 예전처럼 DK.items 하나 (at : 'desk' = 배치에 있음 · 'box' = 없음) · 목록에 없는 자리는 버려요 (목록이 진짜) · 보관함에서 꺼내면 그 소품 처음 자리라 보관함 자리는 안 남겨요 */
         const DK_OWN_KEY = 'diary_desk_own', DK_OWN_LOCAL = 'malang_desk_own', DK_POS_KEY = 'diary_desk_pos', DK_POS_LOCAL = 'malang_desk_pos';
         const DK_SPOT = ['x', 'y', 'lz', 'fl', 'lp', 'lb', 'on'];                  // 자리 · 놓인 모습 (배치.json) · 나머지(u · id · c · g · p · cs · tag)는 목록
@@ -157,8 +157,8 @@
         const dkKN = k => ({ basket: '바구니' })[k] || (DESK_ITEMS.find(d => d.kind === k && d.kn) || {}).kn || dkDirOf(k);         // 소품함에 보일 종류 이름 (폴더는 '소품바구니' · 🧺 스티커 바구니와 헷갈리지 않게 · 도련 10-28)
         const dkColl = id => { const c = dkCat(id); if (!(typeof collOf === 'function' && c && typeof DESK_DIRS !== 'undefined')) return null; const C = collOf(dirPath(DIRS.desk), '받은-'); C.noIdx = true; return C; };   // 🪑 소품 폴더 하나 (종류가 섞여요 · 원본 파일만 · 가진 것 = 소품 / _목록N · 도련 11-07)
         const dkAdding = new Set();                                                // 파일을 만드는 중인 소품 u (두 번 만들지 않게)
-        /* 🔐 종류 폴더 파일 내용 · 선물.json 은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js)
-              파일 안에 고유 번호 u · 목록(배치.json · 암호화)에 있는 u 만 내 것 · 같은 u 는 하나만 */
+        /* 🔐 받은- 파일 내용은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js)
+              파일 안에 고유 번호 u · 목록(소품 / _목록N · 암호화)에 있는 u 만 내 것 · 같은 u 는 하나만 */
         const dkSeal = async o => ({ s: await ownLock(o) });
         const dkUnseal = async it => it && typeof it.s === 'string' ? ownUnlock(it.s) : null;
         async function dkFileAdd(o, from) {
@@ -182,8 +182,7 @@
         function giftWrite() { return Promise.resolve(); }                       // (예전 _선물.json 다시 쓰기 · 이제 할 일 없음)
         /* 📖 되살리기는 여러 곳(책상 · 벽지 · 배경지 · 다이어리)이 한꺼번에 물어요 → 30초 안에는 한 번만 읽어요 (도련 11-06 · 쓰면 잊어요) */
         const dkMemo = (fn, ms) => { let p = null, at = 0; const get = () => { if (!p || Date.now() - at > ms) { at = Date.now(); p = fn(); p.catch(() => { p = null; }); } return p; }; get.forget = () => { p = null; }; return get; };
-        /* 되살리기에 넘기는 모습 (예전 선물.json 모양 · 주소 → { u, id }) : 없으면 null */
-        /* 되살리기에 넘기는 처음 선물 (예전 선물.json 모양) = 백업 속 from 선물 : 처음 선물을 준 적이 없으면 null */
+        /* 되살리기에 넘기는 처음 선물 = 백업 속 from 선물 : 처음 선물을 준 적이 없으면 null */
         async function giftRead() {
             if (!giftGiven()) return null;
             const bk = await dkBackupRead().catch(() => null) || {};
@@ -198,9 +197,9 @@
                 dy: (Array.isArray(bk.diary_own) ? bk.diary_own : []).filter(x => x && x.from === 'gift') };   // 📚 권마다 한 줄 (날짜형 · 페이지형 · 981)
         }
         /* 🛟 되살리기 (도련 10-27 · 스티커 ownRescue 와 같게) : 배치.json 이 없어지거나 깨지면
-             가진 것 = 종류 폴더의 내 파일(🔐 열리는 것만 · 같은 u 는 하나) + 선물.json · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
+             가진 것 = 소품 · 문구 폴더의 받은- 파일(🔐 열리는 것만 · 같은 u 는 하나) + 백업 속 from 선물 (giftRead) · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
              → 지금 가진 것만 살아나요 (버린 것은 파일이 없어서 안 살아나요 · 📦 zip 백업과는 달라요)
-             처음 온 사람(선물.json · 백업 둘 다 없음)은 폴더를 뒤지지 않고 바로 선물 */
+             처음 온 사람(diary_gifted · 백업 둘 다 없음)은 폴더를 뒤지지 않고 바로 선물 */
         const DK_BK_NAME = '_백업.json', DK_BK_LS = 'malang_desk_bk';   // 🛟 설정 폴더 (도련 11-06 · 소품 · 문구 · 다이어리 · 배경지 목록 + 자리 · 책상 설정)
         async function dkBackupRead0() {                                           // 못 닿으면 에러 · 없거나 못 여는 백업은 null
             const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, DK_BK_NAME);
@@ -289,7 +288,7 @@
             (had && Array.isArray(had.desk) ? had.desk : []).forEach(g => add({ u: g.u, id: g.id, g: 1 }, 'desk'));
             return out;
         }
-        /* 드라이브를 읽은 뒤 : 소품 · 문구 목록이 아직 없으면 → 되살리기 (선물.json · 백업 · 종류 폴더) · 아무것도 없으면 처음 선물 (책상 소품 모두 + 문구 모두) */
+        /* 드라이브를 읽은 뒤 : 소품 · 문구 목록이 아직 없으면 → 되살리기 (백업 · 백업 속 선물 · 소품 · 문구 폴더) · 아무것도 없으면 처음 선물 (책상 소품 모두 + 문구 모두) */
         let giftBusy = false;
         /* 🛟 _휴지통목록.json · _내정보.json 이 없어졌으면 = _백업.json 에서 (도련 11-06 · 하루 한 번만 물어봐요 · 처음 온 다꾸러는 안 물어요) */
         const DK_KR = { binown: ['diary_bin'], me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts'] };
@@ -321,7 +320,7 @@
                 if (giftOn()) {
                     try { had = await giftRead(); bk = await dkBackupRead(); }
                     catch (e) { console.warn('기본세트 · 되살리기', e); return; }   // 못 읽으면 다음에 (선물을 두 번 주지 않게)
-                    if (drive.deskLocked) {                                       // 🔐 배치.json 이 깨졌어요 : 내 선물.json · 백업이 열리면(내 열쇠가 맞아요) 되살려서 새로 쓰고 · 아니면 그대로 둬요 (남의 파일일 수 있어요)
+                    if (drive.deskLocked) {                                       // 🔐 배치.json 이 깨졌어요 : 내 백업이 열리면(내 열쇠가 맞아요) 되살려서 새로 쓰고 · 아니면 그대로 둬요 (남의 파일일 수 있어요)
                         DK.lockTried = true;
                         if (!had && !bk) { if (window.showMsg) showMsg('🔐 책상 정보(설정 폴더의 책상 · 목록 파일)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>'); return; }
                         drive.deskLocked = false; DK.fresh = true;
@@ -347,7 +346,7 @@
                         (had && Array.isArray(had.gd) ? had.gd : []).forEach(id => { if (!seen.has(id)) { seen.add(id); L.push({ u: id, id, g: 1 }); } });   // 🎁 선물 = u 가 디자인 id
                         gdSetList(L);
                         if (lostG) diag('rescue', { w: 'gd', n: L.length });
-                    } else if (window.gdSetList) { gdSetList((window.gdStarter ? gdStarter() : []).map(id => ({ u: id, id, g: 1 }))); giftMark(); }   // 🎁 처음 온 다꾸러 = 핀셋 + 필기구 5 (선물.json · 나머지는 🏪 기본상품 샵 · 도련 11-01)
+                    } else if (window.gdSetList) { gdSetList((window.gdStarter ? gdStarter() : []).map(id => ({ u: id, id, g: 1 }))); giftMark(); }   // 🎁 처음 온 다꾸러 = 핀셋 + 필기구 5 (문구 목록 from 선물 · 나머지는 🏪 기본상품 샵 · 도련 11-01)
                 }
                 if (back) setTimeout(dkBackupWrite, 1500);                           // 🛟 되살렸거나 선물 그대로 = 하루 한 번 백업도 (도련 11-07)
             } finally { giftBusy = false; }
@@ -726,7 +725,7 @@
                 dkSave();
                 deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
             },
-            purge: e => { if (!e.o.g) dkFileDel(e.o); }                          // 🔥 종류 폴더 파일 (🎁 선물은 선물.json 에서 이미 빠졌어요)
+            purge: e => { if (!e.o.g) dkFileDel(e.o); }                          // 🔥 소품 폴더 받은- 파일 (🎁 선물은 파일이 없어요 · 칠한 선물은 c 가 있어서 지워요)
         };
         /* 🏪 기본상품 샵에서 받기 (js/basket.js) : 'have' = 이미 있어요 (묻고 나서 force) · 'ok' = 📦 보관함에 넣었어요 */
         async function deskGive(id, force) {

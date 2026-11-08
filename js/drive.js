@@ -304,7 +304,7 @@
         const DESK_FILE_KEYS = {
             desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 🎀 정리함에 꽂힌 롤 · 👝 보관함에서 펜꽂이에 꽂은 필기구 (도련 11-06) · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
             dkown: ['diary_desk_own', 'diary_skin_own'],   /* 소품 + 🧱 🪵 벽지 · 책상판 (지금 고른 것은 책상설정.json 'diary_desk_skin') */                                                                        // 🔐 _소품목록.json
-            gdown: ['diary_gd_own'],                                                                          // 🔐 _문구목록.json
+            gdown: ['diary_gd_own'],                                                                          // 🔐 문구 / _목록N.json
             deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got'],                                 // ⚙ 책상설정.json
             dyown: ['diary_own', 'diary_book_n', 'diary_books'],   /* diary_books = 페이지형 규격 → 권 (982 · 여러 권을 잇는 표라 목록에) */                                                              // 🔐 다이어리 / _목록.json : 권마다 한 줄 · 날짜형 권 번호 (펼친 권 'diary_year' 는 설정.json · js/dyown.js)
             bcown: ['diary_cover_own'],                                                                       // 🧩 바인더표지 / _목록.json
@@ -818,7 +818,7 @@
             drive.newbie = !drive.rootId; diag('start', { mode: drive.local ? 'folder' : 'google', newbie: drive.newbie ? 1 : 0 });   // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
             drive.deskLocked = false;
-            const [desks, backs] = await Promise.all([fetchDeskFiles(), drive.newbie ? Promise.resolve(DESK_START2.map(() => null)) : Promise.all(DESK_START2.map(w => fetchKeyFile(w).catch(e => { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; })))]);   // ✏️ 백 문구 목록도 같이 (동시에)                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 선물.json · 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
+            const [desks, backs] = await Promise.all([fetchDeskFiles(), drive.newbie ? Promise.resolve(DESK_START2.map(() => null)) : Promise.all(DESK_START2.map(w => fetchKeyFile(w).catch(e => { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; })))]);   // ✏️ 백 문구 목록도 같이 (동시에)                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
             drive.gen++;
             store.clear();

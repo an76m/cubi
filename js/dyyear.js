@@ -77,7 +77,7 @@
             if (nt !== dyyLastNote) { dyyLastNote = nt; if (typeof refreshLayout === 'function') setTimeout(refreshLayout, 0); }
         }
         /* 새 권 id (그 해 그 색 번호는 늘 새로 · 버린 것 · 되살린 것과 안 겹쳐요) */
-        /* 💤 mem = 메모리에만 (도련 11-07 · 🆕 처음 선물 · 아직 안 바뀐 선물 = _다이어리목록.json 을 만들지 않아요 · 선물은 _선물.json · 바뀔 때 prefSet 이 파일을 만들어요) */
+        /* 💤 mem = 메모리에만 (도련 11-07 · 🆕 처음 선물 · 아직 안 바뀐 선물 = 다이어리 / _목록.json 을 만들지 않아요 · 바뀔 때 prefSet 이 파일을 만들어요) */
         const dyyPut = (k, l, v, mem) => { if (mem && dyyOnline()) store.putLoaded(k, JSON.stringify(v)); else prefSet(k, l, v); };
         const dyyLineNew = (id, from, ex) => Object.assign({ id, t: 'date', from, at: dyoDay() }, ex || {});
         /* 🗂️ 날짜형바인더 재료 (샵 · 첫 선물) : 해가 적힌 표지 + 날짜 내지 (해 없음 · 끼운 표지를 따라가요) */
@@ -126,7 +126,7 @@
         }
         let dyyBusy = false;
         const dyyIsGift = id => { const I = dyyLine(id); return !!I && I.from === 'gift' && !I.f; };
-        const dyyGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // 🎁 선물.json 다시 쓰기 (js/desk.js)
+        const dyyGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // (예전 _선물.json 다시 쓰기 자리 · 지금은 할 일 없음 · js/desk.js giftWrite)
         window.dyyGiftOwn = () => dyyIds().filter(dyyIsGift);
         function dyyGift() {                                                   // 🎁 처음 선물 (상품 속성 '처음선물' · 도련 11-04) · 다이어리 목록에 바로 (from gift · 바인더는 조립된 채로 · 981)
             const y = dyyThis(), G = DY_DESIGNS.filter(d => d.gift), ids = G.map(d => dyyNewId(y, d)), fl = G.findIndex(d => d.float);
@@ -322,7 +322,7 @@
             if (open && typeof isCoverOpen !== 'undefined' && isCoverOpen && !turn && typeof saveData === 'function') saveData(false);
             const ln = dyyLine(b.id); dyoDel(b.id);
             await binAdd({ k: 'dy', id: b.id, ln });                           // 줄째 (표지 · 내지 · from)
-            if (dyyIsGift(b.id)) dyyGiftTell();                                // 🎁 선물.json 에서 빠져요
+            if (dyyIsGift(b.id)) dyyGiftTell();                                // (예전 _선물.json 자리 · 목록에서 빠지는 걸로 끝)
             if (window.dkDeskBooks) dkDeskBooks();                             // 📔 책상에서도 사라져요
             const next = dyyBook();
             if (open) { if (next) { dyyOpenSet(next.id); if (dyyBasic()) dyyReload(); } else dyyShut(); }

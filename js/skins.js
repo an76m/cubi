@@ -1373,14 +1373,14 @@
         const cabK = id => id.split(':')[1];
         const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
         /* ✏️ 내 문구 (도련 10-27) : 처음엔 🎁 핀셋 + 필기구 5 (GD_STARTER · 도련 11-01) · 나머지는 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요 (→ 휴지통 30일 · gdBin)
-           저장 : 설정 / 🔐 _문구목록.json 'diary_gd_own' [{id: 디자인, c: 종류 폴더 파일 id} | {id, g: 1 = 🎁 기본세트 선물}] (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
-                  🎁 처음 선물은 설정 / _선물.json 한 파일 (서비스 · 예외 · 버리면 거기서 빠져요)
-                  종류 폴더 (핀셋 · 가위 … ✏️ 색연필 · 형광펜 · 지우개도 · 도련 11-05 · js/drive.js GD_DIRS) / 받은-<c>.json = 가진 문구 하나에 파일 하나 (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
+           저장 : 문구 / 🔐 _목록1.json … 'diary_gd_own' [{u, id: 디자인, c: 받은- 파일 id} | {u, id, g: 1 = 🎁 처음 선물}] (03_저장지도 1-1) (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
+                  🎁 처음 선물 = 목록 한 줄만 (from 선물 · 받은- 파일 없음 · 버리면 목록에서 빠져요)
+                  문구 / 받은-<c>.json = 가진 문구 하나에 파일 하나 (종류가 섞여요 · GD_DIRS 는 이름 표 · 도련 11-07) (js/coll.js · 기본 · 유료 · 이벤트 · 공유 모두 같은 폴더)
            페이지에 꺼내 둔 것은 못 버려요 (마지막 하나도 버릴 수 있어요) */
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
         /* ✏️ 문구도 같은 것을 여러 개 (도련 11-07 · 현실처럼 · 10-28 에 정한 것) : 한 칸 = { u : 하나하나 id (처음 것 · 선물 = 디자인 id 그대로), id : 디자인, c : 파일, g : 선물 }
              문구함 · 페이지 · 문구의 집은 디자인마다 (같은 것은 한곳에 모여요 · 문구함에 ×2) · 버리면 하나씩 */
-        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => { const u = typeof o.u === 'string' && o.u ? o.u : o.id, g = !!(o.g || o.from === 'gift'); delete o.g; delete o.from; return Object.assign(o, { u }, g ? { g: 1 } : {}); }).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };   // 🎁 선물 = _선물.json 주소
+        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => { const u = typeof o.u === 'string' && o.u ? o.u : o.id, g = !!(o.g || o.from === 'gift'); delete o.g; delete o.from; return Object.assign(o, { u }, g ? { g: 1 } : {}); }).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };   // 🎁 선물 = 목록 한 줄 (from 선물)
         const gdCount = id => (gdOwnList() || []).filter(o => o.id === id).length;
         const gdNewU = id => id + '~' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);   // 받은 것 = 늘 새 번호 (선물 u = 디자인 id 와 안 겹쳐요)   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };

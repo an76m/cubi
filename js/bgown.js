@@ -3,9 +3,9 @@
    - 🌈 배경지 창의 '기본' 칸 = 내 배경지 보관함 (받은 것만) · 처음 온 다꾸러는 상품공방에서 '처음선물'에 체크한 배경지를 들고 시작해요 (도련 11-06 · 앱이 정하지 않아요)
    - 내 배경지 'diary_bg_own' [{ u: 하나하나 id, p: 배경지 id (js/patterns.js BG_PATTERNS = 서버 상품), c: 파일 id }] (🔐 배경지 / _목록.json · 게스트는 이 기기 · 도련 11-07)
        · 💤 앱을 켤 때 안 읽어요 (폰 · 책상 모두 · 지금 깐 배경지는 설정.json) → 🌈 배경지 창 · 🏪 샵 받기 · 🗑 버리기 · 되돌리기 때 bgoReady 가 한 번 읽어요 (js/drive.js keyFileLoad)
-       · 🆕 처음 온 다꾸러 = 선물 배경지는 _선물.json 에만 · 목록 파일은 받기 · 버리기처럼 바뀔 때 처음 생겨요 (첫 접속자에게 필요한 파일만 · 도련 11-07)
-       · 목록 파일이 없으면 = 되살리기 (배경지 폴더 파일 + _백업.json + _선물.json) · 선물뿐이면 메모리에만 (파일을 만들지 않아요)
-       · 🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 배경지 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 내가 만든 배경지 = 내-) · 🎁 처음 선물(g: 1)은 설정 / _선물.json (첫 접속 요청 줄이기)
+       · 🆕 처음 온 다꾸러 = 선물 배경지가 있으면 첫 접속에 바로 _목록.json 한 줄씩 (from 선물 · 받은- 파일 없음 · 선물이 없으면 목록 파일도 안 만들어요 · 도련 11-07)
+       · 목록 파일이 없으면 = 되살리기 (배경지 폴더 파일 + _백업.json + 백업 속 from 선물 · js/desk.js giftRead)
+       · 🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 배경지 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 내가 만든 배경지 = 내-) · 🎁 처음 선물(g: 1)은 목록 한 줄만 (파일 없음 · 03_저장지도 0)
        · 설정.json 에 목록이 없어지면 = 배경지 폴더 파일로 되살려요 · 🗑 버리면 휴지통 30일 → 파일 삭제
    - 쓰던 배경지를 버려서 같은 배경지가 하나도 안 남으면 배경을 빼요
    ※ js/skins.js · js/bin.js 다음에 읽어요 (patItems · patCatsPaint · renderPatternList 가 여기 함수를 불러요 · js/basket.js 샵) */
@@ -29,10 +29,10 @@
             const L = bgoOwned(), t = L.find(x => x.u === it.u); if (t && !t.c) { t.c = c; bgoSet(L); }
         }
 
-        const bgoGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // 🎁 선물.json 다시 쓰기 (js/desk.js)
-        window.bgoGiftOwn = () => bgoHas() ? bgoOwned().filter(x => x.g).map(x => ({ u: x.u, p: x.p })) : null;   // null = 아직 몰라요 (_선물.json 의 배경지 칸은 그대로 · js/desk.js giftWrite)
-        function bgoGift() { const L = bgoFirst().map(x => Object.assign(x, { g: 1 })); if (L.length) bgoSet(L); else bgoMem(L); }   // 🎁 선물도 배경지 / _목록.json 에 (없으면 파일을 안 만들어요 · 도련 11-07)   // 🎁 선물은 _선물.json 주소 (목록 파일은 안 만들어요 · 도련 11-07)   // 🎁 선물은 _선물.json 에 (목록 파일은 안 만들어요 · 도련 11-07)
-        async function bgoRescue() {                                           // 🛟 로그인했는데 목록이 없으면 = 배경지 폴더 + 선물.json (있으면 되살리기 · 처음 온 다꾸러만 선물)
+        const bgoGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // (예전 _선물.json 다시 쓰기 자리 · 지금은 할 일 없음 · js/desk.js giftWrite)
+        window.bgoGiftOwn = () => bgoHas() ? bgoOwned().filter(x => x.g).map(x => ({ u: x.u, p: x.p })) : null;   // null = 아직 몰라요
+        function bgoGift() { const L = bgoFirst().map(x => Object.assign(x, { g: 1 })); if (L.length) bgoSet(L); else bgoMem(L); }   // 🎁 선물도 배경지 / _목록.json 에 (선물이 없으면 파일을 안 만들어요 · 도련 11-07)
+        async function bgoRescue() {                                           // 🛟 로그인했는데 목록이 없으면 = 배경지 폴더 + 백업 속 선물 (있으면 되살리기 · 처음 온 다꾸러만 선물)
             const had = window.deskGiftRead ? await deskGiftRead() : null, bk = window.deskBackupRead ? await deskBackupRead().catch(() => null) : null;
             const lost = keyMade('bgown') || (bk && Array.isArray(bk.diary_bg_own) && bk.diary_bg_own.some(x => x && !x.g && x.from !== 'gift'));   // 📝 목록 파일을 만든 적이 있어요 (또는 백업에 받은 것) = 없어진 것 · 아니면 아직 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
             const F = lost ? await ofScan(DIRS.pattern) : [];                    // 못 읽으면 에러 → 다음에 다시
@@ -41,7 +41,7 @@
             const bkL = bk && Array.isArray(bk.diary_bg_own) ? bk.diary_bg_own.filter(x => x && x.u && typeof x.p === 'string' && !gone.has(x.u)) : null;   // 🛟 설정 / _백업.json (도련 11-06 · _배경지목록.json 이 없어졌어요)
             const L = (bkL || []).concat(F.filter(f => !gone.has(f.u) && !(bkL || []).some(x => x.u === f.u)).map(f => ({ u: f.u, p: f.id, c: f.c })))
                 .concat((had && Array.isArray(had.bg) ? had.bg : []).filter(g => g && g.u && typeof g.p === 'string' && !gone.has(g.u) && !F.some(f => f.u === g.u) && !(bkL || []).some(x => x.u === g.u)).map(g => ({ u: g.u, p: g.p, g: 1 })));
-            if (!L.length && !(had && Array.isArray(had.bg)) && !bkL) { bgoGift(); return; }   // 선물.json 에 배경지 칸이 있는데 비었으면 = 다 버린 사람
+            if (!L.length && !(had && Array.isArray(had.bg)) && !bkL) { bgoGift(); return; }   // 백업에 배경지 칸이 있는데 비었으면 = 다 버린 사람
             if (L.length) { bgoSet(L); diag('rescue', { w: 'bg', n: L.length }); } else bgoMem(L);   // 🛟 목록 파일을 다시 만들어요 (선물도 · 도련 11-07)
         }
         /* 💤 배경지 목록 준비 (도련 11-07) : 쓰기 전에 꼭 (창 · 샵 · 버리기 · 되돌리기) · 한 번 읽으면 그대로 */
@@ -62,12 +62,12 @@
             bgoP.catch(e => { console.warn('🌈 배경지 목록', e); if (bgoP && bgoPGen === gen) bgoP = null; });
             return bgoP;
         }
-        /* 드라이브를 읽은 뒤 (js/drive.js applyLoadedData) : 💤 목록은 읽지 않아요 · 게스트 · 🆕 처음 온 다꾸러만 선물을 메모리에 (_선물.json 에 적히게) */
+        /* 드라이브를 읽은 뒤 (js/drive.js applyLoadedData) : 💤 목록은 읽지 않아요 · 게스트 · 🆕 처음 온 다꾸러만 바로 선물 (목록 한 줄씩) */
         function bgoSync() {
             bgoP = null;
             if (bgoHas()) return;
             if (!bgoOnline()) { bgoSet(bgoFirst()); return; }   // 👤 게스트 = 이 기기 목록만
-            if (drive.newbie) { bgoGift(); drive.lazyOn.add('bgown'); (drive.keyNone = drive.keyNone || new Set()).add('bgown'); }   // 🆕 처음 온 다꾸러 = 뒤지지 않고 바로 선물 (메모리 · _선물.json) · 목록 파일이 없는 걸 알아요 (찾지 않아요)
+            if (drive.newbie) { bgoGift(); drive.lazyOn.add('bgown'); (drive.keyNone = drive.keyNone || new Set()).add('bgown'); }   // 🆕 처음 온 다꾸러 = 뒤지지 않고 바로 선물 (목록 한 줄씩) · 목록 파일이 없는 걸 알아요 (찾지 않아요)
         }
         /* 🌈 배경지 창 '기본' 칸 (js/skins.js patItems) : 받은 것 (같은 것도 따로 · 새로 받은 것이 앞) */
         function bgoItems(sub) {
