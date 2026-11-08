@@ -1,36 +1,123 @@
-/* 📸 포토부스 거리 (도련 11-08 · js/boothroom.js) : 길 그림을 크게 + 살짝 흐리게 = 뒤 · 포토부스 그림 = 앞 · 📟 LED 간판 · 📺 브라운관 화면 */
-.bth-room { position: fixed; inset: 0; z-index: 1500; display: none; overflow: hidden; background: #f6e3ea; }
-.bth-room.show { display: block; animation: bthIn .5s ease both; }
-@keyframes bthIn { from { opacity: 0; } }
+/* 📸 포토부스 (도련 11-08 · js/boothroom.js) : 앞 = 포토부스 그림 + css 배경 (테마로 바꿔요) · 안 = 화면 전체 (화면 + 아날로그 버튼) · 인쇄 = 출력구에서 찌이익 → 정면에 */
+.bth-room { position: fixed; inset: 0; z-index: 1500; display: none; overflow: hidden; --floor: 80vh; --bx: 50vw; --bw: 400px; }
+.bth-room.show { display: block; }
 .bth-room button { font-family: inherit; cursor: pointer; }
-.bth-bg { position: absolute; max-width: none; user-select: none; -webkit-user-drag: none; filter: blur(3px) saturate(.92) brightness(1.03); }
-.bth-room::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, transparent 38%, rgba(70, 40, 60, .22) 100%); }   /* 가장자리 살짝 어둡게 = 포토부스에 눈이 가요 */
-.bth-booth { position: absolute; z-index: 2; filter: drop-shadow(0 18px 18px rgba(80, 40, 70, .25)); }
+body.bth-on #moveModal { z-index: 1550 !important; }                                 /* 이동 창은 포토부스 위에 (도련 11-08 : 이동 단추가 안 되는 것처럼 보였어요) */
+
+/* ==================== 🎨 배경 테마 ====================
+   .bth-wall = 벽 (바닥선 위) · .bth-floor = 바닥 · .bth-glow = 포토부스 뒤 불빛 · .bth-deco = 위 장식 · 바닥선 = --floor · 포토부스 가운데 = --bx
+   새 테마 = 아래 [data-th="이름"] 덩어리 하나 + js 의 BTH_THEME 이 그 이름을 돌려주면 돼요 (예 크리스마스 = 'xmas') */
+.bth-set { position: absolute; inset: 0; transition: filter .35s ease; }
+.bth-set > i { position: absolute; display: block; pointer-events: none; }
+.bth-wall { left: 0; right: 0; top: 0; height: var(--floor); }
+.bth-floor { left: 0; right: 0; top: var(--floor); bottom: 0; overflow: hidden; }
+.bth-floor::before { content: ''; position: absolute; left: -60%; right: -60%; top: 0; height: 260%; transform-origin: 50% 0; transform: perspective(520px) rotateX(58deg); }   /* 바닥 무늬 = 원근 */
+.bth-floor::after { content: ''; position: absolute; left: calc(var(--bx) - var(--bw) * .62); width: calc(var(--bw) * 1.24); top: -2vh; height: 9vh; border-radius: 50%; background: radial-gradient(closest-side, rgba(70, 30, 60, .3), transparent); }   /* 포토부스 그림자 */
+.bth-glow { inset: 0; }
+.bth-deco { left: 0; right: 0; top: 0; height: 15vh; }
+
+/* 🌸 기본 'base' = 레트로 오락실 골목 : 연분홍 벽돌 벽 · 민트 아래 벽판 · 라벤더 체크 바닥 · 따뜻한 조명 · 파스텔 깃발 */
+.bth-room[data-th="base"] .bth-wall {
+  background:
+    linear-gradient(to bottom, transparent calc(100% - 15vh), #b8e4d4 calc(100% - 15vh), #b8e4d4 calc(100% - 15vh + 4px), #cdeee2 calc(100% - 15vh + 4px)) ,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='48'%3E%3Cg fill='none' stroke='%23eab9cb' stroke-width='2'%3E%3Cpath d='M0 1h96M0 25h96M24 1v24M72 1v24M0 25v23M48 25v23M96 25v23'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 96px 48px,
+    linear-gradient(#fbe3ec, #f7d3e1);
+}
+.bth-room[data-th="base"] .bth-wall::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 15vh; background: repeating-linear-gradient(90deg, transparent 0 46px, rgba(80, 150, 125, .18) 46px 48px); }   /* 아래 벽판 줄 */
+.bth-room[data-th="base"] .bth-floor { background: #e9dcf5; }
+.bth-room[data-th="base"] .bth-floor::before { background: conic-gradient(#f3ecfb 25%, #d9c8ef 0 50%, #f3ecfb 0 75%, #d9c8ef 0) 0 0 / 120px 120px; }
+.bth-room[data-th="base"] .bth-glow { background: radial-gradient(ellipse 34vw 46vh at var(--bx) 46%, rgba(255, 244, 214, .75), rgba(255, 244, 214, 0) 70%), radial-gradient(ellipse 120vw 70vh at 50% 110%, rgba(120, 60, 110, 0), rgba(90, 40, 80, .16)); }
+.bth-room[data-th="base"] .bth-deco {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='70'%3E%3Cpath d='M0 10 Q90 34 180 10' fill='none' stroke='%23a98bb4' stroke-width='2'/%3E%3Cpath d='M14 14l16 30 14-27z' fill='%23ffb3c9' stroke='%23a07a8c' stroke-width='1.5'/%3E%3Cpath d='M58 22l14 30 16-29z' fill='%23bfe3ff' stroke='%23a07a8c' stroke-width='1.5'/%3E%3Cpath d='M104 22l14 30 16-30z' fill='%23fff1b0' stroke='%23a07a8c' stroke-width='1.5'/%3E%3Cpath d='M148 15l14 29 14-31z' fill='%23c6f2df' stroke='%23a07a8c' stroke-width='1.5'/%3E%3C/svg%3E") 0 2vh / 180px 70px repeat-x;
+}
+/* 🎄 예시 'xmas' (아직 안 써요 · BTH_THEME 이 'xmas' 를 돌려주면 이 모습) : 초록 벽 · 눈 · 나무 바닥 · 빨강 하양 깃발 */
+.bth-room[data-th="xmas"] .bth-wall { background: radial-gradient(circle, rgba(255,255,255,.75) 1.6px, transparent 2px) 0 0 / 46px 46px, radial-gradient(circle, rgba(255,255,255,.5) 1.2px, transparent 1.6px) 23px 23px / 46px 46px, linear-gradient(#2f6b4f, #24563f); }
+.bth-room[data-th="xmas"] .bth-floor { background: #b07a52; }
+.bth-room[data-th="xmas"] .bth-floor::before { background: repeating-linear-gradient(90deg, #c58c5f 0 58px, #a87048 58px 61px); }
+.bth-room[data-th="xmas"] .bth-glow { background: radial-gradient(ellipse 34vw 46vh at var(--bx) 46%, rgba(255, 220, 160, .55), transparent 70%); }
+.bth-room[data-th="xmas"] .bth-deco { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cpath d='M0 8 Q60 30 120 8' fill='none' stroke='%23e9e2d0' stroke-width='2'/%3E%3Cpath d='M16 13l14 28 14-24z' fill='%23d8343f'/%3E%3Cpath d='M70 18l14 28 14-27z' fill='%23ffffff'/%3E%3C/svg%3E") 0 2vh / 120px 60px repeat-x; }
+
+/* ==================== 📸 포토부스 앞 ==================== */
+.bth-booth { position: absolute; z-index: 2; filter: drop-shadow(0 14px 14px rgba(80, 40, 70, .2)); transition: filter .35s ease; }
 .bth-pic { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
-/* 📟 LED 간판 = 그림 간판 안쪽에 까만 판 (둥근 모서리) */
 .bth-led { position: absolute; border-radius: 10px; background: #140a0d; box-shadow: inset 0 0 0 2px #2a1418, inset 0 3px 8px rgba(0, 0, 0, .7); }
-/* 📺 브라운관 = 둥근 유리 · 안쪽 그림자 · 반사 */
 .bth-tv { position: absolute; overflow: hidden; border-radius: 14px / 10px; background: #0c0a10; box-shadow: inset 0 0 0 2px #2a2030; }
 .bth-tv canvas { width: 100%; height: 100%; display: block; filter: contrast(1.08) saturate(1.15) blur(.35px); }
-.bth-tv::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .55) 100%), linear-gradient(160deg, rgba(255, 255, 255, .16) 0 18%, transparent 30%); box-shadow: inset 0 0 18px rgba(0, 0, 0, .6); }
-/* 💡 출력구 옆 동그라미 = 깜빡이는 작은 불 */
+.bth-tv::after, .bin-glass { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .55) 100%), linear-gradient(160deg, rgba(255, 255, 255, .16) 0 18%, transparent 30%); box-shadow: inset 0 0 18px rgba(0, 0, 0, .6); }
 .bth-lamp { position: absolute; translate: -50% -50%; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 6px 2px rgba(255, 59, 92, .8); animation: bthLamp 1.2s steps(1) infinite; }
 @keyframes bthLamp { 50% { background: #5a1c26; box-shadow: none; } }
-/* 👆 커튼 = 누르는 곳 (보이지 않는 단추) · 마우스를 올리면 살짝 밝게 */
 .bth-curtain { position: absolute; border: 0; background: transparent; border-radius: 16px 16px 30px 30px; transition: background .2s; }
 .bth-curtain:hover { background: rgba(255, 255, 255, .12); }
 .bth-hint { position: absolute; left: 50%; bottom: 8%; translate: -50% 0; white-space: nowrap; font-size: 14px; font-weight: 800; color: #b73f6d; background: #fff; border: 2px solid #6d4a58; border-radius: 999px; padding: 6px 14px; box-shadow: 0 3px 0 rgba(109, 74, 88, .25); animation: bthHint 1.6s ease-in-out infinite; pointer-events: none; }
 @keyframes bthHint { 50% { translate: -50% -6px; } }
 .bth-go { position: absolute; z-index: 5; right: 14px; top: max(14px, env(safe-area-inset-top)); }
-/* 🚪 커튼 안으로 = 어둡게 쏙 */
 .bth-room.in .bth-booth { transition: transform .45s ease-in, filter .45s; transform: scale(1.35); transform-origin: 62% 45%; filter: brightness(.5); }
 .bth-room.in::before { content: ''; position: absolute; inset: 0; z-index: 4; background: #2a1a24; animation: bthDark .45s ease-in both; }
 @keyframes bthDark { from { opacity: 0; } to { opacity: .9; } }
-/* 🚶 길 → 포토부스 앞 (그림이 커지며 다가가요 · 끝에 앞 장면이 겹쳐 떠요) */
-.bth-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #f6e3ea; }
+/* 🖨 출력구 : 구멍 가운데부터 아래로만 보여요 (위 = 구멍 속) · 찌이익 = 조금씩 덜컥 (--y) · 처음엔 하얗게 바랜 사진이 점점 현상 */
+.bth-out { position: absolute; z-index: 3; display: none; overflow: hidden; pointer-events: none; }
+.bth-out.on { display: block; }
+.bth-out img { display: block; width: 100%; height: auto; transform: translateY(var(--y, -100%)); box-shadow: 0 3px 6px rgba(60, 30, 50, .25); filter: brightness(1.9) saturate(0) contrast(.55); transition: filter 3.4s ease; }
+.bth-out.dev img { filter: none; }
+/* ✨ 정면에 = 주변이 흐려지고 사진이 톡 */
+.bth-room.focus .bth-set, .bth-room.focus .bth-booth { filter: blur(7px) brightness(.82); }
+.bth-focus { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; background: rgba(60, 30, 55, 0); transition: background .3s; }
+.bth-focus.on { background: rgba(60, 30, 55, .18); }
+.bth-focus[hidden] { display: none; }
+.bth-card { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 92vw; opacity: 0; transform: scale(.55) rotate(-6deg); transition: transform .5s cubic-bezier(.2, 1.4, .4, 1), opacity .25s; }
+.bth-focus.on .bth-card { opacity: 1; transform: scale(1) rotate(-2deg); }
+.bth-card img { max-height: 62vh; max-width: 80vw; border-radius: 6px; background: #fff; padding: 8px; box-shadow: 0 14px 30px rgba(50, 20, 40, .35); }
+.bth-card p { margin: 0; text-align: center; font-size: 16px; font-weight: 800; color: #5b3240; background: #fffaf3; border: 2px solid #6d4a58; border-radius: 16px; padding: 10px 16px; line-height: 1.55; }
+.bth-card p small { font-size: 12.5px; font-weight: 700; color: #8a6a78; }
+.bth-okb { border: 2px solid #6d4a58; border-radius: 14px; background: #ffd3e0; color: #b73f6d; font-weight: 800; font-size: 15px; padding: 9px 30px; box-shadow: 0 3px 0 rgba(109, 74, 88, .25); }
+/* 🚶 길 → 포토부스 앞 (캡슐기계 · 벽 달력과 같은 연출 · 색만 분홍 라벤더) */
+.bth-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #f3d9e8; }
 .bth-walk.on { display: block; }
-.bth-walk img { position: absolute; max-width: none; transform-origin: 0 0; user-select: none; -webkit-user-drag: none; }
-.bth-walk.leave { animation: bthWalkOut .6s ease forwards; }
-@keyframes bthWalkOut { to { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .bth-lamp, .bth-hint { animation: none; } }
+.bth-walk.on .bth-walk-in img { animation: troDoorIn .35s ease; }
+.bth-walk.leave { animation: troDoorOut .45s ease forwards; }
+.bth-walk-in { position: absolute; inset: 0; }
+.bth-walk-in img { position: absolute; max-width: none; user-select: none; -webkit-user-drag: none; }
+.bth-walk-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--lx, 50%) var(--ly, 50%), #fffaf6 0, #ffeaf3 16%, #f6cfe3 42%, #e8c6ec 70%, #f3d9e8 92%); }
+.bth-walk.go .bth-walk-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
+.bth-walk.go .bth-walk-in::after { transition: opacity .8s ease .45s; opacity: 1; }
+
+/* ==================== 🎞 포토부스 안 (화면 전체) ==================== */
+.bin-room { position: fixed; inset: 0; z-index: 1600; display: none; overflow: hidden; font-family: inherit; color: #3b2530; }
+.bin-room.show { display: block; animation: binIn .4s ease both; }
+.bin-room.bye { animation: binOut .38s ease forwards; }
+@keyframes binIn { from { opacity: 0; transform: scale(1.04); } }
+@keyframes binOut { to { opacity: 0; transform: scale(.97); } }
+.bin-room button { font-family: inherit; cursor: pointer; }
+.bin-wall { position: absolute; inset: 0; background:
+  radial-gradient(ellipse 70% 60% at 50% 40%, rgba(255, 236, 246, .35), rgba(40, 20, 50, .55) 100%),
+  repeating-linear-gradient(90deg, #c9a6d8 0 18px, #b892cb 18px 26px, #d8bce4 26px 44px, #c29ed3 44px 52px); }   /* 커튼 주름 · 안쪽이 조금 어두워요 */
+.bin-wall::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 26px; background: linear-gradient(#e9e2ef, #bfb3cc); box-shadow: 0 3px 6px rgba(0, 0, 0, .25); }   /* 커튼 봉 */
+.bin-exit { position: absolute; z-index: 3; left: 12px; top: max(36px, calc(env(safe-area-inset-top) + 30px)); border: 2px solid #5b3a4c; border-radius: 999px; background: #fff3f8; color: #8a3e64; font-weight: 800; font-size: 13px; padding: 7px 14px; box-shadow: 0 3px 0 rgba(60, 30, 50, .25); }
+.bin-mach { position: absolute; left: 50%; top: 44px; bottom: 12px; width: min(94vw, 560px); translate: -50% 0; display: grid; grid-template-rows: 52px 34px 1fr auto 18px; gap: 8px; padding: 12px 14px 10px; border: 3px solid #3b2530; border-radius: 30px; background: linear-gradient(#ffd3e2, #f7bcd2); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .6), inset 0 -6px 0 rgba(180, 90, 130, .25), 0 16px 30px rgba(40, 10, 40, .35); }
+.bin-top { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.bin-lens { width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #10101a 0 38%, #2d2b40 40% 55%, #47445f 57% 70%, #1a1824 72%); border: 3px solid #3b2530; box-shadow: 0 2px 0 rgba(0, 0, 0, .2); position: relative; }
+.bin-lens b { position: absolute; left: 12px; top: 10px; width: 9px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .75); transform: rotate(-30deg); }
+.bin-flash-bar { width: 84px; height: 22px; border-radius: 8px; border: 2px solid #3b2530; background: linear-gradient(#ffffff, #ece7f3); box-shadow: inset 0 0 8px rgba(190, 180, 220, .7); }
+.bin-led { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 10px; background: #160c10; border: 2px solid #3b2530; color: #ffb21e; font-family: ui-monospace, "DungGeunMo", monospace; font-size: 15px; letter-spacing: 1px; text-shadow: 0 0 6px rgba(255, 178, 30, .8); }
+.bin-led b { color: #ff4a5e; text-shadow: 0 0 6px rgba(255, 74, 94, .8); }
+.bin-screen { position: relative; min-height: 0; border-radius: 18px; border: 10px solid #2b1d26; background: #0c0a10; box-shadow: 0 0 0 3px #3b2530, inset 0 0 12px #000; overflow: hidden; }
+.bin-screen canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: contrast(1.05) saturate(1.1); }
+.bin-glass { border-radius: 8px; }
+.bin-panel { display: flex; align-items: flex-start; justify-content: center; gap: clamp(18px, 6vw, 46px); padding: 14px 10px 8px; border-radius: 18px; border: 3px solid #3b2530; background: linear-gradient(#f3eef6, #d7cfe0); box-shadow: inset 0 2px 0 #fff, inset 0 -4px 0 rgba(120, 100, 140, .25); }
+.bin-bt { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 70px; }
+.bin-bt small { font-size: 12.5px; font-weight: 800; color: #5b4a68; min-height: 16px; white-space: nowrap; }
+.bin-b { border: 3px solid #3b2530; border-radius: 50%; transition: transform .06s, box-shadow .06s; -webkit-tap-highlight-color: transparent; }
+.bin-b.side { width: clamp(54px, 15vw, 64px); height: clamp(54px, 15vw, 64px); font-size: 20px; color: #fff; background: radial-gradient(circle at 35% 30%, #a9d7ff, #4d94dd 70%); box-shadow: 0 6px 0 #2f5f98, 0 8px 10px rgba(0, 0, 0, .25); text-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
+.bin-b.ok { width: clamp(72px, 20vw, 86px); height: clamp(72px, 20vw, 86px); background: radial-gradient(circle at 35% 28%, #ffd0de, #ff5f8f 68%); box-shadow: 0 7px 0 #b8325f, 0 9px 12px rgba(0, 0, 0, .28); position: relative; }
+.bin-b.ok i { position: absolute; left: 22%; top: 16%; width: 30%; height: 18%; border-radius: 50%; background: rgba(255, 255, 255, .7); transform: rotate(-25deg); }
+.bin-b:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 1px 0 #2f5f98, 0 2px 4px rgba(0, 0, 0, .2); }
+.bin-b.ok:active:not(:disabled) { box-shadow: 0 2px 0 #b8325f, 0 3px 5px rgba(0, 0, 0, .2); }
+.bin-b:disabled { filter: grayscale(.75) brightness(.92); cursor: default; }
+.bin-plate { text-align: center; font-size: 10px; letter-spacing: 3px; color: rgba(90, 40, 70, .55); font-weight: 800; }
+#binCam { position: absolute; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+.bin-flash { position: absolute; inset: 0; z-index: 5; background: #fff; opacity: 0; pointer-events: none; }
+.bin-flash.on { animation: binFlash .55s ease-out; }
+@keyframes binFlash { 0% { opacity: .95; } 100% { opacity: 0; } }
+@media (max-height: 620px) { .bin-mach { grid-template-rows: 40px 28px 1fr auto 14px; top: 34px; } .bin-lens { width: 36px; height: 36px; } .bin-flash-bar { height: 16px; } }
+@media (prefers-reduced-motion: reduce) { .bth-lamp, .bth-hint { animation: none; } .bin-room.show, .bin-room.bye { animation: none; } }
+@media (max-width: 600px) { .bin-mach { top: calc(max(36px, env(safe-area-inset-top) + 30px) + 44px); } }   /* 📱 '커튼 밖으로' 단추와 겹치지 않게 */
