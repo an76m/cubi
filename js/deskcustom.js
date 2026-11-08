@@ -17,7 +17,7 @@
         memo: { tabs: ['memo'] },                                           // 📝 메모 붙이기 (붙는 곳 = 상품 '소품.cork')
         rope: { tabs: [], act: 'lights' },                                  // 🎐 전구줄 : 톡 = 켜고 끄기 (js/desklights.js)
         peg: { tabs: ['photo'] },                                           // 📷 집게 사진 : 내 사진 넣기 (줄에 집기 = js/desklights.js)
-        label: { tabs: [], act: 'label' }                                   // 🏷️ 라벨 스티커 기계 : 톡 = 기계가 공중에 떠서 크게 → 글씨 스티커 (js/labeler.js · 도련 11-08)
+        label: { tabs: [], act: 'label' }, camera: { tabs: [], act: 'camera' }                                   // 🏷️ 라벨 스티커 기계 : 톡 = 기계가 공중에 떠서 크게 → 글씨 스티커 (js/labeler.js · 도련 11-08)
     };
     const DC_TAB = { paint: '🎨 색칠', light: '💡 불빛', digits: '🔢 숫자', alarm: '⏰ 알람', photo: '🖼 사진', memo: '📝 메모', area: '👆 누르는 곳' };
     const DC_LIGHT = ['#fff3c4', '#ffd9a8', '#ffc8dc', '#d7c8ff', '#c4ecff', '#cff5dc'];   // 💡 불빛 색 (맨 앞 = 기본 · 다꾸러가 바꿔 골라요 · 색은 앱 코드 · 모양만 상품공방 '소품.glow' · 도련 11-03)
@@ -238,6 +238,7 @@
             if (px < l || px > r || py < t || py > b) return false;
         }
         if (K.act === 'label') { if (window.openLabeler) openLabeler(el); return true; }
+        if (K.act === 'camera') { if (window.openDigicam) openDigicam({ el }); return true; }   // 📷 말랑 디카 (도련 11-08)
         if (K.act === 'lamp') { dcCs(o).on = !o.cs.on; dcSave(o); }
         if (K.act === 'lights') { dcCs(o).off = !o.cs.off; if (!o.cs.off) delete o.cs.off; dcSave(o); }
         return true;
@@ -258,5 +259,6 @@
     window.dcMemoPaper = dcMemoPaper; window.dcMemoNew = dcMemoNew; window.dcMemoAdd = dcMemoAdd; window.dcMemoDel = dcMemoDel;
     window.dcAlarm = dcAlarm; window.dcRingTest = dcRingTest; window.dcPhoto = dcPhoto;
     window.dcAreaReset = dcAreaReset; window.dcAreaSave = dcAreaSave; window.dcApply = dcApply; window.dcApplyAll = dcApplyAll; window.dcTap = dcTap;
-    window.dcLabelerEl = () => [...document.querySelectorAll('.desk-item[data-u]')].find(el => { const o = dcItem(el.dataset.u), K = o && dcKind(o); if (!K || K.act !== 'label') return false; const R = el.getBoundingClientRect(); return R.width > 4 && R.bottom > 0 && R.top < innerHeight && getComputedStyle(el).visibility !== 'hidden'; }) || null;   // 🏷️ 책상 위 라벨기 (보일 때만 · ✂️ 글씨 스티커가 거기서 떠오르게)
+    window.dcActEl = act => [...document.querySelectorAll('.desk-item[data-u]')].find(el => { const o = dcItem(el.dataset.u), K = o && dcKind(o); if (!K || K.act !== act) return false; const R = el.getBoundingClientRect(); return R.width > 4 && R.bottom > 0 && R.top < innerHeight && getComputedStyle(el).visibility !== 'hidden'; }) || null;
+    window.dcLabelerEl = () => window.dcActEl('label');   // 🏷️ · 📷 책상 위 소품 (보일 때만 · ✂️ 스티커 만들기가 거기서 떠오르게)   // 🏷️ 책상 위 라벨기 (보일 때만 · ✂️ 글씨 스티커가 거기서 떠오르게)
 })();
