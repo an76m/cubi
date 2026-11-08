@@ -162,6 +162,16 @@
             m.style.setProperty('--u', W / 100 + 'px'); m.style.width = W + 'px';
             return m.getBoundingClientRect();
         }
+        const FLY = 560, SWAP = 160;
+        /* 그림이 진짜 기계와 꼭 겹치는 자리 : 책상 그림(디자인.png) = 이 기계를 그대로 찍은 것 (기계 둘레 3u · 위 손잡이 3.2u 까지 · 도련 11-08)
+           → 그림 테두리를 기계 + 둘레에 맞춰 (가로세로 · 가운데 · 기울기 -.6도 = .lbm-mach 와 같게) */
+        function toMach(S, R) {
+            const m = lq('lbmMach'), w = m.offsetWidth, h = m.offsetHeight, u = w / 100;   // 기울기 전 크기 (getBoundingClientRect 는 기울어 조금 커요)
+            const cx = R.left + R.width / 2, cy = R.top + R.height / 2 - 1.6 * u;
+            return `translate(${cx - (S.left + S.width / 2)}px, ${cy - (S.top + S.height / 2)}px) rotate(-.6deg) scale(${(w + 6 * u) / S.width}, ${(h + 6.2 * u) / S.height})`;
+        }
+        function showNow(w) { w.style.transition = 'none'; w.classList.remove('hide'); void w.offsetWidth; w.style.transition = ''; }
+        function hideNow(w) { w.style.transition = 'none'; w.classList.add('hide'); void w.offsetWidth; w.style.transition = ''; }
         const deskImg = el => el && (el.querySelector(':scope > img') || el);
         /* 🛫 책상에서 떠올라 가운데로 (다이어리처럼) · 책상이 없으면 아래에서 쏙 */
         function openLabeler(el) {
@@ -180,13 +190,18 @@
                 fly.src = img.currentSrc || img.src;
                 Object.assign(fly.style, { left: S.left + 'px', top: S.top + 'px', width: S.width + 'px', height: S.height + 'px', transform: 'none', opacity: 1, transition: 'none' });
                 if (el.classList.contains('dk-fl')) fly.style.scale = '-1 1'; else fly.style.scale = '';
-                el.style.visibility = 'hidden'; wrap.classList.add('hide'); room.classList.remove('lit');
-                const k = R.width / S.width, dx = R.left + R.width / 2 - (S.left + S.width / 2), dy = R.top + R.height / 2 - (S.top + S.height / 2);
+                el.style.visibility = 'hidden'; hideNow(wrap); room.classList.remove('lit');
+                const to = toMach(S, R);
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                     room.classList.add('lit');
-                    fly.style.transition = 'transform .62s cubic-bezier(.3, 1.25, .5, 1), opacity .25s ease .5s';
-                    fly.style.transform = `translate(${dx}px, ${dy}px) scale(${k}) rotate(-1deg)`;
-                    setTimeout(() => { wrap.classList.remove('hide'); fly.style.opacity = 0; }, 520);   // 다 떠오르면 진짜 기계로
+                    fly.style.transition = `transform ${FLY}ms cubic-bezier(.22, .9, .3, 1)`;   // 넘침 없이 딱 기계 자리에 (넘치면 바꿔 끼는 순간 어긋나 보여요)
+                    fly.style.transform = to;
+                    setTimeout(() => {                                          // 🔁 같은 자리 · 같은 크기 · 같은 기울기에서 그림 → 진짜 기계로 스르륵 (흐림을 섞어 바뀌는 게 안 보이게)
+                        if (!L.on) return;
+                        showNow(wrap);                                          // 진짜 기계를 그림 바로 아래에 한 번에 (그림 = 이 기계를 찍은 것이라 똑같아요)
+                        requestAnimationFrame(() => { fly.style.transition = `opacity ${SWAP}ms ease`; fly.style.opacity = 0; });   // 그다음 위의 그림만 걷어요 (둘 다 반투명인 순간이 없게)
+                        wrap.classList.add('land'); setTimeout(() => wrap.classList.remove('land'), SWAP + 420);
+                    }, FLY - 40);
                 }));
             } else { fly.style.opacity = 0; wrap.classList.remove('hide'); room.classList.add('lit', 'pop'); setTimeout(() => room.classList.remove('pop'), 500); }
             if (matchMedia('(pointer: fine)').matches) setTimeout(() => { const i = lq('lbmIn'); if (L.on && i) i.focus({ preventScroll: true }); }, 400);   // 💻 키보드로도 (📱 📲 은 기기 키보드가 안 올라오게 안 해요)
@@ -199,9 +214,9 @@
             const done = () => { room.classList.remove('show', 'lit', 'bye'); document.body.classList.remove('lbm-on'); if (el) el.style.visibility = ''; wrap.classList.remove('hide'); if (after) after(); };
             const S0 = img && el.isConnected ? img.getBoundingClientRect() : null;
             if (S0 && S0.width > 4 && !quiet()) {
-                const S = S0, R = lq('lbmMach').getBoundingClientRect(), k = R.width / S.width;
-                fly.style.transition = 'none'; fly.style.opacity = 1; fly.style.transform = `translate(${R.left + R.width / 2 - (S.left + S.width / 2)}px, ${R.top + R.height / 2 - (S.top + S.height / 2)}px) scale(${k})`;
-                wrap.classList.add('hide'); room.classList.remove('lit');
+                const S = S0, R = lq('lbmMach').getBoundingClientRect();
+                fly.style.transition = 'none'; fly.style.opacity = 1; fly.style.transform = toMach(S, R);   // 🔁 진짜 기계 위에 똑같은 그림을 한 번에 덮고
+                hideNow(wrap); room.classList.remove('lit');                          // 진짜는 바로 숨겨요 (그림이 덮고 있어 안 보여요)
                 requestAnimationFrame(() => requestAnimationFrame(() => { fly.style.transition = 'transform .5s cubic-bezier(.5, 0, .3, 1)'; fly.style.transform = 'none'; setTimeout(done, 520); }));
             } else { room.classList.add('bye'); setTimeout(done, quiet() ? 0 : 300); }
         }
