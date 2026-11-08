@@ -427,3 +427,11 @@
         window.smPickKind = smPickKind; window.smKindGo = smKindGo; window.smKindAct = smKindAct; window.smKindBtn = smKindBtn;
         window.smGo = smGo; window.smAllSame = smAllSame; window.smOpenCam = () => { smSheetTo = null; smOpenCamIn(); }; window.smOpenFile = () => { smSheetTo = null; smOpenFileIn(); }; window.smOpenText = () => { smSheetTo = null; smOpenTextIn(); }; window.smSheetGo = smSheetGo;   // 보통으로 열면 🗂️ 시트로 넘기기는 꺼요 (고르기 창을 그냥 닫았을 때 남지 않게)
         window.smAdd = smAdd; window.smAddMsg = smAddMsg;
+        /* 🏷️ 라벨 스티커 기계 (js/labeler.js · 도련 11-08) 가 글씨 스티커를 만들 때 쓰는 길 : 글꼴 목록 · 색 · 값 넣기 · 그림 · 다 만들기 (📌 붙이기 'text' · 💾 저장만 'keep') = 예전 글씨 스티커와 같은 그림 · 같은 저장 */
+        window.smTextApi = {
+            colors: SM_COLORS.slice(), defFont: SM_DEF_FONT,
+            fonts: () => (typeof fontList !== 'undefined' ? fontList : []).filter(f => /\[/.test(f.name)).map(f => [f.css, f.name.replace(/\s*\[.*\]\s*/, '')]),
+            set(o) { smSheetTo = null; smS.mode = 'text'; smS.many = null; ['text', 'font', 'color', 'tsz', 'border'].forEach(k => { if (o && o[k] !== undefined) smS[k] = o[k]; }); smS.out = ''; smS.outDie = ''; },
+            make(die) { return smMake(die !== false); },
+            finish(act) { return smDoFinish(act === 'text' ? 'text' : 'keep'); }
+        };

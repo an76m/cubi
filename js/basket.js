@@ -1106,7 +1106,7 @@
     const SH_CORNER = { tool: '📔 다이어리', gd: '✂️ 문구', desk: '🪑 책상소품', bg: '🌈 배경지' };   // 📱 구역 진열대 창 제목 · 간판 ('코너' 말 안 써요 · 도련 11-04)
     const SH_GD_IC = { tweez: '🥢', clip: '📎', punch: '🕳️', tape: '🩹', scissors: '✂️', knife: '🔪', ruler: '📏', pen: '✏️' };
     /* 🪑 책상소품 칸 = 소품 종류 (도련 11-04 : 스티커 · 문구처럼 종류 바로 · 상품 폴더 책상소품/<종류>/ 와 같은 이름) + 🧱 벽지 · 🪵 책상 · 상품이 있는 종류만 */
-    const SH_DK = { drawer: ['서랍장', '🗄️'], clock: ['시계', '⏰'], bookshelf: ['책꽂이', '📚'], pencup: ['펜꽂이', '🖊️'], riser: ['받침대', '🖥️'], basket: ['바구니', '🧺'], lamp: ['스탠드', '💡'], doll: ['인형', '🧸'], taperack: ['마테정리함', '🎀'],
+    const SH_DK = { drawer: ['서랍장', '🗄️'], clock: ['시계', '⏰'], bookshelf: ['책꽂이', '📚'], pencup: ['펜꽂이', '🖊️'], riser: ['받침대', '🖥️'], basket: ['바구니', '🧺'], lamp: ['스탠드', '💡'], doll: ['인형', '🧸'], taperack: ['마테정리함', '🎀'], labeler: ['라벨기', '🏷️'],
         wallshelf: ['벽선반', '🪜'], board: ['게시판', '📌'], lights: ['전구줄', '✨'], peg: ['집게사진', '📷'], wallpaper: ['벽지', '🧱'], desktop: ['책상', '🪵'] };
     function shCatList(k) {                                                    // [[칸, 이름, 아이콘]] · 칸 없는 종류 = null
         if (k === 'gd') { const L = window.gdShopList ? gdShopList() : []; return [...new Map(L.map(x => [x.g, [x.g, x.kind, stkArt('gd:' + x.g) || SH_GD_IC[x.g] || stkArt('gd')]])).values()]; }   // 🎨 아이콘 = 손그림 (도련 11-07 · 그림이 없는 새 종류만 이모지)
@@ -1822,6 +1822,11 @@
                 <ellipse cx="26.4" cy="39" rx="3" ry="1.8" fill="#ffb3c9" opacity=".85"/><ellipse cx="45.6" cy="39" rx="3" ry="1.8" fill="#ffb3c9" opacity=".85"/><path d="M34 38.6q2 2 2 0q0 2 2 0" stroke="#7b5a63" stroke-width="1.2" fill="none" stroke-linecap="round"/>
                 <ellipse cx="25" cy="57" rx="4.6" ry="3.6" fill="#fff" ${O2}/><ellipse cx="47" cy="57" rx="4.6" ry="3.6" fill="#fff" ${O2}/>
                 <path d="M36 47.4l-7.4-4.4v8.8zM36 47.4l7.4-4.4v8.8z" fill="#ff9fbd" ${O2}/><circle cx="36" cy="47.4" r="2.1" fill="#ff7fa3" ${O2}/><defs>${lg('dol', '#ffffff', '#ffe6ee')}</defs>`,
+            'desk:labeler': () => `<g ${S}><rect x="8" y="22" width="56" height="34" rx="9" fill="${F('lbl')}" ${O}/><rect x="22" y="15" width="28" height="9" rx="3.5" fill="#ff9fbd" ${O2}/></g><path d="M27 16.5h18" stroke="#7b5a63" stroke-width="1.6" stroke-linecap="round"/>
+                <rect x="23" y="5" width="26" height="11" rx="1.5" fill="#fff" ${O2}/><path d="M28 10.5h16" stroke="#ff7fa3" stroke-width="2" stroke-linecap="round"/>
+                <rect x="13" y="27" width="46" height="11" rx="3" fill="#d6e2c4" stroke="#7b5a63" stroke-width="1.3"/><path d="M17 32.5h18" stroke="#56634a" stroke-width="1.6" stroke-linecap="round"/>
+                ${[0, 1, 2, 3, 4, 5].map(i => `<rect x="${13 + i * 7.8}" y="42" width="6" height="4.6" rx="1.4" fill="#fff" stroke="#7b5a63" stroke-width=".9"/>`).join('')}${[0, 1, 2, 3, 4].map(i => `<rect x="${13 + i * 7.8}" y="48.6" width="6" height="4.2" rx="1.4" fill="#fff" stroke="#7b5a63" stroke-width=".9"/>`).join('')}<rect x="52" y="48.6" width="7" height="4.2" rx="1.4" fill="#ff7fa3" stroke="#7b5a63" stroke-width=".9"/>
+                ${gl(8, 22, 56, 12, 9)}<defs>${lg('lbl', '#ffd3e0', '#f79dbb')}</defs>`,
             'desk:taperack': () => `<g ${S}><rect x="8" y="6" width="6" height="50" rx="2" fill="${F('trk')}" ${O}/><rect x="58" y="6" width="6" height="50" rx="2" fill="${F('trk')}" ${O}/><rect x="5" y="54" width="62" height="6" rx="2.5" fill="${F('trk')}" ${O}/></g>
                 <path d="M14 21H58M14 41H58" stroke="#7b5a63" stroke-width="3.6"/><path d="M14 21H58M14 41H58" stroke="#eef0f6" stroke-width="1.6"/>
                 ${roll(22, 21, 7, '#ff9fbd', 'tr1')}${roll(36, 21, 7, '#9fd0f5', 'tr2')}${roll(50, 21, 7, '#ffd36e', 'tr3')}${roll(29, 41, 7, '#a8e3cf', 'tr4')}${roll(43, 41, 7, '#c7b3f2', 'tr5')}
