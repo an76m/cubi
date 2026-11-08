@@ -339,9 +339,12 @@
     const abNewRl = (k, pid) => { const p = AB_RL.find(x => x.id === pid); return { id: 'r' + abRid(), k, lb: '', pid: p.id, n: +p.P.쪽수, it: [] }; };   // 📒 바인더 = 시트 수 (장수) · 🤍 이형지북 = 쪽수 (상품)
     /* 📥 받은 📒 스티커바인더 · 🤍 이형지북 (도련 11-08) : 샵 · 처음 선물로 받으면 종류 없이 이 목록에 → 스티커 창(📒 정리하기)에서 📥 불러오면 그 종류 _스티커첩.json 으로 옮겨요
          · 저장 = 소품 · 문구와 같은 목록 파일 (🔐 말랑달콤 / 스티커바인더 · 이형지북 / _목록.json · _목록_백업.json · js/drive.js sbown · rlown · 💤 쓸 때 읽어요)
-         · 한 줄 { id, pid : 상품, n : 시트 수 · 쪽수, lb : 라벨, at, from : basic 샵 · gift 처음 선물 · back 되돌린 것 }
+         · 한 줄 { id, pid : 상품, n : 시트 수 · 쪽수, lb : 라벨, at, from : basic 샵 · gift 처음 선물 · back 되돌린 것, c : 원본 파일 }
+         · 📦 실제 책처럼 (도련 11-08 · 소품 · 문구와 같아요) : 🏪 샵에서 받으면 목록 한 줄 + 원본 파일 받은-<c>.json (🔐 · js/coll.js ofAdd) · 🎁 처음 선물 = 목록에만
+           📥 불러오면 그 종류(씰 · 조각 …) _스티커첩.json 에 적히고 → 이 폴더에서는 목록 한 줄 · 원본 파일 둘 다 지워요 (책이 그 서랍으로 가요)
+           ↩ 빼면 스티커첩에서 지우고 → 이 폴더에 목록 한 줄 · 원본 파일을 다시 만들어요 · 목록이 없어지면 백업 → 원본 파일들로 되살려요
          · 빈 책(꽂은 것 · 붙인 것이 없는 책)만 ↩ 빼기 = 이 목록으로 돌아와요 · 책상 위 종류 없는 책 톡 = 안내만 */
-    const FR = { bd: { key: 'diary_sbd_own', l: 'malang_sbd_own', w: 'sbown' }, rl: { key: 'diary_rlb_own', l: 'malang_rlb_own', w: 'rlown' } };
+    const FR = { bd: { key: 'diary_sbd_own', l: 'malang_sbd_own', w: 'sbown', get dir() { return DIRS.stkBinder; } }, rl: { key: 'diary_rlb_own', l: 'malang_rlb_own', w: 'rlown', get dir() { return DIRS.relBook; } } };
     const frOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
     function frAll(t) { const v = typeof prefGet === 'function' ? prefGet(FR[t].key, FR[t].l) : null; return Array.isArray(v) ? v.filter(x => x && typeof x.id === 'string' && x.id && typeof x.pid === 'string') : []; }
     function frSet(t, L) { prefSet(FR[t].key, FR[t].l, (L || []).filter(Boolean)); }
@@ -361,6 +364,11 @@
                     if (gen !== drive.gen) return false;
                     if (L && prefGet(FR[t].key, FR[t].l) === null) { frSet(t, L); if (window.diag) diag('rescue', { w: t, n: L.length }); }
                 }
+                if (prefGet(FR[t].key, FR[t].l) === null && keyMade(w) && window.ofScan) {   // 🛟 백업도 없으면 이 폴더의 원본 파일(받은-)들로 (샵에서 받은 책만 · 선물은 파일이 없어요)
+                    const fs = await ofScan(FR[t].dir).catch(() => null);
+                    if (gen !== drive.gen) return false;
+                    if (fs && fs.length && prefGet(FR[t].key, FR[t].l) === null) { const P = t === 'bd' ? AB_BDP : AB_RL; frSet(t, fs.map(f => { const p = P.find(x => x.id === f.id); return p ? { id: f.u, pid: p.id, n: +(t === 'bd' ? p.P.장수 : p.P.쪽수), lb: '', at: Date.now(), from: 'basic', c: f.c } : null; }).filter(Boolean)); }
+                }
             }
             return true;
         })();
@@ -372,6 +380,7 @@
     async function abTakeTool(t, pid) {
         await frReady();
         const o = frNew(t, pid, 'basic');
+        if (window.ofAdd) { const c = await ofAdd(FR[t].dir, { u: o.id, id: o.pid, from: 'basic' }); if (c) o.c = c; }   // 📦 원본 파일 받은-<c>.json (소품 · 문구처럼 · 게스트는 목록만)
         window.abLastGiven = { id: o.id, t: Date.now() };
         if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(o.id);   // 🛍️ 봉투 카드가 이 책을 기억해요
         frSet(t, frAll(t).concat([o]));
@@ -431,6 +440,7 @@
             await abFlush();
             await ownAlbum(a => { const L = t === 'bd' ? a.bd : a.rl; if (!L.some(b => b.id === o.id)) L.push(o); }, [k]);   // ① 이 서랍 _스티커첩.json 에 먼저
             frSet(t, frAll(t).filter(b => b.id !== id));                          // ② 그다음 📥 목록에서 빼요 (멈춰도 잃지 않게 · 두 곳이면 스티커첩 쪽)
+            if (x.c && window.ofDel) ofDel(FR[t].dir, x.c);                     // ③ 원본 파일(받은-<c>.json)도 지워요 (이제 이 종류 _스티커첩.json 에 있어요)
             const L = t === 'bd' ? B.album.bd : B.album.rl; if (!L.some(b => b.id === o.id)) L.push(o);
             if (B.desk) { B.desk.mode = t; if (t === 'bd') { B.desk.bd = o.id; B.pg = 0; } else { B.desk.rl = o.id; B.desk.rpg = 0; } }
             abSplit(); bkView(); B.sig = bkSig(); abToast('불러왔어요', 'ok');
@@ -444,7 +454,9 @@
         abToast('빼는 중', 'on');
         try {
             await abFlush(); await frReady();
-            frSet(t, frAll(t).filter(o => o.id !== id).concat([{ id: x.id, pid: x.pid, n: x.n, lb: x.lb || '', at: Date.now(), from: 'back' }]));   // ① 📥 목록에 먼저
+            const line = { id: x.id, pid: x.pid, n: x.n, lb: x.lb || '', at: Date.now(), from: 'back' };
+            if (window.ofAdd) { const c = await ofAdd(FR[t].dir, { u: x.id, id: x.pid, from: 'back' }); if (c) line.c = c; }   // 📦 원본 파일을 다시 만들어요 (게스트는 목록만)
+            frSet(t, frAll(t).filter(o => o.id !== id).concat([line]));          // ① 📥 목록에 먼저
             await ownAlbum(a => { const M = t === 'bd' ? a.bd : a.rl, i = M.findIndex(o => o.id === id); if (i >= 0 && empty(M[i])) M.splice(i, 1); }, [B.kind]);   // ② 그다음 스티커첩에서 빼요
             const i = L.findIndex(o => o.id === id); if (i >= 0) L.splice(i, 1);
             if (B.desk) { if (t === 'bd') B.desk.bd = ''; else B.desk.rl = ''; }
