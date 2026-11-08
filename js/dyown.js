@@ -6,7 +6,7 @@
        · 🗂️ 페이지바인더 { id: 'my…', t: 'binder', from, cv · cvf (표지 · 표지 from) · rf [끼운 내지 · 내지마다 from] … }
    - 📓 노트(날짜형 · 페이지형) = 완제품 → 받거나 만들면 바로 이 목록에
    - 🗂️ 바인더(날짜형 · 페이지형) = 조립품 → 받거나 만든 표지 · 내지는 재료 목록에 있다가 🧩 조립하면 이 목록에 한 줄 · 쓴 재료는 재료 목록에서 빠져요 (현실처럼)
-       · 🧩 재료 = 바인더표지 / _목록.json 'diary_cover_own' (cover 페이지 표지 · dcover 해가 적힌 날짜 표지) · 바인더내지 / _목록.json 'diary_refill_own' (refill 페이지 내지 · drefill 날짜 내지)
+       · 🧩 재료 = 다이어리 / _바인더재료목록.json 'diary_cover_own' (cover 페이지 표지 · dcover 해가 적힌 날짜 표지) · 같은 파일 'diary_refill_own' (refill 페이지 내지 · drefill 날짜 내지)
        · 날짜 내지는 해가 없어요 = 끼운 표지의 해를 따라가요 · 해가 지난 표지는 조립 못 해요 · 날짜형바인더는 조립한 뒤 내지를 빼지 않아요
        · 페이지바인더는 내지를 빼면 재료로 돌아와요 (꾸민 페이지가 있는 내지는 못 빼요) · 표지를 바꾸면 예전 표지도 돌아와요
        · 💤 재료 목록은 앱을 켤 때 안 읽어요 (🧩 조립 · 만들기 · 샵에서 받을 때 dymReady) · 바뀔 때 처음 생겨요
@@ -27,7 +27,7 @@
         const dyoFrom = (v, def) => DYO_FROM.includes(v) ? v : def;
 
         /* 🧩 바인더 재료 */
-        const DYM = { cover: { key: 'diary_cover_own', l: 'malang_cover_own', w: 'bcown' }, refill: { key: 'diary_refill_own', l: 'malang_refill_own', w: 'rfown' } };
+        const DYM = { cover: { key: 'diary_cover_own', l: 'malang_cover_own', w: 'bmown' }, refill: { key: 'diary_refill_own', l: 'malang_refill_own', w: 'bmown' } };   // 🧩 다이어리 / _바인더재료목록.json 한 파일에 두 칸 (도련 11-08)
         const dymKind = t => t === 'cover' || t === 'dcover' ? 'cover' : t === 'refill' || t === 'drefill' ? 'refill' : '';
         const dymIs = t => !!dymKind(t);
         function dymAll(k) { const v = prefGet(DYM[k].key, DYM[k].l); return Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && dymKind(x.t) === k) : []; }

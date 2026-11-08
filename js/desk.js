@@ -208,9 +208,9 @@
             try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
         }
         /* 🛟 백 목록 백업 = 그 폴더 안에 (도련 11-07 · 스티커처럼) : 소품 / _목록_백업.json { 소품 · 벽지 · 책상판 } · 문구 / _목록_백업.json { 문구 } · 하루 한 번 · 목록 파일을 만든 뒤에만 */
-        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown', 'bcown', 'rfown', 'sbown', 'rlown'];   // + 📥 받은 스티커바인더 · 이형지북 (도련 11-08)   // 🛟 소품 · 문구 · 📔 다이어리 · 🧩 바인더 재료 (도련 11-07)
+        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown', 'bmown', 'esown'];   // + 📥 빈스티커첩 (도련 11-08) · 같은 폴더에 목록이 둘이면 백업 이름을 따로 (KEY_FILES bb · 다이어리 / _바인더재료목록_백업.json)   // 🛟 소품 · 문구 · 📔 다이어리 · 🧩 바인더 재료 (도련 11-07)
         async function dkBackRead(w) {
-            const F = KEY_FILES[w], dir = await getFolder(F.path, false), f = dir && await findFile(dir, DK_BB_NAME);
+            const F = KEY_FILES[w], dir = await getFolder(F.path, false), f = dir && await findFile(dir, F.bb || DK_BB_NAME);
             if (!f) return null;
             const t = await readFileText(f.id);                                   // 못 닿으면 에러
             try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
@@ -229,8 +229,8 @@
             const ks = DESK_FILE_KEYS[w], b = {}; ks.forEach(k => { const v = prefGet(k, ''); if (v != null) b[k] = v; }); if (!Object.keys(b).length) return;
             try {
                 if (ks.some(k => !(k in b))) { const o = await dkBackRead(w); if (o) ks.forEach(k => { if (!(k in b) && o[k] != null) b[k] = o[k]; }); }
-                const d = await getFolder(KEY_FILES[w].path, true), c = drive.newbie && !m[mk] ? null : await findFile(d, DK_BB_NAME);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
-                await driveUpsert(d, DK_BB_NAME, c && c.id, await ownLock(b));
+                const d = await getFolder(KEY_FILES[w].path, true), bn = KEY_FILES[w].bb || DK_BB_NAME, c = drive.newbie && !m[mk] ? null : await findFile(d, bn);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
+                await driveUpsert(d, bn, c && c.id, await ownLock(b));
                 m[mk] = new Date().toISOString().slice(0, 10); try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
                 dkBackupOnce.forget();
             } catch (e) { console.warn('목록 백업', w, e); }

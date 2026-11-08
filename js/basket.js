@@ -338,13 +338,13 @@
     const abNewBd = (k, pid) => { const p = AB_BDP.find(x => x.id === pid); return { id: 'b' + abRid(), k, lb: '', pid: p.id, n: +p.P.장수, p: {} }; };
     const abNewRl = (k, pid) => { const p = AB_RL.find(x => x.id === pid); return { id: 'r' + abRid(), k, lb: '', pid: p.id, n: +p.P.쪽수, it: [] }; };   // 📒 바인더 = 시트 수 (장수) · 🤍 이형지북 = 쪽수 (상품)
     /* 📥 받은 📒 스티커바인더 · 🤍 이형지북 (도련 11-08) : 샵 · 처음 선물로 받으면 종류 없이 이 목록에 → 스티커 창(📒 정리하기)에서 📥 불러오면 그 종류 _스티커첩.json 으로 옮겨요
-         · 저장 = 소품 · 문구와 같은 목록 파일 (🔐 말랑달콤 / 스티커바인더 · 이형지북 / _목록.json · _목록_백업.json · js/drive.js sbown · rlown · 💤 쓸 때 읽어요)
+         · 저장 = 소품 · 문구와 같은 목록 파일 (🔐 말랑달콤 / 빈스티커첩 / _목록.json 두 칸 · _목록_백업.json · 받은- 파일은 섞여요 (종류 = 상품) · js/drive.js esown · 💤 쓸 때 읽어요)
          · 한 줄 { id, pid : 상품, n : 시트 수 · 쪽수, lb : 라벨, at, from : basic 샵 · gift 처음 선물 · back 되돌린 것, c : 원본 파일 }
          · 📦 실제 책처럼 (도련 11-08 · 소품 · 문구와 같아요) : 🏪 샵에서 받으면 목록 한 줄 + 원본 파일 받은-<c>.json (🔐 · js/coll.js ofAdd) · 🎁 처음 선물 = 목록에만
            📥 불러오면 그 종류(씰 · 조각 …) _스티커첩.json 에 적히고 → 이 폴더에서는 목록 한 줄 · 원본 파일 둘 다 지워요 (책이 그 서랍으로 가요)
            ↩ 빼면 스티커첩에서 지우고 → 이 폴더에 목록 한 줄 · 원본 파일을 다시 만들어요 · 목록이 없어지면 백업 → 원본 파일들로 되살려요
          · 빈 책(꽂은 것 · 붙인 것이 없는 책)만 ↩ 빼기 = 이 목록으로 돌아와요 · 책상 위 종류 없는 책 톡 = 안내만 */
-    const FR = { bd: { key: 'diary_sbd_own', l: 'malang_sbd_own', w: 'sbown', get dir() { return DIRS.stkBinder; } }, rl: { key: 'diary_rlb_own', l: 'malang_rlb_own', w: 'rlown', get dir() { return DIRS.relBook; } } };
+    const FR = { bd: { key: 'diary_sbd_own', l: 'malang_sbd_own', w: 'esown', get dir() { return DIRS.emptyBook; } }, rl: { key: 'diary_rlb_own', l: 'malang_rlb_own', w: 'esown', get dir() { return DIRS.emptyBook; } } };   // 📥 빈스티커첩 한 폴더 (도련 11-08)
     const frOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
     function frAll(t) { const v = typeof prefGet === 'function' ? prefGet(FR[t].key, FR[t].l) : null; return Array.isArray(v) ? v.filter(x => x && typeof x.id === 'string' && x.id && typeof x.pid === 'string') : []; }
     function frSet(t, L) { prefSet(FR[t].key, FR[t].l, (L || []).filter(Boolean)); }
