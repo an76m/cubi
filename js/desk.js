@@ -1976,12 +1976,21 @@
             DK_FNS.forEach(([f]) => { if (!M2[f]) M2[f] = ''; });                  // 빠진 기능은 '' (저절로 다시 붙이지 않게)
             if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
             deskFnPaint(); dknPaintAll();
-            if (DKD.cur) dkDrawerShut(true); else if (window.closeModal) closeModal('deskFnModal');   // 창이 올라가며 서랍도 닫혀요
             const keepTag = pe && pe.tag && k !== 'gd';                            // 🏷 옮겨 온 이름표가 있으면 묻지 않아요
-            if (!keepTag) setTimeout(async () => {                                // 🏷 서랍이 다 닫힌 뒤 = 봉투에서 서랍에 넣을 때와 같은 차례 (이름표 붙일까요? → 이름표 창 · 도련 11-08 · 연결 알림 대신)
-                if (DK.edit || !(dkHomes()[u] || []).some(e => e.s === s && e.k === k)) return;
-                if (await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, k); setTimeout(() => dknPanel(u + '|' + k), 50); }
-            }, 380);
+            if (keepTag) { if (DKD.cur) dkDrawerShut(true); else if (window.closeModal) closeModal('deskFnModal'); return; }   // 창이 올라가며 서랍도 닫혀요
+            /* 🏷 이름표 붙일까요? 까지 서랍은 열린 채 (도련 11-08) : 기능 창만 위로 올라가고 → 묻는 창 → 어느 쪽이든 누르면 서랍이 닫혀요 (붙이기 = 닫히고 이름표가 붙어 이름표 창) */
+            const D = DKD.cur, w = D && D.win;
+            if (D) { clearInterval(D.t); D.win = null; }                          // 기능 창을 닫아도 서랍은 그대로 (dkdDrop 의 '창이 닫히면 서랍도' 끄기)
+            if (w && dkdOn(w[1]) && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                const [box, host] = w;
+                box.animate([{ translate: '0 0' }, { translate: '0 calc(-100% - 24px)' }], { duration: 300, easing: 'cubic-bezier(.5, 0, .8, .4)', fill: 'forwards' }).onfinish = () => { closeModal(host.id); host.classList.remove('dk-drop'); setTimeout(() => box.getAnimations().forEach(a => a.cancel()), 200); };
+            } else { if (w) w[1].classList.remove('dk-drop'); if (window.closeModal) closeModal('deskFnModal'); }
+            setTimeout(async () => {
+                const yes = await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기');
+                if (D && DKD.cur === D) dkDrawerShut(true);                        // 어느 쪽이든 = 서랍이 닫혀요
+                if (!yes || DK.edit || !(dkHomes()[u] || []).some(e => e.s === s && e.k === k)) return;
+                setTimeout(() => { dkzTagOn(u, k); setTimeout(() => dknPanel(u + '|' + k), 50); }, D ? 300 : 0);   // 서랍이 닫힌 뒤 이름표가 붙어요 → 이름표 창
+            }, w ? 320 : 0);
         }
         window.dkEmptyPick = dkEmptyPick;
         function deskSnapToggle() { DK.snap = !DK.snap; dkSet(DK_SNAP, DK.snap); deskTipPaint(); dkSnapBtn(); }
