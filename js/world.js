@@ -7,7 +7,7 @@
    - 움직이기 : 💻 방향키 · WASD · 땅 클릭 / 📱 왼쪽 아래 조이스틱 · 땅 톡 · Enter = 말하기 칸
    - 👭 같이 걷기 (2단계 · 도련 11-02) : 광장 서버(도구/광장서버 · Cloudflare Durable Objects) 에 WebSocket 으로
        WORLD_URL 이 비어 있으면 = 예전처럼 혼자 걷기 (말풍선 나만)
-       🔒 로그인한 다꾸러만 (게스트 · 이 기기 폴더 저장 = 못 들어와요) · 한 방 30명 · 꽉 차면 2번 방 …
+       🔒 로그인한 다꾸러만 (게스트 · 이 기기 폴더 저장 = 못 들어와요) · 광장은 방 하나 · 100명까지 (도련 11-09 · 꽉 차면 '광장이 꽉 찼어요')
        보내는 것 : 내 이름 · 인형 그림(작은 그림 한 장) · 위치(움직일 때 1초에 6번쯤) · 말풍선(60자)
        말풍선은 서버에 저장하지 않아요 · 걸러내기 없음 (도련 11-02 : 분위기를 보고 하나씩)
    - 🧭 아끼는 방식 (도련 11-06) : 위치를 1초에 6번 보내던 것 → '가는 곳'이 바뀔 때만 go { x, y, tx, ty, s, f } (땅 톡 = 목적지 · 방향키 · 조이스틱 = 방향이 바뀔 때 · 걷는 중엔 1.5초마다 한 번 맞추기)
@@ -37,7 +37,7 @@
         const person = o => Object.assign({ x: 1260, y: 1160, tx: 1260, ty: 1160, ar: 208 / 470, face: 1, walk: 0, t: Math.random() * 9, img: null, ras: null, name: '나', say: '', sayT: 0 }, o);
         const S = { on: false, built: false, img: {}, ras: {}, z: 1, dpr: 1, vw: 0, vh: 0, cam: { x: 1260, y: 1100 },
             me: person({ me: true }), ppl: new Map(), key: {}, joy: null, goal: null, raf: 0, last: 0,
-            net: { ws: null, st: 'off', room: 0, max: 30, sent: 0, sx: 0, sy: 0, sf: 1, retry: 0, timer: 0, ping: 0, myImg: '' } };
+            net: { ws: null, st: 'off', room: 0, max: 100, sent: 0, sx: 0, sy: 0, sf: 1, retry: 0, timer: 0, ping: 0, myImg: '' } };
         const q = id => document.getElementById(id);
         const wOn = () => S.on;
         const local = () => typeof FT_LOCAL !== 'undefined' && FT_LOCAL;
@@ -212,7 +212,7 @@
             const el = q('wdSt'); if (!el) return;
             const n = S.ppl.size + 1;
             el.textContent = !online() ? '임시 · 혼자 걷기'
-                : N.st === 'on' ? (S.ev ? `${n}명 · 최대 ${N.max}명` : `${N.room}번 방 · ${n}명`) : N.st === 'again' ? '다른 창에서 들어갔어요' : N.st === 'login' ? '로그인이 필요해요' : N.st === 'full' ? '방이 모두 꽉 찼어요' : N.st === 'soon' ? '아직 안 열렸어요' : N.st === 'ended' ? '끝났어요' : '연결하는 중…';
+                : N.st === 'on' ? `${n}명 · 최대 ${N.max}명` : N.st === 'again' ? '다른 창에서 들어갔어요' : N.st === 'login' ? '로그인이 필요해요' : N.st === 'full' ? (S.ev ? '방이 꽉 찼어요' : `광장이 꽉 찼어요 (최대 ${N.max}명) · 잠시 뒤에 다시 와 주세요`) : N.st === 'soon' ? '아직 안 열렸어요' : N.st === 'ended' ? '끝났어요' : '연결하는 중…';
             const inp = q('wdSayIn'); if (inp) inp.placeholder = !online() ? '말풍선 (지금은 나만 보여요)' : N.st === 'on' ? '말하기 (방 사람들에게 보여요)' : '연결되면 말할 수 있어요';
         }
         const send = o => { try { if (N.ws && N.ws.readyState === 1) { N.ws.send(JSON.stringify(o)); return true; } } catch (e) {} return false; };
