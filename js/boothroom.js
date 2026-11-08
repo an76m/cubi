@@ -4,7 +4,7 @@
      - 길에서 본 포토부스(img/booth-street.webp) → 캡슐기계 · 벽 달력처럼 포토부스 쪽으로 빨려 들어가며 빛 → 포토부스 앞 (뒤에서 미리 열어 둬요)
      - 포토부스 그림(img/booth.webp · 바탕 없이) + 뒤 배경 = 그림이 아니라 css 로 따로 (벽 · 바닥 · 불빛 · 장식) → 철마다 바꾸기 쉽게 (BTH_THEME · data-th · css/boothroom.css '🎨 배경 테마')
      - 위 간판 = 📟 LED 전광판 (1990~2000년대 · 점 하나하나 · 한 칸씩 툭툭) · 왼쪽 = 📺 옛 브라운관 (노이즈 · 주사선 · 흐르는 줄 · 덜컥) · 출력구 옆 💡 깜빡
-     - 커튼 톡 = 포토부스 안으로 (📱 📲 만 · 💻 PC = '카메라가 있는 폰 · 패드에서' 안내)
+     - 커튼 톡 = 포토부스 안으로 (📱 📲 = 📷 카메라 · 🖼️ 앨범 중 고르기 · 💻 PC = 🖼️ 앨범에서 사진 고르기 · 도련 11-08)
    ▶ 안 (#bthIn · 창이 아니라 화면 전체 = 부스 안에 들어온 느낌)
      - 위 = 렌즈 · 플래시 · 단계 LED / 가운데 = 화면 / 아래 = 아날로그 버튼 ◀ ● ▶
      - ① 프레임 (네컷 · 2×2 · 한 컷) → ② 프레임 색 → ③ 찍기 (3 · 2 · 1 찰칵 · 번쩍) → ④ 확인 (다시 찍기 · 인쇄)
@@ -167,7 +167,6 @@
             B.on = false; el.classList.remove('show'); document.body.classList.remove('bth-on');
         }
         function enter() {
-            if (!camOk()) { if (window.showMsg) showMsg('📸 포토부스는 <b>카메라가 있는 📱 폰 · 📲 패드</b>에서 찍을 수 있어요.<br><span style="font-size:12px;color:#777;">폰이나 패드로 말랑달콤에 들어와 커튼을 열어 보세요</span>'); return; }
             if (I.on || P.busy) return;
             const el = bq('bthRoom'); el.classList.add('in');                     // 커튼 쪽으로 쏙 (어두워지며)
             setTimeout(() => { inOpen(); setTimeout(() => el.classList.remove('in'), 300); }, quiet() ? 0 : 420);
@@ -180,8 +179,9 @@
             { id: 'one', name: '한 컷', n: 1, w: 500, slot: [456, 456], cols: 1, gap: 0, pad: 22, foot: 96 }
         ];
         const COLORS = [['핑크', '#ffc2d4', '#ff6b8b'], ['하늘', '#bfe3ff', '#3d8fd6'], ['민트', '#c6f2df', '#2f9a6a'], ['라벤더', '#e3d6ff', '#7a5ad0'], ['버터', '#fff1b0', '#b8860b'], ['블랙', '#2b2b2b', '#ffffff'], ['화이트', '#ffffff', '#5a3d4a'], ['체크', '#ffe0ea', '#ff6b8b']];
-        const STEP_TX = { frame: ['STEP 1', '프레임'], color: ['STEP 2', '프레임 색'], ready: ['STEP 3', '찍기'], shoot: ['STEP 3', '찍는 중'], check: ['STEP 4', '확인'], nocam: ['ERROR', '카메라'] };
-        const I = { on: false, st: 'frame', lay: 0, col: 0, shots: [], stream: null, count: '', msg: '', out: '', busy: false, scr: null };
+        const STEP_TX = { frame: ['STEP 1', '프레임'], color: ['STEP 2', '프레임 색'], src: ['STEP 3', '사진'], pick: ['STEP 3', '사진 고르기'], more: ['STEP 3', '사진 고르기'], ready: ['STEP 3', '찍기'], shoot: ['STEP 3', '찍는 중'], check: ['STEP 4', '확인'], nocam: ['ERROR', '카메라'] };
+        const I = { on: false, st: 'frame', lay: 0, col: 0, shots: [], stream: null, count: '', msg: '', out: '', busy: false, scr: null, via: 'cam', sel: 0, picks: [] };
+        /* 📷 사진 = 📱 📲 는 고르기 (📷 카메라 · 🖼️ 앨범) · 💻 PC 는 🖼️ 앨범 (도련 11-08) */
 
         function inBuild() {
             let el = bq('bthIn'); if (el) return el;
@@ -200,25 +200,30 @@
                     <div class="bin-plate">MALANG PHOTO · SINCE 1999</div>
                 </div>
                 <video id="binCam" playsinline muted autoplay></video>
-                <div class="bin-flash" id="binFlash"></div>`;
+                <div class="bin-flash" id="binFlash"></div>
+                <input type="file" id="binFile" accept="image/*" multiple hidden>`;
             document.body.appendChild(el);
             bq('binL').onclick = () => inKey('L'); bq('binR').onclick = () => inKey('R'); bq('binOk').onclick = () => inKey('OK');
             bq('binExit').onclick = () => inClose();
+            bq('binFile').onchange = e => { const f = [...(e.target.files || [])].filter(x => /^image\//.test(x.type) || /\.(jpe?g|png|gif|webp|heic|heif|avif)$/i.test(x.name)); e.target.value = ''; if (f.length) picked(f); };
             return el;
         }
         function inFit() { const c = bq('binScr'); if (!c) return; const r = c.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); I.scr = null; }
         function inOpen() {
-            const el = inBuild(); Object.assign(I, { on: true, st: 'frame', shots: [], out: '', count: '', msg: '', busy: false });
+            const el = inBuild(); Object.assign(I, { on: true, st: 'frame', shots: [], out: '', count: '', msg: '', busy: false, picks: [], sel: 0 });
+            const room = bq('bthRoom'); if (room) room.classList.remove('in');     // 커튼 쪽 어둠은 안에 들어오면 바로 걷어요
             el.classList.add('show'); document.body.classList.add('bin-on'); requestAnimationFrame(inFit); inPaint(); run();
         }
         function inClose(now) {
-            const el = bq('bthIn'); camStop(); I.on = false; I.busy = false; if (!el) return;
+            const el = bq('bthIn'); camStop(); I.on = false; I.busy = false; I.picks = [];
+            const room = bq('bthRoom'); if (room) room.classList.remove('in');     // 🌑 커튼 밖으로 = 부스 그림이 늘 밝게 (도련 11-08 : 검은 막이 남지 않게)
+            if (!el) return;
             if (now || quiet()) { el.classList.remove('show', 'bye'); document.body.classList.remove('bin-on'); return; }
             el.classList.add('bye'); setTimeout(() => { el.classList.remove('show', 'bye'); document.body.classList.remove('bin-on'); }, 380);   // 커튼 밖으로 = 스르르
         }
         function inPaint() {                                                    // 단계 LED · 버튼 아래 글
             const [a, b] = STEP_TX[I.st] || ['', '']; bq('binStepA').textContent = a; bq('binStepB').textContent = b;
-            const T = { frame: ['이전', '선택', '다음'], color: ['이전', '선택', '다음'], ready: ['', '찍기 시작', ''], shoot: ['', '', ''], check: ['다시 찍기', '인쇄하기', ''], nocam: ['', '나가기', ''] }[I.st] || ['', '', ''];
+            const T = { frame: ['이전', '선택', '다음'], color: ['이전', '선택', '다음'], src: ['카메라', '선택', '앨범'], pick: ['이전', '사진 고르기', ''], more: ['처음부터', '더 고르기', '이대로 채우기'], ready: ['', '찍기 시작', ''], shoot: ['', '', ''], check: [I.via === 'album' ? '다시 고르기' : '다시 찍기', '인쇄하기', ''], nocam: ['앨범', '나가기', ''] }[I.st] || ['', '', ''];
             ['binLt', 'binOt', 'binRt'].forEach((id, i) => { bq(id).textContent = T[i]; });
             bq('binL').disabled = !T[0] || I.busy; bq('binR').disabled = !T[2] || I.busy; bq('binOk').disabled = !T[1] || I.busy;
         }
@@ -226,15 +231,47 @@
         function inKey(k) {
             if (I.busy) return; beep(k === 'OK' ? 880 : 620, .07);
             if (I.st === 'frame') { if (k === 'L') I.lay = (I.lay + LAYOUTS.length - 1) % LAYOUTS.length; else if (k === 'R') I.lay = (I.lay + 1) % LAYOUTS.length; else I.st = 'color'; }
-            else if (I.st === 'color') { if (k === 'L') I.col = (I.col + COLORS.length - 1) % COLORS.length; else if (k === 'R') I.col = (I.col + 1) % COLORS.length; else camGo(); }
+            else if (I.st === 'color') { if (k === 'L') I.col = (I.col + COLORS.length - 1) % COLORS.length; else if (k === 'R') I.col = (I.col + 1) % COLORS.length; else if (camOk()) { I.st = 'src'; } else pick(); }   // 💻 = 바로 앨범
+            else if (I.st === 'src') { if (k === 'L') I.sel = 0; else if (k === 'R') I.sel = 1; else if (I.sel) pick(); else { I.via = 'cam'; camGo(); } }
+            else if (I.st === 'pick') { if (k === 'L') I.st = camOk() ? 'src' : 'color'; else if (k === 'OK') pick(); }
+            else if (I.st === 'more') { if (k === 'L') { I.picks = []; pick(); } else if (k === 'OK') pick(true); else if (k === 'R') fillGo(); }
             else if (I.st === 'ready' && k === 'OK') shoot();
-            else if (I.st === 'check') { if (k === 'L') { I.shots = []; I.out = ''; camGo(); } else if (k === 'OK') print(); }
-            else if (I.st === 'nocam' && k === 'OK') inClose();
+            else if (I.st === 'check') { if (k === 'L') { I.shots = []; I.out = ''; if (I.via === 'album') { I.picks = []; pick(); } else camGo(); } else if (k === 'OK') print(); }
+            else if (I.st === 'nocam') { if (k === 'OK') inClose(); else if (k === 'L') pick(); }
             inPaint();
+        }
+        /* 🖼️ 앨범에서 고르기 (도련 11-08) : 프레임 칸 수만큼 · 넘치면 알려 줘요 · 모자라면 [더 고르기] / [이대로 채우기] (고른 사진을 돌려 가며 채워요)
+           사진은 이 기기 안에서만 (어디에도 보내지 않아요) · 큰 사진은 1600px 로 줄여 둬요 */
+        function pick(more) {
+            camStop(); I.via = 'album'; if (!more) I.picks = [];
+            I.st = I.picks.length ? 'more' : 'pick'; I.msg = ''; inPaint();
+            const f = bq('binFile'); f.multiple = true; f.click();                   // 버튼을 누른 그 순간에 열어요 (📱 이 막지 않게)
+        }
+        const loadPic = file => new Promise(res => {
+            const url = URL.createObjectURL(file), im = new Image();
+            im.onload = () => { const k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c); };
+            im.onerror = () => { URL.revokeObjectURL(url); res(null); }; im.src = url;
+        });
+        async function picked(files) {
+            if (!I.on) return; const L = LAYOUTS[I.lay], N = L.n, left = N - I.picks.length;
+            if (N === 1 && files.length > 1) { if (window.showMsg) showMsg('🖼️ <b>한 컷</b> 프레임에는 사진이 <b>한 장</b>만 들어가요.<br>한 장만 골라 주세요.'); return; }
+            if (files.length > left) { if (window.showMsg) showMsg(`🖼️ <b>${L.name}</b> 프레임에는 사진이 <b>${N}장</b> 들어가요.<br>${I.picks.length ? `지금 ${I.picks.length}장을 골랐으니 <b>${left}장</b>까지 더 골라 주세요.` : `<b>${N}장</b>까지 골라 주세요.`}`); return; }
+            I.busy = true; I.msg = '사진을 불러오는 중…'; inPaint();
+            const got = (await Promise.all(files.map(loadPic))).filter(Boolean); I.busy = false; I.msg = '';
+            if (!I.on) return;
+            if (!got.length) { inPaint(); if (window.showMsg) showMsg('사진을 열 수 없어요. 다른 사진을 골라 주세요.'); return; }
+            I.picks = I.picks.concat(got);
+            if (I.picks.length >= N) { I.shots = I.picks.slice(0, N); I.out = compose(); I.st = 'check'; }
+            else I.st = 'more';
+            I.scr = null; inPaint();
+        }
+        function fillGo() {                                                     // 이대로 채우기 = 고른 사진을 차례로 돌려 가며 (1장이면 모든 칸 같은 사진)
+            const N = LAYOUTS[I.lay].n; if (!I.picks.length) return;
+            I.shots = Array.from({ length: N }, (_, i) => I.picks[i % I.picks.length]); I.out = compose(); I.st = 'check'; I.scr = null; inPaint();
         }
         /* 📷 카메라 (앞 카메라 · 거울처럼 · 영상은 이 기기 안에서만 · 어디에도 보내지 않아요) */
         async function camGo() {
-            I.st = 'ready'; I.msg = '카메라를 켜는 중…'; inPaint();
+            I.via = 'cam'; I.st = 'ready'; I.msg = '카메라를 켜는 중…'; inPaint();
             if (!I.stream) {
                 try { I.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false }); }
                 catch (e) { I.st = 'nocam'; I.msg = ''; inPaint(); return; }
@@ -296,6 +333,21 @@
                 fitDraw(S.fimg, h * .15, h * .16);
                 txt(I.st === 'frame' ? `◀  ${L.name}  ▶` : `◀  ${C[0]}  ▶`, 8, '#fff', h * .9);
                 txt(I.st === 'frame' ? `${I.lay + 1} / ${LAYOUTS.length}` : `${I.col + 1} / ${COLORS.length}`, 4.2, '#c9b8ff', h * .97);
+            } else if (I.st === 'src') {                                                // 📷 / 🖼️ 고르기 (◀ ▶ 로 옮기고 ● 로)
+                txt('사진을 어떻게 넣을까요?', 6.4, '#ffe680', h * .1);
+                [['📷', '카메라로 찍기'], ['🖼️', '앨범에서 고르기']].forEach(([ic, t], i) => {
+                    const bw = w * .38, bh = h * .52, bx = w * (i ? .56 : .06), by = h * .22, on = I.sel === i;
+                    x.fillStyle = on ? '#ff8fb1' : '#3b3166'; rr(x, bx, by, bw, bh, u * 4); x.fill();
+                    x.lineWidth = u * (on ? 1.4 : .8); x.strokeStyle = on ? '#fff' : '#7d6fb0'; x.stroke();
+                    x.font = `${18 * u}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.fillText(ic, bx + bw / 2, by + bh * .42);
+                    x.font = `700 ${5.4 * u}px Jua, "Noto Sans KR", sans-serif`; x.fillStyle = on ? '#fff' : '#cfc4ff'; x.fillText(t, bx + bw / 2, by + bh * .82);
+                });
+                txt('◀ ▶ 로 고르고 ● 를 눌러요', 4.8, '#fff', h * .87);
+            } else if (I.st === 'pick' || I.st === 'more') {                            // 🖼️ 고른 사진이 칸에 (모자라면 빈 칸)
+                const fk = 'p' + I.lay + '-' + I.col + '-' + I.picks.length; if (S.fk !== fk) { S.fk = fk; S.fimg = frameCanvas(L, C, I.picks, true); }
+                txt(I.msg || (I.st === 'pick' ? `앨범에서 사진 ${L.n}장을 골라요` : `${I.picks.length}장 골랐어요 · 남은 칸 ${L.n - I.picks.length}`), 5.6, '#ffe680', h * .07);
+                fitDraw(S.fimg, h * .13, h * .16);
+                txt(I.st === 'pick' ? '● 를 누르면 앨범이 열려요' : '● 더 고르기 · ▶ 고른 사진으로 채우기', 4.6, '#fff', h * .91);
             } else if (I.st === 'ready' || I.st === 'shoot') {
                 if (live) { const vw = v.videoWidth, vh = v.videoHeight, k = Math.max(w / vw, h / vh); x.save(); x.translate(w, 0); x.scale(-1, 1); x.drawImage(v, (w - vw * k) / 2, (h - vh * k) / 2, vw * k, vh * k); x.restore(); }
                 x.strokeStyle = C[1]; x.lineWidth = u * 2.2; rr(x, w * .08, h * .08, w * .84, h * .84, u * 3); x.stroke();   // 프레임 색 테두리 = 찍히는 자리
@@ -307,7 +359,7 @@
                 txt('어때요? 인쇄할까요?', 6.4, '#ffe680', h * .07);
                 if (S.outImg && S.outImg.complete) fitDraw(S.outImg, h * .13, h * .06);
             } else if (I.st === 'nocam') {
-                txt('카메라를 켤 수 없어요', 7.4, '#ffb3c6', h * .42); txt('카메라 허용을 확인하고', 5, '#fff', h * .54); txt('다시 들어와 주세요', 5, '#fff', h * .62);
+                txt('카메라를 켤 수 없어요', 7.4, '#ffb3c6', h * .42); txt('카메라 허용을 확인하거나', 5, '#fff', h * .54); txt('◀ 앨범에서 골라 주세요', 5, '#fff', h * .62);
             }
             crt(g, W, H, now, s, S, false, true);                                          // 📺 같은 옛 화면 느낌 (흐르는 줄 · 주사선 · 노이즈)
         }
