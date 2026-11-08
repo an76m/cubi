@@ -16,11 +16,11 @@
 @keyframes sprPop { from { transform: translateY(40vh) scale(.6); opacity: 0; } }
 @keyframes sprDrop { to { transform: translateY(30vh) scale(.7); opacity: 0; } }
 
-.spr-mach { --u: 4.6px; --ln: #6b4a55; position: relative; padding-top: calc(var(--u) * 64); flex: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.spr-mach { --u: 4.6px; --ln: #6b4a55; position: relative; flex: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .spr-body { position: relative; z-index: 1; }
 .spr-svg { display: block; width: 100%; height: auto; overflow: visible; }
 .spr-floor { position: absolute; z-index: 0; left: calc(var(--u) * 8); right: calc(var(--u) * 8); bottom: calc(var(--u) * -2.6); height: calc(var(--u) * 6); border-radius: 50%; background: rgba(107, 74, 85, .16); }
-.spr-pwb { position: absolute; z-index: 2; left: calc(var(--u) * 80.4); top: calc(var(--u) * 8.4); width: calc(var(--u) * 11.2); height: calc(var(--u) * 7); border: 0; border-radius: 50%; background: transparent; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; }
+.spr-pwb { position: absolute; z-index: 2; left: 0; top: 0; width: 100%; height: 100%; border: 0; border-radius: calc(var(--u) * 6); background: transparent; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; }   /* 앞모습 톡 = 위에서 보기 */
 .spr-pwb:focus-visible { outline: 3px solid #ff5f8f; outline-offset: 2px; }
 .spr-pw { transition: transform .1s; }
 .spr-pw.down { transform: translateY(3px); }
@@ -33,12 +33,6 @@
 
 /* 📄 종이 자리 (틈 = 프린터 위에서 5.8u · 그 아래는 안 보여요) */
 .spr-pz { position: absolute; z-index: 2; left: calc(var(--u) * 22); width: calc(var(--u) * 56); top: 0; height: calc(var(--u) * 69.8); overflow: hidden; }
-.spr-ghost { position: absolute; left: calc(var(--u) * 1); right: calc(var(--u) * 1); bottom: calc(var(--u) * 6.6); height: calc(var(--u) * 60); background: #fffafc; border: calc(var(--u) * .6) dashed #c9a3b3; border-bottom: 0; border-radius: calc(var(--u) * 5) calc(var(--u) * 5) 0 0; box-sizing: border-box; transition: opacity .25s, transform .3s; }
-.spr-ghost.gone { opacity: 0; transform: translateY(20%); pointer-events: none; }
-.spr-ghost canvas { position: absolute; inset: calc(var(--u) * 2); width: calc(100% - var(--u) * 4); height: calc(100% - var(--u) * 4); touch-action: none; cursor: grab; }
-.spr-pick { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: 'Jua', sans-serif; font-size: 18px; color: #5a3a47; background: #ffd3e2; border: 3px solid var(--ln); border-radius: 18px; padding: 10px 18px; box-shadow: 0 4px 0 var(--ln); cursor: pointer; white-space: nowrap; }
-.spr-pick small { font-size: 12px; color: #7a5763; }
-.spr-pick[hidden] { display: none; }
 .spr-paper { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 5.8); height: calc(var(--u) * 62); display: none; transform: translateY(100%); }
 .spr-paper.on { display: block; }
 .spr-paper.rise { animation: sprRise 3.6s linear forwards; }
@@ -53,7 +47,7 @@
 @keyframes sprPeel { 0% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-12%) rotate(-6deg); } 100% { transform: translateY(-120%) rotate(14deg); opacity: 0; } }
 
 /* 🎛 아래 판 (시안의 동글 버튼 · 칩) */
-.spr-ctl { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; min-height: 196px; box-sizing: border-box;   /* 높이를 늘 같게 = 프린터가 단계마다 들썩이지 않게 */ max-width: min(94vw, 560px); padding: 0 8px; }
+.spr-ctl { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; min-height: 110px; box-sizing: border-box;   /* 높이를 늘 같게 = 프린터가 단계마다 들썩이지 않게 */ max-width: min(94vw, 560px); padding: 0 8px; }
 .spr-msg { margin: 0; font-size: 19px; color: #fff; text-align: center; text-shadow: 0 2px 0 rgba(60, 30, 50, .5); }
 .spr-msg.blink { animation: sprBlink .45s ease-in-out infinite; }
 .spr-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
@@ -73,7 +67,7 @@
 .spr-tb.add { background: #ffd3e2; }
 @media (prefers-reduced-motion: reduce) { .spr-room *, .spr-room { animation: none !important; transition: none !important; } .spr-paper.rise { transform: none; } .spr-ink.go { clip-path: none; } }
 @media (max-width: 560px) {                                                     /* 📱 좁은 화면 : 칩을 작게 · 아래 판 높이를 늘 같게 (프린터가 들썩이지 않게 · 버튼이 화면 밖으로 안 나가게) */
-  .spr-ctl { min-height: 290px; gap: 6px; }
+  .spr-ctl { min-height: 110px; gap: 6px; }
   .spr-msg { font-size: 16px; }
   .spr-row { gap: 5px; }
   .spr-chip { font-size: 13px; padding: 2px 9px; min-height: 32px; border-width: 2px; }
@@ -81,5 +75,26 @@
   .spr-btn { font-size: 17px; padding: 7px 18px; min-height: 44px; }
   .spr-tb { width: 38px; height: 38px; }
 }
-.spr-wrap.intro .spr-pz, .spr-wrap.intro .spr-ctl { animation: sprFade .4s ease .05s both; }
 @keyframes sprFade { from { opacity: 0; transform: translateY(8px); } }
+
+/* 🔽 앞모습 ↔ 위에서 내려다본 모습 (위 화면 시안 · 도련 11-08) */
+.spr-front { position: relative; padding-top: calc(var(--u) * 64); transform-origin: 50% 100%; }
+.spr-top { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--u) * 64); display: none; transform-origin: 50% 100%; scale: var(--ts, 1); z-index: 3; }
+.spr-mach.is-top .spr-top { display: block; }
+.spr-mach.is-top .spr-front { visibility: hidden; }
+.spr-mach.tilt-in .spr-top { animation: sprTilt .42s cubic-bezier(.25, .9, .3, 1) both; }
+.spr-mach.stand-up .spr-front { animation: sprStand .42s cubic-bezier(.25, .9, .3, 1) both; }
+@keyframes sprTilt { 0% { transform: perspective(calc(var(--u) * 200)) rotateX(-64deg) translateY(calc(var(--u) * 6)); opacity: 0; } 45% { opacity: 1; } 100% { transform: perspective(calc(var(--u) * 200)) rotateX(0); } }
+@keyframes sprStand { 0% { transform: perspective(calc(var(--u) * 200)) rotateX(58deg); opacity: .2; } 100% { transform: perspective(calc(var(--u) * 200)) rotateX(0); opacity: 1; } }
+.spr-lcd { position: absolute; border-radius: calc(var(--u) * 2); touch-action: none; cursor: grab; }
+.spr-tk { position: absolute; translate: -50% -50%; margin: 0; padding: 0; font-family: 'Jua', sans-serif; color: var(--ln); cursor: pointer; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; justify-content: center; }
+.spr-tk:focus-visible { outline: 3px solid #ff5f8f; outline-offset: 2px; }
+.spr-ar { width: calc(var(--u) * 8); height: calc(var(--u) * 8); border: 0; background: transparent; color: #c06a8f; font-size: calc(var(--u) * 3.2); border-radius: calc(var(--u) * 2); }
+.spr-ar.down { color: var(--ln); transform: translateY(2px); }
+.spr-ok { width: calc(var(--u) * 8.6); height: calc(var(--u) * 8.6); border-radius: 50%; border: calc(var(--u) * .6) solid var(--ln); background: #fff; box-shadow: 0 calc(var(--u) * .7) 0 var(--ln); font-size: calc(var(--u) * 2.8); }
+.spr-ok.down { transform: translateY(calc(var(--u) * .6)); box-shadow: 0 calc(var(--u) * .1) 0 var(--ln); }
+.spr-pill { width: calc(var(--u) * 10.4); height: calc(var(--u) * 5); border-radius: 99px; border: calc(var(--u) * .6) solid var(--ln); background: #ffe3ec; box-shadow: 0 calc(var(--u) * .5) 0 var(--ln); font-size: calc(var(--u) * 2.3); white-space: nowrap; }
+.spr-pill.down { transform: translateY(calc(var(--u) * .4)); box-shadow: 0 calc(var(--u) * .1) 0 var(--ln); }
+.spr-tpw { width: calc(var(--u) * 10); height: calc(var(--u) * 10); border-radius: 50%; border: 0; background: transparent; }
+.spr-top .spr-pw { transition: transform .1s; transform-box: fill-box; transform-origin: center; }
+.spr-top.pw .spr-pw { transform: scale(.92); }
