@@ -1,0 +1,36 @@
+/* 📸 포토부스 거리 (도련 11-08 · js/boothroom.js) : 길 그림을 크게 + 살짝 흐리게 = 뒤 · 포토부스 그림 = 앞 · 📟 LED 간판 · 📺 브라운관 화면 */
+.bth-room { position: fixed; inset: 0; z-index: 1500; display: none; overflow: hidden; background: #f6e3ea; }
+.bth-room.show { display: block; animation: bthIn .5s ease both; }
+@keyframes bthIn { from { opacity: 0; } }
+.bth-room button { font-family: inherit; cursor: pointer; }
+.bth-bg { position: absolute; max-width: none; user-select: none; -webkit-user-drag: none; filter: blur(3px) saturate(.92) brightness(1.03); }
+.bth-room::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, transparent 38%, rgba(70, 40, 60, .22) 100%); }   /* 가장자리 살짝 어둡게 = 포토부스에 눈이 가요 */
+.bth-booth { position: absolute; z-index: 2; filter: drop-shadow(0 18px 18px rgba(80, 40, 70, .25)); }
+.bth-pic { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+/* 📟 LED 간판 = 그림 간판 안쪽에 까만 판 (둥근 모서리) */
+.bth-led { position: absolute; border-radius: 10px; background: #140a0d; box-shadow: inset 0 0 0 2px #2a1418, inset 0 3px 8px rgba(0, 0, 0, .7); }
+/* 📺 브라운관 = 둥근 유리 · 안쪽 그림자 · 반사 */
+.bth-tv { position: absolute; overflow: hidden; border-radius: 14px / 10px; background: #0c0a10; box-shadow: inset 0 0 0 2px #2a2030; }
+.bth-tv canvas { width: 100%; height: 100%; display: block; filter: contrast(1.08) saturate(1.15) blur(.35px); }
+.bth-tv::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .55) 100%), linear-gradient(160deg, rgba(255, 255, 255, .16) 0 18%, transparent 30%); box-shadow: inset 0 0 18px rgba(0, 0, 0, .6); }
+/* 💡 출력구 옆 동그라미 = 깜빡이는 작은 불 */
+.bth-lamp { position: absolute; translate: -50% -50%; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 6px 2px rgba(255, 59, 92, .8); animation: bthLamp 1.2s steps(1) infinite; }
+@keyframes bthLamp { 50% { background: #5a1c26; box-shadow: none; } }
+/* 👆 커튼 = 누르는 곳 (보이지 않는 단추) · 마우스를 올리면 살짝 밝게 */
+.bth-curtain { position: absolute; border: 0; background: transparent; border-radius: 16px 16px 30px 30px; transition: background .2s; }
+.bth-curtain:hover { background: rgba(255, 255, 255, .12); }
+.bth-hint { position: absolute; left: 50%; bottom: 8%; translate: -50% 0; white-space: nowrap; font-size: 14px; font-weight: 800; color: #b73f6d; background: #fff; border: 2px solid #6d4a58; border-radius: 999px; padding: 6px 14px; box-shadow: 0 3px 0 rgba(109, 74, 88, .25); animation: bthHint 1.6s ease-in-out infinite; pointer-events: none; }
+@keyframes bthHint { 50% { translate: -50% -6px; } }
+.bth-go { position: absolute; z-index: 5; right: 14px; top: max(14px, env(safe-area-inset-top)); }
+/* 🚪 커튼 안으로 = 어둡게 쏙 */
+.bth-room.in .bth-booth { transition: transform .45s ease-in, filter .45s; transform: scale(1.35); transform-origin: 62% 45%; filter: brightness(.5); }
+.bth-room.in::before { content: ''; position: absolute; inset: 0; z-index: 4; background: #2a1a24; animation: bthDark .45s ease-in both; }
+@keyframes bthDark { from { opacity: 0; } to { opacity: .9; } }
+/* 🚶 길 → 포토부스 앞 (그림이 커지며 다가가요 · 끝에 앞 장면이 겹쳐 떠요) */
+.bth-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #f6e3ea; }
+.bth-walk.on { display: block; }
+.bth-walk img { position: absolute; max-width: none; transform-origin: 0 0; user-select: none; -webkit-user-drag: none; }
+.bth-walk.leave { animation: bthWalkOut .6s ease forwards; }
+@keyframes bthWalkOut { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .bth-lamp, .bth-hint { animation: none; } }
