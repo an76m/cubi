@@ -2,9 +2,9 @@
    🖨️ 말랑 스티커 프린터 (도련 11-08 · 예전 🖼️ 앨범에서 골라 만들기를 책상 위 작은 프린터로 · 시안 '말랑 스티커 기계' + '위 화면 시안')
    - 책상 위 프린터 소품(상품 '기능' print · js/deskcustom.js dcTap) 톡 → 프린터가 떠올라 가운데 크게 → 앞으로 기울어 위에서 내려다본 모습 (위 화면 · 버튼)
      ✂️ 스티커 만들기의 🖼️ 앨범에서 골라 만들기도 여기로 (책상에 보이면 거기서 · 아니면 아래에서 쏙 · 그 종류로) · ✕ / 바깥 톡 = 일어서서 제자리로
-   - 위 화면 (LCD) 다섯 단계 : 사진 → 모양 → 크기 · 자리 → 종류 → 출력 (맨 위 단계 줄 · 가운데 미리보기 · 아래 할 일)
-     ◀ ▶ 고르기 · ▲ ▼ 크기 (종류) · OK 다음 · 뒤로 = 한 단계 앞 · 앞으로 = 앞모습으로 세우기 · 화면을 끌면 자리 · ✂️ 손으로 = 화면에 빙 둘러 그리기
-     사진 : OK = 앨범 (한 장 · 여러 장 SM_MANY 10장까지) · ◀ ▶ 한 장씩 · ▲ 더 넣기 · ▼ 새로 고르기 / 모양 : ▲ = 모든 사진에 같게 / 종류 : 모조지면 ◀ ▶ 하얀 테두리
+   - 위 화면 (LCD) 네 단계 : 사진 → 모양 → 크기 · 자리 → 출력 (종류는 늘 🏷️ 씰 · 도련 11-08) (맨 위 단계 줄 · 가운데 미리보기 · 아래 할 일)
+     ◀ ▶ 고르기 · ▲ ▼ 크기 · OK 다음 · 뒤로 = 한 단계 앞 · 앞으로 = 앞모습으로 세우기 · 화면을 끌면 자리 · ✂️ 손으로 = 화면에 빙 둘러 그리기
+     사진 : OK = 앨범 (한 장 · 여러 장 SM_MANY 10장까지) · ◀ ▶ 한 장씩 · ▲ 더 넣기 · ▼ 새로 고르기 / 모양 : ▲ = 모든 사진에 같게
      💻 화살표 · Enter(OK) · Backspace(뒤로) · 스페이스(전원) · Esc
    - 마지막 단계에서 전원 버튼 꾹 = 프린터가 앞으로 일어서고 → 지이잉 (몸 덜덜 · 노란 불 깜빡) → 틈에서 종이가 조금씩 · 위에서부터 그림 → 초록 불
      → 📌 톡! 떼어 다이어리에 (펴져 있을 때만) · 💾 톡! 떼어 서랍에 = 종이가 휙 → 하나 더 뽑기 (다시 위 화면)
@@ -17,7 +17,7 @@
         const quiet = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
         const api = () => window.smPhotoApi;
         const KINDS = [['seal', '🏷️', '씰스티커'], ['piece', '🧩', '조각스티커'], ['paper', '📄', '모조지스티커']];
-        const STEPS = ['사진', '모양', '크기', '종류', '출력'];
+        const STEPS = ['사진', '모양', '크기', '출력'];                          // 종류는 늘 🏷️ 씰 (도련 11-08 : 종류 고르기 없앰)
         const kindOf = k => KINDS.find(x => x[0] === k) || KINDS[0];
         const shapes = () => api() ? api().shapes : [['circle', '동그라미']];
         const shapeName = s => ((shapes().find(x => x[0] === s) || [, s])[1] || '').replace(/^[^가-힣]+\s*/, '');
@@ -135,7 +135,7 @@
             if (window.closeCraft && document.body.classList.contains('craft-on')) closeCraft();
             const room = build(), el = o.el || null;
             Object.assign(P, { on: true, src: el, busy: false, saving: false, st: 'edit', msg: '' });
-            if (o.kind && kindOf(o.kind)[0] === o.kind) P.kind = o.kind;
+            P.kind = 'seal';                                                        // 🏷️ 늘 씰스티커 (도련 11-08)
             if (!P.list.length) P.step = 0;
             pq('sprPaper').className = 'spr-paper'; pq('sprBody').classList.remove('buzz', 'busy', 'ready');
             room.classList.add('show'); document.body.classList.add('spr-on');
@@ -191,13 +191,13 @@
             if (!P.on || P.busy || P.view !== 'top') return;
             beep(k === 'PW' ? 660 : 1700, .03, 'square', .02);
             const m = cur(), n = P.list.length, S = shapes();
-            if (k === 'PW') { if (P.step === 4) return print(); if (n) { P.step = 4; say('전원 버튼을 한 번 더 꾹!'); } else say('먼저 사진을 넣어요'); return; }
+            if (k === 'PW') { if (P.step === 3) return print(); if (n) { P.step = 3; say('전원 버튼을 한 번 더 꾹!'); } else say('먼저 사진을 넣어요'); return; }
             if (k === 'FRONT') { setView('front', true); return; }
             if (k === 'BACK') { if (P.step > 0) P.step--; else setView('front', true); return; }
             if (k === 'OK') {
                 if (P.step === 0 && !n) return pickFiles(false);
                 if (P.step === 1 && m && m.shape === 'free' && m.path.length < 9) { say('✂️ 화면에 빙 둘러 그려요'); return; }
-                if (P.step < 4) { P.step++; return; }
+                if (P.step < 3) { P.step++; return; }
                 return say('전원 버튼을 꾹 눌러요');
             }
             if (P.step === 0) {
@@ -212,9 +212,6 @@
             } else if (P.step === 2 && m) {
                 if (k === 'U') zoom(1.1); else if (k === 'D') zoom(1 / 1.1);
                 else if (k === 'L' || k === 'R') { if (n > 1) { P.cur = (P.cur + (k === 'R' ? 1 : n - 1)) % n; say(`${P.cur + 1}번째 사진`); } else m.ox += k === 'R' ? 10 : -10; }
-            } else if (P.step === 3) {
-                if (k === 'U' || k === 'D') { const i = KINDS.findIndex(x => x[0] === P.kind); P.kind = KINDS[(i + (k === 'D' ? 1 : KINDS.length - 1)) % KINDS.length][0]; }
-                else if ((k === 'L' || k === 'R') && P.kind === 'paper') P.border = !P.border;
             }
         }
         function zoom(f) { const m = cur(); if (!m) return; m.zoom = Math.max(.4, Math.min(3, m.zoom * f)); say(`크기 ${Math.round(m.zoom * 100)}%`, 700); }
@@ -249,7 +246,6 @@
                 x.fillStyle = '#c4e3d3'; rr(px, py, pv, pv, 6 * u); x.fill(); x.drawImage(sm, px, py, pv, pv); box = { x: px, y: py, s: pv };
                 if (P.step === 1) { big = `◀ ${shapeName(m.shape)} ▶`; small = m.shape === 'free' ? '✂️ 화면에 빙 둘러 그려요 · OK' : (n > 1 ? `▲ 모두 같게 · ▼ 다음 사진 (${P.cur + 1}/${n})` : 'OK 다음'); }
                 else if (P.step === 2) { big = `크기 ${Math.round(m.zoom * 100)}%`; small = n > 1 ? `▲ ▼ 크기 · ◀ ▶ 사진 (${P.cur + 1}/${n}) · 끌어서 자리` : '▲ ▼ 크기 · 화면을 끌어 자리'; }
-                else if (P.step === 3) { big = `▲ ${K[2]} ▼`; small = P.kind === 'paper' ? `◀ ▶ 하얀 테두리 ${P.border ? '켬' : '끔'} · OK` : 'OK 다음'; }
                 else { big = `${n}장 · ${K[2].replace('스티커', '')}`; small = (Date.now() / 450 | 0) % 2 ? '전원 버튼을 꾹!' : ''; }
             }
             lines(x, w, h, u, T, tx, big, small);
