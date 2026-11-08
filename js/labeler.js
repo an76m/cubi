@@ -164,11 +164,11 @@
         }
         const FLY = 560, SWAP = 160;
         /* 그림이 진짜 기계와 꼭 겹치는 자리 : 책상 그림(디자인.png) = 이 기계를 그대로 찍은 것 (기계 둘레 3u · 위 손잡이 3.4u 까지 · 도련 11-08)
-           → 그림 테두리를 기계 + 둘레에 맞춰 (가로세로 · 가운데 · 기울기 -.6도 = .lbm-mach 와 같게) */
+           → 그림 테두리를 기계 + 둘레에 맞춰 (가로세로 · 가운데 · 기울기 없이 반듯하게) */
         function toMach(S, R) {
             const m = lq('lbmMach'), w = m.offsetWidth, h = m.offsetHeight, u = w / 100;   // 기울기 전 크기 (getBoundingClientRect 는 기울어 조금 커요)
             const cx = R.left + R.width / 2, cy = R.top + R.height / 2 - 1.7 * u;
-            return `translate(${cx - (S.left + S.width / 2)}px, ${cy - (S.top + S.height / 2)}px) rotate(-.6deg) scale(${(w + 6 * u) / S.width}, ${(h + 6.4 * u) / S.height})`;
+            return `translate(${cx - (S.left + S.width / 2)}px, ${cy - (S.top + S.height / 2)}px) scale(${(w + 6 * u) / S.width}, ${(h + 6.4 * u) / S.height})`;
         }
         function showNow(w) { w.style.transition = 'none'; w.classList.remove('hide'); void w.offsetWidth; w.style.transition = ''; }
         function hideNow(w) { w.style.transition = 'none'; w.classList.add('hide'); void w.offsetWidth; w.style.transition = ''; }
