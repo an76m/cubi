@@ -38,7 +38,8 @@
                 <div class="bth-focus" id="bthFocus" hidden><div class="bth-card"><img id="bthFocusImg" alt="찍은 사진"><p id="bthFocusTx"></p><button type="button" class="bth-okb" id="bthFocusOk">확인</button></div></div>`;
             document.body.appendChild(el);
             bq('bthCurtain').onclick = enter;
-            bq('bthFocusOk').onclick = focusOff;
+            bq('bthFocusOk').onclick = focusOff; bq('bthFocusOk').addEventListener('pointerup', focusOff);   // 👆 터치 기기에서 클릭이 늦거나 빠져도 손을 떼면 바로
+            bq('bthFocus').addEventListener('click', e => { if (!e.target.closest('.bth-card')) focusOff(); });   // 사진 바깥을 눌러도 닫혀요
             addEventListener('resize', () => { if (B.on) fit(); if (I.on) inFit(); });
             return el;
         }
@@ -345,9 +346,12 @@
             const f = bq('bthFocus'); bq('bthFocusImg').src = src;
             bq('bthFocusTx').innerHTML = r === 'ok' ? '🏷️ <b>씰스티커</b>로 만들었어요!<br><small>🗄️ 서랍의 🏷️ 씰 보관함에 담았어요 · 떼어서 다이어리에 붙여요</small>'
                 : '⚠ 씰스티커로 담지 못했어요.<br><small>' + (window.ownErrText && window.smAdd && smAdd.err ? ownErrText(smAdd.err) : '잠시 뒤 다시 찍어 주세요') + '</small>';
-            f.hidden = false; bq('bthRoom').classList.add('focus'); requestAnimationFrame(() => f.classList.add('on'));
+            clearTimeout(focusOff.t); f.hidden = false; bq('bthRoom').classList.add('focus'); requestAnimationFrame(() => f.classList.add('on'));
         }
-        function focusOff() { const f = bq('bthFocus'); if (!f || f.hidden) return; f.classList.remove('on'); bq('bthRoom').classList.remove('focus'); setTimeout(() => { f.hidden = true; }, 300); }
+        function focusOff() {                                                  // ✔ 확인 = 흐림을 늘 풀고 원래 모습으로 (도련 11-08 : 흐린 채 남지 않게 · 조건 없이)
+            const f = bq('bthFocus'), el = bq('bthRoom'); if (el) el.classList.remove('focus'); if (!f) return;
+            f.classList.remove('on'); clearTimeout(focusOff.t); focusOff.t = setTimeout(() => { if (!f.classList.contains('on')) f.hidden = true; }, 300);
+        }
 
         document.addEventListener('keydown', e => {
             if (e.key !== 'Escape' || document.querySelector('.modal[style*="flex"]')) return;
