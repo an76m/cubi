@@ -1175,9 +1175,9 @@
                 if (allOk) {
                     drive.lastSaved = new Date(); drive.full = false;
                     if (!drive.dirty) clearPending();                       // 그 사이 새 변경이 없을 때만 임시 보관본 삭제
-                } else if (!authFail) {
-                    if (full) savePending();
-                    uploadTimer = setTimeout(() => flushUpload(), full ? 5 * 60000 : 30000);
+                } else {
+                    savePending();                                          // 🛟 못 올렸으면 바로 이 기기에 보관 (도련 11-09 : 다시 하기를 기다리는 중에 앱이 갑자기 꺼져도 · 다음에 열면 복구 · 올리면 지워요)
+                    if (!authFail) uploadTimer = setTimeout(() => flushUpload(), full ? 5 * 60000 : 30000);
                 }
                 if (sent.length) driveTell({ t: 'saved', keys: sent });   // 같은 기기의 다른 탭에도 알려요
                 updateBadge(); updateStorageInfo();
@@ -1603,6 +1603,7 @@
             if (!drive.local && !(await getFolder([TOP_FOLDER_NAME], false).catch(() => 'x'))) { await forget(); return; }   // 🗑 말랑달콤 폴더가 없으면 옛 보관본은 버려요 (처음 상태)
             const B = p.b && typeof p.b === 'object' ? p.b : {}, BV = p.bv && typeof p.bv === 'object' ? p.bv : {};
             const safe = [], cafe = [], askDays = [], askSet = [];
+            let keep = false;                                                           // 💤 목록을 못 읽어 비교 못 한 칸이 있으면 보관본을 지우지 않아요
             for (const k of Object.keys(p.items)) {
                 const v = p.items[k];
                 if (!k.startsWith('diary_') && !VAULT_KEYS.includes(k) && !isPageKey(k) && !isBookKey(k) && !isStateKey(k)) continue;
@@ -1618,7 +1619,12 @@
                     const f = idx && idx.files.get(fileOfKey(k));
                     now = f ? f.modifiedTime || '' : '';
                 } else if (isSettingKey(k)) {
-                    const sf = drive[KEY_FILES[keyFile(k)].prop];
+                    const w = keyFile(k);
+                    if (KEY_FILES[w].lazy) {                                            // 💤 쓸 때 읽는 목록 (소품 · 배경지 · 빈스티커첩 · 바인더 재료 …) = 비교하기 전에 먼저 읽어요 (도련 11-09 · 안 읽고 비교하면 아무도 안 고쳤는데 '다른 기기가 고쳤어요'로 물었어요)
+                        try { await keyFileLoad(w); } catch (e) { keep = true; continue; }   // 못 닿으면 이 칸은 보관본을 남겨 두고 다음에 다시
+                        if (drive.lazyBad.has(w)) continue;                             // 🔐 못 여는 목록 = 덮어쓰지 않아요
+                    }
+                    const sf = drive[KEY_FILES[w].prop];
                     now = sf && sf.modifiedTime || '';
                 } else continue;
                 if (store.getItem(k) === v) continue;                                   // 내용이 같음 (이미 올라갔어요)
@@ -1626,14 +1632,14 @@
                 else if (k in B && B[k] === now) safe.push(k);                          // 그 사이 아무도 안 고쳤어요
                 else (dk ? askDays : askSet).push(k);                                   // 그 사이 다른 기기가 고쳤어요
             }
-            await forget();
+            if (!keep) await forget();
             if (!safe.length && !cafe.length && !askDays.length && !askSet.length) return;
             const put = k => { const v = p.items[k]; if (v === null) store.removeItem(k); else store.setItem(k, v); };
             let any = false;
             const when = new Date(p.savedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             try {
                 if (safe.length || cafe.length) {
-                    const yes = await showMsg('📴 ' + when + ' 화면이 꺼질 때의 변경 내용이<br>드라이브에 저장되지 못했어요. (' + (safe.length + cafe.length) + '건)<br>이 기기에 보관된 내용으로 복구할까요?<br><span style="font-size:12px;color:#777;">취소를 누르면 드라이브의 현재 내용을 유지해요.</span>', true);
+                    const yes = await showMsg('📴 ' + when + '에 바꾼 내용이<br>드라이브에 저장되지 못했어요. (' + (safe.length + cafe.length) + '건)<br>이 기기에 보관된 내용으로 복구할까요?<br><span style="font-size:12px;color:#777;">취소를 누르면 드라이브의 현재 내용을 유지해요.</span>', true);
                     if (yes) {
                         safe.forEach(put);
                         cafe.forEach(k => { const m = cafeMerge(k, BV[k], p.items[k], store.getItem(k)); if (m !== store.getItem(k)) store.setItem(k, m); });
@@ -1641,11 +1647,11 @@
                     }
                 }
                 for (const k of askDays) {
-                    const mine = await showAsk(`📴 ${when} 화면이 꺼질 때 고친 <b>${keyLabel(k)}</b> 일기가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 이 날을 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 이 기기 것', '📱 다른 기기 것');
+                    const mine = await showAsk(`📴 ${when}에 고친 <b>${keyLabel(k)}</b> 일기가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 이 날을 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 이 기기 것', '📱 다른 기기 것');
                     if (mine) { if (window.trashKeepDay) await trashKeepDay(k, store.getItem(k)); put(k); any = true; }   // 🗑 다른 기기 것은 휴지통에
                 }
                 if (askSet.length) {
-                    const mine = await showAsk(`📴 ${when} 화면이 꺼질 때 바꾼 <b>설정 ${askSet.length}개</b>가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 설정을 바꿨어요.<br>어느 쪽을 남길까요?`, '📝 이 기기 것', '📱 다른 기기 것');
+                    const mine = await showAsk(`📴 ${when}에 바꾼 <b>설정 ${askSet.length}개</b>가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 설정을 바꿨어요.<br>어느 쪽을 남길까요?`, '📝 이 기기 것', '📱 다른 기기 것');
                     if (mine) { askSet.forEach(put); any = true; }
                 }
                 if (!any) return;
