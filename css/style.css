@@ -4061,6 +4061,7 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .ish-it { position: relative; display: flex; justify-content: center; padding: 6px; border-radius: 12px; border: 2px solid #f0dbe3; background: #fff; cursor: pointer; }
 .ish-it input { position: absolute; left: 6px; top: 6px; z-index: 2; width: 18px; height: 18px; accent-color: #e2557f; }
 .ish-it:has(input:checked) { border-color: #e2557f; background: #fff3f7; }
+.ish-note { color: #8a7480; font-size: 12px; margin-top: -4px; }
 .ish-card-in { pointer-events: none; transform: scale(.8); transform-origin: 50% 50%; }
 .ish-card-in .bk-sh { position: static !important; transform: none !important; left: auto !important; top: auto !important; }
 /* 🎨 소품 꾸미기 (js/deskpaint.js) */

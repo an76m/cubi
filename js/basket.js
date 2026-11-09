@@ -152,11 +152,14 @@
         let t = 0; const again = () => { clearTimeout(t); t = setTimeout(() => bkPlace(show, false), 60); };   // 그림이 늦게 오면 크기가 바뀌어요 → 다시 자리 잡기 (서랍 밖으로 안 삐져나오게)
         wrap.querySelectorAll('#bkPile img').forEach(im => { if (!im.complete) im.addEventListener('load', again, { once: true }); });
     }
-    /* 📤 이 바구니의 종이를 골라 공유 파일로 (js/itemshare.js · 내 것은 그대로 · 받은 사람의 새 1개) */
+    /* 📤 이 바구니의 종이를 골라 공유 파일로 (js/itemshare.js · 내 것은 그대로 · 받은 사람의 새 1개)
+       ✂️ 내가 만든 것(from 'mine')만 보여요 (도련 11-09 · 무료 · 선물 · 공유받은 것 · 유료는 공유 안 돼요) */
     function bkShare() {
         if (!B.list.length || !window.ishSaveStickers) return;
+        const mine = B.list.filter(e => e && e.from === 'mine');
+        if (!mine.length) { showMsg('📤 <b>내가 만든 ' + esc(BK_KINDS[B.kind] || '스티커') + '</b>만 공유할 수 있어요.<br><span style="font-size:12px;color:#777;">✂️ 만들기에서 만든 것이 생기면 공유할 수 있어요.</span>'); return; }
         const el = document.createElement('div'); el.className = 'shx-pop ish-pick';
-        el.innerHTML = `<div class="alert-card ish-card"><b class="shx-t">📤 공유할 ${esc(BK_KINDS[B.kind] || '스티커')}를 골라요</b><div class="ish-grid">${B.list.slice().reverse().map(e => `<label class="ish-it"><input type="checkbox" value="${esc(e.id)}"><span class="ish-card-in">${bkCard(e)}</span></label>`).join('')}</div>`
+        el.innerHTML = `<div class="alert-card ish-card"><b class="shx-t">📤 공유할 ${esc(BK_KINDS[B.kind] || '스티커')}를 골라요</b><small class="ish-note">내가 만든 것만 보여요</small><div class="ish-grid">${mine.slice().reverse().map(e => `<label class="ish-it"><input type="checkbox" value="${esc(e.id)}"><span class="ish-card-in">${bkCard(e)}</span></label>`).join('')}</div>`
             + `<div class="alert-btns"><button type="button" class="btn btn-primary" data-ok>다음</button><button type="button" class="btn" data-no>취소</button></div></div>`;
         document.body.appendChild(el);
         el.querySelector('[data-no]').onclick = () => el.remove();

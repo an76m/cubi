@@ -2,7 +2,7 @@
    📤 공유 파일로 저장 · 📥 공유 파일 불러오기 (도련 10-27 · 스티커 · 책상 소품 · 문구 모두 같은 규칙)
    - 유일한 1개 = 계정마다 따로 인식되는 1개 (도련) : 복사는 되지만 들어오는 순간 그 계정의 새 1개로 바뀌어요
    - 📤 저장 : 내 열쇠로 잠긴 물건을 풀어서 → 모든 말랑달콤 앱이 여는 '공용 포장'(사람은 못 고침)으로 다시 싸고 → 파일 번호(t)를 붙여 기기에 저장
-       저장해도 내 것은 그대로 · 💰 유료(from: 'paid')는 저장 안 돼요 (나중에 스토어 · 도련 10-27)
+       저장해도 내 것은 그대로 (공유 = 복사) · ✂️ 내가 만든 것(from: 'mine')만 저장돼요 (도련 11-09 · 무료 · 선물 · 공유받은 것 · 유료는 안 돼요)
    - 📥 불러오기 : 공용 포장을 열고 → 이 계정에서 이미 불러온 파일 번호면 거절 (같은 파일로 두 개 만들기 막기)
        → 스티커 = js/own.js ownTake (새 번호 · 🔐 내 열쇠) · 책상 소품 = js/desk.js deskReceive (칠한 그림째 · 📦 보관함) · 문구 = gdGive (이미 있으면 건너뛰어요)
        불러온 파일 번호는 설정 / 책상설정.json (🔐) 'diary_share_got' 에 기억해요
@@ -19,11 +19,11 @@
             return { malang_share: 1, kind, by: by || '', d: await ownLock(body, ISH_WHO) };
         }
         async function ishSave(kind, items, defName, paid) {
-            if (!items.length) { showMsg(paid ? '💰 산 물건은 공유 파일로 저장할 수 없어요.' : '저장할 것이 없어요.'); return false; }
+            if (!items.length) { showMsg(paid ? '📤 내가 만든 것만 공유 파일로 저장할 수 있어요.' : '저장할 것이 없어요.'); return false; }
             const a = await shxAsk('📤 공유 파일로 저장', defName, '', false, '받은 사람의 앱에서 그 사람의 <b>새 1개</b>가 돼요 · 내 것은 그대로예요');
             if (!a) return false;
             shxDownload(await ishPack(kind, items, a.by), a.name);
-            if (paid) showMsg(`📤 저장했어요.<br><span style="font-size:12px;color:#777;">💰 산 물건 ${paid}개는 빼고 저장했어요.</span>`);
+            if (paid) showMsg(`📤 저장했어요.<br><span style="font-size:12px;color:#777;">내가 만들지 않은 것 ${paid}개는 빼고 저장했어요.</span>`);   // paid = 빠진 수
             return true;
         }
         /* 📤 스티커 종이들 (id = 종이 id) : 남은 칸 · 수량만 */
@@ -31,7 +31,7 @@
             const items = []; let paid = 0;
             for (const id of ids) {
                 const r = await ownSheet(id); if (!r) continue;
-                const s = r.s; if (s.from === 'paid') { paid++; continue; }
+                const s = r.s, fr = (r.e && r.e.from) || s.from; if (fr !== 'mine') { paid++; continue; }   // ✂️ 내가 만든 것만 (목록 칸의 from · 없으면 종이 파일의 from)
                 const keep = (s.imgs || []).map((u, i) => [u, i]).filter(([u]) => u != null);
                 const it = { k: s.k, nm: s.nm || '', ts: s.ts ? 1 : 0, baked: !!s.baked, imgs: keep.map(x => x[0]), x: s.x || {}, th: r.e.th || '' };
                 if (Array.isArray(s.wh) && s.wh.length) it.wh = keep.map(x => s.wh[x[1]] || [0, 0]);
@@ -47,7 +47,7 @@
             const o = DK.items.find(x => x.u === u); if (!o) return false;
             let from = 'basic', img = '';
             if (o.c) { try { const it = await dkUnseal(await collItem(dkColl(o.id), o.c)); if (it) { from = it.from || from; if (typeof it.img === 'string') img = it.img; } } catch (e) { console.warn(e); } }
-            if (from === 'paid') return ishSave('desk', [], '', 1);
+            if (from !== 'mine') return ishSave('desk', [], '', 1);   // ✂️ 내가 만든 소품만 (지금은 만드는 소품이 없어서 늘 막혀요 · 버튼도 숨김)
             return ishSave('desk', [Object.assign({ id: o.id }, img ? { img } : {})], dkName(o));
         }
         /* 📥 불러오기 */
