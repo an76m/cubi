@@ -256,10 +256,9 @@
         function svcShowCats() {
             evLiveCheck();                                                       // 🎉 지금 열린 이벤트가 있나 (1분에 한 번까지)
             const cats = document.getElementById('svcCats'); if (!cats) return;
-            cats.hidden = false;
+            cats.hidden = true;                                                  // ☕ 카페 칸 목록 창은 없앴어요 (도련 11-09 · 이제 🚪 이동 창) · 목록은 이동 창이 그대로 베껴 쓰는 원본이라 숨겨만 둬요 (js/desk.js deskMoveOpen)
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = true; });
-            document.getElementById('svcTitle').textContent = '☕ 카페';
-            document.getElementById('svcBack').classList.add('mt-none');      // 맨 처음 화면에서는 ← 숨김
+            document.getElementById('svcBack').classList.add('mt-none');
             svcDailyBadges();
         }
         /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 🌷 화분은 준비중이라 표시 없음)
@@ -489,7 +488,7 @@
         }
         const ctPhone = () => Math.min(innerWidth, innerHeight) < 600;      // 📱 폰 = 예전 카페 버튼 창 (도련 10-19)
         function openCafeTown() {
-            if (ctPhone()) return openModal('serviceModal');
+            if (ctPhone()) return window.deskMoveOpen ? deskMoveOpen() : null;   // 📱 카페 창 없음 = 🚪 이동 창 (도련 11-09)
             const el = ctBuild(); el.style.display = 'grid';
             if (typeof wlPrefetch === 'function') wlPrefetch();
             svcDailyBadges(); ctFxStart(el); if (typeof sndMark === 'function') sndMark(); ctSndStart();
