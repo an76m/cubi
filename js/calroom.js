@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/calroom.js
-   📅 달력 (도련 10-31) : 💻 PC · 📲 아이패드에서 '달력' 칸을 누르면 (📱 폰은 예전 카페 칸 그대로 · calRoomUse)
+   📅 달력 (도련 10-31) : 💻 PC · 📲 아이패드에서 '달력' 칸을 누르면 (📱 폰 = 11-09 세로 그림 · 달력 안에 버튼 셋 · CRM · crmBuild)
    - 벽에 건 달력 그림(img/cal-room.webp) 아래 빈 곳에 한 달 칸을 그려요 : 출석 도장 · 🩸 생리 · 예정 · 가임기 · 배란 · 📌 D-day
    - 기능은 원래 창 그대로 (새로 만들지 않아요) : 열 때 원래 창의 부분을 이 화면으로 옮겨 오고 · 닫을 때 제자리로
        📅 출석 도장판 (js/attend.js) = 오늘 도장 꾹 · 연속 · 가장 긴 연속 · 모은 도장 · 🪙 코인 뒤집기 연출
@@ -92,23 +92,53 @@
         }
         /* 🏠 거실 벽걸이 달력 전환 (도련 11-01 · 우체통 · 타로카페 · 캡슐기계와 같은 전환) : 햇살 드는 거실(img/cal-living.webp) → 벽의 달력 쪽으로 커지며 따뜻한 분홍빛 → 달력 · 동작 줄이기면 바로 */
         let crGoBusy = false;
-        function crApproach() {
+        function crApproach(ph) {                                               // ph = 📱 세로 거실 그림 (img/cal-living-m.webp · 941 × 1672 · 도련 11-09)
             if (crGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             let d = crq('crGo');
-            if (!d) { d = document.createElement('div'); d.id = 'crGo'; d.className = 'pr-walk cr-walk'; d.innerHTML = '<div class="pr-walk-in"><img src="img/cal-living.webp?v=20261009-1045" alt="" draggable="false"></div>'; document.body.appendChild(d); }
+            if (!d) { d = document.createElement('div'); d.id = 'crGo'; d.className = 'pr-walk cr-walk'; d.innerHTML = '<div class="pr-walk-in"><img alt="" draggable="false"></div>'; document.body.appendChild(d); }
             crGoBusy = true;
-            const { s, x, y } = coverFit(CR_W, CR_H, [820, 1460, 60, 640]);
-            Object.assign(d.querySelector('img').style, { width: CR_W * s + 'px', height: CR_H * s + 'px', left: x + 'px', top: y + 'px' });
-            const inn = d.querySelector('.pr-walk-in'), ox = x + 1142 * s, oy = y + 278 * s;   // 벽걸이 달력 (그림 px)
+            const W = ph ? CRM.W : CR_W, H = ph ? CRM.H : CR_H, im = d.querySelector('img'), src = ph ? 'img/cal-living-m.webp?v=20261009-1037' : 'img/cal-living.webp?v=20261009-1045';
+            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
+            const { s, x, y } = ph ? coverFit(W, H, [560, 941, 380, 700]) : coverFit(CR_W, CR_H, [820, 1460, 60, 640]);
+            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
+            const inn = d.querySelector('.pr-walk-in'), ox = x + (ph ? CRM.liv[0] : 1142) * s, oy = y + (ph ? CRM.liv[1] : 278) * s;   // 벽걸이 달력 (그림 px)
             inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');
             d.classList.remove('go', 'leave'); d.classList.add('on');
             const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); crGoBusy = false; }, 400); }, 1700); };
             const img = d.querySelector('img'), start = () => setTimeout(go, 750);
             if (img.complete) start(); else img.addEventListener('load', start, { once: true });
         }
+        /* 📱 폰 벽걸이 달력 (도련 11-09) : 거실 → 달력 연출은 💻 📲 와 같고 · 달력(img/cal-room-m.webp) 아래 빈 칸에 예전 폰 버튼 셋 (📅 출석 도장판 · 🩷 생리 달력 · ⏳ D-day = 원래 창을 그대로 열어요)
+           그림은 가로를 맞춰 달력이 다 보이게 (남는 곳 = 그림 가장자리 분홍) · 나가기 = 오른쪽 위 '이동' */
+        const CRM = { W: 941, H: 1672, box: [70, 762, 873, 1277], liv: [786, 530] };
+        function crmBuild() {
+            let el = crq('calRoomM'); if (el) return el;
+            el = document.createElement('div'); el.id = 'calRoomM'; el.className = 'cr-room crm';
+            el.innerHTML = `<img class="crm-bg" id="crmBg" src="img/cal-room-m.webp?v=20261009-1037" alt="" draggable="false">
+                <div class="crm-box" id="crmBox">
+                    <div class="crm-btns">
+                        <button type="button" class="crm-b" onclick="window.openAttend ? openAttend() : comingSoon('📅 출석 도장판')"><span>📅</span><b>출석 도장판</b><small>도장 찍고 코인 찾기</small></button>
+                        <button type="button" class="crm-b" onclick="window.openCycle ? openCycle() : comingSoon('🩷 생리 달력')"><span>🩷</span><b>생리 달력</b><small>예정일 · 가임기</small></button>
+                        <button type="button" class="crm-b" onclick="window.openDday ? openDday() : comingSoon('⏳ D-day')"><span>⏳</span><b>D-day</b><small>기다리는 날 세기</small></button>
+                    </div>
+                    <p class="crm-tip">💡 📅 출석 도장판 어딘가에 <b>🪙 코인</b>이 숨어 있어요. 찾은 코인으로 🎁 문방구 캡슐기계에서 <b>움직이는 캡슐 스티커</b>를 뽑아요.</p>
+                </div>
+                <button type="button" class="cr-go desk-shop-go crm-go" onclick="deskMoveOpen()">이동</button>`;
+            document.body.appendChild(el);
+            addEventListener('resize', () => { if (el.classList.contains('show')) crmFit(); });
+            return el;
+        }
+        function crmFit() {
+            const el = crq('calRoomM'); if (!el) return;
+            const P = CRM, s = Math.min(Math.max(innerWidth / P.W, innerHeight / P.H), innerWidth / 900), x = (innerWidth - P.W * s) / 2, y = (innerHeight - P.H * s) / 2;
+            Object.assign(crq('crmBg').style, { width: P.W * s + 'px', height: P.H * s + 'px', left: x + 'px', top: y + 'px' });
+            const [l, tp, r, b] = P.box;
+            Object.assign(crq('crmBox').style, { left: x + l * s + 'px', top: y + tp * s + 'px', width: (r - l) * s + 'px', height: (b - tp) * s + 'px' });
+        }
         function openCalRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.closePostRoom) closePostRoom();
+            if (!calRoomUse()) { crApproach(true); const el = crmBuild(); el.classList.add('show'); crmFit(); document.body.classList.add('cal-on'); return; }   // 📱
             crApproach();                                                        // 🏠 거실 → 벽걸이 달력 (달력은 뒤에서 미리 열어 둬요)
             const el = crBuild(), T = new Date(); cr.y = T.getFullYear(); cr.m = T.getMonth();
             if (!cr.moved.length) {
@@ -121,6 +151,7 @@
             el.querySelectorAll('.cr-side').forEach(x => { x.scrollTop = 0; });
         }
         function closeCalRoom() {
+            const m = crq('calRoomM'); if (m && m.classList.contains('show')) { m.classList.remove('show'); document.body.classList.remove('cal-on'); }   // 📱
             const el = crq('calRoom'); if (!el || !el.classList.contains('show')) return;
             const fw = crq('atFlipWrap'); if (fw) fw.hidden = true;
             el.classList.remove('show'); document.body.classList.remove('cal-on');
