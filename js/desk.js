@@ -590,7 +590,7 @@
         function deskMoveOpen() {
             const evP = window.evLiveCheck ? evLiveCheck() : null;               // 🎉 지금 열린 이벤트 광장이 있나 (js/service.js · 1분에 한 번까지 · 알면 칸을 다시 채워요)
             const box = document.getElementById('moveCafe'), here = deskHere();
-            const rm = document.getElementById('moveRoom'), ph = !(window.calRoomUse && calRoomUse());   // 📱 폰은 내 방(책상)이 없어요 → '다이어리' = 하단 메뉴 넷이 있는 다이어리 화면으로 (도련 11-09)
+            const rm = document.getElementById('moveRoom'), ph = !document.documentElement.classList.contains('desk-on');   // 💻 📲 하단 메뉴 화면도 책상이 없어요 (도련 11-10)   // 📱 폰은 내 방(책상)이 없어요 → '다이어리' = 하단 메뉴 넷이 있는 다이어리 화면으로 (도련 11-09)
             if (rm) rm.innerHTML = ph ? '<span class="svc-cat-icon">📔</span><b>다이어리</b><small>다이어리로 돌아가기</small>' : '<span class="svc-cat-icon">🚪</span><b>내 방</b><small>책상으로 돌아가기</small>';
             document.querySelectorAll('#moveModal > .modal-content > .svc-cats > [data-place]').forEach(b => { b.hidden = b.dataset.place === here; });   // 📍 지금 있는 곳은 목록에서 빼요 (도련 10-31 · 규칙 하나 · 칸마다 data-place 이름표)
             const fill = () => {

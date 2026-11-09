@@ -50,8 +50,8 @@
         .tb-cafe { background: var(--menu-fill-3, #cdebc3); color: var(--menu-ink-3, #2f6b3a); }
         .tb-set { background: var(--menu-fill-4, #dccdf5); color: var(--menu-ink-4, #5b3f9e); }
         .tb-move { display: none; background: var(--menu-fill-3, #cdebc3); color: var(--menu-ink-3, #2f6b3a); }
-        html.is-phone .tb-move { display: flex; }   /* 📱 폰 = ☕ 카페 · ⚙ 설정 자리에 🚪 이동 하나 (도련 11-09) */
-        html.is-phone .toolbar .tb-cafe, html.is-phone .toolbar .tb-set { display: none; }
+        html:not(.desk-on) .tb-move { display: flex; }   /* 📱 폰 · 💻 📲 하단 메뉴 = ☕ 카페 · ⚙ 설정 자리에 🚪 이동 하나 (설정은 이동 창 왼쪽 위 · 도련 11-09 · 11-10) */
+        html:not(.desk-on) .toolbar .tb-cafe, html:not(.desk-on) .toolbar .tb-set { display: none; }
         .btn {
             background: #fff; border: 2px solid var(--border-color); color: #444;
             padding: 5px 10px; border-radius: 12px; font-weight: bold; cursor: pointer;

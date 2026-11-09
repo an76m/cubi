@@ -117,7 +117,7 @@
             const ph = homePh(), W = ph ? HOME_PH.W : DOOR_W, H = ph ? HOME_PH.H : DOOR_H, S = ph ? HOME_PH.sign : HOME_SIGN;
             const D = shopCover(W, H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
             const src = ph ? HOME_PH.img : 'img/room-door.webp?v=20261009-923'; if (hm.getAttribute('src') !== src) hm.setAttribute('src', src);
-            hs.querySelector('b').textContent = ph ? '다이어리' : '내 방';
+            hs.querySelector('b').textContent = document.documentElement.classList.contains('desk-on') ? '내 방' : '다이어리';   // ▤ 하단 메뉴 화면(📱 · 💻 📲) = 다이어리로
             hm.style.width = W * D.s + 'px'; hm.style.height = H * D.s + 'px'; hm.style.left = D.x + 'px'; hm.style.top = D.y + 'px';
             hs.style.left = (D.x + S.cx * D.s) + 'px'; hs.style.top = (D.y + S.cy * D.s) + 'px'; hs.style.width = S.w * D.s + 'px'; hs.style.height = S.h * D.s + 'px'; hs.style.fontSize = (S.h * D.s * (ph ? .4 : .36)) + 'px';
             el.querySelector('.shop-home').style.transformOrigin = `${D.x + S.cx * D.s}px ${D.y + (ph ? HOME_PH.go : 600) * D.s}px`;

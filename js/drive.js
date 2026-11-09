@@ -1219,6 +1219,7 @@
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ D-day (js/dday.js)
             if (typeof bgmLoadPref === 'function') bgmLoadPref();           // 🎵 배경음악 음량 · 반복 · 섞기 (js/bgm.js)
             handLoad();                                                      // ✋ 쓰는 손
+            deskSync(); if (window.deskModeRender) deskModeRender();         // 🪑 책상 / ▤ 하단 메뉴 = 불러온 설정으로 (도련 11-10 : 하단 메뉴를 골라도 다시 켜면 책상이었어요)
             if (typeof dyLoad === 'function') dyLoad();                     // 📒 고른 다이어리 (js/skins.js)
             if (typeof dyySync === 'function') dyySync();                   // 📔 처음 온 다꾸러 = 그 해 기본 다이어리 선물 (js/dyyear.js)
             if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 상품공방 '처음받기' 배경지 · 목록이 없으면 되살리기 (js/bgown.js)
