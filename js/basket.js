@@ -1526,7 +1526,8 @@
     const DS = { m: new Map(), z: 1, act: '', t: 0, at: null, tape: null };
     const DS_ROOMS = ['pelRoom', 'pcbRoom', 'pmRoom', 'tkRoom'];
     function dsLayer() { let l = bq('dskLayer'); if (!l) { l = document.createElement('div'); l.id = 'dskLayer'; document.body.appendChild(l); } return l; }
-    function dsEntry(id) { const L = (window.ownSeen ? ownSeen() : []).concat(B.all || []); return L.find(e => e.id === id) || (DS.more || []).find(e => e.id === id) || null; }   // more = 바구니를 안 열었을 때 읽어 둔 목록 (🎀 마테 정리함)
+    function dsEntry(id) { if (window.ownSpent && ownSpent(id)) return null;   // 🧾 다 쓴 종이 = 바구니 옛 목록에 남아 있어도 없어요 (도련 11-09 · 붙였는데 창이 안 사라지던 것)
+        const L = (window.ownSeen ? ownSeen() : []).concat(B.all || []); return L.find(e => e.id === id) || (DS.more || []).find(e => e.id === id) || null; }   // more = 바구니를 안 열었을 때 읽어 둔 목록 (🎀 마테 정리함)
     const dsLeft = e => !!e && (e.q0 ? e.q > 0 : (e.u || []).length < e.n);
     const dsRoomOn = () => DS_ROOMS.some(id => { const r = bq(id); return r && r.classList.contains('show'); });
     function dsPaint(d) {

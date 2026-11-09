@@ -37,7 +37,7 @@
         const OWN_MINE_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
         const ownHas = e => e.q0 ? e.q > 0 : e.u.length < e.n;                  // 아직 남았어요
         const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
-        const O = { kw: '', key: null, kd: {}, idx: null, album: null, noR: new Set(), mem: null, q: Promise.resolve(), subs: new Set(), replayed: '' };   // kd = 종류마다 (ownK) · idx · album = 모든 종류를 합친 모습 (ownMerge)
+        const O = { kw: '', key: null, kd: {}, idx: null, album: null, noR: new Set(), mem: null, q: Promise.resolve(), subs: new Set(), replayed: '', spent: new Set() };   // spent = 이 창에서 다 쓴 종이 (도련 11-09 · 꺼내 둔 스티커창이 바구니의 옛 목록을 보고 다시 그리지 않게 · basket.js dsEntry)   // kd = 종류마다 (ownK) · idx · album = 모든 종류를 합친 모습 (ownMerge)
 
         /* ---------- 어디에 (드라이브 · 이 브라우저 = 'drive' / 구경만 = 'mem' / 아직 = '') ---------- */
         const ownMode = () => typeof drive === 'undefined' ? '' : drive.guest ? 'mem' : drive.ready ? 'drive' : '';
@@ -520,7 +520,7 @@
             }
             if (O.idx) {                                                          // 이 기기에서는 바로 빠져 보여요
                 const e = O.idx.find(x => x.id === id);
-                if (e) { if (op.q) e.q = Math.max(0, e.q - op.q); else if (op.img != null) { if (op.th) e.th = op.th; if (op.left <= OWN_PAPER_END) { e.q0 = 1; e.q = 0; } } else if (!e.u.includes(op.k)) e.u.push(op.k); }
+                if (e) { if (op.q) e.q = Math.max(0, e.q - op.q); else if (op.img != null) { if (op.th) e.th = op.th; if (op.left <= OWN_PAPER_END) { e.q0 = 1; e.q = 0; } } else if (!e.u.includes(op.k)) e.u.push(op.k); if (!ownHas(e)) O.spent.add(id); }
                 OWN_KS.forEach(k => { const d = O.kd[k]; if (d && d.live) d.live = d.live.filter(ownAlive); }); ownMerge(); ownTell();
             }
             const kk = ownKindOf(id);
@@ -537,7 +537,7 @@
             if (e) { try { s = await ownFileRead(e.f); } catch (er) { if (!(er && er.code === 'gone')) { ownRetryLater(); throw er; } } }
             const gone = !e || !s || (op.q ? !(s.q > 0) : op.img != null ? false : s.imgs[op.k] == null);
             if (gone) {                                                          // 📱 다른 기기에서 이미 쓴 칸 · 다 쓴 묶음
-                done(); ownGone(el);
+                done(); ownGone(el); if (!e || !s || op.q) O.spent.add(id);
                 if (k) ownSetKind(k, list); ownTell();
                 return false;
             }
@@ -551,7 +551,7 @@
             }
             const old = e.f;
             try {
-                if (end) list.splice(list.indexOf(e), 1);                        // 마지막 칸 · 다 쓴 묶음 → 종이째 사라져요
+                if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); }   // 마지막 칸 · 다 쓴 묶음 → 종이째 사라져요
                 else {
                     if (op.k != null && e.th && !e.us) e.th = await ownThumb(s.imgs);   // 바구니 미리보기도 뗀 자리가 비게
                     e.f = await ownFileNew(s);                                   // 새 파일로 바꿔 쓰고 옛 것은 완전 삭제 (옛 버전 기록으로 되살릴 수 없게)
@@ -921,4 +921,4 @@
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownKitDesc = ownKitDesc; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice();   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id);   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
