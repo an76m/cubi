@@ -63,3 +63,17 @@ body.tarot-on .desk-top-r { display: none; }
 .tro-door.enter .tro-door-in::after { transition: opacity .8s ease .45s; opacity: 1; }
 .tro-door.enter .tro-door-sign { transition: opacity .3s ease; opacity: 0; }
 @keyframes troDoorIn { from { opacity: 0; } } @keyframes troDoorOut { to { opacity: 0; } }
+
+/* 📱 폰 = 세로 그림 941 × 1672 (도련 11-09 · js/tarotroom.js TRO_PH) : 그림은 화면 아래에 붙고 남는 위는 하늘색 · 연출 자리만 세로 그림에 맞춰요 */
+.tro-room.ph { background: #201e55; }
+.tro-room.ph .tro-stage, .tro-room.ph .tro-bg, .tro-room.ph .tro-cards { width: 941px; height: 1672px; }
+.tro-room.ph .tro-moon { left: 360px; top: 185px; }
+.tro-room.ph .tro-cglow { left: 124px; top: 405px; }
+.tro-room.ph .tro-flame { left: 260px; top: 525px; }
+.tro-room.ph .tro-ball { left: 323px; top: 705px; width: 220px; height: 220px; }
+.tro-room.ph .tro-sheen { left: 30px; top: 1010px; width: 880px; height: 240px; }
+.tro-room.ph .tro-ttl { font-size: 22px; letter-spacing: 2px; }
+.tro-room.ph .tro-ttl small { font-size: 12px; }
+.tro-room.ph .tro-tag { font-size: 14px; padding: 5px 10px 6px; border-radius: 10px; }
+.tro-room.ph .tro-tag small { font-size: 10.5px; }
+.tro-room.ph .tro-go { transform: none; right: 12px; top: 12px; }
