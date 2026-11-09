@@ -109,11 +109,17 @@
             homeFit(el);
             el.querySelector('.shop-door').style.transformOrigin = ph ? `${D.x + SHOP_PH.door.go[0] * D.s}px ${D.y + SHOP_PH.door.go[1] * D.s}px` : `${D.x + SHOP_SIGN.cx * D.s}px ${D.y + 560 * D.s}px`;   // 문 손잡이 쪽으로 다가가요
         }
+        /* 📱 폰 = 다이어리 문 (도련 11-10 · img/room-door-m.webp 941 × 1672 · 타원 판에 '다이어리' · 폰은 내 방이 없어요 → 하단 메뉴 넷이 있는 다이어리로) */
+        const HOME_PH = { W: 941, H: 1672, img: 'img/room-door-m.webp?v=20261009-1048', sign: { cx: 465, cy: 622, w: 420, h: 220 }, go: 880 };
+        const homePh = () => !document.documentElement.classList.contains('desk-on') && document.documentElement.classList.contains('is-phone');
         function homeFit(el) {                                                  // 🚪 내 방 문 (가게 · 다른 장소에서 돌아올 때 같은 문 · roomGo)
-            const D = shopCover(DOOR_W, DOOR_H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
-            hm.style.width = DOOR_W * D.s + 'px'; hm.style.height = DOOR_H * D.s + 'px'; hm.style.left = D.x + 'px'; hm.style.top = D.y + 'px';
-            hs.style.left = (D.x + HOME_SIGN.cx * D.s) + 'px'; hs.style.top = (D.y + HOME_SIGN.cy * D.s) + 'px'; hs.style.width = HOME_SIGN.w * D.s + 'px'; hs.style.height = HOME_SIGN.h * D.s + 'px'; hs.style.fontSize = (HOME_SIGN.h * D.s * .36) + 'px';
-            el.querySelector('.shop-home').style.transformOrigin = `${D.x + HOME_SIGN.cx * D.s}px ${D.y + 600 * D.s}px`;
+            const ph = homePh(), W = ph ? HOME_PH.W : DOOR_W, H = ph ? HOME_PH.H : DOOR_H, S = ph ? HOME_PH.sign : HOME_SIGN;
+            const D = shopCover(W, H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
+            const src = ph ? HOME_PH.img : 'img/room-door.webp?v=20261009-923'; if (hm.getAttribute('src') !== src) hm.setAttribute('src', src);
+            hs.querySelector('b').textContent = ph ? '다이어리' : '내 방';
+            hm.style.width = W * D.s + 'px'; hm.style.height = H * D.s + 'px'; hm.style.left = D.x + 'px'; hm.style.top = D.y + 'px';
+            hs.style.left = (D.x + S.cx * D.s) + 'px'; hs.style.top = (D.y + S.cy * D.s) + 'px'; hs.style.width = S.w * D.s + 'px'; hs.style.height = S.h * D.s + 'px'; hs.style.fontSize = (S.h * D.s * (ph ? .4 : .36)) + 'px';
+            el.querySelector('.shop-home').style.transformOrigin = `${D.x + S.cx * D.s}px ${D.y + (ph ? HOME_PH.go : 600) * D.s}px`;
         }
         /* 🚪 다른 장소 → 내 방 (도련 10-31 : 장소를 옮기는 느낌 · 📅 달력 … 어디서든 가게에서 돌아올 때와 같은 연출)
            내 방 문이 그 장소 위로 스르르 → (문 뒤에서 그 장소를 닫아요 = leave) → 문 쪽으로 다가가며 연핑크 → 책상 */
@@ -157,7 +163,7 @@
             if (quick !== true && window.bagBusy && bagBusy()) { const al = document.getElementById('customAlertModal'); if (window.showMsg && !(al && al.style.display === 'flex')) { const ok = document.getElementById('customAlertConfirmBtn'); if (ok) ok.textContent = '확인'; showMsg('🛍️ 상품을 담는 중이에요'); } return; }   // 받는 중 · 봉투 안내가 끝나기 전에는 못 나가요 (도련 10-30) · 묻는 창(하나 더 받기)이 떠 있으면 그 창을 덮지 않고 · 안내 버튼은 늘 '확인'
             ['shelfKindModal', 'shelfCornerModal', 'shelfModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; const L = window.SHOP_BAG || []; window.SHOP_BAG = []; if (L.length && window.deskBagAdd) setTimeout(() => deskBagAdd(L), 250); };   // 🛍️ 산 것을 봉투에 담아 책상 위에 (js/desk.js)
-            if (quick === true || SC.ph || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }   // 📱 폰은 내 방 문 없이 바로 다이어리로
+            if (quick === true || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }
             SC.busy = true; shopFit(); el.classList.add('home');
             setTimeout(() => el.classList.add('home-go'), 1000);
             setTimeout(() => { el.classList.add('leave'); setTimeout(done, 380); }, 2300);

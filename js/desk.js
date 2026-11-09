@@ -634,7 +634,6 @@
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
             dtmNext();                                                           // 🔽 돌아올 때마다 오른쪽 위 메뉴가 다음 것으로 (도련 11-01)
             if (window.shopSceneOn && shopSceneOn()) { shopSceneClose(); return; }
-            if (!(window.calRoomUse && calRoomUse())) { deskLeave(); return; }   // 📱 내 방 문 연출 없이 바로 다이어리 화면으로 (도련 11-09)
             if (window.roomGo) roomGo(deskLeave); else deskLeave();
         }
         window.deskLeave = deskLeave; window.deskGoRoom = deskGoRoom;
