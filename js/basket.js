@@ -265,7 +265,7 @@
             const c = DS.m.has(id) ? await dsPrep(id).catch(() => null) : null;   // ⚡ 꺼내 둔 종이는 미리 읽어 둔 것으로 바로 (도련 10-26 · A → B 바꾸기 빠르게)
             const r = c ? { s: c.s } : await ownSheet(id);
             if (!r) { showMsg('이 스티커는 이미 다 썼어요.<br><span style="font-size:12px;color:#777;">다른 기기에서 썼을 수도 있어요.</span>'); if (vis('basketKindModal')) bkRender(true); return; }
-            const s = r.s, x = s.x || {}, own = { id, wh: s.wh };
+            const s = r.s, x = s.x || {}, own = { id, wh: s.wh, gh: s.gh || [], raw: !s.baked };   // 👻 gh = 뗀 자리 모양 · raw = 하얀 테두리를 이제 둘러요 (뗀 자리도 그만큼 크게)
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
             if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, sb: x.sb || '', stay: !!stay }); }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
@@ -1592,8 +1592,8 @@
         const e = dsEntry(id), used = new Set((e && e.u) || []);
         (window.ownPendGet ? ownPendGet() : []).forEach(p => { if (p.s === id && !p.q) used.add(p.k); });
         if (!used.size) return v;
-        const imgs = v.s.imgs.map((u, i) => used.has(i) ? null : u);
-        return { s: Object.assign({}, v.s, { imgs }), baked: v.baked && v.baked.map((u, i) => used.has(i) ? null : u) };
+        const imgs = v.s.imgs.map((u, i) => used.has(i) ? null : u), gh = v.s.imgs.map((u, i) => used.has(i) && u ? ((v.baked && v.baked[i]) || u) : (v.s.gh || [])[i] || null);   // 👻 방금 뗀 자리도 그 모양대로
+        return { s: Object.assign({}, v.s, { imgs, gh }), baked: v.baked && v.baked.map((u, i) => used.has(i) ? null : u) };
     }
     function dsMoveFromPeel(d) { const a = window.pelLastAt && pelLastAt(); if (a && a.id === d.id) { d.x = a.x; d.y = a.y; } }   // 떼는 화면에서 옮긴 자리에서 작아져요 (도련 10-26)
     function dsMove(d, x, y) { d.x = x; d.y = y; const w = d.el.offsetWidth, h = d.el.offsetHeight; d.el.style.left = (x - w / 2) + 'px'; d.el.style.top = (y - h / 2) + 'px'; }

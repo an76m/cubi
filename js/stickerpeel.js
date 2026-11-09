@@ -7,7 +7,7 @@
    - pelBake(src) : 📸 포토부스 사진처럼 네모난 그림 둘레에 하얀 칼선 테두리를 둘러요 (원본 크기 그대로 PNG)
                     ⚙ 설정 '🏷️ 씰 하얀 테두리'가 꺼져 있으면(기본) 테두리 없이 크기만 맞춰요 (js/show.js showOn('die'))
    - 소리는 ⚙ 설정의 '✨ 연출 소리'를 따라요 (js/sound.js)
-   - 🎒 유한 스티커 (10-25) : opt.own = { id, wh } 로 열면 내 종이 (js/own.js) · 그림 자리가 null 이면 이미 쓴 칸 → 뗀 자국만 보여요
+   - 🎒 유한 스티커 (10-25) : opt.own = { id, wh, gh, raw } 로 열면 내 종이 (js/own.js) · 그림 자리가 null 이면 이미 쓴 칸 → 뗀 자국만 보여요
      붙어서 저장되는 순간 ownUse(종이, 칸) → 그 칸은 영원히 사라져요 · 페이지 요소에 data-own = '종이:칸'
    - 🤍 이형지북 모드 (10-25 · opt.rel) : 정리 책상에서 종이를 고르면 그 자리(rel.at)에 한 줄로 나와요 (옆으로 밀어 넘겨요)
      핀셋으로 떼어 이형지북(rel.target) 위에 놓으면 rel.drop(칸, { x, y, r }) · 이형지북 밖에 놓으면 종이로 돌아가요 · 종이 밖을 누르면 그 아래 버튼이 눌려요
@@ -178,7 +178,8 @@
             pelBuild();
             const S = pelS;
             S.cv = pelq('pelCv'); S.ctx = S.cv.getContext('2d');
-            S.items = imgs.map((im, i) => im ? { a: pelAsset(im), src: list[i], st: { state: 'on' } } : { a: null, src: '', st: { state: 'used' }, wh: own && own.wh && own.wh[i] });   // 🎒 null = 이미 쓴 칸
+            S.items = imgs.map((im, i) => im ? { a: pelAsset(im), src: list[i], st: { state: 'on' } } : { a: null, src: '', st: { state: 'used' }, wh: pelUsedWh(own, i), g: (own && own.gh && own.gh[i]) || '' });   // 🎒 null = 이미 쓴 칸 · g = 뗀 자리 모양 (👻 js/own.js ownGhost)
+            await Promise.all(S.items.map(async o => { if (o.g) try { o.gm = await pelLoad(o.g); } catch (e) {} }));
             pelPick(S.items.find(o => o.st.state === 'on'));
             S.L = opt && opt.L && Array.isArray(opt.L.b) && opt.L.b.length === list.length ? opt.L : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             S.sb = null; if (S.L && opt.sb) { try { S.sb = await pelLoad(opt.sb); } catch (e) {} }   // 🗂️ 내가 꾸민 시트의 바탕 (색 · 무늬 · 이름표 · js/sheetmaker.js)
@@ -265,7 +266,7 @@
             const bx = pelq('pelX');                                             // ✕ : 하얀 종이 오른쪽 위 끝 (모조지스티커처럼 · 종이를 따라 다녀요)
             if (bx) { const B = S.rel ? (A => ({ cx: A.left + A.width / 2, w: A.width, cy: A.top + A.height / 2, h: A.height }))(S.rel.at()) : S.board; bx.style.left = (B.cx + B.w / 2 - 26) + 'px'; bx.style.top = (B.cy - B.h / 2) + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
             const d = S.drag, cur = S.items.find(o => o.st === st);
-            if (bo > 0) for (const o of S.items) if (o.st.state !== 'on' && o.slot) pelResidue(ctx, o.slot, bo);   // 🎒 뗀 자국 (빈 자리)
+            if (bo > 0) for (const o of S.items) if (o.st.state !== 'on' && o.slot) pelResidue(ctx, o.slot, bo, o);   // 🎒 뗀 자국 (빈 자리)
             for (const o of S.items) {                                           // 종이 위에 남은 스티커들 (잡은 건 맨 위에)
                 if (o.st.state !== 'on') continue;
                 if (o === cur && ((d && d.mode === 'peel') || o.st.snap)) continue;
@@ -296,7 +297,35 @@
             h.style.display = ''; h.style.left = r[0] + 'px'; h.style.top = r[1] + 'px'; h.style.width = r[2] + 'px'; h.style.height = r[3] + 'px';
         }
         /* 🎒 뗀 자국 : 스티커가 있던 자리에 살짝 끈적한 흔적만 */
-        function pelResidue(ctx, sl, bo) {
+        /* 쓴 칸 크기 : 하얀 테두리를 이제 두르는 종이면 그만큼 크게 (pelBake 와 같이) */
+        function pelUsedWh(own, i) {
+            const w = own && own.wh && own.wh[i]; if (!w) return w;
+            const b = own.raw && (typeof showOn !== 'function' || showOn('die')) ? (PEL_EDGE + 2) * 2 : 0;
+            return [w[0] + b, w[1] + b];
+        }
+        /* 👻 뗀 자국 = 스티커 모양 그대로 (도련 11-09) : 옅은 끈적 자국 + 가는 테두리 · 방금 뗀 건 그 그림에서, 예전에 쓴 칸은 실루엣(gm)에서 */
+        function pelGhost(o, sl) {
+            const src = o.gm || (o.a && o.a.front); if (!src) return null;
+            const R = Math.min(2, pelS.DPR || devicePixelRatio || 1), W = Math.max(2, Math.round(sl.w * R)), H = Math.max(2, Math.round(sl.h * R)), key = W + 'x' + H;
+            if (o.gc && o.gk === key) return o.gc;
+            const m = o.gm ? 0 : o.a.m, P = Math.ceil(2 * R);
+            const sh = pelMk(W, H), y = sh.getContext('2d');
+            y.drawImage(src, m, m, src.width - m * 2, src.height - m * 2, 0, 0, W, H);
+            const edge = pelTint(sh, 'rgba(176,162,190,.55)'), fill = pelTint(sh, 'rgba(226,218,234,.62)');
+            const c = pelMk(W + P * 2, H + P * 2), x = c.getContext('2d');
+            for (let a = 0; a < 360; a += 30) x.drawImage(edge, P + Math.cos(a * Math.PI / 180) * 1.3 * R, P + Math.sin(a * Math.PI / 180) * 1.3 * R);
+            x.drawImage(fill, P, P);
+            x.globalCompositeOperation = 'source-atop';                       // 끈적한 자국이 살짝 (반짝 결 · 점)
+            const g = x.createLinearGradient(0, 0, c.width, c.height); g.addColorStop(0, 'rgba(255,255,255,.35)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,.18)');
+            x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
+            x.fillStyle = 'rgba(255,255,255,.5)';
+            for (let i = 0; i < W * H / (260 * R * R); i++) x.fillRect(Math.random() * c.width, Math.random() * c.height, R, R);
+            o.gc = c; o.gk = key; o.gp = P / R; o.gr = R;
+            return c;
+        }
+        function pelResidue(ctx, sl, bo, o) {
+            const gc = o && pelGhost(o, sl);
+            if (gc) { ctx.save(); ctx.globalAlpha = bo; ctx.drawImage(gc, sl.cx - sl.w / 2 - o.gp, sl.cy - sl.h / 2 - o.gp, gc.width / o.gr, gc.height / o.gr); ctx.restore(); return; }
             ctx.save(); ctx.globalAlpha = bo * .9;
             pelRR(ctx, sl.cx - sl.w / 2, sl.cy - sl.h / 2, sl.w, sl.h, Math.min(14, sl.w / 4, sl.h / 4));
             ctx.fillStyle = 'rgba(214,206,222,.30)'; ctx.fill();

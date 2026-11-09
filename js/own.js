@@ -24,7 +24,7 @@
                                종이 = 📄 모조지 (오린 자리만 비고 남은 종이는 계속 · 거의 다 오리면 끝)
    - 목록 한 칸 : { id, f : 종이 파일 id, k : 종류, n : 칸 수, u : [쓴 칸 번호] · q0 · q : 처음 · 남은 수량, at : 받은 때, from : 'basic' 무료(기본상품 샵 · 처음받기) · 'gift' 선물(캡슐 …) · 'mine' 내가 만든 · 'share' 공유로 받은 · 'paid' 산 것 (도련 11-09 · 상품 분류 다섯) · start : 1 = 처음받기 · via = 선물 종류 · rel : 1 = 이형지에서 떼어 낸 종이 (분류는 원래 종이 것),
                    nm : 이름, us : [기본스티커 그림 주소] (바구니 미리보기) · th : 작은 그림 · ts : 🔤 글씨스티커 }
-   - 종이 파일 : { v, id, k, from, nm, ts, baked : 하얀 테두리를 이미 둘렀는지, imgs : [그림 data · 쓴 칸은 null], wh : [[가로, 세로]], q0 · q, x : 종류마다 정보 }
+   - 종이 파일 : { v, id, k, from, nm, ts, baked : 하얀 테두리를 이미 둘렀는지, imgs : [그림 data · 쓴 칸은 null], wh : [[가로, 세로]], gh : [쓴 칸의 모양 실루엣 PNG · 11-09], q0 · q, x : 종류마다 정보 }
    ※ 파일 불러오는 순서 : drive → coll → … → own → basket (index.html) */
 
         const OWN_SALT = 'malang-own|v1|softsweetdiary';
@@ -503,7 +503,7 @@
                 if (!e || !ownAlive(e)) { ownTell(); return null; }
                 let s;
                 try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
-                ownPendGet().forEach(p => { if (p.s !== id) return; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else if (s.imgs[p.k] != null) s.imgs[p.k] = null; });   // 이 기기에서 쓰는 중인 칸 · 수량
+                for (const p of ownPendGet()) { if (p.s !== id) continue; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else if (s.imgs[p.k] != null) { s.gh = s.gh || []; if (!s.gh[p.k]) s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); s.imgs[p.k] = null; } }   // 이 기기에서 쓰는 중인 칸 · 수량
                 if (s.q0 && s.q <= 0) return null;
                 return { e, s };
             });
@@ -556,6 +556,7 @@
             if (op.q) { s.q = Math.max(0, s.q - op.q); e.q = s.q; end = s.q <= 0; }
             else if (op.img != null) { s.imgs = [op.img]; if (op.th) e.th = op.th; s.x = Object.assign({}, s.x, { grained: 1 }, op.a0 && !(s.x && s.x.a0) ? { a0: op.a0 } : {}); end = op.left <= OWN_PAPER_END; }   // a0 : 처음 종이의 잉크 양 (남은 비율 재기)
             else {
+                if (!(s.gh && s.gh[op.k])) { s.gh = s.gh || []; s.gh[op.k] = await ownGhost(s.imgs[op.k], !s.baked); }   // 👻 뗀 자리 = 그림 모양 그대로 (모양만 · 도련 11-09)
                 s.imgs[op.k] = null;
                 e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
                 end = e.u.length >= e.n;
@@ -564,7 +565,7 @@
             try {
                 if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); }   // 마지막 칸 · 다 쓴 묶음 → 종이째 사라져요
                 else {
-                    if (op.k != null && e.th && !e.us) e.th = await ownThumb(s.imgs);   // 바구니 미리보기도 뗀 자리가 비게
+                    if (op.k != null && e.th && !e.us) e.th = await ownThumb(s.imgs, 0, s.gh);   // 바구니 미리보기도 뗀 자리가 비게
                     e.f = await ownFileNew(s);                                   // 새 파일로 바꿔 쓰고 옛 것은 완전 삭제 (옛 버전 기록으로 되살릴 수 없게)
                 }
                 await ownIdxWrite(k, list);
@@ -592,14 +593,31 @@
 
         /* ---------- 🖼️ 종이 미리보기 (만든 스티커 : 바구니 칸 · 뗀 자리는 비워요) ---------- */
         const ownImg = src => new Promise(ok => { if (!src) { ok(null); return; } const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
-        async function ownThumb(imgs, size) {
+        /* 👻 뗀 자리 실루엣 : 그림은 버리고 모양(투명도)만 · 긴 쪽 128px PNG (하얀 테두리째 · 다 쓰면 종이와 함께 지워져요) */
+        async function ownGhost(src, bake) {
+            if (!src) return null;
+            if (bake && window.pelBake) src = await pelBake(src).catch(() => src);
+            const im = await ownImg(src); if (!im || !im.width) return null;
+            const k = Math.min(1, 128 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+            c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+            const x = c.getContext('2d'); x.drawImage(im, 0, 0, c.width, c.height);
+            x.globalCompositeOperation = 'source-in'; x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height);
+            try { return c.toDataURL('image/png'); } catch (e) { return null; }
+        }
+        async function ownThumb(imgs, size, gh) {
             size = size || 120;
-            const ims = await Promise.all(imgs.map(ownImg)), n = ims.length, cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
+            const ims = await Promise.all(imgs.map(ownImg)), gs = await Promise.all(imgs.map((u, i) => u ? null : ownImg(gh && gh[i]))), n = ims.length, cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
             const P = 8, G = 4, cs = (size - P * 2 - G * (cols - 1)) / cols, c = document.createElement('canvas');
             c.width = size; c.height = Math.round(P * 2 + rows * cs + G * (rows - 1));
             const x = c.getContext('2d');
             ims.forEach((im, i) => {
                 const cx = P + (i % cols) * (cs + G), cy = P + Math.floor(i / cols) * (cs + G);
+                if (!im && gs[i]) {                                              // 👻 뗀 자리 모양
+                    const g = gs[i], k = Math.min(cs / g.width, cs / g.height), w = g.width * k, h = g.height * k, t = document.createElement('canvas');
+                    t.width = Math.max(1, Math.round(w)); t.height = Math.max(1, Math.round(h));
+                    const y = t.getContext('2d'); y.drawImage(g, 0, 0, t.width, t.height); y.globalCompositeOperation = 'source-in'; y.fillStyle = 'rgba(200,190,205,.4)'; y.fillRect(0, 0, t.width, t.height);
+                    x.drawImage(t, cx + (cs - w) / 2, cy + (cs - h) / 2, w, h); return;
+                }
                 if (!im) { x.fillStyle = 'rgba(200,190,205,.22)'; x.beginPath(); x.arc(cx + cs / 2, cy + cs / 2, cs * .3, 0, Math.PI * 2); x.fill(); return; }   // 뗀 자리
                 const k = Math.min(cs / im.width, cs / im.height), w = im.width * k, h = im.height * k;
                 x.drawImage(im, cx + (cs - w) / 2, cy + (cs - h) / 2, w, h);
