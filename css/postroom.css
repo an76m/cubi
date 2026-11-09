@@ -56,3 +56,24 @@ body.post-on .desk-top-r { display: none; }
 .pr-walk-in::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at var(--lx, 50%) var(--ly, 50%), #fff6d8 0, #ffe29a 14%, #c9a3e6 40%, #6b5a9a 70%, #3b3566 92%); }
 .pr-walk.go .pr-walk-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
 .pr-walk.go .pr-walk-in::after { transition: opacity .8s ease .45s; opacity: 1; }
+
+/* 📱 폰 우체통 (도련 11-09 · js/postroom.js PR_PH) : 세로 그림 941 × 1672 · 안 창 · 글씨 · 이동은 화면 크기 (그림과 함께 줄지 않아요) */
+.pr-room.ph .pr-stage { width: 941px; height: 1672px; }
+.pr-room.ph .pr-bg { width: 941px; height: 1672px; }
+.pr-room.ph .pr-moon { left: 70px; top: 10px; }
+.pr-room.ph .pr-slot { position: absolute; font-size: 13px; translate: -50% -50%; text-shadow: 0 1px 0 #6e1010; }   /* 투입구 안 */
+.pr-room.ph .pr-win { position: absolute; border-width: 3px; border-radius: 18px; box-shadow: inset 0 0 0 3px #ffd9cf, 0 4px 0 rgba(120, 20, 20, .35); }
+.pr-room.ph .pr-ask { padding: 14px 0 4px; font-size: 16px; }
+.pr-room.ph .pr-cats { gap: 10px; padding: 10px 12px 12px; }
+.pr-room.ph .pr-cat { gap: 10px; padding: 12px 12px; border-radius: 16px; border-width: 2.5px; }
+.pr-room.ph .pr-cat i { font-size: 30px; width: 46px; height: 46px; border-radius: 14px; }
+.pr-room.ph .pr-cat b { font-size: 16px; } .pr-room.ph .pr-cat small { font-size: 11px; }
+.pr-room.ph .pr-cat em { font-size: 22px; }
+.pr-room.ph .pr-top { padding: 8px 10px; gap: 6px; } .pr-room.ph .pr-top b { font-size: 15px; }
+.pr-room.ph .pr-bk { font-size: 12px; padding: 4px 9px; }
+.pr-room.ph .pr-in { padding: 10px 10px 12px; }
+.pr-room.ph .pr-zoom { zoom: 1; }
+.pr-room.ph .feedback-input { height: var(--fbh, 96px); min-height: 0; font-size: 14px; }
+.pr-room.ph .pr-hd { font-size: 11.5px; margin-bottom: 8px; }
+.pr-room.ph #feedbackSendBtn { margin-top: 8px; padding: 10px; font-size: 15px; }
+.pr-room.ph .pr-go { position: absolute; right: 12px; top: 12px; transform: none; z-index: 2; }

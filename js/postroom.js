@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/postroom.js
-   📮 우체통 (도련 10-31) : 💻 PC · 📲 아이패드에서 '우체통' 칸을 누르면 (📱 폰은 예전 카페 칸 그대로 · calRoomUse)
+   📮 우체통 (도련 10-31) : 💻 PC · 📲 아이패드에서 '우체통' 칸을 누르면 (📱 폰 = 11-09 세로 그림 · PR_PH)
    - 별밤 거리 (하늘 · 별 · 달 · 가로등) 가운데 큰 우체통 그림(img/post-box.webp) · 우체통 안 창에서 한 가지씩
        처음 = 무엇을 할까요? → 💌 익명 편지함 / 💬 건의함 (‹ 처음으로 = 다시 고르기)
    - 기능은 원래 창 그대로 (새로 만들지 않아요) : 고를 때 원래 창의 부분을 이 창으로 옮겨 오고 · 처음으로 / 떠날 때 제자리로
@@ -12,9 +12,15 @@
         const prq = id => document.getElementById(id);
         const prOn = () => !!prq('postRoom') && prq('postRoom').classList.contains('show');
 
+        /* 📱 폰 (도련 11-09) : 세로 우체통 그림(img/post-box-m.webp · 941 × 1672 · 투명 배경) 이 화면 가로를 거의 채워요 · 안 창 · 글씨는 그림과 함께 줄지 않게 화면 크기로 (prFit)
+           들어갈 때 = 세로 밤 강변 길(img/post-street-m.webp) → 빨간 우체통 쪽으로 (💻 📲 와 같은 전환) */
+        const PR_PH = { W: 941, H: 1672, box: [9, 164, 930, 1496], win: [78, 462, 863, 1242], slotY: 362, street: { cx: 548, cy: 1010 } };
+        const prPh = () => !(window.calRoomUse && calRoomUse());
         function prBuild() {
-            let el = prq('postRoom'); if (el) return el;
-            el = document.createElement('div'); el.id = 'postRoom'; el.className = 'pr-room';
+            const ph = prPh();
+            let el = prq('postRoom'); if (el && el.classList.contains('ph') === ph) return el;
+            if (el) { prGiveBack(); el.remove(); }
+            el = document.createElement('div'); el.id = 'postRoom'; el.className = 'pr-room' + (ph ? ' ph' : '');
             let stars = '';
             for (let i = 0; i < 90; i++) stars += `<i class="pr-star" style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 62).toFixed(2)}%;--d:${(Math.random() * 3).toFixed(2)}s;opacity:${(.45 + Math.random() * .55).toFixed(2)}"></i>`;
             el.innerHTML = `<div class="pr-stars">${stars}</div>
@@ -22,7 +28,7 @@
                     <i class="pr-moon"></i>
                     <i class="pr-lamp" style="left:330px"></i><i class="pr-lamph" style="left:307px"></i>
                     <i class="pr-lamp" style="left:1330px"></i><i class="pr-lamph" style="left:1307px"></i>
-                    <img class="pr-bg" src="img/post-box.webp?v=20261009-1001" alt="" draggable="false">
+                    <img class="pr-bg" src="${ph ? 'img/post-box-m.webp?v=20261009-1041' : 'img/post-box.webp?v=20261009-1001'}" alt="" draggable="false">
                     <div class="pr-slot">✉️ 편지는 여기로 쏙</div>
                     <div class="pr-win">
                         <div class="pr-view" id="prCats">
@@ -44,7 +50,8 @@
                     <button type="button" class="pr-go desk-shop-go" onclick="deskMoveOpen()">이동</button>   <!-- 🚪 닫기 대신 이동 (달력과 같은 틀) -->
                 </div>`;
             document.body.appendChild(el);
-            addEventListener('resize', () => { if (prOn()) prFit(); });
+            if (ph) { const room = el; room.appendChild(room.querySelector('.pr-slot')); room.appendChild(room.querySelector('.pr-win')); room.appendChild(room.querySelector('.pr-go')); room.querySelectorAll('.pr-lamp, .pr-lamph').forEach(x => x.remove()); }   // 📱 안 창 · 글씨 · 이동 = 화면 크기 (그림 밖으로 꺼내요)
+            if (!prBuild.rs) { prBuild.rs = 1; addEventListener('resize', () => { if (prOn()) { if (prq('postRoom').classList.contains('ph') !== prPh()) { const v = pr0.view; prBuild().classList.add('show'); prShow('cats'); } prFit(); } }); }
             el.addEventListener('click', e => { if (e.target.closest('#lbTabs button, #lbBack')) { const s = prq('prLbIn'); if (s) s.scrollTop = 0; } });   // 탭을 바꾸면 창 맨 위로
             return el;
         }
@@ -55,6 +62,17 @@
         function prGiveBack() { pr0.moved.reverse().forEach(([n, p, nx]) => { if (p) p.insertBefore(n, nx && nx.parentNode === p ? nx : null); }); pr0.moved = []; }
         function prFit() {
             const st = prq('prStage'), el = prq('postRoom'); if (!st) return;
+            if (el.classList.contains('ph')) {                                   // 📱 우체통 = 가로 94% · 아래쪽에 서 있어요 (위 = 별밤 하늘)
+                const P = PR_PH, [bl, bt, br, bb] = P.box, s = Math.min(innerWidth * .94 / (br - bl), innerHeight * .8 / (bb - bt));
+                const x = (innerWidth - (bl + br) * s) / 2, y = innerHeight * .93 - bb * s;
+                st.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+                el.style.setProperty('--gy', (y + (bb - 8) * s) + 'px');
+                const [wl, wt, wr, wb] = P.win;
+                Object.assign(el.querySelector('.pr-win').style, { left: x + wl * s + 'px', top: y + wt * s + 'px', width: (wr - wl) * s + 'px', height: (wb - wt) * s + 'px' });
+                el.style.setProperty('--fbh', Math.max(48, Math.min(110, (wb - wt) * s - 200)) + 'px');   // 💬 건의함 적는 칸 = 남는 높이만큼 (전송 버튼까지 한 화면에)
+                Object.assign(el.querySelector('.pr-slot').style, { left: x + (bl + br) / 2 * s + 'px', top: y + P.slotY * s + 'px' });
+                return;
+            }
             const s = Math.min(innerWidth / PR_W, innerHeight / PR_H), x = (innerWidth - PR_W * s) / 2, y = (innerHeight - PR_H * s) / 2;
             st.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
             el.style.setProperty('--gy', (y + PR_GROUND * s) + 'px');           // 🌙 땅 = 화면 끝까지 (그림 밖도)
@@ -90,11 +108,13 @@
         function prApproach() {
             if (prGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             let d = prq('prGo');
-            if (!d) { d = document.createElement('div'); d.id = 'prGo'; d.className = 'pr-walk'; d.innerHTML = '<div class="pr-walk-in"><img src="img/post-street.webp?v=20261009-1041" alt="" draggable="false"></div>'; document.body.appendChild(d); }
+            if (!d) { d = document.createElement('div'); d.id = 'prGo'; d.className = 'pr-walk'; d.innerHTML = '<div class="pr-walk-in"><img alt="" draggable="false"></div>'; document.body.appendChild(d); }
             prGoBusy = true;
-            const { s, x, y } = coverFit(PR_W, PR_H, [700, 1420, 100, 700]);
-            Object.assign(d.querySelector('img').style, { width: PR_W * s + 'px', height: PR_H * s + 'px', left: x + 'px', top: y + 'px' });
-            const inn = d.querySelector('.pr-walk-in'), ox = x + 1062 * s, oy = y + 450 * s;   // 빨간 우체통 (그림 px)
+            const ph = prPh(), W = ph ? PR_PH.W : PR_W, H = ph ? PR_PH.H : PR_H, im = d.querySelector('img'), src = ph ? 'img/post-street-m.webp?v=20261009-1041' : 'img/post-street.webp?v=20261009-1041';
+            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
+            const { s, x, y } = ph ? coverFit(W, H, [380, 760, 850, 1150]) : coverFit(PR_W, PR_H, [700, 1420, 100, 700]);
+            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
+            const inn = d.querySelector('.pr-walk-in'), ox = x + (ph ? PR_PH.street.cx : 1062) * s, oy = y + (ph ? PR_PH.street.cy : 450) * s;   // 빨간 우체통 (그림 px)
             inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');   // 빛도 우체통에서 번져요
             d.classList.remove('go', 'leave'); d.classList.add('on');
             const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); prGoBusy = false; }, 400); }, 1700); };
