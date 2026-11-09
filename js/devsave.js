@@ -5,9 +5,8 @@
      → 드라이브에 말을 거는 곳(drive.js gfetch) 하나만 '이 브라우저 저장공간'으로 바꿔 끼워요 (vfsFetch : 드라이브 API 흉내)
      → 첫 접속 파일(설정 · 다이어리 · 소품 · 문구 목록 …)도 구글과 똑같이 이 안에 생겨요
    - 📁 PC 폴더에 저장하기 · 폴더 바꾸기는 없앴어요 (도련 11-09 · 폰 · 사파리는 폴더를 못 골라서 기기마다 달라지던 것을 하나로)
-   - 브라우저 기록을 지우거나 · 브라우저를 바꾸거나 · 아이폰 사파리를 오래 안 열면 사라질 수 있어요
-     → ⚙ 설정 → 📦 백업 파일 만들기 (zip · 다운로드 폴더) → 새 곳에서 📥 백업 파일 불러오기 (js/backup.js)
-   - 구글로 로그인하면 이 브라우저의 일기를 드라이브로 옮길지 물어봐요 → 그 뒤로는 드라이브로 열려요
+   - 브라우저 기록을 지우거나 · 브라우저를 바꾸거나 · 아이폰 사파리를 오래 안 열면 사라질 수 있어요 (맛보기라서 괜찮아요 · 지키려면 구글로)
+   - ⚙ 설정 → ☁ 구글로 이동 = 말랑달콤의 이사는 이것 하나 (dvLogin · 백업 zip 은 없앴어요 · 도련 11-09) → 그 뒤로는 드라이브로 열려요
    - 안 되는 것 : 편지 · 명예의 전당 · 뽑기처럼 구글 계정이 있어야 하는 서버 기능
    ※ drive.js 의 initDrive · gfetch · ensureToken · driveLogin · driveLogout 이 이 파일을 불러요 · 이 파일이 없어도 다이어리는 정상 */
 
@@ -95,7 +94,7 @@
 
         /* ---------- 🗑 휴지통 칸 : 말랑달콤 / 휴지통 / 시각-xxxx.json ({ path : 원래 자리, at : 지운 때, text : 내용 }) + 목록.json
            - 30일이 지나거나 휴지통이 너무 커지면 (50MB) 오래된 것부터 지워요
-           - 백업 zip · 구글로 옮기기에는 들어가지 않아요 (js/backup.js) ---------- */
+           - ☁ 구글로 이동할 때 옮기지 않고 버려요 (dvPack) ---------- */
         const TRASH = DV_TOP + '/휴지통', TRASH_IDX = TRASH + '/목록.json', TRASH_DAYS = 30;
         const trashCap = () => 50 * 1048576;
         async function vTrashIdx() { try { const a = JSON.parse(await vRead(TRASH_IDX) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
@@ -252,48 +251,135 @@
             try { await dvStart(); }
             catch (e) { console.warn(e); dvSetMode(''); dvQuit(); enterGuestMode(); showMsg('⚠ 이 기기에 저장하지 못해서 구경만 할 수 있어요.'); }
         }
-        /* ---------- ☁ 로그인 없이 쓰다가 구글로 로그인 (⚙ 설정) ----------
-           - 누른 그 순간 구글 로그인 창부터 열어요 (아이패드 · 아이폰 사파리는 조금이라도 늦게 열면 창을 막아요)
-           - 창이 떠 있는 동안 이 브라우저의 말랑달콤 폴더를 통째로 챙겨 둬요 (기다리던 저장 · 모음 · 검색 목록까지 끝낸 뒤)
-           - 로그인을 안 했거나 실패하면 아무것도 바뀌지 않아요 (그대로 이 브라우저)
-           - 구글 드라이브를 못 열면 다시 이 브라우저로 돌아와요
-           - 열리면 "구글 드라이브 폴더에 넣을까요?" → 넣으면 일기 · 파일은 이 브라우저 것으로 덮어쓰고 설정 · 카페 · 검색 목록은 합쳐요 · 무료 상품 · 책상 자리도 따라가요 (js/backup.js)
-           - 넣지 않아도 이 브라우저의 것은 그대로 남아요 · 다음부터는 구글로 열려요 */
+        /* ---------- ☁ 구글로 이동 (도련 11-09 · 말랑달콤의 이사는 이것 하나) ----------
+           🏠 로그인 없이(이 브라우저) → ☁ 구글 드라이브 : 짐을 100% 그대로 옮기고 · 데이터는 언제나 한 곳에만
+           1. 누른 그 순간 구글 로그인 창 (아이패드 · 아이폰 사파리는 조금이라도 늦게 열면 창을 막아요) · 창이 떠 있는 동안 짐 싸기
+           2. 구글에 말랑달콤이 이미 있으면 "구글에 있던 다이어리가 모두 지워져요" → 싫다 = 이동 없음 + 방금 한 구글 로그인은 로그아웃
+           3. "옮긴 뒤 이 브라우저의 다이어리는 지워져요" → 싫다 = 이동 없음 + 로그아웃
+           4. 진행 0 ~ 100% = 구글 비우기(휴지통까지) + 옮기기 + 이 브라우저 비우기를 합친 것
+           5. 끝나면 다음부터 구글로 열려요 (새로고침)
+           - 짐 = 말랑달콤 폴더의 파일 전부 (일기 · 설정 · 스티커 · 상품 목록 · 받은 파일 · 책상 자리 …) · 🗑 휴지통은 옮기지 않고 버려요
+           - 🔐 계정 열쇠로 잠긴 것은 이 브라우저 열쇠('device')로 열어 구글 계정 열쇠로 다시 잠가요 (내용은 그대로 · js/own.js ownLock)
+           - 옮기다 실패하면 이 브라우저 것은 지우지 않아요 (다시 누르면 처음부터 다시 · 구글 쪽은 그때 다시 비워요) */
+        const DV_TRASH = DV_TOP + '/휴지통';
+        const DV_LOCKED = /^\{"v":1,"d":"[A-Za-z0-9+/=]*"\}$/;           // ownLock 이 만든 글 모양
+        async function dvSettle() {                                      // 아직 기다리는 저장까지 이 브라우저에 다 넣어요
+            try { if (isCoverOpen && !turn) saveData(false); } catch (e) {}
+            try { await flushUpload({ force: true }); } catch (e) {}
+            try { if (typeof collPump === 'function') await collPump(); } catch (e) {}
+            try { if (typeof srUpload === 'function') await srUpload(); } catch (e) {}
+        }
+        async function dvPack() {                                        // [[경로, 글]] · 🗑 휴지통 빼고 전부
+            await vLoad();
+            const all = await dvTx(['vdata'], 'readonly', async t => {
+                const st = t.objectStore('vdata');
+                const [ks, vs] = await Promise.all([dvReq(st.getAllKeys()), dvReq(st.getAll())]);
+                return ks.map((k, i) => [String(k), vs[i]]);
+            });
+            return all.filter(([p, t]) => typeof t === 'string' && p.startsWith(DV_TOP + '/') && !p.startsWith(DV_TRASH + '/') && (V.idx.get(p) || {}).k === 'f');
+        }
+        async function dvRelock(text, to) {                              // 🔐 'device' 열쇠 → 구글 계정 열쇠 (파일 통째 · 안에 든 글 모두)
+            const one = async str => { try { return await ownLock(await ownUnlock(str, 'device'), to); } catch (e) { return str; } };   // 못 열면 그대로
+            if (DV_LOCKED.test(text)) return one(text);
+            if (!text.includes('"v\\":1,\\"d\\"') && !text.includes('{\\"v\\":1')) return text;   // 안에 잠긴 글이 없으면 그대로 (대부분)
+            let o; try { o = JSON.parse(text); } catch (e) { return text; }
+            const walk = async v => {
+                if (typeof v === 'string') return DV_LOCKED.test(v) ? one(v) : v;
+                if (Array.isArray(v)) { for (let i = 0; i < v.length; i++) v[i] = await walk(v[i]); return v; }
+                if (v && typeof v === 'object') { for (const k of Object.keys(v)) v[k] = await walk(v[k]); return v; }
+                return v;
+            };
+            return JSON.stringify(await walk(o));
+        }
+        async function dvGoogleTops() {                                  // 구글의 말랑달콤 폴더 (같은 이름이 여럿 · 휴지통에 든 것까지)
+            return driveList(`name='${DV_TOP}' and mimeType='${FOLDER_MIME}' and 'root' in parents`, 'id,name,trashed');
+        }
+        async function dvGoogleHas(tops) {                               // 그 안에 파일이 하나라도 있나요
+            for (const t of tops) { const L = await driveList(`'${t.id}' in parents`, 'id'); if (L.length) return true; }
+            return false;
+        }
+        function dvGoogleOut() {                                         // 이동 안 함 = 방금 한 구글 로그인을 로그아웃
+            const tk = drive.token;
+            drive.token = null; drive.ready = false;
+            try { localStorage.removeItem('gdrive_authed'); } catch (e) {}
+            try { if (tk && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(tk, () => {}); } catch (e) {}
+        }
+        async function dvBack(msg) {                                     // 다시 이 브라우저로
+            drive.local = true; resetDriveCaches();
+            try { await dvStart(); } catch (e) { console.warn(e); }
+            bkBusyOff(); if (msg) showMsg(msg);
+        }
+        const dvBusy = m => showGate('wait', m), bkBusyOff = () => hideGate();
         async function dvLogin() {
             if (!V.on) return;
             if (!drive.client && !driveClientMake()) { showMsg('구글 로그인을 준비하는 중이에요.<br>잠시 후 다시 눌러 주세요.'); waitForGoogle(10000).then(ok => { if (ok) driveClientMake(); }); return; }
             const tp = requestToken('select_account');                      // 창은 지금 바로
-            bkBusy('☁ 구글 로그인 중이에요… 잠시만 기다려 주세요');   // 계정을 고른 뒤에도 보이는 글 (도련 10-21)
+            dvBusy('☁ 구글 로그인 중이에요… 잠시만 기다려 주세요');
             let files = null;
-            const collect = (async () => { await bkSettle(); files = await bkReadTree(); })().catch(e => { console.warn(e); files = null; });
+            const pack = (async () => { await dvSettle(); files = await dvPack(); })().catch(e => { console.warn(e); files = null; });
             try { await tp; }
-            catch (e) { await collect; bkBusy(null); drive.token = null; showMsg('로그인하지 않았어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요.</span>'); return; }
-            bkBusy('☁ 구글 드라이브를 여는 중…');
-            await collect;
+            catch (e) { await pack; bkBusyOff(); drive.token = null; try { localStorage.removeItem('gdrive_authed'); } catch (x) {} showMsg('로그인하지 않았어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요.</span>'); return; }
+            dvBusy('🚚 이삿짐을 싸는 중…');
+            await pack;
+            if (!files) { dvGoogleOut(); bkBusyOff(); showMsg('⚠ 이 브라우저의 다이어리를 다 챙기지 못해서 이동하지 않았어요.<br><span style="font-size:12px;color:#777;">잠시 후 다시 해 주세요.</span>'); return; }
+            /* 구글 쪽 살피기 (아직 아무것도 바꾸지 않아요) */
             V.on = false; drive.local = false; drive.ready = false; resetDriveCaches();
-            try { await loadFromDrive(); bkBusy(null); hideGate(); await postLoginTasks(); }
-            catch (e) {
-                console.warn(e); drive.token = null;
-                try { await dvStart(); } catch (x) { console.warn(x); }
-                bkBusy(null); showMsg('⚠ 구글 드라이브를 열지 못했어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요. 잠시 후 다시 해 주세요.</span>');
-                return;
+            let tops = [], has = false, who = '';
+            try { who = await collWhoami(); tops = await dvGoogleTops(); has = await dvGoogleHas(tops); }
+            catch (e) { console.warn(e); dvGoogleOut(); return dvBack('⚠ 구글 드라이브를 열지 못해서 이동하지 않았어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요. 잠시 후 다시 해 주세요.</span>'); }
+            bkBusyOff();
+            const no = () => { dvGoogleOut(); return dvBack('이동하지 않았어요.<br><span style="font-size:12px;color:#777;">구글 로그인은 로그아웃했고, 지금처럼 이 브라우저에 저장해요.</span>'); };
+            if (has && !(await showAsk('⚠ 이 구글 계정에는 이미 <b>다이어리가 있어요.</b><br>이동하면 <b>구글에 있던 다이어리가 모두 지워지고</b><br>이 브라우저의 다이어리로 바뀌어요.<br><span style="font-size:12px;color:#777;">구글 드라이브 휴지통에 있는 것까지 지워요.</span>', '지우고 이동', '이동 안 함'))) return no();
+            if (!(await showAsk('🚚 <b>☁ 구글로 이동</b>할게요.<br>이동이 끝나면 <b>이 브라우저의 다이어리는 지워져요.</b><br><span style="font-size:12px;color:#777;">다이어리는 언제나 한 곳에만 있어요.<br>다음부터는 구글로 로그인해서 써요.</span>', '이동하기', '이동 안 함'))) return no();
+            /* 0 ~ 100% : 구글 비우기 (폴더마다 1) + 옮기기 (파일마다 1) + 이 브라우저 비우기 (파일 수의 1/10 · 적어도 1) */
+            const total = tops.length + files.length + Math.max(1, Math.ceil(files.length / 10));
+            let done = 0;
+            const tick = (n, what) => { done += n || 0; dvBusy(`🚚 ☁ 구글로 이동 중… <b>${Math.min(99, Math.floor(done * 100 / total))}%</b><br><span style="font-size:12px;color:#777;">${what} · 창을 닫지 말아 주세요</span>`); };
+            try {
+                tick(0, '구글 비우는 중');
+                for (const t of tops) { const r = await gfetch(`${DRIVE_API}/${t.id}`, { method: 'DELETE' }); if (!r.ok && r.status !== 404) throw new Error('clear ' + r.status); tick(1, '구글 비우는 중'); }   // 🔥 휴지통에 넣지 않고 바로 (안에 든 것까지)
+                resetDriveCaches();
+                let i = 0;
+                await Promise.all(Array.from({ length: 4 }, async () => {
+                    while (i < files.length) {
+                        const [path, text] = files[i++], parts = path.split('/'), name = parts.pop();
+                        const body = await dvRelock(text, who);
+                        let ok = false;
+                        for (let a = 0; a < 3 && !ok; a++) {
+                            try { await driveUpsert(await getFolder(parts, true), name, null, body); ok = true; }
+                            catch (e) { if (e && e.code === 'gone') resetDriveCaches(); if (a === 2) throw e; await new Promise(r => setTimeout(r, 800)); }
+                        }
+                        tick(1, '옮기는 중');
+                    }
+                }));
+            } catch (e) {
+                console.warn('🚚 이동 실패', e);
+                dvGoogleOut();
+                return dvBack('⚠ 옮기다가 멈췄어요. <b>이 브라우저의 다이어리는 그대로예요.</b><br><span style="font-size:12px;color:#777;">인터넷을 확인하고 다시 ☁ 구글로 이동을 눌러 주세요.</span>');
             }
-            dvSetMode('');                                                 // 다음부터는 구글로 열려요
-            if (files && files.length) await dvCarry(files);
-            else if (files === null) showMsg('⚠ 이 브라우저의 일기를 다 읽지 못해서 옮기지 않았어요.<br><span style="font-size:12px;color:#777;">일기는 이 브라우저에 그대로 있어요. ⚙ 설정 → 로그아웃 → 로그인 없이 다꾸하기로 열어서 📦 백업 파일을 만든 뒤, 구글에서 📥 백업 파일 불러오기로 넣을 수 있어요.</span>');
+            /* 이 브라우저 비우기 : 말랑달콤 서랍 · 못 올린 보관본 · 읽어 둔 그림 · 저장 방식 */
+            tick(0, '이 브라우저 비우는 중');
+            try { const db = await dvDb(); db.close(); } catch (e) {}
+            dvDbP = null;
+            await new Promise(r => { try { const q = indexedDB.deleteDatabase(DV_DB); q.onsuccess = q.onerror = q.onblocked = () => r(); } catch (e) { r(); } setTimeout(r, 4000); });
+            await new Promise(r => { try { const q = indexedDB.deleteDatabase('mallang-coll'); q.onsuccess = q.onerror = q.onblocked = () => r(); } catch (e) { r(); } setTimeout(r, 4000); });
+            try { const K = []; for (let n = 0; n < localStorage.length; n++) { const k = localStorage.key(n); if (k && k.startsWith('gdrive_pending_backup')) K.push(k); } K.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+            dvSetMode('');
+            try { localStorage.setItem('gdrive_authed', '1'); } catch (e) {}
+            tick(Math.max(1, Math.ceil(files.length / 10)), '다 됐어요');
+            dvBusy('🚚 ☁ 구글로 이동 중… <b>100%</b>');
+            await new Promise(r => setTimeout(r, 400));
+            hideGate();
+            await showMsg('☁ <b>구글로 이동했어요!</b><br><span style="font-size:12px;color:#777;">이 브라우저의 다이어리는 지웠어요.<br>이제 구글로 로그인해서 써요.</span>');
+            dvBusy('☁ 구글 드라이브로 여는 중…');
+            location.reload();
         }
         function dvAfterLogin() { dvSetMode(''); }
-        /* 로그인한 뒤 : 이 브라우저의 말랑달콤 폴더 통째로 드라이브로 (무료 상품 · 책상 자리도 · js/backup.js _옮기기.json) */
-        async function dvCarry(files) {
-            const days = window.bkDays ? bkDays(files.map(f => f[0])) : 0;
-            if (!(await showMsg(`🏠 이 브라우저에 일기 <b>${days}일치</b> · 파일 ${files.length}개가 있어요.<br><b>구글 드라이브</b>에 넣을까요?<br><span style="font-size:12px;color:#777;">같은 날짜 일기는 이 브라우저 것으로 덮어써요.<br>설정 · 카페 기록은 합치고, 무료 상품 · 책상 자리도 따라가요.<br>넣지 않아도 이 브라우저에는 그대로 남아 있어요.</span>`, true))) return;
-            await bkApply({ items: files.map(([path, text]) => ({ path, text: async () => text })), days }, '구글 드라이브');
-        }
         const dvOn = () => V.on;
         const dvWhere = () => '이 브라우저';
 
         window.dvAuto = dvAuto; window.dvChoose = dvChoose; window.vfsFetch = vfsFetch; window.dvOn = dvOn; window.dvWhere = dvWhere;
-        window.dvLogin = dvLogin; window.dvAfterLogin = dvAfterLogin; window.dvCarry = dvCarry;
+        window.dvLogin = dvLogin; window.dvAfterLogin = dvAfterLogin;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['devsave'] = true;

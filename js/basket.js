@@ -375,7 +375,6 @@
         frP.catch(e => { console.warn('📥 받은 스티커첩 목록', e); if (frGen === gen) frP = null; });
         return frP;
     }
-    window.abShopIds = () => ({ bd: AB_BDP.filter(x => !x.P.숨김 && !x.P.스토어).map(x => x.id), rl: AB_RL.filter(x => !x.P.숨김 && !x.P.스토어).map(x => x.id) });   // 🚚 샵의 무료 📒 바인더 · 🤍 이형지북 (js/backup.js 옮기기 · 도련 11-09)
     const frNew = (t, pid, from) => { const P = (t === 'bd' ? AB_BDP : AB_RL).find(x => x.id === pid); return { id: (t === 'bd' ? 'b' : 'r') + abRid(), pid: P.id, n: +(t === 'bd' ? P.P.장수 : P.P.쪽수), lb: '', at: Date.now(), from }; };
     /* 🏪 기본상품 샵에서 받기 = 종류 없이 📥 받은 목록에 (도련 11-08 · 예전엔 넣을 서랍을 골랐어요) */
     async function abTakeTool(t, pid) {

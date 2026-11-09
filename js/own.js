@@ -16,7 +16,7 @@
        · 🛟 백업 : 종류마다 그날 그 종류 목록을 처음 잘 읽었을 때 3초 뒤 하루 한 번 _백업 으로 복사 → 그 종류 목록이 없어지거나 깨지면 백업 + 그 폴더의 종이 파일로 되살려요 (ownRescue)
        · 화면 쪽은 종류를 알려 줘요 : ownOpen(force, 종류) · ownList(force, 종류) · ownPeek(종류) · ownAlbumGet(force, 종류) (종류를 안 주면 모든 종류) · O.idx · O.album = 읽어 둔 종류를 합친 모습
        · 모두 암호화(AES-GCM · 계정마다 다른 열쇠) → 드라이브에서 열어 봐도 그림이 아니고, 다른 계정으로 옮겨도 못 열어요
-       · 📦 백업 · 📥 불러오기에서 빼요 (불러오기로 쓴 스티커가 되살아나지 않게 · js/backup.js)
+       · ☁ 구글로 이동할 때는 종이까지 100% 그대로 옮겨요 (js/devsave.js dvLogin · 도련 11-09 · 백업 zip 은 없앴어요)
        · 말랑달콤 폴더를 지우면 모두 사라지고 되돌릴 수 없어요 (진짜 문구를 불태운 것과 같아요 · 도련)
    - 📁 로그인 없이 폴더에 저장 = 드라이브와 똑같이 (js/devsave.js vfsFetch) · 👀 구경만 = 이 창을 닫으면 사라져요 (일기처럼)
    - 줄어드는 방식 (도련 10-25) : 칸 = 🏷️ 씰(😀 이모지 포함) · 🧩 조각 (뗀 칸만 비어요)
@@ -28,7 +28,7 @@
    ※ 파일 불러오는 순서 : drive → coll → … → own → basket (index.html) */
 
         const OWN_SALT = 'malang-own|v1|softsweetdiary';
-        const OWN_KIND = { seal: '씰', piece: '조각', paper: '모조지', tape: '마테', tk: '떡메', memo: '메모지', leaf: '속지' };   // 종이 파일이 사는 종류 폴더 (말랑달콤 바로 아래 · js/backup.js 가 이 목록으로 백업에서 빼요)
+        const OWN_KIND = { seal: '씰', piece: '조각', paper: '모조지', tape: '마테', tk: '떡메', memo: '메모지', leaf: '속지' };   // 종이 파일이 사는 종류 폴더 (말랑달콤 바로 아래)
         const ownKindPath = k => dirPath(OWN_KIND[k] || '기타');
         const OWN_KS = Object.keys(OWN_KIND);
         /* 📋 종류마다 목록 (도련 11-05) : 그 종류 폴더 안에 · _ 로 시작해서 종이 파일(무작위 이름)과 섞이지 않아요 */

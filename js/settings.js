@@ -4,11 +4,10 @@
         /* 💾 데이터 관리 버튼 글씨 : 로그인 없이(이 브라우저) 쓰는 중이면 그에 맞게 (js/devsave.js) */
         function dmLabels() {
             const L = !!(typeof drive !== 'undefined' && drive.local), set = (id, t) => { const b = document.getElementById(id); if (b && b.textContent !== t) b.textContent = t; };
-            set('dmLogoutBtn', L ? '☁ 구글로 로그인' : '🚪 로그아웃');
+            set('dmLogoutBtn', L ? '☁ 구글로 이동' : '🚪 로그아웃');   // 🚚 로그인 없이 → 구글 (js/devsave.js dvLogin · 도련 11-09)
             const lb = document.getElementById('dmLogoutBtn'); if (lb) lb.onclick = L ? () => driveLogin() : () => driveLogout();
             const q = document.getElementById('dmQuotaLabel'); if (q) q.innerHTML = L ? '💾 이 브라우저 저장공간 <span style="font-size:11px; color:#999;">(브라우저가 다이어리에 내어 준 칸)</span>' : '☁ 내 구글 저장공간 <span style="font-size:11px; color:#999;">(지메일·구글 포토와 함께 써요)</span>';
         }
-        /* 💾 백업 · 불러오기 : 구글 로그인이든 🏠 이 브라우저든 zip 하나 (js/backup.js) */
 
         function roundedRectPath(ctx, x, y, w, h, radii) {
             const [tl, tr, br, bl] = radii;
@@ -146,7 +145,7 @@
             const st = document.getElementById('driveStatusText');
             if (st) st.textContent = drive.guest && typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST ? '💻 로컬 테스트 · 이 브라우저에만 저장 (처음부터 : 주소 뒤에 ?reset)'
                 : drive.guest ? '☁ 구글 드라이브에 연결되지 않음 (저장 안 됨)'
-                : drive.local ? `💾 로그인 없이 · 이 브라우저에 저장 중 (브라우저 기록을 지우면 사라져요 · 가끔 📦 백업 파일을 만들어 두세요)`
+                : drive.local ? `💾 로그인 없이 · 이 브라우저에 저장 중 (브라우저 기록을 지우면 사라져요 · 지키려면 ☁ 구글로 이동)`
                 : drive.ready ? `☁ 연결됨 · 구글 드라이브에 저장 중 (다이어리 / 2026 분홍 1 / 년-월-일.json)` : '☁ 연결 안 됨';
         }
 
