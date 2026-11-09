@@ -185,15 +185,14 @@
 .smk-room .smk-stage canvas { background: repeating-conic-gradient(color-mix(in srgb, var(--dk-accent) 7%, #fff) 0 25%, #fff 0 50%) 50% / 20px 20px;
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--dk-line), 0 6px 16px rgba(160, 90, 110, .14); }
 .smk-room .tpm-stage { background: repeating-conic-gradient(color-mix(in srgb, var(--dk-accent) 7%, #fff) 0 25%, #fff 0 50%) 50% / 20px 20px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--dk-line), 0 6px 16px rgba(160, 90, 110, .14); }
-.smk-room .tpm-pad { border: 2px dashed var(--dk-line); box-shadow: 0 4px 12px rgba(160, 90, 110, .1); }
-.smk-room .smk-empty, .smk-room .smk-all { border: 1.5px dashed var(--dk-line); }
+.smk-room .smk-all { border: 1.5px dashed var(--dk-line); }
 /* 포토부스 : 틀 고르기 칸 */
 .pb-room .pb-layouts button { border: 1.5px dashed var(--dk-line); box-shadow: 0 2px 6px rgba(160, 90, 110, .08); color: var(--dk-ink); }
 .pb-room .pb-layouts button.on { border: 2px solid var(--dk-accent); }
 .pb-room .pb-lay { background: var(--dk-ribbon); }
 /* 🎀 마스킹테이프 만들기 : 위에 붙어 있는 테이프 미리보기 줄도 종이 카드 색으로 */
 .smk-room .tpm-top { top: calc(max(10px, env(safe-area-inset-top)) + 46px); margin: 0 -16px; padding: 4px 16px 10px; background: var(--win-fill, #fffdf8); box-shadow: 0 8px 8px -8px rgba(160, 90, 110, .2); }
-.smk-room .tpm-zoom small, .smk-room .tpm-wrap small { color: var(--dk-soft); }
+.smk-room .tpm-zoom small { color: var(--dk-soft); }
 .smk-room .smk-bar, .pb-room .pb-bar { max-width: 472px; margin: 0 auto; box-sizing: border-box; }   /* 아이패드 : ✕ 가 카드 바로 위에 */
 
 /* ---------- ✂️ 만들기 화면 → 가운데 뜨는 팝업 창 (📃 속지 만들기 창처럼 · 뒤의 다이어리가 보여요)

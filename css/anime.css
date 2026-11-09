@@ -17,13 +17,12 @@ html.an .modal .dk-tape.r, html.an .dk-tape.r { background: #bfead6 !important; 
 html.an .modal .dk-die { filter: none !important; }
 html.an .modal .service-btn .dk-lb { border: 1.3px solid var(--an-ol) !important; background: #fff !important; box-shadow: none; color: var(--an-ink) !important; }
 /* ---------- 🔘 버튼 = 동그란 알약 · 단색 (도련 10-28 통일) : 보통 · 고르지 않은 것 = 흰색 / 고른 것 · 주인공 버튼 = 연분홍 ---------- */
-html.an .btn:not(.service-btn), html.an .bk-act, html.an .dk-cta, html.an .sh-take, html.an .sh-zoombtn, html.an .bk-again, html.an .stk-tab, html.an .dv-opt {
+html.an .btn:not(.service-btn), html.an .dk-cta, html.an .sh-take, html.an .sh-zoombtn, html.an .bk-again, html.an .stk-tab {
   border-radius: 999px !important; border: 1.5px solid #f2b6c9 !important; border-style: solid !important; color: #7b5a6b !important; text-shadow: none !important; clip-path: none !important;
   background: #fff !important; box-shadow: none !important; }
 html.an .btn:not(.service-btn):active, html.an .sh-take:active, html.an .dk-cta:active { translate: 0 1px; }
 /* 연분홍 = 고른 것(.on · aria) + 주인공 버튼 (확인 · 만들기 · 받기 · 받아 오기 · 저장) */
-html.an .btn.on, html.an .stk-tab.on, html.an .dv-opt.on, html.an button[aria-pressed="true"], html.an [aria-selected="true"].btn, html.an .btn.active, html.an .btn.sel,
-html.an .dk-cta, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an .bk-act:not(.bk-share):not(.bk-binb), html.an #bkGet, html.an .sh-take:not(.sh-zoombtn) {
+html.an .btn.on, html.an .stk-tab.on, html.an button[aria-pressed="true"], html.an [aria-selected="true"].btn, html.an .btn.active, html.an .btn.sel, html.an .dk-cta, html.an #customAlertConfirmBtn, html.an .btn.primary, html.an .btn-primary, html.an #bkGet, html.an .sh-take:not(.sh-zoombtn) {
   border: 1.5px solid #e88fb0 !important; color: #c8457a !important; background: #ffe0ea !important; }   /* 연분홍 바탕에서도 선이 보이게 */
 html.an .btn.on small, html.an .btn.on span { color: inherit; }
 html.an .dk-cta { height: 52px !important; font-size: 19px !important; }
@@ -89,9 +88,7 @@ html.an #customAlertCancelBtn { border: 1.5px solid #f2b6c9 !important; }
 #deskBoxModal > .modal-content.iv-win { width: min(94vw, 470px); max-width: none; padding: 34px 14px 14px !important; background: #d9cdf2 !important; border: 2px solid #b49fdc !important; border-radius: 24px !important; box-shadow: 6px 7px 0 rgba(176, 150, 214, .35) !important; overflow: visible; }
 html.desk-on #deskBoxModal { justify-content: flex-end; padding-right: 4vw; background: none; pointer-events: none; }   /* 💻 책상 : 오른쪽에 떠서 책상을 보며 */
 html.desk-on #deskBoxModal > .modal-content { pointer-events: auto; }
-.iv-list { display: block; }
-.iv-tabs { display: flex; gap: 5px; padding: 0 4px; overflow-x: auto; scrollbar-width: none; }   /* 종류가 많으면 옆으로 밀어요 */
-.iv-tabs::-webkit-scrollbar { display: none; }
+.iv-list { display: block; }   /* 종류가 많으면 옆으로 밀어요 */
 .iv-tab { position: relative; flex: 0 0 54px; height: 50px; padding: 0; border-radius: 14px 14px 0 0; background: #ebe3fa; border: 2px solid #c8b3e3; border-bottom: 0; display: grid; place-items: center; cursor: pointer; }
 .iv-tab img { max-width: 34px; max-height: 34px; opacity: .7; pointer-events: none; }
 .iv-tab.on { background: #8f7bd6; border-color: #8f7bd6; } .iv-tab.on img { opacity: 1; }
@@ -110,7 +107,6 @@ html.desk-on #deskBoxModal > .modal-content { pointer-events: auto; }
 .iv-foot { display: flex; gap: 8px; margin-top: 6px; min-height: 40px; align-items: center; }
 .iv-foot .btn { flex: 1; height: 40px; justify-content: center; }
 .iv-foot .iv-del { flex: 0 0 48px; }
-.iv-hint { flex: 1; margin: 0; text-align: center; color: #a08a94; font-size: 13px; }
 .iv-shop { display: block; margin: 10px auto 0; padding: 4px 12px; border: 0; background: none; color: #8463b8; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 /* ---------- 🛠 책상 꾸미기 모드 (도련 10-28 : 3 연출 → 1 방 변신 + 4 작업대 · 📦 소품함) ---------- */
 /* 1 방 변신 : 연보라 막 + 모눈 (소품 아래) · 소품 점선 테두리 */
@@ -344,7 +340,6 @@ html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는
 .abs-grip i { font-style: normal; font-size: 15px; color: #c9a27c; }
 .abs-grip small { color: #a07a5c; font-size: 11.5px; font-weight: 700; }
 .abs-box.lift .abs-grip { cursor: grabbing; background: #ffe6ef; }
-.abx-tip { margin: 8px 0 0; padding: 4px 12px; border-radius: 999px; background: rgba(255,250,242,.85); color: #8a6a78; font-size: 11.5px; text-align: center; }
 
 /* 🧺 바구니 = 바구니 화면과 같은 상자 (도련 10-29 · 세로로 길게) */
 .abs-basket { width: 340px; }
@@ -555,17 +550,6 @@ html.desk-show .dk-bag { visibility: hidden; }
 .dkz-p { margin: 0; text-align: center; line-height: 1.5; }
 .dkz-pic { position: relative; margin: 2px auto; touch-action: none; user-select: none; cursor: crosshair; background: #fff; border: 1.5px solid #f0d6de; border-radius: 10px; }
 .dkz-pic > img { width: 100%; height: 100%; display: block; pointer-events: none; }
-.dkz-old { position: absolute; border: 2px dashed #b9a6d8; border-radius: 6px; box-sizing: border-box; pointer-events: none; display: grid; place-items: center; }
-.dkz-old span, .dkz-box span { font-size: 11px; font-weight: 700; color: #6a4f5a; background: #fffaf2; border-radius: 6px; padding: 1px 5px; pointer-events: none; white-space: nowrap; }
-.dkz-box { position: absolute; border: 2px solid #e88fb0; background: rgba(255, 159, 189, .32); border-radius: 6px; cursor: move; display: grid; place-items: center; box-sizing: border-box; }
-.dkz-box[hidden] { display: none; }
-.dkz-h { position: absolute; right: -9px; bottom: -9px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #e88fb0; cursor: nwse-resize; }
-.dkz-warn { margin: 0; text-align: center; color: #c8457a; font-weight: 700; }
-.dkz-warn[hidden] { display: none; }
-.dkz-btns { display: flex; gap: 8px; }
-.dkz-btns .btn { flex: 1; justify-content: center; }
-.dkz-btns .dkz-ok { background: #ffd3e2; border-color: #e88fb0; color: #8a2f58; font-weight: 700; }
-.dkz-btns .dkz-ok:disabled { opacity: .45; cursor: default; }
 .dkz-show { position: absolute; z-index: 5; pointer-events: none; }
 .dkz-show i { position: absolute; border: 2px dashed #e88fb0; border-radius: 6px; box-sizing: border-box; background: rgba(255, 211, 226, .25); }
 .dkz-show i.on { border: 3px solid #ff6b88; background: transparent; }   /* 👆 지금 고친 칸 */

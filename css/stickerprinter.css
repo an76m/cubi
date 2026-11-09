@@ -51,29 +51,17 @@
 .spr-msg { margin: 0; font-size: 19px; color: #fff; text-align: center; text-shadow: 0 2px 0 rgba(60, 30, 50, .5); }
 .spr-msg.blink { animation: sprBlink .45s ease-in-out infinite; }
 .spr-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-.spr-chip { font-family: 'Jua', sans-serif; font-size: 15px; color: #5a3a47; background: #fff; border: 2.5px solid var(--ln, #6b4a55); border-radius: 999px; padding: 4px 12px; min-height: 36px; cursor: pointer; }
-.spr-chip.on { background: #fff0a8; }
-.spr-chip.sq { min-width: 38px; padding: 4px 8px; }
 .spr-btn { font-family: 'Jua', sans-serif; font-size: 19px; color: #5a3a47; background: #ffd3e2; border: 3px solid #6b4a55; border-radius: 20px; padding: 9px 22px; min-height: 48px; cursor: pointer; box-shadow: 0 4px 0 #6b4a55; transition: transform .12s, box-shadow .12s; }
 .spr-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #6b4a55; }
 .spr-btn.soft { background: #fff; }
 .spr-btn.pop { animation: sprBtnPop .45s ease-out both; }
 @keyframes sprBtnPop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
-.spr-th { gap: 6px; }
-.spr-tb { position: relative; width: 44px; height: 44px; padding: 0; border: 2.5px solid #6b4a55; border-radius: 10px; overflow: hidden; background: #fff; cursor: pointer; font-family: 'Jua', sans-serif; font-size: 22px; color: #6b4a55; }
-.spr-tb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.spr-tb span { position: absolute; right: 2px; bottom: 1px; font-size: 11px; color: #fff; text-shadow: 0 1px 0 #6b4a55; }
-.spr-tb.on { box-shadow: 0 0 0 3px #ff8fb1; }
-.spr-tb.add { background: #ffd3e2; }
 @media (prefers-reduced-motion: reduce) { .spr-room *, .spr-room { animation: none !important; transition: none !important; } .spr-paper.rise { transform: none; } .spr-ink.go { clip-path: none; } }
 @media (max-width: 560px) {                                                     /* 📱 좁은 화면 : 칩을 작게 · 아래 판 높이를 늘 같게 (프린터가 들썩이지 않게 · 버튼이 화면 밖으로 안 나가게) */
   .spr-ctl { min-height: 110px; gap: 6px; }
   .spr-msg { font-size: 16px; }
   .spr-row { gap: 5px; }
-  .spr-chip { font-size: 13px; padding: 2px 9px; min-height: 32px; border-width: 2px; }
-  .spr-chip.sq { min-width: 32px; }
   .spr-btn { font-size: 17px; padding: 7px 18px; min-height: 44px; }
-  .spr-tb { width: 38px; height: 38px; }
 }
 @keyframes sprFade { from { opacity: 0; transform: translateY(8px); } }
 

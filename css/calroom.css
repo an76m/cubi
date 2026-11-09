@@ -47,7 +47,7 @@ button.cr-c:hover { background: #fff0f5; }
 .cr-tab.on { background: #fff0f5; border-color: #5b3240; color: #5b3240; box-shadow: 3px 3px 0 #e9c4cf; }
 .cr-tab.on span { filter: none; opacity: 1; }
 .cr-none { margin-top: 40px; text-align: center; color: #b59aa5; font-size: 16px; font-weight: 800; }
-.cr-box, .cr-card { flex: none; box-sizing: border-box; padding: 12px; border-radius: 18px; background: #fffaf5; border: 2.5px solid #5b3240; box-shadow: 4px 4px 0 #e9c4cf; display: flex; flex-direction: column; gap: 10px; }
+.cr-box { flex: none; box-sizing: border-box; padding: 12px; border-radius: 18px; background: #fffaf5; border: 2.5px solid #5b3240; box-shadow: 4px 4px 0 #e9c4cf; display: flex; flex-direction: column; gap: 10px; }
 .cr-h { font-size: 14px; color: #8a5a6a; font-weight: 900; margin: 0 0 0 4px; }
 .cr-go { position: absolute; right: 22px; top: 18px; transform: scale(1.25); transform-origin: 100% 0; }   /* 🚪 이동 = 책상 오른쪽 위 버튼과 같은 모양 */
 body.cal-on #moveModal { z-index: 1550 !important; }                                                                            /* 이동 창은 달력 위에 */

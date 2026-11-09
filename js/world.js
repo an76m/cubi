@@ -37,7 +37,7 @@
         const person = o => Object.assign({ x: 1260, y: 1160, tx: 1260, ty: 1160, ar: 208 / 470, face: 1, walk: 0, t: Math.random() * 9, img: null, ras: null, name: '나', say: '', sayT: 0 }, o);
         const S = { on: false, built: false, img: {}, ras: {}, z: 1, dpr: 1, vw: 0, vh: 0, cam: { x: 1260, y: 1100 },
             me: person({ me: true }), ppl: new Map(), key: {}, joy: null, goal: null, raf: 0, last: 0,
-            net: { ws: null, st: 'off', room: 0, max: 100, sent: 0, retry: 0, timer: 0, ping: 0, myImg: '' } };
+            net: { ws: null, st: 'off', max: 100, sent: 0, retry: 0, timer: 0, ping: 0, myImg: '' } };
         const q = id => document.getElementById(id);
         const wOn = () => S.on;
         const local = () => typeof FT_LOCAL !== 'undefined' && FT_LOCAL;
@@ -226,7 +226,7 @@
                 else { await ensureToken(); tok = drive.token; }
             } catch (e) { N.st = 'login'; status(); return; }
             if (!S.on) return;
-            const ws = new WebSocket(wUrl().replace(/^http/, 'ws').replace(/\/$/, '') + '/ws?tok=' + encodeURIComponent(tok) + '&room=' + (N.room || 1));
+            const ws = new WebSocket(wUrl().replace(/^http/, 'ws').replace(/\/$/, '') + '/ws?tok=' + encodeURIComponent(tok));
             N.ws = ws;
             ws.onopen = () => {
                 if (N.ws !== ws) return;
@@ -274,7 +274,7 @@
         }
         function netMsg(m) {
             if (!m || typeof m !== 'object') return;
-            if (m.t === 'hi') { N.id = m.id; N.room = m.room; N.max = m.max; N.st = 'on'; S.ppl.clear(); lookSet(m); (m.ppl || []).forEach(addP); status(); }
+            if (m.t === 'hi') { N.id = m.id; N.max = m.max; N.st = 'on'; S.ppl.clear(); lookSet(m); (m.ppl || []).forEach(addP); status(); }
             else if (m.t === 'in' || m.t === 're') { addP(m); status(); }
             else if (m.t === 'go') goApply([m.id, m.x, m.y, m.tx, m.ty, m.s, m.f]);
             else if (m.t === 'b') (Array.isArray(m.m) ? m.m : []).forEach(goApply);     // 📦 묶음 (집 PC 서버)
@@ -387,7 +387,7 @@
             if (window.deskLeave) deskLeave();
             const el = build();
             el.classList.add('show'); document.body.classList.add('cal-on', 'world-on');
-            S.on = true; S.key = {}; S.goal = null; N.room = 0;
+            S.on = true; S.key = {}; S.goal = null;
             S.ev = opt && typeof opt.url === 'string' && /^(https?|wss?):\/\//.test(opt.url) ? { url: opt.url, name: String(opt.name || '🎉 이벤트 광장').slice(0, 30) } : null;   // 🎉 이벤트 광장 (js/service.js openEventWorld)
             const tt = el.querySelector('.wd-title'); if (tt && tt.firstChild) tt.firstChild.textContent = (S.ev ? S.ev.name : '🌳 말랑 광장') + ' ';
             el.classList.toggle('wd-ev', !!S.ev);

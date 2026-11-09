@@ -247,14 +247,8 @@
         .alert-msg { font-size: 15px; color: #444; margin-bottom: 18px; line-height: 1.5; word-break: keep-all; }
         .alert-btns { display: flex; gap: 8px; justify-content: center; }
 
-        .sticker-categories {
-            display: flex; gap: 4px; overflow-x: auto; padding: 11px 8px 8px 2px; margin-bottom: 8px;   /* 위 · 오른쪽 여유 : NEW 표시가 잘리지 않게 */
-            border-bottom: 1px solid #eee; scrollbar-width: none; flex-shrink: 0; touch-action: pan-x pan-y; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
-        }
 
            /* 📏 제목 → 카테고리 바짝 (모든 고르는 창 같게) */
-        .sticker-categories::-webkit-scrollbar { display: none; }
-        @media (hover: hover) and (pointer: fine) { .sticker-categories { flex-wrap: wrap; overflow-x: visible; } }
         .cat-btn {
             padding: 4px 8px; font-size: 12px; border-radius: 10px; border: 1px solid var(--border-color);
             background: #fff; cursor: pointer; white-space: nowrap; font-family: inherit;
@@ -719,7 +713,6 @@
         .gc-find[hidden] { display: none; }
         .gc-small { font-size: 12px; }
         .gc-fortune { background: #eaf4fb; border-radius: 12px; padding: 10px 14px; font-size: 14px; }
-        .gc-timer { font-variant-numeric: tabular-nums; font-weight: bold; font-size: 1.15rem; color: #e5483f; }
         .gc-odds { background: #fff; border: 2px solid #d3dde8; border-radius: 16px; padding: 10px 14px; }
         .gc-odds summary { cursor: pointer; font-weight: bold; }
         .gc-odds table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
@@ -1252,7 +1245,6 @@
         @media (prefers-reduced-motion: reduce) { .at-card.spin { animation-duration: 1.2s; } .at-coin { animation: none; } }
 
         /* ===== 🎁 캡슐 스티커 : 스티커 창 칸 (js/gacha.js · js/capsule-stickers.js) ===== */
-        .cat-btn.cs-cat:not(.active) { background: #fff0f5; border-color: #ff9ab3; }
 
         .cs-guide { grid-column: 1 / -1; margin: 10px 2px 4px; padding: 12px 12px 10px; border-radius: 16px; background: #fff7fa; border: 2px dashed #ffc2d4; text-align: left; color: #6a5560; }
         .cs-guide-t { font-size: 13.5px; font-weight: 900; color: #e0457a; text-align: center; margin-bottom: 6px; }
@@ -1387,8 +1379,6 @@
         .season-su i { top: auto; bottom: -30px; animation-name: ssRise; opacity: .7; }
         @keyframes ssFall { 0% { transform: translate(0, -30px) rotate(0); } 100% { transform: translate(var(--dx), 110vh) rotate(var(--r)); } }
         @keyframes ssRise { 0% { transform: translate(0, 30px) scale(.6); } 100% { transform: translate(var(--dx), -110vh) scale(1.2); } }
-        .cat-btn.ss-cat[hidden] { display: none; }
-        .cat-btn.ss-cat:not(.active) { background: #fff4ea; border-color: #ffb27a; }
 
         .season-corner { position: absolute; right: 4px; bottom: 4px; width: 76px; height: 76px; background: center / contain no-repeat; pointer-events: none; z-index: 0; opacity: .9; }
 
@@ -1676,24 +1666,8 @@
         .smk-x { width: 38px; height: 38px; flex: none; }
         .smk-x { border: 0; background: none; color: #5a3d4a; font-size: 16px; cursor: pointer; }
         .smk-wrap { max-width: 460px; margin: 0 auto; padding: 4px 16px max(30px, env(safe-area-inset-bottom)); box-sizing: border-box; }
-        .smk-step { display: flex; flex-direction: column; gap: 12px; }
-        .smk-mine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .smk-it { position: relative; }
-        .smk-it button { width: 100%; aspect-ratio: 1; border: none; border-radius: 14px; background: repeating-conic-gradient(#f3f3f3 0 25%, #fff 0 50%) 50% / 14px 14px; cursor: pointer; padding: 6px; }
-        .smk-it img { width: 100%; height: 100%; object-fit: contain; }
-        .smk-it .smk-n { position: absolute; left: 4px; bottom: 4px; padding: 1px 6px; border-radius: 8px; background: rgba(255,255,255,.92); border: 1px solid var(--border-color); color: #7a5a66; font-size: 10.5px; pointer-events: none; }   /* 여러 장 한 칸 */
-        /* 🧩 내 봉투 칸 : 투명 OPP 비닐 봉투 (윗부분 접착 띠 · 점선 = 아직 안 뜯음 · 비닐 반짝임) */
-        .smk-bag button { position: relative; overflow: hidden; border-radius: 6px; padding: 20px 8px 8px;
-            background: linear-gradient(118deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.75) 38%, rgba(255,255,255,0) 46%, rgba(255,255,255,0) 62%, rgba(255,255,255,.45) 68%, rgba(255,255,255,0) 74%), linear-gradient(#f6f2f4, #efe9ec);
-            border: 1px solid rgba(190, 165, 175, .55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7), 0 1px 2px rgba(120, 80, 95, .14); }
-        .smk-bag button::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 13px; background: linear-gradient(rgba(255,255,255,.85), rgba(240,232,236,.85)); border-bottom: 1.5px dashed rgba(190, 160, 172, .8); }
-        .smk-bag img { position: relative; filter: drop-shadow(0 1px 1px rgba(90, 60, 70, .25)); }
+        .smk-step { display: flex; flex-direction: column; gap: 12px; }   /* 여러 장 한 칸 */
         /* ✂️ 내가만든 칸 : 씰 · 사진 스티커는 하얀 스티커 대지 위 · 📄 모조지스티커는 도톰한 미색 종이 */
-        #stickerGrid[data-mine="seal"] .smk-it button, #stickerGrid[data-mine="piece"] .smk-it:not(.smk-bag) button { border-radius: 10px; background: linear-gradient(160deg, #fff 0%, #fdfbfc 60%, #f7f3f5 100%); border: 1.5px solid #efe4e8; box-shadow: inset 0 0 0 3px #fff, 0 1px 2px rgba(120, 80, 95, .12); }
-        #stickerGrid[data-mine="seal"] .smk-it img, #stickerGrid[data-mine="piece"] .smk-it:not(.smk-bag) img { filter: drop-shadow(1.2px 0 0 #fff) drop-shadow(-1.2px 0 0 #fff) drop-shadow(0 1.2px 0 #fff) drop-shadow(0 -1.2px 0 #fff) drop-shadow(0 1px 1.2px rgba(90, 60, 70, .3)); }
-        #stickerGrid[data-mine="paper"] .smk-it button { border-radius: 3px; border: 1px solid #e9dfcd; box-shadow: 0 1px 2px rgba(110, 90, 60, .16), 0 3px 0 -1px #f4eee2, 0 3px 1px -1px rgba(110, 90, 60, .14);
-            background: radial-gradient(rgba(150, 120, 80, .05) 1px, transparent 1.4px) 0 0 / 5px 5px, radial-gradient(rgba(255, 255, 255, .7) 1px, transparent 1.4px) 2px 3px / 7px 7px, #fbf7ee; }
-        .smk-it i { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); font-style: normal; font-size: 11px; display: grid; place-items: center; cursor: pointer; color: #a07888; }
 
         .smk-stage { display: flex; justify-content: center; }
         .smk-stage canvas { width: min(300px, 82vw); height: auto; aspect-ratio: 1; border-radius: 18px; touch-action: none; cursor: grab;
@@ -1776,9 +1750,7 @@
         /* 📌 붙이기 2개 : 🏷️ 씰스티커로 · 🧩 조각스티커로 */
         #pmPens { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); padding: 8px 12px; border: 1.5px solid var(--border-color); border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 3px 10px rgba(120,80,95,.14); }
         #pmPens[hidden] { display: none; }
-        .pel-room.pm-room { z-index: 95; }
-        .pel-room.pm-room.pm-note { z-index: 1650; }   /* 📒 수첩 시트의 종이 위에서 칼집 (js/papermaker.js S.note) · 종이 자리만 손가락을 받아요 */
-        .pm-room.pm-note .pm-x { display: none; }   /* 페이지 위 · 붙인 스티커의 꾸미기 도구(.toolbar) · 팝업메뉴 · 창은 그 위에 */
+        .pel-room.pm-room { z-index: 95; }   /* 📄 모조지 종이 (js/papermaker.js) */   /* 페이지 위 · 붙인 스티커의 꾸미기 도구(.toolbar) · 팝업메뉴 · 창은 그 위에 */
         .pm-room, .pm-room canvas { pointer-events: none; }   /* 📄 모조지스티커 (js/papermaker.js) : 모조지스티커 · 오린 스티커 자리(.pm-z)만 손가락을 받고 나머지는 페이지로 */
         #pmHit { position: absolute; inset: 0; pointer-events: none; }
         .pm-z { position: absolute; pointer-events: auto; touch-action: none; }
@@ -1881,7 +1853,7 @@
         .psy-room [hidden] { display: none !important; }
         .psy-bar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 8px; padding: max(10px, env(safe-area-inset-top)) 12px 10px; background: rgba(253,243,255,.92); backdrop-filter: blur(6px); }
         .psy-bar b { flex: 1; text-align: center; font-size: 16.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .psy-sp, .psy-x { width: 38px; height: 38px; flex: none; }
+        .psy-x { width: 38px; height: 38px; flex: none; }
         .psy-x { border: 0; background: none; color: #5a3d4a; font-size: 16px; cursor: pointer; }
         .psy-wrap { max-width: 460px; margin: 0 auto; padding: 4px 16px max(30px, env(safe-area-inset-bottom)); box-sizing: border-box; }
         .psy-step { display: flex; flex-direction: column; gap: 12px; animation: psyIn .35s ease both; }
@@ -1925,7 +1897,6 @@
         .psy-acts .psy-main { flex: 1.4; border: none; background: linear-gradient(135deg, #f7a8c8, #c79bf2); color: #fff; box-shadow: 0 4px 12px rgba(199,155,242,.35); }
         .psy-other { background: transparent; border-style: dashed; }
         @media (prefers-reduced-motion: reduce) { .psy-card-e, .psy-big { animation: none; } }
-        .nm-snd { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #ffd0df; background: #fff; font-size: 15px; cursor: pointer; padding: 0; z-index: 2; }
 
         /* ===== ✨ 결과 보기 연출 (rit-) : 꿈해몽 · 토정비결 · 심리테스트 ===== */
         .rit { --c1: #fff; --c2: #ffd6f0; --glow: rgba(255,214,240,.75); --ink: #fff; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 54px 0 40px; min-height: 360px; }
@@ -1966,7 +1937,7 @@
         .lb-room [hidden] { display: none !important; }
         .lb-bar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 8px; padding: max(10px, env(safe-area-inset-top)) 12px 10px; background: rgba(255,244,234,.93); backdrop-filter: blur(6px); }
         .lb-bar b { flex: 1; text-align: center; font-size: 17px; }
-        .lb-sp, .lb-x { width: 38px; height: 38px; flex: none; }
+        .lb-x { width: 38px; height: 38px; flex: none; }
         .lb-x { border: 0; background: none; color: #5a3d4a; font-size: 16px; cursor: pointer; }
         .lb-wrap { max-width: 460px; margin: 0 auto; padding: 0 16px max(30px, env(safe-area-inset-bottom)); box-sizing: border-box; }
         .lb-head { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 4px 0 12px; }
@@ -2279,7 +2250,7 @@
 [data-nw].nw-on, [data-nw-any].nw-on { position: relative; }
 [data-nw].nw-on::after, [data-nw-any].nw-on::after { content: 'NEW'; position: absolute; top: -7px; right: -5px; z-index: 3; padding: 3px 6px; border-radius: 999px; background: #ff5c7c; color: #fff; font-size: 9.5px; font-weight: 900; line-height: 1; letter-spacing: .02em; box-shadow: 0 2px 6px rgba(255, 92, 124, .45); pointer-events: none; animation: svcBadge 1.6s ease-in-out infinite; }
 .svc-cat.nw-on::after { top: 6px; right: auto; left: 8px; }
-.tp-item, .pat-swatch, .wl-card { position: relative; }
+.pat-swatch, .wl-card { position: relative; }
 .nw-chip { position: absolute; top: 3px; right: 3px; z-index: 3; padding: 2px 5px; border-radius: 999px; background: #ff5c7c; color: #fff; font-style: normal; font-size: 9px; font-weight: 900; line-height: 1; box-shadow: 0 2px 5px rgba(255, 92, 124, .4); pointer-events: none; animation: svcBadge 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { [data-nw].nw-on::after, [data-nw-any].nw-on::after, .nw-chip { animation: none; } }
 
@@ -2393,10 +2364,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 
 /* 🧻 떡메모지 (js/leafpad.js) : 풀칠한 묶음 · 맨 윗장 · 뜯긴 자국 */
 
-.tk-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 4px; --sbg: 8px; }
-.tk-it { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 2px 8px; border: 2px solid color-mix(in srgb, var(--border-color) 55%, #fff); border-radius: 14px; background: #fff; font: inherit; color: var(--dk-ink, #7b5a63); cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
-.tk-it b { font-size: 12.5px; }
-.tk-it:active { transform: scale(.96); }
 .tk-mini { display: block; width: 66px; height: 76px; }
 .tk-mini .tk-pad { display: block; margin: 0; transform: scale(.44); transform-origin: 0 0; pointer-events: none; }
 .tk-mini .tk-stack, .tk-mini .tk-top, .tk-mini .tk-glue { display: block; }
@@ -2433,9 +2400,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 /* 📃 내가만든 속지 (js/leafmaker.js) : 그림째로 깔고 링 구멍은 그 위에 */
 .inner-page .canvas-area.lf-my, .lf-slide.lf-my, .lf-pick .lf-sw.lf-my { background: var(--lf-holes), var(--lf-img) center / 100% 100% no-repeat, var(--page-bg); }
 .lf-pick .lf-sw.lf-my { background: var(--lf-holes), var(--lf-img) center / cover no-repeat, var(--page-bg); }   /* 속지 목록은 정사각형 → 그림이 찌그러지지 않게 가운데를 채워요 */
-.lm-it { position: relative; min-width: 0; }
-.lm-it > .lf-pick { display: block; width: 100%; }
-.lm-it > i { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); font-style: normal; font-size: 11px; display: grid; place-items: center; cursor: pointer; color: #a07888; z-index: 1; }
 
 .lf-pick.on .lf-sw { box-shadow: 0 0 0 3px var(--pick-line); }
 /* 📃 속지 만들기 창 */
@@ -2473,9 +2437,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .lm-tk .lm-glue { display: block; position: absolute; left: -1px; right: -1px; top: -13px; height: 15px; border-radius: 3px 3px 1px 1px; pointer-events: none;
     background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%, rgba(0,0,0,.06)), var(--tk-glue, color-mix(in srgb, var(--primary-accent) 62%, #fff)); box-shadow: 0 1.5px 0 rgba(0,0,0,.08); }
 .lm-tk .lm-glue-box { display: block; }
-.tk-list .lm-it > .tk-it { width: 100%; }
 
-.tk-list .tk-it b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .smk-hint b { color: var(--primary-accent); } .smk-hint small { font-size: 11px; color: var(--dk-soft, #b48b97); }   /* 🔤 글씨스티커 : 엔터 안내 2줄 */
 
@@ -2499,12 +2461,9 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 #skinModal .service-btn[hidden] { display: none !important; }
 
 /* 📚 모음 칸 (js/coll.js collGrid) : 칸들은 바깥 격자에 그대로 들어가고, 끝에 닿으면 다음 묶음을 읽어요 */
-.cg-host { display: contents; }
 .cg-more { grid-column: 1 / -1; width: 100%; min-height: 8px; text-align: center; font-size: 12.5px; color: #b08a98; padding: 6px 0; }
 
-/* ═══════ 📒 스티커 수첩 (⚙️ 설정 → 📒 스티커 고르는 창 → 수첩 · js/stknote.js) ═══════
-   지금 창(고르는 창)은 그대로 두고, 수첩일 때만 같은 창에 .snb-on 을 달아 모양을 덧입혀요
-   위의 칸(기본 · 내가만든 …)만 남기고 옵션 줄은 숨겨요 → 스티커가 최대한 많이 보이게 */
+/* 🔘 두 개 중 고르는 큰 버튼 (⚙️ 설정 🪑 화면 · 다이어리 줄 고르기 · .snb-pick) */
 .snb-pick { display: flex; gap: 8px; margin-top: 6px; }
 .snb-pick .btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; white-space: normal; text-align: center; line-height: 1.3; }
 .snb-pick .btn b { font-size: 14px; }
@@ -2803,7 +2762,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 /* 🧾 묶음 스티커 (🏷️ 씰 종이 · 🧩 조각 봉투 · 📄 모조지스티커) : 씰 1개 칸 가로 2 × 세로 2 크기의 정사각형 · 안의 그림도 크게 3 × 3 (도련 · 2026-10-16) */
 
    /* 🧩 봉투는 위 색 띠가 있어서 2줄까지 */
-/* 🗂 고르는 창 칸 (도련 · 2026-10-17 · js/stk-basic.js) : 낱장 줄(칸 하나 = 스티커 하나) + 묶음 줄(한 줄 = 묶음 하나 · 옆으로 밀어요) · 📒 수첩 창(.snb-on)은 위 모양 그대로
+/* 🗂 고르는 창 칸 (도련 · 2026-10-17 · js/stk-basic.js) : 낱장 줄(칸 하나 = 스티커 하나) + 묶음 줄(한 줄 = 묶음 하나 · 옆으로 밀어요)
    --pg-c 가로 칸 수 · --pg-cw 칸 크기 (JS가 정해요) */
    /* 줄이 적은 쪽도 창 크기는 그대로 */
    /* 정한 줄 수만큼 (넘치면 창 안에서 내려요) */
@@ -3271,7 +3230,7 @@ body:has(#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display:
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
    🚪 스티커 떼는 창(흰 종이 · 조각 봉투)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
 
-body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, .pel-room.pm-note.show) .toolbar { z-index: 1690; }
+body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show) .toolbar { z-index: 1690; }
 /* 🗄️ 하얀 창(씰 종이 · 조각 봉투)이 떠 있을 때 문구함은 그 위로 (핀셋을 꺼내 바로 떼게 · 도련 10-21) */
 body:has(#pelRoom.show) #gdCabModal, body:has(#pcbRoom.show) #gdCabModal { z-index: 1700 !important; }
 /* ✨ 문구를 드는 순간 핑크빛 한 번 반짝 (js/skins.js toolGlow · 도련 10-21) · 안쪽 그림에 걸어 둥실 · 그림자 움직임과 안 부딪혀요 */
@@ -3296,9 +3255,6 @@ body.gd-press .bd-tool.held, body.gd-press .scs-cur, body.gd-press .scs-aim, bod
 body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /* 💻 다이어리 위에선 화살표 대신 든 문구함 */
 .gd-tape-pv { position: absolute; z-index: 10039; height: 12px; transform-origin: 0 50%; pointer-events: none; border-radius: 1.5px; background: linear-gradient(#fff9 0 3px, #f3e6cf 3px calc(100% - 3px), #cdb894aa 0); }   /* 🩹 바르는 중 */
 .inner-page.png-mode .bd-tool:not(.edge), .inner-page.png-mode .gd-tape-pv { display: none; }
-.dy-punchth { position: relative; display: block; width: 26px; height: 52px; }
-.dy-punchth i:first-child { position: absolute; inset: 0; border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--pc) 70%, #000), color-mix(in srgb, var(--pc) 40%, #fff) 50%, color-mix(in srgb, var(--pc) 70%, #000)); box-shadow: 0 3px 6px rgba(40, 30, 40, .3); }
-.dy-punchth i:last-child { position: absolute; left: 7px; right: 7px; top: 3px; bottom: 3px; border-radius: 4px; background: linear-gradient(90deg, #6d727c, #eef0f3 45%, #9aa0aa); }
 @media (prefers-reduced-motion: reduce) { .dy-punch, .inner-page.dy-bh-pop .dy-holes i { animation-duration: .01s; } }
 .dy-band { position: absolute; top: -3cqw; bottom: -3cqw; left: calc(50% - .6cqw); width: 1.2cqw; border-radius: .6cqw; background: #e7768f; box-shadow: .3cqw 0 .6cqw rgba(90, 40, 50, .25); }
 .dy-band.hard { left: auto; right: -2cqw; width: 1.4cqw; background: #4a3a44; }
@@ -3309,8 +3265,6 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 .dy-win { max-width: 380px; }
 .dy-pick-s { font-size: 11.5px; color: var(--win-ink-soft, #a08a94); text-align: center; margin: 2px 0 0; }
 .dy-pick-list { overflow-y: auto; min-height: 0; padding: 10px 2px 8px; }
-.dy-grp { margin-bottom: 12px; }
-.dy-grp > b { display: inline-block; font-size: 12px; font-weight: 800; color: var(--primary-accent); background: color-mix(in srgb, var(--primary-accent) 12%, #fff); border-radius: 999px; padding: 3px 10px; margin: 0 0 7px 2px; }
 .dy-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
 #dyTabs { margin-top: 6px; }
 #dyTabs .stk-tab { font-size: 11.5px; letter-spacing: -.05em; }
@@ -3531,17 +3485,11 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ct-x { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 10px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); color: #d94f7a; font: 800 16px var(--font-family, inherit); cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 .ct-room .snd-fx.ct-snd { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 54px; z-index: 2; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 
-/* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 📒 수첩 .snb-on 과 같게 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
+/* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
 #skinModal, #patternModal, #makerModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfModal, #shelfCornerModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
 #skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfModal > .modal-content, #shelfCornerModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
 
-/* 📄 모조지스티커 기본 칸 : 위 줄 모양 · 배경 / 아래 줄 카테고리 (js/stk-basic.js sbCatsPaper · 📒 수첩 제목 아래에도 그대로 · 도련 10-23) */
 
-.sb-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
-.sb-trow { justify-content: center; }
-.sb-row > .lib-cat.sb-type { padding: 6px 18px; font-weight: 800; border-radius: 12px; }
-.sb-row > .lib-cat.sb-type.on { background: var(--pick, #ffe1ec); }
-.sb-none { margin: 4px 0 0; text-align: center; font-size: 12px; color: #a07888; }
 /* 📄 배경 모조지 카드 : 종이 한 장이 크게 */
 
 /* ⚙️ 스티커 고르는 창 v1 · v2 (2 × 2) */
@@ -3559,7 +3507,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 
 /* 📒 다이어리 창 (10-24) : 두 줄 이름 (다이어리 / 색상설정) · 두 번째 줄 빨간 (준비중) */
 .dk-lb.l2, .service-btn .dk-lb.l2 { white-space: pre-line !important; line-height: 1.25; }
-.service-btn small.dk-soon, .stk-menu .service-btn small.dk-soon { display: block; margin-top: 2px; color: #e53950 !important; font-size: 10.5px; font-weight: 700; }
 /* 📃 속지 고르기 칸 (고르는 창 · 📒 수첩) : 링 구멍 없이 그림만 (도련 10-24 · 페이지에 깔린 속지는 구멍 그대로) */
 .lf-pick .lf-sw, .lf-pick .lf-sw.lf-my { --lf-holes: linear-gradient(transparent, transparent); }
 /* 📒 수첩 : 그림 속지는 그림 비율 그대로 (--lf-r · js/leafpad.js) → 원본이 다 보여요 */
@@ -3571,7 +3518,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 :root, .inner-page .canvas-area, .lf-slide, .lf-pick .lf-sw, .lm-box, .dmk-rfth { --lf-holes: linear-gradient(transparent, transparent) !important; }
 
 /* ═══════ 🎒 유한 스티커 (10-25 · js/own.js · js/basket.js) : ✨ 스티커 창 2칸 · 🧺 내 바구니 · 🏪 기본상품 샵 ═══════ */
-#stickerToolModal .stk-menu.stk-two { grid-template-columns: repeat(2, minmax(0, 150px)); justify-content: center; column-gap: 26px; }
 /* 🧺 바구니 : 뒷벽 · 종이 더미 · 앞 테두리(종이 아래쪽이 바구니 안에 쏙 들어간 것처럼) */
 .bk-content { width: min(94vw, 460px); }
 .bk-wrap { position: relative; }
@@ -3610,8 +3556,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 /* 🏪 기본상품 샵 : 카테고리 매대(선반) · 옆으로 밀어 보는 종이 · 이름표 · 🧺 받기 */
 .sh-content { width: min(94vw, 560px); }
 .sh-wrap { max-height: min(62vh, 560px); overflow-y: auto; padding: 2px 2px 4px; overscroll-behavior: contain; }
-.sh-sign { margin: 0 0 2px 4px; }
-.sh-sign span { display: inline-block; padding: 3px 13px; border: 2px solid var(--border-color); border-radius: 10px; background: #fff; color: #7b5a63; font-size: 13px; font-weight: 800; transform: rotate(-2deg); box-shadow: 0 2px 0 rgba(0,0,0,.06); }
 .sh-item { flex: 0 0 112px; display: flex; flex-direction: column; align-items: center; gap: 4px; scroll-snap-align: start; }
 .sh-paper { width: 100%; padding: 7px; border: 1px solid #ece6ee; border-radius: 9px; background: linear-gradient(135deg, #fdfdff, #f4f6fb); box-shadow: 0 2px 6px rgba(110,80,95,.18); }
 .sh-paper.one { width: 86px; }
@@ -3632,13 +3576,11 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .bk-memo img { display: block; width: 74px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(110,80,95,.2); }
 .bk-leaf { display: block; width: 64px; pointer-events: none; }
 .bk-leaf .lf-sw { display: block; width: 64px; aspect-ratio: .7; border-radius: 4px; box-shadow: 0 2px 6px rgba(110,80,95,.22); container-type: inline-size; }
-.sh-emo b { display: grid; place-items: center; aspect-ratio: 1; font-size: 17px; font-weight: normal; line-height: 1; }
 .sh-tape { width: 100%; padding: 14px 0; }
 .sh-tape i { display: block; height: 26px; background-size: auto 100%; background-repeat: repeat-x; transform: rotate(-4deg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .sh-pad { display: grid; place-items: center; width: 100%; min-height: 84px; }
 .sh-leaf { display: block; width: 80px; pointer-events: none; }
 .sh-leaf .lf-sw { display: block; width: 80px; aspect-ratio: .7; border-radius: 4px; box-shadow: 0 2px 6px rgba(110,80,95,.2); container-type: inline-size; }
-.sh-memo { display: grid; place-items: center; width: 100%; min-height: 80px; }
 .sh-paper.one img { display: block; width: 100%; height: auto; }
 .sh-paper svg.sh-pv { display: block; width: 100%; height: 100%; }   /* 🖼️ 묶음 미리보기 (p/ 파일 속 내 칸만) */
 /* 🏪 기본상품 샵 종류 창 (10-25) : 카테고리 없이 한 매대 · 🔍 확대 */
@@ -3653,7 +3595,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .sh-zlook .sh-paper { width: min(100%, 420px); padding: 12px; }
 .sh-zlook .sh-paper.one { width: min(80%, 320px); }
 .sh-zlook .bk-grid { gap: 8px; }
-.sh-zlook .sh-emo b { font-size: 34px; }
 .sh-zlook .sh-tape { width: min(100%, 420px); padding: 30px 0; }
 .sh-zlook .sh-tape i { height: 46px; }
 .sh-zlook .sh-pad .tk-mini { transform: scale(2.2); transform-origin: 50% 0; margin-bottom: 96px; }
@@ -3750,11 +3691,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .sh-zlook .sh-tool { min-height: 0; padding: 18px 0; }
 .sh-zlook .sh-tool .ab-cover { width: 150px; height: 190px; }
 .sh-zlook .sh-tool .ab-rlsheet { width: 150px; height: 196px; }
-.sh-into { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
-.sh-into small { font-size: 12px; color: #8a6a78; }
-.sh-into > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
-.sh-ik { min-height: 34px; padding: 0 12px; border: 1.5px dashed #f2b8cb; border-radius: 17px; background: #fff; color: #8a4a64; font: inherit; font-size: 12.5px; cursor: pointer; }
-.sh-ik.on { border-style: solid; border-color: #ff6b88; background: #ffeef3; color: #c2457a; font-weight: 800; }
 .ab-plus { word-break: keep-all; }
 .sh-desc { margin-top: -6px; font-size: 12px; color: #a08890; text-align: center; word-break: keep-all; }
 /* 🧺 바구니 안 종이 2배 (도련 10-25 · 바인더 포켓 · 정리 책상 줄은 그대로) */
@@ -3775,8 +3711,6 @@ html:not(.is-phone) .bk-pile .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width:
 /* 🧺 종류 창 : 위 탭은 작게 · 아래 정리하기는 크게 (도련 10-25) */
 .ab-tabs { margin-bottom: 8px; padding: 3px; border-radius: 13px; }
 .ab-tabs button { min-height: 34px; font-size: 13px; border-radius: 10px; }
-.ab-go { width: min(100%, 340px); min-height: 52px; margin-top: 4px; border: 0; border-radius: 18px; background: #ff6b88; color: #fff; font: inherit; font-size: 16px; font-weight: 800; box-shadow: 0 3px 0 #e04f6e, 0 6px 14px rgba(224,79,110,.25); cursor: pointer; }
-.ab-go:active { transform: translateY(2px); box-shadow: 0 1px 0 #e04f6e; }
 .ab-body:first-child .bk-bin { margin-top: 2px; }
 
 /* 💾 저장 중 알림 (정리 책상 · 스티커첩 · 도련 10-25) */
@@ -3797,7 +3731,6 @@ html:not(.is-phone) .bk-pile .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width:
 .ab-pk .bk-sh .bk-grid { gap: 4px; }
 .ab-pk .bk-sh.k-tape > *, .ab-pk .bk-sh.k-tk > *, .ab-pk .bk-sh.k-memo > *, .ab-pk .bk-sh.k-leaf > * { zoom: 1.5; }
 .ab-page { grid-auto-rows: minmax(140px, auto); }
-.sh-nav { margin: 14px 0 6px; }
 /* 🏪 기본상품 샵 한 쪽 = 3줄 · 확대 버튼 줄 맞춤 · 얇은 점선 (도련 10-25) */
 #shelfKindModal .sh-wrap { max-height: none; overflow: visible; }
 .sh-tip { margin: 0 2px 8px; padding: 7px 10px; border-radius: 10px; background: #fff6f9; border: 1.5px dashed #f2bfd0; font-size: 12px; line-height: 1.5; color: #8a5a6a; word-break: keep-all; text-align: left; }   /* 💡 매대 사용 팁 (도련 10-31 · js/basket.js SH_TIPS) */
@@ -3810,8 +3743,7 @@ html:not(.is-phone) .bk-pile .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width:
 .sh-grid .sh-paper .bk-grid img { width: 100%; height: 100%; aspect-ratio: auto; min-height: 0; object-fit: contain; }
 .sh-grid .sh-paper.one { width: auto; max-width: 100%; }
 .sh-grid .sh-paper.one img { width: auto; max-width: 100%; height: 100%; object-fit: contain; }
-.sh-grid .sh-emo b { font-size: min(calc(var(--sh-h, 140px) / 8), 16px); aspect-ratio: auto; }
-.sh-grid .sh-pad, .sh-grid .sh-memo, .sh-grid .sh-tool, .sh-grid .sh-leaf, .sh-grid .sh-tape { min-height: 0; padding: 0; zoom: var(--sh-z, 1); }
+.sh-grid .sh-pad, .sh-grid .sh-tool, .sh-grid .sh-leaf, .sh-grid .sh-tape { min-height: 0; padding: 0; zoom: var(--sh-z, 1); }
 .sh-grid .sh-tape { width: 100%; }
 .sh-grid .sh-cnt { margin-top: 2px; }
 .sh-grid .sh-cnt { text-align: center; word-break: keep-all; line-height: 1.35; }
@@ -3897,9 +3829,6 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .bk-say b { font-size: 16px; color: #b23b6c; white-space: nowrap; }
 .bk-say span { font-size: 13.5px; }
 .bk-say em { font-style: normal; font-weight: 800; color: #d64a70; }
-.bk-tools2 { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.bk-tools2 .bk-act { width: min(100%, 300px); min-height: 44px; justify-content: center; font-size: 14.5px; font-weight: 700; }
-.bk-act.glow { animation: bkGlow 1.4s ease-out 1; }
 @keyframes bkGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 60, 90, 0); } 20%, 60% { box-shadow: 0 0 0 4px rgba(240, 60, 90, .55), 0 0 18px 6px rgba(240, 60, 90, .45); } 40%, 80% { box-shadow: 0 0 0 2px rgba(240, 60, 90, .25), 0 0 8px 2px rgba(240, 60, 90, .2); } }
 /* 🏪 기본상품 샵 종류 창 = 작은 진열장 (도련 10-26 · 휑하지 않게 · 스티커 크기는 예전 그대로 : 이름표는 카드 아래 끝에 겹쳐 한 줄 아껴요) : 차양 · 연한 하늘 유리 진열장 · 칸마다 핑크 선반 · 이름표 · [확대][받기] */
 .sh-case { position: relative; margin: 12px 0 0; padding: 16px 4px 2px; border: 1.7px solid #7b5a63; border-radius: 14px; background: linear-gradient(#f6fbff, #fffdfb 70%); box-shadow: 0 3px 0 #ffe0ea, inset 0 0 0 4px rgba(255,255,255,.7); }
@@ -3965,8 +3894,7 @@ html:not(.is-phone) .dsk .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width: 176
 .dsk.act { visibility: hidden; }   /* 지금 떼는 화면에 열린 종이 (그 자리에서 열려요) */
 .dsk.pop { animation: dskPop .28s ease-out; }
 @keyframes dskPop { from { transform: scale(.7); opacity: .3; } }
-.dsk-x { position: absolute; right: -4px; top: -6px; z-index: 2; width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1.5px solid #7b5a63; background: #fff; color: #d94f7a; font-size: 11px; font-weight: 900; cursor: pointer; box-shadow: 0 2px 0 rgba(123,90,99,.25); }
-.bk-pile.dsk-out { outline: 3px dashed rgba(240, 111, 154, .6); outline-offset: -6px; border-radius: 16px; }   /* 창 밖에 놓으면 꺼내져요 */
+.dsk-x { position: absolute; right: -4px; top: -6px; z-index: 2; width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1.5px solid #7b5a63; background: #fff; color: #d94f7a; font-size: 11px; font-weight: 900; cursor: pointer; box-shadow: 0 2px 0 rgba(123,90,99,.25); }   /* 창 밖에 놓으면 꺼내져요 */
 /* 📏 커진 테이프 · 메모지 · 속지 (톡 · 끌어 놓기 = 써요) */
 .dsk.big .bk-sh { zoom: 2; transform: none; }   /* 모양 그대로 두 배 */
 .dsk-say { display: none; }
@@ -4046,7 +3974,6 @@ html.desk-show .desk-item { pointer-events: none; }
 body.dg-on .desk-item.fn-sticker { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 12px rgba(245, 165, 36, .85)); }   /* 🩷 다꾸하는 법 메모 : 스티커 소품이 빛나요 */
 /* ⚙️ 설정 🪑 화면 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
 .desk-tip { white-space: nowrap; }
-.desk-snap.dk-del { border-color: #e7a0a0; color: #b84a4a; }
 .dk-box-open { width: 100%; justify-content: center; margin-top: 4px; flex-direction: column; gap: 1px; } .dk-box-open small { font-size: 11px; color: #a08a94; font-weight: 400; }
 /* 🛠 책상 꾸미기 (js/desk.js · html.desk-edit) : 평소엔 소품이 안 움직여요 (톡 = 기능) · 꾸미기에서만 끌기 · 고르기 */
 html.desk-on .desk-item { cursor: default; } html.desk-on .desk-item[data-fn] { cursor: pointer; }
@@ -4063,7 +3990,6 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .dke-it:hover { border-color: #e98aab; }
 .dke-shop { flex: none; border: 1.5px dashed #e98aab; background: #fff6f9; color: #c2457a; border-radius: 12px; padding: 8px 10px; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
 .desk-tip.below { translate: -50% 14px; transform-origin: 50% 0; }
-.dkt-fn { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; max-width: 340px; margin: 0 auto 6px; padding: 7px; border-radius: 14px; background: rgba(255, 255, 255, .96); box-shadow: 0 3px 10px rgba(150, 70, 100, .2); }
 .dkt-chip { border: 1.5px solid #ecd0da; background: #fff; color: #7b5a63; border-radius: 12px; padding: 4px 9px; font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
 .dkt-chip.on { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; }
 .dkt-chip.need { border-color: #f5a524; border-style: dashed; }
@@ -4154,20 +4080,11 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .dp-more { position: relative; overflow: hidden; background: conic-gradient(#ff8fb1, #ffd36b, #9bd9b5, #9ccfee, #c9b3f2, #ff8fb1); }
 .dp-more input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; }
 .dp-file { cursor: pointer; }
-.dp-btns { display: flex; gap: 10px; } .dp-btns .btn { min-width: 96px; justify-content: center; } .dp-btns .dp-ok { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; }
 /* 📦 소품 보관함 (js/desk.js deskBoxRender) */
-.dkb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; max-height: 60vh; overflow: auto; padding: 4px 2px; }
-.dkb-it { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 6px; border-radius: 14px; background: #fff; border: 1.5px solid #f3d3de; text-align: center; }
-.dkb-it.in { border-color: #e98aab; background: #fff6f9; }
-.dkb-pic { width: 84px; height: 84px; display: flex; align-items: center; justify-content: center; }
-.dkb-pic img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.dkb-it b { font-size: 13px; color: #6a4f5a; } .dkb-it small { font-size: 11px; color: #a08a94; }
-.dkb-btns { display: flex; gap: 4px; margin-top: 2px; } .dkb-btns .btn { padding: 4px 8px; font-size: 12px; } .dkb-btns .dkb-del { color: #b84a4a; }
 .dk-tabs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; grid-column: 1 / -1; }   /* 🗂 보관함 종류 칸 (서랍장 · 시계 …) */
 .dk-tab { border: 1.5px solid #ecd0da; background: #fff; color: #7b5a63; border-radius: 12px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
 .dk-tab small { margin-left: 4px; color: #b598a4; font-size: 10.5px; } .dk-tab.on { background: #e2557f; border-color: #e2557f; color: #fff; font-weight: 800; } .dk-tab.on small { color: #ffe3ec; }
 .dke-row { display: flex; align-items: center; gap: 8px; overflow-x: auto; } .dke-tabs { padding-bottom: 2px; }
-.dkb-empty { grid-column: 1 / -1; text-align: center; color: #a08a94; font-size: 13px; padding: 24px 0; }
 .st2-row .st2-more .st2-emo { font-size: 34px; line-height: 1; display: flex; align-items: center; justify-content: center; height: 100%; }
 .st2-row .st2-more .st2-emo svg { display: block; width: 100%; height: 100%; overflow: visible; }   /* 🎨 코너 칸 손그림 아이콘 (도련 11-07) */
 .st2-row .st2-more .st2-emo:has(svg) { width: 100%; }
@@ -4175,9 +4092,6 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 html.desk-wide .desk-set { display: block; }
 .dk-fn-list { display: grid; gap: 6px; margin-top: 8px; }
 .dk-fn-list[hidden] { display: none; }
-.dk-fn-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: #6a4f5a; font-weight: 400; }
-.dk-fn-row select { flex: none; width: 60%; }
-.form-group label.dk-fn-row { display: flex; margin: 0; }
 .desk-guide { position: absolute; display: none; pointer-events: none; z-index: 4999; }
 .desk-guide.on { display: block; }
 .desk-guide.h { left: 0; right: 0; height: 0; border-top: 3px dashed #e2557f; }
