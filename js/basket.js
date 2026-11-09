@@ -27,16 +27,6 @@
     /* 📱 폰 = 톡 해서 꺼내요 (끌어내기 없음) · 💻 PC · 패드 = 바구니 밖으로 끌어내요 (톡 = 안 꺼내요) (도련 11-05)
        폰 = 손가락 화면 + 짧은 변이 600px 보다 작아요 (아이패드 = 768 이상) · html.is-phone = 폰 크기 그대로 (css) */
     const bkPhone = () => matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
-    /* 📱 서랍 창 밖을 톡 = 닫기 (도련 11-09 · 폰만 · 떼는 화면 · 다른 창 · 알림 위를 누른 건 빼요) */
-    document.addEventListener('pointerdown', e => {
-        if (!bkPhone() || !vis('basketKindModal')) return;
-        const t = e.target; if (!t || !t.closest) return;
-        if (t.closest('#basketKindModal > .modal-content, .modal, #pelRoom, #pcbRoom, #pmRoom, .msg-modal, #msgModal, .dsk')) return;
-        closeModal('basketKindModal');
-        e.preventDefault(); e.stopPropagation(); bkEatTap = Date.now();             // 닫기만 해요 (뒤의 버튼은 안 눌려요)
-    }, true);
-    let bkEatTap = 0;
-    ['pointerup', 'click'].forEach(ev => document.addEventListener(ev, e => { if (bkEatTap && Date.now() - bkEatTap < 700) { e.preventDefault(); e.stopPropagation(); if (ev === 'click') bkEatTap = 0; } }, true));
     document.documentElement.classList.toggle('is-phone', bkPhone());
 
     /* ---------- 종이 자리 (이 기기에만 : { o : [아래 → 위 id], p : { id : [x, y, 기울기] } }) ---------- */
@@ -69,7 +59,7 @@
     function openBasket(sort) {                                               // 첫 창 : 종류 아이콘 8개 · sort = 📒 스티커 정리로 왔어요 (종류를 고르면 바로 정리 책상 · 도련 11-01)
         if (vis('basketKindModal')) closeModal('basketKindModal');
         B.wantSort = !!sort;
-        const t = document.querySelector('#basketModal .modal-title'); if (t) t.textContent = sort ? '📒 정리할 스티커 고르기' : '스티커';
+        const t = document.querySelector('#basketModal .modal-title .mt-text') || document.querySelector('#basketModal .modal-title'); if (t) t.textContent = sort ? '📒 정리할 스티커 고르기' : '스티커';
         openModal('basketModal');
     }
     window.bkSortOpen = () => openBasket(true);

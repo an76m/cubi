@@ -279,7 +279,7 @@
             /* ☕ 카페에 있는 동안은 손에 든 문구(핀셋 · 가위 · 칼 · 필기구 …)를 숨겨요 → 카페 창이 다 닫히면 다시 (도련 10-21 · css body.cafe-on)
                - 카페에서 연 창(배경화면 · 포춘카드 …)도 카페 · 다른 하단 메뉴를 누르면 카페 끝 */
             /* 🔁 하단 메뉴 다이어리 · 스티커 · 문구함 : 그 창이 떠 있을 때 다시 누르면 닫혀요 (⚙ 설정처럼 · 도련 10-22) */
-            const TOG = { 'tb-skin': ['skinModal'], 'tb-sticker': ['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal'], 'tb-gd': ['gdCabModal'] };   // ✨ 스티커 = 스티커 창 바로 (도련 10-26 · 스티커 창 없앰)
+            const TOG = { 'tb-skin': ['skinModal'], 'tb-sticker': ['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal'], 'tb-gd': ['gdCabModal'], 'tb-move': ['moveModal'] };   // ✨ 스티커 = 스티커 창 바로 (도련 10-26 · 스티커 창 없앰)
             document.addEventListener('click', e => {
                 const b = e.target.closest && e.target.closest('.toolbar .tb-btn'); if (!b) return;
                 const k = Object.keys(TOG).find(c => b.classList.contains(c)); if (!k) return;
@@ -315,6 +315,19 @@
             if (window.dkDrawerOwns && dkDrawerOwns(m)) { if (!(window.deskTapAt && deskTapAt(e.clientX, e.clientY))) dkDrawerShut(true); return; }   // 🗄 서랍에서 내려온 창 밖 = 그 자리 책상 톡 (같은 서랍 = 창이 올라가며 서랍 닫힘 · 다른 서랍 = 그 서랍) · 빈 곳 = 서랍 닫듯이 (도련 11-08)
             const x = m.querySelector('.mt-x'); if (x) x.click(); else closeModal(m.id);
         });
+
+        /* 📱 폰 : 떠 있는 창(뒤 페이지가 눌리는 창 · 스티커 · 다이어리 · 문구함 · 서랍 …) 도 창 밖을 톡 = 닫기 (도련 11-09 · 💻 패드는 그대로)
+           닫기만 하고 뒤의 버튼 · 페이지는 안 눌려요 · 아래 메뉴줄 · 떼는 화면 · 꺼낸 종이 · 페이지꾸미기 창(skin-float)은 빼요 */
+        let mdEat = 0;
+        document.addEventListener('pointerdown', e => {
+            if (!document.documentElement.classList.contains('is-phone')) return;
+            const t = e.target; if (!t || !t.closest || t.closest('.modal, .toolbar, #pelRoom, #pcbRoom, #pmRoom, .dsk')) return;
+            const open = [...document.querySelectorAll('.modal')].filter(m => m.id !== 'customAlertModal' && !m.classList.contains('skin-float') && getComputedStyle(m).display !== 'none' && getComputedStyle(m).pointerEvents === 'none');
+            if (!open.length) return;
+            open.forEach(m => { const x = m.querySelector('.mt-x, .gdc-x, .bkd-x'); if (x) x.click(); else closeModal(m.id); });
+            e.preventDefault(); e.stopPropagation(); mdEat = Date.now();
+        }, true);
+        ['pointerup', 'click'].forEach(ev => document.addEventListener(ev, e => { if (mdEat && Date.now() - mdEat < 700) { e.preventDefault(); e.stopPropagation(); if (ev === 'click') mdEat = 0; } }, true));
 
         /* ---------- ⚙ 설정 메뉴 : ⚙️ 설정 · 💌 건의함 · 🔒 잠금 · 📲 앱 설치 ---------- */
         function openSettingsMenu() { openModal('settingsMenuModal'); }
