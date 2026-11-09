@@ -239,7 +239,7 @@
             try { if (typeof srUpload === 'function') await srUpload(); } catch (e) {}
         }
 
-        /* ---------- 📦 백업 파일 받기 ---------- */
+        /* ---------- 📦 백업 파일 만들기 ---------- */
         async function bkBackup() {
             if (!drive.ready || drive.guest) { showMsg('📦 백업은 구글로 로그인했거나 🏠 로그인 없이 다꾸할 때 받을 수 있어요.<br><span style="font-size:12px;color:#777;">구경만 할 때는 저장된 일기가 없어요.</span>'); return; }
             bkBusy('📦 백업 파일을 만드는 중…');
@@ -252,11 +252,11 @@
                 const d = new Date(), stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 const a = document.createElement('a'); a.href = URL.createObjectURL(bkZip(list.map(([p, t]) => [p, enc.encode(t)]))); a.download = `다이어리_백업_${stamp}.zip`;
                 document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-                showMsg(`📦 백업 파일을 만들었어요!<br>일기 <b>${days}일치</b> · 파일 ${nf}개<br><span style="font-size:12px;color:#777;">다운로드 폴더에 저장돼요.<br>새 기기 · 새 브라우저에서 구글로 로그인하거나 로그인 없이 다꾸하기로 연 뒤<br>⚙ 설정 → 📥 백업 불러오기로 이 파일을 골라요.</span>`);
+                showMsg(`📦 백업 파일을 만들었어요!<br>일기 <b>${days}일치</b> · 파일 ${nf}개<br><span style="font-size:12px;color:#777;">다운로드 폴더에 저장돼요.<br>새 기기 · 새 브라우저에서 구글로 로그인하거나 로그인 없이 다꾸하기로 연 뒤<br>⚙ 설정 → 📥 백업 파일 불러오기로 이 파일을 골라요.</span>`);
             } catch (e) { console.warn(e); bkBusy(null); showMsg('⚠ 백업 파일을 만들지 못했어요.<br>잠시 후 다시 해 주세요.'); }
         }
 
-        /* ---------- 📥 백업 불러오기 ---------- */
+        /* ---------- 📥 백업 파일 불러오기 ---------- */
         function bkPickFile(then) {
             let inp = document.getElementById('bkInput');
             if (!inp) { inp = document.createElement('input'); inp.type = 'file'; inp.id = 'bkInput'; inp.accept = '.zip,application/zip,application/x-zip-compressed'; inp.hidden = true; document.body.appendChild(inp); }
@@ -297,9 +297,9 @@
                 return !failed.length;
             } catch (e) { console.warn(e); bkBusy(null); showMsg('⚠ 다 넣지 못했어요.<br>잠시 후 다시 해 주세요.'); return false; }
         }
-        /* ⚙ 설정 → 📥 백업 불러오기 */
+        /* ⚙ 설정 → 📥 백업 파일 불러오기 */
         function bkRestore() {
-            if (!drive.ready || drive.guest) { showMsg('📥 백업은 구글로 로그인했거나 🏠 로그인 없이 다꾸할 때 불러올 수 있어요.<br><span style="font-size:12px;color:#777;">첫 화면에서 둘 중 하나로 연 뒤 ⚙ 설정 → 📥 백업 불러오기를 눌러 주세요.</span>'); return; }
+            if (!drive.ready || drive.guest) { showMsg('📥 백업은 구글로 로그인했거나 🏠 로그인 없이 다꾸할 때 불러올 수 있어요.<br><span style="font-size:12px;color:#777;">첫 화면에서 둘 중 하나로 연 뒤 ⚙ 설정 → 📥 백업 파일 불러오기를 눌러 주세요.</span>'); return; }
             bkPickFile(async file => {
                 const b = await bkOpen(file); if (!b) return;
                 const google = !drive.local, where = google ? '구글 드라이브' : '이 브라우저', nf = b.items.filter(it => it.path !== BK_TOP + '/' + BK_MOVE).length;

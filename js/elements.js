@@ -1138,7 +1138,7 @@
             set('saveWebIcon', L ? '🏠' : '☁');
             set('saveWebTitle', L ? '저장 (이 브라우저)' : '웹에 저장 (구글 드라이브)');
             set('saveChooserNote', L ? '※ 일기는 쓰는 동안 몇 초마다 이 브라우저에 자동 저장돼요.' : '※ 일기는 쓰는 동안 몇 초마다 웹에 자동 저장돼요.');
-            if (web) web.textContent = L ? '이 브라우저에 저장해요. 브라우저나 기기를 바꿀 땐 ⚙ 설정 → 📦 백업 파일 받기.' : drive.ready && !drive.guest
+            if (web) web.textContent = L ? '이 브라우저에 저장해요. 브라우저나 기기를 바꿀 땐 ⚙ 설정 → 📦 백업 파일 만들기.' : drive.ready && !drive.guest
                 ? '내 구글 드라이브에 저장해요. 다른 기기에서 로그인해도 이어서 볼 수 있어요.'
                 : '⚠ 지금은 로그인되어 있지 않아서 웹에 저장할 수 없어요.';
             openModal('saveChooser');

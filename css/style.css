@@ -4182,3 +4182,5 @@ html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:
 .bc-t em { display: block; font-style: normal; font-size: 11px; color: #8a7480; }
 .bc-row.warn .bc-t em { color: #b8505e; }
 .bc-sep { margin-top: 6px; font-size: 12px; font-weight: bold; color: #b8505e; }
+/* 💾 설정 → 저장 버튼 : 폰에서 줄이 바뀌면 낱말째 (불러오/기 처럼 끊기지 않게 · 도련 11-09) */
+#dmBackupBtn, #dmImportBtn, #dmClearBtn, #dmDiagBtn, #dmLogoutBtn { word-break: keep-all; }
