@@ -12,7 +12,6 @@
         const TPM_SIZE = { d: [16, 60, 30], i: [16, 60, 30], p: [16, 60, 30] };            // 크기 막대 : [가장 작게, 가장 크게, 처음 값] (그리기 · 사진)
         const tpmS = { built: false, m: 'd', bg: '#ffc9d9', dw: null, sd: 30, si: 30, sp: 30, dimg: '', img: '', pimg: '', pk: 1, prec: null };
         const tpmq = id => document.getElementById(id);
-        const tpmR = n => Math.round(n * 100) / 100;
 
         /* 저장해 둔 모양(o) → tape.js 의 tapeSvg 가 읽는 모양 (그림 · 사진 모두 '한 칸 그림'을 이어 붙여요) */
         function tpmDef(o) {
@@ -21,15 +20,6 @@
         }
         const tpmUrl = o => tapeUrl(tpmDef(o));
         /* 드라이브 · 기기에서 읽은 것은 정해진 모양만 통과 (그림 안에 들어가는 글자라서 꼼꼼히 확인) */
-        function tpmClean(o) {
-            if (!o || typeof o !== 'object') return null;
-            const col = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v), s = +o.s;
-            if (!/^[\w-]{1,20}$/.test(o.id || '') || !col(o.bg) || !(s >= 8 && s <= 60)) return null;
-            const re = o.m === 'd' || o.m === 'p' ? /^data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+/=]+$/ : o.m === 'i' ? /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/ : null;
-            const w = o.w == null ? 0 : +o.w;
-            if (w && !(o.m === 'p' && w >= s && w <= s * 12)) return null;
-            return re && re.test(o.img || '') ? Object.assign({ id: o.id, m: o.m, bg: o.bg, s, img: o.img }, w ? { w } : {}) : null;
-        }
 
         /* 목록에 보일 작은 테이프 (그림만 48px 로 줄여요) */
 

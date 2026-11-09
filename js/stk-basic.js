@@ -11,7 +11,6 @@
         /* 🧁 예전에 제가 그린 조각 봉투 · 모조지 그림(ICON · SB_BAGS · SB_SHEETS)은 상품공방으로 옮겼어요 (도련 11-02 · 기본상품샵/조각스티커 · 모조지스티커/00_AI기본) */
         /* 🖼️ 여러 개 묶음 미리보기 (씰 종이 · 조각 · 모조지스티커 같은 모양) : 작은 칸에 최대한 많이 · 2줄 · 넘치는 건 안 보여요 (개수는 카드 글씨가 총개수) */
         const SRV = { piece: null, paper: null, tape: null, tk: null, leaf: null, memo: null }, sbCache = new Map();   // 받은 목록 · 그림 (앱을 켠 동안)
-        const kitCat = c => (window.kitName ? kitName(String(c || '')) : String(c || '')).slice(0, 24);   // '1. 동물' → '동물'
         const esc = htmlEsc;   // 🧰 js/util.js
         const kitAt = (u, w) => window.kitSize ? kitSize(u, w) : u;           // 크기에 맞는 주소 (js/elements.js)
         const thumb = (u, w) => kitAt(u, w || 160);

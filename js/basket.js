@@ -549,7 +549,6 @@
         if (kind === 'ok') AB.toastT = setTimeout(() => el.classList.remove('show'), 900);
     }
     /* 화면은 바로 바꾸고(기다리지 않게) 저장은 뒤에서 · 실패하면 드라이브 모습으로 되돌아가요 */
-    function abNow(fn) { try { fn(B.album, B.all); } catch (e) {} abSplit(); bkView(); B.sig = bkSig(); }
     function abOpen(v, id) { B.cur = id; B.pg = 0; bkView(v); }
     const abChip = b => { const c = abCol(b); return `<i class="ab-chip" style="--c1:${c[0]};--c2:${c[1]}"></i>`; };
 

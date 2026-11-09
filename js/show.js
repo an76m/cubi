@@ -38,7 +38,6 @@
             if (window.deskModeRender) deskModeRender();        // 🪑 화면 : 책상 · 하단 메뉴 (js/desk.js)
             if (window.bdModeRender) bdModeRender();            // 🗂 바인더 속지 빼기 · 끼우기 (js/skins.js)                    // 📖 페이지 보기 (js/skins.js)
             if (window.dfRender) dfRender();                    // 🗂 꾸민 페이지만 보기 (js/skins.js)
-            if (window.snbRender) snbRender();                  // 📒 스티커 고르는 창 (js/stknote.js)
             const box = document.getElementById('showSwitches'); if (!box) return;
             box.innerHTML = SHOW_ITEMS.map(([k, name, sub]) => `<label class="show-row"><span><b>${name}</b><small>${sub}</small></span>`
                 + `<input type="checkbox" class="show-sw" ${showOn(k) ? 'checked' : ''} onchange="showSet('${k}', this.checked)"></label>`).join('');

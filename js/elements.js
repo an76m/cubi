@@ -166,7 +166,6 @@
                 return kitParse(d);
             } finally { clearTimeout(timer); }
         }
-        try { localStorage.removeItem('malang_kit_list'); } catch (e) {}       // 예전 목록 기억은 안 써요 (도련 10-25 · 늘 새 목록만) → v711 때 남은 것 치우기
         /* 🗺️ 씰 시트 배치 (도련 10-29 · 포장기 L = { r : 가로÷세로, b : [그림마다 [x, y, w, h] 0~1] }) : 그림 순서와 맞춰서 (못 쓰는 그림은 같이 빼요) */
         const KIT_MAX = 150;                                                 // 🏷️ 시트 · 봉투 하나의 그림 수 (도련 11-04 : 30 이면 디저트 씰 73장이 30장만 보였어요)
         function kitLay(x) {
@@ -228,7 +227,7 @@
         }
         window.elKeepCenter = elKeepCenter;
         /* 🔒 붙인 것은 마지막으로 손댄 때부터 24시간이 지나면 고정 (도련 10-29 · 스티커 · 글 · 테이프 … 하나하나 따로)
-           - el.dataset.lt = 마지막으로 손댄 시각 (ms · 저장 lt) · 시각이 없는 예전 것은 고정
+           - el.dataset.lt = 마지막으로 손댄 시각 (ms · 저장 lt) · 시각이 없으면 고정
            - 고정된 것 : 옮기기 · 돌리기 · 크기 · 글 고치기 · 메뉴(순서 · 🗑 삭제) 모두 안 돼요 → 덧붙이기만 · 건드리면 '꾹 붙어 있어요' */
         const EL_LOCK_MS = 24 * 3600 * 1000;
         const elLocked = el => !!el && !!el.dataset && Date.now() - (+el.dataset.lt || 0) > EL_LOCK_MS;
@@ -1057,7 +1056,7 @@
                 el.appendChild(span);
             }
 
-            el.dataset.lt = +data.lt || 1;                                    // 🔒 시각이 없는 예전 것 = 고정
+            el.dataset.lt = +data.lt || 1;                                    // 🔒 시각이 없으면 = 고정
             if (interactive) makeTransformable(el);
             { const ta = el.querySelector('textarea'); if (ta && interactive && elLocked(el)) ta.readOnly = true; }   // 🔒 고정된 글은 못 고쳐요
 

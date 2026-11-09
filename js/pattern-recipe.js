@@ -21,9 +21,6 @@
         function recipeColor(v, def) {
             return (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)) ? v.toLowerCase() : def;
         }
-        function recipeText(v, max) {
-            return String(v == null ? '' : v).replace(/[<>"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
-        }
 
         /* 레시피 검사 : 알려진 항목만 골라 범위 안으로 맞춰서 돌려줌 (문제 있으면 null) */
         function sanitizeRecipe(input) {

@@ -138,12 +138,12 @@
             if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.newbie && drive.lazyOn && !drive.lazyOn.has('dkown')) { drive.lazyOn.add('dkown'); (drive.keyNone = drive.keyNone || new Set()).add('dkown'); }   // 🆕 처음 온 다꾸러 = 목록 파일이 없는 걸 알아요
             let v = dkItemsGet();
             DK.partial = !Array.isArray(v) && dkLazy();
-            if (DK.partial) {                                                     // 💤 배치.json 만으로 책상 위 것 (자리에 무엇인지가 없는 예전 자리는 목록을 읽은 뒤에)
+            if (DK.partial) {                                                     // 💤 배치.json 만으로 책상 위 것 (자리에 무엇인지 id 가 같이 있어요)
                 const pos = prefGet(DK_POS_KEY, DK_POS_LOCAL);
                 const P = pos && typeof pos === 'object' && !Array.isArray(pos) ? Object.entries(pos) : [];
                 v = P.filter(([u, p]) => p && typeof p.id === 'string').map(([u, p]) => Object.assign({}, p, { u, at: 'desk' }));
                 const bags = prefGet('diary_desk_bags', '');
-                if (!pos || P.length !== v.length || (Array.isArray(bags) && bags.some(g => g && Array.isArray(g.it) && g.it.some(x => x && x.k === 'desk')))) setTimeout(() => dkOwnReady().catch(() => {}), 0);   // 자리가 없거나 예전 모양 · 🛍️ 책상 위 봉투가 있으면 (꺼낼 소품) = 바로 목록을 읽어요
+                if (!pos || (Array.isArray(bags) && bags.some(g => g && Array.isArray(g.it) && g.it.some(x => x && x.k === 'desk')))) setTimeout(() => dkOwnReady().catch(() => {}), 0);   // 자리가 없거나 · 🛍️ 책상 위 봉투가 있으면 (꺼낼 소품) = 바로 목록을 읽어요
             }
             const seenU = new Set();
             const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, isGift(o) ? { g: 1 } : {}, o.from && o.from !== 'basic' ? { from: o.from } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {}, Array.isArray(o.lp) ? { lp: o.lp } : {}, Array.isArray(o.lb) ? { lb: o.lb } : {}, o.on && typeof o.on === 'object' && typeof o.on.r === 'string' ? { on: { r: o.on.r, t: +o.on.t || 0 } } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요) · 💡 전구줄 핀(lp) · 네모(lb) · 📷 집힌 줄(on)
@@ -180,7 +180,6 @@
         const giftGiven = () => typeof prefGet === 'function' && !!prefGet(GIFTED_KEY, GIFTED_LOCAL);
         function giftMark() { if (!giftGiven() && typeof prefSet === 'function') prefSet(GIFTED_KEY, GIFTED_LOCAL, Date.now()); }
         window.giftMark = giftMark; window.giftGiven = giftGiven;
-        function giftWrite() { return Promise.resolve(); }                       // (예전 _선물.json 다시 쓰기 · 이제 할 일 없음)
         /* 📖 되살리기는 여러 곳(책상 · 벽지 · 배경지 · 다이어리)이 한꺼번에 물어요 → 30초 안에는 한 번만 읽어요 (도련 11-06 · 쓰면 잊어요) */
         const dkMemo = (fn, ms) => { let p = null, at = 0; const get = () => { if (!p || Date.now() - at > ms) { at = Date.now(); p = fn(); p.catch(() => { p = null; }); } return p; }; get.forget = () => { p = null; }; return get; };
         /* 되살리기에 넘기는 처음 선물 = 백업 속 from 선물 : 처음 선물을 준 적이 없으면 null */
@@ -399,7 +398,7 @@
             if (chH) dkHomesSet(H);
             deskFnPaint(); if (typeof dknPaintAll === 'function') dknPaintAll();
         }
-        window.deskGiftWrite = giftWrite; window.deskGiftBusy = () => giftBusy || DK.fresh;
+        window.deskGiftBusy = () => giftBusy || DK.fresh;
         async function dkFilesFill() {                                             // 파일이 아직 없는 소품 (🎁 기본 세트 선물 · 다른 기기 것은 이미 있어요) → 만들기 · 드라이브를 읽은 뒤에만
             if (DK.filing || DK.edit || DK.fresh || DK.partial || giftBusy || typeof drive === 'undefined' || !drive.ready) return;   // 🎁 선물을 정하는 중이면 기다려요 (선물은 종류 폴더에 안 만들어요)
             const need = DK.items.filter(o => !o.c && !o.g && !dkAdding.has(o.u)); if (!need.length) return;
@@ -421,7 +420,6 @@
            상품 창 id = 'h:' + 종류 (h:seal …) · 저장 : 소품 전체 = diary_desk_fn {창: 소품} · 👆 칸 = diary_desk_home {소품: [{k: 창, r, tag}]} · 한 창 = 한 자리 */
         const DK_HIC = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', leaf: '📃', memo: '📝', gd: '✂️', tool: '📔', bg: '🌈', desk: '🪑' };
         const DK_HSAME = { tool: 'skin', gd: 'gd' };                             // 같은 창이 열리는 상품 = 기본 기능으로 (📔 다이어리 보관소 · ✏️ 문구함)
-        const dkWinOfKind = k => DK_HSAME[k] || 'h:' + k;
         const DK_FN_OFF = ['cafe', 'shop', 'edit'];                              // 🔗 기능 연결 목록에서 뺀 것 (도련 11-01 · ☕ 카페 · 🏪 기본상품 샵 · 🛠 책상 꾸미기 = 이동 · 오른쪽 위 메뉴로)
         /* 🧺 넣을 수 있는 소품만 (도련 11-01 · 현실처럼) : 통 = ✏️ 문구함 · 바구니 · 책 상자 · 파일꽂이 = 📔 다이어리 · 서랍장 = 칸마다 문구함 · 다이어리 · 스티커 한 종류(씰스티커 · 마스킹테이프 …) 중 하나 (도련 11-01)
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
@@ -1288,7 +1286,6 @@
         const DKN_IC = ['⭐', '🌸', '🎀', '💖', '🍓', '🧸', '✂️', '📎', '🖍️', '📒', '🗂️', '🌈'];
         /* 이름표 처음 값 : 기능이 붙은 소품은 예전 기능 이름표처럼 (켜짐 · 아래쪽) → 고치면 그때부터 내 이름표 (도련 10-30 : 이미 붙어 있던 이름표도 이 창으로) */
         const dknOf = o => Object.assign({}, DKN0, (o && o.tag) || {});         // 🏷 처음엔 꺼져 있고 글은 비어 있어요 (도련 10-30 : 정해진 이름이 저절로 붙지 않게 · 내가 적은 것만)
-        const dknKindIc = k => ({ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[k] || (window.stkArt ? stkArt(k) : '🎁'));
         const dknAuto = () => ({ t: '', ic: '🏷️' });
         const dknWordTag = k => ({ on: true, m: 't', t: (dkWin(k) || [])[1] || '' });   // 🏷 처음 붙는 이름표 = 아이콘 말고 글 (문구함 · 펜꽂이 · 씰스티커 … · 도련 11-03 · 🛠 꾸미기에서 바꿀 수 있어요)                             // 비워 두면 = 글 없음 · 아이콘만 기본 🏷️
         /* 🏷 이름표 하나 만들기 = 소품 · 📔 다이어리 모두 이것 하나 (도련 10-30 : 이름표를 바꾸면 한 번에 다 바뀌게) · 모양은 css .dkn-tag
@@ -1502,7 +1499,6 @@
             return { s, b, g, u, d };
         }
         window.deskBagAdd = deskBagAdd; window.deskBagOpen = deskBagOpen; window.deskBagHold = deskBagHold;
-        const deskZ = () => deskZAll();
         function deskItemHtml(it, p) {
             const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '') + (p.fl && dkFlipOk(it) ? ' dk-fl' : '');   // ↔ 좌우 바꾼 소품 (그림만 · 바늘은 그대로)
             let over = '';
@@ -1904,7 +1900,7 @@
             }
         }
         /* ↔ 좌우 바꾸기 (도련 10-31 · 11-03) : 현실에서 물건을 돌려 놓는 것 (그림 뒤집기가 아니에요) · 돌릴 수 있는 종류만 = DK_TURN (지금 🪔 스탠드) · 저장 fl: 1 */
-        /* ↔ 돌릴 수 있는 소품 = 상품 '기능' turn (도련 11-06 · 예전엔 종류 lamp) */ const DK_TURN_OLD = null;   // 뒤집기가 아니에요 · 도련 11-03 · 불빛도 돌린 쪽으로)
+        /* ↔ 돌릴 수 있는 소품 = 상품 '기능' turn (도련 11-06 · 뒤집기가 아니에요 · 불빛도 돌린 쪽으로) */
         const dkFlipOk = c => !!c && Array.isArray(c.can) && c.can.includes('turn');
         function deskFlip() {
             const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o || !dkFlipOk(dkCat(o.id))) return;

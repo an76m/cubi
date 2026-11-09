@@ -86,4 +86,3 @@
                 : `받을 것이 없었어요${skip ? ` (이미 있는 ${skip}개)` : ''}.`);
         }
         window.ishSaveStickers = ishSaveStickers; window.ishSaveDesk = ishSaveDesk; window.ishPick = ishPick; window.ishImport = ishImport;
-        window.shxPickFile = ishPick;                                           // 예전 📥 버튼도 새 관문으로

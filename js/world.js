@@ -11,7 +11,7 @@
        보내는 것 : 내 이름 · 인형 그림(작은 그림 한 장) · 위치(움직일 때 1초에 6번쯤) · 말풍선(60자)
        말풍선은 서버에 저장하지 않아요 · 걸러내기 없음 (도련 11-02 : 분위기를 보고 하나씩)
    - 🧭 아끼는 방식 (도련 11-06) : 위치를 1초에 6번 보내던 것 → '가는 곳'이 바뀔 때만 go { x, y, tx, ty, s, f } (땅 톡 = 목적지 · 방향키 · 조이스틱 = 방향이 바뀔 때 · 걷는 중엔 1.5초마다 한 번 맞추기)
-       다른 다꾸러는 각자 화면에서 그 목적지로 걸어가요 (못 지나가는 곳도 똑같이) · 무료 한도 · 집 업로드를 몇십 배 아껴요 · 예전 앱의 mv 도 그대로 받아요
+       다른 다꾸러는 각자 화면에서 그 목적지로 걸어가요 (못 지나가는 곳도 똑같이) · 무료 한도 · 집 업로드를 몇십 배 아껴요
        인형 그림은 키 96px 작은 그림 (9KB 까지) · 묶음 b { m: [[id, x, y, tx, ty, s, f] …] } 도 받아요 (집 PC 서버)
    - 🎉 이벤트 광장 (도련 11-06) : openWorld({ url, name }) = 그 서버로 (집 PC + Cloudflare Tunnel · 도구/광장서버_집PC) · 입구는 notice.json 'ev' (js/service.js evPaint)
        서버가 looks (이벤트옷 그림 주소) 를 주면 인형 대신 그 옷 (l = 몇 번 옷) · 나가면 내 인형으로 돌아와요
@@ -37,7 +37,7 @@
         const person = o => Object.assign({ x: 1260, y: 1160, tx: 1260, ty: 1160, ar: 208 / 470, face: 1, walk: 0, t: Math.random() * 9, img: null, ras: null, name: '나', say: '', sayT: 0 }, o);
         const S = { on: false, built: false, img: {}, ras: {}, z: 1, dpr: 1, vw: 0, vh: 0, cam: { x: 1260, y: 1100 },
             me: person({ me: true }), ppl: new Map(), key: {}, joy: null, goal: null, raf: 0, last: 0,
-            net: { ws: null, st: 'off', room: 0, max: 100, sent: 0, sx: 0, sy: 0, sf: 1, retry: 0, timer: 0, ping: 0, myImg: '' } };
+            net: { ws: null, st: 'off', room: 0, max: 100, sent: 0, retry: 0, timer: 0, ping: 0, myImg: '' } };
         const q = id => document.getElementById(id);
         const wOn = () => S.on;
         const local = () => typeof FT_LOCAL !== 'undefined' && FT_LOCAL;
@@ -133,7 +133,7 @@
                         if (Math.abs(ddx) > .15 * d) p.face = ddx < 0 ? -1 : 1;
                     }
                 }
-                else if (d > 500) { p.x = p.tx; p.y = p.ty; }                   // 예전 앱 (mv) = 받은 자리로 부드럽게 따라가기
+                else if (d > 500) { p.x = p.tx; p.y = p.ty; }                   // 가는 곳을 아직 모르면 = 받은 자리로 부드럽게 따라가기
                 else if (d > 1) { const sp = Math.min(d, SPEED * 1.25 * dt * (d > 80 ? 1.6 : 1)); p.x += ddx / d * sp; p.y += ddy / d * sp; }
                 p.walk = moving ? Math.min(1, p.walk + dt * 8) : Math.max(0, p.walk - dt * 6);
                 p.t += dt * (p.walk ? 1 : .35);
@@ -232,7 +232,7 @@
                 if (N.ws !== ws) return;
                 N.retry = 0;
                 send({ t: 'me', n: S.me.name, img: N.myImg, x: Math.round(S.me.x), y: Math.round(S.me.y), f: S.me.face });
-                N.sx = S.me.x; N.sy = S.me.y; N.sf = S.me.face; N.lg = null;
+                N.lg = null;
                 clearInterval(N.ping); N.ping = setInterval(() => { try { ws.readyState === 1 && ws.send('ping'); } catch (e) {} }, 30000);   // 살아 있어요 (서버를 깨우지 않는 신호)
             };
             ws.onmessage = e => { if (N.ws === ws && e.data !== 'pong') { try { netMsg(JSON.parse(e.data)); } catch (er) { console.warn('🌳', er); } } };
@@ -274,11 +274,10 @@
         }
         function netMsg(m) {
             if (!m || typeof m !== 'object') return;
-            if (m.t === 'hi') { N.id = m.id; N.room = m.room; N.max = m.max; N.v2 = m.v >= 2; N.st = 'on'; S.ppl.clear(); lookSet(m); (m.ppl || []).forEach(addP); status(); }
+            if (m.t === 'hi') { N.id = m.id; N.room = m.room; N.max = m.max; N.st = 'on'; S.ppl.clear(); lookSet(m); (m.ppl || []).forEach(addP); status(); }
             else if (m.t === 'in' || m.t === 're') { addP(m); status(); }
             else if (m.t === 'go') goApply([m.id, m.x, m.y, m.tx, m.ty, m.s, m.f]);
             else if (m.t === 'b') (Array.isArray(m.m) ? m.m : []).forEach(goApply);     // 📦 묶음 (집 PC 서버)
-            else if (m.t === 'mv') { const p = S.ppl.get(m.id); if (p) { p.sp = null; p.tx = m.x; p.ty = m.y; p.face = m.f === -1 ? -1 : 1; } }
             else if (m.t === 'say') { const p = S.ppl.get(m.id); if (p) { p.say = String(m.s || '').slice(0, 100); p.sayT = performance.now() + SAY_MS; } }
             else if (m.t === 'out') { S.ppl.delete(m.id); status(); }
             else if (m.t === 'notice') noticeToast(String(m.s || '').slice(0, 100));   // 📢 상황판 공지
@@ -286,11 +285,6 @@
             else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : m.e === 'soon' ? 'soon' : m.e === 'ended' || m.e === 'ban' ? 'ended' : 'wait'; status();
                 if (m.e === 'ban' && window.showMsg) showMsg('🚪 이번 파티에는 들어올 수 없어요.');
                 if ((m.e === 'soon' || m.e === 'ended') && window.showMsg) showMsg(m.e === 'soon' ? `🎉 아직 안 열렸어요.<br><b>${new Date(+m.from || Date.now()).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' })}</b>에 열려요.` : '🎆 파티가 끝났어요!<br>다음에 또 만나요.'); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
-        }
-        function netMoveOld() {
-            const m = S.me, now = performance.now();
-            if ((Math.abs(m.x - N.sx) < 1 && Math.abs(m.y - N.sy) < 1 && m.face === N.sf) || now - N.sent < 160) return;
-            if (send({ t: 'mv', x: Math.round(m.x), y: Math.round(m.y), f: m.face })) { N.sent = now; N.sx = m.x; N.sy = m.y; N.sf = m.face; }
         }
         /* 📢 상황판 공지 : 화면 위 가운데 띠 (8초) */
         function noticeToast(s) {
@@ -328,7 +322,6 @@
         }
         function netMove() {                                                     // 🧭 가는 곳이 바뀔 때만 (걷는 중엔 1.5초마다 한 번 맞추기 · 도련 11-06)
             if (N.st !== 'on') return;
-            if (!N.v2) return netMoveOld();                                      // 예전 서버 (go 를 모르면) = 1초에 6번쯤 자리
             const m = S.me, now = performance.now(), it = intent(), L = N.lg;
             if (it.k === 's' && m.walk > .05) return;                            // 멈추는 중 (마지막 자리가 정해지면 보내요)
             let need = !L;

@@ -73,7 +73,6 @@
         }
         /* 🎁 처음 온 다꾸러 = 상품 '처음받기' 벽지 · 책상판 (상품공방 · 도련 11-02 · 한 번만 · 다 버려도 다시 주지 않아요)
            🛟 로그인했는데 목록이 없으면 = 먼저 종류 폴더를 봐요 (파일이 있으면 되살리기 · 없으면 처음 선물 · 도련 11-05) */
-        const dsGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // (예전 _선물.json 다시 쓰기 자리 · 지금은 할 일 없음 · js/desk.js giftWrite)
         window.dsGiftOwn = () => { const s = dsRead(); return !s || s.part ? null : s.own.filter(x => x.g).map(x => ({ u: x.u, id: x.id })); };   // null = 아직 몰라요
         function dsGift() {
             const own = DS_CAT.filter(c => c.gift).map(c => ({ u: c.id, id: c.id, g: 1 })), first = k => (own.find(o => dsCat(o.id).k === k) || {}).u || '';   // 🎁 선물 u = 상품 id

@@ -53,7 +53,6 @@
         const DAY_PATH = DIARY_PATH;                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json
         const NOTE_PATH = DIARY_PATH;                    // 📓 날짜형 노트 : 말랑달콤 / 날짜형노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
-        const bookPath = kind => DIARY_PATH;                        // 📕 페이지형도 다이어리 폴더 (권 폴더 = 권 id)
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
         /* =====================================================================
            🧾 문제 기록 (도련 11-06 · 마테 목록이 사라졌을 때 원인을 알 수 없어서) : 파일을 지우거나 · 휴지통에 넣거나 · 폴더를 만들고 합치거나 · 되살릴 때마다 한 줄
@@ -129,7 +128,6 @@
             if (note == null) { const d = (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).find(x => x.id === r[2]); note = d ? d.ch === 'n' : /노트$/.test(r[2]); }
             return `${r[1]}${note ? 'n' : 'b'}-${r[2]}-${r[3]}`;
         }
-        const dyBookIsNote = b => { const r = DYB_RE.exec(b || ''); return !!(r && r[2] === 'n'); };
         const dyBookDir = b => DIARY_PATH.concat([dyBookName(b)]);         // 📔 다이어리 / 2026 분홍 1 (노트 = 2026 분홍노트 1 · 디자인 id 로 나뉘어요)
         const dkBookDir = id => DIARY_PATH.concat([id]);                   // 📕 다이어리 / dk… (페이지형 한 권 = 폴더 하나 · 도련 11-07)
         const PAGE_KEY_RE = /^dkp_(dk[0-9a-z]+)_(\d+)$/, BOOK_KEY_RE = /^dkb_(dk[0-9a-z]+)$/, STATE_KEY_RE = /^dys_(\d{4}[a-z]-.+-\d+|dk[0-9a-z]+)$/;   // 📔 📕 권마다 상태 = 그 권 폴더 / 상태.json (집게 · 구멍 · 링 · 꺼낸 장 · 도련 11-07 · 982 · js/skins.js bsGet)   // 📕 유한 다이어리 : 장 · 다이어리.json (js/skins.js dk…)
@@ -708,7 +706,6 @@
             const obj = parseJsonObject(await readFileText(f.id), key);
             return obj ? JSON.stringify(obj) : null;
         }
-        const fetchDay = (date, meta) => fetchKey(getDateKey(date), meta);
 
         /* 📕 페이지형 한 권 = 페이지노트 · 페이지바인더 폴더 안 '<권 id>-' 로 시작하는 파일들 (도련 10-26 · 권 폴더 없음)
            - 종류(노트 · 바인더)는 다이어리.json 정보로 · 모르면 두 폴더 모두 봐요
@@ -1204,24 +1201,6 @@
         }
 
         /* 아직 읽지 않은 모든 날짜를 메모리로 읽기 (전체 백업용). 읽지 못한 파일 수를 돌려줌 */
-        async function loadAllDays() {
-            const all = await driveEnumerateAll();
-            const todo = all.filter(f => !drive.loadedDays.has(f.key));
-            const gen = drive.gen;
-            let i = 0, failed = 0;
-            await Promise.all(Array.from({ length: 5 }, async () => {
-                while (i < todo.length) {
-                    const f = todo[i++];
-                    try {
-                        const obj = parseJsonObject(await readFileText(f.id), f.key);
-                        if (gen !== drive.gen) return;
-                        if (!drive.dirtyKeys.has(f.key)) store.putLoaded(f.key, obj ? JSON.stringify(obj) : null);
-                        drive.loadedDays.add(f.key);
-                    } catch (e) { failed++; }
-                }
-            }));
-            return failed;
-        }
 
         async function postLoginTasks() {
             await recoverPendingBackup();

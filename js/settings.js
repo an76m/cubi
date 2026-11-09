@@ -12,8 +12,6 @@
             const q = document.getElementById('dmQuotaLabel'); if (q) q.innerHTML = L ? '📁 이 기기 저장공간 <span style="font-size:11px; color:#999;">(브라우저가 다이어리에 내어 준 칸)</span>' : '☁ 내 구글 저장공간 <span style="font-size:11px; color:#999;">(지메일·구글 포토와 함께 써요)</span>';
         }
         /* 💾 백업 · 불러오기 : 구글 로그인이든 📁 이 기기 폴더든 zip 하나 (js/backup.js) */
-        function exportJSON() { bkBackup(); }
-        function triggerImportJSON() { bkRestore(); }
 
         function roundedRectPath(ctx, x, y, w, h, radii) {
             const [tl, tr, br, bl] = radii;
@@ -169,10 +167,6 @@
         const giftOk = d => !!d && d >= giftToday();
         const giftLeft = d => giftOk(d) ? Math.round((Date.parse(d) - Date.parse(giftToday())) / 864e5) : -1;   // 0 = 오늘이 마지막 날 · 닫혔으면 -1
         const dLabel = n => n < 0 ? '' : n ? 'D-' + n : 'D-day';
-        const giftEnd = (all, one) => [all, one].filter(giftOk).sort().pop() || '';      // 전체와 디자인 하나 중 더 늦은 날 · 없으면 ''
-        const tapeUntil = id => giftEnd(giftBox.ta, giftBox.tp[id]);
-        const tapeHas = id => !!tapeUntil(id);
-        const tapeLeft = id => giftLeft(tapeUntil(id));
         const giftAlive = (all, map) => giftOk(all) || Object.keys(map).some(k => giftOk(map[k]));
         const tapeOn = () => giftAlive(giftBox.ta, giftBox.tp);
         const giftCount = map => Object.keys(map).filter(k => giftOk(map[k])).length;

@@ -69,17 +69,9 @@
             if (/svg/.test(t) || /\.svg$/i.test(k.url)) return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(await r.text());
             const b = await r.blob(); return await new Promise((ok, no) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = no; f.readAsDataURL(b); }); };
         const capsToday = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
-        function capsPasses() {                       // 아직 안 끝난 것만
-            let a; try { a = JSON.parse(localStorage.getItem(CAPS_LOCAL)); } catch (e) {}
-            return Array.isArray(a) ? a.filter(p => p && p.id && p.until >= capsToday()) : [];
-        }
         function capsSet(list) {
             const a = (list || []).filter(p => p && p.id && p.until).map(p => ({ id: p.id, until: p.until }));
             try { localStorage.setItem(CAPS_LOCAL, JSON.stringify(a)); } catch (e) {}
-        }
-        function capsLeft(id) {                       // 남은 날 (0 = 오늘이 마지막 날) · 없으면 -1
-            const p = capsPasses().find(x => x.id === id); if (!p) return -1;
-            return Math.round((Date.parse(p.until) - Date.parse(capsToday())) / 864e5);
         }
         /* 🧭 캡슐 스티커 얻는 방법 (스티커 칸 아래 · 첫 선물 창 공통) : 늘 보여요 */
         function capsGuide(inPop) {

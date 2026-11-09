@@ -126,7 +126,6 @@
         }
         let dyyBusy = false;
         const dyyIsGift = id => { const I = dyyLine(id); return !!I && !!I.start && !I.f; };   // 🎁 처음받기 (start · 아직 권 폴더 없음 · 도련 11-09)
-        const dyyGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // (예전 _선물.json 다시 쓰기 자리 · 지금은 할 일 없음 · js/desk.js giftWrite)
         window.dyyGiftOwn = () => dyyIds().filter(dyyIsGift);
         function dyyGift() {                                                   // 🎁 처음 선물 (상품 속성 '처음받기' · 도련 11-04) · 다이어리 목록에 바로 (from basic + start · 바인더는 조립된 채로 · 981)
             const y = dyyThis(), G = DY_DESIGNS.filter(d => d.gift), ids = G.map(d => dyyNewId(y, d)), fl = G.findIndex(d => d.float);
@@ -135,7 +134,6 @@
             if (window.giftMark) giftMark();   // 펼쳐 둘 권 = 상품공방 '처음띄움' (없으면 첫 권)
             if (window.deskVolInit) deskVolInit(G.map((d, i) => ({ id: ids[i], spot: d.desk, n: d.name })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
             window.dkGiftFloat = fl >= 0 ? ids[fl] : (typeof DY_TYPES !== 'undefined' && DY_TYPES.some(p => p.gift && p.float)) ? 'pg' : '';   // 🎈 처음에 떠 있는 권 (js/desk.js deskLoginShow · 'pg' = 페이지 다이어리가 뒤에 떠요)
-            dyyGiftTell();
             return ids;
         }
         /* 🎁 처음 온 다꾸러 : 그 해 '처음받기' 디자인마다 한 권 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) · 펼칠 권 = 첫 권
@@ -322,7 +320,6 @@
             if (open && typeof isCoverOpen !== 'undefined' && isCoverOpen && !turn && typeof saveData === 'function') saveData(false);
             const ln = dyyLine(b.id); dyoDel(b.id);
             await binAdd({ k: 'dy', id: b.id, ln });                           // 줄째 (표지 · 내지 · from)
-            if (dyyIsGift(b.id)) dyyGiftTell();                                // (예전 _선물.json 자리 · 목록에서 빠지는 걸로 끝)
             if (window.dkDeskBooks) dkDeskBooks();                             // 📔 책상에서도 사라져요
             const next = dyyBook();
             if (open) { if (next) { dyyOpenSet(next.id); if (dyyBasic()) dyyReload(); } else dyyShut(); }
@@ -341,7 +338,7 @@
         /* 🗑 휴지통 (js/bin.js · js/trash.js) : 되살리기 = 받은 권으로 다시 · 영구 삭제 = 그 권 폴더째 */
         BIN_KINDS.dy = {
             name: e => { const b = dyyOf(e.id); return b ? `📔 ${dyyTitle(b)} 다이어리` : '📔 다이어리'; },
-            restore: e => { dyoPut(e.ln && e.ln.id === e.id ? e.ln : dyyLineNew(e.id, 'basic')); if (dyyIsGift(e.id)) dyyGiftTell(); if (!dyyBookId() || dyyBookId() === e.id) { dyyOpenSet(e.id); dyyFit(); } if (window.dyRender) dyRender(); if (window.dkDeskBooks) dkDeskBooks(); },
+            restore: e => { dyoPut(e.ln && e.ln.id === e.id ? e.ln : dyyLineNew(e.id, 'basic')); if (!dyyBookId() || dyyBookId() === e.id) { dyyOpenSet(e.id); dyyFit(); } if (window.dyRender) dyRender(); if (window.dkDeskBooks) dkDeskBooks(); },
             purge: async e => {
                 const dir = !drive.guest ? await getFolder(dyBookDir(e.id), false) : null;
                 if (dir) { const res = await gfetch(`${DRIVE_API}/${dir}`, { method: 'DELETE' }); if (!res.ok && res.status !== 404) throw new Error('purge ' + res.status); }

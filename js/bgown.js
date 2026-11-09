@@ -29,7 +29,6 @@
             const L = bgoOwned(), t = L.find(x => x.u === it.u); if (t && !t.c) { t.c = c; bgoSet(L); }
         }
 
-        const bgoGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // (예전 _선물.json 다시 쓰기 자리 · 지금은 할 일 없음 · js/desk.js giftWrite)
         window.bgoGiftOwn = () => bgoHas() ? bgoOwned().filter(x => x.g).map(x => ({ u: x.u, p: x.p })) : null;   // null = 아직 몰라요
         function bgoGift() { const L = bgoFirst().map(x => Object.assign(x, { g: 1 })); if (L.length) bgoSet(L); else bgoMem(L); }   // 🎁 선물도 배경지 / _목록.json 에 (선물이 없으면 파일을 안 만들어요 · 도련 11-07)
         async function bgoRescue() {                                           // 🛟 로그인했는데 목록이 없으면 = 배경지 폴더 + 백업 속 선물 (있으면 되살리기 · 처음 온 다꾸러만 선물)
