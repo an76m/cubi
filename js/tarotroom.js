@@ -51,7 +51,7 @@
                     <svg class="tro-cards" viewBox="0 0 ${W} ${H}" aria-hidden="true">${TRO_CARDS.map((c, i) => `<polygon class="tro-card" data-i="${i}" points="${ph ? TRO_PH.cards[i] : c[3]}"/>`).join('')}</svg>
                 </div>
                 <div class="tro-ttl">🔮 타로카페<small>오늘은 어떤 카드를 뒤집어 볼까요?</small></div>
-                ${TRO_CARDS.map((c, i) => `<button type="button" class="tro-tag" data-i="${i}">${c[0]}<small>${c[1]}</small></button>`).join('')}
+                ${ph ? '<div class="tro-tags">' : ''}${TRO_CARDS.map((c, i) => `<button type="button" class="tro-tag" data-i="${i}">${c[0]}<small>${c[1]}</small></button>`).join('')}${ph ? '</div>' : ''}
                 <button type="button" class="tro-go desk-shop-go" onclick="deskMoveOpen()">이동</button>`;   // 제목 · 이름표 · 이동 = 화면 위 (그림이 잘려도 화면 안에)
             document.body.appendChild(el);
             const hov = (i, on) => el.querySelectorAll(`[data-i="${i}"]`).forEach(x => x.classList.toggle('hov', on));
@@ -70,7 +70,8 @@
                 const P = TRO_PH, s = Math.min(Math.max(innerWidth / P.W, innerHeight / P.H), innerWidth / 880), x = (innerWidth - P.W * s) / 2, y = innerHeight - P.H * s;
                 st.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
                 const t = el.querySelector('.tro-ttl'); Object.assign(t.style, { left: innerWidth / 2 + 'px', top: Math.max(54, y + P.ttl[1] * s) + 'px', scale: '' });
-                el.querySelectorAll('.tro-tag').forEach(b => { const [tx, ty] = P.tags[+b.dataset.i], w = (b.offsetWidth || 100) / 2 + 6, h = b.offsetHeight || 46; Object.assign(b.style, { left: Math.max(w, Math.min(innerWidth - w, x + tx * s)) + 'px', top: Math.min(y + ty * s, innerHeight - h - 8) + 'px', scale: '' }); });
+                const g = el.querySelector('.tro-tags');                         // 📱 이름표 상자 = 카드 바로 아래 · 줄 바꿈으로 겹치지 않아요 · 화면 아래로 넘치면 위로
+                if (g) g.style.top = Math.max(0, Math.min(y + P.tags[0][1] * s, innerHeight - (g.offsetHeight || 110) - 10)) + 'px';
                 return;
             }
             const { s, x, y } = coverFit(TRO_W, TRO_H, [290, 1370, 300, 905]);

@@ -77,3 +77,5 @@ body.tarot-on .desk-top-r { display: none; }
 .tro-room.ph .tro-tag { font-size: 14px; padding: 5px 10px 6px; border-radius: 10px; }
 .tro-room.ph .tro-tag small { font-size: 10.5px; }
 .tro-room.ph .tro-go { transform: none; right: 12px; top: 12px; }
+.tro-room.ph .tro-tags { position: absolute; left: 50%; translate: -50% 0; width: min(340px, calc(100% - 12px)); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 8px; }   /* 📱 이름표 = 줄 바꿈 상자 (폰 너비가 달라도 안 겹쳐요 · 도련 11-09) */
+.tro-room.ph .tro-tags .tro-tag { position: static; translate: none; }
