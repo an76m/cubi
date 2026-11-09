@@ -450,9 +450,36 @@
                     ownSetKind(ent.k, list);
                 } catch (e) { ownFileKill(ent.f).catch(() => {}); throw e; }   // 목록에 못 넣었으면 종이 파일도 치워요
                 ownTell();
+                if (sheet.from === 'mine' && !(meta && meta.noDesign)) ownDesignSave(sheet, meta).then(() => ownTell(), e => console.warn('📐 도안', e));   // ✂️ 만든 것 = 도안도 저절로 (도련 11-09)
                 return id;
             });
         }
+
+        /* ---------- 📐 내 도안 (도련 11-09) : 작가는 틀을 가지고 있어요
+           - ✂️ 내가 만든 스티커(from 'mine')는 만들 때 도안이 저절로 하나 생겨요 → 말랑달콤 / 도안 / 내-<시각>.json (js/coll.js 모음 · 내-목록N.json)
+           - 도안은 쓰는 물건이 아니라 안 사라져요 · 🧺 서랍의 종이만 쓰면 사라져요 (현실 : 원본 파일은 남고 인쇄한 스티커는 쓰면 끝)
+           - 📄 한 장 더 찍기 = 도안 그대로 새 종이 한 장 (수량 = 처음 만든 것과 같아요 · OWN_MINE_Q) · 🗑 도안 버리기 = 다시 못 찍어요 (서랍의 종이는 그대로)
+           - 📤 공유는 종이만 (받은 사람은 도안이 없어요 · 다 쓰면 끝) · ☁ 구글로 이동 때는 따라가요 (말랑달콤 폴더째)
+           - 한 칸 : { id, th, x: { k 종류, nm 이름 } } · 원본 : { v: 1, sheet : ownAdd 에 넣은 종이 (수량 · 쓴 칸 없이), meta : { th } } */
+        const ownDesignColl = () => window.collOf && typeof DIRS !== 'undefined' ? collOf(dirPath(DIRS.design), '내-') : null;
+        async function ownDesignSave(sheet, meta) {
+            const C = ownDesignColl(); if (!C) return '';
+            const s = { k: sheet.k || 'seal', from: 'mine', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs: (sheet.imgs || []).slice(0, 150), wh: sheet.wh || [], x: sheet.x || {} };
+            ['L', 'b', 'q0'].forEach(k => { if (sheet[k] != null) s[k] = sheet[k]; });
+            const th = (meta && meta.th) || '';
+            return collAdd(C, { v: 1, sheet: s, meta: th ? { th } : {} }, th, { k: s.k, nm: s.nm });
+        }
+        async function ownDesigns(k) {                                           // 그 종류의 도안 (새것부터)
+            const C = ownDesignColl(); if (!C) return [];
+            return (await collAll(C)).filter(e => e && e.x && (!k || e.x.k === k)).sort((a, b) => (+b.id || 0) - (+a.id || 0));
+        }
+        async function ownDesignPrint(id) {                                      // 📄 한 장 더 찍기 → 새 종이 id
+            const C = ownDesignColl(); if (!C) throw new Error('ready');
+            const it = await collItem(C, id); if (!it || !it.sheet) throw new Error('gone');
+            return ownAdd(Object.assign({}, it.sheet, { from: 'mine', imgs: (it.sheet.imgs || []).slice() }), Object.assign({}, it.meta || {}, { noDesign: 1 }));
+        }
+        async function ownDesignDrop(id) { const C = ownDesignColl(); if (C) await collRemove(C, id); }
+        window.ownDesigns = ownDesigns; window.ownDesignPrint = ownDesignPrint; window.ownDesignDrop = ownDesignDrop;
 
         /* ---------- 📂 종이 한 장 열기 : 늘 드라이브의 지금 모습 (다른 기기에서 쓴 칸은 비어 있어요) ---------- */
         async function ownSheet(id) {
