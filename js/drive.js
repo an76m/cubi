@@ -1377,7 +1377,7 @@
             return true;
         }
         async function initDrive() {
-            if (window.dvAuto && await dvAuto()) return;                    // 🏠 로그인 없이 이 브라우저에 쓰기로 했으면 바로 열어요 (js/devsave.js)
+            /* 🚪 첫 화면 (도련 11-09) : ☁ 구글로 로그인했던 기기 = 창 없이 바로 · 🏠 로그인 없이 쓰는 사람 = 열 때마다 첫 화면 (구글 로그인을 늘 권해요 · 이어 쓰기는 '로그인 없이 다꾸하기') */
             if (typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST && typeof localTestStart === 'function') { await localTestStart(); return; }   // 💻 내 컴퓨터(localhost) : 로그인 없이 · 이 브라우저에 저장 (js/localtest.js)
             if (GOOGLE_CLIENT_ID.startsWith('YOUR_CLIENT_ID')) {
                 showGate('config', '⚙ 코드 맨 위의 <b>GOOGLE_CLIENT_ID</b>에<br>발급받은 OAuth 클라이언트 ID를 넣어 주세요.');
@@ -1398,7 +1398,7 @@
                 try { await requestToken('none'); await loadFromDrive(); hideGate(); postLoginTasks(); return; }
                 catch (e) { if (e && e.type === 'corrupt') { showGate('login', driveErrorText(e)); return; } }
             }
-            showGate('login', fileHint.replace(/^<br><br>/, ''));               // 설명은 두 버튼 안에 있어요
+            showGate('login', (window.dvHint ? dvHint() : '') || fileHint.replace(/^<br><br>/, ''));   // 설명은 두 버튼 안에 있어요 · 🏠 이 브라우저에 쓰던 다이어리가 있으면 한 줄
         }
 
         async function driveLogin() {

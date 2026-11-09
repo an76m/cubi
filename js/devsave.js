@@ -1,6 +1,7 @@
 /* 말랑달콤 다이어리 - js/devsave.js
    🏠 로그인 없이 쓰기 : 이 브라우저 안에 '말랑달콤' 폴더를 만들어 저장 (도련 · 2026-10-13 · 11-09 하나로 통일)
    - 첫 화면 '로그인 없이 다꾸하기' → 묻지 않고 바로 이 브라우저 저장공간(IndexedDB 'malang-device')에 (PC · 폰 · 패드 모두 같아요)
+   - 🚪 로그인 없이 쓰는 사람은 앱을 열 때마다 첫 화면 (구글 로그인을 늘 권해요 · 도련 11-09) · '로그인 없이 다꾸하기'를 누르면 쓰던 다이어리 그대로 · 구글로 로그인했던 기기는 창 없이 바로
    - 구글로 로그인했을 때와 저장 · 불러오기 · 폴더 모양 · 기능이 모두 같아요
      → 드라이브에 말을 거는 곳(drive.js gfetch) 하나만 '이 브라우저 저장공간'으로 바꿔 끼워요 (vfsFetch : 드라이브 API 흉내)
      → 첫 접속 파일(설정 · 다이어리 · 소품 · 문구 목록 …)도 구글과 똑같이 이 안에 생겨요
@@ -237,17 +238,15 @@
             if (navigator.storage && navigator.storage.persist && !/firefox/i.test(navigator.userAgent)) navigator.storage.persist().catch(() => {});   // 지우지 말아 주세요 (묻는 창 없이 되는 브라우저만)
         }
         /* drive.js initDrive 맨 앞 : true 면 구글 화면 없이 이 브라우저 저장공간으로 열렸어요 */
-        async function dvAuto() {
-            if (dvGetMode() !== 'idb') return false;
-            try { await dvStart(); return true; }
-            catch (e) { console.warn(e); dvQuit(); return false; }
-        }
+        /* 🚪 첫 화면 한 줄 (도련 11-09 · 로그인 없이 쓰는 사람은 열 때마다 첫 화면이에요 · 바로 열지 않아요) */
+        function dvHint() { return dvGetMode() === 'idb' ? '🏠 이 브라우저에 쓰던 다이어리가 있어요<br><span style="font-size:12px;color:#888;">이어 쓰려면 <b>로그인 없이 다꾸하기</b><br>구글로 옮기려면 들어가서 ⚙ 설정 → ☁ 구글로 이동</span>' : ''; }
         function dvQuit() { V.on = false; drive.local = false; drive.ready = false; }
 
         /* '로그인 없이 다꾸하기' → 묻는 창 없이 바로 이 브라우저 저장공간(idb)으로 시작 → 💻 책상 · 📱 겉표지 (도련 10-28 · "어디에 둘까요?" 창 없앰) */
         async function dvChoose() {
             try { await dvDb(); } catch (e) { enterGuestMode(); showMsg('⚠ 이 브라우저에서는 저장할 수 없어서 구경만 할 수 있어요.<br><span style="font-size:12px;color:#777;">시크릿 모드라면 일반 창으로 열어 주세요.</span>'); return; }
             dvSetMode('idb'); showGate('wait', '📔 다이어리를 펴는 중…');
+            try { localStorage.removeItem('gdrive_authed'); } catch (e) {}   // 🚪 마지막에 고른 쪽으로 : 로그인 없이를 골랐으면 다음에도 첫 화면 (구글 자동 로그인 안 함)
             try { await dvStart(); }
             catch (e) { console.warn(e); dvSetMode(''); dvQuit(); enterGuestMode(); showMsg('⚠ 이 기기에 저장하지 못해서 구경만 할 수 있어요.'); }
         }
@@ -385,7 +384,7 @@
         const dvOn = () => V.on;
         const dvWhere = () => '이 브라우저';
 
-        window.dvAuto = dvAuto; window.dvChoose = dvChoose; window.vfsFetch = vfsFetch; window.dvOn = dvOn; window.dvWhere = dvWhere;
+        window.dvHint = dvHint; window.dvChoose = dvChoose; window.vfsFetch = vfsFetch; window.dvOn = dvOn; window.dvWhere = dvWhere;
         window.dvLogin = dvLogin; window.dvAfterLogin = dvAfterLogin;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
