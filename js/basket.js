@@ -388,7 +388,7 @@
         const o = frNew(t, pid, 'basic');
         if (window.ofAdd) { const c = await ofAdd(FR[t].dir, { u: o.id, id: o.pid, from: 'basic' }); if (c) o.c = c; }   // 📦 원본 파일 받은-<c>.json (소품 · 문구처럼 · 게스트는 목록만)
         window.abLastGiven = { id: o.id, t: Date.now() };
-        if (window.shopSceneOn && shopSceneOn() && window.dkBagHold) dkBagHold(o.id);   // 🛍️ 봉투 카드가 이 책을 기억해요
+        if (window.shopBagOn && shopBagOn() && window.dkBagHold) dkBagHold(o.id);   // 🛍️ 봉투 카드가 이 책을 기억해요
         frSet(t, frAll(t).concat([o]));
         if (window.dkDeskBooks) dkDeskBooks(true);                               // 📔 책상에도 (종류 없는 책)
         return o.id;
@@ -1370,7 +1370,7 @@
         z.onclick = e => { if (e.target === z) shZoomOff(); };                // 닫기 = [닫기] 버튼 (도련 11-04) 또는 확대 밖을 톡
     }
     const shInto = () => SH.kind === 'season' ? 'seal' : SH.kind;            // 받은 것이 들어간 바구니
-    const shInShop = () => !!(window.shopSceneOn && shopSceneOn());           // 🏪 가게 안 (PC · 아이패드)
+    const shInShop = () => !!(window.shopBagOn && shopBagOn());               // 🏪 가게 안 = 🛍️ 봉투 (PC · 아이패드 · 📱 폰 가게는 바로 서랍)
     const shGotText = () => shInShop() ? '🛍️ 봉투에 담았어요' : '보관함 확인';   // 받은 뒤 버튼 (연녹색) · 가게 안 = 봉투에 담겼다는 표시만 (누르면 '내 방에서 봉투를 열어요' · 도련 10-30 : 봉투 → 책상 → 소품에 넣는 과정을 겪게) · 폰(가게 없음) = 예전처럼 보관함으로
     /* 🎁 문구 · 책상 소품 받기 (도련 10-27) : 문구는 이미 있으면 알려만 · 소품은 이미 있으면 물어보고 하나 더 → true = 받았어요 */
     /* 🛍️ 받기가 다 끝나면 쇼핑백 (도련 10-29) : 받는 중인 개수를 세다가 0 이 되는 순간 한 번 · 하나라도 받았으면
@@ -1378,7 +1378,7 @@
     const BAG = { n: 0, ok: 0 };
     const bagStart = () => { BAG.n++; };
     function bagNote(x, k, al, sid) {                                        // sid = 받은 스티커 종이 id (봉투에서 꺼낼 때까지 바구니에 안 보여요 · js/desk.js deskBagHold)                                             // 🛍️ 가게 안에서 받은 것 = 봉투에 (내 방으로 돌아가면 책상 위 봉투 · js/desk.js deskBagAdd)
-        if (!(window.shopSceneOn && shopSceneOn())) return;
+        if (!(window.shopBagOn && shopBagOn())) return;                        // 📱 폰 가게 = 봉투 없이 바로 서랍
         const o = { k, n: String(x.name || x.cnt || BK_KINDS[k] || '').slice(0, 30) };
         if (al) o.n = String(x.name || '').slice(0, 30);   // 📒 🤍 정리 도구 = 그 상품 이름           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
         if (x.look === 'dskin') { o.ds = x.sec === 'wallpaper' ? 'wall' : 'top'; o.n = String(x.name || '').slice(0, 30); }   // 🧱 벽지 · 🪵 책상 (책상 소품이 아니에요)

@@ -25,16 +25,22 @@
             const miss = SHOP_CN.filter(c => !D[c]); if (miss.length) { console.warn('🏪 샵 구역이 없어요 (상품공방 샵) :', miss.join(' · ')); return null; }
             return (SHOP_D = D);
         }
-        const shopC = c => (shopData() || {})[c || 'stk'];
+        /* 📱 폰 가게 (도련 11-10 · 세로 그림 941 × 1672) : 입구 문 → 스티커 코너(입구) · 다이어리 · 문구 · 책상소품 · 코너 이름 · 칸 · 팻말은 서버(상품공방 샵) 그대로
+           그림 · 간판 자리만 폰 것 · 이름표는 그림 자리 대신 아래 상자에 줄 바꿈 (폰은 좁아서 15칸이 겹쳐요) · 산 것은 🛍️ 봉투 없이 바로 서랍 (폰은 책상이 없어요 · shopBagOn) */
+        const SHOP_PH = { W: 941, H: 1672, v: '?v=20261009-1047',
+            door: { img: 'img/shop-door-m.webp', sign: [472, 750, 320, 140], go: [472, 970] },
+            c: { stk: { img: 'img/shop-inside-m.webp', sign: [470, 395, 215, 85] }, tool: { img: 'img/shop-diary-m.webp', sign: [472, 270, 235, 95] }, gd: { img: 'img/shop-gd-m.webp', sign: [472, 312, 235, 95] }, desk: { img: 'img/shop-desk-m.webp', sign: [472, 268, 230, 90] } } };
+        const shopPhone = () => !document.documentElement.classList.contains('desk-on') && document.documentElement.classList.contains('is-phone');
+        const shopC = c => { const D = (shopData() || {})[c || 'stk']; if (!D || !SC.ph) return D; const P = SHOP_PH.c[c || 'stk']; return P ? Object.assign({}, D, { img: P.img + SHOP_PH.v, W: SHOP_PH.W, H: SHOP_PH.H, sign: P.sign }) : D; };
         /* 🖼 구역 그림 미리 받기 (도련 11-04 : 처음 걸어갈 때 그림이 늦게 떠서 이름만 먼저 바뀌었어요) : 가게에 들어갈 때 모두 받아 두고 · 옮길 땐 그 그림이 준비된 뒤에 바꿔요 */
         const SHOP_PIC = new Map();
         function shopPic(src) {
             if (!SHOP_PIC.has(src)) { const im = new Image(); im.src = src; SHOP_PIC.set(src, (im.decode ? im.decode() : Promise.resolve()).catch(() => {})); }
             return SHOP_PIC.get(src);
         }
-        const shopPicAll = () => { const D = shopData(); if (D) SHOP_CN.forEach(c => shopPic(D[c].img)); };
+        const shopPicAll = () => { if (shopData()) SHOP_CN.forEach(c => shopPic(shopC(c).img)); };
         const HOME_SIGN = { cx: 836, cy: 490, w: 420, h: 200 };                   // 🚪 내 방 문 타원 판 안쪽 (img/room-door.webp px · 도련 10-30)
-        const SC = { on: false, busy: false, corner: '', spots: [] };
+        const SC = { on: false, busy: false, corner: '', spots: [], ph: false };
 
         function shopCover(W, H) { const s = Math.max(innerWidth / W, innerHeight / H); return { s, x: (innerWidth - W * s) / 2, y: (innerHeight - H * s) / 2 }; }
         function shopBuild() {
@@ -46,7 +52,7 @@
                 <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
                 <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
             document.body.appendChild(el);
-            addEventListener('resize', () => { if (!SC.on) return; if (!shopWide()) { shopSceneClose(true); setTimeout(() => window.openShelf && openShelf(), 400); return; } shopFit(); });   // 좁아지면 (폰 크기) 가게를 닫고 기본상품 샵 창
+            addEventListener('resize', () => { if (!SC.on) return; if (!SC.ph && !shopWide()) { shopSceneClose(true); setTimeout(() => window.openShelf && openShelf(), 400); return; } shopFit(); });   // 좁아지면 (폰 크기) 가게를 닫고 기본상품 샵 창
             return el;
         }
         function shopSpotsPaint() {
@@ -91,15 +97,17 @@
             el.querySelectorAll('.shop-spot').forEach(b => {
                 const sp = SC.spots.find(s => s[0] === b.dataset.k); if (!sp) return;
                 const w = b.offsetWidth || 90, h = b.offsetHeight || 60, M = 10;
+                if (SC.ph) { b.style.left = b.style.top = ''; return; }          // 📱 아래 상자에 줄 바꿈 (css .shop-scene.ph)
                 const x = Math.max(M + w / 2, Math.min(innerWidth - M - w / 2, R.x + sp[2] * R.s)), y = Math.max(M + 56 + h / 2, Math.min(innerHeight - M - h / 2, R.y + sp[3] * R.s));   // 화면 밖이면 안쪽으로 (위는 ✕ 자리 비우기)
                 b.style.left = x + 'px'; b.style.top = y + 'px';
             });
-            const D = shopCover(DOOR_W, DOOR_H), door = el.querySelector('.shop-door img'), sign = el.querySelector('.shop-sign');
-            door.style.width = DOOR_W * D.s + 'px'; door.style.height = DOOR_H * D.s + 'px'; door.style.left = D.x + 'px'; door.style.top = D.y + 'px';
-            sign.style.left = (D.x + SHOP_SIGN.cx * D.s) + 'px'; sign.style.top = (D.y + SHOP_SIGN.cy * D.s) + 'px';
-            sign.style.width = SHOP_SIGN.w * D.s + 'px'; sign.style.height = SHOP_SIGN.h * D.s + 'px'; sign.style.fontSize = (SHOP_SIGN.h * D.s * .34) + 'px';   // '기본상품 샵' 다섯 글자가 판 안에 넉넉히 (도련 10-28)
+            const ph = SC.ph, DW = ph ? SHOP_PH.W : DOOR_W, DH = ph ? SHOP_PH.H : DOOR_H, S = ph ? { cx: SHOP_PH.door.sign[0], cy: SHOP_PH.door.sign[1], w: SHOP_PH.door.sign[2], h: SHOP_PH.door.sign[3] } : SHOP_SIGN;   // 📱 세로 문
+            const D = shopCover(DW, DH), door = el.querySelector('.shop-door img'), sign = el.querySelector('.shop-sign');
+            door.style.width = DW * D.s + 'px'; door.style.height = DH * D.s + 'px'; door.style.left = D.x + 'px'; door.style.top = D.y + 'px';
+            sign.style.left = (D.x + S.cx * D.s) + 'px'; sign.style.top = (D.y + S.cy * D.s) + 'px';
+            sign.style.width = S.w * D.s + 'px'; sign.style.height = S.h * D.s + 'px'; sign.style.fontSize = (S.h * D.s * (ph ? .3 : .34)) + 'px';   // '기본상품 샵' 다섯 글자가 판 안에 넉넉히 (도련 10-28)
             homeFit(el);
-            el.querySelector('.shop-door').style.transformOrigin = `${D.x + SHOP_SIGN.cx * D.s}px ${D.y + 560 * D.s}px`;   // 문 손잡이 쪽으로 다가가요
+            el.querySelector('.shop-door').style.transformOrigin = ph ? `${D.x + SHOP_PH.door.go[0] * D.s}px ${D.y + SHOP_PH.door.go[1] * D.s}px` : `${D.x + SHOP_SIGN.cx * D.s}px ${D.y + 560 * D.s}px`;   // 문 손잡이 쪽으로 다가가요
         }
         function homeFit(el) {                                                  // 🚪 내 방 문 (가게 · 다른 장소에서 돌아올 때 같은 문 · roomGo)
             const D = shopCover(DOOR_W, DOOR_H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
@@ -125,9 +133,12 @@
         /* 🚪 → 🩷 → 🏪 */
         const shopWide = () => document.documentElement.classList.contains('desk-on');
         function shopSceneOpen() {
-            if (!shopWide() || !shopData()) { if (window.openShelf) openShelf(); return; }   // 📱 폰 · 하단 메뉴 화면 · 🏪 샵 코너가 없으면 = 예전 기본상품 샵 창
+            if (!(shopWide() || shopPhone()) || !shopData()) { if (window.openShelf) openShelf(); return; }   // 💻 하단 메뉴 화면 · 🏪 샵 코너가 없으면 = 예전 기본상품 샵 창 (📱 폰 = 세로 가게 · 도련 11-10)
             if (SC.on || SC.busy) return;
-            const el = shopBuild(); SC.corner = ''; shopSpotsPaint(); shopPicAll();   // 🖼 구역 그림 미리
+            SC.ph = !shopWide();
+            const el = shopBuild(); el.classList.toggle('ph', SC.ph);
+            { const di = el.querySelector('.shop-door img'), src = SC.ph ? SHOP_PH.door.img + SHOP_PH.v : 'img/shop-door.webp?v=20261009-819'; if (di.getAttribute('src') !== src) di.setAttribute('src', src); }
+            SC.corner = ''; shopSpotsPaint(); shopPicAll();   // 🖼 구역 그림 미리
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
             if (window.dsClear) dsClear();                                       // 🧺 꺼내 둔 스티커는 바구니로 정리 (도련 11-05)
             SC.on = true; SC.busy = true;
@@ -146,7 +157,7 @@
             if (quick !== true && window.bagBusy && bagBusy()) { const al = document.getElementById('customAlertModal'); if (window.showMsg && !(al && al.style.display === 'flex')) { const ok = document.getElementById('customAlertConfirmBtn'); if (ok) ok.textContent = '확인'; showMsg('🛍️ 상품을 담는 중이에요'); } return; }   // 받는 중 · 봉투 안내가 끝나기 전에는 못 나가요 (도련 10-30) · 묻는 창(하나 더 받기)이 떠 있으면 그 창을 덮지 않고 · 안내 버튼은 늘 '확인'
             ['shelfKindModal', 'shelfCornerModal', 'shelfModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; const L = window.SHOP_BAG || []; window.SHOP_BAG = []; if (L.length && window.deskBagAdd) setTimeout(() => deskBagAdd(L), 250); };   // 🛍️ 산 것을 봉투에 담아 책상 위에 (js/desk.js)
-            if (quick === true || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }
+            if (quick === true || SC.ph || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }   // 📱 폰은 내 방 문 없이 바로 다이어리로
             SC.busy = true; shopFit(); el.classList.add('home');
             setTimeout(() => el.classList.add('home-go'), 1000);
             setTimeout(() => { el.classList.add('leave'); setTimeout(done, 380); }, 2300);
@@ -158,5 +169,6 @@
             const [kk, c] = k.split(':'); shOpenKind(kk, c);
         }
         const shopSceneOn = () => SC.on;
+        window.shopBagOn = () => SC.on && !SC.ph;                               // 🛍️ 산 것 = 봉투 (💻 📲 책상 · 📱 폰은 바로 서랍)
         document.addEventListener('keydown', e => { if (SC.on && e.key === 'Escape' && !document.querySelector('.modal[style*="flex"], .modal[style*="block"]')) { if (SC.corner) shopCorner(''); else shopSceneClose(); } });   // 코너 안 = 스티커 코너로
         window.shopSceneOpen = shopSceneOpen; window.shopSceneClose = shopSceneClose; window.shopSpot = shopSpot; window.shopSceneOn = shopSceneOn; window.shopCorner = shopCorner;
