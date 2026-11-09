@@ -731,3 +731,7 @@ html.an #diaryBook[data-dy="thin"] .cover-page::before { width: 3.2cqw !importan
 @keyframes dkbwDot { 0%, 100% { opacity: .25; translate: 0 0; } 40% { opacity: 1; translate: 0 -3px; } }
 html:not(.desk-on) .dkb-wait { right: 50%; top: auto; bottom: 110px; translate: 50% 0; }
 @media (prefers-reduced-motion: reduce) { .dkb-wait, .dkb-wait i { animation: none; } }
+
+/* 📱 폰 : 펼친 다이어리 뒤 표지판(.dy-cov)이 화면 밖으로 크게 나가서 겉표지를 넘기는 순간 다이어리가 커져 보였어요 (도련 11-10)
+   → 폰은 표지판 여백을 얇게 (종이 둘레 10px) · 닫힌 겉표지도 같은 크기로 (css/style.css 📱 겉표지) → 넘겨도 크기가 그대로 */
+html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-cov { inset: -10px !important; border-radius: 16px !important; }
