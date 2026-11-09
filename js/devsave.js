@@ -254,9 +254,10 @@
         /* ---------- ☁ 구글로 이동 (도련 11-09 · 말랑달콤의 이사는 이것 하나) ----------
            🏠 로그인 없이(이 브라우저) → ☁ 구글 드라이브 : 짐을 100% 그대로 옮기고 · 데이터는 언제나 한 곳에만
            1. 누른 그 순간 구글 로그인 창 (아이패드 · 아이폰 사파리는 조금이라도 늦게 열면 창을 막아요)
-           2. 약속 창 하나 (도련 11-09 그림) : 세 줄마다 ☐ → 모두 체크해야 '이동하기' · '이동 안 함' = 이동 없음 + 방금 한 구글 로그인은 로그아웃
-              ① 구글 드라이브의 말랑달콤은 모두 지워요 (휴지통까지) ② 이 브라우저의 다이어리는 지워요 (휴지통까지) ③ 다이어리는 한 곳에만 · 다음부터는 구글로
-           3. 체크를 다 한 뒤에야 이삿짐을 싸요 · 진행 0 ~ 100% = 짐 싸기 + 구글 비우기(휴지통까지) + 옮기기 + 이 브라우저 비우기를 합친 것
+           2. 묻는 창 하나 (도련 11-09) : 한두 줄 + 수락 · 취소 · 취소 = 이동 없음 + 방금 한 구글 로그인은 로그아웃
+              (구글에 말랑달콤이 있을 때만) 구글 드라이브에 말랑달콤 폴더가 있어요. 지우고 이동하시겠어요? / 이동이 끝나면 이 브라우저의 다이어리는 지워져요.
+              휴지통 이야기는 하지 않고 양쪽 휴지통까지 조용히 지워요
+           3. 수락한 뒤에야 이삿짐을 싸요 · 진행 0 ~ 100% = 짐 싸기 + 구글 비우기(휴지통까지) + 옮기기 + 이 브라우저 비우기를 합친 것
            5. 끝나면 다음부터 구글로 열려요 (새로고침)
            - 짐 = 말랑달콤 폴더의 파일 전부 (일기 · 설정 · 스티커 · 상품 목록 · 받은 파일 · 책상 자리 …) · 🗑 휴지통 · 🗑 버린 상품 목록(_휴지통목록.json)은 옮기지 않고 버려요
            - 🔐 계정 열쇠로 잠긴 것은 이 브라우저 열쇠('device')로 열어 구글 계정 열쇠로 다시 잠가요 (내용은 그대로 · js/own.js ownLock)
@@ -311,21 +312,10 @@
             bkBusyOff(); if (msg) showMsg(msg);
         }
         const dvBusy = m => showGate('wait', m), bkBusyOff = () => hideGate();
-        /* 🚚 약속 창 : 세 줄 모두 ☑ 해야 '이동하기' 가 눌려요 → true / false */
-        async function dvAgree(has) {
-            const L = [
-                has ? ['☁ 구글 드라이브에 있던 다이어리는 <b>모두 지워져요.</b>', '구글 드라이브 휴지통에 있는 것까지 지우고 이 브라우저의 다이어리로 바꿔요.']
-                    : ['☁ 구글 드라이브에 이 브라우저의 다이어리를 <b>그대로 옮겨요.</b>', '구글 드라이브에 말랑달콤 폴더가 생겨요 (휴지통에 있던 것까지 깨끗이 정리해요).'],
-                ['🏠 이동이 끝나면 이 브라우저의 다이어리는 <b>지워져요.</b>', '이 브라우저의 휴지통까지 모두 지워요.'],
-                ['📔 다이어리는 언제나 <b>한 곳에만</b> 있어요.', '다음부터는 구글로 로그인해서 써요.']
-            ];
-            const p = showAsk(`🚚 <b>☁ 구글로 이동</b><br><span style="font-size:12px;color:#777;">아래를 모두 읽고 체크해 주세요</span>
-                <div class="mv-list">${L.map(([a, b], i) => `<div class="mv-row" data-i="${i}" role="checkbox" aria-checked="false" tabindex="0"><span>${a}<small>${b}</small></span><i></i></div>`).join('')}</div>`, '이동하기', '이동 안 함');
-            const ok = document.getElementById('customAlertConfirmBtn'), rows = [...document.querySelectorAll('#customAlertMsg .mv-row')];
-            const sync = () => { ok.disabled = !rows.every(r => r.classList.contains('on')); };
-            rows.forEach(r => { r.onclick = () => { const on = !r.classList.contains('on'); r.classList.toggle('on', on); r.setAttribute('aria-checked', on ? 'true' : 'false'); sync(); }; r.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); r.onclick(); } }; });
-            sync();
-            try { return await p; } finally { ok.disabled = false; }
+        /* 🚚 묻는 창 (도련 11-09) : 한두 줄 + 수락 · 취소 (휴지통 이야기는 하지 않고 조용히 지워요) → true / false */
+        function dvAgree(has) {
+            const L = (has ? ['☁ 구글 드라이브에 말랑달콤 폴더가 있어요.<br>지우고 이동하시겠어요?'] : []).concat(['🏠 이동이 끝나면 이 브라우저의 다이어리는 지워져요.']);
+            return showAsk(L.join('<br><br>'), '수락', '취소');
         }
         async function dvLogin() {
             if (!V.on) return;
