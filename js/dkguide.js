@@ -18,10 +18,9 @@
             el.style.left = (x - hr.left) + 'px';
             el.style.top = (r.top - hr.top + Math.max(20, r.height * .12)) + 'px';
         }
-        /* 🩷 메모 내용 = 한 줄 (도련 11-05 : 할 일 목록처럼 길면 외워야 해요 → 스티커를 어디서 받는지만) · 🪑 책상 화면 = 이동 / 📱 = 아래 스티커 */
+        /* 🩷 메모 내용 = 한 줄 (도련 11-05 : 할 일 목록처럼 길면 외워야 해요 → 스티커를 어디서 받는지만) · 💻 📲 📱 모두 = 이동 → 기본상품 샵 (도련 11-10) */
         const DG_SHOP = '<span class="dg-ic"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="7" y="3" width="14" height="22" rx="2" fill="#ffd6e4" stroke="#c2457a" stroke-width="1.4"/><rect x="10" y="6" width="8" height="7" rx="1.5" fill="#fff" stroke="#c2457a" stroke-width="1.1"/><circle cx="17.5" cy="16" r="1.3" fill="#c2457a"/><path d="M3 25h22" stroke="#a8743c" stroke-width="1.6" stroke-linecap="round"/></svg></span>';
         const DG_DESK = `<div class="dg-step">${DG_SHOP}<span>다꾸를 하려면 스티커를<br><em>이동</em> → <em>기본상품&nbsp;샵</em>에서<br>받아 와야 해요.</span></div>`;
-        const DG_PHONE = `<div class="dg-step">${DG_SHOP}<span>다꾸를 하려면 스티커를<br>아래 <em>스티커</em> → <em>기본상품&nbsp;샵</em>에서<br>받아 와야 해요.</span></div>`;
         const dgDesk = () => document.documentElement.classList.contains('desk-on');
         function dgShow() {
             if (dgIsDone() || document.getElementById('dgNote')) return;
@@ -32,7 +31,7 @@
             el.innerHTML = `<i class="dg-tape"></i>
                 <button type="button" class="dg-x" aria-label="안내 닫기" onclick="dgDone()"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12"/></svg></button>
                 <b class="dg-h">말랑달콤 다꾸하는 법</b>
-                ${(dgDesk() ? DG_DESK : DG_PHONE)}`;   // 🎁 처음부터 있는 것 · 시작 안내 줄은 뺐어요 (도련 11-05)
+                ${DG_DESK}`;   /* 📱 폰도 💻 📲 와 같은 글 = 이동 → 기본상품 샵 (도련 11-10 · 폰 아래 메뉴에도 🚪 이동이 생겼어요) */   // 🎁 처음부터 있는 것 · 시작 안내 줄은 뺐어요 (도련 11-05)
             host.appendChild(el);
             dgPlace();
             document.body.classList.add('dg-on');
