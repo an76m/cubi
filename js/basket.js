@@ -1164,10 +1164,10 @@
     }
     /* 🚶 기본상품 샵은 걸어가서 (도련 11-01) : 💻 📲 책상 화면에서는 어디서 '받기'를 눌러도 이동 → 🏪 기본상품 샵 과 똑같이 가게로 들어가요
        (책상에서 바로 받는 창이 뜨지 않게 · 가게 안에서는 진열대 이름표로) · 📱 폰 · 하단 메뉴 화면 = 예전 기본상품 샵 창 그대로 */
-    const shMustWalk = () => document.documentElement.classList.contains('desk-on') && !(window.shopSceneOn && shopSceneOn());
+    const shMustWalk = () => !(window.shopSceneOn && shopSceneOn());   // 💻 📲 📱 모두 가게로 걸어가요 (예전 기본상품 샵 창 영구 삭제 · 도련 11-10)
     function shWalk() {
         if (SH.walking) return; SH.walking = true; setTimeout(() => { SH.walking = false; }, 1500);
-        const go = () => { ['basketModal', 'basketKindModal', 'shelfModal', 'shelfCornerModal', 'shelfKindModal', 'deskBoxModal', 'gdCabModal', 'moveModal'].forEach(id => { if (vis(id)) closeModal(id); });
+        const go = () => { ['basketModal', 'basketKindModal', 'shelfCornerModal', 'shelfKindModal', 'deskBoxModal', 'gdCabModal', 'moveModal'].forEach(id => { if (vis(id)) closeModal(id); });
             if (window.deskLeave) deskLeave(); if (window.deskRun) deskRun('shop'); };
         if (document.documentElement.classList.contains('desk-edit')) {                // 🛠 꾸미는 중이면 먼저 마칠지 물어봐요
             showAsk('🛠 책상 꾸미기를 마치고<br>🏪 기본상품 샵으로 갈까요?', '저장하고 가기', '그대로 꾸미기').then(ok => { if (ok && window.deskEditEnd) { deskEditEnd(true); setTimeout(go, 300); } });
@@ -1176,16 +1176,10 @@
         if (window.deskTopGo) deskTopGo(go); else go();                       // 📔 펼친 다이어리는 저장하고 접은 뒤 (위 버튼들과 같게)
     }
     window.shWalk = shWalk;
-    /* 기본상품 샵 첫 창 : 종류 아이콘 (🌸 계절은 이벤트 때만) */
+    /* 🏪 기본상품 샵 = 가게로 걸어가요 (예전 종류 아이콘 창은 영구 삭제 · 도련 11-10) · 가게 안이면 고르는 창만 닫고 가게 그대로 */
     function openShelf() {
-        if (shMustWalk()) { shWalk(); return; }
-        if (window.shopSceneOn && shopSceneOn()) { if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); } return; }   // 🏪 가게 안이면 고르는 창만 닫고 가게 그대로 (js/shopscene.js)
-        if (vis('basketModal')) closeModal('basketModal');
-        if (vis('basketKindModal')) closeModal('basketKindModal');
-        if (vis('shelfKindModal')) closeModal('shelfKindModal');
-        if (vis('shelfCornerModal')) closeModal('shelfCornerModal');
-        const se = document.querySelector('#shelfModal [data-shk="season"]'); if (se) se.hidden = !shSeasonOn();
-        openModal('shelfModal');
+        if (window.shopSceneOn && shopSceneOn()) { if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); } return; }   // js/shopscene.js
+        shWalk();
     }
     /* 그 종류의 기본상품 샵 창 */
     async function shOpenKind(k, c) {
@@ -1195,7 +1189,7 @@
         SH.wantCat = null;
         const cats = shCatList(k);
         if (cats && !cats.some(x => x[0] === c)) { shCorner(k); return; }      // 🏪 칸이 있는 종류 = 먼저 코너 (창 안 칸 탭 없음 · 도련 11-04)
-        closeModal('shelfModal'); closeModal('shelfCornerModal'); openModal('shelfKindModal');
+        closeModal('shelfCornerModal'); openModal('shelfKindModal');
         const cn = cats ? cats.find(x => x[0] === c) : null;
         const t = bq('shkTitle'); if (t) t.textContent = '🏪 ' + (cn ? (k === 'bg' ? cn[1] + ' 배경지' : cn[1]) : K[0]);
         const box = bq('shkWrap'); SH.kind = k; SH.items = []; SH.pg = 0; SH.cat = c || ''; SH.got = new Set(); shZoomOff();
@@ -1241,13 +1235,13 @@
         const tt = bq('shcTitle'); if (tt) tt.textContent = '🏪 ' + SH_CORNER[k];
         const sg = bq('shcSign'); if (sg) sg.textContent = SH_CORNER[k].split(' ').slice(1).join(' ');
         const cs = bq('shcCase'); if (cs) cs.innerHTML = rows.map(r => `<div class="st2-row">${r.map(([c, n, ic]) => `<button type="button" class="st2-slot st2-more" onclick="shOpenKind('${k}','${c}')"><i class="st2-goods art" data-art="1"><b class="st2-emo">${ic}</b></i><b class="st2-tag">${esc(n)}</b></button>`).join('')}</div><div class="st2-plank"></div>`).join('');
-        closeModal('shelfModal'); if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); }
+        if (vis('shelfKindModal')) { shZoomOff(); closeModal('shelfKindModal'); }
         openModal('shelfCornerModal');
     }
     function shBack() {                                                        // 창의 ← : 💻 가게 안 = 창만 닫기 (코너 그대로) · 코너에서 왔으면 코너 · 아니면 기본상품 샵
         if (window.shopSceneOn && shopSceneOn()) { shZoomOff(); closeModal('shelfKindModal'); return; }
         if (SH.corner && shCatList(SH.kind) && SH.corner === SH.kind) { shCorner(SH.kind); return; }
-        openShelf();
+        shZoomOff(); closeModal('shelfKindModal');
     }
     /* 😀 이모지 글자 묶음 → [[묶음 이름, [글자…]], …] · 🏷 이름표 아이콘 고르기가 써요 (js/desk.js) */
     const EMO_CATS = [['faces', '😀 얼굴'], ['animals', '🐶 동물'], ['food', '🍎 음식'], ['activities', '🎈 활동'], ['travel', '🚗 탈것'], ['objects', '💡 물건'], ['symbols', '💟 기호']];
@@ -2022,13 +2016,13 @@
             if (!down) return; const [x, y] = down; down = null;
             if (Math.hypot(e.clientX - x, e.clientY - y) > 10) return;          // 끌기는 아니에요
             const m = document.getElementById('shelfKindModal'); if (!m || m.style.display !== 'flex') return;
-            e.preventDefault(); openShelf();
+            e.preventDefault(); shBack();
             const eat = ev => { ev.stopPropagation(); ev.preventDefault(); }; addEventListener('click', eat, { capture: true, once: true }); setTimeout(() => removeEventListener('click', eat, true), 400);   // 닫는 톡이 밑의 것까지 누르지 않게
         }, true);
     })();
     /* 📦 기본상품 샵 옮기기 (도련 10-25 · 🗄️ 문구함 gdCabMovable 과 같게) : 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡은 그대로 · 끈 뒤 톡은 무시 · ✕ 는 끌기 아님 */
     (function objMovable() {
-        const go = () => ['shelfModal', 'shelfCornerModal', 'shelfKindModal'].forEach(id => {
+        const go = () => ['shelfCornerModal', 'shelfKindModal'].forEach(id => {
             const w = document.querySelector('#' + id + ' > .obj-win'); if (!w || w.dataset.mv) return; w.dataset.mv = 1;
             let d = null, swallow = false;
             w.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('.mt-x, .modal-title, .sh-zoom')) return; d = { x: e.clientX, y: e.clientY, ox: parseFloat(w.style.left) || 0, oy: parseFloat(w.style.top) || 0, on: false, id: e.pointerId }; });   // 제목 줄은 js/skins.js 가 옮겨요 (두 번 안 움직이게) · 확대 창 안은 끌기 X
