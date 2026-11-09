@@ -413,7 +413,7 @@
         /* josa = 🧰 js/util.js */
 
         /* 🔗 소품 ↔ 기능 : [기능, 이름, 하단 메뉴 버튼(없으면 바로 열기), 표시] · 처음 연결 (도련 10-27 · 바꿀 수 있어요) */
-        const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '🗄️'], ['pc', '펜꽂이', '', '✏️'], ['cafe', '카페', 'tb-cafe', '☕'], ['set', '설정', 'tb-set', '⚙️'],
+        const DK_FNS = [['skin', '다이어리', 'tb-skin', '📔'], ['sticker', '스티커', 'tb-sticker', '⭐'], ['gd', '문구함', 'tb-gd', '🗄️'], ['pc', '펜꽂이', '', '✏️'], ['cafe', '카페', '', '☕'], ['set', '설정', '', '⚙️'],
             ['shop', '기본상품 샵', '', '🏪'], ['edit', '책상 꾸미기', '', '🛠']];   // 📦 소품함은 기능에서 뺐어요 (도련 10-28 : 소품을 내놓고 넣는 건 🛠 책상 꾸미기 안에서만 → 작업대 📦 소품함)
         const DK_FN_KEY = 'diary_desk_fn', DK_FN_LOCAL = 'malang_desk_fn';
         /* 🪟 누르면 열리는 창 = 기능 + 상품 창 한 목록 (도련 10-30 : 모든 창이 🔗 기능 연결 목록에) · [id, 이름, 하단 메뉴 버튼, 아이콘, 묶음 'fn' | 'h']
@@ -493,7 +493,8 @@
             if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }
             if ((fn === 'pc' || fn === 'gd') && window.dkwOpenFor && document.documentElement.classList.contains('desk-on')) { setTimeout(() => dkwOpenFor(''), 0); return; }   // ✏️ 🗄️ 문구가 든 곳 (펜꽂이 · 서랍은 소품을 누르면 그곳 · js/deskgd.js)   // 🗄️ 서랍장 문구함 칸 = 서랍이 열려요 (📱 폰은 예전 문구함 창)                // 📦 소품함 (다이어리를 띄우지 않아요)
             if (fn === 'skin' && window.dyOpen) { setTimeout(() => dyOpen('다이어리'), 0); return; }   // 📔 책상에서는 바로 다이어리 보관소 (배경지는 책상에서 못 써서 메뉴를 건너뛰어요 · 도련 10-28)
-            const f = DK_FNS.find(x => x[0] === fn), b = f && document.querySelector('.toolbar .' + f[2]); if (!b) return;
+            if (fn === 'set') { setTimeout(() => window.openSettingsMenu && openSettingsMenu(), 0); return; }   // ⚙ 설정 (하단 메뉴 ⚙ 버튼은 영구 삭제 · 도련 11-10)
+            const f = DK_FNS.find(x => x[0] === fn), b = f && f[2] && document.querySelector('.toolbar .' + f[2]); if (!b) return;
             const go = () => { b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })); b.click(); };
             if (!['skin', 'set', 'gd', 'sticker', 'cafe'].includes(fn) && !document.documentElement.classList.contains('desk-show')) { deskOpenDiary(); setTimeout(go, 620); }   // ⭐ 스티커 · ☕ 카페도 다이어리를 안 띄워요 (도련 10-28 · 책상 위 바인더가 공중에 뜨지 않게) · 📔 다이어리 · ⚙ 설정 · ✏️ 문구함은 다이어리를 띄우지 않아요 (도련 10-28)
             else setTimeout(go, 0);
@@ -572,7 +573,7 @@
             giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); });
         }
 
-        /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 (가게 안에서는 🚪 내 방) + ☕ 카페 칸 전부 (카페 창 #svcCats 의 칸을 열 때마다 복사 · 새 칸이 생기면 저절로 · 알림 숫자도 그대로)
+        /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 (가게 안에서는 🚪 내 방) + ☕ 칸 전부 (#moveCafe · 새 칸 = index.html 에 한 줄)
            칸 톡 = 이동 창 닫고 → 카페 칸이면 카페 창의 그 칸 · 준비중 · 따로 여는 것(인형 · 펫 …)은 그것만 */
         /* 📍 지금 있는 장소 = 이동 창 칸의 data-place 이름표와 같은 이름 (새 장소 = 여기 한 줄 + 칸에 이름표) */
         function deskHere() {
@@ -588,30 +589,22 @@
             return 'room';
         }
         function deskMoveOpen() {
-            const evP = window.evLiveCheck ? evLiveCheck() : null;               // 🎉 지금 열린 이벤트 광장이 있나 (js/service.js · 1분에 한 번까지 · 알면 칸을 다시 채워요)
+            if (window.evLiveCheck) evLiveCheck();                               // 🎉 지금 열린 이벤트 광장이 있나 (js/service.js · 1분에 한 번까지 · 칸을 저절로 보여요)
             const box = document.getElementById('moveCafe'), here = deskHere();
             const rm = document.getElementById('moveRoom'), ph = !document.documentElement.classList.contains('desk-on');   // 💻 📲 하단 메뉴 화면도 책상이 없어요 (도련 11-10)   // 📱 폰은 내 방(책상)이 없어요 → '다이어리' = 하단 메뉴 넷이 있는 다이어리 화면으로 (도련 11-09)
             if (rm) rm.innerHTML = ph ? '<span class="svc-cat-icon">📔</span><b>다이어리</b><small>다이어리로 돌아가기</small>' : '<span class="svc-cat-icon">🚪</span><b>내 방</b><small>책상으로 돌아가기</small>';
             document.querySelectorAll('#moveModal > .modal-content > .svc-cats > [data-place]').forEach(b => { b.hidden = b.dataset.place === here; });   // 📍 지금 있는 곳은 목록에서 빼요 (도련 10-31 · 규칙 하나 · 칸마다 data-place 이름표)
-            const fill = () => {
-                box.innerHTML = '';
-                document.querySelectorAll('#svcCats > .svc-cat:not(.svc-extra):not([hidden])').forEach(b => {
-                    if (b.dataset.place && b.dataset.place === here) return;
-                    const c = b.cloneNode(true); c.removeAttribute('onclick'); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
-                    const cat = /svcOpenCat/.test(b.getAttribute('onclick') || '');
-                    const stay = /준비중/.test(b.textContent) || b.hasAttribute('data-keep');   // 🚧 (준비중) · 👭 모임방(새 창) = 이동 창 · 지금 장소 그대로 (도련 10-31)
-                    c.addEventListener('click', () => { if (stay) { b.click(); return; } closeModal('moveModal'); if (window.dsClear) dsClear(); deskLeave(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true); if (cat) openModal('serviceModal'); b.click(); });
-                    box.appendChild(c);
-                });
-            };
-            if (evP && box) evP.then(() => { const m = document.getElementById('moveModal'); if (m && m.style.display === 'flex') fill(); }).catch(() => {});
-            if (box) {
-                fill();
-                if (typeof svcDailyBadges === 'function') Promise.resolve(svcDailyBadges()).then(() => { if (getComputedStyle(document.getElementById('moveModal')).display !== 'none') fill(); });   // 🌷 물 주기 표시는 조금 늦게 와요
-            }
+            if (box) box.querySelectorAll('.svc-cat').forEach(b => b.classList.toggle('mv-here', !!b.dataset.place && b.dataset.place === here));   // 📍 지금 있는 곳은 빼요
+            if (typeof svcDailyBadges === 'function') svcDailyBadges();
             openModal('moveModal');
         }
         window.deskMoveOpen = deskMoveOpen;
+        /* ☕ 이동 칸 톡 (#moveCafe = 칸 원본 · 예전엔 카페 목록 창 #svcCats 를 베꼈어요 · 도련 11-10) : 이동 창 닫고 지금 장소를 떠난 뒤 그 칸 · 🚧 (준비중) · 👭 모임방(data-keep) = 이동 창 · 지금 장소 그대로 */
+        document.addEventListener('click', e => {
+            const b = e.target.closest && e.target.closest('#moveCafe .svc-cat'); if (!b) return;
+            if (/준비중/.test(b.textContent) || b.hasAttribute('data-keep')) return;
+            closeModal('moveModal'); if (window.dsClear) dsClear(); deskLeave(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true);
+        }, true);
         /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · ✂️ 스티커 만들기(→ 🎨 다꾸 작업실) · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
            다른 곳에 갔다 내 방으로 돌아올 때마다(deskGoRoom) 보이는 메뉴가 다음 것으로 돌아가요 (이 창이 열려 있는 동안만 기억 · 처음 = 책상 꾸미기) */
         const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 만들기', () => window.openCraft && openCraft()], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['오늘 쓸 스티커', () => window.stpOpen && stpOpen()], ['바인더 조립', () => window.bndOpen && bndOpen()]];   // 🧩 바인더 조립 공간 (도련 11-07 · js/binderroom.js)   // 🍽 오늘 쓸 스티커 (js/stktray.js · 도련 11-01)

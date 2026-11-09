@@ -47,11 +47,9 @@
         .tb-btn:active { transform: scale(.93); }
         .tb-sticker { background: var(--menu-fill-1, #fde9a8); color: var(--menu-ink-1, #9a6414); }
         .tb-skin { background: var(--menu-fill-2, #fbd3dd); color: var(--menu-ink-2, #a23a57); }
-        .tb-cafe { background: var(--menu-fill-3, #cdebc3); color: var(--menu-ink-3, #2f6b3a); }
-        .tb-set { background: var(--menu-fill-4, #dccdf5); color: var(--menu-ink-4, #5b3f9e); }
         .tb-move { display: none; background: var(--menu-fill-3, #cdebc3); color: var(--menu-ink-3, #2f6b3a); }
-        html:not(.desk-on) .tb-move { display: flex; }   /* 📱 폰 · 💻 📲 하단 메뉴 = ☕ 카페 · ⚙ 설정 자리에 🚪 이동 하나 (설정은 이동 창 왼쪽 위 · 도련 11-09 · 11-10) */
-        html:not(.desk-on) .toolbar .tb-cafe, html:not(.desk-on) .toolbar .tb-set { display: none; }
+        html:not(.desk-on) .tb-move { display: flex; }
+        #moveModal .svc-cat.mv-here { display: none !important; }   /* 📍 지금 있는 곳 (js/desk.js deskMoveOpen) */   /* 📱 폰 · 💻 📲 하단 메뉴 = ☕ 카페 · ⚙ 설정 자리에 🚪 이동 하나 (설정은 이동 창 왼쪽 위 · 도련 11-09 · 11-10) */
         .btn {
             background: #fff; border: 2px solid var(--border-color); color: #444;
             padding: 5px 10px; border-radius: 12px; font-weight: bold; cursor: pointer;
@@ -3241,8 +3239,6 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.punch.press svg { transform: scale(.9); }
 /* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1.5초) */
-/* ☕ 카페에 있는 동안은 손에 든 문구를 숨겨요 (js/settings.js · 도련 10-21) */
-body.cafe-on .pin-cur, body.cafe-on .scs-cur, body.cafe-on .scs-aim, body.cafe-on .sk-knife.held, body.cafe-on .bd-tool.held, body.cafe-on .pc-held:not(.laid), body.cafe-on .twz-say { visibility: hidden !important; }
 body:has(#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfCornerModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 기본상품 샵 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
    🚪 스티커 떼는 창(흰 종이 · 조각 봉투)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
@@ -3484,23 +3480,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .gdc-it:active { transform: scale(.94); }
 .gdc-tip { margin: 14px 0 0; text-align: center; font-size: 11px; color: #8a6a72; background: rgba(255, 255, 255, .85); border-radius: 10px; padding: 3px 8px; }
 
-/* 🏡 카페 마을 (js/service.js openCafeTown) : 화면 꽉 채운 그림 · 남는 쪽은 밀어서 둘러보기 · 창(1000)보다 아래라 메뉴 창이 위에 떠요 */
-.ct-room { position: fixed; inset: 0; z-index: 990; display: none; place-items: center; overflow: hidden; background: #ffe6f0; animation: ctIn .35s ease-out; }
-.ct-room::before { content: ''; position: absolute; inset: -40px; background: url(../img/cafe-town.webp) center / cover; filter: blur(18px) brightness(1.05); opacity: .75; }   /* 그림 밖 남는 곳 */
-@keyframes ctIn { from { opacity: 0; transform: scale(1.04); } }
-.ct-stage { position: relative; width: min(100vw, calc(100vh * 1672 / 941)); width: min(100vw, calc(100dvh * 1672 / 941)); aspect-ratio: 1672 / 941; box-shadow: 0 0 40px rgba(120, 60, 90, .25); }
-.ct-stage { container-type: inline-size; }
-.ct-soon { position: absolute; transform: translateX(-50%); pointer-events: none; white-space: nowrap; font: 800 1.08cqw/1.15 var(--font-family, inherit); color: #e53950; letter-spacing: .02em; text-shadow: 0 0 2px #fffaf2, 0 0 2px #fffaf2; }   /* 🚧 (준비중) : 그림 속 이름 아래 빨간 글씨 (js/service.js CT_SOON) */
-.ct-stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
-.ct-fx { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
-.ct-spot { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 22%; -webkit-tap-highlight-color: transparent; }
-@media (hover: hover) { .ct-spot:hover { background: radial-gradient(closest-side, rgba(255, 255, 255, .32), rgba(255, 255, 255, 0)); } }
-.ct-spot.ct-hit { animation: ctHit .35s ease-out; }
-@keyframes ctHit { 0% { background: radial-gradient(closest-side, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0)); transform: scale(.97); } 100% { background: none; transform: none; } }
-.ct-spot .svc-badge { position: absolute; top: 50%; right: 3%; }
-.ct-back { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 10px; z-index: 2; border: 2px solid #f2a7c0; border-radius: 16px; padding: 6px 14px; background: rgba(255, 255, 255, .94); color: #c2557d; font: 800 14px var(--font-family, inherit); cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
-.ct-x { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 10px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); color: #d94f7a; font: 800 16px var(--font-family, inherit); cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
-.ct-room .snd-fx.ct-snd { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 54px; z-index: 2; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid #f2a7c0; background: rgba(255, 255, 255, .94); font-size: 16px; cursor: pointer; box-shadow: 0 3px 10px rgba(160, 80, 110, .25); }
 
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
 #skinModal, #patternModal, #makerModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfModal, #shelfCornerModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
@@ -3936,7 +3915,6 @@ html:not(.is-phone) .dsk .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width: 176
 .dg-ic { flex: none; width: 38px; height: 38px; border-radius: 12px; background: #fff0f5; display: flex; align-items: center; justify-content: center; }
 .dg-ic svg { width: 27px; height: 26px; }
 body.dg-on .toolbar .tb-move { box-shadow: 0 0 0 3px rgba(245, 165, 36, .35), 0 0 14px 3px rgba(245, 165, 36, .35); }   /* 🩷 메모가 떠 있으면 📱 아래 🚪 이동이 빛나요 (도련 11-10 · 메모 글 = 이동 → 기본상품 샵) */
-body.cafe-on .dg-note { visibility: hidden; }
 body.dg-on #deskShopGo { box-shadow: 3px 3px 0 #e6dcf8, 0 0 0 3px rgba(245, 165, 36, .35), 0 0 14px 3px rgba(245, 165, 36, .45); }   /* 🩷 메모가 떠 있으면 🚪 이동이 살짝 빛나요 (도련 10-31 · 시작하는 곳) */
 /* 🎀 롤에서 뽑는 테이프 (도련 10-26 · js/basket.js dsPull) : 롤 밑에서 풀려 나와요 */
 .dsk-pull { position: absolute; transform-origin: 0 50%; background-repeat: repeat-x; background-size: auto 100%; opacity: .92; box-shadow: 0 1px 3px rgba(110, 80, 95, .2); pointer-events: none; }
@@ -4182,7 +4160,7 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .bkd.bk-ph .bkd-tools .bkd-chip { height: 28px; padding: 0 8px; font-size: 12px; }
 .bkd.bk-ph .bkd-tools .bkd-chip > span { display: inline !important; }
 /* 📱 폰의 창 닫기 ✕ = 모두 다이어리 창 ✕ 모양 (동그라미 없이 분홍 ✕ 글자만 · css/anime.css .mt-x 와 같이 · 도련 11-09 · 🗄️ 문구함 ✕ 만 흰 동그라미 그대로) */
-html.is-phone :is(.bkd-x, .smk-x, .tk-x, .sr-x, .spr-x, .sk-x, .se-x, .pm-x, .pl-x, .pel-x, .pc-x, .mo-x, .hof-x, .gc-x, .dd-x, .cy-x, .ct-x, .cr8-x, .at-x, .abs-x, .psy-x, .nm-x, .lb-x, .tj-x, .fc-x, .pb-x) {
+html.is-phone :is(.bkd-x, .smk-x, .tk-x, .sr-x, .spr-x, .sk-x, .se-x, .pm-x, .pl-x, .pel-x, .pc-x, .mo-x, .hof-x, .gc-x, .dd-x, .cy-x, .cr8-x, .at-x, .abs-x, .psy-x, .nm-x, .lb-x, .tj-x, .fc-x, .pb-x) {
   background: none !important; border: 0 !important; box-shadow: none !important; outline: 0; color: #e07595 !important; font-size: 19px !important; font-weight: 800; line-height: 1; padding: 0 !important; width: 32px !important; height: 32px !important; min-width: 0 !important; place-items: center; justify-content: center; align-items: center; cursor: pointer; }   /* display 는 그대로 (숨긴 ✕ 가 보이지 않게) */
 html.is-phone .dg-x { color: #e07595; }   /* 🩷 다꾸하는 법 메모 ✕ (그림 ✕ → 같은 분홍 · 같은 굵기) */
 html.is-phone .dg-x svg { width: 15px; height: 15px; stroke-width: 2.6; }

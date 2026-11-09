@@ -253,13 +253,9 @@
         const CAFE_URL = 'https://cafe.naver.com/softsweetdiary';   // 👭 말랑달콤 다꾸러 모임방 (네이버 카페)
 
         /* ☕ 카페 : 1단계 카테고리 → 2단계 놀이 (카페를 열 때마다 카테고리부터 · js/settings.js openModal) */
-        function svcShowCats() {
-            evLiveCheck();                                                       // 🎉 지금 열린 이벤트가 있나 (1분에 한 번까지)
-            const cats = document.getElementById('svcCats'); if (!cats) return;
-            cats.hidden = true;                                                  // ☕ 카페 칸 목록 창은 없앴어요 (도련 11-09 · 이제 🚪 이동 창) · 목록은 이동 창이 그대로 베껴 쓰는 원본이라 숨겨만 둬요 (js/desk.js deskMoveOpen)
+        function svcShowCats() {                                                 // ☕ 칸 창(serviceModal)을 열 때마다 칸을 비워요 (☕ 카페 목록 창은 영구 삭제 · 도련 11-10 · 목록 = 🚪 이동 창 #moveCafe)
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = true; });
             document.getElementById('svcBack').classList.add('mt-none');
-            svcDailyBadges();
         }
         /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 🌷 화분은 준비중이라 표시 없음)
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
@@ -284,18 +280,9 @@
             };
             const seen = svcSeenGet(), fresh = id => !seen.includes(id);
             const stamp = typeof attendDone === 'function' && !attendDone() && fresh('svcBtnAttend');
-            mark('svcBtnAttend', stamp ? '오늘 아직!' : '');
-            mark('svcCatDaily', stamp ? 1 : '');
-            mark('ctDaily', stamp ? 1 : '');      // 🏡 카페 마을의 매일 집에도
+            mark('svcCatDaily', stamp ? 1 : '');                              // 🚪 이동 창 벽걸이 달력 칸
         }
-        /* 🌱 달력 칸의 버튼을 누르면 그 버튼만 '알려 줌' 처리 (다른 버튼의 표시는 건드리지 않아요) */
-        document.addEventListener('click', e => {
-            const b = e.target.closest && e.target.closest('#svcPanel-daily .service-btn[id]');
-            if (!b || !b.querySelector('.svc-badge')) return;
-            svcSeenAdd([b.id]);
-            setTimeout(svcDailyBadges, 0);
-        }, true);
-        const SVC_CAT_NAMES = { daily: '📅 벽걸이 달력', fortune: '🔮 타로카페', make: '🧸 인형방', game: '🕹️ 뿅뿅오락실', watch: '🎧 보고·듣기', together: '💌 우체통' };
+        const SVC_CAT_NAMES = { make: '🧸 인형방', watch: '🎧 보고·듣기' };
         function svcOpenCat(id) {
             if (id === 'make') return openDollSoon();                         // 🧸 인형방 = 준비중 (어디서 열어도 · 10-23 도련)
             if (id === 'daily' && window.openCalRoom) return openCalRoom();   // 📅 💻 📲 = 달력 한 장 · 📱 = 세로 달력 안에 버튼 셋 (도련 11-09) (출석 · 생리 · D-day · 도련 10-31 · js/calroom.js)
@@ -303,7 +290,7 @@
             if (id === 'fortune' && window.openTarotRoom) return openTarotRoom();   // 🔮 💻 📲 📱 = 타로카페 (📱 폰은 세로 그림 · 도련 11-09) (카드 다섯 장 = 메뉴 · 도련 10-31 · js/tarotroom.js)
             if (id === 'together' && window.openPostRoom) return openPostRoom();   /* 📱 도 (세로 우체통 · 도련 11-09) */   // 📮 💻 📲 = 별밤 우체통 (익명 편지함 · 건의함 · 도련 10-31 · js/postroom.js)
             const panel = document.getElementById('svcPanel-' + id); if (!panel) return;
-            document.getElementById('svcCats').hidden = true;
+            if (getComputedStyle(document.getElementById('serviceModal')).display === 'none') openModal('serviceModal');
             document.querySelectorAll('#serviceModal .svc-panel').forEach(p => { p.hidden = p !== panel; });
             document.getElementById('svcTitle').textContent = SVC_CAT_NAMES[id] || '☕ 카페';
             document.getElementById('svcBack').classList.remove('mt-none');
@@ -455,141 +442,7 @@
                 }[reason] + '<br><span style="font-size:12px;color:#999;">적은 내용은 그대로 남아 있어요.</span>');
             }
         }
-
-
-        /* =====================================================================
-           🏡 카페 마을 (도련 10-19) : 하단 '카페' = 화면 전체가 예쁜 마을로 바뀌어요 · 건물을 톡 = 그 메뉴
-           - 그림 : img/cafe-town.webp (1672×941 · 도련이 준 그림 · 이름표도 그림 안에 있어요)
-           - 📱 폰(짧은 쪽 600px 미만)은 예전 카페 버튼 창 · 패드 · PC 는 그림 전체가 화면 안에 꼭 맞게 (창 크기 따라 · 남는 곳은 흐린 그림)
-           - CT_SPOTS : 그림 위 누르는 칸 [x0, y0, x1, y1] (그림 픽셀) · 칸을 바꾸려면 숫자만 고치면 돼요
-           - 달력 · 타로카페 · 인형방 · 오락실 · 우체통 = 카페 창의 그 칸을 바로 (‹ 카페 단추는 숨김 · ✕ 로 닫으면 다시 마을)
-           - 가운데 카페 건물은 아직 연결 없음 (숨겨 둔 저금통 · 문구점 · 보고·듣기 자리로 쓸 수 있어요) */
-        const CT_W = 1672, CT_H = 941;
-        const CT_SPOTS = [
-            ['daily', '📅 벽걸이 달력', [0, 0, 490, 235]], ['fortune', '🔮 타로카페', [935, 0, 1275, 245]], ['make', '🧸 인형방', [1300, 120, 1672, 360]],
-            ['game', '🕹️ 뿅뿅오락실', [30, 280, 410, 510]], ['pet', '🐾 펫 키우기', [1270, 360, 1672, 595]], ['honey', '🍯 꿀농장', [55, 540, 410, 830]],
-            ['window', '🪟 여행', [600, 630, 1045, 862]], ['together', '💌 우체통', [1270, 610, 1672, 830]]
-        ];
-        const CT_SOON = [[215, 802], [961, 829], [1578, 514], [1472, 332]];   // 🚧 (준비중) 빨간 글씨 = 그림 속 이름 바로 아래 [가운데 x, 위 y] (그림 픽셀) · 꿀농장 · 여행 · 펫 키우기 · 인형 꾸미기 (도련 10-23) · 열리면 여기서 빼요
-        function ctBuild() {
-            let el = document.getElementById('cafeTown'); if (el) return el;
-            el = document.createElement('div'); el.id = 'cafeTown'; el.className = 'ct-room';
-            el.innerHTML = `<div class="ct-stage"><img src="img/cafe-town.webp" alt="말랑달콤 카페 마을" draggable="false"><canvas class="ct-fx" width="418" height="235" aria-hidden="true"></canvas>${CT_SPOTS.map(([id, n, [x0, y0, x1, y1]]) =>
-                `<button type="button" class="ct-spot"${id === 'daily' ? ' id="ctDaily"' : ''} data-ct="${id}" aria-label="${n}" style="left:${x0 / CT_W * 100}%;top:${y0 / CT_H * 100}%;width:${(x1 - x0) / CT_W * 100}%;height:${(y1 - y0) / CT_H * 100}%"></button>`).join('')}${CT_SOON.map(([x, y]) => `<span class="ct-soon" style="left:${x / CT_W * 100}%;top:${y / CT_H * 100}%">(준비중)</span>`).join('')}</div>
-                <button type="button" class="ct-back" onclick="closeCafeTown()">‹ 다이어리</button><button type="button" class="ct-x" aria-label="닫기" onclick="closeCafeTown()">✕</button>${typeof sndFxBtn === 'function' ? sndFxBtn('ct-snd') : ''}`;
-            document.body.appendChild(el);
-            el.addEventListener('click', e => {
-                if (e.target.closest('.ct-snd')) { setTimeout(ctSndSync, 0); return; }     // 🔊 버튼 = 설정의 '연출 소리' (sndToggleFx) → 켜면 마을 소리도 다시
-                const b = e.target.closest('.ct-spot'); if (!b) return;
-                b.classList.remove('ct-hit'); void b.offsetWidth; b.classList.add('ct-hit');
-                setTimeout(() => ctGo(b.dataset.ct), 180);
-            });
-            return el;
-        }
-        const ctPhone = () => Math.min(innerWidth, innerHeight) < 600;      // 📱 폰 = 예전 카페 버튼 창 (도련 10-19)
-        function openCafeTown() {
-            if (ctPhone()) return window.deskMoveOpen ? deskMoveOpen() : null;   // 📱 카페 창 없음 = 🚪 이동 창 (도련 11-09)
-            const el = ctBuild(); el.style.display = 'grid';
-            if (typeof wlPrefetch === 'function') wlPrefetch();
-            svcDailyBadges(); ctFxStart(el); if (typeof sndMark === 'function') sndMark(); ctSndStart();
-        }
-        function closeCafeTown() { const el = document.getElementById('cafeTown'); if (el) el.style.display = 'none'; ctFxStop(); ctSndStop(); }
-        /* ✨ 마을이 군데군데 움직여요 : 그림 위에 투명 캔버스 하나 (418×235 = 그림의 1/4 · 한 칸 = 픽셀아트 한 점)
-           - 🌸 벚꽃잎 · 💧 분수 물방울 · ✨ 호수·연못·분수 반짝임 · 🦆 오리 물결 · 🦋 나비 · 🐝 꿀벌 (위치는 그림 좌표 ÷ 4)
-           - 1초에 12장만 그려서 가볍게 · 마을을 닫으면 멈춰요 · '동작 줄이기' 설정이면 안 움직여요 */
-        let ctFx = null;
-        function ctFxStart(el) {
-            ctFxStop();
-            if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            const cv = el.querySelector('.ct-fx'), g = cv.getContext('2d'), W = cv.width, H = cv.height, rnd = (a, b) => a + Math.random() * (b - a);
-            const px = (x, y, c, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
-            const WATER = [[150, 214, 330, 235], [148, 37, 232, 50], [190, 132, 215, 138], [196, 120, 210, 124]];   // 연못 · 먼 호수 · 분수 아래 · 위 물받이
-            const petal = top => ({ x: rnd(-20, W), y: top ? rnd(-H, 0) : rnd(0, H), v: rnd(.25, .55), a: rnd(0, 6), s: rnd(.02, .05), c: Math.random() < .5 ? '#ffb7cf' : '#ffd6e4' });
-            const P = Array.from({ length: 34 }, () => petal(false));
-            const D = [], S = [], R = [];
-            const B = [0, 1, 2].map(i => ({ x: rnd(100, 330), y: rnd(60, 200), t: rnd(0, 9), c: ['#fff3a0', '#cfe8ff', '#ffc2e0'][i] }));
-            let f = 0, last = 0;
-            const tick = now => {
-                ctFx.raf = requestAnimationFrame(tick);
-                if (now - last < 83) return; last = now; f++;
-                g.clearRect(0, 0, W, H);
-                // ✨ 물 반짝임
-                if (Math.random() < .55) { const w = WATER[Math.random() < .55 ? 0 : (Math.random() * 4) | 0]; S.push({ x: rnd(w[0], w[2]), y: rnd(w[1], w[3]), l: 6 }); }
-                for (let i = S.length - 1; i >= 0; i--) { const k = S[i]; k.l--; if (k.l < 0) { S.splice(i, 1); continue; }
-                    px(k.x, k.y, '#fff'); if (k.l > 2 && k.l < 5) { px(k.x - 1, k.y, '#dff6ff'); px(k.x + 1, k.y, '#dff6ff'); px(k.x, k.y - 1, '#dff6ff'); px(k.x, k.y + 1, '#dff6ff'); } }
-                // 💧 분수 물방울
-                for (let i = 0; i < 2; i++) D.push({ x: 202.5, y: 112, vx: rnd(-.7, .7), vy: rnd(-1.1, -.6), l: 14 });
-                for (let i = D.length - 1; i >= 0; i--) { const k = D[i]; k.x += k.vx; k.y += k.vy; k.vy += .2; k.l--;
-                    if (k.l < 0 || k.y > 134) { D.splice(i, 1); continue; } px(k.x, k.y, k.l > 8 ? '#ffffff' : '#bfe9ff'); }
-                // 🦆 오리 물결
-                if (f % 22 === 0) R.push({ r: 2 });
-                for (let i = R.length - 1; i >= 0; i--) { const k = R[i]; k.r += .5; if (k.r > 11) { R.splice(i, 1); continue; }
-                    g.globalAlpha = 1 - k.r / 11; for (let a = 0; a < 6.28; a += .5) px(281 + Math.cos(a) * k.r * 1.6, 226 + Math.sin(a) * k.r * .45, '#e9f8ff'); g.globalAlpha = 1; }
-                // 🌸 벚꽃잎
-                P.forEach((k, i) => { k.y += k.v; k.a += k.s; k.x += Math.sin(k.a) * .45 + .18;
-                    if (k.y > H + 2 || k.x > W + 4) P[i] = petal(true);
-                    const flip = Math.sin(k.a * 2) > 0; px(k.x, k.y, k.c, flip ? 2 : 1, flip ? 1 : 2); px(k.x + (flip ? 1 : 0), k.y + (flip ? 0 : 1), '#ff8fb5'); });
-                // 🦋 나비 · 🐝 꿀벌
-                B.forEach(k => { k.t += .07; k.x += Math.cos(k.t * .7) * .6 + .1; k.y += Math.sin(k.t * 1.3) * .5; if (k.x > W + 4) k.x = -4;
-                    const open = f % 4 < 2; px(k.x, k.y, '#7a5a62', 1, 2);
-                    if (open) { px(k.x - 2, k.y - 1, k.c, 2, 2); px(k.x + 1, k.y - 1, k.c, 2, 2); } else { px(k.x - 1, k.y - 1, k.c, 1, 2); px(k.x + 1, k.y - 1, k.c, 1, 2); } });
-                for (let i = 0; i < 2; i++) { const t = f * .09 + i * 3.1, bx = 62 + Math.cos(t) * (9 + i * 3), by = 148 + Math.sin(t * 1.7) * 5;
-                    px(bx, by, '#ffd23f', 2, 2); px(bx + 1, by, '#5b3a4a', 1, 2); px(bx, by - 1 - (f % 2), '#ffffff'); }
-            };
-            ctFx = { raf: requestAnimationFrame(tick) };
-        }
-        function ctFxStop() { if (ctFx) cancelAnimationFrame(ctFx.raf); ctFx = null; }
-
-        /* 🎵 마을 소리 = 🐦 새소리만 (도련 10-19 · 파일 없이 브라우저가 만들어요 · js/sound.js 의 '✨ 연출 소리' 켜기/끄기 · 크기를 따라요)
-           - 몇 초마다 짹짹 (왼쪽 · 오른쪽 여기저기서) · 마을을 닫거나 다른 앱으로 가면 멈춰요 · 오른쪽 위 🔊 로 끄고 켜요 */
-        let ctSnd = null;
-        const CT_LV = 1.8;                                                     // 마을 소리 전체 크기 (연출 소리 크기 위에 곱해요)
-        function ctSndStart() {
-            ctSndStop(true);
-            const town = document.getElementById('cafeTown');
-            if (!town || town.style.display === 'none' || document.hidden || typeof sndFx !== 'function') return;
-            const ac = sndFx(); if (!ac || !sndOut()) return;
-            const t = ac.currentTime, bus = ac.createGain(); bus.gain.setValueAtTime(0.0001, t); bus.gain.exponentialRampToValueAtTime(CT_LV, t + 1.8); bus.connect(sndOut());
-            const nodes = [];
-            ctSnd = { ac, bus, nodes, tm: [] };
-            // 🐦 새소리
-            const bird = () => {
-                if (!ctSnd) return; const n = 2 + (Math.random() * 3 | 0), base = 2600 + Math.random() * 1400, pan = ac.createStereoPanner ? ac.createStereoPanner() : null, t0 = ac.currentTime + .05;
-                if (pan) { pan.pan.value = Math.random() * 1.6 - .8; pan.connect(bus); }
-                for (let i = 0; i < n; i++) {
-                    const o = ac.createOscillator(), g = ac.createGain(), s0 = t0 + i * (.09 + Math.random() * .05);
-                    o.frequency.setValueAtTime(base, s0); o.frequency.exponentialRampToValueAtTime(base * (1.25 + Math.random() * .3), s0 + .05); o.frequency.exponentialRampToValueAtTime(base * .9, s0 + .08);
-                    g.gain.setValueAtTime(0.0001, s0); g.gain.exponentialRampToValueAtTime(.035, s0 + .01); g.gain.exponentialRampToValueAtTime(0.0001, s0 + .085);
-                    o.connect(g).connect(pan || bus); o.start(s0); o.stop(s0 + .1);
-                }
-                ctSnd.tm.push(setTimeout(bird, 2200 + Math.random() * 5000));
-            };
-            ctSnd.tm.push(setTimeout(bird, 1200));
-            let lv = CT_LV;                                                       // 위에 창이 뜨면 작게 · 놀이 화면(오락실 등)이 뜨면 조용히
-            ctSnd.duck = setInterval(() => {
-                if (!ctSnd) return;
-                const up = sel => [...document.querySelectorAll(sel)].some(e => e.id !== 'cafeTown' && !e.closest('#cafeTown') && e.getClientRects().length > 0);
-                const v = up('[class*="-room"]') ? .0001 : up('.modal') ? CT_LV * .35 : CT_LV;
-                if (v !== lv) { lv = v; const t = ac.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(Math.max(bus.gain.value, .0001), t); bus.gain.exponentialRampToValueAtTime(v, t + .5); }
-            }, 700);
-        }
-        function ctSndStop(now) {
-            if (!ctSnd) return; const { ac, bus, nodes, tm, duck: ctSnd_duck } = ctSnd; ctSnd = null;
-            tm.forEach(clearTimeout); clearInterval(ctSnd_duck);
-            const t = ac.currentTime; try { bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(Math.max(bus.gain.value, .0001), t); bus.gain.exponentialRampToValueAtTime(0.0001, t + (now ? .05 : .4)); } catch (e) {}
-            setTimeout(() => { nodes.forEach(n => { try { n.stop(); } catch (e) {} }); try { bus.disconnect(); } catch (e) {} }, now ? 80 : 450);
-        }
-        function ctSndSync() { if (typeof sndOn === 'function' && sndOn()) ctSndStart(); else ctSndStop(); }
-        document.addEventListener('snd-fx-off', () => ctSndStop());
-        document.addEventListener('visibilitychange', () => { const el = document.getElementById('cafeTown'); if (!el || el.style.display === 'none') return; if (document.hidden) ctSndStop(); else ctSndSync(); });
-        function ctGo(id) {
-            if (id === 'pet') return openPet();
-            if (id === 'honey') return openHoney();
-            if (id === 'window') return comingSoon('🪟 여행');
-            if (id === 'make') return openDollSoon();
-            openModal('serviceModal'); svcOpenCat(id);
-            document.getElementById('svcBack').classList.add('mt-none');    // 마을에서 왔으니 ‹ 카페 대신 ✕ = 마을로
-        }
+        /* 🏡 카페 마을 (하단 '카페' → 마을 그림 · img/cafe-town.webp)은 영구 삭제 (도련 11-10 · 🚪 이동 창이 대신) */
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['service'] = true;

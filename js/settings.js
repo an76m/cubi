@@ -271,31 +271,13 @@
                 new MutationObserver(() => { const v = vis(m), was = seen.get(m); seen.set(m, v); if (v && !was) opened(m); }).observe(m, { attributes: true, attributeFilter: ['style'] });
             }
             document.querySelectorAll('.modal').forEach(watch);
-            document.addEventListener('click', e => {                           // ☕ 카페 마을은 창(.modal)이 아니라서 떠 있던 창(문구함 포함)을 직접 닫아요
-                if (!e.target.closest || !e.target.closest('.toolbar .tb-cafe')) return;
-                document.querySelectorAll('.modal').forEach(o => { if (!KEEP.has(o.id) && vis(o)) shut(o); });
-                ROOMS.forEach(([id, fn]) => { const r = document.getElementById(id); if (r && r.classList.contains('show') && typeof window[fn] === 'function') window[fn](); });   // 🚪 스티커 떼는 창도
-            }, true);
-            /* ☕ 카페에 있는 동안은 손에 든 문구(핀셋 · 가위 · 칼 · 필기구 …)를 숨겨요 → 카페 창이 다 닫히면 다시 (도련 10-21 · css body.cafe-on)
-               - 카페에서 연 창(배경화면 · 포춘카드 …)도 카페 · 다른 하단 메뉴를 누르면 카페 끝 */
             /* 🔁 하단 메뉴 다이어리 · 스티커 · 문구함 : 그 창이 떠 있을 때 다시 누르면 닫혀요 (⚙ 설정처럼 · 도련 10-22) */
-            const TOG = { 'tb-skin': ['skinModal'], 'tb-sticker': ['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal'], 'tb-gd': ['gdCabModal'], 'tb-move': ['moveModal'] };   // ✨ 스티커 = 스티커 창 바로 (도련 10-26 · 스티커 창 없앰)
+            const TOG = { 'tb-skin': ['skinModal'], 'tb-sticker': ['basketModal', 'basketKindModal', 'shelfKindModal'], 'tb-gd': ['gdCabModal'], 'tb-move': ['moveModal'] };   // ✨ 스티커 = 스티커 창 바로 (도련 10-26 · 스티커 창 없앰)
             document.addEventListener('click', e => {
                 const b = e.target.closest && e.target.closest('.toolbar .tb-btn'); if (!b) return;
                 const k = Object.keys(TOG).find(c => b.classList.contains(c)); if (!k) return;
                 const m = TOG[k].map(id => document.getElementById(id)).find(x => x && vis(x)); if (!m) return;
                 e.preventDefault(); e.stopPropagation(); shut(m);
-            }, true);
-            let cafeT = 0;
-            const cafeOff = () => { clearInterval(cafeT); cafeT = 0; document.body.classList.remove('cafe-on'); };
-            const cafeUp = () => { const t = document.getElementById('cafeTown'); return (t && t.style.display !== 'none' && t.getClientRects().length > 0) || [...document.querySelectorAll('.modal')].some(o => !KEEP.has(o.id) && vis(o)); };
-            document.addEventListener('click', e => {
-                const b = e.target.closest && e.target.closest('.toolbar .tb-btn'); if (!b) return;
-                if (!b.classList.contains('tb-cafe')) { cafeOff(); return; }
-                document.body.classList.add('cafe-on'); clearInterval(cafeT);
-                let seenUp = false;
-                cafeT = setInterval(() => { const up = cafeUp(); if (up) seenUp = true; else if (seenUp) cafeOff(); }, 250);
-                setTimeout(() => { if (cafeT && !seenUp && !cafeUp()) cafeOff(); }, 2000);   // 카페가 안 열렸으면 (다이어리를 아직 안 열었을 때 등)
             }, true);
             new MutationObserver(ms => ms.forEach(r => r.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.classList.contains('modal')) watch(n); if (n.querySelectorAll) n.querySelectorAll('.modal').forEach(watch); }))).observe(document.body, { childList: true, subtree: true });
         })();
