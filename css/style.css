@@ -4184,3 +4184,15 @@ html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:
 .bc-sep { margin-top: 6px; font-size: 12px; font-weight: bold; color: #b8505e; }
 /* 💾 설정 → 저장 버튼 : 폰에서 줄이 바뀌면 낱말째 (불러오/기 처럼 끊기지 않게 · 도련 11-09) */
 #dmClearBtn, #dmDiagBtn, #dmLogoutBtn { word-break: keep-all; }
+.dmb-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 6px; }   /* 💾 휴지통 · 지우기 목록 · 문제 기록 · 구글로 이동 = 모두 같은 크기 */
+.dmb-grid > .btn { margin: 0; min-width: 0; }
+/* 🚚 구글로 이동 약속 창 (js/devsave.js dvAgree) : 세 줄 모두 체크해야 '이동하기' */
+.mv-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 4px; text-align: left; }
+.mv-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 2px solid #6b4a58; border-radius: 12px; background: #fff; cursor: pointer; user-select: none; -webkit-user-select: none; font-size: 13px; line-height: 1.45; color: #4a3640; word-break: keep-all; }
+.mv-row span { flex: 1; min-width: 0; }
+.mv-row small { display: block; color: #8a7480; font-size: 11px; }
+.mv-row i { flex: none; order: 2; width: 24px; height: 24px; border: 2px solid #b8505e; border-radius: 6px; background: #fff; position: relative; }
+.mv-row.on { background: var(--pick, #ffe3ec); }
+.mv-row.on i { background: #e0606e; }
+.mv-row.on i::after { content: ''; position: absolute; left: 7px; top: 2px; width: 6px; height: 12px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg); }
+#customAlertConfirmBtn:disabled { opacity: .45; cursor: not-allowed; }

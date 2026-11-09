@@ -253,15 +253,15 @@
         }
         /* ---------- ☁ 구글로 이동 (도련 11-09 · 말랑달콤의 이사는 이것 하나) ----------
            🏠 로그인 없이(이 브라우저) → ☁ 구글 드라이브 : 짐을 100% 그대로 옮기고 · 데이터는 언제나 한 곳에만
-           1. 누른 그 순간 구글 로그인 창 (아이패드 · 아이폰 사파리는 조금이라도 늦게 열면 창을 막아요) · 창이 떠 있는 동안 짐 싸기
-           2. 구글에 말랑달콤이 이미 있으면 "구글에 있던 다이어리가 모두 지워져요" → 싫다 = 이동 없음 + 방금 한 구글 로그인은 로그아웃
-           3. "옮긴 뒤 이 브라우저의 다이어리는 지워져요" → 싫다 = 이동 없음 + 로그아웃
-           4. 진행 0 ~ 100% = 구글 비우기(휴지통까지) + 옮기기 + 이 브라우저 비우기를 합친 것
+           1. 누른 그 순간 구글 로그인 창 (아이패드 · 아이폰 사파리는 조금이라도 늦게 열면 창을 막아요)
+           2. 약속 창 하나 (도련 11-09 그림) : 세 줄마다 ☐ → 모두 체크해야 '이동하기' · '이동 안 함' = 이동 없음 + 방금 한 구글 로그인은 로그아웃
+              ① 구글 드라이브의 말랑달콤은 모두 지워요 (휴지통까지) ② 이 브라우저의 다이어리는 지워요 (휴지통까지) ③ 다이어리는 한 곳에만 · 다음부터는 구글로
+           3. 체크를 다 한 뒤에야 이삿짐을 싸요 · 진행 0 ~ 100% = 짐 싸기 + 구글 비우기(휴지통까지) + 옮기기 + 이 브라우저 비우기를 합친 것
            5. 끝나면 다음부터 구글로 열려요 (새로고침)
-           - 짐 = 말랑달콤 폴더의 파일 전부 (일기 · 설정 · 스티커 · 상품 목록 · 받은 파일 · 책상 자리 …) · 🗑 휴지통은 옮기지 않고 버려요
+           - 짐 = 말랑달콤 폴더의 파일 전부 (일기 · 설정 · 스티커 · 상품 목록 · 받은 파일 · 책상 자리 …) · 🗑 휴지통 · 🗑 버린 상품 목록(_휴지통목록.json)은 옮기지 않고 버려요
            - 🔐 계정 열쇠로 잠긴 것은 이 브라우저 열쇠('device')로 열어 구글 계정 열쇠로 다시 잠가요 (내용은 그대로 · js/own.js ownLock)
            - 옮기다 실패하면 이 브라우저 것은 지우지 않아요 (다시 누르면 처음부터 다시 · 구글 쪽은 그때 다시 비워요) */
-        const DV_TRASH = DV_TOP + '/휴지통';
+        const DV_TRASH = DV_TOP + '/휴지통', DV_BIN = () => `${DV_TOP}/${DIRS.settings}/${KEY_FILES.binown.name}`;   // 🗑 휴지통 칸 · 🗑 버린 상품 목록
         const DV_LOCKED = /^\{"v":1,"d":"[A-Za-z0-9+/=]*"\}$/;           // ownLock 이 만든 글 모양
         async function dvSettle() {                                      // 아직 기다리는 저장까지 이 브라우저에 다 넣어요
             try { if (isCoverOpen && !turn) saveData(false); } catch (e) {}
@@ -276,7 +276,8 @@
                 const [ks, vs] = await Promise.all([dvReq(st.getAllKeys()), dvReq(st.getAll())]);
                 return ks.map((k, i) => [String(k), vs[i]]);
             });
-            return all.filter(([p, t]) => typeof t === 'string' && p.startsWith(DV_TOP + '/') && !p.startsWith(DV_TRASH + '/') && (V.idx.get(p) || {}).k === 'f');
+            const bin = DV_BIN();
+            return all.filter(([p, t]) => typeof t === 'string' && p.startsWith(DV_TOP + '/') && !p.startsWith(DV_TRASH + '/') && p !== bin && (V.idx.get(p) || {}).k === 'f');
         }
         async function dvRelock(text, to) {                              // 🔐 'device' 열쇠 → 구글 계정 열쇠 (파일 통째 · 안에 든 글 모두)
             const one = async str => { try { return await ownLock(await ownUnlock(str, 'device'), to); } catch (e) { return str; } };   // 못 열면 그대로
@@ -310,30 +311,46 @@
             bkBusyOff(); if (msg) showMsg(msg);
         }
         const dvBusy = m => showGate('wait', m), bkBusyOff = () => hideGate();
+        /* 🚚 약속 창 : 세 줄 모두 ☑ 해야 '이동하기' 가 눌려요 → true / false */
+        async function dvAgree(has) {
+            const L = [
+                has ? ['☁ 구글 드라이브에 있던 다이어리는 <b>모두 지워져요.</b>', '구글 드라이브 휴지통에 있는 것까지 지우고 이 브라우저의 다이어리로 바꿔요.']
+                    : ['☁ 구글 드라이브에 이 브라우저의 다이어리를 <b>그대로 옮겨요.</b>', '구글 드라이브에 말랑달콤 폴더가 생겨요 (휴지통에 있던 것까지 깨끗이 정리해요).'],
+                ['🏠 이동이 끝나면 이 브라우저의 다이어리는 <b>지워져요.</b>', '이 브라우저의 휴지통까지 모두 지워요.'],
+                ['📔 다이어리는 언제나 <b>한 곳에만</b> 있어요.', '다음부터는 구글로 로그인해서 써요.']
+            ];
+            const p = showAsk(`🚚 <b>☁ 구글로 이동</b><br><span style="font-size:12px;color:#777;">아래를 모두 읽고 체크해 주세요</span>
+                <div class="mv-list">${L.map(([a, b], i) => `<div class="mv-row" data-i="${i}" role="checkbox" aria-checked="false" tabindex="0"><span>${a}<small>${b}</small></span><i></i></div>`).join('')}</div>`, '이동하기', '이동 안 함');
+            const ok = document.getElementById('customAlertConfirmBtn'), rows = [...document.querySelectorAll('#customAlertMsg .mv-row')];
+            const sync = () => { ok.disabled = !rows.every(r => r.classList.contains('on')); };
+            rows.forEach(r => { r.onclick = () => { const on = !r.classList.contains('on'); r.classList.toggle('on', on); r.setAttribute('aria-checked', on ? 'true' : 'false'); sync(); }; r.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); r.onclick(); } }; });
+            sync();
+            try { return await p; } finally { ok.disabled = false; }
+        }
         async function dvLogin() {
             if (!V.on) return;
             if (!drive.client && !driveClientMake()) { showMsg('구글 로그인을 준비하는 중이에요.<br>잠시 후 다시 눌러 주세요.'); waitForGoogle(10000).then(ok => { if (ok) driveClientMake(); }); return; }
             const tp = requestToken('select_account');                      // 창은 지금 바로
             dvBusy('☁ 구글 로그인 중이에요… 잠시만 기다려 주세요');
-            let files = null;
-            const pack = (async () => { await dvSettle(); files = await dvPack(); })().catch(e => { console.warn(e); files = null; });
             try { await tp; }
-            catch (e) { await pack; bkBusyOff(); drive.token = null; try { localStorage.removeItem('gdrive_authed'); } catch (x) {} showMsg('로그인하지 않았어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요.</span>'); return; }
-            dvBusy('🚚 이삿짐을 싸는 중…');
-            await pack;
-            if (!files) { dvGoogleOut(); bkBusyOff(); showMsg('⚠ 이 브라우저의 다이어리를 다 챙기지 못해서 이동하지 않았어요.<br><span style="font-size:12px;color:#777;">잠시 후 다시 해 주세요.</span>'); return; }
+            catch (e) { bkBusyOff(); drive.token = null; try { localStorage.removeItem('gdrive_authed'); } catch (x) {} showMsg('로그인하지 않았어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요.</span>'); return; }
             /* 구글 쪽 살피기 (아직 아무것도 바꾸지 않아요) */
+            dvBusy('☁ 구글 드라이브를 살피는 중…');
+            try { await dvSettle(); } catch (e) {}                           // 기다리던 저장은 이 브라우저에 먼저 (구글로 바꾸기 전에)
             V.on = false; drive.local = false; drive.ready = false; resetDriveCaches();
             let tops = [], has = false, who = '';
             try { who = await collWhoami(); tops = await dvGoogleTops(); has = await dvGoogleHas(tops); }
             catch (e) { console.warn(e); dvGoogleOut(); return dvBack('⚠ 구글 드라이브를 열지 못해서 이동하지 않았어요.<br><span style="font-size:12px;color:#777;">지금처럼 이 브라우저에 저장해요. 잠시 후 다시 해 주세요.</span>'); }
             bkBusyOff();
-            const no = () => { dvGoogleOut(); return dvBack('이동하지 않았어요.<br><span style="font-size:12px;color:#777;">구글 로그인은 로그아웃했고, 지금처럼 이 브라우저에 저장해요.</span>'); };
-            if (has && !(await showAsk('⚠ 이 구글 계정에는 이미 <b>다이어리가 있어요.</b><br>이동하면 <b>구글에 있던 다이어리가 모두 지워지고</b><br>이 브라우저의 다이어리로 바뀌어요.<br><span style="font-size:12px;color:#777;">구글 드라이브 휴지통에 있는 것까지 지워요.</span>', '지우고 이동', '이동 안 함'))) return no();
-            if (!(await showAsk('🚚 <b>☁ 구글로 이동</b>할게요.<br>이동이 끝나면 <b>이 브라우저의 다이어리는 지워져요.</b><br><span style="font-size:12px;color:#777;">다이어리는 언제나 한 곳에만 있어요.<br>다음부터는 구글로 로그인해서 써요.</span>', '이동하기', '이동 안 함'))) return no();
-            /* 0 ~ 100% : 구글 비우기 (폴더마다 1) + 옮기기 (파일마다 1) + 이 브라우저 비우기 (파일 수의 1/10 · 적어도 1) */
-            const total = tops.length + files.length + Math.max(1, Math.ceil(files.length / 10));
-            let done = 0;
+            if (!(await dvAgree(has))) { dvGoogleOut(); return dvBack('이동하지 않았어요.<br><span style="font-size:12px;color:#777;">구글 로그인은 로그아웃했고, 지금처럼 이 브라우저에 저장해요.</span>'); }
+            /* ✅ 모두 체크 → 이제부터 이사 (짐 싸기부터) */
+            dvBusy('🚚 ☁ 구글로 이동 중… <b>0%</b><br><span style="font-size:12px;color:#777;">이삿짐 싸는 중 · 창을 닫지 말아 주세요</span>');
+            let files = null;
+            try { files = await dvPack(); } catch (e) { console.warn(e); }
+            if (!files) { dvGoogleOut(); return dvBack('⚠ 이 브라우저의 다이어리를 다 챙기지 못해서 이동하지 않았어요.<br><span style="font-size:12px;color:#777;">구글 로그인은 로그아웃했어요. 잠시 후 다시 해 주세요.</span>'); }
+            /* 0 ~ 100% : 짐 싸기 1 + 구글 비우기 (폴더마다 1 · 휴지통에 든 것까지) + 옮기기 (파일마다 1) + 이 브라우저 비우기 (파일 수의 1/10 · 적어도 1) */
+            const total = 1 + tops.length + files.length + Math.max(1, Math.ceil(files.length / 10));   // 1 = 짐 싸기 (끝났어요)
+            let done = 1;
             const tick = (n, what) => { done += n || 0; dvBusy(`🚚 ☁ 구글로 이동 중… <b>${Math.min(99, Math.floor(done * 100 / total))}%</b><br><span style="font-size:12px;color:#777;">${what} · 창을 닫지 말아 주세요</span>`); };
             try {
                 tick(0, '구글 비우는 중');
