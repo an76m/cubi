@@ -8,6 +8,9 @@
        불러온 파일 번호는 설정 / 책상설정.json (🔐) 'diary_share_got' 에 기억해요
    - 파일 모양 : { malang_share: 1, kind, by, d: 공용 포장 } · 예전 공유 파일(malang_sticker · 포장 없음)은 안 받아요 (개발 중 · 옮기는 코드 없음) */
 
+        /* 🙈 공유 스위치 (도련 11-10) : 지금은 💻 📲 📱 모두 숨김 · 카페 = 만든 스티커 선보이기 · 공유 = 나중에 🚪 이동 › 다꾸러 광장에서
+           true 로 바꾸면 서랍 '공유' · 스티커 창 '공유 파일 불러오기' · 책상 꾸미기 '불러오기' 가 다시 보여요 (기능 코드는 그대로 둬요) */
+        window.SHARE_ON = false;
         const ISH_WHO = 'malang-share|v1';                                      // 🔐 공용 포장 열쇠 이름 (모든 앱이 같아요 · 바꾸면 예전 공유 파일을 못 열어요)
         const ISH_GOT = 'diary_share_got', ISH_GOT_L = 'malang_share_got', ISH_GOT_MAX = 5000;
         const ishRid = () => Date.now().toString(36) + crypto.getRandomValues(new Uint32Array(2)).join('').slice(0, 12);

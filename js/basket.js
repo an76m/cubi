@@ -139,7 +139,7 @@
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
         const ord = has ? bkOrder() : [], show = ord.slice(-BK_MAX);
         const ph = bkPhone(), ti = ic => ph ? '' : ic;                       // 📱 폰 = 글자만 (✕ 옆 한 줄에 · 도련 11-09)
-        const tools = `${tool(has, ti('📒'), '정리', 'abDesk()')}${tool(has, ti('📤'), '공유', 'bkShare()', 'bk-share')}${tool(has, ti('🗑'), '버리기', 'bkBin()', 'bk-binb')}`;
+        const tools = `${tool(has, ti('📒'), '정리', 'abDesk()')}${window.SHARE_ON ? tool(has, ti('📤'), '공유', 'bkShare()', 'bk-share') : ''}${tool(has, ti('🗑'), '버리기', 'bkBin()', 'bk-binb')}`;
         wrap.innerHTML = `<div class="bkd${ph ? ' bk-ph' : ''}" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
             <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
                 ${ph ? `${has ? `<span class="bkd-tools">${tools}</span>` : ''}<button type="button" class="bkd-x" onclick="closeModal('basketKindModal')" aria-label="닫기">✕</button>` : tools}</div>
@@ -168,6 +168,7 @@
         el.querySelector('[data-ok]').onclick = () => { const ids = [...el.querySelectorAll('input:checked')].map(i => i.value); if (!ids.length) return; el.remove(); ishSaveStickers(ids, BK_KINDS[B.kind] || '스티커'); };
     }
     window.bkShare = bkShare;
+    document.addEventListener('DOMContentLoaded', () => { const b = document.querySelector('.ish-in'); if (b) b.hidden = !window.SHARE_ON; });   // 🙈 스티커 창 '공유 파일 불러오기' = 공유 스위치 따라 (js/itemshare.js SHARE_ON)
     /* 🗑 버리기 (도련 11-02 · 현실처럼 모든 상품) : 이 바구니의 종이를 골라 → 휴지통 30일 (js/own.js ownDiscard · js/bin.js) */
     function bkBin() {
         if (!B.list.length || !window.ownDiscard) return;

@@ -4072,6 +4072,7 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .shop-scene:not(.corner) .shop-back, .shop-scene:not(.inside) .shop-back, .shop-scene.home .shop-back { display: none; }
 /* 📤 📥 공유 파일 (js/itemshare.js) */
 .ish-in { width: calc(100% - 16px); margin: 10px auto 0; justify-content: center; font-size: 13px; }
+.ish-in[hidden] { display: none !important; }   /* 🙈 공유 스위치 (js/itemshare.js SHARE_ON · 도련 11-10) */
 .ish-card { width: min(92vw, 460px); max-height: 80vh; display: flex; flex-direction: column; gap: 10px; }
 .ish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; overflow: auto; max-height: 52vh; padding: 4px; }
 .ish-it { position: relative; display: flex; justify-content: center; padding: 6px; border-radius: 12px; border: 2px solid #f0dbe3; background: #fff; cursor: pointer; }
