@@ -138,10 +138,11 @@
         const how = has ? `<p class="bk-how" id="bkHow">${bkPhone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
         const ord = has ? bkOrder() : [], show = ord.slice(-BK_MAX);
-        const tools = `${tool(has, '📒', '정리', 'abDesk()')}${tool(has, '📤', '공유', 'bkShare()', 'bk-share')}${tool(has, '🗑', '버리기', 'bkBin()', 'bk-binb')}`, ph = bkPhone();
+        const ph = bkPhone(), ti = ic => ph ? '' : ic;                       // 📱 폰 = 글자만 (✕ 옆 한 줄에 · 도련 11-09)
+        const tools = `${tool(has, ti('📒'), '정리', 'abDesk()')}${tool(has, ti('📤'), '공유', 'bkShare()', 'bk-share')}${tool(has, ti('🗑'), '버리기', 'bkBin()', 'bk-binb')}`;
         wrap.innerHTML = `<div class="bkd${ph ? ' bk-ph' : ''}" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
             <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
-                ${ph ? `<button type="button" class="bkd-x" onclick="closeModal('basketKindModal')" aria-label="닫기">✕</button>${has ? `<span class="bkd-tools">${tools}</span>` : ''}` : tools}</div>
+                ${ph ? `${has ? `<span class="bkd-tools">${tools}</span>` : ''}<button type="button" class="bkd-x" onclick="closeModal('basketKindModal')" aria-label="닫기">✕</button>` : tools}</div>
             <div class="bkd-in">${how}${has
                 ? `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div></div>`
                 : `<div class="bk-bin empty"><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🗄️ 서랍이 텅 비었어요</b><span>앞의 <em>🏪 기본${esc(nm)} 받기</em>로<br>받아서 채워요</span></button></div>`}</div>
