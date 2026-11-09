@@ -624,7 +624,7 @@
             const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
             L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-tg').setAttribute('aria-expanded', String(open));
         }
-        function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (it) deskTopGo(it[1]); }
+        function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (!it) return; if (window.dsClear) dsClear(); deskTopGo(it[1]); }   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
         document.addEventListener('pointerdown', e => { const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false); }, true);
         window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
