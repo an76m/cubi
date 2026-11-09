@@ -13,6 +13,7 @@
     (function () {
         const BS_W = 829, BS_H = 1348;                                          // 포토부스 그림
         const ST_W = 1536, ST_H = 1024, ST_BOOTH = [782, 522];                  // 길 그림 · 그 속 포토부스 가운데
+        const STM_W = 941, STM_H = 1672, STM_BOOTH = [468, 960];                // 📱 세로 길 그림 (img/booth-street-m.webp · 도련 11-09) · 그 속 포토부스 가운데
         const BS_SIGN = [142, 17, 689, 159], BS_TV = [57, 353, 217, 733], BS_CURTAIN = [240, 245, 694, 912], BS_LAMP = [243, 997], BS_SLOT = [88, 999, 200, 1051];   // 간판 안쪽 · 화면 안쪽 · 커튼 · 출력구 옆 동그라미 · 출력구 구멍
         const IMG_V = '?v=20261009-1237';
         /* 🎨 배경 테마 = css/boothroom.css 의 [data-th="이름"] (벽 · 바닥 · 불빛 · 장식) · 새 테마 = css 한 덩어리 + 여기 이름만 바꾸면 돼요 (예 크리스마스 'xmas') */
@@ -143,11 +144,14 @@
         function approach() {
             if (walkBusy || quiet()) return;
             let d = bq('bthWalk');
-            if (!d) { d = document.createElement('div'); d.id = 'bthWalk'; d.className = 'bth-walk'; d.innerHTML = `<div class="bth-walk-in"><img src="img/booth-street.webp${IMG_V}" alt="" draggable="false"></div>`; document.body.appendChild(d); }
+            if (!d) { d = document.createElement('div'); d.id = 'bthWalk'; d.className = 'bth-walk'; d.innerHTML = `<div class="bth-walk-in"><img alt="" draggable="false"></div>`; document.body.appendChild(d); }
             walkBusy = true;
-            const { s, x, y } = coverFit(ST_W, ST_H, [560, 1000, 260, 800]);
-            Object.assign(d.querySelector('img').style, { width: ST_W * s + 'px', height: ST_H * s + 'px', left: x + 'px', top: y + 'px' });
-            const ox = x + ST_BOOTH[0] * s, oy = y + ST_BOOTH[1] * s, inn = d.querySelector('.bth-walk-in');
+            const ph = !(window.calRoomUse && calRoomUse()), W = ph ? STM_W : ST_W, H = ph ? STM_H : ST_H, P = ph ? STM_BOOTH : ST_BOOTH;   // 📱 세로 길 그림 (도련 11-09)
+            const im = d.querySelector('img'), src = (ph ? 'img/booth-street-m.webp?v=20261009-1042' : 'img/booth-street.webp' + IMG_V);
+            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
+            const { s, x, y } = ph ? coverFit(W, H, [280, 660, 660, 1260]) : coverFit(ST_W, ST_H, [560, 1000, 260, 800]);
+            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
+            const ox = x + P[0] * s, oy = y + P[1] * s, inn = d.querySelector('.bth-walk-in');
             inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');
             d.classList.remove('go', 'leave'); d.classList.add('on');
             const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); walkBusy = false; }, 400); }, 1700); };
