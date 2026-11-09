@@ -891,6 +891,7 @@
                   ${typeof sndFxBtn === 'function' ? sndFxBtn('ar-ibtn') : ''}
                   <button class="ar-ibtn ar-plain" type="button" onclick="closeArcade()" aria-label="닫기">✕</button>
                 </div>
+                <button class="ar-hof" type="button" onclick="window.openHof ? openHof() : comingSoon('🏆 명예의 전당')"><span class="ar-hof-tro">🏆</span><span class="ar-hof-t"><b>명예의 전당</b><small>이번 주 모두의 순위 · 매주 월요일 새로 시작</small></span><span class="ar-hof-go">›</span><i class="ar-hof-sh"></i></button>   <!-- 📱 폰만 = 창 맨 위 특별 칸 (도련 11-09 · 💻 📲 는 오락실 장소의 트로피) -->
                 <p class="ar-coin">INSERT COIN <i>·</i> 게임을 골라 주세요</p>
                 <h3 class="ar-group">🕹️ 오락실 게임</h3>
                 <div class="ar-cabs" id="arCabs"></div>

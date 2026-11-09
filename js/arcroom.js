@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/arcroom.js
-   🕹️ 뿅뿅오락실 장소 (도련 11-01 · 타로카페처럼) : 💻 PC · 📲 아이패드에서 '뿅뿅오락실' 칸을 누르면 (📱 폰은 예전 카페 칸 그대로 · calRoomUse)
+   🕹️ 뿅뿅오락실 장소 (도련 11-01 · 타로카페처럼) : 💻 PC · 📲 아이패드에서 '뿅뿅오락실' 칸을 누르면 (📱 폰 = 11-09 세로 유리문 → 오락기 13개 창 바로 · ARO_PH)
    - 🚪 들어갈 때 = 분홍 유리문(img/arcade-door.webp) → 🔔 띠리링~ (✨ 연출 소리 · sndArcadeDoor) → 손잡이 사이로 다가가며 분홍 · 노랑 빛 → 오락실
    - 오락실 그림(img/arcade-room.webp) 속 오락기 화면마다 게임 하나 (화면 기울기 그대로 · 네 모서리에 맞춰 늘여요)
        가운데 섬 + 왼쪽 앞 = 🕹️ 오락실 게임 6 · 뒤쪽 벽 + 오른쪽 줄 = 🧠 두뇌 게임 7 · 남는 화면 = INSERT COIN · 🏆 명예의 전당 = 왼쪽 줄과 뒤 벽 사이 트로피 (밑에 알림글 · 도련 11-01) · 알림글은 이것만 · 왼쪽 앞 오락기 옆면 = 🏆 순위판 (게임별 TOP 5)
@@ -131,15 +131,19 @@
         }
         /* 🚪 오락실 문 (기본상품 샵 · 타로카페처럼) */
         let aroDoorBusy = false;
-        function aroDoor() {
+        const ARO_PH = { W: 941, H: 1672, cx: 470, cy: 860, sy: 160 };          // 📱 세로 분홍 유리문 (img/arcade-door-m.webp · 도련 11-09) · 손잡이 사이 · '뿅뿅오락실' 글자 자리
+        function aroDoor(ph) {
             if (aroDoorBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             let d = aroq('aroDoor');
-            if (!d) { d = document.createElement('div'); d.id = 'aroDoor'; d.className = 'aro-door'; d.innerHTML = '<div class="aro-door-in"><img src="img/arcade-door.webp?v=20261009-1035" alt="" draggable="false"><div class="aro-door-sign">뿅뿅오락실</div></div>'; document.body.appendChild(d); }
+            if (!d) { d = document.createElement('div'); d.id = 'aroDoor'; d.className = 'aro-door'; d.innerHTML = '<div class="aro-door-in"><img alt="" draggable="false"><div class="aro-door-sign">뿅뿅오락실</div></div>'; document.body.appendChild(d); }
             aroDoorBusy = true;
-            const { s, x, y } = coverFit(ARO_W, ARO_H, [500, 1170, 80, 800]);
-            Object.assign(d.querySelector('img').style, { width: ARO_W * s + 'px', height: ARO_H * s + 'px', left: x + 'px', top: y + 'px' });
-            Object.assign(d.querySelector('.aro-door-sign').style, { left: x + 836 * s + 'px', top: y + 150 * s + 'px', fontSize: 46 * s + 'px' });
-            d.querySelector('.aro-door-in').style.transformOrigin = `${x + 836 * s}px ${y + 600 * s}px`;
+            const im = d.querySelector('img'), src = ph ? 'img/arcade-door-m.webp?v=20261009-1039' : 'img/arcade-door.webp?v=20261009-1035';
+            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
+            const W = ph ? ARO_PH.W : ARO_W, H = ph ? ARO_PH.H : ARO_H, cx = ph ? ARO_PH.cx : 836, cy = ph ? ARO_PH.cy : 600, sy = ph ? ARO_PH.sy : 150;
+            const { s, x, y } = ph ? coverFit(W, H, [60, 880, 100, 1100]) : coverFit(ARO_W, ARO_H, [500, 1170, 80, 800]);
+            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
+            Object.assign(d.querySelector('.aro-door-sign').style, { left: x + cx * s + 'px', top: y + sy * s + 'px', fontSize: (ph ? 72 : 46) * s + 'px' });
+            d.querySelector('.aro-door-in').style.transformOrigin = `${x + cx * s}px ${y + cy * s}px`;
             d.classList.remove('enter', 'leave'); d.classList.add('on');
             const go = () => { if (window.sndArcadeDoor) sndArcadeDoor(); d.classList.add('enter'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'enter', 'leave'); aroDoorBusy = false; }, 400); }, 1700); };
             const img = d.querySelector('img'), start = () => setTimeout(go, 750);
@@ -148,6 +152,7 @@
         function openArcRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.deskLeave) deskLeave();
+            if (!(window.calRoomUse && calRoomUse())) { aroDoor(true); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
             if (typeof warmServer === 'function' && typeof HOF_API_URL !== 'undefined' && HOF_API_URL) warmServer(HOF_API_URL);   // 🏆 명예의 전당 서버 미리 깨우기
             aroDoor();
             const el = aroBuild();
