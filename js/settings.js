@@ -333,26 +333,112 @@
         }
 
 
-        /* 🧹 브라우저 저장 지우기 (도련 11-06 · 시험할 때 남은 기억이 방해돼서) : ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 옆
-           - 이 기기 브라우저에 남은 것만 지워요 : localStorage · sessionStorage · IndexedDB 전부 · 캐시(Cache Storage) · OPFS · 서비스워커 → 새로고침
-           - ☁ 구글 드라이브 · 📁 내 폴더의 파일은 그대로예요 (지우지 않아요)
-           - 지우기 전에 아직 못 올린 것을 먼저 올려요 (mallang-pending 도 지워지니까) · 못 올렸으면 한 번 더 물어요
-           - 📁 폴더 저장은 폴더를 다시 골라야 해요 (폴더 열쇠 = malang-device) · 로그인도 다시 */
+        /* 🧹 브라우저 저장 지우기 (도련 11-06 · 11-09 목록에서 골라서 지우기) : ⚙ 설정 → 💾 저장 → 🗑 휴지통 옆
+           - 누르면 이 기기 브라우저에 남은 것을 종류별 목록으로 보여 줘요 → 고른 것만 지우고 새로고침
+           - 안전한 것(다시 받아 오는 것)은 처음부터 골라져 있고, ⚠ 되살릴 수 없는 것은 처음엔 안 골라져 있어요
+           - ☁ 구글 드라이브 · 📁 내 PC 폴더의 파일은 그대로예요 (지우지 않아요)
+           - 지우기 전에 아직 못 올린 것을 먼저 올려요 · ⚠ 칸을 골랐으면 한 번 더 물어요 */
+        const BC_LOGIN = ['gdrive_authed', 'malang_dev_mode', 'malang_dev_mode_label'];
+        const BC_PEND = ['malang_arrive', 'malang_arrive_n', 'malang_own_pend'];
+        function bcLsKind(k) {
+            if (k.startsWith('gdrive_pending_backup') || BC_PEND.includes(k)) return 'pend';
+            if (BC_LOGIN.includes(k)) return 'login';
+            if (k === 'malang_diag_q') return 'diag';
+            if (k.startsWith('diary_')) return 'guest';
+            return 'pref';
+        }
+        const bcWait = (p, ms) => Promise.race([Promise.resolve(p).catch(() => {}), new Promise(r => setTimeout(r, ms || 3000))]);
+        function bcIdb(name, fn, mode) {                                          // 있는 DB 만 열어요 (없는 이름을 열면 빈 DB 가 생겨서)
+            return bcWait(new Promise(ok => {
+                let made = false, q;
+                try { q = indexedDB.open(name); } catch (e) { ok(null); return; }
+                q.onupgradeneeded = () => { made = true; };
+                q.onerror = q.onblocked = () => ok(null);
+                q.onsuccess = async () => {
+                    const db = q.result;
+                    if (made) { db.close(); try { indexedDB.deleteDatabase(name); } catch (e) {} ok(null); return; }
+                    let r = null; try { r = await fn(db); } catch (e) {}
+                    db.close(); ok(r);
+                };
+            }), 4000);
+        }
+        const bcTx = (db, st, mode, fn) => new Promise(ok => {
+            if (!db.objectStoreNames.contains(st)) { ok(0); return; }
+            const t = db.transaction(st, mode), q = fn(t.objectStore(st));
+            t.oncomplete = () => ok(q && q.result); t.onerror = t.onabort = () => ok(0);
+        });
+        const bcCount = (db, st) => bcTx(db, st, 'readonly', o => o.count());
+        async function bcScan() {
+            const G = {};
+            const add = (id, n, sz) => { const g = G[id] || (G[id] = { n: 0, sz: 0 }); g.n += n || 0; g.sz += sz || 0; };
+            try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) add(bcLsKind(k), 1, (k.length + (localStorage.getItem(k) || '').length) * 2); } } catch (e) {}
+            try { if (sessionStorage.length) add('login', sessionStorage.length, 0); } catch (e) {}
+            let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest'];
+            try { if (indexedDB.databases) { const L = await bcWait(indexedDB.databases(), 2000); if (Array.isArray(L)) names = [...new Set(names.concat(L.map(d => d.name).filter(Boolean)))]; } } catch (e) {}
+            G.dbs = names;
+            for (const n of names) {
+                if (n === 'mallang-coll') await bcIdb(n, async db => { add('cache', (await bcCount(db, 'orig')) + (await bcCount(db, 'list'))); add('pend', await bcCount(db, 'outbox')); add('gcoll', await bcCount(db, 'local')); });
+                else if (n === 'mallang-pending') await bcIdb(n, async db => { for (const st of db.objectStoreNames) add('pend', await bcCount(db, st)); });
+                else if (n === 'malang-device') await bcIdb(n, async db => { add('dev', await bcCount(db, 'vmeta')); const m = await bcCount(db, 'meta'); if (m) add('login', m); });
+                else add('etc', 1);
+            }
+            try { if (window.caches) add('app', (await caches.keys()).length); } catch (e) {}
+            try { if (navigator.serviceWorker) { const S = await bcWait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(S)) add('app', S.length); } } catch (e) {}
+            try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); let c = 0; for await (const x of R.keys()) c++; if (c) add('etc', c); } } catch (e) {}
+            return G;
+        }
+        const BC_KINDS = [
+            { id: 'cache', ic: '🖼', t: '읽어 둔 스티커 · 그림 · 목록', s: '드라이브에서 다시 읽어 와요', on: 1 },
+            { id: 'app', ic: '📦', t: '앱 파일 · 업데이트 장치', s: '다음에 열 때 앱을 새로 받아요', on: 1 },
+            { id: 'pref', ic: '⚙', t: '이 기기 설정 · 화면 기억', s: '자리 · 보기 방식 같은 이 기기 기억 (드라이브 설정은 그대로)', on: 1 },
+            { id: 'login', ic: '🔑', t: '로그인 · 저장 방식 기억', s: '로그인 · 폴더 고르기를 다시 해요', on: 1 },
+            { id: 'diag', ic: '🧾', t: '아직 안 올린 문제 기록', s: '', on: 1 },
+            { id: 'etc', ic: '🧪', t: '그 밖의 브라우저 저장', s: '시험용 · 예전 저장 칸', on: 1 },
+            { id: 'pend', ic: '⏳', t: '아직 드라이브에 못 올린 것', s: '지우면 그 바뀐 내용 · 도착 알림이 사라져요', warn: 1 },
+            { id: 'dev', ic: '📱', t: '이 기기에 저장한 다이어리', s: '로그인 없이 쓴 일기 · 스티커 전부예요 (PC 폴더에 저장했으면 폴더 파일은 그대로)', warn: 1 },
+            { id: 'guest', ic: '👤', t: '게스트로 쓴 일기 · 설정', s: '', warn: 1 },
+            { id: 'gcoll', ic: '👤', t: '게스트로 만든 스티커 · 페이지', s: '', warn: 1 }
+        ];
+        const BC_SEL = {};
+        function bcToggle(el) { const id = el.dataset.k; BC_SEL[id] = !BC_SEL[id]; el.classList.toggle('on', BC_SEL[id]); el.setAttribute('aria-checked', BC_SEL[id] ? 'true' : 'false'); }
+        window.bcToggle = bcToggle;
         async function clearBrowserStore() {
-            if (!await showMsg('🧹 <b>이 기기 브라우저에 남은 기억</b>을 모두 지울까요?<br><span style="font-size:12px;color:#777;">☁ 구글 드라이브 · 📁 내 폴더의 파일은 그대로예요.<br>지운 뒤 새로고침되고, 로그인 · 폴더 고르기를 다시 해요.</span>', true)) return;
+            const G = await bcScan();
+            const kinds = BC_KINDS.filter(k => G[k.id] && G[k.id].n);
+            if (!kinds.length) { showMsg('🧹 이 기기 브라우저에 지울 것이 없어요.'); return; }
+            Object.keys(BC_SEL).forEach(k => delete BC_SEL[k]);
+            const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : n >= 1024 ? Math.round(n / 1024) + 'KB' : '';
+            const row = k => { BC_SEL[k.id] = !!k.on; const g = G[k.id], sz = kb(g.sz); return `<div class="bc-row${k.on ? ' on' : ''}${k.warn ? ' warn' : ''}" data-k="${k.id}" role="checkbox" aria-checked="${k.on ? 'true' : 'false'}" tabindex="0" onclick="bcToggle(this)"><i class="bc-box"></i><span class="bc-ic">${k.ic}</span><span class="bc-t"><b>${k.t}</b> <small>${g.n}개${sz ? ' · ' + sz : ''}</small>${k.s ? `<em>${k.s}</em>` : ''}</span></div>`; };
+            const safe = kinds.filter(k => !k.warn), warn = kinds.filter(k => k.warn);
+            const ok = await showAsk(`🧹 <b>이 기기 브라우저에 남은 것</b><br><small style="color:#888">지울 것을 골라 주세요 · ☁ 드라이브 · 📁 내 PC 폴더의 파일은 그대로예요</small>
+                <div class="bc-list">${safe.map(row).join('')}${warn.length ? `<div class="bc-sep">⚠ 지우면 되살릴 수 없어요</div>${warn.map(row).join('')}` : ''}</div>`, '고른 것 지우기', '취소');
+            if (!ok) return;
+            const sel = kinds.filter(k => BC_SEL[k.id]);
+            if (!sel.length) { showMsg('고른 것이 없어서 지우지 않았어요.'); return; }
+            const S = id => !!BC_SEL[id] && !!(G[id] && G[id].n);
             try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } catch (e) {}
-            if (typeof drive !== 'undefined' && drive.dirty && !await showMsg('⚠ 아직 드라이브에 올리지 못한 것이 있어요.<br>지우면 그 바뀐 내용은 사라져요. 그래도 지울까요?', true)) return;
-            const wait = (p, ms) => Promise.race([Promise.resolve(p).catch(() => {}), new Promise(r => setTimeout(r, ms || 3000))]);
-            try { localStorage.clear(); } catch (e) {}
-            try { sessionStorage.clear(); } catch (e) {}
-            try {
-                let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest'];
-                if (indexedDB.databases) { const L = await wait(indexedDB.databases(), 2000); if (Array.isArray(L)) names = names.concat(L.map(d => d.name).filter(Boolean)); }
-                await Promise.all([...new Set(names)].map(n => wait(new Promise(r => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }), 3000)));
-            } catch (e) {}
-            try { if (window.caches) { const K = await caches.keys(); await Promise.all(K.map(k => wait(caches.delete(k)))); } } catch (e) {}
-            try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); for await (const [n] of R.entries()) await wait(R.removeEntry(n, { recursive: true })); } } catch (e) {}
-            try { if (navigator.serviceWorker) { const S = await wait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(S)) await Promise.all(S.map(r => wait(r.unregister()))); } } catch (e) {}
+            const bad = sel.filter(k => k.warn);
+            if (bad.length && !await showAsk(`⚠ 아래 것은 지우면 <b>되살릴 수 없어요</b>.<br><br>${bad.map(k => k.ic + ' ' + k.t).join('<br>')}<br><br>그래도 지울까요?`, '지우기', '취소')) return;
+            if (!S('pend') && typeof drive !== 'undefined' && drive.dirty && !await showMsg('⚠ 아직 드라이브에 올리지 못한 것이 있어요.<br>새로고침하면 다음에 다시 올려요. 계속할까요?', true)) return;
+            const delDb = n => bcWait(new Promise(r => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }), 3000);
+            const clr = (db, sts) => Promise.all(sts.map(st => bcTx(db, st, 'readwrite', o => o.clear())));
+            try { const K = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && S(bcLsKind(k))) K.push(k); } K.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+            if (S('login')) try { sessionStorage.clear(); } catch (e) {}
+            for (const n of G.dbs) {
+                if (n === 'mallang-coll') {
+                    const sts = [].concat(S('cache') ? ['orig', 'list'] : [], S('pend') ? ['outbox'] : [], S('gcoll') ? ['local'] : []);
+                    if (sts.length === 4) await delDb(n); else if (sts.length) await bcIdb(n, db => clr(db, sts));
+                } else if (n === 'mallang-pending') { if (S('pend')) await delDb(n); }
+                else if (n === 'malang-device') {
+                    const sts = [].concat(S('dev') ? ['vmeta', 'vdata'] : [], S('login') ? ['meta'] : []);
+                    if (sts.length === 3) await delDb(n); else if (sts.length) await bcIdb(n, db => clr(db, sts));
+                } else if (S('etc')) await delDb(n);
+            }
+            if (S('app')) {
+                try { if (window.caches) { const K = await caches.keys(); await Promise.all(K.map(k => bcWait(caches.delete(k)))); } } catch (e) {}
+                try { if (navigator.serviceWorker) { const R = await bcWait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(R)) await Promise.all(R.map(r => bcWait(r.unregister()))); } } catch (e) {}
+            }
+            if (S('etc')) try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); for await (const [n] of R.entries()) await bcWait(R.removeEntry(n, { recursive: true })); } } catch (e) {}
             location.reload();
         }
         window.clearBrowserStore = clearBrowserStore;

@@ -4165,3 +4165,20 @@ html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:
 .gdc-it .gdc-n { position: absolute; top: 2px; right: 3px; font-size: 10px; font-weight: 900; color: #fff; background: #e88fb0; border-radius: 999px; padding: 0 5px; line-height: 15px; }   /* ✏️ 같은 문구 여러 개 (도련 11-07) */
 /* 🔒 지난 해 다이어리 = 보기만 (도련 11-07 · js/dyyear.js dyyPastTag) */
 .dy-past-tag { position: absolute; right: 10px; top: 8px; z-index: 30; pointer-events: none; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .92); border: 1.5px solid #e3cbd8; color: #8b6a76; font-size: 12px; font-weight: 800; box-shadow: 0 2px 0 rgba(107, 68, 56, .12); }
+
+/* 🧹 브라우저 저장 지우기 목록 (js/settings.js clearBrowserStore · 도련 11-09) : 줄을 누르면 고르기 · ⚠ 되살릴 수 없는 것은 아래 따로 */
+.bc-list { max-height: 52vh; overflow-y: auto; margin: 10px 0 2px; padding: 2px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.bc-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 2px solid #6b4a58; border-radius: 12px; background: #fff; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.bc-row.on { background: var(--pick, #ffe3ec); }
+.bc-row.warn { border-color: #b8505e; }
+.bc-row.warn.on { background: #ffd9d9; }
+.bc-box { flex: none; width: 20px; height: 20px; border: 2px solid #6b4a58; border-radius: 6px; background: #fff; position: relative; }
+.bc-row.on .bc-box { background: #ff8fb1; }
+.bc-row.warn.on .bc-box { background: #e0606e; }
+.bc-row.on .bc-box::after { content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg); }
+.bc-ic { flex: none; font-size: 18px; }
+.bc-t { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; color: #4a3640; }
+.bc-t small { color: #9a8590; font-size: 11px; }
+.bc-t em { display: block; font-style: normal; font-size: 11px; color: #8a7480; }
+.bc-row.warn .bc-t em { color: #b8505e; }
+.bc-sep { margin-top: 6px; font-size: 12px; font-weight: bold; color: #b8505e; }
