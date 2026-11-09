@@ -20,18 +20,19 @@
         function shopData() {
             if (SHOP_D) return SHOP_D;
             const ok = x => { const P = x.P, wh = x.wh.디자인; return SHOP_CN.includes(P.구역) && x.u.디자인 && Array.isArray(wh) && wh[0] > 0 && wh[1] > 0 && String(P.이름 || '') && Array.isArray(P.간판) && P.간판.length === 4 && P.간판.every(v => isFinite(+v)) && P.자리 && typeof P.자리 === 'object'; };
-            const L = (window.prodShelf ? prodShelf('샵') : []), D = {};
-            L.forEach(x => { if (!ok(x)) { console.warn('🏪 샵 구역 속성이 모자라요 (상품공방 샵) :', x.id); return; } if (!D[x.P.구역]) D[x.P.구역] = { n: x.P.이름, img: x.u.디자인, W: x.wh.디자인[0], H: x.wh.디자인[1], sign: x.P.간판.map(Number), at: x.P.자리, ways: x.P.길 && typeof x.P.길 === 'object' ? x.P.길 : {} }; });
+            const L = (window.prodShelf ? prodShelf('샵') : []), D = {}, DP = {};   // 📱 화면 = '폰' 인 샵 상품 = 폰 그림 · 간판 (도련 11-10 · 상품공방에 올려요 · 깃허브 아니에요)
+            L.forEach(x => { if (!ok(x)) { console.warn('🏪 샵 구역 속성이 모자라요 (상품공방 샵) :', x.id); return; } const T = x.P.화면 === '폰' ? DP : D; if (!T[x.P.구역]) T[x.P.구역] = { n: x.P.이름, img: x.u.디자인, W: x.wh.디자인[0], H: x.wh.디자인[1], sign: x.P.간판.map(Number), at: x.P.자리, ways: x.P.길 && typeof x.P.길 === 'object' ? x.P.길 : {} }; });
             const miss = SHOP_CN.filter(c => !D[c]); if (miss.length) { console.warn('🏪 샵 구역이 없어요 (상품공방 샵) :', miss.join(' · ')); return null; }
+            const pm = SHOP_CN.filter(c => !DP[c]); if (pm.length) console.warn('🏪 📱 폰 샵 구역이 없어요 (상품공방 샵 · 화면 = 폰) → 폰은 기본상품 샵 창 :', pm.join(' · '));
+            D[' ph'] = pm.length ? null : DP;
             return (SHOP_D = D);
         }
         /* 📱 폰 가게 (도련 11-10 · 세로 그림 941 × 1672) : 입구 문 → 스티커 코너(입구) · 다이어리 · 문구 · 책상소품 · 코너 이름 · 칸 · 팻말은 서버(상품공방 샵) 그대로
-           그림 · 간판 자리만 폰 것 · 이름표는 그림 자리 대신 아래 상자에 줄 바꿈 (폰은 좁아서 15칸이 겹쳐요) · 산 것은 🛍️ 봉투 없이 바로 서랍 (폰은 책상이 없어요 · shopBagOn) */
-        const SHOP_PH = { W: 941, H: 1672, v: '?v=20261009-1047',
-            door: { img: 'img/shop-door-m.webp', sign: [472, 750, 320, 140], go: [472, 970] },
-            c: { stk: { img: 'img/shop-inside-m.webp', sign: [470, 395, 215, 85] }, tool: { img: 'img/shop-diary-m.webp', sign: [472, 270, 235, 95] }, gd: { img: 'img/shop-gd-m.webp', sign: [472, 312, 235, 95] }, desk: { img: 'img/shop-desk-m.webp', sign: [472, 268, 230, 90] } } };
+           그림 · 간판 자리만 폰 것 (상품공방 '샵' 상품 · 화면 = 📱 폰 · 구역마다 하나 · 넷이 다 있어야 열려요 · 모자라면 예전 기본상품 샵 창) · 이름표는 그림 자리 대신 아래 상자에 줄 바꿈 (폰은 좁아서 15칸이 겹쳐요) · 산 것은 🛍️ 봉투 없이 바로 서랍 (폰은 책상이 없어요 · shopBagOn) */
+        const SHOP_PH = { W: 941, H: 1672, v: '?v=20261009-1047',                // 📱 문만 앱 그림 (💻 문처럼 · 코너 그림 · 간판은 상품공방 샵 '화면 = 폰' · 1048 도련)
+            door: { img: 'img/shop-door-m.webp', sign: [472, 750, 320, 140], go: [472, 970] } };
         const shopPhone = () => !document.documentElement.classList.contains('desk-on') && document.documentElement.classList.contains('is-phone');
-        const shopC = c => { const D = (shopData() || {})[c || 'stk']; if (!D || !SC.ph) return D; const P = SHOP_PH.c[c || 'stk']; return P ? Object.assign({}, D, { img: P.img + SHOP_PH.v, W: SHOP_PH.W, H: SHOP_PH.H, sign: P.sign }) : D; };
+        const shopC = c => { const A = shopData() || {}, D = A[c || 'stk']; if (!D || !SC.ph) return D; const P = (A[' ph'] || {})[c || 'stk']; return P ? Object.assign({}, D, { img: P.img, W: P.W, H: P.H, sign: P.sign }) : D; };   // 📱 이름 · 칸 · 팻말 = 💻 것 · 그림 · 간판 = 폰 것
         /* 🖼 구역 그림 미리 받기 (도련 11-04 : 처음 걸어갈 때 그림이 늦게 떠서 이름만 먼저 바뀌었어요) : 가게에 들어갈 때 모두 받아 두고 · 옮길 땐 그 그림이 준비된 뒤에 바꿔요 */
         const SHOP_PIC = new Map();
         function shopPic(src) {
@@ -139,7 +140,7 @@
         /* 🚪 → 🩷 → 🏪 */
         const shopWide = () => document.documentElement.classList.contains('desk-on');
         function shopSceneOpen() {
-            if (!(shopWide() || shopPhone()) || !shopData()) { if (window.openShelf) openShelf(); return; }   // 💻 하단 메뉴 화면 · 🏪 샵 코너가 없으면 = 예전 기본상품 샵 창 (📱 폰 = 세로 가게 · 도련 11-10)
+            if (!(shopWide() || (shopPhone() && shopData() && shopData()[' ph'])) || !shopData()) { if (window.openShelf) openShelf(); return; }   // 💻 하단 메뉴 화면 · 🏪 샵 코너가 없으면 = 예전 기본상품 샵 창 (📱 폰 = 세로 가게 · 도련 11-10)
             if (SC.on || SC.busy) return;
             SC.ph = !shopWide();
             const el = shopBuild(); el.classList.toggle('ph', SC.ph);
