@@ -27,6 +27,16 @@
     /* 📱 폰 = 톡 해서 꺼내요 (끌어내기 없음) · 💻 PC · 패드 = 바구니 밖으로 끌어내요 (톡 = 안 꺼내요) (도련 11-05)
        폰 = 손가락 화면 + 짧은 변이 600px 보다 작아요 (아이패드 = 768 이상) · html.is-phone = 폰 크기 그대로 (css) */
     const bkPhone = () => matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
+    /* 📱 서랍 창 밖을 톡 = 닫기 (도련 11-09 · 폰만 · 떼는 화면 · 다른 창 · 알림 위를 누른 건 빼요) */
+    document.addEventListener('pointerdown', e => {
+        if (!bkPhone() || !vis('basketKindModal')) return;
+        const t = e.target; if (!t || !t.closest) return;
+        if (t.closest('#basketKindModal > .modal-content, .modal, #pelRoom, #pcbRoom, #pmRoom, .msg-modal, #msgModal, .dsk')) return;
+        closeModal('basketKindModal');
+        e.preventDefault(); e.stopPropagation(); bkEatTap = Date.now();             // 닫기만 해요 (뒤의 버튼은 안 눌려요)
+    }, true);
+    let bkEatTap = 0;
+    ['pointerup', 'click'].forEach(ev => document.addEventListener(ev, e => { if (bkEatTap && Date.now() - bkEatTap < 700) { e.preventDefault(); e.stopPropagation(); if (ev === 'click') bkEatTap = 0; } }, true));
     document.documentElement.classList.toggle('is-phone', bkPhone());
 
     /* ---------- 종이 자리 (이 기기에만 : { o : [아래 → 위 id], p : { id : [x, y, 기울기] } }) ---------- */
@@ -138,9 +148,10 @@
         const how = has ? `<p class="bk-how" id="bkHow">${bkPhone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
         const ord = has ? bkOrder() : [], show = ord.slice(-BK_MAX);
-        wrap.innerHTML = `<div class="bkd" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
+        const tools = `${tool(has, '📒', '정리', 'abDesk()')}${tool(has, '📤', '공유', 'bkShare()', 'bk-share')}${tool(has, '🗑', '버리기', 'bkBin()', 'bk-binb')}`, ph = bkPhone();
+        wrap.innerHTML = `<div class="bkd${ph ? ' bk-ph' : ''}" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
             <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
-                ${tool(has, '📒', '정리', 'abDesk()')}${tool(has, '📤', '공유', 'bkShare()', 'bk-share')}${tool(has, '🗑', '버리기', 'bkBin()', 'bk-binb')}</div>
+                ${ph ? `<button type="button" class="bkd-x" onclick="closeModal('basketKindModal')" aria-label="닫기">✕</button>${has ? `<span class="bkd-tools">${tools}</span>` : ''}` : tools}</div>
             <div class="bkd-in">${how}${has
                 ? `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div></div>`
                 : `<div class="bk-bin empty"><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🗄️ 서랍이 텅 비었어요</b><span>앞의 <em>🏪 기본${esc(nm)} 받기</em>로<br>받아서 채워요</span></button></div>`}</div>
