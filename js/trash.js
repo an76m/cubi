@@ -1,10 +1,10 @@
 /* 말랑달콤 다이어리 - js/trash.js
    🗑 휴지통 : 지운 것 · 덮어쓰기 전 모습을 30일 동안 보관하고 되살려요 (도련 · 2026-10-13)
-   - ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 : 목록 · 되살리기 · 휴지통 비우기 (구글 · 📁 폴더 같은 화면)
+   - ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 : 목록 · 되살리기 · 휴지통 비우기 (구글 · 🏠 로그인 없이 같은 화면)
    - 들어가는 것 : 앱이 지운 것 (그날 일기를 다 비움 · 스티커 · 페이지 · 배경지 · 인형 · 인형극)
                   + 덮어쓰기 직전 모습 (백업 불러오기 · 폴더 → 구글 옮기기 · "어느 쪽을 남길까요?"에서 바뀐 쪽) · 내용이 같으면 넣지 않아요
    - 구글 : 구글 드라이브 휴지통 그대로 (30일 뒤 구글이 비워요) · 덮어쓰기 전 모습은 '휴지통' 폴더에 만들어 바로 휴지통으로 (원래 자리는 appProperties.orig)
-   - 📁 폴더 : 말랑달콤 / 휴지통 칸 (js/devsave.js) · 30일 또는 폰 · 아이패드 50MB (PC 폴더 200MB) 넘으면 오래된 것부터 비워요
+   - 🏠 로그인 없이 : 말랑달콤 / 휴지통 칸 (js/devsave.js) · 30일 또는 50MB 넘으면 오래된 것부터 비워요
    - 되살릴 자리에 그새 새로 쓴 게 있으면 "어느 쪽을 남길까요?" → 안 고른 쪽은 휴지통으로 */
 
         const TR_TOP = '말랑달콤';   // drive.js 보다 먼저 불러와서 글자로 (TOP_FOLDER_NAME 과 같아요)
@@ -116,7 +116,7 @@
             document.body.appendChild(m);
         }
         async function openTrash() {
-            if (!drive.ready || drive.guest) { showMsg('🗑 휴지통은 구글로 로그인했거나 📁 폴더에 저장할 때 쓸 수 있어요.'); return; }
+            if (!drive.ready || drive.guest) { showMsg('🗑 휴지통은 구글로 로그인했거나 🏠 로그인 없이 다꾸할 때 쓸 수 있어요.'); return; }
             trBuild(); openModal('trashModal');
             const box = trq('trList'), tot = trq('trTotal'), emp = trq('trEmpty');
             box.innerHTML = '<div class="tr-empty-msg">⏳ 불러오는 중…</div>'; tot.textContent = ''; emp.disabled = true;

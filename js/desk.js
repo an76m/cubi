@@ -2003,7 +2003,7 @@
         window.addEventListener('resize', () => requestAnimationFrame(deskFit));
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', deskBuild); else deskBuild();
         /* 📔 로그인하면 늘 다이어리 겉표지가 떠요 (도련 10-31) : 처음 온 다꾸러 = 기본 다이어리 · 쓰던 다꾸러 = 마지막으로 다꾸한 다이어리 (설정 'diary_last_deco' · js/elements.js saveData)
-           js/drive.js postLoginTasks 끝에서 (구글 · 이 기기 폴더 모두) */
+           js/drive.js postLoginTasks 끝에서 (구글 · 이 브라우저 모두) */
         const DK_LAST = 'diary_last_deco', DK_LAST_L = 'malang_last_deco';
         function deskLoginShow() {
             if (!document.documentElement.classList.contains('desk-on') || !document.getElementById('deskStage')) return;

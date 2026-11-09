@@ -1,17 +1,14 @@
 /* 말랑달콤 다이어리 - js/settings.js
    PC 백업/불러오기 · PNG 저장 · 용량 확인 · 페이지 · 창 열기/닫기
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
-        /* 💾 데이터 관리 버튼 글씨 : 📁 이 기기 폴더로 쓰는 중이면 그에 맞게 (js/devsave.js) */
+        /* 💾 데이터 관리 버튼 글씨 : 로그인 없이(이 브라우저) 쓰는 중이면 그에 맞게 (js/devsave.js) */
         function dmLabels() {
             const L = !!(typeof drive !== 'undefined' && drive.local), set = (id, t) => { const b = document.getElementById(id); if (b && b.textContent !== t) b.textContent = t; };
-            const D = L && window.dvIsDir && dvIsDir();
-            set('dmReloadBtn', D ? '📁 폴더 바꾸기' : L ? '🔄 폴더에서 다시 불러오기' : '🔄 드라이브에서 다시 불러오기');
-            const rb = document.getElementById('dmReloadBtn'); if (rb) rb.onclick = D ? () => dvChangeFolder() : () => reloadFromDrive();
             set('dmLogoutBtn', L ? '☁ 구글로 로그인' : '🚪 로그아웃');
             const lb = document.getElementById('dmLogoutBtn'); if (lb) lb.onclick = L ? () => driveLogin() : () => driveLogout();
-            const q = document.getElementById('dmQuotaLabel'); if (q) q.innerHTML = L ? '📁 이 기기 저장공간 <span style="font-size:11px; color:#999;">(브라우저가 다이어리에 내어 준 칸)</span>' : '☁ 내 구글 저장공간 <span style="font-size:11px; color:#999;">(지메일·구글 포토와 함께 써요)</span>';
+            const q = document.getElementById('dmQuotaLabel'); if (q) q.innerHTML = L ? '💾 이 브라우저 저장공간 <span style="font-size:11px; color:#999;">(브라우저가 다이어리에 내어 준 칸)</span>' : '☁ 내 구글 저장공간 <span style="font-size:11px; color:#999;">(지메일·구글 포토와 함께 써요)</span>';
         }
-        /* 💾 백업 · 불러오기 : 구글 로그인이든 📁 이 기기 폴더든 zip 하나 (js/backup.js) */
+        /* 💾 백업 · 불러오기 : 구글 로그인이든 🏠 이 브라우저든 zip 하나 (js/backup.js) */
 
         function roundedRectPath(ctx, x, y, w, h, radii) {
             const [tl, tr, br, bl] = radii;
@@ -149,7 +146,7 @@
             const st = document.getElementById('driveStatusText');
             if (st) st.textContent = drive.guest && typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST ? '💻 로컬 테스트 · 이 브라우저에만 저장 (처음부터 : 주소 뒤에 ?reset)'
                 : drive.guest ? '☁ 구글 드라이브에 연결되지 않음 (저장 안 됨)'
-                : drive.local ? `📁 로그인 없이 · ${dvWhere()}에 저장 중 (다이어리 / 2026 분홍 1 / 년-월-일.json)`
+                : drive.local ? `💾 로그인 없이 · 이 브라우저에 저장 중 (브라우저 기록을 지우면 사라져요 · 가끔 📦 백업 파일을 받아 두세요)`
                 : drive.ready ? `☁ 연결됨 · 구글 드라이브에 저장 중 (다이어리 / 2026 분홍 1 / 년-월-일.json)` : '☁ 연결 안 됨';
         }
 
@@ -336,9 +333,9 @@
         /* 🧹 브라우저 저장 지우기 (도련 11-06 · 11-09 목록에서 골라서 지우기) : ⚙ 설정 → 💾 저장 → 🗑 휴지통 옆
            - 누르면 이 기기 브라우저에 남은 것을 종류별 목록으로 보여 줘요 → 고른 것만 지우고 새로고침
            - 안전한 것(다시 받아 오는 것)은 처음부터 골라져 있고, ⚠ 되살릴 수 없는 것은 처음엔 안 골라져 있어요
-           - ☁ 구글 드라이브 · 📁 내 PC 폴더의 파일은 그대로예요 (지우지 않아요)
+           - ☁ 구글 드라이브의 파일은 그대로예요 (지우지 않아요)
            - 지우기 전에 아직 못 올린 것을 먼저 올려요 · ⚠ 칸을 골랐으면 한 번 더 물어요 */
-        const BC_LOGIN = ['gdrive_authed', 'malang_dev_mode', 'malang_dev_mode_label'];
+        const BC_LOGIN = ['gdrive_authed', 'malang_dev_mode'];
         const BC_PEND = ['malang_arrive', 'malang_arrive_n', 'malang_own_pend'];
         function bcLsKind(k) {
             if (k.startsWith('gdrive_pending_backup') || BC_PEND.includes(k)) return 'pend';
@@ -379,7 +376,7 @@
             for (const n of names) {
                 if (n === 'mallang-coll') await bcIdb(n, async db => { add('cache', (await bcCount(db, 'orig')) + (await bcCount(db, 'list'))); add('pend', await bcCount(db, 'outbox')); add('gcoll', await bcCount(db, 'local')); });
                 else if (n === 'mallang-pending') await bcIdb(n, async db => { for (const st of db.objectStoreNames) add('pend', await bcCount(db, st)); });
-                else if (n === 'malang-device') await bcIdb(n, async db => { add('dev', await bcCount(db, 'vmeta')); const m = await bcCount(db, 'meta'); if (m) add('login', m); });
+                else if (n === 'malang-device') await bcIdb(n, async db => { add('dev', await bcCount(db, 'vmeta')); });
                 else add('etc', 1);
             }
             try { if (window.caches) add('app', (await caches.keys()).length); } catch (e) {}
@@ -391,11 +388,11 @@
             { id: 'cache', ic: '🖼', t: '읽어 둔 스티커 · 그림 · 목록', s: '드라이브에서 다시 읽어 와요', on: 1 },
             { id: 'app', ic: '📦', t: '앱 파일 · 업데이트 장치', s: '다음에 열 때 앱을 새로 받아요', on: 1 },
             { id: 'pref', ic: '⚙', t: '이 기기 설정 · 화면 기억', s: '자리 · 보기 방식 같은 이 기기 기억 (드라이브 설정은 그대로)', on: 1 },
-            { id: 'login', ic: '🔑', t: '로그인 · 저장 방식 기억', s: '로그인 · 폴더 고르기를 다시 해요', on: 1 },
+            { id: 'login', ic: '🔑', t: '로그인 · 저장 방식 기억', s: '처음 화면에서 구글 · 로그인 없이를 다시 골라요', on: 1 },
             { id: 'diag', ic: '🧾', t: '아직 안 올린 문제 기록', s: '', on: 1 },
             { id: 'etc', ic: '🧪', t: '그 밖의 브라우저 저장', s: '시험용 · 예전 저장 칸', on: 1 },
             { id: 'pend', ic: '⏳', t: '아직 드라이브에 못 올린 것', s: '지우면 그 바뀐 내용 · 도착 알림이 사라져요', warn: 1 },
-            { id: 'dev', ic: '📱', t: '이 기기에 저장한 다이어리', s: '로그인 없이 쓴 일기 · 스티커 전부예요 (PC 폴더에 저장했으면 폴더 파일은 그대로)', warn: 1 },
+            { id: 'dev', ic: '🏠', t: '로그인 없이 쓴 다이어리', s: '이 브라우저에 저장한 일기 · 스티커 전부예요', warn: 1 },
             { id: 'guest', ic: '👤', t: '게스트로 쓴 일기 · 설정', s: '', warn: 1 },
             { id: 'gcoll', ic: '👤', t: '게스트로 만든 스티커 · 페이지', s: '', warn: 1 }
         ];
@@ -410,7 +407,7 @@
             const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : n >= 1024 ? Math.round(n / 1024) + 'KB' : '';
             const row = k => { BC_SEL[k.id] = !!k.on; const g = G[k.id], sz = kb(g.sz); return `<div class="bc-row${k.on ? ' on' : ''}${k.warn ? ' warn' : ''}" data-k="${k.id}" role="checkbox" aria-checked="${k.on ? 'true' : 'false'}" tabindex="0" onclick="bcToggle(this)"><i class="bc-box"></i><span class="bc-ic">${k.ic}</span><span class="bc-t"><b>${k.t}</b> <small>${g.n}개${sz ? ' · ' + sz : ''}</small>${k.s ? `<em>${k.s}</em>` : ''}</span></div>`; };
             const safe = kinds.filter(k => !k.warn), warn = kinds.filter(k => k.warn);
-            const ok = await showAsk(`🧹 <b>이 기기 브라우저에 남은 것</b><br><small style="color:#888">지울 것을 골라 주세요 · ☁ 드라이브 · 📁 내 PC 폴더의 파일은 그대로예요</small>
+            const ok = await showAsk(`🧹 <b>이 기기 브라우저에 남은 것</b><br><small style="color:#888">지울 것을 골라 주세요 · ☁ 구글 드라이브의 파일은 그대로예요</small>
                 <div class="bc-list">${safe.map(row).join('')}${warn.length ? `<div class="bc-sep">⚠ 지우면 되살릴 수 없어요</div>${warn.map(row).join('')}` : ''}</div>`, '고른 것 지우기', '취소');
             if (!ok) return;
             const sel = kinds.filter(k => BC_SEL[k.id]);
@@ -429,10 +426,7 @@
                     const sts = [].concat(S('cache') ? ['orig', 'list'] : [], S('pend') ? ['outbox'] : [], S('gcoll') ? ['local'] : []);
                     if (sts.length === 4) await delDb(n); else if (sts.length) await bcIdb(n, db => clr(db, sts));
                 } else if (n === 'mallang-pending') { if (S('pend')) await delDb(n); }
-                else if (n === 'malang-device') {
-                    const sts = [].concat(S('dev') ? ['vmeta', 'vdata'] : [], S('login') ? ['meta'] : []);
-                    if (sts.length === 3) await delDb(n); else if (sts.length) await bcIdb(n, db => clr(db, sts));
-                } else if (S('etc')) await delDb(n);
+                else if (n === 'malang-device') { if (S('dev')) await delDb(n); } else if (S('etc')) await delDb(n);
             }
             if (S('app')) {
                 try { if (window.caches) { const K = await caches.keys(); await Promise.all(K.map(k => bcWait(caches.delete(k)))); } } catch (e) {}

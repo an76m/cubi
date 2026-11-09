@@ -67,7 +67,7 @@
             let n = 0, skip = 0;
             try {
                 if (body.kind === 'sticker') {
-                    if (!window.ownMode || !ownMode()) { showMsg('🔐 로그인하거나 📁 폴더에 저장할 때 받을 수 있어요.'); return; }
+                    if (!window.ownMode || !ownMode()) { showMsg('🔐 로그인하거나 🏠 로그인 없이 다꾸할 때 받을 수 있어요.'); return; }
                     for (const it of body.items) {
                         if (!it || typeof it.k !== 'string' || !Array.isArray(it.imgs)) { skip++; continue; }
                         await ownTake({ k: it.k, from: 'share', by: body.by, nm: it.nm, ts: it.ts, baked: it.baked, imgs: it.imgs, wh: it.wh, x: it.x, q0: it.q0, b: it.b, th: it.th, noTh: !it.th });

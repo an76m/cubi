@@ -162,7 +162,7 @@
         const drive = {
             client: null, token: null, expiresAt: 0,
             ready: false,      // 설정을 성공적으로 불러온 상태 (이때부터만 업로드 허용)
-            local: false,      // 📁 로그인 없이 이 기기 폴더 (js/devsave.js) : 드라이브와 똑같이 움직여요
+            local: false,      // 🏠 로그인 없이 이 브라우저 (js/devsave.js) : 드라이브와 똑같이 움직여요
             guest: false, uploading: false, needAuth: false, error: false, lastSaved: null,
             rootId: null, wiped: false,   // 🗑 이 창이 본 말랑달콤 폴더 · 지워진 걸 알아챈 뒤 (rootGone · rootReset : 더 올리지 않고 처음 상태로 다시 열기)
             gen: 0,            // 다시 불러오기 할 때마다 증가 (예전 요청의 결과가 뒤늦게 섞이는 것 방지)
@@ -220,7 +220,7 @@
         }
 
         async function ensureToken() {
-            if (drive.local) { const er = new Error('auth'); er.code = 'auth'; throw er; }   // 📁 이 기기 폴더 : 구글 계정이 필요한 서버 기능은 로그인해야 해요
+            if (drive.local) { const er = new Error('auth'); er.code = 'auth'; throw er; }   // 🏠 이 브라우저 : 구글 계정이 필요한 서버 기능은 로그인해야 해요
             if (drive.token && Date.now() < drive.expiresAt) return;
             try { await requestToken('none'); }
             catch (e) {
@@ -230,7 +230,7 @@
         }
 
         async function gfetch(url, opts = {}, retried = false) {
-            if (drive.local && window.vfsFetch) return vfsFetch(url, opts);        // 📁 로그인 없이 이 기기 폴더 : 드라이브 대신 (js/devsave.js)
+            if (drive.local && window.vfsFetch) return vfsFetch(url, opts);        // 🏠 로그인 없이 이 브라우저 : 드라이브 대신 (js/devsave.js)
             await ensureToken();
             const res = await fetch(url, Object.assign({}, opts, {
                 headers: Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + drive.token })
@@ -1333,7 +1333,7 @@
 
         async function onBadgeClick() {
             if (drive.guest) {
-                const yes = await showMsg('구글 계정으로 로그인할까요?<br><span style="font-size:12px;color:#777;">' + (window.dvOn && dvOn() ? '이 기기 폴더에 쓴 일기는' : '게스트로 쓴 일기는') + ' 로그인한 뒤 내 드라이브로 옮길지 물어볼게요.</span>', true);
+                const yes = await showMsg('구글 계정으로 로그인할까요?<br><span style="font-size:12px;color:#777;">' + (window.dvOn && dvOn() ? '이 브라우저에 쓴 일기는' : '게스트로 쓴 일기는') + ' 로그인한 뒤 내 드라이브로 옮길지 물어볼게요.</span>', true);
                 if (yes) showGate('login', '☁ 구글 계정으로 로그인해 주세요.');
             } else if (drive.needAuth) {
                 try { await requestToken('select_account'); await flushUpload({ force: true }); }
@@ -1377,7 +1377,7 @@
             return true;
         }
         async function initDrive() {
-            if (window.dvAuto && await dvAuto()) return;                    // 📁 로그인 없이 이 기기 폴더에 쓰기로 했으면 바로 열어요 (js/devsave.js)
+            if (window.dvAuto && await dvAuto()) return;                    // 🏠 로그인 없이 이 브라우저에 쓰기로 했으면 바로 열어요 (js/devsave.js)
             if (typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST && typeof localTestStart === 'function') { await localTestStart(); return; }   // 💻 내 컴퓨터(localhost) : 로그인 없이 · 이 브라우저에 저장 (js/localtest.js)
             if (GOOGLE_CLIENT_ID.startsWith('YOUR_CLIENT_ID')) {
                 showGate('config', '⚙ 코드 맨 위의 <b>GOOGLE_CLIENT_ID</b>에<br>발급받은 OAuth 클라이언트 ID를 넣어 주세요.');
@@ -1402,13 +1402,13 @@
         }
 
         async function driveLogin() {
-            if (drive.local && window.dvLogin) return dvLogin();                   // 📁 이 기기 폴더로 쓰다가 구글로 (js/devsave.js)
+            if (drive.local && window.dvLogin) return dvLogin();                   // 🏠 이 브라우저로 쓰다가 구글로 (js/devsave.js)
             const guestDays = drive.guest ? guestSnapshot() : null;               // 👤 게스트로 쓴 일기 (로그인하면 메모리가 드라이브 것으로 바뀌어서 먼저 챙겨요)
-            if (!drive.client && !driveClientMake() && await waitForGoogle(10000)) driveClientMake();   // 이 기기 폴더로 열었으면 구글 준비가 아직이에요
+            if (!drive.client && !driveClientMake() && await waitForGoogle(10000)) driveClientMake();   // 이 브라우저로 열었으면 구글 준비가 아직이에요
             showGate('wait', '☁ 구글 로그인 중이에요…<br>잠시만 기다려 주세요');      // 계정을 고른 뒤에도 보이는 글이라 '고르세요' 대신 (도련 10-21)
             try { await requestToken('select_account'); showGate('wait', '☁ 다이어리를 불러오는 중이에요…<br>잠시만 기다려 주세요'); await loadFromDrive(); hideGate(); await postLoginTasks(); }
             catch (e) { showGate('login', driveErrorText(e)); if (guestDays) guestHold = guestDays; return; }
-            if (window.dvAfterLogin) dvAfterLogin();                              // 📁 폴더 모드를 쓰던 기기도 이제 드라이브로 열려요
+            if (window.dvAfterLogin) dvAfterLogin();                              // 🏠 로그인 없이 쓰던 기기도 이제 드라이브로 열려요
             if (guestDays || guestHold) guestCarry(Object.assign({}, guestHold || {}, guestDays || {}));
         }
         /* 👤 게스트 일기 → 내 드라이브로 옮기기 (물어본 뒤 · 드라이브에도 있는 날은 "어느 쪽?") */
@@ -1455,16 +1455,7 @@
             hideGate(); updateBadge();
         }
 
-        async function reloadFromDrive() {
-            if (!drive.ready) { showMsg('먼저 구글 드라이브에 연결해 주세요.'); return; }
-            const yes = await showMsg((drive.local ? '이 기기 폴더에' : '드라이브에') + ' 저장된 내용으로 현재 내용을 바꿔서 다시 불러올까요?<br><span style="font-size:12px;color:#777;">아직 저장되지 않은 변경은 사라져요.</span>', true);
-            if (!yes) return;
-            try { await loadFromDrive(); clearPending(); showMsg(drive.local ? '🔄 이 기기 폴더에서 다시 불러왔어요!' : '🔄 드라이브에서 다시 불러왔어요!'); }
-            catch (e) { showMsg('⚠ ' + driveErrorText(e)); }
-        }
-
         async function driveLogout() {
-            if (drive.local && window.dvStop) return dvStop();                     // 📁 이 기기 폴더 그만 쓰기
             const yes = await showMsg('로그아웃할까요?<br><span style="font-size:12px;color:#777;">구글 드라이브에 저장된 일기는 그대로 남아 있어요.</span>', true);
             if (!yes) return;
             if (drive.ready && drive.dirty) await flushUpload();
@@ -1529,7 +1520,7 @@
             pendTx('readwrite', st => st.delete(PEND_TAB));
         }
         /* 이 기기에 남아 있는 모든 탭의 보관본 → 하나로 (같은 내용 칸은 가장 나중에 보관한 것) */
-        /* 임시 보관본은 그것을 만든 곳(구글 계정 · 이 기기 폴더)에서만 복구해요 : 다른 계정 · 하드 폴더로 섞여 들어가지 않게 (도련 · 2026-10-13) */
+        /* 임시 보관본은 그것을 만든 곳(구글 계정 · 이 브라우저)에서만 복구해요 : 다른 계정 · 하드 폴더로 섞여 들어가지 않게 (도련 · 2026-10-13) */
         function pendWho() { return drive.local ? 'device' : 'g:' + ((typeof COLL !== 'undefined' && COLL.who) || ''); }
         async function readAllPending() {
             const recs = [], lsKeys = [], tabs = [], who = pendWho();

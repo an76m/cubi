@@ -39,7 +39,7 @@
         const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
         const O = { kw: '', key: null, kd: {}, idx: null, album: null, noR: new Set(), mem: null, q: Promise.resolve(), subs: new Set(), replayed: '' };   // kd = 종류마다 (ownK) · idx · album = 모든 종류를 합친 모습 (ownMerge)
 
-        /* ---------- 어디에 (드라이브 · 이 기기 폴더 = 'drive' / 구경만 = 'mem' / 아직 = '') ---------- */
+        /* ---------- 어디에 (드라이브 · 이 브라우저 = 'drive' / 구경만 = 'mem' / 아직 = '') ---------- */
         const ownMode = () => typeof drive === 'undefined' ? '' : drive.guest ? 'mem' : drive.ready ? 'drive' : '';
         const ownWho = () => ownMode() === 'mem' ? 'guest' : ((typeof COLL !== 'undefined' && COLL.who) || 'me');
         function ownReset() {
@@ -86,7 +86,7 @@
             return JSON.parse(ownDec(b));
         }
 
-        /* ---------- 저장소 (드라이브 · 이 기기 폴더는 js/drive.js 함수 그대로 · 구경만은 메모리) ---------- */
+        /* ---------- 저장소 (드라이브 · 이 브라우저는 js/drive.js 함수 그대로 · 구경만은 메모리) ---------- */
         const ownRid = () => Date.now().toString(36) + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
         /* 📁 종류 폴더 찾기 (말랑달콤 / 씰 · 마테 …) : 찾은 폴더는 drive.folderIds 가 기억해요 · 없는 종류 폴더는 잠깐(15초) 다시 찾지 않아요 (책상이 모든 종류 스티커첩을 볼 때 요청이 늘지 않게) */
         const OWN_MISS = new Map();
@@ -823,7 +823,7 @@
         /* 실패 이유 → 알림 글 */
         function ownErrText(e) {
             const c = e && e.code;
-            if (c === 'ready') return '구글 계정으로 로그인하거나 📁 폴더에 저장할 때 쓸 수 있어요.';
+            if (c === 'ready') return '구글 계정으로 로그인하거나 🏠 로그인 없이 다꾸할 때 쓸 수 있어요.';
             if (c === 'crypto') return '이 브라우저에서는 스티커를 열 수 없어요.';
             if (c === 'corrupt') return '스티커 목록을 읽을 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 말랑달콤 폴더이거나 파일이 깨졌어요.</span>';
             if (c === 'full') return '☁ 구글 드라이브 저장공간이 가득 찼어요.';

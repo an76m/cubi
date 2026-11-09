@@ -32,7 +32,7 @@
     }
     async function stpOpen() {
         const A = API(); if (!A) return;
-        if (!A.ok()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 고를 수 있어요.'); return; }
+        if (!A.ok()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 고를 수 있어요.'); return; }
         const el = stpBuild(); T.draft = T.ids.slice(); el.classList.add('show');
         const p = A.peek(); if (p) { T.list = p; stpPaint(); } else q('stpGrid').innerHTML = '<p class="stp-empty">스티커를 꺼내는 중…</p>';
         try { T.list = await A.load(true); } catch (e) { if (!p) { q('stpGrid').innerHTML = '<p class="stp-empty">⚠ 스티커를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</p>'; return; } }

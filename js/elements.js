@@ -1012,7 +1012,7 @@
             saveBusy(drive.local ? '📁 저장 중…' : '☁ 저장 중…');
             let ok = false;
             try { ok = await flushUpload({ force: true }); } finally { await saveBusy(false); }   // 파일이 없으면 생성, 있으면 덮어쓰기
-            if (drive.local) { showMsg(ok ? '📁 ' + dvWhere() + '에 저장했어요!<br><span style="font-size:12px;color:#777;">' + dayPathText(currentDate) + '</span>' : '⚠ 폴더에 저장하지 못했어요.<br>잠시 후 자동으로 다시 시도합니다.'); return; }   // 📁 (js/devsave.js)
+            if (drive.local) { showMsg(ok ? '🏠 ' + dvWhere() + '에 저장했어요!<br><span style="font-size:12px;color:#777;">' + dayPathText(currentDate) + '</span>' : '⚠ 이 브라우저에 저장하지 못했어요.<br>잠시 후 자동으로 다시 시도합니다.'); return; }   // 🏠 (js/devsave.js)
             showMsg(ok
                 ? '☁ 구글 드라이브에 저장했어요!<br><span style="font-size:12px;color:#777;">' + dayPathText(currentDate) + '</span>'
                 : '⚠ 구글 드라이브 저장에 실패했어요.<br>잠시 후 자동으로 다시 시도합니다.');
@@ -1134,11 +1134,11 @@
         function openSaveChooser() {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어주세요!'); return; }
             const web = document.getElementById('saveWebDesc');
-            const L = !!drive.local, set = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };   // 📁 폴더(하드)로 쓰면 '폴더에 저장' (js/devsave.js)
-            set('saveWebIcon', L ? '📁' : '☁');
-            set('saveWebTitle', L ? '폴더에 저장 (이 기기)' : '웹에 저장 (구글 드라이브)');
-            set('saveChooserNote', L ? '※ 일기는 쓰는 동안 몇 초마다 폴더에 자동 저장돼요.' : '※ 일기는 쓰는 동안 몇 초마다 웹에 자동 저장돼요.');
-            if (web) web.textContent = L ? '이 기기 폴더에 저장해요. 기기를 바꿀 땐 ⚙ 설정 → 📦 백업 파일 받기.' : drive.ready && !drive.guest
+            const L = !!drive.local, set = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };   // 🏠 로그인 없이 쓰면 '이 브라우저에 저장' (js/devsave.js)
+            set('saveWebIcon', L ? '🏠' : '☁');
+            set('saveWebTitle', L ? '저장 (이 브라우저)' : '웹에 저장 (구글 드라이브)');
+            set('saveChooserNote', L ? '※ 일기는 쓰는 동안 몇 초마다 이 브라우저에 자동 저장돼요.' : '※ 일기는 쓰는 동안 몇 초마다 웹에 자동 저장돼요.');
+            if (web) web.textContent = L ? '이 브라우저에 저장해요. 브라우저나 기기를 바꿀 땐 ⚙ 설정 → 📦 백업 파일 받기.' : drive.ready && !drive.guest
                 ? '내 구글 드라이브에 저장해요. 다른 기기에서 로그인해도 이어서 볼 수 있어요.'
                 : '⚠ 지금은 로그인되어 있지 않아서 웹에 저장할 수 없어요.';
             openModal('saveChooser');

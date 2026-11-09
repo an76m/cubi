@@ -79,7 +79,7 @@
     async function bkRender(force) {
         const wrap = bq('bkWrap'); if (!wrap) return;
         if (!window.ownList) { wrap.innerHTML = bkMsg('🗄️ 서랍을 준비하고 있어요.'); return; }
-        if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 서랍을 쓸 수 있어요.'); return; }
+        if (!ownMode()) { wrap.innerHTML = bkMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 서랍을 쓸 수 있어요.'); return; }
         /* ⚡ 먼저 : 마지막으로 읽은 목록으로 바로 그려요 (드라이브를 기다리지 않게) → 그다음 새로 읽어 달라졌을 때만 다시 그려요 */
         const peek = force && window.ownPeek ? ownPeek(B.kind) : null;   // 그 종류만 (종류마다 목록 · 도련 11-05)
         if (peek) { B.all = peek.list.slice(); B.album = bkUnbag(JSON.parse(JSON.stringify(peek.album))); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
@@ -375,6 +375,7 @@
         frP.catch(e => { console.warn('📥 받은 스티커첩 목록', e); if (frGen === gen) frP = null; });
         return frP;
     }
+    window.abShopIds = () => ({ bd: AB_BDP.filter(x => !x.P.숨김 && !x.P.스토어).map(x => x.id), rl: AB_RL.filter(x => !x.P.숨김 && !x.P.스토어).map(x => x.id) });   // 🚚 샵의 무료 📒 바인더 · 🤍 이형지북 (js/backup.js 옮기기 · 도련 11-09)
     const frNew = (t, pid, from) => { const P = (t === 'bd' ? AB_BDP : AB_RL).find(x => x.id === pid); return { id: (t === 'bd' ? 'b' : 'r') + abRid(), pid: P.id, n: +(t === 'bd' ? P.P.장수 : P.P.쪽수), lb: '', at: Date.now(), from }; };
     /* 🏪 기본상품 샵에서 받기 = 종류 없이 📥 받은 목록에 (도련 11-08 · 예전엔 넣을 서랍을 골랐어요) */
     async function abTakeTool(t, pid) {
@@ -1461,7 +1462,7 @@
             btn.classList.add('got'); btn.textContent = shGotText(x); btn.onclick = () => shGoSee(k0, 0);
             got.add(i); return;
         }
-        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
+        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         bagStart(); let bagOk = false;
         try {
@@ -1491,7 +1492,7 @@
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${k}', 0)">${shGotText()}</button></div>`;
             return;
         }
-        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>📁 폴더에 저장할 때 스티커를 받을 수 있어요.'); return; }
+        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 받을 수 있어요.'); return; }
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         bagStart(); let bagOk = false;
         try {
