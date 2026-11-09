@@ -129,7 +129,19 @@
             O.idx = L.length ? ownPick(L) : null;
             O.album = A.length ? ownAlbPick(A) : null;
         }
-        function ownSetKind(k, list) { const d = ownK(k); d.live = list.filter(ownAlive); d.at = performance.now(); ownMerge(); }
+        /* 🧾 아직 드라이브에 다 못 지운 칸 · 수량(ownPendGet)을 얹은 모습 (도련 11-09 · 구글은 한 장 지우는 데 몇 초 걸려요)
+           → 9개를 빨리 붙이면 1개 지운 목록이 먼저 와서 '8개 남음'으로 되살아나 보이던 것 · 얹어서 보면 늘 이 화면에서 쓴 만큼 */
+        function ownPendFix(e) {
+            const P = ownPendGet().filter(p => p.s === e.id); if (!P.length) return e;
+            const x = Object.assign({}, e, { u: (e.u || []).slice() });
+            P.forEach(p => { if (p.q) x.q = Math.max(0, (x.q || 0) - p.q); else if (!x.u.includes(p.k)) x.u.push(p.k); });
+            return x;
+        }
+        function ownSetKind(k, list) {
+            const d = ownK(k), L = list.map(ownPendFix);
+            L.forEach(e => { if (!ownHas(e)) O.spent.add(e.id); });                 // 다 쓴 종이 = 기억 (basket.js dsEntry)
+            d.live = L.filter(ownAlive); d.at = performance.now(); ownMerge();
+        }
         function ownKindOf(id) {                                                  // 종이 id → 종류 (읽어 둔 목록에서)
             for (const k of OWN_KS) { const d = O.kd[k]; if (d && d.live && d.live.some(e => e.id === id)) return k; }
             return '';
@@ -311,9 +323,8 @@
                 return ownPick(ks);
             });
         }
-        function ownIdxApply(k, list) {                                          // 이 기기에서 쓰는 중인 칸 · 수량을 빼고 기억해요
+        function ownIdxApply(k, list) {                                          // 이 기기에서 쓰는 중인 칸 · 수량을 빼고 기억해요 (ownSetKind 가 얹어요)
             const pend = ownPendGet();
-            pend.forEach(p => { const e = list.find(x => x.id === p.s); if (!e) return; if (p.q) e.q = Math.max(0, e.q - p.q); else if (!e.u.includes(p.k)) e.u.push(p.k); });
             ownSetKind(k, list);
             if (pend.length && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
             return O.kd[k].live;
@@ -921,4 +932,4 @@
         window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownKitDesc = ownKitDesc; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id);   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id); window.ownPendOn = e => e ? ownPendFix(e) : e;   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
