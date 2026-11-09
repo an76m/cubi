@@ -1398,7 +1398,7 @@
                 try { await requestToken('none'); await loadFromDrive(); hideGate(); postLoginTasks(); return; }
                 catch (e) { if (e && e.type === 'corrupt') { showGate('login', driveErrorText(e)); return; } }
             }
-            showGate('login', (window.dvHint ? dvHint() : '') || fileHint.replace(/^<br><br>/, ''));   // 설명은 두 버튼 안에 있어요 · 🏠 이 브라우저에 쓰던 다이어리가 있으면 한 줄
+            showGate('login', fileHint.replace(/^<br><br>/, ''));               // 설명은 두 버튼 안에 있어요
         }
 
         async function driveLogin() {

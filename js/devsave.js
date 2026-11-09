@@ -238,8 +238,6 @@
             if (navigator.storage && navigator.storage.persist && !/firefox/i.test(navigator.userAgent)) navigator.storage.persist().catch(() => {});   // 지우지 말아 주세요 (묻는 창 없이 되는 브라우저만)
         }
         /* drive.js initDrive 맨 앞 : true 면 구글 화면 없이 이 브라우저 저장공간으로 열렸어요 */
-        /* 🚪 첫 화면 한 줄 (도련 11-09 · 로그인 없이 쓰는 사람은 열 때마다 첫 화면이에요 · 바로 열지 않아요) */
-        function dvHint() { return dvGetMode() === 'idb' ? '🏠 이 브라우저에 쓰던 다이어리가 있어요<br><span style="font-size:12px;color:#888;">이어 쓰려면 <b>로그인 없이 다꾸하기</b><br>구글로 옮기려면 들어가서 ⚙ 설정 → ☁ 구글로 이동</span>' : ''; }
         function dvQuit() { V.on = false; drive.local = false; drive.ready = false; }
 
         /* '로그인 없이 다꾸하기' → 묻는 창 없이 바로 이 브라우저 저장공간(idb)으로 시작 → 💻 책상 · 📱 겉표지 (도련 10-28 · "어디에 둘까요?" 창 없앰) */
@@ -384,7 +382,7 @@
         const dvOn = () => V.on;
         const dvWhere = () => '이 브라우저';
 
-        window.dvHint = dvHint; window.dvChoose = dvChoose; window.vfsFetch = vfsFetch; window.dvOn = dvOn; window.dvWhere = dvWhere;
+        window.dvChoose = dvChoose; window.vfsFetch = vfsFetch; window.dvOn = dvOn; window.dvWhere = dvWhere;
         window.dvLogin = dvLogin; window.dvAfterLogin = dvAfterLogin;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
