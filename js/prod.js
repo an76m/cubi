@@ -17,7 +17,7 @@ const prodList = (() => {
             if (!x || typeof x.id !== 'string' || !x.f || typeof x.f !== 'object') return null;
             const u = {}; Object.keys(x.f).forEach(r => { if (okF(x.f[r])) u[r] = PROD_BASE + '/k/' + x.f[r]; });
             let P = x.P && typeof x.P === 'object' && !Array.isArray(x.P) ? x.P : {};
-            if (P.스토어) P = Object.assign({}, P, { 숨김: true, 처음선물: false });   // 💎 스토어(유료) 상품 = 아직 무료 샵 · 처음 선물에 안 나와요 (말랑달콤 스토어가 생기면 거기서 · 가진 사람은 그대로)
+            if (P.스토어) P = Object.assign({}, P, { 숨김: true, 처음받기: false });   // 💎 스토어(유료) 상품 = 아직 무료 샵 · 처음 선물에 안 나와요 (말랑달콤 스토어가 생기면 거기서 · 가진 사람은 그대로)
             return { id: x.id.slice(0, 60), P, u, wh: x.wh && typeof x.wh === 'object' ? x.wh : {}, h: typeof x.h === 'string' ? x.h : '' };
         }).filter(Boolean).sort((a, b) => (+a.P.순서 || 0) - (+b.P.순서 || 0)));
     };

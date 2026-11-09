@@ -22,7 +22,7 @@
    - 줄어드는 방식 (도련 10-25) : 칸 = 🏷️ 씰(😀 이모지 포함) · 🧩 조각 (뗀 칸만 비어요)
                                수량 = 🎀 테이프 (붙인 길이만큼 · 한 롤 = 상품 롤길이 px (내가 만든 것 OWN_MINE_Q)) · 🧻 떡메 · 📝 메모지 (한 장씩 · 한 묶음 50장) · 📃 속지 (깔면 끝)
                                종이 = 📄 모조지 (오린 자리만 비고 남은 종이는 계속 · 거의 다 오리면 끝)
-   - 목록 한 칸 : { id, f : 종이 파일 id, k : 종류, n : 칸 수, u : [쓴 칸 번호] · q0 · q : 처음 · 남은 수량, at : 받은 때, from : 'kit' 기본 · 'mine' 만든 것 · 'gift' 선물,
+   - 목록 한 칸 : { id, f : 종이 파일 id, k : 종류, n : 칸 수, u : [쓴 칸 번호] · q0 · q : 처음 · 남은 수량, at : 받은 때, from : 'basic' 무료(기본상품 샵 · 처음받기) · 'gift' 선물(캡슐 …) · 'mine' 내가 만든 · 'share' 공유로 받은 · 'paid' 산 것 (도련 11-09 · 상품 분류 다섯) · start : 1 = 처음받기 · via = 선물 종류 · rel : 1 = 이형지에서 떼어 낸 종이 (분류는 원래 종이 것),
                    nm : 이름, us : [기본스티커 그림 주소] (바구니 미리보기) · th : 작은 그림 · ts : 🔤 글씨스티커 }
    - 종이 파일 : { v, id, k, from, nm, ts, baked : 하얀 테두리를 이미 둘렀는지, imgs : [그림 data · 쓴 칸은 null], wh : [[가로, 세로]], q0 · q, x : 종류마다 정보 }
    ※ 파일 불러오는 순서 : drive → coll → … → own → basket (index.html) */
@@ -217,13 +217,14 @@
             const list = [];
             for (const [id, { x, s }] of got) {
                 const b = base.find(e => e.id === id), sx = s.x || {};
-                const e = b ? Object.assign({}, b) : { id, at: Date.parse(x.createdTime) || Date.now(), from: s.from || 'kit', nm: s.nm || '' };
+                const e = b ? Object.assign({}, b) : { id, at: Date.parse(x.createdTime) || Date.now(), from: s.from || 'basic', nm: s.nm || '' };
                 e.f = x.id; e.k = s.k || e.k || k; e.n = s.imgs.length || 1;
                 e.u = s.imgs.map((v, j) => v == null ? j : -1).filter(j => j >= 0);
                 if (s.q0) { e.q0 = s.q0; e.q = Math.max(0, +s.q || 0); }
                 if (!b) {
                     if (s.ts) e.ts = 1;
                     if (s.b) e.b = s.b;
+                    if (s.start) e.start = 1; if (s.via) e.via = s.via; if (s.rel) e.rel = 1;   // 🛟 종이 파일에서 되살릴 때 표시도 (도련 11-09)
                     if (sx.pad || sx.lf || sx.pp || sx.glue || sx.bg) e.x = { pad: sx.pad, lf: sx.lf, pp: sx.pp, glue: sx.glue, bg: sx.bg, w: sx.w, h: sx.h, tc: sx.tc };   // w · h · tc = 그림 메모지 크기 · 글자색
                     if (e.k === 'tk' && sx.pad === 'my') e.th = s.imgs[0] || '';
                     else if (!(e.k === 'memo' && sx.pp && sx.pp !== 'img')) e.th = await ownThumb(s.imgs).catch(() => '');
@@ -411,19 +412,22 @@
             const items = [];
             for (const d of ds) {
                 const imgs = (d.imgs || []).slice(), th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));
-                items.push([{ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b, L: d.L }, Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {})]);
+                items.push([{ k: d.k, from: d.from || 'basic', start: d.start, via: d.via, by: d.by, nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b, L: d.L }, Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {})]);
             }
             return ownAddMany(items);
         }
         function ownBuild(sheet, meta) {                                         // 종이 · 목록 한 칸 만들기 (저장 전)
             const id = ownRid(), imgs = sheet.imgs.slice(0, 150);   // 시트 하나 = 그림 150장까지 (elements.js KIT_MAX 와 같게 · 도련 11-04)
-            const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'kit', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
+            const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'basic', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
             const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? { r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) } : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             if (L) full.L = L;
             const ent = { id, f: '', k: full.k, n: imgs.length, u: [], at: Date.now(), from: full.from, nm: full.nm };
             const q0 = sheet.q0 || (full.from === 'mine' ? OWN_MINE_Q[full.k] : 0);
             if (q0) { full.q0 = full.q = q0; ent.q0 = ent.q = q0; }
             if (full.ts) ent.ts = 1;
+            if (sheet.start) full.start = ent.start = 1;                          // 🎁 처음받기 (도련 11-09 · 분류는 basic)
+            if (sheet.via) full.via = ent.via = String(sheet.via);
+            if (sheet.by) full.by = ent.by = String(sheet.by).slice(0, 40);      // 📥 공유로 준 사람 (닉네임)                // 🎁 선물 종류 (capsule · season · event · person · all)
             if (sheet.b) full.b = sheet.b;                                        // 🛟 되살릴 때 들어갈 바구니 (😀 이모지)
             if (meta && meta.us) ent.us = meta.us.slice(0, 150);
             if (L) ent.L = L;                                                     // 바구니 카드도 배치 그대로
@@ -575,11 +579,11 @@
             const b = await res.blob();
             return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = no; r.readAsDataURL(b); });
         }
-        /* 🎁 처음 선물 씰 (도련 11-06 · 상품공방 '처음선물') : 씰 시트 → ownTakeMany 에 넘길 종이 (ownTakeKit 과 같은 모양) */
-        async function ownKitDesc(us, nm, L) { return { k: 'seal', from: 'kit', nm, baked: !!L, imgs: await Promise.all(us.map(ownBlobUrl)), us, L }; }
+        /* 🎁 처음 선물 씰 (도련 11-06 · 상품공방 '처음받기') : 씰 시트 → ownTakeMany 에 넘길 종이 (ownTakeKit 과 같은 모양) */
+        async function ownKitDesc(us, nm, L) { return { k: 'seal', from: 'basic', nm, baked: !!L, imgs: await Promise.all(us.map(ownBlobUrl)), us, L }; }
         async function ownTakeKit(us, nm, L) {
             const imgs = await Promise.all(us.map(ownBlobUrl));
-            return ownAdd({ k: 'seal', from: 'kit', nm, baked: !!L, imgs, wh: await ownSizes(imgs), L }, { us });   // 🗺️ 배치 시트는 하얀 테두리째 잘라서 더 두르지 않아요
+            return ownAdd({ k: 'seal', from: 'basic', nm, baked: !!L, imgs, wh: await ownSizes(imgs), L }, { us });   // 🗺️ 배치 시트는 하얀 테두리째 잘라서 더 두르지 않아요
         }
         /* ✂️ 만든 씰 : 하얀 테두리를 이미 두른 그림들 → 내 종이로 */
         async function ownTakeMine(srcs, opt) {
@@ -591,7 +595,7 @@
         async function ownTake(d) {
             const imgs = (d.imgs || []).slice();
             const th = d.th || (d.us || d.noTh ? '' : await ownThumb(imgs.filter(Boolean), d.thSize));   // noTh : 바구니가 모양을 직접 그려요 (그린 떡메 · 속지 · 메모지)
-            return ownAdd({ k: d.k, from: d.from || 'kit', nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b },
+            return ownAdd({ k: d.k, from: d.from || 'basic', start: d.start, via: d.via, by: d.by, nm: d.nm, ts: d.ts, baked: d.baked, imgs, wh: d.wh || (d.k === 'seal' || d.k === 'piece' ? await ownSizes(imgs) : []), x: d.x, q0: d.q0, b: d.b },
                 Object.assign({}, d.us ? { us: d.us } : {}, th ? { th } : {}));
         }
         /* ---------- 📒 스티커첩 (도련 10-25) : 바인더 = 종이째 포켓에 · 이형지 = 낱개로 떼어 모으기
@@ -730,9 +734,9 @@
                 let s; try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') return ''; throw er; }
                 const img = s.imgs[slot]; if (img == null) return '';
                 const nid = ownRid();
-                const one = { v: 1, id: nid, k: e.k, from: 'rel', nm: s.nm || '', ts: s.ts ? 1 : 0, baked: !!s.baked, imgs: [img], wh: [(s.wh || [])[slot] || [0, 0]], x: {} };
+                const one = { v: 1, id: nid, k: e.k, from: e.from || s.from || 'basic', rel: 1, nm: s.nm || '', ts: s.ts ? 1 : 0, baked: !!s.baked, imgs: [img], wh: [(s.wh || [])[slot] || [0, 0]], x: {} };
                 if (e.b) one.b = e.b;
-                const ne = { id: nid, f: '', k: e.k, n: 1, u: [], at: Date.now(), from: 'rel', nm: one.nm, th: await ownThumb([img], 96) };
+                const ne = { id: nid, f: '', k: e.k, n: 1, u: [], at: Date.now(), from: one.from, rel: 1, nm: one.nm, th: await ownThumb([img], 96) };
                 if (e.b) ne.b = e.b; if (s.ts) ne.ts = 1;
                 ne.f = await ownFileNew(one);
                 s.imgs[slot] = null;
@@ -782,9 +786,9 @@
                             if (rel.it.filter(t => t.pg === pg).length >= ownRelCap(rel)) continue;
                             const img = sh.imgs[op.k]; if (img == null || pend.some(p => p.s === src && p.k === op.k)) continue;
                             const nid = ownRid();
-                            const one = { v: 1, id: nid, k: e.k, from: 'rel', nm: sh.nm || '', ts: sh.ts ? 1 : 0, baked: !!sh.baked, imgs: [img], wh: [(sh.wh || [])[op.k] || [0, 0]], x: {} };
+                            const one = { v: 1, id: nid, k: e.k, from: e.from || sh.from || 'basic', rel: 1, nm: sh.nm || '', ts: sh.ts ? 1 : 0, baked: !!sh.baked, imgs: [img], wh: [(sh.wh || [])[op.k] || [0, 0]], x: {} };
                             if (e.b) one.b = e.b;
-                            const ne = { id: nid, f: '', k: e.k, n: 1, u: [], at: Date.now(), from: 'rel', nm: one.nm, th: await ownThumb([img], 96) };
+                            const ne = { id: nid, f: '', k: e.k, n: 1, u: [], at: Date.now(), from: one.from, rel: 1, nm: one.nm, th: await ownThumb([img], 96) };
                             if (e.b) ne.b = e.b; if (sh.ts) ne.ts = 1;
                             jobs.push(ownFileNew(one).then(f => { ne.f = f; made.push(f); }));   // ⚡ 새 종이 파일은 한꺼번에 올려요
                             sh.imgs[op.k] = null; any = true;

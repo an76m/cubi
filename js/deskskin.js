@@ -18,7 +18,7 @@
         function dsBuild() {                                                       // 🧁 서버 상품 그대로 (js/prod.js)
             DS_CAT.length = 0;
             [['벽지', 'wall'], ['책상판', 'top']].forEach(([kind, k]) => (window.prodList ? prodList(kind) : []).forEach(x => {
-                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, basic: !!P.기본, gift: !!P.처음선물 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
+                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, basic: !!P.기본, gift: !!P.처음받기 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
                 if (/^#[0-9a-f]{6}$/i.test(P.단색 || '')) c.c = P.단색;
                 if (Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);
                 const u = x.u && x.u.디자인, wh = x.wh && x.wh.디자인;
@@ -39,7 +39,7 @@
         const DSO_KEY = 'diary_skin_own', DSO_LOCAL = 'malang_skin_own';
         const dsLazy = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof keyFileOn === 'function' && !keyFileOn('dkown');
         const dsOk = x => x && x.u && typeof x.id === 'string';
-        const dsG = x => { const y = Object.assign({}, x), g = !!(y.g || y.from === 'gift'); delete y.g; delete y.from; return g ? Object.assign(y, { g: 1 }) : y; };   // 🎁 선물 = 그 줄의 from: 'gift' (앱 안에서는 g)
+        const dsG = x => { const y = Object.assign({}, x), g = !!(y.g || y.start); delete y.g; delete y.start; delete y.from; return g ? Object.assign(y, { g: 1 }) : y; };   // 🎁 처음받기 = 그 줄의 start: 1 (앱 안에서는 g · 도련 11-09)
         function dsRead() {
             const v = prefGet(DS_KEY, DS_LOCAL), f = v && typeof v === 'object' && !Array.isArray(v) ? v : null, o = prefGet(DSO_KEY, DSO_LOCAL);
             if (Array.isArray(o)) return { own: o.filter(dsOk).map(dsG), wall: (f && f.wall) || '', top: (f && f.top) || '' };
@@ -51,7 +51,7 @@
         function dsSave(s, mem) {
             prefSet(DS_KEY, DS_LOCAL, { wall: s.wall || '', top: s.top || '', wi: dsOn(s, 'wall'), ti: dsOn(s, 'top') });
             if (s.part) return;                                                    // 💤 가진 것을 모르면 고른 것만
-            const own = s.own.map(x => { const y = Object.assign({}, x); if (y.g) y.from = 'gift'; delete y.g; return y; });   // 🎁 선물 = from: 'gift'
+            const own = s.own.map(x => { const y = Object.assign({}, x, { from: 'basic' }); if (y.g) y.start = 1; delete y.g; return y; });   // 🎁 처음받기 = from: 'basic' + start: 1 (도련 11-09)
             if (mem && dsOnline()) store.putLoaded(DSO_KEY, JSON.stringify(own)); else prefSet(DSO_KEY, DSO_LOCAL, own);   // 💤 mem = 처음 선물 그대로 (목록 파일은 바뀔 때)
         }
         const dsOn = (s, k) => { const it = s.own.find(x => x.u === s[k]); return it ? it.id : ''; };   // 지금 쓰는 것 (없으면 '' = 그림 그대로)
@@ -71,7 +71,7 @@
             const s = dsRead(); if (!s || s.part || !dsOnline()) return;
             for (const it of s.own.filter(x => !x.c && !x.g)) await dsFile(it, 'basic');   // 🎁 선물은 목록 한 줄만 (파일 없음)
         }
-        /* 🎁 처음 온 다꾸러 = 상품 '처음선물' 벽지 · 책상판 (상품공방 · 도련 11-02 · 한 번만 · 다 버려도 다시 주지 않아요)
+        /* 🎁 처음 온 다꾸러 = 상품 '처음받기' 벽지 · 책상판 (상품공방 · 도련 11-02 · 한 번만 · 다 버려도 다시 주지 않아요)
            🛟 로그인했는데 목록이 없으면 = 먼저 종류 폴더를 봐요 (파일이 있으면 되살리기 · 없으면 처음 선물 · 도련 11-05) */
         const dsGiftTell = () => { if (window.deskGiftWrite) deskGiftWrite(); };   // (예전 _선물.json 다시 쓰기 자리 · 지금은 할 일 없음 · js/desk.js giftWrite)
         window.dsGiftOwn = () => { const s = dsRead(); return !s || s.part ? null : s.own.filter(x => x.g).map(x => ({ u: x.u, id: x.id })); };   // null = 아직 몰라요
@@ -187,7 +187,7 @@
         const dsCount = kind => dsCur().own.filter(x => dsCat(x.id) && dsCat(x.id).k === (kind === 'wallpaper' ? 'wall' : 'top') && !dsBagged(x)).length;
         function dsName(kind) { const s = dsCur(), k = kind === 'wallpaper' ? 'wall' : 'top', id = dsOn(s, k); return id && dsCat(id) ? dsCat(id).n : (k === 'wall' ? '벽지 없음 (그림 그대로)' : '책상 꾸밈 없음 (그림 그대로)'); }
 
-        window.dsGiftIds = () => DS_CAT.filter(c => c.gift).map(c => c.id);   // 🎁 상품공방 처음선물 (되살리기 · js/desk.js giftRead)
+        window.dsGiftIds = () => DS_CAT.filter(c => c.gift).map(c => c.id);   // 🎁 상품공방 처음받기 (되살리기 · js/desk.js giftRead)
         window.dsAfterLoad = () => {                                              // 💤 가진 것을 읽은 뒤 (js/desk.js dkOwnReady) : 없어진 쪽이 있으면 되살리기 · 아니면 파일이 아직 없는 것
             if (dsBusy || (typeof drive !== 'undefined' && drive.deskLocked)) return;
             dsBusy = true;

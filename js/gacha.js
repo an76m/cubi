@@ -8,7 +8,7 @@
    - 서버 코드 : 랜덤박스_앱스크립트.gs (랜덤박스 시트 → 확장 프로그램 → Apps Script 에 붙여 넣기)
      배포한 웹 앱 주소를 아래 GACHA_API_URL 에 넣어요.
    - 로그인한 사용자만 돌릴 수 있어요 (구글 계정으로 하루 한 번을 확인하기 때문)
-   - 🎁 첫 선물 (도련 11-06) : 상품공방 캡슐스티커 '처음선물'에 체크한 것을 처음 온 다꾸러 바구니에 (capsStarter · js/desk.js giftEnsure)
+   - 🎁 첫 선물 (도련 11-06) : 상품공방 캡슐스티커 '처음받기'에 체크한 것을 처음 온 다꾸러 바구니에 (capsStarter · js/desk.js giftEnsure)
      앱 · 랜덤박스 서버가 고르지 않아요 (예전 서버 welcome 은 이제 부르지 않아요) · 하나도 체크하지 않으면 캡슐 첫 선물은 없어요
      → '첫 선물이 도착했어요' 창으로 움직이는 스티커를 보여 주고, 얻는 방법(출석 도장 → 코인 → 랜덤박스)을 알려 줘요
    - 이 파일이 없어도 다이어리는 정상 동작 (랜덤박스만 '준비 중')
@@ -100,10 +100,10 @@
             if (typeof openAttend === 'function') openAttend();
         }
 
-        /* 🎁 처음 선물 캡슐 (도련 11-06 · 상품공방 캡슐스티커 '처음선물' 체크 · 앱이 고르지 않아요 · js/basket.js bkStarterSheets → js/desk.js giftEnsure)
+        /* 🎁 처음 선물 캡슐 (도련 11-06 · 상품공방 캡슐스티커 '처음받기' 체크 · 앱이 고르지 않아요 · js/basket.js bkStarterSheets → js/desk.js giftEnsure)
            → [종이 만들기] · cap = 그 캡슐 id (받으면 '첫 선물이 도착했어요' 창 · capsGiftPop) */
-        const capsStarter = () => (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.P.처음선물 && x.u && x.u.디자인)
-            .map(x => { const k = { id: x.id, name: String(x.P.이름 || ''), url: x.u.디자인 }; return async () => ({ k: 'seal', from: 'gift', nm: k.name, imgs: [await capsData(k)], baked: true, cap: k.id }); });
+        const capsStarter = () => (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.P.처음받기 && x.u && x.u.디자인)
+            .map(x => { const k = { id: x.id, name: String(x.P.이름 || ''), url: x.u.디자인 }; return async () => ({ k: 'seal', from: 'basic', start: 1, nm: k.name, imgs: [await capsData(k)], baked: true, cap: k.id }); });
         window.capsStarter = capsStarter; window.capsGiftPop = id => capsWelcomePop(id);
         function capsWelcomePop(id, until) {
             const k = capsList().find(x => x.id === id); if (!k) return;
@@ -130,7 +130,7 @@
         /* 🎒 캡슐 스티커 → 🧺 바구니에 한 장 (선물) · 새 종이 id */
         async function capsToBasket(k) {
             if (!k || !window.ownTake || !window.ownMode || !ownMode()) return '';
-            try { return await ownTake({ k: 'seal', from: 'gift', nm: k.name, imgs: [await capsData(k)], baked: true }); } catch (e) { console.warn(e); return ''; }
+            try { return await ownTake({ k: 'seal', from: 'gift', via: 'capsule', nm: k.name, imgs: [await capsData(k)], baked: true }); } catch (e) { console.warn(e); return ''; }   // 🎁 뽑기 = 선물상품 (도련 11-09)
         }
         async function capsTakeOut() {                                  // 당첨 화면 : 바구니에서 바로 꺼내 떼어 붙이기
             const id = await gc.own; if (!id) { showMsg('🗄️ 서랍에 넣지 못했어요.<br>인터넷 연결을 확인해 주세요.'); return; }

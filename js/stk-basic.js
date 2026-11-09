@@ -87,10 +87,10 @@
             let list = []; try { list = await sbList(kind); } catch (e) {}
             return sbCards(kind, list.filter(x => !(x.P && (x.P.선물 || x.P.스토어))).filter(x => sbNeed(kind, x)).reverse());     // 🎁 선물 전용(이벤트 · 저금통) · 💎 스토어(유료)는 무료 샵에 진열 안 해요
         }
-        /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음선물' · 앱은 상품공방이 체크한 것만 줘요) : 그 종류 [{ id, take }] · 선물 전용이어도 체크하면 줘요 · 💎 스토어는 빼요 */
+        /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음받기' · 앱은 상품공방이 체크한 것만 줘요) : 그 종류 [{ id, take }] · 선물 전용이어도 체크하면 줘요 · 💎 스토어는 빼요 */
         async function sbStarter(kind) {
             let list = []; try { list = await sbList(kind); } catch (e) {}
-            const L = list.filter(x => x.P && x.P.처음선물 && !x.P.스토어 && sbNeed(kind, x));
+            const L = list.filter(x => x.P && x.P.처음받기 && !x.P.스토어 && sbNeed(kind, x));
             return sbCards(kind, L).map((c, i) => ({ id: String(L[i].P.id || ''), take: c.take }));
         }
         async function sbTapeTake(x) {                                           // 🎀 테이프 상품 → 내 종이로 받을 것 (js/own.js ownTake)
@@ -98,7 +98,7 @@
             const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
             return { k: 'tape', imgs: [u], th: u, q0: +x.P.롤길이 };
         }
-        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 '처음선물') : 처음 온 다꾸러가 한 롤씩 받아요 → 책상 마테 정리함에 꽂아요 (js/desk.js giftEnsure · js/desktape.js dktStarter) */
+        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 '처음받기') : 처음 온 다꾸러가 한 롤씩 받아요 → 책상 마테 정리함에 꽂아요 (js/desk.js giftEnsure · js/desktape.js dktStarter) */
         const sbStarterTapes = () => sbStarter('tape');
         const collHashS = s => { s = String(s); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
         /* 🎁 선물 전용 테이프 (이벤트 · 저금통 · 상품공방 '선물') : [{ id, name, url }] */

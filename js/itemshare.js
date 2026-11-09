@@ -70,14 +70,14 @@
                     if (!window.ownMode || !ownMode()) { showMsg('🔐 로그인하거나 📁 폴더에 저장할 때 받을 수 있어요.'); return; }
                     for (const it of body.items) {
                         if (!it || typeof it.k !== 'string' || !Array.isArray(it.imgs)) { skip++; continue; }
-                        await ownTake({ k: it.k, from: 'share', nm: it.nm, ts: it.ts, baked: it.baked, imgs: it.imgs, wh: it.wh, x: it.x, q0: it.q0, b: it.b, th: it.th, noTh: !it.th });
+                        await ownTake({ k: it.k, from: 'share', by: body.by, nm: it.nm, ts: it.ts, baked: it.baked, imgs: it.imgs, wh: it.wh, x: it.x, q0: it.q0, b: it.b, th: it.th, noTh: !it.th });
                         n++;
                     }
                 } else if (body.kind === 'desk') {
                     if (window.deskOwnReady) await deskOwnReady();                  // 💤 먼저 가진 소품 목록 (도련 11-07)
                     for (const it of body.items) { if (it && window.deskReceive && deskReceive(it.id, 'share', typeof it.img === 'string' && /^data:image\//.test(it.img) ? it.img : '')) n++; else skip++; }
                 } else {
-                    for (const it of body.items) { const r = it && window.gdGive ? gdGive(it.id, true) : 'no'; /* 같은 것이 있어도 하나 더 (도련 11-07) */ if (r === 'ok') n++; else skip++; }
+                    for (const it of body.items) { const r = it && window.gdGive ? gdGive(it.id, true, 'share') : 'no'; /* 같은 것이 있어도 하나 더 (도련 11-07) */ if (r === 'ok') n++; else skip++; }
                 }
             } catch (e) { console.warn(e); showMsg('⚠ 받다가 멈췄어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
             if (n || !skip) { got.push(body.t); if (typeof prefSet === 'function') prefSet(ISH_GOT, ISH_GOT_L, got.slice(-ISH_GOT_MAX)); }   // 하나라도 받았으면 이 파일은 끝

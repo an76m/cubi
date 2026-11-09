@@ -1242,7 +1242,7 @@
             handLoad();                                                      // ✋ 쓰는 손
             if (typeof dyLoad === 'function') dyLoad();                     // 📒 고른 다이어리 (js/skins.js)
             if (typeof dyySync === 'function') dyySync();                   // 📔 처음 온 다꾸러 = 그 해 기본 다이어리 선물 (js/dyyear.js)
-            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 상품공방 '처음선물' 배경지 · 목록이 없으면 되살리기 (js/bgown.js)
+            if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 상품공방 '처음받기' 배경지 · 목록이 없으면 되살리기 (js/bgown.js)
             if (typeof dmkRescue === 'function') dmkRescue();               // 📓 🗂️ 내가 만든 노트 · 바인더 목록이 없으면 = 백업에서 (js/dymaker.js · 도련 11-06)
             if (typeof dsSync === 'function') dsSync();                     // 🧱 🪵 기본 벽지 · 기본 책상 (js/deskskin.js)
             if (typeof nwRefresh === 'function') nwRefresh();               // ✨ NEW 표시 (☁ diary_new · js/arrival.js)

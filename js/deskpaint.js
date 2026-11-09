@@ -136,7 +136,7 @@
                 let old = null; try { old = await dkUnseal(await collItem(C, o.c)); } catch (e) { console.warn(e); }
                 const item = Object.assign({}, old && old.u === o.u ? old : { u: o.u, id: o.id, from: 'basic' }, { img: url, painted: Date.now() });
                 await collSet(C, o.c, await dkSeal(item), '', { id: o.id });
-            } else { o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: 'gift', img: url, painted: Date.now() }), '', { id: o.id }); }
+            } else { o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: 'basic', start: 1, img: url, painted: Date.now() }), '', { id: o.id }); }
             o.p = 1;
             dkPersist(o);
             if (window.deskBoxRender) deskBoxRender(); if (window.deskEditPaint) deskEditPaint();

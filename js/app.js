@@ -139,7 +139,7 @@ let fontList = [
         };
 
         /* 📔 날짜형 다이어리 디자인 = 서버 상품 (상품공방 '날짜형바인더' · '날짜형노트' · 도련 11-04 : 상품 하나 = 디자인 하나 · 디자인이 늘어도 코드는 그대로)
-           속성 : 이름 · 규격(n) · mm · r(세로÷가로) · b(묶는 방식) · 표지색 · 테두리색 · 강조색 · 속지색 · 내지(js/maker.js MK.LEAFS · 모든 날 같은 내지 · 도련 11-05) · 처음선물
+           속성 : 이름 · 규격(n) · mm · r(세로÷가로) · b(묶는 방식) · 표지색 · 테두리색 · 강조색 · 속지색 · 내지(js/maker.js MK.LEAFS · 모든 날 같은 내지 · 도련 11-05) · 처음받기
            DY_DESIGNS = 날짜형 디자인 모두 (권 · 가게 · 책상) · DY_COL = 디자인 id → 그 권 색 { cover, page, border, accent } (펼친 권 = 다이어리에만 칠해요 · js/dyyear.js dyyColorPaint · 도련 11-05) */
         const DY_COL = {}, DY_DESIGNS = [];
         const DY_DKINDS = [['날짜형바인더', '바인더', 'b'], ['날짜형노트', '노트', 'n']];   // [상품 종류, 모양, 권 id 글자 (2026b-분홍-1)]
@@ -150,7 +150,7 @@ let fontList = [
                 const P = x.P || {};
                 if (!String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || (ch === 'n' && !(window.MK && MK.LEAFS.some(l => l[0] === P.내지)))) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }   // 🗂️ 날짜형바인더 = 표지 (내지는 바인더내지 상품 · 도련 11-07)
                 DY_COL[x.id] = { cover: String(P.표지색), page: P.속지색, border: P.테두리색, accent: P.강조색 };
-                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: P.내지 || '', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음선물, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 📢 📕 공지 카드 · 표지 꾸미기 = 상품공방 체크 (도련 11-06 · js/skins.js dyNtOn · dyCvOk)   // 🎁 처음 책상 자리 · 처음 떠 있는 권 = 상품공방 (도련 11-06 · js/desk.js deskVolInit)
+                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: P.내지 || '', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 📢 📕 공지 카드 · 표지 꾸미기 = 상품공방 체크 (도련 11-06 · js/skins.js dyNtOn · dyCvOk)   // 🎁 처음 책상 자리 · 처음 떠 있는 권 = 상품공방 (도련 11-06 · js/desk.js deskVolInit)
             }));
         }
         dyColorsBuild();

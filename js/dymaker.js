@@ -48,6 +48,7 @@
             const t = DMK_T[d.t] ? d.t : d.k === '바인더' ? 'binder' : 'note', k = DMK_T[t].k;
             const sz = DMK_SIZES[k].find(s => s[0] === d.n) || DMK_SIZES[k].find(s => s[0] === 'A5');
             const o = { id: d.id, t, k, g: String(d.g || '').slice(0, 20) || '내 ' + DMK_T[t].name, n: sz[0], mm: sz[1], r: sz[2], from: dyoFrom(d.from, 'mine') };
+            if (d.start) o.start = 1;                                            // 🎁 처음받기 (도련 11-09)
             if (t === 'dcover') { const D = window.dyyDesignOf ? dyyDesignOf(d.d) : null; return Object.assign(o, { y: Math.round(+d.y) || new Date().getFullYear(), d: String(d.d || ''), n: D ? D.n : o.n, mm: D ? D.mm : o.mm, r: D ? D.r : o.r, c: D ? D.c : DMK_COLORS[6], b: 'ring' }); }   // 📅 해가 적힌 표지 = 그 디자인 그대로
             if (d.pid) o.pid = String(d.pid).slice(0, 60);                      // 🏪 받은 상품 id
             if (t === 'drefill') return Object.assign(o, { lf: DMK_LEAFS.some(l => l[0] === d.lf) ? d.lf : 'line' });   // 📅 날짜 내지 (해 없음 · 크기 n = 같은 크기 표지에만)
@@ -240,11 +241,11 @@
             dmkClose();
         }
 
-        /* 🎁 처음 선물 📓 페이지노트 · 🗂️ 페이지바인더 (도련 11-06 · 상품공방 '처음선물' 체크 · 앱이 정하지 않아요 · js/desk.js giftEnsure)
+        /* 🎁 처음 선물 📓 페이지노트 · 🗂️ 페이지바인더 (도련 11-06 · 상품공방 '처음받기' 체크 · 앱이 정하지 않아요 · js/desk.js giftEnsure)
            그 상품 모양 그대로 한 권씩 📚 다이어리 목록에 (from gift · 바인더 = 상품 표지 + 처음 끼워진 내지 · 조립된 채로 · 재료 목록에는 없어요) → 준 권 수 */
         function dmkGiftRefill(p) {                                            // 🎁 첫 선물 페이지바인더에 끼울 내지 = 표지 상품 '처음내지' (없으면 같은 크기 페이지 내지 · 그것도 없으면 줄노트 100쪽)
             const R = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => r.t === 'page' && r.n === p.n), r = R.find(x => x.id === p.rf0) || R[0];
-            return r ? { id: 'p:' + r.id, g: r.g, pg: r.pg, lv: r.lv, from: 'gift' } : { id: 'p:' + p.id, g: p.g + ' 내지', pg: 100, lv: [[1, 100, 'line']], from: 'gift' };
+            return r ? { id: 'p:' + r.id, g: r.g, pg: r.pg, lv: r.lv, from: 'basic' } : { id: 'p:' + p.id, g: p.g + ' 내지', pg: 100, lv: [[1, 100, 'line']], from: 'basic' };
         }
         async function dmkStarter() {
             const gs = (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.gift && DMK_SZ.some(s => s[0] === p.n));
@@ -252,8 +253,8 @@
             const t0 = Date.now(), ds = gs.map((p, i) => {
                 const id = 'my' + (t0 + i).toString(36);
                 return p.k === '노트'
-                    ? dmkClean({ id, t: 'note', g: p.g, n: p.n, b: p.b, c: p.c, cols: p.cols, cw: 1, pg: p.pg, lv: p.lv, from: 'gift' })
-                    : dmkClean({ id, t: 'binder', g: p.g, n: p.n, c: p.c, cols: p.cols, cv: 'p:' + p.id, cg: p.g, cvf: 'gift', cvw: 1, rf: [dmkGiftRefill(p)], from: 'gift' });   // 🧩 조립한 것과 같은 모양 (표지 + 처음 끼울 내지)
+                    ? dmkClean({ id, t: 'note', g: p.g, n: p.n, b: p.b, c: p.c, cols: p.cols, cw: 1, pg: p.pg, lv: p.lv, from: 'basic', start: 1 })
+                    : dmkClean({ id, t: 'binder', g: p.g, n: p.n, c: p.c, cols: p.cols, cv: 'p:' + p.id, cg: p.g, cvf: 'basic', cvw: 1, rf: [dmkGiftRefill(p)], from: 'basic', start: 1 });   // 🧩 조립한 것과 같은 모양 (표지 + 처음 끼울 내지)
             }).filter(Boolean);
             const ids = new Set(ds.map(d => d.id)); dyoSet(dyoAll().filter(x => !ids.has(x.id)).concat(ds));   // 📚 한 번에
             if (window.deskVolInit) deskVolInit(ds.map((d, i) => ({ id: d.id, spot: gs[i].desk, n: d.g })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)

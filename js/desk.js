@@ -32,7 +32,7 @@
            속성 '소품' = { kind, w, h, x, y, wall, surf, slots, mouth, clock, lcd, photo, area, cork } (상품공방 📍 그림 위 자리에서 그려요) · 디자인 = 그림 · 앞벽 = 앞벽 마스크
              front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] · area = 💡 누르면 동작하는 곳 (그림 % · js/deskcustom.js) · cork = 📝 메모 붙는 곳 (그림 %)
              slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (그림 %) · surf = 올리는 면 [세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 px) · clock = 바늘 { cx, cy, r } · lcd · photo = [왼 · 위 · 오른 · 아래] %
-           처음선물 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
+           처음받기 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
         const DKB_STK0 = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];
         const DK_HOLD_OF = { pc: { all: ['pc'] }, skin: { all: ['skin'] }, drawer: { ok: ['gd', 'skin'].concat(DKB_STK0.map(k => 'h:' + k)) }, tape: null };   // 🧺 상품 '담는것' → 넣을 수 있는 창 (tape = 마테 롤만 · js/desktape.js)
         const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
@@ -47,7 +47,7 @@
             o.can = (Array.isArray(P.기능) ? P.기능 : []).filter(f => CAN.includes(f));
             if (P.종류이름) o.kn = String(P.종류이름).slice(0, 12); if (P.종류아이콘) o.ki = String(P.종류아이콘).slice(0, 4);   // 🏪 샵 · 보관함 칸 이름 (새 종류)
             if (o.can.includes('rope')) o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
-            if (P.처음선물) delete o.nost; else o.nost = 1;
+            if (P.처음받기) delete o.nost; else o.nost = 1;
             /* 🧺 담는 소품 (도련 11-06 · 상품공방 '담는것' · 종류가 아니라 상품이 정해요 → 새 소품도 코드 없이) : tape 마테 롤 세워 꽂기 · pc 문구 꽂기 · skin 다이어리 · drawer 서랍 칸
                🎁 처음 모습 = 상품 '처음연결' (pc · skin) · '처음칸' { 칸 번호: 창 } (서랍) · '처음담기' (tape = [칸마다 테이프 id] · pc = [문구 id] · drawer = { 칸 번호: [문구 id] }) */
             if (Object.prototype.hasOwnProperty.call(DK_HOLD_OF, P.담는것)) o.hold = P.담는것; else delete o.hold;
@@ -88,8 +88,9 @@
             (L || []).forEach(o => {
                 if (!o || typeof o.u !== 'string') return;
                 const a = {}, b = {};
-                Object.keys(o).forEach(k => { if (k === 'at') return; if (k === 'g') { if (o.g) a.from = 'gift'; return; } (DK_SPOT.includes(k) ? b : a)[k] = o[k]; });   // 🎁 선물 = 그 줄에 from: 'gift'
-                own.push(a); if (o.at !== 'box') { const w = Object.assign({}, a, b); delete w.u; delete w.from; pos[o.u] = w; }   // 📍 자리에 '무엇인지'(id · c · g · p · cs · tag)도 같이 = 앱을 켤 때 배치.json 만으로 책상을 그려요 (도련 11-07 · 목록은 보관함을 열 때)
+                Object.keys(o).forEach(k => { if (k === 'at' || k === 'start') return; if (k === 'g') { if (o.g) a.start = 1; return; } (DK_SPOT.includes(k) ? b : a)[k] = o[k]; });   // 🎁 처음받기 = 그 줄에 start: 1 (도련 11-09 · 앱 안에서는 g)
+                a.from = a.from || 'basic';                                       // 🏷️ 분류 = 무료상품 (도련 11-09 · basic · gift · mine · share · paid)
+                own.push(a); if (o.at !== 'box') { const w = Object.assign({}, a, b); delete w.u; delete w.from; delete w.start; pos[o.u] = w; }   // 📍 자리에 '무엇인지'(id · c · g · p · cs · tag)도 같이 = 앱을 켤 때 배치.json 만으로 책상을 그려요 (도련 11-07 · 목록은 보관함을 열 때)
             });
             return { own, pos };
         }
@@ -114,7 +115,7 @@
                 const own = prefGet(DK_OWN_KEY, DK_OWN_LOCAL), pos = prefGet(DK_POS_KEY, DK_POS_LOCAL);   // 💤 안 읽은 동안 책상 위에서 바뀐 것(칠하기 · 파일 번호)은 배치.json 이 새것 → 목록에도
                 if (Array.isArray(own) && pos && typeof pos === 'object') {
                     let ch = false;
-                    const L = own.map(o => { const p = o && pos[o.u]; if (!p || typeof p.id !== 'string') return o; const n = Object.assign({ u: o.u }, o.from ? { from: o.from } : {}); Object.keys(p).forEach(k => { if (!DK_SPOT.includes(k)) n[k] = p[k]; }); /* 🎁 받은 곳(from)은 목록에만 (그대로) */ if (JSON.stringify(n) !== JSON.stringify(o)) ch = true; return n; });
+                    const L = own.map(o => { const p = o && pos[o.u]; if (!p || typeof p.id !== 'string') return o; const n = Object.assign({ u: o.u }, o.from ? { from: o.from } : {}, o.start ? { start: 1 } : {}); /* 🎁 처음받기 표시도 (도련 11-09) */ Object.keys(p).forEach(k => { if (!DK_SPOT.includes(k)) n[k] = p[k]; }); /* 🎁 받은 곳(from)은 목록에만 (그대로) */ if (JSON.stringify(n) !== JSON.stringify(o)) ch = true; return n; });
                     if (ch) prefSet(DK_OWN_KEY, DK_OWN_LOCAL, L);
                 }
                 dkLoad();                                                         // 목록 + 지금 자리 (배치.json) → 가진 것 전부
@@ -145,7 +146,7 @@
                 if (!pos || P.length !== v.length || (Array.isArray(bags) && bags.some(g => g && Array.isArray(g.it) && g.it.some(x => x && x.k === 'desk')))) setTimeout(() => dkOwnReady().catch(() => {}), 0);   // 자리가 없거나 예전 모양 · 🛍️ 책상 위 봉투가 있으면 (꺼낼 소품) = 바로 목록을 읽어요
             }
             const seenU = new Set();
-            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, isGift(o) ? { g: 1 } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {}, Array.isArray(o.lp) ? { lp: o.lp } : {}, Array.isArray(o.lb) ? { lb: o.lb } : {}, o.on && typeof o.on === 'object' && typeof o.on.r === 'string' ? { on: { r: o.on.r, t: +o.on.t || 0 } } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요) · 💡 전구줄 핀(lp) · 네모(lb) · 📷 집힌 줄(on)
+            const L = Array.isArray(v) ? v.filter(o => o && typeof o.u === 'string' && dkCat(o.id) && !seenU.has(o.u) && seenU.add(o.u)).map(o => Object.assign({ u: o.u, id: o.id, at: o.at === 'box' ? 'box' : 'desk', x: +o.x || 0, y: +o.y || 0 }, typeof o.c === 'string' ? { c: o.c } : {}, isGift(o) ? { g: 1 } : {}, o.from && o.from !== 'basic' ? { from: o.from } : {}, o.p ? { p: 1 } : {}, o.cs && typeof o.cs === 'object' ? { cs: o.cs } : {}, o.lz ? { lz: +o.lz || 0 } : {}, o.fl ? { fl: 1 } : {}, o.tag && typeof o.tag === 'object' ? { tag: o.tag } : {}, Array.isArray(o.lp) ? { lp: o.lp } : {}, Array.isArray(o.lb) ? { lb: o.lb } : {}, o.on && typeof o.on === 'object' && typeof o.on.r === 'string' ? { on: { r: o.on.r, t: +o.on.t || 0 } } : {})) : dkStarter();   // + 🗂 레이어(lz) · 🏷 이름표(tag) (10-30 : 빠져서 다시 읽으면 사라졌어요) · 💡 전구줄 핀(lp) · 네모(lb) · 📷 집힌 줄(on)
             DK.posLost = !DK.partial && Array.isArray(v) && typeof prefGet === 'function' && prefGet(DK_POS_KEY, DK_POS_LOCAL) == null;   // 📍 목록은 있는데 배치.json(자리)이 없어요 → 백업 자리로 (giftEnsure)
             DK.fresh = !DK.partial && !Array.isArray(v);                          // 아직 목록이 없어요 → 🎁 기본세트 (드라이브를 읽은 뒤 giftEnsure)
             DK.items = L; DK.seen = JSON.stringify(L);
@@ -170,10 +171,10 @@
         }
         function dkFileDel(o) { if (!o.c) return; const C = dkColl(o.id); if (C && o.c) collRemove(C, o.c).catch(e => console.warn('소품 파일', e)); }
         /* 🎁 처음 선물 = 누가 줬는지 기억하는 내 물건 (도련 11-07 · 선물 폴더 · _선물.json 없음)
-             받으면 그 종류 폴더 목록에 다른 것과 똑같이 한 줄 · 그 줄에 from: 'gift' (앱 안에서는 g: 1) · 스티커 종이의 from 과 같아요
+             받으면 그 종류 폴더 목록에 다른 것과 똑같이 한 줄 · 그 줄에 from: 'basic' + start: 1 (앱 안에서는 g: 1 · 도련 11-09 처음받기 · 스티커 종이도 같아요)
              처음 선물을 줬다 = 설정.json 'diary_gifted' (다시 주지 않아요 · 다 버린 사람도) */
         const giftOn = () => typeof drive !== 'undefined' && drive.ready && !drive.guest && typeof getFolder === 'function';
-        const isGift = o => !!(o && (o.g || o.from === 'gift'));
+        const isGift = o => !!(o && (o.g || o.start));                            // 🎁 처음받기 (도련 11-09 · 저장 = start: 1 · 앱 안 = g: 1)
         window.isGift = isGift;
         const GIFTED_KEY = 'diary_gifted', GIFTED_LOCAL = 'malang_gifted';
         const giftGiven = () => typeof prefGet === 'function' && !!prefGet(GIFTED_KEY, GIFTED_LOCAL);
@@ -186,7 +187,7 @@
         async function giftRead() {
             if (!giftGiven()) return null;
             const bk = await dkBackupRead().catch(() => null) || {};
-            /* 백업에 그 목록이 아직 없으면 (첫날) = 상품공방 '처음선물' 그대로 (선물 u = 상품 id) · 있으면 그 안의 from 선물 */
+            /* 백업에 그 목록이 아직 없으면 (첫날) = 상품공방 '처음받기' 그대로 (선물 u = 상품 id) · 있으면 그 안의 from 선물 */
             const G = (k, first) => Array.isArray(bk[k]) ? bk[k].filter(isGift) : first();
             const ids = f => { try { return f() || []; } catch (e) { return []; } };
             return { v: 3,
@@ -194,7 +195,7 @@
                 gd: G('diary_gd_own', () => ids(() => window.gdStarter && gdStarter()).map(id => ({ u: id, id }))).map(o => o.u || o.id),
                 ds: G('diary_skin_own', () => ids(() => window.dsGiftIds && dsGiftIds()).map(id => ({ u: id, id }))).map(o => ({ u: o.u, id: o.id })),
                 bg: G('diary_bg_own', () => ids(() => window.bgoGiftIds && bgoGiftIds()).map(id => ({ u: id, p: id }))).map(o => ({ u: o.u, p: o.p })),
-                dy: (Array.isArray(bk.diary_own) ? bk.diary_own : []).filter(x => x && x.from === 'gift') };   // 📚 권마다 한 줄 (날짜형 · 페이지형 · 981)
+                dy: (Array.isArray(bk.diary_own) ? bk.diary_own : []).filter(x => x && x.start) };   // 📚 권마다 한 줄 (날짜형 · 페이지형 · 981)
         }
         /* 🛟 되살리기 (도련 10-27 · 스티커 ownRescue 와 같게) : 배치.json 이 없어지거나 깨지면
              가진 것 = 소품 · 문구 폴더의 받은- 파일(🔐 열리는 것만 · 같은 u 는 하나) + 백업 속 from 선물 (giftRead) · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
@@ -267,7 +268,7 @@
                     if (!/^(받은|내)-\d+\.json$/.test(f.name)) continue;             // 목록 파일은 빼요
                     let w, it; try { w = JSON.parse(await readFileText(f.id)); it = await dkUnseal(w && w.item); } catch (e) { continue; }   // 🔐 남의 것 · 깨진 것은 무시
                     if (!it || typeof it.id !== 'string' || !w.id) continue;
-                    out[t].push(Object.assign({ u: typeof it.u === 'string' ? it.u : it.id, id: it.id, c: String(w.id), p: typeof it.img === 'string' ? 1 : 0, mt: String(f.modifiedTime || '') }, it.from === 'gift' ? { g: 1 } : {}));   /* 🎁 칠한 선물 파일 = 선물 기억도 */
+                    out[t].push(Object.assign({ u: typeof it.u === 'string' ? it.u : it.id, id: it.id, c: String(w.id), p: typeof it.img === 'string' ? 1 : 0, mt: String(f.modifiedTime || '') }, it.start ? { g: 1 } : {}));   /* 🎁 칠한 선물 파일 = 선물 기억도 */
                 }
             }
             const one = L => { const m = new Map(); L.sort((a, b) => b.mt.localeCompare(a.mt)).forEach(r => { if (!m.has(r.u)) m.set(r.u, r); }); return [...m.values()]; };   // 같은 u 는 하나 (새것)
@@ -351,7 +352,7 @@
                 if (back) setTimeout(dkBackupWrite, 1500);                           // 🛟 되살렸거나 선물 그대로 = 하루 한 번 백업도 (도련 11-07)
             } finally { giftBusy = false; }
         }
-        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음선물') : 한 롤씩 받아서 (내 스티커 목록) 책상 위 정리함 상품 '처음담기' 칸에 꽂아요 (도련 11-06 · 어느 정리함에도 없는 롤은 스티커 서랍에만) */
+        /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음받기') : 한 롤씩 받아서 (내 스티커 목록) 책상 위 정리함 상품 '처음담기' 칸에 꽂아요 (도련 11-06 · 어느 정리함에도 없는 롤은 스티커 서랍에만) */
         async function dkStarterTapes() {
             try {
                 if (!window.sbStarterTapes || !window.ownTake || !(window.ownMode && ownMode())) return;
@@ -359,11 +360,11 @@
                 const its = ds.map((d, i) => d && { tmp: `tmp-${i}-${Date.now()}`, th: d.th, q0: d.q0, d, pid: L[i].id }).filter(Boolean);   // 🎀 어느 칸 = 정리함 상품 '처음담기' (pid = 테이프 상품 id)
                 if (window.dktStarterShow) dktStarterShow(its);                     // 👀 보이는 것부터 : 정리함에 바로 (도련 11-04)
                 let ids = [];                                                         // 💾 드라이브 저장은 뒤에서 한 번에 (종이 파일 동시에 · 목록 한 번 · 도련 11-04)
-                try { ids = window.ownTakeMany ? await ownTakeMany(its.map(it => it.d)) : []; } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
+                try { ids = window.ownTakeMany ? await ownTakeMany(its.map(it => Object.assign(it.d, { from: 'basic', start: 1 }))) : []; } catch (e) { console.warn('🎁 처음 선물 테이프', e); }   // 🎁 처음받기 = 무료(basic) + start (도련 11-09)
                 its.forEach((it, i) => { if (ids[i] && window.dktStarterReal) dktStarterReal(it.tmp, ids[i]); else if (window.dktStarterDrop) dktStarterDrop(it.tmp); });
             } catch (e) { console.warn('🎁 처음 선물 테이프', e); }
         }
-        /* 🎁 그 밖의 처음 선물 (도련 11-06 · 상품공방 '처음선물' 체크 = 처음 온 다꾸러에게 · 앱은 상품공방이 체크한 것만 줘요)
+        /* 🎁 그 밖의 처음 선물 (도련 11-06 · 상품공방 '처음받기' 체크 = 처음 온 다꾸러에게 · 앱은 상품공방이 체크한 것만 줘요)
            🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🧻 떡메 · 📃 속지 · 📝 메모지 · 🌸 계절 · 🎁 캡슐 = 그 종류 목록 (js/basket.js bkStarterSheets · 로그인 · 폴더 저장일 때)
            📒 스티커바인더 · 🤍 이형지북 = 📥 받은 목록 (종류 없이 · bkStarterTools · 도련 11-08) · 📓 페이지노트 · 🗂️ 페이지바인더 = 내가 만든 칸 (js/dymaker.js dmkStarter) */
         async function dkStarterMore() {
@@ -372,6 +373,7 @@
             try { if (window.bkStarterTools) await bkStarterTools(); } catch (e) { console.warn('🎁 처음 선물 스티커첩', e); }
             try {
                 const ds = window.bkStarterSheets ? await bkStarterSheets() : []; if (!ds.length) return;
+                ds.forEach(d => Object.assign(d, { from: 'basic', start: 1 }));     // 🎁 처음받기 = 무료(basic) + start (캡슐도 · 도련 11-09)
                 const ids = await ownTakeMany(ds), cap = ds.find((d, i) => d.cap && ids[i]);
                 if (cap && window.capsGiftPop) capsGiftPop(cap.cap);              // 🎁 캡슐 = '첫 선물이 도착했어요' 창 (js/gacha.js)
             } catch (e) { console.warn('🎁 처음 선물 스티커', e); }
@@ -739,6 +741,7 @@
         function deskReceive(id, from, img) {
             const c = dkCat(id); if (!c) return null;
             const it = { u: id + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), id, at: 'box', x: c.x, y: c.y };
+            if (from && from !== 'basic') it.from = from;                           // 🏷️ 공유 · 선물 … (무료 basic 은 비워 둬요 · 저장할 때 basic · 도련 11-09)
             if (img) { it.p = 1; DK.art[it.u] = img; }
             DK.items.push(it);
             const keep = () => {                                                  // 🛠 꾸미는 중에 받은 것은 취소해도 남아요 (받은 것은 바로 저장)

@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/bgown.js
    🌈 배경지 = 상품 (도련 10-28 · 다이어리처럼) : 🏪 기본상품 샵 → 🌈 배경지 (🎨 단색 · ☁️ 패턴) 에서 받아야 내 것 · 같은 것도 또 받아요 · 🗑 버리면 휴지통 30일
-   - 🌈 배경지 창의 '기본' 칸 = 내 배경지 보관함 (받은 것만) · 처음 온 다꾸러는 상품공방에서 '처음선물'에 체크한 배경지를 들고 시작해요 (도련 11-06 · 앱이 정하지 않아요)
+   - 🌈 배경지 창의 '기본' 칸 = 내 배경지 보관함 (받은 것만) · 처음 온 다꾸러는 상품공방에서 '처음받기'에 체크한 배경지를 들고 시작해요 (도련 11-06 · 앱이 정하지 않아요)
    - 내 배경지 'diary_bg_own' [{ u: 하나하나 id, p: 배경지 id (js/patterns.js BG_PATTERNS = 서버 상품), c: 파일 id }] (🔐 배경지 / _목록.json · 게스트는 이 기기 · 도련 11-07)
        · 💤 앱을 켤 때 안 읽어요 (폰 · 책상 모두 · 지금 깐 배경지는 설정.json) → 🌈 배경지 창 · 🏪 샵 받기 · 🗑 버리기 · 되돌리기 때 bgoReady 가 한 번 읽어요 (js/drive.js keyFileLoad)
        · 🆕 처음 온 다꾸러 = 선물 배경지가 있으면 첫 접속에 바로 _목록.json 한 줄씩 (from 선물 · 받은- 파일 없음 · 선물이 없으면 목록 파일도 안 만들어요 · 도련 11-07)
@@ -13,12 +13,12 @@
         const BGO_KEY = 'diary_bg_own', BGO_LOCAL = 'malang_bg_own';
         const bgoPat = id => BG_PATTERNS.find(p => p.id === id) || null;   // 🧁 숨긴 배경지(off)도 가진 사람은 그대로
         const bgoU = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        function bgoOwned() { const v = prefGet(BGO_KEY, BGO_LOCAL); return Array.isArray(v) ? v.filter(x => x && x.u && typeof x.p === 'string').map(x => { const y = Object.assign({}, x), g = !!(y.g || y.from === 'gift'); delete y.g; delete y.from; return g ? Object.assign(y, { g: 1 }) : y; }) : []; }   // 🎁 선물 = 그 줄의 from: 'gift' (앱 안에서는 g)
+        function bgoOwned() { const v = prefGet(BGO_KEY, BGO_LOCAL); return Array.isArray(v) ? v.filter(x => x && x.u && typeof x.p === 'string').map(x => { const y = Object.assign({}, x), g = !!(y.g || y.start); delete y.g; delete y.start; delete y.from; return g ? Object.assign(y, { g: 1 }) : y; }) : []; }   // 🎁 처음받기 = 그 줄의 start: 1 (앱 안에서는 g · 도련 11-09)
         const bgoSet = L => prefSet(BGO_KEY, BGO_LOCAL, bgoStrip(L));
-        const bgoStrip = L => (L || []).map(x => { const y = Object.assign({}, x); if (y.g) y.from = 'gift'; delete y.g; return y; });   // 🎁 저장 = from: 'gift'
+        const bgoStrip = L => (L || []).map(x => { const y = Object.assign({}, x, { from: 'basic' }); if (y.g) y.start = 1; delete y.g; return y; });   // 🎁 저장 = from: 'basic' + 처음받기 start: 1 (도련 11-09)
         const bgoHas = () => prefGet(BGO_KEY, BGO_LOCAL) !== null;               // 목록을 알아요 (읽었거나 · 되살렸거나 · 선물을 메모리에)
         const bgoMem = L => { if (bgoOnline()) store.putLoaded(BGO_KEY, JSON.stringify(bgoStrip(L))); else bgoSet(L); };   // 💤 메모리에만 (드라이브에 안 써요 · 바뀔 때 prefSet 이 파일을 만들어요)   // 목록에 없는 것도 남겨요 (지우지 않게 · 보일 땐 bgoItems 가 걸러요)
-        /* 🎁 처음 온 다꾸러 = 상품공방 '처음선물' 배경지 (도련 11-06 · 한 번만 · 다 버려도 다시 주지 않아요) */
+        /* 🎁 처음 온 다꾸러 = 상품공방 '처음받기' 배경지 (도련 11-06 · 한 번만 · 다 버려도 다시 주지 않아요) */
         const bgoFirst = () => BG_PATTERNS.filter(p => p.gift).map(p => ({ u: p.id, p: p.id }));   // 🎁 선물 u = 상품 id
         /* 🗂 배경지 폴더 파일 (도련 11-05) */
         const bgoOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
@@ -34,7 +34,7 @@
         function bgoGift() { const L = bgoFirst().map(x => Object.assign(x, { g: 1 })); if (L.length) bgoSet(L); else bgoMem(L); }   // 🎁 선물도 배경지 / _목록.json 에 (선물이 없으면 파일을 안 만들어요 · 도련 11-07)
         async function bgoRescue() {                                           // 🛟 로그인했는데 목록이 없으면 = 배경지 폴더 + 백업 속 선물 (있으면 되살리기 · 처음 온 다꾸러만 선물)
             const had = window.deskGiftRead ? await deskGiftRead() : null, bk = window.deskBackupRead ? await deskBackupRead().catch(() => null) : null;
-            const lost = keyMade('bgown') || (bk && Array.isArray(bk.diary_bg_own) && bk.diary_bg_own.some(x => x && !x.g && x.from !== 'gift'));   // 📝 목록 파일을 만든 적이 있어요 (또는 백업에 받은 것) = 없어진 것 · 아니면 아직 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
+            const lost = keyMade('bgown') || (bk && Array.isArray(bk.diary_bg_own) && bk.diary_bg_own.some(x => x && !x.g && !x.start));   // 📝 목록 파일을 만든 적이 있어요 (또는 백업에 받은 것) = 없어진 것 · 아니면 아직 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
             const F = lost ? await ofScan(DIRS.pattern) : [];                    // 못 읽으면 에러 → 다음에 다시
             if (prefGet(BGO_KEY, BGO_LOCAL) !== null) return;
             const gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'bg').map(e => e.id));
@@ -95,7 +95,7 @@
         /* 🏪 기본상품 샵 → 🌈 배경지 (js/basket.js) : 🎨 단색 · ☁️ 패턴 · 같은 것도 또 받아요 */
         function bgoShopList() { return BG_PATTERNS.filter(p => p.tier === 'free').map(p => ({ cnt: p.name || '배경지', look: 'bg', pid: p.id, sec: patG(p), give: () => bgoGive(p.id), name: `${p.name || ''} 배경지`.trim() })); }
 
-        window.bgoGiftIds = () => BG_PATTERNS.filter(p => p.gift).map(p => p.id);   // 🎁 상품공방 처음선물 (되살리기 · js/desk.js giftRead)
+        window.bgoGiftIds = () => BG_PATTERNS.filter(p => p.gift).map(p => p.id);   // 🎁 상품공방 처음받기 (되살리기 · js/desk.js giftRead)
         window.bgoOwned = bgoOwned; window.bgoSync = bgoSync; window.bgoReady = bgoReady; window.bgoItems = bgoItems; window.bgoGive = bgoGive; window.bgoDiscard = bgoDiscard; window.bgoShopList = bgoShopList;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

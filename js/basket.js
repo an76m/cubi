@@ -454,8 +454,8 @@
         abToast('빼는 중', 'on');
         try {
             await abFlush(); await frReady();
-            const line = { id: x.id, pid: x.pid, n: x.n, lb: x.lb || '', at: Date.now(), from: 'back' };
-            if (window.ofAdd) { const c = await ofAdd(FR[t].dir, { u: x.id, id: x.pid, from: 'back' }); if (c) line.c = c; }   // 📦 원본 파일을 다시 만들어요 (게스트는 목록만)
+            const line = { id: x.id, pid: x.pid, n: x.n, lb: x.lb || '', at: Date.now(), from: 'basic', back: 1 };   // ↩ 돌아온 책 = 분류는 그대로(지금은 모두 무료) + back (도련 11-09)
+            if (window.ofAdd) { const c = await ofAdd(FR[t].dir, { u: x.id, id: x.pid, from: 'basic', back: 1 }); if (c) line.c = c; }   // 📦 원본 파일을 다시 만들어요 (게스트는 목록만)
             frSet(t, frAll(t).filter(o => o.id !== id).concat([line]));          // ① 📥 목록에 먼저
             await ownAlbum(a => { const M = t === 'bd' ? a.bd : a.rl, i = M.findIndex(o => o.id === id); if (i >= 0 && empty(M[i])) M.splice(i, 1); }, [B.kind]);   // ② 그다음 스티커첩에서 빼요
             const i = L.findIndex(o => o.id === id); if (i >= 0) L.splice(i, 1);
@@ -1103,23 +1103,23 @@
                 return { cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us, take: async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true }) }; }).filter(x => x.thumbs.length);
         }],
     };
-    /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음선물' 체크 = 처음 온 다꾸러에게 · 앱은 체크된 것만 줘요 · js/desk.js giftEnsure)
+    /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음받기' 체크 = 처음 온 다꾸러에게 · 앱은 체크된 것만 줘요 · js/desk.js giftEnsure)
        스티커 = 🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🧻 떡메 · 📃 속지 · 📝 메모지 · 🌸 계절 · 🎁 캡슐 (🎀 마스킹테이프는 마테 정리함에 꽂아서 따로 · dkStarterTapes)
        → ownTakeMany 에 넘길 종이 [] · 그 종류 목록(_목록.json)에 들어가요 · 💎 스토어 상품은 빼요 · 숨김이어도 체크하면 줘요 */
     async function bkStarterSheets() {
         const jobs = [], one = f => jobs.push(Promise.resolve().then(f).catch(e => { console.warn('🎁 처음 선물 스티커', e); return null; }));
-        try { const kit = await basicKit(); kit.sheets.filter(x => x.P && x.P.처음선물 && !x.P.스토어).forEach(x => one(() => ownKitDesc(x.us, '', x.L))); } catch (e) { console.warn('🎁 처음 선물 씰', e); }
+        try { const kit = await basicKit(); kit.sheets.filter(x => x.P && x.P.처음받기 && !x.P.스토어).forEach(x => one(() => ownKitDesc(x.us, '', x.L))); } catch (e) { console.warn('🎁 처음 선물 씰', e); }
         for (const kind of ['piece', 'paper', 'tk', 'leaf', 'memo']) (window.sbStarter ? await sbStarter(kind) : []).forEach(x => one(x.take));
         const asData = u => /\.svg$/i.test(u) ? fetch(u).then(r => r.text()).then(t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t)) : Promise.resolve(u);
-        (window.prodList ? prodList('계절스티커') : []).filter(x => x.P.처음선물).forEach(x => { const us = Object.keys(x.u).sort().map(r => x.u[r]); if (us.length) one(async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true })); });
+        (window.prodList ? prodList('계절스티커') : []).filter(x => x.P.처음받기).forEach(x => { const us = Object.keys(x.u).sort().map(r => x.u[r]); if (us.length) one(async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true })); });
         (window.capsStarter ? capsStarter() : []).forEach(f => one(f));        // 🎁 캡슐 (js/gacha.js)
         return (await Promise.all(jobs)).filter(Boolean);
     }
     /* 🎁 처음 선물 📒 스티커바인더 · 🤍 이형지북 : 종류 없이 📥 받은 목록에 한 권씩 (도련 11-08 · 샵에서 받은 것과 같아요 · 상품공방 '넣을 서랍' 칸 없앰) → 스티커 창에서 📥 불러와요 */
     async function bkStarterTools() {
         const add = [];
-        AB_BDP.filter(x => x.P.처음선물).forEach(x => add.push(['bd', frNew('bd', x.id, 'gift'), x.P]));
-        AB_RL.filter(x => x.P.처음선물).forEach(x => add.push(['rl', frNew('rl', x.id, 'gift'), x.P]));
+        AB_BDP.filter(x => x.P.처음받기).forEach(x => add.push(['bd', Object.assign(frNew('bd', x.id, 'basic'), { start: 1 }), x.P]));   // 🎁 처음받기 = 무료(basic) + start (도련 11-09)
+        AB_RL.filter(x => x.P.처음받기).forEach(x => add.push(['rl', Object.assign(frNew('rl', x.id, 'basic'), { start: 1 }), x.P]));
         if (!add.length) return [];
         await frReady();
         ['bd', 'rl'].forEach(t => { const n = add.filter(a => a[0] === t).map(a => a[1]); if (n.length) frSet(t, frAll(t).concat(n)); });

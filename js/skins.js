@@ -405,7 +405,7 @@
                 if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || (k === '노트' && (!(pg > 0) || !lf(P.내지))) ||   /* 🗂️ 페이지바인더 = 표지 (내지는 바인더내지 상품 · 981) */ !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 const lv = (Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], r[2]]);
                 const c = (String(P.표지색).match(/#[0-9a-f]{6}/i) || [P.테두리색])[0];   // 책 그림 색 = 표지 첫 색
-                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg: k === '노트' ? pg : 0, lv: k === '노트' ? lv.reverse().concat([[1, pg, P.내지]]) : [], cvOnly: k === '바인더', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음선물 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
+                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg: k === '노트' ? pg : 0, lv: k === '노트' ? lv.reverse().concat([[1, pg, P.내지]]) : [], cvOnly: k === '바인더', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
             }));
         }
         dyTypesBuild();
@@ -527,7 +527,7 @@
         function dyLoad() { if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco(); }
         /* 📎 집게 (도련 10-18) : 다이어리 둘레(종이 테두리)를 물어요 · 다이어리 · 노트 · 바인더 모두 · 여러 개를 꺼내 원하는 만큼 꽂아요 (아래 ✂️ 문구함)
            - 기본집게 = 같은 모양 색만 다르게 (평범한 더블 클립) · 크기는 다이어리 크기와 상관없이 늘 같아요 */
-        /* 🧁 문구 = 서버 상품 (상품공방 '문구' · js/prod.js · 도련 11-02) : 🎬 모양 = 상품공방 그림 그대로 (js/gdpic.js · 앱은 모양을 그리지 않아요 · 도련 11-02) · 종류(문구종류) · 이름 · 색 · 크기 · 쓰는 끝 · 처음선물 · 틀(칼 · 자 색) · 그림(속성 '그림' ✔ = 도련 그림으로 · 가위는 날이 움직여서 앱 모양)
+        /* 🧁 문구 = 서버 상품 (상품공방 '문구' · js/prod.js · 도련 11-02) : 🎬 모양 = 상품공방 그림 그대로 (js/gdpic.js · 앱은 모양을 그리지 않아요 · 도련 11-02) · 종류(문구종류) · 이름 · 색 · 크기 · 쓰는 끝 · 처음받기 · 틀(칼 · 자 색) · 그림(속성 '그림' ✔ = 도련 그림으로 · 가위는 날이 움직여서 앱 모양)
            모양은 앱이 그려요 (집게 · 펀칭기 · 테이프 · 핀셋 · 가위 · 칼 · 자 · 필기구) · 상품이 정하는 건 어떤 디자인이 있는지 · 색 · 크기 */
         const CLIPS = [];                                                      // CLIPS = [색 이름, 이름] (📎 집게 id clip:색이름) · 서버 상품 그대로 (gdBuild) · 그림 = js/gdpic.js
         /* 📎 집게가 무는 테두리 : 테두리 한 바퀴 중 어디쯤 (0~1 · 위 왼쪽 모서리 끝에서 시계 방향) · 모서리는 둥글게 돌아요
@@ -1380,7 +1380,7 @@
         const GD_OWN = 'diary_gd_own', GD_OWN_L = 'malang_gd_own';
         /* ✏️ 문구도 같은 것을 여러 개 (도련 11-07 · 현실처럼 · 10-28 에 정한 것) : 한 칸 = { u : 하나하나 id (처음 것 · 선물 = 디자인 id 그대로), id : 디자인, c : 파일, g : 선물 }
              문구함 · 페이지 · 문구의 집은 디자인마다 (같은 것은 한곳에 모여요 · 문구함에 ×2) · 버리면 하나씩 */
-        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => { const u = typeof o.u === 'string' && o.u ? o.u : o.id, g = !!(o.g || o.from === 'gift'); delete o.g; delete o.from; return Object.assign(o, { u }, g ? { g: 1 } : {}); }).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };   // 🎁 선물 = 목록 한 줄 (from 선물)
+        const gdOwnList = () => { const v = prefGet(GD_OWN, GD_OWN_L), seen = new Set(); return Array.isArray(v) ? v.map(o => typeof o === 'string' ? { id: o } : Object.assign({}, o)).filter(o => o && typeof o.id === 'string').map(o => { const u = typeof o.u === 'string' && o.u ? o.u : o.id, g = !!(o.g || o.start); delete o.g; delete o.start; if (o.from === 'basic') delete o.from;   /* 무료 = 비워 둬요 · 공유 · 선물 … 은 그대로 */ return Object.assign(o, { u }, g ? { g: 1 } : {}); }).filter(o => !seen.has(o.u) && seen.add(o.u)) : null; };   // 🎁 선물 = 목록 한 줄 (from 선물)
         const gdCount = id => (gdOwnList() || []).filter(o => o.id === id).length;
         const gdNewU = id => id + '~' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);   // 받은 것 = 늘 새 번호 (선물 u = 디자인 id 와 안 겹쳐요)   // 같은 디자인은 하나만
         const gdOwnSet = () => { const L = gdOwnList(); return L ? new Set(L.map(o => o.id)) : null; };
@@ -1393,7 +1393,7 @@
             finally { gdAdding.delete(u); }
         }
         let gdFiling = false;
-        const gdRec = o => Object.assign({ u: o.u || o.id, id: o.id }, o.c ? { c: o.c } : {}, o.g ? { from: 'gift' } : {});   // 🎁 선물 = 그 줄에 from: 'gift' (도련 11-07)
+        const gdRec = o => Object.assign({ u: o.u || o.id, id: o.id, from: o.from || 'basic' }, o.c ? { c: o.c } : {}, o.g ? { start: 1 } : {});   // 🏷️ 무료상품 · 🎁 처음받기 = start: 1 (도련 11-09)
         async function gdFilesFill() {                                         // 선물이 아닌데 파일이 아직 없는 문구 → 종류 폴더에 (드라이브를 읽은 뒤에만 · js/desk.js 가 불러요)
             if (gdFiling || typeof drive === 'undefined' || !drive.ready || (window.deskGiftBusy && deskGiftBusy())) return;   // 🎁 선물을 정하는 중이면 기다려요
             const L = gdOwnList(); if (!L) return;
@@ -1407,7 +1407,7 @@
         }
         function gdSetList(L, mem) { const all = cabAllIds(), ok = id => all.includes(id) || !!(window.pkIsId && pkIsId(id)), v = L.filter(o => o && ok(o.id)).map(gdRec); if (mem && typeof drive !== 'undefined' && drive.ready && !drive.guest) store.putLoaded(GD_OWN, JSON.stringify(v)); else prefSet(GD_OWN, GD_OWN_L, v); }   // 💤 mem = 처음 선물 그대로 (문구 / _목록 은 바뀔 때 처음 · 도련 11-07)   // ✏️ 필기구도 (되살릴 때 빠지던 것)
         /* 🎁 처음 선물 문구 (도련 11-01) : 🪡 기본 핀셋(다이어리를 처음 열면 페이지에 놓여 있어요) + ✏️ 필기구 5 (검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 = 펜꽂이에) · 나머지는 🏪 기본상품 샵 */
-        const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음선물' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
+        const GD_STARTER = [];                                                // 🧁 서버 상품 속성 '처음받기' (지금 = 핀셋 · 검정 · 빨강 · 파랑 색연필 · 노랑 형광펜 · 지우개 · gdBuild)
         window.gdStarter = () => GD_STARTER.slice();   // 🛟 되살린 목록 (js/desk.js giftEnsure)
         window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
         const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g), H = window.deskBagHold ? deskBagHold() : null; return st ? all.filter(id => st.has(id) && !(H && H.g.has(id))) : []; };   // 🛍️ 봉투 속 문구는 꺼낼 때까지 없어요 (💻 📲 · js/desk.js)   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
@@ -1561,16 +1561,16 @@
                     if (P.문구종류 === 'clip') CLIPS.push([x.id.slice(5), String(P.이름)]);
                 }
             });
-            L.forEach(x => { if (x.P.처음선물) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
+            L.forEach(x => { if (x.P.처음받기) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
         }
         gdBuild();
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).filter(id => !GD_OFF.has(id)).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) }))).concat(window.pkShopList ? pkShopList() : []);   // + ✏️ 필기구 (도련 10-31 · js/pencase.js)
-        function gdGive(id, force) {                                          // 'have' = 이미 있어요 (묻고 나서 force = 하나 더 · 도련 11-07 현실처럼)
+        function gdGive(id, force, from) {                                    // from = 상품 분류 (없으면 무료 basic · 📥 공유 = share · 도련 11-09)                                          // 'have' = 이미 있어요 (묻고 나서 force = 하나 더 · 도련 11-07 현실처럼)
             const L = gdOwnList() || [], had = L.some(o => o.id === id); if (had && !force) return 'have';
             const pen = !!(window.pkIsId && pkIsId(id));
             if (!pen && !cabAllIds().includes(id)) return 'no';
-            const o = { u: gdNewU(id), id }; L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
-            gdFileAdd(o, 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.u === o.u); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 문구 폴더에 파일 하나
+            const o = Object.assign({ u: gdNewU(id), id }, from && from !== 'basic' ? { from } : {}); L.push(o); prefSet(GD_OWN, GD_OWN_L, L.map(gdRec));
+            gdFileAdd(o, from || 'basic').then(() => { if (!o.c) return; const now = gdOwnList() || []; const t = now.find(x => x.u === o.u); if (t) { t.c = o.c; prefSet(GD_OWN, GD_OWN_L, now.map(gdRec)); } });   // 🗂 문구 폴더에 파일 하나
             if (pen && !had && window.pkAdd) pkAdd(id);                        // ✏️ 펜꽂이에도 (처음 것만)
             if (document.getElementById('gdCabModal') && document.getElementById('gdCabModal').style.display !== 'none') gdCabRender();
             return 'ok';
