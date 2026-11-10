@@ -138,7 +138,7 @@
         const how = has ? `<p class="bk-how" id="bkHow">${bkPhone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
         const ord = has ? bkOrder() : [], show = ord.slice(-BK_MAX);
-        const ph = bkPhone(), ti = ic => ph ? '' : ic;                       // 📱 폰 = 글자만 (✕ 옆 한 줄에 · 도련 11-09)
+        const ph = !document.documentElement.classList.contains('desk-on'), ti = ic => ph ? '' : ic;   // ▤ 하단 메뉴 모드 (💻 📲 📱) = 글자만 · ✕ 옆 한 줄에 (도련 11-09 폰 · 11-10 하단 메뉴 모두 · 🪑 책상은 그대로)
         const tools = `${tool(has, ti('📒'), '정리', 'abDesk()')}${window.SHARE_ON ? tool(has, ti('📤'), '공유', 'bkShare()', 'bk-share') : ''}${tool(has, ti('🗑'), '버리기', 'bkBin()', 'bk-binb')}`;
         wrap.innerHTML = `<div class="bkd${ph ? ' bk-ph' : ''}" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
             <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>

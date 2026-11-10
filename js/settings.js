@@ -298,11 +298,11 @@
             const x = m.querySelector('.mt-x'); if (x) x.click(); else closeModal(m.id);
         });
 
-        /* 📱 폰 : 떠 있는 창(뒤 페이지가 눌리는 창 · 스티커 · 다이어리 · 문구함 · 서랍 …) 도 창 밖을 톡 = 닫기 (도련 11-09 · 💻 패드는 그대로)
+        /* ▤ 하단 메뉴 모드 (💻 📲 📱 · html 에 desk-on 이 없을 때) : 떠 있는 창(뒤 페이지가 눌리는 창 · 스티커 · 다이어리 · 문구함 · 서랍 …) 도 창 밖을 톡 = 닫기 (도련 11-09 폰 · 11-10 💻 📲 하단 메뉴도 · 🪑 책상 모드는 그대로)
            닫기만 하고 뒤의 버튼 · 페이지는 안 눌려요 · 아래 메뉴줄 · 떼는 화면 · 꺼낸 종이 · 페이지꾸미기 창(skin-float)은 빼요 */
         let mdEat = 0;
         document.addEventListener('pointerdown', e => {
-            if (!document.documentElement.classList.contains('is-phone')) return;
+            if (document.documentElement.classList.contains('desk-on')) return;   // 🪑 책상 모드 = 창 밖 = 책상 (그대로)
             const t = e.target; if (!t || !t.closest || t.closest('.modal, .toolbar, #pelRoom, #pcbRoom, #pmRoom, .dsk')) return;
             const open = [...document.querySelectorAll('.modal')].filter(m => m.id !== 'customAlertModal' && !m.classList.contains('skin-float') && getComputedStyle(m).display !== 'none' && getComputedStyle(m).pointerEvents === 'none');
             if (!open.length) return;

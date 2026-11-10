@@ -4159,11 +4159,11 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .bkd.bk-ph .bkd-tools { display: flex; gap: 4px; flex: none; }
 .bkd.bk-ph .bkd-tools .bkd-chip { height: 28px; padding: 0 8px; font-size: 12px; }
 .bkd.bk-ph .bkd-tools .bkd-chip > span { display: inline !important; }
-/* 📱 폰의 창 닫기 ✕ = 모두 다이어리 창 ✕ 모양 (동그라미 없이 분홍 ✕ 글자만 · css/anime.css .mt-x 와 같이 · 도련 11-09 · 🗄️ 문구함 ✕ 만 흰 동그라미 그대로) */
-html.is-phone :is(.bkd-x, .smk-x, .tk-x, .sr-x, .spr-x, .sk-x, .se-x, .pm-x, .pl-x, .pel-x, .pc-x, .mo-x, .hof-x, .gc-x, .dd-x, .cy-x, .cr8-x, .at-x, .abs-x, .psy-x, .nm-x, .lb-x, .tj-x, .fc-x, .pb-x) {
+/* ▤ 하단 메뉴 모드(💻 📲 📱 · html:not(.desk-on) · 도련 11-10)의 창 닫기 ✕ = 모두 다이어리 창 ✕ 모양 (동그라미 없이 분홍 ✕ 글자만 · css/anime.css .mt-x 와 같이 · 도련 11-09 · 🗄️ 문구함 ✕ 만 흰 동그라미 그대로) */
+html:not(.desk-on) :is(.bkd-x, .smk-x, .tk-x, .sr-x, .spr-x, .sk-x, .se-x, .pm-x, .pl-x, .pel-x, .pc-x, .mo-x, .hof-x, .gc-x, .dd-x, .cy-x, .cr8-x, .at-x, .abs-x, .psy-x, .nm-x, .lb-x, .tj-x, .fc-x, .pb-x) {
   background: none !important; border: 0 !important; box-shadow: none !important; outline: 0; color: #e07595 !important; font-size: 19px !important; font-weight: 800; line-height: 1; padding: 0 !important; width: 32px !important; height: 32px !important; min-width: 0 !important; place-items: center; justify-content: center; align-items: center; cursor: pointer; }   /* display 는 그대로 (숨긴 ✕ 가 보이지 않게) */
-html.is-phone .dg-x { color: #e07595; }   /* 🩷 다꾸하는 법 메모 ✕ (그림 ✕ → 같은 분홍 · 같은 굵기) */
-html.is-phone .dg-x svg { width: 15px; height: 15px; stroke-width: 2.6; }
+html:not(.desk-on) .dg-x { color: #e07595; }   /* 🩷 다꾸하는 법 메모 ✕ (그림 ✕ → 같은 분홍 · 같은 굵기) */
+html:not(.desk-on) .dg-x svg { width: 15px; height: 15px; stroke-width: 2.6; }
 @media (max-width: 480px) { .bkd-top .bkd-chip > span { display: none; } .bkd-front { gap: 8px; } .bkd-get { font-size: 12px; padding: 0 8px; } }   /* 📱 위 줄 = 아이콘만 */
 #basketKindModal.bk-drw > .dk-tape { display: none !important; }   /* 창 모서리 테이프도 없이 (서랍만) */
 /* 🗄 서랍에서 연 창 = 화면 맨 위에 붙어요 (js/desk.js dkDrawerPull · 위에서 내려오고 · 닫으면 위로 · 도련 11-05) */
