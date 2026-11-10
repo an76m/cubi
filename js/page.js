@@ -624,10 +624,18 @@
             const wrapper = document.getElementById('diaryWrapper');
             const toolbar = document.querySelector('.toolbar');
             const maxW = Math.floor(window.innerWidth * 0.92);
-            const maxH = Math.floor(window.innerHeight - toolbar.offsetHeight - 8 - 24);
+            const tbM = parseFloat(toolbar.style.marginTop) || 10, tbH = toolbar.offsetHeight + tbM - 10;   // 하단 메뉴 자리 (지난번에 늘린 여백은 빼고)
+            const maxH = Math.floor(window.innerHeight - tbH - 8 - 24);
             const dy = dySize();                                                // 📒 고른 다이어리 한 쪽 크기 (비율 지키며 화면에 맞춰요 · js/skins.js)
-            const k = Math.min(1, maxW / (dy.w * (dy.two ? 2 : 1)), maxH / dy.h);       // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
-            wrapper.style.width = Math.round(dy.w * k) + 'px'; wrapper.style.height = Math.round(dy.h * k) + 'px';
+            /* 📏 다이어리 뒤 표지판(.dy-cov · 바인더 테두리)이 종이 밖으로 나온 만큼도 화면 안에 (도련 11-10 : 하단 메뉴와 겹쳐요 · 어떤 크기든 메뉴는 다이어리 밑 · 폰도 화면 밖으로 안 나가게)
+               나온 비율(종이 높이 대비)을 다이어리 모양마다 기억해요 → 덮개를 덮고 있어도 펼쳤을 때와 같은 자리 */
+            const ip = document.getElementById('innerPage'), ovKey = (ip && ip.dataset.dy || '') + (dy.two ? '2' : '1') + (document.documentElement.classList.contains('is-phone') ? 'p' : '');
+            const tbOn = !!toolbar.offsetParent, ov = (tbOn && (window.dyOvRat = window.dyOvRat || {})[ovKey]) || { t: 0, b: 0 };   // 🪑 책상(하단 메뉴 없음)은 그대로
+            const k = Math.min(1, maxW / (dy.w * (dy.two ? 2 : 1)), maxH / (dy.h * (1 + ov.t + ov.b)));       // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
+            const h = Math.round(dy.h * k);
+            wrapper.style.width = Math.round(dy.w * k) + 'px'; wrapper.style.height = h + 'px';
+            wrapper.style.marginTop = ov.t ? Math.round(ov.t * h) + 'px' : '';
+            toolbar.style.marginTop = ov.b ? Math.round(10 + ov.b * h) + 'px' : '';
 
             const now = getPageSize();
             if (isCoverOpen && liveSize && (liveSize.w !== now.w || liveSize.h !== now.h)) {
@@ -637,6 +645,14 @@
             liveSize = now;
             pgmApply();
             if (window.dyDeco) dyDeco();
+            const covs = tbOn && isCoverOpen && ip && ip.offsetParent ? [...wrapper.querySelectorAll('.dy-cov')].map(c => c.getBoundingClientRect()).filter(r => r.height) : [];   // 펼쳐 있을 때만 재요 (책 뒤판 #dyBack · 종이 뒤판)
+            if (covs.length && h > 0) {
+                const r = { top: Math.min(...covs.map(c => c.top)), bottom: Math.max(...covs.map(c => c.bottom)) }, w = wrapper.getBoundingClientRect();
+                {
+                    const n = { t: Math.max(0, (w.top - r.top) / h), b: Math.max(0, (r.bottom - w.bottom) / h) };
+                    if (Math.abs(n.t - ov.t) > .004 || Math.abs(n.b - ov.b) > .004) { window.dyOvRat[ovKey] = n; if (!refreshLayout.again) { refreshLayout.again = true; try { refreshLayout(); } finally { refreshLayout.again = false; } } }
+                }
+            }
         }
 
         function setupLayout() {
