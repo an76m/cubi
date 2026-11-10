@@ -30,7 +30,7 @@
             const el = document.createElement('div');
             el.id = 'tpmRoom'; el.className = 'smk-room';
             el.innerHTML = `
-              <div class="smk-bar"><span class="smk-x"></span><b>🎀 마스킹테이프 만들기</b><button class="smk-x" type="button" onclick="closeTapeMaker()" aria-label="닫기">✕</button></div>
+              <div class="smk-bar"><span class="smk-x win-x"></span><b>🎀 마스킹테이프 만들기</b><button class="smk-x win-x" type="button" onclick="closeTapeMaker()" aria-label="닫기">✕</button></div>
               <div class="smk-wrap">
                 <input type="file" id="tpmFile" accept="image/*" hidden onchange="tpmPickFile(this)">
                 <section class="smk-step">

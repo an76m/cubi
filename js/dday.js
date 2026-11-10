@@ -65,7 +65,7 @@
             const el = document.createElement('div');
             el.id = 'ddayRoom'; el.className = 'dd-room';
             el.innerHTML = `
-              <div class="dd-bar"><span class="dd-sp"></span><b>⏳ D-day</b><button class="dd-x" type="button" onclick="closeDday()" aria-label="닫기">✕</button></div>
+              <div class="dd-bar"><span class="dd-sp"></span><b>⏳ D-day</b><button class="dd-x win-x" type="button" onclick="closeDday()" aria-label="닫기">✕</button></div>
               <div class="dd-wrap">
                 <div class="dd-list" id="ddList"></div>
                 <button type="button" class="dd-add" id="ddAddBtn" onclick="ddForm()">＋ D-day 만들기</button>

@@ -52,7 +52,7 @@
                     <button type="button" class="cr8-go desk-shop-go" id="crGo"></button></div>
                 <div class="cr8-mat">
                     <div class="cr8-panel cr8-kinds"><h3>무엇을 만들까요</h3><div class="cr8-klist" id="crKinds"></div></div>
-                    <div class="cr8-panel cr8-work" id="crWorkBox"><h3><span id="crWorkT"></span><button type="button" class="cr8-x" id="crSheetX" aria-label="닫기">✕</button></h3><div class="cr8-wk" id="crWork"></div></div>   <!-- 💻 📲 종류 → 새로 만들기 → 내가 만든 것 (도련 11-02 · 흐름대로) -->
+                    <div class="cr8-panel cr8-work" id="crWorkBox"><h3><span id="crWorkT"></span><button type="button" class="cr8-x win-x" id="crSheetX" aria-label="닫기">✕</button></h3><div class="cr8-wk" id="crWork"></div></div>   <!-- 💻 📲 종류 → 새로 만들기 → 내가 만든 것 (도련 11-02 · 흐름대로) -->
                     <div class="cr8-panel cr8-mine"><h3><span id="crMineT"></span><small id="crMineN"></small></h3><div class="cr8-grid" id="crGrid"></div></div>
                 </div>`;
             document.body.appendChild(el);

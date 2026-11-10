@@ -246,7 +246,7 @@
            - 가장 나중에 뜬 창이 맨 위 (z 1001) */
         (function winOne() {
             const KEEP = new Set(['customAlertModal']), CAB = 'gdCabModal';
-            const STK = new Set(['basketModal', 'basketKindModal', 'shelfModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 기본상품 샵 · 10-25)
+            const STK = new Set(['basketModal', 'basketKindModal', 'shelfKindModal']);   // 문구함과 같이 뜨는 스티커 창 (🧺 바구니 · 🏪 기본상품 샵 · 10-25)
             const pair = (a, b) => (a === CAB && STK.has(b)) || (b === CAB && STK.has(a));
             const ROOMS = [['pelRoom', 'closeStickerPeel'], ['pcbRoom', 'closePieceBag'], ['pmRoom', 'closePaperSheet'], ['tkRoom', 'closeTteokRoom']];
             const vis = m => m.style.display === 'flex' || m.style.display === 'block';
@@ -306,7 +306,7 @@
             const t = e.target; if (!t || !t.closest || t.closest('.modal, .toolbar, #pelRoom, #pcbRoom, #pmRoom, .dsk')) return;
             const open = [...document.querySelectorAll('.modal')].filter(m => m.id !== 'customAlertModal' && !m.classList.contains('skin-float') && getComputedStyle(m).display !== 'none' && getComputedStyle(m).pointerEvents === 'none');
             if (!open.length) return;
-            open.forEach(m => { const x = m.querySelector('.mt-x, .gdc-x, .bkd-x'); if (x) x.click(); else closeModal(m.id); });
+            open.forEach(m => { const x = m.querySelector('.mt-x, .gdc-x, .win-x'); if (x) x.click(); else closeModal(m.id); });
             e.preventDefault(); e.stopPropagation(); mdEat = Date.now();
         }, true);
         ['pointerup', 'click'].forEach(ev => document.addEventListener(ev, e => { if (mdEat && Date.now() - mdEat < 700) { e.preventDefault(); e.stopPropagation(); if (ev === 'click') mdEat = 0; } }, true));

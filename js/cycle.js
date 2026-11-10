@@ -81,7 +81,7 @@
             const el = document.createElement('div');
             el.id = 'cycleRoom'; el.className = 'cy-room';
             el.innerHTML = `
-              <div class="cy-bar"><span class="cy-sp"></span><b>🩷 생리 달력</b><button class="cy-x" type="button" onclick="closeCycle()" aria-label="닫기">✕</button></div>
+              <div class="cy-bar"><span class="cy-sp"></span><b>🩷 생리 달력</b><button class="cy-x win-x" type="button" onclick="closeCycle()" aria-label="닫기">✕</button></div>
               <div class="cy-wrap">
                 <div class="cy-now" id="cyNow"></div>
                 <div class="cy-cal">

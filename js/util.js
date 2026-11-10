@@ -19,3 +19,35 @@ function coverFit(W, H, focus) {
     const f = focus || [];
     return { s, x: -pick(W, vw, f[0], f[1]) * s, y: -pick(H, vh, f[2], f[3]) * s };
 }
+/* 🏘️ 장소로 들어가는 연출 하나 (도련 11-10 · 땜질 말고 한 곳 · 예전엔 장소마다 같은 코드를 따로 가졌어요)
+   길 → 그 자리로 빨려 들어가며 빛 (📅 달력 · 🎁 캡슐기계 · 💌 우체통 · 📸 포토부스) · 문 → 문 안으로 (🔮 타로카페 · 🕹️ 오락실) · 방은 뒤에서 미리 열어 둬요
+   o = { id, cls (바깥 클래스 · 첫 이름 + '-in' = 안쪽 · 연출 = 각 css), step ('go' 길 · 'enter' 문), wait (그림을 보여 주는 ms), snd (소리 함수 이름),
+         sign: { cls, text } (문 위 글자), land / port = { img, W, H, focus: [x0, x1, y0, y1] (늘 보일 곳), at: [x, y] (들어갈 곳), sign: [x, y, 글자 크기] } }
+   💻 📲 = land (가로 그림) · 📱 = port (세로 그림 · js/uimode.js UI.pick) · ✨ 움직임 줄이기면 안 해요 */
+const placeBusy = {};
+function placeGo(o) {
+    if (placeBusy[o.id] || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let d = document.getElementById(o.id);
+    if (!d) {
+        d = document.createElement('div'); d.id = o.id; d.className = o.cls;
+        d.innerHTML = `<div class="${o.cls.split(' ')[0]}-in"><img alt="" draggable="false">${o.sign ? `<div class="${o.sign.cls}">${o.sign.text}</div>` : ''}</div>`;
+        document.body.appendChild(d);
+    }
+    placeBusy[o.id] = true;
+    const v = UI.pick(o.land, o.port), im = d.querySelector('img'), inn = d.firstElementChild, step = o.step || 'go';
+    if (im.getAttribute('src') !== v.img) im.setAttribute('src', v.img);
+    const { s, x, y } = coverFit(v.W, v.H, v.focus);
+    Object.assign(im.style, { width: v.W * s + 'px', height: v.H * s + 'px', left: x + 'px', top: y + 'px' });
+    const ox = x + v.at[0] * s, oy = y + v.at[1] * s;
+    inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');   // 빛도 그 자리에서 번져요
+    if (o.sign && v.sign) Object.assign(inn.lastElementChild.style, { left: x + v.sign[0] * s + 'px', top: y + v.sign[1] * s + 'px', fontSize: v.sign[2] * s + 'px' });
+    d.classList.remove(step, 'leave'); d.classList.add('on');
+    const go = () => {
+        if (o.snd && window[o.snd]) window[o.snd]();
+        d.classList.add(step);
+        setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', step, 'leave'); placeBusy[o.id] = false; }, 400); }, 1700);
+    };
+    const start = () => setTimeout(go, o.wait || 750);
+    if (im.complete) start(); else im.addEventListener('load', start, { once: true });
+}
+window.placeGo = placeGo;

@@ -175,7 +175,7 @@
             el.id = 'searchRoom'; el.className = 'sr-room';
             const moods = typeof PS_MOODS !== 'undefined' ? PS_MOODS : [];
             el.innerHTML = `
-              <div class="sr-bar"><span class="sr-sp"></span><b>🔍 일기 검색</b><button class="sr-x" type="button" onclick="closeSearch()" aria-label="닫기">✕</button></div>
+              <div class="sr-bar"><span class="sr-sp"></span><b>🔍 일기 검색</b><button class="sr-x win-x" type="button" onclick="closeSearch()" aria-label="닫기">✕</button></div>
               <div class="sr-wrap">
                 <div class="sr-box"><span>🔍</span><input id="srInput" type="search" placeholder="찾고 싶은 낱말 (예: 떡볶이, 생일)" autocomplete="off" enterkeyhint="search"></div>
                 ${moods.length ? `<div class="sr-moods">${moods.map(m => `<button type="button" onclick="srMood('${m[2]}')">${m[1]}<small>${m[2]}</small></button>`).join('')}</div>` : ''}

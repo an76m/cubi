@@ -3239,7 +3239,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .bd-tool.punch.press svg { transform: scale(.9); }
 /* 🎈 든 문구도 🪡 핀셋처럼 공중에 둥실 (도련 10-21) : ✂️ 가위(+ 십자선 같이) · 🕳️ 펀칭기 · 🔪 칼 · 🩹 양면테이프 · 누르는 동안(body.gd-press) · 구멍 자리에 착 붙었을 때 · 자르는 중엔 멈춰요 */
 .bd-tool.held.punch, .bd-tool.held.tape, .scs-cur, .scs-aim, .sk-knife.held { animation: gdBob 1.5s ease-in-out infinite alternate; }   /* 🎈 든 문구 둥실 (10-21 · 1.5초) */
-body:has(#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfCornerModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 기본상품 샵 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
+body:has(#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfCornerModal[style*="display: flex"], #shelfKindModal[style*="display: flex"]) :is(.pin-cur, .scs-cur, .scs-aim, .sk-room, .pc-room) { z-index: 990 !important; }   /* 🗂 문구함 · ✨ 스티커 창 · 🧺 바구니 · 🏪 기본상품 샵 : 든 문구는 그 창 뒤로 (비키지 않아요 · js/elements.js PIN_COVER) */
 /* 🗂 문구함 · ✨ 스티커 창이 떠 있으면 손에 든 문구는 그 창 뒤로 · 🪟 고르는 창에서는 🪡 핀셋 · ✂️ 가위만 창 위 (칼 · 필기구는 뒤) (도련 10-22 · 📒 수첩은 늘 위 · js/elements.js pinCovered)
    🚪 스티커 떼는 창(흰 종이 · 조각 봉투)이 떠 있어도 하단 메뉴는 눌려요 (누르면 그 창은 닫혀요 · js/settings.js winOne) */
 
@@ -3482,8 +3482,8 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 
 
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
-#skinModal, #patternModal, #makerModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfModal, #shelfCornerModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
-#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfModal > .modal-content, #shelfCornerModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
+#skinModal, #patternModal, #makerModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfCornerModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
+#skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfCornerModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
 
 
 /* 📄 배경 모조지 카드 : 종이 한 장이 크게 */
@@ -3749,7 +3749,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .pel-room.pel-rel { background: transparent; }
 
 /* 🏪 기본상품 샵 = 가게 선반 (도련 10-25 · 이름표를 골라요 · 디지털 아이콘 대신) */
-#shelfModal .sub-modal-btns, #shelfCornerModal .sub-modal-btns { margin-top: 0; }
+#shelfCornerModal .sub-modal-btns { margin-top: 0; }
 
 .st2-store { width: 100%; max-width: 360px; margin: 0 auto; }
 .st2-awning { height: 40px; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, #ff9fb8 0 30px, #fff 30px 60px); filter: drop-shadow(1.4px 0 0 #7b5a63) drop-shadow(-1.4px 0 0 #7b5a63) drop-shadow(0 1.4px 0 #7b5a63) drop-shadow(0 -1.4px 0 #7b5a63) drop-shadow(0 3px 3px rgba(150,80,100,.18)); position: relative; }   /* 차양 + 물결 둘레 아웃라인 */
@@ -3793,12 +3793,12 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-goods.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 /* 📦 기본상품 샵 · 수납함 = 창 없이 물건처럼 (도련 10-25 · 시안 '물건처럼' · 🗄️ 문구함처럼 다이어리 위에 둥 · 아무 데나 잡고 끌면 옮겨져요 js/basket.js objMovable) */
-#shelfModal .dk-tape, #shelfCornerModal .dk-tape { display: none; }   /* 모서리 테이프 없이 */
-#shelfModal > .modal-content.obj-win, #shelfCornerModal > .modal-content.obj-win { position: relative; width: min(310px, 88vw); max-width: none; max-height: none; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 12px rgba(120, 60, 80, .28)); touch-action: none; user-select: none; -webkit-user-select: none; }
+#shelfCornerModal .dk-tape { display: none; }   /* 모서리 테이프 없이 */
+#shelfCornerModal > .modal-content.obj-win { position: relative; width: min(310px, 88vw); max-width: none; max-height: none; padding: 0; overflow: visible; background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 12px rgba(120, 60, 80, .28)); touch-action: none; user-select: none; -webkit-user-select: none; }
 .obj-win.moving { cursor: grabbing; }
-#shelfModal .obj-win .mt-x, #shelfCornerModal .obj-win .mt-x { position: static; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; box-shadow: 0 2px 4px rgba(120, 60, 80, .2); }
-#shelfModal .obj-win .mt-text, #shelfCornerModal .obj-win .mt-text, #shelfModal .obj-win .mt-back, #shelfCornerModal .obj-win .mt-back { display: none; }
-#shelfModal .obj-win > .modal-title.mt-bar, #shelfCornerModal .obj-win > .modal-title.mt-bar { position: absolute; right: -12px; top: -18px; z-index: 6; margin: 0; padding: 0; width: auto; height: auto; }   /* ✕ 만 물건 오른쪽 위 모서리에 */
+#shelfCornerModal .obj-win .mt-x { position: static; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e9a8bd; background: #fff; color: #d94f7a; font-size: 14px; font-weight: 800; box-shadow: 0 2px 4px rgba(120, 60, 80, .2); }
+#shelfCornerModal .obj-win .mt-text, #shelfCornerModal .obj-win .mt-back { display: none; }
+#shelfCornerModal .obj-win > .modal-title.mt-bar { position: absolute; right: -12px; top: -18px; z-index: 6; margin: 0; padding: 0; width: auto; height: auto; }   /* ✕ 만 물건 오른쪽 위 모서리에 */
 .obj-feet { display: flex; justify-content: space-between; padding: 0 22px; }
 .obj-feet i { width: 22px; height: 10px; margin-top: -1px; border-radius: 0 0 7px 7px; background: #f2a9c0; box-shadow: inset 0 0 0 1.5px #7b5a63; }
 /* 🏪 가판대 : 차양 기둥 · 받침판 · 다리 */
@@ -3808,8 +3808,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-pole.l { left: 4px; } .st2-pole.r { right: 4px; }
 .obj-win .st2-sign { z-index: 3; }
 .obj-win .st2-case { position: relative; z-index: 1; margin-top: 10px; border: 1.7px solid #7b5a63; background: #f6fbff; box-shadow: inset 0 -6px 0 #e9f2fb; }   /* 진열장 바탕도 연한 하늘색 */
-.st2-base { position: relative; z-index: 1; height: 16px; margin: -2px -6px 0; border-radius: 6px 6px 8px 8px; background: linear-gradient(#ffe0ea, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }
-@media (max-height: 700px) { #shelfModal .obj-win .st2-goods.art { width: 60px; height: 52px; } #shelfModal .obj-win .st2-row { padding-top: 8px; } }   /* 📱 낮은 화면 */
+.st2-base { position: relative; z-index: 1; height: 16px; margin: -2px -6px 0; border-radius: 6px 6px 8px 8px; background: linear-gradient(#ffe0ea, #ffcadb); box-shadow: inset 0 0 0 1.7px #7b5a63; }   /* 📱 낮은 화면 */
 /* 🫧 아이콘 둘레만 유리 하늘색을 은은하게 걷어요 (도련 10-25 · 아이콘이 잘 보이게 · 가장자리는 흐리게 번져서 티 안 나게) */
 .obj-win .st2-slot { position: relative; z-index: 2; }
 .obj-win .st2-slot::before { content: ''; position: absolute; left: 50%; top: -6px; width: 104px; height: 84px; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, .7), rgba(255, 255, 255, .35) 55%, rgba(255, 255, 255, 0)); pointer-events: none; }
@@ -3839,11 +3838,11 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .sh-btns .sh-zoombtn { background: #fff; color: #c2457a; box-shadow: inset 0 0 0 1.5px #f2a7c0, 0 2px 0 rgba(0,0,0,.06); }
 .sh-btns .sh-get.got { background: #7cc7a0; }
 /* 🏪 기본상품 샵 차양 (도련 10-26) : 차양을 길게 내려 제목 간판은 차양 한가운데 · ✕ 는 차양 오른쪽 끝 가운데 · 차양 끝과 진열장 사이는 조금 떠 있어요 (기둥은 그만큼 짧게) */
-#shelfModal .obj-win .st2-awning, #shelfCornerModal .obj-win .st2-awning { height: 58px; }
-#shelfModal .obj-win .st2-sign, #shelfCornerModal .obj-win .st2-sign { position: absolute; left: 50%; top: 12px; margin: 0; translate: -50% 0; }
-#shelfModal .obj-win > .modal-title.mt-bar, #shelfCornerModal .obj-win > .modal-title.mt-bar { right: -4px; top: 13px; }
-#shelfModal .obj-win .st2-case, #shelfCornerModal .obj-win .st2-case { margin-top: 21px; }
-#shelfModal .st2-pole, #shelfCornerModal .st2-pole { top: 56px; }
+#shelfCornerModal .obj-win .st2-awning { height: 58px; }
+#shelfCornerModal .obj-win .st2-sign { position: absolute; left: 50%; top: 12px; margin: 0; translate: -50% 0; }
+#shelfCornerModal .obj-win > .modal-title.mt-bar { right: -4px; top: 13px; }
+#shelfCornerModal .obj-win .st2-case { margin-top: 21px; }
+#shelfCornerModal .st2-pole { top: 56px; }
 /* 🗂️ 꺼내 둔 스티커창 (basket.js dsTake · 도련 10-26) : 페이지 위에 몇 장이든 · 떼는 화면이 열리면 그 위로 올라와서 다른 종이를 톡 할 수 있어요 */
 #dskLayer { position: fixed; inset: 0; z-index: 1010; pointer-events: none; }   /* 창들 위 (꺼내자마자 보여요 · 끌어서 옮겨요) */
 /* 🎀 기본상품 샵 상품 창 = 레이스 창 (도련 10-28 시안 · 모든 종류 같은 창 #shelfKindModal)
@@ -4159,8 +4158,9 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 .bkd.bk-ph .bkd-tools { display: flex; gap: 4px; flex: none; }
 .bkd.bk-ph .bkd-tools .bkd-chip { height: 28px; padding: 0 8px; font-size: 12px; }
 .bkd.bk-ph .bkd-tools .bkd-chip > span { display: inline !important; }
-/* ▤ 하단 메뉴 모드(💻 📲 📱 · html:not(.desk-on) · 도련 11-10)의 창 닫기 ✕ = 모두 다이어리 창 ✕ 모양 (동그라미 없이 분홍 ✕ 글자만 · css/anime.css .mt-x 와 같이 · 도련 11-09 · 🗄️ 문구함 ✕ 만 흰 동그라미 그대로) */
-html:not(.desk-on) :is(.bkd-x, .smk-x, .tk-x, .sr-x, .spr-x, .sk-x, .se-x, .pm-x, .pl-x, .pel-x, .pc-x, .mo-x, .hof-x, .gc-x, .dd-x, .cy-x, .cr8-x, .at-x, .abs-x, .psy-x, .nm-x, .lb-x, .tj-x, .fc-x, .pb-x) {
+/* ▤ 하단 메뉴 모드(💻 📲 📱)의 창 닫기 ✕ = 모두 다이어리 창 ✕ 모양 (동그라미 없이 분홍 ✕ 글자만 · css/anime.css .mt-x 와 같이)
+   ✕ 공용 이름 = .win-x (도련 11-10 : 예전엔 창마다 다른 ✕ 이름 25개를 여기 줄줄이 적었어요) · 새 창의 ✕ 에는 class 에 win-x 만 더하면 돼요 · 🗄️ 문구함 ✕(.gdc-x)는 흰 동그라미 그대로라 win-x 를 안 붙여요 */
+html:not(.desk-on) .win-x {
   background: none !important; border: 0 !important; box-shadow: none !important; outline: 0; color: #e07595 !important; font-size: 19px !important; font-weight: 800; line-height: 1; padding: 0 !important; width: 32px !important; height: 32px !important; min-width: 0 !important; place-items: center; justify-content: center; align-items: center; cursor: pointer; }   /* display 는 그대로 (숨긴 ✕ 가 보이지 않게) */
 html:not(.desk-on) .dg-x { color: #e07595; }   /* 🩷 다꾸하는 법 메모 ✕ (그림 ✕ → 같은 분홍 · 같은 굵기) */
 html:not(.desk-on) .dg-x svg { width: 15px; height: 15px; stroke-width: 2.6; }

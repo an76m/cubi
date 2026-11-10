@@ -54,7 +54,7 @@
             if (pcbq('pcbRoom')) return;
             const el = document.createElement('div');
             el.id = 'pcbRoom'; el.className = 'pel-room';
-            el.innerHTML = `<canvas id="pcbCv"></canvas><p class="pel-hint" id="pcbHint"></p><button type="button" class="pel-x pcb-bx" id="pcbX" onclick="closePieceBag()" aria-label="닫기">✕</button>`;
+            el.innerHTML = `<canvas id="pcbCv"></canvas><p class="pel-hint" id="pcbHint"></p><button type="button" class="pel-x pcb-bx win-x" id="pcbX" onclick="closePieceBag()" aria-label="닫기">✕</button>`;
             document.body.appendChild(el);
             const cv = pcbq('pcbCv');
             cv.addEventListener('pointerdown', pcbDown); cv.addEventListener('pointermove', pcbMove);

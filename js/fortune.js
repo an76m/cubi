@@ -47,7 +47,7 @@
             el.innerHTML = `
               <div class="fc-sky" aria-hidden="true"><i class="fc-aurora a1"></i><i class="fc-aurora a2"></i><i class="fc-stars"></i><i class="fc-stars s2"></i></div>
               ${typeof sndFxBtn === 'function' ? sndFxBtn('fc-x fc-left') : ''}
-              <button class="fc-x" type="button" onclick="closeFortuneCard()" aria-label="닫기">✕</button>
+              <button class="fc-x win-x" type="button" onclick="closeFortuneCard()" aria-label="닫기">✕</button>
               <div class="fc-wrap">
                 <section class="fc-stage" id="fcIntro">
                   <div class="fc-orb">🔮</div>

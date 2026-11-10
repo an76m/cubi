@@ -130,29 +130,16 @@
             st.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
         }
         /* 🚪 오락실 문 (기본상품 샵 · 타로카페처럼) */
-        let aroDoorBusy = false;
         const ARO_PH = { W: 941, H: 1672, cx: 470, cy: 860, sy: 160 };          // 📱 세로 분홍 유리문 (img/arcade-door-m.webp · 도련 11-09) · 손잡이 사이 · '뿅뿅오락실' 글자 자리
-        function aroDoor(ph) {
-            if (aroDoorBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            let d = aroq('aroDoor');
-            if (!d) { d = document.createElement('div'); d.id = 'aroDoor'; d.className = 'aro-door'; d.innerHTML = '<div class="aro-door-in"><img alt="" draggable="false"><div class="aro-door-sign">뿅뿅오락실</div></div>'; document.body.appendChild(d); }
-            aroDoorBusy = true;
-            const im = d.querySelector('img'), src = ph ? 'img/arcade-door-m.webp?v=20261009-1039' : 'img/arcade-door.webp?v=20261009-1035';
-            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
-            const W = ph ? ARO_PH.W : ARO_W, H = ph ? ARO_PH.H : ARO_H, cx = ph ? ARO_PH.cx : 836, cy = ph ? ARO_PH.cy : 600, sy = ph ? ARO_PH.sy : 150;
-            const { s, x, y } = ph ? coverFit(W, H, [60, 880, 100, 1100]) : coverFit(ARO_W, ARO_H, [500, 1170, 80, 800]);
-            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
-            Object.assign(d.querySelector('.aro-door-sign').style, { left: x + cx * s + 'px', top: y + sy * s + 'px', fontSize: (ph ? 72 : 46) * s + 'px' });
-            d.querySelector('.aro-door-in').style.transformOrigin = `${x + cx * s}px ${y + cy * s}px`;
-            d.classList.remove('enter', 'leave'); d.classList.add('on');
-            const go = () => { if (window.sndArcadeDoor) sndArcadeDoor(); d.classList.add('enter'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'enter', 'leave'); aroDoorBusy = false; }, 400); }, 1700); };
-            const img = d.querySelector('img'), start = () => setTimeout(go, 750);
-            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        function aroDoor() {                                                   // 🚪 오락실 분홍 유리문 (js/util.js placeGo)
+            placeGo({ id: 'aroDoor', cls: 'aro-door', step: 'enter', snd: 'sndArcadeDoor', sign: { cls: 'aro-door-sign', text: '뿅뿅오락실' },
+                land: { img: 'img/arcade-door.webp?v=20261009-1035', W: ARO_W, H: ARO_H, focus: [500, 1170, 80, 800], at: [836, 600], sign: [836, 150, 46] },
+                port: { img: 'img/arcade-door-m.webp?v=20261009-1039', W: ARO_PH.W, H: ARO_PH.H, focus: [60, 880, 100, 1100], at: [ARO_PH.cx, ARO_PH.cy], sign: [ARO_PH.cx, ARO_PH.sy, 72] } });
         }
         function openArcRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.deskLeave) deskLeave();
-            if (UI.tall()) { aroDoor(true); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
+            if (UI.tall()) { aroDoor(); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
             if (typeof warmServer === 'function' && typeof HOF_API_URL !== 'undefined' && HOF_API_URL) warmServer(HOF_API_URL);   // 🏆 명예의 전당 서버 미리 깨우기
             aroDoor();
             const el = aroBuild();

@@ -48,7 +48,7 @@
         let r = q('skRoom'); if (r) return r;
         r = document.createElement('div'); r.id = 'skRoom'; r.className = 'sk-room'; r.hidden = true;
         r.innerHTML = '<canvas class="sk-line" id="skLine"></canvas>'
-            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 칼을 <b>톡</b> 해서 들고 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 쓰면 <b>✕</b><button type="button" class="sk-x" id="skX" aria-label="그만두기">✕</button></div>'
+            + '<div class="sk-tip" id="skTip"><b>✂️ 스티커 칼</b> 칼을 <b>톡</b> 해서 들고 스티커를 <b>끝에서 끝까지</b> 가로질러 그어요 · 📏 자에 대면 반듯하게 · 다 쓰면 <b>✕</b><button type="button" class="sk-x win-x" id="skX" aria-label="그만두기">✕</button></div>'
             + '<div class="sk-knife" id="skKnife"></div>';
         document.body.appendChild(r);
         q('skX').addEventListener('click', e => { e.stopPropagation(); close(); }); q('skX').addEventListener('pointerdown', e => e.stopPropagation());

@@ -32,7 +32,7 @@
             const el = document.createElement('div');
             el.id = 'smRoom'; el.className = 'smk-room';
             el.innerHTML = `
-              <div class="smk-bar"><span class="smk-x"></span><b>✂️ 스티커 만들기</b><button class="smk-x" type="button" onclick="closeStickerMaker()" aria-label="닫기">✕</button></div>
+              <div class="smk-bar"><span class="smk-x win-x"></span><b>✂️ 스티커 만들기</b><button class="smk-x win-x" type="button" onclick="closeStickerMaker()" aria-label="닫기">✕</button></div>
               <div class="smk-wrap">
                 <input type="file" id="smCam" accept="image/*" capture="environment" hidden onchange="smPickFile(this)">
                 <input type="file" id="smFile" accept="image/*" multiple hidden onchange="smPickFile(this)">

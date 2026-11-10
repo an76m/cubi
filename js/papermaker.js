@@ -66,7 +66,7 @@
             if (pmq('pmRoom')) return;
             const el = document.createElement('div');
             el.id = 'pmRoom'; el.className = 'pel-room pm-room';
-            el.innerHTML = `<canvas id="pmCv"></canvas><div id="pmHit"></div><p class="pel-hint" id="pmHint"></p><button type="button" class="pm-x" id="pmX" onclick="closePaperSheet()" aria-label="닫기">✕</button>
+            el.innerHTML = `<canvas id="pmCv"></canvas><div id="pmHit"></div><p class="pel-hint" id="pmHint"></p><button type="button" class="pm-x win-x" id="pmX" onclick="closePaperSheet()" aria-label="닫기">✕</button>
               <div class="pm-pens" id="pmPens" hidden>${PM_PENS.map(c => `<button type="button" data-c="${c}" style="--c:${c}" onclick="pmSetPen('${c}')" aria-label="펜 색"></button>`).join('')}
                 <button type="button" class="pm-undo" onclick="pmUndo()">↩️ 지우기</button><button type="button" class="pm-undo" onclick="pmExitEdit()">✅ 다 썼어요</button></div>`;
             document.body.appendChild(el);

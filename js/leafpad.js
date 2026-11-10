@@ -152,7 +152,7 @@
             if (lfq('tkRoom')) return;
             const el = document.createElement('div');
             el.id = 'tkRoom'; el.className = 'pel-room tk-room';
-            el.innerHTML = `<div class="tk-rpad" id="tkRPad"><div class="tk-stack"></div><div class="tk-top" id="tkRTop"></div><div class="tk-stubs" id="tkRStubs"></div><div class="tk-glue"></div><button type="button" class="tk-x" aria-label="닫기">✕</button></div>`
+            el.innerHTML = `<div class="tk-rpad" id="tkRPad"><div class="tk-stack"></div><div class="tk-top" id="tkRTop"></div><div class="tk-stubs" id="tkRStubs"></div><div class="tk-glue"></div><button type="button" class="tk-x win-x" aria-label="닫기">✕</button></div>`
                 + `<p class="pel-hint" id="tkHint"></p>`;
             document.body.appendChild(el);
             tkTap(el.querySelector('.tk-x'), closeTteokRoom);                    // ✕ = 묶음을 🧺 바구니에 다시 넣어요 (남은 장은 그대로)

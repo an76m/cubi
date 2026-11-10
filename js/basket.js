@@ -140,7 +140,7 @@
         const tools = `${tool(has, ti('📒'), '정리', 'abDesk()')}${window.SHARE_ON ? tool(has, ti('📤'), '공유', 'bkShare()', 'bk-share') : ''}${tool(has, ti('🗑'), '버리기', 'bkBin()', 'bk-binb')}`;
         wrap.innerHTML = `<div class="bkd${ph ? ' bk-ph' : ''}" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
             <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
-                ${ph ? `${has ? `<span class="bkd-tools">${tools}</span>` : ''}<button type="button" class="bkd-x" onclick="closeModal('basketKindModal')" aria-label="닫기">✕</button>` : tools}</div>
+                ${ph ? `${has ? `<span class="bkd-tools">${tools}</span>` : ''}<button type="button" class="bkd-x win-x" onclick="closeModal('basketKindModal')" aria-label="닫기">✕</button>` : tools}</div>
             <div class="bkd-in">${how}${has
                 ? `<div class="bk-bin"><div class="bk-pile" id="bkPile">${show.map(bkCard).join('')}</div></div>`
                 : `<div class="bk-bin empty"><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🗄️ 서랍이 텅 비었어요</b><span>앞의 <em>🏪 기본${esc(nm)} 받기</em>로<br>받아서 채워요</span></button></div>`}</div>
@@ -715,7 +715,7 @@
         + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
-        const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 서랍</button><b class="ab-ttl">📒 정리하기<small>${esc(kn)}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
+        const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 서랍</button><b class="ab-ttl">📒 정리하기<small>${esc(kn)}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */

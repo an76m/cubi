@@ -63,7 +63,7 @@
             el = document.createElement('div'); el.id = 'sprRoom'; el.className = 'spr-room';
             el.innerHTML = `<div class="spr-back" id="sprBack"></div>
                 <img class="spr-fly" id="sprFly" alt="" draggable="false">
-                <button type="button" class="spr-x" id="sprX" aria-label="닫기">✕</button>
+                <button type="button" class="spr-x win-x" id="sprX" aria-label="닫기">✕</button>
                 <div class="spr-wrap" id="sprWrap">
                   <div class="spr-mach" id="sprMach">
                     <div class="spr-front" id="sprFront">

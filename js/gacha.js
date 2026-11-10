@@ -149,23 +149,11 @@
         }
         /* 🏪 문방구 앞 전환 (도련 11-01 · 타로카페 · 오락실 문과 같은 전환) : 길에서 본 문방구(img/gacha-street.webp) → 캡슐기계 쪽으로 커지며 따뜻한 빛 → 캡슐기계 앞 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
         const GCS_GO = { cx: 1330, cy: 640 };                                     // 길 그림의 캡슐기계 셋 가운데 (그림 px)
-        let gcsGoBusy = false;
         const GCS_PH = { W: 941, H: 1672, cx: 765, cy: 1010 };                  // 📱 세로 길 그림 (img/gacha-street-m.webp · 도련 11-09) · 빨간 캡슐기계 셋 가운데
-        function gcsApproach(ph) {
-            if (gcsGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            let d = gq('gcsGo');
-            if (!d) { d = document.createElement('div'); d.id = 'gcsGo'; d.className = 'gcs-walk'; d.innerHTML = '<div class="gcs-walk-in"><img alt="" draggable="false"></div>'; document.body.appendChild(d); }
-            gcsGoBusy = true;
-            const W = ph ? GCS_PH.W : GCS_W, H = ph ? GCS_PH.H : GCS_H, G = ph ? GCS_PH : GCS_GO, im = d.querySelector('img'), src = ph ? 'img/gacha-street-m.webp?v=20261009-1038' : 'img/gacha-street.webp?v=20261009-1038';
-            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
-            const { s, x, y } = ph ? coverFit(W, H, [560, 941, 880, 1180]) : coverFit(GCS_W, GCS_H, [380, 1560, 60, 800]);   // 📱 기계 셋이 늘 보이게
-            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
-            const ox = x + G.cx * s, oy = y + G.cy * s, inn = d.querySelector('.gcs-walk-in');
-            inn.style.transformOrigin = `${ox}px ${oy}px`;                       // 캡슐기계 쪽으로 빨려 들어가듯 (타로카페 · 오락실 문과 같은 전환)
-            d.classList.remove('go', 'leave'); d.classList.add('on');
-            const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); gcsGoBusy = false; }, 400); }, 1700); };
-            const img = d.querySelector('img'), start = () => setTimeout(go, 700);   // 길을 잠깐 보여 주고
-            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        function gcsApproach() {                                               // 🛣️ 문방구 앞 길 → 캡슐기계 (js/util.js placeGo)
+            placeGo({ id: 'gcsGo', cls: 'gcs-walk', wait: 700,
+                land: { img: 'img/gacha-street.webp?v=20261009-1038', W: GCS_W, H: GCS_H, focus: [380, 1560, 60, 800], at: [GCS_GO.cx, GCS_GO.cy] },
+                port: { img: 'img/gacha-street-m.webp?v=20261009-1038', W: GCS_PH.W, H: GCS_PH.H, focus: [560, 941, 880, 1180], at: [GCS_PH.cx, GCS_PH.cy] } });   // 📱 기계 셋이 늘 보이게
         }
         function gcSceneFit() {
             const st = gq('gcsStage'); if (!st) return;
@@ -184,7 +172,7 @@
                 <div class="gc-head">
                   <div class="gc-title">🎁 문방구 캡슐기계</div>
                   <span class="gc-chip" id="gcChip"><span class="gc-coin-ico">C</span><span id="gcChipText">코인 확인 중…</span></span>
-                  <button class="gc-x" type="button" onclick="closeGacha()" aria-label="닫기">✕</button>
+                  <button class="gc-x win-x" type="button" onclick="closeGacha()" aria-label="닫기">✕</button>
                 </div>
                 <div class="gc-machine">
                   <div class="gc-dome" id="gcDome"><canvas id="gcCanvas" width="500" height="460"></canvas></div>
@@ -272,7 +260,7 @@
             gcUnlockAudio();                                   // 카페에서 누른 순간에 소리 미리 깨우기
             gq('gachaRoom').classList.add('show');
             if (gc.box) { gcsApproach(); gcSceneFit(); document.body.classList.add('cal-on', 'gacha-on'); }
-            else gcsApproach(true);                                              // 📱 문방구 앞 길 → 캡슐기계 쪽으로 다가가며 → 지금 폰 캡슐기계 (도련 11-09)   // 🚶 문방구 앞으로 다가가요   // cal-on = 장소에 있어요 (책상 버튼 숨김)
+            else gcsApproach();                                              // 📱 문방구 앞 길 → 캡슐기계 쪽으로 다가가며 → 지금 폰 캡슐기계 (도련 11-09)   // 🚶 문방구 앞으로 다가가요   // cal-on = 장소에 있어요 (책상 버튼 숨김)
             gc.open = true;
             gcReset();
             gc.lastT = 0; gc.acc = 0;

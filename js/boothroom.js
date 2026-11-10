@@ -140,23 +140,10 @@
         const run = () => { if (!B.raf) B.raf = requestAnimationFrame(loop); };
 
         /* ---------- 🚶 길 → 포토부스 앞 (캡슐기계 · 벽 달력과 같은 연출 : 포토부스 쪽으로 빨려 들어가며 빛 · 뒤에서 미리 열어 둬요) ---------- */
-        let walkBusy = false;
-        function approach() {
-            if (walkBusy || quiet()) return;
-            let d = bq('bthWalk');
-            if (!d) { d = document.createElement('div'); d.id = 'bthWalk'; d.className = 'bth-walk'; d.innerHTML = `<div class="bth-walk-in"><img alt="" draggable="false"></div>`; document.body.appendChild(d); }
-            walkBusy = true;
-            const ph = UI.tall(), W = ph ? STM_W : ST_W, H = ph ? STM_H : ST_H, P = ph ? STM_BOOTH : ST_BOOTH;   // 📱 세로 길 그림 (도련 11-09)
-            const im = d.querySelector('img'), src = (ph ? 'img/booth-street-m.webp?v=20261009-1042' : 'img/booth-street.webp' + IMG_V);
-            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
-            const { s, x, y } = ph ? coverFit(W, H, [280, 660, 660, 1260]) : coverFit(ST_W, ST_H, [560, 1000, 260, 800]);
-            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
-            const ox = x + P[0] * s, oy = y + P[1] * s, inn = d.querySelector('.bth-walk-in');
-            inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');
-            d.classList.remove('go', 'leave'); d.classList.add('on');
-            const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); walkBusy = false; }, 400); }, 1700); };
-            const img = d.querySelector('img'), start = () => setTimeout(go, 700);   // 길을 잠깐 보여 주고
-            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        function approach() {                                                  // 🛣️ 길 → 포토부스 (js/util.js placeGo)
+            placeGo({ id: 'bthWalk', cls: 'bth-walk', wait: 700,
+                land: { img: 'img/booth-street.webp' + IMG_V, W: ST_W, H: ST_H, focus: [560, 1000, 260, 800], at: ST_BOOTH },
+                port: { img: 'img/booth-street-m.webp?v=20261009-1042', W: STM_W, H: STM_H, focus: [280, 660, 660, 1260], at: STM_BOOTH } });
         }
         function openBoothPlace() {
             if (B.on) return;

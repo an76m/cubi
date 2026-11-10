@@ -67,7 +67,7 @@
             const el = document.createElement('div');
             el.id = 'attendRoom'; el.className = 'at-room';
             el.innerHTML = `
-              <div class="at-bar"><span class="at-sp"></span><b>📅 출석 도장판</b><button class="at-x" type="button" onclick="closeAttend()" aria-label="닫기">✕</button></div>
+              <div class="at-bar"><span class="at-sp"></span><b>📅 출석 도장판</b><button class="at-x win-x" type="button" onclick="closeAttend()" aria-label="닫기">✕</button></div>
               <div class="at-wrap">
                 <div class="at-board">
                   <div class="at-head">

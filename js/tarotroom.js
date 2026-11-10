@@ -19,7 +19,6 @@
         const TRO_PH = { W: 941, H: 1672,
             cards: ['50,1236 122,1047 256,1047 215,1217', '225,1211 270,1040 392,1029 375,1200', '385,1197 404,1024 539,1024 556,1197', '567,1201 549,1029 670,1040 715,1212', '729,1225 684,1050 805,1065 891,1237'],
             tags: [[180, 1290], [470, 1290], [760, 1290], [325, 1418], [615, 1418]], ttl: [470, 70], door: { cx: 472, cy: 537, sy: 890 } };
-        const troPh = () => UI.tall();
         const troq = id => document.getElementById(id);
         /* ✨ 신비 연출 (도련 10-31 · 시안에서 고른 것 · 배경음악 없음) : 별 반짝 · 달빛 · 촛불 일렁임 · 수정구슬 소용돌이 · 빛가루 · 카드 금빛 스침 · 가장자리 어둠 숨쉬기
            모두 CSS 움직임 (그림 위에 얹기만 · 누르는 것 없음) · 동작 줄이기 설정이면 멈춰요 (css/tarotroom.css) */
@@ -41,7 +40,7 @@
         const troOn = () => !!troq('tarotRoom') && troq('tarotRoom').classList.contains('show');
 
         function troBuild() {
-            const ph = troPh();
+            const ph = UI.tall();
             let el = troq('tarotRoom'); if (el && el.classList.contains('ph') === ph) return el;
             if (el) el.remove();                                                 // 💻 ↔ 📱 가 바뀌었어요 (창 크기) → 그 그림으로 다시
             const W = ph ? TRO_PH.W : TRO_W, H = ph ? TRO_PH.H : TRO_H;
@@ -61,7 +60,7 @@
                 x.addEventListener('pointerleave', () => hov(i, false));
                 x.addEventListener('click', () => { hov(i, false); TRO_CARDS[i][2](); });
             });
-            if (!troBuild.rs) { troBuild.rs = 1; addEventListener('resize', () => { if (troOn()) { const ph = troPh(); if (troq('tarotRoom').classList.contains('ph') !== ph) { troBuild().classList.add('show'); } troFit(); } }); }
+            if (!troBuild.rs) { troBuild.rs = 1; addEventListener('resize', () => { if (troOn()) { const ph = UI.tall(); if (troq('tarotRoom').classList.contains('ph') !== ph) { troBuild().classList.add('show'); } troFit(); } }); }
             return el;
         }
         function troFit() {                                                      // 그림 = 화면 꽉 (coverFit · 카드 쪽이 보이게) · 제목 · 이름표는 그림 자리를 따라가되 화면 밖이면 안으로
@@ -82,25 +81,11 @@
         /* 🚪 타로카페 문 (도련 10-31 · 기본상품 샵 들어갈 때처럼) : 보라 나무문(img/tarot-door.webp) 이 화면을 채우고 → 🔔 스르릉~ (✨ 연출 소리)
            → 둥근 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
         const TRO_DOOR = { cx: 836, cy: 290, sy: 668 };                             // 달 창 가운데 · 문 위 '타로카페' 글자 자리 (그림 px)
-        let troDoorBusy = false;
-        function troDoorFit(d) {
-            const ph = troPh(), W = ph ? TRO_PH.W : TRO_W, H = ph ? TRO_PH.H : TRO_H, D = ph ? TRO_PH.door : TRO_DOOR;   // 📱 세로 문 그림
-            const im = d.querySelector('img'), src = ph ? 'img/tarot-door-m.webp?v=20261009-1035' : 'img/tarot-door.webp?v=20261009-1024';
-            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
-            const s = Math.max(innerWidth / W, innerHeight / H), x = (innerWidth - W * s) / 2, y = (innerHeight - H * s) / 2;
-            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
-            Object.assign(d.querySelector('.tro-door-sign').style, { left: x + D.cx * s + 'px', top: y + D.sy * s + 'px', fontSize: (ph ? 60 : 64) * s + 'px' });
-            d.querySelector('.tro-door-in').style.transformOrigin = `${x + D.cx * s}px ${y + D.cy * s}px`;
-        }
-        function troDoor() {
-            if (troDoorBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            let d = troq('troDoor');
-            if (!d) { d = document.createElement('div'); d.id = 'troDoor'; d.className = 'tro-door'; d.innerHTML = '<div class="tro-door-in"><img src="img/tarot-door.webp?v=20261009-1024" alt="" draggable="false"><div class="tro-door-sign">✦ 타로카페 ✦</div></div>'; document.body.appendChild(d); }
-            troDoorBusy = true; troDoorFit(d);
-            d.classList.remove('enter', 'leave'); d.classList.add('on');
-            const go = () => { if (window.sndTarotDoor) sndTarotDoor(); d.classList.add('enter'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'enter', 'leave'); troDoorBusy = false; }, 400); }, 1700); };
-            const img = d.querySelector('img'), start = () => setTimeout(go, 750);   // 문을 잠깐 보여 주고
-            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        
+        function troDoor() {                                                   // 🚪 타로카페 문 (js/util.js placeGo)
+            placeGo({ id: 'troDoor', cls: 'tro-door', step: 'enter', snd: 'sndTarotDoor', sign: { cls: 'tro-door-sign', text: '✦ 타로카페 ✦' },
+                land: { img: 'img/tarot-door.webp?v=20261009-1024', W: TRO_W, H: TRO_H, at: [TRO_DOOR.cx, TRO_DOOR.cy], sign: [TRO_DOOR.cx, TRO_DOOR.sy, 64] },
+                port: { img: 'img/tarot-door-m.webp?v=20261009-1035', W: TRO_PH.W, H: TRO_PH.H, at: [TRO_PH.door.cx, TRO_PH.door.cy], sign: [TRO_PH.door.cx, TRO_PH.door.sy, 60] } });
         }
         function openTarotRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }

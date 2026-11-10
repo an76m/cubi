@@ -325,7 +325,7 @@
             let r = drq('pcRoom'); if (r) return r;
             r = document.createElement('div'); r.id = 'pcRoom'; r.className = 'pc-room'; r.hidden = true;
             r.innerHTML = `<div class="pc-cup" id="pcCup"><p class="pc-hint">도구를 골라 <b>위로 쏙</b> 뽑아요 · 옆으로 밀면 비켜나요</p>`
-                + `<button type="button" class="pc-x" aria-label="닫기">✕</button>`
+                + `<button type="button" class="pc-x win-x" aria-label="닫기">✕</button>`
                 + `<div class="pc-back"></div><div class="pc-tools" id="pcTools"></div><div class="pc-front"><i></i><button type="button" class="pc-box" aria-label="보관함 열기 (꽂을 필기구 고르기)"><small>색연필 · 형광펜 · 지우개</small><b>♡ 필기구 보관함</b><em>👆 눌러서 열기 ›</em></button></div></div>`
                 + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 펜꽂이</b>에 꽂아요 ✏️</p>`
                 + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="펜꽂이 (꽂으면 완료)"><span class="pc-mini-tops">${pcList().slice(0, 3).map(o => `<i>${pcSvg(o)}</i>`).join('')}</span><span class="pc-mini-cup"></span></button>`;

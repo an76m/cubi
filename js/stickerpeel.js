@@ -54,7 +54,7 @@
             if (pelq('pelRoom')) return;
             const el = document.createElement('div');
             el.id = 'pelRoom'; el.className = 'pel-room';
-            el.innerHTML = `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><p class="pel-hint" id="pelHint"></p><button type="button" class="pel-x pel-bx" id="pelX" onclick="closeStickerPeel()" aria-label="닫기">✕</button>`;
+            el.innerHTML = `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><p class="pel-hint" id="pelHint"></p><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="닫기">✕</button>`;
             document.body.appendChild(el);
             const cv = pelq('pelHit');                                          // 👆 손가락은 종이 자리(pelHit)만 받아요 · 그 밖은 페이지 그대로 (핀셋으로 붙인 스티커 옮기기 · 돌리기 · 펜꽂이 … · 도련 11-05)
             cv.addEventListener('pointerdown', pelDown); cv.addEventListener('pointermove', pelMove);

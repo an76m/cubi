@@ -716,7 +716,7 @@
         window.addEventListener('pointerdown', () => { pinDown = 1; }, true);
         ['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { pinDown = 0; }, true));
         const PIN_WALL = '.modal > .modal-content, .twz-say.on';   // 페이지 팝업메뉴(.tap-menu)는 피하지 않아요 (도련 10-19 · 메뉴가 핀셋 위에 떠요)
-        const PIN_COVER = '#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfModal[style*="display: flex"], #shelfCornerModal[style*="display: flex"], #shelfKindModal[style*="display: flex"], #paperModal[style*="display: flex"], #tteokModal[style*="display: flex"], #leafModal[style*="display: flex"]';   // 🪟 고르는 창 위에 뜬 🪡 핀셋 · ✂️ 가위도 비키지 않아요 (도련 10-22)
+        const PIN_COVER = '#gdCabModal[style*="display: flex"], #stickerToolModal[style*="display: flex"], #basketModal[style*="display: flex"], #basketKindModal[style*="display: flex"], #shelfCornerModal[style*="display: flex"], #shelfKindModal[style*="display: flex"], #paperModal[style*="display: flex"], #tteokModal[style*="display: flex"], #leafModal[style*="display: flex"]';   // 🪟 고르는 창 위에 뜬 🪡 핀셋 · ✂️ 가위도 비키지 않아요 (도련 10-22)
         const pinCovered = () => !!document.querySelector(PIN_COVER);   // 🗂 문구함 · ✨ 스티커 창 · 🪟 고르는 창 : 든 문구는 그 창 뒤로 (비키지 않아요 · css · 도련 10-22)
         function dodgeBy(b) {                                                   // b : 떠 있는 도구의 테두리 → 비킬 거리 [dx, dy] (안 겹치면 null) · ✂️ 가위도 같이 써요 (js/skins.js scsFrame)
             if (pinCovered()) return null;

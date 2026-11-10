@@ -91,22 +91,10 @@
             crRender();
         }
         /* 🏠 거실 벽걸이 달력 전환 (도련 11-01 · 우체통 · 타로카페 · 캡슐기계와 같은 전환) : 햇살 드는 거실(img/cal-living.webp) → 벽의 달력 쪽으로 커지며 따뜻한 분홍빛 → 달력 · 동작 줄이기면 바로 */
-        let crGoBusy = false;
-        function crApproach(ph) {                                               // ph = 📱 세로 거실 그림 (img/cal-living-m.webp · 941 × 1672 · 도련 11-09)
-            if (crGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            let d = crq('crGo');
-            if (!d) { d = document.createElement('div'); d.id = 'crGo'; d.className = 'pr-walk cr-walk'; d.innerHTML = '<div class="pr-walk-in"><img alt="" draggable="false"></div>'; document.body.appendChild(d); }
-            crGoBusy = true;
-            const W = ph ? CRM.W : CR_W, H = ph ? CRM.H : CR_H, im = d.querySelector('img'), src = ph ? 'img/cal-living-m.webp?v=20261009-1037' : 'img/cal-living.webp?v=20261009-1045';
-            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
-            const { s, x, y } = ph ? coverFit(W, H, [560, 941, 380, 700]) : coverFit(CR_W, CR_H, [820, 1460, 60, 640]);
-            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
-            const inn = d.querySelector('.pr-walk-in'), ox = x + (ph ? CRM.liv[0] : 1142) * s, oy = y + (ph ? CRM.liv[1] : 278) * s;   // 벽걸이 달력 (그림 px)
-            inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');
-            d.classList.remove('go', 'leave'); d.classList.add('on');
-            const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); crGoBusy = false; }, 400); }, 1700); };
-            const img = d.querySelector('img'), start = () => setTimeout(go, 750);
-            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        function crApproach() {                                                 // 🏠 거실 → 벽걸이 달력 (js/util.js placeGo)
+            placeGo({ id: 'crGo', cls: 'pr-walk cr-walk',
+                land: { img: 'img/cal-living.webp?v=20261009-1045', W: CR_W, H: CR_H, focus: [820, 1460, 60, 640], at: [1142, 278] },
+                port: { img: 'img/cal-living-m.webp?v=20261009-1037', W: CRM.W, H: CRM.H, focus: [560, 941, 380, 700], at: CRM.liv } });
         }
         /* 📱 폰 벽걸이 달력 (도련 11-09) : 거실 → 달력 연출은 💻 📲 와 같고 · 달력(img/cal-room-m.webp) 아래 빈 칸에 예전 폰 버튼 셋 (📅 출석 도장판 · 🩷 생리 달력 · ⏳ D-day = 원래 창을 그대로 열어요)
            그림은 가로를 맞춰 달력이 다 보이게 (남는 곳 = 그림 가장자리 분홍) · 나가기 = 오른쪽 위 '이동' */
@@ -138,7 +126,7 @@
         function openCalRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.closePostRoom) closePostRoom();
-            if (UI.tall()) { crApproach(true); const el = crmBuild(); el.classList.add('show'); crmFit(); document.body.classList.add('cal-on'); return; }   // 📱
+            if (UI.tall()) { crApproach(); const el = crmBuild(); el.classList.add('show'); crmFit(); document.body.classList.add('cal-on'); return; }   // 📱
             crApproach();                                                        // 🏠 거실 → 벽걸이 달력 (달력은 뒤에서 미리 열어 둬요)
             const el = crBuild(), T = new Date(); cr.y = T.getFullYear(); cr.m = T.getMonth();
             if (!cr.moved.length) {

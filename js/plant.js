@@ -125,7 +125,7 @@
             const el = document.createElement('div');
             el.id = 'plantRoom'; el.className = 'pl-room';
             el.innerHTML = `
-              <div class="pl-bar"><span class="pl-sp"></span><b>🌷 베란다 화분</b><button class="pl-x" type="button" onclick="closePlant()" aria-label="닫기">✕</button></div>
+              <div class="pl-bar"><span class="pl-sp"></span><b>🌷 베란다 화분</b><button class="pl-x win-x" type="button" onclick="closePlant()" aria-label="닫기">✕</button></div>
               <div class="pl-wrap">
                 <div class="pl-window">
                   <div class="pl-sun" id="plSun"></div>

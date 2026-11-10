@@ -102,7 +102,7 @@
             el.id = 'hofRoom'; el.className = 'hof-room';
             const chip = g => `<button type="button" data-g="${g.id}" onclick="hofPick('${g.id}')">${g.icon} ${g.name}</button>`;
             el.innerHTML = `
-              <div class="hof-bar"><span class="hof-sp"></span><b>🏆 명예의 전당</b><button class="hof-x" type="button" onclick="closeHof()" aria-label="닫기">✕</button></div>
+              <div class="hof-bar"><span class="hof-sp"></span><b>🏆 명예의 전당</b><button class="hof-x win-x" type="button" onclick="closeHof()" aria-label="닫기">✕</button></div>
               <div class="hof-wrap">
                 <div class="hof-games">
                   <small>🕹️ 오락실</small><div class="hof-chips">${hofGames().filter(g => g.group !== 'brain').map(chip).join('')}</div>

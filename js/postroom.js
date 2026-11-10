@@ -15,9 +15,8 @@
         /* 📱 폰 (도련 11-09) : 세로 우체통 그림(img/post-box-m.webp · 941 × 1672 · 투명 배경) 이 화면 가로를 거의 채워요 · 안 창 · 글씨는 그림과 함께 줄지 않게 화면 크기로 (prFit)
            들어갈 때 = 세로 밤 강변 길(img/post-street-m.webp) → 빨간 우체통 쪽으로 (💻 📲 와 같은 전환) */
         const PR_PH = { W: 941, H: 1672, box: [9, 164, 930, 1496], win: [78, 462, 863, 1242], slotY: 362, street: { cx: 548, cy: 1010 } };
-        const prPh = () => UI.tall();
         function prBuild() {
-            const ph = prPh();
+            const ph = UI.tall();
             let el = prq('postRoom'); if (el && el.classList.contains('ph') === ph) return el;
             if (el) { prGiveBack(); el.remove(); }
             el = document.createElement('div'); el.id = 'postRoom'; el.className = 'pr-room' + (ph ? ' ph' : '');
@@ -51,7 +50,7 @@
                 </div>`;
             document.body.appendChild(el);
             if (ph) { const room = el; room.appendChild(room.querySelector('.pr-slot')); room.appendChild(room.querySelector('.pr-win')); room.appendChild(room.querySelector('.pr-go')); room.querySelectorAll('.pr-lamp, .pr-lamph').forEach(x => x.remove()); }   // 📱 안 창 · 글씨 · 이동 = 화면 크기 (그림 밖으로 꺼내요)
-            if (!prBuild.rs) { prBuild.rs = 1; addEventListener('resize', () => { if (prOn()) { if (prq('postRoom').classList.contains('ph') !== prPh()) { const v = pr0.view; prBuild().classList.add('show'); prShow('cats'); } prFit(); } }); }
+            if (!prBuild.rs) { prBuild.rs = 1; addEventListener('resize', () => { if (prOn()) { if (prq('postRoom').classList.contains('ph') !== UI.tall()) { const v = pr0.view; prBuild().classList.add('show'); prShow('cats'); } prFit(); } }); }
             el.addEventListener('click', e => { if (e.target.closest('#lbTabs button, #lbBack')) { const s = prq('prLbIn'); if (s) s.scrollTop = 0; } });   // 탭을 바꾸면 창 맨 위로
             return el;
         }
@@ -104,22 +103,10 @@
             if (v === 'fb') prq('feedbackInput').focus();
         }
         /* 🌙 강변 우체통 전환 (도련 11-01 · 타로카페 · 오락실 · 캡슐기계와 같은 전환) : 밤 강변 길(img/post-street.webp) → 가로등 아래 빨간 우체통 쪽으로 커지며 노란 · 보랏빛 → 우체통 · 동작 줄이기면 바로 */
-        let prGoBusy = false;
-        function prApproach() {
-            if (prGoBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            let d = prq('prGo');
-            if (!d) { d = document.createElement('div'); d.id = 'prGo'; d.className = 'pr-walk'; d.innerHTML = '<div class="pr-walk-in"><img alt="" draggable="false"></div>'; document.body.appendChild(d); }
-            prGoBusy = true;
-            const ph = prPh(), W = ph ? PR_PH.W : PR_W, H = ph ? PR_PH.H : PR_H, im = d.querySelector('img'), src = ph ? 'img/post-street-m.webp?v=20261009-1041' : 'img/post-street.webp?v=20261009-1041';
-            if (im.getAttribute('src') !== src) im.setAttribute('src', src);
-            const { s, x, y } = ph ? coverFit(W, H, [380, 760, 850, 1150]) : coverFit(PR_W, PR_H, [700, 1420, 100, 700]);
-            Object.assign(im.style, { width: W * s + 'px', height: H * s + 'px', left: x + 'px', top: y + 'px' });
-            const inn = d.querySelector('.pr-walk-in'), ox = x + (ph ? PR_PH.street.cx : 1062) * s, oy = y + (ph ? PR_PH.street.cy : 450) * s;   // 빨간 우체통 (그림 px)
-            inn.style.transformOrigin = `${ox}px ${oy}px`; inn.style.setProperty('--lx', ox + 'px'); inn.style.setProperty('--ly', oy + 'px');   // 빛도 우체통에서 번져요
-            d.classList.remove('go', 'leave'); d.classList.add('on');
-            const go = () => { d.classList.add('go'); setTimeout(() => { d.classList.add('leave'); setTimeout(() => { d.classList.remove('on', 'go', 'leave'); prGoBusy = false; }, 400); }, 1700); };
-            const img = d.querySelector('img'), start = () => setTimeout(go, 750);
-            if (img.complete) start(); else img.addEventListener('load', start, { once: true });
+        function prApproach() {                                                // 🌙 강변 길 → 우체통 (js/util.js placeGo)
+            placeGo({ id: 'prGo', cls: 'pr-walk',
+                land: { img: 'img/post-street.webp?v=20261009-1041', W: PR_W, H: PR_H, focus: [700, 1420, 100, 700], at: [1062, 450] },
+                port: { img: 'img/post-street-m.webp?v=20261009-1041', W: PR_PH.W, H: PR_PH.H, focus: [380, 760, 850, 1150], at: [PR_PH.street.cx, PR_PH.street.cy] } });
         }
         function openPostRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }

@@ -278,8 +278,7 @@
                 if (!e) { e = document.createElement('em'); e.className = 'svc-badge'; b.appendChild(e); }
                 e.textContent = txt;
             };
-            const seen = svcSeenGet(), fresh = id => !seen.includes(id);
-            const stamp = typeof attendDone === 'function' && !attendDone() && fresh('svcBtnAttend');
+            const stamp = typeof attendDone === 'function' && !attendDone();             // 📅 오늘 출석 안 했으면
             mark('svcCatDaily', stamp ? 1 : '');                              // 🚪 이동 창 벽걸이 달력 칸
         }
         const SVC_CAT_NAMES = { make: '🧸 인형방', watch: '🎧 보고·듣기' };

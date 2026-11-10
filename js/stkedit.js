@@ -157,7 +157,7 @@
             const el = document.createElement('div'); el.id = 'seRoom'; el.className = 'se-room'; el.hidden = true;
             el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '스티커 다듬기');
             el.innerHTML = `<div class="se-box">
-                <div class="se-top"><b>🎨 스티커 다듬기</b><button type="button" class="se-x" id="seX" aria-label="그만두기">✕</button></div>
+                <div class="se-top"><b>🎨 스티커 다듬기</b><button type="button" class="se-x win-x" id="seX" aria-label="그만두기">✕</button></div>
                 <div class="se-stage" id="seStage"><canvas id="seView"></canvas></div>
                 <div class="se-tools" id="seTools" role="tablist"></div>
                 <div class="se-panel" id="sePanel"></div>
