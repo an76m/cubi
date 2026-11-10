@@ -594,13 +594,17 @@
             return { w: b.clientWidth * 2, h: b.clientHeight };                // 📖 펼친 두 쪽이 한 장 (js/skins.js)
         }
 
+        /* 📐 저장 기준 크기 하나 (도련 11-10 : 입력은 💻 📲 📱 셋 · 저장은 하나) = 그 다이어리를 줄이지 않은 크기 (높이 700 · js/skins.js dySize)
+           저장할 땐 지금 화면 자리 → 기준 크기로 바꿔 적고 (js/elements.js saveData) · 읽을 땐 기준 → 지금 화면으로 (readDayData)
+           예전 파일 = 그때 기기 크기(pw · ph)가 적혀 있어서 그대로 읽혀요 (다시 저장하면 기준 크기로) */
+        function pageStd() { const d = window.dySize ? dySize() : null; return d ? { w: d.w * 2, h: d.h } : getPageSize(); }
         function convertGeometry(g, fromPage, toPage) {
             const a = canvasOfPage(fromPage.w, fromPage.h), b = canvasOfPage(toPage.w, toPage.h);
             if (a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) return g;
             const px = parseFloat(g.posX) || 0, py = parseFloat(g.posY) || 0;
             const sc = parseFloat(g.scale) || 1;
             const w = g.boxW || 0, h = g.boxH || 0;
-            const k = Math.min(b.w / a.w, b.h / a.h);                            // 크기는 가로 · 세로 중 덜 바뀐 쪽만큼 (찌그러지지 않게)
+            const k = Math.sqrt((b.w / a.w) * (b.h / a.h));                     // 크기 = 가로 · 세로 비율의 가운데 (찌그러지지 않게 · 갔다 오면 그대로 : 예전 '덜 바뀐 쪽'은 작은 화면을 다녀오면 조금씩 줄었어요 · 도련 11-10)
             const cx = (px + w / 2) * (b.w / a.w);
             const cy = (py + h / 2) * (b.h / a.h);
             return { posX: cx - w / 2, posY: cy - h / 2, scale: sc * k };

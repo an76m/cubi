@@ -986,13 +986,18 @@
                 elementsData.push(item);
             });
 
-            const ps = getPageSize();
+            const ps = getPageSize(), std = pageStd();                         // 📐 저장은 기준 크기 하나로 (어느 기기에서 저장해도 같은 자리 값 · js/page.js pageStd)
+            if (std.w !== ps.w || std.h !== ps.h) elementsData.forEach(it => {
+                const g = convertGeometry({ posX: it.x, posY: it.y, scale: it.s || 1, boxW: it.bw, boxH: it.bh }, ps, std);
+                it.x = r1(g.posX); it.y = r1(g.posY);
+                const sc = Math.round(g.scale * 1000) / 1000; if (sc !== 1) it.s = sc; else delete it.s;
+            });
             const dayKey = getDateKey(currentDate);
             if (!drive.guest && !drive.loadedDays.has(dayKey)) {     // 아직 읽지 못한 날짜는 저장 금지 (빈 화면으로 덮어쓰기 방지)
                 if (showAlert) showMsg('⏳ 이 날짜를 아직 드라이브에서 불러오는 중이에요.<br>잠시 후 다시 저장해 주세요.');
                 return;
             }
-            const day = { v: 3, pw: ps.w, ph: ps.h, i: elementsData };
+            const day = { v: 3, pw: std.w, ph: std.h, i: elementsData };
             if (pageStamps.mo) day.mo = pageStamps.mo;                          // 😊 오늘의 기분 · ☀️ 날씨 도장 (js/stamp.js)
             if (pageStamps.we) day.we = pageStamps.we;
             const lfDef = (window.dkLeafOf && dkLeafOf(currentDate)) || 'line';   // 📓 만든 노트는 페이지마다 정해 둔 내지가 기본 (js/dymaker.js)
