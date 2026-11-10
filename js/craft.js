@@ -42,7 +42,7 @@
         const kindOf = k => CRAFT_KINDS.find(K => K.k === k) || kinds()[0];
         const waysOf = K => K.ways.filter(w => CRAFT_WAYS[w] && ftOk(CRAFT_WAYS[w][4]));
         const narrow = () => innerWidth < 760;
-        const desk = () => document.documentElement.classList.contains('desk-on');
+        const desk = UI.desk;
 
         function build() {
             let el = cq('craftRoom'); if (el) return el;

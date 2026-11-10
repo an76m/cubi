@@ -9,7 +9,7 @@
 (function () {
     const DKT_KEY = 'diary_desk_tape', DKT_L = 'malang_desk_tape';
     const T = { list: null, loading: false, drag: null, fresh: false, tmp: new Map(), ov: {}, wait: new Map() };   // wait = 임시 롤을 누르고 기다리는 중 (tmp → [ok])   // ov = { 정리함 u: [칸마다 임시 롤 id] } (저장 전 · 화면에만)   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
-    const desk = () => document.documentElement.classList.contains('desk-on');
+    const desk = UI.desk;
     const read = () => { const v = typeof prefGet === 'function' ? prefGet(DKT_KEY, DKT_L) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
     const write = v => { if (typeof prefSet === 'function') prefSet(DKT_KEY, DKT_L, v); };
     const isRack = el => !!el && dkDef(el).hold === 'tape';   // 🧺 상품 '담는것' = 마테 롤 (도련 11-06 · 종류가 아니라 상품)

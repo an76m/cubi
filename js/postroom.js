@@ -15,7 +15,7 @@
         /* 📱 폰 (도련 11-09) : 세로 우체통 그림(img/post-box-m.webp · 941 × 1672 · 투명 배경) 이 화면 가로를 거의 채워요 · 안 창 · 글씨는 그림과 함께 줄지 않게 화면 크기로 (prFit)
            들어갈 때 = 세로 밤 강변 길(img/post-street-m.webp) → 빨간 우체통 쪽으로 (💻 📲 와 같은 전환) */
         const PR_PH = { W: 941, H: 1672, box: [9, 164, 930, 1496], win: [78, 462, 863, 1242], slotY: 362, street: { cx: 548, cy: 1010 } };
-        const prPh = () => !(window.calRoomUse && calRoomUse());
+        const prPh = () => UI.tall();
         function prBuild() {
             const ph = prPh();
             let el = prq('postRoom'); if (el && el.classList.contains('ph') === ph) return el;

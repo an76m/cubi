@@ -138,7 +138,7 @@
         function openCalRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.closePostRoom) closePostRoom();
-            if (!calRoomUse()) { crApproach(true); const el = crmBuild(); el.classList.add('show'); crmFit(); document.body.classList.add('cal-on'); return; }   // 📱
+            if (UI.tall()) { crApproach(true); const el = crmBuild(); el.classList.add('show'); crmFit(); document.body.classList.add('cal-on'); return; }   // 📱
             crApproach();                                                        // 🏠 거실 → 벽걸이 달력 (달력은 뒤에서 미리 열어 둬요)
             const el = crBuild(), T = new Date(); cr.y = T.getFullYear(); cr.m = T.getMonth();
             if (!cr.moved.length) {
@@ -159,7 +159,6 @@
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && crOn() && !(crq('atFlipWrap') && !crq('atFlipWrap').hidden) && !document.querySelector('.modal[style*="flex"]')) { if (window.deskGoRoom) deskGoRoom(); else closeCalRoom(); } });   // Esc = 🚪 내 방으로 (문 연출)
         window.openCalRoom = openCalRoom; window.closeCalRoom = closeCalRoom; window.crMove = crMove; window.crToggle = crToggle; window.crPick = crPick;
-        window.calRoomUse = () => Math.min(innerWidth, innerHeight) >= 600;      // 💻 📲 만 (📱 폰 = 예전 카페 칸)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['calroom'] = true;

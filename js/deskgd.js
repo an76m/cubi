@@ -19,7 +19,7 @@
         const dkwP = id => ((window.prodList ? prodList('문구') : []).find(x => x.id === id) || {}).P || {};   // 그 문구 상품 속성
         const DKW = { need: null, tint: new Map(), sayT: 0 };
         const dkwq = id => document.getElementById(id);
-        const dkwDesk = () => document.documentElement.classList.contains('desk-on');
+        const dkwDesk = UI.desk;
         const dkwWait = ms => new Promise(r => setTimeout(r, ms));
         const dkwPens = () => { const own = new Set(pkOwnIds()); return pkAll().filter(t => own.has(t.id)); };
         const dkwOwnOf = gs => gs.flatMap(g => cabOwn(g));

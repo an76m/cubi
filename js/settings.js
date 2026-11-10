@@ -302,7 +302,7 @@
            닫기만 하고 뒤의 버튼 · 페이지는 안 눌려요 · 아래 메뉴줄 · 떼는 화면 · 꺼낸 종이 · 페이지꾸미기 창(skin-float)은 빼요 */
         let mdEat = 0;
         document.addEventListener('pointerdown', e => {
-            if (document.documentElement.classList.contains('desk-on')) return;   // 🪑 책상 모드 = 창 밖 = 책상 (그대로)
+            if (UI.desk()) return;   // 🪑 책상 모드 = 창 밖 = 책상 (그대로)
             const t = e.target; if (!t || !t.closest || t.closest('.modal, .toolbar, #pelRoom, #pcbRoom, #pmRoom, .dsk')) return;
             const open = [...document.querySelectorAll('.modal')].filter(m => m.id !== 'customAlertModal' && !m.classList.contains('skin-float') && getComputedStyle(m).display !== 'none' && getComputedStyle(m).pointerEvents === 'none');
             if (!open.length) return;

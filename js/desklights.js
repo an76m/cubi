@@ -114,7 +114,7 @@
     }
     function frame(now) {
         const dt = Math.min(.1, (now - last) / 1000); last = now;
-        if (!S.size || !document.documentElement.classList.contains('desk-on')) { run = false; return; }
+        if (!S.size || UI.menu()) { run = false; return; }
         if (!document.hidden) { pegLoad(); S.forEach(st => { if (!st.el.isConnected) { dropState(st.u); return; } step(st); draw(st, now, dt); }); pegPlace(); }
         requestAnimationFrame(frame);
     }

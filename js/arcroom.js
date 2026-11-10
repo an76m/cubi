@@ -152,7 +152,7 @@
         function openArcRoom() {
             if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.deskLeave) deskLeave();
-            if (!(window.calRoomUse && calRoomUse())) { aroDoor(true); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
+            if (UI.tall()) { aroDoor(true); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
             if (typeof warmServer === 'function' && typeof HOF_API_URL !== 'undefined' && HOF_API_URL) warmServer(HOF_API_URL);   // 🏆 명예의 전당 서버 미리 깨우기
             aroDoor();
             const el = aroBuild();

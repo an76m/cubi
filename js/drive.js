@@ -1251,7 +1251,7 @@
            - 앱을 켜고 처음 한 번만 (백업 · 불러오기 진행 표시로 덮개를 다시 쓸 때는 그냥 닫혀요)
            - 폰 / 넓은 화면 = 화면의 짧은 쪽 600px (폰은 가로로 돌려도 폰) */
         let gateOpened = false;                                                  // showGate 보다 먼저 (처음 켤 때 'wait' → 자동 로그인도 문이 열려요)
-        const deskWide = () => Math.min(innerWidth, innerHeight) >= 600;
+        const deskWide = UI.wide;                                       // 🪑 책상을 펼 수 있는 화면 (js/uimode.js)
         /* 🪑 화면 고르기 (도련 10-27 · ⚙️ 설정 📖 다이어리 칸 · 💻 PC · 아이패드만) : 책상 = 하단 메뉴 없이 책상 소품을 눌러 열기 (기본) · 하단 메뉴 = 책상 없이 배경지 + 아래 버튼 (폰과 같아요)
            저장 : 설정.json 'diary_desk_mode' ('desk' | 'menu') · 게스트는 이 기기 'malang_desk_mode' · 📱 폰은 늘 하단 메뉴 */
         const DESK_MODE_KEY = 'diary_desk_mode', DESK_MODE_LOCAL = 'malang_desk_mode';
@@ -1277,7 +1277,7 @@
         document.addEventListener('pointerdown', ev => { deskDownXY = [ev.clientX, ev.clientY]; }, true);
         document.addEventListener('pointerup', ev => {
             const H = document.documentElement;
-            if (!H.classList.contains('desk-on') || !H.classList.contains('desk-show') || !deskDownXY) return;
+            if (UI.menu() || !H.classList.contains('desk-show') || !deskDownXY) return;
             if (Math.hypot(ev.clientX - deskDownXY[0], ev.clientY - deskDownXY[1]) > 8) return;   // 끌기는 아니에요
             const t = ev.target;
             if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;

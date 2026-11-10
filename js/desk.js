@@ -491,7 +491,7 @@
             if (fn === 'shop') { setTimeout(() => window.shopSceneOpen ? shopSceneOpen() : window.openShelf && openShelf(), 0); return; }   // 🏪 가게 안으로 (js/shopscene.js)
             if (fn === 'edit') { setTimeout(deskEditOpen, 0); return; }
             if (fn === 'box') { setTimeout(deskBoxOpen, 0); return; }
-            if ((fn === 'pc' || fn === 'gd') && window.dkwOpenFor && document.documentElement.classList.contains('desk-on')) { setTimeout(() => dkwOpenFor(''), 0); return; }   // ✏️ 🗄️ 문구가 든 곳 (펜꽂이 · 서랍은 소품을 누르면 그곳 · js/deskgd.js)   // 🗄️ 서랍장 문구함 칸 = 서랍이 열려요 (📱 폰은 예전 문구함 창)                // 📦 소품함 (다이어리를 띄우지 않아요)
+            if ((fn === 'pc' || fn === 'gd') && window.dkwOpenFor && UI.desk()) { setTimeout(() => dkwOpenFor(''), 0); return; }   // ✏️ 🗄️ 문구가 든 곳 (펜꽂이 · 서랍은 소품을 누르면 그곳 · js/deskgd.js)   // 🗄️ 서랍장 문구함 칸 = 서랍이 열려요 (📱 폰은 예전 문구함 창)                // 📦 소품함 (다이어리를 띄우지 않아요)
             if (fn === 'skin' && window.dyOpen) { setTimeout(() => dyOpen('다이어리'), 0); return; }   // 📔 책상에서는 바로 다이어리 보관소 (배경지는 책상에서 못 써서 메뉴를 건너뛰어요 · 도련 10-28)
             if (fn === 'set') { setTimeout(() => window.openSettingsMenu && openSettingsMenu(), 0); return; }   // ⚙ 설정 (하단 메뉴 ⚙ 버튼은 영구 삭제 · 도련 11-10)
             const f = DK_FNS.find(x => x[0] === fn), b = f && f[2] && document.querySelector('.toolbar .' + f[2]); if (!b) return;
@@ -546,7 +546,7 @@
             }, true);
         })();
         function deskTapAt(x, y) {
-            if (!document.documentElement.classList.contains('desk-on') || DK.edit) return false;
+            if (UI.menu() || DK.edit) return false;
             const top = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => dkSolidAt(el, x, y))   // 그림 모양대로
                 .sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
             if (!top) return false;
@@ -591,7 +591,7 @@
         function deskMoveOpen() {
             if (window.evLiveCheck) evLiveCheck();                               // 🎉 지금 열린 이벤트 광장이 있나 (js/service.js · 1분에 한 번까지 · 칸을 저절로 보여요)
             const box = document.getElementById('moveCafe'), here = deskHere();
-            const rm = document.getElementById('moveRoom'), ph = !document.documentElement.classList.contains('desk-on');   // 💻 📲 하단 메뉴 화면도 책상이 없어요 (도련 11-10)   // 📱 폰은 내 방(책상)이 없어요 → '다이어리' = 하단 메뉴 넷이 있는 다이어리 화면으로 (도련 11-09)
+            const rm = document.getElementById('moveRoom'), ph = UI.menu();   // 💻 📲 하단 메뉴 화면도 책상이 없어요 (도련 11-10)   // 📱 폰은 내 방(책상)이 없어요 → '다이어리' = 하단 메뉴 넷이 있는 다이어리 화면으로 (도련 11-09)
             if (rm) rm.innerHTML = ph ? '<span class="svc-cat-icon">📔</span><b>다이어리</b><small>다이어리로 돌아가기</small>' : '<span class="svc-cat-icon">🚪</span><b>내 방</b><small>책상으로 돌아가기</small>';
             document.querySelectorAll('#moveModal > .modal-content > .svc-cats > [data-place]').forEach(b => { b.hidden = b.dataset.place === here; });   // 📍 지금 있는 곳은 목록에서 빼요 (도련 10-31 · 규칙 하나 · 칸마다 data-place 이름표)
             if (box) box.querySelectorAll('.svc-cat').forEach(b => b.classList.toggle('mv-here', !!b.dataset.place && b.dataset.place === here));   // 📍 지금 있는 곳은 빼요
@@ -817,7 +817,7 @@
         }
         /* ---------- 🛠 책상 꾸미기 (도련 10-27) ---------- */
         function deskEditOpen() {
-            const H = document.documentElement; if (!H.classList.contains('desk-on') || DK.edit) return;
+            const H = document.documentElement; if (UI.menu() || DK.edit) return;
             const wait = DK.partial;                                              // 💤 소품 목록을 아직 안 읽었어요 → 꾸미기는 바로 · 소품함은 다 읽은 뒤 (도련 11-08 · 오른쪽에 조용히 '불러오는 중')   // 💤 꾸미기 = 가진 것 전부가 있어야 해요
             if (H.classList.contains('desk-show')) { dkFoldShut(); H.classList.remove('desk-show'); }   // 펴 둔 다이어리는 접어서 책상에   // 펴 둔 다이어리는 책상에 내려놓고 (펼친 모양은 보일 때 그려요)
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
@@ -1393,7 +1393,7 @@
         function dkHomeTap(el, cx, cy) {
             const p = dkzPct(el, cx, cy), z = dkzHit(dkHomes()[el.dataset.u] || [], p);
             const o = DK.items.find(x => x.u === el.dataset.u), S = o && dkSlots(o.id), si = S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1;
-            const desk = document.documentElement.classList.contains('desk-on');
+            const desk = UI.desk();
             if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
             const run = z && (z.k === 'gd' && desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, el.dataset.u + ':' + z.s) : () => deskRun(z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
             if (si >= 0) { dkDrawerPull(el, S[si], run || (!DK.edit && desk && dkHoldOk(o.id).length ? () => dkEmptyOpen(el.dataset.u, si) : null)); return true; }   // 🗄 서랍 = 톡 열기 · 다시 톡 닫기 (든 창이 위에서 내려와요 · 도련 11-05) · 빈 서랍 = 🔗 기능 연결 창이 내려와요 (도련 11-08)
@@ -1481,7 +1481,7 @@
            s = 스티커 종이 id (카드 it.s · 살 때 적어 둬요) · b = 📒 🤍 스티커첩 id (카드 it.b) · 📱 폰은 그대로 다 보여요 (나중에 폰 정리할 때 · 도련) */
         /* 모든 상품 (도련 11-02) : g = ✏️ 문구 · 필기구 (문구함 · 펜꽂이 · js/skins.js cabOwn · js/pencase.js pkOwnIds) · u = 🪑 소품 · 🧱 🪵 (📦 소품함) · d = 📔 다이어리 (보관소 · js/dyyear.js dyyCells) */
         function deskBagHold() {
-            if (!document.documentElement.classList.contains('desk-on')) return null;
+            if (UI.menu()) return null;
             const s = new Set(), b = new Set(), g = new Set(), u = new Set(), d = new Set();
             dkBags().forEach(bg => bg.it.forEach(it => {
                 (Array.isArray(it.s) ? it.s : []).forEach(id => s.add(id));
@@ -1506,7 +1506,7 @@
         }
         /* 🕰 ⏰ 시계는 지금 시각 (1초마다 · 책상이 보일 때만) */
         function deskTick() {
-            if (!document.documentElement.classList.contains('desk-on')) return;
+            if (UI.menu()) return;
             const n = new Date(), h = n.getHours(), m = n.getMinutes(), sec = n.getSeconds();
             document.querySelectorAll('#deskStage .dk-hands').forEach(sv => {
                 sv.querySelector('.hr').setAttribute('transform', `rotate(${(h % 12) * 30 + m * .5})`);
@@ -2001,7 +2001,7 @@
            js/drive.js postLoginTasks 끝에서 (구글 · 이 브라우저 모두) */
         const DK_LAST = 'diary_last_deco', DK_LAST_L = 'malang_last_deco';
         function deskLoginShow() {
-            if (!document.documentElement.classList.contains('desk-on') || !document.getElementById('deskStage')) return;
+            if (UI.menu() || !document.getElementById('deskStage')) return;
             setTimeout(() => {                                                    // 로그인 문이 걷힌 뒤 (권 목록도 다 읽은 뒤)
                 const gf = window.dkGiftFloat;                                    // 🎁 처음 온 날 = 상품공방 '처음띄움' 권만 떠요 (도련 11-06 · '' = 아무 권도 안 떠요 · 'pg' = 페이지 다이어리가 받고 나서 떠요)
                 if (gf !== undefined) { if (gf !== 'pg') window.dkGiftFloat = undefined; dkDeskBooks(); if (gf && gf !== 'pg') requestAnimationFrame(() => deskOpenDiary()); return; }

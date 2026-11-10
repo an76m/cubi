@@ -146,7 +146,7 @@
             let d = bq('bthWalk');
             if (!d) { d = document.createElement('div'); d.id = 'bthWalk'; d.className = 'bth-walk'; d.innerHTML = `<div class="bth-walk-in"><img alt="" draggable="false"></div>`; document.body.appendChild(d); }
             walkBusy = true;
-            const ph = !(window.calRoomUse && calRoomUse()), W = ph ? STM_W : ST_W, H = ph ? STM_H : ST_H, P = ph ? STM_BOOTH : ST_BOOTH;   // 📱 세로 길 그림 (도련 11-09)
+            const ph = UI.tall(), W = ph ? STM_W : ST_W, H = ph ? STM_H : ST_H, P = ph ? STM_BOOTH : ST_BOOTH;   // 📱 세로 길 그림 (도련 11-09)
             const im = d.querySelector('img'), src = (ph ? 'img/booth-street-m.webp?v=20261009-1042' : 'img/booth-street.webp' + IMG_V);
             if (im.getAttribute('src') !== src) im.setAttribute('src', src);
             const { s, x, y } = ph ? coverFit(W, H, [280, 660, 660, 1260]) : coverFit(ST_W, ST_H, [560, 1000, 260, 800]);

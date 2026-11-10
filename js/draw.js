@@ -330,7 +330,7 @@
                 + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 펜꽂이</b>에 꽂아요 ✏️</p>`
                 + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="펜꽂이 (꽂으면 완료)"><span class="pc-mini-tops">${pcList().slice(0, 3).map(o => `<i>${pcSvg(o)}</i>`).join('')}</span><span class="pc-mini-cup"></span></button>`;
             document.body.appendChild(r);
-            r.querySelector('.pc-box').onclick = () => { if (pcS.held) return; if (document.documentElement.classList.contains('desk-on') && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
+            r.querySelector('.pc-box').onclick = () => { if (pcS.held) return; if (UI.desk() && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
             drq('pcHeld').addEventListener('pointerdown', e => {               // ✏️ 내려놓은 필기구를 톡 = 다시 들기 (다른 문구는 내려놔요 · 끌면 그대로 따라와요)
                 const o = pcS.laid; if (!o || e.button > 0) return;
@@ -674,7 +674,7 @@
         /* ---------- ✏️ 🪑 책상 : 필기구 여러 개 꺼내기 (도련 11-03 · 현실처럼) ----------
            손에는 하나 · 다른 필기구를 뽑거나 다른 문구를 들거나 꾹 집어 옮겨 놓으면 = 그 자리(페이지)에 놓여요 · 놓인 필기구 톡 = 다시 들기
            치우기 = 다이어리 아래 '↩ 꺼낸 문구 정리' (js/deskgd.js) · 앱을 다시 켜면 없어요 (저장하지 않아요) · 📱 폰은 예전 그대로 */
-        const pcDesk = () => document.documentElement.classList.contains('desk-on');
+        const pcDesk = UI.desk;
         pcS.lay = [];                                                         // [{ id, el }] 페이지에 놓인 필기구
         function pcLayDown() {
             const o = pcS.held, h = drq('pcHeld'), ip = drq('innerPage'); if (!o || !h || !ip) return;

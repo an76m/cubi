@@ -451,10 +451,7 @@
            - ⚙ 설정 📖 페이지 보기 (기기마다) + 날짜바 양 끝 스위치 (이 기기 · 작업하다 바로 접었다 펴기) · 같은 값이에요 */
         const DV_KEY = 'diary_view', DV_LOCAL = 'malang_view', DV_DEF = { phone: 'r', pad: 'lr', pc: 'lr' };   // 기본 = 📱 폰은 오른쪽 페이지만 · 📲 💻 는 둘 다 (도련 10-29)
         const DV_OK = ['lr', 'l', 'r'];
-        function dvDev() {                                                     // 이 기기 : 폰(화면 짧은 쪽 600 미만) · 패드(손가락 화면) · 컴퓨터
-            if (Math.min(screen.width, screen.height) < 600) return 'phone';
-            return navigator.maxTouchPoints > 0 && matchMedia('(any-pointer: coarse)').matches ? 'pad' : 'pc';
-        }
+        const dvDev = UI.dev;                                                  // 이 기기 : 📱 폰 · 📲 패드 · 💻 컴퓨터 (js/uimode.js)
         function dvCfg() { const v = prefGet(DV_KEY, DV_LOCAL), c = Object.assign({}, DV_DEF, v && typeof v === 'object' ? v : {}); Object.keys(DV_DEF).forEach(k => { if (!DV_OK.includes(c[k])) c[k] = DV_DEF[k]; }); return c; }
         function dvSet(k, v) { const c = dvCfg(); c[k] = DV_OK.includes(v) ? v : 'lr'; prefSet(DV_KEY, DV_LOCAL, c); dvRender(); if (k === dvDev()) dyLoad(); }
         function dvToggle(k, side) {                                           // 스위치 하나 켜기 · 끄기 (남은 하나는 못 꺼요)
@@ -1064,7 +1061,7 @@
             const blink = el => { if (!el) return; el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
             const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
             if (on) { gdHome(on); blink(on); return; }
-            if (document.documentElement.classList.contains('desk-on') && window.dkwTrayOpen) { dkwTrayOpen(g); return; }   // 🪑 책상 = 서랍장 문구함 서랍이 열리고 그 문구가 깜박 (js/deskgd.js)
+            if (UI.desk() && window.dkwTrayOpen) { dkwTrayOpen(g); return; }   // 🪑 책상 = 서랍장 문구함 서랍이 열리고 그 문구가 깜박 (js/deskgd.js)
             const m = document.getElementById('gdCabModal');
             if (!m || m.style.display !== 'flex') openGdCab();
             blink(document.querySelector(`#gdCab .gdc-dr[data-g="${g}"]`));
@@ -1148,7 +1145,7 @@
         })();
         const gdScr = p => { const { r, k } = gdK(); return [r.left + p.x * k, r.top + p.y * k]; };   // 다이어리 자리 → 화면
         function gdPick(id) {                                                   // 🗄️ 문구함 서랍 톡 : 놓기 ↔ 치우기 (아래 cabFlip)
-            if (gdInfo(id) && !isCoverOpen && document.documentElement.classList.contains('desk-on')) { showMsg('📔 책상 위 다이어리를 펴면 문구를 꺼낼 수 있어요.'); return; }
+            if (gdInfo(id) && !isCoverOpen && UI.desk()) { showMsg('📔 책상 위 다이어리를 펴면 문구를 꺼낼 수 있어요.'); return; }
             if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
             const el = gdEl(id);
             if (el) { if (gdHeld === id) gdLet(); el.remove(); }
@@ -1471,7 +1468,7 @@
             });
         }
         function openGdCab() {
-            const onDesk = document.documentElement.classList.contains('desk-on');   // 🪑 책상에서는 다이어리를 띄우지 않고 문구함만 열어요 (도련 10-28)
+            const onDesk = UI.desk();   // 🪑 책상에서는 다이어리를 띄우지 않고 문구함만 열어요 (도련 10-28)
             if (!onDesk && (typeof isCoverOpen === 'undefined' || !isCoverOpen)) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             cabOpen = null; cabBin = null; gdCabRender(); openModal('gdCabModal');
         }
@@ -1806,7 +1803,7 @@
             if (isCoverOpen && !gdInit) {                                       // 🪡 다이어리를 처음 열면 핀셋이 페이지에 하나 (📱 폰 · 💻 📲 책상은 펜꽂이 · 문구함에서 꺼내요 = 앱을 켜면 페이지에 꺼낸 문구가 없어요 · 도련 11-03)
                 gdInit = true;
                 setTimeout(() => {
-                    const tw = !document.documentElement.classList.contains('desk-on') && gdMain('tweez'); if (tw && !gdEl(tw)) { const el = gdMake(tw), p = gdSpot(tw); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
+                    const tw = UI.menu() && gdMain('tweez'); if (tw && !gdEl(tw)) { const el = gdMake(tw), p = gdSpot(tw); if (el) gdCenter(el, p.x, p.y + (window.dgWill && dgWill() ? cv.offsetHeight * .2 : 0)); }   // 🩷 메모가 뜰 거면 핀셋은 조금 아래 (안 가리게)
                     setTimeout(() => { if (isCoverOpen && window.dgShow) dgShow(); }, 450);   // 🩷 처음 쓰는 사람용 다꾸하는 법 메모 (js/dkguide.js · 예전 '핀셋으로 집어서 옮겨요' 첫 알림 대신 · 도련 10-26)
                 }, 900);
             }

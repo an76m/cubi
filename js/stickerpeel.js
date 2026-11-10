@@ -63,7 +63,7 @@
         }
         const pelPage = () => document.getElementById('canvasArea');
         /* 📔 붙일 페이지가 보여요 (덮였거나 🪑 책상에 놓여 있으면 아니에요 → 종이 크기는 보통 크기 · 뗀 스티커는 종이로 돌아가요) */
-        const pelPageOn = () => { const pg = pelPage(), H = document.documentElement; return !!pg && (typeof isCoverOpen === 'undefined' || isCoverOpen) && !(H.classList.contains('desk-on') && !H.classList.contains('desk-show')) && pg.getBoundingClientRect().width > 40; };
+        const pelPageOn = () => { const pg = pelPage(), H = document.documentElement; return !!pg && (typeof isCoverOpen === 'undefined' || isCoverOpen) && !(UI.desk() && !H.classList.contains('desk-show')) && pg.getBoundingClientRect().width > 40; };
         function pelLayout() {
             const S = pelS, cv = S.cv;
             S.DPR = Math.min(window.devicePixelRatio || 1, 3); S.W = window.innerWidth; S.H = window.innerHeight;

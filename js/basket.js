@@ -25,9 +25,7 @@
     const bkKindOf = e => e.b || e.k;                                        // 들어갈 바구니 (😀 이모지는 b · 🌸 계절 · 🎁 캡슐 = 씰)
     const vis = id => { const m = bq(id); return !!m && m.style.display === 'flex'; };
     /* 📱 폰 = 톡 해서 꺼내요 (끌어내기 없음) · 💻 PC · 패드 = 바구니 밖으로 끌어내요 (톡 = 안 꺼내요) (도련 11-05)
-       폰 = 손가락 화면 + 짧은 변이 600px 보다 작아요 (아이패드 = 768 이상) · html.is-phone = 폰 크기 그대로 (css) */
-    const bkPhone = () => matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
-    document.documentElement.classList.toggle('is-phone', bkPhone());
+       폰인지 = js/uimode.js UI.phone() (html.is-phone 도 거기서) */
 
     /* ---------- 종이 자리 (이 기기에만 : { o : [아래 → 위 id], p : { id : [x, y, 기울기] } }) ---------- */
     const bkWho = () => (window.ownMode && ownMode() === 'mem') ? 'guest' : ((typeof COLL !== 'undefined' && COLL.who) || 'me');
@@ -135,10 +133,10 @@
         const wrap = bq('abBody'); if (!wrap) return;
         const nm = BK_KINDS[B.kind] || '스티커', has = B.list.length > 0, c = dkwColors(BK_DRW_RGB);   // 🎨 문구함 서랍과 같은 색 (js/deskgd.js) · 이름이 모두 받침 없이 끝나요 → '는'
         const bagNt = B.bagN ? `<p class="bkd-bag">🛍️ 책상 위 봉투에 <b>${bkCount(B.bagN)}</b>이 아직 있어요 · 봉투에서 꺼내 소품에 넣으면 여기에 보여요</p>` : '';
-        const how = has ? `<p class="bk-how" id="bkHow">${bkPhone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
+        const how = has ? `<p class="bk-how" id="bkHow">${UI.phone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
         const ord = has ? bkOrder() : [], show = ord.slice(-BK_MAX);
-        const ph = !document.documentElement.classList.contains('desk-on'), ti = ic => ph ? '' : ic;   // ▤ 하단 메뉴 모드 (💻 📲 📱) = 글자만 · ✕ 옆 한 줄에 (도련 11-09 폰 · 11-10 하단 메뉴 모두 · 🪑 책상은 그대로)
+        const ph = UI.menu(), ti = ic => ph ? '' : ic;   // ▤ 하단 메뉴 모드 (💻 📲 📱) = 글자만 · ✕ 옆 한 줄에 (도련 11-09 폰 · 11-10 하단 메뉴 모두 · 🪑 책상은 그대로)
         const tools = `${tool(has, ti('📒'), '정리', 'abDesk()')}${window.SHARE_ON ? tool(has, ti('📤'), '공유', 'bkShare()', 'bk-share') : ''}${tool(has, ti('🗑'), '버리기', 'bkBin()', 'bk-binb')}`;
         wrap.innerHTML = `<div class="bkd${ph ? ' bk-ph' : ''}" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
             <div class="bkd-top win-grip" title="끌어서 서랍을 옮길 수 있어요"><b>🗄️ ${esc(nm)}</b><i class="bkd-sp"></i>
@@ -218,14 +216,14 @@
             const r = c.getBoundingClientRect(), pr = pile.getBoundingClientRect();
             B.drag = { c, id: c.dataset.id, x0: ev.clientX, y0: ev.clientY, ox: ev.clientX - r.left, oy: ev.clientY - r.top, pr, moved: false, pid: ev.pointerId };
             try { pile.setPointerCapture(ev.pointerId); } catch (e) {}
-            const d0 = B.drag; if (bkPhone()) d0.hold = setTimeout(() => { if (B.drag !== d0 || d0.moved) return; B.drag = null; dsTake(d0.id); }, 450);   // 📱 오래 누르기 = 꺼내기
+            const d0 = B.drag; if (UI.phone()) d0.hold = setTimeout(() => { if (B.drag !== d0 || d0.moved) return; B.drag = null; dsTake(d0.id); }, 450);   // 📱 오래 누르기 = 꺼내기
         };
         pile.onpointermove = ev => {
             const d = B.drag; if (!d || ev.pointerId !== d.pid) return;
             if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 7) return;
             if (!d.moved) { d.moved = true; clearTimeout(d.hold); d.c.classList.remove('anim'); d.c.classList.add('lift'); d.c.style.zIndex = ++B.top; }
             const bin = pile.closest('.bk-bin'), br = bin && bin.getBoundingClientRect();
-            if (!d.desk && !d.no && !bkPhone() && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
+            if (!d.desk && !d.no && !UI.phone() && br && (ev.clientX < br.left || ev.clientX > br.right || ev.clientY < br.top || ev.clientY > br.bottom)) {   // 바구니 밖으로 끌어내면 = 그 종이가 페이지 위 스티커창으로 (바구니 창은 그대로)
                 d.desk = dsTake(d.id, { x: ev.clientX, y: ev.clientY }, true);
                 if (d.desk) d.c.style.visibility = 'hidden'; else d.no = true;   // 못 꺼냈으면(다 쓴 종이) 종이는 바구니에 그대로 보여요 · 안내도 한 번만 (도련 10-30)
             }
@@ -238,7 +236,7 @@
             const d = B.drag; if (!d || (ev && ev.pointerId !== d.pid)) return;
             B.drag = null; d.c.classList.remove('lift'); clearTimeout(d.hold);
             if (d.desk) { abSplit(); B.sig = bkSig(); bkDraw(); return; }       // 꺼낸 종이는 바구니에서 빠져요
-            if (!d.moved) { if (ev && ev.type === 'pointerup') { if (bkPhone()) dsTake(d.id); else bkHowGlow(); } return; }   // 📱 톡 = 꺼내기 (바구니는 잠깐 비켰다 다시 떠요) · 💻 톡 = 쓰는 법이 반짝 (도련 11-05)
+            if (!d.moved) { if (ev && ev.type === 'pointerup') { if (UI.phone()) dsTake(d.id); else bkHowGlow(); } return; }   // 📱 톡 = 꺼내기 (바구니는 잠깐 비켰다 다시 떠요) · 💻 톡 = 쓰는 법이 반짝 (도련 11-05)
             const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             const rot = parseFloat(d.c.style.getPropertyValue('--r')) || 0;
             L.p[d.id] = [Math.max(0, Math.min(1, parseFloat(d.c.style.left) / Math.max(1, W - cw))), Math.max(0, Math.min(1, parseFloat(d.c.style.top) / Math.max(1, H - ch))), rot];
@@ -251,7 +249,7 @@
     /* 🪑 책상 모드에서 다이어리가 책상에 누워 있으면 먼저 들어 올려요 (도련 10-29 : 누운 다이어리는 그림 복사본이라 붙인 스티커를 옮기거나 돌릴 수 없어요) */
     async function bkLift() {
         const H = document.documentElement;
-        if (!H.classList.contains('desk-on') || H.classList.contains('desk-show') || !window.deskOpenDiary) return;
+        if (UI.menu() || H.classList.contains('desk-show') || !window.deskOpenDiary) return;
         deskOpenDiary(); await new Promise(r => setTimeout(r, 680));
     }
     window.bkLift = bkLift;
@@ -271,15 +269,15 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh, gh: s.gh || [], raw: !s.baked };   // 👻 gh = 뗀 자리 모양 · raw = 하얀 테두리를 이제 둘러요 (뗀 자리도 그만큼 크게)
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, sb: x.sb || '', stay: !!stay }); }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && UI.phone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, sb: x.sb || '', stay: !!stay }); }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
-                if (window.stkLeave && bkPhone()) stkLeave();
+                if (window.stkLeave && UI.phone()) stkLeave();
                 ok = window.openPieceBag && await openPieceBag(srcs, { t: s.nm || '말랑달콤 조각', s: '', own: { id, slots } });
             }
-            else if (s.k === 'paper') { if (window.stkLeave && bkPhone()) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
+            else if (s.k === 'paper') { if (window.stkLeave && UI.phone()) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
             else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }, DS.tape); }   // 페이지에 바로 (DS.tape : 롤에서 뽑은 자리 · 길이 · 방향) · 비켰다 다시 떠요 (stkBlink)
-            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave && bkPhone()) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '' }, { id }); ok = true; }
+            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave && UI.phone()) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '' }, { id }); ok = true; }
             else if (s.k === 'memo') ok = bkMemo(id, s, x);
             else if (s.k === 'leaf') ok = bkLeaf(id, s, x);
             if (!ok && window.stkReturn) stkReturn(300);
@@ -1713,7 +1711,7 @@
     }
     /* 📕 다이어리가 덮였거나 🪑 책상에 놓여 있으면 꺼낸 종이를 톡 해도 다이어리는 그대로 (도련 11-05 · 안내 없음)
        🏷️ 씰 = 스티커창만 크게 (떼어 볼 수 있고 · 붙이려면 다이어리를 펼쳐요 · js/stickerpeel.js stay) · 조각 · 모조지 · 떡메 = 종이만 살짝 흔들 */
-    const dsDyAway = () => (typeof isCoverOpen !== 'undefined' && !isCoverOpen) || (document.documentElement.classList.contains('desk-on') && !document.documentElement.classList.contains('desk-show'));
+    const dsDyAway = () => (typeof isCoverOpen !== 'undefined' && !isCoverOpen) || (UI.desk() && !document.documentElement.classList.contains('desk-show'));
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
         const e0 = dsEntry(d.id), stay = dsDyAway();

@@ -133,7 +133,7 @@
            - 원래 기계의 부분(캡슐 · 동전 · 손잡이 · LED · 캡슐 나오는 곳)을 그림 자리로 옮겨요 (새로 만들지 않아요) · 글 · 버튼 · 결과 = 오른쪽 카드
            - 양옆 기계 = 다음 테마 (준비중) · 닫기 대신 '이동' (장소 · data-place="gacha" · body.gacha-on) */
         const GCS_W = 1672, GCS_H = 941;
-        const gcSceneUse = () => !!(window.calRoomUse && calRoomUse());
+        const gcSceneUse = () => !UI.tall();
         function gcSceneBuild(el) {
             gc.box = true; gc.W = 480; gc.H = 500;                                 // 네모 유리 (그림의 창 272 × 284 와 같은 비율)
             const cv = gq('gcCanvas'); cv.width = gc.W; cv.height = gc.H;
@@ -262,7 +262,7 @@
             gq('gcOdds').innerHTML = rate === undefined ? '<tr><td>확률을 불러오는 중…</td><td></td></tr>'
                 : `<tr><td>🎁 움직이는 캡슐 스티커 (30일 선물권)</td><td>${pct(rate)}</td></tr><tr><td>🍀 꽝 (오늘의 한마디)</td><td>${pct(1000000 - rate)}</td></tr>`;
         }
-        function gcGoAttend() { closeGacha(); if (window.openCalRoom && window.calRoomUse && calRoomUse()) openCalRoom(); else if (typeof openAttend === 'function') openAttend(); }   // 💻 📲 = 벽걸이 달력으로
+        function gcGoAttend() { closeGacha(); if (window.openCalRoom && !UI.tall()) openCalRoom(); else if (typeof openAttend === 'function') openAttend(); }   // 💻 📲 = 벽걸이 달력으로
 
         /* ---------- 열기 · 닫기 ---------- */
         async function openGacha() {
