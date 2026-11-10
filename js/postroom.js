@@ -50,7 +50,6 @@
                 </div>`;
             document.body.appendChild(el);
             if (ph) { const room = el; room.appendChild(room.querySelector('.pr-slot')); room.appendChild(room.querySelector('.pr-win')); room.appendChild(room.querySelector('.pr-go')); room.querySelectorAll('.pr-lamp, .pr-lamph').forEach(x => x.remove()); }   // 📱 안 창 · 글씨 · 이동 = 화면 크기 (그림 밖으로 꺼내요)
-            if (!prBuild.rs) { prBuild.rs = 1; addEventListener('resize', () => { if (prOn()) { if (prq('postRoom').classList.contains('ph') !== UI.tall()) { const v = pr0.view; prBuild().classList.add('show'); prShow('cats'); } prFit(); } }); }
             el.addEventListener('click', e => { if (e.target.closest('#lbTabs button, #lbBack')) { const s = prq('prLbIn'); if (s) s.scrollTop = 0; } });   // 탭을 바꾸면 창 맨 위로
             return el;
         }
@@ -109,19 +108,18 @@
                 port: { img: 'img/post-street-m.webp?v=20261009-1041', W: PR_PH.W, H: PR_PH.H, focus: [380, 760, 850, 1150], at: [PR_PH.street.cx, PR_PH.street.cy] } });
         }
         function openPostRoom() {
-            if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.closeCalRoom) closeCalRoom();
             prApproach();                                                        // 🌙 강변 길 → 우체통 (우체통은 뒤에서 미리 열어 둬요)
             const el = prBuild();
             prGiveBack(); prShow('cats');
-            prFit(); el.classList.add('show'); document.body.classList.add('cal-on', 'post-on');   // cal-on = 장소에 있어요 (이동 창 · 책상 버튼 숨김)
+            prFit(); el.classList.add('show'); placeIn('cal-on', 'post-on');   // cal-on = 장소에 있어요 (이동 창 · 책상 버튼 숨김)
         }
         function closePostRoom() {
             const el = prq('postRoom'); if (!el || !el.classList.contains('show')) return;
-            el.classList.remove('show'); document.body.classList.remove('cal-on', 'post-on');
+            el.classList.remove('show'); placeOut('cal-on', 'post-on');
             prGiveBack(); pr0.view = 'cats';
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && prOn() && !document.querySelector('.modal[style*="flex"]') && !(prq('feedbackSending') && !prq('feedbackSending').hidden)) { if (window.deskGoRoom) deskGoRoom(); else closePostRoom(); } });   // Esc = 🚪 내 방으로
+        placeAdd({ on: prOn, fit: prFit, close: closePostRoom, esc: () => !!(prq('feedbackSending') && !prq('feedbackSending').hidden) });   // 💌 보내는 중엔 Esc 안 받아요 (js/util.js 장소 틀)
         window.openPostRoom = openPostRoom; window.closePostRoom = closePostRoom; window.prGo = prGo;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

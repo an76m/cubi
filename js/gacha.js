@@ -145,7 +145,6 @@
             st.appendChild(el.querySelector('.gc-head')); st.appendChild(el.querySelector('.gc-machine')); st.appendChild(wrap);
             el.insertBefore(st, el.firstChild);
             const go = document.createElement('button'); go.type = 'button'; go.className = 'gcs-go desk-shop-go'; go.textContent = '이동'; go.onclick = () => deskMoveOpen(); el.appendChild(go);   // 🚪 화면 오른쪽 위 (그림이 잘려도)
-            addEventListener('resize', () => { if (gc.open) gcSceneFit(); });
         }
         /* 🏪 문방구 앞 전환 (도련 11-01 · 타로카페 · 오락실 문과 같은 전환) : 길에서 본 문방구(img/gacha-street.webp) → 캡슐기계 쪽으로 커지며 따뜻한 빛 → 캡슐기계 앞 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
         const GCS_GO = { cx: 1330, cy: 640 };                                     // 길 그림의 캡슐기계 셋 가운데 (그림 px)
@@ -259,7 +258,7 @@
             gcBuild();
             gcUnlockAudio();                                   // 카페에서 누른 순간에 소리 미리 깨우기
             gq('gachaRoom').classList.add('show');
-            if (gc.box) { gcsApproach(); gcSceneFit(); document.body.classList.add('cal-on', 'gacha-on'); }
+            if (gc.box) { gcsApproach(); gcSceneFit(); placeIn('cal-on', 'gacha-on'); }
             else gcsApproach();                                              // 📱 문방구 앞 길 → 캡슐기계 쪽으로 다가가며 → 지금 폰 캡슐기계 (도련 11-09)   // 🚶 문방구 앞으로 다가가요   // cal-on = 장소에 있어요 (책상 버튼 숨김)
             gc.open = true;
             gcReset();
@@ -279,8 +278,9 @@
             gc.timers.forEach(clearTimeout); gc.timers = [];
             gcStopRumble();
             const room = gq('gachaRoom'); if (room) room.classList.remove('show');
-            if (document.body.classList.contains('gacha-on')) document.body.classList.remove('cal-on', 'gacha-on');
+            if (document.body.classList.contains('gacha-on')) placeOut('cal-on', 'gacha-on');
         }
+        placeAdd({ on: () => gc.open, fit: () => { if (gc.box) gcSceneFit(); }, close: closeGacha, esc: () => true });   // 🎁 화면 맞추기만 (Esc 는 예전처럼 안 받아요 · js/util.js 장소 틀)
         function gcLater(fn, ms) { const t = setTimeout(fn, ms); gc.timers.push(t); return t; }
 
         function gcReset() {

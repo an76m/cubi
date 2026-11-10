@@ -60,7 +60,6 @@
                 x.addEventListener('pointerleave', () => hov(i, false));
                 x.addEventListener('click', () => { hov(i, false); TRO_CARDS[i][2](); });
             });
-            if (!troBuild.rs) { troBuild.rs = 1; addEventListener('resize', () => { if (troOn()) { const ph = UI.tall(); if (troq('tarotRoom').classList.contains('ph') !== ph) { troBuild().classList.add('show'); } troFit(); } }); }
             return el;
         }
         function troFit() {                                                      // 그림 = 화면 꽉 (coverFit · 카드 쪽이 보이게) · 제목 · 이름표는 그림 자리를 따라가되 화면 밖이면 안으로
@@ -88,18 +87,17 @@
                 port: { img: 'img/tarot-door-m.webp?v=20261009-1035', W: TRO_PH.W, H: TRO_PH.H, at: [TRO_PH.door.cx, TRO_PH.door.cy], sign: [TRO_PH.door.cx, TRO_PH.door.sy, 60] } });
         }
         function openTarotRoom() {
-            if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.deskLeave) deskLeave();                                   // 달력 · 우체통에 있었으면 떠나요
             troDoor();                                                           // 🚪 문을 지나 들어가요 (방은 문 뒤에서 미리 열어 둬요)
             const el = troBuild();
-            troFit(); el.classList.add('show'); document.body.classList.add('cal-on', 'tarot-on');   // cal-on = 장소에 있어요 (이동 창 · 책상 버튼 숨김)
+            troFit(); el.classList.add('show'); placeIn('cal-on', 'tarot-on');   // cal-on = 장소에 있어요 (이동 창 · 책상 버튼 숨김)
         }
         function closeTarotRoom() {
             const el = troq('tarotRoom'); if (!el || !el.classList.contains('show')) return;
-            el.classList.remove('show'); document.body.classList.remove('cal-on', 'tarot-on');
+            el.classList.remove('show'); placeOut('cal-on', 'tarot-on');
             el.querySelectorAll('.hov').forEach(x => x.classList.remove('hov'));
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && troOn() && !document.querySelector('.modal[style*="flex"]') && !document.querySelector('#fortuneRoom.show, #dreamRoom.show, #tojeongRoom.show, #nmRoom.show, #psyRoom.show')) { if (window.deskGoRoom) deskGoRoom(); else closeTarotRoom(); } });   // Esc = 🚪 내 방으로
+        placeAdd({ on: troOn, fit: troFit, close: closeTarotRoom, esc: () => !!document.querySelector('#fortuneRoom.show, #dreamRoom.show, #tojeongRoom.show, #nmRoom.show, #psyRoom.show') });   // 🔮 안쪽 운세 방이 떠 있으면 그 방이 Esc (js/util.js 장소 틀)
         window.openTarotRoom = openTarotRoom; window.closeTarotRoom = closeTarotRoom;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

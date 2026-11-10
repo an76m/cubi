@@ -36,7 +36,6 @@
                 <button type="button" class="cr-go desk-shop-go" onclick="deskMoveOpen()">이동</button>   <!-- 🚪 닫기 대신 이동 (도련 10-31 · 벽 달력도 한 장소) -->
             </div>`;
             document.body.appendChild(el);
-            addEventListener('resize', () => { if (crOn()) crFit(); });
             el.addEventListener('click', e => { if (e.target.closest('.cr-side')) { clearTimeout(cr.t); cr.t = setTimeout(crRender, 60); } });   // 옮겨 온 원래 창에서 고치면 달력 칸도 다시
             el.addEventListener('input', e => { if (e.target.id === 'ddDate') crRender(); });
             return el;
@@ -113,7 +112,6 @@
                 </div>
                 <button type="button" class="cr-go desk-shop-go crm-go" onclick="deskMoveOpen()">이동</button>`;
             document.body.appendChild(el);
-            addEventListener('resize', () => { if (el.classList.contains('show')) crmFit(); });
             return el;
         }
         function crmFit() {
@@ -124,9 +122,8 @@
             Object.assign(crq('crmBox').style, { left: x + l * s + 'px', top: y + tp * s + 'px', width: (r - l) * s + 'px', height: (b - tp) * s + 'px' });
         }
         function openCalRoom() {
-            if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.closePostRoom) closePostRoom();
-            if (UI.tall()) { crApproach(); const el = crmBuild(); el.classList.add('show'); crmFit(); document.body.classList.add('cal-on'); return; }   // 📱
+            if (UI.tall()) { crApproach(); const el = crmBuild(); el.classList.add('show'); crmFit(); placeIn('cal-on'); return; }   // 📱
             crApproach();                                                        // 🏠 거실 → 벽걸이 달력 (달력은 뒤에서 미리 열어 둬요)
             const el = crBuild(), T = new Date(); cr.y = T.getFullYear(); cr.m = T.getMonth();
             if (!cr.moved.length) {
@@ -135,17 +132,19 @@
                 crBorrow(crq('crCy'), cyclePrep(), ['#cyNow', '#cyDay', '#cyStats', '.cy-note']);
                 crBorrow(crq('crDd'), ddayPrep(), ['#ddList', '#ddAddBtn', '#ddFormBox', '.dd-note']);
             }
-            crFit(); el.classList.add('show'); document.body.classList.add('cal-on'); crRender();
+            crFit(); el.classList.add('show'); placeIn('cal-on'); crRender();
             el.querySelectorAll('.cr-side').forEach(x => { x.scrollTop = 0; });
         }
         function closeCalRoom() {
-            const m = crq('calRoomM'); if (m && m.classList.contains('show')) { m.classList.remove('show'); document.body.classList.remove('cal-on'); }   // 📱
+            const m = crq('calRoomM'); if (m && m.classList.contains('show')) { m.classList.remove('show'); placeOut('cal-on'); }   // 📱
             const el = crq('calRoom'); if (!el || !el.classList.contains('show')) return;
             const fw = crq('atFlipWrap'); if (fw) fw.hidden = true;
-            el.classList.remove('show'); document.body.classList.remove('cal-on');
+            el.classList.remove('show'); placeOut('cal-on');
             crGiveBack();
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && crOn() && !(crq('atFlipWrap') && !crq('atFlipWrap').hidden) && !document.querySelector('.modal[style*="flex"]')) { if (window.deskGoRoom) deskGoRoom(); else closeCalRoom(); } });   // Esc = 🚪 내 방으로 (문 연출)
+        const crmOn = () => !!crq('calRoomM') && crq('calRoomM').classList.contains('show');   // 📱
+        placeAdd({ on: () => crOn() || crmOn(), fit: () => { if (crOn()) crFit(); if (crmOn()) crmFit(); }, close: closeCalRoom,
+            esc: () => !!(crq('atFlipWrap') && !crq('atFlipWrap').hidden) });   // 🪙 코인 뒤집기 중엔 Esc 안 받아요 (js/util.js 장소 틀)
         window.openCalRoom = openCalRoom; window.closeCalRoom = closeCalRoom; window.crMove = crMove; window.crToggle = crToggle; window.crPick = crPick;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

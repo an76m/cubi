@@ -98,7 +98,6 @@
             const bd = aroq('aroBoard');
             bd.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBdGo(+b.dataset.d); }));
             bd.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => { aroBd.auto = false; aroBd.tab = b.dataset.t; aroBdShow(); }));
-            addEventListener('resize', () => { if (aroOn()) aroFit(); });
             return el;
         }
         /* 🏆 순위판 (도련 11-01 · 왼쪽 앞 오락기 옆면) : 게임 하나씩 TOP 5 · ◀ ▶ 로 넘기기 · 가만히 두면 8초마다 다음 게임 · 이번 주 / 역대 */
@@ -137,22 +136,21 @@
                 port: { img: 'img/arcade-door-m.webp?v=20261009-1039', W: ARO_PH.W, H: ARO_PH.H, focus: [60, 880, 100, 1100], at: [ARO_PH.cx, ARO_PH.cy], sign: [ARO_PH.cx, ARO_PH.sy, 72] } });
         }
         function openArcRoom() {
-            if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             if (window.deskLeave) deskLeave();
             if (UI.tall()) { aroDoor(); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
             if (typeof warmServer === 'function' && typeof HOF_API_URL !== 'undefined' && HOF_API_URL) warmServer(HOF_API_URL);   // 🏆 명예의 전당 서버 미리 깨우기
             aroDoor();
             const el = aroBuild();
-            aroFit(); el.classList.add('show'); document.body.classList.add('cal-on', 'arc-on');   // cal-on = 장소에 있어요
+            aroFit(); el.classList.add('show'); placeIn('cal-on', 'arc-on');   // cal-on = 장소에 있어요
             aroBdStart();                                                        // 🏆 순위판
         }
         function closeArcRoom() {
             const el = aroq('arcRoom'); if (!el || !el.classList.contains('show')) return;
-            el.classList.remove('show'); document.body.classList.remove('cal-on', 'arc-on');
+            el.classList.remove('show'); placeOut('cal-on', 'arc-on');
             const t = aroq('aroTip'); if (t) t.hidden = true;
             clearInterval(aroBd.t);
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && aroOn() && !document.querySelector('.modal[style*="flex"]') && !document.querySelector('#arcadeRoom.show, #hofRoom.show, .hof-room.show')) { if (window.deskGoRoom) deskGoRoom(); else closeArcRoom(); } });
+        placeAdd({ on: aroOn, fit: aroFit, close: closeArcRoom, esc: () => !!document.querySelector('#arcadeRoom.show, #hofRoom.show, .hof-room.show') });   // 🕹️ 오락기 · 🏆 명예의 전당이 떠 있으면 그쪽이 Esc (js/util.js 장소 틀)
         window.openArcRoom = openArcRoom; window.closeArcRoom = closeArcRoom;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

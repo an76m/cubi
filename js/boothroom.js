@@ -41,7 +41,6 @@
             bq('bthCurtain').onclick = enter;
             bq('bthFocusOk').onclick = focusOff; bq('bthFocusOk').addEventListener('pointerup', focusOff);   // 👆 터치 기기에서 클릭이 늦거나 빠져도 손을 떼면 바로
             bq('bthFocus').addEventListener('click', e => { if (!e.target.closest('.bth-card')) focusOff(); });   // 사진 바깥을 눌러도 닫혀요
-            addEventListener('resize', () => { if (B.on) fit(); if (I.on) inFit(); });
             return el;
         }
         /* 📐 포토부스 = 화면 가운데 · 바닥(css 배경)에 서 있어요 */
@@ -147,15 +146,14 @@
         }
         function openBoothPlace() {
             if (B.on) return;
-            if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); }
             approach();
             const el = build(); el.dataset.th = BTH_THEME();
-            B.on = true; el.classList.add('show'); document.body.classList.add('bth-on'); fit(); run();
+            B.on = true; el.classList.add('show'); placeIn('bth-on'); fit(); run();
         }
         function closeBoothPlace() {
             const el = bq('bthRoom'); if (!el || !el.classList.contains('show')) return;
             inClose(true); focusOff();
-            B.on = false; el.classList.remove('show'); document.body.classList.remove('bth-on');
+            B.on = false; el.classList.remove('show'); placeOut('bth-on');
         }
         function enter() {
             if (I.on || P.busy) return;
@@ -396,11 +394,13 @@
             f.classList.remove('on'); clearTimeout(focusOff.t); focusOff.t = setTimeout(() => { if (!f.classList.contains('on')) f.hidden = true; }, 300);
         }
 
-        document.addEventListener('keydown', e => {
-            if (e.key !== 'Escape' || document.querySelector('.modal[style*="flex"]')) return;
-            if (I.on) { if (!I.busy) inClose(); return; }
-            if (B.on && !P.busy) { const f = bq('bthFocus'); if (f && !f.hidden) { focusOff(); return; } if (window.deskGoRoom) deskGoRoom(); else closeBoothPlace(); }
-        });
+        placeAdd({ on: () => B.on || I.on, fit: () => { if (B.on) fit(); if (I.on) inFit(); }, close: closeBoothPlace,   // js/util.js 장소 틀
+            esc: () => {                                                         // 📸 부스 안 · 찍는 중 · 크게 보기 = 그것부터 닫아요
+                if (I.on) { if (!I.busy) inClose(); return true; }
+                if (P.busy) return true;
+                const f = bq('bthFocus'); if (f && !f.hidden) { focusOff(); return true; }
+                return false;
+            } });
         window.openBoothPlace = openBoothPlace; window.closeBoothPlace = closeBoothPlace;
     })();
 

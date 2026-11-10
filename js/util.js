@@ -51,3 +51,18 @@ function placeGo(o) {
     if (im.complete) start(); else im.addEventListener('load', start, { once: true });
 }
 window.placeGo = placeGo;
+/* 🏘️ 장소 틀 공용 (도련 11-10 · 📅 달력 · 🔮 타로 · 💌 우체통 · 🕹️ 오락실 · 📸 포토부스 · 🎁 캡슐기계) : 장소 파일은 placeAdd 로 자기 값만 알려 줘요
+   - 들어갈 때 placeIn('cal-on', 'tarot-on') = 이동 · 카페 창을 닫고 body 표시 (cal-on = 장소에 있어요 · 이동 창 · 책상 버튼 숨김) · 나올 때 placeOut(같은 것)
+   - 화면 크기가 바뀌면 지금 장소의 fit · Esc = 장소가 먼저 쓰지 않으면 🚪 내 방(다이어리)으로 (예전엔 장소마다 따로 가졌어요)
+   p = { on: () => 지금 이 장소, fit, close, esc: () => true = Esc 를 장소가 썼어요 (안쪽 창 닫기 · 그 장소는 Esc 안 받기) } */
+const PLACES = [];
+function placeAdd(p) { PLACES.push(p); }
+function placeIn(...cls) { if (typeof closeModal === 'function') { closeModal('serviceModal'); closeModal('moveModal'); } if (cls.length) document.body.classList.add(...cls); }
+function placeOut(...cls) { document.body.classList.remove(...cls); }
+addEventListener('resize', () => PLACES.forEach(p => { if (p.on()) p.fit(); }));
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || document.querySelector('.modal[style*="flex"]')) return;
+    const p = PLACES.find(x => x.on()); if (!p || (p.esc && p.esc())) return;
+    if (window.deskGoRoom) deskGoRoom(); else p.close();
+});
+window.placeAdd = placeAdd; window.placeIn = placeIn; window.placeOut = placeOut;
