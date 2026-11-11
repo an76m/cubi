@@ -155,7 +155,7 @@
 
         const ownIdxClean = (arr, k) => (Array.isArray(arr) ? arr : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { k: e.k || k, u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}));
         /* 🗑 브라우저에 기억해 둔 파일 번호가 휴지통에 들어갔는지 (폴더를 지웠거나 · 같은 이름 폴더 합치기) : 번호로는 읽고 써져서 앱에선 멀쩡해 보이지만 드라이브 폴더에는 없어요 (도련 11-06)
-           → 이번에 처음 쓰는 기억 번호만 한 번 확인 · 휴지통이면 그 내용은 되살리기 바탕(base)으로만 쓰고, 지금 폴더에서 다시 찾아요 */
+           → 이번에 처음 쓰는 기억 번호만 한 번 확인 · 휴지통이면 그 번호는 잊고 지금 폴더에서 다시 찾아요 (내용은 읽지 않아요 · 도련 11-11 : 휴지통 = 사용자가 ⚙ 🗑 휴지통에서 직접 되살리는 곳) */
         const OWN_LIVE = new Set();
         async function ownLive(id) {
             if (!id || OWN_LIVE.has(id)) return true;
@@ -164,7 +164,6 @@
             if (m) { OWN_LIVE.add(id); return true; }
             return false;
         }
-        async function ownTrashText(id) { try { return await readFileText(id); } catch (e) { return ''; } }   // 휴지통 안 파일도 내용은 읽혀요
         async function ownIdxRead(k, pre) {                                      // pre : 이미 찾은 목록 파일 (ownOpenKind · null = 없음)
             ownReset();
             if (ownMode() === 'mem') return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() }));
@@ -175,7 +174,7 @@
                 const m = d.f ? d.f.id : (ownFilesGet(k) || {}).i;
                 if (m && (d.f || await ownLive(m))) f = { id: m };              // ⚡ 아는 번호면 찾지 않고 바로 (도련 10-25)
                 else {
-                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && Array.isArray(o0.list)) d.tBase = o0.list; } catch (e) {} console.warn('🗑 기억한 목록 파일이 휴지통에 있어요 → 지금 폴더에서 다시 찾아요 :', k); if (window.diag) diag('stale', { k, f: '목록', id: m, base: d.tBase ? d.tBase.length : -1 }); }
+                    if (m) { console.warn('🗑 기억한 목록 파일이 휴지통에 있어요 → 그 번호는 잊고 지금 폴더에서 다시 찾아요 :', k); if (window.diag) diag('stale', { k, f: '목록', id: m }); }   // 🗑 휴지통 안 내용은 읽지 않아요 (도련 11-11 : 휴지통은 사용자가 직접 되살리는 곳 · 예전 내용을 몰래 섞으면 판단이 헷갈려요)
                     f = await find();
                 }
             }
@@ -722,7 +721,7 @@
                 const m = d.albF ? d.albF.id : (ownFilesGet(k) || {}).a;
                 if (m && (d.albF || await ownLive(m))) f = { id: m };            // ⚡ 아는 번호면 바로
                 else {
-                    if (m) { const t0 = await ownTrashText(m); try { const o0 = t0 ? await ownUnlock(t0) : null; if (o0 && o0.album && typeof o0.album === 'object') d.tAlb = o0.album; } catch (e) {} if (window.diag) diag('stale', { k, f: '스티커첩', id: m }); }
+                    if (m) { if (window.diag) diag('stale', { k, f: '스티커첩', id: m }); }   // 🗑 휴지통 안 내용은 읽지 않아요 (도련 11-11)
                     f = await find();
                 }
             }
