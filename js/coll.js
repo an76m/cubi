@@ -213,7 +213,7 @@
             collCache(collKey(C, 'o' + id), item, ent.m);
             await collQueue(Object.assign({ op: 'put', names: C.names, pre: C.pre, id, ent, item, base: old.m || 0, f: old.f || '' }, C.noIdx ? { noIdx: 1 } : {}));   // 원본만 (목록 묶음 없음 · 칠한 소품 다시 칠하기)
         }
-        async function collRemove(C, id, noIdx) {
+        async function collRemove(C, id, noIdx, keep) {                     // keep = 사용자가 직접 지움 → 🗑 앱 휴지통 (그 밖 = 버린 상품 30일 뒤 · 옮긴 원본 = 영구 삭제 · 도련 11-11)
             const old = collEnt(C, id) || {};
             noIdx = !!(noIdx || C.noIdx);
             if (collGuest()) {
@@ -225,7 +225,7 @@
             C.gone.add(id);
             C.pend = C.pend.filter(e => e.id !== id);
             collDel('orig', collKey(C, 'o' + id));
-            await collQueue(Object.assign({ op: 'del', names: C.names, pre: C.pre, id, f: old.f || '' }, noIdx ? { noIdx: 1 } : {}));
+            await collQueue(Object.assign({ op: 'del', names: C.names, pre: C.pre, id, f: old.f || '' }, noIdx ? { noIdx: 1 } : {}, keep ? { keep: 1 } : {}));
         }
         /* 화면용 목록에서 그 칸 바꾸기 */
         function collPatch(C, id, ent, item) {
@@ -299,7 +299,10 @@
                 const dir = await getFolder(C.names, false);
                 let cur = v.f ? await driveMeta(v.f) : null;
                 if (!cur && dir) cur = await findFile(dir, name);
-                if (cur) await driveTrash(cur.id);
+                if (cur) {
+                    if (v.keep && window.appTrash) await appTrash(cur.id, C.names.concat(name).join('/'), 'u');   // 🗑 사용자가 지운 것 = 앱 휴지통 30일
+                    else { const r = await gfetch(`${DRIVE_API}/${cur.id}`, { method: 'DELETE' }); if (!r.ok && r.status !== 404) throw new Error('delete ' + r.status); }   // 🔥 버린 상품의 30일 뒤 · 옮긴 원본 = 영구 삭제 (구글 휴지통 안 거쳐요)
+                }
                 if (!v.noIdx) await collListEdit(C, v.id, null);
                 C.gone.delete(v.id);
                 return;
@@ -362,7 +365,7 @@
                     try { const o = JSON.parse(await readFileText(first.id) || '{}'); if (o && Array.isArray(o.items)) theirs = o.items; } catch (e) {}
                     theirs.forEach(e => { if (e && e.id && !items.some(x => x.id === e.id)) items.push(e); });
                     const fin = await driveUpsert(listDir, name, first.id, JSON.stringify({ v: 1, items }));
-                    await driveTrash(saved.id);
+                    await (window.appTrash ? appTrash(saved.id, name, 'a') : driveTrash(saved.id));   // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
                     saved = fin;
                 }
             }

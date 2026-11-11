@@ -6,7 +6,8 @@
    - 30일이 지나면 (다이어리를 열 때 · binSweep) 그 종류가 진짜로 지워요 (purge) · 🗑 휴지통 비우기도 같아요
    - 종류마다 BIN_KINDS[k] = { name(e) : 휴지통에 보일 이름, restore(e) : 되살리기, purge(e) : 영구 삭제 } (📔 js/dyyear.js …)
    - ⚙ 설정 → 💾 데이터 관리 → 🗑 휴지통 맨 위에 보여요 (js/trash.js)
-   - 종류 (도련 11-02 · 모든 상품) : dy 다이어리 · ds 벽지·책상판 · bg 배경지 · dk 책상 소품 · gd 문구(필기구도) · own 스티커·종이 (js/own.js) */
+   - 종류 (도련 11-02 · 모든 상품) : dy 다이어리 · ds 벽지·책상판 · bg 배경지 · dk 책상 소품 · gd 문구(필기구도) · own 스티커·종이 (js/own.js)
+     + file = 지운 파일 (일기 · 덮어쓰기 전 모습 · 인형 · 인형극 · 내 배경지 · 내 도안 · js/trash.js · 도련 11-11 : 앱에서 지운 건 모두 이 목록 하나) */
 
         const BIN_KEY = 'diary_bin', BIN_LOCAL = 'malang_bin', BIN_DAYS = 30;
         const BIN_KINDS = Object.assign({}, window.BIN_PRE);                      // 이 파일보다 먼저 읽는 것 (🪑 책상 소품 js/desk.js · ✏️ 문구 js/skins.js) 은 window.BIN_PRE 에 넣어 둬요
@@ -23,7 +24,7 @@
         }
         async function binRestore(e) {
             const K = BIN_KINDS[e.k]; if (!K) return false;
-            await K.restore(e);
+            if (await K.restore(e) === false) return false;                    // 되살리기를 그만뒀어요 (📄 그새 새로 쓴 것을 남기기로 · js/trash.js)
             binSave(binList().filter(x => !binSame(x, e)));
             return true;
         }
@@ -36,6 +37,7 @@
             if (binBusy || binGuest() || typeof drive === 'undefined' || !drive.ready) return;
             binBusy = true;
             try { for (const e of binList().filter(x => !binLeft(x))) await binPurge(e); } finally { binBusy = false; }
+            if (window.trSweep) trSweep();                                   // 🧹 휴지통 폴더도 (앱이 정리한 파일 · 목록이 어긋나 남은 파일 · js/trash.js)
         }
         /* 묻기 · 알리기 (모든 상품 같은 말) */
         const binJosa = josa;   // 🧰 js/util.js

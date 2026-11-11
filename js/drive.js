@@ -27,7 +27,7 @@
                               (권마다 집게 · 구멍 · 링 · 꺼낸 장 = 그 권 폴더 / 상태.json · 982)
                               _내정보.json     🔐 잠금 · 별명 · 생년월일 · 연락처 (개인정보)
                               _백업.json       🛟 🔐 하루 한 번 위 목록 · 자리 · 책상 설정 (목록 파일이 없어지면 여기서 되살려요 · js/desk.js dkBackupWrite)
-                      / 휴지통 / …                                      🗑 덮어쓰기 전 모습 (js/trash.js · 구글은 드라이브 휴지통)
+                      / 휴지통 / …                                      🗑 앱 휴지통 : 지운 것 · 덮어쓰기 전 모습 (js/trash.js · 30일 뒤 앱이 영구 삭제 · 구글 휴지통 안 써요)
            - 폴더가 없으면 저장할 때 자동으로 만들어요 · 같은 이름 폴더가 둘이면 먼저 만든 쪽으로 합쳐요
            - 두 기기에서 같이 써도 : 덮어쓰기 전에 드라이브 파일의 '마지막 수정 시각'을 보고
              바뀌었으면 다른 기기 내용 위에 내가 고친 것만 얹어요 (같은 날 일기는 물어봐요)
@@ -465,7 +465,10 @@
             rootPickP.catch(() => { rootPickP = null; });
             return rootPickP;
         }
-        /* 같은 이름 폴더 합치기 : 나중 폴더 안의 것을 모두 먼저 폴더로 옮기고, 빈 폴더는 휴지통으로
+        /* 🗑 앱 휴지통 (도련 11-11 : 앱에서 지운 건 모두 앱 휴지통 · 구글 휴지통에 넘기지 않아요 · js/trash.js appTrash) : why 'u' 사용자 것 (🗑 화면) · 'a' 앱이 정리한 중복 (숨김) */
+        const toTrash = (id, path, why, old) => window.appTrash ? appTrash(id, path || '', why || 'u', old) : driveTrash(id);
+        const driveKill = id => gfetch(`${DRIVE_API}/${id}`, { method: 'DELETE' }).then(r => { if (!r.ok && r.status !== 404) throw new Error('delete ' + r.status); });   // 🔥 영구 삭제 (빈 폴더처럼 담을 게 없는 것)
+        /* 같은 이름 폴더 합치기 : 나중 폴더 안의 것을 모두 먼저 폴더로 옮기고, 빈 폴더는 영구 삭제 (11-11)
            (옮긴 것 중 또 같은 이름 폴더가 생기면 그 폴더를 열 때 다시 합쳐져요) */
         const folderMerging = new Set();
         async function mergeFolders(keepId, otherIds) {
@@ -489,8 +492,8 @@
                         }
                     }
                     if (empty < 2) throw new Error('folder not empty yet');           // 아직 남은 게 있으면 휴지통에 넣지 않아요 (다음에 열 때 다시 합쳐요)
-                    diag('merge', { id, keep: keepId, moved: diagMoved, trash: 1 });
-                    await driveTrash(id);
+                    diag('merge', { id, keep: keepId, moved: diagMoved, del: 1 });
+                    await driveKill(id);                                        // 두 번 확인한 빈 폴더 = 담을 게 없어요
                     drive.monthIndex.clear();                               // 옮겨진 일기가 다시 보이도록
                 } catch (e) { console.warn('같은 이름 폴더를 합치지 못했어요:', e); diag('mergeFail', { id, keep: keepId, err: String(e && e.message || e).slice(0, 60) }); }
                 finally { folderMerging.delete(id); }
@@ -673,7 +676,7 @@
             for (const n of [...new Set([...B.keys(), ...D.files.keys()])].sort((a, b) => a - b)) {
                 const body = chunkBody(which, B.get(n) || {}), cur = D.files.get(n);
                 if (cur && cur.body === body) { if ((cur.modifiedTime || '') > mt) mt = cur.modifiedTime; continue; }
-                if (!B.has(n) && cur && n > 1) { await driveTrash(cur.id); D.files.delete(n); continue; }   // 다 빠진 뒤쪽 파일
+                if (!B.has(n) && cur && n > 1) { await toTrash(cur.id, F.name + n + '.json', 'a'); D.files.delete(n); continue; }   // 다 빠진 뒤쪽 파일 (앱 정리 · 숨김)
                 const saved = await driveUpsert(dir, F.name + n + '.json', cur && cur.id, await ownLock(JSON.parse(body), COLL.who));
                 if (!cur) made = true;
                 D.files.set(n, { id: saved.id, modifiedTime: saved.modifiedTime, body }); if ((saved.modifiedTime || '') > mt) mt = saved.modifiedTime;
@@ -787,13 +790,13 @@
                     if (b === null || b === 'null' || b === a) continue;
                     if (a === null || a === 'null') { win = i; continue; }
                     const tm = f => new Date(f.modifiedTime).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    const first = await showAsk(`📄 <b>${keyLabel(key)}</b> 일기 파일이 두 개 있어요.<br>(두 기기에서 거의 동시에 처음 저장한 것 같아요)<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 드라이브 휴지통으로 가요.</span>`, `🕐 ${tm(list[win])} 저장한 것`, `🕑 ${tm(list[i])} 저장한 것`);
+                    const first = await showAsk(`📄 <b>${keyLabel(key)}</b> 일기 파일이 두 개 있어요.<br>(두 기기에서 거의 동시에 처음 저장한 것 같아요)<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 🗑 휴지통에 30일 보관해요.</span>`, `🕐 ${tm(list[win])} 저장한 것`, `🕑 ${tm(list[i])} 저장한 것`);
                     if (!first) win = i;
                 }
                 const keep = list[0];
                 let meta = keep;
                 if (win !== 0 && texts[win] !== null) meta = Object.assign({}, keep, await driveUpsert(idx.folderId, name, keep.id, texts[win]));
-                for (let i = 1; i < list.length; i++) await driveTrash(list[i].id);
+                for (let i = 1; i < list.length; i++) await toTrash(list[i].id, window.trDayPath ? trDayPath(key) : name, texts[i] === texts[win] || texts[i] === null ? 'a' : 'u', 1);   // 같은 내용 = 앱 정리 · 안 고른 내용 = 🗑 (덮어쓰기 전 모습)
                 idx.files.set(name, meta); idx.dups.delete(name);
                 if (drive.dayMeta.has(key)) drive.dayMeta.set(key, meta.modifiedTime || '');
             })();
@@ -1053,7 +1056,7 @@
                     await mergeKeyFile(which, first, mine);
                     body = settingsBody(which);
                     const fin = await driveUpsert(dir, F.name, first.id, await keyFileSeal(which, body));
-                    await driveTrash(saved.id);
+                    await toTrash(saved.id, F.name, 'a');                           // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
                     saved = fin;
                 }
             }
@@ -1087,7 +1090,7 @@
                 }
             }
             if (val === null) {                                                     // 내용을 모두 지운 날 → 파일은 휴지통으로
-                if (cur) await driveTrash(cur.id);
+                if (cur) await (window.appTrashDay ? appTrashDay(key, cur.id) : driveTrash(cur.id));   // 🗑 앱 휴지통 (그날 내용 · 30일)
                 idx.files.delete(name); drive.dayMeta.set(key, '');
                 return;
             }
@@ -1099,10 +1102,10 @@
                     try { theirs = JSON.stringify(parseJsonObject(await readFileText(first.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; }
                     let mine = true;
                     if (theirs !== null && theirs !== 'null' && theirs !== val)
-                        mine = await showAsk(`📱 다른 기기에서도 방금 <b>${lab}</b> 일기를 처음 저장했어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 드라이브 휴지통으로 가요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
+                        mine = await showAsk(`📱 다른 기기에서도 방금 <b>${lab}</b> 일기를 처음 저장했어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 🗑 휴지통에 30일 보관해요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
                     let fin = first;
                     if (mine && theirs !== val) { if (window.trashKeepDay) await trashKeepDay(key, theirs); fin = Object.assign({}, first, await driveUpsert(idx.folderId, name, first.id, val)); }
-                    await driveTrash(saved.id);                                     // 내가 만든 쪽은 휴지통으로 (가장 먼저 만든 파일 하나만 남겨요)
+                    await toTrash(saved.id, window.trDayPath ? trDayPath(key) : name, mine ? 'a' : 'u', 1);   // 내가 만든 쪽 : 내 내용을 남겼으면 앱 정리 · 다른 기기 것을 골랐으면 🗑 (가장 먼저 만든 파일 하나만 남겨요)
                     idx.files.set(name, { id: first.id, name, modifiedTime: fin.modifiedTime });
                     drive.dayMeta.set(key, fin.modifiedTime);
                     if (!mine && !drive.dirtyKeys.has(key)) { store.putLoaded(key, theirs); dayShownAgain(key); }

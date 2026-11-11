@@ -122,7 +122,7 @@
         }
         async function psDelete(ent) {
             if (!psDrive()) { psGuestWrite(psGuestRead().filter(e => e.id !== ent.id)); return; }
-            await driveTrash(ent.id);
+            await (window.appTrash ? appTrash(ent.id, PS_FOLDER().concat((ent.name || '인형극') + '.json').join('/'), 'u') : driveTrash(ent.id));   // 🗑 앱 휴지통 (도련 11-11)
         }
 
         /* =====================================================================
@@ -240,7 +240,7 @@
             const b = e.target.closest('[data-psa]'); if (!b) return;
             const ent = PS.list[+b.dataset.psi]; if (!ent) return;
             if (b.dataset.psa === 'del') {
-                if (!(await showMsg(`'${psEsc(ent.name)}' 인형극을 지울까요?<br><span style="font-size:12px;color:#777;">드라이브 휴지통으로 가요.</span>`, true))) return;
+                if (!(await showMsg(`'${psEsc(ent.name)}' 인형극을 지울까요?<br><span style="font-size:12px;color:#777;">🗑 휴지통에 30일 보관해요.</span>`, true))) return;
                 try { await psDelete(ent); } catch (x) { showMsg('⚠ 지우지 못했어요.'); }
                 psShowList(); return;
             }

@@ -85,7 +85,7 @@
 
         async function deleteMyPattern(uid) {
             if (!(await showMsg('이 배경지를 지울까요?', true))) return;
-            try { await collRemove(patColl(), uid); } catch (e) { showMsg('⚠ 지우지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
+            try { await collRemove(patColl(), uid, false, true); } catch (e) { showMsg('⚠ 지우지 못했어요. 잠시 뒤 다시 해 주세요.'); return; }
             myPatterns = myPatterns.filter(x => x.uid !== uid);
             patView.mine = null;
             if (bgPattern && bgPattern.id === 'my:' + uid) clearBgPattern();

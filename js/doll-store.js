@@ -128,7 +128,7 @@
             }
             const prev = list.find(e => e.id === saved.id);
             if (prev && prev.name !== fname) await dollRenameFile(saved.id, fname);        // 이름을 바꿨으면 파일 이름도
-            if (origId && origId !== saved.id) { try { await driveTrash(origId); } catch (e) {} }   // 다른 인형을 덮어썼으면 원래 파일은 휴지통으로
+            if (origId && origId !== saved.id) { try { const o = list.find(e => e.id === origId); await (window.appTrash ? appTrash(origId, DOLL_FOLDERS.deco.concat((o && o.name) || '인형.json').join('/'), 'u', 1) : driveTrash(origId)); } catch (e) {} }   // 다른 인형을 덮어썼으면 원래 파일은 🗑 앱 휴지통으로 (도련 11-11)
             dollCache.list = [{ id: saved.id, name: fname, doll: d, time: Date.parse(saved.modifiedTime) || now }].concat(list.filter(e => e.id !== saved.id && e.id !== origId));
             if (cur && writeId === cur.id && !known) dollCache.list = null;   // 다른 기기 인형이 섞였으니 다음에 새로 읽어요
             return { id: saved.id, doll: d };
@@ -141,14 +141,15 @@
             if (!res.ok) throw new Error('rename ' + res.status);
         }
 
-        /* ---------- 지우기 (드라이브에서는 휴지통으로) ---------- */
+        /* ---------- 지우기 (🗑 앱 휴지통 · 30일 · 도련 11-11) ---------- */
         async function deleteDoll(id) {
             const list = await listDolls();
             if (!dollUseDrive()) {
                 const next = list.filter(e => e.id !== id);
                 writeGuestDolls(next); dollCache.list = next; return;
             }
-            await driveTrash(id);
+            const ent = list.find(e => e.id === id);
+            await (window.appTrash ? appTrash(id, DOLL_FOLDERS.deco.concat((ent && ent.name) || '인형.json').join('/'), 'u') : driveTrash(id));   // 🗑 앱 휴지통 (도련 11-11)
             dollCache.list = list.filter(e => e.id !== id);
         }
 

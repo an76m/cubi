@@ -513,7 +513,7 @@
             const it = await collItem(C, id); if (!it || !it.sheet) throw new Error('gone');
             return ownAdd(Object.assign({}, it.sheet, { from: 'mine', imgs: (it.sheet.imgs || []).slice() }), Object.assign({}, it.meta || {}, { noDesign: 1 }));
         }
-        async function ownDesignDrop(id) { const C = ownDesignColl(); if (C) await collRemove(C, id); }
+        async function ownDesignDrop(id, keep) { const C = ownDesignColl(); if (C) await collRemove(C, id, false, keep); }   // keep = 사용자가 도안을 버림 → 🗑 앱 휴지통
         window.ownDesigns = ownDesigns; window.ownDesignPrint = ownDesignPrint; window.ownDesignDrop = ownDesignDrop;
 
         /* ---------- 📂 종이 한 장 열기 : 늘 드라이브의 지금 모습 (다른 기기에서 쓴 칸은 비어 있어요) ---------- */

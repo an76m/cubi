@@ -120,7 +120,7 @@
                             let rd = {}; try { const o = JSON.parse(await readFileText(first.id) || '{}'); if (o && o.d && typeof o.d === 'object') rd = o.d; } catch (e) {}
                             Object.keys(rd).forEach(day => { if (!(day in Y.d)) Y.d[day] = rd[day]; });
                             const fin = await driveUpsert(dir, name, first.id, JSON.stringify({ v: 1, d: Y.d }));
-                            await driveTrash(saved.id);
+                            await (window.appTrash ? appTrash(saved.id, name, 'a') : driveTrash(saved.id));   // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
                             saved = fin;
                         }
                     }

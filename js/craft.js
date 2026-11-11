@@ -110,7 +110,7 @@
                 cq('crBasket').onclick = () => { closeCraft(); if (window.openBasket) openBasket(); };
                 cq('crDel').onclick = async () => {
                     if (!await showAsk(`🗑 <b>${htmlEsc(nm)}</b> 도안을 버릴까요?<br><span style="font-size:12px;color:#777;">버리면 다시 찍을 수 없어요 · 서랍의 종이는 그대로예요</span>`, '버리기', '취소')) return;
-                    try { await ownDesignDrop(e.id); } catch (er) { console.warn(er); }
+                    try { await ownDesignDrop(e.id, true); } catch (er) { console.warn(er); }
                     C.sel = null; C.sheet = false; paintWork(); loadMine();
                 };
                 return;
