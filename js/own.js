@@ -238,9 +238,11 @@
                     if (s.b) e.b = s.b;
                     if (s.start) e.start = 1; if (s.via) e.via = s.via; if (s.rel) e.rel = 1;   // 🛟 종이 파일에서 되살릴 때 표시도 (도련 11-09)
                     if (sx.pad || sx.lf || sx.pp || sx.glue || sx.bg) e.x = { pad: sx.pad, lf: sx.lf, pp: sx.pp, glue: sx.glue, bg: sx.bg, w: sx.w, h: sx.h, tc: sx.tc };   // w · h · tc = 그림 메모지 크기 · 글자색
-                    if (e.k === 'tk' && sx.pad === 'my') e.th = s.imgs[0] || '';
+                    if (e.k === 'tape') e.th = s.imgs.find(Boolean) || '';            // 🎀 테이프 = 테이프 그림 그대로 (받을 때처럼 · 정사각형 미리보기면 책상 롤이 하얗게 보여요 · 11-11)
+                    else if (e.k === 'tk' && sx.pad === 'my') e.th = s.imgs[0] || '';
                     else if (!(e.k === 'memo' && sx.pp && sx.pp !== 'img')) e.th = await ownThumb(s.imgs).catch(() => '');
-                } else if (e.th && !e.us && e.k !== 'tk' && e.k !== 'memo') e.th = await ownThumb(s.imgs).catch(() => e.th);   // 뗀 자리가 비게
+                } else if (e.k === 'tape') { const u = s.imgs.find(Boolean); if (u && /^data:image\/svg/.test(u)) e.th = u; }   // 🎀 (11-11)
+                else if (e.th && !e.us && e.k !== 'tk' && e.k !== 'memo') e.th = await ownThumb(s.imgs).catch(() => e.th);   // 뗀 자리가 비게
                 if (ownHas(e)) list.push(e);                                      // 🗑 버린 종이도 그대로 (백업의 bin 표시째)
             }
             list.sort((p, q) => (p.at || 0) - (q.at || 0));
@@ -302,6 +304,28 @@
 
         /* ---------- 차례대로 (한 기기 안에서 겹치지 않게) ---------- */
         function ownSerial(fn) { const p = O.q.then(fn, fn); O.q = p.catch(() => {}); return p; }
+        /* 🎀 테이프 무늬 고치기 (11-11 · 도련 : 책상 마테 롤이 어느 순간 하얗게) : 예전 되살리기(ownRescue)가 테이프 th 를 정사각형 미리보기로 바꿔 저장했어요
+           → 테이프 th 가 테이프 그림(svg)이 아니면 그 종이 파일의 그림으로 되돌려 목록에 저장 (계정마다 한 번 · js/desktape.js 가 불러요) */
+        let ownTapeFixed = '';
+        async function ownTapeFix() {
+            const key = O.kw + '|' + ownMode(); if (!O.kw || ownTapeFixed === key) return 0; ownTapeFixed = key;
+            return ownSerial(async () => {
+                await ownKindDirs(['tape']);
+                const list = await ownIdxRead('tape'); if (!Array.isArray(list)) return 0;
+                let n = 0;
+                for (const e of list) {
+                    if (e.k !== 'tape' || !e.f || /^data:image\/svg/.test(e.th || '') || !ownAlive(e)) continue;
+                    let sh; try { sh = await ownFileRead(e.f); } catch (er) { continue; }
+                    const u = sh && Array.isArray(sh.imgs) && sh.imgs.find(Boolean);
+                    if (u && /^data:image\/svg/.test(u) && u !== e.th) { e.th = u; n++; }
+                }
+                if (!n) return 0;
+                await ownIdxWrite('tape', list); ownIdxApply('tape', list);
+                if (window.diag) diag('tapeTh', { n });                               // 🧾 몇 롤을 고쳤는지
+                setTimeout(ownTell, 0);
+                return n;
+            }).catch(e => { ownTapeFixed = ''; console.warn('🎀 테이프 무늬 고치기', e); return 0; });
+        }
         function ownTell() { O.subs.forEach(fn => { try { fn(); } catch (e) {} }); }
         function ownOnChange(fn) { O.subs.add(fn); return () => O.subs.delete(fn); }
         function ownReady() {
@@ -947,7 +971,7 @@
             purge: e => ownPurge(e.id, e.f, e.kk)
         };
         window.ownDiscard = ownDiscard;
-        window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
+        window.ownTapeFix = ownTapeFix; window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownKitDesc = ownKitDesc; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
         window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id); window.ownPendOn = e => e ? ownPendFix(e) : e;   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;

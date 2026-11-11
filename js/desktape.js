@@ -21,7 +21,10 @@
     function load(force) {                                                    // 테이프 무늬 · 남은 길이 = 내 스티커 목록 (js/own.js)
         if ((T.list && !force && T.who === who()) || T.loading || !window.ownList || !who()) return;   // 아직 로그인 중 = 읽지 않아요
         T.loading = true; const w = who();
-        ownList(!!force, 'tape').then(L => { if (w !== who()) return; T.list = Array.isArray(L) ? L : []; T.who = w; T.fresh = !!force; paint(); }).catch(() => {}).finally(() => { T.loading = false; });
+        ownList(!!force, 'tape').then(L => {
+            if (w !== who()) return; T.list = Array.isArray(L) ? L : []; T.who = w; T.fresh = !!force; paint();
+            if (window.ownTapeFix && T.list.some(e => !/^data:image\/svg/.test(e.th || ''))) ownTapeFix();   // 🎀 하얀 롤 = 무늬를 되돌려요 (js/own.js · 고치면 ownOnChange 로 다시 그려요 · 11-11)
+        }).catch(() => {}).finally(() => { T.loading = false; });
     }
     if (window.ownOnChange) ownOnChange(() => { T.fresh = false; load(true); });
     /* 정리함에 꽂힌 테이프 id (지금 책상에 있는 정리함만 · 다 쓴 · 버린 테이프는 빼요) */
