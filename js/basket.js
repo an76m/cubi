@@ -1581,7 +1581,8 @@
     function dsClear() { [...DS.m.keys()].forEach(dsDrop); }
     window.dsClear = dsClear;
     window.dsOuts = () => [...DS.m.keys()].map(id => { const e = dsEntry(id) || B.byId.get(id); return e ? { id, k: e.k, th: e.th || '' } : null; }).filter(Boolean);   // ✋ 밖에 꺼내 둔 스티커 · 마테 (js/deskmove.js 넣기)
-    window.dsPutBack = id => dsDrop(id);                                      // ✋ 제자리로 (바구니 · 서랍)
+    window.dsPutBack = id => dsDrop(id);
+    window.dsMoveId = (id, x, y) => { const d = DS.m.get(id); if (d) dsMove(d, x, y); };   // ✋ 꺼낸 것을 손 · 날아오기로 옮겨요 (js/desktape.js)                                      // ✋ 제자리로 (바구니 · 서랍)
     function dsDrop(id) {
         const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); dsRewind(d); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤이 다시 또렷하게
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요

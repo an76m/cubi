@@ -77,15 +77,15 @@
         b.addEventListener('pointermove', ev => {
             const d = T.drag; if (!d || d.pid !== ev.pointerId) return;
             if (d.tap) {                                                        // ✋ 끌어서 꺼내기 = 롤이 손을 따라와요 → 놓은 자리에 (도련 11-11)
-                if (!d.man) { if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) return; const r = b.getBoundingClientRect(); d.man = b.cloneNode(true); d.man.className = 'dkt-roll dkt-ghost'; Object.assign(d.man.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); d.dx = ev.clientX - r.left; d.dy = ev.clientY - r.top; document.body.appendChild(d.man); b.classList.add('dkt-lift'); }
-                d.man.style.left = (ev.clientX - d.dx) + 'px'; d.man.style.top = (ev.clientY - d.dy) + 'px'; return;
+                if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) return;
+                T.drag = null; try { b.releasePointerCapture(ev.pointerId); } catch (er) {}
+                follow(d.id, { u: el.dataset.u, i: +b.dataset.i }, ev); return;     // ✋ 끌기 시작 = 바로 큰 롤(꺼낸 모습)이 손을 따라와요 (도련 11-11)
             }
             d.g.style.left = (ev.clientX - d.dx) + 'px'; d.g.style.top = (ev.clientY - d.dy) + 'px';
         });
         const up = ev => {
             const d = T.drag; if (!d || d.pid !== ev.pointerId) return; T.drag = null;
             if (d.tap) {
-                if (d.man) { d.man.remove(); b.classList.remove('dkt-lift'); if (ev.type === 'pointerup') drop(d.id, { u: el.dataset.u, i: +b.dataset.i }, ev.clientX, ev.clientY); return; }
                 if (ev.type === 'pointerup' && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) use(d.id, b); return;
             }
             d.g.remove(); d.b.classList.remove('dkt-lift');
@@ -120,13 +120,25 @@
             if (!real) { if (window.showMsg) showMsg('⚠ 테이프를 아직 못 받았어요.<br><small>인터넷 연결을 확인해 주세요</small>'); return; }
             id = real; b = null;
         }                                               // 🎀 톡 = 롤이 화면 가운데로 날아와 꺼내져요 (도련 11-11 · 다이어리는 저절로 펴지 않아요 · 붙이려면 다이어리를 톡) → 롤에서 끌어 뽑아 붙여요
-        const c = { x: innerWidth / 2, y: innerHeight / 2 };
-        if (b && window.dkFly) await dkFly(b, c.x, c.y);
-        await out(id, c);
+        const c = { x: innerWidth / 2, y: innerHeight / 2 }, r = b && b.getBoundingClientRect();
+        if (!r || !r.width) { await out(id, c); return; }
+        const s = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        await out(id, s);                                                     // 🎀 그 자리에서 큰 롤(꺼낸 모습)이 되어 → 화면 가운데로 (도련 11-11)
+        if (!window.dsMoveId || matchMedia('(prefers-reduced-motion: reduce)').matches) { if (window.dsMoveId) dsMoveId(id, c.x, c.y); return; }
+        const t0 = performance.now(), D = 420, ez = t => 1 - Math.pow(1 - t, 3);
+        const step = now => { const t = Math.min(1, (now - t0) / D), e = ez(t); dsMoveId(id, s.x + (c.x - s.x) * e, s.y + (c.y - s.y) * e - Math.sin(Math.PI * t) * 40); if (t < 1) requestAnimationFrame(step); };
+        requestAnimationFrame(step);
     }
-    async function drop(id, from, x, y) {                                      // ✋ 끌어 놓은 곳 : 들어갈 보관함 = 넣기 (한 번 골라요) · 아니면 그 자리에 꺼내요
-        if (window.dkDropOn && await dkDropOn(x, y, { k: 'tape', id, from })) return;
-        out(id, { x, y });
+    /* ✋ 큰 롤이 손을 따라와요 (끌어서 꺼내기 · 확대에서 뽑기) → 놓은 곳 : 들어갈 보관함 = 넣기 (한 번 골라요) · 아니면 그 자리 */
+    function follow(id, from, ev) {
+        let at = { x: ev.clientX, y: ev.clientY }, ready = false;
+        out(id, at).then(() => { ready = true; if (window.dsMoveId) dsMoveId(id, at.x, at.y); });
+        const mv = e => { if (e.pointerId !== ev.pointerId) return; at = { x: e.clientX, y: e.clientY }; if (ready && window.dsMoveId) dsMoveId(id, at.x, at.y); };
+        const up = e => {
+            if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true);
+            if (e.type === 'pointerup' && window.dkDropOn) dkDropOn(e.clientX, e.clientY, { k: 'tape', id, from });
+        };
+        addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
     }
     async function out(id, at) {                                              // 🎀 롤 꺼내기 = 그 자리에 (js/basket.js dsTapeOut · 다이어리가 닫혀 있어도 돼요)
         if (!window.dsTapeOut) return;
@@ -141,20 +153,17 @@
         const W = Math.min(innerWidth * .86, 760), H = Math.round(W * ih / iw);
         const n = el.querySelectorAll('.dkt-roll').length;
         r.innerHTML = `<div class="dkw-cupbox"><p class="dkw-hint">${n ? '테이프를 잡고 <b>위로 쏙</b> 끌어 올리면 꺼내져요' : '정리함이 비었어요 · 빈 칸을 톡 하면 서랍의 테이프를 꽂아요'}</p>
-            <div class="dkt-zart" style="width:${W}px;height:${H}px"></div>
-            <div class="dkw-btns"><button type="button" class="dkw-b dkw-x">닫기</button></div></div>`;
+            <div class="dkt-zart" style="width:${W}px;height:${H}px"></div></div>`;   // 닫기 = 밖 톡 (도련 11-11 · 버튼 없이)
         const host = r.querySelector('.dkt-zart'), cl = el.cloneNode(true);
         cl.removeAttribute('data-u'); cl.className = 'desk-item dkt-zitem' + (el.classList.contains('dk-fl') ? ' dk-fl' : '');
         Object.assign(cl.style, { left: 0, top: 0, width: iw + 'px', height: ih + 'px', transform: `scale(${W / iw})`, transformOrigin: '0 0', zIndex: '' });
         cl.querySelectorAll('.dkt-empty, .dk-lb, .dkn-tag').forEach(x => x.remove());
         host.appendChild(cl);
         cl.querySelectorAll('.dkt-roll').forEach(b => pull(b, r, W / iw));
-        r.querySelector('.dkw-x').onclick = () => zoomShut(r);
         r.onpointerdown = e => { if (e.target === r) zoomShut(r); };
-        r.hidden = false; requestAnimationFrame(() => r.classList.add('show'));
-        if (window.dkwFly) dkwFly(host, el);
+        dkwZoomIn(r, host, el);                                              // 🔍 책상 위 작은 정리함은 비워 두고 · 그 자리에서 날아와요
     }
-    function zoomShut(r) { if (!r || r.hidden) return; r.classList.remove('show'); setTimeout(() => { r.hidden = true; r.innerHTML = ''; }, 180); }
+    function zoomShut(r, fast) { if (r && window.dkwZoomOut) dkwZoomOut(r, fast); }   // 날아가 제자리로 (도련 11-11)
     function pull(b, r, k) {                                                  // ✋ 확대한 정리함 롤 : 잡고 위로 = 꺼내기 (펜꽂이와 같아요)
         let p = null; const UP = 70, sc = () => k || 1;
         b.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { b.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, y: e.clientY, x: e.clientX }; b.classList.add('grab'); });
@@ -165,8 +174,8 @@
                 const id = b.dataset.id, ev0 = e; p = null; b.classList.remove('grab');
                 if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
                 const from = where(id);
-                if (window.dkCarry) dkCarry(b, ev0, (x, y) => drop(id, from, x, y)); else out(id, { x: e.clientX, y: e.clientY });   // 뽑은 채로 끌어요 → 놓은 곳 (도련 11-11)
-                b.style.opacity = '0'; zoomShut(r);
+                b.style.opacity = '0'; zoomShut(r, true);
+                follow(id, from, ev0);                                            // 뽑자마자 큰 롤(꺼낸 모습)이 손을 따라와요 → 놓은 곳 (도련 11-11)
             }
         });
         const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; b.classList.remove('grab'); b.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 끌어 올려요', b); };

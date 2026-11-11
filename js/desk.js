@@ -639,7 +639,7 @@
             if (window.stpClose && document.querySelector('#stkPick.show')) stpClose();   // 🍽 오늘 쓸 스티커
             if (window.dkwClose) dkwClose();                                     // ✏️ 🗄️ 펜꽂이 · 문구함 (서랍도 닫혀요)
             if (window.dkwPendOff) dkwPendOff();                                 // ✋ 다이어리를 기다리던 문구 = 제자리로
-            ['dktZoom', 'dkbZoom'].forEach(id => { const z = document.getElementById(id); if (z && !z.hidden) { z.hidden = true; z.innerHTML = ''; z.classList.remove('show'); } });   // 🎀 🧺 확대한 정리함 · 책 바구니
+            ['dktZoom', 'dkbZoom'].forEach(id => { const z = document.getElementById(id); if (z && !z.hidden && window.dkwZoomOut) dkwZoomOut(z, true); });   // 🎀 🧺 확대한 정리함 · 책 바구니 (작은 소품 다시 보여요)
             deskBagOpen(-1);                                                     // 🛍️ 봉투 속 창 (상품은 봉투에 그대로)
             if (DK.edit) deskEditEnd(false);                                     // 🛠 책상 꾸미기 = 취소 (처음대로)
             try { dkvMenu(null); dknPanel(false); dknEmoClose(); const lb = document.getElementById('dkvLbPanel'); if (lb) lb.hidden = true; } catch (e) {}
@@ -1714,23 +1714,22 @@
             const B = [el].concat(vols).map(box).reduce((a, b) => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]);
             const bw = B[2] - B[0], bh = B[3] - B[1], k = Math.min(innerWidth * .7 / bw, innerHeight * .55 / bh, 3);
             const r = dkwRoom('dkbZoom');
-            r.innerHTML = `<div class="dkw-cupbox"><p class="dkw-hint">${vols.length ? '다이어리를 잡고 <b>위로 쏙</b> 뽑아 책상에 놓아요' : '바구니가 비었어요'}</p><div class="dkb-zart" style="width:${Math.round(bw * k)}px;height:${Math.round(bh * k)}px"><div class="dkb-zin" style="width:${bw}px;height:${bh}px;transform:scale(${k})"></div></div><div class="dkw-btns"><button type="button" class="dkw-b dkw-x">닫기</button></div></div>`;
+            r.innerHTML = `<div class="dkw-cupbox"><p class="dkw-hint">${vols.length ? '다이어리를 잡고 <b>위로 쏙</b> 뽑아 책상에 놓아요' : '바구니가 비었어요'}</p><div class="dkb-zart" style="width:${Math.round(bw * k)}px;height:${Math.round(bh * k)}px"><div class="dkb-zin" style="width:${bw}px;height:${bh}px;transform:scale(${k})"></div></div></div>`;   // 닫기 = 밖 톡
             const inn = r.querySelector('.dkb-zin'), put = (o, cls) => { const c = o.cloneNode(true); c.removeAttribute('data-u'); c.classList.add(cls); c.style.left = (parseFloat(o.style.left) - B[0]) + 'px'; c.style.top = (parseFloat(o.style.top) - B[1]) + 'px'; c.style.zIndex = ''; inn.appendChild(c); return c; };
             put(el, 'dkb-zitem');
-            const shut = () => { if (r.hidden) return; r.classList.remove('show'); setTimeout(() => { r.hidden = true; r.innerHTML = ''; }, 180); };
+            const shut = fast => dkwZoomOut(r, fast);                             // 날아가 제자리로 (도련 11-11)
             vols.forEach(v => {
                 const c = put(v, 'dkb-zvol'), id = v.dataset.b; c.classList.remove('cur', 'pose-on'); let p = null;
                 c.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { c.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
                 c.addEventListener('pointermove', e => {
                     if (!p || e.pointerId !== p.id) return; const up = Math.max(0, p.y - e.clientY); c.style.translate = `0 ${(-up / k).toFixed(1)}px`;
-                    if (up > 60) { p = null; if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {} if (window.dkCarry) dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(); }   // ✋ 뽑은 채로 끌어 놓은 자리에
+                    if (up > 60) { p = null; if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {} if (window.dkCarry) dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(true); }   // ✋ 뽑은 채로 끌어 놓은 자리에
                 });
                 const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; c.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 뽑아요', c); };
                 c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
             });
-            r.querySelector('.dkw-x').onclick = shut; r.onpointerdown = e => { if (e.target === r) shut(); };
-            r.hidden = false; requestAnimationFrame(() => r.classList.add('show'));
-            if (window.dkwFly) dkwFly(r.querySelector('.dkb-zart'), el);
+            r.onpointerdown = e => { if (e.target === r) shut(); };
+            dkwZoomIn(r, r.querySelector('.dkb-zart'), el, vols);                 // 🔍 책상 위 작은 바구니 · 안의 다이어리는 비워 두고 · 그 자리에서 날아와요
         }
         window.dkBoxZoom = dkBoxZoom;
         function dkvPlace(id, cx, cy) {
