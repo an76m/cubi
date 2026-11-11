@@ -611,13 +611,13 @@
         const DTM = { i: 0 };
         function dtmPaint() {
             const m = document.getElementById('deskTopMenu'); if (!m) return;
-            m.querySelector('.dtm-main').textContent = DTM_ITEMS[DTM.i][0];
-            m.querySelector('.dtm-list').innerHTML = DTM_ITEMS.map((x, i) => i === DTM.i ? '' : `<button type="button" class="desk-shop-go" onclick="dtmRun(${i})">${x[0]}</button>`).join('');
+            m.querySelector('.dtm-t').textContent = DTM_ITEMS[DTM.i][0];
+            m.querySelector('.dtm-list').innerHTML = DTM_ITEMS.map((x, i) => `<button type="button" role="menuitem" class="${i === DTM.i ? 'on' : ''}" onclick="dtmRun(${i})">${x[0]}</button>`).join('');   // 지금 메뉴도 목록에 (분홍 · 정리 책상 '씰스티커 ▾' 목록처럼 · 도련 11-11)
         }
         function dtmToggle(on) {
             const m = document.getElementById('deskTopMenu'); if (!m) return;
             const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
-            L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-tg').setAttribute('aria-expanded', String(open));
+            L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-main').setAttribute('aria-expanded', String(open));
         }
         function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (!it) return; if (window.dsClear) dsClear(); deskTopGo(it[1]); }   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
@@ -637,7 +637,7 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="dtm-tg" onclick="dtmToggle()" aria-label="다른 메뉴 보기" aria-expanded="false"><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5 6 6.5 11 1.5"/></svg></button><button type="button" class="desk-shop-go dtm-main" onclick="dtmRun(DTM.i)"></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
+                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
             const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); }   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
