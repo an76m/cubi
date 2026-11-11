@@ -50,12 +50,13 @@
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
             host.innerHTML = S.map((r, i) => {
-                const id = ids[i]; if (!id || (T.list && !entry(id))) return '';
+                const id = ids[i]; if (!id || (T.list && !entry(id))) return DK.edit ? '' : `<button type="button" class="dkt-empty" data-i="${i}" title="빈 칸 · 톡 = 서랍에서 꺼내 꽂기" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"></button>`;   // 🎀 빈 칸 톡 = 서랍 테이프 꽂기 (도련 11-11)
                 const e = entry(id), q = e && e.q0 ? Math.max(.25, Math.min(1, e.q / e.q0)) : 1, th = e && e.th ? e.th : '';
                 const H = (r[3] - r[1]) * (.55 + .45 * q), W = (r[2] - r[0]) * .86;   // 남은 길이만큼 지름이 줄어요
                 return `<button type="button" class="dkt-roll${window.dsHas && dsHas(id) ? ' dkt-out' : ''}" data-i="${i}" data-id="${htmlEsc(id)}" title="🎀 마스킹테이프" style="left:${(r[0] + (r[2] - r[0] - W) / 2).toFixed(2)}%;top:${(r[3] - H).toFixed(2)}%;width:${W.toFixed(2)}%;height:${H.toFixed(2)}%"><i style="width:${(H / 100 * ih).toFixed(1)}px;height:${(W / 100 * iw).toFixed(1)}px;background-image:url(&quot;${htmlEsc(th)}&quot;)"></i></button>`;   // 무늬 = 테이프 결 그대로 세로로 (롤 둘레)
             }).join('') + (d.front && img ? `<i class="dkt-front"><i style="--fm:url('${htmlEsc(new URL(d.front, location.href).href)}')"><img src="${htmlEsc(img.src)}" alt="" draggable="false"></i></i>` : '');
             host.querySelectorAll('.dkt-roll').forEach(b => wire(b, el));
+            host.querySelectorAll('.dkt-empty').forEach(b => { b.addEventListener('pointerdown', ev => ev.stopPropagation()); b.addEventListener('click', ev => { ev.stopPropagation(); fill(el, +b.dataset.i); }); });
         });
         if (dirty) write(M);
         if (!T.list || T.who !== who()) load(true);
@@ -134,6 +135,34 @@
         let r; try { r = await showAsk(html, '', '취소'); } finally { if (a) a.style.display = ''; }
         return typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
     }
+    /* 🔁 옮기기 (도련 11-11 · js/deskmove.js) : from = { u, i } (정리함 칸) 또는 null (서랍) · hit = { u, i } 칸 또는 null (= 서랍으로) → true = 옮겼어요
+         칸이 차 있으면 서로 바꿔요 (서랍에서 온 것은 바꾸지 않고 '찬 칸') */
+    function put(id, from, hit) {
+        const M = read();
+        if (hit) {
+            if (from && hit.u === from.u && hit.i === from.i) return false;
+            const to = (M[hit.u] || []).slice(), o0 = to[hit.i] || null, other = o0 && T.list && !entry(o0) ? null : o0;   // 다 쓴 · 버린 롤 칸 = 빈 칸
+            if (other && !from) { showMsg('🎀 이미 테이프가 꽂힌 칸이에요.<br><small>빈 칸에 꽂아요</small>'); return false; }
+            while (to.length <= hit.i) to.push(null);
+            if (from && from.u === hit.u) { to[hit.i] = id; to[from.i] = other; M[hit.u] = to; }
+            else { to[hit.i] = id; M[hit.u] = to; if (from) { const f = (M[from.u] || []).slice(); f[from.i] = other; M[from.u] = f; } }
+        } else if (from) { const f = (M[from.u] || []).slice(); f[from.i] = null; M[from.u] = f; }
+        else return false;
+        write(M); paint(); return true;
+    }
+    /* 🎀 빈 칸 톡 = 서랍(정리함에 없는 테이프)에서 하나 골라 꽂기 */
+    async function fill(el, i) {
+        if (!T.list) { load(true); showMsg('🎀 테이프 목록을 읽는 중이에요.<br><small>잠시 뒤 다시 눌러 주세요</small>'); return; }
+        const H = held(), L = T.list.filter(e => e && e.id && !H.has(e.id) && (e.q0 ? e.q > 0 : true) && !(window.dsHas && dsHas(e.id)));
+        if (!L.length) { showMsg('🎀 서랍에 꽂을 마스킹테이프가 없어요.'); return; }
+        const html = `🎀 <b>${i + 1}번째 칸</b>에 꽂을 테이프를 골라요<br><span style="font-size:12px;color:#777;">서랍(마스킹테이프 칸)에 있는 테이프예요</span><div class="dkt-pickl">`
+            + L.map((e, k) => `<button type="button" onclick="closeMsg('t${k}')" title="${htmlEsc(e.nm || '마스킹테이프')}"><i style="background-image:url('${htmlEsc(e.th || '')}')"></i></button>`).join('') + '</div>';
+        const a = document.getElementById('customAlertConfirmBtn'); if (a) a.style.display = 'none';
+        let r; try { r = await showAsk(html, '', '취소'); } finally { if (a) a.style.display = ''; }
+        if (typeof r !== 'string' || r[0] !== 't') return;
+        const e = L[+r.slice(1)]; if (e && put(e.id, null, { u: el.dataset.u, i })) dkbPulse(el);
+    }
+    window.dktApi = { slotAt, put, isRack, held, paint: () => paint() };
     /* 🛍️ 봉투 카드를 정리함에 (js/desk.js dkbHome 맨 앞) : 처리했으면 true · 칸은 고르는 창에서 (도련 11-04) */
     window.dktDrop = (t, it, n, j, cx, cy) => {
         if (!isRack(t)) return false;

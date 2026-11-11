@@ -131,3 +131,15 @@ html.an .pc-lay { filter: none; }
 .dkt-front img { display: block; width: 100%; height: 100%; }
 html.an .dkt-roll { border-color: var(--an-ol, #7a4a5a); }
 .dkt-roll.dkt-out { opacity: .28; }   /* 🎀 페이지에 꺼내 둔 롤 (✕ 로 치우면 다시 · js/basket.js dsTapeOut) */
+/* 🔁 꾹 잡아 옮기기 (도련 11-11 · js/deskmove.js) */
+.dkm-ghost { position: fixed !important; z-index: 2147482900; translate: -50% -60%; rotate: -5deg; pointer-events: none !important; opacity: .92; filter: drop-shadow(0 8px 10px rgba(90,40,60,.3)); margin: 0 !important; right: auto !important; bottom: auto !important; }
+.dkm-from { opacity: .35 !important; }
+#dyModal.dkm-see > .modal-content { opacity: .18; pointer-events: none; transition: opacity .15s; }
+.dkt-roll, .dk-vol, #dkwCup .dkw-t, #dkwTray .dkw-it, #dyModal .dy-it { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+/* 🎀 정리함 빈 칸 = 톡 하면 서랍에서 골라 꽂아요 (보이지 않는 칸 · 마우스를 올리면 살짝) */
+.dkt-empty { position: absolute; pointer-events: auto; padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
+.dkt-empty:hover { background: rgba(255, 143, 178, .22); box-shadow: inset 0 0 0 2px rgba(255, 107, 136, .45); }
+.dkt-pickl { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; max-height: 46vh; overflow: auto; }
+.dkt-pickl button { width: 64px; height: 64px; padding: 4px; border: 2px solid #f0d7e1; border-radius: 50%; background: #fff; cursor: pointer; }
+.dkt-pickl button:hover { border-color: #ff6b88; }
+.dkt-pickl i { display: block; width: 100%; height: 100%; border-radius: 50%; background: center / cover no-repeat; }
