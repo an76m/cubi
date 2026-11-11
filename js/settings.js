@@ -393,8 +393,24 @@
         const BC_SEL = {};
         function bcToggle(el) { const id = el.dataset.k; BC_SEL[id] = !BC_SEL[id]; el.classList.toggle('on', BC_SEL[id]); el.setAttribute('aria-checked', BC_SEL[id] ? 'true' : 'false'); }
         window.bcToggle = bcToggle;
+        /* ⏳ 진행 창 (도련 11-11 : 누르고 나서 되는 건지 알 수 없어요 → 무엇을 하는지 · 몇 번째 · 막대 · 닫지 마세요) : 화면 전체를 덮어 다른 걸 못 눌러요 */
+        const BCP = { el: null, leave: e => { e.preventDefault(); e.returnValue = ''; } };
+        function bcProg(title, text, i, n) {
+            let el = BCP.el;
+            if (!el) {
+                el = BCP.el = document.createElement('div'); el.className = 'bc-prog'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-live', 'polite');
+                el.innerHTML = '<div class="bc-pcard"><b class="bc-ptt"></b><p class="bc-ptx"></p><div class="bc-pbar"><i></i></div><small class="bc-pn"></small><small class="bc-pwarn">⚠ 끝날 때까지 창을 닫거나 새로고침하지 마세요</small></div>';
+                document.body.appendChild(el); addEventListener('beforeunload', BCP.leave);
+            }
+            el.querySelector('.bc-ptt').textContent = title; el.querySelector('.bc-ptx').textContent = text || '';
+            const bar = el.querySelector('.bc-pbar'), done = n ? Math.min(1, (i + (i < n ? .5 : 0)) / n) : 0;   // 하고 있는 단계는 반만큼 채워 보여요
+            bar.classList.toggle('wait', !n); bar.firstChild.style.width = n ? Math.round(done * 100) + '%' : '';
+            el.querySelector('.bc-pn').textContent = n ? `${Math.min(i + 1, n)} / ${n} 단계` : '';
+        }
+        function bcProgOff() { if (BCP.el) { BCP.el.remove(); BCP.el = null; } removeEventListener('beforeunload', BCP.leave); }
         async function clearBrowserStore() {
-            const G = await bcScan();
+            bcProg('🧹 살펴보는 중', '이 브라우저에 남은 것을 세고 있어요');
+            let G; try { G = await bcScan(); } finally { bcProgOff(); }
             const kinds = BC_KINDS.filter(k => G[k.id] && G[k.id].n);
             if (!kinds.length) { showMsg('🧹 이 기기 브라우저에 지울 것이 없어요.'); return; }
             Object.keys(BC_SEL).forEach(k => delete BC_SEL[k]);
@@ -407,26 +423,32 @@
             const sel = kinds.filter(k => BC_SEL[k.id]);
             if (!sel.length) { showMsg('고른 것이 없어서 지우지 않았어요.'); return; }
             const S = id => !!BC_SEL[id] && !!(G[id] && G[id].n);
-            try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } catch (e) {}
+            try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') { bcProg('☁ 드라이브에 먼저 올리는 중', '바뀐 내용을 잃지 않게 올리고 지워요 (최대 15초)'); await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } } catch (e) {} finally { bcProgOff(); }
             const bad = sel.filter(k => k.warn);
             if (bad.length && !await showAsk(`⚠ 아래 것은 지우면 <b>되살릴 수 없어요</b>.<br><br>${bad.map(k => k.ic + ' ' + k.t).join('<br>')}<br><br>그래도 지울까요?`, '지우기', '취소')) return;
             if (!S('pend') && typeof drive !== 'undefined' && drive.dirty && !await showMsg('⚠ 아직 드라이브에 올리지 못한 것이 있어요.<br>새로고침하면 다음에 다시 올려요. 계속할까요?', true)) return;
             const delDb = n => bcWait(new Promise(r => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }), 3000);
             const clr = (db, sts) => Promise.all(sts.map(st => bcTx(db, st, 'readwrite', o => o.clear())));
-            try { const K = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && S(bcLsKind(k))) K.push(k); } K.forEach(k => localStorage.removeItem(k)); } catch (e) {}
-            if (S('login')) try { sessionStorage.clear(); } catch (e) {}
+            const T = [];                                                         // [보여 줄 글, 할 일] 차례로
+            T.push(['⚙ 이 기기 기억 지우는 중', () => { try { const K = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && S(bcLsKind(k))) K.push(k); } K.forEach(k => localStorage.removeItem(k)); } catch (e) {} if (S('login')) try { sessionStorage.clear(); } catch (e) {} }]);
+            const DBN = { 'mallang-coll': '🖼 읽어 둔 스티커 · 그림 · 목록', 'mallang-pending': '⏳ 못 올린 것', 'malang-device': '🏠 로그인 없이 쓴 다이어리' };
             for (const n of G.dbs) {
                 if (n === 'mallang-coll') {
                     const sts = [].concat(S('cache') ? ['orig', 'list'] : [], S('pend') ? ['outbox'] : [], S('gcoll') ? ['local'] : []);
-                    if (sts.length === 4) await delDb(n); else if (sts.length) await bcIdb(n, db => clr(db, sts));
-                } else if (n === 'mallang-pending') { if (S('pend')) await delDb(n); }
-                else if (n === 'malang-device') { if (S('dev')) await delDb(n); } else if (S('etc')) await delDb(n);
+                    if (sts.length) T.push([DBN[n] + ' 지우는 중', () => sts.length === 4 ? delDb(n) : bcIdb(n, db => clr(db, sts))]);
+                } else if (n === 'mallang-pending') { if (S('pend')) T.push([DBN[n] + ' 지우는 중', () => delDb(n)]); }
+                else if (n === 'malang-device') { if (S('dev')) T.push([DBN[n] + ' 지우는 중', () => delDb(n)]); }
+                else if (S('etc')) T.push(['🧪 그 밖의 브라우저 저장 지우는 중', () => delDb(n)]);
             }
-            if (S('app')) {
+            if (S('app')) T.push(['📦 앱 파일 · 업데이트 장치 지우는 중', async () => {
                 try { if (window.caches) { const K = await caches.keys(); await Promise.all(K.map(k => bcWait(caches.delete(k)))); } } catch (e) {}
                 try { if (navigator.serviceWorker) { const R = await bcWait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(R)) await Promise.all(R.map(r => bcWait(r.unregister()))); } } catch (e) {}
-            }
-            if (S('etc')) try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); for await (const [n] of R.entries()) await bcWait(R.removeEntry(n, { recursive: true })); } } catch (e) {}
+            }]);
+            if (S('etc')) T.push(['🧪 그 밖의 브라우저 파일 지우는 중', async () => { try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); for await (const [n] of R.entries()) await bcWait(R.removeEntry(n, { recursive: true })); } } catch (e) {} }]);
+            for (let i = 0; i < T.length; i++) { bcProg('🧹 지우는 중', T[i][0], i, T.length); try { await T[i][1](); } catch (e) {} await new Promise(r => setTimeout(r, 120)); }   // 너무 빨라도 무엇을 했는지 보이게 잠깐
+            bcProg('✅ 다 지웠어요', '앱을 새로 여는 중이에요', T.length, T.length);
+            await new Promise(r => setTimeout(r, 700));
+            removeEventListener('beforeunload', BCP.leave);                      // 새로 열 때는 묻지 않아요
             location.reload();
         }
         window.clearBrowserStore = clearBrowserStore;
