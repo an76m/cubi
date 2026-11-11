@@ -1131,7 +1131,16 @@
                         dkSave(); dkLayers(); deskModeRender(); }
                     dkbTake(n, j); return;
                 }
-                if (it.ds) { const R = stg && stg.getBoundingClientRect(); if (R && e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom && !e.target.closest('#dkBagPanel')) dkbTake(n, j); return; }   // 🧱 🪵 벽지 · 책상 = 이미 📦 소품함에 · 책상에 놓으면 꺼낸 걸로
+                if (it.ds) {                                                      // 🧱 벽지 = 벽에 · 🪵 책상 = 책상에 끌어다 놓으면 바로 바뀌어요 (도련 11-11 · 서랍 · 소품에는 못 넣어요)
+                    const R = stg && stg.getBoundingClientRect(); if (!R || e.clientX < R.left || e.clientX > R.right || e.clientY < R.top || e.clientY > R.bottom || e.target.closest('#dkBagPanel')) return;   // 책상 화면 밖 = 다시 봉투로
+                    const say = it.ds === 'wall' ? '🧱 벽지는 <b>벽</b>에 끌어다 놓아요.' : '🪵 책상은 <b>책상</b>에 끌어다 놓아요.';
+                    if (t) { showMsg(say); return; }                              // 서랍 · 소품 위
+                    const s = DK.s || 1, x = (e.clientX - R.left) / s, y = (e.clientY - R.top) / s;
+                    const edge = 720 + (x < 140 ? (140 - x) / 140 * 56 : x > 1538 ? (x - 1538) / 134 * 53 : 0);   // 벽과 책상이 만나는 선 (js/maker.js roomSvg 와 같은 자리)
+                    if ((y < edge ? 'wall' : 'top') !== it.ds) { showMsg(say); return; }
+                    if (window.dsPut) dsPut(it.u, it.lk && it.lk.sid).then(k => { if (k) dkbTake(n, j); else showMsg('⚠ 이 상품을 찾지 못했어요.<br><small>잠시 뒤 다시 해 주세요</small>'); });
+                    return;
+                }
                 if (it.al && it.b) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }   // 📒 🤍 새 스티커첩 = 놓은 자리에 그 책
                 if (it.k === 'tool' && it.b) {                                    // 📔 새 다이어리 : 빈 곳 = 놓은 자리에 그 권 · 소품 위 = 책상에 놓을지 · 소품 안에 넣을지 물어봐요 (도련 10-31)
                     const tk = t && DK.items.find(x => x.u === t.dataset.u);

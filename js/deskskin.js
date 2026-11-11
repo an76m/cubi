@@ -148,6 +148,13 @@
             if (!(typeof DK !== 'undefined' && DK.edit && DS.edit)) dsSave(s);
             dsPaint(); if (window.deskBoxRender) deskBoxRender();
         }
+        /* 🛍️ 봉투에서 꺼내 벽 · 책상에 놓기 (도련 11-11) : u = 그 하나 (예전 카드는 상품 id 로 가장 나중에 받은 것) → 바로 바뀌어요 · 'wall' | 'top' | '' */
+        async function dsPut(u, id) {
+            try { await dsReady(); } catch (e) { return ''; }                   // 💤 먼저 가진 것
+            const s = dsCur(), it = s.own.find(x => x.u === u) || (id ? [...s.own].reverse().find(x => x.id === id) : null);
+            if (!it || !dsCat(it.id)) return ''; dsUse(it.u); return dsCat(it.id).k;
+        }
+        window.dsPut = dsPut;
         /* 🗑 버리기 (마지막 하나도 · 쓰던 것이면 그림 그대로로) */
         async function dsDiscard(u) {
             try { await dsReady(); } catch (e) { return; }                      // 💤 먼저 가진 것
