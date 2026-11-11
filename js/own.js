@@ -210,11 +210,12 @@
                 try { base = ownIdxClean((await ownUnlock(await readFileText(bk.id))).list, k); bkOk = true; }
                 catch (e) { if (e && e.code === 'corrupt') return none(); throw e; }
             }
+            const bkReal = bkOk, tb0 = d0.tBase;                                                  // 이 폴더의 진짜 백업이 있는지 (휴지통 목록은 빼고 · 아래 '방금 만든 종이뿐' 기다림에 써요 · 11-11)
             if (Array.isArray(d0.tBase)) { const tb = ownIdxClean(d0.tBase, k); tb.forEach(e => { if (!base.some(b => b.id === e.id)) base.push(e); }); if (tb.length) bkOk = true; d0.tBase = null; }   // 🗑 휴지통에 들어간 목록도 바탕으로 (받은 때 · 이름 · 바구니 미리보기)
             /* 백업도 없으면 : 그 폴더에 종이 파일이 있을 때만 종이로 되살려요 (예전엔 '처음 쓰는 종류'로 보고 빈 목록 → 종이는 남았는데 안 보이던 것 · 도련 11-06) */
             const files = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).filter(x => /^[a-z0-9]+\.json$/i.test(x.name));   // 내 종이만 (_ 목록 · 스티커첩 · 백업 · 공유하기 내-/받은- 파일은 빼요)
             if (!bkOk && !files.length) return none();                          // 종이도 없으면 = 정말 처음 쓰는 종류
-            if (!bkOk && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) { if (window.diag) diag('rescueWait', { k, papers: files.length }); return none(); }   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
+            if (!bkReal && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) { d0.tBase = tb0; if (window.diag) diag('rescueWait', { k, papers: files.length }); return none(); }   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
             const got = new Map(); let i = 0;
             await Promise.all(Array.from({ length: 4 }, async () => {
                 while (i < files.length) {

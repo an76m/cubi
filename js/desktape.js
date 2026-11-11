@@ -45,6 +45,8 @@
             const S = slotsOf(el), ids = (M[el.dataset.u] || []).slice(0, S.length), ov = T.ov[el.dataset.u] || [];
             ov.forEach((id, i) => { if (id && !ids[i]) ids[i] = id; });   // 🎁 저장 중인 처음 선물 롤도 같이
             if (T.list && ids.some(id => id && !entry(id))) { if (!T.fresh) load(true); else if (!T.retry && (T.tries || 0) < 10) { T.tries = (T.tries || 0) + 1; T.retry = setTimeout(() => { T.retry = 0; T.fresh = false; load(true); }, 3000); } }   // 늦게 들어오는 롤 = 3초마다 다시 (10번까지)   /* 목록에 없는 롤 = 그리지만 않아요 · 칸에서 빼지 않아요 (도련 11-04 고침 : 드라이브는 방금 받은 롤이 목록 파일에 늦게 들어와서 처음 선물 롤이 칸에서 빠졌어요) · 빈 칸 정리는 새 롤을 꽂을 때 (dktDrop) */
+            { const why = ids.map(id => { if (!id || (T.list && !entry(id))) return ''; const e = entry(id); return !e ? 'nolist' : !e.th ? 'noth' : /^data:image\/svg/.test(e.th) || e.th.startsWith('blob:') ? '' : 'raster'; }).filter(Boolean);   // 🧾 하얀 롤 까닭 (11-11 · 도련 : 어느 순간 하얗게 → 다음엔 문제 기록으로 알아봐요)
+              if (why.length && window.diag) { const key = why.sort().join(','); if (T.white !== key) { T.white = key; T.whiteT = setTimeout(() => { if (T.white === key) diag('tapeWhite', { why: key.slice(0, 60), list: T.list ? T.list.length : -1, who: who() ? 1 : 0, fresh: T.fresh ? 1 : 0 }); }, 4000); } } else if (!why.length) T.white = ''; }   // 4초 넘게 하얀 채일 때만 (읽는 중 잠깐은 빼요)
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
             host.innerHTML = S.map((r, i) => {
