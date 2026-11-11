@@ -256,6 +256,7 @@ html.desk-edit #deskBoxModal { padding-top: 0; padding-bottom: 80px; }
 html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-only, #shelfCornerModal .obj-win .mt-x {
   background: none !important; border: 0 !important; box-shadow: none !important; outline: 0; color: #e07595 !important; font-size: 19px !important; font-weight: 800; line-height: 1; padding: 0 !important; width: 32px !important; height: 32px !important; min-width: 0 !important; display: grid; place-items: center; cursor: pointer; }
 .x-only { position: absolute; right: 10px; top: 10px; z-index: 3; font-family: inherit; }
+#moveModal .modal-title.mt-bar .mt-back { height: 32px; padding: 0 14px !important; font-size: 15px !important; font-weight: 800; }   /* 🚪 이동 창 '설정' = 오른쪽 ✕ 와 같은 높이 · 글씨 크게 (도련 11-11 : 너무 작아 안 보여요) */
 .gp-card .gp-close.x-only { width: 32px; margin: 0; }
 .wl-view-box, .pk-body { position: relative; }
 .dr-head-btns .x-only { position: static; }
