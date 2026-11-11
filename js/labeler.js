@@ -121,7 +121,7 @@
                     <div class="lbm-out" id="lbmOut"><div class="lbm-tape"><img id="lbmOutImg" alt="" draggable="false"></div></div>
                     <div class="lbm-body">
                       <div class="lbm-head">
-                        <div class="lbm-brand"><b>라벨기</b><small>글씨 씰스티커 만들기</small></div>
+                        <div class="lbm-brand"><b>라벨기</b><small>글씨 스티커 만들기</small></div>
                         <div class="lbm-lcd" id="lbmLcd">
                           <div class="lbm-st"><span id="lbmF"></span><span id="lbmS"></span><i id="lbmC"></i><span id="lbmB">테두리</span><span id="lbmM"></span></div>
                           <div class="lbm-line"><div class="lbm-txt" id="lbmTxt"></div></div>
