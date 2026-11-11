@@ -168,7 +168,7 @@
                 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !r.hidden) dsTryOff(); });
             }
             const st = r.querySelector('.ds-try-st'), old = st.querySelector('.desk-skin'); if (old) old.remove();
-            const html = dsBasic(id) ? '' : c.k === 'wall' ? dsSvg(id, '') : dsSvg('', id);   // 기본 = 방 그림 그대로
+            const html = (dsBasic(id) ? '' : c.k === 'wall' ? dsSvg(id, '') : dsSvg('', id)).replace(/id="dk/g, 'id="dkTry').replace(/url\(#dk/g, 'url(#dkTry');   // 기본 = 방 그림 그대로 · 무늬 이름을 책상 화면 것과 다르게 (같으면 지금 내 방 벽지가 보였어요 · 도련 11-11)
             if (html) st.querySelector('.desk-room').insertAdjacentHTML('afterend', html);
             r.hidden = false; dsTryFit();
         }

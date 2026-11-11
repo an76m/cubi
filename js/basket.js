@@ -2061,7 +2061,7 @@
         let down = null;
         document.addEventListener('pointerdown', e => {
             const m = document.getElementById('shelfKindModal');
-            down = m && m.style.display === 'flex' && !e.target.closest('.modal-content, .alert-card, #customAlertModal, #dskLayer, .shop-spot, .shop-x') ? [e.clientX, e.clientY] : null;
+            down = m && m.style.display === 'flex' && !e.target.closest('.modal-content, .alert-card, #customAlertModal, #dskLayer, .shop-spot, .shop-x, .ds-try') ? [e.clientX, e.clientY] : null;
         }, true);
         document.addEventListener('pointerup', e => {
             if (!down) return; const [x, y] = down; down = null;
