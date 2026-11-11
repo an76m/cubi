@@ -1516,7 +1516,7 @@
         /* 🗑 버리기 · 🏪 받기 (도련 10-27) */
         function gdCabBinMode(g) { cabBin = cabBin === g ? null : g; gdCabRender(); }
         async function gdCabBinTap(id) { if (await gdBin(id)) gdCabRender(); }
-        /* 🗑 문구 버리기 → 휴지통 30일 (js/bin.js · 도련 11-02 · 📱 문구함 서랍 · 👝 보관함 · 🪑 책상 문구함 모두 여기로) : 파일은 그대로 → 되살리면 내 문구로 · 30일 뒤 파일 삭제 */
+        /* 🚛 문구 버리기 → 바로 영구 삭제 (js/bin.js · 도련 11-11 · 📱 문구함 서랍 · 👝 보관함 · 🪑 책상 문구함 모두 여기로) */
         const gdBinName = id => String((((window.prodList ? prodList('문구') : []).find(v => v.id === id) || {}).P || {}).이름 || '');   // 상품 이름 그대로
         async function gdBin(id) {
             const all = (gdOwnList() || []).filter(x => x.id === id); if (!all.length) return false;

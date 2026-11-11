@@ -1059,7 +1059,7 @@
                 el.appendChild(span);
             }
 
-            el.dataset.lt = +data.lt || 1;                                    // 🔒 시각이 없으면 = 고정
+            { const lk = window.dyyLockAt ? dyyLockAt() : 0; el.dataset.lt = +data.lt > lk ? +data.lt : 1; }   // 🔒 시각이 없으면 = 고정 · 🗑 되살린 다이어리는 되살린 때까지 꾸민 것 모두 고정 (도련 11-11 · 볼 수만)
             if (interactive) makeTransformable(el);
             { const ta = el.querySelector('textarea'); if (ta && interactive && elLocked(el)) ta.readOnly = true; }   // 🔒 고정된 글은 못 고쳐요
 

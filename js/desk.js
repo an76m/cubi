@@ -217,7 +217,7 @@
         }
         const dkBackupOnce = dkMemo(async () => { const [a, ...bs] = await Promise.all([dkBackupRead0()].concat(DK_BB.map(w => keyMade(w) ? dkBackRead(w) : null))); return a || bs.some(Boolean) ? Object.assign({}, ...bs.filter(Boolean), a || {}) : null; }, 30000);   // 설정 백업 + 백 목록 백업 = 한 모습 (되살리기는 그대로)
         const dkBackupRead = () => drive.newbie && !dkBkWrote ? Promise.resolve(null) : dkBackupOnce();   // 🆕 처음 온 다꾸러 = 아직 백업이 없어요 (도련 11-06)
-        const DK_BK_KEYS = [DK_POS_KEY, 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_bin', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
+        const DK_BK_KEYS = [DK_POS_KEY, 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
         let dkBkBusy = false, dkBkWrote = false;
         /* 🛟 백 목록 백업 하나 (그 폴더 / _목록_백업.json · 하루 한 번 · 만든 적 있고 읽은 목록만 · 모르는 키는 예전 백업 그대로)
              목록 파일이 처음 생기면 바로 한 번 (첫날에 사라져도 되살리게 · js/drive.js KEY_MADE · 도련 11-07) */
@@ -277,7 +277,7 @@
         function dkRebuild(had, bk, files) {
             const pos = new Map((bk && dkJoin(bk[DK_OWN_KEY], bk[DK_POS_KEY]) || []).filter(o => o && o.u).map(o => [o.u, o]));
             const now = prefGet(DK_POS_KEY, DK_POS_LOCAL), live = now && typeof now === 'object' && !Array.isArray(now) && Object.keys(now).length ? now : null;   // 📍 지금 배치.json 이 있으면 그게 진짜 자리 (도련 11-07 · 목록만 없어졌어요)
-            const out = [], seen = new Set((window.binList ? binList() : []).filter(e => e.k === 'dk').map(e => e.id));   // 🗑 휴지통에 있는 것은 빼요 (파일은 30일 남아 있어요 · 도련 11-07 고침)
+            const out = [], seen = window.goneHeal ? goneHeal('dk', bk) : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (목록이 정답 · 백업 속 칸도 · 도련 11-11)
             const add = (o, def) => {
                 if (!o || !o.u || seen.has(o.u) || !dkCat(o.id)) return; seen.add(o.u);
                 const c = dkCat(o.id), b = pos.get(o.u), L = live && live[o.u];
@@ -290,8 +290,8 @@
         }
         /* 드라이브를 읽은 뒤 : 소품 · 문구 목록이 아직 없으면 → 되살리기 (백업 · 백업 속 선물 · 소품 · 문구 폴더) · 아무것도 없으면 처음 선물 (책상 소품 모두 + 문구 모두) */
         let giftBusy = false;
-        /* 🛟 _휴지통목록.json · _내정보.json 이 없어졌으면 = _백업.json 에서 (도련 11-06 · 하루 한 번만 물어봐요 · 처음 온 다꾸러는 안 물어요) */
-        const DK_KR = { binown: ['diary_bin'], me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts'] };
+        /* 🛟 _내정보.json 이 없어졌으면 (🗑 _휴지통목록.json 은 없앴어요 · 도련 11-11) = _백업.json 에서 (도련 11-06 · 하루 한 번만 물어봐요 · 처음 온 다꾸러는 안 물어요) */
+        const DK_KR = { me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts'] };
         let dkKR = false;
         async function dkKeyRescue() {
             if (dkKR || !giftOn() || drive.newbie || !drive.deskNone || drive.deskLocked) return;
@@ -341,7 +341,7 @@
                 }
                 if (gdNull) {
                     if (back && window.gdSetList) {
-                        const seen = new Set((window.binList ? binList() : []).filter(e => e.k === 'gd').map(e => e.id)), L = [];   // 🗑 휴지통에 있는 것은 빼요
+                        const seen = window.goneHeal ? goneHeal('gd', bk) : new Set(), L = [];   // 🚛 영구삭제 번호는 되살리지 않아요 (도련 11-11)
                         (files ? files.gd : []).forEach(f => { if (!seen.has(f.u)) { seen.add(f.u); L.push({ u: f.u, id: f.id, c: f.c }); } });   // ✏️ 하나하나 (같은 것이 여럿이어도 · 도련 11-07)
                         (had && Array.isArray(had.gd) ? had.gd : []).forEach(id => { if (!seen.has(id)) { seen.add(id); L.push({ u: id, id, g: 1 }); } });   // 🎁 선물 = u 가 디자인 id
                         gdSetList(L);
@@ -696,16 +696,16 @@
             o.at = where; dkSave(); deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
             if (DK.edit && where === 'desk') { const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (el) deskSelect(el); }   // 놓은 소품을 바로 골라 줘요
         }
-        async function deskDiscard(u) {                                          // 🗑 버리기 → 휴지통 30일 (js/bin.js · 도련 11-02 · 파일은 그대로 두고 되살릴 수 있어요)
+        async function deskDiscard(u) {                                          // 🚛 버리기 → 바로 영구 삭제 (js/bin.js · 도련 11-11 상품 = 쓰레기차)
             if (DK.partial && !(await dkOwnReady().catch(() => false))) return;   // 💤 먼저 가진 것 목록
             const o = DK.items.find(x => x.u === u); if (!o || dkFnBlock(u, '버릴')) return;
             if (!window.binAsk || !await binAsk(dkName(o))) return;
             DK.items = DK.items.filter(x => x.u !== u); dkSave();
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
-            if (DK.edit) { if (window.showMsg) showMsg('🗑 버릴게요.<br><small>하단 ✔ 완료를 누르면 휴지통으로 가요 (✕ 취소 = 그대로)</small>'); return; }   // 🛠 꾸미는 중이면 확정할 때
+            if (DK.edit) { if (window.showMsg) showMsg('🚛 버릴게요.<br><small>하단 ✔ 완료를 누르면 영구 삭제돼요 (✕ 취소 = 그대로)</small>'); return; }   // 🛠 꾸미는 중이면 확정할 때
             await dkBin([o]); binTold('');
         }
-        /* 🗑 휴지통으로 (파일 · 🎁 선물은 그대로 기억 → 되살리면 소품함으로) */
+        /* 🚛 영구 삭제 (영구삭제 칸 + 받은- 파일 · 🎁 선물은 파일이 없어요) */
         async function dkBin(L) {
             for (const o of L) await binAdd({ k: 'dk', id: o.u, o: Object.assign({ u: o.u, id: o.id }, o.c ? { c: o.c } : {}, o.g ? { g: 1 } : {}) });
         }

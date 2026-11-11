@@ -46,7 +46,7 @@
             const w = ownWho();
             if (O.kw === w) return;
             O.kw = w; O.key = null; O.kd = {}; O.idx = null; O.album = null;
-            if (ownMode() === 'mem') O.mem = { idx: {}, files: new Map(), alb: {} };   // 종류마다
+            if (ownMode() === 'mem') O.mem = { idx: {}, files: new Map(), alb: {}, gone: {} };   // 종류마다
         }
 
         /* ---------- 🔐 암호화 (계정마다 다른 열쇠 · 압축 → AES-GCM) ---------- */
@@ -75,6 +75,27 @@
             const out = new Uint8Array(13 + ct.length); out[0] = z; out.set(iv, 1); out.set(ct, 13);
             return JSON.stringify({ v: 1, d: await ownB64(out) });
         }
+        /* 🔐 드라이브에 저장되는 모든 json (도련 11-11) : 글 그대로 통째로 잠가요 = {"mlk":1,"d":…} (ownLock 과 같은 열쇠 · 같은 방식 · 모양만 달라요)
+             js/drive.js driveUpsert 가 올릴 때 잠그고 · readFileText 가 읽을 때 열어요 → 부르는 쪽은 예전처럼 글을 주고받아요 */
+        async function ownSealText(text, who) {
+            let b = ownEnc(String(text)), z = 0;
+            if (window.CompressionStream) { b = await ownZip(b, new CompressionStream('gzip')); z = 1; }
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await ownKeyOf(who), b));
+            const out = new Uint8Array(13 + ct.length); out[0] = z; out.set(iv, 1); out.set(ct, 13);
+            return JSON.stringify({ mlk: 1, d: await ownB64(out) });
+        }
+        async function ownOpenText(text, who) {
+            let o; try { o = JSON.parse(text); } catch (e) { o = null; }
+            if (!o || o.mlk !== 1 || typeof o.d !== 'string') { const er = new Error('corrupt'); er.code = er.type = 'corrupt'; throw er; }
+            const u = ownUnB64(o.d);
+            let b;
+            try { b = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u.slice(1, 13) }, await ownKeyOf(who), u.slice(13))); }
+            catch (e) { const er = new Error('locked'); er.code = er.type = 'corrupt'; throw er; }   // 다른 계정 열쇠 · 깨진 파일 → 절대 덮어쓰지 않아요
+            if (u[0]) b = await ownZip(b, new DecompressionStream('gzip'));
+            return ownDec(b);
+        }
+        window.ownSealText = ownSealText; window.ownOpenText = ownOpenText;
         async function ownUnlock(text, who) {
             let o; try { o = JSON.parse(text); } catch (e) { o = null; }
             if (!o || typeof o.d !== 'string') { const er = new Error('corrupt'); er.code = 'corrupt'; throw er; }
@@ -117,6 +138,7 @@
             } catch (e) { console.warn('📁 종류 폴더 한 번에 찾기', e); }
         }
         /* 종류마다 기억 (O.kd[종류]) : live = 남은 종이 목록 · at = 읽은 때 · f = 목록 파일 · txt = 잘 읽힌 목록 글 · alb = 스티커첩 · albF · albTxt */
+        const ownGoneClean = v => { const seen = new Set(); return (Array.isArray(v) ? v : []).filter(x => x && typeof x.u === 'string' && !seen.has(x.u) && seen.add(x.u)); };
         const ownK = k => O.kd[k] || (O.kd[k] = { live: null, at: 0, f: null, txt: '', alb: null, albF: null, albTxt: '' });
         const ownKs = ks => (ks == null ? OWN_KS : (Array.isArray(ks) ? ks : [ks])).filter(k => OWN_KIND[k]);
         const ownAlbEmpty = () => ({ bd: [], rl: [], g: {} });
@@ -166,7 +188,7 @@
         }
         async function ownIdxRead(k, pre) {                                      // pre : 이미 찾은 목록 파일 (ownOpenKind · null = 없음)
             ownReset();
-            if (ownMode() === 'mem') return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() }));
+            if (ownMode() === 'mem') { ownK(k).gone = (O.mem.gone[k] || []).slice(); return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() })); }
             const d = ownK(k);
             const find = async () => { const dir = await ownKindDir(k, false); return dir ? findFile(dir, OWN_IDX) : null; };
             let f = pre;
@@ -189,7 +211,8 @@
             if (!t.trim()) return ownRescue(k, 'missing');
             let o; try { o = await ownUnlock(t); } catch (e) { const r = await ownRescue(k, 'corrupt'); if (r) return r; throw e; }
             d.txt = t;                                                           // 🛟 잘 읽힌 목록만 백업해요 (ownBackup)
-            const L0 = ownIdxClean(o.list, k); d.n = L0.length;
+            d.gone = ownGoneClean(o.gone);                                       // 🚛 영구삭제 칸 (그 종류 목록 안 · 도련 11-11)
+            const gs = new Set(d.gone.map(x => x.u)), L0 = ownIdxClean(o.list, k).filter(e => !gs.has(e.id)); d.n = L0.length;
             return L0;
         }
         /* 🛟 목록 되살리기 (도련 10-26 · 11-05 종류마다) : 그 종류 목록 파일이 없어졌거나 깨졌을 때만
@@ -206,7 +229,7 @@
             let base = [], bkOk = false;
             const bk = await findFile(dir, OWN_IDX_BK), d0 = ownK(k);
             if (bk) {
-                try { base = ownIdxClean((await ownUnlock(await readFileText(bk.id))).list, k); bkOk = true; }
+                try { const bo = await ownUnlock(await readFileText(bk.id)); base = ownIdxClean(bo.list, k); bkOk = true; d0.gone = ownGoneClean((d0.gone || []).concat(ownGoneClean(bo.gone))); }   // 🚛 백업 속 영구삭제 칸도
                 catch (e) { if (e && e.code === 'corrupt') return none(); throw e; }
             }
             const bkReal = bkOk, tb0 = d0.tBase;                                                  // 이 폴더의 진짜 백업이 있는지 (휴지통 목록은 빼고 · 아래 '방금 만든 종이뿐' 기다림에 써요 · 11-11)
@@ -215,6 +238,7 @@
             const files = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).filter(x => /^[a-z0-9]+\.json$/i.test(x.name));   // 내 종이만 (_ 목록 · 스티커첩 · 백업 · 공유하기 내-/받은- 파일은 빼요)
             if (!bkOk && !files.length) return none();                          // 종이도 없으면 = 정말 처음 쓰는 종류
             if (!bkReal && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) { d0.tBase = tb0; if (window.diag) diag('rescueWait', { k, papers: files.length }); return none(); }   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
+            const goneS = new Set((d0.gone || []).map(x => x.u)); base = base.filter(e => !goneS.has(e.id));   // 🚛 영구삭제 번호는 되살리지 않아요
             const got = new Map(); let i = 0;
             await Promise.all(Array.from({ length: 4 }, async () => {
                 while (i < files.length) {
@@ -222,6 +246,7 @@
                     let s; try { s = await ownUnlock(await readFileText(x.id)); } catch (e) { continue; }
                     if (!s || !Array.isArray(s.imgs) || !/^[\w-]{4,40}$/.test(s.id || '')) continue;
                     const was = got.get(s.id);
+                    if (goneS.has(s.id)) continue;                                // 🚛 (못 지운 종이 파일이 남았어도)
                     if (!was || String(x.modifiedTime) > String(was.x.modifiedTime)) got.set(s.id, { x, s });
                 }
             }));
@@ -257,6 +282,14 @@
             ownSaidT = setTimeout(() => { if (typeof showMsg === 'function') showMsg('🛟 스티커 목록 파일이 없어졌거나 깨져서 <b>백업으로 되살렸어요.</b><br><span style="font-size:12px;color:#777;">스티커는 그대로예요. 바인더 · 이형지 자리는 백업한 날로 돌아갔을 수 있어요.</span>'); }, 300);
         }
         /* 🛟 하루 한 번 목록 · 스티커첩 백업 (종류마다 · 그날 그 종류를 처음 열고 잘 읽혔을 때 · 3초 뒤 · 뒤에서 · 바구니 여는 속도에 영향 없어요) */
+        async function ownBackupNow(k) {                                          // 🚛 영구 삭제한 뒤 바로 (도련 11-11 · 하루 한 번 백업이 예전 줄을 들고 있지 않게)
+            if (ownMode() !== 'drive') return;
+            try {
+                const d = ownK(k); if (!d.f) return;
+                const t = await readFileText(d.f.id), dir = await ownKindDir(k, false); if (!dir || !t) return;
+                const f = await findFile(dir, OWN_IDX_BK); await driveUpsert(dir, OWN_IDX_BK, f && f.id, t);
+            } catch (e) { console.warn('🛟 스티커 목록 백업 (다음에 다시)', k, e); }
+        }
         async function ownBackup(k) {
             const d = ownK(k);
             if (ownMode() !== 'drive' || !d.txt) return;
@@ -271,8 +304,8 @@
             } catch (e) { console.warn('스티커 목록 백업을 못 했어요 (다음에 다시) :', k, e); }
         }
         async function ownIdxWrite(k, list) {
-            if (ownMode() === 'mem') { O.mem.idx[k] = list.map(e => Object.assign({}, e, { u: e.u.slice() })); return; }
-            const d = ownK(k), body = await ownLock({ v: 1, k, list });
+            if (ownMode() === 'mem') { O.mem.idx[k] = list.map(e => Object.assign({}, e, { u: e.u.slice() })); O.mem.gone[k] = (ownK(k).gone || []).slice(); return; }
+            const d = ownK(k), body = await ownLock(Object.assign({ v: 1, k, list }, d.gone && d.gone.length ? { gone: d.gone } : {}));   // 🚛 영구삭제 칸도 같은 파일에 (영원히)
             let saved;
             try { saved = await driveUpsert(await ownKindDir(k, true), OWN_IDX, d.f && d.f.id, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; d.f = null; saved = await driveUpsert(await ownKindDir(k, true), OWN_IDX, null, body); }
@@ -949,27 +982,25 @@
                     const list = await ownIdxRead(k), i = list.findIndex(e => e.id === id);
                     if (i < 0) continue;
                     fid = list[i].f;                                                // 버린 뒤 칸을 쓰면 파일 번호가 바뀌어요 → 목록의 지금 번호
+                    const d = ownK(k); d.gone = ownGoneClean((d.gone || []).concat([{ u: id, at: Date.now() }]));   // 🚛 영구삭제 칸 (영원히 · 도련 11-11)
                     list.splice(i, 1); await ownIdxWrite(k, list); ownSetKind(k, list);
+                    ownBackupNow(k);                                   // 🛟 백업에도 바로 (예전 백업으로 되살아나지 않게)
                     break;
                 }
                 await ownFileKill(fid);
                 ownTell();
             });
         }
-        /* 버리기 (여러 장 한 번에 · 묻기 · 알리기까지) : 🧺 바구니 · ✂️ 스티커 만들기 */
+        /* 🚛 버리기 (여러 장 한 번에 · 묻기 · 알리기까지) : 🧺 바구니 · ✂️ 스티커 만들기 · 도련 11-11 상품 = 바로 영구 삭제 (종이 파일 + 영구삭제 칸) */
         async function ownDiscard(ids, name) {
             if (!ids.length || !window.binAsk || !await binAsk(name)) return false;
-            let got;
-            try { got = await ownBinSet(ids, true); } catch (e) { console.warn('🗑', e); showMsg('⚠ 버리지 못했어요. 잠시 후 다시 해 주세요.'); return false; }
-            for (const r of got) await binAdd(Object.assign({ k: 'own' }, r));
-            binTold('');
+            let bad = 0;
+            for (const id of ids) { try { await ownPurge(id); } catch (e) { console.warn('🚛', e); bad++; } }
+            if (bad === ids.length) { showMsg('⚠ 버리지 못했어요. 잠시 후 다시 해 주세요.'); return false; }
+            binTold(bad ? `⚠ ${bad}개는 버리지 못했어요. 잠시 후 다시 해 주세요.` : '');
             return true;
         }
-        if (window.BIN_KINDS) BIN_KINDS.own = {
-            name: ownBinName,
-            restore: async e => { const r = await ownBinSet([e.id], false, e.kk); if (!r.length) throw new Error('gone'); },
-            purge: e => ownPurge(e.id, e.f, e.kk)
-        };
+        if (window.BIN_KINDS) BIN_KINDS.own = { purge: e => ownPurge(e.id, e.f, e.kk) };   // 예전 휴지통 목록 옮기기 (js/bin.js binMigrate)
         window.ownDiscard = ownDiscard;
         window.ownTapeFix = ownTapeFix; window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;

@@ -279,6 +279,10 @@
         }
         async function dvRelock(text, to) {                              // 🔐 'device' 열쇠 → 구글 계정 열쇠 (파일 통째 · 안에 든 글 모두)
             const one = async str => { try { return await ownLock(await ownUnlock(str, 'device'), to); } catch (e) { return str; } };   // 못 열면 그대로
+            if (/^\{"mlk":1,"d":"/.test(text)) {                              // 🔐 통째로 잠근 json (도련 11-11) : 'device' 로 열고 → 안에 잠긴 글도 바꾸고 → 구글 열쇠로 다시 잠가요
+                let inner; try { inner = await ownOpenText(text, 'device'); } catch (e) { return text; }
+                return ownSealText(await dvRelock(inner, to), to);
+            }
             if (DV_LOCKED.test(text)) return one(text);
             if (!text.includes('"v\\":1,\\"d\\"') && !text.includes('{\\"v\\":1')) return text;   // 안에 잠긴 글이 없으면 그대로 (대부분)
             let o; try { o = JSON.parse(text); } catch (e) { return text; }

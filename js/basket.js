@@ -167,13 +167,13 @@
     }
     window.bkShare = bkShare;
     document.addEventListener('DOMContentLoaded', () => { const b = document.querySelector('.ish-in'); if (b) b.hidden = !window.SHARE_ON; });   // 🙈 스티커 창 '공유 파일 불러오기' = 공유 스위치 따라 (js/itemshare.js SHARE_ON)
-    /* 🗑 버리기 (도련 11-02 · 현실처럼 모든 상품) : 이 바구니의 종이를 골라 → 휴지통 30일 (js/own.js ownDiscard · js/bin.js) */
+    /* 🚛 버리기 (도련 11-02 · 현실처럼 모든 상품) : 이 바구니의 종이를 골라 → 바로 영구 삭제 (도련 11-11 · 상품 = 쓰레기차 · js/own.js ownDiscard · js/bin.js) */
     function bkBin() {
         if (!B.list.length || !window.ownDiscard) return;
         const nm = BK_KINDS[B.kind] || '스티커';
         const el = document.createElement('div'); el.className = 'shx-pop ish-pick';
         el.innerHTML = `<div class="alert-card ish-card"><b class="shx-t">🗑 버릴 ${esc(nm)}를 골라요</b><div class="ish-grid">${B.list.slice().reverse().map(e => `<label class="ish-it"><input type="checkbox" value="${esc(e.id)}"><span class="ish-card-in">${bkCard(e)}</span></label>`).join('')}</div>`
-            + `<div class="alert-btns"><button type="button" class="btn btn-primary" data-ok>🗑 휴지통</button><button type="button" class="btn" data-no>취소</button></div></div>`;
+            + `<div class="alert-btns"><button type="button" class="btn btn-primary" data-ok>🚛 버리기</button><button type="button" class="btn" data-no>취소</button></div></div>`;
         document.body.appendChild(el);
         el.querySelector('[data-no]').onclick = () => el.remove();
         el.querySelector('[data-ok]').onclick = async () => {

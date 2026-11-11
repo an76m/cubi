@@ -299,19 +299,43 @@
         /* 🪑 책상배치 폴더 = 역할마다 파일 하나 (도련 11-06 · 예전엔 배치.json 하나에 목록 · 자리 · 설정이 다 있었어요) · 모두 🔐 계정 열쇠 · 바뀐 파일만 올라가요 (소품을 옮기면 배치.json 만) */
         const DESK_FILE_KEYS = {
             desk: ['diary_desk_pos', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_desk_dy', 'diary_desk_bags', 'diary_desk_home'],   // 📍 배치.json : 책상 위 소품 자리 · ✏️ 문구의 집 · 🎀 정리함에 꽂힌 롤 · 👝 보관함에서 펜꽂이에 꽂은 필기구 (도련 11-06) · 📔 책상 위 다이어리 · 🛍️ 봉투 · 상품을 넣은 소품
-            dkown: ['diary_desk_own', 'diary_skin_own'],   /* 소품 + 🧱 🪵 벽지 · 책상판 (지금 고른 것은 책상설정.json 'diary_desk_skin') */                                                                        // 🔐 _소품목록.json
-            gdown: ['diary_gd_own'],                                                                          // 🔐 문구 / _목록N.json
+            dkown: ['diary_desk_own', 'diary_skin_own', 'diary_dk_gone'],   /* 소품 + 🧱 🪵 벽지 · 책상판 (지금 고른 것은 책상설정.json 'diary_desk_skin') */                                                                        // 🔐 _소품목록.json
+            gdown: ['diary_gd_own', 'diary_gd_gone'],                                                                          // 🔐 문구 / _목록N.json
             deskset: ['diary_desk_fn', 'diary_desk_skin', 'diary_share_got'],                                 // ⚙ 책상설정.json
-            dyown: ['diary_own', 'diary_book_n', 'diary_books'],   /* diary_books = 페이지형 규격 → 권 (982 · 여러 권을 잇는 표라 목록에) */                                                              // 🔐 다이어리 / _목록.json : 권마다 한 줄 · 날짜형 권 번호 (펼친 권 'diary_year' 는 설정.json · js/dyown.js)
+            dyown: ['diary_own', 'diary_book_n', 'diary_books', 'diary_dy_gone', 'diary_dy_bin'],   /* diary_books = 페이지형 규격 → 권 (982 · 여러 권을 잇는 표라 목록에) */                                                              // 🔐 다이어리 / _목록.json : 권마다 한 줄 · 날짜형 권 번호 (펼친 권 'diary_year' 는 설정.json · js/dyown.js)
             bmown: ['diary_cover_own', 'diary_refill_own'],                                                   // 🧩 다이어리 / _바인더재료목록.json (표지 · 내지)
             esown: ['diary_sbd_own', 'diary_rlb_own'],                                                        // 📥 빈스티커첩 / _목록.json (📒 바인더 · 🤍 이형지북)
-            bgown: ['diary_bg_own'],                                                                          // 🔐 배경지 / _목록.json (💤 lazy)
+            bgown: ['diary_bg_own', 'diary_bg_gone'],                                                                          // 🔐 배경지 / _목록.json (💤 lazy)
             binown: ['diary_bin'],                                                                            // 🔐 _휴지통목록.json (js/bin.js)
 
             me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts']                      // 🔐 _내정보.json : 🔒 잠금(해시) · 별명 · 생년월일 · 전화기 연락처
         };
         const DESK_WHICH = Object.keys(DESK_FILE_KEYS), DESK_KEYS = [].concat(...Object.values(DESK_FILE_KEYS));
         const isDeskFile = w => DESK_WHICH.includes(w);
+        /* 🚛 영구삭제 칸 (도련 11-11 · 상품은 버리면 쓰레기차 = 바로 영구 삭제 · 되살리기 없음) : 그 종류 목록 파일 안 🔐 { u: 상품 번호, at } · 영원히 남아요
+           - '목록이 정답' : 두 기기 목록을 합칠 때 영구삭제 칸은 늘 양쪽을 모두 (지워지지 않아요) → 그 번호가 가진 목록에 남아 있으면 빼요 (영구삭제 > 휴지통 > 사용 중)
+           - 📔 쓴 다이어리의 휴지통 칸 diary_dy_bin 도 같은 파일 (쓴 다이어리 = 기록이 묶여 있어 30일 · js/dyyear.js) */
+        const GONE_OF = { dkown: { g: ['diary_dk_gone'], l: ['diary_desk_own', 'diary_skin_own'] }, gdown: { g: ['diary_gd_gone'], l: ['diary_gd_own'] }, dyown: { g: ['diary_dy_gone', 'diary_dy_bin'], l: ['diary_own'] }, bgown: { g: ['diary_bg_gone'], l: ['diary_bg_own'] } };
+        const GONE_KEYS = ['diary_dk_gone', 'diary_gd_gone', 'diary_dy_gone', 'diary_bg_gone'];
+        const goneArr = v => { if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { v = null; } } return Array.isArray(v) ? v.filter(x => x && typeof x.u === 'string') : []; };
+        function goneUnion(k, theirs) {                                            // 이 기기가 고친 영구삭제 칸 + 다른 기기 것 = 모두
+            if (!GONE_KEYS.includes(k)) return false;
+            const m = goneArr(store.getItem(k)), t = goneArr(theirs), seen = new Set(m.map(x => x.u)), add = t.filter(x => !seen.has(x.u));
+            if (!add.length) return false;
+            store.putLoaded(k, JSON.stringify(m.concat(add))); drive.dirtyKeys.add(k);   // 합친 것을 올려요
+            return true;
+        }
+        function goneScrub(which) {                                                // 가진 목록에 남은 영구삭제 · 휴지통 번호를 빼요 (오래된 기기가 덮어쓴 것)
+            const G = GONE_OF[which]; if (!G) return;
+            const ids = new Set(); G.g.forEach(k => goneArr(store.getItem(k)).forEach(x => ids.add(x.u)));
+            if (!ids.size) return;
+            G.l.forEach(k => {
+                let v = null; try { v = JSON.parse(store.getItem(k)); } catch (e) {}
+                if (!Array.isArray(v)) return;
+                const n = v.filter(x => !(x && ids.has(typeof x.u === 'string' ? x.u : x.id)));
+                if (n.length !== v.length) { store.setItem(k, JSON.stringify(n)); if (window.diag) diag('goneScrub', { k, n: v.length - n.length }); }
+            });
+        }
         const DESK_START = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !KEY_FILES[w].chunk && KEY_FILES[w].path === DESK_PATH);
         const DESK_START2 = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !DESK_START.includes(w));   // 🚀 켤 때 읽는 백 목록 (✏️ 문구 · 📔 다이어리 · 설정 폴더 밖 · 동시에)          // 🚀 앱을 켤 때 읽는 것 (설정 폴더 · 💤 lazy 는 빼요 · 도련 11-07)
         const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best']);   // ☕ 카페.json 으로 가는 키
@@ -402,7 +426,64 @@
         async function readFileText(id) {
             const res = await gfetch(`${DRIVE_API}/${id}?alt=media`);
             if (!res.ok) throw await driveFail(res, 'read');
-            return await res.text();
+            const t = await res.text();
+            return SEAL_RE.test(t) ? sealOpen(t) : t;                         // 🔐 잠긴 json 은 열어서 글로 (도련 11-11)
+        }
+        /* 🔐 드라이브에 저장되는 모든 json 은 잠가요 (도련 11-11 · 사용자가 열어 보거나 고칠 수 없게) : 계정 열쇠 (🏠 로그인 없이 = 'device' · js/own.js ownSealText)
+             - 올릴 때 (driveUpsert) 잠그고 · 읽을 때 (readFileText) 열어요 → 일기 · 휴지통 · 인형 · 인형극 · 도안 · 설정 · 검색 … 부르는 쪽은 그대로
+             - 이미 잠긴 것 (ownLock {"v":1,"d"} · 스티커 · 목록 …) 은 그대로 · 못 열면 'corrupt' (덮어쓰지 않아요)
+             - 예전에 글 그대로 저장한 파일은 sealOld 가 조금씩 잠가요 (잠근 뒤 다시 읽어 같은지 확인 · 다르면 원래대로) */
+        const SEAL_RE = /^\{"mlk":1,"d":"/, LOCK_RE = /^\{"v":1,"d":"[A-Za-z0-9+/=]*"\}$/;
+        async function sealWho() { if (typeof COLL !== 'undefined' && COLL.who && COLL.who !== 'guest') return COLL.who; return typeof collWhoami === 'function' ? collWhoami() : 'me'; }
+        async function sealOpen(t) {
+            try { return await ownOpenText(t, await sealWho()); }
+            catch (e) {                                                            // 계정이 바뀐 사이일 수 있어요 → 한 번 다시 묻고
+                if (typeof collWhoami !== 'function') throw e;
+                const w = await collWhoami().catch(() => ''); if (!w) throw e;
+                try { return await ownOpenText(t, w); } catch (x) { diag('sealBad', {}); throw x; }
+            }
+        }
+        /* 🔐 예전 파일 잠그기 (도련 11-11) : 로그인한 뒤 뒤에서 조금씩 (한 번에 40개) · 앞 몇 글자만 보고 글 그대로인 json 만
+             잠근 글이 열리는지 먼저 확인 → 올리기 → 다시 읽어 원래 글과 같은지 확인 (다르면 원래 글로 되돌려요 · 일기를 잃지 않게)
+             그새 고친 파일 (수정 시각이 바뀜) · 이 기기에 아직 안 올린 것이 있으면 건너뛰어요 (다음에) · 다 잠근 뒤엔 30일에 한 번만 다시 봐요 */
+        let sealOldBusy = false;
+        async function sealOld() {
+            if (sealOldBusy || !drive.ready || drive.guest || !window.ownSealText) return;
+            const who = await sealWho(), LS = 'malang_sealold';
+            let m = {}; try { m = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+            if (m[who] && Date.now() - m[who] < 30 * 864e5) return;
+            sealOldBusy = true;
+            let left = false, done = 0;
+            try {
+                const fs = (await driveList(`mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,parents,modifiedTime')).filter(f => /\.json$/i.test(f.name || ''));
+                let i = 0;
+                const peek = async f => { const r = await gfetch(`${DRIVE_API}/${f.id}?alt=media`, { headers: { Range: 'bytes=0-15' } }); if (!r.ok && r.status !== 206) return null; return (await r.text()).trim(); };
+                const plain = [];
+                await Promise.all(Array.from({ length: 4 }, async () => {
+                    while (i < fs.length) { const f = fs[i++]; const h = await peek(f).catch(() => null); if (h && !/^\{"mlk":1/.test(h) && !/^\{"v":1,"d":"/.test(h)) plain.push(f); }
+                }));
+                for (const f of plain) {
+                    if (done >= 40 || drive.dirtyKeys.size || !drive.ready || drive.guest) { left = true; break; }
+                    const r = await gfetch(`${DRIVE_API}/${f.id}?alt=media`); if (!r.ok) continue;
+                    const t = await r.text(); if (!t.trim() || SEAL_RE.test(t) || LOCK_RE.test(t)) continue;
+                    const sealed = await ownSealText(t, who);
+                    if (await ownOpenText(sealed, who) !== t) { diag('sealOld', { bad: 'open', name: f.name }); continue; }
+                    const meta = await driveMeta(f.id); if (!meta || meta.modifiedTime !== f.modifiedTime) { left = true; continue; }   // 그새 고쳤어요 → 다음에
+                    await driveUpsert((f.parents || [])[0], f.name, f.id, sealed, true);
+                    let back = null; try { back = await readFileText(f.id); } catch (e) {}
+                    if (back !== t) { await driveUpsert((f.parents || [])[0], f.name, f.id, t, true); diag('sealOld', { bad: 'back', name: f.name }); continue; }   // 🛟 원래 글로
+                    done++;
+                }
+                if (!left) { m[who] = Date.now(); try { localStorage.setItem(LS, JSON.stringify(m)); } catch (e) {} }
+                if (done) diag('sealOld', { n: done, left: left ? 1 : 0 });
+            } catch (e) { console.warn('🔐 예전 파일 잠그기 (다음에 다시)', e); }
+            finally { sealOldBusy = false; }
+            if (left) setTimeout(sealOld, 60000);
+        }
+        async function bodySeal(name, body) {
+            if (typeof body !== 'string' || !/\.json$/i.test(String(name || '')) || !window.ownSealText) return body;
+            const t = body.trim(); if (!t || SEAL_RE.test(t) || LOCK_RE.test(t)) return body;
+            return ownSealText(body, await sealWho());
         }
         /* 파일 정보만 (내용 X) : 휴지통에 있거나 없어졌으면 null */
         async function driveMeta(id) {
@@ -668,10 +749,11 @@
                 const { fs } = await chunkList(which), known = C.files || new Map();
                 if (fs.length !== known.size || fs.some(f => !known.has(f.n) || known.get(f.n).id !== f.id || known.get(f.n).modifiedTime !== f.modifiedTime)) {
                     const o = await fetchChunked(which) || {};
-                    keys.forEach(k => { if (mine.has(k) || drive.dirtyKeys.has(k)) return; const v = k in o ? JSON.stringify(o[k]) : null; if (store.getItem(k) !== v) store.putLoaded(k, v); });
+                    keys.forEach(k => { const v = k in o ? JSON.stringify(o[k]) : null; if (mine.has(k) || drive.dirtyKeys.has(k)) { goneUnion(k, v); return; } if (store.getItem(k) !== v) store.putLoaded(k, v); });   // 🚛 영구삭제 칸은 양쪽 모두
                 }
             }
             if (drive.keyNone) drive.keyNone.delete(which);
+            goneScrub(which);                                                      // 🚛 목록이 정답
             const B = chunkSplit(which), D = drive.chunks[which]; let mt = '', made = false;
             for (const n of [...new Set([...B.keys(), ...D.files.keys()])].sort((a, b) => a - b)) {
                 const body = chunkBody(which, B.get(n) || {}), cur = D.files.get(n);
@@ -687,7 +769,7 @@
         }
         /* 💤 쓸 때 읽는 목록 파일 (도련 11-07 · 첫 접속자에게 필요한 파일만) : 그 창을 열거나 바꿀 때 한 번 · 없으면 그대로 (바뀔 때 처음 생겨요) · 못 열면 덮어쓰지 않아요
            → true = 읽었어요 (파일이 없어도) · 게스트 · 로그인 전 = 할 일 없음 · 못 닿으면 에러 (다음에 다시) */
-        function keyFileLoad(which) {
+        function keyFileLoad(which, mine) {                                    // mine = 올리는 중인 키 (dirtyKeys 에서 옮겨 둔 것 · 11-11 : 덮어쓰지 않게)
             const F = KEY_FILES[which];
             if (!F || !F.lazy || !drive.ready || drive.guest) return Promise.resolve(true);
             if (drive.lazyOn.has(which)) return Promise.resolve(true);
@@ -698,8 +780,8 @@
                 try { o = await fetchKeyFile(which); }
                 catch (e) { if (!(e && e.type === 'corrupt')) throw e; if (gen === drive.gen) { drive.lazyBad.add(which); drive.lazyOn.add(which); } diag('lazyBad', { w: which }); return true; }   // 🔐 남의 것 · 깨짐 = 그대로 두고 안 써요
                 if (gen !== drive.gen) return false;
-                if (o) Object.keys(o).forEach(k => { if (keyFile(k) === which && !drive.dirtyKeys.has(k)) store.putLoaded(k, JSON.stringify(o[k])); });
-                drive.lazyOn.add(which);
+                if (o) Object.keys(o).forEach(k => { if (keyFile(k) !== which) return; if (!drive.dirtyKeys.has(k) && !(mine && mine.has(k))) store.putLoaded(k, JSON.stringify(o[k])); else goneUnion(k, o[k]); });   // 🚛 먼저 적은 영구삭제 칸 + 파일 것
+                drive.lazyOn.add(which); goneScrub(which);
                 return true;
             })();
             drive.lazyBusy.set(which, p);
@@ -877,7 +959,8 @@
         }
 
         /* fileId가 있으면 그 파일을 덮어쓰고, 없으면 folderId 안에 새로 만듭니다 */
-        async function driveUpsert(folderId, name, fileId, body) {
+        async function driveUpsert(folderId, name, fileId, body, raw) {
+            if (!raw) body = await bodySeal(name, body);                             // 🔐 json 은 잠가서 (도련 11-11 · raw = 받은 글 그대로)
             if (fileId) {
                 const res = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime,trashed`, Object.assign({
                     method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body
@@ -938,6 +1021,7 @@
                 if (!isSettingKey(k) || keyFile(k) !== which) return;
                 const v = JSON.stringify(obj[k]);
                 if (keep(k)) {                                                  // 이 기기에서도 고친 값
+                    if (goneUnion(k, v)) changed = true;                          // 🚛 영구삭제 칸은 양쪽 모두
                     if (which === 'cafe' && v !== drive.cafeBase.get(k)) {       // ☕ 다른 기기도 고쳤어요 → 한쪽만 남기지 않고 합쳐요
                         const mv = store.getItem(k), merged = cafeMerge(k, drive.cafeBase.get(k), mv, v);
                         if (merged !== mv) { store.putLoaded(k, merged); changed = true; }
@@ -1041,20 +1125,21 @@
         async function writeKeyFile(which, mine) {
             const F = KEY_FILES[which];
             if (isDeskFile(which) && drive.deskLocked && !F.lazy) return;      // 🔐 못 연 책상배치 파일이 있으면 덮어쓰지 않아요
-            if (F.lazy) { await keyFileLoad(which); if (drive.lazyBad.has(which)) return; }
+            if (F.lazy) { await keyFileLoad(which, mine); if (drive.lazyBad.has(which)) return; }
             if (F.chunk) { if (drive.deskLocked && !F.lazy) return; return writeChunked(which, mine); }   // 📚 나눠 담는 목록   // 💤 아직 안 읽은 목록은 먼저 읽고 (고친 키는 그대로) · 못 연 목록은 덮어쓰지 않아요 (도련 11-07)
             const dir = await getFolder(F.path, true);
             const known = drive[F.prop];
             let cur = known ? await driveMeta(known.id) : null;
             if (!cur && !(known == null && ((drive.deskNone && drive.deskNone.delete(which)) || (drive.keyNone && drive.keyNone.delete(which))))) cur = await findFile(dir, F.name);   // 처음이거나 지워졌으면 이름으로 한 번 더 찾기 (방금 읽을 때 없던 책상배치 파일은 건너뛰어요 · 한 번만 · 다른 기기가 먼저 만들었으면 아래에서 합쳐요)
             if (cur && (!known || cur.id !== known.id || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, mine);
+            goneScrub(which);                                                      // 🚛 목록이 정답
             let body = settingsBody(which);
             let saved = await driveUpsert(dir, F.name, cur && cur.id, await keyFileSeal(which, body));
             if (!cur) {                                                             // 📄📄 다른 기기가 거의 동시에 같은 파일을 먼저 만들었으면 : 그 파일에 합쳐서 하나로
                 const first = await findFile(dir, F.name);
                 if (first && first.id !== saved.id) {
                     await mergeKeyFile(which, first, mine);
-                    body = settingsBody(which);
+                    goneScrub(which); body = settingsBody(which);
                     const fin = await driveUpsert(dir, F.name, first.id, await keyFileSeal(which, body));
                     await toTrash(saved.id, F.name, 'a');                           // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
                     saved = fin;
@@ -1067,6 +1152,8 @@
 
         /* 일기 하루 올리기 : 다른 기기가 그 사이 같은 날을 고쳤으면 물어봐요 */
         async function writeDay(key) {
+            const dk0 = parseDayKey(key);
+            if (dk0 && dk0.b && window.dyyDead && dyyDead(dk0.b)) { drive.dirtyKeys.delete(key); if (window.dyyDeadSay) dyyDeadSay(dk0.b); return; }   // 🚛 🗑 버린 다이어리에는 저장하지 않아요 (폴더를 다시 만들지 않게 · 목록이 정답 · 도련 11-11)
             const val = store.getItem(key);
             const name = fileOfKey(key), lab = keyLabel(key);
             const idx = await idxOfKey(key, val !== null);                          // 올릴 때만 폴더 (📕 권 정보 파일) 를 만들어요
@@ -1095,6 +1182,7 @@
                 return;
             }
             const saved = await driveUpsert(idx.folderId, name, cur && cur.id, val);    // 있으면 덮어쓰기, 없으면 새 파일
+            if (dk0 && dk0.b && window.dyyUsedMark) dyyUsedMark(dk0.b);             // ✍️ 한 번 꾸미면 영원히 '쓴 다이어리' (도련 11-11 · 표지도)
             if (!cur) {                                                             // 📄📄 새로 만들었으면 : 다른 기기가 거의 동시에 같은 날 파일을 먼저 만들었는지 바로 확인
                 const first = await findFile(idx.folderId, name);
                 if (first && first.id !== saved.id) {
@@ -1242,7 +1330,9 @@
             await recoverPendingBackup();
             if (window.dfFix) dfFix();                                       // 🗂 꾸민 페이지만 보기 : 꾸민 날 목록 (js/skins.js)
             if (window.deskLoginShow) deskLoginShow();                       // 📔 로그인하면 늘 다이어리 겉표지 (js/desk.js)
+            setTimeout(sealOld, 20000);                                      // 🔐 예전 파일 잠그기 (뒤에서 조금씩 · 도련 11-11)
         }
+        window.sealOld = sealOld;
 
         /* 드라이브에서 불러온 데이터를 화면에 반영 */
         function applyLoadedData() {

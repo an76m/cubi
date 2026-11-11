@@ -6,7 +6,7 @@
        · 🆕 처음 온 다꾸러 = 선물 배경지가 있으면 첫 접속에 바로 _목록.json 한 줄씩 (from 선물 · 받은- 파일 없음 · 선물이 없으면 목록 파일도 안 만들어요 · 도련 11-07)
        · 목록 파일이 없으면 = 되살리기 (배경지 폴더 파일 + _백업.json + 백업 속 from 선물 · js/desk.js giftRead)
        · 🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 배경지 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 내가 만든 배경지 = 내-) · 🎁 처음 선물(g: 1)은 목록 한 줄만 (파일 없음 · 03_저장지도 0)
-       · 설정.json 에 목록이 없어지면 = 배경지 폴더 파일로 되살려요 · 🗑 버리면 휴지통 30일 → 파일 삭제
+       · 설정.json 에 목록이 없어지면 = 배경지 폴더 파일로 되살려요 · 🚛 버리면 바로 영구 삭제 (도련 11-11)
    - 쓰던 배경지를 버려서 같은 배경지가 하나도 안 남으면 배경을 빼요
    ※ js/skins.js · js/bin.js 다음에 읽어요 (patItems · patCatsPaint · renderPatternList 가 여기 함수를 불러요 · js/basket.js 샵) */
 
@@ -36,7 +36,7 @@
             const lost = keyMade('bgown') || (bk && Array.isArray(bk.diary_bg_own) && bk.diary_bg_own.some(x => x && !x.g && !x.start));   // 📝 목록 파일을 만든 적이 있어요 (또는 백업에 받은 것) = 없어진 것 · 아니면 아직 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
             const F = lost ? await ofScan(DIRS.pattern) : [];                    // 못 읽으면 에러 → 다음에 다시
             if (prefGet(BGO_KEY, BGO_LOCAL) !== null) return;
-            const gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'bg').map(e => e.id));
+            const gone = window.goneHeal ? goneHeal('bg', bk) : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (목록이 정답 · 백업 속 칸도 · 도련 11-11)
             const bkL = bk && Array.isArray(bk.diary_bg_own) ? bk.diary_bg_own.filter(x => x && x.u && typeof x.p === 'string' && !gone.has(x.u)) : null;   // 🛟 설정 / _백업.json (도련 11-06 · _배경지목록.json 이 없어졌어요)
             const L = (bkL || []).concat(F.filter(f => !gone.has(f.u) && !(bkL || []).some(x => x.u === f.u)).map(f => ({ u: f.u, p: f.id, c: f.c })))
                 .concat((had && Array.isArray(had.bg) ? had.bg : []).filter(g => g && g.u && typeof g.p === 'string' && !gone.has(g.u) && !F.some(f => f.u === g.u) && !(bkL || []).some(x => x.u === g.u)).map(g => ({ u: g.u, p: g.p, g: 1 })));

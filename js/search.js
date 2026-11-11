@@ -44,7 +44,7 @@
         const srScope = key => { const p = parseDayKey(key); if (p) return 'd' + p.b;   /* 📔 권마다 (d2026mint2) */ const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
         /* 목록 파일 자리 : { dir, name } (create : 폴더가 없으면 만들기) */
         async function srLoc(s, create) {
-            if (s[0] === 'd') return { dir: await getFolder(dyBookDir(s.slice(1)), create), name: '검색.json' };   // 📔 그 권 폴더 / 검색.json
+            if (s[0] === 'd') return { dir: await getFolder(dyBookDir(s.slice(1)), create && !(window.dyyDead && dyyDead(s.slice(1)))), name: '검색.json' };   // 📔 그 권 폴더 / 검색.json (🚛 🗑 버린 권 폴더는 다시 만들지 않아요 · 도련 11-11)
             const b = await getBookIndex(s.slice(1), create);
             return { dir: b ? b.folderId : null, name: b ? '검색.json' : '' };   // 📕 그 권 폴더 / 검색.json (도련 11-07 · 날짜형과 같아요)
         }

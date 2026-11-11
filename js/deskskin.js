@@ -8,7 +8,7 @@
    - 처음 온 다꾸러 = 기본 벽지 · 기본 책상 하나씩 (한 번만 · 지금 그림 그대로)
    - 저장 : 설정 / 🔐 책상설정.json 'diary_desk_skin' { own: [{ u, id, c }], wall: u, top: u } (게스트는 이 기기 malang_desk_skin)
        🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 소품 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 도련 11-07 소품 폴더 하나 · SKIN_DIRS 는 이름 표) · 🎁 처음 선물(g: 1)은 목록 한 줄만 (파일 없음 · 03_저장지도 0)
-       배치.json 이 없어지면 = 종류 폴더 파일로 되살려요 (쓰던 것 = _백업.json) · 🗑 버리면 휴지통 30일 → 파일 삭제 (js/bin.js · BIN_KINDS.ds)
+       배치.json 이 없어지면 = 종류 폴더 파일로 되살려요 (쓰던 것 = _백업.json) · 🚛 버리면 바로 영구 삭제 (js/bin.js · BIN_KINDS.ds · 도련 11-11)
    ※ js/desk.js · js/bin.js 다음에 읽어요 (deskBoxRender · deskEditOpen · deskEditEnd · deskBuild 가 여기 함수를 불러요 · js/basket.js 샵) */
 
         const DS_KEY = 'diary_desk_skin', DS_LOCAL = 'malang_desk_skin';
@@ -86,7 +86,7 @@
                 lost = keyMade('dkown') || dkBkReal(bk, DSO_KEY) || !!(window.giftGiven && giftGiven());                   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
                 const F = lost ? (await ofScan(DIRS.desk)).filter(f => dsCat(f.id)) : [];   // 🪑 소품 폴더의 벽지 · 책상판 (못 읽으면 에러 → 다음에 다시)
                 if (Array.isArray(prefGet(DSO_KEY, DSO_LOCAL))) return;               // 그사이 다른 기기에서
-                const gone = new Set((window.binList ? binList() : []).filter(e => e.k === 'ds').map(e => e.id));
+                const gone = window.goneHeal ? goneHeal('ds', bk) : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (도련 11-11)
                 own = F.filter(f => !gone.has(f.u)).map(f => ({ u: f.u, id: f.id, c: f.c }))
                     .concat((had && Array.isArray(had.ds) ? had.ds : []).filter(g => g && g.u && dsCat(g.id) && !gone.has(g.u) && !F.some(f => f.u === g.u)).map(g => ({ u: g.u, id: g.id, g: 1 })));
                 if (!own.length && (!had || !Array.isArray(had.ds))) { dsGift(); return; }   // 백업에 벽지 칸이 있는데 비었으면 = 다 버린 사람
@@ -154,7 +154,7 @@
             const s = dsCur(), it = s.own.find(x => x.u === u); if (!it) return;
             if (!await binAsk(dsCat(it.id).n)) return;
             s.own = s.own.filter(x => x.u !== u); ['wall', 'top'].forEach(k => { if (s[k] === u) s[k] = ''; });
-            if (typeof DK !== 'undefined' && DK.edit && DS.edit) { DS.gone.push(it); dsPaint(); if (window.deskBoxRender) deskBoxRender(); if (window.showMsg) showMsg('🗑 버릴게요.<br><small>하단 ✔ 완료를 누르면 휴지통으로 가요 (✕ 취소 = 그대로)</small>'); return; }
+            if (typeof DK !== 'undefined' && DK.edit && DS.edit) { DS.gone.push(it); dsPaint(); if (window.deskBoxRender) deskBoxRender(); if (window.showMsg) showMsg('🚛 버릴게요.<br><small>하단 ✔ 완료를 누르면 영구 삭제돼요 (✕ 취소 = 그대로)</small>'); return; }
             dsSave(s); await binAdd(Object.assign({ k: 'ds', id: u, s: it.id }, it.c ? { c: it.c } : {}, it.g ? { g: 1 } : {})); 
             dsPaint(); if (window.deskBoxRender) deskBoxRender();
             await binTold(s.own.length ? '' : '벽지 · 책상은 🏪 기본상품 샵 → 🪑 책상 소품에서 받을 수 있어요');
