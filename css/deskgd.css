@@ -171,3 +171,4 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 /* 🔍 확대하는 동안 책상 위 작은 소품은 비어 있어요 · 닫으면 큰 소품이 날아가 제자리로 (도련 11-11) */
 .dkz-away { visibility: hidden !important; }
 .dkw-room.leaving .dkw-hint, .dkw-room.leaving .dkw-btns { opacity: 0; transition: opacity .12s; }
+.dkw-fl.sel { cursor: none; } .dkw-fl.sel > i { pointer-events: none; animation: none; filter: drop-shadow(12px 20px 10px rgba(90,60,70,.32)); }   /* 🖱 마우스에 붙은 것 (클릭은 그 아래로) */

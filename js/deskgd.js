@@ -268,7 +268,8 @@
             const inn = dkwq('dkwIn'); if (!inn) return;
             const keep = {}; inn.querySelectorAll('.dkw-row').forEach(r => { keep[r.dataset.k] = r._off || 0; }); const top = inn.scrollTop;   // 넘긴 자리 기억
             const secs = [], at = {};                                          // 칸막이 = 상품 '서랍칸' (같은 이름끼리 · 필기구 먼저 · 그다음 종류 표 순서)
-            dkwHere(DKW.place).forEach(id => { const sn = String(dkwP(id).서랍칸 || ''); if (!sn) return; if (at[sn] == null) { at[sn] = secs.length; secs.push([dkwIsPen(id) ? 'pen' : 's' + secs.length, sn, []]); } secs[at[sn]][2].push(id); });   // 필기구 칸 = 넓게 (css .dkw-pen)
+            /* ✋ 밖에 나온 문구(떠 있는 · 페이지 위)는 서랍에 없어요 (도련 11-11 · 현실처럼) */
+            dkwHere(DKW.place).filter(id => !dkwOut(id)).forEach(id => { const sn = String(dkwP(id).서랍칸 || ''); if (!sn) return; if (at[sn] == null) { at[sn] = secs.length; secs.push([dkwIsPen(id) ? 'pen' : 's' + secs.length, sn, []]); } secs[at[sn]][2].push(id); });   // 필기구 칸 = 넓게 (css .dkw-pen)
             for (let i = secs.length - 1; i >= 0; i--) if (!secs[i][2].length) secs.splice(i, 1);
             const card = (id, copy) => {
                 const pg = dkwOut(id), need = DKW.need && cabGOf(id) === DKW.need;
@@ -332,10 +333,34 @@
             const el = document.createElement('div'); el.className = 'dkw-fl' + (pen ? ' pen' : ''); el.dataset.id = id;
             el.innerHTML = `<i style="width:${sz[0]}px;height:${sz[1]}px;rotate:${pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28}deg">${window.gdPicSvg ? gdPicSvg(id) : dkwArt(id)}</i>`;   // ✏️ 손에 든 모습 그대로 (연필심이 왼쪽 아래 · js/draw.js PC_ANG)
             el.style.left = x + 'px'; el.style.top = y + 'px';
-            document.body.appendChild(el); DKW.fl.set(id, el); dkwFlWire(el); dkwDeskSoon();
+            el._ang = pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28;
+            el._tip = pen && P && P.tip ? [P.tip[0] - sz[0] / 2, P.tip[1] - sz[1] / 2] : [0, 0];   // 연필심 = 마우스 끝 (손에 든 것처럼)
+            document.body.appendChild(el); DKW.fl.set(id, el); dkwFlWire(el); dkwSel(id); dkwDeskSoon();
             return el;
         }
-        function dkwFloatOff(id, quiet) { const el = DKW.fl.get(id); if (!el) return false; el.remove(); DKW.fl.delete(id); if (!quiet) dkwDeskSoon(); return true; }
+        function dkwFloatOff(id, quiet) { const el = DKW.fl.get(id); if (!el) return false; el.remove(); DKW.fl.delete(id); if (DKW.sel === id) DKW.sel = null; if (!quiet) dkwDeskSoon(); return true; }
+        /* 🖱 마지막으로 만진 것 = 마우스에 붙어 따라와요 (도련 11-11 · 손에 든 것처럼 · 연필심이 마우스 끝) : 다이어리 페이지 클릭 = 그 자리에서 쓰기 · 들어갈 보관함 클릭 = 넣기 · 다른 곳 클릭 = 그 자리에 내려놔요 (떠 있어요) */
+        function dkwSel(id) { DKW.sel = id || null; DKW.fl.forEach((el, k) => el.classList.toggle('sel', k === DKW.sel)); if (id && DKW.mouse) dkwFollow(DKW.mouse.x, DKW.mouse.y); }
+        function dkwFollow(x, y) {
+            const el = DKW.sel && DKW.fl.get(DKW.sel); if (!el) return;
+            const a = (el._ang || 0) * Math.PI / 180, t = el._tip || [0, 0], ox = t[0] * Math.cos(a) - t[1] * Math.sin(a), oy = t[0] * Math.sin(a) + t[1] * Math.cos(a);
+            el.style.left = (x - ox) + 'px'; el.style.top = (y - oy) + 'px';
+        }
+        addEventListener('pointermove', e => {
+            if (e.pointerType !== 'mouse') return;
+            DKW.mouse = { x: e.clientX, y: e.clientY };
+            if (DKW.sel && !e.buttons && dkwDesk()) dkwFollow(e.clientX, e.clientY);
+        }, { passive: true });
+        addEventListener('pointerdown', e => {
+            if (!DKW.sel || e.pointerType !== 'mouse' || e.button > 0 || !dkwDesk()) return;
+            const t = e.target, id = DKW.sel;
+            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol')) return;   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
+            const pg = t.closest && t.closest('#canvasArea');
+            if (pg && dkwOpenNow()) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 📔 펼친 페이지 = 그 자리에서 쓰기
+            const h = t.closest && t.closest('#deskStage .desk-item');
+            if (h && window.dkOutsFor && dkOutsFor(h).some(o => o.id === id)) return;   // 들어갈 보관함 = 넣기 (js/deskmove.js)
+            e.preventDefault(); e.stopPropagation(); dkwSel(null);                 // 그 밖 = 그 자리에 내려놔요
+        }, true);
         function dkwFlWire(el) {
             const id = el.dataset.id;
             el.addEventListener('pointerdown', ev => {
@@ -347,6 +372,7 @@
                     if (e.pointerId !== ev.pointerId) return; el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); el.classList.remove('lift');
                     if (e.type !== 'pointerup') return;
                     if (on) { if (window.dkDropOn) await dkDropOn(e.clientX, e.clientY, { k: 'gd', id }); return; }   // 끌어 놓기 = 옮기기 · 보관함 = 넣기
+                    if (e.pointerType === 'mouse') { dkwSel(id); return; }               // 🖱 톡 = 집어 들어요 (마우스에 붙어요)
                     if (!dkwOpenNow()) { el.animate([{ rotate: '0deg' }, { rotate: '-5deg' }, { rotate: '4deg' }, { rotate: '0deg' }], { duration: 360 }); dkwSay('📔 다이어리를 펴면 써요', el); return; }
                     const r = el.getBoundingClientRect(); dkwUse(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });   // 톡 = 그 자리에서 손에
                 };
