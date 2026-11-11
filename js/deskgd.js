@@ -193,9 +193,10 @@
                 b.style.left = x.toFixed(1) + 'px'; b.style.setProperty('--a', Math.max(-24, Math.min(24, p.a0 + (x - p.x0) * .15)).toFixed(1) + 'deg');   // 민 쪽으로 기울어요
                 place(up);
                 if (up > DKW_PULL) {                                             // 쏙 뽑혔어요
-                    p = null; b.classList.remove('grab'); b.style.transform = ''; b.classList.add('pull');
+                    const id = b.dataset.id; p = null; b.classList.remove('grab'); b.style.transform = '';
                     if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
-                    setTimeout(() => dkwUse(b.dataset.id), 260);
+                    if (window.dkCarry) { dkwManual(id, b, e); b.style.opacity = '0'; dkwClose(); }   // 뽑은 채로 끌어요 → 놓은 곳 (보관함 = 넣기 · 그 밖 = 손에 · 도련 11-11)
+                    else { b.classList.add('pull'); setTimeout(() => dkwUse(id), 260); }
                 }
             });
             const end = e => {
@@ -305,6 +306,8 @@
         }
         function dkwPendOff() { DKW.pend = null; const p = dkwq('dkwPend'); if (p) p.remove(); }
         window.dkwPendOff = dkwPendOff;
+        window.dkwOutNow = () => [...new Set(dkwOutAll().concat(DKW.pend ? [DKW.pend] : []))];   // ✋ 밖에 나온 문구 (페이지 위 · 떠 있는 손 · js/deskmove.js 넣기)
+        window.dkwBack = id => { if (DKW.pend === id) dkwPendOff(); else dkwBackOne(id); dkwDeskSoon(); };   // ✋ 제자리로
         setInterval(() => { if (DKW.pend && dkwOpenNow()) { const id = DKW.pend; dkwPendOff(); dkwUse(id); } }, 400);   // 다이어리를 펴면 = 손에
         async function dkwUse(id) {
             dkwClose();
@@ -319,21 +322,18 @@
             if (from && window.dkFly) await dkFly(from, innerWidth / 2, innerHeight / 2);
             dkwUse(id);
         }
-        function dkwManual(id, src, ev, done) {                                   // 끌어내기 : 그림이 손을 따라와요 → 놓으면 done
-            const r = src.getBoundingClientRect(), g = src.cloneNode(true);
-            g.classList.add('dkm-ghost'); Object.assign(g.style, { width: Math.max(24, r.width) + 'px', height: Math.max(24, r.height) + 'px', left: ev.clientX + 'px', top: ev.clientY + 'px', transform: 'none' });
-            document.body.appendChild(g); src.classList.add('dkm-from');
-            const mv = e => { if (e.pointerId !== ev.pointerId) return; g.style.left = e.clientX + 'px'; g.style.top = e.clientY + 'px'; };
-            const up = e => { if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); g.remove(); src.classList.remove('dkm-from'); if (e.type === 'pointerup' && e.isTrusted !== false) done(e); };
-            addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+        function dkwManual(id, src, ev) {                                         // ✋ 끌어내기 : 그림이 손을 따라와요 → 들어갈 보관함 = 넣기 (한 번 골라요) · 아니면 손에 (js/deskmove.js)
+            const done = async (x, y) => { if (window.dkDropOn && await dkDropOn(x, y, { k: 'gd', id })) return; dkwUse(id); };
+            if (window.dkCarry) dkCarry(src, ev, done); else dkwUse(id);
         }
+        window.dkwArtOf = id => dkwArt(id);
         /* ✏️ 책상 위 펜꽂이에서 바로 (확대 없이 · 도련 11-11) : 펜 톡 = 가운데로 와서 손에 · 펜 끌기 = 끌어내기 · 펜꽂이 통 톡 = 예전처럼 다가와요 (js/desk.js dkHomeTap) */
         document.addEventListener('pointerdown', ev => {
             const t = ev.target.closest && ev.target.closest('#deskStage .dkw-desk .dkw-t[data-id]');
             if (!t || ev.button > 0 || !dkwDesk() || DK.edit) return;
             ev.preventDefault(); ev.stopPropagation();                             // 펜꽂이 통 톡(다가오기)으로 가지 않게
             const id = t.dataset.id, x0 = ev.clientX, y0 = ev.clientY; let on = true;
-            const mv = e => { if (!on || e.pointerId !== ev.pointerId) return; if (Math.hypot(e.clientX - x0, e.clientY - y0) < 8) return; on = false; off(); dkwManual(id, t, e, u => dkwUse(id)); };
+            const mv = e => { if (!on || e.pointerId !== ev.pointerId) return; if (Math.hypot(e.clientX - x0, e.clientY - y0) < 8) return; on = false; off(); dkwManual(id, t, e); };
             const up = e => { if (!on || e.pointerId !== ev.pointerId) return; on = false; off(); if (e.type === 'pointerup' && e.isTrusted !== false) dkwFlyUse(id, t); };
             const off = () => { removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };
             addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
@@ -348,7 +348,7 @@
                 if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) { on = false; off(); return; }   // 옆으로 = 넘기기
                 if (Math.abs(dy) < 14) return;
                 on = false; off(); const row = it.closest('.dkw-row'); if (row) row._drag = true;
-                dkwManual(id, it.querySelector('.dkw-art') || it, e, () => { dkwUse(id); if (row) setTimeout(() => { row._drag = false; }, 0); });
+                dkwManual(id, it.querySelector('.dkw-art') || it, e); if (row) setTimeout(() => { row._drag = false; }, 400);
             };
             const up = e => { if (e.pointerId !== ev.pointerId) return; on = false; off(); };
             const off = () => { removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };

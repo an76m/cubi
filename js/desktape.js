@@ -85,7 +85,7 @@
         const up = ev => {
             const d = T.drag; if (!d || d.pid !== ev.pointerId) return; T.drag = null;
             if (d.tap) {
-                if (d.man) { d.man.remove(); b.classList.remove('dkt-lift'); if (ev.type === 'pointerup') out(d.id, { x: ev.clientX, y: ev.clientY }); return; }
+                if (d.man) { d.man.remove(); b.classList.remove('dkt-lift'); if (ev.type === 'pointerup') drop(d.id, { u: el.dataset.u, i: +b.dataset.i }, ev.clientX, ev.clientY); return; }
                 if (ev.type === 'pointerup' && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) use(d.id, b); return;
             }
             d.g.remove(); d.b.classList.remove('dkt-lift');
@@ -124,6 +124,10 @@
         if (b && window.dkFly) await dkFly(b, c.x, c.y);
         await out(id, c);
     }
+    async function drop(id, from, x, y) {                                      // ✋ 끌어 놓은 곳 : 들어갈 보관함 = 넣기 (한 번 골라요) · 아니면 그 자리에 꺼내요
+        if (window.dkDropOn && await dkDropOn(x, y, { k: 'tape', id, from })) return;
+        out(id, { x, y });
+    }
     async function out(id, at) {                                              // 🎀 롤 꺼내기 = 그 자리에 (js/basket.js dsTapeOut · 다이어리가 닫혀 있어도 돼요)
         if (!window.dsTapeOut) return;
         try { await dsTapeOut(id, at); } catch (e) { console.warn(e); showMsg('⚠ 테이프를 꺼내지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
@@ -158,9 +162,11 @@
             if (!p || e.pointerId !== p.id) return;
             const up = Math.max(0, p.y - e.clientY); b.style.translate = `0 ${(-up / sc()).toFixed(1)}px`;
             if (up > UP) {                                                     // 쏙 뽑혔어요 → 정리함이 닫히고 롤은 그 자리에서 꺼내져요
-                const id = b.dataset.id, at = { x: e.clientX, y: e.clientY }; p = null; b.classList.remove('grab'); b.style.opacity = '0';
+                const id = b.dataset.id, ev0 = e; p = null; b.classList.remove('grab');
                 if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
-                zoomShut(r); out(id, at);
+                const from = where(id);
+                if (window.dkCarry) dkCarry(b, ev0, (x, y) => drop(id, from, x, y)); else out(id, { x: e.clientX, y: e.clientY });   // 뽑은 채로 끌어요 → 놓은 곳 (도련 11-11)
+                b.style.opacity = '0'; zoomShut(r);
             }
         });
         const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; b.classList.remove('grab'); b.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 끌어 올려요', b); };
@@ -208,7 +214,13 @@
         if (typeof r !== 'string' || r[0] !== 't') return;
         const e = L[+r.slice(1)]; if (e && put(e.id, null, { u: el.dataset.u, i })) dkbPulse(el);
     }
-    window.dktApi = { slotAt, put, isRack, held, paint: () => paint(), zoom };
+    const where = id => { const M = read(); for (const u in M) { const i = (M[u] || []).indexOf(id); if (i >= 0) return { u, i }; } return null; };   // 그 롤이 꽂힌 칸
+    async function pickFor(t) {                                               // ✋ 넣을 칸 고르기 (정리함 그림이 크게 · 빈 칸만) → { u, i } | null
+        const S = slotsOf(t), ids = (read()[t.dataset.u] || []).slice(0, S.length).map(id => id && T.list && !entry(id) ? null : id); while (ids.length < S.length) ids.push(null);
+        if (!ids.some(v => !v)) { showMsg('🎀 마테 정리함 칸이 다 찼어요.'); return null; }
+        const s = await pickSlot(t, ids, 1); return s < 0 ? null : { u: t.dataset.u, i: s };
+    }
+    window.dktApi = { slotAt, put, isRack, held, paint: () => paint(), zoom, where, pickFor };
     /* 🛍️ 봉투 카드를 정리함에 (js/desk.js dkbHome 맨 앞) : 처리했으면 true · 칸은 고르는 창에서 (도련 11-04) */
     window.dktDrop = (t, it, n, j, cx, cy) => {
         if (!isRack(t)) return false;

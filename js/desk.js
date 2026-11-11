@@ -639,7 +639,7 @@
             if (window.stpClose && document.querySelector('#stkPick.show')) stpClose();   // 🍽 오늘 쓸 스티커
             if (window.dkwClose) dkwClose();                                     // ✏️ 🗄️ 펜꽂이 · 문구함 (서랍도 닫혀요)
             if (window.dkwPendOff) dkwPendOff();                                 // ✋ 다이어리를 기다리던 문구 = 제자리로
-            { const z = document.getElementById('dktZoom'); if (z && !z.hidden) { z.hidden = true; z.innerHTML = ''; z.classList.remove('show'); } }   // 🎀 확대한 정리함
+            ['dktZoom', 'dkbZoom'].forEach(id => { const z = document.getElementById(id); if (z && !z.hidden) { z.hidden = true; z.innerHTML = ''; z.classList.remove('show'); } });   // 🎀 🧺 확대한 정리함 · 책 바구니
             deskBagOpen(-1);                                                     // 🛍️ 봉투 속 창 (상품은 봉투에 그대로)
             if (DK.edit) deskEditEnd(false);                                     // 🛠 책상 꾸미기 = 취소 (처음대로)
             try { dkvMenu(null); dknPanel(false); dknEmoClose(); const lb = document.getElementById('dkvLbPanel'); if (lb) lb.hidden = true; } catch (e) {}
@@ -1416,7 +1416,9 @@
         }
         window.dknPanel = dknPanel; window.dknSet = dknSet;
         /* 👆 칸 톡 = 그 칸 창 (칸 밖 = 소품 전체 창 → deskTapAt 이 el.dataset.fn) */
-        function dkHomeTap(el, cx, cy) {
+        function dkHomeTap(el, cx, cy, noStore) {
+            if (!noStore && window.dkStoreTap && dkStoreTap(el, () => dkHomeTap(el, cx, cy, true))) return true;   // ✋ 들어갈 상품이 밖에 나와 있으면 = 넣기 (한 번 골라요 · js/deskmove.js · 도련 11-11)
+            if (UI.desk() && !DK.edit && dkIsBox(el) && !dkHoldOk((DK.items.find(x => x.u === el.dataset.u) || {}).id).includes('pc') && window.dkBoxZoom) { setTimeout(() => dkBoxZoom(el.dataset.u), 0); return true; }   // 🧺 책 바구니 톡 = 가운데로 다가와요 (펜꽂이 · 정리함처럼)
             const p = dkzPct(el, cx, cy), z = dkzHit(dkHomes()[el.dataset.u] || [], p);
             const o = DK.items.find(x => x.u === el.dataset.u), S = o && dkSlots(o.id), si = S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1;
             const desk = UI.desk();
@@ -1704,6 +1706,33 @@
             dkVolsPaint();
         }
         /* 🛍️ 봉투의 새 다이어리 카드를 책상에 놓아요 (그 자리 · 📚 꽂기) */
+        /* 🧺 책 바구니 확대 (도련 11-11 · 펜꽂이 · 정리함처럼) : 바구니와 그 안에 세운 다이어리가 화면 가운데로 · 다이어리를 위로 쏙 뽑아 끌면 놓은 자리에 (책상 위) · 다이어리 톡 = 펼치기는 확대 밖에서 */
+        function dkBoxZoom(u) {
+            const st = document.getElementById('deskStage'), el = st && st.querySelector(`.desk-item[data-u="${u}"]`); if (!el || !window.dkwRoom) return;
+            const vols = [...st.querySelectorAll('.dk-vol')].filter(v => dkItemBox(v) === el);
+            const box = o => { const l = parseFloat(o.style.left), t = parseFloat(o.style.top); return [l, t, l + parseFloat(o.style.width), t + parseFloat(o.style.height)]; };
+            const B = [el].concat(vols).map(box).reduce((a, b) => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]);
+            const bw = B[2] - B[0], bh = B[3] - B[1], k = Math.min(innerWidth * .7 / bw, innerHeight * .55 / bh, 3);
+            const r = dkwRoom('dkbZoom');
+            r.innerHTML = `<div class="dkw-cupbox"><p class="dkw-hint">${vols.length ? '다이어리를 잡고 <b>위로 쏙</b> 뽑아 책상에 놓아요' : '바구니가 비었어요'}</p><div class="dkb-zart" style="width:${Math.round(bw * k)}px;height:${Math.round(bh * k)}px"><div class="dkb-zin" style="width:${bw}px;height:${bh}px;transform:scale(${k})"></div></div><div class="dkw-btns"><button type="button" class="dkw-b dkw-x">닫기</button></div></div>`;
+            const inn = r.querySelector('.dkb-zin'), put = (o, cls) => { const c = o.cloneNode(true); c.removeAttribute('data-u'); c.classList.add(cls); c.style.left = (parseFloat(o.style.left) - B[0]) + 'px'; c.style.top = (parseFloat(o.style.top) - B[1]) + 'px'; c.style.zIndex = ''; inn.appendChild(c); return c; };
+            put(el, 'dkb-zitem');
+            const shut = () => { if (r.hidden) return; r.classList.remove('show'); setTimeout(() => { r.hidden = true; r.innerHTML = ''; }, 180); };
+            vols.forEach(v => {
+                const c = put(v, 'dkb-zvol'), id = v.dataset.b; c.classList.remove('cur', 'pose-on'); let p = null;
+                c.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { c.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
+                c.addEventListener('pointermove', e => {
+                    if (!p || e.pointerId !== p.id) return; const up = Math.max(0, p.y - e.clientY); c.style.translate = `0 ${(-up / k).toFixed(1)}px`;
+                    if (up > 60) { p = null; if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {} if (window.dkCarry) dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(); }   // ✋ 뽑은 채로 끌어 놓은 자리에
+                });
+                const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; c.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 뽑아요', c); };
+                c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+            });
+            r.querySelector('.dkw-x').onclick = shut; r.onpointerdown = e => { if (e.target === r) shut(); };
+            r.hidden = false; requestAnimationFrame(() => r.classList.add('show'));
+            if (window.dkwFly) dkwFly(r.querySelector('.dkb-zart'), el);
+        }
+        window.dkBoxZoom = dkBoxZoom;
         function dkvPlace(id, cx, cy) {
             const stg = document.getElementById('deskStage'), R = stg && stg.getBoundingClientRect(); if (!R) return false;
             if (cx < R.left || cx > R.right || cy < R.top || cy > R.bottom) return false;

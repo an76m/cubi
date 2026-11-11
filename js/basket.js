@@ -1580,6 +1580,8 @@
     /* 🚪 이동 (가게 · 다른 장소) = 꺼내 둔 종이는 모두 바구니로 정리 (도련 11-05 · 뽑아 둔 테이프는 되감겨요) */
     function dsClear() { [...DS.m.keys()].forEach(dsDrop); }
     window.dsClear = dsClear;
+    window.dsOuts = () => [...DS.m.keys()].map(id => { const e = dsEntry(id) || B.byId.get(id); return e ? { id, k: e.k, th: e.th || '' } : null; }).filter(Boolean);   // ✋ 밖에 꺼내 둔 스티커 · 마테 (js/deskmove.js 넣기)
+    window.dsPutBack = id => dsDrop(id);                                      // ✋ 제자리로 (바구니 · 서랍)
     function dsDrop(id) {
         const d = DS.m.get(id); if (!d) return; if (DS.act === id) dsShut(); dsRewind(d); d.el.remove(); DS.m.delete(id); DS.c.delete(id); DS.v.delete(id); if (window.dktPaint) dktPaint();   // 🎀 마테 정리함 롤이 다시 또렷하게
         if (vis('basketKindModal') && B.view === 'bin') { abSplit(); B.sig = bkSig(); bkDraw(); }   // 치운 종이는 바구니로 돌아와요
@@ -1656,6 +1658,10 @@
             if (!p || ev.pointerId !== p.id) return; const was = p; p = null; d.el.classList.remove('lift');
             if (was.pull) { dsPullEnd(was.pull, ev.type === 'pointerup' && was.on); if (was.on) return; }
             if (ev.type !== 'pointerup') return;
+            if (was.on && !was.pull && UI.desk() && !document.documentElement.classList.contains('desk-show') && window.dkDropOn) {   // ✋ 꺼내 둔 것을 보관함에 끌어 놓으면 = 넣기 (한 번 골라요 · 다이어리가 접힌 채 · js/deskmove.js · 도련 11-11)
+                const e = dsEntry(d.id), big = d.el.classList.contains('big');
+                if (e) { dkDropOn(ev.clientX, ev.clientY, e.k === 'tape' ? { k: 'tape', id: d.id } : { k: 'stk', kind: e.k, id: d.id }).then(h => { if (!h && !was.tape && big) dsUse(d); }); return; }
+            }
             if (was.tape) { if (!was.on && was.onX) { dsDrop(d.id); return; } if (!was.on && !d.pull) dsBig(d); return; }   // 🎀 롤 톡 = 아무것도 안 써요 (뽑아서 ✂ 로 잘라요)
             if (!was.on) { dsOpen(d); return; }
             if (d.el.classList.contains('big')) dsUse(d);                     // 커진 테이프 · 메모지 · 속지를 끌어 놓으면 = 써요
