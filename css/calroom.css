@@ -50,7 +50,6 @@ button.cr-c:hover { background: #fff0f5; }
 .cr-box { flex: none; box-sizing: border-box; padding: 12px; border-radius: 18px; background: #fffaf5; border: 2.5px solid #5b3240; box-shadow: 4px 4px 0 #e9c4cf; display: flex; flex-direction: column; gap: 10px; }
 .cr-h { font-size: 14px; color: #8a5a6a; font-weight: 900; margin: 0 0 0 4px; }
 .cr-go { position: absolute; right: 22px; top: 18px; transform: scale(1.25); transform-origin: 100% 0; }   /* 🚪 이동 = 책상 오른쪽 위 버튼과 같은 모양 */
-body.cal-on #moveModal { z-index: 1550 !important; }                                                                            /* 이동 창은 달력 위에 */
 
 /* 옮겨 온 원래 창 부분 : 좁은 칸에 맞게만 살짝 */
 .cr-room .at-go { width: 100%; padding: 13px; font-size: 16px; }

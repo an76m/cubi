@@ -143,8 +143,8 @@
             const el = shopBuild(); el.classList.toggle('ph', SC.ph);
             { const di = el.querySelector('.shop-door img'), src = SC.ph ? SHOP_PH.door.img + SHOP_PH.v : 'img/shop-door.webp?v=20261009-819'; if (di.getAttribute('src') !== src) di.setAttribute('src', src); }
             SC.corner = ''; shopSpotsPaint(); shopPicAll();   // 🖼 구역 그림 미리
+            if (window.deskReset) deskReset();                                   // 🧹 책상 위 창은 닫고 · 꺼내 둔 상품은 제자리로 (도련 11-05 · 11-11 · js/desk.js)
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
-            if (window.dsClear) dsClear();                                       // 🧺 꺼내 둔 스티커는 바구니로 정리 (도련 11-05)
             SC.on = true; SC.busy = true;
             el.classList.remove('inside', 'enter', 'leave'); el.classList.add('on');
             requestAnimationFrame(() => { shopFit(); requestAnimationFrame(shopFit); });

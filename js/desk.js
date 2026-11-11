@@ -603,7 +603,7 @@
         document.addEventListener('click', e => {
             const b = e.target.closest && e.target.closest('#moveCafe .svc-cat'); if (!b) return;
             if (/준비중/.test(b.textContent) || b.hasAttribute('data-keep')) return;
-            closeModal('moveModal'); if (window.dsClear) dsClear(); deskLeave(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true);
+            closeModal('moveModal'); deskReset(); if (window.shopSceneOn && shopSceneOn()) shopSceneClose(true);
         }, true);
         /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · ✂️ 스티커 만들기(→ 🎨 다꾸 작업실) · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
            다른 곳에 갔다 내 방으로 돌아올 때마다(deskGoRoom) 보이는 메뉴가 다음 것으로 돌아가요 (이 창이 열려 있는 동안만 기억 · 처음 = 책상 꾸미기) */
@@ -630,6 +630,21 @@
             if (window.roomGo) roomGo(deskLeave); else deskLeave();
         }
         window.deskLeave = deskLeave; window.deskGoRoom = deskGoRoom;
+        /* 🧹 내 방을 떠날 때 처음처럼 (도련 11-11 : 🏪 샵 · 🚪 다른 곳에 갈 때 책상 위에 떠 있던 것이 따라오지 않게)
+             창 = 닫기 (✕ 를 누른 것과 같이) · 상품 = 제자리로 (꺼내 둔 스티커 · 테이프 = 바구니 · 뽑아 둔 테이프 = 되감기) · 🚪 이동 창 · 알림 창은 그대로 */
+        function deskReset() {
+            const on = m => m.style.display === 'flex' || m.style.display === 'block';
+            document.querySelectorAll('.modal').forEach(m => { if (m.id === 'moveModal' || m.id === 'customAlertModal' || !on(m)) return; const x = m.querySelector('.mt-x'); try { if (x) x.click(); } catch (e) {} if (on(m)) m.style.display = 'none'; });
+            if (window.dsClear) dsClear();                                       // 🎀 꺼내 둔 스티커 · 테이프 = 바구니로
+            if (window.stpClose && document.querySelector('#stkPick.show')) stpClose();   // 🍽 오늘 쓸 스티커
+            if (window.dkwClose) dkwClose();                                     // ✏️ 🗄️ 펜꽂이 · 문구함 (서랍도 닫혀요)
+            deskBagOpen(-1);                                                     // 🛍️ 봉투 속 창 (상품은 봉투에 그대로)
+            if (DK.edit) deskEditEnd(false);                                     // 🛠 책상 꾸미기 = 취소 (처음대로)
+            try { dkvMenu(null); dknPanel(false); dknEmoClose(); const lb = document.getElementById('dkvLbPanel'); if (lb) lb.hidden = true; } catch (e) {}
+            if (window.tmClose) tmClose(); dtmToggle(false); deskSelect(null);
+            deskLeave();                                                         // 🧩 바인더 조립 · 작업실 · 달력 … 방들
+        }
+        window.deskReset = deskReset;
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();

@@ -4,7 +4,6 @@
 .gcs-bg { position: absolute; inset: 0; width: 1672px; height: 941px; pointer-events: none; user-select: none; }
 .gcs-soon { position: absolute; top: 600px; translate: -50% 0; white-space: nowrap; background: #fffdf6; border: 2.5px solid #2a2a2a; border-radius: 999px; padding: 4px 14px; font-weight: 900; font-size: 16px; color: #7a5a3a; pointer-events: none; }
 .gcs-go { position: absolute; right: 18px; top: 14px; z-index: 3; transform: scale(1.15); transform-origin: 100% 0; }   /* 화면 오른쪽 위 (그림이 잘려도) */
-html body.gacha-on #moveModal { z-index: 1650 !important; }                                       /* 이동 창은 캡슐기계 위에 */
 
 /* 제목 · 코인 (왼쪽 위) */
 .gc-scene .gc-head { position: absolute; left: 1170px; top: 92px; gap: 12px; padding: 8px 12px 8px 18px; border-radius: 999px; background: #fffdf6; border: 2.5px solid #2a2a2a; box-shadow: 3px 4px 0 rgba(0, 0, 0, .15); }

@@ -62,7 +62,6 @@
 .cr8-room.narrow .cr8-work { position: fixed; left: 0; right: 0; bottom: 0; max-height: 78vh; z-index: 2; border-radius: 20px 20px 0 0; border-bottom: 0; transform: translateY(105%); transition: transform .28s cubic-bezier(.2, .9, .3, 1); box-shadow: 0 -8px 30px rgba(80, 40, 50, .3); padding-bottom: env(safe-area-inset-bottom); }
 .cr8-room.narrow .cr8-work.sheet { transform: none; }
 .cr8-room.narrow .cr8-x { display: block; }
-body.craft-on #moveModal { z-index: 1550 !important; }
 body.craft-on .desk-top-r { display: none; }
 .cr8-room:not(.narrow) .cr8-new { display: none; }   /* 💻 📲 = 가운데 칸이 늘 보여서 필요 없어요 (📱 만) */
 .cr8-room:not(.narrow) .cr8-work.detail .cr8-x { display: block; }

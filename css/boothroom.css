@@ -2,7 +2,6 @@
 .bth-room { position: fixed; inset: 0; z-index: 1500; display: none; overflow: hidden; --floor: 80vh; --bx: 50vw; --bw: 400px; }
 .bth-room.show { display: block; }
 .bth-room button { font-family: inherit; cursor: pointer; }
-body.bth-on #moveModal { z-index: 1550 !important; }                                 /* 이동 창은 포토부스 위에 (도련 11-08 : 이동 단추가 안 되는 것처럼 보였어요) */
 
 /* ==================== 🎨 배경 테마 ====================
    .bth-wall = 벽 (바닥선 위) · .bth-floor = 바닥 · .bth-glow = 포토부스 뒤 불빛 · .bth-deco = 위 장식 · 바닥선 = --floor · 포토부스 가운데 = --bx
