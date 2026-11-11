@@ -26,6 +26,7 @@
             const g = GONE[k]; if (!g || !id) return;
             const L = goneList(k); if (L.some(x => x.u === id)) return;
             L.push({ u: String(id), at: Date.now() }); prefSet(g[0], g[1], L);
+            if (window.ledgerMix) ledgerMix(g[0], L);                          // 📒 숨은 장부에도 한 벌 (예전 파일로 바꿔치기해도 · js/drive.js)
             if (window.deskBackOne) deskBackOne(g[2]);                         // 🛟 백업에도 바로 (예전 백업으로 되살아나지 않게)
         }
 

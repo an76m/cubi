@@ -107,9 +107,10 @@
         const CAFE_PATH = dirPath(DIRS.cafe), CAFE_FILE_NAME = '카페.json';
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
-        const DRIVE_SCOPE = USE_APP_DATA_FOLDER
-            ? 'https://www.googleapis.com/auth/drive.appdata'
-            : 'https://www.googleapis.com/auth/drive.file';
+        const DRIVE_SCOPES = USE_APP_DATA_FOLDER                         // 📒 drive.appdata = 숨은 장부 칸 (도련 11-11 · 구글 콘솔 '데이터 액세스'에 두 줄 다 넣어 뒀어요)
+            ? ['https://www.googleapis.com/auth/drive.appdata']
+            : ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive.appdata'];
+        const DRIVE_SCOPE = DRIVE_SCOPES.join(' ');
         const AUTH_FLAG_KEY = 'gdrive_authed';   // 이 기기에서 이전에 로그인했는지 (자동 로그인 시도용)
         const UPLOAD_DEBOUNCE_MS = 3000;         // 변경 후 이 시간이 지나면 자동으로 드라이브에 저장
         const UPLOAD_MAX_WAIT_MS = 30000;        // ⏱ 3초도 안 쉬고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
@@ -206,7 +207,7 @@
                 pendingToken = {
                     ok: (r) => {
                         clearTimeout(timer); pendingToken = null;
-                        if (!google.accounts.oauth2.hasGrantedAllScopes(r, DRIVE_SCOPE)) return reject({ type: 'scope' });
+                        if (!google.accounts.oauth2.hasGrantedAllScopes(r, ...DRIVE_SCOPES)) return reject({ type: 'scope' });
                         drive.token = r.access_token;
                         drive.expiresAt = Date.now() + ((r.expires_in || 3600) - 120) * 1000;
                         drive.needAuth = false;
@@ -325,8 +326,82 @@
             store.putLoaded(k, JSON.stringify(m.concat(add))); drive.dirtyKeys.add(k);   // 합친 것을 올려요
             return true;
         }
+        /* 📒 장부 (도련 11-11 · 구글 드라이브의 숨은 앱 데이터 칸 = 사람 눈에 안 보이고 · 버전 되돌리기 · 다운로드했다 다시 올리기가 없어요)
+             드라이브 파일은 사람이 '예전 진짜 파일'로 바꿔치기할 수 있어요 (버전 관리 · 받아 둔 파일 다시 올리기 · 예전 폴더 이름 되돌리기) → 영구삭제가 풀려요
+             → 장부 = { root : 지금 쓰는 말랑달콤 폴더 번호, retired : [은퇴시킨 예전 폴더 번호], gone : { 'diary_dk_gone' …, 'own:seal' … : [{ u, at }] } }
+             - 켤 때 먼저 읽고 (loadFromDrive) · 목록을 읽을 때마다 장부의 영구삭제를 다시 더해요 (goneScrub · js/own.js ownIdxRead) · 목록에만 있는 것도 장부에 (예전 사용자 · 다른 기기)
+             - 은퇴한 폴더는 이름이 '말랑달콤'이어도 쓰지 않아요 (findFolder) · 하나만 남아도 새 폴더로 처음부터
+             - 장부가 없으면 (처음 · 사용자가 구글 설정에서 앱 데이터를 지움) 지금 드라이브를 믿고 새로 · 기기 둘 = 쓸 때마다 다시 읽어 합쳐요 (지워지지 않아요)
+             - 🏠 로그인 없이 · 👀 구경 = 장부 없어요 */
+        const LEDGER_NAME = '장부.json', LG = { d: null, f: null, ok: false, t: 0, q: Promise.resolve() };
+        const lgClean = d => {
+            const o = { v: 1, root: '', retired: [], gone: {} }; if (!d || typeof d !== 'object') return o;
+            if (typeof d.root === 'string') o.root = d.root;
+            if (Array.isArray(d.retired)) o.retired = [...new Set(d.retired.filter(x => typeof x === 'string' && x))];
+            if (d.gone && typeof d.gone === 'object') Object.keys(d.gone).forEach(k => { const a = goneArr(d.gone[k]); if (a.length) o.gone[k] = a; });
+            return o;
+        };
+        function lgMerge(a, b) {                                                   // 두 장부 = 모두 (영구삭제 · 은퇴는 늘기만 · root 는 a 쪽)
+            const o = lgClean(a), B = lgClean(b);
+            if (!o.root) o.root = B.root;
+            o.retired = [...new Set(o.retired.concat(B.retired))].filter(x => x !== o.root);
+            Object.keys(B.gone).forEach(k => { const s = new Set((o.gone[k] || []).map(x => x.u)); o.gone[k] = (o.gone[k] || []).concat(B.gone[k].filter(x => !s.has(x.u))); });
+            return o;
+        }
+        async function lgRead() {                                                  // → { d, f } (장부가 여럿이면 = 합치고 · 나머지는 지워요)
+            const q = `name='${qName(LEDGER_NAME)}' and 'appDataFolder' in parents and trashed=false`;
+            const r = await gfetch(`${DRIVE_API}?spaces=appDataFolder&q=${encodeURIComponent(q)}&orderBy=createdTime&fields=${encodeURIComponent('files(id,name)')}`);
+            if (!r.ok) throw await driveFail(r, 'ledger');
+            const fs = (await r.json()).files || [];
+            let d = null;
+            for (const f of fs) {                                                   // 🔐 장부도 잠가요 (드라이브의 json 은 모두 · 못 열면 에러 = 이번엔 장부 없이 · 덮어쓰지 않아요)
+                const t = await gfetch(`${DRIVE_API}/${f.id}?alt=media`); if (!t.ok) throw await driveFail(t, 'ledger');
+                let x = await t.text(); if (SEAL_RE.test(x)) x = await sealOpen(x);
+                const o = x.trim() ? JSON.parse(x) : null; d = d ? lgMerge(d, o) : lgClean(o);
+            }
+            fs.slice(1).forEach(f => gfetch(`${DRIVE_API}/${f.id}`, { method: 'DELETE' }).catch(() => {}));
+            return { d: lgClean(d), f: fs[0] ? fs[0].id : null };
+        }
+        async function ledgerLoad() {
+            LG.ok = false; LG.d = null; LG.f = null;
+            if (drive.local || !drive.token) return;                           // (로그인하는 동안은 아직 guest 표시예요 · 토큰으로 봐요)
+            try { const r = await lgRead(); LG.d = r.d; LG.f = r.f; LG.ok = true; diag('ledger', { have: r.f ? 1 : 0, root: LG.d.root ? 1 : 0, ret: LG.d.retired.length, gone: Object.values(LG.d.gone).reduce((n, a) => n + a.length, 0) }); }
+            catch (e) { console.warn('📒 장부를 못 읽었어요 (이번엔 장부 없이 · 지우지 않아요)', e); diag('ledger', { bad: 'read' }); }
+        }
+        const lgLive = () => LG.ok && !drive.local && !!drive.token;             // 👀 구경 · 로그아웃 = 토큰 없음
+        function ledgerSave() {                                                    // 다시 읽어 합친 뒤 올려요 (기기 둘이 서로 지우지 않게)
+            if (!lgLive()) return; clearTimeout(LG.t);
+            LG.t = setTimeout(() => { LG.q = LG.q.then(async () => {
+                if (!lgLive()) return;
+                try {
+                    const r = await lgRead(); const me = lgMerge(LG.d, r.d); if (LG.d.root) me.root = LG.d.root;
+                    LG.d = me; LG.f = r.f || LG.f;
+                    const body = await bodySeal(LEDGER_NAME, JSON.stringify(me));   // 🔐
+                    if (LG.f) { const u = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${LG.f}?uploadType=media&fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }); if (u.ok) return; if (u.status !== 404) throw await driveFail(u, 'ledger'); LG.f = null; }
+                    const b = 'lg_' + Math.random().toString(36).slice(2), meta = { name: LEDGER_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
+                    const c = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--` });
+                    if (!c.ok) throw await driveFail(c, 'ledger'); LG.f = (await c.json()).id;
+                } catch (e) { console.warn('📒 장부 저장 (다음에 다시)', e); diag('ledger', { bad: 'save' }); setTimeout(ledgerSave, 60000); }
+            }); }, 1500);
+        }
+        /* 영구삭제 칸 하나 ↔ 장부 : 장부에만 있는 것 = 돌려받고 · 칸에만 있는 것 = 장부에 → 합친 칸 */
+        function ledgerMix(key, arr) {
+            const a = goneArr(arr); if (!lgLive()) return a;
+            const L = LG.d.gone[key] || [], s = new Set(a.map(x => x.u)), back = L.filter(x => !s.has(x.u)), sl = new Set(L.map(x => x.u)), add = a.filter(x => !sl.has(x.u));
+            if (add.length) { LG.d.gone[key] = L.concat(add); ledgerSave(); }
+            if (back.length) diag('ledgerBack', { k: key, n: back.length });       // 🧾 예전 파일로 바꿔치기 · 예전 폴더 (영구삭제를 다시 더해요)
+            return back.length ? a.concat(back) : a;
+        }
+        function ledgerRoot(id) {                                                   // 지금 쓰는 말랑달콤 폴더
+            if (!lgLive() || !id || LG.d.root === id) return;
+            LG.d.root = id; LG.d.retired = LG.d.retired.filter(x => x !== id); ledgerSave();
+        }
+        function ledgerRetire(ids) { if (!lgLive()) return; LG.d.retired = [...new Set(LG.d.retired.concat(ids))].filter(x => x !== LG.d.root); ledgerSave(); }
+        window.ledgerMix = ledgerMix; window.ledgerInfo = () => (LG.ok ? JSON.parse(JSON.stringify(LG.d)) : null);
+        window.ledgerFlush = async () => { if (!LG.ok) return; ledgerSave(); await new Promise(ok => setTimeout(ok, 1700)); await LG.q; };   // 🧪 시험용 (기다렸다 저장까지)
         function goneScrub(which) {                                                // 가진 목록에 남은 영구삭제 · 휴지통 번호를 빼요 (오래된 기기가 덮어쓴 것)
             const G = GONE_OF[which]; if (!G) return;
+            G.g.forEach(k => { if (!GONE_KEYS.includes(k) || !lgLive()) return; const cur = goneArr(store.getItem(k)), all = ledgerMix(k, cur); if (all.length > cur.length) goneUnion(k, all); });   // 📒 장부의 영구삭제도 (바꿔치기한 예전 파일)
             const ids = new Set(); G.g.forEach(k => goneArr(store.getItem(k)).forEach(x => ids.add(x.u)));
             if (!ids.size) return;
             G.l.forEach(k => {
@@ -509,7 +584,11 @@
         }
 
         async function findFolder(name, parentId) {
-            const files = await driveList(`name='${qName(name)}' and mimeType='${FOLDER_MIME}' and '${parentId || DRIVE_PARENT_DEFAULT}' in parents and trashed=false`, 'id,name,createdTime');
+            let files = await driveList(`name='${qName(name)}' and mimeType='${FOLDER_MIME}' and '${parentId || DRIVE_PARENT_DEFAULT}' in parents and trashed=false`, 'id,name,createdTime');
+            if (!parentId && name === TOP_FOLDER_NAME && LG.ok && LG.d.retired.length) {   // 📒 은퇴한 예전 폴더 = 이름을 '말랑달콤'으로 되돌려도 안 써요 (하나만 남아도 = 새 폴더로)
+                const R = new Set(LG.d.retired), n = files.length; files = files.filter(f => !R.has(f.id));
+                if (files.length < n) diag('rootRetired', { n: n - files.length });
+            }
             if (files.length > 1 && !parentId && name === TOP_FOLDER_NAME) { const pick = await rootPick(files); if (pick) return pick; }   // 🗂 맨 위 말랑달콤이 둘 = 휴지통에서 되살린 예전 폴더일 수 있어요 (도련 11-11 · 아래)
             if (files.length > 1) { diag('dup', { name, n: files.length, ids: files.map(f => f.id).join(',') }); mergeFolders(files[0].id, files.slice(1).map(f => f.id)); }   // 두 기기가 동시에 만든 같은 폴더 → 먼저 만든 쪽으로 합치기 (기다리지 않음)
             return files[0] ? files[0].id : null;
@@ -522,8 +601,9 @@
         let rootPickP = null;
         function rootPick(files) {
             if (rootPickP) return rootPickP;
-            const T = f => Date.parse(f.createdTime || 0) || 0, L = files.slice().sort((a, b) => T(a) - T(b)), cur = L[L.length - 1], olds = L.slice(0, -1), M10 = 10 * 60 * 1000;
-            if (T(cur) - T(L[0]) < M10 || Date.now() - T(cur) < M10) return Promise.resolve(null);   // 쌍둥이 · 방금 생긴 폴더 = 합치기 (예전 그대로)
+            const T = f => Date.parse(f.createdTime || 0) || 0, L = files.slice().sort((a, b) => T(a) - T(b)), M10 = 10 * 60 * 1000;
+            const cur = (LG.ok && L.find(f => f.id === LG.d.root)) || L[L.length - 1], olds = L.filter(f => f !== cur);   // 📒 지금 폴더 = 장부에 적힌 폴더 (없으면 가장 나중에 만든 것)
+            { const nw = L[L.length - 1]; if (T(nw) - T(L[0]) < M10 || Date.now() - T(nw) < M10) return Promise.resolve(null); }   // 쌍둥이 · 방금 생긴 폴더 = 합치기 (예전 그대로)
             rootPickP = (async () => {
                 const day = d => { const x = new Date(d); return `${x.getFullYear()}.${x.getMonth() + 1}.${x.getDate()}`; };
                 diag('rootDup', { n: files.length, cur: cur.id, olds: olds.map(f => f.id).join(',') });
@@ -537,6 +617,7 @@
                     const md = (() => { const x = new Date(); return String(x.getMonth() + 1).padStart(2, '0') + String(x.getDate()).padStart(2, '0'); })();
                     for (let i = 0; i < olds.length; i++) {
                         const nm = TOP_FOLDER_NAME + '_예전_' + md + (olds.length > 1 ? '_' + (i + 1) : '');
+                        ledgerRetire([olds[i].id]);                                  // 📒 은퇴 (이름을 되돌려도 다시 쓰지 않아요)
                         try { const r = await gfetch(`${DRIVE_API}/${olds[i].id}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ name: nm }) }); if (!r.ok) throw await driveFail(r, 'rename'); diag('rootDup', { renamed: olds[i].id, to: nm }); }
                         catch (e) { console.warn('예전 말랑달콤 폴더 이름을 못 바꿨어요 (이번엔 지금 폴더만 써요):', e); }
                     }
@@ -615,7 +696,7 @@
                 }
                 if (id) { drive.folderIds.set(key, id); drive.alive.set(id, Date.now()); drive.folderMiss.delete(key); }   // 방금 찾거나 만든 폴더 = 살아 있어요
                 else if (!create) drive.folderMiss.set(key, Date.now());
-                if (id && key === TOP_FOLDER_NAME) drive.rootId = id;          // 🗑 말랑달콤 폴더가 지워졌는지 볼 때 (rootGone)
+                if (id && key === TOP_FOLDER_NAME) { drive.rootId = id; ledgerRoot(id); }   // 🗑 말랑달콤 폴더가 지워졌는지 볼 때 (rootGone) · 📒 장부에 지금 폴더
                 return id || null;
             })();
             drive.folderBusy.set(busyKey, p);
@@ -924,6 +1005,7 @@
 
         async function loadFromDrive() {
             resetDriveCaches(); drive.rootId = null; drive.keyNone = new Set();
+            await ledgerLoad();                                              // 📒 장부 먼저 (은퇴한 예전 폴더는 쓰지 않아요 · 영구삭제 한 벌)
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             drive.newbie = !drive.rootId; diag('start', { mode: drive.local ? 'folder' : 'google', newbie: drive.newbie ? 1 : 0 });   // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
@@ -940,6 +1022,7 @@
             DESK_START.forEach((w, i) => { const o = desks[i]; if (o) Object.keys(o).forEach(k => { if (keyFile(k) === w) store.putLoaded(k, JSON.stringify(o[k])); }); });
             DESK_START2.forEach((w, i) => { const o = backs[i]; if (o) Object.keys(o).forEach(k => { if (keyFile(k) === w) store.putLoaded(k, JSON.stringify(o[k])); }); });
             if (drive.newbie) DESK_START2.forEach(w => { (drive.keyNone = drive.keyNone || new Set()).add(w); drive.chunks[w] = null; });
+            Object.keys(GONE_OF).filter(w => KEY_FILES[w] && !KEY_FILES[w].lazy).forEach(goneScrub);   // 📒 장부의 영구삭제를 다시 더하고 · 목록에서 빼요 (💤 lazy 는 읽을 때)
             drive.lazyOn = new Set(); drive.lazyBusy = new Map(); drive.lazyBad = new Set();   // 💤 쓸 때 다시 읽어요
             DESK_WHICH.filter(w => KEY_FILES[w].lazy).forEach(w => { delete drive.chunks[w]; });
             if (typeof collLogin === 'function') await collLogin();          // 🎨 지금 쓰는 내 페이지 · 배경지 원본 (js/coll.js)
@@ -1475,7 +1558,7 @@
             const t = (e && (e.type || e.error || e.message)) || '';
             if (t === 'popup_closed') return '로그인 창이 닫혔어요. 다시 시도해 주세요.';
             if (t === 'popup_failed_to_open') return '팝업이 차단됐어요. 팝업을 허용한 뒤 다시 눌러 주세요.';
-            if (t === 'scope') return '드라이브 파일 권한을 허용해야 일기를 저장할 수 있어요. 다시 시도해 주세요.';
+            if (t === 'scope') return '구글 허용 화면의 <b>드라이브 권한 두 칸을 모두</b> 체크해야 일기를 저장할 수 있어요. 다시 시도해 주세요.';
             if (t === 'access_denied') return '권한이 거부됐어요. 다시 시도해 주세요.';
             if (t === 'timeout') return '응답이 없어요. 다시 시도해 주세요.';
             if (t === 'corrupt') return '저장된 파일을 읽을 수 없어요. 데이터 보호를 위해 덮어쓰지 않았어요. 구글 드라이브 폴더를 확인해 주세요.';

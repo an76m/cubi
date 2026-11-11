@@ -211,7 +211,7 @@
             if (!t.trim()) return ownRescue(k, 'missing');
             let o; try { o = await ownUnlock(t); } catch (e) { const r = await ownRescue(k, 'corrupt'); if (r) return r; throw e; }
             d.txt = t;                                                           // 🛟 잘 읽힌 목록만 백업해요 (ownBackup)
-            d.gone = ownGoneClean(o.gone);                                       // 🚛 영구삭제 칸 (그 종류 목록 안 · 도련 11-11)
+            d.gone = ownGoneClean(window.ledgerMix ? ledgerMix('own:' + k, o.gone) : o.gone);   // 🚛 영구삭제 칸 (그 종류 목록 안 · 도련 11-11) + 📒 장부 한 벌 (예전 파일로 바꿔치기해도 · js/drive.js)
             const gs = new Set(d.gone.map(x => x.u)), L0 = ownIdxClean(o.list, k).filter(e => !gs.has(e.id)); d.n = L0.length;
             return L0;
         }
@@ -238,6 +238,7 @@
             const files = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).filter(x => /^[a-z0-9]+\.json$/i.test(x.name));   // 내 종이만 (_ 목록 · 스티커첩 · 백업 · 공유하기 내-/받은- 파일은 빼요)
             if (!bkOk && !files.length) return none();                          // 종이도 없으면 = 정말 처음 쓰는 종류
             if (!bkReal && why === 'missing' && !files.some(x => Date.now() - Date.parse(x.createdTime || 0) > 10 * 60 * 1000)) { d0.tBase = tb0; if (window.diag) diag('rescueWait', { k, papers: files.length }); return none(); }   // 방금 만든 종이뿐 = 첫 종이를 받는 중 (목록이 곧 생겨요 · 10분 넘은 종이가 있을 때만 되살려요)
+            if (window.ledgerMix) d0.gone = ownGoneClean(ledgerMix('own:' + k, d0.gone || []));   // 📒 장부의 영구삭제도
             const goneS = new Set((d0.gone || []).map(x => x.u)); base = base.filter(e => !goneS.has(e.id));   // 🚛 영구삭제 번호는 되살리지 않아요
             const got = new Map(); let i = 0;
             await Promise.all(Array.from({ length: 4 }, async () => {
@@ -983,6 +984,7 @@
                     if (i < 0) continue;
                     fid = list[i].f;                                                // 버린 뒤 칸을 쓰면 파일 번호가 바뀌어요 → 목록의 지금 번호
                     const d = ownK(k); d.gone = ownGoneClean((d.gone || []).concat([{ u: id, at: Date.now() }]));   // 🚛 영구삭제 칸 (영원히 · 도련 11-11)
+                    if (window.ledgerMix) ledgerMix('own:' + k, d.gone);           // 📒 장부에도 바로
                     list.splice(i, 1); await ownIdxWrite(k, list); ownSetKind(k, list);
                     ownBackupNow(k);                                   // 🛟 백업에도 바로 (예전 백업으로 되살아나지 않게)
                     break;
