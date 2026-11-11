@@ -17,7 +17,16 @@
         const DYO_T = ['date', 'note', 'binder'];
         const dyoOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         const dyoHas = () => prefGet(DYO_KEY, DYO_LOCAL) !== null;              // 목록을 알아요 (읽었거나 · 되살렸거나 · 처음 선물)
-        function dyoAll() { const v = prefGet(DYO_KEY, DYO_LOCAL); return Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && x.id && DYO_T.includes(x.t)) : []; }
+        /* ✏️ 내가 만든 날짜형 디자인 (도련 11-11 · 노트 만들기 → 날짜형노트 · 바인더 만들기 → 날짜형 바인더 표지) : 그 권 줄 · 표지 재료 줄의 md 에 디자인을 담아요
+             → 읽을 때 날짜형 디자인 표(DY_DESIGNS · DY_COL · js/app.js)에 더해요 = 상품 디자인과 똑같이 그려져요 (off = 샵에는 안 나와요) */
+        function dyoMy(x) {
+            const m = x && (x.md || (x.cv && x.cv.md)); if (!m || typeof m !== 'object' || !/^my[\w가-힣-]{1,40}$/.test(m.id || '') || !['n', 'b'].includes(m.ch)) return;
+            if (typeof DY_DESIGNS === 'undefined' || DY_DESIGNS.some(d => d.id === m.id && d.ch === m.ch)) return;
+            const c = m.cols || {}, ok = v => /^#[0-9a-f]{6}$/i.test(v || ''); if (!ok(c.테두리색) || !ok(c.강조색) || !ok(c.속지색)) return;
+            DY_COL[m.id] = { cover: String(c.표지색 || c.테두리색).slice(0, 120), page: c.속지색, border: c.테두리색, accent: c.강조색 };
+            DY_DESIGNS.push({ id: m.id, K: '', kind: m.ch === 'n' ? '노트' : '바인더', ch: m.ch, name: String(m.name || '내 다이어리').slice(0, 20), n: String(m.n || 'A5'), mm: String(m.mm || ''), r: +m.r > 0 ? +m.r : 1.414, b: m.ch === 'b' ? 'ring' : (['tn', 'spread', 'hard', 'thin'].includes(m.b) ? m.b : 'thin'), c: c.테두리색, lf: m.lf || 'line', rf0: '', off: true, mine: 1 });
+        }
+        function dyoAll() { const v = prefGet(DYO_KEY, DYO_LOCAL); const L = Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && x.id && DYO_T.includes(x.t)) : []; L.forEach(dyoMy); return L; }
         function dyoSet(L, mem) { const v = (L || []).filter(Boolean); if (mem && dyoOnline()) store.putLoaded(DYO_KEY, JSON.stringify(v)); else prefSet(DYO_KEY, DYO_LOCAL, v); }   // mem = 메모리에만
         const dyoGet = id => dyoAll().find(x => x.id === id) || null;
         function dyoPut(line, mem) { const L = dyoAll(), i = L.findIndex(x => x.id === line.id); if (i >= 0) L[i] = line; else L.push(line); dyoSet(L, mem); }
@@ -30,7 +39,7 @@
         const DYM = { cover: { key: 'diary_cover_own', l: 'malang_cover_own', w: 'bmown' }, refill: { key: 'diary_refill_own', l: 'malang_refill_own', w: 'bmown' } };   // 🧩 다이어리 / _바인더재료목록.json 한 파일에 두 칸 (도련 11-08)
         const dymKind = t => t === 'cover' || t === 'dcover' ? 'cover' : t === 'refill' || t === 'drefill' ? 'refill' : '';
         const dymIs = t => !!dymKind(t);
-        function dymAll(k) { const v = prefGet(DYM[k].key, DYM[k].l); return Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && dymKind(x.t) === k) : []; }
+        function dymAll(k) { const v = prefGet(DYM[k].key, DYM[k].l); const L = Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && dymKind(x.t) === k) : []; if (k === 'cover') L.forEach(dyoMy); return L; }
         const dymGet = id => dymAll('cover').concat(dymAll('refill')).find(x => x.id === id) || null;
         function dymSet(k, L) { prefSet(DYM[k].key, DYM[k].l, (L || []).filter(Boolean)); }
         function dymPut(it) { const k = dymKind(it && it.t); if (!k) return; const L = dymAll(k), i = L.findIndex(x => x.id === it.id); if (i >= 0) L[i] = it; else L.push(it); dymSet(k, L); }
@@ -60,7 +69,7 @@
         }
         const dymNewId = () => 'my' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 
-        window.dyoAll = dyoAll; window.dyoGet = dyoGet; window.dyoPut = dyoPut; window.dyoDel = dyoDel; window.dyoHas = dyoHas; window.dyoSet = dyoSet;
+        window.dyoMy = dyoMy; window.dyoAll = dyoAll; window.dyoGet = dyoGet; window.dyoPut = dyoPut; window.dyoDel = dyoDel; window.dyoHas = dyoHas; window.dyoSet = dyoSet;
         window.dymAll = dymAll; window.dymGet = dymGet; window.dymPut = dymPut; window.dymDel = dymDel; window.dymReady = dymReady; window.dymIs = dymIs;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

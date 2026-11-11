@@ -2122,7 +2122,7 @@
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             dySub = dyKind === '다이어리' && (sub === 'b' || sub === 'n') ? sub : '';
             document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? (dySub === 'b' ? '📔 날짜형바인더' : dySub === 'n' ? '📓 날짜형노트' : '📔 다이어리 보관소') : DY_ICON[dyKind] + ' ' + DY_KNAME[dyKind];
-            const ps = document.getElementById('dyPickS'); if (ps) ps.textContent = dyKind === '다이어리' ? `해마다 받은 ${dySub === 'b' ? '날짜형바인더' : dySub === 'n' ? '날짜형노트' : '기본 다이어리'}가 여기 쌓여요 · 톡 하면 그 해 다이어리를 펼쳐요` : `내가 만든 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요 · ✏️ 고치기`;
+            const ps = document.getElementById('dyPickS'); if (ps) ps.textContent = dyKind === '다이어리' ? (dySub ? `받거나 만든 ${dySub === 'b' ? '날짜형바인더' : '날짜형노트'}가 여기 쌓여요 · 톡 하면 펼쳐요` : '해마다 받은 기본 다이어리가 여기 쌓여요 · 톡 하면 그 해 다이어리를 펼쳐요') : `내가 만든 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요 · ✏️ 고치기`;
             const bar = document.getElementById('dyTabs');
             const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)

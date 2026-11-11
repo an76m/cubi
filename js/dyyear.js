@@ -129,7 +129,7 @@
             if (!dyyOnline() || typeof ownLock !== 'function') return;
             try {
                 const dir = await getFolder(dyBookDir(id), true), cur = await findFile(dir, DYY_FILE);
-                if (!cur) { const I = dyyLine(id) || {}; await driveUpsert(dir, DYY_FILE, null, await ownLock({ id, from: I.from || from, at: I.at || '' })); }
+                if (!cur) { const I = dyyLine(id) || {}, md = I.md || (I.cv && I.cv.md); await driveUpsert(dir, DYY_FILE, null, await ownLock(Object.assign({ id, from: I.from || from, at: I.at || '' }, md ? { md } : {}))); }   // ✏️ 내가 만든 디자인도 (되살릴 때)
                 const L = dyyLine(id); if (L && !L.f) dyoPut(Object.assign({}, L, { f: 1 }));   // 권 폴더를 만들었어요 (다시 확인하지 않아요)
             } catch (e) { console.warn('📔 다이어리.json', id, e); }
         }
@@ -142,7 +142,7 @@
                     const f = await findFile(dir.id, DYY_FILE);
                     let o = null;
                     if (f) { try { o = await ownUnlock(await readFileText(f.id)); } catch (e) {} if (!o || o.id !== id) continue; }   // 🔐 남의 것은 빼요 (다이어리.json 이 없는 예전 권은 폴더 그대로)
-                    ids.push(id); lines.push(dyyLineNew(id, dyoFrom(o && o.from, 'basic'), { at: (o && o.at) || '', f: 1 }));
+                    ids.push(id); lines.push(dyyLineNew(id, dyoFrom(o && o.from, 'basic'), Object.assign({ at: (o && o.at) || '', f: 1 }, o && o.md ? { md: o.md } : {}))); if (o && o.md && window.dyoMy) dyoMy(o);
                 }
             }
             return lines;
@@ -319,6 +319,18 @@
             return id;
         }
         window.dyyAssemble = dyyAssemble;
+        /* ✏️ 날짜형노트 만들기 (도련 11-11 · 노트 만들기 → 날짜형노트) : 내 디자인(md) → 그 해 권 하나 (from mine · 노트 = 완제품) */
+        function dyyMakeNote(md, y) {
+            if (window.dyoMy) dyoMy({ md });
+            const d = DY_DESIGNS.find(x => x.id === md.id && x.ch === 'n'); if (!d) return '';
+            const id = dyyNewId(y, d);
+            dyoPut(dyyLineNew(id, 'mine', { md }));
+            dyyFile(id, 'mine');
+            if (window.dkDeskBooks) dkDeskBooks();
+            dyySelect(id);
+            return id;
+        }
+        window.dyyMakeNote = dyyMakeNote;
         /* 🔒 지난 해 다이어리 = 보기만 (도련 11-07 · A) : 날짜형(바인더 · 노트)은 그 해가 지나면 펼쳐 읽기 · 넘기기 · 검색만 · 쓰기 · 꾸미기 · 붙이기는 안 돼요
              해 = 컴퓨터 날짜 (dyyThis) · 자정이 넘어도 그 전에 펼친 장은 저장해요 (그 다음 장부터 · js/elements.js loadData · saveData) · 붙여 둔 것은 이미 24시간 고정 */
         const dyyPast = () => dyyBasic() && !!dyyBook() && dyyBook().y < dyyThis() && !(typeof dkIs === 'function' && typeof currentDate !== 'undefined' && dkIs(currentDate));
