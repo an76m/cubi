@@ -694,6 +694,7 @@
             if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo();
             drawWith(id, e.clientX, e.clientY);
         }, true);
+        window.pcRectOf = id => { const h = drq('pcHeld'); if (pcS.held && pcS.held.id === id && h && !h.hidden) return h.getBoundingClientRect(); const L = pcS.lay.find(x => x.id === id && x.el.isConnected); return L ? L.el.getBoundingClientRect() : null; };   // ✋ 책상 = 다이어리를 접을 때 그 자리에서 떠요 (js/deskgd.js dkwFloatAll)
         window.pcOutIds = () => pcDesk() ? pcS.lay.filter(x => x.el.isConnected).map(x => x.id).concat(pcS.held && !pcS.memo ? [pcS.held.id] : []) : [];
         window.pcReturn = id => {                                              // ↩ 제자리로 (js/deskgd.js 꺼낸 문구 정리)
             pcS.lay.filter(x => x.id === id).forEach(x => x.el.remove()); pcS.lay = pcS.lay.filter(x => x.id !== id);
