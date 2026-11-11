@@ -50,7 +50,7 @@
               <path d="M66 30 L434 30" stroke="${C.light}" stroke-width="6"/>
               <rect x="80" y="46" width="340" height="18" rx="9" fill="${C.ln}" stroke-width="0"/>
               <path d="M92 55 L408 55" stroke="${C.light}" stroke-width="3"/>
-              <text x="64" y="118" font-family="Jua, sans-serif" font-size="13" fill="#c06a8f" stroke="none" letter-spacing="1">씰스티커 만들기</text>
+              <text x="64" y="118" font-family="Jua, sans-serif" font-size="13" fill="#c06a8f" stroke="none" letter-spacing="1">시트 씰스티커 만들기</text>
               <rect class="spr-led" x="330" y="92" width="30" height="12" rx="6" fill="#7fd3b0" stroke-width="3"/>
               <g class="spr-pw"><circle cx="410" cy="98" r="22" fill="${C.shade}" stroke-width="4"/><circle cx="410" cy="98" r="14" fill="#fff" stroke-width="3"/>
                 <path d="M410 91 L410 98 M403.5 94 A8 8 0 1 0 416.5 94" fill="none" stroke="#ff7a93" stroke-width="2.6"/></g>
