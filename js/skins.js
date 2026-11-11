@@ -2114,8 +2114,9 @@
         let dyKind = '다이어리', dyTab = 'free';
         /* 📔 다이어리 = 받은 권 보관소 (11-05 도련 : 나만의 다이어리 · 내가만든 칸 없앴어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '페이지노트 만들기 · 페이지바인더 만들기' (11-05 들어가게)) */
-        const dyNoteFree = t => t.k === '노트' && t.from !== 'mine';         // 📕 샵 · 선물로 받은 페이지노트 = '기본' 칸 (도련 11-11 · 내가 만든 것은 '내가만든')
-        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'free' ? (kind === '노트' && typeof dmkAll === 'function' ? dmkAll().filter(dyNoteFree) : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind && !dyNoteFree(t)) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.cvOnly) : [];   /* 🗂️ 바인더 표지는 권이 아니에요 (🧩 조립) */   // 규격 6종은 나중에 문구점 바탕
+        const dyNoteFree = t => t.k === '노트' && t.from !== 'mine' && !dyBagged(t.id);
+        const dyBagged = id => { const H = window.deskBagHold ? deskBagHold() : null; return !!H && H.d.has(id); };   // 🛍️ 봉투 속 노트는 꺼낼 때까지 없어요 (도련 11-11)         // 📕 샵 · 선물로 받은 페이지노트 = '기본' 칸 (도련 11-11 · 내가 만든 것은 '내가만든')
+        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'free' ? (kind === '노트' && typeof dmkAll === 'function' ? dmkAll().filter(dyNoteFree) : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind && !dyBagged(t.id) && !(t.k === '노트' && t.from !== 'mine')) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.cvOnly) : [];   /* 🗂️ 바인더 표지는 권이 아니에요 (🧩 조립) */   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free' && !(kind === '노트' && typeof dmkAll === 'function' && dmkAll().some(dyNoteFree));   // 📕 받은 페이지노트가 있으면 '기본' 칸도   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
         let dySub = '';                                                        // 📔 날짜형 : 'b' 날짜형바인더 · 'n' 날짜형노트 · '' 둘 다 (도련 11-11 : 다이어리 창 버튼 넷)
         function dyOpen(kind, sub) {

@@ -105,13 +105,17 @@
             const R = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => r.t === 'date' && r.n === d.n), r = R.find(x => x.id === d.rf0) || R[0];
             return r ? dyyRefillProd(r, from) : { id: dymNewId(), t: 'drefill', n: d.n, lf: d.lf || 'line', g: `${d.name} 날짜 내지`, from };
         }
+        /* 🧩 샵에서 받은 바인더 재료 (표지 · 내지) = 봉투 속 (도련 11-11 : 꺼내기 전엔 🧩 바인더 조립 바구니에 없어요) · m = 재료 (책상에 놓는 권이 아니에요) */
+        function dyyMatGot(o) { dymPut(o); window.dyyLastGiven = { id: o.id, t: Date.now(), m: 1 }; }
         function dyyPNoteGive(p) {                                           // 📕 페이지노트 (완제품) = 다이어리 목록에 바로 한 권 (📓 페이지노트 창 '기본' 칸 · 도련 11-11)
-            dyoPut({ id: dymNewId(), t: 'note', pid: p.id, g: p.g, n: p.n, b: p.b, c: p.c, cols: p.cols, cw: 1, pg: p.pg, lv: p.lv, from: 'basic' });   // 🎁 첫 선물 노트와 같은 모양 (js/dymaker.js)
-            window.dyyLastGiven = null;
+            const id = dymNewId();
+            dyoPut({ id, t: 'note', pid: p.id, g: p.g, n: p.n, b: p.b, c: p.c, cols: p.cols, cw: 1, pg: p.pg, lv: p.lv, from: 'basic' });   // 🎁 첫 선물 노트와 같은 모양 (js/dymaker.js)
+            window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (꺼낼 때까지 노트 창 · 책상에 없어요 · 도련 11-11)
+            if (window.shopBagOn && shopBagOn() && window.dkBagHold) dkBagHold(id);
             return 'ok';
         }
-        async function dyyPCoverGive(p) { try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; } dymPut({ id: dymNewId(), t: 'cover', pid: p.id, g: p.g, n: p.n, c: p.c, cols: p.cols, cw: 1, from: 'basic' }); window.dyyLastGiven = null; return 'ok'; }   // 🏪 샵 페이지바인더 표지 = 🧩 재료
-        async function dyyRefillGive(R) { try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; } dymPut(dyyRefillProd(R, 'basic')); window.dyyLastGiven = null; return 'ok'; }   // 🏪 샵 바인더 내지 = 🧩 재료
+        async function dyyPCoverGive(p) { try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; } dyyMatGot({ id: dymNewId(), t: 'cover', pid: p.id, g: p.g, n: p.n, c: p.c, cols: p.cols, cw: 1, from: 'basic' }); return 'ok'; }   // 🏪 샵 페이지바인더 표지 = 🧩 재료
+        async function dyyRefillGive(R) { try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; } dyyMatGot(dyyRefillProd(R, 'basic')); return 'ok'; }   // 🏪 샵 바인더 내지 = 🧩 재료
         function dyyNewId(y, d, mem) {                                         // d = 디자인 (DY_DESIGNS)
             const k = `${y}${d.ch}-${d.id}-`, cnt = Object.assign({}, prefGet(DYY_N, DYY_N_L) || {});
             const used = dyyIds().concat([...dyyOut()]).map(dyyOf).filter(b => b && b.y === y && b.ch === d.ch && b.c === d.id).map(b => b.n);
@@ -293,8 +297,7 @@
         async function dyyGive(y, d) {
             if (d.ch === 'b') {                                                // 🗂️ 날짜형바인더 = 조립품 : 샵 = 해가 적힌 표지 → 🧩 바인더 재료 (도련 11-07 · 981)
                 try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; }
-                dymPut(dyyCoverOf(y, d, 'basic'));                            // 📄 내지는 따로 (🏪 바인더 내지 · 도련 11-07)
-                window.dyyLastGiven = null;
+                dyyMatGot(dyyCoverOf(y, d, 'basic'));                         // 📄 내지는 따로 (🏪 바인더 내지 · 도련 11-07) · 🛍️ 봉투 속
                 return 'ok';
             }
             const id = dyyNewId(y, d);                                         // 📓 날짜형노트 = 완제품 → 바로 권

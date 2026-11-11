@@ -1486,7 +1486,8 @@
             dkBags().forEach(bg => bg.it.forEach(it => {
                 (Array.isArray(it.s) ? it.s : []).forEach(id => s.add(id));
                 if (it.al && it.b) b.add(it.b);                                   // 📒 🤍 스티커첩
-                if (it.k === 'tool' && it.b) d.add(it.b);                          // 📔 다이어리 (보관소에도 없어요)
+                if (it.k === 'tool' && it.b) d.add(it.b);                          // 📔 다이어리 · 📕 페이지노트 (보관소 · 노트 창에도 없어요)
+                if (it.k === 'tool' && it.m) d.add(it.m);                          // 🧩 바인더 표지 · 내지 (조립 바구니에도 없어요 · 도련 11-11)
                 if (it.k === 'gd' && it.gid) g.add(it.gid);                        // ✏️ 문구 · 필기구 (디자인 id)
                 if (it.u) u.add(it.u);                                             // 🪑 소품 · 🧱 🪵 벽지 · 책상 (그 하나)
             }));

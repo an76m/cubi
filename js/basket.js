@@ -1408,7 +1408,7 @@
         if (al) o.n = String(x.name || '').slice(0, 30);   // 📒 🤍 정리 도구 = 그 상품 이름           // 📒 🤍 정리 도구 = 그 이름 (예전엔 '속지 10장 …' · 씰스티커로 보였어요 · 도련 10-30)
         if (x.look === 'dskin') { o.ds = x.sec === 'wallpaper' ? 'wall' : 'top'; o.n = String(x.name || '').slice(0, 30); }   // 🧱 벽지 · 🪵 책상 (책상 소품이 아니에요)
         if (al && window.abLastGiven && Date.now() - abLastGiven.t < 8000) o.b = abLastGiven.id;   // 📒 🤍 = 그 책 (책상에 끌어 놓으면 그 자리)
-        if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) o.b = dyyLastGiven.id;   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
+        if (k === 'tool' && window.dyyLastGiven && Date.now() - dyyLastGiven.t < 8000) { if (dyyLastGiven.m) o.m = dyyLastGiven.id; else o.b = dyyLastGiven.id; }   // 🧩 바인더 재료 = m (꺼낼 때까지 조립 바구니에 없어요 · 도련 11-11)   // 📔 새 다이어리 = 그 권 (책상에 끌어 놓으면 그 자리 · js/desk.js dkvPlace)
         if (sid) o.s = [sid];
         if (k === 'gd' && x.gid) o.gid = x.gid;                                 // ✏️ 문구 · 필기구 = 그 디자인 (봉투에서 꺼낼 때까지 문구함 · 펜꽂이에 없어요)
         { const L = x.look === 'dskin' ? window.dsLastGiven : k === 'desk' ? window.deskLastGiven : null; if (L && L.u && Date.now() - L.t < 8000) o.u = L.u; }   // 🪑 🧱 🪵 = 그 하나 (📦 소품함에 없어요)

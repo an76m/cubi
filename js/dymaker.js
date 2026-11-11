@@ -362,7 +362,8 @@
         function dmkRmPool(k) {
             const inNow = new Set([dmkRm.cv && dmkRm.cv.id].concat(dmkRm.rf.map(x => x.id)).filter(Boolean));
             const back = k === 'cover' ? [dmkRm.o0.cv].filter(Boolean) : dmkRm.o0.rf;
-            const seen = new Set(), L = [];
+            const seen = new Set(), L = [], H = window.deskBagHold ? deskBagHold() : null;   // 🛍️ 봉투 속 재료는 꺼낼 때까지 없어요 (도련 11-11)
+            if (H) H.d.forEach(id => seen.add(id));
             dymAll(k).concat(back).forEach(x => { const c = dmkClean(x); if (c && !seen.has(c.id) && !inNow.has(c.id)) { seen.add(c.id); L.push(c); } });
             return L;
         }
