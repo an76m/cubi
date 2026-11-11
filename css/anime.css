@@ -85,7 +85,7 @@ html.an .modal-content .btn, html.an .alert-card .btn { border-style: solid !imp
 /* 원래 css 에서 테두리를 0 으로 둔 버튼도 테두리가 보이게 (예 : 알림 창 확인 · 도련 10-28) */
 html.an #customAlertCancelBtn { border: 1.5px solid #f2b6c9 !important; }
 /* ---------- 📦 소품함 = 게임 인벤토리 (도련 10-28 시안 · js/desk.js deskBoxRender) ---------- */
-#deskBoxModal > .modal-content.iv-win { width: min(94vw, 470px); max-width: none; padding: 34px 14px 14px !important; background: #d9cdf2 !important; border: 2px solid #b49fdc !important; border-radius: 24px !important; box-shadow: 6px 7px 0 rgba(176, 150, 214, .35) !important; overflow: visible; }
+#deskBoxModal > .modal-content.iv-win { width: min(94vw, 470px); max-width: none; padding: 10px 14px 14px !important; background: #d9cdf2 !important; border: 2px solid #b49fdc !important; border-radius: 24px !important; box-shadow: 6px 7px 0 rgba(176, 150, 214, .35) !important; overflow: visible; }
 html.desk-on #deskBoxModal { justify-content: flex-end; padding-right: 4vw; background: none; pointer-events: none; }   /* 💻 책상 : 오른쪽에 떠서 책상을 보며 */
 html.desk-on #deskBoxModal > .modal-content { pointer-events: auto; }
 .iv-list { display: block; }   /* 종류가 많으면 옆으로 밀어요 */
@@ -107,7 +107,6 @@ html.desk-on #deskBoxModal > .modal-content { pointer-events: auto; }
 .iv-foot { display: flex; gap: 8px; margin-top: 6px; min-height: 40px; align-items: center; }
 .iv-foot .btn { flex: 1; height: 40px; justify-content: center; }
 .iv-foot .iv-del { flex: 0 0 48px; }
-.iv-shop { display: block; margin: 10px auto 0; padding: 4px 12px; border: 0; background: none; color: #8463b8; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 /* ---------- 🛠 책상 꾸미기 모드 (도련 10-28 : 3 연출 → 1 방 변신 + 4 작업대 · 📦 소품함) ---------- */
 /* 1 방 변신 : 연보라 막 + 모눈 (소품 아래) · 소품 점선 테두리 */
 html.desk-edit .desk-stage::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
