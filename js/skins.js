@@ -2114,8 +2114,9 @@
         let dyKind = '다이어리', dyTab = 'free';
         /* 📔 다이어리 = 받은 권 보관소 (11-05 도련 : 나만의 다이어리 · 내가만든 칸 없앴어요)
                        📓 노트 · 🗂️ 바인더 = 내가만든(만든 것만 · ➕ 만들기는 다이어리 창의 '페이지노트 만들기 · 페이지바인더 만들기' (11-05 들어가게)) */
-        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.cvOnly) : [];   /* 🗂️ 바인더 표지는 권이 아니에요 (🧩 조립) */   // 규격 6종은 나중에 문구점 바탕
-        const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free';   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
+        const dyNoteFree = t => t.k === '노트' && t.from !== 'mine';         // 📕 샵 · 선물로 받은 페이지노트 = '기본' 칸 (도련 11-11 · 내가 만든 것은 '내가만든')
+        const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'free' ? (kind === '노트' && typeof dmkAll === 'function' ? dmkAll().filter(dyNoteFree) : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind && !dyNoteFree(t)) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.cvOnly) : [];   /* 🗂️ 바인더 표지는 권이 아니에요 (🧩 조립) */   // 규격 6종은 나중에 문구점 바탕
+        const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free' && !(kind === '노트' && typeof dmkAll === 'function' && dmkAll().some(dyNoteFree));   // 📕 받은 페이지노트가 있으면 '기본' 칸도   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
         function dyOpen(kind) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
             document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? '📔 다이어리 보관소' : DY_ICON[dyKind] + ' ' + DY_KNAME[dyKind];
@@ -2129,13 +2130,14 @@
         }
         function dyTabSet(g) {
             dyTab = g;
+            const ps = document.getElementById('dyPickS'); if (ps && dyKind !== '다이어리') ps.textContent = g === 'free' ? `받은 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요` : `내가 만든 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요 · ✏️ 고치기`;   // 📕 칸마다 (도련 11-11)
             document.querySelectorAll('#dyTabs .stk-tab').forEach(b => b.classList.toggle('on', b.dataset.g === g));
             if (dyKind === '다이어리' && window.dyyCells) { document.getElementById('dyPickList').innerHTML = `<div class="dy-row">${dyyCells()}</div>`; dyRender(); return; }   // 📔 보관소 : 받은 해 (js/dyyear.js)
             const list = dyItems(dyKind, g), empty = { mine: `아직 만든 ${DY_KNAME[dyKind]}가 없어요.<br>📒 다이어리 창의 ${DY_ICON[dyKind]} ${DY_KNAME[dyKind]} 만들기로 만들어 보세요.`, share: `아직 공유받은 ${DY_KNAME[dyKind]}가 없어요.`, event: `아직 받은 이벤트 ${DY_KNAME[dyKind]}가 없어요.`, shop: `문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.` }[g] || `아직 가진 ${DY_KNAME[dyKind]}가 없어요.<br>나중에 문구점에서 산 ${DY_KNAME[dyKind]}가 여기에 들어와요.`;
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + DY_KNAME[dyKind] + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
-                ? `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${dmkEsc(it.g)}</span><small>${it.n} · ${it.pg}페이지</small><span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkOpen('${dyKind}', '${it.id}')">✏️</span></button>`
+                ? `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${dmkEsc(it.g)}</span><small>${it.n} · ${it.pg}페이지</small>${dyNoteFree(it) ? '' : `<span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkOpen('${dyKind}', '${it.id}')">✏️</span>`}</button>`   /* 📕 받은 노트는 상품 모양 그대로 (✏️ 고치기 없음 · 도련 11-11) */
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
             dyRender();
