@@ -60,7 +60,7 @@
         const t = document.querySelector('#basketModal .modal-title .mt-text') || document.querySelector('#basketModal .modal-title'); if (t) t.textContent = sort ? '📒 정리할 스티커 고르기' : '스티커';
         openModal('basketModal');
     }
-    window.bkSortOpen = () => openBasket(true);
+    window.bkSortOpen = () => { if (B.view === 'desk' && vis('basketKindModal')) return; B.wantSort = true; bkOpenKind('seal'); };   // 📒 스티커 정리 (🪑 위 메뉴) = 고르는 창 없이 바로 씰스티커 정리 책상 · 다른 스티커는 위 줄 버튼으로 (도련 11-11)
     function bkOpenKind(k, keep) {                                            // 그 종류의 창 (🧺 바구니 · 📒 스티커첩)
         if (!BK_KINDS[k]) return;
         if (B.kind !== k || !keep) { B.view = 'bin'; B.cur = ''; B.pg = 0; B.desk = null; }   // keep : 떼는 창에서 돌아올 때 보던 화면 그대로
@@ -482,7 +482,7 @@
     }
     /* 화면 바꾸기 : bin (바구니) · album (스티커첩) · bd (바인더 펼침) · rl (이형지 펼침) · desk (정리 책상) */
     function bkView(v) {
-        if (!v && B.sortGo && B.view === 'bin' && B.list && B.list.length) { B.sortGo = false; abDesk(); return; }   // 📒 스티커 정리로 왔으면 바로 정리 책상
+        if (!v && B.sortGo && B.view === 'bin' && B.list) { B.sortGo = false; abDesk(); return; }   // 📒 스티커 정리로 왔으면 바로 정리 책상 (서랍이 비어도 · 도련 11-11)
         if (v && B.view === 'desk' && v !== 'desk') { abFlush(); if (AB.peelOn && window.closeStickerPeel) closeStickerPeel(); }   // 정리 책상을 나가면 바로 저장 · 띄운 종이도 닫아요
         if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; }
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;
@@ -625,8 +625,25 @@
 
     /* 📒 정리 책상 */
     function abDesk() {
-        B.desk = { mode: 'bd', bd: (abMine(B.album.bd)[0] || {}).id || '', rl: (abMine(B.album.rl)[0] || {}).id || '', pick: '', sheet: null, sel: -1 };
-        B.pg = 0; bkView('desk');
+        B.desk = { mode: B.wantMode || 'bd', bd: (abMine(B.album.bd)[0] || {}).id || '', rl: (abMine(B.album.rl)[0] || {}).id || '', pick: '', sheet: null, sel: -1 };
+        B.wantMode = ''; B.pg = 0; bkView('desk');
+    }
+    /* 🔁 정리할 스티커 바꾸기 (도련 11-11) : 정리 책상 위 줄 버튼 ▾ → 종류 목록 → 고르면 그 종류 정리 책상 (보던 📒 / 🤍 그대로) */
+    const AB_KIC = { seal: 'seal', piece: 'piece', paper: 'paper', tape: 'tape', tk: 'tteok', leaf: 'leaf', memo: 'memo' };   // js/dakku.js 아이콘 (스티커 창과 같은 그림)
+    const abKic = k => window.dkIcon && AB_KIC[k] ? dkIcon(AB_KIC[k]) : '';
+    function abKindMenu(btn) {
+        const old = bq('abKMenu'); if (old) { old.remove(); return; }
+        const m = document.createElement('div'); m.id = 'abKMenu'; m.className = 'ab-kmenu'; m.setAttribute('role', 'menu');
+        m.innerHTML = Object.entries(BK_KINDS).map(([k, n]) => `<button type="button" role="menuitem" class="${k === B.kind ? 'on' : ''}" onclick="abKindGo('${k}')"><i>${abKic(k)}</i>${esc(n)}</button>`).join('');
+        btn.after(m); m.style.left = btn.offsetLeft + 'px';
+        setTimeout(() => document.addEventListener('pointerdown', function off(ev) { if (ev.target.closest('#abKMenu, .ab-kind')) return; document.removeEventListener('pointerdown', off, true); const x = bq('abKMenu'); if (x) x.remove(); }, true), 0);
+    }
+    function abKindGo(k) {
+        const x = bq('abKMenu'); if (x) x.remove();
+        if (!BK_KINDS[k] || k === B.kind) return;
+        const mode = B.desk ? B.desk.mode : '';
+        if (B.view === 'desk') { abFlush(); if (AB.peelOn && window.closeStickerPeel) closeStickerPeel(); }   // 정리 책상을 나가는 것과 같게 (바로 저장 · 띄운 종이 닫기)
+        B.wantSort = true; B.wantMode = mode; bkOpenKind(k);
     }
     function abMode(m) { const D = B.desk; if (!D) return; if (AB.peelOn && m !== 'rl' && window.closeStickerPeel) closeStickerPeel(); D.mode = m; D.sel = -1; bkView(); }
     function abNextTarget() {
@@ -715,7 +732,7 @@
         + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
-        const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 서랍</button><b class="ab-ttl">📒 정리하기<small>${esc(kn)}</small></b>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
+        const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 서랍</button><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */
@@ -1062,7 +1079,7 @@
     document.addEventListener('pointercancel', abUp);
 
     window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abPage = abPage; window.abRPage = abRPage; window.abLabel = abLabel; window.abColor = abColor;
-    window.abDesk = abDesk; window.bkGetKind = bkGetKind; window.shQuick = shQuick; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
+    window.abDesk = abDesk; window.abKindMenu = abKindMenu; window.abKindGo = abKindGo; window.bkGetKind = bkGetKind; window.shQuick = shQuick; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 기본상품 샵 (도련 10-25) : 아이콘 8개 → 그 종류의 기본상품 샵 창 → 🔍 확대 → 🧺 받기
        카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
