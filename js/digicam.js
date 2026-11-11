@@ -37,13 +37,13 @@
                 <path d="M49 46c0-4 3-6 6-7M49 46c-2 1-3 4-3 6" fill="none"/><circle cx="46" cy="53" r="3" fill="#ff6b8b"/><circle cx="53" cy="51" r="3" fill="#ff6b8b"/>
               </g>
             </svg>
-            <div class="dcm-name"><b>디카</b><small>사진 넣기</small></div>`;
+            <div class="dcm-name"><b>디카</b><small>셀카 스티커 만들기</small></div>`;
         const BACK = `
             <i class="dcm-top dcm-shut" id="dcmShut" data-k="shut" role="button" aria-label="셔터"></i><i class="dcm-top dcm-pow" id="dcmOff" role="button" aria-label="끄기"></i>
             <i class="dcm-slit"></i>
             <div class="dcm-bd"></div>
             <div class="dcm-scr"><canvas id="dcmLcd"></canvas><i class="dcm-pearl a"></i><i class="dcm-pearl b"></i></div>
-            <b class="dcm-bname">디카 · 사진 넣기</b>
+            <b class="dcm-bname">셀카 스티커 만들기</b>
             <i class="dcm-heart" aria-hidden="true"></i>
             <div class="dcm-spk" aria-hidden="true">${'<i></i>'.repeat(7)}</div>
             <button type="button" class="dcm-k dcm-sm" style="left:69u;top:7u" data-k="W">W</button>
