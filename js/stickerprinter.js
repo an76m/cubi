@@ -50,7 +50,7 @@
               <path d="M66 30 L434 30" stroke="${C.light}" stroke-width="6"/>
               <rect x="80" y="46" width="340" height="18" rx="9" fill="${C.ln}" stroke-width="0"/>
               <path d="M92 55 L408 55" stroke="${C.light}" stroke-width="3"/>
-              <text x="64" y="118" font-family="Jua, sans-serif" font-size="13" fill="#c06a8f" stroke="none" letter-spacing="2">MALANG PRINT</text>
+              <text x="64" y="118" font-family="Jua, sans-serif" font-size="13" fill="#c06a8f" stroke="none" letter-spacing="1">스티커 프린터</text>
               <rect class="spr-led" x="330" y="92" width="30" height="12" rx="6" fill="#7fd3b0" stroke-width="3"/>
               <g class="spr-pw"><circle cx="410" cy="98" r="22" fill="${C.shade}" stroke-width="4"/><circle cx="410" cy="98" r="14" fill="#fff" stroke-width="3"/>
                 <path d="M410 91 L410 98 M403.5 94 A8 8 0 1 0 416.5 94" fill="none" stroke="#ff7a93" stroke-width="2.6"/></g>
@@ -286,9 +286,9 @@
         /* ---------- 아래 글 · 버튼 (출력 뒤에만 버튼) ---------- */
         function ctl() {
             const el = pq('sprCtl'); if (!el) return; const open = !(typeof isCoverOpen !== 'undefined' && !isCoverOpen);
-            const msg = P.st === 'edit' ? (P.view === 'top' ? '위 화면을 보며 오른쪽 버튼으로 골라요' : '프린터를 톡! 하면 위에서 볼 수 있어요')
+            const msg = P.st === 'edit' ? ''   /* 기계 밖 안내 글은 없어요 (도련 11-11) */
                 : { print: '지이잉… 스티커가 나오고 있어요', ready: '다 나왔어요! 따끈따끈해요', peel: '톡!', done: P.doneMsg || '서랍에 쏙 넣었어요' }[P.st];
-            let h = `<p class="spr-msg${P.st === 'print' ? ' blink' : ''}" id="sprTip">${msg}</p>`;
+            let h = msg ? `<p class="spr-msg${P.st === 'print' ? ' blink' : ''}" id="sprTip">${msg}</p>` : '';
             if (P.st === 'ready') h += `<div class="spr-row">${open ? `<button type="button" class="spr-btn pop" data-go="stick">📌 톡! 떼어 다이어리에</button>` : ''}<button type="button" class="spr-btn pop${open ? ' soft' : ''}" data-go="keep">💾 톡! 떼어 서랍에</button></div>`;
             else if (P.st === 'done') h += `<div class="spr-row"><button type="button" class="spr-btn soft pop" data-go="again">하나 더 뽑기</button></div>`;
             el.innerHTML = h;

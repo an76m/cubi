@@ -22,7 +22,7 @@
 .lbm-head { display: flex; align-items: stretch; gap: calc(var(--u) * 2); padding: calc(var(--u) * 1.6); border-radius: calc(var(--u) * 3.4); background: #fff9fb; border: var(--lw) solid var(--ln); }
 .lbm-brand { display: flex; flex-direction: column; justify-content: center; line-height: 1; color: #e2558a; min-width: calc(var(--u) * 13); }
 .lbm-brand b { font-size: calc(var(--u) * 3.1); letter-spacing: .04em; }
-.lbm-brand small { font-size: calc(var(--u) * 1.5); color: #b78a9e; margin-top: calc(var(--u) * .7); letter-spacing: .12em; }
+.lbm-brand small { font-size: calc(var(--u) * 1.5); color: #b78a9e; margin-top: calc(var(--u) * .7); letter-spacing: .02em; }
 
 /* 📟 화면 */
 .lbm-lcd { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; padding: calc(var(--u) * .9) calc(var(--u) * 1.6); border-radius: calc(var(--u) * 1.6); background: #d4e0c4; border: var(--lw) solid var(--ln); box-shadow: inset 0 calc(var(--u) * .8) 0 #c2d0b0; color: #2f3a26; }
