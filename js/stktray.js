@@ -102,8 +102,14 @@
         dtrDrag(p);
         return b;
     }
+    function dtrHome() {                                                     // 🍽 버튼 자리 : 🪑 책상 = 화면 위 가운데 · ▤ 하단 메뉴 = 아래 메뉴 줄 끝 (다이어리 날짜 막대를 가리지 않게 · 도련 11-11)
+        const b = q('dtrBtn'); if (!b) return;
+        const home = UI.desk() ? document.body : (document.querySelector('.toolbar') || document.body);
+        if (b.parentNode !== home) home.appendChild(b);
+    }
     function dtrPaint() {
         const b = dtrBuild(), A = API(); if (!A) return;
+        dtrHome();
         const p = A.peek(); if (p) { T.list = p; const M = byId(); T.ids = T.ids.filter(id => M.has(id)); }   // 다 쓴 종이는 저절로 빠져요
         b.hidden = !T.ids.length; if (!b.firstChild) b.innerHTML = '<span>오늘 쓸 스티커</span><i class="dtr-sw" aria-hidden="true"></i>';   // 켜고 끄는 스위치 (개수 대신 · 도련 11-01)
         if (!T.ids.length) dtrShow(false);
@@ -111,6 +117,7 @@
         if (box) box.innerHTML = T.ids.map(id => M.get(id)).filter(Boolean).map(e => `<div class="stp-c in" data-id="${htmlEsc(e.id)}">${A.card(e)}</div>`).join('');
     }
     function dtrShow(on) {
+        dtrHome();
         T.open = !!on && T.ids.length > 0;
         const p = q('dtrPanel'), b = q('dtrBtn'); if (!p) return;
         p.hidden = !T.open; if (b) { b.classList.toggle('on', T.open); b.setAttribute('aria-pressed', String(T.open)); }
@@ -131,7 +138,7 @@
         });
     }
     if (window.ownOnChange) ownOnChange(() => { if (T.ids.length) dtrPaint(); if (q('stkPick') && q('stkPick').classList.contains('show') && API()) { const p = API().peek(); if (p) { T.list = p; stpPaint(); } } });
-    window.stpOpen = stpOpen; window.stpClose = stpClose; window.stpSave = stpSave; window.stpKind = stpKind; window.dtrEnd = dtrEnd;
+    window.dtrHome = dtrHome; window.stpOpen = stpOpen; window.stpClose = stpClose; window.stpSave = stpSave; window.stpKind = stpKind; window.dtrEnd = dtrEnd;
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

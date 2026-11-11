@@ -1262,6 +1262,7 @@
             H.classList.toggle('desk-wide', deskWide());
             if (!on && H.classList.contains('desk-show')) H.classList.remove('desk-show');   // 하단 메뉴로 바꾸면 펴 둔 다이어리는 그대로 보여요
             H.classList.toggle('desk-on', on);
+            if (window.dtrHome) dtrHome();                                     // 🍽 오늘 쓸 스티커 버튼 자리도 모드를 따라가요 (js/stktray.js)
         }
         function deskModeSet(v) { prefSet(DESK_MODE_KEY, DESK_MODE_LOCAL, v === 'menu' ? 'menu' : 'desk'); deskSync(); if (window.deskModeRender) deskModeRender(); }
         function hideGate() {

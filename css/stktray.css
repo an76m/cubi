@@ -49,5 +49,11 @@
 .dtr-ft { display: flex; gap: 6px; justify-content: center; }
 .dtr-mini { padding: 6px 12px; border-radius: 999px; border: 2px solid #e2c4cf; background: #fff; color: #9a6a7d; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
 /* 장소 · 꾸미기 · 가게 · 고르는 화면에서는 숨겨요 (책상 오른쪽 위 버튼과 같게) */
-html:not(.desk-on) .dtr-btn, html.desk-edit .dtr-btn, body.cal-on .dtr-btn, body:has(.shop-scene.on) .dtr-btn, body:has(#stkPick.show) .dtr-btn,
-html:not(.desk-on) .dtr-pn, html.desk-edit .dtr-pn, body.cal-on .dtr-pn, body:has(.shop-scene.on) .dtr-pn, body:has(#stkPick.show) .dtr-pn { display: none; }
+html.desk-edit .dtr-btn, body.cal-on .dtr-btn, body:has(.shop-scene.on) .dtr-btn, body:has(#stkPick.show) .dtr-btn,
+html.desk-edit .dtr-pn, body.cal-on .dtr-pn, body:has(.shop-scene.on) .dtr-pn, body:has(#stkPick.show) .dtr-pn { display: none; }
+
+/* 🍽 하단 메뉴 모드에서도 (도련 11-11 · 스티커 창 '오늘 쓸 스티커' → 쟁반 버튼은 화면 위 가운데 그대로) */
+.stk-sub { display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; margin: 10px auto 2px; padding: 0 18px; border: 1.6px solid #e8bfd2; border-radius: 18px; background: #fff; color: #c8457a; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.stk-sub:hover { border-color: #e07ba0; background: #fff4f8; }
+.toolbar .dtr-btn { position: static; transform: none; align-self: center; flex: none; height: 40px; padding: 0 14px; font-size: 14px; }   /* ▤ 하단 메뉴 = 아래 메뉴 줄 끝 */
+html.is-phone .stk-sub { display: none; }   /* 📱 폰은 아직 없어요 (고르는 화면이 💻 배치라 깨져요) */
