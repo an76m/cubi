@@ -103,6 +103,7 @@
     const small = (k, x = 1, y = 0) => `<g transform="translate(${x} ${y}) scale(.84)">${ICON[k]}</g>`;
     ICON.notemk = small('note', 1, 1) + plus;
     ICON.bindmk = small('binder', 1, 0) + plus;
+    ICON.bindasm = small('binder', 1, 0) + `<path d="M31.5 31.5h3.2a2.6 2.6 0 1 1 5.2 0h3.2v3.6a2.6 2.6 0 1 0 0 5.2v3.6h-11.6z" fill="#8fd6bc" ${K}/>`;   // 🧩 바인더 조립 = 바인더 + 퍼즐 조각 (도련 11-11 · 만들기 ➕ 와 구분)
     ICON.patmk = `<g transform="rotate(-7 21 24)"><rect x="6" y="8" width="29" height="32" rx="3.5" fill="#fff6cf" ${K}/>`
         + `<path d="M6 17h29M6 26h29M14.5 8v32M24 8v32" stroke="#ffc6d6" stroke-width="2.4" opacity=".75"/>`
         + `<g fill="#ff9fb8"><circle cx="10.2" cy="12.5" r="1.4"/><circle cx="19.3" cy="21.5" r="1.4"/><circle cx="29.3" cy="12.5" r="1.4"/><circle cx="10.2" cy="31" r="1.4"/><circle cx="29.3" cy="31" r="1.4"/></g></g>`

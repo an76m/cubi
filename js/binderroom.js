@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/binderroom.js
    🧩 바인더 조립 공간 (도련 11-07 · 981 · 💻 📲 책상 오른쪽 위 메뉴 '바인더 조립')
-   - 왼쪽 🧺 재료 바구니 = 가진 표지 · 내지 (🧩 다이어리 / _바인더재료목록.json · js/dyown.js) · ＋ 새 표지 · 새 내지 (내가 만들기 · js/dymaker.js)
+   - 왼쪽 🧺 재료 바구니 = 가진 표지 · 내지 (🧩 다이어리 / _바인더재료목록.json · js/dyown.js) · 만들기는 여기 없어요 (도련 11-11 : 📒 다이어리 → 🗂️ 바인더 만들기 · 조립은 고르기만)
    - 가운데 작업대 = 펼친 바인더 : 표지를 놓고 · 내지를 링에 끼워요 (톡 또는 끌어다 놓기) · 끼운 내지를 바구니로 끌거나 ✕ = 빼기
    - 📅 날짜 표지(해가 적힌) = 같은 크기 날짜 내지 하나 · 끼운 표지의 해로 날짜가 그려져요 · 해가 지난 표지는 못 해요
    - 🧩 조립하기 = 다이어리 목록에 한 권 · 쓴 재료는 바구니에서 빠져요 → 바인더는 책상 위에 (끌어서 옮겨요)
@@ -63,12 +63,12 @@
         const date = dmkRmDate(), n = dmkRmN(), lock = dmkRmLock(), cv = s.cv ? C(s.cv) : null;
         /* 🧺 바구니 */
         const covers = dmkRmPool('cover').filter(c => !(s.id && c.t === 'dcover'));
-        bq('bndCovers').innerHTML = `<div class="bnd-card bnd-new" data-new="cover"><b>＋</b><span>새 표지</span></div>` + covers.map(c => cvCard(c, c.t === 'cover' && c.from === 'mine' && window.dymGet && dymGet(c.id) ? `<i class="bnd-ed" data-ed="cover:${esc(c.id)}" title="고치기">✏️</i>` : '')).join('')
-            + (covers.some(c => c.t === 'dcover') ? '' : `<div class="bnd-hint">🗂️ 표지는 ＋ 새 표지로 만들거나 🏪 샵 → 📔 다이어리에서 받아요</div>`);
+        bq('bndCovers').innerHTML = covers.map(c => cvCard(c, c.t === 'cover' && c.from === 'mine' && window.dymGet && dymGet(c.id) ? `<i class="bnd-ed" data-ed="cover:${esc(c.id)}" title="고치기">✏️</i>` : '')).join('')
+            + (covers.some(c => c.t === 'dcover') ? '' : `<div class="bnd-hint">🗂️ 표지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📔 다이어리에서 받아요</div>`);
         const refills = dmkRmPool('refill');
         const fit = r => cv && (date ? r.t === 'drefill' : r.t === 'refill') && r.n === n;
-        bq('bndRefills').innerHTML = `<div class="bnd-card bnd-new" data-new="refill"><b>＋</b><span>새 내지</span></div>` + refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('')
-            + (refills.length ? '' : `<div class="bnd-hint">📄 내지는 ＋ 새 내지로 만들거나 🏪 샵 → 📅 날짜 내지 · 📄 페이지 내지에서 받아요</div>`);
+        bq('bndRefills').innerHTML = refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('')
+            + (refills.length ? '' : `<div class="bnd-hint">📄 내지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📅 날짜 내지 · 📄 페이지 내지에서 받아요</div>`);
         /* 작업대 */
         bq('bndWorkT').textContent = s.id ? '✏️ ' + (s.g || '내 바인더') + ' 고치기' : '작업대';
         const mine = (window.dmkAll ? dmkAll() : []).filter(d => d.t === 'binder');
