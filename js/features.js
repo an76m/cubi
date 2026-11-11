@@ -21,11 +21,12 @@
             bdauto: false,    // ⚡ 바인더 자동 속지 빼기 · 끼우기 (📤 꺼내기 · 📥 끼우기 버튼 · ⚙ 설정의 '바인더 속지 빼기 · 끼우기' · 10-19 숨김 · 지금은 ✋ 수동만)
             bgm: false,       // 🎵 배경음악 (⚙ 설정 메뉴의 '배경음악' 칸 · 10-15 숨김)
             world: true,      // (11-02 사이트에서도 보이게 · 👭 모임방 칸) 🌳 말랑 광장 (도련 11-02 · 임시 2.5D 월드 · 혼자 걷기 · 이동 창 · 카페 창 칸 · js/world.js)
+            dymake: false,    // ✏️ 📒 다이어리 창의 📓 노트 만들기 · 🗂️ 바인더 만들기 버튼 (11-11 숨김 · 도련 · 코드 · 만든 것은 그대로 · 🧩 바인더 조립은 보여요)
             fphone: false     // 📞 반짝이 피처폰 메신저 (로그인한 회원끼리 · 서버 말랑달콤사람들 .gs 새 버전이 필요해요)
         };
         /* 💻 내 컴퓨터(index.html 더블클릭 · localhost)에서는 모든 기능이 보여요 → 새 기능 소개 영상용 (사이트는 위 FEATURES 그대로) */
         const FT_LOCAL = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share'];   // 🙈 로컬에서도 숨겨요 (10-23 : 노트 · 바인더 · 표지 꾸미기 · 배경지 창 내가만든 칸)   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
+        const FT_OFF_LOCAL = ['fphone', 'bdauto', 'share', 'dymake'];   // 🙈 로컬에서도 숨겨요 (10-23 : 노트 · 바인더 · 표지 꾸미기 · 배경지 창 내가만든 칸)   // 💻 로컬 테스트에서도 숨겨요 (📞 피처폰 · 도련 · 2026-10-16 · ☕ 카페 10-18 · ⚡ 바인더 자동 10-19)
         function ftOn(name) { if (FT_OFF_LOCAL.includes(name) && FEATURES[name] === false) return false; return FT_LOCAL || !(name in FEATURES) || FEATURES[name] !== false; }
         (function () {
             const root = document.documentElement;

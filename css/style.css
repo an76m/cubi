@@ -2753,7 +2753,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 
 /* 🔓 기능 공개 스위치 (js/features.js) : 숨긴 기능의 버튼 · 칸 */
 .ft-no-cafe [data-ft~="cafe"], .ft-no-notebook [data-ft~="notebook"], .ft-no-dday [data-ft~="dday"], .ft-no-pattern [data-ft~="pattern"],
-.ft-no-dybook [data-ft~="dybook"], .ft-no-patmake [data-ft~="patmake"], .ft-no-patdraw [data-ft~="patdraw"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"], .ft-no-bdauto [data-ft~="bdauto"], .ft-no-world [data-ft~="world"] { display: none !important; }
+.ft-no-dybook [data-ft~="dybook"], .ft-no-patmake [data-ft~="patmake"], .ft-no-patdraw [data-ft~="patdraw"], .ft-no-stkmake [data-ft~="stkmake"], .ft-no-share [data-ft~="share"], .ft-no-caps [data-ft~="caps"], .ft-no-bgm [data-ft~="bgm"], .ft-no-bdauto [data-ft~="bdauto"], .ft-no-world [data-ft~="world"], .ft-no-dymake [data-ft~="dymake"] { display: none !important; }
 
 /* 🆓 기본 스티커 : 🧩 봉투 · 📄 모조지스티커 카드 (js/stk-basic.js) */
 
