@@ -127,10 +127,11 @@
             if (html) { const room = st.querySelector(':scope > .desk-room'); (room || st.firstChild).insertAdjacentHTML(room ? 'afterend' : 'beforebegin', html); }
         }
         /* 견본 (샵 카드 · 소품함 칸) : 방 한 장을 작게 */
-        function dsSwatch(id) {
+        function dsSwatch(id) {                                                  // 견본 = 평면 색 · 무늬만 (도련 11-11 : 방 모양 · 선 · 그늘 없이 · 적용한 모습은 적용해보기 dsTry)
             const c = dsCat(id); if (!c) return '';
-            if (c.k === 'wall') return dsBasic(id) ? '<span class="ds-sw basic w"></span>' : dsSvg(id, '', true);
-            return dsBasic(id) ? '<span class="ds-sw basic t"></span>' : dsSvg('', id, true);
+            if (dsBasic(id)) return `<span class="ds-sw basic ${c.k === 'wall' ? 'w' : 't'}"></span>`;
+            if (c.img && c.iw && c.ih) { const p = 'sw' + Math.random().toString(36).slice(2, 8); return `<svg class="ds-sw" viewBox="0 0 560 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><pattern id="${p}" width="${c.iw}" height="${c.ih}" patternUnits="userSpaceOnUse"><image href="${c.img}" width="${c.iw}" height="${c.ih}"/></pattern></defs><rect width="560" height="560" fill="url(#${p})"/></svg>`; }   // 무늬 = 방에 깔리는 크기 그대로
+            const col = c.k === 'wall' ? c.c : (c.t && c.t[0]); return `<span class="ds-sw" style="background:${col || '#fff'}"></span>`;
         }
 
         /* ---------- 🛠 책상 꾸미기 (js/desk.js) : 바꾸는 동안 들고 있다가 ✔ 완료 때 저장 · ✕ 취소 = 처음대로 ---------- */
