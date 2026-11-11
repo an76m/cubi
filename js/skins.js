@@ -2117,10 +2117,12 @@
         const dyNoteFree = t => t.k === '노트' && t.from !== 'mine';         // 📕 샵 · 선물로 받은 페이지노트 = '기본' 칸 (도련 11-11 · 내가 만든 것은 '내가만든')
         const dyItems = (kind, tab) => kind === '다이어리' ? [] : tab === 'free' ? (kind === '노트' && typeof dmkAll === 'function' ? dmkAll().filter(dyNoteFree) : []) : tab === 'mine' ? (typeof dmkAll === 'function' ? dmkAll().filter(t => t.k === kind && !dyNoteFree(t)) : []) : tab === 'shop' ? DY_TYPES.filter(t => t.k === kind && !t.off && !t.cvOnly) : [];   /* 🗂️ 바인더 표지는 권이 아니에요 (🧩 조립) */   // 규격 6종은 나중에 문구점 바탕
         const dyHide = (kind, v) => kind === '다이어리' ? v !== 'free' : v === 'free' && !(kind === '노트' && typeof dmkAll === 'function' && dmkAll().some(dyNoteFree));   // 📕 받은 페이지노트가 있으면 '기본' 칸도   // 📔 다이어리 = 기본 다이어리 보관소 하나 (도련 10-28)
-        function dyOpen(kind) {
+        let dySub = '';                                                        // 📔 날짜형 : 'b' 날짜형바인더 · 'n' 날짜형노트 · '' 둘 다 (도련 11-11 : 다이어리 창 버튼 넷)
+        function dyOpen(kind, sub) {
             dyKind = DY_TAB.includes(kind) ? kind : dyNow().k;
-            document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? '📔 다이어리 보관소' : DY_ICON[dyKind] + ' ' + DY_KNAME[dyKind];
-            const ps = document.getElementById('dyPickS'); if (ps) ps.textContent = dyKind === '다이어리' ? '해마다 받은 기본 다이어리가 여기 쌓여요 · 톡 하면 그 해 다이어리를 펼쳐요' : `내가 만든 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요 · ✏️ 고치기`;
+            dySub = dyKind === '다이어리' && (sub === 'b' || sub === 'n') ? sub : '';
+            document.getElementById('dyTitle').textContent = dyKind === '다이어리' ? (dySub === 'b' ? '📔 날짜형바인더' : dySub === 'n' ? '📓 날짜형노트' : '📔 다이어리 보관소') : DY_ICON[dyKind] + ' ' + DY_KNAME[dyKind];
+            const ps = document.getElementById('dyPickS'); if (ps) ps.textContent = dyKind === '다이어리' ? `해마다 받은 ${dySub === 'b' ? '날짜형바인더' : dySub === 'n' ? '날짜형노트' : '기본 다이어리'}가 여기 쌓여요 · 톡 하면 그 해 다이어리를 펼쳐요` : `내가 만든 ${DY_KNAME[dyKind]}가 여기 쌓여요 · 톡 하면 펼쳐요 · ✏️ 고치기`;
             const bar = document.getElementById('dyTabs');
             const tabs = stkTabsOn(null, 'dy').filter(([v]) => !dyHide(dyKind, v));   // ✂️ 문구함 = 꾸미기 문구 카테고리 (지금은 📎 집게 · 나중에 키링 …)                          // 칸에 든 게 생기면 has 로 보여 주기 (지금은 공유받은 · 이벤트 · 문구점이 다 비어 있어요)
             bar.innerHTML = tabs.map(([v, n]) => `<button type="button" class="stk-tab" data-g="${v}" onclick="dyTabSet('${v}')">${n}</button>`).join('');   // 🆓 이벤트 · 문구점은 든 게 있을 때만 (js/stickermaker.js STK_HIDE)
@@ -2145,6 +2147,7 @@
         }
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
+        window.dySubNow = () => dySub;
         window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkFolderName = dkFolderName; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;

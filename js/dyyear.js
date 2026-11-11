@@ -417,8 +417,9 @@
         function dyyCells() {
             const cur = dyyBookId();
             const H = window.deskBagHold ? deskBagHold() : null;                 // 🛍️ 봉투 속 다이어리는 꺼낼 때까지 보관소에 없어요 (💻 📲)
-            const all = dyyBooks().filter(b => !(H && H.d.has(b.id))).sort((a, b) => (b.id === cur) - (a.id === cur) || b.y - a.y || b.n - a.n);
-            if (!all.length) return `<div class="cs-empty">📔 다이어리가 없어요.<br>🏪 기본상품 샵 → 📔 다이어리에서 받아 주세요.<br><button type="button" class="btn primary" style="margin-top:10px" onclick="closeModal('dyModal'); dyyShop()">🏪 받으러 가기</button></div>`;
+            const sub = window.dySubNow ? dySubNow() : '', subOk = b => sub === 'b' ? !dyyIsNote(b) : sub === 'n' ? dyyIsNote(b) : true;   // 📔 날짜형바인더 · 📓 날짜형노트 버튼 (도련 11-11)
+            const all = dyyBooks().filter(b => !(H && H.d.has(b.id)) && subOk(b)).sort((a, b) => (b.id === cur) - (a.id === cur) || b.y - a.y || b.n - a.n);
+            if (!all.length) return `<div class="cs-empty">${sub === 'b' ? '📔 날짜형바인더가' : sub === 'n' ? '📓 날짜형노트가' : '📔 다이어리가'} 없어요.<br>🏪 기본상품 샵 → 📔 다이어리에서 받아 주세요.<br><button type="button" class="btn primary" style="margin-top:10px" onclick="closeModal('dyModal'); dyyShop()">🏪 받으러 가기</button></div>`;
             const kinds = DYY_KINDS.filter(([k]) => all.some(b => dyyKindOf(b) === k));
             if (kinds.length < 2 || !kinds.some(([k]) => k === dyyFilter)) dyyFilter = 'all';
             const chips = kinds.length > 1 ? `<div class="dyy-chips">${[['all', '전체']].concat(kinds).map(([k, n]) => `<button type="button" class="${k === dyyFilter ? 'on' : ''}" onclick="dyyFilterSet('${k}')">${n}</button>`).join('')}</div>` : '';
