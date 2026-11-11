@@ -155,6 +155,29 @@
             if (!it || !dsCat(it.id)) return ''; dsUse(it.u); return dsCat(it.id).k;
         }
         window.dsPut = dsPut;
+        /* 🏪 적용해보기 (도련 11-11) : 샵에서 벽지 · 책상판을 고르면 화면 가득 빈 방에 그것만 바뀐 모습 (소품 없이 · 나머지는 기본 그대로) · 오른쪽 위 닫기 */
+        function dsTry(id) {
+            const c = dsCat(id); if (!c) return;
+            let r = document.getElementById('dsTry');
+            if (!r) {
+                r = document.createElement('div'); r.id = 'dsTry'; r.className = 'ds-try';
+                r.innerHTML = '<div class="ds-try-st"><img class="desk-room" src="img/desk-wide.webp?v=20261009-831" alt="" draggable="false"></div><button type="button" class="desk-shop-go ds-try-x">닫기</button>';
+                r.querySelector('.ds-try-x').onclick = dsTryOff; document.body.appendChild(r);
+                addEventListener('resize', () => { if (!r.hidden) dsTryFit(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && !r.hidden) dsTryOff(); });
+            }
+            const st = r.querySelector('.ds-try-st'), old = st.querySelector('.desk-skin'); if (old) old.remove();
+            const html = dsBasic(id) ? '' : c.k === 'wall' ? dsSvg(id, '') : dsSvg('', id);   // 기본 = 방 그림 그대로
+            if (html) st.querySelector('.desk-room').insertAdjacentHTML('afterend', html);
+            r.hidden = false; dsTryFit();
+        }
+        function dsTryFit() {                                                    // 책상 화면과 같게 = 화면 꽉 (아래 맞춤)
+            const r = document.getElementById('dsTry'), st = r && r.querySelector('.ds-try-st'); if (!st) return;
+            const W = innerWidth, H = innerHeight, s = Math.max(W / 1672, H / 941);
+            st.style.transform = `translate(${(W - 1672 * s) / 2}px, ${H - 941 * s}px) scale(${s})`;
+        }
+        function dsTryOff() { const r = document.getElementById('dsTry'); if (r) r.hidden = true; }
+        window.dsTry = dsTry; window.dsTryOff = dsTryOff;
         /* 🗑 버리기 (마지막 하나도 · 쓰던 것이면 그림 그대로로) */
         async function dsDiscard(u) {
             try { await dsReady(); } catch (e) { return; }                      // 💤 먼저 가진 것
