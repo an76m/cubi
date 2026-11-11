@@ -1870,6 +1870,13 @@
                 <rect x="43.5" y="6" width="3.8" height="50" fill="#ff9fbd" stroke="#7b5a63" stroke-width="1.1"/>
                 <rect x="18" y="15" width="21" height="11" rx="5.5" fill="#fff" ${O2}/><text x="28.5" y="23" text-anchor="middle" font-size="7" font-weight="700" font-family="Jua, sans-serif" fill="#d9a43a">${YR}</text>
                 ${heart(21, 33, .78, '#ffb7cc', '#ff7fa3', u + 'dnh')}${dot(33, 46, 3.4, '#d6ecff', '#7fbdf0', u + 'dnb')}${gl(14, 6, 38, 16, 4)}<defs>${lg('dyn', '#fff3c4', '#ffd98a', 1, 1)}</defs>`,
+            'tool:pgn': () => `<path d="M24 50v12l3-2.6 3 2.6V50" fill="#ff9fbd" ${O2}/>
+                <g ${S}><rect x="18" y="8" width="38" height="50" rx="3" fill="#fffaf0" ${O}/><rect x="14" y="6" width="38" height="50" rx="4" fill="${F('pgn')}" ${O}/></g>
+                <path d="M53.5 12v42M55 12v42" stroke="#e8dcc0" stroke-width=".9"/>
+                <rect x="14" y="6" width="7" height="50" rx="3.5" fill="#a98bf0" opacity=".85"/><path d="M21 6v50" stroke="#7b5a63" stroke-width="1.1"/>
+                <rect x="43.5" y="6" width="3.8" height="50" fill="#ffd98a" stroke="#7b5a63" stroke-width="1.1"/>
+                <rect x="25" y="14" width="16" height="13" rx="2.5" fill="#fff" ${O2}/><path d="M28 18.6h10M28 22.4h7" stroke="#c9b6f2" stroke-width="1.5" stroke-linecap="round"/>
+                ${star(25, 33, .78, u + 'pns')}${heart(29, 44, .62, '#ffb7cc', '#ff7fa3', u + 'pnh')}${gl(14, 6, 38, 16, 4)}<defs>${lg('pgn', '#e9e1ff', '#c7b3f2', 1, 1)}</defs>`,   // 📕 페이지노트 (도련 11-11 · 2026 노트와 같은 그림 말 · 연보라 · 해 대신 줄 라벨)
             'tool:bd': () => `<g ${S}><rect x="12" y="6" width="48" height="52" rx="6" fill="${F('bd')}"/><rect x="12" y="6" width="10" height="52" rx="5" fill="#a98bf0"/><rect x="12" y="6" width="48" height="52" rx="6" fill="none" ${O}/></g>
                 <path d="M56 25h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7z" fill="#ff9fbd" ${O2}/><circle cx="61" cy="32" r="1.8" fill="#fff" ${O2}/>
                 <rect x="26" y="12" width="27" height="40" rx="3" fill="#fff" fill-opacity=".78" ${O2}/><path d="M26 32h27" stroke="#7b5a63" stroke-width="1" opacity=".45"/>
