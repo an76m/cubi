@@ -489,7 +489,7 @@
         if (B.view === 'album' && !abHasAlbum()) B.view = 'bin';               // 정리한 게 없으면 스티커첩 탭도 없어요
         const V = B.view || 'bin', sc = wrap.closest('.modal-content'), keep = sc ? sc.scrollTop : 0;
         { const m = bq('basketKindModal'); if (m) m.classList.toggle('bk-drw', V === 'bin'); }   // 🗄️ 서랍 = 창 없이 서랍만 (도련 11-05)
-        { const m = bq('basketKindModal'); if (m) { m.classList.toggle('ab-space', V === 'desk' && abSpace()); m.classList.toggle('abs-rl', V === 'desk' && abSpace() && !!B.desk && B.desk.mode === 'rl'); } }   // abs-rl : 🪡 핀셋이 저절로 (js/elements.js pinForce)   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
+        { const m = bq('basketKindModal'); if (m) { m.classList.toggle('ab-space', V === 'desk' && abSpace()); m.classList.toggle('ab-ph', V === 'desk' && abPh()); m.classList.toggle('abs-rl', V === 'desk' && abSpace() && !!B.desk && B.desk.mode === 'rl'); } }   // abs-rl : 🪡 핀셋이 저절로 (js/elements.js pinForce)   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
         const tabs = (V === 'bin' || V === 'album') && abHasAlbum() ? `<div class="ab-tabs"><button type="button" class="${V === 'bin' ? 'on' : ''}" onclick="bkView('bin')">🗄️ 서랍</button>`
             + `<button type="button" class="${V === 'album' ? 'on' : ''}" onclick="bkView('album')">📒 스티커첩</button></div>` : '';
         wrap.innerHTML = tabs + '<div class="ab-body" id="abBody"></div>';
@@ -625,6 +625,7 @@
 
     /* 📒 정리 책상 */
     function abDesk() {
+        AB.rise = true;                                                       // 📱 서랍 시트가 아래에서 올라와요 (처음 한 번)
         B.desk = { mode: B.wantMode || 'bd', bd: (abMine(B.album.bd)[0] || {}).id || '', rl: (abMine(B.album.rl)[0] || {}).id || '', pick: '', sheet: null, sel: -1 };
         B.wantMode = ''; B.pg = 0; bkView('desk');
     }
@@ -707,10 +708,13 @@
        · 둘 다 위쪽 손잡이를 끌어 원하는 자리로 (다이어리처럼) → 정리북을 왼쪽 · 바구니를 오른쪽에 두는 것도 마음대로
        · 놓은 자리는 이 기기에 기억해요 (localStorage malang_ab_space · 화면 크기 비율) · 📱 폰은 예전 창 그대로 */
     const ABS_LOCAL = 'malang_ab_space', ABS_DEF = { basket: [.015, 0], book: [-1, 0] };
-    const abSpace = () => !window.dvDev || dvDev() !== 'phone';
+    const abSpace = () => true;                                               // 🪑 정리 공간 = 모든 기기 (📱 폰도 · 도련 11-11 : 예전 폰 창은 길고 깨져요) · 배치만 다르게 ↓
+    const abPh = () => UI.phone();                                            // 📱 폰 배치 : 위 = 바인더 · 이형지북 한 쪽 · 아래 = 서랍 시트가 올라와요 (스티커 만들기처럼) · 종이를 위로 끌어 올려요
+    const abPile = () => abSpace() && !abPh();                                // 🧺 흩어진 바구니 (💻 📲) · 📱 은 한 줄 (옆으로 넘겨 봐요)
     function abSpaceGet() { let v = null; try { v = JSON.parse(localStorage.getItem(ABS_LOCAL)); } catch (e) {} return Object.assign({}, ABS_DEF, v && typeof v === 'object' ? v : {}); }
     function abSpacePlace() {
         const room = bq('absRoom'); if (!room) return;
+        if (abPh()) { abPhFit(room); const rl = bq('abRel'); if (rl) { rl.style.setProperty('--rk', abRelK().toFixed(4)); abRelHi(); } return; }   // 📱 = 끌어 옮기기 없이 위 · 아래 (css .ab-ph)
         const P = abSpaceGet(), W = room.clientWidth, H = room.clientHeight;
         abSpaceFit(room, W, H);
         abPilePlace();
@@ -737,15 +741,17 @@
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */
         const peel = D.mode !== 'rl' ? '' : `<div class="abx-mat">${!D.pick ? '<div class="ab-peelhint">여기에 놓으면<br>스티커 종이가 펼쳐져요<br><small>🪡 핀셋으로 떼어 이형지북에 붙여요</small></div>' : !D.sheet ? '<div class="ab-peelhint">종이를 펼치는 중…</div>' : '<div class="ab-peelzone" id="abPeelZone"></div>'}</div>`;   // 🟩 커팅 매트 = 바구니 오른쪽에 붙어 같이 움직여요 (도련 10-29)
-        const basket = `<section class="abs-box abs-basket" data-p="basket">${grip('🗄️ 서랍', nIn + '장')}`
-            + `<div class="abx-row"><div class="bk-bin abx-bin"><div class="ab-strip" id="abStrip">${strip}</div><span class="bk-tag">스티커 ${nIn}장</span></div>${peel}${D.mode === 'rl' && !D.pick && nIn ? ABS_GUIDE : ''}</div></section>`;
+        const ph = abPh(), rise = ph && AB.rise; AB.rise = false;
+        const phHead = !ph ? '' : `<div class="abp-head"><i class="abp-bar" aria-hidden="true"></i><b>🗄️ 서랍 <small>${nIn}장</small></b><span>${D.mode === 'bd' ? '종이를 위로 끌어 포켓에 꽂아요' : D.pick ? '🪡 핀셋으로 떼어 위 이형지북에 붙여요' : '종이를 톡 하면 여기서 펼쳐져요'}</span></div>`;   // 📱 아래 시트 머리
+        const basket = `<section class="abs-box abs-basket${rise ? ' rise' : ''}${D.mode === 'rl' && D.pick ? ' picked' : ''}" data-p="basket">${ph ? phHead : grip('🗄️ 서랍', nIn + '장')}`
+            + `<div class="abx-row"><div class="bk-bin abx-bin"><div class="ab-strip" id="abStrip">${strip}</div><span class="bk-tag">스티커 ${nIn}장</span></div>${peel}${D.mode === 'rl' && !D.pick && nIn && !ph ? ABS_GUIDE : ''}</div></section>`;
         /* 📒 바인더 · 🤍 이형지북 */
         let book;
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = L.find(x => x.id === D.bd) || L[0];
             if (!b) book = `<div class="abx-none">${abNoneMsg('bd')}</div>`;
             else {
-                D.bd = b.id; const c = abCol(b), pages = Math.ceil(b.n / abPer(b)), full = Object.keys(b.p).length >= b.n, side = abSideGet(), two = side === 'lr';
+                D.bd = b.id; const c = abCol(b), pages = Math.ceil(b.n / abPer(b)), full = Object.keys(b.p).length >= b.n, side = abPh() ? 'l' : abSideGet(), two = side === 'lr';   // 📱 = 한 쪽씩
                 B.pg = Math.max(0, Math.min(pages - 1, B.pg || 0)); if (two) B.pg -= B.pg % 2;   // 양쪽 = 두 쪽씩 (왼쪽 = 홀수 쪽) · 한 쪽 = 한 쪽씩 다 넘겨요
                 const pg = p => p < pages ? `<div class="abx-pg">${abPocketsAt(b, p)}<b class="abx-no">${p + 1}</b></div>` : '<div class="abx-pg end"></div>';
                 const sw = s2 => `<button type="button" class="abx-side${side.includes(s2) ? ' on' : ''}" aria-pressed="${side.includes(s2)}" title="${s2 === 'l' ? '왼쪽 페이지' : '오른쪽 페이지'}" onclick="abSide('${s2}')">${window.dvSideSvg ? dvSideSvg(s2) : s2}</button>`;
@@ -794,6 +800,15 @@
         try { localStorage.setItem(ABS_SIDE, v); } catch (e) {}
         bkView();
     }
+    /* 📱 폰 크기 맞추기 : 아래 서랍 시트 높이를 뺀 자리에 바인더 · 이형지북 한 쪽이 꽉 차게 (A5 비율) */
+    function abPhFit(room) {
+        const bk = room.querySelector('.abs-basket'), bo = room.querySelector('.abs-book'); if (!bk || !bo) return;
+        const W = room.clientWidth, H = room.clientHeight, R = 148 / 210, bd = bo.classList.contains('bd');
+        const extra = bd ? 78 : 64, availW = W - 20 - extra, availH = H - bk.offsetHeight - (bd ? 150 : 140);   // 이름표 · 넘기기 줄 · 책 테두리
+        let ph = Math.max(150, availH), pw = ph * R;
+        if (pw > availW) { pw = availW; ph = pw / R; }
+        bo.style.width = Math.round(pw + extra) + 'px'; bo.style.setProperty('--ph', Math.round(ph) + 'px');
+    }
     /* 📐 크기 맞추기 : 바구니는 세로로 길게 (책상 높이 가득) · 바인더 · 이형지북은 실제 A5 속지 비율(148 × 210)로 남은 자리를 가득 */
     function abSpaceFit(room, W, H) {
         const bk = room.querySelector('.abs-basket'), bo = room.querySelector('.abs-book'); if (!bk || !bo) return;
@@ -820,7 +835,7 @@
     }
     /* 🧺 정리 공간 바구니 = 🧺 바구니 화면처럼 종이가 흩어져 쌓여요 (같은 자리 기억 bkLay · 위에 쌓인 순서 bkOrder) */
     function abPilePlace() {
-        const pile = bq('abStrip'); if (!pile || !abSpace()) return;
+        const pile = bq('abStrip'); if (!pile || !abPile()) return;
         const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cards = [...pile.querySelectorAll('.ab-sc')], byId = new Map(cards.map(c => [c.dataset.id, c]));
         const ord = bkOrder().map(e => e.id).filter(id => byId.has(id));
         ord.forEach((id, z) => {
@@ -842,7 +857,7 @@
     window.abSheetDown = (sc, ev) => { if (!sc || ev.button > 0) return; AB.drag = { kind: 'sheet', src: sc, id: sc.dataset.id, slot: -1, x0: ev.clientX, y0: ev.clientY, pid: ev.pointerId, on: false, ghost: null }; };   // 떼는 판이 떠 있어도 바구니 종이를 끌어요 (js/stickerpeel.js)
     window.abSide = abSide;
     window.abGripAt = (el, ev) => { const bx = el && el.closest('.abs-box'); if (bx) abSpaceGrab(bx, ev); };   // 🤍 떼는 판이 떠 있어도 이름표를 끌면 옮겨져요 (js/stickerpeel.js)
-    window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abSpace() && vis('basketKindModal');   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
+    window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abPile() && vis('basketKindModal');   // 📱 폰은 예전처럼 손가락으로 (핀셋이 화면 구석에 떠 있지 않게 · 11-11)   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
     /* 🤍 이형지북 배율 = 이형지북 한 쪽 폭 ÷ 다이어리 한 쪽 폭 (둘 다 A5 비율) → 다이어리에 붙였을 때와 같은 크기로 보여요 (도련 10-29) */
     function abRelK() { const r = bq('abRel'), dw = window.dySize ? (dySize().pw || dySize().w) : 440;   /* pw = 바인더 책등 폭과 상관없는 종이 폭 (도련 11-04) */ return r && dw ? r.clientWidth / dw : .5; }
     /* 큰 그림으로 바꿔 보여요 (목록의 작은 미리보기는 흐려서 · 그 쪽에 보이는 것만 · 한 번 받으면 기억) */
@@ -1017,9 +1032,9 @@
         };
         if (!d.on) {
             if (Math.hypot(dx, dy) < 8) return;
-            if (d.kind === 'sheet' && !abSpace() && Math.abs(dx) > Math.abs(dy) * 1.2) { AB.drag = null; return; }   // 옆으로 = 줄 넘겨 보기 (🪑 정리 공간의 바구니는 아무 쪽으로나 끌어요)
+            if (d.kind === 'sheet' && !abPile() && Math.abs(dx) > Math.abs(dy) * 1.2) { AB.drag = null; return; }   // 옆으로 = 줄 넘겨 보기 (🪑 정리 공간의 바구니는 아무 쪽으로나 끌어요)
             d.on = true;
-            if (d.kind === 'sheet' && abSpace() && bq('abStrip')) {            // 🧺 정리 공간 : 바구니 안에서는 종이를 그대로 끌어 뒤적여요 · 바구니 밖으로 나가면 들어서 옮겨요 (도련 10-29)
+            if (d.kind === 'sheet' && abPile() && bq('abStrip')) {            // 🧺 정리 공간 : 바구니 안에서는 종이를 그대로 끌어 뒤적여요 · 바구니 밖으로 나가면 들어서 옮겨요 (도련 10-29)
                 d.pile = bq('abStrip'); d.inBin = true; d.l0 = d.src.offsetLeft; d.t0 = d.src.offsetTop;
                 d.src.style.zIndex = ++AB.top; d.src.classList.add('lift');
             } else ghost();
@@ -1061,15 +1076,15 @@
         if (!ok) return;
         if (!d.on) {
             if (d.kind !== 'sheet') { abTapSt(d.slot); return; }
-            if (abSpace()) abRaise(d.id);                                       // 🪑 정리 공간 : 톡 = 그 종이를 맨 위로 올려 봐요
-            if (!(abSpace() && B.desk && B.desk.mode === 'rl')) abTapSheet(d.id);   // 🤍 이형지북은 톡으로 매트에 안 가요 (끌어서 매트에 놓아야 · 도련 10-29)
+            if (abPile()) abRaise(d.id);                                       // 🪑 정리 공간 : 톡 = 그 종이를 맨 위로 올려 봐요
+            if (!(abPile() && B.desk && B.desk.mode === 'rl')) abTapSheet(d.id);   // 📱 = 톡 하면 아래 매트에 펼쳐져요   // 🤍 이형지북은 톡으로 매트에 안 가요 (끌어서 매트에 놓아야 · 도련 10-29)
             return;
         }
         const el = document.elementFromPoint(ev.clientX, ev.clientY);
         if (d.kind === 'sheet') {
             const pk = el && el.closest('.ab-pk:not(.full)');
             if (pk && B.desk && B.desk.mode === 'bd') abPutSheet(d.id, +pk.dataset.pk);
-            else if (B.desk && B.desk.mode === 'rl' && (!abSpace() || abOnMat(ev.clientX, ev.clientY))) { if (B.desk.pick !== d.id) abTapSheet(d.id); }   // 🟩 매트 위에 놓으면 펼쳐져요
+            else if (B.desk && B.desk.mode === 'rl' && (!abPile() || abOnMat(ev.clientX, ev.clientY))) { if (B.desk.pick !== d.id) abTapSheet(d.id); }   // 🟩 매트 위에 놓으면 펼쳐져요
         } else {
             const box = el && el.closest('#abRel');
             if (box) abPutSt(d.slot, ev.clientX, ev.clientY, box);

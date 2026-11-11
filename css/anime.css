@@ -415,6 +415,55 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abx-none { width: 100%; padding: 30px 14px; border: 2px dashed var(--ol); border-radius: 18px; background: rgba(255,250,242,.9); }
 /* 🧺 톡 = 그 종이를 맨 위로 (겹친 바구니에서 보기 · 도련 10-29) · 끄는 종이는 떼는 판 위로 */
 .abs-basket .ab-sc.up .bk-sh { outline: 3px solid #ffb3c9; outline-offset: 2px; }
+/* 📱 폰 정리 (도련 11-11 · js/basket.js abPh) : 위 = 바인더 · 이형지북 한 쪽 (화면 가득) · 아래 = 서랍 시트가 올라와요 (✂️ 스티커 만들기처럼)
+   종이를 손가락으로 위로 끌어 포켓에 꽂아요 (톡 → 포켓 톡도) · 서랍 줄은 옆으로 넘겨 봐요 · 🤍 = 종이 톡 → 시트가 매트로 → 🪡 떼어 위로 */
+#basketKindModal.ab-ph > .modal-content { background-image: none !important; background-color: #fbefe2 !important; }
+.ab-ph .abs-bar { flex-wrap: wrap; gap: 6px 8px; padding: 8px 10px 8px; padding-top: max(8px, env(safe-area-inset-top)); }
+.ab-ph .abs-bar .ab-back { order: 0; padding: 6px 12px; }
+.ab-ph .abs-bar .ab-kind { order: 1; }
+.ab-ph .abs-bar .abs-fill { order: 2; }
+.ab-ph .abs-bar .ab-done { display: none; }                                   /* ‹ 서랍 과 같아요 */
+.ab-ph .abs-bar .abs-x { order: 3; }
+.ab-ph .abs-bar .ab-tabs { order: 4; width: 100%; }
+.ab-ph .abs-bar .ab-tabs button { font-size: 13px; padding: 7px 4px; }
+.ab-ph .ab-kmenu { left: 70px; }
+.ab-ph .abs-room { display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+.ab-ph .abs-box { position: relative; left: auto !important; top: auto !important; max-height: none; }
+.ab-ph .abs-book { order: 0; flex: 1; min-height: 0; justify-content: center; padding: 8px 0 4px; }
+.ab-ph .abs-book .abs-grip, .ab-ph .abx-side { display: none; }
+.ab-ph .abx-tag { gap: 6px; margin-bottom: 6px; } .ab-ph .abx-tag .ab-lbdesk { max-width: 34%; overflow: hidden; }
+.ab-ph .abx-binder { padding: 10px; } .ab-ph .abx-binder.one.even { padding-right: 58px; } .ab-ph .abx-binder.one.odd { padding-left: 58px; }
+.ab-ph .abx-binder.one.even .abx-rings { left: calc(100% - 46px); } .ab-ph .abx-binder.one.odd .abx-rings { left: 46px; }
+.ab-ph .abx-rings { width: 60px; } .ab-ph .abx-rings svg { width: 60px; height: 18px; }
+.ab-ph .abx-pg .ab-pk span { font-size: 11px; }
+.ab-ph .abx-nav { margin-top: 4px; }
+/* 아래 서랍 시트 */
+.ab-ph .abs-basket { order: 1; flex: none; width: 100% !important; box-sizing: border-box; padding: 6px 0 max(10px, env(safe-area-inset-bottom)); background: #fffaf4; border-top: 1.6px solid #e8cbb0; border-radius: 22px 22px 0 0; box-shadow: 0 -6px 18px rgba(141, 111, 127, .16); z-index: 3; }
+.ab-ph .abs-basket.rise { animation: abpRise .32s cubic-bezier(.2, .9, .3, 1.05); }
+@keyframes abpRise { from { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .ab-ph .abs-basket.rise { animation: none; } }
+.abp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 2px 8px; padding: 0 14px 6px; text-align: center; }
+.abp-bar { flex-basis: 100%; display: block; width: 40px; height: 4px; margin: 0 auto 6px; border-radius: 2px; background: #e3cbd6; flex-grow: 0; }
+.abp-head b { color: #8a5a6e; font-size: 14px; } .abp-head b small { color: #b08a9c; font-size: 12px; }
+.abp-head span { color: #a0849a; font-size: 12px; }
+.ab-ph .abx-row { flex-direction: column; gap: 8px; }
+.ab-ph .abx-bin, .ab-ph .abx-row .abx-bin { width: 100% !important; height: auto !important; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.ab-ph .abx-bin::before, .ab-ph .abx-bin::after, .ab-ph .abs-basket .bk-tag { display: none; }
+.ab-ph .abs-basket .ab-strip { position: static; inset: auto; display: flex; gap: 10px; height: auto; padding: 4px 14px 8px; margin: 0; scroll-padding-inline: 14px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; touch-action: pan-x; overscroll-behavior: contain; border-radius: 0; }
+.ab-ph .abs-basket .ab-sc { position: relative; left: auto !important; top: auto !important; flex: none; width: 104px; transform: none; z-index: auto !important; scroll-snap-align: start; touch-action: pan-x; }
+.ab-ph .abs-basket .ab-sc .bk-sh { padding: 6px; touch-action: pan-x; }
+.ab-ph .abs-basket .ab-sc.lift, .ab-ph .abs-basket .ab-sc.ab-lifted { opacity: .35; }
+.ab-ph .abs-basket .ab-sc.up .bk-sh { outline: 0; }
+.ab-ph .abs-basket .ab-stripempty { padding: 24px 8px; }
+.ab-ph .abs-basket.picked .abx-bin { display: none; }                         /* 🤍 펼친 동안은 매트만 */
+.ab-ph .abx-mat { width: auto !important; height: auto !important; margin: 0 12px; padding: 8px; }
+.ab-ph .abs-basket:not(.picked) .abx-mat { display: none; }
+.ab-ph .abx-mat .ab-peelzone { min-height: min(30vh, 250px); }
+body:has(#basketKindModal.ab-ph[style*="display: flex"]) .toolbar { display: none !important; }   /* 하단 메뉴가 매트 위로 올라오지 않게 */
+.ab-ph .abs-basket .bk-bin, .ab-ph .abs-basket .abx-bin { background: none !important; background-image: none !important; border: 0 !important; box-shadow: none !important; }   /* 🧺 바구니 무늬 없이 (시트 하나) */
+.ab-ph .abx-tag { width: calc(100vw - 20px); max-width: 380px; justify-content: center; flex-wrap: nowrap; }   /* 책이 좁아도 이름표 줄은 화면 폭으로 */
+.ab-ph .abx-tag > * { white-space: nowrap; } .ab-ph .abx-tag .ab-lbdesk { flex: 0 1 auto; min-width: 0; text-overflow: ellipsis; }
+
 body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 /* 🤍 이형지북 처음 안내 : 바구니 → 🟩 매트 화살표 (매트에 종이를 펼치면 사라져요 · 도련 10-29) */
 .abx-row { position: relative; }
