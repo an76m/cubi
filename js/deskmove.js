@@ -14,8 +14,8 @@
     /* 어떤 것을 잡았나요 → { k, id, from, el } */
     function what(t) {
         let el;
-        if ((el = t.closest('.dkt-roll'))) { const host = el.closest('.desk-item'); return host && { k: 'tape', id: el.dataset.id, from: { u: host.dataset.u, i: +el.dataset.i }, el }; }
-        if ((el = t.closest('#dkwCup .dkw-t[data-id], #dkwTray .dkw-it[data-id]'))) return { k: 'gd', id: el.dataset.id, el };
+        if ((el = t.closest('#deskStage .dkt-roll'))) { const host = el.closest('.desk-item'); return host && { k: 'tape', id: el.dataset.id, from: { u: host.dataset.u, i: +el.dataset.i }, el }; }
+        if ((el = t.closest('#dkwCup .dkw-t[data-id], #dkwTray .dkw-it[data-id], #deskStage .dkw-desk .dkw-t[data-id]'))) return { k: 'gd', id: el.dataset.id, el };
         if ((el = t.closest('#deskStage .dk-vol[data-b]'))) return { k: 'vol', id: el.dataset.b, el };
         if ((el = t.closest('#dyModal .dy-it[data-id]')) && !t.closest('.dy-del, .dy-ed') && isBook(el.dataset.id)) return { k: 'vol', id: el.dataset.id, el, box: 1 };
         return null;
@@ -108,7 +108,22 @@
     };
     addEventListener('pointerup', end, true); addEventListener('pointercancel', end, true);
     addEventListener('click', e => { if (M.eat) eat(e); }, true);            // 놓은 뒤 따라오는 톡 (펼치기 · 쓰기) 은 버려요
-    window.dkmDrop = drop;                                                    // 🧪 시험용
+    window.dkmDrop = drop;
+    /* ✋ 톡 = 화면 가운데로 날아오기 (도련 11-11 · 마테 롤 · 펜 · 서랍 문구 · 스티커 종이 모두 같은 모습) : 그 그림이 제자리에서 떠올라 가운데로 → 끝나면 resolve */
+    window.dkFly = (src, x, y) => new Promise(ok => {
+        const r = src && src.getBoundingClientRect ? src.getBoundingClientRect() : null;
+        if (!r || !r.width || matchMedia('(prefers-reduced-motion: reduce)').matches) return ok();
+        const g = src.cloneNode(true); g.removeAttribute('id'); g.classList.add('dkm-fly'); g.classList.remove('dkt-lift', 'grab', 'pull', 'need');
+        Object.assign(g.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', margin: '0', transform: 'none', translate: 'none', rotate: 'none', zIndex: 2147482950, transition: 'none', opacity: '1' });
+        document.body.appendChild(g);
+        const dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2), k = Math.max(1, Math.min(2.4, 110 / Math.max(r.width, r.height)));
+        let done = false; const end = () => { if (done) return; done = true; g.remove(); ok(); };
+        try {
+            const a = g.animate([{ transform: 'translate(0px, 0px) scale(1)', opacity: 1 }, { transform: `translate(${dx * .55}px, ${dy * .55 - 50}px) scale(${(1 + k) / 2})`, opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${k})`, opacity: .35 }], { duration: 430, easing: 'cubic-bezier(.33, .9, .4, 1)' });
+            a.onfinish = end;
+        } catch (e) { end(); }
+        setTimeout(end, 800);
+    });                                                    // 🧪 시험용
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

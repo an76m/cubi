@@ -638,6 +638,8 @@
             if (window.dsClear) dsClear();                                       // 🎀 꺼내 둔 스티커 · 테이프 = 바구니로
             if (window.stpClose && document.querySelector('#stkPick.show')) stpClose();   // 🍽 오늘 쓸 스티커
             if (window.dkwClose) dkwClose();                                     // ✏️ 🗄️ 펜꽂이 · 문구함 (서랍도 닫혀요)
+            if (window.dkwPendOff) dkwPendOff();                                 // ✋ 다이어리를 기다리던 문구 = 제자리로
+            { const z = document.getElementById('dktZoom'); if (z && !z.hidden) { z.hidden = true; z.innerHTML = ''; z.classList.remove('show'); } }   // 🎀 확대한 정리함
             deskBagOpen(-1);                                                     // 🛍️ 봉투 속 창 (상품은 봉투에 그대로)
             if (DK.edit) deskEditEnd(false);                                     // 🛠 책상 꾸미기 = 취소 (처음대로)
             try { dkvMenu(null); dknPanel(false); dknEmoClose(); const lb = document.getElementById('dkvLbPanel'); if (lb) lb.hidden = true; } catch (e) {}
@@ -1418,7 +1420,8 @@
             const p = dkzPct(el, cx, cy), z = dkzHit(dkHomes()[el.dataset.u] || [], p);
             const o = DK.items.find(x => x.u === el.dataset.u), S = o && dkSlots(o.id), si = S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1;
             const desk = UI.desk();
-            if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
+            if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }
+            if (o && desk && !DK.edit && window.dktZoom && dkDef(el).hold === 'tape') { setTimeout(() => dktZoom(el.dataset.u), 0); return true; }   // 🎀 마테 정리함 틀 톡 = 정리함이 가운데로 다가와요 (펜꽂이처럼 · 도련 11-11)   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
             const run = z && (z.k === 'gd' && desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, el.dataset.u + ':' + z.s) : () => deskRun(z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
             if (si >= 0) { dkDrawerPull(el, S[si], run || (!DK.edit && desk && dkHoldOk(o.id).length ? () => dkEmptyOpen(el.dataset.u, si) : null)); return true; }   // 🗄 서랍 = 톡 열기 · 다시 톡 닫기 (든 창이 위에서 내려와요 · 도련 11-05) · 빈 서랍 = 🔗 기능 연결 창이 내려와요 (도련 11-08)
             if (!z) return false;

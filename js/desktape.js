@@ -67,17 +67,27 @@
         b.addEventListener('pointerdown', ev => {
             if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
             const id = b.dataset.id;
-            if (!DK.edit) { T.drag = { tap: true, id, x: ev.clientX, y: ev.clientY, pid: ev.pointerId }; return; }
             try { b.setPointerCapture(ev.pointerId); } catch (er) {}
+            if (!DK.edit) { T.drag = { tap: true, id, x: ev.clientX, y: ev.clientY, pid: ev.pointerId, b }; return; }   // 평소 : 톡 = 가운데로 · 끌기 = 손으로 꺼내기 (도련 11-11)
             const r = b.getBoundingClientRect(), g = b.cloneNode(true); g.className = 'dkt-roll dkt-ghost';
             Object.assign(g.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); document.body.appendChild(g);
             b.classList.add('dkt-lift');
             T.drag = { id, from: el.dataset.u, i: +b.dataset.i, g, b, dx: ev.clientX - r.left, dy: ev.clientY - r.top, pid: ev.pointerId };
         });
-        b.addEventListener('pointermove', ev => { const d = T.drag; if (!d || d.tap || d.pid !== ev.pointerId) return; d.g.style.left = (ev.clientX - d.dx) + 'px'; d.g.style.top = (ev.clientY - d.dy) + 'px'; });
+        b.addEventListener('pointermove', ev => {
+            const d = T.drag; if (!d || d.pid !== ev.pointerId) return;
+            if (d.tap) {                                                        // ✋ 끌어서 꺼내기 = 롤이 손을 따라와요 → 놓은 자리에 (도련 11-11)
+                if (!d.man) { if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) return; const r = b.getBoundingClientRect(); d.man = b.cloneNode(true); d.man.className = 'dkt-roll dkt-ghost'; Object.assign(d.man.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); d.dx = ev.clientX - r.left; d.dy = ev.clientY - r.top; document.body.appendChild(d.man); b.classList.add('dkt-lift'); }
+                d.man.style.left = (ev.clientX - d.dx) + 'px'; d.man.style.top = (ev.clientY - d.dy) + 'px'; return;
+            }
+            d.g.style.left = (ev.clientX - d.dx) + 'px'; d.g.style.top = (ev.clientY - d.dy) + 'px';
+        });
         const up = ev => {
             const d = T.drag; if (!d || d.pid !== ev.pointerId) return; T.drag = null;
-            if (d.tap) { if (ev.type === 'pointerup' && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) use(d.id, b); return; }
+            if (d.tap) {
+                if (d.man) { d.man.remove(); b.classList.remove('dkt-lift'); if (ev.type === 'pointerup') out(d.id, { x: ev.clientX, y: ev.clientY }); return; }
+                if (ev.type === 'pointerup' && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 10) use(d.id, b); return;
+            }
             d.g.remove(); d.b.classList.remove('dkt-lift');
             if (ev.type !== 'pointerup') return;
             const hit = slotAt(ev.clientX, ev.clientY), M = read();
@@ -109,18 +119,54 @@
             const real = await new Promise(ok => { const w = T.wait.get(id) || []; w.push(ok); T.wait.set(id, w); setTimeout(() => ok(null), 30000); });
             if (!real) { if (window.showMsg) showMsg('⚠ 테이프를 아직 못 받았어요.<br><small>인터넷 연결을 확인해 주세요</small>'); return; }
             id = real; b = null;
-        }                                               // 🎀 톡 = 다이어리를 펴고 롤을 페이지 위에 꺼내요 → 롤에서 끌어 뽑아 붙여요 (예전 바구니에서 꺼낸 롤과 같게 · 도련 11-03)
-        if (b) { b.classList.remove('dkt-pick'); void b.offsetWidth; b.classList.add('dkt-pick'); }
-        if (!window.dkwReady || !await dkwReady()) return;
-        const cv = document.getElementById('canvasArea'), r0 = cv ? cv.getBoundingClientRect() : null, r = r0 && window.dyVisRect ? dyVisRect(r0) : r0;
-        const at = r ? { x: r.left + r.width * .5, y: r.top + r.height * .45 } : null;
-        if (window.dsTapeOut) { await dsTapeOut(id, at); setTimeout(paint, 50); return; }
-        try {                                                                  // (꺼내 둔 스티커창이 없으면 = 바로 붙여요)
-            const s = window.ownSheet ? await ownSheet(id) : null;
-            if (!s) { showMsg('🎀 이 테이프는 다 썼어요.'); return; }
-            if (window.placeTape) placeTape(s.s.imgs[0], { id });
-        } catch (e) { console.warn(e); showMsg('⚠ 테이프를 꺼내지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
+        }                                               // 🎀 톡 = 롤이 화면 가운데로 날아와 꺼내져요 (도련 11-11 · 다이어리는 저절로 펴지 않아요 · 붙이려면 다이어리를 톡) → 롤에서 끌어 뽑아 붙여요
+        const c = { x: innerWidth / 2, y: innerHeight / 2 };
+        if (b && window.dkFly) await dkFly(b, c.x, c.y);
+        await out(id, c);
     }
+    async function out(id, at) {                                              // 🎀 롤 꺼내기 = 그 자리에 (js/basket.js dsTapeOut · 다이어리가 닫혀 있어도 돼요)
+        if (!window.dsTapeOut) return;
+        try { await dsTapeOut(id, at); } catch (e) { console.warn(e); showMsg('⚠ 테이프를 꺼내지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
+        setTimeout(paint, 50);
+    }
+    /* 🔍 정리함 확대 (도련 11-11 · 펜꽂이처럼) : 정리함 틀(롤 말고)을 톡 = 정리함이 화면 가운데로 다가와요 → 롤을 잡고 위로 쏙 = 꺼내요 (이미 가운데라 바로 그 자리에) · 밖 톡 · 닫기 = 닫혀요 */
+    function zoom(u) {
+        const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!el || !isRack(el) || !window.dkwRoom) return;
+        paint();
+        const r = dkwRoom('dktZoom'), iw = el.offsetWidth || parseFloat(el.style.width), ih = el.offsetHeight || parseFloat(el.style.height);
+        const W = Math.min(innerWidth * .86, 760), H = Math.round(W * ih / iw);
+        const n = el.querySelectorAll('.dkt-roll').length;
+        r.innerHTML = `<div class="dkw-cupbox"><p class="dkw-hint">${n ? '테이프를 잡고 <b>위로 쏙</b> 끌어 올리면 꺼내져요' : '정리함이 비었어요 · 빈 칸을 톡 하면 서랍의 테이프를 꽂아요'}</p>
+            <div class="dkt-zart" style="width:${W}px;height:${H}px"></div>
+            <div class="dkw-btns"><button type="button" class="dkw-b dkw-x">닫기</button></div></div>`;
+        const host = r.querySelector('.dkt-zart'), cl = el.cloneNode(true);
+        cl.removeAttribute('data-u'); cl.className = 'desk-item dkt-zitem' + (el.classList.contains('dk-fl') ? ' dk-fl' : '');
+        Object.assign(cl.style, { left: 0, top: 0, width: iw + 'px', height: ih + 'px', transform: `scale(${W / iw})`, transformOrigin: '0 0', zIndex: '' });
+        cl.querySelectorAll('.dkt-empty, .dk-lb, .dkn-tag').forEach(x => x.remove());
+        host.appendChild(cl);
+        cl.querySelectorAll('.dkt-roll').forEach(b => pull(b, r, W / iw));
+        r.querySelector('.dkw-x').onclick = () => zoomShut(r);
+        r.onpointerdown = e => { if (e.target === r) zoomShut(r); };
+        r.hidden = false; requestAnimationFrame(() => r.classList.add('show'));
+        if (window.dkwFly) dkwFly(host, el);
+    }
+    function zoomShut(r) { if (!r || r.hidden) return; r.classList.remove('show'); setTimeout(() => { r.hidden = true; r.innerHTML = ''; }, 180); }
+    function pull(b, r, k) {                                                  // ✋ 확대한 정리함 롤 : 잡고 위로 = 꺼내기 (펜꽂이와 같아요)
+        let p = null; const UP = 70, sc = () => k || 1;
+        b.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { b.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, y: e.clientY, x: e.clientX }; b.classList.add('grab'); });
+        b.addEventListener('pointermove', e => {
+            if (!p || e.pointerId !== p.id) return;
+            const up = Math.max(0, p.y - e.clientY); b.style.translate = `0 ${(-up / sc()).toFixed(1)}px`;
+            if (up > UP) {                                                     // 쏙 뽑혔어요 → 정리함이 닫히고 롤은 그 자리에서 꺼내져요
+                const id = b.dataset.id, at = { x: e.clientX, y: e.clientY }; p = null; b.classList.remove('grab'); b.style.opacity = '0';
+                if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
+                zoomShut(r); out(id, at);
+            }
+        });
+        const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; b.classList.remove('grab'); b.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 끌어 올려요', b); };
+        b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+    }
+    window.dktZoom = zoom;
     /* 🎀 칸 고르기 (도련 11-04 · 서랍장 dkzChoose 처럼) : 정리함 그림이 크게 뜨고 빈 칸을 직접 눌러요 · 찬 칸 = 그 테이프가 보이고 못 눌러요 · 결과 = 칸 번호 (취소 = -1) */
     async function pickSlot(t, ids, need) {
         const S = slotsOf(t), im = t.querySelector(':scope > img'), o = DK.items.find(x => x.u === t.dataset.u);
@@ -162,7 +208,7 @@
         if (typeof r !== 'string' || r[0] !== 't') return;
         const e = L[+r.slice(1)]; if (e && put(e.id, null, { u: el.dataset.u, i })) dkbPulse(el);
     }
-    window.dktApi = { slotAt, put, isRack, held, paint: () => paint() };
+    window.dktApi = { slotAt, put, isRack, held, paint: () => paint(), zoom };
     /* 🛍️ 봉투 카드를 정리함에 (js/desk.js dkbHome 맨 앞) : 처리했으면 true · 칸은 고르는 창에서 (도련 11-04) */
     window.dktDrop = (t, it, n, j, cx, cy) => {
         if (!isRack(t)) return false;

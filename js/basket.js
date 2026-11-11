@@ -207,6 +207,11 @@
         });
         B.top = show.length + 1;
     }
+    async function bkFlyOut(c, id) {                                          // ✋ 톡 = 가운데로 (다이어리는 저절로 펴지 않아요 · 붙이려면 다이어리를 톡)
+        const at = { x: innerWidth / 2, y: innerHeight / 2 };
+        if (window.dkFly) await dkFly(c, at.x, at.y);
+        if (dsTake(id, at, true)) { abSplit(); B.sig = bkSig(); bkDraw(); }
+    }
     /* 끌기 = 옆으로 치우기 (맨 위로) · 톡 = 그 종이 열기 */
     function bkWire() {
         const pile = bq('bkPile'); if (!pile) return;
@@ -236,7 +241,7 @@
             const d = B.drag; if (!d || (ev && ev.pointerId !== d.pid)) return;
             B.drag = null; d.c.classList.remove('lift'); clearTimeout(d.hold);
             if (d.desk) { abSplit(); B.sig = bkSig(); bkDraw(); return; }       // 꺼낸 종이는 바구니에서 빠져요
-            if (!d.moved) { if (ev && ev.type === 'pointerup') { if (UI.phone()) dsTake(d.id); else bkHowGlow(); } return; }   // 📱 톡 = 꺼내기 (바구니는 잠깐 비켰다 다시 떠요) · 💻 톡 = 쓰는 법이 반짝 (도련 11-05)
+            if (!d.moved) { if (ev && ev.type === 'pointerup') { if (UI.phone()) dsTake(d.id); else bkFlyOut(d.c, d.id); } return; }   // 💻 📲 톡 = 그 종이가 화면 가운데로 날아와 꺼내져요 (도련 11-11 · 끌기 = 손으로 꺼내기 그대로)   // 📱 톡 = 꺼내기 (바구니는 잠깐 비켰다 다시 떠요) · 💻 톡 = 쓰는 법이 반짝 (도련 11-05)
             const L = bkLay(), W = pile.clientWidth, H = pile.clientHeight, cw = d.c.offsetWidth, ch = d.c.offsetHeight;
             const rot = parseFloat(d.c.style.getPropertyValue('--r')) || 0;
             L.p[d.id] = [Math.max(0, Math.min(1, parseFloat(d.c.style.left) / Math.max(1, W - cw))), Math.max(0, Math.min(1, parseFloat(d.c.style.top) / Math.max(1, H - ch))), rot];

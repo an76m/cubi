@@ -143,3 +143,18 @@ html.an .dkt-roll { border-color: var(--an-ol, #7a4a5a); }
 .dkt-pickl button { width: 64px; height: 64px; padding: 4px; border: 2px solid #f0d7e1; border-radius: 50%; background: #fff; cursor: pointer; }
 .dkt-pickl button:hover { border-color: #ff6b88; }
 .dkt-pickl i { display: block; width: 100%; height: 100%; border-radius: 50%; background: center / cover no-repeat; }
+/* ✋ 꺼내기 하나로 (도련 11-11) : 톡 = 화면 가운데로 날아와요 · 책상 위 펜꽂이 펜도 바로 · 🎀 정리함 확대 · 다이어리가 닫혀 있으면 가운데 떠 있는 손 */
+html.desk-on:not(.desk-edit) .dkw-desk .dkw-t { pointer-events: auto; cursor: pointer; }
+html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3px rgba(255, 107, 136, .9)); }
+.dkm-fly { pointer-events: none !important; }
+.dkt-zart { position: relative; margin-top: 60px; }
+.dkt-zart .dkt-zitem { position: absolute; }
+.dkt-zart .dkt-zitem > img { width: 100%; height: 100%; display: block; }
+.dkt-zart .dkt-roll { cursor: grab; touch-action: none; transition: translate .15s; }
+.dkt-zart .dkt-roll.grab { transition: none; cursor: grabbing; }
+.dkw-pend { position: fixed; left: 50%; top: 50%; translate: -50% -50%; z-index: 1350; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px 10px; border: 2px solid #e88fb0; border-radius: 18px; background: rgba(255, 255, 255, .96); box-shadow: 3px 4px 0 rgba(232, 143, 176, .35); animation: dkwPendIn .3s ease; }
+.dkw-pend .dkw-art { height: 90px; display: flex; align-items: flex-end; }
+.dkw-pend .dkw-art svg { height: 100%; width: auto; }
+.dkw-pend small { font-size: 12.5px; font-weight: 800; color: #b1407a; white-space: nowrap; }
+.dkw-pendx { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; border: 2px solid #e88fb0; border-radius: 50%; background: #fff; color: #c2457a; font-weight: 900; cursor: pointer; line-height: 1; }
+@keyframes dkwPendIn { from { opacity: 0; scale: .7; } to { opacity: 1; scale: 1; } }
