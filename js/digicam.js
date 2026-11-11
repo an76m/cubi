@@ -26,7 +26,7 @@
             <i class="dcm-top dcm-shut-f"></i><i class="dcm-top dcm-pow-f"></i>
             <div class="dcm-bd"></div>
             <i class="dcm-flash"></i>
-            <div class="dcm-lens"><i class="dcm-l1"></i><i class="dcm-l2"></i><i class="dcm-l3"></i><b class="dcm-zt">16x MALANG ZOOM</b><b class="dcm-zb">F/3.2 · 1:7</b></div>
+            <div class="dcm-lens"><i class="dcm-l1"></i><i class="dcm-l2"></i><i class="dcm-l3"></i></div>   <!-- 렌즈 둘레 영어 글씨는 없앴어요 (도련 11-11 : 한국 다꾸러에게 한글만) -->
             <svg class="dcm-deco" viewBox="0 0 60 60" aria-hidden="true" data-an="1">
               <g stroke="#5b3a46" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
                 <path d="M15 8c-3-4-9-1-7 3 1 3 7 6 7 6s6-3 7-6c2-4-4-7-7-3z" fill="#ff8fb1"/>
@@ -104,6 +104,12 @@
         /* ---------- 🛫 책상에서 떠올라 → 휙 돌아 뒷모습 ---------- */
         const FLY = 560, SWAP = 160, P = 3;                                      // P = 책상 그림의 몸통 둘레 (u)
         const deskImg = el => el && (el.querySelector(':scope > img') || el);
+        /* 🛫 진짜 디카가 그대로 날아요 (도련 11-11 : 책상 그림으로 바꿔 끼면 예전 영어 글씨가 잠깐 보였어요) : 책상 그림 칸(S) = 앞모습 + 둘레 P */
+        function cardFrom(S, flipX) {
+            const c = dq('dcmCard'), R = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight, u = w / 100, sx = S.width / (w + 2 * P * u), sy = S.height / (h + 2 * P * u);
+            return { t: `${S.left + S.width / 2 - (R.left + R.width / 2)}px ${S.top + S.height / 2 - (R.top + R.height / 2)}px`, s: `${flipX ? -sx : sx} ${sy}` };
+        }
+        const cardAt = (st, ms) => { const c = dq('dcmCard'); c.style.transition = ms ? `translate ${ms}ms cubic-bezier(.22, .9, .3, 1), scale ${ms}ms cubic-bezier(.22, .9, .3, 1)` : 'none'; c.style.translate = st ? st.t : ''; c.style.scale = st ? st.s : ''; };
         function toCard(S) {
             const c = dq('dcmCard'), R = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight, u = w / 100;
             return `translate(${R.left + R.width / 2 - (S.left + S.width / 2)}px, ${R.top + R.height / 2 - (S.top + S.height / 2)}px) scale(${(w + 2 * P * u) / S.width}, ${(h + 2 * P * u) / S.height})`;
@@ -128,18 +134,12 @@
             const S = img && img.getBoundingClientRect ? img.getBoundingClientRect() : null;
             const turn = () => setTimeout(() => { if (D.on) { flip(true); setTimeout(lcdSize, 650); } }, quiet() ? 0 : 140);   // 휙 = 뒷모습 (화면 · 단추)
             if (S && S.width > 4 && !quiet()) {
-                fly.src = img.currentSrc || img.src;
-                Object.assign(fly.style, { left: S.left + 'px', top: S.top + 'px', width: S.width + 'px', height: S.height + 'px', transform: 'none', opacity: 1, transition: 'none', scale: el.classList.contains('dk-fl') ? '-1 1' : '' });
-                el.style.visibility = 'hidden'; hideNow(wrap); room.classList.remove('lit');
-                const to = toCard(S);
+                fly.style.opacity = 0;
+                el.style.visibility = 'hidden'; room.classList.remove('lit');
+                cardAt(cardFrom(S, el.classList.contains('dk-fl')), 0); showNow(wrap); void dq('dcmCard').offsetWidth;   // 🛫 진짜 디카 (앞모습) 를 책상 자리에 작게
                 requestAnimationFrame(() => requestAnimationFrame(() => {
-                    room.classList.add('lit');
-                    fly.style.transition = `transform ${FLY}ms cubic-bezier(.22, .9, .3, 1)`; fly.style.transform = to;
-                    setTimeout(() => {                                               // 🔁 같은 자리 · 같은 크기에서 그림 → 진짜 디카 (앞모습) → 휙 돌아요
-                        if (!D.on) return; showNow(wrap);
-                        requestAnimationFrame(() => { fly.style.transition = `opacity ${SWAP}ms ease`; fly.style.opacity = 0; });
-                        turn();
-                    }, FLY - 40);
+                    room.classList.add('lit'); cardAt(null, FLY);
+                    setTimeout(() => { dq('dcmCard').style.transition = ''; if (D.on) turn(); }, FLY);   // 다 뜨면 휙 돌아요
                 }));
             } else { fly.style.opacity = 0; showNow(wrap); room.classList.add('lit', 'pop'); setTimeout(() => room.classList.remove('pop'), 500); turn(); }
         }
@@ -154,8 +154,8 @@
                 flip(false); room.classList.remove('lit');
                 setTimeout(() => {
                     const S = img.getBoundingClientRect();
-                    fly.style.transition = 'none'; fly.style.opacity = 1; fly.style.transform = toCard(S); hideNow(wrap);   // 앞모습 위에 똑같은 그림을 덮고 진짜는 숨겨요
-                    requestAnimationFrame(() => requestAnimationFrame(() => { fly.style.transition = 'transform .5s cubic-bezier(.5, 0, .3, 1)'; fly.style.transform = 'none'; setTimeout(done, 520); }));
+                    cardAt(cardFrom(S, el.classList.contains('dk-fl')), 500);            // 🛬 진짜 디카가 그대로 책상 자리로 (도련 11-11)
+                    setTimeout(() => { done(); cardAt(null, 0); }, 520);
                 }, 560);
             } else { room.classList.add('bye'); setTimeout(done, quiet() ? 0 : 300); }
         }

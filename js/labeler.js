@@ -65,7 +65,7 @@
             const lab = k => L.mode === 'ko' && L.shift && KO_SH[k] ? KO_SH[k] : L.mode === 'en' && L.shift && /^[a-z]$/.test(k) ? k.toUpperCase() : k;
             const cls = k => k === '⌫' ? ' lbm-k-del' : k === '⇧' ? ' lbm-k-sh' + (L.shift ? ' on' : '') : '';
             lq('lbmKb').innerHTML = rows.map(r => `<div class="lbm-row">${r.map(k => `<button type="button" class="lbm-k${cls(k)}" data-k="${k}">${lab(k)}</button>`).join('')}</div>`).join('')
-                + `<div class="lbm-row lbm-row4"><button type="button" class="lbm-k lbm-k-fn" data-k="mode">${L.mode === 'ko' ? '한/<b>A</b>' : L.mode === 'en' ? '<b>가</b>/A' : '<b>가</b>/A'}</button><button type="button" class="lbm-k lbm-k-fn" data-k="num">${L.mode === 'num' ? '가' : '123'}</button><button type="button" class="lbm-k lbm-k-sp" data-k=" ">space</button><button type="button" class="lbm-k lbm-k-print" data-k="print">인쇄 <i>🖨</i></button></div>`;
+                + `<div class="lbm-row lbm-row4"><button type="button" class="lbm-k lbm-k-fn" data-k="mode">${L.mode === 'ko' ? '한/<b>영</b>' : '<b>한</b>/영'}</button><button type="button" class="lbm-k lbm-k-fn" data-k="num">${L.mode === 'num' ? '가' : '123'}</button><button type="button" class="lbm-k lbm-k-sp" data-k=" ">띄어쓰기</button><button type="button" class="lbm-k lbm-k-print" data-k="print">인쇄 <i>🖨</i></button></div>`;
         }
         function key(k) {
             if (L.busy) return;
@@ -170,6 +170,13 @@
             const cx = R.left + R.width / 2, cy = R.top + R.height / 2 - 1.7 * u;
             return `translate(${cx - (S.left + S.width / 2)}px, ${cy - (S.top + S.height / 2)}px) scale(${(w + 6 * u) / S.width}, ${(h + 6.4 * u) / S.height})`;
         }
+        /* 🛫 진짜 기계가 그대로 날아요 (도련 11-11 : 책상 그림 → 진짜 기계로 바꿔 끼면 예전 영어 글씨가 잠깐 보였어요 · 이제 그림을 띄우지 않아요)
+           책상 그림 칸(S)에 진짜 기계를 줄여 겹쳐 두고 → 제자리로 (translate · scale 만 · 기울기는 그대로) */
+        function machFrom(S, R, flipX) {
+            const m = lq('lbmMach'), w = m.offsetWidth, h = m.offsetHeight, u = w / 100, sx = S.width / (w + 6 * u), sy = S.height / (h + 6.4 * u);
+            return { t: `${S.left + S.width / 2 - (R.left + R.width / 2)}px ${S.top + S.height / 2 + 1.7 * u * sy - (R.top + R.height / 2)}px`, s: `${flipX ? -sx : sx} ${sy}` };
+        }
+        const machAt = (m, st, ms) => { m.style.transition = ms ? `translate ${ms}ms cubic-bezier(.22, .9, .3, 1), scale ${ms}ms cubic-bezier(.22, .9, .3, 1)` : 'none'; m.style.translate = st ? st.t : ''; m.style.scale = st ? st.s : ''; };
         function showNow(w) { w.style.transition = 'none'; w.classList.remove('hide'); void w.offsetWidth; w.style.transition = ''; }
         function hideNow(w) { w.style.transition = 'none'; w.classList.add('hide'); void w.offsetWidth; w.style.transition = ''; }
         const deskImg = el => el && (el.querySelector(':scope > img') || el);
@@ -187,21 +194,12 @@
             const img = deskImg(el), fly = lq('lbmFly'), wrap = lq('lbmWrap');
             const S = img && img.getBoundingClientRect ? img.getBoundingClientRect() : null;
             if (S && S.width > 4 && !quiet()) {
-                fly.src = img.currentSrc || img.src;
-                Object.assign(fly.style, { left: S.left + 'px', top: S.top + 'px', width: S.width + 'px', height: S.height + 'px', transform: 'none', opacity: 1, transition: 'none' });
-                if (el.classList.contains('dk-fl')) fly.style.scale = '-1 1'; else fly.style.scale = '';
-                el.style.visibility = 'hidden'; hideNow(wrap); room.classList.remove('lit');
-                const to = toMach(S, R);
+                const m = lq('lbmMach'); fly.style.opacity = 0;
+                el.style.visibility = 'hidden'; room.classList.remove('lit');
+                machAt(m, machFrom(S, R, el.classList.contains('dk-fl')), 0); showNow(wrap); void m.offsetWidth;   // 🛫 진짜 기계를 책상 자리에 작게
                 requestAnimationFrame(() => requestAnimationFrame(() => {
-                    room.classList.add('lit');
-                    fly.style.transition = `transform ${FLY}ms cubic-bezier(.22, .9, .3, 1)`;   // 넘침 없이 딱 기계 자리에 (넘치면 바꿔 끼는 순간 어긋나 보여요)
-                    fly.style.transform = to;
-                    setTimeout(() => {                                          // 🔁 같은 자리 · 같은 크기 · 같은 기울기에서 그림 → 진짜 기계로 스르륵 (흐림을 섞어 바뀌는 게 안 보이게)
-                        if (!L.on) return;
-                        showNow(wrap);                                          // 진짜 기계를 그림 바로 아래에 한 번에 (그림 = 이 기계를 찍은 것이라 똑같아요)
-                        requestAnimationFrame(() => { fly.style.transition = `opacity ${SWAP}ms ease`; fly.style.opacity = 0; });   // 그다음 위의 그림만 걷어요 (둘 다 반투명인 순간이 없게)
-                        wrap.classList.add('land'); setTimeout(() => wrap.classList.remove('land'), SWAP + 420);
-                    }, FLY - 40);
+                    room.classList.add('lit'); machAt(m, null, FLY);
+                    setTimeout(() => { m.style.transition = ''; if (!L.on) return; wrap.classList.add('land'); setTimeout(() => wrap.classList.remove('land'), 420); }, FLY);
                 }));
             } else { fly.style.opacity = 0; wrap.classList.remove('hide'); room.classList.add('lit', 'pop'); setTimeout(() => room.classList.remove('pop'), 500); }
             if (matchMedia('(pointer: fine)').matches) setTimeout(() => { const i = lq('lbmIn'); if (L.on && i) i.focus({ preventScroll: true }); }, 400);   // 💻 키보드로도 (📱 📲 은 기기 키보드가 안 올라오게 안 해요)
@@ -214,10 +212,10 @@
             const done = () => { room.classList.remove('show', 'lit', 'bye'); document.body.classList.remove('lbm-on'); if (el) el.style.visibility = ''; wrap.classList.remove('hide'); if (after) after(); };
             const S0 = img && el.isConnected ? img.getBoundingClientRect() : null;
             if (S0 && S0.width > 4 && !quiet()) {
-                const S = S0, R = lq('lbmMach').getBoundingClientRect();
-                fly.style.transition = 'none'; fly.style.opacity = 1; fly.style.transform = toMach(S, R);   // 🔁 진짜 기계 위에 똑같은 그림을 한 번에 덮고
-                hideNow(wrap); room.classList.remove('lit');                          // 진짜는 바로 숨겨요 (그림이 덮고 있어 안 보여요)
-                requestAnimationFrame(() => requestAnimationFrame(() => { fly.style.transition = 'transform .5s cubic-bezier(.5, 0, .3, 1)'; fly.style.transform = 'none'; setTimeout(done, 520); }));
+                const m = lq('lbmMach'), R = m.getBoundingClientRect();
+                lq('lbmActs').hidden = true; room.classList.remove('lit');
+                machAt(m, machFrom(S0, R, el.classList.contains('dk-fl')), 500);       // 🛬 진짜 기계가 그대로 책상 자리로 (도련 11-11)
+                setTimeout(() => { done(); machAt(m, null, 0); }, 520);
             } else { room.classList.add('bye'); setTimeout(done, quiet() ? 0 : 300); }
         }
 
