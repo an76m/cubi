@@ -428,9 +428,42 @@
         }
 
         async function findFolder(name, parentId) {
-            const files = await driveList(`name='${qName(name)}' and mimeType='${FOLDER_MIME}' and '${parentId || DRIVE_PARENT_DEFAULT}' in parents and trashed=false`, 'id,name');
+            const files = await driveList(`name='${qName(name)}' and mimeType='${FOLDER_MIME}' and '${parentId || DRIVE_PARENT_DEFAULT}' in parents and trashed=false`, 'id,name,createdTime');
+            if (files.length > 1 && !parentId && name === TOP_FOLDER_NAME) { const pick = await rootPick(files); if (pick) return pick; }   // 🗂 맨 위 말랑달콤이 둘 = 휴지통에서 되살린 예전 폴더일 수 있어요 (도련 11-11 · 아래)
             if (files.length > 1) { diag('dup', { name, n: files.length, ids: files.map(f => f.id).join(',') }); mergeFolders(files[0].id, files.slice(1).map(f => f.id)); }   // 두 기기가 동시에 만든 같은 폴더 → 먼저 만든 쪽으로 합치기 (기다리지 않음)
             return files[0] ? files[0].id : null;
+        }
+        /* 🗂 맨 위 '말랑달콤' 이 둘 이상 (도련 11-11 : 구글 드라이브 휴지통에서 예전 폴더를 '복원'하면 이름이 같아 섞여요 · 복원은 구글 버튼이라 못 막아요)
+           - 몇 분 사이에 함께 생긴 폴더 = 두 기기가 동시에 만든 것 · 새 폴더가 방금(10분 안) 생겼다 = 드라이브가 늦어 실수로 만든 빈 폴더 → 예전처럼 먼저 만든 쪽으로 합쳐요 (null)
+           - 새 폴더를 10분 넘게 써 왔는데 훨씬 오래된 폴더가 또 있다 = 되살린 예전 폴더 → 물어봐요 (앱 혼자 정하지 않아요 · 지우지 않아요)
+             [지금 폴더만 쓰기] = 예전 폴더 이름을 '말랑달콤_예전_월일' 로 바꿔요 (안의 것은 그대로 · 앱은 더 안 봐요 · 이름을 되돌리면 원래대로)
+             [둘을 합치기] → 한 번 더 확인 → 예전처럼 합치기 / 취소 · 창 닫기 = 이번엔 지금 폴더만 쓰고 아무것도 안 바꿔요 (다음에 또 물어요) */
+        let rootPickP = null;
+        function rootPick(files) {
+            if (rootPickP) return rootPickP;
+            const T = f => Date.parse(f.createdTime || 0) || 0, L = files.slice().sort((a, b) => T(a) - T(b)), cur = L[L.length - 1], olds = L.slice(0, -1), M10 = 10 * 60 * 1000;
+            if (T(cur) - T(L[0]) < M10 || Date.now() - T(cur) < M10) return Promise.resolve(null);   // 쌍둥이 · 방금 생긴 폴더 = 합치기 (예전 그대로)
+            rootPickP = (async () => {
+                const day = d => { const x = new Date(d); return `${x.getFullYear()}.${x.getMonth() + 1}.${x.getDate()}`; };
+                diag('rootDup', { n: files.length, cur: cur.id, olds: olds.map(f => f.id).join(',') });
+                const ask = window.showAsk;
+                let only = true;
+                if (ask) {
+                    only = await ask(`🗂 구글 드라이브에 <b>'말랑달콤' 폴더가 ${files.length}개</b> 있어요.<br><span style="font-size:13px;color:#777;">${olds.map(f => day(T(f))).join(' · ')}에 만든 예전 폴더가 있어요. 구글 드라이브 휴지통에서 되살린 폴더 같아요.</span><br><br>지금 쓰는 폴더(${day(T(cur))}에 만든 것)만 쓸까요?<br><span style="font-size:12px;color:#888;">예전 폴더는 지우지 않고 이름만 '말랑달콤_예전'으로 바꿔 따로 둬요.</span>`, '지금 폴더만 쓰기', '둘을 합치기');
+                    if (!only && await ask('⚠ 둘을 합치면 <b>예전 폴더의 상품 · 일기가 지금 것과 섞여요.</b><br>그래도 합칠까요?', '합치기', '취소')) { diag('rootDup', { pick: 'merge' }); return null; }   // 이번엔 다시 묻지 않아요 (예전처럼 합쳐요)
+                }
+                if (only || !ask) {
+                    const md = (() => { const x = new Date(); return String(x.getMonth() + 1).padStart(2, '0') + String(x.getDate()).padStart(2, '0'); })();
+                    for (let i = 0; i < olds.length; i++) {
+                        const nm = TOP_FOLDER_NAME + '_예전_' + md + (olds.length > 1 ? '_' + (i + 1) : '');
+                        try { const r = await gfetch(`${DRIVE_API}/${olds[i].id}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ name: nm }) }); if (!r.ok) throw await driveFail(r, 'rename'); diag('rootDup', { renamed: olds[i].id, to: nm }); }
+                        catch (e) { console.warn('예전 말랑달콤 폴더 이름을 못 바꿨어요 (이번엔 지금 폴더만 써요):', e); }
+                    }
+                } else diag('rootDup', { pick: 'keepCur' });                   // 합치기 취소 = 이번엔 지금 폴더만 (아무것도 안 바꿔요)
+                return cur.id;
+            })();
+            rootPickP.catch(() => { rootPickP = null; });
+            return rootPickP;
         }
         /* 같은 이름 폴더 합치기 : 나중 폴더 안의 것을 모두 먼저 폴더로 옮기고, 빈 폴더는 휴지통으로
            (옮긴 것 중 또 같은 이름 폴더가 생기면 그 폴더를 열 때 다시 합쳐져요) */
