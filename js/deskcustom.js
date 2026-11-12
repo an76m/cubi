@@ -44,11 +44,12 @@
     function dcOpen(u, keep) {
         const o = dcItem(u); if (!o) return;
         DC.u = u; DC.area = null;
-        const K = dcKind(o), tabs = ['paint'].concat(K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []);
-        if (K && K.act && dcFnOf(u)) tabs.unshift('area');   /* 👆 누르는 곳 = 맨 앞 · 꾸미기 열면 바로 보여 줌 */
+        const K = dcKind(o), tabs = (DK.trial ? [] : ['paint']).concat(K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []);   // 🏪 적용해보기 = 색칠 · 누르는 곳 빼고 기능만
+        if (K && K.act && dcFnOf(u) && !DK.trial) tabs.unshift('area');
+        if (!tabs.length) return;   /* 👆 누르는 곳 = 맨 앞 · 꾸미기 열면 바로 보여 줌 */
         if (!keep) DC.mi = -1;
-        if (!keep || !tabs.includes(DC.tab)) DC.tab = tabs[0] === 'area' ? 'area' : (tabs[1] || 'paint');
-        const t = document.getElementById('deskCsTitle'); if (t) t.textContent = '🎨 ' + dkName(o) + ' 꾸미기';
+        if (!keep || !tabs.includes(DC.tab)) DC.tab = DK.trial ? tabs[0] : tabs[0] === 'area' ? 'area' : (tabs[1] || 'paint');
+        const t = document.getElementById('deskCsTitle'); if (t) t.textContent = DK.trial ? '✨ ' + dkName(o) : '🎨 ' + dkName(o) + ' 꾸미기';
         const bar = document.getElementById('deskCsTabs');
         if (bar) bar.innerHTML = tabs.map(k => `<button type="button" class="dcs-tab${k === DC.tab ? ' on' : ''}" onclick="dcTab('${k}')">${DC_TAB[k]}</button>`).join('');
         dcBody();
@@ -256,6 +257,18 @@
         if (window.showMsg) showMsg(`⏰ ${hm} 알람이에요!`).then(() => dcRingStop());
     }, 1000);
 
+    /* 🏪 적용해보기 (도련 11-12) : 처음부터 기능 창이 떠 있어요 (색칠 빼고 · 버튼 없이 바로) · 기계(라벨기 · 디카 · 프린터) = 기계가 바로 떠요 · 소품을 톡 = 앱처럼 동작 + 창 */
+    const dcTrialTabs = o => { const K = dcKind(o); return K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []; };
+    function dcTrialOpen(u, did, first) {
+        const o = dcItem(u); if (!o || !DK.trial) return;
+        const K = dcKind(o), M = document.getElementById('deskCsModal'), on = M && M.style.display === 'flex';
+        if (dcTrialTabs(o).length) { if (on && DC.u === u) dcBody(); else dcOpen(u);
+            const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`), R = el && el.getBoundingClientRect();   // 창은 소품 반대쪽에 (소품이 가리지 않게)
+            if (M) M.classList.toggle('dct-l', !!R && R.left + R.width / 2 > innerWidth / 2); return; }
+        if (first && K && ['label', 'camera', 'print'].includes(K.act)) { const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (el) dcTap(el, 0, 0); }
+    }
+    function dcTrialOff() { dcRingStop(); const M = document.getElementById('deskCsModal'); if (M) M.classList.remove('dct-l'); if (M && M.style.display === 'flex' && window.closeModal) closeModal('deskCsModal'); }
+    window.dcTrialOpen = dcTrialOpen; window.dcTrialOff = dcTrialOff;
     window.dcOpen = dcOpen; window.dcTab = dcTab; window.dcPaint = dcPaint; window.dcLamp = dcLamp; window.dcLight = dcLight; window.dcFont = dcFont; window.dcInk = dcInk;
     window.dcMemoPaper = dcMemoPaper; window.dcMemoNew = dcMemoNew; window.dcMemoAdd = dcMemoAdd; window.dcMemoDel = dcMemoDel;
     window.dcAlarm = dcAlarm; window.dcRingTest = dcRingTest; window.dcPhoto = dcPhoto;

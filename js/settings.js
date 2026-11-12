@@ -262,7 +262,8 @@
                 if (last && last !== m && vis(last) && performance.now() - lastAt < 350) { m.style.display = 'none'; return; }   // 옛 창을 닫다가 다시 뜬 창
                 busy = true; last = m; lastAt = performance.now();
                 try {
-                    document.querySelectorAll('.modal').forEach(o => { if (o !== m && !KEEP.has(o.id) && !pair(m.id, o.id) && vis(o)) shut(o); });
+                    const trial = document.documentElement.classList.contains('dk-trial');   // 🏪 적용해보기 기능 창 = 숨은 샵 창은 그대로 (닫으면 샵으로 돌아가요)
+                    document.querySelectorAll('.modal').forEach(o => { if (o !== m && !KEEP.has(o.id) && !pair(m.id, o.id) && vis(o) && !(trial && /^shelf/.test(o.id))) shut(o); });
                     if (m.id !== CAB) ROOMS.forEach(([id, fn]) => { const r = document.getElementById(id); if (r && r.classList.contains('show') && typeof window[fn] === 'function') window[fn](); });
                 } finally { busy = false; }
             }

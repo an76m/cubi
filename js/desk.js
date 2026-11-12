@@ -691,7 +691,7 @@
              sys = 알람이 울린 날처럼 꾸미기와 상관없는 기록 → 꾸미는 중에도 바로 (취소해도 남아요) */
         function dkPersist(it, sys) {
             if (!(DK.edit && DK.back)) { dkSave(); return; }
-            if (!sys) return;
+            if (!sys || DK.trial) return;                                         // 🏪 적용해보기 = 화면에서만 (저장 없음)
             const b = JSON.parse(DK.back.items), i = b.findIndex(x => x.u === it.u), rec = JSON.parse(JSON.stringify(it));
             if (i >= 0) b[i] = Object.assign(rec, { x: b[i].x, y: b[i].y, at: b[i].at }); else b.push(rec);   // 자리는 들어오기 전 그대로
             DK.back.items = JSON.stringify(b);
@@ -894,12 +894,14 @@
               if (ok && VE && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, Object.assign(dkyMap(), VE));   /* 권마다 자리 */ dknPanel(false); dkyApply(); }
             document.documentElement.classList.remove('desk-edit'); dkSelPaint();
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
-            if (trial) dkTrialUi(false);
+            if (trial) { dkTrialUi(false); if (window.dktTrial) dktTrial(false); if (window.dcTrialOff) dcTrialOff(); }
         }
         /* 🏪 적용해보기 (도련 11-12 · 샵에서 '쓰는 법 + 실제 크기'를 알고 받아요) : 진짜 책상을 빌려 써요 (🛠 책상 꾸미기와 같은 손짓 · 같은 크기)
              - 빈 방(기본 벽지 · 책상)에 그 소품만 · 같이 써야 하는 것도 하나 (📷 집게 사진 = 💡 전구줄) · 끌어서 놓아 보고 · 줄에 걸어 봐요
              - 내 책상 · 다른 소품 · 다이어리는 잠깐 숨고 · 아무것도 저장하지 않아요 (dkItemsPut 막음 · 닫으면 🛠 취소와 같이 처음대로) · 오른쪽 위 닫기 = 샵 창 그대로 */
         const DK_TRY_TIP = {
+            tape: '🎀 테이프를 톡 하거나 끌어서 칸에 꽂아 보세요',
+            machine: '✨ 기계를 톡 해서 만들어 보세요 (저장은 안 돼요)',
             peg: '📷 사진을 끌어 전구줄에 걸어 보세요',                         // 한 줄 (도련 11-12 : 길면 안 읽어요)
             lights: '💡 줄 끝을 끌어 걸어 보세요',
             wall: '🧱 끌어서 벽에 걸어 보세요',
@@ -920,7 +922,12 @@
             DK.items = L;
             H.classList.add('desk-edit', 'dk-trial');
             deskSelect(null); deskItemsRender(); dkSelPaint();
-            dkTrialUi(true, DK_TRY_TIP[c.kind] || (c.wall ? DK_TRY_TIP.wall : DK_TRY_TIP.desk), dkName({ id }));
+            const tip = c.hold === 'tape' ? DK_TRY_TIP.tape : (c.can || []).some(f => ['label', 'camera', 'print'].includes(f)) ? DK_TRY_TIP.machine : DK_TRY_TIP[c.kind] || (c.wall ? DK_TRY_TIP.wall : DK_TRY_TIP.desk);
+            dkTrialUi(true, tip, dkName({ id }));
+            const u0 = 'try-' + id;
+            setTimeout(() => { if (!DK.trial) return;                             // ✨ 처음부터 기능 창이 떠 있어요 (버튼 없이 바로 써 봐요 · 도련 11-12)
+                if (c.hold === 'tape' && window.dktTrial) dktTrial(true, u0);
+                else if (window.dcTrialOpen) dcTrialOpen(u0, false, true); }, 350);
             return true;
         }
         function dkTrialUi(on, tip, nm) {
@@ -1917,6 +1924,7 @@
             const up = ev => {
                 if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null); DK.drag = false;
                 if (was.tap) { if (ev.type !== 'pointercancel' && Math.hypot(ev.clientX - was.x0, ev.clientY - was.y0) < 10) { if (window.dcTap && dcTap(el, ev.clientX, ev.clientY)) return; if (dkHomeTap(el, ev.clientX, ev.clientY)) return; if (el.dataset.fn) deskRun(el.dataset.fn); } return; }   // 🛍️ 상품을 넣은 소품 = 그 창   // 평소 톡 = 소품 동작(누르는 곳 · js/deskcustom.js) 아니면 그 기능   // 평소 톡 = 그 기능
+                if (!was.on && DK.trial) { if (ev.type !== 'pointercancel') { const did = window.dcTap && dcTap(el, ev.clientX, ev.clientY); if (window.dcTrialOpen) dcTrialOpen(el.dataset.u, did); } return; }   // 🏪 적용해보기 : 톡 = 앱처럼 소품 동작 + 기능 창
                 if (!was.on) { if (ev.type !== 'pointercancel') { const z = dkzHit(dkHomes()[el.dataset.u] || [], dkzPct(el, ev.clientX, ev.clientY)); DK.zone = z ? `${el.dataset.u}|${z.k}` : null; deskSelect(el); } return; }   // 🛠 톡 = 고르기 · 👆 그린 칸을 톡 = 그 칸 메뉴 (소품 메뉴 대신 · 도련 10-30)
                 if (window.dlPegDrop) dlPegDrop(el);                              // 📷 집게 사진 = 줄 가까이 놓으면 집혀요 (js/desklights.js)
                 [el].concat((was.riders || []).map(r => r.o)).forEach(o => {      // 📦 내 소품 목록에 자리 저장 (설정.json)

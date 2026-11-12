@@ -811,3 +811,12 @@ html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top
 .dk-try-tip b { color: #c2457a; font-size: 15px; } .dk-try-tip span { font-size: 14px; color: #5a3d4a; } .dk-try-tip small { font-size: 11.5px; color: #9a7a88; }
 .dk-try-x { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); pointer-events: auto; }
 html.dk-trial .desk-stage::after, html.dk-trial #deskTip, html.dk-trial .dk-hostlb { display: none !important; }   /* 꾸미기 모눈 · 고른 소품 단추 없이 = 진짜 방처럼 */
+/* 🏪 적용해보기 기능 창 (도련 11-12) : 오른쪽에 떠서 소품을 보며 바로 써 봐요 (창 밖 = 책상 그대로) · 기계가 뜨면 적용해보기 띠는 잠깐 숨어요 (기계 ✕ 로 닫아요) */
+html.dk-trial #deskCsModal { justify-content: flex-end; padding-right: 3vw; background: none; pointer-events: none; }
+html.dk-trial #deskCsModal > .modal-content { pointer-events: auto; width: min(92vw, 360px); }
+body.lbm-on .dk-try, body.dcm-on .dk-try, body.spr-on .dk-try { display: none; }
+.dkt-try { position: fixed; left: 50%; bottom: calc(max(18px, env(safe-area-inset-bottom, 0px)) + 52px); translate: -50% 0; z-index: 2147482001; display: flex; gap: 8px; max-width: calc(100vw - 32px); overflow-x: auto; padding: 8px 12px; background: #fffdf8; border: 2px solid #f4a9c4; border-radius: 18px; box-shadow: 0 6px 18px rgba(160, 90, 110, .2); touch-action: none; }
+.dkt-try button { flex: none; width: 46px; height: 46px; padding: 0; border: 0; border-radius: 50%; background: #fff center / cover no-repeat; box-shadow: inset 0 0 0 9px rgba(255, 255, 255, .55), 0 0 0 2px #f6c9da; cursor: grab; }
+.dkt-try button.in { opacity: .18; pointer-events: none; }
+.dkt-tryg { position: fixed; z-index: 2147482002; width: 46px; height: 46px; border-radius: 50%; background: center / cover no-repeat; box-shadow: inset 0 0 0 9px rgba(255, 255, 255, .55); pointer-events: none; translate: -50% -50%; }
+html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0; padding-left: 3vw; }

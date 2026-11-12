@@ -346,7 +346,9 @@
         }
         /* 톡! 떼어 가기 = 종이가 휙 날아가요 → 저장 (예전과 같아요) */
         async function peel(stick) {
-            if (P.saving || P.st !== 'ready') return; P.saving = true; P.busy = true;
+            if (P.saving || P.st !== 'ready') return;
+            if (typeof DK !== 'undefined' && DK.trial) { if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return; }   // 🏪 샵 적용해보기 = 만들어 보기만 (도련 11-12)
+            P.saving = true; P.busy = true;
             const paper = pq('sprPaper'); paper.classList.remove('rise'); paper.classList.add('peel'); noise(140, 2600, .1); P.st = 'peel'; ctl();
             await wait(quiet() ? 0 : 1150);
             const list = P.list.slice(), k = P.kind, border = P.border;

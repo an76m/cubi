@@ -251,6 +251,7 @@
         async function act(a) {
             if (a === 'again') { lq('lbmActs').hidden = true; lq('lbmOut').className = 'lbm-out'; L.busy = false; L.out = ''; L.text = ''; L.cur = null; lcd(); return; }
             if (!L.out || L.saving) return;
+            if (typeof DK !== 'undefined' && DK.trial) { if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return; }   // 🏪 샵 적용해보기 = 만들어 보기만 (도련 11-12)
             L.saving = true; [...document.querySelectorAll('#lbmActs .lbm-a')].forEach(b => { b.disabled = true; });
             try {
                 sync();
