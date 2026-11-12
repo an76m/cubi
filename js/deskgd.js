@@ -335,12 +335,14 @@
             el.style.left = x + 'px'; el.style.top = y + 'px';
             el._ang = pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28;
             el._tip = pen && P && P.tip ? [P.tip[0] - sz[0] / 2, P.tip[1] - sz[1] / 2] : [0, 0];   // 연필심 = 마우스 끝 (손에 든 것처럼)
-            document.body.appendChild(el); DKW.fl.set(id, el); dkwFlWire(el); dkwSel(id); dkwDeskSoon();
+            document.body.appendChild(el); DKW.fl.set(id, el); dkwFlWire(el); if (dkwDiaryUp()) dkwSel(id); dkwDeskSoon();   // 🪑 책상모드에서 꺼내면 = 마우스에 안 붙어요 (도련 11-12)
             return el;
         }
         function dkwFloatOff(id, quiet) { const el = DKW.fl.get(id); if (!el) return false; el.remove(); DKW.fl.delete(id); if (DKW.sel === id) DKW.sel = null; if (!quiet) dkwDeskSoon(); return true; }
         /* 🖱 마지막으로 만진 것 = 마우스에 붙어 따라와요 (도련 11-11 · 손에 든 것처럼 · 연필심이 마우스 끝) : 다이어리 페이지 클릭 = 그 자리에서 쓰기 · 들어갈 보관함 클릭 = 넣기 · 다른 곳 클릭 = 그 자리에 내려놔요 (떠 있어요) */
-        function dkwSel(id) { DKW.sel = id || null; DKW.fl.forEach((el, k) => el.classList.toggle('sel', k === DKW.sel)); if (id && DKW.mouse) dkwFollow(DKW.mouse.x, DKW.mouse.y); }
+        /* 🪑 책상모드(다이어리가 안 떠 있음)에서는 마우스에 붙지 않아요 (도련 11-12) · 📔 다이어리모드(desk-show)에서만 따라와요 · 책상모드에서 고른 것(톡)은 표시만 → 📔 다이어리 톡 = 든 채로 펼치기 */
+        const dkwDiaryUp = () => document.documentElement.classList.contains('desk-show');
+        function dkwSel(id) { DKW.sel = id || null; DKW.fl.forEach((el, k) => el.classList.toggle('sel', k === DKW.sel)); if (id && DKW.mouse && dkwDiaryUp()) dkwFollow(DKW.mouse.x, DKW.mouse.y); }
         function dkwFollow(x, y) {
             const el = DKW.sel && DKW.fl.get(DKW.sel); if (!el) return;
             const a = (el._ang || 0) * Math.PI / 180, t = el._tip || [0, 0], ox = t[0] * Math.cos(a) - t[1] * Math.sin(a), oy = t[0] * Math.sin(a) + t[1] * Math.cos(a);
@@ -349,7 +351,7 @@
         addEventListener('pointermove', e => {
             if (e.pointerType !== 'mouse') return;
             DKW.mouse = { x: e.clientX, y: e.clientY };
-            if (DKW.sel && !e.buttons && dkwDesk()) dkwFollow(e.clientX, e.clientY);
+            if (DKW.sel && !e.buttons && dkwDesk() && dkwDiaryUp()) dkwFollow(e.clientX, e.clientY);
         }, { passive: true });
         addEventListener('pointerdown', e => {
             if (!DKW.sel || e.button > 0 || !dkwDesk()) return;   // 👆 손가락도 (도련 11-12 : 집어 든 다음 톡 = 그 자리)
@@ -359,6 +361,7 @@
             if (pg && dkwOpenNow()) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 📔 펼친 페이지 = 그 자리에서 쓰기
             const h = t.closest && t.closest('#deskStage .desk-item');
             if (h && window.dkOutsFor && dkOutsFor(h).some(o => o.id === id)) return;   // 들어갈 보관함 = 넣기 (js/deskmove.js)
+            if (!dkwDiaryUp()) { dkwSel(null); return; }                          // 🪑 책상모드 = 붙어 있지 않으니 고른 표시만 풀고 그 톡은 그대로 (서랍 · 소품 기능)
             e.preventDefault(); e.stopPropagation(); dkwSel(null);                 // 그 밖 = 그 자리에 내려놔요
         }, true);
         function dkwFlWire(el) {
@@ -384,6 +387,7 @@
             if (!dkwDesk()) return;
             const L = dkwOutAll().filter(id => !DKW.fl.has(id)).map(id => { const r = dkwIsPen(id) ? (window.pcRectOf && pcRectOf(id)) : (gdEl(id) && gdEl(id).getBoundingClientRect()); return [id, r]; });
             L.forEach(([id, r]) => { dkwBackOne(id, true); if (r && r.width) dkwFloat(id, r.left + r.width / 2, r.top + r.height / 2); else dkwFloat(id, innerWidth / 2, innerHeight / 2); });
+            if (DKW.sel) dkwSel(null);                                            // 🪑 책상모드로 돌아가니 마우스에 안 붙어요 (도련 11-12)
         }
         window.dkwFloatAll = dkwFloatAll;
         /* ✋ 손에 든 문구를 내려놓으면 = 그 자리 공중에 떠요 (도련 11-12 · 💻 📲 책상 : 하단 모드는 페이지 안에 놓이지만 책상 모드는 다이어리 밖 공중) · js/skins.js gdLetAir */
