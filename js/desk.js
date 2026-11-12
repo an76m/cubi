@@ -1495,18 +1495,23 @@
         }
         window.dknPanel = dknPanel; window.dknSet = dknSet;
         /* 👆 칸 톡 = 그 칸 창 (칸 밖 = 소품 전체 창 → deskTapAt 이 el.dataset.fn) */
+        /* 👆 담는 소품 · 서랍 · 칸 톡 (dkHomeTap) = 아래 표를 위에서부터 · 처음 맞는 것 하나만 (도련 11-12 정리 · 새 동작은 표에 한 줄)
+             c = { el, u, o 소품, desk 💻 📲 책상 화면, edit 🛠, hold 담는것 목록, S 서랍 칸, si 누른 서랍, z 누른 칸 } */
+        const DK_TAP = [
+            ['🧺 책 바구니 = 확대', c => c.desk && !c.edit && dkIsBox(c.el) && !c.hold.includes('pc'), c => setTimeout(() => dkBoxZoom(c.u), 0)],
+            ['✏️ 펜꽂이 = 확대', c => c.o && !c.S && c.desk && c.hold.includes('pc') && window.dkwCupOpen, c => setTimeout(() => dkwCupOpen(c.u), 0)],
+            ['🎀 마테 정리함 = 확대', c => c.o && c.desk && !c.edit && dkDef(c.el).hold === 'tape' && window.dktZoom, c => setTimeout(() => dktZoom(c.u), 0)],
+            ['🗄 서랍 = 열고 닫기 (든 창 · 빈 서랍 = 기능 연결 창)', c => c.si >= 0, c => dkDrawerPull(c.el, c.S[c.si], dkZoneRun(c) || (!c.edit && c.desk && c.hold.length ? () => dkEmptyOpen(c.u, c.si) : null))],
+            ['👆 그린 칸 = 그 칸 창', c => !!c.z, c => dkZoneRun(c)()]
+        ];
+        const dkZoneRun = c => c.z && (c.z.k === 'gd' && c.desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, c.u + ':' + c.z.s) : () => deskRun(c.z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
         function dkHomeTap(el, cx, cy, noStore) {
-            if (!noStore && window.dkStoreTap && dkStoreTap(el, () => dkHomeTap(el, cx, cy, true))) return true;   // ✋ 들어갈 상품이 밖에 나와 있으면 = 넣기 (한 번 골라요 · js/deskmove.js · 도련 11-11)
-            if (UI.desk() && !DK.edit && dkIsBox(el) && !dkHoldOk((DK.items.find(x => x.u === el.dataset.u) || {}).id).includes('pc') && window.dkBoxZoom) { setTimeout(() => dkBoxZoom(el.dataset.u), 0); return true; }   // 🧺 책 바구니 톡 = 가운데로 다가와요 (펜꽂이 · 정리함처럼)
-            const p = dkzPct(el, cx, cy), z = dkzHit(dkHomes()[el.dataset.u] || [], p);
-            const o = DK.items.find(x => x.u === el.dataset.u), S = o && dkSlots(o.id), si = S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1;
-            const desk = UI.desk();
-            if (o && !S && desk && window.dkwCupOpen && dkHoldOk(o.id).includes('pc')) { setTimeout(() => dkwCupOpen(el.dataset.u), 0); return true; }
-            if (o && desk && !DK.edit && window.dktZoom && dkDef(el).hold === 'tape') { setTimeout(() => dktZoom(el.dataset.u), 0); return true; }   // 🎀 마테 정리함 틀 톡 = 정리함이 가운데로 다가와요 (펜꽂이처럼 · 도련 11-11)   // ✏️ 펜꽂이마다 그 펜꽂이에 꽂힌 것 (도련 11-05)
-            const run = z && (z.k === 'gd' && desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, el.dataset.u + ':' + z.s) : () => deskRun(z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
-            if (si >= 0) { dkDrawerPull(el, S[si], run || (!DK.edit && desk && dkHoldOk(o.id).length ? () => dkEmptyOpen(el.dataset.u, si) : null)); return true; }   // 🗄 서랍 = 톡 열기 · 다시 톡 닫기 (든 창이 위에서 내려와요 · 도련 11-05) · 빈 서랍 = 🔗 기능 연결 창이 내려와요 (도련 11-08)
-            if (!z) return false;
-            run(); return true;
+            if (!noStore && window.dkStoreTap && dkStoreTap(el, () => dkHomeTap(el, cx, cy, true))) return true;   // ✋ 들어갈 상품이 밖에 나와 있으면 = 먼저 넣기 (한 번 골라요 · js/deskmove.js)
+            const u = el.dataset.u, o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), p = dkzPct(el, cx, cy);
+            const c = { el, u, o, S, desk: UI.desk(), edit: DK.edit, hold: dkHoldOk((o || {}).id), z: dkzHit(dkHomes()[u] || [], p),
+                si: S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1 };
+            const t = DK_TAP.find(r => r[1](c)); if (!t) return false;
+            t[2](c); return true;
         }
         /* 🗄 서랍 열고 닫기 (도련 11-04 · 현실처럼) : 서랍 칸(상품 '소품.slots')대로 그림에서 앞판을 잘라 앞으로 당겨요 (조금 아래로 · 조금 크게)
            원래 자리 = 서랍 속 (상품 '서랍속' 그림 · 없으면 그림자) · 다 열리면 넣어 둔 창을 열고 · 조금 뒤 닫혀요 · 손잡이 · 태슬도 앞판과 같이 */
@@ -1919,6 +1924,29 @@
             DK.pull = new Set(moved);                                            // 당겨 보여 준 소품은 맨 앞 (다른 소품에 가려 못 누르지 않게 · dkLayers)
             deskZAll();
         }
+        /* 👆 책상 소품 손짓 셋 (도련 11-12 정리 · deskWire 가 불러요)
+             dkItemTap = 평소 톡 : 소품 동작(불 · 기계 · 알람 끄기 · js/deskcustom.js dcTap) → 담는 소품 · 서랍 · 칸 (dkHomeTap) → 연결한 기능
+             dkItemEditTap = 🛠 꾸미기 톡 = 고르기 (그린 칸이면 그 칸) · 🏪 적용해보기 톡 = 앱처럼 소품 동작 + 기능 창
+             dkItemDrop = 🛠 · 🏪 끌어 놓기 = 집게 사진은 줄에 · 자리 저장 (같이 움직인 것 · 다이어리 권도) */
+        function dkItemTap(el, x, y) {
+            if (window.dcTap && dcTap(el, x, y)) return;
+            if (dkHomeTap(el, x, y)) return;
+            if (el.dataset.fn) deskRun(el.dataset.fn);
+        }
+        function dkItemEditTap(el, x, y) {
+            if (DK.trial) { const did = window.dcTap && dcTap(el, x, y); if (window.dcTrialOpen) dcTrialOpen(el.dataset.u, did); return; }
+            const z = dkzHit(dkHomes()[el.dataset.u] || [], dkzPct(el, x, y));   // 👆 그린 칸을 톡 = 그 칸 메뉴 (소품 메뉴 대신 · 도련 10-30)
+            DK.zone = z ? `${el.dataset.u}|${z.k}` : null; deskSelect(el);
+        }
+        function dkItemDrop(el, riders) {
+            if (window.dlPegDrop) dlPegDrop(el);                                  // 📷 집게 사진 = 줄 가까이 놓으면 집혀요 (js/desklights.js)
+            [el].concat((riders || []).map(r => r.o)).forEach(o => {
+                if (o.classList.contains('dk-vol')) { dkvSet(o.dataset.b, dkvFromEl(o)); return; }   // 📔 같이 옮긴 다이어리 권
+                const v = { x: Math.round(parseFloat(o.style.left)), y: Math.round(parseFloat(o.style.top)) }, it = DK.items.find(i => i.u === o.dataset.u);
+                DK.base[o.dataset.u] = v; if (it) { it.x = v.x; it.y = v.y; }
+            });
+            dkSave();
+        }
         function deskWire(el) {
             let p = null;
             el.addEventListener('pointerdown', ev => {
@@ -1964,16 +1992,10 @@
             });
             const up = ev => {
                 if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null); DK.drag = false;
-                if (was.tap) { if (ev.type !== 'pointercancel' && Math.hypot(ev.clientX - was.x0, ev.clientY - was.y0) < 10) { if (window.dcTap && dcTap(el, ev.clientX, ev.clientY)) return; if (dkHomeTap(el, ev.clientX, ev.clientY)) return; if (el.dataset.fn) deskRun(el.dataset.fn); } return; }   // 🛍️ 상품을 넣은 소품 = 그 창   // 평소 톡 = 소품 동작(누르는 곳 · js/deskcustom.js) 아니면 그 기능   // 평소 톡 = 그 기능
-                if (!was.on && DK.trial) { if (ev.type !== 'pointercancel') { const did = window.dcTap && dcTap(el, ev.clientX, ev.clientY); if (window.dcTrialOpen) dcTrialOpen(el.dataset.u, did); } return; }   // 🏪 적용해보기 : 톡 = 앱처럼 소품 동작 + 기능 창
-                if (!was.on) { if (ev.type !== 'pointercancel') { const z = dkzHit(dkHomes()[el.dataset.u] || [], dkzPct(el, ev.clientX, ev.clientY)); DK.zone = z ? `${el.dataset.u}|${z.k}` : null; deskSelect(el); } return; }   // 🛠 톡 = 고르기 · 👆 그린 칸을 톡 = 그 칸 메뉴 (소품 메뉴 대신 · 도련 10-30)
-                if (window.dlPegDrop) dlPegDrop(el);                              // 📷 집게 사진 = 줄 가까이 놓으면 집혀요 (js/desklights.js)
-                [el].concat((was.riders || []).map(r => r.o)).forEach(o => {      // 📦 내 소품 목록에 자리 저장 (설정.json)
-                    if (o.classList.contains('dk-vol')) { dkvSet(o.dataset.b, dkvFromEl(o)); return; }   // 📔 같이 옮긴 다이어리 권
-                    const v = { x: Math.round(parseFloat(o.style.left)), y: Math.round(parseFloat(o.style.top)) }, it = DK.items.find(x => x.u === o.dataset.u);
-                    DK.base[o.dataset.u] = v; if (it) { it.x = v.x; it.y = v.y; }
-                });
-                dkSave();
+                const x = ev.clientX, y = ev.clientY, tap = ev.type !== 'pointercancel';
+                if (was.tap) { if (tap && Math.hypot(x - was.x0, y - was.y0) < 10) dkItemTap(el, x, y); return; }   // 평소 = 톡만
+                if (!was.on) { if (tap) dkItemEditTap(el, x, y); return; }           // 🛠 · 🏪 움직이지 않았어요 = 톡
+                dkItemDrop(el, was.riders);                                           // 🛠 · 🏪 끌어 놓았어요 (손가락이 끊겨도 옮긴 자리는 저장)
             };
             el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
         }
