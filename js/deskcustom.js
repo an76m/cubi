@@ -208,19 +208,21 @@
         let g = [...L.children].find(x => x.dataset.gu === u);
         const fl = el.classList.contains('dk-fl'), P = dcGlowPts(c).map(p => fl ? [100 - p[0], p[1]] : p);   // ↔ 돌린 스탠드 = 불빛도 반대쪽
         if (P.length < 3) { if (g) g.remove(); return; }
-        if (!g) { g = document.createElementNS(DC_SVG, 'svg'); g.setAttribute('class', 'dk-glow'); g.dataset.gu = u; L.appendChild(g); }
+        if (!g) { g = document.createElementNS(DC_SVG, 'svg'); g.setAttribute('class', 'dk-glow'); g.dataset.gu = u; g.dataset.an = 1;   /* 🎬 애니 효과(js/anime.js)가 그라데이션을 첫 색 하나로 굳히지 않게 (불빛 색이 안 바뀌던 까닭 · 11-12 고침) */ L.appendChild(g); }
         if (!el._dcGlowObs) { el._dcGlowObs = new MutationObserver(() => { const o = dcItem(el.dataset.u); if (o && el.isConnected) dcGlow(el, dcCat(o)); }); el._dcGlowObs.observe(el, { attributes: true, attributeFilter: ['style', 'class'] }); }   // 옮기기 · 크기 · 돌리기 · 켜고 끄기
         const xs = P.map(p => p[0]), ys = P.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0);
         const W = el.offsetWidth, H = el.offsetHeight;
         Object.assign(g.style, { left: (el.offsetLeft + x0 / 100 * W) + 'px', top: (el.offsetTop + y0 / 100 * H) + 'px', width: (w / 100 * W) + 'px', height: (h / 100 * H) + 'px', display: el.style.display === 'none' ? 'none' : '' });
         g.style.filter = `blur(${Math.max(4, Math.min(w / 100 * W, h / 100 * H) * .035).toFixed(1)}px)`;   // 가장자리 = 부드럽게 0 으로 (불빛 크기에 맞춰 번져요)
-        g.style.setProperty('--lt', el.style.getPropertyValue('--lt') || '#fff3c4');
+        const lt = el.style.getPropertyValue('--lt') || '#fff3c4'; g.style.setProperty('--lt', lt);
         g.classList.toggle('on', el.classList.contains('lit'));
-        const sig = JSON.stringify(P); if (g.dataset.sig === sig) return;
+        const paint = () => g.querySelectorAll('stop').forEach(x => { x.style.stopColor = lt; });   // 🎨 색은 점마다 바로 (크롬은 그라데이션 속 var(--lt) 가 바뀌어도 다시 안 그려요 · 11-12 고침)
+        const sig = JSON.stringify(P); if (g.dataset.sig === sig) { paint(); return; }
         const cx = (P[0][0] + P[1][0]) / 2, cy = (P[0][1] + P[1][1]) / 2, r = Math.max(...P.map(p => Math.hypot(p[0] - cx, p[1] - cy)));
         const id = 'dkg' + Math.random().toString(36).slice(2, 7);
         g.dataset.sig = sig; g.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`); g.setAttribute('preserveAspectRatio', 'none');
         g.innerHTML = `<defs><radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}"><stop offset="0" style="stop-color:var(--lt)" stop-opacity=".95"/><stop offset=".5" style="stop-color:var(--lt)" stop-opacity=".7"/><stop offset=".8" style="stop-color:var(--lt)" stop-opacity=".35"/><stop offset="1" style="stop-color:var(--lt)" stop-opacity="0"/></radialGradient></defs><polygon points="${P.map(p => p.join(',')).join(' ')}" fill="url(#${id})"/>`;
+        paint();
     }
     function dcGlowPrune() {                                                   // 책상에서 빠진 스탠드의 불빛은 지워요
         const L = document.querySelector('#deskStage > .dk-lights'); if (!L) return;
