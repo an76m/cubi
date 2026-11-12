@@ -57,7 +57,7 @@ html.desk-edit .dtr-pn, body.cal-on .dtr-pn, body:has(.shop-scene.on) .dtr-pn, b
 .stk-sub:hover { border-color: #e07ba0; background: #fff4f8; }
 .toolbar .dtr-btn { position: static; transform: none; align-self: center; flex: none; height: 40px; padding: 0 14px; font-size: 14px; }   /* ▤ 하단 메뉴 = 아래 메뉴 줄 끝 */
 .stk-acts { display: contents; }   /* 💻 📲 = 두 버튼 위아래 그대로 */
-.dtr-lbs, .dtr-x { display: none; }
+.dtr-lbs, .dtr-x, .dtr-grip { display: none; }
 
 /* 📱 폰 (도련 11-12 : 하단 = 편의 · 깔끔하게) */
 html.is-phone .stk-acts { display: flex; gap: 8px; margin: 20px 8px 4px; }
@@ -65,32 +65,36 @@ html.is-phone .stk-acts .dk-cta { flex: 1.15; width: auto; margin: 0; height: 46
 html.is-phone .stk-acts .dk-cta-ico { width: 24px; height: 24px; }
 html.is-phone .stk-acts .stk-pc { display: none; }   /* '나만의' 빼고 '스티커 만들기' */
 html.is-phone .stk-acts .stk-sub { flex: 1; height: 46px; margin: 0; padding: 0 6px; border-radius: 14px; font-size: 15px; white-space: nowrap; }
-/* 고르는 화면 = 위 종류 · 목록 / 아래 가로 쟁반 · 담기 */
+/* 고르는 화면 = 위 종류 · 목록 / 아래 넓은 쟁반 (여러 줄 · 넘겨 보기) · 담기 · 톡만 (손가락으로 넘겨요) */
 html.is-phone .stp-bar { padding: 10px 14px; }
 html.is-phone .stp-bar b { font-size: 18px; }
-html.is-phone .stp-body { display: flex; flex-direction: column; gap: 10px; padding: 0 10px max(10px, env(safe-area-inset-bottom)); }
-html.is-phone .stp-l { flex: 1; padding: 10px; border-radius: 18px; gap: 10px; }
+html.is-phone .stp-body { display: flex; flex-direction: column; gap: 8px; padding: 0 10px max(10px, env(safe-area-inset-bottom)); }
+html.is-phone .stp-l { flex: 1 1 50%; padding: 10px; border-radius: 18px; gap: 10px; }
 html.is-phone .stp-kinds { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 html.is-phone .stp-k { flex: none; padding: 6px 12px; font-size: 13px; }
-html.is-phone .stp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-html.is-phone .stp-r { flex: none; gap: 8px; }
-html.is-phone .stp-note { padding: 7px 12px; font-size: 12.5px; text-align: center; border-radius: 12px; }
-html.is-phone .stp-tray { flex: none; height: 118px; padding: 10px; border-radius: 30px; }
+html.is-phone .stp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; touch-action: pan-y; }
+html.is-phone .stp-c { touch-action: pan-x pan-y; cursor: pointer; }
+html.is-phone .stp-c:hover { transform: none; }
+html.is-phone .stp-c:active { transform: scale(.94); }
+html.is-phone .stp-r { flex: 1 1 42%; min-height: 0; gap: 8px; }
+html.is-phone .stp-note { padding: 6px 12px; font-size: 12.5px; text-align: center; border-radius: 12px; }
+html.is-phone .stp-tray { flex: 1; min-height: 0; padding: 10px; border-radius: 30px; }
 html.is-phone .stp-tray::before { inset: 8px; border-radius: 24px; }
-html.is-phone .stp-tin { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 8px 12px; align-items: center; }
-html.is-phone .stp-tin .stp-c { flex: none; width: 74px; }
-html.is-phone .stp-hint { margin: 0 auto; font-size: 13px; }
-html.is-phone .stp-go { padding: 11px; font-size: 17px; }
-/* 다꾸할 때 쟁반 = 아래 메뉴 줄 바로 위 얇은 줄 (화면 끝까지 · 안 옮겨요 · ✕ = 접기) */
+html.is-phone .stp-cnt { position: absolute; z-index: 2; left: 50%; top: 2px; translate: -50% 0; padding: 1px 10px; border-radius: 99px; background: #fff; color: #c2457a; font-size: 11.5px; white-space: nowrap; box-shadow: 0 1px 3px rgba(90,100,120,.25); }
+html.is-phone .stp-cnt:empty { display: none; }
+html.is-phone .stp-tin { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 10px; touch-action: pan-y; }
+html.is-phone .stp-hint { margin: 30px 0; font-size: 13px; }
+html.is-phone .stp-go { flex: none; padding: 11px; font-size: 17px; }
+/* 다꾸할 때 쟁반 = 처음엔 아래 메뉴 줄 바로 위 · 머리(손잡이)를 잡고 위아래로 · 스티커 줄은 옆으로 넘겨요 · ✕ = 접기 */
 html.is-phone .toolbar .dtr-btn { height: 36px; padding: 0 10px; gap: 6px; font-size: 13px; }
 html.is-phone .dtr-lb { display: none; } html.is-phone .dtr-lbs { display: inline; }
-html.is-phone .dtr-pn { left: 6px !important; right: 6px; top: auto !important; width: auto; max-width: none; gap: 4px; }
-html.is-phone .dtr-hd { position: relative; cursor: default; padding: 4px 36px; font-size: 13px; }
+html.is-phone .dtr-pn { left: 6px !important; right: 6px; width: auto; max-width: none; gap: 4px; }
+html.is-phone .dtr-hd { position: relative; cursor: grab; padding: 9px 40px 5px; font-size: 13px; }
 html.is-phone .dtr-hd small { display: none; }
-html.is-phone .dtr-x { display: block; position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 26px; height: 26px; border: 0; border-radius: 50%; background: #ffe0ea; color: #c2457a; font: inherit; font-size: 12px; font-weight: 900; cursor: pointer; }
-html.is-phone .dtr-tray { height: 104px; padding: 8px; border-radius: 28px; }
+html.is-phone .dtr-grip { display: block; position: absolute; left: 50%; top: 3px; translate: -50% 0; width: 36px; height: 4px; border-radius: 2px; background: #e8b4c7; }   /* 잡는 곳 표시 */
+html.is-phone .dtr-x { display: block; position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #ffe0ea; color: #c2457a; font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
+html.is-phone .dtr-tray { height: 112px; padding: 8px; border-radius: 28px; }
 html.is-phone .dtr-tray::before { inset: 7px; border-radius: 22px; }
-html.is-phone .dtr-in { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 6px 10px; align-items: center; }
-html.is-phone .dtr-in .stp-c { flex: none; width: 66px; }
+html.is-phone .dtr-in { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 6px 12px; align-items: center; touch-action: pan-x; }
+html.is-phone .dtr-in .stp-c { flex: none; width: 72px; touch-action: pan-x; }
 html.is-phone .dtr-ft { gap: 6px; }
-

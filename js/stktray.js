@@ -27,11 +27,12 @@
             <div class="stp-body">
                 <section class="stp-l"><div class="stp-kinds" id="stpKinds"></div><div class="stp-grid" id="stpGrid"></div></section>
                 <section class="stp-r"><p class="stp-note" id="stpNote">${NOTE}</p>   <!-- 안내 = 쟁반 위 (도련 11-05) -->
-                    <div class="stp-tray" id="stpTray"><div class="stp-tin" id="stpTin"></div></div>
+                    <div class="stp-tray" id="stpTray"><b class="stp-cnt" id="stpCnt"></b><div class="stp-tin" id="stpTin"></div></div>
                     <button type="button" class="stp-go" onclick="stpSave()">🍽 스티커 담기</button></section>
             </div>`;
         document.body.appendChild(el);
         el.addEventListener('pointerdown', stpDown);
+        el.addEventListener('click', e => { if (!UI.phone()) return; const c = e.target.closest('.stp-c'); if (c) stpMove(c.dataset.id, !c.classList.contains('in')); });   // 📱 톡 = 담기 · 쟁반의 것 톡 = 빼기 (넘겨 보기는 그대로)
         return el;
     }
     async function stpOpen() {
@@ -51,6 +52,7 @@
         const L = T.list.filter(e => A.kindOf(e) === T.kind && !T.draft.includes(e.id)).sort((a, b) => b.at - a.at);
         q('stpGrid').innerHTML = L.length ? L.map(e => `<div class="stp-c" data-id="${htmlEsc(e.id)}">${A.card(e)}</div>`).join('')
             : `<p class="stp-empty">${T.list.some(e => A.kindOf(e) === T.kind) ? '이 종류는 다 쟁반에 담았어요 🍽' : '아직 이 종류 스티커가 없어요.<br>🏪 기본상품 샵에서 받아 오거나 ✂️ 직접 만들어요.'}</p>`;
+        const cn = q('stpCnt'); if (cn) cn.textContent = T.draft.length ? T.draft.length + '개 담았어요 · 톡 = 빼기' : '';
         q('stpTin').innerHTML = T.draft.length ? T.draft.map(id => `<div class="stp-c in" data-id="${htmlEsc(id)}">${A.card(M.get(id))}</div>`).join('')
             : `<p class="stp-hint">${UI.phone() ? '위 스티커를 톡 하면 여기 담겨요' : easy() ? '왼쪽 스티커를 톡 하거나<br>끌어 놓아 담아요' : '왼쪽 스티커를 이 쟁반으로<br>끌어 놓아 담아요'}</p>`;
     }
@@ -61,7 +63,7 @@
     }
     /* 끌어 놓기 (조금만 움직이면 톡 = 쟁반의 것 빼기 · 담기는 끌어 놓기로만 · 도련 11-06) */
     function stpDown(ev) {
-        const c = ev.target.closest('.stp-c'); if (!c || ev.button > 0) return;
+        const c = ev.target.closest('.stp-c'); if (!c || ev.button > 0 || UI.phone()) return;   // 📱 = 톡만 (손가락으로 목록 · 쟁반을 넘겨 봐요 · stpTap)
         ev.preventDefault();
         const id = c.dataset.id, inTray = c.classList.contains('in'), x0 = ev.clientX, y0 = ev.clientY;
         let gh = null;
@@ -100,7 +102,7 @@
         b = document.createElement('button'); b.type = 'button'; b.id = 'dtrBtn'; b.className = 'desk-shop-go dtr-btn'; b.hidden = true; b.onclick = () => dtrShow(!T.open);
         document.body.appendChild(b);
         const p = document.createElement('div'); p.id = 'dtrPanel'; p.className = 'dtr-pn'; p.hidden = true;
-        p.innerHTML = `<div class="dtr-hd" id="dtrHd"><b>🍽 오늘 쓸 스티커</b><small>잡고 끌어 옮겨요</small><button type="button" class="dtr-x" onclick="dtrShow(false)" aria-label="닫기">✕</button></div><div class="dtr-tray"><div class="dtr-in" id="dtrIn"></div></div>
+        p.innerHTML = `<div class="dtr-hd" id="dtrHd"><i class="dtr-grip" aria-hidden="true"></i><b>🍽 오늘 쓸 스티커</b><small>잡고 끌어 옮겨요</small><button type="button" class="dtr-x" onclick="dtrShow(false)" aria-label="닫기">✕</button></div><div class="dtr-tray"><div class="dtr-in" id="dtrIn"></div></div>
             <div class="dtr-ft"><button type="button" class="dtr-mini" onclick="stpOpen()">＋ 더 고르기</button><button type="button" class="dtr-mini" onclick="dtrEnd()">다꾸 끝 · 비우기</button></div>`;
         document.body.appendChild(p);
         p.querySelector('#dtrIn').addEventListener('click', e => { const c = e.target.closest('.stp-c'); if (c && API()) API().open(c.dataset.id); });
@@ -126,7 +128,9 @@
         T.open = !!on && T.ids.length > 0;
         const p = q('dtrPanel'), b = q('dtrBtn'); if (!p) return;
         p.hidden = !T.open; if (b) { b.classList.toggle('on', T.open); b.setAttribute('aria-pressed', String(T.open)); }
-        if (T.open && UI.phone()) { const tb = document.querySelector('.toolbar'), y = tb && tb.getBoundingClientRect().top; p.style.bottom = ((y > 0 ? innerHeight - y : 0) + 6) + 'px'; }   // 📱 = 아래 메뉴 줄 바로 위
+        if (T.open && UI.phone()) {                                           // 📱 = 처음엔 아래 메뉴 줄 바로 위 · 머리를 잡고 위아래로 옮긴 자리는 기억 (앱을 닫기 전까지)
+            if (T.posY != null) { p.style.top = Math.min(T.posY, innerHeight - p.offsetHeight) + 'px'; p.style.bottom = 'auto'; }
+            else { const tb = document.querySelector('.toolbar'), y = tb && tb.getBoundingClientRect().top; p.style.top = 'auto'; p.style.bottom = ((y > 0 ? innerHeight - y : 0) + 6) + 'px'; } }
         if (T.open && T.pos && !UI.phone()) Object.assign(p.style, { left: T.pos[0] + 'px', top: T.pos[1] + 'px' });
     }
     function dtrEnd() {
@@ -136,9 +140,12 @@
     function dtrDrag(p) {                                                     // 쟁반 머리를 잡고 끌어 옮겨요 (자리는 앱을 닫기 전까지만)
         const hd = p.querySelector('#dtrHd');
         hd.addEventListener('pointerdown', ev => {
-            if (ev.button > 0 || UI.phone() || ev.target.closest('.dtr-x')) return; ev.preventDefault();   // 📱 = 아래에 붙은 줄 (안 옮겨요)
-            const r = p.getBoundingClientRect(), dx = ev.clientX - r.left, dy = ev.clientY - r.top;
-            const mv = e => { const x = Math.max(0, Math.min(innerWidth - r.width, e.clientX - dx)), y = Math.max(0, Math.min(innerHeight - 60, e.clientY - dy)); p.style.left = x + 'px'; p.style.top = y + 'px'; T.pos = [x, y]; };
+            if (ev.button > 0 || ev.target.closest('.dtr-x')) return; ev.preventDefault();
+            const r = p.getBoundingClientRect(), dx = ev.clientX - r.left, dy = ev.clientY - r.top, ph = UI.phone();
+            const mv = e => {
+                const y = Math.max(0, Math.min(innerHeight - r.height, e.clientY - dy));
+                if (ph) { p.style.top = y + 'px'; p.style.bottom = 'auto'; T.posY = y; return; }   // 📱 = 화면 너비 그대로 위아래로만
+                const x = Math.max(0, Math.min(innerWidth - r.width, e.clientX - dx)); p.style.left = x + 'px'; p.style.top = y + 'px'; T.pos = [x, y]; };
             const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         });
