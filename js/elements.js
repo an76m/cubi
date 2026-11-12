@@ -760,10 +760,6 @@
                 if (!pinRelNow) return;
                 pinEl.classList.remove('bob', 'glide'); pinPut(e.clientX, e.clientY); return;   // 손이 닿으면 둥실 멈춤
             }
-            if (!e.buttons && window.dkwAirOut && window.gdTwz && gdTwz() && document.documentElement.classList.contains('dk-bgon')) {   // ✋ 📔 다이어리모드 : 페이지 밖으로 = 다른 문구처럼 공중에 떠서 마우스에 붙어요 (책상 톡 = 내려놓기 · 페이지 톡 = 다시 손에 · 도련 11-13 · js/deskgd.js)
-                const top = pinTop(e.clientX, e.clientY);
-                if (top && !pinIn(top) && !top.closest('.dkw-fl, .modal, .desk-top-r, #dkLock, .toolbar, #pageHeader, .page-header') && dkwAirOut(gdTwzId(), pinEl)) { pinStop(); return; }
-            }
             const on = (pinHold && (e.buttons & 1)) || pinOver(e.clientX, e.clientY);
             if (!on) { pinStay(); return; }
             pinFollow = true; document.body.classList.add('pin-on'); pinEl.classList.remove('glide');
@@ -771,6 +767,19 @@
             pinPut(e.clientX, e.clientY);
         }
         document.addEventListener('pointermove', pinMove, true);
+        /* 🪡 📔 다이어리모드 : 핀셋은 페이지 · 책상 · 스티커 떼는 창 어디서든 손에 든 채 (도련 11-13) · 빈 책상을 톡 = 그 자리에 내려놔요 (공중에 떠 있어요 · 톡 = 다시 고르기 · js/deskgd.js)
+           끌기 · 스티커 · 창 · 버튼은 그대로 · 이 톡은 내려놓기만 (책상모드로 안 넘어가요 · js/drive.js dkwAteAt) */
+        let pinTap = null;
+        window.addEventListener('pointerdown', e => { pinTap = e.pointerType === 'mouse' && e.button === 0 && window.gdTwz && gdTwz() && document.documentElement.classList.contains('dk-bgon') ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null; }, true);
+        window.addEventListener('pointerup', e => {
+            const t = pinTap; pinTap = null; if (!t || t.id !== e.pointerId || Math.hypot(e.clientX - t.x, e.clientY - t.y) > 8 || !pinEl || !window.dkwAirPut) return;
+            const top = pinTop(e.clientX, e.clientY), H = document.documentElement;
+            if (!top || pinIn(top) || top.closest('#diaryBook, .page-header, #pageHeader, .toolbar, button, .modal, .dsk, .dkw-fl, .dkw-strip, .desk-top-r, #dkLock')) return;
+            if (!(top === document.body || top === H || top.closest('#diaryWrapper, #bgPatternLayer'))) return;   // 빈 책상(다이어리 둘레 바탕)만
+            const id = window.gdTwzId && gdTwzId(); if (!id) return;
+            const k = pinEl; window.dkwAteAt = Date.now();
+            if (window.dkwAirPut(id, k, false)) pinStop();
+        }, true);
         window.pinOver = pinOver; window.pinRel = pinRel; window.pinBusy = pinBusy; window.dodgeBy = dodgeBy;   // ✂️ 가위도 핀셋과 같은 규칙 (js/skins.js scsRel · scsFrame)
         document.addEventListener('pointerdown', e => { pinHold = false; pinMove(e); if (pinEl && (pinKind === 'pc' ? pinFollow : pinRelNow)) { pinEl.classList.add('shut'); pinEl.classList.remove('bob'); pinHold = true; } }, true);
         ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, e => { pinHold = false; if (pinEl) { pinEl.classList.remove('shut'); pinEl.classList.add('bob'); } }, true));
