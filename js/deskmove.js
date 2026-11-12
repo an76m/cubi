@@ -70,9 +70,23 @@
         if (L.some(e => e.closest('.modal-content, .dkw-cupbox, .dkw-drawer'))) return null;
         return L.map(e => e.closest('#deskStage .desk-item')).find(Boolean) || null;
     }
+    /* 🗄️ 서랍이 열려 있으면 넣는 길 둘 (도련 11-12 · ✏️ 문구 = js/deskgd.js dkwTrayInto 와 같아요) : 밖에 나온 스티커 · 마테를 ① 열린 그 종류 서랍 창 안 ② 그 서랍장에 끌어 놓기 = 고르기 없이 그 서랍 · 창에 바로 보여요 */
+    function drawerInto(o, x, y) {
+        const kind = o.k === 'tape' ? 'tape' : o.kind; if (!window.bkDrawerKind || bkDrawerKind() !== kind) return false;
+        const m = document.getElementById('basketKindModal'), box = m && m.querySelector('.modal-content'), b = box && box.getBoundingClientRect();
+        const inBox = !!b && b.width > 0 && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom;
+        const u = window.dkDrawerU ? dkDrawerU() : '';
+        const onChest = !inBox && !!u && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
+        if (!inBox && !onChest) return false;
+        const A = window.dktApi; if (o.k === 'tape' && A) { const w = o.from || A.where(o.id); if (w) A.put(o.id, w, null); }   // 정리함에서 빠져요
+        if (window.dsPutBack) dsPutBack(o.id);                                  // 꺼낸 것 치우기 = 서랍 창이 바로 다시 그려요 (js/basket.js dsDrop)
+        const h = u && document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (h && window.dkbPulse) dkbPulse(h);
+        return true;
+    }
     async function dropOn(x, y, o) {
         if (document.documentElement.classList.contains('desk-show') || DK.edit) return false;
-        if (o.k === 'gd' && window.dkwTrayInto && dkwTrayInto(o.id, x, y)) return true;   // 🗄️ 서랍이 열려 있으면 = 위 창 안 · 그 서랍장에 놓기 = 고르기 없이 그 서랍에 (도련 11-12 · js/deskgd.js)
+        if (o.k === 'gd' && window.dkwTrayInto && dkwTrayInto(o.id, x, y)) return true;
+        if ((o.k === 'stk' || o.k === 'tape') && drawerInto(o, x, y)) return true;   // 🗄️ 스티커 · 마테도 같아요   // 🗄️ 서랍이 열려 있으면 = 위 창 안 · 그 서랍장에 놓기 = 고르기 없이 그 서랍에 (도련 11-12 · js/deskgd.js)
         const t = holderAt(x, y); if (!t || !fits(t, o)) return false;
         await store(t, o); return true;                                         // 취소해도 = 넣지 않았을 뿐 (꺼낸 자리 그대로)
     }

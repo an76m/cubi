@@ -1585,6 +1585,7 @@
             };
         }
         window.dkDrawerShut = dkDrawerShut;
+        window.dkDrawerU = () => DKD.cur ? String(DKD.cur.key).split('|')[0] : '';   // 지금 열린 서랍의 서랍장 (js/deskmove.js 넣기 · 도련 11-12)
         window.dkDrawerOwns = h => !!DKD.cur && !!DKD.cur.win && DKD.cur.win[1] === h;   // 이 창이 열린 서랍에서 나온 창이에요 (🗄️ 문구함 ✕ = 서랍 닫듯이 · js/deskgd.js dkwClose)
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
         /* 🛍️ 봉투 속 = 아직 꺼내지 않았어요 (도련 11-02 · 현실처럼) : 💻 📲 책상에서는 봉투에서 꺼낼 때까지 바구니 · 스티커 정리 · 오늘 쓸 스티커 · 스티커첩 어디에도 없어요 (js/basket.js)
