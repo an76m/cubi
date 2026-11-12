@@ -236,6 +236,7 @@
         /* 🪡 그 종류 문구가 든 곳을 열어요 (gdNeed · 그리기 펜꽂이의 '보관함') : 서랍 먼저 · 펜꽂이 · 없으면 알려 줘요 */
         function dkwOpenFor(need) {
             if (!dkwDesk()) return;
+            { const f = [...DKW.fl.keys()].find(id => !need || cabGOf(id) === need || (need === 'pen' && dkwIsPen(id))); if (f) { if (window.toolGlow) toolGlow(DKW.fl.get(f)); return; } }   // ✋ 그 문구가 밖에 떠 있으면 = 그걸 반짝 (서랍을 뒤지지 않아요 · '넣어 둔 핀셋이 없어요' 알림이 떴어요 · 도련 11-13)
             const at = dkwAt(), ids = dkwOwnAll().filter(id => at[id] && dkwPlaceOk(at[id]) && !dkwOut(id) && (!need || cabGOf(id) === need || (need === 'pen' && dkwIsPen(id))));
             const ps = [...new Set(ids.map(id => at[id]))].filter(p => { const u = String(p).split(':')[0], o = DK.items.find(x => x.u === u); return o && o.at === 'desk'; }).sort((a, b) => String(b).includes(':') - String(a).includes(':'));
             if (!ps.length) { if (window.showMsg) showMsg(`✏️ 책상 소품에 넣어 둔 ${htmlEsc(josa(need ? (GD_CAB.find(x => x[0] === need) || [])[1] || '문구' : '문구', '이', '가'))} 없어요.`); return; }

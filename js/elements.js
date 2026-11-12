@@ -760,6 +760,10 @@
                 if (!pinRelNow) return;
                 pinEl.classList.remove('bob', 'glide'); pinPut(e.clientX, e.clientY); return;   // 손이 닿으면 둥실 멈춤
             }
+            if (!e.buttons && window.dkwAirOut && window.gdTwz && gdTwz() && document.documentElement.classList.contains('dk-bgon')) {   // ✋ 📔 다이어리모드 : 페이지 밖으로 = 다른 문구처럼 공중에 떠서 마우스에 붙어요 (책상 톡 = 내려놓기 · 페이지 톡 = 다시 손에 · 도련 11-13 · js/deskgd.js)
+                const top = pinTop(e.clientX, e.clientY);
+                if (top && !pinIn(top) && !top.closest('.dkw-fl, .modal, .desk-top-r, #dkLock, .toolbar, #pageHeader, .page-header') && dkwAirOut(gdTwzId(), pinEl)) { pinStop(); return; }
+            }
             const on = (pinHold && (e.buttons & 1)) || pinOver(e.clientX, e.clientY);
             if (!on) { pinStay(); return; }
             pinFollow = true; document.body.classList.add('pin-on'); pinEl.classList.remove('glide');
