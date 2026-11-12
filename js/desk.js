@@ -1858,13 +1858,13 @@
             if (deskAnim || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
             if (window.dsUnderPaint) dsUnderPaint();                              // 📖 다이어리 바탕 = 🪵 책상판 무늬 / 🌈 배경지 (도련 11-12 · js/deskskin.js)
-            H.classList.add('desk-show', 'dk-bgon');                              // 🌈 dk-bgon = 책상 대신 배경지 (css/style.css · 도련 11-12) · 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
+            H.classList.add('desk-show');                                         // 📖 접힌 채 떠 있는 동안은 책상이 보여요 · 표지를 펼치면 바탕 (dkBgSync) · 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
             if (typeof refreshLayout === 'function') refreshLayout();             // 📐 떠오르기 전에 크기 · 펼침면을 지금 화면(하단 메뉴 포함)에 맞춰요 (숨어 있는 동안 맞춘 크기로 크게 떴다가 줄던 것 · 도련 10-28)
             const tf = dkDeskTf(w);                                               // 책상 위 그 권 그림(.dk-vol.cur)에서 떠올라요 (그 그림은 desk-show 동안 숨어요)
             H.classList.add('dk-landing'); requestAnimationFrame(() => requestAnimationFrame(() => H.classList.remove('dk-landing')));   // 화면 도구(안내 쪽지 · 핀셋)는 떠오르며 스르르
             const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
             a.onfinish = a.oncancel = () => { w.style.transformOrigin = '';
-                deskAnim = false;
+                deskAnim = false; dkBgSync();
                 if (DK.coverOnce && !isCoverOpen && typeof openCoverAnimated === 'function') openCoverAnimated();   // 📖 표지를 한 번 열어 본 뒤로는 = 떠오르며 펼쳐져요 (도련 11-12 · 로그인 뒤 처음 한 번만 직접 열어요)
             };
         }
@@ -1886,10 +1886,14 @@
             }
             deskAnim = true;
             H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
-            H.classList.remove('dk-bgon');                                        // 🌈 책상이 먼저 돌아오고 그 위로 내려앉아요
+            H.classList.remove('dk-bgon');                                        // 📖 책상이 먼저 돌아오고 그 위로 내려앉아요
             const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
             a.onfinish = () => { H.classList.remove('desk-show', 'dk-landing', 'dk-bgon'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
         }
+        /* 📖 책상 대신 바탕 (도련 11-12) : 다이어리가 떠 있고(desk-show) 표지를 펼쳤을 때만 (html.dk-bgon · css/style.css) · 로그인 뒤 접힌 채 떠 있으면 책상이 보여요
+           부르는 곳 = js/page.js refreshLayout (표지 펼치기 · 덮기 · 그 밖 모두) · 떠오르기 끝 */
+        function dkBgSync() { const H = document.documentElement; H.classList.toggle('dk-bgon', UI.desk() && H.classList.contains('desk-show') && !H.classList.contains('dk-landing') && !!isCoverOpen); }
+        window.dkBgSync = dkBgSync;
         function dkFoldShut() {                                                   // 겉표지로 덮어요 (다시 펴면 밀어서 열기부터)
             if (!dkOpenNow()) return;
             DK.coverOnce = true;                                                  // 📖 이번 로그인에서 표지를 열었어요 (다음부터 톡 = 떠오르며 펼쳐져요)

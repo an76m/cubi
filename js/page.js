@@ -620,6 +620,7 @@
         }
 
         function refreshLayout() {
+            if (window.dkBgSync) dkBgSync();                                      // 📖 🪑 표지를 펼치면 책상 대신 바탕 · 덮으면 책상 (js/desk.js · 도련 11-12)
             if (turn) { layoutDirty = true; return; }
             const ae = document.activeElement;
             if (ae && ae.tagName === 'TEXTAREA') return;

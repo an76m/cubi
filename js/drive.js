@@ -1487,7 +1487,8 @@
             const t = ev.target;
             if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;
             if (t !== document.body && t !== H && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg') || t.classList.contains('desk-stage')))) return;
-            if (window.deskCloseDiary) deskCloseDiary();                          // 🌈 다이어리가 떠 있는 동안 책상은 배경지에 가려져요 → 밖 톡 = 늘 책상으로 (도련 11-12 · 예전 '옆으로 보이는 소품 톡 = 그 기능'은 없앴어요)
+            if (!H.classList.contains('dk-bgon') && window.deskTapAt && deskTapAt(ev.clientX, ev.clientY)) return;   // 접힌 채 떠 있어 책상이 보이면 = 옆 소품 톡 = 그 소품의 기능 (js/desk.js)
+            if (window.deskCloseDiary) deskCloseDiary();                          // 📖 표지를 펼쳐 책상이 가려졌으면 밖 톡 = 늘 책상으로 (도련 11-12)
         });
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
            그림은 화면을 꽉 채우고(cover) · 알림판 자리(그림 픽셀)를 화면 자리로 바꿔 카드 가운데를 맞추고 · 카드가 타원 안에 들어가게 줄여요 */
