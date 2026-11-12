@@ -10,11 +10,11 @@
 .gdt-tip { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; max-width: calc(100vw - 32px); padding: 9px 18px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 18px rgba(160, 90, 110, .2); pointer-events: none; }
 .gdt-x { position: fixed; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
 
-/* 🏠 진짜 문구를 빌려 쓰는 동안 (js/draw.js 펜꽂이 · 손 · js/ruler.js · js/skins.js 말풍선) : 연습장 위로 */
-body.gdt-on .pc-room, body.gdt-on .rl-ruler, body.gdt-on .rl-say, body.gdt-on .pm-room { z-index: 2147483001; }
-body.gdt-on .sk-room, body.gdt-on .twz-say, body.gdt-on .pin-cur, body.gdt-on .twz-room, body.gdt-on .pfx-stage { z-index: 2147483002; }
-body.gdt-on .scs-cur { z-index: 2147483003; } body.gdt-on .scs-aim { z-index: 2147483004; }
-body.gdt-on #customAlertModal { z-index: 2147483002; }
+/* 🏠 진짜 문구를 빌려 쓰는 동안 (js/draw.js 펜꽂이 · 손 · js/ruler.js · js/skins.js 말풍선 · 가위 · js/elements.js 핀셋 · js/stkcut.js 칼) : 연습장 위로
+   ⚠ 샵 창이 떠 있으면 든 문구를 창 뒤(z 990 !important)로 보내는 규칙(css/style.css 'PIN_COVER')보다 세게 : :root + :has(#gdTry) (도련 11-12 : 샵에서 연 핀셋 · 칼 · 필기구가 안 보였어요) */
+:root body.gdt-on:has(#gdTry) :is(.pc-room, .rl-ruler, .rl-say, .pm-room) { z-index: 2147483001 !important; }
+:root body.gdt-on:has(#gdTry) :is(.sk-room, .twz-say, .pin-cur, .twz-room, .pfx-stage, #customAlertModal) { z-index: 2147483002 !important; }
+:root body.gdt-on:has(#gdTry) .scs-cur { z-index: 2147483003 !important; } :root body.gdt-on:has(#gdTry) .scs-aim { z-index: 2147483004 !important; }
 body.gdt-on .rl-fit { display: none; }   /* 📏 cm 맞추기 = 이 기기 설정 저장 → 연습장에선 안 보여요 */
 
 /* 🕳️ 펀칭 연습 = 진짜 바인더 구멍 자리 (css .dy-holes) · 아직 안 뚫은 자리는 점선 동그라미로 보여요 */
