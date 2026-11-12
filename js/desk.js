@@ -535,6 +535,7 @@
                 if (ev.dkPass || !ev.target.closest || !ev.target.closest('#deskStage .desk-item')) return;
                 const L = dkItemsAt(ev.clientX, ev.clientY), i = L.findIndex(e => dkSolidAt(e, ev.clientX, ev.clientY));
                 if (i === 0) return;                                              // 맨 위 소품의 그림 위 = 그대로
+                if (i < 0 && DK.edit && L[0] && L[0].classList.contains('dk-lt')) return;   // 💡 전구줄 네모 안 빈 곳 (아래에 다른 소품이 없으면) = 줄째 옮기기 (🛠 꾸미기 · 🏪 적용해보기 · 도련 11-12)
                 ev.stopPropagation(); ev.preventDefault();
                 back(); off = i < 0 ? L : L.slice(0, i); off.forEach(e => { e.style.pointerEvents = 'none'; });
                 const t = document.elementFromPoint(ev.clientX, ev.clientY); if (!t) { back(); return; }
