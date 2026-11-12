@@ -7,17 +7,19 @@
      🔪 칼 = 샘플 스티커 (끌어서 자르기) · ✂️ 가위 = 샘플 모조지 (빙 둘러 오리기) · 🪡 핀셋 = 샘플 스티커 셋 (집어 옮기기)
      📎 집게 = 종이 가장자리에 꽂기 · 🩹 양면테이프 = 끌어서 바르기 · 🕳️ 펀칭기 = 구멍 막힌 바인더 속지 (왼쪽 구멍 자리)
    - 🏠 공간 나누기 (도련 11-12 · js/space.js) : 연습장 = '저장하지 않는 공간' · 문구 기능은 진짜 다이어리와 같은 함수를 빌려 써요
-     ✏️ 필기구 · 🖍 형광펜 · 🧽 지우개 · 📏 자 = js/draw.js · js/ruler.js 그대로 (펜꽂이 · 손 · 자에 붙이기 · 꽂으면 그림 하나) · 다른 문구는 차례로 옮겨요
+     ✏️ 필기구 · 🖍 형광펜 · 🧽 지우개 · 📏 자 = js/draw.js · js/ruler.js 그대로 (펜꽂이 · 손 · 자에 붙이기 · 꽂으면 그림 하나)
+     🩹 양면테이프 · 📎 집게 · 🕳️ 펀칭기 = js/skins.js 문구 그대로 (들기 · 바르기 · 테두리에 꽂기 · 바인더 구멍 12칸) · 🪡 핀셋 · 🔪 칼 · ✂️ 가위는 다음에 옮겨요
    ※ 이 파일이 없어도 샵은 예전처럼 확대로 보여요 (js/basket.js shZoom) */
 (function () {
     const PW = 440, PH = 640;                                                     // 다이어리 한 쪽 (진짜 다이어리와 같은 비율)
     const TIP = {
         pen: '✏️ 종이 위를 끌어서 써 보세요', hi: '🖍 끌어서 칠해 보세요', erase: '🧽 쓴 글씨를 문질러 지워 보세요',
         ruler: '📏 자를 옮기고 · 자 옆을 따라 그어 보세요', knife: '🔪 스티커 위를 끌어서 잘라 보세요', scissors: '✂️ 모조지 위를 빙 둘러 오려 보세요',
-        tweez: '🪡 스티커를 집어서 옮겨 보세요', clip: '📎 종이 가장자리에 꽂아 보세요', tape: '🩹 끌어서 테이프를 발라 보세요', punch: '🕳️ 왼쪽 동그라미 자리를 눌러 구멍을 뚫어 보세요'
+        tweez: '🪡 스티커를 집어서 옮겨 보세요', clip: '📎 종이 가장자리에 꽂아 보세요', tape: '🩹 끌어서 테이프를 발라 보세요', punch: '🕳️ 가운데 구멍 자리를 눌러 뚫어 보세요'
     };
     const PENLIKE = { knife: 1 };                                                 // 연필처럼 비스듬히 들어요 (js/draw.js PC_ANG)
-    const REAL = { pen: 1, hi: 1, erase: 1, ruler: 1 };                           // 🏠 진짜 기능을 빌려 쓰는 문구 (js/draw.js · js/ruler.js)
+    const REAL = { pen: 1, hi: 1, erase: 1, ruler: 1, tape: 1, clip: 1, punch: 1 };   // 🏠 진짜 기능을 빌려 쓰는 문구 (js/draw.js · js/ruler.js · js/skins.js)
+    const PENS = { pen: 1, hi: 1, erase: 1, ruler: 1 };                           // 그중 펜꽂이 필기구
     const PC_ANG = -145;
     let G = null;                                                                 // 지금 연습장 (닫으면 null · 아무것도 남지 않아요)
 
@@ -43,19 +45,19 @@
         const p = window.gdPic && gdPic(id); if (!p) return false;
         const g = p.g, size = p.size || [p.w, p.h], tip = (window.gdPicTip && gdPicTip(p)) || [size[0] / 2, 0];
         gdTryOff();
-        const one = g === 'punch' || UI.phone();                                  // 🕳️ 펀칭 = 바인더 속지 한 장 · 📱 폰 = 한 쪽
+        const one = g !== 'punch' && UI.phone();                                  // 📱 폰 = 한 쪽 · 🕳️ 펀칭 = 바인더를 연 두 쪽 (가운데 구멍 자리)
         const W = one ? PW : PW * 2;
-        if (REAL[g] && window.penOn && penOn()) penDone();                       // ✏️ 다이어리에서 쓰던 것은 다이어리에 붙이고 (연습장과 섞이지 않게)
+        if (REAL[g]) { if (window.penOn && penOn()) penDone(); if (window.gdLetGo) gdLetGo(); }   // ✏️ 다이어리에서 쓰던 것 · 든 문구는 다이어리에 두고 (연습장과 섞이지 않게)
         const r = document.createElement('div'); r.id = 'gdTry'; r.className = 'gdt';
         r.innerHTML = `<div class="gdt-st" style="width:${W}px;height:${PH}px">
-                <div class="gdt-book${one ? ' one' : ''}${g === 'punch' ? ' bnd' : ''}">${one ? '<i class="gdt-pg"></i>' : '<i class="gdt-pg l"></i><i class="gdt-pg r"></i>'}</div>
-                <div class="gdt-page"></div><div class="gdt-lay"></div>
+                <div class="gdt-book${one ? ' one' : ''}">${one ? '<i class="gdt-pg"></i>' : '<i class="gdt-pg l"></i><i class="gdt-pg r"></i>'}</div>
+                <div class="gdt-page"></div>${g === 'punch' ? `<span class="dy-holes">${'<i></i>'.repeat(12)}</span>` : ''}<div class="gdt-lay"></div>
                 <div class="gdt-hand" style="width:${size[0]}px;height:${size[1]}px;transform-origin:${tip[0]}px ${tip[1]}px">${gdPicSvg(id, { parts: g === 'scissors' ? [['날1', 'gdt-b1'], ['날2', 'gdt-b2']] : g === 'tweez' ? [['왼팔', 'gdt-a1'], ['오른팔', 'gdt-a2']] : null, over: g === 'tweez' ? '몸' : '' })}</div>
             </div>
             <div class="gdt-tip">${TIP[g] || '✨ 써 보세요'}</div><button type="button" class="desk-shop-go gdt-x">닫기</button>`;
         document.body.appendChild(r);
         const st = r.querySelector('.gdt-st');
-        G = { id, p, g, W, one, size, tip, r, st, page: r.querySelector('.gdt-page'), lay: r.querySelector('.gdt-lay'), hand: r.querySelector('.gdt-hand'), k: 1, drag: null, pieces: [], held: null, slots: [] };
+        G = { id, p, g, W, one, size, tip, r, st, page: r.querySelector('.gdt-page'), lay: r.querySelector('.gdt-lay'), hand: r.querySelector('.gdt-hand'), k: 1, drag: null, pieces: [], held: null };
         document.body.classList.add('gdt-on');
         r.querySelector('.gdt-x').onclick = gdTryOff;
         fit(); setup();
@@ -65,15 +67,23 @@
         return true;
     }
     function gdTryOff() {                                                         // 🧹 닫으면 다 사라져요 (가상)
-        if (G && G.real) { if (penOn()) penClose(); if (G.rl && window.rlOn && rlOn()) rlEnd(); spUse(null); }   // 🏠 다시 진짜 다이어리 공간으로
+        if (G && G.real) { if (penOn()) penClose(); gdLetGo(); if (G.rl && window.rlOn && rlOn()) rlEnd(); spUse(null); }   // 🏠 다시 진짜 다이어리 공간으로
         const r = document.getElementById('gdTry'); if (r) r.remove(); G = null; document.body.classList.remove('gdt-on');
     }
-    /* 🏠 저장하지 않는 공간 : 쓰는 종이 = 연습장 · 붙이면 연습장 위에 · 저장 없음 · 펜꽂이 = 써 볼 것 하나 */
+    /* 🏠 저장하지 않는 공간 : 쓰는 종이 = 연습장 · 문구를 놓는 판 = 연습장 판 · 붙이면 연습장 위에 · 저장 없음 · 펜꽂이 = 써 볼 것 하나 */
     function realStart() {
-        const g = G.g, pen = g === 'ruler' ? (gdPicOf('pen').find(x => /333|000|black/i.test(x.id)) || gdPicOf('pen')[0] || {}).id : G.id;
+        const g = G.g;
+        G.real = true; G.hand.hidden = true; G.st.classList.add('gdt-real');
+        const sp = { page: () => G.page, host: () => G.st, book: () => G.st, open: () => true, rect: p => p.getBoundingClientRect(), add: realAdd, keep: false };
+        if (!PENS[g]) {                                                           // 🩹 📎 🕳️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
+            if (g === 'punch') G.st.classList.add('dy-bdl', 'dy-bo');             // 바인더 링을 연 두 쪽 = 가운데 구멍 자리 12칸
+            spUse(sp); gdPick(G.id);
+            const b = G.page.getBoundingClientRect(); gdHold(G.id, b.left + b.width * (G.one ? .5 : .62), b.top + b.height * .55);
+            return;
+        }
+        const pen = g === 'ruler' ? (gdPicOf('pen').find(x => /333|000|black/i.test(x.id)) || gdPicOf('pen')[0] || {}).id : G.id;
         const one = window.pkCupOne && pkCupOne(pen); if (!one) return;
-        G.real = true; G.pen = pen; G.hand.hidden = true;
-        spUse({ page: () => G.page, rect: p => p.getBoundingClientRect(), add: realAdd, keep: false, cup: [one] });
+        G.pen = pen; sp.cup = [one]; spUse(sp);
         if (g === 'erase') penAttach(SCRIBBLE(G.one ? [70] : [70, PW + 70]));   // 🧽 미리 쓴 글씨 (진짜 펜 그림 그대로)
         const b = G.page.getBoundingClientRect(), x = b.left + b.width * (G.one ? .5 : .75), y = b.top + b.height * .5;
         if (g === 'ruler') { G.rl = !rlOn(); rlShow(b.left + b.width * (G.one ? .5 : .75), b.top + b.height * .4, G.id.replace(/^ruler:/, '')); }
@@ -102,8 +112,6 @@
         h.style.left = (x - G.tip[0]) + 'px'; h.style.top = (y - G.tip[1]) + 'px'; h.style.rotate = a + 'deg';
     }
     const say = (e, t) => { if (window.twzSay) twzSay(e.clientX, e.clientY, t, 1500); };
-    const pageOf = x => G.one ? { l: 0, r: PW } : x < PW ? { l: 0, r: PW } : { l: PW, r: PW * 2 };
-    const onPaper = q => q.x > 6 && q.x < G.W - 6 && q.y > 6 && q.y < PH - 6;
     const add = (cls, css, html) => { const d = document.createElement('div'); d.className = cls; if (css) d.style.cssText = css; if (html) d.innerHTML = html; G.lay.appendChild(d); return d; };
 
     /* 📦 문구마다 준비물 */
@@ -115,10 +123,6 @@
             const w = 260, h = 300, c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; c.className = 'gdt-sheet';
             c.style.cssText = `left:${(G.one ? PW / 2 : PW * 1.5) - w / 2}px;top:${PH / 2 - h / 2}px;width:${w}px;height:${h}px`;
             const x = c.getContext('2d'); x.scale(2, 2); paperDraw({ getContext: () => x, width: w, height: h }); G.lay.appendChild(c); G.sheet = { c, x: parseFloat(c.style.left), y: parseFloat(c.style.top), w, h };
-        }
-        if (g === 'punch') {                                                      // 바인더 속지 = 6공 자리 (막혀 있어요)
-            const ys = [0.12, 0.2, 0.28, 0.72, 0.8, 0.88].map(f => f * PH);
-            G.slots = ys.map(y => ({ x: 24, y, done: false, el: add('gdt-slot', `left:${24 - 9}px;top:${y - 9}px`) }));
         }
     }
 
@@ -174,7 +178,7 @@
     /* 👆 손짓 */
     function down(e) {
         if (!G || e.button > 0) return;
-        if (G.real) { if (!penOn()) drawWith(G.pen, e.clientX, e.clientY); return; }   // ✏️ 꽂고 나서 종이를 누르면 다시 손에
+        if (G.real) { if (G.pen && !penOn()) drawWith(G.pen, e.clientX, e.clientY); return; }   // ✏️ 꽂고 나서 종이를 누르면 다시 손에 (🩹 📎 🕳️ = 놓인 문구를 누르면 들어요 · js/skins.js gdDown)
         const q = loc(e), g = G.g; e.preventDefault(); G.st.setPointerCapture(e.pointerId);
         handAt(q.x, q.y);
         const cut = e.target.closest('.gdt-cut');
@@ -185,24 +189,16 @@
             G.hand.classList.add('snip'); return;
         }
         if (g === 'tweez') { const o = pieceAt(q); G.hand.classList.add('pinch'); if (o) { G.drag = { k: 'twz', o, ox: q.x - o.x, oy: q.y - o.y }; o.el.classList.add('up'); G.lay.appendChild(o.el); } else G.drag = { k: 'none' }; return; }
-        if (g === 'tape') { G.drag = { k: 'tape', a: q, el: add('gdt-tape', '') }; tapeDraw(G.drag.el, q, q); return; }
-        if (g === 'clip') {
-            const c = e.target.closest('.gdt-clip'); if (c) { c.remove(); G.drag = { k: 'none' }; return; }   // 꽂힌 집게 톡 = 다시 손에
-            G.drag = { k: 'clip' }; return;
-        }
-        if (g === 'punch') { G.drag = { k: 'punch' }; return; }
     }
     function move(e) {
         if (!G || G.real) return;
         let q = loc(e); const d = G.drag;
-        if (G.g === 'punch') { const s = G.slots.find(s => !s.done && Math.hypot(s.x - q.x, s.y - q.y) < 30); G.hand.classList.toggle('snap', !!s); if (s) q = { x: s.x, y: s.y }; }
         if (!d) { if (e.pointerType === 'mouse') handAt(q.x, q.y); return; }
         if (d.k === 'move') { d.el.style.left = (q.x - d.ox) + 'px'; d.el.style.top = (q.y - d.oy) + 'px'; return; }
         handAt(q.x, q.y);
         if (d.k === 'knife') lineDraw(d.line, d.a, q);
         if (d.k === 'scs') { const l = d.path[d.path.length - 1]; if (Math.hypot(q.x - l.x, q.y - l.y) > 4) { d.path.push(q); d.trail.querySelector('polyline').setAttribute('points', d.path.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ')); } }
         if (d.k === 'twz') { d.o.x = q.x - d.ox; d.o.y = q.y - d.oy; piecePaint(d.o); }
-        if (d.k === 'tape') tapeDraw(d.el, d.a, q);
     }
     function up(e) {
         if (!G || G.real) return;
@@ -212,23 +208,8 @@
         if (d.k === 'knife') { d.line.remove(); if (!knifeCut(d.a, q0)) say(e, '🔪 스티커 밖에서 밖으로 끝까지 그어요'); return; }
         if (d.k === 'scs') { d.trail.remove(); if (!d.on || !scissorsCut(d.path)) say(e, '✂️ 모조지 위를 빙 둘러 오려요'); return; }
         if (d.k === 'twz' && d.o) { d.o.el.classList.remove('up'); return; }
-        if (d.k === 'tape') { const a = d.a, L = Math.hypot(q0.x - a.x, q0.y - a.y); if (L < 14) { d.el.remove(); say(e, '🩹 끌어서 발라요'); } return; }
-        if (d.k === 'clip') {                                                     // 가장자리 (위 · 오른쪽 · 아래 · 바깥 왼쪽) 가까우면 꽂혀요
-            const q = q0, E = [{ k: 't', d: Math.abs(q.y), x: q.x, y: 0, a: 0 }, { k: 'b', d: Math.abs(PH - q.y), x: q.x, y: PH, a: 180 }, { k: 'r', d: Math.abs(G.W - q.x), x: G.W, y: q.y, a: 90 }, { k: 'l', d: Math.abs(q.x), x: 0, y: q.y, a: -90 }].sort((a, b) => a.d - b.d)[0];
-            if (E.d > 40) { say(e, '📎 종이 가장자리에 꽂아요'); return; }
-            const s = G.size, t = G.tip, c = add('gdt-clip', `width:${s[0]}px;height:${s[1]}px;left:${E.x - t[0]}px;top:${E.y - t[1]}px;transform-origin:${t[0]}px ${t[1]}px;rotate:${E.a}deg`, gdPicSvg(G.id));
-            c.animate([{ scale: '1.12' }, { scale: '1' }], { duration: 220 }); G.hand.classList.add('away'); return;
-        }
-        if (d.k === 'punch') {
-            const s = G.slots.find(s => !s.done && Math.hypot(s.x - q0.x, s.y - q0.y) < 30);
-            if (!s) { say(e, '🕳️ 왼쪽 동그라미 자리를 눌러요'); return; }
-            s.done = true; s.el.className = 'gdt-hole'; G.hand.animate([{ translate: '0 0' }, { translate: '0 5px' }, { translate: '0 0' }], { duration: 180 });
-            const ch = add('gdt-chad', `left:${s.x - 7}px;top:${s.y - 7}px`); ch.animate([{ translate: '0 0', opacity: 1 }, { translate: '14px 120px', rotate: '200deg', opacity: 0 }], { duration: 900, easing: 'ease-in' }).onfinish = () => ch.remove();
-            if (G.slots.every(s => s.done)) setTimeout(() => G && say(e, '🎉 구멍이 다 뚫렸어요'), 300);
-        }
     }
     function lineDraw(el, a, b) { const L = Math.hypot(b.x - a.x, b.y - a.y); Object.assign(el.style, { left: a.x + 'px', top: a.y + 'px', width: L + 'px', rotate: Math.atan2(b.y - a.y, b.x - a.x) + 'rad' }); }
-    function tapeDraw(el, a, b) { const L = Math.max(4, Math.hypot(b.x - a.x, b.y - a.y)); Object.assign(el.style, { left: a.x + 'px', top: (a.y - 7) + 'px', width: L + 'px', rotate: Math.atan2(b.y - a.y, b.x - a.x) + 'rad' }); }
 
     window.gdTry = gdTry; window.gdTryOff = gdTryOff;
 })();

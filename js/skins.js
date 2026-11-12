@@ -1057,7 +1057,7 @@
            - 그 문구가 페이지에 놓여 있으면 → 페이지의 그 문구 둘레가 핑크로 깜박 (안 보이는 쪽이면 먼저 페이지 안으로 소환 · gdHome)
            - 없으면 → 🗄️ 문구함이 뜨고 그 서랍이 핑크로 깜박 · 톡 하면 꺼내져요 */
         function gdNeed(g) {
-            if (!isCoverOpen) return;
+            if (!isCoverOpen || !spKeep()) return;                              // 🏠 연습장(저장 안 하는 공간)에선 문구함을 열지 않아요
             const blink = el => { if (!el) return; el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
             const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
             if (on) { gdHome(on); blink(on); return; }
@@ -1073,14 +1073,17 @@
         const gdArt = id => window.gdPicSvg ? gdPicSvg(id) : '';                 // 🎬 상품공방 그림 그대로 (js/gdpic.js)
         let gdHeld = null, gdG = null, gdInit = false, gdBook = null, gdClipSig = '';
         const gdScs = () => !!gdHeld && (gdInfo(gdHeld) || {}).g === 'scissors';           // gdHeld : 손에 든 문구함 id · gdG : 쓰는 중 (테이프 끌기 · 집게 테두리 끌기)
-        const gdIp = () => document.getElementById('innerPage');
+        const gdIp = () => spHost();                                             // 🏠 문구를 놓는 판 = 지금 공간 (진짜 = #innerPage · 연습장 = 연습장 판 · js/space.js)
+        const gdFree = () => spKeep() ? bdFree : null;                           // 📄 링을 연 바인더 종이 = 진짜 다이어리에만
+        const gdToolOf = n => { for (let t = n && n.closest && n.closest('.bd-tool'); t; t = t.parentElement && t.parentElement.closest('.bd-tool')) if (t.parentElement === gdIp()) return t; return null; };   // 판에 놓인 문구 (예전 '#innerPage > .bd-tool')
+        const gdBoxOf = n => { const b = n && n.closest && n.closest('.element-box'); return b && b.parentElement === spPage() ? b : null; };   // 종이에 붙은 꾸밈 (예전 '#canvasArea > .element-box')
         const gdEl = id => { const ip = gdIp(); return ip ? [...ip.querySelectorAll(':scope > .bd-tool')].find(x => x.dataset.t === id) || null : null; };
         function gdK() { const ip = gdIp(), r = ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }
         const gdTo = (x, y) => { const { r, k } = gdK(); return { x: (x - r.left) / k, y: (y - r.top) / k }; };   // 화면 → 다이어리(innerPage) 자리
         function gdArea() {                                                     // 다이어리 둘레 (집게가 물 자리만큼 조금 넉넉히) · 화면 안
-            const cv = document.getElementById('canvasArea'), r0 = cv && cv.getBoundingClientRect(); if (!r0 || !r0.width) return null;
+            const cv = spPage(), r0 = cv && cv.getBoundingClientRect(); if (!r0 || !r0.width) return null;
             const r = { left: r0.left, top: r0.top, right: r0.right, bottom: r0.bottom };
-            if (bdFree) ['l', 'r'].forEach(x => { const b = bdFree.sh[x].el.getBoundingClientRect(); r.left = Math.min(r.left, b.left); r.top = Math.min(r.top, b.top); r.right = Math.max(r.right, b.right); r.bottom = Math.max(r.bottom, b.bottom); });   // 📄 옮긴 종이까지
+            if (gdFree()) ['l', 'r'].forEach(x => { const b = bdFree.sh[x].el.getBoundingClientRect(); r.left = Math.min(r.left, b.left); r.top = Math.min(r.top, b.top); r.right = Math.max(r.right, b.right); r.bottom = Math.max(r.bottom, b.bottom); });   // 📄 옮긴 종이까지
             const m = 26; return { l: Math.max(0, r.left - m), t: Math.max(0, r.top - m), r: Math.min(innerWidth, r.right + m), b: Math.min(innerHeight, r.bottom + m) };
         }
         const gdIn = (x, y) => { const a = gdArea(); return !!a && x >= a.l && x <= a.r && y >= a.t && y <= a.b; };
@@ -1097,8 +1100,8 @@
         /* 📥 페이지로 소환 (도련 10-21) : 내려놓은 문구가 페이지 밖(배경지)에 있으면 보이는 페이지 안 가장 가까운 자리로 스르르
            - 🪡 핀셋 · ✂️ 가위를 페이지 밖에서 쓰다가 다른 문구를 고르거나 내려놓을 때 · 테두리에 꽂힌 📎 집게는 그대로 */
         function gdHome(el) {
-            const cv = document.getElementById('canvasArea'); if (!el || !cv || el.classList.contains('edge') || !window.dyVisRect) return;
-            const v = dyVisRect(cv.getBoundingClientRect()), b = el.getBoundingClientRect(); if (!b.width) return;
+            const cv = spPage(); if (!el || !cv || el.classList.contains('edge') || !window.dyVisRect) return;
+            const v = spRect(), b = el.getBoundingClientRect(); if (!b.width) return;
             const l = Math.max(v.left, 0) + 8, r = Math.min(v.right, innerWidth) - 8, t = Math.max(v.top, 0) + 8, bt = Math.min(v.bottom, innerHeight) - 8;
             const cx = (b.left + b.right) / 2, cy = (b.top + b.bottom) / 2, hw = Math.min(b.width / 2, (r - l) / 2), hh = Math.min(b.height / 2, (bt - t) / 2);
             const nx = Math.max(l + hw, Math.min(r - hw, cx)), ny = Math.max(t + hh, Math.min(bt - hh, cy));
@@ -1109,7 +1112,7 @@
         }
         const gdMid = el => { const t = gdInfo(el.dataset.t); return { x: (parseFloat(el.style.left) || 0) + t.w / 2, y: (parseFloat(el.style.top) || 0) + t.h / 2 }; };
         function gdSpot(id) {                                                   // 처음 놓이는 자리 : 보이는 종이 가운데쯤 (문구함마다 조금씩 비켜서)
-            const cv = document.getElementById('canvasArea'), r = dyVisRect(cv.getBoundingClientRect()), t = gdInfo(id);
+            const r = spRect(), t = gdInfo(id);
             const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), tp = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
             const o = { tweez: [.16, .04], punch: [.3, .2], tape: [-.28, .26], clip: [-.05, -.3], scissors: [-.3, -.04] }[t.g] || [0, 0],   /* 새 종류 = 가운데 */ n = gdIp().querySelectorAll(':scope > .bd-tool').length % 4;
             return gdTo((l + rt) / 2 + (rt - l) * o[0] + n * 18, (tp + b) / 2 + (b - tp) * o[1] + n * 18);
@@ -1145,8 +1148,8 @@
         })();
         const gdScr = p => { const { r, k } = gdK(); return [r.left + p.x * k, r.top + p.y * k]; };   // 다이어리 자리 → 화면
         function gdPick(id) {                                                   // 🗄️ 문구함 서랍 톡 : 놓기 ↔ 치우기 (아래 cabFlip)
-            if (gdInfo(id) && !isCoverOpen && UI.desk()) { showMsg('📔 책상 위 다이어리를 펴면 문구를 꺼낼 수 있어요.'); return; }
-            if (!gdInfo(id) || !gdIp() || !isCoverOpen) return;
+            if (gdInfo(id) && !spOpen() && UI.desk()) { showMsg('📔 책상 위 다이어리를 펴면 문구를 꺼낼 수 있어요.'); return; }
+            if (!gdInfo(id) || !gdIp() || !spOpen()) return;
             const el = gdEl(id);
             if (el) { if (gdHeld === id) gdLet(); el.remove(); }
             else {
@@ -1184,7 +1187,7 @@
             const r = f && !f.hidden && f.getBoundingClientRect(); if (!r || !r.width) return null;
             return gdTo(r.left + r.width / 2, r.top + r.height / 2);
         }
-        function gdLetAir(keep) { const id = gdHeld, el = id && gdEl(id); if (el && !id.startsWith('clip:') && window.dkwAirPut && dkwAirPut(id, el, keep)) return; gdLet(); }   // 💻 📲 책상 = 다이어리 밖 공중에 내려놔요 (도련 11-12 · js/deskgd.js)
+        function gdLetAir(keep) { const id = gdHeld, el = id && gdEl(id); if (el && !id.startsWith('clip:') && spKeep() && window.dkwAirPut && dkwAirPut(id, el, keep)) return; gdLet(); }   // 💻 📲 책상 = 다이어리 밖 공중에 내려놔요 (도련 11-12 · js/deskgd.js)
         function gdLet() {                                                      // 내려놓기 (지금 자리에)
             const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
             if (!el) return;
@@ -1211,14 +1214,14 @@
         function gdUnderRoom(e) {
             const cv = e.target && e.target.id && (e.target.id === 'pelCv' || e.target.id === 'pcbCv') ? e.target : null; if (!cv) return null;
             try { const r = cv.getBoundingClientRect(), k = cv.width / (r.width || 1), a = cv.getContext('2d').getImageData(Math.round((e.clientX - r.left) * k), Math.round((e.clientY - r.top) * k), 1, 1).data[3]; if (a > 40) return null; /* 흐린 배경(알파 ~26)은 빈 곳 */ } catch (er) { return null; }
-            return document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('#innerPage > .bd-tool')).find(Boolean) || null;
+            return document.elementsFromPoint(e.clientX, e.clientY).map(gdToolOf).find(Boolean) || null;
         }
         /* ✋ 핀셋 없이 손으로도 만지는 것 (도련 11-03 · 현실처럼) : 🎀 마스킹테이프 (핀셋도 돼요 · 키즈컷처럼 핀셋만 쓰는 테이프가 생기면 여기서 빼요) */
         const gdHandOk = box => { const im = box && box.querySelector(':scope > img'); return !!im && typeof isTapeSrc === 'function' && isTapeSrc(im.dataset.src || im.getAttribute('src')); };
         function gdDown(e) {                                                    // 누르는 순간 (바인더 손짓 · 메뉴 · 스티커보다 먼저 · 아래 bd pointerdown 에서 불러요)
-            if (!isCoverOpen || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
+            if (!spOpen() || !e.target || !e.target.closest || (e.pointerType === 'mouse' && e.button !== 0)) return false;
             const ip = gdIp(); if (!ip || ip.offsetParent === null) return false;
-            const inDy = !!e.target.closest('#innerPage'), tool = e.target.closest('#innerPage > .bd-tool') || gdUnderRoom(e);
+            const inDy = ip.contains(e.target), tool = gdToolOf(e.target) || gdUnderRoom(e);
             if (tool && !tool.classList.contains('held') && !(tool.dataset.nh && gdHeld)) {   // 놓인 문구함 = 들기
                 gdPenOff();                                                     // ✏️ 필기구를 쓰던 중이면 쓴 것은 붙이고 필기구는 펜꽂이에 → 이 문구를 들어요 (도련 10-21) · 꽂힌 집게는 끌면 테두리를 따라 · 톡 하면 들기 (🖱 방금 바꿔 내려놓은 것 위는 든 것을 써요)
                 gdEat(e);
@@ -1230,7 +1233,7 @@
                 scsPut(e.clientX, e.clientY, e);
                 if (!inDy || e.target.closest('.page-header, button, textarea, input, select')) return false;
                 gdEat(e);
-                const box = e.target.closest('#canvasArea > .element-box');
+                const box = gdBoxOf(e.target);
                 if (box && !box.querySelector('textarea')) twzSay(e.clientX, e.clientY);   // 스티커는 🪡 핀셋으로
                 else scsSnip();                                                 // 빈 곳 = 허공에 싹둑
                 return true;
@@ -1242,7 +1245,7 @@
                 gdEat(e); gdFollow(e.clientX, e.clientY, e); gdUse(e); return true;
             }
             if (!gdIsTwz(gdHeld) && inDy) {                                     // 🪡 핀셋이 없으면 스티커를 못 만져요 (글 메모는 그대로 · 🎀 마스킹테이프는 손으로도 · 도련 11-03)
-                const box = e.target.closest('#canvasArea > .element-box');
+                const box = gdBoxOf(e.target);
                 if (box && !box.querySelector('textarea') && !gdHandOk(box)) { gdEat(e); twzSay(e.clientX, e.clientY); return true; }
             }
             return false;
@@ -1254,7 +1257,7 @@
             else if (g === 'clip') gdClipSnap(e.clientX, e.clientY);
         }
         window.addEventListener('pointermove', e => {
-            if (!isCoverOpen) return;
+            if (!spOpen()) return;
             const g = gdG;
             if (g && g.id === e.pointerId) {
                 if (g.k === 'tape') { const a = gdArea(); g.b = { x: Math.max(a.l, Math.min(a.r, e.clientX)), y: Math.max(a.t, Math.min(a.b, e.clientY)) }; gdFollow(g.b.x, g.b.y, e); gdTapePv(); }
@@ -1262,8 +1265,8 @@
                 return;
             }
             if (!gdHeld) return;
-            const t = e.target && e.target.closest && e.target.closest('#innerPage > .bd-tool:not(.held):not(.edge)');
-            document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
+            const t0 = gdToolOf(e.target), t = t0 && !t0.classList.contains('held') && !t0.classList.contains('edge') ? t0 : null;
+            const ip0 = gdIp(); if (ip0) ip0.querySelectorAll(':scope > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
             if (gdIsTwz(gdHeld)) return;                                      // 🪡 핀셋은 밖으로도
             if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
             if (!gdIn(e.clientX, e.clientY) && gdInfo(gdHeld).g !== 'clip') { gdLetAir(e.pointerType === 'mouse'); return; }   // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표 · 📎 집게는 페이지 밖에서 무는 도구라 밖으로도 따라와요 (도련 10-30 · 내려놓기는 다이어리 밖을 누를 때)
@@ -1587,18 +1590,19 @@
         function gdHoleMask() {   // GD_HOLE · GD_HOLE_L (bdSync 가 먼저 불러도 되게)
             const m = bsGet('diary_holes'), b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
         function gdHoleOn(bits) {                                                // bits : 뚫을 구멍 (1 << i)
+            if (!spKeep()) return;                                              // 🏠 연습장 구멍은 기억하지 않아요
             const m = Object.assign({}, bsGet(GD_HOLE)), id = bdBook(), b = Object.assign({}, m[id] || {}), n = bdPg();
             b[n] = (+b[n] || 0) | bits; m[id] = b; bsSet(GD_HOLE, m);
         }
         function gdHoleSync() { const ip = gdIp(), v = bdLay() ? gdHoleMask() : 0; if (ip) ip.querySelectorAll('.dy-holes i').forEach((h, i) => h.classList.toggle('on', (v >> i & 1) > 0)); }
         function gdHoles() {
-            const ip = gdIp(); if (!ip || !ip.classList.contains('dy-bdl') || bdBusy) return [];
-            if (bdFree) return [...ip.querySelectorAll('.bd-hl .bd-hole')].sort((a, b) => a.dataset.i - b.dataset.i);   // 0~5 왼쪽 · 6~11 오른쪽
+            const ip = gdIp(); if (!ip || !ip.classList.contains('dy-bdl') || (spKeep() && bdBusy)) return [];
+            if (gdFree()) return [...ip.querySelectorAll('.bd-hl .bd-hole')].sort((a, b) => a.dataset.i - b.dataset.i);   // 0~5 왼쪽 · 6~11 오른쪽
             if (ip.classList.contains('dy-bo') && !ip.classList.contains('dy-bo-go')) return [...ip.querySelectorAll('.dy-holes i')];
             return [];
         }
         function gdNear(x, y) {                                                 // 화면 (x, y) 가장 가까운 구멍 자리 · 스냅 거리 밖이면 null
-            const bk = document.getElementById('diaryBook'); if (!bk) return null;
+            const bk = spBook(); if (!bk) return null;
             const lim = Math.max(30, bk.getBoundingClientRect().width * .045);
             let best = null, bd = Infinity;
             gdHoles().forEach(h => { const r = h.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, d = Math.hypot(cx - x, cy - y); if (r.width && d < bd) { bd = d; best = { h, i: h.dataset.i != null ? +h.dataset.i : [...h.parentNode.children].indexOf(h), x: cx, y: cy, d: r.width }; } });
@@ -1628,7 +1632,7 @@
            - el.dataset.ph = "x,y,r|…" (그 꾸밈 안 자리 · 돌리기 · 크기 전 px) → CSS mask 로 그 자리만 비워요 (저장 'ph') */
         function bdLocal(el, X, Y) {                                            // 화면 (X, Y) → 그 꾸밈 안 자리 (보이는 그대로 · 바인더 쪽 옮김 · 돌림까지)
             const b = el.getBoundingClientRect(); if (!b.width) return null;
-            const cv = document.getElementById('canvasArea'), k = cv.getBoundingClientRect().width / (cv.offsetWidth || 1) || 1, s = parseFloat(el.dataset.scale) || 1;
+            const cv = spPage(), k = cv.getBoundingClientRect().width / (cv.offsetWidth || 1) || 1, s = parseFloat(el.dataset.scale) || 1;
             const a = -((parseFloat(el.dataset.rotation) || 0) + (parseFloat(getComputedStyle(el).rotate) || 0)) * Math.PI / 180;
             const ux = (X - b.left - b.width / 2) / k, uy = (Y - b.top - b.height / 2) / k;
             return { x: (ux * Math.cos(a) - uy * Math.sin(a)) / s + el.offsetWidth / 2, y: (ux * Math.sin(a) + uy * Math.cos(a)) / s + el.offsetHeight / 2, s, k };
@@ -1649,14 +1653,14 @@
         window.bdPhPaint = bdPhPaint;
         function bdPierce(h) {                                                  // 이 구멍(화면 원) 위에 있는 스티커마다 구멍
             let n = 0;
-            document.querySelectorAll('#canvasArea > .element-box').forEach(el => {
+            spPage().querySelectorAll(':scope > .element-box').forEach(el => {
                 const p = bdLocal(el, h.x, h.y); if (!p) return;
                 const rr = h.d / 2 * .95, ring = [[0, 0], ...[...Array(12)].map((_, i) => [Math.cos(i * Math.PI / 6), Math.sin(i * Math.PI / 6)])];   // 구멍을 살짝만 덮어도 (가장자리까지)
                 if (!ring.some(([a, b]) => { const q = bdLocal(el, h.x + a * rr, h.y + b * rr); return q && bdSolid(el, q); })) return;
                 const r = Math.round(h.d / 2 / p.k / p.s * 10) / 10, v = [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10, r];
                 el.dataset.ph = [...bdPh(el), v].map(a => a.join(',')).join('|'); bdPhPaint(el); n++;
             });
-            if (n && typeof saveData === 'function') saveData(false);
+            if (n) spSave(false);
         }
         function gdPunchSnd() {                                                 // 🔊 철컥 (꾹 누르는 소리 + 종이 뚫리는 소리)
             const ac = typeof sndFx === 'function' ? sndFx() : null; if (!ac) return;
@@ -1699,8 +1703,8 @@
             Object.assign(g.pv.style, { left: a.x + 'px', top: (a.y - 6) + 'px', width: L + 'px', transform: `rotate(${Math.atan2(b.y - a.y, b.x - a.x)}rad)` });
         }
         function gdCv(x, y, f) {   // f : 이 쪽 기준으로 (테이프 양 끝을 같은 쪽 기준으로)                                                   // 화면 자리 → 페이지에 저장되는 자리 (바인더 쪽 벌어짐 · 링을 연 뒤 옮기고 돌린 쪽까지)
-            const ip = gdIp(), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'), cq = bk.offsetWidth / 100, { r, k } = gdK();
-            if (bdFree) {
+            const ip = gdIp(), cv = spPage(), bk = spBook(), cq = bk.offsetWidth / 100, { r, k } = gdK();
+            if (gdFree()) {
                 const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet')), side = f || (s ? (s.classList.contains('l') ? 'l' : 'r') : (x < innerWidth / 2 ? 'l' : 'r')), sh = bdFree.sh[side];
                 const vx = (x - r.left) / k - sh.cx - sh.x, vy = (y - r.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
                 return { x: vx * Math.cos(a) - vy * Math.sin(a) + sh.cx - cv.offsetLeft - (side === 'r' ? 6 : -6) * cq, y: vx * Math.sin(a) + vy * Math.cos(a) + sh.cy - cv.offsetTop };
@@ -1716,19 +1720,19 @@
             return { x: vx + (sd === 'l' ? 6 : -6) * cq, y: (y - r.top) / k - cv.offsetTop, sd };
         };
         function gdSide(x, y) {                                                 // 📄 링을 연 뒤 그 자리(화면)에 놓일 꾸밈이 어느 쪽 것이 되는지 (저장 자리로 나뉘는 쪽과 같게)
-            if (bdFree) {                                                       // 그 종이 위면 그 쪽 · 틈(종이 밖)이면 가까운 종이 쪽 (틈 근처는 bdPin 이 기억)
+            if (gdFree()) {                                                       // 그 종이 위면 그 쪽 · 틈(종이 밖)이면 가까운 종이 쪽 (틈 근처는 bdPin 이 기억)
                 const d = side => { const r = bdFree.sh[side].el.getBoundingClientRect(); return Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom)); };
                 const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet'));
                 return s ? (s.classList.contains('l') ? 'l' : 'r') : d('l') <= d('r') ? 'l' : 'r';
             }
-            const W = document.getElementById('canvasArea').offsetWidth, ok = sd => { const m = gdCv(x, y, sd); return (m.x >= W / 2) === (sd === 'r'); };
+            const W = spPage().offsetWidth, ok = sd => { const m = gdCv(x, y, sd); return (m.x >= W / 2) === (sd === 'r'); };
             const first = gdCv(x, y).x >= W / 2 ? 'r' : 'l', other = first === 'l' ? 'r' : 'l';
             return ok(first) ? first : ok(other) ? other : first;
         }
         function gdTapeAdd(A, B) {
             if (Math.hypot(B.x - A.x, B.y - A.y) < 10) return;
             let a, b, sd = null;
-            if (bdFree) {                                                       // 📄 두 쪽에 걸쳐 바르면 : 가운데가 놓일 쪽 기준으로 양 끝을 (붙은 뒤 그 쪽과 같이 움직여도 제자리)
+            if (gdFree()) {                                                       // 📄 두 쪽에 걸쳐 바르면 : 가운데가 놓일 쪽 기준으로 양 끝을 (붙은 뒤 그 쪽과 같이 움직여도 제자리)
                 sd = gdSide((A.x + B.x) / 2, (A.y + B.y) / 2);
                 a = gdCv(A.x, A.y, sd); b = gdCv(B.x, B.y, sd);
             } else { a = gdCv(A.x, A.y); b = gdCv(B.x, B.y); }
@@ -1736,15 +1740,15 @@
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="gd-tape" width="${L}" height="${TH}" viewBox="0 0 ${L} ${TH}"><rect y="1" width="${L}" height="${TH - 2}" rx="1.5" fill="#f3e6cf"/><rect y="1.6" width="${L}" height="2" fill="#fff" fill-opacity=".6"/><rect y="${TH - 3.4}" width="${L}" height="1.6" fill="#cdb894" fill-opacity=".55"/></svg>`;
             const el = createElementFromData({ type: 'image', content: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), width: L + 'px', height: TH + 'px', posX: 0, posY: 0, scale: 1, rotation: Math.round(Math.atan2(b.y - a.y, b.x - a.x) * 1800 / Math.PI) / 10, zIndex: zIndexCounter++ }, true);
             el.dataset.ts = 1;                                                  // 📷 사진 꾸미기 창이 안 떠요
-            document.getElementById('canvasArea').appendChild(el);
+            spPage().appendChild(el);
             const x = Math.round((a.x + b.x) / 2 - el.offsetWidth / 2 - el.offsetLeft), y = Math.round((a.y + b.y) / 2 - el.offsetHeight / 2 - el.offsetTop);
             el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${el.dataset.rotation}deg)`;
-            if (bdFree) { bdPin(el, sd); bdSides(); bdFreeApply(); }           // 📄 링을 연 뒤엔 그 쪽과 같이 (바로)
-            if (typeof saveData === 'function') saveData(false);
+            if (gdFree()) { bdPin(el, sd); bdSides(); bdFreeApply(); }           // 📄 링을 연 뒤엔 그 쪽과 같이 (바로)
+            spSave(false);
         }
         /* 📎 집게 : 들고 다이어리 테두리 근처를 누르면 착 꽂혀요 · 꽂힌 집게는 끌면 테두리를 따라가고 (집게끼리 지나가요) · 톡 하면 빼서 들어요 */
         function gdRail() {
-            const cv = document.getElementById('canvasArea'); if (!cv) return null;
+            const cv = spPage(); if (!cv) return null;
             return { cv, rail: clipRail(cv.offsetWidth, cv.offsetHeight, parseFloat(getComputedStyle(cv).borderTopLeftRadius) || 12) };
         }
         function gdClipPut(el, f) {
@@ -1777,7 +1781,7 @@
         }
         const GD_CLIP = 'diary_clips', GD_CLIP_L = 'malang_diary_clips';
         function gdClipSave() {
-            const cv = document.getElementById('canvasArea'); if (!cv || !gdBook) return;
+            const cv = spPage(); if (!cv || !gdBook || !spKeep()) return;        // 🏠 연습장 집게는 기억하지 않아요
             const o = {}, W = cv.offsetWidth || 1, H = cv.offsetHeight || 1;
             gdIp().querySelectorAll(':scope > .bd-tool.clip').forEach(el => {
                 const c = el.dataset.t.slice(5);
@@ -1787,7 +1791,8 @@
             const all = Object.assign({}, bsGet(GD_CLIP)); all[gdBook] = o; bsSet(GD_CLIP, all); gdClipSig = JSON.stringify(o);
         }
         function gdSync() {                                                     // dyDeco 끝에서 : 📎 그 권의 집게 · 🪡 처음 열면 핀셋
-            const ip = gdIp(), cv = document.getElementById('canvasArea'); if (!ip || !cv) return;
+            if (!spKeep()) return;                                              // 🏠 연습장에선 진짜 다이어리 집게를 맞추지 않아요 (닫으면 다시)
+            const ip = gdIp(), cv = spPage(); if (!ip || !cv) return;
             const book = dyNow().id === DY_DEF && window.dyyBookId ? dyyBookId() || DY_DEF : dyNow().id, saved = bsGet(GD_CLIP)[book] || bsGet(GD_CLIP)[dyNow().id] || {};   /* 📔 날짜형 = 권마다 (예전엔 모든 날짜형이 한 자리) */
             const sig = JSON.stringify(saved), busy = (gdHeld && gdHeld.startsWith('clip:')) || (gdG && gdG.k === 'rail');
             if (gdBook !== book || (sig !== gdClipSig && !busy)) {             // 다른 권 = 그 권의 집게로 · 드라이브를 읽은 뒤 저장이 달라졌어도 (도련 10-30 : 읽기 전 모습이 남지 않게)
