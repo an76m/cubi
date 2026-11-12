@@ -1926,6 +1926,7 @@
                 if (p.riders) p.riders.forEach(r => { r.o.style.left = (x + r.dx) + 'px'; r.o.style.top = (y + r.dy) + 'px'; });
                 deskZAll();
                 deskGuide(gh, gv); deskTipPlace();
+                if (window.dlPegHint) dlPegHint(el);                             // 📷 집게 사진이 줄에 닿으면 = '놓으면 집혀요' (js/desklights.js)
             });
             const up = ev => {
                 if (!p || ev.pointerId !== p.id) return; const was = p; p = null; el.classList.remove('lift'); deskGuide(null, null); DK.drag = false;

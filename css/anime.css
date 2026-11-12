@@ -820,3 +820,8 @@ body.lbm-on .dk-try, body.dcm-on .dk-try, body.spr-on .dk-try { display: none; }
 .dkt-try button.in { opacity: .18; pointer-events: none; }
 .dkt-tryg { position: fixed; z-index: 2147482002; width: 46px; height: 46px; border-radius: 50%; background: center / cover no-repeat; box-shadow: inset 0 0 0 9px rgba(255, 255, 255, .55); pointer-events: none; translate: -50% -50%; }
 html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0; padding-left: 3vw; }
+/* 📷 집게 사진이 전구줄에 닿으면 (도련 11-12 · js/desklights.js dlPegHint) : 줄 위 그 자리 반짝 동그라미 + '놓으면 집혀요' · 집게 사진이 빛나요 */
+#deskStage > .dl-pegmk { position: absolute; z-index: 99990; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; border: 3px solid #ff7aa8; background: rgba(255, 255, 255, .55); box-shadow: 0 0 0 4px rgba(255, 122, 168, .25), 0 0 14px rgba(255, 122, 168, .6); pointer-events: none; animation: dlPegMk .8s ease-in-out infinite alternate; }
+#deskStage > .dl-pegmk b { position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0; white-space: nowrap; padding: 4px 12px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-size: 15px; font-weight: 800; box-shadow: 0 3px 10px rgba(160, 90, 110, .2); }
+@keyframes dlPegMk { from { scale: .85; } to { scale: 1.15; } }
+#deskStage .desk-item.dl-near { filter: drop-shadow(0 0 6px #ff7aa8) drop-shadow(0 0 2px #fff); }

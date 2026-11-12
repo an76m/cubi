@@ -193,13 +193,33 @@
             el.style.zIndex = (parseInt(st.el.style.zIndex) || 10) + 1;       // 집힌 줄 바로 앞
         });
     }
-    function dlPegDrop(el) {                                                  // js/desk.js deskWire : 🛠 꾸미기에서 놓으면 = 줄 가까우면 집혀요
-        if (!((dkCat(el.dataset.id) || {}).can || []).includes('peg')) return;
-        const o = itemOf(el.dataset.u); if (!o) return;
+    const isPeg = el => ((dkCat(el.dataset.id) || {}).can || []).includes('peg');
+    function pegNear(el) {                                                    // 가장 가까운 줄 자리 (집게 끝에서 40px 안) → { d, r, t, p } | null
         const pg = pegPt(el), a = { x: el.offsetLeft + pg[0], y: el.offsetTop + pg[1] }; let best = null;
-        S.forEach(st => { for (let i = 1; i < 200; i++) { const t = i / 200, p = onRope(st.pts, t), d = Math.hypot(p.x - a.x, p.y - a.y); if (d < 40 && (!best || d < best.d)) best = { d, r: st.u, t: +t.toFixed(4) }; } });
+        S.forEach(st => { for (let i = 1; i < 200; i++) { const t = i / 200, p = onRope(st.pts, t), d = Math.hypot(p.x - a.x, p.y - a.y); if (d < 40 && (!best || d < best.d)) best = { d, r: st.u, t: +t.toFixed(4), p }; } });
+        return best;
+    }
+    /* 📷 끄는 동안 = 줄에 닿으면 알려 줘요 (도련 11-12 : 만든 사람이 아니면 줄에 놓으면 집힌다는 걸 몰라요) : 줄 위 그 자리에 반짝 동그라미 + 집게가 빛나요 */
+    function dlPegHint(el) {
+        const st0 = document.getElementById('deskStage'); if (!st0) return;
+        let mk = st0.querySelector(':scope > .dl-pegmk');
+        const b = el && isPeg(el) ? pegNear(el) : null;
+        if (el) el.classList.toggle('dl-near', !!b);
+        if (!b) { if (mk) mk.remove(); return; }
+        if (!mk) { mk = document.createElement('i'); mk.className = 'dl-pegmk'; mk.innerHTML = '<b>놓으면 집혀요</b>'; st0.appendChild(mk); }
+        mk.style.left = b.p.x + 'px'; mk.style.top = b.p.y + 'px';
+    }
+    function dlPegDrop(el) {                                                  // js/desk.js deskWire : 🛠 꾸미기에서 놓으면 = 줄 가까우면 집혀요
+        dlPegHint(null); el.classList.remove('dl-near');
+        if (!isPeg(el)) return;
+        const o = itemOf(el.dataset.u); if (!o) return;
+        const best = pegNear(el), was = !!o.on;
         if (best) o.on = { r: best.r, t: best.t }; else delete o.on;
         if (!run && S.size) { run = true; last = performance.now(); requestAnimationFrame(frame); }
+        if (best) {                                                           // 📌 찰칵 = 집혔어요
+            setTimeout(() => { el.animate([{ scale: '1' }, { scale: '1.08' }, { scale: '.97' }, { scale: '1' }], { duration: 380, easing: 'ease-out' }); if (window.dkwSay) dkwSay('📌 줄에 집혔어요', el); }, 60);
+            if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
+        } else if (was && window.dkwSay) dkwSay('줄에서 뺐어요', el);
     }
-    window.dlPaint = dlPaint; window.dlSolid = dlSolid; window.dlPegDrop = dlPegDrop;
+    window.dlPaint = dlPaint; window.dlSolid = dlSolid; window.dlPegDrop = dlPegDrop; window.dlPegHint = dlPegHint;
 })();
