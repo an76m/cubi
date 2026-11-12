@@ -1825,11 +1825,15 @@
             const tf = dkDeskTf(w);                                               // 책상 위 그 권 그림(.dk-vol.cur)에서 떠올라요 (그 그림은 desk-show 동안 숨어요)
             H.classList.add('dk-landing'); requestAnimationFrame(() => requestAnimationFrame(() => H.classList.remove('dk-landing')));   // 화면 도구(안내 쪽지 · 핀셋)는 떠오르며 스르르
             const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
-            a.onfinish = a.oncancel = () => { w.style.transformOrigin = ''; deskAnim = false; };
+            a.onfinish = a.oncancel = () => { w.style.transformOrigin = '';
+                deskAnim = false;
+                if (DK.coverOnce && typeof isCoverOpen !== 'undefined' && !isCoverOpen && typeof openCoverAnimated === 'function') openCoverAnimated();   // 📖 표지를 한 번 열어 본 뒤로는 = 떠오르며 펼쳐져요 (도련 11-12 · 로그인 뒤 처음 한 번만 직접 열어요)
+            };
         }
         function deskCloseDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
             if (deskAnim || !w || !H.classList.contains('desk-show')) return;
+            if (typeof isCoverOpen !== 'undefined' && isCoverOpen) DK.coverOnce = true;   // 📖 이번 로그인에서 표지를 열었어요
             if (window.dkwFloatAll) dkwFloatAll();                                // ✋ 페이지 위 문구 · 손에 든 필기구 = 그 자리에서 공중에 떠요 (다이어리 따로 · 상품 따로 · 도련 11-11)
             if (window.penRest) penRest();                                        // ✏️ 든 필기구는 페이지에 놓고 쓴 것은 붙여요 (도련 11-03 · 손에 든 채 접히지 않게)
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
@@ -1849,6 +1853,7 @@
         }
         function dkFoldShut() {                                                   // 겉표지로 덮어요 (다시 펴면 밀어서 열기부터)
             if (!dkOpenNow()) return;
+            DK.coverOnce = true;                                                  // 📖 이번 로그인에서 표지를 열었어요 (다음부터 톡 = 떠오르며 펼쳐져요)
             isCoverOpen = false; selectedElement = null;
             const ip = document.getElementById('innerPage'), cp = document.getElementById('coverPage');
             if (ip) ip.style.display = 'none'; if (cp) cp.style.display = '';

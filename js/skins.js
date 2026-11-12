@@ -1184,6 +1184,7 @@
             const r = f && !f.hidden && f.getBoundingClientRect(); if (!r || !r.width) return null;
             return gdTo(r.left + r.width / 2, r.top + r.height / 2);
         }
+        function gdLetAir(keep) { const id = gdHeld, el = id && gdEl(id); if (el && !id.startsWith('clip:') && window.dkwAirPut && dkwAirPut(id, el, keep)) return; gdLet(); }   // 💻 📲 책상 = 다이어리 밖 공중에 내려놔요 (도련 11-12 · js/deskgd.js)
         function gdLet() {                                                      // 내려놓기 (지금 자리에)
             const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
             if (!el) return;
@@ -1236,7 +1237,7 @@
             }
             if (gdHeld && !gdIsTwz(gdHeld)) {
                 const rim = (gdInfo(gdHeld) || {}).g === 'clip' && gdIn(e.clientX, e.clientY) && !e.target.closest('.modal, .desk-tip, .dky-lbp, #deskStage .desk-item');   // 📎 집게는 종이 바로 바깥(테두리 둘레)을 눌러도 꽂혀요 (도련 10-30 : 왼쪽 · 아래는 바깥이 다이어리가 아니라 안 꽂혔어요)
-                if ((!inDy && !rim) || !gdIn(e.clientX, e.clientY)) { gdLet(); return false; }   // 👆 다이어리 밖을 누르면 내려놓아요
+                if ((!inDy && !rim) || !gdIn(e.clientX, e.clientY)) { gdLetAir(); return false; }   // 👆 다이어리 밖을 누르면 내려놓아요
                 if (e.target.closest('.page-header, button, textarea, input, select')) return false;
                 gdEat(e); gdFollow(e.clientX, e.clientY, e); gdUse(e); return true;
             }
@@ -1265,7 +1266,7 @@
             document.querySelectorAll('#innerPage > .bd-tool[data-nh]').forEach(x => { if (x !== t) delete x.dataset.nh; });
             if (gdIsTwz(gdHeld)) return;                                      // 🪡 핀셋은 밖으로도
             if (gdScs()) { scsPut(e.clientX, e.clientY, e); return; }           // ✂️ 가위도 밖으로 (📒 수첩 · 모조지 종이)
-            if (!gdIn(e.clientX, e.clientY) && gdInfo(gdHeld).g !== 'clip') { gdLet(); return; }   // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표 · 📎 집게는 페이지 밖에서 무는 도구라 밖으로도 따라와요 (도련 10-30 · 내려놓기는 다이어리 밖을 누를 때)
+            if (!gdIn(e.clientX, e.clientY) && gdInfo(gdHeld).g !== 'clip') { gdLetAir(e.pointerType === 'mouse'); return; }   // 밖으로 = 그 끝자리에 내려놓고 마우스 화살표 · 📎 집게는 페이지 밖에서 무는 도구라 밖으로도 따라와요 (도련 10-30 · 내려놓기는 다이어리 밖을 누를 때)
             if (gdInfo(gdHeld).g === 'punch' && e.pointerType !== 'touch' && gdPunchHover(e.clientX, e.clientY)) { document.body.classList.add('gd-on'); return; }
             if (gdInfo(gdHeld).g === 'clip') gdClipHint(e.clientX, e.clientY);   // 📎 꽂히는 자리면 반짝   // 🕳️ 가장자리에 착
             gdFollow(e.clientX, e.clientY, e);

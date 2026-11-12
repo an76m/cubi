@@ -352,7 +352,7 @@
             if (DKW.sel && !e.buttons && dkwDesk()) dkwFollow(e.clientX, e.clientY);
         }, { passive: true });
         addEventListener('pointerdown', e => {
-            if (!DKW.sel || e.pointerType !== 'mouse' || e.button > 0 || !dkwDesk()) return;
+            if (!DKW.sel || e.button > 0 || !dkwDesk()) return;   // 👆 손가락도 (도련 11-12 : 집어 든 다음 톡 = 그 자리)
             const t = e.target, id = DKW.sel;
             if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol')) return;   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
             const pg = t.closest && t.closest('#canvasArea');
@@ -373,7 +373,7 @@
                     if (e.type !== 'pointerup') return;
                     if (on) { if (window.dkDropOn) await dkDropOn(e.clientX, e.clientY, { k: 'gd', id }); return; }   // 끌어 놓기 = 옮기기 · 보관함 = 넣기
                     if (e.pointerType === 'mouse') { dkwSel(id); return; }               // 🖱 톡 = 집어 들어요 (마우스에 붙어요)
-                    if (!dkwOpenNow()) { el.animate([{ rotate: '0deg' }, { rotate: '-5deg' }, { rotate: '4deg' }, { rotate: '0deg' }], { duration: 360 }); dkwSay('📔 다이어리를 펴면 써요', el); return; }
+                    if (!dkwOpenNow()) { dkwSel(DKW.sel === id ? null : id); return; }     // 👆 다이어리가 접혀 있으면 = 공중에서 집어 들어요 (도련 11-12 · 하단 모드 페이지 안처럼) → 다이어리를 펴고 페이지 톡 = 그 자리에서 써요
                     const r = el.getBoundingClientRect(); dkwUse(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });   // 톡 = 그 자리에서 손에
                 };
                 el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
@@ -386,6 +386,13 @@
             L.forEach(([id, r]) => { dkwBackOne(id, true); if (r && r.width) dkwFloat(id, r.left + r.width / 2, r.top + r.height / 2); else dkwFloat(id, innerWidth / 2, innerHeight / 2); });
         }
         window.dkwFloatAll = dkwFloatAll;
+        /* ✋ 손에 든 문구를 내려놓으면 = 그 자리 공중에 떠요 (도련 11-12 · 💻 📲 책상 : 하단 모드는 페이지 안에 놓이지만 책상 모드는 다이어리 밖 공중) · js/skins.js gdLetAir */
+        window.dkwAirPut = (id, el, keep) => {   // keep = 손에 든 채 (🖱 마우스에 붙어 따라와요)
+            if (!dkwDesk() || !el) return false;
+            const r = el.getBoundingClientRect(); if (!r.width) return false;
+            dkwBackOne(id, true); dkwFloat(id, r.left + r.width / 2, r.top + r.height / 2); if (!keep) dkwSel(null);
+            return true;
+        };
         window.dkwPendOff = () => { [...DKW.fl.keys()].forEach(id => dkwFloatOff(id, true)); dkwDeskSoon(); };   // 🧹 다른 곳으로 갈 때 = 모두 제자리로 (js/desk.js deskReset)
         window.dkwOutNow = () => dkwOutAll();                                    // ✋ 밖에 나온 문구 (페이지 위 · 떠 있는 것 · js/deskmove.js 넣기)
         window.dkwBack = id => { dkwBackOne(id); dkwDeskSoon(); };              // ✋ 제자리로
@@ -395,7 +402,7 @@
             if (!dkwOpenNow() && dkwDesk()) { const c = at || { x: innerWidth / 2, y: innerHeight / 2 }; dkwFloat(id, c.x, c.y); return; }   // 📔 저절로 펴지 않아요 = 그 자리에 떠 있어요 (도련 11-11)
             dkwFloatOff(id, true);
             if (dkwIsPen(id)) { if (window.drawWith && !drawWith(id, at && at.x, at && at.y) && window.openDraw) openDraw(); return; }
-            dkwTake(id);
+            dkwTake(id, at);
         }
         /* ✋ 꺼내기 하나로 (도련 11-11 · 마테 · 스티커와 같아요) : 톡 = 그 문구가 화면 가운데로 날아와 손에 · 끌기 = 손으로 끌어내 놓은 곳에서 손에 */
         async function dkwFlyUse(id, from) {
@@ -423,7 +430,7 @@
             const off = () => { removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };
             addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
         }, true);
-        function dkwTake(id) {                                                    // 문구 = 페이지에 (종류 표 hand = 바로 손에) · 종류별 꺼내는 법은 js/skins.js 그대로 (cabFlip)
+        function dkwTake(id, at) {                                                  // 문구 = 페이지에 (종류 표 hand = 바로 손에) · 종류별 꺼내는 법은 js/skins.js 그대로 (cabFlip)
             const g = cabGOf(id); if (!g) return;
             if (cabTool(id)) {                                                   // 🔪 칼 · 📏 자처럼 따로 그리는 도구 (GD_TOOL) : cabFlip 이 꺼내요 (칼은 손에)
                 if (!cabIsOn(id)) cabFlip(id); else if (dkwMeta(g).hand) cabHoldAgain(id);
@@ -432,7 +439,7 @@
             if (!cabIsOn(id)) { if (!GD_MULTI.includes(g)) gdOnPage(g).forEach(cabFlip); cabFlip(id); gdMainSet(g, id); }   // 하나만 쓰는 종류는 바꿔 놓기 (집게처럼 여럿 = GD_MULTI)
             const el = gdEl(id); if (!el) return;
             gdHome(el);
-            if (dkwMeta(g).hand) { const b = el.getBoundingClientRect(); try { gdHold(id, b.left + b.width / 2, b.top + b.height / 2); } catch (e) { console.warn('🪑 들기', e); } }
+            if (dkwMeta(g).hand || dkwDesk()) { const b = el.getBoundingClientRect(), p = at || { x: b.left + b.width / 2, y: b.top + b.height / 2 }; try { gdHold(id, p.x, p.y); if (at && typeof gdFollow === 'function') gdFollow(p.x, p.y); } catch (e) { console.warn('🪑 들기', e); } }   // 💻 📲 책상 = 늘 손에 (페이지에 놓아 두지 않아요 · 내려놓으면 공중 · 도련 11-12)
             el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); setTimeout(() => el.classList.remove('need'), 2600);
             dkwDeskSoon();
         }
