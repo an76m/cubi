@@ -329,7 +329,7 @@
         function dkwFloat(id, x, y) {
             dkwFloatOff(id, true);
             const pen = dkwIsPen(id), P = pen && window.pkAll ? pkAll().find(t => t.id === id) : null, pic = window.gdPic ? gdPic(id) : null;
-            const sz = pen && P && P.box ? P.box : pic && pic.size ? pic.size : [40, 140];
+            const sz = pen && P && P.box ? P.box : id.startsWith('ruler:') && window.rlRealSize && rlRealSize(id) || (pic && pic.size ? pic.size : [40, 140]);   // 📏 자 = 쓰는 크기(진짜 cm) 그대로 (도련 11-12 : 공중의 자가 너무 작았어요)
             const el = document.createElement('div'); el.className = 'dkw-fl' + (pen ? ' pen' : ''); el.dataset.id = id;
             el.innerHTML = `<i style="width:${sz[0]}px;height:${sz[1]}px;rotate:${pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28}deg">${window.gdPicSvg ? gdPicSvg(id) : dkwArt(id)}</i>`;   // ✏️ 손에 든 모습 그대로 (연필심이 왼쪽 아래 · js/draw.js PC_ANG)
             el.style.left = x + 'px'; el.style.top = y + 'px';

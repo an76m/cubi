@@ -14,7 +14,7 @@
    - 붙이기도 진짜와 하나 (js/elements.js addImage = 지금 공간의 종이에) · 이 파일엔 가상 종이 · 샘플 · 여닫기만 있어요 (문구 기능은 없어요)
    ※ 이 파일이 없어도 샵은 예전처럼 확대로 보여요 (js/basket.js shZoom) */
 (function () {
-    const PW = 440, PH = 640;                                                     // 다이어리 한 쪽 (진짜 다이어리와 같은 비율)
+    const PW = 439, PH = 644;                                                     // 다이어리 한 쪽 = 진짜 다이어리 페이지 크기 그대로 (#canvasArea 878 × 644 의 반 · 도련 11-12 : 실제보다 크면 안 돼요)
     const TIP = {
         pen: '✏️ 종이 위를 끌어서 써 보세요', hi: '🖍 끌어서 칠해 보세요', erase: '🧽 쓴 글씨를 문질러 지워 보세요',
         ruler: '📏 자를 옮기고 · 자 옆을 따라 그어 보세요', knife: '🔪 스티커 위를 끌어서 잘라 보세요', scissors: '✂️ 모조지 위를 빙 둘러 오려 보세요',
@@ -94,7 +94,7 @@
         const one = window.pkCupOne && pkCupOne(pen); if (!one) return;
         G.sp.cup = [one]; G.again = e => { if (!penOn()) drawWith(pen, e.clientX, e.clientY); };   // ✏️ 펜꽂이 = 써 볼 것 하나
         if (g === 'erase') penAttach(SCRIBBLE(G.one ? [70] : [70, PW + 70]));   // 🧽 미리 쓴 글씨 (진짜 펜 그림 그대로)
-        if (g === 'ruler') { G.rl = !rlOn(); rlShow(mx, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }
+        if (g === 'ruler') { G.rl = !rlOn(); rlShow(b0.left + b0.width / 2, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }   // 📏 진짜 cm 길이 = 펼친 두 쪽 가운데
         drawWith(pen, mx + 40, my + 120);
     }
     function stick(src, x, y, w) {                                                // 🎀 샘플 스티커 붙이기 (진짜 붙이기 그대로 · js/elements.js addImage · 저장 없는 공간)
@@ -109,7 +109,7 @@
     }));
     function fit() {
         if (!G) return;
-        const k = Math.min((innerWidth - 24) / G.W, (innerHeight - 110) / PH);    // 화면 안 가득 (위 닫기 · 아래 안내 자리)
+        const k = Math.min(1, (innerWidth - 24) / G.W, (innerHeight - 110) / PH);   // 진짜 크기 그대로 · 화면이 작으면 그만큼만 줄여요 (위 닫기 · 아래 안내 자리)
         G.k = k; G.st.style.transform = `translate(${(innerWidth - G.W * k) / 2}px, ${Math.max(46, (innerHeight - PH * k) / 2 - 10)}px) scale(${k})`;
     }
     addEventListener('resize', fit);

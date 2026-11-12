@@ -78,7 +78,7 @@
     }
     function rlSize() {
         R.ppc = rlPpc();
-        const b0 = document.getElementById('canvasArea'), vw = b0 ? (window.dyVisRect ? dyVisRect(b0.getBoundingClientRect()) : b0.getBoundingClientRect()).width : innerWidth;
+        const b0 = window.spPage ? spPage() : document.getElementById('canvasArea'), vw = b0 ? (window.spRect ? spRect() : b0.getBoundingClientRect()).width : innerWidth;   // 🏠 지금 공간의 보이는 쪽 (🏪 연습장에서도 진짜 크기 · js/space.js)
         R.L = Math.max(5, Math.min(15, Math.floor((Math.min(vw, innerWidth) - 1.2 * R.ppc - 30) / R.ppc)));   // 보이는 쪽 안에 다 들어가게 (📱 폰 = 오른쪽 쪽 · 양 끝 ⟳ 돌리기 손잡이가 보여요 · 도련 10-19)
         R.el.querySelector('.rl-svg').innerHTML = rlDraw();
         R.el.style.width = R.W + 'px'; R.el.style.height = R.H + 'px';
@@ -245,5 +245,6 @@
     window.rlShow = rlShow; window.rlEnd = rlEnd; window.rlOn = rlOn; window.rlGrab = rlGrab; window.rlHit = rlHit;
     window.rlSnap = rlSnap; window.rlStay = rlStay; window.rlProj = rlProj; window.rlTell = rlTell; window.rlMeasure = rlMeasure;
     window.rlCupSvg = rlCupSvg; window.rlCalOpen = rlCalOpen;
+    window.rlRealSize = id => { const K = rlKind(String(id).replace(/^ruler:/, '')), P = K && rlPicOf(K); if (!P) return null; const a = K.area, len = (a[3] - a[1]) / 100 * P.h, s = (R.on ? R.L : 15) * rlPpc() / len; return [P.w * s, P.h * s]; };   // 📏 세운 자 그림 = 진짜 cm 길이 그대로 (🪑 책상 공중에 뜬 자 · js/deskgd.js)
     window.rlKinds = () => RL_KINDS.map(k => ({ id: k.id, name: k.name })); window.rlKindNow = () => R.on ? R.kind : null;
 })();
