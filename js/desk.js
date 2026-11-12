@@ -528,6 +528,45 @@
             const seen = new Set();
             return document.elementsFromPoint(cx, cy).map(e => e.closest && e.closest('#deskStage .desk-item')).filter(e => e && !seen.has(e) && seen.add(e));
         }
+        /* 🧺 담는 소품의 앞벽 = 그 소품 (도련 11-12 · 상품공방 '앞벽 마스크' 하얀 곳 = 터치 영역) : 펜꽂이 · 책 바구니 · 마테 정리함 앞벽을 누르면 담긴 펜 · 책 · 롤이 아니라 소품 → 화면 가운데로 확대
+             마스크 그림을 한 번 읽어 두고 (dkMaskOf) · 못 읽으면(인터넷 · 다른 곳 그림) 입구 줄 아래 = 앞벽으로 쳐요 */
+        const DK_MASK = new Map();                                                // 앞벽 그림 주소 → { w, h, d } | 'wait' | 'bad'
+        function dkMaskOf(src) {
+            const m = DK_MASK.get(src); if (m) return m;
+            DK_MASK.set(src, 'wait');
+            const im = new Image(); im.crossOrigin = 'anonymous';
+            im.onload = () => { try { const w = Math.min(400, im.naturalWidth), h = Math.round(w * im.naturalHeight / im.naturalWidth), c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h); DK_MASK.set(src, { w, h, d: x.getImageData(0, 0, w, h).data }); } catch (e) { DK_MASK.set(src, 'bad'); } };
+            im.onerror = () => DK_MASK.set(src, 'bad');
+            im.src = new URL(src, location.href).href;
+            return 'wait';
+        }
+        function dkMaskHit(el, cx, cy) {                                          // 이 담는 소품의 앞벽 위인가요 (화면 자리)
+            const d = dkDef(el); if (!d.front || !d.hold) return false;
+            const im = el.querySelector(':scope > img') || el, R = im.getBoundingClientRect(); if (!R.width) return false;
+            let px = (cx - R.left) / R.width, py = (cy - R.top) / R.height; if (px < 0 || px > 1 || py < 0 || py > 1) return false;
+            if (el.classList.contains('dk-fl')) px = 1 - px;                      // ↔ 돌린 소품
+            const m = dkMaskOf(d.front);
+            if (m && m.d) { const i = (Math.min(m.h - 1, Math.floor(py * m.h)) * m.w + Math.min(m.w - 1, Math.floor(px * m.w))) * 4, a = m.d[i + 3] / 255, lum = (m.d[i] + m.d[i + 1] + m.d[i + 2]) / 3; return a * lum > 128; }   // 하얀 곳 = 앞벽
+            const mo = d.mouth; return Array.isArray(mo) && px * 100 >= mo[0] - 3 && px * 100 <= mo[1] + 3 && py * 100 >= mo[2];   // 못 읽으면 = 입구 줄 아래
+        }
+        window.dkMaskWarm = () => DESK_ITEMS.forEach(d => { if (d.front && d.hold) dkMaskOf(d.front); });
+        (function dkMaskWire() {                                                  // 👆 앞벽 누르기 = 그 소품 (담긴 것보다 먼저 · 평소 책상 · 💻 📲)
+            let p = null;
+            document.addEventListener('pointerdown', ev => {
+                if (ev.button > 0 || DK.edit || !UI.desk() || ev.dkPass) return;
+                const st = document.getElementById('deskStage'), t = ev.target; if (!st || !t || !t.closest || !st.contains(t)) return;
+                if (!t.closest('#deskStage .desk-item')) return;
+                const top = dkItemsAt(ev.clientX, ev.clientY).find(e => dkMaskHit(e, ev.clientX, ev.clientY) || dkSolidAt(e, ev.clientX, ev.clientY)); if (!top || !dkMaskHit(top, ev.clientX, ev.clientY)) return;   // 그 자리 맨 위 소품(투명한 곳은 건너뛰고)이 담는 소품의 앞벽일 때만
+                ev.stopImmediatePropagation(); ev.preventDefault();
+                p = { el: top, id: ev.pointerId, x: ev.clientX, y: ev.clientY };
+            }, true);
+            const up = ev => {
+                if (!p || ev.pointerId !== p.id) return; const q = p; p = null; ev.stopImmediatePropagation(); eat = Date.now();
+                if (ev.type === 'pointerup' && Math.hypot(ev.clientX - q.x, ev.clientY - q.y) < 12) dkHomeTap(q.el, ev.clientX, ev.clientY);   // 톡 = 확대 (밖에 나온 담을 것이 있으면 넣기 · dkHomeTap 그대로)
+            };
+            document.addEventListener('pointerup', up, true); document.addEventListener('pointercancel', up, true);
+            let eat = 0; document.addEventListener('click', ev => { if (Date.now() - eat < 400) { ev.stopImmediatePropagation(); ev.preventDefault(); } }, true);   // 뒤따르는 click 은 담긴 것으로 안 가요   // 뒤따르는 click 은 담긴 것으로 안 가요
+        })();
         (function dkHitWire() {                                                   // 투명한 곳을 누르면 그 아래 소품으로 넘겨요
             let off = [];
             const back = () => { off.forEach(e => { e.style.pointerEvents = ''; }); off = []; };
@@ -664,6 +703,7 @@
         }
         /* 책상 위 소품을 목록대로 다시 그려요 */
         function deskItemsRender() {
+            if (window.dkMaskWarm) setTimeout(dkMaskWarm, 0);                   // 🧺 앞벽 터치 영역 미리 읽기
             const st = document.getElementById('deskStage'); if (!st) return;
             deskSelect(null);
             st.querySelectorAll('.desk-item').forEach(el => el.remove());

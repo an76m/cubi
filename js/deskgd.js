@@ -162,8 +162,7 @@
                 return `<${big ? 'button type="button"' : 'i'} class="dkw-t${pen ? ' pen' : ' ' + cabGOf(id)}" data-id="${htmlEsc(id)}"${big ? ` title="${htmlEsc(dkwName(id))}"` : ''} style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;height:${h}px;--a:${a.toFixed(1)}deg;z-index:${i % 2 ? 2 : 1}">${dkwArt(id)}</${big ? 'button' : 'i'}>`;
             }).join('');
             host.innerHTML = `<img class="dkw-cupimg" src="${htmlEsc(src)}" alt=""${fl ? ' style="transform:scaleX(-1)"' : ''} draggable="false"><div class="dkw-tools">${tools}</div>`
-                + (!F.fm ? '' : `<i class="dkw-cupfm"${fl ? ' style="transform:scaleX(-1)"' : ''}><i style="--fm:url('${htmlEsc(F.fm)}')"><img src="${htmlEsc(src)}" alt="" draggable="false"></i></i>`)
-                + (big ? '' : `<i class="dkw-cuphit" style="top:${top.toFixed(1)}px"></i>`);   // 👆 책상 위 작은 펜꽂이 = 입구 아래(통)를 누르면 통 (펜이 아니라 · 도련 11-12)
+                + (!F.fm ? '' : `<i class="dkw-cupfm"${fl ? ' style="transform:scaleX(-1)"' : ''}><i style="--fm:url('${htmlEsc(F.fm)}')"><img src="${htmlEsc(src)}" alt="" draggable="false"></i></i>`);
             host.dataset.l = l.toFixed(1); host.dataset.r = rr.toFixed(1); host.querySelectorAll('.dkw-t').forEach(t => dkwPullWire(t, !big));   // ↔ 옆으로 밀 수 있는 곳 = 입구 안 (📌 책상 위 작은 펜꽂이도 · 도련 11-11)
         }
         /* 🪑 책상 위 펜꽂이에도 내가 꽂은 도구가 꽂혀 보여요 (바구니의 다이어리처럼 · 앞벽 뒤) */
