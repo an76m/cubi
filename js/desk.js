@@ -1503,7 +1503,7 @@
         ];
         const dkZoneRun = c => c.z && (c.z.k === 'gd' && c.desk && window.dkwTrayOpen ? () => dkwTrayOpen(null, c.u + ':' + c.z.s) : () => deskRun(c.z.k));   // 🗄️ 문구함 서랍 = 그 서랍에 넣은 문구만
         function dkHomeTap(el, cx, cy, noStore) {
-            if (!noStore && window.dkStoreTap && dkStoreTap(el, () => dkHomeTap(el, cx, cy, true))) return true;   // ✋ 들어갈 상품이 밖에 나와 있으면 = 먼저 넣기 (한 번 골라요 · js/deskmove.js)
+            if (!noStore && window.dkStoreTap && dkStoreTap(el)) return true;   // ✋ 들어갈 상품이 밖에 나와 있으면 = 먼저 넣기 (한 번 골라요 · 🗄 서랍장 톡은 늘 서랍 · js/deskmove.js)
             const u = el.dataset.u, o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), p = dkzPct(el, cx, cy);
             const c = { el, u, o, S, desk: UI.desk(), edit: DK.edit, hold: dkHoldOk((o || {}).id), z: dkzHit(dkHomes()[u] || [], p),
                 si: S ? S.findIndex(r => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]) : -1 };

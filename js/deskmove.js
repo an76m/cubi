@@ -3,7 +3,7 @@
    - 꺼내기 : 톡 = 그 상품이 화면 가운데로 날아와요 (dkFly) · 끌기 = 손으로 끌어내 놓은 자리에 (dkCarry) · 확대한 보관함 = 위로 쏙 뽑은 뒤 그대로 끌어요
    - 넣기 (다이어리가 접힌 채 = 이동) : 밖에 나온 상품을 보관함에 끌어 놓거나 · 상품이 나와 있을 때 그 보관함을 톡 하면 → 바로 넣지 않고 한 번 골라요 (실수로 누를 수 있어서)
        보관 자리가 하나 = '넣을까요?' · 여러 자리 = 그 자리를 그림으로 (🗄 서랍장 칸 · 🎀 정리함 빈 칸)
-       🗄 서랍장 톡 = [넣기] [서랍 열기] · 나온 상품이 여럿 = 넣을 것부터 골라요
+       🗄 서랍장 톡 = 늘 서랍 열기 · 닫기 (도련 11-12 : 넣기는 끌어다 놓을 때만 → 칸 고르기) · 나온 상품이 여럿 = 넣을 것부터 골라요
    - 펼친 다이어리 페이지에 쓰는 건 예전 그대로 · 다이어리는 톡 할 때만 펴져요 (상품을 꺼내도 저절로 안 떠요)
    - 어떤 상품이 어디로 : 🎀 마테 = 정리함 · 마스킹테이프 서랍 / 📒 스티커 종이 · 떡메 · 메모지 · 속지 = 그 종류 서랍 / ✏️ 문구 = 펜꽂이 · 문구 서랍 */
 (function () {
@@ -75,16 +75,12 @@
         const t = holderAt(x, y); if (!t || !fits(t, o)) return false;
         await store(t, o); return true;                                         // 취소해도 = 넣지 않았을 뿐 (꺼낸 자리 그대로)
     }
-    /* 보관함 톡 (js/desk.js dkHomeTap 맨 앞) : 들어갈 상품이 나와 있으면 = 넣기 · 🗄 서랍장 = [넣기] [서랍 열기] → true = 여기서 처리 */
-    function tapHolder(t, open) {
+    /* 보관함 톡 (js/desk.js dkHomeTap 맨 앞) : 들어갈 상품이 나와 있으면 = 넣기 → true = 여기서 처리 · 🗄 서랍장은 아니에요 (톡 = 늘 서랍 열기 · 닫기 · 넣기 = 끌어다 놓기 · 도련 11-12) */
+    function tapHolder(t) {
         if (DK.edit || !UI.desk()) return false;
+        const ti = itemOf(t); if (!ti || dkSlots(ti.id)) return false;
         const L = outsFor(t); if (!L.length) return false;
         (async () => {
-            const ti = itemOf(t);
-            if (dkSlots(ti.id)) {
-                const r = await showAsk(`🗄️ 밖에 나와 있는 ${L.length > 1 ? `상품 ${L.length}개` : `<b>${htmlEsc(nameOf(L[0]))}</b>`}를 ${htmlEsc(dkName(ti))}에 넣을까요?`, '넣기', '서랍 열기');
-                if (!r) { open(); return; }
-            }
             const o = await pickOut(L); if (o) await store(t, o);
         })().catch(e => console.warn('✋ 넣기', e));
         return true;
