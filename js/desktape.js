@@ -25,7 +25,7 @@
         ownList(!!force, 'tape').then(L => {
             if (w !== who()) return; T.list = Array.isArray(L) ? L : []; T.who = w; T.fresh = !!force; paint();
             if (window.ownTapeFix && T.list.some(e => !/^data:image\/svg/.test(e.th || ''))) ownTapeFix();   // 🎀 하얀 롤 = 무늬를 되돌려요 (js/own.js · 고치면 ownOnChange 로 다시 그려요 · 11-11)
-        }).catch(() => {}).finally(() => { T.loading = false; });
+        }).catch(e => { if (window.diag) diag('tapeErr', { m: String((e && e.message) || e).slice(0, 80) }); }).finally(() => { T.loading = false; });   // 🧾 읽은 뒤 그리다 멈추면 기록 (예전엔 조용히 넘어가서 하얀 롤 까닭을 몰랐어요)
     }
     if (window.ownOnChange) ownOnChange(() => { T.fresh = false; load(true); });
     /* 정리함에 꽂힌 테이프 id (지금 책상에 있는 정리함만 · 다 쓴 · 버린 테이프는 빼요) */
@@ -47,7 +47,7 @@
             ov.forEach((id, i) => { if (id && !ids[i]) ids[i] = id; });   // 🎁 저장 중인 처음 선물 롤도 같이
             if (T.list && ids.some(id => id && !entry(id))) { if (!T.fresh) load(true); else if (!T.retry && (T.tries || 0) < 10) { T.tries = (T.tries || 0) + 1; T.retry = setTimeout(() => { T.retry = 0; T.fresh = false; load(true); }, 3000); } }   // 늦게 들어오는 롤 = 3초마다 다시 (10번까지)   /* 목록에 없는 롤 = 그리지만 않아요 · 칸에서 빼지 않아요 (도련 11-04 고침 : 드라이브는 방금 받은 롤이 목록 파일에 늦게 들어와서 처음 선물 롤이 칸에서 빠졌어요) · 빈 칸 정리는 새 롤을 꽂을 때 (dktDrop) */
             { const why = ids.map(id => { if (!id || (T.list && !entry(id))) return ''; const e = entry(id); return !e ? 'nolist' : !e.th ? 'noth' : /^data:image\/svg/.test(e.th) || e.th.startsWith('blob:') ? '' : 'raster'; }).filter(Boolean);   // 🧾 하얀 롤 까닭 (11-11 · 도련 : 어느 순간 하얗게 → 다음엔 문제 기록으로 알아봐요)
-              if (why.length && window.diag) { const key = why.sort().join(','); if (T.white !== key) { T.white = key; T.whiteT = setTimeout(() => { if (T.white === key) diag('tapeWhite', { why: key.slice(0, 60), list: T.list ? T.list.length : -1, who: who() ? 1 : 0, fresh: T.fresh ? 1 : 0 }); }, 4000); } } else if (!why.length) T.white = ''; }   // 4초 넘게 하얀 채일 때만 (읽는 중 잠깐은 빼요)
+              if (why.length && window.diag) { const key = why.sort().join(','); if (T.white !== key) { T.white = key; T.whiteT = setTimeout(() => { if (T.white !== key) return; diag('tapeWhite', { why: key.slice(0, 60), list: T.list ? T.list.length : -1, who: who() ? 1 : 0, fresh: T.fresh ? 1 : 0 }); if (T.list) { T.white = ''; window.dktPaint(); } }, 4000); } } else if (!why.length) T.white = ''; }   // 4초 넘게 하얀 채일 때만 (읽는 중 잠깐은 빼요) · 🩹 목록은 다 읽었는데 하얀 채면 = 다시 그려요 (도련 11-12 : 1126 기록 nolist · list 10 = 읽은 뒤 다시 그리기가 빠졌어요 · 롤을 누르면 돌아왔어요)
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
             host.innerHTML = S.map((r, i) => {

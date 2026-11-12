@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/uimode.js
    🧭 화면 모드 한 곳 (도련 11-10 : 땜질 말고 한 곳에서) · 다른 파일보다 먼저 읽어요
-   앱은 두 갈래 : 🪑 책상 모드 (💻 📲 · html.desk-on) · ▤ 하단 메뉴 모드 (💻 📲 📱 · html:not(.desk-on))
+   앱은 두 갈래 : 🪑 책상 모드 (💻 📲 · html.desk-on) · ▤ 하단 메뉴 모드 (📱 폰만 · html:not(.desk-on) · 도련 11-12 : 💻 📲 하단 메뉴 고르기는 영구 삭제)
    - 기능(함수)은 두 모드가 같아요 · 다른 건 값 두 가지뿐
        1. 📖 페이지 보기 = ⚙ 설정에서 기기마다 (📱 폰 · 📲 패드 · 💻 컴퓨터 · js/skins.js dvCfg · UI.dev())
        2. 🏘️ 장소 그림 (이동 → 달력 · 타로 · 우체통 · 오락실 · 캡슐 · 포토부스 · 샵 · 문) = 💻 📲 가로 · 📱 세로 (UI.tall() · UI.pick(가로, 세로))
@@ -14,7 +14,7 @@
     const UI = {
         phone: () => phone,                                                   // 📱 이 기기가 폰
         dev: () => phone ? 'phone' : navigator.maxTouchPoints > 0 && matchMedia('(any-pointer: coarse)').matches ? 'pad' : 'pc',   // 📖 페이지 보기 설정 칸 (폰 · 패드 · 컴퓨터)
-        wide: () => Math.min(innerWidth, innerHeight) >= 600,                 // 🪑 책상을 펼 수 있는 화면 (책상 모드를 고를 수 있어요)
+        wide: () => !phone,                                                   // 🪑 책상 모드 기기 = 💻 📲 늘 (도련 11-12 : 폰은 하단 메뉴만 · PC · 패드는 책상만 · 창을 줄여도 책상 · 고르는 칸 없음)
         desk: () => H.classList.contains('desk-on'),                          // 🪑 책상 모드 (js/drive.js deskSync 가 켜고 꺼요)
         menu: () => !H.classList.contains('desk-on'),                         // ▤ 하단 메뉴 모드
         tall: () => phone,                                                    // 🏘️ 장소 그림 = 📱 세로 · 💻 📲 가로

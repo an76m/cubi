@@ -1428,7 +1428,7 @@
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ D-day (js/dday.js)
             if (typeof bgmLoadPref === 'function') bgmLoadPref();           // 🎵 배경음악 음량 · 반복 · 섞기 (js/bgm.js)
             handLoad();                                                      // ✋ 쓰는 손
-            deskSync(); if (window.deskModeRender) deskModeRender();         // 🪑 책상 / ▤ 하단 메뉴 = 불러온 설정으로 (도련 11-10 : 하단 메뉴를 골라도 다시 켜면 책상이었어요)
+            deskSync(); if (window.deskModeRender) deskModeRender();         // 🪑 책상 · 📖 다이어리 바탕 = 불러온 설정으로
             if (typeof dyLoad === 'function') dyLoad();                     // 📒 고른 다이어리 (js/skins.js)
             if (typeof dyySync === 'function') dyySync();                   // 📔 처음 온 다꾸러 = 그 해 기본 다이어리 선물 (js/dyyear.js)
             if (typeof bgoSync === 'function') bgoSync();                   // 🌈 처음 온 다꾸러 = 상품공방 '처음받기' 배경지 · 목록이 없으면 되살리기 (js/bgown.js)
@@ -1461,19 +1461,14 @@
            - 폰 / 넓은 화면 = 화면의 짧은 쪽 600px (폰은 가로로 돌려도 폰) */
         let gateOpened = false;                                                  // showGate 보다 먼저 (처음 켤 때 'wait' → 자동 로그인도 문이 열려요)
         const deskWide = UI.wide;                                       // 🪑 책상을 펼 수 있는 화면 (js/uimode.js)
-        /* 🪑 화면 고르기 (도련 10-27 · ⚙️ 설정 📖 다이어리 칸 · 💻 PC · 아이패드만) : 책상 = 하단 메뉴 없이 책상 소품을 눌러 열기 (기본) · 하단 메뉴 = 책상 없이 배경지 + 아래 버튼 (폰과 같아요)
-           저장 : 설정.json 'diary_desk_mode' ('desk' | 'menu') · 게스트는 이 기기 'malang_desk_mode' · 📱 폰은 늘 하단 메뉴 */
-        const DESK_MODE_KEY = 'diary_desk_mode', DESK_MODE_LOCAL = 'malang_desk_mode';
-        const deskModeGet = () => prefGet(DESK_MODE_KEY, DESK_MODE_LOCAL) === 'menu' ? 'menu' : 'desk';
-        const deskUse = () => deskWide() && deskModeGet() === 'desk';
+        /* 🪑 화면 = 기기로만 (도련 11-12 · 고르기 영구 삭제) : 💻 PC · 📲 패드 = 늘 책상 · 📱 폰 = 늘 하단 메뉴 (js/uimode.js UI.wide) */
+        const deskUse = deskWide;
         function deskSync() {
             const H = document.documentElement, on = deskUse();
             H.classList.toggle('desk-wide', deskWide());
-            if (!on && H.classList.contains('desk-show')) H.classList.remove('desk-show');   // 하단 메뉴로 바꾸면 펴 둔 다이어리는 그대로 보여요
             H.classList.toggle('desk-on', on);
             if (window.dtrHome) dtrHome();                                     // 🍽 오늘 쓸 스티커 버튼 자리도 모드를 따라가요 (js/stktray.js)
         }
-        function deskModeSet(v) { prefSet(DESK_MODE_KEY, DESK_MODE_LOCAL, v === 'menu' ? 'menu' : 'desk'); deskSync(); if (window.deskModeRender) deskModeRender(); }
         function hideGate() {
             const g = document.getElementById('driveGate');
             if (gateOpened || !deskUse() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }

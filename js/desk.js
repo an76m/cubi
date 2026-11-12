@@ -589,14 +589,10 @@
             if (!top.dataset.fn) return false;
             deskRun(top.dataset.fn); return true;
         }
-        /* ⚙️ 설정 🪑 화면 칸 그리기 (js/drive.js deskModeSet · js/show.js 가 설정을 다시 읽을 때도 → 다른 기기에서 바뀐 소품도 여기서 다시) */
+        /* ⚙️ 설정 📖 다이어리 바탕 칸 그리기 (js/show.js 가 설정을 다시 읽을 때도 → 다른 기기에서 바뀐 소품도 여기서 다시) · 🪑 책상 / ▤ 하단 메뉴 고르기는 영구 삭제 (도련 11-12) */
         function deskModeRender() {
             deskSyncItems();
-            const mode = typeof deskModeGet === 'function' ? deskModeGet() : 'desk';
-            document.querySelectorAll('#deskModePick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === mode));
-            const box = document.getElementById('deskFnList'); if (!box) return;
-            box.hidden = mode !== 'desk';
-            box.innerHTML = '<button type="button" class="btn dk-box-open" onclick="deskEditFromSettings()">🛠 책상 꾸미기 <small>소품 배치 · 기능 연결</small></button>';
+            if (window.dsUnderPaint) dsUnderPaint();                                // 🪵 책상판 무늬 / 🌈 배경지 (js/deskskin.js)
             if (document.getElementById('deskStage')) deskFnPaint();
         }
         function deskSyncItems() {                                                 // 드라이브 설정을 읽은 뒤 · 다른 기기에서 바뀌었으면 다시 그려요
@@ -1861,6 +1857,7 @@
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
             if (deskAnim || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
+            if (window.dsUnderPaint) dsUnderPaint();                              // 📖 다이어리 바탕 = 🪵 책상판 무늬 / 🌈 배경지 (도련 11-12 · js/deskskin.js)
             H.classList.add('desk-show', 'dk-bgon');                              // 🌈 dk-bgon = 책상 대신 배경지 (css/style.css · 도련 11-12) · 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
             if (typeof refreshLayout === 'function') refreshLayout();             // 📐 떠오르기 전에 크기 · 펼침면을 지금 화면(하단 메뉴 포함)에 맞춰요 (숨어 있는 동안 맞춘 크기로 크게 떴다가 줄던 것 · 도련 10-28)
             const tf = dkDeskTf(w);                                               // 책상 위 그 권 그림(.dk-vol.cur)에서 떠올라요 (그 그림은 desk-show 동안 숨어요)
@@ -1909,6 +1906,7 @@
             DK.s = s; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`; st.style.setProperty('--dk-inv', (1 / s).toFixed(3));
             deskKeepIn(-tx / s, -ty / s, (W - tx) / s, (H - ty) / s);
             deskTipPlace();
+            if (document.documentElement.classList.contains('dk-bgon') && window.dsUnderPaint) dsUnderPaint();   // 🪵 책상판 무늬 크기 = 책상 배율
         }
         /* 기능 소품이 화면 밖으로 많이 잘리면 (좁은 창 · 세운 아이패드) 보이는 곳 안쪽으로 당겨 보여 줘요 · 저장한 자리(DK.base)는 그대로 · 넓어지면 제자리 */
         function deskKeepIn(x0, y0, x1, y1) {

@@ -119,6 +119,7 @@
         /* 책상 화면에 그리기 (기본이면 아무것도 안 얹어요) */
         function dsPaint() {
             const st = document.getElementById('deskStage'); if (!st) return;
+            if (window.dsUnderPaint) dsUnderPaint();                               // 📖 다이어리 바탕도 지금 책상판으로
             const s = dsCur(), w = dsOn(s, 'wall'), t = dsOn(s, 'top');
             const html = dsSvg(w && !dsBasic(w) ? w : '', t && !dsBasic(t) ? t : '');
             let el = st.querySelector(':scope > .desk-skin');
@@ -225,6 +226,20 @@
             (need ? dsRescue() : dsFilesFill()).catch(e => console.warn('🧱 벽지 · 책상판', e)).finally(() => { dsBusy = false; dsPaint(); if (window.deskBoxRender) deskBoxRender(); });
         };
         window.dsSync = dsSync; window.dsPaint = dsPaint; window.dsEditStart = dsEditStart; window.dsEditEnd = dsEditEnd; window.dsUse = dsUse; window.dsDiscard = dsDiscard;
+        /* 📖 다이어리 바탕 (도련 11-12 · ⚙ 설정 · 💻 📲 책상) : 책상 다이어리를 띄우면 책상 대신 깔리는 것 = 🪵 지금 책상판 무늬 (기본) / 🌈 고른 배경지 (하단 메뉴와 같은 것 · js/skins.js)
+           저장 = 설정.json 'diary_desk_under' ('top' | 'bg') · 그리기 = #dkUnder (책상 그림 아래 · css/style.css html.dk-under-top) · 무늬 = 견본(dsSwatch)처럼 평면 · 책상에 깔리는 크기 그대로 (책상 배율 DK.s) · 기본 책상판 = css 한 가지 색 */
+        const DS_UNDER = 'diary_desk_under', DS_UNDER_L = 'malang_desk_under';
+        const dsUnderGet = () => prefGet(DS_UNDER, DS_UNDER_L) === 'bg' ? 'bg' : 'top';
+        function dsUnderDraw() {
+            const v = dsUnderGet();
+            document.documentElement.classList.toggle('dk-under-top', v === 'top');
+            document.querySelectorAll('#dsUnderPick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+            const el = document.getElementById('dkUnder'); if (!el) return;
+            const t = dsOn(dsCur(), 'top'), c = t && !dsBasic(t) ? dsCat(t) : null, k = (typeof DK !== 'undefined' && DK.s) || 1;
+            el.style.background = !c ? '' : c.img && c.iw && c.ih ? `url("${c.img}") 0 0 / ${(c.iw * k).toFixed(1)}px ${(c.ih * k).toFixed(1)}px repeat` : (c.t && c.t[0]) || '';
+        }
+        function dsUnderSet(v) { prefSet(DS_UNDER, DS_UNDER_L, v === 'bg' ? 'bg' : 'top'); dsUnderDraw(); }
+        window.dsUnderPaint = () => { try { dsUnderDraw(); } catch (e) { console.warn('📖 다이어리 바탕', e); } }; window.dsUnderSet = dsUnderSet;
         window.dsGive = dsGive; window.dsShopList = dsShopList; window.dsSwatch = dsSwatch; window.dsBoxCells = dsBoxCells; window.dsCount = dsCount; window.dsName = dsName;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

@@ -3968,7 +3968,7 @@ html.desk-show .desk-item { pointer-events: none; }
 .desk-item[data-fn] { cursor: pointer; }
 .desk-item[data-fn]:hover { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 9px rgba(255, 255, 255, .95)); }
 body.dg-on .desk-item.fn-sticker { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 12px rgba(245, 165, 36, .85)); }   /* 🩷 다꾸하는 법 메모 : 스티커 소품이 빛나요 */
-/* ⚙️ 설정 🪑 화면 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
+/* ⚙️ 설정 📖 다이어리 바탕 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
 .desk-tip { white-space: nowrap; }
 .dk-box-open { width: 100%; justify-content: center; margin-top: 4px; flex-direction: column; gap: 1px; } .dk-box-open small { font-size: 11px; color: #a08a94; font-weight: 400; }
 /* 🛠 책상 꾸미기 (js/desk.js · html.desk-edit) : 평소엔 소품이 안 움직여요 (톡 = 기능) · 꾸미기에서만 끌기 · 고르기 */
@@ -4107,8 +4107,11 @@ html.desk-on .bg-pattern-layer { display: none; }
 @keyframes gateFade { to { opacity: 0; } }
 /* 🪑 책상에 집중 (도련 10-26) : 넓은 화면은 수첩 · 하단 메뉴를 숨기고 책상만 · 책상 위 다이어리를 톡 하면 떠올라요 (html.desk-show · js/desk.js deskOpenDiary) */
 html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolbar { display: none !important; }
-/* 🌈 다이어리가 뜨면 책상 대신 고른 배경지 (도련 11-12 · 하단 메뉴 모드와 같은 배경지 · 안 골랐으면 기본 바탕색) : 떠오르는 동안 책상이 스르르 걷히고 · 내려앉기 시작하면 책상이 돌아와요 (html.dk-bgon · js/desk.js deskOpenDiary / deskCloseDiary) */
-html.desk-on.dk-bgon.bg-pattern-on .bg-pattern-layer { display: block; }
+/* 📖 다이어리가 뜨면 책상 대신 바탕 (도련 11-12 · ⚙ 설정 '다이어리 바탕') : 🪵 책상판 무늬 (기본 · html.dk-under-top · #dkUnder · js/deskskin.js dsUnderPaint) / 🌈 고른 배경지 (하단 메뉴와 같은 것 · 안 골랐으면 기본 바탕색)
+   떠오르는 동안 책상이 스르르 걷히고 · 내려앉기 시작하면 책상이 돌아와요 (html.dk-bgon · js/desk.js deskOpenDiary / deskCloseDiary) */
+.dk-under { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background: #f8d1de; }   /* 기본 책상판 = 방 그림 책상 색 한 가지 (css/anime.css .ds-sw.basic.t 와 같아요) */
+html.desk-on.dk-bgon.dk-under-top .dk-under { display: block; }
+html.desk-on.dk-bgon.bg-pattern-on:not(.dk-under-top) .bg-pattern-layer { display: block; }
 html.desk-on .desk-bg { transition: opacity .45s ease; }
 html.desk-on.dk-bgon .desk-bg { opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s .45s; }
 .desk-item > img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
