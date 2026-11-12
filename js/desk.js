@@ -602,7 +602,7 @@
         function deskSyncItems() {                                                 // 드라이브 설정을 읽은 뒤 · 다른 기기에서 바뀌었으면 다시 그려요
             if (DK.drag || DK.edit || DK.filing || !document.getElementById('deskStage')) return;
             const prev = DK.seen; dkLoad();
-            if (DK.seen !== prev) { deskItemsRender(); if (window.deskBoxRender) deskBoxRender(); }
+            if (DK.seen !== prev) { deskItemsRender(); deskBoxRender(); }
             deskBagsPaint();                                                       // 🛍️ 봉투 · 처음 봉투 안내도 드라이브 것으로
             giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); });
         }
@@ -745,7 +745,7 @@
             const o = DK.items.find(x => x.u === u); if (!o || o.at === where) return;
             if (where === 'box' && dkFnBlock(u, '보관함에 넣을')) return;
             if (where === 'desk') { const c = dkCat(o.id); o.x = c.x; o.y = c.y; }           // 꺼내면 그 소품 처음 자리에
-            o.at = where; dkSave(); deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
+            o.at = where; dkSave(); deskItemsRender(); deskModeRender(); deskBoxRender(); deskEditPaint();
             if (DK.edit && where === 'desk') { const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (el) deskSelect(el); }   // 놓은 소품을 바로 골라 줘요
         }
         async function deskDiscard(u) {                                          // 🚛 버리기 → 바로 영구 삭제 (js/bin.js · 도련 11-11 상품 = 쓰레기차)
@@ -753,7 +753,7 @@
             const o = DK.items.find(x => x.u === u); if (!o || dkFnBlock(u, '버릴')) return;
             if (!window.binAsk || !await binAsk(dkName(o))) return;
             DK.items = DK.items.filter(x => x.u !== u); dkSave();
-            deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
+            deskItemsRender(); deskModeRender(); deskBoxRender(); deskEditPaint();
             if (DK.edit) { if (window.showMsg) showMsg('🚛 버릴게요.<br><small>하단 ✔ 완료를 누르면 영구 삭제돼요 (✕ 취소 = 그대로)</small>'); return; }   // 🛠 꾸미는 중이면 확정할 때
             await dkBin([o]); binTold('');
         }
@@ -770,7 +770,7 @@
                 if (!DK.items.some(x => x.u === back.u)) DK.items.push(back);
                 if (DK.edit && DK.back) { const b = JSON.parse(DK.back.items); if (!b.some(x => x.u === back.u)) { b.push(back); DK.back.items = JSON.stringify(b); } }
                 dkSave();
-                deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
+                deskItemsRender(); deskModeRender(); deskBoxRender();
             },
             purge: e => { if (!e.o.g) dkFileDel(e.o); }                          // 🔥 소품 폴더 받은- 파일 (🎁 선물은 파일이 없어요 · 칠한 선물은 c 가 있어서 지워요)
         };
@@ -805,7 +805,7 @@
                 dkSeal({ u: it.u, id, from, img }).then(sl => collAdd(C, sl, '', { id })).then(cid => { it.c = cid; done(); })
                     .catch(e => console.warn('소품 파일', e)).finally(() => dkAdding.delete(it.u));
             } else dkFileAdd(it, from).then(done);                                // 🗂 종류 폴더에 파일 하나
-            dkSave(); deskModeRender(); if (window.deskBoxRender) deskBoxRender(); deskEditPaint();
+            dkSave(); deskModeRender(); deskBoxRender(); deskEditPaint();
             return it;
         }
         const deskShopList = () => (window.prodShelf ? prodShelf('책상소품') : []).map(dkItemOf).filter(Boolean).map(d => ({ id: d.id, name: d.name, src: d.src, wall: !!d.wall, kind: d.kind, kn: d.kn, ki: d.ki }));   // 🏪 샵 = 늘 서버 모습 · kind = 코너 칸 (js/basket.js)
@@ -820,7 +820,7 @@
             return { kind: k, rows: list.filter(o => dkKindOf(o) === k),
                 html: have.length ? have.map(x => `<button type="button" class="dk-tab${x === k ? ' on' : ''}" onclick="${fn}('${x}')">${dkKN(x)}<small>${list.filter(o => dkKindOf(o) === x).length}</small></button>`).join('') : '' };
         }
-        function deskBoxTab(k) { DK.boxKind = k; DK.boxSel = null; deskBoxRender(); requestAnimationFrame(() => window.deskBoxTabShow && deskBoxTabShow()); }
+        function deskBoxTab(k) { DK.boxKind = k; DK.boxSel = null; deskBoxRender(); requestAnimationFrame(() => deskBoxTabShow()); }
         function deskTrayTab(k) { DK.trayKind = k; deskEditPaint(); }
         /* 📦 소품함 = 게임 인벤토리 (도련 10-28 시안) : 위 = 종류 탭(소품 그림) · 칸 = 내 소품 (🪑 민트 = 책상 위 · 연핑크 = 보관 중 · 보라 = 고른 것)
            · 첫 칸 ⊘ = 그 종류를 책상에서 모두 넣기 · 아래 = 넣기 / 책상에 놓기 · 🗑 버리기 · 🏪 받기 · 💻 책상에서는 오른쪽에 떠서 책상을 보며 꺼내요 */
@@ -928,7 +928,7 @@
             { const VE = DK.volEdit; DK.volEdit = null; dkvMenu(null);
               if (ok && VE && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, Object.assign(dkyMap(), VE));   /* 권마다 자리 */ dknPanel(false); dkyApply(); }
             document.documentElement.classList.remove('desk-edit'); dkSelPaint();
-            deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
+            deskItemsRender(); deskModeRender(); deskBoxRender();
             if (trial) { dkTrialUi(false); if (window.dktTrial) dktTrial(false); if (window.dcTrialOff) dcTrialOff(); }
         }
         /* 🏪 적용해보기 (도련 11-12 · 샵에서 '쓰는 법 + 실제 크기'를 알고 받아요) : 진짜 책상을 빌려 써요 (🛠 책상 꾸미기와 같은 손짓 · 같은 크기)
@@ -982,7 +982,7 @@
             DK.artPend = DK.artPend || {}; DK.artOld = DK.artOld || {};
             if (!(o.u in DK.artOld)) DK.artOld[o.u] = DK.art[o.u] || null;
             DK.artPend[o.u] = url; DK.art[o.u] = url; dkArtPaint(o.u);
-            if (window.deskBoxRender) deskBoxRender();
+            deskBoxRender();
         }
         function dkArtUndo() {
             const old = DK.artOld || {}; Object.keys(old).forEach(u => { if (old[u]) DK.art[u] = old[u]; else delete DK.art[u]; dkArtPaint(u); });
