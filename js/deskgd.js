@@ -418,9 +418,10 @@
         window.dkwOutNow = () => dkwOutAll();                                    // ✋ 밖에 나온 문구 (페이지 위 · 떠 있는 것 · js/deskmove.js 넣기)
         window.dkwBack = id => { dkwBackOne(id); dkwDeskSoon(); };              // ✋ 제자리로
         async function dkwUse(id, at) {                                          // at = 그 자리 (끌어 놓은 곳 · 떠 있던 곳 · 없으면 가운데)
-            dkwClose();
+            const air = !dkwOpenNow() && dkwDesk(), tr = dkwq('dkwTray'), keep = air && tr && !tr.hidden;   // 🗄️ 열린 서랍에서 꺼내 공중에 = 서랍은 열린 채 (도련 11-12 : 원하는 만큼 꺼내요 · 닫기는 손으로)
+            if (!keep) dkwClose();
             if (dkwIsPen(id) && !pkRead().includes(id)) { pkWrite(pkRead().concat([id])); if (window.pcRefill) pcRefill(); }   // 꺼낸 필기구 = 그리기 목록에도 (그리기는 그 목록을 써요 · 책상의 집과는 따로)
-            if (!dkwOpenNow() && dkwDesk()) { const c = at || { x: innerWidth / 2, y: innerHeight / 2 }; dkwFloat(id, c.x, c.y); return; }   // 📔 저절로 펴지 않아요 = 그 자리에 떠 있어요 (도련 11-11)
+            if (air) { const c = at || { x: innerWidth / 2, y: innerHeight / 2 }; dkwFloat(id, c.x, c.y); if (keep) dkwTrayPaint(); return; }   // 📔 저절로 펴지 않아요 = 그 자리에 떠 있어요 (도련 11-11) · 서랍 창에서는 빠져 보여요
             dkwFloatOff(id, true);
             if (dkwIsPen(id)) { if (window.drawWith && !drawWith(id, at && at.x, at && at.y) && window.openDraw) openDraw(); return; }
             dkwTake(id, at);
