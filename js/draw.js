@@ -146,7 +146,7 @@
                 dw.cur.pts.length = dw.snap.n; dw.cur.pts.push(penPointXY(at[0], at[1])); rlTell(dw.snap.a, at);
                 penRender(); return;
             }
-            { if (!pcS.held || pcS.carry) return; if (dw.cur || dw.erasing || e.pointerType === 'mouse') pcHeldAt(e.clientX, e.clientY); }   // 📒 연필심이 따라와요
+            { if (!pcS.held || pcS.carry) return; if (dw.cur || dw.erasing || e.pointerType === 'mouse') pcHeldAt(e.clientX, e.clientY); if (e.pointerType === 'mouse') document.body.classList.add('pc-follow'); }   // 📒 연필심이 따라와요 · 🖱 연필심이 곧 마우스 (화살표 숨김 · 도련 11-13 · css body.pc-follow)
             if (dw.tool === 'erase' && !dw.erasing) penRing(penPoint(e));
             if (!dw.cur && !dw.erasing) return;
             e.preventDefault(); e.stopPropagation();
@@ -696,6 +696,7 @@
         }, true);
         /* ✋ 📔 다이어리모드 🖱 : 손에 든 필기구가 페이지 밖으로 = 공중에 떠서 마우스를 따라와요 (도련 11-12 · js/deskgd.js dkwAirOut) · 쓰는 중 · 꾹 집어 옮기는 중 · 구석 펜꽂이 위는 그대로 */
         addEventListener('pointermove', e => {
+            if (document.body.classList.contains('pc-follow') && (e.pointerType !== 'mouse' || !pcS.held || pcS.carry || dw.rest || !(dw.svg && dw.svg.contains(e.target)))) document.body.classList.remove('pc-follow');   // 🖱 필기구가 안 따라오는 곳 = 화살표 다시
             if (e.pointerType !== 'mouse' || e.buttons || !pcS.held || pcS.carry || pcS.press || pcS.memo || dw.cur || dw.erasing || !pcDesk() || !window.dkwAirOut) return;
             const r = spRect(); if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
             if (pcOverMini(e.clientX, e.clientY)) return;
