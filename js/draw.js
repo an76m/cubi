@@ -274,7 +274,7 @@
                 return `<path d="${d}" ${Object.keys(a).map(k => `${k}="${a[k]}"`).join(' ')}/>`;
             }).join('');
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bw} ${bh}" width="${bw}" height="${bh}"><!--malang-draw-->${paths}</svg>`;
-            if (!spAdd('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg))) return;
+            if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg))) return;
             const el = spPage().querySelector('.element-box:last-child'); if (!el) return;
             const img = el.querySelector('img');
             el.style.width = bw + 'px'; el.style.height = bh + 'px';

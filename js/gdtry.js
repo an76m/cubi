@@ -10,7 +10,8 @@
      ✏️ 필기구 · 🖍 형광펜 · 🧽 지우개 · 📏 자 = js/draw.js · js/ruler.js 그대로 (펜꽂이 · 손 · 자에 붙이기 · 꽂으면 그림 하나)
      🩹 양면테이프 · 📎 집게 · 🕳️ 펀칭기 = js/skins.js 문구 그대로 (들기 · 바르기 · 테두리에 꽂기 · 바인더 구멍 12칸)
      🔪 칼 = js/stkcut.js 그대로 (샘플 스티커를 끝에서 끝까지 그으면 두 조각) · ✂️ 가위 = js/skins.js 가위 + js/papermaker.js 모조지 그대로 (샘플 모조지를 빙 둘러 오려요)
-     🪡 핀셋만 아직 연습장 것 (스티커 옮기기 = js/elements.js 고르기 · 저장과 이어져 있어서 따로 정해요)
+     🪡 핀셋 = js/elements.js 스티커 옮기기 그대로 (샘플 스티커 셋 · 씰처럼 떼어 옮기고 · 돌리기)
+   - 붙이기도 진짜와 하나 (js/elements.js addImage = 지금 공간의 종이에) · 이 파일엔 가상 종이 · 샘플 · 여닫기만 있어요 (문구 기능은 없어요)
    ※ 이 파일이 없어도 샵은 예전처럼 확대로 보여요 (js/basket.js shZoom) */
 (function () {
     const PW = 440, PH = 640;                                                     // 다이어리 한 쪽 (진짜 다이어리와 같은 비율)
@@ -19,7 +20,6 @@
         ruler: '📏 자를 옮기고 · 자 옆을 따라 그어 보세요', knife: '🔪 스티커 위를 끌어서 잘라 보세요', scissors: '✂️ 모조지 위를 빙 둘러 오려 보세요',
         tweez: '🪡 스티커를 집어서 옮겨 보세요', clip: '📎 종이 가장자리에 꽂아 보세요', tape: '🩹 끌어서 테이프를 발라 보세요', punch: '🕳️ 가운데 구멍 자리를 눌러 뚫어 보세요'
     };
-    const REAL = { pen: 1, hi: 1, erase: 1, ruler: 1, tape: 1, clip: 1, punch: 1, knife: 1, scissors: 1 };   // 🏠 진짜 기능을 빌려 쓰는 문구 (js/draw.js · js/ruler.js · js/skins.js)
     const PENS = { pen: 1, hi: 1, erase: 1, ruler: 1 };                           // 그중 펜꽂이 필기구
     let G = null;                                                                 // 지금 연습장 (닫으면 null · 아무것도 남지 않아요)
 
@@ -43,66 +43,65 @@
     /* 🧭 여는 곳 (js/basket.js shZoom) */
     function gdTry(id) {
         const p = window.gdPic && gdPic(id); if (!p) return false;
-        const g = p.g, size = p.size || [p.w, p.h], tip = (window.gdPicTip && gdPicTip(p)) || [size[0] / 2, 0];
+        const g = p.g;
         gdTryOff();
+        if (window.penOn && penOn()) penDone(); if (window.gdLetGo) gdLetGo();      // ✏️ 다이어리에서 쓰던 것 · 든 문구는 다이어리에 두고 (연습장과 섞이지 않게)
         const one = g !== 'punch' && UI.phone();                                  // 📱 폰 = 한 쪽 · 🕳️ 펀칭 = 바인더를 연 두 쪽 (가운데 구멍 자리)
         const W = one ? PW : PW * 2;
-        if (REAL[g]) { if (window.penOn && penOn()) penDone(); if (window.gdLetGo) gdLetGo(); }   // ✏️ 다이어리에서 쓰던 것 · 든 문구는 다이어리에 두고 (연습장과 섞이지 않게)
         const r = document.createElement('div'); r.id = 'gdTry'; r.className = 'gdt';
         r.innerHTML = `<div class="gdt-st" style="width:${W}px;height:${PH}px">
                 <div class="gdt-book${one ? ' one' : ''}">${one ? '<i class="gdt-pg"></i>' : '<i class="gdt-pg l"></i><i class="gdt-pg r"></i>'}</div>
-                <div class="gdt-page"></div>${g === 'punch' ? `<span class="dy-holes">${'<i></i>'.repeat(12)}</span>` : ''}<div class="gdt-lay"></div>
-                <div class="gdt-hand" style="width:${size[0]}px;height:${size[1]}px;transform-origin:${tip[0]}px ${tip[1]}px">${gdPicSvg(id, { parts: g === 'tweez' ? [['왼팔', 'gdt-a1'], ['오른팔', 'gdt-a2']] : null, over: g === 'tweez' ? '몸' : '' })}</div>
+                <div class="gdt-page"></div>${g === 'punch' ? `<span class="dy-holes">${'<i></i>'.repeat(12)}</span>` : ''}
             </div>
-            <div class="gdt-tip">${TIP[g] || '✨ 써 보세요'}</div><button type="button" class="desk-shop-go gdt-x">닫기</button>`;
+            <div class="gdt-tip"${g === 'knife' || g === 'scissors' ? ' hidden' : ''}>${TIP[g] || '✨ 써 보세요'}</div><button type="button" class="desk-shop-go gdt-x">닫기</button>`;   // 🔪 ✂️ 진짜 칼 · 모조지가 위에 제 안내를 한 줄 띄워요 (안내는 하나만)
         document.body.appendChild(r);
         const st = r.querySelector('.gdt-st');
-        G = { id, p, g, W, one, size, tip, r, st, page: r.querySelector('.gdt-page'), lay: r.querySelector('.gdt-lay'), hand: r.querySelector('.gdt-hand'), k: 1, drag: null, pieces: [], held: null };
+        G = { id, g, W, one, r, st, page: r.querySelector('.gdt-page'), k: 1, z0: typeof zIndexCounter !== 'undefined' ? zIndexCounter : null };
+        if (g === 'punch') st.classList.add('dy-bdl', 'dy-bo');                    // 바인더 링을 연 두 쪽 = 가운데 구멍 자리 12칸 (js/skins.js gdHoles)
         document.body.classList.add('gdt-on');
         r.querySelector('.gdt-x').onclick = gdTryOff;
-        fit(); setup();
-        st.addEventListener('pointerdown', down); st.addEventListener('pointermove', move); st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
-        st.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !G.drag) G.hand.classList.add('away'); });
-        G.sp = { page: () => G.page, host: () => G.st, book: () => G.st, open: () => true, rect: p => p.getBoundingClientRect(), add: realAdd, keep: false };
-        spUse(G.sp);                                                              // 🏠 연습장 = 저장하지 않는 공간 (어떤 문구든 · 닫으면 진짜 다이어리로)
-        if (REAL[g]) realStart(); else handAt(W * .62, PH * .5);
+        st.addEventListener('pointerdown', down);
+        fit();
+        G.sp = { page: () => G.page, host: () => G.st, book: () => G.st, open: () => true, rect: p => p.getBoundingClientRect(), keep: false };
+        spUse(G.sp);                                                              // 🏠 연습장 = 저장하지 않는 공간 (닫으면 진짜 다이어리로)
+        start();
         return true;
     }
     function gdTryOff() {                                                         // 🧹 닫으면 다 사라져요 (가상)
-        if (G && G.real) { if (penOn()) penClose(); gdLetGo(); if (G.g === 'knife' && window.skClose) skClose(); if (G.g === 'scissors' && window.closePaperSheet) closePaperSheet(); if (G.rl && window.rlOn && rlOn()) rlEnd(); }
-        if (G) spUse(null);   // 🏠 다시 진짜 다이어리 공간으로
+        if (G) {
+            if (penOn()) penClose(); gdLetGo(); if (window.skKindNow && skKindNow()) skClose(); if (typeof pmS !== 'undefined' && pmS.on) closePaperSheet(); if (G.rl && rlOn()) rlEnd();
+            if (typeof selectedElement !== 'undefined' && selectedElement && G.page.contains(selectedElement)) { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
+            if (G.z0 != null) zIndexCounter = G.z0;                               // 🧱 진짜 다이어리 겹침 번호 그대로
+            spUse(null);                                                          // 🏠 다시 진짜 다이어리 공간으로
+        }
         const r = document.getElementById('gdTry'); if (r) r.remove(); G = null; document.body.classList.remove('gdt-on');
     }
-    /* 🏠 저장하지 않는 공간 : 쓰는 종이 = 연습장 · 문구를 놓는 판 = 연습장 판 · 붙이면 연습장 위에 · 저장 없음 · 펜꽂이 = 써 볼 것 하나 */
-    function realStart() {
-        const g = G.g;
-        G.real = true; G.hand.hidden = true; G.st.classList.add('gdt-real');
-        if (g === 'knife' || g === 'scissors') G.r.querySelector('.gdt-tip').hidden = true;   // 🔪 ✂️ 진짜 칼 · 모조지가 위에 제 안내를 한 줄 띄워요 (안내는 하나만)
-        const b0 = G.page.getBoundingClientRect(), mx = b0.left + b0.width * (G.one ? .5 : .75), my = b0.top + b0.height * .5;   // 오른쪽 쪽 가운데
+    /* 📦 문구마다 준비물 → 그 문구를 손에 (진짜 기능 그대로) */
+    function start() {
+        const g = G.g, b0 = G.page.getBoundingClientRect(), mx = b0.left + b0.width * (G.one ? .5 : .75), my = b0.top + b0.height * .5;   // 보이는 오른쪽 쪽 가운데
+        const cx = G.one ? PW / 2 : PW * 1.5;                                     // 오른쪽 쪽 가운데 (종이 자리)
         if (g === 'knife') {                                                      // 🔪 샘플 스티커 하나 → 칼을 손에 (js/stkcut.js · 문구함 '칼' 서랍과 같게)
-            realAdd(STK[0]);
-            const el = G.page.lastElementChild, x = (G.one ? PW / 2 : PW * 1.5) - 95, y = PH / 2 - 100;
-            Object.assign(el.style, { width: '190px', transform: `translate(${x}px, ${y}px) scale(1) rotate(0deg)` }); Object.assign(el.dataset, { posX: x, posY: y, scale: 1, rotation: 0 });
+            stick(STK[0], cx - 95, PH / 2 - 100, 190);
             G.again = () => { skKnife(mx + 90, my - 40, G.id.slice(6)); skHold(true); }; G.again(); return;
         }
-        if (!PENS[g]) {                                                           // 🩹 📎 🕳️ ✂️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
-            if (g === 'punch') G.st.classList.add('dy-bdl', 'dy-bo');             // 바인더 링을 연 두 쪽 = 가운데 구멍 자리 12칸
-            gdPick(G.id);
-            gdHold(G.id, b0.left + b0.width * (G.one ? .5 : .62), b0.top + b0.height * .55);
+        if (!PENS[g]) {                                                           // 🪡 📎 🕳️ 🩹 ✂️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
+            if (g === 'tweez') STK.forEach((u, i) => stick(u, (G.one ? 40 : PW + 30) + i * 125, 220 + (i % 2) * 110, 100));   // 🎀 샘플 스티커 셋
+            gdPick(G.id); gdHold(G.id, b0.left + b0.width * (G.one ? .5 : .62), b0.top + b0.height * .55);
             if (g === 'scissors') { const c = document.createElement('canvas'); c.width = 360; c.height = 420; paperDraw(c); openPaperSheet(c.toDataURL()); }   // ✂️ 샘플 모조지 (js/papermaker.js)
             return;
         }
-        const pen = g === 'ruler' ? (gdPicOf('pen').find(x => /333|000|black/i.test(x.id)) || gdPicOf('pen')[0] || {}).id : G.id;
+        const pen = g === 'ruler' ? (gdPicOf('pen').find(x => /333|000|black/i.test(x.id)) || gdPicOf('pen')[0] || {}).id : G.id;   // 📏 자 = 검정 펜과 함께
         const one = window.pkCupOne && pkCupOne(pen); if (!one) return;
-        G.pen = pen; G.sp.cup = [one]; G.again = e => { if (!penOn()) drawWith(pen, e.clientX, e.clientY); };
+        G.sp.cup = [one]; G.again = e => { if (!penOn()) drawWith(pen, e.clientX, e.clientY); };   // ✏️ 펜꽂이 = 써 볼 것 하나
         if (g === 'erase') penAttach(SCRIBBLE(G.one ? [70] : [70, PW + 70]));   // 🧽 미리 쓴 글씨 (진짜 펜 그림 그대로)
         if (g === 'ruler') { G.rl = !rlOn(); rlShow(mx, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }
         drawWith(pen, mx + 40, my + 120);
     }
-    function realAdd(src) {                                                       // 붙이기 = 연습장 종이 위에 (옮기기 · 저장 없음)
-        const el = document.createElement('div'); el.className = 'element-box'; el.style.width = '150px';
-        const img = document.createElement('img'); img.src = src; img.alt = ''; img.draggable = false; el.appendChild(img);
-        G.page.appendChild(el); return true;
+    function stick(src, x, y, w) {                                                // 🎀 샘플 스티커 붙이기 (진짜 붙이기 그대로 · js/elements.js addImage · 저장 없는 공간)
+        if (!addImage(src)) return;
+        const el = G.page.lastElementChild;
+        el.style.width = w + 'px'; Object.assign(el.dataset, { posX: x, posY: y, scale: 1, rotation: 0 });
+        el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(0deg)`; el.classList.remove('selected');
     }
     const SCRIBBLE = xs => xs.flatMap(x0 => [180, 250, 320].map((y0, j) => {   // 꼬불꼬불 손글씨 세 줄
         const pts = []; for (let i = 0; i <= 70; i++) { const x = x0 + i * 4.2; pts.push([x, y0 + Math.sin(x / 7 + j) * 9 + Math.sin(x / 23) * 5]); }
@@ -115,52 +114,9 @@
     }
     addEventListener('resize', fit);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && G) gdTryOff(); });
-    const loc = e => { const b = G.st.getBoundingClientRect(); return { x: (e.clientX - b.left) / G.k, y: (e.clientY - b.top) / G.k }; };
-    function handAt(x, y, ang) {                                                  // 쓰는 끝 = (x, y)
-        const h = G.hand; h.classList.remove('away');
-        const a = ang != null ? ang : 0;
-        h.style.left = (x - G.tip[0]) + 'px'; h.style.top = (y - G.tip[1]) + 'px'; h.style.rotate = a + 'deg';
-    }
-    const add = (cls, css, html) => { const d = document.createElement('div'); d.className = cls; if (css) d.style.cssText = css; if (html) d.innerHTML = html; G.lay.appendChild(d); return d; };
-
-    /* 📦 문구마다 준비물 */
-    function setup() {
-        const g = G.g;
-        if (g === 'tweez') STK.forEach((u, i) => { const s = 92; G.pieces.push(pieceEl({ src: u, x: (G.one ? 60 : PW + 40) + i * 120, y: 230 + (i % 2) * 90, w: s, h: s, poly: [[0, 0], [1, 0], [1, 1], [0, 1]] })); });
-    }
-
-    /* 🎀 스티커 조각 (핀셋) : poly = 0~1 비율 다각형 */
-    function pieceEl(o) {
-        const d = add('gdt-pc', '', `<img src="${o.src}" alt="" draggable="false">`);
-        o.el = d; piecePaint(o); return o;
-    }
-    function piecePaint(o) {
-        Object.assign(o.el.style, { left: o.x + 'px', top: o.y + 'px', width: o.w + 'px', height: o.h + 'px', clipPath: `polygon(${o.poly.map(p => (p[0] * 100).toFixed(2) + '% ' + (p[1] * 100).toFixed(2) + '%').join(',')})` });
-    }
-    const pieceAt = q => [...G.pieces].reverse().find(o => inPoly(o.poly.map(p => [o.x + p[0] * o.w, o.y + p[1] * o.h]), q));
-    function inPoly(P, q) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > q.y) !== (yj > q.y) && q.x < (xj - xi) * (q.y - yi) / (yj - yi) + xi) c = !c; } return c; }
-
-    /* 👆 손짓 */
-    function down(e) {
-        if (!G || e.button > 0) return;
-        if (G.real) { if (G.again && !(G.g === 'knife' && skKindNow())) G.again(e); return; }   // ✏️ 꽂고 나서 · 🔪 ✕ 로 내려놓고 종이를 누르면 다시 손에 (🩹 📎 🕳️ ✂️ = 놓인 문구를 누르면 들어요 · js/skins.js gdDown)
-        const q = loc(e), g = G.g; e.preventDefault(); G.st.setPointerCapture(e.pointerId);
-        handAt(q.x, q.y);
-        if (g === 'tweez') { const o = pieceAt(q); G.hand.classList.add('pinch'); if (o) { G.drag = { k: 'twz', o, ox: q.x - o.x, oy: q.y - o.y }; o.el.classList.add('up'); G.lay.appendChild(o.el); } else G.drag = { k: 'none' }; return; }
-    }
-    function move(e) {
-        if (!G || G.real) return;
-        let q = loc(e); const d = G.drag;
-        if (!d) { if (e.pointerType === 'mouse') handAt(q.x, q.y); return; }
-        handAt(q.x, q.y);
-        if (d.k === 'twz') { d.o.x = q.x - d.ox; d.o.y = q.y - d.oy; piecePaint(d.o); }
-    }
-    function up(e) {
-        if (!G || G.real) return;
-        const d = G.drag; G.drag = null;
-        G.hand.classList.remove('pinch');
-        if (!d) return;
-        if (d.k === 'twz' && d.o) { d.o.el.classList.remove('up'); return; }
+    function down(e) {                                                            // ✏️ 꽂고 나서 · 🔪 ✕ 로 내려놓고 종이를 누르면 다시 손에 (나머지는 놓인 문구를 누르면 들어요 · js/skins.js gdDown)
+        if (!G || e.button > 0 || !G.again || (G.g === 'knife' && skKindNow())) return;
+        G.again(e);
     }
 
     window.gdTry = gdTry; window.gdTryOff = gdTryOff;

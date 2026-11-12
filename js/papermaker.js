@@ -384,7 +384,7 @@
             const q = Math.min(1, PM_OUT / Math.max(st.img.width, st.img.height)), o = pmMk(st.img.width * q, st.img.height * q);
             o.getContext('2d').drawImage(st.img, 0, 0, o.width, o.height);
             S.pieces = S.pieces.filter(p => p !== st);
-            if (!spAdd(cvSmall(o))) return;                                  // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
+            if (!addImage(cvSmall(o))) return;                                  // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
             const el = pg.querySelector('.element-box:last-child');
             if (el) {
                 el.dataset.float = 1;                                                          // 📄 모조지스티커 표시 (다듬기 종류 · 옮길 때 살짝 떠요)

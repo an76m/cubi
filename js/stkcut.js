@@ -271,7 +271,7 @@
             let pcx = cx + s * (lcx * Math.cos(rot) - lcy * Math.sin(rot)) + side * nv[0] * gap, pcy = cy + s * (lcx * Math.sin(rot) + lcy * Math.cos(rot)) + side * nv[1] * gap;
             const at = window.bdCvAt && bdCvAt(scx + k * s * (lcx * Math.cos(vrot) - lcy * Math.sin(vrot)), scy + k * s * (lcx * Math.sin(vrot) + lcy * Math.cos(vrot)));   // 🗂 바인더 : 보이는 자리 → 저장 자리 (조각이 다른 쪽으로 넘어가도 제자리)
             if (at) { pcx = at.x + side * nv[0] * gap; pcy = at.y + side * nv[1] * gap; }
-            if (!spAdd(url)) return false;
+            if (!addImage(url)) return false;
             const ne = ca.querySelector(':scope > .element-box:last-child'), im = ne.querySelector(':scope > img');
             ne.style.width = Math.max(4, Math.round(w / R * 10) / 10) + 'px';
             if (float) ne.dataset.float = float;

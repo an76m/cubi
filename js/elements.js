@@ -84,8 +84,8 @@
         }
 
         function addImage(src, fallback) {
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어주세요!'); return false; }
-            if (window.dyyPastSay && dyyPastSay()) return false;             // 🔒 지난 해 다이어리 = 보기만
+            if (!spOpen()) { showMsg('먼저 다이어리를 열어주세요!'); return false; }   // 🏠 지금 공간 (진짜 다이어리 · 🏪 연습장 · js/space.js)
+            if (spKeep() && window.dyyPastSay && dyyPastSay()) return false;   // 🔒 지난 해 다이어리 = 보기만
             const el = document.createElement('div');
             el.className = 'element-box';
             el.style.width = '150px';
@@ -93,8 +93,8 @@
             bindImage(img, src, fallback);
             el.appendChild(img);
             makeTransformable(el);
-            const at = window.tmPlace && tmPlace(el);
-            document.getElementById('canvasArea').appendChild(el);
+            const at = spKeep() && window.tmPlace && tmPlace(el);              // 👆 페이지 빈 곳 메뉴로 부른 자리 (진짜 다이어리만)
+            spPage().appendChild(el);
             if (!at) elCenter(el);
             return true;
         }
@@ -107,11 +107,11 @@
                 const w = img.naturalWidth, h = img.naturalHeight; if (!el.isConnected || !w || !h) return;
                 const b0 = el.getBoundingClientRect(), c0 = [b0.left + b0.width / 2, b0.top + b0.height / 2];
                 el.style.width = w + 'px'; el.style.height = el.style.height ? h + 'px' : ''; el.dataset.scale = 1;
-                const pg = document.getElementById('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
+                const pg = spPage(), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
                 const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${el.dataset.rotation || 0}deg)`; };
                 const b1 = el.getBoundingClientRect();
                 put(Math.round(+el.dataset.posX + (c0[0] - (b1.left + b1.width / 2)) / k), Math.round(+el.dataset.posY + (c0[1] - (b1.top + b1.height / 2)) / k));
-                if (typeof saveData === 'function') saveData(false);
+                spSave(false);
             }));
             if (img.complete && img.naturalWidth) setTimeout(go, 60); else img.addEventListener('load', () => setTimeout(go, 60), { once: true });
         }
@@ -121,14 +121,14 @@
         function elCenter(el) {
             const go = () => {
                 if (!el.isConnected || +el.dataset.posX !== (el._p0 ?? 100) || el.dataset.posY !== '100') return;
-                const pg = document.getElementById('canvasArea'), r0 = pg.getBoundingClientRect(), k = r0.width / (pg.offsetWidth || r0.width) || 1, r = window.dyVisRect ? dyVisRect(r0) : r0;
+                const pg = spPage(), r0 = pg.getBoundingClientRect(), k = r0.width / (pg.offsetWidth || r0.width) || 1, r = spRect();
                 const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${el.dataset.rotation || 0}deg)`; };
                 put(0, 0);
                 const b = el.getBoundingClientRect(), hw = Math.min(b.width, r.width) / 2, hh = Math.min(b.height, r.height) / 2;
                 const cx = Math.min(r.right - hw, Math.max(r.left + hw, window.innerWidth / 2)), cy = Math.min(r.bottom - hh, Math.max(r.top + hh, window.innerHeight / 2));
                 put(Math.round((cx - (b.left + b.width / 2)) / k), Math.round((cy - (b.top + b.height / 2)) / k));
                 if (selectedElement === el && typeof positionTextPanel === 'function') positionTextPanel();
-                if (typeof saveData === 'function') saveData(false);
+                spSave(false);
             };
             const img = el.querySelector('img');
             if (img && !img.complete) { img.addEventListener('load', () => requestAnimationFrame(go), { once: true }); img.addEventListener('error', () => requestAnimationFrame(go), { once: true }); }
@@ -220,7 +220,7 @@
         /* 📄 스티커는 진짜처럼 페이지 밖으로 삐져나갈 수 있어요 (도련 · 2026-10-17 · #canvasArea overflow: visible)
            - 다만 가운데는 페이지 안에 있어야 붙어 있어요 = 최대 반쯤만 밖으로 (밖으로 나간 부분은 ✂️ 스티커 칼로 잘라 버리는 게 다꾸의 맛) */
         function elKeepCenter(el, x, y) {
-            const ca = document.getElementById('canvasArea'); if (!ca) return [x, y];
+            const ca = spPage(); if (!ca) return [x, y];
             const W = el.offsetWidth, H = el.offsetHeight, PW = ca.offsetWidth, PH = ca.offsetHeight;
             const L = ca.closest('.dk-cover') ? PW / 2 : 0;                     // 📕 표꾸 : 표지는 오른쪽 쪽 (js/skins.js dkCv)
             return [Math.max(L - W / 2, Math.min(PW - W / 2, x)), Math.max(-H / 2, Math.min(PH - H / 2, y))];
@@ -418,7 +418,7 @@
                 const img = el.querySelector(':scope > img'), span = !img && el.querySelector(':scope > span');
                 if (img && (!img.complete || !img.naturalWidth || (typeof isTapeSrc === 'function' && isTapeSrc(img.dataset.src)))) return null;
                 if (!img && !span) return null;
-                const ca = document.getElementById('canvasArea'), k = (ca.getBoundingClientRect().width / (ca.offsetWidth || 1)) || 1, S = scale * k;
+                const ca = spPage(), k = (ca.getBoundingClientRect().width / (ca.offsetWidth || 1)) || 1, S = scale * k;
                 const node = img || span, w = node.offsetWidth * S, h = node.offsetHeight * S;
                 if (w < 4 || h < 4) return null;
                 let src = img;
@@ -507,7 +507,7 @@
             const t = e.touches[0], tg = e.target;
             if (!e.cancelable || !t || t.touchType !== 'stylus' || !tg.closest) return;
             if (tg.closest('textarea, input, button, select')) return;
-            if (tg.closest('#canvasArea .element-box, .pel-room')) e.preventDefault();
+            if ((tg.closest('.element-box') && spPage().contains(tg)) || tg.closest('.pel-room')) e.preventDefault();   // 🏠 지금 공간의 종이 (진짜 · 🏪 연습장)
         }, { capture: true, passive: false });
 
         document.getElementById('canvasArea').addEventListener('click', (e) => {
@@ -545,7 +545,7 @@
         }
         /* ↕️ 순서 : 고른 것의 겹친 순서 바꾸기 (맨 앞 · 한 칸 앞 · 한 칸 뒤 · 맨 뒤) */
         function layerBoxes() {
-            return [...document.querySelectorAll('#canvasArea > .element-box')].map((el, i) => [el, parseInt(el.style.zIndex) || 1, i])
+            return [...spPage().querySelectorAll(':scope > .element-box')].map((el, i) => [el, parseInt(el.style.zIndex) || 1, i])
                 .sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(a => a[0]);
         }
         function openLayerMenu(anchor) {  // anchor = 버튼 · 또는 { left, width, bottom } 자리
@@ -684,26 +684,26 @@
            - ✏️ 그리기 · ✂️ 스티커 칼 · ✏️ 펜꽂이를 쓰는 동안은 따라오지 않고 그 자리에 둥실 (pinBusy)
            - 비키는 건 핀셋을 내려놓거나(🗄️ 문구함 서랍) · 표지로 돌아가거나 · 🗑 뜯기 화면의 핀셋이 대신 나올 때뿐 (pinOff) */
         let pinRelNow = false, pinLast = null, pinEl = null, pinWatch = 0, pinKind = 'pc', pinHold = false, pinFollow = false;   // pinHold : 핀셋 자리에서 눌러 끄는 중 (스티커를 옮기는 동안은 어디서든 따라와요)
-        const pinOpen = () => { const p = document.getElementById('innerPage'); return !!p && p.offsetParent !== null; };
+        const pinOpen = () => { const p = spHost(); return !!p && p.offsetParent !== null; };   // 🏠 지금 공간의 판 (진짜 = #innerPage · 🏪 연습장)
         const pinOff = () => !!twz || !((window.gdTwz && gdTwz() && pinOpen()) || (window.pinForce && pinForce()));   // 🪡 정리 공간 이형지북은 핀셋이 저절로 (js/basket.js pinForce · 도련 10-29)
         const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('body.sk-held, .sk-knife.grab, .rl-ruler.grab, #pcRoom:not([hidden]):not(.rest)');   // ✂️ 칼 · 📏 자를 잡고 있는 동안은 핀셋이 안 따라와요 (도련 10-19)
-        const PIN_AREA = '#innerPage, #pelRoom, #pmRoom, #pcbRoom, #absRoom';   // 🪡 핀셋이 갈 수 있는 곳 (📄 모조지 종이 #pmRoom : 오린 스티커를 핀셋으로 떼요 · 도련 10-21)
+        const PIN_AREA = '#pelRoom, #pmRoom, #pcbRoom, #absRoom', pinIn = n => spHost().contains(n) || !!n.closest(PIN_AREA);   // + 지금 공간의 판   // 🪡 핀셋이 갈 수 있는 곳 (📄 모조지 종이 #pmRoom : 오린 스티커를 핀셋으로 떼요 · 도련 10-21)
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.pin-cur, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
-            if (!top || pinBusy() || top.closest('.pel-hint, #pageHeader, .tap-menu') || (top.closest('button') && !top.closest('#innerPage'))) return false;   // 안내 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
-            if (top.closest(PIN_AREA)) return true;
+            if (!top || pinBusy() || top.closest('.pel-hint, #pageHeader, .tap-menu') || (top.closest('button') && !spHost().contains(top))) return false;   // 안내 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
+            if (pinIn(top)) return true;
             return top === document.body || top === document.documentElement || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경)
         }
         function pinRel(x, y) {                                                  // 👆 핀셋과 상관있는 곳 (그 자리로 옮겨 가요) · 아니면 그 자리에 둥실
             const top = pinTop(x, y);
-            return !!top && !pinBusy() && !!top.closest(PIN_AREA) && !top.closest('.rl-ruler, .sk-knife, button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .bd-tool, .bd-back, .page-stamps');
+            return !!top && !pinBusy() && pinIn(top) && !top.closest('.rl-ruler, .sk-knife, button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .bd-tool, .bd-back, .page-stamps');
         }
         const pinDev = e => e.pointerType === 'mouse' || e.pointerType === 'pen' ? 'pc' : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pad';   // ✏️ 펜(애플 펜슬 · S펜)은 마우스처럼 : 닿기 전 떠 있는 펜 끝도 따라와요 (펜 호버 · 도련 10-21)
         function pinStart() {
             pinEl = document.createElement('div'); pinEl.className = 'twz pin-cur in bob'; pinEl.setAttribute('aria-hidden', 'true'); pinEl.innerHTML = pinSvg();
             pinOrg(pinEl);                                                     // 📐 처음부터 상품 크기 (도련 11-05 : 처음 든 순간 크기 없이 그려져 화면만큼 커 보였어요)
-            if (!pinLast) { const c = document.getElementById('canvasArea'), r = c && c.getBoundingClientRect(); if (r && r.width) pinLast = [r.left + r.width / 2, r.top + r.height / 2]; }   // 처음 = 페이지 가운데 (왼쪽 위 0,0 에 뜨지 않게)
+            if (!pinLast) { const c = spPage(), r = c && c.getBoundingClientRect(); if (r && r.width) pinLast = [r.left + r.width / 2, r.top + r.height / 2]; }   // 처음 = 페이지 가운데 (왼쪽 위 0,0 에 뜨지 않게)
             document.body.appendChild(pinEl); pinFollow = false;
             if (window.toolGlow) toolGlow(pinEl);                              // ✨ 든 순간 한 번 반짝 (js/skins.js)
             if (pinLast) pinPut(...pinLast);
@@ -796,7 +796,7 @@
             if (!el || !el.isConnected || el.classList.contains('el-dying')) return;
             if (twz) twzQuit();
             el.classList.remove('selected');
-            if (twzReduce()) { el.remove(); if (typeof saveData === 'function') saveData(false); return; }
+            if (twzReduce()) { el.remove(); spSave(false); return; }
             const room = twzRoom(false);
             twz = { room, tool: room.querySelector('#twzTool'), pin: false };
             twzAttach(el);
@@ -811,17 +811,17 @@
             const room = twzRoom(true);
             twz = { room, tool: room.querySelector('#twzTool'), pin: true, el: null };
             twz.tool.classList.remove('shut', 'bye', 'in');
-            const ca = document.getElementById('canvasArea').getBoundingClientRect();
+            const ca = spPage().getBoundingClientRect();
             twzToolAt(x != null ? x : ca.left + ca.width / 2, y != null ? y : ca.top + ca.height / 2);
             requestAnimationFrame(() => twz && twz.tool.classList.add('in'));
         }
         function twzPick(x, y) {                                               // 누른 곳 맨 위의 것 (뜯기는 중인 것 · 뒷면 복제본은 빼요)
-            const cv = document.getElementById('canvasArea'), free = cv && cv.closest('.dy-free');   // 📄 바인더 링을 연 뒤 (꾸밈은 평소엔 못 눌러요 · js/skins.js bdFree) 에도 집어요
+            const cv = spPage(), free = cv && cv.closest('.dy-free');   // 📄 바인더 링을 연 뒤 (꾸밈은 평소엔 못 눌러요 · js/skins.js bdFree) 에도 집어요
             if (free) cv.classList.add('bd-pick');
             try { return twzPickAt(x, y); } finally { if (free) cv.classList.remove('bd-pick'); }
         }
         function twzPickAt(x, y) {
-            return document.elementsFromPoint(x, y).map(n => n.closest && n.closest('#canvasArea > .element-box')).find(b => b && !b.classList.contains('el-peel-back') && !b.classList.contains('el-dying')) || null;
+            const pg = spPage(); return document.elementsFromPoint(x, y).map(n => { const b = n.closest && n.closest('.element-box'); return b && b.parentElement === pg ? b : null; }).find(b => b && !b.classList.contains('el-peel-back') && !b.classList.contains('el-dying')) || null;
         }
         function twzAttach(el) {                                               // 이 스티커를 뜯을 준비 (뒷면 복제본 · 손잡이 숨기기)
             el.classList.remove('selected');
@@ -839,7 +839,7 @@
         }
         /* 스티커 안 좌표 ↔ 화면 좌표 (돌리기 · 크기 · 페이지 배율까지) */
         function twzGeo() {
-            const t = twz, ca = document.getElementById('canvasArea'), r = ca.getBoundingClientRect(), k = r.width / (ca.offsetWidth || r.width) || 1;
+            const t = twz, ca = spPage(), r = ca.getBoundingClientRect(), k = r.width / (ca.offsetWidth || r.width) || 1;
             const s = parseFloat(t.el.dataset.scale) || 1, a = ((parseFloat(t.el.dataset.rotation) || 0) + (parseFloat(t.el.style.rotate) || 0)) * Math.PI / 180;   // 📄 바인더 쪽째 돌린 것까지 (js/skins.js bdFreeApply)
             const b = t.el.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;   // 가운데는 화면에 보이는 그대로 (바인더 쪽 벌어짐 · 옮긴 쪽까지)
             return { toLoc: (X, Y) => { const ux = (X - cx) / k, uy = (Y - cy) / k; return [(ux * Math.cos(-a) - uy * Math.sin(-a)) / s + t.W / 2, (ux * Math.sin(-a) + uy * Math.cos(-a)) / s + t.H / 2]; } };
@@ -879,7 +879,7 @@
             twzToolAt(e.clientX, e.clientY);                                    // 👆 터치는 닿은 곳으로 핀셋이 와요
             if (t.pin) {                                                       // 📌 삭제핀 : 누른 곳의 것을 집어요 · 없으면 그만두기
                 const box = twzPick(e.clientX, e.clientY);
-                if (!box || box !== t.el) { twzDetach(); if (!box) { twzQuit(); return; } if (twzReduce()) { box.remove(); if (typeof saveData === 'function') saveData(false); return; } twzAttach(box); }
+                if (!box || box !== t.el) { twzDetach(); if (!box) { twzQuit(); return; } if (twzReduce()) { box.remove(); spSave(false); return; } twzAttach(box); }
             }
             const L = twzGeo().toLoc(e.clientX, e.clientY);
             if (L[0] < -30 || L[0] > t.W + 30 || L[1] < -30 || L[1] > t.H + 30) { twzQuit(); return; }   // 스티커에서 먼 곳을 톡 = 그만두기
@@ -920,7 +920,7 @@
             if (navigator.vibrate) try { navigator.vibrate([6, 30, 10]); } catch (er) {}
             setTimeout(() => {
                 el.remove(); bk.remove();
-                if (typeof saveData === 'function') saveData(false);
+                spSave(false);
                 if (twz !== t) return;
                 if (t.pin) { t.el = null; t.back = null; t.done = false; t.drag = null; t.tool.classList.remove('shut'); return; }   // 📌 삭제핀은 남아서 또 뜯어요
                 t.drag = null; t.tool.classList.remove('shut'); t.tool.classList.add('bye'); t.room.classList.add('bye');
