@@ -199,7 +199,7 @@
         async function pbKeep(act) {
             if (pb.busy) return;
             const k = PB_STICK[act] || act, stick = !!PB_STICK[act];
-            if (stick && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg(`먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">${PB_NAME[k]} 만들기로 저장해 두었다가 붙여도 돼요.</span>`); return; }
+            if (stick && !isCoverOpen) { showMsg(`먼저 다이어리를 열어 주세요!<br><span style="font-size:12px;color:#777;">${PB_NAME[k]} 만들기로 저장해 두었다가 붙여도 돼요.</span>`); return; }
             if (typeof pelBake !== 'function' || typeof smAdd !== 'function') { comingSoon('🏷️ 씰스티커'); return; }
             pb.busy = true;
             const all = [...document.querySelectorAll('#boothRoom .pb-go')]; all.forEach(b => { b.disabled = true; });

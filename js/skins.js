@@ -1057,7 +1057,7 @@
            - 그 문구가 페이지에 놓여 있으면 → 페이지의 그 문구 둘레가 핑크로 깜박 (안 보이는 쪽이면 먼저 페이지 안으로 소환 · gdHome)
            - 없으면 → 🗄️ 문구함이 뜨고 그 서랍이 핑크로 깜박 · 톡 하면 꺼내져요 */
         function gdNeed(g) {
-            if (typeof isCoverOpen === 'undefined' || !isCoverOpen) return;
+            if (!isCoverOpen) return;
             const blink = el => { if (!el) return; el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
             const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
             if (on) { gdHome(on); blink(on); return; }
@@ -1470,7 +1470,7 @@
         }
         function openGdCab() {
             const onDesk = UI.desk();   // 🪑 책상에서는 다이어리를 띄우지 않고 문구함만 열어요 (도련 10-28)
-            if (!onDesk && (typeof isCoverOpen === 'undefined' || !isCoverOpen)) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (!onDesk && (!isCoverOpen)) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             cabOpen = null; cabBin = null; gdCabRender(); openModal('gdCabModal');
         }
         /* ✋ 서랍장 옮기기 (도련 10-21) : 서랍장 아무 데나 잡고 8px 넘게 끌면 옮겨져요 · 짧게 톡 · 꾹은 그대로 서랍 (끌면 톡 · 꾹은 안 돼요)
@@ -1998,7 +1998,7 @@
             const id = dkId(true), o = dkInfoOf(id), b = drive.books && drive.books.get(id);
             return `${DIRS.diary}/${id}/${dkNo(date) ? dkNo(date) + '페이지' : '표지'}.json`;   // 📕 다이어리 / 그 권 폴더 (도련 11-07)
         }
-        function dkCv() { return dyCvOk() && typeof isCoverOpen !== 'undefined' && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
+        function dkCv() { return dyCvOk() && isCoverOpen && dkIs(currentDate) && dkNo(currentDate) === 0; }   // 📕 지금 표지를 꾸미는 중
         function dkCvSync() { const ip = document.getElementById('innerPage'), cv = dkCv(); if (ip && ip.classList.contains('dk-cover') !== cv) { ip.classList.toggle('dk-cover', cv); dyDeco(); } const b = document.getElementById('diaryBook'); if (b) b.classList.toggle('dk-cv', cv); bdSync(); }   // 📕 표꾸 중 : 접힌 겉표지 모양 (앞표지 한 쪽)
         /* 고른 다이어리와 지금 펼친 날짜가 맞는지 (유한인데 진짜 날짜 · 기본인데 장 날짜 · 페이지 수를 넘음) → 맞는 곳으로 */
         function dkSync(load) {

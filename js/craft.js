@@ -124,8 +124,8 @@
         function paint() { paintKinds(); paintMine(); paintWork(); cq('crGo').textContent = desk() ? '닫기' : '✕ 나가기'; cq('craftRoom').classList.toggle('narrow', narrow()); }
         async function diaryReady() {                                            // 📔 다이어리 펴기 (💻 📲 책상 = js/deskgd.js dkwReady · 📱 표지 열기)
             if (desk() && window.dkwReady) return dkwReady();
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen && window.openCoverAnimated) { openCoverAnimated(); for (let i = 0; i < 40 && !isCoverOpen; i++) await new Promise(r => setTimeout(r, 80)); }
-            return typeof isCoverOpen === 'undefined' || isCoverOpen;
+            if (!isCoverOpen && window.openCoverAnimated) { openCoverAnimated(); for (let i = 0; i < 40 && !isCoverOpen; i++) await new Promise(r => setTimeout(r, 80)); }
+            return isCoverOpen;
         }
         async function useMine(id) {                                             // 📌 꺼내 쓰기 = 다이어리를 펴고 그 종이를 꺼내요 (🧺 바구니와 같은 일 · js/basket.js bkOpenSheet)
             closeCraft();

@@ -44,7 +44,7 @@
         const openTteokMaker = () => lmOpen('tk');
         const openMemoMaker = () => lmOpen('memo');
         function lmOpen(kind) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             lmBuild();
             const T = kind === 'tk', M = kind === 'memo';
             lm.for = kind;

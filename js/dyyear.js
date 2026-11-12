@@ -207,7 +207,7 @@
             if (!dyyBasic() || !dyyBook() || typeof currentDate === 'undefined' || currentDate.getFullYear() === dyyYear()) return;
             currentDate.setTime(dyyClamp(new Date()).getTime());
             const d = document.getElementById('pageDateDisplay'); if (d && typeof formatDate === 'function') d.innerText = formatDate(currentDate);
-            if (typeof isCoverOpen !== 'undefined' && isCoverOpen && !turn && typeof loadData === 'function') loadData();
+            if (isCoverOpen && !turn && typeof loadData === 'function') loadData();
         }
         /* 다른 권으로 바꾸기 (펼친 장은 먼저 저장 · 저장 키가 바뀌어요) */
         function dyyOpenSet(id) {
@@ -220,7 +220,7 @@
         function dyyReload() {
             const to = (typeof dyOpenDate === 'function' && dyOpenDate()) || dyyClamp(new Date(currentDate));
             currentDate.setTime(to.getTime());
-            if (typeof isCoverOpen === 'undefined' || !isCoverOpen) return;
+            if (!isCoverOpen) return;
             selectedElement = null;
             if (window.dyViewSet) dyViewSet('l');
             document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
@@ -374,7 +374,7 @@
         }
         /* 다이어리가 한 권도 없으면 펼친 다이어리를 덮어요 (겉표지로) */
         function dyyShut() {
-            if (typeof isCoverOpen === 'undefined' || !isCoverOpen || !dyyBasic()) return;
+            if (!isCoverOpen || !dyyBasic()) return;
             isCoverOpen = false; selectedElement = null;
             const ip = document.getElementById('innerPage'), cp = document.getElementById('coverPage');
             if (ip) ip.style.display = 'none'; if (cp) cp.style.display = '';

@@ -63,7 +63,7 @@
         }
         const pelPage = () => document.getElementById('canvasArea');
         /* 📔 붙일 페이지가 보여요 (덮였거나 🪑 책상에 놓여 있으면 아니에요 → 종이 크기는 보통 크기 · 뗀 스티커는 종이로 돌아가요) */
-        const pelPageOn = () => { const pg = pelPage(), H = document.documentElement; return !!pg && (typeof isCoverOpen === 'undefined' || isCoverOpen) && !(UI.desk() && !H.classList.contains('desk-show')) && pg.getBoundingClientRect().width > 40; };
+        const pelPageOn = () => { const pg = pelPage(), H = document.documentElement; return !!pg && isCoverOpen && !(UI.desk() && !H.classList.contains('desk-show')) && pg.getBoundingClientRect().width > 40; };
         function pelLayout() {
             const S = pelS, cv = S.cv;
             S.DPR = Math.min(window.devicePixelRatio || 1, 3); S.W = window.innerWidth; S.H = window.innerHeight;
@@ -170,7 +170,7 @@
 
         /* src : 그림 하나 또는 여러 개 [src, …] */
         async function openStickerPeel(src, opt) {                       // opt.ts : 🔤 글씨스티커 (붙인 뒤 📷 사진 꾸미기 창이 안 떠요)
-            if (!(opt && (opt.rel || opt.stay)) && typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }   // stay = 다이어리가 책상에 있어도 스티커창만 (js/basket.js dsOpen · 도련 11-05)
+            if (!(opt && (opt.rel || opt.stay)) && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }   // stay = 다이어리가 책상에 있어도 스티커창만 (js/basket.js dsOpen · 도련 11-05)
             const list = Array.isArray(src) ? src : [src], own = (opt && opt.own) || null;
             let imgs;
             try { imgs = await Promise.all(list.map(u => u ? pelLoad(u) : null)); } catch (e) { showMsg('스티커를 열지 못했어요.'); return false; }

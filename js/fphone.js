@@ -475,7 +475,7 @@
         }
         window.addEventListener('fbauth', fpAuthed);
         function fpSync() {
-            const show = typeof isCoverOpen !== 'undefined' && isCoverOpen && fpUsable() && (typeof ftOn !== 'function' || ftOn('fphone'));
+            const show = isCoverOpen && fpUsable() && (typeof ftOn !== 'function' || ftOn('fphone'));
             if (!show) {
                 if (fp.el && !fp.el.hidden) { fp.el.hidden = true; fpStopListen(); fp.err = ''; fp.ring = []; fpRingOff(); fp.convs.forEach(c => fpEnd(c, '', false)); fpStopCalling(); }
                 return;

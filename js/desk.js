@@ -973,6 +973,7 @@
             b.querySelector('.dk-try-x').onclick = () => deskEditEnd(false);
         }
         window.deskTrial = deskTrial;
+        window.dkTrialNoSave = () => { if (!DK.trial) return false; if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return true; };   // 🏷️📷🖨️ 기계가 만든 것 저장 막기 (한 곳)
         /* 위 막대 (확정 가능 여부) · 아래 📦 보관함 줄 */
         /* 🎨 색칠 · 🖼 사진 미리 보기 (도련 10-28) : 창을 닫으면 책상에 칠한 모습만 보여 주고 (어울리나 전체로 보기) · 하단 ✔ 완료 때 파일에 저장 · ✕ 취소 = 처음 그림
              DK.artPend { u: 칠한 그림 } · DK.artOld { u: 칠하기 전 그림(없으면 null) } */
@@ -1633,7 +1634,7 @@
         /* 📔 책상 위 다이어리 : 톡 = 그 자리에서 떠올라 화면 가운데로 · 책상 빈 곳 톡 = 접혀서 제자리로 (js/drive.js) · 그림 = .dk-vol 틀 하나 (아래 dkVolsPaint) */
         let deskAnim = false;                                                     // 떠오르기 · 내려놓기 움직이는 중
         const DK_TILT = 71;                                                       // 눕힌 각도 (css .dk-vol.p-lay .dv-cv 와 같게)
-        const dkOpenNow = () => typeof isCoverOpen !== 'undefined' && isCoverOpen;
+        const dkOpenNow = () => isCoverOpen;
         const dkVisEl = (bk, ip, cv) => dkOpenNow() ? (bk.classList.contains('dy-one') ? bk : ip) : cv;   // 펼침 = 두 쪽(한 쪽씩 보기면 책 자리) · 접힘 = 겉표지
         /* 🏷️ 라벨 (도련 10-29) : 사용자가 알아서 붙여요 · 켜기/끄기 · 글 · 글꼴 · 글 색 · 라벨 색 · 크기 · 세로쓰기 · 자리 (모습마다 따로 : 📚 책등 / 📔 앞면) · 🛠 꾸미기에서만 */
         const DKY_LB0 = { on: false, m: 't', ic: '', t: '', f: 'sys', c: '#8a2f58', bx: true, bg: '#fffaf3', ol: false, oc: '#ffffff', side: { x: .5, y: .3, s: 1, v: 1 }, front: { x: .5, y: .78, s: 1, v: 0 } };
@@ -1867,13 +1868,13 @@
             const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
             a.onfinish = a.oncancel = () => { w.style.transformOrigin = '';
                 deskAnim = false;
-                if (DK.coverOnce && typeof isCoverOpen !== 'undefined' && !isCoverOpen && typeof openCoverAnimated === 'function') openCoverAnimated();   // 📖 표지를 한 번 열어 본 뒤로는 = 떠오르며 펼쳐져요 (도련 11-12 · 로그인 뒤 처음 한 번만 직접 열어요)
+                if (DK.coverOnce && !isCoverOpen && typeof openCoverAnimated === 'function') openCoverAnimated();   // 📖 표지를 한 번 열어 본 뒤로는 = 떠오르며 펼쳐져요 (도련 11-12 · 로그인 뒤 처음 한 번만 직접 열어요)
             };
         }
         function deskCloseDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
             if (deskAnim || !w || !H.classList.contains('desk-show')) return;
-            if (typeof isCoverOpen !== 'undefined' && isCoverOpen) DK.coverOnce = true;   // 📖 이번 로그인에서 표지를 열었어요
+            if (isCoverOpen) DK.coverOnce = true;   // 📖 이번 로그인에서 표지를 열었어요
             if (window.dkwFloatAll) dkwFloatAll();                                // ✋ 페이지 위 문구 · 손에 든 필기구 = 그 자리에서 공중에 떠요 (다이어리 따로 · 상품 따로 · 도련 11-11)
             if (window.penRest) penRest();                                        // ✏️ 든 필기구는 페이지에 놓고 쓴 것은 붙여요 (도련 11-03 · 손에 든 채 접히지 않게)
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로

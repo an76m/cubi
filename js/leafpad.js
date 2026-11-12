@@ -55,7 +55,7 @@
         }
         /* 끼우면 새 속지가 오른쪽에서 스르륵 끼워져요 (붙인 것들은 그 위에 그대로 · 🎒 🧺 바구니의 속지 한 장 js/basket.js) */
         function pickLeaf(id, img) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             if (id === pageLeaf && (id !== 'my' || img === pageLeafImg)) return;
             const c = lfq('canvasArea');
             const sl = document.createElement('div'); sl.className = 'lf-slide'; lfApply(sl, id, img);
@@ -170,7 +170,7 @@
             pad.style.transform = `translate(${tkS.x}px, ${tkS.y}px) scale(${k})`;
         }
         function spawnTteok() {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             tkBuild();
             lfq('tkRTop').innerHTML = tkSheetHtml(tk.pad); lfq('tkRStubs').innerHTML = '';
             const g = tk.pad === 'my' && tk.my && /^#[0-9a-f]{6}$/i.test(tk.my.glue || '') ? tk.my.glue : '';
@@ -273,7 +273,7 @@
             const cx = Math.min(r.right, Math.max(r.left, b.left + b.width / 2)), cy = Math.min(r.bottom, Math.max(r.top, b.top + b.height / 2));
             tkS.fly = null; f.remove();
             const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(tkPieceSvg(tk.pad, tkS.sh));
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { closeTteokRoom(); return; }
+            if (!isCoverOpen) { closeTteokRoom(); return; }
             addText();                                                           // 떡메는 메모도 돼요 : 글상자 + 뒤에 떡메 그림 (짧게 톡 → 글쓰기)
             const el = pg.querySelector('.element-box:last-child'); if (!el) return;
             tkNoteDress(el, tk.pad, src);

@@ -261,7 +261,7 @@
     /* 서랍 창은 그대로 둔 채 떼는 화면이 그 위에 떠요 (💻 📲 · 도련 11-05) · 📱 폰만 화면이 좁아 서랍 창이 잠깐 비켜요 (js/stickermaker.js stkLeave) */
     async function bkOpenSheet(id, stay) {                                    // stay = 다이어리는 그대로 (🏷️ 씰만 · 꺼낸 종이 톡 · 도련 11-05)
         if (!stay) {
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             await bkLift();
         }
         if (B.opening || !window.ownSheet) return;
@@ -1758,7 +1758,7 @@
     }
     /* 📕 다이어리가 덮였거나 🪑 책상에 놓여 있으면 꺼낸 종이를 톡 해도 다이어리는 그대로 (도련 11-05 · 안내 없음)
        🏷️ 씰 = 스티커창만 크게 (떼어 볼 수 있고 · 붙이려면 다이어리를 펼쳐요 · js/stickerpeel.js stay) · 조각 · 모조지 · 떡메 = 종이만 살짝 흔들 */
-    const dsDyAway = () => (typeof isCoverOpen !== 'undefined' && !isCoverOpen) || (UI.desk() && !document.documentElement.classList.contains('desk-show'));
+    const dsDyAway = () => (!isCoverOpen) || (UI.desk() && !document.documentElement.classList.contains('desk-show'));
     async function dsOpen(d) {                                                // 톡 = 이 종이가 맨 위 · 떼는 화면으로
         if (B.opening) return;
         const e0 = dsEntry(d.id), stay = dsDyAway();

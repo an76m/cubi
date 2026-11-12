@@ -324,7 +324,7 @@
              쓰는 크기 · 방향 그대로 공중에 떠 있어요 (다이어리와 같이 사라지지 않아요 · 📱 하단 메뉴는 예전처럼 페이지 안)
              - 끌기 = 옮기기 (보관함에 놓으면 = 넣기 · 한 번 골라요) · 톡 = 다이어리가 펼쳐져 있으면 그 자리에서 손에 · 접혀 있으면 '다이어리를 펴면 써요'
              - 아래 꺼낸 문구 줄 ✕ = 제자리로 (다이어리가 접혀 있어도) */
-        const dkwOpenNow = () => document.documentElement.classList.contains('desk-show') && typeof isCoverOpen !== 'undefined' && isCoverOpen;
+        const dkwOpenNow = () => document.documentElement.classList.contains('desk-show') && isCoverOpen;
         DKW.fl = new Map();                                                     // id → 떠 있는 그림
         function dkwFloat(id, x, y) {
             dkwFloatOff(id, true);
@@ -451,7 +451,7 @@
         const dkwOutAll = () => [...DKW.fl.keys()].concat(dkwPenOut()).concat(GD_CAB.flatMap(([g]) => dkwOwnOf([g])).filter(id => cabIsOn(id) && !(gdEl(id) && gdEl(id).classList.contains('edge'))));
         const dkwOutName = id => dkwIsPen(id) ? ((pkAll().find(x => x.id === id) || {}).name || '필기구') : dkwName(id);
         function dkwBackPaint() {                                                 // 화면 아래 가운데 고정 (css .dkw-strip · 다이어리를 따라다니지 않아요)
-            const on = dkwDesk() && ((typeof isCoverOpen !== 'undefined' && isCoverOpen && document.documentElement.classList.contains('desk-show')) || DKW.fl.size > 0);   // ✋ 떠 있는 문구가 있으면 다이어리가 접혀 있어도 (도련 11-11)
+            const on = dkwDesk() && ((isCoverOpen && document.documentElement.classList.contains('desk-show')) || DKW.fl.size > 0);   // ✋ 떠 있는 문구가 있으면 다이어리가 접혀 있어도 (도련 11-11)
             const out = on ? dkwOutAll() : [], p = dkwq('dkwBackPn');
             if (!out.length) { if (p && !p.hidden) p.hidden = true; return; }
             if (!p || p.hidden || p.dataset.sig !== out.join(',')) dkwBackOpen();

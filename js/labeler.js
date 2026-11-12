@@ -244,14 +244,14 @@
             if (!quiet()) { zzz(1500); for (let p = 0; p <= 1.0001; p += 1 / 18) { o.style.setProperty('--x', (-100 + p * 100) + '%'); await wait(60 + (Math.random() < .2 ? 90 : 0)); } }
             else o.style.setProperty('--x', '0%');
             snd(1320, .08, 'triangle', .05); o.classList.add('done'); flashTx = ''; lcd();
-            const open = !(typeof isCoverOpen !== 'undefined' && !isCoverOpen), A = lq('lbmActs');   // 📌 = 다이어리가 펴져 있을 때만 (책상에서는 💾 서랍으로 · 다이어리를 펴고 꺼내 붙여요)
+            const open = isCoverOpen, A = lq('lbmActs');   // 📌 = 다이어리가 펴져 있을 때만 (책상에서는 💾 서랍으로 · 다이어리를 펴고 꺼내 붙여요)
             A.querySelector('[data-a="text"]').hidden = !open; A.querySelector('[data-a="keep"]').classList.toggle('pk', !open);
             A.hidden = false;
         }
         async function act(a) {
             if (a === 'again') { lq('lbmActs').hidden = true; lq('lbmOut').className = 'lbm-out'; L.busy = false; L.out = ''; L.text = ''; L.cur = null; lcd(); return; }
             if (!L.out || L.saving) return;
-            if (typeof DK !== 'undefined' && DK.trial) { if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return; }   // 🏪 샵 적용해보기 = 만들어 보기만 (도련 11-12)
+            if (window.dkTrialNoSave && dkTrialNoSave()) return;   // 🏪 샵 적용해보기 = 만들어 보기만 (js/desk.js)
             L.saving = true; [...document.querySelectorAll('#lbmActs .lbm-a')].forEach(b => { b.disabled = true; });
             try {
                 sync();

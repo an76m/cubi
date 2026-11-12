@@ -285,7 +285,7 @@
 
         /* ---------- 아래 글 · 버튼 (출력 뒤에만 버튼) ---------- */
         function ctl() {
-            const el = pq('sprCtl'); if (!el) return; const open = !(typeof isCoverOpen !== 'undefined' && !isCoverOpen);
+            const el = pq('sprCtl'); if (!el) return; const open = isCoverOpen;
             const msg = P.st === 'edit' ? ''   /* 기계 밖 안내 글은 없어요 (도련 11-11) */
                 : { print: '지이잉… 스티커가 나오고 있어요', ready: '다 나왔어요! 따끈따끈해요', peel: '톡!', done: P.doneMsg || '서랍에 쏙 넣었어요' }[P.st];
             let h = msg ? `<p class="spr-msg${P.st === 'print' ? ' blink' : ''}" id="sprTip">${msg}</p>` : '';
@@ -347,7 +347,7 @@
         /* 톡! 떼어 가기 = 종이가 휙 날아가요 → 저장 (예전과 같아요) */
         async function peel(stick) {
             if (P.saving || P.st !== 'ready') return;
-            if (typeof DK !== 'undefined' && DK.trial) { if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return; }   // 🏪 샵 적용해보기 = 만들어 보기만 (도련 11-12)
+            if (window.dkTrialNoSave && dkTrialNoSave()) return;   // 🏪 샵 적용해보기 = 만들어 보기만 (js/desk.js)
             P.saving = true; P.busy = true;
             const paper = pq('sprPaper'); paper.classList.remove('rise'); paper.classList.add('peel'); noise(140, 2600, .1); P.st = 'peel'; ctl();
             await wait(quiet() ? 0 : 1150);

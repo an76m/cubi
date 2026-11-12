@@ -356,7 +356,7 @@
             if (!quiet()) { noise(1300, 900, .05, 22); for (let p = 0; p <= 1.0001; p += 1 / 16) { o.style.setProperty('--y', (100 - p * 100) + '%'); await wait(70); } }
             o.style.setProperty('--y', '0%'); o.classList.add('dev');                // 하얗던 필름에 그림이 천천히 (폴라로이드처럼)
             snd(1320, .08, 'triangle', .05); D.st = 'done'; D.busy = false;
-            const K = kindOf(D.kind), open = !(typeof isCoverOpen !== 'undefined' && !isCoverOpen), A = dq('dcmActs');
+            const K = kindOf(D.kind), open = isCoverOpen, A = dq('dcmActs');
             A.querySelector('[data-a="stick"]').textContent = `📌 ${K[1]} 다이어리에 붙이기`; A.querySelector('[data-a="stick"]').hidden = !open;   // 📌 = 다이어리가 펴져 있을 때만
             A.querySelector('[data-a="keep"]').textContent = `💾 ${K[1]} ${K[2]}스티커 만들기`; A.querySelector('[data-a="keep"]').classList.toggle('pk', !open);
             A.hidden = false;
@@ -365,7 +365,7 @@
         async function act(a) {
             if (a === 'again') { again(); D.img = null; D.st = 'home'; return; }
             if (D.saving || D.st !== 'done') return;
-            if (typeof DK !== 'undefined' && DK.trial) { if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return; }   // 🏪 샵 적용해보기 = 만들어 보기만 (도련 11-12)
+            if (window.dkTrialNoSave && dkTrialNoSave()) return;   // 🏪 샵 적용해보기 = 만들어 보기만 (js/desk.js)
             D.saving = true; [...document.querySelectorAll('#dcmActs .dcm-a')].forEach(b => { b.disabled = true; });
             try {
                 sync(); const k = D.kind;

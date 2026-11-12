@@ -83,7 +83,7 @@
     }
     /* 🗄️ 문구함 '칼' 서랍을 톡 (js/skins.js) : 보이는 쪽 가운데에서 칼을 들고 시작 */
     function open(x, y, kind) {
-        if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) return;
+        if (!isCoverOpen) return;
         if (window.tmClose) tmClose();
         if (typeof selectedElement !== 'undefined' && selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         const r = build(); S.room = r; S.cv = q('skLine'); S.kn = q('skKnife'); S.on = true; S.pts = null; S.down = false;

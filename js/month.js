@@ -144,7 +144,7 @@
         }
         function openMonth() {
             moBuild();
-            let base = typeof isCoverOpen !== 'undefined' && isCoverOpen ? currentDate : new Date();
+            let base = isCoverOpen ? currentDate : new Date();
             if (window.dkType && dkType() && dkIs(base)) { const s = dkNow().days[dkNo(base)]; base = s ? dkDayOf(s) : new Date(); }   // 📕 지금 장을 꾸민 달 (빈 장이면 이번 달)
             mo.y = base.getFullYear(); mo.m = base.getMonth();
             if (isCoverOpen) saveData(false);                    // 지금 페이지 내용도 달력에 바로 보이도록

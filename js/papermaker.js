@@ -78,7 +78,7 @@
         /* src : 내스티커의 모조지스티커 한 장 · o.el : 📒 수첩 시트의 종이 그림 (그 위에 겹쳐요) · o.down : 누른 채로 열었으면 그 손가락으로 바로 칼집 */
         async function openPaperSheet(src, o) {
             o = o || {};
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
             const im = await pmLoad(src);
             if (!im) { showMsg('모조지스티커를 열지 못했어요.'); return false; }
             pmBuild();

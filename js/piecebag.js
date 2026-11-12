@@ -105,7 +105,7 @@
         }
         /* srcs : 봉투에 든 조각 그림들 */
         async function openPieceBag(srcs, label) {                   // label : { t: 봉투 이름, s: 작은 글 } (🆓 기본 봉투 js/stk-basic.js · 없으면 내가 만든 봉투)
-            if (typeof isCoverOpen !== 'undefined' && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
             let imgs;
             try { imgs = await Promise.all(srcs.map(pcbLoad)); } catch (e) { showMsg('조각스티커를 열지 못했어요.'); return false; }
             if (!imgs.length) return false;
