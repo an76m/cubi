@@ -900,10 +900,10 @@
              - 빈 방(기본 벽지 · 책상)에 그 소품만 · 같이 써야 하는 것도 하나 (📷 집게 사진 = 💡 전구줄) · 끌어서 놓아 보고 · 줄에 걸어 봐요
              - 내 책상 · 다른 소품 · 다이어리는 잠깐 숨고 · 아무것도 저장하지 않아요 (dkItemsPut 막음 · 닫으면 🛠 취소와 같이 처음대로) · 오른쪽 위 닫기 = 샵 창 그대로 */
         const DK_TRY_TIP = {
-            peg: '📷 집게 사진을 끌어 <b>💡 전구줄 가까이</b> 놓아 보세요 · 줄에 <b>집혀서</b> 같이 흔들려요',
-            lights: '💡 줄을 끌어 보세요 · 양 끝을 옮기면 줄이 처져요 · 전구를 톡 = 켜고 끄기는 내 책상에서',
-            wall: '🧱 벽에 거는 소품이에요 · 끌어서 원하는 자리에 걸어 보세요',
-            desk: '🪑 실제 크기예요 · 끌어서 책상에 놓아 보세요'
+            peg: '📷 사진을 끌어 전구줄에 걸어 보세요',                         // 한 줄 (도련 11-12 : 길면 안 읽어요)
+            lights: '💡 줄 끝을 끌어 걸어 보세요',
+            wall: '🧱 끌어서 벽에 걸어 보세요',
+            desk: '🪑 끌어서 책상에 놓아 보세요'
         };
         function deskTrial(id) {
             const c = dkCat(id); if (!c || !UI.desk() || DK.edit) return false;
@@ -927,7 +927,7 @@
             let b = document.getElementById('dkTry');
             if (!on) { if (b) b.remove(); document.documentElement.classList.remove('dk-trial'); return; }
             if (!b) { b = document.createElement('div'); b.id = 'dkTry'; b.className = 'dk-try'; document.body.appendChild(b); }
-            b.innerHTML = `<div class="dk-try-tip"><b>🏪 ${htmlEsc(nm || '')} 적용해보기</b><span>${tip}</span><small>내 책상에서는 🛠 책상 꾸미기에서 이렇게 해요 · 여기서는 저장되지 않아요</small></div><button type="button" class="desk-shop-go dk-try-x">닫기</button>`;
+            b.innerHTML = `<div class="dk-try-tip">${tip}</div><button type="button" class="desk-shop-go dk-try-x">닫기</button>`;   // 핵심 한 줄만
             b.querySelector('.dk-try-x').onclick = () => deskEditEnd(false);
         }
         window.deskTrial = deskTrial;
