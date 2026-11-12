@@ -13,6 +13,7 @@
            P.구역 = stk(입구 · 스티커) · tool · gd · desk · P.간판 = [가운데 x, y, 폭, 높이] · P.자리 = { 열쇠: [x, y] } · P.길 = { 구역: [x, y, l|r] } (입구의 다른 구역 가는 팻말) · 모두 그림 px
            구역 하나라도 없거나 모자라면 = 가게를 열지 않아요 (빈 값을 짐작하지 않아요 · 기본상품 샵 창으로) */
         const SHOP_CN = ['stk', 'tool', 'gd', 'desk'];
+        const shopCnOn = c => !(c === 'desk' && UI.phone());                      // 📱 폰 = 책상이 없어서 🪑 책상소품 팻말만 숨겨요 (도련 11-12 · 지우지 않아요 : 나중에 폰 책상 모드가 생기면 이 줄만)
         const SHOP_STK = [['seal', '씰스티커'], ['piece', '조각스티커'], ['paper', '모조지스티커'], ['tape', '마스킹테이프'], ['tk', '떡메모지'], ['memo', '메모지'], ['leaf', '속지'], ['season', '🌸 계절 스티커']];   // 🏷️ 입구 = 스티커 종류 (앱이 아는 종류 · 🌸 계절은 이벤트 때만 · 🌈 배경지는 가게에 안 나와요)
         const SHOP_ICON = { season: '🌸' };
         const SHOP_WAY_IC = {};                                                   // 🪧 팻말 아이콘 = basket.js stkArt('tool' · 'gd' · 'desk') 손그림 (도련 11-07 · 이모지 대신)
@@ -65,7 +66,7 @@
                 const season = typeof SEASON_OPEN !== 'undefined' && SEASON_OPEN;
                 let free = 0; const at = k => { const p = M.at[k]; if (Array.isArray(p)) return p; console.warn('🏪 입구 자리가 없어요 (상품공방 샵 배치) :', k); return [300 + (free++ % 6) * 215, 820]; };
                 SC.spots = SHOP_STK.filter(s => s[0] !== 'season' || season).map(([k, n]) => [k, n, ...at(k), SHOP_ICON[k] || (window.stkArt ? stkArt(k) : '')])
-                    .concat(SHOP_CN.filter(c => c !== 'stk' && Array.isArray(M.ways[c])).map(c => { const [x, y, d] = M.ways[c]; return [c, shopC(c).n, x, y, SHOP_WAY_IC[c] || (window.stkArt ? stkArt(c) : ''), d === 'r' ? 'r' : 'l']; }));   // 🪧 다른 구역 가는 팻말 (이름 = 그 구역 이름 · '코너' 말 안 써요 · 도련 11-04)
+                    .concat(SHOP_CN.filter(c => c !== 'stk' && shopCnOn(c) && Array.isArray(M.ways[c])).map(c => { const [x, y, d] = M.ways[c]; return [c, shopC(c).n, x, y, SHOP_WAY_IC[c] || (window.stkArt ? stkArt(c) : ''), d === 'r' ? 'r' : 'l']; }));   // 🪧 다른 구역 가는 팻말 (이름 = 그 구역 이름 · '코너' 말 안 써요 · 도련 11-04)
             }
             box.innerHTML = SC.spots.map(([k, n, , , ic, d]) => d
                 ? `<button type="button" class="shop-spot shop-way ${d}" data-k="${k}" onclick="shopSpot('${k}')"><span class="sw-board">${d === 'l' ? '<i class="sw-ar">◀</i>' : ''}<i class="shop-ic">${ic}</i><b>${n}</b>${d === 'r' ? '<i class="sw-ar">▶</i>' : ''}</span><i class="sw-pole"></i></button>`   // 🪧 코너 팻말
@@ -76,7 +77,7 @@
         /* 🚶 코너 옮기기 ('' = 스티커 코너 · 입구 · 도련 11-04 연출) : 팻말 화살표 쪽으로 걸어가요 = 지금 코너가 반대쪽으로 밀려나며 흐려지고 → 새 코너가 그쪽에서 들어와요 (돌아올 땐 거꾸로) */
         const shopWayDir = k => { const w = shopC('').ways[k]; return Array.isArray(w) && w[2] === 'r' ? 'r' : 'l'; };   // 그 코너가 입구의 어느 쪽인지
         function shopCorner(k) {
-            const el = document.getElementById('shopScene'); if (!el || !SC.on || SC.busy || (k && (k === 'stk' || !shopC(k))) || SC.corner === k) return;
+            const el = document.getElementById('shopScene'); if (!el || !SC.on || SC.busy || (k && (k === 'stk' || !shopC(k) || !shopCnOn(k))) || SC.corner === k) return;
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display && m.style.display !== 'none') { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); };
             const pic = Promise.race([shopPic(shopC(k).img), new Promise(r => setTimeout(r, 4000))]);   // 그림이 준비되면 (늦어도 4초)
