@@ -6,6 +6,7 @@
      3) 보관함에서 열었어도 뒤에서 첫 화면이 바뀌었는지 한 번 더 물어봐요 (version.txt 를 빼먹고 올려도 다음 열 때 새것 · 갇히지 않게)
    ▶ 쓰는 동안 : 아무것도 확인하지 않아요 · 보관함 안의 파일(?v= 붙은 코드 · 그림)만 꺼내 줘요 · 일기 · 드라이브 · 스티커 그림은 보관하지 않아요 (늘 원래대로)
    ▶ 🚨 비상구 : version.txt 에 'off' 라고 쓰면 모든 기기가 보관함을 지우고 예전처럼 깃허브에서 바로 열어요 · 설정의 '브라우저 저장 지우기'도 보관함 · 서비스 워커를 지워요
+   ▶ 인터넷이 느려도 version.txt 답을 끝까지 기다려요 (도련 11-12 · 예전 2.5초에서 그만두면 폰에서 옛 버전이 열렸어요)
    ▶ 인터넷이 끊기면 : 보관함이 있으면 그것으로 · 없으면 안내 화면
    ※ 이 파일은 꼭 index.html 과 같은 폴더(맨 위)에 있어야 해요 */
 
@@ -29,9 +30,8 @@ self.addEventListener('activate', e => e.waitUntil(caches.delete('malang-kit-v1'
     e.waitUntil(askVersion().then(v => v === 'off' ? offAll() : readyVersion().then(h => h ? null : fetch(INDEX_KEY, { cache: 'no-cache' }).then(x => x.ok ? x.text() : '').then(t => t && build(t)))).catch(() => {}));   // 처음 설치 = 다음에 열 때 바로 보관함에서 열리게 지금 만들어 둬요
 })));
 
-const withTime = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('time')), ms))]);
-async function askVersion() {                                    // version.txt (없거나 늦으면 '')
-    try { const r = await withTime(fetch(BASE + 'version.txt?t=' + Date.now(), { cache: 'no-store' }), 2500); if (!r.ok) return ''; const t = (await r.text()).trim(); return t.length < 40 ? t : ''; } catch (e) { return ''; }
+async function askVersion() {                                    // version.txt : 답이 올 때까지 기다려요 (느려도 · 도련 11-12 : 버전 확인은 꼭 한 번 성공) · 인터넷이 아예 끊겼을 때만 ''
+    try { const r = await fetch(BASE + 'version.txt?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return ''; const t = (await r.text()).trim(); return t.length < 40 ? t : ''; } catch (e) { return ''; }
 }
 async function codeCaches() { return (await caches.keys()).filter(k => k.startsWith(CODE)); }
 async function readyVersion() {                                  // 다 받은 보관함 중 가장 새 것의 버전
@@ -83,7 +83,7 @@ async function openPage(e) {
     const want = await askVersion();
     if (want === 'off') { await offAll(); return fetch(req, { cache: 'no-cache' }).catch(() => new Response(OFFLINE_HTML, { headers: HTML_H })); }   // 🚨 비상구
     const have = await readyVersion();
-    if (have && (want === have || !want)) {                         // 같은 버전 (또는 version.txt 를 못 물었어요 = 인터넷이 느리거나 끊김) → 보관함
+    if (have && (want === have || !want)) {                         // 같은 버전 (또는 version.txt 를 못 물었어요 = 인터넷이 끊김) → 보관함
         const r = await cachedIndex(have);
         if (r) {
             if (want) e.waitUntil(fetch(INDEX_KEY, { cache: 'no-cache' }).then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
