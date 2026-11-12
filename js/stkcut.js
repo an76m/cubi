@@ -141,7 +141,8 @@
     addEventListener('pointermove', e => {
         if (!S.held || S.down || e.pointerType === 'touch') return;   // 🖱 ✏️ 마우스 · 펜 호버는 칼이 따라와요
         const on = skPage(e.clientX, e.clientY); document.body.classList.toggle('sk-follow', on);
-        if (on) knifeAt(e.clientX, e.clientY);
+        if (on) { knifeAt(e.clientX, e.clientY); return; }
+        if (e.pointerType === 'mouse' && window.dkwAirOut && S.kind) { const r = spRect(); if (!(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom)) dkwAirOut('knife:' + S.kind, S.kn); }   // ✋ 📔 다이어리모드 = 페이지 밖으로 나가면 공중에 떠서 마우스를 따라와요 (도련 11-12 · js/deskgd.js)
     }, true);
     addEventListener('pointerdown', e => {
         if (!S.held || S.down || S.busy || e.button > 0 || !skPage(e.clientX, e.clientY, e.target)) return;

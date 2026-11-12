@@ -694,6 +694,13 @@
             if (window.gdLetGo) gdLetGo(); if (window.skLetGo) skLetGo();
             drawWith(id, e.clientX, e.clientY);
         }, true);
+        /* ✋ 📔 다이어리모드 🖱 : 손에 든 필기구가 페이지 밖으로 = 공중에 떠서 마우스를 따라와요 (도련 11-12 · js/deskgd.js dkwAirOut) · 쓰는 중 · 꾹 집어 옮기는 중 · 구석 펜꽂이 위는 그대로 */
+        addEventListener('pointermove', e => {
+            if (e.pointerType !== 'mouse' || e.buttons || !pcS.held || pcS.carry || pcS.press || pcS.memo || dw.cur || dw.erasing || !pcDesk() || !window.dkwAirOut) return;
+            const r = spRect(); if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
+            if (pcOverMini(e.clientX, e.clientY)) return;
+            dkwAirOut(pcS.held.id, drq('pcHeld'));
+        }, true);
         window.pcRectOf = id => { const h = drq('pcHeld'); if (pcS.held && pcS.held.id === id && h && !h.hidden) return h.getBoundingClientRect(); const L = pcS.lay.find(x => x.id === id && x.el.isConnected); return L ? L.el.getBoundingClientRect() : null; };   // ✋ 책상 = 다이어리를 접을 때 그 자리에서 떠요 (js/deskgd.js dkwFloatAll)
         window.pcOutIds = () => pcDesk() ? pcS.lay.filter(x => x.el.isConnected).map(x => x.id).concat(pcS.held && !pcS.memo ? [pcS.held.id] : []) : [];
         window.pcReturn = id => {                                              // ↩ 제자리로 (js/deskgd.js 꺼낸 문구 정리)

@@ -352,7 +352,7 @@
             el.style.left = x + 'px'; el.style.top = y + 'px';
             el._ang = pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28;
             el._tip = pen && P && P.tip ? [P.tip[0] - sz[0] / 2, P.tip[1] - sz[1] / 2] : [0, 0];   // 연필심 = 마우스 끝 (손에 든 것처럼)
-            document.body.appendChild(el); DKW.fl.set(id, el); dkwFlWire(el); if (dkwDiaryUp()) dkwSel(id); dkwDeskSoon();   // 🪑 책상모드에서 꺼내면 = 마우스에 안 붙어요 (도련 11-12)
+            document.body.appendChild(el); DKW.fl.set(id, el); dkwFlWire(el); if (dkwDiaryUp()) dkwSel(id, true); dkwDeskSoon();   // 🪑 책상모드에서 꺼내면 = 마우스에 안 붙어요 (도련 11-12)
             return el;
         }
         function dkwFloatOff(id, quiet) { const el = DKW.fl.get(id); if (!el) return false; el.remove(); DKW.fl.delete(id); if (DKW.sel === id) DKW.sel = null; if (!quiet) dkwDeskSoon(); return true; }
@@ -360,7 +360,10 @@
         /* 🪑 책상모드(책상이 보여요 · 다이어리가 접힌 채 떠 있어도)에서는 마우스에 붙지 않아요 (도련 11-12) · 📔 다이어리모드(표지를 펼쳐 바탕이 깔림 = html.dk-bgon)에서만 따라와요
            책상모드에서 고른 것(톡)은 표시만 → 📔 다이어리 톡 · 표지 밀기 = 든 채로 펼치기 (1134 : 로그인 첫 번 접힌 채 떠 있을 때 붙은 손이 표지 밀기를 먹었어요) */
         const dkwDiaryUp = () => document.documentElement.classList.contains('dk-bgon');
-        function dkwSel(id) { DKW.sel = id || null; DKW.fl.forEach((el, k) => el.classList.toggle('sel', k === DKW.sel)); if (id && DKW.mouse && dkwDiaryUp()) dkwFollow(DKW.mouse.x, DKW.mouse.y); }
+        function dkwSel(id, quiet) { const was = DKW.sel; DKW.sel = id || null; DKW.fl.forEach((el, k) => el.classList.toggle('sel', k === DKW.sel)); if (id && DKW.mouse && dkwDiaryUp()) dkwFollow(DKW.mouse.x, DKW.mouse.y); if (id && id !== was && !quiet && window.toolGlow) toolGlow(DKW.fl.get(id)); }   // ✨ 고르면 핑크빛으로 한 번 반짝 (손에 들 때와 같은 toolGlow · 도련 11-12)
+        /* ✋ 📔 다이어리모드 : 손에 든 문구가 페이지 밖으로 나가면 = 공중에 떠서 마우스를 따라와요 (🪡 핀셋처럼 화면 전체 · 도련 11-12) · ✏️ 필기구 (js/draw.js) · 🔪 칼 (js/stkcut.js) 도 여기로 (다른 문구는 js/skins.js gdLetAir)
+           → 페이지 톡 = 그 자리에서 다시 손에 · 책상(다이어리 밖) 톡 = 고르기 풀림 (그 톡으로 책상모드로 넘어가지 않아요 · js/drive.js dkwAteAt) */
+        window.dkwAirOut = (id, el) => !!id && !!el && dkwDesk() && dkwDiaryUp() && !!window.dkwAirPut && window.dkwAirPut(id, el, true);
         function dkwFollow(x, y) {
             const el = DKW.sel && DKW.fl.get(DKW.sel); if (!el) return;
             const a = (el._ang || 0) * Math.PI / 180, t = el._tip || [0, 0], ox = t[0] * Math.cos(a) - t[1] * Math.sin(a), oy = t[0] * Math.sin(a) + t[1] * Math.cos(a);
@@ -374,13 +377,13 @@
         addEventListener('pointerdown', e => {
             if (!DKW.sel || e.button > 0 || !dkwDesk()) return;   // 👆 손가락도 (도련 11-12 : 집어 든 다음 톡 = 그 자리)
             const t = e.target, id = DKW.sel;
-            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol, #coverPage')) return;   // 📖 겉표지 = 밀어서 펼치기 그대로   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
+            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol, #coverPage, #dkLock')) return;   // 📖 겉표지 = 밀어서 펼치기 그대로   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
             const pg = t.closest && t.closest('#canvasArea');
             if (pg && dkwOpenNow()) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 📔 펼친 페이지 = 그 자리에서 쓰기
             const h = t.closest && t.closest('#deskStage .desk-item');
             if (h && window.dkOutsFor && dkOutsFor(h).some(o => o.id === id)) return;   // 들어갈 보관함 = 넣기 (js/deskmove.js)
             if (!dkwDiaryUp()) { dkwSel(null); return; }                          // 🪑 책상모드 = 붙어 있지 않으니 고른 표시만 풀고 그 톡은 그대로 (서랍 · 소품 기능)
-            e.preventDefault(); e.stopPropagation(); dkwSel(null);                 // 그 밖 = 그 자리에 내려놔요
+            e.preventDefault(); e.stopPropagation(); dkwSel(null); window.dkwAteAt = Date.now();   // 그 밖 = 그 자리에 내려놔요 (이 톡은 고르기 풀기만 · 책상모드로 안 넘어가요)
         }, true);
         function dkwFlWire(el) {
             const id = el.dataset.id;

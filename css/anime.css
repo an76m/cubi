@@ -678,7 +678,8 @@ html.desk-on.dk-bgon:not(.dk-landing):not(.desk-edit) .dk-lock { display: block;
 .dk-lock.on { background: #ffe3ee; border-color: #e88fb0; }
 .dk-lock.on .dkl-k { left: 45px; background: #f7a8c4; border-color: #c2457a; }
 .dk-lock.on .dkl-k svg { rotate: 90deg; }
-.dk-lock.on .dkl-t { right: auto; left: 11px; color: #c2457a; }   /* 다이어리를 펼쳐도 보여요 (도련 10-31) · 창(.modal 1000)보다는 아래 */
+.dk-lock.on .dkl-t { right: auto; left: 11px; color: #c2457a; }
+html.desk-on.dk-bgon .sk-tip { top: 58px; }   /* 🔪 칼 안내 = 잠금 스위치 아래로 (겹쳤어요 · 도련 11-12) */   /* 다이어리를 펼쳐도 보여요 (도련 10-31) · 창(.modal 1000)보다는 아래 */
 /* 📔 책상 = 다이어리 보관소 (도련 10-30 · js/desk.js dkVolsPaint) : 펼쳐 두지 않은 권 = 가벼운 표지 그림 (파스텔 바인더 · 그 권 색 · 해 이름판) */
 .dk-vol { position: absolute; cursor: pointer; touch-action: none; user-select: none; }
 html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }
