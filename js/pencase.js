@@ -46,8 +46,9 @@
             prefSet(PK_KEY, PK_LOCAL, ids.length ? ids.filter(id => id !== '∅') : ['∅']);   // 하나도 없으면 '∅' (= 가진 것 모두로 돌아가지 않게)
         }
         /* 펜꽂이에 꽂을 순서 : 색연필 · 형광펜 · 지우개를 번갈아 섞고 (부채꼴로 기대면 고르기 쉬워요)  */
+        const pkCupOf = t => ({ id: t.id, tool: t.tool, color: t.color, w: t.w, kind: t.kind, tip: t.tip, box: t.box });   // 펜꽂이에 꽂는 한 자루 (꽂을 때마다 새로)
         function pkCupList() {
-            const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(t => ({ id: t.id, tool: t.tool, color: t.color, w: t.w, kind: t.kind, tip: t.tip, box: t.box }));
+            const on = new Set(pkRead()), g = k => pkAll().filter(t => t.tool === k && on.has(t.id)).map(pkCupOf);
             const pens = g('pen'), his = g('hi'), ers = g('erase'), out = [];
             while (pens.length || his.length) { if (pens.length) out.push(pens.shift()); if (pens.length) out.push(pens.shift()); if (his.length) out.push(his.shift()); }
             ers.forEach((e, i) => out.splice(Math.round((i + 1) * out.length / (ers.length + 1)) + i, 0, e));
@@ -214,7 +215,7 @@
             if (Array.isArray(v) && v.length && !v.includes(id) && v.filter(x => x !== '∅').length < PK_MAX) pkWrite(v.filter(x => x !== '∅').concat([id]));   // 그리기 목록 (🪑 책상 펜꽂이는 따로 · js/deskgd.js 문구의 집)
             if (window.pcRefill) pcRefill();
         }
-        window.openPencase = openPencase; window.pkCupList = pkCupList;
+        window.openPencase = openPencase; window.pkCupList = pkCupList; window.pkCupOne = id => { const t = pkAll().find(x => x.id === id); return t ? pkCupOf(t) : null; };   // 🏠 연습장 펜꽂이 (js/gdtry.js)
         window.pkIsId = pkIsId; window.pkRead = pkRead; window.pkWrite = pkWrite; window.pkSvg = pkSvg; window.pkOwnIds = pkOwnIds; window.pkHas = () => pkOwnIds().length > 0; window.pkShopList = pkShopList; window.pkAdd = pkAdd;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

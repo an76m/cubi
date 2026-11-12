@@ -40,8 +40,8 @@
         /* ---------- 그리기 모드 ---------- */
         function openDraw() {
             if (dw.on) { penWake(true); return; }   // ✏️ 이미 필기 중(쉬는 중 포함) = 펜꽂이를 다시 펼쳐요 (쓴 것 · 구석 펜꽂이 그대로)
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            if (window.pkHas && !pkHas()) {                                      // ✏️ 필기구가 없으면 펜꽂이를 못 써요 (도련 10-31 · 🏪 기본상품 샵에서 받아요)
+            if (spKeep() && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }   // 🏠 연습장(저장 안 하는 공간)은 다이어리 · 가진 필기구와 상관없어요 (js/space.js)
+            if (spKeep() && window.pkHas && !pkHas()) {                                      // ✏️ 필기구가 없으면 펜꽂이를 못 써요 (도련 10-31 · 🏪 기본상품 샵에서 받아요)
                 showAsk('✏️ 아직 필기구가 없어요.<br><span style="font-size:12px;color:#777;">🏪 기본상품 샵 → 문구에서 색연필 · 형광펜 · 지우개를 받아 와요</span>', '🏪 받으러 가기', '닫기').then(go => { if (go && window.gdCabShop) gdCabShop(); });
                 return;
             }
@@ -53,7 +53,7 @@
             penRender();
         }
         function penMkLayer() {
-            const canvas = drq('canvasArea');
+            const canvas = spPage();
             const svg = document.createElementNS(DRAW_NS, 'svg');
             svg.id = 'penLayer'; svg.setAttribute('class', 'draw-layer');
             svg.innerHTML = '<g></g><circle class="draw-ring" r="10" cx="-99" cy="-99"/>';
@@ -100,7 +100,7 @@
         }
         function penWake(open) {
             if (!dw.on) return;
-            if (!dw.svg) penMkLayer(); else if (!dw.svg.isConnected) drq('canvasArea').appendChild(dw.svg);   // 쉬는 사이 페이지를 넘겼으면 새 페이지 위에
+            if (!dw.svg) penMkLayer(); else if (!dw.svg.isConnected) spPage().appendChild(dw.svg);   // 쉬는 사이 페이지를 넘겼으면 새 페이지 위에
             if (dw.rest) {
                 dw.rest = false; document.body.classList.remove('pen-rest'); document.body.classList.add('draw-on');
                 const r = drq('pcRoom'); if (r) r.classList.remove('rest');
@@ -111,7 +111,7 @@
         window.penRest = penRest;
         function penPoint(e) { return penPointXY(e.clientX, e.clientY); }
         function penPointXY(x, y) {
-            const c = drq('canvasArea'), r = c.getBoundingClientRect();
+            const c = spPage(), r = c.getBoundingClientRect();
             dw.k = r.width / (c.offsetWidth || r.width) || 1;
             return [(x - r.left) / dw.k, (y - r.top) / dw.k];
         }
@@ -161,7 +161,7 @@
         }
         function penUp(e) {
             if (e) e.stopPropagation();
-            if (dw.erasing) { dw.erasing = false; if (!dw.erased) dw.hist.pop(); if (e && e.pointerType !== 'mouse') penRing(null); penRender(); if ((dw.inks || []).some(d => d.dirty) && typeof saveData === 'function') saveData(false); dw.inks = null; }
+            if (dw.erasing) { dw.erasing = false; if (!dw.erased) dw.hist.pop(); if (e && e.pointerType !== 'mouse') penRing(null); penRender(); if ((dw.inks || []).some(d => d.dirty)) spSave(false); dw.inks = null; }
             if (dw.snap) { dw.snap = null; rlTell(null); }
             if (dw.cur) { dw.hist.push(dw.strokes); dw.strokes = dw.strokes.concat([dw.cur]); dw.cur = null; penRender(); }
         }
@@ -219,7 +219,7 @@
             return { bw, bh, strokes };
         }
         function penInks() {                                                       // 지우기 시작할 때 페이지의 글씨 그림들
-            const c = drq('canvasArea'); if (!c) return [];
+            const c = spPage(); if (!c) return [];
             return [...c.querySelectorAll(':scope > .element-box')].filter(penIsInk).map(el => { const d = penInkParse(el); return d && d.strokes.length ? Object.assign(d, { el }) : null; }).filter(Boolean);
         }
         function penEraseInk(pt, r) {
@@ -274,14 +274,14 @@
                 return `<path d="${d}" ${Object.keys(a).map(k => `${k}="${a[k]}"`).join(' ')}/>`;
             }).join('');
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bw} ${bh}" width="${bw}" height="${bh}"><!--malang-draw-->${paths}</svg>`;
-            if (!addImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg))) return;
-            const el = document.querySelector('#canvasArea .element-box:last-child'); if (!el) return;
+            if (!spAdd('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg))) return;
+            const el = spPage().querySelector('.element-box:last-child'); if (!el) return;
             const img = el.querySelector('img');
             el.style.width = bw + 'px'; el.style.height = bh + 'px';
             el.dataset.posX = 0; el.dataset.posY = 0; el.dataset.scale = 1; el.dataset.rotation = 0;
             el.style.transform = 'translate(0px, 0px) scale(1) rotate(0deg)';
             // 그린 자리에 정확히 놓기 (화면 확대 · 여백까지 계산)
-            const c = drq('canvasArea').getBoundingClientRect(), k = dw.k || 1, ir = img.getBoundingClientRect();
+            const pg = spPage(), c = pg.getBoundingClientRect(), k = c.width / (pg.offsetWidth || c.width) || 1, ir = img.getBoundingClientRect();
             const ew = bw + (bw - ir.width / k), eh = bh + (bh - ir.height / k);
             el.style.width = ew + 'px'; el.style.height = eh + 'px';
             const ir2 = img.getBoundingClientRect();
@@ -293,13 +293,13 @@
                 const r3 = img.getBoundingClientRect(), dx = (c.left + x0 * k - r3.left) / k, dy = (c.top + y0 * k - r3.top) / k;
                 if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
                 const x = +el.dataset.posX + dx, y = +el.dataset.posY + dy; el.dataset.posX = x; el.dataset.posY = y;
-                el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(0deg)`; saveData(false);
+                el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(0deg)`; spSave(false);
                 if (n) fix(n - 1);
             });
             fix(1);
             if (selectedElement) selectedElement.classList.remove('selected');
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
-            saveData(false);
+            spSave(false);
         }
         function penClose() {
             dw.on = false; dw.rest = false; dw.cur = null; dw.snap = null; dw.strokes = []; dw.hist = []; dw.ring = null;
@@ -320,7 +320,7 @@
         const pcS = { tools: [], held: null, tip: null, carry: null, press: null, drag: null, z: 10 };
         const pcSvg = o => o.id && window.gdPicSvg ? gdPicSvg(o.id) : '';
         const pcTipOf = o => o.tip;                                             // 그림 안 닿는 점 = 쓰는끝 (크기 상자 안 · js/gdpic.js gdPicTip)
-        const pcList = () => window.pkCupList ? pkCupList() : [];          // 👝 보관함에서 고른 것만 (js/pencase.js · 🧁 상품 필기구 · 색 = 그 상품 색)
+        const pcList = () => spCup() || (window.pkCupList ? pkCupList() : []);          // 👝 보관함에서 고른 것만 (js/pencase.js · 🧁 상품 필기구 · 색 = 그 상품 색)
         function pcBuild() {
             let r = drq('pcRoom'); if (r) return r;
             r = document.createElement('div'); r.id = 'pcRoom'; r.className = 'pc-room'; r.hidden = true;
@@ -330,7 +330,7 @@
                 + `<div class="pc-held" id="pcHeld" hidden></div><p class="pc-tipnote" id="pcTipNote" hidden>다 쓰면 손에 든 것을 꾹 집어 <b>구석 펜꽂이</b>에 꽂아요 ✏️</p>`
                 + `<button type="button" class="pc-mini" id="pcMini" hidden aria-label="펜꽂이 (꽂으면 완료)"><span class="pc-mini-tops">${pcList().slice(0, 3).map(o => `<i>${pcSvg(o)}</i>`).join('')}</span><span class="pc-mini-cup"></span></button>`;
             document.body.appendChild(r);
-            r.querySelector('.pc-box').onclick = () => { if (pcS.held) return; if (UI.desk() && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
+            r.querySelector('.pc-box').onclick = () => { if (pcS.held || !spKeep()) return; if (UI.desk() && window.dkwTrayOpen) { dkwTrayOpen(); return; } if (window.openPencase) openPencase(); };   // 🪑 책상 = 서랍장 문구함 서랍 (js/deskgd.js)   // 👝 보관함 : 꽂을 필기구 고르기 (js/pencase.js · 닫으면 다시 꽂아요)
             r.querySelector('.pc-x').onclick = () => { if (pcS.memo) pcMemoSkip(); else penClose(); };
             drq('pcHeld').addEventListener('pointerdown', e => {               // ✏️ 내려놓은 필기구를 톡 = 다시 들기 (다른 문구는 내려놔요 · 끌면 그대로 따라와요)
                 const o = pcS.laid; if (!o || e.button > 0) return;
@@ -350,8 +350,8 @@
         }
         /* 페이지 가운데 길쭉한 펜꽂이 · 작은 펜꽂이는 페이지 오른쪽 아래 (하단 메뉴 밖으로 안 나가게) */
         function pcLayout() {
-            const pg = drq('canvasArea'), cup = drq('pcCup'), mini = drq('pcMini'), note = drq('pcTipNote'); if (!pg || !cup) return;
-            const r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect(), cw = cup.offsetWidth, ch = cup.offsetHeight;   // 📱 폰 = 보이는 오른쪽 쪽 가운데
+            const pg = spPage(), cup = drq('pcCup'), mini = drq('pcMini'), note = drq('pcTipNote'); if (!pg || !cup) return;
+            const r = spRect(), cw = cup.offsetWidth, ch = cup.offsetHeight;   // 📱 폰 = 보이는 오른쪽 쪽 가운데
             cup.style.left = Math.round(r.left + r.width / 2 - cw / 2) + 'px';
             cup.style.top = Math.round(Math.max(8, r.top + r.height / 2 - ch / 2 + 10)) + 'px';
             const vv = window.visualViewport, bot = Math.min(r.bottom, vv ? vv.offsetTop + vv.height : innerHeight);   // 📱 자판이 올라오면 그 위로
@@ -665,7 +665,7 @@
             openDraw(); if (!dw.on) return false;
             const o = (pcS.tools || []).find(x => x.id === w.id);
             if (!o) return false;
-            const pg = drq('canvasArea'), r = window.dyVisRect ? dyVisRect(pg.getBoundingClientRect()) : pg.getBoundingClientRect();
+            const r = spRect();
             pcPick(o, { pointerId: -7, clientX: x != null ? x : r.left + r.width / 2, clientY: y != null ? y : r.top + r.height / 2 });
             pcS.carry = null; drq('pcHeld').classList.remove('carry');                  // 손에 든 채 가운데 (🖱 마우스면 따라와요 · 👆 누른 곳에서 써요)
             if (window.dkwDeskSoon) dkwDeskSoon();
@@ -674,7 +674,7 @@
         /* ---------- ✏️ 🪑 책상 : 필기구 여러 개 꺼내기 (도련 11-03 · 현실처럼) ----------
            손에는 하나 · 다른 필기구를 뽑거나 다른 문구를 들거나 꾹 집어 옮겨 놓으면 = 그 자리(페이지)에 놓여요 · 놓인 필기구 톡 = 다시 들기
            치우기 = 다이어리 아래 '↩ 꺼낸 문구 정리' (js/deskgd.js) · 앱을 다시 켜면 없어요 (저장하지 않아요) · 📱 폰은 예전 그대로 */
-        const pcDesk = UI.desk;
+        const pcDesk = () => UI.desk() && spKeep();                         // 🏠 연습장에서는 책상에 놓지 않아요
         pcS.lay = [];                                                         // [{ id, el }] 페이지에 놓인 필기구
         function pcLayDown() {
             const o = pcS.held, h = drq('pcHeld'), ip = drq('innerPage'); if (!o || !h || !ip) return;
@@ -701,5 +701,5 @@
             if (pcS.held && pcS.held.id === id) { penFlush(); pcStow(); if (dw.on) penRest(); }
             if (window.dkwDeskSoon) dkwDeskSoon();
         };
-        window.openDraw = openDraw; window.drawWith = drawWith;
+        window.openDraw = openDraw; window.drawWith = drawWith; window.penClose = penClose; window.penDone = penDone; window.penOn = () => dw.on; window.penAttach = penAttach;
         document.addEventListener('pointerdown', e => { if (dw.on && e.target.closest && e.target.closest('.toolbar')) { penFlush(); } }, true);   // 🧭 하단 메뉴를 누르면 : 쓴 것만 페이지에 붙여요 · 필기구는 손에 그대로 (도련 10-21 · 🪟 고르는 창 모드는 ✓ 완료)

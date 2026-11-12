@@ -7,11 +7,11 @@
 .gdt-pg.r { border-radius: 0 14px 14px 0; box-shadow: inset 18px 0 22px -18px rgba(120, 80, 100, .25); }
 .gdt-book.one .gdt-pg { border-radius: 14px; }
 .gdt-book.bnd .gdt-pg { background: #fffdf8 repeating-linear-gradient(90deg, transparent 0 47px, #f4c9d8 47px 48px, transparent 48px), repeating-linear-gradient(#fffdf8 0 31px, #e9e1ec 31px 32px); border-radius: 6px 14px 14px 6px; }
-.gdt-ink, .gdt-lay { position: absolute; inset: 0; width: 100%; height: 100%; }
-.gdt-ink { pointer-events: none; }
+.gdt-page, .gdt-lay { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gdt-lay { pointer-events: none; } .gdt-lay > * { pointer-events: auto; }
 .gdt-lay > * { position: absolute; }
 .gdt-hand { position: absolute; z-index: 5; pointer-events: none; filter: drop-shadow(3px 5px 4px rgba(90, 50, 70, .28)); transition: opacity .15s; }
-.gdt-hand svg, .gdt-ruler svg, .gdt-clip svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.gdt-hand svg, .gdt-clip svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .gdt-hand.away { opacity: 0; }
 .gdt-hand.snap { filter: drop-shadow(0 0 6px #ff7aa8); }
 .gdt-hand .gdt-b1, .gdt-hand .gdt-b2, .gdt-hand .gdt-a1, .gdt-hand .gdt-a2 { transition: rotate .1s; }
@@ -29,11 +29,13 @@
 .gdt-sheet { filter: drop-shadow(1px 2px 2px rgba(90, 50, 70, .2)); }
 .gdt-cut { z-index: 2; cursor: grab; filter: drop-shadow(3px 6px 5px rgba(90, 50, 70, .3)); }
 .gdt-tape { height: 14px; transform-origin: 0 7px; border-radius: 2px; background: rgba(240, 248, 255, .78) repeating-linear-gradient(90deg, transparent 0 6px, rgba(160, 190, 220, .35) 6px 7px); box-shadow: 0 0 0 1px rgba(170, 195, 220, .5); pointer-events: none; }
-.gdt-ruler { z-index: 2; cursor: grab; filter: drop-shadow(2px 4px 4px rgba(90, 50, 70, .25)); }
-.gdt-rot { position: absolute; left: 50%; top: -30px; translate: -50% 0; width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-style: normal; font-weight: 900; font-size: 18px; line-height: 26px; text-align: center; cursor: grab; rotate: inherit; }
 .gdt-clip { z-index: 3; cursor: pointer; filter: drop-shadow(2px 3px 3px rgba(90, 50, 70, .3)); }
 .gdt-slot { width: 18px; height: 18px; border-radius: 50%; border: 2px dashed #e7a3bb; pointer-events: none; }
 .gdt-hole { width: 18px; height: 18px; border-radius: 50%; background: #f6dce6; box-shadow: inset 1px 2px 3px rgba(120, 70, 90, .45); pointer-events: none; }
 .gdt-chad { width: 14px; height: 14px; border-radius: 50%; background: #fffdf8; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); pointer-events: none; }
 .gdt-tip { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; max-width: calc(100vw - 32px); padding: 9px 18px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 18px rgba(160, 90, 110, .2); pointer-events: none; }
 .gdt-x { position: fixed; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
+
+/* 🏠 진짜 필기구 · 자를 빌려 쓰는 동안 (js/draw.js 펜꽂이 · 손 · js/ruler.js) : 연습장 위로 */
+body.gdt-on .pc-room, body.gdt-on .rl-ruler, body.gdt-on .rl-say { z-index: 2147483001; }
+body.gdt-on #customAlertModal { z-index: 2147483002; }body.gdt-on .rl-fit { display: none; }   /* 📏 cm 맞추기 = 이 기기 설정 저장 → 연습장에선 안 보여요 */
