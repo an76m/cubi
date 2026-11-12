@@ -1122,7 +1122,7 @@
            - 바뀐 게 없으면 메모리 값이 같아서 드라이브에 올리지 않아요 · 아직 못 읽은 날짜는 saveData 가 저장하지 않아요 */
         let pageQuickTimer = 0;
         function pageQuickSave() {
-            if (typeof isCoverOpen === 'undefined' || !isCoverOpen) return;
+            if (typeof isCoverOpen === 'undefined' || !isCoverOpen || !spKeep()) return;   // 🏠 🏪 연습장(저장 안 하는 공간)에서 손을 떼도 다이어리는 저장하지 않아요 (js/space.js)
             clearTimeout(pageQuickTimer);
             pageQuickTimer = setTimeout(() => { try { if (isCoverOpen && !turn) saveData(false); } catch (e) { console.warn(e); } }, 1500);
         }

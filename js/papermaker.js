@@ -78,7 +78,7 @@
         /* src : 내스티커의 모조지스티커 한 장 · o.el : 📒 수첩 시트의 종이 그림 (그 위에 겹쳐요) · o.down : 누른 채로 열었으면 그 손가락으로 바로 칼집 */
         async function openPaperSheet(src, o) {
             o = o || {};
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
+            if (!spOpen()) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }   // 🏠 지금 공간 (진짜 다이어리 · 🏪 연습장 · js/space.js)
             const im = await pmLoad(src);
             if (!im) { showMsg('모조지스티커를 열지 못했어요.'); return false; }
             pmBuild();
@@ -104,7 +104,7 @@
             S.on = false; S.drag = null; S.edit = null; cancelAnimationFrame(S.raf);
             const r = pmq('pmRoom'); if (r) r.classList.remove('show');
             document.body.classList.remove('fc-lock');
-            if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
+            if (spKeep() && window.stkReturn) stkReturn();                    // ✨ 스티커 창에서 왔으면 다시 떠요 (🏪 연습장은 아니에요)
         }
         /* 종이는 배경(화면) 한가운데 · 화면이 바뀌어도 (아이패드 돌리기 등) 가운데에 화면 안 크기로 */
         function pmLayout() {
@@ -268,7 +268,7 @@
                 return;
             }
             if (!pmInSheet(P, 0) && window.gdToolTap) {                                    // 🪡 종이 밖(✂️ 가위를 들면 넓어지는 아래쪽)에 놓인 페이지 문구 = 그 문구를 들어요
-                const tool = document.elementsFromPoint(P[0], P[1]).find(n => n.matches && n.matches('#innerPage > .bd-tool:not(.held)'));
+                const tool = document.elementsFromPoint(P[0], P[1]).find(n => n.matches && n.matches('.bd-tool:not(.held)') && n.parentElement === spHost());
                 if (tool) { gdToolTap(tool, e); return; }
             }
             const tp = pmTape();                                                           // 위쪽 테이프 : 종이 옮기기 (📒 수첩에는 없어요)
@@ -331,7 +331,7 @@
                 onCancel: () => { back('조금만 더! 끝까지 떼어야 해요'); },
                 onDrop: (cx, cy, rot) => {
                     if (!S.on) return;
-                    const away = !!S.gone, pg = pmq('canvasArea'), r = pg && pg.getBoundingClientRect();
+                    const away = !!S.gone, pg = spPage(), r = pg && pg.getBoundingClientRect();
                     if (st.bg && r) {                                                        // 📄 배경 모조지는 커서 가운데가 페이지 밖으로 나가기 쉬워요 → 종이가 페이지에 걸쳐 있으면 가운데를 페이지 안으로
                         const hw = st.w * S.SC / 2, hh = st.h * S.SC / 2;
                         if (cx + hw > r.left && cx - hw < r.right && cy + hh > r.top && cy - hh < r.bottom) { cx = Math.min(r.right - 12, Math.max(r.left + 12, cx)); cy = Math.min(r.bottom - 12, Math.max(r.top + 12, cy)); }
@@ -380,11 +380,11 @@
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 (js/piecebag.js 와 같은 방법) */
         function pmStick(st) {
-            const S = pmS, pg = pmq('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
+            const S = pmS, pg = spPage(), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
             const q = Math.min(1, PM_OUT / Math.max(st.img.width, st.img.height)), o = pmMk(st.img.width * q, st.img.height * q);
             o.getContext('2d').drawImage(st.img, 0, 0, o.width, o.height);
             S.pieces = S.pieces.filter(p => p !== st);
-            if (!addImage(cvSmall(o))) return;                                  // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
+            if (!spAdd(cvSmall(o))) return;                                  // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
             const el = pg.querySelector('.element-box:last-child');
             if (el) {
                 el.dataset.float = 1;                                                          // 📄 모조지스티커 표시 (다듬기 종류 · 옮길 때 살짝 떠요)
@@ -403,7 +403,7 @@
                     el.dataset.bgp = 1;
                 }
             }
-            if (typeof saveData === 'function') saveData(false);
+            spSave(false);
             if (S.own && window.ownPaper) pmOwnSave(el);                        // 🎒 오린 자리는 영원히 비어요 · 남은 종이는 계속 (js/own.js)
             pmBuzz(8);
             pmSay('꾹! 붙였어요 ✨ 다른 그림도 오려 보세요');

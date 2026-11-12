@@ -83,14 +83,14 @@
     }
     /* 🗄️ 문구함 '칼' 서랍을 톡 (js/skins.js) : 보이는 쪽 가운데에서 칼을 들고 시작 */
     function open(x, y, kind) {
-        if (!isCoverOpen) return;
+        if (!spOpen()) return;                                            // 🏠 지금 공간 (진짜 다이어리 · 🏪 연습장 · js/space.js)
         if (window.tmClose) tmClose();
         if (typeof selectedElement !== 'undefined' && selectedElement) { selectedElement.classList.remove('selected'); selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         const r = build(); S.room = r; S.cv = q('skLine'); S.kn = q('skKnife'); S.on = true; S.pts = null; S.down = false;
         if (!knKind(kind)) return;                                       // 🧁 칼 상품이 없어요
         S.kind = knKind(kind).id; S.kn.innerHTML = knifeSvg(kind); knTipSet();   // 고른 칼 그대로
         r.hidden = false; S.kn.classList.remove('gone', 'in'); size();
-        if (x == null) { const b0 = q('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; x = b.left + b.width / 2; y = b.top + b.height / 2; }   // 📱 폰 = 보이는 오른쪽 쪽
+        if (x == null) { const b = spRect(); x = b.left + b.width / 2; y = b.top + b.height / 2; }   // 📱 폰 = 보이는 오른쪽 쪽
         knifeAt(x, y);
         const t = q('skTip'), say = t.querySelector('.sk-say'); if (say) say.remove();
         if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
@@ -137,7 +137,7 @@
         if (S.kn) { S.kn.classList.toggle('held', S.held); if (S.at) knifeAt(S.at[0], S.at[1]); if (S.held && window.toolGlow) toolGlow(S.kn); }
     }
     const SK_NO = 'button, input, textarea, select, a, .page-header, .tap-menu, .bd-tool, .rl-ruler, .sk-knife, .sk-tip, .modal';
-    const skPage = (x, y, t) => { t = t || document.elementFromPoint(x, y); return !!t && !!t.closest && !!t.closest('#innerPage') && !t.closest(SK_NO); };
+    const skPage = (x, y, t) => { t = t || document.elementFromPoint(x, y); return !!t && !!t.closest && spHost().contains(t) && !t.closest(SK_NO); };
     addEventListener('pointermove', e => {
         if (!S.held || S.down || e.pointerType === 'touch') return;   // 🖱 ✏️ 마우스 · 펜 호버는 칼이 따라와요
         const on = skPage(e.clientX, e.clientY); document.body.classList.toggle('sk-follow', on);
@@ -150,7 +150,7 @@
     }, true);
     /* 그은 선이 지나간 스티커 중 맨 위부터 하나씩 잘라 봐요 → 처음 잘린 것 하나만 */
     function crossed(pts) {
-        const ca = q('canvasArea'); if (!ca) return [];
+        const ca = spPage(); if (!ca) return [];
         let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
         pts.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
         const all = [...ca.querySelectorAll(':scope > .element-box')];
@@ -224,7 +224,7 @@
     async function split(el, pts) {
         const kind = cutKind(el); if (!kind) return false;
         const g = await render(el, kind), { c, R, W, H, B, P } = g;
-        const ca = q('canvasArea'), car = ca.getBoundingClientRect(), k = car.width / (ca.offsetWidth || car.width) || 1;
+        const ca = spPage(), car = ca.getBoundingClientRect(), k = car.width / (ca.offsetWidth || car.width) || 1;
         const s = parseFloat(el.dataset.scale) || 1, rot = (parseFloat(el.dataset.rotation) || 0) * Math.PI / 180;
         const px = parseFloat(el.dataset.posX) || 0, py = parseFloat(el.dataset.posY) || 0, cx = px + W / 2, cy = py + H / 2;
         const br = el.getBoundingClientRect(), scx = br.left + br.width / 2, scy = br.top + br.height / 2;   // 보이는 자리 그대로 (🗂 바인더는 쪽마다 옮겨지고 돌아가 있어요 · translate · rotate)
@@ -271,7 +271,7 @@
             let pcx = cx + s * (lcx * Math.cos(rot) - lcy * Math.sin(rot)) + side * nv[0] * gap, pcy = cy + s * (lcx * Math.sin(rot) + lcy * Math.cos(rot)) + side * nv[1] * gap;
             const at = window.bdCvAt && bdCvAt(scx + k * s * (lcx * Math.cos(vrot) - lcy * Math.sin(vrot)), scy + k * s * (lcx * Math.sin(vrot) + lcy * Math.cos(vrot)));   // 🗂 바인더 : 보이는 자리 → 저장 자리 (조각이 다른 쪽으로 넘어가도 제자리)
             if (at) { pcx = at.x + side * nv[0] * gap; pcy = at.y + side * nv[1] * gap; }
-            if (!addImage(url)) return false;
+            if (!spAdd(url)) return false;
             const ne = ca.querySelector(':scope > .element-box:last-child'), im = ne.querySelector(':scope > img');
             ne.style.width = Math.max(4, Math.round(w / R * 10) / 10) + 'px';
             if (float) ne.dataset.float = float;
@@ -284,10 +284,10 @@
             ne.classList.remove('selected'); made.push(ne);
         }
         el.remove();
-        if (window.bdAfterLoad) bdAfterLoad();                                 // 🗂 바인더 : 조각을 바로 그 쪽 자리로
+        if (spKeep() && window.bdAfterLoad) bdAfterLoad();                     // 🗂 바인더 : 조각을 바로 그 쪽 자리로 (진짜 다이어리만)
         if (typeof selectedElement !== 'undefined') { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         made.forEach(e => { e.classList.add('sk-new'); setTimeout(() => e.classList.remove('sk-new'), 700); });
-        if (typeof saveData === 'function') saveData(false);
+        spSave(false);
         return true;
     }
 

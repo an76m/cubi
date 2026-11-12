@@ -8,7 +8,9 @@
      📎 집게 = 종이 가장자리에 꽂기 · 🩹 양면테이프 = 끌어서 바르기 · 🕳️ 펀칭기 = 구멍 막힌 바인더 속지 (왼쪽 구멍 자리)
    - 🏠 공간 나누기 (도련 11-12 · js/space.js) : 연습장 = '저장하지 않는 공간' · 문구 기능은 진짜 다이어리와 같은 함수를 빌려 써요
      ✏️ 필기구 · 🖍 형광펜 · 🧽 지우개 · 📏 자 = js/draw.js · js/ruler.js 그대로 (펜꽂이 · 손 · 자에 붙이기 · 꽂으면 그림 하나)
-     🩹 양면테이프 · 📎 집게 · 🕳️ 펀칭기 = js/skins.js 문구 그대로 (들기 · 바르기 · 테두리에 꽂기 · 바인더 구멍 12칸) · 🪡 핀셋 · 🔪 칼 · ✂️ 가위는 다음에 옮겨요
+     🩹 양면테이프 · 📎 집게 · 🕳️ 펀칭기 = js/skins.js 문구 그대로 (들기 · 바르기 · 테두리에 꽂기 · 바인더 구멍 12칸)
+     🔪 칼 = js/stkcut.js 그대로 (샘플 스티커를 끝에서 끝까지 그으면 두 조각) · ✂️ 가위 = js/skins.js 가위 + js/papermaker.js 모조지 그대로 (샘플 모조지를 빙 둘러 오려요)
+     🪡 핀셋만 아직 연습장 것 (스티커 옮기기 = js/elements.js 고르기 · 저장과 이어져 있어서 따로 정해요)
    ※ 이 파일이 없어도 샵은 예전처럼 확대로 보여요 (js/basket.js shZoom) */
 (function () {
     const PW = 440, PH = 640;                                                     // 다이어리 한 쪽 (진짜 다이어리와 같은 비율)
@@ -17,10 +19,8 @@
         ruler: '📏 자를 옮기고 · 자 옆을 따라 그어 보세요', knife: '🔪 스티커 위를 끌어서 잘라 보세요', scissors: '✂️ 모조지 위를 빙 둘러 오려 보세요',
         tweez: '🪡 스티커를 집어서 옮겨 보세요', clip: '📎 종이 가장자리에 꽂아 보세요', tape: '🩹 끌어서 테이프를 발라 보세요', punch: '🕳️ 가운데 구멍 자리를 눌러 뚫어 보세요'
     };
-    const PENLIKE = { knife: 1 };                                                 // 연필처럼 비스듬히 들어요 (js/draw.js PC_ANG)
-    const REAL = { pen: 1, hi: 1, erase: 1, ruler: 1, tape: 1, clip: 1, punch: 1 };   // 🏠 진짜 기능을 빌려 쓰는 문구 (js/draw.js · js/ruler.js · js/skins.js)
+    const REAL = { pen: 1, hi: 1, erase: 1, ruler: 1, tape: 1, clip: 1, punch: 1, knife: 1, scissors: 1 };   // 🏠 진짜 기능을 빌려 쓰는 문구 (js/draw.js · js/ruler.js · js/skins.js)
     const PENS = { pen: 1, hi: 1, erase: 1, ruler: 1 };                           // 그중 펜꽂이 필기구
-    const PC_ANG = -145;
     let G = null;                                                                 // 지금 연습장 (닫으면 null · 아무것도 남지 않아요)
 
     /* 🎀 샘플 그림 (앱 안에서 바로 그려요 · 받을 것 없음) */
@@ -52,7 +52,7 @@
         r.innerHTML = `<div class="gdt-st" style="width:${W}px;height:${PH}px">
                 <div class="gdt-book${one ? ' one' : ''}">${one ? '<i class="gdt-pg"></i>' : '<i class="gdt-pg l"></i><i class="gdt-pg r"></i>'}</div>
                 <div class="gdt-page"></div>${g === 'punch' ? `<span class="dy-holes">${'<i></i>'.repeat(12)}</span>` : ''}<div class="gdt-lay"></div>
-                <div class="gdt-hand" style="width:${size[0]}px;height:${size[1]}px;transform-origin:${tip[0]}px ${tip[1]}px">${gdPicSvg(id, { parts: g === 'scissors' ? [['날1', 'gdt-b1'], ['날2', 'gdt-b2']] : g === 'tweez' ? [['왼팔', 'gdt-a1'], ['오른팔', 'gdt-a2']] : null, over: g === 'tweez' ? '몸' : '' })}</div>
+                <div class="gdt-hand" style="width:${size[0]}px;height:${size[1]}px;transform-origin:${tip[0]}px ${tip[1]}px">${gdPicSvg(id, { parts: g === 'tweez' ? [['왼팔', 'gdt-a1'], ['오른팔', 'gdt-a2']] : null, over: g === 'tweez' ? '몸' : '' })}</div>
             </div>
             <div class="gdt-tip">${TIP[g] || '✨ 써 보세요'}</div><button type="button" class="desk-shop-go gdt-x">닫기</button>`;
         document.body.appendChild(r);
@@ -63,31 +63,41 @@
         fit(); setup();
         st.addEventListener('pointerdown', down); st.addEventListener('pointermove', move); st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
         st.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !G.drag) G.hand.classList.add('away'); });
+        G.sp = { page: () => G.page, host: () => G.st, book: () => G.st, open: () => true, rect: p => p.getBoundingClientRect(), add: realAdd, keep: false };
+        spUse(G.sp);                                                              // 🏠 연습장 = 저장하지 않는 공간 (어떤 문구든 · 닫으면 진짜 다이어리로)
         if (REAL[g]) realStart(); else handAt(W * .62, PH * .5);
         return true;
     }
     function gdTryOff() {                                                         // 🧹 닫으면 다 사라져요 (가상)
-        if (G && G.real) { if (penOn()) penClose(); gdLetGo(); if (G.rl && window.rlOn && rlOn()) rlEnd(); spUse(null); }   // 🏠 다시 진짜 다이어리 공간으로
+        if (G && G.real) { if (penOn()) penClose(); gdLetGo(); if (G.g === 'knife' && window.skClose) skClose(); if (G.g === 'scissors' && window.closePaperSheet) closePaperSheet(); if (G.rl && window.rlOn && rlOn()) rlEnd(); }
+        if (G) spUse(null);   // 🏠 다시 진짜 다이어리 공간으로
         const r = document.getElementById('gdTry'); if (r) r.remove(); G = null; document.body.classList.remove('gdt-on');
     }
     /* 🏠 저장하지 않는 공간 : 쓰는 종이 = 연습장 · 문구를 놓는 판 = 연습장 판 · 붙이면 연습장 위에 · 저장 없음 · 펜꽂이 = 써 볼 것 하나 */
     function realStart() {
         const g = G.g;
         G.real = true; G.hand.hidden = true; G.st.classList.add('gdt-real');
-        const sp = { page: () => G.page, host: () => G.st, book: () => G.st, open: () => true, rect: p => p.getBoundingClientRect(), add: realAdd, keep: false };
-        if (!PENS[g]) {                                                           // 🩹 📎 🕳️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
+        if (g === 'knife' || g === 'scissors') G.r.querySelector('.gdt-tip').hidden = true;   // 🔪 ✂️ 진짜 칼 · 모조지가 위에 제 안내를 한 줄 띄워요 (안내는 하나만)
+        const b0 = G.page.getBoundingClientRect(), mx = b0.left + b0.width * (G.one ? .5 : .75), my = b0.top + b0.height * .5;   // 오른쪽 쪽 가운데
+        if (g === 'knife') {                                                      // 🔪 샘플 스티커 하나 → 칼을 손에 (js/stkcut.js · 문구함 '칼' 서랍과 같게)
+            realAdd(STK[0]);
+            const el = G.page.lastElementChild, x = (G.one ? PW / 2 : PW * 1.5) - 95, y = PH / 2 - 100;
+            Object.assign(el.style, { width: '190px', transform: `translate(${x}px, ${y}px) scale(1) rotate(0deg)` }); Object.assign(el.dataset, { posX: x, posY: y, scale: 1, rotation: 0 });
+            G.again = () => { skKnife(mx + 90, my - 40, G.id.slice(6)); skHold(true); }; G.again(); return;
+        }
+        if (!PENS[g]) {                                                           // 🩹 📎 🕳️ ✂️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
             if (g === 'punch') G.st.classList.add('dy-bdl', 'dy-bo');             // 바인더 링을 연 두 쪽 = 가운데 구멍 자리 12칸
-            spUse(sp); gdPick(G.id);
-            const b = G.page.getBoundingClientRect(); gdHold(G.id, b.left + b.width * (G.one ? .5 : .62), b.top + b.height * .55);
+            gdPick(G.id);
+            gdHold(G.id, b0.left + b0.width * (G.one ? .5 : .62), b0.top + b0.height * .55);
+            if (g === 'scissors') { const c = document.createElement('canvas'); c.width = 360; c.height = 420; paperDraw(c); openPaperSheet(c.toDataURL()); }   // ✂️ 샘플 모조지 (js/papermaker.js)
             return;
         }
         const pen = g === 'ruler' ? (gdPicOf('pen').find(x => /333|000|black/i.test(x.id)) || gdPicOf('pen')[0] || {}).id : G.id;
         const one = window.pkCupOne && pkCupOne(pen); if (!one) return;
-        G.pen = pen; sp.cup = [one]; spUse(sp);
+        G.pen = pen; G.sp.cup = [one]; G.again = e => { if (!penOn()) drawWith(pen, e.clientX, e.clientY); };
         if (g === 'erase') penAttach(SCRIBBLE(G.one ? [70] : [70, PW + 70]));   // 🧽 미리 쓴 글씨 (진짜 펜 그림 그대로)
-        const b = G.page.getBoundingClientRect(), x = b.left + b.width * (G.one ? .5 : .75), y = b.top + b.height * .5;
-        if (g === 'ruler') { G.rl = !rlOn(); rlShow(b.left + b.width * (G.one ? .5 : .75), b.top + b.height * .4, G.id.replace(/^ruler:/, '')); }
-        drawWith(pen, x + 40, y + 120);
+        if (g === 'ruler') { G.rl = !rlOn(); rlShow(mx, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }
+        drawWith(pen, mx + 40, my + 120);
     }
     function realAdd(src) {                                                       // 붙이기 = 연습장 종이 위에 (옮기기 · 저장 없음)
         const el = document.createElement('div'); el.className = 'element-box'; el.style.width = '150px';
@@ -108,25 +118,18 @@
     const loc = e => { const b = G.st.getBoundingClientRect(); return { x: (e.clientX - b.left) / G.k, y: (e.clientY - b.top) / G.k }; };
     function handAt(x, y, ang) {                                                  // 쓰는 끝 = (x, y)
         const h = G.hand; h.classList.remove('away');
-        const a = ang != null ? ang : PENLIKE[G.g] ? PC_ANG : 0;
+        const a = ang != null ? ang : 0;
         h.style.left = (x - G.tip[0]) + 'px'; h.style.top = (y - G.tip[1]) + 'px'; h.style.rotate = a + 'deg';
     }
-    const say = (e, t) => { if (window.twzSay) twzSay(e.clientX, e.clientY, t, 1500); };
     const add = (cls, css, html) => { const d = document.createElement('div'); d.className = cls; if (css) d.style.cssText = css; if (html) d.innerHTML = html; G.lay.appendChild(d); return d; };
 
     /* 📦 문구마다 준비물 */
     function setup() {
         const g = G.g;
-        if (g === 'knife') { const s = 190; G.pieces.push(pieceEl({ src: STK[0], x: (G.one ? PW / 2 : PW * 1.5) - s / 2, y: PH / 2 - s * .45, w: s, h: s * 110 / 120, poly: [[0, 0], [1, 0], [1, 1], [0, 1]] })); }
         if (g === 'tweez') STK.forEach((u, i) => { const s = 92; G.pieces.push(pieceEl({ src: u, x: (G.one ? 60 : PW + 40) + i * 120, y: 230 + (i % 2) * 90, w: s, h: s, poly: [[0, 0], [1, 0], [1, 1], [0, 1]] })); });
-        if (g === 'scissors') {                                                   // 모조지 한 장 (캔버스 · 오린 자리는 비어요)
-            const w = 260, h = 300, c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; c.className = 'gdt-sheet';
-            c.style.cssText = `left:${(G.one ? PW / 2 : PW * 1.5) - w / 2}px;top:${PH / 2 - h / 2}px;width:${w}px;height:${h}px`;
-            const x = c.getContext('2d'); x.scale(2, 2); paperDraw({ getContext: () => x, width: w, height: h }); G.lay.appendChild(c); G.sheet = { c, x: parseFloat(c.style.left), y: parseFloat(c.style.top), w, h };
-        }
     }
 
-    /* 🎀 스티커 조각 (칼 · 핀셋) : poly = 0~1 비율 다각형 */
+    /* 🎀 스티커 조각 (핀셋) : poly = 0~1 비율 다각형 */
     function pieceEl(o) {
         const d = add('gdt-pc', '', `<img src="${o.src}" alt="" draggable="false">`);
         o.el = d; piecePaint(o); return o;
@@ -136,80 +139,29 @@
     }
     const pieceAt = q => [...G.pieces].reverse().find(o => inPoly(o.poly.map(p => [o.x + p[0] * o.w, o.y + p[1] * o.h]), q));
     function inPoly(P, q) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > q.y) !== (yj > q.y) && q.x < (xj - xi) * (q.y - yi) / (yj - yi) + xi) c = !c; } return c; }
-    function halfClip(P, a, b, keep) {                                           // 다각형을 선 a→b 한쪽만 (keep = +1 · -1)
-        const sd = p => keep * ((b.x - a.x) * (p[1] - a.y) - (b.y - a.y) * (p[0] - a.x)), out = [];
-        for (let i = 0; i < P.length; i++) {
-            const p = P[i], q = P[(i + 1) % P.length], sp = sd(p), sq = sd(q);
-            if (sp >= 0) out.push(p);
-            if ((sp >= 0) !== (sq >= 0)) { const t = sp / (sp - sq); out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]); }
-        }
-        return out;
-    }
-    const area = P => Math.abs(P.reduce((s, p, i) => { const q = P[(i + 1) % P.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
-    function knifeCut(a, b) {                                                     // 🔪 선이 지나간 조각 = 두 조각 (살짝 벌어져요)
-        if (Math.hypot(b.x - a.x, b.y - a.y) < 24) return false;
-        let did = false;
-        G.pieces.slice().forEach(o => {
-            const P = o.poly.map(p => [o.x + p[0] * o.w, o.y + p[1] * o.h]);
-            if (inPoly(P, a) || inPoly(P, b)) return;                             // 스티커 밖에서 밖으로 끝까지 그어야 잘려요
-            const A = halfClip(P, a, b, 1), B = halfClip(P, a, b, -1);
-            if (A.length < 3 || B.length < 3 || area(A) < 60 || area(B) < 60) return;
-            const L = Math.hypot(b.x - a.x, b.y - a.y), nx = -(b.y - a.y) / L * 5, ny = (b.x - a.x) / L * 5;
-            const mk = (Q, s) => pieceEl({ src: o.src, x: o.x + nx * s, y: o.y + ny * s, w: o.w, h: o.h, poly: Q.map(p => [(p[0] - o.x) / o.w, (p[1] - o.y) / o.h]) });
-            o.el.remove(); G.pieces.splice(G.pieces.indexOf(o), 1, mk(A, 1), mk(B, -1)); did = true;
-        });
-        return did;
-    }
-    function scissorsCut(path) {                                                  // ✂️ 빙 둘러 오린 곳 = 새 조각 (모조지엔 구멍)
-        const S = G.sheet; if (!S || path.length < 8) return false;
-        const P = path.map(q => [q.x - S.x, q.y - S.y]);
-        if (area(P) < 300) return false;
-        const xs = P.map(p => p[0]), ys = P.map(p => p[1]), x0 = Math.max(0, Math.min(...xs)), y0 = Math.max(0, Math.min(...ys)), x1 = Math.min(S.w, Math.max(...xs)), y1 = Math.min(S.h, Math.max(...ys));
-        if (x1 - x0 < 10 || y1 - y0 < 10) return false;
-        const w = x1 - x0, h = y1 - y0, c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; const x = c.getContext('2d'); x.scale(2, 2);
-        x.beginPath(); P.forEach((p, i) => i ? x.lineTo(p[0] - x0, p[1] - y0) : x.moveTo(p[0] - x0, p[1] - y0)); x.closePath(); x.save(); x.clip();
-        x.drawImage(S.c, x0 * 2, y0 * 2, w * 2, h * 2, 0, 0, w, h); x.restore();
-        const sx = S.c.getContext('2d'); sx.save(); sx.globalCompositeOperation = 'destination-out'; sx.beginPath(); P.forEach((p, i) => i ? sx.lineTo(p[0], p[1]) : sx.moveTo(p[0], p[1])); sx.closePath(); sx.fill(); sx.restore();
-        c.className = 'gdt-cut'; c.style.cssText = `left:${S.x + x0 + 14}px;top:${S.y + y0 + 14}px;width:${w}px;height:${h}px`; G.lay.appendChild(c);
-        c.animate([{ translate: '-14px -14px', scale: '1' }, { translate: '0 0', scale: '1.04' }, { translate: '0 0', scale: '1' }], { duration: 420, easing: 'ease-out' });
-        return true;
-    }
 
     /* 👆 손짓 */
     function down(e) {
         if (!G || e.button > 0) return;
-        if (G.real) { if (G.pen && !penOn()) drawWith(G.pen, e.clientX, e.clientY); return; }   // ✏️ 꽂고 나서 종이를 누르면 다시 손에 (🩹 📎 🕳️ = 놓인 문구를 누르면 들어요 · js/skins.js gdDown)
+        if (G.real) { if (G.again && !(G.g === 'knife' && skKindNow())) G.again(e); return; }   // ✏️ 꽂고 나서 · 🔪 ✕ 로 내려놓고 종이를 누르면 다시 손에 (🩹 📎 🕳️ ✂️ = 놓인 문구를 누르면 들어요 · js/skins.js gdDown)
         const q = loc(e), g = G.g; e.preventDefault(); G.st.setPointerCapture(e.pointerId);
         handAt(q.x, q.y);
-        const cut = e.target.closest('.gdt-cut');
-        if (cut && G.g === 'scissors') { G.drag = { k: 'move', el: cut, ox: q.x - parseFloat(cut.style.left), oy: q.y - parseFloat(cut.style.top) }; return; }
-        if (g === 'knife') { G.drag = { k: 'knife', a: q, line: add('gdt-line', '') }; lineDraw(G.drag.line, q, q); return; }
-        if (g === 'scissors') {
-            const S = G.sheet; G.drag = { k: 'scs', path: [q], on: !!S && q.x >= S.x - 30 && q.x <= S.x + S.w + 30 && q.y >= S.y - 30 && q.y <= S.y + S.h + 30, trail: add('gdt-trail', '', `<svg viewBox="0 0 ${G.W} ${PH}" width="${G.W}" height="${PH}"><polyline points=""/></svg>`) };
-            G.hand.classList.add('snip'); return;
-        }
         if (g === 'tweez') { const o = pieceAt(q); G.hand.classList.add('pinch'); if (o) { G.drag = { k: 'twz', o, ox: q.x - o.x, oy: q.y - o.y }; o.el.classList.add('up'); G.lay.appendChild(o.el); } else G.drag = { k: 'none' }; return; }
     }
     function move(e) {
         if (!G || G.real) return;
         let q = loc(e); const d = G.drag;
         if (!d) { if (e.pointerType === 'mouse') handAt(q.x, q.y); return; }
-        if (d.k === 'move') { d.el.style.left = (q.x - d.ox) + 'px'; d.el.style.top = (q.y - d.oy) + 'px'; return; }
         handAt(q.x, q.y);
-        if (d.k === 'knife') lineDraw(d.line, d.a, q);
-        if (d.k === 'scs') { const l = d.path[d.path.length - 1]; if (Math.hypot(q.x - l.x, q.y - l.y) > 4) { d.path.push(q); d.trail.querySelector('polyline').setAttribute('points', d.path.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ')); } }
         if (d.k === 'twz') { d.o.x = q.x - d.ox; d.o.y = q.y - d.oy; piecePaint(d.o); }
     }
     function up(e) {
         if (!G || G.real) return;
-        const d = G.drag, q0 = loc(e); G.drag = null;
-        G.hand.classList.remove('pinch', 'snip');
+        const d = G.drag; G.drag = null;
+        G.hand.classList.remove('pinch');
         if (!d) return;
-        if (d.k === 'knife') { d.line.remove(); if (!knifeCut(d.a, q0)) say(e, '🔪 스티커 밖에서 밖으로 끝까지 그어요'); return; }
-        if (d.k === 'scs') { d.trail.remove(); if (!d.on || !scissorsCut(d.path)) say(e, '✂️ 모조지 위를 빙 둘러 오려요'); return; }
         if (d.k === 'twz' && d.o) { d.o.el.classList.remove('up'); return; }
     }
-    function lineDraw(el, a, b) { const L = Math.hypot(b.x - a.x, b.y - a.y); Object.assign(el.style, { left: a.x + 'px', top: a.y + 'px', width: L + 'px', rotate: Math.atan2(b.y - a.y, b.x - a.x) + 'rad' }); }
 
     window.gdTry = gdTry; window.gdTryOff = gdTryOff;
 })();

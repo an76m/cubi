@@ -1336,7 +1336,7 @@
         function scsSnip() { scs.snip = performance.now(); try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {} }
         function scsFrame(t) {
             scs.raf = 0;
-            if (!gdScs() || !isCoverOpen) { scsHide(); return; }
+            if (!gdScs() || !spOpen()) { scsHide(); return; }
             if (!scs.on || !scs.el) return;
             if (scs.cut && scs.cut.acc >= 2 && t - scs.snip > SCS_GAP) { scs.cut.acc = 0; scsSnip(); if (scs.cut.on) scs.cut.on(); }   // ✂️ 손을 멈춰도 남은 만큼 싹둑 → 자른 선이 십자선까지 따라와요
             if (!scs.cut && !scsDown && !document.body.classList.contains('scs-on') && t - scs.dodgeT > 120 && window.dodgeBy) {   // 🚪 창 · 메뉴가 가리면 바로 옆 빈자리로 스르르 (🪡 핀셋 pinDodge 와 같아요)
@@ -1714,7 +1714,7 @@
             return p;
         }
         window.bdCvAt = (x, y) => {                                             // ✂️ 스티커 칼 조각 자리 (js/stkcut.js) : 화면 → 저장 자리 + 쪽 (그 뒤 bdPin) · 바인더가 아니면 null
-            const ip = gdIp(), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!ip || !cv || !bk || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return null;
+            const ip = gdIp(), cv = spPage(), bk = spBook(); if (!ip || !cv || !bk || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return null;
             if (bdFree) { const sd = gdSide(x, y), m = gdCv(x, y, sd); return { x: m.x, y: m.y, sd }; }
             const { r, k } = gdK(), cq = bk.offsetWidth / 100, vx = (x - r.left) / k - cv.offsetLeft, sd = vx < cv.offsetWidth / 2 ? 'l' : 'r';   // 링에 끼운 동안 : 보이는 쪽 그대로 (두 쪽은 6cqw 씩 바깥으로)
             return { x: vx + (sd === 'l' ? 6 : -6) * cq, y: (y - r.top) / k - cv.offsetTop, sd };
