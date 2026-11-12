@@ -72,6 +72,7 @@
     }
     async function dropOn(x, y, o) {
         if (document.documentElement.classList.contains('desk-show') || DK.edit) return false;
+        if (o.k === 'gd' && window.dkwTrayInto && dkwTrayInto(o.id, x, y)) return true;   // 🗄️ 서랍이 열려 있으면 = 위 창 안 · 그 서랍장에 놓기 = 고르기 없이 그 서랍에 (도련 11-12 · js/deskgd.js)
         const t = holderAt(x, y); if (!t || !fits(t, o)) return false;
         await store(t, o); return true;                                         // 취소해도 = 넣지 않았을 뿐 (꺼낸 자리 그대로)
     }

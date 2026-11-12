@@ -291,6 +291,23 @@
             if (DKW.bin) { const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '🗑 <b>버릴 문구를 톡</b> · 휴지통에 30일 보관했다가 지워져요 (⚙ 설정 → 🗑 휴지통에서 되살리기)'; return; }
             const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '톡 = 꺼내 쓰기 · 옆으로 밀면 더 있어요';
         }
+        /* 🗄️ 서랍이 열려 있을 때 넣는 길 둘 (도련 11-12) : 밖에 나온 문구를 ① 열린 문구함(위 창) 안으로 끌어 놓거나 ② 그 서랍장에 끌어 놓으면 = 고르기 없이 그 서랍에 · 바로 위 창에 보여요
+           부르는 곳 = js/deskmove.js dropOn (떠 있는 문구 끌기) · 아래 꺼낸 문구 줄 끌기 (dkwOutGrab) → true = 넣었어요 */
+        function dkwTrayInto(id, x, y) {
+            const r = dkwq('dkwTray'); if (!r || r.hidden || !DKW.place || !dkwDesk() || DKW.bin) return false;
+            const box = r.querySelector('.dkw-drawer'), b = box && box.getBoundingClientRect();
+            const inBox = !!b && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom;
+            const u = String(DKW.place).split(':')[0];
+            const onChest = !inBox && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
+            if (!inBox && !onChest) return false;
+            dkwBackOne(id, true); dkwAtPut(id, DKW.place); dkwTrayPaint();
+            const it = dkwq('dkwIn') && dkwq('dkwIn').querySelector(`.dkw-it[data-id="${CSS.escape(id)}"]:not([aria-hidden])`);
+            if (it) { it.scrollIntoView({ block: 'nearest', inline: 'nearest' }); it.animate([{ transform: 'translateY(-26px) scale(1.25)', opacity: .3 }, { transform: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.9,.3,1.2)' }); }   // 쏙 들어가는 모습
+            if (window.dkbPulse) { const h = dkwItemEl(u); if (h) dkbPulse(h); }
+            setTimeout(dkwBackPaint, 0);
+            return true;
+        }
+        window.dkwTrayInto = dkwTrayInto;
         function dkwRowWire(r, off, card) {                                         // 한 줄 : 넘치면 끝없이 · 아니면 그대로
             const its = r.querySelector('.dkw-its'), box = r.parentNode, L = box.querySelector('.dkw-go.l'), R = box.querySelector('.dkw-go.r');
             if (its.scrollWidth <= r.clientWidth + 2) { r._off = 0; return; }
@@ -484,6 +501,7 @@
                 if (hi) hi.classList.remove('dkh-hi'); if (gh) gh.remove(); c.classList.remove('dkb-out');
                 if (e.type === 'pointercancel') return;
                 if (!gh) { dkwBackOne(id); setTimeout(dkwBackPaint, 0); return; }   // 톡 = 집으로
+                if (dkwTrayInto(id, e.clientX, e.clientY)) return;                 // 🗄️ 열린 서랍(위 창 · 그 서랍장) = 바로 그 서랍에
                 if (hi && window.dkGdPut && await dkGdPut(id, hi)) { dkwBackOne(id); setTimeout(dkwBackPaint, 0); }   // 새 집에 넣었어요 → 페이지에서 치워요
             };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
