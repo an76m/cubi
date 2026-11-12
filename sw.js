@@ -7,6 +7,7 @@
    ▶ 쓰는 동안 : 아무것도 확인하지 않아요 · 보관함 안의 파일(?v= 붙은 코드 · 그림)만 꺼내 줘요 · 일기 · 드라이브 · 스티커 그림은 보관하지 않아요 (늘 원래대로)
    ▶ 🚨 비상구 : version.txt 에 'off' 라고 쓰면 모든 기기가 보관함을 지우고 예전처럼 깃허브에서 바로 열어요 · 설정의 '브라우저 저장 지우기'도 보관함 · 서비스 워커를 지워요
    ▶ 인터넷이 느려도 version.txt 답을 끝까지 기다려요 (도련 11-12 · 예전 2.5초에서 그만두면 폰에서 옛 버전이 열렸어요)
+   ▶ 첫 화면(index.html)은 늘 '?t=지금' 을 붙여 받아요 (도련 11-12 : 깃허브 앞의 중간 서버가 첫 화면을 10분까지 들고 있어서 · 올린 직후에도 새것)
    ▶ 인터넷이 끊기면 : 보관함이 있으면 그것으로 · 없으면 안내 화면
    ※ 이 파일은 꼭 index.html 과 같은 폴더(맨 위)에 있어야 해요 */
 
@@ -24,10 +25,11 @@ const OFFLINE_HTML = `<!doctype html><html lang="ko"><head><meta charset="utf-8"
 const HTML_H = { 'Content-Type': 'text/html; charset=utf-8' };
 const BASE = new URL('./', self.location).href;                 // 사이트 맨 위
 const INDEX_KEY = BASE + 'index.html';
+const freshIndex = () => fetch(INDEX_KEY + '?t=' + Date.now(), { cache: 'no-store' });   // 첫 화면은 늘 깃허브 원본에서 (도련 11-12 : 기기 보관 · 중간 서버(CDN) 10분 보관을 모두 건너뛰어요)
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(caches.delete('malang-kit-v1').then(() => self.clients.claim()).then(() => {   // 예전 그림 보관함(10-25) 치우기
-    e.waitUntil(askVersion().then(v => v === 'off' ? offAll() : readyVersion().then(h => h ? null : fetch(INDEX_KEY, { cache: 'no-cache' }).then(x => x.ok ? x.text() : '').then(t => t && build(t)))).catch(() => {}));   // 처음 설치 = 다음에 열 때 바로 보관함에서 열리게 지금 만들어 둬요
+    e.waitUntil(askVersion().then(v => v === 'off' ? offAll() : readyVersion().then(h => h ? null : freshIndex().then(x => x.ok ? x.text() : '').then(t => t && build(t)))).catch(() => {}));   // 처음 설치 = 다음에 열 때 바로 보관함에서 열리게 지금 만들어 둬요
 })));
 
 async function askVersion() {                                    // version.txt : 답이 올 때까지 기다려요 (느려도 · 도련 11-12 : 버전 확인은 꼭 한 번 성공) · 인터넷이 아예 끊겼을 때만 ''
@@ -86,12 +88,12 @@ async function openPage(e) {
     if (have && (want === have || !want)) {                         // 같은 버전 (또는 version.txt 를 못 물었어요 = 인터넷이 끊김) → 보관함
         const r = await cachedIndex(have);
         if (r) {
-            if (want) e.waitUntil(fetch(INDEX_KEY, { cache: 'no-cache' }).then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
+            if (want) e.waitUntil(freshIndex().then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
             return r;
         }
     }
     try {                                                            // 새 버전 (또는 보관함 없음) = 깃허브에서 바로
-        const r = await fetch(req, { cache: want && want !== have ? 'reload' : 'no-cache' });
+        const r = await freshIndex();
         if (!r.ok) return r;
         const html = await r.text();
         e.waitUntil(build(html));
