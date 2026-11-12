@@ -1391,7 +1391,8 @@
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (기본상품 샵 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
         const x = SH.items[i], z = bq('shZoom'); if (!x || !z) return;
-        if (x.look === 'dskin' && x.sid && window.dsTry) { dsTry(x.sid); return; }   // 🧱 🪵 적용해보기 = 빈 방에 그것만 바뀐 모습 (도련 11-11 · js/deskskin.js)
+        if (x.look === 'dskin' && x.sid && window.dsTry) { dsTry(x.sid); return; }
+        if (x.look === 'desk' && x.id && window.deskTrial && UI.desk() && deskTrial(x.id)) return;   // 🪑 소품 적용해보기 = 빈 방에 놓고 써 봐요 (도련 11-12 · js/desk.js)   // 🧱 🪵 적용해보기 = 빈 방에 그것만 바뀐 모습 (도련 11-11 · js/deskskin.js)
         SH.zoom = i;
         let pick = '';
         /* 📒 🤍 정리 도구 = 종류를 고르지 않아요 (도련 11-08 · 받아서 스티커 창에서 📥 불러와요) */
@@ -2061,7 +2062,7 @@
         let down = null;
         document.addEventListener('pointerdown', e => {
             const m = document.getElementById('shelfKindModal');
-            down = m && m.style.display === 'flex' && !e.target.closest('.modal-content, .alert-card, #customAlertModal, #dskLayer, .shop-spot, .shop-x, .ds-try') ? [e.clientX, e.clientY] : null;
+            down = m && m.style.display === 'flex' && !e.target.closest('.modal-content, .alert-card, #customAlertModal, #dskLayer, .shop-spot, .shop-x, .ds-try') && !document.documentElement.classList.contains('dk-trial') ? [e.clientX, e.clientY] : null;
         }, true);
         document.addEventListener('pointerup', e => {
             if (!down) return; const [x, y] = down; down = null;

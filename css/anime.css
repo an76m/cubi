@@ -803,3 +803,11 @@ html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-
 .ds-try-st { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
 .ds-try-st > .desk-skin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ds-try-x { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); z-index: 2; }
+/* 🏪 적용해보기 = 진짜 책상을 빈 방으로 빌려 써요 (도련 11-12 · js/desk.js deskTrial) : 샵 · 내 책상 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 닫기 */
+html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal { visibility: hidden !important; }
+html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-vol, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial #deskStage > .desk-skin, html.dk-trial .dke-hello, html.dk-trial .dkb-wait, html.dk-trial .dk-bagpn { display: none !important; }
+.dk-try { position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; }
+.dk-try-tip { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: min(640px, calc(100vw - 140px)); padding: 9px 18px; border: 2px solid #f4a9c4; border-radius: 16px; background: rgba(255, 255, 255, .95); box-shadow: 0 4px 0 rgba(232, 143, 176, .25); text-align: center; pointer-events: auto; }
+.dk-try-tip b { color: #c2457a; font-size: 15px; } .dk-try-tip span { font-size: 14px; color: #5a3d4a; } .dk-try-tip small { font-size: 11.5px; color: #9a7a88; }
+.dk-try-x { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); pointer-events: auto; }
+html.dk-trial .desk-stage::after, html.dk-trial #deskTip, html.dk-trial .dk-hostlb { display: none !important; }   /* 꾸미기 모눈 · 고른 소품 단추 없이 = 진짜 방처럼 */

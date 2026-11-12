@@ -95,7 +95,7 @@
             return { own, pos };
         }
         const dkItemsGet = () => typeof prefGet === 'function' ? dkJoin(prefGet(DK_OWN_KEY, DK_OWN_LOCAL), prefGet(DK_POS_KEY, DK_POS_LOCAL)) : null;
-        function dkItemsPut(L, mem) { if (typeof prefSet !== 'function') return; const { own, pos } = dkSplit(L); if (!DK.partial) { if (mem && drive.ready && !drive.guest) store.putLoaded(DK_OWN_KEY, JSON.stringify(own)); else prefSet(DK_OWN_KEY, DK_OWN_LOCAL, own); } prefSet(DK_POS_KEY, DK_POS_LOCAL, pos); }   // 💤 mem = 처음 선물 그대로 (목록 파일은 바뀔 때 처음 · 도련 11-07)   // 💤 목록을 아직 안 읽었으면 자리만 (가진 것은 그대로 · 도련 11-07)   // 바뀐 쪽 파일만 올라가요 (store 가 같은 값이면 안 올려요)
+        function dkItemsPut(L, mem) { if (typeof prefSet !== 'function' || DK.trial) return; /* 🏪 적용해보기 중엔 저장하지 않아요 */ const { own, pos } = dkSplit(L); if (!DK.partial) { if (mem && drive.ready && !drive.guest) store.putLoaded(DK_OWN_KEY, JSON.stringify(own)); else prefSet(DK_OWN_KEY, DK_OWN_LOCAL, own); } prefSet(DK_POS_KEY, DK_POS_LOCAL, pos); }   // 💤 mem = 처음 선물 그대로 (목록 파일은 바뀔 때 처음 · 도련 11-07)   // 💤 목록을 아직 안 읽었으면 자리만 (가진 것은 그대로 · 도련 11-07)   // 바뀐 쪽 파일만 올라가요 (store 가 같은 값이면 안 올려요)
         dkBuild();
         const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => Object.assign({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }, d.fl && dkFlipOk(d) ? { fl: 1 } : {}));   // ↔ 처음엔 돌린 모습 (상품 '소품.fl' · 상품공방)   // 🎁 기본 세트 선물
         /* 💤 소품 목록 = 보관함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · 만 개여도 앱을 켤 때 안 읽어요 · js/drive.js keyFileLoad)
@@ -867,6 +867,7 @@
         function deskEditFromSettings() { if (window.closeModal) closeModal('settingsModal'); deskEditOpen(); }
         function deskEditEnd(ok) {
             if (!DK.edit) return;
+            const trial = DK.trial; if (trial) { ok = false; DK.trial = false; }  // 🏪 적용해보기 = 늘 처음대로 (저장 없음)
             if (ok && DK.partial) {                                               // 💤 목록이 오기 전 ✔ = 목록을 다 읽고 나서 저장 (빠진 소품 없이 · 도련 11-08)
                 dkBoxWait(true);
                 dkOwnReady().then(r => { dkBoxWait(false); if (r && DK.edit && !DK.partial) deskEditEnd(true); else if (!r && window.showMsg) showMsg('소품 목록을 읽지 못해서 아직 저장하지 않았어요.<br><small>인터넷을 확인하고 ✔ 를 다시 눌러 주세요</small>'); },
@@ -893,7 +894,43 @@
               if (ok && VE && typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, Object.assign(dkyMap(), VE));   /* 권마다 자리 */ dknPanel(false); dkyApply(); }
             document.documentElement.classList.remove('desk-edit'); dkSelPaint();
             deskItemsRender(); deskModeRender(); if (window.deskBoxRender) deskBoxRender();
+            if (trial) dkTrialUi(false);
         }
+        /* 🏪 적용해보기 (도련 11-12 · 샵에서 '쓰는 법 + 실제 크기'를 알고 받아요) : 진짜 책상을 빌려 써요 (🛠 책상 꾸미기와 같은 손짓 · 같은 크기)
+             - 빈 방(기본 벽지 · 책상)에 그 소품만 · 같이 써야 하는 것도 하나 (📷 집게 사진 = 💡 전구줄) · 끌어서 놓아 보고 · 줄에 걸어 봐요
+             - 내 책상 · 다른 소품 · 다이어리는 잠깐 숨고 · 아무것도 저장하지 않아요 (dkItemsPut 막음 · 닫으면 🛠 취소와 같이 처음대로) · 오른쪽 위 닫기 = 샵 창 그대로 */
+        const DK_TRY_TIP = {
+            peg: '📷 집게 사진을 끌어 <b>💡 전구줄 가까이</b> 놓아 보세요 · 줄에 <b>집혀서</b> 같이 흔들려요',
+            lights: '💡 줄을 끌어 보세요 · 양 끝을 옮기면 줄이 처져요 · 전구를 톡 = 켜고 끄기는 내 책상에서',
+            wall: '🧱 벽에 거는 소품이에요 · 끌어서 원하는 자리에 걸어 보세요',
+            desk: '🪑 실제 크기예요 · 끌어서 책상에 놓아 보세요'
+        };
+        function deskTrial(id) {
+            const c = dkCat(id); if (!c || !UI.desk() || DK.edit) return false;
+            const H = document.documentElement;
+            if (H.classList.contains('desk-show')) { dkFoldShut(); H.classList.remove('desk-show'); }
+            DK.back = { items: JSON.stringify(DK.items), fn: JSON.stringify(deskFnMap()), home: JSON.stringify(dkHomes()) };
+            DK.editFn = {}; DK.edit = true; DK.trial = true; DK.volEdit = {};
+            const L = [];
+            if (c.kind === 'peg') {                                               // 📷 집게 사진 = 전구줄과 함께
+                const lt = DESK_ITEMS.find(o => o.kind === 'lights');
+                if (lt) L.push({ u: 'try-' + lt.id, id: lt.id, at: 'desk', x: lt.x, y: lt.y });
+                L.push({ u: 'try-' + id, id, at: 'desk', x: lt ? Math.max(40, lt.x + 120) : c.x, y: lt ? Math.min(520, lt.y + 260) : c.y });   // 줄에서 조금 떨어진 곳 (끌어서 걸어 봐요)
+            } else L.push({ u: 'try-' + id, id, at: 'desk', x: c.x, y: c.y });
+            DK.items = L;
+            H.classList.add('desk-edit', 'dk-trial');
+            deskSelect(null); deskItemsRender(); dkSelPaint();
+            dkTrialUi(true, DK_TRY_TIP[c.kind] || (c.wall ? DK_TRY_TIP.wall : DK_TRY_TIP.desk), dkName({ id }));
+            return true;
+        }
+        function dkTrialUi(on, tip, nm) {
+            let b = document.getElementById('dkTry');
+            if (!on) { if (b) b.remove(); document.documentElement.classList.remove('dk-trial'); return; }
+            if (!b) { b = document.createElement('div'); b.id = 'dkTry'; b.className = 'dk-try'; document.body.appendChild(b); }
+            b.innerHTML = `<div class="dk-try-tip"><b>🏪 ${htmlEsc(nm || '')} 적용해보기</b><span>${tip}</span><small>내 책상에서는 🛠 책상 꾸미기에서 이렇게 해요 · 여기서는 저장되지 않아요</small></div><button type="button" class="desk-shop-go dk-try-x">닫기</button>`;
+            b.querySelector('.dk-try-x').onclick = () => deskEditEnd(false);
+        }
+        window.deskTrial = deskTrial;
         /* 위 막대 (확정 가능 여부) · 아래 📦 보관함 줄 */
         /* 🎨 색칠 · 🖼 사진 미리 보기 (도련 10-28) : 창을 닫으면 책상에 칠한 모습만 보여 주고 (어울리나 전체로 보기) · 하단 ✔ 완료 때 파일에 저장 · ✕ 취소 = 처음 그림
              DK.artPend { u: 칠한 그림 } · DK.artOld { u: 칠하기 전 그림(없으면 null) } */
