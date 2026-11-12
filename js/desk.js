@@ -677,6 +677,23 @@
             deskLeave();                                                         // 🧩 바인더 조립 · 작업실 · 달력 … 방들
         }
         window.deskReset = deskReset;
+        /* 🔑 다이어리 잠금 스위치 (도련 11-12) : 📔 다이어리모드(표지를 펼쳐 바탕 · html.dk-bgon)에서만 화면 위 가운데 · 처음 = 끔 · 톡 = 켜기 / 끄기
+           켜면 = 다이어리 밖을 눌러도 책상모드로 안 가요 (js/drive.js 밖 톡) · 오른쪽 위 이동 · 책상 꾸미기는 그대로 가요 · 저장 안 해요 (앱을 다시 열면 꺼짐) */
+        function dkLockBuild() {
+            if (document.getElementById('dkLock')) return;
+            const b = document.createElement('button'); b.type = 'button'; b.id = 'dkLock'; b.className = 'dk-lock'; b.setAttribute('role', 'switch');
+            b.innerHTML = `<span class="dkl-t">잠금</span><i class="dkl-k"><svg viewBox="0 0 24 24" data-an="1" aria-hidden="true"><circle cx="7" cy="12" r="4.6" fill="#ffd479" stroke="#7a4a5a" stroke-width="1.6"/><circle cx="7" cy="12" r="1.6" fill="#fff6dc" stroke="#7a4a5a" stroke-width="1.2"/><path d="M11.4 12 H21 M17.4 12 v3 M20 12 v2.4" fill="none" stroke="#7a4a5a" stroke-width="2.6" stroke-linecap="round"/><path d="M11.4 12 H21 M17.4 12 v3 M20 12 v2.4" fill="none" stroke="#ffd479" stroke-width="1" stroke-linecap="round"/></svg></i>`;
+            b.addEventListener('pointerdown', e => e.stopPropagation());
+            b.addEventListener('click', e => { e.stopPropagation(); dkLockSet(!DK.lock); });
+            document.body.appendChild(b); dkLockSet(!!DK.lock);
+        }
+        function dkLockSet(on) {
+            DK.lock = !!on; document.documentElement.classList.toggle('dk-locked', DK.lock);
+            const b = document.getElementById('dkLock'); if (!b) return;
+            b.classList.toggle('on', DK.lock); b.setAttribute('aria-checked', DK.lock ? 'true' : 'false');
+            b.setAttribute('aria-label', DK.lock ? '다이어리 잠금 켜짐' : '다이어리 잠금 꺼짐'); b.title = DK.lock ? '🔒 잠금 : 다이어리 밖을 눌러도 책상으로 안 가요' : '🔑 톡 = 잠그기 (다이어리 밖을 눌러도 책상으로 안 가요)';
+        }
+        window.dkLockSet = dkLockSet;
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();
@@ -685,7 +702,8 @@
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
                 <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
-            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); }   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
+            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); }
+            dkLockBuild();                                                        // 🔑 다이어리모드 위 가운데 잠금 스위치 (도련 11-12)   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
             dkyApply();
