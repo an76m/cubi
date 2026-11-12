@@ -172,5 +172,3 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 .dkz-away { visibility: hidden !important; }
 .dkw-room.leaving .dkw-hint, .dkw-room.leaving .dkw-btns { opacity: 0; transition: opacity .12s; }
 .dkw-fl.sel { cursor: none; } .dkw-fl.sel > i { pointer-events: none; animation: none; filter: drop-shadow(12px 20px 10px rgba(90,60,70,.32)); }   /* 🖱 마우스에 붙은 것 (클릭은 그 아래로) */
-.dkw-cuphit { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; pointer-events: none; }   /* 👆 통 = 입구 아래 (펜보다 위 · 누르면 펜꽂이 확대 · 도련 11-12) */
-html.desk-on:not(.desk-edit) .dkw-desk .dkw-cuphit { pointer-events: auto; cursor: pointer; }
