@@ -1872,7 +1872,7 @@
         function deskCloseDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
             if (deskAnim || !w || !H.classList.contains('desk-show')) return;
-            if (isCoverOpen) DK.coverOnce = true;   // 📖 이번 로그인에서 표지를 열었어요
+            DK.coverOnce = true;                                                  // 📖 로그인 뒤 한 번 책상에 내려놓으면 (표지를 펼쳤든 안 펼쳤든) 다음부터 톡 = 떠오르며 펼쳐져요 (도련 11-12 : 안 펼치고 밖 톡으로 내려놓으면 다음 톡에도 접힌 채였어요)
             if (window.dkwFloatAll) dkwFloatAll();                                // ✋ 페이지 위 문구 · 손에 든 필기구 = 그 자리에서 공중에 떠요 (다이어리 따로 · 상품 따로 · 도련 11-11)
             if (window.penRest) penRest();                                        // ✏️ 든 필기구는 페이지에 놓고 쓴 것은 붙여요 (도련 11-03 · 손에 든 채 접히지 않게)
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로

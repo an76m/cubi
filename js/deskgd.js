@@ -357,8 +357,9 @@
         }
         function dkwFloatOff(id, quiet) { const el = DKW.fl.get(id); if (!el) return false; el.remove(); DKW.fl.delete(id); if (DKW.sel === id) DKW.sel = null; if (!quiet) dkwDeskSoon(); return true; }
         /* 🖱 마지막으로 만진 것 = 마우스에 붙어 따라와요 (도련 11-11 · 손에 든 것처럼 · 연필심이 마우스 끝) : 다이어리 페이지 클릭 = 그 자리에서 쓰기 · 들어갈 보관함 클릭 = 넣기 · 다른 곳 클릭 = 그 자리에 내려놔요 (떠 있어요) */
-        /* 🪑 책상모드(다이어리가 안 떠 있음)에서는 마우스에 붙지 않아요 (도련 11-12) · 📔 다이어리모드(desk-show)에서만 따라와요 · 책상모드에서 고른 것(톡)은 표시만 → 📔 다이어리 톡 = 든 채로 펼치기 */
-        const dkwDiaryUp = () => document.documentElement.classList.contains('desk-show');
+        /* 🪑 책상모드(책상이 보여요 · 다이어리가 접힌 채 떠 있어도)에서는 마우스에 붙지 않아요 (도련 11-12) · 📔 다이어리모드(표지를 펼쳐 바탕이 깔림 = html.dk-bgon)에서만 따라와요
+           책상모드에서 고른 것(톡)은 표시만 → 📔 다이어리 톡 · 표지 밀기 = 든 채로 펼치기 (1134 : 로그인 첫 번 접힌 채 떠 있을 때 붙은 손이 표지 밀기를 먹었어요) */
+        const dkwDiaryUp = () => document.documentElement.classList.contains('dk-bgon');
         function dkwSel(id) { DKW.sel = id || null; DKW.fl.forEach((el, k) => el.classList.toggle('sel', k === DKW.sel)); if (id && DKW.mouse && dkwDiaryUp()) dkwFollow(DKW.mouse.x, DKW.mouse.y); }
         function dkwFollow(x, y) {
             const el = DKW.sel && DKW.fl.get(DKW.sel); if (!el) return;
@@ -373,7 +374,7 @@
         addEventListener('pointerdown', e => {
             if (!DKW.sel || e.button > 0 || !dkwDesk()) return;   // 👆 손가락도 (도련 11-12 : 집어 든 다음 톡 = 그 자리)
             const t = e.target, id = DKW.sel;
-            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol')) return;   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
+            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol, #coverPage')) return;   // 📖 겉표지 = 밀어서 펼치기 그대로   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
             const pg = t.closest && t.closest('#canvasArea');
             if (pg && dkwOpenNow()) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 📔 펼친 페이지 = 그 자리에서 쓰기
             const h = t.closest && t.closest('#deskStage .desk-item');
