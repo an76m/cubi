@@ -5,7 +5,8 @@
    - 🗂️ 레이어 : 종이(맨 아래 · 🧵 종이 꾸미기 = js/maker.js) · 사진(📎) · 픽셀 · 벡터 섞어서 · 👁 · 🔒 · 섞는 법 · 투명도 · 그린 곳만 칠
    - 🖌️ 픽셀 = 손으로 쓱쓱 (펜 압력 = 굵기 · 떨림 보정 = 마우스도 매끈) : 브러시(붓 모양 6) · 연필 · 마커 · 에어 · 지우개 · 채우기 · 스포이드 · 올가미 · 옮기기 · 도형 · 글씨 · 확대
    - ✒️ 벡터 = 점을 찍어 그려요 (펜 없이 마우스로도) : 선택 · 점 고치기 · 점 찍기(클릭 = 꺾인 점 · 끌기 = 둥근 점 · 첫 점 = 닫기 · Enter = 끝) · 곡선 · 네모 · 동그라미 · 하트 · 별 · 글씨 · 점 자르기 · 칠하기 · 옮기기
-   - 저장 = 보이는 레이어를 한 장으로 → 📃 속지 한 장 (🗄️ 서랍 · js/own.js ownTake · 예전 속지 만들기와 같아요) · 레이어는 아직 저장 안 해요 (다음 : 도안에 레이어) */
+   - 💾 임시저장 (도련 11-14) = 도안/작업중-속지.json 하나에 모두 (레이어 · 그림 PNG · 사진 JPEG · 벡터 점 · 종이 · 도구) · 종류마다 하나 · 열 때 [이어서 작업] [새 작업] (js/tablet.js)
+   - ✅ 완료 = 보이는 레이어를 한 장으로 → 📃 속지 한 장 (🗄️ 서랍 + 📐 도안 · js/own.js ownTake · 예전 속지 만들기와 같아요) → 작업 중 파일은 지워요 */
 (function () {
     'use strict';
     const $ = id => document.getElementById(id);
@@ -30,9 +31,12 @@
         Object.assign(P, { on: true, o, kind: o.kind || 'leaf', W, H, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
             vsw: 6, vround: 12, color: '#ff5d8f', recent: ['#4aa8ff', '#ffd23f', '#5cc98a'], hsv: [340, .64, 1], z: 1, px: 0, py: 0, base: 1, grid: false, sym: false,
             hist: [], redo: [], sel: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
-        const paper = addLayer('paper', '종이', { lock: true, mk: Object.assign({ bg: o.bg || '#ffffff' }, o.mk || {}) });
-        const L1 = addLayer('px', '그림 1'); P.cur = L1;
-        buildUI(); paperPaint(paper); fit(); renderAll(); paintLayers(); paintProps();
+        if (o.draft) { buildUI(); fit(); restoreDraft(o.draft); }
+        else {
+            const paper = addLayer('paper', '종이', { lock: true, mk: Object.assign({ bg: o.bg || '#ffffff' }, o.mk || {}) });
+            const L1 = addLayer('px', '그림 1'); P.cur = L1;
+            buildUI(); paperPaint(paper); fit(); renderAll(); paintLayers(); paintProps();
+        }
         window.addEventListener('resize', fit); document.addEventListener('keydown', onKey);
     }
     function ppClose() {
@@ -88,14 +92,15 @@
             <div class="pp-lyb"><button type="button" class="add" data-l="px">＋ 픽셀</button><button type="button" class="add" data-l="vec">＋ 벡터</button><button type="button" data-l="dup">⧉ 복제</button><button type="button" data-l="del">🗑 삭제</button></div>
             <div class="pp-lyb three"><button type="button" data-l="merge">⤓ 아래로 합치기</button><button type="button" data-l="lock">🔒 잠그기</button><button type="button" data-l="cutl">✂ 잘라 붙이기</button></div>
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
-            <button type="button" class="shm-go pp-go" id="ppGo">🗄️ 서랍에 넣기</button>`;
+            <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 완료</button></div>
+            <p class="pp-hint pp-endt">💾 임시저장 = 그리던 그대로 (나중에 이어서) · ✅ 완료 = 🗄️ 서랍에 속지 한 장</p>`;
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); } };
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
         $('ppTools').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
         $('ppOpt').oninput = $('ppOpt').onclick = onOpt;
         o.C.querySelector('.pp-view').onclick = e => { const b = e.target.closest('[data-v]'); if (b) onView(b.dataset.v); };
         o.R.querySelector('.pp-lyb').parentElement.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) layerAct(b.dataset.l); });
-        $('ppGo').onclick = save;
+        $('ppGo').onclick = save; $('ppTmp').onclick = () => saveDraft();
         $('ppProp').oninput = $('ppProp').onclick = onProp;
         colorWire(); paintTools(); modeBtns();
         const st = $('ppStage');
@@ -751,13 +756,60 @@
             const src = c.toDataURL('image/jpeg', .86);
             await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my' } });
             P.dirty = false;
+            if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
             if (window.showMsg) showMsg('📃 속지를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>');
             if (P.o.done) P.o.done();
         } catch (e) { if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
-        finally { P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '🗄️ 서랍에 넣기'; } }
+        finally { P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 완료'; } }
     }
 
-    window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty;
+    /* ================= 💾 임시저장 (도안/작업중-<종류>.json · 도련 11-14) ================= */
+    const DRAFT_K = { leaf: '속지', tk: '떡메', tape: '마테', piece: '조각', paper: '모조지', seal: '씰' };
+    const isBlank = c => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < d.length; i += 4) if (d[i]) return false; return true; };
+    function photoData(im) {                                                  // 📎 사진 = 종이 크기에 맞게 줄여서 (긴 쪽 1800px · JPEG)
+        const k = Math.min(1, 1800 / Math.max(im.width, im.height)), c = mkCv(Math.round(im.width * k), Math.round(im.height * k));
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', .88);
+    }
+    function snapshot() {
+        return { v: 1, kind: P.kind, W: P.W, H: P.H, at: Date.now(), cur: P.layers.indexOf(P.cur),
+            set: { mode: P.mode, tool: P.tool, brush: P.brush, size: P.size, op: P.op, soft: P.soft, stab: P.stab, vsw: P.vsw, vround: P.vround, color: P.color, recent: P.recent, grid: P.grid, sym: P.sym, shapeK: P.shapeK, shapeFill: P.shapeFill },
+            layers: P.layers.map(L => {
+                const o = { type: L.type, name: L.name, vis: L.vis, lock: L.lock, op: L.op, blend: L.blend, aLock: L.aLock };
+                if (L.type === 'paper') o.mk = L.mk;
+                if (L.type === 'px') o.png = isBlank(L.cv) ? '' : L.cv.toDataURL('image/png');
+                if (L.type === 'vec') o.shapes = L.shapes;
+                if (L.type === 'photo') Object.assign(o, { img: L.imgData || (L.imgData = photoData(L.img)), s: L.s, ox: L.ox, oy: L.oy, wash: L.wash });
+                return o;
+            }) };
+    }
+    async function saveDraft(quietly) {
+        if (P.saving) return false; commitFloat(); penEnd();
+        if (window.dkTrialNoSave && dkTrialNoSave()) return false;
+        if (!window.draftWrite) { if (window.comingSoon) comingSoon('💾 임시저장'); return false; }
+        const b = $('ppTmp'); P.saving = true; if (b) { b.disabled = true; b.textContent = '💾 저장 중…'; }
+        try { await draftWrite(DRAFT_K[P.kind] || P.kind, snapshot()); P.dirty = false; if (!quietly) say('💾 임시저장했어요 · 다음에 [이어서 작업]으로 열어요', 2200); return true; }
+        catch (e) { console.warn('💾 임시저장', e); if (window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
+        finally { P.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '💾 임시저장'; } }
+    }
+    function restoreDraft(d) {
+        const loadImg = src => new Promise(ok => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+        P.layers = []; P.cur = null;
+        Object.assign(P, d.set || {});
+        (d.layers || []).forEach(o => {
+            const L = addLayer(o.type, o.name, { vis: o.vis !== false, lock: !!o.lock, op: o.op == null ? 1 : o.op, blend: o.blend || 'source-over', aLock: !!o.aLock }, P.layers.length);
+            if (o.type === 'paper') { L.mk = o.mk || { bg: '#ffffff' }; paperPaint(L); }
+            if (o.type === 'vec') { L.shapes = o.shapes || []; L.dirtyV = true; }
+            if (o.type === 'px' && o.png) loadImg(o.png).then(im => { if (im) { L.cv.getContext('2d').drawImage(im, 0, 0); renderAll(); thumbsSoon(); } });
+            if (o.type === 'photo') { Object.assign(L, { s: o.s || 1, ox: o.ox || 0, oy: o.oy || 0, wash: o.wash || 0, imgData: o.img }); loadImg(o.img).then(im => { if (im) { L.img = im; photoPaint(L); renderAll(); thumbsSoon(); } }); }
+        });
+        if (!P.layers.some(l => l.type === 'paper')) { const pp = addLayer('paper', '종이', { lock: true, mk: { bg: '#ffffff' } }, 0); paperPaint(pp); }
+        P.cur = P.layers[d.cur] || P.layers[P.layers.length - 1];
+        modeBtns(); paintTools(); setColor(P.color); renderAll(); paintLayers(); paintProps();
+        document.querySelectorAll('.pp-view [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'grid' && P.grid) || (b.dataset.v === 'sym' && P.sym)));
+        P.dirty = false; say('✏️ 이어서 그려요', 1500);
+    }
+
+    window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K;
     window.ppTest = () => P;                                                     // 🧪 시험용 (tests/t_padpaint.py)
 })();
 

@@ -87,3 +87,19 @@
 .pp-pop { position: fixed; z-index: 990; left: 300px; top: 120px; width: 300px; max-height: 70vh; display: flex; flex-direction: column; background: #fffdf8; border: 3px solid #6b4438; border-radius: 16px; box-shadow: 0 12px 30px rgba(90, 50, 60, .25); }
 .pp-pop-h { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1.5px dashed #f1d3dd; }
 .pp-pop-b { overflow-y: auto; padding: 8px 10px 12px; }
+/* 💾 임시저장 · ✅ 완료 (도련 11-14) */
+.pp-end { margin-top: auto; display: grid; grid-template-columns: 1fr 1.3fr; gap: 7px; }
+.pp-end .pp-go { margin-top: 0; }
+.pp-tmp { font: inherit; font-size: 14px; font-weight: 900; border-radius: 14px; border: 2px solid #e88fb0; background: #fff; color: #c2457a; cursor: pointer; padding: 10px 4px; box-shadow: 0 3px 0 #f2c6d4; }
+.pp-tmp:disabled, .pp-go:disabled { opacity: .7; }
+.pp-endt { font-size: 10.5px; text-align: center; margin: 0; }
+/* 열 때 : 이어서 작업 · 새 작업 (js/tablet.js) */
+.pp-ask { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; background: #fffdf8; border: 3px solid #6b4438; border-radius: 20px; padding: 26px 30px; box-shadow: 0 10px 26px rgba(90, 50, 60, .18); max-width: 420px; text-align: center; }
+.pp-ask h3 { margin: 0; font-size: 18px; }
+.pp-ask p { margin: 0; font-size: 13px; color: #8a6a76; line-height: 1.5; }
+.pp-ask .bt { display: flex; gap: 12px; align-items: flex-start; }
+.pp-ask .bt > div { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 170px; }
+.pp-ask button { width: 100%; font: inherit; font-size: 15px; font-weight: 900; border-radius: 14px; padding: 12px 8px; cursor: pointer; border: 2px solid #e88fb0; }
+.pp-ask .go { background: #e88fb0; color: #fff; box-shadow: 0 4px 0 #c2457a; }
+.pp-ask .new { background: #fff; color: #c2457a; }
+.pp-ask small { font-size: 11px; color: #c2457a; font-weight: 800; line-height: 1.4; }

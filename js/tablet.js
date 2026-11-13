@@ -69,7 +69,7 @@
     }
     async function closeTablet() {
         if (!IP.on || IP.busy) return;
-        if (((IP.D && IP.D.dirty) || (window.ppDirty && ppDirty())) && !(await (typeof showAsk === 'function' ? showAsk('그리던 그림이 사라져요.<br>태블릿를 닫을까요?', '닫기', '계속 그리기') : Promise.resolve(true)))) return;
+        if (!(await leaveOk())) return;
         if (q('tbWs') && q('tbWs').classList.contains('show')) { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); }
         IP.busy = true;
         const room = q('ipRoom'), pad = q('ipPad'), el = IP.el, S = el && el.isConnected ? el.getBoundingClientRect() : null, T = pad.getBoundingClientRect();
@@ -139,8 +139,16 @@
         const r = q('tbWs'); if (r && !quietly) { r.classList.remove('show'); document.body.classList.remove('tb-ws-on'); }
         IP.D = null;
     }
+    async function leaveOk() {                                               // 그리던 것이 있으면 : 🎨 그림판 = 임시저장하고 나가기 · 그냥 나가기 · 계속 그리기 (도련 11-14)
+        if (window.ppDirty && ppDirty()) {
+            const r = typeof showAsk3 === 'function' ? await showAsk3('💾 그리던 그림을 <b>임시저장</b>할까요?<br><span style="font-size:12px;color:#777;">저장하지 않으면 사라져요.</span>', '임시저장하고 나가기', '계속 그리기', '그냥 나가기') : true;
+            if (r === false) return false; if (r === true) return !!(window.ppSaveDraft && await ppSaveDraft(true)); return true;
+        }
+        if (IP.D && IP.D.dirty && typeof showAsk === 'function') return !!(await showAsk('그리던 그림이 사라져요.<br>나갈까요?', '나가기', '계속 그리기'));
+        return true;
+    }
     async function wsHome() {
-        if (((IP.D && IP.D.dirty) || (window.ppDirty && ppDirty())) && typeof showAsk === 'function' && !(await showAsk('그리던 그림이 사라져요.<br>홈으로 갈까요?', '홈으로', '계속 그리기'))) return;
+        if (!(await leaveOk())) return;
         const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home();
     }
     function wsWatch(src, gone) {                                            // 예전 화면이 스스로 닫히면 (저장 뒤 등) 작업대도 닫혀요
@@ -149,13 +157,35 @@
         WS.obs.observe(src, { attributes: true, attributeFilter: ['style', 'class'] });
     }
     /* 🎨 그림판 (js/padpaint.js) : 레이어 · 픽셀 · 벡터 · 속지부터 (도련 11-13 · 다음에 떡메 · 마테 · 조각 · 모조지) */
-    function wsPaint(k) {
+    async function wsPaint(k) {
         wsOpen('📃 속지 만들기', '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
         const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
         const bg = (getComputedStyle(document.documentElement).getPropertyValue('--dy-page') || '').trim();
-        ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
-            bg: /^#[0-9a-f]{6}$/i.test(bg) ? bg : '#ffffff', mk: { g: 'plain', lc: '#f6d5df', gap: 56 },
+        const go = draft => ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
+            bg: /^#[0-9a-f]{6}$/i.test(bg) ? bg : '#ffffff', mk: { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
             done: () => { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home(); } });
+        /* 💾 임시저장해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
+        const DK = (window.PP_DRAFT_K || {})[k] || k;
+        let has = null; try { has = window.draftHas ? await draftHas(DK) : null; } catch (e) { console.warn('📐 작업 중 파일', e); }
+        if (!q('tbWs').classList.contains('show')) return;
+        if (!has) { go(null); return; }
+        const when = (() => { const d = new Date(has.at); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; })();
+        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 속지가 있어요</h3><p>${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
+            <div class="bt"><div><button type="button" class="go" data-a="cont">✏️ 이어서 작업</button></div>
+            <div><button type="button" class="new" data-a="new">🆕 새 작업</button><small>⚠ 새 작업을 하면 임시저장해 둔<br>작업은 사라져요</small></div></div></div>`;
+        q('tbWsC').querySelector('.pp-ask').addEventListener('click', async e => {
+            const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+            e.currentTarget.querySelectorAll('button').forEach(x => { x.disabled = true; });
+            if (b.dataset.a === 'new') {
+                try { await draftDrop(DK); } catch (er) { console.warn('📐 작업 중 파일 지우기', er); }
+                q('tbWsC').innerHTML = ''; go(null); return;
+            }
+            b.textContent = '📂 불러오는 중…';
+            let d = null; try { d = await draftRead(DK); } catch (er) { console.warn('📐 작업 중 파일 읽기', er); }
+            q('tbWsC').innerHTML = '';
+            if (!d) { if (window.showMsg) showMsg('⚠ 임시저장한 작업을 열지 못했어요.<br>새로 시작해요.'); go(null); return; }
+            go(d);
+        });
     }
     /* 📃 속지 · 🧻 떡메 = 예전 만들기 창 (js/leafmaker.js) 의 칸 */
     function wsLeaf(k) {

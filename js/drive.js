@@ -1414,6 +1414,14 @@
             setTimeout(sealOld, 20000);                                      // 🔐 예전 파일 잠그기 (뒤에서 조금씩 · 도련 11-11)
         }
         window.sealOld = sealOld;
+        /* 📐 작업 중 파일 (도련 11-14 · 태블릿 그림판 💾 임시저장) : 도안/작업중-<종류>.json · 종류마다 하나 (새로 저장하면 덮어써요 · 도안 목록에는 안 들어가요)
+           모든 것을 json 하나에 (레이어 · 그림 · 벡터 점 · 사진 · 종이 · 도구) · 🔐 잠가요 (driveUpsert) · 🏠 로그인 없이도 같아요 (gfetch → 이 브라우저) */
+        const draftName = k => '작업중-' + k + '.json';
+        async function draftFind(k, create) { const d = await getFolder(dirPath(DIRS.design), !!create); return { d, f: d ? await findFile(d, draftName(k)) : null }; }
+        window.draftHas = async k => { const { f } = await draftFind(k); return f ? { at: f.modifiedTime, size: +f.size || 0 } : null; };
+        window.draftRead = async k => { const { f } = await draftFind(k); if (!f) return null; return parseJsonObject(await readFileText(f.id), '작업중 파일'); };
+        window.draftWrite = async (k, obj) => { const { d, f } = await draftFind(k, true); await driveUpsert(d, draftName(k), f ? f.id : null, JSON.stringify(obj)); };
+        window.draftDrop = async k => { const { f } = await draftFind(k); if (!f) return; const r = await gfetch(`${DRIVE_API}/${f.id}`, { method: 'DELETE' }); if (!r.ok && r.status !== 404) throw new Error('draft delete ' + r.status); };
 
         /* 드라이브에서 불러온 데이터를 화면에 반영 */
         function applyLoadedData() {
