@@ -69,7 +69,7 @@
     }
     async function closeTablet() {
         if (!IP.on || IP.busy) return;
-        if (IP.D && IP.D.dirty && !(await (typeof showAsk === 'function' ? showAsk('그리던 그림이 사라져요.<br>태블릿를 닫을까요?', '닫기', '계속 그리기') : Promise.resolve(true)))) return;
+        if (((IP.D && IP.D.dirty) || (window.ppDirty && ppDirty())) && !(await (typeof showAsk === 'function' ? showAsk('그리던 그림이 사라져요.<br>태블릿를 닫을까요?', '닫기', '계속 그리기') : Promise.resolve(true)))) return;
         if (q('tbWs') && q('tbWs').classList.contains('show')) { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); }
         IP.busy = true;
         const room = q('ipRoom'), pad = q('ipPad'), el = IP.el, S = el && el.isConnected ? el.getBoundingClientRect() : null, T = pad.getBoundingClientRect();
@@ -103,6 +103,7 @@
         if (IP.busy) return;
         if (WAY[k]) {                                                         // 📃 🧻 🎀 🏷️ = 예전 만들기 화면 (태블릿는 뒤에서 기다려요 → 닫으면 홈)
             const b = q('ipScr').querySelector(`.ip-app[data-k="${k}"]`); if (b) { b.classList.add('tap'); setTimeout(() => b.classList.remove('tap'), 300); }
+            if (k === 'leaf' && window.ppOpen) { wsPaint(k); return; }   // 🎨 속지 = 새 그림판 (js/padpaint.js · 도련 11-13)
             if (k === 'leaf' || k === 'tk') { wsLeaf(k); return; }
             if (k === 'tape') { wsTape(); return; }
             if (OPEN[k]) OPEN[k](); else if (window.craftWay) craftWay(WAY[k], k); return;   // 🏷️ 시트 꾸미기 = 이미 화면 가득
@@ -139,13 +140,22 @@
         IP.D = null;
     }
     async function wsHome() {
-        if (IP.D && IP.D.dirty && typeof showAsk === 'function' && !(await showAsk('그리던 그림이 사라져요.<br>홈으로 갈까요?', '홈으로', '계속 그리기'))) return;
+        if (((IP.D && IP.D.dirty) || (window.ppDirty && ppDirty())) && typeof showAsk === 'function' && !(await showAsk('그리던 그림이 사라져요.<br>홈으로 갈까요?', '홈으로', '계속 그리기'))) return;
         const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home();
     }
     function wsWatch(src, gone) {                                            // 예전 화면이 스스로 닫히면 (저장 뒤 등) 작업대도 닫혀요
         WS.src = src; src.classList.add('tb-hide');
         WS.obs = new MutationObserver(() => { if (gone()) { WS.close = null; wsEnd(); home(); } });
         WS.obs.observe(src, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+    /* 🎨 그림판 (js/padpaint.js) : 레이어 · 픽셀 · 벡터 · 속지부터 (도련 11-13 · 다음에 떡메 · 마테 · 조각 · 모조지) */
+    function wsPaint(k) {
+        wsOpen('📃 속지 만들기', '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
+        const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
+        const bg = (getComputedStyle(document.documentElement).getPropertyValue('--dy-page') || '').trim();
+        ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
+            bg: /^#[0-9a-f]{6}$/i.test(bg) ? bg : '#ffffff', mk: { g: 'plain', lc: '#f6d5df', gap: 56 },
+            done: () => { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home(); } });
     }
     /* 📃 속지 · 🧻 떡메 = 예전 만들기 창 (js/leafmaker.js) 의 칸 */
     function wsLeaf(k) {
