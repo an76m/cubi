@@ -58,7 +58,7 @@
     function paperPaint(L) {                                                    // 🧵 종이 (js/maker.js 속지 종이 그대로)
         const x = L.cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.fillStyle = L.mk.bg || '#fff'; x.fillRect(0, 0, P.W, P.H);
         if (window.MK && MK.paperSvg && MK.url) {
-            const im = new Image(); im.onload = () => { x.clearRect(0, 0, P.W, P.H); x.drawImage(im, 0, 0, P.W, P.H); renderAll(); paintLayers(); }; im.src = MK.url(MK.paperSvg(L.mk, P.W, P.H));
+            const im = new Image(); im.onload = () => { x.clearRect(0, 0, P.W, P.H); x.drawImage(im, 0, 0, P.W, P.H); renderAll(); paintLayers(); }; im.src = MK.url(MK.paperSvg(Object.assign({}, L.mk, { top: 0, head: '' }), P.W, P.H));   // 위 여백 · 머리글 없음 (예전 임시저장에 남아 있어도)
         } else { x.strokeStyle = L.mk.lc || '#f6d5df'; x.lineWidth = 2; for (let y = (L.mk.gap || 56); y < P.H; y += (L.mk.gap || 56)) { x.beginPath(); x.moveTo(0, y); x.lineTo(P.W, y); x.stroke(); } }
     }
     function photoPaint(L) {                                                    // 📎 사진 레이어 : 종이 가득 (크기 · 자리 · 연하게)
@@ -741,7 +741,7 @@
         pop.innerHTML = `<div class="pp-pop-h"><b>🧵 종이 꾸미기</b><button type="button" class="win-x" aria-label="닫기">✕</button></div><div class="pp-pop-b" id="ppPopB"></div>`;
         document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
         histSt(); let t = 0;
-        MK.form($('ppPopB'), 'paper', L.mk, r => { L.mk = r; clearTimeout(t); t = setTimeout(() => paperPaint(L), 120); P.dirty = true; }, { only: ['bg', 'g', 'lc', 'gap', 'top', 'L', 'bd', 'bw', 'bc', 'rad', 'head'] });
+        MK.form($('ppPopB'), 'paper', L.mk, r => { L.mk = r; clearTimeout(t); t = setTimeout(() => paperPaint(L), 120); P.dirty = true; }, { only: ['bg', 'g', 'lc', 'gap', 'L', 'bd', 'bw', 'bc', 'rad'] }   /* 위 여백 · 머리글은 뺐어요 (도련 11-14 : 글씨는 ✏️ 글씨 도구로) */);
     }
 
     /* ================= 🗄️ 서랍에 넣기 ================= */
