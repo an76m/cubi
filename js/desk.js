@@ -635,7 +635,8 @@
         }, true);
         /* 🔽 오른쪽 위 메뉴 셋 (도련 11-01) : 🛠 책상 꾸미기 · ✂️ 스티커 만들기(→ 🎨 다꾸 작업실) · 📒 스티커 정리 · 한 개만 보이고 ▾ 를 누르면 나머지 둘
            다른 곳에 갔다 내 방으로 돌아올 때마다(deskGoRoom) 보이는 메뉴가 다음 것으로 돌아가요 (이 창이 열려 있는 동안만 기억 · 처음 = 책상 꾸미기) */
-        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 만들기', () => window.openCraft && openCraft()], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['바인더 조립', () => window.bndOpen && bndOpen()]];   // 🧩 바인더 조립 공간 (도련 11-07 · js/binderroom.js) · 🍽 오늘 쓸 스티커는 📱 폰만 (도련 11-13 · 책상은 다이어리모드로 충분)
+        const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['바인더 조립', () => window.bndOpen && bndOpen()]];   // 🧩 바인더 조립 공간 (도련 11-07 · js/binderroom.js) · 🍽 오늘 쓸 스티커는 📱 폰만 (도련 11-13 · 책상은 다이어리모드로 충분)
+        /* ✂️ 스티커 만들기는 뺐어요 (도련 11-14 : 책상에서는 📱 태블릿으로 만들어요 · openCraft 코드는 그대로) */
         const DTM = { i: 0 };
         function dtmPaint() {
             const m = document.getElementById('deskTopMenu'); if (!m) return;
