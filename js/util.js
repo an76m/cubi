@@ -131,3 +131,6 @@ document.addEventListener('keydown', e => {
     if (window.deskGoRoom) deskGoRoom(); else p.close();
 });
 window.placeAdd = placeAdd; window.placeIn = placeIn; window.placeOut = placeOut;
+
+/* 🧹 1161~1162 임시 멈춤 기록(js/dbg.js · 지움)이 이 기기에 남긴 두 칸을 지워요 (도련 11-13 · 그때 앱을 연 모든 기기 · 몇 주 뒤 이 줄도 지워도 돼요) */
+try { localStorage.removeItem('malang_dbg'); localStorage.removeItem('malang_dbg_prev'); } catch (e) {}
