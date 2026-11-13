@@ -389,6 +389,7 @@
         frP.catch(e => { console.warn('📥 받은 스티커첩 목록', e); if (frGen === gen) frP = null; });
         return frP;
     }
+    const abRid = () => Date.now().toString(36) + Math.floor(Math.random() * 1e8).toString(36);   // 📒 🤍 새 책 id (1165 에 잘못 지웠던 것 되살림 · 도련 11-14)
     const frNew = (t, pid, from) => { const P = (t === 'bd' ? AB_BDP : AB_RL).find(x => x.id === pid); return { id: (t === 'bd' ? 'b' : 'r') + abRid(), pid: P.id, n: +(t === 'bd' ? P.P.장수 : P.P.쪽수), lb: '', at: Date.now(), from }; };
     /* 🏪 기본상품 샵에서 받기 = 종류 없이 📥 받은 목록에 (도련 11-08 · 예전엔 넣을 서랍을 골랐어요) */
     async function abTakeTool(t, pid) {
