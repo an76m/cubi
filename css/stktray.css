@@ -1,4 +1,4 @@
-/* 🍽 오늘 쓸 스티커 (도련 11-01 · js/stktray.js) : 💻 📲 책상 · ▤ 하단 · 📱 폰 · 고르는 화면 + 책상 위 버튼 · 은빛 쟁반 */
+/* 🍽 오늘 쓸 스티커 (도련 11-01 · js/stktray.js) : 📱 폰만 (11-13 · 💻 📲 책상은 영구 삭제) · 고르는 화면 + 아래 메뉴 줄 버튼 · 은빛 쟁반 */
 .stp { position: fixed; inset: 0; z-index: 1450; display: none; flex-direction: column; background: #fff8f1 radial-gradient(#f6e3ea 1.5px, transparent 1.6px) 0 0 / 20px 20px; color: #5b3240; }
 .stp.show { display: flex; animation: crIn .2s ease both; }
 .stp button { font-family: inherit; cursor: pointer; }
@@ -15,15 +15,12 @@
 .stp-c { position: relative; touch-action: none; cursor: grab; transition: transform .12s; }
 .stp-c:hover { transform: translateY(-3px); }
 .stp-c .bk-sh { position: relative !important; left: auto; top: auto; width: 100% !important; max-width: none; transform: none; pointer-events: none; }
-.stp-c.stp-out { opacity: .35; }
-.stp-ghost { position: fixed; z-index: 3000; translate: -50% -50%; pointer-events: none; rotate: -4deg; filter: drop-shadow(0 10px 14px rgba(90, 40, 70, .3)); }
 /* 은빛 쟁반 : 평평하고 넓고 끝이 둥근 */
 .stp-r { min-height: 0; display: flex; flex-direction: column; gap: 14px; }
 .stp-tray, .dtr-tray { position: relative; border-radius: 46px; padding: 18px; background: linear-gradient(160deg, #fbfcfd 0%, #e3e8ee 38%, #c9d0d8 62%, #eef1f4 100%);
     box-shadow: inset 0 2px 0 #fff, inset 0 -3px 0 rgba(120, 130, 145, .35), 0 10px 22px rgba(90, 100, 120, .25), 0 0 0 2px #b9c1cb; }
 .stp-tray::before, .dtr-tray::before { content: ''; position: absolute; inset: 12px; border-radius: 36px; background: linear-gradient(160deg, #eef2f5, #d9dfe5 60%, #e9edf1); box-shadow: inset 0 3px 8px rgba(110, 120, 135, .35), inset 0 -1px 0 #fff; pointer-events: none; }
-.stp-tray { flex: 1; min-height: 0; transition: box-shadow .15s; }
-.stp-tray.hot { box-shadow: inset 0 2px 0 #fff, 0 0 0 4px #ffd36b, 0 0 28px 6px rgba(255, 211, 107, .6); }
+.stp-tray { flex: 1; min-height: 0; }
 .stp-tin, .dtr-in { position: relative; z-index: 1; height: 100%; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; align-content: start; padding: 14px; box-sizing: border-box; scrollbar-width: thin; }
 .stp-hint { grid-column: 1 / -1; margin: 60px 0; text-align: center; color: #7b8592; font-weight: 800; line-height: 1.7; }
 .stp-note { flex: none; margin: 0; padding: 12px 16px; border-radius: 16px; background: #fff; border: 2px dashed #f2bfd0; font-size: 14px; line-height: 1.65; color: #7a5566; word-break: keep-all; }
@@ -31,7 +28,7 @@
 .stp-go { flex: none; padding: 14px; border-radius: 16px; border: 2px solid #e88fb0; background: #ffe0ea; color: #c2457a; font-size: 19px; font-weight: 900; box-shadow: 0 4px 0 #f0b6c8; }
 .stp-go:active { translate: 0 2px; box-shadow: 0 2px 0 #f0b6c8; }
 
-/* 책상 위쪽 가운데 버튼 · 쟁반 */
+/* 🍽 버튼 · 쟁반 */
 .dtr-btn { position: fixed; top: max(14px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 995; }   /* 가운데는 transform 으로 (누를 때 translate 가 바뀌어도 안 튀게) */
 .dtr-btn[hidden] { display: none; }
 .dtr-btn { gap: 10px; }
@@ -48,11 +45,13 @@
 .dtr-in .stp-c { cursor: pointer; }
 .dtr-ft { display: flex; gap: 6px; justify-content: center; }
 .dtr-mini { padding: 6px 12px; border-radius: 999px; border: 2px solid #e2c4cf; background: #fff; color: #9a6a7d; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
-/* 장소 · 꾸미기 · 가게 · 고르는 화면에서는 숨겨요 (책상 오른쪽 위 버튼과 같게) */
-html.desk-edit .dtr-btn, body.cal-on .dtr-btn, body:has(.shop-scene.on) .dtr-btn, body:has(#stkPick.show) .dtr-btn,
-html.desk-edit .dtr-pn, body.cal-on .dtr-pn, body:has(.shop-scene.on) .dtr-pn, body:has(#stkPick.show) .dtr-pn { display: none; }
+/* 장소 · 가게 · 고르는 화면에서는 숨겨요 */
+body.cal-on .dtr-btn, body:has(.shop-scene.on) .dtr-btn, body:has(#stkPick.show) .dtr-btn,
+body.cal-on .dtr-pn, body:has(.shop-scene.on) .dtr-pn, body:has(#stkPick.show) .dtr-pn { display: none; }
+/* 💻 📲 책상 = 오늘 쓸 스티커 없음 (도련 11-13 · 📔 다이어리모드로 충분) */
+html.desk-on .stk-sub, html.desk-on #stkPick, html.desk-on .dtr-btn, html.desk-on .dtr-pn { display: none !important; }
 
-/* 🍽 하단 메뉴 모드에서도 (도련 11-11 · 스티커 창 '오늘 쓸 스티커' → 쟁반 버튼은 화면 위 가운데 그대로) */
+/* 🍽 스티커 창 '오늘 쓸 스티커' 버튼 · 쟁반 버튼 = 아래 메뉴 줄 끝 */
 .stk-sub { display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; margin: 10px auto 2px; padding: 0 18px; border: 1.6px solid #e8bfd2; border-radius: 18px; background: #fff; color: #c8457a; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .stk-sub:hover { border-color: #e07ba0; background: #fff4f8; }
 .toolbar .dtr-btn { position: static; transform: none; align-self: center; flex: none; height: 40px; padding: 0 14px; font-size: 14px; }   /* ▤ 하단 메뉴 = 아래 메뉴 줄 끝 */

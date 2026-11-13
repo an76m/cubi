@@ -1,22 +1,19 @@
 /* 말랑달콤 다이어리 - js/stktray.js
-   🍽 오늘 쓸 스티커 (도련 11-01 · 💻 📲 책상 · ▤ 하단 메뉴 · 📱 폰도 11-12)
+   🍽 오늘 쓸 스티커 (도련 11-01 · 📱 폰만 · 11-13 : 💻 📲 책상은 📔 다이어리모드로 충분해서 책상 쪽 코드는 영구 삭제)
    - 다꾸하기 전에 쓸 스티커를 골라 은빛 쟁반에 담아 두고, 다이어리를 펴서 쟁반에서 바로 꺼내 써요
-   - 🔽 오른쪽 위 메뉴 '오늘 쓸 스티커' → 고르는 화면
-       왼쪽 위 = 스티커 종류 · 그 아래 = 가진 그 종류 스티커 (🧺 바구니에 있는 것) → 오른쪽 쟁반으로 끌어 놓아 담기 (톡으로는 안 담겨요 · 도련 11-06) · 쟁반의 것을 톡 = 다시 빼기
-       [🍽 스티커 담기] = 담기 끝 → 책상 위쪽 가운데에 '🍽 오늘 쓸 스티커 n' 버튼 (톡 = 쟁반 나왔다 · 들어갔다)
+   - 🧺 스티커 창의 [🍽 오늘 쓸 스티커] → 고르는 화면 : 위 = 스티커 종류 · 가진 그 종류 스티커 → 톡 = 아래 쟁반에 담기 · 쟁반의 것 톡 = 다시 빼기
+       [🍽 스티커 담기] = 담기 끝 → 아래 메뉴 줄 끝에 '🍽 쟁반' 버튼 (톡 = 쟁반 나왔다 · 들어갔다)
    - 쟁반의 스티커를 톡 = 바구니에서 누를 때와 똑같이 그 종이가 펼쳐져요 (js/basket.js bkOpenSheet) · 다 쓴 종이는 쟁반에서 저절로 빠져요
    - 담은 목록은 이 창이 열려 있는 동안만 (메모리 · 저장하지 않아요) : 앱을 닫으면 다꾸가 끝난 걸로 알고 비워요 · 스티커는 원래 바구니에 그대로
      쟁반은 스티커를 옮기지 않고 '서랍의 이 종이'를 가리키기만 해요 (복사 · 이동 없음 → 늘어나거나 안 줄어드는 일 없음)
-   - ▤ 하단 메뉴 (📱 폰 · 💻 📲 하단 메뉴 · 도련 11-12 : 책상 = 현실 · 하단 = 편의) : 스티커 톡 = 바로 쟁반에 (끌어도 돼요) · 📱 폰 = 위 목록 · 아래 가로 쟁반 · 안내 한 줄 · 다꾸할 때 쟁반 = 아래 메뉴 위에 얇은 줄
+   - 📱 폰 = 위 목록 · 아래 가로 쟁반 · 안내 한 줄 · 다꾸할 때 쟁반 = 아래 메뉴 위에 얇은 줄
    ※ 이 파일이 없어도 다이어리는 정상 동작 (메뉴의 오늘 쓸 스티커만 반응 없음) */
 (function () {
     const q = id => document.getElementById(id);
-    const T = { ids: [], draft: [], kind: 'seal', list: [], noted: false, open: false, pos: null };
+    const T = { ids: [], draft: [], kind: 'seal', list: [], open: false };
     const API = () => window.bkTrayApi;
-    const NOTE_PH = '🧺 다꾸하는 동안만 담아 둬요 · 스티커는 서랍에 그대로';   // 📱 한 줄 (도련 11-12)
-    const easy = () => !UI.desk();                                           // ▤ 하단 메뉴 = 톡으로 담기 (편의)
-    const note = () => UI.phone() ? NOTE_PH : NOTE;
-    const NOTE = '🧺 여기 담은 스티커는 <b>지금 다꾸할 때 쓸 스티커</b>예요.<br>앱을 닫으면 <b>쟁반은 비워져요.</b><br>사용 안 된 스티커는 <b>원래 서랍으로 돌아가니</b> 걱정하지 마세요!';
+    const NOTE = '🧺 다꾸하는 동안만 담아 둬요 · 스티커는 서랍에 그대로';   // 📱 한 줄 (도련 11-12)
+    const on = () => !UI.desk();                                              // 💻 📲 책상에서는 없어요 (도련 11-13)
     const byId = () => new Map(T.list.map(e => [e.id, e]));
 
     /* ---------- 고르는 화면 ---------- */
@@ -31,15 +28,13 @@
                     <button type="button" class="stp-go" onclick="stpSave()">🍽 스티커 담기</button></section>
             </div>`;
         document.body.appendChild(el);
-        el.addEventListener('pointerdown', stpDown);
-        el.addEventListener('click', e => { if (!UI.phone()) return; const c = e.target.closest('.stp-c'); if (c) stpMove(c.dataset.id, !c.classList.contains('in')); });   // 📱 톡 = 담기 · 쟁반의 것 톡 = 빼기 (넘겨 보기는 그대로)
+        el.addEventListener('click', e => { const c = e.target.closest('.stp-c'); if (c) stpMove(c.dataset.id, !c.classList.contains('in')); });   // 📱 톡 = 담기 · 쟁반의 것 톡 = 빼기 (넘겨 보기는 그대로)
         return el;
     }
     async function stpOpen() {
-        const A = API(); if (!A) return;
+        const A = API(); if (!A || !on()) return;
         if (!A.ok()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 고를 수 있어요.'); return; }
         const el = stpBuild(); T.draft = T.ids.slice(); el.classList.add('show');
-        q('stpNote').innerHTML = note();
         const p = A.peek(); if (p) { T.list = p; stpPaint(); } else q('stpGrid').innerHTML = '<p class="stp-empty">스티커를 꺼내는 중…</p>';
         try { T.list = await A.load(true); } catch (e) { if (!p) { q('stpGrid').innerHTML = '<p class="stp-empty">⚠ 스티커를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</p>'; return; } }
         stpPaint();
@@ -54,39 +49,15 @@
             : `<p class="stp-empty">${T.list.some(e => A.kindOf(e) === T.kind) ? '이 종류는 다 쟁반에 담았어요 🍽' : '아직 이 종류 스티커가 없어요.<br>🏪 기본상품 샵에서 받아 오거나 ✂️ 직접 만들어요.'}</p>`;
         const cn = q('stpCnt'); if (cn) cn.textContent = T.draft.length ? T.draft.length + '개 담았어요 · 톡 = 빼기' : '';
         q('stpTin').innerHTML = T.draft.length ? T.draft.map(id => `<div class="stp-c in" data-id="${htmlEsc(id)}">${A.card(M.get(id))}</div>`).join('')
-            : `<p class="stp-hint">${UI.phone() ? '위 스티커를 톡 하면 여기 담겨요' : easy() ? '왼쪽 스티커를 톡 하거나<br>끌어 놓아 담아요' : '왼쪽 스티커를 이 쟁반으로<br>끌어 놓아 담아요'}</p>`;
+            : '<p class="stp-hint">위 스티커를 톡 하면 여기 담겨요</p>';
     }
     function stpKind(k) { T.kind = k; stpPaint(); }
     function stpMove(id, toTray) {
         if (toTray) { if (!T.draft.includes(id)) T.draft.push(id); } else T.draft = T.draft.filter(x => x !== id);
         stpPaint();
     }
-    /* 끌어 놓기 (조금만 움직이면 톡 = 쟁반의 것 빼기 · 담기는 끌어 놓기로만 · 도련 11-06) */
-    function stpDown(ev) {
-        const c = ev.target.closest('.stp-c'); if (!c || ev.button > 0 || UI.phone()) return;   // 📱 = 톡만 (손가락으로 목록 · 쟁반을 넘겨 봐요 · stpTap)
-        ev.preventDefault();
-        const id = c.dataset.id, inTray = c.classList.contains('in'), x0 = ev.clientX, y0 = ev.clientY;
-        let gh = null;
-        const mv = e => {
-            if (e.pointerId !== ev.pointerId) return;
-            if (!gh && Math.hypot(e.clientX - x0, e.clientY - y0) > 8) { gh = c.cloneNode(true); gh.className = 'stp-c stp-ghost'; gh.style.width = c.offsetWidth + 'px'; document.body.appendChild(gh); c.classList.add('stp-out'); }
-            if (gh) { gh.style.left = e.clientX + 'px'; gh.style.top = e.clientY + 'px'; q('stpTray').classList.toggle('hot', !inTray && stpOverTray(e)); }
-        };
-        const up = e => {
-            if (e.pointerId !== ev.pointerId) return;
-            removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
-            q('stpTray').classList.remove('hot'); c.classList.remove('stp-out');
-            if (!gh) { if (e.type !== 'pointercancel' && (inTray || easy())) stpMove(id, !inTray); return; }   // 톡 = 쟁반의 것 빼기 · 🪑 책상 = 담기는 끌어 놓기로만 (현실 · 도련 11-06) · ▤ 하단 메뉴 = 톡으로도 담기 (편의 · 11-12)
-            gh.remove();
-            const over = stpOverTray(e);
-            if (!inTray && over) stpMove(id, true); else if (inTray && !over) stpMove(id, false);
-        };
-        addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
-    }
-    const stpOverTray = e => { const r = q('stpTray').getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
     function stpSave() {
         T.ids = T.draft.slice(); stpHide();
-        if (T.ids.length && !T.noted) { T.noted = true; if (!UI.phone()) showMsg(NOTE); }   // 📱 폰은 고르는 화면의 한 줄로 충분해요        // 처음 담을 때 한 번 더 크게
         dtrPaint(); if (T.ids.length) dtrShow(true);
     }
     function stpHide() { const el = q('stkPick'); if (el) el.classList.remove('show'); }
@@ -96,7 +67,7 @@
         showAsk('고른 스티커를 쟁반에 담지 않고 닫을까요?', '담지 않고 닫기', '계속 고르기').then(ok => { if (ok) stpHide(); });
     }
 
-    /* ---------- 책상 위 : 🍽 버튼 · 은빛 쟁반 ---------- */
+    /* ---------- 📱 아래 메뉴 줄 : 🍽 버튼 · 은빛 쟁반 ---------- */
     function dtrBuild() {
         let b = q('dtrBtn'); if (b) return b;
         b = document.createElement('button'); b.type = 'button'; b.id = 'dtrBtn'; b.className = 'desk-shop-go dtr-btn'; b.hidden = true; b.onclick = () => dtrShow(!T.open);
@@ -109,14 +80,15 @@
         dtrDrag(p);
         return b;
     }
-    function dtrHome() {                                                     // 🍽 버튼 자리 : 🪑 책상 = 화면 위 가운데 · ▤ 하단 메뉴 = 아래 메뉴 줄 끝 (다이어리 날짜 막대를 가리지 않게 · 도련 11-11)
+    function dtrHome() {                                                     // 🍽 버튼 자리 = 아래 메뉴 줄 끝 (다이어리 날짜 막대를 가리지 않게 · 도련 11-11) · 💻 📲 책상 = 없어요
         const b = q('dtrBtn'); if (!b) return;
-        const home = UI.desk() ? document.body : (document.querySelector('.toolbar') || document.body);
+        if (!on()) { T.ids = []; T.draft = []; b.hidden = true; dtrShow(false); return; }
+        const home = document.querySelector('.toolbar') || document.body;
         if (b.parentNode !== home) home.appendChild(b);
     }
     function dtrPaint() {
         const b = dtrBuild(), A = API(); if (!A) return;
-        dtrHome();
+        dtrHome(); if (!on()) return;
         const p = A.peek(); if (p) { T.list = p; const M = byId(); T.ids = T.ids.filter(id => M.has(id)); }   // 다 쓴 종이는 저절로 빠져요
         b.hidden = !T.ids.length; if (!b.firstChild) b.innerHTML = '<span class="dtr-lb">오늘 쓸 스티커</span><span class="dtr-lbs">🍽 쟁반</span><i class="dtr-sw" aria-hidden="true"></i>';   // 📱 = 짧은 이름 (css)   // 켜고 끄는 스위치 (개수 대신 · 도련 11-01)
         if (!T.ids.length) dtrShow(false);
@@ -124,28 +96,23 @@
         if (box) box.innerHTML = T.ids.map(id => M.get(id)).filter(Boolean).map(e => `<div class="stp-c in" data-id="${htmlEsc(e.id)}">${A.card(e)}</div>`).join('');
     }
     function dtrShow(on) {
-        dtrHome();
         T.open = !!on && T.ids.length > 0;
         const p = q('dtrPanel'), b = q('dtrBtn'); if (!p) return;
         p.hidden = !T.open; if (b) { b.classList.toggle('on', T.open); b.setAttribute('aria-pressed', String(T.open)); }
-        if (T.open && UI.phone()) {                                           // 📱 = 처음엔 아래 메뉴 줄 바로 위 · 머리를 잡고 위아래로 옮긴 자리는 기억 (앱을 닫기 전까지)
+        if (T.open) {                                                         // 📱 = 처음엔 아래 메뉴 줄 바로 위 · 머리를 잡고 위아래로 옮긴 자리는 기억 (앱을 닫기 전까지)
             if (T.posY != null) { p.style.top = Math.min(T.posY, innerHeight - p.offsetHeight) + 'px'; p.style.bottom = 'auto'; }
             else { const tb = document.querySelector('.toolbar'), y = tb && tb.getBoundingClientRect().top; p.style.top = 'auto'; p.style.bottom = ((y > 0 ? innerHeight - y : 0) + 6) + 'px'; } }
-        if (T.open && T.pos && !UI.phone()) Object.assign(p.style, { left: T.pos[0] + 'px', top: T.pos[1] + 'px' });
     }
     function dtrEnd() {
         showAsk('🍽 다꾸를 마쳤나요?<br><span style="font-size:12px;color:#777;">쟁반을 비워요 · 스티커는 원래 서랍에 그대로 있어요</span>', '비우기', '취소')
             .then(ok => { if (ok) { T.ids = []; T.draft = []; dtrPaint(); } });
     }
-    function dtrDrag(p) {                                                     // 쟁반 머리를 잡고 끌어 옮겨요 (자리는 앱을 닫기 전까지만)
+    function dtrDrag(p) {                                                     // 쟁반 머리를 잡고 위아래로 옮겨요 (화면 너비 그대로 · 자리는 앱을 닫기 전까지만)
         const hd = p.querySelector('#dtrHd');
         hd.addEventListener('pointerdown', ev => {
             if (ev.button > 0 || ev.target.closest('.dtr-x')) return; ev.preventDefault();
-            const r = p.getBoundingClientRect(), dx = ev.clientX - r.left, dy = ev.clientY - r.top, ph = UI.phone();
-            const mv = e => {
-                const y = Math.max(0, Math.min(innerHeight - r.height, e.clientY - dy));
-                if (ph) { p.style.top = y + 'px'; p.style.bottom = 'auto'; T.posY = y; return; }   // 📱 = 화면 너비 그대로 위아래로만
-                const x = Math.max(0, Math.min(innerWidth - r.width, e.clientX - dx)); p.style.left = x + 'px'; p.style.top = y + 'px'; T.pos = [x, y]; };
+            const r = p.getBoundingClientRect(), dy = ev.clientY - r.top;
+            const mv = e => { const y = Math.max(0, Math.min(innerHeight - r.height, e.clientY - dy)); p.style.top = y + 'px'; p.style.bottom = 'auto'; T.posY = y; };
             const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
         });
