@@ -189,6 +189,7 @@
         /* 🪑 책상 위 펜꽂이에도 내가 꽂은 도구가 꽂혀 보여요 (바구니의 다이어리처럼 · 앞벽 뒤) */
         function dkwDeskPaint() {
             try { dkwSweep(); } catch (e) { console.warn('🏠 문구 집', e); }
+            dkwCupRepaint();                                                      // ✏️ 떠 있는 큰 펜꽂이도 (꺼내고 넣은 그대로)
             const cups = dkwDesk() ? dkOnDesk().filter(o => dkwIsCupU(o.u)).map(o => o.u) : [];
             document.querySelectorAll('#deskStage .desk-item > .dkw-desk').forEach(x => { if (!cups.includes(x.parentNode.dataset.u)) x.remove(); });
             cups.forEach(u => {
@@ -204,15 +205,24 @@
             if (!dkwDesk()) return;
             const el = dkwItemEl(u); if (!el) return;
             const img = el.querySelector(':scope > img'), F = img && (dkwFrontFor(el) || { fm: '', mouth: [15, 85, 45] }), r = dkwRoom('dkwCup');   // 앞벽이 없으면 = 도구가 그림 앞에 (가리지 않아요)
-            const n = dkwCupList(u).length, out = dkwHere(u).filter(dkwOut).length, d = dkDef(el);
+            const d = dkDef(el);
             const H = Math.min(380, Math.round(innerHeight * .5)), W = Math.round(H * (d.w || el.offsetWidth) / (d.h || el.offsetHeight));
             r.innerHTML = `<div class="dkw-cupbox">
-                <p class="dkw-hint">${n ? '도구를 잡고 <b>위로 쏙</b> 끌어 올리면 손에 들어요 · <b>옆으로 밀면</b> 비켜나요' : '펜꽂이가 비었어요 · <b>🛍️ 봉투</b>에서 문구를 끌어다 꽂아요'}${out ? `<small>페이지에 꺼내 둔 도구 ${out}개</small>` : ''}</p>
-                <div class="dkw-cupart" style="width:${W}px;height:${H}px"></div></div>`;   // 닫기 = 밖 톡 (도련 11-11 · 버튼 없이)
+                <p class="dkw-hint"></p>
+                <div class="dkw-cupart" style="width:${W}px;height:${H}px"></div></div>`;   // 닫기 = 밖 톡 · 통 톡 (도련 11-11 · 11-13 서랍처럼 · 버튼 없이)
             const host = r.querySelector('.dkw-cupart');
-            if (F) dkwCupScene(host, u, img.src, F, W, H, el.classList.contains('dk-fl'), true);
-            if (need) host.querySelectorAll('.dkw-t').forEach(t => { if (cabGOf(t.dataset.id) === need) t.classList.add('need'); });
+            r._cup = { u, src: img.src, F, W, H, fl: el.classList.contains('dk-fl'), need };
+            dkwCupRepaint(true);
+            host.addEventListener('click', e => { if (!e.target.closest('.dkw-t')) dkwClose(); });   // 🧺 통 톡 = 제자리로 (도구 톡은 그대로 · 도련 11-13)
             dkwZoomIn(r, host, el);                                                // 🔍 책상 위 작은 펜꽂이는 비워 두고 · 큰 펜꽂이가 그 자리에서 날아와요
+        }
+        /* ✏️ 다가온 큰 펜꽂이 다시 그리기 (도련 11-13 · 서랍처럼 : 몇 개를 빼도 그대로 떠 있고 · 빠진 것은 바로 빠져 보여요) */
+        function dkwCupRepaint(first) {
+            const r = dkwq('dkwCup'), c = r && (first || (!r.hidden && !r._out)) && r._cup, host = c && r.querySelector('.dkw-cupart'), hint = c && r.querySelector('.dkw-hint'); if (!host || host.querySelector('.dkw-t.grab')) return;   // 잡고 있는 동안은 그대로
+            const n = dkwCupList(c.u).length, out = dkwHere(c.u).filter(dkwOut).length;
+            hint.innerHTML = (n ? '도구를 잡고 <b>위로 쏙</b> 끌어 올리면 손에 들어요 · <b>옆으로 밀면</b> 비켜나요' : '펜꽂이가 비었어요 · <b>🛍️ 봉투</b>에서 문구를 끌어다 꽂아요') + (out ? `<small>꺼내 둔 도구 ${out}개</small>` : '');
+            if (c.F) dkwCupScene(host, c.u, c.src, c.F, c.W, c.H, c.fl, true);
+            if (c.need) host.querySelectorAll('.dkw-t').forEach(t => { if (cabGOf(t.dataset.id) === c.need) t.classList.add('need'); });
         }
         /* ✋ 뽑기 = 잡고 위로 끌어 올려요 (도련 11-02 · 톡 = 안 뽑혀요 · 현실처럼) : 110px 넘게 올리면 쏙 · 덜 올리고 놓으면 제자리로
            ↔ 옆으로 밀면 비켜나요 (도련 11-03 · 예전 펜꽂이처럼) : 놓아도 민 자리 · 기울기 그대로 · 잡은 것이 맨 앞 → 뒤에 가린 것을 골라요 */
@@ -240,7 +250,7 @@
                 if (up > PULL) {                                                 // 쏙 뽑혔어요
                     const id = b.dataset.id; p = null; b.classList.remove('grab'); b.style.transform = '';
                     buzz(12);
-                    if (window.dkCarry) { dkwManual(id, b, e); b.style.opacity = '0'; if (!desk) dkwClose(); }   // 뽑은 채로 끌어요 → 놓은 곳 (보관함 = 넣기 · 그 밖 = 손에 · 도련 11-11)
+                    if (window.dkCarry) { dkwManual(id, b, e); b.style.opacity = '0'; }   // 🧺 큰 펜꽂이는 그대로 떠 있어요 (도련 11-13 · 서랍처럼 · 통 · 밖 톡 = 제자리로)   // 뽑은 채로 끌어요 → 놓은 곳 (보관함 = 넣기 · 그 밖 = 손에 · 도련 11-11)
                     else { b.classList.add('pull'); setTimeout(() => dkwUse(id), 260); }
                 }
             });
@@ -446,10 +456,10 @@
         window.dkwOutNow = () => dkwOutAll();                                    // ✋ 밖에 나온 문구 (페이지 위 · 떠 있는 것 · js/deskmove.js 넣기)
         window.dkwBack = id => { dkwBackOne(id); dkwDeskSoon(); };              // ✋ 제자리로
         async function dkwUse(id, at) {                                          // at = 그 자리 (끌어 놓은 곳 · 떠 있던 곳 · 없으면 가운데)
-            const air = !dkwOpenNow() && dkwDesk(), tr = dkwq('dkwTray'), keep = air && tr && !tr.hidden;   // 🗄️ 열린 서랍에서 꺼내 공중에 = 서랍은 열린 채 (도련 11-12 : 원하는 만큼 꺼내요 · 닫기는 손으로)
+            const air = !dkwOpenNow() && dkwDesk(), tr = dkwq('dkwTray'), cu = dkwq('dkwCup'), keep = air && ((tr && !tr.hidden) || (cu && !cu.hidden));   // 🗄️ 열린 서랍에서 꺼내 공중에 = 서랍은 열린 채 (도련 11-12 : 원하는 만큼 꺼내요 · 닫기는 손으로)
             if (!keep) dkwClose();
             if (dkwIsPen(id) && !pkRead().includes(id)) { pkWrite(pkRead().concat([id])); if (window.pcRefill) pcRefill(); }   // 꺼낸 필기구 = 그리기 목록에도 (그리기는 그 목록을 써요 · 책상의 집과는 따로)
-            if (air) { const c = at || { x: innerWidth / 2, y: innerHeight / 2 }; dkwFloat(id, c.x, c.y); if (keep) dkwTrayPaint(); return; }   // 📔 저절로 펴지 않아요 = 그 자리에 떠 있어요 (도련 11-11) · 서랍 창에서는 빠져 보여요
+            if (air) { const c = at || { x: innerWidth / 2, y: innerHeight / 2 }; dkwFloat(id, c.x, c.y); if (keep) { if (tr && !tr.hidden) dkwTrayPaint(); dkwCupRepaint(); } return; }   // 📔 저절로 펴지 않아요 = 그 자리에 떠 있어요 (도련 11-11) · 서랍 창에서는 빠져 보여요
             dkwFloatOff(id, true);
             if (dkwIsPen(id)) { if (window.drawWith && !drawWith(id, at && at.x, at && at.y) && window.openDraw) openDraw(); return; }
             dkwTake(id, at);
