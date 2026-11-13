@@ -131,7 +131,7 @@
     const BK_DRW_RGB = [245, 166, 190];                                       // 🎨 스티커 서랍 몸 색 (문구함보다 진하게 · 도련 11-05 채도 올리기)
     function bkDraw() {
         const wrap = bq('abBody'); if (!wrap) return;
-        const nm = BK_KINDS[B.kind] || '스티커', has = B.list.length > 0, c = dkwColors(BK_DRW_RGB);   // 🎨 문구함 서랍과 같은 색 (js/deskgd.js) · 이름이 모두 받침 없이 끝나요 → '는'
+        const nm = BK_KINDS[B.kind] || '스티커', has = B.list.length > 0, c = dkwColors(BK_DRW_RGB);   // 🎨 처음 색 → 아래 dkSlotPaint 가 그 서랍장 칸 색으로 (문구함과 같은 함수 · js/deskgd.js) · 이름이 모두 받침 없이 끝나요 → '는'
         const bagNt = B.bagN ? `<p class="bkd-bag">🛍️ 책상 위 봉투에 <b>${bkCount(B.bagN)}</b>이 아직 있어요 · 봉투에서 꺼내 소품에 넣으면 여기에 보여요</p>` : '';
         const how = has ? `<p class="bk-how" id="bkHow">${UI.phone() ? `${esc(nm)}는 <b>톡</b> 눌러 꺼내서 써요` : `${esc(nm)}는 서랍 <b>밖으로 끌어내서</b> 써요`}</p>` : '';
         const tool = (on, ic, t, fn, cls) => on ? `<button type="button" class="bkd-chip${cls ? ' ' + cls : ''}" onclick="${fn}" title="${t}">${ic}<span>${t}</span></button>` : '';
@@ -146,6 +146,7 @@
                 : `<div class="bk-bin empty"><button type="button" class="bk-say" onclick="bkGlowGet()"><b>🗄️ 서랍이 텅 비었어요</b><span>앞의 <em>🏪 기본${esc(nm)} 받기</em>로<br>받아서 채워요</span></button></div>`}</div>
             <div class="bkd-front"><button type="button" class="bkd-chip bkd-get" id="bkGet" onclick="bkGetKind()">🏪 기본${esc(nm)} 받기</button><i class="bkd-knob"></i><span class="bkd-cnt">${has ? bkCount(B.list.length) : '비었어요'}</span></div>
             ${bagNt}</div>`;
+        if (window.dkSlotPaint) dkSlotPaint(wrap.querySelector('.bkd'), 'h:' + B.kind, null, null, BK_DRW_RGB);   // 🎨 서랍 색 = 책상 서랍장 그 칸 색 (도련 11-13 · 문구함과 같은 함수 하나 · 책상에 없으면 처음 색)
         if (!has) return;
         bkPlace(show, false);
         bkWire();

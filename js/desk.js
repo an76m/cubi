@@ -465,9 +465,10 @@
             const el = DK.sel; if (!DK.edit || !el) return; const u = el.dataset.u, m = DK.editFn, o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id);
             if (S) {
                 const cur = (dkHomes()[u] || []).find(e => e.s === s); if (fn && cur && cur.k === fn) return;
-                const H0 = dkHomes(), pe = fn && Object.keys(H0).map(x => H0[x].find(e => e.k === fn)).find(Boolean);   // 🏷 옮겨도 이름표는 따라가요
-                if (fn && fn !== 'gd') dkWinFree(fn, m);                         // 다른 곳(다른 칸 포함)에 있으면 이리로 옮겨요 · 🗄️ 문구함은 여러 칸 (도련 11-05 · 칸마다 넣은 문구)
+                const H0 = dkHomes(), pu = fn && Object.keys(H0).find(x => H0[x].some(e => e.k === fn)), pe = pu && H0[pu].find(e => e.k === fn);   // 🏷 옮겨도 이름표는 따라가요
+                if (fn) dkWinFree(fn, m);                                         // 다른 곳(다른 칸 포함)에 있으면 이리로 옮겨요 · 🗄️ 문구함도 서랍 하나만 (도련 11-13 · 스티커처럼)
                 const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); if (fn) H[u].push(Object.assign({ k: fn, s, r: S[s] }, pe && pe.tag ? { tag: dkzTagMove(pe.tag, pe.r, S[s]) } : {})); if (!H[u].length) delete H[u]; dkHomesSet(H);
+                if (fn === 'gd' && pe && window.dkwAtMove) dkwAtMove(pu + ':' + pe.s, u + ':' + s);   // ✏️ 안에 든 문구도 같이
                 DK.zone = fn ? `${u}|${fn}` : null;
             } else if (m[fn] === u) delete m[fn];                                 // 소품 전체 = 풀기
             else { Object.keys(m).forEach(k => { if (m[k] === u) delete m[k]; }); dkWinFree(fn, m); m[fn] = u; }
@@ -1310,13 +1311,20 @@
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), ok = o ? dkHoldOk(o.id) : [], S = o && dkSlots(o.id), nm = o ? dkName(o) : '이 소품', gn = (window.dkwNameOf && dkwNameOf(id)) || '문구';
             const no = () => { showMsg(`✏️ ${htmlEsc(josa(gn, '은', '는'))} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`); return false; };
             if (!o || !window.dkwAtPut) return no();
-            if (S && ok.includes('gd')) {
+            if (S && ok.includes('gd')) {                                      // 🗄️ 문구함 = 서랍 하나만 (도련 11-13 · 스티커처럼)
+                const H0 = dkHomes(), here = (H0[u] || []).find(e => e.k === 'gd');
+                if (here) { dkwAtPut(id, u + ':' + here.s); dknPaintAll(); deskFnPaint(); return true; }   // 이 서랍장에 문구함이 있어요 = 바로 그 서랍에
+                const wasU = Object.keys(H0).find(x => H0[x].some(e => e.k === 'gd')), we = wasU && H0[wasU].find(e => e.k === 'gd'), ow = wasU && DK.items.find(x => x.u === wasU);
                 const s = await dkzChoose(t, o, 'gd'); if (s < 0) return false;
                 const cur = (dkHomes()[u] || []).find(e => e.s === s);
-                if (cur && cur.k !== 'gd' && !await showAsk(`${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>문구함으로 바꿀까요?`, '바꾸기', '취소')) return false;
-                if (!cur || cur.k !== 'gd') {
-                    const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push({ k: 'gd', s, r: S[s] }); dkHomesSet(H);
-                    if (cur) { dknPaintAll(); await dkzRehome(cur.k, u, cur); }
+                if (cur && !await showAsk(`${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>문구함으로 바꿀까요?`, '바꾸기', '취소')) return false;
+                if (ow && we && !await showAsk(`✏️ 문구함이 ${htmlEsc(dkName(ow))} ${dkSlotNm(we.s, (dkSlots(ow.id) || []).length)} 칸에 있어요.<br>${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸으로 옮길까요?<br><span style="font-size:12px;color:#777;">안에 든 문구도 같이 옮겨요</span>`, '옮기기', '취소')) return false;
+                const H = dkHomes(), keepTag = we && we.tag ? dkzTagMove(we.tag, we.r, S[s]) : null;
+                Object.keys(H).forEach(x => { H[x] = H[x].filter(e => e.k !== 'gd'); if (!H[x].length) delete H[x]; });   // 다른 문구함 칸은 빼요 (하나만)
+                H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push(Object.assign({ k: 'gd', s, r: S[s] }, keepTag ? { tag: keepTag } : {})); dkHomesSet(H);
+                if (we && window.dkwAtMove) dkwAtMove(wasU + ':' + we.s, u + ':' + s);   // ✏️ 안에 든 문구도 같이 (같은 순간 · 봉투에 담기지 않게)
+                if (cur) { dknPaintAll(); await dkzRehome(cur.k, u, cur); }
+                if (!keepTag) {
                     if (await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { const H2 = dkHomes(), e = (H2[u] || []).find(x => x.k === 'gd' && x.s === s); if (e) { e.tag = Object.assign(dknWordTag('gd'), { on: true }); dkHomesSet(H2); } }
                 }
                 dkwAtPut(id, u + ':' + s);
@@ -2149,7 +2157,7 @@
             const ok = dkHoldOk(o.id), M = deskFnMap(), H = dkHomes();
             const where = k => { if (M[k]) { const x = DK.items.find(y => y.u === M[k]); return x ? dkName(x) : ''; } const zu = Object.keys(H).find(y => H[y].some(e => e.k === k)), x = zu && DK.items.find(y => y.u === zu), e = x && H[zu].find(y => y.k === k); return x ? `${dkName(x)} ${dkSlotNm(e.s, (dkSlots(x.id) || []).length)} 칸` : ''; };
             const tt = document.getElementById('deskFnTitle'); if (tt) tt.textContent = `${dkName(o)} ${dkSlotNm(s, S.length)} 칸에 넣을 것`;
-            box.innerHTML = `<h4 class="dkf-g">🗄️ 빈 서랍이에요 · 넣을 것을 골라요</h4>` + ok.map(k => { const [, n, , ic] = dkWin(k), w = k === 'gd' ? '' : where(k);
+            box.innerHTML = `<h4 class="dkf-g">🗄️ 빈 서랍이에요 · 넣을 것을 골라요</h4>` + ok.map(k => { const [, n, , ic] = dkWin(k), w = where(k);
                     return `<button type="button" class="btn" onclick="dkEmptyPick('${u}', ${s}, '${k}')"><b>${ic} ${n}</b><small>${w ? '지금 : ' + htmlEsc(w) : ''}</small></button>`; }).join('')
                 + '<p class="dkf-note">💡 다른 곳에 있는 것은 이 서랍으로 옮겨요 · 안 넣으려면 서랍을 다시 톡</p>';
             if (window.openModal) openModal('deskFnModal');
@@ -2157,13 +2165,14 @@
         function dkEmptyPick(u, s, k) {
             const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id); if (!S || !S[s] || DK.edit || !dkHoldOk(o.id).includes(k)) return;
             const H0 = dkHomes(); if ((H0[u] || []).some(e => e.s === s)) return;   // 그새 찼으면 그대로
-            const pe = Object.keys(H0).map(x => H0[x].find(e => e.k === k)).find(Boolean);   // 🏷 옮겨도 이름표는 따라가요
-            const M2 = Object.assign({}, deskFnMap()); if (k !== 'gd') dkWinFree(k, M2);   // 🗄️ 문구함은 여러 칸 (칸마다 넣은 문구)
-            const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push(Object.assign({ k, s, r: S[s] }, pe && pe.tag && k !== 'gd' ? { tag: dkzTagMove(pe.tag, pe.r, S[s]) } : {})); dkHomesSet(H);
+            const pu = Object.keys(H0).find(x => H0[x].some(e => e.k === k)), pe = pu && H0[pu].find(e => e.k === k);   // 🏷 옮겨도 이름표는 따라가요
+            const M2 = Object.assign({}, deskFnMap()); dkWinFree(k, M2);         // 🗄️ 문구함도 서랍 하나만 (도련 11-13 · 스티커처럼 옮겨요)
+            const H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push(Object.assign({ k, s, r: S[s] }, pe && pe.tag ? { tag: dkzTagMove(pe.tag, pe.r, S[s]) } : {})); dkHomesSet(H);
+            if (k === 'gd' && pe && window.dkwAtMove) dkwAtMove(pu + ':' + pe.s, u + ':' + s);   // ✏️ 안에 든 문구도 같이
             DK_FNS.forEach(([f]) => { if (!M2[f]) M2[f] = ''; });                  // 빠진 기능은 '' (저절로 다시 붙이지 않게)
             if (typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, M2);
             deskFnPaint(); dknPaintAll();
-            const keepTag = pe && pe.tag && k !== 'gd';                            // 🏷 옮겨 온 이름표가 있으면 묻지 않아요
+            const keepTag = pe && pe.tag;                            // 🏷 옮겨 온 이름표가 있으면 묻지 않아요
             if (keepTag) { if (DKD.cur) dkDrawerShut(true); else if (window.closeModal) closeModal('deskFnModal'); return; }   // 창이 올라가며 서랍도 닫혀요
             /* 🏷 이름표 붙일까요? 까지 서랍은 열린 채 (도련 11-08) : 기능 창만 위로 올라가고 → 묻는 창 → 어느 쪽이든 누르면 서랍이 닫혀요 (붙이기 = 닫히고 이름표가 붙어 이름표 창) */
             const D = DKD.cur, w = D && D.win;

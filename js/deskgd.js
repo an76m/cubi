@@ -52,6 +52,16 @@
                 }
                 return '';
             };
+            {                                                                      // 🗄️ 문구함 = 서랍 하나만 (도련 11-13 · 스티커처럼) : 예전에 여러 칸이면 문구가 가장 많은 칸 하나로 모아요
+                const G = []; Object.keys(H).forEach(u => H[u].forEach(e => { if (e.k === 'gd') G.push([u, e]); }));
+                if (G.length > 1) {
+                    const cnt = p => Object.values(at).filter(x => x === p).length;
+                    G.sort((a, b) => cnt(b[0] + ':' + b[1].s) - cnt(a[0] + ':' + a[1].s));
+                    const keep = G[0][0] + ':' + G[0][1].s;
+                    G.slice(1).forEach(([u, e]) => { const p = u + ':' + e.s; Object.keys(at).forEach(id => { if (at[id] === p) { at[id] = keep; ch = true; } }); H[u] = H[u].filter(x => x !== e); if (!H[u].length) delete H[u]; });
+                    if (ch) dkwAtSet(at); dkHomesSet(H); if (window.dknPaintAll) setTimeout(dknPaintAll, 0);
+                }
+            }
             dkwOwnAll().forEach(id => {
                 if (at[id] && dkwPlaceOk(at[id])) return;
                 const w = !at[id] && st.has(id) ? first(id) : '';
@@ -92,6 +102,22 @@
             });
         }
         const dkwMix = (c, t, a) => `rgb(${c.map((v, i) => Math.round(v + (t[i] - v) * a)).join(',')})`;
+        /* 🎨 서랍 색 = 그 서랍장 그림의 그 칸 색 (도련 11-13 · ✏️ 문구함 · 🏷 스티커 · 🎀 마테 서랍 모두 이 함수 하나 → 여기만 고치면 다 같이 바뀌어요)
+           k = 창 ('gd' · 'h:seal' …) · u, s = 그 칸 (없으면 k 가 든 칸을 찾아요 · 칸은 하나뿐) → 색 [r,g,b] · 책상 위 서랍장 칸이 아니면 null */
+        async function dkSlotTone(k, u, s) {
+            const H = dkHomes(); let he = null;
+            if (u != null && s != null) he = (H[u] || []).find(e => e.k === k && e.s === +s);
+            else for (const x of Object.keys(H)) { const e = H[x].find(e => e.k === k); if (e) { he = e; u = x; break; } }
+            const el = he && dkwItemEl(u), img = el && el.querySelector(':scope > img'); if (!img) return null;
+            const R = he.r || [0, 0, 100, 100], fl = el.classList.contains('dk-fl'), fx = (R[0] + (R[2] - R[0]) * .2) / 100;
+            return dkwTint(img.src, fl ? 1 - fx : fx, ((R[1] + R[3]) / 2) / 100);
+        }
+        /* 그 칸 색을 서랍 창에 칠해요 (box = --db · --dl · --dk · --dm 을 쓰는 상자) · def = 칸을 못 찾을 때 색 */
+        async function dkSlotPaint(box, k, u, s, def) {
+            if (!box) return; const c = dkwColors((await dkSlotTone(k, u, s)) || def);
+            box.style.setProperty('--db', c.body); box.style.setProperty('--dl', c.light); box.style.setProperty('--dk', c.line); box.style.setProperty('--dm', c.mid);
+        }
+        window.dkSlotTone = dkSlotTone; window.dkSlotPaint = dkSlotPaint;
         function dkwColors(c) {                                                   // 바탕색 → 서랍 몸 · 속 · 선
             c = c || [248, 191, 205];
             return { body: `rgb(${c.join(',')})`, light: dkwMix(c, [255, 252, 246], .78), line: dkwMix(c, [70, 40, 34], .72), mid: dkwMix(c, [255, 255, 255], .35) };
@@ -247,10 +273,8 @@
             if (!place) { dkwOpenFor(typeof need === 'string' ? need : ''); return; }
             DKW.need = typeof need === 'string' ? need : null; DKW.place = place;
             { const c = dkwq('dkwCup'); if (c && !c.hidden) { c.classList.remove('show'); c.hidden = true; } }   // ✏️ 펜꽂이에서 왔으면 펜꽂이는 내려놓고
-            const [hu, hs] = place.split(':'), he = (dkHomes()[hu] || []).find(e => e.k === 'gd' && e.s === +hs), el = dkwItemEl(hu), img = el && el.querySelector(':scope > img');
-            let col = null;
-            if (img && he) { const R = he.r || [0, 0, 100, 100], fl = el.classList.contains('dk-fl'), fx = (R[0] + (R[2] - R[0]) * .2) / 100; col = await dkwTint(img.src, fl ? 1 - fx : fx, ((R[1] + R[3]) / 2) / 100); }
-            const c = dkwColors(col), r = dkwRoom('dkwTray');
+            const [hu, hs] = place.split(':'), el = dkwItemEl(hu);
+            const c = dkwColors(await dkSlotTone('gd', hu, hs)), r = dkwRoom('dkwTray');   // 🎨 서랍 색 = 그 칸 색 (dkSlotTone 하나로 · 스티커 서랍도 같이)
             r.innerHTML = `<div class="dkw-drawer" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
                 <div class="dkw-dtop"><b>🗄️ 문구함</b><small>${htmlEsc(dkwPlaceName(place))}</small><button type="button" class="dkw-bin" id="dkwBin" aria-pressed="false" title="버리기">🗑</button><button type="button" class="dkw-dx" aria-label="닫기" onclick="dkwClose()">✕</button></div>
                 <div class="dkw-din" id="dkwIn"></div>
