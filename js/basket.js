@@ -738,7 +738,7 @@
         + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
-        const bar = `<div class="abs-bar"><button type="button" class="ab-back" onclick="bkView('bin')">‹ 서랍</button><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
+        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */
