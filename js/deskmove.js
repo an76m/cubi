@@ -1,16 +1,15 @@
 /* 말랑달콤 다이어리 - js/deskmove.js
    ✋ 꺼내기 · 넣기 하나로 (도련 11-11 · 현실처럼 · 자유롭게 · 편하게 · 💻 📲 책상)
    - 꺼내기 : 톡 = 그 상품이 화면 가운데로 날아와요 (dkFly) · 끌기 = 손으로 끌어내 놓은 자리에 (dkCarry) · 확대한 보관함 = 위로 쏙 뽑은 뒤 그대로 끌어요
-   - 넣기 (다이어리가 접힌 채 = 이동) : 밖에 나온 상품을 보관함에 끌어 놓거나 · 상품이 나와 있을 때 그 보관함을 톡 하면 → 바로 넣지 않고 한 번 골라요 (실수로 누를 수 있어서)
-       보관 자리가 하나 = '넣을까요?' · 여러 자리 = 그 자리를 그림으로 (🗄 서랍장 칸 · 🎀 정리함 빈 칸)
-       🗄 서랍장 톡 = 늘 서랍 열기 · 닫기 (도련 11-12 : 넣기는 끌어다 놓을 때만 → 칸 고르기) · 나온 상품이 여럿 = 넣을 것부터 골라요
+   - 넣기 = 밖에 나온 상품을 보관함에 **끌어 놓을 때만** · 묻지 않고 바로 넣어요 (도련 11-13 · 문구가 들어가는 곳 모두 같아요)
+       자리가 여럿이면 그 자리만 골라요 (🗄 서랍장 칸 · 🎀 정리함 빈 칸 · 그 종류 서랍이 이미 있으면 바로 거기)
+       보관함 톡 = 늘 그 보관함 기능 (서랍 열기 · 닫기 · 펜꽂이 확대 …) · 예전 '톡 = 넣을까요?' 는 영구 삭제
    - 펼친 다이어리 페이지에 쓰는 건 예전 그대로 · 다이어리는 톡 할 때만 펴져요 (상품을 꺼내도 저절로 안 떠요)
    - 어떤 상품이 어디로 : 🎀 마테 = 정리함 · 마스킹테이프 서랍 / 📒 스티커 종이 · 떡메 · 메모지 · 속지 = 그 종류 서랍 / ✏️ 문구 = 펜꽂이 · 문구 서랍 */
 (function () {
     const C = () => ({ x: innerWidth / 2, y: innerHeight / 2 });
     const itemOf = t => t && DK.items.find(i => i.u === t.dataset.u);
     const isRack = t => dkDef(t).hold === 'tape';
-    const say = (t, x, y) => { if (window.dkwSay) dkwSay(t, { getBoundingClientRect: () => ({ left: x - 40, width: 80, top: y }) }); };
     /* 이 보관함에 들어갈 수 있나요 : o = { k: 'tape' | 'stk' | 'gd', id, kind } */
     function fits(t, o) {
         const ti = itemOf(t); if (!ti) return false;
@@ -20,30 +19,14 @@
         if (o.k === 'gd') return (ok.includes('pc') && !chest && window.dkwCanCup && dkwCanCup(o.id)) || (chest && ok.includes('gd'));
         return false;
     }
-    /* 밖에 나와 있는 것 (떠 있는 스티커 · 마테 · 페이지 위 문구 · 떠 있는 손) 중 이 보관함에 들어갈 것 */
-    function outsFor(t) {
-        const L = [];
-        (window.dsOuts ? dsOuts() : []).forEach(e => { const o = e.k === 'tape' ? { k: 'tape', id: e.id, th: e.th } : { k: 'stk', kind: e.k, id: e.id, th: e.th }; if (fits(t, o)) L.push(o); });
-        (window.dkwOutNow ? dkwOutNow() : []).forEach(id => { const o = { k: 'gd', id }; if (fits(t, o)) L.push(o); });
-        return L;
-    }
-    const artOf = o => o.k === 'gd' ? (window.dkwArtOf ? dkwArtOf(o.id) : '✏️') : `<i style="background-image:url('${htmlEsc(o.th || '')}')"></i>`;
-    const nameOf = o => o.k === 'gd' ? ((window.dkwNameOf && dkwNameOf(o.id)) || '문구') : o.k === 'tape' ? '마스킹테이프' : (DKH_NAMES[o.kind] || '스티커');
-    async function pickOut(L) {                                               // 나온 상품이 여럿 = 넣을 것 고르기
-        if (L.length < 2) return L[0] || null;
-        const a = document.getElementById('customAlertConfirmBtn'); if (a) a.style.display = 'none';
-        let r; try { r = await showAsk(`✋ 어느 것을 넣을까요?<div class="dkm-pick">${L.map((o, i) => `<button type="button" onclick="closeMsg('o${i}')" title="${htmlEsc(nameOf(o))}">${artOf(o)}<small>${htmlEsc(nameOf(o))}</small></button>`).join('')}</div>`, '', '취소'); }
-        finally { if (a) a.style.display = ''; }
-        return typeof r === 'string' && r[0] === 'o' ? L[+r.slice(1)] : null;
-    }
-    /* 🧺 그 종류의 집 (서랍 칸 · 봉투에서 꺼낼 때와 같은 창 · js/desk.js dkbHome) : 이미 이 서랍장이면 '넣을까요?' · 아니면 칸 고르기 */
+    /* 🧺 그 종류의 집 (서랍 칸 · 봉투에서 꺼낼 때와 같은 창 · js/desk.js dkbHome) : 이미 이 서랍장이면 = 바로 넣어요 (묻지 않아요 · 도련 11-13) · 아니면 칸 고르기 */
     async function homeAsk(k, t, nm) {
         const win = dkbWin(k), u = t.dataset.u, is = () => deskFnMap()[win] === u || (dkHomes()[u] || []).some(e => e.k === win);
-        if (is()) { const [, K, , ic] = dkWin(win) || []; return !!await showAsk(`${ic || '🗄️'} <b>${htmlEsc(josa(K || '스티커', '을', '를'))}</b> ${htmlEsc(nm)}에 넣을까요?`, '넣기', '취소'); }
+        if (is()) return true;
         await dkbHome(t, { k }, -1, -1, 0, 0);                               // 봉투 칸 번호 -1 = 꺼낼 카드 없음
         return is();
     }
-    /* ✋ 넣기 (한 번 골라요) → true = 넣었어요 */
+    /* ✋ 넣기 (묻지 않아요 · 자리가 여럿이면 자리만 골라요) → true = 넣었어요 */
     async function store(t, o) {
         const ti = itemOf(t); if (!ti) return false;
         const nm = dkName(ti), A = window.dktApi;
@@ -58,13 +41,12 @@
         }
         if (o.k === 'gd') {
             const chest = !!dkSlots(ti.id);
-            if (!chest && !await showAsk(`✏️ <b>${htmlEsc(josa(nameOf(o), '을', '를'))}</b> ${htmlEsc(nm)}에 넣을까요?`, '넣기', '취소')) return false;   // ✏️ 펜꽂이 = 한 자리
             if (!await dkGdPut(o.id, t)) return false;                           // 🗄 서랍장 = 칸 고르기 (dkzChoose)
             if (window.dkwBack) dkwBack(o.id); dkbPulse(t); return true;
         }
         return false;
     }
-    /* 끌어 놓은 곳이 들어갈 보관함이면 = 넣기 (한 번 골라요) → true · 다이어리를 펼친 동안은 페이지에 쓰는 거라 넣지 않아요 */
+    /* 끌어 놓은 곳이 들어갈 보관함이면 = 넣기 → true · 다이어리를 펼친 동안은 페이지에 쓰는 거라 넣지 않아요 */
     function holderAt(x, y) {
         const L = document.elementsFromPoint(x, y).filter(e => !e.closest('.dkm-ghost, .dkm-fly, .dsk'));
         if (L.some(e => e.closest('.modal-content, .dkw-cupbox, .dkw-drawer'))) return null;
@@ -89,16 +71,6 @@
         if ((o.k === 'stk' || o.k === 'tape') && drawerInto(o, x, y)) return true;   // 🗄️ 스티커 · 마테도 같아요   // 🗄️ 서랍이 열려 있으면 = 위 창 안 · 그 서랍장에 놓기 = 고르기 없이 그 서랍에 (도련 11-12 · js/deskgd.js)
         const t = holderAt(x, y); if (!t || !fits(t, o)) return false;
         await store(t, o); return true;                                         // 취소해도 = 넣지 않았을 뿐 (꺼낸 자리 그대로)
-    }
-    /* 보관함 톡 (js/desk.js dkHomeTap 맨 앞) : 들어갈 상품이 나와 있으면 = 넣기 → true = 여기서 처리 · 🗄 서랍장은 아니에요 (톡 = 늘 서랍 열기 · 닫기 · 넣기 = 끌어다 놓기 · 도련 11-12) */
-    function tapHolder(t) {
-        if (DK.edit || !UI.desk()) return false;
-        const ti = itemOf(t); if (!ti || dkSlots(ti.id)) return false;
-        const L = outsFor(t); if (!L.length) return false;
-        (async () => {
-            const o = await pickOut(L); if (o) await store(t, o);
-        })().catch(e => console.warn('✋ 넣기', e));
-        return true;
     }
     /* ✋ 손으로 끌기 : 그림이 손을 따라와요 → 놓으면 done(x, y) */
     function carry(src, ev, done) {
@@ -134,7 +106,7 @@
             setTimeout(end, 800);
         });
     }
-    window.dkFly = fly; window.dkCarry = carry; window.dkDropOn = dropOn; window.dkStoreTap = tapHolder; window.dkStore = store; window.dkOutsFor = outsFor; window.dkCenter = C;
+    window.dkFly = fly; window.dkCarry = carry; window.dkDropOn = dropOn; window.dkStore = store; window.dkCenter = C;
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

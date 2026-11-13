@@ -388,7 +388,6 @@
             const pg = t.closest && t.closest('#canvasArea');
             if (pg && dkwOpenNow()) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 📔 펼친 페이지 = 그 자리에서 쓰기
             const h = t.closest && t.closest('#deskStage .desk-item');
-            if (h && window.dkOutsFor && dkOutsFor(h).some(o => o.id === id)) return;   // 들어갈 보관함 = 넣기 (js/deskmove.js)
             if (!dkwDiaryUp()) { dkwSel(null); return; }                          // 🪑 책상모드 = 붙어 있지 않으니 고른 표시만 풀고 그 톡은 그대로 (서랍 · 소품 기능)
             e.preventDefault(); e.stopPropagation(); dkwSel(null); window.dkwAteAt = Date.now();   // 그 밖 = 그 자리에 내려놔요 (이 톡은 고르기 풀기만 · 책상모드로 안 넘어가요)
         }, true);
