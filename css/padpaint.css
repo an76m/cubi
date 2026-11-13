@@ -103,3 +103,38 @@
 .pp-ask .go { background: #e88fb0; color: #fff; box-shadow: 0 4px 0 #c2457a; }
 .pp-ask .new { background: #fff; color: #c2457a; }
 .pp-ask small { font-size: 11px; color: #c2457a; font-weight: 800; line-height: 1.4; }
+
+/* 📐 다이어리 규격 · 끼워 보기 (도련 11-14) */
+.pp-specb { display: flex; flex-direction: column; align-items: flex-start; border: 2px solid #ecc9d6; background: #fff; border-radius: 12px; padding: 4px 12px; font: inherit; font-size: 14px; color: #6b4438; cursor: pointer; line-height: 1.15; }
+.pp-specb b { font-weight: 900; color: #c2457a; }
+.pp-specb small { font-size: 10px; font-weight: 700; color: #8a6a76; }
+.pp-specpop { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(860px, 94vw); max-height: 88vh; }
+.pp-sp-b { display: flex; gap: 14px; padding: 12px; overflow: hidden; min-height: 0; }
+.pp-sp-l { flex: 1 1 320px; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+.pp-sg { background: #fff; border: 2px solid #f1d3dd; border-radius: 12px; padding: 8px 10px; }
+.pp-sg-h { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; color: #6b4438; }
+.pp-sg-h b { font-size: 16px; font-weight: 900; }
+.pp-sg-h small { font-size: 12px; color: #8a6a76; }
+.pp-sg-h em { margin-left: auto; font-style: normal; font-size: 11px; font-weight: 800; color: #2f8a5f; background: #e3f6ef; border-radius: 8px; padding: 1px 7px; }
+.pp-sg-i { display: flex; flex-wrap: wrap; gap: 5px; }
+.pp-sg-i button { display: flex; align-items: center; gap: 5px; border: 2px solid #f1e3e8; background: #fffaf7; border-radius: 10px; padding: 4px 9px; font: inherit; font-size: 12px; font-weight: 700; color: #6b4438; cursor: pointer; }
+.pp-sg-i button i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid rgba(0, 0, 0, .15); }
+.pp-sg-i button u { text-decoration: none; font-size: 10px; color: #c2457a; background: #ffe6f0; border-radius: 6px; padding: 0 5px; }
+.pp-sg-i button.on { border-color: #ff8fb1; background: #ffe6f0; color: #c2457a; }
+.pp-sp-r { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 300px; }
+.pp-bkw { min-height: 280px; display: flex; align-items: center; justify-content: center; padding: 6px; }
+.pp-bk { position: relative; display: flex; padding: 9px; border-radius: 10px; background: var(--bd); box-shadow: 0 8px 18px rgba(90, 50, 60, .22); }
+.pp-bk.b-hard { padding: 12px; border-radius: 6px; }
+.pp-bk.b-thin, .pp-bk.b-spread { padding: 4px; border-radius: 4px; }
+.pp-sprd { width: var(--w); height: var(--h); border-radius: 4px; background: var(--pg) center / 100% 100% no-repeat; }
+.pp-bind { position: absolute; top: 9px; bottom: 9px; left: 50%; width: 22px; margin-left: -11px; background: linear-gradient(90deg, transparent, rgba(0, 0, 0, .18) 45%, rgba(0, 0, 0, .18) 55%, transparent); }
+.pp-bk.b-hard .pp-bind { top: 12px; bottom: 12px; }
+.pp-bk.b-thin .pp-bind, .pp-bk.b-spread .pp-bind { top: 4px; bottom: 4px; }
+.pp-bk.b-ring .pp-bind { width: 30px; margin-left: -15px; background: radial-gradient(ellipse 13px 6px at 50% 50%, transparent 3.5px, #d2d2d8 4px 6px, transparent 6.5px) 0 8px / 30px 26px repeat-y, linear-gradient(90deg, transparent 6px, var(--bd) 6px 24px, transparent 24px); }
+.pp-bk.b-tn .pp-bind { width: 8px; margin-left: -4px; background: linear-gradient(90deg, transparent 3px, #6b4438 3px 5px, transparent 5px); }
+.pp-bk.b-spread .pp-bind { width: 2px; margin-left: -1px; background: rgba(0, 0, 0, .1); }
+.pp-sp-h { margin: 0; font-size: 12px; color: #8a6a76; }
+.pp-sp-t { margin: 0; text-align: center; font-size: 13px; color: #6b4438; line-height: 1.5; }
+.pp-sp-go { min-width: 240px; border: 0; border-radius: 14px; padding: 11px 18px; font: inherit; font-size: 15px; font-weight: 900; color: #fff; background: #ff7aa2; box-shadow: 0 3px 0 #d9577f; cursor: pointer; }
+.pp-sp-go:disabled { background: #e9d7de; box-shadow: none; color: #8a6a76; cursor: default; }
+@media (max-width: 760px) { .pp-sp-b { flex-direction: column; overflow: auto; } }

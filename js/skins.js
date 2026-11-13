@@ -473,6 +473,13 @@
             const w = t.b === 'ring' ? Math.round(ch / t.r * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) + PAGE_BORDER * 2 : pw;
             return { w, pw, h: DY_H, two: dyMode() === 'spread' };
         }
+        /* 📃 속지 비율 (세로 ÷ 가로 · 도련 11-14) : 속지 한 장 = 펼친 두 쪽 전체(#canvasArea)에 늘여 깔려요 (css .lf-my 100% 100%)
+           → 그 모양(t = 다이어리 디자인 { r, b })의 #canvasArea 비율 · 다이어리가 닫혀 있어도 계산으로 (js/padpaint.js 📐 규격) */
+        function dyLeafR(t) {
+            t = t || dyLook(); const ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H;
+            const w = (t.b === 'ring' ? Math.round(ch / t.r * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) : Math.round(ch / t.r)) + PAGE_BORDER * 2;
+            return ch / (w * 2 - PAGE_BORDER * 2);
+        }
         function dyVisX() {                                                    // 지금 보이는 쪽의 왼쪽 끝 (페이지 px) : 📱 한쪽 · 밀어 보기에서 오른쪽 쪽을 보고 있으면 반 장만큼
             const b = document.getElementById('diaryBook'), cv = document.getElementById('canvasArea');
             return b && cv && dyMode() !== 'spread' && b.classList.contains('dy-r') ? cv.offsetWidth / 2 : 0;
@@ -2140,7 +2147,7 @@
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySubNow = () => dySub;
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLeafR = dyLeafR; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

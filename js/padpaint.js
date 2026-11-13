@@ -27,10 +27,11 @@
 
     /* ================= 열기 · 닫기 ================= */
     function ppOpen(o) {
-        const W = o.W || 900, H = o.H || 1395;
-        Object.assign(P, { on: true, o, kind: o.kind || 'leaf', W, H, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
+        const W = (o.draft && +o.draft.W) || o.W || 900, H = (o.draft && +o.draft.H) || o.H || 1395;   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
+        Object.assign(P, { on: true, o, kind: o.kind || 'leaf', W, H, spec: (o.draft && o.draft.spec) || specNow(), layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
             vsw: 6, vround: 12, color: '#ff5d8f', recent: ['#4aa8ff', '#ffd23f', '#5cc98a'], hsv: [340, .64, 1], z: 1, px: 0, py: 0, base: 1, grid: false, sym: false,
             hist: [], redo: [], sel: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
+        if (!o.draft && P.spec && P.spec.r > 0) P.H = Math.round(P.W * P.spec.r);   // 📐 새 종이 = 지금 펼친 다이어리의 속지 비율 (펼친 두 쪽)
         if (o.draft) { buildUI(); fit(); restoreDraft(o.draft); }
         else {
             const paper = addLayer('paper', '종이', { lock: true, mk: Object.assign({ bg: o.bg || '#ffffff' }, o.mk || {}) });
@@ -77,9 +78,9 @@
         const o = P.o;
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
         x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button></div>
-            <div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
+            ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="다이어리 규격 고르기 · 끼워 보기"></button>' : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
-        x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq) (qq.dataset.q === 'undo' ? undo : redo)(); });
+        x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq) qq.dataset.q === 'spec' ? specPop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
         o.L.innerHTML = `<h4>📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button><button type="button" data-a="paper">🧵 종이 꾸미기</button></div>
             <h4 id="ppToolT"></h4><div class="pp-tools" id="ppTools"></div><div id="ppOpt"></div>
             <h4>🎨 색</h4><div class="pp-col"><canvas id="ppSv" width="172" height="172"></canvas><div><canvas id="ppHue" width="300" height="24"></canvas><div class="pp-sw" id="ppSw"></div></div></div>
@@ -102,7 +103,7 @@
         o.R.querySelector('.pp-lyb').parentElement.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) layerAct(b.dataset.l); });
         $('ppGo').onclick = save; $('ppTmp').onclick = () => saveDraft();
         $('ppProp').oninput = $('ppProp').onclick = onProp;
-        colorWire(); paintTools(); modeBtns();
+        colorWire(); paintTools(); modeBtns(); specBtn();
         const st = $('ppStage');
         st.addEventListener('pointerdown', down); st.addEventListener('pointermove', move); st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
         st.addEventListener('pointerleave', () => { $('ppBr').hidden = true; });
@@ -754,7 +755,7 @@
         try {
             const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, P.W, P.H); compose(x, false);
             const src = c.toDataURL('image/jpeg', .86);
-            await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my' } });
+            await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: Object.assign({ lf: 'my' }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: +(P.H / P.W).toFixed(4) } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
             P.dirty = false;
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
             if (window.showMsg) showMsg('📃 속지를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>');
@@ -771,7 +772,7 @@
         c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', .88);
     }
     function snapshot() {
-        return { v: 1, kind: P.kind, W: P.W, H: P.H, at: Date.now(), cur: P.layers.indexOf(P.cur),
+        return { v: 1, kind: P.kind, W: P.W, H: P.H, spec: P.spec || null, at: Date.now(), cur: P.layers.indexOf(P.cur),
             set: { mode: P.mode, tool: P.tool, brush: P.brush, size: P.size, op: P.op, soft: P.soft, stab: P.stab, vsw: P.vsw, vround: P.vround, color: P.color, recent: P.recent, grid: P.grid, sym: P.sym, shapeK: P.shapeK, shapeFill: P.shapeFill },
             layers: P.layers.map(L => {
                 const o = { type: L.type, name: L.name, vis: L.vis, lock: L.lock, op: L.op, blend: L.blend, aLock: L.aLock };
@@ -791,7 +792,7 @@
         catch (e) { console.warn('💾 임시저장', e); if (window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
         finally { P.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '💾 임시저장'; } }
     }
-    function restoreDraft(d) {
+    function restoreDraft(d, keep) {                                          // keep = 📐 규격 바꾸기 (조용히 · 그린 것은 그대로)
         const loadImg = src => new Promise(ok => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
         P.layers = []; P.cur = null;
         Object.assign(P, d.set || {});
@@ -806,10 +807,86 @@
         P.cur = P.layers[d.cur] || P.layers[P.layers.length - 1];
         modeBtns(); paintTools(); setColor(P.color); renderAll(); paintLayers(); paintProps();
         document.querySelectorAll('.pp-view [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'grid' && P.grid) || (b.dataset.v === 'sym' && P.sym)));
-        P.dirty = false; say('✏️ 이어서 그려요', 1500);
+        if (!keep) { P.dirty = false; say('✏️ 이어서 그려요', 1500); }
     }
 
-    window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K;
+    /* ================= 📐 다이어리 규격 (도련 11-14) : 앱의 모든 바인더 · 노트 크기 중에서 골라 끼워 보기 · 그 크기로 종이 맞추기
+       - 상품 그대로 (📔 날짜형바인더 · 날짜형노트 js/app.js DY_DESIGNS · 🗂️ 페이지바인더 · 📕 페이지노트 js/skins.js DY_TYPES · 숨김 상품은 빼요) · 같은 규격(이름 + mm)끼리 묶어요
+       - 속지 한 장은 펼친 두 쪽 전체(#canvasArea)에 가로 · 세로 꽉 차게 늘여 깔려요 (css .lf-my 100% 100%) → 비율 = js/skins.js dyLeafR (링은 책등만큼 달라요)
+         비율이 다르면 늘어나 보여요 = 미리보기에서 그대로 보여 줘요
+       - 종이 맞추기 = 가로 900 그대로 · 세로 = 900 × 그 다이어리 속지 비율 · 그린 것은 위 기준 그대로 (작아지면 아래가 잘려요) ================= */
+    const SPEC_B = { ring: '링 바인더', tn: '고무줄 노트', spread: '쫙 펼침', hard: '하드커버', thin: '얇은 노트' };
+    function specList() {
+        const out = [], yr = new Date().getFullYear();
+        const lr = (r, b) => window.dyLeafR ? dyLeafR({ r, b }) : r / 2;      // 📃 펼친 두 쪽 비율
+        const add = (n, mm, r, it) => { if (!(r > 0) || !n) return; let g = out.find(x => x.n === n && x.mm === mm); if (!g) out.push(g = { n, mm, items: [] }); it.r = lr(r, it.b); g.items.push(it); };
+        (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).forEach(d => { if (d.off && !d.mine) return; const c = (typeof DY_COL !== 'undefined' && DY_COL[d.id]) || {};
+            add(d.n, d.mm, d.r, { id: d.id, name: d.mine ? d.name : `${yr} ${d.kind} · ${d.name}`, b: d.b, bd: c.border || d.c, pg: c.page || '#fffdfb' }); });
+        (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).forEach(t => { if (t.off) return;
+            add(t.n, t.mm, t.r, { id: t.id, name: `${t.k === '바인더' ? '페이지바인더' : '페이지노트'} · ${t.g}`, b: t.b, bd: (t.cols && t.cols.테두리색) || t.c, pg: (t.cols && t.cols.속지색) || '#fffdfb' }); });
+        return out;
+    }
+    function curId() {                                                        // 지금 펼친 다이어리 (📔 날짜형은 dyLook id 가 'basic' → 같은 이름 · 규격 디자인)
+        const t = window.dyLook ? dyLook() : null; if (!t) return '';
+        if (t.id !== 'basic') return t.id;
+        const d = (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).find(x => x.name === t.g && x.n === t.n && x.mm === t.mm); return d ? d.id : '';
+    }
+    function specNow() {                                                       // 지금 펼친 다이어리의 규격
+        const t = window.dyLook ? dyLook() : null; if (!t) return null; const id = curId();
+        const L = specList(), all = L.flatMap(g => g.items.map(i => [g, i])), m = all.find(([, i]) => i.id === id) || all.find(([g, i]) => g.n === t.n && g.mm === t.mm && i.b === t.b);
+        if (m) return { n: m[0].n, mm: m[0].mm, r: m[1].r, id: m[1].id };
+        return window.dyLeafR ? { n: t.n || '', mm: t.mm || '', r: dyLeafR(t), id } : null;
+    }
+    function specBtn() {
+        const b = document.querySelector('#ppBarX .pp-specb'); if (!b) return;
+        const s = P.spec; b.innerHTML = `📐 <b>${s ? s.n : '규격'}</b><small>${s ? s.mm + 'mm' : '골라요'}</small>`;
+    }
+    const ratioOk = r => Math.abs(r - P.H / P.W) < .015;
+    function specShot() {                                                      // 미리보기용 작은 그림
+        const w = 320, h = Math.round(w * P.H / P.W), c = mkCv(w, h), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
+        const big = mkCv(P.W, P.H); compose(big.getContext('2d'), false); x.drawImage(big, 0, 0, w, h); return c.toDataURL('image/jpeg', .85);
+    }
+    function specPop() {
+        let pop = $('ppSpecPop'); if (pop) { pop.remove(); return; }
+        commitFloat(); penEnd();
+        const L = specList(); if (!L.length) { say('📐 고를 수 있는 다이어리가 아직 없어요'); return; }
+        const cur = { id: curId() };
+        let pick = (P.spec && L.flatMap(g => g.items).find(i => i.id === P.spec.id)) || L.flatMap(g => g.items).find(i => i.id === cur.id) || L[0].items[0];
+        const shot = specShot();
+        pop = document.createElement('div'); pop.id = 'ppSpecPop'; pop.className = 'pp-pop pp-specpop';
+        pop.innerHTML = `<div class="pp-pop-h"><b>📐 다이어리 규격 · 끼워 보기</b><button type="button" class="win-x" aria-label="닫기">✕</button></div>
+            <div class="pp-sp-b"><div class="pp-sp-l" id="ppSpL">${L.map(g => `<div class="pp-sg"><div class="pp-sg-h"><b>${esc(g.n)}</b><small>${esc(g.mm)}mm</small>${g.items.some(i => ratioOk(i.r)) ? '<em>지금 종이</em>' : ''}</div>
+                <div class="pp-sg-i">${g.items.map(i => `<button type="button" data-sp="${esc(i.id)}"><i style="background:${esc(i.bd)}"></i>${esc(i.name)}${i.id === cur.id ? '<u>펼친 다이어리</u>' : ''}</button>`).join('')}</div></div>`).join('')}</div>
+            <div class="pp-sp-r"><p class="pp-sp-h">📃 속지 한 장은 <b>펼친 두 쪽 전체</b>에 깔려요</p><div class="pp-bkw" id="ppBk"></div><p class="pp-sp-t" id="ppSpT"></p><button type="button" class="pp-sp-go" id="ppSpGo"></button></div></div>`;
+        document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
+        const groupOf = it => L.find(g => g.items.includes(it));
+        const show = () => {
+            const g = groupOf(pick), same = ratioOk(pick.r);
+            pop.querySelectorAll('[data-sp]').forEach(b => b.classList.toggle('on', b.dataset.sp === pick.id));
+            let H = 250, W = Math.round(H / pick.r); if (W > 470) { W = 470; H = Math.round(W * pick.r); }
+            $('ppBk').innerHTML = `<div class="pp-bk b-${pick.b}" style="--bd:${esc(pick.bd)};--pg:${esc(pick.pg)};--w:${W}px;--h:${H}px"><div class="pp-sprd" style="background-image:url('${shot}')"></div><i class="pp-bind"></i></div>`;
+            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · ${esc(g.n)} ${esc(g.mm)}mm · ${SPEC_B[pick.b] || ''}<br>` + (same ? '✅ 지금 종이와 같은 비율이라 그대로 꼭 맞아요' : `⚠ 지금 종이와 비율이 달라서 <b>${pick.r > P.H / P.W ? '세로로 늘어나' : '납작하게 눌려'}</b> 보여요`);
+            const go = $('ppSpGo'); go.disabled = same && !!P.spec && P.spec.id === pick.id; go.textContent = same ? (go.disabled ? '📐 지금 이 다이어리에 맞춰 그리고 있어요' : '📐 이 다이어리로 정하기') : `📐 이 다이어리 크기로 종이 맞추기`;
+        };
+        $('ppSpL').onclick = e => { const b = e.target.closest('[data-sp]'); if (!b) return; pick = L.flatMap(g => g.items).find(i => i.id === b.dataset.sp) || pick; show(); };
+        $('ppSpGo').onclick = async () => {
+            const g = groupOf(pick), spec = { n: g.n, mm: g.mm, r: pick.r, id: pick.id };
+            if (ratioOk(pick.r)) { P.spec = spec; specBtn(); pop.remove(); say(`📐 ${g.n} 규격이에요`); return; }
+            const H2 = Math.round(P.W * pick.r), has = P.dirty || P.layers.some(l => l.type === 'photo');
+            if (has && window.showAsk && !(await showAsk(`📐 종이를 <b>${esc(g.n)} (${esc(g.mm)}mm)</b> 크기로 바꿀까요?<br><span style="font-size:12px;color:#777;">그린 것은 위쪽 기준 그대로 남아요 · ${H2 < P.H ? '종이가 짧아져서 <b>아래쪽이 잘려요</b>' : '아래쪽에 빈 종이가 늘어나요'}<br>되돌리기 기록은 비워져요</span>`, '바꾸기', '그대로'))) return;
+            resizePaper(H2, spec); pop.remove(); say(`📐 ${g.n} 크기 종이로 바꿨어요`, 2000);
+        };
+        show();
+    }
+    function resizePaper(H2, spec) {
+        commitFloat(); penEnd();
+        const d = snapshot(); P.H = H2; P.spec = spec;
+        ['ppCv', 'ppOv'].forEach(id => { const c = $(id); if (c) { c.width = P.W; c.height = P.H; } });
+        P.hist = []; P.redo = []; P.sel = null; P.pt = null;
+        restoreDraft(d, true); P.dirty = true; fit(); specBtn();
+    }
+
+    window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K; window.ppSpecList = specList;
     window.ppTest = () => P;                                                     // 🧪 시험용 (tests/t_padpaint.py)
 })();
 
