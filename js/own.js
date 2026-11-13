@@ -731,7 +731,7 @@
                 });
                 (Array.isArray(a.rl) ? a.rl : []).forEach(r => {
                     if (!r || !r.id) return;
-                    const n = Math.max(1, Math.min(200, +r.n || 1));   // 📒 🤍 크기 = 받을 때 상품 값 (js/basket.js abNewBd · abNewRl)
+                    const n = Math.max(1, Math.min(200, +r.n || 1));   // 📒 🤍 크기 = 받을 때 상품 값 (📒 바인더 = 장수 · 🤍 이형지북 = 쪽수)
                     o.rl.push({ id: String(r.id), k: String(r.k || 'seal'), lb: String(r.lb || '').slice(0, 12), pid: String(r.pid || '').slice(0, 60), n, it: (Array.isArray(r.it) ? r.it : []).filter(t => t && ok(t.s)).map(t => ({ s: t.s, pg: Math.max(0, Math.min(n - 1, Math.floor(+t.pg || 0))), x: Math.max(0, Math.min(1, +t.x || 0)), y: Math.max(0, Math.min(1, +t.y || 0)), r: +t.r || 0, ...(+t.w > 0 && +t.h > 0 ? { w: Math.round(+t.w), h: Math.round(+t.h) } : {}) })) });   // w · h = 스티커 진짜 크기 (다이어리에 붙였을 때 · 도련 10-29)
                 });
             }

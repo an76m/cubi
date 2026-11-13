@@ -270,17 +270,7 @@ ${lines.map((l, i) => `<text x="26" y="${top + i * gap}" font-size="15" fill="#5
             if (window.closePostRoom) closePostRoom();                         // 📮 우체통에서 붙였으면 책상으로
         }
 
-        function openLetterBox() {
-            if (!LB_API_URL) { comingSoon('💌 익명 편지함'); return; }
-            if (!lbLogged()) { showMsg('💌 익명 편지함은 구글 로그인을 해야 쓸 수 있어요.<br><span style="font-size:12px;color:#777;">편지를 주고받으려면 진짜 다꾸러인지 확인이 필요해요.<br>(이메일이나 이름은 보내지 않아요)</span>'); return; }
-            if (typeof closeModal === 'function') closeModal('serviceModal');
-            lbBuild();
-            lbq('lbRoom').classList.add('show');
-            document.body.classList.add('fc-lock');
-            lbTab('in'); lbLoad();
-        }
         function closeLetterBox() {
             const r = lbq('lbRoom'); if (r) r.classList.remove('show');
             document.body.classList.remove('fc-lock');
         }
-        window.openLetterBox = openLetterBox;

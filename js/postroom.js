@@ -82,7 +82,7 @@
         function prGo(v) {
             if (pr0.view === 'fb' && typeof feedbackSending !== 'undefined' && feedbackSending) return;             // 전송 중엔 그대로
             if (v === 'lb') {
-                if (!LB_API_URL) { comingSoon('💌 익명 편지함'); return; }      // 로그인 · 서버 확인 = openLetterBox 와 같아요
+                if (!LB_API_URL) { comingSoon('💌 익명 편지함'); return; }      // 로그인 · 서버 확인
                 if (!lbLogged()) { showMsg('💌 익명 편지함은 구글 로그인을 해야 쓸 수 있어요.<br><span style="font-size:12px;color:#777;">편지를 주고받으려면 진짜 다꾸러인지 확인이 필요해요.<br>(이메일이나 이름은 보내지 않아요)</span>'); return; }
             }
             prGiveBack();

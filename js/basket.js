@@ -341,11 +341,8 @@
     const abPer = b => +abBdP(b).P.포켓;                                       // 한 쪽 포켓 수 = 상품 '포켓'
     const abRelCap = r => { const p = abRlP(r); return p ? +p.P.포켓 : 0; };   // 이형지 한 쪽에 붙는 수 = 그 이형지북 상품 '포켓' (js/own.js)
     window.abRelCap = abRelCap;
-    const abRid = () => Date.now().toString(36) + Math.floor(Math.random() * 1e8).toString(36);
     const abMine = arr => (arr || []).filter(x => x.k === B.kind);
     const abCol = b => abBdP(b).P.색.slice(0, 2);                              // 그 바인더 디자인 색 [겉, 테두리]
-    const abNewBd = (k, pid) => { const p = AB_BDP.find(x => x.id === pid); return { id: 'b' + abRid(), k, lb: '', pid: p.id, n: +p.P.장수, p: {} }; };
-    const abNewRl = (k, pid) => { const p = AB_RL.find(x => x.id === pid); return { id: 'r' + abRid(), k, lb: '', pid: p.id, n: +p.P.쪽수, it: [] }; };   // 📒 바인더 = 시트 수 (장수) · 🤍 이형지북 = 쪽수 (상품)
     /* 📥 받은 📒 스티커바인더 · 🤍 이형지북 (도련 11-08) : 샵 · 처음 선물로 받으면 종류 없이 이 목록에 → 스티커 창(📒 정리하기)에서 📥 불러오면 그 종류 _스티커첩.json 으로 옮겨요
          · 저장 = 소품 · 문구와 같은 목록 파일 (🔐 말랑달콤 / 빈스티커첩 / _목록.json 두 칸 · _목록_백업.json · 받은- 파일은 섞여요 (종류 = 상품) · js/drive.js esown · 💤 쓸 때 읽어요)
          · 한 줄 { id, pid : 상품, n : 시트 수 · 쪽수, lb : 라벨, at, from : basic 샵 · gift 처음 선물 · back 되돌린 것, c : 원본 파일 }

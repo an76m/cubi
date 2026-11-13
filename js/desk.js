@@ -236,7 +236,6 @@
             } catch (e) { console.warn('목록 백업', w, e); }
         }
         window.deskBackOne = w => { if (DK_BB.includes(w)) setTimeout(() => dkBackOne(w), 1500); };
-        const DK_GK = { diary_desk_own: 'desk', diary_gd_own: 'gd', diary_skin_own: 'ds', diary_bg_own: 'bg' };
         const dkBkReal = (bk, k) => !!(bk && Array.isArray(bk[k]) && bk[k].some(o => o && !isGift(o)));   // 선물 아닌 것 (받은 것)   // 백업에 선물 아닌 것이 있어요 = 받은 적 있는 사람
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
             if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit || DK.starting) return;   // DK.starting = 처음 선물을 넣는 중
@@ -419,8 +418,6 @@
         /* 🪟 누르면 열리는 창 = 기능 + 상품 창 한 목록 (도련 10-30 : 모든 창이 🔗 기능 연결 목록에) · [id, 이름, 하단 메뉴 버튼, 아이콘, 묶음 'fn' | 'h']
            상품 창 id = 'h:' + 종류 (h:seal …) · 저장 : 소품 전체 = diary_desk_fn {창: 소품} · 👆 칸 = diary_desk_home {소품: [{k: 창, r, tag}]} · 한 창 = 한 자리 */
         const DK_HIC = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', leaf: '📃', memo: '📝', gd: '✂️', tool: '📔', bg: '🌈', desk: '🪑' };
-        const DK_HSAME = { tool: 'skin', gd: 'gd' };                             // 같은 창이 열리는 상품 = 기본 기능으로 (📔 다이어리 보관소 · ✏️ 문구함)
-        const DK_FN_OFF = ['cafe', 'shop', 'edit'];                              // 🔗 기능 연결 목록에서 뺀 것 (도련 11-01 · ☕ 카페 · 🏪 기본상품 샵 · 🛠 책상 꾸미기 = 이동 · 오른쪽 위 메뉴로)
         /* 🧺 넣을 수 있는 소품만 (도련 11-01 · 현실처럼) : 통 = ✏️ 문구함 · 바구니 · 책 상자 · 파일꽂이 = 📔 다이어리 · 서랍장 = 칸마다 문구함 · 다이어리 · 스티커 한 종류(씰스티커 · 마스킹테이프 …) 중 하나 (도련 11-01)
            나머지 소품(인형 · 시계 · 스탠드 · 게시판 · 사진 · 벽 선반 · 받침대 …) = 연결 없음 · 한 창 = 한 자리 (다른 곳에 넣으면 옮겨요)
            서랍 칸 = 소품 그림 % [왼 · 위 · 오른 · 아래] 미리 정해 둠 (다꾸러가 그리지 않아요) · 새 소품 = 종류(kind)만 맞으면 저절로 · 서랍장 그림이 새로 생기면 칸 자리만 더해요 */

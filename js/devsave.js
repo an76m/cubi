@@ -120,14 +120,6 @@
             for (const f of files) { const t = await vRead(f); if (t != null) await vTrashPut(f, t); }
             await vRemove(p);
         }
-        const dvTrash = {
-            list: async () => (await vTrashIdx()).filter(e => V.idx.has(TRASH + '/' + e.f)),
-            take: async e => { try { return JSON.parse(await vRead(TRASH + '/' + e.f)); } catch (x) { return null; } },
-            drop: async e => { await vRemove(TRASH + '/' + e.f); await vTrashSave((await vTrashIdx()).filter(x => x.f !== e.f)); },
-            empty: async () => { await vRemove(TRASH); },
-            read: p => vRead(p), write: (p, t) => vWrite(p, t), put: vTrashPut, purge: vTrashPurge
-        };
-        window.dvTrash = dvTrash;
 
         /* ---------- 🪄 드라이브 API 흉내 : drive.js gfetch 가 로그인 없이(이 브라우저)일 때 여기로 와요 ---------- */
         const FOLDER = 'application/vnd.google-apps.folder';

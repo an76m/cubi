@@ -7,7 +7,7 @@
    - 테이프 그림은 js/tape.js 의 tapeSvg 를 그대로 써요 (끝 톱니 · 반투명 · 길이 늘이기 손잡이가 같아요)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (마스킹테이프 만들기 · 내 마스킹테이프만 '준비 중') */
 
-        const TPM_MAX = Infinity, TPM_PHOTO_PX = 96;
+        const TPM_PHOTO_PX = 96;
         const TPM_PAD = 240, TPM_OUT = 120;                              // 그리는 칸(안쪽 해상도) · 저장되는 그림 크기
         const TPM_SIZE = { d: [16, 60, 30], i: [16, 60, 30], p: [16, 60, 30] };            // 크기 막대 : [가장 작게, 가장 크게, 처음 값] (그리기 · 사진)
         const tpmS = { built: false, m: 'd', bg: '#ffc9d9', dw: null, sd: 30, si: 30, sp: 30, dimg: '', img: '', pimg: '', pk: 1, prec: null };

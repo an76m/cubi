@@ -260,7 +260,6 @@
         /* 🌱 달력 : 오늘 새로 생긴 것을 알려 주는 작은 표시 (출석 도장 · 🌷 화분은 준비중이라 표시 없음)
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
            - 다음 날이 되면 새것이니까 다시 알려 줘요 · 이미 한 것은 처음부터 안 붙어요 */
-        const svcDay = tzDay;   // 🕘 시계 한 곳 (js/util.js)
         async function svcDailyBadges() {
             const mark = (id, txt) => {
                 const b = document.getElementById(id); if (!b) return;

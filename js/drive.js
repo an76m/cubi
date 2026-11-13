@@ -51,8 +51,6 @@
         const SKIN_DIRS = { wall: '벽지', top: '책상판' };            // 🧱 🪵 책상 꾸밈 (도련 11-05 · js/deskskin.js)
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
         const DIARY_PATH = dirPath(DIRS.diary);                     // 📔 말랑달콤 / 다이어리 / _목록.json · <권 폴더> / … (도련 11-07)
-        const DAY_PATH = DIARY_PATH;                         // 📔 날짜형 바인더 : 말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-10-28.json
-        const NOTE_PATH = DIARY_PATH;                    // 📓 날짜형 노트 : 말랑달콤 / 날짜형노트 / 2026 분홍 1 / 2026-10-28.json (권 id '2026n-분홍노트-1' · 도련 11-04)
         const DK_KINDS = ['노트', '바인더'];                         // 📕 페이지형 : 말랑달콤 / 페이지노트 · 페이지바인더 / <권 id>-…json
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
         /* =====================================================================
@@ -106,7 +104,6 @@
         addEventListener('pagehide', () => { if (DIAG.q.some(r => !r.up)) diagFlush(); });
         const DESK_PATH = SETTINGS_PATH, DESK_FILE_NAME = '배치.json';   // 🪑 책상 · 가진 것 목록도 설정 폴더에 (도련 11-06)
         const CAFE_PATH = SETTINGS_PATH, CAFE_FILE_NAME = '기록.json';   // 📒 놀이 기록 = 설정 폴더 / 기록.json (도련 11-13 · 카페가 없어져서 예전 카페기록 / 카페.json 을 옮겼어요)
-        const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
         const DRIVE_SCOPES = USE_APP_DATA_FOLDER                         // 📒 drive.appdata = 숨은 장부 칸 (도련 11-11 · 구글 콘솔 '데이터 액세스'에 두 줄 다 넣어 뒀어요)
             ? ['https://www.googleapis.com/auth/drive.appdata']

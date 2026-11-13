@@ -68,7 +68,6 @@
         const capsData = async k => { const r = await fetch(k.url); if (!r.ok) throw new Error('caps'); const t = r.headers.get('content-type') || '';
             if (/svg/.test(t) || /\.svg$/i.test(k.url)) return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(await r.text());
             const b = await r.blob(); return await new Promise((ok, no) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = no; f.readAsDataURL(b); }); };
-        const capsToday = tzDay;   // 🕘 시계 한 곳 (js/util.js)
         function capsSet(list) {
             const a = (list || []).filter(p => p && p.id && p.until).map(p => ({ id: p.id, until: p.until }));
             try { localStorage.setItem(CAPS_LOCAL, JSON.stringify(a)); } catch (e) {}

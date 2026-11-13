@@ -12,7 +12,7 @@
    - 📕 유한 다이어리를 쓰는 중이면 그 다이어리 장들에서만 찾아요 (그 권의 검색 목록 + 목록에 없는 꾸민 장만 읽어서)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (검색 버튼만 '준비 중') */
 
-        const SR_PREFIX = '검색-', SR_MAX = 2000, SR_SAVE_MS = 20000;
+        const SR_MAX = 2000, SR_SAVE_MS = 20000;
         const sr = { years: new Map(), synced: false, syncing: null, timer: 0, built: false, q: '' };
         const srq = id => document.getElementById(id);
         const srOn = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
