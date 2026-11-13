@@ -1620,6 +1620,14 @@
             };
         }
         window.dkDrawerShut = dkDrawerShut;
+        /* 🗄 서랍에서 내려온 스티커 · 마테 서랍 창 = 창 밖 빈 책상 · 벽 톡 = 창이 올라가며 서랍도 닫혀요 (도련 11-13 · ✏️ 문구함처럼)
+           그 창은 뒤가 눌려야 해서(꺼낸 스티커 끌기) 창 밖이 책상으로 그대로 와요 → 소품이 없는 빈 곳만 · 소품 톡은 그 소품 기능 그대로 */
+        document.addEventListener('click', e => {
+            const D = DKD.cur; if (!D || !D.win || DK.edit || !D.win[1].classList.contains('modal')) return;
+            const t = e.target; if (!t || !t.closest || !t.closest('#deskStage') || t.closest('.desk-item')) return;
+            if ([...document.querySelectorAll('#deskStage .desk-item')].some(el => dkSolidAt(el, e.clientX, e.clientY))) return;   // 그림 모양대로 소품 위 = 그 소품
+            dkDrawerShut(true);
+        });
         window.dkDrawerU = () => DKD.cur ? String(DKD.cur.key).split('|')[0] : '';   // 지금 열린 서랍의 서랍장 (js/deskmove.js 넣기 · 도련 11-12)
         window.dkDrawerOwns = h => !!DKD.cur && !!DKD.cur.win && DKD.cur.win[1] === h;   // 이 창이 열린 서랍에서 나온 창이에요 (🗄️ 문구함 ✕ = 서랍 닫듯이 · js/deskgd.js dkwClose)
         function dkHomeOpen(k) { if (k === 'desk') { deskBoxOpen(); return; } if (window.shGoSee) setTimeout(() => shGoSee(k, 0), 0); }
