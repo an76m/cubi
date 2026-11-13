@@ -1350,7 +1350,12 @@
             return t;
         }
         /* 🗄️ 바꾸기로 밀려난 것 옮기기 (도련 11-01) : 빈 서랍(이 서랍장 먼저 · 다른 서랍장)을 골라요 · 안 옮기면 서랍에서만 빠져요 (바구니 · 보관함에는 그대로) */
-        async function dkzRehome(k, u0, oldE) {
+        async function dkzRehome(k, u0, oldE) {                                   // ✏️ 문구함 칸을 옮기는 동안은 문구 정리(봉투)를 쉬어요 (고르는 사이 봉투에 담기던 버그 · 도련 11-13)
+            if (k !== 'gd') return dkzRehome0(k, u0, oldE);
+            window.dkGdWait = (window.dkGdWait || 0) + 1;
+            try { return await dkzRehome0(k, u0, oldE); } finally { window.dkGdWait--; if (window.dkwDeskSoon) dkwDeskSoon(); }
+        }
+        async function dkzRehome0(k, u0, oldE) {
             const [, K, , ic] = dkWin(k), H = dkHomes();
             const C = dkOnDesk().filter(x => dkSlots(x.id) && dkHoldOk(x.id).includes(k) && dkSlots(x.id).some((r, i) => !(H[x.u] || []).some(e => e.s === i)))
                 .sort((a, b) => (b.u === u0) - (a.u === u0));

@@ -41,7 +41,7 @@
         /* 집이 없는 문구 정리 : 🎁 처음 선물 = 담는 소품 상품 '처음담기' (✏️ 펜꽂이 · 🗄️ 문구함 칸 · 없으면 🛍️ 봉투 · 도련 11-06) · 나머지 (집이 없어졌거나 집 없이 받은 것) = 봉투에 담아 책상에 (페이지에 꺼내 둔 것은 치울 때)
            꾸미는 중 · 선물 받는 중 · 책상이 아직 없으면 기다려요 */
         function dkwSweep() {
-            if (!dkwDesk() || DK.edit || !dkOnDesk().length || (window.deskGiftBusy && deskGiftBusy()) || !window.deskBagAdd) return;
+            if (!dkwDesk() || DK.edit || window.dkGdWait > 0 || !dkOnDesk().length || (window.deskGiftBusy && deskGiftBusy()) || !window.deskBagAdd) return;
             const at = dkwAt(), st = new Set(window.gdStarter ? gdStarter() : []), lost = []; let ch = false;
             const desk = dkOnDesk(), H = dkHomes(), n = u => Object.values(at).filter(p => p === u).length;
             const first = id => {                                                  // 🎁 처음 자리 = 책상 위 담는 소품 상품의 '처음담기' (도련 11-06 · 상품 순서 · 비어 있으면 봉투)
