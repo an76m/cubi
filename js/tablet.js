@@ -1,10 +1,10 @@
-/* 말랑달콤 다이어리 - js/ipad.js
-   📱 아이패드 (도련 11-13 · 💻 📲 책상모드만 · 📱 폰은 예전 ✂️ 스티커 만들기 그대로) : 책상 위 아이패드를 톡 = 책상 자리에서 화면 가운데로 크게 → 홈 화면 앱 6개
-   - 상품 = 상품공방 책상소품 · 기능 'pad' (📱 아이패드) · '소품.scr' = 그림 속 화면 자리 [왼, 위, 오른, 아래] % · '크게.webp' = 크게 떴을 때 그림 (없으면 디자인)
-   - 앱 : 📃 속지 · 🧻 떡메모지 · 🎀 마스킹테이프 · 🏷️ 씰스티커(시트 꾸미기) = 예전 만들기 화면을 그대로 열어요 (js/craft.js craftWay · 닫으면 아이패드 홈으로)
-          🧩 조각스티커 · 📄 모조지스티커 = 아이패드 화면 안 그림 앱 (✏️ 직접 그리기 + 📎 사진 불러오기 · 사진 위에 그려도 돼요)
+/* 말랑달콤 다이어리 - js/tablet.js
+   📱 태블릿 (도련 11-13 · 💻 📲 책상모드만 · 📱 폰은 예전 ✂️ 스티커 만들기 그대로) : 책상 위 태블릿를 톡 = 책상 자리에서 화면 가운데로 크게 → 홈 화면 앱 6개
+   - 상품 = 상품공방 책상소품 · 기능 'pad' (📱 태블릿) · '소품.scr' = 그림 속 화면 자리 [왼, 위, 오른, 아래] % · '크게.webp' = 크게 떴을 때 그림 (없으면 디자인)
+   - 앱 : 📃 속지 · 🧻 떡메모지 · 🎀 마스킹테이프 · 🏷️ 씰스티커(시트 꾸미기) = 예전 만들기 화면을 그대로 열어요 (js/craft.js craftWay · 닫으면 태블릿 홈으로)
+          🧩 조각스티커 · 📄 모조지스티커 = 태블릿 화면 안 그림 앱 (✏️ 직접 그리기 + 📎 사진 불러오기 · 사진 위에 그려도 돼요)
             조각 = 그린 모양대로 하얀 칼선 (js/stickermaker.js smAdd 'piece' · 🧩 봉투 하나) · 모조지 = 종이 한 장 그대로 (pmMakeSheet → smAdd 'paper')
-   - 닫기 = 오른쪽 위 ✕ · 아이패드 바깥 톡 · Esc → 책상 자리로 작게 돌아가요
+   - 닫기 = 오른쪽 위 ✕ · 태블릿 바깥 톡 · Esc → 책상 자리로 작게 돌아가요
    - 책상 위 작은 화면 (시계 · 앱 아이콘) = js/desk.js deskItemHtml (.dk-pad) */
 (function () {
     'use strict';
@@ -26,11 +26,11 @@
         r.innerHTML = `<div class="ip-dim"></div>
             <div class="ip-pad" id="ipPad"><img class="ip-img" id="ipImg" alt="" draggable="false"><div class="ip-scr" id="ipScr"></div><button type="button" class="ip-x win-x" aria-label="닫기">✕</button></div>`;
         document.body.appendChild(r);
-        r.querySelector('.ip-dim').addEventListener('click', () => closeIpad());
-        r.querySelector('.ip-x').addEventListener('click', () => closeIpad());
+        r.querySelector('.ip-dim').addEventListener('click', () => closeTablet());
+        r.querySelector('.ip-x').addEventListener('click', () => closeTablet());
         return r;
     }
-    /* 크게 뜬 아이패드 자리 (화면 가운데 · 화면 안) */
+    /* 크게 뜬 태블릿 자리 (화면 가운데 · 화면 안) */
     function fitBox(ratio) {
         const W = Math.min(innerWidth * .9, 1000, (innerHeight * .84) * ratio), H = W / ratio;
         return { left: (innerWidth - W) / 2, top: (innerHeight - H) / 2 + 8, width: W, height: H };
@@ -41,8 +41,8 @@
         Object.assign(s.style, { left: l + '%', top: t + '%', width: (r - l) + '%', height: (b - t) + '%' });
     }
 
-    /* 📱 열기 : 책상 위 아이패드(el)에서 크게 */
-    async function openIpad(el, o) {
+    /* 📱 열기 : 책상 위 태블릿(el)에서 크게 */
+    async function openTablet(el, o) {
         if (IP.on || IP.busy) return;
         o = o || {};
         const room = build(), img = q('ipImg'), src = o.big || o.src || (el && el.querySelector('img') && el.querySelector('img').src);
@@ -66,9 +66,9 @@
         } else room.classList.add('lit');
         pad.classList.remove('fly'); pad.style.transition = ''; IP.busy = false;
     }
-    async function closeIpad() {
+    async function closeTablet() {
         if (!IP.on || IP.busy) return;
-        if (IP.D && IP.D.dirty && !(await (typeof showAsk === 'function' ? showAsk('그리던 그림이 사라져요.<br>아이패드를 닫을까요?', '닫기', '계속 그리기') : Promise.resolve(true)))) return;
+        if (IP.D && IP.D.dirty && !(await (typeof showAsk === 'function' ? showAsk('그리던 그림이 사라져요.<br>태블릿를 닫을까요?', '닫기', '계속 그리기') : Promise.resolve(true)))) return;
         IP.busy = true;
         const room = q('ipRoom'), pad = q('ipPad'), el = IP.el, S = el && el.isConnected ? el.getBoundingClientRect() : null, T = pad.getBoundingClientRect();
         q('ipScr').classList.add('off');
@@ -99,7 +99,7 @@
     /* 앱 열기 */
     function launch(k) {
         if (IP.busy) return;
-        if (WAY[k]) {                                                         // 📃 🧻 🎀 🏷️ = 예전 만들기 화면 (아이패드는 뒤에서 기다려요 → 닫으면 홈)
+        if (WAY[k]) {                                                         // 📃 🧻 🎀 🏷️ = 예전 만들기 화면 (태블릿는 뒤에서 기다려요 → 닫으면 홈)
             const b = q('ipScr').querySelector(`.ip-app[data-k="${k}"]`); if (b) { b.classList.add('tap'); setTimeout(() => b.classList.remove('tap'), 300); }
             if (window.craftWay) craftWay(WAY[k], k); return;
         }
@@ -203,7 +203,7 @@
         const D = IP.D; if (!D || D.saving) return;
         if (!D.dirty) { if (window.showMsg) showMsg(D.k === 'paper' ? '종이에 그리거나 📎 사진을 깔아 주세요.' : '먼저 그림을 그리거나 📎 사진을 넣어 주세요.'); return; }
         if (window.dkTrialNoSave && dkTrialNoSave()) return;                 // 🏪 샵 적용해보기 = 만들어 보기만
-        if (!window.smAdd) { if (window.comingSoon) comingSoon('📱 아이패드 만들기'); return; }
+        if (!window.smAdd) { if (window.comingSoon) comingSoon('📱 태블릿 만들기'); return; }
         D.saving = true; const b = q('ipScr').querySelector('.ipd-go'); if (b) { b.disabled = true; b.textContent = '💾 만드는 중…'; }
         try {
             let r;
@@ -221,9 +221,9 @@
             if (r === 'ok') { D.dirty = false; act('clear'); }
         } finally { D.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '✅ 만들기'; } }
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && IP.on && !document.querySelector('.modal[style*="flex"]') && !document.querySelector('.smk-room.show, .shm-room.show')) closeIpad(); });
-    window.openIpad = openIpad; window.closeIpad = closeIpad; window.ipadOn = () => IP.on;
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && IP.on && !document.querySelector('.modal[style*="flex"]') && !document.querySelector('.smk-room.show, .shm-room.show')) closeTablet(); });
+    window.openTablet = openTablet; window.closeTablet = closeTablet; window.tabletOn = () => IP.on;
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
-(window.MALLANG_LOADED = window.MALLANG_LOADED || {})['ipad'] = true;
+(window.MALLANG_LOADED = window.MALLANG_LOADED || {})['tablet'] = true;

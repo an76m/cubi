@@ -1,10 +1,10 @@
-/* 📱 아이패드 (js/ipad.js · 도련 11-13) : 책상 위 아이패드 → 화면 가운데로 크게 · 홈 화면 앱 6개 · 🧩 📄 그림 앱
-   z 940 = 예전 만들기 화면(속지 · 떡메 · 마테 · 시트 꾸미기)보다 아래 → 그 화면을 닫으면 아이패드 홈이 그대로 */
+/* 📱 태블릿 (js/tablet.js · 도련 11-13) : 책상 위 태블릿 → 화면 가운데로 크게 · 홈 화면 앱 6개 · 🧩 📄 그림 앱
+   z 940 = 예전 만들기 화면(속지 · 떡메 · 마테 · 시트 꾸미기)보다 아래 → 그 화면을 닫으면 태블릿 홈이 그대로 */
 .ip-room { position: fixed; inset: 0; z-index: 940; display: none; }
 .ip-room.show { display: block; }
 .ip-dim { position: absolute; inset: 0; background: rgba(70, 44, 56, .34); opacity: 0; transition: opacity .35s ease; }
 .ip-room.lit .ip-dim { opacity: 1; }
-.ip-x { position: absolute; top: -14px; right: -14px; z-index: 3; opacity: 0; transition: opacity .3s; }   /* ✕ = 아이패드 오른쪽 위 모서리 */
+.ip-x { position: absolute; top: -14px; right: -14px; z-index: 3; opacity: 0; transition: opacity .3s; }   /* ✕ = 태블릿 오른쪽 위 모서리 */
 .ip-pad.fly .ip-x { opacity: 0 !important; }
 .ip-room.lit .ip-x { opacity: 1; }
 .ip-pad { position: absolute; transform-origin: 0 0; }
@@ -52,7 +52,7 @@
 .ipd-er.on { border-color: #ff6f9c; background: #ffe6f0; }
 .ipd-tip { text-align: center; font-size: 11.5px; color: #9a7685; padding: 0 10px 7px; word-break: keep-all; }
 
-/* 🪑 책상 위 작은 아이패드 화면 (js/desk.js deskItemHtml) */
+/* 🪑 책상 위 작은 태블릿 화면 (js/desk.js deskItemHtml) */
 .dk-pad { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6%; pointer-events: none; overflow: hidden; border-radius: 6px;
     background: linear-gradient(#ffe6f0, #fff4e6 55%, #e8f3ff); }
 .dk-pad b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 11px; line-height: 1; color: #8a6070; }

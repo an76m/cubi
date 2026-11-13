@@ -243,7 +243,7 @@
         if (K.act === 'label') { if (window.openLabeler) openLabeler(el); return true; }
         if (K.act === 'camera') { if (window.openDigicam) openDigicam({ el }); return true; }   // 📷 말랑 디카 (도련 11-08)
         if (K.act === 'print') { if (window.openStickerPrinter) openStickerPrinter({ el }); return true; }   // 🖨️ 말랑 스티커 프린터 (도련 11-08)
-        if (K.act === 'pad') { if (window.openIpad) openIpad(el, dcCat(o)); return true; }   // 📱 아이패드 : 크게 → 앱 6개 (js/ipad.js · 도련 11-13)
+        if (K.act === 'pad') { if (window.openTablet) openTablet(el, dcCat(o)); return true; }   // 📱 태블릿 : 크게 → 앱 6개 (js/tablet.js · 도련 11-13)
         if (K.act === 'lamp') { dcCs(o).on = !o.cs.on; dcSave(o); }
         if (K.act === 'lights') { dcCs(o).off = !o.cs.off; if (!o.cs.off) delete o.cs.off; dcSave(o); }
         return true;

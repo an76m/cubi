@@ -41,10 +41,10 @@
             if (!x.u.디자인 || !o.kind || !String(P.이름 || '') || !(+o.w > 0) || !(+o.h > 0) || !num(o.x) || !num(o.y)) { console.warn('🧁 소품 속성이 모자라요 :', x.id); return null; }
             Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름), w: +o.w, h: +o.h, x: +o.x, y: +o.y });
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
-            if (x.u.크게) o.big = x.u.크게; else delete o.big;   // 📱 크게 떴을 때 그림 (아이패드 · js/ipad.js)
+            if (x.u.크게) o.big = x.u.크게; else delete o.big;   // 📱 크게 떴을 때 그림 (태블릿 · js/tablet.js)
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
             o.kind = String(o.kind).replace(/[\/\\'"<>`]/g, '').slice(0, 20);   // 🆕 새 종류 = 상품공방 폴더 이름 그대로 (도련 11-06 · 드라이브 폴더 · 보관함 칸 이름)
-            const CAN = ['turn', 'light', 'clock', 'memo', 'rope', 'peg', 'label', 'camera', 'print', 'pad'];   // pad = 📱 아이패드 (js/ipad.js · 도련 11-13)   // print = 🖨️ 말랑 스티커 프린터 (js/stickerprinter.js)   // label = 🏷️ 라벨 스티커 기계 (js/labeler.js) · camera = 📷 말랑 디카 (js/digicam.js · 도련 11-08)       // 🧩 고르는 기능 = 상품공방 '기능' (도련 11-06 · 종류가 아니라 상품이 정해요 · 새 소품도 코드 없이)
+            const CAN = ['turn', 'light', 'clock', 'memo', 'rope', 'peg', 'label', 'camera', 'print', 'pad'];   // pad = 📱 태블릿 (js/tablet.js · 도련 11-13)   // print = 🖨️ 말랑 스티커 프린터 (js/stickerprinter.js)   // label = 🏷️ 라벨 스티커 기계 (js/labeler.js) · camera = 📷 말랑 디카 (js/digicam.js · 도련 11-08)       // 🧩 고르는 기능 = 상품공방 '기능' (도련 11-06 · 종류가 아니라 상품이 정해요 · 새 소품도 코드 없이)
             o.can = (Array.isArray(P.기능) ? P.기능 : []).filter(f => CAN.includes(f));
             if (P.종류이름) o.kn = String(P.종류이름).slice(0, 12); if (P.종류아이콘) o.ki = String(P.종류아이콘).slice(0, 4);   // 🏪 샵 · 보관함 칸 이름 (새 종류)
             if (o.can.includes('rope')) o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
@@ -1652,7 +1652,7 @@
                 over = `<svg class="dk-hands" viewBox="-50 -50 100 100" aria-hidden="true" style="left:${c.cx}%;top:${c.cy}%;width:${d}%;height:${hh}%"><line class="hr" x1="0" y1="6" x2="0" y2="-24"/><line class="mn" x1="0" y1="8" x2="0" y2="-38"/><line class="sc" x1="0" y1="10" x2="0" y2="-41"/><circle r="4.5"/></svg>`;
             }
             if (it.lcd) { const [l, t, r, b] = it.lcd; over = `<span class="dk-lcd" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b></span>`; }
-            if ((it.can || []).includes('pad')) { const [l, t, r, b] = Array.isArray(it.scr) && it.scr.length === 4 ? it.scr : [3.8, 4.7, 96.3, 75.7]; over += `<span class="dk-pad" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b><span><i>📃</i><i>🧻</i><i>🎀</i><i>🏷️</i><i>🧩</i><i>📄</i></span></span>`; }   // 📱 아이패드 홈 화면 (작게 · 시계 · 앱 · js/ipad.js)
+            if ((it.can || []).includes('pad')) { const [l, t, r, b] = Array.isArray(it.scr) && it.scr.length === 4 ? it.scr : [3.8, 4.7, 96.3, 75.7]; over += `<span class="dk-pad" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b><span><i>📃</i><i>🧻</i><i>🎀</i><i>🏷️</i><i>🧩</i><i>📄</i></span></span>`; }   // 📱 태블릿 홈 화면 (작게 · 시계 · 앱 · js/tablet.js)
             return `<div class="${cls}" data-id="${it.id}" data-u="${p.u || it.id}" role="img" aria-label="${it.name}" style="${st}"><img src="${(p.u && DK.art[p.u]) || it.src}" alt="" draggable="false" crossorigin="anonymous">${over}</div>`;
         }
         /* 🕰 ⏰ 시계는 지금 시각 (1초마다 · 책상이 보일 때만) */
@@ -1664,7 +1664,7 @@
                 sv.querySelector('.mn').setAttribute('transform', `rotate(${m * 6 + sec * .1})`);
                 sv.querySelector('.sc').setAttribute('transform', `rotate(${sec * 6})`);
             });
-            document.querySelectorAll('#deskStage .dk-pad > b').forEach(b => { b.textContent = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); });   // 📱 아이패드 시계
+            document.querySelectorAll('#deskStage .dk-pad > b').forEach(b => { b.textContent = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); });   // 📱 태블릿 시계
             document.querySelectorAll('#deskStage .dk-lcd b').forEach(b => { b.innerHTML = `${h % 12 || 12}<i${sec % 2 ? ' class="off"' : ''}>:</i>${String(m).padStart(2, '0')}<small>${h < 12 ? 'AM' : 'PM'}</small>`; });   // 12시간 (21시 → 9 PM · 도련 10-26)
         }
         setInterval(deskTick, 1000);
