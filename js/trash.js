@@ -117,7 +117,7 @@
             let m = /\/(?:다이어리|날짜형(?:바인더|노트))\/(\d{4} .+ \d+)\/(\d{4})-(\d{2})-(\d{2})\.json$/.exec(path);   // 📔 다이어리 / 2026 분홍 2 / … (도련 11-07)   // 📔 말랑달콤 / 날짜형바인더 · 날짜형노트 / 2026 분홍 2 / 2026-10-28.json
             if (m) return `📔 ${m[2]}년 ${+m[3]}월 ${+m[4]}일 일기 (${m[1]})`;
             if (/\/설정\/설정\.json$/.test(path)) return '⚙ 설정';
-            if (/\/카페기록\/카페\.json$/.test(path)) return '☕ 카페 기록';
+            if (/\/설정\/기록\.json$/.test(path)) return '📒 놀이 기록';
             if (/\/검색(-[^/]*)?\.json$/.test(path)) return '🔍 검색 목록';
             const parts = path.split('/'), dir = parts.length > 2 ? parts[parts.length - 2] : '', file = parts[parts.length - 1] || '';
             if (/^(내|받은)-목록\d+\.json$/.test(file)) return '📋 모음 목록';

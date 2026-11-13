@@ -6,7 +6,7 @@
            📁 폴더 구조 (도련 10-26 · 10-28 고침) : 말랑달콤 바로 아래에 '종류' 폴더만 한 줄로 · 무료 · 유료 · 이벤트 · 공유 모두 종류가 같으면 같은 폴더 (받은 곳은 파일 안 · 목록에)
               - 상품 하나 = 따로 하나 (현실처럼 · 같은 것도 또 받아요) : 파일이 여러 개인 상품(📔 다이어리)은 한 개에 폴더 하나 · 파일 하나인 상품(🪑 소품 · ✏️ 문구)은 한 개에 파일 하나
               - 🏷️ 스티커는 예외 (바구니 ↔ 스티커첩으로 옮겨 다녀서 목록 하나 · js/own.js)
-              - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (카페기록 · 설정)
+              - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (설정 폴더 · 기록.json · 설정.json)
              말랑달콤 / 다이어리 / 🔐 _목록.json · _목록_백업.json   📔 📕 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from gift · basic · mine · 노트 = 바로 · 바인더 = 조립하면 · 도련 11-07 · js/dyown.js)
                       / 다이어리 / 2026 분홍 1 / 2026-10-28.json · 표지.json · 검색.json · 다이어리.json   📔 날짜형 한 권 = 폴더 (노트 = 2026 분홍노트 1)
                       / 다이어리 / dk… / 다이어리.json · 표지.json · 3페이지.json · 검색.json   📕 페이지형 한 권 = 폴더 (권 id)
@@ -18,8 +18,9 @@
                       / 문구 / 🔐 _목록1.json … · _목록_백업.json · 받은-<id>.json   ✏️ 백 = 가진 문구 전부 (같은 것도 여러 개 · 앱을 켤 때 읽어요 · 도련 11-07)
                       / 배경지 / 받은-<id>.json · 🔐 _목록.json              🌈 샵에서 받은 배경지 하나에 파일 하나 (내가 만든 배경지 = 내-) · _목록.json = 가진 배경지 (💤 창을 열 때 읽어요 · 바뀔 때 처음 생겨요 · 도련 11-07)
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
-                      / 카페기록 / 카페.json                            ☕ 출석 · 화분 · 달력 · D-day · 심리 · 오락실
                       / 설정 /                                          ⚙ 내 정보는 한 폴더에 (도련 11-06 · 예전 책상배치 · 기본세트 폴더를 합쳤어요 · 역할마다 파일 하나 · 바뀐 파일만 올라가요)
+                              기록.json        📒 출석 · 화분 · 달력 · D-day · 심리 · 오락실 (도련 11-13 · 예전 카페기록 / 카페.json)
+                              _문제기록.json   🧾 지우기 · 휴지통 · 합치기 · 되살리기 400줄
                               설정.json        ⚙ 설정 탭 값 · 펼친 권 · 본 것 표시 (🗺 인수인계 03_저장지도.md) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
                               책상설정.json    ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
                               배치.json        📍 🔐 책상 위 소품 자리 · 문구의 집 · 책상 위 다이어리 · 봉투
@@ -40,7 +41,7 @@
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
             desk: '소품', gd: '문구', diary: '다이어리',   /* 📔 📕 다이어리 = 폴더 하나 · 한 권 = 그 안의 폴더 하나 (날짜형 · 페이지형 모두 · 도련 11-07) */   /* 🪑 ✏️ 소품 · 문구 = 폴더 하나씩 (도련 11-07 · 종류가 섞여 있어요 · 종류는 파일 안 상품 id · 벽지 · 책상판도 소품) */
             pattern: '배경지', noteCover: '노트',   /* 📓 내가 만든 노트 한 권 설계도 (표지 + 내지 · 도련 11-07 이름 고침) */ emptyBook: '빈스티커첩',   /* 📥 받은 스티커바인더 · 이형지북 = 한 폴더 (종류 없이 · 도련 11-08 · 🧩 바인더 재료는 다이어리 / _바인더재료목록.json) */
-            stkList: '스티커목록', design: '도안', doll: '인형돌', puppet: '인형극',   /* 📐 내 도안 = 내가 만든 스티커 원본 (쓰면 안 사라져요 · 한 장 더 찍기 · 도련 11-09 · js/own.js ownDesign*) */   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ cafe: '카페기록', settings: '설정', trash: '휴지통'
+            stkList: '스티커목록', design: '도안', doll: '인형돌', puppet: '인형극',   /* 📐 내 도안 = 내가 만든 스티커 원본 (쓰면 안 사라져요 · 한 장 더 찍기 · 도련 11-09 · js/own.js ownDesign*) */   /* 👧 꾸미기용 아바타 인형 = 인형돌 (책상 소품 인형 = DESK_DIRS.doll '인형' · 도련 11-04) */ settings: '설정', trash: '휴지통'
         };
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
         /* ⚠ pencup 폴더 = '연필꽂이' 그대로 (화면 이름만 펜꽂이 · 도련 11-03) */
@@ -56,11 +57,11 @@
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
         /* =====================================================================
            🧾 문제 기록 (도련 11-06 · 마테 목록이 사라졌을 때 원인을 알 수 없어서) : 파일을 지우거나 · 휴지통에 넣거나 · 폴더를 만들고 합치거나 · 되살릴 때마다 한 줄
-           - 저장 : 말랑달콤 / 설정 / _기록.json (글자 그대로 · 400줄까지 · 기기마다 섞여서 · 새 줄이 생기면 30초 안에 한 번) · 게스트는 이 창 메모리만
+           - 저장 : 말랑달콤 / 설정 / _문제기록.json (글자 그대로 · 400줄까지 · 기기마다 섞여서 · 새 줄이 생기면 30초 안에 한 번) · 게스트는 이 창 메모리만
            - 보기 : ⚙ 설정 → 💾 저장 → 🧾 문제 기록 (📋 복사 → Claude 에게 붙여 넣기)
            - 일기 · 스티커 내용 · 계정은 적지 않아요 (언제 · 어느 기기 · 무엇을 · 어떤 파일 이름 · 번호 · 누가 불렀는지만)
            ===================================================================== */
-        const DIAG_NAME = '_기록.json', DIAG_MAX = 400, DIAG_LS = 'malang_diag_q', DIAG = { q: [], t: 0, last: 0, busy: false, f: null };
+        const DIAG_NAME = '_문제기록.json', DIAG_MAX = 400, DIAG_LS = 'malang_diag_q', DIAG = { q: [], t: 0, last: 0, busy: false, f: null };
         try { const L = JSON.parse(localStorage.getItem(DIAG_LS) || '[]'); if (Array.isArray(L)) DIAG.q = L.slice(-100); } catch (e) {}   // 새로고침 · 앱이 꺼지기 전에 못 올린 기록
         const diagKeep = () => { try { localStorage.setItem(DIAG_LS, JSON.stringify(DIAG.q.filter(r => !r.up).slice(-100))); } catch (e) {} };
         const diagDev = (() => { try { let d = localStorage.getItem('malang_dev_id'); if (!d) { d = Math.random().toString(36).slice(2, 7); localStorage.setItem('malang_dev_id', d); } return d; } catch (e) { return 'x'; } })();
@@ -104,7 +105,7 @@
         window.diag = diag; window.diagRead = diagRead; window.diagFlush = diagFlush;
         addEventListener('pagehide', () => { if (DIAG.q.some(r => !r.up)) diagFlush(); });
         const DESK_PATH = SETTINGS_PATH, DESK_FILE_NAME = '배치.json';   // 🪑 책상 · 가진 것 목록도 설정 폴더에 (도련 11-06)
-        const CAFE_PATH = dirPath(DIRS.cafe), CAFE_FILE_NAME = '카페.json';
+        const CAFE_PATH = SETTINGS_PATH, CAFE_FILE_NAME = '기록.json';   // 📒 놀이 기록 = 설정 폴더 / 기록.json (도련 11-13 · 카페가 없어져서 예전 카페기록 / 카페.json 을 옮겼어요)
         const ROOT_PATH_TEXT = DAY_PATH.join(' / ');
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
         const DRIVE_SCOPES = USE_APP_DATA_FOLDER                         // 📒 drive.appdata = 숨은 장부 칸 (도련 11-11 · 구글 콘솔 '데이터 액세스'에 두 줄 다 넣어 뒀어요)
@@ -137,7 +138,7 @@
         /* 메모리 저장소: 화면이 쓰는 값은 여기(문자열)에 두고, 변경된 것만 드라이브에 올립니다.
            - 날짜 데이터  : diary_2026b-분홍-1_2026_09_10  → 말랑달콤/날짜형바인더/2026 분홍 1/2026-09-10.json (다이어리 한 권 = 폴더 하나 · 다이어리끼리 기록을 나누지 않아요)
            - 📕 유한 다이어리 : dkp_<권 id>_3 → 말랑달콤/페이지바인더/<권 id>-3페이지.json · dkb_<권 id> → <권 id>-다이어리.json
-           - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (카페 기록은 말랑달콤/카페기록/카페.json) */
+           - 설정 데이터  : diary_ui_font 등  → 말랑달콤/설정/설정.json  (놀이 기록은 말랑달콤/설정/기록.json) */
         const store = {
             _m: new Map(),
             _silent: false,
@@ -413,7 +414,7 @@
         }
         const DESK_START = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !KEY_FILES[w].chunk && KEY_FILES[w].path === DESK_PATH);
         const DESK_START2 = DESK_WHICH.filter(w => !KEY_FILES[w].lazy && !DESK_START.includes(w));   // 🚀 켤 때 읽는 백 목록 (✏️ 문구 · 📔 다이어리 · 설정 폴더 밖 · 동시에)          // 🚀 앱을 켤 때 읽는 것 (설정 폴더 · 💤 lazy 는 빼요 · 도련 11-07)
-        const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best']);   // ☕ 카페.json 으로 가는 키
+        const CAFE_KEYS = VAULT_KEYS.concat(['diary_cycle', 'diary_dday', 'diary_psy', 'diary_arcade_best']);   // 📒 기록.json 으로 가는 키
         const VAULT_SALT = 'mL4q!z9Rw2';
         function vaultHash(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36).padStart(7, '0').slice(-7); }
         function vaultMix(bytes) {
@@ -752,7 +753,7 @@
         }
 
         /* ---------- 읽기 : 설정 / 하루치 ---------- */
-        /* 설정.json · 카페.json : 내용(없으면 null) · 파일 정보는 drive.settingsFile / cafeFile 에 */
+        /* 설정.json · 기록.json : 내용(없으면 null) · 파일 정보는 drive.settingsFile / cafeFile 에 */
         async function fetchKeyFile(which) {
             const F = KEY_FILES[which];
             if (F.chunk) return fetchChunked(which);
@@ -1204,7 +1205,7 @@
             } catch (e) { console.warn(e); }
         }
 
-        /* 설정.json · 카페.json 올리기 : 덮어쓰기 전에 드라이브 파일이 바뀌었는지 보고, 바뀌었으면 합친 뒤에 */
+        /* 설정.json · 기록.json 올리기 : 덮어쓰기 전에 드라이브 파일이 바뀌었는지 보고, 바뀌었으면 합친 뒤에 */
         async function writeKeyFile(which, mine) {
             const F = KEY_FILES[which];
             if (isDeskFile(which) && drive.deskLocked && !F.lazy) return;      // 🔐 못 연 책상배치 파일이 있으면 덮어쓰지 않아요

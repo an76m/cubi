@@ -453,7 +453,7 @@
             location.reload();
         }
         window.clearBrowserStore = clearBrowserStore;
-        /* 🧾 문제 기록 보기 (도련 11-06) : 말랑달콤 / 설정 / _기록.json + 이 창에서 아직 안 올린 것 · 새것부터 · 📋 복사 = Claude 에게 붙여 넣기 */
+        /* 🧾 문제 기록 보기 (도련 11-06) : 말랑달콤 / 설정 / _문제기록.json + 이 창에서 아직 안 올린 것 · 새것부터 · 📋 복사 = Claude 에게 붙여 넣기 */
         const DIAG_TXT = { start: '▶ 앱 시작', mkdir: '📁 폴더 만듦', dup: '📁📁 같은 이름 폴더가 여러 개', merge: '📁 폴더 합침 → 빈 폴더 휴지통', mergeFail: '⚠ 폴더 합치기 멈춤', trash: '🗑 휴지통으로', kill: '🔥 완전 삭제 (다 쓴 종이)', twrite: '⚠ 휴지통 파일에 쓰려다 새로 만듦', stale: '⚠ 기억한 파일이 휴지통에 있음', gone: '⚠ 폴더가 없어져서 다시 찾음', root: '🗑 말랑달콤 폴더가 지워진 걸 알아챔', rescue: '🛟 목록 되살림', rescueWait: '⏳ 목록이 없지만 방금 받은 종이라 기다림', noList: '📄 목록 없음 → 빈 목록', shrink: '⚠ 목록이 한꺼번에 줄었음' };
         let diagLast = '';
         async function openDiag() {
