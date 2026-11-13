@@ -1049,7 +1049,7 @@
             const blink = el => { if (!el) return; rePop(el, 'need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
             const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
             if (on) { gdHome(on); blink(on); return; }
-            if (UI.desk() && window.dkwTrayOpen) { dkwTrayOpen(g); return; }   // 🪑 책상 = 서랍장 문구함 서랍이 열리고 그 문구가 깜박 (js/deskgd.js)
+            if (UI.desk()) { if (window.dkwGlowFor) dkwGlowFor(g); return; }      // 🪑 책상 = 밖에 떠 있으면 반짝만 · 펜꽂이 · 서랍이 저절로 열리지 않아요 (도련 11-13 · 말풍선으로 알려 줘요)
             const m = document.getElementById('gdCabModal');
             if (!m || m.style.display !== 'flex') openGdCab();
             blink(document.querySelector(`#gdCab .gdc-dr[data-g="${g}"]`));

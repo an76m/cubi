@@ -9,7 +9,7 @@
        펜꽂이 그림 = 다꾸러가 놓은 그 소품 그림 그대로 : 앞벽 마스크 + 입구(상품공방)가 있으면 도구가 그 안에 꽂힌 모습 · 없으면 앞벽 없이
    - 🗄️ 서랍장 문구함 칸 톡 = 그 서랍이 쭉 열려요 (dkwTrayOpen(need, 'u:칸')) : 칸막이 트레이에 그 서랍에 넣은 문구만 · 톡 = 꺼내 쓰기 · 🗑 버리기
        서랍 색 = 그 서랍장 그림의 그 칸 색
-   - 🪡 핀셋 · ✂️ 가위가 필요할 때(gdNeed) = 그 문구가 든 곳(서랍 · 펜꽂이)이 열리고 깜박 (dkwOpenFor)
+   - 🪡 핀셋 · ✂️ 가위가 필요할 때(gdNeed) = 말풍선 + 밖에 떠 있으면 반짝 (dkwGlowFor) · 펜꽂이 · 서랍은 저절로 안 열려요 (도련 11-13)
    - 필기구를 꺼내 쓰면 그리기 목록(diary_pencase · js/pencase.js)에도 들어가요 (그리기는 그 목록을 써요) */
 
         /* 🧩 문구 종류 = js/skins.js GD_CAB (종류마다 하는 일 hand) · 🧁 상품마다 = 상품공방 (도련 11-02) : 🗄️ 서랍칸 (칸막이 이름) · ✏️ 펜꽂이 (yes / no · 필기구는 늘) · 꽂이길이 · 이름
@@ -265,6 +265,10 @@
 
         /* ---------- 🗄️ 문구함 서랍 ---------- */
         /* 🪡 그 종류 문구가 든 곳을 열어요 (gdNeed · 그리기 펜꽂이의 '보관함') : 서랍 먼저 · 펜꽂이 · 없으면 알려 줘요 */
+        function dkwGlowFor(need) {                                               // ✋ 그 문구가 밖에 떠 있으면 반짝 (도련 11-13 : 필요할 때 펜꽂이 · 서랍이 저절로 열리던 것은 없앴어요)
+            const f = [...DKW.fl.keys()].find(id => cabGOf(id) === need); if (f && window.toolGlow) toolGlow(DKW.fl.get(f)); return !!f;
+        }
+        window.dkwGlowFor = dkwGlowFor;
         function dkwOpenFor(need) {
             if (!dkwDesk()) return;
             { const f = [...DKW.fl.keys()].find(id => !need || cabGOf(id) === need || (need === 'pen' && dkwIsPen(id))); if (f) { if (window.toolGlow) toolGlow(DKW.fl.get(f)); return; } }   // ✋ 그 문구가 밖에 떠 있으면 = 그걸 반짝 (서랍을 뒤지지 않아요 · '넣어 둔 핀셋이 없어요' 알림이 떴어요 · 도련 11-13)
