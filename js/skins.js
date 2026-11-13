@@ -94,7 +94,7 @@
            페이지 색을 바꾸면서 뒤의 다이어리가 어떻게 바뀌는지 볼 수 있게 */
         (function setupSkinWindows() {
             const moved = new Set();
-            const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+            const clamp = clampN;   // 🧰 js/util.js
             /* ✋ 하단 메뉴 '다이어리' · '스티커' 에서 뜨는 창은 모두 위 제목 줄을 잡고 옮겨요 (도련 10-19 · 📒 수첩으로 뜬 창은 js/stknote.js snbMovable) */
             const WIN_IDS = ['skinModal', 'patternModal', 'makerModal', 'stickerToolModal', 'stickerSrcModal', 'leafMakeModal', 'basketModal', 'basketKindModal', 'shelfKindModal', 'paperModal', 'tteokModal', 'leafModal', 'deskBoxModal'];   /* 📦 소품함도 (도련 10-28) */
             document.querySelectorAll('.modal.skin-float, ' + WIN_IDS.map(id => '#' + id).join(', ')).forEach(modal => {
@@ -585,7 +585,7 @@
         }
         function bsLoaded() { try { if (typeof gdSync === 'function') gdSync(); if (typeof gdHoleSync === 'function') gdHoleSync(); if (typeof bdSync === 'function') bdSync(); } catch (e) { console.warn('📔 상태 다시 그리기', e); } }
         const bdBook = () => dkIs(currentDate) ? (dyNow() || {}).id || '' : (window.dyyBookId ? dyyBookId() : '');
-        const bdPg = () => { const d = currentDate; return dkIs(d) ? dkNo(d) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+        const bdPg = () => { const d = currentDate; return dkIs(d) ? dkNo(d) : ymd(d); };
         const bdLay = () => { const t = dyLook(); return !!t && t.b === 'ring' && isCoverOpen && !!bdBook() && (dkIs(currentDate) ? dkNo(currentDate) > 0 : !dkType()) && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
         const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
         function bdGet() { if (!bdLay()) return 0; const m = bsGet(BD_KEY), b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
@@ -810,14 +810,14 @@
         let bdWhyT = 0;
         function bdWhySay(t) {                                                  // 📥 못 끼우는 이유 · 화면 가운데
             let m = document.getElementById('bdWhy'); if (!m) { m = document.createElement('div'); m.id = 'bdWhy'; m.className = 'bd-why'; document.body.appendChild(m); }
-            m.textContent = t; m.classList.remove('on'); void m.offsetWidth; m.classList.add('on');
+            m.textContent = t; rePop(m, 'on');
             clearTimeout(bdWhyT); bdWhyT = setTimeout(() => m.classList.remove('on'), 2200);
         }
         function bdBack() {                                                     // 📥 두 쪽이 제자리로 돌아가 링에 끼워지고 표지 · 링 · 집게가 다시
             const ip = document.getElementById('innerPage'); if (!bdFree || bdBusy || !ip) return;
             const why = bdBlock();
             if (why) {                                                          // 걸린 꾸밈이 빨갛게 깜박이고 이유가 가운데
-                why.els.forEach(el => { el.classList.remove('bd-bad'); void el.offsetWidth; el.classList.add('bd-bad'); setTimeout(() => el.classList.remove('bd-bad'), 1300); });
+                why.els.forEach(el => { rePop(el, 'bd-bad'); setTimeout(() => el.classList.remove('bd-bad'), 1300); });
                 bdWhySay(BD_WHY[why.k]); return;
             }
             bdBusy = true; bdFreeSel(null);
@@ -980,7 +980,7 @@
             const d = bdFree && bdFree.d; if (!d || d.id !== e.pointerId) return;
             if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return;   // 살짝 톡 = 메뉴
             d.moved = true;
-            if (d.pin > 1) { if (!d.stuck) { d.stuck = 1; d.st.forEach(o => { o.sh.el.classList.remove('stuck'); void o.sh.el.offsetWidth; o.sh.el.classList.add('stuck'); }); } return; }   // 🩹 축이 두 곳 이상 = 꽉 잡혀서 안 움직여요 (살짝 버티기만)
+            if (d.pin > 1) { if (!d.stuck) { d.stuck = 1; d.st.forEach(o => { rePop(o.sh.el, 'stuck'); }); } return; }   // 🩹 축이 두 곳 이상 = 꽉 잡혀서 안 움직여요 (살짝 버티기만)
             const Q = gdTo(e.clientX, e.clientY);
             if (d.rot || d.pin) {                                               // 돌리기 (축 = 테이프 · 없으면 종이 가운데)
                 let da = Math.atan2(Q.y - d.P.y, Q.x - d.P.x) - d.a0; const c = Math.cos(da), sn = Math.sin(da);
@@ -1043,14 +1043,8 @@
              🕳️ 뚫은 구멍 (설정 'diary_holes' { 권 id : { 장 : 12칸 표시 } }) · 🩹 바른 테이프는 페이지 꾸밈(그림)이라 핀셋으로 옮기고 지울 수 있어요
              다른 문구함은 다이어리를 다시 열면 문구함 서랍으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
         /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
-        let twzSayT = 0;
         function twzSay(x, y, t, ms) {                                            // t : 다른 말 (✂️ 가위 · scsSay) · ms : 떠 있는 시간
-            let b = document.getElementById('twzSay2');
-            if (!b) { b = document.createElement('div'); b.id = 'twzSay2'; b.className = 'twz-say'; document.body.appendChild(b); }
-            b.textContent = t || '🪡 핀셋을 사용해 주세요';
-            const hw = Math.max(90, b.offsetWidth / 2 + 8); b.style.left = Math.max(hw, Math.min(innerWidth - hw, x)) + 'px';   // 말이 길어도 화면 안에 b.style.top = Math.max(40, y - 14) + 'px';
-            b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
-            clearTimeout(twzSayT); twzSayT = setTimeout(() => b.classList.remove('on'), ms || 1600);
+            bubbleAt('twzSay2', 'twz-say', t || '🪡 핀셋을 사용해 주세요', x, y, { min: 90, dy: 14, top: 40, ms: ms || 1600, noTop: true });   // 💬 js/util.js (말풍선 하나) · ⚠ 예전부터 높이를 안 정했어요 (그 줄이 주석 안에 들어가 있었어요 · 도련께 여쭤보는 중 11-13)   // 말이 길어도 화면 안에 b.style.top = Math.max(40, y - 14) + 'px';
             if (!t) gdNeed('tweez');                                            // 🩷 핀셋 있는 곳을 깜박여 알려 줘요
         }
         /* 🩷 이 문구가 필요해요 (도련 10-21) : 🪡 핀셋 없이 스티커를 만지거나 · ✂️ 가위 없이 모조지를 오리려 할 때 (twzSay · scsSay)
@@ -1058,7 +1052,7 @@
            - 없으면 → 🗄️ 문구함이 뜨고 그 서랍이 핑크로 깜박 · 톡 하면 꺼내져요 */
         function gdNeed(g) {
             if (!isCoverOpen || !spKeep()) return;                              // 🏠 연습장(저장 안 하는 공간)에선 문구함을 열지 않아요
-            const blink = el => { if (!el) return; el.classList.remove('need'); void el.offsetWidth; el.classList.add('need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
+            const blink = el => { if (!el) return; rePop(el, 'need'); clearTimeout(el._needT); el._needT = setTimeout(() => el.classList.remove('need'), 2600); };
             const on = gdOnPage(g).map(gdEl).find(el => el && !el.classList.contains('held'));
             if (on) { gdHome(on); blink(on); return; }
             if (UI.desk() && window.dkwTrayOpen) { dkwTrayOpen(g); return; }   // 🪑 책상 = 서랍장 문구함 서랍이 열리고 그 문구가 깜박 (js/deskgd.js)
@@ -1172,7 +1166,7 @@
                 const fl = e && e.pointerType === 'touch' && gdFloatAt(prev);  // 👆 터치 (✏️ 펜은 마우스처럼 바꿔 들어요) : 떠 있던 것은 그 자리에서 아래로 톡 떨어져요 (도련 10-19 · 누른 자리로 순간이동하지 않게)
                 const m = fl || (el.classList.contains('edge') ? gdTo(x, y) : gdMid(el));   // 🖱 마우스 : 손에 든 채 따라오던 자리 = 누른 자리라 서로 바꿔요
                 prev.classList.remove('held', 'rim-ok'); gdCenter(prev, m.x, m.y); if (!fl) prev.dataset.nh = 1;   // 🖱 포인터가 그 위를 벗어나기 전엔 눌러도 다시 바뀌지 않게 (👆 떨어진 자리는 누른 자리가 아니라 바로 다시 집어요)
-                if (fl) { prev.classList.remove('drop'); void prev.offsetWidth; prev.classList.add('drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
+                if (fl) { rePop(prev, 'drop'); setTimeout(() => prev.classList.remove('drop'), 320); }
                 gdHome(prev);                                                   // 📥 페이지 밖이었으면 페이지 안으로
             }
             if (window.skLetGo) skLetGo();                                   // ✂️ 들고 있던 칼은 그 자리에 (js/stkcut.js)
@@ -1200,13 +1194,13 @@
             if (gdIsTwz(gdHeld)) { document.body.classList.remove('gd-on'); return; }   // 🪡 핀셋은 원래 핀셋 화살표가 따라와요 (js/elements.js pinMove)
             if (gdScs()) { document.body.classList.remove('gd-on'); scsPut(x, y, e, true); return; }   // ✂️ 가위는 화면 위에 떠서 따라와요 (📒 수첩 · 모조지 종이 위로도)
             const t = gdInfo(gdHeld), p = gdTo(x, y);
-            el.style.left = (p.x - t.hx) + 'px'; el.style.top = (p.y - t.hy) + 'px';
+            tipPlace(el, p.x, p.y, [t.hx, t.hy]);                              // ✋ js/util.js (든 도구 끝 = 마우스)
             document.body.classList.toggle('gd-on', !e || e.pointerType === 'mouse');   // 💻 다이어리 위에선 화살표 대신 문구함
         }
         const gdEat = e => { e.preventDefault(); e.stopPropagation(); bdEat = Date.now(); };
         /* ✏️ 필기구 ↔ 다른 문구 자유롭게 (도련 10-21) : 다른 문구를 들면 필기구는 구석 펜꽂이에서 쉬어요 (끝은 구석 펜꽂이 톡만 · js/draw.js penRest) */
         /* ✨ 문구를 드는 순간 핑크빛으로 한 번 반짝 (도련 10-21 · 모든 문구 : 핀셋 · 가위 · 칼 · 필기구 · 펀칭기 · 테이프) */
-        function toolGlow(el) { if (!el) return; el.classList.remove('pick-glow'); void el.offsetWidth; el.classList.add('pick-glow'); clearTimeout(el._glowT); el._glowT = setTimeout(() => el.classList.remove('pick-glow'), 900); }
+        function toolGlow(el) { if (!el) return; rePop(el, 'pick-glow'); clearTimeout(el._glowT); el._glowT = setTimeout(() => el.classList.remove('pick-glow'), 900); }
         window.toolGlow = toolGlow;
         function gdPenOff() { if (window.penRest) penRest(); }
         /* 🪡 하얀 창(씰 종이 · 조각 봉투)이 떠 있어도 빈 곳 너머 페이지의 문구는 집을 수 있어요 (그 창에서 떼려면 핀셋이 필요해서 · 도련 10-21)
@@ -1333,7 +1327,7 @@
             if (!scs.raf) scs.raf = requestAnimationFrame(scsFrame);
         }
         function scsHide() { scs.on = false; scs.cut = null; if (scs.el) scs.el.hidden = true; if (scs.aim) scs.aim.hidden = true; document.body.classList.remove('scs-on'); }
-        function scsSnip() { scs.snip = performance.now(); try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {} }
+        function scsSnip() { scs.snip = performance.now(); buzz(4); }
         function scsFrame(t) {
             scs.raf = 0;
             if (!gdScs() || !spOpen()) { scsHide(); return; }
@@ -1621,12 +1615,8 @@
             if (c) gdFollow(c.x, c.y);
             return !!c;
         }
-        let gdSayT = 0;
         function gdSay(x, y, t) {                                               // 💬 펀칭기 말풍선 (핀셋 말풍선과 같은 모양)
-            let b = document.getElementById('gdSay'); if (!b) { b = document.createElement('div'); b.id = 'gdSay'; b.className = 'twz-say'; document.body.appendChild(b); }
-            b.textContent = t; b.style.left = Math.max(120, Math.min(innerWidth - 120, x)) + 'px'; b.style.top = Math.max(40, y - 30) + 'px';
-            b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
-            clearTimeout(gdSayT); gdSayT = setTimeout(() => b.classList.remove('on'), 1600);
+            bubbleAt('gdSay', 'twz-say', t, x, y, { half: 120, dy: 30, top: 40 });   // 💬 js/util.js (말풍선 하나)
         }
         /* 🕳️ 펀칭할 때 그 구멍 위에 있던 스티커에만 구멍 (도련 10-19 · 나중에 붙인 스티커는 구멍을 가려요)
            - el.dataset.ph = "x,y,r|…" (그 꾸밈 안 자리 · 돌리기 · 크기 전 px) → CSS mask 로 그 자리만 비워요 (저장 'ph') */
@@ -1686,8 +1676,8 @@
                 return;
             }
             gdFollow(c.x, c.y); gdSlot(c); el.classList.add('snap');
-            el.classList.remove('press'); void el.offsetWidth; el.classList.add('press'); setTimeout(() => el.classList.remove('press'), 260);
-            const sl = gdIp().querySelector(':scope > .gd-slot'); if (sl) { sl.classList.remove('press'); void sl.offsetWidth; sl.classList.add('press'); }
+            rePop(el, 'press'); setTimeout(() => el.classList.remove('press'), 260);
+            const sl = gdIp().querySelector(':scope > .gd-slot'); if (sl) { rePop(sl, 'press'); }
             gdPunchSnd();
             bdPierce(c);                                                        // 위에 있던 스티커도 같이 뚫려요
             setTimeout(() => {
@@ -1975,7 +1965,7 @@
             const p = parsePageKey(key); if (!p || !p.n) return;              // 0장(표지)은 꾸민 장 목록에 안 넣어요
             const o = dkInfoOf(p.b), had = !!o.days[p.n];
             if (has === had) return;
-            if (has) { const t = new Date(); o.days[p.n] = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
+            if (has) { o.days[p.n] = ymd(); }
             else delete o.days[p.n];
             store.setItem('dkb_' + p.b, JSON.stringify(o));
         }

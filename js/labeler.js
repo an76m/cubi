@@ -11,7 +11,7 @@
         const SIZES = [[0.75, '작게'], [1, '보통'], [1.3, '크게']];
         const L = { on: false, text: '', cur: null, mode: 'ko', shift: false, fi: 0, ci: 0, si: 1, border: true, src: null, busy: false, out: '' };
         const lq = id => document.getElementById(id);
-        const quiet = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const quiet = () => calmMotion();
         const api = () => window.smTextApi;
         const fonts = () => { const F = api() ? api().fonts() : []; return F.length ? F : [["'Jua', sans-serif", '주아']]; };
         const colors = () => api() ? api().colors : ['#ff6b8b'];
@@ -92,7 +92,7 @@
         /* ---------- 📟 화면 ---------- */
         let flashT = 0, flashTx = '';
         function flash(t) { flashTx = t; clearTimeout(flashT); flashT = setTimeout(() => { flashTx = ''; lcd(); }, 1100); }
-        function blink() { const d = lq('lbmLcd'); if (!d) return; d.classList.remove('blink'); void d.offsetWidth; d.classList.add('blink'); snd(220, .12, 'square', .04); }
+        function blink() { const d = lq('lbmLcd'); if (!d) return; rePop(d, 'blink'); snd(220, .12, 'square', .04); }
         function lcd() {
             if (!lq('lbmLcd')) return; const F = fonts()[L.fi], C = colors()[L.ci];
             lq('lbmF').textContent = F[1]; lq('lbmS').textContent = SIZES[L.si][1]; lq('lbmC').style.background = C; lq('lbmB').classList.toggle('off', !L.border);
@@ -220,7 +220,7 @@
         }
 
         /* ---------- 🖨 인쇄 = 오른쪽 틈에서 라벨이 찌이익 ---------- */
-        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const wait = waitMs;   // 🧰 js/util.js
         function zzz(ms) {                                                      // 찌이익 (연출 소리를 끄면 조용히)
             try {
                 if (!(window.sndOn && sndOn()) || !window.sndCtx) return; const ac = sndCtx(), t0 = ac.currentTime, len = ms / 1000;

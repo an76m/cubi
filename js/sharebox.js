@@ -4,7 +4,7 @@
    - 예전 스티커 · 배경지 공유 파일(malang_sticker · malang_pattern)과 공유받은 칸은 없앴어요 (도련 11-05 · 공유는 js/itemshare.js 하나) */
 
         const shxq = id => document.getElementById(id);
-        const shxEsc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const shxEsc = htmlEsc;   // 🧰 js/util.js
         const shxTxt = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 
         /* 파일 이름 · 만든 사람 묻기 → { name, by } 또는 null */

@@ -71,7 +71,7 @@
    - 돌려준 { move(x, y), up(), kill() } 로 손가락 움직임을 넘겨 줘요 (화면 맨 위 투명 캔버스에 그려요)
    ===================================================================== */
         const PFX_DETACH = .78, PFX_GRAB = 26;                               // PFX_GRAB : 가장자리에서 이만큼(화면 px) 안을 잡으면 잡은 자리부터 떼어져요
-        function pfxMk(w, h) { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; }
+        function pfxMk(w, h) { return mkCanvas(w, h, true); }   // 🧰 js/util.js (올림)
         /* 앞면 · 뒷면(누런 흰 종이) · 가장자리 점들 */
         function pfxAsset(src, w, h) {
             const R = Math.min(3, window.devicePixelRatio || 1), m = 2, W = Math.ceil((w + m * 2) * R), H = Math.ceil((h + m * 2) * R);
@@ -213,7 +213,7 @@
                 drag = { mode: 'free', off: [gx - st.cx, gy - st.cy], baseRot: st.rot, last: P, lt: performance.now() };
                 st.cx = P[0] - drag.off[0]; st.cy = P[1] - drag.off[1];
                 pfxNoise(0);
-                try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+                buzz(15);
                 if (o.onDetach) o.onDetach();
                 realGo();                                                                                   // 📏 이 순간 진짜 크기로
             }
@@ -236,7 +236,7 @@
                 if (!drag || dead) return; const d = drag; drag = null;
                 if (d.mode === 'peel') { pfxNoise(0); if (!d.C) { kill(); if (o.onCancel) o.onCancel(); return; } snap = { C: d.C, F: d.F, t0: performance.now() }; return; }      // 덜 뗐으면 착 다시 붙어요
                 const r = Math.max(-.5, Math.min(.5, st.rot));
-                try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
+                buzz(8);
                 if (grow && !grow.done) { st.s = 1; grow.done = 1; }                                       // 다 커지기 전에 놓으면 진짜 크기로
                 const sz = { w: (asset.w - 4) * st.s, h: (asset.h - 4) * st.s };                         // pfxAsset 의 여백(m = 2) 양쪽을 빼요
                 kill(); if (o.onDrop) o.onDrop(st.cx, st.cy, r, d.baseRot, sz);

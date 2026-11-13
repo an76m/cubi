@@ -159,7 +159,7 @@
              그 날(한국 시간)까지 열려요 · 빈 값이면 닫혀요 · 🐷 저금통 창 : js/piggy.js */
         const GIFT_LOCAL = 'malang_gift';      // 이 기기에 마지막으로 받은 선물 → 다이어리를 열자마자 바로 보여 줘요 (서버 답이 오면 고쳐요)
         let giftBox = { ta: '', tp: {} };      // ta : 🎀 전체 끝나는 날 / tp : 디자인별 끝나는 날
-        const giftToday = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+        const giftToday = tzDay;   // 🕘 시계 한 곳 (js/util.js)
         const giftOk = d => !!d && d >= giftToday();
         const giftLeft = d => giftOk(d) ? Math.round((Date.parse(d) - Date.parse(giftToday())) / 864e5) : -1;   // 0 = 오늘이 마지막 날 · 닫혔으면 -1
         const dLabel = n => n < 0 ? '' : n ? 'D-' + n : 'D-day';
@@ -459,7 +459,7 @@
         async function openDiag() {
             if (!window.diagRead) { showMsg('기록 장치를 불러오지 못했어요.'); return; }
             const all = await diagRead(); diagLast = JSON.stringify(all.slice(-400));
-            const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+            const esc = htmlEsc;   // 🧰 js/util.js
             const when = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
             const rest = r => Object.entries(r).filter(([k]) => !['t', 'd', 'v', 'e', 'who'].includes(k)).map(([k, v]) => `${k}=${v}`).join(' ');
             const rows = all.slice(-150).reverse().map(r => `<div style="padding:4px 0;border-bottom:1px dashed #f1d3dd"><b>${esc(DIAG_TXT[r.e] || r.e)}</b> <small style="color:#999">${esc(when(r.t))} · 기기 ${esc(r.d)} · v${esc(r.v)}</small><br><small style="color:#777;word-break:break-all">${esc(rest(r))}${r.who ? ' · ' + esc(r.who) : ''}</small></div>`).join('');

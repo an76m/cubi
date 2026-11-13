@@ -525,7 +525,7 @@
         async function sealOld() {
             if (sealOldBusy || !drive.ready || drive.guest || !window.ownSealText) return;
             const who = await sealWho(), LS = 'malang_sealold';
-            let m = {}; try { m = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+            let m = lsGet(LS, {}) || {};   /* 🧰 js/util.js */
             if (m[who] && Date.now() - m[who] < 30 * 864e5) return;
             sealOldBusy = true;
             let left = false, done = 0;
@@ -1447,7 +1447,7 @@
             g.style.display = 'flex'; g.classList.remove('leave');
             if (state === 'login') gateOpened = false;                              // 🚪 로그인 화면을 봤으면 닫힐 때 문이 열려요
             msg = String(msg || '').replace(/^\s*☁\s*/, '');                    // 🎀 구름 글자 대신 하트 세 개가 기다려 줘요
-            if (g.dataset.state !== state || m.innerHTML !== msg) { c.classList.remove('gate-swap'); void c.offsetWidth; c.classList.add('gate-swap'); }   // 같은 카드 안에서 스르륵 바뀌어요
+            if (g.dataset.state !== state || m.innerHTML !== msg) { rePop(c, 'gate-swap'); }   // 같은 카드 안에서 스르륵 바뀌어요
             g.dataset.state = state;
             m.innerHTML = msg;
             const login = state === 'login';
@@ -1471,7 +1471,7 @@
         }
         function hideGate() {
             const g = document.getElementById('driveGate');
-            if (gateOpened || !deskUse() || g.style.display === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
+            if (gateOpened || !deskUse() || g.style.display === 'none' || calmMotion()) { gateOpened = true; g.classList.remove('leave'); g.style.display = 'none'; return; }
             gateOpened = true;
             g.classList.add('leave');
             setTimeout(() => { if (!g.classList.contains('leave')) return; g.classList.remove('leave'); g.style.display = 'none'; }, 2200);

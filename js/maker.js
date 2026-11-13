@@ -13,7 +13,7 @@
     const NS = 'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"';
     const hex = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
     const num = (v, a, b, d) => { const n = parseFloat(v); return isNaN(n) ? d : Math.max(a, Math.min(b, Math.round(n * 100) / 100)); };
-    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const esc = htmlEsc;   // 🧰 js/util.js
     const img = v => typeof v === 'string' && /^(data:image\/(png|jpeg|webp|svg\+xml)[;,]|https?:\/\/|\/|[\w.-]+\/)/.test(v) && !/["<>]/.test(v) ? v : '';
 
     /* ---------- 값 표 (상품공방 · 앱 같이) ---------- */

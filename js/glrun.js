@@ -111,7 +111,7 @@ vec4 fx(vec4 c,vec2 uv){
            ===================================================================== */
         const glrLive = new Set();
         let glrRaf = 0, glrLastT = 0;
-        const glrStill = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const glrStill = () => typeof matchMedia === 'function' && calmMotion();
         function glrTick(now) {
             glrRaf = 0;
             if (now - glrLastT >= 30) {

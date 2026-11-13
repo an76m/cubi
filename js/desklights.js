@@ -218,7 +218,7 @@
         if (!run && S.size) { run = true; last = performance.now(); requestAnimationFrame(frame); }
         if (best) {                                                           // 📌 찰칵 = 집혔어요
             setTimeout(() => { el.animate([{ scale: '1' }, { scale: '1.08' }, { scale: '.97' }, { scale: '1' }], { duration: 380, easing: 'ease-out' }); if (window.dkwSay) dkwSay('📌 줄에 집혔어요', el); }, 60);
-            if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
+            buzz(12);
         } else if (was && window.dkwSay) dkwSay('줄에서 뺐어요', el);
     }
     window.dlPaint = dlPaint; window.dlSolid = dlSolid; window.dlPegDrop = dlPegDrop; window.dlPegHint = dlPegHint;

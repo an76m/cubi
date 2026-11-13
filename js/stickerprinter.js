@@ -14,14 +14,14 @@
         const MAX = 10, PRINT = 3600, TILT = 420;
         const P = { on: false, view: 'front', step: 0, list: [], cur: 0, kind: 'seal', border: true, src: null, busy: false, saving: false, drawing: false, drag: null, st: 'edit', msg: '', msgT: 0 };
         const pq = id => document.getElementById(id);
-        const quiet = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const quiet = () => calmMotion();
         const api = () => window.smPhotoApi;
         const KINDS = [['seal', '🏷️', '씰스티커'], ['piece', '🧩', '조각스티커'], ['paper', '📄', '모조지스티커']];
         const STEPS = ['사진', '모양', '크기', '출력'];                          // 종류는 늘 🏷️ 씰 (도련 11-08 : 종류 고르기 없앰)
         const kindOf = k => KINDS.find(x => x[0] === k) || KINDS[0];
         const shapes = () => api() ? api().shapes : [['circle', '동그라미']];
         const shapeName = s => ((shapes().find(x => x[0] === s) || [, s])[1] || '').replace(/^[^가-힣]+\s*/, '');
-        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const wait = waitMs;   // 🧰 js/util.js
         const cur = () => P.list[P.cur];
 
         /* 🩷 앞모습 (셀 애니 · 도련 고친 그림) · 500 × 250 (y 40 부터) · 틈 = y 69 */

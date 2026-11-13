@@ -93,7 +93,7 @@
     function fly(src, x, y) {
         return new Promise(ok => {
             const r = src && src.getBoundingClientRect ? src.getBoundingClientRect() : null;
-            if (!r || !r.width || matchMedia('(prefers-reduced-motion: reduce)').matches) return ok();
+            if (!r || !r.width || calmMotion()) return ok();
             const g = src.cloneNode(true); g.removeAttribute('id'); g.classList.add('dkm-fly'); g.classList.remove('dkt-lift', 'grab', 'pull', 'need');
             Object.assign(g.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', margin: '0', transform: 'none', translate: 'none', rotate: 'none', zIndex: 2147482950, transition: 'none', opacity: '1' });
             document.body.appendChild(g);

@@ -167,7 +167,7 @@
         function dmCardSvg(text, hits, v) {
             const rnd = dmSeed(text);
             const SKY = { good: ['#2b2a6b', '#b0629e', '#ffc48f'], mix: ['#1e2457', '#5a4a9a', '#c4a0dc'], care: ['#121a3a', '#2c3f74', '#6f8fc4'] }[v.c];
-            const d = new Date(), date = `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
+            const d = new Date(), date = ymd(d, '. ');
             let stars = '';
             for (let i = 0; i < 34; i++) { const x = 18 + rnd() * 264, y = 18 + rnd() * 250, r = .6 + rnd() * 1.6; stars += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#fff" opacity="${(.35 + rnd() * .6).toFixed(2)}"/>`; }
             const emo = hits.slice(0, 3).map(h => h.sym.e);

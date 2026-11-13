@@ -15,7 +15,7 @@
 
         const TR_TOP = '말랑달콤';   // drive.js 보다 먼저 불러와서 글자로 (TOP_FOLDER_NAME 과 같아요)
         const trq = id => document.getElementById(id);
-        const trEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const trEsc = htmlEsc;   // 🧰 js/util.js
 
         /* ---------- 🗑 앱 휴지통에 넣기 ---------- */
         const TR_DAYS = 30, TR_NAME = /^휴지-(\d{10,})-([uao])-([a-z0-9]+)(?:~(.*))?\.json$/;

@@ -77,7 +77,7 @@
             }
             msg.classList.remove('on'); wrap.classList.add('charge');
             for (let n = 3; n >= 1; n--) {
-                cnt.textContent = n; cnt.classList.remove('pop'); void cnt.offsetWidth; cnt.classList.add('pop');
+                cnt.textContent = n; rePop(cnt, 'pop');
                 ritSfx(theme, 'count', n);
                 await ritLater(RIT_COUNT_MS); if (!ok()) return false;
             }

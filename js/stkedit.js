@@ -23,7 +23,7 @@
         const SE_GLIT = [['', '없음'], ['gold', '금'], ['silver', '은'], ['rainbow', '무지개']];
         const se = { on: false, done: null, opt: {}, tool: 'color', cshape: 'free', W: 0, H: 0, src: null, mask: null, out: null, colored: null, ckey: '', st: null, undo: [], view: null, vk: 1, drag: null, textSel: -1 };
         const seq = id => document.getElementById(id);
-        const seMk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+        const seMk = mkCanvas;   // 🧰 js/util.js
         const seFresh = () => ({ hue: 0, s: 100, b: 100, sep: 0, pas: 0, fx: 1, fy: 1, crop: null, glit: '', gd: 50, texts: [] });
 
         /* ---------- 색 : 3×3 색 행렬 (CSS hue-rotate · saturate · sepia 와 같은 식) ---------- */
@@ -263,7 +263,7 @@
                 const i = seTextAt(P);
                 if (i >= 0) { se.textSel = i; seSnap(); se.drag = { off: [P[0] - se.st.texts[i].x, P[1] - se.st.texts[i].y] }; sePanel(); seLater(); return; }
                 const v = (seq('seTxt') && seq('seTxt').value.trim()) || '';
-                if (!v) { const inp = seq('seTxt'); if (inp) { inp.focus(); inp.classList.remove('se-need'); void inp.offsetWidth; inp.classList.add('se-need'); } return; }
+                if (!v) { const inp = seq('seTxt'); if (inp) { inp.focus(); rePop(inp, 'se-need'); } return; }
                 seSnap(); se.st.texts.push({ t: v, x: P[0], y: P[1], size: se.tsz || Math.round(Math.min(se.W, se.H) / 7), color: se.ink || SE_INK[0] });
                 se.textSel = se.st.texts.length - 1; sePanel(); seLater();
             }

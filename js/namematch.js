@@ -164,7 +164,7 @@
             res.hidden = true;
             let t = 0;
             const at = (ms, fn) => { t += ms; nm.timer.push(setTimeout(fn, t)); };
-            const msg = m => { const el = nmq('nmMsg'); if (el) { el.textContent = m; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); } };
+            const msg = m => { const el = nmq('nmMsg'); if (el) { el.textContent = m; rePop(el, 'pop'); } };
             const roll = (sp, v, ms, i, big) => {         // 숫자가 슬롯처럼 굴러가다 멈춰요
                 sp.classList.add('rolling');
                 let n = 0;
@@ -248,7 +248,7 @@
         function nmCardSvg() {
             const { a, b, r1, tier } = nm.res;
             const F = "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif", EF = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
-            const d = new Date(), date = `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
+            const d = new Date(), date = ymd(d, '. ');
             const hearts = [[34, 52, 18, -14], [266, 70, 22, 12], [40, 250, 16, 10], [262, 238, 18, -10], [150, 36, 14, 0]]
                 .map(([x, y, s, r]) => `<path transform="translate(${x} ${y}) rotate(${r}) scale(${s / 20})" d="M0 6 C -12 -6 -6 -16 0 -9 C 6 -16 12 -6 0 6Z" fill="#fff" opacity=".75"/>`).join('');
             const rel = (NM_RELS.find(r => r[0] === nm.rel) || NM_RELS[0])[1];

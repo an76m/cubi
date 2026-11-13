@@ -43,7 +43,7 @@
             let layer = ssq('seasonLayer');
             if (layer) layer.remove();
             document.documentElement.classList.remove('season-fx');
-            if (!id || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (!id || calmMotion()) return;
             document.documentElement.classList.add('season-fx');
             layer = document.createElement('div');
             layer.id = 'seasonLayer'; layer.className = 'season-layer season-' + id;

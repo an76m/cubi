@@ -132,7 +132,7 @@
             if (url && !lt && !/^https:\/\/[^\s"'<>]+$/.test(url)) return { name: String(e.name || '🎉 이벤트 광장').slice(0, 30), url: '', from, to };   // 주소는 없어도 돼요 (도련 11-06 · 들어갈 주소는 알림판이 알려 줘요)
             return { name: String(e.name || '🎉 이벤트 광장').slice(0, 30), url, from, to };
         }
-        const evTime = t => new Date(t).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
+        const evTime = t => tzText(t, { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });   // 🕘 시계 한 곳 (js/util.js)
         /* 🎉 지금 열린 이벤트 (도련 11-06 · 집 PC 서버를 켜면 바로) : 평소 광장 서버 알림판 GET /event → { on, url, name, max, n }
            - 묻는 때 : 앱을 켤 때 한 번 · ☕ 카페 · 🚪 이동 창을 열 때 (1분에 한 번까지 · 무료 한도를 아껴요)
            - 켜져 있으면 notice.json 'ev' 보다 먼저 · 끄면 (2분 안에) 칸이 사라져요 */
@@ -261,7 +261,7 @@
            - 길잡이일 뿐이에요 : 그 버튼을 눌렀을 때 **그 버튼의 표시만** 사라져요 (아직 안 누른 버튼의 표시는 그대로 · 안 해도 눌렀으면 그날은 다시 안 붙음)
            - 다음 날이 되면 새것이니까 다시 알려 줘요 · 이미 한 것은 처음부터 안 붙어요 */
         const SVC_SEEN = 'malang_daily_seen', SVC_SEEN_KEY = 'diary_daily_seen';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20) · 오늘 이미 알려 준 것 { d: '2026-10-06', ids: [버튼 id…] }
-        const svcDay = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+        const svcDay = tzDay;   // 🕘 시계 한 곳 (js/util.js)
         function svcSeenGet() {
             const o = prefGet(SVC_SEEN_KEY, SVC_SEEN); if (o && o.d === svcDay() && Array.isArray(o.ids)) return o.ids;
             return [];

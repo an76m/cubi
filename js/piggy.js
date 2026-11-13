@@ -205,7 +205,7 @@
             openModal('piggyModal');
             const sc = document.querySelector('#piggyModal .modal-content'); if (sc) sc.scrollTop = 0;
             const art = document.querySelector('#pigBody .pg-hero');
-            if (art) { art.classList.remove('play'); void art.offsetWidth; art.classList.add('play'); }
+            if (art) { rePop(art, 'play'); }
             setTimeout(pigCoin, 760);                       // 동전이 쏙 들어가는 순간
             pig.phone = (typeof prDevice === 'function' ? prDevice() : '') === '휴대폰';
             pigLoadCode();

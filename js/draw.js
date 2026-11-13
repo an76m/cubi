@@ -340,7 +340,7 @@
                 pcS.held = o; dw.tool = o.tool; if (o.tool !== 'erase') dw.color[o.tool] = o.color; dw.w[o.tool] = o.w; penSetTool(o.tool);
                 pcS.carry = { id: e.pointerId, off: [0, 0] }; h.classList.add('carry'); pcHeldAt(e.clientX, e.clientY);   // 집은 자리에 연필심 (다시 바로 든 모양으로)
                 window.toolGlow && toolGlow(h);
-                if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
+                buzz(10);
             });
             const mini = drq('pcMini');
             mini.onclick = () => { if (pcS.mini && pcS.mini.up) { pcS.mini = null; return; } if (pcS.held) pcPutBack(); else if (pcS.laid) { pcS.laid = null; drq('pcHeld').classList.remove('laid'); pcPutBack(); } else if (pcS.memo) pcMemoEnd(); else penDone(); };   // ✏️ 내려놓은 필기구도 쏙 빨려 들어가며 끝 (도련 10-21)   // 손이 비어 있으면 톡 = 끝
@@ -428,7 +428,7 @@
             pcS.carry = { id: e.pointerId, off: [0, 0] };                         // 뽑은 손 그대로 들고 있어요 (연필심 = 손가락)
             pcHeldAt(e.clientX, e.clientY);
             if (window.toolGlow) toolGlow(h);                                  // ✨ 뽑는 순간 한 번 반짝
-            if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
+            buzz(12);
             const note = drq('pcTipNote'); note.hidden = false; clearTimeout(pcS.noteTm);
             note.innerHTML = pcS.memo ? '이제 글을 써요 · 다 쓰면 <b>구석 펜꽂이</b>을 톡 ✏️' : '다 쓰면 손에 든 것을 꾹 집어 <b>구석 펜꽂이</b>에 꽂아요 ✏️'; pcS.noteTm = setTimeout(() => { note.hidden = true; }, 4200);
         }
@@ -484,7 +484,7 @@
                 if (dw.erasing) { dw.erasing = false; if (!dw.erased) dw.hist.pop(); penRing(null); }
                 pcS.carry = { id: p.id, off: [pcS.tip[0] - p.x, pcS.tip[1] - p.y] };
                 drq('pcHeld').classList.add('carry');
-                if (navigator.vibrate) try { navigator.vibrate(10); } catch (er) {}
+                buzz(10);
             }, 320);
         }, true);
         document.addEventListener('pointermove', e => {
@@ -501,7 +501,7 @@
             const h = drq('pcHeld'), m = drq('pcMini').getBoundingClientRect();
             pcS.held = null; pcS.press = null; pcS.carry = null;
             h.classList.add('in'); h.style.transform = `translate(${m.left + m.width / 2}px, ${m.top + 6}px) rotate(-180deg) translate(-15px, -2px) scale(.35)`;
-            if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
+            buzz(8);
             setTimeout(() => { h.classList.remove('in'); if (pcS.memo) pcMemoEnd(); else penDone(); }, 280);
         }
         function pcThrow() {

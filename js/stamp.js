@@ -60,7 +60,7 @@
             psClose(); psRender();
             if (pageStamps[kind]) {
                 const st = psq('pageStamps').querySelectorAll('.ps-st')[kind === 'mo' ? 0 : 1];
-                if (st) { st.classList.remove('pop'); void st.offsetWidth; st.classList.add('pop'); }
+                if (st) { rePop(st, 'pop'); }
             }
             saveData(false);
         }

@@ -104,7 +104,7 @@
                     let sid = null; try { sid = await ownDesignPrint(e.id); } catch (er) { console.warn('📄 한 장 더', er); }
                     b.disabled = false; b.textContent = '📄 한 장 더 찍기';
                     if (!sid) { showMsg('⚠ 찍지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 후 다시 해 주세요.</span>'); return; }
-                    if (navigator.vibrate) try { navigator.vibrate(10); } catch (x) {}
+                    buzz(10);
                     if (await showAsk(`📄 <b>${htmlEsc(nm)}</b> 한 장을 찍었어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍에 넣었어요</span>`, '📌 바로 꺼내 쓰기', '닫기')) useMine(sid);
                 };
                 cq('crBasket').onclick = () => { closeCraft(); if (window.openBasket) openBasket(); };

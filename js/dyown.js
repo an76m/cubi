@@ -31,7 +31,7 @@
         const dyoGet = id => dyoAll().find(x => x.id === id) || null;
         function dyoPut(line, mem) { const L = dyoAll(), i = L.findIndex(x => x.id === line.id); if (i >= 0) L[i] = line; else L.push(line); dyoSet(L, mem); }
         function dyoDel(id) { const L = dyoAll(); if (L.some(x => x.id === id)) dyoSet(L.filter(x => x.id !== id)); }
-        const dyoDay = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
+        const dyoDay = () => ymd();   // 🧰 js/util.js
         const DYO_FROM = ['basic', 'gift', 'mine', 'share', 'paid'];                 // 🏷️ 상품 분류 다섯 (도련 11-09 · 무료 · 선물 · 본인 · 공유 · 유료) · 처음받기 = basic + start: 1
         const dyoFrom = (v, def) => DYO_FROM.includes(v) ? v : def;
 

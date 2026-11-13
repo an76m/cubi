@@ -20,7 +20,7 @@
         const BTH_THEME = () => 'base';
         const B = { on: false, busy: false, raf: 0, t0: 0, led: null, tv: null };
         const bq = id => document.getElementById(id);
-        const quiet = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const quiet = () => calmMotion();
         const camOk = () => window.__bthCam || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse)').matches;   // 📷 화면 안 카메라 = 📱 📲 (아이패드는 맥처럼 보여서 터치로)
 
         function build() {
@@ -270,7 +270,7 @@
             I.msg = ''; inPaint();
         }
         function camStop() { if (I.stream) { I.stream.getTracks().forEach(t => t.stop()); I.stream = null; } const v = bq('binCam'); if (v) v.srcObject = null; }
-        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const wait = waitMs;   // 🧰 js/util.js
         async function shoot() {                                                // 3 · 2 · 1 → 찰칵 (컷 수만큼)
             const L = LAYOUTS[I.lay], v = bq('binCam'); I.st = 'shoot'; I.busy = true; I.shots = []; inPaint();
             for (let i = 0; i < L.n && I.on; i++) {
@@ -283,7 +283,7 @@
             if (!I.on) return;
             I.out = compose(); I.st = 'check'; I.busy = false; inPaint();
         }
-        function flash() { const f = bq('binFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+        function flash() { const f = bq('binFlash'); rePop(f, 'on'); }
         /* 🖼 합치기 (프레임 색 · 컷 · 아래 글씨 · 반짝이) */
         function rr(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
         function frameCanvas(L, C, shots, ghost) {
@@ -299,7 +299,7 @@
                 else { x.fillStyle = ghost ? 'rgba(255,255,255,.55)' : '#eee'; x.fillRect(px, py, sw, sh); x.fillStyle = ghost ? 'rgba(0,0,0,.12)' : '#ccc'; x.beginPath(); x.arc(px + sw / 2, py + sh * .42, sh * .16, 0, 7); x.fill(); x.beginPath(); x.ellipse(px + sw / 2, py + sh * .95, sw * .3, sh * .32, 0, Math.PI, 0); x.fill(); }   // 사람 자리 (그림자)
                 x.restore();
             }
-            const now = new Date(), date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`, fy = H - L.foot;
+            const now = new Date(), date = ymd(now, '.'), fy = H - L.foot;
             x.fillStyle = C[2]; x.textAlign = 'center'; x.font = `bold ${L.id === 'strip' ? 26 : 30}px Jua, "Gowun Dodum", "Noto Sans KR", sans-serif`; x.fillText('말랑달콤 💕', W / 2, fy + L.foot * .48);
             x.font = '15px "Noto Sans KR", sans-serif'; x.globalAlpha = .8; x.fillText(`${date} · 말랑 포토부스`, W / 2, fy + L.foot * .8); x.globalAlpha = 1;
             [[.06, .03], [.94, .05], [.04, .5], [.96, .62], [.1, .97], [.9, .95]].forEach(([a, b], i) => { const cx = a * W, cy = b * H, r = 8 + (i % 3) * 3; x.fillStyle = i % 2 ? '#fff6b8' : '#ffffff'; x.beginPath(); for (let k = 0; k < 8; k++) { const q = k % 2 ? r * .3 : r, an = k * Math.PI / 4; x.lineTo(cx + Math.cos(an) * q, cy + Math.sin(an) * q); } x.closePath(); x.fill(); });   // ✨

@@ -207,8 +207,8 @@
         }
         function fpRingOff() { clearInterval(fp.ringT); fp.ringT = 0; if (fp.el) fp.el.classList.remove('ringing'); }
         function fpBuzz(short) {
-            if (navigator.vibrate) try { navigator.vibrate(short ? 60 : [300, 120, 300]); } catch (e) {}
-            if (short && fp.el) { fp.el.classList.remove('buzz'); void fp.el.offsetWidth; fp.el.classList.add('buzz'); }
+            buzz(short ? 60 : [300, 120, 300]);
+            if (short && fp.el) { rePop(fp.el, 'buzz'); }
         }
         function fpTone() {                                                     // 8비트 벨소리 (소리 설정을 따라요 · js/sound.js)
             const ac = typeof sndFx === 'function' ? sndFx() : null; if (!ac) return;

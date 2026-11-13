@@ -18,9 +18,9 @@
         /* items : 종이 위 스티커들 [{ a, src, st }] · a · st · src 는 지금 손에 잡은 스티커 */
         const pelS = { on: false, cv: null, ctx: null, fl: null, items: [], a: null, st: null, drag: null, board: null, mv: { x: 0, y: 0 }, gone: 0, src: '', W: 0, H: 0, DPR: 1, raf: 0 };
         const pelq = id => document.getElementById(id);
-        const pelMk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+        const pelMk = mkCanvas;   // 🧰 js/util.js
         const pelLoad = src => new Promise((ok, no) => { const im = new Image(); if (/^https?:/i.test(src)) im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = no; im.src = src; });   // 주소 그림은 하얀 테두리를 그리려고 CORS 로
-        function pelTint(src, fill) { const c = pelMk(src.width, src.height), d = c.getContext('2d'); d.drawImage(src, 0, 0); d.globalCompositeOperation = 'source-in'; d.fillStyle = fill; d.fillRect(0, 0, c.width, c.height); return c; }
+        const pelTint = tintCanvas;   // 🧰 js/util.js
         function pelGrow(src, r, step) { const c = pelMk(src.width, src.height), d = c.getContext('2d'); for (const k of [1, .66, .33]) for (let a = 0; a < 360; a += step) d.drawImage(src, Math.cos(a * Math.PI / 180) * r * k, Math.sin(a * Math.PI / 180) * r * k); d.drawImage(src, 0, 0); return c; }
 
         /* ---------- 하얀 칼선 테두리 두르기 ---------- */
@@ -239,7 +239,7 @@
             ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;
             ctx.drawImage(S.fl, 0, 0, S.W, S.H); ctx.restore();
         }
-        function pelRR(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+        const pelRR = rrPath;   // 🧰 js/util.js
         function pelFrame(t) {
             const S = pelS; if (!S.on) return;
             if (S.rel) {                                                         // 🤍 정리 책상 : 창이 닫혔으면 같이 닫고 · 자리가 움직였으면 따라가요
@@ -446,7 +446,7 @@
             st.cx = P[0] - S.drag.off[0]; st.cy = P[1] - S.drag.off[1];
             const pg = pelPage(), pr = pg && pg.getBoundingClientRect();                  // 📏 하얀 종이에서 완전히 떨어지는 순간 진짜 크기로 (페이지 배율 · 도련 · 10-18)
             if (pr && pr.width && !S.rel) st.grow = { goal: pr.width / (pg.offsetWidth || pr.width), s0: st.s, t0: performance.now(), off: S.drag.off.slice() };
-            pelNoise(0); if (navigator.vibrate) navigator.vibrate(15);
+            pelNoise(0); buzz(15);
             
         }
         /* 📏 진짜 크기로 스르르 (잡은 자리는 손가락 끝 그대로) */
@@ -467,7 +467,7 @@
                 st.snap = { C: d.C, F: d.F, t0: performance.now() };
                 return;
             }
-            if (navigator.vibrate) navigator.vibrate(8);
+            buzz(8);
             if (S.rel) pelRelDrop();
             else if (!pelPageOn()) { st.state = 'on'; st.snap = null; pelLayout(); }   // 붙일 페이지가 없으면 종이로 돌아가요
             else pelStick();
@@ -492,21 +492,13 @@
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 페이지에 붙어요 */
         function pelStick() {
             const S = pelS, st = S.st, a = S.a, pg = pelPage();
-            const r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
-            const cx = Math.min(r.right, Math.max(r.left, st.cx)), cy = Math.min(r.bottom, Math.max(r.top, st.cy));
+            const P = pageK(pg), k = P.k, [cx, cy] = pageIn(P.r, st.cx, st.cy);   // 📄 페이지에 놓기 하나 (js/elements.js)
             if (!addImage(S.src)) { closeStickerPeel(); return; }
             const el = pg.querySelector('.element-box:last-child');
             if (el && S.ts) el.dataset.ts = 1;
             if (el) {
-                const w = (a.w - a.m * 2) * st.s / k, h = (a.h - a.m * 2) * st.s / k, PADB = 14;     // .element-box 안쪽 여백 6px · 테두리 1px (양쪽)
-                const deg = Math.round(st.rot * 180 / Math.PI * 10) / 10;
-                const put = (px, py) => { el.dataset.posX = px; el.dataset.posY = py; el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(${deg}deg)`; };
-                el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
-                if (window.elOrig) elOrig(el);                                    // 🖼️ 원본 크기로 (js/elements.js)
-                const x = Math.round((cx - r.left) / k - (w + PADB) / 2), y = Math.round((cy - r.top) / k - (h + PADB) / 2);
-                put(x, y);
-                const b = el.getBoundingClientRect();                                  // 페이지 안 다른 것들 때문에 생기는 차이까지 맞춰요
-                put(Math.round(x + (cx - (b.left + b.width / 2)) / k), Math.round(y + (cy - (b.top + b.height / 2)) / k));
+                const w = (a.w - a.m * 2) * st.s / k, h = (a.h - a.m * 2) * st.s / k, deg = Math.round(st.rot * 180 / Math.PI * 10) / 10;
+                elPlace(el, P, cx, cy, w, h, deg, () => { if (window.elOrig) elOrig(el); });   // 🖼️ 원본 크기로 (js/elements.js)
             }
             st.state = 'done';
             if (typeof saveData === 'function') saveData(false);
@@ -523,19 +515,6 @@
         }
 
         /* ---------- 소리 : 🏷️ 씰을 떼어 낼 때 '찌익'만 ---------- */
-        let pelGain = null;
-        function pelNoise(v) {
-            if (!pelGain && !v) return;
-            const ac = typeof sndFx === 'function' ? sndFx() : null;
-            if (!ac) { if (pelGain) pelGain.gain.value = 0; return; }
-            if (!pelGain) {
-                const buf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (Math.random() < .3 ? 1 : .3);
-                const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
-                const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = .7;
-                pelGain = ac.createGain(); pelGain.gain.value = 0; src.connect(bp).connect(pelGain).connect(sndOut()); src.start();
-            }
-            pelGain.gain.setTargetAtTime(v, ac.currentTime, .03);
-        }
+        const pelNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });   // 🔊 떼는 소리 (js/util.js 하나)
 
         window.openStickerPeel = openStickerPeel; window.pelBake = pelBake; window.closeStickerPeel = closeStickerPeel; window.pelRelayout = pelRelayout; window.pelLastAt = () => pelS.lastAt || null;

@@ -204,7 +204,7 @@
             miss() { atTone(660, .25, 'triangle', .1); atTone(880, .35, 'triangle', .08, .12); }
         };
         function atConfetti() {
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (calmMotion()) return;
             const cv = atq('atBurst'), g = cv.getContext('2d'), C = ['#ffd23f', '#ff7aa8', '#6cc4ff', '#9be27a', '#c79bff'];
             cv.width = innerWidth; cv.height = innerHeight;
             const ps = Array.from({ length: 120 }, () => ({ x: innerWidth / 2, y: innerHeight * .42, vx: (Math.random() - .5) * 15, vy: -Math.random() * 15 - 4, r: 4 + Math.random() * 5, c: C[Math.floor(Math.random() * C.length)], a: Math.random() * 6 }));

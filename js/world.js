@@ -284,14 +284,13 @@
             else if (m.t === 'end') { N.st = 'ended'; status(); if (window.showMsg) showMsg(String(m.s || '🎆 파티가 끝났어요!').slice(0, 80)); }   // 📅 끝 시간 (서버가 내보내요)
             else if (m.t === 'err') { N.st = m.e === 'login' ? 'login' : m.e === 'full' ? 'full' : m.e === 'soon' ? 'soon' : m.e === 'ended' || m.e === 'ban' ? 'ended' : 'wait'; status();
                 if (m.e === 'ban' && window.showMsg) showMsg('🚪 이번 파티에는 들어올 수 없어요.');
-                if ((m.e === 'soon' || m.e === 'ended') && window.showMsg) showMsg(m.e === 'soon' ? `🎉 아직 안 열렸어요.<br><b>${new Date(+m.from || Date.now()).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' })}</b>에 열려요.` : '🎆 파티가 끝났어요!<br>다음에 또 만나요.'); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
+                if ((m.e === 'soon' || m.e === 'ended') && window.showMsg) showMsg(m.e === 'soon' ? `🎉 아직 안 열렸어요.<br><b>${tzText(+m.from || Date.now(), { month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</b>에 열려요.` : '🎆 파티가 끝났어요!<br>다음에 또 만나요.'); if (m.e === 'login' && window.showMsg) showMsg('🔒 로그인이 확인되지 않았어요.<br>다시 로그인한 뒤 들어와 주세요.'); }
         }
         /* 📢 상황판 공지 : 화면 위 가운데 띠 (8초) */
         function noticeToast(s) {
             if (!s) return; const el = q('worldRoom'); if (!el) return;
             let t = el.querySelector('.wd-notice'); if (!t) { t = document.createElement('div'); t.className = 'wd-notice'; el.appendChild(t); }
-            t.textContent = '📢 ' + s; t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
-            clearTimeout(noticeToast.t); noticeToast.t = setTimeout(() => t.classList.remove('on'), 8000);
+            t.textContent = '📢 ' + s; popFor(t, 8000);   // ✨ js/util.js (잠깐 보이기 하나)
         }
         /* 🧭 받은 '가는 곳' : [id, 지금 x, y, 목적지 tx, ty, 빠르기 s (0 = 멈춤), 방향 f] */
         function goApply(a) {

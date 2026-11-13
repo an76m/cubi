@@ -24,7 +24,7 @@
         const pq = id => document.getElementById(id);
 
         /* ---------- 날짜 ---------- */
-        function plDay(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+        function plDay(d) { return ymd(d); }   // 🧰 js/util.js
         function plGap(a, b) {                       // a → b 까지 며칠
             if (!a || !b) return 0;
             const p = x => { const [y, m, d] = x.split('-').map(Number); return Date.UTC(y, m - 1, d); };
@@ -211,7 +211,7 @@
             s.w += 1; s.total = (s.total || 0) + 1; s.last = today;
             plWrite();
             const room = pq('plantRoom');
-            room.classList.remove('pl-pour'); void room.offsetWidth; room.classList.add('pl-pour');
+            rePop(room, 'pl-pour');
             setTimeout(() => {
                 room.classList.remove('pl-pour');
                 const after = plStage(s.w);

@@ -43,7 +43,7 @@
 
         const PS = { built: false, list: [], show: null, id: null, mt: null, dirty: false, sc: 0, sel: -1, tab: 'bg', saving: false, play: null, bgCache: {} };
         const pzq = id => document.getElementById(id);
-        const psEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const psEsc = htmlEsc;   // 🧰 js/util.js
         const psLine = s => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, PS_MAX_TEXT);
         const psDrive = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
         const psClamp = (v, a, b, d) => { v = parseFloat(v); return isNaN(v) ? d : Math.max(a, Math.min(b, v)); };

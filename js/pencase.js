@@ -165,7 +165,7 @@
             if (pk.bin) { pkBinTap(id); return; }
             if (on.has(id)) { if (![...on].some(v => v !== id && /^(pen|hi):/.test(v)) && /^(pen|hi):/.test(id)) { pkSay('쓸 색연필 · 형광펜 하나는 꼭 꽂아 둬요 ✏️'); return; } on.delete(id); }
             else { if (on.size >= PK_MAX) { pkSay(`펜꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return; } on.add(id); }
-            b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+            rePop(b, 'pop');
             pkRender();
         }
         async function pkBinTap(id) {                                          // 🗑 버리면 보관함을 새로 (가진 필기구가 바뀌었어요)
@@ -174,7 +174,7 @@
             const r = pkq('pkRoom'); pk.on = false; if (r) r.remove();
             openPencase(true);
         }
-        function pkSay(t) { const p = pkq('pkTip'); p.innerHTML = t; p.classList.remove('shake'); void p.offsetWidth; p.classList.add('shake'); clearTimeout(pk.tm); pk.tm = setTimeout(pkRender, 1600); }
+        function pkSay(t) { const p = pkq('pkTip'); p.innerHTML = t; rePop(p, 'shake'); clearTimeout(pk.tm); pk.tm = setTimeout(pkRender, 1600); }
 
         /* 보이는 쪽 한가운데에 맞춰요 (📱 폰 = 오른쪽 쪽) · 페이지 안에 들어오게 줄여요 */
         function pkPlace() {

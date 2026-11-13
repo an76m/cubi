@@ -20,7 +20,7 @@
     build();
     const fit = (p, BW, BH) => { const s = Math.min(BW / p.w, BH / p.h); return { s, ox: (BW - p.w * s) / 2, oy: (BH - p.h * s) / 2 }; };
     const at = (p, q, BW, BH) => { const f = fit(p, BW, BH); return [f.ox + q[0] * f.s, f.oy + q[1] * f.s]; };
-    const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const esc = htmlEsc;   // 🧰 js/util.js
     /* <svg> : o.parts = [[조각 이름, class], …] (다 있으면 조각마다 <g> · 축을 transform-origin 으로) · o.over = 맨 위 안 움직이는 조각 · o.extra = 위에 더 그릴 것 (자 눈금 …) */
     function svg(id, o) {
         const p = PIC[id]; if (!p) return '';

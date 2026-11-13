@@ -18,8 +18,8 @@
     const MAX = 40, OUT_H = 1288, SB_H = 644, OUT_MAX = 1024;            // OUT_H : 그림을 굽는 시트 높이 (떼는 창 시트 높이 644 의 두 배 · 선명하게)
     const S = { on: false, size: 'tall', bg: 'white', fin: 'gloss', title: '', items: [], sel: null, seq: 1, k: 1, busy: false };
     const dims = () => SIZES[S.size].slice(1);
-    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-    const loadImg = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
+    const esc = htmlEsc;   // 🧰 js/util.js
+    const loadImg = loadImgP;   // 🧰 js/util.js
 
     function build() {
         let el = q('shmRoom'); if (el) return el;

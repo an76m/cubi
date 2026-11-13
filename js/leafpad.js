@@ -192,7 +192,7 @@
             const r = lfq('tkRoom'); if (r) r.classList.remove('show');
             document.body.classList.remove('fc-lock');
         }
-        function tkSay(h) { const e = lfq('tkHint'); if (!e || tkS.hint === h) return; tkS.hint = h; e.innerHTML = h; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
+        function tkSay(h) { hintPop(lfq('tkHint'), tkS, h); }   // 💬 js/util.js
         /* 화면 → 묶음 안 좌표 (150 × 172 기준) */
         const tkLocal = P => [(P[0] - tkS.x) / tkS.k, (P[1] - tkS.y) / tkS.k];
 
@@ -248,7 +248,7 @@
             const cx = b.left + b.width / 2, cy = b.top + b.height / 2;
             f.style.transformOrigin = '50% 50%'; f.style.left = cx - w / 2 + 'px'; f.style.top = cy - h / 2 + 'px'; f.style.transform = `rotate(${rot}deg)`;
             tkS.drag = { mode: 'free', off: [P[0] - (cx - w / 2), P[1] - (cy - h / 2)], rot, base: -tkS.drag.dir * 6, px: P[0], last: P, lt: performance.now() };
-            tkNoise(0); if (navigator.vibrate) navigator.vibrate(15);
+            tkNoise(0); buzz(15);
             tkSay('북! 뜯겼어요 ✨ 원하는 곳에 놓아 보세요');
         }
         function tkUp() {
@@ -264,26 +264,19 @@
                 if (d.p > .15) tkSay('앗, 다시 붙어 버렸어요 🫣 끝까지 쭉 당겨 보세요');
                 return;
             }
-            if (navigator.vibrate) navigator.vibrate(8);
+            buzz(8);
             tkStick(f, Math.max(-25, Math.min(25, d.rot)));
         }
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 · 테이프가 붙은 그림으로 */
         function tkStick(f, rot) {
-            const pg = lfq('canvasArea'), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1, b = f.getBoundingClientRect();   // 페이지 확대 · 축소 비율
-            const cx = Math.min(r.right, Math.max(r.left, b.left + b.width / 2)), cy = Math.min(r.bottom, Math.max(r.top, b.top + b.height / 2));
+            const pg = lfq('canvasArea'), P = pageK(pg), b = f.getBoundingClientRect(), [cx, cy] = pageIn(P.r, b.left + b.width / 2, b.top + b.height / 2);   // 📄 페이지에 놓기 하나 (js/elements.js)
             tkS.fly = null; f.remove();
             const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(tkPieceSvg(tk.pad, tkS.sh));
             if (!isCoverOpen) { closeTteokRoom(); return; }
             addText();                                                           // 떡메는 메모도 돼요 : 글상자 + 뒤에 떡메 그림 (짧게 톡 → 글쓰기)
             const el = pg.querySelector('.element-box:last-child'); if (!el) return;
             tkNoteDress(el, tk.pad, src);
-            const w = TK_W + 12, h = TK_H + 20, PADB = 14, deg = Math.round(rot * 10) / 10;   // .element-box 안쪽 여백 6px · 테두리 1px (양쪽)
-            const put = (px, py) => { el.dataset.posX = px; el.dataset.posY = py; el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(${deg}deg)`; };
-            el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
-            const x = Math.round((cx - r.left) / k - (w + PADB) / 2), y = Math.round((cy - r.top) / k - (h + PADB) / 2);
-            put(x, y);
-            const bb = el.getBoundingClientRect();
-            put(Math.round(x + (cx - (bb.left + bb.width / 2)) / k), Math.round(y + (cy - (bb.top + bb.height / 2)) / k));
+            elPlace(el, P, cx, cy, TK_W + 12, TK_H + 20, Math.round(rot * 10) / 10);
             el.classList.remove('selected'); if (selectedElement === el) { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }   // 그냥 놓이기만 · 톡 누르면 그때 골라져서 글쓰기
             if (typeof saveData === 'function') saveData(false);
             if (tkS.own && window.ownQty) {                                      // 🎒 한 장 뜯어 붙이면 묶음이 한 장 줄어요 (js/own.js)
@@ -307,20 +300,7 @@
         }
 
         /* ---------- 소리 : 찢는 동안 '찌이익'만 (당기는 빠르기만큼) ---------- */
-        let tkGain = null;
-        function tkNoise(v) {
-            if (!tkGain && !v) return;
-            const ac = typeof sndFx === 'function' ? sndFx() : null;
-            if (!ac) { if (tkGain) tkGain.gain.value = 0; return; }
-            if (!tkGain) {
-                const buf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (Math.random() < .12 ? 1 : .25);
-                const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
-                const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2100; bp.Q.value = .8;
-                tkGain = ac.createGain(); tkGain.gain.value = 0; src.connect(bp).connect(tkGain).connect(sndOut()); src.start();
-            }
-            tkGain.gain.setTargetAtTime(v, ac.currentTime, .03);
-        }
+        const tkNoise = scrubSound({ hz: 2100, q: .8, hit: .12, lo: .25 });   // 🔊 떼는 소리 (js/util.js 하나)
         window.spawnTteok = spawnTteok; window.closeTteokRoom = closeTteokRoom; window.tkNoteDress = tkNoteDress;
         window.tkMiniHtml = tkMiniHtml;
 

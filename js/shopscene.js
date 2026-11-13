@@ -81,7 +81,7 @@
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display && m.style.display !== 'none') { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); };
             const pic = Promise.race([shopPic(shopC(k).img), new Promise(r => setTimeout(r, 4000))]);   // 그림이 준비되면 (늦어도 4초)
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { SC.busy = true; pic.then(() => { SC.busy = false; go(); }); return; }
+            if (calmMotion()) { SC.busy = true; pic.then(() => { SC.busy = false; go(); }); return; }
             const d = shopWayDir(k || SC.corner), toL = k ? d === 'l' : d !== 'l';   // 왼쪽 코너로 = 화면이 오른쪽으로 밀려요 (내가 왼쪽으로 걸어가니까)
             SC.busy = true; el.classList.remove('walk-in', 'from-l', 'from-r'); el.classList.add('walk-out', toL ? 'to-r' : 'to-l');
             Promise.all([pic, new Promise(r => setTimeout(r, 360))]).then(() => {
@@ -126,7 +126,7 @@
         let roomBusy = false;
         function roomGo(leave) {
             if (roomBusy) return;
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { leave(); return; }
+            if (calmMotion()) { leave(); return; }
             let el = document.getElementById('roomGo');
             if (!el) { el = document.createElement('div'); el.id = 'roomGo'; el.className = 'shop-scene room-go'; el.innerHTML = `<div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>`; document.body.appendChild(el); }
             roomBusy = true; homeFit(el);
@@ -149,7 +149,7 @@
             SC.on = true; SC.busy = true;
             el.classList.remove('inside', 'enter', 'leave'); el.classList.add('on');
             requestAnimationFrame(() => { shopFit(); requestAnimationFrame(shopFit); });
-            const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const quiet = calmMotion();
             /* 🔔 문 열며 딸랑~ (✨ 연출 소리를 끄면 안 나요 · js/sound.js sndShopBell) */
             const go = () => { if (window.sndShopBell) sndShopBell(); el.classList.add('enter'); setTimeout(() => { el.classList.add('inside'); el.classList.remove('enter'); SC.busy = false; shopFit(); }, quiet ? 0 : 1700); };
             const img = el.querySelector('.shop-door img');
@@ -162,7 +162,7 @@
             if (quick !== true && window.bagBusy && bagBusy()) { const al = document.getElementById('customAlertModal'); if (window.showMsg && !(al && al.style.display === 'flex')) { const ok = document.getElementById('customAlertConfirmBtn'); if (ok) ok.textContent = '확인'; showMsg('🛍️ 상품을 담는 중이에요'); } return; }   // 받는 중 · 봉투 안내가 끝나기 전에는 못 나가요 (도련 10-30) · 묻는 창(하나 더 받기)이 떠 있으면 그 창을 덮지 않고 · 안내 버튼은 늘 '확인'
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; const L = window.SHOP_BAG || []; window.SHOP_BAG = []; if (L.length && window.deskBagAdd) setTimeout(() => deskBagAdd(L), 250); };   // 🛍️ 산 것을 봉투에 담아 책상 위에 (js/desk.js)
-            if (quick === true || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.classList.add('leave'); setTimeout(done, 380); return; }
+            if (quick === true || calmMotion()) { el.classList.add('leave'); setTimeout(done, 380); return; }
             SC.busy = true; shopFit(); el.classList.add('home');
             setTimeout(() => el.classList.add('home-go'), 1000);
             setTimeout(() => { el.classList.add('leave'); setTimeout(done, 380); }, 2300);

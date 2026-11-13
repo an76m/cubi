@@ -77,7 +77,7 @@
         function lockLeft() { if (lk2.mode !== 'unlock') lockClose(); }
         function lockDots(shake) {
             lkq2('lockDots').querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i < lk2.buf.length));
-            if (shake) { const d = lkq2('lockDots'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake'); }
+            if (shake) { const d = lkq2('lockDots'); rePop(d, 'shake'); }
         }
         function lockSay(t, err) { const m = lkq2('lockMsg'); m.textContent = t; m.classList.toggle('err', !!err); }
 

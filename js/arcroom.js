@@ -121,7 +121,7 @@
         }
         function aroBdStart() {
             clearInterval(aroBd.t); aroBd.auto = true; aroBdShow();
-            if (!matchMedia('(prefers-reduced-motion: reduce)').matches) aroBd.t = setInterval(() => { if (aroOn() && aroBd.auto && !document.hidden && !document.querySelector('#hofRoom.show')) aroBdGo(1); }, 8000);
+            if (!calmMotion()) aroBd.t = setInterval(() => { if (aroOn() && aroBd.auto && !document.hidden && !document.querySelector('#hofRoom.show')) aroBdGo(1); }, 8000);
         }
         function aroFit() {
             const st = aroq('aroStage'); if (!st) return;

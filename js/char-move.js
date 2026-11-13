@@ -233,7 +233,7 @@ void main(){
         const cpGuess = name => { const n = String(name || '').replace(/\.[a-z0-9]+$/i, ''); const g = CP_GUESS.find(([, re]) => re.test(n)); return g ? g[0] : 'body'; };
         const CP_FLAGS = [['look', 1, '👀 두리번'], ['blink', 2, '😉 깜빡'], ['breath', 4, '🌬 숨쉬기'], ['talk', 8, '💬 말하기']];
         const CP_PARAMS = [['ax', '↔ 고개 좌우', -1, 1, 0], ['ay', '↕ 고개 위아래', -1, 1, 0], ['az', '↻ 고개 기울기', -1, 1, 0], ['eo', '👀 눈 뜨기', 0, 1, 1], ['mo', '👄 입 벌리기', 0, 1, 0], ['ex', '⚫ 눈동자 좌우', -1, 1, 0]];
-        const cpClamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const cpClamp = clampN;   // 🧰 js/util.js
 
         function cpNew(W, H, o) {
             return { pp: true, w: W, h: H, parts: [], geo: null, f: o && o.f != null ? o.f : 7, sp: (o && o.v) || 1, am: (o && o.a) || 1,

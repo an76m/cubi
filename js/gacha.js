@@ -68,7 +68,7 @@
         const capsData = async k => { const r = await fetch(k.url); if (!r.ok) throw new Error('caps'); const t = r.headers.get('content-type') || '';
             if (/svg/.test(t) || /\.svg$/i.test(k.url)) return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(await r.text());
             const b = await r.blob(); return await new Promise((ok, no) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = no; f.readAsDataURL(b); }); };
-        const capsToday = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+        const capsToday = tzDay;   // 🕘 시계 한 곳 (js/util.js)
         function capsSet(list) {
             const a = (list || []).filter(p => p && p.id && p.until).map(p => ({ id: p.id, until: p.until }));
             try { localStorage.setItem(CAPS_LOCAL, JSON.stringify(a)); } catch (e) {}
@@ -309,7 +309,7 @@
         /* ---------- 1. 코인 넣기 ---------- */
         /* 코인이 떨어지는 모습 · 소리는 누르는 순간 바로 나와요 (서버 답을 기다리지 않아요 · 결과는 서버가 정하니까 연출만 먼저) */
         function gcDropCoin() {
-            const coin = gq('gcCoin'); coin.classList.remove('drop'); void coin.offsetWidth; coin.classList.add('drop');
+            const coin = gq('gcCoin'); rePop(coin, 'drop');
             gcSfx.coin(); gcBuzz(20);
         }
         async function gcInsertCoin() {
@@ -357,7 +357,7 @@
             gc.stage = 'mixing';
             const c = gq('gcCrank'); c.disabled = true; c.classList.remove('ready');
             gq('gcCrankHint').textContent = '';
-            const ms = matchMedia('(prefers-reduced-motion: reduce)').matches ? GACHA_MIX_MS / 3 : GACHA_MIX_MS;
+            const ms = calmMotion() ? GACHA_MIX_MS / 3 : GACHA_MIX_MS;
             gc.mixMs = ms;
             gc.mixing = true; gc.swirlFlip = 0; gq('gcDome').classList.add('mixing');
             gc.led = 'spin'; gc.mixStart = performance.now();
@@ -577,11 +577,11 @@
             gc.rumble.g.gain.cancelScheduledValues(t); gc.rumble.g.gain.setValueAtTime(gc.rumble.g.gain.value, t); gc.rumble.g.gain.linearRampToValueAtTime(0, t + .04);
             gc.rumble.n.stop(t + .06); gc.rumble.o.stop(t + .06); gc.rumble = null;
         }
-        function gcBuzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+        const gcBuzz = buzz;   // 🧰 js/util.js
 
         /* 꽃가루 */
         function gcConfetti() {
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (calmMotion()) return;
             const cv = gq('gcBurst'), g = cv.getContext('2d');
             cv.width = innerWidth; cv.height = innerHeight;
             const ps = Array.from({ length: 140 }, () => ({ x: innerWidth / 2, y: innerHeight * .45, vx: (Math.random() - .5) * 16, vy: -Math.random() * 16 - 4, r: 4 + Math.random() * 5, c: GC_BULBS[Math.floor(Math.random() * 5)], a: Math.random() * 6 }));

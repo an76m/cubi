@@ -386,7 +386,7 @@
         const toArt = p => [(p[0] - DOLL_ART_X) / DOLL_ART_K, p[1] / DOLL_ART_K];
         const fromArt = p => [Math.round((DOLL_ART_X + p[0] * DOLL_ART_K) * 10) / 10, Math.round(p[1] * DOLL_ART_K * 10) / 10];
         const unflip = p => DR.doll.flip ? [300 - p[0], p[1]] : p;
-        const dClamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const dClamp = clampN;   // 🧰 js/util.js
         const SLEEVE_LEN = { short: 0.42, puff: 0.36, long: 0.78 };
 
         /* ✂️ 재단 손잡이 : [{ tl: len|fl|sl, part, p(바탕 그림 칸), icon }] */
@@ -910,7 +910,7 @@
         /* =====================================================================
            📷 자랑 카드 · 💾 파일 · 📂 불러오기
            ===================================================================== */
-        function loadImg(src) { return new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }); }
+        const loadImg = loadImgP;   // 🧰 js/util.js
         async function dollCardBlob(D, clear) {
             if (clear) {
                 const img = await loadImg(dollDataUrl(D, { bg: false, crop: true }));

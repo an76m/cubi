@@ -89,7 +89,7 @@
         }
         function pbStopCamera() { if (pb.stream) { pb.stream.getTracks().forEach(t => t.stop()); pb.stream = null; } const v = pbq('pbVideo'); if (v) v.srcObject = null; }
         async function pbFlip() { pb.facing = pb.facing === 'user' ? 'environment' : 'user'; pbStopCamera(); await pbStartCamera(); }
-        const pbWait = ms => new Promise(r => setTimeout(r, ms));
+        const pbWait = waitMs;   // 🧰 js/util.js
         async function pbShootAll() {
             if (pb.busy || !pb.stream) return;
             pb.busy = true; pbq('pbShoot').disabled = true;
@@ -100,7 +100,7 @@
                 for (let c = 3; c > 0; c--) { pbq('pbCount').textContent = c; pbq('pbCount').classList.remove('tick'); void pbq('pbCount').offsetWidth; pbq('pbCount').classList.add('tick'); await pbWait(800); }
                 pbq('pbCount').textContent = '';
                 pb.shots.push(pbGrab());
-                const f = pbq('pbFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+                const f = pbq('pbFlash'); rePop(f, 'on');
                 pbRenderThumbs();
                 await pbWait(450);
             }
@@ -174,7 +174,7 @@
                 x.save(); pbRound(x, px, py, sw, sh, 10); x.clip(); x.drawImage(t, px, py); x.restore();
             });
             /* 아래 글씨 : 날짜 + 한마디 */
-            const now = new Date(), date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+            const now = new Date(), date = ymd(now, '.');
             const fy = H - L.foot;
             x.fillStyle = F[2]; x.textAlign = 'center';
             x.font = `bold ${pb.layout === 'strip' ? 26 : 30}px Jua, "Gowun Dodum", "Noto Sans KR", sans-serif`;

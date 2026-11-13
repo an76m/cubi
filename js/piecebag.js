@@ -13,9 +13,9 @@
         const pcbS = { on: false, cv: null, ctx: null, fl: null, W: 0, H: 0, DPR: 1, raf: 0, hint: '', assets: [], pieces: [], fallers: [], drag: null, z: 10, bag: null,
             PR: null, BIG: null, SMALL: null, HOLD: null, SL: .5, SH: 1, SP: .5, closing: 0, used: null, mv: { x: 0, y: 0 } };   // mv : 봉투를 옮긴 만큼   // used : 이번에 붙인 조각 (봉투 속에 안 그려요)
         const pcbq = id => document.getElementById(id);
-        const pcbMk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+        const pcbMk = mkCanvas;   // 🧰 js/util.js
         const pcbLoad = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
-        function pcbTint(src, fill) { const c = pcbMk(src.width, src.height), d = c.getContext('2d'); d.drawImage(src, 0, 0); d.globalCompositeOperation = 'source-in'; d.fillStyle = fill; d.fillRect(0, 0, c.width, c.height); return c; }
+        const pcbTint = tintCanvas;   // 🧰 js/util.js
         function pcbGrow(src, r, step) { const c = pcbMk(src.width, src.height), d = c.getContext('2d'); for (const k of [1, .66, .33]) for (let a = 0; a < 360; a += step) d.drawImage(src, Math.cos(a * Math.PI / 180) * r * k, Math.sin(a * Math.PI / 180) * r * k); d.drawImage(src, 0, 0); return c; }
         const pcbNow = () => performance.now();
         const pcbOut = q => 1 - Math.pow(1 - q, 3), pcbBack = q => { const c = 1.6; return 1 + (c + 1) * Math.pow(q - 1, 3) + c * Math.pow(q - 1, 2); };
@@ -131,7 +131,7 @@
             document.body.classList.remove('fc-lock');
             if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
         }
-        function pcbSay(h) { const e = pcbq('pcbHint'); if (!e || pcbS.hint === h) return; pcbS.hint = h; e.innerHTML = h; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
+        function pcbSay(h) { hintPop(pcbq('pcbHint'), pcbS, h); }   // 💬 js/util.js
 
         /* ---------- 좌표 · 움직임 ---------- */
         const pcbToStage = (st, lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
@@ -152,7 +152,7 @@
         }
 
         /* ---------- 그리기 ---------- */
-        function pcbRR(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+        const pcbRR = rrPath;   // 🧰 js/util.js
         function pcbDrawBag(t) {
             const S = pcbS, ctx = S.ctx, b = S.bag, r = pcbBagRect(t), k = r.w / S.BIG.w, hh = r.h * .24, cut = r.y + hh * .34, open = b.state !== 'closed';
             const BC = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#ffb6c1', FONT = getComputedStyle(document.body).fontFamily;
@@ -392,7 +392,7 @@
             pcbBuzz(8); pcbStick(st);
         }
         function pcbWiggle(st) { const r = st.rot, t0 = pcbNow(); (function w() { const q = (pcbNow() - t0) / 300; st.rot = r + Math.sin(q * Math.PI * 4) * .04 * (1 - q); if (q < 1) requestAnimationFrame(w); else st.rot = r; })(); }
-        function pcbBuzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+        const pcbBuzz = buzz;   // 🧰 js/util.js
 
         /* ---------- 봉투 열기 · 쏟기 · 집기 ---------- */
         function pcbOpen() {
@@ -444,20 +444,13 @@
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 페이지에 붙어요 (js/stickerpeel.js 와 같은 방법) */
         function pcbStick(st) {
             const S = pcbS, a = S.assets[st.k], pg = pcbq('canvasArea');
-            const r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
-            const cx = Math.min(r.right, Math.max(r.left, st.cx)), cy = Math.min(r.bottom, Math.max(r.top, st.cy));
+            const P = pageK(pg), k = P.k, [cx, cy] = pageIn(P.r, st.cx, st.cy);   // 📄 페이지에 놓기 하나 (js/elements.js)
             S.pieces = S.pieces.filter(p => p !== st); S.used.add(st.k);
             if (!addImage(a.src)) { pcbEnd(); return; }
             const el = pg.querySelector('.element-box:last-child');
             if (el) {
-                const s = st.sGoal != null ? st.sGoal : st.s, w = (a.w - a.m * 2) * s / k, h = (a.h - a.m * 2) * s / k, PADB = 14;   // .element-box 안쪽 여백 6px · 테두리 1px (양쪽)
-                const deg = Math.round(Math.max(-.5, Math.min(.5, st.rot)) * 180 / Math.PI * 10) / 10;
-                const put = (px, py) => { el.dataset.posX = px; el.dataset.posY = py; el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(${deg}deg)`; };
-                el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
-                const x = Math.round((cx - r.left) / k - (w + PADB) / 2), y = Math.round((cy - r.top) / k - (h + PADB) / 2);
-                put(x, y);
-                const b = el.getBoundingClientRect();
-                put(Math.round(x + (cx - (b.left + b.width / 2)) / k), Math.round(y + (cy - (b.top + b.height / 2)) / k));
+                const s = st.sGoal != null ? st.sGoal : st.s, w = (a.w - a.m * 2) * s / k, h = (a.h - a.m * 2) * s / k;
+                elPlace(el, P, cx, cy, w, h, Math.round(Math.max(-.5, Math.min(.5, st.rot)) * 180 / Math.PI * 10) / 10);
                 if (window.elOrig) elOrig(el);                                    // 🖼️ 원본 크기로 (js/elements.js)
             }
             if (typeof saveData === 'function') saveData(false);
@@ -471,19 +464,6 @@
         }
 
         /* ---------- 소리 : 봉투를 뜯을 때 · 뒷종이를 벗길 때 '찌이익' (js/stickerpeel.js 와 같은 소리) ---------- */
-        let pcbGain = null;
-        function pcbNoise(v) {
-            if (!pcbGain && !v) return;
-            const ac = typeof sndFx === 'function' ? sndFx() : null;
-            if (!ac) { if (pcbGain) pcbGain.gain.value = 0; return; }
-            if (!pcbGain) {
-                const buf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (Math.random() < .3 ? 1 : .3);
-                const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
-                const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = .7;
-                pcbGain = ac.createGain(); pcbGain.gain.value = 0; src.connect(bp).connect(pcbGain).connect(sndOut()); src.start();
-            }
-            pcbGain.gain.setTargetAtTime(v, ac.currentTime, .03);
-        }
+        const pcbNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });   // 🔊 떼는 소리 (js/util.js 하나)
 
         window.openPieceBag = openPieceBag; window.closePieceBag = closePieceBag; window.pcbNoise = pcbNoise;   // 🧩 수첩 속 봉투 뜯는 소리도 같게 (js/stknote.js)

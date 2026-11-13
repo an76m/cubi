@@ -389,7 +389,7 @@
                     isCoverOpen = true; pgmPos = { x: 0, y: 0 };
                     turn = null; refreshLayout(); turn = t;                       // 📖 펼침면이면 두 쪽으로 펼쳐져요 (js/skins.js dyDeco)
                     pgmApply();   // 다이어리를 열면 늘 가운데에서 시작
-                    const ip = document.getElementById('innerPage'); ip.classList.remove('ph-in'); void ip.offsetWidth; ip.classList.add('ph-in');   // 날짜바가 스르륵 나타나요
+                    const ip = document.getElementById('innerPage'); rePop(ip, 'ph-in');   // 날짜바가 스르륵 나타나요
                     setTimeout(() => ip.classList.remove('ph-in'), 600);
                     if (window.dfFix && !t.keep) setTimeout(dfFix, 0);                      // 🗂 목록을 받기 전에 열었으면 받은 뒤 마지막으로 꾸민 날로
                 } else {
@@ -584,7 +584,7 @@
             }, true);
         }
 
-        function clampNum(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+        const clampNum = clampN;   // 🧰 js/util.js
 
         function canvasOfPage(pw, ph) {
             return { w: pw - PAGE_BORDER * 2, h: ph - PAGE_BORDER * 2 - PAGE_HEADER_H };

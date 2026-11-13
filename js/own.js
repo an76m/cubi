@@ -295,7 +295,7 @@
             const d = ownK(k);
             if (ownMode() !== 'drive' || !d.txt) return;
             const it = d.txt, at = d.albTxt, kw = O.kw, day = new Date().toLocaleDateString('sv'), key = kw + '|' + k;
-            let o = {}; try { o = JSON.parse(localStorage.getItem(OWN_BK_LS) || '{}') || {}; } catch (e) {}
+            let o = lsGet(OWN_BK_LS, {}) || {};   /* 🧰 js/util.js */
             if (o[key] === day) return;
             try {
                 const dir = await ownKindDir(k, false); if (!dir || kw !== O.kw) return;

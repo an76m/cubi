@@ -702,7 +702,7 @@
             const HT = DOLL_HAIR_TOP;
             /* ✨ 움직임 : 겉 g 에 animateTransform 만 (같은 시간이라 나눠 그린 조각끼리 맞춰 움직여요) */
             const MO = D.motion || {}, MK = MO.k || [];
-            const liveOK = !!opts.live && !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+            const liveOK = !!opts.live && !(typeof matchMedia === 'function' && calmMotion());
             const rig = !!opts.pose || (MO.s === 'custom' && MK.length >= 2 && liveOK);              // 🦴 직접 만든 움직임 (또는 편집기의 정지 포즈 미리보기)
             const rigLive = rig && liveOK && !opts.pose;
             const live = liveOK && !opts.pose && (!rig || MO.i !== 0);                               // 기본 숨쉬기 · 깜빡임 · 머리카락 살랑

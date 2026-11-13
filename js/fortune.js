@@ -160,7 +160,7 @@
             fq('fcMsg').classList.remove('on'); fq('fcMsg').textContent = '';
             fq('fcActions').classList.remove('on');
             for (let n = 3; n >= 1; n--) {
-                count.textContent = n; count.classList.remove('pop'); void count.offsetWidth; count.classList.add('pop');
+                count.textContent = n; rePop(count, 'pop');
                 fcChime([523 + (3 - n) * 130], 0.08);
                 await new Promise(r => fcLater(r, 900));
                 if (!fc.open) return;

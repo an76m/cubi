@@ -101,16 +101,28 @@
         /* 🖼️ 스티커는 늘 원본 크기 그대로 (그림 1px = 페이지 1px · 도련 · 2026-10-16) : 그림이 다 오면 (붙이는 쪽이 자리를 정한 뒤) 크기만 원본으로 · 가운데는 그대로
            씰(하얀 종이) · 조각 봉투 · 작게 보이던 것도 붙는 순간 원본 크기 · 페이지보다 크면 페이지 밖으로 넘쳐요
            (🎀 테이프 · 카드 · 그림 그리기 · 📄 모조지스티커처럼 크기를 정해 두고 붙는 것은 그대로) */
+        /* 📄 페이지에 놓기 하나 (도련 11-13 · 🏷️ 씰 · 🧩 조각 · 📄 모조지 · 🍡 떡메 · 원본 크기 맞추기가 같이 써요)
+           pageK(pg) = { r: 페이지 화면 상자, k: 확대 비율 } · pageIn(r, x, y) = 화면 점을 페이지 안으로 · elPut = 자리 · 돌기 쓰기
+           elCenterTo = 상자 가운데를 화면 점(cx, cy)에 맞춰요 (페이지 안 다른 것들 때문에 생기는 차이까지)
+           elPlace = 크기 · 돌기 정하고 → (mid) → 가운데 맞추기 · PADB 14 = .element-box 안쪽 여백 6px · 테두리 1px (양쪽) */
+        const pageK = pg => { const r = pg.getBoundingClientRect(); return { r, k: r.width / (pg.offsetWidth || r.width) || 1 }; };
+        const pageIn = (r, x, y) => [Math.min(r.right, Math.max(r.left, x)), Math.min(r.bottom, Math.max(r.top, y))];
+        function elPut(el, x, y, deg) { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${deg}deg)`; }
+        function elCenterTo(el, cx, cy, k, deg) { const b = el.getBoundingClientRect(); elPut(el, Math.round(+el.dataset.posX + (cx - (b.left + b.width / 2)) / k), Math.round(+el.dataset.posY + (cy - (b.top + b.height / 2)) / k), deg); }
+        function elPlace(el, P, cx, cy, w, h, deg, mid) {
+            const { r, k } = P; el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
+            if (mid) mid();
+            elPut(el, Math.round((cx - r.left) / k - (w + 14) / 2), Math.round((cy - r.top) / k - (h + 14) / 2), deg);
+            elCenterTo(el, cx, cy, k, deg);
+        }
+        window.pageK = pageK; window.pageIn = pageIn; window.elPut = elPut; window.elCenterTo = elCenterTo; window.elPlace = elPlace;
         function elOrig(el) { const img = el && el.querySelector(':scope > img'); if (img) elRealSize(el, img); }
         function elRealSize(el, img) {
             const go = () => requestAnimationFrame(() => requestAnimationFrame(() => {
                 const w = img.naturalWidth, h = img.naturalHeight; if (!el.isConnected || !w || !h) return;
                 const b0 = el.getBoundingClientRect(), c0 = [b0.left + b0.width / 2, b0.top + b0.height / 2];
                 el.style.width = w + 'px'; el.style.height = el.style.height ? h + 'px' : ''; el.dataset.scale = 1;
-                const pg = spPage(), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
-                const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${el.dataset.rotation || 0}deg)`; };
-                const b1 = el.getBoundingClientRect();
-                put(Math.round(+el.dataset.posX + (c0[0] - (b1.left + b1.width / 2)) / k), Math.round(+el.dataset.posY + (c0[1] - (b1.top + b1.height / 2)) / k));
+                elCenterTo(el, c0[0], c0[1], pageK(spPage()).k, el.dataset.rotation || 0);   // 📄 페이지에 놓기 하나
                 spSave(false);
             }));
             if (img.complete && img.naturalWidth) setTimeout(go, 60); else img.addEventListener('load', () => setTimeout(go, 60), { once: true });
@@ -786,7 +798,7 @@
         document.addEventListener('mouseout', e => { if (!e.relatedTarget && pinEl) pinStay(); });   // 💻 마우스가 창 밖으로 나가면 그 자리에 둥실
         window.pinAt = e => { pinMove(e); if (pinEl) { pinRelNow = false; pinEl.classList.add('bob'); pinPut(e.clientX, e.clientY); } };   // 🪡 놓인 핀셋을 막 집은 순간 (그 누름은 js/skins.js gdDown 이 먹어서 여기로 안 와요)
         let twz = null;
-        const twzReduce = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const twzReduce = () => calmMotion();
         function twzRoom(pin) {
             let room = document.getElementById('twzRoom');
             if (!room) {
@@ -904,7 +916,7 @@
             try { t.room.setPointerCapture(e.pointerId); } catch (er) {}
             t.tool.classList.add('shut');                                     // 집게를 꽉
             twzPaint();
-            if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
+            buzz(8);
         }
         function twzMove(e) {
             const t = twz; if (!t) return;
@@ -930,7 +942,7 @@
             t.done = true;
             const el = t.el, bk = t.back;
             el.classList.add('twz-vanish'); bk.classList.add('twz-vanish');
-            if (navigator.vibrate) try { navigator.vibrate([6, 30, 10]); } catch (er) {}
+            buzz([6, 30, 10]);
             setTimeout(() => {
                 el.remove(); bk.remove();
                 spSave(false);

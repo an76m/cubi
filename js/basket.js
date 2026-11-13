@@ -31,7 +31,7 @@
     const bkWho = () => (window.ownMode && ownMode() === 'mem') ? 'guest' : ((typeof COLL !== 'undefined' && COLL.who) || 'me');
     function bkLay() {
         if (B.lay && B.lay.w === bkWho()) return B.lay;
-        let all = {}; try { all = JSON.parse(localStorage.getItem(BK_LAY) || '{}') || {}; } catch (e) {}
+        let all = lsGet(BK_LAY, {}) || {};   /* 🧰 js/util.js */
         const L = all[bkWho()] || {};
         B.lay = { w: bkWho(), o: Array.isArray(L.o) ? L.o : [], p: L.p && typeof L.p === 'object' ? L.p : {} };
         return B.lay;
@@ -185,10 +185,10 @@
     }
     window.bkBin = bkBin;
     function bkGetKind() { const k = B.kind; if (vis('basketKindModal')) closeModal('basketKindModal'); if (SH_KINDS[k]) shOpenKind(k); else openShelf(); }
-    function bkHowGlow() { const h = bq('bkHow'); if (!h) return; h.classList.remove('glow'); void h.offsetWidth; h.classList.add('glow'); }
+    function bkHowGlow() { const h = bq('bkHow'); if (!h) return; rePop(h, 'glow'); }
     function bkGlowGet() {                                                   // 빈 바구니 안내를 누르면 → 받기 버튼이 붉게 반짝
         const b = bq('bkGet'); if (!b) return;
-        b.classList.remove('glow'); void b.offsetWidth; b.classList.add('glow');
+        rePop(b, 'glow');
         b.addEventListener('animationend', () => b.classList.remove('glow'), { once: true });
     }
     /* 자리 잡기 : 기억한 자리 · 없으면 그 종이만의 자리 (위에서 내려다본 바구니 · 바닥 전체에 흩어져요) */
@@ -932,7 +932,7 @@
         }
         AB.rel.push({ src, k, rl: D.rl, pos, tmp, img });                      // 모아서 저장 (손을 멈추면 · 다 했어요 · 창 닫기)
         B.sig = bkSig();
-        if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+        buzz(8);
         clearTimeout(AB.flushT); AB.flushT = setTimeout(abFlush, 1200);
     }
     function abSay(el, t) { const s = el.querySelector('span'); if (!s) return; const o = s.textContent; s.textContent = t; setTimeout(() => { if (s.isConnected) s.textContent = o; }, 1300); }
@@ -969,7 +969,7 @@
             if (!B.list.length) { const st = bq('abStrip'); if (st) st.innerHTML = '<span class="ab-stripempty">서랍이 비었어요</span>'; }
         } else bkView();
         B.sig = bkSig();
-        if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+        buzz(8);
     }
     function abTakeOut(pk) {
         const D = B.desk; if (!D) return;
@@ -1008,7 +1008,7 @@
         if (nid === undefined) { D.sheet = null; return; }                       // 실패 (알림은 abDo)
         if (!nid) { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); D.sheet = null; bkRender(true); return; }
         if (B.desk && B.desk.sheet && B.desk.sheet.id === src) { B.desk.sheet.imgs[slot] = null; if (!B.desk.sheet.imgs.some(u => u != null)) { B.desk.pick = ''; B.desk.sheet = null; } }
-        if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+        buzz(8);
         if (B.desk && !B.desk.pick && B.view === 'desk') bkView();               // 종이를 다 옮겼으면 다시 그려요
     }
     /* ✋ 정리 책상 이형지 위에 놓은 스티커 옮기기 (도련 10-25 · 떼는 판이 떠 있어도 js/stickerpeel.js 가 여기로 넘겨줘요) */
@@ -1137,7 +1137,7 @@
             cnt: d.name, look: 'desk', src: d.src, sec: d.kind, wall: d.wall, give: f => deskGive(d.id, f), name: d.name, id: d.id })).concat(window.dsShopList ? dsShopList() : [])],   // + 🧱 벽지 · 🪵 책상 (js/deskskin.js)
         season: ['계절 스티커', async () => {                                    // 🌸 이벤트 때만 (SEASON_OPEN · 아이콘도 그때만)
             if (!shSeasonOn()) return [];
-            const md = new Date(Date.now() + 9 * 3600000).toISOString().slice(5, 10), inDays = v => { const m = /^(\d\d-\d\d)~(\d\d-\d\d)$/.exec(String(v || '').trim()); return !!m && (m[1] <= m[2] ? md >= m[1] && md <= m[2] : md >= m[1] || md <= m[2]); };   // 🔎 나오는 기간 = 상품 (MM-DD~MM-DD · 겨울처럼 해를 넘겨도)
+            const md = tzMD(),   /* 🕘 시계 한 곳 (js/util.js) */ inDays = v => { const m = /^(\d\d-\d\d)~(\d\d-\d\d)$/.exec(String(v || '').trim()); return !!m && (m[1] <= m[2] ? md >= m[1] && md <= m[2] : md >= m[1] || md <= m[2]); };   // 🔎 나오는 기간 = 상품 (MM-DD~MM-DD · 겨울처럼 해를 넘겨도)
             const L = window.prodShelf ? prodShelf('계절스티커').filter(x => inDays(x.P.기간)) : [];   // 🧁 계절 상품 (상품공방 · 도련 11-02) · 그림에 하얀 테두리가 이미 있어요
             const asData = u => /\.svg$/i.test(u) ? fetch(u).then(r => r.text()).then(t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t)) : Promise.resolve(u);
             return L.map(x => { const us = Object.keys(x.u).sort().map(r => x.u[r]);
@@ -1455,7 +1455,7 @@
         let el = bq('shBag');
         if (!el) { el = document.createElement('div'); el.id = 'shBag'; el.className = 'sh-bag'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.onclick = () => bagHide(); document.body.appendChild(el); }
         el.innerHTML = '<i class="sh-bag-in">' + BAG_SVG + '</i><b class="sh-bag-msg">상품을 담았어요</b>';   // 봉투 + 아래 한 줄 (도련 10-29 · 흰 창 없이)
-        el.classList.remove('bye'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+        el.classList.remove('bye'); rePop(el, 'on');
         clearTimeout(BAG.t); BAG.t = setTimeout(bagHide, 2200);
         if (window.sndBag) sndBag();                                         // 🔔 띠링~ (설정에서 소리를 끄면 조용히)
     }
@@ -1475,7 +1475,7 @@
             r = await x.give(true);
         }
         if (r !== 'ok') { showMsg('⚠ 받지 못했어요.'); return false; }
-        if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
+        buzz(10);
         return true;
     }
     function shGoSee(k, album) {                                            // 받은 것 보러 : 그 종류 서랍 (정리 도구는 📒 스티커첩 탭)
@@ -1510,7 +1510,7 @@
             if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
             else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }
             bagOk = true; bagNote(x, real, 0, sid);
-            if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
+            buzz(10);
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = shGotText(); btn.disabled = false; btn.onclick = () => shGoSee(into, 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             got.add(i);                                                          // 창을 닫았다 열면 다시 받기
         } catch (e) {
@@ -1540,7 +1540,7 @@
             else if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
             else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }   // take() : 새 종이 id(씰) 또는 종이 정보
             bagOk = true; bagNote(x, real, x.tool, sid);
-            if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
+            buzz(10);
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             got.add(zi); if (here()) SH.redraw = true;                           // 확대에서 받아도 카드 버튼은 초록
             const box = btn.closest('.sh-zbtns');
@@ -1603,8 +1603,8 @@
         if (at) { d.x = at.x; d.y = at.y; }
         dsPaint(d); dsFront(d); dsPrep(id).catch(() => {});
         if (e.k === 'tape' && !d.el.classList.contains('big')) dsBig(d);       // 🎀 테이프 롤은 늘 그 크기 (작아지지 않아요 · 도련 11-04)
-        d.el.classList.remove('pop'); void d.el.offsetWidth; d.el.classList.add('pop');
-        if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
+        rePop(d.el, 'pop');
+        buzz(8);
         if (!keep && vis('basketKindModal')) {                                 // 톡 · 오래 누르기 : 바구니가 비켰다가 다시 떠요 (끌어서 꺼낼 땐 그대로)
             closeModal('basketKindModal');
             setTimeout(() => { if (![...document.querySelectorAll('.modal')].some(m => m.style.display === 'flex') && !dsRoomOn()) bkReopen(); }, 420);

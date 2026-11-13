@@ -93,7 +93,7 @@
         if (x == null) { const b = spRect(); x = b.left + b.width / 2; y = b.top + b.height / 2; }   // 📱 폰 = 보이는 오른쪽 쪽
         knifeAt(x, y);
         const t = q('skTip'), say = t.querySelector('.sk-say'); if (say) say.remove();
-        if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
+        buzz(12);
     }
     function close() {
         if (!S.on) return;
@@ -170,9 +170,9 @@
         S.busy = false; S.pts = null; paint();
         if (!ok) { if (hit.length) hint('스티커를 <b>끝에서 끝까지</b> 가로질러야 나뉘어요 ✂️'); return; }
         const say = q('skTip').querySelector('.sk-say'); if (say) say.remove();
-        if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
+        buzz(8);
     }
-    function hint(h) { const t = q('skTip'); if (!t) return; const b = t.querySelector('.sk-say') || t.appendChild(Object.assign(document.createElement('span'), { className: 'sk-say' })); b.innerHTML = h; t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); }
+    function hint(h) { const t = q('skTip'); if (!t) return; const b = t.querySelector('.sk-say') || t.appendChild(Object.assign(document.createElement('span'), { className: 'sk-say' })); b.innerHTML = h; rePop(t, 'shake'); }
 
     /* ---------- 그림 준비 : 스티커 안쪽(테두리 · 여백 뺀 칸)을 캔버스에 그대로 그려요 ---------- */
     const load = src => new Promise((ok, no) => { const i = new Image(); if (!/^(data|blob):/.test(src)) i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = no; i.src = src; });

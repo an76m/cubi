@@ -9,7 +9,7 @@
 (function () {
     const B = { on: false, drag: null };
     const bq = id => document.getElementById(id);
-    const esc = v => (window.htmlEsc ? htmlEsc(v) : String(v == null ? '' : v));
+    const esc = htmlEsc;   // 🧰 js/util.js
     const st = () => window.dmkRmState ? dmkRmState() : null;
     function build() {
         let el = bq('bndRoom'); if (el) return el;

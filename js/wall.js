@@ -36,7 +36,7 @@
             <path class="wl-ico-heart" d="M20 19.5 C15.5 16.5 16 12.5 18.3 12.5 C19.3 12.5 20 13.4 20 14 C20 13.4 20.7 12.5 21.7 12.5 C24 12.5 24.5 16.5 20 19.5Z" fill="#ff6b93"/>
             <rect x="17" y="3.6" width="6" height="1.6" rx=".8" fill="#ffc2d6"/></svg>`;
         const wlWon = n => n.toLocaleString('ko-KR') + '원';
-        const wlEsc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        const wlEsc = htmlEsc;   // 🧰 js/util.js
         const wlImg = (id, w) => `https://lh3.googleusercontent.com/d/${id}=w${w}`;
         const wlImg2 = (id, w) => `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`;     // 첫 주소가 안 될 때
 

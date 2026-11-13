@@ -224,14 +224,14 @@
         async function dkBackOne(w, day) {
             if (!giftOn() || !keyMade(w) || !keyFileOn(w)) return;
             const who = (typeof COLL !== 'undefined' && COLL.who) || 'me', mk = who + '|' + w;
-            let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
+            let m = lsGet(DK_BK_LS, {}) || {};   /* 🧰 js/util.js */
             if (day && m[mk] === day) return;
             const ks = DESK_FILE_KEYS[w], b = {}; ks.forEach(k => { const v = prefGet(k, ''); if (v != null) b[k] = v; }); if (!Object.keys(b).length) return;
             try {
                 if (ks.some(k => !(k in b))) { const o = await dkBackRead(w); if (o) ks.forEach(k => { if (!(k in b) && o[k] != null) b[k] = o[k]; }); }
                 const d = await getFolder(KEY_FILES[w].path, true), bn = KEY_FILES[w].bb || DK_BB_NAME, c = drive.newbie && !m[mk] ? null : await findFile(d, bn);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
                 await driveUpsert(d, bn, c && c.id, await ownLock(b));
-                m[mk] = new Date().toISOString().slice(0, 10); try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
+                m[mk] = tzDay();   /* 🕘 한국 하루 (js/util.js 시계 · 도련 11-13) */ try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
                 dkBackupOnce.forget();
             } catch (e) { console.warn('목록 백업', w, e); }
         }
@@ -240,8 +240,8 @@
         const dkBkReal = (bk, k) => !!(bk && Array.isArray(bk[k]) && bk[k].some(o => o && !isGift(o)));   // 선물 아닌 것 (받은 것)   // 백업에 선물 아닌 것이 있어요 = 받은 적 있는 사람
         async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
             if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit || DK.starting) return;   // DK.starting = 처음 선물을 넣는 중
-            const day = new Date().toISOString().slice(0, 10), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
-            let m = {}; try { m = JSON.parse(localStorage.getItem(DK_BK_LS) || '{}') || {}; } catch (e) {}
+            const day = tzDay(), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
+            let m = lsGet(DK_BK_LS, {}) || {};   /* 🧰 js/util.js */
             if (m[who] === day) return;
             const body = {}; DK_BK_KEYS.forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });   // 🛟 목록 · 자리 · 설정을 한 백업에 (되살릴 때 맞춰 보려고)
             dkBkBusy = true;
@@ -296,7 +296,7 @@
         async function dkKeyRescue() {
             if (dkKR || !giftOn() || drive.newbie || !drive.deskNone || drive.deskLocked) return;
             const need = Object.keys(DK_KR).filter(w => drive.deskNone.has(w)).flatMap(w => DK_KR[w]).filter(k => prefGet(k, '') == null); if (!need.length) return;
-            const day = new Date().toISOString().slice(0, 10); try { if (localStorage.getItem('malang_keyresc') === day) return; } catch (e) {}
+            const day = tzDay(); try { if (localStorage.getItem('malang_keyresc') === day) return; } catch (e) {}
             dkKR = true;
             try { const bk = await dkBackupRead(); need.forEach(k => { if (bk && bk[k] != null && prefGet(k, '') == null) prefSet(k, '', bk[k]); }); try { localStorage.setItem('malang_keyresc', day); } catch (e) {} }
             catch (e) { console.warn('되살리기', e); dkKR = false; }
@@ -1259,7 +1259,7 @@
            넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
            못 넣는 소품(인형 · 시계 …)이면 = '○○에 넣을 수 없어요' 만 (넣을 곳은 안 알려요 · 도련 11-05) · 🌈 배경지 = 보류 */
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
-        const dkbPulse = t => { t.classList.remove('dkh-in'); void t.offsetWidth; t.classList.add('dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
+        const dkbPulse = t => { rePop(t, 'dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)
             if (it.k === 'gd' && it.gid) { if (await dkGdPut(it.gid, t)) { dkbPulse(t); dkbTake(n, j); } return; }   // ✏️ 문구 = 넣은 소품이 그 문구의 집 (도련 11-05)
@@ -1559,7 +1559,7 @@
             if (DKD.cur) { const w = DKD.cur.win; dkDrawerShut(false); if (w) dkdHide(w[1]); }   // 다른 서랍 = 열린 서랍(앞판은 닫히고 · 창은 바로 치워요) → 이 서랍 창이 위에서 내려와요
             dkdUnhide();
             const img = el.querySelector(':scope > img'), o = DK.items.find(x => x.u === el.dataset.u), c = o && dkCat(o.id);
-            if (!img || matchMedia('(prefers-reduced-motion: reduce)').matches || el.querySelector(':scope > .dkd-front:not(.bye)')) { if (run) run(); return; }   // .bye = 닫히는 중인 앞판 (다른 서랍으로 바로 넘어가요)
+            if (!img || calmMotion() || el.querySelector(':scope > .dkd-front:not(.bye)')) { if (run) run(); return; }   // .bye = 닫히는 중인 앞판 (다른 서랍으로 바로 넘어가요)
             const W = r[2] - r[0], H = r[3] - r[1], box = `left:${r[0]}%;top:${r[1]}%;width:${W}%;height:${H}%`;
             const hole = document.createElement('i'); hole.className = 'dkd-hole'; hole.style.cssText = box + (c && c.inside ? `;background-image:url("${c.inside}")` : '');
             const fr = document.createElement('i'); fr.className = 'dkd-front'; fr.style.cssText = box;
@@ -1835,7 +1835,7 @@
                 c.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { c.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
                 c.addEventListener('pointermove', e => {
                     if (!p || e.pointerId !== p.id) return; const up = Math.max(0, p.y - e.clientY); c.style.translate = `0 ${(-up / k).toFixed(1)}px`;
-                    if (up > 60) { p = null; if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {} if (window.dkCarry) dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(true); }   // ✋ 뽑은 채로 끌어 놓은 자리에
+                    if (up > 60) { p = null; buzz(12); if (window.dkCarry) dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(true); }   // ✋ 뽑은 채로 끌어 놓은 자리에
                 });
                 const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; c.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 뽑아요', c); };
                 c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
@@ -1910,7 +1910,7 @@
                 try { if (typeof saveData === 'function') saveData(false); } catch (e) {}
                 deskAnim = true;
                 const ip = document.getElementById('innerPage'), done = () => { dkFoldShut(); deskAnim = false; requestAnimationFrame(() => requestAnimationFrame(deskCloseDiary)); };
-                if (!ip || matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
+                if (!ip || calmMotion()) { done(); return; }
                 const a = ip.animate([{ transform: 'none', opacity: 1 }, { transform: 'scaleX(.5)', opacity: .6 }], { duration: 280, easing: 'ease-in' });
                 ip.style.transformOrigin = '100% 50%'; a.onfinish = a.oncancel = () => { ip.style.transformOrigin = ''; done(); };
                 return;
@@ -2177,7 +2177,7 @@
             /* 🏷 이름표 붙일까요? 까지 서랍은 열린 채 (도련 11-08) : 기능 창만 위로 올라가고 → 묻는 창 → 어느 쪽이든 누르면 서랍이 닫혀요 (붙이기 = 닫히고 이름표가 붙어 이름표 창) */
             const D = DKD.cur, w = D && D.win;
             if (D) { clearInterval(D.t); D.win = null; }                          // 기능 창을 닫아도 서랍은 그대로 (dkdDrop 의 '창이 닫히면 서랍도' 끄기)
-            if (w && dkdOn(w[1]) && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            if (w && dkdOn(w[1]) && !calmMotion()) {
                 const [box, host] = w;
                 box.animate([{ translate: '0 0' }, { translate: '0 calc(-100% - 24px)' }], { duration: 300, easing: 'cubic-bezier(.5, 0, .8, .4)', fill: 'forwards' }).onfinish = () => { closeModal(host.id); host.classList.remove('dk-drop'); setTimeout(() => box.getAnimations().forEach(a => a.cancel()), 200); };
             } else { if (w) w[1].classList.remove('dk-drop'); if (window.closeModal) closeModal('deskFnModal'); }

@@ -12,14 +12,14 @@
         const D = { on: false, st: 'home', sel: 0, kind: 'seal', shape: 'circle', zoom: 1, ox: 0, oy: 0, path: [], border: true, img: null,
             stream: null, face: 'environment', menu: -1, mrow: 0, busy: false, src: null, saving: false, drag: null, sm: null, msg: '', msgT: 0 };
         const dq = id => document.getElementById(id);
-        const quiet = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const quiet = () => calmMotion();
         const api = () => window.smPhotoApi;
         const camOk = () => window.__bthCam || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse)').matches;   // 📱 📲 (아이패드는 맥처럼 보여서 터치로)
         const KINDS = [['seal', '🏷️', '씰'], ['piece', '🧩', '조각'], ['paper', '📄', '모조지']];
         const kindOf = k => KINDS.find(x => x[0] === k) || KINDS[0];
         const shapes = () => api() ? api().shapes : [['circle', '동그라미']];
         const shapeName = s => ((shapes().find(x => x[0] === s) || [, s])[1] || '').replace(/^[^가-힣]+\s*/, '');
-        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const wait = waitMs;   // 🧰 js/util.js
 
         /* ---------- 화면 만들기 (앞모습 · 뒷모습 = 한 장의 앞뒤) ---------- */
         const FRONT = `
@@ -249,7 +249,7 @@
             say('셔터를 눌러 찰칵!', 1800);
         }
         function camStop() { if (D.stream) { D.stream.getTracks().forEach(t => t.stop()); D.stream = null; } const v = dq('dcmCam'); if (v) v.srcObject = null; }
-        function blink() { const b = dq('dcmBlink'); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
+        function blink() { const b = dq('dcmBlink'); rePop(b, 'on'); }
         /* 셔터 = 카메라면 찰칵 · 사진이 있으면 🖨 출력 */
         function shutter() {
             if (D.busy || D.menu >= 0) { if (D.menu >= 0) D.menu = -1; return; }

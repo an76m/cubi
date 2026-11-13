@@ -16,7 +16,7 @@
         const AR_OPP = { up: 'down', down: 'up', left: 'right', right: 'left' };
         const arRand = (a, b) => a + Math.random() * (b - a);
         const arPick = a => a[Math.floor(Math.random() * a.length)];
-        const arClamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const arClamp = clampN;   // 🧰 js/util.js
         function arEmoji(ctx, ch, x, y, size) {
             ctx.font = size + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

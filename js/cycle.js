@@ -15,7 +15,7 @@
         const cyq = id => document.getElementById(id);
 
         /* ---------- 날짜 ---------- */
-        const cyKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        const cyKey = d => ymd(d);   // 🧰 js/util.js
         const cyDate = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
         const cyAdd = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
         const cyDiff = (a, b) => Math.round((cyDate(cyKey(b)) - cyDate(cyKey(a))) / 86400000);

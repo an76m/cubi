@@ -119,7 +119,7 @@
     }
     async function use(id, b) {
         if (String(id).startsWith('tmp-')) {                                  // 🎁 저장 중인 처음 선물 롤 = 저장이 끝나면 바로 꺼내요 (메시지 없이 · 도련 11-04)
-            if (b) { b.classList.remove('dkt-pick'); void b.offsetWidth; b.classList.add('dkt-pick'); }
+            if (b) { rePop(b, 'dkt-pick'); }
             const real = await new Promise(ok => { const w = T.wait.get(id) || []; w.push(ok); T.wait.set(id, w); setTimeout(() => ok(null), 30000); });
             if (!real) { if (window.showMsg) showMsg('⚠ 테이프를 아직 못 받았어요.<br><small>인터넷 연결을 확인해 주세요</small>'); return; }
             id = real; b = null;
@@ -128,7 +128,7 @@
         if (!r || !r.width) { await out(id, c); return; }
         const s = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
         await out(id, s);                                                     // 🎀 그 자리에서 큰 롤(꺼낸 모습)이 되어 → 화면 가운데로 (도련 11-11)
-        if (!window.dsMoveId || matchMedia('(prefers-reduced-motion: reduce)').matches) { if (window.dsMoveId) dsMoveId(id, c.x, c.y); return; }
+        if (!window.dsMoveId || calmMotion()) { if (window.dsMoveId) dsMoveId(id, c.x, c.y); return; }
         const t0 = performance.now(), D = 420, ez = t => 1 - Math.pow(1 - t, 3);
         const step = now => { const t = Math.min(1, (now - t0) / D), e = ez(t); dsMoveId(id, s.x + (c.x - s.x) * e, s.y + (c.y - s.y) * e - Math.sin(Math.PI * t) * 40); if (t < 1) requestAnimationFrame(step); };
         requestAnimationFrame(step);
@@ -176,7 +176,7 @@
             const up = Math.max(0, p.y - e.clientY); b.style.translate = `0 ${(-up / sc()).toFixed(1)}px`;
             if (up > UP) {                                                     // 쏙 뽑혔어요 → 정리함이 닫히고 롤은 그 자리에서 꺼내져요
                 const id = b.dataset.id, ev0 = e; p = null; b.classList.remove('grab');
-                if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {}
+                buzz(12);
                 const from = where(id);
                 b.style.opacity = '0'; zoomShut(r, true);
                 follow(id, from, ev0);                                            // 뽑자마자 큰 롤(꺼낸 모습)이 손을 따라와요 → 놓은 곳 (도련 11-11)

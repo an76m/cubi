@@ -123,7 +123,7 @@
         function psyCardSvg() {
             const t = psy.test, r = t.r[psy.res];
             const F = "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif", EF = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
-            const d = new Date(), date = `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
+            const d = new Date(), date = ymd(d, '. ');
             const dots = [[30, 40], [270, 54], [26, 230], [274, 250], [60, 280], [246, 26]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${4 + i % 3 * 2}" fill="#fff" opacity=".7"/>`).join('');
             return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
 <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.c[0]}"/><stop offset="1" stop-color="${t.c[1]}"/></linearGradient></defs>

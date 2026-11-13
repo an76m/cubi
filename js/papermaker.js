@@ -25,14 +25,14 @@
         const pmS = { on: false, cv: null, ctx: null, W: 0, H: 0, DPR: 1, raf: 0, hint: '', sheet: null, SH: 0, SC: 1, X: 0, Y: 0, mv: { x: 0, y: 0 },
             pieces: [], fades: [], drag: null, edit: null, z: 1, pen: PM_PENS[0] };
         const pmq = id => document.getElementById(id);
-        const pmMk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
+        const pmMk = (w, h) => mkCanvas(w, h, true);   // 🧰 js/util.js (올림)
         const pmR = (a, b) => a + Math.random() * (b - a);
         const pmDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
         const pmNow = () => performance.now();
         const pmEase = q => 1 - Math.pow(1 - q, 3);
         const pmLoad = src => new Promise(ok => { const im = new Image(); if (/^https?:/i.test(src)) im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });   // 주소 그림은 종이에 인쇄하려고 CORS 로
         function pmPoly(c, pts) { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); }
-        function pmRR(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+        const pmRR = rrPath;   // 🧰 js/util.js
         function pmSpark(c, x, y, r, col) { c.beginPath(); for (let i = 0; i < 8; i++) { const q = i % 2 ? r * .35 : r, a = i * Math.PI / 4; c.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } c.closePath(); c.fillStyle = col; c.fill(); }
 
         /* ---------- 만들기 : 그림들 → 모조지스티커 한 장 (JPEG · 모서리 · 결은 쓸 때 입혀요) ---------- */
@@ -138,8 +138,8 @@
         const pmTape = () => { const S = pmS; return { x: S.X + PM_W * S.SC / 2 - 58, y: S.Y - 15, w: 116, h: 28 }; };
         /* 칼집 낸 스티커는 종이의 제자리에 (종이를 옮기거나 화면이 바뀌어도 같이) */
         function pmSeat(st) { const S = pmS; st.cx = S.X + st.home[0] * S.SC; st.cy = S.Y + st.home[1] * S.SC; st.s = S.SC; st.rot = 0; }
-        function pmSay(h) { const e = pmq('pmHint'); if (!e || pmS.hint === h) return; pmS.hint = h; e.innerHTML = h; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
-        function pmBuzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+        function pmSay(h) { hintPop(pmq('pmHint'), pmS, h); }   // 💬 js/util.js
+        const pmBuzz = buzz;   // 🧰 js/util.js
         /* 종이 결 : 자잘한 알갱이 + 섬유 */
         function pmGrain(c, w, h) {
             c.save(); c.globalCompositeOperation = 'source-atop';
@@ -380,7 +380,7 @@
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 (js/piecebag.js 와 같은 방법) */
         function pmStick(st) {
-            const S = pmS, pg = spPage(), r = pg.getBoundingClientRect(), k = r.width / (pg.offsetWidth || r.width) || 1;
+            const S = pmS, pg = spPage(), P = pageK(pg), k = P.k;   // 📄 페이지에 놓기 하나 (js/elements.js)
             const q = Math.min(1, PM_OUT / Math.max(st.img.width, st.img.height)), o = pmMk(st.img.width * q, st.img.height * q);
             o.getContext('2d').drawImage(st.img, 0, 0, o.width, o.height);
             S.pieces = S.pieces.filter(p => p !== st);
@@ -388,14 +388,7 @@
             const el = pg.querySelector('.element-box:last-child');
             if (el) {
                 el.dataset.float = 1;                                                          // 📄 모조지스티커 표시 (다듬기 종류 · 옮길 때 살짝 떠요)
-                const w = st.w * st.s / k, h = st.h * st.s / k, PADB = 14;                     // .element-box 안쪽 여백 6px · 테두리 1px (양쪽)
-                const deg = Math.round(Math.max(-.5, Math.min(.5, st.rot)) * 180 / Math.PI * 10) / 10;
-                const put = (px, py) => { el.dataset.posX = px; el.dataset.posY = py; el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(${deg}deg)`; };
-                el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
-                const x = Math.round((st.cx - r.left) / k - (w + PADB) / 2), y = Math.round((st.cy - r.top) / k - (h + PADB) / 2);
-                put(x, y);
-                const b = el.getBoundingClientRect();
-                put(Math.round(x + (st.cx - (b.left + b.width / 2)) / k), Math.round(y + (st.cy - (b.top + b.height / 2)) / k));
+                elPlace(el, P, st.cx, st.cy, st.w * st.s / k, st.h * st.s / k, Math.round(Math.max(-.5, Math.min(.5, st.rot)) * 180 / Math.PI * 10) / 10);
                 if (st.bg) {                                                               // 통째로 뗀 종이만 (가위로 오린 건 보통 스티커처럼 위에)                                                       // 📄 배경 모조지 : 다른 스티커 · 글 뒤 맨 아래에 깔려요 (↕️ 순서 메뉴와 같은 방법 · js/elements.js layerMove)
                     const L = [...pg.querySelectorAll(':scope > .element-box')].filter(x => x !== el).map((x, i) => [x, parseInt(x.style.zIndex) || 1, i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(a => a[0]);
                     [el].concat(L).forEach((x, n) => { x.style.zIndex = n + 1; });

@@ -24,7 +24,7 @@
         }
         const ddDate = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
         const ddDays = (a, b) => Math.round((Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) - Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / 86400000);
-        const ddStr = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        const ddStr = d => ymd(d);   // 🧰 js/util.js
 
         /* 기준 날짜(base)에서 본 D-day → { big: 'D-12', sub: '…' } */
         function ddCount(x, base) {
