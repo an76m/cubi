@@ -159,9 +159,8 @@
     async function wsPaint(k) {
         wsOpen('📃 속지 만들기', '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
         const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
-        const bg = (getComputedStyle(document.documentElement).getPropertyValue('--dy-page') || '').trim();
         const go = draft => ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
-            bg: /^#[0-9a-f]{6}$/i.test(bg) ? bg : '#ffffff', mk: { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
+            bg: '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
             done: () => { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home(); } });
         /* 💾 임시저장해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
         const DK = (window.PP_DRAFT_K || {})[k] || k;

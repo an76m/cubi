@@ -94,3 +94,9 @@ html #tbWs #lmKeep.btn { background: #e88fb0 !important; color: #fff !important;
 
 /* 태블릿 안 (홈 · 작업대) = 책상 오른쪽 위 메뉴(책상 꾸미기 · 이동)는 숨겨요 · ✕ 없이 바깥을 누르면 닫혀요 (도련 11-14) */
 body.ip-on .desk-top-r { display: none !important; }
+
+/* 🎨 태블릿 작업대 색 (도련 11-14) : 위 = 연보라 · 아래 작업판 = 연핑크 모눈 (시트 꾸미기는 분홍 · 녹색 그대로) */
+#tbWs.smk-room { background: linear-gradient(#f3ecfb, #e6d8f3 86px, #e9c9b0 86px); }
+#tbWs .shm-body { background-color: #f6dce6; }
+@media (max-width: 760px) { #tbWs.smk-room { background: linear-gradient(#f3ecfb, #e6d8f3 64px, #e9c9b0 64px); } }
+#tbWs .pp-doc { box-shadow: 0 0 0 4px #dcaabd, 0 14px 34px rgba(90, 50, 60, .28); }   /* 연핑크 작업판 위에서도 종이 둘레가 보이게 */
