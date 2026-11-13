@@ -142,3 +142,26 @@
 .pp-specb b { font-size: 13px; }
 .pp-mode button, .pp-mode button small { white-space: nowrap; }
 @media (max-width: 1250px) { .pp-mode button small { display: none; } }
+
+/* 🧻 떡메 (도련 11-14) : 💗 풀칠 띠 · 📏 크기 · 📔 붙여 보기 */
+.pp-doc.pp-tkdoc { overflow: visible; }
+.pp-gluebar { position: absolute; left: -3px; right: -3px; top: -26px; height: 26px; border-radius: 6px 6px 2px 2px; box-shadow: 0 2px 0 rgba(0, 0, 0, .08); pointer-events: none; }
+.pp-glue { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+.pp-glue button { display: flex; align-items: center; gap: 4px; border: 2px solid #f1e3e8; background: #fff; border-radius: 10px; padding: 3px 8px; font: inherit; font-size: 12px; font-weight: 700; color: #6b4438; cursor: pointer; }
+.pp-glue button i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .12); }
+.pp-glue button.on { border-color: #ff8fb1; background: #ffe6f0; color: #c2457a; }
+.pp-sizepop { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(520px, 94vw); max-height: 88vh; }
+.pp-sz-b { display: flex; flex-direction: column; gap: 12px; padding: 14px; overflow: auto; }
+.pp-sz-l { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pp-sz-l button { display: flex; flex-direction: column; align-items: center; gap: 3px; border: 2px solid #f1e3e8; background: #fff; border-radius: 12px; padding: 8px 4px; font: inherit; color: #6b4438; cursor: pointer; }
+.pp-sz-l button i { height: 34px; max-width: 54px; background: #fff6cf; border: 1.5px solid #e9d38c; border-top: 5px solid #ffb3c6; border-radius: 2px; }
+.pp-sz-l button b { font-size: 13px; font-weight: 900; }
+.pp-sz-l button small { font-size: 11px; color: #8a6a76; }
+.pp-sz-l button.on { border-color: #ff8fb1; background: #ffe6f0; }
+.pp-sz-c { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: #fff; border: 2px solid #f1d3dd; border-radius: 12px; padding: 10px 12px; color: #6b4438; font-size: 13px; }
+.pp-sz-c input { width: 64px; padding: 5px 6px; border: 2px solid #ecc9d6; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 800; color: #c2457a; text-align: center; }
+.pp-sz-c small { color: #8a6a76; font-size: 11px; }
+.pp-sz-b .pp-sp-go { align-self: center; }
+.pp-tkon { position: absolute; transform: rotate(-3deg); box-shadow: 0 2px 5px rgba(90, 60, 50, .25); background: #fff; }
+.pp-tkon img { display: block; width: 100%; height: 100%; }
+.pp-tktape { position: absolute; left: 50%; top: -6px; width: min(40%, 46px); height: 12px; margin-left: min(-20%, -23px); background: repeating-linear-gradient(45deg, rgba(255, 179, 198, .85) 0 5px, rgba(255, 220, 230, .85) 5px 10px); transform: rotate(4deg); }

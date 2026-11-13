@@ -78,7 +78,16 @@
            🧻 떡메모지
            ===================================================================== */
         /* 🧻 떡메 = 모두 그림('my' · 🏪 상품공방 상품 · 🧻 떡메 만들기 · 도련 11-02 : 예전에 제가 CSS · SVG 로 그린 메모 · 체크 · 하늘 · 투두는 상품공방으로 옮겼어요) */
-        const TK_W = 150, TK_H = 148;
+        const TK_W = 150, TK_H = 148;                                       // 예전 떡메 한 장 (크기를 안 정한 떡메 · 페이지 px)
+        let TW = TK_W, TH = TK_H;                                            // 지금 묶음의 한 장 크기 (📏 크기를 정한 떡메 = 실제 mm → 지금 다이어리 페이지 px · 도련 11-14)
+        /* 📏 떡메 한 장 크기 (페이지 px) : my.mm = [가로, 세로] mm → 지금 펼친 다이어리의 쪽 높이(mm)를 페이지 높이에 맞춰 (A6 148mm = 644px) */
+        function tkDim(my) {
+            const mm = my && Array.isArray(my.mm) && +my.mm[0] > 0 && +my.mm[1] > 0 ? my.mm : null; if (!mm) return [TK_W, TK_H];
+            const t = window.dyLook ? dyLook() : null, ph = (t && +String(t.mm || '').split(/[×x*]/)[1]) || 148;
+            const ch = typeof DY_H !== 'undefined' ? DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;
+            return [Math.round(mm[0] * k), Math.round(mm[1] * k)];
+        }
+        const tkVars = (w, h) => `--tw:${w}px;--th:${h}px`;
         const tk = { pad: 'my', edge: 'top', my: null };              // my : 🧻 내가만든 · 공유받은 떡메 { src(앞면 그림 JPG), glue(풀칠 띠 색 · 빈 값 = 다이어리 강조 색) } (js/leafmaker.js)
         const tkR = (a, b) => a + Math.random() * (b - a);
 
@@ -97,7 +106,8 @@
         }
         /* 작은 떡메 묶음 그림 (목록 칸) · glue : 풀칠 띠 색 */
         function tkMiniHtml(id, my) {
-            const g = my && /^#[0-9a-f]{6}$/i.test(my.glue || '') ? ` style="--tk-glue:${my.glue}"` : '';
+            const [w, h] = tkDim(my), f = Math.min(1, 150 / Math.max(w, h)), v = tkVars(Math.round(w * f), Math.round(h * f));   // 목록 칸 = 긴 쪽 150 안으로
+            const g = ` style="${v}${my && /^#[0-9a-f]{6}$/i.test(my.glue || '') ? `;--tk-glue:${my.glue}` : ''}"`;
             return `<span class="tk-mini"><span class="tk-pad"${g}><span class="tk-stack"></span><span class="tk-top">${tkSheetHtml(id, my)}</span><span class="tk-glue"></span></span></span>`;
         }
         /* ✏️ 톡 누르기 : 애플펜슬로 누르면 펜 끝이 살짝 밀려 click 이 안 올 때가 있어서, 누른 자리에서 조금만 움직이고 떼면 눌린 걸로 */
@@ -129,10 +139,10 @@
 
         /* 페이지에 붙는 한 장 (SVG 그림 · 위쪽 12px 은 묶음에 붙어 있던 자리라 잘려 나가요) */
         function tkPieceSvg(id, sh, tape = true) {
-            const acc = tkAcc(), W = TK_W, H = TK_H;
+            const acc = tkAcc(), W = TW, H = TH;
             const face = `<rect width="${W}" height="${H}" fill="#fff"/><image href="${tk.my && tk.my.src || ''}" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
             const tr = tkR(-7, 7).toFixed(1), ta = tkMix(acc, .4), tb = tkMix(acc, .22);
-            const tp = `<g transform="translate(75 0) rotate(${tr})" opacity=".82"><defs><pattern id="tkt" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="${tb}"/><rect width="6" height="12" fill="${ta}"/></pattern></defs>`
+            const tp = `<g transform="translate(${W / 2} 0) rotate(${tr})" opacity=".82"><defs><pattern id="tkt" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="${tb}"/><rect width="6" height="12" fill="${ta}"/></pattern></defs>`
                 + `<polygon points="-29,-7.6 -26.7,-9 -24.4,-7.2 -22,-9 29,-9 26.7,-6.8 29,-4.5 26.7,-1.8 29,.9 26.7,3.6 29,6.3 27.3,9 -29,9 -26.7,6.3 -29,3.6 -26.7,.9 -29,-1.8 -26.7,-4.5" fill="url(#tkt)"/></g>`;
             return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 -12 ${W + 12} ${H + 20}" width="${W + 12}" height="${H + 20}">`
                 + `<defs><filter id="tkd" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="1.5" stdDeviation=".7" flood-color="#5a3c32" flood-opacity=".22"/><feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#5a3c32" flood-opacity=".1"/></filter><clipPath id="tki"><polygon points="${tkPts(sh.inner)}"/></clipPath></defs>`
@@ -164,7 +174,7 @@
         function tkLayout() {
             const pg = lfq('canvasArea'), pad = lfq('tkRPad');
             tkS.k = pg && pg.offsetWidth ? pg.getBoundingClientRect().width / pg.offsetWidth : 1;
-            const k = tkS.k, W = 150 * k, H = 172 * k, VW = window.innerWidth, VH = window.innerHeight;
+            const k = tkS.k, W = TW * k, H = (TH + 24) * k, VW = window.innerWidth, VH = window.innerHeight;
             tkS.mv[0] = Math.max(W / 2 - VW / 2, Math.min(VW / 2 - W / 2, tkS.mv[0])); tkS.mv[1] = Math.max(H / 2 - VH / 2, Math.min(VH / 2 - H / 2, tkS.mv[1]));
             tkS.x = VW / 2 + tkS.mv[0] - W / 2; tkS.y = VH / 2 + tkS.mv[1] - H / 2;
             pad.style.transform = `translate(${tkS.x}px, ${tkS.y}px) scale(${k})`;
@@ -172,6 +182,7 @@
         function spawnTteok() {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             tkBuild();
+            [TW, TH] = tkDim(tk.pad === 'my' ? tk.my : null); lfq('tkRPad').style.setProperty('--tw', TW + 'px'); lfq('tkRPad').style.setProperty('--th', TH + 'px');   // 📏 이 묶음의 한 장 크기
             lfq('tkRTop').innerHTML = tkSheetHtml(tk.pad); lfq('tkRStubs').innerHTML = '';
             const g = tk.pad === 'my' && tk.my && /^#[0-9a-f]{6}$/i.test(tk.my.glue || '') ? tk.my.glue : '';
             lfq('tkRPad').style.setProperty('--tk-glue', g || 'initial');
@@ -193,29 +204,29 @@
             document.body.classList.remove('fc-lock');
         }
         function tkSay(h) { hintPop(lfq('tkHint'), tkS, h); }   // 💬 js/util.js
-        /* 화면 → 묶음 안 좌표 (150 × 172 기준) */
+        /* 화면 → 묶음 안 좌표 (TW × (TH + 24) 기준) */
         const tkLocal = P => [(P[0] - tkS.x) / tkS.k, (P[1] - tkS.y) / tkS.k];
 
         function tkDown(e) {
             if (!tkS.on || tkS.drag || e.target.closest('.tk-x')) return;
             const P = [e.clientX, e.clientY], [lx, ly] = tkLocal(P);
             const cap = () => { try { lfq('tkRoom').setPointerCapture(e.pointerId); } catch (er) {} };
-            if (lx >= -4 && lx <= 154 && ly >= -6 && ly <= 16) { tkS.drag = { mode: 'pad', last: P }; cap(); return; }          // 분홍 풀칠 띠 → 묶음 옮기기 (📒 수첩 안에서는 수첩 제목 줄로 옮겨요)
-            if (lx >= 0 && lx <= 150 && ly > 16 && ly <= 168) { tkS.drag = { mode: 'tear', start: P, last: P, lt: performance.now(), p: 0 }; cap(); tkSay('살살… 옆으로 쭉 당겨요'); return; }
+            if (lx >= -4 && lx <= TW + 4 && ly >= -6 && ly <= 16) { tkS.drag = { mode: 'pad', last: P }; cap(); return; }          // 분홍 풀칠 띠 → 묶음 옮기기 (📒 수첩 안에서는 수첩 제목 줄로 옮겨요)
+            if (lx >= 0 && lx <= TW && ly > 16 && ly <= TH + 20) { tkS.drag = { mode: 'tear', start: P, last: P, lt: performance.now(), p: 0 }; cap(); tkSay('살살… 옆으로 쭉 당겨요'); return; }
             if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e);                // 날짜바 → 페이지 옮기기 (js/page.js)
         }
         /* 당기기 시작한 쪽이 정해지면 : 떼어질 한 장(테이프 없는 그림)을 묶음 위에 똑같이 겹쳐 띄워요 · 아래엔 다음 장이 그대로 */
         function tkLift(d, dir) {
-            const k = tkS.k, sh = tkShape(tk.edge, TK_W, TK_H), im = new Image();
+            const k = tkS.k, sh = tkShape(tk.edge, TW, TH), im = new Image();
             im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(tkPieceSvg(tk.pad, sh, false));
             im.className = 'tk-fly'; im.draggable = false;
-            const px = dir > 0 ? 150 : 0;                                        // 매달린 쪽 윗모서리 (찢김이 끝나는 쪽)
-            Object.assign(im.style, { width: (TK_W + 12) * k + 'px', left: tkS.x + -6 * k + 'px', top: tkS.y + 0 * k + 'px', transformOrigin: `${(px + 6) * k}px ${12 * k}px` });
+            const px = dir > 0 ? TW : 0;                                        // 매달린 쪽 윗모서리 (찢김이 끝나는 쪽)
+            Object.assign(im.style, { width: (TW + 12) * k + 'px', left: tkS.x + -6 * k + 'px', top: tkS.y + 0 * k + 'px', transformOrigin: `${(px + 6) * k}px ${12 * k}px` });
             lfq('tkRoom').insertBefore(im, lfq('tkHint'));
             tkS.fly = im; tkS.sh = sh; d.dir = dir;
             const st = lfq('tkRStubs'); st.innerHTML = ''; st.style.clipPath = dir > 0 ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)';
             if (tk.edge !== 'straight') {                                        // 묶음에 남는 뜯긴 자국 (찢긴 만큼만 보여요)
-                const o = [[150, 0], [0, 0], ...sh.top.map(([t, v]) => [t, 12 + v])], i = [[150, 0], [0, 0], ...sh.top.map(([t, v]) => [t, 12 + v - tkR(1.2, 2.6)])];
+                const o = [[TW, 0], [0, 0], ...sh.top.map(([t, v]) => [t, 12 + v])], i = [[TW, 0], [0, 0], ...sh.top.map(([t, v]) => [t, 12 + v - tkR(1.2, 2.6)])];
                 st.innerHTML = `<div class="tk-stub"><div class="rim" style="clip-path:${tkCss(o)}"></div><div class="face" style="clip-path:${tkCss(i)}">${tkSheetHtml(tk.pad)}</div></div>`;
             }
         }
@@ -276,7 +287,7 @@
             addText();                                                           // 떡메는 메모도 돼요 : 글상자 + 뒤에 떡메 그림 (짧게 톡 → 글쓰기)
             const el = pg.querySelector('.element-box:last-child'); if (!el) return;
             tkNoteDress(el, tk.pad, src);
-            elPlace(el, P, cx, cy, TK_W + 12, TK_H + 20, Math.round(rot * 10) / 10);
+            elPlace(el, P, cx, cy, TW + 12, TH + 20, Math.round(rot * 10) / 10);
             el.classList.remove('selected'); if (selectedElement === el) { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }   // 그냥 놓이기만 · 톡 누르면 그때 골라져서 글쓰기
             if (typeof saveData === 'function') saveData(false);
             if (tkS.own && window.ownQty) {                                      // 🎒 한 장 뜯어 붙이면 묶음이 한 장 줄어요 (js/own.js)

@@ -108,7 +108,7 @@
         let inner, cls = 'k-' + e.k;
         const qtyTxt = e.q0 && e.k !== 'tape' ? Math.max(0, e.q) + '장' : '';   // 남은 장수 (도련 10-26) · 🎀 테이프는 숫자 없이 롤 두께로만 (진짜 마테처럼 · 도련 10-26)
         if (e.k === 'tape') inner = `<span class="bk-roll" style="--q:${q.toFixed(2)}"><i style="background-image:url(&quot;${esc(e.th || '')}&quot;)"></i>${qtyTxt ? `<b class="bk-qty">${qtyTxt}</b>` : ''}</span>`;
-        else if (e.k === 'tk') inner = `<span class="bk-pad" style="--q:${q.toFixed(2)}">${window.tkMiniHtml ? tkMiniHtml('my', { src: e.th, glue: x.glue || '' }) : ''}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
+        else if (e.k === 'tk') inner = `<span class="bk-pad" style="--q:${q.toFixed(2)}">${window.tkMiniHtml ? tkMiniHtml('my', { src: e.th, glue: x.glue || '', mm: x.mm }) : ''}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'memo') inner = `<span class="bk-pad bk-memo" style="--q:${q.toFixed(2)}"><img src="${esc(e.th || '')}" alt="" draggable="false">${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'leaf') inner = `<span class="lf-pick bk-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(e.th || '')}')"></i></span>`;
         else if (e.L && e.us) inner = abLayHtml(e.L, e.us.map(u => window.kitSize ? kitSize(u, 96) : u), used);   // 🗺️ 시트 배치 그대로 (뗀 자리는 빈 종이)
@@ -282,7 +282,7 @@
             }
             else if (s.k === 'paper') { if (window.stkLeave && UI.phone()) stkLeave(); ok = window.openPaperSheet && await openPaperSheet(s.imgs[0], { own: { id, a0: x.a0 }, bg: !!x.bg, grained: !!x.grained }); }
             else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }, DS.tape); }   // 페이지에 바로 (DS.tape : 롤에서 뽑은 자리 · 길이 · 방향) · 비켰다 다시 떠요 (stkBlink)
-            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave && UI.phone()) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '' }, { id }); ok = true; }
+            else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave && UI.phone()) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '', mm: x.mm }, { id }); ok = true; }
             else if (s.k === 'memo') ok = bkMemo(id, s, x);
             else if (s.k === 'leaf') ok = bkLeaf(id, s, x);
             if (!ok && window.stkReturn) stkReturn(300);

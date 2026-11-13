@@ -102,7 +102,7 @@
         if (IP.busy) return;
         if (WAY[k]) {                                                         // 📃 🧻 🎀 🏷️ = 예전 만들기 화면 (태블릿는 뒤에서 기다려요 → 닫으면 홈)
             const b = q('ipScr').querySelector(`.ip-app[data-k="${k}"]`); if (b) { b.classList.add('tap'); setTimeout(() => b.classList.remove('tap'), 300); }
-            if (k === 'leaf' && window.ppOpen) { wsPaint(k); return; }   // 🎨 속지 = 새 그림판 (js/padpaint.js · 도련 11-13)
+            if ((k === 'leaf' || k === 'tk') && window.ppOpen) { wsPaint(k); return; }   // 🎨 속지 · 🧻 떡메 = 새 그림판 (js/padpaint.js · 도련 11-13 · 떡메 11-14)
             if (k === 'leaf' || k === 'tk') { wsLeaf(k); return; }
             if (k === 'tape') { wsTape(); return; }
             if (OPEN[k]) OPEN[k](); else if (window.craftWay) craftWay(WAY[k], k); return;   // 🏷️ 시트 꾸미기 = 이미 화면 가득
@@ -157,10 +157,11 @@
     }
     /* 🎨 그림판 (js/padpaint.js) : 레이어 · 픽셀 · 벡터 · 속지부터 (도련 11-13 · 다음에 떡메 · 마테 · 조각 · 모조지) */
     async function wsPaint(k) {
-        wsOpen('📃 속지 만들기', '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
+        const T = k === 'tk', NM = T ? '떡메' : '속지';
+        wsOpen(T ? '🧻 떡메모지 만들기' : '📃 속지 만들기', '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
         const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
         const go = draft => ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
-            bg: '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
+            bg: T ? '#fff6cf' : '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: T ? { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 40 } : { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
             done: () => { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home(); } });
         /* 💾 임시저장해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
         const DK = (window.PP_DRAFT_K || {})[k] || k;
@@ -168,7 +169,7 @@
         if (!q('tbWs').classList.contains('show')) return;
         if (!has) { go(null); return; }
         const when = (() => { const d = new Date(has.at); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; })();
-        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 속지가 있어요</h3><p>${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
+        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 ${NM}가 있어요</h3><p>${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
             <div class="bt"><div><button type="button" class="go" data-a="cont">✏️ 이어서 작업</button></div>
             <div><button type="button" class="new" data-a="new">🆕 새 작업</button><small>⚠ 새 작업을 하면 임시저장해 둔<br>작업은 사라져요</small></div></div></div>`;
         q('tbWsC').querySelector('.pp-ask').addEventListener('click', async e => {
