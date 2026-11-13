@@ -4144,20 +4144,26 @@ html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에�
 #basketKindModal.bk-drw > .modal-content > .modal-title, #basketKindModal.bk-drw > .modal-content > .sub-modal-btns { display: none !important; }
 #basketKindModal.bk-drw .bk-msg { width: min(380px, 90vw); margin: 0 auto; background: #fff; border: 3px solid #8d6f7f; border-radius: 16px; color: #5a3d4a; font-weight: 700; }
 #basketKindModal.bk-drw .ab-tabs { width: min(460px, 94vw); margin: 0 auto 6px; }
-.bkd { width: min(460px, 94vw); margin: 0 auto; display: flex; flex-direction: column; filter: drop-shadow(0 12px 18px rgba(60, 30, 40, .28)); color: var(--dk); }
-.bkd-top { cursor: grab; touch-action: none; display: flex; align-items: center; gap: 6px; background: var(--db); border: 4px solid var(--dk); border-bottom: 0; border-radius: 18px 18px 0 0; padding: 8px 10px 8px; }
+.bkd, .dkw-drawer { display: flex; flex-direction: column; }
+.bkd-top, .dkw-dtop { display: flex; align-items: center; background: var(--db); border: 4px solid var(--dk); border-bottom: 0; border-radius: 18px 18px 0 0; color: var(--dk); }
+.bkd-in, .dkw-din { background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); }
+.bkd-front, .dkw-dfront { display: flex; align-items: center; justify-content: center; margin: 0 10px; background: var(--db); border: 4px solid var(--dk); border-radius: 0 0 14px 14px; flex: none; }
+.bkd-knob, .dkw-knob { border-radius: 50%; background: #ffd36b; border: 3px solid var(--dk); }
+/* ↑ 🗄️ 서랍 창 틀 하나 (도련 11-13 · 🏷 스티커 서랍 .bkd · ✏️ 문구함 서랍 .dkw-drawer 가 같이 써요 · 여기만 고치면 둘 다) · 크기 · 여백처럼 다른 것만 아래 · css/deskgd.css 에 따로 */
+.bkd { width: min(460px, 94vw); margin: 0 auto; filter: drop-shadow(0 12px 18px rgba(60, 30, 40, .28)); color: var(--dk); }
+.bkd-top { cursor: grab; touch-action: none; gap: 6px; padding: 8px 10px 8px; }
 .bkd-top > b { font-size: 15px; font-weight: 900; white-space: nowrap; }
 .bkd-sp { flex: 1; }
 .bkd-chip { display: inline-flex; align-items: center; gap: 3px; height: 30px; padding: 0 9px; border: 2px solid var(--dk); border-radius: 999px; background: #fff; color: var(--dk); font: inherit; font-size: 12.5px; font-weight: 900; white-space: nowrap; cursor: pointer; flex: none; }
 .bkd-chip:hover { background: var(--dl); }
-.bkd-in { background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); padding: 0 12px 12px; }
+.bkd-in { padding: 0 12px 12px; }
 .bkd-in .bk-how { margin: 0 0 10px; border-color: var(--dk); color: var(--dk); }
 #basketKindModal .bkd .bk-bin { max-width: none; height: clamp(300px, 54vh, 500px); margin: 0; border-radius: 10px; background: var(--dl) !important; border: 3px solid var(--dk) !important; box-shadow: inset 0 12px 0 var(--dm) !important; }   /* 서랍 속 = 바닥 + 안쪽 벽 한 줄 */
 #basketKindModal .bkd .bk-bin::before, #basketKindModal .bkd .bk-bin::after { display: none !important; }
 #basketKindModal .bkd .bk-pile { inset: 16px 10px 10px; }
 .bkd .bk-say { border: 3px solid var(--dk) !important; color: var(--dk); }
-.bkd-front { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; height: 58px; margin: 0 10px; background: var(--db); border: 4px solid var(--dk); border-radius: 0 0 14px 14px; flex: none; }
-.bkd-knob { width: 22px; height: 22px; border-radius: 50%; background: #ffd36b; border: 3px solid var(--dk); flex: none; }
+.bkd-front { position: relative; gap: 12px; height: 58px; }
+.bkd-knob { width: 22px; height: 22px; flex: none; }
 .bkd-cnt { font-size: 12px; font-weight: 900; background: #fffaf2; border: 2px solid var(--dk); border-radius: 6px; padding: 1px 8px; white-space: nowrap; }
 .bkd-get { height: 32px; }
 .bkd-get.glow { animation: bkGlow 1.4s ease-out 1; }
