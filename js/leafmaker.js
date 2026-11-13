@@ -44,7 +44,8 @@
         const openTteokMaker = () => lmOpen('tk');
         const openMemoMaker = () => lmOpen('memo');
         function lmOpen(kind) {
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            const pad = !!(window.tabletOn && tabletOn());                   // 📱 태블릿에서 열면 다이어리와 상관없이 (도련 11-13 : 서랍에 넣기만 · css/tablet.css)
+            if (!isCoverOpen && !pad) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             lmBuild();
             const T = kind === 'tk', M = kind === 'memo';
             lm.for = kind;

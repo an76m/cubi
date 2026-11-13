@@ -10,6 +10,7 @@
     'use strict';
     const APPS = [['leaf', '📃', '속지'], ['tk', '🧻', '떡메모지'], ['tape', '🎀', '마스킹테이프'], ['seal', '🏷️', '씰스티커'], ['piece', '🧩', '조각스티커'], ['paper', '📄', '모조지스티커']];
     const WAY = { leaf: 'leaf', tk: 'tk', tape: 'tape', seal: 'sheet' };   // 예전 만들기 화면 (js/craft.js CRAFT_WAYS)
+    const OPEN = { leaf: () => window.openLeafMaker && openLeafMaker(), tk: () => window.openTteokMaker && openTteokMaker() };   // 📃 🧻 = 다이어리를 펴지 않고 바로 (도련 11-13 : 태블릿은 다이어리와 상관없어요 · 서랍에 넣기만)
     const PENS = ['#3d2b33', '#ff5d8f', '#ff9a3c', '#ffd23f', '#5cc98a', '#4aa8ff', '#9b7bff', '#ffffff'];
     const SIZES = [4, 9, 18];
     const SCR0 = [3.8, 4.7, 96.3, 75.7];                                       // 화면 자리 (상품에 없을 때)
@@ -101,7 +102,7 @@
         if (IP.busy) return;
         if (WAY[k]) {                                                         // 📃 🧻 🎀 🏷️ = 예전 만들기 화면 (태블릿는 뒤에서 기다려요 → 닫으면 홈)
             const b = q('ipScr').querySelector(`.ip-app[data-k="${k}"]`); if (b) { b.classList.add('tap'); setTimeout(() => b.classList.remove('tap'), 300); }
-            if (window.craftWay) craftWay(WAY[k], k); return;
+            if (OPEN[k]) OPEN[k](); else if (window.craftWay) craftWay(WAY[k], k); return;
         }
         drawApp(k);
     }
