@@ -238,6 +238,19 @@
             const t = dsOn(dsCur(), 'top'), c = t && !dsBasic(t) ? dsCat(t) : null, k = (typeof DK !== 'undefined' && DK.s) || 1;
             el.style.background = !c ? '' : c.img && c.iw && c.ih ? `url("${c.img}") 0 0 / ${(c.iw * k).toFixed(1)}px ${(c.ih * k).toFixed(1)}px repeat` : (c.t && c.t[0]) || '';
         }
+        /* 🪵 다이어리 바탕을 다른 책상 모드에도 (도련 11-14 : 📒 스티커정리모드 · 🧩 바인더조립모드 = 다이어리모드처럼 책상 위) → html 의 --dku-* 변수 (css/anime.css · css/binderroom.css) */
+        function dkUnderVars() {
+            const H = document.documentElement, set = (k, v) => H.style.setProperty(k, v || 'initial');
+            let c = '#f8d1de', i = 'none', s = 'auto', p = '0 0', r = 'repeat';
+            try {
+                dsUnderDraw();
+                const el = dsUnderGet() === 'top' ? document.getElementById('dkUnder') : (document.querySelector('.bg-pattern-layer') && H.classList.contains('bg-pattern-on') ? document.querySelector('.bg-pattern-layer') : null);
+                if (el) { const cs = getComputedStyle(el); c = cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? cs.backgroundColor : c; i = cs.backgroundImage || 'none'; s = cs.backgroundSize || 'auto'; p = cs.backgroundPosition || '0 0'; r = cs.backgroundRepeat || 'repeat'; }
+                else if (dsUnderGet() === 'bg') c = getComputedStyle(document.body).backgroundColor || c;
+            } catch (e) { console.warn('🪵 책상 모드 바탕', e); }
+            set('--dku-c', c); set('--dku-i', i); set('--dku-s', s); set('--dku-p', p); set('--dku-r', r);
+        }
+        window.dkUnderVars = dkUnderVars;
         function dsUnderSet(v) { prefSet(DS_UNDER, DS_UNDER_L, v === 'bg' ? 'bg' : 'top'); dsUnderDraw(); }
         window.dsUnderPaint = () => { try { dsUnderDraw(); } catch (e) { console.warn('📖 다이어리 바탕', e); } }; window.dsUnderSet = dsUnderSet;
         window.dsGive = dsGive; window.dsShopList = dsShopList; window.dsSwatch = dsSwatch; window.dsBoxCells = dsBoxCells; window.dsCount = dsCount; window.dsName = dsName;

@@ -26,9 +26,9 @@
                     <div class="bnd-bar"><label>이름 <input id="bndName" maxlength="20" autocomplete="off" placeholder="내 바인더"></label>
                         <span class="bnd-info" id="bndInfo"></span>
                         <button type="button" class="btn" id="bndNew">새로</button>
-                        <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button></div></div></div>`;
+                        <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button><button type="button" class="btn bnd-done" id="bndDone">✔ 다 했어요</button></div></div></div>`;
         document.body.appendChild(el);
-        bq('bndGo').onclick = bndClose;
+        bq('bndGo').onclick = bndClose; bq('bndDone').onclick = bndClose;
         bq('bndNew').onclick = () => { window.dmkRmInit(''); render(); };
         bq('bndOk').onclick = save;
         bq('bndName').oninput = e => { const s = st(); if (s) s.g = e.target.value; };
@@ -41,13 +41,14 @@
         const el = build(); B.on = true;
         if (!st()) dmkRmInit('');
         el.classList.add('show'); document.body.classList.add('cal-on', 'bnd-on');
+        if (document.documentElement.classList.contains('desk-on')) { el.classList.add('bnd-dkmode'); if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('바인더 조립'); }   // 🧩 바인더조립모드 = 책상 위 (도련 11-14)
         render();
         try { if (window.dymReady) await dymReady(); } catch (e) { console.warn('🧩 재료', e); }
         if (B.on) render();
     }
     function bndClose() {
         const el = bq('bndRoom'); if (!el || !B.on) return;
-        B.on = false; el.classList.remove('show'); document.body.classList.remove('cal-on', 'bnd-on');
+        B.on = false; el.classList.remove('show', 'bnd-dkmode'); document.body.classList.remove('cal-on', 'bnd-on'); if (window.dtmShow) dtmShow(null);
     }
     const C = v => window.dmkClean ? dmkClean(v) : v;
     function cvCard(c, extra) {

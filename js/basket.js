@@ -60,6 +60,14 @@
         const t = document.querySelector('#basketModal .modal-title .mt-text') || document.querySelector('#basketModal .modal-title'); if (t) t.textContent = sort ? '📒 정리할 스티커 고르기' : '스티커';
         openModal('basketModal');
     }
+    /* 📒 스티커정리모드 (책상 위 · 도련 11-14) : 다 했어요 = 책상으로 · 닫히면 오른쪽 위 메뉴 이름도 제자리 */
+    window.abDone = () => { const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin'); };
+    window.abSpaceOff = () => { const m = bq('basketKindModal'); if (!m || !vis('basketKindModal') || B.view !== 'desk') return; bkView('bin'); closeModal('basketKindModal'); };
+    function absWatch(m) {
+        if (m._absW) return;
+        m._absW = new MutationObserver(() => { if (getComputedStyle(m).display === 'none' && window.dtmShow) dtmShow(null); });
+        m._absW.observe(m, { attributes: true, attributeFilter: ['style'] });
+    }
     window.bkSortOpen = () => { if (B.view === 'desk' && vis('basketKindModal')) return; B.wantSort = true; bkOpenKind('seal'); };   // 📒 스티커 정리 (🪑 위 메뉴) = 고르는 창 없이 바로 씰스티커 정리 책상 · 다른 스티커는 위 줄 버튼으로 (도련 11-11)
     function bkOpenKind(k, keep) {                                            // 그 종류의 창 (🧺 바구니 · 📒 스티커첩)
         if (!BK_KINDS[k]) return;
@@ -491,7 +499,9 @@
         if (B.view === 'album' && !abHasAlbum()) B.view = 'bin';               // 정리한 게 없으면 스티커첩 탭도 없어요
         const V = B.view || 'bin', sc = wrap.closest('.modal-content'), keep = sc ? sc.scrollTop : 0;
         { const m = bq('basketKindModal'); if (m) m.classList.toggle('bk-drw', V === 'bin'); }   // 🗄️ 서랍 = 창 없이 서랍만 (도련 11-05)
-        { const m = bq('basketKindModal'); if (m) { m.classList.toggle('ab-space', V === 'desk' && abSpace()); m.classList.toggle('ab-ph', V === 'desk' && abPh()); m.classList.toggle('abs-rl', V === 'desk' && abSpace() && !!B.desk && B.desk.mode === 'rl'); } }   // abs-rl : 🪡 핀셋이 저절로 (js/elements.js pinForce)   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
+        { const m = bq('basketKindModal'); if (m) { const dm = V === 'desk' && abSpace() && !abPh() && document.documentElement.classList.contains('desk-on');   // 📒 스티커정리모드 = 책상 위 (도련 11-14)
+            m.classList.toggle('abs-dkmode', dm); if (dm) { if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('스티커 정리'); absWatch(m); } else if (window.dtmShow) dtmShow(null);
+            m.classList.toggle('ab-space', V === 'desk' && abSpace()); m.classList.toggle('ab-ph', V === 'desk' && abPh()); m.classList.toggle('abs-rl', V === 'desk' && abSpace() && !!B.desk && B.desk.mode === 'rl'); } }   // abs-rl : 🪡 핀셋이 저절로 (js/elements.js pinForce)   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
         const tabs = (V === 'bin' || V === 'album') && abHasAlbum() ? `<div class="ab-tabs"><button type="button" class="${V === 'bin' ? 'on' : ''}" onclick="bkView('bin')">🗄️ 서랍</button>`
             + `<button type="button" class="${V === 'album' ? 'on' : ''}" onclick="bkView('album')">📒 스티커첩</button></div>` : '';
         wrap.innerHTML = tabs + '<div class="ab-body" id="abBody"></div>';
@@ -738,7 +748,7 @@
         + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
-        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="bkView('bin')">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
+        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="abDone()">다 했어요</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */

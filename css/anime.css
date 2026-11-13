@@ -836,3 +836,13 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 #deskStage > .dl-pegmk b { position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0; white-space: nowrap; padding: 4px 12px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-size: 15px; font-weight: 800; box-shadow: 0 3px 10px rgba(160, 90, 110, .2); }
 @keyframes dlPegMk { from { scale: .85; } to { scale: 1.15; } }
 #deskStage .desk-item.dl-near { filter: drop-shadow(0 0 6px #ff7aa8) drop-shadow(0 0 2px #fff); }
+
+/* 📒 스티커정리모드 (도련 11-14 · js/basket.js abs-dkmode) : 다이어리모드처럼 책상 위 = 바탕은 🪵 책상판 무늬 / 🌈 배경지 (html --dku-* · js/deskskin.js dkUnderVars) · 위 가운데 🔑 잠금 · 오른쪽 위 메뉴 그대로 · 날짜바 자리에 정리 막대 */
+#basketKindModal.abs-dkmode > .modal-content { background-color: var(--dku-c, #f8d1de) !important; background-image: var(--dku-i, none) !important; background-size: var(--dku-s, auto) !important; background-position: var(--dku-p, 0 0) !important; background-repeat: var(--dku-r, repeat) !important; }
+#basketKindModal.abs-dkmode .abs-bar { align-self: center; width: fit-content; margin: 58px auto 4px; padding: 6px 10px; gap: 10px; background: #fff; border: 2px solid #e9c7dd; border-radius: 16px; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); }
+#basketKindModal.abs-dkmode .abs-bar .abs-fill, #basketKindModal.abs-dkmode .abs-bar .abs-x { display: none; }
+#basketKindModal.abs-dkmode .abs-bar .ab-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
+#basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
+body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .desk-top-r { z-index: 1001; }
+html.desk-on body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .dk-lock { display: block; z-index: 1001; }
+#basketKindModal.ab-space .dk-tape { display: none !important; }   /* 창 모서리 테이프는 정리 공간에선 안 보여요 */

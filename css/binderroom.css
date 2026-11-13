@@ -63,3 +63,30 @@
 .bnd-ok:disabled { opacity: .45; }
 body.bnd-on .desk-top-r { display: none; }
 @media (max-width: 760px) { .bnd-mat { grid-template-columns: 1fr; grid-template-rows: 40% minmax(0, 1fr); } .bnd-open { grid-template-columns: 1fr 26px 1.2fr; min-height: 240px; } .bnd-garland, .bnd-sign small { display: none; } }
+
+/* 🧩 바인더조립모드 (도련 11-14 · js/binderroom.js bnd-dkmode) : 다이어리모드처럼 책상 위 = 🪵 책상판 무늬 / 🌈 배경지 · 위 🔑 잠금 · 오른쪽 위 메뉴 · 왼쪽 등나무 재료 바구니 · 가운데 펼친 표지 · 아래 작은 막대 */
+.bnd-room.bnd-dkmode { background-color: var(--dku-c, #f8d1de); background-image: var(--dku-i, none); background-size: var(--dku-s, auto); background-position: var(--dku-p, 0 0); background-repeat: var(--dku-r, repeat); }
+.bnd-dkmode .bnd-wall { height: 64px; }
+.bnd-dkmode .bnd-wall > * { display: none; }
+.bnd-dkmode .bnd-mat { border: 0; background: none; padding: 10px 28px 18px; gap: 34px; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); }
+.bnd-dkmode .bnd-basket { border: 0; border-radius: 30px; transform: rotate(-1.5deg); background: repeating-linear-gradient(45deg, #ecc884 0 11px, #deb168 11px 22px); box-shadow: inset 0 0 0 9px #c9934a, inset 0 0 0 12px #b9813d, 0 14px 22px rgba(90, 55, 35, .32); padding: 14px; }
+.bnd-dkmode .bnd-basket h3 { align-self: center; border: 1.5px solid #e2b9c9; border-radius: 12px; background: #fff; padding: 4px 12px; margin: 2px auto 6px; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
+.bnd-dkmode .bnd-sec > b { display: inline-block; background: rgba(255, 250, 240, .9); border-radius: 8px; padding: 2px 8px; }
+.bnd-dkmode .bnd-card { background: rgba(255, 252, 246, .94); border-color: rgba(201, 147, 74, .45); box-shadow: 0 3px 6px rgba(90, 55, 35, .22); }
+.bnd-dkmode .bnd-card:nth-child(odd) { transform: rotate(-2deg); } .bnd-dkmode .bnd-card:nth-child(even) { transform: rotate(2deg); }
+.bnd-dkmode .bnd-card:hover { transform: translateY(-3px) rotate(0); }
+.bnd-dkmode .bnd-hint { background: rgba(255, 250, 240, .9); border-radius: 8px; padding: 6px 8px; }
+.bnd-dkmode .bnd-work { background: none; border: 0; box-shadow: none; overflow: visible; }
+.bnd-dkmode .bnd-work h3 { align-self: center; border: 1.5px solid #e2b9c9; border-radius: 12px; background: #fff; padding: 4px 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
+.bnd-dkmode .bnd-bench { padding: 10px 6px; }
+.bnd-dkmode .bnd-place { background: rgba(255, 255, 255, .55); border-color: rgba(194, 69, 122, .45); color: #8b5a6e; }
+.bnd-dkmode .bnd-open { border: 0; border-radius: 22px; padding: 14px; gap: 0; background: color-mix(in srgb, var(--cv, #ffc6d6) 85%, #fff); box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--cv, #ffc6d6) 70%, #6b4438), 0 16px 26px rgba(90, 50, 60, .32); min-height: 420px; }
+.bnd-dkmode .bnd-left { border-radius: 12px 0 0 12px; }
+.bnd-dkmode .bnd-right { border-radius: 0 12px 12px 0; }
+.bnd-dkmode .bnd-bar { align-self: center; border: 2px solid #e9c7dd; border-radius: 16px; background: #fff; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); margin-top: 6px; padding: 8px 12px; }
+.bnd-dkmode .bnd-info:empty { display: none; }
+.bnd-done { display: none; }
+.bnd-dkmode .bnd-done { display: inline-flex; }
+body.bnd-on .bnd-dkmode ~ .desk-top-r, body.bnd-on:has(.bnd-dkmode.show) .desk-top-r { display: flex !important; }
+html.desk-on body.bnd-on:has(.bnd-dkmode.show) .dk-lock { display: block; }
+.bnd-dkmode .bnd-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }

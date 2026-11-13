@@ -648,7 +648,19 @@
             const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
             L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-main').setAttribute('aria-expanded', String(open));
         }
-        function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (!it) return; if (window.dsClear) dsClear(); deskTopGo(it[1]); }   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
+        function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (!it) return; if (window.dsClear) dsClear(); dkModesOff(); deskTopGo(it[1]); }
+        /* 📒 🧩 책상 모드 (도련 11-14) : 스티커정리모드 · 바인더조립모드 = 다이어리모드처럼 책상 위 · 오른쪽 위 메뉴는 그 모드 이름 · 다른 메뉴 · 이동을 누르면 그 모드는 닫혀요 */
+        let dtmPrev = null;
+        function dtmShow(name) {
+            if (name) { const i = DTM_ITEMS.findIndex(x => x[0] === name); if (i < 0) return; if (dtmPrev == null) dtmPrev = DTM.i; DTM.i = i; }
+            else { if (dtmPrev == null) return; DTM.i = dtmPrev; dtmPrev = null; }
+            dtmPaint();
+        }
+        function dkModesOff() {
+            try { if (window.bndIsOpen && bndIsOpen() && window.bndClose) bndClose(); } catch (e) {}
+            try { if (window.abSpaceOff) abSpaceOff(); } catch (e) {}
+        }
+        window.dtmShow = dtmShow; window.dkModesOff = dkModesOff;   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
         document.addEventListener('pointerdown', e => { const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false); }, true);
         window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
@@ -699,7 +711,7 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
+                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="dkModesOff(); deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
             const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); }
             dkLockBuild();                                                        // 🔑 다이어리모드 위 가운데 잠금 스위치 (도련 11-12)   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
