@@ -15,6 +15,7 @@
 :root body.gdt-on:has(#gdTry) :is(.pc-room, .rl-ruler, .rl-say, .pm-room) { z-index: 2147483001 !important; }
 :root body.gdt-on:has(#gdTry) :is(.sk-room, .twz-say, .pin-cur, .twz-room, .pfx-stage, #customAlertModal) { z-index: 2147483002 !important; }
 :root body.gdt-on:has(#gdTry) .scs-cur { z-index: 2147483003 !important; } :root body.gdt-on:has(#gdTry) .scs-aim { z-index: 2147483004 !important; }
+body.gdt-on .rl-fit { display: none; }   /* 📏 cm 맞추기 = 이 기기 설정 저장 → 연습장에선 안 보여요 */
 
 /* 🕳️ 펀칭 연습 = 진짜 바인더 구멍 자리 (css .dy-holes) · 아직 안 뚫은 자리는 점선 동그라미로 보여요 */
 .gdt .dy-holes i { visibility: visible; background: transparent; box-shadow: none; border: 2px dashed #e7a3bb; box-sizing: border-box; }

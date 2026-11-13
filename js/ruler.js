@@ -1,10 +1,9 @@
 /* 📏 자 (도련 · 2026-10-17 · 10-19 펜꽂이 → 🗄️ 문구함) : 문구함 '자' 서랍을 톡 = 보이는 쪽 가운데에 내려놓아요 · 다시 톡 = 넣기 (js/skins.js · 펀칭기 · 가위처럼)
    - 자는 '깔아 두는 도구' · 손에는 지금처럼 필기구(또는 칼) 하나만 들어요 → 자 + 칼 · 자 + 색연필 · 자만 모두 돼요
-   - 몸통을 끌면 옮기기 · 양 끝을 잡고 끌면 돌리기(0 · 45 · 90° 근처에서 살짝 붙어요) · 두 손가락으로도 옮기고 돌려요
-   - 🖼 모양 = 상품공방 그림 그대로 (도련 11-13 : 앱이 그리던 눈금 · 숫자 · 양 끝 ⟳ 손잡이는 영구 삭제 · 공중에 뜬 자와 같은 모습)
+   - 몸통을 끌면 옮기기 · 양 끝 동그란 손잡이로 돌리기(0 · 45 · 90° 근처에서 살짝 붙어요) · 두 손가락으로도 옮기고 돌려요
    - 가장자리에 대고 칼 · 색연필 · 형광펜을 그으면 자에 착 붙어 반듯하게 · 그은 길이가 cm 로 보여요
    - 아무것도 안 들고 자 가장자리를 따라 쓸면 길이만 재요
-   - 크기 · 잰 길이는 화면에 보이는 진짜 cm · 기기마다 화면이 달라서 ⚙ 설정 → 📏 자 맞추기(카드 대고 한 번)로 맞춰요 (이 기기에만 저장 · malang_ruler_ppc)
+   - 눈금은 화면에 보이는 진짜 cm · 기기마다 화면이 달라서 ⚙ 설정 → 📏 자 맞추기(카드 대고 한 번)로 맞춰요 (이 기기에만 저장 · malang_ruler_ppc)
    - 자는 일기에 저장되지 않아요 (PNG 저장에도 안 찍혀요) · 다 쓰면 문구함 '자' 서랍을 다시 톡
    ※ 이 파일이 없어도 다이어리는 정상 동작 (문구함에 자만 안 나와요) */
 (() => {
@@ -39,24 +38,47 @@
     const rlPicOf = K => window.gdPic ? gdPic('ruler:' + K.id) : null;
 
     /* ---------- 자 그림 (페이지) : 세운 자 그림을 시계 방향으로 눕혀요 (그림 위 = 오른쪽 끝 · 왼쪽 변 = 위 · 눈금은 위 가장자리) · 눈금영역 길이 = L cm ---------- */
-    function rlDraw() {
-        const K = rlKind(R.kind), P = rlPicOf(K), p = R.ppc, L = R.L;
+    function rlDraw() { const d = rlArt(rlKind(R.kind), R.L, R.ppc); R.W = d.w; R.H = d.h; return d.svg; }
+    /* 📏 눈금 자 그림 하나 (페이지 자 · 🪑 공중에 뜬 자가 같은 그림 · 도련 11-13 : 공중의 자가 민무늬 큰 그림이었어요) → { svg, w, h } */
+    function rlArt(K, L, p) {
+        const P = rlPicOf(K);
         const a = K.area, len = (a[3] - a[1]) / 100 * P.h, s = L * p / len;
-        const W = Math.round(P.h * s), H = Math.round(P.w * s); R.W = W; R.H = H;
-        return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" data-an="1" aria-hidden="true">`   // 🖼 상품 그림만 (눈금 · 숫자 없음 · 도련 11-13)
-            + `<g transform="scale(${s.toFixed(5)}) translate(${P.h} 0) rotate(90)"><image href="${P.u}" width="${P.w}" height="${P.h}" preserveAspectRatio="none"/></g></svg>`;
+        const W = Math.round(P.h * s), H = Math.round(P.w * s);
+        const x0 = (P.h - a[3] / 100 * P.h) * s, y0 = a[0] / 100 * P.w * s, ah = (a[2] - a[0]) / 100 * P.w * s;
+        let tk = '', nm = '';
+        for (let i = 0; i <= L * 10; i++) {
+            const x = (x0 + i * p / 10).toFixed(2), cm = i % 10 === 0, l = ah * (cm ? .42 : i % 5 === 0 ? .3 : .18);
+            tk += `<line x1="${x}" y1="${y0.toFixed(1)}" x2="${x}" y2="${(y0 + l).toFixed(1)}" stroke-width="${cm ? 1.3 : .8}"/>`;
+            if (cm) nm += `<text x="${x}" y="${(y0 + ah * .42 + Math.min(11, ah * .3) + 2).toFixed(1)}">${i / 10}</text>`;
+        }
+        const svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" data-an="1" aria-hidden="true">`
+            + `<g transform="scale(${s.toFixed(5)}) translate(${P.h} 0) rotate(90)"><image href="${P.u}" width="${P.w}" height="${P.h}" preserveAspectRatio="none"/></g>`
+            + `<g stroke="${K.ink}">${tk}</g><g fill="${K.ink}" font-size="${Math.min(11, Math.max(7, ah * .3)).toFixed(1)}" font-family="sans-serif" font-weight="bold" text-anchor="middle">${nm}</g></svg>`;
+        return { svg, w: W, h: H };
     }
-    /* 🗄️ 문구함 · 펜꽂이에 든 세운 자 = 상품공방 그림 그대로 (눈금 없음 · 도련 11-13) */
-    function rlCupSvg(id) { const K = rlKind(id); return K ? gdPicSvg('ruler:' + K.id) : ''; }
+    function rlLen(p) {                                                     // 자 길이 cm = 보이는 쪽 안에 다 들어가게 (5 ~ 15 · 📱 폰 = 오른쪽 쪽 · 양 끝 ⟳ 돌리기 손잡이가 보여요 · 도련 10-19)
+        const b0 = window.spPage ? spPage() : document.getElementById('canvasArea'), vw = b0 ? (window.spRect ? spRect() : b0.getBoundingClientRect()).width : innerWidth;   // 🏠 지금 공간의 보이는 쪽 (🏪 연습장에서도 진짜 크기 · js/space.js)
+        if (!(vw > 100)) return R.L;                                        // 🪑 페이지가 안 보여요 (책상모드) = 페이지 자의 마지막 길이 (처음 15)
+        return Math.max(5, Math.min(15, Math.floor((Math.min(vw, innerWidth) - 1.2 * p - 30) / p)));
+    }
+    /* 🗄️ 문구함 · 펜꽂이에 든 세운 자 = 상품공방 그림 + 짧은 눈금 (그림 px) */
+    function rlCupSvg(id) {
+        const K = rlKind(id); if (!K) return ''; const P = rlPicOf(K);
+        const a = K.area, x0 = a[0] / 100 * P.w, y1 = a[1] / 100 * P.h, y2 = a[3] / 100 * P.h, aw = (a[2] - a[0]) / 100 * P.w, n = 150, st = (y2 - y1) / n;
+        let tk = ''; for (let i = 0; i <= n; i++) { const y = (y1 + i * st).toFixed(2), l = aw * (i % 10 === 0 ? .42 : i % 5 === 0 ? .3 : .18); tk += `<line x1="${x0.toFixed(2)}" y1="${y}" x2="${(x0 + l).toFixed(2)}" y2="${y}"/>`; }
+        return gdPicSvg('ruler:' + K.id, { extra: `<g stroke="${K.ink}" stroke-width="${Math.max(.4, P.w / 60).toFixed(2)}">${tk}</g>` });
+    }
 
     /* ---------- 자 놓기 ---------- */
     function rlBuild() {
         if (R.el) return R.el;
         const el = document.createElement('div'); el.className = 'rl-ruler'; el.id = 'rlRuler'; el.hidden = true;
-        el.innerHTML = '<div class="rl-svg"></div>';   // 🖼 상품 그림만 (cm 맞추기 = ⚙ 설정 · 도련 11-13)
+        el.innerHTML = '<div class="rl-svg"></div><i class="rl-h l" aria-hidden="true"></i><i class="rl-h r" aria-hidden="true"></i><button type="button" class="rl-fit" hidden>📏 cm 맞추기</button>';
         document.body.appendChild(el);
         el.addEventListener('pointerdown', e => { if (window.rlEdgeDown && rlSnap(e.clientX, e.clientY) && rlEdgeDown(e)) return; if (!rlGrab(e)) e.stopPropagation(); });   // 필기구를 든 채 자 가장자리 안쪽을 누르면 자를 옮기지 않고 자에 대고 그어요 (js/draw.js rlEdgeDown · 도련 10-19)
         el.addEventListener('pointermove', rlMove); el.addEventListener('pointerup', rlUp); el.addEventListener('pointercancel', rlUp);
+        const fit = el.querySelector('.rl-fit');
+        fit.addEventListener('pointerdown', e => e.stopPropagation()); fit.addEventListener('click', e => { e.stopPropagation(); rlCalOpen(); });
         const say = document.createElement('div'); say.className = 'rl-say'; say.id = 'rlSay'; say.hidden = true; document.body.appendChild(say);
         const mz = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); mz.setAttribute('class', 'rl-meas'); mz.id = 'rlMeas'; mz.innerHTML = '<line/>'; document.body.appendChild(mz);
         addEventListener('resize', () => { if (R.on) { rlSize(); rlKeep(); rlPlace(); } });
@@ -64,10 +86,10 @@
     }
     function rlSize() {
         R.ppc = rlPpc();
-        const b0 = window.spPage ? spPage() : document.getElementById('canvasArea'), vw = b0 ? (window.spRect ? spRect() : b0.getBoundingClientRect()).width : innerWidth;   // 🏠 지금 공간의 보이는 쪽 (🏪 연습장에서도 진짜 크기 · js/space.js)
-        R.L = Math.max(5, Math.min(15, Math.floor((Math.min(vw, innerWidth) - 1.2 * R.ppc - 30) / R.ppc)));   // 보이는 쪽 안에 다 들어가게 (📱 폰 = 오른쪽 쪽 · 양 끝 ⟳ 돌리기 손잡이가 보여요 · 도련 10-19)
+        R.L = rlLen(R.ppc);
         R.el.querySelector('.rl-svg').innerHTML = rlDraw();
         R.el.style.width = R.W + 'px'; R.el.style.height = R.H + 'px';
+        R.el.querySelector('.rl-fit').hidden = !!rlSaved();
     }
     function rlPlace() { R.el.style.transform = `translate(${R.cx - R.W / 2}px, ${R.cy - R.H / 2}px) rotate(${R.ang}deg)`; }
     function rlKeep() {                                   // 가운데는 늘 화면 안
@@ -134,7 +156,7 @@
         try { R.el.setPointerCapture(e.pointerId); } catch (er) {}
         R.touch.set(e.pointerId, [e.clientX, e.clientY]);
         if (R.touch.size === 2) { rlTwoStart(); return true; }
-        const [lx] = rlLocal(e.clientX, e.clientY), rot = Math.abs(lx) > R.W / 2 - Math.max(e.pointerType === 'mouse' ? 30 : 44, R.W * (e.pointerType === 'mouse' ? .14 : .18));   // 🔄 양 끝을 잡고 끌면 돌리기 (손잡이 그림 없이 · 도련 11-13) · 👆 터치는 끝을 넉넉히
+        const [lx] = rlLocal(e.clientX, e.clientY), rot = Math.abs(lx) > R.W / 2 - (e.pointerType === 'mouse' ? 16 : 30);   // 👆 터치는 끝을 넉넉히
         R.drag = rot
             ? { id: e.pointerId, rot: true, a0: Math.atan2(e.clientY - R.cy, e.clientX - R.cx) * 180 / Math.PI - R.ang }
             : { id: e.pointerId, off: [R.cx - e.clientX, R.cy - e.clientY] };
@@ -230,6 +252,6 @@
     window.rlShow = rlShow; window.rlEnd = rlEnd; window.rlOn = rlOn; window.rlGrab = rlGrab; window.rlHit = rlHit;
     window.rlSnap = rlSnap; window.rlStay = rlStay; window.rlProj = rlProj; window.rlTell = rlTell; window.rlMeasure = rlMeasure;
     window.rlCupSvg = rlCupSvg; window.rlCalOpen = rlCalOpen;
-    window.rlRealSize = id => { const K = rlKind(String(id).replace(/^ruler:/, '')), P = K && rlPicOf(K); if (!P) return null; const a = K.area, len = (a[3] - a[1]) / 100 * P.h, s = (R.on ? R.L : 15) * rlPpc() / len; return [P.w * s, P.h * s]; };   // 📏 세운 자 그림 = 진짜 cm 길이 그대로 (🪑 책상 공중에 뜬 자 · js/deskgd.js)
+    window.rlFloatArt = id => { const K = rlKind(String(id).replace(/^ruler:/, '')); if (!K || !rlPicOf(K)) return null; const p = rlPpc(); return rlArt(K, R.on ? R.L : rlLen(p), p); };   // 🪑 공중에 뜬 자 = 페이지 자와 같은 눈금 자 · 같은 길이 (js/deskgd.js dkwFloat · 도련 11-13)
     window.rlKinds = () => RL_KINDS.map(k => ({ id: k.id, name: k.name })); window.rlKindNow = () => R.on ? R.kind : null;
 })();

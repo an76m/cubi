@@ -347,9 +347,10 @@
         function dkwFloat(id, x, y) {
             dkwFloatOff(id, true);
             const pen = dkwIsPen(id), P = pen && window.pkAll ? pkAll().find(t => t.id === id) : null, pic = window.gdPic ? gdPic(id) : null;
-            const sz = pen && P && P.box ? P.box : id.startsWith('ruler:') && window.rlRealSize && rlRealSize(id) || (pic && pic.size ? pic.size : [40, 140]);   // 📏 자 = 쓰는 크기(진짜 cm) 그대로 (도련 11-12 : 공중의 자가 너무 작았어요)
+            const rf = id.startsWith('ruler:') && window.rlFloatArt ? rlFloatArt(id) : null;   // 📏 자 = 페이지 자와 같은 눈금 자 · 같은 길이 (민무늬 큰 '가상의 자' 없앰 · 도련 11-13)
+            const sz = pen && P && P.box ? P.box : rf ? [rf.w, rf.h] : (pic && pic.size ? pic.size : [40, 140]);   // 📏 자 = 쓰는 크기(진짜 cm) 그대로 (도련 11-12 : 공중의 자가 너무 작았어요)
             const el = document.createElement('div'); el.className = 'dkw-fl' + (pen ? ' pen' : ''); el.dataset.id = id;
-            el.innerHTML = `<i style="width:${sz[0]}px;height:${sz[1]}px;rotate:${pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28}deg">${window.gdPicSvg ? gdPicSvg(id) : dkwArt(id)}</i>`;   // ✏️ 손에 든 모습 그대로 (연필심이 왼쪽 아래 · js/draw.js PC_ANG)
+            el.innerHTML = `<i style="width:${sz[0]}px;height:${sz[1]}px;rotate:${pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28}deg">${rf ? rf.svg : window.gdPicSvg ? gdPicSvg(id) : dkwArt(id)}</i>`;   // ✏️ 손에 든 모습 그대로 (연필심이 왼쪽 아래 · js/draw.js PC_ANG)
             el.style.left = x + 'px'; el.style.top = y + 'px';
             el._ang = pen ? (typeof handLeft === 'function' && handLeft() ? 145 : -145) : -28;
             el._tip = pen && P && P.tip ? [P.tip[0] - sz[0] / 2, P.tip[1] - sz[1] / 2] : [0, 0];   // 연필심 = 마우스 끝 (손에 든 것처럼)
