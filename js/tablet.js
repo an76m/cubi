@@ -25,10 +25,9 @@
         let r = q('ipRoom'); if (r) return r;
         r = document.createElement('div'); r.id = 'ipRoom'; r.className = 'ip-room';
         r.innerHTML = `<div class="ip-dim"></div>
-            <div class="ip-pad" id="ipPad"><img class="ip-img" id="ipImg" alt="" draggable="false"><div class="ip-scr" id="ipScr"></div><button type="button" class="ip-x win-x" aria-label="닫기">✕</button></div>`;
+            <div class="ip-pad" id="ipPad"><img class="ip-img" id="ipImg" alt="" draggable="false"><div class="ip-scr" id="ipScr"></div></div>`;
         document.body.appendChild(r);
         r.querySelector('.ip-dim').addEventListener('click', () => closeTablet());
-        r.querySelector('.ip-x').addEventListener('click', () => closeTablet());
         return r;
     }
     /* 크게 뜬 태블릿 자리 (화면 가운데 · 화면 안) */

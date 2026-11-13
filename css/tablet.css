@@ -4,9 +4,6 @@
 .ip-room.show { display: block; }
 .ip-dim { position: absolute; inset: 0; background: rgba(70, 44, 56, .34); opacity: 0; transition: opacity .35s ease; }
 .ip-room.lit .ip-dim { opacity: 1; }
-.ip-x { position: absolute; top: -14px; right: -14px; z-index: 3; opacity: 0; transition: opacity .3s; }   /* ✕ = 태블릿 오른쪽 위 모서리 */
-.ip-pad.fly .ip-x { opacity: 0 !important; }
-.ip-room.lit .ip-x { opacity: 1; }
 .ip-pad { position: absolute; transform-origin: 0 0; }
 .ip-img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-select: none; }
 .ip-scr { position: absolute; overflow: hidden; border-radius: 3.2% / 4.6%; transition: opacity .25s ease; display: flex; flex-direction: column; color: #5b3f4a; container-type: size; }
@@ -62,7 +59,7 @@
 .dk-pad i:nth-child(4) { background: #cfe4ff; } .dk-pad i:nth-child(5) { background: #cdeec8; } .dk-pad i:nth-child(6) { background: #e7d6ff; }
 /* 📱 태블릿에서 연 만들기 = 다이어리와 상관없이 🗄️ 서랍에 넣기만 (도련 11-13 : 다이어리모드가 실행됐어요) · 📃 끼우기 · 🧻 꺼내기 · 🎀 붙이기 · ‹ 스티커만들기 숨김 */
 body.ip-on #lmGo, body.ip-on #leafMakeModal .mt-back, body.ip-on #leafMakeModal .sub-modal-btns, body.ip-on .smk-room button[onclick^="tpmFinish(true"] { display: none !important; }
-@media (prefers-reduced-motion: reduce) { .ip-dim, .ip-x, .ip-scr { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ip-dim, .ip-scr { transition: none; } }
 
 /* 🖥 화면 가득 작업대 (js/tablet.js wsOpen · 도련 11-13 : 디자인하려면 화면이 넓어야 해요) = 🗂️ 시트 꾸미기 모양 (css/sheetmaker.css .shm-*)
    .smk-room 은 예전 만들기 화면 칸의 모양을 그대로 쓰려고 붙여요 (보이기 · 자리는 아래 #tbWs 가 정해요) */
@@ -94,3 +91,6 @@ body.tb-ws-on .ip-room { visibility: hidden; }                                  
 #tbWs #tpmTabs button { width: 100%; }
 #tbWs .shm-panel > .smk-go.smk-sub::before { display: none; }
 html #tbWs #lmKeep.btn { background: #e88fb0 !important; color: #fff !important; border: 0 !important; box-shadow: 0 4px 0 #c2457a !important; }   /* html.an .btn 보다 먼저 */
+
+/* 태블릿 안 (홈 · 작업대) = 책상 오른쪽 위 메뉴(책상 꾸미기 · 이동)는 숨겨요 · ✕ 없이 바깥을 누르면 닫혀요 (도련 11-14) */
+body.ip-on .desk-top-r { display: none !important; }

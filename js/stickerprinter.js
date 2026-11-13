@@ -63,7 +63,6 @@
             el = document.createElement('div'); el.id = 'sprRoom'; el.className = 'spr-room';
             el.innerHTML = `<div class="spr-back" id="sprBack"></div>
                 <img class="spr-fly" id="sprFly" alt="" draggable="false">
-                <button type="button" class="spr-x win-x" id="sprX" aria-label="닫기">✕</button>
                 <div class="spr-wrap" id="sprWrap">
                   <div class="spr-mach" id="sprMach">
                     <div class="spr-front" id="sprFront">
@@ -88,7 +87,7 @@
                 </div>
                 <input type="file" id="sprFile" accept="image/*" multiple hidden>`;
             document.body.appendChild(el);
-            pq('sprX').onclick = () => close(); pq('sprBack').onclick = () => { if (!P.busy) close(); };
+            pq('sprBack').onclick = () => { if (!P.busy) close(); };
             pq('sprPw').onclick = () => { if (P.view === 'front' && P.st === 'edit' && !P.busy) toTop(); };
             pq('sprTop').addEventListener('pointerdown', e => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 130); if (b.dataset.k === 'PW') { const t = pq('sprTop'); t.classList.add('pw'); setTimeout(() => t.classList.remove('pw'), 160); } key(b.dataset.k); });
             pq('sprFile').onchange = e => { const f = [...(e.target.files || [])].filter(x => /^image\//.test(x.type) || /\.(jpe?g|png|gif|webp|heic|heif|avif)$/i.test(x.name)); e.target.value = ''; if (f.length) gotFiles(f); };
