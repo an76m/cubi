@@ -1288,8 +1288,9 @@
                 if (cur) old = cur;
             } else if (M[win] === u) { dkbPulse(t); dkbTake(n, j); return; }
             const wasU = M[win] || Object.keys(H).find(x => H[x].some(e => e.k === win)), ow = wasU && DK.items.find(x => x.u === wasU);
+            let movedFrom = null;                                                // 🗄️ 옮겨 간 서랍 자리 (열려 있으면 닫아요 · 도련 11-13)
             if (ow && !(S && wasU === u)) {
-                const we = !M[win] && (H[wasU] || []).find(e => e.k === win), at = dkName(ow) + (we ? ` ${dkSlotNm(we.s, (dkSlots(ow.id) || []).length)} 칸` : '');
+                const we = !M[win] && (H[wasU] || []).find(e => e.k === win); movedFrom = we ? [wasU, we.r] : null; const at = dkName(ow) + (we ? ` ${dkSlotNm(we.s, (dkSlots(ow.id) || []).length)} 칸` : '');
                 if (!await showAsk(`${ic} ${josa(K, '이', '가')} ${at}에 있어요.<br>${nm}${S ? ' ' + dkSlotNm(s, S.length) + ' 칸' : ''}으로 옮길까요?`, '옮기기', '취소')) return;
             }
             const M2 = Object.assign({}, deskFnMap()); dkWinFree(win, M2);
@@ -1303,7 +1304,10 @@
             if (S) { if (!keepTag && await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, win); setTimeout(() => dknPanel(u + '|' + win), 50); } }
             else if (!o.tag) { o.tag = { m: 't', t: (dkWin(win) || [])[1] || '', on: !!await showAsk(`🏷 ${nm}에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어디에 넣었는지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기') }; dkSave(); if (o.tag.on) setTimeout(() => dknPanel(u), 50); }
             dknPaintAll(); dkbPulse(t); dkbTake(n, j);
+            if (movedFrom) dkDrawerShutAt(...movedFrom);                          // 🗄️ 비워진 서랍 + 위에 열린 서랍 창 = 둘 다 닫혀요 (도련 11-13)
         }
+        /* 🗄️ 그 서랍이 열려 있으면 닫아요 (창도 위로 올라가며) : 서랍 칸을 다른 서랍장으로 옮겨 비워졌을 때 (도련 11-13 · 스티커 · 문구 같이) */
+        function dkDrawerShutAt(u, r) { if (DKD.cur && u && r && DKD.cur.key === u + '|' + r.join(',')) dkDrawerShut(true); }
         /* ✏️ 문구 넣기 (도련 11-05 · 현실처럼) : 넣은 곳 = 그 문구의 집 · 꺼내 쓰기도 거기서만 (js/deskgd.js 문구의 집)
            펜꽂이 = 꽂을 수 있는 것만 (필기구 · 상품 '연필꽂이' yes) · 24개까지 · 서랍장 = 칸을 골라요 (한 칸에 문구 여러 종류 함께 · 다른 것이 든 칸이면 바꿀지 물어요)
            봉투 카드 · 꺼낸 문구 줄에서 끌어 놓을 때 같이 써요 → true = 넣었어요 */
@@ -1324,6 +1328,7 @@
                 H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push(Object.assign({ k: 'gd', s, r: S[s] }, keepTag ? { tag: keepTag } : {})); dkHomesSet(H);
                 if (we && window.dkwAtMove) dkwAtMove(wasU + ':' + we.s, u + ':' + s);   // ✏️ 안에 든 문구도 같이 (같은 순간 · 봉투에 담기지 않게)
                 if (cur) { dknPaintAll(); await dkzRehome(cur.k, u, cur); }
+                if (we) setTimeout(() => dkDrawerShutAt(wasU, we.r), 0);           // 🗄️ 비워진 문구함 서랍 + 위에 열린 서랍 창 = 둘 다 닫혀요 (도련 11-13)
                 if (!keepTag) {
                     if (await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { const H2 = dkHomes(), e = (H2[u] || []).find(x => x.k === 'gd' && x.s === s); if (e) { e.tag = Object.assign(dknWordTag('gd'), { on: true }); dkHomesSet(H2); } }
                 }
