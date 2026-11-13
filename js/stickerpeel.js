@@ -1,4 +1,5 @@
 /* 말랑달콤 다이어리 - js/stickerpeel.js
+   🔕 떼는 창 위 안내 글(pelSay · #pelHint)은 없앴어요 (도련 11-13 : 뗄 때 화면 위 메세지 영구 삭제)
    🏷️ 씰스티커 떼어 붙이기 : 내스티커에서 고르거나 만들기에서 📌 붙이기를 누르면 페이지 앞에 스티커가 나와요 (🧩 조각스티커는 봉투 연출 js/piecebag.js)
    - 🏷️ 씰 : 하얀 네모(스티커 종이) 위에 씰이 있어요 → 가장자리를 잡고 떼어 원하는 곳에 놓으면 붙어요
              종이는 배경(화면) 한가운데에 나와요 · 사진고르기로 여러 장을 고르면 한 장의 종이에 씰이 여러 개 붙어 나와요 → 마지막 씰을 떼면 하얀 종이가 사라져요
@@ -15,7 +16,7 @@
 
         const PEL_GRAB = 28, PEL_GRAB_OUT = 10, PEL_PAD = 22, PEL_M = 7, PEL_EDGE = 6;
         /* items : 종이 위 스티커들 [{ a, src, st }] · a · st · src 는 지금 손에 잡은 스티커 */
-        const pelS = { on: false, cv: null, ctx: null, fl: null, items: [], a: null, st: null, drag: null, board: null, mv: { x: 0, y: 0 }, gone: 0, src: '', W: 0, H: 0, DPR: 1, raf: 0, hint: '' };
+        const pelS = { on: false, cv: null, ctx: null, fl: null, items: [], a: null, st: null, drag: null, board: null, mv: { x: 0, y: 0 }, gone: 0, src: '', W: 0, H: 0, DPR: 1, raf: 0 };
         const pelq = id => document.getElementById(id);
         const pelMk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
         const pelLoad = src => new Promise((ok, no) => { const im = new Image(); if (/^https?:/i.test(src)) im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = no; im.src = src; });   // 주소 그림은 하얀 테두리를 그리려고 CORS 로
@@ -54,7 +55,7 @@
             if (pelq('pelRoom')) return;
             const el = document.createElement('div');
             el.id = 'pelRoom'; el.className = 'pel-room';
-            el.innerHTML = `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><p class="pel-hint" id="pelHint"></p><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="닫기">✕</button>`;
+            el.innerHTML = `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="닫기">✕</button>`;
             document.body.appendChild(el);
             const cv = pelq('pelHit');                                          // 👆 손가락은 종이 자리(pelHit)만 받아요 · 그 밖은 페이지 그대로 (핀셋으로 붙인 스티커 옮기기 · 돌리기 · 펜꽂이 … · 도련 11-05)
             cv.addEventListener('pointerdown', pelDown); cv.addEventListener('pointermove', pelMove);
@@ -188,8 +189,6 @@
             pelLayout();
             if (opt && opt.at && S.board && !S.rel) pelShift(opt.at.x - S.board.cx, opt.at.y - S.board.cy);   // 🗂️ 꺼내 둔 종이를 열면 그 자리에서 (basket.js dsOpen)
             pelq('pelRoom').classList.add('show'); document.body.classList.add('fc-lock');
-            S.hint = '';
-            pelSay(S.rel ? '🪡 핀셋으로 <b>가장자리</b>를 집어 떼어 <b>이형지북</b> 위에 놓아요' : pelLeft() > 1 ? `씰이 <b>${pelLeft()}개</b> 있어요! <b>가장자리</b>를 집어 하나씩 떼어 보세요` : '스티커 <b>가장자리</b>를 손톱으로 집듯이 잡고 천천히 떼어 보세요');
             cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(pelFrame);
             return true;
         }
@@ -202,7 +201,6 @@
             if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
         }
         function pelRelayout() { if (pelS.on && pelS.rel) pelLayout(); }       // 🤍 정리 책상 화면이 바뀌면 자리 다시
-        function pelSay(h) { const e = pelq('pelHint'); if (!e || pelS.hint === h) return; pelS.hint = h; e.innerHTML = h; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
 
         /* ---------- 좌표 ---------- */
         const pelToStage = (st, lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
@@ -367,7 +365,7 @@
                 if (P[0] > t.x - 8 && P[0] < t.x + t.w + 8 && P[1] > t.y - 8 && P[1] < t.y + t.h + 8) {
                     S.drag = { mode: 'board', last: P, lt: performance.now() };
                     try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
-                    pelSay('씰 종이를 옮기는 중… ✋'); return;
+                    return;
                 }
             }
             let best = 1e12, bp = null, bo = null, hit = null;                   // 손가락에서 가장 가까운 스티커 가장자리
@@ -383,9 +381,9 @@
                 pelPick(bo); const st = S.st, C = pelToStage(st, bp[0], bp[1]); st.snap = null;
                 S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
                 try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
-                pelSay('살살… 천천히 당겨요'); return;
+                return;
             }
-            if (hit) { pelSay('가운데 말고 <b>가장자리</b>를 집어야 떨어져요'); pelWiggle(hit.st); return; }
+            if (hit) { pelWiggle(hit.st); return; }
             const B = S.board;                                                   // 하얀 종이 빈 곳 → 종이 옮기기
             if (B && Math.abs(P[0] - B.cx) <= B.w / 2 && Math.abs(P[1] - B.cy) <= B.h / 2) {
                 S.drag = { mode: 'board', last: P, lt: performance.now() };
@@ -433,7 +431,6 @@
                 d.F = [d.C[0] + dx * k, d.C[1] + dy * k];
                 pelNoise(Math.min(.35, sp * .25));
                 const fr = pelPeeled(S.st, d.C, d.F);
-                if (fr > .55 && !d.half) { d.half = 1; pelSay('거의 다 됐어요… 조금만 더!'); }
                 if (fr >= .78) pelDetach(P);
             } else {
                 const st = S.st, nx = P[0] - d.off[0], ny = P[1] - d.off[1];
@@ -450,7 +447,7 @@
             const pg = pelPage(), pr = pg && pg.getBoundingClientRect();                  // 📏 하얀 종이에서 완전히 떨어지는 순간 진짜 크기로 (페이지 배율 · 도련 · 10-18)
             if (pr && pr.width && !S.rel) st.grow = { goal: pr.width / (pg.offsetWidth || pr.width), s0: st.s, t0: performance.now(), off: S.drag.off.slice() };
             pelNoise(0); if (navigator.vibrate) navigator.vibrate(15);
-            pelSay(S.rel ? '톡! 떼어졌어요 ✨ <b>이형지북</b> 위에 놓아요' : '톡! 떼어졌어요 ✨ 원하는 곳에 놓아 보세요');
+            
         }
         /* 📏 진짜 크기로 스르르 (잡은 자리는 손가락 끝 그대로) */
         function pelGrow(t) {
@@ -468,12 +465,11 @@
             if (d.mode === 'board') return;
             if (d.mode === 'peel') {
                 st.snap = { C: d.C, F: d.F, t0: performance.now() };
-                if (Math.hypot(d.F[0] - d.C[0], d.F[1] - d.C[1]) > 20) pelSay('앗, 다시 붙어버렸어요 🫣 가장자리를 잡고 다시 떼어 보세요');
                 return;
             }
             if (navigator.vibrate) navigator.vibrate(8);
             if (S.rel) pelRelDrop();
-            else if (!pelPageOn()) { st.state = 'on'; st.snap = null; pelLayout(); S.hint = ''; pelSay('📔 다이어리를 펼치면 붙일 수 있어요'); }   // 붙일 페이지가 없으면 종이로 돌아가요
+            else if (!pelPageOn()) { st.state = 'on'; st.snap = null; pelLayout(); }   // 붙일 페이지가 없으면 종이로 돌아가요
             else pelStick();
         }
         /* 🤍 이형지북 위에 놓으면 그 자리에 · 밖이면 종이로 돌아가요 */
@@ -481,7 +477,7 @@
             const S = pelS, st = S.st, k = S.items.findIndex(o => o.st === st), R0 = S.rel.target();
             if (!R0 || st.cx < R0.left || st.cx > R0.right || st.cy < R0.top || st.cy > R0.bottom) {
                 st.state = 'on'; st.snap = null; pelLayout();
-                S.hint = ''; pelSay('🤍 <b>이형지북</b> 위에 놓아야 붙어요'); return;
+                return;
             }
             st.state = 'done';
             const a0 = S.items[k] && S.items[k].a;                               // 진짜 크기 (다이어리에 붙였을 때의 그림 크기)
@@ -489,7 +485,7 @@
             const left = S.items.filter(o => o.st.state === 'on');
             if (!left.length) { closeStickerPeel(); return; }
             pelPick(left[0]); pelLayout();
-            S.hint = ''; pelSay(`붙었어요 ✨ 종이에 <b>${left.length}개</b> 남았어요`);
+            
         }
         function pelWiggle(st) { const r = st.rot, t0 = performance.now(); (function w() { const q = (performance.now() - t0) / 300; st.rot = r + Math.sin(q * Math.PI * 4) * .04 * (1 - q); if (q < 1) requestAnimationFrame(w); else st.rot = r; })(); }
 
@@ -523,7 +519,7 @@
             if (!left.length) { closeStickerPeel(); return; }
             if (S.gone) { S.gone = 0; S.back = performance.now(); }              // 📱 하얀 종이가 남은 스티커와 다시 나타나요
             pelPick(left[0]);                                                    // 종이에 남은 스티커는 계속 떼어 붙여요
-            S.hint = ''; pelSay(`붙었어요 ✨ 종이에 <b>${left.length}개</b> 남았어요`);
+            
         }
 
         /* ---------- 소리 : 🏷️ 씰을 떼어 낼 때 '찌익'만 ---------- */
