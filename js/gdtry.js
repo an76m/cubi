@@ -105,7 +105,7 @@
         const tw = ((window.gdPicOf ? gdPicOf('tweez') : [])[0] || {}).id;
         if (tw && !gdEl(tw)) { gdPick(tw); const el = gdEl(tw); if (el) gdCenter(el, G.one ? PW * .2 : PW * .22, PH * .8); }   // 🪡 왼쪽 아래 (모조지에 안 가리게)
         const n = document.createElement('div'); n.className = 'gdt-note' + (G.one ? ' one' : '');
-        n.innerHTML = '<b>✂️ 가위 사용법</b><span>① 가위로 모조지 위를 빙 둘러 그려 처음 자리로 돌아오면 오려져요</span><span>② 🪡 핀셋을 톡 해서 들어요</span><span>③ 오린 조각을 핀셋으로 집어 떼어 페이지에 붙여요</span>';
+        n.innerHTML = '<b>✂️ 가위 사용법</b><span>① 가위 끝 <b>＋</b>를 모조지 위에 대고 빙 둘러 그려 처음 자리로 돌아오면 오려져요</span><span>② 🪡 핀셋을 톡 해서 들어요</span><span>③ 오린 조각을 핀셋으로 집어 떼어 페이지에 붙여요</span>';
         G.st.insertBefore(n, G.page);                                            // 붙인 스티커가 쪽지 위로
     }
     /* 📏 + 🔪 자를 만든 까닭 (도련 11-13) : 칼만으로는 스티커가 똑바로 안 잘려요 → 자를 대고 반듯하게

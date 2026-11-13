@@ -278,6 +278,10 @@
                 cap(); S.drag = { mode: 'whole', start: P }; return;
             }
             const A = pmScs() && window.scsAim ? scsAim(P) : P;                          // 🎯 자르는 자리 = 가위 날 끝 십자선 (누르는 자리보다 위 · js/skins.js SCS_LIFT)
+            if (!pmInSheet(A, 14) && pmScs() && pmInSheet(P, 0)) {                         // 🖱 화살표는 종이 위인데 가위 끝 ＋ 는 종이 밖 (종이 위쪽을 누르면) = 알려 줘요 (도련 11-13 : 아무 반응이 없었어요)
+                if (window.twzSay) twzSay(A[0], Math.max(A[1], 70), '✂️ 가위 끝 ＋ 가 종이 위에 오게 해요');
+                pmSay('✂️ 가위 끝 <b>＋</b> 자리가 오려져요 · <b>＋</b>를 종이 위에 대고 빙 둘러 그려요'); return;
+            }
             if (pmInSheet(A, 14)) {
                 if (!pmScs()) { if (window.scsSay) scsSay(P[0], P[1]); return; }          // ✂️ 가위를 들어야 오려져요
                 cap(); const d = S.drag = { mode: 'cut', pts: [A], len: 0, shown: 0, lt: pmNow() };
