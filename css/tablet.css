@@ -63,3 +63,34 @@
 /* 📱 태블릿에서 연 만들기 = 다이어리와 상관없이 🗄️ 서랍에 넣기만 (도련 11-13 : 다이어리모드가 실행됐어요) · 📃 끼우기 · 🧻 꺼내기 · 🎀 붙이기 · ‹ 스티커만들기 숨김 */
 body.ip-on #lmGo, body.ip-on #leafMakeModal .mt-back, body.ip-on #leafMakeModal .sub-modal-btns, body.ip-on .smk-room button[onclick^="tpmFinish(true"] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .ip-dim, .ip-x, .ip-scr { transition: none; } }
+
+/* 🖥 화면 가득 작업대 (js/tablet.js wsOpen · 도련 11-13 : 디자인하려면 화면이 넓어야 해요) = 🗂️ 시트 꾸미기 모양 (css/sheetmaker.css .shm-*)
+   .smk-room 은 예전 만들기 화면 칸의 모양을 그대로 쓰려고 붙여요 (보이기 · 자리는 아래 #tbWs 가 정해요) */
+#tbWs.smk-room { z-index: 985; display: none; overflow: hidden; background: linear-gradient(#fbe9ef, #f7dfe8 86px, #e9c9b0 86px); color: #5b3f4a; }
+#tbWs.smk-room.show { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+#tbWs.smk-room { padding: 0; filter: none; }   /* .smk-room 팝업 카드 모양(둘레 · 그림자) 대신 화면 가득 */
+#tbWs .shm-bar, #tbWs .shm-body { align-self: stretch; width: auto; max-width: none; }   /* .smk-room 가운데 모으기 대신 화면 가득 */
+#tbWs .shm-bar { justify-content: flex-start; padding-right: 230px; }   /* 오른쪽 위 = 책상 버튼 자리 */
+#tbWs .shm-body { grid-template-columns: 270px minmax(0, 1fr) 270px; }
+#tbWs .tb-mid { min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; overflow: auto; padding: 6px; }
+.tb-hide { visibility: hidden !important; pointer-events: none !important; }
+body.tb-ws-on .ip-room { visibility: hidden; }                                   /* 작업대가 뜬 동안 태블릿은 뒤에서 기다려요 */
+/* ✏️ 그림 앱 */
+#tbWs .ipd-cv { height: 100%; width: auto; max-width: 100%; max-height: 100%; }
+#tbWs .ipd-pens { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; justify-items: center; }
+#tbWs .ipd-pen { width: 34px; height: 34px; }
+#tbWs .ipd-sz { width: 40px; height: 40px; }
+#tbWs .ipd-er.on { border-color: #ff6f9c; background: #ffe6f0; }
+/* 📃 🧻 속지 · 떡메 칸 */
+#tbWs #lmBox { height: min(100%, 78vh); width: auto; max-width: 100%; margin: 0; }
+#tbWs.lm-tk #lmBox { height: min(92%, 70vh); margin-top: 20px; }
+#tbWs .lm-tabs { display: flex; flex-direction: column; gap: 6px; }
+#tbWs .lm-tabs .stk-tab { width: 100%; }
+#tbWs .lm-glue-box { display: none; } #tbWs.lm-tk .lm-glue-box { display: block; }
+#tbWs #lmKeep.btn, #tbWs .shm-panel > .smk-go.smk-sub { margin-top: auto; width: 100%; background: var(--pk, #e88fb0); color: #fff; border: 0; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 900; min-height: 48px; box-shadow: 0 4px 0 #c2457a; }
+/* 🎀 마스킹테이프 칸 */
+#tbWs .tpm-top { width: 100%; }
+#tbWs #tpmTabs { display: flex; flex-direction: column; gap: 6px; }
+#tbWs #tpmTabs button { width: 100%; }
+#tbWs .shm-panel > .smk-go.smk-sub::before { display: none; }
+html #tbWs #lmKeep.btn { background: #e88fb0 !important; color: #fff !important; border: 0 !important; box-shadow: 0 4px 0 #c2457a !important; }   /* html.an .btn 보다 먼저 */
