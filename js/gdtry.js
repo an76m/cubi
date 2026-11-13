@@ -4,7 +4,7 @@
    - 진짜와 가상은 따로예요 : 진짜 다이어리 · 문구함 · 드라이브 · 스티커 서랍과 아무 상관이 없어요 · 저장 없음 · 닫으면 다 사라져요
    - 크기 = 진짜 다이어리 페이지와 같은 비율 (페이지 440 × 640 · 문구는 🧁 상품공방 크기 그대로 · js/gdpic.js)
    - 문구마다 준비물 : ✏️ 필기구 · 🖍 형광펜 = 빈 종이 · 🧽 지우개 = 미리 쓴 글씨 · 📏 자 = 자 + 검정 펜 (자 옆을 따라 곧게) + 샘플 스티커 + 칼 (자에 대고 반듯하게 자르기 · 도련 11-13 : 자를 만든 까닭)
-     🔪 칼 = 샘플 스티커 (끌어서 자르기) · ✂️ 가위 = 샘플 모조지 (빙 둘러 오리기) · 🪡 핀셋 = 샘플 스티커 셋 (집어 옮기기)
+     🔪 칼 = 샘플 스티커 (끌어서 자르기) · ✂️ 가위 = '모조지스티커' 샘플 모조지 (빙 둘러 오리기) + 🪡 핀셋 (떼어 붙이기) + 사용법 쪽지 (도련 11-13) · 🪡 핀셋 = 샘플 스티커 셋 (집어 옮기기)
      📎 집게 = 종이 가장자리에 꽂기 · 🩹 양면테이프 = 끌어서 바르기 · 🕳️ 펀칭기 = 구멍 막힌 바인더 속지 (왼쪽 구멍 자리)
    - 🏠 공간 나누기 (도련 11-12 · js/space.js) : 연습장 = '저장하지 않는 공간' · 문구 기능은 진짜 다이어리와 같은 함수를 빌려 써요
      ✏️ 필기구 · 🖍 형광펜 · 🧽 지우개 · 📏 자 = js/draw.js · js/ruler.js 그대로 (펜꽂이 · 손 · 자에 붙이기 · 꽂으면 그림 하나)
@@ -38,6 +38,8 @@
             if ((i + j) % 3) { x.fillStyle = '#fff'; x.beginPath(); x.arc(cx, cy, 4, 0, 7); x.fill(); }
             else { x.fillStyle = '#ff7aa8'; x.font = '12px sans-serif'; x.fillText('♥', cx - 5, cy + 4); }
         }
+        rrPath(x, W / 2 - 92, 22, 184, 42, 14); x.fillStyle = '#fff'; x.fill(); x.lineWidth = 3; x.strokeStyle = '#ff8fb4'; x.stroke();   // 🏷 '모조지스티커' 이름 (도련 11-13 : 가위로 오리는 건 모조지스티커)
+        x.fillStyle = '#e0507f'; x.font = 'bold 22px "Jua", "Gowun Dodum", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('모조지스티커', W / 2, 44);
     }
 
     /* 🧭 여는 곳 (js/basket.js shZoom) */
@@ -87,7 +89,7 @@
         if (!PENS[g]) {                                                           // 🪡 📎 🕳️ 🩹 ✂️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
             if (g === 'tweez') STK.forEach((u, i) => stick(u, (G.one ? 40 : PW + 30) + i * 125, 220 + (i % 2) * 110, 100));   // 🎀 샘플 스티커 셋
             gdPick(G.id); gdHold(G.id, b0.left + b0.width * (G.one ? .5 : .62), b0.top + b0.height * .55);
-            if (g === 'scissors') { const c = document.createElement('canvas'); c.width = 360; c.height = 420; paperDraw(c); openPaperSheet(c.toDataURL()); }   // ✂️ 샘플 모조지 (js/papermaker.js)
+            if (g === 'scissors') { const c = document.createElement('canvas'); c.width = 360; c.height = 420; paperDraw(c); openPaperSheet(c.toDataURL()); scsMore(); }   // ✂️ 샘플 모조지 (js/papermaker.js) + 🪡 핀셋 · 사용법
             return;
         }
         const pen = g === 'ruler' ? (gdPicOf('pen').find(x => /333|000|black/i.test(x.id)) || gdPicOf('pen')[0] || {}).id : G.id;   // 📏 자 = 검정 펜과 함께
@@ -97,6 +99,14 @@
         if (g === 'ruler') { G.rl = !rlOn(); rlShow(b0.left + b0.width / 2, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }   // 📏 진짜 cm 길이 = 펼친 두 쪽 가운데
         drawWith(pen, mx + 40, my + 120);
         if (g === 'ruler') rulerKnife(b0);
+    }
+    /* ✂️ + 🪡 가위로 오린 모조지스티커는 핀셋으로 떼어 붙여요 (도련 11-13) : 페이지에 핀셋을 놓고 (톡 = 손에 · js/skins.js gdPick) · 왼쪽 쪽에 사용법 쪽지 */
+    function scsMore() {
+        const tw = ((window.gdPicOf ? gdPicOf('tweez') : [])[0] || {}).id;
+        if (tw && !gdEl(tw)) { gdPick(tw); const el = gdEl(tw); if (el) gdCenter(el, G.one ? PW * .2 : PW * .22, PH * .8); }   // 🪡 왼쪽 아래 (모조지에 안 가리게)
+        const n = document.createElement('div'); n.className = 'gdt-note' + (G.one ? ' one' : '');
+        n.innerHTML = '<b>✂️ 가위 사용법</b><span>① 가위로 모조지 위를 빙 둘러 그려 처음 자리로 돌아오면 오려져요</span><span>② 🪡 핀셋을 톡 해서 들어요</span><span>③ 오린 조각을 핀셋으로 집어 떼어 페이지에 붙여요</span>';
+        G.st.insertBefore(n, G.page);                                            // 붙인 스티커가 쪽지 위로
     }
     /* 📏 + 🔪 자를 만든 까닭 (도련 11-13) : 칼만으로는 스티커가 똑바로 안 잘려요 → 자를 대고 반듯하게
        샘플 스티커 하나 + 놓인 칼 (✏️ 펜을 든 채 시작 · 칼을 톡 = 칼을 들어요 · 펜꽂이 톡 = 다시 펜 · js/stkcut.js 자에 붙이기 그대로) */

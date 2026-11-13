@@ -19,4 +19,9 @@ body.gdt-on .rl-fit { display: none; }   /* 📏 cm 맞추기 = 이 기기 설�
 
 /* 🕳️ 펀칭 연습 = 진짜 바인더 구멍 자리 (css .dy-holes) · 아직 안 뚫은 자리는 점선 동그라미로 보여요 */
 .gdt .dy-holes i { visibility: visible; background: transparent; box-shadow: none; border: 2px dashed #e7a3bb; box-sizing: border-box; }
-.gdt .dy-holes i.on { border: 0; background: #f6dce6; box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }body.gdt-rk .sk-tip { display: none !important; }   /* 📏 자 연습장의 칼 = 안내는 아래 한 줄만 (도련 11-13 · js/gdtry.js rulerKnife) */
+.gdt .dy-holes i.on { border: 0; background: #f6dce6; box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }
+body.gdt-rk .sk-tip { display: none !important; }   /* 📏 자 연습장의 칼 = 안내는 아래 한 줄만 (도련 11-13 · js/gdtry.js rulerKnife) */
+/* ✂️ 가위 연습장 사용법 쪽지 (도련 11-13 · js/gdtry.js scsMore) : 💻 왼쪽 쪽 위 · 📱 한 쪽 = 위쪽 · 연습장 줄 위에 손글씨처럼 */
+.gdt-note { position: absolute; left: 22px; top: 24px; width: 188px; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 246, 250, .92); border: 1.5px dashed #f2a9c3; color: #7a4a5e; font: 13px/1.45 "Gowun Dodum", "Apple SD Gothic Neo", sans-serif; pointer-events: none; rotate: -1.5deg; }
+.gdt-note b { font: 16px "Jua", "Gowun Dodum", sans-serif; color: #d6537c; }
+.gdt-note.one { left: 12px; top: 12px; width: calc(100% - 24px); font-size: 12px; }
