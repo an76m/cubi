@@ -138,3 +138,7 @@
 .pp-sp-go { min-width: 240px; border: 0; border-radius: 14px; padding: 11px 18px; font: inherit; font-size: 15px; font-weight: 900; color: #fff; background: #ff7aa2; box-shadow: 0 3px 0 #d9577f; cursor: pointer; }
 .pp-sp-go:disabled { background: #e9d7de; box-shadow: none; color: #8a6a76; cursor: default; }
 @media (max-width: 760px) { .pp-sp-b { flex-direction: column; overflow: auto; } }
+.pp-specb { flex-shrink: 0; white-space: nowrap; }
+.pp-specb b { font-size: 13px; }
+.pp-mode button, .pp-mode button small { white-space: nowrap; }
+@media (max-width: 1250px) { .pp-mode button small { display: none; } }

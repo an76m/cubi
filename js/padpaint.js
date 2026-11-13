@@ -78,7 +78,7 @@
         const o = P.o;
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
         x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button></div>
-            ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="다이어리 규격 고르기 · 끼워 보기"></button>' : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
+            ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button>' : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
         x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq) qq.dataset.q === 'spec' ? specPop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
         o.L.innerHTML = `<h4>📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button><button type="button" data-a="paper">🧵 종이 꾸미기</button></div>
@@ -839,7 +839,7 @@
     }
     function specBtn() {
         const b = document.querySelector('#ppBarX .pp-specb'); if (!b) return;
-        const s = P.spec; b.innerHTML = `📐 <b>${s ? s.n : '규격'}</b><small>${s ? s.mm + 'mm' : '골라요'}</small>`;
+        const s = P.spec; b.innerHTML = `<b>📔 다이어리에 끼워 보기</b><small>지금 종이 · ${s ? esc(s.n) + ' ' + esc(s.mm) + 'mm' : '규격 고르기'}</small>`;   // 누르기 전에 무엇인지 알게 (도련 11-14)
     }
     const ratioOk = r => Math.abs(r - P.H / P.W) < .015;
     function specShot() {                                                      // 미리보기용 작은 그림
