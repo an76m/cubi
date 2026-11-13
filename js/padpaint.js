@@ -199,7 +199,8 @@
     function view() {
         const d = $('ppDoc'); if (!d) return; const k = P.base * P.z;
         Object.assign(d.style, { width: P.W + 'px', height: P.H + 'px', transform: `translate(${P.px}px, ${P.py}px) scale(${k})` });
-        $('ppZ').textContent = Math.round(P.z * 100) + '%'; paintFloats();
+        const mw = mmW(), kr = mw ? 96 / 25.4 * mw / P.W : 0;                 // 📏 100% = 실제 크기 (도련 11-14 · 실제 mm 를 모르는 종이만 맞춤 기준)
+        $('ppZ').textContent = Math.round((kr ? k / kr : P.z) * 100) + '%'; $('ppZ').title = kr ? '100% = 실제 크기' : '100% = 맞춤'; paintFloats();
     }
     function zoomAt(f, cx, cy) {
         const st = $('ppStage').getBoundingClientRect(), z = Math.max(.25, Math.min(8, P.z * f)), k0 = P.base * P.z, k1 = P.base * z;
