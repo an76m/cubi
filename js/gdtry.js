@@ -3,7 +3,7 @@
    - 샵의 문구 [사용해보기] → 화면 가득 펼친 연습장 · 그 문구를 손에 들고 바로 써 봐요 (버튼 없이 · 한 줄 안내)
    - 진짜와 가상은 따로예요 : 진짜 다이어리 · 문구함 · 드라이브 · 스티커 서랍과 아무 상관이 없어요 · 저장 없음 · 닫으면 다 사라져요
    - 크기 = 진짜 다이어리 페이지와 같은 비율 (페이지 440 × 640 · 문구는 🧁 상품공방 크기 그대로 · js/gdpic.js)
-   - 문구마다 준비물 : ✏️ 필기구 · 🖍 형광펜 = 빈 종이 · 🧽 지우개 = 미리 쓴 글씨 · 📏 자 = 자 + 검정 펜 (자 옆을 따라 곧게)
+   - 문구마다 준비물 : ✏️ 필기구 · 🖍 형광펜 = 빈 종이 · 🧽 지우개 = 미리 쓴 글씨 · 📏 자 = 자 + 검정 펜 (자 옆을 따라 곧게) + 샘플 스티커 + 칼 (자에 대고 반듯하게 자르기 · 도련 11-13 : 자를 만든 까닭)
      🔪 칼 = 샘플 스티커 (끌어서 자르기) · ✂️ 가위 = 샘플 모조지 (빙 둘러 오리기) · 🪡 핀셋 = 샘플 스티커 셋 (집어 옮기기)
      📎 집게 = 종이 가장자리에 꽂기 · 🩹 양면테이프 = 끌어서 바르기 · 🕳️ 펀칭기 = 구멍 막힌 바인더 속지 (왼쪽 구멍 자리)
    - 🏠 공간 나누기 (도련 11-12 · js/space.js) : 연습장 = '저장하지 않는 공간' · 문구 기능은 진짜 다이어리와 같은 함수를 빌려 써요
@@ -17,7 +17,7 @@
     const PW = 439, PH = 644;                                                     // 다이어리 한 쪽 = 진짜 다이어리 페이지 크기 그대로 (#canvasArea 878 × 644 의 반 · 도련 11-12 : 실제보다 크면 안 돼요)
     const TIP = {
         pen: '✏️ 종이 위를 끌어서 써 보세요', hi: '🖍 끌어서 칠해 보세요', erase: '🧽 쓴 글씨를 문질러 지워 보세요',
-        ruler: '📏 자를 옮기고 · 자 옆을 따라 그어 보세요', knife: '🔪 스티커 위를 끌어서 잘라 보세요', scissors: '✂️ 모조지 위를 빙 둘러 오려 보세요',
+        ruler: '📏 자를 대고 그어 보세요 · 🔪 칼로 스티커도 반듯하게', knife: '🔪 스티커 위를 끌어서 잘라 보세요', scissors: '✂️ 모조지 위를 빙 둘러 오려 보세요',
         tweez: '🪡 스티커를 집어서 옮겨 보세요', clip: '📎 종이 가장자리에 꽂아 보세요', tape: '🩹 끌어서 테이프를 발라 보세요', punch: '🕳️ 가운데 구멍 자리를 눌러 뚫어 보세요'
     };
     const PENS = { pen: 1, hi: 1, erase: 1, ruler: 1 };                           // 그중 펜꽂이 필기구
@@ -74,7 +74,7 @@
             if (G.z0 != null) zIndexCounter = G.z0;                               // 🧱 진짜 다이어리 겹침 번호 그대로
             spUse(null);                                                          // 🏠 다시 진짜 다이어리 공간으로
         }
-        const r = document.getElementById('gdTry'); if (r) r.remove(); G = null; document.body.classList.remove('gdt-on');
+        const r = document.getElementById('gdTry'); if (r) r.remove(); G = null; document.body.classList.remove('gdt-on', 'gdt-rk');
     }
     /* 📦 문구마다 준비물 → 그 문구를 손에 (진짜 기능 그대로) */
     function start() {
@@ -96,6 +96,17 @@
         if (g === 'erase') penAttach(SCRIBBLE(G.one ? [70] : [70, PW + 70]));   // 🧽 미리 쓴 글씨 (진짜 펜 그림 그대로)
         if (g === 'ruler') { G.rl = !rlOn(); rlShow(b0.left + b0.width / 2, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }   // 📏 진짜 cm 길이 = 펼친 두 쪽 가운데
         drawWith(pen, mx + 40, my + 120);
+        if (g === 'ruler') rulerKnife(b0);
+    }
+    /* 📏 + 🔪 자를 만든 까닭 (도련 11-13) : 칼만으로는 스티커가 똑바로 안 잘려요 → 자를 대고 반듯하게
+       샘플 스티커 하나 + 놓인 칼 (✏️ 펜을 든 채 시작 · 칼을 톡 = 칼을 들어요 · 펜꽂이 톡 = 다시 펜 · js/stkcut.js 자에 붙이기 그대로) */
+    function rulerKnife(b0) {
+        const kn = (window.gdPicOf ? gdPicOf('knife') : [])[0]; if (!kn || !window.skKnife) return;
+        const sx = PW * .6, sy = PH * .5;                                         // 스티커 = 왼쪽 쪽 · 자 아래쪽 가장자리가 스티커 위를 지나가요 (📱 한 쪽이면 그 쪽)
+        stick(STK[0], sx - 85, sy - 80, 170);
+        const k = b0.width / G.W;                                                  // 화면에 줄어든 만큼
+        skKnife(b0.left + (sx + 120) * k, b0.top + (sy + 130) * k, kn.id.slice(6));   // 🔪 스티커 옆에 놓인 칼 (톡 = 손에)
+        document.body.classList.add('gdt-rk');                                      // 안내는 아래 한 줄만 (칼 안내 띠는 숨겨요 · css/gdtry.css)
     }
     function stick(src, x, y, w) {                                                // 🎀 샘플 스티커 붙이기 (진짜 붙이기 그대로 · js/elements.js addImage · 저장 없는 공간)
         if (!addImage(src)) return;
@@ -115,7 +126,7 @@
     addEventListener('resize', fit);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && G) gdTryOff(); });
     function down(e) {                                                            // ✏️ 꽂고 나서 · 🔪 ✕ 로 내려놓고 종이를 누르면 다시 손에 (나머지는 놓인 문구를 누르면 들어요 · js/skins.js gdDown)
-        if (!G || e.button > 0 || !G.again || (G.g === 'knife' && skKindNow())) return;
+        if (!G || e.button > 0 || !G.again || (G.g === 'knife' && skKindNow()) || document.body.classList.contains('sk-held')) return;   // 🔪 칼을 든 동안은 칼이 (📏 자 연습장)
         G.again(e);
     }
 
