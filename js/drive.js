@@ -1862,7 +1862,7 @@
             else if (m.t === 'coll' && typeof collRemote === 'function') collRemote(m.path);   // 스티커 · 페이지 목록 (js/coll.js)
         };
         /* 🔔 다른 기기 확인을 가볍게 : 구글 드라이브 changes = "지난번 이후 이 앱이 만든 파일 중 바뀐 것" (도련 10-20)
-           - 1분마다 요청 1개 · 바뀐 게 없으면 거기서 끝 · 있으면 아래 checkRemote 자세히 보기(폴더 지움 · 설정 · 카페 · 보는 날짜)
+           - 앱으로 돌아올 때 요청 1개 (1분마다는 없앴어요 · 11-13) · 바뀐 게 없으면 거기서 끝 · 있으면 아래 checkRemote 자세히 보기(폴더 지움 · 설정 · 카페 · 보는 날짜)
            - 내가 방금 올린 파일(mineWrote 로 기억한 id · 수정 시각 그대로)은 바뀐 걸로 안 쳐요
            - 표시(changeTok)는 이 창 메모리에만 · 모르겠으면(처음 · 실패) 늘 자세히 봐요 → 놓치는 일은 없어요 */
         let changeTok = null;
@@ -1940,7 +1940,10 @@
             })().catch(e => console.warn('다른 기기 변경 확인 실패:', e)).finally(() => { remoteChecking = null; });
             return remoteChecking;
         }
-        setInterval(() => checkRemote(), 60 * 1000);                     // 화면을 보는 동안 1분마다 (숨겨져 있으면 쉬어요)
+        /* ⏱ 1분마다 확인은 없앴어요 (도련 11-13 : 두 기기를 동시에 켜 두고 쓰는 사람은 거의 없어요 · 구글 요청 아끼기)
+           → 앱으로 돌아올 때(화면 켜기 · 앱 전환 = visibilitychange) · 💻 창으로 돌아올 때(focus) · 같은 기기 다른 탭이 저장했을 때만 확인해요 (50초 안에 또는 안 물어요)
+           저장할 때는 따로 '올리기 직전 다른 기기 확인 · 합치기'를 해서 서로 덮어쓰지 않아요 */
+        window.addEventListener('focus', () => checkRemote());
 
         /* 화면 꺼짐 / 앱 전환 (아이폰·안드로이드·아이패드 공통) */
         document.addEventListener('visibilitychange', () => {
