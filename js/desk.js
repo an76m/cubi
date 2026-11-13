@@ -1916,19 +1916,17 @@
             if (window.dkwFloatAll) dkwFloatAll();                                // ✋ 페이지 위 문구 · 손에 든 필기구 = 그 자리에서 공중에 떠요 (다이어리 따로 · 상품 따로 · 도련 11-11)
             if (window.penRest) penRest();                                        // ✏️ 든 필기구는 페이지에 놓고 쓴 것은 붙여요 (도련 11-03 · 손에 든 채 접히지 않게)
             if (typeof turn !== 'undefined' && turn) return;                      // 넘기는 중에는 그대로
-            if (dkOpenNow()) {                                                    // 📕 펼친 채로는 책상에 안 놓아요 (도련 10-30) : 먼저 저장 → 왼쪽 쪽이 오른쪽으로 덮이며 접혀요 → 겉표지로 내려앉아요
-                try { if (typeof saveData === 'function') saveData(false); } catch (e) {}
+            if (dkOpenNow()) {                                                    // 📕 펼친 채로는 책상에 안 놓아요 (도련 10-30) : 저장 → 📖 표지가 펼쳐지던 것을 그대로 거꾸로 덮여요 (도련 11-13) → 떠오르던 것을 거꾸로 내려앉아요
                 deskAnim = true;
-                const ip = document.getElementById('innerPage'), done = () => { dkFoldShut(); deskAnim = false; requestAnimationFrame(() => requestAnimationFrame(deskCloseDiary)); };
-                if (!ip || calmMotion()) { done(); return; }
-                const a = ip.animate([{ transform: 'none', opacity: 1 }, { transform: 'scaleX(.5)', opacity: .6 }], { duration: 280, easing: 'ease-in' });
-                ip.style.transformOrigin = '100% 50%'; a.onfinish = a.oncancel = () => { ip.style.transformOrigin = ''; done(); };
+                const done = () => { deskAnim = false; requestAnimationFrame(() => requestAnimationFrame(deskCloseDiary)); };
+                if (typeof closeCoverAnimated === 'function') closeCoverAnimated(dkFoldShut, done);
+                else { try { if (typeof saveData === 'function') saveData(false); } catch (e) {} dkFoldShut(); done(); }
                 return;
             }
             deskAnim = true;
             H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
             H.classList.remove('dk-bgon');                                        // 📖 책상이 먼저 돌아오고 그 위로 내려앉아요
-            const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w) }], { duration: 560, easing: 'cubic-bezier(.45, 0, .55, 1)', fill: 'forwards' });
+            const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w) }], { duration: 640, easing: 'cubic-bezier(.8, 0, .8, .2)', fill: 'forwards' });   // 🪂 떠오르기(640 · .2 .8 .2 1)를 그대로 거꾸로 (도련 11-13)
             a.onfinish = () => { H.classList.remove('desk-show', 'dk-landing', 'dk-bgon'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
         }
         /* 📖 책상 대신 바탕 (도련 11-12) : 다이어리가 떠 있고(desk-show) 표지를 펼쳤을 때만 (html.dk-bgon · css/style.css) · 로그인 뒤 접힌 채 떠 있으면 책상이 보여요

@@ -273,7 +273,7 @@
             return page;
         }
 
-        function beginCurl(isCover, dir) {
+        function beginCurl(isCover, dir, keepDate) {
             if (turn) return false;
             if (isCover && window.dyyNone && dyyNone()) return false;              // 📔 다이어리가 한 권도 없어요 → 알려 주고 안 펼쳐요 (js/dyyear.js)
             if (isCover && dir !== 1) return false;
@@ -284,7 +284,7 @@
             const W = book.clientWidth;
             const pageEl = document.getElementById(isCover ? 'coverPage' : 'innerPage');
 
-            if (isCover && !keep && window.dyOpenDate) { const od = dyOpenDate(); if (od) currentDate.setTime(od.getTime()); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
+            if (isCover && !keep && !keepDate && window.dyOpenDate) { const od = dyOpenDate(); if (od) currentDate.setTime(od.getTime()); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
             const targetDate = new Date(currentDate);
             if (!isCover) {
                 const to = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir);   // 🗂 꾸민 페이지만 보기면 빈 날은 건너뛰어요 (js/skins.js)
@@ -359,7 +359,7 @@
             }
         }
 
-        function animateCurlTo(target, complete) {
+        function animateCurlTo(target, complete, rev, after) {                // rev = 거꾸로 (여는 것을 그대로 되감아요 · 천천히 시작해 빨라져요) · after = 끝난 뒤
             const t = turn;
             if (!t) return;
             const from = t.d;
@@ -370,10 +370,10 @@
             function step(now) {
                 if (turn !== t) return;
                 const p = Math.min(1, (now - startTime) / dur);
-                const eased = 1 - Math.pow(1 - p, 3);
+                const eased = rev ? Math.pow(p, 3) : 1 - Math.pow(1 - p, 3);
                 updateCurl(from + (target - from) * eased);
                 if (p < 1) requestAnimationFrame(step);
-                else endCurl(complete);
+                else { endCurl(complete); if (after) after(); }
             }
             requestAnimationFrame(step);
         }
@@ -454,6 +454,18 @@
             if (isCoverOpen || turn) return;
             if (beginCurl(true, 1)) animateCurlTo(turn.W, true);
         }
+        /* 📖 표지 덮기 = 표지 펼치기를 그대로 거꾸로 (도련 11-13 · 🪑 책상에 내려놓을 때) : shut = 덮인 모습으로 바꾸기 (js/desk.js dkFoldShut) → 다 펼친 표지 넘김에서 시작해 되감아요 · 펼친 그날 장 그대로 */
+        function closeCoverAnimated(shut, done) {
+            const fin = () => { if (done) done(); };
+            if (!isCoverOpen || turn) { fin(); return; }
+            try { saveData(false); } catch (e) {}
+            shut();
+            if (calmMotion() || !beginCurl(true, 1, true)) { fin(); return; }
+            turn.under.classList.remove('ph-wait');                               // 펼쳐 있던 모습 그대로 (날짜바도)
+            updateCurl(turn.W);
+            animateCurlTo(0, false, true, fin);
+        }
+        window.closeCoverAnimated = closeCoverAnimated;
 
         /* 📖 페이지 넘기기 : 다이어리를 연 뒤에는 페이지 양쪽 끝(가장자리)을 잡고 밀 때만 넘어가요
            - 오른쪽 끝 → 왼쪽으로 밀면 다음 날 · 왼쪽 끝 → 오른쪽으로 밀면 전날 (가운데에서 그림 · 글을 만질 때는 안 넘어가요)
