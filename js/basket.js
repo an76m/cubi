@@ -185,7 +185,6 @@
     }
     window.bkBin = bkBin;
     function bkGetKind() { const k = B.kind; if (vis('basketKindModal')) closeModal('basketKindModal'); if (SH_KINDS[k]) shOpenKind(k); else openShelf(); }
-    function bkHowGlow() { const h = bq('bkHow'); if (!h) return; rePop(h, 'glow'); }
     function bkGlowGet() {                                                   // 빈 바구니 안내를 누르면 → 받기 버튼이 붉게 반짝
         const b = bq('bkGet'); if (!b) return;
         rePop(b, 'glow');

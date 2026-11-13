@@ -41,7 +41,6 @@
         if (typeof isTapeSrc === 'function' && isTapeSrc(img.dataset.src || s)) return 'tape';
         return /^data:image\/svg/.test(s) ? 'svg' : 'img';
     }
-    const elCuttable = el => !!cutKind(el);
 
     /* ---------- 칼 방 : 누르는 건 칼 · ✕ 뿐 (나머지는 그 아래로 그대로) ---------- */
     function build() {
@@ -292,5 +291,5 @@
         return true;
     }
 
-    window.elCuttable = elCuttable; window.skKnife = open; window.skClose = close; window.skHold = hold; window.skLetGo = () => { if (S.held) hold(false); }; window.skKindNow = () => S.on ? S.kind : null; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
+    window.skKnife = open; window.skClose = close; window.skHold = hold; window.skLetGo = () => { if (S.held) hold(false); }; window.skKindNow = () => S.on ? S.kind : null; window.skKnifeSvg = knifeSvg; window.skKinds = () => KN_KINDS.map(k => ({ id: k.id, name: k.name }));
 })();

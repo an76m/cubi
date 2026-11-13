@@ -471,75 +471,13 @@
             });
         }
 
-        /* ---------- 칸 그리기 : 가장 새 묶음부터 · 끝에 닿으면 다음 묶음 ----------
-           host  : 칸이 들어갈 곳 · render(칸) → html · empty : 비었을 때 html
-           (먼저 맞춰 보기를 뒤에서 시작하고, 끝나서 바뀐 게 있으면 다시 그려요) */
-        /* 끝 표시가 화면(과 스크롤 상자) 안에 보이나요 */
-        function cgNear(el) {
-            if (!el.isConnected || !el.offsetParent) return false;
-            const r = el.getBoundingClientRect();
-            if (r.top > innerHeight + 150 || r.bottom < -150) return false;
-            for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
-                const o = getComputedStyle(a).overflowY;
-                if (o === 'auto' || o === 'scroll') { const b = a.getBoundingClientRect(); return r.top <= b.bottom + 150 && r.bottom >= b.top - 150; }
-            }
-            return true;
-        }
-        async function collGrid(host, C, render, empty) {
-            const tok = {};
-            host._cg = tok;
-            host.innerHTML = '<div class="cg-more">불러오는 중…</div>';
-            let lists;
-            const live = () => host._cg === tok && host.isConnected;          // 🔁 창이 열려 있는 동안 받을 때까지 다시 (js/drive.js keepTrying)
-            try { lists = await keepTrying(() => collIndex(C), { alive: live, onTry: n => { if (live()) host.innerHTML = `<div class="cg-more">${KT_MSG(n)}</div>`; } }); }
-            catch (e) { if (host._cg === tok) host.innerHTML = '<div class="cs-empty">⚠ 목록을 읽지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>'; return; }
-            if (host._cg !== tok) return;
-            let next = lists.length - 1, shown = 0;
-            const sentinel = document.createElement('div');
-            sentinel.className = 'cg-more';
-            const seen = new Set();                                            // 🔁 같은 칸은 한 번만 (드라이브에 올리는 중엔 '올릴 것'과 목록에 같은 칸이 잠깐 같이 있어요 · 도련 10-23 글씨스티커 2개)
-            const add = arr => {
-                const html = arr.filter(e => !C.gone.has(e.id) && !seen.has(e.id) && seen.add(e.id)).map(render).join('');
-                if (html) { sentinel.insertAdjacentHTML('beforebegin', html); shown++; }
-            };
-            host.innerHTML = '';
-            host.appendChild(sentinel);
-            add(C.pend.slice().reverse());
-            let loading = false;
-            const more = async () => {
-                if (loading || host._cg !== tok) return;
-                loading = true;
-                try {
-                    while (next >= 0 && host._cg === tok) {
-                        const L = lists[next--], items = await keepTrying(() => collLoad(C, L), { alive: live, onTry: n => { sentinel.textContent = KT_MSG(n); } });
-                        if (host._cg !== tok) return;
-                        add(items.slice().reverse());
-                        if (items.length) break;
-                    }
-                } catch (e) { sentinel.textContent = '⚠ 목록을 다 읽지 못했어요.'; loading = false; return; }
-                loading = false;
-                if (next < 0) {
-                    if (io) io.disconnect();
-                    sentinel.remove();
-                    if (!host.querySelector('[data-id]') && empty) host.insertAdjacentHTML('beforeend', empty);
-                } else {
-                    sentinel.textContent = '';
-                    requestAnimationFrame(() => { if (cgNear(sentinel)) more(); });   // 아직 화면이 덜 찼으면 한 묶음 더
-                }
-            };
-            const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) more(); }) : null;
-            if (io) io.observe(sentinel);
-            await more();
-            if (!io) while (next >= 0 && host._cg === tok) await more();
-            if (collOnline() && !C.checked) collCheck(C);
-        }
 
         /* 글자 → 짧은 확인 글자 (같은 그림인지 보기) */
         function collHash(s) { s = String(s || ''); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); }
 
         window.collHash = collHash;
         window.collOf = collOf; window.collAdd = collAdd; window.collSet = collSet; window.collRemove = collRemove; window.collItem = collItem;
-        window.collAll = collAll; window.collEnt = collEnt; window.collGrid = collGrid; window.collThumb = collThumb; window.collNewId = collNewId;
+        window.collAll = collAll; window.collEnt = collEnt; window.collThumb = collThumb; window.collNewId = collNewId;
         window.collLogin = collLogin; window.collWhoami = collWhoami; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
 
         /* 🗂 상품 하나 = 파일 하나 (도련 11-05 · 목록에만 적던 것도 모두 : ✏️ 필기구 · 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 날짜형 다이어리)

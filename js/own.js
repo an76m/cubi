@@ -948,9 +948,6 @@
         }
 
         /* ---------- 🗑 버리기 (도련 11-02 · 현실처럼 모든 상품) : 목록에 bin 표시만 → 30일 휴지통 (js/bin.js) → 되살리기 = 표시 빼기 · 영구 삭제 = 목록에서 빼고 종이 파일 완전 삭제 ---------- */
-        const OWN_ICON = { seal: '🏷️', piece: '🧩', paper: '📄', tape: '🎀', tk: '🧻', memo: '📝', leaf: '📃' };
-        const OWN_KN = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', tk: '떡메모지', memo: '메모지', leaf: '속지' };
-        const ownBinName = e => `${OWN_ICON[e.kk] || '🏷️'} ${e.nm ? e.nm + ' ' : ''}${OWN_KN[e.kk] || '스티커'}`;
         /* kk = 종류 (휴지통 기록에 있어요) · 모르면 바구니에 읽어 둔 목록에서 찾아요 (버린 종이는 바구니에 안 보여서 모든 종류를 읽어요) */
         async function ownKindsFor(ids, kk) {
             if (kk && OWN_KIND[kk]) return [kk];
@@ -958,22 +955,6 @@
             if (ks.length && ids.every(id => ownKindOf(id))) return ks;
             await ownKindDirs(OWN_KS);
             return OWN_KS;
-        }
-        function ownBinSet(ids, on, kk) {
-            ownReady();
-            return ownSerial(async () => {
-                const out = [];
-                for (const k of await ownKindsFor(ids, kk)) {
-                    const list = await ownIdxRead(k), hit = list.filter(e => ids.includes(e.id));
-                    if (!hit.length) continue;
-                    hit.forEach(e => { if (on) e.bin = Date.now(); else delete e.bin; });
-                    await ownIdxWrite(k, list);
-                    ownSetKind(k, list);
-                    out.push(...hit.map(e => ({ id: e.id, f: e.f, kk: e.k, nm: e.nm || '' })));
-                }
-                if (out.length) ownTell();
-                return out;
-            });
         }
         function ownPurge(id, f, kk) {
             ownReady();

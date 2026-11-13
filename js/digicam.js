@@ -110,10 +110,6 @@
             return { t: `${S.left + S.width / 2 - (R.left + R.width / 2)}px ${S.top + S.height / 2 - (R.top + R.height / 2)}px`, s: `${flipX ? -sx : sx} ${sy}` };
         }
         const cardAt = (st, ms) => { const c = dq('dcmCard'); c.style.transition = ms ? `translate ${ms}ms cubic-bezier(.22, .9, .3, 1), scale ${ms}ms cubic-bezier(.22, .9, .3, 1)` : 'none'; c.style.translate = st ? st.t : ''; c.style.scale = st ? st.s : ''; };
-        function toCard(S) {
-            const c = dq('dcmCard'), R = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight, u = w / 100;
-            return `translate(${R.left + R.width / 2 - (S.left + S.width / 2)}px, ${R.top + R.height / 2 - (S.top + S.height / 2)}px) scale(${(w + 2 * P * u) / S.width}, ${(h + 2 * P * u) / S.height})`;
-        }
         function showNow(w) { w.style.transition = 'none'; w.classList.remove('hide'); void w.offsetWidth; w.style.transition = ''; }
         function hideNow(w) { w.style.transition = 'none'; w.classList.add('hide'); void w.offsetWidth; w.style.transition = ''; }
         function flip(back) { const c = dq('dcmCard'); c.classList.toggle('rear', back); }

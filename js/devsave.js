@@ -226,7 +226,6 @@
 
         /* ---------- 시작 : 이 브라우저 저장공간으로 '로그인'한 것처럼 ---------- */
         function dvSetMode(m) { try { if (m) localStorage.setItem(DV_MODE, m); else localStorage.removeItem(DV_MODE); } catch (e) {} }
-        function dvGetMode() { try { return localStorage.getItem(DV_MODE) || ''; } catch (e) { return ''; } }
         async function dvStart() {
             V.mode = 'idb'; await vLoad();
             V.on = true; drive.local = true; drive.token = null;

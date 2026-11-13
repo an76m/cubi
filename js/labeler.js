@@ -163,13 +163,6 @@
             return m.getBoundingClientRect();
         }
         const FLY = 560, SWAP = 160;
-        /* 그림이 진짜 기계와 꼭 겹치는 자리 : 책상 그림(디자인.png) = 이 기계를 그대로 찍은 것 (기계 둘레 3u · 위 손잡이 3.4u 까지 · 도련 11-08)
-           → 그림 테두리를 기계 + 둘레에 맞춰 (가로세로 · 가운데 · 기울기 없이 반듯하게) */
-        function toMach(S, R) {
-            const m = lq('lbmMach'), w = m.offsetWidth, h = m.offsetHeight, u = w / 100;   // 기울기 전 크기 (getBoundingClientRect 는 기울어 조금 커요)
-            const cx = R.left + R.width / 2, cy = R.top + R.height / 2 - 1.7 * u;
-            return `translate(${cx - (S.left + S.width / 2)}px, ${cy - (S.top + S.height / 2)}px) scale(${(w + 6 * u) / S.width}, ${(h + 6.4 * u) / S.height})`;
-        }
         /* 🛫 진짜 기계가 그대로 날아요 (도련 11-11 : 책상 그림 → 진짜 기계로 바꿔 끼면 예전 영어 글씨가 잠깐 보였어요 · 이제 그림을 띄우지 않아요)
            책상 그림 칸(S)에 진짜 기계를 줄여 겹쳐 두고 → 제자리로 (translate · scale 만 · 기울기는 그대로) */
         function machFrom(S, R, flipX) {

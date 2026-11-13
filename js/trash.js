@@ -134,7 +134,6 @@
             return '📄 ' + parts.slice(1).join(' / ');
         }
         const trWhen = ms => { const d = new Date(ms); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-        const trSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(b / 1024)) + 'KB';
 
         async function trEmpty(items) {                                       // 🗑 보이는 것 모두 영구 삭제 (기록 파일 · 📔 쓴 다이어리 = 🚛)
             for (const e of items) { try { if (e.k === 'dy') await dyyBinPurge(e.id); else await trKill(e.id); } catch (x) { console.warn('🗑 비우기 (다음에 다시)', x); } }
