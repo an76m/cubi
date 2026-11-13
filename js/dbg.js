@@ -1,11 +1,11 @@
 /* 🐞 멈춤 기록 (도련 11-13 · 칼로 스티커를 자르거나 떼려 하면 앱이 멈춰요 → 어디서 멈추는지 F12 에서 보려고 넣은 임시 도구)
-   - 누르기 · 떼기 · ✂️ 칼 자르기 단계 · 화면이 멈춘 시간 · 오류를 이 기기에 짧게 적어 둬요 (localStorage 'malang_dbg' · 마지막 120줄)
+   - 누르기 · 떼기 · ✂️ 칼 자르기 단계 · 화면이 멈춘 시간 · 오류를 이 기기에 짧게 적어 둬요 (localStorage 'malang_dbg' · 마지막 400줄)
    - 앱이 멈춰서 다시 열면 → F12 → Console(콘솔)에 '🐞 지난번 기록' 표가 저절로 떠요 (맨 아래 줄 = 멈추기 직전)
    - 콘솔에서 dbgShow() = 지난번 기록 · dbgNow() = 지금 기록 · dbgClear() = 지우기
    - 일기 · 드라이브에는 아무것도 보내지 않아요 · 원인을 찾으면 이 파일과 index.html 의 한 줄 · dbg( 부르는 곳을 지워요 */
 (() => {
     'use strict';
-    const KEY = 'malang_dbg', PREV = 'malang_dbg_prev', MAX = 120, T0 = Date.now();
+    const KEY = 'malang_dbg', PREV = 'malang_dbg_prev', MAX = 400, T0 = Date.now();
     let ring = [];
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ring)); } catch (e) {} };
     const read = k => { try { return JSON.parse(localStorage.getItem(k) || '[]') || []; } catch (e) { return []; } };
@@ -21,11 +21,29 @@
     /* 지난번 기록 (다시 열었을 때) */
     const old = read(KEY);
     if (old.length) { try { localStorage.setItem(PREV, JSON.stringify(old)); } catch (e) {} }
-    window.dbgShow = () => { const p = read(PREV); console.log('%c🐞 지난번 기록 (맨 아래 줄 = 멈추기 직전) · ' + p.length + '줄', 'color:#c2457a;font-size:14px;font-weight:bold'); console.table(p.slice(-40)); return p.length; };
+    window.dbgShow = () => { const p = read(PREV); console.log('%c🐞 지난번 기록 (맨 아래 줄 = 멈추기 직전) · ' + p.length + '줄', 'color:#c2457a;font-size:14px;font-weight:bold'); console.table(p.slice(-60)); return p.length; };
     window.dbgNow = () => { console.table(ring.slice(-40)); return ring.length; };
     window.dbgClear = () => { ring = []; try { localStorage.removeItem(KEY); localStorage.removeItem(PREV); } catch (e) {} return '지웠어요'; };
     if (old.length) setTimeout(() => window.dbgShow(), 1500);
     dbg('start', location.pathname + ' · ' + innerWidth + 'x' + innerHeight + ' · ' + (navigator.userAgent.match(/(Chrome|Edg|Whale|Firefox|Safari)\/[\d.]+/g) || []).join(' '));
+    /* 🔎 손을 뗄 때 (pointerup · click) 도는 코드마다 '들어감 ▶ / 나옴 ◀' 을 적어요 (1162 · 지난번 기록이 pointerup 에서 멈췄어요)
+       → 맨 아래가 ▶ 로 끝나면 그 줄의 파일:줄 이 멈춘 곳 · 콘솔에는 안 찍고 기록에만 (너무 많아서) */
+    const WATCH = { pointerup: 1, pointercancel: 1, click: 1 };
+    const quiet = (tag, info) => { ring.push({ at: tm(), ms: Date.now() - T0, tag, info }); if (ring.length > MAX) ring = ring.slice(-MAX); save(); };
+    const wraps = new WeakMap();
+    const whereNow = () => { const s = (new Error().stack || '').split('\n').slice(3).find(l => /\/js\//.test(l) && !/dbg\.js/.test(l)) || ''; const m = s.match(/\/js\/([^?:\s]+)(?:\?[^:]*)?:(\d+)/); return m ? m[1] + ':' + m[2] : '?'; };
+    const add0 = EventTarget.prototype.addEventListener, rem0 = EventTarget.prototype.removeEventListener;
+    EventTarget.prototype.addEventListener = function (type, fn, opt) {
+        if (!WATCH[type] || typeof fn !== 'function') return add0.call(this, type, fn, opt);
+        let m = wraps.get(fn); if (!m) { m = {}; wraps.set(fn, m); }
+        const cap = !!(opt === true || (opt && opt.capture)), key = type + (cap ? '1' : '0');
+        if (!m[key]) { const at = whereNow(); m[key] = function (e) { quiet('▶ ' + type, at); try { return fn.apply(this, arguments); } finally { quiet('◀ ' + type, at); } }; }
+        return add0.call(this, type, m[key], opt);
+    };
+    EventTarget.prototype.removeEventListener = function (type, fn, opt) {
+        const m = WATCH[type] && typeof fn === 'function' && wraps.get(fn), cap = !!(opt === true || (opt && opt.capture));
+        return rem0.call(this, type, (m && m[type + (cap ? '1' : '0')]) || fn, opt);
+    };
     /* 누르기 · 떼기 : 무엇을 눌렀는지 (맨 먼저 · 다른 손짓보다 앞에서) */
     const who = t => { if (!t || !t.tagName) return '?'; const c = typeof t.className === 'string' ? t.className.trim().split(/\s+/).slice(0, 3).join('.') : ''; const b = t.closest && t.closest('.element-box'); return t.tagName.toLowerCase() + (t.id ? '#' + t.id : '') + (c ? '.' + c : '') + (b && b !== t ? ' in box' + (b.dataset.cut ? '(cut)' : '') : ''); };
     const body = () => (document.body ? document.body.className : '').replace(/\s+/g, ' ').slice(0, 70);

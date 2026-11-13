@@ -164,6 +164,7 @@
         if (S.snap) { S.snap = null; rlTell(null); }
         if (!S.moved && !S.page) { S.pts = null; paint(); hold(!S.held); return; }   // 칼을 톡 = 들기 ↔ 내려놓기
         const pts = S.pts; if (!pts || pts.length < 2) { S.pts = null; paint(); return; }
+        if (window.dbg) dbg('knife-up0', pts.length);   // 🐞 (임시)
         S.busy = true; let ok = false; const hit = crossed(pts);
         if (window.dbg) dbg('knife-up', { pts: pts.length, hit: hit.length, boxes: spPage() ? spPage().querySelectorAll(':scope > .element-box').length : -1 });   // 🐞 js/dbg.js (임시)
         try { for (const el of hit) { if (await split(el, pts)) { ok = true; break; } } } catch (er) { console.warn('자르기', er); if (window.dbg) dbg('knife-err', String(er && er.stack || er)); }
