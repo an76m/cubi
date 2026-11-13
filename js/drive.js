@@ -46,7 +46,7 @@
         /* 🪑 ✏️ 물건 종류 폴더 (도련 10-27 : 무료 · 유료 · 이벤트 · 공유받은 것 · 내가 만든 것 모두 종류가 같으면 같은 폴더) · 가질 때 생겨요 */
         /* ⚠ pencup 폴더 = '연필꽂이' 그대로 (화면 이름만 펜꽂이 · 도련 11-03) */
         /* ⚠ DESK_DIRS · GD_DIRS · SKIN_DIRS = 종류 이름 표 (소품함 탭 이름 · 예전 폴더 이름) · 파일은 소품 / 문구 폴더 하나에 (도련 11-07) */
-        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', basket: '소품바구니', lamp: '조명', doll: '인형', taperack: '마테정리함', lights: '전구줄', peg: '집게사진' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
+        const DESK_DIRS = { drawer: '서랍장', clock: '시계', bookshelf: '책꽂이', pencup: '연필꽂이', riser: '받침대', wallshelf: '벽선반', board: '게시판', basket: '소품바구니', lamp: '조명', doll: '인형', taperack: '마테정리함', lights: '전구줄', peg: '집게사진', tablet: '태블릿' };   // 🆕 조명 · 인형 (도련 10-28 · 소품 종류가 늘면 칸만 더해요)
         const GD_DIRS = { tweez: '핀셋', scissors: '가위', punch: '펀칭기', tape: '양면테이프', clip: '집게', knife: '칼', ruler: '자', pen: '색연필', hi: '형광펜', erase: '지우개' };   // ✏️ 필기구도 (도련 11-05 · 문구 상품 '문구종류' = 폴더)
         const SKIN_DIRS = { wall: '벽지', top: '책상판' };            // 🧱 🪵 책상 꾸밈 (도련 11-05 · js/deskskin.js)
         const dirPath = n => [TOP_FOLDER_NAME, n];                   // 늘 말랑달콤 바로 아래 한 칸
