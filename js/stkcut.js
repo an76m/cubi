@@ -165,8 +165,9 @@
         if (!S.moved && !S.page) { S.pts = null; paint(); hold(!S.held); return; }   // 칼을 톡 = 들기 ↔ 내려놓기
         const pts = S.pts; if (!pts || pts.length < 2) { S.pts = null; paint(); return; }
         S.busy = true; let ok = false; const hit = crossed(pts);
-        try { for (const el of hit) { if (await split(el, pts)) { ok = true; break; } } } catch (er) { console.warn('자르기', er); }
-        S.busy = false; S.pts = null; paint();
+        if (window.dbg) dbg('knife-up', { pts: pts.length, hit: hit.length, boxes: spPage() ? spPage().querySelectorAll(':scope > .element-box').length : -1 });   // 🐞 js/dbg.js (임시)
+        try { for (const el of hit) { if (await split(el, pts)) { ok = true; break; } } } catch (er) { console.warn('자르기', er); if (window.dbg) dbg('knife-err', String(er && er.stack || er)); }
+        S.busy = false; if (window.dbg) dbg('knife-done', ok); S.pts = null; paint();
         if (!ok) { if (hit.length) hint('스티커를 <b>끝에서 끝까지</b> 가로질러야 나뉘어요 ✂️'); return; }
         const say = q('skTip').querySelector('.sk-say'); if (say) say.remove();
         buzz(8);
@@ -223,7 +224,9 @@
     /* ---------- 자르기 : 그은 선을 양 끝으로 길게 늘여 그림을 두 쪽으로 ---------- */
     async function split(el, pts) {
         const kind = cutKind(el); if (!kind) return false;
+        if (window.dbg) dbg('split-render', { kind, w: el.offsetWidth, h: el.offsetHeight, cut: el.dataset.cut || 0, src: (el.querySelector(':scope > img') || {}).naturalWidth });
         const g = await render(el, kind), { c, R, W, H, B, P } = g;
+        if (window.dbg) dbg('split-canvas', [c.width, c.height, R]);
         const ca = spPage(), car = ca.getBoundingClientRect(), k = car.width / (ca.offsetWidth || car.width) || 1;
         const s = parseFloat(el.dataset.scale) || 1, rot = (parseFloat(el.dataset.rotation) || 0) * Math.PI / 180;
         const px = parseFloat(el.dataset.posX) || 0, py = parseFloat(el.dataset.posY) || 0, cx = px + W / 2, cy = py + H / 2;
@@ -250,13 +253,14 @@
             x.beginPath(); x.moveTo(poly[0][0], poly[0][1]); for (let i = 1; i < poly.length; i++) x.lineTo(poly[i][0], poly[i][1]); x.closePath(); x.fill();
             return o;
         };
+        if (window.dbg) dbg('split-halves', { n, BIG });
         const A = half(true), Bc = half(false);
         const trim = cv => {                            // 투명한 가장자리 잘라내기 + 남은 칸 수
             const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let x0 = cv.width, y0 = cv.height, x1 = -1, y1 = -1, cnt = 0;
             for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) if (d[(y * cv.width + x) * 4 + 3] > 24) { cnt++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
             return cnt ? { x0, y0, x1, y1, cnt } : null;
         };
-        const ta = trim(A), tb = trim(Bc);
+        const ta = trim(A), tb = trim(Bc); if (window.dbg) dbg('split-trim', [ta && ta.cnt, tb && tb.cnt]);
         if (!ta || !tb) return false;
         const tot = ta.cnt + tb.cnt, min = Math.max(30 * R * R, tot * .004);
         if (ta.cnt < min || tb.cnt < min) return false;   // 가장자리만 살짝 스친 건 자른 게 아니에요
@@ -271,11 +275,13 @@
             let pcx = cx + s * (lcx * Math.cos(rot) - lcy * Math.sin(rot)) + side * nv[0] * gap, pcy = cy + s * (lcx * Math.sin(rot) + lcy * Math.cos(rot)) + side * nv[1] * gap;
             const at = window.bdCvAt && bdCvAt(scx + k * s * (lcx * Math.cos(vrot) - lcy * Math.sin(vrot)), scy + k * s * (lcx * Math.sin(vrot) + lcy * Math.cos(vrot)));   // 🗂 바인더 : 보이는 자리 → 저장 자리 (조각이 다른 쪽으로 넘어가도 제자리)
             if (at) { pcx = at.x + side * nv[0] * gap; pcy = at.y + side * nv[1] * gap; }
+            if (window.dbg) dbg('split-add', { side, len: url.length });
             if (!addImage(url)) return false;
             const ne = ca.querySelector(':scope > .element-box:last-child'), im = ne.querySelector(':scope > img');
             ne.style.width = Math.max(4, Math.round(w / R * 10) / 10) + 'px';
             if (float) ne.dataset.float = float;
             ne.dataset.cut = 1;
+            if (window.dbg) dbg('split-wait', im.complete);
             if (!(im.complete && im.naturalWidth)) await new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); });
             const nx = Math.round(pcx - ne.offsetWidth / 2), ny = Math.round(pcy - ne.offsetHeight / 2);
             ne.dataset.posX = nx; ne.dataset.posY = ny; ne.dataset.scale = s; ne.dataset.rotation = rotDeg; ne.style.zIndex = z;
@@ -283,7 +289,7 @@
             if (at && window.bdPin) bdPin(ne, at.sd);                       // 📌 가운데 틈 근처 조각은 놓인 쪽 그대로
             ne.classList.remove('selected'); made.push(ne);
         }
-        el.remove();
+        el.remove(); if (window.dbg) dbg('split-ok');
         if (spKeep() && window.bdAfterLoad) bdAfterLoad();                     // 🗂 바인더 : 조각을 바로 그 쪽 자리로 (진짜 다이어리만)
         if (typeof selectedElement !== 'undefined') { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }
         made.forEach(e => { e.classList.add('sk-new'); setTimeout(() => e.classList.remove('sk-new'), 700); });

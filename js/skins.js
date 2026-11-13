@@ -1038,6 +1038,7 @@
              다른 문구함은 다이어리를 다시 열면 문구함 서랍으로 돌아가요 · ⚡ 자동 끼우기의 기본펀치(PUNCHES)는 목록에 없어요 (연출에만) */
         /* 🪡 핀셋 없이 스티커를 누르면 그 자리에 말풍선 '핀셋을 사용해 주세요' (도련 10-19 · 페이지 · 🪟 고르는 창 · 📒 수첩 js/stknote.js) */
         function twzSay(x, y, t, ms) {                                            // t : 다른 말 (✂️ 가위 · scsSay) · ms : 떠 있는 시간
+            if (window.dbg) dbg('twzSay', t || '핀셋');   // 🐞 js/dbg.js (임시)
             bubbleAt('twzSay2', 'twz-say', t || '🪡 핀셋을 사용해 주세요', x, y, { min: 90, dy: 14, top: 40, ms: ms || 1600 });   // 💬 js/util.js (말풍선 하나) · 누른 곳 바로 위 (도련 11-13 : 예전엔 높이 줄이 주석 안에 들어가 늘 화면 가운데쯤에 떴어요)   // 말이 길어도 화면 안에 b.style.top = Math.max(40, y - 14) + 'px';
             if (!t) gdNeed('tweez');                                            // 🩷 핀셋 있는 곳을 깜박여 알려 줘요
         }
