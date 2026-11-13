@@ -1,0 +1,63 @@
+/* 📱 아이패드 (js/ipad.js · 도련 11-13) : 책상 위 아이패드 → 화면 가운데로 크게 · 홈 화면 앱 6개 · 🧩 📄 그림 앱
+   z 940 = 예전 만들기 화면(속지 · 떡메 · 마테 · 시트 꾸미기)보다 아래 → 그 화면을 닫으면 아이패드 홈이 그대로 */
+.ip-room { position: fixed; inset: 0; z-index: 940; display: none; }
+.ip-room.show { display: block; }
+.ip-dim { position: absolute; inset: 0; background: rgba(70, 44, 56, .34); opacity: 0; transition: opacity .35s ease; }
+.ip-room.lit .ip-dim { opacity: 1; }
+.ip-x { position: absolute; top: -14px; right: -14px; z-index: 3; opacity: 0; transition: opacity .3s; }   /* ✕ = 아이패드 오른쪽 위 모서리 */
+.ip-pad.fly .ip-x { opacity: 0 !important; }
+.ip-room.lit .ip-x { opacity: 1; }
+.ip-pad { position: absolute; transform-origin: 0 0; }
+.ip-img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-select: none; }
+.ip-scr { position: absolute; overflow: hidden; border-radius: 3.2% / 4.6%; transition: opacity .25s ease; display: flex; flex-direction: column; color: #5b3f4a; container-type: size; }
+.ip-pad.fly .ip-scr, .ip-scr.off { opacity: 0; }
+
+/* 🏠 홈 화면 */
+.ip-home { background: linear-gradient(#ffe6f0, #fff4e6 55%, #e8f3ff); align-items: center; }
+.ip-stat { padding-top: 4cqh; font-size: 9cqh; line-height: 1; letter-spacing: .5px; color: #8a6070; font-family: 'Jua', sans-serif; }
+.ip-stat b { font-weight: 400; }
+.ip-apps { flex: 1; width: 86%; display: grid; grid-template-columns: repeat(3, 1fr); align-content: center; gap: 6cqh 4cqw; }
+.ip-app { display: flex; flex-direction: column; align-items: center; gap: 1.6cqh; border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: #6b4a58; }
+.ip-app i { display: grid; place-items: center; width: min(15cqh * 1.25, 12cqw); aspect-ratio: 1; border-radius: 26%; font-style: normal; font-size: min(9cqh, 6cqw);
+    border: 2px solid #6b3f35; box-shadow: 0 3px 0 rgba(107, 63, 53, .18); transition: transform .15s ease; }
+.ip-app span { font-size: min(4.2cqh, 2.4cqw); font-weight: 800; white-space: nowrap; }
+.ip-app:hover i { transform: translateY(-2px); } .ip-app:active i, .ip-app.tap i { transform: scale(.9); }
+.ip-app .a-leaf { background: #fff0b8; } .ip-app .a-tk { background: #ffe0c8; } .ip-app .a-tape { background: #ffd1df; }
+.ip-app .a-seal { background: #cfe4ff; } .ip-app .a-piece { background: #cdeec8; } .ip-app .a-paper { background: #e7d6ff; }
+.ip-bar { width: 18%; height: 1.2cqh; min-height: 3px; border-radius: 9px; background: #8a6070; opacity: .45; margin: 0 0 2.4cqh; }
+
+/* ✏️ 그림 앱 (🧩 조각 · 📄 모조지) */
+.ip-draw { background: #fffaf3; }
+.ipd-top { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: #ffe6f0; border-bottom: 1.5px solid #f3c2d3; flex-wrap: wrap; }
+.ipd-top b { font-size: 14px; margin-left: 2px; }
+.ipd-sp { flex: 1; }
+.ipd-b { border: 1.5px solid #e9b4c6; background: #fff; color: #7a4a5d; border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.ipd-b:active { transform: translateY(1px); }
+.ipd-go { background: #ff8fb0; border-color: #ff8fb0; color: #fff; }
+.ipd-go:disabled { opacity: .7; }
+.ipd-mid { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8px; }
+.ipd-cv { position: relative; height: 100%; max-width: 100%; border-radius: 10px; box-shadow: 0 0 0 1.5px #e9cfd8, 0 4px 12px rgba(120, 70, 90, .12);
+    background: repeating-conic-gradient(#f4ecef 0 25%, #fff 0 50%) 0 0 / 18px 18px; touch-action: none; }   /* 🧩 투명 = 체크무늬 */
+.ipd-cv.paper { background: #fff; }
+.ipd-cv canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; }
+#ipdInk { cursor: crosshair; touch-action: none; }
+.ipd-tools { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px 4px; flex-wrap: wrap; }
+.ipd-pen { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1.5px #d8b6c3; cursor: pointer; padding: 0; }
+.ipd-pen.on { box-shadow: 0 0 0 2.5px #ff6f9c; transform: scale(1.12); }
+.ipd-gap { width: 8px; }
+.ipd-sz { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #e2c3cf; background: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.ipd-sz i { display: block; border-radius: 50%; background: #6b4a58; }
+.ipd-sz.on { border-color: #ff6f9c; box-shadow: 0 0 0 1.5px #ff6f9c; }
+.ipd-er { height: 28px; border-radius: 14px; border: 1.5px solid #e2c3cf; background: #fff; padding: 0 9px; cursor: pointer; font-size: 15px; }
+.ipd-er.on { border-color: #ff6f9c; background: #ffe6f0; }
+.ipd-tip { text-align: center; font-size: 11.5px; color: #9a7685; padding: 0 10px 7px; word-break: keep-all; }
+
+/* 🪑 책상 위 작은 아이패드 화면 (js/desk.js deskItemHtml) */
+.dk-pad { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6%; pointer-events: none; overflow: hidden; border-radius: 6px;
+    background: linear-gradient(#ffe6f0, #fff4e6 55%, #e8f3ff); }
+.dk-pad b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 11px; line-height: 1; color: #8a6070; }
+.dk-pad span { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 7px; }
+.dk-pad i { width: 16px; height: 16px; border-radius: 5px; border: 1.2px solid #6b3f35; display: grid; place-items: center; font-style: normal; font-size: 9px; line-height: 1; }
+.dk-pad i:nth-child(1) { background: #fff0b8; } .dk-pad i:nth-child(2) { background: #ffe0c8; } .dk-pad i:nth-child(3) { background: #ffd1df; }
+.dk-pad i:nth-child(4) { background: #cfe4ff; } .dk-pad i:nth-child(5) { background: #cdeec8; } .dk-pad i:nth-child(6) { background: #e7d6ff; }
+@media (prefers-reduced-motion: reduce) { .ip-dim, .ip-x, .ip-scr { transition: none; } }

@@ -36,6 +36,7 @@
             { k: 'bg', ic: '🌈', n: '배경지', ways: ['weave', 'pdraw'], to: '🌈 배경지 창 · 내가만든 칸', ft: 'pattern' }
         ];
         const C = { on: false, k: 'seal', sel: null, mine: [], loading: false, sheet: false, off: null };
+        window.craftWay = (w, k) => { const W = CRAFT_WAYS[w]; if (W) W[3](k); };   // 📱 아이패드 앱 = 예전 만들기 화면 그대로 (js/ipad.js · 도련 11-13)
         const cq = id => document.getElementById(id);
         const ftOk = f => !f || !window.ftOn || f.split(' ').every(x => ftOn(x));
         const kinds = () => CRAFT_KINDS.filter(K => ftOk(K.ft));
