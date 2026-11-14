@@ -384,7 +384,7 @@
         function ownIdxApply(k, list) {                                          // 이 기기에서 쓰는 중인 칸 · 수량을 빼고 기억해요 (ownSetKind 가 얹어요)
             const pend = ownPendGet();
             ownSetKind(k, list);
-            if (pend.length && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
+            if (pend.some(p => !p.h) && O.replayed !== O.kw) { O.replayed = O.kw; setTimeout(ownReplay, 0); }   // 지난번에 다 못 지운 칸 이어서
             return O.kd[k].live;
         }
         /* ⚡ 목록 · 스티커첩 파일 번호를 기억해요 (계정 · 종류마다 · 도련 10-25) : 다음에 열 때 폴더 찾기 · 파일 찾기 없이 바로 읽어요
@@ -579,12 +579,14 @@
         function ownPaper(id, img, th, left, el, a0) { return ownOp(id, { img, th, left, a0 }, el); }   // 📄 모조지 : 남은 종이 그림으로 바꾸기 (left : 남은 비율)
         function ownOp(id, op, el) {
             ownReset();
+            if (window.pgDoneNow && pgDoneNow()) { if (window.pgBlock) pgBlock(); return Promise.resolve(false); }   // ✅ 완료한 페이지 = 더 못 붙여요 (js/pagedone.js)
             if (window.dgDone) dgDone();                                             // 🩷 처음 붙였으면 다꾸하는 법 메모는 끝 (js/dkguide.js)
+            const hk = op.img == null && window.pgHoldKey ? pgHoldKey() : '';   // ✅ 완료 전 다이어리 페이지 = 쓴 칸은 이 기기에만 적어 두고 ✅ 완료할 때 한꺼번에 (ownCommit · 도련 11-14 : 드라이브 요청 줄이기)
             if (op.img == null) {                                                 // 칸 · 수량은 끊겨도 다음에 이어서 지워요 (이 기기에 기억)
                 const pend = ownPendGet();
                 const kk = ownKindOf(id);                                          // 종류도 기억해요 (이어서 지울 때 그 종류 목록만 읽게)
-                if (op.q) pend.push({ s: id, q: op.q, t: Date.now(), n: ownRid(), kk });
-                else if (!pend.some(p => p.s === id && p.k === op.k)) pend.push({ s: id, k: op.k, t: Date.now(), kk });
+                if (op.q) pend.push(Object.assign({ s: id, q: op.q, t: Date.now(), n: ownRid(), kk }, hk ? { h: hk } : {}));
+                else if (!pend.some(p => p.s === id && p.k === op.k)) pend.push(Object.assign({ s: id, k: op.k, t: Date.now(), kk }, hk ? { h: hk } : {}));
                 ownPendSet(pend); op.n = op.q ? pend[pend.length - 1].n : '';
             }
             if (O.idx) {                                                          // 이 기기에서는 바로 빠져 보여요
@@ -592,9 +594,50 @@
                 if (e) { if (op.q) e.q = Math.max(0, e.q - op.q); else if (op.img != null) { if (op.th) e.th = op.th; if (op.left <= OWN_PAPER_END) { e.q0 = 1; e.q = 0; } } else if (!e.u.includes(op.k)) e.u.push(op.k); if (!ownHas(e)) O.spent.add(id); }
                 OWN_KS.forEach(k => { const d = O.kd[k]; if (d && d.live) d.live = d.live.filter(ownAlive); }); ownMerge(); ownTell();
             }
+            if (hk) return Promise.resolve(true);                                // ✅ 완료 전 = 드라이브는 아직 그대로 (이 기기 화면에서만 빠져 보여요)
             const kk = ownKindOf(id);
             return ownSerial(() => ownSpend(id, op, el, kk));
         }
+        /* ✅ 다이어리 페이지 완료 (도련 11-14 · js/pagedone.js) : 그 페이지에서 쓴 칸 · 수량(h = 페이지 키)을 종이마다 한 번에 드라이브에
+           - 종류마다 목록 1번 읽기 + 종이마다 1번 읽고 1번 새로 쓰기 + 옛 종이 지우기 + 목록 1번 쓰기 (한 장씩 할 때보다 요청이 아주 적어요)
+           - 실패하면 throw : 그 칸들은 이 기기에 그대로 남아요 (ownUnhold 로 풀면 ownReplay 가 인터넷이 되면 이어서 지워요)
+           - 다른 기기에서 이미 쓴 칸 · 다 쓴 묶음 = 조용히 넘어가요 (페이지에서 빼지 않아요 · 드문 일) */
+        const ownHeld = hk => ownPendGet().filter(p => p.h === hk);
+        async function ownCommit(hk, prog) {
+            const ops = ownHeld(hk); if (!ops.length) { if (prog) prog(1); return true; }
+            return ownSerial(async () => {
+                const byK = new Map();
+                for (const p of ops) { let k = p.kk && OWN_KIND[p.kk] ? p.kk : await ownFindKind(p.s); if (!k) continue; if (!byK.has(k)) byK.set(k, []); byK.get(k).push(p); }
+                const N = [...byK.values()].reduce((a, L) => a + new Set(L.map(p => p.s)).size, 0) || 1, done = []; let n = 0;
+                for (const [k, L] of byK) {
+                    const list = await ownIdxRead(k), kills = [];
+                    const bySheet = new Map(); L.forEach(p => { if (!bySheet.has(p.s)) bySheet.set(p.s, []); bySheet.get(p.s).push(p); });
+                    for (const [id, P] of bySheet) {
+                        const e = list.find(x => x.id === id);
+                        let s = null; if (e) { try { s = await ownFileRead(e.f); } catch (er) { if (!(er && er.code === 'gone')) throw er; } }
+                        if (!e || !s) { O.spent.add(id); n++; if (prog) prog(n / N); continue; }
+                        let end = false, slot = false;
+                        for (const p of P) {
+                            if (p.q) { s.q = Math.max(0, (s.q || 0) - p.q); e.q = s.q; end = s.q <= 0; }
+                            else if (s.imgs[p.k] != null) { if (!(s.gh && s.gh[p.k])) { s.gh = s.gh || []; s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); } s.imgs[p.k] = null; slot = true; }
+                        }
+                        if (slot) { e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0); end = e.u.length >= e.n; }
+                        if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); kills.push(e.f); }
+                        else { if (slot && e.th && !e.us) e.th = await ownThumb(s.imgs, 0, s.gh); const old = e.f; e.f = await ownFileNew(s); kills.push(old); }
+                        n++; if (prog) prog(n / N);
+                    }
+                    await ownIdxWrite(k, list);
+                    for (const f of kills) await ownFileKill(f).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 (다음에 다시) :', er));
+                    done.push([k, list]);
+                }
+                ownPendSet(ownPendGet().filter(p => p.h !== hk));                 // 먼저 지우고 목록을 얹어야 두 번 빠져 보이지 않아요
+                done.forEach(([k, list]) => ownSetKind(k, list)); ownTell();
+                return true;
+            });
+        }
+        function ownUnhold(hk) { ownPendSet(ownPendGet().map(p => { if (p.h === hk) { const q = Object.assign({}, p); delete q.h; return q; } return p; })); }   // 완료했는데 못 올렸어요 → 보통 '이어서 지우기'로 (인터넷이 되면 ownReplay)
+        function ownDropHeld(keys) { const K = new Set(keys); ownPendSet(ownPendGet().filter(p => !(p.h && K.has(p.h)))); O.spent = new Set(); O.kd = {}; O.idx = null; O.album = null; ownTell(); }   // 목록은 다음에 볼 때 다시 읽어요   // 🆕 처음부터 = 쓴 칸이 시트로 돌아가요
+        window.ownCommit = ownCommit; window.ownUnhold = ownUnhold; window.ownDropHeld = ownDropHeld; window.ownHeld = ownHeld;
         const OWN_PAPER_END = .04;                                                // 📄 남은 종이가 이만큼보다 적으면 다 쓴 종이
         async function ownSpend(id, op, el, kk) {
             const done = () => ownPendSet(ownPendGet().filter(p => !(p.s === id && (op.q ? p.n === op.n : p.k === op.k))));
@@ -645,9 +688,9 @@
         function ownRetryLater() { clearTimeout(ownRetryT); ownRetryT = setTimeout(ownReplay, 30000); }
         async function ownReplay() {
             if (!ownMode()) return;
-            for (const p of ownPendGet()) { try { await ownSerial(() => ownSpend(p.s, p.q ? { q: p.q, n: p.n } : { k: p.k }, null, p.kk)); } catch (e) { return; } }
+            for (const p of ownPendGet()) { if (p.h) continue; try { await ownSerial(() => ownSpend(p.s, p.q ? { q: p.q, n: p.n } : { k: p.k }, null, p.kk)); } catch (e) { return; } }   // h = ✅ 완료 전 페이지 칸 (완료할 때 ownCommit)
         }
-        window.addEventListener('online', () => { if (ownPendGet().length) ownReplay(); });
+        window.addEventListener('online', () => { if (ownPendGet().some(p => !p.h)) ownReplay(); });
 
         /* ---------- 🖼️ 종이 미리보기 (만든 스티커 : 바구니 칸 · 뗀 자리는 비워요) ---------- */
         const ownImg = src => new Promise(ok => { if (!src) { ok(null); return; } const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });

@@ -109,6 +109,7 @@
             let d = null; try { d = JSON.parse(text); } catch (e) { return text; }
             if (!d || typeof d !== 'object' || !Array.isArray(d.i)) return text;
             d.i.forEach(it => { if (it && typeof it === 'object') it.lt = 1; });
+            d.done = d.done || 1;                                                // ✅ 되살린 페이지 = 완료한 페이지 (js/pagedone.js · 도련 11-14)
             return JSON.stringify(d);
         }
 

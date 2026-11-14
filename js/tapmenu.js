@@ -92,6 +92,7 @@
 
         function tmOpen(e) {
             if (!isCoverOpen) return;
+            if (window.pgBlock && pgBlock(e.clientX, e.clientY)) return;          // ✅ 완료한 페이지 = 빈 곳 메뉴(글 · 사진 · 속지 …)도 안 나와요 (js/pagedone.js)
             if (window.bdGapAt && bdGapAt(e.clientX, e.clientY)) return;        // 🗂️ 바인더 가운데 링 자리는 종이가 아니라서 메뉴가 없어요 (도련 10-18 · js/skins.js)
             if (typeof dw !== 'undefined' && dw.on && !dw.rest) return;
             const canvas = document.getElementById('canvasArea'), r = canvas.getBoundingClientRect();

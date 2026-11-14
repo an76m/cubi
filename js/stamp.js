@@ -39,6 +39,7 @@
         /* 고르기 창 */
         function psOpen(kind, e) {
             if (e) e.stopPropagation();
+            if (window.pgBlock && pgBlock(e && e.clientX, e && e.clientY)) return;   // ✅ 완료한 페이지 = 도장도 그대로 (js/pagedone.js)
             psClose();
             const list = kind === 'mo' ? PS_MOODS : PS_WEATHERS, cur = pageStamps[kind];
             const pop = document.createElement('div');
@@ -56,6 +57,7 @@
         function psOutside(e) { const p = psq('psPop'); if (p && !p.contains(e.target)) psClose(); }
         function psClose() { const p = psq('psPop'); if (p) p.remove(); document.removeEventListener('pointerdown', psOutside, true); }
         function psSet(kind, id) {
+            if (window.pgBlock && pgBlock()) { psClose(); return; }
             pageStamps[kind] = pageStamps[kind] === id ? '' : id;
             psClose(); psRender();
             if (pageStamps[kind]) {

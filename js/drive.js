@@ -1348,7 +1348,7 @@
                 if (!drive.ready || drive.guest) return false;
                 if (force && isCoverOpen) {                                 // 💾 저장 버튼: 지금 보고 있는 날짜 파일을 한 번 더 덮어씀
                     const k = getDateKey(currentDate);
-                    if (drive.loadedDays.has(k) && store.getItem(k) !== null) drive.dirtyKeys.add(k);
+                    if (drive.loadedDays.has(k) && store.getItem(k) !== null && !(window.pgHeld && pgHeld(k))) drive.dirtyKeys.add(k);   // ✅ 완료 전 페이지는 올리지 않아요 (js/pagedone.js)
                 }
                 if (!drive.dirty || drive.wiped) return true;
                 drive.uploading = true; updateBadge();

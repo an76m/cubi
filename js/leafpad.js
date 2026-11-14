@@ -56,6 +56,7 @@
         /* 끼우면 새 속지가 오른쪽에서 스르륵 끼워져요 (붙인 것들은 그 위에 그대로 · 🎒 🧺 바구니의 속지 한 장 js/basket.js) */
         function pickLeaf(id, img) {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
+            if (window.pgBlock && pgBlock()) return;                            // ✅ 완료한 페이지 (js/pagedone.js)
             if (id === pageLeaf && (id !== 'my' || img === pageLeafImg)) return;
             const c = lfq('canvasArea');
             const sl = document.createElement('div'); sl.className = 'lf-slide'; lfApply(sl, id, img);
@@ -68,6 +69,7 @@
         const lfMenu = () => ({ edit: pageLeaf === 'my' && !!window.openStickerEdit, off: pageLeaf !== 'line' });
         async function lfEdit() {
             if (pageLeaf !== 'my' || !window.openStickerEdit) return;
+            if (window.pgBlock && pgBlock()) return;
             const img = pageLeafImg, out = await openStickerEdit(img, { tools: ['color'], max: 1000, trim: false, jpeg: !/^data:image\/(png|webp)/.test(img) });   // webp = 투명일 수 있어요 (도련 11-04)
             if (!out || pageLeafImg !== img) return;
             setPageLeaf('my', out); if (typeof saveData === 'function') saveData(false);

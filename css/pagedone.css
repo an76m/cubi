@@ -1,0 +1,18 @@
+/* ✅ 다이어리 페이지 완료 (도련 11-14 · js/pagedone.js) : 아래 가운데 완료 버튼 · 완료한 페이지 표시 · 저장 게이지 */
+.pg-bar { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translate(-50%, 140%); z-index: 930; display: flex; align-items: center; gap: 10px;
+    padding: 7px 8px 7px 8px; border-radius: 99px; background: #fff; border: 2px solid #5b3a33; box-shadow: 0 4px 0 rgba(91, 58, 51, .22), 0 10px 22px rgba(90, 50, 60, .18);
+    opacity: 0; pointer-events: none; transition: transform .35s cubic-bezier(.3, 1.4, .5, 1), opacity .25s; font-family: inherit; width: max-content; max-width: calc(100vw - 20px); box-sizing: border-box; }
+.pg-bar.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.pg-go { border: 2px solid #5b3a33; border-radius: 99px; background: #ff8fb1; color: #fff; font: inherit; font-size: 16px; font-weight: 900; padding: 7px 20px; cursor: pointer; box-shadow: 0 3px 0 #d9577f; white-space: nowrap; flex: none; width: auto; height: auto; line-height: 1.2; writing-mode: horizontal-tb; }
+.pg-go:active { transform: translateY(2px); box-shadow: 0 1px 0 #d9577f; }
+.pg-go[hidden] { display: none; }
+.pg-t { font-size: 12px; font-weight: 800; color: #8a6070; padding-right: 10px; white-space: nowrap; }
+.pg-bar.done { padding: 7px 14px; background: #eefaf2; border-color: #4f8a64; box-shadow: 0 3px 0 rgba(79, 138, 100, .25); }
+.pg-bar.done .pg-t { color: #3f7a55; padding: 0; font-size: 13px; }
+.pg-bar.busy { pointer-events: none; opacity: .6; }
+.pg-gauge { position: fixed; inset: 0; z-index: 10050; display: grid; place-items: center; background: rgba(60, 35, 45, .28); }
+.pg-gbox { width: min(340px, 86vw); background: #fff; border: 2px solid #5b3a33; border-radius: 18px; padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 6px 0 rgba(91, 58, 51, .2); }
+.pg-gbox b { font-size: 16px; color: #5b3a33; text-align: center; }
+.pg-gbox i { display: block; height: 14px; border-radius: 99px; background: #f6e3ea; border: 1.5px solid #5b3a33; overflow: hidden; }
+.pg-gbox u { display: block; height: 100%; width: 0; background: repeating-linear-gradient(45deg, #ff8fb1 0 10px, #ffa9c4 10px 20px); transition: width .35s ease; }
+.pg-gbox small { font-size: 11px; color: #8a6070; text-align: center; }

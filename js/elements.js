@@ -238,16 +238,15 @@
             return [Math.max(L - W / 2, Math.min(PW - W / 2, x)), Math.max(-H / 2, Math.min(PH - H / 2, y))];
         }
         window.elKeepCenter = elKeepCenter;
-        /* 🔒 붙인 것은 마지막으로 손댄 때부터 24시간이 지나면 고정 (도련 10-29 · 스티커 · 글 · 테이프 … 하나하나 따로)
-           - el.dataset.lt = 마지막으로 손댄 시각 (ms · 저장 lt) · 시각이 없으면 고정
-           - 고정된 것 : 옮기기 · 돌리기 · 크기 · 글 고치기 · 메뉴(순서 · 🗑 삭제) 모두 안 돼요 → 덧붙이기만 · 건드리면 '꾹 붙어 있어요' */
-        const EL_LOCK_MS = 24 * 3600 * 1000;
-        const elLocked = el => !!el && !!el.dataset && Date.now() - (+el.dataset.lt || 0) > EL_LOCK_MS;
+        /* 🔒 ✅ 완료한 페이지 = 붙인 것 모두 고정 (도련 11-14 · js/pagedone.js · 예전 '손댄 지 24시간 지나면 하나씩 고정'은 없앴어요)
+           - 고정된 것 : 옮기기 · 돌리기 · 크기 · 글 고치기 · 메뉴(순서 · 🗑 삭제) 모두 안 돼요 · 덧붙이기도 안 돼요
+           - el.dataset.lt = 마지막으로 손댄 시각 (저장 lt) : 예전 페이지가 완료한 것인지 알아볼 때만 써요 (js/pagedone.js pgDoneOf) */
+        const elLocked = el => !!el && !!(window.pgDoneNow && pgDoneNow());
         const elTouch = el => { if (el && el.dataset) el.dataset.lt = Date.now(); };
-        function elLockSay(x, y) { if (window.twzSay) twzSay(x, y, '하루가 지나 고정됐어요', 2000); else showMsg('하루가 지나 고정됐어요'); }   // 도련 10-29 : 짧게
+        function elLockSay(x, y) { const t = '✅ 완료한 페이지예요 · 고칠 수 없어요'; if (window.twzSay && x != null) twzSay(x, y, t, 2000); else showMsg(t); }
         window.elLocked = elLocked; window.elLockSay = elLockSay; window.elTouch = elTouch;
         document.addEventListener('input', e => { const b = e.target && e.target.closest && e.target.closest('#canvasArea > .element-box'); if (b && !elLocked(b)) elTouch(b); }, true);   // ✏️ 글을 고치면 다시 24시간
-        document.addEventListener('focusin', e => {                           // 🔒 열어 둔 사이에 24시간이 지난 글
+        document.addEventListener('focusin', e => {                           // 🔒 완료한 페이지의 글
             const t = e.target, b = t && t.tagName === 'TEXTAREA' && t.closest('#canvasArea > .element-box');
             if (b && elLocked(b)) { t.readOnly = true; t.blur(); const r = b.getBoundingClientRect(); elLockSay(r.left + r.width / 2, r.top + r.height / 2); }
         }, true);
@@ -961,6 +960,7 @@
 
         async function saveData(showAlert = false) {
             if (!isCoverOpen) return;
+            if (window.pgDoneNow && pgDoneNow()) return;                           // ✅ 완료한 페이지는 다시 저장하지 않아요 (고칠 수 없어요 · js/pagedone.js)
             if (window.dyyPastLock && dyyPastLock()) return;                   // 🔒 지난 해 다이어리 = 저장하지 않아요 (펼칠 때 이미 지난 해였던 장만 · 자정 전에 쓰던 장은 저장해요)
             const canvas = document.getElementById('canvasArea');
             const r1 = v => Math.round((parseFloat(v) || 0) * 10) / 10;
@@ -1028,6 +1028,7 @@
             const lfDef = (window.dkLeafOf && dkLeafOf(currentDate)) || 'line';   // 📓 만든 노트는 페이지마다 정해 둔 내지가 기본 (js/dymaker.js)
             if (typeof pageLeaf !== 'undefined' && pageLeaf !== lfDef) { day.lf = pageLeaf; if (pageLeaf === 'my') day.lfi = pageLeafImg; }   // 📃 속지 (js/leafpad.js · 기본 내지는 저장 안 함)
             const has = !!(elementsData.length || day.mo || day.we || day.lf), txt = has ? JSON.stringify(day) : null;
+            if (window.pgSave && pgSave(dayKey, txt)) return;                    // ✅ 완료 전 = 드라이브에 올리지 않고 이 기기에만 (✅ 완료할 때 한 번 · js/pagedone.js · 도련 11-14)
             if (txt !== store.getItem(dayKey) && window.deskLastDeco) deskLastDeco();   // 📔 꾸민 게 바뀌었으면 = 마지막으로 다꾸한 다이어리 (로그인하면 이 권이 떠요 · js/desk.js)
             if (has) store.setItem(dayKey, txt);
             else store.removeItem(dayKey);   // 빈 페이지는 파일에 남기지 않음
@@ -1130,6 +1131,7 @@
                 return;
             }
             setCanvasLoading(false);
+            if (window.pgBeforeLoad) pgBeforeLoad(key);                         // ✅ 이 기기에 꾸미던 것이 있으면 그 모습으로 (js/pagedone.js)
             readDayData(currentDate).forEach(data => {
                 canvas.appendChild(createElementFromData(data, true));
             });
@@ -1138,6 +1140,7 @@
             if (typeof psRender === 'function') psRender();
             if (typeof setPageLeaf === 'function') setPageLeaf((raw && raw.lf) || (window.dkLeafOf && dkLeafOf(currentDate)) || 'line', raw && raw.lfi);  // 📃 그날 속지 (js/leafpad.js) · 📓 없으면 만든 노트의 내지 (js/dymaker.js)
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ 이 페이지 날짜 기준 D-day (js/dday.js)
+            if (window.pgAfterLoad) pgAfterLoad(key);                           // ✅ 완료 버튼 · 완료한 페이지 고정 (js/pagedone.js)
             if (window.bdAfterLoad) bdAfterLoad();                          // 🗂 바인더 : 불러온 꾸밈도 바로 그 쪽 자리로 (js/skins.js)
         }
         const pageStamps = { mo: '', we: '' };            // 지금 페이지의 기분 · 날씨 도장
