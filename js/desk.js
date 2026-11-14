@@ -1665,7 +1665,7 @@
                 over = `<svg class="dk-hands" viewBox="-50 -50 100 100" aria-hidden="true" style="left:${c.cx}%;top:${c.cy}%;width:${d}%;height:${hh}%"><line class="hr" x1="0" y1="6" x2="0" y2="-24"/><line class="mn" x1="0" y1="8" x2="0" y2="-38"/><line class="sc" x1="0" y1="10" x2="0" y2="-41"/><circle r="4.5"/></svg>`;
             }
             if (it.lcd) { const [l, t, r, b] = it.lcd; over = `<span class="dk-lcd" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b></span>`; }
-            if ((it.can || []).includes('pad')) { const [l, t, r, b] = Array.isArray(it.scr) && it.scr.length === 4 ? it.scr : [3.8, 4.7, 96.3, 75.7]; over += `<span class="dk-pad" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b><span><i>📃</i><i>🧻</i><i>🎀</i><i>🏷️</i><i>🧩</i><i>📄</i></span></span>`; }   // 📱 태블릿 홈 화면 (작게 · 시계 · 앱 · js/tablet.js)
+            if ((it.can || []).includes('pad')) { const [l, t, r, b] = Array.isArray(it.scr) && it.scr.length === 4 ? it.scr : [3.8, 4.7, 96.3, 75.7]; over += `<span class="dk-pad" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"><b></b><span>${['leaf', 'tk', 'tape', 'seal', 'piece', 'paper'].map(k => `<i>${window.tbIcon ? tbIcon(k) : ''}</i>`).join('')}</span></span>`; }   // 📱 태블릿 홈 화면 (작게 · 시계 · 앱 · js/tablet.js)
             return `<div class="${cls}" data-id="${it.id}" data-u="${p.u || it.id}" role="img" aria-label="${it.name}" style="${st}"><img src="${(p.u && DK.art[p.u]) || it.src}" alt="" draggable="false" crossorigin="anonymous">${over}</div>`;
         }
         /* 🕰 ⏰ 시계는 지금 시각 (1초마다 · 책상이 보일 때만) */

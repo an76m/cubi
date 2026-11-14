@@ -9,6 +9,19 @@
 (function () {
     'use strict';
     const APPS = [['leaf', '📃', '속지'], ['tk', '🧻', '떡메모지'], ['tape', '🎀', '마스킹테이프'], ['seal', '🏷️', '씰스티커'], ['piece', '🧩', '조각스티커'], ['paper', '📄', '모조지스티커']];
+    /* 🎨 앱 아이콘 = 셀 애니메이션 느낌 (그라데이션 없이 단색 + 진한 갈색 테두리 · 도련 11-14) · 오른쪽 아래 ✏️ 연필 = '그려서 만드는 디자인 앱' 표시 (모든 앱 같아요) */
+    const OL = '#5b3a33', SW = 3;
+    const IC = {
+        leaf: `<rect x="15" y="9" width="34" height="44" rx="3" fill="#fffdf6" stroke="${OL}" stroke-width="${SW}"/><path d="M23 21h19M23 29h19M23 37h19M23 45h12" stroke="#f0a7bd" stroke-width="2.6" stroke-linecap="round"/><circle cx="19.5" cy="17" r="1.8" fill="${OL}"/><circle cx="19.5" cy="31" r="1.8" fill="${OL}"/><circle cx="19.5" cy="45" r="1.8" fill="${OL}"/>`,
+        tk: `<path d="M13 23h38v26a3 3 0 0 1-3 3H16a3 3 0 0 1-3-3z" fill="#fff3b0" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/><path d="M13 44h38M13 48h38" stroke="${OL}" stroke-width="1.6" opacity=".45"/><rect x="11" y="13" width="42" height="11" rx="3" fill="#ff8fb1" stroke="${OL}" stroke-width="${SW}"/><path d="M20 31h20M20 37h14" stroke="#e9c35b" stroke-width="2.6" stroke-linecap="round"/>`,
+        tape: `<path d="M32 46h22v10l-3-2.5-3 2.5-3-2.5-3 2.5-3-2.5-3 2.5z" fill="#ffb3c8" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/><circle cx="28" cy="31" r="20" fill="#ff8fb1" stroke="${OL}" stroke-width="${SW}"/><circle cx="28" cy="31" r="8" fill="#fff6f9" stroke="${OL}" stroke-width="${SW}"/><path d="M15 23a15 15 0 0 1 10-7" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`,
+        seal: `<rect x="11" y="10" width="42" height="44" rx="5" fill="#eaf4ff" stroke="${OL}" stroke-width="${SW}"/><circle cx="23" cy="23" r="7" fill="#ffd23f" stroke="${OL}" stroke-width="2.4"/><path d="M41 17.5c3-3.5 8.5 0 4.5 4.5L41 26l-4.5-4c-4-4.5 1.5-8 4.5-4.5z" fill="#ff7aa2" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/><path d="M23 35l2.4 4.8 5.3.8-3.8 3.7.9 5.2-4.8-2.5-4.8 2.5.9-5.2-3.8-3.7 5.3-.8z" fill="#7cc8ff" stroke="${OL}" stroke-width="2.2" stroke-linejoin="round"/><rect x="36" y="35" width="11" height="11" rx="3" fill="#8edcb0" stroke="${OL}" stroke-width="2.4"/>`,
+        piece: `<path d="M32 7l7 15 16 2-12 11 3 16-14-8-14 8 3-16L9 24l16-2z" fill="#fff" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/><path d="M32 15l4.6 9.6 10.4 1.4-7.7 7.1 1.9 10.4-9.2-5.1-9.2 5.1 1.9-10.4-7.7-7.1 10.4-1.4z" fill="#8edc8f" stroke="${OL}" stroke-width="2" stroke-linejoin="round"/>`,
+        paper: `<path d="M14 9h26l11 11v35H14z" fill="#f4ecff" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/><path d="M40 9v11h11" fill="#d8c6ff" stroke="${OL}" stroke-width="${SW}" stroke-linejoin="round"/><path d="M23 40c-5-6 2-12 7-7 5-5 12 1 7 7l-7 7z" fill="#c9a8ff" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/><path d="M19 29c0-8 9-12 15-9" stroke="${OL}" stroke-width="1.8" stroke-dasharray="3 3" fill="none" stroke-linecap="round"/>`,
+    };
+    const PENCIL = `<g transform="translate(40 40) rotate(45 10 10)"><rect x="6" y="-2" width="8" height="18" fill="#ffd23f" stroke="${OL}" stroke-width="2.4"/><path d="M6 16l4 7 4-7z" fill="#ffe7c2" stroke="${OL}" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 21.5l1 1.6 1-1.6z" fill="${OL}"/><rect x="6" y="-6" width="8" height="5" rx="1.5" fill="#ff8fb1" stroke="${OL}" stroke-width="2.2"/></g>`;
+    const icon = (k, pen) => `<svg viewBox="0 0 64 64" aria-hidden="true">${IC[k] || ''}${pen ? PENCIL : ''}</svg>`;
+    window.tbIcon = icon;                                                      // 책상 위 작은 태블릿 화면도 같은 그림 (js/desk.js)
     const WAY = { leaf: 'leaf', tk: 'tk', tape: 'tape', seal: 'sheet' };   // 예전 만들기 화면 (js/craft.js CRAFT_WAYS)
     const OPEN = { leaf: () => window.openLeafMaker && openLeafMaker(), tk: () => window.openTteokMaker && openTteokMaker() };   // 📃 🧻 = 다이어리를 펴지 않고 바로 (도련 11-13 : 태블릿은 다이어리와 상관없어요 · 서랍에 넣기만)
     const PENS = ['#3d2b33', '#ff5d8f', '#ff9a3c', '#ffd23f', '#5cc98a', '#4aa8ff', '#9b7bff', '#ffffff'];
@@ -91,7 +104,8 @@
         IP.app = null; IP.D = null;
         const s = q('ipScr'); s.className = 'ip-scr ip-home';
         s.innerHTML = `<div class="ip-stat"><b id="ipTime">${hm()}</b></div>
-            <div class="ip-apps">${APPS.map(([k, ic, n]) => `<button type="button" class="ip-app" data-k="${k}"><i class="a-${k}">${ic}</i><span>${n}</span></button>`).join('')}</div>
+            <div class="ip-studio"><b><svg viewBox="0 0 64 64" aria-hidden="true">${PENCIL.replace('translate(40 40)', 'translate(14 4) scale(1.9)')}</svg>스티커 디자인 스튜디오</b><small>직접 그려서 나만의 스티커를 만들어요</small></div>
+            <div class="ip-apps">${APPS.map(([k, ic, n]) => `<button type="button" class="ip-app" data-k="${k}" title="${n} 디자인하기"><i class="a-${k}">${icon(k, true)}</i><span>${n}<em>디자인</em></span></button>`).join('')}</div>
             <div class="ip-bar"></div>`;
         s.querySelectorAll('.ip-app').forEach(b => b.addEventListener('click', () => launch(b.dataset.k)));
     }

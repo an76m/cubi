@@ -100,3 +100,14 @@ body.ip-on .desk-top-r { display: none !important; }
 #tbWs .shm-body { background-color: #f6dce6; }
 @media (max-width: 760px) { #tbWs.smk-room { background: linear-gradient(#f3ecfb, #e6d8f3 64px, #e9c9b0 64px); } }
 #tbWs .pp-doc { box-shadow: 0 0 0 4px #dcaabd, 0 14px 34px rgba(90, 50, 60, .28); }   /* 연핑크 작업판 위에서도 종이 둘레가 보이게 */
+
+/* 🎨 셀 애니메이션 아이콘 · ✏️ 디자인 스튜디오 표시 (도련 11-14) */
+.ip-studio { display: flex; flex-direction: column; align-items: center; gap: .6cqh; margin-top: 2.2cqh; }
+.ip-studio b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: min(4.4cqh, 2.6cqw); color: #c2457a; background: #fff; border: 2px solid #5b3a33; border-radius: 99px; padding: .5cqh 2.2cqw; box-shadow: 0 2px 0 rgba(91, 58, 51, .25); }
+.ip-studio b { display: flex; align-items: center; gap: .4em; } .ip-studio b svg { width: 1.3em; height: 1.3em; overflow: visible; }
+.ip-studio small { font-size: min(3cqh, 1.8cqw); font-weight: 700; color: #8a6070; }
+.ip-app i svg { width: 74%; height: 74%; overflow: visible; }
+.ip-app span { display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
+.ip-app span em { font-style: normal; font-size: .62em; font-weight: 800; color: #fff; background: #ff8fb1; border: 1.5px solid #5b3a33; border-radius: 99px; padding: 0 .7em; margin-top: .35em; }
+.ip-apps { gap: 4.5cqh 4cqw; }
+.dk-pad i svg { width: 88%; height: 88%; overflow: visible; }
