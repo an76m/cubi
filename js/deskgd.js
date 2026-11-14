@@ -412,11 +412,11 @@
         addEventListener('pointerdown', e => {
             if (!DKW.sel || e.button > 0 || !dkwDesk()) return;   // 👆 손가락도 (도련 11-12 : 집어 든 다음 톡 = 그 자리)
             const t = e.target, id = DKW.sel;
-            if (cabGOf(id) === 'tweez' && dkwOpenNow() && !(t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dk-vol, #coverPage, #dkLock'))) {   // 🪡 붙은 핀셋 : 빈 책상이 아니면 (페이지 · 스티커 떼는 창 · 꺼낸 스티커 위) = 그 자리에서 손에 (도련 11-13)
+            if (cabGOf(id) === 'tweez' && dkwOpenNow() && !(t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dk-vol, #coverPage, #dkModeX'))) {   // 🪡 붙은 핀셋 : 빈 책상이 아니면 (페이지 · 스티커 떼는 창 · 꺼낸 스티커 위) = 그 자리에서 손에 (도련 11-13)
                 const H = document.documentElement, desk = t === document.body || t === H || (t.closest && t.closest('#diaryWrapper, #bgPatternLayer') && !t.closest('#diaryBook'));
                 if (!desk) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 이 톡 = 손에 들기 (다른 문구와 같아요 · 그다음 톡부터 집기 · 떼기)
             }
-            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol, #coverPage, #dkLock')) return;   // 📖 겉표지 = 밀어서 펼치기 그대로   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
+            if (t.closest && t.closest('.dkw-fl, .dkw-strip, .modal, .dkw-room, .desk-top-r, .toolbar, .page-header, #customAlertModal, .dsk, .dk-vol, #coverPage, #dkModeX')) return;   // 📖 겉표지 = 밀어서 펼치기 그대로   // 다른 떠 있는 것 · 꺼낸 문구 줄 · 창 · 버튼 · 📔 다이어리 톡(펼치기)은 그대로 (든 채로)
             const pg = t.closest && t.closest('#canvasArea');
             if (pg && dkwOpenNow()) { e.preventDefault(); e.stopPropagation(); dkwUse(id, { x: e.clientX, y: e.clientY }); return; }   // 📔 펼친 페이지 = 그 자리에서 쓰기
             const h = t.closest && t.closest('#deskStage .desk-item');

@@ -669,17 +669,14 @@ html.an .cover-page .cover-notice, html.an .cover-page .drag-hint { translate: 5
 .desk-shop-go:hover { background: #fff0f5; }
 .desk-shop-go:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
 html:not(.desk-on) .desk-top-r, html.desk-edit .desk-top-r, body:has(.shop-scene.on) .desk-top-r { display: none; }
-/* 🔑 다이어리 잠금 스위치 (도련 11-12 · js/desk.js dkLockBuild) : 📔 다이어리모드(html.dk-bgon)에서만 위 가운데 · 끔 = 열쇠가 왼쪽에 누워 있어요 · 켬 = 오른쪽으로 가서 돌아가요 (열쇠를 돌리듯) · 셀 애니 (단색 + 진한 선) */
-.dk-lock { position: fixed; top: max(14px, env(safe-area-inset-top)); left: 50%; translate: -50% 0; z-index: 995; display: none; width: 76px; height: 34px; padding: 0; border: 1.6px solid #e8bfd2; border-radius: 17px; background: #fff; box-shadow: 0 2px 6px rgba(141, 111, 127, .12); cursor: pointer; font: inherit; }
-html.desk-on.dk-bgon:not(.dk-landing):not(.desk-edit) .dk-lock { display: block; }
-.dk-lock .dkl-k { position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #f3eefb; border: 1.4px solid #c9b6d9; transition: left .24s cubic-bezier(.3, 1.35, .5, 1), background .2s, border-color .2s; }
-.dk-lock .dkl-k svg { width: 20px; height: 20px; display: block; transition: rotate .3s cubic-bezier(.3, 1.35, .5, 1) .08s; }
-.dk-lock .dkl-t { position: absolute; top: 50%; right: 10px; translate: 0 -50%; font-size: 12px; font-weight: 800; color: #b9a6c8; letter-spacing: -.3px; transition: color .2s; }
-.dk-lock.on { background: #ffe3ee; border-color: #e88fb0; }
-.dk-lock.on .dkl-k { left: 45px; background: #f7a8c4; border-color: #c2457a; }
-.dk-lock.on .dkl-k svg { rotate: 90deg; }
-.dk-lock.on .dkl-t { right: auto; left: 11px; color: #c2457a; }
-html.desk-on.dk-bgon .sk-tip { top: 58px; }   /* 🔪 칼 안내 = 잠금 스위치 아래로 (겹쳤어요 · 도련 11-12) */   /* 다이어리를 펼쳐도 보여요 (도련 10-31) · 창(.modal 1000)보다는 아래 */
+/* ✕ 책상으로 (도련 11-15 · js/desk.js dkModeXBuild) : 📔 다이어리모드 · 📒 스티커정리모드 · 🧩 바인더조립모드 = 오른쪽 위 메뉴 · 이동 대신 ✕ 하나 · ⛔ 🔑 잠금 스위치 영구 삭제 */
+.dk-mode-x { position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 1002; display: none; width: 40px; height: 40px; padding: 0; border: 2px solid #e88fb0; border-radius: 50%; background: #fff; color: #c2457a; font: inherit; font-size: 18px; font-weight: 900; line-height: 1; cursor: pointer; box-shadow: 3px 3px 0 #e6dcf8; }
+.dk-mode-x:hover { background: #fff0f5; }
+.dk-mode-x:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
+html.desk-on.dk-bgon:not(.dk-landing):not(.desk-edit) .dk-mode-x,
+html.desk-on body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .dk-mode-x,
+html.desk-on body.bnd-on:has(.bnd-dkmode.show) .dk-mode-x { display: block; }
+html.desk-on.dk-bgon .desk-top-r, body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .desk-top-r { display: none !important; }   /* 오른쪽 위 메뉴 · 이동 = 안 보여요 (✕ 로 책상에 돌아가서) */
 /* 📔 책상 = 다이어리 보관소 (도련 10-30 · js/desk.js dkVolsPaint) : 펼쳐 두지 않은 권 = 가벼운 표지 그림 (파스텔 바인더 · 그 권 색 · 해 이름판) */
 .dk-vol { position: absolute; cursor: pointer; touch-action: none; user-select: none; }
 html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }
@@ -837,12 +834,10 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 @keyframes dlPegMk { from { scale: .85; } to { scale: 1.15; } }
 #deskStage .desk-item.dl-near { filter: drop-shadow(0 0 6px #ff7aa8) drop-shadow(0 0 2px #fff); }
 
-/* 📒 스티커정리모드 (도련 11-14 · js/basket.js abs-dkmode) : 다이어리모드처럼 책상 위 = 바탕은 🪵 책상판 무늬 / 🌈 배경지 (html --dku-* · js/deskskin.js dkUnderVars) · 위 가운데 🔑 잠금 · 오른쪽 위 메뉴 그대로 · 날짜바 자리에 정리 막대 */
+/* 📒 스티커정리모드 (도련 11-14 · js/basket.js abs-dkmode) : 다이어리모드처럼 책상 위 = 바탕은 🪵 책상판 무늬 / 🌈 배경지 (html --dku-* · js/deskskin.js dkUnderVars) · 오른쪽 위 ✕ (도련 11-15 · 메뉴 · 이동 안 보여요) · 예전 오른쪽 위 메뉴 그대로 · 날짜바 자리에 정리 막대 */
 #basketKindModal.abs-dkmode > .modal-content { background-color: var(--dku-c, #f8d1de) !important; background-image: var(--dku-i, none) !important; background-size: var(--dku-s, auto) !important; background-position: var(--dku-p, 0 0) !important; background-repeat: var(--dku-r, repeat) !important; }
 #basketKindModal.abs-dkmode .abs-bar { align-self: center; width: fit-content; margin: 58px auto 4px; padding: 6px 10px; gap: 10px; background: #fff; border: 2px solid #e9c7dd; border-radius: 16px; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); }
 #basketKindModal.abs-dkmode .abs-bar .abs-fill, #basketKindModal.abs-dkmode .abs-bar .abs-x { display: none; }
 #basketKindModal.abs-dkmode .abs-bar .ab-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
 #basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
-body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .desk-top-r { z-index: 1001; }
-html.desk-on body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .dk-lock { display: block; z-index: 1001; }
 #basketKindModal.ab-space .dk-tape { display: none !important; }   /* 창 모서리 테이프는 정리 공간에선 안 보여요 */

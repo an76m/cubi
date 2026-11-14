@@ -87,6 +87,4 @@ body.bnd-on .desk-top-r { display: none; }
 .bnd-dkmode .bnd-info:empty { display: none; }
 .bnd-done { display: none; }
 .bnd-dkmode .bnd-done { display: inline-flex; }
-body.bnd-on .bnd-dkmode ~ .desk-top-r, body.bnd-on:has(.bnd-dkmode.show) .desk-top-r { display: flex !important; }
-html.desk-on body.bnd-on:has(.bnd-dkmode.show) .dk-lock { display: block; }
 .bnd-dkmode .bnd-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }

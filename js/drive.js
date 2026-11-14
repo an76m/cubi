@@ -1512,7 +1512,6 @@
             if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;
             if (t !== document.body && t !== H && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg') || t.classList.contains('desk-stage')))) return;
             if (window.dkwAteAt && Date.now() - dkwAteAt < 450) return;           // ✋ 이 톡은 손에 든(마우스에 붙은) 문구 내려놓기였어요 (js/deskgd.js · 도련 11-12)
-            if (H.classList.contains('dk-bgon') && H.classList.contains('dk-locked')) return;   // 🔑 잠금 스위치 켜짐 = 다이어리모드 그대로 (js/desk.js dkLockSet · 도련 11-12)
             if (!H.classList.contains('dk-bgon') && window.deskTapAt && deskTapAt(ev.clientX, ev.clientY)) return;   // 접힌 채 떠 있어 책상이 보이면 = 옆 소품 톡 = 그 소품의 기능 (js/desk.js)
             if (window.deskCloseDiary) deskCloseDiary();                          // 📖 표지를 펼쳐 책상이 가려졌으면 밖 톡 = 늘 책상으로 (도련 11-12)
         });

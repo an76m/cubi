@@ -785,7 +785,7 @@
         window.addEventListener('pointerup', e => {
             const t = pinTap; pinTap = null; if (!t || t.id !== e.pointerId || Math.hypot(e.clientX - t.x, e.clientY - t.y) > 8 || !pinEl || !window.dkwAirPut) return;
             const top = pinTop(e.clientX, e.clientY), H = document.documentElement;
-            if (!top || pinIn(top) || top.closest('#diaryBook, .page-header, #pageHeader, .toolbar, button, .modal, .dsk, .dkw-fl, .dkw-strip, .desk-top-r, #dkLock')) return;
+            if (!top || pinIn(top) || top.closest('#diaryBook, .page-header, #pageHeader, .toolbar, button, .modal, .dsk, .dkw-fl, .dkw-strip, .desk-top-r, #dkModeX')) return;
             if (!(top === document.body || top === H || top.closest('#diaryWrapper, #bgPatternLayer'))) return;   // 빈 책상(다이어리 둘레 바탕)만
             const id = window.gdTwzId && gdTwzId(); if (!id) return;
             const k = pinEl; window.dkwAteAt = Date.now();
