@@ -105,9 +105,9 @@
             <div class="pp-lyb"><button type="button" class="add" data-l="px">＋ 픽셀</button><button type="button" class="add" data-l="vec">＋ 벡터</button><button type="button" data-l="dup">⧉ 복제</button><button type="button" data-l="del">🗑 삭제</button></div>
             <div class="pp-lyb three"><button type="button" data-l="merge">⤓ 아래로 합치기</button><button type="button" data-l="lock">🔒 잠그기</button><button type="button" data-l="cutl">✂ 잘라 붙이기</button></div>
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
-            <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 완료</button></div>
+            <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
             <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
-            <p class="pp-hint pp-endt">💾 임시저장 = 이 기기에만 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : P.kind === 'seal' ? '씰' : P.kind === 'piece' ? '조각' : P.kind === 'paper' ? '모조지' : '속지'}마다 하나 · ✅ 완료 = 📐 내 도안 (🖨 프린터에서 뽑으면 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음' : P.kind === 'tape' ? '테이프 한 롤' : P.kind === 'seal' ? '씰 시트 한 장' : P.kind === 'piece' ? '조각 봉투 하나 · 늘 4조각' : P.kind === 'paper' ? '모조지 한 장' : '속지 한 장'})${P.kind === 'seal' ? '<br>✂️ 떨어져 그린 그림 = 스티커 한 장씩 · 붙어 있으면 한 장' : P.kind === 'piece' ? '<br>✂️ 판에 그린 것 전체 = 조각 하나 (하얀 칼선) · 4개까지 담아요' : P.kind === 'paper' ? '<br>✂️ 보이는 그대로 인쇄돼요 · 쓸 때 가위로 오려 붙여요' : ''}</p>`;
+            <p class="pp-hint pp-endt">📐 완료된 도안은 🖨 프린터에서 스티커로 뽑아요</p>`;   // 도련 11-15 : 긴 설명 대신 한 줄
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); if (a.dataset.a === 'mine') minePop(); } };
         if (P.kind === 'piece') { $('ppPcAdd').onclick = pcAdd; $('ppPcs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; P.pcs.splice(+b.dataset.i, 1); P.dirty = true; pcPaint(); }; pcPaint(); }
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
@@ -973,7 +973,7 @@
             else if (window.showMsg) showMsg(`${P.kind === 'tk' ? '🧻 떡메 한 묶음을' : P.kind === 'tape' ? '🎀 테이프 한 롤을' : '📃 속지를'} <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>`);
             if (P.o.done) P.o.done();
         } catch (e) { if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
-        finally { P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 완료'; } }
+        finally { P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 도안완료'; } }
     }
 
     /* ================= 💾 임시저장 (도안/작업중-<종류>.json · 도련 11-14) ================= */

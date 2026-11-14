@@ -92,8 +92,8 @@
 .pp-end .pp-go { margin-top: 0; }
 .pp-tmp { font: inherit; font-size: 14px; font-weight: 900; border-radius: 14px; border: 2px solid #e88fb0; background: #fff; color: #c2457a; cursor: pointer; padding: 10px 4px; box-shadow: 0 3px 0 #f2c6d4; }
 .pp-tmp:disabled, .pp-go:disabled { opacity: .7; }
-.pp-endt { font-size: 10.5px; text-align: center; margin: 0; }
-.pp-tmpt { font-size: 11.5px; font-weight: 800; color: #5b3a33; text-align: center; margin: 4px 0 2px; }
+.pp-endt { font-size: 12px; font-weight: 800; color: #6b4c57; text-align: center; margin: 4px 0 0; }
+.pp-tmpt { display: none; }   /* 💾 상태 글은 안 보여요 (도련 11-15 · 📱 폰 위 제목 아래 글이 이 글을 읽어 보여 줘요 · 지우지 않기) */
 /* 열 때 : 이어서 작업 · 새 작업 (js/tablet.js) */
 .pp-ask { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; background: #fffdf8; border: 3px solid #6b4438; border-radius: 20px; padding: 26px 30px; box-shadow: 0 10px 26px rgba(90, 50, 60, .18); max-width: 420px; text-align: center; }
 .pp-ask h3 { margin: 0; font-size: 18px; }
