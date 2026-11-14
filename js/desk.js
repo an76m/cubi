@@ -1009,7 +1009,7 @@
             let b = document.getElementById('dkTry');
             if (!on) { if (b) b.remove(); document.documentElement.classList.remove('dk-trial'); return; }
             if (!b) { b = document.createElement('div'); b.id = 'dkTry'; b.className = 'dk-try'; document.body.appendChild(b); }
-            b.innerHTML = `<div class="dk-try-tip">${tip}</div><button type="button" class="desk-shop-go dk-try-x">닫기</button>`;   // 핵심 한 줄만
+            b.innerHTML = `<div class="dk-try-tip">${tip}</div><button type="button" class="try-x dk-try-x" aria-label="닫기">✕</button>`;   // 핵심 한 줄만
             b.querySelector('.dk-try-x').onclick = () => deskEditEnd(false);
         }
         window.deskTrial = deskTrial;

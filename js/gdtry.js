@@ -55,7 +55,7 @@
                 <div class="gdt-book${one ? ' one' : ''}">${one ? '<i class="gdt-pg"></i>' : '<i class="gdt-pg l"></i><i class="gdt-pg r"></i>'}</div>
                 <div class="gdt-page"></div>${g === 'punch' ? `<span class="dy-holes">${'<i></i>'.repeat(12)}</span>` : ''}
             </div>
-            <div class="gdt-tip"${g === 'knife' || g === 'scissors' ? ' hidden' : ''}>${TIP[g] || '✨ 써 보세요'}</div><button type="button" class="desk-shop-go gdt-x">닫기</button>`;   // 🔪 ✂️ 진짜 칼 · 모조지가 위에 제 안내를 한 줄 띄워요 (안내는 하나만)
+            <div class="gdt-tip"${g === 'knife' || g === 'scissors' ? ' hidden' : ''}>${TIP[g] || '✨ 써 보세요'}</div><button type="button" class="try-x gdt-x" aria-label="닫기">✕</button>`;   // 🔪 ✂️ 진짜 칼 · 모조지가 위에 제 안내를 한 줄 띄워요 (안내는 하나만)
         document.body.appendChild(r);
         const st = r.querySelector('.gdt-st');
         G = { id, g, W, one, r, st, page: r.querySelector('.gdt-page'), k: 1, z0: typeof zIndexCounter !== 'undefined' ? zIndexCounter : null };

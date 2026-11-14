@@ -8,7 +8,7 @@
 .gdt-book.one .gdt-pg { border-radius: 14px; }
 .gdt-page { position: absolute; inset: 0; width: 100%; height: 100%; }
 .gdt-tip { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; max-width: calc(100vw - 32px); padding: 9px 18px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 18px rgba(160, 90, 110, .2); pointer-events: none; }
-.gdt-x { position: fixed; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
+.gdt-x { position: fixed; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
 
 /* 🏠 진짜 문구를 빌려 쓰는 동안 (js/draw.js 펜꽂이 · 손 · js/ruler.js · js/skins.js 말풍선 · 가위 · js/elements.js 핀셋 · js/stkcut.js 칼) : 연습장 위로
    ⚠ 샵 창이 떠 있으면 든 문구를 창 뒤(z 990 !important)로 보내는 규칙(css/style.css 'PIN_COVER')보다 세게 : :root + :has(#gdTry) (도련 11-12 : 샵에서 연 핀셋 · 칼 · 필기구가 안 보였어요) */
