@@ -214,7 +214,7 @@
             S.items = []; S.sel = null; S.title = ''; q('shmTitle').value = '';
             S.busy = false; q('shmDone').textContent = '🏷️ 시트 완성';
             closeSheetMaker(true);
-            showMsg('🏷️ 시트 한 장이 나왔어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍 · 🏷️ 씰에 들어갔어요. 기본 씰스티커처럼 떼어 쓸 수 있어요.</span>');
+            if (window.tbDesignOnly) showMsg('📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>'); else showMsg('🏷️ 시트 한 장이 나왔어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍 · 🏷️ 씰에 들어갔어요. 기본 씰스티커처럼 떼어 쓸 수 있어요.</span>');
         } catch (e) {
             console.warn('🗂️ 시트 완성', e);
             S.busy = false; q('shmDone').textContent = '🏷️ 시트 완성'; paintPaper();

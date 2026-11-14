@@ -34,7 +34,12 @@
         /* 📋 종류마다 목록 (도련 11-05) : 그 종류 폴더 안에 · _ 로 시작해서 종이 파일(무작위 이름)과 섞이지 않아요 */
         const OWN_IDX = '_목록.json', OWN_ALB = '_스티커첩.json', OWN_IDX_BK = '_목록_백업.json', OWN_ALB_BK = '_스티커첩_백업.json', OWN_BK_LS = 'malang_own_bk2';
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
-        const OWN_MINE_Q = { tape: 2000, tk: 50, memo: 50, leaf: 1 };       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
+        /* 🖨 제작 규칙 (도련 11-14) : 내가 만든 도안을 프린터로 뽑을 때 · 상품공방 '🖨 제작 규칙' → prod.js MALANG_PROD.rules (없으면 아래 값)
+           seal · paper = 한 시트 · piece = 한 봉투 조각 수 · tape = 한 롤 길이 · tk · memo = 한 묶음 장 수 · leaf = 장 수 */
+        const OWN_RULES0 = { seal: 1, piece: 4, paper: 1, tape: 10000, tapeW: 30, tk: 30, leaf: 1, memo: 30 };
+        const ownRules = () => { const r = window.MALANG_PROD && window.MALANG_PROD.rules; const o = Object.assign({}, OWN_RULES0); if (r && typeof r === 'object') Object.keys(o).forEach(k => { if (+r[k] > 0) o[k] = +r[k]; }); return o; };
+        window.ownRules = ownRules;
+        const OWN_MINE_Q = new Proxy({}, { get: (t, k) => ({ tape: ownRules().tape, tk: ownRules().tk, memo: ownRules().memo, leaf: ownRules().leaf })[k] });       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
         const ownHas = e => e.q0 ? e.q > 0 : e.u.length < e.n;                  // 아직 남았어요
         const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
         const O = { kw: '', key: null, kd: {}, idx: null, album: null, noR: new Set(), mem: null, q: Promise.resolve(), subs: new Set(), replayed: '', spent: new Set() };   // spent = 이 창에서 다 쓴 종이 (도련 11-09 · 꺼내 둔 스티커창이 바구니의 옛 목록을 보고 다시 그리지 않게 · basket.js dsEntry)   // kd = 종류마다 (ownK) · idx · album = 모든 종류를 합친 모습 (ownMerge)
@@ -502,11 +507,14 @@
             if (L) ent.L = L;                                                     // 바구니 카드도 배치 그대로
             if (meta && meta.th) ent.th = meta.th;
             if (sheet.b) ent.b = sheet.b;                                         // 들어갈 바구니 (😀 이모지는 씰이지만 이모지 바구니로)
-            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg, w: sheet.x.w, h: sheet.x.h, tc: sheet.x.tc };
+            if (sheet.x && (sheet.x.pad || sheet.x.lf || sheet.x.pp || sheet.x.glue || sheet.x.bg || sheet.x.dz)) ent.x = { pad: sheet.x.pad, lf: sheet.x.lf, pp: sheet.x.pp, glue: sheet.x.glue, bg: sheet.x.bg, w: sheet.x.w, h: sheet.x.h, tc: sheet.x.tc, dz: sheet.x.dz };   // dz = 🖨 뽑은 도안 id (다 쓰거나 버려야 다시)
             return { id, full, ent };
         }
         async function ownAdd(sheet, meta) {
             ownReady();
+            if (sheet && sheet.from === 'mine' && window.tbDesignOnly && !(meta && (meta.noDesign || meta.print))) {   // 📱 태블릿에서 만든 것 = 📐 도안만 (서랍은 🖨 프린터에서 · 도련 11-14)
+                const did = await ownDesignSave(sheet, meta); ownAdd.design = did; ownTell(); return 'design:' + did;
+            }
             const { id, full, ent } = ownBuild(sheet, meta);
             return ownSerial(async () => {
                 ent.f = await ownFileNew(full);
@@ -542,11 +550,24 @@
             const C = ownDesignColl(); if (!C) return [];
             return (await collAll(C)).filter(e => e && e.x && (!k || e.x.k === k)).sort((a, b) => (+b.id || 0) - (+a.id || 0));
         }
-        async function ownDesignPrint(id) {                                      // 📄 한 장 더 찍기 → 새 종이 id
+        async function ownDesignPrint(id) {                                      // 🖨 도안 → 새 종이 (제작 규칙대로) → 새 종이 id
             const C = ownDesignColl(); if (!C) throw new Error('ready');
             const it = await collItem(C, id); if (!it || !it.sheet) throw new Error('gone');
-            return ownAdd(Object.assign({}, it.sheet, { from: 'mine', imgs: (it.sheet.imgs || []).slice() }), Object.assign({}, it.meta || {}, { noDesign: 1 }));
+            const R = ownRules(), s = Object.assign({}, it.sheet, { from: 'mine', imgs: (it.sheet.imgs || []).slice() });
+            if (s.k === 'piece') {                                               // 🧩 그린 조각 1~n 개 → 늘 한 봉투 R.piece 조각 (1개 = 같은 것 4개 · 2개 = 2개씩 …)
+                const src = s.imgs.map((u, i) => [u, (s.wh || [])[i]]).filter(x => x[0]), n = R.piece;
+                if (src.length) { const L = Array.from({ length: n }, (_, i) => src[i % src.length]); s.imgs = L.map(x => x[0]); s.wh = L.map(x => x[1] || null); }
+            }
+            const q = { tape: R.tape, tk: R.tk, memo: R.memo, leaf: R.leaf }[s.k]; if (q) s.q0 = q; else delete s.q0;
+            s.x = Object.assign({}, s.x || {}, { dz: String(id) });
+            return ownAdd(s, Object.assign({}, it.meta || {}, { noDesign: 1, print: 1 }));
         }
+        /* 🖨 이 도안으로 뽑은 종이가 서랍에 아직 있나요 (다 쓰거나 🗑 버려야 다시 뽑아요 · 도련 11-14) */
+        async function ownDesignBusy(id) {
+            let L = []; try { L = await ownList(); } catch (e) { return false; }
+            return (L || []).some(e => e && e.x && String(e.x.dz) === String(id) && ownAlive(e) && !O.spent.has(e.id));
+        }
+        window.ownDesignBusy = ownDesignBusy;
         async function ownDesignDrop(id, keep) { const C = ownDesignColl(); if (C) await collRemove(C, id, false, keep); }   // keep = 사용자가 도안을 버림 → 🗑 앱 휴지통
         window.ownDesigns = ownDesigns; window.ownDesignPrint = ownDesignPrint; window.ownDesignDrop = ownDesignDrop;
 

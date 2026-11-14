@@ -100,7 +100,7 @@
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 완료</button></div>
             <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
-            <p class="pp-hint pp-endt">💾 임시저장 = 이 기기에만 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : '속지'}마다 하나 · ✅ 완료 = 🗄️ 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음 (50장)' : P.kind === 'tape' ? '테이프 한 롤' : '속지 한 장'}</p>`;
+            <p class="pp-hint pp-endt">💾 임시저장 = 이 기기에만 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : '속지'}마다 하나 · ✅ 완료 = 📐 내 도안 (🖨 프린터에서 뽑으면 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음 (50장)' : P.kind === 'tape' ? '테이프 한 롤' : '속지 한 장'}</p>`;
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); } };
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
         $('ppTools').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
@@ -785,7 +785,8 @@
             else await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: Object.assign({ lf: 'my' }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: +(P.H / P.W).toFixed(4) } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
             P.dirty = false;
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
-            if (window.showMsg) showMsg(`${P.kind === 'tk' ? '🧻 떡메 한 묶음을' : P.kind === 'tape' ? '🎀 테이프 한 롤을' : '📃 속지를'} <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>`);
+            if (window.tbDesignOnly && window.showMsg) showMsg('📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>');   // 📱 태블릿 = 📐 도안만 (도련 11-14)
+            else if (window.showMsg) showMsg(`${P.kind === 'tk' ? '🧻 떡메 한 묶음을' : P.kind === 'tape' ? '🎀 테이프 한 롤을' : '📃 속지를'} <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>`);
             if (P.o.done) P.o.done();
         } catch (e) { if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
         finally { P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 완료'; } }

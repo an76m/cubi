@@ -2,7 +2,10 @@
    🖨️ 말랑 스티커 프린터 (도련 11-08 · 예전 🖼️ 앨범에서 골라 만들기를 책상 위 작은 프린터로 · 시안 '말랑 스티커 기계' + '위 화면 시안')
    - 책상 위 프린터 소품(상품 '기능' print · js/deskcustom.js dcTap) 톡 → 프린터가 떠올라 가운데 크게 → 앞으로 기울어 위에서 내려다본 모습 (위 화면 · 버튼)
      ✂️ 스티커 만들기의 🖼️ 앨범에서 골라 만들기도 여기로 (책상에 보이면 거기서 · 아니면 아래에서 쏙 · 그 종류로) · ✕ / 바깥 톡 = 일어서서 제자리로
-   - 위 화면 (LCD) 네 단계 : 사진 → 모양 → 크기 · 자리 → 출력 (종류는 늘 🏷️ 씰 · 도련 11-08) (맨 위 단계 줄 · 가운데 미리보기 · 아래 할 일)
+   🖨 도련 11-14 : 프린터 = 📐 내 도안을 뽑는 곳 (사진 → 스티커는 영구 삭제 · 사진 · 모양 · 여러 장 · 시트 꾸미기는 📱 태블릿 🏷️ 씰스티커)
+     위 화면 두 단계 : 도안 (◀ ▶ 고르기) → 출력 (전원 꾹) · 나오는 양 = 🖨 제작 규칙 (js/own.js ownRules · 상품공방) · 씰 · 모조지 한 시트 · 조각 4조각 · 마테 · 떡메 · 메모지 · 속지
+     그 도안으로 뽑은 것이 서랍에 남아 있으면 못 뽑아요 (다 쓰거나 🗑 버리면 다시 · ownDesignBusy)
+   - (예전) 위 화면 (LCD) 네 단계 : 사진 → 모양 → 크기 · 자리 → 출력 (종류는 늘 🏷️ 씰 · 도련 11-08) (맨 위 단계 줄 · 가운데 미리보기 · 아래 할 일)
      ◀ ▶ 고르기 · ▲ ▼ 크기 · OK 다음 · 뒤로 = 한 단계 앞 · 앞으로 = 앞모습으로 세우기 · 화면을 끌면 자리 · ✂️ 손으로 = 화면에 빙 둘러 그리기
      사진 : OK = 앨범 (한 장 · 여러 장 SM_MANY 10장까지) · ◀ ▶ 한 장씩 · ▲ 더 넣기 · ▼ 새로 고르기 / 모양 : ▲ = 모든 사진에 같게
      💻 화살표 · Enter(OK) · Backspace(뒤로) · 스페이스(전원) · Esc
@@ -12,17 +15,15 @@
    - 책상 그림(디자인.png) = 앞모습 그림(MACH)을 그대로 찍은 것 (둘레 3u) · 앞모습을 바꾸면 책상 그림도 다시 찍어요 (위 모습 TOP 은 책상 그림과 상관없어요) */
     (function () {
         const MAX = 10, PRINT = 3600, TILT = 420;
-        const P = { on: false, view: 'front', step: 0, list: [], cur: 0, kind: 'seal', border: true, src: null, busy: false, saving: false, drawing: false, drag: null, st: 'edit', msg: '', msgT: 0 };
+        const P = { on: false, view: 'front', step: 0, ds: [], di: 0, img: new Map(), busyD: new Set(), loading: false, kind: 'seal', src: null, busy: false, saving: false, st: 'edit', msg: '', msgT: 0 };
         const pq = id => document.getElementById(id);
         const quiet = () => calmMotion();
         const api = () => window.smPhotoApi;
-        const KINDS = [['seal', '🏷️', '씰스티커'], ['piece', '🧩', '조각스티커'], ['paper', '📄', '모조지스티커']];
-        const STEPS = ['사진', '모양', '크기', '출력'];                          // 종류는 늘 🏷️ 씰 (도련 11-08 : 종류 고르기 없앰)
+        const KINDS = [['seal', '🏷️', '씰스티커'], ['piece', '🧩', '조각스티커'], ['paper', '📄', '모조지스티커'], ['tape', '🎀', '마스킹테이프'], ['tk', '🧻', '떡메모지'], ['leaf', '📃', '속지'], ['memo', '📝', '메모지']];
+        const STEPS = ['도안', '출력'];                                         // 🖨 도련 11-14 : 📐 내 도안 고르기 → 출력
         const kindOf = k => KINDS.find(x => x[0] === k) || KINDS[0];
-        const shapes = () => api() ? api().shapes : [['circle', '동그라미']];
-        const shapeName = s => ((shapes().find(x => x[0] === s) || [, s])[1] || '').replace(/^[^가-힣]+\s*/, '');
         const wait = waitMs;   // 🧰 js/util.js
-        const cur = () => P.list[P.cur];
+        const cur = () => P.ds[P.di];
 
         /* 🩷 앞모습 (셀 애니 · 도련 고친 그림) · 500 × 250 (y 40 부터) · 틈 = y 69 */
         const C = { body: '#ffd9e5', shade: '#f4b3c8', light: '#fff3f7', ln: '#6b4a55' };
@@ -50,7 +51,7 @@
               <path d="M66 30 L434 30" stroke="${C.light}" stroke-width="6"/>
               <rect x="80" y="46" width="340" height="18" rx="9" fill="${C.ln}" stroke-width="0"/>
               <path d="M92 55 L408 55" stroke="${C.light}" stroke-width="3"/>
-              <text x="64" y="118" font-family="Jua, sans-serif" font-size="13" fill="#c06a8f" stroke="none" letter-spacing="1">시트 스티커 만들기</text>
+              <text x="64" y="118" font-family="Jua, sans-serif" font-size="13" fill="#c06a8f" stroke="none" letter-spacing="1">내 도안 프린터</text>
               <rect class="spr-led" x="330" y="92" width="30" height="12" rx="6" fill="#7fd3b0" stroke-width="3"/>
               <g class="spr-pw"><circle cx="410" cy="98" r="22" fill="${C.shade}" stroke-width="4"/><circle cx="410" cy="98" r="14" fill="#fff" stroke-width="3"/>
                 <path d="M410 91 L410 98 M403.5 94 A8 8 0 1 0 416.5 94" fill="none" stroke="#ff7a93" stroke-width="2.6"/></g>
@@ -85,16 +86,12 @@
                   </div>
                   <div class="spr-ctl" id="sprCtl"></div>
                 </div>
-                <input type="file" id="sprFile" accept="image/*" multiple hidden>`;
+`;
             document.body.appendChild(el);
             pq('sprBack').onclick = () => { if (!P.busy) close(); };
             pq('sprPw').onclick = () => { if (P.view === 'front' && P.st === 'edit' && !P.busy) toTop(); };
             pq('sprTop').addEventListener('pointerdown', e => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 130); if (b.dataset.k === 'PW') { const t = pq('sprTop'); t.classList.add('pw'); setTimeout(() => t.classList.remove('pw'), 160); } key(b.dataset.k); });
-            pq('sprFile').onchange = e => { const f = [...(e.target.files || [])].filter(x => /^image\//.test(x.type) || /\.(jpe?g|png|gif|webp|heic|heif|avif)$/i.test(x.name)); e.target.value = ''; if (f.length) gotFiles(f); };
             pq('sprCtl').addEventListener('click', ctlClick);
-            const cv = pq('sprLcd');
-            cv.addEventListener('pointerdown', cvDown); cv.addEventListener('pointermove', cvMove); cv.addEventListener('pointerup', cvUp); cv.addEventListener('pointercancel', cvUp);
-            cv.addEventListener('wheel', e => { if (P.view !== 'top' || P.step !== 2) return; e.preventDefault(); zoom(e.deltaY < 0 ? 1.06 : .94); }, { passive: false });
             addEventListener('resize', () => { if (P.on) fit(); });
             return el;
         }
@@ -129,13 +126,11 @@
         function toTop() { if (!P.on) return; setView('top', true); }
         function openStickerPrinter(o) {
             o = o || {}; if (P.on) return;
-            if (!api() || !api().finishMany) { if (window.comingSoon) comingSoon('🖨️ 말랑 스티커 프린터'); return; }
             if (typeof closeModal === 'function') ['stickerToolModal', 'stickerSrcModal', 'moveModal'].forEach(id => { const m = pq(id); if (m && m.style.display === 'flex') closeModal(id); });
             if (window.closeCraft && document.body.classList.contains('craft-on')) closeCraft();
             const room = build(), el = o.el || null;
             Object.assign(P, { on: true, src: el, busy: false, saving: false, st: 'edit', msg: '' });
-            P.kind = 'seal';                                                        // 🏷️ 늘 씰스티커 (도련 11-08)
-            if (!P.list.length) P.step = 0;
+            P.step = 0; loadDesigns();                                              // 📐 내 도안 (도련 11-14)
             pq('sprPaper').className = 'spr-paper'; pq('sprBody').classList.remove('buzz', 'busy', 'ready');
             room.classList.add('show'); document.body.classList.add('spr-on');
             setView('front', false); const R = fit(); run();
@@ -167,53 +162,32 @@
             } else { room.classList.add('bye'); setTimeout(done, quiet() ? 0 : 300); }
         }
 
-        /* ---------- 🖼️ 사진 ---------- */
-        function pickFiles(add) { P.add = !!add; pq('sprFile').click(); }        // 누른 그 순간에 열어요 (📱 이 막지 않게)
-        const loadPic = file => new Promise(res => {
-            const url = URL.createObjectURL(file), im = new Image();
-            im.onload = () => { const k = Math.min(1, 1000 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c); };
-            im.onerror = () => { URL.revokeObjectURL(url); res(null); }; im.src = url;
-        });
-        async function gotFiles(files) {
-            const room = MAX - (P.add ? P.list.length : 0);
-            if (files.length > room) showMsg(`사진은 한 번에 <b>${MAX}장까지</b> 넣을 수 있어요.<br><span style="font-size:12px;color:#777;">고른 ${files.length}장 중 앞의 ${Math.max(0, room)}장만 가져올게요.</span>`);
-            const imgs = (await Promise.all(files.slice(0, Math.max(0, room)).map(loadPic))).filter(Boolean);
-            if (!imgs.length) { if (files.length <= room) showMsg('사진을 열지 못했어요. 다른 사진을 골라 주세요.'); return; }
-            const shape = cur() && cur().shape !== 'free' ? cur().shape : 'circle';
-            const add = imgs.map(img => ({ img, shape, zoom: 1, ox: 0, oy: 0, path: [] }));
-            if (P.add) { P.list = P.list.concat(add); P.cur = P.list.length - add.length; } else { P.list = add; P.cur = 0; }
-            say(`${P.list.length}장 골랐어요`);
+        /* ---------- 📐 내 도안 (도련 11-14 · js/own.js ownDesigns · 새것부터 · 모든 종류) ---------- */
+        async function loadDesigns() {
+            P.loading = true; P.ds = []; P.di = 0;
+            try { P.ds = window.ownDesigns ? await ownDesigns() : []; } catch (e) { console.warn('🖨 도안', e); P.ds = []; }
+            P.loading = false;
+            P.ds.forEach(e => { if (e.th && !P.img.has(e.id)) { const im = new Image(); im.src = e.th; P.img.set(e.id, im); } });
+            busyCheck();
         }
+        async function busyCheck() {                                              // 그 도안으로 뽑은 것이 서랍에 남아 있나요
+            const d = cur(); if (!d || !window.ownDesignBusy) return;
+            try { if (await ownDesignBusy(d.id)) P.busyD.add(d.id); else P.busyD.delete(d.id); } catch (e) {}
+        }
+        const kindName = k => { const K = kindOf(k); return K[0] === k ? K[1] + ' ' + K[2] : '📐 도안'; };
 
         /* ---------- 🎛 위 화면 버튼 ---------- */
         function key(k) {
             if (!P.on || P.busy || P.view !== 'top') return;
             beep(k === 'PW' ? 660 : 1700, .03, 'square', .02);
-            const m = cur(), n = P.list.length, S = shapes();
-            if (k === 'PW') { if (P.step === 3) return print(); if (n) { P.step = 3; say('전원 버튼을 한 번 더 꾹!'); } else say('먼저 사진을 넣어요'); return; }
+            const n = P.ds.length;
             if (k === 'FRONT') { setView('front', true); return; }
             if (k === 'BACK') { if (P.step > 0) P.step--; else setView('front', true); return; }
-            if (k === 'OK') {
-                if (P.step === 0 && !n) return pickFiles(false);
-                if (P.step === 1 && m && m.shape === 'free' && m.path.length < 9) { say('✂️ 화면에 빙 둘러 그려요'); return; }
-                if (P.step < 3) { P.step++; return; }
-                return say('전원 버튼을 꾹 눌러요');
-            }
-            if (P.step === 0) {
-                if (!n) { if (k === 'U' || k === 'D') pickFiles(false); return; }
-                if (k === 'L' || k === 'R') P.cur = (P.cur + (k === 'R' ? 1 : n - 1)) % n;
-                else if (k === 'U') { if (n < MAX) pickFiles(true); else say(`${MAX}장까지예요`); }
-                else if (k === 'D') pickFiles(false);
-            } else if (P.step === 1 && m) {
-                if (k === 'L' || k === 'R') { const i = S.findIndex(x => x[0] === m.shape); m.shape = S[(i + (k === 'R' ? 1 : S.length - 1)) % S.length][0]; m.path = []; }
-                else if (k === 'U') { if (m.shape === 'free') { say('✂️ 손으로는 사진마다 따로'); return; } P.list.forEach(x => { x.shape = m.shape; x.zoom = m.zoom; x.path = []; }); say(`🔁 ${n}장 모두 ${shapeName(m.shape)}`); }
-                else if (k === 'D' && n > 1) { P.cur = (P.cur + 1) % n; say(`${P.cur + 1}번째 사진`); }
-            } else if (P.step === 2 && m) {
-                if (k === 'U') zoom(1.1); else if (k === 'D') zoom(1 / 1.1);
-                else if (k === 'L' || k === 'R') { if (n > 1) { P.cur = (P.cur + (k === 'R' ? 1 : n - 1)) % n; say(`${P.cur + 1}번째 사진`); } else m.ox += k === 'R' ? 10 : -10; }
-            }
+            if (!n) { say(P.loading ? '도안을 불러오는 중이에요' : '📱 태블릿에서 먼저 디자인해요', 1800); return; }
+            if (k === 'PW') { if (P.step === 1) return print(); P.step = 1; say('전원 버튼을 한 번 더 꾹!'); return; }
+            if (k === 'OK') { if (P.step === 0) { P.step = 1; return; } return say('전원 버튼을 꾹 눌러요'); }
+            if (k === 'L' || k === 'R' || k === 'U' || k === 'D') { P.di = (P.di + (k === 'R' || k === 'D' ? 1 : n - 1)) % n; P.step = 0; busyCheck(); }
         }
-        function zoom(f) { const m = cur(); if (!m) return; m.zoom = Math.max(.4, Math.min(3, m.zoom * f)); say(`크기 ${Math.round(m.zoom * 100)}%`, 700); }
         function say(t, ms) { P.msg = t; clearTimeout(P.msgT); P.msgT = setTimeout(() => { P.msg = ''; }, ms || 1400); }
 
         /* ---------- 🖥 위 화면 그리기 (연두 LCD · 단계 줄 · 미리보기 · 할 일) ---------- */
@@ -227,25 +201,18 @@
             x.fillStyle = '#dff2e8'; x.fillRect(0, 0, w, h);
             let sx = 5 * u; x.font = `${13 * u}px Jua, sans-serif`;                    // 단계 줄
             STEPS.forEach((s, i) => { const tw = x.measureText(s).width + 8 * u; if (i === P.step) { x.fillStyle = '#2f4a3c'; rr(sx, 4 * u, tw, 17 * u, 4 * u); x.fill(); } T(s, 13, i === P.step ? '#dff2e8' : '#7d9a8a', sx + 4 * u, 12.8 * u); sx += tw + 2 * u; });
-            const n = P.list.length, m = cur(), K = kindOf(P.kind), N = api().size;
-            const pv = h * .72, px = 5 * u, py = 25 * u; box = null;
-            const tx = px + pv + 8 * u;                                                // 글 자리 (미리보기 오른쪽)
+            const n = P.ds.length, d = cur(), pv = h * .72, px = 5 * u, py = 25 * u, tx = px + pv + 8 * u;
             let big = '', small = '';
-            if (P.step === 0) {
-                if (!n) { x.fillStyle = '#c4e3d3'; rr(px, py, pv, pv, 6 * u); x.fill(); T('＋', 40, '#7d9a8a', px + pv / 2, py + pv / 2, 'center'); big = '사진을 넣어요'; small = 'OK = 앨범 (한 장 · 여러 장)'; }
-                else {
-                    const tw = Math.min(pv * .62, (w * .52) / Math.min(n, 4)); let i0 = Math.max(0, Math.min(P.cur - 1, n - 4));
-                    for (let i = i0; i < Math.min(n, i0 + 4); i++) { const im = P.list[i].img, k = tw / Math.min(im.width, im.height), bx = px + (i - i0) * (tw + 3 * u), by = py + (pv - tw) / 2; x.save(); rr(bx, by, tw, tw, 3 * u); x.clip(); x.drawImage(im, bx + (tw - im.width * k) / 2, by + (tw - im.height * k) / 2, im.width * k, im.height * k); x.restore(); if (i === P.cur) { x.lineWidth = 2.4 * u; x.strokeStyle = '#2f4a3c'; rr(bx, by, tw, tw, 3 * u); x.stroke(); } }
-                    big = `${n}장 · ${P.cur + 1}번째`; small = '◀ ▶ 한 장씩 · ▲ 더 넣기 · ▼ 새로 · OK 다음';
-                    return lines(x, w, h, u, T, px + Math.min(n, 4) * (tw + 3 * u) + 5 * u, big, small);
-                }
-            } else if (m) {
-                const sm = draw.c || (draw.c = document.createElement('canvas')); if (sm.width !== N) sm.width = sm.height = N;
-                sync(m, P.drawing); api().render(sm.getContext('2d'), P.step <= 2);
-                x.fillStyle = '#c4e3d3'; rr(px, py, pv, pv, 6 * u); x.fill(); x.drawImage(sm, px, py, pv, pv); box = { x: px, y: py, s: pv };
-                if (P.step === 1) { big = `◀ ${shapeName(m.shape)} ▶`; small = m.shape === 'free' ? '✂️ 화면에 빙 둘러 그려요 · OK' : (n > 1 ? `▲ 모두 같게 · ▼ 다음 사진 (${P.cur + 1}/${n})` : 'OK 다음'); }
-                else if (P.step === 2) { big = `크기 ${Math.round(m.zoom * 100)}%`; small = n > 1 ? `▲ ▼ 크기 · ◀ ▶ 사진 (${P.cur + 1}/${n}) · 끌어서 자리` : '▲ ▼ 크기 · 화면을 끌어 자리'; }
-                else { big = `${n}장 · ${K[2].replace('스티커', '')}`; small = (Date.now() / 450 | 0) % 2 ? '전원 버튼을 꾹!' : ''; }
+            x.fillStyle = '#c4e3d3'; rr(px, py, pv, pv, 6 * u); x.fill();
+            if (!n) { T(P.loading ? '…' : '📐', 34, '#7d9a8a', px + pv / 2, py + pv / 2, 'center'); big = P.loading ? '불러오는 중…' : '도안이 없어요'; small = P.loading ? '' : '📱 태블릿에서 디자인해요 · ✅ 완료 = 내 도안'; }
+            else {
+                const im = P.img.get(d.id);
+                if (im && im.complete && im.naturalWidth) { const k = Math.min((pv - 8 * u) / im.naturalWidth, (pv - 8 * u) / im.naturalHeight); x.drawImage(im, px + (pv - im.naturalWidth * k) / 2, py + (pv - im.naturalHeight * k) / 2, im.naturalWidth * k, im.naturalHeight * k); }
+                else T(kindOf((d.x || {}).k)[1], 34, '#7d9a8a', px + pv / 2, py + pv / 2, 'center');
+                const nm = String((d.x || {}).nm || '').slice(0, 12), busy = P.busyD.has(d.id);
+                big = `${kindName((d.x || {}).k)}${nm ? ' · ' + nm : ''}`;
+                if (P.step === 0) small = busy ? `서랍에 아직 있어요 · 다 쓰거나 버리면 다시 · ◀ ▶ (${P.di + 1}/${n})` : `◀ ▶ 도안 (${P.di + 1}/${n}) · OK 다음`;
+                else small = busy ? '서랍에 아직 있어요 · 다 쓰거나 버리면 다시' : ((Date.now() / 450 | 0) % 2 ? '전원 버튼을 꾹!' : '');
             }
             lines(x, w, h, u, T, tx, big, small);
         }
@@ -260,42 +227,20 @@
             }
         }
         function rr2(x, a, b, ww, hh, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + ww, b, a + ww, b + hh, r); x.arcTo(a + ww, b + hh, a, b + hh, r); x.arcTo(a, b + hh, a, b, r); x.arcTo(a, b, a + ww, b, r); x.closePath(); }
-        function sync(m, drawing) { api().set({ img: m.img, shape: m.shape, zoom: m.zoom, ox: m.ox, oy: m.oy, path: m.path, border: P.kind === 'paper' ? P.border : true, drawing: !!drawing }); }
-
-        /* ---------- 🖐 화면 끌기 (자리) · ✂️ 손으로 오리기 ---------- */
-        function cvPt(e) { const cv = pq('sprLcd'), r = cv.getBoundingClientRect(), N = api().size; const x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; return box ? [(x - box.x) * N / box.s, (y - box.y) * N / box.s] : [0, 0]; }
-        function cvDown(e) {
-            if (P.view !== 'top' || P.busy) return; const m = cur();
-            if (P.step === 0) { if (!P.list.length) pickFiles(false); return; }
-            if (!m || !box || P.step > 2) return;
-            e.preventDefault(); try { e.target.setPointerCapture(e.pointerId); } catch (er) {}
-            const p = cvPt(e);
-            if (m.shape === 'free' && P.step === 1) { P.drawing = true; m.path = [p]; } else P.drag = { x: p[0], y: p[1], ox: m.ox, oy: m.oy };
-        }
-        function cvMove(e) {
-            if (!P.drawing && !P.drag) return; const p = cvPt(e), m = cur();
-            if (P.drawing) { const l = m.path[m.path.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) > 2) m.path.push(p); }
-            else { m.ox = P.drag.ox + p[0] - P.drag.x; m.oy = P.drag.oy + p[1] - P.drag.y; }
-        }
-        function cvUp() {
-            if (P.drawing) { P.drawing = false; const m = cur(); if (m.path.length < 9) { m.path = []; say('조금 더 크게 빙 둘러요'); } else say('✂️ 다시 그리면 새로'); }
-            P.drag = null;
-        }
-
         /* ---------- 아래 글 · 버튼 (출력 뒤에만 버튼) ---------- */
         function ctl() {
             const el = pq('sprCtl'); if (!el) return; const open = isCoverOpen;
             const msg = P.st === 'edit' ? ''   /* 기계 밖 안내 글은 없어요 (도련 11-11) */
                 : { print: '지이잉… 스티커가 나오고 있어요', ready: '다 나왔어요! 따끈따끈해요', peel: '톡!', done: P.doneMsg || '서랍에 쏙 넣었어요' }[P.st];
             let h = msg ? `<p class="spr-msg${P.st === 'print' ? ' blink' : ''}" id="sprTip">${msg}</p>` : '';
-            if (P.st === 'ready') h += `<div class="spr-row">${open ? `<button type="button" class="spr-btn pop" data-go="stick">📌 톡! 떼어 다이어리에</button>` : ''}<button type="button" class="spr-btn pop${open ? ' soft' : ''}" data-go="keep">💾 톡! 떼어 서랍에</button></div>`;
-            else if (P.st === 'done') h += `<div class="spr-row"><button type="button" class="spr-btn soft pop" data-go="again">하나 더 뽑기</button></div>`;
+            if (P.st === 'ready') h += `<div class="spr-row"><button type="button" class="spr-btn pop" data-go="keep">💾 톡! 떼어 서랍에</button></div>`;
+            else if (P.st === 'done') h += `<div class="spr-row"><button type="button" class="spr-btn soft pop" data-go="again">🖨 다른 도안 뽑기</button></div>`;
             el.innerHTML = h;
         }
         function ctlClick(e) {
             const b = e.target.closest('button'); if (!b || P.busy) return;
-            if (b.dataset.go === 'stick' || b.dataset.go === 'keep') peel(b.dataset.go === 'stick');
-            else if (b.dataset.go === 'again') { P.st = 'edit'; P.list = []; P.cur = 0; P.step = 0; pq('sprPaper').className = 'spr-paper'; toTop(); }
+            if (b.dataset.go === 'keep') peel();
+            else if (b.dataset.go === 'again') { P.st = 'edit'; P.step = 0; pq('sprPaper').className = 'spr-paper'; toTop(); busyCheck(); }
         }
 
         /* ---------- 🔊 (✨ 연출 소리를 끄면 조용히) ---------- */
@@ -312,27 +257,11 @@
         function beep(f, d, type, vol) { try { if (!(window.sndOn && sndOn()) || !window.sndCtx) return; const ac = sndCtx(), o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime; o.type = type || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(vol || .05, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(sndOut()); o.start(t); o.stop(t + d + .02); } catch (e) {} }
 
         /* ---------- 🖨 전원 꾹 = 일어서고 → 지이잉 → 종이가 조금씩 · 위에서부터 그림 ---------- */
-        function sheetOf(srcs) {                                                 // 종이 한 장 (만든 스티커를 나란히 · 칼같은 그늘 한 톤)
-            return Promise.all(srcs.map(s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; }))).then(imgs => {
-                imgs = imgs.filter(Boolean); const W = 540, H = 620, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
-                const n = imgs.length, cols = n < 2 ? 1 : n < 5 ? 2 : 3, rows = Math.ceil(n / cols), pad = 34, cw = (W - pad * 2) / cols, rh = (H - pad * 2) / rows;
-                imgs.forEach((im, i) => {
-                    const col = i % cols, row = Math.floor(i / cols), k = Math.min((cw - 18) / im.width, (rh - 18) / im.height, n < 2 ? 1.8 : 9), w = im.width * k, h = im.height * k;
-                    const px = pad + col * cw + (cw - w) / 2, py = pad + row * rh + (rh - h) / 2;
-                    const t = document.createElement('canvas'); t.width = w; t.height = h; const tx = t.getContext('2d'); tx.drawImage(im, 0, 0, w, h); tx.globalCompositeOperation = 'source-in'; tx.fillStyle = '#efc6d5'; tx.fillRect(0, 0, w, h);
-                    x.drawImage(t, px, py + 5); x.drawImage(im, px, py, w, h);
-                });
-                return c.toDataURL('image/png');
-            });
-        }
         async function print() {
-            if (P.busy || !P.on || !P.list.length) return;
-            const bad = P.list.findIndex(m => m.shape === 'free' && (m.path || []).length < 9);
-            if (bad >= 0) { P.cur = bad; P.step = 1; say(`✂️ ${bad + 1}번째를 빙 둘러 그려요`, 2200); return; }
-            const srcs = P.list.map(m => { sync(m); return api().make(P.kind); }).filter(Boolean);
-            if (!srcs.length) { say('스티커를 만들지 못했어요'); return; }
+            const d = cur(); if (P.busy || !P.on || !d) return;
+            if (window.ownDesignBusy && await ownDesignBusy(d.id)) { P.busyD.add(d.id); say('서랍에 아직 있어요 · 다 쓰거나 버리면 다시', 2400); return; }   // 다 써야 다시 (도련 11-14)
             P.busy = true; noise(120, 900, .08);
-            const sheet = await sheetOf(srcs); pq('sprSheet').src = sheet;
+            pq('sprSheet').src = d.th || '';
             setView('front', true); P.st = 'print'; ctl();                                // 앞으로 일어서고
             await wait(quiet() ? 0 : TILT + 120);
             const body = pq('sprBody'), paper = pq('sprPaper'), ink = pq('sprInk');
@@ -343,19 +272,23 @@
             body.classList.remove('buzz', 'busy'); body.classList.add('ready'); beep(1320, .1);
             P.busy = false; P.st = 'ready'; ctl();
         }
-        /* 톡! 떼어 가기 = 종이가 휙 날아가요 → 저장 (예전과 같아요) */
-        async function peel(stick) {
+        /* 톡! 떼어 서랍에 = 종이가 휙 → 🖨 제작 규칙대로 새 종이 (js/own.js ownDesignPrint) */
+        async function peel() {
             if (P.saving || P.st !== 'ready') return;
             if (window.dkTrialNoSave && dkTrialNoSave()) return;   // 🏪 샵 적용해보기 = 만들어 보기만 (js/desk.js)
+            const d = cur(); if (!d) return;
             P.saving = true; P.busy = true;
             const paper = pq('sprPaper'); paper.classList.remove('rise'); paper.classList.add('peel'); noise(140, 2600, .1); P.st = 'peel'; ctl();
             await wait(quiet() ? 0 : 1150);
-            const list = P.list.slice(), k = P.kind, border = P.border;
             pq('sprBody').classList.remove('ready');
             try {
-                if (stick) { P.saving = false; P.busy = false; P.st = 'edit'; P.list = []; P.step = 0; close(() => { api().finishMany(k, true, list, border); }); return; }   // 📌 프린터는 책상으로 → 종이째 나와서 떼어 붙여요
-                await api().finishMany(k, false, list, border);                                                                                  // 💾 🗄️ 서랍 (알림은 예전과 같아요)
-                P.doneMsg = `${kindOf(k)[1]} 서랍에 쏙 넣었어요`; P.st = 'done';
+                await ownDesignPrint(d.id);
+                P.busyD.add(d.id);
+                const R = window.ownRules ? ownRules() : {}, k = (d.x || {}).k, q = { piece: `${R.piece || 4}조각 한 봉투`, tape: '한 롤', tk: `${R.tk || 30}장 한 묶음`, memo: `${R.memo || 30}장 한 묶음`, leaf: `${R.leaf || 1}장` }[k] || '한 시트';
+                P.doneMsg = `${kindOf(k)[1]} ${q} · 서랍에 쏙 넣었어요`; P.st = 'done';
+            } catch (e) {
+                console.warn('🖨 출력', e); P.st = 'edit';
+                if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.'));
             } finally { P.saving = false; P.busy = false; if (P.on) { paper.className = 'spr-paper'; ctl(); } }
         }
         document.addEventListener('keydown', e => {
@@ -364,7 +297,7 @@
             const k = { ArrowLeft: 'L', ArrowRight: 'R', ArrowUp: 'U', ArrowDown: 'D', Enter: 'OK', Backspace: 'BACK', ' ': 'PW' }[e.key];
             if (k && P.view === 'top' && !e.target.closest('input, textarea')) { e.preventDefault(); key(k); }
         });
-        window.openStickerPrinter = openStickerPrinter; window.closeStickerPrinter = close;
+        window.openStickerPrinter = openStickerPrinter; window.closeStickerPrinter = close; window.sprTest = () => ({ P, key, print, peel });   // 🧪 시험용
     })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

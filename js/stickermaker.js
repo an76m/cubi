@@ -333,6 +333,7 @@
         /* 저장 결과 안내 (stick : 붙이는 중이면 실패만 알려요) */
         function smAddMsg(r, k, stick) {
             if (r === 'fail') showMsg('⚠ 스티커를 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(smAdd.err) : ''));
+            else if (r === 'ok' && !stick && String(smAdd.last || '').startsWith('design:')) showMsg('📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>');   // 📱 태블릿 = 📐 도안만
             else if (r === 'ok' && !stick) showMsg('✂️ 만든 스티커를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 서랍에서 떼어 붙여요.<br>한 번 붙이면 사라지니 또 쓰려면 또 만들어요.</span>');
         }
         /* act : 'stick' 씰로 붙이기 · 'pstick' 조각으로 붙이기 · 'piece' · 'seal' · 'paper' 만들기 / 글씨 스티커는 'text' 붙이기 · 'keep' 저장만 */

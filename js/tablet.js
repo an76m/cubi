@@ -228,7 +228,7 @@
     /* ✏️ 🧩 📄 그림 앱 : 직접 그리기 + 📎 사진 (사진은 맨 아래 · 그 위에 그려요) · 화면 가득 작업대 */
     function drawApp(k) {
         const paper = k === 'paper', W = paper ? 600 : 640, H = paper ? 800 : 640;
-        const D = { k, W, H, pen: PENS[0], size: SIZES[1], erase: false, photo: null, undo: [], dirty: false, down: null };
+        const D = { k, W, H, pen: PENS[0], size: SIZES[1], erase: false, photo: null, undo: [], dirty: false, down: null, pcs: [] };   // pcs = 🧩 담은 조각 (4개까지)
         const name = (APPS.find(a => a[0] === k) || [])[2];
         wsOpen(`${paper ? '📄' : '🧩'} ${name} 만들기`, paper ? '종이에 그리거나 📎 사진을 깔아요 · 종이 한 장 그대로 모조지가 돼요' : '그린 모양대로 하얀 칼선이 생겨요 · 📎 사진 위에 그려도 돼요', 'tb-draw', null);
         IP.D = D; IP.app = k;
@@ -239,8 +239,9 @@
             <p class="shm-hint">${paper ? '사진은 종이 가득 깔려요 · 그 위에 그려요' : '사진은 가운데에 놓여요 · 그 위에 그려요'}</p>`;
         q('tbWsC').innerHTML = `<div class="ipd-cv${paper ? ' paper' : ''}" id="ipdCv" style="aspect-ratio:${W}/${H}"><canvas id="ipdPh" width="${W}" height="${H}"></canvas><canvas id="ipdInk" width="${W}" height="${H}"></canvas></div><input type="file" accept="image/*" id="ipdFile" hidden>`;
         q('tbWsR').innerHTML = `<h4>고치기</h4><div class="shm-two"><button type="button" class="shm-b" data-a="undo">↩ 되돌리기</button><button type="button" class="shm-b" data-a="clear">🗑 다 지우기</button></div>
-            <p class="shm-hint">${paper ? '📄 만든 모조지는 🗄️ 서랍에 들어가요 · 가위로 오려 써요' : '🧩 만든 조각은 🗄️ 서랍(조각 봉투)에 들어가요 · 핀셋으로 떼어 써요'}</p>
-            <button type="button" class="shm-go ipd-go" data-a="make">✅ 만들기</button>`;
+            ${paper ? '' : `<h4>🧩 담은 조각 <em id="ipdPcN">0 / 4</em></h4><div class="ipd-pcs" id="ipdPcs"></div><button type="button" class="shm-b" data-a="pc">➕ 이 조각 담기</button>`}
+            <p class="shm-hint">${paper ? '📄 ✅ 완료 = 📐 내 도안 · 🖨 프린터에서 뽑으면 🗄️ 서랍에 한 장' : '🧩 조각을 1~4개 담아요 · 🖨 프린터에서 뽑으면 늘 4조각 한 봉투 (1개 = 같은 조각 4개)'}</p>
+            <button type="button" class="shm-go ipd-go" data-a="make">✅ 완료</button>`;
         const L = q('tbWsL'), R = q('tbWsR');
         L.addEventListener('click', e => {
             const p = e.target.closest('.ipd-pen'), z = e.target.closest('.ipd-sz'), a = e.target.closest('[data-a]');
@@ -295,6 +296,7 @@
             const p = q('ipdPh'), x = p.getContext('2d'); x.clearRect(0, 0, p.width, p.height); if (D.k === 'paper') { x.fillStyle = '#fff'; x.fillRect(0, 0, p.width, p.height); }
             D.photo = false; D.dirty = false; return;
         }
+        if (a === 'pc') return pcAdd();
         if (a === 'make') make();
     }
     /* 한 장으로 합치기 (사진 + 그림) */
@@ -318,8 +320,24 @@
         const s = document.createElement('canvas'); s.width = Math.round(o.width * k); s.height = Math.round(o.height * k);
         s.getContext('2d').drawImage(o, 0, 0, s.width, s.height); return s;
     }
+    /* 🧩 조각 담기 : 지금 그린 조각을 칼선째 담고 종이를 비워요 (한 도안에 4개까지 · 도련 11-14) */
+    function pcAdd() {
+        const D = IP.D; if (!D || D.k !== 'piece') return;
+        if (D.pcs.length >= 4) { if (window.showMsg) showMsg('🧩 조각은 4개까지 담을 수 있어요.<br><span style="font-size:12px;color:#777;">✅ 완료를 눌러 도안으로 저장해요.</span>'); return; }
+        if (!D.dirty) { if (window.showMsg) showMsg('먼저 조각을 그려 주세요.'); return; }
+        const c = dieCut(flat()); if (!c) { if (window.showMsg) showMsg('그린 그림이 없어요.'); return; }
+        D.pcs.push(window.cvSmall ? cvSmall(c) : c.toDataURL('image/png'));
+        act('clear'); pcPaint();
+    }
+    function pcPaint() {
+        const D = IP.D, box = q('ipdPcs'), n = q('ipdPcN'); if (!D || !box) return;
+        box.innerHTML = D.pcs.map((u, i) => `<button type="button" class="ipd-pc" data-i="${i}" title="빼기"><img src="${u}" alt=""><b>✕</b></button>`).join('') || '<span class="shm-hint">아직 없어요</span>';
+        box.querySelectorAll('.ipd-pc').forEach(b => b.onclick = () => { D.pcs.splice(+b.dataset.i, 1); pcPaint(); });
+        if (n) n.textContent = `${D.pcs.length} / 4`;
+    }
     async function make() {
         const D = IP.D; if (!D || D.saving) return;
+        if (D.k === 'piece' && D.pcs.length && !D.dirty) { D.dirty = 'pcs'; }
         if (!D.dirty) { if (window.showMsg) showMsg(D.k === 'paper' ? '종이에 그리거나 📎 사진을 깔아 주세요.' : '먼저 그림을 그리거나 📎 사진을 넣어 주세요.'); return; }
         if (window.dkTrialNoSave && dkTrialNoSave()) return;                 // 🏪 샵 적용해보기 = 만들어 보기만
         if (!window.smAdd) { if (window.comingSoon) comingSoon('📱 태블릿 만들기'); return; }
@@ -327,8 +345,10 @@
         try {
             let r;
             if (D.k === 'piece') {
-                const c = dieCut(flat()); if (!c) { if (window.showMsg) showMsg('그린 그림이 없어요.'); return; }
-                r = await smAdd(window.cvSmall ? cvSmall(c) : c.toDataURL('image/png'), 'piece');
+                const L = D.pcs.slice();
+                if (D.dirty !== 'pcs' && L.length < 4) { const c = dieCut(flat()); if (c) L.push(window.cvSmall ? cvSmall(c) : c.toDataURL('image/png')); }   // 그리던 것도 같이
+                if (!L.length) { if (window.showMsg) showMsg('그린 그림이 없어요.'); return; }
+                r = await smAdd(L, 'piece');
             } else {
                 const c = flat(), k = Math.min(1, 480 / Math.max(c.width, c.height)), s = document.createElement('canvas');
                 s.width = Math.round(c.width * k); s.height = Math.round(c.height * k); s.getContext('2d').drawImage(c, 0, 0, s.width, s.height);
@@ -337,8 +357,8 @@
                 r = await smAdd(o[0], 'paper');
             }
             if (window.smAddMsg) smAddMsg(r, D.k, false);
-            if (r === 'ok') { D.dirty = false; act('clear'); }
-        } finally { D.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '✅ 만들기'; } }
+            if (r === 'ok') { D.dirty = false; D.pcs = []; act('clear'); pcPaint(); }
+        } finally { D.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '✅ 완료'; } }
     }
     document.addEventListener('keydown', e => {
         if (e.key !== 'Escape' || !IP.on || document.querySelector('#customAlertModal[style*="flex"]')) return;
@@ -346,6 +366,7 @@
         if (!document.querySelector('.modal[style*="flex"]') && !document.querySelector('.smk-room.show, .shm-room.show')) closeTablet();
     });
     window.openTablet = openTablet; window.closeTablet = closeTablet; window.tabletOn = () => IP.on;
+    Object.defineProperty(window, 'tbDesignOnly', { get: () => !!IP.on, configurable: true });   // 📐 태블릿에서 만든 것 = 도안만 (js/own.js ownAdd · 🖨 프린터에서 뽑아요 · 도련 11-14)
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

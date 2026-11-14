@@ -13,7 +13,7 @@
         const CRAFT_WAYS = {
             booth: ['📸', '포토부스', '네컷 · 2×2 · 한 컷 · 필터 · 글씨 · 반짝이', () => window.openBooth && openBooth(), 'stkmake'],
             cam: ['📷', '사진 찍어 만들기', '📷 말랑 디카로 찍거나 골라 모양대로 (하트 · 별 … · ✂️ 손으로)', k => window.openDigicam ? openDigicam({ kind: k, el: window.dcActEl && dcActEl('camera') }) : smGo(k, 'smOpenCam'), 'stkmake'],   // 📷 js/digicam.js (도련 11-08)
-            album: ['🖼️', '앨범에서 골라 만들기', '🖨️ 스티커 프린터 · 한 장 · 여러 장 · 모양 고르기 · 늘 씰', k => window.openStickerPrinter ? openStickerPrinter({ kind: k, el: window.dcActEl && dcActEl('print') }) : smGo(k, 'smOpenFile'), 'stkmake'],   // 🖨️ js/stickerprinter.js (도련 11-08)
+            /* 🖼️ 앨범에서 골라 만들기 (🖨️ 프린터 사진 → 스티커) = 영구 삭제 (도련 11-14 : 프린터는 📐 도안을 뽑는 곳 · 사진 · 모양 · 여러 장은 📱 태블릿 🏷️ 씰스티커) */
             sheet: ['🗂️', '시트 꾸미기', '그림 여러 개를 한 장에 · 끌어서 자리 · 기본 씰처럼', () => window.openSheetMaker && openSheetMaker(), 'stkmake'],   // 🗂️ js/sheetmaker.js (도련 11-06)
             text: ['🔤', '글씨 스티커', '🏷️ 라벨 기계 자판으로 쓰기', () => window.openLabeler ? openLabeler(window.dcLabelerEl && dcLabelerEl()) : window.smOpenText && smOpenText(), 'stkmake'],   // 🏷️ 라벨 스티커 기계 (js/labeler.js · 도련 11-08) · 책상에 있으면 거기서 떠올라요
             tape: ['🎀', '마스킹테이프 만들기', '✏️ 한 칸을 그리면 쭉 이어져요 · 🖼️ 내 사진으로', () => window.openTapeMaker && openTapeMaker(), 'stkmake'],
@@ -25,7 +25,7 @@
         };
         /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
         const CRAFT_KINDS = [
-            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['sheet', 'booth', 'cam', 'album', 'text'],   // 🗂️ 시트 꾸미기 맨 앞 · 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
+            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['sheet', 'booth', 'cam', 'text'],   // 🗂️ 시트 꾸미기 맨 앞 · 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
             to: '🗄️ 서랍 · 🏷️ 씰' },
             { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
             { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
@@ -101,7 +101,9 @@
                     <button type="button" class="cr8-b cr8-del" id="crDel">🗑 도안 버리기</button>
                     <p class="cr8-hint">도안은 써도 안 사라져요 · 찍은 종이는 ${K.to}</p>`;
                 cq('crPrint').onclick = async ev => {
-                    const b = ev.currentTarget; if (b.disabled) return; b.disabled = true; b.textContent = '찍는 중…';
+                    const b = ev.currentTarget; if (b.disabled) return;
+                    if (window.ownDesignBusy && await ownDesignBusy(e.id)) { showMsg('🖨 이 도안으로 뽑은 스티커가 <b>서랍에 아직 있어요</b>.<br><span style="font-size:12px;color:#777;">다 쓰거나 🗑 버리면 다시 뽑을 수 있어요.</span>'); return; }   // 도련 11-14
+                    b.disabled = true; b.textContent = '찍는 중…';
                     let sid = null; try { sid = await ownDesignPrint(e.id); } catch (er) { console.warn('📄 한 장 더', er); }
                     b.disabled = false; b.textContent = '📄 한 장 더 찍기';
                     if (!sid) { showMsg('⚠ 찍지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 후 다시 해 주세요.</span>'); return; }
