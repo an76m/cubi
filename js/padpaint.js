@@ -31,11 +31,11 @@
         const TPD = o.kind === 'tape', TKD = o.kind === 'tk' || TPD, PX = TPD ? PXMM_T : PXMM;   // 🧻 떡메 · 🎀 테이프 = 실제 크기(mm)로 (도련 11-14 · 테이프 tkmm = [한 칸 길이, 폭])
         const tkmm = (o.draft && Array.isArray(o.draft.tkmm) && o.draft.tkmm) || o.tkmm || (TPD ? TAPE_MM0 : TK_MM0);
         const W = (o.draft && +o.draft.W) || (TKD ? Math.round(tkmm[0] * PX) : o.W || 900), H = (o.draft && +o.draft.H) || (TKD ? Math.round(tkmm[1] * PX) : o.H || 1395);   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
-        Object.assign(P, { on: true, o, kind: o.kind || 'leaf', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
+        Object.assign(P, { on: true, savedAt: 0, o, kind: o.kind || 'leaf', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
             vsw: 6, vround: 12, color: '#ff5d8f', recent: ['#4aa8ff', '#ffd23f', '#5cc98a'], hsv: [340, .64, 1], z: 1, px: 0, py: 0, base: 1, grid: false, sym: false,
             hist: [], redo: [], sel: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
         if (!o.draft && P.kind === 'leaf' && P.spec && P.spec.r > 0) P.H = Math.round(P.W * P.spec.r);   // 📐 새 종이 = 지금 펼친 다이어리의 속지 비율 (펼친 두 쪽)
-        if (o.draft) { buildUI(); fit(); restoreDraft(o.draft); }
+        if (o.draft) { buildUI(); fit(); restoreDraft(o.draft); P.savedAt = +o.draft.at || 0; tmpShow(); }
         else {
             const paper = addLayer('paper', '종이', { lock: true, mk: Object.assign({ bg: o.bg || '#ffffff' }, o.mk || {}) });
             const L1 = addLayer('px', '그림 1'); P.cur = L1;
@@ -99,7 +99,8 @@
             <div class="pp-lyb three"><button type="button" data-l="merge">⤓ 아래로 합치기</button><button type="button" data-l="lock">🔒 잠그기</button><button type="button" data-l="cutl">✂ 잘라 붙이기</button></div>
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 완료</button></div>
-            <p class="pp-hint pp-endt">💾 임시저장 = 그리던 그대로 (나중에 이어서) · ✅ 완료 = 🗄️ 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음 (50장)' : P.kind === 'tape' ? '테이프 한 롤' : '속지 한 장'}</p>`;
+            <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
+            <p class="pp-hint pp-endt">💾 임시저장 = 이 기기에만 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : '속지'}마다 하나 · ✅ 완료 = 🗄️ 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음 (50장)' : P.kind === 'tape' ? '테이프 한 롤' : '속지 한 장'}</p>`;
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); } };
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
         $('ppTools').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
@@ -809,15 +810,25 @@
                 return o;
             }) };
     }
-    async function saveDraft(quietly) {
-        if (P.saving) return false; commitFloat(); penEnd();
+    /* 📱 이 기기에만 (도련 11-14 · 다이어리 임시저장과 같게) : 💾 버튼 = 지금 저장하고 알려 줘요 · 그리는 동안 자동으로도 (auto = 그리던 것을 끊지 않아요) */
+    const hm = t => new Date(t).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
+    function tmpShow() { const t = $('ppTmpT'); if (t) t.textContent = '📱 이 기기에 임시저장' + (P.savedAt ? ' · ' + hm(P.savedAt) : ' (자동으로도 저장돼요)'); }
+    async function saveDraft(quietly, auto) {
+        if (P.saving) return false;
+        if (!auto) { commitFloat(); penEnd(); }
         if (window.dkTrialNoSave && dkTrialNoSave()) return false;
         if (!window.draftWrite) { if (window.comingSoon) comingSoon('💾 임시저장'); return false; }
-        const b = $('ppTmp'); P.saving = true; if (b) { b.disabled = true; b.textContent = '💾 저장 중…'; }
-        try { await draftWrite(DRAFT_K[P.kind] || P.kind, snapshot()); P.dirty = false; if (!quietly) say('💾 임시저장했어요 · 다음에 [이어서 작업]으로 열어요', 2200); return true; }
-        catch (e) { console.warn('💾 임시저장', e); if (window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
+        const b = auto ? null : $('ppTmp'); P.saving = true; if (b) { b.disabled = true; b.textContent = '💾 저장 중…'; }
+        try {
+            P.dirty = false;                                                  // 저장하는 사이에 그린 것은 다음 자동 저장으로
+            await draftWrite(DRAFT_K[P.kind] || P.kind, snapshot()); P.savedAt = Date.now(); tmpShow();
+            if (!quietly) say(`📱 이 기기에 임시저장했어요 (${hm(P.savedAt)}) · 다른 기기에서는 보이지 않아요 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : '속지'}마다 하나`, 3200);
+            return true;
+        }
+        catch (e) { P.dirty = true; console.warn('💾 임시저장', e); if (!auto && window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
         finally { P.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '💾 임시저장'; } }
     }
+    setInterval(() => { if (P.on && P.dirty && !P.saving && !P.drag && !P.fl && !P.pen) saveDraft(true, true); }, 4000);   // 📱 자동 임시저장 (4초마다 · 바뀐 게 있을 때만 · 이 기기에만)
     function restoreDraft(d, keep) {                                          // keep = 📐 규격 바꾸기 (조용히 · 그린 것은 그대로)
         const loadImg = src => new Promise(ok => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
         P.layers = []; P.cur = null;

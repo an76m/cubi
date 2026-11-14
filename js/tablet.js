@@ -152,10 +152,10 @@
         const r = q('tbWs'); if (r && !quietly) { r.classList.remove('show'); document.body.classList.remove('tb-ws-on'); }
         IP.D = null;
     }
-    async function leaveOk() {                                               // 그리던 것이 있으면 : 🎨 그림판 = 임시저장하고 나가기 · 그냥 나가기 · 계속 그리기 (도련 11-14)
+    async function leaveOk() {                                               // 🎨 그림판 = 이 기기에 임시저장하고 나가요 (도련 11-14 : 자동으로 저장되니 묻지 않아요 · 못 하면 그때만 물어요)
         if (window.ppDirty && ppDirty()) {
-            const r = typeof showAsk3 === 'function' ? await showAsk3('💾 그리던 그림을 <b>임시저장</b>할까요?<br><span style="font-size:12px;color:#777;">저장하지 않으면 사라져요.</span>', '임시저장하고 나가기', '계속 그리기', '그냥 나가기') : true;
-            if (r === false) return false; if (r === true) return !!(window.ppSaveDraft && await ppSaveDraft(true)); return true;
+            if (window.ppSaveDraft && await ppSaveDraft(true)) return true;
+            return typeof showAsk === 'function' ? !!(await showAsk('⚠ 임시저장하지 못했어요.<br>나가면 마지막으로 저장한 뒤에 그린 것은 사라져요.', '나가기', '계속 그리기')) : true;
         }
         if (IP.D && IP.D.dirty && typeof showAsk === 'function') return !!(await showAsk('그리던 그림이 사라져요.<br>나갈까요?', '나가기', '계속 그리기'));
         return true;
@@ -185,7 +185,7 @@
         if (tok !== wsTok || !q('tbWs').classList.contains('show')) return;
         if (!has) { go(null); return; }
         const when = (() => { const d = new Date(has.at); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; })();
-        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 ${NM}가 있어요</h3><p>${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
+        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 ${NM}가 있어요</h3><p>📱 이 기기에 ${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
             <div class="bt"><div><button type="button" class="go" data-a="cont">✏️ 이어서 작업</button></div>
             <div><button type="button" class="new" data-a="new">🆕 새 작업</button><small>⚠ 새 작업을 하면 임시저장해 둔<br>작업은 사라져요</small></div></div></div>`;
         q('tbWsC').querySelector('.pp-ask').addEventListener('click', async e => {
