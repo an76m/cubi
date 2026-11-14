@@ -27,6 +27,7 @@
 
     /* ================= 열기 · 닫기 ================= */
     function ppOpen(o) {
+        if (P.on) ppClose();                                                  // 🐞 두 번 열려도 막대 · 단축키가 겹치지 않게 (도련 11-14 : 위 막대가 두 벌 → 끼워 보기가 열리자마자 닫혔어요)
         const TKD = o.kind === 'tk', tkmm = (o.draft && Array.isArray(o.draft.tkmm) && o.draft.tkmm) || o.tkmm || TK_MM0;   // 🧻 떡메 = 실제 크기(mm)로 (도련 11-14)
         const W = (o.draft && +o.draft.W) || (TKD ? Math.round(tkmm[0] * PXMM) : o.W || 900), H = (o.draft && +o.draft.H) || (TKD ? Math.round(tkmm[1] * PXMM) : o.H || 1395);   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
         Object.assign(P, { on: true, o, kind: o.kind || 'leaf', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
@@ -39,7 +40,7 @@
             const L1 = addLayer('px', '그림 1'); P.cur = L1;
             buildUI(); paperPaint(paper); fit(); renderAll(); paintLayers(); paintProps();
         }
-        if (P.kind === 'tk') requestAnimationFrame(() => realSize(true));   // 🧻 떡메 = 처음엔 실제 크기로 보여요 (화면에 다 들어가면)
+        requestAnimationFrame(() => realSize(true));                         // 🧻 떡메 · 📃 속지 = 처음엔 실제 크기(100%)로 보여요 (화면에 다 들어가면 · 아니면 맞춤)
         window.addEventListener('resize', fit); document.addEventListener('keydown', onKey);
     }
     function ppClose() {
@@ -78,6 +79,7 @@
     /* ================= 화면 (작업대 세 칸) ================= */
     function buildUI() {
         const o = P.o;
+        document.querySelectorAll('#ppBarX, #ppSpecPop, #ppSizePop').forEach(e => e.remove());   // 예전 막대 · 창은 지우고
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
         x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button></div>
             ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button>' : ''}${P.kind === 'tk' ? '<button type="button" class="pp-specb" data-q="size" title="떡메모지 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 떡메를 다이어리에 실제 크기로 붙여 봐요"></button>' : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;

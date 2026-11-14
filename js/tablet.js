@@ -156,7 +156,9 @@
         WS.obs.observe(src, { attributes: true, attributeFilter: ['style', 'class'] });
     }
     /* 🎨 그림판 (js/padpaint.js) : 레이어 · 픽셀 · 벡터 · 속지부터 (도련 11-13 · 다음에 떡메 · 마테 · 조각 · 모조지) */
+    let wsTok = 0;
     async function wsPaint(k) {
+        const tok = ++wsTok;                                                  // 🐞 임시저장을 찾는 동안 홈 → 다시 열기 · 두 번 누르기 = 마지막 것만 열어요 (도련 11-14 : 그림판이 두 벌 열려 위 막대가 겹쳤어요)
         const T = k === 'tk', NM = T ? '떡메' : '속지';
         wsOpen(T ? '🧻 떡메모지 만들기' : '📃 속지 만들기', '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
         const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
@@ -166,7 +168,7 @@
         /* 💾 임시저장해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
         const DK = (window.PP_DRAFT_K || {})[k] || k;
         let has = null; try { has = window.draftHas ? await draftHas(DK) : null; } catch (e) { console.warn('📐 작업 중 파일', e); }
-        if (!q('tbWs').classList.contains('show')) return;
+        if (tok !== wsTok || !q('tbWs').classList.contains('show')) return;
         if (!has) { go(null); return; }
         const when = (() => { const d = new Date(has.at); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; })();
         q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 ${NM}가 있어요</h3><p>${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
