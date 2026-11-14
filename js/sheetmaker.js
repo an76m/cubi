@@ -27,13 +27,14 @@
         el.innerHTML = `<div class="shm-bar"><div class="shm-sign">🗂️ 시트 꾸미기<small>그림 여러 개를 한 장에 · 끌어서 자리를 잡아요</small></div><button type="button" class="shm-x" id="shmX">닫기</button></div>
             <div class="shm-body">
               <section class="shm-panel shm-l">
-                <h4>1 · 시트 모양</h4><div class="shm-row" id="shmSizes"></div><div class="shm-two" id="shmBgs"></div>
+                <h4 id="shmH1">1 · 시트 모양</h4><div class="shm-row" id="shmSizes"></div><div class="shm-two" id="shmBgs"></div>
                 <h4>2 · 그림 넣기</h4>
                 <div class="shm-srcs">
                   <button type="button" class="shm-src" data-src="cam"><i>📷</i>사진 찍기</button>
-                  <button type="button" class="shm-src" data-src="file"><i>🖼️</i>앨범에서 고르기</button>
+                  <button type="button" class="shm-src" data-src="draw"><i>✏️</i>그리기</button>
+                  <button type="button" class="shm-src" data-src="file"><i>🖼️</i><span class="shm-pl">앨범에서 고르기</span></button>
                   <button type="button" class="shm-src" data-src="text"><i>🔤</i>글씨 스티커</button>
-                  <button type="button" class="shm-src" data-src="mine"><i>🏷️</i>내가 만든 씰</button>
+                  <button type="button" class="shm-src" data-src="mine"><i>🏷️</i><span class="shm-pl">내가 만든 씰</span></button>
                 </div>
               </section>
               <section class="shm-mat" id="shmMat"><div class="shm-fit" id="shmFit"><div class="shm-paper" id="shmPaper"><p class="shm-ttl" id="shmTtl"></p><div id="shmItems"></div></div></div>
@@ -47,12 +48,18 @@
                   <button type="button" class="shm-b" data-t="front">맨 앞으로</button><button type="button" class="shm-b" data-t="del">빼기</button>
                 </div>
                 <p class="shm-hint" id="shmNoSel">시트의 그림을 누르면 크기 · 돌리기를 바꿀 수 있어요</p>
-                <h4>4 · 마무리</h4><div class="shm-row" id="shmFins"></div>
-                <label class="shm-lb" for="shmTitle">시트 이름표 <small>(비우면 없어요)</small></label>
+                <h4 class="shm-fin">4 · 마무리</h4><div class="shm-row" id="shmFins"></div>
+                <label class="shm-lb shm-fin" for="shmTitle">시트 이름표 <small>(비우면 없어요)</small></label>
                 <input id="shmTitle" class="shm-in" maxlength="14" placeholder="예: 말랑 딸기밭">
                 <button type="button" class="shm-go" id="shmDone">🏷️ 시트 완성</button>
               </section>
             </div>
+            <div class="shm-draw" id="shmDraw" hidden><div class="shm-draw-box">
+              <div class="shm-pick-h"><b>✏️ 그려서 스티커</b><small>그린 모양대로 하얀 칼선이 생겨요</small></div>
+              <div class="shm-draw-tools" id="shmDrT"></div>
+              <div class="shm-draw-cv"><canvas id="shmDrCv" width="600" height="600"></canvas></div>
+              <div class="shm-two"><button type="button" class="shm-b" id="shmDrNo">취소</button><button type="button" class="shm-go" id="shmDrOk">✅ 시트에 넣기</button></div>
+            </div></div>
             <div class="shm-pick" id="shmPick" hidden><div class="shm-pick-box"><div class="shm-pick-h"><b>🏷️ 내가 만든 씰에서 고르기</b><button type="button" class="shm-x" id="shmPickX">닫기</button></div><div class="shm-pick-g" id="shmPickG"></div></div></div>`;
         document.body.appendChild(el);
         q('shmX').onclick = () => closeSheetMaker();
@@ -61,6 +68,7 @@
         q('shmDone').onclick = () => finish();
         q('shmPickX').onclick = () => { q('shmPick').hidden = true; };
         el.querySelectorAll('.shm-src').forEach(b => b.onclick = () => addFrom(b.dataset.src));
+        drawWire();
         q('shmTools').onclick = e => { const b = e.target.closest('[data-t]'); if (b) tool(b.dataset.t); };
         q('shmPaper').addEventListener('pointerdown', down);
         q('shmMat').addEventListener('pointerdown', e => { if (!e.target.closest('.shm-it') && !e.target.closest('.shm-paper')) { S.sel = null; paintPaper(); } });
@@ -151,8 +159,38 @@
         if (srcs.length > room) showMsg(`🗂️ 시트 한 장에는 그림을 ${MAX}개까지라서 앞의 ${room}개만 넣었어요.`);
         paintPaper();
     }
+    /* ✏️ 그리기 (도련 11-14 · 📱 태블릿 씰스티커) : 그린 모양대로 하얀 칼선 → 시트에 한 장 */
+    const DR = { pen: '#3d2b33', size: 9, erase: false, undo: [], down: null, dirty: false };
+    const DPENS = ['#3d2b33', '#ff5d8f', '#ff9a3c', '#ffd23f', '#5cc98a', '#4aa8ff', '#9b7bff', '#ffffff'], DSIZES = [4, 9, 18];
+    function drawWire() {
+        const T = q('shmDrT'), cv = q('shmDrCv'); if (!T || !cv) return;
+        const paint = () => { T.innerHTML = DPENS.map(c => `<button type="button" class="ipd-pen${!DR.erase && c === DR.pen ? ' on' : ''}" data-c="${c}" style="--c:${c}" aria-label="펜 색"></button>`).join('')
+            + DSIZES.map(z => `<button type="button" class="ipd-sz${z === DR.size ? ' on' : ''}" data-z="${z}" aria-label="굵기"><i style="width:${Math.max(4, z * .8)}px;height:${Math.max(4, z * .8)}px"></i></button>`).join('')
+            + `<button type="button" class="shm-c${DR.erase ? ' on' : ''}" data-a="erase">🧽 지우개</button><button type="button" class="shm-c" data-a="undo">↩</button><button type="button" class="shm-c" data-a="clear">🗑</button>`; };
+        paint(); drawWire.paint = paint;
+        T.onclick = e => { const p = e.target.closest('[data-c]'), z = e.target.closest('[data-z]'), a = e.target.closest('[data-a]'), x = cv.getContext('2d');
+            if (p) { DR.pen = p.dataset.c; DR.erase = false; } if (z) DR.size = +z.dataset.z;
+            if (a && a.dataset.a === 'erase') DR.erase = !DR.erase;
+            if (a && a.dataset.a === 'undo') { const s = DR.undo.pop(); if (s) x.putImageData(s, 0, 0); }
+            if (a && a.dataset.a === 'clear') { DR.undo.push(x.getImageData(0, 0, cv.width, cv.height)); x.clearRect(0, 0, cv.width, cv.height); DR.dirty = false; }
+            paint(); };
+        const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+        const line = (a, b) => { const x = cv.getContext('2d'); x.save(); x.lineCap = x.lineJoin = 'round'; x.lineWidth = DR.erase ? DR.size * 2.2 : DR.size; x.globalCompositeOperation = DR.erase ? 'destination-out' : 'source-over'; x.strokeStyle = DR.pen; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0] + .01, b[1]); x.stroke(); x.restore(); };
+        cv.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && e.button !== 0) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+            const x = cv.getContext('2d'); DR.undo.push(x.getImageData(0, 0, cv.width, cv.height)); if (DR.undo.length > 25) DR.undo.shift(); const p = pt(e); DR.down = { id: e.pointerId, last: p }; line(p, p); DR.dirty = true; });
+        cv.addEventListener('pointermove', e => { if (!DR.down || DR.down.id !== e.pointerId) return; const p = pt(e); line(DR.down.last, p); DR.down.last = p; });
+        const up = e => { if (DR.down && DR.down.id === e.pointerId) DR.down = null; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+        q('shmDrNo').onclick = () => { q('shmDraw').hidden = true; };
+        q('shmDrOk').onclick = () => {
+            if (!DR.dirty) { showMsg('먼저 그려 주세요.'); return; }
+            const c = window.tbDieCut ? tbDieCut(cv) : cv; if (!c) { showMsg('그린 그림이 없어요.'); return; }
+            const u = c.toDataURL('image/png'); cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); DR.undo = []; DR.dirty = false;
+            q('shmDraw').hidden = true; addImgs([u]);
+        };
+    }
     function addFrom(how) {
         if (how === 'mine') return pickMine();
+        if (how === 'draw') { q('shmDraw').hidden = false; if (drawWire.paint) drawWire.paint(); return; }
         if (!window.smSheetGo) { showMsg('스티커 만들기를 불러오지 못했어요.'); return; }
         smSheetGo(srcs => { addImgs(srcs); }, how);
     }
@@ -166,7 +204,7 @@
         } catch (e) { console.warn('🗂️ 내가 만든 씰', e); }
         if (box.hidden) return;
         g.innerHTML = out.length ? out.map((u, i) => `<button type="button" class="shm-pk" data-i="${i}"><img src="${esc(u)}" alt="" draggable="false"></button>`).join('')
-            : '<p class="shm-hint">아직 내가 만든 씰스티커가 없어요.<br>📷 사진이나 🔤 글씨로 넣어 보세요.</p>';
+            : (S.pad ? '<p class="shm-hint">아직 내가 만든 스티커가 없어요.<br>책상의 📸 포토부스 · 📷 디카 · 🔤 라벨 기계로 만들어 보세요.</p>' : '<p class="shm-hint">아직 내가 만든 씰스티커가 없어요.<br>📷 사진이나 🔤 글씨로 넣어 보세요.</p>');
         g.onclick = ev => { const b = ev.target.closest('.shm-pk'); if (!b) return; b.classList.add('on'); addImgs([out[+b.dataset.i]]); };
     }
 
@@ -212,18 +250,25 @@
             let th = ''; try { th = tc.toDataURL('image/webp', .8); } catch (e) {} if (!/^data:image\/webp/.test(th)) th = tc.toDataURL('image/png');
             await ownAdd({ k: 'seal', from: 'mine', nm: (title || '내가 꾸민 시트').slice(0, 20), baked: true, imgs, wh, L: { r: W / H, b }, x: { sb } }, { th });
             S.items = []; S.sel = null; S.title = ''; q('shmTitle').value = '';
-            S.busy = false; q('shmDone').textContent = '🏷️ 시트 완성';
+            S.busy = false; q('shmDone').textContent = S.pad ? '✅ 완료' : '🏷️ 시트 완성';
             closeSheetMaker(true);
             if (window.tbDesignOnly) showMsg('📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>'); else showMsg('🏷️ 시트 한 장이 나왔어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍 · 🏷️ 씰에 들어갔어요. 기본 씰스티커처럼 떼어 쓸 수 있어요.</span>');
         } catch (e) {
             console.warn('🗂️ 시트 완성', e);
-            S.busy = false; q('shmDone').textContent = '🏷️ 시트 완성'; paintPaper();
+            S.busy = false; q('shmDone').textContent = S.pad ? '✅ 완료' : '🏷️ 시트 완성'; paintPaper();
             showMsg('⚠ 시트를 저장하지 못했어요.<br><span style="font-size:12px;color:#777;">로그인 · 인터넷 연결을 확인하고 다시 해 주세요.</span>');
         }
     }
 
     function openSheetMaker() {
         const el = build(); S.on = true; el.classList.add('show');
+        S.pad = !!window.tbDesignOnly;                                           // 📱 태블릿 🏷️ 씰스티커 디자인 (도련 11-14) : 규격 · 그리기 · 사진 · 내가 만든 것만
+        el.classList.toggle('pad', S.pad);
+        if (S.pad) { S.bg = 'white'; S.fin = 'none'; S.title = ''; if (q('shmTitle')) q('shmTitle').value = ''; }
+        el.querySelector('.shm-sign').innerHTML = S.pad ? '🏷️ 씰스티커 디자인<small>그림 · 사진 · 내가 만든 스티커를 한 시트에 · 끌어서 자리를 잡아요</small>' : '🗂️ 시트 꾸미기<small>그림 여러 개를 한 장에 · 끌어서 자리를 잡아요</small>';
+        q('shmH1').textContent = S.pad ? '1 · 씰 규격' : '1 · 시트 모양';
+        const pl = el.querySelectorAll('.shm-pl'); if (pl[0]) pl[0].textContent = S.pad ? '사진 불러오기' : '앨범에서 고르기'; if (pl[1]) pl[1].textContent = S.pad ? '내가 만든 스티커' : '내가 만든 씰';
+        q('shmDone').textContent = S.pad ? '✅ 완료' : '🏷️ 시트 완성';
         if (q('shmPick')) q('shmPick').hidden = true;
         paintChips(); fit(); paintPaper();
     }
@@ -233,7 +278,7 @@
         S.on = false; const el = q('shmRoom'); if (el) el.classList.remove('show');
     }
     document.addEventListener('keydown', e => { if (!S.on || document.querySelector('.modal[style*="flex"]') || (q('smRoom') && q('smRoom').classList.contains('show'))) return;
-        if (e.key === 'Escape') { e.stopPropagation(); if (!q('shmPick').hidden) q('shmPick').hidden = true; else closeSheetMaker(); }
+        if (e.key === 'Escape') { e.stopPropagation(); if (!q('shmDraw').hidden) q('shmDraw').hidden = true; else if (!q('shmPick').hidden) q('shmPick').hidden = true; else closeSheetMaker(); }
         else if ((e.key === 'Delete' || e.key === 'Backspace') && selIt() && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); tool('del'); } }, true);
     window.openSheetMaker = openSheetMaker; window.closeSheetMaker = closeSheetMaker; window.sheetMakerOn = () => S.on;
 })();

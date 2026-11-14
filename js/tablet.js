@@ -366,6 +366,7 @@
         if (!document.querySelector('.modal[style*="flex"]') && !document.querySelector('.smk-room.show, .shm-room.show')) closeTablet();
     });
     window.openTablet = openTablet; window.closeTablet = closeTablet; window.tabletOn = () => IP.on;
+    window.tbDieCut = c => dieCut(c);   // ✏️ 그린 그림 → 하얀 칼선 (🏷️ 씰 시트 꾸미기 그리기도 · js/sheetmaker.js)
     Object.defineProperty(window, 'tbDesignOnly', { get: () => !!IP.on, configurable: true });   // 📐 태블릿에서 만든 것 = 도안만 (js/own.js ownAdd · 🖨 프린터에서 뽑아요 · 도련 11-14)
 })();
 

@@ -61,3 +61,13 @@
     .shm-panel { overflow: visible; }
     .shm-srcs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* 📱 태블릿 🏷️ 씰스티커 디자인 (도련 11-14) : 규격 · 그리기 · 사진 · 내가 만든 것만 (바탕 · 마무리 · 이름표 · 사진 찍기 · 글씨는 숨겨요) */
+.shm-room.pad #shmBgs, .shm-room.pad [data-src="cam"], .shm-room.pad [data-src="text"], .shm-room.pad .shm-fin, .shm-room.pad #shmFins, .shm-room.pad #shmTitle { display: none !important; }
+/* ✏️ 그려서 스티커 */
+.shm-draw { position: absolute; inset: 0; z-index: 6; background: rgba(90,58,71,.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.shm-draw[hidden] { display: none; }
+.shm-draw-box { background: #fff; border-radius: 18px; padding: 14px; width: min(560px, 96vw); max-height: 96vh; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 30px rgba(90,58,71,.3); }
+.shm-draw-box .shm-pick-h small { display: block; font-size: 11.5px; color: #a07a88; font-weight: 400; }
+.shm-draw-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.shm-draw-cv { aspect-ratio: 1; width: 100%; max-height: 60vh; margin: 0 auto; border: 2px dashed #f0c6d6; border-radius: 14px; background: repeating-conic-gradient(#fbf3f6 0% 25%, #fff 0% 50%) 0 0 / 24px 24px; touch-action: none; }
+.shm-draw-cv canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
