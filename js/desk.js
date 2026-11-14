@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/desk.js
    🪑 책상 꾸미기 (도련 10-26 · 💻 PC · 아이패드만 = html.desk-on · 📱 폰은 없어요)
-   - 책상 그림(img/desk-wide.webp · 1672×941 · 갈색 선 일러스트 (10-26 픽셀아트 → 일러스트))과 소품을 한 무대(#deskStage)에 · 무대는 책상 그림 크기 그대로 화면을 꽉 채우게(cover · 아래 맞춤) 늘었다 줄었다
+   - 책상 그림(img/desk-wide.webp · 파일 1920×1080 · 자리는 1672×941 그대로 (같은 비율) · 도련 11-14 옆벽 없이 가로선만)과 소품을 한 무대(#deskStage)에 · 무대는 책상 그림 크기 그대로 화면을 꽉 채우게(cover · 아래 맞춤) 늘었다 줄었다
      → 소품 자리는 늘 책상 그림 기준 좌표(px)로 저장해요 · 화면 크기가 바뀌어도 같은 자리
    - 소품은 마우스 · 손가락으로 끌어서 옮겨요 · 톡 = 고르기 (점선 테두리 + 위에 작은 버튼)
    - 🧲 딱 맞추기 (켬 / 끔 · 고른 소품 위 버튼 · 이 기기에 기억) :
@@ -707,7 +707,7 @@
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();
-            bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp?v=20261009-831" alt="" draggable="false">
+            bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp?v=20261114-1920" alt="" draggable="false">
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
@@ -1241,7 +1241,7 @@
                     const say = it.ds === 'wall' ? '🧱 벽지는 <b>벽</b>에 끌어다 놓아요.' : '🪵 책상은 <b>책상</b>에 끌어다 놓아요.';
                     if (t) { showMsg(say); return; }                              // 서랍 · 소품 위
                     const s = DK.s || 1, x = (e.clientX - R.left) / s, y = (e.clientY - R.top) / s;
-                    const edge = 720 + (x < 140 ? (140 - x) / 140 * 56 : x > 1538 ? (x - 1538) / 134 * 53 : 0);   // 벽과 책상이 만나는 선 (js/maker.js roomSvg 와 같은 자리)
+                    const edge = 720;   // 도련 11-14 : 옆벽 없이 곧은 선   // 벽과 책상이 만나는 선 (js/maker.js roomSvg 와 같은 자리)
                     if ((y < edge ? 'wall' : 'top') !== it.ds) { showMsg(say); return; }
                     if (window.dsPut) dsPut(it.u, it.lk && it.lk.sid).then(k => { if (k) dkbTake(n, j); else showMsg('⚠ 이 상품을 찾지 못했어요.<br><small>잠시 뒤 다시 해 주세요</small>'); });
                     return;

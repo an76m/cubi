@@ -163,7 +163,7 @@
             let r = document.getElementById('dsTry');
             if (!r) {
                 r = document.createElement('div'); r.id = 'dsTry'; r.className = 'ds-try';
-                r.innerHTML = '<div class="ds-try-st"><img class="desk-room" src="img/desk-wide.webp?v=20261009-831" alt="" draggable="false"></div><button type="button" class="desk-shop-go ds-try-x">닫기</button>';
+                r.innerHTML = '<div class="ds-try-st"><img class="desk-room" src="img/desk-wide.webp?v=20261114-1920" alt="" draggable="false"></div><button type="button" class="desk-shop-go ds-try-x">닫기</button>';
                 r.querySelector('.ds-try-x').onclick = dsTryOff; document.body.appendChild(r);
                 addEventListener('resize', () => { if (!r.hidden) dsTryFit(); });
                 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !r.hidden) dsTryOff(); });
