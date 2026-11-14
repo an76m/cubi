@@ -14,7 +14,8 @@
         function tapeSvg(t) {
             const pat = (t.p ? `<pattern id="p" width="${t.w}" height="${t.h}" patternUnits="userSpaceOnUse">${t.p}</pattern>` : '')
                 + (t.grad ? '<linearGradient id="r" x2="0" y2="1">' + t.grad.map((c, i, a) => `<stop offset="${i / a.length}" stop-color="${c}"/><stop offset="${(i + 1) / a.length}" stop-color="${c}"/>`).join('') + '</linearGradient>' : '');
-            return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><!--${TAPE_MARK}:${t.id}--><defs>${pat}`
+            const mm = Array.isArray(t.mm) && +t.mm[0] > 0 && +t.mm[1] > 0 ? `<!--tmm:${+t.mm[0]}x${+t.mm[1]}-->` : '';   // 📏 실제 크기 (한 칸 길이 x 폭 mm · 태블릿 그림판 테이프 · 도련 11-14)
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><!--${TAPE_MARK}:${t.id}-->${mm}<defs>${pat}`
                 + '<pattern id="z" width="6" height="8" patternUnits="userSpaceOnUse"><path d="M0 0 L6 4 L0 8Z" fill="#000"/></pattern>'
                 + '<pattern id="z2" width="6" height="8" patternUnits="userSpaceOnUse"><path d="M6 0 L0 4 L6 8Z" fill="#000"/></pattern>'
                 + '<pattern id="g" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".5" fill="#fff" opacity=".35"/></pattern>'
@@ -25,18 +26,30 @@
         }
         const tapeUrl = t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(tapeSvg(t));
         function isTapeSrc(src) { return String(src || '').indexOf(TAPE_MARK) >= 0; }
+        /* 📏 실제 크기 테이프 (도련 11-14) : 그림 안의 tmm(한 칸 x 폭 mm) → 지금 펼친 다이어리 쪽 높이로 페이지 px (A6 148mm = 644px · js/leafpad.js tkDim 과 같아요)
+           → 무늬 칸 크기를 그 px 로 다시 써서 붙여요 · 붙은 테이프 높이 = 실제 폭 · tmm 없는 예전 테이프 = 높이 30 그대로 */
+        function tapeFit(url) {
+            let s; try { s = decodeURIComponent(String(url).replace(/^data:image\/svg\+xml;charset=utf-8,/, '')); } catch (e) { return { url, h: 30 }; }
+            const m = s.match(/<!--tmm:([\d.]+)x([\d.]+)-->/); if (!m) return { url, h: 30 };
+            const t = window.dyLook ? dyLook() : null, ph = (t && +String(t.mm || '').split(/[×x*]/)[1]) || 148;
+            const ch = typeof DY_H !== 'undefined' ? DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;
+            const w = Math.round(+m[1] * k * 100) / 100, h = Math.max(6, Math.round(+m[2] * k));
+            s = s.replace(/<pattern id="p" width="[\d.]+" height="[\d.]+"/, `<pattern id="p" width="${w}" height="${h}"`).replace(/(<pattern id="p"[^>]*>\s*<image [^>]*?)width="[\d.]+" height="[\d.]+"/, `$1width="${w}" height="${h}"`);
+            return { url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s), h };
+        }
 
         /* 테이프 그림 하나를 다이어리에 붙이기 (🎀 마스킹테이프 · 🎀 내 마스킹테이프 공용) */
         function placeTape(url, own, at) {                                   // own = { id } : 🎒 내 테이프 롤 (붙인 길이만큼 줄어요) · at = { x1, y1, x2, y2 } 화면 자리 : 롤에서 뽑은 그대로 (js/basket.js dsPull)
             const left = own && window.ownQtyLeft ? ownQtyLeft(own.id) : 0;
             if (own && left < 20) { showMsg('🎀 이 테이프는 다 썼어요.'); return false; }
+            const fit = tapeFit(url); url = fit.url;
             if (!addImage(url)) return false;
             const el = document.querySelector('#canvasArea .element-box:last-child');
             const cv = document.getElementById('canvasArea'), cr = cv.getBoundingClientRect(), k = cr.width / (cv.offsetWidth || cr.width) || 1;
             const want = at ? Math.hypot(at.x2 - at.x1, at.y2 - at.y1) / k : 170, deg = at ? Math.round(Math.atan2(at.y2 - at.y1, at.x2 - at.x1) * 180 / Math.PI) : -8;
             const w = Math.round(own ? Math.min(want, left) : want);
             if (el) {
-                el.style.width = w + 'px'; el.style.height = '30px'; el.dataset.rotation = deg; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, `rotate(${deg}deg)`);
+                el.style.width = w + 'px'; el.style.height = fit.h + 'px'; el.dataset.rotation = deg; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, `rotate(${deg}deg)`);
                 if (at) {                                                        // 뽑은 테이프의 가운데에 (돌려도 가운데는 그대로)
                     const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${deg}deg)`; };
                     put(0, 0); const b = el.getBoundingClientRect();
@@ -54,4 +67,4 @@
         }
 
         window.isTapeSrc = isTapeSrc;
-        window.placeTape = placeTape;
+        window.placeTape = placeTape; window.tapeFit = tapeFit;

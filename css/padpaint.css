@@ -165,3 +165,14 @@
 .pp-tkon { position: absolute; transform: rotate(-3deg); box-shadow: 0 2px 5px rgba(90, 60, 50, .25); background: #fff; }
 .pp-tkon img { display: block; width: 100%; height: 100%; }
 .pp-tktape { position: absolute; left: 50%; top: -6px; width: min(40%, 46px); height: 12px; margin-left: min(-20%, -23px); background: repeating-linear-gradient(45deg, rgba(255, 179, 198, .85) 0 5px, rgba(255, 220, 230, .85) 5px 10px); transform: rotate(4deg); }
+
+/* 🎀 마스킹테이프 (도련 11-14) : 양옆 = 이어지는 칸 (흐리게) · 오른쪽 위 = 진짜 테이프 미리보기 · 붙여 보기 */
+.pp-doc.pp-tpdoc { overflow: visible; }
+.pp-ghost { position: absolute; top: 0; opacity: .38; pointer-events: none; filter: saturate(.85); }
+.pp-ghost.l { right: 100%; } .pp-ghost.r { left: 100%; }
+.pp-ghost.l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%); mask-image: linear-gradient(90deg, transparent, #000 70%); }
+.pp-ghost.r { -webkit-mask-image: linear-gradient(270deg, transparent, #000 70%); mask-image: linear-gradient(270deg, transparent, #000 70%); }
+.pp-tapepv { height: 34px; margin: 4px 2px 12px; background-repeat: no-repeat; background-size: 100% 100%; transform: rotate(-3deg); filter: drop-shadow(0 2px 2px rgba(90, 60, 50, .2)); }
+.pp-tpon { position: absolute; background-size: 100% 100%; filter: drop-shadow(0 1px 2px rgba(90, 60, 50, .25)); }
+.pp-sz-l.tp { grid-template-columns: repeat(5, 1fr); }
+.pp-sz-l.tp button i { height: auto; width: 54px; max-width: none; border-top-width: 1.5px; background: #ffc6d6; border-color: #f1a5bb; }
