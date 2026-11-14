@@ -6,6 +6,8 @@
    - 🖌️ 픽셀 = 손으로 쓱쓱 (펜 압력 = 굵기 · 떨림 보정 = 마우스도 매끈) : 브러시(붓 모양 6) · 연필 · 마커 · 에어 · 지우개 · 채우기 · 스포이드 · 올가미 · 옮기기 · 도형 · 글씨 · 확대
    - ✒️ 벡터 = 점을 찍어 그려요 (펜 없이 마우스로도) : 선택 · 점 고치기 · 점 찍기(클릭 = 꺾인 점 · 끌기 = 둥근 점 · 첫 점 = 닫기 · Enter = 끝) · 곡선 · 네모 · 동그라미 · 하트 · 별 · 글씨 · 점 자르기 · 칠하기 · 옮기기
    - 💾 임시저장 (도련 11-14) = 도안/작업중-속지.json 하나에 모두 (레이어 · 그림 PNG · 사진 JPEG · 벡터 점 · 종이 · 도구) · 종류마다 하나 · 열 때 [이어서 작업] [새 작업] (js/tablet.js)
+   - 🏷️ 씰스티커 (도련 11-14) : 종이 = 씰 시트 (📐 씰 규격 세로 · 가로 · 정사각 · SEAL_SZ) · 📎 사진 · 🏷️ 내가 만든 스티커(📸 · 📷 · 🔤) = 그림 레이어로 시트 위에 (작게 · 옮기기 · 크기)
+     ✅ 완료 = 떨어져 있는 그림마다 한 장 (sealOut : 붙어 있으면 한 장 · 하얀 칼선 · 놓은 자리 그대로 시트 배치 L) → 📐 도안 (🖨 프린터에서 한 시트)
    - ✅ 완료 = 보이는 레이어를 한 장으로 → 📃 속지 한 장 (🗄️ 서랍 + 📐 도안 · js/own.js ownTake · 예전 속지 만들기와 같아요) → 작업 중 파일은 지워요 */
 (function () {
     'use strict';
@@ -30,8 +32,9 @@
         if (P.on) ppClose();                                                  // 🐞 두 번 열려도 막대 · 단축키가 겹치지 않게 (도련 11-14 : 위 막대가 두 벌 → 끼워 보기가 열리자마자 닫혔어요)
         const TPD = o.kind === 'tape', TKD = o.kind === 'tk' || TPD, PX = TPD ? PXMM_T : PXMM;   // 🧻 떡메 · 🎀 테이프 = 실제 크기(mm)로 (도련 11-14 · 테이프 tkmm = [한 칸 길이, 폭])
         const tkmm = (o.draft && Array.isArray(o.draft.tkmm) && o.draft.tkmm) || o.tkmm || (TPD ? TAPE_MM0 : TK_MM0);
-        const W = (o.draft && +o.draft.W) || (TKD ? Math.round(tkmm[0] * PX) : o.W || 900), H = (o.draft && +o.draft.H) || (TKD ? Math.round(tkmm[1] * PX) : o.H || 1395);   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
-        Object.assign(P, { on: true, savedAt: 0, o, kind: o.kind || 'leaf', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
+        const SZ = o.kind === 'seal' ? SEAL_SZ[(o.draft && o.draft.sz) || o.sz || 'tall'] || SEAL_SZ.tall : null;   // 🏷️ 씰 시트 규격
+        const W = (o.draft && +o.draft.W) || (SZ ? SZ[1] : TKD ? Math.round(tkmm[0] * PX) : o.W || 900), H = (o.draft && +o.draft.H) || (SZ ? SZ[2] : TKD ? Math.round(tkmm[1] * PX) : o.H || 1395);   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
+        Object.assign(P, { on: true, savedAt: 0, o, kind: o.kind || 'leaf', sz: (o.draft && o.draft.sz) || o.sz || 'tall', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
             vsw: 6, vround: 12, color: '#ff5d8f', recent: ['#4aa8ff', '#ffd23f', '#5cc98a'], hsv: [340, .64, 1], z: 1, px: 0, py: 0, base: 1, grid: false, sym: false,
             hist: [], redo: [], sel: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
         if (!o.draft && P.kind === 'leaf' && P.spec && P.spec.r > 0) P.H = Math.round(P.W * P.spec.r);   // 📐 새 종이 = 지금 펼친 다이어리의 속지 비율 (펼친 두 쪽)
@@ -67,7 +70,7 @@
     }
     function photoPaint(L) {                                                    // 📎 사진 레이어 : 종이 가득 (크기 · 자리 · 연하게)
         const x = L.cv.getContext('2d'), im = L.img; x.clearRect(0, 0, P.W, P.H);
-        const k = Math.max(P.W / im.width, P.H / im.height) * L.s, w = im.width * k, h = im.height * k;
+        const k = (L.fit === 'c' ? Math.min(P.W / im.width, P.H / im.height) * .35 : Math.max(P.W / im.width, P.H / im.height)) * L.s, w = im.width * k, h = im.height * k;   // fit c = 🏷️ 씰 : 작게 가운데 (스티커 한 장)
         x.drawImage(im, (P.W - w) / 2 + L.ox, (P.H - h) / 2 + L.oy, w, h);
         if (L.wash) { x.globalCompositeOperation = 'source-atop'; x.fillStyle = `rgba(255,255,255,${L.wash})`; x.fillRect(0, 0, P.W, P.H); x.globalCompositeOperation = 'source-over'; }
     }
@@ -83,10 +86,10 @@
         document.querySelectorAll('#ppBarX, #ppSpecPop, #ppSizePop').forEach(e => e.remove());   // 예전 막대 · 창은 지우고
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
         x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button></div>
-            ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
+            ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 모양 (세로 · 가로 · 정사각)"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
-        x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
-        o.L.innerHTML = `<h4>📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button><button type="button" data-a="paper">🧵 종이 꾸미기</button></div>
+        x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq && qq.dataset.q === 'seal') { sealPop(); return; } if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
+        o.L.innerHTML = `<h4>📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button>${P.kind === 'seal' ? '<button type="button" data-a="mine">🏷️ 내가 만든 스티커</button>' : '<button type="button" data-a="paper">🧵 종이 꾸미기</button>'}</div>
             <h4 id="ppToolT"></h4><div class="pp-tools" id="ppTools"></div><div id="ppOpt"></div>
             <h4>🎨 색</h4><div class="pp-col"><canvas id="ppSv" width="172" height="172"></canvas><div><canvas id="ppHue" width="300" height="24"></canvas><div class="pp-sw" id="ppSw"></div></div></div>
             <div class="pp-cur"><span id="ppNow"></span>지금 색 · 최근 <span id="ppRec"></span></div>
@@ -100,8 +103,8 @@
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 완료</button></div>
             <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
-            <p class="pp-hint pp-endt">💾 임시저장 = 이 기기에만 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : '속지'}마다 하나 · ✅ 완료 = 📐 내 도안 (🖨 프린터에서 뽑으면 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음 (50장)' : P.kind === 'tape' ? '테이프 한 롤' : '속지 한 장'}</p>`;
-        o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); } };
+            <p class="pp-hint pp-endt">💾 임시저장 = 이 기기에만 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : P.kind === 'seal' ? '씰' : '속지'}마다 하나 · ✅ 완료 = 📐 내 도안 (🖨 프린터에서 뽑으면 서랍에 ${P.kind === 'tk' ? '떡메 한 묶음' : P.kind === 'tape' ? '테이프 한 롤' : P.kind === 'seal' ? '씰 시트 한 장' : '속지 한 장'})${P.kind === 'seal' ? '<br>✂️ 떨어져 그린 그림 = 스티커 한 장씩 · 붙어 있으면 한 장' : ''}</p>`;
+        o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); if (a.dataset.a === 'mine') minePop(); } };
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
         $('ppTools').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
         $('ppOpt').oninput = $('ppOpt').onclick = onOpt;
@@ -727,7 +730,7 @@
                 <div class="r"><span>잠금</span><div>${chip('lk', 1, '🔒 레이어', L.lock)}${L.type === 'px' ? chip('al', 1, '🫧 그린 곳만 칠', L.aLock) : ''}</div></div>`;
             if (L.type === 'photo') h += `<label class="pp-sl">사진 크기<input type="range" data-pk="ps" min="1" max="3" step=".01" value="${L.s}"><b>${Math.round(L.s * 100)}%</b></label><label class="pp-sl">연하게<input type="range" data-pk="pw" min="0" max=".85" step=".01" value="${L.wash}"><b>${Math.round(L.wash * 100)}%</b></label><p class="pp-hint">✋ 옮기기 도구로 사진 자리를 옮겨요</p>`;
         }
-        h += `<div class="r"><span>완성 모양</span><div><button type="button" class="on">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : '📃 속지 한 장'}</button></div></div>`;
+        h += `<div class="r"><span>완성 모양</span><div><button type="button" class="on">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : '📃 속지 한 장'}</button></div></div>`;
         box.innerHTML = h;
     }
     let propH = 0;
@@ -754,7 +757,7 @@
     /* ---------- 📎 사진 · 🧵 종이 꾸미기 ---------- */
     function addPhoto(f) {
         const u = URL.createObjectURL(f), im = new Image();
-        im.onload = () => { histSt(); const at = P.layers.findIndex(l => l.type !== 'paper'); const L = addLayer('photo', '사진', { img: im, s: 1, ox: 0, oy: 0, wash: 0, op: 1 }, at < 0 ? P.layers.length : at); photoPaint(L); P.cur = L; P.dirty = true; if (P.mode === 'px') setTool('move'); renderAll(); paintLayers(); paintProps(); say('📎 사진 레이어 · ✋ 옮기기 · 오른쪽에서 크기 · 연하게', 2400); };
+        im.onload = () => { histSt(); const at = P.layers.findIndex(l => l.type !== 'paper'); const L = addLayer('photo', '사진', Object.assign({ img: im, s: 1, ox: 0, oy: 0, wash: 0, op: 1 }, P.kind === 'seal' ? { fit: 'c' } : {}), at < 0 ? P.layers.length : at); photoPaint(L); P.cur = L; P.dirty = true; if (P.mode === 'px') setTool('move'); renderAll(); paintLayers(); paintProps(); say('📎 사진 레이어 · ✋ 옮기기 · 오른쪽에서 크기 · 연하게', 2400); };
         im.onerror = () => { URL.revokeObjectURL(u); if (window.showMsg) showMsg('사진을 열지 못했어요.'); };
         im.src = u;
     }
@@ -769,6 +772,90 @@
         MK.form($('ppPopB'), 'paper', L.mk, r => { L.mk = r; clearTimeout(t); t = setTimeout(() => paperPaint(L), 120); P.dirty = true; }, { only: ['bg', 'g', 'lc', 'gap', 'L', 'bd', 'bw', 'bc', 'rad'] }   /* 위 여백 · 머리글은 뺐어요 (도련 11-14 : 글씨는 ✏️ 글씨 도구로) */);
     }
 
+    /* ================= 🏷️ 씰스티커 (도련 11-14) ================= */
+    const SEAL_SZ = { tall: ['세로', 700, 1000, 105], wide: ['가로', 1000, 700, 148], square: ['정사각', 860, 860, 120] };   // [이름, 종이 px 가로, 세로, 실제 가로 mm]
+    function sealPop() {
+        let pop = $('ppSizePop'); if (pop) { pop.remove(); return; }
+        commitFloat(); penEnd();
+        pop = document.createElement('div'); pop.id = 'ppSizePop'; pop.className = 'pp-pop pp-sizepop';
+        pop.innerHTML = `<div class="pp-pop-h"><b>📐 씰 규격</b><button type="button" class="win-x" aria-label="닫기">✕</button></div>
+            <div class="pp-sz-b"><div class="pp-sz-l">${Object.entries(SEAL_SZ).map(([k, v]) => `<button type="button" data-sz="${k}" class="${P.sz === k ? 'on' : ''}"><i style="aspect-ratio:${v[1]} / ${v[2]}"></i><b>${v[0]}</b><small>${v[3]}mm</small></button>`).join('')}</div></div>`;
+        document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
+        pop.querySelector('.pp-sz-l').onclick = async e => {
+            const b = e.target.closest('[data-sz]'); if (!b || b.dataset.sz === P.sz) return;
+            const v = SEAL_SZ[b.dataset.sz], has = P.dirty || P.layers.some(l => l.type === 'photo');
+            if (has && window.showAsk && !(await showAsk(`📐 시트를 <b>${v[0]}</b>(으)로 바꿀까요?<br><span style="font-size:12px;color:#777;">그린 것은 왼쪽 위 기준 그대로 남아요 · 시트 밖으로 나간 곳은 잘려요</span>`, '바꾸기', '그대로'))) return;
+            P.sz = b.dataset.sz; resizePaper(v[1], v[2]); pop.remove(); say(`📐 ${v[0]} 시트예요`);
+        };
+    }
+    /* 🏷️ 내가 만든 스티커 (📸 포토부스 · 📷 디카 · 🔤 라벨 기계 = 서랍의 내가 만든 씰) → 그림 레이어로 */
+    async function minePop() {
+        let pop = $('ppMinePop'); if (pop) { pop.remove(); return; }
+        pop = document.createElement('div'); pop.id = 'ppMinePop'; pop.className = 'pp-pop pp-minepop';
+        pop.innerHTML = `<div class="pp-pop-h"><b>🏷️ 내가 만든 스티커</b><button type="button" class="win-x" aria-label="닫기">✕</button></div><div class="pp-mine" id="ppMineG"><p class="pp-hint">꺼내는 중…</p></div>`;
+        document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
+        let out = [];
+        try {
+            const L = ((window.ownList ? await ownList(false, 'seal') : []) || []).filter(e => e.k === 'seal' && e.from === 'mine' && !(e.x && e.x.dz)).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 24);
+            for (const e of L) { const r = window.ownSheetImgs ? await ownSheetImgs(e.id) : null; if (r) r.imgs.forEach(u => { if (u) out.push(u); }); if (out.length >= 80) break; }
+        } catch (e) { console.warn('🏷️ 내가 만든 스티커', e); }
+        const g = $('ppMineG'); if (!g) return;
+        g.innerHTML = out.length ? out.map((u, i) => `<button type="button" data-i="${i}"><img src="${esc(u)}" alt="" draggable="false"></button>`).join('')
+            : '<p class="pp-hint">아직 내가 만든 스티커가 없어요.<br>책상의 📸 포토부스 · 📷 디카 · 🔤 라벨 기계로 만들어 보세요.</p>';
+        g.onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; addImgSrc(out[+b.dataset.i], '내 스티커'); pop.remove(); };
+    }
+    function addImgSrc(src, name) {
+        const im = new Image();
+        im.onload = () => { histSt(); const at = P.layers.findIndex(l => l.type !== 'paper'); const L = addLayer('photo', name || '그림', { img: im, s: 1, ox: 0, oy: 0, wash: 0, op: 1, fit: 'c' }, at < 0 ? P.layers.length : at); photoPaint(L); P.cur = L; P.dirty = true; if (P.mode === 'px') setTool('move'); renderAll(); paintLayers(); paintProps(); say('🏷️ ✋ 옮기기 · 오른쪽에서 크기', 2000); };
+        im.onerror = () => { if (window.showMsg) showMsg('그림을 열지 못했어요.'); };
+        im.src = src;
+    }
+    /* ✅ 완료 : 종이를 뺀 그림에서 떨어져 있는 덩어리마다 스티커 한 장 (하얀 칼선 · 자리 그대로) */
+    const SEAL_R = 14, SEAL_GAP = 6;                                           // 칼선 두께 · 이만큼 가까우면 한 장 (그림 px)
+    function sealCut(c) {                                                      // 그림 → 둘레를 하얗게 넓힌 스티커 (그림 크기 그대로)
+        const pad = SEAL_R + 2, t = mkCv(c.width + pad * 2, c.height + pad * 2); t.getContext('2d').drawImage(c, pad, pad);
+        const sil = mkCv(t.width, t.height), sx = sil.getContext('2d'); sx.drawImage(t, 0, 0); sx.globalCompositeOperation = 'source-in'; sx.fillStyle = '#fff'; sx.fillRect(0, 0, t.width, t.height);
+        const o = mkCv(t.width, t.height), x = o.getContext('2d');
+        for (let a = 0; a < 32; a++) { const g = a / 32 * Math.PI * 2; for (const r of [SEAL_R, SEAL_R * .6]) x.drawImage(sil, Math.cos(g) * r, Math.sin(g) * r); }
+        x.drawImage(sil, 0, 0); x.drawImage(t, 0, 0);
+        return { c: o, pad };
+    }
+    function sealOut() {
+        const art = mkCv(P.W, P.H), ax = art.getContext('2d');
+        P.layers.forEach(L => { if (L.type === 'paper' || !L.vis) return; if (L.type === 'vec' && L.dirtyV) vecPaint(L); ax.save(); ax.globalAlpha = L.op; ax.globalCompositeOperation = L.blend || 'source-over'; ax.drawImage(L.type === 'vec' ? L.cache : L.cv, 0, 0); ax.restore(); });
+        const W = P.W, H = P.H, A = ax.getImageData(0, 0, W, H), d = A.data, S = 2, gw = Math.ceil(W / S), gh = Math.ceil(H / S);
+        const on = new Uint8Array(gw * gh);
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 16) on[(y / S | 0) * gw + (x / S | 0)] = 1;
+        const g = Math.ceil(SEAL_GAP / S), dil = new Uint8Array(gw * gh);                // 가까운 그림은 한 장 (조금 넓혀서 이어 보기)
+        for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) if (on[y * gw + x]) for (let j = -g; j <= g; j++) for (let i = -g; i <= g; i++) { const xx = x + i, yy = y + j; if (xx >= 0 && yy >= 0 && xx < gw && yy < gh) dil[yy * gw + xx] = 1; }
+        const lab = new Int32Array(gw * gh), boxes = []; let n = 0;
+        for (let st = 0; st < gw * gh; st++) {
+            if (!dil[st] || lab[st]) continue; n++; const q = [st]; lab[st] = n; let x0 = gw, y0 = gh, x1 = -1, y1 = -1, ink = 0;
+            while (q.length) { const p = q.pop(), x = p % gw, y = p / gw | 0; if (on[p]) { ink++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+                for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + i, yy = y + j; if (xx < 0 || yy < 0 || xx >= gw || yy >= gh) continue; const k = yy * gw + xx; if (dil[k] && !lab[k]) { lab[k] = n; q.push(k); } } }
+            if (ink > 2 && x1 >= 0) boxes.push({ n, x0: x0 * S, y0: y0 * S, x1: Math.min(W, (x1 + 1) * S), y1: Math.min(H, (y1 + 1) * S) });
+        }
+        return boxes.slice(0, 40).map(b => {                                    // 시트 한 장 = 40장까지
+            const w = b.x1 - b.x0, h = b.y1 - b.y0, c = mkCv(w, h), cx = c.getContext('2d'), I = cx.createImageData(w, h);
+            for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const X = b.x0 + x, Y = b.y0 + y; if (lab[(Y / S | 0) * gw + (X / S | 0)] !== b.n) continue; const si = (Y * W + X) * 4, di = (y * w + x) * 4; I.data[di] = d[si]; I.data[di + 1] = d[si + 1]; I.data[di + 2] = d[si + 2]; I.data[di + 3] = d[si + 3]; }
+            cx.putImageData(I, 0, 0);
+            const { c: o, pad } = sealCut(c), k = Math.min(1, 600 / Math.max(o.width, o.height)), s = k < 1 ? mkCv(Math.round(o.width * k), Math.round(o.height * k)) : o;
+            if (k < 1) s.getContext('2d').drawImage(o, 0, 0, s.width, s.height);
+            let u = ''; try { u = s.toDataURL('image/webp', .9); } catch (e) {} if (!/^data:image\/webp/.test(u)) u = s.toDataURL('image/png');
+            return { u, wh: [s.width, s.height], b: [(b.x0 - pad) / W, (b.y0 - pad) / H, (w + pad * 2) / W, (h + pad * 2) / H] };
+        });
+    }
+    async function sealSave() {
+        const L = sealOut(); if (!L.length) { if (window.showMsg) showMsg('시트에 그린 그림이 없어요.'); return false; }
+        const W = P.W, H = P.H, sbc = mkCv(Math.round(644 * W / H), 644), sx = sbc.getContext('2d'); sx.fillStyle = '#ffffff'; sx.fillRect(0, 0, sbc.width, sbc.height);
+        let sb = ''; try { sb = sbc.toDataURL('image/webp', .85); } catch (e) {} if (!/^data:image\/webp/.test(sb)) sb = sbc.toDataURL('image/png');
+        const tc = mkCv(Math.round(240 * W / H), 240), t = tc.getContext('2d'); t.fillStyle = '#ffffff'; t.fillRect(0, 0, tc.width, tc.height);
+        const ims = await Promise.all(L.map(o => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = o.u; })));
+        ims.forEach((im, i) => { if (im) { const b = L[i].b; t.drawImage(im, b[0] * tc.width, b[1] * tc.height, b[2] * tc.width, b[3] * tc.height); } });
+        let th = ''; try { th = tc.toDataURL('image/webp', .8); } catch (e) {} if (!/^data:image\/webp/.test(th)) th = tc.toDataURL('image/png');
+        await ownAdd({ k: 'seal', from: 'mine', nm: '내가 그린 씰', baked: true, imgs: L.map(o => o.u), wh: L.map(o => o.wh), L: { r: W / H, b: L.map(o => o.b) }, x: { sb } }, { th });
+        return L.length;
+    }
     /* ================= 🗄️ 서랍에 넣기 ================= */
     async function save() {
         if (P.saving) return;
@@ -780,12 +867,15 @@
         try {
             const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, P.W, P.H); compose(x, false);
             const src = c.toDataURL('image/jpeg', .86);
-            if (P.kind === 'tape') await ownTake(tapeOut());   // 🎀 한 롤 (붙인 길이만큼 줄어요) · 📏 폭 · 한 칸 mm 가 그림 안에 (js/tape.js tapeFit)
+            let nSeal = 0;
+            if (P.kind === 'seal') { if (!window.ownAdd) throw new Error('ownAdd'); nSeal = await sealSave(); if (!nSeal) return; }   // 🏷️ 떨어진 그림마다 한 장 · 놓은 자리 그대로 한 시트
+            else if (P.kind === 'tape') await ownTake(tapeOut());   // 🎀 한 롤 (붙인 길이만큼 줄어요) · 📏 폭 · 한 칸 mm 가 그림 안에 (js/tape.js tapeFit)
             else if (P.kind === 'tk') await ownTake({ k: 'tk', from: 'mine', imgs: [c.toDataURL('image/jpeg', .9)], x: { pad: 'my', glue: P.glue || '', mm: P.tkmm.slice() } });   // 🧻 한 묶음(50장) · 📏 실제 크기 mm (js/leafpad.js tkDim)
             else await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: Object.assign({ lf: 'my' }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: +(P.H / P.W).toFixed(4) } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
             P.dirty = false;
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
-            if (window.tbDesignOnly && window.showMsg) showMsg('📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>');   // 📱 태블릿 = 📐 도안만 (도련 11-14)
+            if (window.tbDesignOnly && window.showMsg) showMsg((nSeal ? `🏷️ 스티커 ${nSeal}장 · ` : '') + '📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>');   // 📱 태블릿 = 📐 도안만 (도련 11-14)
+            else if (P.kind === 'seal' && window.showMsg) showMsg(`🏷️ 스티커 ${nSeal}장짜리 씰 시트를 <b>🗄️ 서랍</b>에 넣었어요!`);
             else if (window.showMsg) showMsg(`${P.kind === 'tk' ? '🧻 떡메 한 묶음을' : P.kind === 'tape' ? '🎀 테이프 한 롤을' : '📃 속지를'} <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>`);
             if (P.o.done) P.o.done();
         } catch (e) { if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
@@ -800,14 +890,14 @@
         c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', .88);
     }
     function snapshot() {
-        return { v: 1, kind: P.kind, W: P.W, H: P.H, spec: P.spec || null, tkmm: P.kind === 'tk' || P.kind === 'tape' ? P.tkmm : undefined, glue: P.glue || '', at: Date.now(), cur: P.layers.indexOf(P.cur),
+        return { v: 1, kind: P.kind, sz: P.kind === 'seal' ? P.sz : undefined, W: P.W, H: P.H, spec: P.spec || null, tkmm: P.kind === 'tk' || P.kind === 'tape' ? P.tkmm : undefined, glue: P.glue || '', at: Date.now(), cur: P.layers.indexOf(P.cur),
             set: { mode: P.mode, tool: P.tool, brush: P.brush, size: P.size, op: P.op, soft: P.soft, stab: P.stab, vsw: P.vsw, vround: P.vround, color: P.color, recent: P.recent, grid: P.grid, sym: P.sym, shapeK: P.shapeK, shapeFill: P.shapeFill },
             layers: P.layers.map(L => {
                 const o = { type: L.type, name: L.name, vis: L.vis, lock: L.lock, op: L.op, blend: L.blend, aLock: L.aLock };
                 if (L.type === 'paper') o.mk = L.mk;
                 if (L.type === 'px') o.png = isBlank(L.cv) ? '' : L.cv.toDataURL('image/png');
                 if (L.type === 'vec') o.shapes = L.shapes;
-                if (L.type === 'photo') Object.assign(o, { img: L.imgData || (L.imgData = photoData(L.img)), s: L.s, ox: L.ox, oy: L.oy, wash: L.wash });
+                if (L.type === 'photo') Object.assign(o, { img: L.imgData || (L.imgData = photoData(L.img)), s: L.s, ox: L.ox, oy: L.oy, wash: L.wash, fit: L.fit || '' });
                 return o;
             }) };
     }
@@ -823,7 +913,7 @@
         try {
             P.dirty = false;                                                  // 저장하는 사이에 그린 것은 다음 자동 저장으로
             await draftWrite(DRAFT_K[P.kind] || P.kind, snapshot()); P.savedAt = Date.now(); tmpShow();
-            if (!quietly) say(`📱 이 기기에 임시저장했어요 (${hm(P.savedAt)}) · 다른 기기에서는 보이지 않아요 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : '속지'}마다 하나`, 3200);
+            if (!quietly) say(`📱 이 기기에 임시저장했어요 (${hm(P.savedAt)}) · 다른 기기에서는 보이지 않아요 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : P.kind === 'seal' ? '씰' : '속지'}마다 하나`, 3200);
             return true;
         }
         catch (e) { P.dirty = true; console.warn('💾 임시저장', e); if (!auto && window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
@@ -839,7 +929,7 @@
             if (o.type === 'paper') { L.mk = o.mk || { bg: '#ffffff' }; paperPaint(L); }
             if (o.type === 'vec') { L.shapes = o.shapes || []; L.dirtyV = true; }
             if (o.type === 'px' && o.png) loadImg(o.png).then(im => { if (im) { L.cv.getContext('2d').drawImage(im, 0, 0); renderAll(); thumbsSoon(); } });
-            if (o.type === 'photo') { Object.assign(L, { s: o.s || 1, ox: o.ox || 0, oy: o.oy || 0, wash: o.wash || 0, imgData: o.img }); loadImg(o.img).then(im => { if (im) { L.img = im; photoPaint(L); renderAll(); thumbsSoon(); } }); }
+            if (o.type === 'photo') { Object.assign(L, { fit: o.fit || '', s: o.s || 1, ox: o.ox || 0, oy: o.oy || 0, wash: o.wash || 0, imgData: o.img }); loadImg(o.img).then(im => { if (im) { L.img = im; photoPaint(L); renderAll(); thumbsSoon(); } }); }
         });
         if (!P.layers.some(l => l.type === 'paper')) { const pp = addLayer('paper', '종이', { lock: true, mk: { bg: '#ffffff' } }, 0); paperPaint(pp); }
         P.cur = P.layers[d.cur] || P.layers[P.layers.length - 1];
@@ -876,6 +966,7 @@
         return window.dyLeafR ? { n: t.n || '', mm: t.mm || '', r: dyLeafR(t), id } : null;
     }
     function specBtn() {
+        if (P.kind === 'seal') { const b = document.querySelector('#ppBarX [data-q="seal"]'); if (b) b.innerHTML = `<b>📐 씰 규격</b><small>${(SEAL_SZ[P.sz] || SEAL_SZ.tall)[0]} · ${(SEAL_SZ[P.sz] || SEAL_SZ.tall)[3]}mm</small>`; return; }
         if (P.kind === 'tk' || P.kind === 'tape') {
             const a = document.querySelector('#ppBarX [data-q="size"]'), b = document.querySelector('#ppBarX [data-q="spec"]'), s = P.spec;
             if (a) a.innerHTML = P.kind === 'tape' ? `<b>📏 테이프 크기</b><small>폭 ${P.tkmm[1]}mm · 한 칸 ${P.tkmm[0]}mm</small>` : `<b>📏 떡메 크기</b><small>${P.tkmm[0]} × ${P.tkmm[1]} mm</small>`;
@@ -950,7 +1041,7 @@
         const g = $('ppGlueBar'); if (g) g.style.background = `linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%, rgba(0,0,0,.06)), ${glueCol()}`;
         document.querySelectorAll('#ppGlue [data-g]').forEach(b => b.classList.toggle('on', b.dataset.g === P.glue));
     }
-    const mmW = () => P.kind === 'tk' || P.kind === 'tape' ? P.tkmm[0] : (P.spec && +String(P.spec.mm || '').split(/[×x*]/)[0]) * 2 || 0;   // 종이 가로 = 몇 mm (📃 속지 = 펼친 두 쪽)
+    const mmW = () => P.kind === 'seal' ? (SEAL_SZ[P.sz] || SEAL_SZ.tall)[3] : P.kind === 'tk' || P.kind === 'tape' ? P.tkmm[0] : (P.spec && +String(P.spec.mm || '').split(/[×x*]/)[0]) * 2 || 0;   // 종이 가로 = 몇 mm (📃 속지 = 펼친 두 쪽)
     function realSize(auto) {                                                  // 📏 화면에 실제 크기 (CSS 1mm = 96 / 25.4 px)
         const st = $('ppStage'), mw = mmW(); if (!st || !mw) { if (!auto) say('📏 이 종이는 실제 크기를 몰라요'); return; }
         const r = st.getBoundingClientRect(), k = 96 / 25.4 * mw / P.W;
