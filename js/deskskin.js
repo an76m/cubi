@@ -23,7 +23,7 @@
                 if (Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);
                 const u = x.u && x.u.디자인, wh = x.wh && x.wh.디자인;
                 if (u && Array.isArray(wh) && !c.c && !P.기본 && (k === 'wall' || P.나뭇결)) { c.img = u; c.iw = +wh[0]; c.ih = +wh[1]; }
-                if (k === 'wall' && !c.c && !P.기본 && P.레시피 && typeof P.레시피 === 'object' && window.MK) { c.img = MK.url(MK.tileSvg(P.레시피, 1672, 941)); c.iw = 1672; c.ih = 941; }   // 🧵 레시피 (js/maker.js · 상품공방 무늬 메이커) = 방 한 장 크기로 그려요 (기울여도 끊김 없이 · 도련 11-05)
+                if (k === 'wall' && !c.c && !P.기본 && P.레시피 && typeof P.레시피 === 'object' && window.MK) { c.img = MK.url(MK.tileSvg(P.레시피, 1920, 1080)); c.iw = 1920; c.ih = 1080; }   // 🧵 레시피 (js/maker.js · 상품공방 무늬 메이커) = 방 한 장 크기로 그려요 (기울여도 끊김 없이 · 도련 11-05)
                 const ok = c.n && (P.기본 || (k === 'wall' ? c.c || c.img : c.t && (!P.나뭇결 || c.img)));
                 if (ok) DS_CAT.push(c); else console.warn('🧁 벽지 · 책상판 속성이 모자라요 :', x.id);
             }));
@@ -175,8 +175,8 @@
         }
         function dsTryFit() {                                                    // 책상 화면과 같게 = 화면 꽉 (아래 맞춤)
             const r = document.getElementById('dsTry'), st = r && r.querySelector('.ds-try-st'); if (!st) return;
-            const W = innerWidth, H = innerHeight, s = Math.max(W / 1672, H / 941);
-            st.style.transform = `translate(${(W - 1672 * s) / 2}px, ${H - 941 * s}px) scale(${s})`;
+            const W = innerWidth, H = innerHeight, s = Math.max(W / 1920, H / 1080);
+            st.style.transform = `translate(${(W - 1920 * s) / 2}px, ${H - 1080 * s}px) scale(${s})`;
         }
         function dsTryOff() { const r = document.getElementById('dsTry'); if (r) r.hidden = true; }
         window.dsTry = dsTry; window.dsTryOff = dsTryOff;

@@ -3960,7 +3960,7 @@ body.dg-on #deskShopGo { box-shadow: 3px 3px 0 #e6dcf8, 0 0 0 3px rgba(245, 165,
    책상 = img/desk-wide.webp (갈색 선 핑크 일러스트 · 빈 책상과 벽) · 나중에 소품을 올려요 · 지금은 배경 무늬 대신 책상이 보여요 */
 .desk-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; overflow: hidden; background: #fadfe8; }
 html.desk-on:not(.desk-show) .desk-bg { z-index: 5; pointer-events: auto; }   /* 책상만 볼 때는 소품을 만질 수 있어요 (js/desk.js) */
-.desk-stage { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
+.desk-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
 .desk-room { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
 .desk-item { position: absolute; cursor: grab; touch-action: none; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)); }   /* 책상 위에 서 있는 그림자 */
 .desk-item.wall { filter: drop-shadow(0 6px 5px rgba(150, 90, 110, .22)); }

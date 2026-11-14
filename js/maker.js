@@ -156,7 +156,7 @@
     };
     /* 📐 규격 : 실제 크기 비율 (mm × k) */
     MK.specSvg = (n, k) => { const s = MK.SPECS.find(x => x[0] === n); if (!s) return ''; k = k || .24; const w = s[1] * k, h = s[2] * k; return `<svg ${NS} width="${w + 4}" height="${h + 4}" viewBox="0 0 ${w + 4} ${h + 4}"><rect x="2" y="2" width="${w}" height="${h}" rx="3" fill="#fffaf2" stroke="#d9a9bb" stroke-width="1.5"/></svg>`; };
-    /* 🪟 방 한 장 (자리 1672 × 941 · 방 그림 파일 1920 × 1080 = 같은 비율 · 앱 책상 화면과 같은 선 · 도련 11-14 옆벽 없음) : wall = { c 단색 | img · iw · ih } · top = { t 책상색 5 · img · iw · ih 나뭇결 } · sw = 견본 · ol = 선 색 */
+    /* 🪟 방 한 장 (1920 × 1080 · 방 그림 img/desk-wide.webp 와 같은 선 · 도련 11-14 새 기준 · 옆벽 없음) : wall = { c 단색 | img · iw · ih } · top = { t 책상색 5 · img · iw · ih 나뭇결 } · sw = 견본 · ol = 선 색 */
     MK.roomSvg = (wall, top, sw, ol) => {
         if (!wall && !top) return '';
         const k = sw ? 'm' + Math.random().toString(36).slice(2, 7) : 'dk', t = top && top.t;
@@ -165,17 +165,17 @@
         let defs = '', body = '';
         if (wall) {
             defs += pat(wall, k + 'W');
-            body += `<rect x="0" y="0" width="1672" height="720" fill="url(#${k}W)"/>`;   // 🪟 벽 한 장 (도련 11-14 : 꺾인 옆벽 없앴어요)
+            body += `<rect x="0" y="0" width="1920" height="826" fill="url(#${k}W)"/>`;   // 🪟 벽 한 장 (도련 11-14 : 꺾인 옆벽 없앴어요)
         }
         if (t) {
             if (top.img) defs += pat(top, k + 'T');
-            body += `<rect x="0" y="720" width="1672" height="146" fill="${top.img ? `url(#${k}T)` : t[0]}"/>`
-                + `<rect x="0" y="721" width="1672" height="24" fill="${t[1]}"/>`   // 벽 아래 그늘 띠
-                + `<rect x="0" y="866" width="1672" height="13" fill="${t[2]}"/><rect x="0" y="879" width="1672" height="25" fill="${t[3]}"/><rect x="0" y="904" width="1672" height="37" fill="${t[4]}"/>`;
+            body += `<rect x="0" y="826" width="1920" height="166" fill="${top.img ? `url(#${k}T)` : t[0]}"/>`
+                + `<rect x="0" y="827" width="1920" height="27" fill="${t[1]}"/>`   // 벽 아래 그늘 띠
+                + `<rect x="0" y="992" width="1920" height="17" fill="${t[2]}"/><rect x="0" y="1009" width="1920" height="28" fill="${t[3]}"/><rect x="0" y="1037" width="1920" height="43" fill="${t[4]}"/>`;
         }
         const ln = `stroke="${ol || '#5b3f4a'}" stroke-width="3" fill="none" stroke-linejoin="round"`;
-        body += `<g ${ln}><path d="M0 720 H1672 M0 866 H1672 M0 904.5 H1672"/></g>`;
-        const vb = !sw ? '0 0 1672 941' : sw === 'all' ? '0 0 1672 941' : wall ? '0 0 1672 700' : '0 712 1672 229';   // 견본 = 벽만 · 책상만 · all = 방 전체
+        body += `<g ${ln}><path d="M0 826 H1920 M0 992 H1920 M0 1037 H1920"/></g>`;
+        const vb = !sw ? '0 0 1920 1080' : sw === 'all' ? '0 0 1920 1080' : wall ? '0 0 1920 804' : '0 818 1920 262';   // 견본 = 벽만 · 책상만 · all = 방 전체
         return `<svg ${sw ? 'class="ds-sw"' : 'class="desk-skin"'} ${NS} data-an="1" viewBox="${vb}" preserveAspectRatio="${sw ? 'xMidYMid slice' : 'none'}" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
     };
 

@@ -811,7 +811,7 @@ html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-
 /* 🏪 적용해보기 (도련 11-11 · js/deskskin.js dsTry) : 화면 가득 빈 방 · 소품 없이 그 벽지 · 책상판만 */
 .ds-try { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; background: #fdecf2; }
 .ds-try[hidden] { display: none; }
-.ds-try-st { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: 0 0; }
+.ds-try-st { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
 .ds-try-st > .desk-skin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ds-try-x { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); z-index: 2; }
 /* 🏪 적용해보기 = 진짜 책상을 빈 방으로 빌려 써요 (도련 11-12 · js/desk.js deskTrial) : 샵 · 내 책상 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 닫기 */

@@ -6,16 +6,16 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611141951">   <!-- 🔢 이 첫 화면의 버전 = ?v= 번호 = version.txt (sw.js · 도련 11-08) · 손으로 고치지 말고 도구/버전찍기.py 로 (한국 시각 12자리 · 네 곳을 한 번에) -->
+    <meta name="app-version" content="202611142002">   <!-- 🔢 이 첫 화면의 버전 = ?v= 번호 = version.txt (sw.js · 도련 11-08) · 손으로 고치지 말고 도구/버전찍기.py 로 (한국 시각 12자리 · 네 곳을 한 번에) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611141951', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611142002', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
         fetch('version.txt?t=' + t0, { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (s) {
             s = (s || '').trim();
-            if (!/^(\d{8}-\d+|\d{12})$/.test(s) || !newer(s, V)) return;   // 옛 모양 202611141951 · 새 모양 202611082011 (한국 시각 · 도구/버전찍기.py)                       // 같거나 옛것 · 'off' = 그대로
+            if (!/^(\d{8}-\d+|\d{12})$/.test(s) || !newer(s, V)) return;   // 옛 모양 202611142002 · 새 모양 202611082011 (한국 시각 · 도구/버전찍기.py)                       // 같거나 옛것 · 'off' = 그대로
             try { if (sessionStorage.getItem(K) === s) return; sessionStorage.setItem(K, s); } catch (e) { return; }   // 같은 창에서 한 번만
             var late = function () { return Date.now() - t0 > 6000 || (function () { try { return typeof drive !== 'undefined' && !!drive.ready; } catch (e) { return false; } })(); };   // 로그인이 시작됐거나 늦었으면 = 다음에 열 때
             if (late()) return;
@@ -34,35 +34,35 @@
     <!-- html2canvas (PNG 저장용) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <script src="js/features.js?v=202611141951"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
-    <script src="js/util.js?v=202611141951"></script>
-    <script src="js/uimode.js?v=202611141951"></script>   <!-- 🧭 화면 모드 한 곳 (🪑 책상 · ▤ 하단 메뉴 · 📱 세로 장소 · UI.* · 도련 11-10) -->
-    <script src="js/maker.js?v=202611141951"></script>   <!-- 🧵 만들기 엔진 (상품공방과 같은 코드 · 무늬 · 종이 · 테이프 · 다이어리 값 표) -->
-    <script src="js/onlyone.js?v=202611141951"></script>   <!-- 🔒 한 기기에 다이어리 하나만 (먼저 연 창만 · 다른 것보다 먼저) -->
+    <script src="js/features.js?v=202611142002"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
+    <script src="js/util.js?v=202611142002"></script>
+    <script src="js/uimode.js?v=202611142002"></script>   <!-- 🧭 화면 모드 한 곳 (🪑 책상 · ▤ 하단 메뉴 · 📱 세로 장소 · UI.* · 도련 11-10) -->
+    <script src="js/maker.js?v=202611142002"></script>   <!-- 🧵 만들기 엔진 (상품공방과 같은 코드 · 무늬 · 종이 · 테이프 · 다이어리 값 표) -->
+    <script src="js/onlyone.js?v=202611142002"></script>   <!-- 🔒 한 기기에 다이어리 하나만 (먼저 연 창만 · 다른 것보다 먼저) -->
     <link rel="preload" as="image" href="img/gate-wide.webp?v=20261009-819" media="(min-aspect-ratio: 1/1)">   <!-- 🚪 로그인 문 그림을 먼저 받아요 (켤 때 바탕색만 잠깐 보이는 것 줄이기 · 도련 10-29) -->
     <link rel="preload" as="image" href="img/gate-tall.webp?v=20261009-819" media="(max-aspect-ratio: 1/1)">
-    <link rel="stylesheet" href="css/style.css?v=202611141951">
-    <link rel="stylesheet" href="css/dakku.css?v=202611141951">
-    <link rel="stylesheet" href="css/anime.css?v=202611141951">
-    <link rel="stylesheet" href="css/boothroom.css?v=202611141951">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
-    <link rel="stylesheet" href="css/calroom.css?v=202611141951">   <!-- 📅 달력 (💻 📲 · js/calroom.js) -->   <!-- 🎬 애니 스타일 (맨 뒤 · js/anime.js) -->
-    <link rel="stylesheet" href="css/postroom.css?v=202611141951">   <!-- 📮 우체통 (💻 📲 · js/postroom.js) -->
-    <link rel="stylesheet" href="css/world.css?v=202611141951">   <!-- 🌳 말랑 광장 (임시 2.5D · js/world.js) -->
-    <link rel="stylesheet" href="css/deskgd.css?v=202611141951">   <!-- 🪑 책상 모드 문구 (js/deskgd.js) -->
-    <link rel="stylesheet" href="css/gdtry.css?v=202611141951">   <!-- 🏪 문구 사용해보기 가상 연습장 (js/gdtry.js) -->
-    <link rel="stylesheet" href="css/craft.css?v=202611141951">
-    <link rel="stylesheet" href="css/labeler.css?v=202611141951">
-    <link rel="stylesheet" href="css/digicam.css?v=202611141951">
-    <link rel="stylesheet" href="css/stickerprinter.css?v=202611141951">   <!-- 🖨️ 말랑 스티커 프린터 (js/stickerprinter.js) -->   <!-- 📷 말랑 디카 (js/digicam.js) -->   <!-- 🏷️ 라벨 스티커 기계 (js/labeler.js) -->
-    <link rel="stylesheet" href="css/tablet.css?v=202611141951">   <!-- 📱 태블릿 (js/tablet.js) -->
-    <link rel="stylesheet" href="css/padpaint.css?v=202611141951">   <!-- 🎨 태블릿 그림판 (js/padpaint.js) -->
-    <link rel="stylesheet" href="css/pagedone.css?v=202611141951">   <!-- ✅ 다이어리 페이지 완료 (js/pagedone.js) -->
-    <link rel="stylesheet" href="css/binderroom.css?v=202611141951">   <!-- 🧩 바인더 조립 공간 (981) -->
-    <link rel="stylesheet" href="css/sheetmaker.css?v=202611141951">   <!-- 🗂️ 시트 꾸미기 (js/sheetmaker.js) -->   <!-- 🎨 다꾸 작업실 (js/craft.js) -->
-    <link rel="stylesheet" href="css/tarotroom.css?v=202611141951">   <!-- 🔮 타로카페 (💻 📲 · js/tarotroom.js) -->
-    <link rel="stylesheet" href="css/arcroom.css?v=202611141951">   <!-- 🕹️ 뿅뿅오락실 장소 (💻 📲 · js/arcroom.js) -->
-    <link rel="stylesheet" href="css/gachascene.css?v=202611141951">   <!-- 🏪 문방구 앞 캡슐기계 (💻 📲 · js/gacha.js gcSceneBuild) -->
-    <link rel="stylesheet" href="css/stktray.css?v=202611141951">   <!-- 🍽 오늘 쓸 스티커 (js/stktray.js) -->
+    <link rel="stylesheet" href="css/style.css?v=202611142002">
+    <link rel="stylesheet" href="css/dakku.css?v=202611142002">
+    <link rel="stylesheet" href="css/anime.css?v=202611142002">
+    <link rel="stylesheet" href="css/boothroom.css?v=202611142002">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
+    <link rel="stylesheet" href="css/calroom.css?v=202611142002">   <!-- 📅 달력 (💻 📲 · js/calroom.js) -->   <!-- 🎬 애니 스타일 (맨 뒤 · js/anime.js) -->
+    <link rel="stylesheet" href="css/postroom.css?v=202611142002">   <!-- 📮 우체통 (💻 📲 · js/postroom.js) -->
+    <link rel="stylesheet" href="css/world.css?v=202611142002">   <!-- 🌳 말랑 광장 (임시 2.5D · js/world.js) -->
+    <link rel="stylesheet" href="css/deskgd.css?v=202611142002">   <!-- 🪑 책상 모드 문구 (js/deskgd.js) -->
+    <link rel="stylesheet" href="css/gdtry.css?v=202611142002">   <!-- 🏪 문구 사용해보기 가상 연습장 (js/gdtry.js) -->
+    <link rel="stylesheet" href="css/craft.css?v=202611142002">
+    <link rel="stylesheet" href="css/labeler.css?v=202611142002">
+    <link rel="stylesheet" href="css/digicam.css?v=202611142002">
+    <link rel="stylesheet" href="css/stickerprinter.css?v=202611142002">   <!-- 🖨️ 말랑 스티커 프린터 (js/stickerprinter.js) -->   <!-- 📷 말랑 디카 (js/digicam.js) -->   <!-- 🏷️ 라벨 스티커 기계 (js/labeler.js) -->
+    <link rel="stylesheet" href="css/tablet.css?v=202611142002">   <!-- 📱 태블릿 (js/tablet.js) -->
+    <link rel="stylesheet" href="css/padpaint.css?v=202611142002">   <!-- 🎨 태블릿 그림판 (js/padpaint.js) -->
+    <link rel="stylesheet" href="css/pagedone.css?v=202611142002">   <!-- ✅ 다이어리 페이지 완료 (js/pagedone.js) -->
+    <link rel="stylesheet" href="css/binderroom.css?v=202611142002">   <!-- 🧩 바인더 조립 공간 (981) -->
+    <link rel="stylesheet" href="css/sheetmaker.css?v=202611142002">   <!-- 🗂️ 시트 꾸미기 (js/sheetmaker.js) -->   <!-- 🎨 다꾸 작업실 (js/craft.js) -->
+    <link rel="stylesheet" href="css/tarotroom.css?v=202611142002">   <!-- 🔮 타로카페 (💻 📲 · js/tarotroom.js) -->
+    <link rel="stylesheet" href="css/arcroom.css?v=202611142002">   <!-- 🕹️ 뿅뿅오락실 장소 (💻 📲 · js/arcroom.js) -->
+    <link rel="stylesheet" href="css/gachascene.css?v=202611142002">   <!-- 🏪 문방구 앞 캡슐기계 (💻 📲 · js/gacha.js gcSceneBuild) -->
+    <link rel="stylesheet" href="css/stktray.css?v=202611142002">   <!-- 🍽 오늘 쓸 스티커 (js/stktray.js) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -783,124 +783,124 @@
     </div>
 
     <!-- 📦 코드 파일 (순서 중요 · 업데이트할 때 ?v= 뒤 숫자를 바꾸면 모든 사용자가 새 파일을 받아요) -->
-    <script src="js/trash.js?v=202611141951"></script>   <!-- 🗑 방 안 휴지통 : 기록(지운 페이지 · 인형 · 덮어쓰기 전 모습 …) · 쓴 다이어리 30일 -->
-    <script src="js/devsave.js?v=202611141951"></script>   <!-- 📁 로그인 없이 : 이 기기의 말랑달콤 폴더에 저장 -->
+    <script src="js/trash.js?v=202611142002"></script>   <!-- 🗑 방 안 휴지통 : 기록(지운 페이지 · 인형 · 덮어쓰기 전 모습 …) · 쓴 다이어리 30일 -->
+    <script src="js/devsave.js?v=202611142002"></script>   <!-- 📁 로그인 없이 : 이 기기의 말랑달콤 폴더에 저장 -->
     <script src="https://malang-img.pages.dev/prod.js"></script>   <!-- 🧁 상품 목록 (상품공방 · 서버) -->
-    <script src="js/prod.js?v=202611141951"></script>   <!-- 🧁 상품 목록 읽기 (prodList) -->
-    <script src="js/gdpic.js?v=202611141951"></script>   <!-- 🧁 문구 그림 = 상품공방 그림 + 속성 그대로 (gdPic · 앱은 모양을 그리지 않아요) -->
-    <script src="js/space.js?v=202611141951"></script>   <!-- 🏠 공간 : 문구는 하나 · 저장은 공간이 정해요 (진짜 다이어리 = 저장 · 연습장 = 저장 안 함) -->
-    <script src="js/gdtry.js?v=202611141951"></script>   <!-- 🏪 문구 사용해보기 = 가상 연습장 (저장 없음 · 닫으면 사라져요) -->
-    <script src="js/drive.js?v=202611141951"></script>
-    <script src="js/desk.js?v=202611141951"></script>   <!-- 🪑 책상 꾸미기 (💻 PC · 아이패드만) -->
-    <script src="js/deskpaint.js?v=202611141951"></script>
-    <script src="js/deskcustom.js?v=202611141951"></script>   <!-- 🎨 소품 꾸미기 창 (색칠 + 불빛 · 숫자 · 알람 · 사진 · 누르는 곳) -->   <!-- 🎨 책상 소품 꾸미기 (칠하기 · 이미지 붙이기) -->
-    <script src="js/coll.js?v=202611141951"></script>
-    <script src="js/sound.js?v=202611141951"></script>
-    <script src="js/app.js?v=202611141951"></script>
-    <script src="js/page.js?v=202611141951"></script>
-    <script src="js/elements.js?v=202611141951"></script>
-    <script src="js/tapmenu.js?v=202611141951"></script>
-    <script src="js/settings.js?v=202611141951"></script>
-    <script src="js/patterns.js?v=202611141951"></script>
-    <script src="js/pattern-recipe.js?v=202611141951"></script>
-    <script src="js/skins.js?v=202611141951"></script>
-    <script src="js/bin.js?v=202611141951"></script>   <!-- 🚛 버린 상품 = 바로 영구 삭제 + 영구삭제 칸 (모든 상품 공통 · 쓴 다이어리만 휴지통) -->
-    <script src="js/dyown.js?v=202611141951"></script>   <!-- 📚 가진 다이어리 · 🧩 바인더 재료 (981) -->
-    <script src="js/dyyear.js?v=202611141951"></script>
-    <script src="js/bgown.js?v=202611141951"></script>
-    <script src="js/deskskin.js?v=202611141951"></script>   <!-- 🧱 벽지 · 🪵 책상 (책상 화면 · 샵 책상 소품 · 소품함) -->   <!-- 🌈 배경지 = 상품 (샵에서 받기 · 보관함 · 버리기) -->   <!-- 📔 기본 다이어리 = 1년짜리 날짜 다이어리 · 해마다 기본상품 샵에서 받기 · 다이어리 보관소 -->
-    <script src="js/dkguide.js?v=202611141951"></script>   <!-- 🩷 처음 쓰는 사람용 다꾸하는 법 메모 -->
-    <script src="js/dymaker.js?v=202611141951"></script>
-    <script src="js/binderroom.js?v=202611141951"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
-    <script src="js/pattern-maker.js?v=202611141951"></script>
-    <script src="js/doll-art.js?v=202611141951"></script>
-    <script src="js/doll-render.js?v=202611141951"></script>
-    <script src="js/doll-store.js?v=202611141951"></script>
-    <script src="js/doll-room.js?v=202611141951"></script>
-    <script src="js/doll-move.js?v=202611141951"></script>
-    <script src="js/glrun.js?v=202611141951"></script>
-    <script src="js/char-move.js?v=202611141951"></script>
-    <script src="js/puppet.js?v=202611141951"></script>
-    <script src="js/service.js?v=202611141951"></script>
+    <script src="js/prod.js?v=202611142002"></script>   <!-- 🧁 상품 목록 읽기 (prodList) -->
+    <script src="js/gdpic.js?v=202611142002"></script>   <!-- 🧁 문구 그림 = 상품공방 그림 + 속성 그대로 (gdPic · 앱은 모양을 그리지 않아요) -->
+    <script src="js/space.js?v=202611142002"></script>   <!-- 🏠 공간 : 문구는 하나 · 저장은 공간이 정해요 (진짜 다이어리 = 저장 · 연습장 = 저장 안 함) -->
+    <script src="js/gdtry.js?v=202611142002"></script>   <!-- 🏪 문구 사용해보기 = 가상 연습장 (저장 없음 · 닫으면 사라져요) -->
+    <script src="js/drive.js?v=202611142002"></script>
+    <script src="js/desk.js?v=202611142002"></script>   <!-- 🪑 책상 꾸미기 (💻 PC · 아이패드만) -->
+    <script src="js/deskpaint.js?v=202611142002"></script>
+    <script src="js/deskcustom.js?v=202611142002"></script>   <!-- 🎨 소품 꾸미기 창 (색칠 + 불빛 · 숫자 · 알람 · 사진 · 누르는 곳) -->   <!-- 🎨 책상 소품 꾸미기 (칠하기 · 이미지 붙이기) -->
+    <script src="js/coll.js?v=202611142002"></script>
+    <script src="js/sound.js?v=202611142002"></script>
+    <script src="js/app.js?v=202611142002"></script>
+    <script src="js/page.js?v=202611142002"></script>
+    <script src="js/elements.js?v=202611142002"></script>
+    <script src="js/tapmenu.js?v=202611142002"></script>
+    <script src="js/settings.js?v=202611142002"></script>
+    <script src="js/patterns.js?v=202611142002"></script>
+    <script src="js/pattern-recipe.js?v=202611142002"></script>
+    <script src="js/skins.js?v=202611142002"></script>
+    <script src="js/bin.js?v=202611142002"></script>   <!-- 🚛 버린 상품 = 바로 영구 삭제 + 영구삭제 칸 (모든 상품 공통 · 쓴 다이어리만 휴지통) -->
+    <script src="js/dyown.js?v=202611142002"></script>   <!-- 📚 가진 다이어리 · 🧩 바인더 재료 (981) -->
+    <script src="js/dyyear.js?v=202611142002"></script>
+    <script src="js/bgown.js?v=202611142002"></script>
+    <script src="js/deskskin.js?v=202611142002"></script>   <!-- 🧱 벽지 · 🪵 책상 (책상 화면 · 샵 책상 소품 · 소품함) -->   <!-- 🌈 배경지 = 상품 (샵에서 받기 · 보관함 · 버리기) -->   <!-- 📔 기본 다이어리 = 1년짜리 날짜 다이어리 · 해마다 기본상품 샵에서 받기 · 다이어리 보관소 -->
+    <script src="js/dkguide.js?v=202611142002"></script>   <!-- 🩷 처음 쓰는 사람용 다꾸하는 법 메모 -->
+    <script src="js/dymaker.js?v=202611142002"></script>
+    <script src="js/binderroom.js?v=202611142002"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
+    <script src="js/pattern-maker.js?v=202611142002"></script>
+    <script src="js/doll-art.js?v=202611142002"></script>
+    <script src="js/doll-render.js?v=202611142002"></script>
+    <script src="js/doll-store.js?v=202611142002"></script>
+    <script src="js/doll-room.js?v=202611142002"></script>
+    <script src="js/doll-move.js?v=202611142002"></script>
+    <script src="js/glrun.js?v=202611142002"></script>
+    <script src="js/char-move.js?v=202611142002"></script>
+    <script src="js/puppet.js?v=202611142002"></script>
+    <script src="js/service.js?v=202611142002"></script>
     <!-- 🎁 랜덤박스 (없어도 다이어리는 정상 동작) -->
-    <script src="js/gacha.js?v=202611141951"></script>
-    <script src="js/presence.js?v=202611141951"></script>
-    <script src="js/fbase.js?v=202611141951"></script>   <!-- 🔥 파이어스토어 연결 (🔔 선물 벨 · 📞 전화기) -->
-    <script src="js/fphone.js?v=202611141951"></script>   <!-- 📞 반짝이 피처폰 메신저 (로그인 회원끼리) -->
+    <script src="js/gacha.js?v=202611142002"></script>
+    <script src="js/presence.js?v=202611142002"></script>
+    <script src="js/fbase.js?v=202611142002"></script>   <!-- 🔥 파이어스토어 연결 (🔔 선물 벨 · 📞 전화기) -->
+    <script src="js/fphone.js?v=202611142002"></script>   <!-- 📞 반짝이 피처폰 메신저 (로그인 회원끼리) -->
     <!-- 🎵 배경음악 (없어도 다이어리는 정상 동작) -->
-    <script src="js/bgm.js?v=202611141951"></script>
+    <script src="js/bgm.js?v=202611142002"></script>
     <!-- 🔮 포춘카드 (없어도 다이어리는 정상 동작) -->
-    <script src="js/fortune.js?v=202611141951"></script>
+    <script src="js/fortune.js?v=202611142002"></script>
     <!-- 🕹️ 오락실 (없어도 다이어리는 정상 동작) -->
-    <script src="js/arcade.js?v=202611141951"></script>
-    <script src="js/hof.js?v=202611141951"></script>
+    <script src="js/arcade.js?v=202611142002"></script>
+    <script src="js/hof.js?v=202611142002"></script>
     <!-- 🌙 꿈해몽 (상징 사전 js/dream-data.js 는 꿈해몽을 열 때 불러와요 · 없어도 다이어리는 정상 동작) -->
-    <script src="js/ritual.js?v=202611141951"></script>
-    <script src="js/dream.js?v=202611141951"></script>
+    <script src="js/ritual.js?v=202611142002"></script>
+    <script src="js/dream.js?v=202611142002"></script>
     <!-- 🎍 토정비결 (음력 계산 js/lib/korean-lunar-calendar.min.js 는 토정비결을 열 때 불러와요 · 없어도 다이어리는 정상 동작) -->
-    <script src="js/tojeong.js?v=202611141951"></script>
-    <script src="js/plant.js?v=202611141951"></script>
-    <script src="js/attend.js?v=202611141951"></script>
-    <script src="js/tape.js?v=202611141951"></script>
-    <script src="js/leafpad.js?v=202611141951"></script>
-    <script src="js/leafmaker.js?v=202611141951"></script>
-    <script src="js/draw.js?v=202611141951"></script>
-    <script src="js/pencase.js?v=202611141951"></script>
-    <script src="js/frame.js?v=202611141951"></script>
-    <script src="js/season.js?v=202611141951"></script>
-    <script src="js/lock.js?v=202611141951"></script>
-    <script src="js/cycle.js?v=202611141951"></script>
-    <script src="js/month.js?v=202611141951"></script>
-    <script src="js/stamp.js?v=202611141951"></script>
-    <script src="js/search.js?v=202611141951"></script>
-    <script src="js/dday.js?v=202611141951"></script>
-    <script src="js/boothroom.js?v=202611141951"></script>   <!-- 📸 포토부스 거리 : LED 간판 · 브라운관 · 커튼 = 포토부스 -->
-    <script src="js/calroom.js?v=202611141951"></script>   <!-- 📅 달력 : 출석 · 생리 · D-day 한 장 (💻 📲) -->
-    <script src="js/postroom.js?v=202611141951"></script>   <!-- 📮 우체통 : 익명 편지함 · 건의함 (💻 📲) -->
-    <script src="js/world.js?v=202611141951"></script>   <!-- 🌳 말랑 광장 : 임시 2.5D 월드 · 혼자 걷기 (features world) -->
-    <script src="js/deskgd.js?v=202611141951"></script>   <!-- 🪑 책상 모드 문구 : ✏️ 펜꽂이가 다가와요 · 🗄️ 문구함 서랍 (💻 📲) -->
-    <script src="js/desktape.js?v=202611141951"></script>   <!-- 🎀 마테 정리함 : 마스킹테이프를 세워 두고 골라 써요 (💻 📲 책상) -->
-    <script src="js/deskmove.js?v=202611141951"></script>   <!-- 🔁 꾹 잡아 옮기기 : 정리함 · 펜꽂이 · 서랍 · 다이어리 (💻 📲 책상 · 도련 11-11) -->
-    <script src="js/desklights.js?v=202611141951"></script>   <!-- 💡 전구줄 : 출렁이는 줄 · 전구 · 빛 · 깜빡임 (책상 소품 lights) -->
-    <script src="js/craft.js?v=202611141951"></script>   <!-- 🎨 다꾸 작업실 : 스티커 · 배경지 만들기 한 곳에 (💻 📲 📱) -->
-    <script src="js/tarotroom.js?v=202611141951"></script>   <!-- 🔮 타로카페 : 카드 다섯 장 = 메뉴 (💻 📲) -->
-    <script src="js/arcroom.js?v=202611141951"></script>   <!-- 🕹️ 뿅뿅오락실 장소 : 오락기 화면마다 게임 (💻 📲) -->
-    <script src="js/show.js?v=202611141951"></script>
-    <script src="js/press.js?v=202611141951"></script>
-    <script src="js/photobooth.js?v=202611141951"></script>
-    <script src="js/stickermaker.js?v=202611141951"></script>
-    <script src="js/labeler.js?v=202611141951"></script>
-    <script src="js/digicam.js?v=202611141951"></script>
-    <script src="js/stickerprinter.js?v=202611141951"></script>   <!-- 🖨️ 말랑 스티커 프린터 : 책상에서 떠올라 → 사진 한 장 · 여러 장 → 버튼 꾹 = 종이가 지이잉 (예전 🖼️ 앨범에서 골라 만들기) -->   <!-- 📷 말랑 디카 : 책상에서 떠올라 휙 → 화면 보며 사진 스티커 · 폴라로이드처럼 출력 (예전 📷 사진 찍어 만들기) -->   <!-- 🏷️ 라벨 스티커 기계 : 책상에서 떠올라 자판으로 글씨 스티커 (예전 🔤 글씨 스티커) -->
-    <script src="js/padpaint.js?v=202611141951"></script>   <!-- 🎨 태블릿 그림판 : 레이어 · 픽셀 · 벡터 (속지부터) -->
-    <script src="js/tablet.js?v=202611141951"></script>   <!-- 📱 태블릿 : 책상에서 크게 → 앱 6개 (속지 · 떡메 · 마테 · 씰 시트 꾸미기 · 🧩 조각 · 📄 모조지 그림 앱) -->
-    <script src="js/sheetmaker.js?v=202611141951"></script>   <!-- 🗂️ 시트 꾸미기 : 그림 여러 개 → 씰 시트 한 장 (✂️ 스티커 만들기 → 🏷️ 씰) -->
-    <script src="js/stickerpeel.js?v=202611141951"></script>
-    <script src="js/stkedit.js?v=202611141951"></script>   <!-- 🎨 스티커 다듬기 : 씰 종이에서 떼기 전에 색 · 뒤집기 · 자르기 · 지우개 · 글씨 · 반짝이 -->
-    <script src="js/stkcut.js?v=202611141951"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
-    <script src="js/ruler.js?v=202611141951"></script>   <!-- 📏 자 : 펜꽂이에서 뽑아 페이지에 깔아 둬요 · 칼 · 색연필을 대면 반듯하게 · 진짜 cm -->
-    <script src="js/piecebag.js?v=202611141951"></script>
-    <script src="js/dakku.js?v=202611141951"></script>
-    <script src="js/papermaker.js?v=202611141951"></script>
-    <script src="js/stk-basic.js?v=202611141951"></script>
-    <script src="js/peelfx.js?v=202611141951"></script>
-    <script src="js/tapemaker.js?v=202611141951"></script>
-    <script src="js/sharebox.js?v=202611141951"></script>
-    <script src="js/namematch.js?v=202611141951"></script>
-    <script src="js/psytest-data.js?v=202611141951"></script>
-    <script src="js/psytest.js?v=202611141951"></script>
-    <script src="js/letter.js?v=202611141951"></script>
-    <script src="js/install.js?v=202611141951"></script>
-    <script src="js/piggy.js?v=202611141951"></script>
-    <script src="js/wall.js?v=202611141951"></script>
-    <script src="js/arrival.js?v=202611141951"></script>
-    <script src="js/own.js?v=202611141951"></script>   <!-- 🎒 유한 스티커 : 내 종이 저장 · 한 번 쓰면 영원히 사라져요 -->
-    <script src="js/basket.js?v=202611141951"></script>   <!-- 🧺 내 바구니 · 🏪 기본상품 샵 -->
-    <script src="js/stktray.js?v=202611141951"></script>   <!-- 🍽 오늘 쓸 스티커 : 고르기 · 쟁반 (📱 폰만 · 저장 안 함) -->
-    <script src="js/itemshare.js?v=202611141951"></script>   <!-- 📤 공유 파일로 저장 · 📥 불러오기 (받으면 그 계정의 새 1개) -->
-    <script src="js/shopscene.js?v=202611141951"></script>
-    <script src="js/anime.js?v=202611141951"></script>   <!-- 🎬 애니 스타일 : SVG 그림을 단색 · 파스텔 선으로 (css/anime.css) -->   <!-- 🏪 기본상품 샵 가게 (문 → 연핑크 → 가게 안) -->
-    <script src="js/pagedone.js?v=202611141951"></script>   <!-- ✅ 다이어리 페이지 완료 : 완료 전 = 이 기기에만 · 완료 = 드라이브에 한 번 · 완료한 페이지는 고칠 수 없어요 -->
+    <script src="js/tojeong.js?v=202611142002"></script>
+    <script src="js/plant.js?v=202611142002"></script>
+    <script src="js/attend.js?v=202611142002"></script>
+    <script src="js/tape.js?v=202611142002"></script>
+    <script src="js/leafpad.js?v=202611142002"></script>
+    <script src="js/leafmaker.js?v=202611142002"></script>
+    <script src="js/draw.js?v=202611142002"></script>
+    <script src="js/pencase.js?v=202611142002"></script>
+    <script src="js/frame.js?v=202611142002"></script>
+    <script src="js/season.js?v=202611142002"></script>
+    <script src="js/lock.js?v=202611142002"></script>
+    <script src="js/cycle.js?v=202611142002"></script>
+    <script src="js/month.js?v=202611142002"></script>
+    <script src="js/stamp.js?v=202611142002"></script>
+    <script src="js/search.js?v=202611142002"></script>
+    <script src="js/dday.js?v=202611142002"></script>
+    <script src="js/boothroom.js?v=202611142002"></script>   <!-- 📸 포토부스 거리 : LED 간판 · 브라운관 · 커튼 = 포토부스 -->
+    <script src="js/calroom.js?v=202611142002"></script>   <!-- 📅 달력 : 출석 · 생리 · D-day 한 장 (💻 📲) -->
+    <script src="js/postroom.js?v=202611142002"></script>   <!-- 📮 우체통 : 익명 편지함 · 건의함 (💻 📲) -->
+    <script src="js/world.js?v=202611142002"></script>   <!-- 🌳 말랑 광장 : 임시 2.5D 월드 · 혼자 걷기 (features world) -->
+    <script src="js/deskgd.js?v=202611142002"></script>   <!-- 🪑 책상 모드 문구 : ✏️ 펜꽂이가 다가와요 · 🗄️ 문구함 서랍 (💻 📲) -->
+    <script src="js/desktape.js?v=202611142002"></script>   <!-- 🎀 마테 정리함 : 마스킹테이프를 세워 두고 골라 써요 (💻 📲 책상) -->
+    <script src="js/deskmove.js?v=202611142002"></script>   <!-- 🔁 꾹 잡아 옮기기 : 정리함 · 펜꽂이 · 서랍 · 다이어리 (💻 📲 책상 · 도련 11-11) -->
+    <script src="js/desklights.js?v=202611142002"></script>   <!-- 💡 전구줄 : 출렁이는 줄 · 전구 · 빛 · 깜빡임 (책상 소품 lights) -->
+    <script src="js/craft.js?v=202611142002"></script>   <!-- 🎨 다꾸 작업실 : 스티커 · 배경지 만들기 한 곳에 (💻 📲 📱) -->
+    <script src="js/tarotroom.js?v=202611142002"></script>   <!-- 🔮 타로카페 : 카드 다섯 장 = 메뉴 (💻 📲) -->
+    <script src="js/arcroom.js?v=202611142002"></script>   <!-- 🕹️ 뿅뿅오락실 장소 : 오락기 화면마다 게임 (💻 📲) -->
+    <script src="js/show.js?v=202611142002"></script>
+    <script src="js/press.js?v=202611142002"></script>
+    <script src="js/photobooth.js?v=202611142002"></script>
+    <script src="js/stickermaker.js?v=202611142002"></script>
+    <script src="js/labeler.js?v=202611142002"></script>
+    <script src="js/digicam.js?v=202611142002"></script>
+    <script src="js/stickerprinter.js?v=202611142002"></script>   <!-- 🖨️ 말랑 스티커 프린터 : 책상에서 떠올라 → 사진 한 장 · 여러 장 → 버튼 꾹 = 종이가 지이잉 (예전 🖼️ 앨범에서 골라 만들기) -->   <!-- 📷 말랑 디카 : 책상에서 떠올라 휙 → 화면 보며 사진 스티커 · 폴라로이드처럼 출력 (예전 📷 사진 찍어 만들기) -->   <!-- 🏷️ 라벨 스티커 기계 : 책상에서 떠올라 자판으로 글씨 스티커 (예전 🔤 글씨 스티커) -->
+    <script src="js/padpaint.js?v=202611142002"></script>   <!-- 🎨 태블릿 그림판 : 레이어 · 픽셀 · 벡터 (속지부터) -->
+    <script src="js/tablet.js?v=202611142002"></script>   <!-- 📱 태블릿 : 책상에서 크게 → 앱 6개 (속지 · 떡메 · 마테 · 씰 시트 꾸미기 · 🧩 조각 · 📄 모조지 그림 앱) -->
+    <script src="js/sheetmaker.js?v=202611142002"></script>   <!-- 🗂️ 시트 꾸미기 : 그림 여러 개 → 씰 시트 한 장 (✂️ 스티커 만들기 → 🏷️ 씰) -->
+    <script src="js/stickerpeel.js?v=202611142002"></script>
+    <script src="js/stkedit.js?v=202611142002"></script>   <!-- 🎨 스티커 다듬기 : 씰 종이에서 떼기 전에 색 · 뒤집기 · 자르기 · 지우개 · 글씨 · 반짝이 -->
+    <script src="js/stkcut.js?v=202611142002"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
+    <script src="js/ruler.js?v=202611142002"></script>   <!-- 📏 자 : 펜꽂이에서 뽑아 페이지에 깔아 둬요 · 칼 · 색연필을 대면 반듯하게 · 진짜 cm -->
+    <script src="js/piecebag.js?v=202611142002"></script>
+    <script src="js/dakku.js?v=202611142002"></script>
+    <script src="js/papermaker.js?v=202611142002"></script>
+    <script src="js/stk-basic.js?v=202611142002"></script>
+    <script src="js/peelfx.js?v=202611142002"></script>
+    <script src="js/tapemaker.js?v=202611142002"></script>
+    <script src="js/sharebox.js?v=202611142002"></script>
+    <script src="js/namematch.js?v=202611142002"></script>
+    <script src="js/psytest-data.js?v=202611142002"></script>
+    <script src="js/psytest.js?v=202611142002"></script>
+    <script src="js/letter.js?v=202611142002"></script>
+    <script src="js/install.js?v=202611142002"></script>
+    <script src="js/piggy.js?v=202611142002"></script>
+    <script src="js/wall.js?v=202611142002"></script>
+    <script src="js/arrival.js?v=202611142002"></script>
+    <script src="js/own.js?v=202611142002"></script>   <!-- 🎒 유한 스티커 : 내 종이 저장 · 한 번 쓰면 영원히 사라져요 -->
+    <script src="js/basket.js?v=202611142002"></script>   <!-- 🧺 내 바구니 · 🏪 기본상품 샵 -->
+    <script src="js/stktray.js?v=202611142002"></script>   <!-- 🍽 오늘 쓸 스티커 : 고르기 · 쟁반 (📱 폰만 · 저장 안 함) -->
+    <script src="js/itemshare.js?v=202611142002"></script>   <!-- 📤 공유 파일로 저장 · 📥 불러오기 (받으면 그 계정의 새 1개) -->
+    <script src="js/shopscene.js?v=202611142002"></script>
+    <script src="js/anime.js?v=202611142002"></script>   <!-- 🎬 애니 스타일 : SVG 그림을 단색 · 파스텔 선으로 (css/anime.css) -->   <!-- 🏪 기본상품 샵 가게 (문 → 연핑크 → 가게 안) -->
+    <script src="js/pagedone.js?v=202611142002"></script>   <!-- ✅ 다이어리 페이지 완료 : 완료 전 = 이 기기에만 · 완료 = 드라이브에 한 번 · 완료한 페이지는 고칠 수 없어요 -->
 
     <!-- 🛡 파일 누락 확인 : 하나라도 못 읽었으면 다이어리를 시작하지 않아서 잘못된 저장을 막아요 -->
     <script>

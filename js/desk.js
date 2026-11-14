@@ -1,6 +1,6 @@
 /* 말랑달콤 다이어리 - js/desk.js
    🪑 책상 꾸미기 (도련 10-26 · 💻 PC · 아이패드만 = html.desk-on · 📱 폰은 없어요)
-   - 책상 그림(img/desk-wide.webp · 파일 1920×1080 · 자리는 1672×941 그대로 (같은 비율) · 도련 11-14 옆벽 없이 가로선만)과 소품을 한 무대(#deskStage)에 · 무대는 책상 그림 크기 그대로 화면을 꽉 채우게(cover · 아래 맞춤) 늘었다 줄었다
+   - 책상 그림(img/desk-wide.webp · 1920×1080 · 도련 11-14 새 기준 · 옆벽 없이 가로선만 · 예전 1672×941 자리는 한 번 지우고 처음부터 dkRoomV2)과 소품을 한 무대(#deskStage)에 · 무대는 책상 그림 크기 그대로 화면을 꽉 채우게(cover · 아래 맞춤) 늘었다 줄었다
      → 소품 자리는 늘 책상 그림 기준 좌표(px)로 저장해요 · 화면 크기가 바뀌어도 같은 자리
    - 소품은 마우스 · 손가락으로 끌어서 옮겨요 · 톡 = 고르기 (점선 테두리 + 위에 작은 버튼)
    - 🧲 딱 맞추기 (켬 / 끔 · 고른 소품 위 버튼 · 이 기기에 기억) :
@@ -26,8 +26,8 @@
        기본 세트의 u = 소품 id (그래서 처음 기능 연결이 그대로 맞아요) · 선물이 아닌데 파일이 아직 없는 것(c 없음)은 드라이브를 읽은 뒤 만들어요
    ※ 소품 종류 = DESK_ITEMS (기본상품 샵 카탈로그) */
 
-        const DESK_W = 1672, DESK_H = 941, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
-        const DESK_EDGE = { back: 721, left: 140, right: 1540 };                 // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 벽 모서리 (그림 px)
+        const DESK_W = 1920, DESK_H = 1080, DESK_PX = 16, DESK_M = 36;   // 🧲 딱 맞추기 : 16px 칸 · 36px 안이면 착 (4px 는 너무 촘촘해서 부드러운 것과 차이를 몰랐어요 · 도련 10-26)
+        const DESK_EDGE = { back: 827, left: 0, right: 1920 };                   // 책상 뒤쪽 선 (벽과 만나는 곳) · 양옆 끝 (그림 px · 도련 11-14 옆벽 없음)
         /* 🧁 소품 = 서버 상품 (상품공방 '책상소품' · js/prod.js · 도련 11-02 : 예전 목록 · img/desk 그림은 기본상품샵/책상소품 으로 옮겼어요)
            속성 '소품' = { kind, w, h, x, y, wall, surf, slots, mouth, clock, lcd, photo, area, cork } (상품공방 📍 그림 위 자리에서 그려요) · 디자인 = 그림 · 앞벽 = 앞벽 마스크
              front = 앞벽 마스크(흰 부분 = 앞벽 · 도구/앞벽마스크.html) · mouth = [입구 왼쪽 %, 오른쪽 %, 앞벽 위 %] · area = 💡 누르면 동작하는 곳 (그림 % · js/deskcustom.js) · cork = 📝 메모 붙는 곳 (그림 %)
@@ -135,7 +135,24 @@
             return dkOwnP;
         }
         window.deskOwnReady = dkOwnReady;
+        /* 🪑 새 방 기준 1920×1080 (도련 11-14 : 기존 것은 다 잊고 처음부터) : 예전(1672×941) 자리는 한 번 지워요
+           - 소품 자리(배치.json diary_desk_pos) = 비워요 → 가진 소품은 모두 🧺 보관함으로 (목록 · 꾸민 것 · 테이프 · 문구 집은 그대로)
+           - 📔 권 자리 · 🛍️ 봉투 자리 = x · y 만 지워요 (처음 자리로) · 다 하면 diary_desk_rv = 2 (배치.json · 한 번만) */
+        const DK_RV = 2;
+        function dkRoomV2() {
+            if (typeof prefGet !== 'function' || typeof prefSet !== 'function') return;
+            if (typeof drive !== 'undefined' && drive.ready && !drive.guest && (drive.deskLocked || DK.trial)) return;   // 못 연 배치 파일 · 적용해보기 중엔 그대로
+            if (+prefGet('diary_desk_rv', 'malang_desk_rv') >= DK_RV) return;
+            const pos = prefGet(DK_POS_KEY, DK_POS_LOCAL);
+            if (pos && typeof pos === 'object' && Object.keys(pos).length) prefSet(DK_POS_KEY, DK_POS_LOCAL, {});
+            const M = prefGet(DKY_KEY, DKY_LOCAL);
+            if (M && typeof M === 'object' && !Array.isArray(M)) { const N = {}; Object.keys(M).forEach(k => { const v = M[k]; if (k === '_bag' || !v || typeof v !== 'object' || Array.isArray(v)) { N[k] = v; return; } const o = Object.assign({}, v); delete o.x; delete o.y; N[k] = o; }); prefSet(DKY_KEY, DKY_LOCAL, N); }
+            const B = prefGet(DKB_KEY, DKB_LOCAL);
+            if (Array.isArray(B)) prefSet(DKB_KEY, DKB_LOCAL, B.map(g => { if (!g || typeof g !== 'object') return g; const o = Object.assign({}, g); delete o.x; delete o.y; return o; }));
+            prefSet('diary_desk_rv', 'malang_desk_rv', DK_RV);
+        }
         function dkLoad() {
+            dkRoomV2();
             if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.newbie && drive.lazyOn && !drive.lazyOn.has('dkown')) { drive.lazyOn.add('dkown'); (drive.keyNone = drive.keyNone || new Set()).add('dkown'); }   // 🆕 처음 온 다꾸러 = 목록 파일이 없는 걸 알아요
             let v = dkItemsGet();
             DK.partial = !Array.isArray(v) && dkLazy();
@@ -1148,13 +1165,13 @@
         const dkGdIc = it => { const p = it.k === 'gd' && it.gid && window.gdPic ? gdPic(it.gid) : null; return p ? `<i class="dkb-gd${p.h / p.w > 2.2 ? ' tall' : ''}"><img src="${htmlEsc(p.u)}" alt="" draggable="false"></i>` : ''; };   // ✏️ 문구 = 그 상품 그림 (도련 11-03 · 현실처럼 · 길쭉한 필기구는 비스듬히)
         const dkLkIc = it => { const h = it.lk && window.shLookMini ? shLookMini(it.lk) : ''; return h ? `<i class="dkb-lk"><span class="dkb-lkin k-${htmlEsc(it.k || '')}">${h}</span></i>` : ''; };   // 🛍️ 산 모습 그대로 (샵 진열 그림 · js/basket.js shLookKeep · 도련 11-03)
         const dkKindIc = it => dkGdIc(it) || dkLkIc(it) || (it.ds ? `<i>${it.ds === 'wall' ? '🧱' : '🪵'}</i>` : it.al ? `<i>${it.n === '이형지북' ? '🤍' : '📒'}</i>` : it.src ? `<img src="${it.src}" alt="">` : `<i>${{ gd: '✂️', desk: '🪑', bg: '🌈', tool: '📔' }[it.k] || (window.stkArt ? stkArt(it.k) : '🎁')}</i>`);
-        const dkBagXY = (bg, n) => isFinite(+bg.x) && isFinite(+bg.y) ? [+bg.x, +bg.y] : [836 + [0, -260, 260, -520, 520][n % 5] + 36 * Math.floor(n / 5), 830 - 14 * Math.floor(n / 5)];
+        const dkBagXY = (bg, n) => isFinite(+bg.x) && isFinite(+bg.y) ? [+bg.x, +bg.y] : [960 + [0, -300, 300, -600, 600][n % 5] + 41 * Math.floor(n / 5), 953 - 16 * Math.floor(n / 5)];
         function deskBagAdd(L) {
             if (!Array.isArray(L) || !L.length) return;
             const B = dkBags(), at = B.map((b, i) => dkBagXY(b, i));             // 🛍️ 봉투는 끝없이 늘어요 (도련 10-30 : 정리는 다꾸러 마음 · 알림 없음)
-            const SL = [836, 576, 1096, 316, 1356], free = (x, y) => !at.some(p => Math.abs(p[0] - x) < 110 && Math.abs(p[1] - y) < 60);
-            let x = 836, y = 830;
-            for (let r = 0; r < 40; r++) { const c = SL.map(v => [v + 36 * r, 830 - 14 * r]).find(([a, b]) => free(a, b)); if (c) { [x, y] = c; break; } }   // 비어 있는 자리부터 · 다 차면 조금씩 비켜서 겹쳐요
+            const SL = [960, 660, 1260, 360, 1560], free = (x, y) => !at.some(p => Math.abs(p[0] - x) < 126 && Math.abs(p[1] - y) < 69);
+            let x = 960, y = 953;
+            for (let r = 0; r < 40; r++) { const c = SL.map(v => [v + 41 * r, 953 - 16 * r]).find(([a, b]) => free(a, b)); if (c) { [x, y] = c; break; } }   // 비어 있는 자리부터 · 다 차면 조금씩 비켜서 겹쳐요
             B.push({ t: Date.now(), it: L, x, y });
             dkBagsSet(B); deskBagsPaint();
         }
@@ -1188,7 +1205,7 @@
             const s = DK.s || 1, cx = ev.clientX, cy = ev.clientY; let moved = false, x = x0, y = y0;
             try { b.setPointerCapture(ev.pointerId); } catch (e) {}
             const mv = e => { if (e.pointerId !== ev.pointerId) return; const dx = (e.clientX - cx) / s, dy = (e.clientY - cy) / s; if (!moved && Math.hypot(dx, dy) < 6) return; moved = true; b.classList.add('lift');
-                x = Math.round(Math.max(130, Math.min(DESK_W - 130, x0 + dx))); y = Math.round(Math.max(300, Math.min(DESK_H - 4, y0 + dy))); b.style.left = (x - 120) + 'px'; b.style.top = (y - 268) + 'px'; };
+                x = Math.round(Math.max(150, Math.min(DESK_W - 150, x0 + dx))); y = Math.round(Math.max(345, Math.min(DESK_H - 4, y0 + dy))); b.style.left = (x - 120) + 'px'; b.style.top = (y - 268) + 'px'; };
             const up = e => { if (e.pointerId !== ev.pointerId) return; b.removeEventListener('pointermove', mv); b.removeEventListener('pointerup', up); b.removeEventListener('pointercancel', up); b.classList.remove('lift');
                 if (e.type === 'pointercancel') return;
                 if (!moved) { deskBagOpen(n); return; }
@@ -1241,7 +1258,7 @@
                     const say = it.ds === 'wall' ? '🧱 벽지는 <b>벽</b>에 끌어다 놓아요.' : '🪵 책상은 <b>책상</b>에 끌어다 놓아요.';
                     if (t) { showMsg(say); return; }                              // 서랍 · 소품 위
                     const s = DK.s || 1, x = (e.clientX - R.left) / s, y = (e.clientY - R.top) / s;
-                    const edge = 720;   // 도련 11-14 : 옆벽 없이 곧은 선   // 벽과 책상이 만나는 선 (js/maker.js roomSvg 와 같은 자리)
+                    const edge = 826;   // 도련 11-14 : 옆벽 없이 곧은 선   // 벽과 책상이 만나는 선 (js/maker.js roomSvg 와 같은 자리)
                     if ((y < edge ? 'wall' : 'top') !== it.ds) { showMsg(say); return; }
                     if (window.dsPut) dsPut(it.u, it.lk && it.lk.sid).then(k => { if (k) dkbTake(n, j); else showMsg('⚠ 이 상품을 찾지 못했어요.<br><small>잠시 뒤 다시 해 주세요</small>'); });
                     return;
@@ -1698,7 +1715,7 @@
            - 'diary_desk_dy' { x, y : 책상 그림 px (바닥 가운데) · p : side · front · lay } (배치.json · js/drive.js DESK_KEYS)
            - 처음 = 서랍장 왼쪽 옆에 📚 꽂기 */
         const DKY_KEY = 'diary_desk_dy', DKY_LOCAL = 'malang_desk_dy';   // 세우면 실제 A6 크기쯤 (파일꽂이와 어울리게)
-        const dkyDef = () => ({ x: 1196, y: 758, p: 'front' });                 // 📔 처음 = 앞을 보고 세워요 (도련 10-31 · 다꾸러가 바꾸기 전까지)
+        const dkyDef = () => ({ x: 1373, y: 870, p: 'front' });                 // 📔 처음 = 앞을 보고 세워요 (도련 10-31 · 다꾸러가 바꾸기 전까지)
         function dkyGet() {                                                       // 펼쳐 둔 권의 자리 (권마다 따로 · 아래 📔 책상 = 다이어리 보관소)
             const c = dkyCur(), M = dkyMap();
             if (c && DK.volEdit) return dkvPos(c);                                 // 🛠 꾸미는 동안 = 고치는 중인 자리
@@ -1739,8 +1756,8 @@
         function dkyPosOf(id) {                                                   // 그 권 자리 (없으면 줄지어 꽂힌 자리)
             const M = dkyMap(); if (dkyOk(M[id])) return M[id];
             const L = dkvAll().filter(b => !dkyOk(M[b.id])), k = Math.max(0, L.findIndex(b => b.id === id));
-            if (!k) return { x: DESK_W / 2, y: 850, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
-            return { x: 1196 - (DKV_SZ.front[0] + 10) * (k - 1), y: 758, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
+            if (!k) return { x: DESK_W / 2, y: 976, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
+            return { x: 1373 - (DKV_SZ.front[0] + 10) * (k - 1), y: 870, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
         }
         const dkvName = b => b.t === 'pg' ? String(b.g || '') : b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : (window.dyyTitle ? dyyTitle(b) : b.id);
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : b.t === 'pg' ? (b.k === '노트' ? '📓' : '🗂️') : '📔';
@@ -1774,7 +1791,7 @@
             const mv = e => {
                 if (e.pointerId !== ev.pointerId || !DK.edit) return; const dx = (e.clientX - x0) / s, dy = (e.clientY - y0) / s; if (!moved && Math.hypot(dx, dy) < 5) return;
                 if (!moved) { moved = true; el.classList.add('lift'); dkvMenu(null); }
-                const x = Math.round(Math.max(40, Math.min(1632, v0.x + dx))), y = Math.round(dkBoxFloor(x, Math.max(120, Math.min(930, v0.y + dy)), null));
+                const x = Math.round(Math.max(40, Math.min(DESK_W - 40, v0.x + dx))), y = Math.round(dkBoxFloor(x, Math.max(138, Math.min(1068, v0.y + dy)), null));
                 const [w, h] = DKV_SZ[v0.p] || DKV_SZ.side; el.style.left = Math.round(x - w / 2) + 'px'; el.style.top = Math.round(y - h) + 'px'; dkLayers();
             };
             const up = e => {
@@ -1870,7 +1887,7 @@
         function dkvPlace(id, cx, cy) {
             const stg = document.getElementById('deskStage'), R = stg && stg.getBoundingClientRect(); if (!R) return false;
             if (cx < R.left || cx > R.right || cy < R.top || cy > R.bottom) return false;
-            const s = DK.s || 1, x = Math.round(Math.max(40, Math.min(1632, (cx - R.left) / s))), y = Math.round(dkBoxFloor(x, Math.max(120, Math.min(930, (cy - R.top) / s + 60)), null));
+            const s = DK.s || 1, x = Math.round(Math.max(40, Math.min(DESK_W - 40, (cx - R.left) / s))), y = Math.round(dkBoxFloor(x, Math.max(138, Math.min(1068, (cy - R.top) / s + 60)), null));
             const M = dkyMap(); M[id] = Object.assign({}, dkyOk(M[id]) ? M[id] : {}, { x, y, p: (M[id] && M[id].p) || 'front' });   // 처음 = 앞을 보고 세워요
             if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }   // 봉투에서 꺼냈어요
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
