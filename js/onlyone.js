@@ -43,3 +43,21 @@
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['onlyone'] = true;
+
+/* 🖥️ PC 설치 앱 = 처음 열 때 창 크기 1700×990 (도련 11-14)
+   - 책상 그림(1672×941) 비율 + 위 제목 막대 → 안쪽이 약 1700×957 이라 책상이 잘리지 않아요
+   - 이 기기에서 처음 한 번만 · 그 뒤는 사용자가 바꾼 크기 그대로 (브라우저가 기억해요)
+   - 설치한 앱 창(standalone)에서만 · 브라우저 탭 · 폰 · 패드는 그대로 · 화면이 더 작으면 화면만큼 · 가운데로 */
+(function () {
+    const K = 'malang_win_size1';
+    try {
+        if (localStorage.getItem(K)) return;
+        const app = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: window-controls-overlay)').matches;
+        const pc = matchMedia('(pointer: fine)').matches && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) && !(navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+        if (!app || !pc) return;
+        localStorage.setItem(K, '1');
+        const W = Math.min(1700, screen.availWidth), H = Math.min(990, screen.availHeight);
+        window.resizeTo(W, H);
+        window.moveTo((screen.availLeft || 0) + Math.max(0, Math.round((screen.availWidth - W) / 2)), (screen.availTop || 0) + Math.max(0, Math.round((screen.availHeight - H) / 2)));
+    } catch (e) {}
+})();
