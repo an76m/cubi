@@ -184,3 +184,10 @@
 .pp-mine button:hover { border-color: #ff8fb1; }
 .pp-mine img { width: 100%; height: 100%; object-fit: contain; }
 .pp-mine .pp-hint { grid-column: 1 / -1; text-align: center; }
+/* 📔 씰 붙여 보기 (도련 11-14) : 시트 세로 = 다이어리 한 쪽 · 떼어 붙이면 그 크기 그대로 */
+.pp-slon { position: absolute; left: 9px; top: 9px; pointer-events: none; }
+.pp-slon img { position: absolute; filter: drop-shadow(0 1px 2px rgba(90, 60, 50, .3)); }
+.pp-slsh { position: absolute; border: 1.5px dashed rgba(194, 69, 122, .55); border-radius: 4px; background: rgba(255, 255, 255, .18); }
+.pp-sl-at { display: flex; gap: 6px; }
+.pp-sl-at button { border: 2px solid #f1e3e8; background: #fff; border-radius: 10px; padding: 4px 10px; font: inherit; font-size: 12px; font-weight: 800; color: #6b4438; cursor: pointer; }
+.pp-sl-at button.on { border-color: #ff8fb1; background: #fff0f5; color: #c2457a; }
