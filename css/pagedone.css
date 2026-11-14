@@ -21,3 +21,4 @@
 .pg-gbox i { display: block; height: 14px; border-radius: 99px; background: #f6e3ea; border: 1.5px solid #5b3a33; overflow: hidden; }
 .pg-gbox u { display: block; height: 100%; width: 0; background: repeating-linear-gradient(45deg, #ff8fb1 0 10px, #ffa9c4 10px 20px); transition: width .35s ease; }
 .pg-gbox small { font-size: 11px; color: #8a6070; text-align: center; }
+body:has(#pgGauge) #customAlertModal { z-index: 10060 !important; }   /* 완료 저장 중에 뜬 질문 (다른 기기에서 고쳤어요 등) = 게이지 위로 */

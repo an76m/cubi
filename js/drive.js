@@ -1248,10 +1248,11 @@
                 let theirs = null;
                 try { theirs = JSON.stringify(parseJsonObject(await readFileText(cur.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; }
                 if (theirs !== val && theirs !== null && theirs !== 'null') {
-                    const mineWins = await showAsk(`📱 다른 기기에서 <b>${lab}</b> 일기를 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
+                    const thDone = (() => { try { const o = JSON.parse(theirs); return !!(o && o.done); } catch (e) { return false; } })();   // ✅ 다른 기기에서 이미 완료한 페이지 (js/pagedone.js · 도련 11-14 : 덮어쓰는 걸 알려 줘요)
+                    const mineWins = await showAsk(`📱 다른 기기에서 <b>${lab}</b> 일기를 고쳤어요.<br>어느 쪽을 남길까요?` + (thDone ? `<br><b style="color:#c2457a;">✅ 다른 기기 쪽은 이미 완료한 페이지예요</b><br><span style="font-size:12px;color:#777;">📝 내 것을 저장하면 그 페이지를 덮어써요</span>` : '') + `<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
                     if (!mineWins) {
                         idx.files.set(name, cur); drive.dayMeta.set(key, cur.modifiedTime);
-                        if (!drive.dirtyKeys.has(key)) { store.putLoaded(key, theirs); dayShownAgain(key); }
+                        if (!drive.dirtyKeys.has(key) || (window.pgBusyKey && pgBusyKey() === key)) { store.putLoaded(key, theirs); dayShownAgain(key); }   // ✅ 완료하는 중 = 고른 다른 기기 것으로 (js/pagedone.js)
                         return;
                     }
                     if (window.trashKeepDay) await trashKeepDay(key, theirs);           // 🗑 다른 기기 것은 휴지통에 (js/trash.js)

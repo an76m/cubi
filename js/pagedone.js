@@ -65,7 +65,8 @@
 
     /* ---------- 저장 (js/elements.js saveData) : 완료 전 = 메모리 + 이 기기만 ---------- */
     window.pgSave = (key, txt) => {
-        if (!on() || PG.busy) return false;
+        if (!on()) return false;
+        if (PG.busy) return true;                                             // 완료 저장 중 = 화면에서 다시 담지 않아요
         if (PG.done && PG.key === key) return true;
         if (PG.mute === key) return true;                                     // '그 페이지로 가기'를 고른 페이지 = 떠나는 중 (다시 담지 않아요)
         const cur = store.getItem(key);
@@ -81,7 +82,7 @@
 
     /* ---------- 불러오기 (js/elements.js loadData) ---------- */
     window.pgBeforeLoad = key => {
-        if (!on() || !PG.drafts.has(key)) return;
+        if (!on() || PG.busy || !PG.drafts.has(key)) return;               // 완료 저장 중 (다른 기기 것을 골랐으면 그것을 보여요)
         const cur = store.getItem(key), d = PG.drafts.get(key);
         if (cur !== d) { PG.orig.set(key, cur); store.putLoaded(key, d); }   // 다른 기기에서 바뀐 걸 다시 읽었어도 꾸미던 모습으로
     };
@@ -176,7 +177,7 @@
             : true;
         if (!ok || curKey() !== key) return;
         try { await saveData(false); } catch (e) {}                           // 마지막 손길까지 (이 기기에)
-        PG.busy = true; ui();
+        PG.busy = true; PG.busyKey = key; ui();
         gauge(4, '✏️ 완료 준비 중…');
         let stickersOk = false;
         try {
@@ -200,7 +201,7 @@
             gaugeOff();
             if (window.showMsg) showMsg('📶 지금은 드라이브에 다 올리지 못했어요.<br><span style="font-size:12px;color:#777;">완료한 페이지는 이 기기에 안전하게 보관했어요 · 인터넷이 되면 마저 올려요</span>');
         } finally {
-            PG.busy = false; PG.done = true; PG.key = key; ui();
+            PG.busy = false; PG.busyKey = ''; PG.done = true; PG.key = key; ui();
         }
     }
     function mark(key) {                                                     // 완료 표시를 달고 보통 저장(드라이브로)
@@ -270,5 +271,5 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
     window.pgDone = done; window.pgDoneOf = pgDoneOf;
     window.pgTest = () => ({ key: PG.key, done: PG.done, drafts: [...PG.drafts.keys()], orig: [...PG.orig.keys()], busy: PG.busy, at: PG.at, gating: PG.gating });
-    window.pgSaveNow = saveNow;
+    window.pgSaveNow = saveNow; window.pgBusyKey = () => PG.busy ? PG.busyKey || '' : '';
 })();
