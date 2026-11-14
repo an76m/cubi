@@ -5,7 +5,12 @@
 .pg-bar.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
 .pg-go { border: 2px solid #5b3a33; border-radius: 99px; background: #ff8fb1; color: #fff; font: inherit; font-size: 16px; font-weight: 900; padding: 7px 20px; cursor: pointer; box-shadow: 0 3px 0 #d9577f; white-space: nowrap; flex: none; width: auto; height: auto; line-height: 1.2; writing-mode: horizontal-tb; }
 .pg-go:active { transform: translateY(2px); box-shadow: 0 1px 0 #d9577f; }
-.pg-go[hidden] { display: none; }
+.pg-go[hidden], .pg-sv[hidden] { display: none; }
+.pg-sv { border: 2px solid #5b3a33; border-radius: 99px; background: #fff7d6; color: #5b3a33; font: inherit; font-size: 14px; font-weight: 900; padding: 7px 14px; cursor: pointer; box-shadow: 0 3px 0 #d8b955; white-space: nowrap; flex: none; width: auto; height: auto; line-height: 1.2; writing-mode: horizontal-tb; }
+.pg-sv:active { transform: translateY(2px); box-shadow: 0 1px 0 #d8b955; }
+.pg-bar.go .pg-t { display: flex; flex-direction: column; gap: 1px; line-height: 1.3; }
+.pg-bar.go .pg-t span:first-child { color: #5b3a33; }
+@media (max-width: 480px) { .pg-bar { gap: 5px; padding: 6px; } .pg-sv { font-size: 12.5px; padding: 6px 9px; } .pg-go { font-size: 14px; padding: 6px 12px; } .pg-t { font-size: 10px; padding-right: 6px; } }
 .pg-t { font-size: 12px; font-weight: 800; color: #8a6070; padding-right: 10px; white-space: nowrap; }
 .pg-bar.done { padding: 7px 14px; background: #eefaf2; border-color: #4f8a64; box-shadow: 0 3px 0 rgba(79, 138, 100, .25); }
 .pg-bar.done .pg-t { color: #3f7a55; padding: 0; font-size: 13px; }
