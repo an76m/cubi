@@ -8,15 +8,15 @@
    - 🧩 새 종류 · 새 방법 = CRAFT_KINDS · CRAFT_WAYS 한 줄 (ft = 기능 공개 스위치 · js/features.js)
    - 닫기 없음 = 오른쪽 위 '이동' (💻 📲 책상) · 📱 '나가기' · Esc */
     (function () {
-        /* 만드는 방법 : [아이콘, 이름, 설명, 여는 일(종류), 기능 스위치] */
+        /* 만드는 방법 : [아이콘, 이름, 설명, 여는 일(종류), 기능 스위치, (📱 폰 설명)] */
         const smGo = (k, fn) => { if (window.smPickKind) { smPickKind(k); closeModal('stickerSrcModal'); } if (window[fn]) window[fn](); };   // 📷 · 🖼️ = 그 종류로 정해 두고 바로
         const CRAFT_WAYS = {
             paint: ['🎨', '그려서 만들기', '붓 · 색 · 레이어 · 📎 사진 · 🏷️ 내 스티커 · 💾 자동 임시저장 · 📔 붙여 보기', k => window.openPhonePaint && openPhonePaint(k), 'stkmake'],   // 📱 폰 그림판 (js/phonepaint.js · 태블릿 그림판과 같은 것 · 도련 11-14 · 폰에서만)
             booth: ['📸', '포토부스', '네컷 · 2×2 · 한 컷 · 필터 · 글씨 · 반짝이', () => window.openBooth && openBooth(), 'stkmake'],
-            cam: ['📷', '사진 찍어 만들기', '📷 말랑 디카로 찍거나 골라 모양대로 (하트 · 별 … · ✂️ 손으로)', k => window.openDigicam ? openDigicam({ kind: k, el: window.dcActEl && dcActEl('camera') }) : smGo(k, 'smOpenCam'), 'stkmake'],   // 📷 js/digicam.js (도련 11-08)
+            cam: ['📷', '사진 찍어 만들기', '📷 말랑 디카로 찍거나 골라 모양대로 (하트 · 별 … · ✂️ 손으로)', k => (!phone() && window.openDigicam) ? openDigicam({ kind: k, el: window.dcActEl && dcActEl('camera') }) : smGo(k, 'smOpenCam'), 'stkmake', '📷 사진을 찍어 모양대로 (하트 · 별 … · ✂️ 손으로)'],   // 📷 💻 📲 = js/digicam.js (도련 11-08) · 📱 폰 = 예전 폰 화면 js/stickermaker.js (도련 11-14)
             /* 🖼️ 앨범에서 골라 만들기 (🖨️ 프린터 사진 → 스티커) = 영구 삭제 (도련 11-14 : 프린터는 📐 도안을 뽑는 곳 · 사진 · 모양 · 여러 장은 📱 태블릿 🏷️ 씰스티커) */
             sheet: ['🗂️', '시트 꾸미기', '그림 여러 개를 한 장에 · 끌어서 자리 · 기본 씰처럼', () => window.openSheetMaker && openSheetMaker(), 'stkmake'],   // 🗂️ js/sheetmaker.js (도련 11-06)
-            text: ['🔤', '글씨 스티커', '🏷️ 라벨 기계 자판으로 쓰기', () => window.openLabeler ? openLabeler(window.dcLabelerEl && dcLabelerEl()) : window.smOpenText && smOpenText(), 'stkmake'],   // 🏷️ 라벨 스티커 기계 (js/labeler.js · 도련 11-08) · 책상에 있으면 거기서 떠올라요
+            text: ['🔤', '글씨 스티커', '🏷️ 라벨 기계 자판으로 쓰기', () => (!phone() && window.openLabeler) ? openLabeler(window.dcLabelerEl && dcLabelerEl()) : window.smOpenText && smOpenText(), 'stkmake', '글꼴 · 색 · 테두리를 골라 글씨로'],   // 🏷️ 💻 📲 = 라벨 스티커 기계 (js/labeler.js · 도련 11-08 · 책상에 있으면 거기서 떠올라요) · 📱 폰 = 예전 폰 글씨 화면 js/stickermaker.js (도련 11-14)
             tape: ['🎀', '마스킹테이프 만들기', '✏️ 한 칸을 그리면 쭉 이어져요 · 🖼️ 내 사진으로', () => window.openTapeMaker && openTapeMaker(), 'stkmake'],
             leaf: ['📃', '속지 만들기', '🖼️ 사진 불러오기 · ✏️ 종이 색 · 밑줄 위에 그리기', async () => { if (await diaryReady() && window.openLeafMaker) openLeafMaker(); }, 'stkmake'],      // 📔 속지 · 떡메 = 다이어리 쪽 크기로 만들어서 먼저 펴 둬요 (작업실 뒤에서)
             memo: ['📝', '메모지 만들기', '🧵 종이 색 · 줄 · 무늬 · 테두리 · ✏️ 그리기 · 🖼️ 사진', async () => { if (await diaryReady() && window.openMemoMaker) openMemoMaker(); }, 'stkmake'],
@@ -142,7 +142,7 @@
             }
             cq('crWorkT').textContent = `${K.ic} 새 ${K.n} 만들기`;
             const ws = waysOf(K);
-            w.innerHTML = (ws.length ? ws.map(id => { const [ic, n, d] = CRAFT_WAYS[id]; return `<button type="button" class="cr8-way" data-w="${id}"><i>${ic}</i><span><b>${n}</b><small>${d}</small></span></button>`; }).join('')
+            w.innerHTML = (ws.length ? ws.map(id => { const [ic, n, d0, , , dp] = CRAFT_WAYS[id], d = (phone() && dp) || d0; return `<button type="button" class="cr8-way" data-w="${id}"><i>${ic}</i><span><b>${n}</b><small>${d}</small></span></button>`; }).join('')
                 : `<p class="cr8-hint">🚧 ${K.n} 만들기는 곧 생겨요</p>`) + (K.to && ws.length ? `<p class="cr8-hint">만들면 : ${K.to} · 내 드라이브에만 저장돼요</p>` : '');
             w.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { const f = CRAFT_WAYS[b.dataset.w][3]; C.sheet = false; paintWork(); Promise.resolve().then(() => f(K.own || K.k)).catch(er => console.warn('🎨', er)); });
         }

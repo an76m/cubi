@@ -256,7 +256,7 @@
             smq('smGoStick').innerHTML = smKindBtn(true); smq('smGoMake').innerHTML = smKindBtn(false);
             const many = !t && !!smS.many;                            // 여러 장 : 사진 줄 · 🔁 버튼이 보여요
             smq('smStrip').hidden = !many; smq('smAll').hidden = !many;
-            if (t) smq('smHint').innerHTML = '⌨️ 글씨를 다 쓰면 키보드의 <b>엔터(↵)</b>를 눌러 주세요<br><small>아이패드의 \'키보드 내리기\' 버튼으로 내리면 버튼 누르는 자리가 어긋날 수 있어요</small>';
+            if (t) smq('smHint').innerHTML = '⌨️ 글씨를 다 쓰면 키보드의 <b>엔터(↵)</b>를 눌러 주세요<br><small>태블릿의 \'키보드 내리기\' 버튼으로 내리면 버튼 누르는 자리가 어긋날 수 있어요</small>';
         }
         /* 글꼴 후보 : 설정창 글꼴 목록(fontList · js/app.js) 중 웹폰트 전부 (기기마다 다른 (Local) · (Apple) 글꼴은 빼요) */
         function smFillFonts() {
