@@ -1,7 +1,7 @@
 /* 📱 폰 그림판 · 🖨 폰 프린터 (js/phonepaint.js · js/phoneprint.js · 도련 11-14) */
 
-/* ---------- 🎨 폰 그림판 : 위 막대 · 종이 · 아래 탭 + 버튼 ---------- */
-.phw { position: fixed; inset: 0; z-index: 970; display: none; flex-direction: column; background: #fbe9ef; color: #5a3a30; font-family: inherit; }
+/* ---------- 🎨 폰 그림판 : 위 막대 · 종이 · 아래 버튼 한 줄 · 🎨 🗂 = 올라오는 판 ---------- */
+.phw { position: fixed; inset: 0; overflow: hidden; z-index: 970; display: none; flex-direction: column; background: #fbe9ef; color: #5a3a30; font-family: inherit; }
 .phw.show { display: flex; }
 .phw-top { flex: none; display: flex; align-items: center; gap: 8px; padding: max(8px, env(safe-area-inset-top)) 10px 4px; }
 .phw-back { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid #f0a9c1; background: #fff; font: inherit; font-size: 22px; font-weight: 900; color: #c2457a; cursor: pointer; line-height: 1; }
@@ -25,23 +25,35 @@
 .phw .pp-tools { grid-template-columns: repeat(6, 1fr); gap: 4px; }
 .phw .pp-tools button { height: 42px; font-size: 16px; }
 .phw .pp-tools button small { font-size: 9px; }
-.phw-bot { flex: none; display: flex; flex-direction: column; background: #fffdf8; border-top: 2.5px solid #6b4438; border-radius: 18px 18px 0 0; padding: 6px 10px max(10px, env(safe-area-inset-bottom)); gap: 6px; }
-.phw-tabs { display: flex; gap: 4px; background: #f6e3ea; border-radius: 12px; padding: 3px; }
-.phw-tabs button { flex: 1; height: 34px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 13px; font-weight: 900; color: #7a5a63; cursor: pointer; }
+/* 🎨 도구 · 🗂 레이어 = 누를 때만 아래에서 올라오는 판 (도련 11-15 · 종이가 화면 거의 전체) */
+.phw-dim { position: absolute; inset: 0; z-index: 5; background: rgba(90, 50, 60, .12); opacity: 0; pointer-events: none; transition: opacity .18s; }
+.phw-dim.on { opacity: 1; pointer-events: auto; }
+.phw-sheet { position: absolute; left: 0; right: 0; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 6; display: flex; flex-direction: column; max-height: 52vh; background: #fffdf8; border: 2.5px solid #6b4438; border-bottom: 0; border-radius: 20px 20px 0 0; box-shadow: 0 -6px 18px rgba(90, 50, 60, .16); padding: 8px 10px 6px; transform: translateY(calc(100% + 80px)); transition: transform .22s cubic-bezier(.3, .8, .3, 1); visibility: hidden; }
+.phw-sheet.on { transform: none; visibility: visible; }
+.phw-sh-h { flex: none; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.phw-sh-h::before { content: ''; position: absolute; left: 50%; top: 4px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: #ead4dc; }
+.phw-sh-x { flex: none; width: 34px; height: 34px; border: 0; background: none; font: inherit; font-size: 18px; font-weight: 900; color: #b0798c; cursor: pointer; }
+.phw-tabs { flex: 1; display: flex; gap: 4px; background: #f6e3ea; border-radius: 12px; padding: 3px; }
+.phw-tabs button { flex: 1; height: 32px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 13px; font-weight: 900; color: #7a5a63; cursor: pointer; }
 .phw-tabs button.on { background: #fff; color: #c2457a; box-shadow: 0 1px 2px rgba(90, 60, 50, .15); }
 .phw-tabs em { font-style: normal; font-weight: 800; }
-.phw-pane { display: none; height: 25vh; min-height: 150px; overflow: auto; flex-direction: column; gap: 7px; padding: 2px 2px 4px; }
+.phw-pane { display: none; flex: 1; min-height: 0; overflow: auto; flex-direction: column; gap: 7px; padding: 2px 2px 6px; overscroll-behavior: contain; }
 .phw-pane.on { display: flex; }
 .phw-pane h4 { display: flex; align-items: center; gap: 6px; margin: 2px 0 0; font-size: 12.5px; }
 .phw-pane h4 em { margin-left: auto; font-style: normal; font-weight: 700; color: #b08a98; font-size: 10.5px; }
 .phw-pane .pp-end, .phw-pane .pp-tmpt { display: none; }                     /* 💾 · ✅ = 아래 버튼 줄 */
-.phw-act { display: flex; gap: 6px; }
-.phw-act button { height: 48px; border-radius: 14px; border: 2.5px solid #6b4438; background: #fff; font: inherit; font-size: 14.5px; font-weight: 900; color: #6b4438; cursor: pointer; padding: 0 10px; }
-.phw-act #phwTry { flex: 1; }
-.phw-act .phw-sv { width: 48px; flex: none; padding: 0; font-size: 19px; }
-.phw-act .phw-add { flex: 1; border-style: dashed; border-color: #f08fb0; background: #fff4f8; color: #c2457a; }
-.phw-act .phw-go { flex: 1.3; background: #f08fb0; color: #fff; box-shadow: 0 3px 0 #6b4438; }
-.phw-act .phw-go:disabled { opacity: .7; }
+/* 아래 한 줄 (늘 보여요) */
+.phw-bot { flex: none; position: relative; z-index: 7; background: #fffdf8; border-top: 2.5px solid #6b4438; padding: 6px 8px max(8px, env(safe-area-inset-bottom)); }
+.phw-act { display: flex; gap: 5px; align-items: stretch; }
+.phw-ic { position: relative; flex: 1; min-width: 0; height: 50px; border-radius: 13px; border: 2px solid #f1d3de; background: #fff; font: inherit; color: #6b4438; cursor: pointer; padding: 2px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.phw-ic i { font-style: normal; font-size: 19px; line-height: 1.1; }
+.phw-ic span { font-size: 10.5px; font-weight: 900; white-space: nowrap; }
+.phw-ic.on { border-color: #f08fb0; background: #fff0f5; color: #c2457a; }
+.phw-dot { position: absolute; right: 7px; top: 6px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1.5px #6b4438; }
+.phw-ic.phw-sv { flex: .8; }
+.phw-ic.phw-add { border-style: dashed; border-color: #f08fb0; background: #fff4f8; color: #c2457a; }
+.phw-go { flex: 1.5; height: 50px; border-radius: 13px; border: 2.5px solid #6b4438; background: #f08fb0; color: #fff; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; padding: 0 6px; box-shadow: 0 3px 0 #6b4438; white-space: nowrap; }
+.phw-go:disabled { opacity: .7; }
 body.phw-on .pp-pop:not(.pp-specpop):not(.pp-sizepop):not(.pp-minepop) { left: 8px; right: 8px; width: auto; top: 70px; max-height: 70vh; }
 @media (max-width: 600px) {
     .pp-specpop, .pp-sizepop, .pp-minepop { width: calc(100vw - 16px) !important; max-height: 90vh; }
