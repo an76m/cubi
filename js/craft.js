@@ -24,12 +24,12 @@
             weave: ['🧵', '무늬 메이커', '무늬 15가지 · 두 겹 겹치기 · 기울기 · 내 사진 반복', () => window.openMaker && openMaker('weave'), 'patmake'],
             pdraw: ['🖌', '그려서 배경지', '한 칸을 그리면 이어 붙인 모습이 바로', () => window.openMaker && openMaker('draw'), 'patdraw']
         };
-        /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
+        /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 · noPh = 📱 폰에서 안 보이는 방법 (도련 11-14 : 조각 · 모조지 = 포토부스 · 사진 찍어 만들기 없이) */
         const CRAFT_KINDS = [
             { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['paint', 'sheet', 'booth', 'cam', 'text'],   // 🗂️ 시트 꾸미기 맨 앞 · 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
             to: '🗄️ 서랍 · 🏷️ 씰' },
-            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['paint', 'booth', 'cam'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
-            { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['paint', 'booth', 'cam'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
+            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['paint', 'booth', 'cam'], noPh: ['booth', 'cam'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
+            { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['paint', 'booth', 'cam'], noPh: ['booth', 'cam'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
             { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['paint', 'leaf'], to: '🗄️ 서랍 · 📃 속지' },
             { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['paint', 'tk'], to: '🗄️ 서랍 · 🧻 떡메 한 묶음' },
             { k: 'memo', ic: '📝', n: '메모지', own: 'memo', ways: ['memo'], to: '🗄️ 서랍 · 📝 메모지 한 묶음' },
@@ -43,7 +43,7 @@
         const kinds = () => CRAFT_KINDS.filter(K => ftOk(K.ft));
         const kindOf = k => CRAFT_KINDS.find(K => K.k === k) || kinds()[0];
         const phone = () => !!(window.UI && UI.phone && UI.phone());
-        const waysOf = K => K.ways.filter(w => CRAFT_WAYS[w] && ftOk(CRAFT_WAYS[w][4]) && (w !== 'paint' || (phone() && window.openPhonePaint)));   // 🎨 그려서 만들기 = 📱 폰 (💻 📲 = 책상 태블릿)
+        const waysOf = K => K.ways.filter(w => CRAFT_WAYS[w] && ftOk(CRAFT_WAYS[w][4]) && (w !== 'paint' || (phone() && window.openPhonePaint)) && !(phone() && (K.noPh || []).includes(w)));   // 🎨 그려서 만들기 = 📱 폰 (💻 📲 = 책상 태블릿)
         const narrow = () => innerWidth < 760;
         const desk = UI.desk;
 
