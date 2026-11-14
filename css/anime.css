@@ -670,9 +670,9 @@ html.an .cover-page .cover-notice, html.an .cover-page .drag-hint { translate: 5
 .desk-shop-go:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
 html:not(.desk-on) .desk-top-r, html.desk-edit .desk-top-r, body:has(.shop-scene.on) .desk-top-r { display: none; }
 /* ✕ 책상으로 (도련 11-15 · js/desk.js dkModeXBuild) : 📔 다이어리모드 · 📒 스티커정리모드 · 🧩 바인더조립모드 = 오른쪽 위 메뉴 · 이동 대신 ✕ 하나 · ⛔ 🔑 잠금 스위치 영구 삭제 */
-.dk-mode-x { position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 1002; display: none; width: 40px; height: 40px; padding: 0; border: 2px solid #e88fb0; border-radius: 50%; background: #fff; color: #c2457a; font: inherit; font-size: 18px; font-weight: 900; line-height: 1; cursor: pointer; box-shadow: 3px 3px 0 #e6dcf8; }
-.dk-mode-x:hover { background: #fff0f5; }
-.dk-mode-x:active { translate: 1px 1px; box-shadow: 2px 2px 0 #e6dcf8; }
+.dk-mode-x { position: fixed; top: max(10px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); z-index: 1002; display: none; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #c2457a; font: inherit; font-size: 26px; font-weight: 900; line-height: 1; cursor: pointer; }   /* ✕ 글자만 (도련 11-15 · 흰 동그라미 없이) */
+.dk-mode-x:hover { color: #e0628f; }
+.dk-mode-x:active { translate: 1px 1px; }
 html.desk-on.dk-bgon:not(.dk-landing):not(.desk-edit) .dk-mode-x,
 html.desk-on body:has(#basketKindModal.abs-dkmode[style*="display: flex"]) .dk-mode-x,
 html.desk-on body.bnd-on:has(.bnd-dkmode.show) .dk-mode-x { display: block; }
