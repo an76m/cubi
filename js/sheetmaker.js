@@ -248,11 +248,11 @@
             const ims = await Promise.all(imgs.map(loadImg));
             ims.forEach((im, i) => t.drawImage(im, b[i][0] * tc.width, b[i][1] * tc.height, b[i][2] * tc.width, b[i][3] * tc.height));
             let th = ''; try { th = tc.toDataURL('image/webp', .8); } catch (e) {} if (!/^data:image\/webp/.test(th)) th = tc.toDataURL('image/png');
-            await ownAdd({ k: 'seal', from: 'mine', nm: (title || '내가 꾸민 시트').slice(0, 20), baked: true, imgs, wh, L: { r: W / H, b }, x: { sb } }, { th });
+            const dzr = await ownAdd({ k: 'seal', from: 'mine', nm: (title || '내가 꾸민 시트').slice(0, 20), baked: true, imgs, wh, L: { r: W / H, b }, x: { sb } }, { th });
             S.items = []; S.sel = null; S.title = ''; q('shmTitle').value = '';
             S.busy = false; q('shmDone').textContent = S.pad ? '✅ 완료' : '🏷️ 시트 완성';
             closeSheetMaker(true);
-            if (window.tbDesignOnly) showMsg('📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>'); else showMsg('🏷️ 시트 한 장이 나왔어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍 · 🏷️ 씰에 들어갔어요. 기본 씰스티커처럼 떼어 쓸 수 있어요.</span>');
+            if (String(dzr || '').startsWith('design:') && window.ownDzMsg) ownDzMsg(dzr, '🏷️ 시트'); else showMsg('🏷️ 시트 한 장이 나왔어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍 · 🏷️ 씰에 들어갔어요. 기본 씰스티커처럼 떼어 쓸 수 있어요.</span>');
         } catch (e) {
             console.warn('🗂️ 시트 완성', e);
             S.busy = false; q('shmDone').textContent = S.pad ? '✅ 완료' : '🏷️ 시트 완성'; paintPaper();

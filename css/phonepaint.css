@@ -1,0 +1,87 @@
+/* 📱 폰 그림판 · 🖨 폰 프린터 (js/phonepaint.js · js/phoneprint.js · 도련 11-14) */
+
+/* ---------- 🎨 폰 그림판 : 위 막대 · 종이 · 아래 탭 + 버튼 ---------- */
+.phw { position: fixed; inset: 0; z-index: 970; display: none; flex-direction: column; background: #fbe9ef; color: #5a3a30; font-family: inherit; }
+.phw.show { display: flex; }
+.phw-top { flex: none; display: flex; align-items: center; gap: 8px; padding: max(8px, env(safe-area-inset-top)) 10px 4px; }
+.phw-back { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid #f0a9c1; background: #fff; font: inherit; font-size: 22px; font-weight: 900; color: #c2457a; cursor: pointer; line-height: 1; }
+.phw-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.phw-t b { font-size: 16px; font-weight: 900; }
+.phw-t small { font-size: 11px; color: #7a5a63; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phw-bar { flex: none; display: flex; overflow-x: auto; overflow-y: hidden; padding: 2px 10px 6px; scrollbar-width: none; background: none !important; border: 0 !important; min-height: 0 !important; }
+.phw-bar::-webkit-scrollbar { display: none; }
+.phw .pp-barx { margin-left: 0; gap: 6px; flex: none; }
+.phw .pp-mode { border-width: 2px; border-radius: 12px; padding: 2px; }
+.phw .pp-mode button { padding: 5px 10px; font-size: 13px; }
+.phw .pp-mode button small, .phw .pp-specb small { display: none; }
+.phw .pp-specb { padding: 4px 10px; height: 38px; justify-content: center; }
+.phw .pp-specb b { font-size: 12.5px; }
+.phw #ppBarX [data-q="spec"] { display: none; }                             /* 📔 = 아래 버튼으로 */
+.phw .pp-qa button { width: 38px; height: 38px; }
+.phw-c { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; padding: 0 6px; overflow: hidden; }
+.phw .pp-view { align-self: stretch; margin: 0 0 4px; padding: 3px 5px; border-width: 2px; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.phw .pp-view::-webkit-scrollbar { display: none; }
+.phw .pp-view button { font-size: 11px; padding: 4px 7px; }
+.phw .pp-tools { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.phw .pp-tools button { height: 42px; font-size: 16px; }
+.phw .pp-tools button small { font-size: 9px; }
+.phw-bot { flex: none; display: flex; flex-direction: column; background: #fffdf8; border-top: 2.5px solid #6b4438; border-radius: 18px 18px 0 0; padding: 6px 10px max(10px, env(safe-area-inset-bottom)); gap: 6px; }
+.phw-tabs { display: flex; gap: 4px; background: #f6e3ea; border-radius: 12px; padding: 3px; }
+.phw-tabs button { flex: 1; height: 34px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 13px; font-weight: 900; color: #7a5a63; cursor: pointer; }
+.phw-tabs button.on { background: #fff; color: #c2457a; box-shadow: 0 1px 2px rgba(90, 60, 50, .15); }
+.phw-tabs em { font-style: normal; font-weight: 800; }
+.phw-pane { display: none; height: 25vh; min-height: 150px; overflow: auto; flex-direction: column; gap: 7px; padding: 2px 2px 4px; }
+.phw-pane.on { display: flex; }
+.phw-pane h4 { display: flex; align-items: center; gap: 6px; margin: 2px 0 0; font-size: 12.5px; }
+.phw-pane h4 em { margin-left: auto; font-style: normal; font-weight: 700; color: #b08a98; font-size: 10.5px; }
+.phw-pane .pp-end, .phw-pane .pp-tmpt { display: none; }                     /* 💾 · ✅ = 아래 버튼 줄 */
+.phw-act { display: flex; gap: 6px; }
+.phw-act button { height: 48px; border-radius: 14px; border: 2.5px solid #6b4438; background: #fff; font: inherit; font-size: 14.5px; font-weight: 900; color: #6b4438; cursor: pointer; padding: 0 10px; }
+.phw-act #phwTry { flex: 1; }
+.phw-act .phw-sv { width: 48px; flex: none; padding: 0; font-size: 19px; }
+.phw-act .phw-add { flex: 1; border-style: dashed; border-color: #f08fb0; background: #fff4f8; color: #c2457a; }
+.phw-act .phw-go { flex: 1.3; background: #f08fb0; color: #fff; box-shadow: 0 3px 0 #6b4438; }
+.phw-act .phw-go:disabled { opacity: .7; }
+body.phw-on .pp-pop:not(.pp-specpop):not(.pp-sizepop):not(.pp-minepop) { left: 8px; right: 8px; width: auto; top: 70px; max-height: 70vh; }
+@media (max-width: 600px) {
+    .pp-specpop, .pp-sizepop, .pp-minepop { width: calc(100vw - 16px) !important; max-height: 90vh; }
+    .pp-sp-r { min-width: 0; }
+    .pp-sp-l { max-height: 28vh; flex: none; }
+    .pp-sp-b { flex-direction: column-reverse; }
+}
+
+/* ---------- 🖨 폰 프린터 ---------- */
+.php-room { position: fixed; inset: 0; z-index: 965; display: none; flex-direction: column; background: #fbe9ef; color: #5a3a30; font-family: inherit; }
+.php-room.show { display: flex; }
+.php-top { flex: none; display: flex; align-items: center; gap: 8px; padding: max(10px, env(safe-area-inset-top)) 12px 6px; }
+.php-top b { font-size: 18px; font-weight: 900; }
+.php-back { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #f0a9c1; background: #fff; font: inherit; font-size: 22px; font-weight: 900; color: #c2457a; cursor: pointer; line-height: 1; }
+.php-box { flex: none; margin: 4px 14px 0; background: #fffdf8; border: 2.5px solid #6b4438; border-radius: 20px; padding: 12px 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; overflow: hidden; }
+.php-mc { position: relative; width: min(260px, 80%); height: 58px; background: #f3ece4; border: 2.5px solid #6b4438; border-radius: 14px 14px 6px 6px; z-index: 2; }
+.php-lcd { position: absolute; left: 12px; top: 9px; background: #2f3b33; color: #9df0b8; font-size: 11px; font-weight: 800; border-radius: 5px; padding: 3px 7px; }
+.php-led { position: absolute; right: 14px; top: 13px; width: 9px; height: 9px; border-radius: 50%; background: #c9b9a8; }
+.php-box.go .php-led { background: #5cc98a; animation: phpBlink .4s infinite alternate; }
+.php-slot { position: absolute; left: 26px; right: 26px; bottom: 6px; height: 6px; border-radius: 3px; background: #6b4438; }
+.php-paper { width: 120px; height: 0; margin-top: -10px; background: #fff; border-radius: 0 0 6px 6px; box-shadow: 0 4px 10px rgba(90, 60, 50, .18); overflow: hidden; display: flex; align-items: center; justify-content: center; transition: height .85s cubic-bezier(.3, .7, .3, 1); }
+.php-paper img { width: 100%; height: 100%; object-fit: contain; }
+.php-paper span { font-size: 40px; }
+.php-box.go .php-paper, .php-box.done .php-paper { height: 120px; }
+.php-msg { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 14px; color: #2f7a4d; text-align: center; }
+.php-msg:empty { display: none; }
+.php-msg button { height: 40px; padding: 0 16px; border-radius: 12px; border: 2px solid #6b4438; background: #fff; font: inherit; font-weight: 900; font-size: 14px; color: #6b4438; cursor: pointer; }
+.php-fl { flex: none; display: flex; gap: 6px; padding: 12px 14px 8px; overflow-x: auto; scrollbar-width: none; }
+.php-fl button { flex: none; height: 36px; padding: 0 12px; border-radius: 18px; border: 2px solid #f1d3de; background: #fff; font: inherit; font-size: 13px; font-weight: 900; color: #6b4438; cursor: pointer; }
+.php-fl button.on { background: #6b4438; border-color: #6b4438; color: #fff; }
+.php-list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding: 0 14px 6px; }
+.php-it { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid #f1e3e8; border-radius: 14px; padding: 8px 10px; }
+.php-th { width: 54px; height: 54px; flex: none; border-radius: 10px; background: #fbf6ef; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+.php-th img { width: 100%; height: 100%; object-fit: contain; }
+.php-nm { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.php-nm b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.php-nm small { font-size: 11.5px; color: #7a5a63; }
+.php-go { flex: none; height: 40px; padding: 0 14px; border-radius: 12px; border: 0; background: #f08fb0; color: #fff; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; }
+.php-go:disabled { opacity: .55; }
+.php-in { flex: none; height: 40px; padding: 0 10px; border-radius: 12px; background: #e6f6ec; color: #2f7a4d; font-size: 12px; font-weight: 800; display: flex; align-items: center; }
+.php-empty { text-align: center; color: #a07f8b; font-size: 13px; padding: 30px 10px; line-height: 1.9; }
+.php-hint { flex: none; margin: 6px 14px max(14px, env(safe-area-inset-bottom)); background: #f6eef2; border-radius: 12px; padding: 9px 12px; font-size: 12px; color: #6b4c57; line-height: 1.5; }
+@keyframes phpBlink { to { opacity: .35; } }

@@ -39,6 +39,39 @@
         const OWN_RULES0 = { seal: 1, piece: 4, paper: 1, tape: 10000, tapeW: 30, tk: 30, leaf: 1, memo: 30 };
         const ownRules = () => { const r = window.MALANG_PROD && window.MALANG_PROD.rules; const o = Object.assign({}, OWN_RULES0); if (r && typeof r === 'object') Object.keys(o).forEach(k => { if (+r[k] > 0) o[k] = +r[k]; }); return o; };
         window.ownRules = ownRules;
+        /* 📐 만든 것 = 도안만 (서랍은 🖨 뽑아야) : 📱 태블릿(책상 프린터) · 📱 폰 ✂️ 작업실 (폰 프린터 · 도련 11-14 '6가지 모두 같은 규칙') */
+        const ownDesignOnly = () => !!window.tbDesignOnly || !!(window.UI && UI.phone && UI.phone() && window.craftOn && craftOn());
+        window.ownDesignOnly = ownDesignOnly;
+        /* 🖨 뽑으면 무엇이 몇 개 (제작 규칙 그대로 · 폰 프린터 · 저장 안내) */
+        function ownRuleText(k) {
+            const R = ownRules();
+            return { seal: `씰 ${R.seal}시트`, piece: `조각 ${R.piece}조각 한 봉투`, paper: `모조지 ${R.paper}시트`, tape: `테이프 한 롤 · ${+(R.tape / 1000).toFixed(1)}m`, tk: `떡메 한 묶음 · ${R.tk}장`, memo: `메모지 한 묶음 · ${R.memo}장`, leaf: `속지 ${R.leaf}장` }[k] || '';
+        }
+        window.ownRuleText = ownRuleText;
+        /* 🖨 도안 하나 뽑기 (폰 프린터 · 저장하고 바로 뽑기 · 책상 프린터와 같은 규칙 : 뽑은 것을 다 쓰거나 버려야 다시) → 새 종이 id · busy · '' */
+        async function ownPrintDesign(did) {
+            did = String(did || '').replace(/^design:/, '');
+            if (!did) return '';
+            if (await ownDesignBusy(did)) return 'busy';
+            try { return await ownDesignPrint(did); } catch (e) { console.warn('🖨 뽑기', e); return ''; }
+        }
+        window.ownPrintDesign = ownPrintDesign;
+        /* 📐 저장했어요 안내 (r = 'design:<id>') : 📱 태블릿 = 책상 프린터로 · 📱 폰 = 🖨 지금 바로 뽑기 (편리함이 먼저 · 도련 11-14) */
+        async function ownDzMsg(r, lead) {
+            const id = String(r || '').replace(/^design:/, ''); if (!id || !window.showMsg) return;
+            const h = (lead ? lead + ' · ' : '') + '📐 <b>내 도안</b>에 저장했어요!';
+            if (window.tbDesignOnly) { showMsg(h + '<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>'); return; }
+            let k = ''; try { const d = (await ownDesigns()).find(e => String(e.id) === id); k = d && d.x && d.x.k; } catch (e) {}
+            const rt = ownRuleText(k);
+            if (!window.showAsk || !(await showAsk(h + `<br><span style="font-size:12px;color:#777;">🖨 뽑으면 🗄️ 서랍에 ${rt || '들어가요'}${rt ? ' 들어가요' : ''}</span>`, '🖨 지금 바로 뽑기', '나중에'))) {
+                if (window.craftRefresh) craftRefresh(); return; }
+            const sid = await ownPrintDesign(id);
+            if (window.craftRefresh) craftRefresh();
+            if (!sid || sid === 'busy') { showMsg(sid === 'busy' ? '🖨 이 도안으로 뽑은 것이 서랍에 아직 있어요.' : '⚠ 뽑지 못했어요.<br><span style="font-size:12px;color:#777;">🖨 프린터에서 다시 해 주세요.</span>'); return; }
+            if (window.buzz) buzz(10);
+            if (await showAsk(`🖨 뽑았어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍에 ${rt || '들어갔어요'}${rt ? ' 들어갔어요' : ''}</span>`, '📌 바로 꺼내 쓰기', '닫기') && window.craftUseMine) craftUseMine(sid);
+        }
+        window.ownDzMsg = ownDzMsg;
         const OWN_MINE_Q = new Proxy({}, { get: (t, k) => ({ tape: ownRules().tape, tk: ownRules().tk, memo: ownRules().memo, leaf: ownRules().leaf })[k] });       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
         const ownHas = e => e.q0 ? e.q > 0 : e.u.length < e.n;                  // 아직 남았어요
         const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
@@ -512,7 +545,7 @@
         }
         async function ownAdd(sheet, meta) {
             ownReady();
-            if (sheet && sheet.from === 'mine' && window.tbDesignOnly && !(meta && (meta.noDesign || meta.print))) {   // 📱 태블릿에서 만든 것 = 📐 도안만 (서랍은 🖨 프린터에서 · 도련 11-14)
+            if (sheet && sheet.from === 'mine' && ownDesignOnly() && !(meta && (meta.noDesign || meta.print))) {   // 📱 폰 작업실도 같은 규칙 (도련 11-14 · ownDesignOnly)   // 📱 태블릿에서 만든 것 = 📐 도안만 (서랍은 🖨 프린터에서 · 도련 11-14)
                 const did = await ownDesignSave(sheet, meta); ownAdd.design = did; ownTell(); return 'design:' + did;
             }
             const { id, full, ent } = ownBuild(sheet, meta);

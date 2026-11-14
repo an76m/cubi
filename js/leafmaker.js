@@ -149,6 +149,7 @@
             finally { if (btn) btn.disabled = false; }
             closeModal('leafMakeModal');
             if (!keep && window.bkOpenSheet) { bkOpenSheet(id); return; }
+            if (String(id || '').startsWith('design:') && window.ownDzMsg) { ownDzMsg(id, name); return; }   // 📐 도안 (📱 폰 작업실 · 도련 11-14)
             showMsg(`${name}를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 서랍에서 꺼내 써요.</span>`);
         }
 

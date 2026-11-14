@@ -802,7 +802,7 @@
         const show = () => {
             const g = L.find(x => x.items.includes(pick)), ph = mmOf(g.mm) || 148, pw = +String(g.mm).split(/[×x*]/)[0] || 105;
             pop.querySelectorAll('[data-sp]').forEach(b => b.classList.toggle('on', b.dataset.sp === pick.id));
-            let H = 300, W = Math.round(H / pick.r); if (W > 470) { W = 470; H = Math.round(W * pick.r); }
+            let H = 300, W = Math.round(H / pick.r); const WM = Math.min(470, innerWidth - 64); if (W > WM) { W = WM; H = Math.round(W * pick.r); }   /* 📱 폰 = 화면 안으로 */
             const SH = H * 644 / 700, top = H * 52 / 700, SW = SH * P.W / P.H, cx = W * (at === 'r' ? .75 : .25);   // 시트 세로 = 쪽 (머리 칸 아래)
             const kp = SH / PG_PX;                                             // 페이지 px → 미리보기 px
             let st = '';
@@ -951,7 +951,7 @@
         try {
             const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, P.W, P.H); compose(x, false);
             const src = c.toDataURL('image/jpeg', .86);
-            let nSeal = 0;
+            let nSeal = 0; if (window.ownAdd) ownAdd.design = '';
             if (P.kind === 'seal') { if (!window.ownAdd) throw new Error('ownAdd'); nSeal = await sealSave(); if (!nSeal) return; }
             else if (P.kind === 'paper') await ownTake({ k: 'paper', from: 'mine', imgs: [c.toDataURL('image/jpeg', .9)] });   // 📄 보이는 그대로 인쇄된 한 장 (js/papermaker.js openPaperSheet · 가로 = PM_W)
             else if (P.kind === 'piece') {                                     // 🧩 담은 조각 + 그리던 것 (4개까지) → 봉투 하나 (🖨 뽑으면 늘 4조각 · own.js ownDesignPrint)
@@ -966,7 +966,7 @@
             else await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: Object.assign({ lf: 'my' }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: +(P.H / P.W).toFixed(4) } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
             P.dirty = false;
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
-            if (window.tbDesignOnly && window.showMsg) showMsg((nSeal ? (P.kind === 'piece' ? `🧩 조각 ${nSeal}개 · ` : `🏷️ 스티커 ${nSeal}장 · `) : '') + '📐 <b>내 도안</b>에 저장했어요!<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>');   // 📱 태블릿 = 📐 도안만 (도련 11-14)
+            if (window.ownAdd && ownAdd.design && window.ownDzMsg) ownDzMsg('design:' + ownAdd.design, nSeal ? (P.kind === 'piece' ? `🧩 조각 ${nSeal}개` : `🏷️ 스티커 ${nSeal}장`) : '');   // 📐 도안 (📱 태블릿 = 책상 프린터 · 📱 폰 = 🖨 지금 바로 뽑기)
             else if (P.kind === 'paper' && window.showMsg) showMsg('📄 모조지 한 장을 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">✂️ 가위로 오려 붙여요.</span>');
             else if (P.kind === 'piece' && window.showMsg) showMsg(`🧩 조각 ${nSeal}개를 <b>🗄️ 서랍</b>에 넣었어요!`);
             else if (P.kind === 'seal' && window.showMsg) showMsg(`🏷️ 스티커 ${nSeal}장짜리 씰 시트를 <b>🗄️ 서랍</b>에 넣었어요!`);
@@ -1104,7 +1104,7 @@
         const show = () => {
             const g = groupOf(pick), same = ratioOk(pick.r);
             pop.querySelectorAll('[data-sp]').forEach(b => b.classList.toggle('on', b.dataset.sp === pick.id));
-            let H = 250, W = Math.round(H / pick.r); if (W > 470) { W = 470; H = Math.round(W * pick.r); }
+            let H = 250, W = Math.round(H / pick.r); const WM = Math.min(470, innerWidth - 64); if (W > WM) { W = WM; H = Math.round(W * pick.r); }   /* 📱 폰 = 화면 안으로 */
             $('ppBk').innerHTML = `<div class="pp-bk b-${pick.b}" style="--bd:${esc(pick.bd)};--pg:${esc(pick.pg)};--w:${W}px;--h:${H}px"><div class="pp-sprd" style="background-image:url('${shot}')"></div><i class="pp-bind"></i></div>`;
             $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · ${esc(g.n)} ${esc(g.mm)}mm · ${SPEC_B[pick.b] || ''}<br>` + (same ? '✅ 지금 종이와 같은 비율이라 그대로 꼭 맞아요' : `⚠ 지금 종이와 비율이 달라서 <b>${pick.r > P.H / P.W ? '세로로 늘어나' : '납작하게 눌려'}</b> 보여요`);
             const go = $('ppSpGo'); go.disabled = same && !!P.spec && P.spec.id === pick.id; go.textContent = same ? (go.disabled ? '📐 지금 이 다이어리에 맞춰 그리고 있어요' : '📐 이 다이어리로 정하기') : `📐 이 다이어리 크기로 종이 맞추기`;
@@ -1192,7 +1192,7 @@
         const show = () => {
             const g = L.find(x => x.items.includes(pick)), ph = +String(g.mm).split(/[×x*]/)[1] || 148, pw = +String(g.mm).split(/[×x*]/)[0] || 105;
             pop.querySelectorAll('[data-sp]').forEach(b => b.classList.toggle('on', b.dataset.sp === pick.id));
-            let H = 260, W = Math.round(H / pick.r); if (W > 470) { W = 470; H = Math.round(W * pick.r); }
+            let H = 260, W = Math.round(H / pick.r); const WM = Math.min(470, innerWidth - 64); if (W > WM) { W = WM; H = Math.round(W * pick.r); }   /* 📱 폰 = 화면 안으로 */
             const k = H / ph, tw = P.tkmm[0] * k, th = P.tkmm[1] * k;   // 1mm = k px (쪽 높이 기준)
             if (TP) {                                                          // 🎀 오른쪽 쪽에 70mm 쯤 비스듬히 + 왼쪽 쪽 위 모서리에 짧게
                 const tu = typeof tapeUrl === 'function' ? tapeUrl({ id: 'pv', name: '', bg: 'none', w: tw, h: th, p: `<image href="${shot}" width="${tw}" height="${th}" preserveAspectRatio="none"/>` }) : '';

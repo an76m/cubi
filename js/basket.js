@@ -268,6 +268,12 @@
     window.bkLift = bkLift;
     /* 서랍 창은 그대로 둔 채 떼는 화면이 그 위에 떠요 (💻 📲 · 도련 11-05) · 📱 폰만 화면이 좁아 서랍 창이 잠깐 비켜요 (js/stickermaker.js stkLeave) */
     async function bkOpenSheet(id, stay) {                                    // stay = 다이어리는 그대로 (🏷️ 씰만 · 꺼낸 종이 톡 · 도련 11-05)
+        if (/^design:/.test(String(id || ''))) {                              // 📐 도안으로 저장된 것을 바로 쓰기 (📱 폰 작업실 '바로 붙이기' · 도련 11-14) = 바로 뽑아서 꺼내요
+            const sid = window.ownPrintDesign ? await ownPrintDesign(id) : '';
+            if (window.craftRefresh) craftRefresh();
+            if (!sid || sid === 'busy') { showMsg('⚠ 뽑지 못했어요.<br><span style="font-size:12px;color:#777;">✂️ 작업실 🖨 프린터에서 다시 해 주세요.</span>'); return; }
+            id = sid;
+        }
         if (!stay) {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             await bkLift();

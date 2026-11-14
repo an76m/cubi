@@ -11,6 +11,7 @@
         /* 만드는 방법 : [아이콘, 이름, 설명, 여는 일(종류), 기능 스위치] */
         const smGo = (k, fn) => { if (window.smPickKind) { smPickKind(k); closeModal('stickerSrcModal'); } if (window[fn]) window[fn](); };   // 📷 · 🖼️ = 그 종류로 정해 두고 바로
         const CRAFT_WAYS = {
+            paint: ['🎨', '그려서 만들기', '붓 · 색 · 레이어 · 📎 사진 · 🏷️ 내 스티커 · 💾 자동 임시저장 · 📔 붙여 보기', k => window.openPhonePaint && openPhonePaint(k), 'stkmake'],   // 📱 폰 그림판 (js/phonepaint.js · 태블릿 그림판과 같은 것 · 도련 11-14 · 폰에서만)
             booth: ['📸', '포토부스', '네컷 · 2×2 · 한 컷 · 필터 · 글씨 · 반짝이', () => window.openBooth && openBooth(), 'stkmake'],
             cam: ['📷', '사진 찍어 만들기', '📷 말랑 디카로 찍거나 골라 모양대로 (하트 · 별 … · ✂️ 손으로)', k => window.openDigicam ? openDigicam({ kind: k, el: window.dcActEl && dcActEl('camera') }) : smGo(k, 'smOpenCam'), 'stkmake'],   // 📷 js/digicam.js (도련 11-08)
             /* 🖼️ 앨범에서 골라 만들기 (🖨️ 프린터 사진 → 스티커) = 영구 삭제 (도련 11-14 : 프린터는 📐 도안을 뽑는 곳 · 사진 · 모양 · 여러 장은 📱 태블릿 🏷️ 씰스티커) */
@@ -25,14 +26,14 @@
         };
         /* 종류 : g = 묶음 제목 · own = 🎒 내 것 종류 (가운데 '내가 만든 것') · to = 저장되는 곳 · soon = 아직 */
         const CRAFT_KINDS = [
-            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['sheet', 'booth', 'cam', 'text'],   // 🗂️ 시트 꾸미기 맨 앞 · 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
+            { g: '스티커', k: 'seal', ic: '🏷️', n: '씰스티커', own: 'seal', ways: ['paint', 'sheet', 'booth', 'cam', 'text'],   // 🗂️ 시트 꾸미기 맨 앞 · 🔤 글씨 스티커 = 씰스티커로 저장돼서 여기 (도련 11-06 · js/stickermaker.js smDoFinish)
             to: '🗄️ 서랍 · 🏷️ 씰' },
-            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['booth', 'cam'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
-            { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['booth', 'cam'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
-            { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['leaf'], to: '🗄️ 서랍 · 📃 속지' },
-            { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['tk'], to: '🗄️ 서랍 · 🧻 떡메 한 묶음' },
+            { k: 'piece', ic: '🧩', n: '조각스티커', own: 'piece', ways: ['paint', 'booth', 'cam'], to: '🗄️ 서랍 · 🧩 조각 봉투' },
+            { k: 'paper', ic: '📄', n: '모조지스티커', own: 'paper', ways: ['paint', 'booth', 'cam'], to: '🗄️ 서랍 · 📄 모조지 (가위로 오려 써요)' },
+            { g: '종이', k: 'leaf', ic: '📃', n: '속지', own: 'leaf', ways: ['paint', 'leaf'], to: '🗄️ 서랍 · 📃 속지' },
+            { k: 'tk', ic: '🧻', n: '떡메모지', own: 'tk', ways: ['paint', 'tk'], to: '🗄️ 서랍 · 🧻 떡메 한 묶음' },
             { k: 'memo', ic: '📝', n: '메모지', own: 'memo', ways: ['memo'], to: '🗄️ 서랍 · 📝 메모지 한 묶음' },
-            { g: '꾸미기', k: 'tape', ic: '🎀', n: '마스킹테이프', own: 'tape', ways: ['tape'], to: '🗄️ 서랍 · 🎀 한 롤' },
+            { g: '꾸미기', k: 'tape', ic: '🎀', n: '마스킹테이프', own: 'tape', ways: ['paint', 'tape'], to: '🗄️ 서랍 · 🎀 한 롤' },
             { k: 'bg', ic: '🌈', n: '배경지', ways: ['weave', 'pdraw'], to: '🌈 배경지 창 · 내가만든 칸', ft: 'pattern' }
         ];
         const C = { on: false, k: 'seal', sel: null, mine: [], loading: false, sheet: false, off: null };
@@ -41,7 +42,8 @@
         const ftOk = f => !f || !window.ftOn || f.split(' ').every(x => ftOn(x));
         const kinds = () => CRAFT_KINDS.filter(K => ftOk(K.ft));
         const kindOf = k => CRAFT_KINDS.find(K => K.k === k) || kinds()[0];
-        const waysOf = K => K.ways.filter(w => CRAFT_WAYS[w] && ftOk(CRAFT_WAYS[w][4]));
+        const phone = () => !!(window.UI && UI.phone && UI.phone());
+        const waysOf = K => K.ways.filter(w => CRAFT_WAYS[w] && ftOk(CRAFT_WAYS[w][4]) && (w !== 'paint' || (phone() && window.openPhonePaint)));   // 🎨 그려서 만들기 = 📱 폰 (💻 📲 = 책상 태블릿)
         const narrow = () => innerWidth < 760;
         const desk = UI.desk;
 
@@ -50,13 +52,14 @@
             el = document.createElement('div'); el.id = 'craftRoom'; el.className = 'cr8-room';
             el.innerHTML = `<div class="cr8-wall"><div class="cr8-sign">✂️ 스티커 만들기<small>내가 쓸 꾸미기를 직접 만들어요</small></div>
                     <div class="cr8-garland" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                    <button type="button" class="cr8-go desk-shop-go" id="crGo"></button></div>
+                    <button type="button" class="cr8-pr" id="crPr">🖨 프린터<b id="crPrN" hidden></b></button><button type="button" class="cr8-go desk-shop-go" id="crGo"></button></div>
                 <div class="cr8-mat">
                     <div class="cr8-panel cr8-kinds"><h3>무엇을 만들까요</h3><div class="cr8-klist" id="crKinds"></div></div>
                     <div class="cr8-panel cr8-work" id="crWorkBox"><h3><span id="crWorkT"></span><button type="button" class="cr8-x win-x" id="crSheetX" aria-label="닫기">✕</button></h3><div class="cr8-wk" id="crWork"></div></div>   <!-- 💻 📲 종류 → 새로 만들기 → 내가 만든 것 (도련 11-02 · 흐름대로) -->
                     <div class="cr8-panel cr8-mine"><h3><span id="crMineT"></span><small id="crMineN"></small></h3><div class="cr8-grid" id="crGrid"></div></div>
                 </div>`;
             document.body.appendChild(el);
+            cq('crPr').onclick = () => { if (window.openPhonePrinter) openPhonePrinter(C.k); };   // 🖨 폰 프린터 (js/phoneprint.js · 도련 11-14)
             cq('crGo').onclick = () => closeCraft();   // 🖥 책상 = '닫기' (이동 메뉴 대신 그대로 책상으로 · 도련 11-06)
             cq('crSheetX').onclick = () => { C.sheet = false; C.sel = null; paint(); };   // 📱 아래 칸 닫기 · 💻 고른 것 풀고 만드는 방법으로
             return el;
@@ -67,6 +70,21 @@
             C.loading = true; paintMine();
             try { C.mine = await ownDesigns(K.own); } catch (e) { console.warn('📐 내 도안', e); }
             C.loading = false; paintMine(); if (C.sel != null) paintWork();
+            prBadge(); draftCheck(K);
+        }
+        /* 🖨 지금 뽑을 수 있는 도안 수 (📱 폰 프린터 버튼 숫자) */
+        async function prBadge() {
+            const b = cq('crPrN'); if (!b || !phone() || !window.ownDesigns) return;
+            let n = 0; try { const L = await ownDesigns(); for (const e of L) if (!(await ownDesignBusy(e.id))) n++; } catch (e) {}
+            b.hidden = !n; b.textContent = n > 99 ? '99+' : n;
+        }
+        /* 💾 그리던 것 (📱 폰 그림판 · 종류마다 하나 · 이 기기) → 맨 위 띠 */
+        async function draftCheck(K) {
+            C.draft = null; const DK = window.PP_DRAFT_K && PP_DRAFT_K[K.k];
+            if (!phone() || !DK || !window.draftHas || !waysOf(K).includes('paint')) return;
+            let d = null; try { d = await draftHas(DK); } catch (e) {}
+            if (K.k !== C.k) return;
+            C.draft = d; paintMine();
         }
         function paintKinds() {
             cq('crKinds').innerHTML = kinds().map(K => `${K.g ? `<div class="cr8-g">${K.g}</div>` : ''}<button type="button" class="cr8-k${K.k === C.k ? ' on' : ''}" data-k="${K.k}"><span>${K.ic} ${K.n}</span>${K.soon ? '<em>곧</em>' : ''}</button>`).join('');
@@ -83,7 +101,11 @@
             else if (C.loading) body = '<div class="cr8-empty">꺼내는 중…</div>';
             else body = C.mine.length ? C.mine.map((e, i) => `<button type="button" class="cr8-card${C.sel === i ? ' on' : ''}" data-i="${i}">${e.th ? `<img src="${htmlEsc(e.th)}" alt="">` : `<span class="cr8-ph">${K.ic}</span>`}<b>${htmlEsc((e.x && e.x.nm) || K.n)}</b></button>`).join('')
                 : `<div class="cr8-empty">아직 ${K.n} 도안이 없어요<br>${narrow() ? '＋ 새로 만들기' : '← 새로 만들기'}로 만들면 도안이 저절로 생겨요</div>`;
-            g.innerHTML = (K.soon ? '' : nw) + body;
+            const hm = t => { const d = new Date(t); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+            const top = !phone() || !K.own ? '' : (C.draft ? `<div class="cr8-draft"><i>💾</i><span><b>그리던 ${K.n}가 있어요</b><small>📱 이 기기 · ${hm(C.draft.at)}</small></span><button type="button" id="crDraftGo">✏️ 이어서</button></div>` : '')
+                + (window.ownRuleText && ownRuleText(K.own) ? `<div class="cr8-rule">📏 <b>제작 규칙</b> · 🖨 뽑으면 ${ownRuleText(K.own)} · 다 쓰거나 버리면 다시 뽑아요</div>` : '');
+            g.innerHTML = top + (K.soon ? '' : nw) + body;
+            if (cq('crDraftGo')) cq('crDraftGo').onclick = () => { if (window.openPhonePaint) openPhonePaint(K.k); };
             g.querySelectorAll('.cr8-card').forEach(c => c.onclick = () => { C.sel = c.dataset.new ? null : +c.dataset.i; C.sheet = true; paintMine(); paintWork(); });
             if (cq('crBgList')) cq('crBgList').onclick = () => { closeCraft(); if (window.openPatternList) openPatternList('mine'); else if (window.openModal) openModal('patternModal'); };
         }
@@ -96,19 +118,19 @@
                 const nm = (e.x && e.x.nm) || K.n;
                 cq('crWorkT').textContent = `📐 ${nm} 도안`;
                 w.innerHTML = `<div class="cr8-pv">${e.th ? `<img src="${htmlEsc(e.th)}" alt="">` : K.ic}</div>
-                    <button type="button" class="cr8-b main" id="crPrint">📄 한 장 더 찍기</button>
+                    <button type="button" class="cr8-b main" id="crPrint">🖨 뽑기</button>
                     <button type="button" class="cr8-b" id="crBasket">🗄️ 서랍에서 보기</button>
                     <button type="button" class="cr8-b cr8-del" id="crDel">🗑 도안 버리기</button>
-                    <p class="cr8-hint">도안은 써도 안 사라져요 · 찍은 종이는 ${K.to}</p>`;
+                    <p class="cr8-hint">도안은 써도 안 사라져요 · 뽑은 것은 ${K.to} · 다 쓰거나 버리면 다시 뽑아요</p>`;
                 cq('crPrint').onclick = async ev => {
                     const b = ev.currentTarget; if (b.disabled) return;
                     if (window.ownDesignBusy && await ownDesignBusy(e.id)) { showMsg('🖨 이 도안으로 뽑은 스티커가 <b>서랍에 아직 있어요</b>.<br><span style="font-size:12px;color:#777;">다 쓰거나 🗑 버리면 다시 뽑을 수 있어요.</span>'); return; }   // 도련 11-14
                     b.disabled = true; b.textContent = '찍는 중…';
                     let sid = null; try { sid = await ownDesignPrint(e.id); } catch (er) { console.warn('📄 한 장 더', er); }
-                    b.disabled = false; b.textContent = '📄 한 장 더 찍기';
+                    b.disabled = false; b.textContent = '🖨 뽑기';
                     if (!sid) { showMsg('⚠ 찍지 못했어요.<br><span style="font-size:12px;color:#777;">잠시 후 다시 해 주세요.</span>'); return; }
-                    buzz(10);
-                    if (await showAsk(`📄 <b>${htmlEsc(nm)}</b> 한 장을 찍었어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍에 넣었어요</span>`, '📌 바로 꺼내 쓰기', '닫기')) useMine(sid);
+                    buzz(10); prBadge();
+                    if (await showAsk(`🖨 <b>${htmlEsc(nm)}</b>를 뽑았어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍에 ${window.ownRuleText ? ownRuleText(K.own) + ' ' : ''}들어갔어요</span>`, '📌 바로 꺼내 쓰기', '닫기')) useMine(sid);
                 };
                 cq('crBasket').onclick = () => { closeCraft(); if (window.openBasket) openBasket(); };
                 cq('crDel').onclick = async () => {
@@ -143,6 +165,7 @@
             const el = build(); C.on = true; C.sel = null; C.sheet = false;
             el.classList.add('show'); document.body.classList.add('cal-on', 'craft-on');
             paint(); loadMine();
+            const pr = cq('crPr'); if (pr) pr.hidden = !phone();
             if (!C.off && window.ownOnChange) C.off = ownOnChange(() => { if (C.on) loadMine(); });   // 다 만들면 가운데가 저절로 새로
         }
         function closeCraft() {
@@ -150,8 +173,9 @@
             C.on = false; el.classList.remove('show'); document.body.classList.remove('cal-on', 'craft-on');
         }
         addEventListener('resize', () => { if (C.on) cq('craftRoom').classList.toggle('narrow', narrow()); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && C.on && !document.querySelector('.modal[style*="flex"]')) closeCraft(); });   // Esc = 닫기와 같아요 (도련 11-06)
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && C.on && !document.querySelector('.modal[style*="flex"]') && !(window.phonePrinterOn && phonePrinterOn()) && !(window.phonePaintOn && phonePaintOn())) closeCraft(); });   // Esc = 닫기와 같아요 (도련 11-06)
         window.openCraft = openCraft; window.closeCraft = closeCraft; window.craftOn = () => C.on;
+        window.craftRefresh = () => { if (C.on) loadMine(); }; window.craftUseMine = useMine;   // 📱 폰 프린터 · 저장하고 바로 뽑기 (js/own.js ownDzMsg · js/phoneprint.js)
         window.CRAFT_KINDS = CRAFT_KINDS; window.CRAFT_WAYS = CRAFT_WAYS;
     })();
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['craft'] = true;

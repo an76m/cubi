@@ -129,6 +129,7 @@
             catch (e) { showMsg('⚠ 테이프를 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); return; }
             closeTapeMaker();
             if (stick) { if (window.bkOpenSheet) bkOpenSheet(id); return; }
+            if (String(id || '').startsWith('design:') && window.ownDzMsg) { ownDzMsg(id, '🎀 테이프'); return; }   // 📐 도안 (📱 폰 작업실 · 도련 11-14)
             showMsg('🎀 만든 테이프를 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">하단메뉴 ✨ 스티커 → 서랍에서 꺼내 붙여요.</span>');
         }
 
