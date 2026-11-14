@@ -195,3 +195,4 @@
 .pp-pcadd { width: 100%; display: flex; flex-direction: column; align-items: center; border: 2px dashed #ff8fb1; background: #fff6f9; border-radius: 12px; padding: 6px 8px; margin-bottom: 8px; font: inherit; font-size: 13px; font-weight: 900; color: #c2457a; cursor: pointer; }
 .pp-pcadd small { font-size: 10px; font-weight: 700; color: #8a6a76; }
 .pp-pcadd:hover { background: #ffe8f0; }
+.pp-slon .pp-paon { transform: rotate(-2deg); box-shadow: 0 3px 8px rgba(90, 60, 50, .28); filter: none; border-radius: 3px; }

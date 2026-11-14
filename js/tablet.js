@@ -121,7 +121,7 @@
             if (k === 'tape') { wsTape(); return; }
             if (OPEN[k]) OPEN[k](); else if (window.craftWay) craftWay(WAY[k], k); return;   // 🏷️ 시트 꾸미기 = 이미 화면 가득
         }
-        if (k === 'piece' && window.ppOpen) { wsPaint('piece'); return; }      // 🧩 조각도 같은 그림판 (도련 11-14 · js/padpaint.js kind piece)
+        if ((k === 'piece' || k === 'paper') && window.ppOpen) { wsPaint(k); return; }   // 🧩 조각 · 📄 모조지도 같은 그림판 (도련 11-14 · js/padpaint.js kind piece · paper · 예전 drawApp 은 남겨 둬요)
         drawApp(k);
     }
 
@@ -174,11 +174,11 @@
     let wsTok = 0;
     async function wsPaint(k) {
         const tok = ++wsTok;                                                  // 🐞 임시저장을 찾는 동안 홈 → 다시 열기 · 두 번 누르기 = 마지막 것만 열어요 (도련 11-14 : 그림판이 두 벌 열려 위 막대가 겹쳤어요)
-        const T = k === 'tk', TP = k === 'tape', SL = k === 'seal', PC = k === 'piece', NM = T ? '떡메' : TP ? '테이프' : SL ? '씰스티커' : PC ? '조각' : '속지';
-        wsOpen(T ? '🧻 떡메모지 만들기' : TP ? '🎀 마스킹테이프 만들기' : SL ? '🏷️ 씰스티커 만들기' : PC ? '🧩 조각스티커 만들기' : '📃 속지 만들기', TP ? '한 칸을 그리면 쭉 이어져요 · 🖌️ 픽셀 · ✒️ 벡터' : PC ? '그린 모양대로 하얀 칼선 · ➕ 담기로 4개까지 · 한 봉투' : SL ? '떨어져 그린 그림 = 스티커 한 장씩 · 하얀 칼선 · 놓은 자리 그대로 시트' : '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
+        const T = k === 'tk', TP = k === 'tape', SL = k === 'seal', PC = k === 'piece', PA = k === 'paper', NM = T ? '떡메' : TP ? '테이프' : SL ? '씰스티커' : PC ? '조각' : PA ? '모조지' : '속지';
+        wsOpen(T ? '🧻 떡메모지 만들기' : TP ? '🎀 마스킹테이프 만들기' : SL ? '🏷️ 씰스티커 만들기' : PC ? '🧩 조각스티커 만들기' : PA ? '📄 모조지스티커 만들기' : '📃 속지 만들기', TP ? '한 칸을 그리면 쭉 이어져요 · 🖌️ 픽셀 · ✒️ 벡터' : PA ? '보이는 그대로 인쇄된 한 장 · 쓸 때 ✂️ 가위로 오려 붙여요' : PC ? '그린 모양대로 하얀 칼선 · ➕ 담기로 4개까지 · 한 봉투' : SL ? '떨어져 그린 그림 = 스티커 한 장씩 · 하얀 칼선 · 놓은 자리 그대로 시트' : '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
         const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
         const go = draft => ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
-            bg: T ? '#fff6cf' : TP ? '#ffc6d6' : '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: T ? { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 40 } : TP ? { bg: '#ffc6d6', g: 'plain', lc: '#ffffff', gap: 24 } : { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
+            bg: T ? '#fff6cf' : TP ? '#ffc6d6' : PA ? '#fdfaf2' : '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: T ? { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 40 } : TP ? { bg: '#ffc6d6', g: 'plain', lc: '#ffffff', gap: 24 } : { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
             done: () => { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home(); } });
         /* 💾 임시저장해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
         const DK = (window.PP_DRAFT_K || {})[k] || k;
