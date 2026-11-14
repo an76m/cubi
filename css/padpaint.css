@@ -191,3 +191,7 @@
 .pp-sl-at { display: flex; gap: 6px; }
 .pp-sl-at button { border: 2px solid #f1e3e8; background: #fff; border-radius: 10px; padding: 4px 10px; font: inherit; font-size: 12px; font-weight: 800; color: #6b4438; cursor: pointer; }
 .pp-sl-at button.on { border-color: #ff8fb1; background: #fff0f5; color: #c2457a; }
+/* 🧩 조각 담기 (도련 11-14) */
+.pp-pcadd { width: 100%; display: flex; flex-direction: column; align-items: center; border: 2px dashed #ff8fb1; background: #fff6f9; border-radius: 12px; padding: 6px 8px; margin-bottom: 8px; font: inherit; font-size: 13px; font-weight: 900; color: #c2457a; cursor: pointer; }
+.pp-pcadd small { font-size: 10px; font-weight: 700; color: #8a6a76; }
+.pp-pcadd:hover { background: #ffe8f0; }
