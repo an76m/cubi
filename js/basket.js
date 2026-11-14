@@ -1011,10 +1011,11 @@
             relEl.classList.remove('ready'); const hint = relEl.querySelector('.ab-relhint'); if (hint) hint.textContent = '스티커를 끌어 와 붙여요';
             document.querySelectorAll('#abPeel .ab-st.on').forEach(x => x.classList.remove('on'));
         } else bkView();
-        const nid = await abDo(ownRelMove(src, slot, D.rl, pos), '🤍 이형지북에 붙이는 중…', '✓ 이형지북에 붙였어요');
-        if (nid === undefined) { D.sheet = null; return; }                       // 실패 (알림은 abDo)
-        if (!nid) { showMsg('이 스티커는 이미 썼거나 옮겨졌어요.'); D.sheet = null; bkRender(true); return; }
-        if (B.desk && B.desk.sheet && B.desk.sheet.id === src) { B.desk.sheet.imgs[slot] = null; if (!B.desk.sheet.imgs.some(u => u != null)) { B.desk.pick = ''; B.desk.sheet = null; } }
+        AB.hi.set(tmp, img);
+        AB.rel.push({ src, k: slot, rl: D.rl, pos, tmp, img });                // 💾 모아서 한 번에 (도련 11-14 : 끌어다 놓기 abRelDrop 과 같게 · 예전 = 한 장마다 바로 ownRelMove)
+        B.sig = bkSig();
+        clearTimeout(AB.flushT); AB.flushT = setTimeout(abFlush, 1200);
+        if (B.desk && B.desk.sheet && B.desk.sheet.id === src && !B.desk.sheet.imgs.some(u => u != null)) { B.desk.pick = ''; B.desk.sheet = null; }
         buzz(8);
         if (B.desk && !B.desk.pick && B.view === 'desk') bkView();               // 종이를 다 옮겼으면 다시 그려요
     }

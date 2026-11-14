@@ -156,7 +156,7 @@
         function ownPendFix(e) {
             const P = ownPendGet().filter(p => p.s === e.id); if (!P.length) return e;
             const x = Object.assign({}, e, { u: (e.u || []).slice() });
-            P.forEach(p => { if (p.q) x.q = Math.max(0, (x.q || 0) - p.q); else if (!x.u.includes(p.k)) x.u.push(p.k); });
+            P.forEach(p => { if (p.p) { if (p.th) x.th = p.th; if (p.left <= OWN_PAPER_END) { x.q0 = 1; x.q = 0; } } else if (p.q) x.q = Math.max(0, (x.q || 0) - p.q); else if (!x.u.includes(p.k)) x.u.push(p.k); });   // p.p = 📄 모조지 (완료 전 · 남은 종이 그림은 이 기기 ownPaperDb)
             return x;
         }
         function ownSetKind(k, list) {
@@ -562,6 +562,8 @@
                 let s;
                 try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
                 for (const p of ownPendGet()) { if (p.s !== id) continue; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else if (s.imgs[p.k] != null) { s.gh = s.gh || []; if (!s.gh[p.k]) s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); s.imgs[p.k] = null; } }   // 이 기기에서 쓰는 중인 칸 · 수량
+                const pp = ownPendGet().find(p => p.p && p.s === id);               // 📄 완료 전에 오린 모조지 = 이 기기의 남은 종이로
+                if (pp) { const r = await ownPaperGet(id); if (r && r.img) { s.imgs = [r.img]; s.x = Object.assign({}, s.x, { grained: 1 }, r.a0 && !(s.x && s.x.a0) ? { a0: r.a0 } : {}); } if (pp.left <= OWN_PAPER_END) return null; }
                 if (s.q0 && s.q <= 0) return null;
                 return { e, s };
             });
@@ -569,6 +571,14 @@
 
         /* ---------- ✂️ 한 칸 쓰기 (페이지에 붙고 저장된 순간) ----------
            el : 붙은 페이지 요소 (다른 기기에서 이미 쓴 칸이면 페이지에서 빼요) */
+        /* 📄 완료 전 모조지 = 남은 종이 그림을 이 기기(IndexedDB)에 · 종이마다 마지막 것 하나 (도련 11-14) */
+        let ownPdbP = null;
+        const ownPdb = () => ownPdbP || (ownPdbP = new Promise(ok => { try { const r = indexedDB.open('mallang-ownpaper', 1); r.onupgradeneeded = () => r.result.createObjectStore('d'); r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
+        async function ownPdTx(mode, fn) { const d = await ownPdb(); if (!d) throw new Error('idb'); return new Promise((ok, no) => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => no(t.error); } catch (e) { no(e); } }); }
+        const ownPdKey = id => (O.kw || ownWho()) + '|' + id;
+        const ownPaperPut = (id, r) => ownPdTx('readwrite', st => st.put(Object.assign({ at: Date.now() }, r), ownPdKey(id)));
+        const ownPaperGet = id => ownPdTx('readonly', st => st.get(ownPdKey(id))).catch(() => null);
+        const ownPaperDel = id => ownPdTx('readwrite', st => st.delete(ownPdKey(id)));
         function ownPendGet() { try { const o = JSON.parse(localStorage.getItem(OWN_PEND) || '{}'); return Array.isArray(o[O.kw || ownWho()]) ? o[O.kw || ownWho()] : []; } catch (e) { return []; } }
         function ownPendSet(arr) {
             if (ownMode() === 'mem') return;                                    // 👀 구경만은 남기지 않아요
@@ -581,13 +591,18 @@
             ownReset();
             if (window.pgDoneNow && pgDoneNow()) { if (window.pgBlock) pgBlock(); return Promise.resolve(false); }   // ✅ 완료한 페이지 = 더 못 붙여요 (js/pagedone.js)
             if (window.dgDone) dgDone();                                             // 🩷 처음 붙였으면 다꾸하는 법 메모는 끝 (js/dkguide.js)
-            const hk = op.img == null && window.pgHoldKey ? pgHoldKey() : '';   // ✅ 완료 전 다이어리 페이지 = 쓴 칸은 이 기기에만 적어 두고 ✅ 완료할 때 한꺼번에 (ownCommit · 도련 11-14 : 드라이브 요청 줄이기)
+            const hk = window.pgHoldKey ? pgHoldKey() : '';                     // 📄 모조지도 (도련 11-14 : 남은 종이 그림은 이 기기 IndexedDB 에)   // ✅ 완료 전 다이어리 페이지 = 쓴 칸은 이 기기에만 적어 두고 ✅ 완료할 때 한꺼번에 (ownCommit · 도련 11-14 : 드라이브 요청 줄이기)
             if (op.img == null) {                                                 // 칸 · 수량은 끊겨도 다음에 이어서 지워요 (이 기기에 기억)
                 const pend = ownPendGet();
                 const kk = ownKindOf(id);                                          // 종류도 기억해요 (이어서 지울 때 그 종류 목록만 읽게)
                 if (op.q) pend.push(Object.assign({ s: id, q: op.q, t: Date.now(), n: ownRid(), kk }, hk ? { h: hk } : {}));
                 else if (!pend.some(p => p.s === id && p.k === op.k)) pend.push(Object.assign({ s: id, k: op.k, t: Date.now(), kk }, hk ? { h: hk } : {}));
                 ownPendSet(pend); op.n = op.q ? pend[pend.length - 1].n : '';
+            } else if (hk) {                                                      // 📄 모조지 완료 전 : 마지막 남은 종이만 기억 (그림 = 이 기기 · 표시 = 이 기기 목록)
+                const pend = ownPendGet().filter(p => !(p.p && p.s === id && p.h === hk));
+                pend.push({ s: id, p: 1, h: hk, kk: ownKindOf(id), t: Date.now(), th: op.th || '', left: op.left, a0: op.a0 || 0 });
+                ownPendSet(pend);
+                ownPaperPut(id, { h: hk, img: op.img, th: op.th || '', left: op.left, a0: op.a0 || 0 }).catch(e => console.warn('📄 모조지 이 기기 보관', e));
             }
             if (O.idx) {                                                          // 이 기기에서는 바로 빠져 보여요
                 const e = O.idx.find(x => x.id === id);
@@ -618,6 +633,7 @@
                         if (!e || !s) { O.spent.add(id); n++; if (prog) prog(n / N); continue; }
                         let end = false, slot = false;
                         for (const p of P) {
+                            if (p.p) { const r = await ownPaperGet(id); if (r && r.img) { s.imgs = [r.img]; if (r.th) e.th = r.th; s.x = Object.assign({}, s.x, { grained: 1 }, r.a0 && !(s.x && s.x.a0) ? { a0: r.a0 } : {}); end = r.left <= OWN_PAPER_END; } continue; }   // 📄 모조지 = 남은 종이 그림으로
                             if (p.q) { s.q = Math.max(0, (s.q || 0) - p.q); e.q = s.q; end = s.q <= 0; }
                             else if (s.imgs[p.k] != null) { if (!(s.gh && s.gh[p.k])) { s.gh = s.gh || []; s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); } s.imgs[p.k] = null; slot = true; }
                         }
@@ -630,14 +646,15 @@
                     for (const f of kills) await ownFileKill(f).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 (다음에 다시) :', er));
                     done.push([k, list]);
                 }
+                for (const p of ops) if (p.p) await ownPaperDel(p.s).catch(() => {});
                 ownPendSet(ownPendGet().filter(p => p.h !== hk));                 // 먼저 지우고 목록을 얹어야 두 번 빠져 보이지 않아요
                 done.forEach(([k, list]) => ownSetKind(k, list)); ownTell();
                 return true;
             });
         }
         function ownUnhold(hk) { ownPendSet(ownPendGet().map(p => { if (p.h === hk) { const q = Object.assign({}, p); delete q.h; return q; } return p; })); }   // 완료했는데 못 올렸어요 → 보통 '이어서 지우기'로 (인터넷이 되면 ownReplay)
-        function ownDropHeld(keys) { const K = new Set(keys); ownPendSet(ownPendGet().filter(p => !(p.h && K.has(p.h)))); O.spent = new Set(); O.kd = {}; O.idx = null; O.album = null; ownTell(); }   // 목록은 다음에 볼 때 다시 읽어요   // 🆕 처음부터 = 쓴 칸이 시트로 돌아가요
-        window.ownCommit = ownCommit; window.ownUnhold = ownUnhold; window.ownDropHeld = ownDropHeld; window.ownHeld = ownHeld;
+        function ownDropHeld(keys) { const K = new Set(keys); ownPendGet().forEach(p => { if (p.p && p.h && K.has(p.h)) ownPaperDel(p.s).catch(() => {}); }); ownPendSet(ownPendGet().filter(p => !(p.h && K.has(p.h)))); O.spent = new Set(); O.kd = {}; O.idx = null; O.album = null; ownTell(); }   // 목록은 다음에 볼 때 다시 읽어요   // 🆕 처음부터 = 쓴 칸이 시트로 돌아가요
+        window.ownCommit = ownCommit; window.ownPaperGet = ownPaperGet; window.ownUnhold = ownUnhold; window.ownDropHeld = ownDropHeld; window.ownHeld = ownHeld;
         const OWN_PAPER_END = .04;                                                // 📄 남은 종이가 이만큼보다 적으면 다 쓴 종이
         async function ownSpend(id, op, el, kk) {
             const done = () => ownPendSet(ownPendGet().filter(p => !(p.s === id && (op.q ? p.n === op.n : p.k === op.k))));
@@ -688,7 +705,15 @@
         function ownRetryLater() { clearTimeout(ownRetryT); ownRetryT = setTimeout(ownReplay, 30000); }
         async function ownReplay() {
             if (!ownMode()) return;
-            for (const p of ownPendGet()) { if (p.h) continue; try { await ownSerial(() => ownSpend(p.s, p.q ? { q: p.q, n: p.n } : { k: p.k }, null, p.kk)); } catch (e) { return; } }   // h = ✅ 완료 전 페이지 칸 (완료할 때 ownCommit)
+            for (const p of ownPendGet()) {
+                if (p.h) continue;
+                if (p.p) {                                                       // 📄 완료했는데 못 올린 모조지 → 남은 종이 그림으로 마저
+                    const r = await ownPaperGet(p.s).catch(() => null);
+                    try { if (r && r.img) await ownSerial(() => ownSpend(p.s, { img: r.img, th: r.th, left: r.left, a0: r.a0 }, null, p.kk)); await ownPaperDel(p.s).catch(() => {}); ownPendSet(ownPendGet().filter(q => !(q.p && q.s === p.s && !q.h))); } catch (e) { return; }
+                    continue;
+                }
+                try { await ownSerial(() => ownSpend(p.s, p.q ? { q: p.q, n: p.n } : { k: p.k }, null, p.kk)); } catch (e) { return; }
+            }   // h = ✅ 완료 전 페이지 칸 (완료할 때 ownCommit)
         }
         window.addEventListener('online', () => { if (ownPendGet().some(p => !p.h)) ownReplay(); });
 
