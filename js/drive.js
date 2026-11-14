@@ -110,8 +110,8 @@
             : ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive.appdata'];
         const DRIVE_SCOPE = DRIVE_SCOPES.join(' ');
         const AUTH_FLAG_KEY = 'gdrive_authed';   // 이 기기에서 이전에 로그인했는지 (자동 로그인 시도용)
-        const UPLOAD_DEBOUNCE_MS = 3000;         // 변경 후 이 시간이 지나면 자동으로 드라이브에 저장
-        const UPLOAD_MAX_WAIT_MS = 30000;        // ⏱ 3초도 안 쉬고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
+        const UPLOAD_DEBOUNCE_MS = 10000;        // 변경 후 이 시간이 지나면 자동으로 드라이브에 저장 (3초 → 10초 · 도련 11-14 : 드라이브 요청 줄이기)
+        const UPLOAD_MAX_WAIT_MS = 60000;        // ⏱ (30초 → 1분 · 도련 11-14) 10초도 안 쉬고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
         const PENDING_KEY = 'gdrive_pending_backup'; // 화면이 꺼질 때 업로드가 끝나기 전에 앱이 멈출 경우를 대비한 임시 보관본
         const KEEPALIVE_MAX_BYTES = 60000;       // fetch keepalive 옵션은 본문 64KB 이하만 가능
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
