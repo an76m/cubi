@@ -54,7 +54,7 @@
             cx += S.mv.x; cy += S.mv.y;                                          // 종이를 옮긴 만큼
             const it = S.items, n = it.length, pw = Math.min(r.width, S.W);
             if (S.L) {                                                          // 🗺️ 시트 그대로 : A6 시트 세로 = 다이어리 한 쪽 세로 (페이지가 보이는 크기 그대로 · 화면에 안 들어가면 같이 줄여요)
-                const pk = pg && pg.offsetWidth ? r.width / pg.offsetWidth : 1, H0 = PEL_SHEET_H * pk, fit = Math.min(1, S.W * .94 / (H0 * S.L.r), (S.H - 40) * .94 / H0);
+                const pk = pg && pg.offsetWidth ? r.width / pg.offsetWidth : 1, H0 = PEL_SHEET_H * pk * (window.dyImgK ? dyImgK() : 1),   /* 📏 시트도 실제 크기 비율 */ fit = Math.min(1, S.W * .94 / (H0 * S.L.r), (S.H - 40) * .94 / H0);
                 pelLaySheet(cx, cy, H0 * fit, pk * fit); return pelKeep();
             }
             if (n === 1 && it[0].a) {

@@ -102,7 +102,7 @@ function stkPeeled(a, st, C, F) {
 function stkSpeed(d, P) { const t = performance.now(), sp = Math.hypot(P[0] - d.last[0], P[1] - d.last[1]) / Math.max(1, t - d.lt); d.last = P; d.lt = t; return sp; }
 function stkSway(st, dx, base, lim) { const r = st.rot + dx * .004 - (st.rot - base) * .08; st.rot = lim ? Math.max(-lim, Math.min(lim, r)) : r; }
 function stkWiggle(st) { const r = st.rot, t0 = performance.now(); (function w() { const q = (performance.now() - t0) / 300; st.rot = r + Math.sin(q * Math.PI * 4) * .04 * (1 - q); if (q < 1) requestAnimationFrame(w); else st.rot = r; })(); }
-function stkPageScale() { const pg = spPage(), r = pg && pg.getBoundingClientRect(); return r && r.width ? r.width / (pg.offsetWidth || r.width) : 0; }
+function stkPageScale() { const pg = spPage(), r = pg && pg.getBoundingClientRect(); return r && r.width ? r.width / (pg.offsetWidth || r.width) * (window.dyImgK && spKeep() ? dyImgK() : 1) : 0; }   // 그림 1px → 화면 px (📏 실제 크기 비율 · js/skins.js dyImgK)
 function stkCap(el, e) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
 function stkBar(e, P) { if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e); }   // 종이 밖 날짜바 위 → 페이지 옮기기 (js/page.js)
 

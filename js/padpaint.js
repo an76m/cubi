@@ -789,7 +789,7 @@
     const szMm = v => P.kind === 'paper' ? `${Math.round(v[1] * PAPER_K * sealPh() / 644)} × ${Math.round(v[2] * PAPER_K * sealPh() / 644)}mm` : `${Math.round(sealPh() * v[1] / v[2])} × ${sealPh()}mm`;
     /* 📏 씰 시트 세로 = 다이어리 한 쪽 세로 (js/stickerpeel.js PEL_SHEET_H 644 = 쪽 높이 · 떼어 붙이면 그 크기 그대로) → 1mm = P.H / 쪽 세로 mm */
     const mmOf = s => +String(s || '').split(/[×x*]/)[1] || 0;
-    function sealPh() { const t = window.dyLook ? dyLook() : null; return mmOf(P.spec && P.spec.mm) || mmOf(t && t.mm) || 148; }
+    function sealPh() { return mmOf(P.spec && P.spec.mm) || 148; }        // 📏 시트 그림 644px = 148mm (A6 · 1mm ≈ 4.35px · 다이어리 규격과 상관없이 · js/skins.js STK_MM)
     function sealPastePop() {                                                  // 📔 다이어리에 붙여 보기 (도련 11-14 : 내 씰이 다이어리에서 얼마나 큰지)
         let pop = $('ppSpecPop'); if (pop) { pop.remove(); return; }
         commitFloat(); penEnd();

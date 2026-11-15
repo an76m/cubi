@@ -121,7 +121,8 @@
             const go = () => requestAnimationFrame(() => requestAnimationFrame(() => {
                 const w = img.naturalWidth, h = img.naturalHeight; if (!el.isConnected || !w || !h) return;
                 const b0 = el.getBoundingClientRect(), c0 = [b0.left + b0.width / 2, b0.top + b0.height / 2];
-                el.style.width = w + 'px'; el.style.height = el.style.height ? h + 'px' : ''; el.dataset.scale = 1;
+                const k = window.dyImgK && spKeep() ? dyImgK() : 1;              // 📏 스티커 그림 1px → 페이지 px (실제 크기 비율 · js/skins.js · 🏪 연습장은 그대로)
+                el.style.width = w * k + 'px'; el.style.height = el.style.height ? h * k + 'px' : ''; el.dataset.scale = 1;
                 elCenterTo(el, c0[0], c0[1], pageK(spPage()).k, el.dataset.rotation || 0);   // 📄 페이지에 놓기 하나
                 spSave(false);
             }));
