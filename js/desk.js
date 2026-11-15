@@ -1847,7 +1847,7 @@
         function dkVolOpen(id) {
             const a = dkvOf(id);
             if (a && a.t === 'pg') { if (deskAnim) return; if (dyNow().id !== id) dySet(id); dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary()); return; }   // 📓 🗂️ 페이지 다이어리 = 그 권 펼치기 (도련 11-06)
-            if (a && a.t !== 'dy' && !a.k) { showMsg(`${a.t === 'bd' ? '📒 아직 정리할 스티커를 정하지 않은 바인더예요.' : '🤍 아직 정리할 스티커를 정하지 않은 이형지북이에요.'}<br><span style="font-size:12px;color:#777;">정리하고 싶은 스티커 서랍 → 📒 정리하기에서 📥 불러와 써요</span>`); return; }   // 📥 종류 없는 책 = 안내만 (도련 11-08)
+            if (a && a.t !== 'dy' && !a.k) { if (window.abOpenFree) abOpenFree(a.t, a.id); return; }   // 📥 종류 없는 책 = 빈 책 그대로 펼쳐 보기 · 넘기기 (도련 11-15 · 예전 = 안내만)
             if (a && a.t !== 'dy') { if (window.abOpenAt) abOpenAt(a.k, a.t, a.id); return; }   // 📒 🤍 = 그 종류 창에서 그 책 펼치기
             if (deskAnim || !window.dyySelect) return;
             if (id === dkyCur()) { deskOpenDiary(); return; }                       // 펼쳐 볼 권 = 바로

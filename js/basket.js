@@ -78,6 +78,7 @@
     window.bkSortOpen = () => { if (B.view === 'desk' && vis('basketKindModal')) return; B.wantSort = true; bkOpenKind('seal'); };   // 📒 스티커 정리 (🪑 위 메뉴) = 고르는 창 없이 바로 씰스티커 정리 책상 · 다른 스티커는 위 줄 버튼으로 (도련 11-11)
     function bkOpenKind(k, keep) {                                            // 그 종류의 창 (🧺 바구니 · 📒 스티커첩)
         if (!BK_KINDS[k]) return;
+        B.free = null;                                                         // 📥 빈 책 보기는 끝
         if (B.kind !== k || !keep) { B.view = 'bin'; B.cur = ''; B.pg = 0; B.desk = null; }   // keep : 떼는 창에서 돌아올 때 보던 화면 그대로
         B.kind = k; B.sortGo = !!B.wantSort; B.wantSort = false;
         if (vis('basketModal')) closeModal('basketModal');
@@ -417,7 +418,7 @@
         return o.id;
     }
     /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색] }] · 톡 = 그 종류 창에서 그 책 펼치기 */
-    window.abFreeOpen = abFreeOpen; window.abLoadFree = abLoadFree; window.abReturnFree = abReturnFree;
+    window.abTakeTool = abTakeTool; window.abFreeOpen = abFreeOpen; window.abLoadFree = abLoadFree; window.abReturnFree = abReturnFree;
     window.abDeskList = async () => {
         if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
         let a; try { a = await ownAlbumGet(); } catch (e) { return []; }
@@ -509,7 +510,7 @@
     function bkView(v) {
         if (!v && B.sortGo && B.view === 'bin' && B.list) { B.sortGo = false; abDesk(); return; }   // 📒 스티커 정리로 왔으면 바로 정리 책상 (서랍이 비어도 · 도련 11-11)
         if (v && B.view === 'desk' && v !== 'desk') { abDraftNow(); if (AB.peelOn && window.closeStickerPeel) closeStickerPeel(); }   // 정리 책상을 나가면 띄운 종이를 닫아요 · 저장은 ✔ 완료 때만 (도련 11-15 · 그 전엔 이 기기에)
-        if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; }
+        if (v) { B.view = v; if (v === 'bin' || v === 'album') B.desk = null; if (v !== 'bd' && v !== 'rl') B.free = null; }
         const wrap = bq('bkWrap'); if (!wrap || !B.album) return;
         if (B.view === 'album' && !abHasAlbum()) B.view = 'bin';               // 정리한 게 없으면 스티커첩 탭도 없어요
         const V = B.view || 'bin', sc = wrap.closest('.modal-content'), keep = sc ? sc.scrollTop : 0;
@@ -673,7 +674,7 @@
     /* 🏷️ 정리 책상에서 바로 라벨 붙이기 (첩이 여러 개일 때 무엇인지 알게 · 도련 10-25) */
     const abLbDesk = (t, x) => `<label class="ab-lbdesk"><span aria-hidden="true">🏷️</span><input value="${esc(x.lb)}" placeholder="라벨 붙이기" maxlength="8" aria-label="라벨" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()" onchange="abLabel('${t}','${esc(x.id)}',this.value)"></label>`;
     function abBinder() {
-        const body = bq('abBody'), b = abBdOf(B.cur); if (!b) { bkView('album'); return; }
+        const body = bq('abBody'), b = B.free && B.free.t === 'bd' ? B.free.x : abBdOf(B.cur); if (!b) { bkView('album'); return; }
         abFlt('bd', b, body);
     }
     function abLabel(t, id, v) { const fn = a => { const x = (t === 'bd' ? a.bd : a.rl).find(o => o.id === id); if (x) x.lb = String(v || '').trim().slice(0, 8); }; abQueue(fn); abSplit(); if (B.view !== 'desk') bkView(); B.sig = bkSig(); }
@@ -684,7 +685,7 @@
         return r.it.filter(t => (t.pg || 0) === pg).map(t => { const e = B.byId.get(t.s); return e ? `<button type="button" class="ab-it" data-id="${esc(t.s)}" style="left:${(t.x * 100).toFixed(2)}%;top:${(t.y * 100).toFixed(2)}%;--r:${(+t.r).toFixed(1)}deg${t.w ? `;--iw:${t.w};--ih:${t.h}` : ''}" aria-label="스티커"><img src="${esc(AB.hi.get(t.s) || e.th || '')}" alt="" draggable="false"></button>` : ''; }).join('');
     }
     function abRel() {
-        const body = bq('abBody'), r = abRlOf(B.cur); if (!r) { bkView('album'); return; }
+        const body = bq('abBody'), r = B.free && B.free.t === 'rl' ? B.free.x : abRlOf(B.cur); if (!r) { bkView('album'); return; }
         abFlt('rl', r, body);
     }
     /* 📒 🤍 펼친 바인더 · 이형지북 = 창 없이 책상 위에 떠 있는 책 (도련 11-15 · 스티커 정리의 바인더 모습 그대로)
@@ -753,7 +754,15 @@
             bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
         };
     }
-    function abFltClose() { if (B.fltBack === 'album') { bkView('album'); return; } bkView('bin'); closeModal('basketKindModal'); }   // ✕ = 스티커첩에서 열었으면 스티커첩으로 · 책상에서 열었으면 닫기
+    /* 📥 종류 없는 책 (아직 정리할 스티커를 정하지 않은 바인더 · 이형지북) = 빈 책 그대로 펼쳐 보고 넘겨 봐요 (도련 11-15 · 다이어리처럼 · 꽂기 · 붙이기는 📒 스티커 정리에서) */
+    window.abOpenFree = async (t, id) => {
+        await frReady(); const o = frAll(t).find(x => x.id === id); if (!o) return;
+        B.free = { t, x: t === 'bd' ? { id: o.id, pid: o.pid, n: +o.n, p: {} } : { id: o.id, n: +o.n, it: [] } };
+        if (!B.album) B.album = { bd: [], rl: [], g: {} };
+        B.cur = o.id; B.pg = 0; B.fltBack = '';
+        openModal('basketKindModal'); bkView(t);
+    };
+    function abFltClose() { if (B.free) { B.free = null; B.view = 'bin'; closeModal('basketKindModal'); return; } if (B.fltBack === 'album') { bkView('album'); return; } bkView('bin'); closeModal('basketKindModal'); }   // ✕ = 스티커첩에서 열었으면 스티커첩으로 · 책상에서 열었으면 닫기
     window.abFltClose = abFltClose;
     addEventListener('resize', () => { if (B.view === 'bd' || B.view === 'rl') { const F = bq('abFloat'); if (F) bkView(); } });
     /* 📒 정리 책상 */
