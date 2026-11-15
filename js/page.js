@@ -214,7 +214,6 @@
         }
 
         let turn = null;
-        let drag = null;
 
         /* =====================================================================
            🗜 SVG 그림 짧게 저장 : 페이지 그림은 언제나 그림 그대로 담아요 (주소 · 이름표 없음)
@@ -360,23 +359,16 @@
             }
         }
 
+        /* ✋ 넘기는 손길 · 움직임 = 공통 (js/book.js bookTurner · 도련 11-15 · 2-2) · 넘어가는 그림만 다이어리 것 (종이 말림 · beginCurl · updateCurl · endCurl) */
+        let CURL = null;
+        const curlCtx = () => {
+            const t = turn, book = document.getElementById('diaryBook');
+            return { w: t.W, k: t.isCover && t.two ? 1.5 : 1, get d() { return turn === t ? t.d : 0; }, set: d => { if (turn === t) updateCurl(d); }, done: ok => { if (turn === t) endCurl(ok); },   // 💻 표지는 다이어리도 같이 옮겨가니 손가락 따라가게 (k)
+                out: (e, dir) => { const r = book.getBoundingClientRect(); return dir === 1 ? e.clientX <= r.left : e.clientX >= r.right; } };
+        };
         function animateCurlTo(target, complete, rev, after) {                // rev = 거꾸로 (여는 것을 그대로 되감아요 · 천천히 시작해 빨라져요) · after = 끝난 뒤
-            const t = turn;
-            if (!t) return;
-            const from = t.d;
-            const dist = Math.abs(target - from);
-            const dur = 120 + 480 * (dist / t.W);
-            const startTime = performance.now();
-
-            function step(now) {
-                if (turn !== t) return;
-                const p = Math.min(1, (now - startTime) / dur);
-                const eased = rev ? Math.pow(p, 3) : 1 - Math.pow(1 - p, 3);
-                updateCurl(from + (target - from) * eased);
-                if (p < 1) requestAnimationFrame(step);
-                else { endCurl(complete); if (after) after(); }
-            }
-            requestAnimationFrame(step);
+            if (!turn || !CURL) return;
+            CURL.animate(curlCtx(), target, complete, rev, after);
         }
 
         function endCurl(complete) {
@@ -479,55 +471,19 @@
         function setupCurlDrag() {
             const wrapper = document.getElementById('diaryWrapper');
             const book = document.getElementById('diaryBook');
-
-            wrapper.addEventListener('pointerdown', (e) => {
-                if (turn) return;
-                if (e.pointerType === 'mouse' && e.button !== 0) return;
-                if (e.target.closest('.element-box, button, textarea, input, select')) return;
-                const edge = isCoverOpen ? curlEdgeAt(e.clientX, book) : 0;
-                if (isCoverOpen && !edge) return;
-                drag = { id: e.pointerId, x: e.clientX, y: e.clientY, started: false, dir: 0, edge };
-            });
-
-            window.addEventListener('pointermove', (e) => {
-                if (!drag || drag.id !== e.pointerId) return;
-                const dx = e.clientX - drag.x;
-                const dy = e.clientY - drag.y;
-
-                if (!drag.started) {
-                    if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
-                    const dir = dx < 0 ? 1 : -1;
-                    if (!isCoverOpen && dir === -1) { drag = null; return; }
-                    if (drag.edge && dir !== drag.edge) { drag = null; return; }     // 오른쪽 끝은 다음 날만 · 왼쪽 끝은 전날만
-                    if (isCoverOpen && window.dyHalf && dyHalf(dir)) { drag = null; return; }   // 📱 펼침면 : 같은 날 왼쪽 ↔ 오른쪽 쪽 (js/skins.js)
-                    if (!beginCurl(!isCoverOpen, dir)) { drag = null; return; }
-                    drag.started = true;
-                    drag.dir = dir;
-                    try { wrapper.setPointerCapture(e.pointerId); } catch (err) {}
+            CURL = bookTurner({
+                el: wrapper,
+                grab: e => {                                                     // 펼친 뒤엔 끝을 잡아야 · 겉표지는 어디든 (그림 · 글 · 버튼 위는 안 넘겨요)
+                    if (turn || e.target.closest('.element-box, button, textarea, input, select')) return false;
+                    const edge = isCoverOpen ? curlEdgeAt(e.clientX, book) : 0;
+                    return isCoverOpen && !edge ? false : edge;
+                },
+                start: dir => {
+                    if (!isCoverOpen && dir === -1) return null;
+                    if (isCoverOpen && window.dyHalf && dyHalf(dir)) return null;   // 📱 펼침면 : 같은 날 왼쪽 ↔ 오른쪽 쪽 (js/skins.js)
+                    return beginCurl(!isCoverOpen, dir) ? curlCtx() : null;
                 }
-
-                const moved = ((drag.dir === 1 ? drag.x - e.clientX : e.clientX - drag.x) - 8) / (turn.isCover && turn.two ? 1.5 : 1);   // 💻 표지는 다이어리도 같이 옮겨가니 손가락 따라가게
-                updateCurl(moved);
-
-                const rect = book.getBoundingClientRect();
-                const outside = drag.dir === 1 ? e.clientX <= rect.left : e.clientX >= rect.right;
-                if (outside || moved >= turn.W) {
-                    drag = null;
-                    animateCurlTo(turn.W, true);
-                }
-            });
-
-            const endDrag = (e) => {
-                if (!drag || drag.id !== e.pointerId) return;
-                const d = drag;
-                drag = null;
-                if (d.started && turn) {
-                    const complete = turn.d > turn.W * 0.35;
-                    animateCurlTo(complete ? turn.W : 0, complete);
-                }                                                                // 겉표지는 톡으로 안 열려요 · 밀어서만 (도련 10-31 : 현실처럼)
-            };
-            window.addEventListener('pointerup', endDrag);
-            window.addEventListener('pointercancel', endDrag);
+            });                                                                  // 겉표지는 톡으로 안 열려요 · 밀어서만 (도련 10-31 : 현실처럼)
         }
 
         /* ✋ 페이지 옮기기 : 다이어리를 연 뒤 위쪽 날짜바(#pageHeader)를 누른 채 끌면 배경 안에서 마음대로 옮겨져요 (겉표지는 가운데 고정 · 페이지 여백을 끌면 안 옮겨져요)

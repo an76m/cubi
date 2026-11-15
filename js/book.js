@@ -28,6 +28,60 @@ function bookSide(cur, s) {                                                  // 
     return (on.l ? 'l' : '') + (on.r ? 'r' : '');
 }
 const BOOK_DRAG = 8, BOOK_DONE = .35, BOOK_MS = 420;                         // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 · 넘어가는 시간
+/* ✋ 넘기기 손길 하나 (도련 11-15 · 2-2 · 📔 📓 다이어리 · 📒 🤍 책 엔진이 같이 써요) : 드래그를 넘기기로 볼지 · 얼마나 끌면 넘어가는지 · 넘어가는 움직임
+   책마다 다른 건 '넘어가는 그림'(ctx)뿐 : 다이어리 = 종이 말림 (js/page.js beginCurl · updateCurl · endCurl) · 책 엔진 = 앞뒷면 종이 (flip)
+   o = { el (누르는 곳), grab(e) → false = 안 넘겨요 · 0 = 어느 쪽이든 · 1 = 다음만 · -1 = 앞만 (끝을 잡았어요),
+         start(dir, e) → ctx | null,  ctx = { w (끝까지 px), k (손가락 대비 · 기본 1), set(px), done(ok), out(e) → true = 다 넘겼어요 } }
+   돌려줘요 = { turn(dir) 버튼 · animate(ctx, toPx, ok, rev, after) · busy() } */
+function bookTurner(o) {
+    const T = { drag: null, anim: null };
+    o.el.addEventListener('pointerdown', e => {
+        if (T.drag || T.anim || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        const g = o.grab(e); if (g === false) return;
+        T.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false, edge: g };
+    });
+    addEventListener('pointermove', e => {
+        const d = T.drag; if (!d || d.id !== e.pointerId) return;
+        const dx = e.clientX - d.x, dy = e.clientY - d.y;
+        if (!d.on) {
+            if (Math.abs(dx) < BOOK_DRAG || Math.abs(dx) < Math.abs(dy)) return;
+            const dir = dx < 0 ? 1 : -1;
+            if (d.edge && dir !== d.edge) { T.drag = null; return; }             // 오른쪽 끝은 다음만 · 왼쪽 끝은 앞만
+            const ctx = o.start(dir, e); if (!ctx) { T.drag = null; return; }
+            d.on = true; d.dir = dir; d.ctx = ctx;
+            try { o.el.setPointerCapture(e.pointerId); } catch (er) {}
+        }
+        const c = d.ctx, moved = ((d.dir === 1 ? d.x - e.clientX : e.clientX - d.x) - BOOK_DRAG) / (c.k || 1);
+        c.set(Math.max(0, Math.min(c.w, moved)));
+        if ((c.out && c.out(e, d.dir)) || moved >= c.w) { T.drag = null; animate(c, c.w, true); }   // 끝까지 = 넘어가요
+    });
+    const end = e => {
+        const d = T.drag; if (!d || d.id !== e.pointerId) return;
+        T.drag = null; if (!d.on) return;
+        T.noClick = performance.now();
+        const ok = e.type === 'pointerup' && d.ctx.d > d.ctx.w * BOOK_DONE;
+        animate(d.ctx, ok ? d.ctx.w : 0, ok);
+    };
+    addEventListener('pointerup', end); addEventListener('pointercancel', end);
+    function animate(ctx, to, ok, rev, after) {                             // 넘어가는 움직임 (멀수록 길게 · rev = 천천히 시작해 빨라져요 · 되감기)
+        const from = ctx.d || 0, dist = Math.abs(to - from), t0 = performance.now();
+        const ms = window.calmMotion && calmMotion() ? 120 : (120 + 480 * dist / Math.max(1, ctx.w));
+        T.anim = ctx;
+        const step = now => {
+            if (T.anim !== ctx) return;
+            const p = Math.min(1, (now - t0) / ms), k = rev ? Math.pow(p, 3) : 1 - Math.pow(1 - p, 3);
+            ctx.set(from + (to - from) * k);
+            if (p < 1) { requestAnimationFrame(step); return; }
+            T.anim = null; ctx.done(ok); if (after) after();
+        };
+        requestAnimationFrame(step);
+    }
+    return {
+        turn(dir) { if (T.drag || T.anim) return false; const ctx = o.start(dir); if (!ctx) return false; animate(ctx, ctx.w, true); return true; },
+        animate, busy: () => !!(T.anim || (T.drag && T.drag.on)), noClick: () => T.noClick && performance.now() - T.noClick < 400,
+        stop() { T.drag = null; T.anim = null; }
+    };
+}
 function bookOpen(host, spec) {
     const ph = () => !!(window.UI && UI.phone());
     const B = { spec, open: !!spec.open, pg: Math.max(0, spec.pg || 0), busy: null, root: null, alive: true };
@@ -81,7 +135,7 @@ function bookOpen(host, spec) {
     function wire() {
         const R = B.root;
         R.addEventListener('click', e => {
-            if (B.noClick && performance.now() - B.noClick < 400) { e.stopPropagation(); e.preventDefault(); return; }   // 넘긴 뒤의 톡은 쪽 안으로 안 가요
+            if (B.tr && B.tr.noClick()) { e.stopPropagation(); e.preventDefault(); return; }   // 넘긴 뒤의 톡은 쪽 안으로 안 가요
             const b = e.target.closest('button'); if (!b || !R.contains(b)) return;
             if (b.classList.contains('bk-x')) { spec.onClose(); return; }
             if (b.dataset.side) { spec.setSide(bookSide(spec.side(), b.dataset.side)); render(); return; }
@@ -102,30 +156,12 @@ function bookOpen(host, spec) {
                 bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
                 return;
             }
-            if (!e.target.closest('.bk-stage') || e.target.closest('.ab-it, input, textarea')) return;   // 쪽 안에서 끄는 것(이형지 스티커)은 그대로 · 종이 위에서 밀어도 넘겨요 (넘긴 뒤 톡은 안 가요)
-            B.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false };
         });
-        addEventListener('pointermove', e => {
-            if (!B.alive) return;
-            const d = B.drag; if (!d || d.id !== e.pointerId) return;
-            const dx = e.clientX - d.x, dy = e.clientY - d.y;
-            if (!d.on) {
-                if (Math.abs(dx) < BOOK_DRAG || Math.abs(dx) < Math.abs(dy)) return;
-                const dir = dx < 0 ? 1 : -1;
-                if (!(dir > 0 ? canNext() : canPrev()) || !(d.ctx = start(dir))) { B.drag = null; return; }
-                d.on = true; d.dir = dir;
-            }
-            d.ctx.set(Math.max(0, Math.min(1, (Math.abs(dx) - BOOK_DRAG) / d.ctx.w)));
+        B.tr = bookTurner({                                                 // ✋ 넘기기 손길 = 공통 (bookTurner)
+            el: R,
+            grab: e => !B.busy && e.target.closest('.bk-stage') && !e.target.closest('.ab-it, input, textarea') ? 0 : false,   // 쪽 안에서 끄는 것(이형지 스티커)은 그대로 · 종이 위에서 밀어도 넘겨요 (넘긴 뒤 톡은 안 가요)
+            start: dir => (dir > 0 ? canNext() : canPrev()) ? start(dir) : null
         });
-        const end = e => {
-            if (!B.alive) return;
-            const d = B.drag; if (!d || d.id !== e.pointerId) return;
-            B.drag = null; if (!d.on) return;
-            B.noClick = performance.now();
-            const ok = e.type === 'pointerup' && d.ctx.p > BOOK_DONE;
-            animate(d.ctx, ok ? 1 : 0, ok);
-        };
-        addEventListener('pointerup', end); addEventListener('pointercancel', end);
     }
     /* 📖 넘기기 : 넘어가는 종이(앞면 · 뒷면)를 쪽 위에 얹고 · 아래 쪽은 다음 모습으로 → 각도만 바꿔요 */
     function slotRect(k) { const s = B.root.querySelector(`.bk-slot[data-slot="${k}"]`), st = B.root.querySelector('.bk-stage'); if (!s || !st) return null; const a = s.getBoundingClientRect(), b = st.getBoundingClientRect(); return { s, x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height }; }
@@ -160,33 +196,20 @@ function bookOpen(host, spec) {
         f.className = 'bk-flip'; f.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;transform-origin:${origin} center`;
         f.innerHTML = `<div class="bk-face front">${front}</div><div class="bk-face back">${back}</div><i class="bk-fsh" aria-hidden="true"></i>`;
         stage.appendChild(f);
-        const ctx = { f, a0, a1, w: Math.max(80, r.w), p: 0, after,
-            set(p) { this.p = p; const a = a0 + (a1 - a0) * p; f.style.transform = `rotateY(${a}deg)`; f.style.setProperty('--sh', (Math.sin(Math.abs(a) * Math.PI / 180) * .28).toFixed(3)); } };
+        const ctx = { f, a0, a1, w: Math.max(80, r.w), d: 0, after,
+            set(px) { this.d = px; const a = a0 + (a1 - a0) * px / this.w; f.style.transform = `rotateY(${a}deg)`; f.style.setProperty('--sh', (Math.sin(Math.abs(a) * Math.PI / 180) * .28).toFixed(3)); },
+            done(ok) { B.busy = null; if (ok) after(); else if (a0 === -180 && a1 === 0 && !B.open) B.open = true; render(); } };   // 덮기를 그만뒀어요 = 펼친 채로
         B.busy = ctx; ctx.set(0);
         return ctx;
     }
-    function animate(ctx, to, ok) {
-        const from = ctx.p, t0 = performance.now(), ms = (window.calmMotion && calmMotion() ? 120 : BOOK_MS) * Math.max(.25, Math.abs(to - from));
-        const step = now => {
-            const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
-            ctx.set(from + (to - from) * e);
-            if (k < 1) { requestAnimationFrame(step); return; }
-            B.busy = null; if (ok) ctx.after(); else if (ctx.after && ctx.a0 === -180 && ctx.a1 === 0 && !B.open) B.open = true;   // 덮기를 그만뒀어요 = 펼친 채로
-            render();
-        };
-        requestAnimationFrame(step);
-    }
-    function turn(dir) {
-        if (B.busy || !(dir > 0 ? canNext() : canPrev())) return;
-        const ctx = start(dir); if (ctx) animate(ctx, 1, true);
-    }
+    function turn(dir) { if (!B.busy && (dir > 0 ? canNext() : canPrev())) B.tr.turn(dir); }
     const onResize = () => { if (B.alive && B.root && !B.busy) render(); };
     addEventListener('resize', onResize);
     render();
     return {
-        get id() { return spec.id; }, get pg() { return B.pg; }, get open() { return B.open; }, get busy() { return !!(B.busy || B.drag); },
+        get id() { return spec.id; }, get pg() { return B.pg; }, get open() { return B.open; }, get busy() { return !!(B.busy || (B.tr && B.tr.busy())); },
         root: () => B.root,
-        refresh(s2) { if (s2) Object.assign(spec, s2); if (!B.busy && !(B.drag && B.drag.on)) render(); },   // 쪽 안 내용이 바뀌었어요 (자리 · 쪽 · 열림은 그대로)
+        refresh(s2) { if (s2) Object.assign(spec, s2); if (!B.busy && !(B.tr && B.tr.busy())) render(); },   // 쪽 안 내용이 바뀌었어요 (자리 · 쪽 · 열림은 그대로)
         turn, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
