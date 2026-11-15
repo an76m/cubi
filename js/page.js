@@ -327,35 +327,19 @@
             return true;
         }
 
-        function updateCurl(d) {
+        function updateCurl(d) {                                              // 📖 넘어가는 그림 = 공통 계산 (js/book.js bookCurlAt · 📒 🤍 책 엔진과 같아요 · 도련 11-15 · 2-4)
             const t = turn;
             if (!t) return;
-            const W = t.W;
-            d = Math.max(0, Math.min(W, d));
-            t.d = d;
-
-            const show = d >= 1;
-            t.flap.style.display = show ? 'block' : 'none';
-            t.shadow.style.display = show ? 'block' : 'none';
-
-            const sw = Math.min(90, d);
-            t.flap.style.width = d + 'px';
-            t.shadow.style.width = sw + 'px';
-
-            if (t.dir === 1) {
-                const fold = W - d;
-                t.pageEl.style.clipPath = `inset(0 ${d}px 0 0)`;
-                t.flap.style.left = (fold - d - t.fOff) + 'px';
-                t.shadow.style.left = (fold - 4 - t.uOff) + 'px';
-                if (t.isCover && t.two) {                                     // 💻 표지 : 넘긴 만큼 왼쪽 쪽이 드러나고 다이어리가 가운데로
-                    t.under.style.clipPath = `inset(0 0 0 ${Math.max(0, fold - d - t.uOff)}px)`;
-                    document.getElementById('diaryWrapper').style.marginLeft = d + 'px';
-                }
-            } else {
-                const fold = t.edgeL + d;
-                t.pageEl.style.clipPath = `inset(0 0 0 ${d}px)`;
-                t.flap.style.left = (fold - t.fOff) + 'px';
-                t.shadow.style.left = (fold - sw - 4 - t.uOff) + 'px';
+            const g = bookCurlAt(t.W, d, t.dir, t.edgeL);
+            t.d = g.d;
+            t.flap.style.display = t.shadow.style.display = g.show ? 'block' : 'none';
+            t.flap.style.width = g.fw + 'px'; t.shadow.style.width = g.sw + 'px';
+            t.pageEl.style.clipPath = g.clip;
+            t.flap.style.left = (g.fx - t.fOff) + 'px';                         // 넘김 층 · 아래 장이 책 왼쪽에서 떨어진 만큼 빼요
+            t.shadow.style.left = (g.sx - t.uOff) + 'px';
+            if (t.dir === 1 && t.isCover && t.two) {                            // 💻 표지 : 넘긴 만큼 왼쪽 쪽이 드러나고 다이어리가 가운데로
+                t.under.style.clipPath = `inset(0 0 0 ${Math.max(0, g.fx - t.uOff)}px)`;
+                document.getElementById('diaryWrapper').style.marginLeft = g.d + 'px';
             }
         }
 

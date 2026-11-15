@@ -28,6 +28,14 @@ function bookSide(cur, s) {                                                  // 
     return (on.l ? 'l' : '') + (on.r ? 'r' : '');
 }
 const BOOK_DRAG = 8, BOOK_DONE = .35, BOOK_MS = 420;                         // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 · 넘어가는 시간
+/* 📖 넘어가는 그림 하나 = 종이 말림 (도련 11-15 · 2-4 · 📔 다이어리 js/page.js updateCurl · 📒 🤍 책 엔진이 같은 계산) : 넘기는 쪽 한 장(폭 W) 기준 자리
+   d = 넘긴 만큼 (0 ~ W) · dir 1 = 다음 (오른쪽 끝에서 왼쪽으로) · -1 = 앞 (왼쪽 끝에서 오른쪽으로) · edge = 앞으로 넘길 때 잡는 왼쪽 끝 (다이어리 펼침면 = -W)
+   → clip = 지금 쪽에서 가리는 곳 · fx · fw = 넘어가는 종이 뒷면 · sx · sw = 아래 쪽 그림자 (모두 그 쪽 왼쪽 위 기준 px) */
+function bookCurlAt(W, d, dir, edge) {
+    d = Math.max(0, Math.min(W, d)); const sw = Math.min(90, d);
+    if (dir === 1) { const fold = W - d; return { d, show: d >= 1, clip: `inset(0 ${d}px 0 0)`, fx: fold - d, fw: d, sx: fold - 4, sw }; }
+    const fold = (edge || 0) + d; return { d, show: d >= 1, clip: `inset(0 0 0 ${d}px)`, fx: fold, fw: d, sx: fold - sw - 4, sw };
+}
 /* ✋ 넘기기 손길 하나 (도련 11-15 · 2-2 · 📔 📓 다이어리 · 📒 🤍 책 엔진이 같이 써요) : 드래그를 넘기기로 볼지 · 얼마나 끌면 넘어가는지 · 넘어가는 움직임
    책마다 다른 건 '넘어가는 그림'(ctx)뿐 : 다이어리 = 종이 말림 (js/page.js beginCurl · updateCurl · endCurl) · 책 엔진 = 앞뒷면 종이 (flip)
    o = { el (누르는 곳), grab(e) → false = 안 넘겨요 · 0 = 어느 쪽이든 · 1 = 다음만 · -1 = 앞만 (끝을 잡았어요),
@@ -178,42 +186,35 @@ function bookOpen(host, spec) {
             start: dir => (dir > 0 ? canNext() : canPrev()) ? start(dir) : null
         });
     }
-    /* 📖 넘기기 : 넘어가는 종이(앞면 · 뒷면)를 쪽 위에 얹고 · 아래 쪽은 다음 모습으로 → 각도만 바꿔요 */
+    /* 📖 넘기기 = 종이 말림 (다이어리와 같은 그림 · bookCurlAt) : 넘기는 쪽 = 지금 모습(cur)이 넘긴 만큼 가려지고 · 그 아래(under) = 넘긴 뒤 모습 · 뒷면(flap)이 말려 넘어가요 */
     function slotRect(k) { const s = B.root.querySelector(`.bk-slot[data-slot="${k}"]`), st = B.root.querySelector('.bk-stage'); if (!s || !st) return null; const a = s.getBoundingClientRect(), b = st.getBoundingClientRect(); return { s, x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height }; }
     function start(dir) {
         if (B.busy) return null;
         const t = two(), stage = B.root.querySelector('.bk-stage');
-        let r, front, back, a0, a1, origin, under = null, after;
-        if (!B.open) {                                                       // 📕 표지 열기
+        let k, cur, under, cdir = dir, cover = false, back = false, after;
+        if (!B.open) {                                                       // 📕 표지 열기 (표지가 말려 넘어가요)
             if (dir < 0) return null;
-            r = slotRect('cv'); front = spec.cover(); back = spec.blank(); a0 = 0; a1 = -180; origin = 'left'; under = pageHtml(0);
-            after = () => { B.open = true; B.pg = 0; };
-        } else if (dir < 0 && B.pg === 0) {                                  // 📕 첫 쪽에서 앞으로 = 덮기
+            k = 'cv'; cur = spec.cover(); under = pageHtml(0); cover = true; after = () => { B.open = true; B.pg = 0; };
+        } else if (dir < 0 && B.pg === 0) {                                  // 📕 첫 쪽에서 앞으로 = 덮기 (여는 것을 그대로 되감아요)
             B.open = false; render();
-            r = slotRect('cv'); front = spec.cover(); back = spec.blank(); a0 = -180; a1 = 0; origin = 'left'; under = pageHtml(0);
-            after = () => { B.open = false; };
-        } else if (t && dir > 0) {
-            r = slotRect('r'); front = pageHtml(B.pg + 1); back = pageHtml(B.pg + 2); a0 = 0; a1 = -180; origin = 'left'; under = pageHtml(B.pg + 3);
-            after = () => { B.pg += 2; };
-        } else if (t && dir < 0) {
-            r = slotRect('l'); front = pageHtml(B.pg); back = pageHtml(B.pg - 1); a0 = 0; a1 = 180; origin = 'right'; under = pageHtml(B.pg - 2);
-            after = () => { B.pg -= 2; };
-        } else if (dir > 0) {
-            r = slotRect('o'); front = pageHtml(B.pg); back = spec.blank(); a0 = 0; a1 = -180; origin = 'left'; under = pageHtml(B.pg + 1);
-            after = () => { B.pg += 1; };
-        } else {
-            r = slotRect('o'); front = pageHtml(B.pg - 1); back = spec.blank(); a0 = -180; a1 = 0; origin = 'left'; under = null;
-            after = () => { B.pg -= 1; };
-        }
-        if (!r) return null;
-        if (under != null) r.s.innerHTML = under;                            // 아래 쪽 = 넘긴 뒤 모습
-        const f = document.createElement('div');
-        f.className = 'bk-flip'; f.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;transform-origin:${origin} center`;
-        f.innerHTML = `<div class="bk-face front">${front}</div><div class="bk-face back">${back}</div><i class="bk-fsh" aria-hidden="true"></i>`;
-        stage.appendChild(f);
-        const ctx = { f, a0, a1, w: Math.max(80, r.w), d: 0, after,
-            set(px) { this.d = px; const a = a0 + (a1 - a0) * px / this.w; f.style.transform = `rotateY(${a}deg)`; f.style.setProperty('--sh', (Math.sin(Math.abs(a) * Math.PI / 180) * .28).toFixed(3)); },
-            done(ok) { B.busy = null; if (ok) after(); else if (a0 === -180 && a1 === 0 && !B.open) B.open = true; render(); } };   // 덮기를 그만뒀어요 = 펼친 채로
+            k = 'cv'; cur = spec.cover(); under = pageHtml(0); cover = true; back = true; cdir = 1; after = () => { B.open = false; };
+        } else if (t && dir > 0) { k = 'r'; cur = pageHtml(B.pg + 1); under = pageHtml(B.pg + 3); after = () => { B.pg += 2; }; }
+        else if (t && dir < 0) { k = 'l'; cur = pageHtml(B.pg); under = pageHtml(B.pg - 2); after = () => { B.pg -= 2; }; }
+        else if (dir > 0) { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg + 1); after = () => { B.pg += 1; }; }
+        else { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg - 1); after = () => { B.pg -= 1; }; }
+        const r = slotRect(k); if (!r) return null;
+        r.s.innerHTML = `<div class="bk-under">${under}</div><div class="bk-cur">${cur}</div>`;
+        const cu = r.s.querySelector('.bk-cur'), gap = t && !cover ? 44 : 0;
+        const fl = document.createElement('div'); fl.className = `bk-flap ${cdir > 0 ? 'dir-next' : 'dir-prev'}${cover ? ' cover' : ''}`; fl.style.top = r.y + 'px'; fl.style.height = r.h + 'px';
+        const sh = document.createElement('i'); sh.className = `bk-ush ${cdir > 0 ? 'dir-next' : 'dir-prev'}`; sh.style.top = r.y + 'px'; sh.style.height = r.h + 'px';
+        stage.appendChild(fl); stage.appendChild(sh);
+        const W = Math.max(80, r.w);
+        const draw = d => { const g = bookCurlAt(W, d, cdir, 0), x = cdir > 0 ? g.fx - gap * d / W : g.fx;   // 펼친 두 쪽 사이 링 자리만큼 더 가요
+            cu.style.clipPath = g.clip; fl.style.display = sh.style.display = g.show ? 'block' : 'none';
+            fl.style.left = (r.x + x) + 'px'; fl.style.width = g.fw + 'px'; sh.style.left = (r.x + g.sx) + 'px'; sh.style.width = g.sw + 'px'; };
+        const ctx = { w: W, d: 0, after,
+            set(px) { this.d = px; draw(back ? W - px : px); },                 // 덮기 = 다 넘긴 데서 되감아요
+            done(ok) { B.busy = null; if (ok) after(); else if (back && !B.open) B.open = true; render(); } };   // 덮기를 그만뒀어요 = 펼친 채로
         B.busy = ctx; ctx.set(0);
         return ctx;
     }
@@ -228,4 +229,4 @@ function bookOpen(host, spec) {
         turn, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
-window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
+window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
