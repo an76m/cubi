@@ -400,6 +400,38 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abx-rings svg { flex: none; width: 76px; height: 22px; }
 .abx-nav { margin-top: 8px; }
 
+/* 📒 🤍 펼친 바인더 · 이형지북 = 창 없이 떠 있는 책 (도련 11-15 · js/basket.js abFlt) : 위 막대 = 다이어리 날짜바처럼 · 막대를 끌면 옮겨져요 · 뒤 화면은 그대로 눌려요 */
+#basketKindModal.ab-flt { --ol: #8d6f7f; }
+#basketKindModal.ab-flt > .modal-content { position: static !important; width: 0 !important; height: 0 !important; min-height: 0 !important; max-width: none !important; max-height: none !important; padding: 0 !important; margin: 0 !important;
+    border: 0 !important; box-shadow: none !important; background: transparent !important; overflow: visible !important; transform: none !important; animation: none !important; pointer-events: none !important; }
+#basketKindModal.ab-flt > .modal-content::before, #basketKindModal.ab-flt > .modal-content::after { display: none !important; }
+#basketKindModal.ab-flt > .modal-content > .modal-title, #basketKindModal.ab-flt > .modal-content > .sub-modal-btns { display: none !important; }
+#basketKindModal.ab-flt .bk-wrap, #basketKindModal.ab-flt .ab-body { margin: 0; padding: 0; }
+.abf { position: fixed; left: 0; top: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; filter: drop-shadow(0 8px 16px rgba(120, 70, 60, .18)); }
+.abf.mv { filter: drop-shadow(0 14px 24px rgba(120, 70, 60, .28)); }
+.abf-bar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: min(360px, 92vw); height: 42px; padding: 0 6px; box-sizing: border-box;
+    border: 2px solid #f6c9d8; border-radius: 14px; background: #fff3f7; color: #d2457a; font-weight: 800; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.abf.mv .abf-bar { cursor: grabbing; }
+.abf-bar::before { content: ''; position: absolute; top: -8px; left: 50%; width: 46px; height: 13px; transform: translateX(-50%) rotate(-1.5deg); background: #f7b5ca; opacity: .75; border-radius: 2px; pointer-events: none; }   /* 마테 한 조각 (날짜바처럼) */
+.abf-bar .abf-side, .abf-bar .abf-side[aria-pressed="true"] { color: inherit; border: 0 !important; background: none !important; box-shadow: none !important; }
+.abf-bar .abf-arr:disabled { opacity: .25; cursor: default; }
+.abf-cnt { flex: 1; text-align: center; font-size: 16px; white-space: nowrap; pointer-events: none; }
+.abf-cnt small { font-size: 13px; font-weight: 700; opacity: .7; }
+.abf-x { flex: none; width: 34px; height: 34px; margin-left: 4px; padding: 0; border: 0; background: none; color: #c2457a; font-size: 20px; font-weight: 700; line-height: 1; cursor: pointer; }
+.abf-x:active { transform: scale(.88); }
+.abf .abf-book { width: auto; }
+.abf .abx-spread { grid-template-columns: var(--pw) var(--pw); }
+.abf .abx-binder.one .abx-spread { grid-template-columns: var(--pw); }
+.abf .abx-pg, .abf .abf-rl { width: var(--pw); height: var(--ph); }
+.abf .abx-pg .ab-pk .bk-sh { width: 100% !important; max-width: 100%; max-height: 100%; box-sizing: border-box; padding: 6%; border: 1.4px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; border-radius: 8px; }
+.abf .abx-pg .ab-pk .bk-sh { cursor: pointer; }
+.abf .ab-rel.abf-rl { position: relative; box-sizing: border-box; margin: 0; border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; overflow: hidden;
+    background-color: #fdfcff; background-image: repeating-linear-gradient(125deg, transparent 0 46px, #f2eef9 46px 70px, transparent 70px 96px, #f7f4fb 96px 104px) !important; }
+.abf .ab-rel.abf-rl .ab-it { width: calc(var(--ph) * .104); height: calc(var(--ph) * .104); }
+.abf .ab-rel.abf-rl .ab-relhint { color: #b4a6c4; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+.abf .abx-rings.coil { gap: 0; justify-content: space-between; }
+.abf .abx-rings.coil i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
+
 /* 🤍 스프링 이형지북 (왼쪽 스프링 · 반짝이는 이형지 · 뒤로 겹친 종이) */
 .abx-rlbook { position: relative; width: 100%; padding: 14px 14px 14px 34px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 8px 18px 18px 8px; background: #cbb8ec; }
 .abx-stack { position: absolute; left: 34px; right: 8px; top: 20px; bottom: 8px; border: 1.6px solid var(--ol); border-radius: 4px; background: #f6f3fa; }
