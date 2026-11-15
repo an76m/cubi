@@ -705,7 +705,7 @@
         }
         window.deskReset = deskReset;
         /* ✕ 책상으로 (도련 11-15) : 📔 다이어리모드 · 📒 스티커정리모드 · 🧩 바인더조립모드에선 오른쪽 위 메뉴 · 이동 대신 이 ✕ 하나 (css/anime.css .dk-mode-x)
-           톡 = 📒 🧩 저장하지 않고 나가기 (정리 · 조립한 게 있으면 한 번 물어요 · 저장은 ✔ 완료 · 도련 11-15) · 📔 = 다이어리를 책상에 내려놓기 (밖 톡과 같아요) · ⛔ 예전 🔑 잠금 스위치(dkLock)는 영구 삭제 */
+           톡 = 📒 🧩 저장하지 않고 나가기 (정리 · 조립한 게 있으면 한 번 물어요 · 저장은 ✔ 완료 · 도련 11-15) · 📔 = 꾸미던 게 있으면 [💾 임시저장하고 닫기] [그냥 닫기] 묻고 다이어리를 책상에 내려놓기 (밖 톡으로는 안 나가요 · 1219) · ⛔ 예전 🔑 잠금 스위치(dkLock)는 영구 삭제 */
         function dkModeXBuild() {
             if (document.getElementById('dkModeX')) return;
             const b = document.createElement('button'); b.type = 'button'; b.id = 'dkModeX'; b.className = 'dk-mode-x'; b.textContent = '✕';
@@ -714,11 +714,14 @@
             b.addEventListener('click', e => { e.stopPropagation(); dkModeExit(); });
             document.body.appendChild(b);
         }
-        function dkModeExit() {
+        async function dkModeExit() {
             const ab = document.getElementById('basketKindModal');
             if (ab && ab.classList.contains('abs-dkmode') && ab.style.display === 'flex') { if (window.abCancel) abCancel(); return; }   // 📒 스티커정리모드 (✕ = 저장 안 하고 · 정리한 게 있으면 물어요 · 도련 11-15)
             if (window.bndIsOpen && bndIsOpen()) { if (window.bndCancel) bndCancel(); else if (window.bndClose) bndClose(); return; }   // 🧩 바인더조립모드 (✕ = 조립 안 하고 · 놓은 게 있으면 물어요)
-            if (document.documentElement.classList.contains('dk-bgon') && window.deskCloseDiary) deskCloseDiary();                 // 📔 다이어리모드
+            if (document.documentElement.classList.contains('dk-bgon') && window.deskCloseDiary) {                                  // 📔 다이어리모드 = 꾸미던 게 있으면 묻고 (도련 11-15 · js/pagedone.js pgCloseAsk)
+                if (window.pgCloseAsk && !(await pgCloseAsk())) return;
+                deskCloseDiary();
+            }
         }
         window.dkModeExit = dkModeExit;
         function deskBuild() {

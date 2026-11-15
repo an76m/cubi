@@ -1760,6 +1760,7 @@
         .se-b:disabled { opacity: .4; cursor: default; } .se-b.se-ok { flex: 1.4; border: 0; background: #c2385c; color: #fff; font-weight: 700; }
         .se-x:focus-visible, .se-tools button:focus-visible, .se-c:focus-visible, .se-b:focus-visible { outline: 3px solid #f59ab6; outline-offset: 2px; }
         .pel-x.pel-bx { right: auto; left: 0; top: 0; width: 26px; height: 26px; padding: 0; border: 0; background: none; color: #8a6a76; font-size: 16px; line-height: 26px; text-align: center; cursor: pointer; text-shadow: 0 1px 0 #fff; }   /* 하얀 종이 오른쪽 위 끝 ✕ (모조지스티커처럼 · js/stickerpeel.js pelFrame) */
+        .pel-x.pel-bx { width: 46px; height: 46px; border: 2px solid #e88fb0; border-radius: 50%; background: #fff; color: #c2457a; font-size: 12.5px; font-weight: 900; line-height: 1; letter-spacing: -.3px; text-shadow: none; box-shadow: 0 2px 6px rgba(90, 50, 60, .18); }   /* 흰 동그라미 + '축소' (도련 11-15 · 종이 오른쪽 위 모서리에 걸쳐요 · js/stickerpeel.js) */
         /* 📄 모조지스티커 만들기 (js/papermaker.js · 화면 모양은 .smk-* 를 같이 써요) */
         /* 결과창의 🧩 · 🏷️ · 📄 만들기 버튼 3개 (사진 스티커 · 포토부스) */
         .smk-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
