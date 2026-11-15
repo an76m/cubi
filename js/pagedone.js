@@ -274,7 +274,7 @@
     async function closeAsk() {
         const key = curKey();
         if (!on() || PG.busy || PG.done || !key || !dirty(key) || typeof showAsk !== 'function') return !PG.busy;
-        const a = await showAsk('✏️ 꾸미던 페이지를 어떻게 할까요?<br><span style="font-size:12px;color:#777;">💾 임시저장 = 이 기기에만 저장하고 닫아요 · 다시 펼치면 이어서 꾸며요<br>🗑 지우기 = 이 페이지에 꾸민 것을 지우고 닫아요 (붙인 스티커는 서랍으로)</span>', '💾 임시저장', '🗑 지우기');
+        const a = await showAsk('✏️ 꾸미던 페이지를 어떻게 할까요?<br><span style="font-size:12px;color:#777;">💾 임시저장 = 이 기기에만 저장하고 닫아요 · 다시 펼치면 이어서 꾸며요<br>🗑 지우기 = 이 페이지에 꾸민 것을 다 지워요</span>', '💾 임시저장', '🗑 지우기');
         if (a === true) { const t = PG.drafts.get(key); if (t != null) await draftPut(key, t); ui(); return true; }
         if (a === false) { drop(key); if (typeof loadData === 'function') { try { await loadData(); } catch (e) {} } ui(); return true; }
         return false;
