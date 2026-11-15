@@ -30,7 +30,7 @@
         const pmDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
         const pmNow = () => performance.now();
         const pmEase = q => 1 - Math.pow(1 - q, 3);
-        const pmLoad = src => new Promise(ok => { const im = new Image(); if (/^https?:/i.test(src)) im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });   // 주소 그림은 종이에 인쇄하려고 CORS 로
+        const pmLoad = src => stkLoad(src, true);                            // 🏷️ 스티커 엔진 (js/sticker.js · 못 받으면 null)
         function pmPoly(c, pts) { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); }
         const pmRR = rrPath;   // 🧰 js/util.js
         function pmSpark(c, x, y, r, col) { c.beginPath(); for (let i = 0; i < 8; i++) { const q = i % 2 ? r * .35 : r, a = i * Math.PI / 4; c.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } c.closePath(); c.fillStyle = col; c.fill(); }
@@ -63,17 +63,10 @@
 
         /* ---------- 쓰기 : 화면 ---------- */
         function pmBuild() {
-            if (pmq('pmRoom')) return;
-            const el = document.createElement('div');
-            el.id = 'pmRoom'; el.className = 'pel-room pm-room';
-            el.innerHTML = `<canvas id="pmCv"></canvas><div id="pmHit"></div><p class="pel-hint" id="pmHint"></p><button type="button" class="pm-x win-x" id="pmX" onclick="closePaperSheet()" aria-label="닫기">✕</button>
+            stkRoom({ id: 'pmRoom', cls: 'pel-room pm-room', hit: 'pmHit', down: pmDown, move: pmMove, up: pmUp, resize: () => { if (pmS.on) pmLayout(); },   // 🪟 종이 화면 = 스티커 엔진
+                html: `<canvas id="pmCv"></canvas><div id="pmHit"></div><p class="pel-hint" id="pmHint"></p><button type="button" class="pm-x win-x" id="pmX" onclick="closePaperSheet()" aria-label="닫기">✕</button>
               <div class="pm-pens" id="pmPens" hidden>${PM_PENS.map(c => `<button type="button" data-c="${c}" style="--c:${c}" onclick="pmSetPen('${c}')" aria-label="펜 색"></button>`).join('')}
-                <button type="button" class="pm-undo" onclick="pmUndo()">↩️ 지우기</button><button type="button" class="pm-undo" onclick="pmExitEdit()">✅ 다 썼어요</button></div>`;
-            document.body.appendChild(el);
-            const hit = pmq('pmHit');
-            hit.addEventListener('pointerdown', pmDown); hit.addEventListener('pointermove', pmMove);
-            hit.addEventListener('pointerup', pmUp); hit.addEventListener('pointercancel', pmUp);
-            window.addEventListener('resize', () => { if (pmS.on) pmLayout(); });
+                <button type="button" class="pm-undo" onclick="pmUndo()">↩️ 지우기</button><button type="button" class="pm-undo" onclick="pmExitEdit()">✅ 다 썼어요</button></div>` });
         }
         /* src : 내스티커의 모조지스티커 한 장 · o.el : 📒 수첩 시트의 종이 그림 (그 위에 겹쳐요) · o.down : 누른 채로 열었으면 그 손가락으로 바로 칼집 */
         async function openPaperSheet(src, o) {
@@ -93,24 +86,19 @@
             S.bg = true;                                                             // 📄 모든 모조지 (도련 10-29 · 모양 · 배경 구분 없음) : ✂️ 가위로 오리기 · 🪡 핀셋으로 통째로 떼기 (통째로 뗀 종이만 맨 뒤) — 고르는 건 다꾸러
             pmLayout();
             pmq('pmPens').hidden = true;
-            const room = pmq('pmRoom'); room.classList.add('show');
-            document.body.classList.add('fc-lock');
             S.hint = ''; pmSay(pmHint() + ' · 위쪽 <b>테이프</b>를 끌면 옮겨져요');
-            cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(pmFrame);
+            stkShow(S, 'pmRoom', pmFrame);
             return true;
         }
         function closePaperSheet() {
             const S = pmS; if (S.drag && S.drag.seal) S.drag.seal.kill();
-            S.on = false; S.drag = null; S.edit = null; cancelAnimationFrame(S.raf);
-            const r = pmq('pmRoom'); if (r) r.classList.remove('show');
-            document.body.classList.remove('fc-lock');
+            stkHide(S, 'pmRoom'); S.edit = null;
             if (spKeep() && window.stkReturn) stkReturn();                    // ✨ 스티커 창에서 왔으면 다시 떠요 (🏪 연습장은 아니에요)
         }
         /* 종이는 배경(화면) 한가운데 · 화면이 바뀌어도 (아이패드 돌리기 등) 가운데에 화면 안 크기로 */
         function pmLayout() {
-            const S = pmS, cv = S.cv;
-            S.DPR = Math.min(window.devicePixelRatio || 1, 3); S.W = window.innerWidth; S.H = window.innerHeight;
-            if (cv.width !== S.W * S.DPR || cv.height !== S.H * S.DPR) { cv.width = S.W * S.DPR; cv.height = S.H * S.DPR; }
+            const S = pmS;
+            stkScreen(S);
             S.SC = Math.min((S.W - 32) / PM_W, (S.H - 150) / S.SH, 1);   // 아이패드에서도 너무 크지 않게 (둘레에 붙일 페이지가 보이게)
             S.X = (S.W - PM_W * S.SC) / 2; S.Y = Math.max(64, (S.H - S.SH * S.SC) / 2 + 8);
             pmShift(S.mv.x, S.mv.y, true);
@@ -118,7 +106,7 @@
         /* 종이 옮기기 : 위쪽 테이프를 잡고 끌어요 (화면 밖으로 안 나가게 · ✕ 도 같이 · 칼집 낸 스티커는 종이에 붙어 있어서 같이 가요) */
         function pmShift(dx, dy, base) {
             const S = pmS, w = PM_W * S.SC, h = S.SH * S.SC;
-            const x = Math.max(8, Math.min(S.W - 8 - w, S.X + dx)), y = Math.max(64, Math.min(S.H - 8 - h, S.Y + dy));
+            const [ax, ay] = stkKeep(S.X, S.Y, w, h, dx, dy, { l: 8, t: 64, r: 8, b: 8 }), x = S.X + ax, y = S.Y + ay;   // 화면 밖으로 안 나가게 (스티커 엔진)
             if (base) S.mv = { x: S.mv.x + x - S.X - dx, y: S.mv.y + y - S.Y - dy }; else { S.mv.x += x - S.X; S.mv.y += y - S.Y; }
             S.X = x; S.Y = y;
             const b = pmq('pmX'); if (b) { b.style.left = (S.X + w - 32) + 'px'; b.style.top = S.Y + 'px'; }   // 종이 오른쪽 위 끝 (안쪽)

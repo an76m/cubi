@@ -18,10 +18,8 @@
         /* items : 종이 위 스티커들 [{ a, src, st }] · a · st · src 는 지금 손에 잡은 스티커 */
         const pelS = { on: false, cv: null, ctx: null, fl: null, items: [], a: null, st: null, drag: null, board: null, mv: { x: 0, y: 0 }, gone: 0, src: '', W: 0, H: 0, DPR: 1, raf: 0 };
         const pelq = id => document.getElementById(id);
-        const pelMk = mkCanvas;   // 🧰 js/util.js
-        const pelLoad = src => new Promise((ok, no) => { const im = new Image(); if (/^https?:/i.test(src)) im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = no; im.src = src; });   // 주소 그림은 하얀 테두리를 그리려고 CORS 로
+        const pelMk = stkMk, pelLoad = src => stkLoad(src);                  // 🏷️ 스티커 엔진 (js/sticker.js)
         const pelTint = tintCanvas;   // 🧰 js/util.js
-        function pelGrow(src, r, step) { const c = pelMk(src.width, src.height), d = c.getContext('2d'); for (const k of [1, .66, .33]) for (let a = 0; a < 360; a += step) d.drawImage(src, Math.cos(a * Math.PI / 180) * r * k, Math.sin(a * Math.PI / 180) * r * k); d.drawImage(src, 0, 0); return c; }
 
         /* ---------- 하얀 칼선 테두리 두르기 ---------- */
         async function pelBake(src) {
@@ -30,7 +28,7 @@
             const die = typeof showOn !== 'function' || showOn('die');
             const b = die ? PEL_EDGE + 2 : 0, c = pelMk(iw + b * 2, ih + b * 2), x = c.getContext('2d');   // 테두리를 끄면 그림 크기 그대로
             const one = pelMk(c.width, c.height); one.getContext('2d').drawImage(im, b, b, iw, ih);
-            if (die) x.drawImage(pelTint(pelGrow(pelTint(one, '#fff'), PEL_EDGE, 10), '#fff'), 0, 0);
+            if (die) x.drawImage(pelTint(stkGrow(pelTint(one, '#fff'), PEL_EDGE, 10), '#fff'), 0, 0);
             x.drawImage(one, 0, 0);
             return cvSmall(c);                                                 // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
         }
@@ -52,23 +50,15 @@
 
         /* ---------- 화면 ---------- */
         function pelBuild() {
-            if (pelq('pelRoom')) return;
-            const el = document.createElement('div');
-            el.id = 'pelRoom'; el.className = 'pel-room';
-            el.innerHTML = `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="축소" title="축소">축소</button>`;
-            document.body.appendChild(el);
-            const cv = pelq('pelHit');                                          // 👆 손가락은 종이 자리(pelHit)만 받아요 · 그 밖은 페이지 그대로 (핀셋으로 붙인 스티커 옮기기 · 돌리기 · 펜꽂이 … · 도련 11-05)
-            cv.addEventListener('pointerdown', pelDown); cv.addEventListener('pointermove', pelMove);
-            cv.addEventListener('pointerup', pelUp); cv.addEventListener('pointercancel', pelUp);
-            window.addEventListener('resize', () => { if (pelS.on) pelLayout(); });
+            stkRoom({ id: 'pelRoom', cls: 'pel-room', hit: 'pelHit', down: pelDown, move: pelMove, up: pelUp, resize: () => { if (pelS.on) pelLayout(); },   // 🪟 종이 화면 = 스티커 엔진 · 👆 손가락은 종이 자리(pelHit)만 · 그 밖은 페이지 그대로 (도련 11-05)
+                html: `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="축소" title="축소">축소</button>` });
         }
         const pelPage = () => document.getElementById('canvasArea');
         /* 📔 붙일 페이지가 보여요 (덮였거나 🪑 책상에 놓여 있으면 아니에요 → 종이 크기는 보통 크기 · 뗀 스티커는 종이로 돌아가요) */
         const pelPageOn = () => { const pg = pelPage(), H = document.documentElement; return !!pg && isCoverOpen && !(UI.desk() && !H.classList.contains('desk-show')) && pg.getBoundingClientRect().width > 40; };
         function pelLayout() {
-            const S = pelS, cv = S.cv;
-            S.DPR = Math.min(window.devicePixelRatio || 1, 3); S.W = window.innerWidth; S.H = window.innerHeight;
-            cv.width = S.W * S.DPR; cv.height = S.H * S.DPR; S.fl = pelMk(cv.width, cv.height);
+            const S = pelS;
+            stkScreen(S, true);
             /* 배경(화면) 가운데 하얀 종이 한 장 (크기는 페이지에 맞춰요) : 한 장이면 그 크기, 여러 장이면 칸을 나눠 나란히 */
             const pg = pelPageOn() ? pelPage() : null, r = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, width: Math.min(S.W, 1100), height: S.H };
             if (S.rel) return pelRelLayout();
@@ -157,8 +147,7 @@
                 for (const o of S.items) { if (o.st.state === 'on') { o.st.cx += dx; o.st.cy += dy; } if (o.slot) { o.slot.cx += dx; o.slot.cy += dy; } }
                 return;
             }
-            dx = Math.max(B.w / 2 - B.cx, Math.min(S.W - B.w / 2 - B.cx, dx)); dy = Math.max(B.h / 2 - B.cy, Math.min(S.H - B.h / 2 - B.cy, dy));
-            if (B.w > S.W) dx = S.W / 2 - B.cx; if (B.h > S.H) dy = S.H / 2 - B.cy;
+            [dx, dy] = stkKeep(B.cx - B.w / 2, B.cy - B.h / 2, B.w, B.h, dx, dy, { l: 0, t: 0, r: 0, b: 0 });   // 화면 밖으로 안 나가게 (스티커 엔진)
             B.cx += dx; B.cy += dy; S.mv.x += dx; S.mv.y += dy;
             for (const o of S.items) { if (o.st.state === 'on') { o.st.cx += dx; o.st.cy += dy; } if (o.slot) { o.slot.cx += dx; o.slot.cy += dy; } }
         }
@@ -188,15 +177,12 @@
             S.own = own; S.ts = !!(opt && opt.ts); S.drag = null; S.gone = 0; S.back = 0; S.mv = { x: 0, y: 0 }; S.on = true;
             pelLayout();
             if (opt && opt.at && S.board && !S.rel) pelShift(opt.at.x - S.board.cx, opt.at.y - S.board.cy);   // 🗂️ 꺼내 둔 종이를 열면 그 자리에서 (basket.js dsOpen)
-            pelq('pelRoom').classList.add('show'); document.body.classList.add('fc-lock');
-            cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(pelFrame);
+            stkShow(S, 'pelRoom', pelFrame);
             return true;
         }
         function closeStickerPeel() {
             const S = pelS, rel = S.rel; if (!rel && S.board && S.own) S.lastAt = { id: S.own.id, x: S.board.cx, y: S.board.cy };   // 🗂️ 꺼내 둔 종이로 돌아갈 자리 (basket.js dsMoveFromPeel)
-            S.on = false; S.drag = null; S.rel = null; pelNoise(0); cancelAnimationFrame(S.raf);
-            const r = pelq('pelRoom'); if (r) r.classList.remove('show', 'pel-rel');
-            document.body.classList.remove('fc-lock');
+            stkHide(S, 'pelRoom', 'pel-rel'); S.rel = null; pelNoise(0);
             if (rel) { if (rel.close) rel.close(); return; }                     // 🤍 정리 책상은 그대로
             if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
         }
@@ -276,7 +262,7 @@
             if (cur && d && d.mode === 'peel') pelDrawPeel(ctx, cur, d.C, d.F);
             else if (cur && st.state === 'on' && st.snap) pelSnap(ctx, cur, t);
             else if (cur && st.state === 'free') {
-                pelGrow(t);
+                pelSizeUp(t);
                 const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));                // 뒷면 → 앞면으로 뒤집혀요
                 pelDraw(ctx, flip < 0 ? a.back : a.front, st, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), PEL_UP);
             }
@@ -450,7 +436,7 @@
             
         }
         /* 📏 진짜 크기로 스르르 (잡은 자리는 손가락 끝 그대로) */
-        function pelGrow(t) {
+        function pelSizeUp(t) {                                              // (예전 이름 pelGrow 가 하얀 칼선 pelGrow 와 겹쳐서 ⚙ 하얀 테두리가 안 둘러졌어요 · 1242 고침)
             const S = pelS, st = S.st, g = st.grow; if (!g) return;
             const k = Math.min(1, (t - g.t0) / 240), e = 1 - Math.pow(1 - k, 3);
             st.s = g.s0 + (g.goal - g.s0) * e;

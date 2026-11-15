@@ -13,10 +13,9 @@
         const pcbS = { on: false, cv: null, ctx: null, fl: null, W: 0, H: 0, DPR: 1, raf: 0, hint: '', assets: [], pieces: [], fallers: [], drag: null, z: 10, bag: null,
             PR: null, BIG: null, SMALL: null, HOLD: null, SL: .5, SH: 1, SP: .5, closing: 0, used: null, mv: { x: 0, y: 0 } };   // mv : 봉투를 옮긴 만큼   // used : 이번에 붙인 조각 (봉투 속에 안 그려요)
         const pcbq = id => document.getElementById(id);
-        const pcbMk = mkCanvas;   // 🧰 js/util.js
-        const pcbLoad = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
+        const pcbMk = stkMk, pcbGrow = stkGrow;                              // 🏷️ 스티커 엔진 (js/sticker.js)
+        const pcbLoad = src => stkLoad(src);
         const pcbTint = tintCanvas;   // 🧰 js/util.js
-        function pcbGrow(src, r, step) { const c = pcbMk(src.width, src.height), d = c.getContext('2d'); for (const k of [1, .66, .33]) for (let a = 0; a < 360; a += step) d.drawImage(src, Math.cos(a * Math.PI / 180) * r * k, Math.sin(a * Math.PI / 180) * r * k); d.drawImage(src, 0, 0); return c; }
         const pcbNow = () => performance.now();
         const pcbOut = q => 1 - Math.pow(1 - q, 3), pcbBack = q => { const c = 1.6; return 1 + (c + 1) * Math.pow(q - 1, 3) + c * Math.pow(q - 1, 2); };
         const pcbDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
@@ -51,20 +50,12 @@
 
         /* ---------- 화면 ---------- */
         function pcbBuild() {
-            if (pcbq('pcbRoom')) return;
-            const el = document.createElement('div');
-            el.id = 'pcbRoom'; el.className = 'pel-room';
-            el.innerHTML = `<canvas id="pcbCv"></canvas><p class="pel-hint" id="pcbHint"></p><button type="button" class="pel-x pcb-bx win-x" id="pcbX" onclick="closePieceBag()" aria-label="닫기">✕</button>`;
-            document.body.appendChild(el);
-            const cv = pcbq('pcbCv');
-            cv.addEventListener('pointerdown', pcbDown); cv.addEventListener('pointermove', pcbMove);
-            cv.addEventListener('pointerup', pcbUp); cv.addEventListener('pointercancel', pcbUp);
-            window.addEventListener('resize', () => { if (pcbS.on) { const o = [pcbS.W, pcbS.H]; pcbLayout(); pcbReflow(o); } });
+            stkRoom({ id: 'pcbRoom', cls: 'pel-room', hit: 'pcbCv', down: pcbDown, move: pcbMove, up: pcbUp, resize: () => { if (pcbS.on) { const o = [pcbS.W, pcbS.H]; pcbLayout(); pcbReflow(o); } },   // 🪟 종이 화면 = 스티커 엔진
+                html: `<canvas id="pcbCv"></canvas><p class="pel-hint" id="pcbHint"></p><button type="button" class="pel-x pcb-bx win-x" id="pcbX" onclick="closePieceBag()" aria-label="닫기">✕</button>` });
         }
         function pcbLayout() {
-            const S = pcbS, cv = S.cv;
-            S.DPR = Math.min(window.devicePixelRatio || 1, 3); S.W = window.innerWidth; S.H = window.innerHeight;
-            cv.width = S.W * S.DPR; cv.height = S.H * S.DPR; S.fl = pcbMk(cv.width, cv.height);
+            const S = pcbS;
+            stkScreen(S, true);
             /* 봉투는 배경(화면) 한가운데 (PR 가운데) · 조각은 봉투가 있는 곳 둘레에 쏟아져요 (pcbSpill) · 붙일 크기(SP)는 페이지에 맞춰요 */
             const pg = pcbq('canvasArea'), r = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, width: S.W, height: S.H };
             const pw = Math.min(S.W - 24, 520), ph = Math.min(S.H - 84, 720), PR = S.PR = { x: (S.W - pw) / 2, y: Math.max(70, (S.H - ph) / 2), w: pw, h: ph };
@@ -98,8 +89,8 @@
         /* 봉투 옮기기 : 큰 봉투 · 작은 봉투가 같이 움직여요 (지금 보이는 봉투가 화면 밖으로 안 나가게) */
         function pcbClampR(q) { const M = 8; q.x = Math.max(M, Math.min(pcbS.W - M - q.w, q.x)); q.y = Math.max(M, Math.min(pcbS.H - M - q.h, q.y)); }
         function pcbShift(dx, dy) {
-            const S = pcbS, r = S.bag.state === 'closed' ? S.BIG : S.SMALL, M = 8;
-            dx = Math.max(M - r.x, Math.min(S.W - M - r.w - r.x, dx)); dy = Math.max(M - r.y, Math.min(S.H - M - r.h - r.y, dy));
+            const S = pcbS, r = S.bag.state === 'closed' ? S.BIG : S.SMALL;
+            [dx, dy] = stkKeep(r.x, r.y, r.w, r.h, dx, dy, { l: 8, t: 8, r: 8, b: 8 });   // 화면 밖으로 안 나가게 (스티커 엔진)
             for (const q of [S.BIG, S.SMALL]) { q.x += dx; q.y += dy; pcbClampR(q); }
             S.mv.x += dx; S.mv.y += dy;
         }
@@ -119,16 +110,13 @@
             pcbLayout();
             S.bag = { state: 'closed', tear: 0, dir: 1, wig: 0, move: null, strip: null, busy: false,
                 preview: S.assets.map((a, k) => ({ k, u: .2 + Math.random() * .6, v: .42 + Math.random() * .42, rot: (Math.random() - .5) * 1.2 })) };
-            pcbq('pcbRoom').classList.add('show'); document.body.classList.add('fc-lock');
             S.hint = '';
             pcbSay('봉투 윗부분 <b>점선</b>을 옆으로 쓱 밀어서 뜯어 보세요 ✂️');
-            cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(pcbFrame);
+            stkShow(S, 'pcbRoom', pcbFrame);
             return true;
         }
         function closePieceBag() {
-            const S = pcbS; S.on = false; S.drag = null; pcbNoise(0); cancelAnimationFrame(S.raf);
-            const r = pcbq('pcbRoom'); if (r) r.classList.remove('show');
-            document.body.classList.remove('fc-lock');
+            const S = pcbS; stkHide(S, 'pcbRoom'); pcbNoise(0);
             if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
         }
         function pcbSay(h) { hintPop(pcbq('pcbHint'), pcbS, h); }   // 💬 js/util.js
