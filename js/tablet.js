@@ -203,22 +203,22 @@
         const r = q('tbWs'); if (r && !quietly) { r.classList.remove('show'); document.body.classList.remove('tb-ws-on'); }
         IP.D = null;
     }
-    async function leaveOk() {                                               // 🎨 그림판 ‹ 홈 · ✕ = 물어봐요 (도련 11-15) : [💾 임시저장] = 이 기기에 저장하고 나가기 · [🗑 지우기] = 그동안 임시저장한 것도 지우고 나가기 · [계속 그리기] = 그대로
+    async function leaveOk() {                                               // 🎨 그림판 ‹ 홈 · ✕ = 물어봐요 (도련 11-15) : [💾 임시저장] = 이 기기에 저장하고 닫기 · [🗑 지우기] = 저장하지 않고 닫기 (그동안 임시저장한 것도 지워요 · 1220 : 계속 그리기 없앰)
         if (WS.k && window.ppDirty && q('tbWs') && q('tbWs').classList.contains('show') && q('tbWsC').querySelector('.pp-stage, canvas')) {
             const DK = (window.PP_DRAFT_K || {})[WS.k] || WS.k;
             let has = ppDirty(); if (!has) { try { has = !!(window.draftHas && await draftHas(DK)); } catch (e) {} }
-            if (has && typeof showAsk3 === 'function') {
-                const a = await showAsk3('작업 중인 그림을 어떻게 할까요?<br><small style="color:#777;">💾 임시저장 = 작업 중인 이 기기에만 저장돼요 · 🗑 지우기 = 그동안 임시저장한 것도 지워요</small>', '💾 임시저장', '계속 그리기', '🗑 지우기');
+            if (has && typeof showAsk === 'function') {                       // 도련 11-15 : [💾 임시저장] = 저장하고 닫기 · [🗑 지우기] = 저장하지 않고 닫기 (계속 그리기 없앴어요)
+                const a = await showAsk('작업 중인 그림을 어떻게 할까요?<br><small style="color:#777;">💾 임시저장 = 작업 중인 이 기기에만 저장하고 닫아요 · 🗑 지우기 = 저장하지 않고 닫아요 (그동안 임시저장한 것도 지워져요)</small>', '💾 임시저장', '🗑 지우기');
                 if (a === true) {
                     if (!ppDirty() || (window.ppSaveDraft && await ppSaveDraft(true))) return true;
                     return !!(await showAsk('⚠ 임시저장하지 못했어요.<br>나가면 마지막으로 저장한 뒤에 그린 것은 사라져요.', '나가기', '계속 그리기'));
                 }
-                if (a === 'extra') {
+                if (a === false) {
                     if (window.ppDiscard) await ppDiscard();
                     try { if (window.draftDrop) await draftDrop(DK); } catch (e) { console.warn('🗑 임시저장 지우기', e); }
                     return true;
                 }
-                return false;
+                return false;                                                   // 창이 다른 까닭으로 닫혔어요 (버튼을 누르지 않았어요) = 그대로
             }
         }
         if (IP.D && IP.D.dirty && typeof showAsk === 'function') return !!(await showAsk('그리던 그림이 사라져요.<br>나갈까요?', '나가기', '계속 그리기'));
