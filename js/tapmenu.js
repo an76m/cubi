@@ -28,8 +28,8 @@
         let tmPinAt = null;                                                    // 빈 곳 메뉴를 연 화면 자리 (🗑 삭제이 거기서 나와요)
         const TM_ANCHOR_MS = 120000;
         /* ⏲ 자동으로 사라지는 시간 (설정에서 정해요) : 팝업메뉴가 닫히는 시간 = 그림 선택이 풀리는 시간 (한 값으로 통일)
-           저장: 'diary_clear_sec'(설정.json) · 게스트는 이 기기 'malang_clear_sec' */
-        const CLR_KEY = 'diary_clear_sec', CLR_LOCAL = 'malang_clear_sec', CLR_DEF = 5, CLR_MIN = 1, CLR_MAX = 15;
+           기본 3초 (도련 11-15 · 예전 5초 · 직접 고른 값은 그대로) · 저장: 'diary_clear_sec'(설정.json) · 게스트는 이 기기 'malang_clear_sec' */
+        const CLR_KEY = 'diary_clear_sec', CLR_LOCAL = 'malang_clear_sec', CLR_DEF = 3, CLR_MIN = 1, CLR_MAX = 15;
         function clearSec() {
             let v = null;
             v = typeof prefGet === 'function' ? prefGet(CLR_KEY, CLR_LOCAL) : null;   // 💾 js/drive.js
