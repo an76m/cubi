@@ -360,19 +360,24 @@
             t.oncomplete = () => ok(q && q.result); t.onerror = t.onabort = () => ok(0);
         });
         const bcCount = (db, st) => bcTx(db, st, 'readonly', o => o.count());
+        /* 📝 완료 전 작업 = 이 기기 임시저장 (도련 11-15 : '그 밖의 브라우저 저장(시험용)'에 섞여 묻지 않고 지워지던 것을 따로 · ⚠ 칸)
+           그림판 (js/drive.js draftWrite) · 다이어리 페이지 (js/pagedone.js) · 스티커 정리 (js/basket.js) · 오리던 모조지 (js/own.js) · 이름을 알려 주지 않는 브라우저에서도 늘 세어요 */
+        const BC_DRAFT = ['mallang-ppdraft', 'mallang-pgdraft', 'mallang-absort', 'mallang-ownpaper'];
         async function bcScan() {
             const G = {};
             const add = (id, n, sz) => { const g = G[id] || (G[id] = { n: 0, sz: 0 }); g.n += n || 0; g.sz += sz || 0; };
             try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) add(bcLsKind(k), 1, (k.length + (localStorage.getItem(k) || '').length) * 2); } } catch (e) {}
             try { if (sessionStorage.length) add('login', sessionStorage.length, 0); } catch (e) {}
-            let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest'];
+            let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest'].concat(BC_DRAFT);
             try { if (indexedDB.databases) { const L = await bcWait(indexedDB.databases(), 2000); if (Array.isArray(L)) names = [...new Set(names.concat(L.map(d => d.name).filter(Boolean)))]; } } catch (e) {}
             G.dbs = names;
             for (const n of names) {
                 if (n === 'mallang-coll') await bcIdb(n, async db => { add('cache', (await bcCount(db, 'orig')) + (await bcCount(db, 'list'))); add('pend', await bcCount(db, 'outbox')); add('gcoll', await bcCount(db, 'local')); });
                 else if (n === 'mallang-pending') await bcIdb(n, async db => { for (const st of db.objectStoreNames) add('pend', await bcCount(db, st)); });
                 else if (n === 'malang-device') await bcIdb(n, async db => { add('dev', await bcCount(db, 'vmeta')); });
-                else add('etc', 1);
+                else if (BC_DRAFT.includes(n)) await bcIdb(n, async db => { for (const st of db.objectStoreNames) add('draft', await bcCount(db, st)); });   // 빈 DB 는 0 (목록에 안 보여요)
+                else if (n !== 'malang-localtest') add('etc', 1);
+                else await bcIdb(n, async () => add('etc', 1));                    // 🧪 시험용 = 있을 때만
             }
             try { if (window.caches) add('app', (await caches.keys()).length); } catch (e) {}
             try { if (navigator.serviceWorker) { const S = await bcWait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(S)) add('app', S.length); } } catch (e) {}
@@ -385,8 +390,9 @@
             { id: 'pref', ic: '⚙', t: '이 기기 설정 · 화면 기억', s: '자리 · 보기 방식 같은 이 기기 기억 (드라이브 설정은 그대로)', on: 1 },
             { id: 'login', ic: '🔑', t: '로그인 · 저장 방식 기억', s: '처음 화면에서 구글 · 로그인 없이를 다시 골라요', on: 1 },
             { id: 'diag', ic: '🧾', t: '아직 안 올린 문제 기록', s: '', on: 1 },
-            { id: 'etc', ic: '🧪', t: '그 밖의 브라우저 저장', s: '시험용 · 예전 저장 칸', on: 1 },
+            { id: 'etc', ic: '🧪', t: '그 밖의 브라우저 저장', s: '시험용 · 예전 저장 칸 (완료 전 작업은 아래 📝 칸)', on: 1 },
             { id: 'pend', ic: '⏳', t: '아직 드라이브에 못 올린 것', s: '지우면 그 바뀐 내용 · 도착 알림이 사라져요', warn: 1 },
+            { id: 'draft', ic: '📝', t: '완료 전 작업 (이 기기 임시저장)', s: '그리던 도안 · 완료 전 다이어리 페이지 · 완료 전 스티커 정리 · 오리던 모조지', warn: 1 },
             { id: 'dev', ic: '🏠', t: '로그인 없이 쓴 다이어리', s: '이 브라우저에 저장한 일기 · 스티커 전부예요', warn: 1 },
             { id: 'guest', ic: '👤', t: '게스트로 쓴 일기 · 설정', s: '', warn: 1 },
             { id: 'gcoll', ic: '👤', t: '게스트로 만든 스티커 · 페이지', s: '', warn: 1 }
@@ -439,6 +445,7 @@
                     if (sts.length) T.push([DBN[n] + ' 지우는 중', () => sts.length === 4 ? delDb(n) : bcIdb(n, db => clr(db, sts))]);
                 } else if (n === 'mallang-pending') { if (S('pend')) T.push([DBN[n] + ' 지우는 중', () => delDb(n)]); }
                 else if (n === 'malang-device') { if (S('dev')) T.push([DBN[n] + ' 지우는 중', () => delDb(n)]); }
+                else if (BC_DRAFT.includes(n)) { if (S('draft')) T.push(['📝 완료 전 작업 지우는 중', () => delDb(n)]); }   // 📝 는 고른 때만 (🧪 와 따로)
                 else if (S('etc')) T.push(['🧪 그 밖의 브라우저 저장 지우는 중', () => delDb(n)]);
             }
             if (S('app')) T.push(['📦 앱 파일 · 업데이트 장치 지우는 중', async () => {
