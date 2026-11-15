@@ -122,8 +122,7 @@
         function pcbSay(h) { hintPop(pcbq('pcbHint'), pcbS, h); }   // 💬 js/util.js
 
         /* ---------- 좌표 · 움직임 ---------- */
-        const pcbToStage = (st, lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
-        const pcbToLocal = (st, x, y) => { const dx = (x - st.cx) / st.s, dy = (y - st.cy) / st.s, c = Math.cos(-st.rot), s = Math.sin(-st.rot); return [dx * c - dy * s, dx * s + dy * c]; };
+        const pcbToStage = stkToStage, pcbToLocal = stkToLocal;             // ✋ 핀셋 손길 = 스티커 엔진 (js/sticker.js)
         function pcbAnim(st, to, dur, o = {}) { st.anim = { from: { cx: st.cx, cy: st.cy, rot: st.rot, s: st.s }, to: Object.assign({ cx: st.cx, cy: st.cy, rot: st.rot, s: st.s }, to), t0: pcbNow() + (o.delay || 0), dur, ease: o.ease || pcbOut, arc: o.arc || 0, hide: o.hide, done: o.done }; }
         function pcbStep(st, t) {
             const a = st.anim; if (!a) return;
@@ -277,22 +276,13 @@
         }
 
         /* ---------- 손가락 ---------- */
-        function pcbEdge(st, P) {
-            const a = pcbS.assets[st.k], [lx, ly] = pcbToLocal(st, P[0], P[1]); let best = 1e12, bp = null;
-            for (const q of a.edge) { const d = (q[0] - lx) ** 2 + (q[1] - ly) ** 2; if (d < best) { best = d; bp = q; } }
-            return { bp, d: Math.sqrt(best) * st.s, inside: a.alpha(lx, ly) > 128 };
-        }
-        function pcbPeeled(st, C, F) {
-            const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy); if (len < 1) return 0;
-            const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2], e = pcbS.assets[st.k].edge; let off = 0;
-            for (const [lx, ly] of e) { const [x, y] = pcbToStage(st, lx, ly); if ((x - M[0]) * n[0] + (y - M[1]) * n[1] < 0) off++; }
-            return off / e.length;
-        }
+        const pcbEdge = (st, P) => stkEdge(pcbS.assets[st.k], st, P);        // 가장 가까운 가장자리 (스티커 엔진)
+        const pcbPeeled = (st, C, F) => stkPeeled(pcbS.assets[st.k], st, C, F);   // 얼마나 벗겨졌는지 (스티커 엔진)
         function pcbStartPeel(st, C, P, base, resumed) { const S = pcbS; st.z = ++S.z; st.snap = null; st.half = null; S.drag = { st, mode: 'peel', C, F: base.slice(), base, start: P, last: P, lt: pcbNow(), resumed }; }
         function pcbDown(e) {
             const S = pcbS; if (!S.on || S.drag || S.closing) return;
             e.preventDefault(); const P = [e.clientX, e.clientY];
-            const cap = () => { try { S.cv.setPointerCapture(e.pointerId); } catch (er) {} };
+            const cap = () => stkCap(S.cv, e);
             const h = pcbHeld();
             const noTwz = () => !stkTwz(P[0], P[1]);   // 🪡 조각 집기 · 벗기기는 핀셋으로 (봉투 뜯기는 손으로 · 도련 10-21)
             if (h && !h.anim) {                                                  // 1) 손에 든 조각 : 뒷종이 벗기기
@@ -312,7 +302,7 @@
                 const ei = pcbEdge(st, P); if (ei.inside || ei.d < 8) { if (noTwz()) return; pcbLift(st); return; }
             }
             if (h && !h.anim) { pcbPutBack(h); return; }                         // 4) 빈 곳 : 들고 있던 걸 내려놓기
-            if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e);           // 5) 날짜바 위 → 페이지 옮기기 (js/page.js)
+            stkBar(e, P);                                                       // 5) 날짜바 위 → 페이지 옮기기
         }
         function pcbMove(e) {
             const S = pcbS, d = S.drag; if (!d) return;
@@ -330,10 +320,9 @@
                 if (d.moved) pcbShift(P[0] - d.last[0], P[1] - d.last[1]);
                 d.last = P; return;
             }
-            if (d.mode === 'free') { const st = d.st; st.rot += ((P[0] - d.last[0]) * .004 - (st.rot - d.baseRot) * .08); d.last = P; return; }
-            const sp = pcbDist(P, d.last) / Math.max(1, t - d.lt); d.lt = t; d.last = P;
-            const st = d.st, dx = P[0] - d.start[0], dy = P[1] - d.start[1], k = d.resumed ? 1 : Math.min(1, .45 + Math.hypot(dx, dy) / 220);   // 끈적임
-            const Fr = [d.base[0] + dx * k, d.base[1] + dy * k];
+            if (d.mode === 'free') { stkSway(d.st, P[0] - d.last[0], d.baseRot); d.last = P; return; }
+            const sp = stkSpeed(d, P);
+            const st = d.st, Fr = stkPull(d, P, !d.resumed);                     // 끈적임 (스티커 엔진 · 반쯤 벗긴 것을 마저 = 그대로)
             if (d.caught) {                                                      // 걸림 : 손가락은 가는데 스티커는 버텨요
                 d.F = [d.catchF[0] + (Fr[0] - d.catchFr[0]) * .1, d.catchF[1] + (Fr[1] - d.catchFr[1]) * .1]; pcbNoise(Math.min(.12, sp * .08));
                 if (pcbDist(Fr, d.catchFr) > 90) { d.caught = false; d.F = Fr; pcbBuzz(25); pcbSay('찌직! 넘어갔어요 ✨ 조금만 더!'); }
@@ -349,8 +338,7 @@
             const S = pcbS, st = S.drag.st;
             if (st.liner) { S.fallers.push({ k: st.k, cx: st.cx, cy: st.cy, rot: st.rot, s: st.s, vx: Math.random() < .5 ? -1 : 1, vr: (Math.random() - .5) * .1, t0: pcbNow() }); st.liner = false; }
             const local = pcbToLocal(st, S.drag.C[0], S.drag.C[1]); pcbNoise(0);
-            const pg = pcbq('canvasArea'), pr = pg && pg.getBoundingClientRect();                  // 📏 떨어지는 순간 페이지에 붙을 진짜 크기로 (원본 × 페이지 배율 · 도련 · 10-18)
-            st.state = 'free'; st.t0 = pcbNow(); st.half = null; st.sGoal = pr && pr.width ? pr.width / (pg.offsetWidth || pr.width) : S.SP; st.z = ++S.z;
+            st.state = 'free'; st.t0 = pcbNow(); st.half = null; st.sGoal = stkPageScale() || S.SP; st.z = ++S.z;   // 📏 떨어지는 순간 페이지에 붙을 진짜 크기로 (원본 × 페이지 배율 · 도련 · 10-18)
             S.drag = { st, mode: 'free', local, baseRot: st.rot, last: P }; pcbAnchor(st, P);
             pcbBuzz(15); pcbSay('톡! 뒷종이가 벗겨졌어요 ✨ 원하는 곳에 붙여 보세요');
         }
@@ -379,7 +367,7 @@
             }
             pcbBuzz(8); pcbStick(st);
         }
-        function pcbWiggle(st) { const r = st.rot, t0 = pcbNow(); (function w() { const q = (pcbNow() - t0) / 300; st.rot = r + Math.sin(q * Math.PI * 4) * .04 * (1 - q); if (q < 1) requestAnimationFrame(w); else st.rot = r; })(); }
+        const pcbWiggle = stkWiggle;
         const pcbBuzz = buzz;   // 🧰 js/util.js
 
         /* ---------- 봉투 열기 · 쏟기 · 집기 ---------- */

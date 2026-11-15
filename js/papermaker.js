@@ -241,7 +241,7 @@
         function pmDown(e) {
             const S = pmS; if (!S.on || S.drag) return;
             e.preventDefault(); const P = [e.clientX, e.clientY];
-            const cap = () => { try { e.target.setPointerCapture(e.pointerId); } catch (er) {} };
+            const cap = () => stkCap(e.target, e);                                   // ✋ 손가락 붙잡기 (스티커 엔진)
             if (S.edit) {                                                                  // 글씨 쓰는 중
                 if (S.edit.closing || pmNow() - S.edit.t0 < 280) return;
                 const st = S.edit.st, E = pmEditPose(st), L = [(P[0] - E.cx) / E.s, (P[1] - E.cy) / E.s]; cap();

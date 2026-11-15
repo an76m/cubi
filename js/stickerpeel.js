@@ -189,8 +189,7 @@
         function pelRelayout() { if (pelS.on && pelS.rel) pelLayout(); }       // 🤍 정리 책상 화면이 바뀌면 자리 다시
 
         /* ---------- 좌표 ---------- */
-        const pelToStage = (st, lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
-        const pelToLocal = (st, x, y) => { const dx = (x - st.cx) / st.s, dy = (y - st.cy) / st.s, c = Math.cos(-st.rot), s = Math.sin(-st.rot); return [dx * c - dy * s, dx * s + dy * c]; };
+        const pelToStage = stkToStage, pelToLocal = stkToLocal;             // ✋ 핀셋 손길 = 스티커 엔진 (js/sticker.js)
 
         /* ---------- 그리기 ---------- */
         function pelDraw(ctx, img, st, extra = 1, flip = 1, sh = null) {
@@ -324,12 +323,7 @@
         }
 
         /* ---------- 손가락 ---------- */
-        function pelPeeled(st, C, F) {
-            const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy); if (len < 1) return 0;
-            const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2]; let off = 0;
-            for (const [lx, ly] of pelS.a.edge) { const [x, y] = pelToStage(st, lx, ly); if ((x - M[0]) * n[0] + (y - M[1]) * n[1] < 0) off++; }
-            return off / pelS.a.edge.length;
-        }
+        const pelPeeled = (st, C, F) => stkPeeled(pelS.a, st, C, F);        // 얼마나 떼어졌는지 (스티커 엔진)
         /* ✋ 잡고 옮겨요 테이프 (여러 개 씰 종이 위쪽 가운데) : 잡고 끌면 하얀 종이째 옮겨요 */
         function pelTape() { const B = pelS.board, w = 112, h = 24; return { x: B.cx - w / 2, y: B.cy - B.h / 2 - h / 2 - 2, w, h }; }
         function pelDrawTape(c) {
@@ -350,30 +344,30 @@
                 const t = pelTape();
                 if (P[0] > t.x - 8 && P[0] < t.x + t.w + 8 && P[1] > t.y - 8 && P[1] < t.y + t.h + 8) {
                     S.drag = { mode: 'board', last: P, lt: performance.now() };
-                    try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
+                    stkCap(pelq('pelHit'), e);
                     return;
                 }
             }
-            let best = 1e12, bp = null, bo = null, hit = null;                   // 손가락에서 가장 가까운 스티커 가장자리
+            let best = 1e12, bp = null, bo = null, hit = null;                   // 손가락에서 가장 가까운 스티커 가장자리 (스티커 엔진 stkEdge)
             for (const o of S.items) {
                 if (o.st.state !== 'on') continue;
-                const [lx, ly] = pelToLocal(o.st, P[0], P[1]);
-                for (const q of o.a.edge) { const dd = ((q[0] - lx) ** 2 + (q[1] - ly) ** 2) * o.st.s * o.st.s; if (dd < best) { best = dd; bp = q; bo = o; } }
-                if (!hit && o.a.alpha(lx, ly) > 128) hit = o;
+                const g = stkEdge(o.a, o.st, P);
+                if (g.d < best) { best = g.d; bp = g.bp; bo = o; }
+                if (!hit && g.inside) hit = o;
             }
             /* 스티커 안쪽 가장자리는 넉넉히(PEL_GRAB) · 바깥(종이 빈 곳)은 조금만(PEL_GRAB_OUT) → 나머지 빈 곳은 종이 옮기기 */
-            if (bp && Math.sqrt(best) < (hit === bo ? PEL_GRAB : PEL_GRAB_OUT)) {
+            if (bp && best < (hit === bo ? PEL_GRAB : PEL_GRAB_OUT)) {
                 if (!S.rel && !stkTwz(P[0], P[1])) return;   // 🤍 이형지북 정리는 핀셋이 늘 들려 있어요 (도련 10-29)   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
                 pelPick(bo); const st = S.st, C = pelToStage(st, bp[0], bp[1]); st.snap = null;
                 S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
-                try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
+                stkCap(pelq('pelHit'), e);
                 return;
             }
             if (hit) { pelWiggle(hit.st); return; }
             const B = S.board;                                                   // 하얀 종이 빈 곳 → 종이 옮기기
             if (B && Math.abs(P[0] - B.cx) <= B.w / 2 && Math.abs(P[1] - B.cy) <= B.h / 2) {
                 S.drag = { mode: 'board', last: P, lt: performance.now() };
-                try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
+                stkCap(pelq('pelHit'), e);
                 return;
             }
             if (S.rel) {                                                         // 🤍 종이 밖 = 그 아래 버튼 (쪽 넘기기 · 다른 종이 고르기 …)
@@ -390,14 +384,14 @@
                 const tt = under && !under.closest('button') && under.closest('.modal-title'), box = tt && tt.closest('.modal-content');
                 if (box) {                                                       // ✋ 창 제목 줄 = 창 옮기기 (떼는 판이 떠 있어도 · 도련 10-25 · js/skins.js setupSkinWindows 와 같게)
                     S.drag = { mode: 'win', box, last: P, x: P[0], y: P[1], ox: parseFloat(box.style.left) || 0, oy: parseFloat(box.style.top) || 0 };
-                    try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
+                    stkCap(pelq('pelHit'), e);
                     return;
                 }
                 const btn = under && under.closest('button, input, label');
                 if (btn) { if (btn.matches('input')) btn.focus(); else btn.click(); }
                 return;
             }
-            if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e);                // 종이 바깥 날짜바 위 → 페이지 옮기기 (js/page.js)
+            stkBar(e, P);                                                       // 종이 바깥 날짜바 위 → 페이지 옮기기
         }
         function pelMove(e) {
             const S = pelS, d = S.drag; if (!d) return;
@@ -411,16 +405,15 @@
                 b.style.top = Math.max(-bt, Math.min(Math.max(-bt, innerHeight - r.height - bt), d.oy + P[1] - d.y)) + 'px';
                 b.dispatchEvent(new Event('dk-move')); d.last = P; return;
             }
-            const sp = Math.hypot(P[0] - d.last[0], P[1] - d.last[1]) / Math.max(1, now - d.lt); d.last = P; d.lt = now;
+            const sp = stkSpeed(d, P);
             if (d.mode === 'peel') {
-                const dx = P[0] - d.start[0], dy = P[1] - d.start[1], k = Math.min(1, .45 + Math.hypot(dx, dy) / 220);   // 끈적임
-                d.F = [d.C[0] + dx * k, d.C[1] + dy * k];
+                d.F = stkPull(d, P);                                             // 끈적임 (스티커 엔진)
                 pelNoise(Math.min(.35, sp * .25));
                 const fr = pelPeeled(S.st, d.C, d.F);
                 if (fr >= .78) pelDetach(P);
             } else {
                 const st = S.st, nx = P[0] - d.off[0], ny = P[1] - d.off[1];
-                st.rot = Math.max(-.35, Math.min(.35, st.rot + (nx - st.cx) * .004 - (st.rot - d.baseRot) * .08)); st.cx = nx; st.cy = ny;
+                stkSway(st, nx - st.cx, d.baseRot, .35); st.cx = nx; st.cy = ny;
             }
         }
         function pelDetach(P) {
@@ -430,8 +423,8 @@
             const [gx, gy] = pelToStage(st, lx, ly);
             S.drag = { mode: 'free', off: [gx - st.cx, gy - st.cy], baseRot: st.rot, last: P, lt: performance.now() };
             st.cx = P[0] - S.drag.off[0]; st.cy = P[1] - S.drag.off[1];
-            const pg = pelPage(), pr = pg && pg.getBoundingClientRect();                  // 📏 하얀 종이에서 완전히 떨어지는 순간 진짜 크기로 (페이지 배율 · 도련 · 10-18)
-            if (pr && pr.width && !S.rel) st.grow = { goal: pr.width / (pg.offsetWidth || pr.width), s0: st.s, t0: performance.now(), off: S.drag.off.slice() };
+            const goal = stkPageScale();                                          // 📏 하얀 종이에서 완전히 떨어지는 순간 진짜 크기로 (페이지 배율 · 도련 · 10-18)
+            if (goal && !S.rel) st.grow = { goal, s0: st.s, t0: performance.now(), off: S.drag.off.slice() };
             pelNoise(0); buzz(15);
             
         }
@@ -473,7 +466,7 @@
             pelPick(left[0]); pelLayout();
             
         }
-        function pelWiggle(st) { const r = st.rot, t0 = performance.now(); (function w() { const q = (performance.now() - t0) / 300; st.rot = r + Math.sin(q * Math.PI * 4) * .04 * (1 - q); if (q < 1) requestAnimationFrame(w); else st.rot = r; })(); }
+        const pelWiggle = stkWiggle;
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 페이지에 붙어요 */
         function pelStick() {

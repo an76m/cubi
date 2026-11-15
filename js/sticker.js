@@ -15,7 +15,14 @@
        stkShow(S, room, frame) · stkHide(S, room) = 띄우기 (움직임 시작 · 뒤 페이지 고정 fc-lock) · 내리기
        stkKeep(x, y, w, h, dx, dy, A) = 종이 옮기기 : 화면 밖으로 안 나가게 [dx, dy] (A = { l, t, r, b } 둘레 여백 · 화면보다 크면 가운데)
        stkLoad(src, soft) = 그림 받기 (주소 그림은 CORS · soft = 못 받으면 null) · stkMk = 빈 캔버스 · stkGrow(src, r, step) = 둘레로 r 만큼 키운 모양 (하얀 칼선 · 뒷종이)
-   - 다음 단계 : 핀셋 손길 (누르기 · 끌기 · 떼어 내기) → 떼어지는 그림 → 문서
+   - ✋ 핀셋 손길 (S-3) : 스티커 한 장 st = { cx, cy (화면 가운데), rot (라디안), s (배율) } · 그림 재료 a = { edge (가장자리 점), alpha(x, y) }
+       stkToStage(st, x, y) · stkToLocal(st, x, y) = 스티커 안 좌표 ↔ 화면 좌표
+       stkEdge(a, st, P) = 손가락에서 가장 가까운 가장자리 { bp 그 점, d 거리(화면 px), inside 그림 위인지 } → 가장자리를 잡아야 떼어져요
+       stkPull(d, P, sticky) = 떼는 끝 F (끈적임 : 처음엔 손가락보다 덜 따라와요 · 220px 쯤 끌면 그대로) · d = { C 잡은 곳, start 누른 곳, base 시작 끝 }
+       stkPeeled(a, st, C, F) = 얼마나 떼어졌는지 (0 ~ 1 · 가장자리 점이 접힌 선 너머로 간 비율)
+       stkSpeed(d, P) = 손가락 빠르기 (px/ms · 떼는 소리 크기) · stkSway(st, dx, base, lim) = 끌면 살랑 기울어요 · stkWiggle(st) = 가운데를 누르면 살짝 흔들려요
+       stkPageScale() = 떨어지는 순간 페이지에 붙을 진짜 크기 (페이지 배율) · stkCap(el, e) = 손가락 붙잡기 · stkBar(e, P) = 종이 밖 날짜바 = 페이지 옮기기
+   - 다음 단계 : 떼어지는 그림 → 문서
    ※ util.js · space.js · elements.js 다음 · 스티커 종류 파일보다 먼저 읽어요 */
 const stkNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });            // 🔊 🏷️ 씰 · 🧩 조각 '찌익' (예전엔 파일마다 같은 소리를 따로)
 function stkTwz(x, y) {
@@ -64,6 +71,31 @@ function stkKeep(x, y, w, h, dx, dy, A) {
     dy = h > H - A.t - A.b ? (H - h) / 2 - y : Math.max(A.t - y, Math.min(H - A.b - h - y, dy));
     return [dx, dy];
 }
+
+/* ---------- ✋ 핀셋 손길 (S-3) ---------- */
+const stkToStage = (st, lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
+const stkToLocal = (st, x, y) => { const dx = (x - st.cx) / st.s, dy = (y - st.cy) / st.s, c = Math.cos(-st.rot), s = Math.sin(-st.rot); return [dx * c - dy * s, dx * s + dy * c]; };
+function stkEdge(a, st, P) {
+    const [lx, ly] = stkToLocal(st, P[0], P[1]); let best = 1e12, bp = null;
+    for (const q of a.edge) { const d = (q[0] - lx) ** 2 + (q[1] - ly) ** 2; if (d < best) { best = d; bp = q; } }
+    return { bp, d: Math.sqrt(best) * st.s, inside: a.alpha(lx, ly) > 128 };
+}
+function stkPull(d, P, sticky) {
+    const b = d.base || d.C, dx = P[0] - d.start[0], dy = P[1] - d.start[1], k = sticky === false ? 1 : Math.min(1, .45 + Math.hypot(dx, dy) / 220);   // 끈적임
+    return [b[0] + dx * k, b[1] + dy * k];
+}
+function stkPeeled(a, st, C, F) {
+    const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy); if (len < 1) return 0;
+    const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2]; let off = 0;
+    for (const [lx, ly] of a.edge) { const [x, y] = stkToStage(st, lx, ly); if ((x - M[0]) * n[0] + (y - M[1]) * n[1] < 0) off++; }
+    return off / a.edge.length;
+}
+function stkSpeed(d, P) { const t = performance.now(), sp = Math.hypot(P[0] - d.last[0], P[1] - d.last[1]) / Math.max(1, t - d.lt); d.last = P; d.lt = t; return sp; }
+function stkSway(st, dx, base, lim) { const r = st.rot + dx * .004 - (st.rot - base) * .08; st.rot = lim ? Math.max(-lim, Math.min(lim, r)) : r; }
+function stkWiggle(st) { const r = st.rot, t0 = performance.now(); (function w() { const q = (performance.now() - t0) / 300; st.rot = r + Math.sin(q * Math.PI * 4) * .04 * (1 - q); if (q < 1) requestAnimationFrame(w); else st.rot = r; })(); }
+function stkPageScale() { const pg = spPage(), r = pg && pg.getBoundingClientRect(); return r && r.width ? r.width / (pg.offsetWidth || r.width) : 0; }
+function stkCap(el, e) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
+function stkBar(e, P) { if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e); }   // 종이 밖 날짜바 위 → 페이지 옮기기 (js/page.js)
 
 /* ---------- 📄 붙이기 (S-1) ---------- */
 function stkStick(o) {
