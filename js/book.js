@@ -82,6 +82,29 @@ function bookTurner(o) {
         stop() { T.drag = null; T.anim = null; }
     };
 }
+/* ✋ 막대를 끌어 책 옮기기 하나 (도련 11-15 · 2-3 · 📔 다이어리 날짜바 · 📒 🤍 책 엔진 막대가 같이 써요)
+   BOOK_MOVE px 넘게 끌어야 옮겨져요 (살짝 누르면 막대의 버튼 그대로) · 옮긴 뒤의 톡은 버튼으로 안 가요 (noClick)
+   o = { el (손가락을 잡아 둘 곳), from() → { x, y } (지금 자리), to(x, y) (옮기기), on() (옮기기 시작) · off(moved) (끝) } → { begin(e) (이 손가락으로 시작) · busy() · noClick() } */
+const BOOK_MOVE = 8;
+function bookMover(o) {
+    const M = { d: null, at: 0 };
+    addEventListener('pointermove', e => {
+        const d = M.d; if (!d || d.id !== e.pointerId) return;
+        const dx = e.clientX - d.x, dy = e.clientY - d.y;
+        if (!d.on) {
+            if (Math.hypot(dx, dy) < BOOK_MOVE || (o.wait && o.wait())) return;
+            d.on = true; try { o.el.setPointerCapture(e.pointerId); } catch (er) {}
+            if (o.on) o.on();
+        }
+        o.to(d.ox + dx, d.oy + dy);
+    });
+    const end = e => { const d = M.d; if (!d || d.id !== e.pointerId) return; M.d = null; if (!d.on) return; M.at = performance.now(); if (o.off) o.off(true); };
+    addEventListener('pointerup', end); addEventListener('pointercancel', end);
+    return {
+        begin(e) { if (M.d) return false; const p = o.from(); M.d = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: p.x, oy: p.y, on: false }; return true; },
+        busy: () => !!(M.d && M.d.on), noClick: () => performance.now() - M.at < 400
+    };
+}
 function bookOpen(host, spec) {
     const ph = () => !!(window.UI && UI.phone());
     const B = { spec, open: !!spec.open, pg: Math.max(0, spec.pg || 0), busy: null, root: null, alive: true };
@@ -135,27 +158,19 @@ function bookOpen(host, spec) {
     function wire() {
         const R = B.root;
         R.addEventListener('click', e => {
-            if (B.tr && B.tr.noClick()) { e.stopPropagation(); e.preventDefault(); return; }   // 넘긴 뒤의 톡은 쪽 안으로 안 가요
+            if ((B.tr && B.tr.noClick()) || (B.mv && B.mv.noClick())) { e.stopPropagation(); e.preventDefault(); return; }   // 넘기거나 옮긴 뒤의 톡은 안 가요
             const b = e.target.closest('button'); if (!b || !R.contains(b)) return;
             if (b.classList.contains('bk-x')) { spec.onClose(); return; }
             if (b.dataset.side) { spec.setSide(bookSide(spec.side(), b.dataset.side)); render(); return; }
             if (b.dataset.d) turn(+b.dataset.d);
         }, true);
+        B.mv = bookMover({                                                  // ✋ 막대 끌기 = 공통 (bookMover · 다이어리 날짜바와 같아요)
+            el: R, from: () => ({ x: B.cx, y: B.y }), to: (x, y) => place(x, y), on: () => R.classList.add('mv'),
+            off: () => { R.classList.remove('mv'); try { localStorage.setItem(spec.posKey, JSON.stringify({ cx: Math.round(B.cx), y: Math.round(B.y) })); } catch (er) {} }
+        });
         R.addEventListener('pointerdown', e => {
-            if (e.button > 0 || B.busy) return;
-            const bar = e.target.closest('.bk-bar');
-            if (bar) {                                                       // 막대 = 옮기기 (버튼은 그대로 눌려요)
-                if (e.target.closest('button')) return;
-                e.preventDefault();
-                const x0 = e.clientX - B.cx, y0 = e.clientY - B.y, id = e.pointerId; let moved = false;
-                try { bar.setPointerCapture(id); } catch (er) {}
-                R.classList.add('mv');
-                const mv = ev => { if (ev.pointerId === id) { place(ev.clientX - x0, ev.clientY - y0); moved = true; } };
-                const up = ev => { if (ev.pointerId !== id) return; bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', up); bar.removeEventListener('pointercancel', up); R.classList.remove('mv');
-                    if (moved) try { localStorage.setItem(spec.posKey, JSON.stringify({ cx: Math.round(B.cx), y: Math.round(B.y) })); } catch (er) {} };
-                bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
-                return;
-            }
+            if ((e.pointerType === 'mouse' && e.button > 0) || B.busy || !e.target.closest('.bk-bar')) return;   // 막대 = 옮기기 (버튼 위에서 끌어도 · 살짝 누르면 버튼)
+            B.mv.begin(e);
         });
         B.tr = bookTurner({                                                 // ✋ 넘기기 손길 = 공통 (bookTurner)
             el: R,
@@ -213,4 +228,4 @@ function bookOpen(host, spec) {
         turn, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
-window.bookOpen = bookOpen; window.bookSide = bookSide; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
+window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;

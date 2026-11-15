@@ -487,12 +487,11 @@
         }
 
         /* ✋ 페이지 옮기기 : 다이어리를 연 뒤 위쪽 날짜바(#pageHeader)를 누른 채 끌면 배경 안에서 마음대로 옮겨져요 (겉표지는 가운데 고정 · 페이지 여백을 끌면 안 옮겨져요)
-           - 살짝 누르기(탭)는 그대로 날짜바 버튼 (PGM_MIN px 넘게 끌어야 옮겨져요) · 양쪽 끝은 그대로 페이지 넘기기
+           - 살짝 누르기(탭)는 그대로 날짜바 버튼 (BOOK_MOVE 8px 넘게 끌어야 옮겨져요 · js/book.js bookMover) · 양쪽 끝은 그대로 페이지 넘기기
            - 옮긴 자리는 기억하지 않아요 : 앱을 켜거나 로그인해서 다이어리를 열면 늘 가운데에서 시작 · 화면 크기가 바뀌어도 배경 밖으로 안 나가게 맞춰요
            - #diaryWrapper 의 left · top 만 바꿔요 (페이지 안 좌표 posX · posY 는 그대로라 스티커 자리는 안 바뀌어요)
            - 🏷️ 씰 종이 · 🧩 봉투 · 📄 모조지스티커가 떠 있을 때는 날짜바 위에서 누른 손가락을 그 화면이 pgmOnBar 로 보고 pgmBegin 으로 넘겨줘요 */
-        const PGM_MIN = 8;
-        let pgmPos = { x: 0, y: 0 }, pgmDrag = null, pgmAt = 0;
+        let pgmPos = { x: 0, y: 0 };
         function pgmApply() {
             const w = document.getElementById('diaryWrapper');
             if (!isCoverOpen) { w.style.left = w.style.top = '0px'; return; }   // 겉표지는 늘 가운데 (옮긴 자리는 열고 나서부터)
@@ -506,16 +505,18 @@
             w.style.left = pgmPos.x + 'px'; w.style.top = pgmPos.y + 'px';
         }
         function pgmOnBar(x, y) { const h = document.getElementById('pageHeader'), r = h && h.getBoundingClientRect(); return !!r && isCoverOpen && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; }
+        let PGM = null;                                                       // ✋ 날짜바 끌기 = 공통 (js/book.js bookMover · 📒 🤍 책 엔진 막대와 같아요 · 도련 11-15 · 2-3)
         function pgmBegin(e) {
-            if (!isCoverOpen || turn || pgmDrag) return false;
-            pgmDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: pgmPos.x, oy: pgmPos.y, on: false };
-            return true;
+            if (!isCoverOpen || turn || !PGM) return false;
+            return PGM.begin(e);
         }
         function setupPageMove() {
             const wrapper = document.getElementById('diaryWrapper'), book = document.getElementById('diaryBook');
             pgmApply();
+            PGM = bookMover({ el: wrapper, from: () => pgmPos, to: (x, y) => { pgmPos = { x, y }; pgmApply(); positionTextPanel(); }, wait: () => !!turn,
+                on: () => { wrapper.classList.add('pgm-on'); if (window.tmClose) tmClose(); }, off: () => wrapper.classList.remove('pgm-on') });
             wrapper.addEventListener('pointerdown', (e) => {
-                if (!isCoverOpen || turn || pgmDrag) return;
+                if (!isCoverOpen || turn || PGM.busy()) return;
                 if (e.pointerType === 'mouse' && e.button !== 0) return;
                 if (!e.target.closest('#pageHeader') || e.target.closest('input, select, .tap-menu')) return;   // 날짜바만 (버튼 위에서 끌어도 옮겨져요 · 살짝 누르면 그대로 버튼)
                 if (curlEdgeAt(e.clientX, book)) return;
@@ -524,32 +525,15 @@
             /* ✏️ 🪡 문구를 들고 있어도 (그리는 중 · 핀셋 · 가위 · 칼 …) 날짜바를 잡으면 다이어리가 옮겨져요 (도련 11-05)
                그리는 중엔 날짜바가 펜 판 아래라 손가락이 안 닿아요 → 자리로 보고 먼저 받아요 · 날짜바의 버튼 위면 톡은 그대로 버튼 */
             window.addEventListener('pointerdown', (e) => {
-                if (!isCoverOpen || turn || pgmDrag || (e.pointerType === 'mouse' && e.button !== 0) || !pgmOnBar(e.clientX, e.clientY)) return;
+                if (!isCoverOpen || turn || PGM.busy() || (e.pointerType === 'mouse' && e.button !== 0) || !pgmOnBar(e.clientX, e.clientY)) return;
                 const t = e.target && e.target.closest ? e.target : document.body;
                 if (t.closest('input, select, .tap-menu, .modal, .dkw-room')) return;
                 const held = document.body.classList.contains('draw-on') || document.querySelector('#innerPage > .bd-tool.held, .sk-knife.held, .pc-held:not([hidden]), .pin-cur, .scs-cur');
                 if (!held || !pgmBegin(e)) return;
                 if (!t.closest('button')) { e.stopPropagation(); e.preventDefault(); }
             }, true);
-            window.addEventListener('pointermove', (e) => {
-                const d = pgmDrag; if (!d || d.id !== e.pointerId) return;
-                const dx = e.clientX - d.x, dy = e.clientY - d.y;
-                if (!d.on) {
-                    if (Math.hypot(dx, dy) < PGM_MIN || turn) return;
-                    d.on = true; wrapper.classList.add('pgm-on');
-                    try { wrapper.setPointerCapture(e.pointerId); } catch (err) {}
-                    if (window.tmClose) tmClose();
-                }
-                pgmPos = { x: d.ox + dx, y: d.oy + dy }; pgmApply(); positionTextPanel();
-            });
-            const end = (e) => {
-                const d = pgmDrag; if (!d || d.id !== e.pointerId) return;
-                pgmDrag = null; if (!d.on) return;
-                wrapper.classList.remove('pgm-on'); pgmAt = performance.now();
-            };
-            window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
             wrapper.addEventListener('click', (e) => {                // 끌고 난 뒤의 클릭은 팝업메뉴 · 날짜 버튼으로 안 가요
-                if (performance.now() - pgmAt < 400) { e.stopPropagation(); e.preventDefault(); }
+                if (PGM.noClick()) { e.stopPropagation(); e.preventDefault(); }
             }, true);
         }
 

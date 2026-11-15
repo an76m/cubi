@@ -905,9 +905,8 @@
     const ABS_SIDE = 'malang_ab_side';
     function abSideGet() { let v = ''; try { v = localStorage.getItem(ABS_SIDE) || ''; } catch (e) {} return ['lr', 'l', 'r'].includes(v) ? v : 'lr'; }
     function abSide(s2) {
-        const cur = abSideGet(), on = { l: cur.includes('l'), r: cur.includes('r') };
-        on[s2] = !on[s2]; if (!on.l && !on.r) return;                         // 둘 다 끌 수는 없어요
-        const v = (on.l ? 'l' : '') + (on.r ? 'r' : ''), pg = B.pg || 0;
+        const cur = abSideGet(), v = bookSide(cur, s2); if (v === cur) return;   // ◧ ◨ 규칙 = 공통 (js/book.js bookSide · 둘 다 끌 수는 없어요)
+        const pg = B.pg || 0;
         if (v === 'lr') B.pg = pg - pg % 2;                                    // 펼치기 = 지금 쪽이 있는 두 쪽
         else if (cur === 'lr') B.pg = v === 'r' ? pg + 1 : pg;                // 한 쪽만 = 펼쳐 있던 두 쪽 중 고른 쪽
         try { localStorage.setItem(ABS_SIDE, v); } catch (e) {}

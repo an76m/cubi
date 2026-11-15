@@ -449,9 +449,8 @@
         function dvCfg() { const v = prefGet(DV_KEY, DV_LOCAL), c = Object.assign({}, DV_DEF, v && typeof v === 'object' ? v : {}); Object.keys(DV_DEF).forEach(k => { if (!DV_OK.includes(c[k])) c[k] = DV_DEF[k]; }); return c; }
         function dvSet(k, v) { const c = dvCfg(); c[k] = DV_OK.includes(v) ? v : 'lr'; prefSet(DV_KEY, DV_LOCAL, c); dvRender(); if (k === dvDev()) dyLoad(); }
         function dvToggle(k, side) {                                           // 스위치 하나 켜기 · 끄기 (남은 하나는 못 꺼요)
-            const cur = dvCfg()[k], on = { l: cur.includes('l'), r: cur.includes('r') };
-            on[side] = !on[side]; if (!on.l && !on.r) return;
-            dvSet(k, (on.l ? 'l' : '') + (on.r ? 'r' : ''));
+            const cur = dvCfg()[k], v = bookSide(cur, side); if (v === cur) return;   // ◧ ◨ 규칙 = 공통 (js/book.js bookSide · 📒 🤍 책과 같아요 · 도련 11-15 · 2-3)
+            dvSet(k, v);
         }
         function dvRender() {
             const c = dvCfg(), me = dvDev();
