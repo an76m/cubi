@@ -407,30 +407,54 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 #basketKindModal.ab-flt > .modal-content::before, #basketKindModal.ab-flt > .modal-content::after { display: none !important; }
 #basketKindModal.ab-flt > .modal-content > .modal-title, #basketKindModal.ab-flt > .modal-content > .sub-modal-btns { display: none !important; }
 #basketKindModal.ab-flt .bk-wrap, #basketKindModal.ab-flt .ab-body { margin: 0; padding: 0; }
-.abf { position: fixed; left: 0; top: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; filter: drop-shadow(0 8px 16px rgba(120, 70, 60, .18)); }
-.abf.mv { filter: drop-shadow(0 14px 24px rgba(120, 70, 60, .28)); }
-.abf-bar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: min(360px, 92vw); height: 42px; padding: 0 6px; box-sizing: border-box;
+.bk { position: fixed; left: 0; top: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; filter: drop-shadow(0 8px 16px rgba(120, 70, 60, .18)); }
+.bk.mv { filter: drop-shadow(0 14px 24px rgba(120, 70, 60, .28)); }
+.bk-bar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: min(360px, 92vw); height: 42px; padding: 0 6px; box-sizing: border-box;
     border: 2px solid #f6c9d8; border-radius: 14px; background: #fff3f7; color: #d2457a; font-weight: 800; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
-.abf.mv .abf-bar { cursor: grabbing; }
-.abf-bar::before { content: ''; position: absolute; top: -8px; left: 50%; width: 46px; height: 13px; transform: translateX(-50%) rotate(-1.5deg); background: #f7b5ca; opacity: .75; border-radius: 2px; pointer-events: none; }   /* 마테 한 조각 (날짜바처럼) */
-.abf-bar .abf-side, .abf-bar .abf-side[aria-pressed="true"] { color: inherit; border: 0 !important; background: none !important; box-shadow: none !important; }
-.abf-bar .abf-arr:disabled { opacity: .25; cursor: default; }
-.abf-cnt { flex: 1; text-align: center; font-size: 16px; white-space: nowrap; pointer-events: none; }
-.abf-cnt small { font-size: 13px; font-weight: 700; opacity: .7; }
-.abf-x { flex: none; width: 34px; height: 34px; margin-left: 4px; padding: 0; border: 0; background: none; color: #c2457a; font-size: 20px; font-weight: 700; line-height: 1; cursor: pointer; }
-.abf-x:active { transform: scale(.88); }
-.abf .abf-book { width: auto; }
-.abf .abx-spread { grid-template-columns: var(--pw) var(--pw); }
-.abf .abx-binder.one .abx-spread { grid-template-columns: var(--pw); }
-.abf .abx-pg, .abf .abf-rl { width: var(--pw); height: var(--ph); }
-.abf .abx-pg .ab-pk .bk-sh { width: 100% !important; max-width: 100%; max-height: 100%; box-sizing: border-box; padding: 6%; border: 1.4px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; border-radius: 8px; }
-.abf .abx-pg .ab-pk .bk-sh { cursor: pointer; }
-.abf .ab-rel.abf-rl { position: relative; box-sizing: border-box; margin: 0; border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; overflow: hidden;
+.bk.mv .bk-bar { cursor: grabbing; }
+.bk-bar::before { content: ''; position: absolute; top: -8px; left: 50%; width: 46px; height: 13px; transform: translateX(-50%) rotate(-1.5deg); background: #f7b5ca; opacity: .75; border-radius: 2px; pointer-events: none; }   /* 마테 한 조각 (날짜바처럼) */
+.bk-bar .bk-side, .bk-bar .bk-side[aria-pressed="true"] { color: inherit; border: 0 !important; background: none !important; box-shadow: none !important; }
+.bk-bar .bk-arr:disabled { opacity: .25; cursor: default; }
+.bk-cnt { flex: 1; text-align: center; font-size: 16px; white-space: nowrap; pointer-events: none; overflow: hidden; text-overflow: ellipsis; }
+.bk-cnt small { font-size: 13px; font-weight: 700; opacity: .7; }
+.bk-x { flex: none; width: 34px; height: 34px; margin-left: 4px; padding: 0; border: 0; background: none; color: #c2457a; font-size: 20px; font-weight: 700; line-height: 1; cursor: pointer; }
+.bk-x:active { transform: scale(.88); }
+.bk-stage { position: relative; perspective: 2400px; touch-action: pan-y; }
+/* 책 몸 (스티커 정리 바인더 모습 그대로) */
+.bk-book { position: relative; padding: 14px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 18px; background: var(--c1); }
+.bk-book.two { background-image: linear-gradient(90deg, transparent calc(50% - 22px), var(--c2) calc(50% - 22px) calc(50% + 22px), transparent calc(50% + 22px)); }
+.bk-book.one.even { padding-right: 64px; background-image: linear-gradient(90deg, transparent calc(100% - 52px), var(--c2) calc(100% - 52px)); }
+.bk-book.one.odd { padding-left: 64px; background-image: linear-gradient(90deg, var(--c2) 52px, transparent 52px); }
+.bk-book.shut { padding: 0; border: 0; background: none; }
+.bk-spread { display: grid; grid-template-columns: var(--pw) var(--pw); gap: 44px; }
+.bk-book.one .bk-spread { grid-template-columns: var(--pw); }
+.bk-slot { position: relative; width: var(--pw); height: var(--ph); }
+.bk-slot > * { width: 100% !important; height: 100% !important; box-sizing: border-box; }
+.bk-spine { position: absolute; left: 50%; top: 22px; bottom: 22px; width: 76px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; z-index: 3; }
+.bk-book.one.even .bk-spine { left: calc(100% - 52px); }
+.bk-book.one.odd .bk-spine { left: 52px; }
+.bk-spine span { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 */
+.bk-spine svg { flex: none; width: 76px; height: 22px; }
+.bk-rl .bk-spine { gap: 0; justify-content: space-between; }
+.bk-rl .bk-spine i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
+/* 📕 표지 (덮인 책 · 왼쪽 = 묶음) */
+.bk-cover { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px solid var(--ol); border-radius: 6px 18px 18px 6px; background: var(--c1);
+    background-image: linear-gradient(90deg, var(--c2) 0 34px, transparent 34px); color: #6b4a5a; text-align: center; }
+.bk-cover .bk-cvlb { max-width: 70%; padding: 8px 14px; border: 1.6px solid var(--ol); border-radius: 10px; background: #fffdf6; font-weight: 800; font-size: 16px; transform: rotate(-1.5deg); word-break: keep-all; }
+.bk-cover small { padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.8); font-size: 12px; font-weight: 700; color: #8a6a7a; }
+.bk-cover.rl { background-image: repeating-linear-gradient(0deg, transparent 0 22px, #8a789e 22px 25px, transparent 25px 34px), linear-gradient(90deg, #eeeaf6 0 30px, transparent 30px); }   /* 🤍 스프링 */
+/* 📖 넘어가는 종이 (앞면 · 뒷면 · 그림자) */
+.bk-flip { position: absolute; z-index: 5; transform-style: preserve-3d; pointer-events: none; }
+.bk-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.bk-face > * { width: 100% !important; height: 100% !important; box-sizing: border-box; }
+.bk-face.back { transform: rotateY(180deg); }
+.bk-flip .bk-fsh { position: absolute; inset: 0; background: rgba(90, 50, 70, var(--sh, 0)); border-radius: 6px; pointer-events: none; }
+/* 쪽 안 (포켓 · 이형지) */
+.bk .abx-pg .ab-pk .bk-sh { width: 100% !important; max-width: 100%; max-height: 100%; box-sizing: border-box; padding: 6%; border: 1.4px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; border-radius: 8px; cursor: pointer; }
+.bk .ab-rel.abf-rl { position: relative; margin: 0; border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; overflow: hidden;
     background-color: #fdfcff; background-image: repeating-linear-gradient(125deg, transparent 0 46px, #f2eef9 46px 70px, transparent 70px 96px, #f7f4fb 96px 104px) !important; }
-.abf .ab-rel.abf-rl .ab-it { width: calc(var(--ph) * .104); height: calc(var(--ph) * .104); }
-.abf .ab-rel.abf-rl .ab-relhint { color: #b4a6c4; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
-.abf .abx-rings.coil { gap: 0; justify-content: space-between; }
-.abf .abx-rings.coil i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
+.bk .ab-rel.abf-rl .ab-it { width: calc(var(--ph) * .104); height: calc(var(--ph) * .104); }
+.bk .ab-rel.abf-rl .ab-relhint { color: #b4a6c4; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
 
 /* 🤍 스프링 이형지북 (왼쪽 스프링 · 반짝이는 이형지 · 뒤로 겹친 종이) */
 .abx-rlbook { position: relative; width: 100%; padding: 14px 14px 14px 34px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 8px 18px 18px 8px; background: #cbb8ec; }

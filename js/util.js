@@ -5,12 +5,19 @@
    - lsGet(키, 없을 때) · lsSet(키, 값) : 이 기기 저장(localStorage)에 JSON 으로 (막혀 있어도 멈추지 않아요)
    - 🕘 tzDay · tzNow · tzText (시계 한 곳 · DIARY_TZ) · waitMs · clampN · buzz · calmMotion · mkCanvas · tintCanvas · rrPath · loadImgP
    - ✨ rePop (톡 다시) · popFor (잠깐 보이기) · 💬 bubbleAt (말풍선) · ✋ tipPlace (든 도구 끝 = 마우스) · 🔊 scrubSound (떼는 소리) · 💬 hintPop (떼기 화면 안내 한 줄)
-   - 🆔 gdPre · gdSuf : 상품 id 앞머리 · 나머지 (문구 종류를 알아요)
+   - 🆔 gdPre · gdSuf : 상품 id 앞머리 · 나머지 (문구 종류를 알아요) · idStamp(앞머리) : 받은 책 한 권 id (앞머리-한국 시각 14자리)
    ※ index.html 에서 맨 먼저 (features.js 다음) 읽어요 */
 /* 🆔 상품 id = 종류 앞머리-한국 시각 14자리 (예 seal-20261103142015 · 문구는 문구종류가 앞머리 clip-… · pen-… · 도련 11-15 · 상품공방 idNew)
    gdPre = 앞머리 (문구 종류) · gdSuf = 나머지 */
 const gdPre = id => String(id == null ? '' : id).split('-')[0];
 const gdSuf = id => { id = String(id == null ? '' : id); const p = gdPre(id); return id.length > p.length ? id.slice(p.length + 1) : ''; };
+/* 🆔 받은 것 · 만든 것 하나하나 id = 종류 앞머리-한국 시각 14자리 (상품 id 와 같은 규칙 · 도련 11-15 · 예 sbd-20261115231110)
+   같은 초에 여럿이면 1초씩 뒤로 (이 기기에서 안 겹쳐요) */
+let ID_LAST = 0;
+function idStamp(pre) {
+    let ms = Math.floor(Date.now() / 1000) * 1000; if (ms <= ID_LAST) ms = ID_LAST + 1000; ID_LAST = ms;
+    return `${pre}-${new Date(ms + 9 * 3600e3).toISOString().replace(/\D/g, '').slice(0, 14)}`;
+}
 const htmlEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const josaOf = (w, a, b) => { w = String(w == null ? '' : w); const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 ? a : b; };
 const josa = (w, a, b) => String(w == null ? '' : w) + josaOf(w, a, b);
