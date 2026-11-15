@@ -119,7 +119,7 @@
         /* 📔 날짜 다이어리 = 한 권에 폴더 하나 (도련 10-28 · js/dyyear.js) : 권 id '2026mint2' = 해 · 바인더 색 · 그 해 그 색 몇 번째 (지워도 번호는 다시 안 써요)
              diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜형바인더 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
         /* 📔 날짜형 권 id '2026b-dyb-20261104090000-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 번호 (도련 11-04 · js/dyyear.js) · 디자인이 늘어도 코드는 그대로 */
-        const DAY_KEY_RE = /^diary_(\d{4}[bn]-.+-\d+)_(\d{4})_(\d{2})_(\d{2})$/;
+        const DAY_KEY_RE = /^diary_(\d{4}[bn]-.+-\d+)_(?:(\d{4})_(\d{2})_(\d{2})|(cover))$/;   // 📕 그 권 표지 = diary_<권 id>_cover (도련 11-16 · ③ 가짜 날짜 없애기)
         const DYB_RE = /^(\d{4})([bn])-(.+)-(\d+)$/;
         function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${r[3]} ${r[4]}` : ''; }   // 폴더 이름 '2026 dyb-20261104090000 2' (해 · 디자인 id · 번호)
         function dyBookOfName(n, note) {                                   // 폴더 이름 → 권 id (노트인지 = 디자인으로 · 도련 11-07 다이어리 폴더 하나)
@@ -260,17 +260,20 @@
         /* ---------- 폴더 / 파일 이름 규칙 ----------
            말랑달콤 / 날짜형바인더 / 2026 분홍 1 / 2026-09-10.json   (하루에 파일 1개, 같은 날은 항상 덮어쓰기) */
         const pad2 = n => String(n).padStart(2, '0');
-        const dayFileName = (y, m, d) => y === 1999 && m === 12 && d === 31 ? '표지.json' : `${y}-${pad2(m)}-${pad2(d)}.json`;   // 권 폴더 안 (dyBookDir) · 📕 1999-12-31 = 표지 (js/skins.js dkDate(0) · 도련 11-06)
+        const dayFileName = d => d.cover ? '표지.json' : `${d.y}-${pad2(d.m)}-${pad2(d.d)}.json`;   // d = parseDayKey · parseDayFile 결과 · 권 폴더 안 (dyBookDir) · 📕 표지 = 표지.json
         const DAY_FILE_RE = /^(\d{4})-(\d{2})-(\d{2})\.json$/;
-        function parseDayFile(n) { if (n === '표지.json') return { y: 1999, m: 12, d: 31 }; const r = DAY_FILE_RE.exec(n); return r ? { y: +r[1], m: +r[2], d: +r[3] } : null; }
+        function parseDayFile(n) { if (n === '표지.json') return { cover: true }; const r = DAY_FILE_RE.exec(n); return r ? { y: +r[1], m: +r[2], d: +r[3] } : null; }
         function dayKeyOf(y, m, d, b) { return `diary_${b}_${y}_${String(m).padStart(2, '0')}_${String(d).padStart(2, '0')}`; }   // b : 권 id
-        function parseDayKey(k) { const r = DAY_KEY_RE.exec(k); return r ? { b: r[1], y: +r[2], m: +r[3], d: +r[4] } : null; }
+        const dayCoverKey = b => `diary_${b}_cover`;                         // 📕 날짜형 권 표지 (js/page.js getDateKey)
+        const dayKeyAt = (r, b) => r.cover ? dayCoverKey(b) : dayKeyOf(r.y, r.m, r.d, b);   // parseDayFile 결과 → 키
+        const dayLabel = d => d.cover ? '표지' : `${d.m}월 ${d.d}일`;
+        function parseDayKey(k) { const r = DAY_KEY_RE.exec(k); return !r ? null : r[5] ? { b: r[1], cover: true } : { b: r[1], y: +r[2], m: +r[3], d: +r[4] }; }
         function isDayKey(k) { return DAY_KEY_RE.test(k); }
         function parsePageKey(k) { const r = PAGE_KEY_RE.exec(k); return r ? { b: r[1], n: +r[2] } : null; }
         const isPageKey = k => PAGE_KEY_RE.test(k), isBookKey = k => BOOK_KEY_RE.test(k), isStateKey = k => STATE_KEY_RE.test(k);
         const STATE_FILE = '상태.json';
         const isOwnFile = k => isDayKey(k) || isPageKey(k) || isBookKey(k) || isStateKey(k);    // 키 하나가 드라이브 파일 하나 (하루 · 장 · 다이어리.json)
-        function keyLabel(k) { if (isStateKey(k)) return '다이어리 상태'; const d = parseDayKey(k); if (d) return `${d.m}월 ${d.d}일`; const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
+        function keyLabel(k) { if (isStateKey(k)) return '다이어리 상태'; const d = parseDayKey(k); if (d) return dayLabel(d); const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
         function keyFile(k) { if (CAFE_KEYS.includes(k)) return 'cafe'; for (const w of DESK_WHICH) if (DESK_FILE_KEYS[w].includes(k)) return w; return 'settings'; }
@@ -474,7 +477,7 @@
         function dayPathText(date) {                                       // 안내문용 : 맨 위 폴더 이름은 빼요 (도련 · 2026-10-13)
             const dk = window.dkPath && dkPath(date); if (dk) return dk;     // 📕 유한 다이어리 장 (js/skins.js)
             const k = parseDayKey(getDateKey(date)); if (!k) return '';
-            return `${dyBookDir(k.b).slice(1).join('/')}/${dayFileName(k.y, k.m, k.d)}`;
+            return `${dyBookDir(k.b).slice(1).join('/')}/${dayFileName(k)}`;
         }
         function corruptError(what) { const er = new Error('corrupt'); er.type = 'corrupt'; er.what = what; return er; }
 
@@ -736,7 +739,7 @@
         async function dayRefresh(key) {
             const d = parseDayKey(key), idx = d && drive.monthIndex.get('all:' + d.b);
             if (!idx || !d) return;
-            const name = dayFileName(d.y, d.m, d.d), fs = await driveList(`name='${qName(name)}' and '${idx.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
+            const name = dayFileName(d), fs = await driveList(`name='${qName(name)}' and '${idx.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
             if (!fs.length) { idx.files.delete(name); return; }
             idx.files.set(name, fs[0]);
             if (fs.length > 1) idx.dups.set(name, fs); else idx.dups.delete(name);
@@ -889,7 +892,7 @@
             return p || b ? getBookIndex(p ? p.b : b[1], create) : Promise.resolve(null);
         }
         function fileOfKey(key) {
-            const d = parseDayKey(key); if (d) return dayFileName(d.y, d.m, d.d);
+            const d = parseDayKey(key); if (d) return dayFileName(d);
             const p = parsePageKey(key); if (p) return `${p.n ? p.n + '페이지' : '표지'}.json`;   // 0장 = 📕 표지 (그 권 폴더 안)
             if (isStateKey(key)) return STATE_FILE;
             const b = BOOK_KEY_RE.exec(key); return b ? dkInfoName(b[1]) : '';
@@ -1398,7 +1401,7 @@
                     const b = dyBookOfName(dir.name); if (!b || (only && b !== only)) continue;
                     (await driveList(`'${dir.id}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,size')).forEach(f => {
                         const r = parseDayFile(f.name); if (!r) return;
-                        const key = dayKeyOf(r.y, r.m, r.d, b);
+                        const key = dayKeyAt(r, b);
                         if (!out.has(key)) out.set(key, { key, id: f.id, size: +f.size || 0 });
                     });
                 }
@@ -1665,7 +1668,7 @@
                     if (!drive.loadedDays.has(k)) { next.push(k); continue; }         // 드라이브 것을 못 읽으면 덮지 않고 다시 시도
                     const cur = store.getItem(k), mine = days[k];
                     if (cur === mine) continue;
-                    if (cur !== null && !(await showAsk(`📅 <b>${dk.m}월 ${dk.d}일</b>은 드라이브에도 일기가 있어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '👤 게스트로 쓴 것', '☁ 드라이브 것'))) continue;
+                    if (cur !== null && !(await showAsk(`📅 <b>${dayLabel(dk)}</b>은 드라이브에도 일기가 있어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '👤 게스트로 쓴 것', '☁ 드라이브 것'))) continue;
                     if (cur !== null && cur !== mine && window.trashKeepDay) await trashKeepDay(k, cur);   // 🗑 드라이브 것은 휴지통에
                     store.setItem(k, mine); moved++;
                 }

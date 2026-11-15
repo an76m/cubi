@@ -126,7 +126,7 @@
     const others = key => [...new Set([...PG.drafts.keys(), ...heldKeys()])].filter(k => k && k !== key);
     function label(key, r) {
         const d = typeof parseDayKey === 'function' && parseDayKey(key), p = !d && typeof parsePageKey === 'function' && parsePageKey(key);
-        const nm = d ? `${d.m}월 ${d.d}일` : p ? (p.n ? `${p.n}페이지` : '표지') : '페이지';
+        const nm = d ? dayLabel(d) : p ? (p.n ? `${p.n}페이지` : '표지') : '페이지';
         return (r && r.vol && r.vol !== curVol() ? '다른 다이어리의 ' : '') + nm;
     }
     async function recOf(key) { const r = await draftGet(key); return Object.assign({ key, txt: PG.drafts.get(key) }, PG.meta.get(key) || {}, r || {}, PG.uns.has(key) ? { txt: PG.drafts.get(key) } : {}); }

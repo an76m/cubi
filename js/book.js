@@ -20,7 +20,6 @@ const isSpot = v => v instanceof BookSpot;
 const spotCopy = v => isSpot(v) ? new BookSpot(v.n) : new Date(+v);
 const spotSave = v => isSpot(v) ? 'p' + v.n : +v;
 const spotLoad = v => typeof v === 'string' && /^p\d+$/.test(v) ? new BookSpot(+v.slice(1)) : new Date(+v);
-const spotSame = (a, b) => isSpot(a) ? isSpot(b) && a.n === b.n : !isSpot(b) && +a === +b;
 const BOOK_R = 148 / 210;                                                    // 한 쪽 비율 (A5)
 function bookSide(cur, s) {                                                  // ◧ ◨ 스위치 하나 켜기 · 끄기 (남은 하나는 못 꺼요) → 새 값
     const on = { l: cur.includes('l'), r: cur.includes('r') };

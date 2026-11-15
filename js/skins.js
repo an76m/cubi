@@ -1841,7 +1841,7 @@
             gdSync();                                                          // ✂️ 📎 집게 · 🪡 핀셋
         }
         /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 상품공방 '표지꾸미기' 를 체크한 다이어리만 (도련 11-06 · dyCvOk)
-           - 표지 = 0장 (dkAt(0) = 1999-12-31) · 📓 🗂️ 페이지형 = 키 dkp_<권 id>_0 → <권 id>-표지.json · 📔 날짜형 = 그 권 1999-12-31 키 → 권 폴더 표지.json (js/drive.js dayFileName) → 속지처럼 스티커 메뉴로 그대로 꾸며요
+           - 표지 = 0장 (dkAt(0) = BookSpot 0) · 📓 🗂️ 페이지형 = 키 dkp_<권 id>_0 → <권 id>-표지.json · 📔 날짜형 = 키 diary_<권 id>_cover → 권 폴더 표지.json (js/drive.js dayFileName) → 속지처럼 스티커 메뉴로 그대로 꾸며요
            - 표꾸 화면 : 로그인 때 겉표지처럼 접힌 앞표지 한 쪽 (펼친 면의 오른쪽 쪽 자리) · 다음 장으로 넘기면 1장이에요
            - 닫힌 겉표지 : 그 다이어리 색 + 앞표지(오른쪽 쪽)에 붙인 것 (#cvDeco · 눌러도 그대로 열려요) */
         function dkCoverEdit() {
@@ -2075,7 +2075,7 @@
             const keys = new Set(dfList || []);
             store.keys().forEach(k => { if (DAY_KEY_RE.test(k)) keys.add(k); });
             const bk = window.dyyBookId ? dyyBookId() : '';                   // 📔 펼친 권 것만 (js/dyyear.js)
-            return [...keys].filter(k => parseDayKey(k).b === bk).filter(dfHas).sort();
+            return [...keys].filter(k => { const p = parseDayKey(k); return p.b === bk && !p.cover; }).filter(dfHas).sort();
         }
         const dfDate = k => { const p = parseDayKey(k); return new Date(p.y, p.m - 1, p.d); };
         /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */

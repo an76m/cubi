@@ -46,7 +46,7 @@
             try { await trPut(path, oldText, 'u', true); }
             catch (e) { console.warn('덮어쓰기 전 모습을 휴지통에 넣지 못했어요 (저장은 그대로 해요):', path, e); }
         }
-        const dayPathOf = key => { const d = parseDayKey(key); return d ? dyBookDir(d.b).concat(dayFileName(d.y, d.m, d.d)).join('/') : ''; };
+        const dayPathOf = key => { const d = parseDayKey(key); return d ? dyBookDir(d.b).concat(dayFileName(d)).join('/') : ''; };
         function trashKeepDay(key, oldText) { const p = dayPathOf(key); return p ? trashKeep(p, oldText) : Promise.resolve(); }
         const appTrashDay = (key, id) => appTrash(id, dayPathOf(key) || '', 'u');   // 📔 그날 내용을 모두 지웠을 때 (drive.js)
         /* 🧹 30일 청소 : 휴지통 폴더에서 이름의 시각이 30일 지난 것 모두 (u · o · a · 예전 이름도) */

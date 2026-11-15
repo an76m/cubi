@@ -40,8 +40,8 @@
             return out.join('\n').replace(/[ \t]+/g, ' ').slice(0, SR_MAX);
         }
         /* 키 → 목록 안의 이름 (기본 = '2026-10-18' · 유한 = 'p3') · 키 → 목록 (기본 = 'y2026' 해마다 · 유한 = 'b<권 id>' 권마다) */
-        const srDayOf = key => { const p = parseDayKey(key); if (p) return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`; const q = parsePageKey(key); return q ? 'p' + q.n : ''; };
-        const srScope = key => { const p = parseDayKey(key); if (p) return 'd' + p.b;   /* 📔 권마다 (d2026mint2) */ const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
+        const srDayOf = key => { const p = parseDayKey(key); if (p) return p.cover ? '' : `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`; const q = parsePageKey(key); return q ? 'p' + q.n : ''; };
+        const srScope = key => { const p = parseDayKey(key); if (p) return p.cover ? '' : 'd' + p.b;   /* 📔 권마다 (d2026mint2) */ const q = parsePageKey(key); return q && q.n ? 'b' + q.b : ''; };   // 📕 표지(0장)는 검색에 안 넣어요
         /* 목록 파일 자리 : { dir, name } (create : 폴더가 없으면 만들기) */
         async function srLoc(s, create) {
             if (s[0] === 'd') return { dir: await getFolder(dyBookDir(s.slice(1)), create && !(window.dyyDead && dyyDead(s.slice(1)))), name: '검색.json' };   // 📔 그 권 폴더 / 검색.json (🚛 🗑 버린 권 폴더는 다시 만들지 않아요 · 도련 11-11)
@@ -138,7 +138,7 @@
                 const bk = window.dyyBookId ? dyyBookId() : '', idx = bk ? await getMonthIndex(0, 0, false, bk) : null;   // 📔 펼친 권 폴더의 모든 날
                 if (!idx) { sr.synced = true; return; }
                 const byYear = new Map([['d' + bk, []]]);
-                idx.files.forEach((f, name) => { const r = parseDayFile(name); if (r) byYear.get('d' + bk).push([r, f]); });
+                idx.files.forEach((f, name) => { const r = parseDayFile(name); if (r && !r.cover) byYear.get('d' + bk).push([r, f]); });
                 const need = [];
                 for (const sc of byYear.keys()) {
                     const Y = await srYear(sc), seen = new Set();

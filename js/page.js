@@ -209,7 +209,7 @@
         function getDateKey(date) {
             const dk = window.dkKey && dkKey(date); if (dk) return dk;       // 📕 유한 다이어리 장 (BookSpot) → dkp_권_장 (js/skins.js)
             const b = window.dyyBookId && dyyBookId(); if (!b) return 'nobook';   // 📔 다이어리가 없으면 어디에도 저장 안 되는 키 (펼치지도 못해요)
-            if (isSpot(date)) return dayKeyOf(1999, 12, 31, b);               // 📔 날짜형 표지 = 그 권 표지.json (키 이름은 ③ 날짜형 단계에서 정리)
+            if (isSpot(date)) return dayCoverKey(b);                          // 📔 날짜형 표지 = diary_<권 id>_cover → 그 권 표지.json (js/drive.js)
             return dayKeyOf(date.getFullYear(), date.getMonth() + 1, date.getDate(), b);   // 📔 펼친 권마다 따로 (js/dyyear.js)
         }
 
