@@ -99,7 +99,7 @@
         function pmLayout() {
             const S = pmS;
             stkScreen(S);
-            S.SC = Math.min((S.W - 32) / PM_W, (S.H - 150) / S.SH, 1);   // 아이패드에서도 너무 크지 않게 (둘레에 붙일 페이지가 보이게)
+            S.SC = Math.min((S.W - 32) / PM_W, (S.H - 150) / S.SH, 1);   // 아이패드에서도 너무 크지 않게 (둘레에 붙일 페이지가 보이게) · 오리기 좋은 크기 (붙는 크기는 실제 비율 · pmReal)
             S.X = (S.W - PM_W * S.SC) / 2; S.Y = Math.max(64, (S.H - S.SH * S.SC) / 2 + 8);
             pmShift(S.mv.x, S.mv.y, true);
         }
@@ -318,7 +318,7 @@
             pmSeat(st); st.peel = true;
             const back = msg => { st.peel = false; st.squish = pmNow(); if (S.gone) { S.gone = 0; S.back = pmNow(); } if (msg) pmSay(msg); };
             pmSay('찌익… 끝까지 <b>떼어</b> 내요');
-            const seal = pfxSeal({ src: st.img, cx: st.cx, cy: st.cy, w: st.w * st.s, h: st.h * st.s, rot: 0, x: at[0], y: at[1], soft: !!st.bg,   // 📄 배경 모조지 = 큰 종이라 귀퉁이부터 천천히 말려요 (10-24)
+            const seal = pfxSeal({ src: st.img, cx: st.cx, cy: st.cy, w: st.w * st.s, h: st.h * st.s, rot: 0, x: at[0], y: at[1], soft: !!st.bg, real: () => pmReal(st),   // 📏 떨어지는 순간 페이지에 붙을 실제 크기로   // 📄 배경 모조지 = 큰 종이라 귀퉁이부터 천천히 말려요 (10-24)
                 onDetach: () => { if (pmPhone()) { S.gone = pmNow(); S.back = 0; } pmBuzz(15); pmSay('톡! 떼어졌어요 ✨ <b>페이지</b>에 놓으면 붙어요'); },   // 📱 종이는 스르르 비켜요 (놓으면 다시)
                 onCancel: () => { back('조금만 더! 끝까지 떼어야 해요'); },
                 onDrop: (cx, cy, rot) => {
@@ -371,12 +371,15 @@
         }
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 (js/piecebag.js 와 같은 방법) */
+        /* 📏 오린 조각이 페이지에 붙을 화면 크기 (도련 11-16 · 실제 크기 비율) : 종이 1px = 스티커 그림 px (모조지 가로 360 = 예전 페이지 360px) → 지금 페이지 (js/sticker.js stkPageScale) */
+        function pmReal(st) { const k = spKeep() && stkPageScale(); return k ? { w: st.w * k, h: st.h * k } : null; }
         function pmStick(st) {
             const S = pmS;
             const q = Math.min(1, PM_OUT / Math.max(st.img.width, st.img.height)), o = pmMk(st.img.width * q, st.img.height * q);
             o.getContext('2d').drawImage(st.img, 0, 0, o.width, o.height);
             S.pieces = S.pieces.filter(p => p !== st);
-            const el = stkStick({ src: cvSmall(o), cx: st.cx, cy: st.cy, w: st.w * st.s, h: st.h * st.s, deg: stkDeg(st.rot, .5),   // 📄 붙이기 = 스티커 엔진 (js/sticker.js) · 🗜 크롬 WebP 0.9 · 사파리 PNG
+            const R = pmReal(st) || { w: st.w * st.s, h: st.h * st.s };
+            const el = stkStick({ src: cvSmall(o), cx: st.cx, cy: st.cy, w: R.w, h: R.h, deg: stkDeg(st.rot, .5),   // 📄 붙이기 = 스티커 엔진 (js/sticker.js) · 🗜 크롬 WebP 0.9 · 사파리 PNG
                 mark: el => { el.dataset.float = 1; },                         // 📄 모조지스티커 표시 (다듬기 종류 · 옮길 때 살짝 떠요)
                 after: (el, pg) => { if (st.bg) {                                                               // 통째로 뗀 종이만 (가위로 오린 건 보통 스티커처럼 위에)                                                       // 📄 배경 모조지 : 다른 스티커 · 글 뒤 맨 아래에 깔려요 (↕️ 순서 메뉴와 같은 방법 · js/elements.js layerMove)
                     const L = [...pg.querySelectorAll(':scope > .element-box')].filter(x => x !== el).map((x, i) => [x, parseInt(x.style.zIndex) || 1, i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(a => a[0]);
