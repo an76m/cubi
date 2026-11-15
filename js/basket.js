@@ -1495,7 +1495,7 @@
     }
     function shCard(x, i) {
         return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
-            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">${SH.kind === 'gd' ? '사용해보기' : SH.kind === 'desk' ? '적용해보기' : '🔍 확대'}</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shInto()}', 0)">${shGotText(x)}</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">${x.give ? '🎁 받기' : '🧺 받기'}</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
+            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">${SH.kind === 'gd' ? '사용해보기' : SH.kind === 'desk' ? '적용해보기' : '🔍 확대'}</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shIntoOf(x)}', 0)">${shGotText(x)}</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">${x.give ? '🎁 받기' : '🧺 받기'}</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (기본상품 샵 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
@@ -1599,11 +1599,19 @@
     }
     window.SH_SET_CAT = (k, c) => { SH.wantCat = { k, c }; };             // 📔 새해 다이어리 받으러 갈 때 그 칸부터 (js/dyyear.js)
     function shZoomOff() { const z = bq('shZoom'); if (z) { z.hidden = true; z.innerHTML = ''; } SH.zoom = -1; if (SH.redraw) { SH.redraw = false; shDraw(SH.kind); } }
-    /* 🧺 카드에서 바로 받기 (확대 없이 · 도련 10-26) : 받으면 잠깐 '✓ 서랍에 쏙' → 다시 받기 (정리 도구는 넣을 서랍을 골라야 해서 확대로) */
+    /* 🧺 받기 하나 = 카드 · 확대 같은 코드 (도련 11-16 : 📒 🤍 정리 도구도 카드에서 바로) → { real (실제로 들어간 바구니), sid (그 종이) } */
+    async function shGetOne(x, into) {
+        let real = into, sid = null;                                          // 🛍️ 봉투 = 실제로 들어간 바구니 (도련 11-01) · 봉투 카드가 이 종이를 기억해요
+        if (x.tool) { if (!window.ownAlbum) throw new Error('ready'); await abTakeTool(x.tool, x.pid); }   // 📒 🤍 정리 도구 = 📥 받은 목록 (종류 없이 · 도련 11-08)
+        else if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
+        else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }   // take() : 새 종이 id(씰) 또는 종이 정보
+        return { real, sid };
+    }
+    const shIntoOf = x => x.tool ? 'stool' : shInto();                       // 📒 🤍 정리 도구 = 책상 위 (shGoSee 'stool')
+    /* 🧺 카드에서 바로 받기 (확대 없이 · 도련 10-26) : 받으면 버튼이 초록 '보관함 확인' (📒 🤍 정리 도구도 · 도련 11-16) */
     async function shQuick(i, btn) {
         const x = SH.items[i]; if (!x || btn.disabled) return;
-        if (x.tool) { shZoom(i); return; }
-        const k0 = SH.kind, into = shInto(), got = SH.got || (SH.got = new Set());   // 🛍️ 누른 순간의 종류 (받는 동안 다른 매대로 가도 봉투 · 바구니가 바뀌지 않게 · 도련 11-01)
+        const k0 = SH.kind, into = shIntoOf(x), got = SH.got || (SH.got = new Set());   // 🛍️ 누른 순간의 종류 (받는 동안 다른 매대로 가도 봉투 · 바구니가 바뀌지 않게 · 도련 11-01)
         if (x.give) {
             if (!await shGive(x)) return; bagNote(x, k0);
             btn.classList.add('got'); btn.textContent = shGotText(x); btn.onclick = () => shGoSee(k0, 0);
@@ -1613,11 +1621,8 @@
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         bagStart(); let bagOk = false;
         try {
-            let real = into;                                                     // 🛍️ 봉투 = 실제로 들어간 바구니 (도련 11-01)
-            let sid = null;                                                      // 🛍️ 봉투 카드가 이 종이를 기억해요
-            if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
-            else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }
-            bagOk = true; bagNote(x, real, 0, sid);
+            const { real, sid } = await shGetOne(x, into);
+            bagOk = true; bagNote(x, real, x.tool, sid);
             buzz(10);
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = shGotText(); btn.disabled = false; btn.onclick = () => shGoSee(into, 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             got.add(i);                                                          // 창을 닫았다 열면 다시 받기
@@ -1629,7 +1634,7 @@
     }
     async function shTake(btn) {
         const zi = SH.zoom, x = SH.items[zi]; if (!x || btn.disabled) return;
-        const k = SH.kind, into = x.tool ? 'stool' : (k === 'season' ? 'seal' : k), got = SH.got || (SH.got = new Set()), here = () => SH.kind === k && SH.zoom === zi;   // 🛍️ 누른 순간의 종류 (도련 11-01)
+        const k = SH.kind, into = shIntoOf(x), got = SH.got || (SH.got = new Set()), here = () => SH.kind === k && SH.zoom === zi;   // 🛍️ 누른 순간의 종류 (도련 11-01)
         if (x.give) {
             if (!await shGive(x)) return; bagNote(x, k);
             got.add(zi); if (here()) SH.redraw = true;
@@ -1643,10 +1648,7 @@
         btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
         bagStart(); let bagOk = false;
         try {
-            let real = into, sid = null;                                         // 🛍️ 봉투 = 실제로 들어간 바구니 (도련 11-01) · sid = 그 종이
-            if (x.tool) { if (!window.ownAlbum) throw new Error('ready'); sid = null; await abTakeTool(x.tool, x.pid); }   // 📒 🤍 정리 도구 = 📥 받은 목록 (종류 없이 · 도련 11-08)
-            else if (x.def) { sid = await ownTake(x.def); real = bkKindOf(x.def); }
-            else { const r = await x.take(); if (r && typeof r === 'object') { sid = await ownTake(r); real = bkKindOf(r); } else if (typeof r === 'string') sid = r; }   // take() : 새 종이 id(씰) 또는 종이 정보
+            const { real, sid } = await shGetOne(x, into);
             bagOk = true; bagNote(x, real, x.tool, sid);
             buzz(10);
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
