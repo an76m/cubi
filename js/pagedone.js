@@ -269,14 +269,14 @@
         mo.observe(c, { childList: true });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
-    /* 📔 다이어리모드 ✕ (도련 11-15 · js/desk.js dkModeExit) : 완료 전 꾸민 게 있으면 [💾 임시저장] [🗑 지우기] (1221 : 계속 꾸미기 없앰 · 버튼 말고 창이 닫히면 그대로)
-       💾 = 이 기기에 그대로 두고 닫기 (다시 펼치면 이어서) · 🗑 지우기 = 이 페이지에 꾸민 것을 지우고 닫기 (붙인 스티커는 서랍으로 · 드라이브는 원래 그대로) */
+    /* 📔 다이어리모드 ✕ (도련 11-15 · js/desk.js dkModeExit) : 완료 전 꾸민 게 있으면 [💾 임시저장] [그냥 닫기] (1224 : 🗑 지우기 영구 삭제 · 1221 : 계속 꾸미기 없앰 · 버튼 말고 창이 닫히면 그대로)
+       💾 = 이 기기에 그대로 두고 닫기 (다시 펼치면 이어서) · 그냥 닫기 = 그대로 닫기 (꾸미는 동안 이 기기에 늘 담겨서 다시 펼치면 이어서) · 예전 🗑 지우기 = 이 페이지에 꾸민 것을 지우고 닫기 (붙인 스티커는 서랍으로 · 드라이브는 원래 그대로) */
     async function closeAsk() {
         const key = curKey();
         if (!on() || PG.busy || PG.done || !key || !dirty(key) || typeof showAsk !== 'function') return !PG.busy;
-        const a = await showAsk('✏️ 꾸미던 페이지를 어떻게 할까요?<br><span style="font-size:12px;color:#777;">💾 임시저장 = 이 기기에만 저장하고 닫아요 · 다시 펼치면 이어서 꾸며요<br>🗑 지우기 = 이 페이지에 꾸민 것을 다 지워요</span>', '💾 임시저장', '🗑 지우기');
+        const a = await showAsk('✏️ 꾸미던 페이지를 어떻게 할까요?<br><span style="font-size:12px;color:#777;">💾 임시저장 = 이 기기에만 저장하고 닫아요 · 다시 펼치면 이어서 꾸며요<br>그냥 닫기 = 저장 버튼을 누르지 않고 닫아요</span>', '💾 임시저장', '그냥 닫기');
         if (a === true) { const t = PG.drafts.get(key); if (t != null) await draftPut(key, t); ui(); return true; }
-        if (a === false) { drop(key); if (typeof loadData === 'function') { try { await loadData(); } catch (e) {} } ui(); return true; }
+        if (a === false) { ui(); return true; }                               // 그냥 닫기 = 그대로 닫기 (도련 11-15 · 1224 : 🗑 지우기 영구 삭제 · 꾸민 것은 이 기기에 그대로)
         return false;
     }
     window.pgCloseAsk = closeAsk;
