@@ -377,7 +377,7 @@
             }
             /* 스티커 안쪽 가장자리는 넉넉히(PEL_GRAB) · 바깥(종이 빈 곳)은 조금만(PEL_GRAB_OUT) → 나머지 빈 곳은 종이 옮기기 */
             if (bp && Math.sqrt(best) < (hit === bo ? PEL_GRAB : PEL_GRAB_OUT)) {
-                if (!S.rel && window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🤍 이형지북 정리는 핀셋이 늘 들려 있어요 (도련 10-29)   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
+                if (!S.rel && !stkTwz(P[0], P[1])) return;   // 🤍 이형지북 정리는 핀셋이 늘 들려 있어요 (도련 10-29)   // 🪡 하얀 창에서 떼기는 핀셋으로 (도련 10-21)
                 pelPick(bo); const st = S.st, C = pelToStage(st, bp[0], bp[1]); st.snap = null;
                 S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
                 try { pelq('pelHit').setPointerCapture(e.pointerId); } catch (er) {}
@@ -491,22 +491,12 @@
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 페이지에 붙어요 */
         function pelStick() {
-            const S = pelS, st = S.st, a = S.a, pg = pelPage();
-            const P = pageK(pg), k = P.k, [cx, cy] = pageIn(P.r, st.cx, st.cy);   // 📄 페이지에 놓기 하나 (js/elements.js)
-            if (!addImage(S.src)) { closeStickerPeel(); return; }
-            const el = pg.querySelector('.element-box:last-child');
-            if (el && S.ts) el.dataset.ts = 1;
-            if (el) {
-                const w = (a.w - a.m * 2) * st.s / k, h = (a.h - a.m * 2) * st.s / k, deg = Math.round(st.rot * 180 / Math.PI * 10) / 10;
-                elPlace(el, P, cx, cy, w, h, deg, () => { if (window.elOrig) elOrig(el); });   // 🖼️ 원본 크기로 (js/elements.js)
-            }
+            const S = pelS, st = S.st, a = S.a;
+            const el = stkStick({ src: S.src, cx: st.cx, cy: st.cy, w: (a.w - a.m * 2) * st.s, h: (a.h - a.m * 2) * st.s, deg: stkDeg(st.rot), clamp: true, orig: true,   // 📄 붙이기 = 스티커 엔진 (js/sticker.js)
+                mark: el => { if (S.ts) el.dataset.ts = 1; },
+                own: S.own ? el => stkUse(S.own.id, S.items.findIndex(o => o.st === st), el) : null });   // 🎒 그 칸은 영원히 사라져요
+            if (!el) { closeStickerPeel(); return; }
             st.state = 'done';
-            if (typeof saveData === 'function') saveData(false);
-            if (S.own && el && window.ownUse) {                                  // 🎒 붙어서 저장된 순간 그 칸은 영원히 사라져요 (js/own.js)
-                const k = S.items.findIndex(o => o.st === st);
-                el.dataset.own = S.own.id + ':' + k;
-                ownUse(S.own.id, k, el).catch(e => console.warn('스티커 칸을 아직 못 지웠어요 (다시 해요) :', e));
-            }
             const left = S.items.filter(o => o.st.state === 'on');
             if (!left.length) { closeStickerPeel(); return; }
             if (S.gone) { S.gone = 0; S.back = performance.now(); }              // 📱 하얀 종이가 남은 스티커와 다시 나타나요
@@ -515,6 +505,6 @@
         }
 
         /* ---------- 소리 : 🏷️ 씰을 떼어 낼 때 '찌익'만 ---------- */
-        const pelNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });   // 🔊 떼는 소리 (js/util.js 하나)
+        const pelNoise = stkNoise;                                           // 🔊 떼는 소리 = 스티커 엔진 (js/sticker.js)
 
         window.openStickerPeel = openStickerPeel; window.pelBake = pelBake; window.closeStickerPeel = closeStickerPeel; window.pelRelayout = pelRelayout; window.pelLastAt = () => pelS.lastAt || null;

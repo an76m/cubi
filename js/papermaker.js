@@ -20,7 +20,7 @@
         const PM_HINT = '✂️ <b>가위</b>를 들고 원하는 그림 둘레를 <b>한 바퀴</b> 따라 그려 오려요';
         const PM_HINT_BG = '✂️ <b>가위</b>로 원하는 그림을 오리거나 · 🪡 <b>핀셋</b>으로 종이를 누른 채 끌면 <b>통째로</b> 떼어져요';   // 📄 배경 모조지 (도련 10-23)
         const pmHint = () => pmS.bg ? PM_HINT_BG : PM_HINT;
-        const pmScs = () => !window.gdScs || gdScs(), pmTwz = () => !window.gdTwz || gdTwz();   // ✂️ 오리기는 가위로 · 🪡 떼기는 핀셋으로 (js/skins.js 문구함)
+        const pmScs = () => !window.gdScs || gdScs();   // ✂️ 오리기는 가위로 (js/skins.js 문구함) · 🪡 떼기는 핀셋으로 = 스티커 엔진 stkTwz (js/sticker.js)
         const PM_PENS = ['#2f2a2c', '#7a4b3a', '#d0566b', '#3f6fb5'];
         const pmS = { on: false, cv: null, ctx: null, W: 0, H: 0, DPR: 1, raf: 0, hint: '', sheet: null, SH: 0, SC: 1, X: 0, Y: 0, mv: { x: 0, y: 0 },
             pieces: [], fades: [], drag: null, edit: null, z: 1, pen: PM_PENS[0] };
@@ -274,7 +274,7 @@
             const tp = pmTape();                                                           // 위쪽 테이프 : 종이 옮기기 (📒 수첩에는 없어요)
             if (P[0] > tp.x - 8 && P[0] < tp.x + tp.w + 8 && P[1] > tp.y - 8 && P[1] < tp.y + tp.h + 8) { cap(); S.drag = { mode: 'sheet', last: P }; pmSay('종이를 옮기는 중… ✋'); return; }
             if (S.bg && !(window.gdScs && gdScs()) && pmInSheet(P, 0)) {                // 📄 배경 모조지 : 가위가 아니면 종이 통째로 떼기 (🪡 핀셋으로)
-                if (!pmTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return; }
+                if (!stkTwz(P[0], P[1])) return;
                 cap(); S.drag = { mode: 'whole', start: P }; return;
             }
             const A = pmScs() && window.scsAim ? scsAim(P) : P;                          // 🎯 자르는 자리 = 가위 날 끝 십자선 (누르는 자리보다 위 · js/skins.js SCS_LIFT)
@@ -319,7 +319,7 @@
                 if (d.seal) { d.seal.move(P[0], P[1]); return; }
                 if (pmDist(P, d.start) < 7 || d.crumpled) return;
                 d.moved = true; clearTimeout(d.lp);
-                if (!pmTwz()) { S.drag = null; if (window.twzSay) twzSay(P[0], P[1]); return; }   // 🪡 떼는 건 핀셋으로 (톡 = 글씨 · 꾹 = 구김은 그대로)
+                if (!stkTwz(P[0], P[1])) { S.drag = null; return; }   // 🪡 떼는 건 핀셋으로 (톡 = 글씨 · 꾹 = 구김은 그대로)
                 d.seal = pmPeel(d.st, d.start);
                 if (d.seal) d.seal.move(P[0], P[1]); else S.drag = null;
             }
@@ -384,24 +384,20 @@
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 (js/piecebag.js 와 같은 방법) */
         function pmStick(st) {
-            const S = pmS, pg = spPage(), P = pageK(pg), k = P.k;   // 📄 페이지에 놓기 하나 (js/elements.js)
+            const S = pmS;
             const q = Math.min(1, PM_OUT / Math.max(st.img.width, st.img.height)), o = pmMk(st.img.width * q, st.img.height * q);
             o.getContext('2d').drawImage(st.img, 0, 0, o.width, o.height);
             S.pieces = S.pieces.filter(p => p !== st);
-            if (!addImage(cvSmall(o))) return;                                  // 🗜 크롬 WebP 0.9 · 사파리 PNG (elements.js · 도련 11-04)
-            const el = pg.querySelector('.element-box:last-child');
-            if (el) {
-                el.dataset.float = 1;                                                          // 📄 모조지스티커 표시 (다듬기 종류 · 옮길 때 살짝 떠요)
-                elPlace(el, P, st.cx, st.cy, st.w * st.s / k, st.h * st.s / k, Math.round(Math.max(-.5, Math.min(.5, st.rot)) * 180 / Math.PI * 10) / 10);
-                if (st.bg) {                                                               // 통째로 뗀 종이만 (가위로 오린 건 보통 스티커처럼 위에)                                                       // 📄 배경 모조지 : 다른 스티커 · 글 뒤 맨 아래에 깔려요 (↕️ 순서 메뉴와 같은 방법 · js/elements.js layerMove)
+            const el = stkStick({ src: cvSmall(o), cx: st.cx, cy: st.cy, w: st.w * st.s, h: st.h * st.s, deg: stkDeg(st.rot, .5),   // 📄 붙이기 = 스티커 엔진 (js/sticker.js) · 🗜 크롬 WebP 0.9 · 사파리 PNG
+                mark: el => { el.dataset.float = 1; },                         // 📄 모조지스티커 표시 (다듬기 종류 · 옮길 때 살짝 떠요)
+                after: (el, pg) => { if (st.bg) {                                                               // 통째로 뗀 종이만 (가위로 오린 건 보통 스티커처럼 위에)                                                       // 📄 배경 모조지 : 다른 스티커 · 글 뒤 맨 아래에 깔려요 (↕️ 순서 메뉴와 같은 방법 · js/elements.js layerMove)
                     const L = [...pg.querySelectorAll(':scope > .element-box')].filter(x => x !== el).map((x, i) => [x, parseInt(x.style.zIndex) || 1, i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(a => a[0]);
                     [el].concat(L).forEach((x, n) => { x.style.zIndex = n + 1; });
                     if (typeof zIndexCounter !== 'undefined') zIndexCounter = L.length + 2;
                     el.dataset.bgp = 1;
-                }
-            }
-            spSave(false);
-            if (S.own && window.ownPaper) pmOwnSave(el);                        // 🎒 오린 자리는 영원히 비어요 · 남은 종이는 계속 (js/own.js)
+                } },
+                own: S.own && window.ownPaper ? pmOwnSave : null });             // 🎒 오린 자리는 영원히 비어요 · 남은 종이는 계속 (js/own.js)
+            if (!el) return;
             pmBuzz(8);
             pmSay('꾹! 붙였어요 ✨ 다른 그림도 오려 보세요');
         }

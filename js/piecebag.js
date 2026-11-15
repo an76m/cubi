@@ -306,7 +306,7 @@
             e.preventDefault(); const P = [e.clientX, e.clientY];
             const cap = () => { try { S.cv.setPointerCapture(e.pointerId); } catch (er) {} };
             const h = pcbHeld();
-            const noTwz = () => { if (window.gdTwz && !gdTwz()) { if (window.twzSay) twzSay(P[0], P[1]); return true; } return false; };   // 🪡 조각 집기 · 벗기기는 핀셋으로 (봉투 뜯기는 손으로 · 도련 10-21)
+            const noTwz = () => !stkTwz(P[0], P[1]);   // 🪡 조각 집기 · 벗기기는 핀셋으로 (봉투 뜯기는 손으로 · 도련 10-21)
             if (h && !h.anim) {                                                  // 1) 손에 든 조각 : 뒷종이 벗기기
                 if ((pcbEdge(h, P).d < PCB_GRAB || h.half) && noTwz()) return;
                 const ei = pcbEdge(h, P);
@@ -443,27 +443,16 @@
 
         /* 놓은 자리에 붙이기 : 화면에 보이던 크기 · 기울기 그대로 페이지에 붙어요 (js/stickerpeel.js 와 같은 방법) */
         function pcbStick(st) {
-            const S = pcbS, a = S.assets[st.k], pg = pcbq('canvasArea');
-            const P = pageK(pg), k = P.k, [cx, cy] = pageIn(P.r, st.cx, st.cy);   // 📄 페이지에 놓기 하나 (js/elements.js)
+            const S = pcbS, a = S.assets[st.k], s = st.sGoal != null ? st.sGoal : st.s;
             S.pieces = S.pieces.filter(p => p !== st); S.used.add(st.k);
-            if (!addImage(a.src)) { pcbEnd(); return; }
-            const el = pg.querySelector('.element-box:last-child');
-            if (el) {
-                const s = st.sGoal != null ? st.sGoal : st.s, w = (a.w - a.m * 2) * s / k, h = (a.h - a.m * 2) * s / k;
-                elPlace(el, P, cx, cy, w, h, Math.round(Math.max(-.5, Math.min(.5, st.rot)) * 180 / Math.PI * 10) / 10);
-                if (window.elOrig) elOrig(el);                                    // 🖼️ 원본 크기로 (js/elements.js)
-            }
-            if (typeof saveData === 'function') saveData(false);
-            if (S.own && window.ownUse) {                                       // 🎒 붙어서 저장된 순간 그 조각은 영원히 사라져요 (js/own.js)
-                const slot = S.own.slots ? S.own.slots[st.k] : st.k;
-                if (el) el.dataset.own = S.own.id + ':' + slot;
-                ownUse(S.own.id, slot, el).catch(er => console.warn('조각을 아직 못 지웠어요 (다시 해요) :', er));
-            }
+            const el = stkStick({ src: a.src, cx: st.cx, cy: st.cy, w: (a.w - a.m * 2) * s, h: (a.h - a.m * 2) * s, deg: stkDeg(st.rot, .5), clamp: true, orig: true,   // 📄 붙이기 = 스티커 엔진 (js/sticker.js)
+                own: S.own ? el => stkUse(S.own.id, S.own.slots ? S.own.slots[st.k] : st.k, el) : null });   // 🎒 그 조각은 영원히 사라져요
+            if (!el) { pcbEnd(); return; }
             if (S.pieces.length) pcbSay(`꾹! 붙였어요 ✨ 조각이 <b>${S.pieces.length}개</b> 남았어요`);
             else { pcbSay('꾹! 다 붙였어요 ✨'); pcbEnd(); }
         }
 
         /* ---------- 소리 : 봉투를 뜯을 때 · 뒷종이를 벗길 때 '찌이익' (js/stickerpeel.js 와 같은 소리) ---------- */
-        const pcbNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });   // 🔊 떼는 소리 (js/util.js 하나)
+        const pcbNoise = stkNoise;                                           // 🔊 떼는 소리 = 스티커 엔진 (js/sticker.js · 🏷️ 씰과 같은 소리 하나)
 
         window.openPieceBag = openPieceBag; window.closePieceBag = closePieceBag; window.pcbNoise = pcbNoise;   // 🧩 수첩 속 봉투 뜯는 소리도 같게 (js/stknote.js)
