@@ -26,9 +26,9 @@
                     <div class="bnd-bar"><label>이름 <input id="bndName" maxlength="20" autocomplete="off" placeholder="내 바인더"></label>
                         <span class="bnd-info" id="bndInfo"></span>
                         <button type="button" class="btn" id="bndNew">새로</button>
-                        <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button><button type="button" class="btn bnd-done" id="bndDone">✔ 다 했어요</button></div></div></div>`;
+                        <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button><button type="button" class="btn bnd-done" id="bndDone">✔ 완료</button></div></div></div>`;
         document.body.appendChild(el);
-        bq('bndGo').onclick = bndClose; bq('bndDone').onclick = bndClose;
+        bq('bndGo').onclick = bndCancel; bq('bndDone').onclick = bndDone;
         bq('bndNew').onclick = () => { window.dmkRmInit(''); render(); };
         bq('bndOk').onclick = save;
         bq('bndName').oninput = e => { const s = st(); if (s) s.g = e.target.value; };
@@ -143,8 +143,21 @@
         if (window.dkDeskBooks) dkDeskBooks();
         await showMsg(`🧩 ${was ? '저장했어요' : '조립했어요'}!<br><span style="font-size:12px;color:#777;">${date ? '📅 날짜형바인더' : '🗂️ 바인더'}는 책상 위에 있어요 · 끌어서 옮겨요</span>`);
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && B.on && !document.querySelector('.modal[style*="flex"]')) bndClose(); });
-    window.bndOpen = bndOpen; window.bndClose = bndClose; window.bndRender = () => { if (B.on) render(); }; window.bndIsOpen = () => B.on;
+    /* ✔ 완료 = 작업대에 놓은 게 있으면 조립(저장)하고 책상으로 · ✕ = 조립하지 않고 (놓은 게 있으면 한 번 물어요) · 도련 11-15 '완료 전엔 드라이브에 저장 안 돼요' (작업대는 원래 🧩 조립하기 때만 저장) */
+    const bndDirty = () => { const s = st(); if (!s || !s.o0) return false; const a = s.rf || [], b = s.o0.rf || []; return s.cv !== s.o0.cv || a.length !== b.length || a.some((x, i) => x !== b[i]); };
+    async function bndDone() {
+        if (bndDirty()) { await save(); if (bndDirty()) return; }                 // 못 했으면 (표지가 없어요 …) 그대로
+        bndClose();
+    }
+    async function bndCancel() {
+        if (bndDirty()) {
+            if (!await showAsk('조립하지 않고 나갈까요?<br><small style="color:#777;">✔ 완료를 눌러야 바인더가 만들어져요</small>', '조립 안 하고 나가기', '계속 조립하기')) return;
+            window.dmkRmInit('');
+        }
+        bndClose();
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && B.on && !document.querySelector('.modal[style*="flex"]')) bndCancel(); });
+    window.bndOpen = bndOpen; window.bndClose = bndClose; window.bndDone = bndDone; window.bndCancel = bndCancel; window.bndRender = () => { if (B.on) render(); }; window.bndIsOpen = () => B.on;
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
