@@ -106,10 +106,58 @@
         s.innerHTML = `<div class="ip-stat"><b id="ipTime">${hm()}</b></div>
             <div class="ip-studio"><b><svg viewBox="0 0 64 64" aria-hidden="true">${PENCIL.replace('translate(40 40)', 'translate(14 4) scale(1.9)')}</svg>스티커 디자인 스튜디오</b><small>직접 그려서 나만의 스티커를 만들어요</small></div>
             <div class="ip-apps">${APPS.map(([k, ic, n]) => `<button type="button" class="ip-app" data-k="${k}" title="${n} 디자인하기"><i class="a-${k}">${icon(k, true)}</i><span>${n}<em>디자인</em></span></button>`).join('')}</div>
-            <div class="ip-bar"></div>`;
+            <div class="ip-bar"></div><button type="button" class="ip-dz" id="ipDz" title="완료한 도안 보기 · 버리기">📐 내 도안</button>`;
         s.querySelectorAll('.ip-app').forEach(b => b.addEventListener('click', () => launch(b.dataset.k)));
+        q('ipDz').addEventListener('click', () => { if (!IP.busy) dzOpen(); });
     }
     setInterval(() => { const t = q('ipTime'); if (t && IP.on) t.textContent = hm(); }, 5000);
+
+    /* 📐 내 도안 (도련 11-15 · 폰 작업실 '내가 만든 것'처럼) : 왼쪽 = 종류 · 가운데 = 완료한 도안 · 오른쪽 = 고른 도안 + 🗑 버리기 (앱 휴지통 30일 · js/own.js ownDesignDrop)
+       뽑기는 책상 위 🖨 프린터에서 (여기서는 보고 버리기만) */
+    const DZ = { k: '', sel: '', L: [], tok: 0 };
+    const dzEsc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const dzName = e => (e.x && e.x.nm) || ((APPS.find(a => a[0] === (e.x && e.x.k)) || [])[2] || '도안');
+    const dzWhen = e => { const t = +e.id; if (!(t > 1e12)) return ''; const d = new Date(t); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}`; };
+    function dzOpen() {
+        wsOpen('📐 내 도안', '완료한 도안을 보고 버릴 수 있어요 · 뽑기는 책상 위 🖨 프린터에서', 'tb-dz');
+        DZ.k = ''; DZ.sel = ''; dzLoad();
+    }
+    async function dzLoad() {
+        const tok = ++DZ.tok;
+        q('tbWsC').innerHTML = '<p class="dz-empty">📐 도안을 불러오는 중…</p>'; dzSide(); dzRight();
+        let L = []; try { L = window.ownDesigns ? await ownDesigns() : []; } catch (e) { console.warn('📐 내 도안', e); q('tbWsC').innerHTML = '<p class="dz-empty">⚠ 도안을 불러오지 못했어요.</p>'; return; }
+        if (tok !== DZ.tok || !q('tbWs').classList.contains('tb-dz')) return;
+        DZ.L = L; if (DZ.sel && !L.some(e => String(e.id) === DZ.sel)) DZ.sel = '';
+        dzSide(); dzGrid(); dzRight();
+    }
+    function dzSide() {
+        const n = k => DZ.L.filter(e => !k || (e.x && e.x.k) === k).length;
+        q('tbWsL').innerHTML = '<h4 class="dz-h">종류</h4>' + [['', '📐', '전체']].concat(APPS).map(([k, ic, nm]) =>
+            `<button type="button" class="dz-k${DZ.k === k ? ' on' : ''}" data-k="${k}"><i>${ic}</i><span>${nm}</span><em>${n(k)}</em></button>`).join('');
+        q('tbWsL').querySelectorAll('.dz-k').forEach(b => b.onclick = () => { DZ.k = b.dataset.k; DZ.sel = ''; dzSide(); dzGrid(); dzRight(); });
+    }
+    function dzGrid() {
+        const L = DZ.L.filter(e => !DZ.k || (e.x && e.x.k) === DZ.k), C = q('tbWsC');
+        if (!L.length) { C.innerHTML = `<p class="dz-empty">아직 완료한 ${DZ.k ? dzEsc((APPS.find(a => a[0] === DZ.k) || [])[2]) + ' ' : ''}도안이 없어요.<br><small>태블릿 앱에서 그리고 ✅ 도안완료를 누르면 여기에 모여요</small></p>`; return; }
+        C.innerHTML = '<div class="dz-grid">' + L.map(e => `<button type="button" class="dz-it${String(e.id) === DZ.sel ? ' on' : ''}" data-id="${dzEsc(e.id)}"><span class="dz-th">${e.th ? `<img src="${dzEsc(e.th)}" alt="" loading="lazy" draggable="false">` : ((APPS.find(a => a[0] === (e.x && e.x.k)) || [])[1] || '📐')}</span><b>${dzEsc(dzName(e))}</b><small>${dzWhen(e)}</small></button>`).join('') + '</div>';
+        C.querySelectorAll('.dz-it').forEach(b => b.onclick = () => { DZ.sel = b.dataset.id; C.querySelectorAll('.dz-it').forEach(x => x.classList.toggle('on', x === b)); dzRight(); });
+    }
+    function dzRight() {
+        const R = q('tbWsR'), e = DZ.L.find(x => String(x.id) === DZ.sel);
+        if (!e) { R.innerHTML = '<h4 class="dz-h">고른 도안</h4><p class="dz-hint">가운데에서 도안을 톡 고르면<br>여기에 크게 보여요</p>'; return; }
+        const a = APPS.find(x => x[0] === (e.x && e.x.k)) || ['', '📐', '도안'];
+        R.innerHTML = `<h4 class="dz-h">고른 도안</h4><div class="dz-pv">${e.th ? `<img src="${dzEsc(e.th)}" alt="" draggable="false">` : a[1]}</div>
+            <b class="dz-nm">${dzEsc(dzName(e))}</b><small class="dz-meta">${a[1]} ${a[2]}${dzWhen(e) ? ' · ' + dzWhen(e) : ''}</small>
+            <button type="button" class="dz-del" id="dzDel">🗑 도안 버리기</button>
+            <p class="dz-hint">버리면 다시 뽑을 수 없어요 · 서랍의 종이는 그대로예요<br>🗑 앱 휴지통에 30일 있어요 (⚙ 설정 → 💾 데이터 관리)</p>`;
+        q('dzDel').onclick = async ev => {
+            const b = ev.currentTarget; if (b.disabled) return;
+            if (typeof showAsk === 'function' && !(await showAsk(`🗑 <b>${dzEsc(dzName(e))}</b> 도안을 버릴까요?<br><span style="font-size:12px;color:#777;">버리면 다시 뽑을 수 없어요 · 서랍의 종이는 그대로예요<br>🗑 앱 휴지통에서 30일 안에 되살릴 수 있어요</span>`, '🗑 버리기', '취소'))) return;
+            b.disabled = true; b.textContent = '🗑 버리는 중…';
+            try { await ownDesignDrop(e.id, true); } catch (er) { console.warn('📐 도안 버리기', er); b.disabled = false; b.textContent = '🗑 도안 버리기'; if (typeof showMsg === 'function') showMsg('⚠ 도안을 버리지 못했어요.<br>' + (window.ownErrText ? ownErrText(er) : '')); return; }
+            DZ.sel = ''; dzLoad();
+        };
+    }
 
     /* 앱 열기 */
     function launch(k) {

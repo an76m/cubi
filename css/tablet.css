@@ -118,3 +118,26 @@ body.ip-on .desk-top-r { display: none !important; }
 .ipd-pc img { width: 100%; height: 100%; object-fit: contain; }
 .ipd-pc b { position: absolute; right: -5px; top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #c2457a; color: #fff; font-size: 9px; display: grid; place-items: center; }
 h4 em { font-style: normal; font-size: 11px; color: #a07a88; margin-left: 4px; }
+
+/* 📐 내 도안 (도련 11-15 · js/tablet.js dzOpen) : 홈 오른쪽 위 버튼 · 작업대 = 종류 · 도안 · 고른 도안 + 🗑 */
+.ip-dz { position: absolute; top: 3.4cqh; right: 3cqw; font: inherit; font-family: 'Jua', sans-serif; font-size: min(3.4cqh, 2cqw); color: #c2457a; background: #fff; border: 2px solid #5b3a33; border-radius: 99px; padding: .6cqh 1.6cqw; box-shadow: 0 .5cqh 0 #5b3a33; cursor: pointer; }
+.ip-dz:active { translate: 0 .4cqh; box-shadow: 0 .1cqh 0 #5b3a33; }
+#tbWs.tb-dz .shm-body { grid-template-columns: 220px minmax(0, 1fr) 300px; }
+#tbWs.tb-dz .tb-mid { justify-content: flex-start; align-items: stretch; padding: 14px; }
+.dz-h { margin: 2px 0 4px; font-size: 14px; color: #5b3a33; }
+.dz-k { display: flex; align-items: center; gap: 8px; width: 100%; height: 44px; padding: 0 12px; border: 2px solid #f1d3de; border-radius: 12px; background: #fff; font: inherit; font-weight: 800; font-size: 14px; color: #6b4438; cursor: pointer; }
+.dz-k i { font-style: normal; font-size: 18px; } .dz-k em { margin-left: auto; font-style: normal; font-size: 12px; color: #b0798c; }
+.dz-k.on { border-color: #f08fb0; background: #fff0f5; color: #c2457a; }
+.dz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.dz-it { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px 9px; border: 2.5px solid #ead4dc; border-radius: 16px; background: #fffdf8; font: inherit; color: #5b3a33; cursor: pointer; min-width: 0; }
+.dz-it.on { border-color: #f08fb0; box-shadow: 0 0 0 3px #ffd3e2; }
+.dz-th { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: repeating-conic-gradient(#f6eef1 0 25%, #fff 0 50%) 0 0 / 16px 16px; font-size: 40px; overflow: hidden; }
+.dz-th img { max-width: 92%; max-height: 92%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(90, 60, 50, .25)); }
+.dz-it b { font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .dz-it small { font-size: 11px; color: #a08890; min-height: 1em; }
+.dz-empty { margin: auto; text-align: center; font-weight: 800; color: #8a6070; line-height: 1.7; } .dz-empty small { font-weight: 700; color: #a08890; }
+.dz-pv { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 2px solid #ead4dc; border-radius: 14px; background: repeating-conic-gradient(#f6eef1 0 25%, #fff 0 50%) 0 0 / 18px 18px; font-size: 64px; overflow: hidden; }
+.dz-pv img { max-width: 94%; max-height: 94%; object-fit: contain; }
+.dz-nm { font-size: 16px; color: #5b3a33; text-align: center; } .dz-meta { font-size: 12px; color: #a08890; text-align: center; }
+.dz-del { margin-top: 6px; height: 46px; border: 2.5px solid #e88fb0; border-radius: 14px; background: #fff; font: inherit; font-weight: 900; font-size: 15px; color: #c2457a; cursor: pointer; }
+.dz-del:disabled { opacity: .6; }
+.dz-hint { margin: 0; font-size: 11.5px; line-height: 1.6; color: #8a6070; text-align: center; }
