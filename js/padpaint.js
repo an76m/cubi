@@ -789,7 +789,7 @@
     const szMm = v => P.kind === 'paper' ? `${Math.round(v[1] * PAPER_K * sealPh() / 644)} × ${Math.round(v[2] * PAPER_K * sealPh() / 644)}mm` : `${Math.round(sealPh() * v[1] / v[2])} × ${sealPh()}mm`;
     /* 📏 씰 시트 세로 = 다이어리 한 쪽 세로 (js/stickerpeel.js PEL_SHEET_H 644 = 쪽 높이 · 떼어 붙이면 그 크기 그대로) → 1mm = P.H / 쪽 세로 mm */
     const mmOf = s => +String(s || '').split(/[×x*]/)[1] || 0;
-    function sealPh() { return mmOf(P.spec && P.spec.mm) || 148; }        // 📏 시트 그림 644px = 148mm (A6 · 1mm ≈ 4.35px · 다이어리 규격과 상관없이 · js/skins.js STK_MM)
+    const sealPh = () => 148;                                                // 📏 시트 그림 644px = 148mm (A6 · 1mm ≈ 4.35px · 다이어리 규격과 상관없이 · js/skins.js STK_MM · 도련 11-16 실제 크기 비율)
     function sealPastePop() {                                                  // 📔 다이어리에 붙여 보기 (도련 11-14 : 내 씰이 다이어리에서 얼마나 큰지)
         let pop = $('ppSpecPop'); if (pop) { pop.remove(); return; }
         commitFloat(); penEnd();
@@ -808,7 +808,7 @@
             const g = L.find(x => x.items.includes(pick)), ph = mmOf(g.mm) || 148, pw = +String(g.mm).split(/[×x*]/)[0] || 105;
             pop.querySelectorAll('[data-sp]').forEach(b => b.classList.toggle('on', b.dataset.sp === pick.id));
             let H = 300, W = Math.round(H / pick.r); const WM = Math.min(470, innerWidth - 64); if (W > WM) { W = WM; H = Math.round(W * pick.r); }   /* 📱 폰 = 화면 안으로 */
-            const SH = H * 644 / 700, top = H * 52 / 700, SW = SH * P.W / P.H, cx = W * (at === 'r' ? .75 : .25);   // 시트 세로 = 쪽 (머리 칸 아래)
+            const SH = H * 644 / 700 * 148 / ph, top = H * 52 / 700, SW = SH * P.W / P.H, cx = W * (at === 'r' ? .75 : .25);   // 📏 시트 세로 148mm : 쪽 세로 ph mm (실제 크기 비율 · 도련 11-16 · 예전 = 시트 세로 = 쪽)
             const kp = SH / PG_PX;                                             // 페이지 px → 미리보기 px
             let st = '';
             if (PA) { const o = cut[0], w = o.wh[0] * kp, h = o.wh[1] * kp;   // 📄 쪽 가운데에 한 장 (살짝 비스듬히)
@@ -820,10 +820,10 @@
             } else st = cut.map(o => `<img src="${o.u}" alt="" style="left:${(cx - SW / 2 + o.b[0] * SW).toFixed(1)}px;top:${(top + o.b[1] * SH).toFixed(1)}px;width:${(o.b[2] * SW).toFixed(1)}px;height:${(o.b[3] * SH).toFixed(1)}px">`).join('');
             $('ppBk').innerHTML = `<div class="pp-bk b-${pick.b}" style="--bd:${esc(pick.bd)};--pg:${esc(pick.pg)};--w:${W}px;--h:${H}px"><div class="pp-sprd pp-sprd-0"></div><i class="pp-bind"></i>
                 <div class="pp-slon" style="width:${W}px;height:${H}px">${PC || PA ? '' : `<i class="pp-slsh" style="left:${(cx - SW / 2).toFixed(1)}px;top:${top.toFixed(1)}px;width:${SW.toFixed(1)}px;height:${SH.toFixed(1)}px"></i>`}${st}</div></div>`;
-            const mm = ph / PG_PX, big = cut.reduce((m, o) => o.wh[0] * o.wh[1] > m[0] * m[1] ? o.wh : m, [0, 0]);   // 그림 px = 페이지 px
-            if (PA) { const v = cut[0].wh; $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>모조지 한 장 약 <b>${Math.round(v[0] * mm)} × ${Math.round(v[1] * mm)}mm</b>` + (v[1] > PG_PX ? '<br><span style="color:#c2457a">⚠ 모조지가 한 쪽보다 길어요</span>' : ''); return; }
+            const mm = 148 / PG_PX, big = cut.reduce((m, o) => o.wh[0] * o.wh[1] > m[0] * m[1] ? o.wh : m, [0, 0]);   // 그림 px = 페이지 px
+            if (PA) { const v = cut[0].wh; $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>모조지 한 장 약 <b>${Math.round(v[0] * mm)} × ${Math.round(v[1] * mm)}mm</b>` + (v[1] * mm > ph ? '<br><span style="color:#c2457a">⚠ 모조지가 한 쪽보다 길어요</span>' : ''); return; }
             $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>${PC ? '조각 ' + cut.length + '개' : '스티커 ' + cut.length + '장'} · 가장 큰 것 약 <b>${Math.round(big[0] * mm)} × ${Math.round(big[1] * mm)}mm</b>`
-                + (PC ? '' : (SW > W / 2 + 1 ? '<br><span style="color:#c2457a">⚠ 시트가 한 쪽보다 넓어요 (떼어서 나눠 붙여요)</span>' : '') + '<br><span style="font-size:11px;color:#8a6a76">점선 = 씰 시트 한 장 (세로가 다이어리 한 쪽과 같아요)</span>');
+                + (PC ? '' : (SW > W / 2 + 1 ? '<br><span style="color:#c2457a">⚠ 시트가 한 쪽보다 넓어요 (떼어서 나눠 붙여요)</span>' : '') + '<br><span style="font-size:11px;color:#8a6a76">점선 = 씰 시트 한 장 (세로 148mm · 실제 크기 비율)</span>');
         };
         $('ppSpL').onclick = e => { const b = e.target.closest('[data-sp]'); if (!b) return; pick = all.find(i => i.id === b.dataset.sp) || pick; const g = L.find(x => x.items.includes(pick)); P.spec = { n: g.n, mm: g.mm, r: pick.r, id: pick.id }; specBtn(); show(); };
         $('ppSlAt').onclick = e => { const b = e.target.closest('[data-at]'); if (!b) return; at = b.dataset.at; pop.querySelectorAll('[data-at]').forEach(x => x.classList.toggle('on', x === b)); show(); };
