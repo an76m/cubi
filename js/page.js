@@ -573,7 +573,8 @@
                나온 비율(종이 높이 대비)을 다이어리 모양마다 기억해요 → 덮개를 덮고 있어도 펼쳤을 때와 같은 자리 */
             const ip = document.getElementById('innerPage'), ovKey = (ip && ip.dataset.dy || '') + (dy.two ? '2' : '1') + (UI.phone() ? 'p' : '');
             const tbOn = !!toolbar.offsetParent, ov = (tbOn && (window.dyOvRat = window.dyOvRat || {})[ovKey]) || { t: 0, b: 0 };   // 🪑 책상(하단 메뉴 없음)은 그대로
-            const k = Math.min(1, maxW / (dy.w * (dy.two ? 2 : 1)), maxH / (dy.h * (1 + ov.t + ov.b)));       // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
+            const fit = s => Math.min(1, maxW / (s.w * (dy.two ? 2 : 1)), maxH / (s.h * (1 + ov.t + ov.b)));   // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
+            const k = Math.min(window.dyRefSize ? fit(dyRefSize()) : 1, fit(dy));   // 📏 모든 다이어리를 같은 비율로 줄여요 (기준 A5 · 실제 크기 비율 그대로 · 그보다 큰 것만 더 · js/skins.js MM_PX)
             const h = Math.round(dy.h * k);
             wrapper.style.width = Math.round(dy.w * k) + 'px'; wrapper.style.height = h + 'px';
             wrapper.style.marginTop = ov.t ? Math.round(ov.t * h) + 'px' : '';

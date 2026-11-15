@@ -422,7 +422,15 @@
         function dkInfo(o) {                                                    // 다이어리.json 내용
             return { id: o.id || 'dk' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), design: o.design || '', spec: o.spec || '', kind: o.kind || '노트', pages: o.pages || 0, days: o.days && typeof o.days === 'object' ? o.days : {} };
         }
-        const DY_H = 700;                                                      // 페이지 높이 기준
+        const DY_H = 700;                                                      // 페이지 높이 기준 (규격 mm 를 모르는 다이어리만 · 예전 기준)
+        /* 📏 실제 크기 비율 (도련 11-16 · 시험 : CSS 기준) : 1mm = 96 ÷ 25.4 ≈ 3.78px · 다이어리 한 쪽 = 규격 mm × 이 값 (A7 은 작게 · A5 는 크게 · 실제와 같은 비율)
+           화면에는 모든 다이어리를 같은 비율로 줄여요 (js/page.js refreshLayout · 기준 = DY_REF A5 · 그보다 큰 것만 더 줄여요) */
+        const MM_PX = 96 / 25.4, DY_REF = [148, 210];
+        const dyMm = t => { const m = String(t && t.mm || '').split(/[×x*]/).map(Number); return m[0] > 0 && m[1] > 0 ? m : null; };   // '105×148' → [105, 148]
+        function dyPaper(t) {                                                  // 꾸미는 종이 한 쪽 [가로, 세로] px (테두리 · 날짜바 빼고)
+            const m = dyMm(t); if (m) return [m[0] * MM_PX, Math.round(m[1] * MM_PX)];
+            const ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H; return [ch / t.r, ch];
+        }
         const dyFind = id => DY_TYPES.find(t => t.id === id) || (typeof dmkGet === 'function' ? dmkGet(id) : null);   // 📓 내가 만든 노트 · 바인더도 (js/dymaker.js)
         /* 📔 날짜형 = 'basic' (날짜 · 1년 · 보관소 = js/dyyear.js) · 모양 = 펼친 권의 디자인 (규격 · 묶음 · 도련 11-04 · js/dyyear.js dyyBookType) */
         const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || (window.dyyBookType ? dyyBookType() : null);   // js/dyyear.js 가 이 파일 뒤라 처음엔 없어요
@@ -468,15 +476,15 @@
            책등은 두 쪽 종이 위에 겹쳐 있어서, 좁아진 만큼 책 전체 가로도 줄여요 (보이는 종이 폭은 그대로) */
         const DY_SP_OLD = .17, DY_SP = .08;
         function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요 · pw = 책등과 상관없는 종이 한 쪽 폭
-            const t = dyLook(), ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H, pw = Math.round(ch / t.r) + PAGE_BORDER * 2;
-            const w = t.b === 'ring' ? Math.round(ch / t.r * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) + PAGE_BORDER * 2 : pw;
-            return { w, pw, h: DY_H, two: dyMode() === 'spread' };
+            const t = dyLook(), [cw, ch] = dyPaper(t), pw = Math.round(cw) + PAGE_BORDER * 2;   // 📏 규격 mm × MM_PX
+            const w = t.b === 'ring' ? Math.round(cw * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) + PAGE_BORDER * 2 : pw;
+            return { w, pw, h: ch + PAGE_BORDER * 2 + PAGE_HEADER_H, two: dyMode() === 'spread' };
         }
         /* 📃 속지 비율 (세로 ÷ 가로 · 도련 11-14) : 속지 한 장 = 펼친 두 쪽 전체(#canvasArea)에 늘여 깔려요 (css .lf-my 100% 100%)
            → 그 모양(t = 다이어리 디자인 { r, b })의 #canvasArea 비율 · 다이어리가 닫혀 있어도 계산으로 (js/padpaint.js 📐 규격) */
         function dyLeafR(t) {
-            t = t || dyLook(); const ch = DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H;
-            const w = (t.b === 'ring' ? Math.round(ch / t.r * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) : Math.round(ch / t.r)) + PAGE_BORDER * 2;
+            t = t || dyLook(); const [cw, ch] = dyPaper(t);
+            const w = (t.b === 'ring' ? Math.round(cw * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) : Math.round(cw)) + PAGE_BORDER * 2;
             return ch / (w * 2 - PAGE_BORDER * 2);
         }
         function dyVisX() {                                                    // 지금 보이는 쪽의 왼쪽 끝 (페이지 px) : 📱 한쪽 · 밀어 보기에서 오른쪽 쪽을 보고 있으면 반 장만큼
@@ -2147,7 +2155,7 @@
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySubNow = () => dySub;
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLeafR = dyLeafR; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.MM_PX = MM_PX; window.dyRefSize = () => ({ w: Math.round(DY_REF[0] * MM_PX) + PAGE_BORDER * 2, h: Math.round(DY_REF[1] * MM_PX) + PAGE_BORDER * 2 + PAGE_HEADER_H }); window.dyLeafR = dyLeafR; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkAt = dkAt; window.dkIs = dkIs; window.dkNo = dkNo; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

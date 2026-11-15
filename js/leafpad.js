@@ -86,7 +86,7 @@
         function tkDim(my) {
             const mm = my && Array.isArray(my.mm) && +my.mm[0] > 0 && +my.mm[1] > 0 ? my.mm : null; if (!mm) return [TK_W, TK_H];
             const t = window.dyLook ? dyLook() : null, ph = (t && +String(t.mm || '').split(/[×x*]/)[1]) || 148;
-            const ch = typeof DY_H !== 'undefined' ? DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;
+            const ch = window.dySize ? dySize().h - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;   // 지금 펼친 다이어리 쪽 높이 (📏 규격 mm × MM_PX)
             return [Math.round(mm[0] * k), Math.round(mm[1] * k)];
         }
         const tkVars = (w, h) => `--tw:${w}px;--th:${h}px`;

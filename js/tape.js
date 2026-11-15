@@ -32,7 +32,7 @@
             let s; try { s = decodeURIComponent(String(url).replace(/^data:image\/svg\+xml;charset=utf-8,/, '')); } catch (e) { return { url, h: 30 }; }
             const m = s.match(/<!--tmm:([\d.]+)x([\d.]+)-->/); if (!m) return { url, h: 30 };
             const t = window.dyLook ? dyLook() : null, ph = (t && +String(t.mm || '').split(/[×x*]/)[1]) || 148;
-            const ch = typeof DY_H !== 'undefined' ? DY_H - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;
+            const ch = window.dySize ? dySize().h - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;   // 지금 펼친 다이어리 쪽 높이 (📏 규격 mm × MM_PX)
             const w = Math.round(+m[1] * k * 100) / 100, h = Math.max(6, Math.round(+m[2] * k));
             s = s.replace(/<pattern id="p" width="[\d.]+" height="[\d.]+"/, `<pattern id="p" width="${w}" height="${h}"`).replace(/(<pattern id="p"[^>]*>\s*<image [^>]*?)width="[\d.]+" height="[\d.]+"/, `$1width="${w}" height="${h}"`);
             return { url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s), h };
