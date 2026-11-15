@@ -204,8 +204,8 @@
         }
         /* 지금 펼친 장이 펼친 해 밖이면 → 그 해 안으로 */
         function dyyFit() {
-            if (!dyyBasic() || !dyyBook() || typeof currentDate === 'undefined' || currentDate.getFullYear() === dyyYear()) return;
-            currentDate.setTime(dyyClamp(new Date()).getTime());
+            if (!dyyBasic() || !dyyBook() || typeof currentDate === 'undefined' || isSpot(currentDate) || currentDate.getFullYear() === dyyYear()) return;
+            curSet(dyyClamp(new Date()));
             const d = document.getElementById('pageDateDisplay'); if (d && typeof formatDate === 'function') d.innerText = formatDate(currentDate);
             if (isCoverOpen && !turn && typeof loadData === 'function') loadData();
         }
@@ -218,8 +218,8 @@
         }
         /* 펼친 다이어리를 그 권 것으로 다시 (같은 날이어도 다른 권이라 다시 읽어요) */
         function dyyReload() {
-            const to = (typeof dyOpenDate === 'function' && dyOpenDate()) || dyyClamp(new Date(currentDate));
-            currentDate.setTime(to.getTime());
+            const to = (typeof dyOpenDate === 'function' && dyOpenDate()) || dyyClamp(isSpot(currentDate) ? new Date() : new Date(currentDate));
+            curSet(to);
             if (!isCoverOpen) return;
             selectedElement = null;
             if (window.dyViewSet) dyViewSet('l');
@@ -255,6 +255,7 @@
         async function dyyEnd(dir) {
             if (!dyyBasic() || !dyyBook() || performance.now() - dyyMsgAt < 2500) return;
             const y = dyyYear(), to = y + (dir > 0 ? 1 : -1);
+            if (isSpot(currentDate)) return;                                  // 📕 표지 · 장
             const edge = dir > 0 ? currentDate.getMonth() === 11 && currentDate.getDate() === 31 : currentDate.getMonth() === 0 && currentDate.getDate() === 1;
             if (!edge) return;                                                 // 🗂 꾸민 페이지만 보기에서 꾸민 날이 더 없을 때는 그대로
             dyyMsgAt = performance.now();

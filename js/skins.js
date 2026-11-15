@@ -511,11 +511,11 @@
             const p = document.getElementById('innerPage'); return p ? p.getBoundingClientRect() : null;
         }
         function dySet(id) {
-            const t = dyFind(id) || dyNow();
+            const t = id === DY_DEF ? ((window.dyyBookType && dyyBookType()) || { id: DY_DEF }) : dyFind(id) || dyNow();   // 📔 날짜형 = 'basic' (모양 = 펼친 권 · DY_TYPES 엔 없어요 · 도련 11-15 : 예전엔 페이지형에서 날짜형으로 못 돌아갔어요)
             if (t.id !== dyNow().id) {
                 if (isCoverOpen && !turn) saveData(false);                     // 지금 장을 먼저 저장 (다이어리가 바뀌면 저장 키가 바뀌어요)
-                prefSet(DY_KEY, DY_LOCAL, t.id);
-                if (dkType() && isCoverOpen) { currentDate.setTime(dyOpenDate().getTime()); selectedElement = null; }   // 📕 다른 노트 · 바인더로 바꾸면 그 권의 마지막으로 꾸민 장 (없으면 1장)
+                prefSet(DY_KEY, DY_LOCAL, id === DY_DEF ? DY_DEF : t.id);
+                if (dkType() && isCoverOpen) { curSet(dyOpenDate()); selectedElement = null; }   // 📕 다른 노트 · 바인더로 바꾸면 그 권의 마지막으로 꾸민 장 (없으면 1장)
                 if (typeof refreshLayout === 'function') refreshLayout(); else dyDeco();
                 dkSync(true);
                 dkFix();
@@ -1842,14 +1842,14 @@
             gdSync();                                                          // ✂️ 📎 집게 · 🪡 핀셋
         }
         /* 📕 표지 꾸미기 (표꾸 · 도련 10-18) : 상품공방 '표지꾸미기' 를 체크한 다이어리만 (도련 11-06 · dyCvOk)
-           - 표지 = 0장 (dkDate(0) = 1999-12-31) · 📓 🗂️ 페이지형 = 키 dkp_<권 id>_0 → <권 id>-표지.json · 📔 날짜형 = 그 권 1999-12-31 키 → 권 폴더 표지.json (js/drive.js dayFileName) → 속지처럼 스티커 메뉴로 그대로 꾸며요
+           - 표지 = 0장 (dkAt(0) = 1999-12-31) · 📓 🗂️ 페이지형 = 키 dkp_<권 id>_0 → <권 id>-표지.json · 📔 날짜형 = 그 권 1999-12-31 키 → 권 폴더 표지.json (js/drive.js dayFileName) → 속지처럼 스티커 메뉴로 그대로 꾸며요
            - 표꾸 화면 : 로그인 때 겉표지처럼 접힌 앞표지 한 쪽 (펼친 면의 오른쪽 쪽 자리) · 다음 장으로 넘기면 1장이에요
            - 닫힌 겉표지 : 그 다이어리 색 + 앞표지(오른쪽 쪽)에 붙인 것 (#cvDeco · 눌러도 그대로 열려요) */
         function dkCoverEdit() {
             closeModal('skinModal');
             if (!dyCvOk()) { showMsg('📕 이 다이어리 표지는 꾸밀 수 없어요.'); return; }   // 🧁 상품공방 '표지꾸미기'
-            if (!isCoverOpen || turn || dkCv()) { goToDate(dkDate(0)); return; }
-            dkFold(() => goToDate(dkDate(0)));
+            if (!isCoverOpen || turn || dkCv()) { goToDate(dkAt(0)); return; }
+            dkFold(() => goToDate(dkAt(0)));
         }
         /* 📕 표꾸로 갈 때 연출 : 펼친 다이어리의 왼쪽 쪽(앞표지 안쪽)이 가운데 묶음을 축으로 넘어와 덮이면서 겉표지가 돼요
            - 넘어오는 장 뒷면 = 지금 왼쪽 쪽 그대로 (#innerPage 복사) · 앞면 = 겉표지 (다이어리 색 · 책등 · 앞표지에 붙인 것)
@@ -1890,7 +1890,7 @@
             if (!dkCv() || dkFolding) return false;
             const to = dyStep(currentDate, 1); if (!to) return false;
             saveData(false);
-            currentDate.setTime(to.getTime()); selectedElement = null;
+            curSet(to); selectedElement = null;
             isCoverOpen = false;
             document.getElementById('innerPage').style.display = 'none';
             const cp = document.getElementById('coverPage'); cp.style.display = ''; cp.classList.add('cv-plain');   // 넘어가는 겉표지엔 공지 카드 · 밀어서 열기가 없어요
@@ -1898,7 +1898,7 @@
             return true;
         }
         function dkRefold() {                                                  // 덜 넘기고 놓았을 때 : 다시 표꾸 화면
-            currentDate.setTime(dkDate(0).getTime());
+            curSet(dkAt(0));
             isCoverOpen = true;
             const cp = document.getElementById('coverPage'); cp.style.display = 'none'; cp.classList.remove('cv-plain');
             document.getElementById('innerPage').style.display = 'flex';
@@ -1912,17 +1912,17 @@
             let box = document.getElementById('cvDeco');
             if (!can) { if (box) box.remove(); return; }
             cv.style.setProperty('--dy-c', t ? t.c : 'var(--border-color)');   // 📔 날짜형 = 그 권 테두리 색
-            const key = getDateKey(dkDate(0));
-            if (!drive.guest && drive.ready && !drive.loadedDays.has(key)) { if (box) box.innerHTML = ''; ensureKeyLoaded(key).then(ok => { if (ok && getDateKey(dkDate(0)) === key) dkCoverPaint(); }).catch(() => {}); return; }
+            const key = getDateKey(dkAt(0));
+            if (!drive.guest && drive.ready && !drive.loadedDays.has(key)) { if (box) box.innerHTML = ''; ensureKeyLoaded(key).then(ok => { if (ok && getDateKey(dkAt(0)) === key) dkCoverPaint(); }).catch(() => {}); return; }
             if (!box) { box = document.createElement('div'); box.id = 'cvDeco'; box.className = 'cv-deco'; box.setAttribute('aria-hidden', 'true'); cv.appendChild(box); }
             const ps = getPageSize(), c = canvasOfPage(ps.w, ps.h);
             Object.assign(box.style, { width: c.w + 'px', height: c.h + 'px', left: (2 - c.w / 2) + 'px', top: '2px' });   // 앞표지 = 펼친 표지의 오른쪽 쪽
             box.innerHTML = '';
-            readDayData(dkDate(0)).forEach(d => box.appendChild(createElementFromData(d, false)));
+            readDayData(dkAt(0)).forEach(d => box.appendChild(createElementFromData(d, false)));
         }
         /* 📕 유한 다이어리 (도련 · 10-18) : 기본이 아닌 다이어리 = 페이지 수가 정해진 다이어리 · 늘 페이지 기준 (날짜 기준 유한은 없앰)
            - 장 = 펼친 두 쪽 하나 · 저장 키 dkp_<권 id>_<장> · 다이어리.json = dkb_<권 id> (js/drive.js)
-           - 화면 코드는 날짜(currentDate)로 움직여요 → 장은 '2000년 1월 n일' 날짜로 넣고 (dkDate) getDateKey 가 장 키로 바꿔요
+           - 지금 보는 곳(currentDate) = 장은 BookSpot(n) (js/book.js · dkAt · 도련 11-15 : 예전 '2000년 1월 n일' 가짜 날짜) → getDateKey 가 장 키로 바꿔요
              진짜 날짜 (오늘 · 달력 · 검색 · D-day) 는 늘 진짜 날짜예요 · 2000년 날짜는 장으로만 써요
            - 지금은 규격마다 한 권 (diary_books : 규격 id → 권 id) · 문구점 디자인이 생기면 디자인마다 권
            - ☁ 로그인 중에는 권 id 를 드라이브 설정.json 것만 따라요 (도련 10-20 · 기기 브라우저 기억 malang_books 은 로그인 전 · 게스트용)
@@ -1933,7 +1933,7 @@
            - 📅 달력 : 꾸민 날만 누를 수 있고 나머지는 회색 · 누르면 그날 처음 꾸민 장 · 여러 장이면 작은 숫자 (js/month.js)
            - 🔍 검색 : 이 다이어리 장들에서 찾아요 (js/search.js)
            - 마지막 장에서 더 넘기면 "기본 다이어리로 넘어갈까요?" */
-        const DK_KEY = 'diary_books', DK_LOCAL = 'malang_books', DK_VIEW = 'malang_bkview', DK_VIEW_KEY = 'diary_bkview', DK_PAGES = 30, DK_Y = 2000;
+        const DK_KEY = 'diary_books', DK_LOCAL = 'malang_books', DK_VIEW = 'malang_bkview', DK_VIEW_KEY = 'diary_bkview', DK_PAGES = 30;
         const dkType = () => { const t = dyNow(); return t.id === DY_DEF ? null : t; };
         function dkMap() { const m = prefGet(DK_KEY, DK_LOCAL); return m && typeof m === 'object' ? m : {}; }   // 규격 id → 권 id (☁ 로그인 중엔 드라이브 것만 · js/drive.js prefGet)
         function dkId(make) {                                                  // 지금 고른 규격의 권 id (make : 없으면 새로)
@@ -1944,9 +1944,9 @@
             prefSet(DK_KEY, DK_LOCAL, o);
             return o[t.id];
         }
-        const dkIs = d => d.getFullYear() === DK_Y || +d === +dkDate(0);       // 장 날짜인지 (0장 = 📕 표지 · 1999-12-31)
-        const dkNo = d => Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(DK_Y, 0, 1)) / 864e5) + 1;
-        const dkDate = n => new Date(DK_Y, 0, n);
+        const dkIs = d => isSpot(d);                                            // 날짜가 아닌 쪽인지 (📕 표지 0 · 📓 🗂️ 페이지형 장 · js/book.js BookSpot · 도련 11-15 : 예전 '2000년 1월 n일' 가짜 날짜)
+        const dkNo = d => d.n;
+        const dkAt = n => bookSpot(n);
         function dkKey(date) { if (!dkIs(date) || !dkType()) return null; const id = dkId(true); return `dkp_${id}_${dkNo(date)}`; }   // js/page.js getDateKey
         function dkInfoOf(id) {                                                // 다이어리.json 내용 (아직 없으면 그 규격으로 새로)
             let o = null; try { o = JSON.parse(store.getItem('dkb_' + id)); } catch (e) {}
@@ -1973,7 +1973,8 @@
         }
         const dkDayOf = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
         function dkReal(date) {                                                // 장 날짜 → 그 장을 처음 꾸민 날 (빈 장은 오늘) · D-day 같은 진짜 날짜용
-            if (!dkIs(date) || !dkType()) return date;
+            if (!dkIs(date)) return date;
+            if (!dkType()) return new Date();                                      // 📔 날짜형 표지 = 오늘
             const s = dkNow().days[dkNo(date)]; return s ? dkDayOf(s) : new Date();
         }
         const dkView = () => prefGet(DK_VIEW_KEY, DK_VIEW) === 'date' ? 'date' : 'page';   // ☁ 설정.json (기기마다 같아요 · 도련 10-20)
@@ -2002,7 +2003,7 @@
             const bk = !!dkType(), on = dkIs(currentDate), cvAt = on && dkNo(currentDate) === 0;   // 📕 표지(0장)는 꾸밀 수 있는 다이어리면 날짜형도 그대로
             if (cvAt ? !dyCvOk() : (bk !== on || (bk && dkNo(currentDate) > dkNow().pages))) {
                 if (window.dyViewSet) dyViewSet('l');
-                currentDate.setTime((bk ? dyOpenDate() : dyOpenDate() || new Date()).getTime());
+                curSet(bk ? dyOpenDate() : dyOpenDate() || new Date());
                 selectedElement = null;
             } else if (!load) return dkCvSync();
             dkCvSync();
@@ -2015,7 +2016,7 @@
             await ensureKeyLoaded('dkb_' + id);
             if (!dkType() || dkId(false) !== id || !isCoverOpen || turn || !dkIs(currentDate) || !dkNo(currentDate)) return;
             const o = dkNow(), f = dkFilled(o), n = dkNo(currentDate);
-            if (f.length && !o.days[n] && f[f.length - 1] !== n) goToDate(dkDate(f[f.length - 1]));
+            if (f.length && !o.days[n] && f[f.length - 1] !== n) goToDate(dkAt(f[f.length - 1]));
             else document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
         }
         let dkEndAt = 0;
@@ -2060,9 +2061,9 @@
             }
             if (dkType() && dkIs(date)) {                                      // 📕 유한 : 1장 ~ 마지막 장
                 const o = dkNow(), n = dkNo(date), f = dkFilled(o);
-                if (!dfOn()) { const to = n + dir; return to >= 1 && to <= o.pages ? dkDate(to) : null; }
+                if (!dfOn()) { const to = n + dir; return to >= 1 && to <= o.pages ? dkAt(to) : null; }
                 const nx = (f.length ? f[f.length - 1] : 0) + 1, list = f.concat(nx <= o.pages ? [nx] : []).filter(x => dir > 0 ? x > n : x < n);
-                return list.length ? dkDate(dir > 0 ? list[0] : list[list.length - 1]) : null;
+                return list.length ? dkAt(dir > 0 ? list[0] : list[list.length - 1]) : null;
             }
             const yin = d => window.dyyIn ? dyyIn(d) : d;                     // 📔 기본 다이어리는 펼친 해 안에서만 (js/dyyear.js · 넘어가면 null → dkEnd)
             if (!dfOn()) return yin(addDays(date, dir));
@@ -2080,10 +2081,10 @@
         const dfDate = k => { const p = parseDayKey(k); return new Date(p.y, p.m - 1, p.d); };
         /* 다이어리를 열 때 갈 날 : 켜져 있으면 마지막으로 꾸민 날 (목록을 아직 못 받았거나 하나도 없으면 null = 그대로) */
         function dyOpenDate() {
-            if (dkType()) { const f = dkFilled(dkNow()); return dkDate(f.length ? f[f.length - 1] : 1); }   // 📕 유한 : 마지막으로 꾸민 장
+            if (dkType()) { const f = dkFilled(dkNow()); return dkAt(f.length ? f[f.length - 1] : 1); }   // 📕 유한 : 마지막으로 꾸민 장
             if (window.dyyOnOpen) dyyOnOpen();                                 // 📔 새해인데 올해 다이어리가 없으면 알려요 (js/dyyear.js)
             const yc = d => window.dyyClamp ? dyyClamp(d) : d;                 // 📔 펼친 해 안의 날 (js/dyyear.js dyyClamp)
-            const keep = () => window.dyyClamp ? yc(new Date(currentDate)) : null;   // 그대로 (펼친 해 밖이면 그 해 안으로)
+            const keep = () => window.dyyClamp ? yc(isSpot(currentDate) ? new Date() : new Date(currentDate)) : null;   // 그대로 (펼친 해 밖이면 그 해 안으로)
             if (!dfOn()) return keep();
             dfLoad();
             if (!dfList && !drive.guest) return keep();
@@ -2148,7 +2149,7 @@
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySubNow = () => dySub;
         window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.dyLeafR = dyLeafR; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
-        window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkIs = dkIs; window.dkNo = dkNo; window.dkDate = dkDate; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
+        window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkAt = dkAt; window.dkIs = dkIs; window.dkNo = dkNo; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */

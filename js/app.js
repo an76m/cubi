@@ -1,7 +1,8 @@
 /* 말랑달콤 다이어리 - js/app.js
    공통 상태값 · 알림창 · 글꼴 목록 · 페이지 목록 · 시작(window.onload)
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
-        let currentDate = new Date();
+        let currentDate = new Date();                                       // 📍 지금 보는 곳 = 날짜 또는 쪽 (BookSpot · js/book.js) · 바꿀 땐 curSet
+        function curSet(v) { currentDate = isSpot(v) ? bookSpot(v.n) : new Date(+v); }
         let isCoverOpen = false;
         let selectedElement = null;
         let zIndexCounter = 10;

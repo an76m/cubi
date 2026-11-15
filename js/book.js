@@ -12,6 +12,15 @@
                 page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리],
                 side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
+/* 📍 쪽 자리 (도련 11-15 · 2-1 : 가짜 날짜 없애기) : 날짜가 아닌 쪽 = BookSpot(n) · 0 = 📕 표지 · 1~ = 페이지형 다이어리 장 (예전 = '2000년 1월 n일' 가짜 날짜 · 1999-12-31 = 표지)
+   지금 보는 곳(currentDate · js/app.js) = 날짜(📔 날짜형의 날) 또는 BookSpot · 바꾸기 = curSet · 저장할 때 = spotSave / spotLoad (글자 'p3') */
+class BookSpot { constructor(n) { this.n = Math.max(0, Math.round(+n || 0)); } }
+const bookSpot = n => new BookSpot(n);
+const isSpot = v => v instanceof BookSpot;
+const spotCopy = v => isSpot(v) ? new BookSpot(v.n) : new Date(+v);
+const spotSave = v => isSpot(v) ? 'p' + v.n : +v;
+const spotLoad = v => typeof v === 'string' && /^p\d+$/.test(v) ? new BookSpot(+v.slice(1)) : new Date(+v);
+const spotSame = (a, b) => isSpot(a) ? isSpot(b) && a.n === b.n : !isSpot(b) && +a === +b;
 const BOOK_R = 148 / 210;                                                    // 한 쪽 비율 (A5)
 function bookSide(cur, s) {                                                  // ◧ ◨ 스위치 하나 켜기 · 끄기 (남은 하나는 못 꺼요) → 새 값
     const on = { l: cur.includes('l'), r: cur.includes('r') };
@@ -181,4 +190,4 @@ function bookOpen(host, spec) {
         turn, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
-window.bookOpen = bookOpen; window.bookSide = bookSide;
+window.bookOpen = bookOpen; window.bookSide = bookSide; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;

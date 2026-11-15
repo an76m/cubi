@@ -39,7 +39,7 @@
         return new Promise(ok => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } });
     }
     const idKey = key => who() + '|' + key;
-    const draftPut = (key, txt, held) => { PG.at = Date.now(); return tx('readwrite', st => st.put(Object.assign({ who: who(), key, txt, at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? +currentDate : 0 }, held ? { held } : {}), idKey(key))); };   // vol · ds = 그 권 · 그 페이지로 가려고 · held = 그때 쓴 스티커 · 모조지 종이 (그냥 닫기 = 이때로)
+    const draftPut = (key, txt, held) => { PG.at = Date.now(); return tx('readwrite', st => st.put(Object.assign({ who: who(), key, txt, at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? spotSave(currentDate) : 0 }, held ? { held } : {}), idKey(key))); };   // ds = 그 날 · 그 쪽 (js/book.js spotSave)   // vol · ds = 그 권 · 그 페이지로 가려고 · held = 그때 쓴 스티커 · 모조지 종이 (그냥 닫기 = 이때로)
     const draftGet = key => tx('readonly', st => st.get(idKey(key)));
     const draftDel = key => tx('readwrite', st => st.delete(idKey(key)));
     async function draftsMine() { const all = await tx('readonly', st => st.getAll()); return (all || []).filter(r => r && r.who === who() && r.key); }
@@ -94,7 +94,7 @@
         store.putLoaded(key, txt);                                            // '바뀜' 표시 없이 (자동 업로드 안 해요)
         if (txt === PG.orig.get(key) && !held(key)) PG.drafts.delete(key);
         else PG.drafts.set(key, txt);
-        PG.uns.add(key); PG.meta.set(key, { vol: curVol(), ds: typeof currentDate !== 'undefined' ? +currentDate : 0 });   // 그 권 · 그 페이지 (아직 저장 전이어도 '그 페이지로 가기')
+        PG.uns.add(key); PG.meta.set(key, { vol: curVol(), ds: typeof currentDate !== 'undefined' ? spotSave(currentDate) : 0 });   // 그 권 · 그 페이지 (아직 저장 전이어도 '그 페이지로 가기')
         //                                                                    💾 이 기기 저장은 자동 임시저장 · 💾 버튼 · ✕ 물음 때 (js/tempsave.js · 도련 11-15 · 예전 = 바꿀 때마다 바로)
         if (others(key).length) setTimeout(gate, 0);                          // 💾 임시저장은 한 페이지만 : 다른 페이지에 처음 손댔어요
         ui();
@@ -147,7 +147,7 @@
         if (!coverOpen()) { await until(() => !(typeof turn !== 'undefined' && turn), 3000); if (!coverOpen() && typeof openCoverAnimated === 'function') openCoverAnimated(); await until(coverOpen, 5000); }
         await until(() => !(typeof turn !== 'undefined' && turn), 3000);
         if (curKey() === key) { if (typeof loadData === 'function') loadData(); }
-        else if (ds && typeof goToDate === 'function') goToDate(new Date(ds));
+        else if (ds && typeof goToDate === 'function') goToDate(spotLoad(ds));
         else if (window.showMsg) showMsg(`📖 <b>${label(key, r)}</b> 페이지를 펼치면 이어서 꾸밀 수 있어요.`);
     }
     async function gate() {                                                   // 다른 페이지에 처음 손댔어요 → 그 페이지로 가기 / 지우고 여기서 시작
@@ -176,7 +176,10 @@
     async function ask() {
         if (!on() || PG.asked || !(coverOpen() || floating())) return;
         PG.asked = true;
-        let L = (await draftsMine()).filter(r => !PG.drafts.has(r.key)).sort((a, b) => (b.at || 0) - (a.at || 0));
+        const all = await draftsMine(), have = new Set(all.map(r => r.key));
+        const orphan = heldKeys().filter(k => !have.has(k) && !PG.drafts.has(k));   // 💾 저장하기 전에 앱이 꺼졌어요 = 그 뒤에 쓴 스티커는 시트로 (그냥 닫기와 같게 · js/tempsave.js · 도련 11-15)
+        if (orphan.length && window.ownDropHeld) ownDropHeld(orphan);
+        let L = all.filter(r => !PG.drafts.has(r.key)).sort((a, b) => (b.at || 0) - (a.at || 0));
         if (!L.length) return;
         if (L.length > 1) { const old = L.slice(1); old.forEach(r => draftDel(r.key)); if (window.ownDropHeld) ownDropHeld(old.map(r => r.key)); L = [L[0]]; }   // 예전에 여러 개 남은 것 = 가장 최근 것만
         const r = L[0], nm = label(r.key, r);

@@ -195,7 +195,7 @@
             if (Y.synced) return;
             const o = dkNow(), filled = new Set(dkFilled(o).map(n => 'p' + n));
             Object.keys(Y.d).forEach(day => { if (!filled.has(day)) srSet(Y, day, null); });
-            const need = [...filled].filter(day => !Y.d[day]).map(day => getDateKey(dkDate(+day.slice(1))));
+            const need = [...filled].filter(day => !Y.d[day]).map(day => getDateKey(dkAt(+day.slice(1))));
             for (let i = 0; i < need.length; i += 4) {
                 if (progress) progress(i, need.length);
                 await Promise.all(need.slice(i, i + 4).map(async key => {
@@ -236,7 +236,7 @@
         function srGo(day) {
             const [y, m, d] = day.split('-').map(Number);
             closeSearch();
-            if (day[0] === 'p') { goToDate(dkDate(+day.slice(1))); return; }   // 📕 유한 다이어리 장
+            if (day[0] === 'p') { goToDate(dkAt(+day.slice(1))); return; }   // 📕 유한 다이어리 장
             if (typeof goToDate === 'function') goToDate(new Date(y, m - 1, d));
         }
         async function openSearch() {

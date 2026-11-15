@@ -1942,7 +1942,7 @@
                     if (gen !== drive.gen) return;
                     if (cur && (!known || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, new Set());
                 }
-                const keys = isCoverOpen ? [currentDate, addDays(currentDate, -1), addDays(currentDate, 1)].map(getDateKey) : [];
+                const keys = isCoverOpen ? [currentDate].concat(window.dyStep ? [dyStep(currentDate, -1), dyStep(currentDate, 1)] : isSpot(currentDate) ? [] : [addDays(currentDate, -1), addDays(currentDate, 1)]).filter(Boolean).map(getDateKey) : [];
                 const bk = keys.map(parsePageKey).find(Boolean);
                 if (bk) { keys.unshift('dkb_' + bk.b); drive.books.delete(bk.b); }       // 📕 권 폴더 목록을 새로 · 다이어리.json 도
                 for (const k of keys) if (parseDayKey(k)) { try { await dayRefresh(k); } catch (e) {} }   // 그날 파일만 새로 (수정 시각이 들어 있어요)

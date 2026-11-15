@@ -52,7 +52,7 @@
         async function plWroteToday() {
             const today = new Date();
             try {
-                if (isCoverOpen && typeof currentDate !== 'undefined' && plDay(currentDate) === plDay(today)) {
+                if (isCoverOpen && typeof currentDate !== 'undefined' && !isSpot(currentDate) && plDay(currentDate) === plDay(today)) {
                     const c = pq('canvasArea');
                     if (c && c.children.length) return true;
                 }

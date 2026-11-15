@@ -64,7 +64,7 @@
                 for (let d = 1; d <= last; d++) {
                     const ps = book.get(d), tdy = y === today.getFullYear() && m === today.getMonth() && d === today.getDate() ? ' mo-today' : '';
                     if (!ps) { h += `<button type="button" class="mo-c mo-off${tdy}" disabled><i>${d}</i></button>`; continue; }
-                    const pd = dkDate(ps[0]), key = getDateKey(pd), ok = drive.guest || drive.loadedDays.has(key);
+                    const pd = dkAt(ps[0]), key = getDateKey(pd), ok = drive.guest || drive.loadedDays.has(key);
                     if (!ok) todo.push(pd);
                     const pv = ok ? moPreview(pd) : null;
                     const inner = pv ? (pv.img ? `<img src="${pv.img.replace(/"/g, '&quot;')}" alt="" loading="lazy">` : `<em>${pv.emoji}</em>`) : '<em class="mo-wait">·</em>';
@@ -138,13 +138,13 @@
         function moMove(dir) { let m = mo.m + dir, y = mo.y; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } mo.y = y; mo.m = m; moRender(); }
         function moGo(d) {
             let date = new Date(mo.y, mo.m, d);
-            if (window.dkType && dkType()) { const ps = moBookDays(mo.y, mo.m).get(d); if (!ps) return; date = dkDate(ps[0]); }   // 📕 그날 처음 꾸민 장
+            if (window.dkType && dkType()) { const ps = moBookDays(mo.y, mo.m).get(d); if (!ps) return; date = dkAt(ps[0]); }   // 📕 그날 처음 꾸민 장
             closeMonth();
             if (typeof goToDate === 'function') goToDate(date);
         }
         function openMonth() {
             moBuild();
-            let base = isCoverOpen ? currentDate : new Date();
+            let base = isCoverOpen && (isSpot(currentDate) ? window.dkType && dkType() : true) ? currentDate : new Date();
             if (window.dkType && dkType() && dkIs(base)) { const s = dkNow().days[dkNo(base)]; base = s ? dkDayOf(s) : new Date(); }   // 📕 지금 장을 꾸민 달 (빈 장이면 이번 달)
             mo.y = base.getFullYear(); mo.m = base.getMonth();
             if (isCoverOpen) saveData(false);                    // 지금 페이지 내용도 달력에 바로 보이도록

@@ -207,8 +207,9 @@
         }
 
         function getDateKey(date) {
-            const dk = window.dkKey && dkKey(date); if (dk) return dk;       // 📕 유한 다이어리 장 (2000년 날짜) → dkp_권_장 (js/skins.js)
+            const dk = window.dkKey && dkKey(date); if (dk) return dk;       // 📕 유한 다이어리 장 (BookSpot) → dkp_권_장 (js/skins.js)
             const b = window.dyyBookId && dyyBookId(); if (!b) return 'nobook';   // 📔 다이어리가 없으면 어디에도 저장 안 되는 키 (펼치지도 못해요)
+            if (isSpot(date)) return dayKeyOf(1999, 12, 31, b);               // 📔 날짜형 표지 = 그 권 표지.json (키 이름은 ③ 날짜형 단계에서 정리)
             return dayKeyOf(date.getFullYear(), date.getMonth() + 1, date.getDate(), b);   // 📔 펼친 권마다 따로 (js/dyyear.js)
         }
 
@@ -284,13 +285,13 @@
             const W = book.clientWidth;
             const pageEl = document.getElementById(isCover ? 'coverPage' : 'innerPage');
 
-            if (isCover && !keep && !keepDate && window.dyOpenDate) { const od = dyOpenDate(); if (od) currentDate.setTime(od.getTime()); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
-            const targetDate = new Date(currentDate);
+            if (isCover && !keep && !keepDate && window.dyOpenDate) { const od = dyOpenDate(); if (od) curSet(od); }   // 🗂 꾸민 페이지만 보기 : 열면 마지막으로 꾸민 날 (js/skins.js)
+            let targetDate = spotCopy(currentDate);                                          // 📍 날짜 또는 쪽 (js/book.js BookSpot)
             if (!isCover) {
                 const to = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir);   // 🗂 꾸민 페이지만 보기면 빈 날은 건너뛰어요 (js/skins.js)
                 if (!to) { if (window.dkEnd) dkEnd(dir); return false; }   // 📕 유한 다이어리 마지막 장 → 기본으로 넘어갈까요?
                 saveData(false);
-                targetDate.setTime(to.getTime());
+                targetDate = spotCopy(to);
             }
 
             const under = buildStaticPage(targetDate);
@@ -393,7 +394,7 @@
                     setTimeout(() => ip.classList.remove('ph-in'), 600);
                     if (window.dfFix && !t.keep) setTimeout(dfFix, 0);                      // 🗂 목록을 받기 전에 열었으면 받은 뒤 마지막으로 꾸민 날로
                 } else {
-                    currentDate.setTime(t.to.getTime());
+                    curSet(t.to);
                 }
                 selectedElement = null;
                 if (window.dyViewSet) dyViewSet(t.isCover || t.dir === 1 ? 'l' : 'r');   // 📱 다음 날은 왼쪽 · 전날은 오른쪽 쪽부터
@@ -427,7 +428,7 @@
             const jump = () => {
                 if (getDateKey(currentDate) !== getDateKey(target)) {
                     saveData(false);
-                    currentDate.setTime(target.getTime());
+                    curSet(target);
                     selectedElement = null;
                     if (window.dyViewSet) dyViewSet('l');
                     document.getElementById('pageDateDisplay').innerText = formatDate(currentDate);
@@ -437,7 +438,7 @@
                 ready();
             };
             if (isCoverOpen) { jump(); return; }
-            if (getDateKey(currentDate) !== getDateKey(target)) currentDate.setTime(target.getTime());
+            if (getDateKey(currentDate) !== getDateKey(target)) curSet(target);
             openCoverAnimated();
             let n = 0;
             const w = () => { if (isCoverOpen && !turn) jump(); else if (n++ < 40) setTimeout(w, 100); };
