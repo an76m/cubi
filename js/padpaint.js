@@ -11,7 +11,7 @@
    - 🧩 조각스티커 (도련 11-14) : 종이 = 조각 판 800×800 (PIECE_K .5 → 페이지 400px) · 그린 것 전체 = 조각 하나 (하얀 칼선) · ➕ 이 조각 담기 (4개까지 · P.pcs · 임시저장에도) · ✅ 완료 = 담은 조각 + 그리던 것 → 📐 도안 (🖨 늘 4조각)
    - 📄 모조지스티커 (도련 11-14) : 종이 = 모조지 한 장 그대로 (📐 모조지 규격 세로 · 정사각 · 길쭉 · PAPER_SZ · 가로 720px = 페이지 360px · js/papermaker.js PM_W) · 🧵 종이 꾸미기 · 📎 사진(가득) · 🏷️ 내가 만든 스티커
      ✅ 완료 = 보이는 그대로 인쇄된 모조지 한 장 (ownTake paper · 쓸 때 ✂️ 가위로 오려요) → 📐 도안
-   - 📔 붙여 보기 (씰 · 조각 · 모조지) : 스티커 그림 px = 다이어리 페이지 px (붙이면 원본 크기 · js/elements.js elOrig · 쪽 세로 644px = 쪽 mm) → 씰은 시트 세로 = 644 로 구워요
+   - 📔 붙여 보기 (씰 · 조각 · 모조지) : 스티커 그림 644px = 148mm (붙이면 실제 크기 비율 · js/elements.js elOrig · js/skins.js STK_MM · dyImgK) → 씰은 시트 세로 = 644 로 구워요
    - ✅ 완료 = 보이는 레이어를 한 장으로 → 📃 속지 한 장 (🗄️ 서랍 + 📐 도안 · js/own.js ownTake · 예전 속지 만들기와 같아요) → 작업 중 파일은 지워요 */
 (function () {
     'use strict';
@@ -787,7 +787,7 @@
     const PAPER_SZ = { tall: ['세로', 720, 960], square: ['정사각', 720, 720], long: ['길쭉', 720, 1200] }, PAPER_K = .5;   // 📄 모조지 가로 720 = 페이지 360px (js/papermaker.js PM_W · 두 배로 선명하게)
     const SZT = () => P.kind === 'paper' ? PAPER_SZ : SEAL_SZ;
     const szMm = v => P.kind === 'paper' ? `${Math.round(v[1] * PAPER_K * sealPh() / 644)} × ${Math.round(v[2] * PAPER_K * sealPh() / 644)}mm` : `${Math.round(sealPh() * v[1] / v[2])} × ${sealPh()}mm`;
-    /* 📏 씰 시트 세로 = 다이어리 한 쪽 세로 (js/stickerpeel.js PEL_SHEET_H 644 = 쪽 높이 · 떼어 붙이면 그 크기 그대로) → 1mm = P.H / 쪽 세로 mm */
+    /* 📏 씰 시트 세로 644px = 148mm (js/stickerpeel.js PEL_SHEET_H · 스티커 그림 기준 1mm ≈ 4.35px · 떼어 붙이면 실제 크기 비율) → 1mm = P.H / 148 */
     const mmOf = s => +String(s || '').split(/[×x*]/)[1] || 0;
     const sealPh = () => 148;                                                // 📏 시트 그림 644px = 148mm (A6 · 1mm ≈ 4.35px · 다이어리 규격과 상관없이 · js/skins.js STK_MM · 도련 11-16 실제 크기 비율)
     function sealPastePop() {                                                  // 📔 다이어리에 붙여 보기 (도련 11-14 : 내 씰이 다이어리에서 얼마나 큰지)
@@ -876,7 +876,7 @@
         x.drawImage(sil, 0, 0); x.drawImage(t, 0, 0);
         return { c: o, pad };
     }
-    const PG_PX = 644;                                                         // 다이어리 한 쪽 세로 px (js/stickerpeel.js PEL_SHEET_H · js/leafpad.js tkDim)
+    const PG_PX = 644;                                                         // 스티커 그림 148mm = 644px (js/stickerpeel.js PEL_SHEET_H · js/skins.js STK_MM)
     const PIECE_PX = 800, PIECE_K = .5;                                        // 🧩 조각 판 800px = 페이지 400px (선명하게 두 배로 그려요)
     function artCv() {                                                         // 종이를 뺀 그림 (투명 바탕)
         const art = mkCv(P.W, P.H), ax = art.getContext('2d');
