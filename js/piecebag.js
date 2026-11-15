@@ -22,16 +22,14 @@
         const pcbIn = (P, r, m = 0) => P[0] > r.x - m && P[0] < r.x + r.w + m && P[1] > r.y - m && P[1] < r.y + r.h + m;
 
         /* ---------- 그림 재료 : 앞면(유광) · 뒷면(접착면) · 뒷종이 · 봉투 속 모습 · 가장자리 점 ---------- */
-        function pcbAsset(img) {
-            const m = PCB_PAD, w = img.width + m * 2, h = img.height + m * 2;
-            const front = pcbMk(w, h), f = front.getContext('2d'); f.drawImage(img, m, m);
-            f.globalCompositeOperation = 'source-atop';
-            const g = f.createLinearGradient(0, 0, w, h);
-            g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.32, 'rgba(255,255,255,0)'); g.addColorStop(.40, 'rgba(255,255,255,.34)');
-            g.addColorStop(.46, 'rgba(255,255,255,.08)'); g.addColorStop(.52, 'rgba(255,255,255,.2)'); g.addColorStop(.58, 'rgba(255,255,255,0)');
-            f.fillStyle = g; f.fillRect(0, 0, w, h);
-            const back = pcbTint(front, '#f2eee8'), bk = back.getContext('2d'); bk.globalCompositeOperation = 'source-atop'; bk.globalAlpha = .25;
-            for (let i = 0; i < w * h / 120; i++) { bk.fillStyle = Math.random() < .5 ? '#fff' : '#e1d8ce'; bk.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+        function pcbAsset(img) {                                             // 🧩 그림 재료 = 스티커 엔진 (js/sticker.js) + 조각만의 뒷종이 · 조각
+            const a = stkAsset(img, PCB_PAD, { paper: ['#f2eee8', '#e1d8ce'], gloss: (f, w, h) => {   // ✨ 유광 빛
+                f.globalCompositeOperation = 'source-atop';
+                const g = f.createLinearGradient(0, 0, w, h);
+                g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.32, 'rgba(255,255,255,0)'); g.addColorStop(.40, 'rgba(255,255,255,.34)');
+                g.addColorStop(.46, 'rgba(255,255,255,.08)'); g.addColorStop(.52, 'rgba(255,255,255,.2)'); g.addColorStop(.58, 'rgba(255,255,255,0)');
+                f.fillStyle = g; f.fillRect(0, 0, w, h);
+            } }), { w, h, front } = a;
             const shape = pcbGrow(pcbTint(front, '#fff'), PCB_LINER, 15), liner = pcbMk(w, h), l = liner.getContext('2d');
             l.drawImage(pcbTint(pcbGrow(shape, 1.2, 30), 'rgba(175,150,160,.75)'), 0, 0);
             const lc = pcbTint(shape, '#fff'), lx = lc.getContext('2d'); lx.globalCompositeOperation = 'source-atop';
@@ -40,12 +38,7 @@
             const cut = pcbTint(pcbGrow(front, 1.5, 20), 'rgba(170,140,150,.45)'), cx = cut.getContext('2d'); cx.globalCompositeOperation = 'destination-out'; cx.drawImage(front, 0, 0);
             l.drawImage(cut, 0, 0);
             const piece = pcbMk(w, h), p = piece.getContext('2d'); p.drawImage(liner, 0, 0); p.drawImage(front, 0, 0);
-            const data = front.getContext('2d').getImageData(0, 0, w, h).data, edge = [];
-            const A = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? 0 : data[(y * w + x) * 4 + 3];
-            const st = Math.max(2, Math.round(Math.max(w, h) / 160));
-            for (let y = 0; y < h; y += st) for (let x = 0; x < w; x += st)
-                if (A(x, y) > 128 && (A(x - st, y) <= 128 || A(x + st, y) <= 128 || A(x, y - st) <= 128 || A(x, y + st) <= 128)) edge.push([x - w / 2, y - h / 2]);
-            return { w, h, m, front, back, liner, piece, edge, alpha: (x, y) => A(Math.round(x + w / 2), Math.round(y + h / 2)) };
+            return Object.assign(a, { liner, piece });
         }
 
         /* ---------- 화면 ---------- */

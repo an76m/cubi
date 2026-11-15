@@ -34,19 +34,7 @@
         }
 
         /* ---------- 떼기용 그림 (앞면 · 뒷면 · 가장자리 점) ---------- */
-        function pelAsset(img) {
-            const m = PEL_M, w = img.width + m * 2, h = img.height + m * 2;
-            const front = pelMk(w, h); front.getContext('2d').drawImage(img, m, m);
-            const back = pelTint(front, '#f4efe9'), bk = back.getContext('2d');
-            bk.globalCompositeOperation = 'source-atop'; bk.globalAlpha = .25;
-            for (let i = 0; i < w * h / 120; i++) { bk.fillStyle = Math.random() < .5 ? '#fff' : '#e4dcd3'; bk.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
-            const data = front.getContext('2d').getImageData(0, 0, w, h).data, edge = [];
-            const A = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? 0 : data[(y * w + x) * 4 + 3];
-            const st = Math.max(2, Math.round(Math.max(w, h) / 160));
-            for (let y = 0; y < h; y += st) for (let x = 0; x < w; x += st)
-                if (A(x, y) > 128 && (A(x - st, y) <= 128 || A(x + st, y) <= 128 || A(x, y - st) <= 128 || A(x, y + st) <= 128)) edge.push([x - w / 2, y - h / 2]);
-            return { w, h, m, front, back, edge, alpha: (lx, ly) => A(Math.round(lx + w / 2), Math.round(ly + h / 2)) };
-        }
+        const pelAsset = img => stkAsset(img, PEL_M);                        // 🧩 그림 재료 = 스티커 엔진 (js/sticker.js)
 
         /* ---------- 화면 ---------- */
         function pelBuild() {

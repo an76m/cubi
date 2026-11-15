@@ -27,7 +27,9 @@
        stkFold(S, ctx, a, st, C, F, sh) = 접혀 떼어지는 모습 (S = { fl 겹쳐 그릴 캔버스, DPR, W, H } · a = { front, back, w, h })
        stkSnap(sn, t) = 덜 떼고 놓으면 제자리로 착 (0.26초 · 끝 F 를 돌려줘요 · 끝나면 sn.end = true) · stkHalf = 접는 선 한쪽 칠할 곳
        📄 모조지는 종이 위에서 떼는 그림을 js/peelfx.js pfxSeal 로 (페이지 스티커 옮기기와 같은 것)
-   - 단계 S-1 ~ S-4 다 끝 (도련 11-16 · 1241 ~ 1244) · 새 스티커 종류 = 종이 화면 모양 · 떼는 방법(어디를 잡는지 · 얼마나 떼면 떨어지는지) · 붙일 때 다른 점만 만들고 나머지는 여기 것을 써요
+   - 🧩 그림 재료 (S-5) : stkAsset(img, m, o) = 둘레 여백 m 을 둔 앞면 front · 종이 뒷면 back (o.paper = [바탕색, 점 색] · 오톨도톨) · 가장자리 점 edge · alpha(x, y) (그림 위인지)
+       o.gloss(ctx, w, h) = 뒷면을 만들기 전에 앞면에 더 그릴 것 (🧩 조각 = 유광 빛) · 종류만의 재료(🧩 뒷종이 liner · 조각 piece)는 종류 파일이 더해요
+   - 단계 S-1 ~ S-5 다 끝 (도련 11-16 · 1241 ~ 1245) · 새 스티커 종류 = 종이 화면 모양 · 떼는 방법(어디를 잡는지 · 얼마나 떼면 떨어지는지) · 붙일 때 다른 점만 만들고 나머지는 여기 것을 써요
    ※ util.js · space.js · elements.js 다음 · 스티커 종류 파일보다 먼저 읽어요 */
 const stkNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });            // 🔊 🏷️ 씰 · 🧩 조각 '찌익' (예전엔 파일마다 같은 소리를 따로)
 function stkTwz(x, y) {
@@ -101,6 +103,22 @@ function stkWiggle(st) { const r = st.rot, t0 = performance.now(); (function w()
 function stkPageScale() { const pg = spPage(), r = pg && pg.getBoundingClientRect(); return r && r.width ? r.width / (pg.offsetWidth || r.width) : 0; }
 function stkCap(el, e) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
 function stkBar(e, P) { if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e); }   // 종이 밖 날짜바 위 → 페이지 옮기기 (js/page.js)
+
+/* ---------- 🧩 그림 재료 (S-5) ---------- */
+function stkAsset(img, m, o = {}) {
+    const w = img.width + m * 2, h = img.height + m * 2;
+    const front = stkMk(w, h), f = front.getContext('2d'); f.drawImage(img, m, m);
+    if (o.gloss) { f.save(); o.gloss(f, w, h); f.restore(); }
+    const P = o.paper || ['#f4efe9', '#e4dcd3'], back = tintCanvas(front, P[0]), bk = back.getContext('2d');   // 종이 뒷면 (오톨도톨)
+    bk.globalCompositeOperation = 'source-atop'; bk.globalAlpha = .25;
+    for (let i = 0; i < w * h / 120; i++) { bk.fillStyle = Math.random() < .5 ? '#fff' : P[1]; bk.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+    const data = f.getImageData(0, 0, w, h).data, edge = [];
+    const A = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? 0 : data[(y * w + x) * 4 + 3];
+    const st = Math.max(2, Math.round(Math.max(w, h) / 160));
+    for (let y = 0; y < h; y += st) for (let x = 0; x < w; x += st)
+        if (A(x, y) > 128 && (A(x - st, y) <= 128 || A(x + st, y) <= 128 || A(x, y - st) <= 128 || A(x, y + st) <= 128)) edge.push([x - w / 2, y - h / 2]);
+    return { w, h, m, front, back, edge, alpha: (lx, ly) => A(Math.round(lx + w / 2), Math.round(ly + h / 2)) };
+}
 
 /* ---------- 📖 떼어지는 그림 (S-4) ---------- */
 function stkImg(ctx, img, st, sh, extra = 1, flip = 1) {
