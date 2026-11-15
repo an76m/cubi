@@ -1,6 +1,9 @@
 /* 말랑달콤 다이어리 - js/book.js
    📚 책 엔진 (도련 11-15 · 10년 쓸 기초) : 모든 책이 같이 쓰는 것 = 여기 하나 · 책 종류는 '다른 점'만 알려 줘요
-   - 지금 쓰는 책 : 📒 스티커바인더 · 🤍 이형지북 (js/basket.js abFlt) · 다음 단계 = 📕 페이지노트 · 🗂️ 페이지바인더 → 📔 날짜형노트 · 🗂️ 날짜형바인더 (그때 js/page.js 넘기기를 이리로)
+   - 누가 무엇을 써요 (도련 11-16 · 1233 ~ 1238 다 끝)
+       📒 스티커바인더 · 🤍 이형지북 (js/basket.js abFlt) = bookOpen 통째로 (표지 · 넘기기 · 막대 · 보기 · 크기)
+       📔 날짜형노트 · 🗂️ 날짜형바인더 · 📓 페이지노트 · 🗂️ 페이지바인더 (js/page.js · js/skins.js) = 쪽 그리기 · 저장은 다이어리 것 + 아래 공통 부품
+       공통 부품 = BookSpot (쪽 자리) · bookSide (◧◨) · bookCurlAt (넘어가는 그림) · bookTurner (넘기기 손길) · bookMover (막대 끌기)
    - 엔진이 하는 일
        표지 = 덮인 책으로 시작 · 밀어서(또는 ›) 열기 · 첫 쪽에서 앞으로 밀면(또는 ‹) 덮기
        넘기기 = 드래그(종이가 손가락을 따라 넘어가요 · 35% 넘게 끌면 넘어가요) · ‹ › 버튼 · 두 쪽이면 2쪽씩 · 한 쪽이면 1쪽씩
@@ -26,7 +29,7 @@ function bookSide(cur, s) {                                                  // 
     on[s] = !on[s]; if (!on.l && !on.r) return cur;
     return (on.l ? 'l' : '') + (on.r ? 'r' : '');
 }
-const BOOK_DRAG = 8, BOOK_DONE = .35, BOOK_MS = 420;                         // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 · 넘어가는 시간
+const BOOK_DRAG = 8, BOOK_DONE = .35;                                       // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 (넘어가는 시간 = bookTurner 120 + 480 × 거리)
 /* 📖 넘어가는 그림 하나 = 종이 말림 (도련 11-15 · 2-4 · 📔 다이어리 js/page.js updateCurl · 📒 🤍 책 엔진이 같은 계산) : 넘기는 쪽 한 장(폭 W) 기준 자리
    d = 넘긴 만큼 (0 ~ W) · dir 1 = 다음 (오른쪽 끝에서 왼쪽으로) · -1 = 앞 (왼쪽 끝에서 오른쪽으로) · edge = 앞으로 넘길 때 잡는 왼쪽 끝 (다이어리 펼침면 = -W)
    → clip = 지금 쪽에서 가리는 곳 · fx · fw = 넘어가는 종이 뒷면 · sx · sw = 아래 쪽 그림자 (모두 그 쪽 왼쪽 위 기준 px) */
@@ -36,7 +39,7 @@ function bookCurlAt(W, d, dir, edge) {
     const fold = (edge || 0) + d; return { d, show: d >= 1, clip: `inset(0 0 0 ${d}px)`, fx: fold, fw: d, sx: fold - sw - 4, sw };
 }
 /* ✋ 넘기기 손길 하나 (도련 11-15 · 2-2 · 📔 📓 다이어리 · 📒 🤍 책 엔진이 같이 써요) : 드래그를 넘기기로 볼지 · 얼마나 끌면 넘어가는지 · 넘어가는 움직임
-   책마다 다른 건 '넘어가는 그림'(ctx)뿐 : 다이어리 = 종이 말림 (js/page.js beginCurl · updateCurl · endCurl) · 책 엔진 = 앞뒷면 종이 (flip)
+   책마다 다른 건 '넘어가는 그림을 어디에 그리는지'(ctx)뿐 : 다이어리 = js/page.js beginCurl · updateCurl · endCurl · 책 엔진 = 아래 start · 그림 계산은 둘 다 bookCurlAt
    o = { el (누르는 곳), grab(e) → false = 안 넘겨요 · 0 = 어느 쪽이든 · 1 = 다음만 · -1 = 앞만 (끝을 잡았어요),
          start(dir, e) → ctx | null,  ctx = { w (끝까지 px), k (손가락 대비 · 기본 1), set(px), done(ok), out(e) → true = 다 넘겼어요 } }
    돌려줘요 = { turn(dir) 버튼 · animate(ctx, toPx, ok, rev, after) · busy() } */
