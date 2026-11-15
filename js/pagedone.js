@@ -13,7 +13,7 @@
    - 다른 페이지 · 다른 다이어리에 처음 뭔가를 하면 : "꾸미던 중이에요 [그 페이지로 가기] [지우고 여기서 시작]" (넘기기 · 구경만은 그냥 돼요)
    - 지우기는 한 번 더 물어요 (붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요) */
 (function () {
-    const PG = { key: '', done: false, orig: new Map(), drafts: new Map(), saved: null, asked: false, busy: false, warned: '', at: 0, gating: false, mute: '' };
+    const PG = { key: '', done: false, orig: new Map(), drafts: new Map(), uns: new Set(), meta: new Map(), saved: null, asked: false, busy: false, warned: '', at: 0, gating: false, mute: '' };
     const q = id => document.getElementById(id);
     const on = () => typeof drive !== 'undefined' && !!drive.ready && !drive.guest;
     const who = () => (window.pendWho ? pendWho() : 'g:');
@@ -39,10 +39,29 @@
         return new Promise(ok => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } });
     }
     const idKey = key => who() + '|' + key;
-    const draftPut = (key, txt) => { PG.at = Date.now(); return tx('readwrite', st => st.put({ who: who(), key, txt, at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? +currentDate : 0 }, idKey(key))); };   // vol · ds = 그 권 · 그 페이지로 가려고
+    const draftPut = (key, txt, held) => { PG.at = Date.now(); return tx('readwrite', st => st.put(Object.assign({ who: who(), key, txt, at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? +currentDate : 0 }, held ? { held } : {}), idKey(key))); };   // vol · ds = 그 권 · 그 페이지로 가려고 · held = 그때 쓴 스티커 · 모조지 종이 (그냥 닫기 = 이때로)
     const draftGet = key => tx('readonly', st => st.get(idKey(key)));
     const draftDel = key => tx('readwrite', st => st.delete(idKey(key)));
     async function draftsMine() { const all = await tx('readonly', st => st.getAll()); return (all || []).filter(r => r && r.who === who() && r.key); }
+    /* 💾 저장 = 이 기기에 (수동 · 자동 같아요 · js/tempsave.js) : 페이지 모습 + 그때 쓴 스티커 · 모조지 종이 */
+    function flush(key) {                                                    // 바로 시작해요 (앱을 내릴 때도 · 기다리지 않게)
+        PG.uns.delete(key);
+        if (!PG.drafts.has(key) && !held(key)) return draftDel(key).then(() => true);
+        const held2 = window.ownHeldSnap ? ownHeldSnap(key) : null;
+        return draftPut(key, PG.drafts.has(key) ? PG.drafts.get(key) : store.getItem(key), held2).then(r => !!r);
+    }
+    function flushAll() { return Promise.all([...PG.uns].map(flush)); }
+    /* 그냥 닫기 = 마지막 저장 때로 (페이지 · 쓴 스티커 · 모조지 종이 모두) · 저장한 적 없으면 = 펼쳤을 때 모습 (드라이브) */
+    async function revert(key) {
+        PG.uns.delete(key);
+        const r = await draftGet(key);
+        if (r && r.txt != null) { if (!PG.orig.has(key)) PG.orig.set(key, store.getItem(key)); PG.drafts.set(key, r.txt); store.putLoaded(key, r.txt); }
+        else { PG.drafts.delete(key); if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); } }
+        if (window.ownHeldTrim) await ownHeldTrim(key, r && r.held ? r.held : null);
+        if (curKey() === key && typeof loadData === 'function') { try { loadData(); } catch (e) {} }   // 화면도 그때 모습으로 (안 그러면 다음 저장 때 다시 담겨요)
+        ui();
+    }
+    tsAuto({ dirty: () => PG.uns.size > 0 && !PG.busy, save: flushAll });    // ⏱ 자동 임시저장 (TS.ms · 앱을 내릴 때도)
 
     /* ---------- 완료한 페이지인가 ---------- */
     function pgDoneOf(txt) {
@@ -73,8 +92,10 @@
         if (txt === cur) return true;
         if (!PG.orig.has(key)) PG.orig.set(key, cur);                         // 드라이브에 있는 원래 모습
         store.putLoaded(key, txt);                                            // '바뀜' 표시 없이 (자동 업로드 안 해요)
-        if (txt === PG.orig.get(key) && !held(key)) { PG.drafts.delete(key); draftDel(key); }
-        else { PG.drafts.set(key, txt); draftPut(key, txt); }
+        if (txt === PG.orig.get(key) && !held(key)) PG.drafts.delete(key);
+        else PG.drafts.set(key, txt);
+        PG.uns.add(key); PG.meta.set(key, { vol: curVol(), ds: typeof currentDate !== 'undefined' ? +currentDate : 0 });   // 그 권 · 그 페이지 (아직 저장 전이어도 '그 페이지로 가기')
+        //                                                                    💾 이 기기 저장은 자동 임시저장 · 💾 버튼 · ✕ 물음 때 (js/tempsave.js · 도련 11-15 · 예전 = 바꿀 때마다 바로)
         if (others(key).length) setTimeout(gate, 0);                          // 💾 임시저장은 한 페이지만 : 다른 페이지에 처음 손댔어요
         ui();
         return true;
@@ -108,9 +129,9 @@
         const nm = d ? `${d.m}월 ${d.d}일` : p ? (p.n ? `${p.n}페이지` : '표지') : '페이지';
         return (r && r.vol && r.vol !== curVol() ? '다른 다이어리의 ' : '') + nm;
     }
-    async function recOf(key) { const r = await draftGet(key); return r || { key, txt: PG.drafts.get(key) }; }
+    async function recOf(key) { const r = await draftGet(key); return Object.assign({ key, txt: PG.drafts.get(key) }, PG.meta.get(key) || {}, r || {}, PG.uns.has(key) ? { txt: PG.drafts.get(key) } : {}); }
     function drop(key) {                                                      // 🗑 그 페이지 임시저장 지우기 (드라이브는 원래 그대로 · 쓴 스티커는 서랍으로)
-        PG.drafts.delete(key); draftDel(key);
+        PG.drafts.delete(key); PG.uns.delete(key); draftDel(key);
         if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); }
         if (window.ownDropHeld) ownDropHeld([key]);
     }
@@ -163,7 +184,7 @@
             const go = typeof showAsk === 'function'
                 ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.<br><span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})<br>✅ 완료해야 다이어리에 저장돼요</span>`, '이어서 하기', '지우고 새로 하기')
                 : true;
-            if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); ui(); await goDraft(r.key, r); return; }
+            if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
             if (await askDrop(nm)) { drop(r.key); ui(); return; }
         }
     }
@@ -189,7 +210,7 @@
             const up = typeof flushUpload === 'function' ? await flushUpload({ force: true }) : true;
             if (!up) throw new Error('upload');
             gauge(100, '✅ 완료!');
-            await draftDel(key); PG.drafts.delete(key);
+            await draftDel(key); PG.drafts.delete(key); PG.uns.delete(key);
             await wait(650); gaugeOff();
             if (window.showMsg) showMsg('✅ 완료했어요!<br><span style="font-size:12px;color:#777;">이 페이지는 이제 고칠 수 없어요</span>');
         } catch (e) {
@@ -197,7 +218,7 @@
             if (!stickersOk && window.ownUnhold) ownUnhold(key);                 // 스티커 칸은 '이어서 지우기'로 (인터넷이 되면)
             if (PG.drafts.has(key) || PG.orig.has(key)) mark(key);              // 페이지는 '못 올린 것 보관'으로 (savePending · 다음에 열면 마저)
             try { if (typeof savePending === 'function') savePending(); } catch (er) {}
-            await draftDel(key); PG.drafts.delete(key);
+            await draftDel(key); PG.drafts.delete(key); PG.uns.delete(key);
             gaugeOff();
             if (window.showMsg) showMsg('📶 지금은 드라이브에 다 올리지 못했어요.<br><span style="font-size:12px;color:#777;">완료한 페이지는 이 기기에 안전하게 보관했어요 · 인터넷이 되면 마저 올려요</span>');
         } finally {
@@ -221,8 +242,8 @@
         if (PG.busy || !on() || PG.done) return;
         try { if (typeof saveData === 'function') await saveData(false); } catch (e) {}
         if (!PG.drafts.has(key) && !held(key)) { if (window.showMsg) showMsg('💾 아직 꾸민 것이 없어요.'); return; }
-        await draftPut(key, PG.drafts.has(key) ? PG.drafts.get(key) : store.getItem(key)); ui();
-        if (window.showMsg) showMsg(`💾 이 기기에 임시저장했어요 (${hm(PG.at)})<br><span style="font-size:12px;color:#777;">다른 기기에서는 보이지 않아요 · 임시저장은 한 페이지만 돼요<br>✅ 완료해야 다이어리에 저장돼요</span>`);
+        await flush(key); ui();
+        tsSaved(PG.at, '임시저장은 한 페이지만 돼요 · ✅ 완료해야 다이어리에 저장돼요');
     }
 
     /* ---------- 게이지 ---------- */
@@ -248,7 +269,7 @@
         b.className = 'pg-bar' + (mode ? ' on ' + mode : '') + (PG.busy ? ' busy' : '');
         q('pgGo').hidden = q('pgSv').hidden = mode !== 'go';
         q('pgT').innerHTML = mode === 'done' ? '✅ 완료한 페이지 · 고칠 수 없어요'
-            : `<span>📱 이 기기에 임시저장${PG.at ? ' · ' + hm(PG.at) : ''}</span><span>완료하면 고칠 수 없어요</span>`;
+            : `<span>${tsAt(PG.at)}</span><span>완료하면 고칠 수 없어요</span>`;
         if (show && !PG.gating && !PG.busy && mode === 'go' && others(key).length) gate();   // 스티커만 쓰고 아직 저장 전이어도
     }
     setInterval(() => { ui(); if (!PG.asked && on() && (coverOpen() || floating())) ask(); }, 700);   // 다이어리를 덮거나 넘기는 중엔 숨겨요 · 로그인 뒤 떠오르면 물어봐요                                                     // 다이어리를 덮거나 넘기는 중엔 숨겨요
@@ -271,16 +292,13 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
     /* 📔 다이어리모드 ✕ (도련 11-15 · js/desk.js dkModeExit) : 완료 전 꾸민 게 있으면 [💾 임시저장] [그냥 닫기] (1224 : 🗑 지우기 영구 삭제 · 1221 : 계속 꾸미기 없앰 · 버튼 말고 창이 닫히면 그대로)
        💾 = 이 기기에 그대로 두고 닫기 (다시 펼치면 이어서) · 그냥 닫기 = 그대로 닫기 (꾸미는 동안 이 기기에 늘 담겨서 다시 펼치면 이어서) · 예전 🗑 지우기 = 이 페이지에 꾸민 것을 지우고 닫기 (붙인 스티커는 서랍으로 · 드라이브는 원래 그대로) */
-    async function closeAsk() {
+    async function closeAsk() {                                              // 📔 다이어리모드 ✕ = 💾 임시저장 공통 물음 (js/tempsave.js · 도련 11-15) : 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 꾸민 것은 버려요
         const key = curKey();
-        if (!on() || PG.busy || PG.done || !key || !dirty(key) || typeof showAsk !== 'function') return !PG.busy;
-        const a = await showAsk('✏️ 꾸미던 페이지를 어떻게 할까요?<br><span style="font-size:12px;color:#777;">💾 임시저장 = 이 기기에만 저장하고 닫아요 · 다시 펼치면 이어서 꾸며요<br>그냥 닫기 = 저장 버튼을 누르지 않고 닫아요</span>', '💾 임시저장', '그냥 닫기');
-        if (a === true) { const t = PG.drafts.get(key); if (t != null) await draftPut(key, t); ui(); return true; }
-        if (a === false) { ui(); return true; }                               // 그냥 닫기 = 그대로 닫기 (도련 11-15 · 1224 : 🗑 지우기 영구 삭제 · 꾸민 것은 이 기기에 그대로)
-        return false;
+        if (!on() || PG.busy || PG.done || !key || !dirty(key)) return !PG.busy;
+        return tsClose({ title: '✏️ 꾸미던 페이지를 어떻게 할까요?', dirty: () => true, save: () => flush(key), drop: () => revert(key) });
     }
     window.pgCloseAsk = closeAsk;
     window.pgDone = done; window.pgDoneOf = pgDoneOf;
-    window.pgTest = () => ({ key: PG.key, done: PG.done, drafts: [...PG.drafts.keys()], orig: [...PG.orig.keys()], busy: PG.busy, at: PG.at, gating: PG.gating });
+    window.pgTest = () => ({ uns: [...PG.uns], key: PG.key, done: PG.done, drafts: [...PG.drafts.keys()], orig: [...PG.orig.keys()], busy: PG.busy, at: PG.at, gating: PG.gating });
     window.pgSaveNow = saveNow; window.pgBusyKey = () => PG.busy ? PG.busyKey || '' : '';
 })();

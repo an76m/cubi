@@ -1032,7 +1032,7 @@
         catch (e) { P.dirty = true; console.warn('💾 임시저장', e); if (!auto && window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
         finally { P.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '💾 임시저장'; } }
     }
-    setInterval(() => { if (P.on && P.dirty && !P.saving && !P.drag && !P.fl && !P.pen) saveDraft(true, true); }, 60000);   // 📱 자동 임시저장 (60초마다 · 도련 11-15 · 예전 4초 · 바뀐 게 있을 때만 · 이 기기에만)
+    tsAuto({ dirty: () => P.on && P.dirty && !P.saving && !P.drag && !P.fl && !P.pen, save: () => saveDraft(true, true) });   // 📱 자동 임시저장 = 공통 (js/tempsave.js TS.ms · 앱을 내릴 때도 · 바뀐 게 있을 때만 · 이 기기에만 · 도련 11-15)
     function restoreDraft(d, keep) {                                          // keep = 📐 규격 바꾸기 (조용히 · 그린 것은 그대로)
         const loadImg = src => new Promise(ok => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
         P.layers = []; P.cur = null;

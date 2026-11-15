@@ -207,15 +207,8 @@
         if (WS.k && window.ppDirty && q('tbWs') && q('tbWs').classList.contains('show') && q('tbWsC').querySelector('.pp-stage, canvas')) {
             const DK = (window.PP_DRAFT_K || {})[WS.k] || WS.k;
             let has = ppDirty(); if (!has) { try { has = !!(window.draftHas && await draftHas(DK)); } catch (e) {} }
-            if (has && typeof showAsk === 'function') {                       // 도련 11-15 : [💾 임시저장] = 저장하고 닫기 · [그냥 닫기] = 저장하지 않고 닫기 (계속 그리기 · 🗑 지우기 없앴어요)
-                const a = await showAsk('작업 중인 그림을 어떻게 할까요?<br><small style="color:#777;">💾 임시저장 = 작업 중인 이 기기에만 저장하고 닫아요 · 그냥 닫기 = 저장하지 않고 닫아요</small>', '💾 임시저장', '그냥 닫기');
-                if (a === true) {
-                    if (!ppDirty() || (window.ppSaveDraft && await ppSaveDraft(true))) return true;
-                    return !!(await showAsk('⚠ 임시저장하지 못했어요.<br>나가면 마지막으로 저장한 뒤에 그린 것은 사라져요.', '나가기', '계속 그리기'));
-                }
-                if (a === false) { if (window.ppDiscard) await ppDiscard(); return true; }   // 그냥 닫기 = 지금 것을 저장하지 않고 닫기 (도련 11-15 · 1223 : 🗑 지우기 영구 삭제 · 예전 임시저장은 그대로 둬요)
-                return false;                                                   // 창이 다른 까닭으로 닫혔어요 (버튼을 누르지 않았어요) = 그대로
-            }
+            if (has) return tsClose({ title: '🎨 작업 중인 그림을 어떻게 할까요?', dirty: () => true,   // 💾 임시저장 공통 (js/tempsave.js · 도련 11-15) : 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 그린 것만 버려요 (그 전 임시저장은 그대로)
+                save: async () => !ppDirty() || (window.ppSaveDraft ? !!(await ppSaveDraft(true)) : true), drop: async () => { if (window.ppDiscard) await ppDiscard(); } });
         }
         if (IP.D && IP.D.dirty && typeof showAsk === 'function') return !!(await showAsk('그리던 그림이 사라져요.<br>나갈까요?', '나가기', '계속 그리기'));
         return true;

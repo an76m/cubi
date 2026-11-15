@@ -65,12 +65,9 @@
         if (abDirty()) { await abFlush(); if (abDirty()) return; }             // 못 올렸으면 그대로 (정리한 건 이 기기에 남아요)
         const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin');
     };
-    window.abCancel = async () => {                                            // ✕ = 저장하지 않고 나가기 (정리한 게 있으면 한 번 물어요 · 🛠 책상 꾸미기 ✕ 취소와 같게)
-        if (abDirty()) {
-            if (!await showAsk('정리한 것을 저장하지 않고 나갈까요?<br><small style="color:#777;">✔ 완료를 눌러야 저장돼요</small>', '저장 안 하고 나가기', '계속 정리하기')) return;
-            abDrop();
-        }
-        const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin');
+    window.abCancel = async close => {                                         // ✕ = 💾 임시저장 공통 물음 (js/tempsave.js · 도련 11-15 · 다이어리와 같게) : 💾 임시저장 = 이 기기에 저장하고 닫기 · 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 한 것은 버리고 닫기
+        if (!(await tsClose({ title: '📒 정리하던 것을 어떻게 할까요?', dirty: () => abDirty(), save: async () => { if (B.kind) AB.dirtyK.add(B.kind); await abDraftNow(); return true; }, drop: abRevert }))) return;
+        const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin'); if (close) closeModal('basketKindModal');
     };
     window.abSpaceOff = () => { const m = bq('basketKindModal'); if (!m || !vis('basketKindModal') || B.view !== 'desk') return; bkView('bin'); closeModal('basketKindModal'); };
     function absWatch(m) {
@@ -573,23 +570,28 @@
     const abDb = () => abDbP || (abDbP = new Promise(ok => { try { const r = indexedDB.open('mallang-absort', 1); r.onupgradeneeded = () => r.result.createObjectStore('d'); r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
     const abDKey = k => (window.pendWho ? pendWho() : 'g:') + '|' + k;
     async function abDTx(mode, fn) { const d = await abDb(); if (!d) return null; return new Promise(ok => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } }); }
-    function abDraftLater() { if (B.kind) AB.dirtyK.add(B.kind); clearTimeout(AB.dT); AB.dT = setTimeout(abDraftNow, 400); }
+    function abDraftLater() { if (B.kind) AB.dirtyK.add(B.kind); AB.uns = true; }   // 💾 이 기기 저장 = 자동 임시저장 · 💾 버튼 · ✕ 물음 때 (js/tempsave.js · 도련 11-15 · 예전 = 바꿀 때마다 0.4초 뒤)
     function abDraftNow() {
-        clearTimeout(AB.dT);
+        clearTimeout(AB.dT); AB.uns = false;
         const k = B.kind, a = B.album; if (!k || !a || !AB.dirtyK.has(k)) return;
+        AB.at = Date.now();
         const rids = new Set((a.rl || []).map(r => r.id));
         const rec = { at: Date.now(), k,
             bd: (a.bd || []).map(b => ({ id: b.id, p: Object.assign({}, b.p), lb: b.lb || '', pid: b.pid })),
             rl: (a.rl || []).map(r => ({ id: r.id, lb: r.lb || '', xy: Object.fromEntries((r.it || []).filter(t => !String(t.s).startsWith('tmp')).map(t => [t.s, [t.x, t.y]])) })),
             rel: (AB.relFly || []).concat(AB.rel).filter(o => rids.has(o.rl)).map(o => ({ src: o.src, k: o.k, rl: o.rl, pos: o.pos, tmp: o.tmp, img: o.img })) };
-        abDTx('readwrite', st => st.put(rec, abDKey(k)));
+        return abDTx('readwrite', st => st.put(rec, abDKey(k)));
     }
-    function abDraftDrop() { clearTimeout(AB.dT); const ks = [...AB.dirtyK]; AB.dirtyK.clear(); ks.forEach(k => abDTx('readwrite', st => st.delete(abDKey(k)))); }
-    function abDrop() {                                                        // ✕ 저장 안 하고 나가기 = 드라이브 모습으로 (이 기기 것도 지워요)
-        AB.pend = []; AB.rel = []; abDraftDrop();
+    function abDraftDrop() { clearTimeout(AB.dT); AB.uns = false; AB.at = 0; const ks = [...AB.dirtyK]; AB.dirtyK.clear(); ks.forEach(k => abDTx('readwrite', st => st.delete(abDKey(k)))); }
+    async function abRevert() {                                                // 그냥 닫기 = 마지막 저장(자동 포함) 때로 · 저장한 적 없으면 드라이브 모습으로 (도련 11-15 · js/tempsave.js)
+        const k = B.kind; clearTimeout(AB.dT); AB.uns = false;
+        AB.pend = []; AB.rel = [];
         if (AB.peelOn && window.closeStickerPeel) closeStickerPeel();
-        B.sig = ''; const pk = window.ownPeek ? ownPeek(B.kind) : null;
-        if (pk) { B.album = bkUnbag(JSON.parse(JSON.stringify(pk.album))); abSplit(); }
+        B.sig = ''; const pk = window.ownPeek ? ownPeek(k) : null;
+        if (pk) B.album = bkUnbag(JSON.parse(JSON.stringify(pk.album)));
+        const d = k ? await abDTx('readonly', st => st.get(abDKey(k))) : null;
+        if (d && B.album) abDraftApply(d); else { AB.dirtyK.delete(k); AB.at = 0; }
+        abSplit();
         if (B.desk) { B.desk.pick = ''; B.desk.sheet = null; }
     }
     const abRelShow = o => {                                                  // 🤍 아직 저장 안 된 붙인 스티커를 화면에 얹어요
@@ -600,21 +602,28 @@
         const k = B.kind; if (!k || AB.rest.has(k)) return false; AB.rest.add(k);
         if (AB.dirtyK.has(k)) return false;
         const d = await abDTx('readonly', st => st.get(abDKey(k))); if (!d || B.kind !== k || !B.album) return false;
+        abDraftApply(d); abToast('완료 전 정리를 이어서 해요', 'ok');
+        return true;
+    }
+    function abDraftApply(d) {                                                 // 이 기기에 저장한 정리를 얹어요 (이어서 · 그냥 닫기)
         const fn = a => {
             (d.bd || []).forEach(s => { const b = (a.bd || []).find(x => x.id === s.id); if (b) { b.p = Object.assign({}, s.p); b.lb = s.lb; if (s.pid) b.pid = s.pid; } });
             (d.rl || []).forEach(s => { const r = (a.rl || []).find(x => x.id === s.id); if (!r) return; r.lb = s.lb; (r.it || []).forEach(t => { const q = s.xy && s.xy[t.s]; if (q) { t.x = q[0]; t.y = q[1]; } }); });
         };
         try { fn(B.album); } catch (e) {}
         AB.pend.push(fn); (d.rel || []).forEach(o => { AB.rel.push(o); abRelShow(o); });
-        AB.dirtyK.add(k); abToast('완료 전 정리를 이어서 해요', 'ok');
-        return true;
+        AB.dirtyK.add(d.k || B.kind); AB.at = d.at || 0;
     }
     function abReapply() {
         (AB.fly || []).concat(AB.pend).forEach(fn => { try { fn(B.album); } catch (e) {} });
         (AB.relFly || []).concat(AB.rel).forEach(abRelShow);                     // 아직 저장 안 된 이형지북 스티커도 다시 얹어요
     }
-    document.addEventListener('visibilitychange', () => { if (document.hidden) abDraftNow(); });   // 앱을 내려도 드라이브엔 안 써요 · 이 기기에 바로 (도련 11-15)
-    window.addEventListener('pagehide', () => abDraftNow());
+    tsAuto({ dirty: () => !!AB.uns && !!B.kind, save: abDraftNow });       // ⏱ 자동 임시저장 = 공통 (js/tempsave.js TS.ms · 앱을 내릴 때도 · 드라이브엔 안 써요)
+    window.abTmpSave = async () => {                                          // 💾 임시저장 버튼 = 지금 이 기기에
+        if (!abDirty()) { if (window.showMsg) showMsg('💾 아직 정리한 것이 없어요.'); return; }
+        if (B.kind) AB.dirtyK.add(B.kind); await abDraftNow(); const t = bq('abTmpAt'); if (t) t.textContent = tsAt(AB.at);
+        tsSaved(AB.at, '✔ 완료해야 드라이브에 저장돼요 · 완료한 뒤에도 언제든 고칠 수 있어요');
+    };
     function abToast(t, kind) {
         let el = bq('abToast');
         if (!el) { el = document.createElement('div'); el.id = 'abToast'; el.className = 'ab-toast'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
@@ -860,7 +869,7 @@
         + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
-        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="abDone()">✔ 완료</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="bkView('bin');closeModal('basketKindModal')">✕</button></div>`;
+        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><small class="ab-tmpat" id="abTmpAt">${AB.at ? tsAt(AB.at) : ''}</small><button type="button" class="btn ab-tmp" onclick="abTmpSave()">💾 임시저장</button><button type="button" class="btn ab-done" onclick="abDone()">✔ 완료</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="abCancel(true)">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */

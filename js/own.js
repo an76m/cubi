@@ -630,9 +630,10 @@
         const ownPdb = () => ownPdbP || (ownPdbP = new Promise(ok => { try { const r = indexedDB.open('mallang-ownpaper', 1); r.onupgradeneeded = () => r.result.createObjectStore('d'); r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
         async function ownPdTx(mode, fn) { const d = await ownPdb(); if (!d) throw new Error('idb'); return new Promise((ok, no) => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => no(t.error); } catch (e) { no(e); } }); }
         const ownPdKey = id => (O.kw || ownWho()) + '|' + id;
-        const ownPaperPut = (id, r) => ownPdTx('readwrite', st => st.put(Object.assign({ at: Date.now() }, r), ownPdKey(id)));
-        const ownPaperGet = id => ownPdTx('readonly', st => st.get(ownPdKey(id))).catch(() => null);
-        const ownPaperDel = id => ownPdTx('readwrite', st => st.delete(ownPdKey(id)));
+        const OWN_PC = new Map();                                                // 📄 남은 종이 그림 (이 기기 · 방금 것 기억 = 임시저장 때 기다리지 않고 바로 담아요)
+        const ownPaperPut = (id, r) => { const v = Object.assign({ at: Date.now() }, r); OWN_PC.set(id, v); return ownPdTx('readwrite', st => st.put(v, ownPdKey(id))); };
+        const ownPaperGet = id => ownPdTx('readonly', st => st.get(ownPdKey(id))).then(r => { if (r && !OWN_PC.has(id)) OWN_PC.set(id, r); return r; }).catch(() => null);
+        const ownPaperDel = id => { OWN_PC.delete(id); return ownPdTx('readwrite', st => st.delete(ownPdKey(id))); };
         function ownPendGet() { try { const o = JSON.parse(localStorage.getItem(OWN_PEND) || '{}'); return Array.isArray(o[O.kw || ownWho()]) ? o[O.kw || ownWho()] : []; } catch (e) { return []; } }
         function ownPendSet(arr) {
             if (ownMode() === 'mem') return;                                    // 👀 구경만은 남기지 않아요
@@ -708,7 +709,23 @@
         }
         function ownUnhold(hk) { ownPendSet(ownPendGet().map(p => { if (p.h === hk) { const q = Object.assign({}, p); delete q.h; return q; } return p; })); }   // 완료했는데 못 올렸어요 → 보통 '이어서 지우기'로 (인터넷이 되면 ownReplay)
         function ownDropHeld(keys) { const K = new Set(keys); ownPendGet().forEach(p => { if (p.p && p.h && K.has(p.h)) ownPaperDel(p.s).catch(() => {}); }); ownPendSet(ownPendGet().filter(p => !(p.h && K.has(p.h)))); O.spent = new Set(); O.kd = {}; O.idx = null; O.album = null; ownTell(); }   // 목록은 다음에 볼 때 다시 읽어요   // 🆕 처음부터 = 쓴 칸이 시트로 돌아가요
-        window.ownCommit = ownCommit; window.ownPaperGet = ownPaperGet; window.ownUnhold = ownUnhold; window.ownDropHeld = ownDropHeld; window.ownHeld = ownHeld;
+        /* 💾 그냥 닫기 = 마지막 임시저장 때로 (도련 11-15 · js/tempsave.js · js/pagedone.js) : 그 페이지에서 쓴 칸 · 수량 · 📄 모조지 종이를 저장한 때 모습으로
+           ownHeldSnap(페이지) = 지금 쓴 것 + 모조지 남은 종이 그림 (임시저장할 때 같이 담아요) · ownHeldTrim(페이지, 담아 둔 것) = 그 뒤에 쓴 것은 시트로 돌려요 */
+        const ownOpId = p => p.p ? 'p|' + p.s : p.q ? 'q|' + p.n : 'k|' + p.s + '|' + p.k;
+        function ownHeldSnap(hk) {                                               // 바로 (기다리지 않아요 · 앱을 내릴 때도 담기게) · 종이 그림 = 방금 것
+            const ops = ownHeld(hk).map(p => Object.assign({}, p)), papers = {};
+            for (const p of ops) if (p.p && OWN_PC.has(p.s)) papers[p.s] = OWN_PC.get(p.s);
+            return { ops, papers };
+        }
+        async function ownHeldTrim(hk, snap) {
+            const keep = new Map(((snap && snap.ops) || []).map(p => [ownOpId(p), p])), papers = (snap && snap.papers) || {};
+            const mine = ownHeld(hk), rest = ownPendGet().filter(p => p.h !== hk);
+            for (const p of mine) if (p.p && !keep.has(ownOpId(p))) await ownPaperDel(p.s).catch(() => {});   // 📄 저장 뒤에 처음 오린 종이 = 처음 종이로
+            for (const p of keep.values()) if (p.p && papers[p.s]) await ownPaperPut(p.s, papers[p.s]).catch(() => {});   // 📄 저장한 때 남은 종이 그림으로
+            ownPendSet(rest.concat([...keep.values()]));                          // 쓴 칸 · 수량 = 저장한 때 그대로 (그 뒤에 쓴 것은 시트로 · 그 뒤에 돌려놓은 것은 다시 쓴 것으로)
+            O.spent = new Set(); O.kd = {}; O.idx = null; O.album = null; ownTell();   // 목록은 다음에 볼 때 다시 읽어요
+        }
+        window.ownCommit = ownCommit; window.ownPaperGet = ownPaperGet; window.ownUnhold = ownUnhold; window.ownDropHeld = ownDropHeld; window.ownHeld = ownHeld; window.ownHeldSnap = ownHeldSnap; window.ownHeldTrim = ownHeldTrim;
         const OWN_PAPER_END = .04;                                                // 📄 남은 종이가 이만큼보다 적으면 다 쓴 종이
         async function ownSpend(id, op, el, kk) {
             const done = () => ownPendSet(ownPendGet().filter(p => !(p.s === id && (op.q ? p.n === op.n : p.k === op.k))));

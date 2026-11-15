@@ -107,10 +107,8 @@
     }
     async function closePhonePaint(done) {
         if (!PH.on) return;
-        if (!done && window.ppDirty && ppDirty() && window.ppSaveDraft) {      // ‹ 나가기 = 이 기기에 임시저장하고 (태블릿과 같아요 · 못 하면 물어요)
-            let ok = false; try { ok = await ppSaveDraft(true); } catch (e) {}
-            if (!ok && window.showAsk && !(await showAsk('임시저장을 하지 못했어요.<br>그래도 나갈까요?', '나가기', '계속 그리기'))) return;
-        }
+        if (!done && window.ppDirty && ppDirty() && !(await tsClose({ title: '🎨 작업 중인 그림을 어떻게 할까요?', dirty: () => true,   // ‹ 나가기 = 💾 임시저장 공통 물음 (태블릿과 같아요 · js/tempsave.js · 도련 11-15)
+            save: async () => window.ppSaveDraft ? !!(await ppSaveDraft(true)) : true, drop: async () => { if (window.ppDiscard) await ppDiscard(); } }))) return;
         PH.on = false; PH.tok++;
         if (PH.obs) { PH.obs.disconnect(); PH.obs = null; }
         if (window.ppClose) ppClose();

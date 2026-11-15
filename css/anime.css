@@ -875,5 +875,10 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 #basketKindModal.abs-dkmode .abs-bar { align-self: center; width: fit-content; margin: 58px auto 4px; padding: 6px 10px; gap: 10px; background: #fff; border: 2px solid #e9c7dd; border-radius: 16px; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); }
 #basketKindModal.abs-dkmode .abs-bar .abs-fill, #basketKindModal.abs-dkmode .abs-bar .abs-x { display: none; }
 #basketKindModal.abs-dkmode .abs-bar .ab-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
+/* 💾 임시저장 (도련 11-15 · 다이어리와 같은 [💾 임시저장] [✔ 완료] · js/tempsave.js) */
+.abs-bar .ab-tmp { background: #fff !important; border: 1.6px solid #ff8fb1 !important; color: #d2457a !important; font-weight: 800; }
+.abs-bar .ab-tmpat { flex: none; font-size: 11px; color: #a07a8a; white-space: nowrap; }
+.abs-bar .ab-tmpat:empty { display: none; }
+.ab-ph .abs-bar .ab-tmp { order: 2; padding: 6px 10px; } .ab-ph .abs-bar .ab-tmpat { display: none; }
 #basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
 #basketKindModal.ab-space .dk-tape { display: none !important; }   /* 창 모서리 테이프는 정리 공간에선 안 보여요 */
