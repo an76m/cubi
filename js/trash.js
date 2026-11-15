@@ -153,12 +153,31 @@
                 }
             }
             out.forEach(e => { if (e.k === 'file') e.name = trLabel(e.path || '') + (e.old ? ' · 덮어쓰기 전 모습' : ''); });
+            await trDzNames(out.filter(e => e.k === 'file' && /^📐 내 도안$/.test(e.name)));   // 📐 어떤 도안인지 (종류 · 이름)
             return out.sort((a, b) => b.at - a.at);
         }
+        /* 📐 내 도안 = 이름만으로는 어느 도안인지 몰라요 → 열어서 '📐 내 도안 · 🏷️ 씰스티커 · 분홍 씰' (도련 11-15 · 한 번 읽으면 기억) */
+        const TR_DZK = { seal: '🏷️ 씰스티커', piece: '🧩 조각스티커', paper: '📄 모조지스티커', tape: '🎀 마스킹테이프', tk: '🧻 떡메모지', leaf: '📃 속지', memo: '📝 메모지' };
+        const trDzMemo = new Map();
+        async function trDzNames(L) {
+            await Promise.all(L.map(async e => {
+                let s = trDzMemo.get(e.id);
+                if (s == null) {
+                    s = '';
+                    try { const o = JSON.parse(await readFileText(e.id)), d = o && o.text ? JSON.parse(o.text) : null, x = (d && d.x) || (d && d.item && d.item.sheet) || null; if (x) s = [TR_DZK[x.k] || '', x.nm || ''].filter(Boolean).join(' · '); } catch (er) {}   // 원본 = { item, th, x: { k, nm }, m } (js/coll.js)
+                    trDzMemo.set(e.id, s);
+                }
+                if (s) e.name += ' · ' + s;
+            }));
+        }
         /* 되살린 뒤 : 화면 · 모음 목록을 다시 (모음은 원본을 보고 목록을 다시 맞춰요) */
-        async function trReload() {
+        async function trReload(path) {
             await loadFromDrive();
             if (typeof COLL !== 'undefined') COLL.map.forEach(C => { C.checked = false; C.lists = null; });
+            /* 📐 내 도안 · 🎨 배경지 같은 모음 = 되살린 원본을 목록에 다시 넣어요 (도련 11-15 : 되살려도 내 도안에 안 보였어요 · js/coll.js collCheck = 목록에 없는 원본 → 다시) */
+            if (path && typeof COLL !== 'undefined' && window.collCheck) {
+                for (const C of COLL.map.values()) if (C.names && String(path).startsWith(C.names.join('/') + '/')) { try { await collCheck(C); } catch (e) { console.warn('🗑 되살린 모음 맞추기', e); } }
+            }
         }
 
         /* ---------- 화면 ---------- */
@@ -168,7 +187,7 @@
             m.className = 'modal'; m.id = 'trashModal';
             m.innerHTML = `<div class="modal-content tr-box">
                 <div class="modal-title">🗑 휴지통</div>
-                <p class="tr-tip">내가 꾸미고 만든 기록(지운 페이지 · 인형 · 인형극 · 내 도안 …)과 쓴 다이어리를 30일 동안 보관해요.<br>되살리면 원래 자리로 돌아가요 (꾸민 것은 🔒 볼 수만). 30일이 지나면 앱이 영구 삭제해요.<br><small>🚛 상품(스티커 · 소품 · 문구 …)은 버리면 바로 영구 삭제돼서 여기 없어요.</small></p>
+                <p class="tr-tip">내가 꾸미고 만든 기록(지운 페이지 · 인형 · 인형극 · 📐 내 도안 · 🎨 내가 만든 배경지 …)과 쓴 다이어리를 30일 동안 보관해요.<br>되살리면 원래 자리로 돌아가요 (꾸민 것은 🔒 볼 수만). 30일이 지나면 앱이 영구 삭제해요.<br><small>🚛 상품(스티커 · 소품 · 문구 …)은 버리면 바로 영구 삭제돼서 여기 없어요.</small></p>
                 <div class="tr-list" id="trList"></div>
                 <div class="tr-foot"><span id="trTotal"></span><button type="button" class="btn tr-empty" id="trEmpty">휴지통 비우기</button></div></div>`;
             document.body.appendChild(m);
@@ -178,6 +197,7 @@
             trBuild(); openModal('trashModal');
             const box = trq('trList'), tot = trq('trTotal'), emp = trq('trEmpty');
             box.innerHTML = '<div class="tr-empty-msg">⏳ 불러오는 중…</div>'; tot.textContent = ''; emp.disabled = true;
+            if (window.collPump) { try { await Promise.race([collPump(), new Promise(r => setTimeout(r, 15000))]); } catch (x) {} }   // 방금 버린 것(📐 내 도안 · 🎨 배경지 …)은 아직 줄 서 있을 수 있어요 → 먼저 휴지통으로 (도련 11-15 : 최근 것이 안 보였어요)
             let items;
             try { items = await trItems((i, n) => { box.innerHTML = `<div class="tr-empty-msg">⏳ 휴지통 목록을 만드는 중… ${i} / ${n}</div>`; }); }
             catch (x) { console.warn(x); box.innerHTML = '<div class="tr-empty-msg">⚠ 휴지통을 읽지 못했어요. 잠시 후 다시 열어 주세요.</div>'; return; }
@@ -194,7 +214,7 @@
                     const btn = ev.currentTarget; btn.disabled = true;
                     try {
                         if (e.k === 'dy') { if (!dyyBinRestore(e.id)) { openTrash(); return; } }
-                        else { if (!await BIN_PRE.file.restore(e)) { btn.disabled = false; return; } await trReload(); }
+                        else { if (!await BIN_PRE.file.restore(e)) { btn.disabled = false; return; } await trReload(e.path); }
                         showMsg(`<b>${trEsc(e.name)}</b><br>되살렸어요!${e.k === 'dy' || trBookOf(e.path) ? '<br><small>꾸민 것은 🔒 볼 수만 있어요</small>' : ''}`); openTrash();
                     } catch (x) { console.warn(x); showMsg('⚠ 되살리지 못했어요. 잠시 후 다시 해 주세요.'); btn.disabled = false; }
                 };

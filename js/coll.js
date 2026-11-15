@@ -475,7 +475,7 @@
         /* 글자 → 짧은 확인 글자 (같은 그림인지 보기) */
         function collHash(s) { s = String(s || ''); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); }
 
-        window.collHash = collHash;
+        window.collHash = collHash; window.collPump = collPump;   // 🗑 휴지통을 열 때 = 아직 못 올린 지우기를 먼저 (js/trash.js · 도련 11-15)
         window.collOf = collOf; window.collAdd = collAdd; window.collSet = collSet; window.collRemove = collRemove; window.collItem = collItem;
         window.collAll = collAll; window.collEnt = collEnt; window.collThumb = collThumb; window.collNewId = collNewId;
         window.collLogin = collLogin; window.collWhoami = collWhoami; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
