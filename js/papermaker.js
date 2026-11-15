@@ -442,22 +442,11 @@
             c.restore();
         }
         /* 종이 위쪽 마스킹테이프 (잡고 옮기는 손잡이) */
-        function pmDrawTape(c) {
-            const t = pmTape(); c.save(); c.translate(t.x + t.w / 2, t.y + t.h / 2); c.rotate(-.03);
-            const w = t.w / 2, h = t.h / 2; c.beginPath(); c.moveTo(-w, -h);
-            for (let i = 0; i <= 6; i++) c.lineTo(w - (i % 2) * 4, -h + i * t.h / 6);
-            for (let i = 0; i <= 6; i++) c.lineTo(-w + ((i + 1) % 2) * 4, h - i * t.h / 6);
-            c.closePath(); c.shadowColor = 'rgba(90,60,70,.18)'; c.shadowBlur = 3; c.shadowOffsetY = 1;
-            c.fillStyle = 'rgba(255,198,214,.88)'; c.fill(); c.shadowBlur = 0; c.shadowOffsetY = 0;
-            c.fillStyle = 'rgba(255,255,255,.35)'; for (let x = -w + 8; x < w - 4; x += 12) c.fillRect(x, -h, 5, t.h);
-            c.fillStyle = '#9b5a6e'; c.font = "700 12px 'Jua', sans-serif"; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✋ 잡고 옮겨요', 0, 1);
-            c.restore();
-        }
+        const pmDrawTape = c => stkTape(c, pmTape(), .88);                  // ✋ 잡고 옮겨요 테이프 (스티커 엔진)
         function pmFrame() {
             const S = pmS; if (!S.on) return;
-            const c = S.ctx, t = pmNow();
-            c.setTransform(S.DPR, 0, 0, S.DPR, 0, 0); c.clearRect(0, 0, S.W, S.H);
-            const bo = S.gone ? Math.max(0, 1 - (t - S.gone) / 220) : S.back ? Math.min(1, (t - S.back) / 260) : 1;   // 📱 비켜 줄 때 스르르
+            const c = stkClear(S), t = pmNow();                                  // 🎞️ 스티커 엔진
+            const bo = stkAway(S, t, 220);                                       // 📱 비켜 줄 때 스르르
             if (bo > 0) {
                 c.save(); c.globalAlpha = bo; c.shadowColor = 'rgba(90,60,70,.2)'; c.shadowBlur = 6; c.shadowOffsetY = 2;
                 pmRR(c, S.X, S.Y, PM_W * S.SC, S.SH * S.SC, 6 * S.SC); c.fillStyle = '#ebe2d0'; c.fill(); c.restore();   // 뒷종이(이형지) : 스티커를 떼면 보여요

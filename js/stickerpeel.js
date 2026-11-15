@@ -191,10 +191,8 @@
                 if (S.rel.alive && !S.rel.alive()) { closeStickerPeel(); return; }
                 if (!S.drag || S.drag.mode === 'win') { const A = S.rel.at(), o = S.relA; if (!o || Math.abs(A.top - o.top) > .5 || Math.abs(A.left - o.left) > .5 || Math.abs(A.width - o.width) > .5) { S.relA = { top: A.top, left: A.left, width: A.width }; pelLayout(); } }
             }
-            const ctx = S.ctx, st = S.st, a = S.a;
-            ctx.setTransform(S.DPR, 0, 0, S.DPR, 0, 0); ctx.clearRect(0, 0, S.W, S.H);
-            const bo = S.gone ? Math.max(0, 1 - (t - S.gone) / 260)              // 마지막 스티커를 떼어 내면 스르르 사라져요 (📱 폰은 뗄 때마다)
-                : S.back ? Math.min(1, (t - S.back) / 260) : 1;                  // 📱 붙이고 나면 남은 스티커와 같이 다시 스르르
+            const ctx = stkClear(S), st = S.st, a = S.a;                         // 🎞️ 스티커 엔진
+            const bo = stkAway(S, t);                                            // 마지막 스티커를 떼어 내면 스르르 사라져요 (📱 폰은 뗄 때마다) · 붙이고 나면 남은 스티커와 같이 다시 스르르
             /* 어둡게 깔기는 없앴어요 (도련 11-05 · 화면이 어두워지지 않게) */
             if (S.rel) { const A = S.rel.at(); ctx.save(); ctx.beginPath(); ctx.rect(A.left, A.top - 6, A.width, A.height + 12); ctx.clip(); }   // 🤍 종이는 정한 자리 안에서만 보여요 (옆으로 밀어 넘겨요)
             if (bo > 0) {                                                        // 🏷️ 하얀 네모 (스티커 종이)
@@ -222,8 +220,7 @@
             else if (cur && st.state === 'on' && st.snap) pelSnap(ctx, cur, t);
             else if (cur && st.state === 'free') {
                 pelSizeUp(t);
-                const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));                // 뒷면 → 앞면으로 뒤집혀요
-                pelDraw(ctx, flip < 0 ? a.back : a.front, st, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), PEL_UP);
+                stkFlipIn(ctx, a, st, t, PEL_UP, 1.07);                          // 뒷면 → 앞면으로 뒤집혀요 (스티커 엔진)
             }
             pelHitPlace(bo);
             S.raf = requestAnimationFrame(pelFrame);
@@ -285,17 +282,7 @@
         const pelPeeled = (st, C, F) => stkPeeled(pelS.a, st, C, F);        // 얼마나 떼어졌는지 (스티커 엔진)
         /* ✋ 잡고 옮겨요 테이프 (여러 개 씰 종이 위쪽 가운데) : 잡고 끌면 하얀 종이째 옮겨요 */
         function pelTape() { const B = pelS.board, w = 112, h = 24; return { x: B.cx - w / 2, y: B.cy - B.h / 2 - h / 2 - 2, w, h }; }
-        function pelDrawTape(c) {
-            const t = pelTape(); c.save(); c.translate(t.x + t.w / 2, t.y + t.h / 2); c.rotate(-.03);
-            const w = t.w / 2, h = t.h / 2; c.beginPath(); c.moveTo(-w, -h);
-            for (let i = 0; i <= 6; i++) c.lineTo(w - (i % 2) * 4, -h + i * t.h / 6);
-            for (let i = 0; i <= 6; i++) c.lineTo(-w + ((i + 1) % 2) * 4, h - i * t.h / 6);
-            c.closePath(); c.shadowColor = 'rgba(90,60,70,.18)'; c.shadowBlur = 3; c.shadowOffsetY = 1;
-            c.fillStyle = 'rgba(255,198,214,.92)'; c.fill(); c.shadowBlur = 0; c.shadowOffsetY = 0;
-            c.fillStyle = 'rgba(255,255,255,.35)'; for (let x = -w + 8; x < w - 4; x += 12) c.fillRect(x, -h, 5, t.h);
-            c.fillStyle = '#9b5a6e'; c.font = "700 12px 'Jua', sans-serif"; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✋ 잡고 옮겨요', 0, 1);
-            c.restore();
-        }
+        const pelDrawTape = c => stkTape(c, pelTape());                      // ✋ 잡고 옮겨요 테이프 (스티커 엔진)
         function pelDown(e) {
             const S = pelS; if (!S.on || S.drag || S.st.state === 'free') return;
             e.preventDefault(); const P = [e.clientX, e.clientY];

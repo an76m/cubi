@@ -26,10 +26,12 @@
        stkImg(ctx, img, st, sh, extra, flip) = 스티커 한 장 그리기 (sh = 그림자 { c, b, y, x } · flip = 좌우 뒤집기 · 뗀 순간 뒷면 → 앞면)
        stkFold(S, ctx, a, st, C, F, sh) = 접혀 떼어지는 모습 (S = { fl 겹쳐 그릴 캔버스, DPR, W, H } · a = { front, back, w, h })
        stkSnap(sn, t) = 덜 떼고 놓으면 제자리로 착 (0.26초 · 끝 F 를 돌려줘요 · 끝나면 sn.end = true) · stkHalf = 접는 선 한쪽 칠할 곳
-       📄 모조지는 종이 위에서 떼는 그림을 js/peelfx.js pfxSeal 로 (페이지 스티커 옮기기와 같은 것)
+       📄 모조지 · 페이지 스티커 떼기(js/peelfx.js pfxSeal)도 이 그림을 써요 (soft = 큰 종이 둥근 말림 · 1246)
+   - 🎞️ 매 순간 그리기 (S-6) : stkClear(S) 화면 지우기 · stkAway(S, t, out) 📱 종이가 비켜 줄 때 · 다시 나올 때 스르르 (보이는 정도 0 ~ 1 · S.gone · S.back)
+       stkFlipIn(ctx, a, st, t, sh, extra, w, h) = 뗀 순간 뒷면 → 앞면으로 뒤집혀 손가락을 따라와요 (0.22초) · stkTape(c, box, alpha) = 종이 위 '✋ 잡고 옮겨요' 마스킹테이프
    - 🧩 그림 재료 (S-5) : stkAsset(img, m, o) = 둘레 여백 m 을 둔 앞면 front · 종이 뒷면 back (o.paper = [바탕색, 점 색] · 오톨도톨) · 가장자리 점 edge · alpha(x, y) (그림 위인지)
        o.gloss(ctx, w, h) = 뒷면을 만들기 전에 앞면에 더 그릴 것 (🧩 조각 = 유광 빛) · 종류만의 재료(🧩 뒷종이 liner · 조각 piece)는 종류 파일이 더해요
-   - 단계 S-1 ~ S-5 다 끝 (도련 11-16 · 1241 ~ 1245) · 새 스티커 종류 = 종이 화면 모양 · 떼는 방법(어디를 잡는지 · 얼마나 떼면 떨어지는지) · 붙일 때 다른 점만 만들고 나머지는 여기 것을 써요
+   - 단계 S-1 ~ S-6 다 끝 (도련 11-16 · 1241 ~ 1246) · 새 스티커 종류 = 종이 화면 모양 · 떼는 방법(어디를 잡는지 · 얼마나 떼면 떨어지는지) · 붙일 때 다른 점만 만들고 나머지는 여기 것을 써요
    ※ util.js · space.js · elements.js 다음 · 스티커 종류 파일보다 먼저 읽어요 */
 const stkNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });            // 🔊 🏷️ 씰 · 🧩 조각 '찌익' (예전엔 파일마다 같은 소리를 따로)
 function stkTwz(x, y) {
@@ -104,6 +106,25 @@ function stkPageScale() { const pg = spPage(), r = pg && pg.getBoundingClientRec
 function stkCap(el, e) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
 function stkBar(e, P) { if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e); }   // 종이 밖 날짜바 위 → 페이지 옮기기 (js/page.js)
 
+/* ---------- 🎞️ 매 순간 그리기 (S-6) ---------- */
+function stkClear(S) { const c = S.ctx; c.setTransform(S.DPR, 0, 0, S.DPR, 0, 0); c.clearRect(0, 0, S.W, S.H); return c; }
+const stkAway = (S, t, out = 260) => S.gone ? Math.max(0, 1 - (t - S.gone) / out) : S.back ? Math.min(1, (t - S.back) / 260) : 1;
+function stkFlipIn(ctx, a, st, t, sh, extra, w, h) {
+    const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));
+    stkImg(ctx, flip < 0 ? a.back : a.front, st, sh, extra, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), w, h);
+}
+function stkTape(c, t, alpha = .92) {                                          // t = { x, y, w, h }
+    c.save(); c.translate(t.x + t.w / 2, t.y + t.h / 2); c.rotate(-.03);
+    const w = t.w / 2, h = t.h / 2; c.beginPath(); c.moveTo(-w, -h);
+    for (let i = 0; i <= 6; i++) c.lineTo(w - (i % 2) * 4, -h + i * t.h / 6);
+    for (let i = 0; i <= 6; i++) c.lineTo(-w + ((i + 1) % 2) * 4, h - i * t.h / 6);
+    c.closePath(); c.shadowColor = 'rgba(90,60,70,.18)'; c.shadowBlur = 3; c.shadowOffsetY = 1;
+    c.fillStyle = `rgba(255,198,214,${alpha})`; c.fill(); c.shadowBlur = 0; c.shadowOffsetY = 0;
+    c.fillStyle = 'rgba(255,255,255,.35)'; for (let x = -w + 8; x < w - 4; x += 12) c.fillRect(x, -h, 5, t.h);
+    c.fillStyle = '#9b5a6e'; c.font = "700 12px 'Jua', sans-serif"; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('✋ 잡고 옮겨요', 0, 1);
+    c.restore();
+}
+
 /* ---------- 🧩 그림 재료 (S-5) ---------- */
 function stkAsset(img, m, o = {}) {
     const w = img.width + m * 2, h = img.height + m * 2;
@@ -121,30 +142,37 @@ function stkAsset(img, m, o = {}) {
 }
 
 /* ---------- 📖 떼어지는 그림 (S-4) ---------- */
-function stkImg(ctx, img, st, sh, extra = 1, flip = 1) {
+const STK_SOFT = [[0, 'rgba(90,60,70,.42)'], [.12, 'rgba(255,255,255,.6)'], [.3, 'rgba(255,255,255,.2)'], [.7, 'rgba(160,130,140,.12)'], [1, 'rgba(120,90,100,.3)']];   // 📄 둥근 말림 음영 : 접힌 곳은 반짝 · 끝은 어둑
+function stkImg(ctx, img, st, sh, extra = 1, flip = 1, w, h) {             // w · h = 그릴 크기 (선명하게 크게 만든 그림 · 없으면 그림 크기)
     ctx.save();
     if (sh) { ctx.shadowColor = sh.c; ctx.shadowBlur = sh.b; ctx.shadowOffsetY = sh.y; ctx.shadowOffsetX = sh.x || 0; }
     ctx.translate(st.cx, st.cy); ctx.rotate(st.rot); ctx.scale(st.s * extra * flip, st.s * extra);
-    ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.restore();
+    w = w || img.width; h = h || img.height; ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.restore();
 }
 function stkHalf(c, M, n, sign) {
     const p = [-n[1], n[0]], L = 4000; c.beginPath();
     c.moveTo(M[0] + p[0] * L, M[1] + p[1] * L); c.lineTo(M[0] - p[0] * L, M[1] - p[1] * L);
     c.lineTo(M[0] - p[0] * L + n[0] * L * sign, M[1] - p[1] * L + n[1] * L * sign); c.lineTo(M[0] + p[0] * L + n[0] * L * sign, M[1] + p[1] * L + n[1] * L * sign); c.closePath();
 }
-function stkFold(S, ctx, a, st, C, F, sh) {
+function stkFold(S, ctx, a, st, C, F, sh, soft) {                            // soft = 📄 큰 종이 (들린 쪽을 접힌 선 쪽으로 눌러 둥글게 말려 올라간 느낌 · js/peelfx.js pfxSeal)
     const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy);
-    if (len < .5) { stkImg(ctx, a.front, st, sh); return; }
+    if (len < .5) { stkImg(ctx, a.front, st, sh, 1, 1, a.w, a.h); return; }
     const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2];
-    ctx.save(); stkHalf(ctx, M, n, 1); ctx.clip(); stkImg(ctx, a.front, st, sh); ctx.restore();
+    ctx.save(); stkHalf(ctx, M, n, 1); ctx.clip(); stkImg(ctx, a.front, st, sh, 1, 1, a.w, a.h); ctx.restore();
     const md = M[0] * n[0] + M[1] * n[1], A = 1 - 2 * n[0] * n[0], B = -2 * n[0] * n[1], D = 1 - 2 * n[1] * n[1], E = 2 * md * n[0], Fv = 2 * md * n[1], R = S.DPR;   // 접는 선으로 뒤집기
     const L = S.fl.getContext('2d'); L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, S.fl.width, S.fl.height);
     L.setTransform(R * A, R * B, R * B, R * D, R * E, R * Fv);
+    if (soft) {                                                               // 📄 말린 종이 : 들린 부분을 접힌 선 쪽으로 짧게
+        const c = .58, k = c - 1, nx = n[0], ny = n[1];
+        const sa = 1 + k * nx * nx, sb = k * nx * ny, sd = 1 + k * ny * ny, se = M[0] - (sa * M[0] + sb * M[1]), sf = M[1] - (sb * M[0] + sd * M[1]);
+        L.setTransform(1, 0, 0, 1, 0, 0); L.transform(R, 0, 0, R, 0, 0); L.transform(sa, sb, sb, sd, se, sf); L.transform(A, B, B, D, E, Fv);
+    }
     L.save(); stkHalf(L, M, n, -1); L.clip();
     L.translate(st.cx, st.cy); L.rotate(st.rot); L.scale(st.s, st.s); L.drawImage(a.back, -a.w / 2, -a.h / 2, a.w, a.h); L.restore();
-    L.setTransform(R, 0, 0, R, 0, 0); L.globalCompositeOperation = 'source-atop';                               // 말린 느낌 음영
-    const span = Math.max(20, len / 2), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
-    g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)');
+    L.setTransform(R, 0, 0, R, 0, 0); L.globalCompositeOperation = 'source-atop';                               // 말린 느낌 음영 : 접힌 선 근처는 어둡고 가운데는 밝게
+    const span = Math.max(20, len / 2 * (soft ? .58 : 1)), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
+    if (soft) STK_SOFT.forEach(([p, c]) => g.addColorStop(p, c));
+    else { g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)'); }
     L.fillStyle = g; L.fillRect(0, 0, S.W, S.H); L.globalCompositeOperation = 'source-over';
     ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;
     ctx.drawImage(S.fl, 0, 0, S.W, S.H); ctx.restore();

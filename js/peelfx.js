@@ -2,6 +2,7 @@
    🏷️ 씰스티커처럼 떼어지는 연출 (짧게 저절로) : 페이지에 붙은 스티커를 옮길 때(js/elements.js makeTransformable)
    - 끄는 방향 뒤쪽 가장자리가 먼저 들려서 앞으로 접혀 넘어가요 (접힌 쪽은 크림색 뒷면 + 그림자)
    - pfxPeel(el, x, y, dx, dy, rotDeg, done) : 화면 좌표 (x, y)를 잡고 (dx, dy) 방향으로 떼기 · 끝나면 done() · 돌려준 함수를 부르면 바로 멈춰요
+   - pfxSeal(o) : 📄 모조지 · 페이지에 붙은 스티커를 핀셋으로 떼기 = 🏷️ 스티커 엔진(js/sticker.js)의 좌표 · 접혀 떼어지는 그림 · 떼어진 정도 · 제자리로 착 · 살랑을 같이 써요 (도련 11-16 · 씰 · 조각과 같은 그림)
    ※ 이 파일이 없어도 다이어리는 정상 동작 (연출 없이 바로 떠요) */
 
         const PFX_MS = 190, PFX_UPTO = .72;
@@ -112,8 +113,8 @@
             const cv = pfxMk(VW * DPR, VH * DPR); cv.className = 'pfx-stage'; document.body.appendChild(cv);
             const ctx = cv.getContext('2d'), fl = pfxMk(VW * DPR, VH * DPR);
             let asset = pfxAsset(o.src, o.w, o.h); const st = { cx: o.cx, cy: o.cy, rot: o.rot || 0, s: 1, state: 'on' };
-            const toStage = (lx, ly) => { const c = Math.cos(st.rot), s = Math.sin(st.rot); return [st.cx + (lx * c - ly * s) * st.s, st.cy + (lx * s + ly * c) * st.s]; };
-            const toLocal = (x, y) => { const dx = (x - st.cx) / st.s, dy = (y - st.cy) / st.s, c = Math.cos(-st.rot), s = Math.sin(-st.rot); return [dx * c - dy * s, dx * s + dy * c]; };
+            const toStage = (lx, ly) => stkToStage(st, lx, ly), toLocal = (x, y) => stkToLocal(st, x, y);   // 🏷️ 스티커 엔진 (js/sticker.js · 씰 · 조각 · 📄 모조지 · 페이지 스티커가 같은 계산 · 도련 11-16)
+            const PS = { fl, DPR, W: VW, H: VH }, FLAT = { c: 'rgba(90,60,70,.12)', b: 2, y: 1 };
             /* 들리는 가장자리 : 가장자리 가까이(PFX_GRAB)를 잡고 안쪽으로 끌면 🏷️ 하얀 스티커 창처럼 잡은 자리부터 바로 말려 올라와요
                가운데를 잡았으면 끄는 방향의 반대쪽 끝(손가락 줄 위)에서부터 접혀 넘어와요 · 스티커가 커도 손가락 한 뼘이면 떨어지게 */
             const pickEdge = (vx, vy) => {
@@ -148,61 +149,19 @@
                 if (k >= 1) grow.done = 1;
             }
 
-            const applyT = (c, extraS = 1, flipX = 1) => { c.translate(st.cx, st.cy); c.rotate(st.rot); c.scale(st.s * extraS * flipX, st.s * extraS); };
-            const halfPlane = (c, M, n, sign) => { const p = [-n[1], n[0]], L = 4000; c.beginPath();
-                c.moveTo(M[0] + p[0] * L, M[1] + p[1] * L); c.lineTo(M[0] - p[0] * L, M[1] - p[1] * L);
-                c.lineTo(M[0] - p[0] * L + n[0] * L * sign, M[1] - p[1] * L + n[1] * L * sign); c.lineTo(M[0] + p[0] * L + n[0] * L * sign, M[1] + p[1] * L + n[1] * L * sign); c.closePath(); };
-            function drawSticker(img, extra = 1, flip = 1, shadow = null) {
-                ctx.save();
-                if (shadow) { ctx.shadowColor = shadow.c; ctx.shadowBlur = shadow.b; ctx.shadowOffsetY = shadow.y; ctx.shadowOffsetX = shadow.x || 0; }
-                applyT(ctx, extra, flip); ctx.drawImage(img, -asset.w / 2, -asset.h / 2, asset.w, asset.h); ctx.restore();
-            }
-            function drawPeel(img, C, F) {
-                const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy);
-                if (len < .5) { drawSticker(img, 1, 1, { c: 'rgba(90,60,70,.12)', b: 2, y: 1 }); return; }
-                const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2];
-                // 붙어 있는 부분
-                ctx.save(); halfPlane(ctx, M, n, 1); ctx.clip(); drawSticker(img, 1, 1, { c: 'rgba(90,60,70,.12)', b: 2, y: 1 }); ctx.restore();
-                // 들린 부분(뒷면) = 접힌 선을 기준으로 뒤집어 그림
-                const md = M[0] * n[0] + M[1] * n[1];
-                const a = 1 - 2 * n[0] * n[0], b = -2 * n[0] * n[1], d = 1 - 2 * n[1] * n[1], e = 2 * md * n[0], f = 2 * md * n[1];
-                const L = fl.getContext('2d'); L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, fl.width, fl.height);
-                L.setTransform(DPR * a, DPR * b, DPR * b, DPR * d, DPR * e, DPR * f);
-                if (o.soft) {                                                    // 📄 말린 종이 : 들린 부분을 접힌 선 쪽으로 눌러(짧게) 둥글게 말려 올라간 느낌
-                    const c = .58, k = c - 1, nx = n[0], ny = n[1];
-                    const sa = 1 + k * nx * nx, sb = k * nx * ny, sd = 1 + k * ny * ny, se = M[0] - (sa * M[0] + sb * M[1]), sf = M[1] - (sb * M[0] + sd * M[1]);
-                    L.setTransform(1, 0, 0, 1, 0, 0); L.transform(DPR, 0, 0, DPR, 0, 0); L.transform(sa, sb, sb, sd, se, sf); L.transform(a, b, b, d, e, f);
-                }
-                L.save(); halfPlane(L, M, n, -1); L.clip();
-                L.translate(st.cx, st.cy); L.rotate(st.rot); L.scale(st.s, st.s); L.drawImage(asset.back, -asset.w / 2, -asset.h / 2, asset.w, asset.h); L.restore();
-                // 말린 느낌 음영 : 접힌 선 근처는 어둡고, 가운데는 밝게
-                L.setTransform(DPR, 0, 0, DPR, 0, 0); L.globalCompositeOperation = 'source-atop';
-                const span = Math.max(20, len / 2 * (o.soft ? .58 : 1)), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
-                if (o.soft) { g.addColorStop(0, 'rgba(90,60,70,.42)'); g.addColorStop(.12, 'rgba(255,255,255,.6)'); g.addColorStop(.3, 'rgba(255,255,255,.2)'); g.addColorStop(.7, 'rgba(160,130,140,.12)'); g.addColorStop(1, 'rgba(120,90,100,.3)'); }   // 둥근 말림 : 접힌 곳은 반짝 · 끝은 어둑
-                else { g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)'); }
-                L.fillStyle = g; L.fillRect(0, 0, VW, VH); L.globalCompositeOperation = 'source-over';
-                // 들린 부분이 드리우는 그림자
-                ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;
-                ctx.drawImage(fl, 0, 0, VW, VH); ctx.restore();
-            }
-            function peeledInfo(C, F) {
-                const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy); if (len < 1) return 0;
-                const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2]; let off = 0;
-                for (const [lx, ly] of asset.edge) { const [x, y] = toStage(lx, ly); if ((x - M[0]) * n[0] + (y - M[1]) * n[1] < 0) off++; }
-                return off / asset.edge.length;
-            }
+            const drawSticker = (img, extra = 1, flip = 1, shadow = null) => stkImg(ctx, img, st, shadow, extra, flip, asset.w, asset.h);   // 📖 떼어지는 그림 = 스티커 엔진
+            const drawPeel = (img, C, F) => stkFold(PS, ctx, asset, st, C, F, FLAT, o.soft);
+            const peeledInfo = (C, F) => stkPeeled(asset, st, C, F);
             function frame(t) {
                 if (dead) return;
                 ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, VW, VH);
-                if (drag && drag.mode === 'peel') { if (drag.C) drawPeel(asset.front, drag.C, drag.F); else drawSticker(asset.front, 1, 1, { c: 'rgba(90,60,70,.12)', b: 2, y: 1 }); }
+                if (drag && drag.mode === 'peel') { if (drag.C) drawPeel(asset.front, drag.C, drag.F); else drawSticker(asset.front, 1, 1, FLAT); }
                 else if (snap) {
-                    const q = Math.min(1, (t - snap.t0) / 260), e = 1 - Math.pow(1 - q, 3);
-                    drawPeel(asset.front, snap.C, [snap.F[0] + (snap.C[0] - snap.F[0]) * e, snap.F[1] + (snap.C[1] - snap.F[1]) * e]);
-                    if (q >= 1) { kill(); if (o.onCancel) o.onCancel(); return; }
+                    drawPeel(asset.front, snap.C, stkSnap(snap, t));                       // 덜 뗐으면 제자리로 착 (스티커 엔진)
+                    if (snap.end) { kill(); if (o.onCancel) o.onCancel(); return; }
                 } else if (st.state === 'free') {
                     realGo(); realStep(t);
-                    const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));          // 뒷면 → 앞면 뒤집기
-                    drawSticker(flip < 0 ? asset.back : asset.front, 1.07, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1), { c: 'rgba(80,50,60,.25)', b: 18, y: 12 });
+                    stkFlipIn(ctx, asset, st, t, { c: 'rgba(80,50,60,.25)', b: 18, y: 12 }, 1.07, asset.w, asset.h);   // 뒷면 → 앞면 뒤집기 (스티커 엔진)
                 }
                 raf = requestAnimationFrame(frame);
             }
@@ -229,7 +188,7 @@
                     if (peeledInfo(drag.C, drag.F) >= PFX_DETACH) detach(P);
                 } else if (drag.mode === 'free') {
                     const nx = P[0] - drag.off[0], ny = P[1] - drag.off[1];
-                    st.rot += (nx - st.cx) * .004 - (st.rot - drag.baseRot) * .08; st.cx = nx; st.cy = ny;
+                    stkSway(st, nx - st.cx, drag.baseRot); st.cx = nx; st.cy = ny;
                 }
             }
             function up() {

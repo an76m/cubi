@@ -202,8 +202,7 @@
                 }
                 pcbImg(st, a.piece, st.state === 'held' ? PCB_UP : PCB_DESK); return;
             }
-            const fp = Math.min(1, (t - st.t0) / 220), flip = Math.cos(Math.PI * (1 - fp));               // 뒷면 → 앞면으로 뒤집혀요
-            pcbImg(st, flip < 0 ? a.back : a.front, PCB_UP, 1.06, Math.max(.05, Math.abs(flip)) * (flip < 0 ? -1 : 1));
+            stkFlipIn(pcbS.ctx, a, st, t, PCB_UP, 1.06);                        // 뒷면 → 앞면으로 뒤집혀요 (스티커 엔진)
         }
         function pcbFallers(t) {
             const S = pcbS, ctx = S.ctx;
@@ -217,8 +216,7 @@
         const pcbHeld = () => pcbS.pieces.find(p => p.state === 'held');
         function pcbFrame() {
             const S = pcbS; if (!S.on) return;
-            const t = pcbNow(), ctx = S.ctx;
-            ctx.setTransform(S.DPR, 0, 0, S.DPR, 0, 0); ctx.clearRect(0, 0, S.W, S.H);
+            const t = pcbNow(), ctx = stkClear(S);                              // 🎞️ 스티커 엔진
             const fade = S.closing ? Math.max(0, Math.min(1, 1 - (t - S.closing) / 260)) : 1;   // 닫힐 때 스르르
             if (S.closing && fade <= 0) { closePieceBag(); return; }
             ctx.globalAlpha = fade;
