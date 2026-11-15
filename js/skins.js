@@ -1015,7 +1015,7 @@
             setTimeout(() => ip.classList.add('dy-bh', 'dy-bh-pop'), 620);
             setTimeout(() => pu.remove(), 1250);
         }
-        function gdClipAway() { if (gdHeld && gdHeld.startsWith('clip:')) gdLet(); }   // 📎 링이 열리면 들고 있던 집게도 내려놓아요 (집게는 css 로 다 숨어요)
+        function gdClipAway() { if (gdHeld && gdHeld.startsWith('clip-')) gdLet(); }   // 📎 링이 열리면 들고 있던 집게도 내려놓아요 (집게는 css 로 다 숨어요)
         function bdOut() {                                                      // 링 열림 → 두 쪽이 크기 그대로 가운데로 미끄러져 와서 아주 가까이 (붙어서 한 몸이 되지 않아요) → 반투명 테이프가 붙고 스윽 사라짐
             const ip = document.getElementById('innerPage'); if (!ip || bdBusy || !bdOn()) return;
             selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel();
@@ -1157,7 +1157,7 @@
                     else if (s2[0] !== c[0] || s2[1] !== c[1]) { const q = gdTo(s2[0], s2[1]), q0 = gdTo(c[0], c[1]); gdCenter(el, p.x + q.x - q0.x, p.y + q.y - q0.y); }
                 }
             }
-            if (id.startsWith('clip:')) gdClipSave();
+            if (id.startsWith('clip-')) gdClipSave();
         }
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
@@ -1175,20 +1175,20 @@
             gdFollow(x, y, e);
             if (gdIsTwz(id) && e && window.pinAt) pinAt(e);
             if (!gdIsTwz(id)) { if (gdScs()) { scs.ang = SCS_LAY; scs.to = SCS_REST; } setTimeout(() => toolGlow(gdScs() ? scs.el : el), 0); }   // ✂️ 놓인 모양에서 든 모양으로 스르르 돌아요 · ✨ 한 번 반짝                     // 🪡 집은 자리에 바로 핀셋이 떠요 (👆 터치는 그 자리에서 둥실)
-            if (id.startsWith('clip:') || (prev && prev.dataset.t.startsWith('clip:'))) gdClipSave();
+            if (id.startsWith('clip-') || (prev && prev.dataset.t.startsWith('clip-'))) gdClipSave();
         }
         function gdFloatAt(el) {                                                // 떠 있는 문구함의 가운데 (다이어리 자리) : 🪡 핀셋 · ✂️ 가위는 화면 위에 따로 떠 있어요
             const f = gdIsTwz(el.dataset.t) ? document.querySelector('.twz.pin-cur') : gdInfo(el.dataset.t).g === 'scissors' ? scs.el : el;
             const r = f && !f.hidden && f.getBoundingClientRect(); if (!r || !r.width) return null;
             return gdTo(r.left + r.width / 2, r.top + r.height / 2);
         }
-        function gdLetAir(keep) { const id = gdHeld, el = id && gdEl(id); if (el && !id.startsWith('clip:') && spKeep() && window.dkwAirPut && dkwAirPut(id, el, keep)) return; gdLet(); }   // 💻 📲 책상 = 다이어리 밖 공중에 내려놔요 (도련 11-12 · js/deskgd.js)
+        function gdLetAir(keep) { const id = gdHeld, el = id && gdEl(id); if (el && !id.startsWith('clip-') && spKeep() && window.dkwAirPut && dkwAirPut(id, el, keep)) return; gdLet(); }   // 💻 📲 책상 = 다이어리 밖 공중에 내려놔요 (도련 11-12 · js/deskgd.js)
         function gdLet() {                                                      // 내려놓기 (지금 자리에)
             const el = gdHeld && gdEl(gdHeld), id = gdHeld; gdHeld = null; document.body.classList.remove('gd-on'); gdSlot(null); scsHide();
             if (!el) return;
             el.classList.remove('held', 'snap', 'rim-ok');
             gdHome(el);                                                         // 📥 페이지 밖이었으면 페이지 안으로
-            if (id.startsWith('clip:')) gdClipSave();
+            if (id.startsWith('clip-')) gdClipSave();
         }
         function gdFollow(x, y, e) {                                            // 손끝(쓰는 끝) = 포인터
             const el = gdHeld && gdEl(gdHeld); if (!el) return;
@@ -1365,10 +1365,10 @@
         const GD_CAB = [['tweez', '핀셋', { hand: 1 }], ['clip', '집게', {}], ['punch', '펀칭기', {}], ['tape', '양면테이프', {}], ['scissors', '가위', { hand: 1 }], ['knife', '칼', { hand: 1 }], ['ruler', '자', {}]];   // 종류 = 하는 일 (hand = 꺼내면 손에) · 서랍칸 · 펜꽂이 · 꽂이길이 = 🧁 상품마다 (도련 11-02)
         const GD_MULTI = ['clip'], GD_TOOL = ['knife', 'ruler'];
         const cabHoldAgain = id => { if (id.startsWith('knife') && window.skHold) skHold(true); };   // ✋ 이미 꺼낸 도구를 다시 손에 (따로 그리는 도구 GD_TOOL · 새 도구 = 여기 한 줄)
-        const cabTool = id => GD_TOOL.includes(id.split(':')[0]);
+        const cabTool = id => GD_TOOL.includes(gdPre(id));
         const cabKinds = g => (g === 'knife' ? (window.skKinds ? skKinds() : []) : (window.rlKinds ? rlKinds() : []));
-        const cabK = id => id.split(':')[1];
-        const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + ':' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
+        const cabK = id => gdSuf(id);
+        const cabAll = g => GD_TOOL.includes(g) ? cabKinds(g).map(t => g + '-' + t.id) : gdOwn(g);   // 🏪 기본상품 샵에 있는 모든 디자인
         /* ✏️ 내 문구 (도련 10-27) : 처음엔 🎁 핀셋 + 필기구 5 (GD_STARTER · 도련 11-01) · 나머지는 🏪 기본상품 샵 '문구'에서 받고 · 서랍 속 🗑 버리기로 버려요 (→ 휴지통 30일 · gdBin)
            저장 : 문구 / 🔐 _목록1.json … 'diary_gd_own' [{u, id: 디자인, c: 받은- 파일 id} | {u, id, g: 1 = 🎁 처음 선물}] (03_저장지도 1-1) (없으면 = 아무것도 없음 · 예전에 쓰던 사람은 드라이브를 읽은 뒤 js/desk.js giftEnsure 가 되살려요) · 게스트는 이 기기 malang_gd_own
                   🎁 처음 선물 = 목록 한 줄만 (from 선물 · 받은- 파일 없음 · 버리면 목록에서 빠져요)
@@ -1409,9 +1409,9 @@
         window.gdFilesFill = gdFilesFill; window.gdOwnList = gdOwnList; window.gdSetList = gdSetList;
         const cabOwn = g => { const st = gdOwnSet(), all = cabAll(g), H = window.deskBagHold ? deskBagHold() : null; return st ? all.filter(id => st.has(id) && !(H && H.g.has(id))) : []; };   // 🛍️ 봉투 속 문구는 꺼낼 때까지 없어요 (💻 📲 · js/desk.js)   // 목록이 없으면 = 아무것도 없어요 (처음엔 문구 없음 · 도련 10-31)
         const gdIsTwz = id => !!id && cabGOf(id) === 'tweez';                    // 🪡 핀셋 (디자인이 여럿이어도 · 도련 11-02)
-        const cabGOf = id => id.includes(':') ? id.split(':')[0] : (GD[id] || {}).g;
+        const cabGOf = id => (GD[id] || {}).g || gdPre(id);
         const cabAllIds = () => GD_CAB.flatMap(([g]) => cabAll(g));
-        const cabName = id => cabTool(id) ? (cabKinds(id.split(':')[0]).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;
+        const cabName = id => cabTool(id) ? (cabKinds(gdPre(id)).find(t => t.id === cabK(id)) || {}).name || '' : gdInfo(id).n;
         const cabArt = id => !cabTool(id) ? gdArt(id) : id.startsWith('knife') ? (window.skKnifeSvg ? skKnifeSvg(cabK(id)) : '') : (window.rlCupSvg ? rlCupSvg(cabK(id), 150) : '');
         const cabIsOn = id => !cabTool(id) ? !!gdEl(id) : id.startsWith('knife') ? !!(window.skKindNow && skKindNow() === cabK(id)) : !!(window.rlKindNow && rlKindNow() === cabK(id));
         const cabMid = () => { const b0 = document.getElementById('canvasArea').getBoundingClientRect(), b = window.dyVisRect ? dyVisRect(b0) : b0; return [b.left + b.width / 2, b.top + b.height / 2]; };   // 📱 폰 = 보이는 오른쪽 쪽
@@ -1423,7 +1423,7 @@
             else if (on) { if (window.rlEnd) rlEnd(); } else if (window.rlShow) rlShow(x, y, cabK(id));
         };
         const GD_MAIN = 'diary_gd_main', GD_MAIN_L = 'malang_diary_gd_main';
-        const gdOwn = g => g === 'clip' ? CLIPS.map(c => 'clip:' + c[0]) : Object.keys(GD).filter(id => GD[id].g === g);   // 가진 디자인 (📦 문구점이 생기면 여기에)
+        const gdOwn = g => g === 'clip' ? CLIPS.map(c => 'clip-' + c[0]) : Object.keys(GD).filter(id => GD[id].g === g);   // 가진 디자인 (📦 문구점이 생기면 여기에)
         function gdMain(g) { const own = cabOwn(g), m = (prefGet(GD_MAIN, GD_MAIN_L) || {})[g]; return own.includes(m) ? m : own[0]; }
         function gdMainSet(g, id) { const m = Object.assign({}, prefGet(GD_MAIN, GD_MAIN_L) || {}); if (m[g] === id) return; m[g] = id; prefSet(GD_MAIN, GD_MAIN_L, m); }
         const gdOnPage = g => cabAll(g).filter(cabIsOn);
@@ -1553,9 +1553,9 @@
                 const P = x.P || {};
                 if (['tweez', 'punch', 'tape', 'scissors', 'clip'].includes(P.문구종류)) {   // 📐 페이지에 놓일 크기 · 쓰는끝 (그림 px → 크기 상자 · js/gdpic.js) · 이름 · 하나라도 없으면 안 나와요 (🧁 상품공방이 검수)
                     const pic = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(pic);
-                    if (!tip || !String(P.이름 || '') || (P.문구종류 === 'clip' && !x.id.startsWith('clip:'))) { console.warn('🧁 문구 속성이 모자라요 :', x.id); return; }
+                    if (!tip || !String(P.이름 || '') || (P.문구종류 === 'clip' && !x.id.startsWith('clip-'))) { console.warn('🧁 문구 속성이 모자라요 :', x.id); return; }
                     GD[x.id] = { g: P.문구종류, n: String(P.이름), w: pic.size[0], h: pic.size[1], hx: tip[0], hy: tip[1] };
-                    if (P.문구종류 === 'clip') CLIPS.push([x.id.slice(5), String(P.이름)]);
+                    if (P.문구종류 === 'clip') CLIPS.push([gdSuf(x.id), String(P.이름)]);
                 }
             });
             L.forEach(x => { if (x.P.처음받기) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
@@ -1786,12 +1786,12 @@
             if (!spKeep()) return;                                              // 🏠 연습장에선 진짜 다이어리 집게를 맞추지 않아요 (닫으면 다시)
             const ip = gdIp(), cv = spPage(); if (!ip || !cv) return;
             const book = dyNow().id === DY_DEF && window.dyyBookId ? dyyBookId() || DY_DEF : dyNow().id, saved = bsGet(GD_CLIP)[book] || bsGet(GD_CLIP)[dyNow().id] || {};   /* 📔 날짜형 = 권마다 (예전엔 모든 날짜형이 한 자리) */
-            const sig = JSON.stringify(saved), busy = (gdHeld && gdHeld.startsWith('clip:')) || (gdG && gdG.k === 'rail');
+            const sig = JSON.stringify(saved), busy = (gdHeld && gdHeld.startsWith('clip-')) || (gdG && gdG.k === 'rail');
             if (gdBook !== book || (sig !== gdClipSig && !busy)) {             // 다른 권 = 그 권의 집게로 · 드라이브를 읽은 뒤 저장이 달라졌어도 (도련 10-30 : 읽기 전 모습이 남지 않게)
                 gdClipSig = sig;
                 ip.querySelectorAll(':scope > .bd-tool.clip').forEach(el => { if (gdHeld === el.dataset.t) gdHeld = null; el.remove(); });
                 gdBook = book;
-                Object.keys(saved).forEach(c => { if (CLIPS.some(x => x[0] === c)) gdMake('clip:' + c); });
+                Object.keys(saved).forEach(c => { if (CLIPS.some(x => x[0] === c)) gdMake('clip-' + c); });
             }
             ip.querySelectorAll(':scope > .bd-tool.clip:not(.held)').forEach(el => {   // 크기가 바뀌어도 같은 자리
                 const s = saved[el.dataset.t.slice(5)]; if (!s) return;

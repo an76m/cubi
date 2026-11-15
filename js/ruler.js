@@ -26,16 +26,16 @@
     const RL_KINDS = [];
     function rlKindsBuild() {
         RL_KINDS.length = 0;
-        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler:')).forEach(x => {
+        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler-')).forEach(x => {
             const a = x.P.눈금영역, ok = Array.isArray(a) && a.length === 4 && a.every(n => isFinite(+n)) && +a[2] > +a[0] && +a[3] > +a[1];
             if (!ok || !/^#[0-9a-f]{6}$/i.test(x.P.눈금색 || '') || !String(x.P.이름 || '') || !(window.gdPic && gdPic(x.id))) { console.warn('🧁 자 속성이 모자라요 :', x.id); return; }   // 🧁 상품공방이 검수
-            RL_KINDS.push({ id: x.id.slice(6), name: String(x.P.이름), area: a.map(Number), ink: x.P.눈금색 });
+            RL_KINDS.push({ id: gdSuf(x.id), name: String(x.P.이름), area: a.map(Number), ink: x.P.눈금색 });
         });
     }
     rlKindsBuild();
     const rlKind = id => RL_KINDS.find(k => k.id === id) || RL_KINDS[0] || null;
     R.kind = RL_KINDS.length ? RL_KINDS[0].id : '';
-    const rlPicOf = K => window.gdPic ? gdPic('ruler:' + K.id) : null;
+    const rlPicOf = K => window.gdPic ? gdPic('ruler-' + K.id) : null;
 
     /* ---------- 자 그림 (페이지) : 세운 자 그림을 시계 방향으로 눕혀요 (그림 위 = 오른쪽 끝 · 왼쪽 변 = 위 · 눈금은 위 가장자리) · 눈금영역 길이 = L cm ---------- */
     function rlDraw() { const d = rlArt(rlKind(R.kind), R.L, R.ppc); R.W = d.w; R.H = d.h; return d.svg; }
@@ -66,7 +66,7 @@
         const K = rlKind(id); if (!K) return ''; const P = rlPicOf(K);
         const a = K.area, x0 = a[0] / 100 * P.w, y1 = a[1] / 100 * P.h, y2 = a[3] / 100 * P.h, aw = (a[2] - a[0]) / 100 * P.w, n = 150, st = (y2 - y1) / n;
         let tk = ''; for (let i = 0; i <= n; i++) { const y = (y1 + i * st).toFixed(2), l = aw * (i % 10 === 0 ? .42 : i % 5 === 0 ? .3 : .18); tk += `<line x1="${x0.toFixed(2)}" y1="${y}" x2="${(x0 + l).toFixed(2)}" y2="${y}"/>`; }
-        return gdPicSvg('ruler:' + K.id, { extra: `<g stroke="${K.ink}" stroke-width="${Math.max(.4, P.w / 60).toFixed(2)}">${tk}</g>` });
+        return gdPicSvg('ruler-' + K.id, { extra: `<g stroke="${K.ink}" stroke-width="${Math.max(.4, P.w / 60).toFixed(2)}">${tk}</g>` });
     }
 
     /* ---------- 자 놓기 ---------- */

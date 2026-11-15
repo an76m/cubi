@@ -118,13 +118,13 @@
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         /* 📔 날짜 다이어리 = 한 권에 폴더 하나 (도련 10-28 · js/dyyear.js) : 권 id '2026mint2' = 해 · 바인더 색 · 그 해 그 색 몇 번째 (지워도 번호는 다시 안 써요)
              diary_2026mint2_2026_10_28 → 말랑달콤 / 날짜형바인더 / 2026 녹색 2 / 2026-10-28.json · 검색 목록 = 그 폴더 / 검색.json */
-        /* 📔 날짜형 권 id '2026b-분홍-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 번호 (도련 11-04 · js/dyyear.js) · 디자인이 늘어도 코드는 그대로 */
+        /* 📔 날짜형 권 id '2026b-dyb-20261104090000-2' = 해 · 종류 글자(b 날짜형바인더 · n 날짜형노트) · 디자인 id · 번호 (도련 11-04 · js/dyyear.js) · 디자인이 늘어도 코드는 그대로 */
         const DAY_KEY_RE = /^diary_(\d{4}[bn]-.+-\d+)_(\d{4})_(\d{2})_(\d{2})$/;
         const DYB_RE = /^(\d{4})([bn])-(.+)-(\d+)$/;
-        function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${r[3]} ${r[4]}` : ''; }   // 폴더 이름 '2026 분홍 2' (디자인 id · 바인더 · 노트는 폴더가 달라요)
+        function dyBookName(b) { const r = DYB_RE.exec(b || ''); return r ? `${r[1]} ${r[3]} ${r[4]}` : ''; }   // 폴더 이름 '2026 dyb-20261104090000 2' (해 · 디자인 id · 번호)
         function dyBookOfName(n, note) {                                   // 폴더 이름 → 권 id (노트인지 = 디자인으로 · 도련 11-07 다이어리 폴더 하나)
             const r = /^(\d{4}) (.+) (\d+)$/.exec(n || ''); if (!r) return '';
-            if (note == null) { const d = (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).find(x => x.id === r[2]); note = d ? d.ch === 'n' : /노트$/.test(r[2]); }
+            if (note == null) { const d = (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).find(x => x.id === r[2]); note = d ? d.ch === 'n' : /^dyn-/.test(r[2]); }   // 디자인을 아직 못 읽었으면 = id 앞머리 (dyn 날짜형노트 · 도련 11-15)
             return `${r[1]}${note ? 'n' : 'b'}-${r[2]}-${r[3]}`;
         }
         const dyBookDir = b => DIARY_PATH.concat([dyBookName(b)]);         // 📔 다이어리 / 2026 분홍 1 (노트 = 2026 분홍노트 1 · 디자인 id 로 나뉘어요)

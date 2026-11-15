@@ -16,15 +16,15 @@
     const KN_KINDS = [];
     function knBuild() {
         KN_KINDS.length = 0;
-        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife:')).forEach(x => {
+        (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife-')).forEach(x => {
             const p = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(p);
             if (!tip || !String(x.P.이름 || '')) { console.warn('🧁 칼 속성이 모자라요 :', x.id); return; }
-            KN_KINDS.push({ id: x.id.slice(6), name: String(x.P.이름), box: p.size, tip });
+            KN_KINDS.push({ id: gdSuf(x.id), name: String(x.P.이름), box: p.size, tip });
         });
     }
     knBuild();
     const knKind = id => KN_KINDS.find(k => k.id === id) || KN_KINDS[0] || null;
-    const knifeSvg = id => { const k = knKind(id); return k && window.gdPicSvg ? gdPicSvg('knife:' + k.id) : ''; };
+    const knifeSvg = id => { const k = knKind(id); return k && window.gdPicSvg ? gdPicSvg('knife-' + k.id) : ''; };
     let KN_TIP = null, KN_BOX = null;
     function knTipSet() { const k = knKind(S.kind); KN_TIP = k.tip; KN_BOX = k.box; Object.assign(S.kn.style, { width: KN_BOX[0] + 'px', height: KN_BOX[1] + 'px', transformOrigin: `${KN_TIP[0]}px ${KN_TIP[1]}px` }); }   // 📐 상품 크기 · 칼끝에서 돌아요
     const KN_LAY = -28;                                // 놓인 칼 기울기 = 놓인 핀셋 (css .bd-tool.tweez)
@@ -142,7 +142,7 @@
         if (!S.held || S.down || e.pointerType === 'touch') return;   // 🖱 ✏️ 마우스 · 펜 호버는 칼이 따라와요
         const on = skPage(e.clientX, e.clientY); document.body.classList.toggle('sk-follow', on);
         if (on) { knifeAt(e.clientX, e.clientY); return; }
-        if (e.pointerType === 'mouse' && window.dkwAirOut && S.kind) { const r = spRect(); if (!(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom)) dkwAirOut('knife:' + S.kind, S.kn); }   // ✋ 📔 다이어리모드 = 페이지 밖으로 나가면 공중에 떠서 마우스를 따라와요 (도련 11-12 · js/deskgd.js)
+        if (e.pointerType === 'mouse' && window.dkwAirOut && S.kind) { const r = spRect(); if (!(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom)) dkwAirOut('knife-' + S.kind, S.kn); }   // ✋ 📔 다이어리모드 = 페이지 밖으로 나가면 공중에 떠서 마우스를 따라와요 (도련 11-12 · js/deskgd.js)
     }, true);
     addEventListener('pointerdown', e => {
         if (!S.held || S.down || S.busy || e.button > 0 || !skPage(e.clientX, e.clientY, e.target)) return;

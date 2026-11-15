@@ -8,7 +8,7 @@
    - 도구 종류는 PK_KINDS 한 곳 · 새 색을 넣으면 저절로 나와요
    - '닫기' 를 누르면 저장 → 펜꽂이에는 고른 것만 다시 꽂혀요 (js/draw.js pcList · penSetTool)
    - 펜꽂이에는 1 ~ 24 개 (너무 많으면 고르기 어려워요)
-   저장 : 'diary_pencase'(🔐 설정 / 배치.json · 도련 11-06) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen:#333333', 'hi:#ffe14d', 'erase:0', …]
+   저장 : 'diary_pencase'(🔐 설정 / 배치.json · 도련 11-06) · 게스트는 이 기기 'malang_pencase' · 값 = 꽂은 도구 이름 목록 ['pen-20261101090000', 'hi-20261101090100', …]
    ※ 이 파일이 없어도 다이어리는 정상 동작 (기본 필기구 그대로) */
 
         const PK_KEY = 'diary_pencase', PK_LOCAL = 'malang_pencase', PK_MAX = 24;
@@ -156,14 +156,14 @@
             const on = pk.pick, r = pkq('pkRoom');
             r.classList.toggle('binning', !!pk.bin); { const bb = pkq('pkBin'); if (bb) { bb.classList.toggle('on', !!pk.bin); bb.setAttribute('aria-pressed', !!pk.bin); bb.textContent = pk.bin ? '✓' : '🗑'; } }
             r.querySelectorAll('.pk-t').forEach(b => { const v = on.has(b.dataset.id); b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); });
-            r.querySelectorAll('[data-n]').forEach(n => { const c = [...on].filter(id => id.split(':')[0] === n.dataset.n).length; n.textContent = c || ''; });
+            r.querySelectorAll('[data-n]').forEach(n => { const c = [...on].filter(id => gdPre(id) === n.dataset.n).length; n.textContent = c || ''; });
             if (pk.bin) { pkq('pkTip').innerHTML = `🗑 <b>버릴 필기구를 톡</b><small>휴지통에 30일 보관했다가 지워져요 · 다 했으면 ✓</small>`; return; }
             pkq('pkTip').innerHTML = `필기구를 <b>좌우로 밀어</b> 넘기고 <b>톡</b> 골라요 · <b>${on.size}</b> / ${PK_MAX}개<small>♥ 고른 것만 펜꽂이에 꽂혀요</small>`;
         }
         function pkToggle(b) {
             const id = b.dataset.id, on = pk.pick;
             if (pk.bin) { pkBinTap(id); return; }
-            if (on.has(id)) { if (![...on].some(v => v !== id && /^(pen|hi):/.test(v)) && /^(pen|hi):/.test(id)) { pkSay('쓸 색연필 · 형광펜 하나는 꼭 꽂아 둬요 ✏️'); return; } on.delete(id); }
+            if (on.has(id)) { if (![...on].some(v => v !== id && /^(pen|hi)-/.test(v)) && /^(pen|hi)-/.test(id)) { pkSay('쓸 색연필 · 형광펜 하나는 꼭 꽂아 둬요 ✏️'); return; } on.delete(id); }
             else { if (on.size >= PK_MAX) { pkSay(`펜꽂이에는 ${PK_MAX}개까지 꽂을 수 있어요`); return; } on.add(id); }
             rePop(b, 'pop');
             pkRender();

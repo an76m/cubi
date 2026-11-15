@@ -84,7 +84,7 @@
         const cx = G.one ? PW / 2 : PW * 1.5;                                     // 오른쪽 쪽 가운데 (종이 자리)
         if (g === 'knife') {                                                      // 🔪 샘플 스티커 하나 → 칼을 손에 (js/stkcut.js · 문구함 '칼' 서랍과 같게)
             stick(STK[0], cx - 95, PH / 2 - 100, 190);
-            G.again = () => { skKnife(mx + 90, my - 40, G.id.slice(6)); skHold(true); }; G.again(); return;
+            G.again = () => { skKnife(mx + 90, my - 40, gdSuf(G.id)); skHold(true); }; G.again(); return;
         }
         if (!PENS[g]) {                                                           // 🪡 📎 🕳️ 🩹 ✂️ = 판에 놓고 바로 손에 (js/skins.js gdPick · gdHold)
             if (g === 'tweez') STK.forEach((u, i) => stick(u, (G.one ? 40 : PW + 30) + i * 125, 220 + (i % 2) * 110, 100));   // 🎀 샘플 스티커 셋
@@ -96,7 +96,7 @@
         const one = window.pkCupOne && pkCupOne(pen); if (!one) return;
         G.sp.cup = [one]; G.again = e => { if (!penOn()) drawWith(pen, e.clientX, e.clientY); };   // ✏️ 펜꽂이 = 써 볼 것 하나
         if (g === 'erase') penAttach(SCRIBBLE(G.one ? [70] : [70, PW + 70]));   // 🧽 미리 쓴 글씨 (진짜 펜 그림 그대로)
-        if (g === 'ruler') { G.rl = !rlOn(); rlShow(b0.left + b0.width / 2, b0.top + b0.height * .4, G.id.replace(/^ruler:/, '')); }   // 📏 진짜 cm 길이 = 펼친 두 쪽 가운데
+        if (g === 'ruler') { G.rl = !rlOn(); rlShow(b0.left + b0.width / 2, b0.top + b0.height * .4, G.id.replace(/^ruler-/, '')); }   // 📏 진짜 cm 길이 = 펼친 두 쪽 가운데
         drawWith(pen, mx + 40, my + 120);
         if (g === 'ruler') rulerKnife(b0);
     }
@@ -115,7 +115,7 @@
         const sx = PW * .6, sy = PH * .5;                                         // 스티커 = 왼쪽 쪽 · 자 아래쪽 가장자리가 스티커 위를 지나가요 (📱 한 쪽이면 그 쪽)
         stick(STK[0], sx - 85, sy - 80, 170);
         const k = b0.width / G.W;                                                  // 화면에 줄어든 만큼
-        skKnife(b0.left + (sx + 120) * k, b0.top + (sy + 130) * k, kn.id.slice(6));   // 🔪 스티커 옆에 놓인 칼 (톡 = 손에)
+        skKnife(b0.left + (sx + 120) * k, b0.top + (sy + 130) * k, gdSuf(kn.id));   // 🔪 스티커 옆에 놓인 칼 (톡 = 손에)
         document.body.classList.add('gdt-rk');                                      // 안내는 아래 한 줄만 (칼 안내 띠는 숨겨요 · css/gdtry.css)
     }
     function stick(src, x, y, w) {                                                // 🎀 샘플 스티커 붙이기 (진짜 붙이기 그대로 · js/elements.js addImage · 저장 없는 공간)

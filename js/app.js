@@ -142,7 +142,7 @@ let fontList = [
            속성 : 이름 · 규격(n) · mm · r(세로÷가로) · b(묶는 방식) · 표지색 · 테두리색 · 강조색 · 속지색 · 내지(js/maker.js MK.LEAFS · 모든 날 같은 내지 · 도련 11-05) · 처음받기
            DY_DESIGNS = 날짜형 디자인 모두 (권 · 가게 · 책상) · DY_COL = 디자인 id → 그 권 색 { cover, page, border, accent } (펼친 권 = 다이어리에만 칠해요 · js/dyyear.js dyyColorPaint · 도련 11-05) */
         const DY_COL = {}, DY_DESIGNS = [];
-        const DY_DKINDS = [['날짜형바인더', '바인더', 'b'], ['날짜형노트', '노트', 'n']];   // [상품 종류, 모양, 권 id 글자 (2026b-분홍-1)]
+        const DY_DKINDS = [['날짜형바인더', '바인더', 'b'], ['날짜형노트', '노트', 'n']];   // [상품 종류, 모양, 권 id 글자 (2026b-dyb-20261104090000-1)]
         function dyColorsBuild() {                                             // 🧁 서버 상품 그대로 (js/prod.js)
             Object.keys(DY_COL).forEach(k => delete DY_COL[k]); DY_DESIGNS.length = 0;
             const okC = v => /^#[0-9a-f]{6}$/i.test(v || '');
