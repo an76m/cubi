@@ -233,7 +233,7 @@
     }
     function gaugeOff() { const g = q('pgGauge'); if (g) g.remove(); }
 
-    /* ---------- 아래 가운데 : ✅ 완료 버튼 · 완료한 페이지 표시 ---------- */
+    /* ---------- 아래 가운데 (📔 다이어리모드 = 위 가운데 · css/pagedone.css · 도련 11-15) : ✅ 완료 버튼 · 완료한 페이지 표시 ---------- */
     function ui() {
         let b = q('pgBar');
         if (!b) {
