@@ -192,34 +192,9 @@
                 else b.strip = null;
             }
         }
-        function pcbImg(st, img, sh, extra = 1, flip = 1) {
-            const ctx = pcbS.ctx; ctx.save();
-            if (sh) { ctx.shadowColor = sh.c; ctx.shadowBlur = sh.b; ctx.shadowOffsetY = sh.y; ctx.shadowOffsetX = sh.x || 0; }
-            ctx.translate(st.cx, st.cy); ctx.rotate(st.rot); ctx.scale(st.s * extra * flip, st.s * extra); ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.restore();
-        }
-        function pcbHalf(c, M, n, sign) {
-            const p = [-n[1], n[0]], L = 4000; c.beginPath();
-            c.moveTo(M[0] + p[0] * L, M[1] + p[1] * L); c.lineTo(M[0] - p[0] * L, M[1] - p[1] * L);
-            c.lineTo(M[0] - p[0] * L + n[0] * L * sign, M[1] - p[1] * L + n[1] * L * sign); c.lineTo(M[0] + p[0] * L + n[0] * L * sign, M[1] + p[1] * L + n[1] * L * sign); c.closePath();
-        }
+        const pcbImg = (st, img, sh, extra, flip) => stkImg(pcbS.ctx, img, st, sh, extra, flip);   // 📖 떼어지는 그림 = 스티커 엔진 (js/sticker.js)
         /* 잡은 점(C)과 손가락(F) 사이를 접는 선으로, 들린 쪽은 뒤집어 뒷면을 그려요 */
-        function pcbPeel(st, C, F, sh) {
-            const S = pcbS, ctx = S.ctx, a = S.assets[st.k], dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy);
-            if (len < .5) { pcbImg(st, a.front, sh); return; }
-            const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2];
-            ctx.save(); pcbHalf(ctx, M, n, 1); ctx.clip(); pcbImg(st, a.front, sh); ctx.restore();
-            const md = M[0] * n[0] + M[1] * n[1], A = 1 - 2 * n[0] * n[0], B = -2 * n[0] * n[1], D = 1 - 2 * n[1] * n[1], E = 2 * md * n[0], Fv = 2 * md * n[1], R = S.DPR;
-            const L = S.fl.getContext('2d'); L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, S.fl.width, S.fl.height);
-            L.setTransform(R * A, R * B, R * B, R * D, R * E, R * Fv);
-            L.save(); pcbHalf(L, M, n, -1); L.clip();
-            L.translate(st.cx, st.cy); L.rotate(st.rot); L.scale(st.s, st.s); L.drawImage(a.back, -a.w / 2, -a.h / 2); L.restore();
-            L.setTransform(R, 0, 0, R, 0, 0); L.globalCompositeOperation = 'source-atop';
-            const span = Math.max(20, len / 2), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
-            g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)');
-            L.fillStyle = g; L.fillRect(0, 0, S.W, S.H); L.globalCompositeOperation = 'source-over';
-            ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;
-            ctx.drawImage(S.fl, 0, 0, S.W, S.H); ctx.restore();
-        }
+        const pcbPeel = (st, C, F, sh) => stkFold(pcbS, pcbS.ctx, pcbS.assets[st.k], st, C, F, sh);
         const PCB_DESK = { c: 'rgba(90,60,70,.2)', b: 3, y: 1.5 }, PCB_UP = { c: 'rgba(80,50,60,.3)', b: 18, y: 12 };
         function pcbDrawPiece(st, t) {
             if (st.hidden) return;
@@ -229,7 +204,7 @@
                     pcbImg(st, a.liner, PCB_UP);
                     if (peel) pcbPeel(st, d.C, d.F, null);
                     else if (st.half) pcbPeel(st, st.half.C, st.half.F, null);
-                    else { const q = Math.min(1, (t - st.snap.t0) / 260), e = pcbOut(q), s = st.snap; pcbPeel(st, s.C, [s.F[0] + (s.C[0] - s.F[0]) * e, s.F[1] + (s.C[1] - s.F[1]) * e], null); if (q >= 1) st.snap = null; }
+                    else { pcbPeel(st, st.snap.C, stkSnap(st.snap, t), null); if (st.snap.end) st.snap = null; }   // 덜 벗기고 놓으면 제자리로 착 (스티커 엔진)
                     return;
                 }
                 pcbImg(st, a.piece, st.state === 'held' ? PCB_UP : PCB_DESK); return;

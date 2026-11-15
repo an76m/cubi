@@ -22,7 +22,12 @@
        stkPeeled(a, st, C, F) = 얼마나 떼어졌는지 (0 ~ 1 · 가장자리 점이 접힌 선 너머로 간 비율)
        stkSpeed(d, P) = 손가락 빠르기 (px/ms · 떼는 소리 크기) · stkSway(st, dx, base, lim) = 끌면 살랑 기울어요 · stkWiggle(st) = 가운데를 누르면 살짝 흔들려요
        stkPageScale() = 떨어지는 순간 페이지에 붙을 진짜 크기 (페이지 배율) · stkCap(el, e) = 손가락 붙잡기 · stkBar(e, P) = 종이 밖 날짜바 = 페이지 옮기기
-   - 다음 단계 : 떼어지는 그림 → 문서
+   - 📖 떼어지는 그림 (S-4) : 잡은 점(C)과 떼는 끝(F) 사이 가운데가 접히는 선 · 붙은 쪽 = 앞면 · 들린 쪽 = 뒤집힌 뒷면 + 말린 음영 + 그림자 (씰스티커 R&D 방법)
+       stkImg(ctx, img, st, sh, extra, flip) = 스티커 한 장 그리기 (sh = 그림자 { c, b, y, x } · flip = 좌우 뒤집기 · 뗀 순간 뒷면 → 앞면)
+       stkFold(S, ctx, a, st, C, F, sh) = 접혀 떼어지는 모습 (S = { fl 겹쳐 그릴 캔버스, DPR, W, H } · a = { front, back, w, h })
+       stkSnap(sn, t) = 덜 떼고 놓으면 제자리로 착 (0.26초 · 끝 F 를 돌려줘요 · 끝나면 sn.end = true) · stkHalf = 접는 선 한쪽 칠할 곳
+       📄 모조지는 종이 위에서 떼는 그림을 js/peelfx.js pfxSeal 로 (페이지 스티커 옮기기와 같은 것)
+   - 단계 S-1 ~ S-4 다 끝 (도련 11-16 · 1241 ~ 1244) · 새 스티커 종류 = 종이 화면 모양 · 떼는 방법(어디를 잡는지 · 얼마나 떼면 떨어지는지) · 붙일 때 다른 점만 만들고 나머지는 여기 것을 써요
    ※ util.js · space.js · elements.js 다음 · 스티커 종류 파일보다 먼저 읽어요 */
 const stkNoise = scrubSound({ hz: 3200, q: .7, hit: .3, lo: .3 });            // 🔊 🏷️ 씰 · 🧩 조각 '찌익' (예전엔 파일마다 같은 소리를 따로)
 function stkTwz(x, y) {
@@ -96,6 +101,41 @@ function stkWiggle(st) { const r = st.rot, t0 = performance.now(); (function w()
 function stkPageScale() { const pg = spPage(), r = pg && pg.getBoundingClientRect(); return r && r.width ? r.width / (pg.offsetWidth || r.width) : 0; }
 function stkCap(el, e) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
 function stkBar(e, P) { if (window.pgmOnBar && pgmOnBar(P[0], P[1])) pgmBegin(e); }   // 종이 밖 날짜바 위 → 페이지 옮기기 (js/page.js)
+
+/* ---------- 📖 떼어지는 그림 (S-4) ---------- */
+function stkImg(ctx, img, st, sh, extra = 1, flip = 1) {
+    ctx.save();
+    if (sh) { ctx.shadowColor = sh.c; ctx.shadowBlur = sh.b; ctx.shadowOffsetY = sh.y; ctx.shadowOffsetX = sh.x || 0; }
+    ctx.translate(st.cx, st.cy); ctx.rotate(st.rot); ctx.scale(st.s * extra * flip, st.s * extra);
+    ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.restore();
+}
+function stkHalf(c, M, n, sign) {
+    const p = [-n[1], n[0]], L = 4000; c.beginPath();
+    c.moveTo(M[0] + p[0] * L, M[1] + p[1] * L); c.lineTo(M[0] - p[0] * L, M[1] - p[1] * L);
+    c.lineTo(M[0] - p[0] * L + n[0] * L * sign, M[1] - p[1] * L + n[1] * L * sign); c.lineTo(M[0] + p[0] * L + n[0] * L * sign, M[1] + p[1] * L + n[1] * L * sign); c.closePath();
+}
+function stkFold(S, ctx, a, st, C, F, sh) {
+    const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy);
+    if (len < .5) { stkImg(ctx, a.front, st, sh); return; }
+    const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2];
+    ctx.save(); stkHalf(ctx, M, n, 1); ctx.clip(); stkImg(ctx, a.front, st, sh); ctx.restore();
+    const md = M[0] * n[0] + M[1] * n[1], A = 1 - 2 * n[0] * n[0], B = -2 * n[0] * n[1], D = 1 - 2 * n[1] * n[1], E = 2 * md * n[0], Fv = 2 * md * n[1], R = S.DPR;   // 접는 선으로 뒤집기
+    const L = S.fl.getContext('2d'); L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, S.fl.width, S.fl.height);
+    L.setTransform(R * A, R * B, R * B, R * D, R * E, R * Fv);
+    L.save(); stkHalf(L, M, n, -1); L.clip();
+    L.translate(st.cx, st.cy); L.rotate(st.rot); L.scale(st.s, st.s); L.drawImage(a.back, -a.w / 2, -a.h / 2, a.w, a.h); L.restore();
+    L.setTransform(R, 0, 0, R, 0, 0); L.globalCompositeOperation = 'source-atop';                               // 말린 느낌 음영
+    const span = Math.max(20, len / 2), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
+    g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)');
+    L.fillStyle = g; L.fillRect(0, 0, S.W, S.H); L.globalCompositeOperation = 'source-over';
+    ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;
+    ctx.drawImage(S.fl, 0, 0, S.W, S.H); ctx.restore();
+}
+function stkSnap(sn, t) {
+    const q = Math.min(1, (t - sn.t0) / 260), e = 1 - Math.pow(1 - q, 3);
+    if (q >= 1) sn.end = true;
+    return [sn.F[0] + (sn.C[0] - sn.F[0]) * e, sn.F[1] + (sn.C[1] - sn.F[1]) * e];
+}
 
 /* ---------- 📄 붙이기 (S-1) ---------- */
 function stkStick(o) {

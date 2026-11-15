@@ -192,38 +192,10 @@
         const pelToStage = stkToStage, pelToLocal = stkToLocal;             // ✋ 핀셋 손길 = 스티커 엔진 (js/sticker.js)
 
         /* ---------- 그리기 ---------- */
-        function pelDraw(ctx, img, st, extra = 1, flip = 1, sh = null) {
-            ctx.save();
-            if (sh) { ctx.shadowColor = sh.c; ctx.shadowBlur = sh.b; ctx.shadowOffsetY = sh.y; ctx.shadowOffsetX = sh.x || 0; }
-            ctx.translate(st.cx, st.cy); ctx.rotate(st.rot); ctx.scale(st.s * extra * flip, st.s * extra);
-            ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.restore();
-        }
-        function pelHalf(c, M, n, sign) {
-            const p = [-n[1], n[0]], L = 4000; c.beginPath();
-            c.moveTo(M[0] + p[0] * L, M[1] + p[1] * L); c.lineTo(M[0] - p[0] * L, M[1] - p[1] * L);
-            c.lineTo(M[0] - p[0] * L + n[0] * L * sign, M[1] - p[1] * L + n[1] * L * sign); c.lineTo(M[0] + p[0] * L + n[0] * L * sign, M[1] + p[1] * L + n[1] * L * sign); c.closePath();
-        }
+        const pelDraw = (ctx, img, st, extra = 1, flip = 1, sh = null) => stkImg(ctx, img, st, sh, extra, flip);   // 📖 떼어지는 그림 = 스티커 엔진 (js/sticker.js)
         const PEL_FLAT = { c: 'rgba(90,60,70,.12)', b: 2, y: 1 }, PEL_UP = { c: 'rgba(80,50,60,.25)', b: 18, y: 12 };
         /* 잡은 점(C)과 손가락(F) 사이를 접는 선으로, 들린 쪽은 뒤집어 뒷면을 그려요 (씰스티커 R&D 와 같은 방법) */
-        function pelDrawPeel(ctx, o, C, F) {
-            const S = pelS, a = o.a, st = o.st, base = PEL_FLAT;
-            const dx = F[0] - C[0], dy = F[1] - C[1], len = Math.hypot(dx, dy);
-            if (len < .5) { pelDraw(ctx, a.front, st, 1, 1, base); return; }
-            const n = [dx / len, dy / len], M = [(C[0] + F[0]) / 2, (C[1] + F[1]) / 2];
-            ctx.save(); pelHalf(ctx, M, n, 1); ctx.clip(); pelDraw(ctx, a.front, st, 1, 1, base); ctx.restore();
-            const md = M[0] * n[0] + M[1] * n[1];
-            const A = 1 - 2 * n[0] * n[0], B = -2 * n[0] * n[1], D = 1 - 2 * n[1] * n[1], E = 2 * md * n[0], Fv = 2 * md * n[1], R = S.DPR;
-            const L = S.fl.getContext('2d'); L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, S.fl.width, S.fl.height);
-            L.setTransform(R * A, R * B, R * B, R * D, R * E, R * Fv);
-            L.save(); pelHalf(L, M, n, -1); L.clip();
-            L.translate(st.cx, st.cy); L.rotate(st.rot); L.scale(st.s, st.s); L.drawImage(a.back, -a.w / 2, -a.h / 2, a.w, a.h); L.restore();
-            L.setTransform(R, 0, 0, R, 0, 0); L.globalCompositeOperation = 'source-atop';                               // 말린 느낌 음영
-            const span = Math.max(20, len / 2), g = L.createLinearGradient(M[0], M[1], M[0] + n[0] * span, M[1] + n[1] * span);
-            g.addColorStop(0, 'rgba(110,80,90,.35)'); g.addColorStop(.18, 'rgba(255,255,255,.25)'); g.addColorStop(.45, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(150,120,130,.15)');
-            L.fillStyle = g; L.fillRect(0, 0, S.W, S.H); L.globalCompositeOperation = 'source-over';
-            ctx.save(); ctx.shadowColor = 'rgba(80,50,60,.28)'; ctx.shadowBlur = 10 + Math.min(14, len / 12); ctx.shadowOffsetX = n[0] * 4; ctx.shadowOffsetY = 4 + n[1] * 3;
-            ctx.drawImage(S.fl, 0, 0, S.W, S.H); ctx.restore();
-        }
+        const pelDrawPeel = (ctx, o, C, F) => stkFold(pelS, ctx, o.a, o.st, C, F, PEL_FLAT);
         const pelRR = rrPath;   // 🧰 js/util.js
         function pelFrame(t) {
             const S = pelS; if (!S.on) return;
@@ -317,9 +289,8 @@
         }
         /* 덜 떼다 놓으면 제자리로 착 붙어요 */
         function pelSnap(ctx, o, t) {
-            const sn = o.st.snap, q = Math.min(1, (t - sn.t0) / 260), e = 1 - Math.pow(1 - q, 3);
-            pelDrawPeel(ctx, o, sn.C, [sn.F[0] + (sn.C[0] - sn.F[0]) * e, sn.F[1] + (sn.C[1] - sn.F[1]) * e]);
-            if (q >= 1) o.st.snap = null;
+            const sn = o.st.snap; pelDrawPeel(ctx, o, sn.C, stkSnap(sn, t));    // 스티커 엔진
+            if (sn.end) o.st.snap = null;
         }
 
         /* ---------- 손가락 ---------- */
