@@ -112,7 +112,7 @@
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
             <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
-            <p class="pp-hint pp-endt">💾 임시저장은 작업 중인 이 기기에만 임시로 저장돼요</p>`;   // 도련 11-15 : 버튼 밑 한 줄
+            <p class="pp-hint pp-endt">💾 임시저장은 작업 중인 이 기기에만 임시로 저장돼요<br>📐 완료된 도안은 🖨 프린터에서 스티커로 뽑아요</p>`;   // 도련 11-15 : 버튼 밑 두 줄
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); if (a.dataset.a === 'mine') minePop(); } };
         if (P.kind === 'piece') { $('ppPcAdd').onclick = pcAdd; $('ppPcs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; P.pcs.splice(+b.dataset.i, 1); P.dirty = true; pcPaint(); }; pcPaint(); }
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
@@ -954,10 +954,12 @@
         if (!window.ownTake) { if (window.comingSoon) comingSoon('🗄️ 서랍에 넣기'); return; }
         if (window.showAsk && !(await showAsk('✅ 도안을 완료할까요?<br><small style="color:#777;">완료한 도안은 수정할 수 없어요</small>', '✅ 완료', '취소'))) return;   // 도련 11-15 : 완료 · 취소를 고르게
         if (P.saving || !P.on) return;
-        const b = $('ppGo'); P.saving = true; b.disabled = true; b.textContent = '💾 넣는 중…';
+        const b = $('ppGo'); P.saving = true; b.disabled = true; b.textContent = '💾 저장 중…';
+        const g = gauge(); g(12); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));   // 📊 저장 중 게이지 (도련 11-15 · 다 되면 저절로 닫혀요)
+        let ok = false;
         try {
             const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, P.W, P.H); compose(x, false);
-            const src = c.toDataURL('image/jpeg', .86);
+            const src = c.toDataURL('image/jpeg', .86); g(35);
             let nSeal = 0; if (window.ownAdd) ownAdd.design = '';
             if (P.kind === 'seal') { if (!window.ownAdd) throw new Error('ownAdd'); nSeal = await sealSave(); if (!nSeal) return; }
             else if (P.kind === 'paper') await ownTake({ k: 'paper', from: 'mine', imgs: [c.toDataURL('image/jpeg', .9)] });   // 📄 보이는 그대로 인쇄된 한 장 (js/papermaker.js openPaperSheet · 가로 = PM_W)
@@ -971,16 +973,26 @@
             else if (P.kind === 'tape') await ownTake(tapeOut());   // 🎀 한 롤 (붙인 길이만큼 줄어요) · 📏 폭 · 한 칸 mm 가 그림 안에 (js/tape.js tapeFit)
             else if (P.kind === 'tk') await ownTake({ k: 'tk', from: 'mine', imgs: [c.toDataURL('image/jpeg', .9)], x: { pad: 'my', glue: P.glue || '', mm: P.tkmm.slice() } });   // 🧻 한 묶음(50장) · 📏 실제 크기 mm (js/leafpad.js tkDim)
             else await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: Object.assign({ lf: 'my' }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: +(P.H / P.W).toFixed(4) } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
-            P.dirty = false;
+            P.dirty = false; g(85);
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
             if (window.ownAdd && ownAdd.design && window.ownDzMsg) ownDzMsg('design:' + ownAdd.design, nSeal ? (P.kind === 'piece' ? `🧩 조각 ${nSeal}개` : `🏷️ 스티커 ${nSeal}장`) : '');   // 📐 도안 (📱 태블릿 = 책상 프린터 · 📱 폰 = 🖨 지금 바로 뽑기)
             else if (P.kind === 'paper' && window.showMsg) showMsg('📄 모조지 한 장을 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">✂️ 가위로 오려 붙여요.</span>');
             else if (P.kind === 'piece' && window.showMsg) showMsg(`🧩 조각 ${nSeal}개를 <b>🗄️ 서랍</b>에 넣었어요!`);
             else if (P.kind === 'seal' && window.showMsg) showMsg(`🏷️ 스티커 ${nSeal}장짜리 씰 시트를 <b>🗄️ 서랍</b>에 넣었어요!`);
             else if (window.showMsg) showMsg(`${P.kind === 'tk' ? '🧻 떡메 한 묶음을' : P.kind === 'tape' ? '🎀 테이프 한 롤을' : '📃 속지를'} <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>`);
+            g(100); ok = true; await new Promise(r => setTimeout(r, 350));        // 가득 찬 것을 잠깐 보여 주고
+            g(-1);
             if (P.o.done) P.o.done();
-        } catch (e) { if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
-        finally { P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 도안완료'; } }
+        } catch (e) { g(-1); if (window.showMsg) showMsg('⚠ 서랍에 넣지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); }
+        finally { if (!ok) g(-1); P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 도안완료'; } }
+    }
+    /* 📊 저장 중 게이지 : 그림판 위에 덮개 + 막대 (g(0~100) = 채우기 · g(-1) = 닫기) */
+    function gauge() {
+        let el = $('ppSaving'); if (el) el.remove();
+        el = document.createElement('div'); el.id = 'ppSaving'; el.className = 'pp-saving'; el.setAttribute('role', 'progressbar'); el.setAttribute('aria-label', '저장 중');
+        el.innerHTML = '<div class="pp-sv-box"><b>💾 도안을 저장하고 있어요</b><div class="pp-sv-bar"><i></i></div><small>잠시만 기다려 주세요</small></div>';
+        document.body.appendChild(el);
+        return v => { if (v < 0) { el.remove(); return; } const i = el.querySelector('i'); if (i) i.style.width = v + '%'; el.setAttribute('aria-valuenow', v); };
     }
 
     /* ================= 💾 임시저장 (도안/작업중-<종류>.json · 도련 11-14) ================= */

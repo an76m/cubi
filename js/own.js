@@ -60,7 +60,7 @@
         async function ownDzMsg(r, lead) {
             const id = String(r || '').replace(/^design:/, ''); if (!id || !window.showMsg) return;
             const h = (lead ? lead + ' · ' : '') + '📐 <b>내 도안</b>에 저장했어요!';
-            if (window.tbDesignOnly) { showMsg(h + '<br><span style="font-size:12px;color:#777;">책상 위 🖨 프린터에서 뽑으면 🗄️ 서랍에 들어가요.</span>'); return; }
+            if (window.tbDesignOnly) return;                                     // 🖥 태블릿 = 알림 없이 (도련 11-15 · 영구 삭제 · 저장 중 게이지가 끝나면 그림판이 닫혀요 · 버튼 밑 글 '완료된 도안은 프린터에서 뽑아요')
             let k = ''; try { const d = (await ownDesigns()).find(e => String(e.id) === id); k = d && d.x && d.x.k; } catch (e) {}
             const rt = ownRuleText(k);
             if (!window.showAsk || !(await showAsk(h + `<br><span style="font-size:12px;color:#777;">🖨 뽑으면 🗄️ 서랍에 ${rt || '들어가요'}${rt ? ' 들어가요' : ''}</span>`, '🖨 지금 바로 뽑기', '나중에'))) {
