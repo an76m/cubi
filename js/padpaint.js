@@ -58,6 +58,11 @@
         const pop = $('ppPop'); if (pop) pop.remove();
     }
     const ppDirty = () => !!(P.on && P.dirty);
+    async function ppDiscard() {                                              // 🗑 나갈 때 '지우기' : 자동 임시저장을 멈추고 (저장 중이면 끝날 때까지 기다려요 · 그다음 지워야 다시 안 생겨요)
+        P.dirty = false;
+        for (let i = 0; i < 60 && P.saving; i++) await new Promise(r => setTimeout(r, 50));
+        P.dirty = false;
+    }
 
     /* ================= 레이어 ================= */
     function addLayer(type, name, extra, at) {
@@ -107,7 +112,7 @@
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
             <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
-            <p class="pp-hint pp-endt">📐 완료된 도안은 🖨 프린터에서 스티커로 뽑아요</p>`;   // 도련 11-15 : 긴 설명 대신 한 줄
+            <p class="pp-hint pp-endt">💾 임시저장은 작업 중인 이 기기에만 임시로 저장돼요</p>`;   // 도련 11-15 : 버튼 밑 한 줄
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); if (a.dataset.a === 'mine') minePop(); } };
         if (P.kind === 'piece') { $('ppPcAdd').onclick = pcAdd; $('ppPcs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; P.pcs.splice(+b.dataset.i, 1); P.dirty = true; pcPaint(); }; pcPaint(); }
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
@@ -947,6 +952,8 @@
         if (!P.dirty && !(P.pcs && P.pcs.length) && !P.layers.some(l => l.type === 'photo' || (l.type === 'vec' && l.shapes.length) || (l.type === 'px' && !isBlank(l.cv)))) { /* 💾 임시저장한 뒤(dirty 아님)에도 그린 게 있으면 넣어요 */ if (window.showMsg) showMsg('먼저 그림을 그리거나 📎 사진을 넣어 주세요.'); return; }
         if (window.dkTrialNoSave && dkTrialNoSave()) return;
         if (!window.ownTake) { if (window.comingSoon) comingSoon('🗄️ 서랍에 넣기'); return; }
+        if (window.showAsk && !(await showAsk('✅ 도안을 완료할까요?<br><small style="color:#777;">완료한 도안은 수정할 수 없어요</small>', '✅ 완료', '취소'))) return;   // 도련 11-15 : 완료 · 취소를 고르게
+        if (P.saving || !P.on) return;
         const b = $('ppGo'); P.saving = true; b.disabled = true; b.textContent = '💾 넣는 중…';
         try {
             const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, P.W, P.H); compose(x, false);
@@ -1211,7 +1218,7 @@
         show();
     }
 
-    window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K; window.ppSpecList = specList;
+    window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppDiscard = ppDiscard; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K; window.ppSpecList = specList;
     window.ppTest = () => P;                                                     // 🧪 시험용 (tests/t_padpaint.py)
 })();
 

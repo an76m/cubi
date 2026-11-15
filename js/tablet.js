@@ -132,10 +132,11 @@
     function wsBuild() {
         let r = q('tbWs'); if (r) return r;
         r = document.createElement('div'); r.id = 'tbWs'; r.className = 'shm-room smk-room tb-ws';
-        r.innerHTML = `<div class="shm-bar"><button type="button" class="shm-x" id="tbWsHome">‹ 홈</button><div class="shm-sign" id="tbWsT"></div></div>
+        r.innerHTML = `<div class="shm-bar"><button type="button" class="shm-x" id="tbWsHome">‹ 홈</button><div class="shm-sign" id="tbWsT"></div><button type="button" class="try-x tb-ws-x" id="tbWsX" aria-label="닫기" title="태블릿 닫기">✕</button></div>
             <div class="shm-body"><div class="shm-panel" id="tbWsL"></div><div class="tb-mid" id="tbWsC"></div><div class="shm-panel" id="tbWsR"></div></div>`;
         document.body.appendChild(r);
         q('tbWsHome').addEventListener('click', () => wsHome());
+        q('tbWsX').addEventListener('click', () => closeTablet());           // ✕ = 태블릿을 닫고 책상으로 (도련 11-15 · 위 막대 오른쪽 끝 · 나가기 전에 물어요 leaveOk)
         return r;
     }
     function wsOpen(title, sub, cls, close) {
@@ -147,16 +148,30 @@
     }
     function wsMove(el, to) { if (!el) return; WS.moved.push([el, el.parentNode, el.nextSibling]); q(to).appendChild(el); }
     function wsEnd(quietly) {                                                 // 옮긴 칸은 제자리로 · 작업대 닫기
+        WS.k = '';
         if (WS.obs) { WS.obs.disconnect(); WS.obs = null; }
         for (const [el, p, n] of WS.moved.reverse()) { if (p) p.insertBefore(el, n && n.parentNode === p ? n : null); }
         WS.moved = []; if (WS.src) { WS.src.classList.remove('tb-hide'); WS.src = null; }
         const r = q('tbWs'); if (r && !quietly) { r.classList.remove('show'); document.body.classList.remove('tb-ws-on'); }
         IP.D = null;
     }
-    async function leaveOk() {                                               // 🎨 그림판 = 이 기기에 임시저장하고 나가요 (도련 11-14 : 자동으로 저장되니 묻지 않아요 · 못 하면 그때만 물어요)
-        if (window.ppDirty && ppDirty()) {
-            if (window.ppSaveDraft && await ppSaveDraft(true)) return true;
-            return typeof showAsk === 'function' ? !!(await showAsk('⚠ 임시저장하지 못했어요.<br>나가면 마지막으로 저장한 뒤에 그린 것은 사라져요.', '나가기', '계속 그리기')) : true;
+    async function leaveOk() {                                               // 🎨 그림판 ‹ 홈 · ✕ = 물어봐요 (도련 11-15) : [💾 임시저장] = 이 기기에 저장하고 나가기 · [🗑 지우기] = 그동안 임시저장한 것도 지우고 나가기 · [계속 그리기] = 그대로
+        if (WS.k && window.ppDirty && q('tbWs') && q('tbWs').classList.contains('show') && q('tbWsC').querySelector('.pp-stage, canvas')) {
+            const DK = (window.PP_DRAFT_K || {})[WS.k] || WS.k;
+            let has = ppDirty(); if (!has) { try { has = !!(window.draftHas && await draftHas(DK)); } catch (e) {} }
+            if (has && typeof showAsk3 === 'function') {
+                const a = await showAsk3('작업 중인 그림을 어떻게 할까요?<br><small style="color:#777;">💾 임시저장 = 작업 중인 이 기기에만 저장돼요 · 🗑 지우기 = 그동안 임시저장한 것도 지워요</small>', '💾 임시저장', '계속 그리기', '🗑 지우기');
+                if (a === true) {
+                    if (!ppDirty() || (window.ppSaveDraft && await ppSaveDraft(true))) return true;
+                    return !!(await showAsk('⚠ 임시저장하지 못했어요.<br>나가면 마지막으로 저장한 뒤에 그린 것은 사라져요.', '나가기', '계속 그리기'));
+                }
+                if (a === 'extra') {
+                    if (window.ppDiscard) await ppDiscard();
+                    try { if (window.draftDrop) await draftDrop(DK); } catch (e) { console.warn('🗑 임시저장 지우기', e); }
+                    return true;
+                }
+                return false;
+            }
         }
         if (IP.D && IP.D.dirty && typeof showAsk === 'function') return !!(await showAsk('그리던 그림이 사라져요.<br>나갈까요?', '나가기', '계속 그리기'));
         return true;
@@ -176,6 +191,7 @@
         const tok = ++wsTok;                                                  // 🐞 임시저장을 찾는 동안 홈 → 다시 열기 · 두 번 누르기 = 마지막 것만 열어요 (도련 11-14 : 그림판이 두 벌 열려 위 막대가 겹쳤어요)
         const T = k === 'tk', TP = k === 'tape', SL = k === 'seal', PC = k === 'piece', PA = k === 'paper', NM = T ? '떡메' : TP ? '테이프' : SL ? '씰스티커' : PC ? '조각' : PA ? '모조지' : '속지';
         wsOpen(T ? '🧻 떡메모지 만들기' : TP ? '🎀 마스킹테이프 만들기' : SL ? '🏷️ 씰스티커 만들기' : PC ? '🧩 조각스티커 만들기' : PA ? '📄 모조지스티커 만들기' : '📃 속지 만들기', TP ? '한 칸을 그리면 쭉 이어져요 · 🖌️ 픽셀 · ✒️ 벡터' : PA ? '보이는 그대로 인쇄된 한 장 · 쓸 때 ✂️ 가위로 오려 붙여요' : PC ? '그린 모양대로 하얀 칼선 · ➕ 담기로 4개까지 · 한 봉투' : SL ? '떨어져 그린 그림 = 스티커 한 장씩 · 하얀 칼선 · 놓은 자리 그대로 시트' : '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
+        WS.k = k;                                                             // 지금 그림판 종류 (나갈 때 묻기 · leaveOk · wsOpen 이 비운 뒤에)
         const ca = document.getElementById('canvasArea'), r = ca && ca.getBoundingClientRect(), H = Math.round(900 * (r && r.width > 50 ? r.height / r.width : 1.55));
         const go = draft => ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
             bg: T ? '#fff6cf' : TP ? '#ffc6d6' : PA ? '#fdfaf2' : '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: T ? { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 40 } : TP ? { bg: '#ffc6d6', g: 'plain', lc: '#ffffff', gap: 24 } : { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,

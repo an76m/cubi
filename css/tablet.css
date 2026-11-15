@@ -67,7 +67,8 @@ body.ip-on #lmGo, body.ip-on #leafMakeModal .mt-back, body.ip-on #leafMakeModal 
 #tbWs.smk-room.show { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
 #tbWs.smk-room { padding: 0; filter: none; }   /* .smk-room 팝업 카드 모양(둘레 · 그림자) 대신 화면 가득 */
 #tbWs .shm-bar, #tbWs .shm-body { align-self: stretch; width: auto; max-width: none; }   /* .smk-room 가운데 모으기 대신 화면 가득 */
-#tbWs .shm-bar { justify-content: flex-start; padding-right: 230px; }   /* 오른쪽 위 = 책상 버튼 자리 */
+#tbWs .shm-bar { justify-content: flex-start; }   /* 태블릿이 켜진 동안 책상 메뉴는 숨어 있어요 (body.ip-on .desk-top-r) */
+#tbWs .tb-ws-x { order: 99; margin-left: auto; flex: none; }   /* ✕ = 위 막대 오른쪽 끝 · 태블릿 닫기 (도련 11-15 · 모양 = css/anime.css .try-x) */
 #tbWs .shm-body { grid-template-columns: 270px minmax(0, 1fr) 270px; }
 #tbWs .tb-mid { min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; overflow: auto; padding: 6px; }
 .tb-hide { visibility: hidden !important; pointer-events: none !important; }
