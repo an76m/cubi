@@ -97,10 +97,10 @@
             const canvas = document.getElementById('canvasArea'), r = canvas.getBoundingClientRect();
             const k = r.width / (canvas.offsetWidth || r.width) || 1;
             tmAnchor = { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, t: Date.now() };
-            const lf = window.lfMenu ? lfMenu() : {};
+            const sd = window.lfSideAt ? lfSideAt(tmAnchor.x) : 'l', lf = window.lfMenu ? lfMenu(sd) : {};   // 📃 누른 쪽의 속지
             tmPinAt = { x: e.clientX, y: e.clientY };
-            tmShow(TM_ITEMS.concat(/* lf.edit ? [{ key: 'p_lfedit', icon: TM_ICONS.palette, label: '속지 다듬기', run: () => { tmAnchor = null; lfEdit(); } }] : [], */   // 📃 속지 다듬기 숨김 (도련 · 2026-10-17 · 코드는 그대로)
-                lf.off ? [{ key: 'p_lfoff', icon: TM_ICONS.trash, label: '속지 빼기', run: () => { tmAnchor = null; pickLeaf('line'); } }] : []), { x: e.clientX, y: e.clientY });
+            tmShow(TM_ITEMS.concat(/* lf.edit ? [{ key: 'p_lfedit', icon: TM_ICONS.palette, label: '속지 다듬기', run: () => { tmAnchor = null; lfEdit(sd); } }] : [], */   // 📃 속지 다듬기 숨김 (도련 · 2026-10-17 · 코드는 그대로)
+                lf.off ? [{ key: 'p_lfoff', icon: TM_ICONS.trash, label: '속지 떼기', run: () => { tmAnchor = null; lfOff(sd); } }] : []), { x: e.clientX, y: e.clientY });
         }
 
         /* 📌 놓아 둔 그림 · 글 위에서 나오는 메뉴 : 🎨 다듬기(js/elements.js elEditable) · ✥ 글씨체 · 사진 꾸미기(js/page.js openTextPanel) · ↕️ 순서 · 🗑️ 삭제 */

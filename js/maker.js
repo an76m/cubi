@@ -21,13 +21,13 @@
     /* 📏 종이 mm (도련 11-16 : 만들 때부터 꾸밀 때까지 같은 mm · 상품공방 · 앱이 같은 값)
        MM = 크기를 안 정한 종이의 기본 (🎀 테이프 폭 · 한 롤 길이 · 🧻 떡메 [가로, 세로] · 📝 메모지 가로)
        PXMM = 그리는 판 해상도 (그림 px ÷ mm · 무늬 칸 크기가 어느 판에서나 같은 mm) · drawWH = 그 종이를 그리는 판 [가로, 세로] px
-       📃 속지 한 장 = 펼친 두 쪽 종이 (규격 가로 × 2 · 세로 mm · 같은 규격 다이어리에만 끼워요) */
+       📃 속지 · 📄 내지 = 종이 한 쪽 (규격 mm) · 양쪽 디자인 = 펼친 두 쪽 (가로 × 2) · 같은 규격 다이어리에만 */
     MK.MM = { tape: 8, tapeLen: 2600, tk: [40, 40], memo: 48 };
-    MK.PXMM = { leaf: 60 / 7, tk: 7.5, memo: 55 / 6 };
+    MK.PXMM = { leaf: 60 / 7, tk: 7.5, memo: 55 / 6 };                       // 📃 A6 한 쪽 = 900 × 1269
     MK.mmOf = s => { const m = String(s || '').split(/[×x*]/).map(Number); return m[0] > 0 && m[1] > 0 ? m : null; };   // '105×148' → [105, 148]
-    MK.drawWH = (kind, mm) => {
+    MK.drawWH = (kind, mm, two) => {                                          // two = 📃 양쪽 디자인 (펼친 두 쪽 · 왼쪽 반 = 왼쪽 쪽 · 오른쪽 반 = 오른쪽 쪽)
         const k = MK.PXMM[kind];
-        if (kind === 'leaf') { const m = MK.mmOf(mm) || [105, 148]; return [Math.round(m[0] * 2 * k), Math.round(m[1] * k)]; }
+        if (kind === 'leaf') { const m = MK.mmOf(mm) || [105, 148]; return [Math.round(m[0] * (two ? 2 : 1) * k), Math.round(m[1] * k)]; }
         if (kind === 'tk') { const m = Array.isArray(mm) && +mm[0] > 0 && +mm[1] > 0 ? mm : MK.MM.tk; return [Math.round(m[0] * k), Math.round(m[1] * k)]; }
         if (kind === 'memo') { const w = +mm > 0 ? +mm : MK.MM.memo; return [Math.round(w * k), Math.round(w * k * 300 / 440)]; }
         return null;
@@ -42,6 +42,7 @@
     MK.deskVol = (mm, p) => { const m = (Array.isArray(mm) ? mm : MK.mmOf(mm)) || [105, 148], f = MK.MMPX * MK.DESK_K, w = m[0] * f, h = m[1] * f;
         return p === 'side' ? [24, Math.round(h) + 15] : p === 'lay' ? [Math.round(w), Math.round(MK.LAY[1] * MK.deskLk() * m[1] / 148)] : [Math.round(w), Math.round(h) + 8]; };
     MK.BINDS = [['ring', '링'], ['thin', '실 제본'], ['tn', '고무 밴드'], ['spread', '책갈피 끈'], ['hard', '하드커버']];
+    MK.leafOk = v => { const a = String(v || '').split('/'); return a.length <= 2 && a.every(x => MK.LEAFS.some(l => l[0] === x)); };   // 📄 내지 값 = 'grid' (양쪽 같이) · 'grid/dot' (왼쪽/오른쪽)
     MK.LEAFS = [['plain', '무지'], ['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트']];   // 내지 = 페이지 그리는 법 (css .lf-종류)
     MK.COLORS = ['#ff9dbb', '#ffb3c7', '#f4a582', '#ffd479', '#8fd0b7', '#9fd3ea', '#c4b2f2', '#d9c2a6', '#a3714f', '#5a4652', '#ffffff', '#fff6cf', '#fff0f5', '#eefaf4', '#eef5ff', '#f6f0ff', '#e9d5b3', '#333333'];
     MK.spec = n => { const s = MK.SPECS.find(x => x[0] === n); return s ? { n: s[0], mm: `${s[1]}×${s[2]}`, r: Math.round(s[2] / s[1] * 1e6) / 1e6 } : null; };
@@ -137,6 +138,7 @@
     const uid = () => 'v' + Math.random().toString(36).slice(2, 8);
     /* 📃 내지 : 앱 css .lf-종류 와 같은 모습 (u = 쪽 폭의 1% · chip = 고르는 칸처럼 무늬를 크게) · cols = 다이어리 4색 */
     MK.leafSvg = (lf, W, H, cols, chip) => {
+        lf = String(lf || 'plain').split('/')[0];                               // 📄 양쪽 다른 내지 'grid/dot' = 그림 하나엔 왼쪽
         cols = cols || {}; const bd = hx1(cols.테두리색, '#f6c9d6')[0], ac = hx1(cols.강조색, '#c8457a')[0], pg = hx1(cols.속지색, '#fffaf2')[0];
         const u = W / 100 * (chip ? 1.9 : 1), k = uid(), P = (w, h, b, y) => `<pattern id="${k}" width="${w}" height="${h}" patternUnits="userSpaceOnUse"${y ? ` y="${y}"` : ''}>${b}</pattern>`;
         let bg = pg, d = '';
@@ -152,7 +154,7 @@
     MK.diarySvg = o => {
         o = o || {}; const H = o.H || 150, r = +o.r > .3 ? +o.r : 1.41, w = Math.round(H / r), k = uid();
         const cv = hx1(o.표지색, '#ffc6d6'), c0 = cv[0], c1 = cv[1] || mix(c0, '#ffffff', .5), bd = hx1(o.테두리색, '#f6c9d6')[0], ac = hx1(o.강조색, '#c8457a')[0], b = o.b, band = '#e7768f';
-        const leaf = MK.url(MK.leafSvg(o.lf || 'plain', w, H, o));
+        const lfs = String(o.lf || 'plain').split('/'), leaf = MK.url(MK.leafSvg(lfs[0] || 'plain', w, H, o)), leafR = lfs[1] ? MK.url(MK.leafSvg(lfs[1], w, H, o)) : leaf;   // 📄 내지 'grid' · 'grid/dot' (왼쪽/오른쪽)
         /* 표지 (x 0) */
         let cov = `<rect x="2" y="2" width="${w}" height="${H}" rx="6" fill="url(#${k}c)" stroke="${bd}" stroke-width="2.5"/>`;
         if (b === 'ring') for (let y = 14; y < H - 8; y += 12) cov += `<ellipse cx="7" cy="${y + 2}" rx="4" ry="2.4" fill="#fff" stroke="#c9b6bd"/>`;
@@ -164,7 +166,7 @@
         /* 펼친 두 쪽 (x0 = 표지 오른쪽 + 사이) */
         const x0 = w + 22, F = 5, sw = w * 2 + F * 2;
         let sp = `<rect x="${x0}" y="2" width="${sw}" height="${H}" rx="6" fill="url(#${k}b)"/>`
-            + `<image href="${leaf}" x="${x0 + F}" y="${2 + F}" width="${w}" height="${H - F * 2}" preserveAspectRatio="none"/><image href="${leaf}" x="${x0 + F + w}" y="${2 + F}" width="${w}" height="${H - F * 2}" preserveAspectRatio="none"/>`
+            + `<image href="${leaf}" x="${x0 + F}" y="${2 + F}" width="${w}" height="${H - F * 2}" preserveAspectRatio="none"/><image href="${leafR}" x="${x0 + F + w}" y="${2 + F}" width="${w}" height="${H - F * 2}" preserveAspectRatio="none"/>`
             + `<rect x="${x0 + F + w - 10}" y="${2 + F}" width="20" height="${H - F * 2}" fill="url(#${k}s)"/>`;
         const mx = x0 + F + w;
         if (b === 'ring') for (let y = 12; y < H - 8; y += 12) sp += `<ellipse cx="${mx}" cy="${y + 2}" rx="6" ry="2.6" fill="#fff" stroke="#c9b6bd" stroke-width="1.2"/>`;

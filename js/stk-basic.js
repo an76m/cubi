@@ -76,7 +76,7 @@
                 else if (kind === 'tk') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],   // 🧻 한 묶음 · 풀칠 띠 색 = 상품
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], q0: +x.P.묶음장수, x: { pad: 'my', glue: x.P.풀칠색, mm: x.P.크기.slice(0, 2) } }) });   // 📏 크기 = [가로, 세로] mm (상품공방)
                 else if (kind === 'leaf') out.push({ bigs, cnt: `${x.P.규격 || ''} ${+x.P.묶음장수}장`.trim(), look: 'leafimg', thumbs: [thumb(x.url, 240)],
-                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 900), true)).src], q0: +x.P.묶음장수, x: { lf: 'my', sz: lfSz(x.P.mm) } }) });   // 📏 규격 = 상품공방 (같은 규격 다이어리에만)
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, x.P.양쪽 ? 1800 : 900), true)).src], q0: +x.P.묶음장수, x: { lf: 'my', sz: lfSz(x.P.mm), two: !!x.P.양쪽 } }) });   // 📏 규격 = 상품공방 (같은 규격 다이어리에만)
                 else if (kind === 'memo') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],   // 📝 한 묶음 · 글자색 = 상품
                     take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], q0: +x.P.묶음장수, x: { pp: 'img', w: d.w, h: d.h, tc: x.P.글자색, mm: +x.P.가로 } }; } });   // 📏 가로 mm (상품공방)
             });

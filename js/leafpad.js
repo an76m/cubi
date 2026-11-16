@@ -1,11 +1,10 @@
 /* 말랑달콤 다이어리 - js/leafpad.js
    📃 속지 · 🧻 떡메모지 (🧁 샵 상품은 모두 그림 · 상품공방)
-   - 📃 속지 : 그날 페이지 바탕을 통째로 바꿔요 (줄노트 · 모눈 · 도트 · 깅엄 · 크라프트 · 무지)
-               날짜 파일에 lf 로 저장 (줄노트는 기본이라 저장 안 함) · 바탕 위에 붙인 것들은 그대로
+   - 📄 내지 · 📃 속지 : 종이 한 쪽 엔진 (아래 설명 · 쪽마다 · 날짜 파일에 sj 로 저장 · 바탕 위에 붙인 것들은 그대로)
    - 🧻 떡메모지 : 묶음을 톡 누르면 맨 윗장이 북 뜯겨서 테이프와 함께 페이지에 붙어요
                뜯긴 한 장은 그림(SVG)으로 붙어서 다른 스티커처럼 옮기고 돌릴 수 있어요 (그날 파일 안에 같이 저장)
    - 🎒 유한 스티커 (10-25) : 🧺 바구니의 떡메 한 묶음(50장) = tkOwnOpen(종류, 내 그림, own) · 한 장 뜯어 붙일 때마다 한 장씩 줄어요 · 마지막 장이면 묶음이 사라져요 (js/own.js)
-               📃 속지는 깔면 그 한 장이 사라져요 (js/basket.js)
+               📃 속지는 끼운 쪽마다 한 장씩 줄어요 (js/basket.js)
    ※ 색은 펼친 다이어리의 강조 색을 따라가요 (떡메는 뜯는 순간의 색으로 남아요) */
 
         const lfq = id => document.getElementById(id);
@@ -28,56 +27,76 @@
         /* =====================================================================
            📃 속지
            ===================================================================== */
-        const LEAFS = [['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트'], ['plain', '무지']];   // 다이어리 · 📓 만든 노트의 내지 (js/dymaker.js) · 🏪 샵 속지는 모두 그림('my' · 상품공방 · 도련 11-02)
-        let pageLeaf = 'line', pageLeafImg = '';                           // 지금 페이지의 속지 (js/elements.js 저장 · 불러오기) · 'my' = 📃 속지 만들기로 만든 그림(pageLeafImg · js/leafmaker.js)
-        const lfMyOk = img => /^data:image\/(jpeg|png|webp)/.test(img || '');
-        /* 📏 속지 규격 (도련 11-16) : 속지 한 장 = 펼친 두 쪽 종이 mm · 만들 때 규격을 적어요 (sz = { n 이름, mm '가로×세로', r }) → 같은 규격 다이어리에만 끼워요 (늘이지 않아요) */
-        const lfSz = mm => { const m = window.MK && MK.mmOf(mm); if (!m) return null; const s = MK.SPECS.find(x => x[1] === m[0] && x[2] === m[1]); return { n: s ? s[0] : '', mm: `${m[0]}×${m[1]}`, r: +dyLeafR({ mm }).toFixed(4) }; };
+        /* 📄 내지 · 📃 속지 = 종이 한 쪽 엔진 (도련 11-16 : 둘은 다른 제품 · 엔진만 같이 · 쪽마다 따로 · 규격 mm 그대로 · 늘이지 않아요)
+           - 📄 내지 = 그 다이어리의 바탕 종이 (바인더 내지 · 노트 · 상품공방 '내지' · 정해진 수량 · 날짜 · 페이지 기능) : 무늬 id 'grid' (양쪽 같이) 또는 'grid/dot' (왼쪽/오른쪽 · lfPair)
+           - 📃 속지 = 그날 그 쪽 내지 위에 붙이는 종이 (노트 · 바인더 모두 · 수량 · 날짜와 상관없이 디자인만) : 쪽마다 { i 그림, h 반쪽 } · h '' = 한 쪽 그림 통째 · 'l' · 'r' = 양쪽 디자인(펼친 두 쪽 그림)의 왼쪽 · 오른쪽 반
+           - 그리기 = css ::before (왼쪽 쪽) · ::after (오른쪽 쪽) · 내지 무늬 --nj-l · --nj-r (css --pat-*) · 속지 --sj-l · --sj-r · 그 위에 붙인 것들
+           - 하루 파일 = sj { l, r } (r.s = 왼쪽과 같은 그림 · 그림을 두 번 적지 않게) · 내지는 적지 않아요 (그 다이어리 내지 상품에서 · js/dymaker.js dkLeafOf) */
+        const LEAFS = [['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트'], ['plain', '무지']];   // 📄 내지 무늬 (css --pat-* · js/maker.js MK.LEAFS 와 같게)
+        const lfOne = x => LEAFS.some(l => l[0] === x) ? x : 'line';
+        const lfPair = v => { const a = String(v || '').split('/'); return [lfOne(a[0]), lfOne(a[1] || a[0])]; };   // 'grid' → [grid, grid] · 'grid/dot' → [grid, dot]
+        let pageNj = ['line', 'line'], pageSj = { l: null, r: null };      // 지금 페이지의 내지 · 속지 (js/elements.js 저장 · 불러오기)
+        const lfMyOk = img => /^data:image\/(jpeg|png|webp|svg)/.test(img || '');
+        /* 📏 속지 규격 (도련 11-16) : 만들 때 규격을 적어요 (sz = { n 이름, mm '가로×세로', r 한 쪽 세로 ÷ 가로 }) → 같은 규격 다이어리에만 끼워요 (늘이지 않아요) */
+        const lfSz = mm => { const m = window.MK && MK.mmOf(mm); if (!m) return null; const s = MK.SPECS.find(x => x[1] === m[0] && x[2] === m[1]); return { n: s ? s[0] : '', mm: `${m[0]}×${m[1]}`, r: +(m[1] / m[0]).toFixed(4) }; };
         const lfFits = sz => !sz || !sz.mm || !window.dyLook || sz.mm === dyLook().mm;   // 규격을 적지 않은 속지 = 지금 다이어리에 만든 것
         const lfNo = sz => `📃 <b>${htmlEsc(sz.n || sz.mm)}</b> (${htmlEsc(sz.mm)}mm) 속지예요.<br><span style="font-size:12px;color:#777;">이 다이어리(${htmlEsc(dyLook().n || dyLook().mm)})와 규격이 달라서 끼울 수 없어요.</span>`;
+        const sjBg = t => t && lfMyOk(t.i) ? `url("${t.i}") ${t.h === 'r' ? 'right' : t.h === 'l' ? 'left' : 'center'} center / ${t.h ? '200%' : '100%'} 100% no-repeat` : '';
+        const sjPack = sj => { const o = {}; if (sj.l) o.l = { i: sj.l.i, h: sj.l.h || '' }; if (sj.r) o.r = sj.l && sj.r.i === sj.l.i ? { s: 1, h: sj.r.h || '' } : { i: sj.r.i, h: sj.r.h || '' }; return o; };
+        const sjUnpack = o => { const l = o && o.l && lfMyOk(o.l.i) ? { i: o.l.i, h: o.l.h || '' } : null, ri = o && o.r ? (o.r.s ? l && l.i : o.r.i) : ''; return { l, r: lfMyOk(ri) ? { i: ri, h: o.r.h || '' } : null }; };
 
-        /* 속지 입히기 (오늘 페이지 · 넘길 때 보이는 옆 페이지 모두) */
-        function lfApply(c, id, img) {
-            const my = id === 'my' && lfMyOk(img);
-            if (!my && !LEAFS.some(l => l[0] === id)) id = 'line';
-            LEAFS.forEach(([k]) => c.classList.toggle('lf-' + k, k === id && k !== 'line'));
-            c.classList.toggle('lf-my', my);
-            if (my) c.style.setProperty('--lf-img', `url("${img}")`); else c.style.removeProperty('--lf-img');
-            return my ? 'my' : id;
+        /* 내지 · 속지 입히기 (오늘 페이지 · 넘길 때 보이는 옆 페이지 · 끼우는 그림 모두) */
+        function lfApply(c, nj, sj) {
+            const pr = lfPair(nj);
+            c.style.setProperty('--nj-l', `var(--pat-${pr[0]})`); c.style.setProperty('--nj-r', `var(--pat-${pr[1]})`);
+            ['l', 'r'].forEach(sd => { const b = sjBg(sj && sj[sd]); if (b) c.style.setProperty('--sj-' + sd, b); else c.style.removeProperty('--sj-' + sd); });
+            return pr;
         }
-        function setPageLeaf(id, img) {
-            const c = lfq('canvasArea');
-            pageLeaf = c ? lfApply(c, id, img) : 'line';
-            pageLeafImg = pageLeaf === 'my' ? img : '';
-            document.querySelectorAll('#leafPick .lf-pick').forEach(b => b.classList.toggle('on', b.dataset.lf === pageLeaf));
+        function setPageLeaf(nj, sj) {
+            const c = lfq('canvasArea'); pageSj = { l: (sj && sj.l) || null, r: (sj && sj.r) || null };
+            pageNj = c ? lfApply(c, nj, pageSj) : lfPair(nj);
         }
-        /* 그날 파일에서 속지 읽어 입히기 (js/page.js 넘기는 페이지) */
+        const lfPageNj = date => (window.dkLeafOf && dkLeafOf(date)) || 'line';   // 📄 그 날 · 그 페이지의 내지 (js/dymaker.js)
+        /* 그날 파일에서 읽어 입히기 (js/page.js 넘기는 페이지) */
         function lfStatic(c, date) {
             let raw = null; try { raw = JSON.parse(store.getItem(getDateKey(date))); } catch (e) {}
-            const lf = (raw && raw.lf) || (window.dkLeafOf && dkLeafOf(date));   // 📓 만든 노트의 내지 (js/dymaker.js)
-            if (lf) lfApply(c, lf, raw && raw.lfi);
+            lfApply(c, lfPageNj(date), sjUnpack(raw && raw.sj));
         }
-        /* 끼우면 새 속지가 오른쪽에서 스르륵 끼워져요 (붙인 것들은 그 위에 그대로 · 🎒 🧺 바구니의 속지 한 장 js/basket.js) */
-        function pickLeaf(id, img) {
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            if (window.pgBlock && pgBlock()) return;                            // ✅ 완료한 페이지 (js/pagedone.js)
-            if (id === pageLeaf && (id !== 'my' || img === pageLeafImg)) return;
-            const c = lfq('canvasArea');
-            const sl = document.createElement('div'); sl.className = 'lf-slide'; lfApply(sl, id, img);
-            c.appendChild(sl); lfSlideSnd();
-            const done = () => { sl.remove(); setPageLeaf(id, img); if (typeof saveData === 'function') saveData(false); };
-            try { sl.animate([{ transform: 'translateX(104%) rotate(2deg)' }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(.3,.8,.3,1)' }).onfinish = done; }
+        /* 📃 속지 끼우기 : t = { i 그림, two 양쪽 디자인 } · sd = 'l' · 'r' · 'lr' → 그 쪽에 스르륵 끼워져요 (붙인 것들은 그 위에 그대로 · 🎒 🧺 바구니 js/basket.js) */
+        function pickLeaf(t, sd) {
+            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }
+            if (window.pgBlock && pgBlock()) return false;                      // ✅ 완료한 페이지 (js/pagedone.js)
+            const c = lfq('canvasArea'), next = { l: pageSj.l, r: pageSj.r };
+            [...sd].forEach(x => { next[x] = { i: t.i, h: t.two ? x : '' }; });
+            lfSlideSnd();
+            const sls = [...sd].map(x => {
+                const sl = document.createElement('div'); sl.className = 'lf-slide ' + x;
+                sl.style.setProperty('--sjb', sjBg(next[x])); sl.style.setProperty('--njb', `var(--pat-${pageNj[x === 'l' ? 0 : 1]})`);
+                c.appendChild(sl); return sl;
+            });
+            const done = () => { sls.forEach(x => x.remove()); setPageLeaf(pageNj.join('/'), next); if (typeof saveData === 'function') saveData(false); };
+            try { sls.forEach((sl, n) => { const a = sl.animate([{ transform: 'translateX(104%) rotate(2deg)', opacity: .4 }, { transform: 'none', opacity: 1 }], { duration: 480, easing: 'cubic-bezier(.3,.8,.3,1)' }); if (n === sls.length - 1) a.onfinish = done; }); }
             catch (e) { done(); }
+            return true;
         }
-        /* 📍 빈 곳 메뉴(js/tapmenu.js)의 📃 속지 칸 : 🎨 속지 다듬기 (그림 속지만 · 색만 · 페이지를 꽉 채워야 해서 자르지 않아요) · 🗑️ 속지 빼기 (기본 줄노트로) */
-        const lfMenu = () => ({ edit: pageLeaf === 'my' && !!window.openStickerEdit, off: pageLeaf !== 'line' });
-        async function lfEdit() {
-            if (pageLeaf !== 'my' || !window.openStickerEdit) return;
+        /* 🗑️ 그 쪽 속지 떼기 → 내지가 다시 보여요 */
+        function lfOff(sd) {
+            if (!pageSj[sd]) return;
             if (window.pgBlock && pgBlock()) return;
-            const img = pageLeafImg, out = await openStickerEdit(img, { tools: ['color'], max: 1000, trim: false, jpeg: !/^data:image\/(png|webp)/.test(img) });   // webp = 투명일 수 있어요 (도련 11-04)
-            if (!out || pageLeafImg !== img) return;
-            setPageLeaf('my', out); if (typeof saveData === 'function') saveData(false);
+            const next = { l: pageSj.l, r: pageSj.r }; next[sd] = null;
+            setPageLeaf(pageNj.join('/'), next); if (typeof saveData === 'function') saveData(false);
         }
+        const lfSideAt = x => { const c = lfq('canvasArea'); return c && x >= c.offsetWidth / 2 ? 'r' : 'l'; };   // 캔버스 안 x (px) → 쪽
+        /* 📍 빈 곳 메뉴(js/tapmenu.js)의 📃 속지 칸 : 🎨 속지 다듬기 (숨김) · 🗑️ 그 쪽 속지 떼기 */
+        const lfMenu = sd => ({ edit: !!pageSj[sd] && !!window.openStickerEdit, off: !!pageSj[sd] });
+        async function lfEdit(sd) {
+            const t = pageSj[sd]; if (!t || !window.openStickerEdit) return;
+            if (window.pgBlock && pgBlock()) return;
+            const out = await openStickerEdit(t.i, { tools: ['color'], max: 1000, trim: false, jpeg: !/^data:image\/(png|webp)/.test(t.i) });   // webp = 투명일 수 있어요 (도련 11-04)
+            if (!out || pageSj[sd] !== t) return;
+            const next = { l: pageSj.l, r: pageSj.r }; next[sd] = { i: out, h: t.h }; setPageLeaf(pageNj.join('/'), next); if (typeof saveData === 'function') saveData(false);
+        }
+        window.lfSjNow = () => pageSj; window.lfPackNow = () => sjPack(pageSj); window.lfUnpack = sjUnpack; window.lfPageNj = lfPageNj; window.setPageLeaf = setPageLeaf; window.lfOff = lfOff; window.lfSideAt = lfSideAt; window.lfPair = lfPair;
         window.pickLeaf = pickLeaf; window.lfSz = lfSz; window.lfFits = lfFits; window.lfNo = lfNo; window.lfStatic = lfStatic; window.lfMenu = lfMenu; window.lfEdit = lfEdit;
 
         /* =====================================================================

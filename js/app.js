@@ -36,6 +36,13 @@
             box.appendChild(x);
             try { return await showAsk(msg, ok, no); } finally { x.remove(); }
         }
+        /* 버튼 여러 개로 고르기 (도련 11-16 · 📃 속지 끼울 쪽) : opts = ['왼쪽', …] → 고른 번호 · 취소 = -1 */
+        async function showPick(msg, opts) {
+            const box = document.querySelector('#customAlertModal .alert-btns'), a = document.getElementById('customAlertConfirmBtn');
+            const bs = opts.map((t, i) => { const x = document.createElement('button'); x.className = 'btn'; x.type = 'button'; x.textContent = t; x.style.cssText = 'flex:1; justify-content:center;'; x.onclick = () => closeMsg('p' + i); box.appendChild(x); return x; });
+            a.style.display = 'none';
+            try { const r = await showMsg(msg, true); return /^p\d+$/.test(r) ? +r.slice(1) : -1; } finally { bs.forEach(x => x.remove()); a.style.display = ''; }
+        }
         function closeMsg(res) {
             document.getElementById('customAlertModal').style.display = 'none';
             if (msgResolve) {
@@ -149,7 +156,7 @@ let fontList = [
             const okC = v => /^#[0-9a-f]{6}$/i.test(v || '');
             DY_DKINDS.forEach(([K, kind, ch]) => (window.prodList ? prodList(K) : []).forEach(x => {   // 🔎 상품 그대로 (빠지면 안 나와요 · 상품공방이 검수)
                 const P = x.P || {};
-                if (!String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || (ch === 'n' && !(window.MK && MK.LEAFS.some(l => l[0] === P.내지)))) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }   // 🗂️ 날짜형바인더 = 표지 (내지는 바인더내지 상품 · 도련 11-07)
+                if (!String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || (ch === 'n' && !(window.MK && MK.leafOk(P.내지)))) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x.id); return; }   // 🗂️ 날짜형바인더 = 표지 (내지는 바인더내지 상품 · 도련 11-07)
                 DY_COL[x.id] = { cover: String(P.표지색), page: P.속지색, border: P.테두리색, accent: P.강조색 };
                 DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: P.내지 || '', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 📢 📕 공지 카드 · 표지 꾸미기 = 상품공방 체크 (도련 11-06 · js/skins.js dyNtOn · dyCvOk)   // 🎁 처음 책상 자리 · 처음 떠 있는 권 = 상품공방 (도련 11-06 · js/desk.js deskVolInit)
             }));
@@ -160,7 +167,7 @@ let fontList = [
         const DY_REFILLS = [];
         function dyRefillsBuild() {
             DY_REFILLS.length = 0;
-            const lf = v => window.MK && MK.LEAFS.some(l => l[0] === v);
+            const lf = v => window.MK && MK.leafOk(v);
             [['날짜형내지', 'date'], ['페이지내지', 'page']].forEach(([K, t]) => (window.prodList ? prodList(K) : []).forEach(x => {
                 const P = x.P || {}, pg = Math.round(+P.쪽수);
                 if (!String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !lf(P.내지) || (t === 'page' && !(pg > 0))) { console.warn('🧁 바인더 내지 속성이 모자라요 :', x.id); return; }

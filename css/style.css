@@ -2345,12 +2345,22 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 
 /* 📏 종이 위 무늬 (줄 · 모눈 · 도트 · 깅엄 · 구멍) = mm (도련 11-16 : 규격이 달라도 모눈 5mm 는 5mm) · --mm = 화면에서 1mm (js/page.js refreshLayout · 처음엔 CSS 1mm) */
 :root { --mm: 1mm; --gap: 8mm; --gh: 4mm; }   /* --gap · --gh = 링 바인더 두 쪽 사이 틈 · 틈의 반 (js/maker.js MK.GAP · js/page.js refreshLayout) */
-/* 속지 : 줄 노트 + 링 구멍 · 하얀 테두리 (종이 크기는 그대로라 붙인 스티커 자리는 안 바뀌어요) */
-.inner-page .canvas-area { background:
-        radial-gradient(circle at calc(4.6 * var(--mm)) 50%, color-mix(in srgb, var(--border-color) 55%, #fff) calc(1.5 * var(--mm)), color-mix(in srgb, var(--border-color) 90%, #000 5%) calc(1.55 * var(--mm)) calc(1.9 * var(--mm)), transparent calc(1.95 * var(--mm))) 0 calc(3 * var(--mm)) / calc(9 * var(--mm)) calc(9 * var(--mm)) repeat-y,
-        linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)),
-        var(--page-bg);
-    box-shadow: 0 0 0 4px #fff, 1cqw 2cqw 5cqw rgba(160,90,110,.16); }
+/* 📄 내지 · 📃 속지 = 종이 한 쪽씩 (도련 11-16 · js/leafpad.js) : ::before = 왼쪽 쪽 · ::after = 오른쪽 쪽 (규격 가로 mm · 가운데에 맞붙인 자리 · 링에 끼운 동안 틈의 반씩 비켜요)
+   한 쪽 = 속지 (--sj-l · --sj-r · 붙였을 때만) 위 · 내지 무늬 (--nj-l · --nj-r = var(--pat-…)) · 그 위에 붙인 것들 (isolation 으로 종이는 맨 아래) */
+.inner-page .canvas-area { isolation: isolate; background: var(--page-bg); box-shadow: 0 0 0 4px #fff, 1cqw 2cqw 5cqw rgba(160,90,110,.16); }
+.inner-page .canvas-area::before, .inner-page .canvas-area::after { content: ''; position: absolute; top: 0; bottom: 0; width: calc(var(--pmw, 105) * var(--mm)); z-index: -1; pointer-events: none;
+    background: var(--sjb), var(--njb, var(--page-bg)); transition: translate .75s cubic-bezier(.45, .05, .3, 1); }
+.inner-page .canvas-area::before { left: calc(50% - var(--pmw, 105) * var(--mm)); --sjb: var(--sj-l, linear-gradient(transparent, transparent)); --njb: var(--nj-l, var(--page-bg)); border-top-left-radius: inherit; border-bottom-left-radius: inherit; }
+.inner-page .canvas-area::after { left: 50%; --sjb: var(--sj-r, linear-gradient(transparent, transparent)); --njb: var(--nj-r, var(--page-bg)); border-top-right-radius: inherit; border-bottom-right-radius: inherit; }
+.inner-page.dy-bdl:not(.dy-bo) .canvas-area::before { translate: calc(var(--gh) * -1) 0; }   /* 🔗 링에 끼운 동안 = 종이도 붙인 것과 같이 비켜요 */
+.inner-page.dy-bdl:not(.dy-bo) .canvas-area::after { translate: var(--gh) 0; }
+/* 📄 내지 무늬 (mm · 맨 끝 = 종이 색) */
+.inner-page .canvas-area, .lf-slide { --pat-line: linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)), var(--page-bg);
+    --pat-grid: linear-gradient(color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffefc;
+    --pat-dot: radial-gradient(circle, color-mix(in srgb, var(--primary-accent) 38%, #fff) calc(.38 * var(--mm)), transparent calc(.52 * var(--mm))) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffdfb;
+    --pat-gingham: linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), linear-gradient(color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), #fff;
+    --pat-kraft: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / calc(42 * var(--mm)), #e2cba6;
+    --pat-plain: var(--page-bg); }
 /* 날짜바 : 가운데 둥근 연핑크 바 + 위에 작은 반투명 테이프 (페이지를 끄는 손잡이 그대로) */
 .inner-page .page-header { width: calc(max(74%, 290px) * var(--pill-w, 1)); font-size: min(1.2rem, 4.3cqw); white-space: nowrap; border-radius: 2.6cqw; border: .3cqw solid color-mix(in srgb, var(--primary-accent) 26%, #fff);
     background: color-mix(in srgb, var(--primary-accent) 12%, #fff); color: color-mix(in srgb, var(--primary-accent) 92%, #5a1a30 8%);
@@ -2361,15 +2371,10 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .inner-page .page-header .page-cal-btn, .inner-page .page-header .page-search-btn { color: inherit; }
 .pfx-stage { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 120; pointer-events: none; }
 
-/* 📃 속지 (js/leafpad.js) : 링 구멍은 그대로 두고 바탕만 바꿔요 · 줄노트는 위의 기본 속지 */
-.inner-page .canvas-area { --lf-holes: radial-gradient(circle at calc(4.6 * var(--mm)) 50%, color-mix(in srgb, var(--border-color) 55%, #fff) calc(1.5 * var(--mm)), color-mix(in srgb, var(--border-color) 90%, #000 5%) calc(1.55 * var(--mm)) calc(1.9 * var(--mm)), transparent calc(1.95 * var(--mm))) 0 calc(3 * var(--mm)) / calc(9 * var(--mm)) calc(9 * var(--mm)) repeat-y; }
-.inner-page .canvas-area.lf-grid, .lf-slide.lf-grid { background: var(--lf-holes), linear-gradient(color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffefc; }
-.inner-page .canvas-area.lf-dot, .lf-slide.lf-dot { background: var(--lf-holes), radial-gradient(circle, color-mix(in srgb, var(--primary-accent) 38%, #fff) calc(.38 * var(--mm)), transparent calc(.52 * var(--mm))) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffdfb; }
-.inner-page .canvas-area.lf-gingham, .lf-slide.lf-gingham { background: var(--lf-holes), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), linear-gradient(color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), #fff; }
-.inner-page .canvas-area.lf-kraft, .lf-slide.lf-kraft { background: var(--lf-holes), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"), #e2cba6; }
-.inner-page .canvas-area.lf-plain, .lf-slide.lf-plain { background: var(--lf-holes), var(--page-bg); }
-.lf-slide { position: absolute; inset: 0; z-index: 0; pointer-events: none; border-radius: inherit; box-shadow: -6px 0 14px rgba(90,40,60,.18); background:
-        var(--lf-holes), linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)), var(--page-bg); }
+/* 📃 속지 끼우기 그림 (js/leafpad.js pickLeaf) : 그 쪽에 오른쪽에서 스르륵 */
+.lf-slide { position: absolute; top: 0; bottom: 0; width: calc(var(--pmw, 105) * var(--mm)); z-index: 0; pointer-events: none; box-shadow: -6px 0 14px rgba(90,40,60,.18); background: var(--sjb), var(--njb, var(--page-bg)); }
+.lf-slide.l { left: calc(50% - var(--pmw, 105) * var(--mm)); } .lf-slide.r { left: 50%; }
+.inner-page.dy-bdl:not(.dy-bo) .lf-slide.l { translate: calc(var(--gh) * -1) 0; } .inner-page.dy-bdl:not(.dy-bo) .lf-slide.r { translate: var(--gh) 0; }
 .lf-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; --sbg: 10px; }
 .lf-pick { font: inherit; font-size: 12.5px; font-weight: 700; color: var(--dk-ink, #7b5a63); background: none; border: 0; padding: 0; cursor: pointer; container-type: inline-size; }
 .lf-pick .lf-sw { --lf-holes: radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y;
@@ -2417,9 +2422,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .tk-sheet { position: absolute; left: 0; top: 0; width: var(--tw, 150px); height: calc(var(--th, 148px) + 12px); }
 /* 🧻 떡메 무늬(메모 · 체크 · 하늘 · 투두)는 상품공방 그림으로 옮겼어요 (도련 11-02) */
 
-/* 📃 내가만든 속지 (js/leafmaker.js) : 그림째로 깔고 링 구멍은 그 위에 */
-/* 📏 속지 그림 = 펼친 두 쪽 종이 (규격 가로 × 2 · 세로) mm 그대로 (도련 11-16 : 늘이지 않아요 · 같은 규격 다이어리에만 끼워요 · --mm · --pmw · --pmh = js/page.js refreshLayout) */
-.inner-page .canvas-area.lf-my, .lf-slide.lf-my { background: var(--lf-holes), var(--lf-img) center / calc(var(--mm) * var(--pmw, 105) * 2) calc(var(--mm) * var(--pmh, 148)) no-repeat, var(--page-bg); }
 .lf-pick .lf-sw.lf-my { background: var(--lf-holes), var(--lf-img) center / cover no-repeat, var(--page-bg); }   /* 속지 목록은 정사각형 → 그림이 찌그러지지 않게 가운데를 채워요 */
 
 .lf-pick.on .lf-sw { box-shadow: 0 0 0 3px var(--pick-line); }
@@ -2452,7 +2454,10 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 /* 🧻 떡메모지 만들기 (js/leafmaker.js · 속지 만들기 창을 같이 써요) : 링 구멍 대신 위에 풀칠 띠 */
 .lm-glue-box, .lm-glue { display: none; }
 .lm-tk .lm-holes, .lm-memo .lm-holes { display: none; }
-.lm-memo .lm-box { width: min(100%, 300px); }   /* 📝 메모지 = 가로로 긴 종이 */
+.lm-memo .lm-box { width: min(100%, 300px); }
+.lm-box.lm-two { width: min(100%, 460px, 36vh * var(--lm-r, 1.4)); }   /* 📖 양쪽 디자인 = 펼친 두 쪽 */
+.lm-box.lm-two::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1.5px dashed rgba(150, 90, 110, .45); pointer-events: none; }   /* 가운데 = 두 쪽이 나뉘는 자리 (그림엔 안 들어가요) */
+.lm-side { margin-bottom: 6px; }   /* 📝 메모지 = 가로로 긴 종이 */
 .lm-tk .lm-box { overflow: visible; border-radius: 2px; margin-top: 24px; }
 .lm-tk .lm-box canvas { border-radius: 2px; }
 .lm-tk .lm-glue { display: block; position: absolute; left: -1px; right: -1px; top: -13px; height: 15px; border-radius: 3px 3px 1px 1px; pointer-events: none;
@@ -3086,10 +3091,6 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 #dyFront, .dy-deco.dy-fr { z-index: 3; }
 #dyHoleL { z-index: 0; }   /* 🕳️ 링 구멍 : 종이 위 · 스티커(z 1~) 아래 (js/skins.js dyDeco) */
 .inner-page.png-mode .dy-deco { display: none; }
-.inner-page.dy-noholes .canvas-area { --lf-holes: linear-gradient(transparent, transparent); }
-.inner-page.dy-noholes .canvas-area:not([class*="lf-"]) { background:
-        linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)),
-        var(--page-bg); }
 .dy-cov { position: absolute; }   /* 표지 크기 · 색 = css/anime.css (바인더 · 📓 노트) */
 /* 🗂️ 6공 링 (도련 10-18) : 두 속지 사이가 떨어져 있고 (가운데로 표지 안쪽 · 링 받침) · 크고 쇠 느낌 나는 링이 양쪽 속지 구멍을 꿰어요 */
 .dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: var(--gap); margin-left: calc(var(--gh) * -1); }   /* 📏 책등 = 두 쪽 사이 틈 mm (js/maker.js MK.GAP · 종이를 가리지 않아요) · 색 = css/anime.css */
@@ -3124,8 +3125,6 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-l { translate: calc(var(--gh) * -1) 0; }
 .inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-r { translate: var(--gh) 0; }
 .inner-page.dy-bo-go #canvasArea > .element-box, .inner-page.dy-bo-back #canvasArea > .element-box { transition: translate .75s cubic-bezier(.45, .05, .3, 1); }
-.inner-page.dy-bdl #canvasArea:not([class*="lf-"]), .inner-page.dy-bdl #canvasArea.lf-line { transition: background-position .75s cubic-bezier(.45, .05, .3, 1); }
-.inner-page.dy-bo #canvasArea:not([class*="lf-"]), .inner-page.dy-bo #canvasArea.lf-line { background-position-x: var(--gh); }   /* 줄노트 여백 선도 종이와 같이 */
 .dy-gap::before { transition: opacity .3s; }
 .inner-page.dy-bo-go .dy-gap::before, .inner-page.dy-bo .dy-gap::before { opacity: 0; }   /* 링 받침도 링과 같이 빠져요 */
 /* 꺼낸 두 쪽의 바깥 끝 (종이 크기 그대로 · 바깥 틈의 반 --gh 는 책상) · 처음 종이처럼 둥근 모서리 + 테두리 (도련 10-18 · --bd-ring · --bd-rad = js/skins.js bdSync) */
@@ -3330,7 +3329,7 @@ body.gd-on #innerPage, body.gd-on #innerPage * { cursor: none !important; }   /*
 /* 📕 표지 꾸미기 (js/skins.js dkCoverEdit · dkCoverPaint) : 표꾸 화면(0장) = 접힌 겉표지처럼 앞표지 한 쪽 · 그 다이어리 색 · 닫힌 겉표지도 그 색 + 앞표지에 붙인 것 */
 .inner-page.dk-cover .canvas-area { background: none !important; box-shadow: none !important; }
 .inner-page.dk-cover .canvas-area::after { display: none; }
-.inner-page.dk-cover .canvas-area::before { display: block; content: ''; position: absolute; left: 50%; top: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; border-radius: 15px 22px 22px 15px; box-shadow: 5px 10px 25px rgba(0,0,0,.12);
+.inner-page.dk-cover .canvas-area::before { display: block; content: ''; position: absolute; left: 50%; top: 0; right: 0; bottom: 0; width: auto; translate: none; z-index: 0; pointer-events: none; border-radius: 15px 22px 22px 15px; box-shadow: 5px 10px 25px rgba(0,0,0,.12);
     background: linear-gradient(90deg, rgba(0,0,0,.12), rgba(255,255,255,.18) 60%, rgba(0,0,0,.05)) 0 0 / 6cqw 100% no-repeat, linear-gradient(140deg, color-mix(in srgb, var(--dy-c) 70%, #fff), var(--dy-c)); }   /* 표꾸 화면 = 접힌 겉표지 (책등 · 둥근 모서리 · 링 · 테두리 없음) · 표지 판은 오른쪽 쪽에만 그려서 스티커는 밖으로 삐져나가요 */
 #diaryBook.dk-cv, #diaryBook.dy-one.dy-r.dk-cv { clip-path: none; }
 .cover-page.cv-book, .cover-page.cv-can, .dk-fold-f { overflow: visible; }

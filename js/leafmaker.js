@@ -15,7 +15,7 @@
         const LM_SIZES = [['3', '가늘게'], ['7', '보통'], ['16', '굵게']];
         const LM_GLUES = [['', '다이어리 색'], ['#ffb3c6', '분홍'], ['#ffcf9e', '살구'], ['#ffe98a', '노랑'], ['#b9ebcf', '민트'], ['#b7dcff', '하늘'], ['#d6c6ff', '보라'], ['#d9bf94', '크라프트']];
         const LM_DEF = { leaf: { g: 'plain', lc: '#f6d5df', gap: 56 }, tk: { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 36, top: 30 }, memo: { bg: '#fff59a', g: 'line', lc: '#e8d27a', gap: 34, top: 20, rad: 6 } };   // 처음 종이 (속지 = 지금 다이어리 속지 색)
-        const lm = { built: false, for: 'leaf', glue: '', tab: 'photo', w: 0, h: 0, mm: null, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, mk: null, mkImg: null,
+        const lm = { built: false, for: 'leaf', two: false, glue: '', tab: 'photo', w: 0, h: 0, mm: null, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, mk: null, mkImg: null,
             pen: LM_PENS[0], size: 7, erase: false, ink: null, undo: [], drag: null };
         const lmq = id => document.getElementById(id);
 
@@ -32,6 +32,10 @@
             lmq('lmZoom').oninput = e => { lm.zoom = +e.target.value; lmClamp(); lmDraw(); };
             lmq('lmWash').oninput = e => { lm.wash = +e.target.value; lmDraw(); };
             lmq('lmFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) lmPhoto(f); };
+            const sd = document.createElement('div'); sd.id = 'lmSide'; sd.className = 'stk-tabs lm-tabs lm-side';   // 📃 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로 · 도련 11-16)
+            sd.innerHTML = '<button type="button" class="stk-tab" data-two="">📄 한 쪽 디자인</button><button type="button" class="stk-tab" data-two="1">📖 양쪽 디자인</button>';
+            sd.onclick = e => { const b = e.target.closest('button'); if (!b || !!b.dataset.two === lm.two) return; lm.two = !!b.dataset.two; lmOpen('leaf', true); };
+            lmq('lmTabs').before(sd);
             const cv = lmq('lmCv');
             cv.addEventListener('pointerdown', lmDown); cv.addEventListener('pointermove', lmMove);
             ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => cv.addEventListener(t, lmUp));
@@ -40,11 +44,14 @@
         const openLeafMaker = () => lmOpen('leaf');
         const openTteokMaker = () => lmOpen('tk');
         const openMemoMaker = () => lmOpen('memo');
-        function lmOpen(kind) {
+        function lmOpen(kind, again) {                                     // again = 📃 한 쪽 ↔ 양쪽 바꿔 다시 (창은 그대로)
             const pad = !!(window.tabletOn && tabletOn());                   // 📱 태블릿에서 열면 다이어리와 상관없이 (도련 11-13 : 서랍에 넣기만 · css/tablet.css)
             if (!isCoverOpen && !pad) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
             lmBuild();
             const T = kind === 'tk', M = kind === 'memo';
+            if (!again) lm.two = false;
+            lmq('lmSide').hidden = T || M; lmq('lmSide').querySelectorAll('button').forEach(b => b.classList.toggle('on', !!b.dataset.two === lm.two));
+            lmq('lmBox').classList.toggle('lm-two', !T && !M && lm.two);   // 가운데 접히는 선 (그림엔 안 들어가요)
             lm.for = kind;
             lmq('leafMakeModal').querySelector('.lm-content').classList.toggle('lm-tk', T);
             lmq('leafMakeModal').querySelector('.lm-content').classList.toggle('lm-memo', M);
@@ -53,7 +60,7 @@
             lmq('lmKeep').textContent = '🗄️ 서랍에 넣기';
             lmGlueShow();
             lm.mm = T ? MK.MM.tk.slice() : M ? MK.MM.memo : (window.dyLook ? dyLook().mm : '105×148');   // 📏 만들 때부터 mm (도련 11-16 · 📃 속지 = 지금 다이어리 규격 · js/maker.js MK)
-            [lm.w, lm.h] = MK.drawWH(T ? 'tk' : M ? 'memo' : 'leaf', lm.mm);
+            [lm.w, lm.h] = MK.drawWH(T ? 'tk' : M ? 'memo' : 'leaf', lm.mm, lm.two);
             const cv = lmq('lmCv'); cv.width = lm.w; cv.height = lm.h;
             lm.ink = document.createElement('canvas'); lm.ink.width = lm.w; lm.ink.height = lm.h;
             lm.img = null; lm.zoom = 1; lm.ox = lm.oy = 0; lm.wash = 0; lm.undo = [];
@@ -61,8 +68,8 @@
             lmq('lmBox').style.aspectRatio = `${lm.w} / ${lm.h}`; lmq('lmBox').style.setProperty('--lm-r', (lm.w / lm.h).toFixed(3));
             lm.mk = Object.assign({ bg: lmPageColor() }, LM_DEF[kind]); lm.mkImg = null;
             if (window.MK) MK.form(lmq('lmMk'), 'paper', lm.mk, r => { lm.mk = r; lmMkPaint(); }, { only: ['bg', 'g', 'lc', 'gap', 'top', 'L', 'bd', 'bw', 'bc', 'rad', 'head'] });
-            lmTab('photo'); lmDraw();
-            openModal('leafMakeModal');
+            lmTab(again ? lm.tab : 'photo'); lmDraw();
+            if (!again) openModal('leafMakeModal');
         }
         function lmTab(t) {
             lm.tab = t;
@@ -133,7 +140,7 @@
             const src = c.toDataURL('image/jpeg', lm.for === 'leaf' ? .86 : .9);
             if (lm.for === 'tk') return tkDone(btn, keep, src);
             if (lm.for === 'memo') return lmOwn(btn, keep, { k: 'memo', from: 'mine', imgs: [src], x: { pp: 'img', w: lm.w, h: lm.h, mm: lm.mm } }, '📝 메모지');   // 🎒 만든 메모지 한 묶음 = 🧺 바구니로
-            return lmOwn(btn, keep, { k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my', sz: lfSz(lm.mm) } }, '📃 속지');   // 🎒 만든 속지 한 장 = 🧺 바구니로 (끼우면 끝)
+            return lmOwn(btn, keep, { k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my', sz: lfSz(lm.mm), two: lm.two } }, '📃 속지');   // 🎒 만든 속지 한 장 = 🧺 바구니로 (끼우면 끝)
         }
         /* 🎒 만든 것 → 🧺 바구니 (keep : 넣기만 · 아니면 바로 꺼내 쓰기 · js/own.js) */
         async function lmOwn(btn, keep, d, name) {

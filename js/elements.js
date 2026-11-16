@@ -1017,9 +1017,8 @@
             const day = { v: 4, i: elementsData };                              // 📏 v4 = 쪽 기준 mm (js/page.js pgToMm)
             if (pageStamps.mo) day.mo = pageStamps.mo;                          // 😊 오늘의 기분 · ☀️ 날씨 도장 (js/stamp.js)
             if (pageStamps.we) day.we = pageStamps.we;
-            const lfDef = (window.dkLeafOf && dkLeafOf(currentDate)) || 'line';   // 📓 만든 노트는 페이지마다 정해 둔 내지가 기본 (js/dymaker.js)
-            if (typeof pageLeaf !== 'undefined' && pageLeaf !== lfDef) { day.lf = pageLeaf; if (pageLeaf === 'my') day.lfi = pageLeafImg; }   // 📃 속지 (js/leafpad.js · 기본 내지는 저장 안 함)
-            const has = !!(elementsData.length || day.mo || day.we || day.lf), txt = has ? JSON.stringify(day) : null;
+            { const sj = window.lfPackNow ? lfPackNow() : {}; if (sj.l || sj.r) day.sj = sj; }   // 📃 쪽마다 붙인 속지 (js/leafpad.js · 내지는 그 다이어리 내지 상품이라 적지 않아요)
+            const has = !!(elementsData.length || day.mo || day.we || day.sj), txt = has ? JSON.stringify(day) : null;
             if (window.pgSave && pgSave(dayKey, txt)) return;                    // ✅ 완료 전 = 드라이브에 올리지 않고 이 기기에만 (✅ 완료할 때 한 번 · js/pagedone.js · 도련 11-14)
             if (txt !== store.getItem(dayKey) && window.deskLastDeco) deskLastDeco();   // 📔 꾸민 게 바뀌었으면 = 마지막으로 다꾸한 다이어리 (로그인하면 이 권이 떠요 · js/desk.js)
             if (has) store.setItem(dayKey, txt);
@@ -1108,7 +1107,7 @@
             clearCanvas();
             pageStamps.mo = ''; pageStamps.we = '';
             if (typeof psRender === 'function') psRender();
-            if (typeof setPageLeaf === 'function') setPageLeaf((window.dkLeafOf && dkLeafOf(currentDate)) || 'line');
+            if (typeof setPageLeaf === 'function') setPageLeaf(lfPageNj(currentDate), null);
             const canvas = document.getElementById('canvasArea');
             const key = getDateKey(currentDate);
             /* 아직 드라이브에서 읽지 못한 날짜라면 읽어 온 뒤에 표시 (빈 화면으로 덮어쓰는 사고 방지) */
@@ -1130,7 +1129,7 @@
             let raw = null; try { raw = JSON.parse(store.getItem(key)); } catch (e) {}
             pageStamps.mo = raw && raw.mo || ''; pageStamps.we = raw && raw.we || '';
             if (typeof psRender === 'function') psRender();
-            if (typeof setPageLeaf === 'function') setPageLeaf((raw && raw.lf) || (window.dkLeafOf && dkLeafOf(currentDate)) || 'line', raw && raw.lfi);  // 📃 그날 속지 (js/leafpad.js) · 📓 없으면 만든 노트의 내지 (js/dymaker.js)
+            if (typeof setPageLeaf === 'function') setPageLeaf(lfPageNj(currentDate), lfUnpack(raw && raw.sj));   // 📄 내지 + 📃 그날 쪽마다 속지 (js/leafpad.js)
             if (typeof ddRefresh === 'function') ddRefresh();               // ⏳ 이 페이지 날짜 기준 D-day (js/dday.js)
             if (window.pgAfterLoad) pgAfterLoad(key);                           // ✅ 완료 버튼 · 완료한 페이지 고정 (js/pagedone.js)
             if (window.bdAfterLoad) bdAfterLoad();                          // 🗂 바인더 : 불러온 꾸밈도 바로 그 쪽 자리로 (js/skins.js)

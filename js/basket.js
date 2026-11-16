@@ -307,7 +307,7 @@
             else if (s.k === 'tape') { if (!window.placeTape) return; ok = placeTape(s.imgs[0], { id }, DS.tape); }   // 페이지에 바로 (DS.tape : 롤에서 뽑은 자리 · 길이 · 방향) · 비켰다 다시 떠요 (stkBlink)
             else if (s.k === 'tk') { if (!window.tkOwnOpen) return; if (window.stkLeave && UI.phone()) stkLeave(); tkOwnOpen('my', { src: s.imgs[0], glue: x.glue || '', mm: x.mm }, { id }); ok = true; }
             else if (s.k === 'memo') ok = bkMemo(id, s, x);
-            else if (s.k === 'leaf') ok = bkLeaf(id, s, x);
+            else if (s.k === 'leaf') ok = await bkLeaf(id, s, x);
             if (!ok && window.stkReturn) stkReturn(300);
         } catch (e) {
             console.warn(e);
@@ -328,15 +328,18 @@
         if (window.stkBlink) stkBlink();
         return true;
     }
-    /* 📃 속지 한 장 : 오늘 페이지에 끼우면 그 한 장은 끝 (같은 속지가 이미 깔려 있으면 쓰지 않아요) */
-    function bkLeaf(id, s, x) {
+    /* 📃 속지 : 끼울 쪽을 골라요 (도련 11-16 · 한 쪽 디자인 = 왼쪽 · 오른쪽 · 양쪽 / 양쪽 디자인 = 양쪽 · 왼쪽만 · 오른쪽만) · 끼운 쪽마다 한 장씩 줄어요 · 같은 규격 다이어리에만 */
+    async function bkLeaf(id, s, x) {
         if (!window.pickLeaf) return false;
-        const lf = 'my', img = s.imgs[0];                                   // 🧁 샵 속지 = 모두 그림 (상품공방)
-        if (!lfFits(x.sz)) { showMsg(lfNo(x.sz)); return false; }           // 📏 같은 규격 다이어리에만 (도련 11-16 · 늘이지 않아요)
-        if (typeof pageLeaf !== 'undefined' && pageLeaf === lf && pageLeafImg === img) { showMsg('📃 오늘 페이지에 이미 깔린 속지예요.'); return false; }
+        if (!lfFits(x.sz)) { showMsg(lfNo(x.sz)); return false; }           // 📏 늘이지 않아요
+        const img = s.imgs[0], two = !!x.two, left = s.q != null ? +s.q : 2;
+        const opts = two ? [['양쪽 (왼쪽 · 오른쪽 디자인)', 'lr'], ['왼쪽만', 'l'], ['오른쪽만', 'r']] : [['왼쪽', 'l'], ['오른쪽', 'r'], ['양쪽 (두 장)', 'lr']];
+        const ok = opts.filter(o => o[1].length <= left), n = await showPick(`📃 어느 쪽에 끼울까요?<br><span style="font-size:12px;color:#777;">${two ? '양쪽 디자인 속지예요.' : '한 쪽 디자인 속지예요.'} 끼운 쪽마다 한 장씩 써요.</span>`, ok.map(o => o[0]));
+        if (n < 0) return false;
+        const sd = ok[n][1];
         if (window.stkBlink) stkBlink();
-        pickLeaf(lf, img);
-        ownQty(id, 1, null).catch(er => console.warn('속지를 아직 못 지웠어요 (다시 해요) :', er));
+        if (!pickLeaf({ i: img, two }, sd)) return false;
+        ownQty(id, sd.length, null).catch(er => console.warn('속지를 아직 못 줄였어요 (다시 해요) :', er));
         return true;
     }
     if (window.ownOnChange) ownOnChange(() => { if (vis('basketKindModal')) bkRender(false); });

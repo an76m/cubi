@@ -45,6 +45,7 @@
 .pp-stage[data-tool="pen"], .pp-stage[data-tool="curve"], .pp-stage[data-tool="rect"], .pp-stage[data-tool="ellipse"], .pp-stage[data-tool="heart"], .pp-stage[data-tool="star"], .pp-stage[data-tool="lasso"], .pp-stage[data-tool="shape"], .pp-stage[data-tool="fill"], .pp-stage[data-tool="drop"] { cursor: crosshair; }
 .pp-stage[data-tool="zoom"] { cursor: zoom-in; } .pp-stage[data-tool="text"], .pp-stage[data-tool="vtext"] { cursor: text; }
 .pp-doc { position: absolute; left: 0; top: 0; transform-origin: 0 0; box-shadow: 0 0 0 2px #f2c6d4, 0 10px 26px rgba(90, 50, 60, .18); background: #fff; }
+.pp-two-on .pp-doc::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2px dashed rgba(150, 90, 110, .5); pointer-events: none; z-index: 5; }   /* 📖 양쪽 디자인 : 가운데 = 두 쪽이 나뉘는 자리 (그림엔 안 들어가요) */
 .pp-doc canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #ppOv { pointer-events: none; }
 .pp-brush { position: absolute; border-radius: 50%; border: 1.5px solid rgba(60, 40, 50, .75); box-shadow: 0 0 0 1px rgba(255, 255, 255, .8); pointer-events: none; }
