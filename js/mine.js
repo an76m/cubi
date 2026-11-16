@@ -3,13 +3,18 @@
    - 묶음 다섯 (G · 한 줄 더하면 다른 종류도) : 🪑 소품 / _실물.json (책상소품 · 🧱 벽지 · 🪵 책상판) · ✏️ 문구 / _실물.json (문구) · 📔 다이어리 / _실물.json (날짜형 · 페이지형 바인더 · 노트 · 내지 · 1265)
        · 🌈 배경지 / _실물.json · 📥 빈스티커첩 / _실물.json (📒 스티커바인더 · 🤍 이형지북 · 1266)
        📒 🤍 가진 것 = 빈스티커첩 목록 + 스티커 정리에 불러온 책 (그 종류 _스티커첩.json · 읽어 둔 것만) → 받는 순간 실물이 생겨서 (받은- 파일 · 묶음) 스티커 정리로 옮겨도 그대로 · 스티커 창을 열면 빠진 것을 채워요
-       🔐 { v, k, items: { '종류|상품 id': { K, P, f, wh, h, got } }, img: { 그림 이름: 그림 }, cs: [담은 받은- 파일 번호] } · 같은 디자인은 한 번만 (여러 개 가져도) · 보관함 · 재료 · 🎁 처음 선물도
+       📋 목록 _실물.json 🔐 { v: 2, k, items: { '종류|상품 id': { K, P, f, wh, h, got } }, gid, gf: [그림 이름], cs: [담은 받은- 파일 번호] } = 속성 + 그림 이름만 (가벼워요 · 몇 KB)
+       🖼 그림 묶음 _실물그림.json 🔐 { v, img: { 그림 이름: 그림 } } = 묶음마다 파일 하나 (새 그림이 생기면 통째로 다시 · 목록에 파일 번호 gid · 그림 이름 gf → 🚨 비상 = 요청 1번)
+       같은 디자인은 한 번만 (여러 개 가져도) · 보관함 · 재료 · 🎁 처음 선물도
    - 🪑 ✏️ 진짜 기준 = 물건 하나에 받은- 파일 하나 (예전 그대로 🔐 · 같은 u 는 하나) : 그 안에 실물도 { u, id, from, got 받은 시각, pr: { id, K, P, f, wh, h }, pi: { 그림 이름: 그림 } }
        묶음이 깨지거나 없어져도 받은- 파일 · 서버로 다시 만들어요
    - 📔 다이어리는 받은- 파일이 없어요 (목록 한 줄이 원본 · js/dyown.js) → 묶음 + _실물_백업.json (하루 한 번 + 새 디자인을 받으면 바로 · 묶음이 없어지면 백업에서)
        가진 것 = 다이어리 목록 · 바인더 재료 목록의 pid (상품 id) · 날짜 표지 d + 날짜형 권 id 안의 디자인 (dyyOf)
-   - 기기 보관 (IndexedDB 'malang-mine' · 계정|종류) : 처음 한 번 받아 두고 · 다음부터는 드라이브에 '바뀌었나'만 물어요 (요청 1번에 두 묶음 · 드라이브 modifiedTime)
-   - 두 기기 : 쓰기 전에 드라이브 묶음이 바뀌었으면 먼저 읽어서 합쳐요 (상품 id 기준 · 빠지는 것 없이) · 하루 한 번 받은- 파일과 맞춰 봐요 (빠진 것만 읽어요)
+   - 🎯 드라이브 요청을 아껴요 (도련 11-16 : 서버 = 요청 · 트래픽 무제한 · 드라이브는 아껴 써요)
+       평소 그림 = 늘 서버 (같은 그림이면 서버 주소 그대로) · 드라이브 = 앱을 열 때 '바뀌었나' 목록 요청 1번 (30초에 한 번) · 바뀌었으면 가벼운 목록만 받아요 (그림 X)
+       🚨 비상 (서버에 없거나 서버 모습이 내 것과 달라요) + 기기에 그 그림이 없어요 → 1) 서버에 같은 그림 이름이 있으면 서버 2) 없으면 드라이브 그림 묶음 (파일 번호로 바로 · 요청 1번)
+   - 기기 보관 (IndexedDB 'malang-mine' · 계정|묶음) : 목록 + 받아 둔 그림 (서버에서 받은 것 · 비상 때 드라이브에서 받은 것)
+   - 두 기기 : 쓰기 전에 드라이브 목록이 바뀌었으면 먼저 읽어서 합쳐요 (상품 id 기준 · 빠지는 것 없이) · 하루 한 번 받은- 파일과 맞춰 봐요 (모든 폴더 이름 목록 요청 1번 · 빠진 것만 읽어요)
    - 그리기 = js/prod.js prodList : 서버와 다른 것만 내 실물로 (mineDiff) · 같은 그림은 서버 주소 그대로 · 다르면 내 그림 (blob) · 바뀌면 prodRebuild (각 파일의 prodHook)
    - 게스트 = 이 기기에만 · 로그인 = 드라이브 + 이 기기 */
 (function () {
@@ -21,12 +26,12 @@
         빈스티커첩: { dir: 'emptyBook', K: ['스티커바인더', '이형지북'], rcv: 1 }   // 📒 🤍 (1266)
     };
     const KINDS = {}; Object.keys(G).forEach(g => G[g].K.forEach(K => { KINDS[K] = g; }));   // 상품 종류 → 묶음
-    const FILE = '_실물.json', BK = '_실물_백업.json', DAY_MAX = 40;
+    const FILE = '_실물.json', BK = '_실물_백업.json', PK = '_실물그림.json', DAY_MAX = 40;
     const key = (K, id) => K + '|' + id;
     const M = { who: '', k: {}, url: {}, diff: {}, sig: '', last: 0, run: null, again: false, dirty: new Set(), t: 0 };
-    const blank = () => ({ items: {}, img: {}, cs: [], fid: '', mt: '', bkid: '' });
+    const blank = () => ({ items: {}, img: {}, gf: [], gid: '', cs: [], fid: '', mt: '', bkid: '' });   // img = 기기에만 · 드라이브 목록에는 gid 그림 묶음 파일 번호 + gf 그 안의 그림 이름
     const obj = v => v && typeof v === 'object' && !Array.isArray(v);
-    const norm = r => { const b = blank(); if (!obj(r)) return b; if (obj(r.items)) Object.keys(r.items).forEach(k => { const x = r.items[k]; if (obj(x) && obj(x.f) && typeof x.K === 'string' && k === key(x.K, k.slice(x.K.length + 1))) b.items[k] = x; }); if (obj(r.img)) Object.keys(r.img).forEach(f => { if (typeof r.img[f] === 'string' && r.img[f].startsWith('data:')) b.img[f] = r.img[f]; }); if (Array.isArray(r.cs)) b.cs = [...new Set(r.cs.map(String))]; if (typeof r.fid === 'string') b.fid = r.fid; if (typeof r.mt === 'string') b.mt = r.mt; if (typeof r.bkid === 'string') b.bkid = r.bkid; if (isFinite(+r.bkn)) b.bkn = +r.bkn; return b; };
+    const norm = r => { const b = blank(); if (!obj(r)) return b; if (obj(r.items)) Object.keys(r.items).forEach(k => { const x = r.items[k]; if (obj(x) && obj(x.f) && typeof x.K === 'string' && k === key(x.K, k.slice(x.K.length + 1))) b.items[k] = x; }); if (obj(r.img)) Object.keys(r.img).forEach(f => { if (typeof r.img[f] === 'string' && r.img[f].startsWith('data:')) b.img[f] = r.img[f]; }); if (Array.isArray(r.gf)) b.gf = [...new Set(r.gf.filter(okF))]; if (typeof r.gid === 'string') b.gid = r.gid; if (Array.isArray(r.cs)) b.cs = [...new Set(r.cs.map(String))]; if (typeof r.fid === 'string') b.fid = r.fid; if (typeof r.mt === 'string') b.mt = r.mt; if (typeof r.bkid === 'string') b.bkid = r.bkid; if (isFinite(+r.bkn)) b.bkn = +r.bkn; return b; };
     const grp = g => M.k[g] || (M.k[g] = blank());
     const kind = K => grp(KINDS[K]);
     const okF = f => window.PROD_OKF ? PROD_OKF(f) : false;
@@ -120,44 +125,52 @@
     const mineKOf = (dir, id) => { const g = Object.keys(G).find(x => typeof DIRS !== 'undefined' && DIRS[G[x].dir] === dir); return g ? G[g].K.find(K => window.prodRawOf && prodRawOf(K, id)) || '' : ''; };   // 폴더 이름 + 상품 id → 종류 (js/coll.js ofAdd)
     async function fill() { for (const g of Object.keys(G)) for (const [K, id] of owned(g)) if (typeof id === 'string' && !grp(g).items[key(K, id)]) await mineSnap(K, id); }   // 🎁 선물 · 아직 실물이 없는 것
 
-    /* ☁ 드라이브 */
-    function merge(B, j) {                                                     // 드라이브 묶음을 기기 것에 · 기기에만 있는 것이 있으면 true (올려야 해요)
+    /* ☁ 드라이브 (요청을 아껴요 · 평소 = '바뀌었나' 1번 · 그림은 비상일 때만) */
+    function merge(B, j) {                                                     // 드라이브 목록을 기기 것에 · 기기에만 있는 것이 있으면 true (올려야 해요)
         const R = norm(j); let extra = false;
         Object.keys(R.items).forEach(id => { const a = B.items[id], b = R.items[id]; if (!a || (+b.got || 0) < (+a.got || Infinity)) B.items[id] = b; });   // 같은 id = 먼저 받은 모습
         Object.keys(B.items).forEach(id => { if (!R.items[id]) extra = true; });
-        Object.keys(R.img).forEach(f => { if (!B.img[f]) B.img[f] = R.img[f]; });
-        Object.values(B.items).forEach(x => Object.values(x.f).forEach(f => { if (okF(f) && B.img[f] && !R.img[f]) extra = true; }));
+        if (R.gid) { B.gid = R.gid; B.gf = R.gf.slice(); }                    // 🖼 그림 묶음 = 드라이브에 적힌 것이 진짜 (빠진 그림은 올릴 때 더해요)
         R.cs.forEach(c => { if (!B.cs.includes(c)) B.cs.push(c); });
         if (B.cs.some(c => !R.cs.includes(c))) extra = true;
         return extra;
     }
+    const dirKey = g => dirPath(DIRS[G[g].dir]).join('/');
     const dirOf = (g, create) => getFolder(dirPath(DIRS[G[g].dir]), create);
     async function write(K) {
-        const B = grp(K), used = {};
-        Object.values(B.items).forEach(x => Object.values(x.f).forEach(f => { if (B.img[f]) used[f] = B.img[f]; }));
-        B.img = used;
-        const body = JSON.stringify({ v: 1, k: K, items: B.items, img: used, cs: B.cs });
+        const B = grp(K), dir = await dirOf(K, true);
+        const all = new Set(); Object.values(B.items).forEach(x => Object.values(x.f).forEach(f => { if (okF(f)) all.add(f); }));
+        if ([...all].some(f => !B.gf.includes(f) && B.img[f])) {               // 🖼 그림 묶음에 없는 그림이 생겼어요 → 그림 묶음 하나를 통째로 다시 (파일은 늘 하나 · 비상 = 요청 1번)
+            const miss = B.gf.filter(f => all.has(f) && !B.img[f]);            // 묶음에 있는데 이 기기에 없는 그림 = 서버 (무제한) → 그래도 없으면 지금 묶음을 한 번 읽어요
+            for (const f of miss) { const d = await fetchData(f); if (d) B.img[f] = d; }
+            if (B.gf.some(f => all.has(f) && !B.img[f]) && B.gid) await packRead(B);
+            const img = {}; all.forEach(f => { if (B.img[f]) img[f] = B.img[f]; });
+            let r;
+            try { r = await driveUpsert(dir, PK, B.gid || null, JSON.stringify({ v: 1, img })); }
+            catch (e) { if (!B.gid) throw e; B.gid = ''; r = await driveUpsert(dir, PK, null, JSON.stringify({ v: 1, img })); }
+            B.gid = String(r.id || ''); B.gf = Object.keys(img);
+        }
+        const body = JSON.stringify({ v: 2, k: K, items: B.items, gid: B.gid, gf: B.gf, cs: B.cs });   // 📋 목록 = 속성 + 그림 이름만 (가벼워요)
         let r;
-        try { r = await driveUpsert(await dirOf(K, true), FILE, B.fid || null, body); }
-        catch (e) { if (!B.fid) throw e; B.fid = ''; r = await driveUpsert(await dirOf(K, true), FILE, null, body); }   // 그 사이 지워진 파일 → 새로
+        try { r = await driveUpsert(dir, FILE, B.fid || null, body); }
+        catch (e) { if (!B.fid) throw e; B.fid = ''; r = await driveUpsert(dir, FILE, null, body); }   // 그 사이 지워진 파일 → 새로
         B.fid = String(r.id || ''); B.mt = String(r.modifiedTime || ''); M.dirty.delete(K);
         await devSave(K);
-        if (!G[K].rcv) {                                                       // 📔 받은- 파일이 없는 묶음 = 하루 한 번 백업
+        if (!G[K].rcv) {                                                       // 📔 받은- 파일이 없는 묶음 = 백업 (하루 한 번 + 새 디자인)
             const bk = 'malang_mine_bk|' + M.who + '|' + K, today = new Date().toISOString().slice(0, 10);
             let last = ''; try { last = localStorage.getItem(bk) || ''; } catch (e) { }
             const n = Object.keys(B.items).length;
-            if (last !== today || n !== +B.bkn) { try { await driveUpsert(await dirOf(K, true), BK, B.bkid || null, body).then(x => { B.bkid = String(x.id || ''); }); B.bkn = n; localStorage.setItem(bk, today); await devSave(K); } catch (e) { B.bkid = ''; console.warn('📦 실물 백업', K, e); } }   // 새로 받은 디자인이 있으면 바로도
+            if (last !== today || n !== +B.bkn) { try { const x = await driveUpsert(dir, BK, B.bkid || null, body); B.bkid = String(x.id || ''); B.bkn = n; localStorage.setItem(bk, today); await devSave(K); } catch (e) { B.bkid = ''; console.warn('📦 실물 백업', K, e); } }
         }
     }
-    async function daily() {                                                   // 하루 한 번 : 받은- 파일 중 묶음에 아직 안 담긴 것만 읽어요
+    async function daily(dirs) {                                               // 하루 한 번 : 받은- 파일 중 목록에 아직 안 담긴 것만 읽어요 (모든 폴더 = 요청 1번)
         const dk = 'malang_mine_day|' + M.who, today = new Date().toISOString().slice(0, 10);
         let last = ''; try { last = localStorage.getItem(dk) || ''; } catch (e) { }
         if (last === today) return;
+        const fs = await driveList(`name contains '받은-' and trashed=false`, 'id,name,parents');
         for (const K of Object.keys(G)) {
-            if (!G[K].rcv) continue;
-            const dir = await dirOf(K, false); if (!dir) continue;
-            const B = grp(K), fs = await driveList(`'${dir}' in parents and trashed=false and name contains '받은-'`, 'id,name');
-            const C = new Map(fs.map(f => [(/^받은-(\d+)\.json$/.exec(f.name) || [])[1], f]).filter(([c]) => c));
+            if (!G[K].rcv || !dirs[K]) continue;
+            const B = grp(K), C = new Map(fs.filter(f => (f.parents || []).includes(dirs[K])).map(f => [(/^받은-(\d+)\.json$/.exec(f.name) || [])[1], f]).filter(([c]) => c));
             const keep = B.cs.filter(c => C.has(c)); if (keep.length !== B.cs.length) { B.cs = keep; M.dirty.add(K); }   // 버린 물건 번호는 빼요 (디자인은 그대로)
             let n = 0;
             for (const [c, f] of C) {
@@ -166,23 +179,47 @@
                 try {
                     const w = JSON.parse(await readFileText(f.id)), it = w && w.item && typeof w.item.s === 'string' ? await ownUnlock(w.item.s) : null;
                     if (it && obj(it.pr) && typeof it.id === 'string' && obj(it.pr.f)) { const x = Object.assign({}, it.pr); delete x.id; x.K = G[K].K.includes(x.K) ? x.K : G[K].K[0]; x.got = +x.got || +it.got || Date.now(); const k = key(x.K, it.id), y = B.items[k]; if (!y || x.got < (+y.got || Infinity)) B.items[k] = x; }   // 같은 id = 먼저 받은 모습
-                    if (it && obj(it.pi)) Object.keys(it.pi).forEach(g => { if (!B.img[g] && typeof it.pi[g] === 'string') B.img[g] = it.pi[g]; });
+                    if (it && obj(it.pi)) Object.keys(it.pi).forEach(g => { if (!B.img[g] && typeof it.pi[g] === 'string') B.img[g] = it.pi[g]; });   // 그림은 기기에 (드라이브 그림 묶음이 없으면 올릴 때 생겨요)
                 } catch (e) { }                                                // 🔐 남의 것 · 깨진 것은 넘어가요 (번호만 담아요)
                 B.cs.push(c); M.dirty.add(K);
             }
         }
         try { localStorage.setItem(dk, today); } catch (e) { }
     }
+    async function packRead(B) {                                               // 🖼 그림 묶음 읽기 (요청 1번 · 이 기기에 없는 그림만 담아요)
+        try { const j = JSON.parse(await readFileText(B.gid)); let n = 0; if (j && obj(j.img)) Object.keys(j.img).forEach(x => { if (!B.img[x] && typeof j.img[x] === 'string' && j.img[x].startsWith('data:')) { B.img[x] = j.img[x]; n++; } }); return n > 0; }
+        catch (e) { console.warn('📦 그림 묶음', e); return false; }
+    }
+    /* 🚨 비상 : 서버와 다른 내 실물의 그림이 기기에 없어요 → 1) 서버 (같은 그림 이름이 아직 있으면 · 무제한) 2) 드라이브 그림 묶음 (그 파일만) */
+    const tried = new Set();
+    async function rescue() {
+        const want = {};
+        Object.keys(KINDS).forEach(K => { const B = kind(K), D = mineDiff(K); Object.values(D).forEach(x => Object.values(x.f || {}).forEach(f => { if (okF(f) && !B.img[f] && !tried.has(f)) (want[KINDS[K]] = want[KINDS[K]] || new Set()).add(f); })); });
+        let got = false;
+        for (const g of Object.keys(want)) {
+            const B = grp(g), left = [];
+            for (const f of want[g]) { tried.add(f); const d = await fetchData(f); if (d) { B.img[f] = d; got = true; } else left.push(f); }
+            if (left.some(f => B.gf.includes(f)) && B.gid && online() && await packRead(B)) got = true;   // 드라이브 그림 묶음 = 파일 번호로 바로 (요청 1번)
+            if (got) await devSave(g);
+        }
+        if (got) { M.sig = ''; apply(); }                                      // 그림이 생겼어요 → 다시 그리기
+    }
     async function sync0(force) {
         const who = whoNow(); if (!who) return;
         await devLoad(who);
-        await fill();                                                          // 새로 생긴 것 (🎁 선물 · 보관함) = 늘 (기기 안 일 · 그림만 받아요)
-        if (!force && !M.dirty.size && Date.now() - M.last < 30000) return;   // 드라이브에 묻기는 30초에 한 번 (받거나 새로 생기면 바로)
+        await fill();                                                          // 새로 생긴 것 (🎁 선물 · 보관함) = 늘 (그림은 서버에서 · 드라이브 요청 없음)
+        if (!force && !M.dirty.size && Date.now() - M.last < 30000) { apply(); rescue(); return; }   // 드라이브에 묻기는 30초에 한 번 (받거나 새로 생기면 바로)
         M.last = Date.now();
         if (who !== 'guest' && online() && typeof driveList === 'function') {
-            const dirs = {}; for (const K of Object.keys(G)) dirs[K] = await dirOf(K, false);
-            const fs = Object.values(dirs).some(Boolean) ? await driveList(`(name='${FILE}' or name='${BK}') and trashed=false`, 'id,name,parents,modifiedTime') : [];   // 🔎 세 묶음이 바뀌었나 = 요청 1번
-            const read = async id => { try { const j = JSON.parse(await readFileText(id)); return j && obj(j.items) ? j : null; } catch (e) { console.warn('📦 실물 묶음', e); return null; } };
+            const fs = await driveList(`(name='${FILE}' or name='${BK}') and trashed=false`, 'id,name,parents,modifiedTime');   // 🔎 모든 목록이 바뀌었나 = 요청 1번
+            const dirs = {};
+            Object.keys(G).forEach(g => { const v = drive.folderIds && drive.folderIds.get(dirKey(g)); if (v) dirs[g] = v; });   // 폴더 = 기억한 것 먼저
+            for (const g of Object.keys(G)) {                                  // 모르는 폴더는 그 목록 파일이 있을 수 있을 때만 찾아요 (없는 폴더를 매번 묻지 않게)
+                if (dirs[g]) continue;
+                const known = new Set(Object.values(dirs));
+                if (M.dirty.has(g) || Object.keys(grp(g).items).length || fs.some(x => !(x.parents || []).some(p => known.has(p)))) { const v = await dirOf(g, false); if (v) dirs[g] = v; }
+            }
+            const read = async id => { try { const j = JSON.parse(await readFileText(id)); return j && obj(j.items) ? j : null; } catch (e) { console.warn('📦 실물 목록', e); return null; } };
             for (const K of Object.keys(G)) {
                 const mine = n => fs.filter(x => x.name === n && dirs[K] && (x.parents || []).includes(dirs[K])).sort((a, b) => String(b.modifiedTime).localeCompare(String(a.modifiedTime)))[0];
                 const B = grp(K), f = mine(FILE), bf = mine(BK);
@@ -190,17 +227,17 @@
                 if (f && (f.id !== B.fid || f.modifiedTime !== B.mt)) {
                     const j = await read(f.id);
                     if (j) { if (merge(B, j)) M.dirty.add(K); B.fid = f.id; B.mt = String(f.modifiedTime || ''); await devSave(K); }
-                    else { B.fid = f.id; M.dirty.add(K); }                      // 못 여는 묶음 = 기기 것 · 백업 · 받은- 파일로 다시 써요
+                    else { B.fid = f.id; M.dirty.add(K); }                      // 못 여는 목록 = 기기 것 · 백업 · 받은- 파일로 다시 써요
                     if (!j && bf) { const b = await read(bf.id); if (b) merge(B, b); }
                 } else if (!f) {                                               // 없어졌어요 → 백업 · 기기 것으로 다시
                     if (bf) { const b = await read(bf.id); if (b) merge(B, b); }   // 같은 id = 먼저 받은 모습 (방금 서버에서 채운 것보다 백업이 먼저)
                     if (B.fid || Object.keys(B.items).length) { B.fid = ''; M.dirty.add(K); }
                 }
             }
-            await daily();
-            for (const K of [...M.dirty]) { try { await write(K); } catch (e) { console.warn('📦 실물 묶음 올리기', K, e); } }
+            await daily(dirs);
+            for (const K of [...M.dirty]) { try { await write(K); } catch (e) { console.warn('📦 실물 목록 올리기', K, e); } }
         } else for (const K of [...M.dirty]) { await devSave(K); M.dirty.delete(K); }
-        apply();
+        apply(); await rescue();
     }
     function mineSync(force) {
         if (M.run) { if (force) M.again = true; return M.run; }
@@ -210,7 +247,7 @@
     function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); M.t = setTimeout(() => { const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
     window.mineDiff = mineDiff; window.mineUrl = mineUrl; window.mineSnap = mineSnap; window.mineGot = mineGot;
     window.mineSync = mineSync; window.mineSoon = mineSoon; window.mineKOf = mineKOf;
-    window.mineInfo = () => ({ who: M.who, kinds: Object.keys(M.k).map(g => ({ g, n: Object.keys(M.k[g].items).length, img: Object.keys(M.k[g].img).length, cs: M.k[g].cs.length, fid: M.k[g].fid })), diff: Object.keys(KINDS).reduce((a, K) => a + Object.keys(mineDiff(K)).length, 0), owned: g => owned(g) });   // 🔎 시험 · 점검
+    window.mineInfo = () => ({ who: M.who, kinds: Object.keys(M.k).map(g => ({ g, n: Object.keys(M.k[g].items).length, img: Object.keys(M.k[g].img).length, gf: M.k[g].gf.length, cs: M.k[g].cs.length, fid: M.k[g].fid })), diff: Object.keys(KINDS).reduce((a, K) => a + Object.keys(mineDiff(K)).length, 0), owned: g => owned(g) });   // 🔎 시험 · 점검
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
