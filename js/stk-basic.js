@@ -96,7 +96,7 @@
             const d = await sbData(kitAt(x.url, 'h120')), hm = +x.P.테이프폭, wm = Math.round(hm * d.w / d.h * 10) / 10;   // 📏 테이프 폭 = mm (상품공방) · 한 칸 길이 = 그림 비율
             const h = Math.round(hm * MM_PX * 10) / 10, w = Math.max(6, Math.round(wm * MM_PX * 10) / 10);
             const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, mm: [wm, hm], p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
-            return { k: 'tape', imgs: [u], th: u, q0: +x.P.롤길이 };
+            return { k: 'tape', imgs: [u], th: u, q0: ownTapeQ(+x.P.롤길이) };   // 📏 한 롤 길이 = mm (상품공방)
         }
         /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 '처음받기') : 처음 온 다꾸러가 한 롤씩 받아요 → 책상 마테 정리함에 꽂아요 (js/desk.js giftEnsure · js/desktape.js dktStarter) */
         const sbStarterTapes = () => sbStarter('tape');

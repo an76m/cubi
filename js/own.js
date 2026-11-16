@@ -36,7 +36,9 @@
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
         /* 🖨 제작 규칙 (도련 11-14) : 내가 만든 도안을 프린터로 뽑을 때 · 상품공방 '🖨 제작 규칙' → prod.js MALANG_PROD.rules (없으면 아래 값)
            seal · paper = 한 시트 · piece = 한 봉투 조각 수 · tape = 한 롤 길이 · tk · memo = 한 묶음 장 수 · leaf = 장 수 */
-        const OWN_RULES0 = { seal: 1, piece: 4, paper: 1, tape: 10000, tapeW: 30, tk: 30, leaf: 1, memo: 30 };
+        const OWN_RULES0 = { seal: 1, piece: 4, paper: 1, tape: 2600, tapeW: 8, tk: 30, leaf: 1, memo: 30 };   // 🎀 tape = 한 롤 길이 mm (2.6m) · tapeW = 폭 mm
+        const ownTapeQ = mm => Math.round(mm * MM_PX);   // 🎀 롤 길이 mm → 남은 양 (붙인 페이지 px 만큼 줄어요 · 1mm = MM_PX · 도련 11-16)
+        window.ownTapeQ = ownTapeQ;
         const ownRules = () => { const r = window.MALANG_PROD && window.MALANG_PROD.rules; const o = Object.assign({}, OWN_RULES0); if (r && typeof r === 'object') Object.keys(o).forEach(k => { if (+r[k] > 0) o[k] = +r[k]; }); return o; };
         window.ownRules = ownRules;
         /* 📐 만든 것 = 도안만 (서랍은 🖨 뽑아야) : 📱 태블릿(책상 프린터) · 📱 폰 ✂️ 작업실 (폰 프린터 · 도련 11-14 '6가지 모두 같은 규칙') */
@@ -72,7 +74,7 @@
             if (await showAsk(`🖨 뽑았어요!<br><span style="font-size:12px;color:#777;">🗄️ 서랍에 ${rt || '들어갔어요'}${rt ? ' 들어갔어요' : ''}</span>`, '📌 바로 꺼내 쓰기', '닫기') && window.craftUseMine) craftUseMine(sid);
         }
         window.ownDzMsg = ownDzMsg;
-        const OWN_MINE_Q = new Proxy({}, { get: (t, k) => ({ tape: ownRules().tape, tk: ownRules().tk, memo: ownRules().memo, leaf: ownRules().leaf })[k] });       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
+        const OWN_MINE_Q = new Proxy({}, { get: (t, k) => ({ tape: ownTapeQ(ownRules().tape), tk: ownRules().tk, memo: ownRules().memo, leaf: ownRules().leaf })[k] });       // ✂️ 내가 만든 것만 (상품이 아니라 앱 규칙 · 🧁 상품은 상품공방 값 q0 = 롤길이 · 묶음장수 · 도련 11-02)            // 🎀 한 롤 길이(px · 한 번에 170 쯤 → 열 번 남짓) · 🧻 📝 한 묶음 장 수 (실제 떡메 50 · 100매 중 · 도련 10-25) · 📃 한 장
         const ownHas = e => e.q0 ? e.q > 0 : e.u.length < e.n;                  // 아직 남았어요
         const ownAlive = e => !e.bin && ownHas(e);                                 // 🗑 버린 종이(bin = 버린 때)는 바구니 · 만든 것 어디에도 안 보여요 (js/bin.js · 30일 뒤 영구 삭제)
         const O = { kw: '', key: null, kd: {}, idx: null, album: null, noR: new Set(), mem: null, q: Promise.resolve(), subs: new Set(), replayed: '', spent: new Set() };   // spent = 이 창에서 다 쓴 종이 (도련 11-09 · 꺼내 둔 스티커창이 바구니의 옛 목록을 보고 다시 그리지 않게 · basket.js dsEntry)   // kd = 종류마다 (ownK) · idx · album = 모든 종류를 합친 모습 (ownMerge)
@@ -591,7 +593,7 @@
                 const src = s.imgs.map((u, i) => [u, (s.wh || [])[i]]).filter(x => x[0]), n = R.piece;
                 if (src.length) { const L = Array.from({ length: n }, (_, i) => src[i % src.length]); s.imgs = L.map(x => x[0]); s.wh = L.map(x => x[1] || null); }
             }
-            const q = { tape: R.tape, tk: R.tk, memo: R.memo, leaf: R.leaf }[s.k]; if (q) s.q0 = q; else delete s.q0;
+            const q = { tape: ownTapeQ(R.tape), tk: R.tk, memo: R.memo, leaf: R.leaf }[s.k]; if (q) s.q0 = q; else delete s.q0;
             s.x = Object.assign({}, s.x || {}, { dz: String(id) });
             return ownAdd(s, Object.assign({}, it.meta || {}, { noDesign: 1, print: 1 }));
         }
