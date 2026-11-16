@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/dash.js
-   📊 백엔드 상황판 (도련 11-17 · 💻 F2 = 열기/닫기 · Esc = 닫기 · 개발 중 도련 QA 용 · 상품공방처럼 써 보면서 고쳐요)
+   📊 백엔드 상황판 (도련 11-17 · 💻 F2 = 열기/닫기 · Esc = 닫기 · 🪟 앱과 따로 창 (팝업 · 윗단 잡고 옮기기 · 막히면 앱 안에 옮길 수 있는 창) · 개발 중 도련 QA 용 · 상품공방처럼 써 보면서 고쳐요)
    - 다른 파일을 고치지 않아요 : fetch 를 감싸서 모든 요청을 기록 + 몇 개의 전역 함수(loadFromDrive · applyLoadedData · deskItemsRender · openCoverAnimated)에 시각 표시
    - 탭 : 요약 · 드라이브 요청 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 기록(날마다)
    - 구글 드라이브 점수 (2026-05 새 방식) : 정보 읽기 5 · 쓰기 50 · 목록 100 · 파일 받기 200 (프로젝트 1분 1,000,000 · 사람 1분 325,000 · 하루 400,000,000 = 계산기 칸에서 바꿔요)
@@ -177,18 +177,30 @@
 #dashP .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:8px}#dashP .card{background:#fff;border:1px solid #f3d3dd;border-radius:10px;padding:8px}
 #dashP .card small{display:block;color:#a07a88}#dashP .bar{height:9px;background:#ff9fbc;border-radius:5px;min-width:2px}#dashP .warn{color:#d23c3c}#dashP .ok{color:#2e9b5e}
 #dashP input{width:110px;border:1px solid #f0b8c8;border-radius:6px;padding:2px 6px;font:inherit}#dashP .tip{color:#9a7884;font-size:12px}#dashP code{background:#fff0f5;padding:0 4px;border-radius:4px}
-#dashP details{margin:2px 0}#dashP summary{cursor:pointer}`;
+#dashP{resize:both;overflow:hidden;min-width:360px;min-height:240px}#dashP .dh{cursor:move;user-select:none}#dashP details{margin:2px 0}#dashP summary{cursor:pointer}`;
     const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다']];
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    let DOC = document;                                                       // 그리는 곳 = 따로 창 (팝업) 또는 앱 안 (팝업이 막혔을 때)
     function el() {
-        let p = document.getElementById('dashP'); if (p) return p;
-        const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-        p = document.createElement('div'); p.id = 'dashP';
+        let p = DOC.getElementById('dashP'); if (p) return p;
+        const st = DOC.createElement('style'); st.textContent = css + (DOC !== document ? POP_CSS : ''); DOC.head.appendChild(st);
+        p = DOC.createElement('div'); p.id = 'dashP';
         p.innerHTML = `<div class="dh"><b>📊 백엔드 상황판</b>${TABS.map(([k, n]) => `<button data-t="${k}">${n}</button>`).join('')}<button data-a="copy">📋 복사</button><button data-a="x">✕</button></div><div class="db"></div>`;
         p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.t) { D.tab = b.dataset.t; paint(true); } else if (b.dataset.a === 'x') dashToggle(false); else if (b.dataset.a === 'copy') copy(b); else if (b.dataset.a === 'reset') { if (confirm('날마다 기록을 지울까요?')) { days = {}; localStorage.removeItem(DAYS_KEY); paint(true); } } });
         p.addEventListener('input', e => { const i = e.target; if (i.dataset.c) { calc[i.dataset.c] = +i.value || 0; try { localStorage.setItem(CALC_KEY, JSON.stringify(calc)); } catch (x) { } paintSoon(); } else if (i.dataset.f != null) { D.filt = i.value; paintSoon(); } });
-        p.addEventListener('keydown', e => e.stopPropagation());
-        document.body.appendChild(p); return p;
+        p.addEventListener('keydown', e => { if (e.key === 'F2' || e.key === 'Escape') { e.preventDefault(); dashToggle(false); } e.stopPropagation(); });   // 상황판 안에서 누른 키는 앱으로 안 가요 (F2 · Esc = 닫기)
+        if (DOC === document) drag(p);
+        DOC.body.appendChild(p); return p;
+    }
+    function drag(p) {                                                         // 🖱 앱 안 창 = 윗단을 잡고 옮기기 · 오른쪽 아래 모서리로 크기
+        p.querySelector('.dh').addEventListener('pointerdown', e => {
+            if (e.target.closest('button')) return;
+            const r = p.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+            Object.assign(p.style, { left: r.left + 'px', top: r.top + 'px', right: 'auto', bottom: 'auto', width: r.width + 'px', height: r.height + 'px' });
+            const mv = ev => { p.style.left = Math.max(0, Math.min(innerWidth - 80, ev.clientX - dx)) + 'px'; p.style.top = Math.max(0, Math.min(innerHeight - 40, ev.clientY - dy)) + 'px'; };
+            const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
+            addEventListener('pointermove', mv); addEventListener('pointerup', up); e.preventDefault();
+        });
     }
     let pt = 0; const paintSoon = () => { clearTimeout(pt); pt = setTimeout(() => paint(false), 250); };
     function table(head, rows) { return `<table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map((c, i) => `<td${typeof c === 'number' || /^[\d,.]+(KB|MB|B|ms|점|번|%)?$/.test(String(c)) ? ' class="n"' : ''}>${typeof c === 'number' ? fmt(c) : c}</td>`).join('')}</tr>`).join('')}</table>`; }
@@ -206,10 +218,29 @@
 <div class="card"><small>앱 열기 한 번 (로그인 후 60초)</small><span class="big">${fmt(u.oc.v)}</span>점<br><span class="tip">${u.oc.src}</span></div>
 <div class="card"><small>가능한 사용자 (계산기 가정)</small><span class="big">${isFinite(u.max) ? fmt(u.max) : '—'}</span>명<br><span class="tip">${u.at}가 먼저 차요</span></div>
 <div class="card"><small>상품 목록</small>${prodState()}</div></div>
+${VIEW.vsGoogle(m)}
 <h4>종류별 (이번 실행)</h4>${table(['종류', '번', '점수'], kindRows(s))}
 <h4>점수를 많이 쓴 곳 TOP 8</h4>${table(['코드 자리 (파일:함수)', '번', '점수', '주고받은 양'], byFeat(D.reqs).slice(0, 8).map(([f, x]) => [`<code>${esc(f)}</code>`, x.n, x.p, kb(x.b)]))}
 <h4>⏱ 앱 열기 단계</h4>${table(['단계', '앱 시작 후'], D.marks.map(x => [esc(x.n) + (x.x ? ` <span class="tip">${esc(x.x)}</span>` : ''), (x.t / 1000).toFixed(2) + '초']))}
 ${D.errs.length ? `<h4 class="warn">⚠ 경고 · 오류 ${D.errs.length}개 (상태 탭)</h4>` : ''}`;
+        },
+        vsGoogle(m) {                                                         // 🏁 구글 한도와 나란히 (도련 11-17 : 점수만 봐서는 몰라요 · 구글 것과 같이 보면서 판단)
+            m = m || stats(lastMin());
+            const u = users(), d = dayOf();
+            const pc = (v, lim) => lim > 0 ? v / lim * 100 : 0;
+            const pct = x => x >= 10 ? x.toFixed(0) + '%' : x >= 1 ? x.toFixed(1) + '%' : x > 0 ? x.toFixed(3) + '%' : '0%';
+            const bar = x => `<div style="background:#f6e1e8;border-radius:5px;width:180px;height:10px"><div class="bar" style="width:${Math.min(100, Math.max(x > 0 ? 1.5 : 0, x))}%;${x >= 80 ? 'background:#e04848' : x >= 50 ? 'background:#f0a030' : ''}"></div></div>`;
+            const many = (v, lim) => v > 0 ? fmt(Math.floor(lim / v)) + '명' : '—';
+            const row = (mine, mv, gname, lim, mean) => { const x = pc(mv, lim); return [mine, fmt(mv) + '점', gname, fmt(lim) + '점', `${bar(x)}<span class="tip">${pct(x)}</span>`, mean]; };
+            return `<h4>🏁 구글 한도와 비교 <span class="tip">(구글 Drive API · 2026-05 새 방식 · 한도 값은 '사용자 수' 탭에서 고쳐요)</span></h4>
+${table(['내 숫자', '점수', '구글 한도', '한도', '얼마나 썼나', '뜻'], [
+                row('최근 1분 (나 혼자)', m.p, '한 사람 1분', calc.perUserMin, m.p ? `나 혼자 한도까지 ${many(m.p, calc.perUserMin).replace('명', '배')} 여유` : '지금은 안 써요'),
+                row('가장 많이 쓴 1분 (이번 실행)', u.myMax, '한 사람 1분', calc.perUserMin, u.myMax > calc.perUserMin ? '<span class="warn">⚠ 한 사람 한도를 넘어요 (구글이 잠깐 막아요)</span>' : '<span class="ok">한 사람 한도 안</span>'),
+                row('최근 1분 (나 혼자)', m.p, '프로젝트 1분 (모두 합쳐)', calc.perMin, m.p ? `모두가 지금 나처럼 쓰면 동시에 ${many(m.p, calc.perMin)}` : '—'),
+                row('앱 열기 한 번', u.oc.v, '프로젝트 1분 (모두 합쳐)', calc.perMin, u.oc.v ? `같은 1분에 ${many(u.oc.v, calc.perMin)}이 앱을 열 수 있어요` : '로그인 후에 재요'),
+                row('오늘 (이 기기 · 나)', d.pts, '프로젝트 하루 (넘으면 요금)', calc.perDay, d.pts ? `오늘의 나처럼 쓰는 사람 ${many(d.pts, calc.perDay)}까지 하루 무료` : '—')
+            ])}
+<p class="tip">구글 점수표 : 정보 읽기 5 · 쓰기 50 · 목록(찾기) 100 · 파일 받기 200 · 진짜 사용량 = Google Cloud 콘솔 → API 및 서비스 → Google Drive API → 측정항목 · 할당량 (이 상황판은 이 기기 것만 세요)</p>`;
         },
         req() {
             const f = D.filt.trim(), L = D.reqs.filter(r => !f || (r.feat + ' ' + r.name + ' ' + KN[r.k]).includes(f)).slice(-300).reverse();
@@ -273,13 +304,13 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         if (!D.on) return;
         const p = el(), box = p.querySelector('.db');
         p.querySelectorAll('.dh button[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === D.tab));
-        const focus = document.activeElement && p.contains(document.activeElement) && document.activeElement.tagName === 'INPUT' ? document.activeElement.dataset : null;
+        const ae = DOC.activeElement, focus = ae && p.contains(ae) && ae.tagName === 'INPUT' ? ae.dataset : null;
         if (D.tab === 'store') { if (full) { box.innerHTML = VIEW.store(); storePaint(box); } return; }
         const top = box.scrollTop;
         box.innerHTML = VIEW[D.tab]();
         box.scrollTop = full ? 0 : top;
         if (focus) { const i = box.querySelector(focus.c ? `input[data-c="${focus.c}"]` : 'input[data-f]'); if (i) { i.focus(); const v = i.value; i.value = ''; i.value = v; } }
-        if (D.tab === 'state' && typeof collScan === 'function' && typeof COLL !== 'undefined') collScan('outbox', (k, v) => v && v.who === COLL.who).then(L => { const o = document.getElementById('dashOutbox'); if (o) o.textContent = '📮 아직 못 올린 모음 작업 (outbox) : ' + ((L || []).length) + '개'; }).catch(() => { });
+        if (D.tab === 'state' && typeof collScan === 'function' && typeof COLL !== 'undefined') collScan('outbox', (k, v) => v && v.who === COLL.who).then(L => { const o = DOC.getElementById('dashOutbox'); if (o) o.textContent = '📮 아직 못 올린 모음 작업 (outbox) : ' + ((L || []).length) + '개'; }).catch(() => { });
     }
     function report() {
         const s = stats(D.reqs), u = users(), d = dayOf();
@@ -288,6 +319,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         L.push(`이번 실행 드라이브 : ${s.n}번 · ${s.p}점 (목록 ${s.k.list.n} · 받기 ${s.k.down.n} · 쓰기 ${s.k.write.n} · 정보 ${s.k.info.n}) · 받음 ${kb(s.down)} · 올림 ${kb(s.up)}`);
         L.push(`오늘 (이 기기) : ${d.n}번 · ${d.pts}점 · 앱 열기 점수 [${(d.opens || []).join(', ')}]`);
         L.push(`앱 열기 한 번 = ${Math.round(u.oc.v)}점 (${u.oc.src}) · 쓰는 동안 1분 = ${Math.round(u.up.v)}점 · 가정 열기 ${calc.opens}번 · ${calc.useMin}분 · 붐빌 때 ${calc.peak}% → 하루 한도 ${isFinite(u.byDay) ? Math.round(u.byDay) : '—'}명 · 1분 한도 ${isFinite(u.byMin) ? Math.round(u.byMin) : '—'}명`);
+        { const m = stats(lastMin()), pc = (v, l) => (l ? v / l * 100 : 0).toFixed(3) + '%'; L.push(`🏁 구글 한도 비교 : 최근 1분 ${m.p}점 = 한 사람 1분(${calc.perUserMin}) 의 ${pc(m.p, calc.perUserMin)} · 프로젝트 1분(${calc.perMin}) 의 ${pc(m.p, calc.perMin)} · 가장 많이 쓴 1분 ${u.myMax}점 · 앱 열기 ${Math.round(u.oc.v)}점 = 프로젝트 1분의 ${pc(u.oc.v, calc.perMin)} · 오늘 ${d.pts}점 = 하루(${calc.perDay}) 의 ${pc(d.pts, calc.perDay)}`); }
         L.push('상품 목록 : ' + prodState() + ' · 🧁 서버 ' + D.srv.n + '번 ' + kb(D.srv.b));
         L.push('', '⏱ 단계'); D.marks.forEach(x => L.push(`  ${(x.t / 1000).toFixed(2)}초  ${x.n} ${x.x}`));
         L.push('', '💯 점수 TOP'); byFeat(D.reqs).slice(0, 12).forEach(([f, x]) => L.push(`  ${f} : ${x.n}번 ${x.p}점 ${kb(x.b)}`));
@@ -298,16 +330,46 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
     }
     async function copy(b) {
         const t = report();
-        try { await navigator.clipboard.writeText(t); b.textContent = '✅ 복사했어요'; }
-        catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); b.textContent = '✅ 복사했어요'; } catch (x) { b.textContent = '❌ 복사 못 했어요'; } a.remove(); }
+        try { await ((DOC.defaultView || window).navigator.clipboard.writeText(t)); b.textContent = '✅ 복사했어요'; }
+        catch (e) { const a = DOC.createElement('textarea'); a.value = t; DOC.body.appendChild(a); a.select(); try { DOC.execCommand('copy'); b.textContent = '✅ 복사했어요'; } catch (x) { b.textContent = '❌ 복사 못 했어요'; } a.remove(); }
         setTimeout(() => { b.textContent = '📋 복사'; }, 1500);
     }
-    function dashToggle(on) {
-        D.on = on === undefined ? !D.on : !!on;
-        const p = el(); p.style.display = D.on ? 'flex' : 'none';
-        clearInterval(D.timer);
-        if (D.on) { hookAll(); paint(true); D.timer = setInterval(() => { if (D.tab !== 'store' && D.tab !== 'users') paint(false); }, 1000); }
+    /* 🪟 따로 창 (도련 11-17 : 붙어 있으면 앱을 못 써요 → 앱과 별개의 창 · 윗단을 잡고 옮기기 · 다른 모니터로도)
+         F2 = 열기 / 닫기 · 앱을 새로고침해도 열려 있던 창에 다시 붙어요 (malang_dash_open) · 팝업이 막히면 앱 안에 옮길 수 있는 창 */
+    const POP_CSS = `html,body{margin:0;height:100%;background:#fffafc}#dashP{position:static;inset:auto;width:100%;height:100%;border:0;border-radius:0;box-shadow:none}`;
+    const OPEN_KEY = 'malang_dash_open';
+    function popup(again) {
+        let w = null;
+        try { w = window.open('', 'malang_dash', 'popup,width=820,height=920,left=' + Math.max(0, screen.availWidth - 840) + ',top=20'); } catch (e) { w = null; }
+        if (!w) return false;
+        try {
+            w.document.open(); w.document.write('<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>📊 말랑달콤 상황판</title></head><body></body></html>'); w.document.close();
+        } catch (e) { return false; }
+        D.win = w; DOC = w.document;
+        w.addEventListener('keydown', e => { if (e.key === 'F2' || e.key === 'Escape') { e.preventDefault(); dashToggle(false); } });
+        w.addEventListener('pagehide', () => { if (D.win === w && !D.leaving) { D.on = false; clearInterval(D.timer); DOC = document; D.win = null; try { localStorage.removeItem(OPEN_KEY); } catch (x) { } } });
+        if (!again) w.focus();
+        return true;
     }
+    function dashToggle(on) {
+        const want = on === undefined ? !D.on : !!on;
+        clearInterval(D.timer);
+        if (!want) {
+            D.on = false;
+            if (D.win && !D.win.closed) { D.leaving = true; D.win.close(); D.leaving = false; }
+            D.win = null; DOC = document;
+            const p = document.getElementById('dashP'); if (p) p.style.display = 'none';
+            try { localStorage.removeItem(OPEN_KEY); } catch (e) { }
+            return;
+        }
+        D.on = true; hookAll();
+        if (!(D.win && !D.win.closed) && !popup(on === 'again')) { if (on === 'again') { D.on = false; return; } DOC = document; }   // 팝업이 막혔어요 → 앱 안 (옮길 수 있는 창) · 새로고침 뒤 다시 붙기는 막히면 그냥 둬요 (F2 로)
+        try { localStorage.setItem(OPEN_KEY, '1'); } catch (e) { }
+        const p = el(); p.style.display = 'flex';
+        paint(true); D.timer = setInterval(() => { if (D.win && D.win.closed) { dashToggle(false); return; } if (D.tab !== 'store' && D.tab !== 'users') paint(false); }, 1000);
+    }
+    window.addEventListener('pagehide', () => { D.leaving = true; });            // 앱을 새로고침 = 창은 그대로 두고 (다음에 다시 붙어요)
+    window.addEventListener('load', () => { let o = ''; try { o = localStorage.getItem(OPEN_KEY); } catch (e) { } if (o) setTimeout(() => dashToggle('again'), 300); });
     window.dashToggle = dashToggle; window.dashReport = report;
     window.addEventListener('keydown', e => {
         if (e.key === 'F2') { e.preventDefault(); dashToggle(); }
