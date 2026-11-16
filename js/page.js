@@ -529,19 +529,19 @@
 
         /* 📏 붙인 것 저장 = 쪽 기준 mm (도련 11-16 : 하루 = 펼친 두 쪽 = json 하나 · 기기 · 화면 크기와 상관없이 같은 자리 · 같은 크기)
            하나마다 p = 쪽 ('l' 왼쪽 · 'r' 오른쪽 · 가운데 점이 있는 쪽 · 📌 바인더 가운데 틈 근처는 놓인 쪽) · x, y = 그 쪽 종이 왼쪽 위 → 가운데 mm · W = 보이는 가로 mm (돌리기 전)
-           화면 종이 (#canvasArea) : 1mm = 높이 ÷ 규격 세로 · 왼쪽 종이 = 왼쪽 끝부터 · 오른쪽 종이 = 오른쪽 끝에 맞춰 (가운데 = 책등 · 틈) */
+           화면 종이 (#canvasArea) : 1mm = 높이 ÷ 규격 세로 · 두 쪽 종이를 가운데에 맞붙인 자리 (링 바인더 = 링을 연 자리 · 끼운 동안은 css 가 틈의 반씩 비켜 보여요) */
         function pgCanvas() { const p = getPageSize(); return canvasOfPage(p.w, p.h); }
-        function pgGeo(cv) { const mm = (window.dyMmOf && dyMmOf()) || [105, 148], k = cv.h / mm[1]; return { k, mm, rx: cv.w - mm[0] * k }; }
+        function pgGeo(cv) { const mm = (window.dyMmOf && dyMmOf()) || [105, 148], k = cv.h / mm[1], lx = (cv.w - mm[0] * k * 2) / 2; return { k, mm, lx, rx: lx + mm[0] * k, gh: (window.dyGapMm ? dyGapMm() : 0) / 2 * k }; }   // lx · rx = 두 쪽 맞붙인 자리 (가운데 = 이음매) · gh = 링에 끼운 동안 바깥으로 비키는 만큼 (틈의 반)
         function pgToMm(g, cv, pin) {                                          // g = { posX, posY, scale, boxW, boxH } (화면) → { p, x, y, W }
             const G = pgGeo(cv), s = parseFloat(g.scale) || 1, cx = (parseFloat(g.posX) || 0) + g.boxW / 2, cy = (parseFloat(g.posY) || 0) + g.boxH / 2;
             const near = Math.abs(cx - cv.w / 2) < 8 * G.k, p = near && (pin === 'l' || pin === 'r') ? pin : cx < cv.w / 2 ? 'l' : 'r', r1 = v => Math.round(v * 10) / 10;   // 📌 놓인 쪽은 가운데 8mm 안에서만
-            return { p, x: r1((cx - (p === 'r' ? G.rx : 0)) / G.k), y: r1(cy / G.k), W: Math.round(g.boxW * s / G.k * 100) / 100 };
+            return { p, x: r1((cx - (p === 'r' ? G.rx : G.lx)) / G.k), y: r1(cy / G.k), W: Math.round(g.boxW * s / G.k * 100) / 100 };
         }
         function pgFromMm(d, cv) {                                             // { side, mx, my, mw, boxW, boxH } → { posX, posY, scale } (화면)
-            const G = pgGeo(cv), cx = d.mx * G.k + (d.side === 'r' ? G.rx : 0), cy = d.my * G.k, s = d.boxW > 0 && d.mw > 0 ? d.mw * G.k / d.boxW : 1;
+            const G = pgGeo(cv), cx = d.mx * G.k + (d.side === 'r' ? G.rx : G.lx), cy = d.my * G.k, s = d.boxW > 0 && d.mw > 0 ? d.mw * G.k / d.boxW : 1;
             return { posX: cx - d.boxW / 2, posY: cy - d.boxH / 2, scale: s };
         }
-        window.pgToMm = pgToMm; window.pgFromMm = pgFromMm; window.pgCanvas = pgCanvas;
+        window.pgToMm = pgToMm; window.pgFromMm = pgFromMm; window.pgCanvas = pgCanvas; window.pgGeo = pgGeo;
         function convertGeometry(g, fromPage, toPage) {
             const a = canvasOfPage(fromPage.w, fromPage.h), b = canvasOfPage(toPage.w, toPage.h);
             if (a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) return g;
@@ -583,7 +583,7 @@
             const fit = s => Math.min(1, maxW / (s.w * (dy.two ? 2 : 1)), maxH / (s.h * (1 + ov.t + ov.b)));   // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
             const k = fit(dy);   // 📏 펼친 다이어리 = 실제 크기 (규격 mm × MM_PX · js/skins.js) · 그 다이어리가 화면에 닿을 때부터 줄어요 (도련 11-16 : 기준 A5 틀 없앰)
             const h = Math.round(dy.h * k);
-            { const mm = (window.dyMmOf && dyMmOf()) || [105, 148]; wrapper.style.setProperty('--mm', (MM_PX * k).toFixed(4) + 'px'); wrapper.style.setProperty('--pmw', mm[0]); wrapper.style.setProperty('--pmh', mm[1]); }   // 📏 종이 위 1mm · 규격 (css 속지 · 내지 무늬)
+            { const mm = (window.dyMmOf && dyMmOf()) || [105, 148]; wrapper.style.setProperty('--mm', (MM_PX * k).toFixed(4) + 'px'); wrapper.style.setProperty('--pmw', mm[0]); wrapper.style.setProperty('--pmh', mm[1]); const g = (window.dyGapMm ? dyGapMm() : 0) * MM_PX * k; wrapper.style.setProperty('--gap', g.toFixed(2) + 'px'); wrapper.style.setProperty('--gh', (g / 2).toFixed(2) + 'px'); }   // 📏 종이 위 1mm · 규격 (css 속지 · 내지 무늬)
             wrapper.style.width = Math.round(dy.w * k) + 'px'; wrapper.style.height = h + 'px';
             wrapper.style.marginTop = ov.t ? Math.round(ov.t * h) + 'px' : '';
             toolbar.style.marginTop = ov.b ? Math.round(10 + ov.b * h) + 'px' : '';

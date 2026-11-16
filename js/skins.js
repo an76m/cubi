@@ -478,12 +478,12 @@
         const dvSideSvg = s => `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="2.6" y="5" width="8.6" height="14" rx="1.8" fill="currentColor" fill-opacity="${s === 'l' ? '.9' : '0'}" stroke="currentColor" stroke-width="1.8"/><rect x="12.8" y="5" width="8.6" height="14" rx="1.8" fill="currentColor" fill-opacity="${s === 'r' ? '.9' : '0'}" stroke="currentColor" stroke-width="1.8"/></svg>`;
         const dyMode = () => { if (dkCv()) return 'right'; const v = dvCfg()[dvDev()]; return v === 'r' ? 'right' : v === 'l' ? 'left' : dvDev() === 'phone' ? 'swipe' : 'spread'; };   // 📕 표꾸 중엔 접힌 겉표지처럼 앞표지 한 쪽만
         let dyView = 'l';                                                      // 📱 지금 보는 쪽 (l 왼쪽 · r 오른쪽)
-        /* 🗂️ 바인더 가운데 책등 폭 = 책 한 쪽 폭의 8% (도련 11-04 : 현실 바인더처럼 좁게 · 예전 17%) · css/anime.css · style.css .dy-gap 과 같게
-           책등은 두 쪽 종이 위에 겹쳐 있어서, 좁아진 만큼 책 전체 가로도 줄여요 (보이는 종이 폭은 그대로) */
-        const DY_SP_OLD = .17, DY_SP = .08;
+        /* 🔗 두 쪽 사이 틈 = js/maker.js MK.GAP (묶는 방식마다 mm · 링 바인더 8mm = 책등 · 링 자리 · 도련 11-16 : 종이를 가리지 않아요 · 현실처럼 종이 따로 · 책등 따로)
+           책 한 쪽 = 종이 + 틈의 반 + 테두리 · 링에 끼운 동안 두 쪽이 틈의 반씩 바깥으로 (css --gh) · 링을 열면 맞붙어요 */
+        const dyGapMm = t => MK.GAP[(t || dyLook()).b] || 0;
         function dySize() {                                                    // 📐 한 쪽 크기 (js/page.js refreshLayout) · two = 두 쪽이 다 보여요 · pw = 책등과 상관없는 종이 한 쪽 폭
             const t = dyLook(), [cw, ch] = dyPaper(t), pw = Math.round(cw) + PAGE_BORDER * 2;   // 📏 규격 mm × MM_PX
-            const w = t.b === 'ring' ? Math.round(cw * (1 - DY_SP_OLD / 2) / (1 - DY_SP / 2)) + PAGE_BORDER * 2 : pw;
+            const w = Math.round(cw + dyGapMm(t) * MM_PX / 2) + PAGE_BORDER * 2;
             return { w, pw, h: ch + PAGE_BORDER * 2 + PAGE_HEADER_H, two: dyMode() === 'spread' };
         }
         /* 📃 속지 비율 (세로 ÷ 가로) = 펼친 두 쪽 종이 mm (규격 세로 ÷ 가로 × 2 · 도련 11-16 : 묶는 방식과 상관없이 · 같은 규격 = 같은 속지) */
@@ -620,13 +620,14 @@
             if (fs) { bdSt = { at: bdAt(), open: 1 }; ip.classList.add('dy-bo-go', 'dy-ring-open', 'dy-free-in'); bdFreeOn(fs); requestAnimationFrame(() => requestAnimationFrame(() => ip.classList.remove('dy-free-in'))); }
         }
         /* 📐 6공 바인더 속지 자리 (도련 10-18 · 꺼낼 때 종이가 늘어나지 않고 크기 그대로 미끄러져 와야 해서)
-           - 저장된 자리 = 꺼내서 두 쪽을 아주 가까이 맞대 놓은 자리 (양쪽 바깥 6cqw 는 종이 밖)
-           - 링에 끼운 동안은 두 쪽이 6cqw 씩 바깥으로 벌어져 있어요 → 왼쪽 쪽에 있는 것은 왼쪽으로 · 오른쪽 쪽에 있는 것은 오른쪽으로 (가운데 = 그것의 가운데 기준)
+           - 저장된 자리 = 꺼내서 두 쪽을 맞대 놓은 자리 (양쪽 바깥 틈의 반 --gh 는 종이 밖 · 쪽 기준 mm 로 저장 js/page.js pgToMm)
+           - 링에 끼운 동안은 두 쪽이 틈의 반(--gh)씩 바깥으로 벌어져 있어요 → 왼쪽 쪽에 있는 것은 왼쪽으로 · 오른쪽 쪽에 있는 것은 오른쪽으로 (가운데 = 그것의 가운데 기준)
            - 꺼내면 두 쪽이 크기 그대로 가운데로 미끄러져 와요 (붙은 그림 · 종이 바깥 끝 · 틈 · 구멍이 같이) */
         let bdObs = null;
+        const bdGh = () => { const w = document.getElementById('diaryWrapper'); return w ? parseFloat(getComputedStyle(w).getPropertyValue('--gh')) || 0 : 0; };   // 📏 링에 끼운 동안 한 쪽이 비키는 만큼 px (틈의 반 · js/page.js --gh)
         function bdSides() {
             const cv = document.getElementById('canvasArea'), ip = document.getElementById('innerPage'); if (!cv || !ip) return;
-            const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2, bk = document.getElementById('diaryBook'), band = (bk ? bk.offsetWidth / 100 : 0) * 6.5;
+            const on = ip.classList.contains('dy-bdl'), half = cv.offsetWidth / 2, bk = document.getElementById('diaryBook'), band = bdGh() * 1.6;
             let moved = false;
             cv.querySelectorAll(':scope > .element-box').forEach(el => {
                 const px = parseFloat(el.dataset.posX), c = (isFinite(px) ? px : 0) + el.offsetLeft + el.offsetWidth / 2;   // 자리는 transform(posX) 에 있어요
@@ -843,7 +844,7 @@
         function bdFreeOn(fs) {
             const ip = document.getElementById('innerPage'), cv = document.getElementById('canvasArea'), bk = document.getElementById('diaryBook'); if (!ip || !cv || !bk || bdFree) return;
             const ir = ip.getBoundingClientRect(), k = ir.width / (ip.offsetWidth || ir.width) || 1, cr = cv.getBoundingClientRect();
-            const ox = (cr.left - ir.left) / k, oy = (cr.top - ir.top) / k, W = cv.offsetWidth, H = cv.offsetHeight, cqw = bk.offsetWidth / 100, sw = W / 2 - 6 * cqw;
+            const ox = (cr.left - ir.left) / k, oy = (cr.top - ir.top) / k, W = cv.offsetWidth, H = cv.offsetHeight, cqw = bk.offsetWidth / 100, gh = bdGh(), mk = H / ((dyMmOf() || [0, 148])[1]), sw = W / 2 - gh;   // mk = 화면 1mm
             const cs = getComputedStyle(cv);
             const bgPos = off => cs.backgroundPosition.split(',').map(p => { const [x, y] = p.trim().split(/\s+/); return `calc(${x} - ${off}px) ${y || '0px'}`; }).join(', ');
             bdFree = { k, sh: {}, sel: null, d: null };
@@ -862,7 +863,7 @@
             ['l', 'r'].forEach(side => [7.5, 16.5, 25.5, -24.9, -15.9, -6.9].forEach((t, j) => {
                 const i = (side === 'l' ? 0 : 6) + j, d = document.createElement('i'), s2 = 2.4 * cqw;
                 d.className = 'bd-hole' + ((hm >> i & 1) ? ' on' : ''); d.dataset.i = i;
-                Object.assign(d.style, { left: ((side === 'l' ? sw - 4.5 * cqw : 4.5 * cqw) - s2 / 2) + 'px', top: ((t > 0 ? t * cqw : H + t * cqw) - s2 / 2) + 'px', width: s2 + 'px', height: s2 + 'px' });
+                Object.assign(d.style, { left: ((side === 'l' ? sw - 4.5 * mk : 4.5 * mk) - s2 / 2) + 'px', top: ((t > 0 ? t * cqw : H + t * cqw) - s2 / 2) + 'px', width: s2 + 'px', height: s2 + 'px' });
                 bdFree.sh[side].hl.appendChild(d);
             }));
             if (fs) ['l', 'r'].forEach((x, j) => { const h = bdFree.sh[x]; h.x = (+fs[j * 3] || 0) * cqw; h.y = (+fs[j * 3 + 1] || 0) * cqw; h.r = +fs[j * 3 + 2] || 0; });
@@ -891,7 +892,7 @@
                 el.style.translate = `${tx}px ${ty}px`; el.style.rotate = sh.r + 'deg';
             };
             cv.querySelectorAll(':scope > .element-box').forEach(el => {
-                const r = el.classList.contains('bd-r'); move(el, r ? Rr : L, (r ? 6 : -6) * cqw, ox, oy);
+                const r = el.classList.contains('bd-r'); move(el, r ? Rr : L, (r ? 1 : -1) * gh, ox, oy);
             });
             ip.querySelectorAll(':scope > .page-stamps, :scope > .season-corner').forEach(el => move(el, Rr, 0, 0, 0));
             ip.querySelectorAll(':scope > .page-dday').forEach(el => move(el, L, 0, 0, 0));
@@ -1014,7 +1015,7 @@
             const sh = bdFree.sh[side], ir = ip.getBoundingClientRect(), k = bdFree.k;   // 옮기고 돌린 쪽 위 자리 → 그 쪽의 원래 자리 (고른 게 그 쪽 눌린 자리에 놓이게)
             const vx = (e.clientX - ir.left) / k - sh.cx - sh.x, vy = (e.clientY - ir.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
             const px = vx * Math.cos(a) - vy * Math.sin(a) + sh.cx, py = vx * Math.sin(a) + vy * Math.cos(a) + sh.cy;
-            tmAnchor.x = px - cv.offsetLeft - (side === 'r' ? 6 : -6) * bk.offsetWidth / 100; tmAnchor.y = py - cv.offsetTop;
+            tmAnchor.x = px - cv.offsetLeft - (side === 'r' ? 1 : -1) * bdGh(); tmAnchor.y = py - cv.offsetTop;
         }
         function bdPunch() {                                                    // 🕳️ 펀치로 꾹 → 구멍
             const ip = document.getElementById('innerPage'), fr = document.getElementById('dyFront'); if (!ip || !fr) return;
@@ -1703,21 +1704,21 @@
             Object.assign(g.pv.style, { left: a.x + 'px', top: (a.y - 6) + 'px', width: L + 'px', transform: `rotate(${Math.atan2(b.y - a.y, b.x - a.x)}rad)` });
         }
         function gdCv(x, y, f) {   // f : 이 쪽 기준으로 (테이프 양 끝을 같은 쪽 기준으로)                                                   // 화면 자리 → 페이지에 저장되는 자리 (바인더 쪽 벌어짐 · 링을 연 뒤 옮기고 돌린 쪽까지)
-            const ip = gdIp(), cv = spPage(), bk = spBook(), cq = bk.offsetWidth / 100, { r, k } = gdK();
+            const ip = gdIp(), cv = spPage(), gh = bdGh(), { r, k } = gdK();
             if (gdFree()) {
                 const s = document.elementsFromPoint(x, y).find(n => n.classList && n.classList.contains('bd-sheet')), side = f || (s ? (s.classList.contains('l') ? 'l' : 'r') : (x < innerWidth / 2 ? 'l' : 'r')), sh = bdFree.sh[side];
                 const vx = (x - r.left) / k - sh.cx - sh.x, vy = (y - r.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
-                return { x: vx * Math.cos(a) - vy * Math.sin(a) + sh.cx - cv.offsetLeft - (side === 'r' ? 6 : -6) * cq, y: vx * Math.sin(a) + vy * Math.cos(a) + sh.cy - cv.offsetTop };
+                return { x: vx * Math.cos(a) - vy * Math.sin(a) + sh.cx - cv.offsetLeft - (side === 'r' ? 1 : -1) * gh, y: vx * Math.sin(a) + vy * Math.cos(a) + sh.cy - cv.offsetTop };
             }
             const p = { x: (x - r.left) / k - cv.offsetLeft, y: (y - r.top) / k - cv.offsetTop };
-            if (ip.classList.contains('dy-bdl') && !ip.classList.contains('dy-bo')) p.x += p.x < cv.offsetWidth / 2 ? 6 * cq : -6 * cq;   // 링에 끼운 동안 두 쪽은 6cqw 씩 바깥으로
+            if (ip.classList.contains('dy-bdl') && !ip.classList.contains('dy-bo')) p.x += p.x < cv.offsetWidth / 2 ? gh : -gh;   // 링에 끼운 동안 두 쪽은 틈의 반씩 바깥으로
             return p;
         }
         window.bdCvAt = (x, y) => {                                             // ✂️ 스티커 칼 조각 자리 (js/stkcut.js) : 화면 → 저장 자리 + 쪽 (그 뒤 bdPin) · 바인더가 아니면 null
             const ip = gdIp(), cv = spPage(), bk = spBook(); if (!ip || !cv || !bk || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return null;
             if (bdFree) { const sd = gdSide(x, y), m = gdCv(x, y, sd); return { x: m.x, y: m.y, sd }; }
-            const { r, k } = gdK(), cq = bk.offsetWidth / 100, vx = (x - r.left) / k - cv.offsetLeft, sd = vx < cv.offsetWidth / 2 ? 'l' : 'r';   // 링에 끼운 동안 : 보이는 쪽 그대로 (두 쪽은 6cqw 씩 바깥으로)
-            return { x: vx + (sd === 'l' ? 6 : -6) * cq, y: (y - r.top) / k - cv.offsetTop, sd };
+            const { r, k } = gdK(), gh = bdGh(), vx = (x - r.left) / k - cv.offsetLeft, sd = vx < cv.offsetWidth / 2 ? 'l' : 'r';   // 링에 끼운 동안 : 보이는 쪽 그대로 (두 쪽은 틈의 반씩 바깥으로)
+            return { x: vx + (sd === 'l' ? gh : -gh), y: (y - r.top) / k - cv.offsetTop, sd };
         };
         function gdSide(x, y) {                                                 // 📄 링을 연 뒤 그 자리(화면)에 놓일 꾸밈이 어느 쪽 것이 되는지 (저장 자리로 나뉘는 쪽과 같게)
             if (gdFree()) {                                                       // 그 종이 위면 그 쪽 · 틈(종이 밖)이면 가까운 종이 쪽 (틈 근처는 bdPin 이 기억)
@@ -2156,7 +2157,7 @@
         function dyClose() { closeModal('dyModal'); }
         function dyRender() { const t = dyNow(), id = t.id === DY_DEF ? (window.dyyOnId ? dyyOnId() : DY_DEF) : t.id; document.querySelectorAll('#dyModal .dy-it').forEach(b => b.classList.toggle('on', b.dataset.id === id)); }
         window.dySubNow = () => dySub;
-        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.MM_PX = MM_PX; window.PAPER_MM = PAPER_MM; window.dyMmOf = t => dyMm(t || dyLook()); window.STK_MM = STK_MM; window.dyImgK = () => { const b = document.getElementById('diaryBook'), d = dySize(), h = b && b.clientHeight; return IMG_K * (h > 0 && d.h ? h / d.h : 1); };  window.dyLeafR = dyLeafR; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
+        window.dvToggle = dvToggle; window.dvSideSvg = dvSideSvg; window.dySize = dySize; window.MM_PX = MM_PX; window.PAPER_MM = PAPER_MM; window.dyMmOf = t => dyMm(t || dyLook()); window.dyGapMm = dyGapMm; window.STK_MM = STK_MM; window.dyImgK = () => { const b = document.getElementById('diaryBook'), d = dySize(), h = b && b.clientHeight; return IMG_K * (h > 0 && d.h ? h / d.h : 1); };  window.dyLeafR = dyLeafR; window.dyLook = dyLook; window.dyDeco = dyDeco; window.dyHalf = dyHalf; window.dyEdgeRect = dyEdgeRect; window.dyViewSet = dyViewSet; window.dyVisX = dyVisX; window.dyVisRect = dyVisRect; window.dkMap = dkMap; window.dyUnderR = dyUnderR; window.dyTabSet = dyTabSet; window.gdTwz = () => gdIsTwz(gdHeld); window.gdTwzId = () => gdIsTwz(gdHeld) ? gdHeld : gdMain('tweez');   // 🪡 든 핀셋 (핀셋 그림 · js/elements.js pinSvg) window.bdOut = bdOut; window.bdIn = bdIn; window.bdModeSet = bdModeSet; window.bdModeRender = bdModeRender; window.bdSync = bdSync; window.dvSet = dvSet; window.dvRender = dvRender; window.dyLoad = dyLoad; window.dyOpen = dyOpen; window.dyClose = dyClose; window.dySet = dySet; window.dfSet = dfSet; window.dfRender = dfRender; window.dyStep = dyStep; window.dfLoad = dfLoad; window.dyOpenDate = dyOpenDate; window.dfFix = dfFix; window.dkInfo = dkInfo;
         window.dkType = dkType; window.dkId = dkId; window.dkCoverEdit = dkCoverEdit; window.dkUnfold = dkUnfold; window.dkRefold = dkRefold; window.dkCoverPaint = dkCoverPaint; window.dkKey = dkKey; window.dkAt = dkAt; window.dkIs = dkIs; window.dkNo = dkNo; window.dkNow = dkNow; window.dkFilled = dkFilled; window.dkDayOf = dkDayOf;
         window.dkMark = dkMark; window.dkReal = dkReal; window.dkLabel = dkLabel; window.dkTap = dkTap; window.dkPath = dkPath; window.dkSync = dkSync; window.dkEnd = dkEnd; window.dkInfoOf = dkInfoOf; window.dkInfoMerge = dkInfoMerge;
 

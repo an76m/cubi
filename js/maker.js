@@ -35,6 +35,7 @@
     /* 🪑 책상 위 권 = 종이 규격 × 20% (도련 11-16 · 앱 js/desk.js · 🛠 상품공방 책상 테스트가 같은 식) : 규격 mm × MMPX × DESK_K
        세운 모습 = 표지 + 위 고리 8px · 꽂은 모습 = 두께 24px · 책등 위아래 15px · 눕힌 모습 = A6 를 LAY 크기로 그린 그림을 줄여서 (css --lk = deskLk) */
     MK.MMPX = 96 / 25.4;                                                       // 📏 1mm = CSS px (앱 js/skins.js MM_PX)
+    MK.GAP = { ring: 8 };                                                    // 🔗 묶는 방식마다 두 쪽 사이 틈 mm (링 바인더 = 책등 · 링 자리 · 나머지 = 0 · 바인더 종류가 늘면 여기 한 줄)
     MK.STK_MM = 644 / 148;                                                     // 🏷️ 스티커 그림 1mm = 4.35px (시트 A6 세로 148mm = 644px · 도구/스티커정리 · 앱 js/skins.js STK_MM)
     MK.DESK_K = .2; MK.LAY = [150, 86];
     MK.deskLk = () => 105 * MK.MMPX * MK.DESK_K / MK.LAY[0];

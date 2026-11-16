@@ -2344,7 +2344,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 @keyframes cvNudge { 0%, 100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% - 1.6cqw)); } }
 
 /* 📏 종이 위 무늬 (줄 · 모눈 · 도트 · 깅엄 · 구멍) = mm (도련 11-16 : 규격이 달라도 모눈 5mm 는 5mm) · --mm = 화면에서 1mm (js/page.js refreshLayout · 처음엔 CSS 1mm) */
-:root { --mm: 1mm; }
+:root { --mm: 1mm; --gap: 8mm; --gh: 4mm; }   /* --gap · --gh = 링 바인더 두 쪽 사이 틈 · 틈의 반 (js/maker.js MK.GAP · js/page.js refreshLayout) */
 /* 속지 : 줄 노트 + 링 구멍 · 하얀 테두리 (종이 크기는 그대로라 붙인 스티커 자리는 안 바뀌어요) */
 .inner-page .canvas-area { background:
         radial-gradient(circle at calc(4.6 * var(--mm)) 50%, color-mix(in srgb, var(--border-color) 55%, #fff) calc(1.5 * var(--mm)), color-mix(in srgb, var(--border-color) 90%, #000 5%) calc(1.55 * var(--mm)) calc(1.9 * var(--mm)), transparent calc(1.95 * var(--mm))) 0 calc(3 * var(--mm)) / calc(9 * var(--mm)) calc(9 * var(--mm)) repeat-y,
@@ -3092,8 +3092,8 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
         var(--page-bg); }
 .dy-cov { position: absolute; }   /* 표지 크기 · 색 = css/anime.css (바인더 · 📓 노트) */
 /* 🗂️ 6공 링 (도련 10-18) : 두 속지 사이가 떨어져 있고 (가운데로 표지 안쪽 · 링 받침) · 크고 쇠 느낌 나는 링이 양쪽 속지 구멍을 꿰어요 */
-.dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: 8cqw; margin-left: -4cqw; }   /* 책등 = 8% (도련 11-04 · js/skins.js DY_SP) · 색 = css/anime.css */
-.dy-gap::before { content: ''; position: absolute; left: 50%; top: 4cqw; bottom: 4cqw; width: 4.4cqw; margin-left: -2.2cqw; }
+.dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: var(--gap); margin-left: calc(var(--gh) * -1); }   /* 📏 책등 = 두 쪽 사이 틈 mm (js/maker.js MK.GAP · 종이를 가리지 않아요) · 색 = css/anime.css */
+.dy-gap::before { content: ''; position: absolute; left: 50%; top: 4cqw; bottom: 4cqw; width: 55%; margin-left: -27.5%; }
 .dy-rings { position: absolute; left: calc(50% - 15cqw); top: 0; bottom: 0; width: 30cqw; }
 .dy-rings i { position: absolute; left: 0; width: 30cqw; height: 9cqw; margin-top: -6.3cqw; }   /* 링 그림 = css/anime.css */
 .dy-rings i:nth-child(1) { top: 7.5cqw; } .dy-rings i:nth-child(2) { top: 16.5cqw; } .dy-rings i:nth-child(3) { top: 25.5cqw; }
@@ -3120,24 +3120,24 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
     background: var(--bg-color, #ffe6f0); box-shadow: -.15cqw 0 .3cqw rgba(110, 80, 95, .18), .15cqw 0 .3cqw rgba(110, 80, 95, .18); }
 .inner-page.dy-bo-go .dy-seam { transition-delay: .85s; }
 .inner-page.dy-bo .dy-seam { opacity: 1; }
-/* 📐 6공 속지 자리 : 링에 끼운 동안 두 쪽이 6cqw 씩 바깥으로 · 꺼내면 크기 그대로 가운데로 (js/skins.js bdSides) */
-.inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-l { translate: -6cqw 0; }
-.inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-r { translate: 6cqw 0; }
+/* 📐 6공 속지 자리 : 링에 끼운 동안 두 쪽이 틈의 반(--gh)씩 바깥으로 · 꺼내면 크기 그대로 가운데로 (js/skins.js bdSides) */
+.inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-l { translate: calc(var(--gh) * -1) 0; }
+.inner-page.dy-bdl:not(.dy-bo) #canvasArea > .element-box.bd-r { translate: var(--gh) 0; }
 .inner-page.dy-bo-go #canvasArea > .element-box, .inner-page.dy-bo-back #canvasArea > .element-box { transition: translate .75s cubic-bezier(.45, .05, .3, 1); }
 .inner-page.dy-bdl #canvasArea:not([class*="lf-"]), .inner-page.dy-bdl #canvasArea.lf-line { transition: background-position .75s cubic-bezier(.45, .05, .3, 1); }
-.inner-page.dy-bo #canvasArea:not([class*="lf-"]), .inner-page.dy-bo #canvasArea.lf-line { background-position-x: 6cqw; }   /* 줄노트 여백 선도 종이와 같이 */
+.inner-page.dy-bo #canvasArea:not([class*="lf-"]), .inner-page.dy-bo #canvasArea.lf-line { background-position-x: var(--gh); }   /* 줄노트 여백 선도 종이와 같이 */
 .dy-gap::before { transition: opacity .3s; }
 .inner-page.dy-bo-go .dy-gap::before, .inner-page.dy-bo .dy-gap::before { opacity: 0; }   /* 링 받침도 링과 같이 빠져요 */
-/* 꺼낸 두 쪽의 바깥 끝 (종이 크기 그대로 · 바깥 6cqw 는 책상) · 처음 종이처럼 둥근 모서리 + 테두리 (도련 10-18 · --bd-ring · --bd-rad = js/skins.js bdSync) */
+/* 꺼낸 두 쪽의 바깥 끝 (종이 크기 그대로 · 바깥 틈의 반 --gh 는 책상) · 처음 종이처럼 둥근 모서리 + 테두리 (도련 10-18 · --bd-ring · --bd-rad = js/skins.js bdSync) */
 .dy-edge-w { position: absolute; top: -12px; bottom: -12px; left: -40px; right: -40px; overflow: hidden; pointer-events: none; display: none; opacity: 0; transition: opacity .3s .1s; }
 .inner-page.dy-bdl .dy-edge-w { display: block; }
 .inner-page.dy-bo-go .dy-edge-w, .inner-page.dy-bo .dy-edge-w, .inner-page.dy-bo-back .dy-edge-w { opacity: 1; }
 .dy-edge-f { position: absolute; top: 12px; bottom: 12px; left: 40px; right: 40px; border-radius: var(--bd-rad, 11px 18px 18px 11px); box-shadow: var(--bd-ring, 0 0 0 4px #fff), 4.6px 9.2px 23px rgba(160, 90, 110, .16), 0 0 0 100cqw var(--bg-color, #ffe6f0); transition: left .75s cubic-bezier(.45, .05, .3, 1), right .75s cubic-bezier(.45, .05, .3, 1); }
-.inner-page.dy-bo .dy-edge-f { left: calc(40px + 6cqw); right: calc(40px + 6cqw); }
+.inner-page.dy-bo .dy-edge-f { left: calc(40px + var(--gh)); right: calc(40px + var(--gh)); }
 /* 종이 위 기분 · 날씨 도장 · D-day · 계절 모서리도 종이와 같이 (도련 10-18) */
 .inner-page.dy-bdl .page-stamps, .inner-page.dy-bdl .page-dday, .inner-page.dy-bdl .season-corner { transition: translate .75s cubic-bezier(.45, .05, .3, 1); }
-.inner-page.dy-bo .page-stamps, .inner-page.dy-bo .season-corner { translate: -6cqw 0; }
-.inner-page.dy-bo .page-dday { translate: 6cqw 0; }
+.inner-page.dy-bo .page-stamps, .inner-page.dy-bo .season-corner { translate: calc(var(--gh) * -1) 0; }
+.inner-page.dy-bo .page-dday { translate: var(--gh) 0; }
 /* 버튼 자리 = 가운데 링 자리 전부 (js/skins.js bdHit) · 버튼은 그림만 */
 .dy-bo-btn { pointer-events: none !important; }
 /* ✋ 수동 : 링만 열었을 때 (js/skins.js bdDgEnd) · dy-bo-hold = 바인더 표지는 그대로 */
@@ -3149,18 +3149,18 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .inner-page.dy-bo-go .dy-seam, .inner-page.dy-bo-back .dy-seam { opacity: 1 !important; transition-delay: 0s !important; }
 .inner-page.dy-ring-open .dy-seam, .inner-page[data-dg] .dy-seam { opacity: 0 !important; }   /* ✋ 링만 연 채 (js/skins.js bdDgEnd) */
 .dy-holes { position: absolute; inset: 0; pointer-events: none; }
-.dy-holes i { position: absolute; left: calc(50% - 10.5cqw); width: 2.4cqw; height: 2.4cqw; margin: -1.2cqw 0 0 -1.2cqw; border-radius: 50%; visibility: hidden;
+.dy-holes i { position: absolute; left: calc(50% - var(--gh) - 4.5 * var(--mm));   /* 🕳️ 구멍 = 종이 안쪽 끝에서 4.5mm */ width: 2.4cqw; height: 2.4cqw; margin: -1.2cqw 0 0 -1.2cqw; border-radius: 50%; visibility: hidden;
     background: color-mix(in srgb, var(--dy-c) 55%, #fff); box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }
 .inner-page.dy-bh .dy-holes i, .dy-holes i.on { visibility: visible; }   /* 🕳️ 펀칭기로 하나씩 뚫은 구멍 = .on (js/skins.js gdPunch) */
 .dy-holes i.pop, .bd-hole.pop { animation: dyHole .35s ease-out both; }
 .inner-page.dy-bo .dy-holes i { background: color-mix(in srgb, var(--bg-color, #ffe6f0) 80%, #c9a3b3); }
-.dy-holes i:nth-child(n+7) { left: calc(50% + 10.5cqw); }
+.dy-holes i:nth-child(n+7) { left: calc(50% + var(--gh) + 4.5 * var(--mm)); }
 .dy-holes i:nth-child(6n+1) { top: 7.5cqw; } .dy-holes i:nth-child(6n+2) { top: 16.5cqw; } .dy-holes i:nth-child(6n+3) { top: 25.5cqw; }
 .dy-holes i:nth-child(6n+4) { top: calc(100% - 24.9cqw); } .dy-holes i:nth-child(6n+5) { top: calc(100% - 15.9cqw); } .dy-holes i:nth-child(6n) { top: calc(100% - 6.9cqw); }
 .inner-page.dy-bh-pop .dy-holes i { animation: dyHole .35s ease-out both; }
 .dy-holes i { transition: left .75s cubic-bezier(.45, .05, .3, 1); }
-.inner-page.dy-bo .dy-holes i { left: calc(50% - 4.5cqw); }
-.inner-page.dy-bo .dy-holes i:nth-child(n+7) { left: calc(50% + 4.5cqw); }
+.inner-page.dy-bo .dy-holes i { left: calc(50% - 4.5 * var(--mm)); }
+.inner-page.dy-bo .dy-holes i:nth-child(n+7) { left: calc(50% + 4.5 * var(--mm)); }
 @keyframes dyHole { from { transform: scale(0); } 70% { transform: scale(1.25); } to { transform: none; } }
 .dy-bo-btn { position: absolute; left: 50%; top: 50%; z-index: 2; display: none; flex-direction: column; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0; padding: 0;
     transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #fff; background: color-mix(in srgb, var(--primary-accent) 88%, #fff); color: #fff; font: inherit; font-size: 18px; line-height: 1;
