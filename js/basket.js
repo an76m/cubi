@@ -332,6 +332,7 @@
     function bkLeaf(id, s, x) {
         if (!window.pickLeaf) return false;
         const lf = 'my', img = s.imgs[0];                                   // 🧁 샵 속지 = 모두 그림 (상품공방)
+        if (!lfFits(x.sz)) { showMsg(lfNo(x.sz)); return false; }           // 📏 같은 규격 다이어리에만 (도련 11-16 · 늘이지 않아요)
         if (typeof pageLeaf !== 'undefined' && pageLeaf === lf && pageLeafImg === img) { showMsg('📃 오늘 페이지에 이미 깔린 속지예요.'); return false; }
         if (window.stkBlink) stkBlink();
         pickLeaf(lf, img);
@@ -363,7 +364,11 @@
     const abBdP = b => AB_BDP.find(x => x.id === b.pid) || AB_BDP[0];         // 그 바인더 상품
     const abRlP = r => AB_RL.find(x => x.id === (r && r.pid)) || AB_RL[0];    // 그 이형지북 상품
     const abPer = b => +abBdP(b).P.포켓;                                       // 한 쪽 포켓 수 = 상품 '포켓'
-    const abRelCap = r => { const p = abRlP(r); return p ? +p.P.포켓 : 0; };   // 이형지 한 쪽에 붙는 수 = 그 이형지북 상품 '포켓' (js/own.js)
+    const abRelCap = r => { const p = abRlP(r); return p ? +p.P.포켓 : 0; };
+    /* 📏 📒 🤍 한 쪽 종이 규격 [가로, 세로] mm = 그 상품 '규격' (상품공방 · 도련 11-16) → 책상 위 크기 · 펼친 쪽 · 정리 책상 모두 */
+    const abMmOf = (t, x) => { const p = x ? (t === 'rl' ? abRlP(x) : abBdP(x)) : null; return (p && MK.mmOf(p.P.mm)) || MK.mmOf('105×148'); };
+    const abCurMm = () => { const t = B.free ? B.free.t : B.view === 'rl' ? 'rl' : 'bd', x = B.free ? B.free.x : t === 'rl' ? abRlOf(B.cur) : abBdOf(B.cur); return abMmOf(t, x); };
+    window.abMmOf = abMmOf;   // 이형지 한 쪽에 붙는 수 = 그 이형지북 상품 '포켓' (js/own.js)
     window.abRelCap = abRelCap;
     const abMine = arr => (arr || []).filter(x => x.k === B.kind);
     const abCol = b => abBdP(b).P.색.slice(0, 2);                              // 그 바인더 디자인 색 [겉, 테두리]
@@ -418,15 +423,15 @@
         if (window.dkDeskBooks) dkDeskBooks(true);                               // 📔 책상에도 (종류 없는 책)
         return o.id;
     }
-    /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색] }] · 톡 = 그 종류 창에서 그 책 펼치기 */
+    /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색], mm: [가로, 세로] 규격 }] · 톡 = 그 종류 창에서 그 책 펼치기 */
     window.abTakeTool = abTakeTool; window.abFreeOpen = abFreeOpen; window.abLoadFree = abLoadFree; window.abReturnFree = abReturnFree;
     window.abDeskList = async () => {
         if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
         let a; try { a = await ownAlbumGet(); } catch (e) { return []; }
         try { await frReady(); } catch (e) {}
         const ids = new Set((a.bd || []).map(b => b.id).concat((a.rl || []).map(r => r.id)));   // 불러오다 멈춰 두 곳에 있으면 = 스티커첩 쪽 (📥 목록 것은 안 보여요)
-        const free = frAll('bd').filter(x => !ids.has(x.id)).map(b => ({ id: b.id, t: 'bd', k: '', lb: b.lb || '', col: abCol(b) })).concat(frAll('rl').filter(x => !ids.has(x.id)).map(r => ({ id: r.id, t: 'rl', k: '', lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'] })));   // 📥 종류 없는 책 (도련 11-08)
-        return (a.bd || []).map(b => ({ id: b.id, t: 'bd', k: b.k, lb: b.lb || '', col: abCol(b) })).concat((a.rl || []).map(r => ({ id: r.id, t: 'rl', k: r.k, lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'] })), free);
+        const free = frAll('bd').filter(x => !ids.has(x.id)).map(b => ({ id: b.id, t: 'bd', k: '', lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b) })).concat(frAll('rl').filter(x => !ids.has(x.id)).map(r => ({ id: r.id, t: 'rl', k: '', lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'], mm: abMmOf('rl', r) })));   // 📥 종류 없는 책 (도련 11-08)
+        return (a.bd || []).map(b => ({ id: b.id, t: 'bd', k: b.k, lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b) })).concat((a.rl || []).map(r => ({ id: r.id, t: 'rl', k: r.k, lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'], mm: abMmOf('rl', r) })), free);
     };
     window.abOpenAt = (k, v, id) => { bkOpenKind(k); B.view = v; B.cur = id; B.pg = 0; B.fltBack = ''; try { bkView(v); } catch (e) {} };   // 🪑 책상의 책 = 떠 있는 책 (✕ = 닫기)
     function abGoShelf() { openShelf(); shOpenKind('tool'); }
@@ -700,7 +705,7 @@
         const pages = t === 'bd' ? Math.ceil(x.n / abPer(x)) : x.n;
         const nm = (x.lb || '').trim() || (t === 'bd' ? ((abBdP(x).P || {}).이름 || '스티커바인더') : '이형지북');
         const spec = {
-            id: x.id, cls: 'bk-' + t, pages, posKey: ABF_POS,
+            id: x.id, cls: 'bk-' + t, pages, posKey: ABF_POS, mm: abMmOf(t, x),   // 📏 한 쪽 = 그 상품 규격 mm
             colors: t === 'bd' ? abCol(x) : ['#cbb8ec', '#b7a2dd'],
             page: p => t === 'bd' ? `<div class="abx-pg">${abPocketsAt(x, p)}<b class="abx-no">${p + 1}</b></div>`
                 : `<div class="ab-rel abx-wax abf-rl" data-pg="${p}">${abRelItems(x, p)}${x.it.some(o => (o.pg || 0) === p) ? '' : `<span class="ab-relhint">${x.it.length ? '이 쪽은 비어 있어요' : '비어 있어요<br>📒 스티커 정리에서 떼어 붙여요'}</span>`}<b class="abx-no">${p + 1}</b></div>`,
@@ -916,9 +921,9 @@
     /* 📱 폰 크기 맞추기 : 아래 서랍 시트 높이를 뺀 자리에 바인더 · 이형지북 한 쪽이 꽉 차게 (A5 비율) */
     function abPhFit(room) {
         const bk = room.querySelector('.abs-basket'), bo = room.querySelector('.abs-book'); if (!bk || !bo) return;
-        const W = room.clientWidth, H = room.clientHeight, R = 148 / 210, bd = bo.classList.contains('bd');
+        const W = room.clientWidth, H = room.clientHeight, mm = abCurMm(), R = mm[0] / mm[1], bd = bo.classList.contains('bd');   // 📏 그 책 규격 비율
         const extra = bd ? 78 : 64, availW = W - 20 - extra, availH = H - bk.offsetHeight - (bd ? 150 : 140);   // 이름표 · 넘기기 줄 · 책 테두리
-        let ph = Math.max(150, availH), pw = ph * R;
+        let ph = Math.max(150, Math.min(availH, mm[1] * MM_PX)), pw = ph * R;   // 📏 실제 크기 (화면이 작으면 줄여요)
         if (pw > availW) { pw = availW; ph = pw / R; }
         bo.style.width = Math.round(pw + extra) + 'px'; bo.style.setProperty('--ph', Math.round(ph) + 'px');
     }
@@ -928,8 +933,8 @@
         const mat = bk.querySelector('.abx-mat'), bw = Math.round(Math.max(250, Math.min(mat ? 380 : 430, W * (mat ? .24 : .27)))), mw = mat ? Math.round(Math.max(240, Math.min(360, W * .22))) : 0;
         bk.style.width = (bw + (mat ? mw + 12 : 0)) + 'px'; bk.style.setProperty('--bw', bw + 'px'); bk.style.setProperty('--mw', mw + 'px');
         bk.style.setProperty('--bh', Math.max(240, H - 58) + 'px');            // 이름표 · 아래 여백만 빼고 가득 (🟩 매트도 같은 높이로 옆에)
-        const R = 148 / 210, availW = W - bk.offsetWidth - 56, availH = H - (bo.classList.contains('bd') ? 196 : 200);   // 이름표 · 라벨 줄 · 넘기기 줄
-        let ph = availH, pw = ph * R;
+        const mm = abCurMm(), R = mm[0] / mm[1], availW = W - bk.offsetWidth - 56, availH = H - (bo.classList.contains('bd') ? 196 : 200);   // 📏 그 책 규격 비율 · 이름표 · 라벨 줄 · 넘기기 줄
+        let ph = Math.min(availH, mm[1] * MM_PX), pw = ph * R;   // 📏 실제 크기 (화면이 작으면 줄여요)
         if (bo.classList.contains('bd')) {
             const two = !!bo.querySelector('.abx-binder.two'), extra = two ? 86 : 78, n = two ? 2 : 1;
             if (n * pw + extra > availW && availW > 300) { pw = (availW - extra) / n; ph = pw / R; }
@@ -972,7 +977,7 @@
     window.abGripAt = (el, ev) => { const bx = el && el.closest('.abs-box'); if (bx) abSpaceGrab(bx, ev); };   // 🤍 떼는 판이 떠 있어도 이름표를 끌면 옮겨져요 (js/stickerpeel.js)
     window.pinForce = () => B.view === 'desk' && !!B.desk && B.desk.mode === 'rl' && abPile() && vis('basketKindModal');   // 📱 폰은 예전처럼 손가락으로 (핀셋이 화면 구석에 떠 있지 않게 · 11-11)   // 🪡 정리 공간 이형지북 = 핀셋이 저절로 (js/elements.js)
     /* 🤍 이형지북 배율 = 이형지북 한 쪽 폭 ÷ 다이어리 한 쪽 폭 (둘 다 A5 비율) → 다이어리에 붙였을 때와 같은 크기로 보여요 (도련 10-29) */
-    function abRelK() { const r = bq('abRel'), dw = 148 * (window.STK_MM || 644 / 148);   /* 📏 이형지북 한 쪽 = A5 가로 148mm (책 엔진 비율 · 도련 11-16) · 스티커 그림 px (1mm ≈ 4.35px) 기준 · 예전 = 펼친 다이어리 종이 폭 */ return r && dw ? r.clientWidth / dw : .5; }
+    function abRelK() { const r = bq('abRel'), dw = abCurMm()[0] * STK_MM;   /* 📏 이형지북 한 쪽 = 그 상품 규격 가로 mm · 스티커 그림 px (1mm = STK_MM) 기준 (도련 11-16) */ return r && dw ? r.clientWidth / dw : .5; }
     /* 큰 그림으로 바꿔 보여요 (목록의 작은 미리보기는 흐려서 · 그 쪽에 보이는 것만 · 한 번 받으면 기억) */
     function abRelHi() {
         const box = bq('abRel'); if (!box || !window.ownSheetImgs) return;

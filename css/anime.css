@@ -458,6 +458,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk .ab-rel.abf-rl { position: relative; margin: 0; border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; overflow: hidden;
     background-color: #fdfcff; background-image: repeating-linear-gradient(125deg, transparent 0 46px, #f2eef9 46px 70px, transparent 70px 96px, #f7f4fb 96px 104px) !important; }
 .bk .ab-rel.abf-rl .ab-it { width: calc(var(--ph) * .104); height: calc(var(--ph) * .104); }
+.bk .ab-rel.abf-rl .ab-it[style*="--iw"] { width: calc(var(--iw) / var(--stk-mm) * var(--mmk) * 1px); height: calc(var(--ih) / var(--stk-mm) * var(--mmk) * 1px); }   /* 📏 🤍 붙인 스티커 = 실제 크기 (그림 px ÷ STK_MM × 화면 1mm · js/book.js --mmk · 도련 11-16) */
 .bk .ab-rel.abf-rl .ab-relhint { color: #b4a6c4; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
 
 /* 🤍 스프링 이형지북 (왼쪽 스프링 · 반짝이는 이형지 · 뒤로 겹친 종이) */

@@ -14,9 +14,9 @@
         const tpmq = id => document.getElementById(id);
 
         /* 저장해 둔 모양(o) → tape.js 의 tapeSvg 가 읽는 모양 (그림 · 사진 모두 '한 칸 그림'을 이어 붙여요) */
-        function tpmDef(o) {
+        function tpmDef(o) {                                            // 📏 폭 = MK.MM.tape mm · 한 칸 길이 = 칸 비율 (만들 때부터 mm · 도련 11-16)
             const w = o.w || o.s;                                       // w : 글씨가 든 무늬 칸은 옆으로 길어요 (🧵 무늬로 · 도련 11-05)
-            return { id: 'my-' + o.id, name: '내 마스킹테이프', bg: o.bg, w, h: o.s, p: o.img ? `<image href="${o.img}" width="${w}" height="${o.s}" preserveAspectRatio="xMidYMid slice"/>` : '' };
+            return { id: 'my-' + o.id, name: '내 마스킹테이프', bg: o.bg, w, h: o.s, mm: [Math.round(MK.MM.tape * w / o.s * 10) / 10, MK.MM.tape], p: o.img ? `<image href="${o.img}" width="${w}" height="${o.s}" preserveAspectRatio="xMidYMid slice"/>` : '' };
         }
         const tpmUrl = o => tapeUrl(tpmDef(o));
         /* 드라이브 · 기기에서 읽은 것은 정해진 모양만 통과 (그림 안에 들어가는 글자라서 꼼꼼히 확인) */

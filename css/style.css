@@ -2343,10 +2343,12 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .cover-page .drag-hint { position: absolute; bottom: 8cqw; left: 50%; margin: 0; font-size: 3cqw; font-weight: 700; white-space: nowrap; color: #7b5a63; animation: cvNudge 1.5s infinite; }
 @keyframes cvNudge { 0%, 100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% - 1.6cqw)); } }
 
+/* 📏 종이 위 무늬 (줄 · 모눈 · 도트 · 깅엄 · 구멍) = mm (도련 11-16 : 규격이 달라도 모눈 5mm 는 5mm) · --mm = 화면에서 1mm (js/page.js refreshLayout · 처음엔 CSS 1mm) */
+:root { --mm: 1mm; }
 /* 속지 : 줄 노트 + 링 구멍 · 하얀 테두리 (종이 크기는 그대로라 붙인 스티커 자리는 안 바뀌어요) */
 .inner-page .canvas-area { background:
-        radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y,
-        linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw,
+        radial-gradient(circle at calc(4.6 * var(--mm)) 50%, color-mix(in srgb, var(--border-color) 55%, #fff) calc(1.5 * var(--mm)), color-mix(in srgb, var(--border-color) 90%, #000 5%) calc(1.55 * var(--mm)) calc(1.9 * var(--mm)), transparent calc(1.95 * var(--mm))) 0 calc(3 * var(--mm)) / calc(9 * var(--mm)) calc(9 * var(--mm)) repeat-y,
+        linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)),
         var(--page-bg);
     box-shadow: 0 0 0 4px #fff, 1cqw 2cqw 5cqw rgba(160,90,110,.16); }
 /* 날짜바 : 가운데 둥근 연핑크 바 + 위에 작은 반투명 테이프 (페이지를 끄는 손잡이 그대로) */
@@ -2360,14 +2362,14 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .pfx-stage { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 120; pointer-events: none; }
 
 /* 📃 속지 (js/leafpad.js) : 링 구멍은 그대로 두고 바탕만 바꿔요 · 줄노트는 위의 기본 속지 */
-.inner-page .canvas-area { --lf-holes: radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y; }
-.inner-page .canvas-area.lf-grid, .lf-slide.lf-grid { background: var(--lf-holes), linear-gradient(color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / 5cqw 5cqw, linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / 5cqw 5cqw, #fffefc; }
-.inner-page .canvas-area.lf-dot, .lf-slide.lf-dot { background: var(--lf-holes), radial-gradient(circle, color-mix(in srgb, var(--primary-accent) 38%, #fff) .38cqw, transparent .52cqw) 0 0 / 4.6cqw 4.6cqw, #fffdfb; }
-.inner-page .canvas-area.lf-gingham, .lf-slide.lf-gingham { background: var(--lf-holes), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / 7.4cqw 7.4cqw, linear-gradient(color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / 7.4cqw 7.4cqw, #fff; }
+.inner-page .canvas-area { --lf-holes: radial-gradient(circle at calc(4.6 * var(--mm)) 50%, color-mix(in srgb, var(--border-color) 55%, #fff) calc(1.5 * var(--mm)), color-mix(in srgb, var(--border-color) 90%, #000 5%) calc(1.55 * var(--mm)) calc(1.9 * var(--mm)), transparent calc(1.95 * var(--mm))) 0 calc(3 * var(--mm)) / calc(9 * var(--mm)) calc(9 * var(--mm)) repeat-y; }
+.inner-page .canvas-area.lf-grid, .lf-slide.lf-grid { background: var(--lf-holes), linear-gradient(color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffefc; }
+.inner-page .canvas-area.lf-dot, .lf-slide.lf-dot { background: var(--lf-holes), radial-gradient(circle, color-mix(in srgb, var(--primary-accent) 38%, #fff) calc(.38 * var(--mm)), transparent calc(.52 * var(--mm))) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffdfb; }
+.inner-page .canvas-area.lf-gingham, .lf-slide.lf-gingham { background: var(--lf-holes), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), linear-gradient(color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), #fff; }
 .inner-page .canvas-area.lf-kraft, .lf-slide.lf-kraft { background: var(--lf-holes), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"), #e2cba6; }
 .inner-page .canvas-area.lf-plain, .lf-slide.lf-plain { background: var(--lf-holes), var(--page-bg); }
 .lf-slide { position: absolute; inset: 0; z-index: 0; pointer-events: none; border-radius: inherit; box-shadow: -6px 0 14px rgba(90,40,60,.18); background:
-        var(--lf-holes), linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw, var(--page-bg); }
+        var(--lf-holes), linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)), var(--page-bg); }
 .lf-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; --sbg: 10px; }
 .lf-pick { font: inherit; font-size: 12.5px; font-weight: 700; color: var(--dk-ink, #7b5a63); background: none; border: 0; padding: 0; cursor: pointer; container-type: inline-size; }
 .lf-pick .lf-sw { --lf-holes: radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y;
@@ -2416,7 +2418,8 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 /* 🧻 떡메 무늬(메모 · 체크 · 하늘 · 투두)는 상품공방 그림으로 옮겼어요 (도련 11-02) */
 
 /* 📃 내가만든 속지 (js/leafmaker.js) : 그림째로 깔고 링 구멍은 그 위에 */
-.inner-page .canvas-area.lf-my, .lf-slide.lf-my, .lf-pick .lf-sw.lf-my { background: var(--lf-holes), var(--lf-img) center / 100% 100% no-repeat, var(--page-bg); }
+/* 📏 속지 그림 = 펼친 두 쪽 종이 (규격 가로 × 2 · 세로) mm 그대로 (도련 11-16 : 늘이지 않아요 · 같은 규격 다이어리에만 끼워요 · --mm · --pmw · --pmh = js/page.js refreshLayout) */
+.inner-page .canvas-area.lf-my, .lf-slide.lf-my { background: var(--lf-holes), var(--lf-img) center / calc(var(--mm) * var(--pmw, 105) * 2) calc(var(--mm) * var(--pmh, 148)) no-repeat, var(--page-bg); }
 .lf-pick .lf-sw.lf-my { background: var(--lf-holes), var(--lf-img) center / cover no-repeat, var(--page-bg); }   /* 속지 목록은 정사각형 → 그림이 찌그러지지 않게 가운데를 채워요 */
 
 .lf-pick.on .lf-sw { box-shadow: 0 0 0 3px var(--pick-line); }
@@ -3085,7 +3088,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .inner-page.png-mode .dy-deco { display: none; }
 .inner-page.dy-noholes .canvas-area { --lf-holes: linear-gradient(transparent, transparent); }
 .inner-page.dy-noholes .canvas-area:not([class*="lf-"]) { background:
-        linear-gradient(transparent calc(7cqw - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 2cqw / 100% 7cqw,
+        linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)),
         var(--page-bg); }
 .dy-cov { position: absolute; }   /* 표지 크기 · 색 = css/anime.css (바인더 · 📓 노트) */
 /* 🗂️ 6공 링 (도련 10-18) : 두 속지 사이가 떨어져 있고 (가운데로 표지 안쪽 · 링 받침) · 크고 쇠 느낌 나는 링이 양쪽 속지 구멍을 꿰어요 */

@@ -1729,16 +1729,11 @@
            - 자리 = 권마다 'diary_desk_dy' {권 id: {x, y : 바닥 가운데 · p : side · front · lay · lb · lz}} · 자리가 없는 권은 기본 다이어리 옆에 책등으로 줄지어 꽂혀요 (잃어버리지 않게)
            - 평소 다이어리 권 톡 = 그 권 펼치기 · 🛠 꾸미기 = 끌어 옮기기 · 톡 = 모습 (📚 꽂기 · 📔 세우기 · 🛏 눕히기) · 바구니 · 받침 위도 소품처럼 (dkLayers)
            - 🛍️ 봉투의 새 다이어리 카드 = 끌어 놓은 자리에 그 권 · 📔 보관소 창은 뒤에서만 (📱 폰 · 못 찾을 때 · 🛠 다이어리 메뉴 '📔 보관소') · 📦 소품함에는 안 들어가요 */
-        /* 📏 책상 위 권 = 종이 규격 × 20% (도련 11-16 : 딱 떨어지는 숫자 · 다이어리 · 📒 스티커바인더 · 🤍 이형지북 모두) : 규격 mm × MM_PX (js/skins.js) × DESK_K
-           세운 모습 = 표지 + 위 고리 8px · 꽂은 모습 = 두께 24px · 책등 위아래 15px · 눕힌 모습 = 비스듬한 표지 (css .dk-vol.p-lay · --lk = 그림 줄인 비율) */
-        const DESK_K = 0.2, DKV_LAY = [150, 86];                                  // 눕힌 모습 그림 (A6 를 이 크기로 그린 것 · 줄여서 써요)
-        const dkvMm = b => { const d = b && b.t === 'dy' ? (window.dyyDesign && dyyDesign(b)) : b; const m = String(d && d.mm || '').split(/[×x*]/).map(Number); return m[0] > 0 && m[1] > 0 ? m : [105, 148]; };   // 📒 🤍 스티커첩은 A6 그대로
-        const dkvF = () => window.MM_PX * DESK_K;                                // 책상 1mm = 몇 px
-        const dkvLk = () => 105 * dkvF() / DKV_LAY[0];                           // 🛏 눕힌 그림 줄인 비율
-        function dkvSz(b, p) {                                                    // 그 권 · 그 모습의 크기 (책상 px)
-            const [mw, mh] = dkvMm(b), f = dkvF(), w = mw * f, h = mh * f;
-            return p === 'side' ? [24, Math.round(h) + 15] : p === 'lay' ? [Math.round(w), Math.round(DKV_LAY[1] * dkvLk() * mh / 148)] : [Math.round(w), Math.round(h) + 8];
-        }      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
+        /* 📏 책상 위 권 = 종이 규격 × 20% (도련 11-16 · 식 = js/maker.js MK.deskVol · 🛠 상품공방 책상 테스트와 같은 식) */
+        const dkvMm = b => { const d = b && b.t === 'dy' ? (window.dyyDesign && dyyDesign(b)) : b; if (Array.isArray(d && d.mm)) return d.mm; return MK.mmOf(d && d.mm) || [105, 148]; };   // 📏 다이어리 · 📒 🤍 스티커첩 = 그 상품 규격 (js/basket.js abDeskList mm)
+        const dkvF = () => MK.MMPX * MK.DESK_K;                                  // 책상 1mm = 몇 px
+        const dkvLk = MK.deskLk;                                                  // 🛏 눕힌 그림 줄인 비율
+        const dkvSz = (b, p) => MK.deskVol(dkvMm(b), p);                          // 그 권 · 그 모습의 크기 (책상 px)
         const dkvCol = c => { const k = DY_COL[c]; return k ? ['', k.border, k.accent] : ['', '#ffb6c1', '#ff6b81']; };   // 🧁 그 권 디자인의 색 (js/app.js · 디자인 속성이 없으면 분홍으로 보여만 줘요)
         const dkyCur = () => { if (typeof dkType === 'function' && dkType()) { const n = typeof dyNow === 'function' ? dyNow() : null; return n && n.my ? n.id : ''; } return (window.dyyBookId ? dyyBookId() : '') || ''; };   // 📓 🗂️ 페이지 다이어리를 펼쳐 둔 때 = 그 권 (도련 11-06)
         const dkyMap = () => { const v = typeof prefGet === 'function' ? prefGet(DKY_KEY, DKY_LOCAL) : null; return v && typeof v === 'object' && !('x' in v) ? v : {}; };

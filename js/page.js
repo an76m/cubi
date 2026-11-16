@@ -576,6 +576,7 @@
             const fit = s => Math.min(1, maxW / (s.w * (dy.two ? 2 : 1)), maxH / (s.h * (1 + ov.t + ov.b)));   // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
             const k = fit(dy);   // 📏 펼친 다이어리 = 실제 크기 (규격 mm × MM_PX · js/skins.js) · 그 다이어리가 화면에 닿을 때부터 줄어요 (도련 11-16 : 기준 A5 틀 없앰)
             const h = Math.round(dy.h * k);
+            { const mm = (window.dyMmOf && dyMmOf()) || [105, 148]; wrapper.style.setProperty('--mm', (MM_PX * k).toFixed(4) + 'px'); wrapper.style.setProperty('--pmw', mm[0]); wrapper.style.setProperty('--pmh', mm[1]); }   // 📏 종이 위 1mm · 규격 (css 속지 · 내지 무늬)
             wrapper.style.width = Math.round(dy.w * k) + 'px'; wrapper.style.height = h + 'px';
             wrapper.style.marginTop = ov.t ? Math.round(ov.t * h) + 'px' : '';
             toolbar.style.marginTop = ov.b ? Math.round(10 + ov.b * h) + 'px' : '';

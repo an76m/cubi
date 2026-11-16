@@ -13,7 +13,8 @@
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
                 page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리],
-                side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey }
+                side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
+                mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
 /* 📍 쪽 자리 (도련 11-15 · 2-1 : 가짜 날짜 없애기) : 날짜가 아닌 쪽 = BookSpot(n) · 0 = 📕 표지 · 1~ = 페이지형 다이어리 장 (예전 = '2000년 1월 n일' 가짜 날짜 · 1999-12-31 = 표지)
    지금 보는 곳(currentDate · js/app.js) = 날짜(📔 날짜형의 날) 또는 BookSpot · 바꾸기 = curSet · 저장할 때 = spotSave / spotLoad (글자 'p3') */
@@ -23,7 +24,6 @@ const isSpot = v => v instanceof BookSpot;
 const spotCopy = v => isSpot(v) ? new BookSpot(v.n) : new Date(+v);
 const spotSave = v => isSpot(v) ? 'p' + v.n : +v;
 const spotLoad = v => typeof v === 'string' && /^p\d+$/.test(v) ? new BookSpot(+v.slice(1)) : new Date(+v);
-const BOOK_R = 148 / 210;                                                    // 한 쪽 비율 (A5)
 function bookSide(cur, s) {                                                  // ◧ ◨ 스위치 하나 켜기 · 끄기 (남은 하나는 못 꺼요) → 새 값
     const on = { l: cur.includes('l'), r: cur.includes('r') };
     on[s] = !on[s]; if (!on.l && !on.r) return cur;
@@ -153,9 +153,10 @@ function bookOpen(host, spec) {
     function fit() {
         const W = innerWidth, H = innerHeight, t = two(), one = B.open && !t;
         const padW = t ? 28 + 44 : one ? 14 + 64 : 28, padH = 28 + 52 + 16 + (ph() ? 24 : 40);
-        let h = Math.min(H - padH, (Math.min(W - 16, 1500) - padW) / ((t ? 2 : 1) * BOOK_R), 760);
+        const mm = spec.mm, R = mm[0] / mm[1];                                // 📏 한 쪽 = spec.mm [가로, 세로] 규격 · 실제 크기 (화면이 작으면 줄여요 · 도련 11-16)
+        let h = Math.min(H - padH, (Math.min(W - 16, 1500) - padW) / ((t ? 2 : 1) * R), mm[1] * MM_PX);
         h = Math.max(220, Math.floor(h));
-        B.root.style.setProperty('--ph', h + 'px'); B.root.style.setProperty('--pw', Math.floor(h * BOOK_R) + 'px');
+        B.root.style.setProperty('--ph', h + 'px'); B.root.style.setProperty('--pw', Math.floor(h * R) + 'px'); B.root.style.setProperty('--mmk', (h / mm[1]).toFixed(4));   // --mmk = 화면에서 1mm (px 숫자)
         let p = null; try { p = JSON.parse(localStorage.getItem(spec.posKey) || 'null'); } catch (e) {}
         place(p && isFinite(p.cx) ? p.cx : W / 2, p && isFinite(p.y) ? p.y : Math.max(8, (H - B.root.offsetHeight) / 2));
     }

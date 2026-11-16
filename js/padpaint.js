@@ -1053,14 +1053,13 @@
 
     /* ================= 📐 다이어리 규격 (도련 11-14) : 앱의 모든 바인더 · 노트 크기 중에서 골라 끼워 보기 · 그 크기로 종이 맞추기
        - 상품 그대로 (📔 날짜형바인더 · 날짜형노트 js/app.js DY_DESIGNS · 🗂️ 페이지바인더 · 📕 페이지노트 js/skins.js DY_TYPES · 숨김 상품은 빼요) · 같은 규격(이름 + mm)끼리 묶어요
-       - 속지 한 장은 펼친 두 쪽 전체(#canvasArea)에 가로 · 세로 꽉 차게 늘여 깔려요 (css .lf-my 100% 100%) → 비율 = js/skins.js dyLeafR (링은 책등만큼 달라요)
-         비율이 다르면 늘어나 보여요 = 미리보기에서 그대로 보여 줘요
+       - 📏 속지 한 장 = 펼친 두 쪽 종이 (규격 가로 × 2 · 세로 mm · js/skins.js dyLeafR) · 다이어리에는 그 mm 그대로 깔려요 (늘이지 않아요 · css .lf-my) · 같은 규격 다이어리에만 끼워요 (도련 11-16)
        - 종이 맞추기 = 가로 900 그대로 · 세로 = 900 × 그 다이어리 속지 비율 · 그린 것은 위 기준 그대로 (작아지면 아래가 잘려요) ================= */
     const SPEC_B = { ring: '링 바인더', tn: '고무줄 노트', spread: '쫙 펼침', hard: '하드커버', thin: '얇은 노트' };
     function specList() {
         const out = [], yr = new Date().getFullYear();
-        const lr = (r, b) => window.dyLeafR ? dyLeafR({ r, b }) : r / 2;      // 📃 펼친 두 쪽 비율
-        const add = (n, mm, r, it) => { if (!(r > 0) || !n) return; let g = out.find(x => x.n === n && x.mm === mm); if (!g) out.push(g = { n, mm, items: [] }); it.r = lr(r, it.b); g.items.push(it); };
+        const lr = mm => dyLeafR({ mm });                                    // 📃 펼친 두 쪽 종이 mm 비율 (규격만 · js/skins.js)
+        const add = (n, mm, r, it) => { if (!(r > 0) || !n) return; let g = out.find(x => x.n === n && x.mm === mm); if (!g) out.push(g = { n, mm, items: [] }); it.r = lr(mm); g.items.push(it); };
         (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).forEach(d => { if (d.off && !d.mine) return; const c = (typeof DY_COL !== 'undefined' && DY_COL[d.id]) || {};
             add(d.n, d.mm, d.r, { id: d.id, name: d.mine ? d.name : `${yr} ${d.kind} · ${d.name}`, b: d.b, bd: c.border || d.c, pg: c.page || '#fffdfb' }); });
         (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).forEach(t => { if (t.off) return;
@@ -1076,7 +1075,7 @@
         const t = window.dyLook ? dyLook() : null; if (!t) return null; const id = curId();
         const L = specList(), all = L.flatMap(g => g.items.map(i => [g, i])), m = all.find(([, i]) => i.id === id) || all.find(([g, i]) => g.n === t.n && g.mm === t.mm && i.b === t.b);
         if (m) return { n: m[0].n, mm: m[0].mm, r: m[1].r, id: m[1].id };
-        return window.dyLeafR ? { n: t.n || '', mm: t.mm || '', r: dyLeafR(t), id } : null;
+        return { n: t.n || '', mm: t.mm || '', r: dyLeafR(t), id };
     }
     function specBtn() {
         if (P.kind === 'paper') {

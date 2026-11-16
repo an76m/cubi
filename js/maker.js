@@ -18,6 +18,28 @@
 
     /* ---------- 값 표 (상품공방 · 앱 같이) ---------- */
     MK.SPECS = [['A7', 74, 105], ['A6', 105, 148], ['B6', 128, 182], ['A5', 148, 210], ['B5', 182, 257], ['미니6공', 80, 126], ['바이블', 95, 171], ['슬림', 110, 210], ['라지', 130, 210], ['한달', 85, 165], ['패스포트', 89, 124]];
+    /* 📏 종이 mm (도련 11-16 : 만들 때부터 꾸밀 때까지 같은 mm · 상품공방 · 앱이 같은 값)
+       MM = 크기를 안 정한 종이의 기본 (🎀 테이프 폭 · 한 롤 길이 · 🧻 떡메 [가로, 세로] · 📝 메모지 가로)
+       PXMM = 그리는 판 해상도 (그림 px ÷ mm · 무늬 칸 크기가 어느 판에서나 같은 mm) · drawWH = 그 종이를 그리는 판 [가로, 세로] px
+       📃 속지 한 장 = 펼친 두 쪽 종이 (규격 가로 × 2 · 세로 mm · 같은 규격 다이어리에만 끼워요) */
+    MK.MM = { tape: 8, tapeLen: 2600, tk: [40, 40], memo: 48 };
+    MK.PXMM = { leaf: 60 / 7, tk: 7.5, memo: 55 / 6 };
+    MK.mmOf = s => { const m = String(s || '').split(/[×x*]/).map(Number); return m[0] > 0 && m[1] > 0 ? m : null; };   // '105×148' → [105, 148]
+    MK.drawWH = (kind, mm) => {
+        const k = MK.PXMM[kind];
+        if (kind === 'leaf') { const m = MK.mmOf(mm) || [105, 148]; return [Math.round(m[0] * 2 * k), Math.round(m[1] * k)]; }
+        if (kind === 'tk') { const m = Array.isArray(mm) && +mm[0] > 0 && +mm[1] > 0 ? mm : MK.MM.tk; return [Math.round(m[0] * k), Math.round(m[1] * k)]; }
+        if (kind === 'memo') { const w = +mm > 0 ? +mm : MK.MM.memo; return [Math.round(w * k), Math.round(w * k * 300 / 440)]; }
+        return null;
+    };
+    /* 🪑 책상 위 권 = 종이 규격 × 20% (도련 11-16 · 앱 js/desk.js · 🛠 상품공방 책상 테스트가 같은 식) : 규격 mm × MMPX × DESK_K
+       세운 모습 = 표지 + 위 고리 8px · 꽂은 모습 = 두께 24px · 책등 위아래 15px · 눕힌 모습 = A6 를 LAY 크기로 그린 그림을 줄여서 (css --lk = deskLk) */
+    MK.MMPX = 96 / 25.4;                                                       // 📏 1mm = CSS px (앱 js/skins.js MM_PX)
+    MK.STK_MM = 644 / 148;                                                     // 🏷️ 스티커 그림 1mm = 4.35px (시트 A6 세로 148mm = 644px · 도구/스티커정리 · 앱 js/skins.js STK_MM)
+    MK.DESK_K = .2; MK.LAY = [150, 86];
+    MK.deskLk = () => 105 * MK.MMPX * MK.DESK_K / MK.LAY[0];
+    MK.deskVol = (mm, p) => { const m = (Array.isArray(mm) ? mm : MK.mmOf(mm)) || [105, 148], f = MK.MMPX * MK.DESK_K, w = m[0] * f, h = m[1] * f;
+        return p === 'side' ? [24, Math.round(h) + 15] : p === 'lay' ? [Math.round(w), Math.round(MK.LAY[1] * MK.deskLk() * m[1] / 148)] : [Math.round(w), Math.round(h) + 8]; };
     MK.BINDS = [['ring', '링'], ['thin', '실 제본'], ['tn', '고무 밴드'], ['spread', '책갈피 끈'], ['hard', '하드커버']];
     MK.LEAFS = [['plain', '무지'], ['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트']];   // 내지 = 페이지 그리는 법 (css .lf-종류)
     MK.COLORS = ['#ff9dbb', '#ffb3c7', '#f4a582', '#ffd479', '#8fd0b7', '#9fd3ea', '#c4b2f2', '#d9c2a6', '#a3714f', '#5a4652', '#ffffff', '#fff6cf', '#fff0f5', '#eefaf4', '#eef5ff', '#f6f0ff', '#e9d5b3', '#333333'];

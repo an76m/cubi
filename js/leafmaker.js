@@ -11,14 +11,11 @@
    - 한 장 크기는 기본 떡메와 같아요 (150 × 148 · 그림은 2배로 그려요) · 링 구멍 대신 위에 🩷 풀칠 띠 색을 골라요
    - 페이지에 붙은 한 장은 글 + 그림 그대로 그날 파일에 저장돼요 (tk: 'my' · tb · 인수인계 12번) */
 
-        const LM_W = 900;
         const LM_PENS = ['#5a3d4a', '#ff6b8b', '#ff9f43', '#ffd23f', '#4caf7a', '#3d9be0', '#8a6be0', '#ffffff'];
         const LM_SIZES = [['3', '가늘게'], ['7', '보통'], ['16', '굵게']];
         const LM_GLUES = [['', '다이어리 색'], ['#ffb3c6', '분홍'], ['#ffcf9e', '살구'], ['#ffe98a', '노랑'], ['#b9ebcf', '민트'], ['#b7dcff', '하늘'], ['#d6c6ff', '보라'], ['#d9bf94', '크라프트']];
-        const LM_TK_W = 300, LM_TK_H = 296;                              // 🧻 떡메 한 장 그림 (붙는 크기 = js/leafpad.js tkDim · PAPER_MM)
-        const LM_MEMO_W = 440, LM_MEMO_H = 300;                          // 📝 메모지 한 장 (상품공방 메모지와 같은 크기)
         const LM_DEF = { leaf: { g: 'plain', lc: '#f6d5df', gap: 56 }, tk: { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 36, top: 30 }, memo: { bg: '#fff59a', g: 'line', lc: '#e8d27a', gap: 34, top: 20, rad: 6 } };   // 처음 종이 (속지 = 지금 다이어리 속지 색)
-        const lm = { built: false, for: 'leaf', glue: '', tab: 'photo', w: LM_W, h: 1400, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, mk: null, mkImg: null,
+        const lm = { built: false, for: 'leaf', glue: '', tab: 'photo', w: 0, h: 0, mm: null, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, mk: null, mkImg: null,
             pen: LM_PENS[0], size: 7, erase: false, ink: null, undo: [], drag: null };
         const lmq = id => document.getElementById(id);
 
@@ -55,10 +52,8 @@
             lmq('lmGo').textContent = T ? '📌 떡메 묶음으로 꺼내기' : M ? '📌 메모지 꺼내 쓰기' : '📃 오늘 페이지에 끼우기';
             lmq('lmKeep').textContent = '🗄️ 서랍에 넣기';
             lmGlueShow();
-            const ca = lmq('canvasArea'), r = ca && ca.getBoundingClientRect();
-            if (T) { lm.w = LM_TK_W; lm.h = LM_TK_H; }
-            else if (M) { lm.w = LM_MEMO_W; lm.h = LM_MEMO_H; }
-            else { lm.w = LM_W; lm.h = Math.round(LM_W * (r && r.width ? r.height / r.width : 1.55)); }
+            lm.mm = T ? MK.MM.tk.slice() : M ? MK.MM.memo : (window.dyLook ? dyLook().mm : '105×148');   // 📏 만들 때부터 mm (도련 11-16 · 📃 속지 = 지금 다이어리 규격 · js/maker.js MK)
+            [lm.w, lm.h] = MK.drawWH(T ? 'tk' : M ? 'memo' : 'leaf', lm.mm);
             const cv = lmq('lmCv'); cv.width = lm.w; cv.height = lm.h;
             lm.ink = document.createElement('canvas'); lm.ink.width = lm.w; lm.ink.height = lm.h;
             lm.img = null; lm.zoom = 1; lm.ox = lm.oy = 0; lm.wash = 0; lm.undo = [];
@@ -137,8 +132,8 @@
             const c = document.createElement('canvas'); c.width = lm.w; c.height = lm.h; lmCompose(c.getContext('2d'));
             const src = c.toDataURL('image/jpeg', lm.for === 'leaf' ? .86 : .9);
             if (lm.for === 'tk') return tkDone(btn, keep, src);
-            if (lm.for === 'memo') return lmOwn(btn, keep, { k: 'memo', from: 'mine', imgs: [src], x: { pp: 'img', w: lm.w, h: lm.h } }, '📝 메모지');   // 🎒 만든 메모지 한 묶음 = 🧺 바구니로
-            return lmOwn(btn, keep, { k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my' } }, '📃 속지');   // 🎒 만든 속지 한 장 = 🧺 바구니로 (끼우면 끝)
+            if (lm.for === 'memo') return lmOwn(btn, keep, { k: 'memo', from: 'mine', imgs: [src], x: { pp: 'img', w: lm.w, h: lm.h, mm: lm.mm } }, '📝 메모지');   // 🎒 만든 메모지 한 묶음 = 🧺 바구니로
+            return lmOwn(btn, keep, { k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my', sz: lfSz(lm.mm) } }, '📃 속지');   // 🎒 만든 속지 한 장 = 🧺 바구니로 (끼우면 끝)
         }
         /* 🎒 만든 것 → 🧺 바구니 (keep : 넣기만 · 아니면 바로 꺼내 쓰기 · js/own.js) */
         async function lmOwn(btn, keep, d, name) {
@@ -155,7 +150,7 @@
 
         /* 🧻 떡메 : 🧺 바구니에 넣고 · 📌 이면 바로 묶음으로 */
         async function tkDone(btn, keep, src) {                         // 🎒 만든 떡메 한 묶음(50장) = 🧺 바구니로
-            return lmOwn(btn, keep, { k: 'tk', from: 'mine', imgs: [src], x: { pad: 'my', glue: lm.glue || '' } }, '🧻 떡메');
+            return lmOwn(btn, keep, { k: 'tk', from: 'mine', imgs: [src], x: { pad: 'my', glue: lm.glue || '', mm: lm.mm } }, '🧻 떡메');
         }
 
         window.openLeafMaker = openLeafMaker; window.openTteokMaker = openTteokMaker; window.openMemoMaker = openMemoMaker;

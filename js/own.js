@@ -36,7 +36,7 @@
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
         /* 🖨 제작 규칙 (도련 11-14) : 내가 만든 도안을 프린터로 뽑을 때 · 상품공방 '🖨 제작 규칙' → prod.js MALANG_PROD.rules (없으면 아래 값)
            seal · paper = 한 시트 · piece = 한 봉투 조각 수 · tape = 한 롤 길이 · tk · memo = 한 묶음 장 수 · leaf = 장 수 */
-        const OWN_RULES0 = { seal: 1, piece: 4, paper: 1, tape: 2600, tapeW: 8, tk: 30, leaf: 1, memo: 30 };   // 🎀 tape = 한 롤 길이 mm (2.6m) · tapeW = 폭 mm
+        const OWN_RULES0 = { seal: 1, piece: 4, paper: 1, tape: MK.MM.tapeLen, tapeW: MK.MM.tape, tk: 30, leaf: 1, memo: 30 };   // 🎀 tape = 한 롤 길이 mm · tapeW = 폭 mm (js/maker.js MK.MM)
         const ownTapeQ = mm => Math.round(mm * MM_PX);   // 🎀 롤 길이 mm → 남은 양 (붙인 페이지 px 만큼 줄어요 · 1mm = MM_PX · 도련 11-16)
         window.ownTapeQ = ownTapeQ;
         const ownRules = () => { const r = window.MALANG_PROD && window.MALANG_PROD.rules; const o = Object.assign({}, OWN_RULES0); if (r && typeof r === 'object') Object.keys(o).forEach(k => { if (+r[k] > 0) o[k] = +r[k]; }); return o; };

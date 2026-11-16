@@ -31,6 +31,10 @@
         const LEAFS = [['line', '줄노트'], ['grid', '모눈'], ['dot', '도트'], ['gingham', '깅엄'], ['kraft', '크라프트'], ['plain', '무지']];   // 다이어리 · 📓 만든 노트의 내지 (js/dymaker.js) · 🏪 샵 속지는 모두 그림('my' · 상품공방 · 도련 11-02)
         let pageLeaf = 'line', pageLeafImg = '';                           // 지금 페이지의 속지 (js/elements.js 저장 · 불러오기) · 'my' = 📃 속지 만들기로 만든 그림(pageLeafImg · js/leafmaker.js)
         const lfMyOk = img => /^data:image\/(jpeg|png|webp)/.test(img || '');
+        /* 📏 속지 규격 (도련 11-16) : 속지 한 장 = 펼친 두 쪽 종이 mm · 만들 때 규격을 적어요 (sz = { n 이름, mm '가로×세로', r }) → 같은 규격 다이어리에만 끼워요 (늘이지 않아요) */
+        const lfSz = mm => { const m = window.MK && MK.mmOf(mm); if (!m) return null; const s = MK.SPECS.find(x => x[1] === m[0] && x[2] === m[1]); return { n: s ? s[0] : '', mm: `${m[0]}×${m[1]}`, r: +dyLeafR({ mm }).toFixed(4) }; };
+        const lfFits = sz => !sz || !sz.mm || !window.dyLook || sz.mm === dyLook().mm;   // 규격을 적지 않은 속지 = 지금 다이어리에 만든 것
+        const lfNo = sz => `📃 <b>${htmlEsc(sz.n || sz.mm)}</b> (${htmlEsc(sz.mm)}mm) 속지예요.<br><span style="font-size:12px;color:#777;">이 다이어리(${htmlEsc(dyLook().n || dyLook().mm)})와 규격이 달라서 끼울 수 없어요.</span>`;
 
         /* 속지 입히기 (오늘 페이지 · 넘길 때 보이는 옆 페이지 모두) */
         function lfApply(c, id, img) {
@@ -74,7 +78,7 @@
             if (!out || pageLeafImg !== img) return;
             setPageLeaf('my', out); if (typeof saveData === 'function') saveData(false);
         }
-        window.pickLeaf = pickLeaf; window.lfStatic = lfStatic; window.lfMenu = lfMenu; window.lfEdit = lfEdit;
+        window.pickLeaf = pickLeaf; window.lfSz = lfSz; window.lfFits = lfFits; window.lfNo = lfNo; window.lfStatic = lfStatic; window.lfMenu = lfMenu; window.lfEdit = lfEdit;
 
         /* =====================================================================
            🧻 떡메모지
