@@ -18,6 +18,7 @@
         });
     }
     build();
+    if (window.prodHook) prodHook(build);                                     // 📦 내 실물이 바뀌면 다시 (js/mine.js)
     const fit = (p, BW, BH) => { const s = Math.min(BW / p.w, BH / p.h); return { s, ox: (BW - p.w * s) / 2, oy: (BH - p.h * s) / 2 }; };
     const at = (p, q, BW, BH) => { const f = fit(p, BW, BH); return [f.ox + q[0] * f.s, f.oy + q[1] * f.s]; };
     const esc = htmlEsc;   // 🧰 js/util.js

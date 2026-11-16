@@ -1463,6 +1463,7 @@
             if (typeof dsSync === 'function') dsSync();                     // 🧱 🪵 기본 벽지 · 기본 책상 (js/deskskin.js)
             if (typeof nwRefresh === 'function') nwRefresh();               // ✨ NEW 표시 (☁ diary_new · js/arrival.js)
             if (typeof svcDailyBadges === 'function') svcDailyBadges();     // 🔔 오늘 이미 본 알림 (☁ diary_daily_seen · js/service.js)
+            if (window.mineSoon) mineSoon();                                 // 📦 내 실물 : 기기 것 → 바뀌었나 한 번 묻기 (js/mine.js · 30초에 한 번)
             const pd = document.getElementById('pageDateDisplay');          // 📅 날짜 바 페이지 수 ↔ 날짜 (☁ diary_bkview · js/skins.js)
             if (pd && isCoverOpen && typeof formatDate === 'function') pd.innerText = formatDate(currentDate);
         }

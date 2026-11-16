@@ -134,9 +134,9 @@
             DK.art[o.u] = url; dkArtPaint(o.u);
             if (o.c && !gift) {                                                   // 그림만 바꾸고 나머지(받은 곳 · 나중에 붙을 정보)는 그대로 · 🔐 다시 암호화
                 let old = null; try { old = await dkUnseal(await collItem(C, o.c)); } catch (e) { console.warn(e); }
-                const item = Object.assign({}, old && old.u === o.u ? old : { u: o.u, id: o.id, from: 'basic' }, { img: url, painted: Date.now() });
+                const item = Object.assign({}, old && old.u === o.u ? old : { u: o.u, id: o.id, from: 'basic' }, old && old.pr ? {} : await dkRealOf(o.id), { img: url, painted: Date.now() });   // 📦 실물이 없던 파일이면 같이
                 await collSet(C, o.c, await dkSeal(item), '', { id: o.id });
-            } else { o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from: 'basic', start: 1, img: url, painted: Date.now() }), '', { id: o.id }); }
+            } else { o.c = await collAdd(C, await dkSeal(Object.assign({ u: o.u, id: o.id, from: 'basic', start: 1 }, await dkRealOf(o.id), { img: url, painted: Date.now() })), '', { id: o.id }); dkGot(o.c); }
             o.p = 1;
             dkPersist(o);
             if (window.deskBoxRender) deskBoxRender(); if (window.deskEditPaint) deskEditPaint();

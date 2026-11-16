@@ -1395,7 +1395,11 @@
         async function gdFileAdd(o, from) {
             const u = o.u || o.id, C = gdColl(o.id); if (!C || o.c || gdAdding.has(u)) return;
             gdAdding.add(u);
-            try { o.c = await collAdd(C, { s: await ownLock({ u, id: o.id, from }) }, '', { id: o.id }); } catch (e) { console.warn('문구 파일', e); }   // 🔐 스티커처럼 암호화 · 하나하나 u
+            try {
+                const real = (window.mineSnap && await mineSnap('문구', o.id).catch(() => null)) || {};   // 📦 실물 (속성 · 그림 · 받은 시각 · js/mine.js · 도련 11-16)
+                o.c = await collAdd(C, { s: await ownLock(Object.assign({ u, id: o.id, from, got: Date.now() }, real)) }, '', { id: o.id });
+                if (o.c && window.mineGot) mineGot('문구', o.c);
+            } catch (e) { console.warn('문구 파일', e); }   // 🔐 스티커처럼 암호화 · 하나하나 u
             finally { gdAdding.delete(u); }
         }
         let gdFiling = false;
@@ -1570,6 +1574,7 @@
             L.forEach(x => { if (x.P.처음받기) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });
         }
         gdBuild();
+        if (window.prodHook) prodHook(() => { gdBuild(); if (window.pcRefill) pcRefill(); if (window.dkwDeskSoon) dkwDeskSoon(); });   // 📦 내 실물이 바뀌면 문구 다시 (js/mine.js)
         const gdShopList = () => GD_CAB.flatMap(([g, kind]) => cabAll(g).filter(id => !GD_OFF.has(id)).map(id => ({ id, g, kind, name: cabName(id), art: cabArt(id) }))).concat(window.pkShopList ? pkShopList() : []);   // + ✏️ 필기구 (도련 10-31 · js/pencase.js)
         function gdGive(id, force, from) {                                    // from = 상품 분류 (없으면 무료 basic · 📥 공유 = share · 도련 11-09)                                          // 'have' = 이미 있어요 (묻고 나서 force = 하나 더 · 도련 11-07 현실처럼)
             const L = gdOwnList() || [], had = L.some(o => o.id === id); if (had && !force) return 'have';

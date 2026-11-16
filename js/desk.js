@@ -98,6 +98,8 @@
         const dkItemsGet = () => typeof prefGet === 'function' ? dkJoin(prefGet(DK_OWN_KEY, DK_OWN_LOCAL), prefGet(DK_POS_KEY, DK_POS_LOCAL)) : null;
         function dkItemsPut(L, mem) { if (typeof prefSet !== 'function' || DK.trial) return; /* 🏪 적용해보기 중엔 저장하지 않아요 */ const { own, pos } = dkSplit(L); if (!DK.partial) { if (mem && drive.ready && !drive.guest) store.putLoaded(DK_OWN_KEY, JSON.stringify(own)); else prefSet(DK_OWN_KEY, DK_OWN_LOCAL, own); } prefSet(DK_POS_KEY, DK_POS_LOCAL, pos); }   // 💤 mem = 처음 선물 그대로 (목록 파일은 바뀔 때 처음 · 도련 11-07)   // 💤 목록을 아직 안 읽었으면 자리만 (가진 것은 그대로 · 도련 11-07)   // 바뀐 쪽 파일만 올라가요 (store 가 같은 값이면 안 올려요)
         dkBuild();
+        if (window.prodHook) prodHook(() => { dkBuild(); if (document.getElementById('deskStage') && !DK.edit && !DK.drag) { deskItemsRender(); deskBoxRender(); } });   // 📦 내 실물이 바뀌면 소품 다시 (js/mine.js)
+        window.deskOwnIds = () => DK.items.map(o => o.id);                     // 📦 가진 소품 (실물이 없는 것 만들기 · js/mine.js)
         const dkStarter = () => DESK_ITEMS.filter(d => !d.nost).map(d => Object.assign({ u: d.id, id: d.id, at: 'desk', x: d.x, y: d.y }, d.fl && dkFlipOk(d) ? { fl: 1 } : {}));   // ↔ 처음엔 돌린 모습 (상품 '소품.fl' · 상품공방)   // 🎁 기본 세트 선물
         /* 💤 소품 목록 = 보관함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · 만 개여도 앱을 켤 때 안 읽어요 · js/drive.js keyFileLoad)
              DK.partial = 아직 안 읽음 : 책상 위 것만 (배치.json 의 무엇 + 자리) · 가진 것 목록은 안 써요 */
@@ -129,6 +131,7 @@
                 if (window.dsAfterLoad) dsAfterLoad();                            // 🧱 🪵 벽지 · 책상판도 같은 파일 (js/deskskin.js)
                 if (DK.fresh || DK.posLost) giftEnsure();                         // 🛟 목록 파일이 없어졌어요 → 되살리기
                 else { DK.items.forEach(o => { if (o.at !== 'desk') dkArtLoad(o); }); dkFilesFill(); }
+                if (window.mineSoon) mineSoon();                                  // 📦 보관함 것도 실물로
                 return true;
             });
             dkOwnP.catch(e => { console.warn('🪑 소품 목록', e); if (dkOwnGen === gen) dkOwnP = null; });
@@ -179,11 +182,13 @@
         /* 🔐 받은- 파일 내용은 스티커처럼 계정마다 다른 열쇠로 암호화 (도련 10-27 · 복사해도 하나 · 남의 것은 못 열어요 · js/own.js)
               파일 안에 고유 번호 u · 목록(소품 / _목록N · 암호화)에 있는 u 만 내 것 · 같은 u 는 하나만 */
         const dkSeal = async o => ({ s: await ownLock(o) });
+        const dkRealOf = async id => Object.assign({ got: Date.now() }, (window.mineSnap && await mineSnap('책상소품', id).catch(() => null)) || {});   // 📦 받은 시각 + 실물 (속성 · 그림 · js/mine.js · 도련 11-16)
+        const dkGot = c => { if (c && window.mineGot) mineGot('책상소품', c); };
         const dkUnseal = async it => it && typeof it.s === 'string' ? ownUnlock(it.s) : null;
         async function dkFileAdd(o, from) {
             const C = dkColl(o.id); if (!C || o.c || dkAdding.has(o.u)) return;
             dkAdding.add(o.u);
-            try { o.c = await collAdd(C, await dkSeal({ u: o.u, id: o.id, from }), '', { id: o.id }); const cur = DK.items.find(x => x.u === o.u); if (cur) cur.c = o.c; }   // 그사이 목록을 다시 읽었어도 그 소품에
+            try { o.c = await collAdd(C, await dkSeal(Object.assign({ u: o.u, id: o.id, from }, await dkRealOf(o.id))), '', { id: o.id }); dkGot(o.c); const cur = DK.items.find(x => x.u === o.u); if (cur) cur.c = o.c; }   // 그사이 목록을 다시 읽었어도 그 소품에
             catch (e) { console.warn('소품 파일', e); }
             finally { dkAdding.delete(o.u); }
         }
@@ -615,7 +620,7 @@
             const prev = DK.seen; dkLoad();
             if (DK.seen !== prev) { deskItemsRender(); deskBoxRender(); }
             deskBagsPaint();                                                       // 🛍️ 봉투 · 처음 봉투 안내도 드라이브 것으로
-            giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); });
+            giftEnsure().then(() => { dkFilesFill(); if (window.gdFilesFill) gdFilesFill(); if (window.mineSoon) mineSoon(); });   // 📦 선물도 실물로
         }
 
         /* 🚪 이동 창 (도련 10-31) : 🏪 기본상품 샵 (가게 안에서는 🚪 내 방) + ☕ 칸 전부 (#moveCafe · 새 칸 = index.html 에 한 줄)
@@ -846,7 +851,7 @@
             const C = dkColl(id);
             if (img && C) {                                                       // 🗂 칠한 그림째 파일 하나
                 dkAdding.add(it.u);
-                dkSeal({ u: it.u, id, from, img }).then(sl => collAdd(C, sl, '', { id })).then(cid => { it.c = cid; done(); })
+                dkRealOf(id).then(r => dkSeal(Object.assign({ u: it.u, id, from, img }, r))).then(sl => collAdd(C, sl, '', { id })).then(cid => { it.c = cid; dkGot(cid); done(); })
                     .catch(e => console.warn('소품 파일', e)).finally(() => dkAdding.delete(it.u));
             } else dkFileAdd(it, from).then(done);                                // 🗂 종류 폴더에 파일 하나
             dkSave(); deskModeRender(); deskBoxRender(); deskEditPaint();
