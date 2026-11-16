@@ -1729,11 +1729,15 @@
            - 자리 = 권마다 'diary_desk_dy' {권 id: {x, y : 바닥 가운데 · p : side · front · lay · lb · lz}} · 자리가 없는 권은 기본 다이어리 옆에 책등으로 줄지어 꽂혀요 (잃어버리지 않게)
            - 평소 다이어리 권 톡 = 그 권 펼치기 · 🛠 꾸미기 = 끌어 옮기기 · 톡 = 모습 (📚 꽂기 · 📔 세우기 · 🛏 눕히기) · 바구니 · 받침 위도 소품처럼 (dkLayers)
            - 🛍️ 봉투의 새 다이어리 카드 = 끌어 놓은 자리에 그 권 · 📔 보관소 창은 뒤에서만 (📱 폰 · 못 찾을 때 · 🛠 다이어리 메뉴 '📔 보관소') · 📦 소품함에는 안 들어가요 */
-        const DKV_SZ = { side: [24, 127], front: [80, 120], lay: [150, 86] };      // 📏 A6 (105×148mm) 권 크기 · 다른 규격은 실제 비율대로 (dkvSz · 도련 11-16)
+        /* 📏 책상 위 권 = 종이 규격 × 20% (도련 11-16 : 딱 떨어지는 숫자 · 다이어리 · 📒 스티커바인더 · 🤍 이형지북 모두) : 규격 mm × MM_PX (js/skins.js) × DESK_K
+           세운 모습 = 표지 + 위 고리 8px · 꽂은 모습 = 두께 24px · 책등 위아래 15px · 눕힌 모습 = 비스듬한 표지 (css .dk-vol.p-lay · --lk = 그림 줄인 비율) */
+        const DESK_K = 0.2, DKV_LAY = [150, 86];                                  // 눕힌 모습 그림 (A6 를 이 크기로 그린 것 · 줄여서 써요)
         const dkvMm = b => { const d = b && b.t === 'dy' ? (window.dyyDesign && dyyDesign(b)) : b; const m = String(d && d.mm || '').split(/[×x*]/).map(Number); return m[0] > 0 && m[1] > 0 ? m : [105, 148]; };   // 📒 🤍 스티커첩은 A6 그대로
-        function dkvSz(b, p) {                                                    // 그 권 · 그 모습의 크기 (책상 px) : 가로 = 규격 가로 비율 · 세로 = 규격 세로 비율 · 꽂기 두께는 그대로
-            const [w, h] = DKV_SZ[p] || DKV_SZ.side, [mw, mh] = dkvMm(b), sx = mw / 105, sy = mh / 148;
-            return p === 'side' ? [w, Math.round(h * sy)] : [Math.round(w * sx), Math.round(h * sy)];
+        const dkvF = () => window.MM_PX * DESK_K;                                // 책상 1mm = 몇 px
+        const dkvLk = () => 105 * dkvF() / DKV_LAY[0];                           // 🛏 눕힌 그림 줄인 비율
+        function dkvSz(b, p) {                                                    // 그 권 · 그 모습의 크기 (책상 px)
+            const [mw, mh] = dkvMm(b), f = dkvF(), w = mw * f, h = mh * f;
+            return p === 'side' ? [24, Math.round(h) + 15] : p === 'lay' ? [Math.round(w), Math.round(DKV_LAY[1] * dkvLk() * mh / 148)] : [Math.round(w), Math.round(h) + 8];
         }      // 🛏 눕히기 = 표지를 비스듬히 (펼쳐 둔 권처럼 perspective · css .dk-vol.p-lay)       // 모습마다 크기 (책상 그림 px · #deskDiary 와 비슷하게)
         const dkvCol = c => { const k = DY_COL[c]; return k ? ['', k.border, k.accent] : ['', '#ffb6c1', '#ff6b81']; };   // 🧁 그 권 디자인의 색 (js/app.js · 디자인 속성이 없으면 분홍으로 보여만 줘요)
         const dkyCur = () => { if (typeof dkType === 'function' && dkType()) { const n = typeof dyNow === 'function' ? dyNow() : null; return n && n.my ? n.id : ''; } return (window.dyyBookId ? dyyBookId() : '') || ''; };   // 📓 🗂️ 페이지 다이어리를 펼쳐 둔 때 = 그 권 (도련 11-06)
@@ -1747,7 +1751,7 @@
         const dkBagged = () => { const b = dkyMap()._bag; return Array.isArray(b) ? b : []; };
         /* 🎁 처음 선물 권 자리 (도련 11-06 · 상품공방 '처음책상' { x, y, p: side · front · lay } · 앱은 그대로) : 자리가 없으면 🛍️ 봉투에 (꺼내 놓을 때까지 책상에 없어요)
            L = [{ id, spot, n : 이름, al : 스티커첩, k : 그 종류 }] · js/dyyear.js dyyGift · js/dymaker.js dmkStarter · js/basket.js bkStarterTools */
-        const dkySpot = v => v && typeof v === 'object' && isFinite(+v.x) && isFinite(+v.y) && v.x !== '' && v.y !== '' && DKV_SZ[v.p] ? { x: Math.round(+v.x), y: Math.round(+v.y), p: v.p } : null;
+        const dkySpot = v => v && typeof v === 'object' && isFinite(+v.x) && isFinite(+v.y) && v.x !== '' && v.y !== '' && ['side', 'front', 'lay'].includes(v.p) ? { x: Math.round(+v.x), y: Math.round(+v.y), p: v.p } : null;
         function deskVolInit(L) {
             if (typeof prefSet !== 'function' || !Array.isArray(L) || !L.length) return;
             const M = dkyMap(), bag = [];
@@ -1765,7 +1769,7 @@
             const M = dkyMap(); if (dkyOk(M[id])) return M[id];
             const L = dkvAll().filter(b => !dkyOk(M[b.id])), k = Math.max(0, L.findIndex(b => b.id === id));
             if (!k) return { x: DESK_W / 2, y: 976, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
-            return { x: 1373 - (DKV_SZ.front[0] + 10) * (k - 1), y: 870, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
+            return { x: 1373 - (Math.round(105 * dkvF()) + 10) * (k - 1), y: 870, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
         }
         const dkvName = b => b.t === 'pg' ? String(b.g || '') : b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : (window.dyyTitle ? dyyTitle(b) : b.id);
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : b.t === 'pg' ? (b.k === '노트' ? '📓' : '🗂️') : '📔';
@@ -1777,7 +1781,7 @@
             dkvAll().forEach(b => {                                               // 📔 모든 권 = 이 틀 하나 (펼쳐 볼 권도 · .cur · 새로 그리지 않기 · 도련 10-30)
                 const v = dkvPos(b.id), [w, h] = dkvSz(b, v.p), C = b.col ? ['', b.col[0], b.col[1]] : dkvCol(b.c);
                 const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t === 'pg' ? (b.k === '노트' ? ' note pg' : ' pg') : b.t !== 'dy' ? ' alb ' + b.t : '') + (b.t === 'dy' && window.dyyIsNote && dyyIsNote(b) ? ' note' : '') + (b.id === cur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
-                Object.assign(el.style, { left: Math.round(v.x - w / 2) + 'px', top: Math.round(v.y - h) + 'px', width: w + 'px', height: h + 'px' }); el.style.setProperty('--sy', dkvMm(b)[1] / 148);   // 📏 실제 비율
+                Object.assign(el.style, { left: Math.round(v.x - w / 2) + 'px', top: Math.round(v.y - h) + 'px', width: w + 'px', height: h + 'px' }); el.style.setProperty('--sy', dkvMm(b)[1] / 148); el.style.setProperty('--lk', dkvLk());   // 📏 실제 비율 · 🛏 눕힌 그림 줄인 비율
                 el.style.setProperty('--dy-c', C[1]); el.style.setProperty('--primary-accent', C[2]);
                 const lb = b.t === 'dy' ? b.y : b.t === 'pg' ? (b.k === '노트' ? '📓' : '🗂️') + (v.p === 'side' ? '' : ' ' + htmlEsc(String(b.g || '').slice(0, 6))) : (b.t === 'bd' ? '📒' : '🤍') + (v.p === 'side' ? '' : ' ' + htmlEsc(String(b.lb || DKH_NAMES[b.k] || '').slice(0, 6)));   // 📒 🤍 = 아이콘 + 종류(이름표)
                 el.innerHTML = v.p === 'lay' ? `<i class="dv-pg"></i><i class="dv-cv"><b>${lb}</b></i>` : `<i class="dv-cv"><b>${lb}</b></i>`;
@@ -1929,8 +1933,8 @@
                 const T = f.getBoundingClientRect(), k = T.height / rv.height;
                 return `translate(${T.left + T.width / 2 - rw.left - ox}px, ${T.bottom - rw.top - oy}px) scale(${k})` + (p === 'side' ? ' perspective(1400px) rotateY(-84deg)' : '');
             }
-            const R = vo.getBoundingClientRect(), k = vo.offsetWidth / rv.width, bx = R.left + R.width / 2, by = R.bottom - 13 * s;   // 🛏 눕힌 표지 = 같은 각도 (css .dk-vol.p-lay .dv-cv)
-            return `translate(${bx - rw.left - ox}px, ${by - rw.top - oy}px) scale(${s}) perspective(900px) rotateX(${DK_TILT}deg) scale(${k})`;
+            const R = vo.getBoundingClientRect(), k = vo.offsetWidth / rv.width, bx = R.left + R.width / 2, lk = dkvLk(), by = R.bottom - 13 * lk * s;   // 🛏 눕힌 표지 = 같은 각도 (css .dk-vol.p-lay .dv-cv · --lk)
+            return `translate(${bx - rw.left - ox}px, ${by - rw.top - oy}px) scale(${s}) perspective(${900 * lk}px) rotateX(${DK_TILT}deg) scale(${k})`;
         }
         function deskOpenDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
