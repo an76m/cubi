@@ -574,7 +574,7 @@
             const ip = document.getElementById('innerPage'), ovKey = (ip && ip.dataset.dy || '') + (dy.two ? '2' : '1') + (UI.phone() ? 'p' : '');
             const tbOn = !!toolbar.offsetParent, ov = (tbOn && (window.dyOvRat = window.dyOvRat || {})[ovKey]) || { t: 0, b: 0 };   // 🪑 책상(하단 메뉴 없음)은 그대로
             const fit = s => Math.min(1, maxW / (s.w * (dy.two ? 2 : 1)), maxH / (s.h * (1 + ov.t + ov.b)));   // 💻 양쪽 보기는 두 쪽이 화면에 들어가게
-            const k = Math.min(window.dyRefSize && !UI.phone() ? fit(dyRefSize()) : 1, fit(dy));   // 📏 💻 📲 모든 다이어리를 같은 비율로 줄여요 (기준 A5 · 실제 크기 비율 그대로 · 그보다 큰 것만 더 · js/skins.js MM_PX) · 📱 폰은 화면에 꽉 차게 (작은 화면이라)
+            const k = fit(dy);   // 📏 펼친 다이어리 = 실제 크기 (규격 mm × MM_PX · js/skins.js) · 그 다이어리가 화면에 닿을 때부터 줄어요 (도련 11-16 : 기준 A5 틀 없앰)
             const h = Math.round(dy.h * k);
             wrapper.style.width = Math.round(dy.w * k) + 'px'; wrapper.style.height = h + 'px';
             wrapper.style.marginTop = ov.t ? Math.round(ov.t * h) + 'px' : '';
