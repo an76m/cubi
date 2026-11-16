@@ -1,0 +1,319 @@
+/* 말랑달콤 다이어리 - js/dash.js
+   📊 백엔드 상황판 (도련 11-17 · 💻 F2 = 열기/닫기 · Esc = 닫기 · 개발 중 도련 QA 용 · 상품공방처럼 써 보면서 고쳐요)
+   - 다른 파일을 고치지 않아요 : fetch 를 감싸서 모든 요청을 기록 + 몇 개의 전역 함수(loadFromDrive · applyLoadedData · deskItemsRender · openCoverAnimated)에 시각 표시
+   - 탭 : 요약 · 드라이브 요청 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 기록(날마다)
+   - 구글 드라이브 점수 (2026-05 새 방식) : 정보 읽기 5 · 쓰기 50 · 목록 100 · 파일 받기 200 (프로젝트 1분 1,000,000 · 사람 1분 325,000 · 하루 400,000,000 = 계산기 칸에서 바꿔요)
+   - '앱 열기 한 번' = loadFromDrive 시작부터 60초 동안 · 날마다 합계 = localStorage malang_dash_days (14일)
+   - 📋 복사 = 상황판 내용을 글로 (AI 에게 붙여 주기) */
+(function () {
+    const T0 = performance.now(), DAYS_KEY = 'malang_dash_days', CALC_KEY = 'malang_dash_calc', OPEN_MS = 60000;
+    const D = { reqs: [], marks: [], errs: [], opens: [], names: new Map(), srv: { n: 0, b: 0 }, other: { n: 0, b: 0 }, on: false, tab: 'sum', timer: 0, filt: '' };
+    const now = () => performance.now() - T0;
+    const mark = (n, extra) => { D.marks.push({ n, t: now(), x: extra || '' }); };
+    window.dashMark = mark;
+    mark('📄 코드 읽기 시작 (dash.js)');
+
+    /* 💯 구글 드라이브 점수 */
+    const PTS = { info: 5, write: 50, list: 100, down: 200, other: 0 };
+    const KN = { info: '정보 읽기', write: '쓰기', list: '목록', down: '파일 받기', other: '기타' };
+    function classify(m, url) {
+        let u; try { u = new URL(url); } catch (e) { return 'other'; }
+        const p = u.pathname, media = u.searchParams.get('alt') === 'media';
+        if (p.includes('/changes/startPageToken') || p.endsWith('/about')) return 'info';
+        if (p.endsWith('/changes')) return 'list';
+        if (p.includes('/revisions')) return media ? 'down' : (m === 'GET' && p.endsWith('/revisions') ? 'list' : 'info');
+        if (m === 'GET' && /\/files$/.test(p)) return 'list';
+        if (m === 'GET') return media ? 'down' : 'info';
+        return 'write';
+    }
+    const isDrive = url => /^https:\/\/www\.googleapis\.com\/(drive|upload\/drive)\//.test(url);
+    const isSrv = url => url.startsWith('https://malang-img.pages.dev');
+    const HELP = new Set(['gfetch', 'fetch', 'driveList', 'readFileText', 'driveUpsert', 'driveMeta', 'findFile', 'findFolder', 'getFolder', 'createFolder', 'ensureToken', 'driveFail', 'sealOpen', 'bodySeal', 'Promise.then', 'Array.map', 'Array.forEach', 'Promise.all']);
+    function feature() {                                                      // 누가 보냈나 = 코드 자리 (파일:함수)
+        const st = String(new Error().stack || '').split('\n').slice(2); let anon = '';
+        for (const l of st) {
+            const m = /at (?:async )?(?:([\w$.<>]+) \()?.*\/js\/([\w-]+)\.js/.exec(l);   // 이름 없는 함수 = 파일만
+            if (!m) continue;
+            const fn = (m[1] || '').replace(/^Object\./, ''), file = m[2];
+            if (file === 'dash' || HELP.has(fn)) continue;                       // 드라이브 도우미는 건너뛰고 부른 쪽
+            if (!fn || fn === 'eval') { anon = anon || file; continue; }         // 이름 없는 함수 = 더 위에서 이름 있는 쪽을 찾아요
+            return file + ':' + fn;
+        }
+        return anon || '?';
+    }
+    function what(m, url, body) {                                             // 무엇을 = 파일 이름 · 찾은 조건
+        let u; try { u = new URL(url); } catch (e) { return url.slice(0, 60); }
+        const q = u.searchParams.get('q');
+        if (q) return '🔎 ' + q.split(' and ').filter(c => !/^trashed=|^mimeType/.test(c.trim())).map(c => c.trim().replace(/^'([^']+)' in parents$/, (x, id) => '📁' + (D.names.get(id) || (id === 'root' ? '맨 위' : id.slice(0, 6))) + ' 안')).join(' · ').slice(0, 90) + (/mimeType='application\/vnd.google-apps.folder'/.test(q) ? ' (폴더)' : '');
+        const id = (/\/files\/([^/?]+)/.exec(u.pathname) || [])[1];
+        if (id) return (D.names.get(id) || id.slice(0, 10) + '…') + (u.pathname.includes('/revisions') ? ' (예전 판)' : '');
+        if (typeof body === 'string') { const n = /"name"\s*:\s*"([^"]+)"/.exec(body.slice(0, 600)); if (n) return '＋ ' + n[1]; }
+        if (u.pathname.endsWith('/changes')) return '🔔 다른 기기 변경 목록';
+        if (u.pathname.includes('startPageToken')) return '🔔 변경 표시 받기';
+        if (u.pathname.endsWith('/about')) return '👤 계정 번호';
+        return u.pathname.slice(0, 60);
+    }
+    const bsize = b => { try { if (b == null) return 0; if (typeof b === 'string') return new Blob([b]).size; if (b.size != null) return b.size; if (b.byteLength != null) return b.byteLength; } catch (e) { } return 0; };
+    const learn = (j) => { try { (j.files || []).forEach(f => f && f.id && f.name && D.names.set(f.id, f.name)); if (j.id && j.name) D.names.set(j.id, j.name); } catch (e) { } };
+
+    /* 🕸 모든 요청 기록 (fetch 감싸기) */
+    const F0 = window.fetch.bind(window);
+    window.fetch = function (input, opts) {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        const m = ((opts && opts.method) || (input && input.method) || 'GET').toUpperCase();
+        const t = now();
+        if (isDrive(url)) {
+            const k = classify(m, url), r = { t, m, k, pts: PTS[k], feat: feature(), name: what(m, url, opts && opts.body), up: bsize(opts && opts.body), down: 0, ms: 0, st: 0 };
+            D.reqs.push(r); if (D.reqs.length > 3000) D.reqs.shift();
+            dayAdd(r);
+            return F0(input, opts).then(res => {
+                r.ms = Math.round(now() - t); r.st = res.status;
+                res.clone().arrayBuffer().then(b => { r.down = b.byteLength; dayBytes(r); if (/json/.test(res.headers.get('content-type') || '')) { try { learn(JSON.parse(new TextDecoder().decode(b))); } catch (e) { } } }).catch(() => { });
+                return res;
+            }, e => { r.ms = Math.round(now() - t); r.st = -1; throw e; });
+        }
+        if (isSrv(url)) { D.srv.n++; return F0(input, opts).then(res => { res.clone().arrayBuffer().then(b => { D.srv.b += b.byteLength; }).catch(() => { }); return res; }); }
+        D.other.n++;
+        return F0(input, opts);
+    };
+    try { new PerformanceObserver(l => l.getEntries().forEach(e => { if (isSrv(e.name) && e.initiatorType !== 'fetch') { D.srv.n++; D.srv.b += e.transferSize || 0; } })).observe({ type: 'resource', buffered: true }); } catch (e) { }
+
+    /* ⚠ 경고 · 오류 모으기 */
+    ['warn', 'error'].forEach(lv => { const o = console[lv].bind(console); console[lv] = function (...a) { try { D.errs.push({ t: now(), lv, s: a.map(x => x instanceof Error ? x.message : typeof x === 'object' ? (() => { try { return JSON.stringify(x).slice(0, 200); } catch (e) { return String(x); } })() : String(x)).join(' ').slice(0, 300) }); if (D.errs.length > 200) D.errs.shift(); } catch (e) { } return o(...a); }; });
+    window.addEventListener('error', e => D.errs.push({ t: now(), lv: 'error', s: String(e.message || e) }));
+    window.addEventListener('unhandledrejection', e => D.errs.push({ t: now(), lv: 'error', s: '약속 실패: ' + String((e.reason && e.reason.message) || e.reason).slice(0, 200) }));
+
+    /* 📅 날마다 합계 */
+    const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    let days = {}; try { days = JSON.parse(localStorage.getItem(DAYS_KEY) || '{}') || {}; } catch (e) { days = {}; }
+    const dayOf = () => days[today()] || (days[today()] = { n: 0, pts: 0, k: {}, up: 0, down: 0, opens: [] });
+    let saveT = 0;
+    const daySave = () => { clearTimeout(saveT); saveT = setTimeout(() => { const ks = Object.keys(days).sort(); while (ks.length > 14) delete days[ks.shift()]; try { localStorage.setItem(DAYS_KEY, JSON.stringify(days)); } catch (e) { } }, 3000); };
+    function dayAdd(r) { const d = dayOf(); d.n++; d.pts += r.pts; d.k[r.k] = (d.k[r.k] || 0) + 1; daySave(); }
+    function dayBytes(r) { const d = dayOf(); d.up += r.up; d.down += r.down; daySave(); }
+
+    /* ⏱ 시각 표시 (전역 함수 감싸기 · 다른 파일을 안 고쳐요) */
+    function wrap(name, before, after) {
+        const f = window[name]; if (typeof f !== 'function' || f.__dash) return;
+        const w = function (...a) { before && before(); const r = f.apply(this, a); if (after) { if (r && typeof r.then === 'function') r.then(() => after(), () => after()); else after(); } return r; };
+        w.__dash = 1; window[name] = w;
+    }
+    const once = {};
+    const first = n => () => { if (!once[n]) { once[n] = 1; mark(n); } };
+    function hookAll() {
+        wrap('loadFromDrive', () => { mark('☁ 드라이브 읽기 시작 (로그인)'); D.opens.push({ t: now(), i: D.reqs.length }); }, () => { mark('☁ 드라이브 읽기 끝'); setTimeout(openDone, OPEN_MS); });
+        wrap('enterGuestMode', first('🏠 로그인 없이 시작'));
+        wrap('applyLoadedData', null, first('🎨 불러온 설정으로 다시 그리기 (첫 번)'));
+        wrap('deskItemsRender', null, first('🪑 책상 소품 그리기 (첫 번)'));
+        wrap('openCoverAnimated', first('📖 다이어리 펼치기 (첫 번)'));
+    }
+    function openDone() {                                                     // 앱 열기 한 번 = 로그인부터 60초 동안 쓴 점수
+        const o = D.opens[D.opens.length - 1]; if (!o || o.done) return;
+        o.done = 1; o.pts = D.reqs.filter(r => r.t >= o.t && r.t < o.t + OPEN_MS).reduce((a, r) => a + r.pts, 0); o.n = D.reqs.filter(r => r.t >= o.t && r.t < o.t + OPEN_MS).length;
+        const d = dayOf(); d.opens.push(o.pts); if (d.opens.length > 30) d.opens.shift(); daySave();
+    }
+    document.addEventListener('DOMContentLoaded', () => { mark('📄 화면 틀 완성 (DOMContentLoaded)'); hookAll(); });
+    window.addEventListener('load', () => { mark('📄 파일 모두 받음 (load)'); hookAll(); if (window.PROD_READY) PROD_READY.then(v => mark('🧁 상품 목록 확인 끝', String(v))); });
+
+    /* 🧮 계산 */
+    const fmt = n => Math.round(n).toLocaleString('ko-KR');
+    const kb = b => b >= 1048576 ? (b / 1048576).toFixed(1) + 'MB' : b >= 1024 ? Math.round(b / 1024) + 'KB' : b + 'B';
+    const sum = (L, f) => L.reduce((a, x) => a + (f ? f(x) : x), 0);
+    function stats(L) { const k = {}; Object.keys(PTS).forEach(x => k[x] = { n: 0, p: 0 }); L.forEach(r => { k[r.k].n++; k[r.k].p += r.pts; }); return { n: L.length, p: sum(L, r => r.pts), k, up: sum(L, r => r.up), down: sum(L, r => r.down) }; }
+    const lastMin = () => D.reqs.filter(r => r.t > now() - 60000);
+    function maxMinute() { let best = 0; const L = D.reqs; let j = 0, s = 0; for (let i = 0; i < L.length; i++) { s += L[i].pts; while (L[i].t - L[j].t > 60000) { s -= L[j].pts; j++; } if (s > best) best = s; } return best; }
+    function openCost() {
+        const mine = D.opens.filter(o => o.done).map(o => o.pts), d = (days[today()] || {}).opens || [], all = mine.length ? mine : d;
+        if (all.length) return { v: sum(all) / all.length, src: all.length + '번 잰 평균' };
+        const o = D.opens[D.opens.length - 1]; if (o) { const p = D.reqs.filter(r => r.t >= o.t).reduce((a, r) => a + r.pts, 0); return { v: p, src: '지금 재는 중 (로그인 ' + Math.round((now() - o.t) / 1000) + '초째)' }; }
+        return { v: 0, src: '아직 로그인 전' };
+    }
+    function usePerMin() {                                                    // 앱 열기(60초)를 뺀 나머지 = 쓰는 동안 1분 점수
+        const o = D.opens[0]; if (!o) return { v: 0, src: '아직' };
+        const inOpen = r => D.opens.some(x => r.t >= x.t && r.t < x.t + OPEN_MS);
+        const L = D.reqs.filter(r => r.t >= o.t && !inOpen(r)), mins = Math.max(0, (now() - o.t - D.opens.length * OPEN_MS) / 60000);
+        return mins < .5 ? { v: 0, src: '쓴 시간이 짧아요' } : { v: sum(L, r => r.pts) / mins, src: Math.round(mins) + '분 쓴 것으로' };
+    }
+    let calc = { perMin: 1000000, perDay: 400000000, perUserMin: 325000, opens: 3, useMin: 20, peak: 1 };
+    try { Object.assign(calc, JSON.parse(localStorage.getItem(CALC_KEY) || '{}')); } catch (e) { }
+    function users() {
+        const oc = openCost(), up = usePerMin(), day = calc.opens * oc.v + calc.useMin * up.v;
+        const byDay = day > 0 ? calc.perDay / day : Infinity, byMin = oc.v > 0 ? calc.perMin / (oc.v * calc.peak / 100) : Infinity;
+        return { oc, up, day, byDay, byMin, max: Math.min(byDay, byMin), at: byDay <= byMin ? '하루 한도' : '1분 한도', together: oc.v > 0 ? calc.perMin / oc.v : Infinity, myMax: maxMinute() };
+    }
+
+    /* 🗄 브라우저 저장 */
+    async function browserStore() {
+        const out = { ls: [], ss: [], idb: [], cache: [], est: null };
+        try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); out.ls.push({ k, b: (k.length + (localStorage.getItem(k) || '').length) * 2 }); } } catch (e) { }
+        try { for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i); out.ss.push({ k, b: (k.length + (sessionStorage.getItem(k) || '').length) * 2 }); } } catch (e) { }
+        out.ls.sort((a, b) => b.b - a.b); out.ss.sort((a, b) => b.b - a.b);
+        try {
+            const dbs = indexedDB.databases ? await indexedDB.databases() : [];
+            for (const x of dbs) {
+                const db = await new Promise(r => { const q = indexedDB.open(x.name); q.onsuccess = () => r(q.result); q.onerror = () => r(null); q.onupgradeneeded = () => { q.transaction.abort(); r(null); }; });
+                if (!db) { out.idb.push({ name: x.name, stores: [] }); continue; }
+                const stores = [];
+                for (const s of [...db.objectStoreNames]) {
+                    const keys = await new Promise(r => { try { const q = db.transaction(s).objectStore(s).getAllKeys(null, 400); q.onsuccess = () => r(q.result || []); q.onerror = () => r([]); } catch (e) { r([]); } });
+                    const cnt = await new Promise(r => { try { const q = db.transaction(s).objectStore(s).count(); q.onsuccess = () => r(q.result); q.onerror = () => r(keys.length); } catch (e) { r(keys.length); } });
+                    stores.push({ s, cnt, keys: keys.map(k => typeof k === 'string' ? k : JSON.stringify(k)) });
+                }
+                db.close(); out.idb.push({ name: x.name, v: x.version, stores });
+            }
+        } catch (e) { }
+        try { if (window.caches) for (const k of await caches.keys()) { const c = await caches.open(k), ks = await c.keys(); out.cache.push({ k, n: ks.length, files: ks.slice(0, 300).map(r => r.url.replace(location.origin, '')) }); } } catch (e) { }
+        try { out.est = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null; } catch (e) { }
+        return out;
+    }
+
+    /* 🖥 화면 */
+    const css = `#dashP{position:fixed;inset:12px 12px 12px auto;width:min(760px,calc(100vw - 24px));z-index:2147483000;background:#fffafc;border:2px solid #ffb6c1;border-radius:14px;box-shadow:0 10px 40px rgba(120,40,70,.25);font:13px/1.45 system-ui,'Malgun Gothic',sans-serif;color:#4a3640;display:flex;flex-direction:column}
+#dashP *{box-sizing:border-box}#dashP .dh{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #f3d3dd;flex-wrap:wrap}
+#dashP .dh b{font-size:15px;color:#d6457a;margin-right:auto}#dashP button{border:1px solid #f0b8c8;background:#fff;border-radius:8px;padding:3px 9px;cursor:pointer;font:inherit;color:#7a4a5a}
+#dashP button.on{background:#ff8fab;color:#fff;border-color:#ff8fab}#dashP .db{overflow:auto;padding:10px 12px;flex:1}
+#dashP table{border-collapse:collapse;width:100%;margin:4px 0 12px}#dashP td,#dashP th{border-bottom:1px solid #f6e1e8;padding:3px 6px;text-align:left;vertical-align:top}#dashP th{color:#a06078;font-weight:600;background:#fff0f5}
+#dashP td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}#dashP h4{margin:12px 0 4px;color:#c2557e}#dashP .big{font-size:22px;font-weight:700;color:#d6457a}
+#dashP .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:8px}#dashP .card{background:#fff;border:1px solid #f3d3dd;border-radius:10px;padding:8px}
+#dashP .card small{display:block;color:#a07a88}#dashP .bar{height:9px;background:#ff9fbc;border-radius:5px;min-width:2px}#dashP .warn{color:#d23c3c}#dashP .ok{color:#2e9b5e}
+#dashP input{width:110px;border:1px solid #f0b8c8;border-radius:6px;padding:2px 6px;font:inherit}#dashP .tip{color:#9a7884;font-size:12px}#dashP code{background:#fff0f5;padding:0 4px;border-radius:4px}
+#dashP details{margin:2px 0}#dashP summary{cursor:pointer}`;
+    const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다']];
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    function el() {
+        let p = document.getElementById('dashP'); if (p) return p;
+        const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+        p = document.createElement('div'); p.id = 'dashP';
+        p.innerHTML = `<div class="dh"><b>📊 백엔드 상황판</b>${TABS.map(([k, n]) => `<button data-t="${k}">${n}</button>`).join('')}<button data-a="copy">📋 복사</button><button data-a="x">✕</button></div><div class="db"></div>`;
+        p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.t) { D.tab = b.dataset.t; paint(true); } else if (b.dataset.a === 'x') dashToggle(false); else if (b.dataset.a === 'copy') copy(b); else if (b.dataset.a === 'reset') { if (confirm('날마다 기록을 지울까요?')) { days = {}; localStorage.removeItem(DAYS_KEY); paint(true); } } });
+        p.addEventListener('input', e => { const i = e.target; if (i.dataset.c) { calc[i.dataset.c] = +i.value || 0; try { localStorage.setItem(CALC_KEY, JSON.stringify(calc)); } catch (x) { } paintSoon(); } else if (i.dataset.f != null) { D.filt = i.value; paintSoon(); } });
+        p.addEventListener('keydown', e => e.stopPropagation());
+        document.body.appendChild(p); return p;
+    }
+    let pt = 0; const paintSoon = () => { clearTimeout(pt); pt = setTimeout(() => paint(false), 250); };
+    function table(head, rows) { return `<table><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map((c, i) => `<td${typeof c === 'number' || /^[\d,.]+(KB|MB|B|ms|점|번|%)?$/.test(String(c)) ? ' class="n"' : ''}>${typeof c === 'number' ? fmt(c) : c}</td>`).join('')}</tr>`).join('')}</table>`; }
+    function kindRows(s) { return Object.keys(PTS).filter(k => k !== 'other').map(k => [KN[k] + ` <span class="tip">(${PTS[k]}점)</span>`, s.k[k].n, s.k[k].p]); }
+    function byFeat(L) { const m = new Map(); L.forEach(r => { const x = m.get(r.feat) || { n: 0, p: 0, b: 0 }; x.n++; x.p += r.pts; x.b += r.up + r.down; m.set(r.feat, x); }); return [...m.entries()].sort((a, b) => b[1].p - a[1].p); }
+    function prodState() { return window.PROD_CACHED ? '🚨 비상 (기기에 둔 지난 목록 + 내 실물)' : window.PROD_FROM === 'dev' ? '⚡ 기기 목록 (서버 버전 확인)' : '🧁 서버에서 받은 목록'; }
+
+    const VIEW = {
+        sum() {
+            const s = stats(D.reqs), m = stats(lastMin()), u = users(), d = dayOf();
+            return `<div class="cards">
+<div class="card"><small>이번 실행 드라이브 요청</small><span class="big">${fmt(s.n)}</span>번 · ${fmt(s.p)}점</div>
+<div class="card"><small>최근 1분</small><span class="big">${fmt(m.p)}</span>점 · ${m.n}번</div>
+<div class="card"><small>오늘 (이 기기)</small><span class="big">${fmt(d.pts)}</span>점 · ${fmt(d.n)}번</div>
+<div class="card"><small>앱 열기 한 번 (로그인 후 60초)</small><span class="big">${fmt(u.oc.v)}</span>점<br><span class="tip">${u.oc.src}</span></div>
+<div class="card"><small>가능한 사용자 (계산기 가정)</small><span class="big">${isFinite(u.max) ? fmt(u.max) : '—'}</span>명<br><span class="tip">${u.at}가 먼저 차요</span></div>
+<div class="card"><small>상품 목록</small>${prodState()}</div></div>
+<h4>종류별 (이번 실행)</h4>${table(['종류', '번', '점수'], kindRows(s))}
+<h4>점수를 많이 쓴 곳 TOP 8</h4>${table(['코드 자리 (파일:함수)', '번', '점수', '주고받은 양'], byFeat(D.reqs).slice(0, 8).map(([f, x]) => [`<code>${esc(f)}</code>`, x.n, x.p, kb(x.b)]))}
+<h4>⏱ 앱 열기 단계</h4>${table(['단계', '앱 시작 후'], D.marks.map(x => [esc(x.n) + (x.x ? ` <span class="tip">${esc(x.x)}</span>` : ''), (x.t / 1000).toFixed(2) + '초']))}
+${D.errs.length ? `<h4 class="warn">⚠ 경고 · 오류 ${D.errs.length}개 (상태 탭)</h4>` : ''}`;
+        },
+        req() {
+            const f = D.filt.trim(), L = D.reqs.filter(r => !f || (r.feat + ' ' + r.name + ' ' + KN[r.k]).includes(f)).slice(-300).reverse();
+            return `<p class="tip">구글 드라이브에 보낸 요청 (최근 300개 · 새것이 위) · 찾기 <input data-f value="${esc(D.filt)}" placeholder="예: 실물 · 목록 · desk"></p>
+${table(['앱 시작 후', '종류', '점수', '무엇을', '코드 자리', '걸린 시간', '올림', '받음', '답'], L.map(r => [(r.t / 1000).toFixed(1) + '초', KN[r.k], r.pts, esc(r.name), `<code>${esc(r.feat)}</code>`, r.ms + 'ms', kb(r.up), kb(r.down), r.st === -1 ? '<span class="warn">실패</span>' : r.st >= 400 ? `<span class="warn">${r.st}</span>` : r.st || '…']))}`;
+        },
+        users() {
+            const u = users(), inp = (k, step) => `<input type="number" step="${step || 1}" data-c="${k}" value="${calc[k]}">`;
+            return `<p class="tip">잰 값 + 가정 → 구글 드라이브 한도 안에서 몇 명이 쓸 수 있나 (도련 프로젝트 한도가 다르면 Google Cloud 콘솔 → Drive API → 할당량 에서 보고 고쳐요)</p>
+${table(['구글 한도', '값'], [['프로젝트 전체 1분 점수', inp('perMin', 1000)], ['프로젝트 하루 점수 (넘으면 요금)', inp('perDay', 1000000)], ['한 사람 1분 점수', inp('perUserMin', 1000)]])}
+${table(['가정 (도련이 정해요)', '값'], [['한 사람이 하루에 앱을 여는 횟수', inp('opens')], ['한 사람이 하루에 쓰는 시간 (분)', inp('useMin')], ['가장 붐비는 1분에 앱을 여는 사람 (하루 사용자 중 %)', inp('peak', .1)]])}
+${table(['잰 값', '값', '어떻게'], [['앱 열기 한 번', fmt(u.oc.v) + '점', u.oc.src], ['쓰는 동안 1분', fmt(u.up.v) + '점', u.up.src], ['한 사람 하루', fmt(u.day) + '점', `열기 ${calc.opens}번 + ${calc.useMin}분 사용`], ['이번 실행에서 가장 많이 쓴 1분 (나 혼자)', fmt(u.myMax) + '점', u.myMax > calc.perUserMin ? '<span class="warn">한 사람 1분 한도를 넘어요</span>' : '<span class="ok">한 사람 한도 안</span>']])}
+<div class="cards"><div class="card"><small>하루 한도로</small><span class="big">${isFinite(u.byDay) ? fmt(u.byDay) : '—'}</span>명 / 하루</div>
+<div class="card"><small>1분 한도로 (붐빌 때)</small><span class="big">${isFinite(u.byMin) ? fmt(u.byMin) : '—'}</span>명 / 하루</div>
+<div class="card"><small>같은 1분에 동시에 앱을 열 수 있는 사람</small><span class="big">${isFinite(u.together) ? fmt(u.together) : '—'}</span>명</div>
+<div class="card"><small>결론</small><span class="big">${isFinite(u.max) ? fmt(u.max) : '—'}</span>명<br><span class="tip">${u.at}가 먼저 차요</span></div></div>
+<p class="tip">※ '앱 열기 한 번' 은 로그인부터 60초 동안 쓴 점수예요. 처음 오는 사람(첫 접속)은 더 많이 써요 → 첫 접속 · 평소 열기를 따로 재 보려면 새 계정 · 같은 계정으로 한 번씩 열어 보고 날마다 탭에서 비교해요.</p>`;
+        },
+        speed() {
+            const nav = performance.getEntriesByType('navigation')[0] || {}, mx = Math.max(1, ...D.marks.map(x => x.t));
+            const res = performance.getEntriesByType('resource').filter(e => e.duration > 0).sort((a, b) => b.duration - a.duration).slice(0, 12);
+            const slow = D.reqs.filter(r => r.ms).slice().sort((a, b) => b.ms - a.ms).slice(0, 10);
+            return `<h4>⏱ 앱 열기 단계 (dash.js 를 읽은 때부터)</h4>${table(['단계', '시각', ''], D.marks.map(x => [esc(x.n) + (x.x ? ` <span class="tip">${esc(x.x)}</span>` : ''), (x.t / 1000).toFixed(2) + '초', `<div class="bar" style="width:${Math.round(x.t / mx * 260)}px"></div>`]))}
+<h4>🌐 첫 화면 받기 (브라우저)</h4>${table(['단계', 'ms'], [['서버 첫 답', Math.round(nav.responseStart || 0)], ['첫 화면 다 받음', Math.round(nav.responseEnd || 0)], ['화면 틀 완성', Math.round(nav.domContentLoadedEventEnd || 0)], ['모두 받음 (load)', Math.round(nav.loadEventEnd || 0)]])}
+<h4>🐢 느린 드라이브 요청 TOP 10</h4>${table(['무엇을', '종류', '걸린 시간', '받음', '코드 자리'], slow.map(r => [esc(r.name), KN[r.k], r.ms + 'ms', kb(r.down), `<code>${esc(r.feat)}</code>`]))}
+<h4>🐢 오래 걸린 파일 받기 TOP 12 (코드 · 그림 · 서버)</h4>${table(['파일', '걸린 시간', '크기'], res.map(e => [esc(e.name.replace(location.origin, '').replace('https://malang-img.pages.dev', '🧁').slice(0, 80)), Math.round(e.duration) + 'ms', e.transferSize ? kb(e.transferSize) : '<span class="tip">모름</span>']))}`;
+        },
+        data() {
+            const s = stats(D.reqs), mem = performance.memory;
+            const feats = byFeat(D.reqs).sort((a, b) => b[1].b - a[1].b).slice(0, 10);
+            return `<div class="cards"><div class="card"><small>구글 드라이브 받음</small><span class="big">${kb(s.down)}</span></div><div class="card"><small>구글 드라이브 올림</small><span class="big">${kb(s.up)}</span></div>
+<div class="card"><small>🧁 서버 (Cloudflare · 무제한)</small><span class="big">${D.srv.n}</span>번 · ${kb(D.srv.b)}<br><span class="tip">그림 크기는 일부만 보여요</span></div>
+${mem ? `<div class="card"><small>메모리 (크롬)</small><span class="big">${kb(mem.usedJSHeapSize)}</span><br><span class="tip">한도 ${kb(mem.jsHeapSizeLimit)}</span></div>` : ''}</div>
+<h4>많이 주고받은 곳 TOP 10</h4>${table(['코드 자리', '번', '주고받은 양'], feats.map(([f, x]) => [`<code>${esc(f)}</code>`, x.n, kb(x.b)]))}
+<h4>큰 파일 받기 TOP 10</h4>${table(['무엇을', '받음', '코드 자리'], D.reqs.slice().sort((a, b) => b.down - a.down).slice(0, 10).map(r => [esc(r.name), kb(r.down), `<code>${esc(r.feat)}</code>`]))}`;
+        },
+        store() { return '<p class="tip">읽는 중…</p>'; },
+        state() {
+            let mine = null; try { mine = window.mineInfo ? mineInfo() : null; } catch (e) { }
+            const dv = typeof drive !== 'undefined' ? drive : null;
+            const rows = [['상품 목록', prodState()], ['상품 목록 버전', esc(window.MALANG_PROD && window.MALANG_PROD.v)], ['드라이브', dv ? (dv.ready ? '✅ 연결' : dv.guest ? '🏠 로그인 없이' : '연결 전') : '—'], ['올릴 것 (바뀐 키)', dv && dv.dirtyKeys ? dv.dirtyKeys.size : '—'], ['인터넷', navigator.onLine ? '✅' : '❌ 끊김']];
+            return `${table(['무엇', '지금'], rows)}<p class="tip" id="dashOutbox"></p>
+${mine ? `<h4>📦 내 실물 (js/mine.js)</h4>${table(['묶음', '상품', '기기 그림', '드라이브 그림 묶음', '받은- 파일', '목록 파일'], mine.kinds.map(k => [k.g, k.n, k.img, k.gf, k.cs, k.fid ? '✅' : '—']))}<p class="tip">서버와 다른 내 실물 = ${mine.diff}개 (0 이 보통 · 크면 서버가 바뀌었거나 비상)</p>` : ''}
+<h4>⚠ 경고 · 오류 (최근 ${D.errs.length}개 · 새것이 위)</h4>${table(['시각', '', '내용'], D.errs.slice().reverse().slice(0, 80).map(e => [(e.t / 1000).toFixed(1) + '초', e.lv === 'error' ? '<span class="warn">오류</span>' : '경고', esc(e.s)]))}`;
+        },
+        days() {
+            const ks = Object.keys(days).sort().reverse();
+            return `<p class="tip">이 기기 날마다 합계 (14일) <button data-a="reset">지우기</button></p>${table(['날', '요청', '점수', '목록', '받기', '쓰기', '정보', '받음', '올림', '앱 열기 (점수)'], ks.map(k => { const d = days[k], kk = d.k || {}; return [k, d.n, d.pts, kk.list || 0, kk.down || 0, kk.write || 0, kk.info || 0, kb(d.down || 0), kb(d.up || 0), (d.opens || []).map(fmt).join(' · ') || '—']; }))}`;
+        }
+    };
+    async function storePaint(box) {
+        const s = await browserStore(); if (!D.on || D.tab !== 'store') return;
+        const det = (title, body) => `<details><summary>${title}</summary>${body}</details>`;
+        box.innerHTML = `${s.est ? `<p>브라우저가 이 사이트에 쓴 양 <b>${kb(s.est.usage || 0)}</b> <span class="tip">/ 쓸 수 있는 양 ${kb(s.est.quota || 0)}</span></p>` : ''}
+<h4>🗂 localStorage (${s.ls.length}개 · ${kb(sum(s.ls, x => x.b))} · 모든 탭 · 앱을 지워도 남아요)</h4>${table(['이름', '크기'], s.ls.map(x => [`<code>${esc(x.k)}</code>`, kb(x.b)]))}
+${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>${table(['이름', '크기'], s.ss.map(x => [`<code>${esc(x.k)}</code>`, kb(x.b)]))}` : ''}
+<h4>🗄 IndexedDB (${s.idb.length}개 데이터베이스)</h4>${s.idb.map(d => det(`<b>${esc(d.name)}</b> <span class="tip">${d.stores.map(x => x.s + ' ' + x.cnt + '개').join(' · ') || '(못 열어요)'}</span>`, d.stores.map(x => `<h4>${esc(x.s)} (${x.cnt}개${x.cnt > x.keys.length ? ' · 앞 ' + x.keys.length + '개만' : ''})</h4>${table(['이름 (키)'], x.keys.map(k => [`<code>${esc(k)}</code>`]))}`).join(''))).join('') || '<p class="tip">없어요</p>'}
+<h4>📦 Cache Storage (서비스 워커 보관함 · ${s.cache.length}개)</h4>${s.cache.map(c => det(`<b>${esc(c.k)}</b> <span class="tip">${c.n}개 파일</span>`, table(['파일'], c.files.map(f => [`<code>${esc(f)}</code>`])))).join('') || '<p class="tip">없어요</p>'}`;
+    }
+    function paint(full) {
+        if (!D.on) return;
+        const p = el(), box = p.querySelector('.db');
+        p.querySelectorAll('.dh button[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === D.tab));
+        const focus = document.activeElement && p.contains(document.activeElement) && document.activeElement.tagName === 'INPUT' ? document.activeElement.dataset : null;
+        if (D.tab === 'store') { if (full) { box.innerHTML = VIEW.store(); storePaint(box); } return; }
+        const top = box.scrollTop;
+        box.innerHTML = VIEW[D.tab]();
+        box.scrollTop = full ? 0 : top;
+        if (focus) { const i = box.querySelector(focus.c ? `input[data-c="${focus.c}"]` : 'input[data-f]'); if (i) { i.focus(); const v = i.value; i.value = ''; i.value = v; } }
+        if (D.tab === 'state' && typeof collScan === 'function' && typeof COLL !== 'undefined') collScan('outbox', (k, v) => v && v.who === COLL.who).then(L => { const o = document.getElementById('dashOutbox'); if (o) o.textContent = '📮 아직 못 올린 모음 작업 (outbox) : ' + ((L || []).length) + '개'; }).catch(() => { });
+    }
+    function report() {
+        const s = stats(D.reqs), u = users(), d = dayOf();
+        const L = [];
+        L.push('📊 말랑달콤 백엔드 상황판 · ' + new Date().toLocaleString('ko-KR') + ' · 앱 ' + (document.querySelector('meta[name="app-version"]') || {}).content + ' · ' + (innerWidth + '×' + innerHeight));
+        L.push(`이번 실행 드라이브 : ${s.n}번 · ${s.p}점 (목록 ${s.k.list.n} · 받기 ${s.k.down.n} · 쓰기 ${s.k.write.n} · 정보 ${s.k.info.n}) · 받음 ${kb(s.down)} · 올림 ${kb(s.up)}`);
+        L.push(`오늘 (이 기기) : ${d.n}번 · ${d.pts}점 · 앱 열기 점수 [${(d.opens || []).join(', ')}]`);
+        L.push(`앱 열기 한 번 = ${Math.round(u.oc.v)}점 (${u.oc.src}) · 쓰는 동안 1분 = ${Math.round(u.up.v)}점 · 가정 열기 ${calc.opens}번 · ${calc.useMin}분 · 붐빌 때 ${calc.peak}% → 하루 한도 ${isFinite(u.byDay) ? Math.round(u.byDay) : '—'}명 · 1분 한도 ${isFinite(u.byMin) ? Math.round(u.byMin) : '—'}명`);
+        L.push('상품 목록 : ' + prodState() + ' · 🧁 서버 ' + D.srv.n + '번 ' + kb(D.srv.b));
+        L.push('', '⏱ 단계'); D.marks.forEach(x => L.push(`  ${(x.t / 1000).toFixed(2)}초  ${x.n} ${x.x}`));
+        L.push('', '💯 점수 TOP'); byFeat(D.reqs).slice(0, 12).forEach(([f, x]) => L.push(`  ${f} : ${x.n}번 ${x.p}점 ${kb(x.b)}`));
+        try { const m = window.mineInfo && mineInfo(); if (m) L.push('', '📦 실물 ' + m.kinds.map(k => `${k.g} ${k.n}개/그림 ${k.img}/묶음 ${k.gf}`).join(' · ') + ' · 서버와 다름 ' + m.diff); } catch (e) { }
+        if (D.errs.length) { L.push('', '⚠ 경고 · 오류 (최근 20)'); D.errs.slice(-20).forEach(e => L.push(`  ${(e.t / 1000).toFixed(1)}초 ${e.lv} ${e.s}`)); }
+        L.push('', '🕸 요청 (최근 60 · 시각 종류 점수 무엇 자리 ms 받음)'); D.reqs.slice(-60).forEach(r => L.push(`  ${(r.t / 1000).toFixed(1)} ${KN[r.k]} ${r.pts} ${r.name} · ${r.feat} · ${r.ms}ms · ${kb(r.down)}${r.st >= 400 || r.st === -1 ? ' · ⚠' + r.st : ''}`));
+        return L.join('\n');
+    }
+    async function copy(b) {
+        const t = report();
+        try { await navigator.clipboard.writeText(t); b.textContent = '✅ 복사했어요'; }
+        catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); b.textContent = '✅ 복사했어요'; } catch (x) { b.textContent = '❌ 복사 못 했어요'; } a.remove(); }
+        setTimeout(() => { b.textContent = '📋 복사'; }, 1500);
+    }
+    function dashToggle(on) {
+        D.on = on === undefined ? !D.on : !!on;
+        const p = el(); p.style.display = D.on ? 'flex' : 'none';
+        clearInterval(D.timer);
+        if (D.on) { hookAll(); paint(true); D.timer = setInterval(() => { if (D.tab !== 'store' && D.tab !== 'users') paint(false); }, 1000); }
+    }
+    window.dashToggle = dashToggle; window.dashReport = report;
+    window.addEventListener('keydown', e => {
+        if (e.key === 'F2') { e.preventDefault(); dashToggle(); }
+        else if (e.key === 'Escape' && D.on) dashToggle(false);
+    }, true);
+})();
+
+/* 이 파일을 끝까지 문제없이 읽었다는 표시 */
+(window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dash'] = true;
