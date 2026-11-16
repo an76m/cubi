@@ -1910,6 +1910,7 @@
                     if (!res.ok) { changeTok = null; return true; }
                     const j = await res.json();
                     if ((j.changes || []).some(c => c.removed || !c.file || c.file.trashed || mineAt.get(c.fileId) !== c.file.modifiedTime)) any = true;
+                    if (window.mineHint) (j.changes || []).forEach(c => { if (!(c.file && mineAt.get(c.fileId) === c.file.modifiedTime)) mineHint(c.fileId); });   // 📦 내 실물 목록이 다른 기기에서 바뀌었는지도 같이 (js/mine.js)
                     if (j.newStartPageToken) { changeTok = j.newStartPageToken; return any; }
                     tok = j.nextPageToken;
                 }

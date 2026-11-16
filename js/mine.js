@@ -10,8 +10,10 @@
        묶음이 깨지거나 없어져도 받은- 파일 · 서버로 다시 만들어요
    - 📔 다이어리는 받은- 파일이 없어요 (목록 한 줄이 원본 · js/dyown.js) → 묶음 + _실물_백업.json (하루 한 번 + 새 디자인을 받으면 바로 · 묶음이 없어지면 백업에서)
        가진 것 = 다이어리 목록 · 바인더 재료 목록의 pid (상품 id) · 날짜 표지 d + 날짜형 권 id 안의 디자인 (dyyOf)
-   - 🎯 드라이브 요청을 아껴요 (도련 11-16 : 서버 = 요청 · 트래픽 무제한 · 드라이브는 아껴 써요)
-       평소 그림 = 늘 서버 (같은 그림이면 서버 주소 그대로) · 드라이브 = 앱을 열 때 '바뀌었나' 목록 요청 1번 (30초에 한 번) · 바뀌었으면 가벼운 목록만 받아요 (그림 X)
+   - 🎯 드라이브 요청을 아껴요 (도련 11-16 · 11-17 : 많은 사용자 = 앱 전체 요청 한도 · 서버 = 요청 · 트래픽 무제한)
+       평소 앱을 열 때 = 드라이브 0번 (기기 것) · 묻는 때 = 받거나 새로 생겼을 때 (쓰기 전 합치기) · 다른 기기가 고쳤을 때 (drive.js changes 를 같이 봐요) · 하루 한 번
+       🚨 서버가 아예 없으면 = js/prod.js 기기에 둔 지난 목록 + 가진 것 모두 내 실물로 (PROD_CACHED)
+       평소 그림 = 늘 서버 (같은 그림이면 서버 주소 그대로) · 드라이브를 물을 때도 '바뀌었나' 목록 요청 1번 · 바뀌었으면 가벼운 목록만 (그림 X)
        🚨 비상 (서버에 없거나 서버 모습이 내 것과 달라요) + 기기에 그 그림이 없어요 → 1) 서버에 같은 그림 이름이 있으면 서버 2) 없으면 드라이브 그림 묶음 (파일 번호로 바로 · 요청 1번)
    - 기기 보관 (IndexedDB 'malang-mine' · 계정|묶음) : 목록 + 받아 둔 그림 (서버에서 받은 것 · 비상 때 드라이브에서 받은 것)
    - 두 기기 : 쓰기 전에 드라이브 목록이 바뀌었으면 먼저 읽어서 합쳐요 (상품 id 기준 · 빠지는 것 없이) · 하루 한 번 받은- 파일과 맞춰 봐요 (모든 폴더 이름 목록 요청 1번 · 빠진 것만 읽어요)
@@ -28,7 +30,7 @@
     const KINDS = {}; Object.keys(G).forEach(g => G[g].K.forEach(K => { KINDS[K] = g; }));   // 상품 종류 → 묶음
     const FILE = '_실물.json', BK = '_실물_백업.json', PK = '_실물그림.json', DAY_MAX = 40;
     const key = (K, id) => K + '|' + id;
-    const M = { who: '', k: {}, url: {}, diff: {}, sig: '', last: 0, run: null, again: false, dirty: new Set(), t: 0 };
+    const M = { who: '', pg: [], k: {}, url: {}, diff: {}, sig: '', last: 0, run: null, again: false, dirty: new Set(), t: 0 };
     const blank = () => ({ items: {}, img: {}, gf: [], gid: '', cs: [], fid: '', mt: '', bkid: '' });   // img = 기기에만 · 드라이브 목록에는 gid 그림 묶음 파일 번호 + gf 그 안의 그림 이름
     const obj = v => v && typeof v === 'object' && !Array.isArray(v);
     const norm = r => { const b = blank(); if (!obj(r)) return b; if (obj(r.items)) Object.keys(r.items).forEach(k => { const x = r.items[k]; if (obj(x) && obj(x.f) && typeof x.K === 'string' && k === key(x.K, k.slice(x.K.length + 1))) b.items[k] = x; }); if (obj(r.img)) Object.keys(r.img).forEach(f => { if (typeof r.img[f] === 'string' && r.img[f].startsWith('data:')) b.img[f] = r.img[f]; }); if (Array.isArray(r.gf)) b.gf = [...new Set(r.gf.filter(okF))]; if (typeof r.gid === 'string') b.gid = r.gid; if (Array.isArray(r.cs)) b.cs = [...new Set(r.cs.map(String))]; if (typeof r.fid === 'string') b.fid = r.fid; if (typeof r.mt === 'string') b.mt = r.mt; if (typeof r.bkid === 'string') b.bkid = r.bkid; if (isFinite(+r.bkn)) b.bkn = +r.bkn; return b; };
@@ -50,6 +52,7 @@
         if (M.who === who) return;
         M.who = who; M.k = {}; M.diff = {}; M.dirty.clear(); M.last = 0;
         for (const g of Object.keys(G)) M.k[g] = norm(await idb(who + '|' + g));
+        M.pg.splice(0).forEach(([K, c]) => mineGot(K, c));                    // 그 사이 받은 것
         apply();
     }
 
@@ -74,7 +77,7 @@
     function mineDiff(K) {
         if (M.diff[K]) return M.diff[K];
         const B = KINDS[K] && M.k[KINDS[K]], D = {};
-        if (B) Object.keys(B.items).forEach(k => { const x = B.items[k]; if (x.K !== K) return; const id = k.slice(K.length + 1), s = window.prodRawOf ? prodRawOf(K, id) : null; if (!s || LOOK(s) !== LOOK(x)) D[id] = Object.assign({ id }, x); });
+        if (B) Object.keys(B.items).forEach(k => { const x = B.items[k]; if (x.K !== K) return; const id = k.slice(K.length + 1), s = window.prodRawOf ? prodRawOf(K, id) : null; if (!s || LOOK(s) !== LOOK(x) || window.PROD_CACHED) D[id] = Object.assign({ id }, x); });   // 🚨 서버가 없으면 가진 것 모두 내 실물로 (그림 = 기기 · 드라이브)
         return (M.diff[K] = D);
     }
     function apply() {                                                         // 다른 것이 바뀌었을 때만 다시 그려요
@@ -97,7 +100,7 @@
         if (!B.items[key(K, id)]) { B.items[key(K, id)] = it; M.dirty.add(KINDS[K]); }
         return { pr: Object.assign({ id }, it), pi };
     }
-    function mineGot(K, c) { if (!KINDS[K] || !c) return; const B = kind(K); c = String(c); if (!B.cs.includes(c)) { B.cs.push(c); M.dirty.add(KINDS[K]); } mineSoon(true); }
+    function mineGot(K, c) { if (!KINDS[K] || !c) return; if (!M.who) { M.pg.push([K, c]); mineSoon(true); return; }   /* 기기 것을 읽기 전 = 읽은 뒤에 담아요 */ const B = kind(K); c = String(c); if (B.cs.includes(c)) return; B.cs.push(c); M.dirty.add(KINDS[K]); mineSoon(true); }   // 새 받은- 파일일 때만
     function diaryIds() {                                                      // 📔 가진 다이어리 · 재료의 상품 id (목록 · 재료 목록 · 날짜형 권 id)
         const out = [], walk = v => { if (Array.isArray(v)) v.forEach(walk); else if (obj(v)) Object.keys(v).forEach(k => { const x = v[k]; if ((k === 'pid' || (k === 'd' && v.t === 'dcover')) && typeof x === 'string') out.push(x); else if (x && typeof x === 'object') walk(x); }); };
         const L = typeof dyoAll === 'function' ? dyoAll() : [];
@@ -208,8 +211,11 @@
         const who = whoNow(); if (!who) return;
         await devLoad(who);
         await fill();                                                          // 새로 생긴 것 (🎁 선물 · 보관함) = 늘 (그림은 서버에서 · 드라이브 요청 없음)
-        if (!force && !M.dirty.size && Date.now() - M.last < 30000) { apply(); rescue(); return; }   // 드라이브에 묻기는 30초에 한 번 (받거나 새로 생기면 바로)
-        M.last = Date.now();
+        const ck = 'malang_mine_chk|' + who, today = new Date().toISOString().slice(0, 10);
+        let day = ''; try { day = localStorage.getItem(ck) || ''; } catch (e) { }
+        if (!force && !M.dirty.size && !M.hint && day === today) { apply(); rescue(); return; }   // 🎯 드라이브에 묻기 = 받거나 새로 생겼을 때 · 다른 기기가 고쳤을 때 (drive.js changes) · 하루 한 번만 (평소 앱을 열 때 0번)
+        M.hint = false;
+        try { localStorage.setItem(ck, today); } catch (e) { }
         if (who !== 'guest' && online() && typeof driveList === 'function') {
             const fs = await driveList(`(name='${FILE}' or name='${BK}') and trashed=false`, 'id,name,parents,modifiedTime');   // 🔎 모든 목록이 바뀌었나 = 요청 1번
             const dirs = {};
@@ -245,6 +251,8 @@
         return M.run;
     }
     function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); M.t = setTimeout(() => { const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
+    function mineHint(id) { if (!id) return; if (Object.values(M.k).some(B => B.fid === id || B.gid === id || B.bkid === id)) { M.hint = true; mineSoon(); } }   // 🔔 다른 기기가 내 목록을 고쳤어요 (drive.js changesAny · 요청 더 없음)
+    window.mineHint = mineHint;
     window.mineDiff = mineDiff; window.mineUrl = mineUrl; window.mineSnap = mineSnap; window.mineGot = mineGot;
     window.mineSync = mineSync; window.mineSoon = mineSoon; window.mineKOf = mineKOf;
     window.mineInfo = () => ({ who: M.who, kinds: Object.keys(M.k).map(g => ({ g, n: Object.keys(M.k[g].items).length, img: Object.keys(M.k[g].img).length, gf: M.k[g].gf.length, cs: M.k[g].cs.length, fid: M.k[g].fid })), diff: Object.keys(KINDS).reduce((a, K) => a + Object.keys(mineDiff(K)).length, 0), owned: g => owned(g) });   // 🔎 시험 · 점검

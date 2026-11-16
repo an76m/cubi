@@ -7,11 +7,18 @@
    - P = 상품공방 속성 (이름 · 분류 · 순서 · 숨김 · 신상 · 스토어 · 종류별 값) · 🎁 기본 = 무료 · 💎 스토어 = 유료 (P.스토어 · 무료 샵 · 처음 선물에서 빠져요) · 숨김 상품도 목록에 있어요 (진열만 빼요 prodShelf)
    - 받지 못했으면 다이어리를 시작하지 않아요 (index.html 파일 누락 확인 · '다시 열기') */
 const PROD_BASE = 'https://malang-img.pages.dev';
+/* 🚨 2단계 = 서버가 없어도 켜져요 (도련 11-17) : 받은 상품 목록을 이 기기에 하나 두고 (localStorage · 50KB 남짓 · 모든 계정 같아요)
+     서버 prod.js 를 못 받았거나 깨졌으면 = 지난번 목록으로 시작 (window.PROD_CACHED) · 그림은 내 실물(기기 · 드라이브 그림 묶음)로 · 기기에도 없으면 예전처럼 멈춰요 */
+(function () {
+    const K = 'malang_prod_last', ok = p => !!(p && p.prod && typeof p.prod === 'object' && Object.values(p.prod).some(a => Array.isArray(a) && a.length));
+    if (ok(window.MALANG_PROD)) { try { const t = JSON.stringify(window.MALANG_PROD); if (localStorage.getItem(K) !== t) localStorage.setItem(K, t); } catch (e) { } return; }
+    try { const c = JSON.parse(localStorage.getItem(K) || 'null'); if (ok(c)) { window.MALANG_PROD = c; window.PROD_CACHED = Date.now(); console.warn('🚨 서버 상품 목록을 못 받았어요 → 이 기기에 둔 지난 목록 + 내 실물로'); } } catch (e) { }
+})();
 const PROD_OKF = f => typeof f === 'string' && /^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$/.test(f);
 const PROD_RAW = (window.MALANG_PROD && window.MALANG_PROD.prod && typeof window.MALANG_PROD.prod === 'object') ? window.MALANG_PROD.prod : {};
 const prodOne = (x, srv) => {                                                // 서버 줄 하나 → 앱 모양 (srv = 같은 id 서버 것 · 📦 내 실물일 때)
     if (!x || typeof x.id !== 'string' || !x.f || typeof x.f !== 'object') return null;
-    const u = {}; Object.keys(x.f).forEach(r => { const f = x.f[r]; if (!PROD_OKF(f)) return; u[r] = srv === undefined || (srv && srv.f && srv.f[r] === f) ? PROD_BASE + '/k/' + f : ((window.mineUrl && mineUrl(f)) || PROD_BASE + '/k/' + f); });   // 📦 같은 그림 = 서버 주소 그대로 · 다르거나 서버에 없으면 내 드라이브 그림
+    const u = {}; Object.keys(x.f).forEach(r => { const f = x.f[r]; if (!PROD_OKF(f)) return; u[r] = (srv === undefined || (srv && srv.f && srv.f[r] === f)) && !(window.PROD_CACHED && window.mineUrl && mineUrl(f)) ? PROD_BASE + '/k/' + f : ((window.mineUrl && mineUrl(f)) || PROD_BASE + '/k/' + f); });   // 📦 같은 그림 = 서버 주소 그대로 · 다르거나 서버에 없으면 내 드라이브 그림
     let P = x.P && typeof x.P === 'object' && !Array.isArray(x.P) ? x.P : {};
     if (srv !== undefined) { const S = (srv && srv.P) || {}; P = Object.assign({}, P, { 숨김: srv ? !!S.숨김 || !!S.스토어 : true, 처음받기: srv ? !!S.처음받기 : false, 순서: srv ? S.순서 : P.순서 }); }   // 📦 진열 · 처음 선물은 늘 서버가 정해요 (서버에 없으면 숨김 = 가진 사람만)
     if (P.스토어) P = Object.assign({}, P, { 숨김: true, 처음받기: false });   // 💎 스토어(유료) 상품 = 아직 무료 샵 · 처음 선물에 안 나와요 (말랑달콤 스토어가 생기면 거기서 · 가진 사람은 그대로)
