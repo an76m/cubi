@@ -26,13 +26,11 @@
         }
         const tapeUrl = t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(tapeSvg(t));
         function isTapeSrc(src) { return String(src || '').indexOf(TAPE_MARK) >= 0; }
-        /* 📏 실제 크기 테이프 (도련 11-14) : 그림 안의 tmm(한 칸 x 폭 mm) → 지금 펼친 다이어리 쪽 높이로 페이지 px (A6 148mm = 644px · js/leafpad.js tkDim 과 같아요)
-           → 무늬 칸 크기를 그 px 로 다시 써서 붙여요 · 붙은 테이프 높이 = 실제 폭 · tmm 없는 예전 테이프 = 높이 30 그대로 */
+        /* 📏 실제 크기 테이프 (도련 11-14 · 11-16) : 그림 안의 tmm(한 칸 x 폭 mm) × MM_PX = 페이지 px (js/skins.js 한 곳)
+           → 무늬 칸 크기를 그 px 로 다시 써서 붙여요 · 붙은 테이프 높이 = 실제 폭 · tmm 없는 테이프 (🧵 테이프 만들기) = 폭 PAPER_MM.tape */
         function tapeFit(url) {
-            let s; try { s = decodeURIComponent(String(url).replace(/^data:image\/svg\+xml;charset=utf-8,/, '')); } catch (e) { return { url, h: 30 }; }
-            const m = s.match(/<!--tmm:([\d.]+)x([\d.]+)-->/); if (!m) return { url, h: 30 };
-            const t = window.dyLook ? dyLook() : null, ph = (t && +String(t.mm || '').split(/[×x*]/)[1]) || 148;
-            const ch = window.dySize ? dySize().h - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;   // 지금 펼친 다이어리 쪽 높이 (📏 규격 mm × MM_PX)
+            let s; try { s = decodeURIComponent(String(url).replace(/^data:image\/svg\+xml;charset=utf-8,/, '')); } catch (e) { return { url, h: Math.round(PAPER_MM.tape * MM_PX) }; }
+            const k = MM_PX, m = s.match(/<!--tmm:([\d.]+)x([\d.]+)-->/); if (!m) return { url, h: Math.round(PAPER_MM.tape * k) };   // 📏 1mm = MM_PX
             const w = Math.round(+m[1] * k * 100) / 100, h = Math.max(6, Math.round(+m[2] * k));
             s = s.replace(/<pattern id="p" width="[\d.]+" height="[\d.]+"/, `<pattern id="p" width="${w}" height="${h}"`).replace(/(<pattern id="p"[^>]*>\s*<image [^>]*?)width="[\d.]+" height="[\d.]+"/, `$1width="${w}" height="${h}"`);
             return { url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s), h };

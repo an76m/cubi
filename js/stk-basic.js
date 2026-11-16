@@ -61,8 +61,8 @@
            → [{ cnt : 개수 글, look : 'grid' · 'tape' · 'tkimg' · 'leafimg' · 'memoimg' · 'sheet', thumbs : [작은 그림], bigs : [🔍 확대 그림], sec : 모조지 '모양' · '배경', take() → ownTake 에 넘길 종이 }]
            ===================================================================== */
         const sbOwnK = { piece: 'piece', paper: 'paper', tape: 'tape', tk: 'tk', leaf: 'leaf', memo: 'memo' };
-        const sbOkN = v => +v > 0, sbOkC = v => /^#[0-9a-f]{6}$/i.test(v || '');   // 🔎 상품 값은 상품공방이 정해요 (도련 11-02 · 빠지면 그 상품은 안 나와요 · 앱은 짐작하지 않아요)
-        const SB_NEED = { tape: P => sbOkN(P.롤길이) && sbOkN(P.테이프폭), tk: P => sbOkN(P.묶음장수) && sbOkC(P.풀칠색), memo: P => sbOkN(P.묶음장수) && sbOkC(P.글자색), leaf: P => sbOkN(P.묶음장수) };
+        const sbOkN = v => +v > 0, sbWh = v => Array.isArray(v) && +v[0] > 0 && +v[1] > 0, sbOkC = v => /^#[0-9a-f]{6}$/i.test(v || '');   // 🔎 상품 값은 상품공방이 정해요 (도련 11-02 · 빠지면 그 상품은 안 나와요 · 앱은 짐작하지 않아요)
+        const SB_NEED = { tape: P => sbOkN(P.롤길이) && sbOkN(P.테이프폭), tk: P => sbOkN(P.묶음장수) && sbOkC(P.풀칠색) && sbWh(P.크기), memo: P => sbOkN(P.묶음장수) && sbOkC(P.글자색) && sbOkN(P.가로), leaf: P => sbOkN(P.묶음장수) };
         const sbNeed = (kind, x) => !SB_NEED[kind] || SB_NEED[kind](x.P || {}) || (console.warn('🧁 상품 속성이 모자라요 :', kind, x.P && x.P.id), false);
         function sbCards(kind, list) {                                          // 상품 → 샵 칸 (take() = 받을 종이)
             const out = [], k = sbOwnK[kind];
@@ -74,11 +74,11 @@
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src] }) });
                 else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)], take: () => sbTapeTake(x) });   // 🎀 한 롤 길이 · 폭 = 상품 (롤길이 · 테이프폭)
                 else if (kind === 'tk') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],   // 🧻 한 묶음 · 풀칠 띠 색 = 상품
-                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], q0: +x.P.묶음장수, x: { pad: 'my', glue: x.P.풀칠색 } }) });
+                    take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], q0: +x.P.묶음장수, x: { pad: 'my', glue: x.P.풀칠색, mm: x.P.크기.slice(0, 2) } }) });   // 📏 크기 = [가로, 세로] mm (상품공방)
                 else if (kind === 'leaf') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'leafimg', thumbs: [thumb(x.url, 240)],
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 900), true)).src], q0: +x.P.묶음장수, x: { lf: 'my' } }) });
                 else if (kind === 'memo') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],   // 📝 한 묶음 · 글자색 = 상품
-                    take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], q0: +x.P.묶음장수, x: { pp: 'img', w: d.w, h: d.h, tc: x.P.글자색 } }; } });
+                    take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], q0: +x.P.묶음장수, x: { pp: 'img', w: d.w, h: d.h, tc: x.P.글자색, mm: +x.P.가로 } }; } });   // 📏 가로 mm (상품공방)
             });
             return out;
         }
@@ -93,8 +93,9 @@
             return sbCards(kind, L).map((c, i) => ({ id: String(L[i].P.id || ''), take: c.take }));
         }
         async function sbTapeTake(x) {                                           // 🎀 테이프 상품 → 내 종이로 받을 것 (js/own.js ownTake)
-            const d = await sbData(kitAt(x.url, 'h120')), h = +x.P.테이프폭, w = Math.max(6, Math.round(h * d.w / d.h * 10) / 10);
-            const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
+            const d = await sbData(kitAt(x.url, 'h120')), hm = +x.P.테이프폭, wm = Math.round(hm * d.w / d.h * 10) / 10;   // 📏 테이프 폭 = mm (상품공방) · 한 칸 길이 = 그림 비율
+            const h = Math.round(hm * MM_PX * 10) / 10, w = Math.max(6, Math.round(wm * MM_PX * 10) / 10);
+            const u = tapeUrl({ id: 'b-' + collHashS(x.url), name: '', bg: 'none', w, h, mm: [wm, hm], p: `<image href="${d.src}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
             return { k: 'tape', imgs: [u], th: u, q0: +x.P.롤길이 };
         }
         /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 '처음받기') : 처음 온 다꾸러가 한 롤씩 받아요 → 책상 마테 정리함에 꽂아요 (js/desk.js giftEnsure · js/desktape.js dktStarter) */

@@ -15,7 +15,7 @@
         const LM_PENS = ['#5a3d4a', '#ff6b8b', '#ff9f43', '#ffd23f', '#4caf7a', '#3d9be0', '#8a6be0', '#ffffff'];
         const LM_SIZES = [['3', '가늘게'], ['7', '보통'], ['16', '굵게']];
         const LM_GLUES = [['', '다이어리 색'], ['#ffb3c6', '분홍'], ['#ffcf9e', '살구'], ['#ffe98a', '노랑'], ['#b9ebcf', '민트'], ['#b7dcff', '하늘'], ['#d6c6ff', '보라'], ['#d9bf94', '크라프트']];
-        const LM_TK_W = 300, LM_TK_H = 296;                              // 🧻 떡메 한 장 (TK_W × TK_H 의 2배 · js/leafpad.js)
+        const LM_TK_W = 300, LM_TK_H = 296;                              // 🧻 떡메 한 장 그림 (붙는 크기 = js/leafpad.js tkDim · PAPER_MM)
         const LM_MEMO_W = 440, LM_MEMO_H = 300;                          // 📝 메모지 한 장 (상품공방 메모지와 같은 크기)
         const LM_DEF = { leaf: { g: 'plain', lc: '#f6d5df', gap: 56 }, tk: { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 36, top: 30 }, memo: { bg: '#fff59a', g: 'line', lc: '#e8d27a', gap: 34, top: 20, rad: 6 } };   // 처음 종이 (속지 = 지금 다이어리 속지 색)
         const lm = { built: false, for: 'leaf', glue: '', tab: 'photo', w: LM_W, h: 1400, img: null, zoom: 1, ox: 0, oy: 0, wash: 0, mk: null, mkImg: null,

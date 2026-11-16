@@ -319,7 +319,8 @@
         if (typeof addText !== 'function') return false;
         addText();
         const el = typeof selectedElement !== 'undefined' ? selectedElement : null; if (!el) return false;
-        if (x.pp === 'img' && window.tkNoteDress) { tkNoteDress(el, 'my', s.imgs[0]); el.style.width = '180px'; el.style.height = Math.round(180 * (x.h || 1) / (x.w || 1)) + 'px';
+        if (x.pp === 'img' && window.tkNoteDress) { tkNoteDress(el, 'my', s.imgs[0]); const mw = Math.round((+x.mm > 0 ? +x.mm : PAPER_MM.memo) * MM_PX); el.style.width = mw + 'px'; el.style.height = Math.round(mw * (x.h || 1) / (x.w || 1)) + 'px';   // 📏 가로 mm × MM_PX (상품공방 가로 · 없으면 PAPER_MM.memo)
+           
             const ta = el.querySelector('textarea'); if (ta && /^#[0-9a-f]{6}$/i.test(x.tc || '') && typeof styleTextarea === 'function') styleTextarea(ta, ta.dataset.font, x.tc, ta.dataset.size); }   // 🧁 상품 글자색 (어두운 메모지 = 밝은 글자)
         el.dataset.own = id;
         if (typeof saveData === 'function') saveData(false);

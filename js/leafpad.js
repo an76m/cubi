@@ -80,14 +80,11 @@
            🧻 떡메모지
            ===================================================================== */
         /* 🧻 떡메 = 모두 그림('my' · 🏪 상품공방 상품 · 🧻 떡메 만들기 · 도련 11-02 : 예전에 제가 CSS · SVG 로 그린 메모 · 체크 · 하늘 · 투두는 상품공방으로 옮겼어요) */
-        const TK_W = 150, TK_H = 148;                                       // 예전 떡메 한 장 (크기를 안 정한 떡메 · 페이지 px)
-        let TW = TK_W, TH = TK_H;                                            // 지금 묶음의 한 장 크기 (📏 크기를 정한 떡메 = 실제 mm → 지금 다이어리 페이지 px · 도련 11-14)
-        /* 📏 떡메 한 장 크기 (페이지 px) : my.mm = [가로, 세로] mm → 지금 펼친 다이어리의 쪽 높이(mm)를 페이지 높이에 맞춰 (A6 148mm = 644px) */
+        let TW = 150, TH = 150;                                            // 지금 묶음의 한 장 크기 (📏 크기를 정한 떡메 = 실제 mm → 지금 다이어리 페이지 px · 도련 11-14)
+        /* 📏 떡메 한 장 크기 (페이지 px) : my.mm = [가로, 세로] mm × MM_PX (js/skins.js 한 곳) · 크기를 안 정한 떡메 = PAPER_MM.tk */
         function tkDim(my) {
-            const mm = my && Array.isArray(my.mm) && +my.mm[0] > 0 && +my.mm[1] > 0 ? my.mm : null; if (!mm) return [TK_W, TK_H];
-            const t = window.dyLook ? dyLook() : null, ph = (t && +String(t.mm || '').split(/[×x*]/)[1]) || 148;
-            const ch = window.dySize ? dySize().h - PAGE_BORDER * 2 - PAGE_HEADER_H : 644, k = ch / ph;   // 지금 펼친 다이어리 쪽 높이 (📏 규격 mm × MM_PX)
-            return [Math.round(mm[0] * k), Math.round(mm[1] * k)];
+            const mm = my && Array.isArray(my.mm) && +my.mm[0] > 0 && +my.mm[1] > 0 ? my.mm : PAPER_MM.tk;
+            return [Math.round(mm[0] * MM_PX), Math.round(mm[1] * MM_PX)];
         }
         const tkVars = (w, h) => `--tw:${w}px;--th:${h}px`;
         const tk = { pad: 'my', edge: 'top', my: null };              // my : 🧻 내가만든 · 공유받은 떡메 { src(앞면 그림 JPG), glue(풀칠 띠 색 · 빈 값 = 다이어리 강조 색) } (js/leafmaker.js)
