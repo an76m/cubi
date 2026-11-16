@@ -965,7 +965,7 @@
             if (window.dyyPastLock && dyyPastLock()) return;                   // 🔒 지난 해 다이어리 = 저장하지 않아요 (펼칠 때 이미 지난 해였던 장만 · 자정 전에 쓰던 장은 저장해요)
             const canvas = document.getElementById('canvasArea');
             const r1 = v => Math.round((parseFloat(v) || 0) * 10) / 10;
-            const elementsData = [];
+            const elementsData = [], cvNow = pgCanvas();
 
             canvas.querySelectorAll('.element-box:not(.el-dying):not(.el-peel-back)').forEach(el => {   // 🗑️ 삭제 연출 중인 것은 빼요
                 const textarea = el.querySelector('textarea');
@@ -976,10 +976,7 @@
                 const item = {
                     t: dollData ? 'd' : (textarea ? 't' : (img ? 'i' : 's')),
                     c: dollData ? dollData : (textarea ? textarea.value : (img ? slimEnc(img.dataset.src || img.getAttribute('src')) : span.innerText)),
-                    x: r1(el.dataset.posX), y: r1(el.dataset.posY)
                 };
-                const sc = Math.round((parseFloat(el.dataset.scale) || 1) * 1000) / 1000;
-                if (sc !== 1) item.s = sc;
                 const rot = r1(el.dataset.rotation);
                 if (rot) item.r = rot;
                 const w = parseFloat(el.style.width), h = parseFloat(el.style.height);
@@ -988,10 +985,10 @@
                 item.z = parseInt(el.style.zIndex) || 1;
                 if (+el.dataset.lt) item.lt = +el.dataset.lt;                 // 🔒 마지막으로 손댄 시각 (24시간 뒤 고정)
                 item.bw = el.offsetWidth; item.bh = el.offsetHeight;
+                Object.assign(item, pgToMm({ posX: el.dataset.posX, posY: el.dataset.posY, scale: el.dataset.scale, boxW: item.bw, boxH: item.bh }, cvNow, el.dataset.bs));   // 📏 쪽 · mm (js/page.js)
                 if (img && el.dataset.float) item.fm = 1;
                 if (img && el.dataset.cm) { try { item.cm = JSON.parse(el.dataset.cm); } catch (e) {} }   // 🪄 움직이는 캐릭터 : 칠한 곳 · 움직임 설정 (js/char-move.js)
                 if (img && el.dataset.sh) { try { item.sh = JSON.parse(el.dataset.sh); } catch (e) {} }   // ✨ 셰이더 스티커 : 효과 이름 · GLSL 글자 · 속도 · 세기 (js/glrun.js)
-                if (el.dataset.bs) item.bs = el.dataset.bs;                    // 📌 바인더 가운데 틈 근처에 놓인 쪽 (js/skins.js bdPin · 그때만 저장)
                 if (el.dataset.ph) item.ph = el.dataset.ph;                    // 🕳️ 펀칭기로 같이 뚫린 구멍 (js/skins.js bdPierce)
                 if (img && el.dataset.bgp) item.bgp = 1;                        // 📄 배경 모조지 : 옮겨도 맨 뒤 그대로 (js/papermaker.js · 10-23)
                 if (img && el.dataset.ts) item.ts = 1;                          // 🔤 글씨스티커 : 📷 사진 꾸미기 창이 안 떠요 (js/page.js getSelectedPhoto)                       // 📄 모조지스티커 : 옮길 때 떼지 않고 살짝 떠서 (아래 makeTransformable)
@@ -1012,18 +1009,12 @@
                 elementsData.push(item);
             });
 
-            const ps = getPageSize(), std = pageStd();                         // 📐 저장은 기준 크기 하나로 (어느 기기에서 저장해도 같은 자리 값 · js/page.js pageStd)
-            if (std.w !== ps.w || std.h !== ps.h) elementsData.forEach(it => {
-                const g = convertGeometry({ posX: it.x, posY: it.y, scale: it.s || 1, boxW: it.bw, boxH: it.bh }, ps, std);
-                it.x = r1(g.posX); it.y = r1(g.posY);
-                const sc = Math.round(g.scale * 1000) / 1000; if (sc !== 1) it.s = sc; else delete it.s;
-            });
             const dayKey = getDateKey(currentDate);
             if (!drive.guest && !drive.loadedDays.has(dayKey)) {     // 아직 읽지 못한 날짜는 저장 금지 (빈 화면으로 덮어쓰기 방지)
                 if (showAlert) showMsg('⏳ 이 날짜를 아직 드라이브에서 불러오는 중이에요.<br>잠시 후 다시 저장해 주세요.');
                 return;
             }
-            const day = { v: 3, pw: std.w, ph: std.h, i: elementsData };
+            const day = { v: 4, i: elementsData };                              // 📏 v4 = 쪽 기준 mm (js/page.js pgToMm)
             if (pageStamps.mo) day.mo = pageStamps.mo;                          // 😊 오늘의 기분 · ☀️ 날씨 도장 (js/stamp.js)
             if (pageStamps.we) day.we = pageStamps.we;
             const lfDef = (window.dkLeafOf && dkLeafOf(currentDate)) || 'line';   // 📓 만든 노트는 페이지마다 정해 둔 내지가 기본 (js/dymaker.js)
@@ -1090,7 +1081,7 @@
             if (interactive) makeTransformable(el);
             { const ta = el.querySelector('textarea'); if (ta && interactive && elLocked(el)) ta.readOnly = true; }   // 🔒 고정된 글은 못 고쳐요
 
-            if (data.bs === 'l' || data.bs === 'r') el.dataset.bs = data.bs;
+            if (data.side === 'l' || data.side === 'r') el.dataset.bs = data.side;   // 📌 저장된 쪽 (바인더 가운데 틈 근처 = 그 쪽 그대로 · js/skins.js bdSides)
             if (data.ph && /^[\d.,|-]{1,800}$/.test(data.ph)) { el.dataset.ph = data.ph; if (window.bdPhPaint) bdPhPaint(el); }
             el.dataset.posX = data.posX || 0;
             el.dataset.posY = data.posY || 0;

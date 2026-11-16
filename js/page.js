@@ -234,21 +234,17 @@
         function normalizeItem(d) {
             const f = fontList.find(x => x.id === d.f);
             return { type: ({ i: 'image', t: 'text', s: 'sticker', d: 'doll' })[d.t] || 'sticker', content: d.t === 'i' ? slimDec(d.c) : d.c,
-                posX: d.x || 0, posY: d.y || 0, scale: d.s || 1, rotation: d.r || 0,
+                side: d.p === 'r' ? 'r' : 'l', mx: +d.x || 0, my: +d.y || 0, mw: +d.W || 0, rotation: d.r || 0,
                 width: d.w ? d.w + 'px' : '', height: d.h ? d.h + 'px' : '', zIndex: d.z || 1,
-                boxW: d.bw || 0, boxH: d.bh || 0, fontFamily: f ? f.css : undefined, color: d.k, fontSize: d.fs, paper: d.pp, frame: d.fr, caption: d.cp, float: d.fm, ts: d.ts, bgp: d.bgp, bs: d.bs, ph: d.ph, cm: d.cm, sh: d.sh, tk: d.tk, tb: d.tb && slimDec(d.tb), hl: d.hl, pn: d.pn, lt: d.lt };
+                boxW: d.bw || 0, boxH: d.bh || 0, fontFamily: f ? f.css : undefined, color: d.k, fontSize: d.fs, paper: d.pp, frame: d.fr, caption: d.cp, float: d.fm, ts: d.ts, bgp: d.bgp, ph: d.ph, cm: d.cm, sh: d.sh, tk: d.tk, tb: d.tb && slimDec(d.tb), hl: d.hl, pn: d.pn, lt: d.lt };
         }
 
         function readDayData(date) {
             let raw = null;
             try { raw = JSON.parse(store.getItem(getDateKey(date))); } catch (err) {}
             if (!raw) return [];
-            const items = (Array.isArray(raw.i) ? raw.i : []).map(normalizeItem);
-            const pw = raw.pw, ph = raw.ph;
-            if (!(pw > 0 && ph > 0)) return items;
-            const from = { w: pw, h: ph }, to = getPageSize();
-            if (from.w === to.w && from.h === to.h) return items;
-            return items.map(it => Object.assign({}, it, convertGeometry(it, from, to)));
+            const cv = pgCanvas();                                              // 📏 쪽 기준 mm → 지금 화면 자리 (pgFromMm)
+            return (Array.isArray(raw.i) ? raw.i : []).map(normalizeItem).map(it => Object.assign(it, pgFromMm(it, cv)));
         }
 
         function buildStaticPage(date) {
@@ -531,10 +527,21 @@
             return { w: b.clientWidth * 2, h: b.clientHeight };                // 📖 펼친 두 쪽이 한 장 (js/skins.js)
         }
 
-        /* 📐 저장 기준 크기 하나 (도련 11-10 : 입력은 💻 📲 📱 셋 · 저장은 하나) = 그 다이어리를 줄이지 않은 크기 (높이 700 · js/skins.js dySize)
-           저장할 땐 지금 화면 자리 → 기준 크기로 바꿔 적고 (js/elements.js saveData) · 읽을 땐 기준 → 지금 화면으로 (readDayData)
-           예전 파일 = 그때 기기 크기(pw · ph)가 적혀 있어서 그대로 읽혀요 (다시 저장하면 기준 크기로) */
-        function pageStd() { const d = window.dySize ? dySize() : null; return d ? { w: d.w * 2, h: d.h } : getPageSize(); }
+        /* 📏 붙인 것 저장 = 쪽 기준 mm (도련 11-16 : 하루 = 펼친 두 쪽 = json 하나 · 기기 · 화면 크기와 상관없이 같은 자리 · 같은 크기)
+           하나마다 p = 쪽 ('l' 왼쪽 · 'r' 오른쪽 · 가운데 점이 있는 쪽 · 📌 바인더 가운데 틈 근처는 놓인 쪽) · x, y = 그 쪽 종이 왼쪽 위 → 가운데 mm · W = 보이는 가로 mm (돌리기 전)
+           화면 종이 (#canvasArea) : 1mm = 높이 ÷ 규격 세로 · 왼쪽 종이 = 왼쪽 끝부터 · 오른쪽 종이 = 오른쪽 끝에 맞춰 (가운데 = 책등 · 틈) */
+        function pgCanvas() { const p = getPageSize(); return canvasOfPage(p.w, p.h); }
+        function pgGeo(cv) { const mm = (window.dyMmOf && dyMmOf()) || [105, 148], k = cv.h / mm[1]; return { k, mm, rx: cv.w - mm[0] * k }; }
+        function pgToMm(g, cv, pin) {                                          // g = { posX, posY, scale, boxW, boxH } (화면) → { p, x, y, W }
+            const G = pgGeo(cv), s = parseFloat(g.scale) || 1, cx = (parseFloat(g.posX) || 0) + g.boxW / 2, cy = (parseFloat(g.posY) || 0) + g.boxH / 2;
+            const near = Math.abs(cx - cv.w / 2) < 8 * G.k, p = near && (pin === 'l' || pin === 'r') ? pin : cx < cv.w / 2 ? 'l' : 'r', r1 = v => Math.round(v * 10) / 10;   // 📌 놓인 쪽은 가운데 8mm 안에서만
+            return { p, x: r1((cx - (p === 'r' ? G.rx : 0)) / G.k), y: r1(cy / G.k), W: Math.round(g.boxW * s / G.k * 100) / 100 };
+        }
+        function pgFromMm(d, cv) {                                             // { side, mx, my, mw, boxW, boxH } → { posX, posY, scale } (화면)
+            const G = pgGeo(cv), cx = d.mx * G.k + (d.side === 'r' ? G.rx : 0), cy = d.my * G.k, s = d.boxW > 0 && d.mw > 0 ? d.mw * G.k / d.boxW : 1;
+            return { posX: cx - d.boxW / 2, posY: cy - d.boxH / 2, scale: s };
+        }
+        window.pgToMm = pgToMm; window.pgFromMm = pgFromMm; window.pgCanvas = pgCanvas;
         function convertGeometry(g, fromPage, toPage) {
             const a = canvasOfPage(fromPage.w, fromPage.h), b = canvasOfPage(toPage.w, toPage.h);
             if (a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) return g;
