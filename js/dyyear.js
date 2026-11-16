@@ -125,7 +125,7 @@
         }
 
         /* 🗂 받은 권 = 권 폴더 + 다이어리.json (도련 11-05 · 안 쓴 권도) : 말랑달콤 / 다이어리 / 2026 분홍 1 / 다이어리.json 🔐 { id, from, at }
-             만들면 그 권 줄에 f: 1 (다시 확인하지 않아요) · 다이어리 / _목록.json 이 없어지면 = _목록_백업.json + 권 폴더 + 첫 선물로 되살려요 · 🗑 영구 삭제 = 폴더째
+             만들면 그 권 줄에 f: 1 (다시 확인하지 않아요) · 다이어리 / _목록.json 이 없어지면 = 권 폴더 + 첫 선물로 되살려요 · 🗑 영구 삭제 = 폴더째
              🎁 첫 선물 권은 꾸미기 시작할 때 폴더가 생겨요 (첫 접속 요청 줄이기) */
         const DYY_FILE = '다이어리.json';
         const dyyOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
@@ -170,21 +170,17 @@
                 if (!dyyOnline() || drive.newbie) dyyGift();                     // 👤 게스트 = 이 기기 목록만 · 🆕 처음 온 다꾸러 = 뒤지지 않고 바로 선물
                 else if (!dyyBusy) {
                     dyyBusy = true;
-                    Promise.all([window.deskGiftRead ? deskGiftRead() : null, window.deskBackupRead ? deskBackupRead().catch(() => null) : null]).then(async ([had, bk]) => {
-                        const giftIds = had && Array.isArray(had.dy) ? had.dy.map(x => x && x.id) : [];
-                        const lost = keyMade('dyown') || (bk && Array.isArray(bk.diary_own) && bk.diary_own.some(x => x && x.t === 'date' && !giftIds.includes(x.id)));   // 📝 목록 파일을 만든 적이 있어요 (또는 백업에 선물 아닌 권) = 없어진 것 · 아니면 아직 선물 그대로 (권 폴더를 안 뒤져요 · 도련 11-07)
-                        return [lost ? await dyyRescue() : [], had, bk];
-                    }).then(([found, had, bk]) => {
+                    Promise.resolve(window.deskGiftRead ? deskGiftRead() : null).then(async had => {
+                        const lost = keyMade('dyown');   // 📝 목록 파일을 만든 적이 있어요 (또는 백업에 선물 아닌 권) = 없어진 것 · 아니면 아직 선물 그대로 (권 폴더를 안 뒤져요 · 도련 11-07)
+                        return [lost ? await dyyRescue() : [], had];
+                    }).then(([found, had]) => {
                         if (dyoHas()) return [];                                         // 그사이 다른 기기에서
-                        const gone = dyyOut(); if (window.goneHeal) goneHeal('dy', bk).forEach(id => gone.add(id)); if (bk && Array.isArray(bk[DYB_KEY]) && !prefGet(DYB_KEY, DYB_L)) { dyyBinSet(bk[DYB_KEY]); dyyBinList().forEach(x => gone.add(x.u)); }   // 🚛 영구삭제 · 🗑 휴지통 권 (백업 속 칸도 · 도련 11-11)
+                        const gone = dyyOut(); if (window.goneHeal) goneHeal('dy').forEach(id => gone.add(id));   // 🚛 영구삭제 · 🗑 휴지통 권 (백업 속 칸도 · 도련 11-11)
                         const ok = x => x && typeof x === 'object' && typeof x.id === 'string' && ['date', 'note', 'binder'].includes(x.t) && !gone.has(x.id) && (x.t !== 'date' || dyyOf(x.id));
                         const gifts = (had && Array.isArray(had.dy) ? had.dy : []).filter(ok);
-                        const bkL = bk && Array.isArray(bk.diary_own) ? bk.diary_own : null;   // 🛟 다이어리 / _목록_백업.json (권마다 한 줄 · 981)
                         const all = [], seen = new Set(), add = x => { if (ok(x) && !seen.has(x.id)) { seen.add(x.id); all.push(x); } };
-                        (bkL || []).forEach(add); found.forEach(add); gifts.forEach(add);
-                        if (bk && bk.diary_book_n && typeof bk.diary_book_n === 'object' && !prefGet(DYY_N, DYY_N_L)) dyyPut(DYY_N, DYY_N_L, bk.diary_book_n, false);
-                        if (bk && bk.diary_books && typeof bk.diary_books === 'object' && !prefGet('diary_books', 'malang_books')) prefSet('diary_books', 'malang_books', bk.diary_books);   // 📕 페이지형 규격 → 권 (982)
-                        if (!all.length) { if (!had && !bkL) dyyGift(); else dyoSet([], true); return []; }   // 선물을 준 적이 있는데 비었으면 = 다 버린 사람
+                        found.forEach(add); gifts.forEach(add);
+                        if (!all.length) { if (!had) dyyGift(); else dyoSet([], true); return []; }   // 선물을 준 적이 있는데 비었으면 = 다 버린 사람
                         dyoSet(all);                                                     // 🛟 되살린 목록은 늘 파일로 (선물도 · 도련 11-07)
                         const dates = all.filter(x => x.t === 'date').map(x => x.id);
                         if (dates.length && !dates.includes(prefGet(DYY_OPEN, DYY_OPEN_L))) prefSet(DYY_OPEN, DYY_OPEN_L, dates[dates.length - 1]);   // 펼친 권이 목록에 있으면 그대로

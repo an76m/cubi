@@ -27,16 +27,10 @@
             const L = goneList(k); if (L.some(x => x.u === id)) return;
             L.push({ u: String(id), at: Date.now() }); prefSet(g[0], g[1], L);
             if (window.ledgerMix) ledgerMix(g[0], L);                          // 📒 숨은 장부에도 한 벌 (예전 파일로 바꿔치기해도 · js/drive.js)
-            if (window.deskBackOne) deskBackOne(g[2]);                         // 🛟 백업에도 바로 (예전 백업으로 되살아나지 않게)
         }
 
         /* 🛟 되살릴 때 (목록 파일이 없어졌으면 영구삭제 칸도 같이 없어졌어요) : 지금 칸 + 백업 속 칸을 합쳐 다시 적고 → 그 번호들 (되살리는 목록에서 빼요) */
-        function goneHeal(k, bk) {
-            const g = GONE[k], L = goneList(k), have = new Set(L.map(x => x.u));
-            const B = g && bk && Array.isArray(bk[g[0]]) ? bk[g[0]].filter(x => x && typeof x.u === 'string' && !have.has(x.u)) : [];
-            if (B.length) { prefSet(g[0], g[1], L.concat(B)); B.forEach(x => have.add(x.u)); }
-            return have;
-        }
+        function goneHeal(k) { return new Set(goneList(k).map(x => x.u)); }   // 영구삭제 번호들 (되살리는 목록에서 빼요 · 장부에도 있어요)
         /* 🚛 상품 버리기 : 영구삭제 칸 먼저 (파일을 못 지워 남아도 되살아나지 않아요) → 그 상품 파일 지우기 (📒 스티커는 ownPurge 가 칸까지) */
         async function binAdd(e) {
             const K = BIN_KINDS[e.k]; if (!K) return;

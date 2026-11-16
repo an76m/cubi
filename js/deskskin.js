@@ -82,18 +82,17 @@
         }
         async function dsRescue() {                                              // 🛟 가진 것 · 고른 것 중 없어진 쪽 (가진 것을 읽은 뒤에)
             const had = window.deskGiftRead ? await deskGiftRead() : null;        // 🎁 백업 속 처음 선물 (못 읽으면 에러 → 선물을 또 주지 않아요 · js/desk.js giftRead)
-            const bk = window.deskBackupRead ? await deskBackupRead().catch(() => null) : null;
             let own = prefGet(DSO_KEY, DSO_LOCAL), lost = false;
             if (!Array.isArray(own)) {
-                lost = keyMade('dkown') || dkBkReal(bk, DSO_KEY) || !!(window.giftGiven && giftGiven());                   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
+                lost = keyMade('dkown') || !!(window.giftGiven && giftGiven());                   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
                 const F = lost ? (await ofScan(DIRS.desk)).filter(f => dsCat(f.id)) : [];   // 🪑 소품 폴더의 벽지 · 책상판 (못 읽으면 에러 → 다음에 다시)
                 if (Array.isArray(prefGet(DSO_KEY, DSO_LOCAL))) return;               // 그사이 다른 기기에서
-                const gone = window.goneHeal ? goneHeal('ds', bk) : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (도련 11-11)
+                const gone = window.goneHeal ? goneHeal('ds') : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (도련 11-11)
                 own = F.filter(f => !gone.has(f.u)).map(f => ({ u: f.u, id: f.id, c: f.c }))
                     .concat((had && Array.isArray(had.ds) ? had.ds : []).filter(g => g && g.u && dsCat(g.id) && !gone.has(g.u) && !F.some(f => f.u === g.u)).map(g => ({ u: g.u, id: g.id, g: 1 })));
                 if (!own.length && (!had || !Array.isArray(had.ds))) { dsGift(); return; }   // 백업에 벽지 칸이 있는데 비었으면 = 다 버린 사람
             }
-            const f = prefGet(DS_KEY, DS_LOCAL) || {}, was = f.wall || f.top ? f : (bk && bk.diary_desk_skin && typeof bk.diary_desk_skin === 'object' ? bk.diary_desk_skin : {});
+            const f = prefGet(DS_KEY, DS_LOCAL) || {}, was = f;
             const pick = k => (own.find(o => o.u === was[k] && dsCat(o.id).k === k) || own.find(o => dsCat(o.id).k === k) || {}).u || '';
             dsSave({ own, wall: pick('wall'), top: pick('top') });
             if (lost) diag('rescue', { w: 'ds', n: own.length });

@@ -56,11 +56,6 @@
                     if (drive.newbie && !drive.lazyOn.has(w)) { drive.lazyOn.add(w); (drive.keyNone = drive.keyNone || new Set()).add(w); }
                     await keyFileLoad(w);
                     if (gen !== drive.gen) return false;
-                    if (prefGet(DYM[k].key, DYM[k].l) === null && keyMade(w) && window.deskBackupRead) {   // 🛟 만든 적 있는데 없어요 = 그 폴더 / _목록_백업.json
-                        const bk = await deskBackupRead().catch(() => null), L = bk && Array.isArray(bk[DYM[k].key]) ? bk[DYM[k].key] : null;
-                        if (gen !== drive.gen) return false;
-                        if (L && prefGet(DYM[k].key, DYM[k].l) === null) { dymSet(k, L); if (window.diag) diag('rescue', { w: k, n: L.length }); }
-                    }
                 }
                 return true;
             })();

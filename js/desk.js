@@ -208,78 +208,22 @@
         /* 되살리기에 넘기는 처음 선물 = 백업 속 from 선물 : 처음 선물을 준 적이 없으면 null */
         async function giftRead() {
             if (!giftGiven()) return null;
-            const bk = await dkBackupRead().catch(() => null) || {};
-            /* 백업에 그 목록이 아직 없으면 (첫날) = 상품공방 '처음받기' 그대로 (선물 u = 상품 id) · 있으면 그 안의 from 선물 */
-            const G = (k, first) => Array.isArray(bk[k]) ? bk[k].filter(isGift) : first();
+            /* 처음 선물 = 상품공방 '처음받기' 그대로 (선물 u = 상품 id · 백업 없음 · 도련 11-17) */
+            const G = (k, first) => first();
             const ids = f => { try { return f() || []; } catch (e) { return []; } };
             return { v: 3,
                 desk: G(DK_OWN_KEY, () => dkStarter().map(o => ({ u: o.u, id: o.id }))).map(o => ({ u: o.u, id: o.id })),
                 gd: G('diary_gd_own', () => ids(() => window.gdStarter && gdStarter()).map(id => ({ u: id, id }))).map(o => o.u || o.id),
                 ds: G('diary_skin_own', () => ids(() => window.dsGiftIds && dsGiftIds()).map(id => ({ u: id, id }))).map(o => ({ u: o.u, id: o.id })),
                 bg: G('diary_bg_own', () => ids(() => window.bgoGiftIds && bgoGiftIds()).map(id => ({ u: id, p: id }))).map(o => ({ u: o.u, p: o.p })),
-                dy: (Array.isArray(bk.diary_own) ? bk.diary_own : []).filter(x => x && x.start) };   // 📚 권마다 한 줄 (날짜형 · 페이지형 · 981)
+                dy: [] };                                                       // 📚 다이어리 선물은 권 폴더로 되살려요 (js/dyyear.js)
         }
         /* 🛟 되살리기 (도련 10-27 · 스티커 ownRescue 와 같게) : 배치.json 이 없어지거나 깨지면
-             가진 것 = 소품 · 문구 폴더의 받은- 파일(🔐 열리는 것만 · 같은 u 는 하나) + 백업 속 from 선물 (giftRead) · 자리 · 기능 연결 = 설정 / _백업.json (하루 한 번 드라이브 안에 복사)
-             → 지금 가진 것만 살아나요 (버린 것은 파일이 없어서 안 살아나요 · 📦 zip 백업과는 달라요)
-             처음 온 사람(diary_gifted · 백업 둘 다 없음)은 폴더를 뒤지지 않고 바로 선물 */
-        const DK_BK_NAME = '_백업.json', DK_BK_LS = 'malang_desk_bk';   // 🛟 설정 폴더 (도련 11-06 · 소품 · 문구 · 다이어리 · 배경지 목록 + 자리 · 책상 설정)
-        async function dkBackupRead0() {                                           // 못 닿으면 에러 · 없거나 못 여는 백업은 null
-            const dir = await getFolder(dirPath(DIRS.settings), false), f = dir && await findFile(dir, DK_BK_NAME);
-            if (!f) return null;
-            const t = await readFileText(f.id);
-            try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
-        }
-        /* 🛟 백 목록 백업 = 그 폴더 안에 (도련 11-07 · 스티커처럼) : 소품 / _목록_백업.json { 소품 · 벽지 · 책상판 } · 문구 / _목록_백업.json { 문구 } · 하루 한 번 · 목록 파일을 만든 뒤에만 */
-        const DK_BB_NAME = '_목록_백업.json', DK_BB = ['dkown', 'gdown', 'dyown', 'bmown', 'esown'];   // + 📥 빈스티커첩 (도련 11-08) · 같은 폴더에 목록이 둘이면 백업 이름을 따로 (KEY_FILES bb · 다이어리 / _바인더재료목록_백업.json)   // 🛟 소품 · 문구 · 📔 다이어리 · 🧩 바인더 재료 (도련 11-07)
-        async function dkBackRead(w) {
-            const F = KEY_FILES[w], dir = await getFolder(F.path, false), f = dir && await findFile(dir, F.bb || DK_BB_NAME);
-            if (!f) return null;
-            const t = await readFileText(f.id);                                   // 못 닿으면 에러
-            try { const o = await ownUnlock(t); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }   // 못 여는 백업은 없는 셈
-        }
-        const dkBackupOnce = dkMemo(async () => { const [a, ...bs] = await Promise.all([dkBackupRead0()].concat(DK_BB.map(w => keyMade(w) ? dkBackRead(w) : null))); return a || bs.some(Boolean) ? Object.assign({}, ...bs.filter(Boolean), a || {}) : null; }, 30000);   // 설정 백업 + 백 목록 백업 = 한 모습 (되살리기는 그대로)
-        const dkBackupRead = () => drive.newbie && !dkBkWrote ? Promise.resolve(null) : dkBackupOnce();   // 🆕 처음 온 다꾸러 = 아직 백업이 없어요 (도련 11-06)
-        const DK_BK_KEYS = [DK_POS_KEY, 'diary_desk_fn', 'diary_desk_skin', 'diary_gd_at', 'diary_desk_tape', 'diary_pencase', 'diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts', 'diary_bg_own'];   // 🛟 소품 · 자리 · 기능 연결 · 문구 · 벽지 · 문구의 집 · 다이어리 · 배경지
-        let dkBkBusy = false, dkBkWrote = false;
-        /* 🛟 백 목록 백업 하나 (그 폴더 / _목록_백업.json · 하루 한 번 · 만든 적 있고 읽은 목록만 · 모르는 키는 예전 백업 그대로)
-             목록 파일이 처음 생기면 바로 한 번 (첫날에 사라져도 되살리게 · js/drive.js KEY_MADE · 도련 11-07) */
-        async function dkBackOne(w, day) {
-            if (!giftOn() || !keyMade(w) || !keyFileOn(w)) return;
-            const who = (typeof COLL !== 'undefined' && COLL.who) || 'me', mk = who + '|' + w;
-            let m = lsGet(DK_BK_LS, {}) || {};   /* 🧰 js/util.js */
-            if (day && m[mk] === day) return;
-            const ks = DESK_FILE_KEYS[w], b = {}; ks.forEach(k => { const v = prefGet(k, ''); if (v != null) b[k] = v; }); if (!Object.keys(b).length) return;
-            try {
-                if (ks.some(k => !(k in b))) { const o = await dkBackRead(w); if (o) ks.forEach(k => { if (!(k in b) && o[k] != null) b[k] = o[k]; }); }
-                const d = await getFolder(KEY_FILES[w].path, true), bn = KEY_FILES[w].bb || DK_BB_NAME, c = drive.newbie && !m[mk] ? null : await findFile(d, bn);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
-                await driveUpsert(d, bn, c && c.id, await ownLock(b));
-                m[mk] = tzDay();   /* 🕘 한국 하루 (js/util.js 시계 · 도련 11-13) */ try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
-                dkBackupOnce.forget();
-            } catch (e) { console.warn('목록 백업', w, e); }
-        }
-        window.deskBackOne = w => { if (DK_BB.includes(w)) setTimeout(() => dkBackOne(w), 1500); };
-        const dkBkReal = (bk, k) => !!(bk && Array.isArray(bk[k]) && bk[k].some(o => o && !isGift(o)));   // 선물 아닌 것 (받은 것)   // 백업에 선물 아닌 것이 있어요 = 받은 적 있는 사람
-        async function dkBackupWrite() {                                            // 배치.json 을 잘 읽은 날 하루 한 번
-            if (dkBkBusy || !giftOn() || drive.deskLocked || DK.fresh || DK.edit || DK.starting) return;   // DK.starting = 처음 선물을 넣는 중
-            const day = tzDay(), who = (typeof COLL !== 'undefined' && COLL.who) || 'me';
-            let m = lsGet(DK_BK_LS, {}) || {};   /* 🧰 js/util.js */
-            if (m[who] === day) return;
-            const body = {}; DK_BK_KEYS.forEach(k => { const v = prefGet(k, ''); if (v != null) body[k] = v; });   // 🛟 목록 · 자리 · 설정을 한 백업에 (되살릴 때 맞춰 보려고)
-            dkBkBusy = true;
-            try {
-                /* 🛡 아직 없는 목록(파일이 없어져서 되살리는 중 · 아직 못 읽음)은 예전 백업 값을 그대로 둬요 (도련 11-06 · 빈 채로 덮으면 되살릴 원본까지 사라져요) */
-                const old = DK_BK_KEYS.some(k => !(k in body)) && !(drive.newbie && !dkBkWrote) ? await dkBackupRead0() : null;   // 못 닿으면 에러 → 이번엔 안 써요
-                if (old) DK_BK_KEYS.forEach(k => { if (!(k in body) && old[k] != null) body[k] = old[k]; });
-                const dir = await getFolder(dirPath(DIRS.settings), true), cur = drive.newbie && !dkBkWrote ? null : await findFile(dir, DK_BK_NAME);   // 🆕 처음 온 다꾸러 첫 백업 = 찾지 않아요
-                await driveUpsert(dir, DK_BK_NAME, cur && cur.id, await ownLock(body));
-                for (const w of DK_BB) await dkBackOne(w, day);                   // 🛟 백 목록 = 그 폴더 안에
-                dkBackupOnce.forget(); dkBkWrote = true;
-                m[who] = day; try { localStorage.setItem(DK_BK_LS, JSON.stringify(m)); } catch (e) {}
-            } catch (e) { console.warn('배치 백업', e); }
-            finally { dkBkBusy = false; }
-        }
-        window.deskBackupRead = dkBackupRead; window.deskGiftRead = () => giftRead();   // 🛟 되살리기 (js/deskskin.js · bgown.js · dyyear.js)                                       // 🧱 벽지 · 책상판 되살리기 (js/deskskin.js dsRescue · 쓰던 것)
+             가진 것 = 소품 · 문구 폴더의 받은- 파일(🔐 열리는 것만 · 같은 u 는 하나) + 처음 선물 (giftRead) · 자리는 없어요 (보관함으로)
+             → 지금 가진 것만 살아나요 (버린 것은 파일이 없어서 안 살아나요)
+             처음 온 사람(diary_gifted 없음)은 폴더를 뒤지지 않고 바로 선물
+             🛟 백업 파일(_백업.json · _목록_백업.json)은 없앴어요 (도련 11-17 : 깨짐 = 올릴 때 구글 지문 md5 로 확인 · js/drive.js driveUpsert) */
+        window.deskGiftRead = () => giftRead();                                  // 🎁 처음 선물 (되살리기 · js/deskskin.js · bgown.js · dyyear.js)
         async function dkScan() {                                                   // 종류 폴더의 내 파일들 → { desk: [{u, id, c, p, mt}], gd: [...] }
             const out = { desk: [], gd: [] }, kinds = [['desk', DIRS.desk], ['gd', DIRS.gd]];   // 🪑 ✏️ 폴더 하나씩 (도련 11-07 · 소품 폴더의 벽지 · 책상판은 dkRebuild 가 걸러요)
             for (const [t, n] of kinds) {
@@ -296,81 +240,60 @@
             out.desk = one(out.desk); out.gd = one(out.gd);
             return out;
         }
-        function dkRebuild(had, bk, files) {
-            const pos = new Map((bk && dkJoin(bk[DK_OWN_KEY], bk[DK_POS_KEY]) || []).filter(o => o && o.u).map(o => [o.u, o]));
+        function dkRebuild(had, files) {
+            const pos = new Map();
             const now = prefGet(DK_POS_KEY, DK_POS_LOCAL), live = now && typeof now === 'object' && !Array.isArray(now) && Object.keys(now).length ? now : null;   // 📍 지금 배치.json 이 있으면 그게 진짜 자리 (도련 11-07 · 목록만 없어졌어요)
-            const out = [], seen = window.goneHeal ? goneHeal('dk', bk) : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (목록이 정답 · 백업 속 칸도 · 도련 11-11)
+            const out = [], seen = window.goneHeal ? goneHeal('dk') : new Set();   // 🚛 영구삭제 번호는 되살리지 않아요 (목록이 정답 · 도련 11-11)
             const add = (o, def) => {
                 if (!o || !o.u || seen.has(o.u) || !dkCat(o.id)) return; seen.add(o.u);
                 const c = dkCat(o.id), b = pos.get(o.u), L = live && live[o.u];
                 if (live) { const sp = {}; if (L) DK_SPOT.forEach(k => { if (k in L) sp[k] = L[k]; }); out.push(Object.assign({ u: o.u, id: o.id, at: L ? 'desk' : 'box', x: c.x, y: c.y }, sp, o.c ? { c: o.c } : {}, o.p ? { p: 1 } : {}, o.g ? { g: 1 } : {})); return; }
                 out.push(Object.assign({ u: o.u, id: o.id, at: b ? (b.at === 'box' ? 'box' : 'desk') : def, x: b && isFinite(+b.x) ? +b.x : c.x, y: b && isFinite(+b.y) ? +b.y : c.y }, o.c ? { c: o.c } : {}, o.p ? { p: 1 } : {}, o.g ? { g: 1 } : {}));
             };
-            (files ? files.desk : []).forEach(f => add(f, 'box'));                    // 백업에 자리가 없으면 보관함으로
+            (files ? files.desk : []).forEach(f => add(f, 'box'));                    // 자리를 모르면 보관함으로
             (had && Array.isArray(had.desk) ? had.desk : []).forEach(g => add({ u: g.u, id: g.id, g: 1 }, 'desk'));
             return out;
         }
         /* 드라이브를 읽은 뒤 : 소품 · 문구 목록이 아직 없으면 → 되살리기 (백업 · 백업 속 선물 · 소품 · 문구 폴더) · 아무것도 없으면 처음 선물 (책상 소품 모두 + 문구 모두) */
         let giftBusy = false;
-        /* 🛟 _내정보.json 이 없어졌으면 (🗑 _휴지통목록.json 은 없앴어요 · 도련 11-11) = _백업.json 에서 (도련 11-06 · 하루 한 번만 물어봐요 · 처음 온 다꾸러는 안 물어요) */
-        const DK_KR = { me: ['diary_lock', 'diary_nick', 'diary_tojeong_birth', 'diary_fp_contacts'] };
-        let dkKR = false;
-        async function dkKeyRescue() {
-            if (dkKR || !giftOn() || drive.newbie || !drive.deskNone || drive.deskLocked) return;
-            const need = Object.keys(DK_KR).filter(w => drive.deskNone.has(w)).flatMap(w => DK_KR[w]).filter(k => prefGet(k, '') == null); if (!need.length) return;
-            const day = tzDay(); try { if (localStorage.getItem('malang_keyresc') === day) return; } catch (e) {}
-            dkKR = true;
-            try { const bk = await dkBackupRead(); need.forEach(k => { if (bk && bk[k] != null && prefGet(k, '') == null) prefSet(k, '', bk[k]); }); try { localStorage.setItem('malang_keyresc', day); } catch (e) {} }
-            catch (e) { console.warn('되살리기', e); dkKR = false; }
-        }
         async function giftEnsure() {
             if (DK.partial && drive.deskLocked) { dkOwnReady().catch(() => {}); return; }   // 💤 배치.json 을 못 열었어요 → 먼저 가진 것 목록을 읽고 (읽은 뒤 다시 와요)
-            dkKeyRescue();
-            if (DK.posLost && !DK.fresh && !DK.edit && !giftBusy && giftOn()) {        // 🛟 자리만 잃었어요 (배치.json 이 없어짐) : 가진 것은 목록 그대로 · 자리는 하루 한 번 백업에서 (없으면 보관함에)
-                DK.posLost = false;
-                try {
-                    const bk = await dkBackupRead(), p = bk && bk[DK_POS_KEY];
-                    if (p && typeof p === 'object' && !DK.edit) { DK.items = dkJoin(dkSplit(DK.items).own, p); dkSave(); deskItemsRender(); deskModeRender(); }
-                    ['diary_gd_at', 'diary_desk_tape', 'diary_pencase'].forEach(k => { const v = bk && bk[k]; if (v && typeof v === 'object' && prefGet(k, '') == null) prefSet(k, '', v); });   // ✏️ 문구의 집 · 🎀 정리함 롤도 배치.json 에 있었어요 (도련 11-06)
-                } catch (e) { console.warn('배치 되살리기', e); }
-            }
+            if (DK.posLost) DK.posLost = false;                                    // 📍 자리만 잃었어요 (배치.json 이 없어짐) = 가진 것은 목록 그대로 · 모두 보관함에 (백업 없음 · 도련 11-17)
             let gdNull = window.gdOwnList ? gdOwnList() === null : false;
-            if (giftBusy || DK.edit || typeof drive === 'undefined' || !(drive.ready || drive.guest) || (drive.deskLocked && DK.lockTried) || (!DK.fresh && !gdNull && !drive.deskLocked)) { dkBackupWrite(); return; }
+            if (giftBusy || DK.edit || typeof drive === 'undefined' || !(drive.ready || drive.guest) || (drive.deskLocked && DK.lockTried) || (!DK.fresh && !gdNull && !drive.deskLocked)) return;
             giftBusy = true;
             try {
-                let had = null, bk = null, files = null, lostD = false, lostG = false;
+                let had = null, files = null, lostD = false, lostG = false;
                 if (giftOn()) {
-                    try { had = await giftRead(); bk = await dkBackupRead(); }
+                    try { had = await giftRead(); }
                     catch (e) { console.warn('기본세트 · 되살리기', e); return; }   // 못 읽으면 다음에 (선물을 두 번 주지 않게)
                     if (drive.deskLocked) {                                       // 🔐 배치.json 이 깨졌어요 : 내 백업이 열리면(내 열쇠가 맞아요) 되살려서 새로 쓰고 · 아니면 그대로 둬요 (남의 파일일 수 있어요)
                         DK.lockTried = true;
-                        if (!had && !bk) { if (window.showMsg) showMsg('🔐 책상 정보(설정 폴더의 책상 · 목록 파일)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>'); return; }
+                        if (!had) { if (window.showMsg) showMsg('🔐 책상 정보(설정 폴더의 책상 · 목록 파일)를 열 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 파일이거나 깨진 파일이에요. 그 파일은 건드리지 않았어요.</span>'); return; }
                         drive.deskLocked = false; DK.fresh = true;
                     }
-                    lostD = keyMade('dkown') || dkBkReal(bk, DK_OWN_KEY); lostG = keyMade('gdown') || dkBkReal(bk, 'diary_gd_own');   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
-                    if ((had || bk) && ((DK.fresh && lostD) || (gdNull && lostG))) { try { files = await dkScan(); } catch (e) { console.warn('되살리기', e); return; } }
+                    lostD = keyMade('dkown'); lostG = keyMade('gdown');   // 📝 목록 파일을 만든 적이 있어요 = 없어진 것 · 아니면 처음 선물 그대로 (폴더를 안 뒤져요 · 도련 11-07)
+                    if (had && ((DK.fresh && lostD) || (gdNull && lostG))) { try { files = await dkScan(); } catch (e) { console.warn('되살리기', e); return; } }
                 }
-                const back = !!(had || bk);                                           // 예전에 쓰던 사람 → 되살리기
+                const back = !!had;                                                   // 예전에 쓰던 사람 (처음 선물을 받은 적 있어요) → 되살리기
                 if (window.gdOwnList) gdNull = gdOwnList() === null;
                 if (DK.fresh) {
-                    DK.items = back ? dkRebuild(had, bk, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
+                    DK.items = back ? dkRebuild(had, files) : dkStarter().map(o => Object.assign(o, { g: 1 }));
                     if (!back) giftMark();                                             // 🎁 처음 선물을 줬어요 (다시 주지 않게)
                     DK.fresh = false; dkSave();                                        // 🪑 소품 / _목록1.json (선물도 받은 것과 똑같이 · 도련 11-07)
                     if (lostD) diag('rescue', { w: 'dk', n: DK.items.length });
-                    if (!back) { dkStarterLinks(); DK.starting = true; Promise.all([dkStarterTapes(), dkStarterMore()]).finally(() => { DK.starting = false; setTimeout(dkBackupWrite, 3000); }); }   // 🛟 첫 백업은 처음 선물을 다 넣은 뒤 (도련 11-06 · 마테 자리까지)                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04) · 그 밖의 스티커 · 스티커첩 · 페이지 다이어리 (도련 11-06)
-                    if (back && bk && bk.diary_desk_fn && typeof bk.diary_desk_fn === 'object' && typeof prefSet === 'function') prefSet(DK_FN_KEY, DK_FN_LOCAL, bk.diary_desk_fn);
+                    if (!back) { dkStarterLinks(); DK.starting = true; Promise.all([dkStarterTapes(), dkStarterMore()]).finally(() => { DK.starting = false; }); }   // 🛟 첫 백업은 처음 선물을 다 넣은 뒤 (도련 11-06 · 마테 자리까지)                // 🎁 처음 온 다꾸러 = 기본 펜꽂이 · 서랍장 한 칸을 미리 이어 둬요 (도련 11-02) · 처음 선물 테이프 (도련 11-04) · 그 밖의 스티커 · 스티커첩 · 페이지 다이어리 (도련 11-06)
                     deskItemsRender(); deskModeRender();
                 }
                 if (gdNull) {
                     if (back && window.gdSetList) {
-                        const seen = window.goneHeal ? goneHeal('gd', bk) : new Set(), L = [];   // 🚛 영구삭제 번호는 되살리지 않아요 (도련 11-11)
+                        const seen = window.goneHeal ? goneHeal('gd') : new Set(), L = [];   // 🚛 영구삭제 번호는 되살리지 않아요 (도련 11-11)
                         (files ? files.gd : []).forEach(f => { if (!seen.has(f.u)) { seen.add(f.u); L.push({ u: f.u, id: f.id, c: f.c }); } });   // ✏️ 하나하나 (같은 것이 여럿이어도 · 도련 11-07)
                         (had && Array.isArray(had.gd) ? had.gd : []).forEach(id => { if (!seen.has(id)) { seen.add(id); L.push({ u: id, id, g: 1 }); } });   // 🎁 선물 = u 가 디자인 id
                         gdSetList(L);
                         if (lostG) diag('rescue', { w: 'gd', n: L.length });
                     } else if (window.gdSetList) { gdSetList((window.gdStarter ? gdStarter() : []).map(id => ({ u: id, id, g: 1 }))); giftMark(); }   // 🎁 처음 온 다꾸러 = 핀셋 + 필기구 5 (문구 목록 from 선물 · 나머지는 🏪 기본상품 샵 · 도련 11-01)
                 }
-                if (back) setTimeout(dkBackupWrite, 1500);                           // 🛟 되살렸거나 선물 그대로 = 하루 한 번 백업도 (도련 11-07)
             } finally { giftBusy = false; }
         }
         /* 🎁 처음 선물 테이프 (도련 11-04 · 상품공방 마스킹테이프 '처음받기') : 한 롤씩 받아서 (내 스티커 목록) 책상 위 정리함 상품 '처음담기' 칸에 꽂아요 (도련 11-06 · 어느 정리함에도 없는 롤은 스티커 서랍에만) */

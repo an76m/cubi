@@ -286,7 +286,7 @@
             gdown: { path: dirPath(DIRS.gd), name: '_목록', chunk: 1000, prop: 'gdOwnFile' },   // 🔐 가진 문구 전부 = 백 문구 / _목록1.json … (1000개씩 · 앱을 켤 때 읽어요 = 필기구 · 문구의 집 · 도련 11-07)
             deskset: { path: DESK_PATH, name: '책상설정.json', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
             dyown: { path: DIARY_PATH, name: '_목록.json', prop: 'dyOwnFile' },   // 🔐 백 = 다이어리 / _목록.json : 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from · 도련 11-07 · 981 · 앱을 켤 때 읽어요 · js/dyown.js)
-            bmown: { path: DIARY_PATH, name: '_바인더재료목록.json', bb: '_바인더재료목록_백업.json', prop: 'bmOwnFile', lazy: 1 },   // 🧩 🔐 다이어리 / _바인더재료목록.json : 가진 표지 · 내지 재료 (두 칸 · 💤 조립 · 만들기 · 받을 때 · 도련 11-08 폴더 둘을 합쳤어요)
+            bmown: { path: DIARY_PATH, name: '_바인더재료목록.json', prop: 'bmOwnFile', lazy: 1 },   // 🧩 🔐 다이어리 / _바인더재료목록.json : 가진 표지 · 내지 재료 (두 칸 · 💤 조립 · 만들기 · 받을 때 · 도련 11-08 폴더 둘을 합쳤어요)
             esown: { path: dirPath(DIRS.emptyBook), name: '_목록.json', prop: 'esOwnFile', lazy: 1 },   // 📥 🔐 빈스티커첩 / _목록.json : 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 📒 바인더 · 🤍 이형지북 (두 칸 · 불러오면 그 종류 _스티커첩.json 으로 · 💤 · 도련 11-08 · js/basket.js FR)
             bgown: { path: dirPath(DIRS.pattern), name: '_목록.json', prop: 'bgOwnFile', lazy: 1 },  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
             binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
@@ -1043,15 +1043,42 @@
             catch (e) { return {}; }
         }
 
+        /* 🔏 올린 내용 확인 (도련 11-17 · 백업 파일 대신) : 구글이 답장에 주는 내용 지문(md5Checksum)과 올린 글의 지문이 같은지 · 요청은 그대로 1번
+             다르면 = 한 번 다시 올려요 · 그래도 다르면 에러 'md5' (올리지 못한 것으로 = 이 기기에 보관하고 다음에 다시 · 원래 파일은 구글 판 기록에) */
+        function md5Hex(str) {
+            const b = new TextEncoder().encode(str), n = b.length, words = new Uint32Array((((n + 8) >>> 6) + 1) * 16);
+            for (let i = 0; i < n; i++) words[i >> 2] |= b[i] << ((i % 4) * 8);
+            words[n >> 2] |= 0x80 << ((n % 4) * 8); words[words.length - 2] = (n * 8) >>> 0; words[words.length - 1] = Math.floor(n / 0x20000000);
+            const S = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21], K = Array.from({ length: 64 }, (_, i) => (Math.abs(Math.sin(i + 1)) * 4294967296) >>> 0);
+            let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+            for (let o = 0; o < words.length; o += 16) {
+                let A = a0, B = b0, C = c0, D = d0;
+                for (let i = 0; i < 64; i++) {
+                    let F, g; const r = i >> 4;
+                    if (r === 0) { F = (B & C) | (~B & D); g = i; } else if (r === 1) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; } else if (r === 2) { F = B ^ C ^ D; g = (3 * i + 5) % 16; } else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+                    const t = D; D = C; C = B; const x = (A + F + K[i] + words[o + g]) | 0, s = S[r * 4 + (i % 4)]; B = (B + ((x << s) | (x >>> (32 - s)))) | 0; A = t;
+                }
+                a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+            }
+            return [a0, b0, c0, d0].map(v => Array.from({ length: 4 }, (_, i) => ((v >>> (i * 8)) & 255).toString(16).padStart(2, '0')).join('')).join('');
+        }
+        function md5Same(j, body) { return !j || !j.md5Checksum || j.md5Checksum === md5Hex(body); }   // 답장에 지문이 없으면 (예전 · 시험) 넘어가요
+        function md5Bad(name) { diag('md5', { name }); const er = new Error('upload checksum'); er.code = 'md5'; return er; }
+
         /* fileId가 있으면 그 파일을 덮어쓰고, 없으면 folderId 안에 새로 만듭니다 */
         async function driveUpsert(folderId, name, fileId, body, raw) {
             if (!raw) body = await bodySeal(name, body);                             // 🔐 json 은 잠가서 (도련 11-11 · raw = 받은 글 그대로)
             if (fileId) {
-                const res = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime,trashed`, Object.assign({
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body
-                }, keepaliveFor(body)));
-                if (!res.ok) throw await driveFail(res, 'update');              // 404 'gone' : 그 사이 지워짐 → 캐시를 비우고 다시 시도
-                const j = await res.json();
+                let j = null;
+                for (let t = 0; t < 2; t++) {                                       // 🔏 지문이 다르면 한 번 더
+                    const res = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime,trashed,md5Checksum`, Object.assign({
+                        method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body
+                    }, keepaliveFor(body)));
+                    if (!res.ok) throw await driveFail(res, 'update');          // 404 'gone' : 그 사이 지워짐 → 캐시를 비우고 다시 시도
+                    j = await res.json();
+                    if (md5Same(j, body)) break;
+                    if (t) throw md5Bad(name);
+                }
                 if (!j.trashed) return mineWrote(j);
                 /* 🗑 휴지통에 들어간 파일 (폴더를 지웠거나 · 같은 이름 폴더 합치기로) : 번호로는 써지지만 드라이브 폴더에서는 안 보여요 (도련 11-06 마테 목록이 사라진 까닭)
                    → 그 파일은 그대로 두고 지금 폴더에 새로 만들어요 (폴더도 휴지통이면 'gone' → 부른 쪽이 폴더를 다시 찾아요) */
@@ -1071,12 +1098,14 @@
             const multipart =
                 `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n` +
                 `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--`;
-            const res = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', Object.assign({
+            const res = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime,md5Checksum', Object.assign({
                 method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: multipart
             }, keepaliveFor(multipart)));
             if (!res.ok) { drive.alive.delete(folderId); throw await driveFail(res, 'create'); }   // 404 'gone' : 폴더가 지워짐
             drive.alive.set(folderId, Date.now());
-            return mineWrote(await res.json());
+            const j = await res.json();
+            if (!md5Same(j, body)) return driveUpsert(folderId, name, j.id, body, true);   // 🔏 새로 만든 파일 지문이 달라요 → 그 파일에 한 번 더 (그래도 다르면 에러)
+            return mineWrote(j);
         }
 
         async function driveTrash(fileId) {

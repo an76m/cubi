@@ -32,7 +32,7 @@
         const ownKindPath = k => dirPath(OWN_KIND[k] || '기타');
         const OWN_KS = Object.keys(OWN_KIND);
         /* 📋 종류마다 목록 (도련 11-05) : 그 종류 폴더 안에 · _ 로 시작해서 종이 파일(무작위 이름)과 섞이지 않아요 */
-        const OWN_IDX = '_목록.json', OWN_ALB = '_스티커첩.json', OWN_IDX_BK = '_목록_백업.json', OWN_ALB_BK = '_스티커첩_백업.json', OWN_BK_LS = 'malang_own_bk2';
+        const OWN_IDX = '_목록.json', OWN_ALB = '_스티커첩.json';   // 🛟 백업 파일은 없앴어요 (도련 11-17 · 깨짐 = 올릴 때 구글 지문 md5 확인)
         const OWN_PEND = 'malang_own_pend', OWN_FRESH = 15000;
         /* 🖨 제작 규칙 (도련 11-14) : 내가 만든 도안을 프린터로 뽑을 때 · 상품공방 '🖨 제작 규칙' → prod.js MALANG_PROD.rules (없으면 아래 값)
            seal · paper = 한 시트 · piece = 한 봉투 조각 수 · tape = 한 롤 길이 · tk · memo = 한 묶음 장 수 · leaf = 장 수 */
@@ -250,7 +250,6 @@
             }
             if (!t.trim()) return ownRescue(k, 'missing');
             let o; try { o = await ownUnlock(t); } catch (e) { const r = await ownRescue(k, 'corrupt'); if (r) return r; throw e; }
-            d.txt = t;                                                           // 🛟 잘 읽힌 목록만 백업해요 (ownBackup)
             d.gone = ownGoneClean(window.ledgerMix ? ledgerMix('own:' + k, o.gone) : o.gone);   // 🚛 영구삭제 칸 (그 종류 목록 안 · 도련 11-11) + 📒 장부 한 벌 (예전 파일로 바꿔치기해도 · js/drive.js)
             const gs = new Set(d.gone.map(x => x.u)), L0 = ownIdxClean(o.list, k).filter(e => !gs.has(e.id)); d.n = L0.length;
             return L0;
@@ -267,12 +266,7 @@
             if (why === 'missing' && O.noR.has(nk)) return [];
             const dir = await ownKindDir(k, false); if (!dir) return none();
             let base = [], bkOk = false;
-            const bk = await findFile(dir, OWN_IDX_BK), d0 = ownK(k);
-            if (bk) {
-                try { const bo = await ownUnlock(await readFileText(bk.id)); base = ownIdxClean(bo.list, k); bkOk = true; d0.gone = ownGoneClean((d0.gone || []).concat(ownGoneClean(bo.gone))); }   // 🚛 백업 속 영구삭제 칸도
-                catch (e) { if (e && e.code === 'corrupt') return none(); throw e; }
-            }
-            const bkReal = bkOk, tb0 = d0.tBase;                                                  // 이 폴더의 진짜 백업이 있는지 (휴지통 목록은 빼고 · 아래 '방금 만든 종이뿐' 기다림에 써요 · 11-11)
+            const d0 = ownK(k), bkReal = false, tb0 = d0.tBase;                  // 🛟 백업 파일 없음 (도련 11-17) = 휴지통 목록 · 종이 파일로                                                  // 이 폴더의 진짜 백업이 있는지 (휴지통 목록은 빼고 · 아래 '방금 만든 종이뿐' 기다림에 써요 · 11-11)
             if (Array.isArray(d0.tBase)) { const tb = ownIdxClean(d0.tBase, k); tb.forEach(e => { if (!base.some(b => b.id === e.id)) base.push(e); }); if (tb.length) bkOk = true; d0.tBase = null; }   // 🗑 휴지통에 들어간 목록도 바탕으로 (받은 때 · 이름 · 바구니 미리보기)
             /* 백업도 없으면 : 그 폴더에 종이 파일이 있을 때만 종이로 되살려요 (예전엔 '처음 쓰는 종류'로 보고 빈 목록 → 종이는 남았는데 안 보이던 것 · 도련 11-06) */
             const files = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}'`, 'id,name,modifiedTime,createdTime')).filter(x => /^[a-z0-9]+\.json$/i.test(x.name));   // 내 종이만 (_ 목록 · 스티커첩 · 백업 · 공유하기 내-/받은- 파일은 빼요)
@@ -312,7 +306,7 @@
                 if (ownHas(e)) list.push(e);                                      // 🗑 버린 종이도 그대로 (백업의 bin 표시째)
             }
             list.sort((p, q) => (p.at || 0) - (q.at || 0));
-            if (window.diag) diag('rescue', { k, why, n: list.length, papers: files.length, bk: bk ? 1 : 0, base: base.length });   // 🧾
+            if (window.diag) diag('rescue', { k, why, n: list.length, papers: files.length, base: base.length });   // 🧾
             await ownIdxWrite(k, list);
             O.noR.delete(nk); ownRescueSay();
             return list;
@@ -321,28 +315,6 @@
         function ownRescueSay() {
             clearTimeout(ownSaidT);
             ownSaidT = setTimeout(() => { if (typeof showMsg === 'function') showMsg('🛟 스티커 목록 파일이 없어졌거나 깨져서 <b>백업으로 되살렸어요.</b><br><span style="font-size:12px;color:#777;">스티커는 그대로예요. 바인더 · 이형지 자리는 백업한 날로 돌아갔을 수 있어요.</span>'); }, 300);
-        }
-        /* 🛟 하루 한 번 목록 · 스티커첩 백업 (종류마다 · 그날 그 종류를 처음 열고 잘 읽혔을 때 · 3초 뒤 · 뒤에서 · 바구니 여는 속도에 영향 없어요) */
-        async function ownBackupNow(k) {                                          // 🚛 영구 삭제한 뒤 바로 (도련 11-11 · 하루 한 번 백업이 예전 줄을 들고 있지 않게)
-            if (ownMode() !== 'drive') return;
-            try {
-                const d = ownK(k); if (!d.f) return;
-                const t = await readFileText(d.f.id), dir = await ownKindDir(k, false); if (!dir || !t) return;
-                const f = await findFile(dir, OWN_IDX_BK); await driveUpsert(dir, OWN_IDX_BK, f && f.id, t);
-            } catch (e) { console.warn('🛟 스티커 목록 백업 (다음에 다시)', k, e); }
-        }
-        async function ownBackup(k) {
-            const d = ownK(k);
-            if (ownMode() !== 'drive' || !d.txt) return;
-            const it = d.txt, at = d.albTxt, kw = O.kw, day = new Date().toLocaleDateString('sv'), key = kw + '|' + k;
-            let o = lsGet(OWN_BK_LS, {}) || {};   /* 🧰 js/util.js */
-            if (o[key] === day) return;
-            try {
-                const dir = await ownKindDir(k, false); if (!dir || kw !== O.kw) return;
-                const put = async (name, txt) => { if (!txt) return; const f = await findFile(dir, name); await driveUpsert(dir, name, f && f.id, txt); };
-                await Promise.all([put(OWN_IDX_BK, it), put(OWN_ALB_BK, at)]);
-                o[key] = day; localStorage.setItem(OWN_BK_LS, JSON.stringify(o));
-            } catch (e) { console.warn('스티커 목록 백업을 못 했어요 (다음에 다시) :', k, e); }
         }
         async function ownIdxWrite(k, list) {
             if (ownMode() === 'mem') { O.mem.idx[k] = list.map(e => Object.assign({}, e, { u: e.u.slice() })); O.mem.gone[k] = (ownK(k).gone || []).slice(); return; }
@@ -469,7 +441,7 @@
                 if (!live) { ownFilesSet(k, { i: '', a: '' }); d.f = d.albF = null; }   /* 🗑 기억한 목록이 휴지통 (말랑달콤 · 종류 폴더를 지웠어요) = 기억을 버리고 살아 있는 폴더에서 (도련 11-04) */
                 else if (list && d.f && (!mem.a || d.albF)) {
                     d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list); if (window.mineSoon) mineSoon();   /* 📦 불러온 📒 🤍 책도 실물로 (js/mine.js) */
-                    setTimeout(() => ownFilesCheck(k, mem), 0); setTimeout(() => ownBackup(k), 3000);
+                    setTimeout(() => ownFilesCheck(k, mem), 0);
                     return;
                 }
             }
@@ -484,7 +456,7 @@
             }
             const [list, alb] = await Promise.all([ownIdxRead(k, pi), ownAlbRead(k, pa)]);   // 동시에 읽어요
             d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list); if (window.mineSoon) mineSoon();   /* 📦 불러온 📒 🤍 책도 실물로 (js/mine.js) */
-            if (ownMode() !== 'mem') { ownFilesNow(k); setTimeout(() => ownBackup(k), 3000); }
+            if (ownMode() !== 'mem') ownFilesNow(k);
         }
         const ownLeft = e => e.q0 ? e.q : e.n - e.u.length;
         const ownQtyLeft = id => { const e = O.idx && O.idx.find(x => x.id === id); return e ? (e.q0 ? e.q : ownLeft(e)) : 0; };
@@ -916,13 +888,10 @@
         async function ownAlbRescue(k, why) {
             const nk = O.kw + '|alb|' + k;
             if (why === 'missing' && O.noR.has(nk)) return null;
-            const dir = await ownKindDir(k, false), bk = dir ? await findFile(dir, OWN_ALB_BK) : null, d0 = ownK(k), tA = d0.tAlb; d0.tAlb = null;
-            if (!bk && !tA) { if (why === 'missing') O.noR.add(nk); return null; }
-            let a = null;
-            if (bk) { try { const o = await ownUnlock(await readFileText(bk.id)); a = o && o.album && typeof o.album === 'object' ? ownAlbPart(o.album, k) : null; }
-                catch (e) { if (!(e && e.code === 'corrupt')) throw e; } }
-            if (!a && tA) a = ownAlbPart(tA, k);                                 // 🗑 휴지통에 들어간 스티커첩 (도련 11-06)
-            if (window.diag) diag('rescue', { k, f: '스티커첩', why, bk: bk ? 1 : 0, ok: a ? 1 : 0 });
+            const d0 = ownK(k), tA = d0.tAlb; d0.tAlb = null;                     // 🛟 백업 파일 없음 (도련 11-17) = 휴지통에 들어간 스티커첩만
+            if (!tA) { if (why === 'missing') O.noR.add(nk); return null; }
+            const a = ownAlbPart(tA, k);                                 // 🗑 휴지통에 들어간 스티커첩 (도련 11-06)
+            if (window.diag) diag('rescue', { k, f: '스티커첩', why, ok: a ? 1 : 0 });
             if (!a) return null;
             await ownAlbWrite(k, ownAlbumClean(a, null));
             O.noR.delete(nk); ownRescueSay();
@@ -1108,7 +1077,6 @@
                     const d = ownK(k); d.gone = ownGoneClean((d.gone || []).concat([{ u: id, at: Date.now() }]));   // 🚛 영구삭제 칸 (영원히 · 도련 11-11)
                     if (window.ledgerMix) ledgerMix('own:' + k, d.gone);           // 📒 장부에도 바로
                     list.splice(i, 1); await ownIdxWrite(k, list); ownSetKind(k, list);
-                    ownBackupNow(k);                                   // 🛟 백업에도 바로 (예전 백업으로 되살아나지 않게)
                     break;
                 }
                 await ownFileKill(fid);

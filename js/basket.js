@@ -398,12 +398,7 @@
                 if (drive.newbie && !drive.lazyOn.has(w)) { drive.lazyOn.add(w); (drive.keyNone = drive.keyNone || new Set()).add(w); }
                 await keyFileLoad(w);
                 if (gen !== drive.gen) return false;
-                if (prefGet(FR[t].key, FR[t].l) === null && keyMade(w) && window.deskBackupRead) {   // 🛟 만든 적 있는데 없어요 = 그 폴더 / _목록_백업.json
-                    const bk = await deskBackupRead().catch(() => null), L = bk && Array.isArray(bk[FR[t].key]) ? bk[FR[t].key] : null;
-                    if (gen !== drive.gen) return false;
-                    if (L && prefGet(FR[t].key, FR[t].l) === null) { frSet(t, L); if (window.diag) diag('rescue', { w: t, n: L.length }); }
-                }
-                if (prefGet(FR[t].key, FR[t].l) === null && keyMade(w) && window.ofScan) {   // 🛟 백업도 없으면 이 폴더의 원본 파일(받은-)들로 (샵에서 받은 책만 · 선물은 파일이 없어요)
+                if (prefGet(FR[t].key, FR[t].l) === null && keyMade(w) && window.ofScan) {   // 🛟 목록이 없어졌으면 이 폴더의 원본 파일(받은-)들로 (샵에서 받은 책만 · 선물은 파일이 없어요)
                     const fs = await ofScan(FR[t].dir).catch(() => null);
                     if (gen !== drive.gen) return false;
                     if (fs && fs.length && prefGet(FR[t].key, FR[t].l) === null) { const P = t === 'bd' ? AB_BDP : AB_RL; frSet(t, fs.map(f => { const p = P.find(x => x.id === f.id); return p ? { id: f.u, pid: p.id, n: +(t === 'bd' ? p.P.장수 : p.P.쪽수), lb: '', at: Date.now(), from: 'basic', c: f.c } : null; }).filter(Boolean)); }
