@@ -216,7 +216,7 @@
     function view() {
         const d = $('ppDoc'); if (!d) return; const k = P.base * P.z;
         Object.assign(d.style, { width: P.W + 'px', height: P.H + 'px', transform: `translate(${P.px}px, ${P.py}px) scale(${k})` });
-        const mw = mmW(), kr = mw ? 96 / 25.4 * mw / P.W : 0;                 // 📏 100% = 실제 크기 (도련 11-14 · 실제 mm 를 모르는 종이만 맞춤 기준)
+        const mw = mmW(), kr = mw ? MM_PX * mw / P.W : 0;                 // 📏 100% = 실제 크기 (도련 11-14 · 실제 mm 를 모르는 종이만 맞춤 기준)
         $('ppZ').textContent = Math.round((kr ? k / kr : P.z) * 100) + '%'; $('ppZ').title = kr ? '100% = 실제 크기' : '100% = 맞춤'; paintFloats();
     }
     function zoomAt(f, cx, cy) {
@@ -1167,9 +1167,9 @@
         document.querySelectorAll('#ppGlue [data-g]').forEach(b => b.classList.toggle('on', b.dataset.g === P.glue));
     }
     const mmW = () => P.kind === 'seal' ? sealPh() * P.W / P.H : P.kind === 'piece' ? sealPh() * P.W * PIECE_K / 644 : P.kind === 'paper' ? sealPh() * P.W * PAPER_K / 644 : P.kind === 'tk' || P.kind === 'tape' ? P.tkmm[0] : (P.spec && +String(P.spec.mm || '').split(/[×x*]/)[0]) * 2 || 0;   // 종이 가로 = 몇 mm (📃 속지 = 펼친 두 쪽)
-    function realSize(auto) {                                                  // 📏 화면에 실제 크기 (CSS 1mm = 96 / 25.4 px)
+    function realSize(auto) {                                                  // 📏 화면에 실제 크기 (1mm = MM_PX · js/skins.js 한 곳)
         const st = $('ppStage'), mw = mmW(); if (!st || !mw) { if (!auto) say('📏 이 종이는 실제 크기를 몰라요'); return; }
-        const r = st.getBoundingClientRect(), k = 96 / 25.4 * mw / P.W;
+        const r = st.getBoundingClientRect(), k = MM_PX * mw / P.W;
         if (P.W * k > r.width - 20 || P.H * k > r.height - 20) { if (auto) return; say('📏 실제 크기는 화면보다 커요 · 손바닥으로 옮겨 보세요', 2000); }
         P.z = k / P.base; P.px = (r.width - P.W * k) / 2; P.py = (r.height - P.H * k) / 2; view();
         if (!auto) say(`📏 실제 크기 (${mw}mm${P.kind === 'tk' || P.kind === 'tape' ? ' × ' + P.tkmm[1] + 'mm' : ''})`, 1400);
