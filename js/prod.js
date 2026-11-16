@@ -7,15 +7,18 @@
    - P = 상품공방 속성 (이름 · 분류 · 순서 · 숨김 · 신상 · 스토어 · 종류별 값) · 🎁 기본 = 무료 · 💎 스토어 = 유료 (P.스토어 · 무료 샵 · 처음 선물에서 빠져요) · 숨김 상품도 목록에 있어요 (진열만 빼요 prodShelf)
    - 받지 못했으면 다이어리를 시작하지 않아요 (index.html 파일 누락 확인 · '다시 열기') */
 const PROD_BASE = 'https://malang-img.pages.dev';
-/* 🚨 2단계 = 서버가 없어도 켜져요 (도련 11-17) : 받은 상품 목록을 이 기기에 하나 두고 (localStorage · 50KB 남짓 · 모든 계정 같아요)
-     서버 prod.js 를 못 받았거나 깨졌으면 = 지난번 목록으로 시작 (window.PROD_CACHED) · 그림은 내 실물(기기 · 드라이브 그림 묶음)로 · 기기에도 없으면 예전처럼 멈춰요 */
-(function () {
-    const K = 'malang_prod_last', ok = p => !!(p && p.prod && typeof p.prod === 'object' && Object.values(p.prod).some(a => Array.isArray(a) && a.length));
-    if (ok(window.MALANG_PROD)) { try { const t = JSON.stringify(window.MALANG_PROD); if (localStorage.getItem(K) !== t) localStorage.setItem(K, t); } catch (e) { } return; }
-    try { const c = JSON.parse(localStorage.getItem(K) || 'null'); if (ok(c)) { window.MALANG_PROD = c; window.PROD_CACHED = Date.now(); console.warn('🚨 서버 상품 목록을 못 받았어요 → 이 기기에 둔 지난 목록 + 내 실물로'); } } catch (e) { }
-})();
+/* 🧁 진짜 목록을 빠르게 (도련 11-17 "기기 것은 가짜 목록 · 버전 확인으로 최신인지") :
+     - index.html 이 이 기기에 둔 목록(localStorage malang_prod_last)을 먼저 넣어요 (PROD_FROM 'dev') → 여기서 바로 서버 prod-v.txt (몇 바이트) 를 물어요
+       같은 버전 = 그대로 진짜 목록 · 다르면 = 새 prod.js 를 받아 바꾸고 다시 그려요 (prodRebuild) · 서버에 prod-v.txt 가 없으면 (예전 포장) prod.js 를 받아 비교
+     - 🚨 3초 안에 답이 없거나 못 받으면 = 비상 (PROD_CACHED : 지난 목록 + 가진 것 모두 내 실물 그림 · js/mine.js)
+     - window.PROD_READY = 확인이 끝나면 (로그인 · 처음 선물은 이것을 기다려요 · js/drive.js loadFromDrive)
+     - 처음 기기 = index.html 이 서버 prod.js 를 기다려서 받은 것 → 이 기기에 둬요 */
+const PROD_LS = 'malang_prod_last';
+const prodGood = p => !!(p && p.prod && typeof p.prod === 'object' && Object.values(p.prod).some(a => Array.isArray(a) && a.length));
+const prodKeep = p => { try { const t = JSON.stringify(p); if (localStorage.getItem(PROD_LS) !== t) localStorage.setItem(PROD_LS, t); } catch (e) { } };
+if (window.PROD_FROM !== 'dev' && prodGood(window.MALANG_PROD)) prodKeep(window.MALANG_PROD);
 const PROD_OKF = f => typeof f === 'string' && /^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$/.test(f);
-const PROD_RAW = (window.MALANG_PROD && window.MALANG_PROD.prod && typeof window.MALANG_PROD.prod === 'object') ? window.MALANG_PROD.prod : {};
+let PROD_RAW = (window.MALANG_PROD && window.MALANG_PROD.prod && typeof window.MALANG_PROD.prod === 'object') ? window.MALANG_PROD.prod : {};
 const prodOne = (x, srv) => {                                                // 서버 줄 하나 → 앱 모양 (srv = 같은 id 서버 것 · 📦 내 실물일 때)
     if (!x || typeof x.id !== 'string' || !x.f || typeof x.f !== 'object') return null;
     const u = {}; Object.keys(x.f).forEach(r => { const f = x.f[r]; if (!PROD_OKF(f)) return; u[r] = (srv === undefined || (srv && srv.f && srv.f[r] === f)) && !(window.PROD_CACHED && window.mineUrl && mineUrl(f)) ? PROD_BASE + '/k/' + f : ((window.mineUrl && mineUrl(f)) || PROD_BASE + '/k/' + f); });   // 📦 같은 그림 = 서버 주소 그대로 · 다르거나 서버에 없으면 내 드라이브 그림
@@ -44,6 +47,19 @@ const PROD_HOOKS = [];
 const prodHook = fn => { if (typeof fn === 'function') PROD_HOOKS.push(fn); };
 function prodRebuild() { PROD_C.all = {}; PROD_HOOKS.forEach(fn => { try { fn(); } catch (e) { console.warn('🧁 다시 만들기', e); } }); }
 const prodRawOf = (k, id) => (Array.isArray(PROD_RAW[k]) ? PROD_RAW[k] : []).find(x => x && x.id === id) || null;   // 서버 줄 그대로 (📦 받을 때 내 실물로)
+/* 🔎 버전 확인 (기기 목록으로 시작했을 때만) */
+window.PROD_READY = (function () {
+    if (window.PROD_FROM !== 'dev') return Promise.resolve('srv');
+    const cur = window.MALANG_PROD, get = (u, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); return fetch(u, { cache: 'no-store', signal: c.signal }).finally(() => clearTimeout(t)); };
+    const swap = p => { window.MALANG_PROD = p; PROD_RAW = p.prod; PROD_C.srv = {}; PROD_C.all = {}; prodKeep(p); prodRebuild(); };
+    const emerg = why => { window.PROD_CACHED = Date.now(); console.warn('🚨 서버 상품 목록을 확인 못 했어요 (' + why + ') → 지난 목록 + 내 실물로'); PROD_C.all = {}; prodRebuild(); if (window.mineSoon) mineSoon(); return 'cached'; };
+    const full = () => get(PROD_BASE + '/prod.js?v=' + Date.now(), 8000).then(r => r.ok ? r.text() : Promise.reject(r.status)).then(t => { const p = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); if (!prodGood(p)) throw new Error('bad'); if (String(p.v) !== String(cur.v) || JSON.stringify(p) !== JSON.stringify(cur)) { swap(p); return 'new'; } return 'same'; });   // 받은 김에 내용까지 비교
+    return get(PROD_BASE + '/prod-v.txt', 3000).then(r => {
+        if (r.status === 404) return full();                                  // 예전 포장 (버전 파일 없음) = 목록을 받아 비교
+        if (!r.ok) throw new Error(r.status);
+        return r.text().then(v => String(v).trim() === String(cur.v) ? 'same' : full());
+    }).catch(e => emerg(e && e.name === 'AbortError' ? '시간 초과' : String(e && e.message || e)));
+})();
 window.prodList = prodList; window.prodShelf = prodShelf; window.prodOn = prodOn; window.prodSrv = prodSrv;
 window.prodHook = prodHook; window.prodRebuild = prodRebuild; window.prodRawOf = prodRawOf; window.PROD_OKF = PROD_OKF;
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['prod'] = prodOn();   // 🛡 목록을 못 받았으면 다이어리를 시작하지 않아요 (index.html 아래 확인)

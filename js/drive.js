@@ -1005,6 +1005,7 @@
         function prefetchAfterTurn(dir) { const d = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir); return prefetchDays(d ? [d] : []); }
 
         async function loadFromDrive() {
+            if (window.PROD_READY) await PROD_READY;                       // 🧁 상품 목록 버전 확인이 끝난 뒤 (처음 선물 · 되살리기가 진짜 목록으로 · 늦어도 3초 · js/prod.js)
             resetDriveCaches(); drive.rootId = null; drive.keyNone = new Set();
             await ledgerLoad();                                              // 📒 장부 먼저 (은퇴한 예전 폴더는 쓰지 않아요 · 영구삭제 한 벌)
             await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
