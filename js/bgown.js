@@ -14,7 +14,7 @@
         const bgoPat = id => BG_PATTERNS.find(p => p.id === id) || null;   // 🧁 숨긴 배경지(off)도 가진 사람은 그대로
         const bgoU = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         function bgoOwned() { const v = prefGet(BGO_KEY, BGO_LOCAL); return Array.isArray(v) ? v.filter(x => x && x.u && typeof x.p === 'string').map(x => { const y = Object.assign({}, x), g = !!(y.g || y.start); delete y.g; delete y.start; delete y.from; return g ? Object.assign(y, { g: 1 }) : y; }) : []; }   // 🎁 처음받기 = 그 줄의 start: 1 (앱 안에서는 g · 도련 11-09)
-        const bgoSet = L => prefSet(BGO_KEY, BGO_LOCAL, bgoStrip(L));
+        const bgoSet = L => { prefSet(BGO_KEY, BGO_LOCAL, bgoStrip(L)); if (window.mineSoon) mineSoon(); };   // 📦 가진 배경지 = 실물로 (js/mine.js)
         const bgoStrip = L => (L || []).map(x => { const y = Object.assign({}, x, { from: 'basic' }); if (y.g) y.start = 1; delete y.g; return y; });   // 🎁 저장 = from: 'basic' + 처음받기 start: 1 (도련 11-09)
         const bgoHas = () => prefGet(BGO_KEY, BGO_LOCAL) !== null;               // 목록을 알아요 (읽었거나 · 되살렸거나 · 선물을 메모리에)
         const bgoMem = L => { if (bgoOnline()) store.putLoaded(BGO_KEY, JSON.stringify(bgoStrip(L))); else bgoSet(L); };   // 💤 메모리에만 (드라이브에 안 써요 · 바뀔 때 prefSet 이 파일을 만들어요)   // 목록에 없는 것도 남겨요 (지우지 않게 · 보일 땐 bgoItems 가 걸러요)

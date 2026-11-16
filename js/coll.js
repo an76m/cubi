@@ -487,7 +487,12 @@
         const ofColl = n => collOf(dirPath(n), '받은-');
         async function ofAdd(n, it) {
             if (!n || !collOnline() || typeof ownLock !== 'function') return '';
-            try { return await collAdd(ofColl(n), { s: await ownLock(it) }, '', { id: it.id }, true); } catch (e) { console.warn('🗂 파일', n, e); return ''; }   // 원본 파일만 (받은-목록N.json 없음 · 도련 11-07)
+            try {
+                const K = window.mineKOf ? mineKOf(n, it.id) : '', real = (K && window.mineSnap && await mineSnap(K, it.id).catch(() => null)) || {};   // 📦 실물 (속성 · 그림 · 받은 시각 · js/mine.js · 도련 11-16 · 🧱 🪵 🌈 📒 🤍)
+                const c = await collAdd(ofColl(n), { s: await ownLock(Object.assign({}, it, { got: it.got || Date.now() }, real)) }, '', { id: it.id }, true);
+                if (c && K && window.mineGot) mineGot(K, c);
+                return c;
+            } catch (e) { console.warn('🗂 파일', n, e); return ''; }   // 원본 파일만 (받은-목록N.json 없음 · 도련 11-07)
         }
         function ofDel(n, c) { if (n && c && collOnline()) return collRemove(ofColl(n), c, true).catch(e => console.warn('🗂 파일', n, e)); }
         async function ofScan(n) {

@@ -364,6 +364,7 @@
         (window.prodList ? prodList('이형지북') : []).forEach(x => { if (String(x.P.이름 || '') && okN(x.P.포켓) && okN(x.P.쪽수)) AB_RL.push(x); else console.warn('🧁 이형지북 속성이 모자라요 :', x.id); });
     }
     abBuild();
+    if (window.prodHook) prodHook(abBuild);                                   // 📦 내 실물 (js/mine.js)
     const abBdP = b => AB_BDP.find(x => x.id === b.pid) || AB_BDP[0];         // 그 바인더 상품
     const abRlP = r => AB_RL.find(x => x.id === (r && r.pid)) || AB_RL[0];    // 그 이형지북 상품
     const abPer = b => +abBdP(b).P.포켓;                                       // 한 쪽 포켓 수 = 상품 '포켓'

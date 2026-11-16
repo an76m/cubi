@@ -15,6 +15,7 @@ function bgBuild() {                                                         // 
     });
 }
 bgBuild();
+if (window.prodHook) prodHook(() => { bgBuild(); if (typeof loadBgPattern === 'function') loadBgPattern(); });   // 📦 내 실물이 바뀌면 다시 (js/mine.js)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['patterns'] = true;

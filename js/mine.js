@@ -1,6 +1,8 @@
 /* 말랑달콤 다이어리 - js/mine.js
    📦 내 실물 (도련 11-16) : 받은 상품은 다꾸러 드라이브에 진짜로 있어요 (서버 = 가게 · 서버에서 고치거나 지워도 가진 것은 받은 그때 모습)
-   - 묶음 셋 (G · 한 줄 더하면 다른 종류도) : 🪑 소품 / _실물.json (책상소품) · ✏️ 문구 / _실물.json (문구) · 📔 다이어리 / _실물.json (날짜형 · 페이지형 바인더 · 노트 · 내지 · 1265)
+   - 묶음 다섯 (G · 한 줄 더하면 다른 종류도) : 🪑 소품 / _실물.json (책상소품 · 🧱 벽지 · 🪵 책상판) · ✏️ 문구 / _실물.json (문구) · 📔 다이어리 / _실물.json (날짜형 · 페이지형 바인더 · 노트 · 내지 · 1265)
+       · 🌈 배경지 / _실물.json · 📥 빈스티커첩 / _실물.json (📒 스티커바인더 · 🤍 이형지북 · 1266)
+       📒 🤍 가진 것 = 빈스티커첩 목록 + 스티커 정리에 불러온 책 (그 종류 _스티커첩.json · 읽어 둔 것만) → 받는 순간 실물이 생겨서 (받은- 파일 · 묶음) 스티커 정리로 옮겨도 그대로 · 스티커 창을 열면 빠진 것을 채워요
        🔐 { v, k, items: { '종류|상품 id': { K, P, f, wh, h, got } }, img: { 그림 이름: 그림 }, cs: [담은 받은- 파일 번호] } · 같은 디자인은 한 번만 (여러 개 가져도) · 보관함 · 재료 · 🎁 처음 선물도
    - 🪑 ✏️ 진짜 기준 = 물건 하나에 받은- 파일 하나 (예전 그대로 🔐 · 같은 u 는 하나) : 그 안에 실물도 { u, id, from, got 받은 시각, pr: { id, K, P, f, wh, h }, pi: { 그림 이름: 그림 } }
        묶음이 깨지거나 없어져도 받은- 파일 · 서버로 다시 만들어요
@@ -12,9 +14,11 @@
    - 게스트 = 이 기기에만 · 로그인 = 드라이브 + 이 기기 */
 (function () {
     const G = {                                                                // 묶음 → 폴더 (drive.js DIRS) · 상품 종류 · rcv = 받은- 파일이 있어요
-        소품: { dir: 'desk', K: ['책상소품'], rcv: 1 },
+        소품: { dir: 'desk', K: ['책상소품', '벽지', '책상판'], rcv: 1 },         // 🧱 🪵 벽지 · 책상판도 소품 폴더 (1266)
         문구: { dir: 'gd', K: ['문구'], rcv: 1 },
-        다이어리: { dir: 'diary', K: ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트', '날짜형내지', '페이지내지'] }
+        다이어리: { dir: 'diary', K: ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트', '날짜형내지', '페이지내지'] },
+        배경지: { dir: 'pattern', K: ['배경지'], rcv: 1 },                          // 🌈 (1266)
+        빈스티커첩: { dir: 'emptyBook', K: ['스티커바인더', '이형지북'], rcv: 1 }   // 📒 🤍 (1266)
     };
     const KINDS = {}; Object.keys(G).forEach(g => G[g].K.forEach(K => { KINDS[K] = g; }));   // 상품 종류 → 묶음
     const FILE = '_실물.json', BK = '_실물_백업.json', DAY_MAX = 40;
@@ -97,12 +101,23 @@
         if (typeof prefGet === 'function') ['diary_cover_own', 'diary_refill_own'].forEach(k => { try { walk(prefGet(k, '')); } catch (e) { } });   // 💤 재료 목록은 읽은 뒤에만
         return out;
     }
-    const owned = g => {                                                       // → [[종류, 상품 id]]
-        if (g === '소품') return (window.deskOwnIds ? deskOwnIds() : []).map(id => ['책상소품', id]);
-        if (g === '문구') return ((window.gdOwnList && gdOwnList()) || []).map(o => ['문구', o.id]);
-        if (g === '다이어리') { const out = []; new Set(diaryIds()).forEach(id => G[g].K.forEach(K => { if (window.prodRawOf && prodRawOf(K, id)) out.push([K, id]); })); return out; }   // 같은 id 가 두 종류에 있으면 둘 다
-        return [];
-    };
+    function pids(v, out) { if (Array.isArray(v)) v.forEach(x => pids(x, out)); else if (obj(v)) Object.keys(v).forEach(k => { const x = v[k]; if (k === 'pid' && typeof x === 'string') out.push(x); else if (x && typeof x === 'object') pids(x, out); }); return out; }
+    function bookIds() {                                                       // 📒 🤍 빈스티커첩 목록 + 스티커 정리에 불러온 책 (읽어 둔 종류만 · js/own.js O)
+        const out = [];
+        if (typeof prefGet === 'function') ['diary_sbd_own', 'diary_rlb_own'].forEach(k => { try { pids(prefGet(k, ''), out); } catch (e) { } });
+        try { if (typeof O !== 'undefined' && O) { Object.values(O.kd || {}).forEach(d => pids(d && d.alb && { bd: d.alb.bd, rl: d.alb.rl }, out)); if (O.mem && O.mem.alb) Object.values(O.mem.alb).forEach(a => pids(a && { bd: a.bd, rl: a.rl }, out)); } } catch (e) { }
+        return out;
+    }
+    function skinIds() {                                                       // 🧱 🪵 가진 벽지 · 책상판 + 지금 고른 것 (js/deskskin.js)
+        try { const s = typeof dsRead === 'function' ? dsRead() : null; if (!s) return []; return (s.own || []).map(x => x && x.id).concat([s.wi, s.ti]).filter(x => typeof x === 'string'); } catch (e) { return []; }
+    }
+    const raw = g => g === '소품' ? (window.deskOwnIds ? deskOwnIds() : []).concat(skinIds())
+        : g === '문구' ? ((window.gdOwnList && gdOwnList()) || []).map(o => o.id)
+        : g === '다이어리' ? diaryIds()
+        : g === '배경지' ? (typeof bgoOwned === 'function' ? bgoOwned().map(x => x.p) : [])
+        : g === '빈스티커첩' ? bookIds() : [];
+    const owned = g => { const out = []; new Set(raw(g)).forEach(id => { if (typeof id === 'string') G[g].K.forEach(K => { if (window.prodRawOf && prodRawOf(K, id)) out.push([K, id]); }); }); return out; };   // → [[종류, 상품 id]] · 같은 id 가 두 종류에 있으면 둘 다
+    const mineKOf = (dir, id) => { const g = Object.keys(G).find(x => typeof DIRS !== 'undefined' && DIRS[G[x].dir] === dir); return g ? G[g].K.find(K => window.prodRawOf && prodRawOf(K, id)) || '' : ''; };   // 폴더 이름 + 상품 id → 종류 (js/coll.js ofAdd)
     async function fill() { for (const g of Object.keys(G)) for (const [K, id] of owned(g)) if (typeof id === 'string' && !grp(g).items[key(K, id)]) await mineSnap(K, id); }   // 🎁 선물 · 아직 실물이 없는 것
 
     /* ☁ 드라이브 */
@@ -194,7 +209,7 @@
     }
     function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); M.t = setTimeout(() => { const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
     window.mineDiff = mineDiff; window.mineUrl = mineUrl; window.mineSnap = mineSnap; window.mineGot = mineGot;
-    window.mineSync = mineSync; window.mineSoon = mineSoon;
+    window.mineSync = mineSync; window.mineSoon = mineSoon; window.mineKOf = mineKOf;
     window.mineInfo = () => ({ who: M.who, kinds: Object.keys(M.k).map(g => ({ g, n: Object.keys(M.k[g].items).length, img: Object.keys(M.k[g].img).length, cs: M.k[g].cs.length, fid: M.k[g].fid })), diff: Object.keys(KINDS).reduce((a, K) => a + Object.keys(mineDiff(K)).length, 0), owned: g => owned(g) });   // 🔎 시험 · 점검
 })();
 

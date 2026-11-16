@@ -468,7 +468,7 @@
                 const [list, alb, live] = await Promise.all([ownIdxRead(k, { id: mem.i }), ownAlbRead(k, mem.a ? { id: mem.a } : null), driveMeta(mem.i).catch(() => true)]).catch(() => [null, null, true]);
                 if (!live) { ownFilesSet(k, { i: '', a: '' }); d.f = d.albF = null; }   /* 🗑 기억한 목록이 휴지통 (말랑달콤 · 종류 폴더를 지웠어요) = 기억을 버리고 살아 있는 폴더에서 (도련 11-04) */
                 else if (list && d.f && (!mem.a || d.albF)) {
-                    d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list);
+                    d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list); if (window.mineSoon) mineSoon();   /* 📦 불러온 📒 🤍 책도 실물로 (js/mine.js) */
                     setTimeout(() => ownFilesCheck(k, mem), 0); setTimeout(() => ownBackup(k), 3000);
                     return;
                 }
@@ -483,7 +483,7 @@
                 }
             }
             const [list, alb] = await Promise.all([ownIdxRead(k, pi), ownAlbRead(k, pa)]);   // 동시에 읽어요
-            d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list);
+            d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list); if (window.mineSoon) mineSoon();   /* 📦 불러온 📒 🤍 책도 실물로 (js/mine.js) */
             if (ownMode() !== 'mem') { ownFilesNow(k); setTimeout(() => ownBackup(k), 3000); }
         }
         const ownLeft = e => e.q0 ? e.q : e.n - e.u.length;

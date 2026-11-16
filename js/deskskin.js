@@ -29,6 +29,7 @@
             }));
         }
         dsBuild();
+        if (window.prodHook) prodHook(() => { dsBuild(); if (window.dsPaint) dsPaint(); });   // 📦 내 실물이 바뀌면 다시 (js/mine.js)
         const DS_OL = '#a080a5';                                                // 방 그림(앱 배경) 선 색 · 기본 = 상품 '기본' (그림 그대로 · 얹지 않아요)
         const dsBasic = id => !!(dsCat(id) || {}).basic;
         const dsCat = id => DS_CAT.find(x => x.id === id) || null;
@@ -50,6 +51,7 @@
         const dsCur = () => (typeof DK !== 'undefined' && DK.edit && DS.edit) || dsRead() || { own: [], wall: '', top: '' };
         function dsSave(s, mem) {
             prefSet(DS_KEY, DS_LOCAL, { wall: s.wall || '', top: s.top || '', wi: dsOn(s, 'wall'), ti: dsOn(s, 'top') });
+            if (window.mineSoon) mineSoon();                                       // 📦 가진 벽지 · 책상판 = 실물로 (js/mine.js)
             if (s.part) return;                                                    // 💤 가진 것을 모르면 고른 것만
             const own = s.own.map(x => { const y = Object.assign({}, x, { from: 'basic' }); if (y.g) y.start = 1; delete y.g; return y; });   // 🎁 처음받기 = from: 'basic' + start: 1 (도련 11-09)
             if (mem && dsOnline()) store.putLoaded(DSO_KEY, JSON.stringify(own)); else prefSet(DSO_KEY, DSO_LOCAL, own);   // 💤 mem = 처음 선물 그대로 (목록 파일은 바뀔 때)
