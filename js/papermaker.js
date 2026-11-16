@@ -99,7 +99,7 @@
         function pmLayout() {
             const S = pmS;
             stkScreen(S);
-            S.SC = Math.min((S.W - 32) / PM_W, (S.H - 150) / S.SH, 1);   // 아이패드에서도 너무 크지 않게 (둘레에 붙일 페이지가 보이게) · 오리기 좋은 크기 (붙는 크기는 실제 비율 · pmReal)
+            S.SC = Math.min((S.W - 32) / PM_W, (S.H - 150) / S.SH, (spKeep() && stkPageScale()) || 1);   // 📏 💻 📱 모든 기기 = 실제 크기 (도련 11-16 · 종이에 보이는 그대로 붙어요 · pmReal) · 화면에 안 들어갈 때만 줄여요 · 🏪 연습장은 화면 크기
             S.X = (S.W - PM_W * S.SC) / 2; S.Y = Math.max(64, (S.H - S.SH * S.SC) / 2 + 8);
             pmShift(S.mv.x, S.mv.y, true);
         }

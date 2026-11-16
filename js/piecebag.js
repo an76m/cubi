@@ -55,12 +55,12 @@
             const bw = Math.min(PR.w - 60, 230), bh = Math.min(PR.h - 40, bw * 1.13);
             S.BIG = { x: PR.x + PR.w / 2 - bw / 2, y: PR.y + (PR.h - bh) / 2, w: bw, h: bh };
             S.SMALL = { x: S.BIG.x + bw / 2 - 31, y: S.BIG.y + bh / 2 - 38, w: 62, h: 76 };   // 뜯으면 그 자리에서 작아져요
-            S.HOLD = { cx: PR.x + PR.w / 2, cy: PR.y + PR.h * .46 };
             const m = Math.max(1, ...S.assets.map(a => Math.max(a.w, a.h)));
-            S.SL = Math.max(.24, Math.min(.6, Math.min(PR.w, PR.h) * .24 / m));
-            S.SH = Math.max(S.SL * 1.25, Math.min(1, PR.w * .44 / m, PR.h * .3 / m));   // 집으면 살짝만 커져요 (벗기다 손가락이 화면 끝에 닿지 않게)
-            S.SP = Math.min(1, Math.min(r.width, S.W) * .32 / m);
+            S.SP = stkPageScale() || Math.min(1, Math.min(r.width, S.W) * .32 / m);   // 📏 💻 📱 모든 기기 = 실제 크기 (도련 11-16 · 페이지에 붙을 크기 그대로 · 페이지가 없을 때만 화면 비율)
+            S.SL = S.SH = S.SP;                                                   // 쏟아진 조각 · 집은 조각도 같은 크기 (보이는 그대로 붙어요)
             for (const q of [S.BIG, S.SMALL]) { q.x += S.mv.x; q.y += S.mv.y; pcbClampR(q); }
+            const hh = m * S.SH / 2;                                              // ✋ 집은 조각 = 열린 봉투 바로 위 (실제 크기라 작은 조각이 봉투 · ✕ 를 가리지 않게 · 도련 11-16)
+            S.HOLD = { cx: S.SMALL.x + S.SMALL.w / 2, cy: Math.max(70 + hh, S.SMALL.y - 18 - hh) };
         }
         /* 화면이 바뀌면 (아이패드 돌리기 등) 흩어진 조각도 새 화면 안으로 : 화면에서 같은 비율 자리로 옮기고, 화면 밖이면 안쪽으로 */
         const pcbInScreen = (x, y, half) => { const S = pcbS, hx = Math.min(half, S.W / 2), hy = Math.min(half, (S.H - 78) / 2);
