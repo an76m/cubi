@@ -27,7 +27,7 @@
             DY_DESIGNS.push({ id: m.id, K: '', kind: m.ch === 'n' ? '노트' : '바인더', ch: m.ch, name: String(m.name || '내 다이어리').slice(0, 20), n: String(m.n || 'A5'), mm: String(m.mm || ''), r: +m.r > 0 ? +m.r : 1.414, b: m.ch === 'b' ? 'ring' : (['tn', 'spread', 'hard', 'thin'].includes(m.b) ? m.b : 'thin'), c: c.테두리색, lf: m.lf || 'line', rf0: '', off: true, mine: 1 });
         }
         function dyoAll() { const v = prefGet(DYO_KEY, DYO_LOCAL); const L = Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && x.id && DYO_T.includes(x.t)) : []; L.forEach(dyoMy); return L; }
-        function dyoSet(L, mem) { const v = (L || []).filter(Boolean); if (mem && dyoOnline()) store.putLoaded(DYO_KEY, JSON.stringify(v)); else prefSet(DYO_KEY, DYO_LOCAL, v); }   // mem = 메모리에만
+        function dyoSet(L, mem) { const v = (L || []).filter(Boolean); if (mem && dyoOnline()) store.putLoaded(DYO_KEY, JSON.stringify(v)); else prefSet(DYO_KEY, DYO_LOCAL, v); if (window.mineSoon) mineSoon(); }   // 📦 받은 다이어리 = 실물로 (js/mine.js)   // mem = 메모리에만
         const dyoGet = id => dyoAll().find(x => x.id === id) || null;
         function dyoPut(line, mem) { const L = dyoAll(), i = L.findIndex(x => x.id === line.id); if (i >= 0) L[i] = line; else L.push(line); dyoSet(L, mem); }
         function dyoDel(id) { const L = dyoAll(); if (L.some(x => x.id === id)) dyoSet(L.filter(x => x.id !== id)); }
@@ -41,7 +41,7 @@
         const dymIs = t => !!dymKind(t);
         function dymAll(k) { const v = prefGet(DYM[k].key, DYM[k].l); const L = Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && dymKind(x.t) === k) : []; if (k === 'cover') L.forEach(dyoMy); return L; }
         const dymGet = id => dymAll('cover').concat(dymAll('refill')).find(x => x.id === id) || null;
-        function dymSet(k, L) { prefSet(DYM[k].key, DYM[k].l, (L || []).filter(Boolean)); }
+        function dymSet(k, L) { prefSet(DYM[k].key, DYM[k].l, (L || []).filter(Boolean)); if (window.mineSoon) mineSoon(); }   // 📦 받은 표지 · 내지 = 실물로
         function dymPut(it) { const k = dymKind(it && it.t); if (!k) return; const L = dymAll(k), i = L.findIndex(x => x.id === it.id); if (i >= 0) L[i] = it; else L.push(it); dymSet(k, L); }
         function dymDel(id) { ['cover', 'refill'].forEach(k => { const L = dymAll(k); if (L.some(x => x.id === id)) dymSet(k, L.filter(x => x.id !== id)); }); }
         /* 💤 재료 목록 준비 : 쓰기 전에 꼭 (읽은 적 없으면 한 번 읽고 · 없어졌으면 그 폴더 백업에서) · 🆕 처음 온 다꾸러 = 찾지 않아요 */

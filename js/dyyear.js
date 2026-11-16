@@ -454,6 +454,7 @@
         window.dyyNone = dyyNone; window.dyyDiscard = dyyDiscard; window.dyyColor = dyyColor; window.dyyColorPaint = dyyColorPaint; window.dyyLeafNow = () => { const b = dyyBasic() && dyyBook(), L = b && dyyLine(b.id), r = L && Array.isArray(L.rf) && L.rf[0], d = b && DY_DESIGNS.find(x => x.id === dyyColor(b.c)); return r && r.lf ? r.lf : d ? d.lf : ''; };   /* 🗂️ 끼운 날짜 내지 */   // 📔 날짜형 = 모든 날 같은 내지 (상품 '내지') window.dyyIsNote = dyyIsNote;
         window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트
         window.dyyDesign = dyyDesign; window.dyyTitle = dyyTitle;
+        if (window.prodHook) prodHook(() => { dyoAll(); if (typeof isCoverOpen !== 'undefined' && isCoverOpen) dyyColorPaint(); });   // 📦 내 실물이 바뀌면 = 내가 만든 디자인도 다시 · 펼친 권 색 (js/mine.js)
         window.dyyBookType = () => dyyType(dyyBook()) || dyyType({ ch: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).ch, c: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).id });   // 📐 펼친 권 모양 (권이 없으면 처음받기 디자인 · js/skins.js dyNow)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

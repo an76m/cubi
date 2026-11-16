@@ -176,6 +176,7 @@ let fontList = [
             }));
         }
         dyRefillsBuild();
+        if (window.prodHook) prodHook(() => { dyColorsBuild(); dyRefillsBuild(); });   // 📦 내 실물이 바뀌면 다이어리 디자인 · 내지 다시 (js/mine.js)
 
         window.onload = () => oneReady(() => {                                  // 🔒 이 창이 다이어리를 맡았을 때만 시작 (한 기기에 하나 · js/onlyone.js)
             setupCurlDrag();
