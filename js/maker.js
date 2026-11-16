@@ -37,7 +37,7 @@
     MK.MMPX = 96 / 25.4;                                                       // 📏 1mm = CSS px (앱 js/skins.js MM_PX)
     MK.GAP = { ring: 8 };                                                    // 🔗 묶는 방식마다 두 쪽 사이 틈 mm (링 바인더 = 책등 · 링 자리 · 나머지 = 0 · 바인더 종류가 늘면 여기 한 줄)
     MK.STK_MM = 644 / 148;                                                     // 🏷️ 스티커 그림 1mm = 4.35px (시트 A6 세로 148mm = 644px · 도구/스티커정리 · 앱 js/skins.js STK_MM)
-    MK.DESK_K = .2; MK.LAY = [150, 86];
+    MK.DESK_K = .2; MK.LAY = [150, 144]; MK.DESK_TILT = 55;                    // 🛏 눕힌 각도 (도련 11-16 : 71° 는 너무 납작해서 작아 보였어요 · css --dk-tilt)
     MK.deskLk = () => 105 * MK.MMPX * MK.DESK_K / MK.LAY[0];
     MK.deskVol = (mm, p) => { const m = (Array.isArray(mm) ? mm : MK.mmOf(mm)) || [105, 148], f = MK.MMPX * MK.DESK_K, w = m[0] * f, h = m[1] * f;
         return p === 'side' ? [24, Math.round(h) + 15] : p === 'lay' ? [Math.round(w), Math.round(MK.LAY[1] * MK.deskLk() * m[1] / 148)] : [Math.round(w), Math.round(h) + 8]; };

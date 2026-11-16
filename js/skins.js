@@ -431,7 +431,7 @@
         /* 🏷️ 스티커 그림 px → 페이지 px (도련 11-16) : 지금까지 만든 스티커 · 시트 그림은 '1mm ≈ 4.35px' (A6 148mm = 644px) 로 그려져 있어요 → 붙일 때 MM_PX 기준으로 줄여요
            dyImgK() = 그림 1px 이 지금 펼친 페이지에서 몇 px 인지 (화면에 맞춰 줄인 만큼도) · 그림은 선명한 그대로 (줄여 보일 뿐) */
         const STK_MM = MK.STK_MM, IMG_K = MM_PX / STK_MM;
-        document.documentElement.style.setProperty('--stk-mm', STK_MM);   // css 🤍 이형지북 스티커 실제 크기
+        document.documentElement.style.setProperty('--stk-mm', STK_MM); document.documentElement.style.setProperty('--dk-tilt', MK.DESK_TILT + 'deg');   // css 🛏 눕힌 각도 (js/maker.js)   // css 🤍 이형지북 스티커 실제 크기
         const dyMm = t => { const m = String(t && t.mm || '').split(/[×x*]/).map(Number); return m[0] > 0 && m[1] > 0 ? m : null; };   // '105×148' → [105, 148]
         function dyPaper(t) {                                                  // 꾸미는 종이 한 쪽 [가로, 세로] px (테두리 · 날짜바 빼고)
             const m = dyMm(t); if (m) return [m[0] * MM_PX, Math.round(m[1] * MM_PX)];

@@ -1703,7 +1703,7 @@
         setInterval(deskTick, 1000);
         /* 📔 책상 위 다이어리 : 톡 = 그 자리에서 떠올라 화면 가운데로 · 책상 빈 곳 톡 = 접혀서 제자리로 (js/drive.js) · 그림 = .dk-vol 틀 하나 (아래 dkVolsPaint) */
         let deskAnim = false;                                                     // 떠오르기 · 내려놓기 움직이는 중
-        const DK_TILT = 71;                                                       // 눕힌 각도 (css .dk-vol.p-lay .dv-cv 와 같게)
+        const DK_TILT = MK.DESK_TILT;                                             // 눕힌 각도 (js/maker.js 한 곳 · css --dk-tilt)
         const dkOpenNow = () => isCoverOpen;
         const dkVisEl = (bk, ip, cv) => dkOpenNow() ? (bk.classList.contains('dy-one') ? bk : ip) : cv;   // 펼침 = 두 쪽(한 쪽씩 보기면 책 자리) · 접힘 = 겉표지
         /* 🏷️ 라벨 (도련 10-29) : 사용자가 알아서 붙여요 · 켜기/끄기 · 글 · 글꼴 · 글 색 · 라벨 색 · 크기 · 세로쓰기 · 자리 (모습마다 따로 : 📚 책등 / 📔 앞면) · 🛠 꾸미기에서만 */
