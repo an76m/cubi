@@ -1089,8 +1089,8 @@
             }
             /* 새 파일을 만들기 전에 폴더가 살아 있는지 드라이브에 직접 확인 : 휴지통에 들어간 폴더에 만들면 일기가 안 보이게 돼요
                → 폴더가 없거나 휴지통이면 기억해 둔 폴더를 모두 잊고 'gone' (부른 쪽이 폴더를 다시 찾아서 다시 저장해요) */
-            const seen = drive.alive.get(folderId);                              // 🔁 30초 안에 확인한 폴더는 다시 묻지 않아요 (처음 접속 · 여러 개 올릴 때 요청 줄이기 · 도련 11-05)
-            if (!(seen && Date.now() - seen < 30000) && !(await driveMeta(folderId, true))) {
+            const seen = drive.alive.get(folderId);                              // 🔁 이 창에서 한 번 확인한 폴더는 다시 묻지 않아요 (도련 11-17 · 예전 30초 · 휴지통 · 지워짐은 구글 changes 가 알려 줘요 = drcGone 이 잊어요)
+            if (!seen && !(await driveMeta(folderId, true))) {
                 diag('gone', { name, dir: folderId });
                 resetDriveCaches();
                 const er = new Error('folder gone'); er.code = 'gone'; throw er;
@@ -1839,7 +1839,7 @@
         }
         const CH_SPACES = 'drive,appDataFolder';
         /* 🗑 휴지통 · 지워진 파일 = 기억해 둔 파일 번호에서 빼요 (js/own.js · 도련 11-17 · 예전 = 번호마다 살아 있나 물었어요) */
-        function drcGone(chs) { const ids = new Set((chs || []).filter(c => c.removed || !c.file || c.file.trashed).map(c => c.fileId)); if (ids.size && window.ownForgetIds) ownForgetIds(ids); }                              // 📒 숨은 장부(앱 데이터 칸)도 같은 요청에 (도련 11-17)
+        function drcGone(chs) { const ids = new Set((chs || []).filter(c => c.removed || !c.file || c.file.trashed).map(c => c.fileId)); if (!ids.size) return; ids.forEach(id => drive.alive.delete(id)); if (window.ownForgetIds) ownForgetIds(ids); }   // 📁 살아 있다고 본 폴더도 (새 파일 만들기 전 다시 확인)                              // 📒 숨은 장부(앱 데이터 칸)도 같은 요청에 (도련 11-17)
         /* ⚡ 켤 때 (도련 11-17 "요청 1번으로 다 알아보고 바뀐 것만") : 계정 1번 + 지난번 표시부터 바뀐 것 1번 → 바뀐 것만 잊고 나머지는 이 기기 기억 (js/drcache.js)
            표시가 없거나 (처음 · 지웠어요) 구글이 안 받아 주면 = 기억을 버리고 예전처럼 다 읽어요 (읽은 것은 다음을 위해 기억해요) */
         async function drcBoot() {

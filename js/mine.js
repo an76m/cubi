@@ -100,7 +100,7 @@
         if (!B.items[key(K, id)]) { B.items[key(K, id)] = it; M.dirty.add(KINDS[K]); }
         return { pr: Object.assign({ id }, it), pi };
     }
-    function mineGot(K, c) { if (!KINDS[K] || !c) return; if (!M.who) { M.pg.push([K, c]); mineSoon(true); return; }   /* 기기 것을 읽기 전 = 읽은 뒤에 담아요 */ const B = kind(K); c = String(c); if (B.cs.includes(c)) return; B.cs.push(c); M.dirty.add(KINDS[K]); mineSoon(true); }   // 새 받은- 파일일 때만
+    function mineGot(K, c) { if (!KINDS[K] || !c) return; if (!M.who) { M.pg.push([K, c]); mineSoon(true); return; }   /* 기기 것을 읽기 전 = 읽은 뒤에 담아요 */ const B = kind(K); c = String(c); if (B.cs.includes(c)) return; B.cs.push(c); devSave(KINDS[K]).catch(() => {}); mineSoon(true); }   // 새 받은- 파일일 때만 · 📦 번호만 늘었으면 이 기기에만 적고 드라이브엔 다음에 실물이 바뀔 때 같이 (도련 11-17 · 같은 상품을 또 받을 때 _실물.json 다시 올리기 없음 · 새 디자인이면 fill 이 올려요)
     function diaryIds() {                                                      // 📔 가진 다이어리 · 재료의 상품 id (목록 · 재료 목록 · 날짜형 권 id)
         const out = [], walk = v => { if (Array.isArray(v)) v.forEach(walk); else if (obj(v)) Object.keys(v).forEach(k => { const x = v[k]; if ((k === 'pid' || (k === 'd' && v.t === 'dcover')) && typeof x === 'string') out.push(x); else if (x && typeof x === 'object') walk(x); }); };
         const L = typeof dyoAll === 'function' ? dyoAll() : [];
