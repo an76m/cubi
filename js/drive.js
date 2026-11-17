@@ -230,6 +230,8 @@
 
         async function gfetch(url, opts = {}, retried = false) {
             if (drive.local && window.vfsFetch) return vfsFetch(url, opts);        // 🏠 로그인 없이 이 브라우저 : 드라이브 대신 (js/devsave.js)
+            const get = !opts.method || opts.method === 'GET';
+            if (get && !opts.fresh && window.DRC && DRC.on) { const c = await DRC.serve(url); if (c) return c; }   // ⚡ 이 기기에 둔 것 (js/drcache.js · 바뀐 것은 changes 로 이미 잊었어요)
             await ensureToken();
             const res = await fetch(url, Object.assign({}, opts, {
                 headers: Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + drive.token })
@@ -237,8 +239,9 @@
             if (res.status === 401 && !retried) { drive.token = null; return gfetch(url, opts, true); }
             if (res.ok && opts.method && opts.method !== 'GET' && /googleapis\.com\/(upload\/)?drive\/v3\/files/.test(url)) {   // 📱 이 창이 손댄 파일 = 내 것 (checkRemote 가 다른 기기 것과 나눠요)
                 const m = /\/files\/([^/?]+)/.exec(url); if (m) mineIds.add(m[1]);
-                if (!m) res.clone().json().then(j => { if (j && j.id) mineIds.add(j.id); }).catch(() => {});
-            }
+                let nid = ''; if (!m) { try { const j = await res.clone().json(); if (j && j.id) { mineIds.add(j.id); nid = j.id; } } catch (e) {} }
+                if (window.DRC) { try { await DRC.wrote(url, opts, nid); } catch (e) {} }   // ⚡ 쓴 파일 · 그 폴더 목록은 기억에서 잊어요 (js/drcache.js)
+            } else if (res.ok && get && window.DRC && !drive.local) DRC.keep(url, res.clone()).catch(() => {});   // ⚡ 읽은 그대로 이 기기에 (다음에 켤 때 바뀐 것만 받게)
             /* 너무 자주 요청했거나(429 · 403 rateLimit) 구글이 잠깐 아플 때(5xx) : 1 · 2 · 4 · 8초 쉬고 다시 */
             const tries = opts._tries || 0;
             if (tries < 4 && !opts.keepalive && (res.status === 429 || res.status >= 500 || (res.status === 403 && /rate/i.test(await driveReason(res))))) {
@@ -566,8 +569,8 @@
             return ownSealText(body, await sealWho());
         }
         /* 파일 정보만 (내용 X) : 휴지통에 있거나 없어졌으면 null */
-        async function driveMeta(id) {
-            const res = await gfetch(`${DRIVE_API}/${id}?fields=id,name,modifiedTime,trashed,size`);
+        async function driveMeta(id, fresh) {                                    // fresh = 기억(js/drcache.js) 말고 드라이브에 바로 (새 파일을 만들 폴더가 살아 있는지)
+            const res = await gfetch(`${DRIVE_API}/${id}?fields=id,name,modifiedTime,trashed,size`, fresh ? { fresh: 1 } : {});
             if (res.status === 404) return null;
             if (!res.ok) throw await driveFail(res, 'meta');
             const f = await res.json();
@@ -1005,8 +1008,8 @@
         async function loadFromDrive() {
             if (window.PROD_READY) await PROD_READY;                       // 🧁 상품 목록 버전 확인이 끝난 뒤 (처음 선물 · 되살리기가 진짜 목록으로 · 늦어도 3초 · js/prod.js)
             resetDriveCaches(); drive.rootId = null; drive.keyNone = new Set();
+            await drcBoot();                                                 // 🔔 읽기 전에 표시 (읽는 사이 바뀐 것도 다음 확인에 잡혀요) · ⚡ 지난번 표시가 있으면 바뀐 것만 잊고 나머지는 이 기기에 둔 것으로 (js/drcache.js · 도련 11-17)
             await ledgerLoad();                                              // 📒 장부 먼저 (은퇴한 예전 폴더는 쓰지 않아요 · 영구삭제 한 벌)
-            await changesStart();                                            // 🔔 읽기 전에 표시를 받아 둬요 (읽는 사이 바뀐 것도 다음 확인에 잡혀요)
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             drive.newbie = !drive.rootId; diag('start', { mode: drive.local ? 'folder' : 'google', newbie: drive.newbie ? 1 : 0 });   // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
@@ -1077,7 +1080,7 @@
                     if (md5Same(j, body)) break;
                     if (t) throw md5Bad(name);
                 }
-                if (!j.trashed) return mineWrote(j);
+                if (!j.trashed) { if (window.DRC) await DRC.keepBody(j.id || fileId, body, j.md5Checksum); return mineWrote(j); }   // ⚡ 올린 그대로 기억 (다시 받지 않아요)
                 /* 🗑 휴지통에 들어간 파일 (폴더를 지웠거나 · 같은 이름 폴더 합치기로) : 번호로는 써지지만 드라이브 폴더에서는 안 보여요 (도련 11-06 마테 목록이 사라진 까닭)
                    → 그 파일은 그대로 두고 지금 폴더에 새로 만들어요 (폴더도 휴지통이면 'gone' → 부른 쪽이 폴더를 다시 찾아요) */
                 console.warn('🗑 휴지통에 있는 파일에 쓰려고 했어요 → 지금 폴더에 새로 만들어요 :', name); diag('twrite', { name, id: fileId });
@@ -1086,7 +1089,7 @@
             /* 새 파일을 만들기 전에 폴더가 살아 있는지 드라이브에 직접 확인 : 휴지통에 들어간 폴더에 만들면 일기가 안 보이게 돼요
                → 폴더가 없거나 휴지통이면 기억해 둔 폴더를 모두 잊고 'gone' (부른 쪽이 폴더를 다시 찾아서 다시 저장해요) */
             const seen = drive.alive.get(folderId);                              // 🔁 30초 안에 확인한 폴더는 다시 묻지 않아요 (처음 접속 · 여러 개 올릴 때 요청 줄이기 · 도련 11-05)
-            if (!(seen && Date.now() - seen < 30000) && !(await driveMeta(folderId))) {
+            if (!(seen && Date.now() - seen < 30000) && !(await driveMeta(folderId, true))) {
                 diag('gone', { name, dir: folderId });
                 resetDriveCaches();
                 const er = new Error('folder gone'); er.code = 'gone'; throw er;
@@ -1103,6 +1106,7 @@
             drive.alive.set(folderId, Date.now());
             const j = await res.json();
             if (!md5Same(j, body)) return driveUpsert(folderId, name, j.id, body, true);   // 🔏 새로 만든 파일 지문이 달라요 → 그 파일에 한 번 더 (그래도 다르면 에러)
+            if (window.DRC) await DRC.keepBody(j.id, body, j.md5Checksum);       // ⚡ 올린 그대로 기억
             return mineWrote(j);
         }
 
@@ -1811,10 +1815,9 @@
         setInterval(refreshTokenIfNeeded, 5 * 60 * 1000);
 
         /* =====================================================================
-           📱💻 두 기기 · 두 탭에서 같이 쓸 때
-           - 앱으로 돌아올 때 · 켜 둔 동안 1분마다 : 설정 · 카페 파일과 펼쳐 둔 날(앞 · 뒤 포함 3일)이
-             다른 기기에서 바뀌었는지 '마지막 수정 시각'만 보고, 바뀌었으면 그것만 다시 읽어요
-           - 같은 기기의 다른 탭이 저장하면 BroadcastChannel 로 바로 알려 줘요
+           📱💻 다른 기기에서 바꾼 것 (📱 한 기기 기준 · 도련 11-17)
+           - 켤 때 = drcBoot : 계정 1번 + 바뀐 것 묻기(changes) 1번 → 바뀐 것만 받고 나머지는 이 기기 기억 (js/drcache.js)
+           - 앱 · 창으로 돌아올 때 = checkRemote : 바뀐 것 묻기 1번 → 바뀐 파일만 다시 받기 (refreshChanged) · 켜 둔 동안 저절로는 안 물어요
            ===================================================================== */
         let lastRemoteCheck = 0, remoteChecking = null;
         /* 🔔 다른 기기 확인 = 구글 changes 요청 1번 (도련 11-17 · 📱 한 기기 기준)
@@ -1833,6 +1836,33 @@
             if (drive.local) return;
             try { const res = await gfetch('https://www.googleapis.com/drive/v3/changes/startPageToken'); if (res.ok) changeTok = (await res.json()).startPageToken || null; } catch (e) {}
         }
+        const CH_SPACES = 'drive,appDataFolder';                              // 📒 숨은 장부(앱 데이터 칸)도 같은 요청에 (도련 11-17)
+        /* ⚡ 켤 때 (도련 11-17 "요청 1번으로 다 알아보고 바뀐 것만") : 계정 1번 + 지난번 표시부터 바뀐 것 1번 → 바뀐 것만 잊고 나머지는 이 기기 기억 (js/drcache.js)
+           표시가 없거나 (처음 · 지웠어요) 구글이 안 받아 주면 = 기억을 버리고 예전처럼 다 읽어요 (읽은 것은 다음을 위해 기억해요) */
+        async function drcBoot() {
+            if (drive.local || !window.DRC) return changesStart();
+            DRC.off();
+            const AB = 'https://www.googleapis.com/drive/v3/about?fields=user(permissionId)';   // js/coll.js collWhoami 와 같은 주소 (그쪽은 이 창 기억에서 꺼내요)
+            let who = '', at = '';
+            try { const r = await gfetch(AB); if (r.ok) { at = await r.text(); who = ((JSON.parse(at) || {}).user || {}).permissionId || ''; } } catch (e) {}
+            const tok = who ? await DRC.boot(who) : '';
+            if (who && at) DRC.keep(AB, new Response(at)).catch(() => {});
+            if (!who) return changesStart();
+            if (tok) {
+                let t = tok, ok = false; const all = [];
+                try {
+                    for (let i = 0; i < 20 && t; i++) {
+                        const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(t)}&pageSize=1000&spaces=${CH_SPACES}&fields=*`);
+                        if (!res.ok) break;
+                        const j = await res.json(); all.push(...(j.changes || []));
+                        if (j.newStartPageToken) { changeTok = j.newStartPageToken; ok = true; break; }
+                        t = j.nextPageToken;
+                    }
+                } catch (e) {}
+                if (ok) { await DRC.apply(all); await DRC.ready(changeTok); drive.drcBoot = { n: all.length }; return; }
+            }
+            await DRC.wipe(); await changesStart(); if (changeTok) await DRC.ready(changeTok); drive.drcBoot = { n: -1 };
+        }
         const changeMine = c => { if (!mineIds.has(c.fileId)) return false; if (c.removed || !c.file || c.file.trashed) return true; const m = mineAt.get(c.fileId); return !m || (!!c.file.md5Checksum && c.file.md5Checksum === m.md5) || (!!m.mt && c.file.modifiedTime === m.mt) || c.file.mimeType === FOLDER_MIME; };
         async function changesForeign() {                                    // → 다른 기기가 바꾼 것들 [] · null = 모름 (처음 · 실패 → 안 물어요)
             if (drive.local) return [];
@@ -1840,12 +1870,13 @@
             let tok = changeTok; const out = [];
             try {
                 for (let i = 0; i < 20 && tok; i++) {
-                    const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=1000&spaces=drive&fields=*`);
-                    if (!res.ok) { changeTok = null; return null; }
+                    const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=1000&spaces=${CH_SPACES}&fields=*`);
+                    if (!res.ok) { changeTok = null; if (window.DRC) await DRC.wipe(); return null; }   // 표시가 안 맞으면 기억도 버려요 (다음에 켤 때 다 읽어요)
                     const j = await res.json();
-                    (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c)) out.push(c); });
+                    if (window.DRC) await DRC.apply(j.changes || []);              // ⚡ 바뀐 것은 기억에서 잊어요 (내 것 · 다른 기기 것 모두)
+                    (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c) && !(c.file && ((c.file.spaces || []).includes('appDataFolder') || c.file.name === LEDGER_NAME))) out.push(c); });   // 📒 장부는 화면과 상관없어요 (다음에 쓸 때 다시 읽어요)
                     if (window.mineHint) (j.changes || []).forEach(c => { if (!changeMine(c)) mineHint(c.fileId); });   // 📦 내 실물 목록
-                    if (j.newStartPageToken) { changeTok = j.newStartPageToken; drive.lastChanges = j.changes || []; return out; }
+                    if (j.newStartPageToken) { changeTok = j.newStartPageToken; drive.lastChanges = j.changes || []; if (window.DRC && DRC.on) await DRC.ready(changeTok); return out; }
                     tok = j.nextPageToken;
                 }
             } catch (e) { return null; }
@@ -1942,8 +1973,8 @@
             location.reload();
         }
         /* ⏱ 1분마다 확인은 없앴어요 (도련 11-13 : 두 기기를 동시에 켜 두고 쓰는 사람은 거의 없어요 · 구글 요청 아끼기)
-           → 앱으로 돌아올 때(화면 켜기 · 앱 전환 = visibilitychange) · 💻 창으로 돌아올 때(focus) · 같은 기기 다른 탭이 저장했을 때만 확인해요 (50초 안에 또는 안 물어요)
-           저장할 때는 따로 '올리기 직전 다른 기기 확인 · 합치기'를 해서 서로 덮어쓰지 않아요 */
+           → 앱으로 돌아올 때(화면 켜기 · 앱 전환 = visibilitychange) · 💻 창으로 돌아올 때(focus)만 확인해요 (50초 안에 또는 안 물어요)
+           (예전 '같은 기기 다른 탭 알림' · '올리기 직전 확인 · 합치기'는 11-17 📱 한 기기 기준으로 없앴어요) */
         window.addEventListener('focus', () => checkRemote());
 
         /* 화면 꺼짐 / 앱 전환 (아이폰·안드로이드·아이패드 공통) */

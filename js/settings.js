@@ -368,13 +368,14 @@
             const add = (id, n, sz) => { const g = G[id] || (G[id] = { n: 0, sz: 0 }); g.n += n || 0; g.sz += sz || 0; };
             try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) add(bcLsKind(k), 1, (k.length + (localStorage.getItem(k) || '').length) * 2); } } catch (e) {}
             try { if (sessionStorage.length) add('login', sessionStorage.length, 0); } catch (e) {}
-            let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest'].concat(BC_DRAFT);
+            let names = ['mallang-coll', 'mallang-pending', 'malang-device', 'malang-localtest', 'malang-drc'].concat(BC_DRAFT);
             try { if (indexedDB.databases) { const L = await bcWait(indexedDB.databases(), 2000); if (Array.isArray(L)) names = [...new Set(names.concat(L.map(d => d.name).filter(Boolean)))]; } } catch (e) {}
             G.dbs = names;
             for (const n of names) {
                 if (n === 'mallang-coll') await bcIdb(n, async db => { add('cache', (await bcCount(db, 'orig')) + (await bcCount(db, 'list'))); add('pend', await bcCount(db, 'outbox')); add('gcoll', await bcCount(db, 'local')); });
                 else if (n === 'mallang-pending') await bcIdb(n, async db => { for (const st of db.objectStoreNames) add('pend', await bcCount(db, st)); });
                 else if (n === 'malang-device') await bcIdb(n, async db => { add('dev', await bcCount(db, 'vmeta')); });
+                else if (n === 'malang-drc') await bcIdb(n, async db => { if (db.objectStoreNames.contains('r')) add('cache', await bcCount(db, 'r')); });   // ⚡ 드라이브 읽기 기억 (js/drcache.js · 지우면 다음에 켤 때 다 읽어요)
                 else if (BC_DRAFT.includes(n)) await bcIdb(n, async db => { for (const st of db.objectStoreNames) add('draft', await bcCount(db, st)); });   // 빈 DB 는 0 (목록에 안 보여요)
                 else if (n !== 'malang-localtest') add('etc', 1);
                 else await bcIdb(n, async () => add('etc', 1));                    // 🧪 시험용 = 있을 때만
@@ -445,6 +446,7 @@
                     if (sts.length) T.push([DBN[n] + ' 지우는 중', () => sts.length === 4 ? delDb(n) : bcIdb(n, db => clr(db, sts))]);
                 } else if (n === 'mallang-pending') { if (S('pend')) T.push([DBN[n] + ' 지우는 중', () => delDb(n)]); }
                 else if (n === 'malang-device') { if (S('dev')) T.push([DBN[n] + ' 지우는 중', () => delDb(n)]); }
+                else if (n === 'malang-drc') { if (S('cache')) T.push(['🖼 드라이브 읽기 기억 지우는 중', () => delDb(n)]); }
                 else if (BC_DRAFT.includes(n)) { if (S('draft')) T.push(['📝 완료 전 작업 지우는 중', () => delDb(n)]); }   // 📝 는 고른 때만 (🧪 와 따로)
                 else if (S('etc')) T.push(['🧪 그 밖의 브라우저 저장 지우는 중', () => delDb(n)]);
             }
