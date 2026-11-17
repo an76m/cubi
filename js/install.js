@@ -11,12 +11,17 @@
         const insQ = id => document.getElementById(id);
         const insUA = navigator.userAgent;
         const insStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        const insMacSafari = () => /Macintosh/.test(insUA) && navigator.maxTouchPoints <= 1 && /Safari\//.test(insUA) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR|Whale/i.test(insUA);
+        /* 🍎 애플 웹킷 = 7일 넘게 안 열면 저장한 것을 지울 수 있어요 (아이폰 · 아이패드는 어느 브라우저든 · 맥은 사파리만 · 앱으로 열면 괜찮아요) */
+        window.insMacSafari = insMacSafari;
+        window.insWebkitCap = () => !insStandalone() && (/iPhone|iPad|iPod/.test(insUA) || (/Macintosh/.test(insUA) && navigator.maxTouchPoints > 1) || insMacSafari());
         function insPlatform() {
             if (/KAKAOTALK/i.test(insUA)) return 'kakao';
             if (/NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|BAND\//i.test(insUA)) return 'inapp';
             if (/iPhone|iPad|iPod/.test(insUA) || (/Macintosh/.test(insUA) && navigator.maxTouchPoints > 1)) return 'ios';
             if (/SamsungBrowser/i.test(insUA)) return 'samsung';
             if (/Android/i.test(insUA)) return 'android';
+            if (insMacSafari()) return 'macsafari';
             return 'pc';
         }
 
@@ -63,6 +68,9 @@
                 ${insSteps([`화면 <b>아래쪽 오른쪽</b>의 ${INS_ICON.menu} 메뉴를 눌러요`, `<b>'현재 페이지 추가'</b>(또는 '페이지 추가')를 눌러요`, '<b>\'홈 화면\'</b>을 고르고 <b>\'추가\'</b>를 누르면 끝!'])}`;
             if (pf === 'android') return `<p class="ins-lead">크롬은 이렇게 해요</p>
                 ${insSteps([`화면 <b>위쪽 오른쪽</b>의 점 세 개 ${INS_ICON.dots} 를 눌러요`, '<b>\'홈 화면에 추가\'</b> 또는 <b>\'앱 설치\'</b>를 눌러요', '<b>\'설치\'</b>(또는 \'추가\')를 누르면 끝!'])}`;
+            if (pf === 'macsafari') return `<p class="ins-lead">맥 사파리는 이렇게 해요</p>
+                ${insSteps(['화면 맨 위 메뉴에서 <b>\'파일\'</b>을 눌러요', '<b>\'Dock에 추가\'</b>를 눌러요', '<b>\'추가\'</b>를 누르면 Dock 에 말랑달콤이 생겨요'])}
+                <p class="ins-note">macOS 소노마(14) 이상에서 돼요. 메뉴가 안 보이면 크롬이나 엣지로 열어 주세요.</p>`;
             return `<p class="ins-lead">PC(크롬 · 엣지)는 이렇게 해요</p>
                 ${insSteps([`주소창 <b>오른쪽 끝</b>의 설치 아이콘 ${INS_ICON.pc} 을 눌러요`, '<b>\'설치\'</b>를 누르면 바탕화면과 시작 메뉴에 말랑달콤이 생겨요'])}
                 <p class="ins-note">아이콘이 안 보이면 오른쪽 위 ${INS_ICON.dots} (엣지는 <b class="ins-key">⋯</b>) 메뉴 → '앱' 또는 '전송, 저장, 공유'에서 <b>'설치'</b>를 찾아 주세요.</p>`;

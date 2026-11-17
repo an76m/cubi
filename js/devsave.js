@@ -225,9 +225,47 @@
             await loadFromDrive();                                         // 드라이브로 로그인할 때와 똑같이 읽어요 (설정 · 카페 · 모음 · 3일치)
             vTrashPurge().catch(() => {});                                 // 🗑 30일 지난 것 비우기
             hideGate(); updateBadge();
+            setTimeout(dvKeepNote, 1200);                                   // 📔 아이폰 · 아이패드 · 맥 사파리 = 일기를 지켜 주세요
             try { await postLoginTasks(); } catch (e) {}
             if (navigator.storage && navigator.storage.persist && !/firefox/i.test(navigator.userAgent)) navigator.storage.persist().catch(() => {});   // 지우지 말아 주세요 (묻는 창 없이 되는 브라우저만)
         }
+        /* 📔 일기를 지켜 주세요 (도련 11-17) : 로그인 없이 + 애플 웹킷(아이폰 · 아이패드 · 맥 사파리 · 앱으로 열지 않음) = 7일 넘게 안 열면 브라우저가 지울 수 있어요
+             - 다꾸한 장이 있을 때만 (처음 받은 선물만 있으면 안 띄워요) · 하루 한 번 (malang_keep_day) · 화면 가운데 크게 · 📲 앱으로 설치 · ☁ 구글로 이동 · 닫기
+             - 지워진 뒤에는 알 수 없어요 (기록까지 같이 지워져서 처음 온 사람과 같아요) → 지워지기 전에 알려 주는 것 하나 */
+        const DV_KEEP = 'malang_keep_day';
+        function dvDiaryCount() {                                          // 이 브라우저에 든 다꾸 장 수 (다이어리 / <권> / 날짜 · 페이지 파일)
+            const top = (typeof DIARY_PATH !== 'undefined' ? DIARY_PATH : [DV_TOP, '다이어리']).join('/') + '/';
+            let n = 0;
+            V.idx.forEach((m, p) => {
+                if (!m || m.k === 'd' || !p.startsWith(top)) return;
+                const rest = p.slice(top.length); if (rest.split('/').length !== 2) return;
+                const nm = vName(p); if (/^(다이어리|상태|표지|_.*)\.json$/.test(nm)) return;
+                n++;
+            });
+            return n;
+        }
+        function dvKeepNote(force) {
+            try {
+                if (!V.on || !window.insWebkitCap || !insWebkitCap()) return false;
+                const n = dvDiaryCount(); if (!n) return false;
+                const d = new Date(), today = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                if (!force && localStorage.getItem(DV_KEEP) === today) return false;
+                localStorage.setItem(DV_KEEP, today);
+                const el = document.getElementById('keepBody'); if (!el) return false;
+                const mac = window.insMacSafari && insMacSafari();
+                el.innerHTML = `<p class="keep-lead">다꾸한 일기 <b>${n}장</b>이<br>지금 이 브라우저 안에만 있어요.</p>
+                    <div class="keep-rule"><b>🍎 애플 규칙</b><br>${mac ? '맥의 <b>사파리</b>는' : '아이폰 · 아이패드의 브라우저는 (사파리 · 크롬 모두)'}
+                        이 사이트를 <b>7일 넘게 열지 않으면</b><br>저장된 내용을 스스로 지워요.<br>
+                        <span>개인정보를 지키려고 애플이 정한 규칙이라 말랑달콤이 막을 수 없어요.</span></div>
+                    <div class="keep-way"><b>이 규칙이 없는 곳으로 옮겨 주세요</b>
+                        <p>☁ <b>구글 드라이브</b> : 내 구글 계정에 저장돼요. 애플 규칙과 상관없고, 기기를 바꿔도 그대로예요. <em>지금 쓴 일기도 그대로 옮겨져요.</em></p>
+                        <p>📲 <b>${mac ? 'Dock 에 추가한 앱' : '홈 화면에 추가한 앱'}</b> : 앱으로 열면 이 규칙이 없어요. 하지만 앱은 브라우저와 저장 공간이 달라서 <em>지금 쓴 일기는 따라가지 않아요.</em> → 먼저 구글 드라이브로 옮기고, 앱에서 구글로 로그인하면 돼요.</p>
+                        ${mac ? '<p>🌐 <b>크롬 · 엣지</b> : 맥의 크롬 · 엣지는 이 규칙이 없어요. (지금 쓴 일기는 따라가지 않아요)</p>' : ''}</div>`;
+                openModal('keepModal');
+                return true;
+            } catch (e) { return false; }
+        }
+        window.dvKeepNote = dvKeepNote;
         /* drive.js initDrive 맨 앞 : true 면 구글 화면 없이 이 브라우저 저장공간으로 열렸어요 */
         function dvQuit() { V.on = false; drive.local = false; drive.ready = false; }
 
