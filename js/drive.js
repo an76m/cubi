@@ -1448,27 +1448,13 @@
             setTimeout(sealOld, 20000);                                      // 🔐 예전 파일 잠그기 (뒤에서 조금씩 · 도련 11-11)
         }
         window.sealOld = sealOld;
-        /* 📐 작업 중 파일 (도련 11-14 · 태블릿 그림판 💾 임시저장) : 도안/작업중-<종류>.json · 종류마다 하나 (새로 저장하면 덮어써요 · 도안 목록에는 안 들어가요)
-           모든 것을 json 하나에 (레이어 · 그림 · 벡터 점 · 사진 · 종이 · 도구) · 🔐 잠가요 (driveUpsert) · 🏠 로그인 없이도 같아요 (gfetch → 이 브라우저) */
-        const draftName = k => '작업중-' + k + '.json';
-        async function draftFind(k, create) { const d = await getFolder(dirPath(DIRS.design), !!create); return { d, f: d ? await findFile(d, draftName(k)) : null }; }
-        /* 📱 임시저장 = 이 기기에만 (도련 11-14 · 다이어리 임시저장과 같게) : IndexedDB 'mallang-ppdraft' · 계정마다 · 종류마다 하나 · 자동으로도 저장 (js/padpaint.js)
-           예전 드라이브 작업중 파일이 있으면 = 처음 열 때 이 기기로 옮기고 드라이브 것은 지워요 */
+        /* 📱 태블릿 그림판 💾 임시저장 = 이 기기에만 (도련 11-14 · 다이어리 임시저장과 같게) : IndexedDB 'mallang-ppdraft' · 계정마다 · 종류마다 하나 · 자동으로도 저장 (js/padpaint.js)
+           드라이브에는 임시저장 파일이 없어요 → 앱을 열 때 드라이브를 묻지 않아요 (예전 '도안/작업중-' 찾기는 없앴어요 · 도련 11-17 · 쓸데없는 요청 1번) */
         let ppdbP = null;
         const ppdb = () => ppdbP || (ppdbP = new Promise(ok => { try { const r = indexedDB.open('mallang-ppdraft', 1); r.onupgradeneeded = () => r.result.createObjectStore('d'); r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
         async function ppdTx(mode, fn) { const d = await ppdb(); if (!d) throw new Error('이 기기에 저장할 수 없어요'); return new Promise((ok, no) => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => no(t.error || new Error('idb')); } catch (e) { no(e); } }); }
         const ppdKey = k => pendWho() + '|' + k;
-        async function draftOld(k) {                                         // ☁️ 예전 드라이브 작업중 파일 → 이 기기로
-            if (typeof drive === 'undefined' || !drive.ready) return null;
-            let f = null; try { f = (await draftFind(k)).f; } catch (e) { return null; }
-            if (!f) return null;
-            const obj = parseJsonObject(await readFileText(f.id), '작업중 파일'); if (!obj) return null;
-            const at = Date.parse(f.modifiedTime) || obj.at || Date.now();
-            await ppdTx('readwrite', st => st.put({ k, at, obj }, ppdKey(k)));
-            try { await gfetch(`${DRIVE_API}/${f.id}`, { method: 'DELETE' }); } catch (e) {}
-            return { at, obj };
-        }
-        async function draftRec(k) { const r = await ppdTx('readonly', st => st.get(ppdKey(k))); return r || await draftOld(k); }
+        async function draftRec(k) { return await ppdTx('readonly', st => st.get(ppdKey(k))) || null; }
         window.draftHas = async k => { const r = await draftRec(k); return r ? { at: r.at, size: 0 } : null; };
         window.draftRead = async k => { const r = await draftRec(k); return r ? r.obj : null; };
         window.draftWrite = async (k, obj) => { await ppdTx('readwrite', st => st.put({ k, at: Date.now(), obj }, ppdKey(k))); };
