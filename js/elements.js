@@ -30,19 +30,12 @@
             img.src = resolveSrc(src);
             inlineImage(img);
         }
-        /* 🗜 앱에서 그림 굽기 = 하나로 (도련 11-04) : 크롬(PC · 맥 · 안드로이드) = WebP 0.9 (투명 그대로 · PNG 보다 약 80% · JPG 0.9 와 같거나 작아요)
-           WebP 로 못 굽는 브라우저(사파리 · 아이폰 · 아이패드의 모든 브라우저) = 투명한 곳이 있으면 PNG, 없으면 JPG 0.9
-           ⚠ WebP 1.0 은 쓰지 않아요 (무손실이 아니면서 JPG 의 2~6배) · 받은 서버 스티커(96색 무손실 WebP)는 굽지 않고 그대로 */
-        let cvWebpOk = null;
+        /* 🗜 앱에서 그림 굽기 = 하나로 → 🗜 그림 굽기 엔진 js/imgsmall.js imgBake (도련 11-17 : 상품공방 · AI · 앱이 같은 규칙 · 원본 모습 그대로 · 용량은 가장 작게)
+           96색 이하 = 원본 무손실 · 96색으로 줄여도 눈에 띄게 바뀐 점이 10% 이하 = 96색 무손실 · 사진 같은 그림 = JPG / WebP 0.9 (작은 것)
+           무손실 = 크롬 WebP · 사파리 · 아이폰 · 아이패드 = PNG · 받은 서버 스티커(96색 무손실 WebP)는 굽지 않고 그대로 (inlineImage = 작은 것) */
         function cvSmall(c) {
-            if (cvWebpOk !== false) {
-                let u = ''; try { u = c.toDataURL('image/webp', .9); } catch (e) {}
-                cvWebpOk = u.startsWith('data:image/webp');
-                if (cvWebpOk) return u;
-            }
-            let clear = false;
-            try { const a = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < a.length; i += 4) if (a[i] < 255) { clear = true; break; } } catch (e) { clear = true; }
-            return clear ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .9);
+            if (window.imgBake) { try { return imgBake(c); } catch (e) { console.warn('🗜 그림 굽기', e); } }
+            return c.toDataURL('image/png');
         }
         window.cvSmall = cvSmall;
 

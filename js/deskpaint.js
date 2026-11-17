@@ -123,7 +123,7 @@
         async function dpDone() {                                                 // ✕ 닫기 = 책상에 미리 보기 (저장은 하단 ✔ 완료)
             if (!DP.dirty && !DP.decal) { dpClose(); return; }
             const out = dpCv(DP.W, DP.H); dpCompose(out.getContext('2d'), true);
-            let url = out.toDataURL('image/webp', .9); if (!/^data:image\/webp/.test(url)) url = out.toDataURL('image/png');
+            const url = window.imgBakeBest ? (await imgBakeBest(out)).url : out.toDataURL('image/png');   // 🗜 js/imgsmall.js (도련 11-17)
             const o = DP.o; dpClose();
             try { await dkArtDraft(o, url); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 꾸민 소품을 저장하지 못했어요.'); }
         }

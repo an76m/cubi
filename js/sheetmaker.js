@@ -237,7 +237,7 @@
                 const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const c = cv.getContext('2d');
                 c.translate(cw / 2, ch / 2); c.rotate(a); c.drawImage(it.img, -w * sc / 2, -h * sc / 2, w * sc, h * sc); c.setTransform(1, 0, 0, 1, 0, 0);
                 finPaint(c, cw, ch);
-                let u = ''; try { u = cv.toDataURL('image/webp', .9); } catch (e) {} if (!/^data:image\/webp/.test(u)) u = cv.toDataURL('image/png');
+                const u = window.imgBake ? imgBake(cv) : cv.toDataURL('image/png');   // 🗜 js/imgsmall.js (도련 11-17)
                 imgs.push(u); wh.push([cw, ch]); b.push([(it.cx - bw / 2) / W, (it.cy - bh / 2) / H, bw / W, bh / H]);
             }
             const title = S.title.trim();

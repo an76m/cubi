@@ -884,12 +884,14 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         P.layers.forEach(L => { if (L.type === 'paper' || !L.vis) return; if (L.type === 'vec' && L.dirtyV) vecPaint(L); ax.save(); ax.globalAlpha = L.op; ax.globalCompositeOperation = L.blend || 'source-over'; ax.drawImage(L.type === 'vec' ? L.cache : L.cv, 0, 0); ax.restore(); });
         return art;
     }
-    function cvUrl(c, k) {                                                     // k 배로 줄여 webp
+    function cvUrl(c, k) {                                                     // k 배로 줄여 굽기 (🗜 js/imgsmall.js 그림 굽기 엔진 · ✅ 완료 때 cvBest 로 한 번 더)
         const s = k !== 1 ? mkCv(Math.max(1, Math.round(c.width * k)), Math.max(1, Math.round(c.height * k))) : c;
         if (s !== c) s.getContext('2d').drawImage(c, 0, 0, s.width, s.height);
-        let u = ''; try { u = s.toDataURL('image/webp', .9); } catch (e) {} if (!/^data:image\/webp/.test(u)) u = s.toDataURL('image/png');
-        return { u, wh: [s.width, s.height] };
+        return { u: window.imgBake ? imgBake(s) : s.toDataURL('image/png'), wh: [s.width, s.height], cv: s };
     }
+    /* 🗜 ✅ 완료 = 같은 잣대로 가장 작게 (도련 11-17 · 원본 모습 그대로 · 용량은 가장 작게 · js/imgsmall.js imgBakeBest) */
+    const cvBest = async c => window.imgBakeBest ? (await imgBakeBest(c)).url : c.toDataURL('image/png');
+    async function cvBestAll(L) { for (const o of L) { if (o && o.cv instanceof HTMLCanvasElement) o.u = await cvBest(o.cv); if (o) delete o.cv; } return L; }
     function pieceOne() {                                                      // 🧩 판의 그림 전체 = 조각 하나 (하얀 칼선 · 페이지 크기로)
         const art = artCv(), d = art.getContext('2d').getImageData(0, 0, P.W, P.H).data;
         let x0 = P.W, y0 = P.H, x1 = -1, y1 = -1;
@@ -907,7 +909,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         commitFloat(); penEnd();
         if (P.pcs.length >= 4) { if (window.showMsg) showMsg('🧩 조각은 4개까지 담을 수 있어요.<br><span style="font-size:12px;color:#777;">✅ 완료를 눌러 도안으로 저장해요.</span>'); return; }
         const one = pieceOne(); if (!one) { say('🧩 먼저 조각을 그려 주세요'); return; }
-        P.pcs.push(one);
+        P.pcs.push(Object.assign({}, one, { u: await cvBest(one.cv), cv: undefined }));   // 🗜 담을 때 가장 작게 (그림 판은 임시저장(IndexedDB)에 못 넣어서 그림 글로만)
+        delete P.pcs[P.pcs.length - 1].cv;
         P.layers = P.layers.filter(l => l.type === 'paper'); P.cur = addLayer('px', '그림 1'); P.hist = []; P.redo = [];   // 담은 조각은 판에서 비워요 (↶ 로 되살리면 두 번 담겨요)
         P.dirty = true; renderAll(); paintLayers(); paintProps(); pcPaint();
         say(`🧩 ${P.pcs.length}번째 조각을 담았어요 · 새 조각을 그려요`, 2000);
@@ -936,7 +939,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         });
     }
     async function sealSave() {
-        const L = sealOut(); if (!L.length) { if (window.showMsg) showMsg('시트에 그린 그림이 없어요.'); return false; }
+        const L = await cvBestAll(sealOut()); if (!L.length) { if (window.showMsg) showMsg('시트에 그린 그림이 없어요.'); return false; }
         const W = P.W, H = P.H, sbc = mkCv(Math.round(644 * W / H), 644), sx = sbc.getContext('2d'); sx.fillStyle = '#ffffff'; sx.fillRect(0, 0, sbc.width, sbc.height);
         let sb = ''; try { sb = sbc.toDataURL('image/webp', .85); } catch (e) {} if (!/^data:image\/webp/.test(sb)) sb = sbc.toDataURL('image/png');
         const tc = mkCv(Math.round(240 * W / H), 240), t = tc.getContext('2d'); t.fillStyle = '#ffffff'; t.fillRect(0, 0, tc.width, tc.height);
@@ -960,20 +963,21 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         let ok = false;
         try {
             const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, P.W, P.H); compose(x, false);
-            const src = c.toDataURL('image/jpeg', .86); g(35);
+            g(35);
             let nSeal = 0; if (window.ownAdd) ownAdd.design = '';
             if (P.kind === 'seal') { if (!window.ownAdd) throw new Error('ownAdd'); nSeal = await sealSave(); if (!nSeal) return; }
-            else if (P.kind === 'paper') await ownTake({ k: 'paper', from: 'mine', imgs: [c.toDataURL('image/jpeg', .9)] });   // 📄 보이는 그대로 인쇄된 한 장 (js/papermaker.js openPaperSheet · 가로 = PM_W)
+            else if (P.kind === 'paper') await ownTake({ k: 'paper', from: 'mine', imgs: [await cvBest(c)] });   // 📄 보이는 그대로 인쇄된 한 장 (js/papermaker.js openPaperSheet · 가로 = PM_W)
             else if (P.kind === 'piece') {                                     // 🧩 담은 조각 + 그리던 것 (4개까지) → 봉투 하나 (🖨 뽑으면 늘 4조각 · own.js ownDesignPrint)
                 const cur = pieceOne(), L = P.pcs.slice();
                 if (cur) { if (L.length < 4) L.push(cur); else if (window.showAsk && !(await showAsk('🧩 조각 4개가 가득 찼어요.<br><span style="font-size:12px;color:#777;">지금 그리던 조각은 빠져요 · 그래도 완료할까요?</span>', '완료', '그만'))) return; }
                 if (!L.length) { if (window.showMsg) showMsg('먼저 조각을 그려 주세요.'); return; }
+                await cvBestAll(L);
                 await ownTake({ k: 'piece', from: 'mine', baked: true, nm: '내가 만든 조각', imgs: L.map(o => o.u), wh: L.map(o => o.wh) });
                 nSeal = L.length; P.pcs = [];
             }   // 🏷️ 떨어진 그림마다 한 장 · 놓은 자리 그대로 한 시트
             else if (P.kind === 'tape') await ownTake(tapeOut());   // 🎀 한 롤 (붙인 길이만큼 줄어요) · 📏 폭 · 한 칸 mm 가 그림 안에 (js/tape.js tapeFit)
-            else if (P.kind === 'tk') await ownTake({ k: 'tk', from: 'mine', imgs: [c.toDataURL('image/jpeg', .9)], x: { pad: 'my', glue: P.glue || '', mm: P.tkmm.slice() } });   // 🧻 한 묶음(50장) · 📏 실제 크기 mm (js/leafpad.js tkDim)
-            else await ownTake({ k: 'leaf', from: 'mine', imgs: [src], x: Object.assign({ lf: 'my', two: !!P.two }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: P.spec.r } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
+            else if (P.kind === 'tk') await ownTake({ k: 'tk', from: 'mine', imgs: [await cvBest(c)], x: { pad: 'my', glue: P.glue || '', mm: P.tkmm.slice() } });   // 🧻 한 묶음(50장) · 📏 실제 크기 mm (js/leafpad.js tkDim)
+            else await ownTake({ k: 'leaf', from: 'mine', imgs: [await cvBest(c)], x: Object.assign({ lf: 'my', two: !!P.two }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: P.spec.r } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
             P.dirty = false; g(85);
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
             if (window.ownAdd && ownAdd.design && window.ownDzMsg) ownDzMsg('design:' + ownAdd.design, nSeal ? (P.kind === 'piece' ? `🧩 조각 ${nSeal}개` : `🏷️ 스티커 ${nSeal}장`) : '');   // 📐 도안 (📱 태블릿 = 책상 프린터 · 📱 폰 = 🖨 지금 바로 뽑기)
@@ -1161,7 +1165,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function tapeOut() {                                                      // 🎀 서랍에 넣을 한 롤 : 한 칸 그림(작게) → 늘어나는 테이프 그림 (js/tape.js tapeSvg) · 실제 mm 를 적어 둬요
         const big = mkCv(P.W, P.H); compose(big.getContext('2d'), false);
         const th = 96, tw = Math.max(8, Math.round(th * P.W / P.H)), c = mkCv(tw, th); c.getContext('2d').drawImage(big, 0, 0, tw, th);
-        let d = c.toDataURL('image/webp', .9); if (!/^data:image\/webp/.test(d)) d = c.toDataURL('image/png');
+        const d = window.imgBake ? imgBake(c) : c.toDataURL('image/png');   // 🗜 js/imgsmall.js
         const h = 30, w = Math.round(h * P.W / P.H * 100) / 100;              // 예전 테이프처럼 높이 30 기준 (붙일 때 실제 폭으로 맞춰요)
         const u = tapeUrl({ id: 'm-' + Date.now().toString(36), name: '', bg: 'none', w, h, mm: [P.tkmm[0], P.tkmm[1]], p: `<image href="${d}" width="${w}" height="${h}" preserveAspectRatio="none"/>` });
         return { k: 'tape', from: 'mine', imgs: [u], th: u, x: { mm: P.tkmm.slice() } };

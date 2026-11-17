@@ -107,7 +107,7 @@
                 const L = W * P[0] / 100, T = H * P[1] / 100, w = W * (P[2] - P[0]) / 100, h = H * (P[3] - P[1]) / 100, k = Math.max(w / pic.naturalWidth, h / pic.naturalHeight);
                 const sw = w / k, sh = h / k; x.save(); x.beginPath(); x.rect(L, T, w, h); x.clip();
                 x.drawImage(pic, (pic.naturalWidth - sw) / 2, (pic.naturalHeight - sh) / 2, sw, sh, L, T, w, h); x.restore();
-                let url = c.toDataURL('image/webp', .9); if (!/^data:image\/webp/.test(url)) url = c.toDataURL('image/png');
+                const url = window.imgBakeBest ? (await imgBakeBest(c)).url : c.toDataURL('image/png');   // 🗜 js/imgsmall.js (도련 11-17)
                 try { if (window.dkArtDraft) await dkArtDraft(o, url); if (window.closeModal) closeModal('deskCsModal'); } catch (e) { console.warn(e); if (window.showMsg) showMsg('⚠ 사진을 넣지 못했어요.'); }
                 URL.revokeObjectURL(pic.src); };
             pic.onload = go; base.onload = go; base.crossOrigin = 'anonymous';

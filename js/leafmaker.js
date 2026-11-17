@@ -137,7 +137,7 @@
         async function lmDone(btn, keep) {                              // keep : 🗄️ 서랍에 넣기만 (오늘 페이지는 그대로)
             if (btn && btn.disabled) return;
             const c = document.createElement('canvas'); c.width = lm.w; c.height = lm.h; lmCompose(c.getContext('2d'));
-            const src = c.toDataURL('image/jpeg', lm.for === 'leaf' ? .86 : .9);
+            const src = window.imgBakeBest ? (await imgBakeBest(c)).url : c.toDataURL('image/jpeg', .9);   // 🗜 그림 굽기 엔진 (js/imgsmall.js · 도련 11-17 : 원본 그대로 · 가장 작게)
             if (lm.for === 'tk') return tkDone(btn, keep, src);
             if (lm.for === 'memo') return lmOwn(btn, keep, { k: 'memo', from: 'mine', imgs: [src], x: { pp: 'img', w: lm.w, h: lm.h, mm: lm.mm } }, '📝 메모지');   // 🎒 만든 메모지 한 묶음 = 🧺 바구니로
             return lmOwn(btn, keep, { k: 'leaf', from: 'mine', imgs: [src], x: { lf: 'my', sz: lfSz(lm.mm), two: lm.two } }, '📃 속지');   // 🎒 만든 속지 한 장 = 🧺 바구니로 (끼우면 끝)
