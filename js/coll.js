@@ -296,8 +296,8 @@
         async function collDo(v, k, noList) {
             const C = collOf(v.names, v.pre), name = collItemName(C, v.id);
             if (v.op === 'del') {
-                const dir = await getFolder(C.names, false);
-                let cur = v.f ? await driveMeta(v.f) : null;
+                const dir = v.f ? null : await getFolder(C.names, false);
+                let cur = v.f ? { id: v.f } : null;                            // 📱 한 기기 기준 = 아는 번호 그대로 (도련 11-17)
                 if (!cur && dir) cur = await findFile(dir, name);
                 if (cur) {
                     if (v.keep && window.appTrash) await appTrash(cur.id, C.names.concat(name).join('/'), 'u');   // 🗑 사용자가 지운 것 = 앱 휴지통 30일
@@ -308,27 +308,14 @@
                 return;
             }
             const dir = await getFolder(C.names, true);
-            let cur = v.f ? await driveMeta(v.f) : null;
-            if (v.op === 'add' && !v.tried && k != null) {                       // 🆕 처음 올리는 새것 = 같은 이름 파일이 있을 수 없어요 (찾지 않아요 · 끊겼다 다시 하면 그때 찾아요 · 요청 줄이기 · 도련 11-05)
+            let cur = v.f ? { id: v.f } : null;                                   // 📱 한 기기 기준 = 아는 번호에 바로 (다른 기기 확인 · 묻기 없음 · 도련 11-17)
+            if (v.op === 'add' && !v.tried && k != null) {                       // 🆕 처음 올리는 새것 = 같은 이름 파일이 있을 수 없어요 (찾지 않아요 · 끊겼다 다시 하면 그때 찾아요)
                 v.tried = 1; await collTx('outbox', 'readwrite', st => st.put(v, k));
             } else if (!cur) cur = await findFile(dir, name);
-            if (v.op === 'put' && cur && v.base && Date.parse(cur.modifiedTime) > v.base + 2000) {       // 📱 다른 기기가 그 사이 고쳤어요
-                let theirs = null;
-                try { theirs = JSON.parse(await readFileText(cur.id) || 'null'); } catch (e) {}
-                if (theirs && theirs.item != null && JSON.stringify(theirs.item) !== JSON.stringify(v.item)) {
-                    const mine = await showAsk('📱 다른 기기에서 같은 것을 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>', '📝 내 것 저장', '📱 다른 기기 것');
-                    if (!mine) {
-                        const ent = { id: v.id, th: theirs.th || '', x: theirs.x || {}, f: cur.id, m: Date.parse(cur.modifiedTime) || Date.now() };
-                        collPatch(C, v.id, ent);
-                        collCache(collKey(C, 'o' + v.id), theirs.item, ent.m);
-                        await collListEdit(C, v.id, ent);
-                        if (C.onChange) C.onChange(v.id, theirs.item);
-                        return;
-                    }
-                }
-            }
             const body = JSON.stringify({ v: 1, id: v.id, th: v.ent.th, x: v.ent.x, m: v.ent.m, item: v.item });
-            const saved = await driveUpsert(dir, name, cur && cur.id, body);
+            let saved;
+            try { saved = await driveUpsert(dir, name, cur && cur.id, body); }
+            catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; const f = await findFile(dir, name); saved = await driveUpsert(dir, name, f ? f.id : null, body); }   // 그 사이 지워진 번호
             const ent = Object.assign({}, v.ent, { f: saved.id, m: Date.parse(saved.modifiedTime) || v.ent.m });
             collCache(collKey(C, 'o' + v.id), v.item, ent.m);
             if (noList) return ent;                                               // 목록은 부른 쪽이 한 번에 (collListAdd)
@@ -348,30 +335,19 @@
                 if (!L || (await collLoad(C, L)).length >= COLL_PER) { L = { n: (L ? L.n : 0) + 1, f: null, items: [] }; lists.push(L); }
             }
             const name = collListName(C, L.n);
-            let cur = L.f ? await driveMeta(L.f.id) : null;
-            if (!cur) cur = await findFile(listDir, name);
-            if (cur && (!L.f || cur.id !== L.f.id || cur.modifiedTime !== L.f.modifiedTime)) { L.f = cur; L.items = null; await collLoad(C, L); }   // 다른 기기가 고쳤어요 → 다시 읽은 위에
+            let cur = L.f && L.f.id ? L.f : null;                                // 📱 한 기기 기준 = 아는 목록 파일에 바로 (도련 11-17)
+            if (!cur && L.items == null) { cur = await findFile(listDir, name); if (cur) { L.f = cur; await collLoad(C, L); } }
             const items = L.items || (L.items = []);
             const i = items.findIndex(e => e.id === id);
             if (ent) { if (i >= 0) items[i] = ent; else items.push(ent); }
             else if (i >= 0) items.splice(i, 1);
             else return;
             (more || []).forEach(e => { const j = items.findIndex(x => x.id === e.id); if (j >= 0) items[j] = e; else items.push(e); });   // 🔁 한 번에 더 넣을 것 (collListAdd)
-            let saved = await driveUpsert(listDir, name, cur && cur.id, JSON.stringify({ v: 1, items }));
-            if (!cur) {                                                               // 📄📄 다른 기기가 거의 동시에 같은 목록 파일을 먼저 만들었으면 : 그 파일에 합쳐서 하나로
-                const first = await findFile(listDir, name);
-                if (first && first.id !== saved.id) {
-                    let theirs = [];
-                    try { const o = JSON.parse(await readFileText(first.id) || '{}'); if (o && Array.isArray(o.items)) theirs = o.items; } catch (e) {}
-                    theirs.forEach(e => { if (e && e.id && !items.some(x => x.id === e.id)) items.push(e); });
-                    const fin = await driveUpsert(listDir, name, first.id, JSON.stringify({ v: 1, items }));
-                    await (window.appTrash ? appTrash(saved.id, name, 'a') : driveTrash(saved.id));   // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
-                    saved = fin;
-                }
-            }
+            let saved;
+            try { saved = await driveUpsert(listDir, name, cur && cur.id, JSON.stringify({ v: 1, items })); }
+            catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; const f = await findFile(listDir, name); saved = await driveUpsert(listDir, name, f ? f.id : null, JSON.stringify({ v: 1, items })); }
             L.f = { id: saved.id, name, modifiedTime: saved.modifiedTime };
             collPut('list', collKey(C, 'l' + L.n), { fid: saved.id, mt: saved.modifiedTime, items });
-            if (typeof driveTell === 'function') driveTell({ t: 'coll', path: C.key });
         }
 
         /* 새것 여러 개를 목록에 한 번에 (묶음이 차면 다음 묶음 · 하나씩 넣기와 같은 규칙 · 도련 11-05) */
@@ -415,24 +391,6 @@
         }
 
         /* ---------- 다른 기기 · 다른 탭에서 바뀌었을 때 (js/drive.js checkRemote · BroadcastChannel) ---------- */
-        async function collRemote(path) {
-            if (!collOnline()) return;
-            for (const C of COLL.map.values()) {
-                if (!C.lists || (path && C.key !== path)) continue;
-                let changed = !!path;
-                if (!path) {
-                    try {
-                        const dir = await getFolder(C.names, false), re = collListRe(C);
-                        const fs = dir ? await driveList(`'${dir}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime') : [];
-                        const now = fs.filter(f => re.test(f.name)).map(f => f.name + f.modifiedTime).sort().join();
-                        const was = C.lists.filter(L => L.f).map(L => collListName(C, L.n) + L.f.modifiedTime).sort().join();
-                        changed = now !== was;
-                    } catch (e) { continue; }
-                }
-                if (changed) { C.lists = null; if (C.onChange) C.onChange(); }
-            }
-        }
-
         /* ---------- 로그인할 때 (js/drive.js loadFromDrive) ---------- */
         /* 지금 계정 (드라이브 permissionId) · 🔐 배치.json 을 열기 전에 먼저 (js/drive.js loadFromDrive) */
         async function collWhoami() {
@@ -478,7 +436,7 @@
         window.collHash = collHash; window.collPump = collPump;   // 🗑 휴지통을 열 때 = 아직 못 올린 지우기를 먼저 (js/trash.js · 도련 11-15)
         window.collOf = collOf; window.collAdd = collAdd; window.collSet = collSet; window.collRemove = collRemove; window.collItem = collItem;
         window.collAll = collAll; window.collEnt = collEnt; window.collThumb = collThumb; window.collNewId = collNewId;
-        window.collLogin = collLogin; window.collWhoami = collWhoami; window.collRemote = collRemote; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
+        window.collLogin = collLogin; window.collWhoami = collWhoami; window.collGuestStart = collGuestStart; window.collCheck = collCheck;
 
         /* 🗂 상품 하나 = 파일 하나 (도련 11-05 · 목록에만 적던 것도 모두 : ✏️ 필기구 · 🧱 벽지 · 🪵 책상판 · 🌈 배경지 · 📔 날짜형 다이어리)
              말랑달콤 / <종류 폴더> / 받은-<시각>.json = 🔐 { u 하나하나 id, id 디자인, from 받은 곳 } (스티커처럼 계정마다 다른 열쇠 · js/own.js ownLock)

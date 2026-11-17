@@ -235,6 +235,10 @@
                 headers: Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + drive.token })
             }));
             if (res.status === 401 && !retried) { drive.token = null; return gfetch(url, opts, true); }
+            if (res.ok && opts.method && opts.method !== 'GET' && /googleapis\.com\/(upload\/)?drive\/v3\/files/.test(url)) {   // 📱 이 창이 손댄 파일 = 내 것 (checkRemote 가 다른 기기 것과 나눠요)
+                const m = /\/files\/([^/?]+)/.exec(url); if (m) mineIds.add(m[1]);
+                if (!m) res.clone().json().then(j => { if (j && j.id) mineIds.add(j.id); }).catch(() => {});
+            }
             /* 너무 자주 요청했거나(429 · 403 rateLimit) 구글이 잠깐 아플 때(5xx) : 1 · 2 · 4 · 8초 쉬고 다시 */
             const tries = opts._tries || 0;
             if (tries < 4 && !opts.keepalive && (res.status === 429 || res.status >= 500 || (res.status === 403 && /rate/i.test(await driveReason(res))))) {
@@ -827,13 +831,7 @@
             const F = KEY_FILES[which], keys = DESK_FILE_KEYS[which] || [];
             const dir = await getFolder(F.path, true), C = drive.chunks[which] || {};
             const fresh = drive.keyNone && drive.keyNone.has(which) && !(C.files && C.files.size);
-            if (!fresh) {                                                         // 다른 기기가 고쳤는지 (목록 한 번)
-                const { fs } = await chunkList(which), known = C.files || new Map();
-                if (fs.length !== known.size || fs.some(f => !known.has(f.n) || known.get(f.n).id !== f.id || known.get(f.n).modifiedTime !== f.modifiedTime)) {
-                    const o = await fetchChunked(which) || {};
-                    keys.forEach(k => { const v = k in o ? JSON.stringify(o[k]) : null; if (mine.has(k) || drive.dirtyKeys.has(k)) { goneUnion(k, v); return; } if (store.getItem(k) !== v) store.putLoaded(k, v); });   // 🚛 영구삭제 칸은 양쪽 모두
-                }
-            }
+            if (!fresh && !C.files) await fetchChunked(which);                    // 파일 번호를 아직 몰라요 (한 번만) · 📱 한 기기 기준 = 올리기 전에 다른 기기를 묻지 않아요 (도련 11-17)
             if (drive.keyNone) drive.keyNone.delete(which);
             goneScrub(which);                                                      // 🚛 목록이 정답
             const B = chunkSplit(which), D = drive.chunks[which]; let mt = '', made = false;
@@ -1125,40 +1123,6 @@
             }).filter(Boolean).join(',') + '}';
         }
 
-        /* 다른 기기가 고친 설정 파일 내용을 지금 메모리에 합치기
-           mine : 이 기기에서 고쳤는데 아직 못 올린 키 → 그건 내 것 그대로 · 나머지는 드라이브 것으로 */
-        async function mergeKeyFile(which, cur, mine) {
-            const obj = parseJsonObject(await keyFileText(which, cur.id), which) || {};
-            const keep = k => mine.has(k) || drive.dirtyKeys.has(k);
-            let changed = false;
-            Object.keys(obj).forEach(k => {
-                if (!isSettingKey(k) || keyFile(k) !== which) return;
-                const v = JSON.stringify(obj[k]);
-                if (keep(k)) {                                                  // 이 기기에서도 고친 값
-                    if (goneUnion(k, v)) changed = true;                          // 🚛 영구삭제 칸은 양쪽 모두
-                    if (which === 'cafe' && v !== drive.cafeBase.get(k)) {       // ☕ 다른 기기도 고쳤어요 → 한쪽만 남기지 않고 합쳐요
-                        const mv = store.getItem(k), merged = cafeMerge(k, drive.cafeBase.get(k), mv, v);
-                        if (merged !== mv) { store.putLoaded(k, merged); changed = true; }
-                    }
-                    return;
-                }
-                if (store.getItem(k) !== v) { store.putLoaded(k, v); changed = true; }
-            });
-            store.keys().forEach(k => {
-                if (isSettingKey(k) && keyFile(k) === which && !(k in obj) && !keep(k)) { store.putLoaded(k, null); changed = true; }   // 다른 기기에서 지운 값
-            });
-            drive[KEY_FILES[which].prop] = cur;
-            if (which === 'cafe') { drive.cafeBase = new Map(); Object.keys(obj).forEach(k => { if (keyFile(k) === 'cafe') drive.cafeBase.set(k, JSON.stringify(obj[k])); }); }
-            if (changed) { applyRemoteSettings(); if (which === 'cafe') cafeShownAgain(); }
-        }
-        /* ☕ 열려 있는 카페 창이 옛 기록을 들고 있지 않게 : 합친 기록으로 다시 읽어서 다시 그려요
-           (창을 연 채로 고치면 창이 들고 있던 옛 기록이 그대로 저장되어, 다른 기기가 더한 것이 빠질 수 있어서) */
-        function cafeShownAgain() {
-            const open = id => { const e = document.getElementById(id); return !!e && e.classList.contains('show'); };
-            try { if (typeof atRead === 'function' && open('attendRoom')) { atS.d = atRead(); atRender(); } } catch (e) { console.warn(e); }
-            try { if (typeof cyRead === 'function' && open('cycleRoom')) { cy.d = cyRead(); cyRender(); } } catch (e) { console.warn(e); }
-            try { if (typeof arReadBest === 'function' && open('arcadeRoom')) ar.best = arReadBest(); } catch (e) { console.warn(e); }
-        }
 
         /* ☕ 카페 기록 합치기 : 두 기기가 같은 항목을 고쳤을 때 한쪽 기록이 사라지지 않게
            base = 마지막으로 드라이브에서 읽거나 올린 값 · mine = 이 기기 · theirs = 지금 드라이브 (모두 JSON 글자)
@@ -1243,28 +1207,20 @@
             if (F.chunk) { if (drive.deskLocked && !F.lazy) return; return writeChunked(which, mine); }   // 📚 나눠 담는 목록   // 💤 아직 안 읽은 목록은 먼저 읽고 (고친 키는 그대로) · 못 연 목록은 덮어쓰지 않아요 (도련 11-07)
             const dir = await getFolder(F.path, true);
             const known = drive[F.prop];
-            let cur = known ? await driveMeta(known.id) : null;
-            if (!cur && !(known == null && ((drive.deskNone && drive.deskNone.delete(which)) || (drive.keyNone && drive.keyNone.delete(which))))) cur = await findFile(dir, F.name);   // 처음이거나 지워졌으면 이름으로 한 번 더 찾기 (방금 읽을 때 없던 책상배치 파일은 건너뛰어요 · 한 번만 · 다른 기기가 먼저 만들었으면 아래에서 합쳐요)
-            if (cur && (!known || cur.id !== known.id || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, mine);
+            /* 📱 한 기기 기준 (도련 11-17) : 올리기 전에 드라이브를 묻거나 합치지 않아요 → 아는 파일 번호로 바로 덮어쓰기 (다른 기기 것은 앱으로 돌아올 때 checkRemote 가 물어봐요) */
+            let id = known ? known.id : null;
+            if (!id && !((drive.deskNone && drive.deskNone.delete(which)) || (drive.keyNone && drive.keyNone.delete(which)))) { const f = await findFile(dir, F.name); id = f ? f.id : null; }   // 처음 = 이름으로 한 번
             goneScrub(which);                                                      // 🚛 목록이 정답
-            let body = settingsBody(which);
-            let saved = await driveUpsert(dir, F.name, cur && cur.id, await keyFileSeal(which, body));
-            if (!cur) {                                                             // 📄📄 다른 기기가 거의 동시에 같은 파일을 먼저 만들었으면 : 그 파일에 합쳐서 하나로
-                const first = await findFile(dir, F.name);
-                if (first && first.id !== saved.id) {
-                    await mergeKeyFile(which, first, mine);
-                    goneScrub(which); body = settingsBody(which);
-                    const fin = await driveUpsert(dir, F.name, first.id, await keyFileSeal(which, body));
-                    await toTrash(saved.id, F.name, 'a');                           // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
-                    saved = fin;
-                }
-            }
+            const body = settingsBody(which), sealed = await keyFileSeal(which, body);
+            let saved;
+            try { saved = await driveUpsert(dir, F.name, id, sealed); }
+            catch (e) { if (!(e && e.code === 'gone' && id)) throw e; drive[F.prop] = null; const f = await findFile(dir, F.name); saved = await driveUpsert(dir, F.name, f ? f.id : null, sealed); }   // 그 사이 지워진 번호 → 이름으로 다시
             drive[F.prop] = { id: saved.id, name: F.name, modifiedTime: saved.modifiedTime };
             if (KEY_MADE.includes(which)) { const m = Object.assign({}, prefGet(MADE_KEY, '') || {}); if (!m[which]) { m[which] = 1; prefSet(MADE_KEY, '', m); if (window.deskBackOne) deskBackOne(which); } }   // 🛟 처음 생긴 목록 = 바로 백업도   // 📝 이 목록 파일을 만든 적 있어요 (없어지면 = 되살리기 · 표시가 없으면 = 아직 안 바뀐 선물 · 도련 11-07)
             if (which === 'cafe') { const o = JSON.parse(body); drive.cafeBase = new Map(Object.keys(o).map(k => [k, JSON.stringify(o[k])])); }
         }
 
-        /* 일기 하루 올리기 : 다른 기기가 그 사이 같은 날을 고쳤으면 물어봐요 */
+        /* 일기 하루 올리기 (📱 한 기기 기준 · 바로 덮어쓰기 · 도련 11-17) */
         async function writeDay(key) {
             const dk0 = parseDayKey(key);
             if (dk0 && dk0.b && window.dyyDead && dyyDead(dk0.b)) { drive.dirtyKeys.delete(key); if (window.dyyDeadSay) dyyDeadSay(dk0.b); return; }   // 🚛 🗑 버린 다이어리에는 저장하지 않아요 (폴더를 다시 만들지 않게 · 목록이 정답 · 도련 11-11)
@@ -1274,66 +1230,30 @@
             if (!idx) return;                                                       // 지울 날인데 폴더도 없음
             await dayDupFix(idx, name, key);
             const f = idx.files.get(name);
-            let cur = f ? await driveMeta(f.id) : null;
-            if (!cur) cur = await findFile(idx.folderId, name);
-            const base = drive.dayMeta.has(key) ? drive.dayMeta.get(key) : (f ? f.modifiedTime || '' : '');
-            if (cur && cur.modifiedTime !== base) {                                 // 다른 기기가 고쳤어요
-                let theirs = null;
-                try { theirs = JSON.stringify(parseJsonObject(await readFileText(cur.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; }
-                if (theirs !== val && theirs !== null && theirs !== 'null') {
-                    const thDone = (() => { try { const o = JSON.parse(theirs); return !!(o && o.done); } catch (e) { return false; } })();   // ✅ 다른 기기에서 이미 완료한 페이지 (js/pagedone.js · 도련 11-14 : 덮어쓰는 걸 알려 줘요)
-                    const mineWins = await showAsk(`📱 다른 기기에서 <b>${lab}</b> 일기를 고쳤어요.<br>어느 쪽을 남길까요?` + (thDone ? `<br><b style="color:#c2457a;">✅ 다른 기기 쪽은 이미 완료한 페이지예요</b><br><span style="font-size:12px;color:#777;">📝 내 것을 저장하면 그 페이지를 덮어써요</span>` : '') + `<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
-                    if (!mineWins) {
-                        idx.files.set(name, cur); drive.dayMeta.set(key, cur.modifiedTime);
-                        if (!drive.dirtyKeys.has(key) || (window.pgBusyKey && pgBusyKey() === key)) { store.putLoaded(key, theirs); dayShownAgain(key); }   // ✅ 완료하는 중 = 고른 다른 기기 것으로 (js/pagedone.js)
-                        return;
-                    }
-                    if (window.trashKeepDay) await trashKeepDay(key, theirs);           // 🗑 다른 기기 것은 휴지통에 (js/trash.js)
-                }
-            }
+            const cur = f && f.id ? f : null;                                       // 📱 한 기기 기준 (도련 11-17) : 아는 파일에 바로 (올리기 전에 다른 기기를 묻지 않아요 · 돌아올 때 checkRemote)
             if (val === null) {                                                     // 내용을 모두 지운 날 → 파일은 휴지통으로
                 if (cur) await (window.appTrashDay ? appTrashDay(key, cur.id) : driveTrash(cur.id));   // 🗑 앱 휴지통 (그날 내용 · 30일)
                 idx.files.delete(name); drive.dayMeta.set(key, '');
                 return;
             }
-            const saved = await driveUpsert(idx.folderId, name, cur && cur.id, val);    // 있으면 덮어쓰기, 없으면 새 파일
+            let saved;
+            try { saved = await driveUpsert(idx.folderId, name, cur && cur.id, val); }    // 있으면 덮어쓰기, 없으면 새 파일
+            catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; idx.files.delete(name); saved = await driveUpsert(idx.folderId, name, null, val); }   // 그 사이 지워진 파일 → 새로
             if (dk0 && dk0.b && window.dyyUsedMark) dyyUsedMark(dk0.b);             // ✍️ 한 번 꾸미면 영원히 '쓴 다이어리' (도련 11-11 · 표지도)
-            if (!cur) {                                                             // 📄📄 새로 만들었으면 : 다른 기기가 거의 동시에 같은 날 파일을 먼저 만들었는지 바로 확인
-                const first = await findFile(idx.folderId, name);
-                if (first && first.id !== saved.id) {
-                    let theirs = null;
-                    try { theirs = JSON.stringify(parseJsonObject(await readFileText(first.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; }
-                    let mine = true;
-                    if (theirs !== null && theirs !== 'null' && theirs !== val)
-                        mine = await showAsk(`📱 다른 기기에서도 방금 <b>${lab}</b> 일기를 처음 저장했어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 🗑 휴지통에 30일 보관해요.</span>`, '📝 내 것 저장', '📱 다른 기기 것');
-                    let fin = first;
-                    if (mine && theirs !== val) { if (window.trashKeepDay) await trashKeepDay(key, theirs); fin = Object.assign({}, first, await driveUpsert(idx.folderId, name, first.id, val)); }
-                    await toTrash(saved.id, window.trDayPath ? trDayPath(key) : name, mine ? 'a' : 'u', 1);   // 내가 만든 쪽 : 내 내용을 남겼으면 앱 정리 · 다른 기기 것을 골랐으면 🗑 (가장 먼저 만든 파일 하나만 남겨요)
-                    idx.files.set(name, { id: first.id, name, modifiedTime: fin.modifiedTime });
-                    drive.dayMeta.set(key, fin.modifiedTime);
-                    if (!mine && !drive.dirtyKeys.has(key)) { store.putLoaded(key, theirs); dayShownAgain(key); }
-                    return;
-                }
-            }
             idx.files.set(name, { id: saved.id, name, modifiedTime: saved.modifiedTime });
             drive.dayMeta.set(key, saved.modifiedTime);
         }
-        /* 📕 다이어리.json 올리기 : 다른 기기가 고쳤으면 묻지 않고 합쳐요 (장마다 처음 꾸민 날 = 더 이른 날) */
-        /* 📔 📕 상태.json 합치기 : 다른 기기 것 위에 내 것 (칸마다 · 권마다 한 파일이라 묻지 않아요 · 982) */
-        const stateMerge = (mine, theirs) => { const o = Object.assign({}, theirs || {}); Object.keys(mine || {}).forEach(k => { o[k] = mine[k] && typeof mine[k] === 'object' && !Array.isArray(mine[k]) ? Object.assign({}, (theirs || {})[k] || {}, mine[k]) : mine[k]; }); return o; };
+        /* 📕 다이어리.json · 📔 상태.json 올리기 (📱 한 기기 기준 · 바로 덮어쓰기) */
+        const stateMerge = (mine, theirs) => { const o = Object.assign({}, theirs || {}); Object.keys(mine || {}).forEach(k => { o[k] = mine[k] && typeof mine[k] === 'object' && !Array.isArray(mine[k]) ? Object.assign({}, (theirs || {})[k] || {}, mine[k]) : mine[k]; }); return o; };   // 못 올린 것 되살릴 때 (recoverPendingBackup)
         async function writeBook(key) {
             const st = isStateKey(key), id = st ? STATE_KEY_RE.exec(key)[1] : BOOK_KEY_RE.exec(key)[1];
             let val = store.getItem(key);
             if (val === null) return;
             const idx = await idxOfKey(key, true), nm = fileOfKey(key);
-            const f = idx.files.get(nm);
-            let cur = f ? await driveMeta(f.id) : null;
-            if (!cur) cur = await findFile(idx.folderId, nm);
-            if (cur && cur.modifiedTime !== (drive.dayMeta.get(key) || '')) {
-                let theirs = null; try { theirs = parseJsonObject(await readFileText(cur.id), key); } catch (e) { if (e.type !== 'corrupt') throw e; }
-                if (theirs) { val = JSON.stringify(st ? stateMerge(JSON.parse(val), theirs) : dkInfoMerge(JSON.parse(val), theirs)); store.putLoaded(key, val); }
-            }
-            const saved = await driveUpsert(idx.folderId, nm, cur && cur.id, val);
+            const f = idx.files.get(nm), cur = f && f.id ? f : null;                // 📱 한 기기 기준 = 아는 파일에 바로 (합치지 않아요 · 도련 11-17)
+            let saved;
+            try { saved = await driveUpsert(idx.folderId, nm, cur && cur.id, val); }
+            catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; idx.files.delete(nm); saved = await driveUpsert(idx.folderId, nm, null, val); }
             idx.files.set(nm, { id: saved.id, name: nm, modifiedTime: saved.modifiedTime });
             drive.dayMeta.set(key, saved.modifiedTime);
         }
@@ -1415,7 +1335,6 @@
                     savePending();                                          // 🛟 못 올렸으면 바로 이 기기에 보관 (도련 11-09 : 다시 하기를 기다리는 중에 앱이 갑자기 꺼져도 · 다음에 열면 복구 · 올리면 지워요)
                     if (!authFail) uploadTimer = setTimeout(() => flushUpload(), full ? 5 * 60000 : 30000);
                 }
-                if (sent.length) driveTell({ t: 'saved', keys: sent });   // 같은 기기의 다른 탭에도 알려요
                 updateBadge(); updateStorageInfo();
                 return allOk;
             });
@@ -1805,6 +1724,7 @@
         }
 
         function saveOnScreenOff() {
+            if (drive.reopening) return;                                        // ☁ 드라이브 것으로 새로 여는 중 = 버린 것을 남기지 않아요
             try { if (!turn) saveData(false); } catch (err) {}      // 편집 중인 글/스티커를 메모리(store)에 반영
             if (!drive.ready || drive.guest || drive.wiped) return;  // 로그인 전 · 게스트면 저장할 곳이 없음 · 🗑 폴더가 지워졌으면 올리지 않음
             if (drive.dirty || drive.uploading) {
@@ -1897,92 +1817,65 @@
            - 같은 기기의 다른 탭이 저장하면 BroadcastChannel 로 바로 알려 줘요
            ===================================================================== */
         let lastRemoteCheck = 0, remoteChecking = null;
-        const driveBC = (() => { try { return 'BroadcastChannel' in window ? new BroadcastChannel('mallang-drive') : null; } catch (e) { return null; } })();
-        function driveTell(msg) { try { if (driveBC) driveBC.postMessage(msg); } catch (e) {} }
-        if (driveBC) driveBC.onmessage = (e) => {
-            const m = e.data || {};
-            if (m.t === 'saved') checkRemote(true);
-            else if (m.t === 'coll' && typeof collRemote === 'function') collRemote(m.path);   // 스티커 · 페이지 목록 (js/coll.js)
-        };
-        /* 🔔 다른 기기 확인을 가볍게 : 구글 드라이브 changes = "지난번 이후 이 앱이 만든 파일 중 바뀐 것" (도련 10-20)
-           - 앱으로 돌아올 때 요청 1개 (1분마다는 없앴어요 · 11-13) · 바뀐 게 없으면 거기서 끝 · 있으면 아래 checkRemote 자세히 보기(폴더 지움 · 설정 · 카페 · 보는 날짜)
-           - 내가 방금 올린 파일(mineWrote 로 기억한 id · 수정 시각 그대로)은 바뀐 걸로 안 쳐요
-           - 표시(changeTok)는 이 창 메모리에만 · 모르겠으면(처음 · 실패) 늘 자세히 봐요 → 놓치는 일은 없어요 */
+        /* 🔔 다른 기기 확인 = 구글 changes 요청 1번 (도련 11-17 · 📱 한 기기 기준)
+           - 사용자는 한 번에 한 기기만 써요 → 올릴 때 합치기 · 탭끼리 알림 · 매번 새로 받기는 없앴어요
+           - 남긴 것 하나 : 화면만 꺼 둔 폰 · 패드 (또는 덮개 닫은 노트북) 로 돌아왔는데 그 사이 다른 기기에서 바꿨으면
+               → 이 기기에 아직 안 올린 것이 없으면 = 알리고 드라이브 것으로 새로 열기
+               → 있으면 = 물어봐요 [☁ 드라이브 것] (이 기기에서 바꾼 것은 버려요) · [📱 이 기기 것] (다른 기기에서 바꾼 것 위에 덮어써요)
+           - 내 것 = 이 창이 올리거나 만들거나 지운 파일 (mineWrote · gfetch 가 기억 · 같은 지문 md5 / 같은 수정 시각) → 바뀐 걸로 안 쳐요
+           - 한 번에 받을 수 있는 건 다 받아요 (changes(*) · 점수 같아요 · 상황판 기록용) · 표시(changeTok)는 이 창 메모리 (앱을 새로 열면 어차피 다 새로 읽어요) */
         let changeTok = null;
-        const mineAt = new Map();                                            // 파일 id → 내가 올린 수정 시각
-        function mineWrote(f) { if (f && f.id && f.modifiedTime) { mineAt.set(f.id, f.modifiedTime); if (mineAt.size > 300) mineAt.delete(mineAt.keys().next().value); } return f; }
+        const mineAt = new Map(), mineIds = new Set();                       // 파일 id → { mt, md5 } 내가 올린 모습 · 이 창이 손댄 파일 id
+        function mineWrote(f) { if (f && f.id) { mineIds.add(f.id); if (f.modifiedTime || f.md5Checksum) mineAt.set(f.id, { mt: f.modifiedTime || '', md5: f.md5Checksum || '' }); if (mineAt.size > 500) mineAt.delete(mineAt.keys().next().value); } return f; }
+        window.driveMineTouch = id => { if (id) mineIds.add(id); };          // 지우기 · 휴지통 · 폴더 만들기 (gfetch 가 저절로)
         async function changesStart() {
             changeTok = null;
             if (drive.local) return;
             try { const res = await gfetch('https://www.googleapis.com/drive/v3/changes/startPageToken'); if (res.ok) changeTok = (await res.json()).startPageToken || null; } catch (e) {}
         }
-        async function changesAny() {                                       // true = 바뀐 게 있거나 모름 → 자세히 보기
-            if (drive.local) return true;
-            if (!changeTok) { await changesStart(); return true; }
-            let tok = changeTok, any = false;
+        const changeMine = c => { if (!mineIds.has(c.fileId)) return false; if (c.removed || !c.file || c.file.trashed) return true; const m = mineAt.get(c.fileId); return !m || (!!c.file.md5Checksum && c.file.md5Checksum === m.md5) || (!!m.mt && c.file.modifiedTime === m.mt) || c.file.mimeType === FOLDER_MIME; };
+        async function changesForeign() {                                    // → 다른 기기가 바꾼 것들 [] · null = 모름 (처음 · 실패 → 안 물어요)
+            if (drive.local) return [];
+            if (!changeTok) { await changesStart(); return []; }
+            let tok = changeTok; const out = [];
             try {
                 for (let i = 0; i < 20 && tok; i++) {
-                    const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=200&spaces=drive&fields=nextPageToken,newStartPageToken,changes(fileId,removed,file(modifiedTime,trashed))`);
-                    if (!res.ok) { changeTok = null; return true; }
+                    const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=1000&spaces=drive&fields=*`);
+                    if (!res.ok) { changeTok = null; return null; }
                     const j = await res.json();
-                    if ((j.changes || []).some(c => c.removed || !c.file || c.file.trashed || mineAt.get(c.fileId) !== c.file.modifiedTime)) any = true;
-                    if (window.mineHint) (j.changes || []).forEach(c => { if (!(c.file && mineAt.get(c.fileId) === c.file.modifiedTime)) mineHint(c.fileId); });   // 📦 내 실물 목록이 다른 기기에서 바뀌었는지도 같이 (js/mine.js)
-                    if (j.newStartPageToken) { changeTok = j.newStartPageToken; return any; }
+                    (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c)) out.push(c); });
+                    if (window.mineHint) (j.changes || []).forEach(c => { if (!changeMine(c)) mineHint(c.fileId); });   // 📦 내 실물 목록
+                    if (j.newStartPageToken) { changeTok = j.newStartPageToken; drive.lastChanges = j.changes || []; return out; }
                     tok = j.nextPageToken;
                 }
-            } catch (e) { return true; }
-            changeTok = null; return true;
+            } catch (e) { return null; }
+            changeTok = null; return null;
         }
         function checkRemote(force) {
-            if (!drive.ready || drive.guest || document.hidden || drive.needAuth || drive.wiped) return Promise.resolve();
+            if (!drive.ready || drive.guest || document.hidden || drive.needAuth || drive.wiped || drive.reopening) return Promise.resolve();
             if (!force && Date.now() - lastRemoteCheck < 50000) return Promise.resolve();
             if (remoteChecking) return remoteChecking;
             lastRemoteCheck = Date.now();
             remoteChecking = (async () => {
-                const gen = drive.gen;
-                if (!force && !(await changesAny())) return;               // 🔔 바뀐 게 없으면 요청 1개로 끝 (바뀐 게 있을 때만 아래처럼 자세히 봐요)
+                const ch = await changesForeign();                             // 🔔 요청 1번 (바뀐 게 없으면 여기서 끝)
+                if (!ch || !ch.length) return;
+                drive.lastForeign = ch.map(c => ({ id: c.fileId, name: c.file ? c.file.name : '(지움)', at: c.time }));   // 📊 상황판 · 점검
                 if (await rootGone()) { rootReset(); return; }              // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로
-                try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에 (고친 것은 지키려고)
-                for (const which of Object.keys(KEY_FILES)) {
-                    const F = KEY_FILES[which], known = drive[F.prop];
-                    if (Array.from(drive.dirtyKeys).some(k => !isOwnFile(k) && keyFile(k) === which)) continue;   // 올릴 때 합쳐요
-                    if (isDeskFile(which) && drive.deskLocked) continue;
-                    if (F.lazy && (!drive.lazyOn.has(which) || drive.lazyBad.has(which))) continue;   // 💤 아직 안 연 목록 = 볼 때 읽어요
-                    if (F.chunk) {                                                  // 📚 나눠 담는 목록 = 파일들 시각이 바뀌었으면 다시
-                        const { fs } = await chunkList(which), known = (drive.chunks[which] || {}).files || new Map();
-                        if (gen !== drive.gen) return;
-                        if (fs.length !== known.size || fs.some(f => !known.has(f.n) || known.get(f.n).modifiedTime !== f.modifiedTime)) {
-                            const o = await fetchChunked(which) || {}; let ch = false;
-                            (DESK_FILE_KEYS[which] || []).forEach(k => { if (drive.dirtyKeys.has(k)) return; const v = k in o ? JSON.stringify(o[k]) : null; if (store.getItem(k) !== v) { store.putLoaded(k, v); ch = true; } });
-                            if (ch) applyRemoteSettings();
-                        }
-                        continue;
-                    }
-                    const dir = await getFolder(F.path, false);
-                    const cur = dir && (known && await driveMeta(known.id) || await findFile(dir, F.name));
-                    if (gen !== drive.gen) return;
-                    if (cur && (!known || cur.modifiedTime !== known.modifiedTime)) await mergeKeyFile(which, cur, new Set());
-                }
-                const keys = isCoverOpen ? [currentDate].concat(window.dyStep ? [dyStep(currentDate, -1), dyStep(currentDate, 1)] : isSpot(currentDate) ? [] : [addDays(currentDate, -1), addDays(currentDate, 1)]).filter(Boolean).map(getDateKey) : [];
-                const bk = keys.map(parsePageKey).find(Boolean);
-                if (bk) { keys.unshift('dkb_' + bk.b); drive.books.delete(bk.b); }       // 📕 권 폴더 목록을 새로 · 다이어리.json 도
-                for (const k of keys) if (parseDayKey(k)) { try { await dayRefresh(k); } catch (e) {} }   // 그날 파일만 새로 (수정 시각이 들어 있어요)
-                let any = false;
-                for (const key of keys) {
-                    if (!drive.loadedDays.has(key) || drive.dirtyKeys.has(key) || drive.inflight === key) continue;
-                    const idx = await idxOfKey(key, false);
-                    const f = idx && idx.files.get(fileOfKey(key));
-                    const t = f ? f.modifiedTime || '' : '';
-                    if (gen !== drive.gen || t === (drive.dayMeta.get(key) || '')) continue;
-                    const meta = {}, text = await fetchKey(key, meta);
-                    if (gen !== drive.gen || drive.dirtyKeys.has(key)) continue;
-                    store.putLoaded(key, text); drive.dayMeta.set(key, meta.t);
-                    dayShownAgain(key); any = true;
-                }
-                if (any && typeof srRemote === 'function') srRemote();     // 🔍 검색 목록도 다시 맞춰 보게
-                if (typeof collRemote === 'function') collRemote();         // 스티커 · 페이지 목록
+                diag('remote', { n: ch.length });
+                try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에
+                const mineN = drive.dirtyKeys.size;
+                let useDrive = true;
+                if (mineN) useDrive = await showAsk(`📱 다른 기기에서 바뀐 내용이 있어요.<br>이 기기에도 아직 드라이브에 못 올린 것이 <b>${mineN}개</b> 있어요.<br>어느 쪽을 쓸까요?<br><span style="font-size:12px;color:#777;">☁ 드라이브 것 = 이 기기에서 바꾼 것은 버려요<br>📱 이 기기 것 = 다른 기기에서 바꾼 것 위에 덮어써요</span>`, '☁ 드라이브 것', '📱 이 기기 것');
+                if (!useDrive) { flushUpload({ force: true }); return; }
+                driveReopen(mineN ? '' : '📱 다른 기기에서 바뀐 내용이 있어서 새로 불러올게요.');
             })().catch(e => console.warn('다른 기기 변경 확인 실패:', e)).finally(() => { remoteChecking = null; });
             return remoteChecking;
+        }
+        async function driveReopen(msg) {                                    // ☁ 드라이브 것으로 새로 열기 = 이 기기에서 못 올린 것은 버리고 앱을 다시 열어요 (가장 확실해요)
+            drive.reopening = true; clearTimeout(uploadTimer);
+            drive.dirtyKeys.clear(); try { clearPending(); } catch (e) {}
+            if (msg && window.showMsg) await showMsg(msg);
+            location.reload();
         }
         /* ⏱ 1분마다 확인은 없앴어요 (도련 11-13 : 두 기기를 동시에 켜 두고 쓰는 사람은 거의 없어요 · 구글 요청 아끼기)
            → 앱으로 돌아올 때(화면 켜기 · 앱 전환 = visibilitychange) · 💻 창으로 돌아올 때(focus) · 같은 기기 다른 탭이 저장했을 때만 확인해요 (50초 안에 또는 안 물어요)

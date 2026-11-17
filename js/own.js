@@ -230,6 +230,7 @@
             ownReset();
             if (ownMode() === 'mem') { ownK(k).gone = (O.mem.gone[k] || []).slice(); return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() })); }
             const d = ownK(k);
+            if (pre === undefined && d.cache) return JSON.parse(d.cache);         // 📱 한 기기 기준 (도련 11-17) : 이 창에서 읽거나 쓴 목록 그대로 (매번 드라이브에서 새로 받지 않아요 · 다른 기기 것은 돌아올 때 drive.js checkRemote)
             const find = async () => { const dir = await ownKindDir(k, false); return dir ? findFile(dir, OWN_IDX) : null; };
             let f = pre;
             if (f === undefined) {
@@ -252,6 +253,7 @@
             let o; try { o = await ownUnlock(t); } catch (e) { const r = await ownRescue(k, 'corrupt'); if (r) return r; throw e; }
             d.gone = ownGoneClean(window.ledgerMix ? ledgerMix('own:' + k, o.gone) : o.gone);   // 🚛 영구삭제 칸 (그 종류 목록 안 · 도련 11-11) + 📒 장부 한 벌 (예전 파일로 바꿔치기해도 · js/drive.js)
             const gs = new Set(d.gone.map(x => x.u)), L0 = ownIdxClean(o.list, k).filter(e => !gs.has(e.id)); d.n = L0.length;
+            d.cache = JSON.stringify(L0);
             return L0;
         }
         /* 🛟 목록 되살리기 (도련 10-26 · 11-05 종류마다) : 그 종류 목록 파일이 없어졌거나 깨졌을 때만
@@ -322,7 +324,7 @@
             let saved;
             try { saved = await driveUpsert(await ownKindDir(k, true), OWN_IDX, d.f && d.f.id, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; d.f = null; saved = await driveUpsert(await ownKindDir(k, true), OWN_IDX, null, body); }
-            d.f = { id: saved.id, modifiedTime: saved.modifiedTime }; ownFilesNow(k);
+            d.f = { id: saved.id, modifiedTime: saved.modifiedTime }; ownFilesNow(k); d.cache = JSON.stringify(list);
             if (window.diag && d.n != null && list.length < d.n - 1) diag('shrink', { k, from: d.n, to: list.length });   // 🧾 목록이 한꺼번에 줄었어요 (다 쓴 종이 하나씩은 괜찮아요)
             d.n = list.length;
         }
@@ -333,17 +335,25 @@
             let saved;
             try { saved = await driveUpsert(await dir(), ownRid() + '.json', null, body); }
             catch (e) { if (!(e && e.code === 'gone')) throw e; drive.folderIds.delete(ownDirKey(sheet.k || 'seal')); saved = await driveUpsert(await dir(), ownRid() + '.json', null, body); }
+            ownFileKeep(saved.id, sheet);
             return saved.id;
         }
+        /* 📄 종이 파일은 고치지 않아요 (바뀌면 새 파일 + 옛 파일 지우기) → 한 번 읽거나 만든 종이는 이 창에 기억 (도련 11-17 · 마테를 누를 때마다 받지 않게) */
+        const OWN_FC = new Map();
+        function ownFileKeep(fid, sheet) { try { OWN_FC.set(fid, JSON.stringify(sheet)); if (OWN_FC.size > 300) OWN_FC.delete(OWN_FC.keys().next().value); } catch (e) { } }
         async function ownFileRead(fid) {
             if (ownMode() === 'mem') { const t = O.mem.files.get(fid); if (t == null) { const er = new Error('gone'); er.code = 'gone'; throw er; } return ownUnlock(t); }
-            return ownUnlock(await readFileText(fid));
+            if (OWN_FC.has(fid)) return JSON.parse(OWN_FC.get(fid));
+            const s = await ownUnlock(await readFileText(fid));
+            ownFileKeep(fid, s);
+            return s;
         }
         /* 🔥 완전 삭제 : 휴지통 · 옛 버전 기록에도 남지 않아요 (DELETE) */
         async function ownFileKill(fid) {
             if (!fid) return;
             if (window.diag && ownMode() !== 'mem') diag('kill', { id: fid });   // 🧾 완전 삭제 (js/drive.js diag)
             if (ownMode() === 'mem') { O.mem.files.delete(fid); return; }
+            OWN_FC.delete(fid);
             const res = await gfetch(`${DRIVE_API}/${fid}`, { method: 'DELETE' });
             if (!res.ok && res.status !== 404) throw await driveFail(res, 'delete');
         }
