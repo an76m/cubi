@@ -44,6 +44,7 @@
     let dbP = null;
     const db = () => dbP || (dbP = new Promise(res => { try { const r = indexedDB.open('malang-mine', 1); r.onupgradeneeded = () => r.result.createObjectStore('b'); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (e) { res(null); } }));
     async function idb(key, v) {
+        if (typeof drive !== 'undefined' && drive.local) return null;           // 🏠 로그인 없이 = 원본(_실물 · 그림 묶음)이 이미 이 브라우저 → 사본은 안 만들고 메모리로만 (켤 때 원본에서 읽어요 · 도련 11-18)
         const d = await db(); if (!d) return null;
         return new Promise(res => { try { const tx = d.transaction('b', v === undefined ? 'readonly' : 'readwrite'), st = tx.objectStore('b'), q = v === undefined ? st.get(key) : st.put(v, key); q.onsuccess = () => res(v === undefined ? q.result || null : true); q.onerror = () => res(null); } catch (e) { res(null); } });
     }

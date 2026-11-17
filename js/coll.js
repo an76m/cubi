@@ -52,8 +52,10 @@
                 } catch (e) { ok(undefined); }
             });
         }
-        const collGet = (s, k) => collTx(s, 'readonly', st => st.get(k));
-        const collPut = (s, k, v) => collTx(s, 'readwrite', st => st.put(v, k));
+        /* 🏠 로그인 없이 = 원본이 이미 이 브라우저 (malang-device) → 읽은 원본 · 목록 사본(orig · list)은 안 만들어요 (도련 11-18 · 같은 브라우저에 두 벌 = 용량만 두 배 · 빨라지지 않아요) */
+        const collNoCopy = s => (s === 'orig' || s === 'list') && typeof drive !== 'undefined' && drive.local;
+        const collGet = (s, k) => collNoCopy(s) ? Promise.resolve(undefined) : collTx(s, 'readonly', st => st.get(k));
+        const collPut = (s, k, v) => collNoCopy(s) ? Promise.resolve() : collTx(s, 'readwrite', st => st.put(v, k));
         const collDel = (s, k) => collTx(s, 'readwrite', st => st.delete(k));
         /* 상자 안의 것 모두 [{ k, v }] (filter 로 고르기) */
         async function collScan(s, filter) {
