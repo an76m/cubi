@@ -74,7 +74,7 @@
                 if (!r.who && e !== 'start') r.who = diagWho();
                 DIAG.q.push(r); if (DIAG.q.length > DIAG_MAX) DIAG.q.splice(0, DIAG.q.length - DIAG_MAX); diagKeep();
                 console.info('🧾', e, o || '');
-                clearTimeout(DIAG.t); DIAG.t = setTimeout(diagFlush, Math.max(20000, 30000 - (Date.now() - DIAG.last)));   // 처음 접속 요청에 끼지 않게 20초 뒤부터
+                clearTimeout(DIAG.t); DIAG.t = setTimeout(diagFlush, Math.max(20000, 300000 - (Date.now() - DIAG.last)));   // 처음 접속 요청에 끼지 않게 20초 뒤부터 · 그다음은 5분에 한 번 모아서 (도련 11-17 · 예전 30초 · 못 올린 것은 이 기기에 남아 다음에)
             } catch (x) {}
         }
         async function diagFlush() {
@@ -84,14 +84,15 @@
             DIAG.busy = true; DIAG.last = Date.now();
             try {
                 const dir = await getFolder(SETTINGS_PATH, false); if (!dir) return;   // 설정 폴더가 있을 때만 (기록 때문에 말랑달콤 폴더를 새로 만들지 않아요)
-                const cur = await findFile(dir, DIAG_NAME);
-                let old = []; if (cur) { try { const o = JSON.parse(await readFileText(cur.id)); if (Array.isArray(o.ev)) old = o.ev; } catch (e) {} }
+                const cur = DIAG.fid ? { id: DIAG.fid } : await findFile(dir, DIAG_NAME);   // 🔢 한 번 찾은 번호는 기억 (도련 11-17 · 지워졌으면 아래 쓰기가 실패 → 잊고 다음에 다시 찾아요)
+                let old = []; if (cur) { try { const o = JSON.parse(await readFileText(cur.id)); if (Array.isArray(o.ev)) old = o.ev; } catch (e) { if (e && e.code === 'gone' && DIAG.fid) { DIAG.fid = ''; throw e; } } }
                 const key = r => r.t + r.d + r.e + (r.id || r.name || r.p || '');
                 const seen = new Set(old.map(key)), all = old.concat(mine.filter(r => !seen.has(key(r))).map(r => { const c = Object.assign({}, r); delete c.up; return c; }));
                 all.sort((a, b) => (a.t < b.t ? -1 : 1));
-                await driveUpsert(dir, DIAG_NAME, cur && cur.id, JSON.stringify({ v: 1, ev: all.slice(-DIAG_MAX) }));
+                const w = await driveUpsert(dir, DIAG_NAME, cur && cur.id, JSON.stringify({ v: 1, ev: all.slice(-DIAG_MAX) }));
+                DIAG.fid = (w && w.id) || '';
                 mine.forEach(r => { r.up = 1; }); diagKeep();
-            } catch (e) { console.warn('🧾 문제 기록을 올리지 못했어요 (다음에 다시) :', e); }
+            } catch (e) { if (e && e.code === 'gone') DIAG.fid = ''; console.warn('🧾 문제 기록을 올리지 못했어요 (다음에 다시) :', e); }
             finally { DIAG.busy = false; }
         }
         async function diagRead() {                                              // 보기 : 드라이브 것 + 아직 안 올린 것
@@ -110,8 +111,8 @@
             : ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive.appdata'];
         const DRIVE_SCOPE = DRIVE_SCOPES.join(' ');
         const AUTH_FLAG_KEY = 'gdrive_authed';   // 이 기기에서 이전에 로그인했는지 (자동 로그인 시도용)
-        const UPLOAD_DEBOUNCE_MS = 10000;        // 변경 후 이 시간이 지나면 자동으로 드라이브에 저장 (3초 → 10초 · 도련 11-14 : 드라이브 요청 줄이기)
-        const UPLOAD_MAX_WAIT_MS = 60000;        // ⏱ (30초 → 1분 · 도련 11-14) 10초도 안 쉬고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
+        const UPLOAD_DEBOUNCE_MS = 60000;        // 변경 후 이 시간이 지나면 자동으로 드라이브에 저장 (3초 → 10초 · 도련 11-14 → 60초 · 도련 11-17 : 드라이브 요청 줄이기 · 화면이 꺼지면 · 앱을 내리면 바로)
+        const UPLOAD_MAX_WAIT_MS = 60000;        // ⏱ (30초 → 1분 · 도련 11-14) 쉬지 않고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (11-17 : 쉬는 시간도 60초라 = 처음 바꾼 뒤 60초에 한 번) (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
         const PENDING_KEY = 'gdrive_pending_backup'; // 화면이 꺼질 때 업로드가 끝나기 전에 앱이 멈출 경우를 대비한 임시 보관본
         const KEEPALIVE_MAX_BYTES = 60000;       // fetch keepalive 옵션은 본문 64KB 이하만 가능
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
@@ -239,8 +240,9 @@
             if (res.status === 401 && !retried) { drive.token = null; return gfetch(url, opts, true); }
             if (res.ok && opts.method && opts.method !== 'GET' && /googleapis\.com\/(upload\/)?drive\/v3\/files/.test(url)) {   // 📱 이 창이 손댄 파일 = 내 것 (checkRemote 가 다른 기기 것과 나눠요)
                 const m = /\/files\/([^/?]+)/.exec(url); if (m) mineIds.add(m[1]);
-                let nid = ''; if (!m) { try { const j = await res.clone().json(); if (j && j.id) { mineIds.add(j.id); nid = j.id; } } catch (e) {} }
-                if (window.DRC) { try { await DRC.wrote(url, opts, nid); } catch (e) {} }   // ⚡ 쓴 파일 · 그 폴더 목록은 기억에서 잊어요 (js/drcache.js)
+                let nid = '', wj = null; try { wj = await res.clone().json(); } catch (e) {}
+                if (!m && wj && wj.id) { mineIds.add(wj.id); nid = wj.id; }
+                if (window.DRC) { try { await DRC.wrote(url, opts, nid, wj); } catch (e) {} }   // ⚡ 쓴 파일 · 그 폴더 목록은 기억에서 잊어요 (js/drcache.js)
             } else if (res.ok && get && window.DRC && !drive.local) DRC.keep(url, res.clone()).catch(() => {});   // ⚡ 읽은 그대로 이 기기에 (다음에 켤 때 바뀐 것만 받게)
             /* 너무 자주 요청했거나(429 · 403 rateLimit) 구글이 잠깐 아플 때(5xx) : 1 · 2 · 4 · 8초 쉬고 다시 */
             const tries = opts._tries || 0;
@@ -699,8 +701,7 @@
                 if (!id && create) {
                     id = await createFolder(name, parentId);
                     diag('mkdir', { p: key, id, miss: miss ? 1 : 0 });
-                    const again = await findFolder(name, parentId);                // 그 사이 다른 기기도 만들었으면 먼저 만든 쪽을 써요
-                    if (again) id = again;
+                    /* 📱 한 기기 기준 (도련 11-17) : 만든 뒤 '다른 기기도 만들었나' 다시 찾기는 없앴어요 (폴더마다 요청 1번 · 처음 접속) · 그래도 둘이 되면 다음에 찾을 때 findFolder 가 먼저 만든 쪽으로 합쳐요 */
                 }
                 if (id) { drive.folderIds.set(key, id); drive.alive.set(id, Date.now()); drive.folderMiss.delete(key); }   // 방금 찾거나 만든 폴더 = 살아 있어요
                 else if (!create) drive.folderMiss.set(key, Date.now());
@@ -1888,7 +1889,7 @@
         }
         function checkRemote(force) {
             if (!drive.ready || drive.guest || document.hidden || drive.needAuth || drive.wiped || drive.reopening) return Promise.resolve();
-            if (!force && Date.now() - lastRemoteCheck < 50000) return Promise.resolve();
+            if (!force && Date.now() - lastRemoteCheck < 60000) return Promise.resolve();   // ⏱ 60초 안에 또는 안 물어요 (도련 11-17 · 예전 50초)
             if (remoteChecking) return remoteChecking;
             lastRemoteCheck = Date.now();
             remoteChecking = (async () => {
@@ -1977,7 +1978,7 @@
             location.reload();
         }
         /* ⏱ 1분마다 확인은 없앴어요 (도련 11-13 : 두 기기를 동시에 켜 두고 쓰는 사람은 거의 없어요 · 구글 요청 아끼기)
-           → 앱으로 돌아올 때(화면 켜기 · 앱 전환 = visibilitychange) · 💻 창으로 돌아올 때(focus)만 확인해요 (50초 안에 또는 안 물어요)
+           → 앱으로 돌아올 때(화면 켜기 · 앱 전환 = visibilitychange) · 💻 창으로 돌아올 때(focus)만 확인해요 (60초 안에 또는 안 물어요 · 도련 11-17)
            (예전 '같은 기기 다른 탭 알림' · '올리기 직전 확인 · 합치기'는 11-17 📱 한 기기 기준으로 없앴어요) */
         window.addEventListener('focus', () => checkRemote());
 

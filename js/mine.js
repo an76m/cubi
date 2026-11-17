@@ -214,9 +214,9 @@
         const need = first && (B0.n < 0 || !Array.isArray(B0.ch) || B0.ch.some(other) || !Bs.some(B => B.fid));
         if (B0) M.boot = B0;
         if (!force && !M.dirty.size && !M.hint && !need) { apply(); rescue(); return; }
-        const recv = M.hint || need; M.hint = false;
+        const live = M.hint || need; M.hint = false;                           // 다른 기기가 바꿨거나 모르는 사이 = 드라이브 지금 모습 · 받기 · 내 것 고침 = ⚡ 읽기 기억 (📱 한 기기 기준 · 도련 11-17)
         if (who !== 'guest' && online() && typeof driveList === 'function') {
-            const fs = await driveList(`name='${FILE}' and trashed=false`, 'id,name,parents,modifiedTime', true);   // 🔎 모든 목록이 바뀌었나 = 요청 1번
+            const fs = await driveList(`name='${FILE}' and trashed=false`, 'id,name,parents,modifiedTime', live);   // 🔎 모든 목록이 바뀌었나 = 요청 1번
             const dirs = {};
             Object.keys(G).forEach(g => { const v = drive.folderIds && drive.folderIds.get(dirKey(g)); if (v) dirs[g] = v; });   // 폴더 = 기억한 것 먼저
             for (const g of Object.keys(G)) {                                  // 모르는 폴더는 그 목록 파일이 있을 수 있을 때만 찾아요 (없는 폴더를 매번 묻지 않게)
@@ -236,7 +236,7 @@
                     if (B.fid || Object.keys(B.items).length) { B.fid = ''; M.dirty.add(K); }
                 }
             }
-            await daily(dirs, recv || force);
+            await daily(dirs, live);
             for (const K of [...M.dirty]) { try { await write(K); } catch (e) { console.warn('📦 실물 목록 올리기', K, e); } }
         } else for (const K of [...M.dirty]) { await devSave(K); M.dirty.delete(K); }
         apply(); await rescue();
