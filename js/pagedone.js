@@ -210,6 +210,7 @@
             stickersOk = true;
             gauge(65, '📖 페이지 저장 중…');
             mark(key);
+            if (window.dmkLockPage) dmkLockPage(key);                         // 🔒 이 페이지의 바인더는 이제 못 바꿔요 (같은 올리기에 같이 · 도련 11-17)
             const up = typeof flushUpload === 'function' ? await flushUpload({ force: true }) : true;
             if (!up) throw new Error('upload');
             gauge(100, '✅ 완료!');
@@ -220,6 +221,7 @@
             console.warn('✅ 완료 저장', e);
             if (!stickersOk && window.ownUnhold) ownUnhold(key);                 // 스티커 칸은 '이어서 지우기'로 (인터넷이 되면)
             if (PG.drafts.has(key) || PG.orig.has(key)) mark(key);              // 페이지는 '못 올린 것 보관'으로 (savePending · 다음에 열면 마저)
+            if (window.dmkLockPage) dmkLockPage(key);
             try { if (typeof savePending === 'function') savePending(); } catch (er) {}
             await draftDel(key); PG.drafts.delete(key); PG.uns.delete(key);
             gaugeOff();

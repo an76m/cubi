@@ -316,7 +316,18 @@
         const dmkBkCover = b => ({ id: /^my/.test(b.cv) ? b.cv : dymNewId(), t: 'cover', g: b.cg || '표지', n: b.n, c: b.c, cols: b.cols, cw: b.cvw, from: b.cvf || 'mine' });   // 바인더에 끼운 표지 → 재료 모양
         const dmkBkRefill = (b, x) => ({ id: /^my/.test(x.id) ? x.id : dymNewId(), t: 'refill', g: x.g, n: b.n, pg: x.pg, lv: x.lv, from: x.from || 'mine' });
         const dmkRmDate = () => !!(dmkRm && dmkRm.cv && dmkRm.cv.t === 'dcover');
+        /* 🔒 다꾸를 완료한 바인더 = 아무것도 못 바꿔요 (도련 11-17 : 쓰기 전엔 고칠 수 있지만 다이어리에서 ✅ 완료한 순간부터 표지 · 내지 바꾸기 · 더하기 · 빼기 모두 안 돼요)
+             표시 = 다이어리 목록 그 줄 lk (완료한 시각 · js/pagedone.js done → dmkLockPage · 페이지와 같은 올리기에 같이) */
+        const dmkLocked = id => { const l = id && typeof dyoGet === 'function' ? dyoGet(id) : null; return !!(l && l.t === 'binder' && l.lk); };
+        function dmkLockPage(key) {
+            try {
+                const p = typeof parsePageKey === 'function' ? parsePageKey(key) : null; if (!p || !p.b || !window.dkMap) return;
+                const m = dkMap(), id = Object.keys(m).find(k => m[k] === p.b), l = id ? dyoGet(id) : null;
+                if (l && l.t === 'binder' && !l.lk) dyoPut(Object.assign({}, l, { lk: Date.now() }));
+            } catch (e) { console.warn('🔒 바인더 잠그기', e); }
+        }
         function dmkRmInit(id) {                                               // 조립 시작 ('' = 새 바인더 · 권 id = 고치기) · 🧩 책상 바인더 조립(js/binderroom.js)도 같이 써요
+            if (id && dmkLocked(id)) { if (window.showMsg) showMsg('🔒 다꾸를 완료한 바인더예요.<br><span style="font-size:12px;color:#777;">표지 · 내지를 바꾸거나 더하거나 뺄 수 없어요</span>'); id = ''; }
             const old = id ? dmkGet(id) : null;
             dmkRm = old && old.t === 'binder' ? { id: old.id, g: old.g, from: old.from, cv: dmkBkCover(old), rf: old.rf.map(x => dmkBkRefill(old, x)) } : { id: '', g: '', from: 'mine', cv: null, rf: [] };
             dmkRm.o0 = { cv: dmkRm.cv, rf: dmkRm.rf.slice() };
@@ -460,7 +471,7 @@
 
         window.dmkOpen = dmkOpen; window.dmkMakeBinder = dmkMakeBinder; window.dmkMakeNote = dmkMakeNote; window.dmkForm = dmkForm; window.dmkSave = dmkSave; window.dmkDelete = dmkDelete; window.dmkDup = dmkDup; window.dmkClose = dmkClose; window.dmkPages = dmkPages; window.dmkLeafSet = dmkLeafSet; window.dmkColSet = dmkColSet; window.dmkLeafAdd = dmkLeafAdd; window.dmkLeafDel = dmkLeafDel; window.dmkLeafEdge = dmkLeafEdge;
         window.dmkRender = dmkRender; window.dmkPrevDraw = dmkPrevDraw; window.dmkAll = dmkAll; window.dmkParts = dmkParts; window.dmkGet = dmkGet; window.dmkSync = dmkSync; window.dmkEsc = dmkEsc; window.dkLeafOf = dkLeafOf;
-        window.dmkRoomOpen = dmkRoomOpen; window.dmkRmInit = dmkRmInit; window.dmkRmPool = dmkRmPool; window.dmkRmDate = dmkRmDate; window.dmkRmN = dmkRmN; window.dmkRmFilled = dmkRmFilled; window.dmkRmLock = dmkRmLock; window.dmkRmState = () => dmkRm; window.dmkClean = dmkClean; window.dmkCvThumb = dmkCvThumb; window.dmkRfThumb = dmkRfThumb; window.dmkLvText = dmkLvText; window.dmkLeafName = dmkLeafName; window.dmkRoomSave = dmkRoomSave; window.dmkRoomClose = dmkRoomClose; window.dmkRoomDelete = dmkRoomDelete; window.dmkRoomPrev = dmkRoomPrev; window.dmkRmPick = dmkRmPick; window.dmkRmAdd = dmkRmAdd; window.dmkRmOut = dmkRmOut;
+        window.dmkRoomOpen = dmkRoomOpen; window.dmkRmInit = dmkRmInit; window.dmkLockPage = dmkLockPage; window.dmkLocked = dmkLocked; window.dmkRmPool = dmkRmPool; window.dmkRmDate = dmkRmDate; window.dmkRmN = dmkRmN; window.dmkRmFilled = dmkRmFilled; window.dmkRmLock = dmkRmLock; window.dmkRmState = () => dmkRm; window.dmkClean = dmkClean; window.dmkCvThumb = dmkCvThumb; window.dmkRfThumb = dmkRfThumb; window.dmkLvText = dmkLvText; window.dmkLeafName = dmkLeafName; window.dmkRoomSave = dmkRoomSave; window.dmkRoomClose = dmkRoomClose; window.dmkRoomDelete = dmkRoomDelete; window.dmkRoomPrev = dmkRoomPrev; window.dmkRmPick = dmkRmPick; window.dmkRmAdd = dmkRmAdd; window.dmkRmOut = dmkRmOut;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dymaker'] = true;

@@ -73,7 +73,7 @@
         /* 작업대 */
         bq('bndWorkT').textContent = s.id ? '✏️ ' + (s.g || '내 바인더') + ' 고치기' : '작업대';
         const mine = (window.dmkAll ? dmkAll() : []).filter(d => d.t === 'binder');
-        bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}>${esc(d.g)}</option>`).join('')}</select>` : '';
+        bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}${window.dmkLocked && dmkLocked(d.id) ? ' disabled' : ''}>${window.dmkLocked && dmkLocked(d.id) ? '🔒 ' : ''}${esc(d.g)}</option>`).join('')}</select>` : '';
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
         let at = 0;
         const filled = dmkRmFilled();
