@@ -340,6 +340,13 @@
         }
         /* 📄 종이 파일은 고치지 않아요 (바뀌면 새 파일 + 옛 파일 지우기) → 한 번 읽거나 만든 종이는 이 창에 기억 (도련 11-17 · 마테를 누를 때마다 받지 않게) */
         const OWN_FC = new Map();
+        window.ownForgetDir = (pathKey, fid) => {                              // 🔔 다른 기기가 이 종류 폴더 파일을 바꿨어요 (drive.js refreshChanged) → 다음에 쓸 때 새로 읽어요
+            const ks = OWN_KS.filter(k => ownDirKey(k) === pathKey); if (!ks.length) return false;
+            OWN_FC.delete(fid);
+            ks.forEach(k => { const d = ownK(k); d.cache = null; d.live = null; d.at = 0; d.alb = null; });
+            if (typeof ownMerge === 'function') try { ownMerge(); } catch (e) { }
+            return true;
+        };
         function ownFileKeep(fid, sheet) { try { OWN_FC.set(fid, JSON.stringify(sheet)); if (OWN_FC.size > 300) OWN_FC.delete(OWN_FC.keys().next().value); } catch (e) { } }
         async function ownFileRead(fid) {
             if (ownMode() === 'mem') { const t = O.mem.files.get(fid); if (t == null) { const er = new Error('gone'); er.code = 'gone'; throw er; } return ownUnlock(t); }

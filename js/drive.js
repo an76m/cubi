@@ -1860,16 +1860,80 @@
                 const ch = await changesForeign();                             // 🔔 요청 1번 (바뀐 게 없으면 여기서 끝)
                 if (!ch || !ch.length) return;
                 drive.lastForeign = ch.map(c => ({ id: c.fileId, name: c.file ? c.file.name : '(지움)', at: c.time }));   // 📊 상황판 · 점검
-                if (await rootGone()) { rootReset(); return; }              // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로
+                if (ch.some(c => c.fileId === drive.rootId && (c.removed || !c.file || c.file.trashed))) { rootReset(); return; }   // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로 (changes 안에 있어요 · 따로 묻지 않아요)
                 diag('remote', { n: ch.length });
                 try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에
                 const mineN = drive.dirtyKeys.size;
                 let useDrive = true;
                 if (mineN) useDrive = await showAsk(`📱 다른 기기에서 바뀐 내용이 있어요.<br>이 기기에도 아직 드라이브에 못 올린 것이 <b>${mineN}개</b> 있어요.<br>어느 쪽을 쓸까요?<br><span style="font-size:12px;color:#777;">☁ 드라이브 것 = 이 기기에서 바꾼 것은 버려요<br>📱 이 기기 것 = 다른 기기에서 바꾼 것 위에 덮어써요</span>`, '☁ 드라이브 것', '📱 이 기기 것');
                 if (!useDrive) { flushUpload({ force: true }); return; }
+                if (!mineN && await refreshChanged(ch)) return;               // ⚡ 바뀐 파일만 다시 받아요 (도련 11-17 · 새로 열기 21번 → 바뀐 것만)
                 driveReopen(mineN ? '' : '📱 다른 기기에서 바뀐 내용이 있어서 새로 불러올게요.');
             })().catch(e => console.warn('다른 기기 변경 확인 실패:', e)).finally(() => { remoteChecking = null; });
             return remoteChecking;
+        }
+        /* ⚡ 바뀐 파일만 다시 받기 (도련 11-17) : changes 에 나온 파일 = 설정 · 목록 파일 · 일기 장 · 스티커 · 소품 · 문구 폴더 → 그 파일만 다시 읽어서 바꿔 끼우고 다시 그려요
+             모르는 파일이 하나라도 있으면 false (→ 예전처럼 새로 열기 · 가장 확실) · 폴더 · 📦 내 실물(js/mine.js 가 따로) · 지운 파일(목록이 바뀌어서 같이 와요)은 넘어가요 */
+        async function refreshChanged(ch) {
+            try {
+                const pathOf = new Map([...drive.folderIds.entries()].map(([k, v]) => [v, k]));   // 폴더 번호 → 경로
+                const keyWhich = (id, f) => {
+                    for (const w of Object.keys(KEY_FILES)) {
+                        const F = KEY_FILES[w], dir = drive.folderIds.get(F.path.join('/'));
+                        if (!F.chunk && drive[F.prop] && drive[F.prop].id === id) return w;
+                        if (F.chunk && drive.chunks[w] && [...drive.chunks[w].files.values()].some(x => x.id === id)) return w;
+                        if (f && dir && (f.parents || []).includes(dir) && (F.chunk ? chunkRe(F).test(f.name) : f.name === F.name)) return w;   // 다른 기기가 새로 만든 목록 파일
+                    }
+                    return '';
+                };
+                const reKeys = new Map(), reDays = new Set();                  // which → 바뀐 파일 (번호를 알면 찾지 않고 바로 읽어요)
+                for (const c of ch) {
+                    const f = c.file, gone = c.removed || !f || f.trashed;
+                    if (f && f.mimeType === FOLDER_MIME) continue;
+                    if (f && (/^_실물/.test(f.name) || f.name === DIAG_NAME)) continue;   // 📦 js/mine.js mineHint · 🧾 문제기록 (읽지 않아요)
+                    const w = keyWhich(c.fileId, f); if (w) { reKeys.set(w, gone ? null : f); continue; }
+                    const par = f && (f.parents || [])[0];
+                    const idx = [...drive.monthIndex.values(), ...drive.books.values()].find(e => e && ((par && e.folderId === par) || [...e.files.values()].some(x => x.id === c.fileId)));
+                    if (idx) {                                                   // 📔 일기 장 · 다이어리.json · 상태.json
+                        const nm = f ? f.name : ([...idx.files.entries()].find(([, x]) => x.id === c.fileId) || [])[0];
+                        if (nm) { if (gone) idx.files.delete(nm); else idx.files.set(nm, { id: c.fileId, name: nm, modifiedTime: f.modifiedTime, size: f.size }); }
+                        [...drive.loadedDays].forEach(k => { if (fileOfKey(k) === nm) reDays.add(k); });
+                        continue;
+                    }
+                    const pf = par && ch.find(x => x.fileId === par && x.file), pn = pf && pf.file.name;   // 새 권 폴더 이름 (같은 changes 안)
+                    const bdir = k => { const pg = parsePageKey(k), d = !pg && parseDayKey(k); return pg ? dkBookDir(pg.b) : d ? dyBookDir(d.b) : null; };
+                    const lk = f && !gone && pn && [...drive.loadedDays].filter(k => fileOfKey(k) === f.name && (bdir(k) || []).slice(-1)[0] === pn);
+                    if (lk && lk.length) {                                       // 📔 이 기기가 '아직 없음'으로 본 장을 다른 기기가 처음 만들었어요 (새 권 폴더) → 그 폴더만 알려 주고 다시
+                        lk.forEach(k => {
+                            const pg = parsePageKey(k), d = !pg && parseDayKey(k);
+                            if (pg) { drive.folderIds.set(dkBookDir(pg.b).join('/'), par); drive.books.delete(pg.b); }
+                            else if (d) { drive.folderIds.set(dyBookDir(d.b).join('/'), par); drive.monthIndex.delete('all:' + d.b); }
+                            reDays.add(k);
+                        });
+                        continue;
+                    }
+                    const pk = par && pathOf.get(par);
+                    if (pk && window.ownForgetDir && ownForgetDir(pk, c.fileId)) continue;   // 🎀 스티커 (목록 · 스티커첩 · 종이)
+                    if (par && window.collForgetDir && collForgetDir(par)) continue;          // 🪑 ✏️ 🌈 받은- · 모음 목록
+                    if (gone) continue;                                          // 지운 것 = 목록이 같이 바뀌어요
+                    diag('remote-unknown', { name: f && f.name }); return false;  // 모르는 파일 → 새로 열기
+                }
+                for (const [w, f] of reKeys) {                                   // 설정 · 목록 파일 (그 파일만)
+                    const F = KEY_FILES[w];
+                    if (F.lazy && !(drive.lazyOn && drive.lazyOn.has(w))) { delete drive.chunks[w]; drive[F.prop] = null; continue; }   // 💤 아직 안 읽은 것 = 쓸 때 새로
+                    let o;
+                    if (!F.chunk && f) { drive[F.prop] = { id: f.id, name: f.name, modifiedTime: f.modifiedTime, size: f.size, md5Checksum: f.md5Checksum }; if (drive.keyNone) drive.keyNone.delete(w); o = parseJsonObject(await keyFileText(w, f.id), w) || {}; }   // ⚡ 요청 1번
+                    else o = await fetchKeyFile(w) || {};
+                    const ks = new Set(Object.keys(o).concat(store.keys()).filter(k => keyFile(k) === w));
+                    ks.forEach(k => { if (drive.dirtyKeys.has(k)) return; const v = k in o ? JSON.stringify(o[k]) : null; if (store.getItem(k) !== v) store.putLoaded(k, v); });
+                    if (w === 'cafe') drive.cafeBase = new Map(Object.keys(o).map(k => [k, JSON.stringify(o[k])]));
+                    if (GONE_OF[w]) goneScrub(w);
+                }
+                for (const k of reDays) { drive.loadedDays.delete(k); drive.dayMeta.delete(k); await ensureKeyLoaded(k); }   // 📔 읽어 둔 장만 다시
+                diag('remote-part', { keys: reKeys.size, days: reDays.size });
+                applyLoadedData(); updateBadge();
+                return true;
+            } catch (e) { console.warn('바뀐 파일만 받기 실패 → 새로 열기', e); return false; }
         }
         async function driveReopen(msg) {                                    // ☁ 드라이브 것으로 새로 열기 = 이 기기에서 못 올린 것은 버리고 앱을 다시 열어요 (가장 확실해요)
             drive.reopening = true; clearTimeout(uploadTimer);

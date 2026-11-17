@@ -391,6 +391,12 @@
         }
 
         /* ---------- 다른 기기 · 다른 탭에서 바뀌었을 때 (js/drive.js checkRemote · BroadcastChannel) ---------- */
+        window.collForgetDir = folderId => {                                    // 🔔 다른 기기가 이 모음 폴더 파일을 바꿨어요 (drive.js refreshChanged) → 목록을 새로
+            let hit = false;
+            for (const C of COLL.map.values()) if (typeof drive !== 'undefined' && drive.folderIds.get(C.names.join('/')) === folderId) { C.lists = null; if (C.onChange) C.onChange(); hit = true; }
+            return hit;
+        };
+
         /* ---------- 로그인할 때 (js/drive.js loadFromDrive) ---------- */
         /* 지금 계정 (드라이브 permissionId) · 🔐 배치.json 을 열기 전에 먼저 (js/drive.js loadFromDrive) */
         async function collWhoami() {
