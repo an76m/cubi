@@ -943,9 +943,9 @@
             try { return await p; } finally { drive.bookBusy.delete(id); }
         }
 
-        /* 📄📄 같은 날 일기 파일이 2개 이상 (두 기기가 거의 동시에 처음 만든 경우) → 하나로 정리
-           - 내용이 모두 같으면 묻지 않고 나머지를 휴지통으로
-           - 다르면 "어느 쪽을 남길까요?" → 고른 내용을 가장 먼저 만든 파일에 두고 나머지는 휴지통으로 (30일 안에 되살릴 수 있어요) */
+        /* 📄📄 같은 날 일기 파일이 2개 이상 (올린 답을 못 받고 다시 올렸거나 · 두 기기가 거의 동시에 처음 만든 경우) → 하나로 정리 (도련 11-18)
+           - 내용이 같거나 한쪽이 비었으면 · 한쪽이 다른 쪽을 다 품고 더 꾸민 것이면 = 묻지 않고 그쪽
+           - 정말 다르면 = 두 장을 작게 나란히 보여 주고 골라요 (js/page.js dayPreviewHtml) · 고른 내용을 가장 먼저 만든 파일에 두고 나머지는 바로 영구 삭제 (휴지통에 남기지 않아요) */
         const dupFixing = new Map();
         function dayDupFix(idx, name, key) {
             const list = idx.dups && idx.dups.get(name);
@@ -956,12 +956,27 @@
                 const texts = [];
                 for (const f of list) { let t = null; try { t = JSON.stringify(parseJsonObject(await readFileText(f.id), key)); } catch (e) { if (e.type !== 'corrupt') throw e; } texts.push(t); }
                 let win = 0;
+                /* 한쪽이 다른 쪽을 다 품고 더 꾸민 것 = 나중 모습 (한 기기가 올린 답을 못 받고 더 꾸며 또 올렸어요) → 묻지 않고 그쪽 (도련 11-18) */
+                const items = t => { try { const o = JSON.parse(t); return ((o && o.i) || []).map(x => { const y = Object.assign({}, x); delete y.lt; delete y.z; return JSON.stringify(y); }); } catch (e) { return []; } };
+                const extra = t => { try { const o = JSON.parse(t) || {}; return JSON.stringify([o.mo || null, o.we || null, o.sj || null]); } catch (e) { return ''; } };
+                const covers = (big, small) => {                                 // big 이 small 의 붙인 것을 모두 가지고 더 있어요 (도장 · 날씨 · 속지는 같거나 small 에 없어요)
+                    const B = items(big), S = items(small), eb = extra(big), es = extra(small), none = JSON.stringify([null, null, null]);
+                    if (!(es === eb || es === none)) return false;
+                    const left = B.slice();
+                    if (!S.every(x => { const n = left.indexOf(x); if (n < 0) return false; left.splice(n, 1); return true; })) return false;
+                    return left.length > 0 || es !== eb;
+                };
                 for (let i = 1; i < list.length; i++) {
                     const a = texts[win], b = texts[i];
                     if (b === null || b === 'null' || b === a) continue;
                     if (a === null || a === 'null') { win = i; continue; }
+                    if (covers(b, a)) { win = i; continue; }
+                    if (covers(a, b)) continue;
+                    /* 🖼 정말 다르면 = 두 장을 작게 나란히 보여 주고 골라요 (이미 받은 글로 그려요 · 요청 더 없음) */
                     const tm = f => new Date(f.modifiedTime).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    const first = await showAsk(`📄 <b>${keyLabel(key)}</b> 일기 파일이 두 개 있어요.<br>(두 기기에서 거의 동시에 처음 저장한 것 같아요)<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 🗑 휴지통에 30일 보관해요.</span>`, `🕐 ${tm(list[win])} 저장한 것`, `🕑 ${tm(list[i])} 저장한 것`);
+                    const pw = Math.min(240, Math.floor(((window.innerWidth || 360) - 80) / 2)), n = t => items(t).length;
+                    const card = (t, f, tag) => `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><b style="font-size:13px">${tag}</b>${window.dayPreviewHtml ? dayPreviewHtml(JSON.parse(t), pw) : ''}<span style="font-size:11px;color:#777">🕐 ${tm(f)} 저장 · 붙인 것 ${n(t)}개</span></div>`;
+                    const first = await showAsk(`📄📄 <b>${keyLabel(key)}</b> 일기가 두 개 있어요.<br>남길 쪽을 골라 주세요<br><div style="display:flex;gap:10px;justify-content:center;margin:10px 0 4px;flex-wrap:wrap">${card(a, list[win], '🅰')}${card(b, list[i], '🅱')}</div><span style="font-size:12px;color:#777;">고르지 않은 쪽은 바로 지워져요 (되살릴 수 없어요)</span>`, '🅰 남기기', '🅱 남기기');   // 창이 좁으면 위아래로 놓여서 '왼쪽 · 오른쪽' 대신 🅰 🅱
                     if (!first) win = i;
                 }
                 const keep = list[0];

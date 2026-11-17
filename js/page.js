@@ -542,6 +542,28 @@
             return { posX: cx - d.boxW / 2, posY: cy - d.boxH / 2, scale: s };
         }
         window.pgToMm = pgToMm; window.pgFromMm = pgFromMm; window.pgCanvas = pgCanvas; window.pgGeo = pgGeo;
+        /* 🖼 하루 장 미리보기 (도련 11-18 : 같은 날 파일이 둘일 때 두 장을 보여 주고 고르게 · 알아볼 수 있을 만큼 작게)
+           day = 하루 장 json ({ v: 4, i, sj, mo, we }) · w = 펼친 두 쪽 그림 폭 px · 드라이브 요청 없음 (이미 받은 글로 그려요)
+           그리기 = 붙인 것 자리 (쪽 · mm) · 크기 (W) · 돌기 · 겹침 순서 · 그림 · 글 · 속지 (정확한 다이어리 모습이 아니라 알아보기용) */
+        function dayPreviewHtml(day, w) {
+            const mm = (window.dyMmOf && dyMmOf()) || [105, 148], W = w || 300, k = W / (mm[0] * 2), H = Math.round(mm[1] * k);
+            const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            const sj = (day && day.sj) || {}, side = s => { const o = sj[s]; if (!o) return ''; const src = o.s ? (sj.l && sj.l.i) : o.i; return src ? `<img src="${esc(src)}" style="position:absolute;left:${s === 'r' ? '50%' : 0};top:0;width:50%;height:100%;object-fit:cover;opacity:.9">` : ''; };
+            const font = id => { try { const f = (window.fontList || (typeof fontList !== 'undefined' ? fontList : [])).find(x => x.id === id); return f ? f.css : ''; } catch (e) { return ''; } };
+            const items = ((day && day.i) || []).slice().sort((a, b) => (a.z || 0) - (b.z || 0)).map(it => {
+                const cx = ((it.p === 'r' ? mm[0] : 0) + (+it.x || 0)) * k, cy = (+it.y || 0) * k, bw = +it.bw || +it.w || 100, bh = +it.bh || +it.h || 100;
+                const ww = (+it.W || bw / 4) * k, hh = ww * bh / bw, s = ww / bw;
+                const box = `position:absolute;left:${(cx - ww / 2).toFixed(1)}px;top:${(cy - hh / 2).toFixed(1)}px;width:${ww.toFixed(1)}px;height:${hh.toFixed(1)}px;transform:rotate(${+it.r || 0}deg);overflow:hidden`;
+                if (it.t === 'i') return `<img src="${esc(typeof slimDec === 'function' ? slimDec(it.c) : it.c)}" style="${box};object-fit:contain">`;
+                if (it.t === 't' || it.t === 's') {
+                    const bg = it.tb ? `background:url('${esc(typeof slimDec === 'function' ? slimDec(it.tb) : it.tb)}') center/100% 100%;` : '';
+                    return `<div style="${box};${bg}font-size:${Math.max(4, (+it.fs || 18) * s).toFixed(1)}px;line-height:1.2;color:${esc(it.k || '#444')};font-family:${esc(font(it.f) || 'inherit')};white-space:pre-wrap;word-break:break-all">${esc(it.c)}</div>`;
+                }
+                return `<div style="${box};display:grid;place-items:center;font-size:${Math.max(8, hh * .6).toFixed(0)}px">🧸</div>`;
+            }).join('');
+            return `<div class="dpv" style="position:relative;width:${W}px;height:${H}px;background:#fffdf8;border:1.5px solid #f1c6d6;border-radius:6px;overflow:hidden;box-sizing:content-box">${side('l')}${side('r')}<i style="position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #f1c6d6"></i>${items}</div>`;
+        }
+        window.dayPreviewHtml = dayPreviewHtml;
         function convertGeometry(g, fromPage, toPage) {
             const a = canvasOfPage(fromPage.w, fromPage.h), b = canvasOfPage(toPage.w, toPage.h);
             if (a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) return g;
