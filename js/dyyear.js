@@ -129,8 +129,9 @@
              🎁 첫 선물 권은 꾸미기 시작할 때 폴더가 생겨요 (첫 접속 요청 줄이기) */
         const DYY_FILE = '다이어리.json';
         const dyyOnline = () => typeof drive !== 'undefined' && drive.ready && !drive.guest;
-        async function dyyFile(id, from) {
+        async function dyyFile(id, from, isNew) {                              // isNew = 방금 새 번호로 만든 권 (그 폴더는 아직 없어요 → 찾지 않고 바로 만들어요 · 도련 11-18 요청 줄이기)
             if (!dyyOnline() || typeof ownLock !== 'function') return;
+            if (isNew && typeof drive !== 'undefined' && drive.folderMiss) drive.folderMiss.set(dyBookDir(id).join('/'), Date.now());
             try {
                 const dir = await getFolder(dyBookDir(id), true), cur = await findFile(dir, DYY_FILE);
                 if (!cur) { const I = dyyLine(id) || {}, md = I.md || (I.cv && I.cv.md); await driveUpsert(dir, DYY_FILE, null, await ownLock(Object.assign({ id, from: I.from || from, at: I.at || '' }, md ? { md } : {}))); }   // ✏️ 내가 만든 디자인도 (되살릴 때)
@@ -299,7 +300,7 @@
             }
             const id = dyyNewId(y, d);                                         // 📓 날짜형노트 = 완제품 → 바로 권
             dyoPut(dyyLineNew(id, 'basic'));                                   // 🏪 기본상품 샵 (나중 유료 = 'paid')
-            dyyFile(id, 'basic');                                              // 🗂 권 폴더 + 다이어리.json (도련 11-05)
+            dyyFile(id, 'basic', true);                                        // 🗂 권 폴더 + 다이어리.json (도련 11-05)
             window.dyyLastGiven = { id, t: Date.now() };                       // 🛍️ 봉투 카드가 이 권을 기억해요 (끌어 놓으면 책상 그 자리 · js/basket.js bagNote)
             if (window.shopBagOn && shopBagOn() && window.dkBagHold) dkBagHold(id);   // 🏪 가게에서 산 것 = 봉투 속 (책상에 꺼내 놓을 때까지 책상에 없어요 · 펼쳐 둔 권도 그대로 · 도련 10-30)
             else dyySelect(id);
@@ -313,7 +314,7 @@
             const id = dyyNewId(+cv.y, d);
             dyoPut(dyyLineNew(id, 'mine', { cv: Object.assign({}, cv), rf: [Object.assign({}, rf)] }));
             dymDel(cv.id); dymDel(rf.id);
-            dyyFile(id, 'mine');
+            dyyFile(id, 'mine', true);
             if (window.dkDeskBooks) dkDeskBooks();                             // 📔 책상 위에 (자리가 없으면 줄지어)
             dyySelect(id);
             return id;
@@ -325,7 +326,7 @@
             const d = DY_DESIGNS.find(x => x.id === md.id && x.ch === 'n'); if (!d) return '';
             const id = dyyNewId(y, d);
             dyoPut(dyyLineNew(id, 'mine', { md }));
-            dyyFile(id, 'mine');
+            dyyFile(id, 'mine', true);
             if (window.dkDeskBooks) dkDeskBooks();
             dyySelect(id);
             return id;

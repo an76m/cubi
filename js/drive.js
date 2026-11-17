@@ -230,6 +230,7 @@
         }
 
         async function gfetch(url, opts = {}, retried = false) {
+            if (drive.madeDirs && drive.madeDirs.size && opts.method && (opts.method === 'DELETE' || /addParents|removeParents/.test(url) || (opts.method === 'PATCH' && !/uploadType=media/.test(url) && /"(trashed|name|parents)"/.test(String(opts.body || ''))))) drive.madeDirs.clear();   // 📁 지우기 · 휴지통 · 이름 · 옮기기 = 방금 만든 폴더 안 기억도 버려요 (다시 찾아요)
             if (drive.local && window.vfsFetch) return vfsFetch(url, opts);        // 🏠 로그인 없이 이 브라우저 : 드라이브 대신 (js/devsave.js)
             const get = !opts.method || opts.method === 'GET';
             if (get && !opts.fresh && window.DRC && DRC.on) { const c = await DRC.serve(url); if (c) return c; }   // ⚡ 이 기기에 둔 것 (js/drcache.js · 바뀐 것은 changes 로 이미 잊었어요)
@@ -580,6 +581,8 @@
         }
         /* 폴더 안에서 이름으로 파일 찾기 (같은 이름이 여럿이면 먼저 만든 것) */
         async function findFile(folderId, name) {
+            const made = drive.madeDirs && drive.madeDirs.get(folderId);         // 📁 이 창에서 방금 만든 폴더 = 안에 무엇이 있는지 알아요 (찾지 않아요 · 도련 11-18 요청 줄이기)
+            if (made) return made.get(name) || null;
             const fs = await driveList(`name='${qName(name)}' and '${folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
             return fs[0] || null;
         }
@@ -700,6 +703,7 @@
                 let id = miss ? null : await findFolder(name, parentId);
                 if (!id && create) {
                     id = await createFolder(name, parentId);
+                    if (id) (drive.madeDirs = drive.madeDirs || new Map()).set(id, new Map());   // 빈 폴더 (그 안에 만드는 파일은 driveUpsert 가 적어요)
                     diag('mkdir', { p: key, id, miss: miss ? 1 : 0 });
                     /* 📱 한 기기 기준 (도련 11-17) : 만든 뒤 '다른 기기도 만들었나' 다시 찾기는 없앴어요 (폴더마다 요청 1번 · 처음 접속) · 그래도 둘이 되면 다음에 찾을 때 findFolder 가 먼저 만든 쪽으로 합쳐요 */
                 }
@@ -754,6 +758,7 @@
         }
 
         function resetDriveCaches() {
+            if (drive.madeDirs) drive.madeDirs.clear();
             drive.folderIds.clear(); drive.folderBusy.clear(); drive.folderMiss.clear(); drive.alive.clear();
             drive.monthIndex.clear(); drive.monthBusy.clear();
             drive.books.clear(); drive.bookBusy.clear();
@@ -1106,6 +1111,7 @@
             if (!res.ok) { drive.alive.delete(folderId); throw await driveFail(res, 'create'); }   // 404 'gone' : 폴더가 지워짐
             drive.alive.set(folderId, Date.now());
             const j = await res.json();
+            if (drive.madeDirs && drive.madeDirs.has(folderId)) drive.madeDirs.get(folderId).set(name, { id: j.id, name, modifiedTime: j.modifiedTime, size: String(body.length) });   // 📁 방금 만든 폴더 안 (findFile 이 찾지 않아요)
             if (!md5Same(j, body)) return driveUpsert(folderId, name, j.id, body, true);   // 🔏 새로 만든 파일 지문이 달라요 → 그 파일에 한 번 더 (그래도 다르면 에러)
             if (window.DRC) await DRC.keepBody(j.id, body, j.md5Checksum);       // ⚡ 올린 그대로 기억
             return mineWrote(j);
