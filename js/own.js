@@ -443,6 +443,8 @@
         async function ownOpen(force, ks) {
             ownReady(); ks = ownKs(ks);
             const fresh = k => { const d = O.kd[k]; return d && d.live && d.alb && performance.now() - d.at < OWN_FRESH; };
+            const kept = k => { const d = O.kd[k]; return d && d.live && d.alb; };   // 🗄️ force 'keep' = 서랍 열기 (도련 11-17 : 열 때마다 드라이브 요청 X) · 이 창에서 읽은 목록 · 스티커첩이 있으면 그대로 (시간 상관없이 · 📱 한 기기 기준 · 다른 기기 것은 돌아올 때 drive.js checkRemote → ownForgetDir 가 비워요) · 못 올린 쓰기는 alb = null 로 비워 다시 읽어요
+            if (force === 'keep') { if (ks.every(kept)) return { list: ownPick(ks), album: ownAlbPick(ks) }; force = true; }
             if (!force && ks.every(fresh)) return { list: ownPick(ks), album: ownAlbPick(ks) };
             return ownSerial(async () => {
                 await ownKindDirs(ks);

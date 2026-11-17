@@ -86,7 +86,7 @@
         const w = bq('bkWrap'); if (w) w.innerHTML = '';
         { const m = bq('basketKindModal'); if (m) m.classList.toggle('bk-drw', B.view === 'bin'); }
         openModal('basketKindModal');
-        bkRender(true);
+        bkRender('keep');                                                      // 🗄️ 이 창에서 이미 읽은 서랍이면 드라이브에 묻지 않아요 (도련 11-17 · js/own.js ownOpen 'keep')
     }
     function bkReopen() { if (B.kind) bkOpenKind(B.kind, true); else openBasket(); }   // 떼는 창이 닫히면 보던 바구니로
     const bkMsg = (h, btn) => `<div class="bk-msg">${h}${btn || ''}</div>`;
