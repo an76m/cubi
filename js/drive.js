@@ -967,7 +967,7 @@
                 const keep = list[0];
                 let meta = keep;
                 if (win !== 0 && texts[win] !== null) meta = Object.assign({}, keep, await driveUpsert(idx.folderId, name, keep.id, texts[win]));
-                for (let i = 1; i < list.length; i++) await toTrash(list[i].id, window.trDayPath ? trDayPath(key) : name, texts[i] === texts[win] || texts[i] === null ? 'a' : 'u', 1);   // 같은 내용 = 앱 정리 · 안 고른 내용 = 🗑 (덮어쓰기 전 모습)
+                for (let i = 1; i < list.length; i++) await driveKill(list[i].id);   // 🔥 남기지 않은 쪽 = 바로 영구 삭제 (도련 11-18 : 앱 휴지통에 남기지 않아요 · 예전 = 다른 내용은 🗑 휴지통 30일 · 같은 내용은 숨김 정리)
                 idx.files.set(name, meta); idx.dups.delete(name);
                 if (drive.dayMeta.has(key)) drive.dayMeta.set(key, meta.modifiedTime || '');
             })();
