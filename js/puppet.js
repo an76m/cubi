@@ -107,16 +107,14 @@
                 PS.id = id; PS.mt = now; return true;
             }
             const dir = await getFolder(PS_FOLDER(), true);
-            let id = PS.id;
-            const cur = id ? await driveMeta(id) : null;
-            if (!cur) id = null;
+            const id = PS.id;                                    // 🗑 그 사이 지워졌으면 = 쓰기가 'gone' → 아래에서 새로 만들어요 (도련 11-17 · 예전 = 쓰기 전에 살아 있나 묻기)
             let saved;
             try { saved = await driveUpsert(dir, name + '.json', id, JSON.stringify(body)); }
             catch (e) { if (e && e.code === 'gone') saved = await driveUpsert(await getFolder(PS_FOLDER(), true), name + '.json', null, JSON.stringify(body)); else throw e; }
-            if (cur && cur.name !== name + '.json') {                                // 제목을 바꿨으면 파일 이름도
+            if (id && saved.id === id && PS.nm && PS.nm !== name) {                  // 제목을 바꿨으면 파일 이름도 (PS.nm = 열 때 · 저장할 때 파일 이름 · 도련 11-17)
                 try { await gfetch(`${DRIVE_API}/${saved.id}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ name: name + '.json' }) }); } catch (e) {}
             }
-            PS.id = saved.id; PS.mt = saved.modifiedTime; return true;
+            PS.id = saved.id; PS.mt = saved.modifiedTime; PS.nm = name; return true;
         }
         async function psDelete(ent) {
             if (!psDrive()) { psGuestWrite(psGuestRead().filter(e => e.id !== ent.id)); return; }
@@ -247,13 +245,13 @@
             try { show = await psRead(ent); } catch (x) { show = null; }
             b.disabled = false;
             if (!show) { showMsg('⚠ 인형극 파일을 읽지 못했어요.'); return; }
-            if (b.dataset.psa === 'play') { PS.show = show; PS.id = ent.id; PS.mt = ent.mt; PS.dirty = false; psPlay(0, true); return; }
+            if (b.dataset.psa === 'play') { PS.show = show; PS.id = ent.id; PS.mt = ent.mt; PS.nm = ent.name; PS.dirty = false; psPlay(0, true); return; }
             psOpenEdit(ent, show);
         }
 
         /* ---------- ✏️ 만들기 ---------- */
         function psOpenEdit(ent, show) {
-            PS.show = show; PS.id = ent ? ent.id : null; PS.mt = ent ? ent.mt : null; PS.dirty = !ent; PS.sc = 0; PS.sel = -1; PS.tab = show.scenes[0].actors.length ? 'lines' : 'cast';
+            PS.show = show; PS.id = ent ? ent.id : null; PS.mt = ent ? ent.mt : null; PS.nm = ent ? ent.name : null; PS.dirty = !ent; PS.sc = 0; PS.sel = -1; PS.tab = show.scenes[0].actors.length ? 'lines' : 'cast';
             pzq('psListPane').style.display = 'none'; pzq('psEdit').style.display = '';
             pzq('psTitle').value = show.title; pzq('psBy').value = show.by;
             psRenderEd();

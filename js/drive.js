@@ -492,12 +492,12 @@
         const DRIVE_PARENT_DEFAULT = USE_APP_DATA_FOLDER ? 'appDataFolder' : 'root';
         const DRIVE_SPACE = USE_APP_DATA_FOLDER ? '&spaces=appDataFolder' : '';
 
-        async function driveList(query, fields) {
+        async function driveList(query, fields, fresh) {                      // fresh = 기억(js/drcache.js) 말고 드라이브에 바로 (두 기기 합치기 확인처럼 지금 모습이 꼭 필요할 때)
             let files = [], pageToken = '';
             do {
                 const url = `${DRIVE_API}?q=${encodeURIComponent(query)}${DRIVE_SPACE}&orderBy=createdTime&pageSize=1000`
                     + `&fields=${encodeURIComponent('nextPageToken,files(' + fields + ')')}` + (pageToken ? '&pageToken=' + encodeURIComponent(pageToken) : '');
-                const res = await gfetch(url);
+                const res = await gfetch(url, fresh ? { fresh: 1 } : {});
                 if (!res.ok) throw await driveFail(res, 'list');
                 const j = await res.json();
                 files = files.concat(j.files || []);
@@ -1836,18 +1836,20 @@
             if (drive.local) return;
             try { const res = await gfetch('https://www.googleapis.com/drive/v3/changes/startPageToken'); if (res.ok) changeTok = (await res.json()).startPageToken || null; } catch (e) {}
         }
-        const CH_SPACES = 'drive,appDataFolder';                              // 📒 숨은 장부(앱 데이터 칸)도 같은 요청에 (도련 11-17)
+        const CH_SPACES = 'drive,appDataFolder';
+        /* 🗑 휴지통 · 지워진 파일 = 기억해 둔 파일 번호에서 빼요 (js/own.js · 도련 11-17 · 예전 = 번호마다 살아 있나 물었어요) */
+        function drcGone(chs) { const ids = new Set((chs || []).filter(c => c.removed || !c.file || c.file.trashed).map(c => c.fileId)); if (ids.size && window.ownForgetIds) ownForgetIds(ids); }                              // 📒 숨은 장부(앱 데이터 칸)도 같은 요청에 (도련 11-17)
         /* ⚡ 켤 때 (도련 11-17 "요청 1번으로 다 알아보고 바뀐 것만") : 계정 1번 + 지난번 표시부터 바뀐 것 1번 → 바뀐 것만 잊고 나머지는 이 기기 기억 (js/drcache.js)
            표시가 없거나 (처음 · 지웠어요) 구글이 안 받아 주면 = 기억을 버리고 예전처럼 다 읽어요 (읽은 것은 다음을 위해 기억해요) */
         async function drcBoot() {
-            if (drive.local || !window.DRC) return changesStart();
+            if (drive.local || !window.DRC) { drive.drcBoot = { n: -1, ch: null }; return changesStart(); }   // 🏠 = 기기 안이라 요청이 없어요 (js/mine.js 는 켤 때 한 번 맞춰 봐요)
             DRC.off();
             const AB = 'https://www.googleapis.com/drive/v3/about?fields=user(permissionId)';   // js/coll.js collWhoami 와 같은 주소 (그쪽은 이 창 기억에서 꺼내요)
             let who = '', at = '';
             try { const r = await gfetch(AB); if (r.ok) { at = await r.text(); who = ((JSON.parse(at) || {}).user || {}).permissionId || ''; } } catch (e) {}
             const tok = who ? await DRC.boot(who) : '';
             if (who && at) DRC.keep(AB, new Response(at)).catch(() => {});
-            if (!who) return changesStart();
+            if (!who) { if (window.ownForgetAllIds) ownForgetAllIds(); drive.drcBoot = { n: -1, ch: null }; return changesStart(); }
             if (tok) {
                 let t = tok, ok = false; const all = [];
                 try {
@@ -1859,9 +1861,10 @@
                         t = j.nextPageToken;
                     }
                 } catch (e) {}
-                if (ok) { await DRC.apply(all); await DRC.ready(changeTok); drive.drcBoot = { n: all.length }; return; }
+                if (ok) { await DRC.apply(all); drcGone(all); await DRC.ready(changeTok); drive.drcBoot = { n: all.length, ch: all }; return; }
             }
-            await DRC.wipe(); await changesStart(); if (changeTok) await DRC.ready(changeTok); drive.drcBoot = { n: -1 };
+            await DRC.wipe(); if (window.ownForgetAllIds) ownForgetAllIds();   // 바뀐 것을 모르는 사이가 생겼어요 → 기억한 파일 번호도 버리고 폴더에서 다시 찾아요
+            await changesStart(); if (changeTok) await DRC.ready(changeTok); drive.drcBoot = { n: -1, ch: null };
         }
         const changeMine = c => { if (!mineIds.has(c.fileId)) return false; if (c.removed || !c.file || c.file.trashed) return true; const m = mineAt.get(c.fileId); return !m || (!!c.file.md5Checksum && c.file.md5Checksum === m.md5) || (!!m.mt && c.file.modifiedTime === m.mt) || c.file.mimeType === FOLDER_MIME; };
         async function changesForeign() {                                    // → 다른 기기가 바꾼 것들 [] · null = 모름 (처음 · 실패 → 안 물어요)
@@ -1871,9 +1874,10 @@
             try {
                 for (let i = 0; i < 20 && tok; i++) {
                     const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=1000&spaces=${CH_SPACES}&fields=*`);
-                    if (!res.ok) { changeTok = null; if (window.DRC) await DRC.wipe(); return null; }   // 표시가 안 맞으면 기억도 버려요 (다음에 켤 때 다 읽어요)
+                    if (!res.ok) { changeTok = null; if (window.DRC) await DRC.wipe(); if (window.ownForgetAllIds) ownForgetAllIds(); return null; }   // 표시가 안 맞으면 기억도 버려요 (다음에 켤 때 다 읽어요)
                     const j = await res.json();
                     if (window.DRC) await DRC.apply(j.changes || []);              // ⚡ 바뀐 것은 기억에서 잊어요 (내 것 · 다른 기기 것 모두)
+                    drcGone(j.changes);
                     (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c) && !(c.file && ((c.file.spaces || []).includes('appDataFolder') || c.file.name === LEDGER_NAME))) out.push(c); });   // 📒 장부는 화면과 상관없어요 (다음에 쓸 때 다시 읽어요)
                     if (window.mineHint) (j.changes || []).forEach(c => { if (!changeMine(c)) mineHint(c.fileId); });   // 📦 내 실물 목록
                     if (j.newStartPageToken) { changeTok = j.newStartPageToken; drive.lastChanges = j.changes || []; if (window.DRC && DRC.on) await DRC.ready(changeTok); return out; }

@@ -67,6 +67,7 @@
         await dropKeys(F.filter(e => !(keepMd5 && e.md5 && e.md5 === keepMd5)).map(e => e.k).concat(listsWith(fid)));
     }
     const dropParent = pid => dropKeys(listsWith(pid));
+    const dropGlobal = () => dropKeys([...D.lists.keys()].filter(k => { let q = k; try { q = decodeURIComponent(k); } catch (e) {} return !/ in parents/.test(q); }));   // 폴더를 정하지 않은 찾기 (이름으로 모든 폴더 · js/mine.js) = 어디에 새 파일이 생겨도 달라질 수 있어요
     const dropAllLists = () => dropKeys([...D.lists.keys()]);
     /* 바뀐 것 묻기 답 (changes) → 잊기 */
     async function apply(changes) {
@@ -75,6 +76,7 @@
             const f = c.file;
             await dropFile(c.fileId, f && !c.removed && !f.trashed ? f.md5Checksum : '');   // 그 파일 + 그 파일이 든 목록 + 그 폴더 안 목록 (폴더면 · 주소에 번호가 있어요)
             if (f) (f.parents || []).forEach(p => { dropParent(p); });                  // 그 파일이 있는 폴더의 목록 (새로 생긴 것 · 수정 시각)
+            if (f) dropGlobal();
             if (f && (f.spaces || []).includes('appDataFolder')) dropKeys(listsWith('appDataFolder'));
         }
         await D.q;
@@ -113,10 +115,12 @@
         if (fid) await dropFile(fid);
         const body = typeof (opts && opts.body) === 'string' ? opts.body : '';
         if (/addParents|removeParents/.test(url) || /"(name|trashed|parents)"\s*:/.test(m && !/uploadType=media/.test(url) ? body : '')) { await dropAllLists(); return; }   // 이름 · 휴지통 · 옮기기
+        if (m) await dropGlobal();                                               // 내용 고침 = 수정 시각이 바뀌어요 (이름 찾기 목록에도 있어요 · 그 파일이 든 목록은 위에서)
         if (!m) {                                                                // 새로 만들기 : 그 폴더 목록 (모르면 모두)
             const p = /"parents"\s*:\s*\[([^\]]*)\]/.exec(body);
             const ps = p ? (p[1].match(/"([^"]+)"/g) || []).map(s => s.slice(1, -1)) : [];
             if (ps.length) for (const x of ps) await dropParent(x); else await dropAllLists();
+            await dropGlobal();
         }
     }
     async function keepBody(id, body, md5) {                                     // 올린 내용 그대로 (driveUpsert) = 다시 받지 않아요

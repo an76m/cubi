@@ -216,16 +216,14 @@
         }
 
         const ownIdxClean = (arr, k) => (Array.isArray(arr) ? arr : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { k: e.k || k, u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}));
-        /* 🗑 브라우저에 기억해 둔 파일 번호가 휴지통에 들어갔는지 (폴더를 지웠거나 · 같은 이름 폴더 합치기) : 번호로는 읽고 써져서 앱에선 멀쩡해 보이지만 드라이브 폴더에는 없어요 (도련 11-06)
-           → 이번에 처음 쓰는 기억 번호만 한 번 확인 · 휴지통이면 그 번호는 잊고 지금 폴더에서 다시 찾아요 (내용은 읽지 않아요 · 도련 11-11 : 휴지통 = 사용자가 ⚙ 🗑 휴지통에서 직접 되살리는 곳) */
-        const OWN_LIVE = new Set();
-        async function ownLive(id) {
-            if (!id || OWN_LIVE.has(id)) return true;
-            const m = await driveMeta(id).catch(() => undefined);
-            if (m === undefined) return true;                                    // 확인을 못 하면 (인터넷) 예전처럼
-            if (m) { OWN_LIVE.add(id); return true; }
-            return false;
-        }
+        /* 🗑 기억해 둔 파일 번호가 휴지통 · 지워짐 (폴더를 지웠거나 · 같은 이름 폴더 합치기) = 구글 changes 가 알려 줘요 (도련 11-17 · 예전 = 번호마다 드라이브에 살아 있나 물었어요 ownLive)
+           → js/drive.js 가 켤 때 · 돌아올 때 ownForgetIds(번호들) · 바뀐 것 기억이 끊겼으면 (처음 · 지움) ownForgetAllIds = 폴더에서 다시 찾아요 */
+        window.ownForgetIds = ids => {
+            if (!ids || !ids.size) return;
+            try { const all = JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {}; let ch = false; Object.values(all).forEach(o => { if (o && typeof o === 'object') Object.keys(o).forEach(k => { const v = o[k]; if (v && (ids.has(v.i) || ids.has(v.a))) { delete o[k]; ch = true; } }); }); if (ch) localStorage.setItem(OWN_FILES_LS, JSON.stringify(all)); } catch (e) {}
+            Object.values(O.kd || {}).forEach(d => { if (d.f && ids.has(d.f.id)) { d.f = null; d.cache = null; d.live = null; d.at = 0; } if (d.albF && ids.has(d.albF.id)) { d.albF = null; d.alb = null; } });
+        };
+        window.ownForgetAllIds = () => { try { localStorage.removeItem(OWN_FILES_LS); } catch (e) {} };
         async function ownIdxRead(k, pre) {                                      // pre : 이미 찾은 목록 파일 (ownOpenKind · null = 없음)
             ownReset();
             if (ownMode() === 'mem') { ownK(k).gone = (O.mem.gone[k] || []).slice(); return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() })); }
@@ -235,7 +233,7 @@
             let f = pre;
             if (f === undefined) {
                 const m = d.f ? d.f.id : (ownFilesGet(k) || {}).i;
-                if (m && (d.f || await ownLive(m))) f = { id: m };              // ⚡ 아는 번호면 찾지 않고 바로 (도련 10-25)
+                if (m) f = { id: m };                                            // ⚡ 아는 번호면 찾지 않고 바로 (도련 10-25 · 휴지통 · 지워진 번호는 changes 로 이미 잊었어요 ownForgetIds)
                 else {
                     if (m) { console.warn('🗑 기억한 목록 파일이 휴지통에 있어요 → 그 번호는 잊고 지금 폴더에서 다시 찾아요 :', k); if (window.diag) diag('stale', { k, f: '목록', id: m }); }   // 🗑 휴지통 안 내용은 읽지 않아요 (도련 11-11 : 휴지통은 사용자가 직접 되살리는 곳 · 예전 내용을 몰래 섞으면 판단이 헷갈려요)
                     f = await find();
@@ -417,28 +415,11 @@
             return O.kd[k].live;
         }
         /* ⚡ 목록 · 스티커첩 파일 번호를 기억해요 (계정 · 종류마다 · 도련 10-25) : 다음에 열 때 폴더 찾기 · 파일 찾기 없이 바로 읽어요
-           그다음 뒤에서 한 번 찾아 보고, 다른 기기에서 새로 만들었거나 바뀌었으면 다시 읽어 바구니를 고쳐 그려요 (ownTell) */
+           다른 기기가 바꾼 것 · 지운 것은 구글 changes 로 (js/drive.js · 도련 11-17 · 예전 '뒤에서 한 번 더 찾아보기' 없앰) */
         const OWN_FILES_LS = 'malang_own_files4';                           // 4 : 종류마다 (11-05 · 예전 번호를 쓰지 않게)
         const ownFilesGet = k => { try { const o = (JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {})[O.kw]; return (o && o[k]) || null; } catch (e) { return null; } };
         function ownFilesSet(k, v) { try { const all = JSON.parse(localStorage.getItem(OWN_FILES_LS) || '{}') || {}; const o = all[O.kw] && typeof all[O.kw] === 'object' ? all[O.kw] : (all[O.kw] = {}); o[k] = v; localStorage.setItem(OWN_FILES_LS, JSON.stringify(all)); } catch (e) {} }
         const ownFilesNow = k => { const d = ownK(k); ownFilesSet(k, { i: d.f ? d.f.id : '', a: d.albF ? d.albF.id : '' }); };
-        async function ownFilesCheck(k, mem) {                                   // 뒤에서 : 기억한 번호가 아직 맞는지
-            try {
-                const dir = await ownKindDir(k, false); if (!dir) return;
-                const fs = await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (name='${OWN_IDX}' or name='${OWN_ALB}')`, 'id,name');
-                const i = (fs.find(x => x.name === OWN_IDX) || {}).id || '', a = (fs.find(x => x.name === OWN_ALB) || {}).id || '';
-                if (i === mem.i && a === mem.a) return;
-                const d = ownK(k);
-                if (mem.i && i && mem.i !== i) await ownSerial(async () => {   /* 살아 있는 목록이 없으면 합치지 않아요 = 처음부터 (도련 10-30 · 드라이브가 기준) */      // 🛟 기억한 목록이 휴지통 · 다른 파일이 된 사이에 거기에 받은 종이를 썼을 수 있어요 (도련 10-29)
-                    let old = []; try { old = ownIdxClean((await ownUnlock(await readFileText(mem.i))).list, k); } catch (e) { return; }   // → 살아 있는 목록에 합쳐요 (없는 것만 더해요)
-                    let live = []; if (i) { try { live = ownIdxClean((await ownUnlock(await readFileText(i))).list, k); } catch (e) { return; } }
-                    const have = new Set(live.map(e => e.id)), add = old.filter(e => !have.has(e.id));
-                    if (!add.length) return;
-                    d.f = i ? { id: i } : null; await ownIdxWrite(k, live.concat(add));
-                });
-                ownFilesSet(k, { i: d.f && d.f.id !== mem.i ? d.f.id : i, a }); d.at = 0; await ownOpen(true, [k]); ownTell();
-            } catch (e) { console.warn(e); }
-        }
         /* ⚡ 바구니 열기 : 그 종류의 목록 파일 · 스티커첩 파일을 동시에 읽어요 · ks = 열 종류 (없으면 모든 종류 · 🍽 오늘 쓸 스티커처럼) */
         async function ownOpen(force, ks) {
             ownReady(); ks = ownKs(ks);
@@ -456,11 +437,9 @@
             const d = ownK(k);
             const mem = ownMode() !== 'mem' ? ownFilesGet(k) : null;
             if (mem && mem.i) {                                                  // ⚡ 기억한 번호로 바로 (둘 다 동시에)
-                const [list, alb, live] = await Promise.all([ownIdxRead(k, { id: mem.i }), ownAlbRead(k, mem.a ? { id: mem.a } : null), driveMeta(mem.i).catch(() => true)]).catch(() => [null, null, true]);
-                if (!live) { ownFilesSet(k, { i: '', a: '' }); d.f = d.albF = null; }   /* 🗑 기억한 목록이 휴지통 (말랑달콤 · 종류 폴더를 지웠어요) = 기억을 버리고 살아 있는 폴더에서 (도련 11-04) */
-                else if (list && d.f && (!mem.a || d.albF)) {
+                const [list, alb] = await Promise.all([ownIdxRead(k, { id: mem.i }), ownAlbRead(k, mem.a ? { id: mem.a } : null)]).catch(() => [null, null]);   // 🗑 휴지통 · 지워진 번호는 changes 로 이미 잊었어요 (js/drive.js ownForgetIds · 예전 살아 있나 묻기 · 뒤에서 폴더 다시 보기 ownFilesCheck 는 없앴어요 · 도련 11-17)
+                if (list && d.f && (!mem.a || d.albF)) {
                     d.alb = ownAlbumClean(alb, null); ownIdxApply(k, list); if (window.mineSoon) mineSoon();   /* 📦 불러온 📒 🤍 책도 실물로 (js/mine.js) */
-                    setTimeout(() => ownFilesCheck(k, mem), 0);
                     return;
                 }
             }
@@ -885,7 +864,7 @@
             let f = pre;
             if (f === undefined) {
                 const m = d.albF ? d.albF.id : (ownFilesGet(k) || {}).a;
-                if (m && (d.albF || await ownLive(m))) f = { id: m };            // ⚡ 아는 번호면 바로
+                if (m) f = { id: m };                                            // ⚡ 아는 번호면 바로 (지워진 번호는 changes 로 이미 잊었어요)
                 else {
                     if (m) { if (window.diag) diag('stale', { k, f: '스티커첩', id: m }); }   // 🗑 휴지통 안 내용은 읽지 않아요 (도련 11-11)
                     f = await find();

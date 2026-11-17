@@ -105,25 +105,8 @@
                 const mine = new Set(Y.touched); Y.touched.clear();
                 try {
                     const { dir, name } = await srLoc(s, true);
-                    let cur = Y.fileId ? await driveMeta(Y.fileId) : null;
-                    if (!cur) cur = await findFile(dir, name);
-                    if (cur && cur.modifiedTime !== Y.mt) {                              // 다른 기기가 고쳤어요 → 그 위에 내가 바꾼 날만
-                        let rd = {}; try { const o = JSON.parse(await readFileText(cur.id) || '{}'); if (o && o.d && typeof o.d === 'object') rd = o.d; } catch (e) {}
-                        const keep = day => mine.has(day) || Y.touched.has(day);
-                        Object.keys(rd).forEach(day => { if (!keep(day)) Y.d[day] = rd[day]; });
-                        Object.keys(Y.d).forEach(day => { if (!(day in rd) && !keep(day)) delete Y.d[day]; });
-                    }
-                    let saved = await driveUpsert(dir, name, cur && cur.id, JSON.stringify({ v: 1, d: Y.d }));
-                    if (!cur) {                                                          // 📄📄 다른 기기가 거의 동시에 같은 해 목록을 먼저 만들었으면 : 그 파일에 합쳐서 하나로
-                        const first = await findFile(dir, name);
-                        if (first && first.id !== saved.id) {
-                            let rd = {}; try { const o = JSON.parse(await readFileText(first.id) || '{}'); if (o && o.d && typeof o.d === 'object') rd = o.d; } catch (e) {}
-                            Object.keys(rd).forEach(day => { if (!(day in Y.d)) Y.d[day] = rd[day]; });
-                            const fin = await driveUpsert(dir, name, first.id, JSON.stringify({ v: 1, d: Y.d }));
-                            await (window.appTrash ? appTrash(saved.id, name, 'a') : driveTrash(saved.id));   // 합친 뒤 남는 쪽 (앱 정리 · 숨김)
-                            saved = fin;
-                        }
-                    }
+                    let id = Y.fileId; if (!id) { const f = await findFile(dir, name); id = f && f.id; }   // 📱 한 기기 기준 (도련 11-17) : 올리기 직전 확인 · 합치기 없이 바로 (다른 기기 것은 켤 때 · 돌아올 때 changes)
+                    const saved = await driveUpsert(dir, name, id || null, JSON.stringify({ v: 1, d: Y.d }));
                     Y.fileId = saved.id; Y.mt = saved.modifiedTime || '';
                 } catch (e) { Y.dirty = true; mine.forEach(d => Y.touched.add(d)); if (e && e.code === 'gone') Y.fileId = null; srSchedule(); }
             }

@@ -112,10 +112,8 @@
             const folderId = await getFolder(DOLL_FOLDERS.deco, true);   // 폴더가 없으면 만들기
             const body = JSON.stringify(d);
             /* 📱 한 기기 기준 (도련 11-17) : 묻지 않고 덮어써요 (같은 이름 인형이 있으면 그 파일에) */
-            let writeId = targetId;
-            const cur = targetId ? await driveMeta(targetId) : await findFile(folderId, fname);
-            if (cur) writeId = cur.id;
-            else if (targetId) writeId = null;                   // 그 사이 지워졌으면 새로 만들어요
+            let writeId = targetId;                              // 🗑 그 사이 지워졌으면 = 쓰기가 'gone' → 아래에서 새로 만들어요 · 휴지통이면 driveUpsert 가 새로 (도련 11-17 · 예전 = 쓰기 전에 살아 있나 묻기)
+            let cur = null; if (!writeId) { cur = await findFile(folderId, fname); if (cur) writeId = cur.id; }
             let saved;
             try { saved = await driveUpsert(folderId, fname, writeId, body); }
             catch (e) {

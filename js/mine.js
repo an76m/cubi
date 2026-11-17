@@ -160,11 +160,9 @@
         B.fid = String(r.id || ''); B.mt = String(r.modifiedTime || ''); M.dirty.delete(K);
         await devSave(K);
     }
-    async function daily(dirs) {                                               // 하루 한 번 : 받은- 파일 중 목록에 아직 안 담긴 것만 읽어요 (모든 폴더 = 요청 1번)
-        const dk = 'malang_mine_day|' + M.who, today = new Date().toISOString().slice(0, 10);
-        let last = ''; try { last = localStorage.getItem(dk) || ''; } catch (e) { }
-        if (last === today) return;
-        const fs = await driveList(`name contains '받은-' and trashed=false`, 'id,name,parents');
+    async function daily(dirs, need) {                                         // 받은- 파일 중 목록에 아직 안 담긴 것만 읽어요 (모든 폴더 = 요청 1번) · need = 바뀐 것을 모르는 사이가 있었거나 받은- 파일이 바뀌었을 때만 (도련 11-17 · 예전 = 하루 한 번)
+        if (!need) return;
+        const fs = await driveList(`name contains '받은-' and trashed=false`, 'id,name,parents', true);   // 지금 모습 그대로 (드물게 · 기억 말고)
         for (const K of Object.keys(G)) {
             if (!G[K].rcv || !dirs[K]) continue;
             const B = grp(K), C = new Map(fs.filter(f => (f.parents || []).includes(dirs[K])).map(f => [(/^받은-(\d+)\.json$/.exec(f.name) || [])[1], f]).filter(([c]) => c));
@@ -181,7 +179,6 @@
                 B.cs.push(c); M.dirty.add(K);
             }
         }
-        try { localStorage.setItem(dk, today); } catch (e) { }
     }
     async function packRead(B) {                                               // 🖼 그림 묶음 읽기 (요청 1번 · 이 기기에 없는 그림만 담아요)
         try { const j = JSON.parse(await readFileText(B.gid)); let n = 0; if (j && obj(j.img)) Object.keys(j.img).forEach(x => { if (!B.img[x] && typeof j.img[x] === 'string' && j.img[x].startsWith('data:')) { B.img[x] = j.img[x]; n++; } }); return n > 0; }
@@ -205,13 +202,21 @@
         const who = whoNow(); if (!who) return;
         await devLoad(who);
         await fill();                                                          // 새로 생긴 것 (🎁 선물 · 보관함) = 늘 (그림은 서버에서 · 드라이브 요청 없음)
-        const ck = 'malang_mine_chk|' + who, today = new Date().toISOString().slice(0, 10);
-        let day = ''; try { day = localStorage.getItem(ck) || ''; } catch (e) { }
-        if (!force && !M.dirty.size && !M.hint && day === today) { apply(); rescue(); return; }   // 🎯 드라이브에 묻기 = 받거나 새로 생겼을 때 · 다른 기기가 고쳤을 때 (drive.js changes) · 하루 한 번만 (평소 앱을 열 때 0번)
-        M.hint = false;
-        try { localStorage.setItem(ck, today); } catch (e) { }
+        /* 🎯 드라이브에 묻기 (도련 11-17 · 예전 = 하루 한 번 _실물 · 받은- 파일 목록) = 받거나 새로 생겼을 때 · 구글 changes 에 _실물 · 받은- 파일이 있을 때 (켤 때 drive.drcBoot.ch · 돌아올 때 mineHint)
+           · 바뀐 것을 모르는 사이가 있었을 때 (처음 · 기억 지움 = drcBoot.n -1) · 이 기기 실물 기억이 비었을 때 */
+        const B0 = (typeof drive !== 'undefined' && drive.drcBoot) || null, first = !!B0 && M.boot !== B0;   // 이번 로그인에서 처음
+        const Bs = Object.values(M.k), other = c => {                         // 다른 기기가 바꾼 내 실물 파일 (이 기기가 올린 그대로면 아니에요)
+            const f = c.file, n = (f && f.name) || '';
+            if (!f || c.removed || f.trashed) return Bs.some(B => B.fid === c.fileId);
+            if (n === FILE) return !Bs.some(B => B.fid === f.id && B.mt === f.modifiedTime);
+            const m = /^받은-(\d+)\.json$/.exec(n); return !!m && !Bs.some(B => B.cs.includes(m[1]));
+        };
+        const need = first && (B0.n < 0 || !Array.isArray(B0.ch) || B0.ch.some(other) || !Bs.some(B => B.fid));
+        if (B0) M.boot = B0;
+        if (!force && !M.dirty.size && !M.hint && !need) { apply(); rescue(); return; }
+        const recv = M.hint || need; M.hint = false;
         if (who !== 'guest' && online() && typeof driveList === 'function') {
-            const fs = await driveList(`name='${FILE}' and trashed=false`, 'id,name,parents,modifiedTime');   // 🔎 모든 목록이 바뀌었나 = 요청 1번
+            const fs = await driveList(`name='${FILE}' and trashed=false`, 'id,name,parents,modifiedTime', true);   // 🔎 모든 목록이 바뀌었나 = 요청 1번
             const dirs = {};
             Object.keys(G).forEach(g => { const v = drive.folderIds && drive.folderIds.get(dirKey(g)); if (v) dirs[g] = v; });   // 폴더 = 기억한 것 먼저
             for (const g of Object.keys(G)) {                                  // 모르는 폴더는 그 목록 파일이 있을 수 있을 때만 찾아요 (없는 폴더를 매번 묻지 않게)
@@ -231,7 +236,7 @@
                     if (B.fid || Object.keys(B.items).length) { B.fid = ''; M.dirty.add(K); }
                 }
             }
-            await daily(dirs);
+            await daily(dirs, recv || force);
             for (const K of [...M.dirty]) { try { await write(K); } catch (e) { console.warn('📦 실물 목록 올리기', K, e); } }
         } else for (const K of [...M.dirty]) { await devSave(K); M.dirty.delete(K); }
         apply(); await rescue();
