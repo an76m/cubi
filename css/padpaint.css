@@ -324,9 +324,9 @@
 .pt-bar { position: fixed; z-index: 99996; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 6px; align-items: center; background: #fff; border: 2px solid #6b4438; border-radius: 16px; padding: 6px 10px; box-shadow: 0 8px 20px rgba(61, 53, 82, .25); white-space: nowrap; }
 .pt-bar b { font-size: 13px; } .pt-bar span { font-size: 12px; color: #8a6a76; margin-right: 4px; }
 .pt-bar button { font: inherit; font-size: 12.5px; font-weight: 800; padding: 6px 9px; border-radius: 10px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; } .pt-bar button.on { background: #ffd23f; border-color: #e0b400; }
-.pt-done { position: fixed; z-index: 99997; left: 50%; top: 40%; transform: translate(-50%, -50%); background: #fff; border-radius: 20px; padding: 18px 20px; box-shadow: 0 16px 40px rgba(61, 53, 82, .35); display: grid; gap: 8px; min-width: 260px; text-align: center; }
-.pt-done b { font-size: 20px; } .pt-done small { color: #8a6a76; }
-.pt-done button { font: inherit; font-weight: 800; padding: 9px; border-radius: 12px; border: 2px solid #f1d3dd; background: #fff6f9; cursor: pointer; } .pt-done button[data-pd="keep"] { background: #ff6f91; color: #fff; border-color: #ff6f91; }
+.pt-done { position: fixed; z-index: 99997; left: 50%; top: 8px; transform: translateX(-50%); background: #fff; border: 2px solid #6b4438; border-radius: 14px; padding: 6px 8px; box-shadow: 0 6px 16px rgba(61, 53, 82, .25); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pt-done b { font-size: 13px; } .pt-done small { color: #8a6a76; font-size: 11.5px; margin-right: 2px; }
+.pt-done button { font: inherit; font-size: 12px; font-weight: 800; padding: 5px 9px; border-radius: 10px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; } .pt-done button[data-pd="keep"] { background: #ff6f91; color: #fff; border-color: #ff6f91; }
 .pt-cell { display: flex; flex-direction: column; gap: 6px; } .pt-none { color: #d9c3cc; text-align: center; padding: 18px 0; }
 .pt-sec { margin: 4px 0 8px; font-size: 14px; } .pt-anim { margin-top: 14px; } .pt-anim summary { cursor: pointer; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
 /* 🌳 상자 나무 (11-19) */

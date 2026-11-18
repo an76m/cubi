@@ -301,9 +301,9 @@
     }
     function ask() {
         const m = document.createElement('div'); m.className = 'pt-done'; m.id = 'ptDone';
-        m.innerHTML = `<b>🎉 완성!</b><small>${T.ex.e} ${T.ex.n}</small><button type="button" data-pd="keep">✔ 내 그림에 가져가기</button><button type="button" data-pd="close">✕ 그냥 닫기</button><button type="button" data-pd="again">↺ 다시 보기</button><button type="button" data-pd="more">🎓 다른 예시</button>`;
+        m.innerHTML = `<b>🎉 완성!</b><small>${T.ex.e} ${T.ex.n}</small><button type="button" data-pd="keep">✔ 가져가기</button><button type="button" data-pd="close">✕ 닫기</button><button type="button" data-pd="again">↺ 다시</button><button type="button" data-pd="more">🎓 다른 예시</button>`; const bar = document.getElementById('ptBar'); if (bar) bar.style.display = 'none'; bub('');
         document.body.appendChild(m);
-        m.onclick = e => { const b = e.target.closest('[data-pd]'); if (!b) return; m.remove(); const k = b.dataset.pd;
+        m.onclick = e => { const b = e.target.closest('[data-pd]'); if (!b) return; m.remove(); const bar = document.getElementById('ptBar'); if (bar) bar.style.display = ''; const k = b.dataset.pd;
             if (k === 'keep') finish(true); if (k === 'close') finish(false); if (k === 'again') restart(); if (k === 'more') { finish(false); open(); } };
     }
     function restart() { const ex = T.ex; if (!ex) return; const d = $('#ptDone'); if (d) d.remove(); ppTourHook.end(false); ppTourHook.begin(); T.pause = false; const b = $('#ptBar [data-pt="play"]'); if (b) b.textContent = '⏸'; play(ex); }
@@ -325,5 +325,5 @@
         document.body.appendChild(m);
         m.onclick = e => { if (e.target === m || e.target.closest('[data-pp="x"]')) { m.remove(); return; } const c = e.target.closest('[data-ex]'); if (c) { m.remove(); start(TOUR[+c.dataset.ex]); } };
     }
-    window.padTour = { open, start: i => start(TOUR[i]), finish, TOUR, get state() { return { on: T.on, i: T.i, done: !!T.done, err: T.err || '' }; }, set fast(v) { T.fast = !!v; } };
+    window.padTour = { open, start: i => start(TOUR[i]), finish, TOUR, get state() { return { on: T.on, i: T.i, done: !!T.done, err: T.err || '' }; }, set fast(v) { T.fast = !!v; }, set speed(v) { T.speed = +v || 1; } };
 })();
