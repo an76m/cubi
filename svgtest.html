@@ -49,20 +49,22 @@ const T = [
 const g = document.getElementById('g');
 // 🔥 새 방식 (11-19) : css 상자는 그림으로 굽고 (9번처럼) → 그 그림을 svg 안에 넣고 → 움직임 · 필터는 svg 쪽에서
 const bake = (svg, k = 1) => new Promise(ok => { const im = new Image(); im.onload = () => setTimeout(() => { const c = document.createElement('canvas'); c.width = c.height = 200 * k; c.getContext('2d').drawImage(im, 0, 0, 200 * k, 200 * k); try { ok(c.toDataURL('image/png')); } catch (e) { ok(null); } }, 150); im.onerror = () => ok(null); im.src = url(svg); });
-const big = s => s.replace('width="200" height="200" viewBox', 'width="400" height="400" viewBox');
+const big = (s, how) => s.replace('width="200" height="200" viewBox="0 0 200 200"', 'width="400" height="400" viewBox="0 0 400 400"').replace('<foreignObject x="0" y="0" width="200" height="200">', '<foreignObject x="0" y="0" width="400" height="400">')
+  .replace('style="position:relative;width:200px;height:200px;margin:0;padding:0;"', how === 'zoom' ? 'style="position:relative;width:200px;height:200px;margin:0;padding:0;zoom:2;"' : 'style="position:relative;width:200px;height:200px;margin:0;padding:0;transform:scale(2);transform-origin:0 0;"');   // 사파리는 viewBox 로 안 키워서 상자 자체를 2배로
 const wrap = (png, css = '', defs = '', attr = '') => `<svg xmlns="${NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200" viewBox="0 0 200 200">${defs}<style>.m{transform-box:fill-box;transform-origin:center;${css}}</style><image class="m" ${attr} x="0" y="0" width="200" height="200" href="${png}" xlink:href="${png}"/></svg>`;
 const card = (n, t, d, s) => { const c = document.createElement('div'); c.className = 'card'; c.innerHTML = `<b>${n}. ${t}</b><small>${d}</small><div class="stage"><img alt=""></div>`; c.querySelector('img').src = s ? url(s) : ''; if (!s) c.querySelector('small').textContent += ' → 굽기 실패 ❌'; g.appendChild(c); };
 (async () => {
   const S = Object.fromEntries(T.map(t => [t[0], t[3]]));
   const st = S['3'].replace(/animation:[^;}]+/g, 'animation:none');
-  const p2 = await bake(S['2']), p3 = await bake(st), p4 = await bake(S['4']), p5 = await bake(S['5']), p6 = await bake(S['6']), p2x = await bake(big(S['2']), 2);
+  const p2 = await bake(S['2']), p3 = await bake(st), p4 = await bake(S['4']), p5 = await bake(S['5']), p6 = await bake(S['6']), p2x = await bake(big(S['2'], 'scale'), 2), p2z = await bake(big(S['2'], 'zoom'), 2);
   T.filter(t => ['1', '7', '8'].includes(t[0])).forEach(([n, t, d, sv]) => card(n, t + ' (아까 ✅)', d, sv));
   card('2', 'css 상자 (가만히)', '둥근 네모 · 분홍→하늘 그라데이션 · 그림자 · "말랑" · 안 잘려야 해요', p2 && wrap(p2));
   card('3', 'css 상자 + 움직임', '노란 별이 빙글빙글 돌고 · 별 모양이 안 깨져야 해요', p3 && wrap(p3, 'animation:r 3s linear infinite}@keyframes r{to{transform:rotate(360deg)}'));
   card('4', 'css 장식 1 · 2 + 움직임', '동그라미 3개 다 보이고 · 전체가 두근두근 커졌다 작아져야 해요', p4 && wrap(p4, 'animation:b 1s ease-in-out infinite}@keyframes b{50%{transform:scale(1.15)}'));
   card('5', '어려운 css 모음 + 깜빡', '무지개 원 · 가운데 구멍 · 파란 네모 · 안 잘리고 · 천천히 깜빡여야 해요', p5 && wrap(p5, 'animation:f 1.6s ease-in-out infinite}@keyframes f{50%{opacity:.25}'));
   card('6', 'css 상자 + svg 물결 필터', '분홍 네모 가장자리가 울퉁불퉁 (가만히) · 안 잘려야 해요', p2 && wrap(p6 || p2, '', `<defs><filter id="wv" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="18" xChannelSelector="R" yChannelSelector="G"/></filter></defs>`, 'filter="url(#wv)"'));
-  card('10', '2번을 2배로 굽기 (선명하게)', '2번과 같은 모양 · 더 선명하면 좋아요 · 잘리면 알려 주세요', p2x && wrap(p2x));
+  card('10', '2배 굽기 ㄱ (transform 2배)', '2번과 같은 크기 · 더 선명해야 해요 · 작거나 잘리면 ❌', p2x && wrap(p2x));
+  card('11', '2배 굽기 ㄴ (zoom 2배)', '2번과 같은 크기 · 더 선명해야 해요 · 작거나 잘리면 ❌', p2z && wrap(p2z));
 })();
 document.getElementById('ua').textContent = '기기 : ' + navigator.userAgent + (matchMedia('(display-mode: standalone)').matches ? ' · 홈 화면 앱' : '');
 </script>
