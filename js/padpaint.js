@@ -2,7 +2,7 @@
    🎨 태블릿 그림판 (도련 11-13 · 1172 · 시안 '그리기시안' 그대로) : 📃 속지부터 · 나중에 떡메 · 마테 · 조각 · 모조지에도 같은 작업대
    - 💻 📲 태블릿 작업대(js/tablet.js #tbWs) 세 칸에 그려요 : 왼쪽 = 가져오기 · 도구 · 도구 설정 · 색 / 가운데 = 종이 · 보기 막대 / 오른쪽 = 레이어 · 고른 것 설정 · 🗄️ 서랍에 넣기
    - 위 = 🖌️ 픽셀 ↔ ✒️ 벡터 · ↶ ↷
-   - 🗂️ 레이어 : 종이(맨 아래 · 🧵 종이 꾸미기 = js/maker.js) · 사진(📎) · 픽셀 · 벡터 섞어서 · 👁 · 🔒 · 섞는 법 · 투명도 · 그린 곳만 칠
+   - 🗂️ 레이어 : 종이(맨 아래 · 🧵 종이 꾸미기 = js/maker.js) · 사진(📎) · 픽셀 · 벡터 · 🧩 블록(css 공식 기능 · js/cssblocks.js) 섞어서 · 👁 · 🔒 · 섞는 법 · 투명도 · 그린 곳만 칠
    - 🖌️ 픽셀 = 손으로 쓱쓱 (펜 압력 = 굵기 · 떨림 보정 = 마우스도 매끈) : 브러시(붓 모양 6) · 연필 · 마커 · 에어 · 지우개 · 채우기 · 스포이드 · 올가미 · 옮기기 · 도형 · 글씨 · 확대
    - ✒️ 벡터 = 점을 찍어 그려요 (펜 없이 마우스로도) : 선택 · 점 고치기 · 점 찍기(클릭 = 꺾인 점 · 끌기 = 둥근 점 · 첫 점 = 닫기 · Enter = 끝) · 곡선 · 네모 · 동그라미 · 하트 · 별 · 글씨 · 점 자르기 · 칠하기 · 옮기기
    - 💾 임시저장 (도련 11-14) = 도안/작업중-속지.json 하나에 모두 (레이어 · 그림 PNG · 사진 JPEG · 벡터 점 · 종이 · 도구) · 종류마다 하나 · 열 때 [이어서 작업] [새 작업] (js/tablet.js)
@@ -69,7 +69,7 @@
     function addLayer(type, name, extra, at) {
         const L = Object.assign({ id: uid++, type, name, vis: true, lock: false, op: 1, blend: 'source-over', aLock: false, cv: mkCv(P.W, P.H), shapes: [], dirtyV: true }, extra || {});
         if (type === 'vec' || type === 'css') L.cache = mkCv(P.W, P.H);
-        if (type === 'css') { if (!L.blocks) L.blocks = [CB.fresh('fill')]; if (!L.box) L.box = { x: .15, y: .15, w: .7, h: .7 }; }   // 🧩 블록 레이어 = 상자 하나 + 블록 (js/cssblocks.js)
+        if (type === 'css') { if (!L.blocks) L.blocks = [CB.fresh('background-color')]; if (!L.box) L.box = { x: .15, y: .15, w: .7, h: .7 }; if (L.text == null) L.text = ''; }   // 🧩 블록 레이어 = 상자 하나 + 블록 + 상자 안 글자 (js/cssblocks.js)
         if (at == null) { const i = P.cur ? P.layers.indexOf(P.cur) + 1 : P.layers.length; P.layers.splice(i, 0, L); } else P.layers.splice(at, 0, L);
         return L;
     }
@@ -90,7 +90,8 @@
         L.shapes.forEach(s => drawShape(x, s)); L.dirtyV = false;
     }
     const layerImg = L => { if (L.type === 'vec') { if (L.dirtyV) vecPaint(L); return L.cache; } if (L.type === 'css') { if (L.dirtyV) { CB.paint(L.cache, P.W, P.H, L); L.dirtyV = false; } return L.cache; } return L.cv; };
-    if (window.CB) CB.onImg = () => { if (!P.on) return; P.layers.forEach(l => { if (l.type === 'css') l.dirtyV = true; }); renderAll(); };   // 🖼️ 그림 깔기 그림이 다 불러와지면
+    if (window.CB) { CB.onImg = () => { if (!P.on) return; P.layers.forEach(l => { if (l.type === 'css') l.dirtyV = true; }); renderAll(); };   // 🧩 브라우저가 css 를 다 그리면 (js/cssblocks.js)
+        CB.onErr = () => { if (P.on) say('⚠ 이 기기에서는 블록 그림을 만들 수 없어요', 3000); }; }
 
     /* ================= 화면 (작업대 세 칸) ================= */
     function buildUI() {
@@ -101,9 +102,9 @@
 ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button><button type="button" class="pp-specb pp-two" data-q="two" title="📄 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로)"></button>' : ''}${P.kind === 'paper' ? '<button type="button" class="pp-specb" data-q="seal" title="모조지 모양 (세로 · 정사각 · 길쭉)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 모조지를 다이어리 옆에 실제 크기 비율로 놓아 봐요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 모양 (세로 · 가로 · 정사각)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 씰 스티커를 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'piece' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 조각을 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
         x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq && qq.dataset.q === 'seal') { sealPop(); return; } if (qq && qq.dataset.q === 'two') { twoFlip(); return; } if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : P.kind === 'seal' || P.kind === 'piece' || P.kind === 'paper' ? sealPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
-        o.L.innerHTML = `<h4>📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button>${P.kind === 'seal' || P.kind === 'piece' ? '<button type="button" data-a="mine">🏷️ 내가 만든 스티커</button>' : '<button type="button" data-a="paper">🧵 종이 꾸미기</button>'}${P.kind === 'paper' ? '<button type="button" data-a="mine">🏷️ 내가 만든 스티커</button>' : ''}</div>
+        o.L.innerHTML = `<h4 id="ppSrcT">📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button>${P.kind === 'seal' || P.kind === 'piece' ? '<button type="button" data-a="mine">🏷️ 내가 만든 스티커</button>' : '<button type="button" data-a="paper">🧵 종이 꾸미기</button>'}${P.kind === 'paper' ? '<button type="button" data-a="mine">🏷️ 내가 만든 스티커</button>' : ''}</div>
             <h4 id="ppToolT"></h4><div class="pp-tools" id="ppTools"></div><div id="ppOpt"></div>
-            <h4>🎨 색</h4><div class="pp-col"><canvas id="ppSv" width="172" height="172"></canvas><div><canvas id="ppHue" width="300" height="24"></canvas><div class="pp-sw" id="ppSw"></div></div></div>
+            <h4 id="ppColT">🎨 색</h4><div class="pp-col"><canvas id="ppSv" width="172" height="172"></canvas><div><canvas id="ppHue" width="300" height="24"></canvas><div class="pp-sw" id="ppSw"></div></div></div>
             <div class="pp-cur"><span id="ppNow"></span>지금 색 · 최근 <span id="ppRec"></span></div>
             <input type="file" accept="image/*" id="ppFile" hidden>`;
         o.C.innerHTML = `<div class="pp-stage" id="ppStage"><div class="pp-doc${P.kind === 'tk' ? ' pp-tkdoc' : ''}${P.kind === 'tape' ? ' pp-tpdoc' : ''}" id="ppDoc">${P.kind === 'tk' ? '<i class="pp-gluebar" id="ppGlueBar"></i>' : ''}${P.kind === 'tape' ? `<canvas class="pp-ghost l" id="ppGhL" width="${P.W}" height="${P.H}"></canvas><canvas class="pp-ghost r" id="ppGhR" width="${P.W}" height="${P.H}"></canvas>` : ''}<canvas id="ppCv" width="${P.W}" height="${P.H}"></canvas><canvas id="ppOv" width="${P.W}" height="${P.H}"></canvas></div>
@@ -119,7 +120,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'paper') paperPop(); if (a.dataset.a === 'mine') minePop(); } };
         if (P.kind === 'piece') { $('ppPcAdd').onclick = pcAdd; $('ppPcs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; P.pcs.splice(+b.dataset.i, 1); P.dirty = true; pcPaint(); }; pcPaint(); }
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
-        $('ppTools').onclick = e => { const c = e.target.closest('[data-cb]'); if (c) { cbAdd(c.dataset.cb); return; } const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
+        $('ppTools').onclick = e => { const x = e.target.closest('[data-cbmx]'); if (x) { CB.mineDel(x.dataset.cbmx); say('🧩 블록 상자에서 지웠어요 (쌓은 것은 그대로)'); cbTools(); return; } const m = e.target.closest('[data-cbm]'); if (m) { cbAdd(null, m.dataset.cbm); return; } const c = e.target.closest('[data-cb]'); if (c) { cbAdd(c.dataset.cb); return; } const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
         $('ppOpt').oninput = $('ppOpt').onclick = onOpt;
         o.C.querySelector('.pp-view').onclick = e => { const b = e.target.closest('[data-v]'); if (b) onView(b.dataset.v); };
         o.R.querySelector('.pp-lyb').parentElement.addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) layerAct(b.dataset.l); });
@@ -154,6 +155,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     const sl = (k, n, v, min, max, step, unit) => `<label class="pp-sl">${n}<input type="range" data-k="${k}" min="${min}" max="${max}" step="${step || 1}" value="${v}"><b>${unit === '%' ? Math.round(v * 100) + '%' : v + (unit || '')}</b></label>`;
     function paintTools() {
+        P.o.L.classList.toggle('pp-cssm', P.mode === 'css');                  // 🧩 블록 모드 = 📥 사진 · 종이 꾸미기 · 🎨 색 칸 없이 (픽셀 · 벡터에 있어요 · 도련 11-18)
         if (P.mode === 'css') { cbTools(); return; }
         const V = P.mode === 'vec', T = V ? T_VC : T_PX;
         $('ppToolT').innerHTML = V ? '✒️ 벡터 도구<em>클릭 = 꺾인 점 · 끌면 곡선</em>' : '🖌️ 픽셀 도구<em>펜 압력 · 떨림 보정</em>';
@@ -680,7 +682,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function push(h) { P.hist.push(h); if (P.hist.length > H_MAX) P.hist.shift(); P.redo = []; }
     function histPx(L) { const c = mkCv(P.W, P.H); c.getContext('2d').drawImage(L.cv, 0, 0); push({ t: 'px', L, c }); }
     function histVec(L) { push({ t: 'vec', L, s: JSON.stringify(L.shapes) }); }
-    const snapSt = () => ({ t: 'st', layers: P.layers.map(l => ({ l, p: { type: l.type, shapes: l.type === 'vec' ? JSON.parse(JSON.stringify(l.shapes)) : l.shapes, name: l.name, vis: l.vis, lock: l.lock, op: l.op, blend: l.blend, aLock: l.aLock, s: l.s, ox: l.ox, oy: l.oy, wash: l.wash, mk: l.mk && Object.assign({}, l.mk), blocks: l.blocks && JSON.parse(JSON.stringify(l.blocks)), box: l.box && Object.assign({}, l.box) } })), cur: P.cur });
+    const snapSt = () => ({ t: 'st', layers: P.layers.map(l => ({ l, p: { type: l.type, shapes: l.type === 'vec' ? JSON.parse(JSON.stringify(l.shapes)) : l.shapes, name: l.name, vis: l.vis, lock: l.lock, op: l.op, blend: l.blend, aLock: l.aLock, s: l.s, ox: l.ox, oy: l.oy, wash: l.wash, mk: l.mk && Object.assign({}, l.mk), blocks: l.blocks && JSON.parse(JSON.stringify(l.blocks)), box: l.box && Object.assign({}, l.box), text: l.text } })), cur: P.cur });
     function histSt() { push(snapSt()); }
     function restore(h) {
         if (h.t === 'multi') return { t: 'multi', items: h.items.slice().reverse().map(restore).reverse() };
@@ -717,7 +719,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (a === 'cutl') { if (!cutToLayer()) say('✂ 올가미(➰)로 떼어 낸 뒤 눌러요'); return; }
         commitFloat(); penEnd(); const L = P.cur;
         if (a === 'px' || a === 'vec' || a === 'css') { histSt(); P.cur = addLayer(a, lyName(a)); if (P.mode !== a) { P.mode = a; P.tool = a === 'px' ? 'brush' : a === 'css' ? 'cbmove' : 'pen'; modeBtns(); paintTools(); } P.sel = null; }
-        if (a === 'dup' && L) { if (L.type === 'paper') { say('🧵 종이는 하나예요'); return; } histSt(); const N = addLayer(L.type, L.name + ' 복사', { op: L.op, blend: L.blend, aLock: L.aLock, img: L.img, s: L.s, ox: L.ox, oy: L.oy, wash: L.wash, blocks: L.blocks && JSON.parse(JSON.stringify(L.blocks)), box: L.box && Object.assign({}, L.box) }); if (L.type === 'vec') { N.shapes = JSON.parse(JSON.stringify(L.shapes)); } else if (L.type !== 'css') N.cv.getContext('2d').drawImage(L.cv, 0, 0); P.cur = N; }
+        if (a === 'dup' && L) { if (L.type === 'paper') { say('🧵 종이는 하나예요'); return; } histSt(); const N = addLayer(L.type, L.name + ' 복사', { op: L.op, blend: L.blend, aLock: L.aLock, img: L.img, s: L.s, ox: L.ox, oy: L.oy, wash: L.wash, blocks: L.blocks && JSON.parse(JSON.stringify(L.blocks)), box: L.box && Object.assign({}, L.box), text: L.text }); if (L.type === 'vec') { N.shapes = JSON.parse(JSON.stringify(L.shapes)); } else if (L.type !== 'css') N.cv.getContext('2d').drawImage(L.cv, 0, 0); P.cur = N; }
         if (a === 'del' && L) { if (L.type === 'paper') { say('🧵 종이는 지울 수 없어요 · 종이 꾸미기로 바꿔요'); return; } if (P.layers.filter(l => l.type !== 'paper').length <= 1 && P.layers.length <= 2) { histSt(); clearLayer(L); renderAll(); paintLayers(); return; } histSt(); const i = P.layers.indexOf(L); P.layers.splice(i, 1); P.cur = P.layers[Math.max(1, i - 1)] || P.layers[P.layers.length - 1]; P.sel = null; }
         if (a === 'merge' && L) { const i = P.layers.indexOf(L), B = P.layers[i - 1]; if (!B || B.type === 'paper' || L.type === 'paper') { say('⤓ 아래에 합칠 레이어가 없어요 (종이에는 안 합쳐요)'); return; } const pc = mkCv(P.W, P.H); pc.getContext('2d').drawImage(B.cv, 0, 0); push({ t: 'multi', items: [snapSt(), { t: 'px', L: B, c: pc }] }); const bx = B.cv.getContext('2d'); if (B.type === 'vec' || B.type === 'css') { bx.clearRect(0, 0, P.W, P.H); bx.drawImage(layerImg(B), 0, 0); B.type = 'px'; delete B.cache; B.shapes = []; delete B.blocks; delete B.box; } bx.save(); bx.globalAlpha = L.op; bx.globalCompositeOperation = L.blend; bx.drawImage(layerImg(L), 0, 0); bx.restore(); P.layers.splice(i, 1); P.cur = B; say('⤓ 합쳤어요 (픽셀이 돼요)'); }
         if (a === 'lock' && L) { histSt(); L.lock = !L.lock; }
@@ -778,77 +780,131 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
 
 
-    /* ================= 🧩 블록 레이어 (도련 11-18 · js/cssblocks.js) : 왼쪽 = 블록 상자 · 오른쪽 = 상자 자리 · 쌓은 블록 · 👩‍💻 코드 ================= */
+    /* ================= 🧩 블록 레이어 (도련 11-18 · 시안 13 · js/cssblocks.js) : 왼쪽 = 블록 상자 (css 공식 기능 · 🧩 내 블록) · 오른쪽 = 상자 자리 · 글자 · 쌓은 블록 · 내 블록 만들기 · 👩‍💻 코드 ================= */
     function cbTools() {
         $('ppToolT').innerHTML = '🧩 블록 상자<em>눌러서 쌓아요 · 위가 앞</em>';
-        $('ppTools').innerHTML = CB.GROUPS.map(([g, n]) => `<div class="pp-cbg"><b>${n}</b><div class="pp-cbs">${CB.ORDER.filter(t => CB.DEFS[t].g === g).map(t => `<button type="button" data-cb="${t}">${CB.DEFS[t].i}<small>${CB.DEFS[t].n}</small></button>`).join('')}</div></div>`).join('');
-        $('ppOpt').innerHTML = '<p class="pp-hint">✋ 종이 위를 끌면 블록 상자를 옮겨요 · 크기는 오른쪽 칸<br>🧩 블록마다 값을 바꾸고 ▲▼로 순서를 바꿔요</p>';
+        const tile = (a, e, n, tt, x) => `<button type="button" ${a} title="${esc(tt)}">${e}<small>${esc(n)}</small>${x || ''}</button>`, M = CB.mine, mk = Object.keys(M);
+        $('ppTools').innerHTML = CB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-cb="${k}"`, CB.DEF(k).e, CB.DEF(k).n, 'css 공식 기능 : ' + CB.OFF(k))).join('')}</div></div>`).join('')
+            + `<div class="pp-cbg"><b>🧩 내 블록<em>공식 블록을 묶어서 직접 만든 것</em></b>${mk.length ? `<div class="pp-cbs mine">${mk.map(n => tile(`data-cbm="${esc(n)}"`, M[n].e || '🧩', n, '내 블록 : ' + n + '(' + M[n].P.map(p => p.label).join(', ') + ')', `<i data-cbmx="${esc(n)}" title="상자에서 지우기 (쌓은 것은 그대로)">✕</i>`)).join('')}</div>` : '<p class="pp-hint">오른쪽 🧩 내 블록 만들기로 만들어요</p>'}</div>`;
+        $('ppOpt').innerHTML = '<p class="pp-hint">✋ 종이 위를 끌면 블록 상자를 옮겨요 · 크기는 오른쪽 칸<br>🧩 블록 하나 = css 공식 기능 하나 · 눌러서 열고 값을 바꿔요</p>';
     }
     function cbLayer() {                                                        // 지금 블록 레이어 (아니면 새로)
         if (P.cur && P.cur.type === 'css') return P.cur;
         const L = addLayer('css', lyName('css')); L.blocks = []; P.cur = L; return L;
     }
-    function cbAdd(t) {
-        if (!CB.DEFS[t]) return; commitFloat(); penEnd();
-        if (P.cur && P.cur.lock) { say('🔒 잠긴 레이어예요'); return; }
-        histSt(); const L = cbLayer(), B = CB.fresh(t); L.blocks.unshift(B); P.cbOpen = B.id; L.dirtyV = true; P.dirty = true;
-        if (t === 'image') setTimeout(() => { const f = $('ppCbFile'); if (f) f.click(); }, 60);   // 🖼️ 그림 깔기 = 바로 그림 고르기
+    function cbAdd(t, mineName) {
+        const B = mineName ? CB.callOf(mineName) : CB.fresh(t); if (!B) return; commitFloat(); penEnd();
+        if (P.cur && P.cur.type === 'css' && P.cur.lock) { say('🔒 잠긴 레이어예요'); return; }
+        histSt(); const L = cbLayer(); L.blocks.unshift(B); P.cbOpen = B.id; L.dirtyV = true; P.dirty = true;
+        if (t === 'url') setTimeout(() => { P.cbImgFor = B.id; const f = $('ppCbFile'); if (f) f.click(); }, 60);   // 🖼️ 그림 깔기 = 바로 그림 고르기
         renderAll(); paintLayers(); paintProps();
     }
-    function cbField(B, f) {
-        const v = B.v[f.k], d = `data-cbf="${f.k}" data-i="${B.id}"`;
-        if (f.t === 'c') return `<label class="pp-cbc">${f.n}<input type="color" ${d} value="${CB.hexOk(v) ? v : '#000000'}"></label>`;
-        if (f.t === 'n') return `<label class="pp-sl">${f.n}<input type="range" ${d} min="${f.min}" max="${f.max}" step="${f.step}" value="${v}"><b>${v}${f.u}</b></label>`;
-        if (f.t === 'p') return `<div class="r"><span>${f.n}</span><div>${f.opts.map(([k, n]) => `<button type="button" data-cbp="${f.k}" data-i="${B.id}" data-v="${esc(k)}" class="${v === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
-        if (f.t === 's') return `<label class="pp-cbt">${f.n}<textarea ${d} rows="2">${esc(v || '')}</textarea></label>`;
-        if (f.t === 'f') return `<div class="r"><span>${f.n}</span><div><button type="button" data-cbimg="${B.id}">${v ? '🖼️ 다른 그림' : '📎 그림 고르기'}</button></div></div>`;
-        return '';
+    /* 칸 하나 (k = 블록id|길) */
+    const cbRng = (k, v, mn, mx, st, u) => `<input type="range" data-cf="${k}" min="${mn}" max="${mx}" step="${st}" value="${v}"><input type="number" class="nb" data-cf="${k}" step="${st}" value="${v}" aria-label="숫자">${u ? `<s>${u}</s>` : ''}`;
+    function cbLock(k, t, o, lb) { if (!P.cbMk) return ''; const on = P.cbMk.X.some(x => x.k === k); return `<button type="button" class="pp-lk${on ? ' on' : ''}" data-cblk="${k}" data-t="${t}" data-o='${JSON.stringify(o || null)}' data-l="${esc(lb)}" title="내 블록에서 바꿀 수 있게 꺼내기">${on ? '🔓' : '🔒'}</button>`; }
+    function cbIn(k, t, val, o, lb, ll) {
+        let h = '';
+        if (t === 'col') h = `<input type="color" data-cf="${k}.c" value="${/^#[0-9a-f]{6}$/i.test(val.c) ? val.c : '#000000'}"><span class="al">진하기</span><input type="range" class="sm" data-cf="${k}.a" min="0" max="100" value="${val.a == null ? 100 : val.a}" aria-label="진하기">`;
+        else if (t === 'len') { const [us, mn, mx] = o || ['px', 0, 200], U = Array.isArray(us) ? us : [us]; h = cbRng(`${k}.n`, val.n, val.u === '%' ? 0 : mn, val.u === '%' ? 100 : mx, 1) + (U.length > 1 ? `<select data-cf="${k}.u" class="un">${U.map(u => `<option value="${u}"${u === val.u ? ' selected' : ''}>${u}</option>`).join('')}</select>` : `<s>${val.u}</s>`); }
+        else if (t === 'ang') { const [mn, mx] = o || [0, 360]; h = cbRng(k, val, mn, mx, 1, '°'); }
+        else if (t === 'pct') { const [mn, mx] = o || [0, 100]; h = cbRng(k, val, mn, mx, 1, '%'); }
+        else if (t === 'num') { const [mn, mx, st] = o || [0, 100, 1]; h = cbRng(k, val, mn, mx, st); }
+        else if (t === 'sel') h = `<select data-cf="${k}">${o.map(x => `<option value="${esc(x)}"${x === val ? ' selected' : ''}>${esc(CB.KO[x] || x)}</option>`).join('')}</select>`;
+        else if (t === 'bool') h = `<input type="checkbox" data-cf="${k}"${val ? ' checked' : ''}>`;
+        else if (t === 'img') h = `<button type="button" data-cbimg="${k.split('|')[0]}">${val ? '🖼️ 다른 그림' : '📎 그림 고르기'}</button>`;
+        return `<div class="pp-cf"><label>${esc(lb)}${t === 'img' ? '' : cbLock(k, t, o, ll || lb)}</label><div class="pp-cfv">${h}</div></div>`;
     }
+    function cbFields(id, spec, obj, base) {
+        return spec.map(([key, lb, t, o]) => {
+            const k = `${id}|${base}.${key}`, v = obj[key];
+            if (t === 'stops') { const mx = v.u === '%' ? 100 : v.u === 'deg' ? 360 : 200;
+                return `<div class="pp-cf"><label>${lb} <small>차례대로 · 자리 단위</small> <select data-cf="${k}.u" class="un">${o.map(u => `<option value="${u}"${u === v.u ? ' selected' : ''}>${u}</option>`).join('')}</select></label>
+                    ${v.s.map((s, i) => `<div class="pp-stp"><b>${i + 1}</b><input type="color" data-cf="${k}.s.${i}.c.c" value="${s.c.c}" aria-label="색 ${i + 1}"><input type="range" class="sm" data-cf="${k}.s.${i}.c.a" min="0" max="100" value="${s.c.a}" aria-label="진하기 ${i + 1}">${cbLock(`${k}.s.${i}.c`, 'col', null, `색 ${i + 1}`)}<button type="button" class="x" data-cbrm="${k}.s.${i}" aria-label="색 ${i + 1} 빼기"${v.s.length > 1 ? '' : ' disabled'}>✕</button></div>
+                    <div class="pp-stp in"><span class="al">자리</span>${cbRng(`${k}.s.${i}.p`, s.p, 0, mx, 1, v.u)}${cbLock(`${k}.s.${i}.p`, 'num', [0, mx, 1], `자리 ${i + 1}`)}</div>`).join('')}
+                    <button type="button" class="pp-plus" data-cbst="${k}.s">＋ 색 더하기</button></div>`; }
+            if (t === 'pts') return `<div class="pp-cf"><label>${lb} <small>가로 % · 세로 %</small></label>${v.map((p, i) => `<div class="pp-stp"><b>${i + 1}</b>${cbRng(`${k}.${i}.0`, p[0], 0, 100, 1)}${cbRng(`${k}.${i}.1`, p[1], 0, 100, 1)}<button type="button" class="x" data-cbrm="${k}.${i}" aria-label="점 빼기"${v.length > 3 ? '' : ' disabled'}>✕</button></div>`).join('')}<button type="button" class="pp-plus" data-cbpt="${k}">＋ 점 더하기</button></div>`;
+            return cbIn(k, t, v, o, lb);
+        }).join('');
+    }
+    function cbCard(c, i, n) {
+        const D = c.call ? null : CB.DEF(c.t), open = P.cbOpen === c.id, mk = P.cbMk, pk = mk && mk.S.has(c.id);
+        const e = c.call ? (c.fn.e || '🧩') : D.e, nm = c.call ? c.call : D.n, tag = c.call ? '내 블록' : CB.OFF(c.t);
+        let body = '';
+        if (open) body = c.call ? `<div class="pp-cbf">${c.fn.P.length ? c.fn.P.map((p, k) => cbIn(`${c.id}|vals.${k}`, p.t, c.vals[k], p.o, p.label)).join('') : '<p class="pp-hint">바꿀 칸이 없는 내 블록이에요</p>'}<details class="pp-in"><summary>속 보기 · 들어있는 공식 블록</summary><ul>${cbInner(c.fn.body)}</ul></details></div>`
+            : `<div class="pp-cbf">${cbFields(c.id, D.f, c.v, 'v')}${c.L ? `<details class="pp-in"${c.t === 'url' ? ' open' : ''}><summary>🧭 놓는 방법 · 크기 · 자리 · 반복</summary>${cbFields(c.id, CB.LAYER, c.L, 'L')}</details>` : ''}</div>`;
+        return `<div class="pp-cbk${c.on ? '' : ' off'}${open ? ' open' : ''}${c.call ? ' mine' : ''}${pk ? ' picked' : ''}"><div class="pp-cbh">${mk ? `<label class="pk"><input type="checkbox" data-cbpick="${c.id}"${pk ? ' checked' : ''} aria-label="묶기"></label>` : ''}<button type="button" class="nm" data-cbo="${c.id}">${e} ${esc(nm)}<small>${esc(tag)}</small></button><button type="button" data-cba="on" data-i="${c.id}" title="켜기 · 끄기">${c.on ? '👁' : '◌'}</button><button type="button" data-cba="up" data-i="${c.id}" title="앞으로"${i ? '' : ' disabled'}>▲</button><button type="button" data-cba="down" data-i="${c.id}" title="뒤로"${i < n - 1 ? '' : ' disabled'}>▼</button><button type="button" data-cba="dup" data-i="${c.id}" title="복제">⧉</button><button type="button" data-cba="del" data-i="${c.id}" title="빼기">✕</button></div>${body}</div>`;
+    }
+    const cbInner = body => body.map(c => c.call ? `<li>🧩 ${esc(c.call)} <small>내 블록</small><ul>${cbInner(c.fn.body)}</ul></li>` : `<li>${CB.DEF(c.t).e} ${CB.DEF(c.t).n} <small>${CB.OFF(c.t)}</small></li>`).join('');
     function cbPanel(L) {
-        const bx = L.box, pc = v => Math.round(v * 100), sl2 = (k, n, v, min, max) => `<label class="pp-sl">${n}<input type="range" data-cbx="${k}" min="${min}" max="${max}" value="${pc(v)}"><b>${pc(v)}%</b></label>`;
+        const bx = L.box, pc = v => Math.round(v * 100), sl2 = (k, n, v, min, max) => `<label class="pp-sl">${n}<input type="range" data-cbx="${k}" min="${min}" max="${max}" value="${pc(v)}"><b>${pc(v)}%</b></label>`, mk = P.cbMk;
         let h = `<div class="pp-cbbox">${sl2('x', '가로 자리', bx.x, -50, 100)}${sl2('y', '세로 자리', bx.y, -50, 100)}${sl2('w', '폭', bx.w, 2, 150)}${sl2('h', '높이', bx.h, 2, 150)}
-            <div class="r"><span>상자</span><div><button type="button" data-cbq="full">⬛ 종이 가득</button><button type="button" data-cbq="center">⊙ 가운데로</button></div></div></div>`;
+            <div class="r"><span>상자</span><div><button type="button" data-cbq="full">⬛ 종이 가득</button><button type="button" data-cbq="center">⊙ 가운데로</button></div></div>
+            <label class="pp-cbt">상자 안 글자<textarea data-cbtext="1" rows="2" placeholder="글자를 쓰면 상자 안에 나와요">${esc(L.text || '')}</textarea></label></div>`;
+        h += !mk ? `<button type="button" class="pp-mkb" data-cbq="mk">🧩 내 블록 만들기<small>쌓은 블록을 묶고 바꿀 칸만 남겨요</small></button>`
+            : `<div class="pp-mkbar"><b>🧩 내 블록 만드는 중</b><ol><li>묶을 블록에 ☑</li><li>블록을 열고 바꿀 칸의 🔒 → 🔓</li><li>이름 짓고 저장</li></ol>
+                <label>이름<input type="text" data-cbmkname="1" value="${esc(mk.name)}" placeholder="예: 내 별가루" maxlength="20"></label>
+                ${mk.X.length ? mk.X.map((x, i) => `<label class="pl">🔓<input type="text" data-cbpl="${i}" value="${esc(x.label)}" maxlength="12" aria-label="칸 이름"></label>`).join('') : '<p class="pp-hint">아직 꺼낸 칸이 없어요 (없어도 돼요)</p>'}
+                <div class="bb"><button type="button" class="go" data-cbq="mksave">💾 저장</button><button type="button" data-cbq="mkcancel">취소</button></div></div>`;
         h += `<h4>🧩 쌓은 블록 (${L.blocks.length})<em>위가 앞 · 눌러서 열기</em></h4>`;
         if (!L.blocks.length) h += '<p class="pp-hint">왼쪽 블록 상자에서 블록을 눌러 보세요</p>';
-        h += L.blocks.map((B, i) => { const D = CB.DEFS[B.t], open = P.cbOpen === B.id;
-            return `<div class="pp-cbk${B.on ? '' : ' off'}${open ? ' open' : ''}"><div class="pp-cbh"><button type="button" class="nm" data-cbo="${B.id}">${D.i} ${D.n}</button><button type="button" data-cba="on" data-i="${B.id}" title="켜기 · 끄기">${B.on ? '👁' : '◌'}</button><button type="button" data-cba="up" data-i="${B.id}" title="앞으로"${i ? '' : ' disabled'}>▲</button><button type="button" data-cba="down" data-i="${B.id}" title="뒤로"${i < L.blocks.length - 1 ? '' : ' disabled'}>▼</button><button type="button" data-cba="dup" data-i="${B.id}" title="복제">⧉</button><button type="button" data-cba="del" data-i="${B.id}" title="빼기">✕</button></div>
-                ${open && D.f.length ? `<div class="pp-cbf">${D.f.map(f => cbField(B, f)).join('')}</div>` : ''}${open && !D.f.length ? '<p class="pp-hint">🌈 바탕 블록들이 글자 모양 안에만 보여요</p>' : ''}</div>`; }).join('');
-        h += `<div class="r"><span>코드</span><div><button type="button" data-cbq="code" class="${P.cbCode ? 'on' : ''}">👩‍💻 ${P.cbCode ? '코드 숨기기' : '코드 보기'}</button></div></div>${P.cbCode ? `<pre class="pp-cbcode">${esc(CB.css(L))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
+        h += L.blocks.map((c, i) => cbCard(c, i, L.blocks.length)).join('');
+        h += `<div class="r"><span>코드</span><div><button type="button" data-cbq="code" class="${P.cbCode ? 'on' : ''}">👩‍💻 ${P.cbCode ? '코드 숨기기' : '진짜 css 코드 보기'}</button></div></div>${P.cbCode ? `<pre class="pp-cbcode">${esc(CB.cssText(L))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
         return h;
     }
     function cbProp(e, L) {                                                     // true = 블록 칸에서 처리했어요
-        const t = e.target, Bof = id => L.blocks.find(B => B.id === id);
+        const t = e.target, mk = P.cbMk, Cof = id => L.blocks.find(c => c.id === id), code = () => { if (P.cbCode) { const c = $('ppProp').querySelector('.pp-cbcode'); if (c) c.textContent = CB.cssText(L); } };
         if (t.id === 'ppCbFile') { if (e.type !== 'input') return true; const f = t.files && t.files[0]; t.value = ''; if (f) cbImg(L, f); return true; }
         if (e.type === 'input') {
+            if (t.dataset.cbmkname) { mk.name = t.value; return true; }
+            if (t.dataset.cbpl != null) { mk.X[+t.dataset.cbpl].label = t.value; return true; }
+            if (t.dataset.cbpick) { t.checked ? mk.S.add(t.dataset.cbpick) : mk.S.delete(t.dataset.cbpick); t.closest('.pp-cbk').classList.toggle('picked', t.checked); return true; }
             if (L.lock) { say('🔒 잠긴 레이어예요'); paintProps(); return true; }
             const now = Date.now(), hist = () => { if (now - propH > 800) histSt(); propH = now; };
             if (t.dataset.cbx) { hist(); L.box[t.dataset.cbx] = +t.value / 100; t.nextElementSibling.textContent = t.value + '%'; L.dirtyV = true; P.dirty = true; renderAll(); return true; }
-            if (t.dataset.cbf) { const B = Bof(t.dataset.i); if (!B) return true; hist(); const f = CB.DEFS[B.t].f.find(q => q.k === t.dataset.cbf);
-                B.v[f.k] = f.t === 'n' ? +t.value : t.value; if (f.t === 'n') t.nextElementSibling.textContent = t.value + f.u;
-                L.dirtyV = true; P.dirty = true; renderAll(); thumbsSoon(); if (P.cbCode) { const c = $('ppProp').querySelector('.pp-cbcode'); if (c) c.textContent = CB.css(L); } return true; }
+            if (t.dataset.cbtext) { hist(); L.text = t.value; L.dirtyV = true; P.dirty = true; renderAll(); code(); return true; }
+            if (t.dataset.cf) { const [id, path] = t.dataset.cf.split('|'), c = Cof(id); if (!c) return true; hist();
+                const v = t.type === 'checkbox' ? t.checked : (t.type === 'range' || t.type === 'number') ? (isFinite(+t.value) ? +t.value : 0) : t.value;
+                CB.set(c, path, v); $('ppProp').querySelectorAll(`[data-cf="${t.dataset.cf}"]`).forEach(o => { if (o !== t) o.value = t.value; });
+                L.dirtyV = true; P.dirty = true; renderAll(); thumbsSoon(); code();
+                if (t.tagName === 'SELECT' && /\.u$/.test(path)) paintProps();
+                return true; }
             return false;
         }
         if (e.type !== 'click') return false;
         const b = t.closest('button'); if (!b) return false; const ds = b.dataset;
         if (ds.cbo) { P.cbOpen = P.cbOpen === ds.cbo ? null : ds.cbo; paintProps(); return true; }
         if (ds.cbq === 'code') { P.cbCode = !P.cbCode; paintProps(); return true; }
-        if (L.lock && (ds.cbq || ds.cba || ds.cbp || ds.cbimg)) { say('🔒 잠긴 레이어예요'); return true; }
+        if (ds.cbq === 'mk') { P.cbMk = { name: '', X: [], S: new Set() }; say('🧩 묶을 블록에 ☑ · 블록을 열고 바꿀 칸의 🔒를 눌러요', 2600); paintProps(); return true; }
+        if (ds.cbq === 'mkcancel') { P.cbMk = null; paintProps(); return true; }
+        if (ds.cblk) { const k = ds.cblk, i = mk.X.findIndex(x => x.k === k); if (i >= 0) mk.X.splice(i, 1); else { mk.X.push({ k, id: k.split('|')[0], path: k.split('|')[1], t: ds.t, o: JSON.parse(ds.o), label: ds.l }); mk.S.add(k.split('|')[0]); } paintProps(); return true; }
+        if (ds.cbq === 'mksave') {
+            const name = String(mk.name || '').trim().slice(0, 20); if (!name) { say('🧩 내 블록 이름을 지어 주세요'); const i = $('ppProp').querySelector('[data-cbmkname]'); if (i) i.focus(); return true; }
+            const cards = L.blocks.filter(c => mk.S.has(c.id)); if (!cards.length) { say('🧩 묶을 블록에 ☑ 해 주세요'); return true; }
+            histSt(); const at = L.blocks.indexOf(cards[0]), call = CB.makeMine(name, cards, mk.X);
+            L.blocks = L.blocks.filter(c => !mk.S.has(c.id)); L.blocks.splice(at, 0, call); P.cbMk = null; P.cbOpen = call.id;
+            say(`🧩 내 블록 「${name}」을 만들었어요 · 왼쪽 블록 상자에 생겼어요`, 2600); paintTools();
+            L.dirtyV = true; P.dirty = true; renderAll(); paintLayers(); paintProps(); return true;
+        }
+        if (L.lock && (ds.cbq || ds.cba || ds.cbimg || ds.cbst || ds.cbrm || ds.cbpt)) { say('🔒 잠긴 레이어예요'); return true; }
         if (ds.cbq === 'full' || ds.cbq === 'center') { histSt(); if (ds.cbq === 'full') L.box = { x: 0, y: 0, w: 1, h: 1 }; else { L.box.x = (1 - L.box.w) / 2; L.box.y = (1 - L.box.h) / 2; } }
-        else if (ds.cba) { const i = L.blocks.findIndex(B => B.id === ds.i); if (i < 0) return true; histSt(); const A = L.blocks;
+        else if (ds.cba) { const i = L.blocks.findIndex(c => c.id === ds.i); if (i < 0) return true; histSt(); const A = L.blocks;
             if (ds.cba === 'on') A[i].on = !A[i].on; if (ds.cba === 'up' && i > 0) [A[i - 1], A[i]] = [A[i], A[i - 1]]; if (ds.cba === 'down' && i < A.length - 1) [A[i + 1], A[i]] = [A[i], A[i + 1]];
-            if (ds.cba === 'dup') { const N = CB.fresh(A[i].t); N.v = JSON.parse(JSON.stringify(A[i].v)); N.on = A[i].on; A.splice(i, 0, N); P.cbOpen = N.id; }
-            if (ds.cba === 'del') A.splice(i, 1); }
-        else if (ds.cbp) { const B = Bof(ds.i); if (!B) return true; histSt(); B.v[ds.cbp] = ds.v; }
+            if (ds.cba === 'dup') { const N = CB.clone(A[i]); N.id = CB.fresh('opacity').id; A.splice(i, 0, N); P.cbOpen = N.id; }
+            if (ds.cba === 'del') { if (mk) mk.S.delete(A[i].id); if (mk) mk.X = mk.X.filter(x => x.id !== A[i].id); A.splice(i, 1); } }
+        else if (ds.cbst || ds.cbrm || ds.cbpt) { const [id, path] = (ds.cbst || ds.cbrm || ds.cbpt).split('|'), c = Cof(id); if (!c) return true; histSt();
+            if (ds.cbst) { const s = CB.get(c, path); s.push(CB.clone(s[s.length - 1])); }
+            if (ds.cbpt) CB.get(c, path).push([50, 50]);
+            if (ds.cbrm) { const ps = path.split('.'), j = +ps.pop(); CB.get(c, ps.join('.')).splice(j, 1); if (mk) mk.X = mk.X.filter(x => !(x.id === id && x.path.startsWith(path))); } }
         else if (ds.cbimg) { P.cbImgFor = ds.cbimg; const f = $('ppCbFile'); if (f) f.click(); return true; }
         else return false;
         L.dirtyV = true; P.dirty = true; renderAll(); paintLayers(); paintProps(); return true;
     }
-    function cbImg(L, f) {                                                      // 🖼️ 그림 깔기 : 긴 쪽 1600px 까지 줄여 블록 안에 (임시저장에도 같이)
+    function cbImg(L, f) {                                                      // 🖼️ 그림 깔기 url() : 긴 쪽 1600px 까지 줄여 블록 안에 (임시저장에도 같이)
         const u = URL.createObjectURL(f), im = new Image();
         im.onload = () => {
             URL.revokeObjectURL(u); const k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = mkCv(Math.round(im.width * k), Math.round(im.height * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
             const src = /png|gif|webp|svg/.test(f.type) ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .9);
-            const B = L.blocks.find(x => x.id === P.cbImgFor) || L.blocks.find(x => x.t === 'image' && !x.v.src) || L.blocks.find(x => x.t === 'image'); P.cbImgFor = null;
+            const B = L.blocks.find(x => x.id === P.cbImgFor) || L.blocks.find(x => x.t === 'url' && !x.v.src) || L.blocks.find(x => x.t === 'url'); P.cbImgFor = null;
             if (!B) return; histSt(); B.v.src = src; L.dirtyV = true; P.dirty = true; renderAll(); paintProps(); thumbsSoon();
         };
         im.onerror = () => { URL.revokeObjectURL(u); say('그림을 열 수 없어요'); }; im.src = u;
@@ -1047,6 +1103,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (window.showAsk && !(await showAsk('✅ 도안을 완료할까요?<br><small style="color:#777;">완료한 도안은 수정할 수 없어요</small>', '✅ 완료', '취소'))) return;   // 도련 11-15 : 완료 · 취소를 고르게
         if (P.saving || !P.on) return;
         const b = $('ppGo'); P.saving = true; b.disabled = true; b.textContent = '💾 저장 중…';
+        if (window.CB && P.layers.some(l => l.type === 'css')) { P.layers.forEach(l => { if (l.type === 'css') { layerImg(l); } }); await CB.settle(); P.layers.forEach(l => { if (l.type === 'css') l.dirtyV = true; }); }   // 🧩 브라우저가 블록을 다 그릴 때까지
         const g = gauge(); g(12); await new Promise(r => requestAnimationFrame(() => setTimeout(r, 30)));   // 📊 저장 중 게이지 (도련 11-15 · 다 되면 저절로 닫혀요)
         let ok = false;
         try {
@@ -1103,7 +1160,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
                 if (L.type === 'paper') o.mk = L.mk;
                 if (L.type === 'px') o.png = isBlank(L.cv) ? '' : L.cv.toDataURL('image/png');
                 if (L.type === 'vec') o.shapes = L.shapes;
-                if (L.type === 'css') { o.blocks = L.blocks; o.box = L.box; }   // 🧩 블록 (그림 깔기 그림도 블록 안에)
+                if (L.type === 'css') { o.blocks = L.blocks; o.box = L.box; o.text = L.text || ''; }   // 🧩 블록 (그림 깔기 그림 · 내 블록 속도 블록 안에)
                 if (L.type === 'photo') Object.assign(o, { img: L.imgData || (L.imgData = photoData(L.img)), s: L.s, ox: L.ox, oy: L.oy, wash: L.wash, fit: L.fit || '' });
                 return o;
             }) };
@@ -1135,7 +1192,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
             const L = addLayer(o.type, o.name, { vis: o.vis !== false, lock: !!o.lock, op: o.op == null ? 1 : o.op, blend: o.blend || 'source-over', aLock: !!o.aLock }, P.layers.length);
             if (o.type === 'paper') { L.mk = o.mk || { bg: '#ffffff' }; paperPaint(L); }
             if (o.type === 'vec') { L.shapes = o.shapes || []; L.dirtyV = true; }
-            if (o.type === 'css') { L.blocks = (o.blocks || []).filter(B => B && CB.DEFS[B.t]); L.box = o.box || { x: .15, y: .15, w: .7, h: .7 }; L.dirtyV = true; }
+            if (o.type === 'css') { L.blocks = (o.blocks || []).filter(CB.ok); L.box = o.box || { x: .15, y: .15, w: .7, h: .7 }; L.text = o.text || ''; L.dirtyV = true; }
             if (o.type === 'px' && o.png) loadImg(o.png).then(im => { if (im) { L.cv.getContext('2d').drawImage(im, 0, 0); renderAll(); thumbsSoon(); } });
             if (o.type === 'photo') { Object.assign(L, { fit: o.fit || '', s: o.s || 1, ox: o.ox || 0, oy: o.oy || 0, wash: o.wash || 0, imgData: o.img }); loadImg(o.img).then(im => { if (im) { L.img = im; photoPaint(L); renderAll(); thumbsSoon(); } }); }
         });

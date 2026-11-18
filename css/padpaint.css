@@ -229,3 +229,48 @@
 .pp-cbt { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; font-weight: 800; }
 .pp-cbt textarea { font: inherit; font-size: 13px; border: 2px solid #f1d3dd; border-radius: 8px; padding: 5px 7px; resize: vertical; }
 .pp-cbcode { margin: 6px 0 0; padding: 9px 10px; border-radius: 10px; background: #3f2b35; color: #ffe3ec; font-size: 10.5px; line-height: 1.45; white-space: pre-wrap; word-break: break-all; max-height: 220px; overflow: auto; user-select: text; }
+/* 🧩 블록 레이어 · 시안 13 (도련 11-18) : 공식 css 블록 · 내 블록 · 블록 모드엔 사진 · 종이 꾸미기 · 색 칸 없음 */
+.pp-cssm #ppSrcT, .pp-cssm .pp-src, .pp-cssm #ppColT, .pp-cssm .pp-col, .pp-cssm .pp-cur { display: none !important; }
+.pp-cbg > b em { font-style: normal; font-weight: 700; font-size: 10px; color: #a88a95; margin-left: 5px; }
+.pp-cbs.mine button { position: relative; background: #fff8dc; border-color: #f0d27a; }
+.pp-cbs.mine i { position: absolute; right: 2px; top: 1px; font-style: normal; font-size: 10px; color: #b59a50; padding: 2px; }
+.pp-cbh button.nm { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; min-width: 0; overflow: hidden; }
+.pp-cbh button.nm small { font: 700 9px ui-monospace, Consolas, monospace; color: #b08a98; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.pp-cbk.mine { background: #fffbe9; border-color: #f0d27a; }
+.pp-cbk.picked { border-color: #e8b400; box-shadow: 0 0 0 3px #ffd36e88; }
+.pp-cbh .pk { display: flex; align-items: center; padding: 0 2px 0 4px; }
+.pp-cbh .pk input { width: 18px; height: 18px; accent-color: #e8b400; }
+.pp-cf { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pp-cf > label { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #8a6a76; }
+.pp-cf > label small { font-weight: 700; font-size: 10px; color: #b09aa3; }
+.pp-cfv, .pp-stp { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.pp-stp > b { font-size: 10px; color: #b09aa3; width: 10px; flex: none; }
+.pp-stp.in { padding-left: 14px; margin-bottom: 3px; }
+.pp-cbf input[type=range] { flex: 1 1 auto; min-width: 30px; accent-color: #ff6f91; margin: 0; }
+.pp-cbf input[type=range].sm { flex: 0 0 52px; }
+.pp-cbf input.nb { width: 46px; flex: none; font: inherit; font-size: 11.5px; border: 1.5px solid #f1d3dd; border-radius: 7px; padding: 2px 3px; }
+.pp-cbf input[type=color] { width: 34px; height: 26px; flex: none; border: 2px solid #6b4438; border-radius: 7px; padding: 0; background: #fff; cursor: pointer; }
+.pp-cbf select { font: inherit; font-size: 12px; border: 1.5px solid #f1d3dd; border-radius: 7px; padding: 2px 4px; background: #fff; max-width: 100%; min-width: 0; }
+.pp-cbf select.un, .pp-cf > label select.un { font-size: 11px; padding: 1px 2px; }
+.pp-cbf s, .pp-cbf .al { text-decoration: none; font-size: 10.5px; color: #a88a95; flex: none; }
+.pp-cbf .x { border: 0; background: none; font-size: 12px; min-width: 22px; min-height: 26px; cursor: pointer; color: #8a6a76; }
+.pp-cbf .x:disabled { opacity: .25; }
+.pp-cbf .pp-cfv > button { font: inherit; font-size: 12px; min-height: 30px; padding: 0 10px; border: 2px solid #f1d3dd; border-radius: 9px; background: #fff; cursor: pointer; }
+.pp-plus { align-self: flex-start; font: inherit; font-size: 11.5px; min-height: 28px; padding: 0 9px; border: 1.5px dashed #f0a9c2; border-radius: 9px; background: #fff; cursor: pointer; }
+.pp-lk { border: 0; background: none; padding: 0 2px; font-size: 13px; cursor: pointer; filter: grayscale(1); opacity: .55; }
+.pp-lk.on { filter: none; opacity: 1; }
+.pp-in { margin-top: 2px; }
+.pp-in summary { cursor: pointer; font-size: 11px; font-weight: 800; color: #8a6a76; padding: 3px 0; }
+.pp-in[open] { display: flex; flex-direction: column; gap: 5px; }
+.pp-in ul { margin: 2px 0 0; padding-left: 16px; font-size: 11.5px; }
+.pp-in li small { font: 9.5px ui-monospace, Consolas, monospace; color: #b09aa3; }
+.pp-mkb { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; min-height: 44px; margin-top: 6px; border: 2px solid #e8b400; border-radius: 12px; background: #fff3c4; font: inherit; font-weight: 900; font-size: 13px; color: #6b4a00; cursor: pointer; }
+.pp-mkb small { font-size: 10px; font-weight: 700; color: #8a6a1a; }
+.pp-mkbar { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; padding: 8px 9px; border: 2px solid #e8b400; border-radius: 12px; background: #fff8dc; font-size: 11.5px; }
+.pp-mkbar > b { font-size: 13px; color: #6b4a00; }
+.pp-mkbar ol { margin: 0; padding-left: 16px; color: #7a5a10; }
+.pp-mkbar label { display: flex; align-items: center; gap: 6px; font-weight: 800; }
+.pp-mkbar input[type=text] { flex: 1; min-width: 0; font: inherit; font-size: 12.5px; border: 1.5px solid #f0d27a; border-radius: 8px; padding: 4px 7px; }
+.pp-mkbar .bb { display: flex; gap: 5px; }
+.pp-mkbar .bb button { flex: 1; min-height: 34px; border: 2px solid #6b4438; border-radius: 10px; background: #fff; font: inherit; font-weight: 900; cursor: pointer; }
+.pp-mkbar .bb .go { background: #ffd36e; }
