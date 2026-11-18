@@ -23,6 +23,9 @@
         'border-box': '테두리까지', 'padding-box': '테두리 안쪽', 'content-box': '내용만', text: '글자 안에만', left: '왼쪽', center: '가운데', right: '오른쪽', justify: '양쪽',
         '400': '보통', '700': '굵게', '900': '아주 굵게', Jua: '주아', 'Gowun Dodum': '고운돋움', Gaegu: '개구', 'Nanum Pen Script': '나눔손글씨 펜', 'Do Hyeon': '도현', 'Hi Melody': '하이멜로디', 'Poor Story': '푸어스토리', 'Single Day': '싱글데이', 'Gamja Flower': '감자꽃', 'Yeon Sung': '연성',
         'Black Han Sans': '검은고딕', Dongle: '동글', 'Cute Font': '귀여운', 'Nanum Myeongjo': '나눔명조', Sunflower: '해바라기', Stylish: '스타일리시', 'Song Myung': '송명', Gugi: '구기' };
+    Object.assign(KO, { uppercase: '모두 대문자', lowercase: '모두 소문자', capitalize: '첫 글자만 대문자', 'full-width': '전각', 'keep-all': '낱말 지키기 (한글)', 'break-all': '아무 데서나', nowrap: '안 바꿈', pre: '그대로', 'pre-line': '줄만 그대로', 'pre-wrap': '그대로 + 바꿈', manual: '직접', wrap: '보통', balance: '고르게', pretty: '예쁘게',
+        'small-caps': '작은 대문자', 'all-small-caps': '모두 작은 대문자', pixelated: '픽셀 그대로', 'crisp-edges': '또렷하게', smooth: '부드럽게', scroll: '보통', local: '안쪽', fixed: '고정', slice: '이어서', clone: '줄마다', 'margin-box': '바깥 여백까지', 'match-source': '그림대로', alpha: '투명도', luminance: '밝기',
+        'view-box': '종이', 'fill-box': '칠 상자', 'stroke-box': '선 상자' });
     const FONTS = ['Gowun Dodum', 'Jua', 'Gaegu', 'Nanum Pen Script', 'Do Hyeon', 'Hi Melody', 'Poor Story', 'Single Day', 'Gamja Flower', 'Yeon Sung', 'Black Han Sans', 'Dongle', 'Cute Font', 'Nanum Myeongjo', 'Sunflower', 'Stylish', 'Song Myung', 'Gugi'];
     const LP = [['px', '%'], 0, 200];
     // 칸 = [키, 이름, 종류, 범위] · 종류 : col · len · ang · pct · num · sel · bool · stops · pts · img
@@ -144,14 +147,35 @@
         'text-emphasis': { e: '◌', n: '드러냄표', f: [['s', '모양', 'sel', ['filled dot', 'filled circle', 'filled double-circle', 'filled triangle', 'filled sesame', 'open dot', 'open circle', 'open triangle']], ['c', '색', 'col']], d: () => ({ s: 'filled dot', c: CO('#ff6f91') }), css: v => `${v.s} ${col(v.c)}` },
         'paint-order': { e: '🖊', n: '글자 테두리 바깥으로', f: [['m', '순서', 'sel', ['stroke fill', 'fill stroke']]], d: () => ({ m: 'stroke fill' }), css: v => v.m },
         '-webkit-text-fill-color': { e: '🫗', n: '글자 속 색', f: [['c', '색', 'col']], d: () => ({ c: CO('#ffffff', 0) }), css: v => col(v.c) },
+        /* ➕ 11-19 빠진 css 채우기 */
+        'text-transform': { e: '🔡', n: '영문 대소문자', f: [['m', '방법', 'sel', ['none', 'uppercase', 'lowercase', 'capitalize', 'full-width']]], d: () => ({ m: 'uppercase' }), css: v => v.m },
+        'text-indent': { e: '⇥', n: '첫 줄 들여쓰기', f: [['v', '만큼', 'len', [['px', 'em'], -60, 200]]], d: () => ({ v: LN(24) }), css: v => len(v.v) },
+        'word-break': { e: '✂', n: '줄 바꿈 자리', f: [['m', '방법', 'sel', ['normal', 'keep-all', 'break-all']]], d: () => ({ m: 'keep-all' }), css: v => v.m },
+        'white-space': { e: '␣', n: '빈칸 · 줄 그대로', f: [['m', '방법', 'sel', ['pre-wrap', 'normal', 'nowrap', 'pre', 'pre-line']]], d: () => ({ m: 'nowrap' }), css: v => v.m },
+        hyphens: { e: '‐', n: '낱말 끊기 (영문)', f: [['m', '방법', 'sel', ['manual', 'auto', 'none']]], d: () => ({ m: 'auto' }), css: v => v.m },
+        'text-wrap': { e: '⚖', n: '줄 길이 고르게', f: [['m', '방법', 'sel', ['wrap', 'balance', 'pretty', 'nowrap']]], d: () => ({ m: 'balance' }), css: v => v.m },
+        'font-variant': { e: '🔤', n: '작은 대문자', f: [['m', '방법', 'sel', ['normal', 'small-caps', 'all-small-caps']]], d: () => ({ m: 'small-caps' }), css: v => v.m },
+        columns: { e: '📰', n: '단 나누기', f: [['n', '단 수', 'num', [1, 6, 1]]], d: () => ({ n: 2 }), css: v => v.n },
+        'column-gap': { e: '↔', n: '단 사이', f: [['v', '사이', 'len', ['px', 0, 120]]], d: () => ({ v: LN(24) }), css: v => len(v.v) },
+        'column-rule': { e: '┃', n: '단 사이 선', f: [['w', '굵기', 'len', ['px', 0, 20]], ['s', '선', 'sel', BST], ['c', '색', 'col']], d: () => ({ w: LN(2), s: 'dashed', c: CO('#ff8fb1') }), css: v => `${len(v.w)} ${v.s} ${col(v.c)}` },
+        'image-rendering': { e: '👾', n: '그림 확대 방법', f: [['m', '방법', 'sel', ['auto', 'pixelated', 'crisp-edges', 'smooth']]], d: () => ({ m: 'pixelated' }), css: v => v.m },
+        'background-attachment': { e: '📌', n: '바탕 붙이는 곳', f: [['m', '방법', 'sel', ['scroll', 'local', 'fixed']]], d: () => ({ m: 'local' }), css: v => v.m },
+        'box-decoration-break': { e: '🧷', n: '줄마다 꾸밈', f: [['m', '방법', 'sel', ['slice', 'clone']]], d: () => ({ m: 'clone' }), css: v => v.m },
+        'outline-style': { e: '⭕', n: '바깥 테두리 모양', f: [['s', '선', 'sel', BST.concat(['auto'])]], d: () => ({ s: 'dotted' }), css: v => v.s },
+        'accent-color': { e: '🎯', n: '강조색', f: [['c', '색', 'col']], d: () => ({ c: CO('#ff8fb1') }), css: v => col(v.c) },
+        'caret-color': { e: '▏', n: '글자 커서 색', f: [['c', '색', 'col']], d: () => ({ c: CO('#ff8fb1') }), css: v => col(v.c) },
+        'clip-path-box': { p: 'clip-path', e: '📦', n: '상자 모양으로 오리기', f: [['m', '어느 상자', 'sel', ['border-box', 'padding-box', 'content-box', 'margin-box']]], d: () => ({ m: 'padding-box' }), css: v => v.m },
+        'mask-mode': { e: '🎭', n: '가리기 기준', f: [['m', '기준', 'sel', ['match-source', 'alpha', 'luminance']]], d: () => ({ m: 'luminance' }), css: v => v.m },
+        'transform-box': { e: '📐', n: '돌리는 기준 상자', f: [['m', '상자', 'sel', ['view-box', 'border-box', 'fill-box', 'content-box', 'stroke-box']]], d: () => ({ m: 'border-box' }), css: v => v.m },
+        'svg-filter': { p: '--svg-filter', e: '🌀', n: 'svg 필터 쓰기 (filter: url())', f: [['ref', 'svg 블록 레이어의 필터', 'sfx']], d: () => ({ ref: '' }), css: v => v.ref ? `url(#${String(v.ref).split(':')[1] || ''}f)` : 'none' },
     };
-    const GROUPS = [['🎨 바탕', ['background-color', 'linear-gradient', 'radial-gradient', 'conic-gradient', 'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient', 'url', 'background-blend-mode', 'background-clip', 'background-origin']],
-        ['🔷 모양 · 테두리', ['border-radius', 'border-radius-4', 'border-radius-e', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-image', 'outline', 'outline-offset', 'shadow', 'opacity', 'padding', 'overflow']],
-        ['✂️ 오리기 · 가리기', ['circle', 'ellipse', 'inset', 'polygon', 'path', 'm-linear-gradient', 'm-radial-gradient', 'm-conic-gradient', 'm-repeating-linear-gradient', 'm-repeating-radial-gradient', 'm-url', 'mask-composite']],
-        ['🔄 바꿔 놓기 · 3D', ['rotate', 'scale', 'scaleX', 'scaleY', 'skewX', 'skewY', 'translateX', 'translateY', 'rotateX', 'rotateY', 'rotateZ', 'translateZ', 'perspective()', 'perspective', 'transform-origin', 'transform-style', 'backface-visibility']],
-        ['🪄 필터', ['blur', 'brightness', 'contrast', 'saturate', 'grayscale', 'sepia', 'hue-rotate', 'invert', 'f-opacity', 'drop-shadow']],
+    const GROUPS = [['🎨 바탕', ['background-color', 'linear-gradient', 'radial-gradient', 'conic-gradient', 'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient', 'url', 'background-blend-mode', 'background-clip', 'background-origin', 'background-attachment', 'image-rendering']],
+        ['🔷 모양 · 테두리', ['border-radius', 'border-radius-4', 'border-radius-e', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-image', 'outline', 'outline-offset', 'shadow', 'opacity', 'padding', 'overflow', 'outline-style', 'box-decoration-break', 'accent-color', 'caret-color']],
+        ['✂️ 오리기 · 가리기', ['circle', 'ellipse', 'inset', 'polygon', 'path', 'm-linear-gradient', 'm-radial-gradient', 'm-conic-gradient', 'm-repeating-linear-gradient', 'm-repeating-radial-gradient', 'm-url', 'mask-composite', 'mask-mode', 'clip-path-box']],
+        ['🔄 바꿔 놓기 · 3D', ['rotate', 'scale', 'scaleX', 'scaleY', 'skewX', 'skewY', 'translateX', 'translateY', 'rotateX', 'rotateY', 'rotateZ', 'translateZ', 'perspective()', 'perspective', 'transform-origin', 'transform-box', 'transform-style', 'backface-visibility']],
+        ['🪄 필터', ['blur', 'brightness', 'contrast', 'saturate', 'grayscale', 'sepia', 'hue-rotate', 'invert', 'f-opacity', 'drop-shadow', 'svg-filter']],
         ['🫧 뒤 필터 · 섞기', ['b-blur', 'b-brightness', 'b-saturate', 'b-grayscale', 'b-hue-rotate', 'b-invert', 'b-contrast', 'b-sepia', 'mix-blend-mode', 'isolation']],
-        ['🔤 글자', ['color', 'font-size', 'font-weight', 'font-style', 'font-family', 'letter-spacing', 'word-spacing', 'line-height', 'text-align', '-webkit-text-stroke', 'paint-order', '-webkit-text-fill-color', 'tshadow', 'text-decoration', 'text-underline-offset', 'text-emphasis', 'writing-mode', 'text-orientation']],
+        ['🔤 글자', ['color', 'font-size', 'font-weight', 'font-style', 'font-family', 'letter-spacing', 'word-spacing', 'line-height', 'text-align', '-webkit-text-stroke', 'paint-order', '-webkit-text-fill-color', 'tshadow', 'text-decoration', 'text-underline-offset', 'text-emphasis', 'writing-mode', 'text-orientation', 'text-transform', 'font-variant', 'text-indent', 'word-break', 'white-space', 'hyphens', 'text-wrap', 'columns', 'column-gap', 'column-rule']],
         ['✨ 장식 상자 (장식 1 · 2 에서 · ::before · ::after)', ['content', 'width', 'height', 'left', 'top', 'z-index']],
         ['🎬 애니메이션', ['animation', 'offset-path', 'offset-rotate']]];
     const DEF = k => FN[k] || SIMPLE[k], PROP = k => (SIMPLE[k] && SIMPLE[k].p) || k;
@@ -242,6 +266,9 @@
         if (/url\(|@font-face/.test(rule + fonts)) { await new Promise(r => setTimeout(r, 60)); im = await loadImg(src); }   // 사파리 : 안의 그림 · 글꼴이 두 번째에 확실히
         const c = mkCv(SW, SH), x = c.getContext('2d'); x.drawImage(im, 0, 0);
         try { x.getImageData(0, 0, 1, 1); } catch (e) { tainted = true; if (onErr) onErr('taint'); return null; }
+        const sf = expand(L.blocks).find(q => q.t === 'svg-filter' && q.v.ref), fm = sf && CB.filterOf ? CB.filterOf(sf.v.ref) : null;   // 🌀 css → svg : 구운 상자에 svg 블록 레이어의 필터를 입혀요 (순수 svg 라 아이패드도 같아요 · 11-19)
+        if (fm) { const s2 = `<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH}"><defs>${fm.svg}</defs><image width="${SW}" height="${SH}" href="${c.toDataURL('image/png')}" filter="url(#${fm.id})"/></svg>`;
+            try { const u2 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s2); let i2 = await loadImg(u2); await new Promise(r => setTimeout(r, 40)); i2 = await loadImg(u2); x.clearRect(0, 0, SW, SH); x.drawImage(i2, 0, 0); } catch (e) { console.warn('🌀 svg 필터 쓰기', e); } }
         return { key, c, M, w, h };
     }
     function queue(L, key, w, h) {
@@ -259,13 +286,13 @@
     function paint(out, W, H, L) {
         const ox = out.getContext('2d'); ox.clearRect(0, 0, W, H);
         const bx = L.box || { x: .15, y: .15, w: .7, h: .7 }, a = bx.x * W, b = bx.y * H, w = Math.max(2, Math.round(bx.w * W)), h = Math.max(2, Math.round(bx.h * H));
-        const key = w + 'x' + h + '|' + (L.text || '') + '|' + JSON.stringify([L.blocks || [], L.pb || [], L.pa || []]), r = L._cbr;
+        const sf = expand(L.blocks).find(q => q.t === 'svg-filter' && q.v.ref), key = w + 'x' + h + '|' + (L.text || '') + '|' + JSON.stringify([L.blocks || [], L.pb || [], L.pa || []]) + (sf && CB.filterOf ? '|' + ((CB.filterOf(sf.v.ref) || {}).svg || '') : ''), r = L._cbr;
         if (r) { if (r.key === key) ox.drawImage(r.c, a - r.M, b - r.M); else { const kx = w / r.w, ky = h / r.h; ox.drawImage(r.c, a - r.M * kx, b - r.M * ky, r.c.width * kx, r.c.height * ky); } }
         if (!r || r.key !== key) { L._cbWw = w; L._cbWh = h; queue(L, key, w, h); }
     }
     async function settle(ms = 8000) { const t0 = Date.now(); while (pend > 0 && Date.now() - t0 < ms) await new Promise(r => setTimeout(r, 40)); }
 
-    window.CB = { faceCss, FN, SIMPLE, GROUPS, LAYER, KO, FONTS, KP, DEF, OFF, PROP, fresh, ok, get, set, clone, decls, cssText, styleText, hasAnim, keyframes, paint, settle, expand,
+    window.CB = { filterOf: null, faceCss, FN, SIMPLE, GROUPS, LAYER, KO, FONTS, KP, DEF, OFF, PROP, fresh, ok, get, set, clone, decls, cssText, styleText, hasAnim, keyframes, paint, settle, expand,
         get busy() { return pend; }, get tainted() { return tainted; },
         set onImg(f) { onImg = f; }, set onErr(f) { onErr = f; } };
 })();

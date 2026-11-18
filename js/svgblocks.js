@@ -19,6 +19,10 @@
         'xMidYMid meet': '다 보이게', 'xMidYMid slice': '꽉 채우기', 'none ': '늘이기', underline: '밑줄', overline: '윗줄', 'line-through': '취소선', italic: '기울임', 'horizontal-tb': '가로쓰기', 'vertical-rl': '세로쓰기', central: '가운데', alphabetic: '글자 바닥', hanging: '위에 매달기', 'stroke fill': '테두리 먼저 (바깥)', 'fill stroke': '칠 먼저',
         Jua: '주아', 'Gowun Dodum': '고운돋움', Gaegu: '개구', 'Nanum Pen Script': '나눔손글씨 펜', 'Do Hyeon': '도현', 'Black Han Sans': '검은고딕', serif: '명조', 'sans-serif': '고딕', '400': '보통', '700': '굵게', userSpaceOnUse: '종이 기준', objectBoundingBox: '도형 기준' };
     for (let i = 1; i <= 40; i++) KO['r' + i] = i + '번 결과';
+    Object.assign(KO, { 'non-scaling-stroke': '그대로', visible: '보이게', hidden: '숨기기', spacing: '사이만 늘이기', spacingAndGlyphs: '글자도 늘이기', rotate: '돌기', scale: '크기', translate: '옮기기', translateX: '가로 옮기기', translateY: '세로 옮기기', skewX: '가로 기울이기', skewY: '세로 기울이기',
+        indefinite: '계속', remove: '처음으로', freeze: '끝 모습 그대로', '0': '안 돌기', 'auto-reverse': '거꾸로 돌기', 'fill-box': '도형 크기', 'view-box': '종이', 'stroke-box': '선까지', opacity: '진하기', 'fill-opacity': '칠 진하기', 'stroke-width': '선 굵기', 'stroke-dashoffset': '점선 밀기',
+        blur: '흐리게', brightness: '밝기', contrast: '대비', grayscale: '흑백', sepia: '세피아', 'hue-rotate': '색 돌리기', invert: '색 뒤집기', infinite: '계속', linear: '같은 빠르기', ease: '부드럽게', 'ease-in': '천천히 시작', 'ease-out': '천천히 끝', 'ease-in-out': '천천히 시작 · 끝', 'steps(4)': '뚝뚝 4번',
+        alternate: '왔다 갔다', reverse: '거꾸로', 'alternate-reverse': '거꾸로 왔다 갔다', 'font-size': '글자 크기', 'letter-spacing': '글자 사이', width: '폭', height: '높이' });
     const FONTS = ['Gowun Dodum', 'Jua', 'Gaegu', 'Nanum Pen Script', 'Do Hyeon', 'Black Han Sans', 'serif', 'sans-serif'];
     const STOPS = ['stops', '색', 'stops', ['%']], STOP2 = (a, b) => ({ u: '%', s: [{ c: CO(a), p: 0 }, { c: CO(b), p: 100 }] });
     /* ⬛ 도형 = svg 공식 요소 (W · H = 종이) */
@@ -89,6 +93,21 @@
         feBlend: { g: '🪄 필터 (위에서부터 차례로)', fx: 1, e: '🫐', n: '섞기', o: '<feBlend>', f: [IN('in', '위'), IN('in2', '아래'), S('m', '방법', ['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'])], d: () => ({ in: 'prev', in2: 'SourceGraphic', m: 'multiply' }) },
         feMerge: { g: '🪄 필터 (위에서부터 차례로)', fx: 1, e: '🥞', n: '겹쳐 쌓기', o: '<feMerge>', f: [IN('a', '맨 아래'), IN('b', '가운데'), IN('c', '맨 위')], d: () => ({ a: 'prev', b: 'SourceGraphic', c: 'SourceGraphic' }) },
         feTile: { g: '🪄 필터 (위에서부터 차례로)', fx: 1, e: '🧱', n: '타일 반복', o: '<feTile>', f: [IN('in', '무엇을 (앞 단계 자리만큼)')], d: () => ({ in: 'prev' }) },
+        /* ➕ 11-19 빠진 svg 채우기 */
+        'fill-opacity': { g: '🎨 칠 · 선', e: '🫗', n: '칠 진하기', o: 'fill-opacity', f: [N('v', '진하기', 0, 1, .01)], d: () => ({ v: .5 }) },
+        'stroke-opacity': { g: '🎨 칠 · 선', e: '🖍', n: '선 진하기', o: 'stroke-opacity', f: [N('v', '진하기', 0, 1, .01)], d: () => ({ v: .5 }) },
+        visibility: { g: '🎨 칠 · 선', e: '🙈', n: '숨기기', o: 'visibility', f: [S('v', '보이기', ['visible', 'hidden'])], d: () => ({ v: 'hidden' }) },
+        'vector-effect': { g: '🎨 칠 · 선', e: '📏', n: '크기 바꿔도 선 굵기 그대로', o: 'vector-effect', f: [S('v', '방법', ['none', 'non-scaling-stroke'])], d: () => ({ v: 'non-scaling-stroke' }) },
+        textLength: { g: '🔤 글자', e: '↔', n: '글자 길이 맞추기', o: 'textLength · lengthAdjust', f: [N('v', '길이', 10, 'W'), S('adj', '방법', ['spacing', 'spacingAndGlyphs'])], d: W => ({ v: Math.round(W * .6), adj: 'spacing' }) },
+        'baseline-shift': { g: '🔤 글자', e: '⤒', n: '글자 위아래 밀기', o: 'baseline-shift', f: [N('v', '만큼', -100, 100)], d: () => ({ v: 10 }) },
+        animate: { g: '🎬 svg 움직임 (SMIL)', an: 1, e: '🎞', n: '속성 바꾸며 움직이기', o: '<animate>', f: [S('at', '무엇을', ['opacity', 'fill-opacity', 'fill', 'stroke', 'stroke-width', 'stroke-dashoffset', 'r', 'rx', 'ry', 'x', 'y', 'cx', 'cy', 'width', 'height', 'font-size', 'letter-spacing']), T('from', '처음 값'), T('to', '끝 값'), N('dur', '한 번 시간 (초)', .1, 20, .1), N('begin', '기다렸다 시작 (초)', 0, 10, .1), S('rep', '몇 번', ['indefinite', '1', '2', '3', '5']), ['alt', '왔다 갔다', 'bool'], S('fill', '끝나면', ['remove', 'freeze'])], d: () => ({ at: 'opacity', from: '1', to: '0.2', dur: 1.5, begin: 0, rep: 'indefinite', alt: true, fill: 'remove' }) },
+        animateTransform: { g: '🎬 svg 움직임 (SMIL)', an: 1, e: '🔄', n: '돌기 · 커지기 · 옮기기', o: '<animateTransform>', f: [S('ty', '종류', ['rotate', 'scale', 'translate', 'skewX', 'skewY']), T('from', '처음 값 (돌기 = 각도)'), T('to', '끝 값'), ['cen', '도형 가운데를 축으로 (돌기)', 'bool'], N('dur', '한 번 시간 (초)', .1, 20, .1), N('begin', '기다렸다 시작 (초)', 0, 10, .1), S('rep', '몇 번', ['indefinite', '1', '2', '3', '5']), ['alt', '왔다 갔다', 'bool']], d: () => ({ ty: 'rotate', from: '0', to: '360', cen: true, dur: 3, begin: 0, rep: 'indefinite', alt: false }) },
+        animateMotion: { g: '🎬 svg 움직임 (SMIL)', an: 1, e: '🛤', n: '길 따라 움직이기', o: '<animateMotion>', f: [T('d', '길 d (도형 자리에서부터)'), S('rot', '길 따라 돌기', ['0', 'auto', 'auto-reverse']), N('dur', '한 바퀴 시간 (초)', .1, 30, .1), N('begin', '기다렸다 시작 (초)', 0, 10, .1), S('rep', '몇 번', ['indefinite', '1', '2', '3', '5'])], d: () => ({ d: 'M 0 0 C 80 -60 160 60 240 0 S 80 60 0 0', rot: '0', dur: 4, begin: 0, rep: 'indefinite' }) },
+        set: { g: '🎬 svg 움직임 (SMIL)', an: 1, e: '⏱', n: '때 되면 바꾸기', o: '<set>', f: [S('at', '무엇을', ['visibility', 'fill', 'stroke', 'opacity', 'stroke-width']), T('to', '바꿀 값'), N('begin', '몇 초 뒤', 0, 20, .1)], d: () => ({ at: 'fill', to: '#ffd23f', begin: 1 }) },
+        'css-animation': { g: '🎨 css 효과 (svg → css)', an: 1, e: '🎬', n: 'css 움직임 (@keyframes)', o: 'animation + @keyframes', f: [S('p', '무엇을', ['rotate', 'scale', 'translateX', 'translateY', 'skewX', 'opacity']), N('a', '처음 값', -360, 360, .05), N('b', '끝 값', -360, 360, .05), N('dur', '한 번 시간 (초)', .1, 20, .1), S('ease', '빠르기 변화', ['linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 'steps(4)']), N('delay', '기다렸다 시작 (초)', 0, 10, .1), S('count', '몇 번', ['infinite', '1', '2', '3', '5']), S('dir', '방향', ['alternate', 'normal', 'reverse', 'alternate-reverse'])], d: () => ({ p: 'scale', a: 1, b: 1.2, dur: 1, ease: 'ease-in-out', delay: 0, count: 'infinite', dir: 'alternate' }) },
+        'css-filter': { g: '🎨 css 효과 (svg → css)', e: '🪄', n: 'css 필터', o: 'filter: …()', f: [S('fn', '종류', ['blur', 'brightness', 'contrast', 'saturate', 'grayscale', 'sepia', 'hue-rotate', 'invert', 'opacity']), N('v', '값 (흐림 px · 각도 · %)', 0, 360)], d: () => ({ fn: 'saturate', v: 160 }) },
+        'css-drop-shadow': { g: '🎨 css 효과 (svg → css)', e: '🫥', n: 'css 모양 그림자', o: 'filter: drop-shadow()', f: [N('x', '옆으로', -60, 60), N('y', '아래로', -60, 60), N('b', '번짐', 0, 60), C('c', '색')], d: () => ({ x: 4, y: 8, b: 6, c: CO('#3d3552', 45) }) },
+        'transform-origin': { g: '🎨 css 효과 (svg → css)', e: '📌', n: '도는 기준점 (css)', o: 'transform-origin · transform-box', f: [P('x', '가로 %'), P('y', '세로 %'), S('box', '기준 상자', ['fill-box', 'view-box', 'stroke-box'])], d: () => ({ x: 50, y: 50, box: 'fill-box' }) },
         feImage: { g: '🪄 필터 (위에서부터 차례로)', fx: 1, e: '🖼️', n: '그림 넣기', o: '<feImage>', f: [['src', '그림', 'img']], d: () => ({ src: '' }) }
     };
     const GROUPS = [...new Set(Object.values(BL).map(b => b.g))].map(g => [g, Object.keys(BL).filter(k => BL[k].g === g)]);
@@ -98,9 +117,20 @@
     const okEl = e => !!e && !!EL[e.t] && Array.isArray(e.b);
     const r1 = n => Math.round(n * 100) / 100;
 
+    function cen(e) {                                                          // 도형 가운데 (돌기 축 · 대강)
+        const v = e.v, n = s => (String(s).match(/-?\d*\.?\d+/g) || []).map(Number), avg = a => { let x = 0, y = 0, k = 0; for (let i = 0; i + 1 < a.length; i += 2) { x += a[i]; y += a[i + 1]; k++; } return k ? [x / k, y / k] : [0, 0]; };
+        const p = e.t === 'rect' || e.t === 'image' ? [v.x + v.width / 2, v.y + v.height / 2] : e.t === 'circle' || e.t === 'ellipse' ? [v.cx, v.cy] : e.t === 'line' ? [(v.x1 + v.x2) / 2, (v.y1 + v.y2) / 2] : e.t === 'polyline' || e.t === 'polygon' ? avg([].concat(...v.points)) : e.t === 'path' || e.t === 'textPath' ? avg(n(v.d)) : [v.x || 0, v.y || 0];
+        return p.map(r1);
+    }
+    async function fontsOf(L) {                                                // 글자에 쓴 글꼴 (그 글자만)
+        let fonts = ''; if (!(window.CB && CB.faceCss)) return '';
+        const fams = {}; (L.els || []).forEach(e => { if (!e.on || !(e.t === 'text' || e.t === 'textPath')) return; const f = (e.b.find(B => B.on && B.t === 'font-family') || { v: { v: 'Gowun Dodum' } }).v.v; fams[f] = (fams[f] || '') + e.v.t; });
+        for (const f of Object.keys(fams)) fonts += await CB.faceCss(f, fams[f]); return fonts;
+    }
+    const hasAnim = L => (L.els || []).some(e => e.on && (e.b || []).some(B => B.on && BL[B.t] && BL[B.t].an));
     /* ---------- 진짜 svg 글 ---------- */
     function build(L, W, H, fonts) {
-        const defs = [], body = [], els = (L.els || []).filter(e => e.on && EL[e.t]);
+        const defs = [], body = [], css = [], els = (L.els || []).filter(e => e.on && EL[e.t]);
         [...els].reverse().forEach(e => {
             const v = e.v, id = e.id, on = (e.b || []).filter(B => B.on && BL[B.t]), one = t => on.find(B => B.t === t), at = [`id="${id}"`];
             if (e.t === 'rect' || e.t === 'image') ['x', 'y', 'width', 'height'].forEach(k => at.push(`${k}="${r1(v[k])}"`));
@@ -127,7 +157,16 @@
             const A = (k, f) => { const B = one(k); if (B) at.push(`${k}="${xml(f(B.v))}"`); };
             A('stroke-width', x => x.v); A('stroke-dasharray', x => `${x.a} ${x.b}`); A('stroke-dashoffset', x => x.v); A('stroke-linecap', x => x.v); A('stroke-linejoin', x => x.v); A('stroke-miterlimit', x => x.v); A('fill-rule', x => x.v); A('opacity', x => x.v); A('paint-order', x => x.v); A('shape-rendering', x => x.v);
             A('font-size', x => x.v); A('font-family', x => x.v); A('font-weight', x => x.v); A('font-style', x => x.v); A('letter-spacing', x => x.v); A('word-spacing', x => x.v); A('text-anchor', x => x.v); A('dominant-baseline', x => x.v); A('text-decoration', x => x.v); A('writing-mode', x => x.v);
-            if (one('mix-blend-mode')) at.push(`style="mix-blend-mode:${one('mix-blend-mode').v.v}"`);
+            A('fill-opacity', x => x.v); A('stroke-opacity', x => x.v); A('visibility', x => x.v); A('vector-effect', x => x.v); A('baseline-shift', x => x.v);
+            if (one('textLength') && (e.t === 'text' || e.t === 'textPath')) at.push(`textLength="${r1(one('textLength').v.v)}" lengthAdjust="${one('textLength').v.adj}"`);
+            const sty = []; if (one('mix-blend-mode')) sty.push(`mix-blend-mode:${one('mix-blend-mode').v.v}`);
+            const cf = on.filter(B => B.t === 'css-filter' || B.t === 'css-drop-shadow').map(B => B.t === 'css-drop-shadow' ? `drop-shadow(${B.v.x}px ${B.v.y}px ${B.v.b}px ${col(B.v.c)})` : `${B.v.fn}(${B.v.v}${B.v.fn === 'blur' ? 'px' : B.v.fn === 'hue-rotate' ? 'deg' : '%'})`);
+            if (cf.length) sty.push(`filter:${cf.join(' ')}`);
+            const ca = on.filter(B => B.t === 'css-animation'), to = one('transform-origin');
+            if (ca.length || to) sty.push(`transform-box:${to ? to.v.box : 'fill-box'};transform-origin:${to ? `${to.v.x}% ${to.v.y}%` : 'center'}`);
+            if (ca.length) { sty.push(`animation:${ca.map(B => `sbk${B.id} ${B.v.dur}s ${B.v.ease} ${B.v.delay}s ${B.v.count} ${B.v.dir}`).join(',')}`);
+                ca.forEach(B => { const f = B.v.p === 'opacity' ? (n => `opacity:${n}`) : B.v.p === 'scale' ? (n => `transform:scale(${n})`) : B.v.p === 'rotate' || B.v.p === 'skewX' ? (n => `transform:${B.v.p}(${n}deg)`) : (n => `transform:${B.v.p}(${n}px)`); css.push(`@keyframes sbk${B.id}{from{${f(B.v.a)}}to{${f(B.v.b)}}}`); }); }
+            if (sty.length) at.push(`style="${xml(sty.join(';'))}"`);
             if ((e.t === 'text' || e.t === 'textPath') && !one('font-family')) at.push(`font-family="Gowun Dodum"`);
             if ((e.t === 'text' || e.t === 'textPath') && !one('font-size')) at.push(`font-size="${Math.round(W / 9)}"`);
             if (e.t === 'text' && !one('text-anchor')) at.push('text-anchor="middle"');
@@ -162,11 +201,17 @@
                     else o = V.src ? `<feImage href="${xml(V.src)}" preserveAspectRatio="xMidYMid slice"${R}/>` : `<feFlood flood-opacity="0"${R}/>`;
                     n++; return o; });
                 defs.push(`<filter id="${id}f" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">${pr.join('')}</filter>`); at.push(`filter="url(#${id}f)"`); }
-            if (e.t === 'text') body.push(`<text ${at.join(' ')}>${xml(v.t)}</text>`);
-            else if (e.t === 'textPath') { defs.push(`<path id="${id}t" d="${xml(v.d)}"/>`); body.push(`<text ${at.join(' ')}><textPath href="#${id}t" startOffset="${v.off}%">${xml(v.t)}</textPath></text>`); }
-            else body.push(`<${e.t === 'use' ? 'use' : e.t} ${at.join(' ')}/>`);
+            const kids = on.filter(B => BL[B.t].an && B.t !== 'css-animation').map(B => { const g = B.v, rp = ` begin="${g.begin || 0}s"` + (B.t === 'set' ? '' : ` dur="${g.dur}s" repeatCount="${g.rep}"`);
+                if (B.t === 'animate') return `<animate attributeName="${g.at}" ${g.alt ? `values="${xml(g.from)};${xml(g.to)};${xml(g.from)}"` : `from="${xml(g.from)}" to="${xml(g.to)}"`}${rp} fill="${g.fill}"/>`;
+                if (B.t === 'animateTransform') { const c = g.cen && g.ty === 'rotate' ? ' ' + cen(e).join(' ') : '', A = String(g.from).trim() + (c && !/\s/.test(String(g.from).trim()) ? c : ''), Z = String(g.to).trim() + (c && !/\s/.test(String(g.to).trim()) ? c : '');
+                    return `<animateTransform attributeName="transform" type="${g.ty}" additive="sum" ${g.alt ? `values="${xml(A)};${xml(Z)};${xml(A)}"` : `from="${xml(A)}" to="${xml(Z)}"`}${rp}/>`; }
+                if (B.t === 'animateMotion') return `<animateMotion path="${xml(g.d)}" rotate="${g.rot}"${rp}/>`;
+                return `<set attributeName="${g.at}" to="${xml(g.to)}" begin="${g.begin}s" fill="freeze"/>`; }).join('');
+            if (e.t === 'text') body.push(`<text ${at.join(' ')}>${kids}${xml(v.t)}</text>`);
+            else if (e.t === 'textPath') { defs.push(`<path id="${id}t" d="${xml(v.d)}"/>`); body.push(`<text ${at.join(' ')}>${kids}<textPath href="#${id}t" startOffset="${v.off}%">${xml(v.t)}</textPath></text>`); }
+            else body.push(kids ? `<${e.t} ${at.join(' ')}>${kids}</${e.t}>` : `<${e.t} ${at.join(' ')}/>`);
         });
-        return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${fonts ? `<style>${xml(fonts).replace(/&amp;/g, '&')}</style>` : ''}${defs.length ? `<defs>${defs.join('')}</defs>` : ''}${body.join('')}</svg>`;
+        return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${fonts || css.length ? `<style>${xml(fonts + css.join('')).replace(/&amp;/g, '&')}</style>` : ''}${defs.length ? `<defs>${defs.join('')}</defs>` : ''}${body.join('')}</svg>`;
     }
     function svgText(L, W, H) { return build(L, W, H, '').replace(/href="data:[^"]{60,}"/g, 'href="(내-그림)"').replace(/></g, '>\n<'); }
 
@@ -175,9 +220,7 @@
     const mkCv = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
     const loadImg = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
     async function bake(L, key, W, H) {
-        let fonts = '';
-        if (window.CB && CB.faceCss) { const fams = {}; (L.els || []).forEach(e => { if (!e.on || !(e.t === 'text' || e.t === 'textPath')) return; const f = (e.b.find(B => B.on && B.t === 'font-family') || { v: { v: 'Gowun Dodum' } }).v.v; fams[f] = (fams[f] || '') + e.v.t; });
-            for (const f of Object.keys(fams)) fonts += await CB.faceCss(f, fams[f]); }
+        const fonts = await fontsOf(L);
         const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(build(L, W, H, fonts));
         let im = await loadImg(src); if (/href="data:|@font-face/.test(src.slice(0, 200000)) || fonts) { await new Promise(r => setTimeout(r, 60)); im = await loadImg(src); }
         const c = mkCv(W, H); c.getContext('2d').drawImage(im, 0, 0, W, H); return { key, c };
@@ -195,5 +238,5 @@
         if (r) x.drawImage(r.c, 0, 0); if (!r || r.key !== key) queue(L, key, W, H);
     }
     async function settle(ms = 8000) { const t0 = Date.now(); while (pend > 0 && Date.now() - t0 < ms) await new Promise(r => setTimeout(r, 40)); }
-    window.SB = { EL, BL, GROUPS, KO, FONTS, freshEl, freshB, okEl, build, svgText, paint, settle, clone, get busy() { return pend; }, set onImg(f) { onImg = f; } };
+    window.SB = { EL, BL, GROUPS, KO, FONTS, freshEl, freshB, okEl, build, svgText, fontsOf, hasAnim, paint, settle, clone, get busy() { return pend; }, set onImg(f) { onImg = f; } };
 })();
