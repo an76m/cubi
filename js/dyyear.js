@@ -289,9 +289,9 @@
                 ? { cnt: `${y} ${d.name} 표지`, desc: `${d.name} · 바인더 표지 · ${d.n} (${d.mm}) · 📅 ${y}년 · 🧩 바인더 조립에서 같은 크기 날짜 내지를 끼워 써요`, look: 'diary', yr: y, dc: d.id, cat: 'dyb', give: () => dyyGive(y, d), name: `${y} ${d.name} 표지` }
                 : { cnt: `${y} ${d.name}`, desc: `${d.name} · 노트 · ${d.n} (${d.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'note', yr: y, dc: d.id, cat: 'dyn', give: () => dyyGive(y, d), name: `${y} ${d.name}` })
                 .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.cvOnly && !p.off).map(p => ({   // 🗂️ 페이지바인더 표지 (도련 11-07)
-                    cnt: `${p.g} 표지`, desc: `${p.g} · 바인더 표지 · ${p.n} (${p.mm}) · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워 써요`, look: 'pbinder', cols: p.cols, n: p.n, cat: 'pgb', give: () => dyyPCoverGive(p), name: `${p.g} 표지` })))
+                    cnt: `${p.g} 표지`, desc: `${p.g} · 바인더 표지 · ${p.n} (${p.mm}) · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워 써요`, look: 'pbinder', pid: p.id, cols: p.cols, n: p.n, cat: 'pgb', give: () => dyyPCoverGive(p), name: `${p.g} 표지` })))
                 .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.k === '노트' && !p.off).map(p => ({   // 📕 페이지노트 = 완제품 (도련 11-11 · 받으면 바로 한 권)
-                    cnt: p.g, desc: `${p.g} · 페이지노트 · ${p.n} (${p.mm}) · ${p.pg}페이지 · 받을 때마다 새 노트 한 권 (다른 노트 기록과 따로)`, look: 'pnote', cols: p.cols, n: p.n, cat: 'pgn', give: () => dyyPNoteGive(p), name: p.g })))
+                    cnt: p.g, desc: `${p.g} · 페이지노트 · ${p.n} (${p.mm}) · ${p.pg}페이지 · 받을 때마다 새 노트 한 권 (다른 노트 기록과 따로)`, look: 'pnote', pid: p.id, cols: p.cols, n: p.n, cat: 'pgn', give: () => dyyPNoteGive(p), name: p.g })))
                 .concat((typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => !r.off && prodList(r.K).some(x => x.id === r.id)).map(r => ({   // 📅 날짜 내지 · 📄 페이지 내지 (샵 칸도 둘 · 도련 11-07)
                     cnt: r.g, desc: `${r.t === 'date' ? '📅 날짜 내지 · 끼운 표지의 해를 따라가요' : `📄 페이지 내지 · ${r.pg}쪽`} · ${r.n} (${r.mm}) · 🧩 같은 크기 바인더 표지에 끼워요`, look: 'refill', lf: r.lf, rt: r.t, n: r.n, cat: r.t === 'date' ? 'dyr' : 'pgr', give: () => dyyRefillGive(r), name: r.g })));
         }

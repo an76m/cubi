@@ -53,7 +53,7 @@
     const C = v => window.dmkClean ? dmkClean(v) : v;
     function cvCard(c, extra) {
         const yr = new Date().getFullYear(), old = c.t === 'dcover' && c.y < yr;
-        return `<div class="bnd-card bnd-cv${old ? ' old' : ''}" data-cv="${esc(c.id)}" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 64)}<span>${esc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y + ' · ' + c.n : c.n}</small>${extra || ''}</div>`;
+        return `<div class="bnd-card bnd-cv${old ? ' old' : ''}" data-cv="${esc(c.id)}" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 64, c.pid || c.d)}<span>${esc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y + ' · ' + c.n : c.n}</small>${extra || ''}</div>`;
     }
     function rfCard(r, R) {
         return `<div class="bnd-card bnd-rf" data-rf="${esc(r.id)}">${r.t === 'drefill' ? dmkRfThumb([[1, 1, r.lf || 'line']], R || 1.41, 64) : dmkRfThumb(r.lv, r.r, 64)}<span>${esc(r.g)}</span><small>${r.t === 'drefill' ? '📅 날짜 · ' + r.n : r.n + ' · ' + r.pg + 'p'}</small>${r.t === 'refill' && r.from === 'mine' && window.dymGet && dymGet(r.id) ? `<i class="bnd-ed" data-ed="refill:${esc(r.id)}" title="고치기">✏️</i>` : ''}</div>`;
@@ -84,7 +84,7 @@
             return `<div class="bnd-sheet${keep ? ' keep' : ''}" ${keep ? '' : `data-out="${i}"`} style="--i:${i}"><b>${a}~${at} · ${esc(x.g)}</b><small>${window.dmkLvText ? dmkLvText(x.lv, x.pg) : ''}</small>${keep ? '<span class="bnd-lock" title="꾸민 페이지가 있어서 뺄 수 없어요">🔒</span>' : `<button type="button" class="bnd-x" data-x="${i}" title="빼기">✕</button>`}</div>`;
         }).join('');
         bq('bndBench').innerHTML = cv
-            ? `<div class="bnd-open" style="--cv:${cv.c};--ar:${1 / cv.r}"><div class="bnd-left">${dmkCvThumb(cv.c, cv.r, 150)}<b>${esc(cv.g)}</b><small>${cv.t === 'dcover' ? '📅 ' + cv.y + '년 · ' : ''}${cv.n} · ${cv.mm}mm</small>${s.id && lock ? '' : '<button type="button" class="bnd-x bnd-cvx" data-cvx="1" title="표지 내려놓기">↩</button>'}</div>
+            ? `<div class="bnd-open" style="--cv:${cv.c};--ar:${1 / cv.r}"><div class="bnd-left">${dmkCvThumb(cv.c, cv.r, 150, cv.pid || cv.d)}<b>${esc(cv.g)}</b><small>${cv.t === 'dcover' ? '📅 ' + cv.y + '년 · ' : ''}${cv.n} · ${cv.mm}mm</small>${s.id && lock ? '' : '<button type="button" class="bnd-x bnd-cvx" data-cvx="1" title="표지 내려놓기">↩</button>'}</div>
                 <div class="bnd-ring" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 <div class="bnd-right" id="bndDrop">${sheets || `<div class="bnd-empty">${date ? '📅 같은 크기 날짜 내지를 하나 끼워요' : '📄 같은 크기 내지를 끼워요 (여러 개 · 순서대로)'}</div>`}</div></div>`
             : `<div class="bnd-place" id="bndDrop"><b>🗂️</b><span>바구니에서 표지를 골라 여기에 놓아요</span></div>`;

@@ -3398,7 +3398,7 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 /* 🗂️ 바인더 조립식 (10-18) : 표지 · 내지 따로 만들기 + 🧩 조립 */
 .dmk-hint { margin: -4px 0 8px; text-align: center; font-size: 12px; font-weight: 600; color: #9a7884; }
 .dmk-hint:empty { display: none; }
-.dmk-cvth { position: relative; flex: none; display: inline-block; border-radius: 3px 8px 8px 3px; background: linear-gradient(90deg, rgba(0,0,0,.14) 0 9%, transparent 9%), var(--c); box-shadow: 0 3px 8px rgba(90, 50, 70, .22); }
+.dmk-cvth { position: relative; flex: none; display: inline-block; border-radius: 3px 8px 8px 3px; background: linear-gradient(90deg, rgba(0,0,0,.14) 0 9%, transparent 9%), var(--cf, none), var(--c);   /* 📁 --cf = 그 표지 상품 표지.svg */ box-shadow: 0 3px 8px rgba(90, 50, 70, .22); }
 .dmk-cvth::before { content: ''; position: absolute; left: 3%; top: 12%; bottom: 12%; width: 5px; background: radial-gradient(circle, #d9d4d8 0 2px, transparent 2.6px) 0 0 / 5px 14.6%; }
 .dmk-rfth { flex: none; display: inline-block; padding: 0; border-radius: 3px; overflow: hidden; box-shadow: 0 2px 6px rgba(90, 50, 70, .18); }
 .dmk-rfth .lf-sw { display: block; width: 100%; height: 100%; border-radius: 0; }
@@ -3630,7 +3630,7 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ab-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px 10px; }
 .ab-bd, .ab-rlc { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: #8a6a78; cursor: pointer; }
 .ab-bd small, .ab-rlc small { font-size: 11.5px; }
-.ab-cover { position: relative; display: block; width: 88px; height: 112px; border-radius: 6px 12px 12px 6px; background: var(--c1); box-shadow: inset 12px 0 0 var(--c2), 0 4px 10px rgba(120,70,90,.22); }
+.ab-cover { position: relative; display: block; width: 88px; height: 112px; border-radius: 6px 12px 12px 6px; background: var(--abf, none), var(--c1); box-shadow: inset 12px 0 0 var(--c2), 0 4px 10px rgba(120,70,90,.22); }
 .ab-cover::before { content: ''; position: absolute; left: 3px; top: 18px; bottom: 18px; width: 6px; background: radial-gradient(circle, rgba(255,255,255,.9) 2.6px, transparent 3px) center / 6px 30px repeat-y; }
 .ab-lb { position: absolute; left: 22px; right: 8px; top: 26px; padding: 4px 6px; border-radius: 3px; background: #fffaf2; color: #7b4a5e; font-style: normal; font-size: 13px; font-weight: 700; text-align: center; transform: rotate(-3deg); box-shadow: 0 1px 2px rgba(0,0,0,.12); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .ab-lb.none { color: #b39aa6; font-weight: 400; font-size: 11.5px; }
@@ -3694,6 +3694,7 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 /* 🗂️ 기본상품 샵 정리 도구 (바인더 · 이형지북) */
 .sh-tool { display: grid; place-items: center; width: 100%; min-height: 128px; padding: 6px 0; }
 .sh-tool .ab-cover, .sh-tool .ab-rlsheet { pointer-events: none; }
+.ab-rlsheet.sh-relbook { background: var(--abf, none), #fff; }   /* 📁 샵 이형지북 = 그 상품 표지.svg (도련 11-18) */
 .sh-tool.sh-gd svg { width: 78%; height: auto; max-height: 120px; pointer-events: none; }   /* ✏️ 문구 · 🪑 책상 소품 (도련 10-27) */
 .sh-tool.sh-gd.sh-pen svg { width: auto; height: 100px; }   /* ✏️ 필기구 = 세로로 길어서 높이로 (이름표에 안 겹치게 · 도련 10-31) */
 .sh-tool.sh-desk img { max-width: 86%; max-height: 120px; object-fit: contain; pointer-events: none; }

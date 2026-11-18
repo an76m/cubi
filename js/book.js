@@ -12,7 +12,7 @@
        크기 = 화면 안에 한 쪽(A5 비율) · 펼친 두 쪽이 다 들어오게
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
-                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리],
+                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
                 side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
@@ -138,7 +138,7 @@ function bookOpen(host, spec) {
             B.root = document.createElement('div'); B.root.className = 'bk ' + (spec.cls || '');
             host.appendChild(B.root); wire();
         }
-        B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]);
+        B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]); B.root.style.setProperty('--abf', spec.face || 'none');   // 📁 앞표지 = 그 상품 표지.svg (도련 11-18)
         B.root.classList.toggle('shut', !B.open);
         const book = !B.open
             ? `<div class="bk-book shut"><div class="bk-slot bk-cv" data-slot="cv">${spec.cover()}</div></div>`

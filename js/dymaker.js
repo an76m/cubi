@@ -96,7 +96,7 @@
         }
 
         /* ---------- 작은 그림 ---------- */
-        function dmkCvThumb(c, r, H) { return `<span class="dmk-cvth" style="--c:${c};width:${Math.round(H / r)}px;height:${H}px"></span>`; }
+        function dmkCvThumb(c, r, H, fid) { const f = fid && window.dyFaceCss ? dyFaceCss(fid, 'px') : 'none'; return `<span class="dmk-cvth" style="--c:${c};--cf:${htmlEsc(f)};width:${Math.round(H / r)}px;height:${H}px"></span>`; }   // 📁 fid = 그 표지 상품 (표지.svg · 도련 11-18)
         function dmkRfThumb(lv, r, H) { const id = (lv[0] || [0, 0, 'line'])[2]; return `<span class="lf-pick dmk-rfth" style="width:${Math.round(H / r)}px;height:${H}px"><i class="lf-sw" style="background:var(--lf-holes), ${htmlEsc(leafBg(id, H / 148 * 1.6))}, var(--page-bg, #fff)"></i></span>`; }   // 🗒️ 그 내지무늬 상품 디자인 (도련 11-18)
         const dmkLvText = (lv, pg) => { const l = lv.length ? lv : [[1, pg, 'line']]; return l.length === 1 ? dmkLeafName(l[0][2]) : l.map(r => `${r[0]}~${r[1]} ${dmkLeafName(r[2])}`).join(' · '); };
 
@@ -404,7 +404,7 @@
             if (!cv) { dmkQ('dmkRoomPrev').innerHTML = `<span class="dmk-prev-n">표지를 먼저 골라 주세요<small>표지가 없으면 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵에서 받아요</small></span>`; return; }
             const pg = dmkRm.rf.reduce((s, x) => s + dmkRfPg(x), 0);
             const sub = cv.t === 'dcover' ? `📅 ${cv.y}년 · ${cv.n} · ${cv.mm}mm · ${dmkRm.rf.length ? '날짜 내지 끼움' : '날짜 내지를 끼워요'}` : `${cv.n} · ${cv.mm}mm · 내지 ${dmkRm.rf.length}묶음 · ${pg}페이지`;
-            dmkQ('dmkRoomPrev').innerHTML = `<span class="dmk-stack">${dmkCvThumb(cv.c, cv.r, H)}${pg ? `<span class="dmk-stack-n">${pg}</span>` : ''}</span><span class="dmk-prev-n">${dmkEsc(dmkRm.g || cv.g || '내 바인더')}<small>${sub}</small></span>`;
+            dmkQ('dmkRoomPrev').innerHTML = `<span class="dmk-stack">${dmkCvThumb(cv.c, cv.r, H, cv.pid || cv.d)}${pg ? `<span class="dmk-stack-n">${pg}</span>` : ''}</span><span class="dmk-prev-n">${dmkEsc(dmkRm.g || cv.g || '내 바인더')}<small>${sub}</small></span>`;
         }
         function dmkRoomRender() {
             if (!dmkQ('dmkRoomCv') || !dmkRm) return;
@@ -414,7 +414,7 @@
             const ed = (t, id) => `<span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkForm('${t}', '${id}')">✏️</span>`;
             const cvCard = (c, on) => {
                 const old = c.t === 'dcover' && c.y < yr, off = !on && (old || (lock && c.n !== n));
-                return `<button type="button" class="dmk-card${on ? ' on' : ''}" ${off ? 'disabled' : ''} onclick="dmkRmPick('${c.id}')" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 56)}<span>${dmkEsc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y : c.n}</small>${!on && c.t === 'cover' && c.from === 'mine' && dymGet(c.id) ? ed('cover', c.id) : ''}</button>`;
+                return `<button type="button" class="dmk-card${on ? ' on' : ''}" ${off ? 'disabled' : ''} onclick="dmkRmPick('${c.id}')" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 56, c.pid || c.d)}<span>${dmkEsc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y : c.n}</small>${!on && c.t === 'cover' && c.from === 'mine' && dymGet(c.id) ? ed('cover', c.id) : ''}</button>`;
             };
             dmkQ('dmkRoomCv').innerHTML = cur.map(c => cvCard(c, true)).join('') + covers.map(c => cvCard(c, false)).join('');
             let at = 0;

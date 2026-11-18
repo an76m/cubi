@@ -367,6 +367,9 @@
     if (window.prodHook) prodHook(abBuild);                                   // 📦 내 실물 (js/mine.js)
     const abBdP = b => AB_BDP.find(x => x.id === b.pid) || AB_BDP[0];         // 그 바인더 상품
     const abRlP = r => AB_RL.find(x => x.id === (r && r.pid)) || AB_RL[0];    // 그 이형지북 상품
+    /* 📁 표지 = 그 상품의 표지.svg (도련 11-18 · 스티커바인더 · 이형지북도 다이어리처럼 · 앱은 깔기만) → css --abf · 책상 위 권 --dyv-img */
+    const abFace = (t, x, k) => { const P = t === 'bd' ? abBdP(x || {}) : abRlP(x), u = P && P.u && P.u.표지, wh = P && P.wh && P.wh.표지; return u && wh ? `url("${u}") 0 0 / ${(+wh[0] * (k || 1)).toFixed(1)}px ${(+wh[1] * (k || 1)).toFixed(1)}px repeat` : 'none'; };
+    const abRlCol = r => { const c = ((abRlP(r) || {}).P || {}).색; return Array.isArray(c) && /^#[0-9a-f]{6}$/i.test(c[0] || '') && /^#[0-9a-f]{6}$/i.test(c[1] || '') ? c : ['#cbb8ec', '#b7a2dd']; };   // 🤍 이형지북 겉 · 테두리 색 (상품 값)
     const abPer = b => +abBdP(b).P.포켓;                                       // 한 쪽 포켓 수 = 상품 '포켓'
     const abRelCap = r => { const p = abRlP(r); return p ? +p.P.포켓 : 0; };
     /* 📏 📒 🤍 한 쪽 종이 규격 [가로, 세로] mm = 그 상품 '규격' (상품공방 · 도련 11-16) → 책상 위 크기 · 펼친 쪽 · 정리 책상 모두 */
@@ -429,8 +432,8 @@
         let a; try { a = await ownAlbumGet(); } catch (e) { return []; }
         try { await frReady(); } catch (e) {}
         const ids = new Set((a.bd || []).map(b => b.id).concat((a.rl || []).map(r => r.id)));   // 불러오다 멈춰 두 곳에 있으면 = 스티커첩 쪽 (📥 목록 것은 안 보여요)
-        const free = frAll('bd').filter(x => !ids.has(x.id)).map(b => ({ id: b.id, t: 'bd', k: '', lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b) })).concat(frAll('rl').filter(x => !ids.has(x.id)).map(r => ({ id: r.id, t: 'rl', k: '', lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'], mm: abMmOf('rl', r) })));   // 📥 종류 없는 책 (도련 11-08)
-        return (a.bd || []).map(b => ({ id: b.id, t: 'bd', k: b.k, lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b) })).concat((a.rl || []).map(r => ({ id: r.id, t: 'rl', k: r.k, lb: r.lb || '', col: ['#f6f2fb', '#c9b8e6'], mm: abMmOf('rl', r) })), free);
+        const free = frAll('bd').filter(x => !ids.has(x.id)).map(b => ({ id: b.id, t: 'bd', k: '', lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b), face: abFace('bd', b) })).concat(frAll('rl').filter(x => !ids.has(x.id)).map(r => ({ id: r.id, t: 'rl', k: '', lb: r.lb || '', col: abRlCol(r), mm: abMmOf('rl', r), face: abFace('rl', r) })));   // 📥 종류 없는 책 (도련 11-08)
+        return (a.bd || []).map(b => ({ id: b.id, t: 'bd', k: b.k, lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b), face: abFace('bd', b) })).concat((a.rl || []).map(r => ({ id: r.id, t: 'rl', k: r.k, lb: r.lb || '', col: abRlCol(r), mm: abMmOf('rl', r), face: abFace('rl', r) })), free);
     };
     window.abOpenAt = (k, v, id) => { bkOpenKind(k); B.view = v; B.cur = id; B.pg = 0; B.fltBack = ''; try { bkView(v); } catch (e) {} };   // 🪑 책상의 책 = 떠 있는 책 (✕ = 닫기)
     function abGoShelf() { openShelf(); shOpenKind('tool'); }
@@ -647,7 +650,7 @@
     function abAlbum() {
         const body = bq('abBody'), a = B.album, bds = abMine(a.bd), rls = abMine(a.rl);
         const plus = t => `<button type="button" class="ab-plus" onclick="abFreeOpen('${t}')"><b>📥</b>받아 둔 책<br>불러오기</button>`;   // 📥 (도련 11-08 · 샵에서 받은 책은 종류 없이 기다려요)
-        const bd = bds.map(b => { const c = abCol(b); return `<button type="button" class="ab-bd" style="--c1:${c[0]};--c2:${c[1]}" onclick="abOpen('bd','${esc(b.id)}')"><span class="ab-cover">${b.lb ? `<i class="ab-lb">${esc(b.lb)}</i>` : ''}</span><small>${Object.keys(b.p).length}장 꽂힘</small></button>`; }).join('');
+        const bd = bds.map(b => { const c = abCol(b); return `<button type="button" class="ab-bd" style="--c1:${c[0]};--c2:${c[1]};--abf:${esc(abFace('bd', b))}" onclick="abOpen('bd','${esc(b.id)}')"><span class="ab-cover">${b.lb ? `<i class="ab-lb">${esc(b.lb)}</i>` : ''}</span><small>${Object.keys(b.p).length}장 꽂힘</small></button>`; }).join('');
         const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개 · ${r.n}쪽</small></button>`).join('');
         body.innerHTML = `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus('bd')}</div></div>`
             + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지북</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus('rl')}</div></div>` : '')
@@ -705,7 +708,7 @@
         const nm = (x.lb || '').trim() || (t === 'bd' ? ((abBdP(x).P || {}).이름 || '스티커바인더') : '이형지북');
         const spec = {
             id: x.id, cls: 'bk-' + t, pages, posKey: ABF_POS, mm: abMmOf(t, x),   // 📏 한 쪽 = 그 상품 규격 mm
-            colors: t === 'bd' ? abCol(x) : ['#cbb8ec', '#b7a2dd'],
+            colors: t === 'bd' ? abCol(x) : abRlCol(x), face: abFace(t, x),
             page: p => t === 'bd' ? `<div class="abx-pg">${abPocketsAt(x, p)}<b class="abx-no">${p + 1}</b></div>`
                 : `<div class="ab-rel abx-wax abf-rl" data-pg="${p}">${abRelItems(x, p)}${x.it.some(o => (o.pg || 0) === p) ? '' : `<span class="ab-relhint">${x.it.length ? '이 쪽은 비어 있어요' : '비어 있어요<br>📒 스티커 정리에서 떼어 붙여요'}</span>`}<b class="abx-no">${p + 1}</b></div>`,
             blank: () => t === 'bd' ? '<div class="abx-pg end"></div>' : '<div class="ab-rel abx-wax abf-rl end"></div>',
@@ -1478,17 +1481,17 @@
     }
     /* (미리 채우기 shWarm 은 지웠어요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 기본상품 샵을 열 때 채우고 그다음부터 기억해요) */
     function shLook(x, big) {
-        if (x.look === 'binder') { const c = (AB_BDP.find(p => p.id === x.pid) || AB_BDP[0]).P.색; return `<div class="sh-tool"><span class="ab-cover" style="--c1:${c[0]};--c2:${c[1]}"></span></div>`; }
+        if (x.look === 'binder') { const c = (AB_BDP.find(p => p.id === x.pid) || AB_BDP[0]).P.색; return `<div class="sh-tool"><span class="ab-cover" style="--c1:${c[0]};--c2:${c[1]};--abf:${esc(abFace('bd', { pid: x.pid }))}"></span></div>`; }
         if (x.look === 'gd') return `<div class="sh-tool sh-gd${x.g === 'pen' ? ' sh-pen' : ''}">${x.art || ''}</div>`;
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
-        if (x.look === 'relbook') return '<div class="sh-tool"><span class="ab-rlsheet sh-relbook"></span></div>';
+        if (x.look === 'relbook') return `<div class="sh-tool"><span class="ab-rlsheet sh-relbook" style="--abf:${esc(abFace('rl', { pid: x.pid }))}"></span></div>`;
         if (x.look === 'dskin') return `<div class="sh-tool sh-ds">${window.dsSwatch ? dsSwatch(x.sid) : ''}</div>`;   // 🧱 🪵 견본
         if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
-        if (x.look === 'note') { const k = DY_COL[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb sh-dyn" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dys"></i><b>${x.yr}</b><small>NOTE</small></span></div>`; }   // 📓 날짜형 노트 (얇은 책등 · 링 없음 · 도련 11-04 시안 3번)
+        if (x.look === 'note') { const k = DY_COL[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb sh-dyn" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'};--dyf:${esc(window.dyFaceCss ? dyFaceCss(x.dc, 'px') : 'none')}"><i class="sh-dys"></i><b>${x.yr}</b><small>NOTE</small></span></div>`; }   // 📓 날짜형 노트 (얇은 책등 · 링 없음 · 도련 11-04 시안 3번)
         if (x.look === 'refill') return `<div class="sh-tool sh-dy"><span class="sh-rfl" style="background:${esc(leafBg(x.lf, 1.4))}, #fffdfb"><i class="sh-rfh"></i><b>${x.rt === 'date' ? '📅' : '📄'}</b><small>${x.rt === 'date' ? 'DATE' : 'PAGE'} · ${x.n || ''}</small></span></div>`;   // 📄 바인더 내지 (6공 · 그 내지 무늬 · 도련 11-07)
-        if (x.look === 'pnote') { const c = x.cols || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb sh-dyn" style="--dyb:${c.테두리색 || '#ffc6d6'};--dyi:${c.강조색 || '#c8457a'}"><i class="sh-dys"></i><b>${x.n || ''}</b><small>NOTE</small></span></div>`; }   // 📕 페이지노트 (도련 11-11 · 날짜형 노트와 같은 책 모양)
-        if (x.look === 'pbinder') { const c = x.cols || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${c.테두리색 || '#ffc6d6'};--dyi:${c.강조색 || '#c8457a'}"><i class="sh-dyr"></i><b>${x.n || ''}</b><small>BINDER</small></span></div>`; }   // 🗂️ 페이지바인더 표지 (도련 11-07)
-        if (x.look === 'diary') { const k = DY_COL[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
+        if (x.look === 'pnote') { const c = x.cols || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb sh-dyn" style="--dyb:${c.테두리색 || '#ffc6d6'};--dyi:${c.강조색 || '#c8457a'};--dyf:${esc(window.dyFaceCss ? dyFaceCss(x.pid, 'px') : 'none')}"><i class="sh-dys"></i><b>${x.n || ''}</b><small>NOTE</small></span></div>`; }   // 📕 페이지노트 (도련 11-11 · 날짜형 노트와 같은 책 모양)
+        if (x.look === 'pbinder') { const c = x.cols || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${c.테두리색 || '#ffc6d6'};--dyi:${c.강조색 || '#c8457a'};--dyf:${esc(window.dyFaceCss ? dyFaceCss(x.pid, 'px') : 'none')}"><i class="sh-dyr"></i><b>${x.n || ''}</b><small>BINDER</small></span></div>`; }   // 🗂️ 페이지바인더 표지 (도련 11-07)
+        if (x.look === 'diary') { const k = DY_COL[x.dc] || {}; return `<div class="sh-tool sh-dy"><span class="sh-dyb" style="--dyb:${k.border || '#ffc6d6'};--dyi:${k.accent || '#c8457a'};--dyf:${esc(window.dyFaceCss ? dyFaceCss(x.dc, 'px') : 'none')}"><i class="sh-dyr"></i><b>${x.yr}</b><small>DIARY</small></span></div>`; }   // 📔 6공 바인더 (색마다 한 권 · js/dyyear.js)
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: src[0] }) : ''}</div>`;
