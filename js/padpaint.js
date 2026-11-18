@@ -1909,9 +1909,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         begin() { if (!P.on || P.tour) return false; commitFloat(); penEnd(); P.tour = { s0: snapshot(), dirty: P.dirty };
             const pp = P.layers.filter(l => l.type === 'paper'); P.layers = pp; P.cur = pp[0] || null; P.hist = []; P.redo = []; P.sel = null; P.many = []; P.pt = null; P.cbOpen = null; P.sbSel = null; P.sbOpen = null; P.cbPart = 'blocks'; P.cbNode = 'root'; P.cbBox = false; P.cbCode = false; P.sbCode = false;
             setMode('px'); renderAll(); paintLayers(); paintProps(); return true; },
-        end(keep) { const T = P.tour; if (!T) return; commitFloat(); penEnd(); const s1 = snapshot(); P.tour = null;
-            restoreDraft(Object.assign({}, T.s0, { layers: T.s0.layers.concat(keep ? s1.layers.filter(o => o.type !== 'paper') : []) }), true);
-            P.hist = []; P.redo = []; P.dirty = keep ? true : T.dirty; if (keep) say('🎓 만든 것을 내 그림에 레이어로 더했어요', 2200); },
+        end() { const T = P.tour; if (!T) return; commitFloat(); penEnd(); P.tour = null;   // 🎓 따라 보기 결과는 버리고 원래 그림으로 (가져가기 없음 · 도련 11-19)
+            restoreDraft(T.s0, true); P.hist = []; P.redo = []; P.dirty = T.dirty; },
         layerOf: t => { const l = [...P.layers].reverse().find(q => q.type === t); return l ? l.id : null; }
     };
     window.ppTest = () => P;                                                     // 🧪 시험용 (tests/t_padpaint.py)

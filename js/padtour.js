@@ -1,7 +1,7 @@
 /* 말랑달콤 다이어리 - js/padtour.js
    🎓 그림판 따라 보기 (도련 11-19 · 1305 · 1306 예시 바꿈 : ✨ 가만히 9 (픽셀 · 벡터로는 어려운 것) + 🎬 움직이는 9 (실험)) : 글 대신 · 예시를 고르면 진짜 그림판에서 마우스가 움직이며 메뉴를 눌러 만드는 과정을 보여 줘요
    - 🧩 CSS · 🌀 SVG · 🔗 섞기 × 초급 · 중급 · 고급 (예시 = 공식 기능을 이렇게 쓴다는 순서 · 기능 목록에는 안 섞여요)
-   - 연습 종이 (js/padpaint.js ppTourHook) : 지금 그림은 보관 → 빈 종이에서 만들고 → 끝나면 ✔ 내 그림에 가져가기 · ✕ 그냥 닫기
+   - 연습 종이 (js/padpaint.js ppTourHook) : 지금 그림은 보관 → 빈 종이에서 만들고 → 끝나면 늘 원래 그림으로 (결과는 가져가지 않아요 · 도련 11-19)
    - 조절 : ⏸ 멈춤 · ▶ 이어서 · ⏭ 다음 한 걸음 · ↺ 처음부터 · 🐢 🐇 빠르기 · ✋ 따라 하기 (반짝이는 곳을 내가 눌러요)
    - 걸음 = { c: 누를 곳 } · { v: 칸, val: 값 } · { pick: 고르는 칸, opt: 글자 } · { drag: [[가로, 세로] 비율 …] } · { say: 말풍선 }
      누를 곳 · 칸 = css 선택자 (그때그때 찾아요 · 오른쪽 칸은 다시 그려지니까) 또는 함수
@@ -301,17 +301,17 @@
     }
     function ask() {
         const m = document.createElement('div'); m.className = 'pt-done'; m.id = 'ptDone';
-        m.innerHTML = `<b>🎉 완성!</b><small>${T.ex.e} ${T.ex.n}</small><button type="button" data-pd="keep">✔ 가져가기</button><button type="button" data-pd="close">✕ 닫기</button><button type="button" data-pd="again">↺ 다시</button><button type="button" data-pd="more">🎓 다른 예시</button>`; const bar = document.getElementById('ptBar'); if (bar) bar.style.display = 'none'; bub('');
+        m.innerHTML = `<b>🎉 완성!</b><small>${T.ex.e} ${T.ex.n}</small><button type="button" data-pd="close">✕ 닫기</button><button type="button" data-pd="again">↺ 다시</button><button type="button" data-pd="more">🎓 다른 예시</button>`; const bar = document.getElementById('ptBar'); if (bar) bar.style.display = 'none'; bub('');
         document.body.appendChild(m);
         m.onclick = e => { const b = e.target.closest('[data-pd]'); if (!b) return; m.remove(); const bar = document.getElementById('ptBar'); if (bar) bar.style.display = ''; const k = b.dataset.pd;
-            if (k === 'keep') finish(true); if (k === 'close') finish(false); if (k === 'again') restart(); if (k === 'more') { finish(false); open(); } };
+            if (k === 'close') finish(false); if (k === 'again') restart(); if (k === 'more') { finish(false); open(); } };
     }
     function restart() { const ex = T.ex; if (!ex) return; const d = $('#ptDone'); if (d) d.remove(); ppTourHook.end(false); ppTourHook.begin(); T.pause = false; const b = $('#ptBar [data-pt="play"]'); if (b) b.textContent = '⏸'; play(ex); }
     function start(ex) {
         if (!window.ppTourHook || !ppTourHook.on) return; if (ppTourHook.busy) ppTourHook.end(false);
         if (!ppTourHook.begin()) return; T.on = true; T.pause = false; T.done = false; T.err = ''; ui(); document.body.classList.add('pt-on'); play(ex);
     }
-    function finish(keep) { T.run++; const d = $('#ptDone'); if (d) d.remove(); T.on = false; gone(); document.body.classList.remove('pt-on'); if (window.ppTourHook && ppTourHook.busy) ppTourHook.end(!!keep); }
+    function finish() { T.run++; const d = $('#ptDone'); if (d) d.remove(); T.on = false; gone(); document.body.classList.remove('pt-on'); if (window.ppTourHook && ppTourHook.busy) ppTourHook.end(false); }   // 따라 보기 결과는 가져가지 않아요 (도련 11-19 · 늘 원래 그림으로)
     /* ---------- 고르는 창 ---------- */
     function open() {
         const old = $('#ptPick'); if (old) old.remove();
