@@ -401,7 +401,7 @@
             DY_TYPES.length = 0;
             DY_PKINDS.forEach(([K, k]) => (window.prodList ? prodList(K) : []).forEach(x => {
                 const P = x.P || {};                                           // 🔎 상품 그대로 (빠지면 안 나와요)
-                const hx = v => /^#[0-9a-f]{6}$/i.test(v || ''), lf = v => window.MK && MK.leafOk(v), pg = Math.round(+P.쪽수);   // 📐 날짜형과 같은 설계도 (도련 11-05) : 4색 · 쪽수 · 내지(+ 구간)
+                const hx = v => /^#[0-9a-f]{6}$/i.test(v || ''), lf = v => leafOk(v), pg = Math.round(+P.쪽수);   // 📐 날짜형과 같은 설계도 (도련 11-05) : 4색 · 쪽수 · 내지(+ 구간)
                 if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || (k === '노트' && (!(pg > 0) || !lf(P.내지))) ||   /* 🗂️ 페이지바인더 = 표지 (내지는 바인더내지 상품 · 981) */ !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 const lv = (Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], r[2]]);
                 const c = (String(P.표지색).match(/#[0-9a-f]{6}/i) || [P.테두리색])[0];   // 책 그림 색 = 표지 첫 색

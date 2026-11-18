@@ -19,7 +19,6 @@
         const DMK_SIZES = { '노트': DMK_SZ, '바인더': DMK_SZ };
         const DMK_BINDS = { '노트': MK.BINDS.filter(b => b[0] !== 'ring'), '바인더': MK.BINDS.filter(b => b[0] === 'ring') };
         const DMK_COLORS = MK.COLORS.slice(0, 10);
-        const DMK_LEAFS = MK.LEAFS;
         const DMK_CN = [['표지색', '표지'], ['테두리색', '테두리'], ['강조색', '강조'], ['속지색', '속지']];
         const dmkCols = (v, c) => v && typeof v === 'object' && String(v.표지색 || '') && ['테두리색', '강조색', '속지색'].every(n => /^#[0-9a-f]{6}$/i.test(v[n] || '')) ? { 표지색: String(v.표지색).slice(0, 120), 테두리색: v.테두리색, 강조색: v.강조색, 속지색: v.속지색 } : MK.dyAuto(c);
         const DMK_PG = { min: 10, max: 200, def: 30 }, DMK_BIND_MAX = 600;     // 바인더 한 권에 끼울 수 있는 페이지
@@ -36,13 +35,13 @@
         const dmkEsc = htmlEsc;   // 🧰 js/util.js
         const dmkQ = id => document.getElementById(id);
         const dmkShut = (...ids) => ids.forEach(id => { if (dmkQ(id)) closeModal(id); });
-        const dmkLeafName = v => (DMK_LEAFS.find(l => l[0] === v) || DMK_LEAFS[0])[1];
+        const dmkLeafName = v => (leafList().find(l => l[0] === v) || leafList()[0] || ['', v])[1];
 
         /* ---------- 만든 것 목록 (바로 꺼내 쓰는 쪽) ---------- */
         function dmkMap() { const m = {}; dyoAll().filter(x => x.t !== 'date').concat(dymAll('cover'), dymAll('refill')).forEach(x => { m[x.id] = x; }); return m; }   // 📚 권 + 🧩 재료
         const dmkPg = v => Math.max(DMK_PG.min, Math.min(DMK_PG.max, Math.round(+v) || DMK_PG.def));
         function dmkLv(lv, pg) {                                               // 내지 구간 [[처음, 끝, 내지] …] 확인
-            return (Array.isArray(lv) ? lv : []).map(r => Array.isArray(r) ? [Math.max(1, Math.round(+r[0]) || 1), Math.min(pg, Math.round(+r[1]) || pg), DMK_LEAFS.some(l => l[0] === r[2]) ? r[2] : 'line'] : null).filter(r => r && r[0] <= r[1]);
+            return (Array.isArray(lv) ? lv : []).map(r => Array.isArray(r) ? [Math.max(1, Math.round(+r[0]) || 1), Math.min(pg, Math.round(+r[1]) || pg), leafList().some(l => l[0] === r[2]) ? r[2] : 'line'] : null).filter(r => r && r[0] <= r[1]);
         }
         function dmkClean(d) {                                                  // 드라이브 · 설정에서 읽은 것 확인
             if (!d || typeof d !== 'object' || !/^my[\w-]{1,30}$/.test(d.id || '')) return null;
@@ -52,7 +51,7 @@
             if (d.start) o.start = 1;                                            // 🎁 처음받기 (도련 11-09)
             if (t === 'dcover') { const D = window.dyyDesignOf ? dyyDesignOf(d.d) : null; return Object.assign(o, { y: Math.round(+d.y) || new Date().getFullYear(), d: String(d.d || ''), n: D ? D.n : o.n, mm: D ? D.mm : o.mm, r: D ? D.r : o.r, c: D ? D.c : DMK_COLORS[6], b: 'ring' }, d.md && typeof d.md === 'object' ? { md: d.md } : {}); }   // 📅 해가 적힌 표지 = 그 디자인 그대로 · ✏️ 내가 만든 표지 = md (도련 11-11)
             if (d.pid) o.pid = String(d.pid).slice(0, 60);                      // 🏪 받은 상품 id
-            if (t === 'drefill') return Object.assign(o, { lf: DMK_LEAFS.some(l => l[0] === d.lf) ? d.lf : 'line' });   // 📅 날짜 내지 (해 없음 · 크기 n = 같은 크기 표지에만)
+            if (t === 'drefill') return Object.assign(o, { lf: leafList().some(l => l[0] === d.lf) ? d.lf : 'line' });   // 📅 날짜 내지 (해 없음 · 크기 n = 같은 크기 표지에만)
             const color = c => /^#[0-9a-f]{6}$/i.test(c || '') ? c : DMK_COLORS[k === '바인더' ? 6 : 0];
             if (t === 'note') { const pg = dmkPg(d.pg); return Object.assign(o, { my: 1, b: DMK_BINDS[k].some(x => x[0] === d.b) ? d.b : DMK_BINDS[k][0][0], c: color(d.c), cols: dmkCols(d.cols, color(d.c)), cw: !!(d.cw && d.cols), pg, lv: dmkLv(d.lv, pg) }); }
             if (t === 'cover') return Object.assign(o, { b: 'ring', c: color(d.c), cols: dmkCols(d.cols, color(d.c)), cw: !!(d.cw && d.cols) });
@@ -98,7 +97,7 @@
 
         /* ---------- 작은 그림 ---------- */
         function dmkCvThumb(c, r, H) { return `<span class="dmk-cvth" style="--c:${c};width:${Math.round(H / r)}px;height:${H}px"></span>`; }
-        function dmkRfThumb(lv, r, H) { return `<span class="lf-pick dmk-rfth" style="width:${Math.round(H / r)}px;height:${H}px"><i class="lf-sw lf-${(lv[0] || [0, 0, 'line'])[2]}"></i></span>`; }
+        function dmkRfThumb(lv, r, H) { const id = (lv[0] || [0, 0, 'line'])[2]; return `<span class="lf-pick dmk-rfth" style="width:${Math.round(H / r)}px;height:${H}px"><i class="lf-sw" style="background:var(--lf-holes), ${htmlEsc(leafBg(id, H / 148 * 1.6))}, var(--page-bg, #fff)"></i></span>`; }   // 🗒️ 그 내지무늬 상품 디자인 (도련 11-18)
         const dmkLvText = (lv, pg) => { const l = lv.length ? lv : [[1, pg, 'line']]; return l.length === 1 ? dmkLeafName(l[0][2]) : l.map(r => `${r[0]}~${r[1]} ${dmkLeafName(r[2])}`).join(' · '); };
 
         /* ---------- 만들기 창 : 📓 노트 · 🗂️ 바인더 표지 · 📄 내지 (한 창을 같이 써요) ---------- */
@@ -178,12 +177,12 @@
             dmkQ('dmkCols').innerHTML = DMK_CN.map(([k, n]) => `<label class="dmk-cl"><input type="color" value="${hx(dmk.cols[k])}" oninput="dmkColSet('${k}', this.value)"><span>${n}</span></label>`).join('') + `<button type="button" class="dmk-chip" onclick="dmk.cw = false; dmkRender()">↺ 저절로</button>`;
             const Y = new Date().getFullYear();
             dmkQ('dmkYear').innerHTML = [Y, Y + 1].map(y => `<button type="button" class="dmk-chip${+dmk.y === y ? ' on' : ''}" onclick="dmk.y=${y}; dmkRender()">${y}</button>`).join('');   // 📅 올해 · 내년
-            dmkQ('dmkLf1').innerHTML = DMK_LEAFS.map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${(dmk.lf || 'line') === v ? ' on' : ''}" onclick="dmk.lf='${v}'; dmkRender()"><i class="lf-sw lf-${v}"></i>${n}</button>`).join('');
+            dmkQ('dmkLf1').innerHTML = leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${(dmk.lf || 'line') === v ? ' on' : ''}" onclick="dmk.lf='${v}'; dmkRender()"><i class="lf-sw lf-${v}"></i>${n}</button>`).join('');
             dmkQ('dmkPg').value = dmk.pg;
             const many = dmk.lv.length > 1;
             dmkQ('dmkLeaf').innerHTML = dmk.lv.map((r, i) => `<div class="dmk-lv">
                 <div class="dmk-lv-r"><input type="number" inputmode="numeric" value="${r[0]}" ${i ? '' : 'disabled'} onchange="dmkLeafEdge(${i}, 0, this.value)"><span>~</span><input type="number" inputmode="numeric" value="${r[1]}" ${i === dmk.lv.length - 1 ? 'disabled' : ''} onchange="dmkLeafEdge(${i}, 1, this.value)"><span>페이지</span>${many ? `<button type="button" class="dmk-x" title="이 구간 빼기" onclick="dmkLeafDel(${i})">✕</button>` : ''}</div>
-                <div class="dmk-lv-pick">${DMK_LEAFS.map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${r[2] === v ? ' on' : ''}" onclick="dmkLeafSet(${i}, '${v}')"><i class="lf-sw lf-${v}"></i>${n}</button>`).join('')}</div></div>`).join('');
+                <div class="dmk-lv-pick">${leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${r[2] === v ? ' on' : ''}" onclick="dmkLeafSet(${i}, '${v}')"><i class="lf-sw lf-${v}"></i>${n}</button>`).join('')}</div></div>`).join('');
             dmkQ('dmkLeaf').closest('.dmk-row').querySelector('.dmk-add').hidden = dmk.lv[dmk.lv.length - 1][1] - dmk.lv[dmk.lv.length - 1][0] < 1 || dmk.lv.length >= 10;
             dmkPrevDraw();
         }

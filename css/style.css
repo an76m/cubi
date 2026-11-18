@@ -2363,7 +2363,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 /* 📏 종이 위 무늬 (줄 · 모눈 · 도트 · 깅엄 · 구멍) = mm (도련 11-16 : 규격이 달라도 모눈 5mm 는 5mm) · --mm = 화면에서 1mm (js/page.js refreshLayout · 처음엔 CSS 1mm) */
 :root { --mm: 1mm; --gap: 8mm; --gh: 4mm; }   /* --gap · --gh = 링 바인더 두 쪽 사이 틈 · 틈의 반 (js/maker.js MK.GAP · js/page.js refreshLayout) */
 /* 📄 내지 · 📃 속지 = 종이 한 쪽씩 (도련 11-16 · js/leafpad.js) : ::before = 왼쪽 쪽 · ::after = 오른쪽 쪽 (규격 가로 mm · 가운데에 맞붙인 자리 · 링에 끼운 동안 틈의 반씩 비켜요)
-   한 쪽 = 속지 (--sj-l · --sj-r · 붙였을 때만) 위 · 내지 무늬 (--nj-l · --nj-r = var(--pat-…)) · 그 위에 붙인 것들 (isolation 으로 종이는 맨 아래) */
+   한 쪽 = 속지 (--sj-l · --sj-r · 붙였을 때만) 위 · 내지 무늬 (--nj-l · --nj-r = 내지무늬 상품) · 그 위에 붙인 것들 (isolation 으로 종이는 맨 아래) */
 .inner-page .canvas-area { isolation: isolate; background: var(--page-bg); box-shadow: 0 0 0 4px #fff, 1cqw 2cqw 5cqw rgba(160,90,110,.16); }
 .inner-page .canvas-area::before, .inner-page .canvas-area::after { content: ''; position: absolute; top: 0; bottom: 0; width: calc(var(--pmw, 105) * var(--mm)); z-index: -1; pointer-events: none;
     background: var(--sjb), var(--njb, var(--page-bg)); transition: translate .75s cubic-bezier(.45, .05, .3, 1); }
@@ -2372,12 +2372,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .inner-page.dy-bdl:not(.dy-bo) .canvas-area::before { translate: calc(var(--gh) * -1) 0; }   /* 🔗 링에 끼운 동안 = 종이도 붙인 것과 같이 비켜요 */
 .inner-page.dy-bdl:not(.dy-bo) .canvas-area::after { translate: var(--gh) 0; }
 /* 📄 내지 무늬 (mm · 맨 끝 = 종이 색) */
-.inner-page .canvas-area, .lf-slide { --pat-line: linear-gradient(transparent calc(calc(7 * var(--mm)) - 1px), color-mix(in srgb, var(--border-color) 45%, transparent) 0) 0 calc(2 * var(--mm)) / 100% calc(7 * var(--mm)), var(--page-bg);
-    --pat-grid: linear-gradient(color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 17%, #fff) 1px, transparent 1px) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffefc;
-    --pat-dot: radial-gradient(circle, color-mix(in srgb, var(--primary-accent) 38%, #fff) calc(.38 * var(--mm)), transparent calc(.52 * var(--mm))) 0 0 / calc(5 * var(--mm)) calc(5 * var(--mm)), #fffdfb;
-    --pat-gingham: linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), linear-gradient(color-mix(in srgb, var(--primary-accent) 16%, transparent) 50%, transparent 0) 0 0 / calc(8 * var(--mm)) calc(8 * var(--mm)), #fff;
-    --pat-kraft: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / calc(42 * var(--mm)), #e2cba6;
-    --pat-plain: var(--page-bg); }
+.inner-page .canvas-area, .lf-slide { --nj-l: var(--page-bg); --nj-r: var(--page-bg); }   /* 🗒️ 내지 무늬 = 내지무늬 상품의 디자인 한 칸 (js/leafpad.js lfApply · js/prod.js leafCss · 도련 11-18 · 무늬 코드 없음) */
 /* 날짜바 : 가운데 둥근 연핑크 바 + 위에 작은 반투명 테이프 (페이지를 끄는 손잡이 그대로) */
 .inner-page .page-header { width: calc(max(74%, 290px) * var(--pill-w, 1)); font-size: min(1.2rem, 4.3cqw); white-space: nowrap; border-radius: 2.6cqw; border: .3cqw solid color-mix(in srgb, var(--primary-accent) 26%, #fff);
     background: color-mix(in srgb, var(--primary-accent) 12%, #fff); color: color-mix(in srgb, var(--primary-accent) 92%, #5a1a30 8%);

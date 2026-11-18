@@ -60,6 +60,19 @@ window.PROD_READY = (function () {
         return r.text().then(v => String(v).trim() === String(cur.v) ? 'same' : full());
     }).catch(e => emerg(e && e.name === 'AbortError' ? '시간 초과' : String(e && e.message || e)));
 })();
+/* 🗒️ 내지 무늬 = 상품 (도련 11-18 · 3단계 · 상품공방 다이어리/내지무늬) : 디자인.svg 한 칸 (그림 1 = 1mm) 을 속지색 위에 이어 깔아요 · 앱에 무늬 코드 없음
+   다이어리 · 내지 상품의 '내지' 값 = 내지무늬 상품 id ('grid' · 왼쪽/오른쪽 'grid/dot') */
+function leafList() { return prodList('내지무늬').filter(x => x.u && x.u.디자인 && x.wh && x.wh.디자인).map(x => [x.id, String((x.P || {}).이름 || x.id)]); }
+function leafOk(v) { const a = String(v || '').split('/'), L = leafList(); return a.length <= 2 && a.every(x => L.some(l => l[0] === x)); }
+function leafCss(id) {
+    const x = prodList('내지무늬').find(p => p.id === id), u = x && x.u && x.u.디자인, wh = x && x.wh && x.wh.디자인;
+    return u && wh ? `url("${u}") 0 0 / calc(${+wh[0]} * var(--mm)) calc(${+wh[1]} * var(--mm)) repeat, var(--page-bg)` : 'var(--page-bg)';
+}
+function leafBg(id, k) {                                                      // 작은 견본 (샵 카드) : 1mm = k px · 첫 무늬 (왼쪽)
+    const x = prodList('내지무늬').find(p => p.id === String(id || '').split('/')[0]), u = x && x.u && x.u.디자인, wh = x && x.wh && x.wh.디자인;
+    return u && wh ? `url("${u}") 0 0 / ${(+wh[0] * k).toFixed(2)}px ${(+wh[1] * k).toFixed(2)}px repeat` : 'none';
+}
+window.leafList = leafList; window.leafOk = leafOk; window.leafCss = leafCss; window.leafBg = leafBg;
 window.prodList = prodList; window.prodShelf = prodShelf; window.prodOn = prodOn; window.prodSrv = prodSrv;
 window.prodHook = prodHook; window.prodRebuild = prodRebuild; window.prodRawOf = prodRawOf; window.PROD_OKF = PROD_OKF;
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['prod'] = prodOn();   // 🛡 목록을 못 받았으면 다이어리를 시작하지 않아요 (index.html 아래 확인)
