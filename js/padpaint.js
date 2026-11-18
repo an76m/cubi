@@ -290,9 +290,15 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         x.restore();
     }
     function cbLive() {                                                        // 🎬 움직이는 블록 = 그림판에선 진짜 css 로 움직여요 (고른 블록 레이어 · 구운 그림은 첫 장면)
-        const L = P.cur, on = P.on && P.mode === 'css' && L && L.type === 'css' && L.vis && window.CB && CB.hasAnim(L); let el = $('ppLive');
+        const L = P.cur, sv = P.on && P.mode === 'svg' && L && L.type === 'svg' && L.vis && window.SB && SB.hasAnim(L), on = sv || (P.on && P.mode === 'css' && L && L.type === 'css' && L.vis && window.CB && CB.hasAnim(L)); let el = $('ppLive');
         if (!on) { if (el) el.remove(); P.liveL = null; return; }
         const doc = $('ppDoc'); if (!doc) return; if (!el) { el = document.createElement('div'); el.id = 'ppLive'; el.className = 'pp-live'; doc.insertBefore(el, $('ppOv')); }
+        if (sv) {                                                              // 🎬 SVG 움직임도 그림판에서 진짜로 (11-19 · 구운 그림은 첫 장면)
+            P.liveL = L; const key = 'sv|' + P.W + 'x' + P.H + JSON.stringify(L.els);
+            if (el._k !== key) { el._k = key; el.innerHTML = `<img alt="" style="position:absolute;left:0;top:0;width:${P.W}px;height:${P.H}px" src="${SVG_PFX + encodeURIComponent(SB.build(L, P.W, P.H, ''))}">`; }
+            Object.assign(el.style, { left: '0px', top: '0px', opacity: L.op, mixBlendMode: L.blend === 'source-over' ? 'normal' : L.blend }); return;
+        }
+        if (el._k && el._k.startsWith('sv|')) { el._k = ''; el.innerHTML = ''; }
         P.liveL = L; const bx = L.box, w = Math.max(2, Math.round(bx.w * P.W)), h = Math.max(2, Math.round(bx.h * P.H)), key = w + 'x' + h + '|' + (L.text || '') + JSON.stringify([L.blocks, L.pb, L.pa]);
         if (el._k !== key) { el._k = key; el.innerHTML = `<style>${CB.styleText(L, '#ppLive .lv', w, h, 'position:absolute;left:0;top:0;')}</style><div class="lv"></div>`; el.querySelector('.lv').textContent = L.text || ''; }
         Object.assign(el.style, { left: bx.x * P.W + 'px', top: bx.y * P.H + 'px', opacity: L.op, mixBlendMode: L.blend === 'source-over' ? 'normal' : L.blend });
