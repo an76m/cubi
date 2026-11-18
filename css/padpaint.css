@@ -277,3 +277,19 @@
 .pp-rsz::after { content: ''; position: absolute; top: 50%; width: 6px; height: 44px; margin-top: -22px; border-radius: 6px; background: #e8bccb; }
 .pp-rsz:hover::before, .pp-rsz.on::before { background: #f0a9c2; }
 .pp-rsz:hover::after, .pp-rsz.on::after { background: #c2457a; }
+/* 🧩 1296 : 블록 찾기 · ▣ 상자 · ✨ ::before · ::after · 🎬 움직이는 블록 미리보기 */
+.pp-cbq { width: 100%; box-sizing: border-box; font: inherit; font-size: 12.5px; border: 2px solid #f1d3dd; border-radius: 10px; padding: 6px 9px; background: #fff; }
+.pp-cbs button[hidden], .pp-cbg[hidden] { display: none !important; }
+.pp-cbpart { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
+.pp-cbpart button { min-height: 34px; border: 2px solid #f1d3dd; border-radius: 10px; background: #fff; font: inherit; font-size: 11.5px; font-weight: 900; color: #8a6a76; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.pp-cbpart button small { font-size: 10px; background: #f6e3ea; color: #a5707f; border-radius: 999px; padding: 0 6px; }
+.pp-cbpart button.on { background: #ffd6e5; border-color: #f0a9c2; color: #c2457a; }
+.pp-cbf input.tx { flex: 1; min-width: 0; font: 12px ui-monospace, Consolas, monospace; border: 1.5px solid #f1d3dd; border-radius: 7px; padding: 4px 6px; }
+.pp-live { position: absolute; width: 0; height: 0; pointer-events: none; }
+/* 🌀 svg 블록 (1296) */
+.tag.sv { background: #ece5ff; color: #6a4fb8; }
+.pp-cbk.sbe.picked { border-color: #b9a3ee; box-shadow: 0 0 0 3px #e3d9ff; }
+.pp-sbbl { display: flex; flex-direction: column; gap: 0; padding: 2px 0 2px 8px; border-left: 3px solid #e3d9ff; margin-top: 4px; }
+.pp-cbk.sb.fx { border-color: #d7c9f5; background: #fbf9ff; }
+.pp-no { font-style: normal; font-size: 10px; font-weight: 900; color: #fff; background: #8a5cf0; border-radius: 999px; min-width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; margin-left: 3px; flex: none; }
+.pp-mode button { padding: 6px 11px; }
