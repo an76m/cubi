@@ -1,9 +1,8 @@
 /* 말랑달콤 다이어리 - js/cssblocks.js
-   🧩 블록 레이어 엔진 (도련 11-18 · 시안 13 그대로) : 블록 하나 = css 공식 기능 하나 · 쌓아서 꾸미고 · 묶어서 🧩 내 블록 (바꿀 칸만 남겨요)
-   - AI 가 미리 조합한 블록(줄무늬 · 땡땡이 · 하트 오리기 ...)도 · 샘플 내 블록도 없어요 (도련 11-18) · 움직임(애니메이션) 없음 · 수학(calc · var) 없음
+   🧩 블록 레이어 엔진 (도련 11-18 · 시안 13 그대로) : 블록 하나 = css 공식 기능 하나 · 쌓아서 꾸며요
+   - AI 가 미리 조합한 블록(줄무늬 · 땡땡이 · 하트 오리기 ...)은 없어요 · 움직임(애니메이션) · 수학(calc · var) · 내 블록 만들기 없음 (도련 11-18)
    - 블록 레이어 = 상자 하나 (box = 종이 안 자리 · 크기 비율) + 블록 목록 (위 = 앞 · 같은 속성이면 위 블록이 이겨요) + 상자 안 글자 (L.text)
    - 블록 = { id, t, on, v, L? }  (L = 그 그림의 background-size · position · repeat)
-     내 블록 = { id, call: 이름, fn: { e, body, P }, vals, on }  (fn 을 블록 안에 같이 = 레이어 혼자서도 그려져요 · 상자에서 지워도 그대로)
    - 그리기 = 브라우저가 진짜 css 로 (svg foreignObject → 그림) · 상자 크기마다 한 번 굽고 옮기기는 그대로 · 글꼴은 그 글자만 담아요
    - CB.cssText(L) = 👩‍💻 코드 보기 (진짜 css) · CB.settle() = 굽는 중인 것 기다리기 (✅ 완료 전) */
 (function () {
@@ -92,34 +91,13 @@
     const clone = o => JSON.parse(JSON.stringify(o));
     let seq = 1; const nid = () => Date.now().toString(36) + (seq++);
     function fresh(t) { const D = DEF(t); if (!D) return null; const o = { id: nid(), t, on: true, v: D.d() }; if (FN[t] && FN[t].g === 'img') o.L = FN[t].L ? FN[t].L() : LDEF(); return o; }
-    const ok = c => !!c && (c.call ? !!(c.fn && Array.isArray(c.fn.body) && Array.isArray(c.fn.P)) : !!DEF(c.t));
+    const ok = c => !!c && !c.call && !!DEF(c.t);
     /* 길 : 'v.stops.s.0.c' 처럼 */
     const get = (o, path) => path.split('.').reduce((a, k) => a == null ? a : a[k], o);
     const set = (o, path, val) => { const ks = path.split('.'), last = ks.pop(), t = ks.reduce((a, k) => a[k], o); t[last] = val; };
 
-    /* ---------- 🧩 내 블록 (이 기기에 · 상자) ---------- */
-    const MK = 'mld_cbmine_v1';
-    let mine = {}; try { mine = JSON.parse(localStorage.getItem(MK) || '{}') || {}; } catch (e) { mine = {}; }
-    const mineSave = () => { try { localStorage.setItem(MK, JSON.stringify(mine)); } catch (e) { console.warn('🧩 내 블록 저장', e); } };
-    function makeMine(name, cards, X) {                                       // cards = 묶을 블록 (쌓은 차례) · X = [{ id, path, label, t, o }] 꺼낸 칸
-        const at = {}; cards.forEach((c, j) => { at[c.id] = j; });
-        const body = cards.map(c => { const k = clone(c); delete k.id; return k; });
-        const P = X.filter(x => at[x.id] != null).map(x => ({ path: `${at[x.id]}.${x.path}`, label: x.label, t: x.t, o: x.o }));
-        const def = P.map(p => clone(get(body, p.path)));
-        const first = body.find(c => !c.call), e = first ? DEF(first.t).e : '🧩';
-        mine[name] = { e, body, P, def }; mineSave();
-        return { id: nid(), call: name, on: true, fn: { e, body, P }, vals: clone(def) };
-    }
-    const callOf = name => mine[name] ? { id: nid(), call: name, on: true, fn: clone({ e: mine[name].e, body: mine[name].body, P: mine[name].P }), vals: clone(mine[name].def) } : null;
-    const mineDel = name => { delete mine[name]; mineSave(); };
-
     /* ---------- css 만들기 ---------- */
-    function expand(cards, d = 0) {
-        const out = [];
-        (cards || []).forEach(c => { if (!c || !c.on) return; if (!c.call) { if (DEF(c.t)) out.push(c); return; } if (!c.fn || d > 8) return;
-            const body = clone(c.fn.body); c.fn.P.forEach((p, k) => { try { set(body, p.path, clone(c.vals[k])); } catch (e) { } }); out.push(...expand(body, d + 1)); });
-        return out;
-    }
+    const expand = cards => (cards || []).filter(c => c && c.on && DEF(c.t));
     function decls(cards, show) {                                             // [[속성, 값]] · 위 블록이 앞 (바탕 목록 앞) · 같은 속성 하나짜리는 위 블록이 이겨요
         const M = new Map(), lay = [];
         expand(cards).forEach(c => {
@@ -200,6 +178,6 @@
     async function settle(ms = 8000) { const t0 = Date.now(); while (pend > 0 && Date.now() - t0 < ms) await new Promise(r => setTimeout(r, 40)); }
 
     window.CB = { FN, SIMPLE, GROUPS, LAYER, KO, FONTS, DEF, OFF, fresh, ok, get, set, clone, decls, cssText, paint, settle, expand,
-        get mine() { return mine; }, makeMine, callOf, mineDel, get busy() { return pend; }, get tainted() { return tainted; },
+        get busy() { return pend; }, get tainted() { return tainted; },
         set onImg(f) { onImg = f; }, set onErr(f) { onErr = f; } };
 })();
