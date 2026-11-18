@@ -1063,7 +1063,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     function cbRename(L, v) {                                                  // 🏷️ 이름 (class) 바꾸기 = 그 이름이 있으면 같이 쓰고 · 없으면 지금 기능을 복사해서 새 이름
         const n = cbNode(L); v = CB.cname(v); if (!n || !v || v === n.name) return;
-        L.cls = L.cls || {}; if (!L.cls[v]) L.cls[v] = CB.clone(CB.partsOf(L, n)); Object.values(L.cls[v]).forEach(A => (A || []).forEach(c => { c.id = CB.fresh('opacity').id; }));
+        L.cls = L.cls || {}; let others = 0; CB.walk(L, q => { if (q !== n && q.name === n.name) others++; });
+        if (!L.cls[v]) { if (!others) { L.cls[v] = CB.partsOf(L, n); delete L.cls[n.name]; }   // 나만 쓰던 이름 = 그대로 이름만 바꿔요
+            else { L.cls[v] = CB.clone(CB.partsOf(L, n)); Object.values(L.cls[v]).forEach(A => (A || []).forEach(c => { c.id = CB.fresh('opacity').id; })); } }   // 같이 쓰던 이름 = 복사해서 따로
         n.name = v; cbGc(L);
     }
     function cbAdd(t) {
