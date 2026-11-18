@@ -82,6 +82,10 @@
             const b = dyyBook(), t = !dyyBasic() && typeof dkType === 'function' ? dkType() : null, C = t && t.cols;
             const k = b && dyyBasic() ? DY_COL[dyyColor(b.c)] : C ? { cover: C.표지색, page: C.속지색, border: C.테두리색, accent: C.강조색 } : null, r = document.documentElement.style;
             [['--dy-cover', 'cover'], ['--dy-page', 'page'], ['--dy-border', 'border'], ['--dy-accent', 'accent']].forEach(([v, n]) => k ? r.setProperty(v, k[n]) : r.removeProperty(v));
+            const pid = b && dyyBasic() ? dyyColor(b.c) : t ? (t.pid || t.id) : '', ring = window.dyRingCss ? dyRingCss(pid) : '';   // 📁 펼친 권의 표지 · 링 = 그 상품 폴더의 파일 (도련 11-18)
+            r.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(pid) : 'none');
+            if (ring) r.setProperty('--dy-ring', ring); else r.removeProperty('--dy-ring');
+            document.documentElement.classList.toggle('dy-ringimg', !!ring);
         }
         let dyyLastNote = null;
         function dyyPaint() {

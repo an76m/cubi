@@ -1668,7 +1668,7 @@
         const dkyOk = v => v && isFinite(+v.x) && isFinite(+v.y) && ['side', 'front', 'lay'].includes(v.p);
         const dkvBooks = () => window.dyyBooks ? dyyBooks() : [];
         /* 📓 🗂️ 페이지노트 · 페이지바인더도 책상에 (도련 11-06 · '내가 만든' 칸의 권 · 톡 = 그 권 펼치기) */
-        const dkvPages = () => (window.dmkAll ? dmkAll() : []).map(d => ({ t: 'pg', id: d.id, g: d.g, k: d.k, mm: d.mm, col: [d.c, (d.cols && d.cols.강조색) || d.c] }));
+        const dkvPages = () => (window.dmkAll ? dmkAll() : []).map(d => ({ t: 'pg', id: d.id, g: d.g, k: d.k, mm: d.mm, col: [d.c, (d.cols && d.cols.강조색) || d.c], pid: d.pid || '' }));
         /* 📒 스티커 바인더 · 🤍 이형지북도 책상에 (도련 10-30) : js/basket.js abDeskList 로 읽어 둔 것 (DK.albs) · 톡 = 그 종류 창에서 그 책 */
         /* 🛍️ 가게에서 산 다이어리 · 스티커첩 = 봉투 속 (도련 10-30 : 꺼내 놓기 전엔 책상에 없어요) · 'diary_desk_dy' 의 _bag = [id] · 꺼내 놓으면 빠져요 (dkvPlace) */
         const dkBagged = () => { const b = dkyMap()._bag; return Array.isArray(b) ? b : []; };
@@ -1706,6 +1706,7 @@
                 const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t === 'pg' ? (b.k === '노트' ? ' note pg' : ' pg') : b.t !== 'dy' ? ' alb ' + b.t : '') + (b.t === 'dy' && window.dyyIsNote && dyyIsNote(b) ? ' note' : '') + (b.id === cur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
                 Object.assign(el.style, { left: Math.round(v.x - w / 2) + 'px', top: Math.round(v.y - h) + 'px', width: w + 'px', height: h + 'px' }); el.style.setProperty('--sy', dkvMm(b)[1] / 148); el.style.setProperty('--lk', dkvLk());   // 📏 실제 비율 · 🛏 눕힌 그림 줄인 비율
                 el.style.setProperty('--dy-c', C[1]); el.style.setProperty('--primary-accent', C[2]);
+                { const pid = b.t === 'dy' ? b.c : b.t === 'pg' ? b.pid : ''; if (pid && window.dyFaceCss) el.style.setProperty('--dyv-img', dyFaceCss(pid, 'px')); }   // 📁 그 상품의 표지.svg (도련 11-18)
                 const lb = b.t === 'dy' ? b.y : b.t === 'pg' ? (b.k === '노트' ? '📓' : '🗂️') + (v.p === 'side' ? '' : ' ' + htmlEsc(String(b.g || '').slice(0, 6))) : (b.t === 'bd' ? '📒' : '🤍') + (v.p === 'side' ? '' : ' ' + htmlEsc(String(b.lb || DKH_NAMES[b.k] || '').slice(0, 6)));   // 📒 🤍 = 아이콘 + 종류(이름표)
                 el.innerHTML = v.p === 'lay' ? `<i class="dv-pg"></i><i class="dv-cv"><b>${lb}</b></i>` : `<i class="dv-cv"><b>${lb}</b></i>`;
                 const L = dkyLb(v), fc = dkyFace(v.p);                                // 🏷 그 권 이름표 (펼쳐 둔 권과 같은 이름표 · 책등 / 앞면 따로)
