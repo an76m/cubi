@@ -4131,7 +4131,7 @@ html.desk-on .bg-pattern-layer { display: none; }
 html.desk-on:not(.desk-show) .diary-wrapper, html.desk-on:not(.desk-show) .toolbar { display: none !important; }
 /* 📖 다이어리가 뜨면 책상 대신 바탕 (도련 11-12 · ⚙ 설정 '다이어리 바탕') : 🪵 책상판 무늬 (기본 · html.dk-under-top · #dkUnder · js/deskskin.js dsUnderPaint) / 🌈 고른 배경지 (하단 메뉴와 같은 것 · 안 골랐으면 기본 바탕색)
    떠오르는 동안 책상이 스르르 걷히고 · 내려앉기 시작하면 책상이 돌아와요 (html.dk-bgon · js/desk.js deskOpenDiary / deskCloseDiary) */
-.dk-under { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background: #f8d1de; }   /* 기본 책상판 = 방 그림 책상 색 한 가지 (css/anime.css .ds-sw.basic.t 와 같아요) */
+.dk-under { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background: #f8d1de; }   /* 책상판을 아직 모를 때 = 방 그림 책상 색 (고른 책상판이 있으면 그 디자인 · js/deskskin.js dsUnderDraw) */
 html.desk-on.dk-bgon.dk-under-top .dk-under { display: block; }
 html.desk-on.dk-bgon.bg-pattern-on:not(.dk-under-top) .bg-pattern-layer { display: block; }
 html.desk-on .desk-bg { transition: opacity .45s ease; }

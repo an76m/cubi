@@ -4,7 +4,7 @@
    - 🛠 책상 꾸미기 → 📦 소품함 → 🧱 벽지 · 🪵 책상 칸에서 톡 = 바로 바뀌어 보여요 · 하단 ✔ 완료 때 저장 · ✕ 취소 = 처음대로 (🗑 버리기도)
        꾸미기 밖(▤ 하단 메뉴 소품함)에서 바꾸면 바로 저장
    - 벽지 = 뒷벽 + 양쪽 옆벽 전체 (옆벽은 원근대로 비스듬히 · 그늘 그대로) · 책상 = 그 아래 전부 (상판 · 앞면 두께 · 안쪽 그늘)
-       방 그림(img/desk-wide.webp)은 그대로 두고 위에 그림(SVG)을 얹어요 · 선은 그림과 같은 자리에 다시 그어요 · 기본이면 안 얹어요
+       방 그림(img/desk-wide.webp)은 그대로 두고 위에 그림(SVG)을 얹어요 · 선은 그림과 같은 자리에 다시 그어요
    - 처음 온 다꾸러 = 기본 벽지 · 기본 책상 하나씩 (한 번만 · 지금 그림 그대로)
    - 저장 : 설정 / 🔐 책상설정.json 'diary_desk_skin' { own: [{ u, id, c }], wall: u, top: u } (게스트는 이 기기 malang_desk_skin)
        🗂 하나에 파일 하나 (도련 11-05) : 말랑달콤 / 소품 / 받은-<c>.json 🔐 (js/coll.js ofAdd · 도련 11-07 소품 폴더 하나 · SKIN_DIRS 는 이름 표) · 🎁 처음 선물(g: 1)은 목록 한 줄만 (파일 없음 · 03_저장지도 0)
@@ -12,26 +12,23 @@
    ※ js/desk.js · js/bin.js 다음에 읽어요 (deskBoxRender · deskEditOpen · deskEditEnd · deskBuild 가 여기 함수를 불러요 · js/basket.js 샵) */
 
         const DS_KEY = 'diary_desk_skin', DS_LOCAL = 'malang_desk_skin';
-        /* 🧁 상품 = 서버 (상품공방 '벽지' · '책상판' · 도련 11-02) → { id, k: 'wall' | 'top', n, c(단색), t(책상색 5), grain, img · iw · ih(무늬 그림) }
-           목록 = js/prod.js prodList (켜질 때 바로 · 무늬 그림 크기 = wh) · 꾸미기 상품이라 디자인을 고치면 모두 새 모습 · 기본 벽지 · 책상 = 그림 그대로(얹지 않아요) · 숨김 = 샵에서만 빠져요 */
+        /* 🧁 상품 = 서버 (상품공방 '벽지' · '책상판' · 도련 11-02) → { id, k: 'wall' | 'top', n, t(책상색 5 · 책상판), img · iw · ih(디자인 한 칸) }
+           목록 = js/prod.js prodList (켜질 때 바로 · 무늬 그림 크기 = wh) · 꾸미기 상품이라 디자인을 고치면 모두 새 모습 · 기본 벽지 · 책상도 디자인 파일 (도련 11-18) · 숨김 = 샵에서만 빠져요 */
         const DS_CAT = [];
         function dsBuild() {                                                       // 🧁 서버 상품 그대로 (js/prod.js)
             DS_CAT.length = 0;
             [['벽지', 'wall'], ['책상판', 'top']].forEach(([kind, k]) => (window.prodList ? prodList(kind) : []).forEach(x => {
-                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, basic: !!P.기본, gift: !!P.처음받기 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
-                if (/^#[0-9a-f]{6}$/i.test(P.단색 || '')) c.c = P.단색;
-                if (Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);
+                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, gift: !!P.처음받기 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
                 const u = x.u && x.u.디자인, wh = x.wh && x.wh.디자인;
-                if (u && Array.isArray(wh) && !c.c && !P.기본 && (k === 'wall' || P.나뭇결)) { c.img = u; c.iw = +wh[0]; c.ih = +wh[1]; }
-                if (k === 'wall' && !c.c && !P.기본 && P.레시피 && typeof P.레시피 === 'object' && window.MK) { c.img = MK.url(MK.tileSvg(P.레시피, 1920, 1080)); c.iw = 1920; c.ih = 1080; }   // 🧵 레시피 (js/maker.js · 상품공방 무늬 메이커) = 방 한 장 크기로 그려요 (기울여도 끊김 없이 · 도련 11-05)
-                const ok = c.n && (P.기본 || (k === 'wall' ? c.c || c.img : c.t && (!P.나뭇결 || c.img)));
+                if (u && Array.isArray(wh) && +wh[0] > 0 && +wh[1] > 0) { c.img = u; c.iw = +wh[0]; c.ih = +wh[1]; }   // 📁 디자인 한 칸 = 벽 · 책상 윗면에 제 크기로 이어 깔아요 (도련 11-18 · 단색 · 기본도 디자인 파일)
+                if (k === 'top' && Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);   // 🪵 안쪽 그늘 · 앞 띠 색 (값)
+                const ok = c.n && c.img && (k === 'wall' || c.t);
                 if (ok) DS_CAT.push(c); else console.warn('🧁 벽지 · 책상판 속성이 모자라요 :', x.id);
             }));
         }
         dsBuild();
         if (window.prodHook) prodHook(() => { dsBuild(); if (window.dsPaint) dsPaint(); });   // 📦 내 실물이 바뀌면 다시 (js/mine.js)
         const DS_OL = '#a080a5';                                                // 방 그림(앱 배경) 선 색 · 기본 = 상품 '기본' (그림 그대로 · 얹지 않아요)
-        const dsBasic = id => !!(dsCat(id) || {}).basic;
         const dsCat = id => DS_CAT.find(x => x.id === id) || null;
         const dsU = () => 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         const DS = { edit: null, gone: [] };
@@ -117,12 +114,12 @@
 
         /* 방 그림 위에 얹는 그림 = js/maker.js MK.roomSvg (상품공방 미리보기와 같은 그림 · 도련 11-05) · 선 색은 방 그림 선 (css --dsk-ol) */
         function dsSvg(wall, top, sw) { return MK.roomSvg(wall && dsCat(wall), top && dsCat(top), sw, `var(--dsk-ol, ${DS_OL})`); }
-        /* 책상 화면에 그리기 (기본이면 아무것도 안 얹어요) */
+        /* 책상 화면에 그리기 (고른 것이 없으면 방 그림 그대로) */
         function dsPaint() {
             const st = document.getElementById('deskStage'); if (!st) return;
             if (window.dsUnderPaint) dsUnderPaint();                               // 📖 다이어리 바탕도 지금 책상판으로
             const s = dsCur(), w = dsOn(s, 'wall'), t = dsOn(s, 'top');
-            const html = dsSvg(w && !dsBasic(w) ? w : '', t && !dsBasic(t) ? t : '');
+            const html = dsSvg(w, t);
             let el = st.querySelector(':scope > .desk-skin');
             if (st.dataset.ds === html) return; st.dataset.ds = html;
             if (el) el.remove();
@@ -131,7 +128,6 @@
         /* 견본 (샵 카드 · 소품함 칸) : 방 한 장을 작게 */
         function dsSwatch(id) {                                                  // 견본 = 평면 색 · 무늬만 (도련 11-11 : 방 모양 · 선 · 그늘 없이 · 적용한 모습은 적용해보기 dsTry)
             const c = dsCat(id); if (!c) return '';
-            if (dsBasic(id)) return `<span class="ds-sw basic ${c.k === 'wall' ? 'w' : 't'}"></span>`;
             if (c.img && c.iw && c.ih) { const p = 'sw' + Math.random().toString(36).slice(2, 8); return `<svg class="ds-sw" viewBox="0 0 560 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><pattern id="${p}" width="${c.iw}" height="${c.ih}" patternUnits="userSpaceOnUse"><image href="${c.img}" width="${c.iw}" height="${c.ih}"/></pattern></defs><rect width="560" height="560" fill="url(#${p})"/></svg>`; }   // 무늬 = 방에 깔리는 크기 그대로
             const col = c.k === 'wall' ? c.c : (c.t && c.t[0]); return `<span class="ds-sw" style="background:${col || '#fff'}"></span>`;
         }
@@ -170,7 +166,7 @@
                 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !r.hidden) dsTryOff(); });
             }
             const st = r.querySelector('.ds-try-st'), old = st.querySelector('.desk-skin'); if (old) old.remove();
-            const html = (dsBasic(id) ? '' : c.k === 'wall' ? dsSvg(id, '') : dsSvg('', id)).replace(/id="dk/g, 'id="dkTry').replace(/url\(#dk/g, 'url(#dkTry');   // 기본 = 방 그림 그대로 · 무늬 이름을 책상 화면 것과 다르게 (같으면 지금 내 방 벽지가 보였어요 · 도련 11-11)
+            const html = (c.k === 'wall' ? dsSvg(id, '') : dsSvg('', id)).replace(/id="dk/g, 'id="dkTry').replace(/url\(#dk/g, 'url(#dkTry');   // 기본 = 방 그림 그대로 · 무늬 이름을 책상 화면 것과 다르게 (같으면 지금 내 방 벽지가 보였어요 · 도련 11-11)
             if (html) st.querySelector('.desk-room').insertAdjacentHTML('afterend', html);
             r.hidden = false; dsTryFit();
         }
@@ -236,8 +232,8 @@
             document.documentElement.classList.toggle('dk-under-top', v === 'top');
             document.querySelectorAll('#dsUnderPick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
             const el = document.getElementById('dkUnder'); if (!el) return;
-            const t = dsOn(dsCur(), 'top'), c = t && !dsBasic(t) ? dsCat(t) : null, k = (typeof DK !== 'undefined' && DK.s) || 1;
-            el.style.background = !c ? '' : c.img && c.iw && c.ih ? `url("${c.img}") 0 0 / ${(c.iw * k).toFixed(1)}px ${(c.ih * k).toFixed(1)}px repeat` : (c.t && c.t[0]) || '';
+            const t = dsOn(dsCur(), 'top'), c = t ? dsCat(t) : null, k = (typeof DK !== 'undefined' && DK.s) || 1;
+            el.style.background = !c ? '' : c.img && c.iw && c.ih ? `url("${c.img}") 0 0 / ${(c.iw * k).toFixed(1)}px ${(c.ih * k).toFixed(1)}px repeat ${(c.t && c.t[0]) || ''}` : (c.t && c.t[0]) || '';   // 바탕색 = 윗면 색 (책상 모드 바탕 --dku-c)
         }
         /* 🪵 다이어리 바탕을 다른 책상 모드에도 (도련 11-14 : 📒 스티커정리모드 · 🧩 바인더조립모드 = 다이어리모드처럼 책상 위) → html 의 --dku-* 변수 (css/anime.css · css/binderroom.css) */
         function dkUnderVars() {
