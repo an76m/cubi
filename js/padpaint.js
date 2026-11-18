@@ -95,7 +95,7 @@
     }
     const layerImg = L => { if (L.type === 'vec') { if (L.dirtyV) vecPaint(L); return L.cache; } if (L.type === 'css') { if (L.dirtyV) { CB.paint(L.cache, P.W, P.H, L); L.dirtyV = false; } return L.cache; } if (L.type === 'svg') { if (L.dirtyV) { SB.paint(L.cache, P.W, P.H, L); L.dirtyV = false; } return L.cache; } return L.cv; };
     if (window.CB) { CB.onImg = () => { if (!P.on) return; P.layers.forEach(l => { if (l.type === 'css') l.dirtyV = true; }); renderAll(); };   // 🧩 브라우저가 css 를 다 그리면 (js/cssblocks.js)
-        CB.onErr = () => { if (P.on) say('⚠ 이 기기에서는 css 그림을 만들 수 없어요', 3000); };
+        CB.onErr = () => { if (P.on) say('⚠ 이 기기에서는 CSS 그림을 만들 수 없어요', 3000); };
         CB.filterOf = ref => {                                                 // 🌀 css → svg : 'svg 레이어 id:도형 id' → 그 도형의 <filter> (js/cssblocks.js 'svg-filter')
             const [lid, eid] = String(ref).split(':'), l = P.layers.find(q => String(q.id) === lid && q.type === 'svg'); if (!l || !window.SB) return null;
             const m = SB.build(l, P.W, P.H, '').match(new RegExp(`<filter id="${eid}f"[\\s\\S]*?</filter>`)); return m ? { id: eid + 'f', svg: m[0] } : null; }; }
@@ -106,7 +106,7 @@
         const o = P.o;
         document.querySelectorAll('#ppBarX, #ppSpecPop, #ppSizePop').forEach(e => e.remove());   // 예전 막대 · 창은 지우고
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
-        x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button><button type="button" data-m="css">🧩 css<small>상자를 css 기능으로 꾸며요</small></button><button type="button" data-m="svg">🌀 svg<small>도형에 svg 기능을 붙여요</small></button></div>
+        x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button><button type="button" data-m="css">🧩 CSS<small>상자를 CSS 기능으로 꾸며요</small></button><button type="button" data-m="svg">🌀 SVG<small>도형에 SVG 기능을 붙여요</small></button></div>
 ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button><button type="button" class="pp-specb pp-two" data-q="two" title="📄 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로)"></button>' : ''}${P.kind === 'paper' ? '<button type="button" class="pp-specb" data-q="seal" title="모조지 모양 (세로 · 정사각 · 길쭉)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 모조지를 다이어리 옆에 실제 크기 비율로 놓아 봐요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 모양 (세로 · 가로 · 정사각)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 씰 스티커를 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'piece' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 조각을 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
         x.addEventListener('click', e => { const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq && qq.dataset.q === 'seal') { sealPop(); return; } if (qq && qq.dataset.q === 'two') { twoFlip(); return; } if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : P.kind === 'seal' || P.kind === 'piece' || P.kind === 'paper' ? sealPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
@@ -119,7 +119,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
                 <i class="pp-brush" id="ppBr"></i><div class="pp-fl" id="ppFlS" hidden></div><div class="pp-fl" id="ppFlP" hidden></div><div class="pp-say" id="ppSay"></div></div>
             <div class="pp-view"><button type="button" data-v="out">－</button><b id="ppZ">100%</b><button type="button" data-v="in">＋</button><button type="button" data-v="hand">✋ 손바닥</button><button type="button" data-v="grid">▦ 격자</button><button type="button" data-v="sym">⇋ 대칭</button><button type="button" data-v="fit">🔲 맞춤</button><button type="button" data-v="real" title="화면에 실제 크기(mm)로">📏 실제 크기</button>${P.kind === 'tape' ? '<button type="button" data-v="wrap" class="on" title="왼쪽 끝 · 오른쪽 끝이 이어져요">🔁 이어그리기</button>' : ''}</div>`;
         o.R.innerHTML = (P.kind === 'piece' ? `<h4>🧩 담은 조각<em id="ppPcN">0 / 4</em></h4><div class="ipd-pcs" id="ppPcs"></div><button type="button" class="pp-pcadd" id="ppPcAdd">➕ 이 조각 담기<small>담고 나면 새 조각을 그려요</small></button>` : '') + (P.kind === 'tape' ? `<h4>🎀 테이프 미리보기<em>한 칸이 쭉 이어져요</em></h4><div class="pp-tapepv" id="ppTapePv"></div>` : '') + (P.kind === 'tk' ? `<h4>💗 풀칠 띠 색<em>떡메 윗부분 · 묶음에 붙은 자리</em></h4><div class="pp-glue" id="ppGlue">${GLUES.map(([v, n]) => `<button type="button" data-g="${v}"><i style="background:${v || 'var(--dy-accent, #ff8fb1)'}"></i>${n}</button>`).join('')}</div>` : '') + `<div class="pp-rtab" id="ppRTab" role="tablist"><button type="button" data-rt="ly" role="tab">🗂️ 레이어</button><button type="button" data-rt="bk" role="tab">🧩 기능</button></div><div class="pp-lysec"><h4>🗂️ 레이어<em>위가 앞이에요 · 끌어서 순서</em></h4><div class="pp-layers" id="ppLy"></div>
-            <div class="pp-lyb"><button type="button" class="add" data-l="px">＋ 픽셀</button><button type="button" class="add" data-l="vec">＋ 벡터</button><button type="button" class="add" data-l="css">＋ css</button><button type="button" class="add" data-l="svg">＋ svg</button><button type="button" data-l="dup">⧉ 복제</button><button type="button" data-l="del">🗑 삭제</button></div>
+            <div class="pp-lyb"><button type="button" class="add" data-l="px">＋ 픽셀</button><button type="button" class="add" data-l="vec">＋ 벡터</button><button type="button" class="add" data-l="css">＋ CSS</button><button type="button" class="add" data-l="svg">＋ SVG</button><button type="button" data-l="dup">⧉ 복제</button><button type="button" data-l="del">🗑 삭제</button></div>
             <div class="pp-lyb three"><button type="button" data-l="merge">⤓ 아래로 합치기</button><button type="button" data-l="lock">🔒 잠그기</button><button type="button" data-l="cutl">✂ 잘라 붙이기</button></div></div>
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
@@ -152,12 +152,12 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         const want = m;
         if (!P.cur || P.cur.type !== want) {                                       // 그 모드의 레이어로 (없으면 새로)
             const L = [...P.layers].reverse().find(l => l.type === want);
-            if (L) P.cur = L; else { histSt(); P.cur = addLayer(want, lyName(want)); say(want === 'vec' ? '✒️ 벡터 레이어를 새로 만들었어요' : want === 'css' ? '🧩 css 레이어를 새로 만들었어요 · 왼쪽 기능을 눌러 쌓아요' : want === 'svg' ? '🌀 svg 레이어를 새로 만들었어요 · 왼쪽에서 도형을 넣고 기능을 붙여요' : '🖌️ 픽셀 레이어를 새로 만들었어요'); }
+            if (L) P.cur = L; else { histSt(); P.cur = addLayer(want, lyName(want)); say(want === 'vec' ? '✒️ 벡터 레이어를 새로 만들었어요' : want === 'css' ? '🧩 CSS 레이어를 새로 만들었어요 · 왼쪽 기능을 눌러 쌓아요' : want === 'svg' ? '🌀 SVG 레이어를 새로 만들었어요 · 왼쪽에서 도형을 넣고 기능을 붙여요' : '🖌️ 픽셀 레이어를 새로 만들었어요'); }
         }
         P.tool = m === 'px' ? 'brush' : m === 'css' ? 'cbmove' : m === 'svg' ? 'sbmove' : 'pen'; if (m === 'css' || m === 'svg') P.rTab = 'bk';
         modeBtns(); paintTools(); renderAll(); paintLayers(); paintProps();
     }
-    const lyName = t => t === 'svg' ? 'svg ' + (P.layers.filter(l => l.type === 'svg').length + 1) : t === 'px' ? '그림 ' + (P.layers.filter(l => l.type === 'px').length + 1) : t === 'css' ? 'css ' + (P.layers.filter(l => l.type === 'css').length + 1) : '모양 ' + (P.layers.filter(l => l.type === 'vec').length + 1);
+    const lyName = t => t === 'svg' ? 'SVG ' + (P.layers.filter(l => l.type === 'svg').length + 1) : t === 'px' ? '그림 ' + (P.layers.filter(l => l.type === 'px').length + 1) : t === 'css' ? 'CSS ' + (P.layers.filter(l => l.type === 'css').length + 1) : '모양 ' + (P.layers.filter(l => l.type === 'vec').length + 1);
     function setTool(t) {
         if (t === P.tool) return; commitFloat(); penEnd(); P.tool = t; if (!['select', 'direct'].includes(t)) { P.pt = null; } if (!['select', 'direct', 'paint'].includes(t)) P.sel = null;
         paintTools(); drawOv(); paintFloats(); paintProps();
@@ -448,7 +448,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (!L) return false;
         if (!L.vis) { say('👁 숨긴 레이어예요 · 눈을 켜 주세요'); return false; }
         if (L.lock) { say('🔒 잠긴 레이어예요'); return false; }
-        if (L.type !== 'px') { say(L.type === 'vec' ? '✒️ 벡터 레이어예요 · 픽셀 레이어를 골라요' : L.type === 'css' ? '🧩 css 레이어예요 · 픽셀 레이어를 골라요' : L.type === 'photo' ? '📎 사진 레이어예요 · 픽셀 레이어를 골라요' : '🧵 종이예요 · 픽셀 레이어를 골라요'); return false; }
+        if (L.type !== 'px') { say(L.type === 'vec' ? '✒️ 벡터 레이어예요 · 픽셀 레이어를 골라요' : L.type === 'css' ? '🧩 CSS 레이어예요 · 픽셀 레이어를 골라요' : L.type === 'photo' ? '📎 사진 레이어예요 · 픽셀 레이어를 골라요' : '🧵 종이예요 · 픽셀 레이어를 골라요'); return false; }
         return true;
     }
     /* 🪣 채우기 : 보이는 그림 전체를 경계로 (선 따로 · 색 따로 레이어도 돼요) */
@@ -763,12 +763,12 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
             strokeStart(e, p); renderAll(); return;
         }
         if (P.mode === 'svg') {                                                 // 🌀 svg = 고른 도형을 끌어 옮겨요 (mv = translate)
-            const L = P.cur; if (!L || L.type !== 'svg') { say('🌀 svg 레이어를 골라요'); return; } if (L.lock) { say('🔒 잠긴 레이어예요'); return; }
+            const L = P.cur; if (!L || L.type !== 'svg') { say('🌀 SVG 레이어를 골라요'); return; } if (L.lock) { say('🔒 잠긴 레이어예요'); return; }
             const el = L.els.find(x => x.id === P.sbSel); if (!el) { say('⬛ 오른쪽에서 도형을 골라요'); return; }
             histSt(); P.drag = { sbMove: 1, p0: p, x0: el.mv.x, y0: el.mv.y, el }; return;
         }
         if (P.mode === 'css') {                                                 // 🧩 블록 = 상자를 끌어 옮겨요 (크기는 오른쪽 칸)
-            const L = P.cur; if (!L || L.type !== 'css') { say('🧩 css 레이어를 골라요'); return; } if (L.lock) { say('🔒 잠긴 레이어예요'); return; }
+            const L = P.cur; if (!L || L.type !== 'css') { say('🧩 CSS 레이어를 골라요'); return; } if (L.lock) { say('🔒 잠긴 레이어예요'); return; }
             histSt(); P.drag = { cbMove: 1, p0: p, x0: L.box.x, y0: L.box.y }; return;
         }
         /* ✒️ 벡터 */
@@ -906,7 +906,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         commitFloat(); penEnd(); const L = P.cur;
         if (a === 'px' || a === 'vec' || a === 'css' || a === 'svg') { histSt(); P.cur = addLayer(a, lyName(a)); if (P.mode !== a) { P.mode = a; P.tool = a === 'px' ? 'brush' : a === 'css' ? 'cbmove' : a === 'svg' ? 'sbmove' : 'pen'; modeBtns(); paintTools(); } P.sel = null; }
         if (a === 'dup' && L) { if (L.type === 'paper') { say('🧵 종이는 하나예요'); return; } histSt(); const N = addLayer(L.type, L.name + ' 복사', { op: L.op, blend: L.blend, aLock: L.aLock, img: L.img, s: L.s, ox: L.ox, oy: L.oy, wash: L.wash, blocks: L.blocks && JSON.parse(JSON.stringify(L.blocks)), pb: L.pb && JSON.parse(JSON.stringify(L.pb)), pa: L.pa && JSON.parse(JSON.stringify(L.pa)), els: L.els && JSON.parse(JSON.stringify(L.els)), box: L.box && Object.assign({}, L.box), text: L.text }); if (L.type === 'vec') { N.shapes = JSON.parse(JSON.stringify(L.shapes)); } else if (L.type !== 'css') N.cv.getContext('2d').drawImage(L.cv, 0, 0); P.cur = N; }
-        if (a === 'del' && L) { if (L.type === 'paper') { say('🧵 종이는 지울 수 없어요 · 꾸미려면 🧩 css · 🌀 svg 레이어를 써요'); return; } if (P.layers.filter(l => l.type !== 'paper').length <= 1 && P.layers.length <= 2) { histSt(); clearLayer(L); renderAll(); paintLayers(); return; } histSt(); const i = P.layers.indexOf(L); P.layers.splice(i, 1); P.cur = P.layers[Math.max(1, i - 1)] || P.layers[P.layers.length - 1]; P.sel = null; }
+        if (a === 'del' && L) { if (L.type === 'paper') { say('🧵 종이는 지울 수 없어요 · 꾸미려면 🧩 CSS · 🌀 SVG 레이어를 써요'); return; } if (P.layers.filter(l => l.type !== 'paper').length <= 1 && P.layers.length <= 2) { histSt(); clearLayer(L); renderAll(); paintLayers(); return; } histSt(); const i = P.layers.indexOf(L); P.layers.splice(i, 1); P.cur = P.layers[Math.max(1, i - 1)] || P.layers[P.layers.length - 1]; P.sel = null; }
         if (a === 'merge' && L) { const i = P.layers.indexOf(L), B = P.layers[i - 1]; if (!B || B.type === 'paper' || L.type === 'paper') { say('⤓ 아래에 합칠 레이어가 없어요 (종이에는 안 합쳐요)'); return; } const pc = mkCv(P.W, P.H); pc.getContext('2d').drawImage(B.cv, 0, 0); push({ t: 'multi', items: [snapSt(), { t: 'px', L: B, c: pc }] }); const bx = B.cv.getContext('2d'); if (B.type === 'vec' || B.type === 'css' || B.type === 'svg') { bx.clearRect(0, 0, P.W, P.H); bx.drawImage(layerImg(B), 0, 0); B.type = 'px'; delete B.cache; B.shapes = []; delete B.blocks; delete B.box; delete B.els; } bx.save(); bx.globalAlpha = L.op; bx.globalCompositeOperation = L.blend; bx.drawImage(layerImg(L), 0, 0); bx.restore(); P.layers.splice(i, 1); P.cur = B; say('⤓ 합쳤어요 (픽셀이 돼요)'); }
         if (a === 'lock' && L) { histSt(); L.lock = !L.lock; }
         P.dirty = true; renderAll(); paintLayers(); paintProps(); paintFloats();
@@ -926,7 +926,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     function paintProps() {
         const box = $('ppProp'), T = $('ppPropT'); if (!box) return; const L = P.cur, s = P.sel;
-        if (rTab()) { if (L.type === 'svg') { T.innerHTML = '🌀 ' + esc(L.name) + '<em>svg 공식 기능을 하나씩 붙여요</em>'; box.innerHTML = sbPanel(L); return; } T.innerHTML = '🧩 ' + esc(L.name) + '<em>css 공식 기능을 하나씩 쌓아요</em>'; box.innerHTML = cbPanel(L); return; }
+        if (rTab()) { if (L.type === 'svg') { T.innerHTML = '🌀 ' + esc(L.name) + '<em>SVG 공식 기능을 하나씩 붙여요</em>'; box.innerHTML = sbPanel(L); return; } T.innerHTML = '🧩 ' + esc(L.name) + '<em>CSS 공식 기능을 하나씩 쌓아요</em>'; box.innerHTML = cbPanel(L); return; }
         if (P.mode === 'vec' && s && L && L.shapes && L.shapes.includes(s)) {
             T.textContent = '✒️ 고른 모양';
             box.innerHTML = `<div class="r"><span>칠하기</span><div>${chip('vf', 'cur', `<i style="background:${s.fill || 'transparent'}"></i>${s.fill ? '바꾸기' : '지금 색'}`, !!s.fill)}${chip('vf', 'none', '없음', !s.fill)}</div></div>
@@ -942,7 +942,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (!L) { box.innerHTML = ''; T.textContent = ''; return; }
         T.textContent = '🗂️ 고른 레이어 · ' + L.name;
         let h = '';
-        if (L.type === 'paper') h = `<p class="pp-hint">🧵 종이는 맨 아래에 늘 있어요 · 종이를 꾸미려면 🧩 css · 🌀 svg 레이어를 써요 (상자 ⬛ 종이 가득)</p>`;
+        if (L.type === 'paper') h = `<p class="pp-hint">🧵 종이는 맨 아래에 늘 있어요 · 종이를 꾸미려면 🧩 CSS · 🌀 SVG 레이어를 써요 (상자 ⬛ 종이 가득)</p>`;
         else {
             h = `<div class="r"><span>섞는 법</span><div>${BLEND.map(([v, n]) => chip('bl', v, n, L.blend === v)).join('')}</div></div>
                 <label class="pp-sl">투명도<input type="range" data-pk="lop" min="0" max="1" step=".05" value="${L.op}"><b>${Math.round(L.op * 100)}%</b></label>
@@ -1025,10 +1025,10 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     /* ================= 🧩 블록 레이어 (도련 11-18 · 시안 13 · js/cssblocks.js) : 왼쪽 = 블록 상자 (css 공식 기능) · 오른쪽 🧩 블록 탭 = 상자 자리 · 글자 (접기) · 쌓은 블록 · 👩‍💻 코드 ================= */
     function cbTools() {
-        $('ppToolT').innerHTML = '🧩 css 기능 상자<em>눌러서 쌓아요 · 위가 앞</em>';
+        $('ppToolT').innerHTML = '🧩 CSS 기능 상자<em>눌러서 쌓아요 · 위가 앞</em>';
         const tile = (a, e, n, tt) => `<button type="button" ${a} title="${esc(tt)}">${e}<small>${esc(n)}</small></button>`;
-        $('ppTools').innerHTML = CB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-cb="${k}" data-q="${esc((CB.DEF(k).n + ' ' + CB.OFF(k)).toLowerCase())}"`, CB.DEF(k).e, CB.DEF(k).n, 'css 공식 기능 : ' + CB.OFF(k))).join('')}</div></div>`).join('');
-        $('ppOpt').innerHTML = '<p class="pp-hint">✋ 종이 위를 끌면 css 상자를 옮겨요<br>🧩 css 공식 기능을 하나씩 · 오른쪽에서 ▣ 본체 · ✨ 장식 1 · ✨ 장식 2 를 골라 쌓아요<br>🎬 움직임은 그림판에서 움직여요 (구운 그림은 첫 장면)</p>';
+        $('ppTools').innerHTML = CB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-cb="${k}" data-q="${esc((CB.DEF(k).n + ' ' + CB.OFF(k)).toLowerCase())}"`, CB.DEF(k).e, CB.DEF(k).n, 'CSS 공식 기능 : ' + CB.OFF(k))).join('')}</div></div>`).join('');
+        $('ppOpt').innerHTML = '<p class="pp-hint">✋ 종이 위를 끌면 CSS 상자를 옮겨요<br>🧩 CSS 공식 기능을 하나씩 · 오른쪽에서 ▣ 본체 · ✨ 장식 1 · ✨ 장식 2 를 골라 쌓아요<br>🎬 움직임은 그림판에서 움직여요 (구운 그림은 첫 장면)</p>';
     }
     function cbLayer() {                                                        // 지금 블록 레이어 (아니면 새로)
         if (P.cur && P.cur.type === 'css') return P.cur;
@@ -1056,13 +1056,13 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         else if (t === 'sel') h = `<select data-cf="${k}">${o.map(x => `<option value="${esc(x)}"${x === val ? ' selected' : ''}>${esc((P.kox || CB.KO)[x] || x)}</option>`).join('')}</select>`;
         else if (t === 'bool') h = `<input type="checkbox" data-cf="${k}"${val ? ' checked' : ''}>`;
         else if (t === 'img') h = `<button type="button" data-cbimg="${k.split('|')[0]}">${val ? '🖼️ 다른 그림' : '📎 그림 고르기'}</button>${lyOpts()}`.replace('<select data-cbly>', `<select data-cbly="${esc(k)}">`);   // 🗂️ 그림판 레이어를 그림으로 (섞기 · 11-19)
-        else if (t === 'sfx') { const O = sfxList(); h = O.length ? `<select data-cf="${k}"><option value="">고르기</option>${O.map(([v, n]) => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>` : '<small class="pp-hint">먼저 🌀 svg 레이어에서 도형에 🪄 필터를 붙여요</small>'; }
+        else if (t === 'sfx') { const O = sfxList(); h = O.length ? `<select data-cf="${k}"><option value="">고르기</option>${O.map(([v, n]) => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>` : '<small class="pp-hint">먼저 🌀 SVG 레이어에서 도형에 🪄 필터를 붙여요</small>'; }
         else if (t === 'txt') h = `<input type="text" class="tx" data-cf="${k}" value="${esc(val)}" aria-label="${esc(lb)}">`;
         return `<div class="pp-cf"><label>${esc(lb)}</label><div class="pp-cfv">${h}</div></div>`;
     }
     function lyOpts() {                                                        // 🗂️ 이 그림판의 다른 레이어 = 그 순간 모습을 그림으로
         const A = P.layers.filter(l => l !== P.cur && l.type !== 'paper'); if (!A.length) return '';
-        return `<select data-cbly><option value="">🗂️ 그림판 레이어 그림으로…</option>${A.map(l => `<option value="${l.id}">${esc(l.name)} (${{ px: '픽셀', vec: '벡터', css: 'css', svg: 'svg', photo: '사진' }[l.type] || l.type})</option>`).join('')}</select>`;
+        return `<select data-cbly><option value="">🗂️ 그림판 레이어 그림으로…</option>${A.map(l => `<option value="${l.id}">${esc(l.name)} (${{ px: '픽셀', vec: '벡터', css: 'CSS', svg: 'SVG', photo: '사진' }[l.type] || l.type})</option>`).join('')}</select>`;
     }
     function sfxList() {                                                       // 🌀 svg 블록 레이어에서 필터를 붙인 도형들
         const o = []; P.layers.forEach(l => { if (l.type !== 'svg') return; (l.els || []).forEach((e, i) => { if ((e.b || []).some(B => B.on && SB.BL[B.t] && SB.BL[B.t].fx)) o.push([l.id + ':' + e.id, `${l.name} · ${SB.EL[e.t].n} (${i + 1}번째)`]); }); }); return o;
@@ -1109,7 +1109,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         h += `<h4>🧩 ${PN[cur]} 기능 (${A.length})<em>위가 앞 · 눌러서 열기</em></h4>`;
         if (!A.length) h += `<p class="pp-hint">${cur === 'blocks' ? '왼쪽 기능 상자에서 기능을 눌러 보세요' : `✨ ${PN[cur]}는 본체에 붙는 작은 상자예요 · 기능을 넣으면 생겨요<br>처음엔 본체와 같은 크기로 겹쳐요 → ✨ 장식 상자 묶음의 폭 · 높이 · 왼쪽에서 · 위에서로 자리를 정하고 · 바탕색이나 장식 글자로 보이게 해요`}</p>`;
         h += A.map((c, i) => cbCard(c, i, A.length)).join('');
-        h += `<div class="r"><span>코드</span><div><button type="button" data-cbq="code" class="${P.cbCode ? 'on' : ''}">👩‍💻 ${P.cbCode ? '코드 숨기기' : '진짜 css 코드 보기'}</button></div></div>${P.cbCode ? `<pre class="pp-cbcode">${esc(CB.cssText(L))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
+        h += `<div class="r"><span>코드</span><div><button type="button" data-cbq="code" class="${P.cbCode ? 'on' : ''}">👩‍💻 ${P.cbCode ? '코드 숨기기' : '진짜 CSS 코드 보기'}</button></div></div>${P.cbCode ? `<pre class="pp-cbcode">${esc(CB.cssText(L))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
         return h;
     }
     function cbProp(e, L) {                                                     // true = 블록 칸에서 처리했어요
@@ -1156,10 +1156,10 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     const sbAll = L => [].concat(L.els || [], ...(L.els || []).map(e => e.b || []));
     const sbEl = L => (L.els || []).find(e => e.id === P.sbSel);
     function sbTools() {
-        $('ppToolT').innerHTML = '🌀 svg 기능 상자<em>도형을 넣고 · 고른 도형에 붙여요</em>';
+        $('ppToolT').innerHTML = '🌀 SVG 기능 상자<em>도형을 넣고 · 고른 도형에 붙여요</em>';
         const tile = (a, e, n, tt, q) => `<button type="button" ${a} data-q="${esc(q.toLowerCase())}" title="${esc(tt)}">${e}<small>${esc(n)}</small></button>`;
-        $('ppTools').innerHTML = `<div class="pp-cbg"><b>⬛ 도형 넣기<em>svg 요소</em></b><div class="pp-cbs">${Object.keys(SB.EL).map(k => tile(`data-sbel="${k}"`, SB.EL[k].e, SB.EL[k].n, 'svg 공식 요소 : <' + k + '>', SB.EL[k].n + ' ' + k)).join('')}</div></div>`
-            + SB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-sbb="${k}"`, SB.BL[k].e, SB.BL[k].n, 'svg 공식 기능 : ' + SB.BL[k].o, SB.BL[k].n + ' ' + SB.BL[k].o)).join('')}</div></div>`).join('');
+        $('ppTools').innerHTML = `<div class="pp-cbg"><b>⬛ 도형 넣기<em>SVG 요소</em></b><div class="pp-cbs">${Object.keys(SB.EL).map(k => tile(`data-sbel="${k}"`, SB.EL[k].e, SB.EL[k].n, 'SVG 공식 요소 : <' + k + '>', SB.EL[k].n + ' ' + k)).join('')}</div></div>`
+            + SB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-sbb="${k}"`, SB.BL[k].e, SB.BL[k].n, 'SVG 공식 기능 : ' + SB.BL[k].o, SB.BL[k].n + ' ' + SB.BL[k].o)).join('')}</div></div>`).join('');
         $('ppOpt').innerHTML = '<p class="pp-hint">⬛ 도형을 넣고 → 오른쪽에서 도형을 골라 → 기능을 붙여요<br>✋ 종이 위를 끌면 고른 도형이 옮겨져요<br>🪄 필터는 위에서부터 차례로 · 1번 결과 · 2번 결과 … 를 이어 써요</p>';
     }
     function sbLayer() { if (P.cur && P.cur.type === 'svg') return P.cur; const L = addLayer('svg', lyName('svg')); P.cur = L; return L; }
@@ -1195,7 +1195,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
             return `<div class="pp-cbk sbe${e.on ? '' : ' off'}${on ? ' open picked' : ''}"><div class="pp-cbh"><button type="button" class="nm" data-sbsel="${e.id}"><span>${D.e} ${esc(D.n)}</span><small>&lt;${e.t}&gt;${on ? '' : ' · 기능 ' + e.b.length}</small></button>${ctl('e', e.id, i, E.length, e.on)}</div>
                 ${on ? `<div class="pp-cbf">${cbFields(e.id, sbSpec(D.f, [], [''].concat(E.filter(x => x.id !== e.id).map(x => x.id)), ), e.v, 'v')}<details class="pp-in"><summary>✋ 끌어 옮긴 만큼 (translate)</summary>${cbFields(e.id, sbSpec([['x', '가로', 'num', ['-W', 'W', 1]], ['y', '세로', 'num', ['-H', 'H', 1]]]), e.mv, 'mv')}</details>
                     <div class="pp-sbbl">${blocks || '<p class="pp-hint">왼쪽 기능 상자에서 기능을 눌러 이 도형에 붙여요</p>'}</div></div>` : ''}</div>`; }).join('');
-        h += `<div class="r"><span>코드</span><div><button type="button" data-sbq="code" class="${P.sbCode ? 'on' : ''}">👩‍💻 ${P.sbCode ? '코드 숨기기' : '진짜 svg 코드 보기'}</button></div></div>${P.sbCode ? `<pre class="pp-cbcode">${esc(SB.svgText(L, P.W, P.H))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
+        h += `<div class="r"><span>코드</span><div><button type="button" data-sbq="code" class="${P.sbCode ? 'on' : ''}">👩‍💻 ${P.sbCode ? '코드 숨기기' : '진짜 SVG 코드 보기'}</button></div></div>${P.sbCode ? `<pre class="pp-cbcode">${esc(SB.svgText(L, P.W, P.H))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
         P.kox = null; return h;
     }
     function sbProp(e, L) {
