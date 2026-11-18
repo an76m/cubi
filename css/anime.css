@@ -687,12 +687,10 @@ html.an .inner-page, html.an .cover-page, html.an .dk-fold-f {
   --dyv-ol: color-mix(in srgb, var(--primary-accent) 68%, #3a2a55);
   --dyv-sh: color-mix(in srgb, var(--dyv), #5b3f7a 22%);
   --dyv-sp: color-mix(in srgb, var(--dyv), #5b3f7a 11%);
-  --dyv-dot: color-mix(in srgb, var(--dyv), #fff 52%);
-  --dyv-dots: radial-gradient(circle, var(--dyv-dot) 1.05cqw, transparent 1.12cqw) 3cqw 3cqw / 12.5cqw 12.5cqw, radial-gradient(circle, var(--dyv-dot) 1.05cqw, transparent 1.12cqw) 9.25cqw 9.25cqw / 12.5cqw 12.5cqw;
-  --dyv-img: var(--dy-face, none);   /* 📁 그 상품의 표지.svg (js/dyyear.js dyyColorPaint · 도련 11-18) · 없으면 색 + 땡땡이 */
+  --dyv-img: var(--dy-face, none);   /* 📁 그 상품의 표지.svg (js/dyyear.js dyyColorPaint · 도련 11-18 · 앱에 표지 무늬 코드 없음 · 없으면 색만) */
 }
 /* 표지 (펼친 모습 둘레) */
-html.an .inner-page .dy-cov { inset: -8cqw -8.2cqw -8.6cqw -8.2cqw !important; border-radius: 7.5cqw !important; background: var(--dyv-img), var(--dyv-dots), var(--dyv) !important; box-shadow: 0 0 0 3.5px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh) !important; }
+html.an .inner-page .dy-cov { inset: -8cqw -8.2cqw -8.6cqw -8.2cqw !important; border-radius: 7.5cqw !important; background: var(--dyv-img), var(--dyv) !important; box-shadow: 0 0 0 3.5px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh) !important; }
 /* 종이 = 둥근 모서리 + 선 한 줄 (양옆 · 아래) · 속지 무늬를 고르지 않았으면 줄 없는 빈 종이 */
 html.an .inner-page .canvas-area { --pg2: color-mix(in srgb, var(--page-bg), var(--dyv) 26%); --pg3: color-mix(in srgb, var(--page-bg), var(--dyv) 44%);
   border-radius: 4cqw !important;
@@ -703,15 +701,10 @@ html.an .dy-gap { top: -1.2cqw !important; bottom: -1.2cqw !important; width: va
 html.an .inner-page.dy-bo .dy-gap { width: .35cqw !important; margin-left: -.175cqw !important; }
 html.an .dy-gap::before { background: transparent !important; box-shadow: none !important; }
 /* 링 6개 (선 · 핑크 · 그늘 세 겹 = 같은 모양 마스크 · 선 색은 다이어리를 따라가요) */
-html.an .dy-rings i { background: var(--dyv-ol, #7f68bf) !important; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cellipse cx='30' cy='44' rx='10' ry='7.5' fill='%23000'/%3E%3Cellipse cx='170' cy='44' rx='10' ry='7.5' fill='%23000'/%3E%3Cpath d='M30 42 C30 2 170 2 170 42' fill='none' stroke='%23000' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cellipse cx='30' cy='44' rx='10' ry='7.5' fill='%23000'/%3E%3Cellipse cx='170' cy='44' rx='10' ry='7.5' fill='%23000'/%3E%3Cpath d='M30 42 C30 2 170 2 170 42' fill='none' stroke='%23000' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; filter: none !important; }
-html.an .dy-rings i::before, html.an .dy-rings i::after { content: ''; position: absolute; inset: 0; }
-html.an .dy-rings i::before { background: #ffb7cf; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cpath d='M30 42 C30 2 170 2 170 42' fill='none' stroke='%23000' stroke-width='13' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cpath d='M30 42 C30 2 170 2 170 42' fill='none' stroke='%23000' stroke-width='13' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
-html.an .dy-rings i::after { background: #f58fb3; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cpath d='M45 27 C63 11 137 11 155 27' fill='none' stroke='%23000' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Cpath d='M45 27 C63 11 137 11 155 27' fill='none' stroke='%23000' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
-/* 📁 링 = 그 상품의 링.svg (도련 11-18 · js/dyyear.js 가 html.dy-ringimg + --dy-ring) · 없으면 위 마스크 링 */
-html.an.dy-ringimg .dy-rings i { background: var(--dy-ring) !important; -webkit-mask: none !important; mask: none !important; }
-html.an.dy-ringimg .dy-rings i::before, html.an.dy-ringimg .dy-rings i::after { content: none !important; }
+/* 📁 링 = 그 상품의 링.svg 한 개 (도련 11-18 · js/dyyear.js --dy-ring · 앱에 링 그림 코드 없음) */
+html.an .dy-rings i { background: var(--dy-ring, none) !important; }
 /* 닫은 겉표지 (책상 위 다이어리도) */
-html.an .cover-page, html.an .cover-page.cv-book { background: var(--dyv-img), var(--dyv-dots), var(--dyv) !important; border: 0 !important; border-radius: 3cqw 6.5cqw 6.5cqw 3cqw !important; }
+html.an .cover-page, html.an .cover-page.cv-book { background: var(--dyv-img), var(--dyv) !important; border: 0 !important; border-radius: 3cqw 6.5cqw 6.5cqw 3cqw !important; }
 html.an #diaryBook .cover-page { box-shadow: 0 0 0 3.5px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh) !important; }
 html.an .cover-page::before { width: 10cqw !important; border-radius: 3cqw 0 0 3cqw; background: var(--dyv-sh) !important; box-shadow: 2px 0 0 var(--dyv-ol); }
 .cv-year { display: none; }
@@ -742,8 +735,8 @@ html.desk-on.dk-bgon .desk-top-r, body:has(#basketKindModal.abs-dkmode[style*="d
 /* 📔 책상 = 다이어리 보관소 (도련 10-30 · js/desk.js dkVolsPaint) : 펼쳐 두지 않은 권 = 가벼운 표지 그림 (파스텔 바인더 · 그 권 색 · 해 이름판) */
 .dk-vol { position: absolute; cursor: pointer; touch-action: none; user-select: none; }
 html.desk-edit .dk-vol { cursor: grab; } .dk-vol.lift { cursor: grabbing; }
-.dk-vol { --dyv: color-mix(in srgb, var(--dy-c), var(--primary-accent) 12%); --dyv-ol: color-mix(in srgb, var(--primary-accent) 68%, #3a2a55); --dyv-sh: color-mix(in srgb, var(--dyv), #5b3f7a 22%); --dyv-dot: color-mix(in srgb, var(--dyv), #fff 52%); }
-.dk-vol .dv-cv { position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--dyv-ol); background: var(--dyv-img, none), radial-gradient(circle, var(--dyv-dot) 1.6px, transparent 1.9px) 4px 4px / 12px 12px, var(--dyv); }
+.dk-vol { --dyv: color-mix(in srgb, var(--dy-c), var(--primary-accent) 12%); --dyv-ol: color-mix(in srgb, var(--primary-accent) 68%, #3a2a55); --dyv-sh: color-mix(in srgb, var(--dyv), #5b3f7a 22%); }
+.dk-vol .dv-cv { position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--dyv-ol); background: var(--dyv-img, none), var(--dyv); }   /* 📁 표지 = 그 상품의 표지.svg */
 .dk-vol .dv-cv b { position: absolute; font-style: normal; font-weight: 900; color: var(--dyv-ol); background: #fffdfb; border: 1.5px solid var(--dyv-ol); line-height: 1; white-space: nowrap; }
 /* 📚 꽂기 = 책등 (해를 세로로) */
 .dk-vol.p-side .dv-cv { border-radius: 6px 6px 4px 4px; background: var(--dyv-sh); box-shadow: inset 0 9px 0 -6px var(--dyv), inset 0 -9px 0 -6px var(--dyv); }

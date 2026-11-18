@@ -85,7 +85,6 @@
             const pid = b && dyyBasic() ? dyyColor(b.c) : t ? (t.pid || t.id) : '', ring = window.dyRingCss ? dyRingCss(pid) : '';   // 📁 펼친 권의 표지 · 링 = 그 상품 폴더의 파일 (도련 11-18)
             r.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(pid) : 'none');
             if (ring) r.setProperty('--dy-ring', ring); else r.removeProperty('--dy-ring');
-            document.documentElement.classList.toggle('dy-ringimg', !!ring);
         }
         let dyyLastNote = null;
         function dyyPaint() {

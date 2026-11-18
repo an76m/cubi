@@ -177,12 +177,12 @@
             dmkQ('dmkCols').innerHTML = DMK_CN.map(([k, n]) => `<label class="dmk-cl"><input type="color" value="${hx(dmk.cols[k])}" oninput="dmkColSet('${k}', this.value)"><span>${n}</span></label>`).join('') + `<button type="button" class="dmk-chip" onclick="dmk.cw = false; dmkRender()">↺ 저절로</button>`;
             const Y = new Date().getFullYear();
             dmkQ('dmkYear').innerHTML = [Y, Y + 1].map(y => `<button type="button" class="dmk-chip${+dmk.y === y ? ' on' : ''}" onclick="dmk.y=${y}; dmkRender()">${y}</button>`).join('');   // 📅 올해 · 내년
-            dmkQ('dmkLf1').innerHTML = leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${(dmk.lf || 'line') === v ? ' on' : ''}" onclick="dmk.lf='${v}'; dmkRender()"><i class="lf-sw lf-${v}"></i>${n}</button>`).join('');
+            dmkQ('dmkLf1').innerHTML = leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${(dmk.lf || 'line') === v ? ' on' : ''}" onclick="dmk.lf='${v}'; dmkRender()"><i class="lf-sw" style="background:var(--lf-holes), ${htmlEsc(leafBg(v, .9))}, var(--page-bg, #fff)"></i>${n}</button>`).join('');
             dmkQ('dmkPg').value = dmk.pg;
             const many = dmk.lv.length > 1;
             dmkQ('dmkLeaf').innerHTML = dmk.lv.map((r, i) => `<div class="dmk-lv">
                 <div class="dmk-lv-r"><input type="number" inputmode="numeric" value="${r[0]}" ${i ? '' : 'disabled'} onchange="dmkLeafEdge(${i}, 0, this.value)"><span>~</span><input type="number" inputmode="numeric" value="${r[1]}" ${i === dmk.lv.length - 1 ? 'disabled' : ''} onchange="dmkLeafEdge(${i}, 1, this.value)"><span>페이지</span>${many ? `<button type="button" class="dmk-x" title="이 구간 빼기" onclick="dmkLeafDel(${i})">✕</button>` : ''}</div>
-                <div class="dmk-lv-pick">${leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${r[2] === v ? ' on' : ''}" onclick="dmkLeafSet(${i}, '${v}')"><i class="lf-sw lf-${v}"></i>${n}</button>`).join('')}</div></div>`).join('');
+                <div class="dmk-lv-pick">${leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${r[2] === v ? ' on' : ''}" onclick="dmkLeafSet(${i}, '${v}')"><i class="lf-sw" style="background:var(--lf-holes), ${htmlEsc(leafBg(v, .9))}, var(--page-bg, #fff)"></i>${n}</button>`).join('')}</div></div>`).join('');
             dmkQ('dmkLeaf').closest('.dmk-row').querySelector('.dmk-add').hidden = dmk.lv[dmk.lv.length - 1][1] - dmk.lv[dmk.lv.length - 1][0] < 1 || dmk.lv.length >= 10;
             dmkPrevDraw();
         }
