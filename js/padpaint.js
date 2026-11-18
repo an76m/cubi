@@ -18,9 +18,10 @@
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const SW = ['#3d2b33', '#ff5d8f', '#ff9a3c', '#ffd23f', '#5cc98a', '#4aa8ff', '#9b7bff', '#ffffff', '#ffb3c8', '#ffe7a3', '#bfe9d3', '#cfe3ff'];
-    const T_PX = [['brush', '🖌️', '브러시'], ['pencil', '✏️', '연필'], ['marker', '🖍️', '마커'], ['air', '💨', '에어'], ['erase', '🧽', '지우개'], ['fill', '🪣', '채우기'], ['drop', '💧', '스포이드'], ['lasso', '➰', '올가미'], ['move', '✋', '옮기기'], ['shape', '⬛', '도형'], ['text', '🔤', '글씨'], ['zoom', '🔍', '확대']];
-    const T_VC = [['select', '↖️', '선택'], ['direct', '◦', '점 고치기'], ['pen', '✒️', '점 찍기'], ['curve', '〰️', '곡선'], ['rect', '▭', '네모'], ['ellipse', '◯', '동그라미'], ['heart', '♡', '하트'], ['star', '☆', '별'], ['vtext', '🔤', '글씨'], ['cut', '✂️', '점 자르기'], ['paint', '🪣', '칠하기'], ['vmove', '✋', '옮기기']];
-    const BRUSH = [['pencil', '연필'], ['round', '둥근 펜'], ['water', '수채'], ['crayon', '크레용'], ['hi', '형광펜'], ['glit', '반짝이']];
+    const T_PX = [['brush', '🖌️', '브러시'], ['pencil', '✏️', '연필'], ['marker', '🖍️', '마커'], ['air', '💨', '에어'], ['stamp', '⭐', '스탬프'], ['smudge', '👆', '문지르기'], ['erase', '🧽', '지우개'], ['fill', '🪣', '채우기'], ['grad', '🌈', '그라데이션'], ['drop', '💧', '스포이드'], ['lasso', '➰', '올가미'], ['move', '✋', '옮기기'], ['shape', '⬛', '도형'], ['text', '🔤', '글씨'], ['zoom', '🔍', '확대']];
+    const T_VC = [['select', '↖️', '선택'], ['direct', '◦', '점 고치기'], ['pen', '✒️', '점 찍기'], ['curve', '〰️', '곡선'], ['rect', '▭', '네모'], ['ellipse', '◯', '동그라미'], ['heart', '♡', '하트'], ['star', '☆', '별'], ['poly', '⬡', '다각형'], ['line', '╱', '선'], ['arrow', '➝', '화살표'], ['vtext', '🔤', '글씨'], ['cut', '✂️', '점 자르기'], ['paint', '🪣', '칠하기'], ['vmove', '✋', '옮기기']];
+    const BRUSH = [['pencil', '연필'], ['round', '둥근 펜'], ['water', '수채'], ['crayon', '크레용'], ['hi', '형광펜'], ['glit', '반짝이'], ['pixel', '픽셀 아트']];
+    const STAMPS = [['heart', '💗 하트'], ['star', '⭐ 별'], ['spark', '✨ 반짝'], ['flower', '🌸 꽃'], ['dot', '⚪ 동그라미'], ['drop', '💧 물방울']];   // ⭐ 스탬프 붓 (도련 11-18)
     const BLEND = [['source-over', '보통'], ['multiply', '곱하기'], ['screen', '밝게'], ['overlay', '겹치기'], ['darken', '어두운 쪽'], ['lighten', '밝은 쪽'], ['color-dodge', '닷지'], ['soft-light', '부드럽게'], ['difference', '차이'], ['hue', '색상만'], ['color', '색만']];   // 🧩 css 섞는 법 모두 (도련 11-18)
     const TAG = { paper: ['pp', '종이'], photo: ['ph', '사진'], px: ['px', '픽셀'], vec: ['vc', '벡터'], css: ['cb', 'css'], svg: ['sv', 'svg'] };
     const P = {};                                                                // 지금 그림판
@@ -40,7 +41,7 @@
         const W = (o.draft && +o.draft.W) || (SZ ? SZ[1] : TKD ? Math.round(tkmm[0] * PX) : o.W || 900), H = (o.draft && +o.draft.H) || (SZ ? SZ[2] : TKD ? Math.round(tkmm[1] * PX) : o.H || 1395);   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
         Object.assign(P, { on: true, savedAt: 0, o, kind: o.kind || 'leaf', pcs: ((o.draft && o.draft.pcs) || []).slice(0, 4), sz: (o.draft && o.draft.sz) || o.sz || 'tall', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
             vsw: 6, vround: 12, color: '#ff5d8f', recent: ['#4aa8ff', '#ffd23f', '#5cc98a'], hsv: [340, .64, 1], z: 1, px: 0, py: 0, base: 1, grid: false, sym: false,
-            hist: [], redo: [], sel: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
+            hist: [], redo: [], sel: null, many: [], addSel: false, cut: null, cutImg: null, symN: 0, adj: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
         P.two = !!(o.draft && o.draft.two);
         if (!o.draft && P.kind === 'leaf' && P.spec && P.spec.r > 0) P.H = Math.round(P.W * leafR(P.spec.r));   // 📐 새 종이 = 지금 펼친 다이어리 한 쪽 규격 (📖 양쪽 = 펼친 두 쪽)
         if (o.draft) { buildUI(); fit(); restoreDraft(o.draft); P.savedAt = +o.draft.at || 0; tmpShow(); }
@@ -139,7 +140,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         st.addEventListener('pointerleave', () => { $('ppBr').hidden = true; });
         st.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX, e.clientY); }, { passive: false });
         st.addEventListener('dblclick', e => { if (P.tool === 'pen' && P.pen) penEnd(); });
-        $('ppFlS').onclick = e => { const b = e.target.closest('[data-s]'); if (b) shapeAct(b.dataset.s); };
+        $('ppFlS').onclick = e => { const f = e.target.closest('[data-fx]'); if (f) { flAct(f.dataset.fx); return; } const b = e.target.closest('[data-s]'); if (b) shapeAct(b.dataset.s); };
         $('ppFlP').onclick = e => { const b = e.target.closest('[data-p]'); if (b) pointAct(b.dataset.p); };
     }
     function modeBtns() { document.querySelectorAll('#ppBarX [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === P.mode)); }
@@ -169,12 +170,18 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         $('ppTools').innerHTML = T.map(([k, i, n]) => `<button type="button" data-t="${k}" class="${k === P.tool ? 'on' : ''}">${i}<small>${n}</small></button>`).join('');
         let h = '';
         if (V) h = `<h4>점 찍기 방법</h4><div class="pp-chips"><span>클릭 = 꺾인 점</span><span>끌기 = 둥근 점</span><span>처음 점 = 닫기</span><span>Enter = 끝</span></div>`
-            + sl('vsw', '선 굵기', P.vsw, 0, 40, 1, 'px') + sl('vround', '둥글기', P.vround, 0, 80, 1, '') + sl('op', '투명도', P.op, .05, 1, .05, '%');
+            + sl('vsw', '선 굵기', P.vsw, 0, 40, 1, 'px') + sl('vround', '둥글기', P.vround, 0, 80, 1, '') + sl('op', '투명도', P.op, .05, 1, .05, '%')
+            + sl('polyN', '다각형 변', P.polyN || 6, 3, 12, 1, '') + sl('radN', '빙글 복사', P.radN || 6, 2, 24, 1, '개')
+            + `<p class="pp-hint">↖️ 선택 → 떠 있는 막대 : ➕ 더 고르기 (여러 개) → 합치기 · 빼기 · 겹친 곳 · 그룹 · 정렬 / 🌀 빙글 복사 · 🌈 그라데이션</p>`;
         else {
             if (P.tool === 'brush') h += `<h4>붓 모양</h4><div class="pp-brushes">${BRUSH.map(([k, n]) => `<button type="button" data-b="${k}" class="${k === P.brush ? 'on' : ''}"><canvas width="160" height="52" data-pv="${k}"></canvas><span>${n}</span></button>`).join('')}</div>`;
+            if (P.tool === 'stamp') h += `<h4>스탬프 모양</h4><div class="pp-chips pick">${STAMPS.map(([k, n]) => `<button type="button" data-stk="${k}" class="${k === (P.stampK || 'heart') ? 'on' : ''}">${n}</button>`).join('')}<button type="button" data-stj="1" class="${P.stampJ !== false ? 'on' : ''}">🎲 흩뿌리기</button></div>`;
+            if (P.tool === 'grad') h += `<h4>그라데이션</h4><div class="pp-chips pick"><button type="button" data-gs="linear" class="${(P.gradS || 'linear') === 'linear' ? 'on' : ''}">➖ 직선</button><button type="button" data-gs="radial" class="${P.gradS === 'radial' ? 'on' : ''}">⭕ 원형</button><button type="button" data-gk="clear" class="${(P.gradK || 'clear') === 'clear' ? 'on' : ''}">지금 색 → 투명</button><button type="button" data-gk="two" class="${P.gradK === 'two' ? 'on' : ''}">지금 색 → <i style="background:${P.recent[0] || '#fff'}"></i> 최근 색</button></div><p class="pp-hint">종이 위를 끌어요 · 레이어의 🫧 그린 곳만 칠을 켜면 그림 안에만</p>`;
+            if (['brush', 'pencil', 'marker'].includes(P.tool)) h += `<div class="pp-chips pick"><button type="button" data-qs="1" class="${P.qshape !== false ? 'on' : ''}">✨ 선 정리 (그리다 멈추면 반듯하게)</button></div>`;
             if (P.tool === 'shape') h += `<h4>도형</h4><div class="pp-chips pick">${[['rect', '네모'], ['ellipse', '동그라미'], ['line', '선']].map(([k, n]) => `<button type="button" data-sk="${k}" class="${k === P.shapeK ? 'on' : ''}">${n}</button>`).join('')}<button type="button" data-sf="1" class="${P.shapeFill ? 'on' : ''}">🎨 채우기</button></div>`;
             h += sl('size', '크기', P.size, 1, 120, 1, 'px') + sl('op', '투명도', P.op, .05, 1, .05, '%');
-            if (!['fill', 'drop', 'lasso', 'move', 'zoom', 'text'].includes(P.tool)) h += sl('soft', '부드럽게', P.soft, 0, 1, .05, '%') + sl('stab', '떨림 보정', P.stab, 0, .95, .05, '%');
+            if (!['fill', 'drop', 'lasso', 'move', 'zoom', 'text', 'grad', 'smudge'].includes(P.tool)) h += sl('soft', '부드럽게', P.soft, 0, 1, .05, '%') + sl('stab', '떨림 보정', P.stab, 0, .95, .05, '%');
+            if (P.tool === 'smudge') h += sl('smk', '문지르는 힘', P.smk == null ? .6 : P.smk, .1, 1, .05, '%');
         }
         $('ppOpt').innerHTML = h;
         $('ppOpt').querySelectorAll('canvas[data-pv]').forEach(c => brushPreview(c, c.dataset.pv));
@@ -182,7 +189,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function onOpt(e) {
         const r = e.target.closest('input[type=range]');
         if (r && e.type === 'input') {
-            const k = r.dataset.k, v = +r.value; P[k] = v; r.nextElementSibling.textContent = k === 'op' || k === 'soft' || k === 'stab' ? Math.round(v * 100) + '%' : v + (k === 'size' || k === 'vsw' ? 'px' : '');
+            const k = r.dataset.k, v = +r.value; P[k] = v; r.nextElementSibling.textContent = k === 'op' || k === 'soft' || k === 'stab' || k === 'smk' ? Math.round(v * 100) + '%' : v + (k === 'size' || k === 'vsw' ? 'px' : k === 'radN' ? '개' : '');
             if (P.mode === 'vec' && P.sel) { histVec(P.cur); if (k === 'vsw') P.sel.sw = v; if (k === 'op') P.sel.op = v; if (k === 'vround' && P.sel.k === 'rect') P.sel.r = v; P.cur.dirtyV = true; renderAll(); }
             return;
         }
@@ -190,6 +197,11 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         const b = e.target.closest('[data-b]'); if (b) { P.brush = b.dataset.b; paintTools(); }
         const sk = e.target.closest('[data-sk]'); if (sk) { P.shapeK = sk.dataset.sk; paintTools(); }
         const sf = e.target.closest('[data-sf]'); if (sf) { P.shapeFill = !P.shapeFill; paintTools(); }
+        const stk = e.target.closest('[data-stk]'); if (stk) { P.stampK = stk.dataset.stk; paintTools(); }
+        if (e.target.closest('[data-stj]')) { P.stampJ = P.stampJ === false; paintTools(); }
+        const gs = e.target.closest('[data-gs]'); if (gs) { P.gradS = gs.dataset.gs; paintTools(); }
+        const gk = e.target.closest('[data-gk]'); if (gk) { P.gradK = gk.dataset.gk; paintTools(); }
+        if (e.target.closest('[data-qs]')) { P.qshape = P.qshape === false; paintTools(); }
     }
 
     /* ---------- 🎨 색 ---------- */
@@ -242,8 +254,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (v === 'in') zoomAt(1.25); if (v === 'out') zoomAt(1 / 1.25); if (v === 'fit') fit(); if (v === 'real') realSize();
         if (v === 'hand') { P.hand = !P.hand; }
         if (v === 'wrap') { P.wrap = !P.wrap; say(P.wrap ? '🔁 이어그리기 : 오른쪽 끝을 넘으면 왼쪽에서 이어져요' : '이어그리기 끔'); }
-        if (v === 'grid') P.grid = !P.grid; if (v === 'sym') { P.sym = !P.sym; say(P.sym ? '⇋ 대칭 : 왼쪽 · 오른쪽에 같이 그려져요' : '대칭 끔'); }
-        document.querySelectorAll('.pp-view [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'hand' && P.hand) || (b.dataset.v === 'grid' && P.grid) || (b.dataset.v === 'sym' && P.sym) || (b.dataset.v === 'wrap' && P.wrap)));
+        if (v === 'grid') P.grid = !P.grid; if (v === 'sym') { const S = [[false, 0], [true, 0], [false, 4], [false, 6], [false, 8]], i = S.findIndex(q => q[0] === !!P.sym && q[1] === (P.symN || 0)), n = S[(i + 1) % S.length]; P.sym = n[0]; P.symN = n[1];
+            say(P.sym ? '⇋ 대칭 : 왼쪽 · 오른쪽에 같이 그려져요' : P.symN ? `🌸 만화경 ${P.symN}조각 : 돌리고 뒤집어 같이 그려져요` : '대칭 끔'); const b = document.querySelector('.pp-view [data-v="sym"]'); if (b) b.textContent = P.symN ? `🌸 만화경 ${P.symN}` : '⇋ 대칭'; }
+        document.querySelectorAll('.pp-view [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'hand' && P.hand) || (b.dataset.v === 'grid' && P.grid) || (b.dataset.v === 'sym' && (P.sym || P.symN)) || (b.dataset.v === 'wrap' && P.wrap)));
         drawOv();
     }
     const toDoc = e => { const r = $('ppCv').getBoundingClientRect(); return { x: (e.clientX - r.left) * P.W / r.width, y: (e.clientY - r.top) * P.H / r.height }; };
@@ -252,16 +265,23 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
 
     /* ================= 그리기 (합치기) ================= */
     let raf = 0;
-    function renderAll() { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; render(); drawOv(); thumbsSoon(); }); }
+    function renderAll() { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; render(); drawOv(); thumbsSoon(); if (P.cut && P.cut.on && !P.drag) cutSoon(); }); }
+    let clipC = null;
+    function clipTo(img, base) {                                               // 📎 클리핑 = 아래 레이어 그림 모양 안에만
+        if (!clipC || clipC.width !== P.W || clipC.height !== P.H) clipC = mkCv(P.W, P.H); const x = clipC.getContext('2d');
+        x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, P.W, P.H); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'destination-in'; x.drawImage(base, 0, 0); x.globalCompositeOperation = 'source-over'; return clipC;
+    }
     function compose(x, withStroke) {
-        x.save(); x.clearRect(0, 0, P.W, P.H);
+        x.save(); x.clearRect(0, 0, P.W, P.H); let base = null;
         for (const L of P.layers) {
             if (!L.vis) continue;
+            if (L.type === 'paper') { x.globalAlpha = L.op; x.globalCompositeOperation = L.blend; x.drawImage(layerImg(L), 0, 0); if (P.cut && P.cut.on && P.cutImg) { x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; x.drawImage(P.cutImg, 0, 0); } continue; }
             if (withStroke && L === P.liveL) continue;                     // 🎬 움직이는 블록 레이어 = 위 진짜 css 가 보여요
             let img = layerImg(L);
             if (withStroke && L === P.cur && P.drag && P.drag.stroke) img = strokePreview(L);
             if (withStroke && L === P.cur && P.fl) { const t = tmp(); const tx = t.getContext('2d'); tx.clearRect(0, 0, P.W, P.H); tx.drawImage(img, 0, 0); tx.drawImage(P.fl.cv, P.fl.dx, P.fl.dy); img = t; }
             if (withStroke && L === P.cur && P.drag && P.drag.moveL) { x.globalAlpha = L.op; x.globalCompositeOperation = L.blend; x.drawImage(img, P.drag.dx, P.drag.dy); continue; }
+            if (L.clip && base) img = clipTo(img, base); else if (!L.clip) { if (!L._bc || L._bc.width !== P.W || L._bc.height !== P.H) L._bc = mkCv(P.W, P.H); const bx = L._bc.getContext('2d'); bx.clearRect(0, 0, P.W, P.H); bx.drawImage(img, 0, 0); base = L._bc; }
             x.globalAlpha = L.op; x.globalCompositeOperation = L.blend; x.drawImage(img, 0, 0);
         }
         x.restore();
@@ -298,6 +318,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function drawOv() {
         const c = $('ppOv'); if (!c) return; const x = c.getContext('2d'), k = 1 / Math.max(.05, scale()); x.clearRect(0, 0, P.W, P.H);
         if (P.grid) { x.strokeStyle = 'rgba(107,68,56,.14)'; x.lineWidth = k; for (let i = 50; i < P.W; i += 50) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, P.H); x.stroke(); } for (let j = 50; j < P.H; j += 50) { x.beginPath(); x.moveTo(0, j); x.lineTo(P.W, j); x.stroke(); } }
+        if (P.symN) { x.save(); x.strokeStyle = 'rgba(255,111,145,.55)'; x.setLineDash([8 * k, 6 * k]); x.lineWidth = 1.5 * k; const R = Math.hypot(P.W, P.H); for (let i = 0; i < P.symN * 2; i++) { const a = i * Math.PI / P.symN; x.beginPath(); x.moveTo(P.W / 2, P.H / 2); x.lineTo(P.W / 2 + Math.cos(a) * R, P.H / 2 + Math.sin(a) * R); x.stroke(); } x.restore(); }
+        if (P.drag && P.drag.gradPv) { x.save(); x.strokeStyle = '#4aa8ff'; x.lineWidth = 2 * k; x.setLineDash([6 * k, 4 * k]); x.beginPath(); x.moveTo(P.drag.a.x, P.drag.a.y); x.lineTo(P.drag.b.x, P.drag.b.y); x.stroke(); x.setLineDash([]); x.fillStyle = P.color; x.beginPath(); x.arc(P.drag.a.x, P.drag.a.y, 7 * k, 0, 7); x.fill(); x.stroke(); x.restore(); }
         if (P.sym) { x.strokeStyle = 'rgba(74,168,255,.6)'; x.setLineDash([8 * k, 6 * k]); x.lineWidth = 1.5 * k; x.beginPath(); x.moveTo(P.W / 2, 0); x.lineTo(P.W / 2, P.H); x.stroke(); x.setLineDash([]); }
         if (P.lasso && P.lasso.length > 1) { x.setLineDash([6 * k, 5 * k]); x.strokeStyle = '#4aa8ff'; x.lineWidth = 1.6 * k; x.beginPath(); P.lasso.forEach((p, i) => i ? x.lineTo(p.x, p.y) : x.moveTo(p.x, p.y)); x.stroke(); x.setLineDash([]); }
         if (P.fl) { x.setLineDash([6 * k, 5 * k]); x.strokeStyle = '#4aa8ff'; x.lineWidth = 1.6 * k; const b = P.fl.box; x.strokeRect(b.x + P.fl.dx, b.y + P.fl.dy, b.w, b.h); x.setLineDash([]); }
@@ -319,11 +341,23 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
 
     /* ================= 🖌️ 픽셀 붓 ================= */
     function brushOf() {                                                       // 지금 도구 → 붓 설정
-        const t = P.tool, b = t === 'brush' ? P.brush : t === 'pencil' ? 'pencil' : t === 'marker' ? 'hi' : t === 'air' ? 'air' : t === 'erase' ? 'erase' : 'round';
-        const R = { pencil: { hard: 1, sp: .15, min: .6 }, round: { sp: .12 }, water: { a: .1, sp: .08, soft: 1 }, crayon: { tex: 1, sp: .2 }, hi: { flat: 1, comp: 'multiply', a: .55, sp: .1, hard: 1 }, glit: { sp: .12, glit: 1 }, air: { air: 1 }, erase: { sp: .1 } }[b] || {};
+        const t = P.tool, b = t === 'brush' ? P.brush : t === 'pencil' ? 'pencil' : t === 'marker' ? 'hi' : t === 'air' ? 'air' : t === 'erase' ? 'erase' : t === 'stamp' ? 'stamp' : 'round';
+        const R = { pencil: { hard: 1, sp: .15, min: .6 }, round: { sp: .12 }, water: { a: .1, sp: .08, soft: 1 }, crayon: { tex: 1, sp: .2 }, hi: { flat: 1, comp: 'multiply', a: .55, sp: .1, hard: 1 }, glit: { sp: .12, glit: 1 }, air: { air: 1 }, erase: { sp: .1 }, stamp: { stamp: 1, sp: 1.5 }, pixel: { pix: 1, sp: .3 } }[b] || {};
         return Object.assign({ k: b }, R);
     }
+    function stampPath(k) {                                                    // ⭐ 스탬프 모양 (반지름 1)
+        const q = new Path2D();
+        if (k === 'heart') { q.moveTo(0, .9); q.bezierCurveTo(-1.3, -.05, -.9, -1.15, 0, -.45); q.bezierCurveTo(.9, -1.15, 1.3, -.05, 0, .9); }
+        else if (k === 'star') for (let i = 0; i < 10; i++) { const rr = i % 2 ? .45 : 1, a = -Math.PI / 2 + i * Math.PI / 5; q.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+        else if (k === 'spark') for (let i = 0; i < 8; i++) { const rr = i % 2 ? .22 : 1, a = -Math.PI / 2 + i * Math.PI / 4; q.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+        else if (k === 'flower') { for (let i = 0; i < 5; i++) { const a = i * 2 * Math.PI / 5; q.moveTo(Math.cos(a) * .55 + .42, Math.sin(a) * .55); q.arc(Math.cos(a) * .55, Math.sin(a) * .55, .42, 0, 7); } }
+        else if (k === 'drop') { q.moveTo(0, -1); q.bezierCurveTo(.4, -.4, .75, 0, .75, .3); q.arc(0, .3, .75, 0, Math.PI); q.bezierCurveTo(-.75, 0, -.4, -.4, 0, -1); }
+        else q.arc(0, 0, 1, 0, 7);
+        q.closePath(); return q;
+    }
     function dab(x, px, py, r, B, col) {
+        if (B.pix) { const s = Math.max(2, Math.round(P.size / 2) * 2); x.globalAlpha = 1; x.fillStyle = col; x.fillRect(Math.floor(px / s) * s, Math.floor(py / s) * s, s, s); return; }   // 👾 픽셀 아트 = 칸에 딱 · 번짐 없이
+        if (B.stamp) { const j = P.stampJ !== false, k = j ? .6 + Math.random() * .7 : 1; x.save(); x.translate(px + (j ? (Math.random() - .5) * r : 0), py + (j ? (Math.random() - .5) * r : 0)); x.rotate(j ? (Math.random() - .5) * 1.4 : 0); x.scale(r * k, r * k); x.fillStyle = col; x.fill(stampPath(P.stampK || 'heart')); x.restore(); return; }
         if (B.air) { for (let i = 0; i < 14; i++) { const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * r; x.globalAlpha = .08; x.fillStyle = col; x.fillRect(px + Math.cos(a) * d, py + Math.sin(a) * d, 1.6, 1.6); } x.globalAlpha = 1; return; }
         if (B.tex) { for (let i = 0; i < Math.max(6, r * 2); i++) { const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * r; x.globalAlpha = .5 + Math.random() * .5; x.fillStyle = col; x.fillRect(px + Math.cos(a) * d, py + Math.sin(a) * d, 1.4 + Math.random(), 1.4 + Math.random()); } x.globalAlpha = 1; return; }
         if (B.flat) { x.fillStyle = col; x.fillRect(px - r * .45, py - r, r * .9, r * 2); return; }
@@ -343,30 +377,65 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     function strokeStart(e, p) {
         const L = P.cur; if (!canPaint(L)) return false;
+        if (P.tool === 'smudge') { histPx(L); P.drag = { smudge: 1, last: p }; return true; }   // 👆 문지르기 = 레이어 위 색을 끌고 가요
         const B = brushOf(), cv = tmp(); const x = cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H);
         histPx(L);
-        P.drag = { stroke: 1, B, cv, last: p, sm: { x: p.x, y: p.y }, erase: B.k === 'erase', alpha: P.op * (B.comp ? (B.a || 1) : 1), comp: L.aLock ? 'source-atop' : (B.comp || 'source-over'), pen: e.pointerType === 'pen' };
+        P.drag = { stroke: 1, B, cv, last: p, sm: { x: p.x, y: p.y }, erase: B.k === 'erase', alpha: P.op * (B.comp ? (B.a || 1) : 1), comp: L.aLock ? 'source-atop' : (B.comp || 'source-over'), pen: e.pointerType === 'pen', pts: P.qshape !== false && ['brush', 'pencil', 'marker'].includes(P.tool) && !B.pix ? [{ x: p.x, y: p.y }] : null };
         stroke(p, e.pressure);
         if (B.air) P.drag.airT = setInterval(() => { if (P.drag && P.drag.stroke) { airDab(P.drag.sm); renderAll(); } }, 40);
         return true;
     }
-    function airDab(p) { const d = P.drag, x = d.cv.getContext('2d'), r = P.size * 1.5; wdab(x, p.x, p.y, r, d.B, P.color); if (P.sym) wdab(x, P.W - p.x, p.y, r, d.B, P.color); }
+    function symPts(px, py) {                                                 // ⇋ 좌우 · 🌸 만화경 (돌리고 뒤집기) = 같이 그릴 자리
+        const o = []; if (P.sym) o.push([P.W - px, py]);
+        if (P.symN) { const cx = P.W / 2, cy = P.H / 2, n = P.symN; for (let i = 0; i < n; i++) { const a = i * 2 * Math.PI / n, co = Math.cos(a), si = Math.sin(a); [[px, py], [2 * cx - px, py]].forEach(([u, v], m) => { if (!i && !m) return; const dx = u - cx, dy = v - cy; o.push([cx + dx * co - dy * si, cy + dx * si + dy * co]); }); } }
+        return o;
+    }
+    function airDab(p) { const d = P.drag, x = d.cv.getContext('2d'), r = P.size * 1.5; wdab(x, p.x, p.y, r, d.B, P.color); symPts(p.x, p.y).forEach(([u, v]) => wdab(x, u, v, r, d.B, P.color)); }
     function wdab(x, px, py, r, B, col) {                                      // 🔁 이어그리기 (🎀 테이프) = 끝을 넘은 붓 자국은 반대쪽에도 · 칸이 이어져 보여요
         dab(x, px, py, r, B, col);
         if (!P.wrap) return; const m = r * 1.4 + 2;
         if (px < m) dab(x, px + P.W, py, r, B, col); if (px > P.W - m) dab(x, px - P.W, py, r, B, col);
     }
+    let smC = null;
+    function smudgeTo(p) {                                                     // 👆 문지르기 : 붓에 묻은 색을 끌고 가며 조금씩 섞어요
+        const d = P.drag, L = P.cur, lx = L.cv.getContext('2d'), r = Math.max(3, P.size / 2), D = Math.ceil(r * 2), a = d.last, dd = Math.hypot(p.x - a.x, p.y - a.y), n = Math.max(1, Math.ceil(dd / Math.max(1, r * .25))), k = P.smk == null ? .6 : P.smk;
+        if (!smC || smC.width !== D) smC = mkCv(D, D); const sx = smC.getContext('2d');
+        const mask = () => { const g = sx.createRadialGradient(r, r, 0, r, r, r); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(.6, 'rgba(0,0,0,.8)'); g.addColorStop(1, 'rgba(0,0,0,0)'); sx.globalCompositeOperation = 'destination-in'; sx.fillStyle = g; sx.fillRect(0, 0, D, D); sx.globalCompositeOperation = 'source-over'; };
+        if (!d.carry || d.carry.width !== D) { d.carry = mkCv(D, D); d.carry.getContext('2d').drawImage(L.cv, a.x - r, a.y - r, D, D, 0, 0, D, D); }
+        const cx = d.carry.getContext('2d');
+        for (let i = 1; i <= n; i++) { const c = { x: a.x + (p.x - a.x) * i / n, y: a.y + (p.y - a.y) * i / n };
+            sx.clearRect(0, 0, D, D); sx.drawImage(d.carry, 0, 0); mask(); lx.save(); lx.globalAlpha = k; lx.drawImage(smC, c.x - r, c.y - r); lx.restore();   // 묻은 색 찍기
+            cx.save(); cx.globalAlpha = 1 - k * .85; cx.drawImage(L.cv, c.x - r, c.y - r, D, D, 0, 0, D, D); cx.restore(); }   // 지금 자리 색이 붓에 묻어요
+        d.last = p; renderAll();
+    }
+    function qsArm() {                                                         // ✨ 선 정리 : 그리다가 멈추면 (0.6초) 반듯한 선 · 동그라미로
+        const d = P.drag; clearTimeout(d.qsT); if (d.qsDone) return;
+        d.qsT = setTimeout(() => { if (P.drag !== d || !d.pts || d.pts.length < 6) return; const A = d.pts, f = A[0], l = A[A.length - 1];
+            let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; A.forEach(q => { x0 = Math.min(x0, q.x); y0 = Math.min(y0, q.y); x1 = Math.max(x1, q.x); y1 = Math.max(y1, q.y); });
+            const diag = Math.hypot(x1 - x0, y1 - y0) || 1, closed = Math.hypot(l.x - f.x, l.y - f.y) < diag * .2, P2 = [];
+            if (closed) { let cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = (x1 - x0) / 2, ry = (y1 - y0) / 2; if (Math.abs(rx - ry) < Math.max(rx, ry) * .18) rx = ry = (rx + ry) / 2; for (let i = 0; i <= 120; i++) { const t = i / 120 * Math.PI * 2; P2.push({ x: cx + Math.cos(t) * rx, y: cy + Math.sin(t) * ry }); } }
+            else for (let i = 0; i <= 60; i++) P2.push({ x: f.x + (l.x - f.x) * i / 60, y: f.y + (l.y - f.y) * i / 60 });
+            const x = d.cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H); const r = d.r || P.size / 2;
+            for (let i = 1; i < P2.length; i++) { const a = P2[i - 1], b = P2[i], n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / Math.max(.5, r * (d.B.sp || .12)))); for (let j = 1; j <= n; j++) { const xx = a.x + (b.x - a.x) * j / n, yy = a.y + (b.y - a.y) * j / n; wdab(x, xx, yy, r, d.B, d.erase ? '#000' : P.color); symPts(xx, yy).forEach(([u, v]) => wdab(x, u, v, r, d.B, d.erase ? '#000' : P.color)); } }
+            d.qsDone = true; say(closed ? '✨ 동그라미로 정리했어요' : '✨ 곧은 선으로 정리했어요', 1000); renderAll(); }, 600);
+    }
+    function gradApply(a, b) {                                                 // 🌈 그라데이션 채우기
+        const L = P.cur; if (!canPaint(L)) return; histPx(L); const x = L.cv.getContext('2d'), [R, G, B] = hexRgb(P.color), c2 = (P.gradK || 'clear') === 'clear' ? `rgba(${R},${G},${B},0)` : (P.recent[0] || '#ffffff');
+        const g = (P.gradS || 'linear') === 'radial' ? x.createRadialGradient(a.x, a.y, 0, a.x, a.y, Math.max(2, Math.hypot(b.x - a.x, b.y - a.y))) : x.createLinearGradient(a.x, a.y, b.x, b.y); g.addColorStop(0, P.color); g.addColorStop(1, c2);
+        x.save(); x.globalAlpha = P.op; if (L.aLock) x.globalCompositeOperation = 'source-atop'; x.fillStyle = g; x.fillRect(0, 0, P.W, P.H); x.restore(); P.dirty = true; renderAll();
+    }
     function stroke(p, pressure) {
         const d = P.drag, x = d.cv.getContext('2d'), B = d.B;
+        if (d.qsDone) return;
         const s = d.sm, k = 1 - P.stab * .92; s.x += (p.x - s.x) * k; s.y += (p.y - s.y) * k;   // 〰 떨림 보정
         const pr = d.pen ? Math.max(.1, pressure || .5) : 1, r = Math.max(.5, (B.k === 'pencil' ? Math.max(1, P.size * .35) : P.size / 2) * (d.pen ? .35 + .65 * pr : 1));
         if (B.air) { airDab(s); d.last = { x: s.x, y: s.y }; return; }
         const a = d.last, dd = Math.hypot(s.x - a.x, s.y - a.y), sp = Math.max(.5, r * (B.sp || .12)), n = Math.max(1, Math.ceil(dd / sp));
-        for (let i = 1; i <= n; i++) { const xx = a.x + (s.x - a.x) * i / n, yy = a.y + (s.y - a.y) * i / n; wdab(x, xx, yy, r, B, d.erase ? '#000' : P.color); if (P.sym) wdab(x, P.W - xx, yy, r, B, d.erase ? '#000' : P.color); }
-        d.last = { x: s.x, y: s.y };
+        for (let i = 1; i <= n; i++) { const xx = a.x + (s.x - a.x) * i / n, yy = a.y + (s.y - a.y) * i / n; wdab(x, xx, yy, r, B, d.erase ? '#000' : P.color); symPts(xx, yy).forEach(([u, v]) => wdab(x, u, v, r, B, d.erase ? '#000' : P.color)); }
+        d.last = { x: s.x, y: s.y }; d.r = r; if (d.pts) { d.pts.push({ x: s.x, y: s.y }); qsArm(); }
     }
     function strokeEnd() {
-        const d = P.drag, L = P.cur; if (d.airT) clearInterval(d.airT);
+        const d = P.drag, L = P.cur; if (d.airT) clearInterval(d.airT); clearTimeout(d.qsT);
         const x = L.cv.getContext('2d'); x.save();
         if (d.erase) { x.globalCompositeOperation = 'destination-out'; x.drawImage(d.cv, 0, 0); }
         else { x.globalAlpha = d.alpha; x.globalCompositeOperation = d.comp; x.drawImage(d.cv, 0, 0); }
@@ -413,9 +482,19 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         histPx(L);
         const fc = mkCv(P.W, P.H), fx = fc.getContext('2d'); fx.beginPath(); pts.forEach((p, i) => i ? fx.lineTo(p.x, p.y) : fx.moveTo(p.x, p.y)); fx.closePath(); fx.save(); fx.clip(); fx.drawImage(L.cv, 0, 0); fx.restore();
         const lx = L.cv.getContext('2d'); lx.save(); lx.globalCompositeOperation = 'destination-out'; lx.beginPath(); pts.forEach((p, i) => i ? lx.lineTo(p.x, p.y) : lx.moveTo(p.x, p.y)); lx.closePath(); lx.fill(); lx.restore();
-        P.fl = { cv: fc, dx: 0, dy: 0, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, L }; say('➰ 떼어 냈어요 · 끌어서 옮기고 다른 도구를 고르면 붙어요 · ✂ 잘라 붙이기 = 새 레이어', 2600); renderAll();
+        P.fl = { cv: fc, src: fc, dx: 0, dy: 0, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, box0: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, T: { s: 1, r: 0, fx: 1, fy: 1, k: 0 }, L }; say('➰ 떼어 냈어요 · 끌어서 옮기기 · 위 막대로 크기 · 돌리기 · 뒤집기 · 기울이기 · 다른 도구를 고르면 붙어요', 2800); renderAll(); paintFloats();
     }
-    function commitFloat() { const f = P.fl; if (!f) return; P.fl = null; const x = f.L.cv.getContext('2d'); x.drawImage(f.cv, f.dx, f.dy); P.dirty = true; renderAll(); }
+    function commitFloat() { const f = P.fl; if (!f) return; P.fl = null; const x = f.L.cv.getContext('2d'); x.drawImage(f.cv, f.dx, f.dy); P.dirty = true; renderAll(); paintFloats(); }
+    function flAct(a) {                                                        // ➰ 고른 부분 바꾸기 (원래 그림에서 다시 그려서 흐려지지 않게)
+        const f = P.fl; if (!f) return; const T = f.T;
+        if (a === 'big') T.s = Math.min(4, T.s * 1.1); if (a === 'small') T.s = Math.max(.1, T.s / 1.1); if (a === 'rl') T.r -= 15; if (a === 'rr') T.r += 15;
+        if (a === 'fx') T.fx *= -1; if (a === 'fy') T.fy *= -1; if (a === 'kl') T.k -= 10; if (a === 'kr') T.k += 10; if (a === 'ok') { commitFloat(); return; }
+        const b = f.box0, cx = b.x + b.w / 2, cy = b.y + b.h / 2, M = new DOMMatrix().translate(cx, cy).rotate(T.r).skewX(T.k).scale(T.s * T.fx, T.s * T.fy).translate(-cx, -cy);
+        const c = mkCv(P.W, P.H), x = c.getContext('2d'); x.setTransform(M); x.drawImage(f.src, 0, 0); f.cv = c;
+        const pts = [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]].map(([u, v]) => M.transformPoint(new DOMPoint(u, v)));
+        const xs = pts.map(q => q.x), ys = pts.map(q => q.y); f.box = { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+        renderAll(); paintFloats();
+    }
     const inFloat = p => { const f = P.fl; if (!f) return false; const b = f.box; return p.x >= b.x + f.dx && p.x <= b.x + b.w + f.dx && p.y >= b.y + f.dy && p.y <= b.y + b.h + f.dy; };
     /* 🔤 글씨 (픽셀 · 벡터) */
     function textInput(p, done) {
@@ -440,22 +519,47 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (s.k === 'rect') { const r = Math.min(s.r || 0, Math.abs(w) / 2, Math.abs(h) / 2); q.roundRect ? q.roundRect(Math.min(x0, -x0), Math.min(y0, -y0), Math.abs(w), Math.abs(h), r) : q.rect(x0, y0, w, h); }
         else if (s.k === 'ellipse') q.ellipse(0, 0, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, 6.283);
         else if (s.k === 'heart') { const W2 = w / 2, H2 = h / 2; q.moveTo(0, H2); q.bezierCurveTo(-W2 * 1.3, -H2 * .05, -W2 * .9, -H2 * 1.15, 0, -H2 * .45); q.bezierCurveTo(W2 * .9, -H2 * 1.15, W2 * 1.3, -H2 * .05, 0, H2); q.closePath(); }
+        else if (s.k === 'poly') { const n = Math.max(3, s.n || 6); for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / n; q.lineTo(Math.cos(a) * w / 2, Math.sin(a) * h / 2); } q.closePath(); }
         else if (s.k === 'star') { for (let i = 0; i < 10; i++) { const rr = i % 2 ? .45 : 1, a = -Math.PI / 2 + i * Math.PI / 5; q.lineTo(Math.cos(a) * w / 2 * rr, Math.sin(a) * h / 2 * rr); } q.closePath(); }
         else if (s.k === 'text') { return null; }
         p.addPath(q, m); return p;
     }
+    function fillOf(x, s) {                                                     // 🌈 그라데이션 칠 (모양 크기에 맞춰 · 방향 ga)
+        if (!s.grad || !s.fill) return s.fill; const b = bbox(s), cx = b.x + b.w / 2, cy = b.y + b.h / 2, a = (s.grad.ang == null ? 90 : s.grad.ang) * Math.PI / 180, L = (Math.abs(b.w * Math.cos(a)) + Math.abs(b.h * Math.sin(a))) / 2;
+        const g = x.createLinearGradient(cx - Math.cos(a) * L, cy - Math.sin(a) * L, cx + Math.cos(a) * L, cy + Math.sin(a) * L); g.addColorStop(0, s.fill); g.addColorStop(1, s.grad.c2 || '#ffffff'); return g;
+    }
+    function maskShape(x, s) {                                                 // 모양 실루엣 (검정) · 합치기 · 빼기 · 겹친 곳 계산용
+        x.fillStyle = '#000'; x.strokeStyle = '#000';
+        if (s.k === 'group') { x.drawImage(groupMask(s), 0, 0); return; }
+        if (s.k === 'text') { x.save(); x.translate(s.x, s.y); x.rotate((s.rot || 0) * Math.PI / 180); x.font = `${s.fs}px Jua, 'Gowun Dodum', sans-serif`; x.textBaseline = 'top'; x.fillText(s.text, 0, 0); x.restore(); return; }
+        const p = shapePath(s); if (s.closed || s.k !== 'path') x.fill(p); else { x.lineWidth = s.sw || 4; x.lineCap = 'round'; x.stroke(p); }
+    }
+    function groupMask(g) {
+        const c = mkCv(P.W, P.H), x = c.getContext('2d');
+        g.items.forEach((it, i) => { x.globalCompositeOperation = !i || g.bop === 'union' || g.bop === 'none' ? 'source-over' : g.bop === 'sub' ? 'destination-out' : 'destination-in'; if (g.bop === 'int' && i) { const t = mkCv(P.W, P.H); maskShape(t.getContext('2d'), it); x.drawImage(t, 0, 0); } else maskShape(x, it); });
+        return c;
+    }
     function drawShape(x, s) {
+        if (s.k === 'group') {                                                 // 📦 그룹 · ⊕ 합치기 · ⊖ 빼기 · ⊗ 겹친 곳
+            if (s.bop === 'none') { x.save(); x.globalAlpha = s.op == null ? 1 : s.op; s.items.forEach(it => drawShape(x, it)); x.restore(); return; }
+            const m = groupMask(s), mx = m.getContext('2d'); mx.globalCompositeOperation = 'source-in'; mx.fillStyle = fillOf(mx, s) || P.color; mx.fillRect(0, 0, P.W, P.H);
+            x.save(); x.globalAlpha = s.op == null ? 1 : s.op; x.drawImage(m, 0, 0); x.restore(); return;
+        }
         x.save(); x.globalAlpha = s.op == null ? 1 : s.op;
         if (s.k === 'text') { x.translate(s.x, s.y); x.rotate((s.rot || 0) * Math.PI / 180); x.font = `${s.fs}px Jua, 'Gowun Dodum', sans-serif`; x.textBaseline = 'top'; if (s.fill) { x.fillStyle = s.fill; x.fillText(s.text, 0, 0); } if (s.stroke && s.sw) { x.lineWidth = s.sw / 2; x.strokeStyle = s.stroke; x.strokeText(s.text, 0, 0); } x.restore(); return; }
         const p = shapePath(s); x.lineCap = s.cap; x.lineJoin = s.cap === 'round' ? 'round' : 'miter';
-        if (s.fill) { x.fillStyle = s.fill; x.fill(p); }
+        if (s.fill) { x.fillStyle = fillOf(x, s); x.fill(p); }
         if (s.stroke && s.sw > 0) { x.lineWidth = s.sw; x.strokeStyle = s.stroke; if (s.dash) x.setLineDash([s.sw * 2, s.sw * 1.6]); x.stroke(p); }
+        if (s.arrow && s.k === 'path' && s.pts.length > 1 && s.stroke) {      // ➝ 화살표 머리
+            const a = s.pts[s.pts.length - 1], b = a.hi || s.pts[s.pts.length - 2], an = Math.atan2(a.y - b.y, a.x - b.x), L = Math.max(12, (s.sw || 4) * 3.2);
+            x.setLineDash([]); x.fillStyle = s.stroke; x.beginPath(); x.moveTo(a.x + Math.cos(an) * L * .3, a.y + Math.sin(an) * L * .3); x.lineTo(a.x - Math.cos(an - .45) * L, a.y - Math.sin(an - .45) * L); x.lineTo(a.x - Math.cos(an + .45) * L, a.y - Math.sin(an + .45) * L); x.closePath(); x.fill(); }
         x.restore();
     }
     const hitCtx = mkCv(4, 4).getContext('2d');
     function textBox(s) { hitCtx.font = `${s.fs}px Jua, sans-serif`; return { x: s.x, y: s.y, w: hitCtx.measureText(s.text).width, h: s.fs * 1.1 }; }
     function hitShape(s, p) {
         const k = 1 / Math.max(.05, scale());
+        if (s.k === 'group') { const H = s.items.map(it => hitShape(it, p)); return s.bop === 'sub' ? H[0] && !H.slice(1).some(Boolean) : s.bop === 'int' ? H.every(Boolean) : H.some(Boolean); }
         if (s.k === 'text') { const b = textBox(s); return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h; }
         const path = shapePath(s); hitCtx.lineWidth = Math.max(s.sw || 0, 12 * k);
         return (s.fill || s.closed || s.k !== 'path') && hitCtx.isPointInPath(path, p.x, p.y) || hitCtx.isPointInStroke(path, p.x, p.y);
@@ -463,6 +567,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function topShape(p) { const L = P.cur; if (!L || L.type !== 'vec') return null; for (let i = L.shapes.length - 1; i >= 0; i--) if (hitShape(L.shapes[i], p)) return L.shapes[i]; return null; }
     function bbox(s) {
         if (s.k === 'text') return textBox(s);
+        if (s.k === 'group') { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; s.items.forEach(it => { const b = bbox(it); x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.w); y1 = Math.max(y1, b.y + b.h); }); return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) }; }
         if (s.k !== 'path') return { x: Math.min(s.x, s.x + s.w), y: Math.min(s.y, s.y + s.h), w: Math.abs(s.w), h: Math.abs(s.h) };
         let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; s.pts.forEach(a => [a, a.hi, a.ho].forEach(q => { if (!q) return; x0 = Math.min(x0, q.x); y0 = Math.min(y0, q.y); x1 = Math.max(x1, q.x); y1 = Math.max(y1, q.y); }));
         return { x: x0, y: y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
@@ -473,6 +578,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (P.drag && P.drag.curve) { x.strokeStyle = P.color; x.lineWidth = P.vsw; x.lineCap = x.lineJoin = 'round'; x.beginPath(); P.drag.curve.forEach((p, i) => i ? x.lineTo(p.x, p.y) : x.moveTo(p.x, p.y)); x.stroke(); }
         if (P.drag && P.drag.newS) { drawShape(x, P.drag.newS); }
         if (!s) return;
+        if (P.many.length > 1) { x.save(); x.strokeStyle = '#ff6f91'; x.lineWidth = 1.6 * k; x.setLineDash([5 * k, 4 * k]); let X0 = 1e9, Y0 = 1e9, X1 = -1e9, Y1 = -1e9; P.many.forEach(q => { const b = bbox(q); x.strokeRect(b.x - 3 * k, b.y - 3 * k, b.w + 6 * k, b.h + 6 * k); X0 = Math.min(X0, b.x); Y0 = Math.min(Y0, b.y); X1 = Math.max(X1, b.x + b.w); Y1 = Math.max(Y1, b.y + b.h); }); x.strokeStyle = '#4aa8ff'; x.strokeRect(X0 - 8 * k, Y0 - 8 * k, X1 - X0 + 16 * k, Y1 - Y0 + 16 * k); x.restore(); return; }
         if (P.tool === 'direct' || P.tool === 'cut') { anchors(x, s, k, false); return; }
         const b = bbox(s); x.save();
         if (s.k !== 'path' && s.rot) { x.translate(b.x + b.w / 2, b.y + b.h / 2); x.rotate(s.rot * Math.PI / 180); x.translate(-(b.x + b.w / 2), -(b.y + b.h / 2)); }
@@ -503,14 +609,17 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         for (let i = 0; i < s.pts.length; i++) { const a = s.pts[i]; if (P.pt && P.pt.s === s && P.pt.i === i) { if (a.hi && dist(a.hi, p) < r) return { i, h: 'hi' }; if (a.ho && dist(a.ho, p) < r) return { i, h: 'ho' }; } if (dist(a, p) < r) return { i, h: null }; }
         return null;
     }
-    function moveShape(s, dx, dy) { if (s.k === 'path') s.pts.forEach(a => [a, a.hi, a.ho].forEach(q => { if (q) { q.x += dx; q.y += dy; } })); else { s.x += dx; s.y += dy; } }
+    function moveShape(s, dx, dy) { if (s.k === 'group') { s.items.forEach(it => moveShape(it, dx, dy)); return; } if (s.k === 'path') s.pts.forEach(a => [a, a.hi, a.ho].forEach(q => { if (q) { q.x += dx; q.y += dy; } })); else { s.x += dx; s.y += dy; } }
     function scaleShape(s, b0, b1, orig) {                                     // orig = 그때 모양 (복사본)
         const fx = b1.w / b0.w, fy = b1.h / b0.h, T = q => ({ x: b1.x + (q.x - b0.x) * fx, y: b1.y + (q.y - b0.y) * fy });
+        if (s.k === 'group') { s.items.forEach((it, i) => { const o = orig.items[i], ib = bbox(o); scaleShape(it, ib, { x: b1.x + (ib.x - b0.x) * fx, y: b1.y + (ib.y - b0.y) * fy, w: ib.w * fx, h: ib.h * fy }, o); }); return; }
         if (s.k === 'path') s.pts = orig.pts.map(a => ({ x: T(a).x, y: T(a).y, hi: a.hi ? T(a.hi) : null, ho: a.ho ? T(a.ho) : null, sm: a.sm }));
         else if (s.k === 'text') { s.x = b1.x; s.y = b1.y; s.fs = Math.max(6, orig.fs * fy); }
         else { s.x = b1.x; s.y = b1.y; s.w = b1.w; s.h = b1.h; }
     }
-    function rotShape(s, orig, ang, c) {
+    function rotShape(s, orig, ang, c, around) {
+        if (s.k === 'group') { s.items.forEach((it, i) => rotShape(it, orig.items[i], ang, c, true)); return; }
+        if (around && s.k !== 'path') { const b = bbox(orig), ox = b.x + b.w / 2, oy = b.y + b.h / 2, co = Math.cos(ang), si = Math.sin(ang), nx = c.x + (ox - c.x) * co - (oy - c.y) * si, ny = c.y + (ox - c.x) * si + (oy - c.y) * co; s.x = orig.x + nx - ox; s.y = orig.y + ny - oy; s.rot = ((orig.rot || 0) + ang * 180 / Math.PI) % 360; return; }
         if (s.k === 'path') { const co = Math.cos(ang), si = Math.sin(ang), R = q => ({ x: c.x + (q.x - c.x) * co - (q.y - c.y) * si, y: c.y + (q.x - c.x) * si + (q.y - c.y) * co }); s.pts = orig.pts.map(a => ({ x: R(a).x, y: R(a).y, hi: a.hi ? R(a.hi) : null, ho: a.ho ? R(a.ho) : null, sm: a.sm })); }
         else s.rot = ((orig.rot || 0) + ang * 180 / Math.PI) % 360;
     }
@@ -560,19 +669,46 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     /* 떠 있는 막대 : 모양 (칠 · 선 · 앞으로 · 복사 · 삭제) · 점 (둥근 · 꺾인 · 더하기 · 빼기) */
     function paintFloats() {
         const fs = $('ppFlS'), fp = $('ppFlP'); if (!fs) return;
+        if (P.mode === 'px' && P.fl) { const b = P.fl.box, q = toScr({ x: b.x + P.fl.dx + b.w / 2, y: b.y + P.fl.dy }); fs.hidden = false; fp.hidden = true;
+            fs.innerHTML = `<button data-fx="small">－ 작게</button><button data-fx="big">＋ 크게</button><button data-fx="rl">⟲</button><button data-fx="rr">⟳</button><button data-fx="fx">↔ 뒤집기</button><button data-fx="fy">↕ 뒤집기</button><button data-fx="kl">◁ 기울이기</button><button data-fx="kr">기울이기 ▷</button><button data-fx="ok">✔ 붙이기</button>`;
+            Object.assign(fs.style, { left: q.x + 'px', top: Math.max(4, q.y - 64) + 'px' }); return; }
         const s = P.sel, V = P.mode === 'vec' && s && P.cur && P.cur.shapes && P.cur.shapes.includes(s) && !P.pen;
         fs.hidden = !(V && ['select', 'paint'].includes(P.tool));
         fp.hidden = !(V && P.tool === 'direct' && P.pt && P.pt.s === s);
-        if (!fs.hidden) { const b = bbox(s), q = toScr({ x: b.x + b.w / 2, y: b.y }); fs.innerHTML = `<button data-s="fill">🎨 칠</button><button data-s="stroke">✏️ 선</button><button data-s="front">⤴ 앞으로</button><button data-s="dup">⧉ 복사</button><button data-s="del">🗑</button>`; Object.assign(fs.style, { left: q.x + 'px', top: Math.max(4, q.y - 64) + 'px' }); }
+        if (!fs.hidden) { const M = P.many.length > 1, b = M ? P.many.map(bbox).reduce((u, v) => ({ x: Math.min(u.x, v.x), y: Math.min(u.y, v.y), w: Math.max(u.x + u.w, v.x + v.w) - Math.min(u.x, v.x), h: 0 })) : bbox(s), q = toScr({ x: b.x + b.w / 2, y: b.y });
+            fs.innerHTML = M ? `<button data-s="bunion">⊕ 합치기</button><button data-s="bsub">⊖ 빼기 (위에서 아래)</button><button data-s="bint">⊗ 겹친 곳만</button><button data-s="group">📦 그룹</button><br><button data-s="al">⇤</button><button data-s="ac">⇹</button><button data-s="ar">⇥</button><button data-s="at">⤒</button><button data-s="am">⇳</button><button data-s="ab">⤓</button><button data-s="dh">↔ 같은 간격</button><button data-s="dv">↕ 같은 간격</button><button data-s="mdone">✔ 고르기 끝</button>`
+                : `<button data-s="fill">🎨 칠</button><button data-s="stroke">✏️ 선</button><button data-s="grad">🌈 그라데이션</button><button data-s="front">⤴ 앞으로</button><button data-s="dup">⧉ 복사</button><button data-s="del">🗑</button><br><button data-s="more" class="${P.addSel ? 'on' : ''}">➕ 더 고르기</button><button data-s="radial">🌀 빙글 복사 ${P.radN || 6}</button><button data-s="center">⊙ 종이 가운데</button>${s.k === 'group' ? '<button data-s="ungroup">📤 풀기</button>' : ''}`;
+            Object.assign(fs.style, { left: q.x + 'px', top: Math.max(4, q.y - (M ? 92 : 92)) + 'px' }); }
         if (!fp.hidden) { const a = s.pts[P.pt.i], q = toScr(a); fp.innerHTML = `<button data-p="sm">⌒ 둥근 점</button><button data-p="cn">∠ 꺾인 점</button><button data-p="add">➕ 점 더하기</button><button data-p="rm">➖ 점 빼기</button>`; Object.assign(fp.style, { left: q.x + 'px', top: (q.y + 22) + 'px' }); }
     }
     function shapeAct(a) {
-        const L = P.cur, s = P.sel; if (!s || !L) return; histVec(L);
+        const L = P.cur, s = P.sel; if (!s || !L) return;
+        if (a === 'more') { P.addSel = !P.addSel; say(P.addSel ? '➕ 같이 고를 모양을 눌러요 (Shift + 누르기도 돼요)' : '더 고르기 끔'); paintFloats(); return; }
+        if (a === 'mdone') { P.many = [s]; P.addSel = false; renderAll(); paintFloats(); return; }
+        histVec(L);
+        const M = P.many.length > 1 ? L.shapes.filter(q => P.many.includes(q)) : null;   // 쌓인 차례 (아래 → 위)
+        if (M && ['bunion', 'bsub', 'bint', 'group'].includes(a)) {           // ⊕ ⊖ ⊗ 📦 = 한 모양으로 (풀면 그대로 돌아와요)
+            const top = Math.max(...M.map(q => L.shapes.indexOf(q))), base = a === 'bsub' ? M[0] : M[M.length - 1], items = a === 'bsub' ? M : (a === 'bint' ? M : M);
+            const g = Object.assign(V0(), { k: 'group', bop: a === 'bunion' ? 'union' : a === 'bsub' ? 'sub' : a === 'bint' ? 'int' : 'none', items: items.map(clone), fill: base.fill || P.color, grad: base.grad || null, stroke: null, op: 1 });
+            L.shapes = L.shapes.filter((q, i) => !M.includes(q) || i === top).map(q => q === L.shapes[top] ? g : q); P.sel = g; P.many = [g];
+            say(a === 'bsub' ? '⊖ 맨 아래 모양에서 위 모양들을 뺐어요' : a === 'bint' ? '⊗ 모두 겹친 곳만 남겼어요' : a === 'group' ? '📦 그룹으로 묶었어요' : '⊕ 하나로 합쳤어요');
+        }
+        if (M && /^(a[lcrtmb]|d[hv])$/.test(a)) {                              // 정렬 · 같은 간격
+            const B = M.map(bbox), X0 = Math.min(...B.map(b => b.x)), Y0 = Math.min(...B.map(b => b.y)), X1 = Math.max(...B.map(b => b.x + b.w)), Y1 = Math.max(...B.map(b => b.y + b.h));
+            M.forEach((q, i) => { const b = B[i]; if (a === 'al') moveShape(q, X0 - b.x, 0); if (a === 'ar') moveShape(q, X1 - b.x - b.w, 0); if (a === 'ac') moveShape(q, (X0 + X1) / 2 - b.x - b.w / 2, 0); if (a === 'at') moveShape(q, 0, Y0 - b.y); if (a === 'ab') moveShape(q, 0, Y1 - b.y - b.h); if (a === 'am') moveShape(q, 0, (Y0 + Y1) / 2 - b.y - b.h / 2); });
+            if (a === 'dh' || a === 'dv') { const H = a === 'dh', o = M.map((q, i) => ({ q, b: B[i] })).sort((u, v) => H ? u.b.x - v.b.x : u.b.y - v.b.y), c0 = H ? o[0].b.x + o[0].b.w / 2 : o[0].b.y + o[0].b.h / 2, c1 = H ? o[o.length - 1].b.x + o[o.length - 1].b.w / 2 : o[o.length - 1].b.y + o[o.length - 1].b.h / 2;
+                o.forEach((e, i) => { const t = c0 + (c1 - c0) * i / (o.length - 1), c = H ? e.b.x + e.b.w / 2 : e.b.y + e.b.h / 2; moveShape(e.q, H ? t - c : 0, H ? 0 : t - c); }); }
+        }
+        if (a === 'ungroup' && s.k === 'group') { const i = L.shapes.indexOf(s); L.shapes.splice(i, 1, ...s.items); P.many = s.items.slice(); P.sel = s.items[s.items.length - 1]; say('📤 풀었어요'); }
+        if (a === 'center') { const b = bbox(s); moveShape(s, P.W / 2 - b.x - b.w / 2, P.H / 2 - b.y - b.h / 2); }
+        if (a === 'radial') { const n = P.radN || 6, c = { x: P.W / 2, y: P.H / 2 }, items = []; for (let i = 0; i < n; i++) { const q = clone(s); if (i) rotShape(q, clone(s), i * 2 * Math.PI / n, c, true); items.push(q); }
+            const g = Object.assign(V0(), { k: 'group', bop: 'none', items, fill: s.fill, stroke: null, op: 1 }); L.shapes.splice(L.shapes.indexOf(s), 1, g); P.sel = g; P.many = [g]; say(`🌀 종이 가운데를 돌며 ${n}개 · 📤 풀기로 하나씩`); }
+        if (a === 'grad') { if (s.grad) s.grad = null; else { if (!s.fill) s.fill = P.color; s.grad = { c2: P.recent.find(c => c !== s.fill) || '#ffffff', ang: 90 }; say('🌈 오른쪽 칸에서 끝 색 · 방향을 바꿔요'); } }
         if (a === 'fill') s.fill = s.fill === P.color ? null : P.color;
         if (a === 'stroke') { if (s.stroke === P.color && s.k !== 'text') s.stroke = null; else s.stroke = P.color; if (!s.sw) s.sw = P.vsw || 4; }
         if (a === 'front') { const i = L.shapes.indexOf(s); if (i < L.shapes.length - 1) { L.shapes.splice(i, 1); L.shapes.splice(i + 1, 0, s); } }
-        if (a === 'dup') { const c = clone(s); c.id = uid++; moveShape(c, 18, 18); L.shapes.push(c); P.sel = c; }
-        if (a === 'del') { L.shapes = L.shapes.filter(x => x !== s); P.sel = null; }
+        if (a === 'dup') { const c = clone(s); c.id = uid++; moveShape(c, 18, 18); L.shapes.push(c); P.sel = c; P.many = [c]; }
+        if (a === 'del') { const D = P.many.length > 1 ? P.many : [s]; L.shapes = L.shapes.filter(x => !D.includes(x)); P.sel = null; P.many = []; }
         L.dirtyV = true; P.dirty = true; renderAll(); paintFloats(); paintProps();
     }
     function pointAct(a) {
@@ -609,7 +745,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
             if (t === 'zoom') { zoomAt(e.altKey || e.shiftKey ? 1 / 1.4 : 1.4, e.clientX, e.clientY); return; }
             if (t === 'drop') { pick(p); return; }
             if (t === 'fill') { flood(p); return; }
+            if (t === 'grad') { if (!canPaint(P.cur)) return; P.drag = { gradPv: 1, a: p, b: p }; return; }
             if (t === 'text') { if (!canPaint(P.cur)) return; textInput(p, txt => { histPx(P.cur); const x = P.cur.cv.getContext('2d'); x.save(); x.globalAlpha = P.op; x.fillStyle = P.color; x.font = `${Math.max(10, P.size * 4)}px Jua, 'Gowun Dodum', sans-serif`; x.textBaseline = 'top'; x.fillText(txt, p.x, p.y); x.restore(); P.dirty = true; renderAll(); }); return; }
+            if (t === 'smudge') { strokeStart(e, p); return; }
             if (t === 'lasso') { if (P.fl && inFloat(p)) { P.drag = { flMove: 1, p0: p, dx: P.fl.dx, dy: P.fl.dy }; return; } commitFloat(); P.lasso = [p]; P.drag = { lasso: 1 }; return; }
             if (t === 'move') {
                 const L = P.cur; if (!L || L.lock) { say('🔒 잠긴 레이어예요'); return; }
@@ -633,7 +771,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         /* ✒️ 벡터 */
         if (t === 'pen') { penDown(p); return; }
         if (t === 'curve') { if (!needVec()) return; P.drag = { curve: [p] }; return; }
-        if (['rect', 'ellipse', 'heart', 'star'].includes(t)) { const L = needVec(); if (!L) return; P.drag = { newS: Object.assign(V0(), { k: t, x: p.x, y: p.y, w: 0, h: 0, r: t === 'rect' ? P.vround : 0, rot: 0, fill: t === 'heart' || t === 'star' ? P.color : null }), a: p }; return; }
+        if (['rect', 'ellipse', 'heart', 'star', 'poly'].includes(t)) { const L = needVec(); if (!L) return; P.drag = { newS: Object.assign(V0(), { k: t, x: p.x, y: p.y, w: 0, h: 0, r: t === 'rect' ? P.vround : 0, rot: 0, n: P.polyN || 6, fill: t === 'heart' || t === 'star' || t === 'poly' ? P.color : null }), a: p }; return; }
+        if (t === 'line' || t === 'arrow') { const L = needVec(); if (!L) return; P.drag = { newS: Object.assign(V0(), { k: 'path', pts: [{ x: p.x, y: p.y, hi: null, ho: null, sm: false }, { x: p.x, y: p.y, hi: null, ho: null, sm: false }], closed: false, arrow: t === 'arrow', sw: Math.max(2, P.vsw) }), a: p, line: 1 }; return; }
         if (t === 'vtext') { const L = needVec(); if (!L) return; textInput(p, txt => { histVec(L); const s = Object.assign(V0(), { k: 'text', x: p.x, y: p.y, text: txt, fs: Math.max(12, P.vsw * 6), fill: P.color, stroke: null }); L.shapes.push(s); P.sel = s; L.dirtyV = true; P.dirty = true; setTool('select'); renderAll(); }); return; }
         if (t === 'vmove') { const L = needVec(); if (!L) return; histVec(L); P.drag = { vmoveAll: 1, p0: p }; return; }
         if (t === 'paint') { const s = topShape(p); if (!s) { say('🪣 칠할 모양을 눌러요'); return; } histVec(P.cur); s.fill = P.color; P.sel = s; P.cur.dirtyV = true; P.dirty = true; renderAll(); paintFloats(); return; }
@@ -644,20 +783,25 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         }
         if (t === 'select') {
             if (P.sel) { const h = hitHandle(P.sel, p); if (h) { histVec(P.cur); const b = bbox(P.sel); P.drag = { handle: h, s: P.sel, b0: b, orig: clone(P.sel), p0: p, c: { x: b.x + b.w / 2, y: b.y + b.h / 2 } }; return; } }
-            const s = topShape(p); P.sel = s; P.pt = null;
+            const s = topShape(p);
+            if ((P.addSel || e.shiftKey) && P.sel && s) { const M = P.many.length ? P.many : [P.sel]; P.many = M.includes(s) ? M.filter(q => q !== s) : M.concat(s); if (!P.many.length) P.many = [P.sel]; P.sel = P.many[P.many.length - 1]; P.addSel = false; if (P.many.length > 1) say(`➕ ${P.many.length}개 골랐어요 · 위 막대에서 합치기 · 정렬`); renderAll(); paintFloats(); paintProps(); return; }
+            if (P.many.length > 1 && s && P.many.includes(s)) { histVec(P.cur); P.drag = { manyMove: 1, last: p }; return; }
+            P.sel = s; P.pt = null; P.many = s ? [s] : []; P.addSel = false;
             if (s) { histVec(P.cur); P.drag = { smove: 1, s, last: p }; }
             renderAll(); paintFloats(); paintProps(); return;
         }
     }
     function move(e) {
         const p = toDoc(e), br = $('ppBr');
-        if (P.mode === 'px' && ['brush', 'pencil', 'marker', 'air', 'erase'].includes(P.tool) && !P.hand) { const s = $('ppStage').getBoundingClientRect(), r = Math.max(4, (P.tool === 'pencil' ? Math.max(1, P.size * .35) : P.size / 2) * scale() * (P.tool === 'air' ? 3 : 1)); br.hidden = false; Object.assign(br.style, { left: (e.clientX - s.left - r) + 'px', top: (e.clientY - s.top - r) + 'px', width: r * 2 + 'px', height: r * 2 + 'px' }); } else br.hidden = true;
+        if (P.mode === 'px' && ['brush', 'pencil', 'marker', 'air', 'erase', 'stamp', 'smudge'].includes(P.tool) && !P.hand) { const s = $('ppStage').getBoundingClientRect(), r = Math.max(4, (P.tool === 'pencil' ? Math.max(1, P.size * .35) : P.size / 2) * scale() * (P.tool === 'air' ? 3 : 1)); br.hidden = false; Object.assign(br.style, { left: (e.clientX - s.left - r) + 'px', top: (e.clientY - s.top - r) + 'px', width: r * 2 + 'px', height: r * 2 + 'px' }); } else br.hidden = true;
         if (P.pen && !P.drag) { P.pen.hover = p; drawOv(); }
         const d = P.drag; if (!d || !P.down || e.pointerId !== P.down.id) return;
         if (Math.hypot(e.clientX - P.down.sx, e.clientY - P.down.sy) > 3) P.down.moved = true;
         if (d.pan) { P.px = d.px + e.clientX - d.x; P.py = d.py + e.clientY - d.y; view(); return; }
         if (d.stroke) { const ev = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; (ev.length ? ev : [e]).forEach(q => stroke(toDoc(q), q.pressure)); renderAll(); return; }
         if (d.lasso) { P.lasso.push(p); drawOv(); return; }
+        if (d.smudge) { const ev = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; (ev.length ? ev : [e]).forEach(q => smudgeTo(toDoc(q))); return; }
+        if (d.gradPv) { d.b = p; drawOv(); return; }
         if (d.flMove) { P.fl.dx = d.dx + p.x - d.p0.x; P.fl.dy = d.dy + p.y - d.p0.y; renderAll(); return; }
         if (d.photo) { const L = P.cur; L.ox = d.ox + p.x - d.p0.x; L.oy = d.oy + p.y - d.p0.y; photoPaint(L); renderAll(); return; }
         if (d.sbMove) { d.el.mv.x = Math.round(d.x0 + p.x - d.p0.x); d.el.mv.y = Math.round(d.y0 + p.y - d.p0.y); P.cur.dirtyV = true; renderAll(); return; }
@@ -667,7 +811,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (d.shapePv) { d.b = e.shiftKey ? sq(d.a, p) : p; drawOv(); return; }
         if (d.penPt) { const a = d.penPt; if (dist(a, p) > 3 / scale()) { a.ho = { x: p.x, y: p.y }; a.hi = { x: 2 * a.x - p.x, y: 2 * a.y - p.y }; a.sm = true; } P.cur.dirtyV = true; renderAll(); return; }
         if (d.curve) { d.curve.push(p); drawOv(); return; }
+        if (d.newS && d.line) { let b = p; if (e.shiftKey) { const an = Math.round(Math.atan2(p.y - d.a.y, p.x - d.a.x) / (Math.PI / 4)) * Math.PI / 4, L = dist(d.a, p); b = { x: d.a.x + Math.cos(an) * L, y: d.a.y + Math.sin(an) * L }; } d.newS.pts[1].x = b.x; d.newS.pts[1].y = b.y; drawOv(); return; }
         if (d.newS) { const b = e.shiftKey ? sq(d.a, p) : p; Object.assign(d.newS, { x: Math.min(d.a.x, b.x), y: Math.min(d.a.y, b.y), w: Math.abs(b.x - d.a.x), h: Math.abs(b.y - d.a.y) }); drawOv(); return; }
+        if (d.manyMove) { P.many.forEach(q => moveShape(q, p.x - d.last.x, p.y - d.last.y)); d.last = p; P.cur.dirtyV = true; renderAll(); paintFloats(); return; }
         if (d.smove) { moveShape(d.s, p.x - d.last.x, p.y - d.last.y); d.last = p; P.cur.dirtyV = true; renderAll(); paintFloats(); return; }
         if (d.anchor) {
             const a = d.s.pts[d.anchor.i];
@@ -690,13 +836,16 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (!d) return;
         if (d.stroke) { strokeEnd(); return; }
         P.drag = null;
+        if (d.smudge) { P.dirty = true; renderAll(); return; }
+        if (d.gradPv) { gradApply(d.a, d.b); drawOv(); return; }
         if (d.lasso) { lassoClose(); return; }
         if (d.moveL) { const L = P.cur, c = mkCv(P.W, P.H); c.getContext('2d').drawImage(L.cv, d.dx, d.dy); const x = L.cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.drawImage(c, 0, 0); P.dirty = true; renderAll(); return; }
         if (d.shapePv) { histPx(P.cur); const x = P.cur.cv.getContext('2d'); x.save(); x.globalAlpha = P.op; if (P.cur.aLock) x.globalCompositeOperation = 'source-atop'; shapePx(x, d.a, d.b); x.restore(); P.dirty = true; renderAll(); return; }
         if (d.curve) { P.drag = d; curveEnd(); return; }
-        if (d.newS) { const s = d.newS; if (s.w < 4 && s.h < 4) { Object.assign(s, { x: d.a.x - 60, y: d.a.y - 60, w: 120, h: 120 }); } const L = P.cur; histVec(L); L.shapes.push(s); L.dirtyV = true; P.sel = s; P.dirty = true; setTool('select'); renderAll(); paintFloats(); paintProps(); return; }
+        if (d.newS && d.line && dist(d.newS.pts[0], d.newS.pts[1]) < 4) d.newS.pts[1].x += 120;
+        if (d.newS) { const s = d.newS; if (!d.line && s.w < 4 && s.h < 4) { Object.assign(s, { x: d.a.x - 60, y: d.a.y - 60, w: 120, h: 120 }); } const L = P.cur; histVec(L); L.shapes.push(s); L.dirtyV = true; P.sel = s; P.dirty = true; setTool('select'); renderAll(); paintFloats(); paintProps(); return; }
         if (d.cbMove || d.sbMove) { P.dirty = true; renderAll(); paintProps(); return; }
-        if (d.penPt || d.smove || d.anchor || d.handle || d.vmoveAll || d.photo || d.flMove) { P.dirty = true; renderAll(); paintFloats(); paintProps(); }
+        if (d.penPt || d.smove || d.anchor || d.handle || d.vmoveAll || d.photo || d.flMove || d.manyMove) { P.dirty = true; renderAll(); paintFloats(); paintProps(); }
     }
     function onKey(e) {
         if (!P.on || !P.keyOn || e.target.closest && e.target.closest('input, textarea')) return;
@@ -708,7 +857,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     document.addEventListener('keydown', e => {                                // Esc = 그리던 것 먼저 끝내요 (태블릿 홈보다 · 잡는 단계에서)
         if (!P.on || !P.keyOn || e.key !== 'Escape' || !(P.pen || P.fl || P.sel)) return;
-        e.stopImmediatePropagation(); if (P.pen) penEnd(); else if (P.fl) commitFloat(); else { P.sel = null; P.pt = null; renderAll(); paintFloats(); paintProps(); }
+        e.stopImmediatePropagation(); if (P.pen) penEnd(); else if (P.fl) commitFloat(); else { P.sel = null; P.pt = null; P.many = []; P.addSel = false; renderAll(); paintFloats(); paintProps(); }
     }, true);
 
     /* ================= 되돌리기 ================= */
@@ -716,12 +865,12 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function push(h) { P.hist.push(h); if (P.hist.length > H_MAX) P.hist.shift(); P.redo = []; }
     function histPx(L) { const c = mkCv(P.W, P.H); c.getContext('2d').drawImage(L.cv, 0, 0); push({ t: 'px', L, c }); }
     function histVec(L) { push({ t: 'vec', L, s: JSON.stringify(L.shapes) }); }
-    const snapSt = () => ({ t: 'st', layers: P.layers.map(l => ({ l, p: { type: l.type, shapes: l.type === 'vec' ? JSON.parse(JSON.stringify(l.shapes)) : l.shapes, name: l.name, vis: l.vis, lock: l.lock, op: l.op, blend: l.blend, aLock: l.aLock, s: l.s, ox: l.ox, oy: l.oy, wash: l.wash, mk: l.mk && Object.assign({}, l.mk), blocks: l.blocks && JSON.parse(JSON.stringify(l.blocks)), pb: l.pb && JSON.parse(JSON.stringify(l.pb)), pa: l.pa && JSON.parse(JSON.stringify(l.pa)), els: l.els && JSON.parse(JSON.stringify(l.els)), box: l.box && Object.assign({}, l.box), text: l.text } })), cur: P.cur });
+    const snapSt = () => ({ t: 'st', layers: P.layers.map(l => ({ l, p: { type: l.type, shapes: l.type === 'vec' ? JSON.parse(JSON.stringify(l.shapes)) : l.shapes, name: l.name, vis: l.vis, lock: l.lock, op: l.op, blend: l.blend, aLock: l.aLock, clip: !!l.clip, s: l.s, ox: l.ox, oy: l.oy, wash: l.wash, mk: l.mk && Object.assign({}, l.mk), blocks: l.blocks && JSON.parse(JSON.stringify(l.blocks)), pb: l.pb && JSON.parse(JSON.stringify(l.pb)), pa: l.pa && JSON.parse(JSON.stringify(l.pa)), els: l.els && JSON.parse(JSON.stringify(l.els)), box: l.box && Object.assign({}, l.box), text: l.text } })), cur: P.cur });
     function histSt() { push(snapSt()); }
     function restore(h) {
         if (h.t === 'multi') return { t: 'multi', items: h.items.slice().reverse().map(restore).reverse() };
         if (h.t === 'px') { const c = mkCv(P.W, P.H); c.getContext('2d').drawImage(h.L.cv, 0, 0); const x = h.L.cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.drawImage(h.c, 0, 0); return { t: 'px', L: h.L, c }; }
-        if (h.t === 'vec') { const now = JSON.stringify(h.L.shapes); h.L.shapes = JSON.parse(h.s); h.L.dirtyV = true; P.sel = null; P.pt = null; return { t: 'vec', L: h.L, s: now }; }
+        if (h.t === 'vec') { const now = JSON.stringify(h.L.shapes); h.L.shapes = JSON.parse(h.s); h.L.dirtyV = true; P.sel = null; P.pt = null; P.many = []; return { t: 'vec', L: h.L, s: now }; }
         const now = snapSt(); P.layers = h.layers.map(x => { Object.assign(x.l, x.p); if (x.l.type === 'vec') { if (!x.l.cache) x.l.cache = mkCv(P.W, P.H); x.l.shapes = JSON.parse(JSON.stringify(x.p.shapes)); x.l.dirtyV = true; } if (x.l.type === 'css') { x.l.blocks = JSON.parse(JSON.stringify(x.p.blocks || [])); x.l.pb = JSON.parse(JSON.stringify(x.p.pb || [])); x.l.pa = JSON.parse(JSON.stringify(x.p.pa || [])); x.l.box = Object.assign({}, x.p.box); x.l.dirtyV = true; } if (x.l.type === 'svg') { x.l.els = JSON.parse(JSON.stringify(x.p.els || [])); x.l.dirtyV = true; } if (x.l.type === 'photo') photoPaint(x.l); if (x.l.type === 'paper' && x.p.mk) paperPaint(x.l); return x.l; }); P.cur = P.layers.includes(h.cur) ? h.cur : P.layers[P.layers.length - 1]; return now;
     }
     function undo() { commitFloat(); penEnd(); const h = P.hist.pop(); if (!h) { say('더 되돌릴 게 없어요', 900); return; } P.redo.push(restore(h)); after(); }
@@ -733,11 +882,11 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         const box = $('ppLy'); if (!box) return;
         box.innerHTML = [...P.layers].reverse().map(L => { const T = TAG[L.type], bl = (BLEND.find(b => b[0] === L.blend) || BLEND[0])[1];
             return `<div class="pp-ly${L === P.cur ? ' on' : ''}" data-id="${L.id}" draggable="true"><button type="button" class="eye${L.vis ? '' : ' off'}" data-e="vis">${L.vis ? '👁' : '◌'}</button><canvas width="84" height="64" data-th="${L.id}"></canvas>
-                <div><b>${esc(L.name)}</b><span class="tag ${T[0]}">${T[1]}</span><small>${bl} · ${Math.round(L.op * 100)}%${L.aLock ? ' · 🫧' : ''}</small></div><button type="button" class="lk${L.lock ? ' on' : ''}" data-e="lock">${L.lock ? '🔒' : '🔓'}</button></div>`; }).join('');
+                <div><b>${esc(L.name)}</b><span class="tag ${T[0]}">${T[1]}</span><small>${L.clip ? '📎 ' : ''}${bl} · ${Math.round(L.op * 100)}%${L.aLock ? ' · 🫧' : ''}</small></div><button type="button" class="lk${L.lock ? ' on' : ''}" data-e="lock">${L.lock ? '🔒' : '🔓'}</button></div>`; }).join('');
         thumbs();
         box.onclick = e => { const row = e.target.closest('.pp-ly'); if (!row) return; const L = P.layers.find(l => l.id === +row.dataset.id); const b = e.target.closest('[data-e]');
             if (b) { histSt(); if (b.dataset.e === 'vis') L.vis = !L.vis; else L.lock = !L.lock; renderAll(); paintLayers(); paintProps(); return; }
-            commitFloat(); penEnd(); P.cur = L; P.sel = null; P.pt = null;
+            commitFloat(); penEnd(); P.cur = L; P.sel = null; P.pt = null; P.many = []; P.addSel = false;
             if (L.type === 'px' && P.mode !== 'px') { P.mode = 'px'; P.tool = 'brush'; modeBtns(); paintTools(); } if (L.type === 'vec' && P.mode !== 'vec') { P.mode = 'vec'; P.tool = 'select'; modeBtns(); paintTools(); } if (L.type === 'css' && P.mode !== 'css') { P.mode = 'css'; P.tool = 'cbmove'; modeBtns(); paintTools(); } if (L.type === 'svg' && P.mode !== 'svg') { P.mode = 'svg'; P.tool = 'sbmove'; modeBtns(); paintTools(); }
             if (L.type === 'photo' && P.mode === 'px') setTool('move');
             renderAll(); paintLayers(); paintProps(); paintFloats(); };
@@ -782,7 +931,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
                 <div class="r"><span>선 끝</span><div>${chip('vc', 'round', '둥글게', s.cap === 'round')}${chip('vc', 'butt', '각지게', s.cap !== 'round')}</div></div>
                 ${s.k === 'rect' ? `<label class="pp-sl">모서리<input type="range" data-pk="r" min="0" max="120" value="${s.r || 0}"><b>${Math.round(s.r || 0)}</b></label>` : ''}
                 <label class="pp-sl">선 굵기<input type="range" data-pk="sw" min="0" max="40" value="${s.sw || 0}"><b>${s.sw || 0}px</b></label>
-                <label class="pp-sl">투명도<input type="range" data-pk="op" min=".05" max="1" step=".05" value="${s.op == null ? 1 : s.op}"><b>${Math.round((s.op == null ? 1 : s.op) * 100)}%</b></label>`;
+                <label class="pp-sl">투명도<input type="range" data-pk="op" min=".05" max="1" step=".05" value="${s.op == null ? 1 : s.op}"><b>${Math.round((s.op == null ? 1 : s.op) * 100)}%</b></label>
+                <div class="r"><span>그라데이션</span><div>${chip('vg', 'on', s.grad ? '🌈 켜짐' : '꺼짐', !!s.grad)}${s.grad ? chip('vg', 'c2', `<i style="background:${s.grad.c2}"></i>끝 색 = 지금 색`, false) : ''}</div></div>
+                ${s.grad ? `<label class="pp-sl">방향<input type="range" data-pk="ga" min="0" max="360" value="${s.grad.ang}"><b>${s.grad.ang}°</b></label>` : ''}${s.k === 'group' ? `<p class="pp-hint">${s.bop === 'none' ? '📦 그룹' : s.bop === 'union' ? '⊕ 합친 모양' : s.bop === 'sub' ? '⊖ 뺀 모양' : '⊗ 겹친 곳'} · 위 막대 📤 풀기로 되돌려요${s.bop !== 'none' ? ' · 선은 칠만 돼요' : ''}</p>` : ''}`;
             return;
         }
         if (!L) { box.innerHTML = ''; T.textContent = ''; return; }
@@ -792,11 +943,33 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         else {
             h = `<div class="r"><span>섞는 법</span><div>${BLEND.map(([v, n]) => chip('bl', v, n, L.blend === v)).join('')}</div></div>
                 <label class="pp-sl">투명도<input type="range" data-pk="lop" min="0" max="1" step=".05" value="${L.op}"><b>${Math.round(L.op * 100)}%</b></label>
-                <div class="r"><span>잠금</span><div>${chip('lk', 1, '🔒 레이어', L.lock)}${L.type === 'px' ? chip('al', 1, '🫧 그린 곳만 칠', L.aLock) : ''}</div></div>`;
+                <div class="r"><span>잠금</span><div>${chip('lk', 1, '🔒 레이어', L.lock)}${L.type === 'px' ? chip('al', 1, '🫧 그린 곳만 칠', L.aLock) : ''}</div></div>
+                <div class="r"><span>클리핑</span><div>${chip('clip', 1, '📎 아래 레이어 그림 안에만', !!L.clip)}</div></div>`;
+            if (L.type === 'px') { const A = P.adj && P.adj.L === L ? P.adj : { h: 0, s: 100, b: 100, bl: 0 };
+                h += `<h4>🎨 색 조정<em>움직이면 바로 · 적용하면 끝</em></h4><label class="pp-sl">색 돌리기<input type="range" data-pk="ah" min="-180" max="180" value="${A.h}"><b>${A.h}°</b></label><label class="pp-sl">채도<input type="range" data-pk="as" min="0" max="200" value="${A.s}"><b>${A.s}%</b></label><label class="pp-sl">밝기<input type="range" data-pk="ab" min="0" max="200" value="${A.b}"><b>${A.b}%</b></label><label class="pp-sl">흐리게<input type="range" data-pk="abl" min="0" max="20" value="${A.bl}"><b>${A.bl}</b></label>
+                    <div class="r"><span></span><div><button type="button" data-adj="ok"${P.adj && P.adj.L === L ? '' : ' disabled'}>✔ 적용</button><button type="button" data-adj="reset"${P.adj && P.adj.L === L ? '' : ' disabled'}>↺ 처음대로</button></div></div>`; }
             if (L.type === 'photo') h += `<label class="pp-sl">사진 크기<input type="range" data-pk="ps" min="1" max="3" step=".01" value="${L.s}"><b>${Math.round(L.s * 100)}%</b></label><label class="pp-sl">연하게<input type="range" data-pk="pw" min="0" max=".85" step=".01" value="${L.wash}"><b>${Math.round(L.wash * 100)}%</b></label><p class="pp-hint">✋ 옮기기 도구로 사진 자리를 옮겨요</p>`;
         }
+        const C = P.cut || { on: false, w: 12, c: '#ffffff' };
+        h += `<h4>✂️ 자동 칼선<em>그림 둘레 하얀 테두리 · 스티커처럼</em></h4><div class="r"><span>칼선</span><div>${chip('cut', 1, C.on ? '켜짐' : '꺼짐', C.on)}${chip('cutc', '#ffffff', '하양', C.c === '#ffffff')}${chip('cutc', 'cur', `<i style="background:${C.c !== '#ffffff' ? C.c : P.color}"></i>지금 색`, C.c !== '#ffffff')}${chip('cutsh', 1, '그림자', !!C.sh)}</div></div><label class="pp-sl">두께<input type="range" data-pk="cw" min="2" max="40" value="${C.w}"><b>${C.w}px</b></label>`;
         h += `<div class="r"><span>완성 모양</span><div><button type="button" class="on">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : P.kind === 'piece' ? '🧩 조각 봉투 (4조각)' : P.kind === 'paper' ? '📄 모조지 한 장' : '📃 속지 한 장'}</button></div></div>`;
         box.innerHTML = h;
+    }
+    function adjSet(L, k, v) {                                                 // 🎨 색 조정 (픽셀 · 사파리도 같게 = 점마다 계산)
+        if (!P.adj || P.adj.L !== L) { histPx(L); const b = mkCv(P.W, P.H); b.getContext('2d').drawImage(L.cv, 0, 0); P.adj = { L, base: b, h: 0, s: 100, b: 100, bl: 0 }; paintProps(); }
+        P.adj[{ ah: 'h', as: 's', ab: 'b', abl: 'bl' }[k]] = v; cancelAnimationFrame(P.adjR); P.adjR = requestAnimationFrame(() => adjRun(L));
+    }
+    function adjRun(L) {
+        const A = P.adj; if (!A || A.L !== L) return; const W = P.W, H = P.H, id = A.base.getContext('2d').getImageData(0, 0, W, H), d = id.data;
+        const a = A.h * Math.PI / 180, co = Math.cos(a), si = Math.sin(a), S = A.s / 100, Bk = A.b / 100;
+        const m = [.213 + co * .787 - si * .213, .715 - co * .715 - si * .715, .072 - co * .072 + si * .928, .213 - co * .213 + si * .143, .715 + co * .285 + si * .14, .072 - co * .072 - si * .283, .213 - co * .213 - si * .787, .715 - co * .715 + si * .715, .072 + co * .928 + si * .072];
+        for (let i = 0; i < d.length; i += 4) { if (!d[i + 3]) continue; let r = d[i], g = d[i + 1], b = d[i + 2];
+            if (A.h) { const R = r * m[0] + g * m[1] + b * m[2], G = r * m[3] + g * m[4] + b * m[5], Bb = r * m[6] + g * m[7] + b * m[8]; r = R; g = G; b = Bb; }
+            if (S !== 1) { const l = .2126 * r + .7152 * g + .0722 * b; r = l + (r - l) * S; g = l + (g - l) * S; b = l + (b - l) * S; }
+            d[i] = r * Bk; d[i + 1] = g * Bk; d[i + 2] = b * Bk; }
+        const x = L.cv.getContext('2d'); x.clearRect(0, 0, W, H); x.putImageData(id, 0, 0);
+        if (A.bl > 0) { const t = mkCv(W, H), tx = t.getContext('2d'), n = Math.max(6, A.bl * 2); tx.globalAlpha = 1 / n * 2; for (let i = 0; i < n; i++) { const an = i / n * Math.PI * 2; tx.drawImage(L.cv, Math.cos(an) * A.bl * .7, Math.sin(an) * A.bl * .7); } x.clearRect(0, 0, W, H); x.globalAlpha = 1; x.drawImage(t, 0, 0); x.drawImage(t, 0, 0, W, H); }
+        P.dirty = true; renderAll();
     }
     let propH = 0;
     function onProp(e) {
@@ -805,16 +978,24 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (L && L.type === 'svg' && sbProp(e, L)) return;
         const r = e.target.closest('input[type=range]');
         if (r && e.type === 'input') {
-            const k = r.dataset.pk, v = +r.value, now = Date.now(); if (now - propH > 800) { if (['r', 'sw', 'op'].includes(k)) histVec(L); else histSt(); } propH = now;
-            if (k === 'r') s.r = v; if (k === 'sw') s.sw = v; if (k === 'op') s.op = v; if (['r', 'sw', 'op'].includes(k)) L.dirtyV = true;
+            const k = r.dataset.pk, v = +r.value, now = Date.now(); if (now - propH > 800) { if (['r', 'sw', 'op', 'ga'].includes(k)) histVec(L); else if (!['ah', 'as', 'ab', 'abl'].includes(k)) histSt(); } propH = now;
+            if (k === 'r') s.r = v; if (k === 'sw') s.sw = v; if (k === 'op') s.op = v; if (k === 'ga' && s.grad) { s.grad.ang = v; L.dirtyV = true; r.nextElementSibling.textContent = v + '°'; P.dirty = true; renderAll(); return; } if (['r', 'sw', 'op'].includes(k)) L.dirtyV = true;
             if (k === 'lop') L.op = v; if (k === 'ps') { L.s = v; photoPaint(L); } if (k === 'pw') { L.wash = v; photoPaint(L); }
+            if (k === 'cw') { P.cut = Object.assign({ on: true, w: 12, c: '#ffffff' }, P.cut, { w: v }); r.nextElementSibling.textContent = v + 'px'; P.dirty = true; cutSoon(); return; }
+            if (['ah', 'as', 'ab', 'abl'].includes(k)) { adjSet(L, k, v); r.nextElementSibling.textContent = v + (k === 'ah' ? '°' : k === 'abl' ? '' : '%'); return; }
             r.nextElementSibling.textContent = k === 'op' || k === 'lop' || k === 'ps' || k === 'pw' ? Math.round(v * 100) + '%' : k === 'sw' ? v + 'px' : Math.round(v);
             P.dirty = true; renderAll(); if (k === 'lop') thumbsSoon(); return;
         }
         if (e.type !== 'click') return;
         const b = e.target.closest('button'); if (!b) return; const ds = b.dataset;
+        if (ds.vg) { histVec(L); if (ds.vg === 'on') shapeAct('grad'); else if (s.grad) s.grad.c2 = P.color; L.dirtyV = true; }
         if (ds.vf || ds.vs || ds.vd || ds.vc) { histVec(L); if (ds.vf) s.fill = ds.vf === 'none' ? null : P.color; if (ds.vs) { s.stroke = ds.vs === 'none' ? null : P.color; if (s.stroke && !s.sw) s.sw = P.vsw || 4; } if (ds.vd) s.dash = !s.dash; if (ds.vc) s.cap = ds.vc; L.dirtyV = true; }
         if (ds.bl) { histSt(); L.blend = ds.bl; }
+        if (ds.clip) { histSt(); L.clip = !L.clip; say(L.clip ? '📎 바로 아래 레이어 그림 안에만 보여요' : '📎 클리핑 끔'); }
+        if (ds.cut) { P.cut = Object.assign({ on: false, w: 12, c: '#ffffff' }, P.cut); P.cut.on = !P.cut.on; cutSoon(); }
+        if (ds.cutc) { P.cut = Object.assign({ on: true, w: 12, c: '#ffffff' }, P.cut); P.cut.c = ds.cutc === 'cur' ? P.color : ds.cutc; P.cut.on = true; cutSoon(); }
+        if (ds.cutsh) { P.cut = Object.assign({ on: true, w: 12, c: '#ffffff' }, P.cut); P.cut.sh = !P.cut.sh; cutSoon(); }
+        if (ds.adj) { if (ds.adj === 'reset' && P.adj && P.adj.L === L) { const x = L.cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.drawImage(P.adj.base, 0, 0); } P.adj = null; }
         if (ds.lk) { histSt(); L.lock = !L.lock; }
         if (ds.al) { histSt(); L.aLock = !L.aLock; }
         P.dirty = true; renderAll(); paintLayers(); paintProps();
@@ -1137,10 +1318,21 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     const PG_PX = 644;                                                         // 스티커 그림 148mm = 644px (js/stickerpeel.js PEL_SHEET_H · js/skins.js STK_MM)
     const PIECE_PX = 800, PIECE_K = .5;                                        // 🧩 조각 판 800px = 페이지 400px (선명하게 두 배로 그려요)
-    function artCv() {                                                         // 종이를 뺀 그림 (투명 바탕)
-        const art = mkCv(P.W, P.H), ax = art.getContext('2d');
-        P.layers.forEach(L => { if (L.type === 'paper' || !L.vis) return; ax.save(); ax.globalAlpha = L.op; ax.globalCompositeOperation = L.blend || 'source-over'; ax.drawImage(layerImg(L), 0, 0); ax.restore(); });
+    function artRaw() {                                                        // 종이 · 칼선을 뺀 그림 (클리핑 그대로)
+        const art = mkCv(P.W, P.H), ax = art.getContext('2d'); let base = null;
+        P.layers.forEach(L => { if (L.type === 'paper' || !L.vis) return; let img = layerImg(L); if (L.clip && base) img = mkCv(P.W, P.H), img.getContext('2d').drawImage(clipTo(layerImg(L), base), 0, 0); else if (!L.clip) base = layerImg(L); ax.save(); ax.globalAlpha = L.op; ax.globalCompositeOperation = L.blend || 'source-over'; ax.drawImage(img, 0, 0); ax.restore(); });
         return art;
+    }
+    function cutMake(art) {                                                    // ✂️ 자동 칼선 = 그림 둘레를 두껍게 (스티커 하얀 테두리)
+        const w = P.cut.w, sil = mkCv(P.W, P.H), sx = sil.getContext('2d'); sx.drawImage(art, 0, 0); sx.globalCompositeOperation = 'source-in'; sx.fillStyle = P.cut.c || '#ffffff'; sx.fillRect(0, 0, P.W, P.H);
+        const o = mkCv(P.W, P.H), ox = o.getContext('2d'); for (const f of [1, .66, .33]) { const n = Math.max(12, Math.round(w * f)); for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; ox.drawImage(sil, Math.cos(a) * w * f, Math.sin(a) * w * f); } } ox.drawImage(sil, 0, 0);
+        if (P.cut.sh) { const g = mkCv(P.W, P.H), gx = g.getContext('2d'); gx.shadowColor = 'rgba(61,53,82,.35)'; gx.shadowBlur = 10; gx.shadowOffsetY = 5; gx.drawImage(o, 0, 0); return g; }
+        return o;
+    }
+    let cutT = 0; function cutSoon() { clearTimeout(cutT); if (!P.cut || !P.cut.on) { if (P.cutImg) { P.cutImg = null; render(); } return; } cutT = setTimeout(() => { if (!P.on || !P.cut.on) return; P.cutImg = cutMake(artRaw()); render(); }, 220); }
+    function artCv() {                                                         // 종이를 뺀 그림 (투명 바탕 · ✂️ 칼선 켜면 그림 밑에)
+        const raw = artRaw(); if (!(P.cut && P.cut.on)) return raw;
+        const art = mkCv(P.W, P.H), ax = art.getContext('2d'); ax.drawImage(cutMake(raw), 0, 0); ax.drawImage(raw, 0, 0); return art;
     }
     function cvUrl(c, k) {                                                     // k 배로 줄여 굽기 (🗜 js/imgsmall.js 그림 굽기 엔진 · ✅ 완료 때 cvBest 로 한 번 더)
         const s = k !== 1 ? mkCv(Math.max(1, Math.round(c.width * k)), Math.max(1, Math.round(c.height * k))) : c;
@@ -1268,9 +1460,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
     function snapshot() {
         return { v: 1, kind: P.kind, sz: P.kind === 'seal' || P.kind === 'paper' ? P.sz : undefined, pcs: P.kind === 'piece' ? P.pcs : undefined, W: P.W, H: P.H, spec: P.spec || null, two: P.kind === 'leaf' ? !!P.two : undefined, tkmm: P.kind === 'tk' || P.kind === 'tape' ? P.tkmm : undefined, glue: P.glue || '', at: Date.now(), cur: P.layers.indexOf(P.cur),
-            set: { mode: P.mode, tool: P.tool, brush: P.brush, size: P.size, op: P.op, soft: P.soft, stab: P.stab, vsw: P.vsw, vround: P.vround, color: P.color, recent: P.recent, grid: P.grid, sym: P.sym, shapeK: P.shapeK, shapeFill: P.shapeFill },
+            set: { mode: P.mode, tool: P.tool, brush: P.brush, size: P.size, op: P.op, soft: P.soft, stab: P.stab, vsw: P.vsw, vround: P.vround, color: P.color, recent: P.recent, grid: P.grid, sym: P.sym, symN: P.symN || 0, shapeK: P.shapeK, shapeFill: P.shapeFill, cut: P.cut || null, stampK: P.stampK, qshape: P.qshape, polyN: P.polyN, radN: P.radN },
             layers: P.layers.map(L => {
-                const o = { type: L.type, name: L.name, vis: L.vis, lock: L.lock, op: L.op, blend: L.blend, aLock: L.aLock };
+                const o = { type: L.type, name: L.name, vis: L.vis, lock: L.lock, op: L.op, blend: L.blend, aLock: L.aLock, clip: !!L.clip };
                 if (L.type === 'paper') o.mk = L.mk;
                 if (L.type === 'px') o.png = isBlank(L.cv) ? '' : L.cv.toDataURL('image/png');
                 if (L.type === 'vec') o.shapes = L.shapes;
@@ -1304,7 +1496,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         P.layers = []; P.cur = null;
         Object.assign(P, d.set || {});
         (d.layers || []).forEach(o => {
-            const L = addLayer(o.type, o.name, { vis: o.vis !== false, lock: !!o.lock, op: o.op == null ? 1 : o.op, blend: o.blend || 'source-over', aLock: !!o.aLock }, P.layers.length);
+            const L = addLayer(o.type, o.name, { vis: o.vis !== false, lock: !!o.lock, op: o.op == null ? 1 : o.op, blend: o.blend || 'source-over', aLock: !!o.aLock, clip: !!o.clip }, P.layers.length);
             if (o.type === 'paper') { L.mk = o.mk || { bg: '#ffffff' }; paperPaint(L); }
             if (o.type === 'vec') { L.shapes = o.shapes || []; L.dirtyV = true; }
             if (o.type === 'css') { L.blocks = (o.blocks || []).filter(CB.ok); L.pb = (o.pb || []).filter(CB.ok); L.pa = (o.pa || []).filter(CB.ok); L.box = o.box || { x: .15, y: .15, w: .7, h: .7 }; L.text = o.text || ''; L.dirtyV = true; }
@@ -1315,7 +1507,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         if (!P.layers.some(l => l.type === 'paper')) { const pp = addLayer('paper', '종이', { lock: true, mk: { bg: '#ffffff' } }, 0); paperPaint(pp); }
         P.cur = P.layers[d.cur] || P.layers[P.layers.length - 1];
         modeBtns(); paintTools(); setColor(P.color); renderAll(); paintLayers(); paintProps();
-        document.querySelectorAll('.pp-view [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'grid' && P.grid) || (b.dataset.v === 'sym' && P.sym) || (b.dataset.v === 'wrap' && P.wrap)));
+        document.querySelectorAll('.pp-view [data-v]').forEach(b => b.classList.toggle('on', (b.dataset.v === 'grid' && P.grid) || (b.dataset.v === 'sym' && (P.sym || P.symN)) || (b.dataset.v === 'wrap' && P.wrap)));
+        { const sb = document.querySelector('.pp-view [data-v="sym"]'); if (sb) sb.textContent = P.symN ? `🌸 만화경 ${P.symN}` : '⇋ 대칭'; } cutSoon();
         if (!keep) { P.dirty = false; say('✏️ 이어서 그려요', 1500); }
     }
 
