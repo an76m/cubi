@@ -167,7 +167,7 @@
         'clip-path-box': { p: 'clip-path', e: '📦', n: '상자 모양으로 오리기', f: [['m', '어느 상자', 'sel', ['border-box', 'padding-box', 'content-box', 'margin-box']]], d: () => ({ m: 'padding-box' }), css: v => v.m },
         'mask-mode': { e: '🎭', n: '가리기 기준', f: [['m', '기준', 'sel', ['match-source', 'alpha', 'luminance']]], d: () => ({ m: 'luminance' }), css: v => v.m },
         'transform-box': { e: '📐', n: '돌리는 기준 상자', f: [['m', '상자', 'sel', ['view-box', 'border-box', 'fill-box', 'content-box', 'stroke-box']]], d: () => ({ m: 'border-box' }), css: v => v.m },
-        'svg-filter': { p: '--svg-filter', e: '🌀', n: 'SVG 필터 쓰기 (filter: url())', f: [['ref', 'SVG 레이어의 필터', 'sfx']], d: () => ({ ref: '' }), css: v => v.ref ? `url(#${String(v.ref).split(':')[1] || ''}f)` : 'none' },
+        'svg-filter': { p: '--svg-filter', e: '🌀', n: 'SVG 필터 쓰기 (filter: url())', f: [['ref', 'SVG 레이어의 필터', 'sfx']], d: () => ({ ref: '' }), css: v => v.ref ? `url(#${String(v.ref).split(':').pop()}f)` : 'none' },
     };
     const GROUPS = [['🎨 바탕', ['background-color', 'linear-gradient', 'radial-gradient', 'conic-gradient', 'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient', 'url', 'background-blend-mode', 'background-clip', 'background-origin', 'background-attachment', 'image-rendering']],
         ['🔷 모양 · 테두리', ['border-radius', 'border-radius-4', 'border-radius-e', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-image', 'outline', 'outline-offset', 'shadow', 'opacity', 'padding', 'overflow', 'outline-style', 'box-decoration-break', 'accent-color', 'caret-color']],
