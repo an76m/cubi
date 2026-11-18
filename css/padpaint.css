@@ -329,3 +329,10 @@
 .pt-done button { font: inherit; font-weight: 800; padding: 9px; border-radius: 12px; border: 2px solid #f1d3dd; background: #fff6f9; cursor: pointer; } .pt-done button[data-pd="keep"] { background: #ff6f91; color: #fff; border-color: #ff6f91; }
 .pt-cell { display: flex; flex-direction: column; gap: 6px; } .pt-none { color: #d9c3cc; text-align: center; padding: 18px 0; }
 .pt-sec { margin: 4px 0 8px; font-size: 14px; } .pt-anim { margin-top: 14px; } .pt-anim summary { cursor: pointer; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+/* 🌳 상자 나무 (11-19) */
+.pp-cbtree { border: 1.5px solid #f1d3dd; border-radius: 12px; padding: 8px; margin: 8px 0; background: #fffafc; display: flex; flex-direction: column; gap: 3px; }
+.pp-cbtree > b { font-size: 12.5px; display: flex; justify-content: space-between; gap: 6px; } .pp-cbtree > b em { font-style: normal; font-weight: 700; font-size: 10.5px; color: #a5707f; }
+.pp-cbtree > button { font: inherit; display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 9px; border: 1.5px solid transparent; background: #fff; cursor: pointer; text-align: left; font-size: 12.5px; font-weight: 800; }
+.pp-cbtree > button code { font: 700 10.5px ui-monospace, Consolas, monospace; background: #f6e3ea; color: #8a5a6a; border-radius: 6px; padding: 1px 6px; }
+.pp-cbtree > button.on { border-color: #4aa8ff; background: #eaf5ff; } .pp-cbtree > button.same code { background: #ffe9a8; color: #8a5a12; }
+.pp-cbtb { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; } .pp-cbtb button { font: inherit; font-size: 11.5px; font-weight: 800; padding: 5px 8px; border-radius: 9px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; }

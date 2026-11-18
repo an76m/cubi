@@ -108,7 +108,7 @@
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#d64b6e', say: '완성!' }] },
         { m: 's', g: 'svg', lv: 2, e: '🥇', n: '금박 글씨', d: '그라데이션 + 빛 비추기', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
-            { c: SBE('text'), say: '🔤 글자' }, { v: SF('v.t'), val: '말랑', say: '' },
+            { c: SBE('text'), say: '🔤 글자' }, { v: SF('v.t', 'textarea'), val: '말랑', say: '' },
             { c: SBB('font-size'), say: '🔠' }, { v: SK('v.v'), val: () => W() / 3, say: '' }, { c: SBB('font-weight'), say: '🅱️ 굵게' },
             { c: SBB('linearGradient'), say: '🌈 금색 그라데이션' }, { v: SK('v.x2'), val: 0, say: '위에서 아래로' }, { v: SK('v.y2'), val: 100, say: '' },
             ADDST(1), ADDST(1), ...STOP(SK, 0, '#fff3b0', 0), ...STOP(SK, 1, '#e2a93b', 45), ...STOP(SK, 2, '#b8791f', 55), ...STOP(SK, 3, '#ffe08a', 100),
@@ -179,7 +179,7 @@
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('rect'), say: '⬛ 밤 배경' }, { v: SF('v.x'), val: 0, say: '' }, { v: SF('v.y'), val: 0, say: '' }, { v: SF('v.width'), val: () => W(), say: '' }, { v: SF('v.height'), val: () => H(), say: '' }, { v: SF('v.rx'), val: 0, say: '' }, { v: SF('v.ry'), val: 0, say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#2b2240', say: '' },
-            { c: SBE('text'), say: '🔤' }, { v: SF('v.t'), val: 'LOVE', say: '' }, { c: SBB('font-size'), say: '' }, { v: SK('v.v'), val: () => W() / 4.2, say: '' },
+            { c: SBE('text'), say: '🔤' }, { v: SF('v.t', 'textarea'), val: 'LOVE', say: '' }, { c: SBB('font-size'), say: '' }, { v: SK('v.v'), val: () => W() / 4.2, say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ff8fd0', say: '' },
             { c: SBB('feGaussianBlur'), say: '🪄 흐리게 = 빛 번짐' }, { v: SK('v.s'), val: 10, say: '' },
             { c: SBB('feMerge'), say: '🪄 번짐 두 번 + 글자' }, { pick: SK('v.a', 'select'), opt: 'prev', say: '' }, { pick: SK('v.b', 'select'), opt: 'prev', say: '' }, { pick: SK('v.c', 'select'), opt: 'SourceGraphic', say: '' },
