@@ -152,7 +152,7 @@
         ['🪄 필터', ['blur', 'brightness', 'contrast', 'saturate', 'grayscale', 'sepia', 'hue-rotate', 'invert', 'f-opacity', 'drop-shadow']],
         ['🫧 뒤 필터 · 섞기', ['b-blur', 'b-brightness', 'b-saturate', 'b-grayscale', 'b-hue-rotate', 'b-invert', 'b-contrast', 'b-sepia', 'mix-blend-mode', 'isolation']],
         ['🔤 글자', ['color', 'font-size', 'font-weight', 'font-style', 'font-family', 'letter-spacing', 'word-spacing', 'line-height', 'text-align', '-webkit-text-stroke', 'paint-order', '-webkit-text-fill-color', 'tshadow', 'text-decoration', 'text-underline-offset', 'text-emphasis', 'writing-mode', 'text-orientation']],
-        ['✨ 장식 상자 (::before · ::after 에서)', ['content', 'width', 'height', 'left', 'top', 'z-index']],
+        ['✨ 장식 상자 (장식 1 · 2 에서 · ::before · ::after)', ['content', 'width', 'height', 'left', 'top', 'z-index']],
         ['🎬 애니메이션', ['animation', 'offset-path', 'offset-rotate']]];
     const DEF = k => FN[k] || SIMPLE[k], PROP = k => (SIMPLE[k] && SIMPLE[k].p) || k;
     const OFF = k => FN[k] ? (FN[k].o || (FN[k].g === 'box-shadow' ? 'box-shadow' : FN[k].g === 'text-shadow' ? 'text-shadow' : k + '()')) : PROP(k);
