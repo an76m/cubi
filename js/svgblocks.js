@@ -156,11 +156,15 @@
             if (e.t === 'use') { if (!v.ref || !els.some(x => x.id === v.ref && x.id !== id)) return; at.push(`href="#${v.ref}" x="${r1(v.x)}" y="${r1(v.y)}"`); }
             const noFill = e.t === 'line' || e.t === 'polyline' || (e.t === 'path' && !one('fill')), has = rid => !!rid && els.some(x => x.id === rid && x.id !== id);
             const paint = { fill: one('fill') ? col(one('fill').v.c) : (noFill ? 'none' : (e.t === 'use' || e.t === 'g' ? null : '#5b3f4a')), stroke: one('stroke') ? col(one('stroke').v.c) : ((e.t === 'line' || e.t === 'polyline' || e.t === 'path') && !one('fill') ? '#5b3f4a' : null) };
-            const gaB = on.find(B => B.t === 'animate-gradient'), ga = gaB ? `<animateTransform attributeName="gradientTransform" type="${gaB.v.k}" values="${gaB.v.k === 'rotate' ? '0 .5 .5;360 .5 .5' : `-${gaB.v.d} -${gaB.v.d};${gaB.v.d} ${gaB.v.d}`}" dur="${gaB.v.dur}s" repeatCount="${gaB.v.rep}"/>` : '';
+            const gaB = on.find(B => B.t === 'animate-gradient'), ga = '', xa = [];   // 🍎 그라데이션 흐르기 = 장면 24장을 차례로 바꿔 끼워요 (사파리는 gradientTransform 움직임을 안 그려요 · 도련 11-19 1330 아이패드)
             const asB = on.filter(B => B.t === 'animate-stop'), apB = on.find(B => B.t === 'animate-pattern');
             on.forEach((B, q) => { const g = B.v, gid = `${id}p${q}`;
                 if (B.t === 'linearGradient' || B.t === 'radialGradient') { const st = g.stops.s.map((x, si) => { const sa = asB.filter(A => +A.v.i === si + 1).map(A => `<animate attributeName="stop-color" values="${xml(A.v.vals)}" dur="${A.v.dur}s" repeatCount="${A.v.rep}"/>`).join(''); return `<stop offset="${x.p}%" stop-color="${x.c.c}" stop-opacity="${(x.c.a == null ? 100 : x.c.a) / 100}"${sa ? `>${sa}</stop>` : '/>'}`; }).join('') + ga;
-                    defs.push(B.t === 'linearGradient' ? `<linearGradient id="${gid}" x1="${g.x1}%" y1="${g.y1}%" x2="${g.x2}%" y2="${g.y2}%" spreadMethod="${g.sp}">${st}</linearGradient>` : `<radialGradient id="${gid}" cx="${g.cx}%" cy="${g.cy}%" r="${g.r}%" fx="${g.fx}%" fy="${g.fy}%" spreadMethod="${g.sp}">${st}</radialGradient>`);
+                    const gdef = (gi, tf) => B.t === 'linearGradient' ? `<linearGradient id="${gi}" x1="${g.x1}%" y1="${g.y1}%" x2="${g.x2}%" y2="${g.y2}%" spreadMethod="${g.sp}"${tf ? ` gradientTransform="${tf}"` : ''}>${st}</linearGradient>` : `<radialGradient id="${gi}" cx="${g.cx}%" cy="${g.cy}%" r="${g.r}%" fx="${g.fx}%" fy="${g.fy}%" spreadMethod="${g.sp}"${tf ? ` gradientTransform="${tf}"` : ''}>${st}</radialGradient>`;
+                    defs.push(gdef(gid, gaB ? (gaB.v.k === 'rotate' ? 'rotate(0 .5 .5)' : `translate(-${gaB.v.d} -${gaB.v.d})`) : ''));
+                    if (gaB && !paint['_' + g.to]) { const N = 24, ids = [];
+                        for (let k = 0; k < N; k++) { const f = k / N, d = gaB.v.d, gi = `${gid}s${k}`; ids.push(gi); defs.push(gdef(gi, gaB.v.k === 'rotate' ? `rotate(${r1(360 * f)} .5 .5)` : `translate(${r1(-d + 2 * d * f)} ${r1(-d + 2 * d * f)})`)); }
+                        xa.push({ at: g.to, ids, dur: +gaB.v.dur, rep: gaB.v.rep }); }
                     if (!paint['_' + g.to]) { paint[g.to] = `url(#${gid})`; paint['_' + g.to] = 1; } }
                 if (B.t === 'pattern') { const w = g.w, h = g.h, s = g.sz / 100, cf = ` fill="${col(g.c)}"`;
                     const sh = g.sh === 'circle' ? `<circle cx="${w / 2}" cy="${h / 2}" r="${Math.min(w, h) * s / 2}"${cf}/>` : g.sh === 'rect' ? `<rect x="${w * (1 - s) / 2}" y="${h * (1 - s) / 2}" width="${w * s}" height="${h * s}"${cf}/>` : g.sh === 'polygon' ? `<polygon points="${w / 2},${h * (1 - s) / 2} ${w * (1 + s) / 2},${h * (1 + s) / 2} ${w * (1 - s) / 2},${h * (1 + s) / 2}"${cf}/>` : `<path d="${xml(g.d)}" transform="translate(${w * (1 - s) / 2} ${h * (1 - s) / 2}) scale(${w * s / 100} ${h * s / 100})"${cf}/>`;
@@ -215,10 +219,18 @@
                     else if (B.t === 'feTile') o = `<feTile${I}${R}/>`;
                     else o = has(V.ref) ? `<feImage href="#${V.ref}"${R}/>` : V.src ? `<feImage href="${xml(V.src)}" preserveAspectRatio="xMidYMid slice"${R}/>` : `<feFlood flood-opacity="0"${R}/>`;
                     const fr = on.find(A => A.t === 'fe-region' && +A.v.n === n + 1); if (fr) o = o.replace(/^<(fe\w+)/, `<$1 x="${fr.v.x}%" y="${fr.v.y}%" width="${fr.v.w}%" height="${fr.v.h}%"`);
-                    const fa = on.filter(A => A.t === 'animate-filter' && +A.v.n === n + 1).map(A => `<animate attributeName="${A.v.at}" values="${xml(A.v.vals)}" dur="${A.v.dur}s" repeatCount="${A.v.rep}"/>`).join('');
-                    if (fa) { const tg = o.match(/^<(fe\w+)/)[1]; o = /\/>$/.test(o) ? o.slice(0, -2) + '>' + fa + `</${tg}>` : o.replace(new RegExp(`</${tg}>$`), fa + `</${tg}>`); }
                     n++; return o; });
-                const rg = one('filter-region'), m = rg ? rg.v.m : 50; defs.push(`<filter id="${id}f" x="-${m}%" y="-${m}%" width="${100 + m * 2}%" height="${100 + m * 2}%" color-interpolation-filters="${rg ? rg.v.ci : 'sRGB'}">${pr.join('')}</filter>`); at.push(`filter="url(#${id}f)"`); }
+                /* 🍎 필터 움직이기 = 장면을 여러 장 만들어 차례로 바꿔 끼워요 (사파리는 필터 안 값 움직임을 안 그려요 · 도련 11-19 1330 아이패드 물결 · 촛불) */
+                const FA = on.filter(A => A.t === 'animate-filter' && +A.v.n >= 1 && +A.v.n <= pr.length);
+                const at1 = (o, k, v) => new RegExp(`^<fe\\w+[^>]*\\s${k}="`).test(o) ? o.replace(new RegExp(`^(<fe\\w+[^>]*?\\s${k}=")[^"]*"`), `$1${v}"`) : o.replace(/^<(fe\w+)/, `<$1 ${k}="${v}"`);
+                const valAt = (A, t) => { const L = String(A.v.vals).split(';').map(x => x.trim()).filter(Boolean).map(x => x.split(/[\s,]+/).map(Number)); if (!L.length) return ''; if (L.length === 1) return L[0].join(' ');
+                    const d = +A.v.dur || 1, u = ((t % d) / d) * (L.length - 1), i = Math.min(L.length - 2, Math.floor(u)), f = u - i, v = L[i].map((a, j) => a + ((L[i + 1][j] != null ? L[i + 1][j] : a) - a) * f);
+                    return v.map(x => A.v.at === 'seed' ? Math.round(x) : +x.toFixed(4)).join(' '); };
+                const rg = one('filter-region'), m = rg ? rg.v.m : 50, fh = fid => `<filter id="${fid}" x="-${m}%" y="-${m}%" width="${100 + m * 2}%" height="${100 + m * 2}%" color-interpolation-filters="${rg ? rg.v.ci : 'sRGB'}">`;
+                defs.push(fh(`${id}f`) + pr.join('') + '</filter>'); at.push(`filter="url(#${id}f)"`);
+                if (FA.length) { const T = Math.max(...FA.map(A => +A.v.dur || 1)), N = Math.max(8, Math.min(24, Math.round(T * 8))), ids = [];
+                    for (let k = 0; k < N; k++) { const t = T * k / N, fid = `${id}f${k}`; ids.push(fid); defs.push(fh(fid) + pr.map((o, i) => FA.filter(A => +A.v.n === i + 1).reduce((q, A) => { const v = valAt(A, t); return v === '' ? q : at1(q, A.v.at, v); }, o)).join('') + '</filter>'); }
+                    xa.push({ at: 'filter', ids, dur: T, rep: FA[0].v.rep }); } }
             const SPL = { ease: '0.25 0.1 0.25 1', 'ease-in': '0.42 0 1 1', 'ease-out': '0 0 0.58 1', 'ease-in-out': '0.42 0 0.58 1' };
             const kids = on.filter(B => BL[B.t].an && !['css-animation', 'animate-filter', 'animate-gradient', 'animate-stop', 'animate-pattern'].includes(B.t)).map(B => { const g = B.v, bg = g.after ? `a${g.after}.end+${g.begin || 0}s` : `${g.begin || 0}s`;
                 const rp = ` id="a${B.id}" begin="${bg}"` + (B.t === 'set' ? '' : ` dur="${g.dur}s" repeatCount="${g.rep}"`) + (g.acc ? ' accumulate="sum"' : '');
@@ -229,6 +241,7 @@
                 if (B.t === 'animateMotion') { const ez = g.ease && g.ease !== 'linear' ? (g.ease === 'discrete' ? ' calcMode="discrete" keyPoints="0;1" keyTimes="0;1"' : ` calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="${SPL[g.ease]}"`) : '';
                     return has(g.ref) ? `<animateMotion rotate="${g.rot}"${ez}${rp}><mpath href="#${g.ref}"/></animateMotion>` : `<animateMotion path="${xml(g.d)}" rotate="${g.rot}"${ez}${rp}/>`; }
                 return `<set id="a${B.id}" attributeName="${g.at}" to="${xml(g.to)}" begin="${g.after ? `a${g.after}.end+${g.begin || 0}s` : g.begin + 's'}" fill="freeze"/>`; }).join('');
+            if (xa.length) at.push(`data-sw="${xa[0].at}|${xa[0].ids.join(',')}|${xa[0].dur}|${xa[0].rep}"`);   // 🍎 장면 바꿔 끼우기 = 끝에서 복사본 여러 장 + 차례로 보이기 (expandUse)
             const txIn = (t, multi) => {                                       // 🖍 글자 일부 꾸미기 · ↕ 여러 줄
                 const ts = on.filter(B => B.t === 'tspan'), lines = multi ? String(t).split('\n') : [String(t)]; if (lines.length < 2 && !ts.length) return xml(t);
                 const lh = one('line-height') ? one('line-height').v.v : 1.25, fsz = one('font-size') ? one('font-size').v.v : Math.round(W / 9); let idx = 0;
@@ -242,7 +255,37 @@
             else if (e.t === 'textPath') { defs.push(`<path id="${id}t" d="${xml(v.d)}"/>`); out(`<text ${at.join(' ')}>${kids}<textPath href="#${id}t" startOffset="${v.off}%">${txIn(v.t, false)}</textPath></text>`); }
             else out(kids ? `<${e.t} ${at.join(' ')}>${kids}</${e.t}>` : `<${e.t} ${at.join(' ')}/>`);
         });
-        return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${fonts || css.length ? `<style>${xml(fonts + css.join('')).replace(/&amp;/g, '&')}</style>` : ''}${defs.length ? `<defs>${defs.join('')}</defs>` : ''}${body.join('')}</svg>`;
+        return expandUse(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${fonts || css.length ? `<style>${xml(fonts + css.join('')).replace(/&amp;/g, '&')}</style>` : ''}${defs.length ? `<defs>${defs.join('')}</defs>` : ''}${body.join('')}</svg>`);
+    }
+    /* 🍎 움직이는 도형을 <use> 로 복사한 것 = 진짜 복사본으로 펼쳐요 (사파리는 use 복사본 안의 움직임을 안 그려요 · 도련 11-19 1330 아이패드 꽃 만다라 · 크롬도 같은 모습) */
+    function expandUse(svg) {
+        if (!/data-sw=/.test(svg) && (!/<use\b/.test(svg) || !/<(animate|animateTransform|animateMotion|set)\b|animation:/.test(svg)) || typeof DOMParser === 'undefined') return svg;
+        try {
+            const doc = new DOMParser().parseFromString(svg, 'image/svg+xml'), root = doc.documentElement; if (root.querySelector('parsererror')) return svg;
+            const isAnim = el => !!el && (el.matches('animate,animateTransform,animateMotion,set') || !!el.querySelector('animate,animateTransform,animateMotion,set') || /animation:/.test(el.getAttribute('style') || '') || [...el.querySelectorAll('[style]')].some(x => /animation:/.test(x.getAttribute('style'))));
+            /* 🍎 장면 바꿔 끼우기 (그라데이션 흐르기 · 필터 움직이기) : 같은 도형 N 장 (장면마다 그라데이션 · 필터 하나씩) · 한 장씩 차례로 보여요 (visibility · 사파리 · 크롬 모두 · 칠/필터 주소를 움직이는 건 둘 다 안 돼요) */
+            const NS = 'http://www.w3.org/2000/svg';
+            for (const el of [...root.querySelectorAll('[data-sw]')]) {
+                const [at, idl, dur, rep] = el.getAttribute('data-sw').split('|'), ids = idl.split(','), N = ids.length; el.removeAttribute('data-sw'); if (N < 2) continue;
+                const g = doc.createElementNS(NS, 'g'), id = el.getAttribute('id'); if (id) { g.setAttribute('id', id); el.removeAttribute('id'); }
+                const cs = ids.map((_, k) => k ? el.cloneNode(true) : el);   // 복사본은 먼저 (움직임을 넣기 전에 · 넣고 복사하면 첫 장면 움직임이 다 따라가요)
+                ids.forEach((fid, k) => { const c = cs[k]; if (k) c.querySelectorAll('[id]').forEach(q => q.removeAttribute('id')); c.setAttribute(at, `url(#${fid})`);
+                    const a = doc.createElementNS(NS, 'animate'); a.setAttribute('attributeName', 'visibility'); a.setAttribute('calcMode', 'discrete'); a.setAttribute('dur', dur + 's'); a.setAttribute('repeatCount', rep);
+                    if (!k) { a.setAttribute('values', 'visible;hidden'); a.setAttribute('keyTimes', `0;${(1 / N).toFixed(4)}`); } else { a.setAttribute('values', 'hidden;visible;hidden'); a.setAttribute('keyTimes', `0;${(k / N).toFixed(4)};${((k + 1) / N).toFixed(4)}`); }
+                    c.insertBefore(a, c.firstChild); if (k) g.appendChild(c); });
+                el.replaceWith(g); g.insertBefore(el, g.firstChild);
+            }
+            let guard = 0;
+            for (const u of [...root.querySelectorAll('use')]) {
+                if (++guard > 200) break; if (u.closest('defs,clipPath,mask,pattern,marker,symbol')) continue;
+                const ref = (u.getAttribute('href') || u.getAttribute('xlink:href') || '').replace(/^#/, ''), t = ref && doc.getElementById(ref); if (!t || !isAnim(t)) continue;
+                const g = doc.createElementNS('http://www.w3.org/2000/svg', 'g'), x = +u.getAttribute('x') || 0, y = +u.getAttribute('y') || 0;
+                [...u.attributes].forEach(a => { if (!['href', 'xlink:href', 'x', 'y', 'width', 'height', 'transform'].includes(a.name)) g.setAttribute(a.name, a.value); });
+                g.setAttribute('transform', `${u.getAttribute('transform') || ''}${x || y ? ` translate(${x} ${y})` : ''}`.trim());
+                const c = t.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(q => q.removeAttribute('id')); g.appendChild(c); u.replaceWith(g);
+            }
+            return new XMLSerializer().serializeToString(root);
+        } catch (e) { return svg; }
     }
     function svgText(L, W, H) { return build(L, W, H, '').replace(/href="data:[^"]{60,}"/g, 'href="(내-그림)"').replace(/></g, '>\n<'); }
 
