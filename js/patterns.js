@@ -7,7 +7,9 @@
 const BG_PATTERNS = [];
 function bgBuild() {                                                         // 🧁 서버 상품 그대로 (js/prod.js)
     BG_PATTERNS.length = 0;
-    (window.prodList ? prodList('배경지') : []).forEach(x => {
+    (window.prodList ? prodList('배경지') : []).forEach(x0 => {
+        const okx = y => { const v = y.u && y.u.디자인, w = y.wh && y.wh.디자인; return !!(v && Array.isArray(w) && +w[0] > 0 && +w[1] > 0 && String((y.P || {}).이름 || '')); };
+        const x = window.prodFix ? (prodFix('배경지', x0, okx) || x0) : x0;   // 🛟 받은 그때 모습이 걸리면 서버 지금 모습 (도련 11-19)
         const P = x.P || {}, u = x.u && x.u.디자인, wh = x.wh && x.wh.디자인;
         const css = u && Array.isArray(wh) && +wh[0] > 0 && +wh[1] > 0 ? { backgroundImage: `url('${u}')`, backgroundSize: `${+wh[0]}px ${+wh[1]}px` } : null;   // 📁 디자인 한 칸을 제 크기로 이어 깔아요 (도련 11-18 · 모양은 상품 폴더의 코드 파일 · 앱은 깔기만)
         if (css && String(P.이름 || '')) BG_PATTERNS.push({ id: x.id, tier: P.숨김 ? 'off' : 'free', name: String(P.이름), css, g: P.분류 === '단색' ? 'solid' : 'pat', gift: !!P.처음받기 && !P.스토어 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06)

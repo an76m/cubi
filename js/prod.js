@@ -40,6 +40,8 @@ const prodList = k => {
     Object.keys(D).forEach(id => { if (!raw.has(id)) { const o = prodOne(D[id], null); if (o) L.push(o); } });
     return (PROD_C.all[k] = prodSort(L));
 };
+/* 🛟 받은 그때 모습이 지금 앱 검사에 걸리면 (예전 모양 · 도련 11-19 : 옛 노트 = 내지 값이 지금 없어서 디자인이 빠지고 다른 다이어리 크기로 펼쳐졌어요) → 서버 지금 모습으로 · 그것도 안 되면 null */
+const prodFix = (k, x, ok) => { if (ok(x)) return x; const s = prodSrv(k).find(y => y.id === x.id); if (s && s !== x && ok(s)) { if (window.diag) diag('prodFix', { k, id: x.id }); return s; } return null; };
 const prodShelf = k => prodSrv(k).filter(x => !x.P.숨김);                    // 🏪 진열할 것만 (늘 서버)
 const prodOn = () => !!(window.MALANG_PROD && window.MALANG_PROD.prod);
 /* 🔁 내 실물이 바뀌면 목록을 다시 만들어요 : 각 파일이 prodHook(다시 만들기) 로 등록 (읽는 순서대로) */
@@ -73,6 +75,6 @@ function leafBg(id, k) {                                                      //
     return u && wh ? `url("${u}") 0 0 / ${(+wh[0] * k).toFixed(2)}px ${(+wh[1] * k).toFixed(2)}px repeat` : 'none';
 }
 window.leafList = leafList; window.leafOk = leafOk; window.leafCss = leafCss; window.leafBg = leafBg;
-window.prodList = prodList; window.prodShelf = prodShelf; window.prodOn = prodOn; window.prodSrv = prodSrv;
+window.prodList = prodList; window.prodFix = prodFix; window.prodShelf = prodShelf; window.prodOn = prodOn; window.prodSrv = prodSrv;
 window.prodHook = prodHook; window.prodRebuild = prodRebuild; window.prodRawOf = prodRawOf; window.PROD_OKF = PROD_OKF;
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['prod'] = prodOn();   // 🛡 목록을 못 받았으면 다이어리를 시작하지 않아요 (index.html 아래 확인)

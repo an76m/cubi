@@ -457,7 +457,8 @@
         window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트
         window.dyyDesign = dyyDesign; window.dyyTitle = dyyTitle;
         if (window.prodHook) prodHook(() => { dyoAll(); if (typeof isCoverOpen !== 'undefined' && isCoverOpen) dyyColorPaint(); });   // 📦 내 실물이 바뀌면 = 내가 만든 디자인도 다시 · 펼친 권 색 (js/mine.js)
-        window.dyyBookType = () => { const g = DY_DESIGNS.find(d => d.gift && d.float) || DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}; return dyyType(dyyBook()) || dyyType({ ch: g.ch, c: g.id }); };   // 🎈 띄울 권 디자인 먼저 (도련 11-19 : 처음받기 첫 권이 바이블이라 떠오른 표지가 바이블 크기였어요)   // 📐 펼친 권 모양 (권이 없으면 처음받기 디자인 · js/skins.js dyNow)
+        const DYY_SEEN = {};   // 🛟 권마다 마지막으로 알던 모양 (도련 11-19 : 디자인이 목록에서 빠져도 다른 디자인 크기로 바뀌지 않게)
+        window.dyyBookType = () => { const b = dyyBook(), t = dyyType(b); if (t && b) { DYY_SEEN[b.id] = t; return t; } if (b && DYY_SEEN[b.id]) return DYY_SEEN[b.id]; const g = DY_DESIGNS.find(d => d.gift && d.float) || DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}; return dyyType({ ch: g.ch, c: g.id }); };   // 🎈 띄울 권 디자인 먼저 (도련 11-19 : 처음받기 첫 권이 바이블이라 떠오른 표지가 바이블 크기였어요)   // 📐 펼친 권 모양 (권이 없으면 처음받기 디자인 · js/skins.js dyNow)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dyyear'] = true;
