@@ -39,7 +39,7 @@
         /* ---------- 화면 ---------- */
         function pelBuild() {
             stkRoom({ id: 'pelRoom', cls: 'pel-room', hit: 'pelHit', down: pelDown, move: pelMove, up: pelUp, resize: () => { if (pelS.on) pelLayout(); },   // 🪟 종이 화면 = 스티커 엔진 · 👆 손가락은 종이 자리(pelHit)만 · 그 밖은 페이지 그대로 (도련 11-05)
-                html: `<canvas id="pelCv"></canvas><div class="pel-hit" id="pelHit"></div><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="축소" title="축소">축소</button>` });
+                html: `<canvas id="pelCv"></canvas><div class="pel-live" id="pelLive"></div><div class="pel-hit" id="pelHit"></div><button type="button" class="pel-x pel-bx win-x" id="pelX" onclick="closeStickerPeel()" aria-label="축소" title="축소">축소</button>` });
         }
         const pelPage = () => document.getElementById('canvasArea');
         /* 📔 붙일 페이지가 보여요 (덮였거나 🪑 책상에 놓여 있으면 아니에요 → 종이 크기는 보통 크기 · 뗀 스티커는 종이로 돌아가요) */
@@ -146,6 +146,38 @@
         const pelLeft = () => pelS.items.filter(o => o.st.state === 'on').length;
         function pelPick(o) { const S = pelS; S.a = o.a; S.st = o.st; S.src = o.src; }
 
+        /* 🎬 SVG 스티커 (도련 11-19 · 1326 "확대하면 멈추고 하나는 안 보여") : 종이(캔버스)는 한 장면만 그려요
+           → 종이 위에 가만히 있는 동안은 진짜 그림(<img>)을 그 자리에 올려 움직이게 · 캔버스(떼는 연출)는 움직임을 뺀 모습 (첫 장면이 빈 손글씨 하트도 보여요) */
+        const pelSvgText = async u => {
+            if (!u) return '';
+            if (/^data:image\/svg\+xml/i.test(u)) { const i = u.indexOf(','), h = u.slice(0, i); return /;base64/i.test(h) ? decodeURIComponent(escape(atob(u.slice(i + 1)))) : decodeURIComponent(u.slice(i + 1)); }
+            if (/^data:/i.test(u)) return '';
+            try { const r = await fetch(u); if (!r.ok) throw 0; const b = await r.blob(); return /svg/i.test(b.type) || /\.svg(\?|#|$)/i.test(u) ? await b.text() : ''; } catch (e) { return /\.svg(\?|#|$)/i.test(u) ? '<svg' : ''; }   // 못 읽어도 .svg 면 위에 올려요
+        };
+        async function pelLiveOf(o) {
+            if (!o.a || !o.src) return;
+            let t = ''; try { t = await pelSvgText(o.src); } catch (e) { } if (!t || !/<svg/i.test(t)) return;
+            o.live = 1;
+            if (!/<(animate|animateTransform|animateMotion|set)\b|animation\s*:/i.test(t)) return;
+            const still = t.replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*\/>/g, '').replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*>[\s\S]*?<\/\1>/g, '').replace(/animation\s*:[^;"}]*;?/g, '');
+            try { const im = await pelLoad('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(still)); o.a = pelAsset(im); } catch (e) { }
+        }
+        function pelLive(bo, skip) {
+            const S = pelS, box = pelq('pelLive'); if (!box) return;
+            box.style.opacity = bo;
+            if (S.rel) { const A = S.rel.at(); box.style.clipPath = `inset(${Math.max(0, A.top - 6)}px ${Math.max(0, S.W - A.left - A.width)}px ${Math.max(0, S.H - A.top - A.height - 6)}px ${Math.max(0, A.left)}px)`; } else box.style.clipPath = '';
+            S.items.forEach(o => {
+                if (!o.live) return;
+                const on = bo > 0 && o.st.state === 'on' && !o.st.snap && o !== skip;
+                if (!on) { if (o.img) o.img.style.display = 'none'; return; }
+                if (!o.img) { o.img = document.createElement('img'); o.img.src = o.src; o.img.alt = ''; o.img.draggable = false; box.appendChild(o.img); }
+                const a = o.a, w = (a.w - a.m * 2) * o.st.s, h = (a.h - a.m * 2) * o.st.s, k = [o.st.cx - w / 2, o.st.cy - h / 2, w, h].map(v => Math.round(v * 10) / 10).join();
+                o.img.style.display = '';
+                if (o.img.dataset.k !== k) { o.img.dataset.k = k; Object.assign(o.img.style, { left: (o.st.cx - w / 2) + 'px', top: (o.st.cy - h / 2) + 'px', width: w + 'px', height: h + 'px' }); }
+            });
+        }
+        function pelLiveClear() { const box = pelq('pelLive'); if (box) box.innerHTML = ''; pelS.items.forEach(o => { o.img = null; }); }
+
         /* src : 그림 하나 또는 여러 개 [src, …] */
         async function openStickerPeel(src, opt) {                       // opt.ts : 🔤 글씨스티커 (붙인 뒤 📷 사진 꾸미기 창이 안 떠요)
             if (!(opt && (opt.rel || opt.stay)) && !isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return false; }   // stay = 다이어리가 책상에 있어도 스티커창만 (js/basket.js dsOpen · 도련 11-05)
@@ -155,9 +187,10 @@
             if (!imgs.some(Boolean)) return false;
             pelBuild();
             const S = pelS;
-            S.cv = pelq('pelCv'); S.ctx = S.cv.getContext('2d');
+            S.cv = pelq('pelCv'); S.ctx = S.cv.getContext('2d'); pelLiveClear();
             S.items = imgs.map((im, i) => im ? { a: pelAsset(im), src: list[i], st: { state: 'on' } } : { a: null, src: '', st: { state: 'used' }, wh: pelUsedWh(own, i), g: (own && own.gh && own.gh[i]) || '' });   // 🎒 null = 이미 쓴 칸 · g = 뗀 자리 모양 (👻 js/own.js ownGhost)
             await Promise.all(S.items.map(async o => { if (o.g) try { o.gm = await pelLoad(o.g); } catch (e) {} }));
+            await Promise.all(S.items.map(o => pelLiveOf(o)));   // 🎬 SVG 스티커 = 종이 위에서도 움직여요 (도련 11-19 · 1326)
             pelPick(S.items.find(o => o.st.state === 'on'));
             S.L = opt && opt.L && Array.isArray(opt.L.b) && opt.L.b.length === list.length ? opt.L : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             S.sb = null; if (S.L && opt.sb) { try { S.sb = await pelLoad(opt.sb); } catch (e) {} }   // 🗂️ 내가 꾸민 시트의 바탕 (색 · 무늬 · 이름표 · js/sheetmaker.js)
@@ -170,7 +203,7 @@
         }
         function closeStickerPeel() {
             const S = pelS, rel = S.rel; if (!rel && S.board && S.own) S.lastAt = { id: S.own.id, x: S.board.cx, y: S.board.cy };   // 🗂️ 꺼내 둔 종이로 돌아갈 자리 (basket.js dsMoveFromPeel)
-            stkHide(S, 'pelRoom', 'pel-rel'); S.rel = null; pelNoise(0);
+            stkHide(S, 'pelRoom', 'pel-rel'); S.rel = null; pelNoise(0); pelLiveClear();
             if (rel) { if (rel.close) rel.close(); return; }                     // 🤍 정리 책상은 그대로
             if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
         }
@@ -212,7 +245,7 @@
                 if (o.st.state !== 'on') continue;
                 if (o === cur && ((d && d.mode === 'peel') || o.st.snap)) continue;
                 if (bo < 1) { if (bo <= 0) continue; ctx.save(); ctx.globalAlpha = bo; }
-                if (o.st.snap) pelSnap(ctx, o, t); else pelDraw(ctx, o.a.front, o.st, 1, 1, PEL_FLAT);
+                if (o.st.snap) pelSnap(ctx, o, t); else if (o.live && o !== (d && d.mode === 'peel' ? cur : null)) { } else pelDraw(ctx, o.a.front, o.st, 1, 1, PEL_FLAT);   // 🎬 SVG = 진짜 그림이 위에 (pelLive)
                 if (bo < 1) ctx.restore();
             }
             if (S.rel) ctx.restore();
@@ -222,6 +255,7 @@
                 pelSizeUp(t);
                 stkFlipIn(ctx, a, st, t, PEL_UP, 1.07);                          // 뒷면 → 앞면으로 뒤집혀요 (스티커 엔진)
             }
+            pelLive(bo, d && d.mode === 'peel' ? cur : null);
             pelHitPlace(bo);
             S.raf = requestAnimationFrame(pelFrame);
         }
