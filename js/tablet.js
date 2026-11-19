@@ -189,7 +189,7 @@
     }
     function wsOpen(title, sub, cls, close) {
         const r = wsBuild(); wsEnd(true);
-        q('tbWsT').innerHTML = `${title}<small>${sub}</small>`;
+        { const m = /^(\S+)\s+(.*)$/.exec(String(title)); q('tbWsT').innerHTML = m ? `<i>${m[1]}</i> <span>${m[2]}</span><small>${sub}</small>` : `${title}<small>${sub}</small>`; }   // 그림 · 이름 따로 (작은 태블릿 = 그림만 · 도련 11-20)
         ['tbWsL', 'tbWsC', 'tbWsR'].forEach(id => { q(id).innerHTML = ''; });
         r.className = 'shm-room smk-room tb-ws show' + (cls ? ' ' + cls : ''); WS.close = close || null;
         document.body.classList.add('tb-ws-on');

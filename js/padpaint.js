@@ -691,7 +691,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         if (!fs.hidden) { const M = P.many.length > 1, b = M ? P.many.map(bbox).reduce((u, v) => ({ x: Math.min(u.x, v.x), y: Math.min(u.y, v.y), w: Math.max(u.x + u.w, v.x + v.w) - Math.min(u.x, v.x), h: 0 })) : bbox(s), q = toScr({ x: b.x + b.w / 2, y: b.y });
             fs.innerHTML = M ? `<button data-s="bunion">⊕ 합치기</button><button data-s="bsub">⊖ 빼기 (위에서 아래)</button><button data-s="bint">⊗ 겹친 곳만</button><button data-s="group">📦 그룹</button><br><button data-s="al">⇤</button><button data-s="ac">⇹</button><button data-s="ar">⇥</button><button data-s="at">⤒</button><button data-s="am">⇳</button><button data-s="ab">⤓</button><button data-s="dh">↔ 같은 간격</button><button data-s="dv">↕ 같은 간격</button><button data-s="mdone">✔ 고르기 끝</button>`
                 : `<button data-s="fill">🎨 칠</button><button data-s="stroke">✏️ 선</button><button data-s="grad">🌈 그라데이션</button><button data-s="front">⤴ 앞으로</button><button data-s="dup">⧉ 복사</button><button data-s="del">🗑</button><br><button data-s="more" class="${P.addSel ? 'on' : ''}">➕ 더 고르기</button><button data-s="radial">🌀 빙글 복사 ${P.radN || 6}</button><button data-s="center">⊙ 종이 가운데</button>${s.k === 'group' ? '<button data-s="ungroup">📤 풀기</button>' : ''}`;
-            Object.assign(fs.style, { left: q.x + 'px', top: Math.max(4, q.y - (M ? 92 : 92)) + 'px' }); }
+            { const qb = toScr({ x: b.x + b.w / 2, y: b.y + (M ? P.many.map(bbox).reduce((m, v) => Math.max(m, v.y + v.h), -1e9) - b.y : b.h) }), host = fs.offsetParent, hh = host ? host.clientHeight : innerHeight, fh = fs.offsetHeight || 80, below = qb.y + 22;   // ⬇ 모양 아래에 (도련 11-20 : 위에 두면 🔄 돌리기 손잡이를 가려요) · 아래 칸이 모자라면 위로
+              Object.assign(fs.style, { left: q.x + 'px', top: (below + fh <= hh - 4 ? below : Math.max(4, q.y - fh - 40)) + 'px' }); } }
         if (!fp.hidden) { const a = s.pts[P.pt.i], q = toScr(a); fp.innerHTML = `<button data-p="sm">⌒ 둥근 점</button><button data-p="cn">∠ 꺾인 점</button><button data-p="add">➕ 점 더하기</button><button data-p="rm">➖ 점 빼기</button>`; Object.assign(fp.style, { left: q.x + 'px', top: (q.y + 22) + 'px' }); }
     }
     function shapeAct(a) {
@@ -952,7 +953,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         if (!L) { box.innerHTML = ''; T.textContent = ''; return; }
         T.textContent = '🗂️ 고른 레이어 · ' + L.name;
         let h = '';
-        if (L.type === 'paper') h = `<p class="pp-hint">🧵 종이는 맨 아래에 늘 있어요 · 종이를 꾸미려면 🧩 CSS · 🌀 SVG 레이어를 써요 (상자 ⬛ 종이 가득)</p>`;
+        if (L.type === 'paper') h = `<label class="pp-sl">투명도<input type="range" data-pk="lop" min="0" max="1" step=".05" value="${L.op}"><b>${Math.round(L.op * 100)}%</b></label><p class="pp-hint">🧵 종이는 맨 아래에 늘 있어요 · 종이를 꾸미려면 🧩 CSS · 🌀 SVG 레이어를 써요 (상자 ⬛ 종이 가득)</p>`;   // 🧵 종이 투명도 (도련 11-20)
         else {
             h = `<div class="r"><span>섞는 법</span><div>${BLEND.map(([v, n]) => chip('bl', v, n, L.blend === v)).join('')}</div></div>
                 <label class="pp-sl">투명도<input type="range" data-pk="lop" min="0" max="1" step=".05" value="${L.op}"><b>${Math.round(L.op * 100)}%</b></label>
@@ -1655,7 +1656,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         const D = { defs: [], anim: false, heavy: false, part: false }, K = [], parts = []; let paper = '';
         for (const L of P.layers) {
             if (!L.vis) continue;
-            if (L.type === 'paper') { if (o.paper) paper += await cvImg(layerImg(L)); continue; }
+            if (L.type === 'paper') { if (o.paper) { let im = layerImg(L); if (L.op < 1) { const t = mkCv(P.W, P.H), tx = t.getContext('2d'); tx.globalAlpha = L.op; tx.drawImage(im, 0, 0); im = t; } paper += await cvImg(im); } continue; }   // 🧵 종이 투명도 그대로 (도련 11-20)
             if (L.clip) return null;                                            // 📎 클리핑 = 그림으로
             const s = await layerSvg(L, D, K); if (!s) continue;
             const op = L.op < 1 ? ` opacity="${n1(L.op * 100) / 100}"` : '', bl = L.blend && L.blend !== 'source-over' ? ` style="mix-blend-mode:${L.blend}"` : '';
