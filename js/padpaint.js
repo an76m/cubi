@@ -143,6 +143,14 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         st.addEventListener('pointerleave', () => { $('ppBr').hidden = true; });
         st.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX, e.clientY); }, { passive: false });
         st.addEventListener('dblclick', e => { if (P.tool === 'pen' && P.pen) penEnd(); });
+        if (!window._ppPopDrag) { window._ppPopDrag = 1; document.addEventListener('pointerdown', e => {   // ✋ 그림판 창 (📐 크기 · 📔 끼워 보기 …) = 머리줄을 끌면 옮겨요 (도련 11-20)
+            const h = e.target.closest && e.target.closest('.pp-pop .pp-pop-h'); if (!h || e.target.closest('button, input, select')) return;
+            const w = h.closest('.pp-pop'), r = w.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY; e.preventDefault();
+            Object.assign(w.style, { left: r.left + 'px', top: r.top + 'px', transform: 'none', margin: '0' }); w.classList.add('moving');
+            const mv = ev => { w.style.left = Math.max(-r.width + 60, Math.min(innerWidth - 60, r.left + ev.clientX - x0)) + 'px'; w.style.top = Math.max(0, Math.min(innerHeight - 40, r.top + ev.clientY - y0)) + 'px'; };
+            const up = () => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up); w.classList.remove('moving'); };
+            document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+        }, true); }
         $('ppFlS').onclick = e => { const f = e.target.closest('[data-fx]'); if (f) { flAct(f.dataset.fx); return; } const b = e.target.closest('[data-s]'); if (b) shapeAct(b.dataset.s); };
         $('ppFlP').onclick = e => { const b = e.target.closest('[data-p]'); if (b) pointAct(b.dataset.p); };
     }
@@ -680,20 +688,37 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         const s = Object.assign(V0(), { k: 'path', pts: a, closed }); L.shapes.push(s); L.dirtyV = true; P.sel = s; P.dirty = true; renderAll(); paintFloats(); paintProps();
     }
     /* 떠 있는 막대 : 모양 (칠 · 선 · 앞으로 · 복사 · 삭제) · 점 (둥근 · 꺾인 · 더하기 · 빼기) */
+    /* ✋ 떠 있는 막대 옮기기 (도련 11-20 : 메뉴가 그리는 곳을 가려요) : ⠿ 손잡이 · 빈 곳을 끌면 옮겨요 · 모양을 따라가되 옮긴 만큼 떨어져서 · ⠿ 두 번 누르면 제자리 */
+    const FLGRIP = '<b class="pp-grip" title="끌어서 메뉴를 옮겨요 · 두 번 누르면 제자리">⠿<small>끌어 옮기기</small></b>';
+    function flPlace(el, x, y) { const o = (P.flo && P.flo[el.id]) || { x: 0, y: 0 }; el.dataset.bx = x; el.dataset.by = y; el.style.left = (x + o.x) + 'px'; el.style.top = (y + o.y) + 'px'; }
+    function flWire(el) {
+        if (!el || el._flw) return; el._flw = 1;
+        el.addEventListener('pointerdown', e => {
+            if (e.target.closest('button, input, select')) return; e.preventDefault(); e.stopPropagation();
+            P.flo = P.flo || {}; const now = Date.now();
+            if (e.target.closest('.pp-grip') && now - (el._flT || 0) < 380) { el._flT = 0; delete P.flo[el.id]; flPlace(el, +el.dataset.bx || 0, +el.dataset.by || 0); return; }   // ⠿ 두 번 = 제자리 (터치도)
+            el._flT = e.target.closest('.pp-grip') ? now : 0;
+            const o0 = P.flo[el.id] || { x: 0, y: 0 }, x0 = e.clientX, y0 = e.clientY, k = el.offsetWidth / (el.getBoundingClientRect().width || el.offsetWidth || 1);   // 화면 px → 막대 자리 px (그림판이 줄어 있으면)
+            try { el.setPointerCapture(e.pointerId); } catch (er) {} el.classList.add('moving');
+            const mv = ev => { P.flo[el.id] = { x: o0.x + (ev.clientX - x0) * k, y: o0.y + (ev.clientY - y0) * k }; flPlace(el, +el.dataset.bx || 0, +el.dataset.by || 0); };
+            const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); el.classList.remove('moving'); };
+            el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+        });
+    }
     function paintFloats() {
-        const fs = $('ppFlS'), fp = $('ppFlP'); if (!fs) return;
+        const fs = $('ppFlS'), fp = $('ppFlP'); if (!fs) return; flWire(fs); flWire(fp);
         if (P.mode === 'px' && P.fl) { const b = P.fl.box, q = toScr({ x: b.x + P.fl.dx + b.w / 2, y: b.y + P.fl.dy }); fs.hidden = false; fp.hidden = true;
-            fs.innerHTML = `<button data-fx="small">－ 작게</button><button data-fx="big">＋ 크게</button><button data-fx="rl">⟲</button><button data-fx="rr">⟳</button><button data-fx="fx">↔ 뒤집기</button><button data-fx="fy">↕ 뒤집기</button><button data-fx="kl">◁ 기울이기</button><button data-fx="kr">기울이기 ▷</button><button data-fx="ok">✔ 붙이기</button>`;
-            Object.assign(fs.style, { left: q.x + 'px', top: Math.max(4, q.y - 64) + 'px' }); return; }
+            fs.innerHTML = FLGRIP + `<button data-fx="small">－ 작게</button><button data-fx="big">＋ 크게</button><button data-fx="rl">⟲</button><button data-fx="rr">⟳</button><button data-fx="fx">↔ 뒤집기</button><button data-fx="fy">↕ 뒤집기</button><button data-fx="kl">◁ 기울이기</button><button data-fx="kr">기울이기 ▷</button><button data-fx="ok">✔ 붙이기</button>`;
+            flPlace(fs, q.x, Math.max(4, q.y - 64)); return; }
         const s = P.sel, V = P.mode === 'vec' && s && P.cur && P.cur.shapes && P.cur.shapes.includes(s) && !P.pen;
         fs.hidden = !(V && ['select', 'paint'].includes(P.tool));
         fp.hidden = !(V && P.tool === 'direct' && P.pt && P.pt.s === s);
         if (!fs.hidden) { const M = P.many.length > 1, b = M ? P.many.map(bbox).reduce((u, v) => ({ x: Math.min(u.x, v.x), y: Math.min(u.y, v.y), w: Math.max(u.x + u.w, v.x + v.w) - Math.min(u.x, v.x), h: 0 })) : bbox(s), q = toScr({ x: b.x + b.w / 2, y: b.y });
-            fs.innerHTML = M ? `<button data-s="bunion">⊕ 합치기</button><button data-s="bsub">⊖ 빼기 (위에서 아래)</button><button data-s="bint">⊗ 겹친 곳만</button><button data-s="group">📦 그룹</button><br><button data-s="al">⇤</button><button data-s="ac">⇹</button><button data-s="ar">⇥</button><button data-s="at">⤒</button><button data-s="am">⇳</button><button data-s="ab">⤓</button><button data-s="dh">↔ 같은 간격</button><button data-s="dv">↕ 같은 간격</button><button data-s="mdone">✔ 고르기 끝</button>`
-                : `<button data-s="fill">🎨 칠</button><button data-s="stroke">✏️ 선</button><button data-s="grad">🌈 그라데이션</button><button data-s="front">⤴ 앞으로</button><button data-s="dup">⧉ 복사</button><button data-s="del">🗑</button><br><button data-s="more" class="${P.addSel ? 'on' : ''}">➕ 더 고르기</button><button data-s="radial">🌀 빙글 복사 ${P.radN || 6}</button><button data-s="center">⊙ 종이 가운데</button>${s.k === 'group' ? '<button data-s="ungroup">📤 풀기</button>' : ''}`;
+            fs.innerHTML = FLGRIP + (M ? `<button data-s="bunion">⊕ 합치기</button><button data-s="bsub">⊖ 빼기 (위에서 아래)</button><button data-s="bint">⊗ 겹친 곳만</button><button data-s="group">📦 그룹</button><br><button data-s="al">⇤</button><button data-s="ac">⇹</button><button data-s="ar">⇥</button><button data-s="at">⤒</button><button data-s="am">⇳</button><button data-s="ab">⤓</button><button data-s="dh">↔ 같은 간격</button><button data-s="dv">↕ 같은 간격</button><button data-s="mdone">✔ 고르기 끝</button>`
+                : `<button data-s="fill">🎨 칠</button><button data-s="stroke">✏️ 선</button><button data-s="grad">🌈 그라데이션</button><button data-s="front">⤴ 앞으로</button><button data-s="dup">⧉ 복사</button><button data-s="del">🗑</button><br><button data-s="more" class="${P.addSel ? 'on' : ''}">➕ 더 고르기</button><button data-s="radial">🌀 빙글 복사 ${P.radN || 6}</button><button data-s="center">⊙ 종이 가운데</button>${s.k === 'group' ? '<button data-s="ungroup">📤 풀기</button>' : ''}`);
             { const qb = toScr({ x: b.x + b.w / 2, y: b.y + (M ? P.many.map(bbox).reduce((m, v) => Math.max(m, v.y + v.h), -1e9) - b.y : b.h) }), host = fs.offsetParent, hh = host ? host.clientHeight : innerHeight, fh = fs.offsetHeight || 80, below = qb.y + 22;   // ⬇ 모양 아래에 (도련 11-20 : 위에 두면 🔄 돌리기 손잡이를 가려요) · 아래 칸이 모자라면 위로
-              Object.assign(fs.style, { left: q.x + 'px', top: (below + fh <= hh - 4 ? below : Math.max(4, q.y - fh - 40)) + 'px' }); } }
-        if (!fp.hidden) { const a = s.pts[P.pt.i], q = toScr(a); fp.innerHTML = `<button data-p="sm">⌒ 둥근 점</button><button data-p="cn">∠ 꺾인 점</button><button data-p="add">➕ 점 더하기</button><button data-p="rm">➖ 점 빼기</button>`; Object.assign(fp.style, { left: q.x + 'px', top: (q.y + 22) + 'px' }); }
+              flPlace(fs, q.x, below + fh <= hh - 4 ? below : Math.max(4, q.y - fh - 40)); } }
+        if (!fp.hidden) { const a = s.pts[P.pt.i], q = toScr(a); fp.innerHTML = FLGRIP + `<button data-p="sm">⌒ 둥근 점</button><button data-p="cn">∠ 꺾인 점</button><button data-p="add">➕ 점 더하기</button><button data-p="rm">➖ 점 빼기</button>`; flPlace(fp, q.x, q.y + 22); }
     }
     function shapeAct(a) {
         const L = P.cur, s = P.sel; if (!s || !L) return;

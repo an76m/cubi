@@ -360,3 +360,10 @@
     .pp-mode button { padding: 7px 8px; font-size: 13px; }
     .pp-qa button { width: 36px; height: 36px; font-size: 16px; }
 }
+
+/* ✋ 떠 있는 막대 · 창 옮기기 (도련 11-20 · js/padpaint.js flWire · .pp-pop-h) */
+.pp-grip { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 6px; font-size: 15px; line-height: 1; color: #b08a96; cursor: grab; user-select: none; touch-action: none; border-right: 1.5px dashed #f1d3dd; margin-right: 2px; }
+.pp-grip small { font-size: 8.5px; font-weight: 800; color: #b08a96; margin-top: 2px; white-space: nowrap; }
+.pp-fl { touch-action: none; cursor: grab; } .pp-fl.moving, .pp-pop.moving { cursor: grabbing; opacity: .92; }
+.pp-pop-h { cursor: grab; touch-action: none; user-select: none; }
+.pp-pop-h > b::after { content: '✋ 끌어 옮기기'; margin-left: 8px; font-size: 9.5px; font-weight: 800; color: #b08a96; }
