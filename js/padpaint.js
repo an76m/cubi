@@ -276,6 +276,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     }
     function compose(x, withStroke) {
         x.save(); x.clearRect(0, 0, P.W, P.H); let base = null;
+        const pp = P.layers.find(l => l.type === 'paper'); if ((!pp || !pp.vis) && P.cut && P.cut.on && P.cutImg) x.drawImage(P.cutImg, 0, 0);   // ✂️ 종이를 꺼도 칼선은 그림 밑에 (도련 11-20 : 종이 끄고 흰 테두리가 안 보였어요)
         for (const L of P.layers) {
             if (!L.vis) continue;
             if (L.type === 'paper') { x.globalAlpha = L.op; x.globalCompositeOperation = L.blend; x.drawImage(layerImg(L), 0, 0); if (P.cut && P.cut.on && P.cutImg) { x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; x.drawImage(P.cutImg, 0, 0); } continue; }
