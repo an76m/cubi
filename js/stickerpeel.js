@@ -26,6 +26,14 @@
             const im = await pelLoad(src);
             const iw = im.width, ih = im.height;                               // 🖼️ 원본 크기 그대로 (줄이지 않아요)
             const die = typeof showOn !== 'function' || showOn('die');
+            let sv = ''; try { sv = await pelSvgText(src); } catch (e) { }
+            if (sv && /<svg/i.test(sv) && sv !== '<svg') {                      // 🎬 SVG 스티커 = 그림으로 굽지 않아요 (굽으면 멈춰요 · 손글씨 하트처럼 첫 장면이 비면 안 보여요 · 도련 11-19 1329) · 하얀 테두리도 svg 필터로
+                if (!die) return src;
+                const b = PEL_EDGE + 2, W = iw + b * 2, H = ih + b * 2, body = sv.replace(/^\s*<\?xml[^>]*>\s*/i, '').replace(/^\s*<!DOCTYPE[^>]*>\s*/i, ''), tag = (body.match(/<svg\b[^>]*>/i) || [''])[0];
+                const nt = tag.replace(/\s(width|height|x|y)\s*=\s*("[^"]*"|'[^']*')/gi, '').replace(/<svg\b/i, `<svg x="${b}" y="${b}" width="${iw}" height="${ih}"${/viewBox\s*=/i.test(tag) ? '' : ` viewBox="0 0 ${iw} ${ih}"`}`), inner = body.replace(tag, nt);
+                const out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><filter id="peldie" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><feMorphology in="SourceAlpha" operator="dilate" radius="${PEL_EDGE}" result="r"/><feFlood flood-color="#fff"/><feComposite in2="r" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#peldie)">${inner}</g></svg>`;
+                return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(out);
+            }
             const b = die ? PEL_EDGE + 2 : 0, c = pelMk(iw + b * 2, ih + b * 2), x = c.getContext('2d');   // 테두리를 끄면 그림 크기 그대로
             const one = pelMk(c.width, c.height); one.getContext('2d').drawImage(im, b, b, iw, ih);
             if (die) x.drawImage(pelTint(stkGrow(pelTint(one, '#fff'), PEL_EDGE, 10), '#fff'), 0, 0);
