@@ -367,3 +367,6 @@
 .pp-fl { touch-action: none; cursor: grab; } .pp-fl.moving, .pp-pop.moving { cursor: grabbing; opacity: .92; }
 .pp-pop-h { cursor: grab; touch-action: none; user-select: none; }
 .pp-pop-h > b::after { content: '✋ 끌어 옮기기'; margin-left: 8px; font-size: 9.5px; font-weight: 800; color: #b08a96; }
+
+.pp-done-k { display: inline-block; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 99px; background: #fff8d6; border: 1.5px dashed #f2d36b; color: #6b4438; cursor: default; }   /* 완성 모양 = 알려 주는 글 (누르는 단추 아님 · 도련 11-20) */
+.pp-done-t { display: block; width: 100%; margin-top: 3px; font-size: 10.5px; color: #a07f8b; font-weight: 700; }

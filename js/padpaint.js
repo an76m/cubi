@@ -188,7 +188,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             if (P.tool === 'brush') h += `<h4>붓 모양</h4><div class="pp-brushes">${BRUSH.map(([k, n]) => `<button type="button" data-b="${k}" class="${k === P.brush ? 'on' : ''}"><canvas width="160" height="52" data-pv="${k}"></canvas><span>${n}</span></button>`).join('')}</div>`;
             if (P.tool === 'stamp') h += `<h4>스탬프 모양</h4><div class="pp-chips pick">${STAMPS.map(([k, n]) => `<button type="button" data-stk="${k}" class="${k === (P.stampK || 'heart') ? 'on' : ''}">${n}</button>`).join('')}<button type="button" data-stj="1" class="${P.stampJ !== false ? 'on' : ''}">🎲 흩뿌리기</button></div>`;
             if (P.tool === 'grad') h += `<h4>그라데이션</h4><div class="pp-chips pick"><button type="button" data-gs="linear" class="${(P.gradS || 'linear') === 'linear' ? 'on' : ''}">➖ 직선</button><button type="button" data-gs="radial" class="${P.gradS === 'radial' ? 'on' : ''}">⭕ 원형</button><button type="button" data-gk="clear" class="${(P.gradK || 'clear') === 'clear' ? 'on' : ''}">지금 색 → 투명</button><button type="button" data-gk="two" class="${P.gradK === 'two' ? 'on' : ''}">지금 색 → <i style="background:${P.recent[0] || '#fff'}"></i> 최근 색</button></div><p class="pp-hint">종이 위를 끌어요 · 레이어의 🫧 그린 곳만 칠을 켜면 그림 안에만</p>`;
-            if (['brush', 'pencil', 'marker'].includes(P.tool)) h += `<div class="pp-chips pick"><button type="button" data-qs="1" class="${P.qshape !== false ? 'on' : ''}">✨ 선 정리 (그리다 멈추면 반듯하게)</button></div>`;
+            if (['brush', 'pencil', 'marker'].includes(P.tool)) h += `<div class="pp-chips pick"><button type="button" data-qs="1" class="${P.qshape !== false ? 'on' : ''}">✨ 선 정리 (그리다 멈추면 반듯하게)</button></div><p class="pp-hint">✨ ${P.qshape !== false ? '켜짐' : '꺼짐'} · 선을 긋고 <b>손을 떼지 말고 잠깐 (0.6초) 멈추면</b> → 곧은 선 · 한 바퀴 돌리면 동그라미로 바뀌어요</p>`;   // 무엇인지 알려 줘요 (도련 11-20)
             if (P.tool === 'shape') h += `<h4>도형</h4><div class="pp-chips pick">${[['rect', '네모'], ['ellipse', '동그라미'], ['line', '선']].map(([k, n]) => `<button type="button" data-sk="${k}" class="${k === P.shapeK ? 'on' : ''}">${n}</button>`).join('')}<button type="button" data-sf="1" class="${P.shapeFill ? 'on' : ''}">🎨 채우기</button></div>`;
             h += sl('size', '크기', P.size, 1, 120, 1, 'px') + sl('op', '투명도', P.op, .05, 1, .05, '%');
             if (!['fill', 'drop', 'lasso', 'move', 'zoom', 'text', 'grad', 'smudge'].includes(P.tool)) h += sl('soft', '부드럽게', P.soft, 0, 1, .05, '%') + sl('stab', '떨림 보정', P.stab, 0, .95, .05, '%');
@@ -314,7 +314,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     }
     function render() {
         const c = $('ppCv'); if (!c) return; cbLive(); compose(c.getContext('2d'), true);
-        const dc = $('ppDoc'), pp = P.layers.find(l => l.type === 'paper'); if (dc) dc.classList.toggle('pp-clear', !!pp && !pp.vis);   // 👁 종이를 끄면 = 투명 바탕 (바둑판 · 도련 11-20)
+        const dc = $('ppDoc'), pp = P.layers.find(l => l.type === 'paper'); if (dc) dc.classList.toggle('pp-clear', !!pp && (!pp.vis || pp.op < 1));   /* 투명도를 낮춰도 바둑판이 비쳐요 (도련 11-20 : 하얀 바탕이라 안 바뀐 것 같았어요) */   // 👁 종이를 끄면 = 투명 바탕 (바둑판 · 도련 11-20)
         if (P.kind === 'tape') { ['ppGhL', 'ppGhR'].forEach(id => { const g = $(id); if (g) { const x = g.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.drawImage(c, 0, 0); } }); tapePvSoon(); }   // 🎀 양옆 = 이어지는 칸 (흐리게)
     }
     let tpvT = 0;
@@ -992,7 +992,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         if (L.type === 'paper') { box.innerHTML = h; return; }                 // 🧵 종이 = 자동 칼선 · 완성 모양 없이 (도련 11-20)
         const C = P.cut || { on: false, w: 12, c: '#ffffff' };
         h += `<h4>✂️ 자동 칼선<em>그림 둘레 하얀 테두리 · 스티커처럼</em></h4><div class="r"><span>칼선</span><div>${chip('cut', 1, C.on ? '켜짐' : '꺼짐', C.on)}${chip('cutc', '#ffffff', '하양', C.c === '#ffffff')}${chip('cutc', 'cur', `<i style="background:${C.c !== '#ffffff' ? C.c : P.color}"></i>지금 색`, C.c !== '#ffffff')}${chip('cutsh', 1, '그림자', !!C.sh)}</div></div><label class="pp-sl">두께<input type="range" data-pk="cw" min="2" max="40" value="${C.w}"><b>${C.w}px</b></label>`;
-        h += `<div class="r"><span>완성 모양</span><div><button type="button" class="on">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : P.kind === 'piece' ? '🧩 조각 봉투 (4조각)' : P.kind === 'paper' ? '📄 모조지 한 장' : '📃 속지 한 장'}</button></div></div>`;
+        h += `<div class="r"><span>완성 모양</span><div><span class="pp-done-k" title="✅ 완료하면 이 모양으로 서랍에 들어가요">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : P.kind === 'piece' ? '🧩 조각 봉투 (4조각)' : P.kind === 'paper' ? '📄 모조지 한 장' : '📃 속지 한 장'}</span><small class="pp-done-t">✅ 완료하면 이 모양으로 서랍에 들어가요</small></div></div>`;
         box.innerHTML = h;
     }
     function adjSet(L, k, v) {                                                 // 🎨 색 조정 (픽셀 · 사파리도 같게 = 점마다 계산)
