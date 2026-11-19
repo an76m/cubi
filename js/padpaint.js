@@ -655,6 +655,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     /* 곡선 = 손으로 그은 선 → 점 몇 개 (둥근 점) */
     function simplify(pts, eps) {
         if (pts.length < 3) return pts.slice();
+        const A0 = pts[0], Z0 = pts[pts.length - 1];
+        if (Math.hypot(Z0.x - A0.x, Z0.y - A0.y) < 1e-6) { let fi = 1, fd = 0; pts.forEach((q, i) => { const v = Math.hypot(q.x - A0.x, q.y - A0.y); if (v > fd) { fd = v; fi = i; } }); if (fi > 0 && fi < pts.length - 1) { const A = simplify(pts.slice(0, fi + 1), eps), B = simplify(pts.slice(fi), eps); return A.slice(0, -1).concat(B); } }   // 끝이 처음 점과 딱 같으면 (닫힌 곡선) = 가장 먼 점에서 나눠요 (도련 11-19 · 안 나누면 점 2개로 줄었어요)
         const d = (p, a, b) => { const l = Math.hypot(b.x - a.x, b.y - a.y) || 1; return Math.abs((b.x - a.x) * (a.y - p.y) - (a.x - p.x) * (b.y - a.y)) / l; };
         let mi = 0, mx = 0; for (let i = 1; i < pts.length - 1; i++) { const v = d(pts[i], pts[0], pts[pts.length - 1]); if (v > mx) { mx = v; mi = i; } }
         if (mx > eps) { const A = simplify(pts.slice(0, mi + 1), eps), B = simplify(pts.slice(mi), eps); return A.slice(0, -1).concat(B); }
