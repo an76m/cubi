@@ -336,3 +336,4 @@
 .pp-cbtree > button code { font: 700 10.5px ui-monospace, Consolas, monospace; background: #f6e3ea; color: #8a5a6a; border-radius: 6px; padding: 1px 6px; }
 .pp-cbtree > button.on { border-color: #4aa8ff; background: #eaf5ff; } .pp-cbtree > button.same code { background: #ffe9a8; color: #8a5a12; }
 .pp-cbtb { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; } .pp-cbtb button { font: inherit; font-size: 11.5px; font-weight: 800; padding: 5px 8px; border-radius: 9px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; }
+.pp-kindtip { margin: 0; padding: 6px 8px; border-radius: 8px; background: #fff4f8; color: #9a6a7c; font-size: 11px; font-weight: 700; line-height: 1.4; }   /* 종류마다 안내 (도련 11-19) */

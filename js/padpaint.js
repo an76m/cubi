@@ -39,7 +39,7 @@
         const tkmm = (o.draft && Array.isArray(o.draft.tkmm) && o.draft.tkmm) || o.tkmm || (TPD ? TAPE_MM0 : TK_MM0);
         const SZ = o.kind === 'seal' ? SEAL_SZ[(o.draft && o.draft.sz) || o.sz || 'tall'] || SEAL_SZ.tall : o.kind === 'paper' ? PAPER_SZ[(o.draft && o.draft.sz) || o.sz || 'tall'] || PAPER_SZ.tall : o.kind === 'piece' ? ['조각', PIECE_PX, PIECE_PX] : null;   // 🏷️ 씰 시트 규격
         const W = (o.draft && +o.draft.W) || (SZ ? SZ[1] : TKD ? Math.round(tkmm[0] * PX) : o.W || 900), H = (o.draft && +o.draft.H) || (SZ ? SZ[2] : TKD ? Math.round(tkmm[1] * PX) : o.H || 1395);   // 💾 이어서 = 저장할 때 종이 크기 그대로 (📐 규격)
-        Object.assign(P, { on: true, savedAt: 0, o, kind: o.kind || 'leaf', pcs: ((o.draft && o.draft.pcs) || []).slice(0, 4), sz: (o.draft && o.draft.sz) || o.sz || 'tall', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
+        Object.assign(P, { on: true, savedAt: 0, o, kind: o.kind || 'leaf', still: ['leaf', 'tk', 'paper', 'tape'].includes(o.kind || 'leaf'), pcs: ((o.draft && o.draft.pcs) || []).slice(0, 4), sz: (o.draft && o.draft.sz) || o.sz || 'tall', W, H, spec: (o.draft && o.draft.spec) || specNow(), tkmm: tkmm.slice(), glue: (o.draft && o.draft.glue) || '', wrap: TPD, layers: [], cur: null, mode: 'px', tool: 'brush', brush: 'round', size: 8, op: .9, soft: .45, stab: .6,
             vsw: 6, vround: 12, color: '#ff5d8f', recent: ['#4aa8ff', '#ffd23f', '#5cc98a'], hsv: [340, .64, 1], z: 1, px: 0, py: 0, base: 1, grid: false, sym: false,
             hist: [], redo: [], sel: null, many: [], addSel: false, cut: null, cutImg: null, symN: 0, adj: null, pt: null, pen: null, lasso: null, fl: null, drag: null, shapeK: 'rect', shapeFill: false, dirty: false, keyOn: true });
         P.two = !!(o.draft && o.draft.two);
@@ -1030,10 +1030,11 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         P.rszPlace = place;
     }
     /* ================= 🧩 블록 레이어 (도련 11-18 · 시안 13 · js/cssblocks.js) : 왼쪽 = 블록 상자 (css 공식 기능) · 오른쪽 🧩 블록 탭 = 상자 자리 · 글자 (접기) · 쌓은 블록 · 👩‍💻 코드 ================= */
+    const KIND_TIP = () => (P.still ? '<p class="pp-kindtip">🎬 이 종류는 가만히 있는 그림이라 움직임 기능은 없어요</p>' : '') + (P.kind === 'tk' ? '<p class="pp-kindtip">🧻 맨 위 풀칠 띠 자리는 묶음에 가려져요</p>' : P.kind === 'tape' ? '<p class="pp-kindtip">🎀 한 칸 밖으로 나간 그림자 · 장식 · 기울이기는 이어지는 곳에서 끊겨요</p>' : '');   // 종류마다 (도련 11-19)
     function cbTools() {
         $('ppToolT').innerHTML = '🧩 CSS 기능 상자<em>눌러서 쌓아요 · 위가 앞</em>';
         const tile = (a, e, n, tt) => `<button type="button" ${a} title="${esc(tt)}">${e}<small>${esc(n)}</small></button>`;
-        $('ppTools').innerHTML = CB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-cb="${k}" data-q="${esc((CB.DEF(k).n + ' ' + CB.OFF(k)).toLowerCase())}"`, CB.DEF(k).e, CB.DEF(k).n, 'CSS 공식 기능 : ' + CB.OFF(k))).join('')}</div></div>`).join('');
+        $('ppTools').innerHTML = KIND_TIP() + CB.GROUPS.filter(([g, ks]) => !(P.still && ks.includes('animation'))).map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-cb="${k}" data-q="${esc((CB.DEF(k).n + ' ' + CB.OFF(k)).toLowerCase())}"`, CB.DEF(k).e, CB.DEF(k).n, 'CSS 공식 기능 : ' + CB.OFF(k))).join('')}</div></div>`).join('');
         $('ppOpt').innerHTML = '<p class="pp-hint">✋ 종이 위를 끌면 CSS 상자를 옮겨요<br>🧩 CSS 공식 기능을 하나씩 · 오른쪽에서 ▣ 본체 · ✨ 장식 1 · ✨ 장식 2 를 골라 쌓아요<br>🎬 움직임은 그림판에서 움직여요 (구운 그림은 첫 장면)</p>';
     }
     function cbLayer() {                                                        // 지금 블록 레이어 (아니면 새로)
@@ -1201,8 +1202,8 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function sbTools() {
         $('ppToolT').innerHTML = '🌀 SVG 기능 상자<em>도형을 넣고 · 고른 도형에 붙여요</em>';
         const tile = (a, e, n, tt, q) => `<button type="button" ${a} data-q="${esc(q.toLowerCase())}" title="${esc(tt)}">${e}<small>${esc(n)}</small></button>`;
-        $('ppTools').innerHTML = `<div class="pp-cbg"><b>⬛ 도형 넣기<em>SVG 요소</em></b><div class="pp-cbs">${Object.keys(SB.EL).map(k => tile(`data-sbel="${k}"`, SB.EL[k].e, SB.EL[k].n, 'SVG 공식 요소 : <' + k + '>', SB.EL[k].n + ' ' + k)).join('')}</div></div>`
-            + SB.GROUPS.map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-sbb="${k}"`, SB.BL[k].e, SB.BL[k].n, 'SVG 공식 기능 : ' + SB.BL[k].o, SB.BL[k].n + ' ' + SB.BL[k].o)).join('')}</div></div>`).join('');
+        $('ppTools').innerHTML = KIND_TIP() + `<div class="pp-cbg"><b>⬛ 도형 넣기<em>SVG 요소</em></b><div class="pp-cbs">${Object.keys(SB.EL).map(k => tile(`data-sbel="${k}"`, SB.EL[k].e, SB.EL[k].n, 'SVG 공식 요소 : <' + k + '>', SB.EL[k].n + ' ' + k)).join('')}</div></div>`
+            + SB.GROUPS.map(([g, ks]) => [g, ks.filter(k => !(P.still && SB.BL[k].an))]).filter(([g, ks]) => ks.length).map(([g, ks]) => `<div class="pp-cbg"><b>${g}</b><div class="pp-cbs">${ks.map(k => tile(`data-sbb="${k}"`, SB.BL[k].e, SB.BL[k].n, 'SVG 공식 기능 : ' + SB.BL[k].o, SB.BL[k].n + ' ' + SB.BL[k].o)).join('')}</div></div>`).join('');
         $('ppOpt').innerHTML = '<p class="pp-hint">⬛ 도형을 넣고 → 오른쪽에서 도형을 골라 → 기능을 붙여요<br>✋ 종이 위를 끌면 고른 도형이 옮겨져요<br>🪄 필터는 위에서부터 차례로 · 1번 결과 · 2번 결과 … 를 이어 써요</p>';
     }
     function sbLayer() { if (P.cur && P.cur.type === 'svg') return P.cur; const L = addLayer('svg', lyName('svg')); P.cur = L; return L; }
@@ -1907,6 +1908,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
 
     window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppDiscard = ppDiscard; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K; window.ppSpecList = specList;
     window.ppTourHook = {                                                     // 🎓 따라 보기 (js/padtour.js) : 지금 그림은 보관 · 빈 연습 종이 · 끝나면 가져가기 / 그냥 닫기
+        get still() { return !!P.still; },                                     // 🎬 움직임 숨기는 종류 (속지 · 떡메 · 모조지 · 테이프)
         get on() { return !!P.on; }, get busy() { return !!P.tour; },
         begin() { if (!P.on || P.tour) return false; commitFloat(); penEnd(); P.tour = { s0: snapshot(), dirty: P.dirty };
             const pp = P.layers.filter(l => l.type === 'paper'); P.layers = pp; P.cur = pp[0] || null; P.hist = []; P.redo = []; P.sel = null; P.many = []; P.pt = null; P.cbOpen = null; P.sbSel = null; P.sbOpen = null; P.cbPart = 'blocks'; P.cbNode = 'root'; P.cbBox = false; P.cbCode = false; P.sbCode = false;

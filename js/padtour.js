@@ -349,7 +349,7 @@
             ${['css', 'svg', 'mix'].map(g => `<b class="pt-g">${GN[g]}</b>` + [1, 2, 3].map(l => `<div class="pt-cell">${TOUR.filter(x => x.m === mm && x.g === g && x.lv === l).map(x => `<button type="button" class="pt-card" data-ex="${TOUR.indexOf(x)}"><i>${x.e}</i><b>${x.n}</b><small>${x.d}</small></button>`).join('') || '<span class="pt-none">·</span>'}</div>`).join('')).join('')}</div>`;
         m.innerHTML = `<div class="pt-box"><button type="button" class="pt-x" data-pp="x">✕</button><h3>🎓 따라 보기<em>예시를 누르면 마우스가 움직이며 만들어요 · 지금 그림은 그대로 두고 연습 종이에서</em></h3>
             <h4 class="pt-sec">✨ 픽셀 · 벡터로는 어려운 것</h4>${grid('s')}
-            <details class="pt-anim"><summary>🎬 움직이는 예시 (실험)</summary>${grid('a')}</details>
+            ${window.ppTourHook && ppTourHook.still ? '' : `<details class="pt-anim"><summary>🎬 움직이는 예시 (실험)</summary>${grid('a')}</details>`}
             <p class="pt-tip">⏸ 멈춤 · ⏭ 한 걸음씩 · 🐢 🐇 빠르기 · ✋ 따라 하기 = 반짝이는 곳을 내가 눌러요</p></div>`;
         document.body.appendChild(m);
         m.onclick = e => { if (e.target === m || e.target.closest('[data-pp="x"]')) { m.remove(); return; } const c = e.target.closest('[data-ex]'); if (c) { m.remove(); start(TOUR[+c.dataset.ex]); } };
