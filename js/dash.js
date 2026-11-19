@@ -388,7 +388,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
     window.dashToggle = dashToggle; window.dashReport = report;
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && D.on) dashToggle(false); }, true);
     const GATE = { used: false, t: [], tm: 0, ok: null };
-    const GATE_H = '306e253df85ebad11a82408515711c27438d26d26ac508666a325f291e85c850';
+    const GATE_H = 'cc3607895e9c02f93004ec98151abb5b9d1dcf54b82c94e533cc6d47861589cc';
     async function gateEnv() {
         if (GATE.ok != null) return GATE.ok;
         try {
