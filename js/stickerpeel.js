@@ -62,7 +62,7 @@
             cx += S.mv.x; cy += S.mv.y;                                          // 종이를 옮긴 만큼
             const it = S.items, n = it.length, pw = Math.min(r.width, S.W);
             if (S.L) {                                                          // 🗺️ 시트 그대로 : A6 시트 세로 148mm = 644px × 실제 크기 비율 (페이지가 보이는 크기 그대로 · 화면에 안 들어가면 같이 줄여요)
-                const pk = pg && pg.offsetWidth ? r.width / pg.offsetWidth : 1, H0 = PEL_SHEET_H * pk * (window.dyImgK ? dyImgK() : 1),   /* 📏 시트도 실제 크기 비율 */ fit = Math.min(1, S.W * .94 / (H0 * S.L.r), (S.H - 40) * .94 / H0);
+                const pk = pg && pg.offsetWidth ? r.width / pg.offsetWidth : 1, H0 = PEL_SHEET_H * pk * (window.dyImgK ? dyImgK() : 1) * (+S.L.hm > 0 ? S.L.hm / 148 : 1),   /* 📐 시트 세로 mm (그림판 씰 크기 · 도련 11-19) */   /* 📏 시트도 실제 크기 비율 */ fit = Math.min(1, S.W * .94 / (H0 * S.L.r), (S.H - 40) * .94 / H0);
                 pelLaySheet(cx, cy, H0 * fit, pk * fit); return pelKeep();
             }
             if (n === 1 && it[0].a) {
@@ -101,7 +101,7 @@
         function pelRelLayout() {
             const S = pelS, A = S.rel.at(), it = S.items, n = it.length, G = 10;
             if (A.height >= 220 && S.L) {                                       // 🗺️ 매트 위에도 시트 그대로 (이형지북에 붙을 크기 · 매트에 안 들어가면 같이 줄여요)
-                const rk = (S.rel.scale && S.rel.scale()) || 1, H0 = PEL_SHEET_H * rk, fit = Math.min(1, (A.width - 8) / (H0 * S.L.r), (A.height - 8) / H0);
+                const rk = (S.rel.scale && S.rel.scale()) || 1, H0 = PEL_SHEET_H * rk * (+S.L.hm > 0 ? S.L.hm / 148 : 1), fit = Math.min(1, (A.width - 8) / (H0 * S.L.r), (A.height - 8) / H0);
                 S.mv.x = 0; S.mv.y = 0; pelLaySheet(A.left + A.width / 2, A.top + A.height / 2, H0 * fit, rk * fit); return pelKeep();
             }
             if (A.height >= 220) {                                              // 🟩 넓은 매트 (정리 공간 · 도련 10-29) : 종이를 크게 펼쳐요 (칸이 가장 커지게 줄을 나눠서)

@@ -498,7 +498,7 @@
         function ownBuild(sheet, meta) {                                         // 종이 · 목록 한 칸 만들기 (저장 전)
             const id = ownRid(), imgs = sheet.imgs.slice(0, 150);   // 시트 하나 = 그림 150장까지 (elements.js KIT_MAX 와 같게 · 도련 11-04)
             const full = { v: 1, id, k: sheet.k || 'seal', from: sheet.from || 'basic', nm: sheet.nm || '', ts: sheet.ts ? 1 : 0, baked: !!sheet.baked, imgs, wh: sheet.wh || [], x: sheet.x || {} };
-            const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? { r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) } : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
+            const L = sheet.L && Array.isArray(sheet.L.b) && sheet.L.b.length === imgs.length ? Object.assign({ r: +sheet.L.r, b: sheet.L.b.map(v => v.map(n => Math.round(n * 1e5) / 1e5)) }, +sheet.L.hm > 0 ? { hm: +sheet.L.hm } : {}) : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             if (L) full.L = L;
             const ent = { id, f: '', k: full.k, n: imgs.length, u: [], at: Date.now(), from: full.from, nm: full.nm };
             const q0 = sheet.q0 || (full.from === 'mine' ? OWN_MINE_Q[full.k] : 0);
