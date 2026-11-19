@@ -308,7 +308,7 @@ ${mine ? `<h4>📦 내 실물 (js/mine.js)</h4>${table(['묶음', '상품', '기
     async function storePaint(box) {
         const s = await browserStore(); if (!D.on || D.tab !== 'store') return;
         const det = (title, body) => `<details><summary>${title}</summary>${body}</details>`;
-        box.innerHTML = `<p><button data-a="bclear">🧹 브라우저 지우기 목록 (자세히 · 앱 창에서 열려요)</button> <span class="tip">설정에서 옮겨 왔어요 (11-19 · 사용자는 ⚙ 설정 🔄 앱 새로 받기 · 🚪 로그아웃 때 지우기만)</span></p>${s.est ? `<p>브라우저가 이 사이트에 쓴 양 <b>${kb(s.est.usage || 0)}</b> <span class="tip">/ 쓸 수 있는 양 ${kb(s.est.quota || 0)}</span></p>` : ''}
+        box.innerHTML = `<p><button data-a="bclear">🧹 브라우저 지우기 목록 (자세히 · 앱 창에서 열려요)</button> <span class="tip">설정에서 옮겨 왔어요 (11-19 · 사용자는 ⚙ 설정 🧹 앱 정리하기 · 🚪 로그아웃 때 지우기만)</span></p>${s.est ? `<p>브라우저가 이 사이트에 쓴 양 <b>${kb(s.est.usage || 0)}</b> <span class="tip">/ 쓸 수 있는 양 ${kb(s.est.quota || 0)}</span></p>` : ''}
 <h4>🗂 localStorage (${s.ls.length}개 · ${kb(sum(s.ls, x => x.b))} · 모든 탭 · 앱을 지워도 남아요)</h4>${table(['이름', '크기'], s.ls.map(x => [`<code>${esc(x.k)}</code>`, kb(x.b)]))}
 ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>${table(['이름', '크기'], s.ss.map(x => [`<code>${esc(x.k)}</code>`, kb(x.b)]))}` : ''}
 <h4>🗄 IndexedDB (${s.idb.length}개 데이터베이스)</h4>${s.idb.map(d => det(`<b>${esc(d.name)}</b> <span class="tip">${d.stores.map(x => x.s + ' ' + x.cnt + '개').join(' · ') || '(못 열어요)'}</span>`, d.stores.map(x => `<h4>${esc(x.s)} (${x.cnt}개${x.cnt > x.keys.length ? ' · 앞 ' + x.keys.length + '개만' : ''})</h4>${table(['이름 (키)'], x.keys.map(k => [`<code>${esc(k)}</code>`]))}`).join(''))).join('') || '<p class="tip">없어요</p>'}

@@ -419,7 +419,7 @@
             el.querySelector('.bc-pn').textContent = n ? `${Math.min(i + 1, n)} / ${n} 단계` : '';
         }
         function bcProgOff() { if (BCP.el) { BCP.el.remove(); BCP.el = null; } removeEventListener('beforeunload', BCP.leave); }
-        /* 고른 칸 지우기 (지우기 목록 · 🔄 앱 새로 받기 · 🚪 로그아웃 때 같이 씀) : S(id) = 그 칸을 지울지 */
+        /* 고른 칸 지우기 (지우기 목록 · 🧹 앱 정리하기 · 🚪 로그아웃 때 같이 씀) : S(id) = 그 칸을 지울지 */
         async function bcRunSel(G, S, title) {
             const delDb = n => bcWait(new Promise(r => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }), 3000);
             const clr = (db, sts) => Promise.all(sts.map(st => bcTx(db, st, 'readwrite', o => o.clear())));
@@ -446,17 +446,17 @@
         async function bcFlush() {                                                // ☁ 지우기 전에 못 올린 것 먼저 (최대 15초)
             try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') { bcProg('☁ 드라이브에 먼저 올리는 중', '바뀐 내용을 잃지 않게 올리고 지워요 (최대 15초)'); await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } } catch (e) {} finally { bcProgOff(); }
         }
-        /* 🔄 앱 새로 받기 (도련 11-19 · 1318 · 사용자용은 이것 하나 · 자세한 지우기 목록은 📊 상황판 → 브라우저 저장)
+        /* 🧹 앱 정리하기 (도련 11-20 · 예전 이름 '앱 새로 받기' · 도련 11-19 · 1318 · 사용자용은 이것 하나 · 자세한 지우기 목록은 📊 상황판 → 브라우저 저장)
            코드가 꼬였을 때 : 📦 앱 코드 보관함 · 업데이트 장치 + 🖼 읽어 둔 스티커 · 목록 · 드라이브 읽기 기억만 지우고 새로 열어요
            ⚠ 못 올린 것 · 완료 전 임시저장 · 로그인 없이 쓴 일기 · 로그인 · 화면 기억은 그대로 */
         async function appRefresh() {
-            if (!await showAsk('🔄 <b>앱 새로 받기</b><br><small style="color:#777">업데이트가 안 보이거나 화면이 이상할 때 눌러요.<br>이 기기에 받아 둔 앱 코드 · 읽어 둔 스티커를 지우고 새로 받아요.<br>일기 · 작업 · 로그인은 그대로예요 (처음 한 번은 조금 느리게 열려요).</small>', '새로 받기', '취소')) return;
+            if (!await showAsk('🧹 <b>앱 정리하기</b><br><small style="color:#777">화면이 이상하거나 잘 안 될 때 눌러요.<br>내 일기 · 스티커는 그대로예요.</small>', '정리하기', '취소')) return;
             await bcFlush();
-            bcProg('🔄 살펴보는 중', '받아 둔 것을 찾고 있어요');
+            bcProg('🧹 살펴보는 중', '잠깐만 기다려요');
             let G; try { G = await bcScan(); } finally { bcProgOff(); }
             const S = id => (id === 'app' || id === 'cache') && !!(G[id] && G[id].n);
-            await bcRunSel(G, S, '🔄 앱 새로 받는 중');
-            bcProg('✅ 다 지웠어요', '앱을 새로 받아 여는 중이에요', 1, 1);
+            await bcRunSel(G, S, '🧹 앱 정리하는 중');
+            bcProg('✅ 다 정리했어요', '앱을 다시 여는 중이에요', 1, 1);
             await new Promise(r => setTimeout(r, 600));
             removeEventListener('beforeunload', BCP.leave);
             location.reload();
