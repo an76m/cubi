@@ -94,7 +94,7 @@
             if (window.dyyPastMark) dyyPastTag();
             if (window.dkCoverPaint) dkCoverPaint();                           // 📢 📕 권을 바꾸면 그 상품의 공지 · 표지 꾸미기 (js/skins.js)
             if (!b) return;
-            const d = dyyDesign(b), nt = dyyBasic() && d ? d.b + ':' + d.r : null;   // 📐 디자인마다 모양(묶음 · 크기)이 달라요 → 바뀌면 다시 그리기
+            const d = dyyDesign(b), nt = dyyBasic() && d ? d.b + ':' + d.r + ':' + d.mm : null;   // 📐 디자인마다 모양(묶음 · 크기)이 달라요 → 바뀌면 다시 그리기 (규격 mm 도 · 도련 11-19 1315 : 바이블 → A6 로 바뀌었는데 r 이 같아 그대로였어요)
             if (nt !== dyyLastNote) { dyyLastNote = nt; if (typeof refreshLayout === 'function') setTimeout(refreshLayout, 0); }
         }
         /* 새 권 id (그 해 그 색 번호는 늘 새로 · 버린 것 · 되살린 것과 안 겹쳐요) */
