@@ -178,7 +178,7 @@
 #dashP .card small{display:block;color:#a07a88}#dashP .bar{height:9px;background:#ff9fbc;border-radius:5px;min-width:2px}#dashP .warn{color:#d23c3c}#dashP .ok{color:#2e9b5e}
 #dashP input{width:110px;border:1px solid #f0b8c8;border-radius:6px;padding:2px 6px;font:inherit}#dashP .tip{color:#9a7884;font-size:12px}#dashP code{background:#fff0f5;padding:0 4px;border-radius:4px}
 #dashP{resize:both;overflow:hidden;min-width:360px;min-height:240px}#dashP .dh{cursor:move;user-select:none}#dashP details{margin:2px 0}#dashP summary{cursor:pointer}`;
-    const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다']];
+    const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다'], ['log', '🧾 기록']];
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     let DOC = document;                                                       // 그리는 곳 = 따로 창 (팝업) 또는 앱 안 (팝업이 막혔을 때)
     function el() {
@@ -208,6 +208,20 @@
     function byFeat(L) { const m = new Map(); L.forEach(r => { const x = m.get(r.feat) || { n: 0, p: 0, b: 0 }; x.n++; x.p += r.pts; x.b += r.up + r.down; m.set(r.feat, x); }); return [...m.entries()].sort((a, b) => b[1].p - a[1].p); }
     function prodState() { return window.PROD_CACHED ? '🚨 비상 (기기에 둔 지난 목록 + 내 실물)' : window.PROD_FROM === 'dev' ? '⚡ 기기 목록 (서버 버전 확인)' : '🧁 서버에서 받은 목록'; }
 
+    /* 🧾 문제 기록 (도련 11-19 · 1316 · 예전 ⚙ 설정 → 💾 저장 → 🧾 문제 기록) : 말랑달콤 / 설정 / _문제기록.json + 이 창에서 아직 안 올린 것 (js/drive.js diag · diagRead) · 새것부터 · 📋 복사 = JSON 그대로 (Claude 에게) */
+    const DIAG_TXT = { start: '▶ 앱 시작', mkdir: '📁 폴더 만듦', dup: '📁📁 같은 이름 폴더가 여러 개', merge: '📁 폴더 합침 → 빈 폴더 휴지통', mergeFail: '⚠ 폴더 합치기 멈춤', trash: '🗑 휴지통으로', kill: '🔥 완전 삭제 (다 쓴 종이)', twrite: '⚠ 휴지통 파일에 쓰려다 새로 만듦', stale: '⚠ 기억한 파일이 휴지통에 있음', gone: '⚠ 폴더가 없어져서 다시 찾음', root: '🗑 말랑달콤 폴더가 지워진 걸 알아챔', rescue: '🛟 목록 되살림', rescueWait: '⏳ 목록이 없지만 방금 받은 종이라 기다림', noList: '📄 목록 없음 → 빈 목록', shrink: '⚠ 목록이 한꺼번에 줄었음' , dysize: '📐 다이어리 모양 · 크기 바뀜', ledger: '📒 장부 읽기 · 저장', ledgerBack: '📒 예전 파일 · 폴더 되돌림', goneScrub: '🧹 영구삭제 칸 정리', goneFile: '⚠ 영구삭제 파일 못 지움', binMigrate: '🗑 휴지통 칸 옮김', sealBad: '🔐 잠근 파일이 안 열림', sealOld: '🔐 예전 잠금 바꿈', lazyBad: '⚠ 깨진 파일', md5: '⚠ 올린 파일이 손상', remote: '🔄 다른 기기에서 바뀐 것 받음', rootDup: '📁📁 말랑달콤 폴더가 둘', rootRetired: '📁 예전 말랑달콤 폴더 정리', tapeErr: '⚠ 책상 마테 그리다 멈춤', tapeWhite: '⚠ 책상 마테가 하얗게', tapeTh: '🎀 마테 미리보기 고침' };
+    let logTxt = '';
+    async function logPaint(box) {
+        box.innerHTML = '<p class="tip">🧾 기록을 읽는 중…</p>';
+        if (!window.diagRead) { box.innerHTML = '<p class="warn">기록 장치를 불러오지 못했어요.</p>'; return; }
+        let all = []; try { all = await diagRead(); } catch (e) { box.innerHTML = '<p class="warn">기록을 읽지 못했어요.</p>'; return; }
+        logTxt = JSON.stringify(all.slice(-400));
+        const when = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
+        const rest = r => Object.entries(r).filter(([k]) => !['t', 'd', 'v', 'e', 'who'].includes(k)).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ');
+        if (D.tab !== 'log') return;
+        box.innerHTML = `<p class="tip">🧾 문제 기록 (log) · 말랑달콤 / 설정 / _문제기록.json + 아직 안 올린 것 · 최근 ${Math.min(300, all.length)}줄 · 모두 ${all.length}줄 · 새것이 위 · 📋 복사 = 기록 그대로 (Claude 에게)</p>
+${table(['때', '무슨 일', '내용', '부른 곳', '기기 · 버전'], all.slice(-300).reverse().map(r => [esc(when(r.t)), esc(DIAG_TXT[r.e] || r.e), `<span class="tip">${esc(rest(r))}</span>`, `<code>${esc(r.who || '')}</code>`, esc(r.d + ' · ' + r.v)]))}`;
+    }
     const VIEW = {
         sum() {
             const s = stats(D.reqs), m = stats(lastMin()), u = users(), d = dayOf();
@@ -306,6 +320,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         p.querySelectorAll('.dh button[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === D.tab));
         const ae = DOC.activeElement, focus = ae && p.contains(ae) && ae.tagName === 'INPUT' ? ae.dataset : null;
         if (D.tab === 'store') { if (full) { box.innerHTML = VIEW.store(); storePaint(box); } return; }
+        if (D.tab === 'log') { if (full) logPaint(box); return; }   // 🧾 기록 = 탭을 누를 때만 다시 읽어요
         const top = box.scrollTop;
         box.innerHTML = VIEW[D.tab]();
         box.scrollTop = full ? 0 : top;
@@ -329,7 +344,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         return L.join('\n');
     }
     async function copy(b) {
-        const t = report();
+        const t = D.tab === 'log' ? logTxt : report();   // 🧾 기록 탭 = 기록 그대로
         try { await ((DOC.defaultView || window).navigator.clipboard.writeText(t)); b.textContent = '✅ 복사했어요'; }
         catch (e) { const a = DOC.createElement('textarea'); a.value = t; DOC.body.appendChild(a); a.select(); try { DOC.execCommand('copy'); b.textContent = '✅ 복사했어요'; } catch (x) { b.textContent = '❌ 복사 못 했어요'; } a.remove(); }
         setTimeout(() => { b.textContent = '📋 복사'; }, 1500);

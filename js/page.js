@@ -629,7 +629,7 @@
             dySizeDiag('lay');
         }
         /* 🧾 다이어리 크기 기록 (도련 11-19 · 1314 "창을 살짝 조절하니까 다이어리 규격이 바뀌었어" · 여기선 재현이 안 돼서) : 다이어리 모양 · 크기가 바뀔 때만 문제 기록에 한 줄 (js/drive.js diag 'dysize')
-           ⚙ 설정 → 💾 저장 → 🧾 문제 기록 → 📋 복사 → Claude 에게 · 원인을 찾으면 지워요 */
+           💻 F2 📊 상황판 → 🧾 기록 → 📋 복사 → Claude 에게 · 원인을 찾으면 지워요 */
         let dyDiagKey = '', dyDiagT = 0;
         function dySizeDiag(why) {
             try {
