@@ -992,7 +992,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         if (L.type === 'paper') { box.innerHTML = h; return; }                 // 🧵 종이 = 자동 칼선 · 완성 모양 없이 (도련 11-20)
         const C = P.cut || { on: false, w: 12, c: '#ffffff' };
         h += `<h4>✂️ 자동 칼선<em>그림 둘레 하얀 테두리 · 스티커처럼</em></h4><div class="r"><span>칼선</span><div>${chip('cut', 1, C.on ? '켜짐' : '꺼짐', C.on)}${chip('cutc', '#ffffff', '하양', C.c === '#ffffff')}${chip('cutc', 'cur', `<i style="background:${C.c !== '#ffffff' ? C.c : P.color}"></i>지금 색`, C.c !== '#ffffff')}${chip('cutsh', 1, '그림자', !!C.sh)}</div></div><label class="pp-sl">두께<input type="range" data-pk="cw" min="2" max="40" value="${C.w}"><b>${C.w}px</b></label>`;
-        h += `<div class="r"><span>완성 모양</span><div><span class="pp-done-k" title="✅ 완료하면 이 모양으로 서랍에 들어가요">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : P.kind === 'piece' ? '🧩 조각 봉투 (4조각)' : P.kind === 'paper' ? '📄 모조지 한 장' : '📃 속지 한 장'}</span><small class="pp-done-t">✅ 완료하면 이 모양으로 서랍에 들어가요</small></div></div>`;
+        h += `<div class="r"><span>완성 모양</span><div><span class="pp-done-k" title="✅ 완료하면 이 모양으로 서랍에 들어가요">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : P.kind === 'piece' ? '🧩 조각 봉투 (4조각)' : P.kind === 'paper' ? '📄 모조지 한 장' : '📃 속지 한 장'}</span></div></div>`;
         box.innerHTML = h;
     }
     function adjSet(L, k, v) {                                                 // 🎨 색 조정 (픽셀 · 사파리도 같게 = 점마다 계산)
