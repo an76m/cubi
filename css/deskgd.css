@@ -172,3 +172,15 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 .dkz-away { visibility: hidden !important; }
 .dkw-room.leaving .dkw-hint, .dkw-room.leaving .dkw-btns { opacity: 0; transition: opacity .12s; }
 .dkw-fl.sel { cursor: none; z-index: 2147482990; }   /* 🖱 마우스에 붙은 문구 = 스티커 떼는 창 · 다른 창보다 위 (도련 11-13 : 창 뒤에 숨었어요) */ .dkw-fl.sel > i { pointer-events: none; animation: none; filter: drop-shadow(12px 20px 10px rgba(90,60,70,.32)); }   /* 🖱 마우스에 붙은 것 (클릭은 그 아래로) */
+
+/* 🗄️ 📔 📒 책 서랍 (도련 11-20 · js/deskbook.js) : 문구함 서랍 틀 그대로 · 안 = 책 앞모습을 나란히 · 톡 = 꺼내서 펼치기 · 끌기 = 책상에 */
+#dbkTray .dkw-drawer { width: min(760px, 94vw); }
+#dbkTray .dkw-din { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 10px; padding: 14px 16px 16px; min-height: 150px; max-height: 52vh; align-content: start; }
+#dbkTray .dkw-foot { padding: 6px 4px 0; text-align: center; font-size: 12px; font-weight: 700; color: #7a5a66; }
+.dbk-it { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dbk-art { position: relative; display: block; flex: none; }
+.dbk-in { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
+.dbk-in .dk-vol { cursor: inherit; }
+.dbk-it > b { max-width: 112px; font-size: 12px; font-weight: 800; color: var(--dk); text-align: center; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbk-it.dkm-from { opacity: .35; }
+.dkm-ghost.dbk-art .dbk-in { position: absolute; }
