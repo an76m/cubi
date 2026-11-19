@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/dash.js
-   📊 백엔드 상황판 (도련 11-17 · 💻 F2 = 열기/닫기 · Esc = 닫기 · 🪟 앱과 따로 창 (팝업 · 윗단 잡고 옮기기 · 막히면 앱 안에 옮길 수 있는 창) · 개발 중 도련 QA 용 · 상품공방처럼 써 보면서 고쳐요)
+   📊 백엔드 상황판 (도련 11-17 · Esc = 닫기 · 🪟 앱과 따로 창 (팝업 · 윗단 잡고 옮기기 · 막히면 앱 안에 옮길 수 있는 창) · 개발 중 도련 QA 용 · 상품공방처럼 써 보면서 고쳐요)
    - 다른 파일을 고치지 않아요 : fetch 를 감싸서 모든 요청을 기록 + 몇 개의 전역 함수(loadFromDrive · applyLoadedData · deskItemsRender · openCoverAnimated)에 시각 표시
    - 탭 : 요약 · 드라이브 요청 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 기록(날마다)
    - 구글 드라이브 점수 (2026-05 새 방식) : 정보 읽기 5 · 쓰기 50 · 목록 100 · 파일 받기 200 (프로젝트 1분 1,000,000 · 사람 1분 325,000 · 하루 400,000,000 = 계산기 칸에서 바꿔요)
@@ -188,7 +188,7 @@
         p.innerHTML = `<div class="dh"><b>📊 백엔드 상황판</b>${TABS.map(([k, n]) => `<button data-t="${k}">${n}</button>`).join('')}<button data-a="copy">📋 복사</button><button data-a="x">✕</button></div><div class="db"></div>`;
         p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.t) { D.tab = b.dataset.t; paint(true); } else if (b.dataset.a === 'x') dashToggle(false); else if (b.dataset.a === 'copy') copy(b); else if (b.dataset.a === 'bclear') { if (window.clearBrowserStore) { try { window.focus(); } catch (x) { } clearBrowserStore(); } } else if (b.dataset.a === 'reset') { if (confirm('날마다 기록을 지울까요?')) { days = {}; localStorage.removeItem(DAYS_KEY); paint(true); } } });
         p.addEventListener('input', e => { const i = e.target; if (i.dataset.c) { calc[i.dataset.c] = +i.value || 0; try { localStorage.setItem(CALC_KEY, JSON.stringify(calc)); } catch (x) { } paintSoon(); } else if (i.dataset.f != null) { D.filt = i.value; paintSoon(); } });
-        p.addEventListener('keydown', e => { if (e.key === 'F2' || e.key === 'Escape') { e.preventDefault(); dashToggle(false); } e.stopPropagation(); });   // 상황판 안에서 누른 키는 앱으로 안 가요 (F2 · Esc = 닫기)
+        p.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); dashToggle(false); } e.stopPropagation(); });   // 상황판 안에서 누른 키는 앱으로 안 가요 (F2 · Esc = 닫기)
         if (DOC === document) drag(p);
         DOC.body.appendChild(p); return p;
     }
@@ -350,7 +350,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         setTimeout(() => { b.textContent = '📋 복사'; }, 1500);
     }
     /* 🪟 따로 창 (도련 11-17 : 붙어 있으면 앱을 못 써요 → 앱과 별개의 창 · 윗단을 잡고 옮기기 · 다른 모니터로도)
-         F2 = 열기 / 닫기 · 앱을 새로고침해도 열려 있던 창에 다시 붙어요 (malang_dash_open) · 팝업이 막히면 앱 안에 옮길 수 있는 창 */
+         앱을 새로고침하면 창도 닫혀요 · 팝업이 막히면 앱 안에 옮길 수 있는 창 */
     const POP_CSS = `html,body{margin:0;height:100%;background:#fffafc}#dashP{position:static;inset:auto;width:100%;height:100%;border:0;border-radius:0;box-shadow:none}`;
     const OPEN_KEY = 'malang_dash_open';
     function popup(again) {
@@ -361,7 +361,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
             w.document.open(); w.document.write('<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>📊 말랑달콤 상황판</title></head><body></body></html>'); w.document.close();
         } catch (e) { return false; }
         D.win = w; DOC = w.document;
-        w.addEventListener('keydown', e => { if (e.key === 'F2' || e.key === 'Escape') { e.preventDefault(); dashToggle(false); } });
+        w.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); dashToggle(false); } });
         w.addEventListener('pagehide', () => { if (D.win === w && !D.leaving) { D.on = false; clearInterval(D.timer); DOC = document; D.win = null; try { localStorage.removeItem(OPEN_KEY); } catch (x) { } } });
         if (!again) w.focus();
         return true;
@@ -383,13 +383,49 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         const p = el(); p.style.display = 'flex';
         paint(true); D.timer = setInterval(() => { if (D.win && D.win.closed) { dashToggle(false); return; } if (D.tab !== 'store' && D.tab !== 'users') paint(false); }, 1000);
     }
-    window.addEventListener('pagehide', () => { D.leaving = true; });            // 앱을 새로고침 = 창은 그대로 두고 (다음에 다시 붙어요)
-    window.addEventListener('load', () => { let o = ''; try { o = localStorage.getItem(OPEN_KEY); } catch (e) { } if (o) setTimeout(() => dashToggle('again'), 300); });
+    window.addEventListener('pagehide', () => { D.leaving = true; if (D.win && !D.win.closed) try { D.win.close(); } catch (e) { } });
+    try { localStorage.removeItem(OPEN_KEY); } catch (e) { }
     window.dashToggle = dashToggle; window.dashReport = report;
-    window.addEventListener('keydown', e => {
-        if (e.key === 'F2') { e.preventDefault(); dashToggle(); }
-        else if (e.key === 'Escape' && D.on) dashToggle(false);
-    }, true);
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && D.on) dashToggle(false); }, true);
+    const GATE = { used: false, t: [], tm: 0, ok: null };
+    const GATE_H = '306e253df85ebad11a82408515711c27438d26d26ac508666a325f291e85c850';
+    async function gateEnv() {
+        if (GATE.ok != null) return GATE.ok;
+        try {
+            const U = navigator.userAgentData; if (!U || U.platform !== 'Windows') return (GATE.ok = false);
+            if (!(U.brands || []).some(b => b.brand === 'Google Chrome') || U.brands.some(b => /Edge|Opera|Whale|Samsung/i.test(b.brand))) return (GATE.ok = false);
+            const h = await U.getHighEntropyValues(['platformVersion']);
+            return (GATE.ok = parseInt(String(h.platformVersion || '0').split('.')[0], 10) >= 13);
+        } catch (e) { return (GATE.ok = false); }
+    }
+    async function gateHash(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('malang-dash:' + t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+    function gatePw() {
+        const m = document.createElement('div'); m.id = 'dashGatePw';
+        m.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:rgba(40,30,50,.35)';
+        m.innerHTML = '<form style="background:#fff;border-radius:14px;padding:16px 18px;display:flex;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.25)"><input type="password" autocomplete="off" inputmode="numeric" style="font:inherit;padding:6px 10px;border:1.5px solid #ddd;border-radius:8px;width:120px"><button style="font:inherit;padding:6px 12px;border-radius:8px;border:1.5px solid #ddd;background:#fff6f9">확인</button></form>';
+        document.body.appendChild(m); const i = m.querySelector('input'); setTimeout(() => i.focus(), 30);
+        const done = async ok => { m.remove(); if (ok) { GATE.used = false; dashToggle(true); } };
+        m.querySelector('form').onsubmit = async e => { e.preventDefault(); done((await gateHash(i.value)) === GATE_H); };
+        m.addEventListener('pointerdown', e => { if (e.target === m) done(false); });
+        i.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } });
+    }
+    function gateTap() {
+        if (GATE.used) return;
+        const now = Date.now(); GATE.t.push(now);
+        if (GATE.t.length === 1) GATE.tm = setTimeout(() => { if (GATE.t.length < 5) GATE.used = true; GATE.t = []; }, 1000);
+        if (GATE.t.length >= 5) { clearTimeout(GATE.tm); GATE.t = []; GATE.used = true; gatePw(); }
+    }
+    async function gateMount() {
+        if (!(await gateEnv())) return;
+        const c = document.querySelector('#settingsModal .modal-content'); if (!c || document.getElementById('dashGate')) return;
+        const g = document.createElement('div'); g.id = 'dashGate'; g.setAttribute('aria-hidden', 'true');
+        g.style.cssText = 'position:sticky;bottom:0;height:0;margin:0;pointer-events:none;z-index:5';
+        g.innerHTML = '<i style="position:absolute;right:-14px;bottom:-14px;width:46px;height:46px;pointer-events:auto"></i>';
+        g.firstChild.addEventListener('pointerdown', e => { e.stopPropagation(); gateTap(); });
+        c.appendChild(g);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', gateMount); else gateMount();
+    window.dashGateTest = { env: gateEnv, tap: gateTap, hash: gateHash, get used() { return GATE.used; }, set ok(v) { GATE.ok = v; }, mount: gateMount };
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */

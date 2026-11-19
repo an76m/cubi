@@ -443,7 +443,7 @@
         async function bcFlush() {                                                // ☁ 지우기 전에 못 올린 것 먼저 (최대 15초)
             try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') { bcProg('☁ 드라이브에 먼저 올리는 중', '바뀐 내용을 잃지 않게 올리고 지워요 (최대 15초)'); await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } } catch (e) {} finally { bcProgOff(); }
         }
-        /* 🔄 앱 새로 받기 (도련 11-19 · 1318 · 사용자용은 이것 하나 · 자세한 지우기 목록은 F2 📊 상황판 → 브라우저 저장)
+        /* 🔄 앱 새로 받기 (도련 11-19 · 1318 · 사용자용은 이것 하나 · 자세한 지우기 목록은 📊 상황판 → 브라우저 저장)
            코드가 꼬였을 때 : 📦 앱 코드 보관함 · 업데이트 장치 + 🖼 읽어 둔 스티커 · 목록 · 드라이브 읽기 기억만 지우고 새로 열어요
            ⚠ 못 올린 것 · 완료 전 임시저장 · 로그인 없이 쓴 일기 · 로그인 · 화면 기억은 그대로 */
         async function appRefresh() {
@@ -497,8 +497,8 @@
             removeEventListener('beforeunload', BCP.leave);                      // 새로 열 때는 묻지 않아요
             location.reload();
         }
-        window.clearBrowserStore = clearBrowserStore; window.appRefresh = appRefresh; window.logoutClear = logoutClear;   // 🧹 자세한 목록 = F2 📊 상황판 (js/dash.js) 에서만
-        /* 🧾 문제 기록 보기 = 📊 백엔드 상황판 (F2) 🧾 기록 탭으로 옮겼어요 (도련 11-19 · 1316 "사용자가 볼 필요 없잖아" · js/dash.js) */
+        window.clearBrowserStore = clearBrowserStore; window.appRefresh = appRefresh; window.logoutClear = logoutClear;   // 🧹 자세한 목록 = 📊 상황판 (js/dash.js) 에서만
+        /* 🧾 문제 기록 보기 = 📊 백엔드 상황판 🧾 기록 탭으로 옮겼어요 (도련 11-19 · 1316 "사용자가 볼 필요 없잖아" · js/dash.js) */
 
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
