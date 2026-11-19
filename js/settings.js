@@ -230,6 +230,7 @@
             if (id === 'serviceModal' && typeof wlPrefetch === 'function') wlPrefetch();     // 📱 배경화면 목록 미리 받아 두기 (js/wall.js · 받아 둔 건 한동안 다시 안 받아요)
             if (id === 'serviceModal' && typeof svcShowCats === 'function') svcShowCats();
             const m = document.getElementById(id);
+            if (m && MT_FROM.includes(id)) { m.classList.toggle('mt-from-set', Date.now() - (window._viaSetMenu || 0) < 1500); window._viaSetMenu = 0; }   // ‹ 설정 = 설정 메뉴에서 열었을 때만 (도련 11-20)
             mtDecorate(m);       // 카페는 늘 카테고리부터
             m.style.display = 'flex';
             mtFit(m);
@@ -319,6 +320,8 @@
             if (id === 'feedbackModal') { openFeedback(); return; }
             openModal(id);
         }
+        /* ‹ 설정 (도련 11-20) : 건의함 · 다이어리앱 잠금 · 앱으로 설치하기 = 설정 메뉴에서 열었을 때만 제목 줄 왼쪽에 ‹ 설정 (다른 곳 = 우체통 · 지켜 주세요 … 에서 열면 숨겨요) */
+        const MT_FROM = ['feedbackModal', 'lockModal', 'installModal'];
         function backToSettingsMenu(fromId) {
             closeModal(fromId);
             openModal('settingsMenuModal');

@@ -212,3 +212,5 @@
 .smk-bar::after, .pb-bar::after { right: -18px; transform: rotate(14deg); background: repeating-linear-gradient(45deg, var(--dk-tape-c) 0 6px, var(--dk-tape-d) 6px 12px); }
 .smk-bar > *, .pb-bar > * { position: relative; z-index: 1; }   /* ‹ · ✕ 는 테이프 위에 */
 .smk-room .tpm-top { top: -8px; }
+
+#feedbackModal:not(.mt-from-set) .mt-back, #lockModal:not(.mt-from-set) .mt-back, #installModal:not(.mt-from-set) .mt-back { visibility: hidden; }   /* ‹ 설정 = 설정 메뉴에서 열었을 때만 (js/settings.js MT_FROM · 도련 11-20) */
