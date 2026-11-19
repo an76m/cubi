@@ -305,6 +305,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     }
     function render() {
         const c = $('ppCv'); if (!c) return; cbLive(); compose(c.getContext('2d'), true);
+        const dc = $('ppDoc'), pp = P.layers.find(l => l.type === 'paper'); if (dc) dc.classList.toggle('pp-clear', !!pp && !pp.vis);   // 👁 종이를 끄면 = 투명 바탕 (바둑판 · 도련 11-20)
         if (P.kind === 'tape') { ['ppGhL', 'ppGhR'].forEach(id => { const g = $(id); if (g) { const x = g.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.drawImage(c, 0, 0); } }); tapePvSoon(); }   // 🎀 양옆 = 이어지는 칸 (흐리게)
     }
     let tpvT = 0;
@@ -961,6 +962,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
                     <div class="r"><span></span><div><button type="button" data-adj="ok"${P.adj && P.adj.L === L ? '' : ' disabled'}>✔ 적용</button><button type="button" data-adj="reset"${P.adj && P.adj.L === L ? '' : ' disabled'}>↺ 처음대로</button></div></div>`; }
             if (L.type === 'photo') h += `<label class="pp-sl">사진 크기<input type="range" data-pk="ps" min="1" max="3" step=".01" value="${L.s}"><b>${Math.round(L.s * 100)}%</b></label><label class="pp-sl">연하게<input type="range" data-pk="pw" min="0" max=".85" step=".01" value="${L.wash}"><b>${Math.round(L.wash * 100)}%</b></label><p class="pp-hint">✋ 옮기기 도구로 사진 자리를 옮겨요</p>`;
         }
+        if (L.type === 'paper') { box.innerHTML = h; return; }                 // 🧵 종이 = 자동 칼선 · 완성 모양 없이 (도련 11-20)
         const C = P.cut || { on: false, w: 12, c: '#ffffff' };
         h += `<h4>✂️ 자동 칼선<em>그림 둘레 하얀 테두리 · 스티커처럼</em></h4><div class="r"><span>칼선</span><div>${chip('cut', 1, C.on ? '켜짐' : '꺼짐', C.on)}${chip('cutc', '#ffffff', '하양', C.c === '#ffffff')}${chip('cutc', 'cur', `<i style="background:${C.c !== '#ffffff' ? C.c : P.color}"></i>지금 색`, C.c !== '#ffffff')}${chip('cutsh', 1, '그림자', !!C.sh)}</div></div><label class="pp-sl">두께<input type="range" data-pk="cw" min="2" max="40" value="${C.w}"><b>${C.w}px</b></label>`;
         h += `<div class="r"><span>완성 모양</span><div><button type="button" class="on">${P.kind === 'tk' ? '🧻 떡메 한 묶음' : P.kind === 'tape' ? '🎀 테이프 한 롤' : P.kind === 'seal' ? '🏷️ 씰 시트 한 장' : P.kind === 'piece' ? '🧩 조각 봉투 (4조각)' : P.kind === 'paper' ? '📄 모조지 한 장' : '📃 속지 한 장'}</button></div></div>`;

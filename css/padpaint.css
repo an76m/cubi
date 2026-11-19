@@ -351,3 +351,5 @@
 .pp-barx { gap: 8px; margin-left: 10px; min-width: 0; }
 .pp-specb { padding: 4px 9px; }
 @media (max-width: 1560px) { .pp-mode button { padding: 8px 11px; } .pp-mode button small { display: none; } .pp-specb small { font-size: 9px; } }   /* 좁으면 그리기 방식 설명은 숨겨요 (버튼 이름 그대로) */
+
+.pp-doc.pp-clear { background: repeating-conic-gradient(#ffffff 0 25%, #e9e2e6 0 50%) 0 0 / 24px 24px; }   /* 👁 종이 끔 = 투명 바탕 (js/padpaint.js render · 도련 11-20) */
