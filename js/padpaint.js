@@ -1438,11 +1438,35 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         say(`🧩 ${P.pcs.length}번째 조각을 담았어요 · 새 조각을 그려요`, 2000);
         try { await saveDraft(true, true); } catch (e) {}
     }
-    function sealOut() {
+    function alphaBox(c) {                                                    // 그림이 있는 곳 [x0, y0, x1, y1] (없으면 null)
+        if (!c) return null; const W = c.width, H = c.height, d = c.getContext('2d').getImageData(0, 0, W, H).data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
+        for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 16) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        return x1 < 0 ? null : [x0, y0, Math.min(W, x1 + 2), Math.min(H, y1 + 2)];
+    }
+    async function animBox(L) {                                                // 🎬 움직이는 동안 닿는 곳 (svg 로 한 번 그려 10초를 0.25초마다 재요 · 1324 · 비눗방울이 칸 밖으로 나가지 않게)
+        if (!window.SB || !window.CB) return null;
+        const D = { defs: [], anim: false, heavy: false, part: false }, K = []; let s = ''; try { s = await layerSvg(L, D, K); } catch (e) { return null; } if (!D.anim || !s) return null;
+        const W = P.W, H = P.H, host = document.createElement('div'); host.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;z-index:-1';
+        host.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="position:absolute;left:0;top:0">${K.length ? `<style>${K.join('')}</style>` : ''}<defs>${D.defs.join('')}</defs><g>${s}</g></svg>`;
+        document.body.appendChild(host); let box = null;
+        try {
+            const sv = host.firstChild, SV = [...host.querySelectorAll('svg')]; SV.forEach(x => { try { x.pauseAnimations(); } catch (e) { } });   // 안에 든 svg 도 따로 시간을 가져요
+            const A = sv.getAnimations ? sv.getAnimations({ subtree: true }) : []; A.forEach(a => { try { a.pause(); } catch (e) { } });
+            const G = sv.querySelectorAll('path,circle,ellipse,rect,line,polyline,polygon,text,image,use'), o = sv.getBoundingClientRect(), kx = W / (o.width || W), ky = H / (o.height || H);
+            for (let t = 0; t <= 10; t += .25) {
+                SV.forEach(x => { try { x.setCurrentTime(t); } catch (e) { } }); A.forEach(a => { try { a.currentTime = t * 1000; } catch (e) { } });
+                G.forEach(g => { if (g.closest('defs,clipPath,mask,pattern,marker,symbol')) return; const r = g.getBoundingClientRect(); if (!r.width && !r.height) return; const q = [(r.left - o.left) * kx, (r.top - o.top) * ky, (r.right - o.left) * kx, (r.bottom - o.top) * ky]; box = box ? [Math.min(box[0], q[0]), Math.min(box[1], q[1]), Math.max(box[2], q[2]), Math.max(box[3], q[3])] : q; });
+            }
+        } catch (e) { box = null; } finally { host.remove(); }
+        if (!box) return null; const m = Math.max(4, (box[2] - box[0] + box[3] - box[1]) * (D.heavy ? .08 : .03));   // 흐림 · 일렁임 필터는 조금 더
+        return [Math.max(0, box[0] - m), Math.max(0, box[1] - m), Math.min(W, box[2] + m), Math.min(H, box[3] + m)];
+    }
+    function sealOut(rects) {                                                 // rects = CSS · SVG 레이어 자리 (한 레이어 = 한 장 · 움직이는 범위까지 · 1324)
         const art = artCv(), ax = art.getContext('2d');
         const W = P.W, H = P.H, A = ax.getImageData(0, 0, W, H), d = A.data, S = 2, gw = Math.ceil(W / S), gh = Math.ceil(H / S);
         const on = new Uint8Array(gw * gh);
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 16) on[(y / S | 0) * gw + (x / S | 0)] = 1;
+        (rects || []).forEach(r => { for (let y = Math.max(0, r[1] / S | 0); y < Math.min(gh, Math.ceil(r[3] / S)); y++) for (let x = Math.max(0, r[0] / S | 0); x < Math.min(gw, Math.ceil(r[2] / S)); x++) on[y * gw + x] = 1; });
         const g = Math.ceil(SEAL_GAP / S), dil = new Uint8Array(gw * gh);                // 가까운 그림은 한 장 (조금 넓혀서 이어 보기)
         for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) if (on[y * gw + x]) for (let j = -g; j <= g; j++) for (let i = -g; i <= g; i++) { const xx = x + i, yy = y + j; if (xx >= 0 && yy >= 0 && xx < gw && yy < gh) dil[yy * gw + xx] = 1; }
         const lab = new Int32Array(gw * gh), boxes = []; let n = 0;
@@ -1465,7 +1489,12 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         return pickBest(img, b);
     }
     async function sealSave() {
-        const L = await cvBestAll(sealOut()); if (!L.length) { if (window.showMsg) showMsg('시트에 그린 그림이 없어요.'); return false; }
+        const anim = window.SB && SB.bakeStill ? P.layers.filter(l => l.type === 'svg' && l.vis && SB.hasAnim(l)) : [], keep = anim.map(l => l.cache);   // 🎬 첫 장면이 비어도 자리는 찾게 (움직임을 뺀 모습으로 · 1324)
+        for (const l of anim) { try { l.cache = await SB.bakeStill(l, P.W, P.H); l.dirtyV = false; } catch (e) { } }
+        const rects = [];                                                     // 🧩 CSS · SVG 레이어 = 그 레이어 그림 전체가 한 장 (글자 · 도장 조각이 나뉘지 않게) + 🎬 움직이는 동안 닿는 곳까지
+        for (const l of P.layers) { if (!l.vis || (l.type !== 'css' && l.type !== 'svg')) continue; let r = alphaBox(layerImg(l)); const m = await animBox(l); if (m) r = r ? [Math.min(r[0], m[0]), Math.min(r[1], m[1]), Math.max(r[2], m[2]), Math.max(r[3], m[3])] : m; if (r) rects.push(r); }
+        let so; try { so = sealOut(rects); } finally { anim.forEach((l, i) => { l.cache = keep[i]; }); }
+        const L = await cvBestAll(so); if (!L.length) { if (window.showMsg) showMsg('시트에 그린 그림이 없어요.'); return false; }
         const W0 = P.W, H0 = P.H, bx = L.map(o => [o.b[0] * W0, o.b[1] * H0, o.b[2] * W0, o.b[3] * H0]);   // ✨ 다른 스티커와 안 겹치는 것만 svg 후보 (겹치면 그림 그대로)
         for (let i = 0; i < L.length; i++) { const a = bx[i]; if (bx.some((q, j) => j !== i && q[0] < a[0] + a[2] && a[0] < q[0] + q[2] && q[1] < a[1] + a[3] && a[1] < q[1] + q[3])) { (P.lastPick = P.lastPick || []).push({ fmt: 'img', why: 'overlap' }); continue; }
             let b = null; try { b = await artSvg({ vb: a, out: L[i].wh, seal: true }); } catch (e) { console.warn('✨ 씰 svg', e); } L[i].u = await pickBest(L[i].u, b); }
@@ -1543,7 +1572,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     async function cssSvg(L, D, K) {
         const W = P.W, H = P.H, bx = L.box || { x: .15, y: .15, w: .7, h: .7 }, a = bx.x * W, b = bx.y * H, w = Math.max(2, Math.round(bx.w * W)), h = Math.max(2, Math.round(bx.h * H));
         const cards = CB.expand(L.blocks), first = t => cards.find(c => c.t === t), anim = cssAnim(L, D, K), to = first('transform-origin'), ox = to ? to.v.x / 100 : .5, oy = to ? to.v.y / 100 : .5;
-        if ((L.kids || []).length && CB.usedCls(L).some(nm => CB.hasAnim(CB.partsOf(L, { name: nm })))) D.part = true;   // 🌳 안에 든 상자의 움직임 = 첫 장면 (맨 위 상자 움직임만 svg 로)
+        const KA = (L.kids || []).length && CB.bakeWith ? CB.usedCls(L).filter(nm => CB.hasAnim(CB.partsOf(L, { name: nm }))) : [];   // 🌳 안에 든 상자의 움직임 (도련 11-19 · 1324 : 막대사탕 사탕만 돌기) = 그 상자만 따로 굽고 svg 로 움직여요
         const simple = !String(L.text || '').trim() && !(L.kids || []).length && !CB.expand(L.pfl).length && !CB.expand(L.pfn).length && !CB.expand(L.pb).length && !CB.expand(L.pa).length && cards.every(c => CSS_SIMPLE.includes(c.t))
             && cards.filter(c => c.t === 'linear-gradient').every(c => !c.L || (c.L.sz === 'auto' && c.L.rep === 'repeat' && !+c.L.x && !+c.L.y)) && cards.filter(c => c.t === 'shadow').length <= 1 && !(first('shadow') && (first('shadow').v.inset || first('shadow').v.s.n))
             && (!first('border') || ['solid', 'dashed', 'dotted'].includes(first('border').v.s)) && (!first('border-radius') || first('border-radius').v.r.u === 'px' || first('border-radius').v.r.u === '%');
@@ -1560,9 +1589,17 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
             const op = first('opacity'); if (op && op.v.v < 1) s = `<g opacity="${op.v.v}">${s}</g>`;
             inner = s; gx = w * ox; gy = h * oy;
         } else {                                                                // 🔥 그림으로 굽고 (2배 · 사파리 = zoom) → 움직임만 svg 쪽
-            const r = L._cbr; if (!r) return '';
+            const sel = nm => `.cbx .c-${CB.cname(nm)}`;
+            const r = KA.length ? await CB.bakeWith(L, w, h, KA.map(nm => `${sel(nm)}{visibility:hidden}`).join('')) : L._cbr; if (!r) return '';   // 움직이는 안쪽 상자는 빼고 구워요
             const cr = cropCv(r.c); if (!cr) return ''; const ix = a - r.M + cr.x, iy = b - r.M + cr.y;
             inner = `<image x="${n1(ix)}" y="${n1(iy)}" width="${cr.c.width}" height="${cr.c.height}" href="${await cvBest(cr.c)}"/>`; gx = a + w * ox - ix; gy = b + h * oy - iy;
+            for (const nm of KA) {                                              // 🌳 그 상자만 (나머지는 안 보이게) 굽고 · 그 상자의 움직임을 svg 로
+                const q = await CB.bakeWith(L, w, h, `.cbx,.cbx::before,.cbx::after{visibility:hidden}${sel(nm)}{visibility:visible}`); if (!q) continue;
+                const qc = cropCv(q.c); if (!qc) continue; const qx = a - q.M + qc.x, qy = b - q.M + qc.y, Pn = CB.partsOf(L, { name: nm }), an = cssAnim(Pn, D, K), qt = CB.expand(Pn.blocks).find(c => c.t === 'transform-origin');
+                const img = `<image x="${n1(qx)}" y="${n1(qy)}" width="${qc.c.width}" height="${qc.c.height}" href="${await cvBest(qc.c)}"/>`;
+                inner += an ? `<g style="transform-box:fill-box;transform-origin:${n1(qc.c.width * (qt ? qt.v.x / 100 : .5))}px ${n1(qc.c.height * (qt ? qt.v.y / 100 : .5))}px;animation:${an}">${img}</g>` : img;
+                if (an) D.anim = true;
+            }
         }
         if (anim) { D.anim = true; return `<g style="transform-box:fill-box;transform-origin:${n1(gx)}px ${n1(gy)}px;animation:${anim}">${inner}</g>`; }
         return inner;

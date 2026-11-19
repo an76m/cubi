@@ -309,12 +309,12 @@
     const mkCv = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
     const xml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const loadImg = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
-    async function bake(L, key, w, h) {
+    async function bake(L, key, w, h, extra) {
         const D = decls(L.blocks), M = Math.ceil(Math.max(w, h) * .5) + 80, SW = Math.ceil(w + M * 2), SH = Math.ceil(h + M * 2);
         let alltx = ''; walk(L, n => { alltx += n.text || ''; }); [L].concat(usedCls(L).map(nm => partsOf(L, { name: nm }))).forEach(P0 => { alltx += PART.map(([k]) => expand(P0[k]).filter(c => c.t === 'content').map(c => c.v.t).join('')).join(''); });
         const fam = ((D.find(([k]) => k === 'font-family') || [])[1] || "'Gowun Dodum'").replace(/'/g, ''), text = String(L.text || '') + alltx;
         const fonts = text.trim() ? await faceCss(fam, text) : '';
-        const rule = styleText(L, '.cbx', w, h, `position:absolute;left:${M}px;top:${M}px;`) + '.cbx,.cbx::before,.cbx::after{animation-play-state:paused!important;animation-delay:0s!important}';   // 🎬 구운 그림 = 첫 장면
+        const rule = styleText(L, '.cbx', w, h, `position:absolute;left:${M}px;top:${M}px;`) + '.cbx,.cbx *,.cbx::before,.cbx::after,.cbx *::before,.cbx *::after{animation-play-state:paused!important;animation-delay:0s!important}' + (extra || '');   // 🎬 구운 그림 = 첫 장면
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH}" viewBox="0 0 ${SW} ${SH}"><foreignObject x="0" y="0" width="${SW}" height="${SH}"><div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;width:${SW}px;height:${SH}px;margin:0;padding:0;"><style>${xml(fonts)} ${xml(rule)}</style><div class="cbx">${htmlOf(L)}</div></div></foreignObject></svg>`;
         const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         let im = await loadImg(src);
@@ -347,7 +347,8 @@
     }
     async function settle(ms = 8000) { const t0 = Date.now(); while (pend > 0 && Date.now() - t0 < ms) await new Promise(r => setTimeout(r, 40)); }
 
-    window.CB = { filterOf: null, cname, walk, partsOf, usedCls, htmlOf, hasAnimAll, PART, faceCss, FN, SIMPLE, GROUPS, LAYER, KO, FONTS, KP, DEF, OFF, PROP, fresh, ok, get, set, clone, decls, cssText, styleText, hasAnim, keyframes, paint, settle, expand,
+    const bakeWith = (L, w, h, extra) => bake(L, 'x', w, h, extra);   // 🎬 안에 든 상자 움직임 저장용 (그 상자만 · 그 상자 빼고 · padpaint cssSvg · 1324)
+    window.CB = { filterOf: null, bakeWith, cname, walk, partsOf, usedCls, htmlOf, hasAnimAll, PART, faceCss, FN, SIMPLE, GROUPS, LAYER, KO, FONTS, KP, DEF, OFF, PROP, fresh, ok, get, set, clone, decls, cssText, styleText, hasAnim, keyframes, paint, settle, expand,
         get busy() { return pend; }, get tainted() { return tainted; },
         set onImg(f) { onImg = f; }, set onErr(f) { onErr = f; } };
 })();

@@ -256,6 +256,13 @@
         let im = await loadImg(src); if (/href="data:|@font-face/.test(src.slice(0, 200000)) || fonts) { await new Promise(r => setTimeout(r, 60)); im = await loadImg(src); }
         const c = mkCv(W, H); c.getContext('2d').drawImage(im, 0, 0, W, H); return { key, c };
     }
+    /* 🎬 움직임을 뺀 모습 (도련 11-19 · 1324 · 씰 시트에서 스티커 자리 찾기용) : 첫 장면이 비어 있는 움직임 (손글씨 하트처럼 점선이 밀려 나오는 것) 도 모양 그대로 */
+    const stillSvg = t => t.replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*\/>/g, '').replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*>[\s\S]*?<\/\1>/g, '').replace(/animation:[^;"}]*;?/g, '');
+    async function bakeStill(L, W, H) {
+        const fonts = await fontsOf(L), src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(stillSvg(build(L, W, H, fonts)));
+        let im = await loadImg(src); if (/@font-face/.test(src.slice(0, 200000)) || fonts) { await new Promise(r => setTimeout(r, 60)); im = await loadImg(src); }
+        const c = mkCv(W, H); c.getContext('2d').drawImage(im, 0, 0, W, H); return c;
+    }
     function queue(L, key, W, H) {
         if (L._sbWant === key) return; L._sbWant = key; if (L._sbT) return; pend++;
         L._sbT = setTimeout(async () => { let r = null; const k = L._sbWant;
@@ -269,5 +276,5 @@
         if (r) x.drawImage(r.c, 0, 0); if (!r || r.key !== key) queue(L, key, W, H);
     }
     async function settle(ms = 8000) { const t0 = Date.now(); while (pend > 0 && Date.now() - t0 < ms) await new Promise(r => setTimeout(r, 40)); }
-    window.SB = { EL, BL, GROUPS, KO, FONTS, freshEl, freshB, okEl, build, svgText, fontsOf, hasAnim, paint, settle, clone, get busy() { return pend; }, set onImg(f) { onImg = f; } };
+    window.SB = { EL, BL, GROUPS, KO, FONTS, freshEl, freshB, okEl, build, svgText, fontsOf, hasAnim, paint, settle, clone, bakeStill, get busy() { return pend; }, set onImg(f) { onImg = f; } };
 })();
