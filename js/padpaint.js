@@ -1452,7 +1452,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         try {
             const sv = host.firstChild, SV = [...host.querySelectorAll('svg')]; SV.forEach(x => { try { x.pauseAnimations(); } catch (e) { } });   // 안에 든 svg 도 따로 시간을 가져요
             const A = sv.getAnimations ? sv.getAnimations({ subtree: true }) : []; A.forEach(a => { try { a.pause(); } catch (e) { } });
-            const G = sv.querySelectorAll('path,circle,ellipse,rect,line,polyline,polygon,text,image,use'), o = sv.getBoundingClientRect(), kx = W / (o.width || W), ky = H / (o.height || H);
+            const G = sv.querySelectorAll('path,circle,ellipse,rect,line,polyline,polygon,text,image'), o = sv.getBoundingClientRect(), kx = W / (o.width || W), ky = H / (o.height || H);
             for (let t = 0; t <= 10; t += .25) {
                 SV.forEach(x => { try { x.setCurrentTime(t); } catch (e) { } }); A.forEach(a => { try { a.currentTime = t * 1000; } catch (e) { } });
                 G.forEach(g => { if (g.closest('defs,clipPath,mask,pattern,marker,symbol')) return; const r = g.getBoundingClientRect(); if (!r.width && !r.height) return; const q = [(r.left - o.left) * kx, (r.top - o.top) * ky, (r.right - o.left) * kx, (r.bottom - o.top) * ky]; box = box ? [Math.min(box[0], q[0]), Math.min(box[1], q[1]), Math.max(box[2], q[2]), Math.max(box[3], q[3])] : q; });
