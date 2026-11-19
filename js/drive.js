@@ -20,7 +20,7 @@
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
                       / 설정 /                                          ⚙ 내 정보는 한 폴더에 (도련 11-06 · 예전 책상배치 · 기본세트 폴더를 합쳤어요 · 역할마다 파일 하나 · 바뀐 파일만 올라가요)
                               기록.json        📒 출석 · 화분 · 달력 · D-day · 심리 · 오락실 (도련 11-13 · 예전 카페기록 / 카페.json)
-                              _문제기록.json   🧾 지우기 · 휴지통 · 합치기 · 되살리기 400줄
+                              (_문제기록.json   예전 · 1317 부터 안 만들어요 · 🧾 기록은 이 기기에만)
                               설정.json        ⚙ 설정 탭 값 · 펼친 권 · 본 것 표시 (🗺 인수인계 03_저장지도.md) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
                               책상설정.json    ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
                               배치.json        📍 🔐 책상 위 소품 자리 · 문구의 집 · 책상 위 다이어리 · 봉투
@@ -55,13 +55,13 @@
         const SETTINGS_PATH = dirPath(DIRS.settings), SETTINGS_FILE_NAME = '설정.json';
         /* =====================================================================
            🧾 문제 기록 (도련 11-06 · 마테 목록이 사라졌을 때 원인을 알 수 없어서) : 파일을 지우거나 · 휴지통에 넣거나 · 폴더를 만들고 합치거나 · 되살릴 때마다 한 줄
-           - 저장 : 말랑달콤 / 설정 / _문제기록.json (글자 그대로 · 400줄까지 · 기기마다 섞여서 · 새 줄이 생기면 30초 안에 한 번) · 게스트는 이 창 메모리만
-           - 보기 : 💻 F2 📊 백엔드 상황판 → 🧾 기록 탭 (📋 복사 → Claude 에게 붙여 넣기 · 도련 11-19 1316 설정에서 옮김)
+           - 저장 : 이 기기 브라우저 (localStorage 'malang_diag_q' · 400줄까지) 만 · 드라이브 파일 (예전 말랑달콤 / 설정 / _문제기록.json) 은 만들지 않아요 (도련 11-19 · 1317 영구삭제)
+           - 보기 : 💻 F2 📊 백엔드 상황판 → 🧾 기록 탭 (📋 복사 → Claude 에게 붙여 넣기)
            - 일기 · 스티커 내용 · 계정은 적지 않아요 (언제 · 어느 기기 · 무엇을 · 어떤 파일 이름 · 번호 · 누가 불렀는지만)
            ===================================================================== */
-        const DIAG_NAME = '_문제기록.json', DIAG_MAX = 400, DIAG_LS = 'malang_diag_q', DIAG = { q: [], t: 0, last: 0, busy: false, f: null };
-        try { const L = JSON.parse(localStorage.getItem(DIAG_LS) || '[]'); if (Array.isArray(L)) DIAG.q = L.slice(-100); } catch (e) {}   // 새로고침 · 앱이 꺼지기 전에 못 올린 기록
-        const diagKeep = () => { try { localStorage.setItem(DIAG_LS, JSON.stringify(DIAG.q.filter(r => !r.up).slice(-100))); } catch (e) {} };
+        const DIAG_MAX = 400, DIAG_LS = 'malang_diag_q', DIAG = { q: [] };
+        try { const L = JSON.parse(localStorage.getItem(DIAG_LS) || '[]'); if (Array.isArray(L)) DIAG.q = L.slice(-DIAG_MAX).map(r => { delete r.up; return r; }); } catch (e) {}
+        const diagKeep = () => { try { localStorage.setItem(DIAG_LS, JSON.stringify(DIAG.q.slice(-DIAG_MAX))); } catch (e) {} };
         const diagDev = (() => { try { let d = localStorage.getItem('malang_dev_id'); if (!d) { d = Math.random().toString(36).slice(2, 7); localStorage.setItem('malang_dev_id', d); } return d; } catch (e) { return 'x'; } })();
         const diagVer = () => { try { const m = /[?&]v=([\w-]+)/.exec((document.querySelector('script[src*="js/drive.js"]') || {}).src || ''); return m ? m[1].replace(/^20261009-/, '') : ''; } catch (e) { return ''; } };
         function diagWho() {                                                     // 누가 불렀는지 (함수 이름 두 개)
@@ -74,35 +74,10 @@
                 if (!r.who && e !== 'start') r.who = diagWho();
                 DIAG.q.push(r); if (DIAG.q.length > DIAG_MAX) DIAG.q.splice(0, DIAG.q.length - DIAG_MAX); diagKeep();
                 console.info('🧾', e, o || '');
-                clearTimeout(DIAG.t); DIAG.t = setTimeout(diagFlush, Math.max(20000, 300000 - (Date.now() - DIAG.last)));   // 처음 접속 요청에 끼지 않게 20초 뒤부터 · 그다음은 5분에 한 번 모아서 (도련 11-17 · 예전 30초 · 못 올린 것은 이 기기에 남아 다음에)
             } catch (x) {}
         }
-        async function diagFlush() {
-            if (DIAG.busy || typeof drive === 'undefined' || drive.guest || drive.wiped) return;
-            if (!drive.ready) { clearTimeout(DIAG.t); DIAG.t = setTimeout(diagFlush, 15000); return; }   // 로그인 · 읽기가 끝나면
-            const mine = DIAG.q.filter(r => !r.up); if (!mine.length) return;
-            DIAG.busy = true; DIAG.last = Date.now();
-            try {
-                const dir = await getFolder(SETTINGS_PATH, false); if (!dir) return;   // 설정 폴더가 있을 때만 (기록 때문에 말랑달콤 폴더를 새로 만들지 않아요)
-                const cur = DIAG.fid ? { id: DIAG.fid } : await findFile(dir, DIAG_NAME);   // 🔢 한 번 찾은 번호는 기억 (도련 11-17 · 지워졌으면 아래 쓰기가 실패 → 잊고 다음에 다시 찾아요)
-                let old = []; if (cur) { try { const o = JSON.parse(await readFileText(cur.id)); if (Array.isArray(o.ev)) old = o.ev; } catch (e) { if (e && e.code === 'gone' && DIAG.fid) { DIAG.fid = ''; throw e; } } }
-                const key = r => r.t + r.d + r.e + (r.id || r.name || r.p || '');
-                const seen = new Set(old.map(key)), all = old.concat(mine.filter(r => !seen.has(key(r))).map(r => { const c = Object.assign({}, r); delete c.up; return c; }));
-                all.sort((a, b) => (a.t < b.t ? -1 : 1));
-                const w = await driveUpsert(dir, DIAG_NAME, cur && cur.id, JSON.stringify({ v: 1, ev: all.slice(-DIAG_MAX) }));
-                DIAG.fid = (w && w.id) || '';
-                mine.forEach(r => { r.up = 1; }); diagKeep();
-            } catch (e) { if (e && e.code === 'gone') DIAG.fid = ''; console.warn('🧾 문제 기록을 올리지 못했어요 (다음에 다시) :', e); }
-            finally { DIAG.busy = false; }
-        }
-        async function diagRead() {                                              // 보기 : 드라이브 것 + 아직 안 올린 것
-            let old = [];
-            try { if (drive.ready && !drive.guest) { const dir = await getFolder(SETTINGS_PATH, false), cur = dir && await findFile(dir, DIAG_NAME); if (cur) { const o = JSON.parse(await readFileText(cur.id)); if (Array.isArray(o.ev)) old = o.ev; } } } catch (e) {}
-            const key = r => r.t + r.d + r.e + (r.id || r.name || r.p || ''), seen = new Set(old.map(key));
-            return old.concat(DIAG.q.filter(r => !seen.has(key(r))).map(r => { const c = Object.assign({}, r); delete c.up; return c; })).sort((a, b) => (a.t < b.t ? -1 : 1));
-        }
-        window.diag = diag; window.diagRead = diagRead; window.diagFlush = diagFlush;
-        addEventListener('pagehide', () => { if (DIAG.q.some(r => !r.up)) diagFlush(); });
+        async function diagRead() { return DIAG.q.map(r => Object.assign({}, r)).sort((a, b) => (a.t < b.t ? -1 : 1)); }   // 보기 = 이 기기 기록
+        window.diag = diag; window.diagRead = diagRead;
         const DESK_PATH = SETTINGS_PATH, DESK_FILE_NAME = '배치.json';   // 🪑 책상 · 가진 것 목록도 설정 폴더에 (도련 11-06)
         const CAFE_PATH = SETTINGS_PATH, CAFE_FILE_NAME = '기록.json';   // 📒 놀이 기록 = 설정 폴더 / 기록.json (도련 11-13 · 카페가 없어져서 예전 카페기록 / 카페.json 을 옮겼어요)
         const USE_APP_DATA_FOLDER = false; // false: 내 드라이브에 '말랑달콤' 폴더가 보임 / true: 사용자에게 안 보이는 앱 전용 공간
@@ -1947,7 +1922,7 @@
                 for (const c of ch) {
                     const f = c.file, gone = c.removed || !f || f.trashed;
                     if (f && f.mimeType === FOLDER_MIME) continue;
-                    if (f && (/^_실물/.test(f.name) || f.name === DIAG_NAME)) continue;   // 📦 js/mine.js mineHint · 🧾 문제기록 (읽지 않아요)
+                    if (f && (/^_실물/.test(f.name) || f.name === '_문제기록.json')) continue;   // 📦 js/mine.js mineHint · 🧾 예전 문제기록 파일 (읽지 않아요 · 이제 안 만들어요)
                     const w = keyWhich(c.fileId, f); if (w) { reKeys.set(w, gone ? null : f); continue; }
                     const par = f && (f.parents || [])[0];
                     const idx = [...drive.monthIndex.values(), ...drive.books.values()].find(e => e && ((par && e.folderId === par) || [...e.files.values()].some(x => x.id === c.fileId)));
