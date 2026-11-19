@@ -148,17 +148,22 @@
 
         /* 🎬 SVG 스티커 (도련 11-19 · 1326 "확대하면 멈추고 하나는 안 보여") : 종이(캔버스)는 한 장면만 그려요
            → 종이 위에 가만히 있는 동안은 진짜 그림(<img>)을 그 자리에 올려 움직이게 · 캔버스(떼는 연출)는 움직임을 뺀 모습 (첫 장면이 빈 손글씨 하트도 보여요) */
-        const pelSvgText = async u => {
+        const pelSvgText = async (u, o) => {                                   // 그림이 SVG 면 그 글 (아니면 '') · 어디서 왔든 내용으로 알아봐요 (드라이브 · 받은 상품 = blob 주소 · 이름에 .svg 가 없어요 · 1328)
             if (!u) return '';
-            if (/^data:image\/svg\+xml/i.test(u)) { const i = u.indexOf(','), h = u.slice(0, i); return /;base64/i.test(h) ? decodeURIComponent(escape(atob(u.slice(i + 1)))) : decodeURIComponent(u.slice(i + 1)); }
-            if (/^data:/i.test(u)) return '';
-            try { const r = await fetch(u); if (!r.ok) throw 0; const b = await r.blob(); return /svg/i.test(b.type) || /\.svg(\?|#|$)/i.test(u) ? await b.text() : ''; } catch (e) { return /\.svg(\?|#|$)/i.test(u) ? '<svg' : ''; }   // 못 읽어도 .svg 면 위에 올려요
+            if (/^data:image\/svg\+xml/i.test(u)) { const i = u.indexOf(','), h = u.slice(0, i); if (o) o.lg = 'data-svg'; return /;base64/i.test(h) ? decodeURIComponent(escape(atob(u.slice(i + 1)))) : decodeURIComponent(u.slice(i + 1)); }
+            if (/^data:/i.test(u)) { if (o) o.lg = u.slice(5, u.indexOf(';')); return ''; }
+            try { const r = await fetch(u); if (!r.ok) throw new Error('http ' + r.status); const b = await r.blob(); if (o) o.lg = (u.split(':')[0]) + ' ' + (b.type || '?') + ' ' + b.size;
+                if (/svg/i.test(b.type) || /\.svg(\?|#|$)/i.test(u)) return await b.text();
+                if (b.size < 3e6 && !/^image\/(png|jpe?g|webp|gif|avif)/i.test(b.type)) { const t = await b.text(); return /^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<svg/i.test(t.slice(0, 2000)) ? t : ''; }   // 종류 표시가 없어도 내용이 svg 면
+                return '';
+            } catch (e) { if (o) o.lg = (u.split(':')[0]) + ' 못 읽음 ' + String(e && e.message || e).slice(0, 40); return /\.svg(\?|#|$)/i.test(u) ? '<svg' : ''; }
         };
         async function pelLiveOf(o) {
             if (!o.a || !o.src) return;
-            let t = ''; try { t = await pelSvgText(o.src); } catch (e) { } if (!t || !/<svg/i.test(t)) return;
+            let t = ''; try { t = await pelSvgText(o.src, o); } catch (e) { o.lg = '오류 ' + String(e && e.message || e).slice(0, 40); } if (!t || !/<svg/i.test(t)) return;
             o.live = 1;
             if (!/<(animate|animateTransform|animateMotion|set)\b|animation\s*:/i.test(t)) return;
+            o.anim = 1;
             const still = t.replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*\/>/g, '').replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*>[\s\S]*?<\/\1>/g, '').replace(/animation\s*:[^;"}]*;?/g, '');
             try { const im = await pelLoad('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(still)); o.a = pelAsset(im); } catch (e) { }
         }
@@ -170,7 +175,10 @@
                 if (!o.live) return;
                 const on = bo > 0 && o.st.state === 'on' && !o.st.snap && o !== skip;
                 if (!on) { if (o.img) o.img.style.display = 'none'; return; }
-                if (!o.img) { o.img = document.createElement('img'); o.img.src = o.src; o.img.alt = ''; o.img.draggable = false; box.appendChild(o.img); }
+                if (!o.img) { const im = o.img = document.createElement('img'), k = S.items.indexOf(o) + 1; im.alt = ''; im.draggable = false;
+                    im.onload = () => { if (window.diag) diag('peelLive', { i: k, ok: 1, nat: [im.naturalWidth, im.naturalHeight], box: [Math.round(parseFloat(im.style.width) || 0), Math.round(parseFloat(im.style.height) || 0)], anim: o.anim ? 1 : 0 }); };
+                    im.onerror = () => { if (window.diag) diag('peelLive', { i: k, ok: 0, src: String(o.src).slice(0, 40) }); };
+                    im.src = o.src; box.appendChild(im); }   // 🧾 1328
                 const a = o.a, w = (a.w - a.m * 2) * o.st.s, h = (a.h - a.m * 2) * o.st.s, k = [o.st.cx - w / 2, o.st.cy - h / 2, w, h].map(v => Math.round(v * 10) / 10).join();
                 o.img.style.display = '';
                 if (o.img.dataset.k !== k) { o.img.dataset.k = k; Object.assign(o.img.style, { left: (o.st.cx - w / 2) + 'px', top: (o.st.cy - h / 2) + 'px', width: w + 'px', height: h + 'px' }); }
@@ -191,6 +199,7 @@
             S.items = imgs.map((im, i) => im ? { a: pelAsset(im), src: list[i], st: { state: 'on' } } : { a: null, src: '', st: { state: 'used' }, wh: pelUsedWh(own, i), g: (own && own.gh && own.gh[i]) || '' });   // 🎒 null = 이미 쓴 칸 · g = 뗀 자리 모양 (👻 js/own.js ownGhost)
             await Promise.all(S.items.map(async o => { if (o.g) try { o.gm = await pelLoad(o.g); } catch (e) {} }));
             await Promise.all(S.items.map(o => pelLiveOf(o)));   // 🎬 SVG 스티커 = 종이 위에서도 움직여요 (도련 11-19 · 1326)
+            if (window.diag) diag('peel', { n: S.items.length, it: S.items.map((o, i) => `${i + 1}:${o.live ? (o.anim ? '🎬' : 'svg') : 'img'}·${o.lg || (o.src ? o.src.slice(0, 12) : '빈칸')}·${o.a ? (o.a.w - o.a.m * 2) + 'x' + (o.a.h - o.a.m * 2) : ''}`).join(' | ').slice(0, 900), sheet: opt && opt.L ? 1 : 0, win: [innerWidth, innerHeight] });   // 🧾 씰 종이 열 때 스티커마다 (어디서 · 종류 · 움직이나 · 크기) · 1328
             pelPick(S.items.find(o => o.st.state === 'on'));
             S.L = opt && opt.L && Array.isArray(opt.L.b) && opt.L.b.length === list.length ? opt.L : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             S.sb = null; if (S.L && opt.sb) { try { S.sb = await pelLoad(opt.sb); } catch (e) {} }   // 🗂️ 내가 꾸민 시트의 바탕 (색 · 무늬 · 이름표 · js/sheetmaker.js)
