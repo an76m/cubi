@@ -309,9 +309,6 @@
 .pt-box { position: relative; background: #fff; border-radius: 22px; padding: 18px 20px; width: min(860px, 94vw); max-height: 90vh; overflow: auto; box-shadow: 0 16px 40px rgba(61, 53, 82, .3); }
 .pt-box h3 { margin: 0 0 12px; font-size: 19px; } .pt-box h3 em { display: block; font-style: normal; font-size: 12px; font-weight: 600; color: #8a6a76; margin-top: 4px; }
 .pt-x { position: absolute; right: 12px; top: 12px; border: 0; background: #f6e3ea; border-radius: 50%; width: 32px; height: 32px; font-size: 15px; cursor: pointer; }
-.pt-grid { display: grid; grid-template-columns: 74px repeat(3, 1fr); gap: 8px; align-items: stretch; }
-.pt-lv { text-align: center; font-size: 13px; padding: 4px; border-radius: 10px; } .pt-lv.l1 { background: #e3f6ea; } .pt-lv.l2 { background: #fff1c8; } .pt-lv.l3 { background: #ffe0e9; }
-.pt-g { display: flex; align-items: center; font-size: 13px; }
 .pt-card { font: inherit; text-align: left; border: 2px solid #f1d3dd; background: #fffafc; border-radius: 14px; padding: 10px; cursor: pointer; display: grid; grid-template-columns: 34px 1fr; column-gap: 6px; }
 .pt-card:hover { border-color: #ff8fb1; background: #fff0f5; }
 .pt-card i { font-style: normal; font-size: 26px; grid-row: span 2; } .pt-card b { font-size: 13.5px; } .pt-card small { font-size: 11px; color: #8a6a76; }
@@ -327,8 +324,6 @@
 .pt-done { position: fixed; z-index: 99997; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid #6b4438; border-radius: 14px; padding: 8px 10px; box-shadow: 0 8px 20px rgba(61, 53, 82, .28); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .pt-done b { font-size: 13px; } .pt-done small { color: #8a6a76; font-size: 11.5px; margin-right: 2px; }
 .pt-done button { font: inherit; font-size: 12px; font-weight: 800; padding: 5px 9px; border-radius: 10px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; }
-.pt-cell { display: flex; flex-direction: column; gap: 6px; } .pt-none { color: #d9c3cc; text-align: center; padding: 18px 0; }
-.pt-sec { margin: 4px 0 8px; font-size: 14px; } .pt-anim { margin-top: 14px; } .pt-anim summary { cursor: pointer; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
 /* 🌳 상자 나무 (11-19) */
 .pp-cbtree { border: 1.5px solid #f1d3dd; border-radius: 12px; padding: 8px; margin: 8px 0; background: #fffafc; display: flex; flex-direction: column; gap: 3px; }
 .pp-cbtree > b { font-size: 12.5px; display: flex; justify-content: space-between; gap: 6px; } .pp-cbtree > b em { font-style: normal; font-weight: 700; font-size: 10.5px; color: #a5707f; }
@@ -337,3 +332,18 @@
 .pp-cbtree > button.on { border-color: #4aa8ff; background: #eaf5ff; } .pp-cbtree > button.same code { background: #ffe9a8; color: #8a5a12; }
 .pp-cbtb { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; } .pp-cbtb button { font: inherit; font-size: 11.5px; font-weight: 800; padding: 5px 8px; border-radius: 9px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; }
 .pp-kindtip { margin: 0; padding: 6px 8px; border-radius: 8px; background: #fff4f8; color: #9a6a7c; font-size: 11px; font-weight: 700; line-height: 1.4; }   /* 종류마다 안내 (도련 11-19) */
+/* 🎓 따라 보기 = 미리보기 카드 (도련 11-19 · 1312 · 초급 · 중급 · 고급 대신 스티커 종류) */
+.pt-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 10px; }
+.pt-cards .pt-card { display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 8px; text-align: center; }
+.pt-view { height: 110px; border-radius: 10px; background: #fff3f8; display: grid; place-items: center; overflow: hidden; margin-bottom: 4px; position: relative; z-index: 0; }
+.pt-view > * { max-width: 100%; max-height: 110px; }
+.pt-cards .pt-card > b { font-size: 13px; } .pt-cards .pt-card > small { font-size: 10.5px; line-height: 1.35; }
+.pt-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 4px; }
+.pt-tags em { font-style: normal; font-size: 9.5px; font-weight: 800; padding: 1px 6px; border-radius: 8px; background: #f3eef1; color: #9a8790; }
+.pt-tags .pt-tg.css { background: #d8ecff; color: #3a6ea5; } .pt-tags .pt-tg.svg { background: #e6dcff; color: #6a4fb0; } .pt-tags .pt-tg.mix { background: #ffe3c9; color: #a5622a; }
+.pt-tags .pt-kd.on { background: #ff8fb1; color: #fff; }
+.pt-card.no { opacity: .55; } .pt-card.no .pt-view { filter: grayscale(.5); }
+.pt-no { position: fixed; inset: 0; z-index: 99998; background: rgba(61, 53, 82, .25); display: grid; place-items: center; }
+.pt-no > div { background: #fff; border: 2px solid #6b4438; border-radius: 16px; padding: 14px 16px; max-width: 320px; display: flex; flex-direction: column; gap: 6px; text-align: center; box-shadow: 0 10px 26px rgba(61, 53, 82, .3); }
+.pt-no b { font-size: 14px; } .pt-no small { font-size: 12px; color: #8a6a76; }
+.pt-no button { font: inherit; font-weight: 800; padding: 6px 10px; border-radius: 10px; border: 1.5px solid #f1d3dd; background: #fff6f9; cursor: pointer; align-self: center; }

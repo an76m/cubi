@@ -45,7 +45,7 @@
 
     /* ---------- ✨ 예시 (가만히 · 서비스용) ---------- */
     const TOUR = [
-        { m: 's', g: 'css', lv: 1, e: '🧺', n: '깅엄 체크 천', d: '줄무늬 두 장을 겹쳐요', s: [
+        { m: 's', g: 'css', lv: 1, e: '🧺', k: 'gingham', n: '깅엄 체크 천', d: '줄무늬 두 장을 겹쳐요', s: [
             { c: M('css'), say: '🧩 CSS 로 가요 · 상자 하나가 생겨요' }, TAB, FOLD, BOX('w', 60), BOX('h', () => Math.round(60 * W() / H() * .85)), BOX('x', 20), BOX('y', 30),
             { c: OPEN1, say: '바탕색을 열어요' }, { v: CF('v.c.c'), val: '#ffffff', say: '하얀 천' },
             { c: CBT('border-radius'), say: '⬜ 둥근 모서리' }, { v: CF('v.r.n'), val: 56, say: '' },
@@ -53,7 +53,7 @@
             { v: CF('v.ang'), val: 0, say: '가로 줄무늬로' },
             ...STOP(CF, 0, '#ff8fb1', 0, 50), ...STOP(CF, 1, '#ff8fb1', 50, 50), ...STOP(CF, 2, '#ffffff', 50, 0), ...STOP(CF, 3, '#ffffff', 100, 0),
             CDUP, { v: CF('v.ang'), val: 90, say: '하나는 세로로 = 겹친 곳이 진해져서 깅엄!' }] },
-        { m: 's', g: 'css', lv: 2, e: '🌈', n: '글자 안에 무늬', d: '무늬를 글자 모양으로 오려요', s: [
+        { m: 's', g: 'css', lv: 2, e: '🌈', k: 'cliptext', n: '글자 안에 무늬', d: '무늬를 글자 모양으로 오려요', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, { c: OPEN1, say: '바탕색' }, { v: CF('v.c.a'), val: 0, say: '상자는 투명하게' }, FOLD, TXT('말랑'),
             { c: CBT('font-size'), say: '🔠 글자 크기' }, { v: CF('v.s.n'), val: 260, say: '아주 크게' },
             { c: CBT('font-weight'), say: '🅱️ 글자 굵기' }, { pick: CF('v.w', 'select'), opt: '900', say: '아주 굵게' },
@@ -62,7 +62,7 @@
             ADDST(), ...STOP(CF, 4, '#7cc8ff', 68), ADDST(), ...STOP(CF, 5, '#7cc8ff', 102),
             { c: CBT('background-clip'), say: '✂️ 바탕 그릴 곳 = 글자 안에만' },
             { c: CBT('-webkit-text-fill-color'), say: '🫗 글자 속은 투명하게 = 무늬가 보여요 · 완성!' }] },
-        { m: 's', g: 'css', lv: 2, e: '🍭', n: '겹테두리 팝 글씨', d: '테두리 + 그림자 세 겹', s: [
+        { m: 's', g: 'css', lv: 2, e: '🍭', k: 'pop', n: '겹테두리 팝 글씨', d: '테두리 + 그림자 세 겹', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB,
             { c: OPEN1, say: '바탕색을 열어요' }, { v: CF('v.c.a'), val: 0, say: '상자는 투명하게 (글씨만)' },
             FOLD, TXT('말랑'),
@@ -74,7 +74,7 @@
             { c: CBT('tshadow'), say: '💬 글자 그림자 1 (맨 아래)' }, { v: CF('v.x.n'), val: 20, say: '' }, { v: CF('v.y.n'), val: 20, say: '' }, { v: CF('v.c.c'), val: '#a37cff', say: '보라' },
             { c: CBT('tshadow'), say: '💬 그림자 2' }, { v: CF('v.x.n'), val: 14, say: '' }, { v: CF('v.y.n'), val: 14, say: '' }, { v: CF('v.c.c'), val: '#7cc8ff', say: '하늘' },
             { c: CBT('tshadow'), say: '💬 그림자 3 (맨 위)' }, { v: CF('v.x.n'), val: 7, say: '' }, { v: CF('v.y.n'), val: 7, say: '' }, { v: CF('v.c.c'), val: '#ffd23f', say: '노랑 · 완성!' }] },
-        { m: 's', g: 'css', lv: 3, e: '🎀', n: '새틴 리본 라벨', d: '광택 · 바느질 점선 · 장식으로 리본 꼬리', s: [
+        { m: 's', g: 'css', lv: 3, e: '🎀', k: 'ribbon', n: '새틴 리본 라벨', d: '광택 · 바느질 점선 · 장식으로 리본 꼬리', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOX('w', 60), BOX('h', 10), BOX('x', 20), BOX('y', 42), TXT('MALANG'),
             { c: CBT('linear-gradient'), say: '🌈 광택 그라데이션' }, { v: CF('v.ang'), val: 180, say: '위에서 아래로' }, ADDST(), ADDST(),
             ...STOP(CF, 0, '#ff9cbb', 0), ...STOP(CF, 1, '#ff6f97', 45), ...STOP(CF, 2, '#f25485', 55), ...STOP(CF, 3, '#ff86a8', 100),
@@ -100,7 +100,7 @@
             { c: CBT('left'), say: '⇥ 오른쪽 끝에 붙여요' }, { v: CF('v.v.n'), val: 92, say: '' },
             { c: CBT('top'), say: '' }, { pick: CF('v.v.u', 'select'), opt: 'px', say: '' }, { v: CF('v.v.n'), val: 36, say: '' },
             { c: CBT('z-index'), say: '' }, { v: CF('v.v'), val: -1, say: '완성!' }] },
-        { m: 's', g: 'svg', lv: 1, e: '🔴', n: '동그란 도장 로고', d: '원 따라 글자를 둘러요', s: [
+        { m: 's', g: 'svg', lv: 1, e: '🔴', k: 'stamp', n: '동그란 도장 로고', d: '원 따라 글자를 둘러요', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('circle'), say: '⚪ 원' }, { v: SF('v.r'), val: () => W() * .34, say: '크게' },
             { c: SBB('fill'), say: '🎨 칠' }, { v: SK('v.c.a'), val: 0, say: '속은 비워요' },
@@ -115,7 +115,7 @@
             { c: SBB('letter-spacing'), say: '↔️ 글자 사이' }, { v: SK('v.v'), val: 8, say: '' },
             { c: SBE('path'), say: '✒️ 가운데 하트' }, { v: SF('v.d'), val: () => HT(W() / 2, H() / 2 - W() * .07, W() * .09), say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#d64b6e', say: '완성!' }] },
-        { m: 's', g: 'svg', lv: 2, e: '🥇', n: '금박 글씨', d: '그라데이션 + 빛 비추기', s: [
+        { m: 's', g: 'svg', lv: 2, e: '🥇', k: 'gold', n: '금박 글씨', d: '그라데이션 + 빛 비추기', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('text'), say: '🔤 글자' }, { v: SF('v.t', 'textarea'), val: 'Gold', say: '' },
             { c: SBB('font-size'), say: '🔠' }, { v: SK('v.v'), val: () => W() / 3.4, say: '' },
@@ -126,7 +126,7 @@
             { c: SBB('feSpecularLighting'), say: '🪄 2 : 반짝 빛 비추기' }, { v: SK('v.ss'), val: 5, say: '' }, { v: SK('v.sc'), val: 1.2, say: '' }, { v: SK('v.se'), val: 30, say: '' }, { v: SK('v.el'), val: 40, say: '' },
             { c: SBB('feComposite'), say: '🪄 3 : 빛을 글자 안에만' }, { pick: SK('v.in2', 'select'), opt: 'SourceAlpha', say: '' }, { pick: SK('v.op', 'select'), opt: 'in', say: '' },
             { c: SBB('feMerge'), say: '🪄 4 : 글자 위에 빛 얹기' }, { pick: SK('v.a', 'select'), opt: 'SourceGraphic', say: '' }, { pick: SK('v.b', 'select'), opt: 'prev', say: '' }, { pick: SK('v.c', 'select'), opt: 'prev', say: '완성!' }] },
-        { m: 's', g: 'svg', lv: 3, e: '💗', n: '말랑 젤리 스티커', d: '빛을 비춰 볼록하게', s: [
+        { m: 's', g: 'svg', lv: 3, e: '💗', k: 'jelly', n: '말랑 젤리 스티커', d: '빛을 비춰 볼록하게', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('path'), say: '✒️ 하트' }, { v: SF('v.d'), val: () => HT(W() / 2, H() * .32, W() * .3), say: '' },
             { c: SBB('fill'), say: '🎨' }, { v: SK('v.c.c'), val: '#ff5d8f', say: '' },
@@ -135,7 +135,7 @@
             { pick: SK('v.lt', 'select'), opt: 'point', say: '점 빛 (전구)' }, { v: SK('v.lx'), val: () => W() * .36, say: '' }, { v: SK('v.ly'), val: () => H() * .24, say: '' }, { v: SK('v.lz'), val: 260, say: '' },
             { c: SBB('feComposite'), say: '🪄 3 : 빛을 하트 안에만' }, { pick: SK('v.in2', 'select'), opt: 'SourceAlpha', say: '' }, { pick: SK('v.op', 'select'), opt: 'in', say: '' },
             { c: SBB('feMerge'), say: '🪄 4 : 하트 위에 빛' }, { pick: SK('v.a', 'select'), opt: 'SourceGraphic', say: '' }, { pick: SK('v.b', 'select'), opt: 'prev', say: '' }, { pick: SK('v.c', 'select'), opt: 'prev', say: '말랑 젤리 완성!' }] },
-        { m: 's', g: 'mix', lv: 2, e: '🩷', n: '체크무늬 하트 스티커', d: 'CSS 무늬를 SVG 하트로 오리고 칼선', s: [
+        { m: 's', g: 'mix', lv: 2, e: '🩷', k: 'checkheart', n: '체크무늬 하트 스티커', d: 'CSS 무늬를 SVG 하트로 오리고 칼선', s: [
             { c: M('svg'), say: '🌀 먼저 SVG 로 하트 모양과 칼선 필터를 만들어요' },
             { c: SBE('path'), say: '✒️ 하트' }, { v: SF('v.d'), val: () => HT(W() / 2, H() * .3, W() * .3), say: '' },
             { c: SBB('fill'), say: '🎨 하양으로 (가리개로 쓸 때 밝은 곳이 보여요)' }, { v: SK('v.c.c'), val: '#ffffff', say: '' },
@@ -149,7 +149,7 @@
             ...GINGHAM,
             { c: CBT('m-url'), say: '🎭 가리기 · 그림 (CSS → SVG)' }, { pick: '#ppProp .pp-cbk.open select[data-cbly]', opt: 'SVG', say: '🗂️ 아까 그린 SVG 하트 모양으로' },
             { c: CBT('svg-filter'), say: '🌀 SVG 필터 쓰기' }, { pick: CF('v.ref', 'select'), opt: 1, say: '하얀 칼선 필터 · 완성!' }] },
-        { m: 's', g: 'mix', lv: 3, e: '📷', n: '밤하늘 폴라로이드', d: 'CSS 상자 나무 (사진 · 글씨 · 테이프) + SVG 별', s: [
+        { m: 's', g: 'mix', lv: 3, e: '📷', k: 'polaroid', n: '밤하늘 폴라로이드', d: 'CSS 상자 나무 (사진 · 글씨 · 테이프) + SVG 별', s: [
             { c: M('css'), say: '🧩 CSS 로 폴라로이드 종이' }, TAB, FOLD, BOX('w', 46), BOX('h', () => Math.round(46 * W() / H() * 1.26)), BOX('x', 27), BOX('y', 20),
             { c: OPEN1, say: '바탕색' }, { v: CF('v.c.c'), val: '#fffdf8', say: '크림색 종이' },
             { c: CBT('padding'), say: '🔳 안쪽 여백' }, { v: CF('v.v.n'), val: 22, say: '' },
@@ -177,7 +177,7 @@
             { c: SBE('use'), say: '🪞 복사해 찍기' }, { v: SF('v.x'), val: () => W() * .13, say: '' }, { v: SF('v.y'), val: () => H() * .025, say: '' },
             { c: SBE('use'), say: '🪞 한 번 더' }, { v: SF('v.x'), val: () => W() * .1, say: '' }, { v: SF('v.y'), val: () => -H() * .04, say: '완성!' }] },
         /* ---------- 🎬 움직이는 예시 (실험용 · 도련 개인) ---------- */
-        { m: 'a', g: 'css', lv: 1, e: '🍭', n: '빙글빙글 막대사탕', d: '상자 나무 (사탕 · 막대) + 부채꼴 + 돌기', s: [
+        { m: 'a', g: 'css', lv: 1, e: '🍭', k: 'lollipop', n: '빙글빙글 막대사탕', d: '상자 나무 (사탕 · 막대) + 부채꼴 + 돌기', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOX('w', 40), BOX('h', () => Math.round(40 * W() / H() * 1.7)), BOX('x', 30), BOX('y', 18),
             { c: OPEN1, say: '' }, { v: CF('v.c.a'), val: 0, say: '맨 위 상자는 투명하게' },
             { c: CBT('flex-direction'), say: '🌳 사탕 · 막대를 위아래로' }, { pick: CF('v.m', 'select'), opt: 'column', say: '' },
@@ -191,14 +191,14 @@
             ROOT, TIN, NM('막대'),
             { c: CNM('바탕색'), say: '' }, { v: CF('v.c.c'), val: '#d9c2a0', say: '' }, { c: CNM('폭'), say: '' }, { v: CF('v.v.n'), val: 7, say: '' }, { c: CNM('높이'), say: '' }, { v: CF('v.v.n'), val: 40, say: '' },
             { c: CBT('border-radius'), say: '' }, { v: CF('v.r.n'), val: 8, say: '완성! (막대는 가만히)' }] },
-        { m: 'a', g: 'svg', lv: 1, e: '✍️', n: '손글씨처럼 그려지는 하트', d: '점선 밀기를 움직여요', s: [
+        { m: 'a', g: 'svg', lv: 1, e: '✍️', k: 'drawheart', n: '손글씨처럼 그려지는 하트', d: '점선 밀기를 움직여요', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('path'), say: '✒️ 하트' }, { v: SF('v.d'), val: () => HT(W() / 2, H() * .3, W() * .3), say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.a'), val: 0, say: '속은 비워요' },
             { c: SBB('stroke'), say: '🖍' }, { v: SK('v.c.c'), val: '#ff5d8f', say: '' }, { c: SBB('stroke-width'), say: '' }, { v: SK('v.v'), val: 14, say: '' }, { c: SBB('stroke-linecap'), say: '⏺ 둥근 끝' },
             { c: SBB('stroke-dasharray'), say: '┅ 아주 긴 점선 하나' }, { v: SK('v.a'), val: 2600, say: '' }, { v: SK('v.b'), val: 2600, say: '' },
             { c: SBB('animate'), say: '🎞 점선을 밀며 움직이기' }, { pick: SK('v.at', 'select'), opt: 'stroke-dashoffset', say: '' }, { v: SK('v.from'), val: '2600', say: '' }, { v: SK('v.to'), val: '0', say: '' }, { v: SK('v.dur'), val: 3, say: '그려지는 하트!' }] },
-        { m: 'a', g: 'svg', lv: 2, e: '💡', n: '네온사인 글씨', d: '흐림 겹치기 + 깜빡', s: [
+        { m: 'a', g: 'svg', lv: 2, e: '💡', k: 'neon', n: '네온사인 글씨', d: '흐림 겹치기 + 깜빡', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('rect'), say: '⬛ 밤 배경' }, { v: SF('v.x'), val: 0, say: '' }, { v: SF('v.y'), val: 0, say: '' }, { v: SF('v.width'), val: () => W(), say: '' }, { v: SF('v.height'), val: () => H(), say: '' }, { v: SF('v.rx'), val: 0, say: '' }, { v: SF('v.ry'), val: 0, say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#2b2240', say: '' },
@@ -207,14 +207,14 @@
             { c: SBB('feGaussianBlur'), say: '🪄 흐리게 = 빛 번짐' }, { v: SK('v.s'), val: 10, say: '' },
             { c: SBB('feMerge'), say: '🪄 번짐 두 번 + 글자' }, { pick: SK('v.a', 'select'), opt: 'prev', say: '' }, { pick: SK('v.b', 'select'), opt: 'prev', say: '' }, { pick: SK('v.c', 'select'), opt: 'SourceGraphic', say: '' },
             { c: SBB('animate'), say: '🎞 진하기 깜빡' }, { v: SK('v.to'), val: '0.45', say: '' }, { v: SK('v.dur'), val: 1.2, say: '네온 완성!' }] },
-        { m: 'a', g: 'svg', lv: 2, e: '🌈', n: '홀로그램 반짝 별', d: '그라데이션 움직이기', s: [
+        { m: 'a', g: 'svg', lv: 2, e: '🌈', k: 'holo', n: '홀로그램 반짝 별', d: '그라데이션 움직이기', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('path'), say: '⭐' }, { v: SF('v.d'), val: () => ST(W() / 2, H() * .4, W() * .3), say: '' },
             { c: SBB('linearGradient'), say: '🌈 무지갯빛' }, { pick: SK('v.sp', 'select'), opt: 'reflect', say: '바깥은 거울 반복' },
             ADDST(1), ADDST(1), ADDST(1), ...STOP(SK, 0, '#ffb3d9', 0), ...STOP(SK, 1, '#b3e5ff', 25), ...STOP(SK, 2, '#d9b3ff', 50), ...STOP(SK, 3, '#b3ffd9', 75), ...STOP(SK, 4, '#ffb3d9', 100),
             { c: SBB('stroke'), say: '🖍' }, { v: SK('v.c.c'), val: '#ffffff', say: '' }, { c: SBB('stroke-width'), say: '' }, { v: SK('v.v'), val: 16, say: '' }, { c: SBB('stroke-linejoin'), say: '' },
             { c: SBB('animate-gradient'), say: '🌈 그라데이션 움직이기 = 흐르는 홀로그램!' }] },
-        { m: 'a', g: 'svg', lv: 2, e: '🫧', n: '떠오르는 비눗방울', d: '원형 그라데이션 + 길 따라', s: [
+        { m: 'a', g: 'svg', lv: 2, e: '🫧', k: 'bubble', n: '떠오르는 비눗방울', d: '원형 그라데이션 + 길 따라', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('circle'), say: '⚪' }, { v: SF('v.cy'), val: () => H() * .92, say: '아래에서' }, { v: SF('v.r'), val: () => W() * .07, say: '' },
             { c: SBB('radialGradient'), say: '🔆 비눗방울 빛' }, ...STOP(SK, 0, '#ffffff', 0), ...STOP(SK, 1, '#9fd8ff', 100, 75),
@@ -222,7 +222,7 @@
             SDUP, { v: SF('v.cx'), val: () => W() * .25, say: '왼쪽에 하나 더' }, { v: SF('v.r'), val: () => W() * .045, say: '' },
             SDUP, { v: SF('v.cx'), val: () => W() * .76, say: '오른쪽에도' }, { v: SF('v.r'), val: () => W() * .055, say: '' },
             { c: SKN('길 따라'), say: '' }, { v: SK('v.dur'), val: 5.5, say: '빠르기를 다르게 · 완성!' }] },
-        { m: 'a', g: 'svg', lv: 2, e: '💓', n: '두근두근 심장 + 파동', d: 'CSS 움직임 두 개 · 고리 셋 · 시간차', s: [
+        { m: 'a', g: 'svg', lv: 2, e: '💓', k: 'pulse', n: '두근두근 심장 + 파동', d: 'CSS 움직임 두 개 · 고리 셋 · 시간차', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('circle'), say: '⚪ 파동 고리' }, { v: SF('v.cy'), val: () => H() * .4, say: '' }, { v: SF('v.r'), val: () => W() * .17, say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.a'), val: 0, say: '' }, { c: SBB('stroke'), say: '' }, { v: SK('v.c.c'), val: '#ff5d8f', say: '' }, { c: SBB('stroke-width'), say: '' }, { v: SK('v.v'), val: 5, say: '' },
@@ -232,14 +232,14 @@
             SDUP, { c: SKNI('CSS 움직임', 0), say: '세 번째 고리 = 1.2초 늦게' }, { v: SK('v.delay'), val: 1.2, say: '' }, { c: SKNI('CSS 움직임', 1), say: '' }, { v: SK('v.delay'), val: 1.2, say: '' },
             { c: SBE('path'), say: '✒️ 심장' }, { v: SF('v.d'), val: () => HT(W() / 2, H() * .4 - W() * .1, W() * .11), say: '' }, { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ff5d8f', say: '' },
             { c: SBB('css-animation'), say: '🎬 두근두근' }, { v: SK('v.b'), val: 1.12, say: '' }, { v: SK('v.dur'), val: .45, say: '완성!' }] },
-        { m: 'a', g: 'svg', lv: 3, e: '🌸', n: '빙글 도는 꽃 만다라', d: '꽃잎 하나를 돌려 찍기', s: [
+        { m: 'a', g: 'svg', lv: 3, e: '🌸', k: 'flower', n: '빙글 도는 꽃 만다라', d: '꽃잎 하나를 돌려 찍기', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('ellipse'), say: '🥚 꽃잎 하나' }, { v: SF('v.cy'), val: () => H() * .4 - W() * .17, say: '' }, { v: SF('v.rx'), val: () => W() * .065, say: '' }, { v: SF('v.ry'), val: () => W() * .16, say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ffb3c9', say: '' }, { v: SK('v.c.a'), val: 85, say: '' },
             { c: SBB('animateTransform'), say: '🔄 종이 가운데를 돌아요' }, { v: SK('v.from'), val: () => `0 ${R(W() / 2)} ${R(H() * .4)}`, say: '' }, { v: SK('v.to'), val: () => `360 ${R(W() / 2)} ${R(H() * .4)}`, say: '' }, { v: SK('v.dur'), val: 9, say: '' },
             ...[1, 2, 3, 4, 5].flatMap(i => [{ c: SBE('use'), say: i === 1 ? '🪞 복사해 찍기' : '' }, { v: SF('v.x'), val: 0, say: '' }, { c: SBB('rotate'), say: i === 1 ? '🔄 60° 돌려 놓기' : '' }, { v: SK('v.a'), val: 60, say: '' }, { v: SK('v.cy'), val: () => H() * .4, say: '' }]),
             { c: SBE('circle'), say: '⚪ 꽃 가운데' }, { v: SF('v.cy'), val: () => H() * .4, say: '' }, { v: SF('v.r'), val: () => W() * .06, say: '' }, { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ffd23f', say: '완성!' }] },
-        { m: 'a', g: 'svg', lv: 3, e: '🌊', n: '일렁이는 물결', d: '묶기 (g) + 필터 움직이기', s: [
+        { m: 'a', g: 'svg', lv: 3, e: '🌊', k: 'wave', n: '일렁이는 물결', d: '묶기 (g) + 필터 움직이기', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('rect'), say: '⬛' }, { v: SF('v.x'), val: () => W() * .17, say: '' }, { v: SF('v.y'), val: () => H() * .3, say: '' }, { v: SF('v.width'), val: () => W() * .66, say: '' }, { v: SF('v.height'), val: () => H() * .28, say: '' }, { v: SF('v.rx'), val: 60, say: '' }, { v: SF('v.ry'), val: 60, say: '' },
             { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#7cc8ff', say: '' },
@@ -249,7 +249,7 @@
             { c: SBB('feTurbulence'), say: '🪄 노이즈' }, { pick: SK('v.ty', 'select'), opt: 'fractalNoise', say: '부드러운 구름 노이즈' }, { v: SK('v.bf'), val: .02, say: '' },
             { c: SBB('feDisplacementMap'), say: '🪄 일렁이기 (묶음 전체)' }, { v: SK('v.sc'), val: 30, say: '' },
             { c: SBB('animate-filter'), say: '🌊 필터 움직이기 = 물결!' }] },
-        { m: 'a', g: 'svg', lv: 3, e: '🕯️', n: '일렁이는 촛불', d: '그라데이션 불꽃 + 필터 움직이기', s: [
+        { m: 'a', g: 'svg', lv: 3, e: '🕯️', k: 'candle', n: '일렁이는 촛불', d: '그라데이션 불꽃 + 필터 움직이기', s: [
             { c: M('svg'), say: '🌀 SVG 로 가요' },
             { c: SBE('path'), say: '✒️ 불꽃 모양' }, { v: SF('v.d'), val: FLAME, say: '' },
             { c: SBB('linearGradient'), say: '🌈' }, { v: SK('v.x2'), val: 0, say: '' }, { v: SK('v.y1'), val: 100, say: '아래에서 위로' }, { v: SK('v.y2'), val: 0, say: '' },
@@ -258,7 +258,7 @@
             { c: SBB('feDisplacementMap'), say: '🪄 일렁이기' }, { v: SK('v.sc'), val: 45, say: '' },
             { c: SBB('animate-filter'), say: '🌊 필터 움직이기' }, { pick: SK('v.at', 'select'), opt: 'seed', say: '노이즈 모양을 계속 바꿔요' }, { v: SK('v.vals'), val: '1;2;3;4;5;6;7;8', say: '' }, { v: SK('v.dur'), val: 1, say: '촛불 완성!' }] }
     ];
-    const GN = { css: '🧩 CSS', svg: '🌀 SVG', mix: '🔗 섞기' }, LV = ['', '초급', '중급', '고급'];
+    const GN = { css: '🧩 CSS', svg: '🌀 SVG', mix: '🔗 섞기' };
 
     /* ---------- 화면 ---------- */
     const T = { on: false, run: 0, i: 0, ex: null, pause: false, step: false, speed: 1, follow: false, fast: false };
@@ -322,7 +322,7 @@
         await wait(s.say ? 900 : 350); return true;
     }
     async function play(ex) {
-        const run = ++T.run; T.ex = ex; T.i = 0; $('#ptT').textContent = `${GN[ex.g]} ${LV[ex.lv]} · ${ex.e} ${ex.n}`;
+        const run = ++T.run; T.ex = ex; T.i = 0; $('#ptT').textContent = `${GN[ex.g]} · ${ex.e} ${ex.n}`;
         try {
             for (; T.i < ex.s.length; T.i++) { if (!T.on || run !== T.run) return; $('#ptN').textContent = `${T.i + 1} / ${ex.s.length}`; if (!(await doStep(ex.s[T.i], run))) return; }
         } catch (e) { console.warn('🎓 따라 보기', e); bub('⚠ 메뉴를 찾지 못했어요 · ✕ 끝내기를 눌러요'); T.err = String(e.message || e); return; }
@@ -337,22 +337,33 @@
     }
     function restart() { const ex = T.ex; if (!ex) return; const d = $('#ptDone'); if (d) d.remove(); ppTourHook.end(false); ppTourHook.begin(); T.pause = false; const b = $('#ptBar [data-pt="play"]'); if (b) b.textContent = '⏸'; play(ex); }
     function start(ex) {
-        if (!window.ppTourHook || !ppTourHook.on) return; if (ppTourHook.busy) ppTourHook.end(false);
+        if (!window.ppTourHook || !ppTourHook.on) return; if (!canRun(ex)) { noRun(ex); return; } if (ppTourHook.busy) ppTourHook.end(false);
         if (!ppTourHook.begin()) return; T.on = true; T.pause = false; T.done = false; T.err = ''; ui(); document.body.classList.add('pt-on'); play(ex);
     }
     function finish() { T.run++; const d = $('#ptDone'); if (d) d.remove(); T.on = false; gone(); document.body.classList.remove('pt-on'); if (window.ppTourHook && ppTourHook.busy) ppTourHook.end(false); }   // 따라 보기 결과는 가져가지 않아요 (도련 11-19 · 늘 원래 그림으로)
     /* ---------- 고르는 창 ---------- */
+    const KN = { leaf: '속지', tk: '떡메모지', tape: '마스킹테이프', paper: '모조지', seal: '씰', piece: '조각' };   // 🏷️ 스티커 종류 (js/tablet.js APPS 차례)
+    const KALL = Object.keys(KN), KANIM = ['seal', 'piece'];                    // 🎬 움직이는 예시 = 씰 · 조각만 (속지 · 떡메 · 마테 · 모조지는 움직임 기능이 없어요 · 1311)
+    const kindsOf = ex => ex.m === 'a' ? KANIM : KALL;
+    const nowKind = () => (window.ppTourHook && ppTourHook.kind) || 'leaf';
+    const canRun = ex => !(ex.m === 'a' && window.ppTourHook && ppTourHook.still);
+    function noRun(ex) {                                                        // 이 스티커에서 볼 수 없는 예시 (도련 11-19)
+        const o = $('#ptNo'); if (o) o.remove();
+        const m = document.createElement('div'); m.id = 'ptNo'; m.className = 'pt-no';
+        m.innerHTML = `<div><b>🙅 ${KN[nowKind()] || '이 스티커'}에서는 볼 수 없는 따라 보기예요</b><small>${ex.e} ${ex.n} = 움직이는 예시라 ${kindsOf(ex).map(k => KN[k]).join(' · ')} 스티커에서 볼 수 있어요</small><button type="button">알겠어요</button></div>`;
+        document.body.appendChild(m); m.onclick = e => { if (e.target === m || e.target.closest('button')) m.remove(); };
+    }
+    /* ---------- 고르는 창 (미리보기 = js/padtourview.js 진짜 코드) ---------- */
     function open() {
         const old = $('#ptPick'); if (old) old.remove();
-        const m = document.createElement('div'); m.id = 'ptPick'; m.className = 'pt-pick';
-        const grid = mm => `<div class="pt-grid"><span></span>${[1, 2, 3].map(l => `<b class="pt-lv l${l}">${LV[l]}</b>`).join('')}
-            ${['css', 'svg', 'mix'].map(g => `<b class="pt-g">${GN[g]}</b>` + [1, 2, 3].map(l => `<div class="pt-cell">${TOUR.filter(x => x.m === mm && x.g === g && x.lv === l).map(x => `<button type="button" class="pt-card" data-ex="${TOUR.indexOf(x)}"><i>${x.e}</i><b>${x.n}</b><small>${x.d}</small></button>`).join('') || '<span class="pt-none">·</span>'}</div>`).join('')).join('')}</div>`;
-        m.innerHTML = `<div class="pt-box"><button type="button" class="pt-x" data-pp="x">✕</button><h3>🎓 따라 보기<em>예시를 누르면 마우스가 움직이며 만들어요 · 지금 그림은 그대로 두고 연습 종이에서</em></h3>
-            <h4 class="pt-sec">✨ 픽셀 · 벡터로는 어려운 것</h4>${grid('s')}
-            ${window.ppTourHook && ppTourHook.still ? '' : `<details class="pt-anim"><summary>🎬 움직이는 예시 (실험)</summary>${grid('a')}</details>`}
+        const m = document.createElement('div'); m.id = 'ptPick'; m.className = 'pt-pick'; const cur = nowKind();
+        const card = x => `<button type="button" class="pt-card${canRun(x) ? '' : ' no'}" data-ex="${TOUR.indexOf(x)}"><span class="pt-view">${window.PT_VIEW ? PT_VIEW.get(x.k) : ''}</span><b>${x.e} ${x.n}</b><small>${x.d}</small>
+            <span class="pt-tags"><em class="pt-tg ${x.g}">${GN[x.g].replace(/^\S+\s/, '')}</em>${kindsOf(x).map(k => `<em class="pt-kd${k === cur ? ' on' : ''}">${KN[k]}</em>`).join('')}</span></button>`;
+        m.innerHTML = `<div class="pt-box"><button type="button" class="pt-x" data-pp="x">✕</button><h3>🎓 따라 보기<em>예시를 누르면 마우스가 움직이며 만들어요 · 지금 그림은 그대로 두고 연습 종이에서 · 지금 스티커 = <b>${KN[cur] || ''}</b></em></h3>
+            <div class="pt-cards">${TOUR.map(card).join('')}</div>
             <p class="pt-tip">⏸ 멈춤 · ⏭ 한 걸음씩 · 🐢 🐇 빠르기 · ✋ 따라 하기 = 반짝이는 곳을 내가 눌러요</p></div>`;
         document.body.appendChild(m);
-        m.onclick = e => { if (e.target === m || e.target.closest('[data-pp="x"]')) { m.remove(); return; } const c = e.target.closest('[data-ex]'); if (c) { m.remove(); start(TOUR[+c.dataset.ex]); } };
+        m.onclick = e => { if (e.target === m || e.target.closest('[data-pp="x"]')) { m.remove(); return; } const c = e.target.closest('[data-ex]'); if (!c) return; const ex = TOUR[+c.dataset.ex]; if (!canRun(ex)) { noRun(ex); return; } m.remove(); start(ex); };
     }
     window.padTour = { open, start: i => start(TOUR[i]), finish, TOUR, get state() { return { on: T.on, i: T.i, done: !!T.done, err: T.err || '' }; }, set fast(v) { T.fast = !!v; }, set speed(v) { T.speed = +v || 1; } };
 })();

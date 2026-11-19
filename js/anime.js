@@ -9,7 +9,7 @@
     const ANIME_ON = true;                                                 // 끄려면 false
     if (!ANIME_ON) return;
     document.documentElement.classList.add('an');
-    const WASH = .42, SKIP = '#canvasArea, .dk-open-wrap, .element-box';
+    const WASH = .42, SKIP = '#canvasArea, .dk-open-wrap, .element-box, .pt-view';   // 🎓 따라 보기 미리보기 = 진짜 코드 그대로 (js/padtourview.js · 1312)
     const cv = document.createElement('canvas').getContext('2d');
     const rgb = c => { cv.fillStyle = '#000'; cv.fillStyle = c; const m = /^#([0-9a-f]{6})$/i.exec(cv.fillStyle); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
     const wash = c => { const v = rgb(c); if (!v || v[0] + v[1] + v[2] > 690) return null; const f = x => Math.round(x + (255 - x) * WASH); return `rgb(${f(v[0])},${f(v[1])},${f(v[2])})`; };

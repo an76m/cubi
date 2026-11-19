@@ -1908,7 +1908,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
 
     window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppDiscard = ppDiscard; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K; window.ppSpecList = specList;
     window.ppTourHook = {                                                     // 🎓 따라 보기 (js/padtour.js) : 지금 그림은 보관 · 빈 연습 종이 · 끝나면 가져가기 / 그냥 닫기
-        get still() { return !!P.still; },                                     // 🎬 움직임 숨기는 종류 (속지 · 떡메 · 모조지 · 테이프)
+        get still() { return !!P.still; }, get kind() { return P.kind; },                                     // 🎬 움직임 숨기는 종류 (속지 · 떡메 · 모조지 · 테이프)
         get on() { return !!P.on; }, get busy() { return !!P.tour; },
         begin() { if (!P.on || P.tour) return false; commitFloat(); penEnd(); P.tour = { s0: snapshot(), dirty: P.dirty };
             const pp = P.layers.filter(l => l.type === 'paper'); P.layers = pp; P.cur = pp[0] || null; P.hist = []; P.redo = []; P.sel = null; P.many = []; P.pt = null; P.cbOpen = null; P.sbSel = null; P.sbOpen = null; P.cbPart = 'blocks'; P.cbNode = 'root'; P.cbBox = false; P.cbCode = false; P.sbCode = false;
