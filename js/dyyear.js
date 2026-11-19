@@ -164,7 +164,9 @@
             dyoSet(dyoAll().filter(x => x.t !== 'date').concat(lines)); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[Math.max(0, fl)]);
             if (window.giftMark) giftMark();   // 펼쳐 둘 권 = 상품공방 '처음띄움' (없으면 첫 권)
             if (window.deskVolInit) deskVolInit(G.map((d, i) => ({ id: ids[i], spot: d.desk, n: d.name })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
+            if (window.diag) diag('dygift', { gift: G.map((d, i) => `${ids[i]} ${d.name} ${d.n} ${d.mm}${d.float ? ' 🎈' : ''}`), pg: (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.gift).map(p => `${p.id} ${p.g} ${p.n} ${p.mm}${p.float ? ' 🎈' : ''}`), open: ids[Math.max(0, fl)] || '' });   // 🧾 처음 선물 권 · 띄울 권 (도련 11-19 · 처음 로그인 규격 찾기)
             window.dkGiftFloat = fl >= 0 ? ids[fl] : (typeof DY_TYPES !== 'undefined' && DY_TYPES.some(p => p.gift && p.float)) ? 'pg' : '';   // 🎈 처음에 떠 있는 권 (js/desk.js deskLoginShow · 'pg' = 페이지 다이어리가 뒤에 떠요)
+            setTimeout(dyyPaint, 0);                                            // 📐 선물 권 모양으로 다시 그리기 (도련 11-19 : 권이 생기기 전 크기 그대로 떠올랐어요)
             return ids;
         }
         /* 🎁 처음 온 다꾸러 : 그 해 '처음받기' 디자인마다 한 권 (한 번만 · 드라이브를 읽은 뒤 · 게스트는 들어올 때 · js/drive.js) · 펼칠 권 = 첫 권
@@ -455,7 +457,7 @@
         window.dyyIsNoteOpen = () => dyyBasic() && dyyIsNote(dyyBook());      // 📓 펼친 권이 날짜형 노트
         window.dyyDesign = dyyDesign; window.dyyTitle = dyyTitle;
         if (window.prodHook) prodHook(() => { dyoAll(); if (typeof isCoverOpen !== 'undefined' && isCoverOpen) dyyColorPaint(); });   // 📦 내 실물이 바뀌면 = 내가 만든 디자인도 다시 · 펼친 권 색 (js/mine.js)
-        window.dyyBookType = () => dyyType(dyyBook()) || dyyType({ ch: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).ch, c: (DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}).id });   // 📐 펼친 권 모양 (권이 없으면 처음받기 디자인 · js/skins.js dyNow)
+        window.dyyBookType = () => { const g = DY_DESIGNS.find(d => d.gift && d.float) || DY_DESIGNS.find(d => d.gift) || DY_DESIGNS[0] || {}; return dyyType(dyyBook()) || dyyType({ ch: g.ch, c: g.id }); };   // 🎈 띄울 권 디자인 먼저 (도련 11-19 : 처음받기 첫 권이 바이블이라 떠오른 표지가 바이블 크기였어요)   // 📐 펼친 권 모양 (권이 없으면 처음받기 디자인 · js/skins.js dyNow)
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dyyear'] = true;

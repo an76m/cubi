@@ -1862,7 +1862,7 @@
         }
         function deskOpenDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
-            if (window.diag) diag('dkup', { win: [innerWidth, innerHeight] });   // 🧾 다이어리 떠오르기 (누가 불렀는지 · 1327 크기 바뀜 찾기)
+            if (window.diag) { const t = window.dyLook ? dyLook() : null; diag('dkup', { win: [innerWidth, innerHeight], book: window.dyyBookId ? dyyBookId() : '', look: t ? `${t.id} ${t.g || ''} ${t.n || ''} ${t.mm || ''}` : '-' }); }   // 🧾 다이어리 떠오르기 (누가 불렀는지 · 1327 크기 바뀜 찾기)
             if (deskAnim || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
             if (window.dsUnderPaint) dsUnderPaint();                              // 📖 다이어리 바탕 = 🪵 책상판 무늬 / 🌈 배경지 (도련 11-12 · js/deskskin.js)
@@ -2188,7 +2188,8 @@
         function deskLoginShow() {
             if (UI.menu() || !document.getElementById('deskStage')) return;
             setTimeout(() => {                                                    // 로그인 문이 걷힌 뒤 (권 목록도 다 읽은 뒤)
-                const gf = window.dkGiftFloat;                                    // 🎁 처음 온 날 = 상품공방 '처음띄움' 권만 떠요 (도련 11-06 · '' = 아무 권도 안 떠요 · 'pg' = 페이지 다이어리가 받고 나서 떠요)
+                const gf = window.dkGiftFloat;                                    // 🎁
+                if (window.diag) { const t = window.dyLook ? dyLook() : null; diag('dkfloat', { gf: gf === undefined ? '-' : gf, book: window.dyyBookId ? dyyBookId() : '', look: t ? `${t.id} ${t.g || ''} ${t.n || ''} ${t.mm || ''}` : '-', key: prefGet('diary_type', 'malang_diary_type') || '' }); }   // 🧾 로그인 뒤 띄우기 (도련 11-19) 처음 온 날 = 상품공방 '처음띄움' 권만 떠요 (도련 11-06 · '' = 아무 권도 안 떠요 · 'pg' = 페이지 다이어리가 받고 나서 떠요)
                 if (gf !== undefined) { if (gf !== 'pg') window.dkGiftFloat = undefined; dkDeskBooks(); if (gf && gf !== 'pg') requestAnimationFrame(() => deskOpenDiary()); return; }
                 const last = prefGet(DK_LAST, DK_LAST_L), own = window.dyyBooks ? dyyBooks().map(b => b.id) : [];   // 버린 권이면 그대로
                 if (last && own.includes(last) && last !== dkyCur() && window.dyySelect) { dyySelect(last); dkDeskBooks(); }
