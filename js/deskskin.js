@@ -232,7 +232,7 @@
             document.documentElement.classList.toggle('dk-under-top', v === 'top');
             document.querySelectorAll('#dsUnderPick [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
             const el = document.getElementById('dkUnder'); if (!el) return;
-            const t = dsOn(dsCur(), 'top'), c = t ? dsCat(t) : null, k = (typeof DK !== 'undefined' && DK.s) || 1;
+            const t = dsOn(dsCur(), 'top'), c = t ? dsCat(t) : null, k = (typeof DK !== 'undefined' && (DK.bs || DK.s)) || 1;
             el.style.background = !c ? '' : c.img && c.iw && c.ih ? `url("${c.img}") 0 0 / ${(c.iw * k).toFixed(1)}px ${(c.ih * k).toFixed(1)}px repeat ${(c.t && c.t[0]) || ''}` : (c.t && c.t[0]) || '';   // 바탕색 = 윗면 색 (책상 모드 바탕 --dku-c)
         }
         /* 🪵 다이어리 바탕을 다른 책상 모드에도 (도련 11-14 : 📒 스티커정리모드 · 🧩 바인더조립모드 = 다이어리모드처럼 책상 위) → html 의 --dku-* 변수 (css/anime.css · css/binderroom.css) */

@@ -1910,25 +1910,33 @@
             if (typeof refreshLayout === 'function') refreshLayout();
             if (typeof updateTextPanel === 'function') updateTextPanel();
         }
-        function deskFit() {                                                      // 책상 그림 크기 그대로 · 화면 꽉 (cover · 아래 맞춤)
+        /* 📐 책상 크기 (도련 11-19 · 아이패드에서 양옆 소품이 잘렸어요) : 소품 = 화면 안에 다 들어오게 (contain · 좁은 화면은 조금 작게) · 방 그림 = 화면 꽉 (cover)
+           소품 자리는 늘 1920×1080 그림 기준으로 저장 → PC 에서 넓게 놓으면 패드에선 좁혀 보이고 · 패드에서 놓으면 PC 에선 넓게 · 크기는 가로세로 같은 비율
+           방 그림은 책상 뒤쪽 선(DESK_EDGE.back)을 기준으로 키워요 → 책상 위 소품은 책상 위에 · 벽 소품은 벽에 그대로
+           세운 아이패드처럼 아주 좁으면 너무 작아지지 않게 DESK_MIN 까지만 줄이고 · 나머지는 deskKeepIn 이 화면 안쪽으로 당겨 보여 줘요 */
+        const DESK_MIN = .62;
+        function deskFit() {
             const st = document.getElementById('deskStage'); if (!st) return;
-            const W = innerWidth, H = innerHeight, s = Math.max(W / DESK_W, H / DESK_H);
+            const W = innerWidth, H = innerHeight, cv = Math.max(W / DESK_W, H / DESK_H), s = Math.max(Math.min(W / DESK_W, H / DESK_H), cv * DESK_MIN);
             const tx = (W - DESK_W * s) / 2, ty = H - DESK_H * s;
-            DK.s = s; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`; st.style.setProperty('--dk-inv', (1 / s).toFixed(3));
-            deskKeepIn(-tx / s, -ty / s, (W - tx) / s, (H - ty) / s);
+            const x0 = -tx / s, y0 = -ty / s, x1 = (W - tx) / s, y1 = (H - ty) / s, ox = DESK_W / 2, oy = DESK_EDGE.back;
+            const k = Math.max(1, (ox - x0) / ox, (x1 - ox) / (DESK_W - ox), (oy - y0) / oy, (y1 - oy) / (DESK_H - oy));
+            DK.s = s; DK.bs = s * k; st.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`; st.style.setProperty('--dk-inv', (1 / s).toFixed(3));
+            st.style.setProperty('--dk-bgk', k.toFixed(4)); st.style.setProperty('--dk-bgo', `${ox}px ${oy}px`);
+            deskKeepIn(x0, y0, x1, y1);
             deskTipPlace();
-            if (document.documentElement.classList.contains('dk-bgon') && window.dsUnderPaint) dsUnderPaint();   // 🪵 책상판 무늬 크기 = 책상 배율
+            if (document.documentElement.classList.contains('dk-bgon') && window.dsUnderPaint) dsUnderPaint();   // 🪵 책상판 무늬 크기 = 방 그림 배율
         }
-        /* 기능 소품이 화면 밖으로 많이 잘리면 (좁은 창 · 세운 아이패드) 보이는 곳 안쪽으로 당겨 보여 줘요 · 저장한 자리(DK.base)는 그대로 · 넓어지면 제자리 */
+        /* 소품이 화면 밖으로 많이 잘리면 (아주 좁은 창 · 세운 아이패드) 보이는 곳 안쪽으로 당겨 보여 줘요 · 저장한 자리(DK.base)는 그대로 · 넓어지면 제자리 */
         function deskKeepIn(x0, y0, x1, y1) {
             if (DK.drag) return;
             const M = 12, moved = [];
             document.querySelectorAll('#deskStage .desk-item').forEach(el => {
                 const b = DK.base[el.dataset.u]; if (!b) return;
                 let x = b.x, y = b.y; const w = parseFloat(el.style.width), h = parseFloat(el.style.height);
-                if (el.dataset.fn) {
+                {                                                                  // 📐 모든 소품 (도련 11-19 · 예전엔 기능 소품만)
                     const vis = Math.max(0, Math.min(x + w, x1) - Math.max(x, x0)) * Math.max(0, Math.min(y + h, y1) - Math.max(y, y0)) / (w * h);
-                    if (vis < .7) { x = Math.max(x0 + M, Math.min(x1 - M - w, x)); y = Math.max(y0 + M, Math.min(y1 - M - h, y)); moved.push(el); }
+                    if (vis < .98) { x = Math.max(x0 + M, Math.min(x1 - M - w, x)); y = Math.max(y0 + M, Math.min(y1 - M - h, y)); moved.push(el); }
                 }
                 el.style.left = x + 'px'; el.style.top = y + 'px';
             });
