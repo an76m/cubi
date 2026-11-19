@@ -631,23 +631,27 @@
         /* 🧾 다이어리 크기 기록 (도련 11-19 · 1314 "창을 살짝 조절하니까 다이어리 규격이 바뀌었어" · 여기선 재현이 안 돼서) : 다이어리 모양 · 크기가 바뀔 때만 문제 기록에 한 줄 (js/drive.js diag 'dysize')
            📊 상황판 → 🧾 기록 → 📋 복사 → Claude 에게 · 원인을 찾으면 지워요 */
         let dyDiagKey = '', dyDiagT = 0;
-        function dySizeDiag(why) {
+        function dySizeDiag(why, force) {
             try {
                 if (!window.diag) return;
                 const w = document.getElementById('diaryWrapper'), cp = document.getElementById('coverPage'); if (!w) return;
                 const R = el => { if (!el || !el.offsetParent) return null; const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; };
-                const t = window.dyLook ? dyLook() : null, d = dySize(), wr = R(w), cr = R(cp);
-                const key = [t && t.id, t && t.mm, d.w, d.h, d.two, wr && (wr[0] / wr[1]).toFixed(2), cr && (cr[0] / cr[1]).toFixed(2)].join('|');
-                if (key === dyDiagKey) return;
+                const t = window.dyLook ? dyLook() : null, d = dySize(), wr = R(w), cr = R(cp), vo = document.querySelector('#deskStage .dk-vol.cur'), vr = vo && vo.offsetParent ? (r => [Math.round(r.width), Math.round(r.height)])(vo.getBoundingClientRect()) : null;
+                const key = [t && t.id, t && t.mm, d.w, d.h, d.two, wr && (wr[0] / wr[1]).toFixed(2), cr && (cr[0] / cr[1]).toFixed(2), vr && (vr[0] / vr[1]).toFixed(2), document.documentElement.classList.contains('desk-show') ? 1 : 0].join('|');
+                if (key === dyDiagKey && !force) return;
                 const H = document.documentElement.classList, first = !dyDiagKey; dyDiagKey = key;
                 diag('dysize', { why, first: first ? 1 : undefined, look: t ? `${t.id} ${t.n || ''} ${t.mm || ''}` : '-', dy: [d.w, d.h, d.two ? 2 : 1], css: [w.style.width, w.style.height], wrap: wr, cover: cr,
-                    cvCls: cp ? cp.className : '', win: [innerWidth, innerHeight], open: isCoverOpen ? 1 : 0, mode: ['desk-on', 'desk-wide', 'desk-show', 'dk-bgon', 'dk-landing'].filter(c => H.contains(c)).join(' ') });
+                    cvCls: cp ? cp.className : '', vol: vr ? vr.concat([vo.className.replace(/^dk-vol\s*/, ''), vo.style.width, vo.style.height, vo.dataset.b || '']) : null, win: [innerWidth, innerHeight], open: isCoverOpen ? 1 : 0, mode: ['desk-on', 'desk-wide', 'desk-show', 'dk-bgon', 'dk-landing'].filter(c => H.contains(c)).join(' ') });
             } catch (e) {}
         }
-        function dySizeWatch() {                                                 // 다시 맞추지 않고 모양만 바뀌어도 (css) 잡아요
+        function dySizeWatch() {                                                 // 다시 맞추지 않고 모양만 바뀌어도 (css) 잡아요 · 🪑 떠오르기 · 내려앉기 · 창 크기 (1327)
+            let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => dySizeDiag('resize', 1), 500); });
+            if (window.MutationObserver) { let had = document.documentElement.classList.contains('desk-show'); new MutationObserver(() => { const now = document.documentElement.classList.contains('desk-show'); if (now !== had) { had = now; setTimeout(() => dySizeDiag(now ? 'show' : 'down', 1), 900); } }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); }
             if (!window.ResizeObserver) return;
             const ro = new ResizeObserver(() => { clearTimeout(dyDiagT); dyDiagT = setTimeout(() => dySizeDiag('ro'), 400); });
             ['diaryWrapper', 'coverPage'].forEach(id => { const el = document.getElementById(id); if (el) ro.observe(el); });
+            const vw = () => { const v = document.querySelector('#deskStage .dk-vol.cur'); if (v && !v._dyRo) { v._dyRo = 1; ro.observe(v); } };   // 🪑 책상 위 그 권 그림 (다시 그리면 새 것)
+            vw(); const st = document.getElementById('deskStage'); if (st && window.MutationObserver) new MutationObserver(vw).observe(st, { childList: true });
         }
 
         function setupLayout() {

@@ -1862,6 +1862,7 @@
         }
         function deskOpenDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
+            if (window.diag) diag('dkup', { win: [innerWidth, innerHeight] });   // 🧾 다이어리 떠오르기 (누가 불렀는지 · 1327 크기 바뀜 찾기)
             if (deskAnim || !w || H.classList.contains('desk-show')) return;
             deskAnim = true; deskSelect(null);
             if (window.dsUnderPaint) dsUnderPaint();                              // 📖 다이어리 바탕 = 🪵 책상판 무늬 / 🌈 배경지 (도련 11-12 · js/deskskin.js)
@@ -1877,6 +1878,7 @@
         }
         function deskCloseDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
+            if (window.diag) diag('dkdown', { win: [innerWidth, innerHeight] });   // 🧾 다이어리 내려앉기 (누가 불렀는지 · 1327)
             if (deskAnim || !w || !H.classList.contains('desk-show')) return;
             DK.coverOnce = true;                                                  // 📖 로그인 뒤 한 번 책상에 내려놓으면 (표지를 펼쳤든 안 펼쳤든) 다음부터 톡 = 떠오르며 펼쳐져요 (도련 11-12 : 안 펼치고 밖 톡으로 내려놓으면 다음 톡에도 접힌 채였어요)
             if (window.dkwFloatAll) dkwFloatAll();                                // ✋ 페이지 위 문구 · 손에 든 필기구 = 그 자리에서 공중에 떠요 (다이어리 따로 · 상품 따로 · 도련 11-11)
