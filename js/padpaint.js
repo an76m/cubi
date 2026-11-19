@@ -106,7 +106,7 @@
         const o = P.o;
         document.querySelectorAll('#ppBarX, #ppSpecPop, #ppSizePop').forEach(e => e.remove());   // 예전 막대 · 창은 지우고
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
-        x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button><button type="button" data-m="css">🧩 CSS<small>상자를 CSS 기능으로 꾸며요</small></button><button type="button" data-m="svg">🌀 SVG<small>도형에 SVG 기능을 붙여요</small></button></div><button type="button" class="pp-tourb" data-tour="1" title="예시를 고르면 마우스가 움직이며 만드는 과정을 보여 줘요">🎓 따라 보기<small>CSS · SVG 예시</small></button>
+        x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button><button type="button" data-m="css">🧩 CSS<small>상자를 CSS 기능으로 꾸며요</small></button><button type="button" data-m="svg">🌀 SVG<small>도형에 SVG 기능을 붙여요</small></button></div><button type="button" class="pp-tourb" data-tour="1" title="예시를 고르면 마우스가 움직이며 만드는 과정을 보여 줘요">🎓 예시 보기<small>CSS · SVG 예시</small></button>
 ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button><button type="button" class="pp-specb pp-two" data-q="two" title="📄 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로)"></button>' : ''}${P.kind === 'paper' ? '<button type="button" class="pp-specb" data-q="seal" title="모조지 모양 (세로 · 정사각 · 길쭉)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 모조지를 다이어리 옆에 실제 크기 비율로 놓아 봐요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 모양 (세로 · 가로 · 정사각)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 씰 스티커를 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'piece' ? '<button type="button" class="pp-specb" data-q="spec" title="만든 조각을 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
         x.addEventListener('click', e => { if (e.target.closest('[data-tour]')) { if (window.padTour) padTour.open(); return; } const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq && qq.dataset.q === 'seal') { sealPop(); return; } if (qq && qq.dataset.q === 'two') { twoFlip(); return; } if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : P.kind === 'seal' || P.kind === 'piece' || P.kind === 'paper' ? sealPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
@@ -1607,7 +1607,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     /* ================= 🗄️ 서랍에 넣기 ================= */
     async function save() {
         if (P.saving) return;
-        if (P.tour) { say('🎓 따라 보기를 먼저 끝내요'); return; }
+        if (P.tour) { say('🎓 예시 보기를 먼저 끝내요'); return; }
         commitFloat(); penEnd();
         if (!P.dirty && !(P.pcs && P.pcs.length) && !P.layers.some(l => l.type === 'photo' || (l.type === 'vec' && l.shapes.length) || (l.type === 'css' && cbAll(l).length) || (l.type === 'svg' && l.els.length) || (l.type === 'px' && !isBlank(l.cv)))) { /* 💾 임시저장한 뒤(dirty 아님)에도 그린 게 있으면 넣어요 */ if (window.showMsg) showMsg('먼저 그림을 그리거나 📎 사진을 넣어 주세요.'); return; }
         if (window.dkTrialNoSave && dkTrialNoSave()) return;
@@ -1684,7 +1684,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     function tmpShow() { const t = $('ppTmpT'); if (t) t.textContent = '📱 이 기기에 임시저장' + (P.savedAt ? ' · ' + hm(P.savedAt) : ' (자동으로도 저장돼요)'); }
     async function saveDraft(quietly, auto) {
         if (P.saving) return false;
-        if (P.tour) { if (!auto) say('🎓 따라 보기 중에는 저장하지 않아요 · 끝내고 저장해요'); return false; }
+        if (P.tour) { if (!auto) say('🎓 예시 보기 중에는 저장하지 않아요 · 끝내고 저장해요'); return false; }
         if (!auto) { commitFloat(); penEnd(); }
         if (window.dkTrialNoSave && dkTrialNoSave()) return false;
         if (!window.draftWrite) { if (window.comingSoon) comingSoon('💾 임시저장'); return false; }
@@ -1819,7 +1819,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         const d = snapshot(); P.W = W2; P.H = H2; if (spec) P.spec = spec;
         ['ppCv', 'ppOv'].forEach(id => { const c = $(id); if (c) { c.width = P.W; c.height = P.H; } });
         P.hist = []; P.redo = []; P.sel = null; P.pt = null;
-        restoreDraft(d, true); P.dirty = true; fit(); specBtn();
+        restoreDraft(d, true); P.dirty = true; fit(); requestAnimationFrame(() => realSize(true)); specBtn();   // 📏 종이 모양을 바꿔도 실제 크기로 (화면에 들어가면 · 도련 11-19 1313)
         if (P.kind === 'tk' || P.kind === 'tape') requestAnimationFrame(() => realSize(true));
         if (P.kind === 'tape') { ['ppGhL', 'ppGhR'].forEach(id => { const g = $(id); if (g) { g.width = P.W; g.height = P.H; } }); renderAll(); }
     }
@@ -1842,7 +1842,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
         const g = $('ppGlueBar'); if (g) g.style.background = `linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%, rgba(0,0,0,.06)), ${glueCol()}`;
         document.querySelectorAll('#ppGlue [data-g]').forEach(b => b.classList.toggle('on', b.dataset.g === P.glue));
     }
-    const mmW = () => P.kind === 'seal' ? sealPh() * P.W / P.H : P.kind === 'piece' ? sealPh() * P.W * PIECE_K / 644 : P.kind === 'paper' ? sealPh() * P.W * PAPER_K / 644 : P.kind === 'tk' || P.kind === 'tape' ? P.tkmm[0] : (P.spec && +String(P.spec.mm || '').split(/[×x*]/)[0]) * 2 || 0;   // 종이 가로 = 몇 mm (📃 속지 = 펼친 두 쪽)
+    const mmW = () => P.kind === 'seal' ? sealPh() * P.W / P.H : P.kind === 'piece' ? sealPh() * P.W * PIECE_K / 644 : P.kind === 'paper' ? sealPh() * P.W * PAPER_K / 644 : P.kind === 'tk' || P.kind === 'tape' ? P.tkmm[0] : (P.spec && +String(P.spec.mm || '').split(/[×x*]/)[0]) * (P.two ? 2 : 1) || 0;   // 종이 가로 = 몇 mm (📃 속지 한 쪽 = 규격 가로 · 📖 양쪽 디자인만 두 배 · 도련 11-19 1313 : 늘 두 배라 실제 크기가 2배로 컸어요)
     function realSize(auto) {                                                  // 📏 화면에 실제 크기 (1mm = MM_PX · js/skins.js 한 곳)
         const st = $('ppStage'), mw = mmW(); if (!st || !mw) { if (!auto) say('📏 이 종이는 실제 크기를 몰라요'); return; }
         const r = st.getBoundingClientRect(), k = MM_PX * mw / P.W;
@@ -1907,13 +1907,13 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="spec" titl
     }
 
     window.ppOpen = ppOpen; window.ppClose = ppClose; window.ppDirty = ppDirty; window.ppDiscard = ppDiscard; window.ppSaveDraft = saveDraft; window.PP_DRAFT_K = DRAFT_K; window.ppSpecList = specList;
-    window.ppTourHook = {                                                     // 🎓 따라 보기 (js/padtour.js) : 지금 그림은 보관 · 빈 연습 종이 · 끝나면 가져가기 / 그냥 닫기
+    window.ppTourHook = {                                                     // 🎓 예시 보기 (js/padtour.js) : 지금 그림은 보관 · 빈 연습 종이 · 끝나면 가져가기 / 그냥 닫기
         get still() { return !!P.still; }, get kind() { return P.kind; },                                     // 🎬 움직임 숨기는 종류 (속지 · 떡메 · 모조지 · 테이프)
         get on() { return !!P.on; }, get busy() { return !!P.tour; },
         begin() { if (!P.on || P.tour) return false; commitFloat(); penEnd(); P.tour = { s0: snapshot(), dirty: P.dirty };
             const pp = P.layers.filter(l => l.type === 'paper'); P.layers = pp; P.cur = pp[0] || null; P.hist = []; P.redo = []; P.sel = null; P.many = []; P.pt = null; P.cbOpen = null; P.sbSel = null; P.sbOpen = null; P.cbPart = 'blocks'; P.cbNode = 'root'; P.cbBox = false; P.cbCode = false; P.sbCode = false;
             setMode('px'); renderAll(); paintLayers(); paintProps(); return true; },
-        end() { const T = P.tour; if (!T) return; commitFloat(); penEnd(); P.tour = null;   // 🎓 따라 보기 결과는 버리고 원래 그림으로 (가져가기 없음 · 도련 11-19)
+        end() { const T = P.tour; if (!T) return; commitFloat(); penEnd(); P.tour = null;   // 🎓 예시 보기 결과는 버리고 원래 그림으로 (가져가기 없음 · 도련 11-19)
             restoreDraft(T.s0, true); P.hist = []; P.redo = []; P.dirty = T.dirty; },
         layerOf: t => { const l = [...P.layers].reverse().find(q => q.type === t); return l ? l.id : null; }
     };
