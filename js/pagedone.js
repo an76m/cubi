@@ -135,8 +135,9 @@
         if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); }
         if (window.ownDropHeld) ownDropHeld([key]);
     }
-    const askDrop = nm => typeof showAsk === 'function'
-        ? showAsk(`🗑 <b>${nm}</b> 페이지에 꾸민 것을 지울까요?<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
+    const pv = (r, sub) => r && r.txt && window.dayPreviewCard ? dayPreviewCard(r.txt, sub) : '';   // 🖼 그 페이지 모습 (도련 11-19 : 뭔지 보고 고르게)
+    const askDrop = (nm, r) => typeof showAsk === 'function'
+        ? showAsk(`🗑 <b>${nm}</b> 페이지에 꾸민 것을 지울까요?${pv(r)}<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
         : Promise.resolve(true);
     async function goDraft(key, r) {                                          // ➡️ 그 권 · 그 페이지 펼치기
         const vol = r && r.vol, ds = r && r.ds;
@@ -159,7 +160,7 @@
             const o = L[0], r = await recOf(o), nm = label(o, r);
             for (;;) {
                 const go = typeof showAsk === 'function'
-                    ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이에요.<br><span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료하거나 지워야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '지우고 여기서 시작')
+                    ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이에요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료하거나 지워야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '지우고 여기서 시작')
                     : true;
                 if (go) {                                                     // 여기 방금 한 것은 없던 일로 (쓴 스티커도 서랍으로)
                     PG.mute = key; drop(key);
@@ -167,7 +168,7 @@
                     await goDraft(o, r);
                     break;
                 }
-                if (await askDrop(nm)) { L.forEach(drop); try { if (typeof saveData === 'function') await saveData(false); } catch (e) {} break; }
+                if (await askDrop(nm, r)) { L.forEach(drop); try { if (typeof saveData === 'function') await saveData(false); } catch (e) {} break; }
             }
         } finally { PG.gating = false; ui(); }
     }
@@ -185,10 +186,10 @@
         const r = L[0], nm = label(r.key, r);
         for (;;) {
             const go = typeof showAsk === 'function'
-                ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.<br><span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})<br>✅ 완료해야 다이어리에 저장돼요</span>`, '이어서 하기', '지우고 새로 하기')
+                ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})<br>✅ 완료해야 다이어리에 저장돼요</span>`, '이어서 하기', '지우고 새로 하기')
                 : true;
             if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
-            if (await askDrop(nm)) { drop(r.key); ui(); return; }
+            if (await askDrop(nm, r)) { drop(r.key); ui(); return; }
         }
     }
 

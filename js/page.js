@@ -564,6 +564,14 @@
             return `<div class="dpv" style="position:relative;width:${W}px;height:${H}px;background:#fffdf8;border:1.5px solid #f1c6d6;border-radius:6px;overflow:hidden;box-sizing:content-box">${side('l')}${side('r')}<i style="position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #f1c6d6"></i>${items}</div>`;
         }
         window.dayPreviewHtml = dayPreviewHtml;
+        /* 🖼 물음 창에 '그게 뭔지' 보여 주기 (도련 11-19 : 임시저장 · 이어서 하기 같은 물음은 글만 보면 뭔지 몰라요) : txt = 하루 장 글 · sub = 아래 작은 글 · 못 그리면 '' */
+        function dayPreviewCard(txt, sub, w) {
+            let d = null; try { d = typeof txt === 'string' ? JSON.parse(txt) : txt; } catch (e) { return ''; }
+            if (!d || typeof d !== 'object') return '';
+            const W = w || Math.max(160, Math.min(280, (window.innerWidth || 360) - 90)), n = Array.isArray(d.i) ? d.i.length : 0;
+            return `<div class="dpv-card" style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 4px">${dayPreviewHtml(d, W)}<span style="font-size:11px;color:#777">${sub ? sub + ' · ' : ''}붙인 것 ${n}개</span></div>`;
+        }
+        window.dayPreviewCard = dayPreviewCard;
         function convertGeometry(g, fromPage, toPage) {
             const a = canvasOfPage(fromPage.w, fromPage.h), b = canvasOfPage(toPage.w, toPage.h);
             if (a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) return g;
