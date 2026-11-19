@@ -110,7 +110,7 @@
 ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" title="속지 규격 (다이어리 규격 중에서)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button><button type="button" class="pp-specb pp-two" data-q="two" title="📄 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로)"></button>' : ''}${P.kind === 'paper' ? '<button type="button" class="pp-specb" data-q="seal" title="모조지 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 모조지를 다이어리 옆에 실제 크기 비율로 놓아 봐요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 씰 스티커를 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'piece' ? '<button type="button" class="pp-specb" data-q="seal" title="조각 판 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 조각을 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
         x.addEventListener('click', e => { if (e.target.closest('[data-tour]')) { if (window.padTour) padTour.open(); return; } const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq && qq.dataset.q === 'seal') { paperPop(); return; } if (qq && qq.dataset.q === 'two') { twoFlip(); return; } if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : P.kind === 'seal' || P.kind === 'piece' || P.kind === 'paper' ? sealPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
-        o.L.innerHTML = `<h4 id="ppSrcT">📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button>${P.kind === 'seal' || P.kind === 'piece' || P.kind === 'paper' ? '<button type="button" data-a="mine">🏷️ 내가 만든 스티커</button>' : ''}</div>
+        o.L.innerHTML = `<h4 id="ppSrcT">📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button></div>
             <h4 id="ppToolT"></h4><div class="pp-tools" id="ppTools"></div><div id="ppOpt"></div>
             <h4 id="ppColT">🎨 색</h4><div class="pp-col"><canvas id="ppSv" width="172" height="172"></canvas><div><canvas id="ppHue" width="300" height="24"></canvas><div class="pp-sw" id="ppSw"></div></div></div>
             <div class="pp-cur"><span id="ppNow"></span>지금 색 · 최근 <span id="ppRec"></span></div>
@@ -125,7 +125,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
             <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
             <p class="pp-hint pp-endt">💾 임시저장은 작업 중인 이 기기에만 임시로 저장돼요<br>📐 완료된 도안은 🖨 프린터에서 스티커로 뽑아요</p>`;   // 도련 11-15 : 버튼 밑 두 줄
-        o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); if (a.dataset.a === 'mine') minePop(); } };
+        o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); } };
         if (P.kind === 'piece') { $('ppPcAdd').onclick = pcAdd; $('ppPcs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; P.pcs.splice(+b.dataset.i, 1); P.dirty = true; pcPaint(); }; pcPaint(); }
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
         $('ppTools').onclick = e => { const se = e.target.closest('[data-sbel]'); if (se) { sbAddEl(se.dataset.sbel); return; } const sb = e.target.closest('[data-sbb]'); if (sb) { sbAddB(sb.dataset.sbb); return; } const c = e.target.closest('[data-cb]'); if (c) { cbAdd(c.dataset.cb); return; } const b = e.target.closest('[data-t]'); if (b) setTool(b.dataset.t); };
@@ -1405,22 +1405,6 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             if (has && window.showAsk && !(await showAsk(`📐 ${LF ? '속지' : C.nm}를 <b>${esc(what)}</b>${LF ? ' 규격' : ''}으로 바꿀까요?<br><span style="font-size:12px;color:#777;">그린 것은 왼쪽 위 기준 그대로 남아요 · ${W2 < P.W || H2 < P.H ? '작아지는 쪽은 <b>잘려요</b>' : '늘어난 곳은 빈 종이예요'}<br>되돌리기 기록은 비워져요</span>`, '바꾸기', '그대로'))) { if (P.kind === 'seal') P.shm = now[1]; return; }
             resizePaper(W2, H2, spec); pop.remove(); say(`📐 ${what} ${LF ? '속지' : C.nm}예요`, 1800);
         };
-    }
-    /* 🏷️ 내가 만든 스티커 (📸 포토부스 · 📷 디카 · 🔤 라벨 기계 = 서랍의 내가 만든 씰) → 그림 레이어로 */
-    async function minePop() {
-        let pop = $('ppMinePop'); if (pop) { pop.remove(); return; }
-        pop = document.createElement('div'); pop.id = 'ppMinePop'; pop.className = 'pp-pop pp-minepop';
-        pop.innerHTML = `<div class="pp-pop-h"><b>🏷️ 내가 만든 스티커</b><button type="button" class="win-x" aria-label="닫기">✕</button></div><div class="pp-mine" id="ppMineG"><p class="pp-hint">꺼내는 중…</p></div>`;
-        document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
-        let out = [];
-        try {
-            const L = ((window.ownList ? await ownList(false, 'seal') : []) || []).filter(e => e.k === 'seal' && e.from === 'mine' && !(e.x && e.x.dz)).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 24);
-            for (const e of L) { const r = window.ownSheetImgs ? await ownSheetImgs(e.id) : null; if (r) r.imgs.forEach(u => { if (u) out.push(u); }); if (out.length >= 80) break; }
-        } catch (e) { console.warn('🏷️ 내가 만든 스티커', e); }
-        const g = $('ppMineG'); if (!g) return;
-        g.innerHTML = out.length ? out.map((u, i) => `<button type="button" data-i="${i}"><img src="${esc(u)}" alt="" draggable="false"></button>`).join('')
-            : '<p class="pp-hint">아직 내가 만든 스티커가 없어요.<br>책상의 📸 포토부스 · 📷 디카 · 🔤 라벨 기계로 만들어 보세요.</p>';
-        g.onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; addImgSrc(out[+b.dataset.i], '내 스티커'); pop.remove(); };
     }
     function addImgSrc(src, name) {
         const im = new Image();
