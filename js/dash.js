@@ -186,7 +186,7 @@
         const st = DOC.createElement('style'); st.textContent = css + (DOC !== document ? POP_CSS : ''); DOC.head.appendChild(st);
         p = DOC.createElement('div'); p.id = 'dashP';
         p.innerHTML = `<div class="dh"><b>📊 백엔드 상황판</b>${TABS.map(([k, n]) => `<button data-t="${k}">${n}</button>`).join('')}<button data-a="copy">📋 복사</button><button data-a="x">✕</button></div><div class="db"></div>`;
-        p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.t) { D.tab = b.dataset.t; paint(true); } else if (b.dataset.a === 'x') dashToggle(false); else if (b.dataset.a === 'copy') copy(b); else if (b.dataset.a === 'reset') { if (confirm('날마다 기록을 지울까요?')) { days = {}; localStorage.removeItem(DAYS_KEY); paint(true); } } });
+        p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.t) { D.tab = b.dataset.t; paint(true); } else if (b.dataset.a === 'x') dashToggle(false); else if (b.dataset.a === 'copy') copy(b); else if (b.dataset.a === 'bclear') { if (window.clearBrowserStore) { try { window.focus(); } catch (x) { } clearBrowserStore(); } } else if (b.dataset.a === 'reset') { if (confirm('날마다 기록을 지울까요?')) { days = {}; localStorage.removeItem(DAYS_KEY); paint(true); } } });
         p.addEventListener('input', e => { const i = e.target; if (i.dataset.c) { calc[i.dataset.c] = +i.value || 0; try { localStorage.setItem(CALC_KEY, JSON.stringify(calc)); } catch (x) { } paintSoon(); } else if (i.dataset.f != null) { D.filt = i.value; paintSoon(); } });
         p.addEventListener('keydown', e => { if (e.key === 'F2' || e.key === 'Escape') { e.preventDefault(); dashToggle(false); } e.stopPropagation(); });   // 상황판 안에서 누른 키는 앱으로 안 가요 (F2 · Esc = 닫기)
         if (DOC === document) drag(p);
@@ -308,7 +308,7 @@ ${mine ? `<h4>📦 내 실물 (js/mine.js)</h4>${table(['묶음', '상품', '기
     async function storePaint(box) {
         const s = await browserStore(); if (!D.on || D.tab !== 'store') return;
         const det = (title, body) => `<details><summary>${title}</summary>${body}</details>`;
-        box.innerHTML = `${s.est ? `<p>브라우저가 이 사이트에 쓴 양 <b>${kb(s.est.usage || 0)}</b> <span class="tip">/ 쓸 수 있는 양 ${kb(s.est.quota || 0)}</span></p>` : ''}
+        box.innerHTML = `<p><button data-a="bclear">🧹 브라우저 지우기 목록 (자세히 · 앱 창에서 열려요)</button> <span class="tip">설정에서 옮겨 왔어요 (11-19 · 사용자는 ⚙ 설정 🔄 앱 새로 받기 · 🚪 로그아웃 때 지우기만)</span></p>${s.est ? `<p>브라우저가 이 사이트에 쓴 양 <b>${kb(s.est.usage || 0)}</b> <span class="tip">/ 쓸 수 있는 양 ${kb(s.est.quota || 0)}</span></p>` : ''}
 <h4>🗂 localStorage (${s.ls.length}개 · ${kb(sum(s.ls, x => x.b))} · 모든 탭 · 앱을 지워도 남아요)</h4>${table(['이름', '크기'], s.ls.map(x => [`<code>${esc(x.k)}</code>`, kb(x.b)]))}
 ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>${table(['이름', '크기'], s.ss.map(x => [`<code>${esc(x.k)}</code>`, kb(x.b)]))}` : ''}
 <h4>🗄 IndexedDB (${s.idb.length}개 데이터베이스)</h4>${s.idb.map(d => det(`<b>${esc(d.name)}</b> <span class="tip">${d.stores.map(x => x.s + ' ' + x.cnt + '개').join(' · ') || '(못 열어요)'}</span>`, d.stores.map(x => `<h4>${esc(x.s)} (${x.cnt}개${x.cnt > x.keys.length ? ' · 앞 ' + x.keys.length + '개만' : ''})</h4>${table(['이름 (키)'], x.keys.map(k => [`<code>${esc(k)}</code>`]))}`).join(''))).join('') || '<p class="tip">없어요</p>'}

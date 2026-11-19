@@ -1628,9 +1628,12 @@
         }
 
         async function driveLogout() {
-            const yes = await showMsg('로그아웃할까요?<br><span style="font-size:12px;color:#777;">구글 드라이브에 저장된 일기는 그대로 남아 있어요.</span>', true);
+            window.__loClear = false;                                          // 🧹 이 기기 기록도 지우기 (도련 11-19 · 1318 · 공용 기기 · 고르면 js/settings.js logoutClear)
+            const yes = await showMsg('로그아웃할까요?<br><span style="font-size:12px;color:#777;">구글 드라이브에 저장된 일기는 그대로 남아 있어요.</span>'
+                + (window.logoutClear ? '<label style="display:flex;gap:6px;align-items:center;justify-content:center;margin-top:10px;font-size:13px;cursor:pointer"><input type="checkbox" id="loClearChk" onchange="window.__loClear = this.checked"> 이 기기에 남은 내 기록도 지우기</label><span style="display:block;font-size:11px;color:#999;margin-top:2px">같이 쓰는 기기라면 골라 주세요 (읽어 둔 스티커 · 화면 기억 · 로그인 기억)</span>' : ''), true);
             if (!yes) return;
             if (drive.ready && drive.dirty) await flushUpload();
+            if (window.__loClear && window.logoutClear) { try { await logoutClear(); } catch (e) { console.warn('🧹 로그아웃 지우기', e); } }
             try { localStorage.removeItem(AUTH_FLAG_KEY); } catch (e) {}
             location.reload();
         }

@@ -416,25 +416,8 @@
             el.querySelector('.bc-pn').textContent = n ? `${Math.min(i + 1, n)} / ${n} 단계` : '';
         }
         function bcProgOff() { if (BCP.el) { BCP.el.remove(); BCP.el = null; } removeEventListener('beforeunload', BCP.leave); }
-        async function clearBrowserStore() {
-            bcProg('🧹 살펴보는 중', '이 브라우저에 남은 것을 세고 있어요');
-            let G; try { G = await bcScan(); } finally { bcProgOff(); }
-            const kinds = BC_KINDS.filter(k => G[k.id] && G[k.id].n);
-            if (!kinds.length) { showMsg('🧹 이 기기 브라우저에 지울 것이 없어요.'); return; }
-            Object.keys(BC_SEL).forEach(k => delete BC_SEL[k]);
-            const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : n >= 1024 ? Math.round(n / 1024) + 'KB' : '';
-            const row = k => { BC_SEL[k.id] = !!k.on; const g = G[k.id], sz = kb(g.sz); return `<div class="bc-row${k.on ? ' on' : ''}${k.warn ? ' warn' : ''}" data-k="${k.id}" role="checkbox" aria-checked="${k.on ? 'true' : 'false'}" tabindex="0" onclick="bcToggle(this)"><i class="bc-box"></i><span class="bc-ic">${k.ic}</span><span class="bc-t"><b>${k.t}</b> <small>${g.n}개${sz ? ' · ' + sz : ''}</small>${k.s ? `<em>${k.s}</em>` : ''}</span></div>`; };
-            const safe = kinds.filter(k => !k.warn), warn = kinds.filter(k => k.warn);
-            const ok = await showAsk(`🧹 <b>이 기기 브라우저에 남은 것</b><br><small style="color:#888">지울 것을 골라 주세요 · ☁ 구글 드라이브의 파일은 그대로예요</small>
-                <div class="bc-list">${safe.map(row).join('')}${warn.length ? `<div class="bc-sep">⚠ 지우면 되살릴 수 없어요</div>${warn.map(row).join('')}` : ''}</div>`, '고른 것 지우기', '취소');
-            if (!ok) return;
-            const sel = kinds.filter(k => BC_SEL[k.id]);
-            if (!sel.length) { showMsg('고른 것이 없어서 지우지 않았어요.'); return; }
-            const S = id => !!BC_SEL[id] && !!(G[id] && G[id].n);
-            try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') { bcProg('☁ 드라이브에 먼저 올리는 중', '바뀐 내용을 잃지 않게 올리고 지워요 (최대 15초)'); await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } } catch (e) {} finally { bcProgOff(); }
-            const bad = sel.filter(k => k.warn);
-            if (bad.length && !await showAsk(`⚠ 아래 것은 지우면 <b>되살릴 수 없어요</b>.<br><br>${bad.map(k => k.ic + ' ' + k.t).join('<br>')}<br><br>그래도 지울까요?`, '지우기', '취소')) return;
-            if (!S('pend') && typeof drive !== 'undefined' && drive.dirty && !await showMsg('⚠ 아직 드라이브에 올리지 못한 것이 있어요.<br>새로고침하면 다음에 다시 올려요. 계속할까요?', true)) return;
+        /* 고른 칸 지우기 (지우기 목록 · 🔄 앱 새로 받기 · 🚪 로그아웃 때 같이 씀) : S(id) = 그 칸을 지울지 */
+        async function bcRunSel(G, S, title) {
             const delDb = n => bcWait(new Promise(r => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }), 3000);
             const clr = (db, sts) => Promise.all(sts.map(st => bcTx(db, st, 'readwrite', o => o.clear())));
             const T = [];                                                         // [보여 줄 글, 할 일] 차례로
@@ -455,13 +438,66 @@
                 try { if (navigator.serviceWorker) { const R = await bcWait(navigator.serviceWorker.getRegistrations(), 2000); if (Array.isArray(R)) await Promise.all(R.map(r => bcWait(r.unregister()))); } } catch (e) {}
             }]);
             if (S('etc')) T.push(['🧪 그 밖의 브라우저 파일 지우는 중', async () => { try { if (navigator.storage && navigator.storage.getDirectory) { const R = await navigator.storage.getDirectory(); for await (const [n] of R.entries()) await bcWait(R.removeEntry(n, { recursive: true })); } } catch (e) {} }]);
-            for (let i = 0; i < T.length; i++) { bcProg('🧹 지우는 중', T[i][0], i, T.length); try { await T[i][1](); } catch (e) {} await new Promise(r => setTimeout(r, 120)); }   // 너무 빨라도 무엇을 했는지 보이게 잠깐
-            bcProg('✅ 다 지웠어요', '앱을 새로 여는 중이에요', T.length, T.length);
+            for (let i = 0; i < T.length; i++) { bcProg(title, T[i][0], i, T.length); try { await T[i][1](); } catch (e) {} await new Promise(r => setTimeout(r, 120)); }   // 너무 빨라도 무엇을 했는지 보이게 잠깐
+        }
+        async function bcFlush() {                                                // ☁ 지우기 전에 못 올린 것 먼저 (최대 15초)
+            try { if (typeof drive !== 'undefined' && drive.ready && !drive.guest && drive.dirty && typeof flushUpload === 'function') { bcProg('☁ 드라이브에 먼저 올리는 중', '바뀐 내용을 잃지 않게 올리고 지워요 (최대 15초)'); await Promise.race([flushUpload(), new Promise(r => setTimeout(r, 15000))]); } } catch (e) {} finally { bcProgOff(); }
+        }
+        /* 🔄 앱 새로 받기 (도련 11-19 · 1318 · 사용자용은 이것 하나 · 자세한 지우기 목록은 F2 📊 상황판 → 브라우저 저장)
+           코드가 꼬였을 때 : 📦 앱 코드 보관함 · 업데이트 장치 + 🖼 읽어 둔 스티커 · 목록 · 드라이브 읽기 기억만 지우고 새로 열어요
+           ⚠ 못 올린 것 · 완료 전 임시저장 · 로그인 없이 쓴 일기 · 로그인 · 화면 기억은 그대로 */
+        async function appRefresh() {
+            if (!await showAsk('🔄 <b>앱 새로 받기</b><br><small style="color:#777">업데이트가 안 보이거나 화면이 이상할 때 눌러요.<br>이 기기에 받아 둔 앱 코드 · 읽어 둔 스티커를 지우고 새로 받아요.<br>일기 · 작업 · 로그인은 그대로예요 (처음 한 번은 조금 느리게 열려요).</small>', '새로 받기', '취소')) return;
+            await bcFlush();
+            bcProg('🔄 살펴보는 중', '받아 둔 것을 찾고 있어요');
+            let G; try { G = await bcScan(); } finally { bcProgOff(); }
+            const S = id => (id === 'app' || id === 'cache') && !!(G[id] && G[id].n);
+            await bcRunSel(G, S, '🔄 앱 새로 받는 중');
+            bcProg('✅ 다 지웠어요', '앱을 새로 받아 여는 중이에요', 1, 1);
+            await new Promise(r => setTimeout(r, 600));
+            removeEventListener('beforeunload', BCP.leave);
+            location.reload();
+        }
+        /* 🚪 로그아웃 때 '이 기기에 남은 내 기록도 지우기' (도련 11-19 · 1318 · js/drive.js driveLogout 이 불러요)
+           지워요 : 읽어 둔 스티커 · 목록 · 이 기기 화면 기억 · 문제 기록 · 로그인 기억 / 남겨요 : 앱 코드 (내 기록이 아니에요) · 못 올린 것 · 로그인 없이 쓴 일기 · 게스트
+           📝 완료 전 임시저장 (이 기기에만 있어요) 이 있으면 한 번 더 물어요 → 지우기 / 남기기 */
+        async function logoutClear() {
+            await bcFlush();
+            bcProg('🚪 살펴보는 중', '이 기기에 남은 것을 세고 있어요');
+            let G; try { G = await bcScan(); } finally { bcProgOff(); }
+            let draft = false;
+            if (G.draft && G.draft.n) draft = await showAsk(`📝 <b>완료 전 작업이 ${G.draft.n}개 있어요</b><br><small style="color:#777">그리던 도안 · 완료 전 페이지는 이 기기에만 있어요.<br>지우면 되살릴 수 없어요.</small>`, '같이 지우기', '남겨 두기');
+            const K = ['cache', 'pref', 'diag', 'login'].concat(draft ? ['draft'] : []);
+            const S = id => K.includes(id) && !!(G[id] && G[id].n);
+            await bcRunSel(G, S, '🚪 이 기기 기록 지우는 중');
+            bcProgOff();
+        }
+        async function clearBrowserStore() {
+            bcProg('🧹 살펴보는 중', '이 브라우저에 남은 것을 세고 있어요');
+            let G; try { G = await bcScan(); } finally { bcProgOff(); }
+            const kinds = BC_KINDS.filter(k => G[k.id] && G[k.id].n);
+            if (!kinds.length) { showMsg('🧹 이 기기 브라우저에 지울 것이 없어요.'); return; }
+            Object.keys(BC_SEL).forEach(k => delete BC_SEL[k]);
+            const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : n >= 1024 ? Math.round(n / 1024) + 'KB' : '';
+            const row = k => { BC_SEL[k.id] = !!k.on; const g = G[k.id], sz = kb(g.sz); return `<div class="bc-row${k.on ? ' on' : ''}${k.warn ? ' warn' : ''}" data-k="${k.id}" role="checkbox" aria-checked="${k.on ? 'true' : 'false'}" tabindex="0" onclick="bcToggle(this)"><i class="bc-box"></i><span class="bc-ic">${k.ic}</span><span class="bc-t"><b>${k.t}</b> <small>${g.n}개${sz ? ' · ' + sz : ''}</small>${k.s ? `<em>${k.s}</em>` : ''}</span></div>`; };
+            const safe = kinds.filter(k => !k.warn), warn = kinds.filter(k => k.warn);
+            const ok = await showAsk(`🧹 <b>이 기기 브라우저에 남은 것</b><br><small style="color:#888">지울 것을 골라 주세요 · ☁ 구글 드라이브의 파일은 그대로예요</small>
+                <div class="bc-list">${safe.map(row).join('')}${warn.length ? `<div class="bc-sep">⚠ 지우면 되살릴 수 없어요</div>${warn.map(row).join('')}` : ''}</div>`, '고른 것 지우기', '취소');
+            if (!ok) return;
+            const sel = kinds.filter(k => BC_SEL[k.id]);
+            if (!sel.length) { showMsg('고른 것이 없어서 지우지 않았어요.'); return; }
+            const S = id => !!BC_SEL[id] && !!(G[id] && G[id].n);
+            await bcFlush();
+            const bad = sel.filter(k => k.warn);
+            if (bad.length && !await showAsk(`⚠ 아래 것은 지우면 <b>되살릴 수 없어요</b>.<br><br>${bad.map(k => k.ic + ' ' + k.t).join('<br>')}<br><br>그래도 지울까요?`, '지우기', '취소')) return;
+            if (!S('pend') && typeof drive !== 'undefined' && drive.dirty && !await showMsg('⚠ 아직 드라이브에 올리지 못한 것이 있어요.<br>새로고침하면 다음에 다시 올려요. 계속할까요?', true)) return;
+            await bcRunSel(G, S, '🧹 지우는 중');
+            bcProg('✅ 다 지웠어요', '앱을 새로 여는 중이에요', 1, 1);
             await new Promise(r => setTimeout(r, 700));
             removeEventListener('beforeunload', BCP.leave);                      // 새로 열 때는 묻지 않아요
             location.reload();
         }
-        window.clearBrowserStore = clearBrowserStore;
+        window.clearBrowserStore = clearBrowserStore; window.appRefresh = appRefresh; window.logoutClear = logoutClear;   // 🧹 자세한 목록 = F2 📊 상황판 (js/dash.js) 에서만
         /* 🧾 문제 기록 보기 = 📊 백엔드 상황판 (F2) 🧾 기록 탭으로 옮겼어요 (도련 11-19 · 1316 "사용자가 볼 필요 없잖아" · js/dash.js) */
 
 
