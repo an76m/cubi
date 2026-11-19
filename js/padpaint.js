@@ -213,7 +213,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     function colorWire() {
         const sv = $('ppSv'), hue = $('ppHue');
         const hx = hue.getContext('2d'), g = hx.createLinearGradient(0, 0, 300, 0); [0, 60, 120, 180, 240, 300, 360].forEach((d, i) => g.addColorStop(i / 6, `hsl(${d},100%,50%)`)); hx.fillStyle = g; hx.fillRect(0, 0, 300, 24);
-        const drag = (el, f) => el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); const mv = ev => { const r = el.getBoundingClientRect(); f(Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height))); }; mv(e); el.onpointermove = mv; el.onpointerup = () => { el.onpointermove = null; pushRecent(); }; });
+        const drag = (el, f) => el.addEventListener('pointerdown', e => { try { el.setPointerCapture(e.pointerId); } catch (er) {} const mv = ev => { const r = el.getBoundingClientRect(); f(Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height))); }; mv(e); el.onpointermove = mv; el.onpointerup = () => { el.onpointermove = null; pushRecent(); }; });
         drag(sv, (x, y) => { P.hsv[1] = x; P.hsv[2] = 1 - y; setColor(rgbHex(...hsvRgb(...P.hsv)), true); });
         drag(hue, x => { P.hsv[0] = x * 359.9; setColor(rgbHex(...hsvRgb(...P.hsv)), true); });
         $('ppSw').innerHTML = SW.map(c => `<i style="background:${c}" data-c="${c}"></i>`).join('');

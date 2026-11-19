@@ -3,7 +3,7 @@
    - 🧩 CSS · 🌀 SVG · 🔗 섞기 × 초급 · 중급 · 고급 (예시 = 공식 기능을 이렇게 쓴다는 순서 · 기능 목록에는 안 섞여요)
    - 연습 종이 (js/padpaint.js ppTourHook) : 지금 그림은 보관 → 빈 종이에서 만들고 → 끝나면 늘 원래 그림으로 (결과는 가져가지 않아요 · 도련 11-19)
    - 조절 : ⏸ 멈춤 · ▶ 이어서 · ⏭ 다음 한 걸음 · ↺ 처음부터 · 🐢 🐇 빠르기 · ✋ 따라 하기 (반짝이는 곳을 내가 눌러요)
-   - 걸음 = { c: 누를 곳 } · { v: 칸, val: 값 } · { pick: 고르는 칸, opt: 글자 } · { drag: [[가로, 세로] 비율 …] } · { say: 말풍선 }
+   - 걸음 = { c: 누를 곳 } · { v: 칸, val: 값 } · { pick: 고르는 칸, opt: 글자 } · { drag: [[가로, 세로] 비율 …] 또는 함수 } · { tap: 칸, at: [가로, 세로] 비율 = 색 띠 · 밝기 판 } · { say: 말풍선 }
      누를 곳 · 칸 = css 선택자 (그때그때 찾아요 · 오른쪽 칸은 다시 그려지니까) 또는 함수
    ⚠ 그림판 메뉴 (data-m · data-cb · data-sbel · data-sbb · data-cf) 를 바꾸면 여기도 · tests/t_padtour.py 가 예시마다 끝까지 돌려 봐요 */
 (function () {
@@ -30,7 +30,6 @@
     const R = Math.round, HT = (cx, cy, k) => `M ${R(cx)} ${R(cy + k * 1.25)} C ${R(cx - k * 1.6)} ${R(cy + k * .4)} ${R(cx - k * .9)} ${R(cy - k * .6)} ${R(cx)} ${R(cy + k * .15)} C ${R(cx + k * .9)} ${R(cy - k * .6)} ${R(cx + k * 1.6)} ${R(cy + k * .4)} ${R(cx)} ${R(cy + k * 1.25)} Z`;
     const ST = (cx, cy, Ro) => { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? Ro * .45 : Ro; p.push(`${R(cx + Math.cos(a) * q)} ${R(cy + Math.sin(a) * q)}`); } return 'M ' + p.join(' L ') + ' Z'; };
     const CIR = (cx, cy, r) => `M ${R(cx - r)} ${R(cy)} A ${R(r)} ${R(r)} 0 1 1 ${R(cx + r)} ${R(cy)} A ${R(r)} ${R(r)} 0 1 1 ${R(cx - r)} ${R(cy)}`;
-    const FLAME = () => { const w = W(), h = H(), cx = X(.5), b = Y(.7), k = D(.16); return `M ${R(cx)} ${R(b)} C ${R(cx - k * 1.6)} ${R(b)} ${R(cx - k * 1.7)} ${R(b - k * 1.6)} ${R(cx - k * .9)} ${R(b - k * 2.6)} C ${R(cx - k * .5)} ${R(b - k * 3.2)} ${R(cx - k * .2)} ${R(b - k * 3.6)} ${R(cx)} ${R(b - k * 4.4)} C ${R(cx + k * .6)} ${R(b - k * 3.4)} ${R(cx + k * 1.8)} ${R(b - k * 2.4)} ${R(cx + k * 1.5)} ${R(b - k * 1.1)} C ${R(cx + k * 1.3)} ${R(b - k * .2)} ${R(cx + k * .7)} ${R(b)} ${R(cx)} ${R(b)} Z`; };
     const TAB = { c: '#ppRTab [data-rt="bk"]', say: '오른쪽 🧩 기능 탭을 열어요' }, FOLD = { c: '#ppProp summary[data-cbfold]', say: '📐 상자 자리 · 글자를 펼쳐요' };
     const BOX = (k, v) => ({ v: `#ppProp input[data-cbx="${k}"]`, val: () => Math.round(BOXF[k](typeof v === 'function' ? v() : v)), say: { x: '상자 가로 자리', y: '상자 세로 자리', w: '상자 폭', h: '상자 높이' }[k] });
     const BOXR = (k, v) => ({ v: `#ppProp input[data-cbx="${k}"]`, val: v, say: { x: '상자 가로 자리', y: '상자 세로 자리', w: '상자 폭', h: '상자 높이' }[k] });   // 종이 그대로 (가득 채우기)
@@ -51,6 +50,20 @@
         { v: CF('v.ang'), val: 0, say: '가로 줄무늬로' },
         ...STOP(CF, 0, '#ff8fb1', null, 55), ...STOP(CF, 1, '#ff8fb1', null, 55), ...STOP(CF, 2, '#ffffff', null, 0), ...STOP(CF, 3, '#ffffff', null, 0),
         CDUP, { v: CF('v.ang'), val: 90, say: '하나는 세로로 = 겹친 곳이 진해져서 깅엄!' }];
+
+    /* 🐾 동물 예시 (도련 11-19) : 시안 300 × 300 칸 좌표 → 종이 px (가운데 = 속지 50% · 40% · 300칸 = 속지 폭의 60%) */
+    const U = () => D(.002), MX = x => X(.5) + (x - 150) * U(), MY = y => Y(.4) + (y - 150) * U(), MF = (x, y) => [MX(x) / W(), MY(y) / H()];
+    const ELL = (x0, y0, x1, y1, say) => [{ c: PT('ellipse'), say: '' }, { drag: () => [MF(x0, y0), MF(x1, y1)], say }];   // ◯ 끌어서 동그라미 (하나 그리면 ↖️ 선택으로 바뀌어서 또 골라요)
+    const TAPV = (x, y, say) => ({ drag: () => [MF(x, y), MF(x, y)], say });                         // 🪣 그 모양 누르기
+    const SWC = (c, say) => ({ c: `#ppSw [data-c="${c}"]`, say });                                  // 🎨 색 칸
+    const COL = (h, sa, va, say) => [{ tap: '#ppHue', at: [h / 360, .5], say: '' }, { tap: '#ppSv', at: [sa, 1 - va], say }];   // 🎨 색 고르기 (색상 띠 → 밝기 판)
+    const VSW = { v: '#ppOpt input[data-k="vsw"]', val: () => Math.max(1, R(5 * U())), say: '선 굵기' };
+    const PCT = v => R(v / 3 * 10) / 10;                                                            // 시안 칸 → 상자 안 %
+    const KID = (nm, col, x, y, w, h, rd, say) => [ROOT, TIN, NM(nm), { c: CNM('바탕색'), say: say || '' }, { v: CF('v.c.c'), val: col, say: '' },
+        { c: CNM('폭'), say: '' }, { v: CF('v.v.n'), val: PCT(w), say: '' }, { c: CNM('높이'), say: '' }, { v: CF('v.v.n'), val: PCT(h), say: '' },
+        ...(rd ? [{ c: CBT('border-radius'), say: '' }, { pick: CF('v.r.u', 'select'), opt: '%', say: '' }, { v: CF('v.r.n'), val: rd, say: '' }] : []),
+        { c: CBT('position'), say: '📍 직접 자리' }, { c: CBT('left'), say: '' }, { v: CF('v.v.n'), val: PCT(x), say: '' }, { c: CBT('top'), say: '' }, { v: CF('v.v.n'), val: PCT(y), say: '' }];
+    const TW = (nm, x) => [TSIB, NM(nm), { c: CNM('왼쪽에서'), say: '같은 것 하나 더 · 옆으로' }, { v: CF('v.v.n'), val: PCT(x), say: '' }];
 
     /* ---------- ✨ 예시 (가만히 · 서비스용) ---------- */
     const TOUR = [
@@ -268,24 +281,48 @@
             { c: SBB('animateTransform'), say: '🔄 종이 가운데를 돌아요' }, { v: SK('v.from'), val: () => `0 ${R(X(.5))} ${R(Y(.4))}`, say: '' }, { v: SK('v.to'), val: () => `360 ${R(X(.5))} ${R(Y(.4))}`, say: '' }, { v: SK('v.dur'), val: 9, say: '' },
             ...[1, 2, 3, 4, 5].flatMap(i => [{ c: SBE('use'), say: i === 1 ? '🪞 복사해 찍기' : '' }, { v: SF('v.x'), val: 0, say: '' }, { c: SBB('rotate'), say: i === 1 ? '🔄 60° 돌려 놓기' : '' }, { v: SK('v.a'), val: 60, say: '' }, { v: SK('v.cy'), val: () => Y(.4), say: '' }]),
             { c: SBE('circle'), say: '⚪ 꽃 가운데' }, { v: SF('v.cy'), val: () => Y(.4), say: '' }, { v: SF('v.r'), val: () => D(.06), say: '' }, { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ffd23f', say: '완성!' }] },
-        { m: 'a', g: 'svg', lv: 3, e: '🌊', k: 'wave', n: '일렁이는 물결', d: '묶기 (g) + 필터 움직이기', s: [
-            { c: M('svg'), say: '🌀 SVG 로 가요' },
-            { c: SBE('rect'), say: '⬛' }, { v: SF('v.x'), val: () => X(.17), say: '' }, { v: SF('v.y'), val: () => Y(.3), say: '' }, { v: SF('v.width'), val: () => D(.66), say: '' }, { v: SF('v.height'), val: () => DH(.28), say: '' }, { v: SF('v.rx'), val: Z(60), say: '' }, { v: SF('v.ry'), val: Z(60), say: '' },
-            { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#7cc8ff', say: '' },
-            { c: SBE('text'), say: '🔤 글자' }, { v: SF('v.t', 'textarea'), val: '말랑', say: '' }, { v: SF('v.y'), val: () => Y(.44), say: '' },
-            { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ffffff', say: '' }, { c: SBB('font-size'), say: '' }, { v: SK('v.v'), val: () => D(1 / 5), say: '' }, { c: SBB('dominant-baseline'), say: '' },
-            { c: SBE('g'), say: '📦 묶기 = 네모 + 글자를 한 덩어리로' },
-            { c: SBB('feTurbulence'), say: '🪄 노이즈' }, { pick: SK('v.ty', 'select'), opt: 'fractalNoise', say: '부드러운 구름 노이즈' }, { v: SK('v.bf'), val: ZF(.02), say: '' },
-            { c: SBB('feDisplacementMap'), say: '🪄 일렁이기 (묶음 전체)' }, { v: SK('v.sc'), val: Z(30), say: '' },
-            { c: SBB('animate-filter'), say: '🌊 필터 움직이기 = 물결!' }] },
-        { m: 'a', g: 'svg', lv: 3, e: '🕯️', k: 'candle', n: '일렁이는 촛불', d: '그라데이션 불꽃 + 필터 움직이기', s: [
-            { c: M('svg'), say: '🌀 SVG 로 가요' },
-            { c: SBE('path'), say: '✒️ 불꽃 모양' }, { v: SF('v.d'), val: FLAME, say: '' },
-            { c: SBB('linearGradient'), say: '🌈' }, { v: SK('v.x2'), val: 0, say: '' }, { v: SK('v.y1'), val: 100, say: '아래에서 위로' }, { v: SK('v.y2'), val: 0, say: '' },
-            ADDST(1), ...STOP(SK, 0, '#ff6a00', 0), ...STOP(SK, 1, '#ffb000', 60), ...STOP(SK, 2, '#fff2a8', 100),
-            { c: SBB('feTurbulence'), say: '🪄 노이즈' }, { pick: SK('v.ty', 'select'), opt: 'fractalNoise', say: '' }, { v: SK('v.bf'), val: ZF(.03), say: '' },
-            { c: SBB('feDisplacementMap'), say: '🪄 일렁이기' }, { v: SK('v.sc'), val: Z(45), say: '' },
-            { c: SBB('animate-filter'), say: '🌊 필터 움직이기' }, { pick: SK('v.at', 'select'), opt: 'seed', say: '노이즈 모양을 계속 바꿔요' }, { v: SK('v.vals'), val: '1;2;3;4;5;6;7;8', say: '' }, { v: SK('v.dur'), val: 1, say: '촛불 완성!' }] }
+        /* ---------- 🐾 동물 캐릭터 (도련 11-19 · 시안 예시보기_동물스티커_시안.html) : 시안 300 × 300 칸 → 지금 종이 (MX · MY · U) ---------- */
+        { m: 'a', g: 'mix', lv: 2, e: '🐻', k: 'bear', n: '코코아 곰돌이', d: '✒️ 벡터 몸 + 🧩 CSS 얼굴 · 머그 · 김', s: [
+            { c: M('vec'), say: '✒️ 벡터로 몸부터 그려요' }, SWC('#3d2b33', '진한 갈색 = 선'), VSW,
+            ...ELL(74, 86, 118, 130, '귀 하나'), ...ELL(182, 86, 226, 130, '귀 둘'), ...ELL(98, 214, 202, 286, '몸'), ...ELL(68, 90, 232, 226, '머리 (귀 위로)'),
+            ...ELL(114, 158, 186, 206, '주둥이'), ...ELL(122, 238, 178, 278, '배'),
+            ...COL(28, .45, .85, '🎨 곰 갈색'), { c: PT('paint'), say: '🪣 칠하기' },
+            TAPV(90, 100, '귀'), TAPV(210, 100, ''), TAPV(108, 252, '몸'), TAPV(205, 135, '머리'),
+            SWC('#ffe7a3', '밝은 크림색'), TAPV(150, 182, '주둥이'), TAPV(150, 258, '배'),
+            { c: M('css'), say: '🧩 CSS 로 얼굴 · 머그' }, TAB, FOLD, BOX('w', 60), BOX('h', () => 60 * LW / LH), BOX('x', 20), BOX('y', () => 40 - 30 * LW / LH),
+            { c: OPEN1, say: '' }, { v: CF('v.c.a'), val: 0, say: '맨 위 상자 = 투명한 곰 칸' },
+            ...KID('눈', '#3d2b33', 118, 150, 12, 15, 50, '👀 눈 (동그란 상자)'), ...TW('눈2', 170),
+            ...KID('볼', '#ffb3c8', 92, 172, 28, 15, 50, '🌸 볼터치'), ...TW('볼2', 180),
+            ...KID('코', '#3d2b33', 140, 168, 20, 13, 50, '코'),
+            ...KID('머그', '#ff9dbb', 186, 206, 62, 58, 18, '☕ 머그컵'),
+            ...KID('김', '#eadde2', 204, 164, 6, 28, 50, '♨️ 김 한 줄'),
+            { c: CBT('animation'), say: '🎬 김이 몽글몽글' }, { v: CF('v.dur'), val: 1.4, say: '' },
+            { pick: CF('v.kf.0.p', 'select'), opt: 'translateY', say: '위아래로' }, { v: CF('v.kf.0.v'), val: Z(6), say: '' }, { pick: CF('v.kf.1.p', 'select'), opt: 'translateY', say: '' }, { v: CF('v.kf.1.v'), val: Z(-16), say: '' },
+            ...TW('김2', 216), { c: CNM('움직임'), say: '조금 늦게' }, { v: CF('v.delay'), val: .5, say: '' },
+            ...TW('김3', 228), { c: CNM('움직임'), say: '' }, { v: CF('v.delay'), val: 1, say: '완성!' }] },
+        { m: 'a', g: 'mix', lv: 2, e: '🐧', k: 'penguin', n: '눈 오는 날 펭귄', d: '✒️ 벡터 몸 + 🌀 SVG 볼 · 목도리 · 눈송이', s: [
+            { c: M('vec'), say: '✒️ 벡터로 몸부터 그려요' }, SWC('#3d2b33', '진한 색 = 선'), VSW,
+            ...ELL(52, 160, 92, 226, '날개 하나'), ...ELL(208, 160, 248, 226, '날개 둘'), ...ELL(74, 70, 226, 270, '몸'), ...ELL(100, 112, 200, 258, '배'),
+            ...ELL(108, 262, 142, 282, '발'), ...ELL(158, 262, 192, 282, ''), ...ELL(138, 136, 162, 154, '부리'), ...ELL(121, 117, 135, 131, '눈'), ...ELL(165, 117, 179, 131, ''),
+            ...COL(220, .42, .5, '🎨 남색'), { c: PT('paint'), say: '🪣 칠하기' }, TAPV(66, 193, '날개'), TAPV(234, 193, ''), TAPV(150, 90, '몸'),
+            SWC('#ffffff', '하양'), TAPV(150, 200, '배'),
+            SWC('#ff9a3c', '주황'), TAPV(125, 272, '발'), TAPV(175, 272, ''), TAPV(150, 145, '부리'),
+            SWC('#3d2b33', ''), TAPV(128, 124, '눈'), TAPV(172, 124, ''),
+            { c: M('svg'), say: '🌀 SVG 로 볼 · 목도리 · 눈송이' },
+            { c: SBE('ellipse'), say: '🌸 볼' }, { v: SF('v.cx'), val: () => MX(114), say: '' }, { v: SF('v.cy'), val: () => MY(146), say: '' }, { v: SF('v.rx'), val: () => 14 * U(), say: '' }, { v: SF('v.ry'), val: () => 8 * U(), say: '' },
+            { c: SBB('radialGradient'), say: '🔆 가운데만 진하게' }, ...STOP(SK, 0, '#ffa3bd'), ...STOP(SK, 1, '#ffa3bd', 100, 0),
+            SDUP, { v: SF('v.cx'), val: () => MX(186), say: '오른쪽 볼' },
+            { c: SBE('rect'), say: '🧣 목도리' }, { v: SF('v.x'), val: () => MX(86), say: '' }, { v: SF('v.y'), val: () => MY(160), say: '' }, { v: SF('v.width'), val: () => 128 * U(), say: '' }, { v: SF('v.height'), val: () => 18 * U(), say: '' }, { v: SF('v.rx'), val: () => 9 * U(), say: '' }, { v: SF('v.ry'), val: () => 9 * U(), say: '' },
+            { c: SBB('linearGradient'), say: '🌈' }, ...STOP(SK, 0, '#ff6f91'), ...STOP(SK, 1, '#ff9a6b'),
+            { c: SBE('rect'), say: '🧣 끝자락' }, { v: SF('v.x'), val: () => MX(176), say: '' }, { v: SF('v.y'), val: () => MY(172), say: '' }, { v: SF('v.width'), val: () => 18 * U(), say: '' }, { v: SF('v.height'), val: () => 50 * U(), say: '' }, { v: SF('v.rx'), val: () => 6 * U(), say: '' }, { v: SF('v.ry'), val: () => 6 * U(), say: '' },
+            { c: SBB('linearGradient'), say: '' }, ...STOP(SK, 0, '#ff6f91'), ...STOP(SK, 1, '#ff9a6b'),
+            { c: SBB('css-animation'), say: '🎬 펄럭' }, { pick: SK('v.p', 'select'), opt: 'rotate', say: '' }, { v: SK('v.a'), val: -10, say: '' }, { v: SK('v.b'), val: 14, say: '' }, { v: SK('v.dur'), val: 1.2, say: '' },
+            { c: SBE('circle'), say: '❄️ 눈송이' }, { v: SF('v.cx'), val: () => MX(40), say: '' }, { v: SF('v.cy'), val: () => MY(10), say: '' }, { v: SF('v.r'), val: () => 5 * U(), say: '' },
+            { c: SBB('fill'), say: '' }, { v: SK('v.c.c'), val: '#ffffff', say: '' }, { c: SBB('stroke'), say: '' }, { v: SK('v.c.c'), val: '#a9c8ff', say: '' },
+            { c: SBB('animateTransform'), say: '🎬 아래로 내려와요' }, { pick: SK('v.ty', 'select'), opt: 'translate', say: '' }, { v: SK('v.from'), val: '0 0', say: '' }, { v: SK('v.to'), val: () => `0 ${R(300 * U())}`, say: '' }, { v: SK('v.dur'), val: 6, say: '' },
+            SDUP, { v: SF('v.cx'), val: () => MX(262), say: '눈송이 더' }, { v: SF('v.cy'), val: () => MY(-90), say: '' },
+            SDUP, { v: SF('v.cx'), val: () => MX(236), say: '' }, { v: SF('v.cy'), val: () => MY(-200), say: '' },
+            SDUP, { v: SF('v.cx'), val: () => MX(70), say: '' }, { v: SF('v.cy'), val: () => MY(-150), say: '완성!' }] }
     ];
     const GN = { css: '🧩 CSS', svg: '🌀 SVG', mix: '🔗 섞기' };
 
@@ -341,9 +378,12 @@
             else if (el.type === 'text' && !T.fast && String(val).length < 24) { for (let k = 1; k <= String(val).length; k++) { setVal(el, String(val).slice(0, k)); await wait(60); } }
             else setVal(el, val);
             if (el.type === 'range' && E2 === el) { const nb = el.nextElementSibling; if (nb && nb.classList.contains('nb')) nb.value = el.value; } }
-        else if (s.drag) { const st = $('#ppStage'), cv = $('#ppCv'); if (!st || !cv) return true; const r = cv.getBoundingClientRect(), pt = ([fx, fy]) => ({ clientX: r.left + r.width * fx, clientY: r.top + r.height * fy });
+        else if (s.tap) { const el = await get(s.tap); if (!el) throw new Error('없음 ' + s.tap); el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(), q = { clientX: r.left + r.width * s.at[0], clientY: r.top + r.height * s.at[1] };   // 🎨 그 자리 누르기 (색 띠 · 밝기 판)
+            const c = $('#ptCur'); if (c) { c.style.transitionDuration = (T.fast ? 0 : 500 / T.speed) + 'ms'; c.style.left = q.clientX + 'px'; c.style.top = q.clientY + 'px'; } await wait(550); await tap();
+            const o = Object.assign({ bubbles: true, pointerId: 78, pointerType: 'mouse', button: 0, isPrimary: true }, q); el.dispatchEvent(new PointerEvent('pointerdown', Object.assign({ buttons: 1 }, o))); el.dispatchEvent(new PointerEvent('pointerup', Object.assign({ buttons: 0 }, o))); window.dispatchEvent(new PointerEvent('pointerup', Object.assign({ buttons: 0 }, o))); }
+        else if (s.drag) { const st = $('#ppStage'), cv = $('#ppCv'); if (!st || !cv) return true; const r = cv.getBoundingClientRect(), pt = ([fx, fy]) => ({ clientX: r.left + r.width * fx, clientY: r.top + r.height * fy }), DR = typeof s.drag === 'function' ? s.drag() : s.drag;
             const ev = (k, q) => st.dispatchEvent(new PointerEvent(k, Object.assign({ bubbles: true, pointerId: 77, pointerType: 'mouse', button: 0, buttons: k === 'pointerup' ? 0 : 1, isPrimary: true }, q)));
-            const c = $('#ptCur'), A = pt(s.drag[0]), B = pt(s.drag[s.drag.length - 1]); c.style.transitionDuration = (T.fast ? 0 : 500 / T.speed) + 'ms'; c.style.left = A.clientX + 'px'; c.style.top = A.clientY + 'px'; await wait(550);
+            const c = $('#ptCur'), A = pt(DR[0]), B = pt(DR[DR.length - 1]); c.style.transitionDuration = (T.fast ? 0 : 500 / T.speed) + 'ms'; c.style.left = A.clientX + 'px'; c.style.top = A.clientY + 'px'; await wait(550);
             ev('pointerdown', A); const n = T.fast ? 2 : 16; c.style.transitionDuration = '0ms';
             for (let k = 1; k <= n; k++) { const q = { clientX: A.clientX + (B.clientX - A.clientX) * k / n, clientY: A.clientY + (B.clientY - A.clientY) * k / n }; ev('pointermove', q); c.style.left = q.clientX + 'px'; c.style.top = q.clientY + 'px'; await wait(30); }
             ev('pointerup', B); }
