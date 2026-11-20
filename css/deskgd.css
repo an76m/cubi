@@ -184,3 +184,9 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 .dbk-it > b { max-width: 112px; font-size: 12px; font-weight: 800; color: var(--dk); text-align: center; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dbk-it.dkm-from { opacity: .35; }
 .dkm-ghost.dbk-art .dbk-in { position: absolute; }
+/* 🧩 표지 · 내지 서랍 (도련 11-20 · 1355 · js/deskbook.js matCard) */
+.dbk-mat .dbk-art { display: flex; align-items: flex-end; justify-content: center; min-width: 64px; }
+.dbk-mat > small { font-size: 11px; color: #9a7f8c; margin-top: -4px; max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbk-pickt { flex: 1 0 100%; font-size: 12px; font-weight: 800; color: var(--dk); text-align: center; }
+.dkw-din.dbk-pick .dbk-it { cursor: pointer; }
+.dkw-foot .dbk-pickb { margin-left: 8px; padding: 4px 12px; font-size: 12px; border-radius: 999px; }

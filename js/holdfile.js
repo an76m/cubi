@@ -17,13 +17,13 @@
     const placeU = p => { const m = /^(.+):(\d+)$/.exec(String(p || '')); return m ? [m[1], +m[2]] : null; };   // 'u:칸' = 서랍 · 'u' = 펜꽂이
     /* 지금 메모리 → 서랍장마다 내용 */
     function split() {
-        const per = new Map(), at = u => per.get(u) || (per.set(u, { gd: {}, dy: {} }), per.get(u));
+        const per = new Map(), at = u => per.get(u) || (per.set(u, { gd: {}, dy: {}, bm: {} }), per.get(u));
         const G = jget('diary_gd_at'); Object.keys(G).forEach(id => { const p = placeU(G[id]); if (p) at(p[0]).gd[id] = p[1]; });
-        const D = jget('diary_desk_dy'); Object.keys(D).forEach(id => { const o = D[id], p = o && typeof o === 'object' && placeU(o.in); if (!p) return; at(p[0]).dy[id] = Object.assign({ s: p[1] }, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); });   // a = 📒 🤍 스티커첩 사본 (desk.js dkAlbCopies)
+        const D = jget('diary_desk_dy'); Object.keys(D).forEach(id => { const o = D[id], p = o && typeof o === 'object' && placeU(o.in); if (!p) return; if (o.m) { at(p[0]).bm[id] = p[1]; return; } at(p[0]).dy[id] = Object.assign({ s: p[1] }, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); });   // a = 📒 🤍 스티커첩 사본 (desk.js dkAlbCopies)
         return per;
     }
-    const bodyOf = (u, c) => JSON.stringify({ v: 1, u, gd: (c && c.gd) || {}, dy: (c && c.dy) || {} });
-    const empty = c => !c || (!Object.keys(c.gd || {}).length && !Object.keys(c.dy || {}).length);
+    const bodyOf = (u, c) => JSON.stringify(Object.assign({ v: 1, u, gd: (c && c.gd) || {}, dy: (c && c.dy) || {} }, c && c.bm && Object.keys(c.bm).length ? { bm: c.bm } : {}));   // bm = 🧩 표지 · 내지 { id: 칸 } (1355 · 있을 때만)
+    const empty = c => !c || (!Object.keys(c.gd || {}).length && !Object.keys(c.dy || {}).length && !Object.keys(c.bm || {}).length);
     /* 배치.json 에 올릴 값 (서랍 것 빼기) */
     function hfOut(k, v) {
         if (!on() || (k !== 'diary_gd_at' && k !== 'diary_desk_dy')) return v;
@@ -44,6 +44,7 @@
             const G = jget('diary_gd_at'), D = jget('diary_desk_dy'); let gch = false, dch = false;
             if (c && c.gd) Object.keys(c.gd).forEach(id => { if (!(id in G)) { G[id] = u + ':' + c.gd[id]; gch = true; } });
             if (c && c.dy) Object.keys(c.dy).forEach(id => { if (!(id in D)) { const x = c.dy[id] || {}; D[id] = Object.assign({ in: u + ':' + x.s }, x.p ? { p: x.p } : {}, x.lb ? { lb: x.lb } : {}, x.a ? { a: x.a } : {}); dch = true; } });
+            if (c && c.bm) Object.keys(c.bm).forEach(id => { if (!(id in D) && Number.isInteger(+c.bm[id])) { D[id] = { in: u + ':' + c.bm[id], m: 1 }; dch = true; } });   // 🧩 표지 · 내지
             if (gch) store.putLoaded('diary_gd_at', JSON.stringify(G));            // 올리지 않아요 (읽은 것 그대로)
             if (dch) store.putLoaded('diary_desk_dy', JSON.stringify(D));
             HF.got.set(u, c ? bodyOf(u, c) : bodyOf(u, null));

@@ -44,6 +44,7 @@
         if (document.documentElement.classList.contains('desk-on')) { el.classList.add('bnd-dkmode'); if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('바인더 조립'); }   // 🧩 바인더조립모드 = 책상 위 (도련 11-14)
         render();
         try { if (window.dymReady) await dymReady(); } catch (e) { console.warn('🧩 재료', e); }
+        try { if (window.dbkMatReady) await dbkMatReady(); } catch (e) {}       // 🗄️ 🧩 서랍 속 재료 = 바구니에 안 나와요 (그 서랍장 파일만 · js/deskbook.js)
         if (B.on) render();
     }
     function bndClose() {
@@ -68,6 +69,8 @@
             + (covers.some(c => c.t === 'dcover') ? '' : `<div class="bnd-hint">🗂️ 표지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📔 다이어리에서 받아요</div>`);
         const refills = dmkRmPool('refill');
         const fit = r => cv && (date ? r.t === 'drefill' : r.t === 'refill') && r.n === n;
+        const inDr = window.dbkMatIn && window.dymAll ? dymAll('cover').concat(dymAll('refill')).filter(x => dbkMatIn(x.id)).length : 0;
+        { let h = bq('bndInDr'); if (!h) { h = document.createElement('div'); h.id = 'bndInDr'; h.className = 'bnd-hint'; bq('bndBasket').appendChild(h); } h.hidden = !inDr; h.textContent = inDr ? `🗄️ 서랍에 넣어 둔 표지 · 내지 ${inDr}개 · 서랍을 열고 톡 = 바구니로 꺼내요` : ''; }
         bq('bndRefills').innerHTML = refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('')
             + (refills.length ? '' : `<div class="bnd-hint">📄 내지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📅 날짜 내지 · 📄 페이지 내지에서 받아요</div>`);
         /* 작업대 */

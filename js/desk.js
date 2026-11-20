@@ -34,7 +34,7 @@
              slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (그림 %) · surf = 올리는 면 [세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 px) · clock = 바늘 { cx, cy, r } · lcd · photo = [왼 · 위 · 오른 · 아래] %
            처음받기 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
         const DKB_STK0 = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];
-        const DK_HOLD_OF = { pc: { all: ['pc'] }, skin: { all: ['skin'] }, drawer: { ok: ['gd', 'dy', 'ab'].concat(DKB_STK0.map(k => 'h:' + k)) }, tape: null };   // 🧺 상품 '담는것' → 넣을 수 있는 창 (tape = 마테 롤만 · js/desktape.js)
+        const DK_HOLD_OF = { pc: { all: ['pc'] }, skin: { all: ['skin'] }, drawer: { ok: ['gd', 'dy', 'ab', 'bm'].concat(DKB_STK0.map(k => 'h:' + k)) }, tape: null };   // 🧺 상품 '담는것' → 넣을 수 있는 창 (tape = 마테 롤만 · js/desktape.js)
         const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
             const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
             const num = v => v !== '' && v != null && isFinite(+v);              // 🔎 크기 · 처음 자리 · 이름 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
@@ -385,10 +385,10 @@
         const dkHoldOk = id => { const h = dkHold(id); return h ? (h.all || h.ok) : []; };
         /* 📔 📒 책 서랍 (도련 11-20 · js/deskbook.js) : 서랍장 칸에만 · 📔 다이어리 칸 = 다이어리 네 종류 (빈 것 · 쓴 것) · 📒 스티커첩 칸 = 스티커바인더 · 이형지북 (빈 것 · 채운 것) · 둘은 한 칸에 섞지 않아요
            '한 창 = 한 자리'의 예외 = 칸 여러 개 (칸마다 넣은 책만) · 칸에 저장하는 이름 = 'dy.칸번호' · 'ab.칸번호' (한 서랍장 안에서 칸마다 달라요 · 'u|이름' 으로 칸을 찾는 곳이 그대로 맞게) */
-        const DKBK = { dy: ['dy', '다이어리', '', '📔', 'b'], ab: ['ab', '스티커첩', '', '📒', 'b'] };
-        const dkBk = k => { const m = /^(dy|ab)(?:\.\d+)?$/.exec(k || ''); return m ? m[1] : ''; };   // 책 서랍이면 'dy' · 'ab'
+        const DKBK = { dy: ['dy', '다이어리', '', '📔', 'b'], ab: ['ab', '스티커첩', '', '📒', 'b'], bm: ['bm', '표지 · 내지', '', '🧩', 'b'] };   // 🧩 = 바인더 재료 서랍 (도련 11-20 · 1355 · js/deskbook.js)
+        const dkBk = k => { const m = /^(dy|ab|bm)(?:\.\d+)?$/.exec(k || ''); return m ? m[1] : ''; };   // 책 서랍이면 'dy' · 'ab' · 🧩 'bm'
         const dkSlotK = (k, s) => dkBk(k) ? dkBk(k) + '.' + s : k;            // 칸에 적는 이름
-        const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat([DKBK.dy, DKBK.ab], DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
+        const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat([DKBK.dy, DKBK.ab, DKBK.bm], DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
         const dkWin = id => (id && dkBk(id) ? [id].concat(DKBK[dkBk(id)].slice(1)) : null) || (id && dkWins().find(x => x[0] === id)) || null;
         window.dkWin = dkWin;
         function deskFnMap() {                                                    // 연결한 기능 → 책상 위 소품 (소품마다 하나)
@@ -1201,6 +1201,7 @@
                     if (window.dsPut) dsPut(it.u, it.lk && it.lk.sid).then(k => { if (k) dkbTake(n, j); else showMsg('⚠ 이 상품을 찾지 못했어요.<br><small>잠시 뒤 다시 해 주세요</small>'); });
                     return;
                 }
+                if (it.k === 'tool' && it.m && t && window.dbkFits && dbkFits(t)) { dbkPut(it.m, t, 'bm').then(ok => { if (ok) dkbTake(n, j); }); return; }   // 🧩 표지 · 내지 = 서랍장 위 = 🧩 서랍 칸에 (도련 11-20 · 1355)
                 if ((it.al || it.k === 'tool') && it.b && t && window.dbkFits && dbkFits(t)) { dbkPut(it.b, t, it.al ? 'ab' : 'dy').then(ok => { if (ok) dkbTake(n, j); }); return; }   // 🗄️ 📔 📒 서랍장 위 = 그 서랍 칸에 (도련 11-20 · js/deskbook.js)
                 if (it.al && it.b) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }   // 📒 🤍 새 스티커첩 = 놓은 자리에 그 책
                 if (it.k === 'tool' && it.b) {                                    // 📔 새 다이어리 : 빈 곳 = 놓은 자리에 그 권 · 소품 위 = 책상에 놓을지 · 소품 안에 넣을지 물어봐요 (도련 10-31)
