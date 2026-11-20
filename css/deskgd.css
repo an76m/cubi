@@ -48,6 +48,7 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-cat { flex: none; border: 2px solid var(--dk); background: #fff; color: var(--dk); border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 900; white-space: nowrap; }
 .dkw-cat small { margin-left: 4px; font-weight: 800; opacity: .7; }
 .dkw-cat.on { background: var(--dk); color: #fff; }
+.dkw-catsep { flex: none; align-self: center; width: 2px; height: 20px; margin: 0 4px; background: var(--dk); opacity: .45; border-radius: 1px; }   /* 종류 │ 규격 (1360) */
 .dkw-grid { flex: 0 0 100%; display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: 74px; gap: 6px; justify-content: start; padding: 8px; box-sizing: border-box; border: 3px solid var(--dk); background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; }   /* 두 줄 · 옆으로 (위아래로 끌면 꺼내기) */
 .dkw-grid::-webkit-scrollbar { display: none; }
 .dkw-grid.drag, .dkw-grid.drag * { cursor: grabbing; }

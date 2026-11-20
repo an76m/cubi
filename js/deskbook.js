@@ -163,11 +163,11 @@
         s = +s; const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), e = (dkHomes()[u] || []).find(x => x.s === s), k = e && dkBk(e.k); if (!S || !k) return;
         if (k === 'bm') await matReady();                                         // 💤 🧩 재료 목록 (켤 때 안 읽어요 · 한 번)
         const [ic, K] = KN[k], r = room();
-        DBK.u = u; DBK.s = s; DBK.k = k; DBK.pick = false;
+        DBK.u = u; DBK.s = s; DBK.k = k; DBK.pick = false; DBK.f = { k: '', s: '' };   // 🗂 처음 = 전체
         r.innerHTML = `<div class="dkw-drawer dbk-drawer"><div class="dkw-dtop"><b>${ic} ${K} 서랍</b><small>${htmlEsc(dkName(o))} ${dkSlotNm(s, S.length)} 칸</small><button type="button" class="dkw-dx" aria-label="닫기">✕</button></div>`
-            + `<div class="dkw-din" id="dbkIn"></div><div class="dkw-dfront"><span class="dkw-lbl">${ic} ${K}</span><i class="dkw-knob"></i></div><div class="dkw-foot"><span>${k === 'bm' ? '톡 = 꺼내서 🧩 조립 바구니로' : '톡 = 꺼내서 펼치기 · 끌어서 책상에 놓기'}</span>${k === 'bm' ? '<button type="button" class="btn dbk-pickb">🧺 바구니에서 넣기</button>' : ''}</div></div>`;
+            + `<div class="dkw-cats" id="dbkCats" hidden></div><div class="dkw-din" id="dbkIn"></div><div class="dkw-dfront"><span class="dkw-lbl">${ic} ${K}</span><i class="dkw-knob"></i></div><div class="dkw-foot"><span>${k === 'bm' ? '톡 = 꺼내서 🧩 조립 바구니로' : '톡 = 꺼내서 펼치기 · 끌어서 책상에 놓기'}</span>${k === 'bm' ? '<button type="button" class="btn dbk-pickb">🧺 바구니에서 넣기</button>' : ''}</div></div>`;
         r.querySelector('.dkw-dx').onclick = shut;
-        const pb = r.querySelector('.dbk-pickb'); if (pb) pb.onclick = () => { DBK.pick = !DBK.pick; trayPaint(); };
+        const pb = r.querySelector('.dbk-pickb'); if (pb) pb.onclick = () => { DBK.pick = !DBK.pick; DBK.f = { k: '', s: '' }; trayPaint(); };
         if (window.dkSlotPaint) dkSlotPaint(r.querySelector('.dkw-drawer'), e.k, u, s, [248, 191, 205]);   // 🎨 서랍 색 = 그 칸 색 (문구함 · 스티커 서랍과 같은 함수)
         r.hidden = false; requestAnimationFrame(() => r.classList.add('show')); document.documentElement.classList.add('dkw-on');
         trayPaint();
@@ -176,7 +176,9 @@
         const inn = document.getElementById('dbkIn'); if (!inn || !trayOn()) return;
         const [ic, K] = KN[DBK.k], H = 112, pk = DBK.k === 'bm' && DBK.pick;
         const pb = trayEl().querySelector('.dbk-pickb'); if (pb) pb.textContent = pk ? '🗄️ 서랍 속 보기' : '🧺 바구니에서 넣기';
-        const L = pk ? mats().filter(b => !dbkIn(b.id, b)) : here(DBK.u, DBK.s);   // 🧺 바구니 = 서랍에 없는 재료 (톡 = 이 서랍에)
+        const L0 = pk ? mats().filter(b => !dbkIn(b.id, b)) : here(DBK.u, DBK.s);   // 🧺 바구니 = 서랍에 없는 재료 (톡 = 이 서랍에)
+        const show = new Set(dkFilterBar(document.getElementById('dbkCats'), L0.map(b => ({ id: b.id, k: kindName(b), s: sizeName(b) })), DBK.f, trayPaint));   // 🗂 걸러 보기 한 줄 (종류 │ 규격 · js/desk.js)
+        const L = L0.filter(b => show.has(b.id));
         inn.classList.toggle('dbk-pick', pk);
         inn.innerHTML = pk ? `<div class="dbk-pickt">🧺 조립 바구니에 있는 재료 · 톡 = 이 서랍에 넣기</div>` + (L.length ? '' : `<div class="dkw-none">🧺 바구니가 비었어요<br><small>표지 · 내지는 🏪 샵이나 📒 다이어리 → 🗂️ 바인더 만들기에서 생겨요</small></div>`)
             : L.length ? '' : `<div class="dkw-none">${ic} 서랍이 비었어요<br><small>${DBK.k === 'bm' ? '🛍️ 봉투의 표지 · 내지를 이 서랍장에 끌어 놓거나 · 아래 🧺 바구니에서 넣기' : `책상 위 ${htmlEsc(josa(K, '을', '를'))} 끌어다 이 서랍장에 넣어요`}</small></div>`;
@@ -191,6 +193,9 @@
             inn.appendChild(it);
         });
     }
+    /* 🗂 걸러 보기 이름 (도련 11-20 · 1360) : 종류 = 📔 날짜형바인더 · 날짜형노트 · 페이지바인더 · 페이지노트 / 📒 스티커바인더 · 이형지북 / 🧩 표지 · 내지 · 규격 = A5 · A6 … (상품공방 규격 표) */
+    const kindName = b => b.mat ? (b.t === 'cover' || b.t === 'dcover' ? '표지' : '내지') : b.t === 'bd' ? '스티커바인더' : b.t === 'rl' ? '이형지북' : b.t === 'pg' ? (b.k === '노트' ? '페이지노트' : '페이지바인더') : b.ch === 'n' ? '날짜형노트' : '날짜형바인더';
+    const sizeName = b => b.mat ? String(b.n || '') : dkSpecOf(dkvMm(b));
     /* 🧩 재료 카드 (조립 바구니와 같은 그림 · js/dymaker.js) */
     function matCard(b, H, pk) {
         const it = document.createElement('div'); it.className = 'dbk-it dbk-mat'; it.dataset.b = b.id;

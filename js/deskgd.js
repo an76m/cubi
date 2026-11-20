@@ -295,7 +295,7 @@
                 <div class="dkw-din" id="dkwIn"></div>
                 <div class="dkw-dfront"><span class="dkw-lbl">✏️ 문구함</span><i class="dkw-knob"></i></div>
                 <div class="dkw-foot"><span id="dkwTip"></span></div></div>`;
-            DKW.bin = false; DKW.cat = null;                                      // 🗂 처음 = 전체 (꺼낼 문구 종류를 알면 그 칸막이)
+            DKW.bin = false; DKW.f = { k: null, s: '' };                         // 🗂 처음 = 전체 (꺼낼 문구 종류를 알면 그 칸막이)
             dkwq('dkwBin').onclick = () => { DKW.bin = !DKW.bin; dkwTrayPaint(); };   // 🗑 버리기 (도련 11-02 · 📱 문구함 서랍처럼 · 톡 = 휴지통으로 · js/skins.js gdBin)
             dkwShow(r); dkwTrayPaint();                                          // 보이게 한 뒤 그려요 (줄이 넘치는지 재야 해서)
             dkwFly(r.querySelector('.dkw-drawer'), el);
@@ -317,14 +317,8 @@
         function dkwTrayPaint() {
             const inn = dkwq('dkwIn'), bar = dkwq('dkwCats'); if (!inn) return;
             const { cats, all } = dkwTrayList();
-            if (DKW.cat == null && DKW.need) { const c = cats.find(c => c[1].some(id => cabGOf(id) === DKW.need)); DKW.cat = c ? c[0] : ''; }   // ✏️ 그 문구를 찾아 열었으면 = 그 칸막이
-            if (DKW.cat && !cats.some(c => c[0] === DKW.cat)) DKW.cat = '';
-            const list = DKW.cat ? cats.find(c => c[0] === DKW.cat)[1] : all;
-            if (bar) {
-                bar.innerHTML = cats.length > 1 || DKW.cat ? [['', '전체', all.length]].concat(cats.map(c => [c[0], c[0], c[1].length])).map(([k, n, c]) => `<button type="button" class="dkw-cat${(DKW.cat || '') === k ? ' on' : ''}" data-c="${htmlEsc(k)}">${htmlEsc(n)}<small>${c}</small></button>`).join('') : '';
-                bar.onclick = e => { const b = e.target.closest('.dkw-cat'); if (!b) return; DKW.cat = b.dataset.c; dkwTrayPaint(); };
-                bar.hidden = !bar.innerHTML;
-            }
+            if (DKW.f.k == null) { const c = DKW.need && cats.find(c => c[1].some(id => cabGOf(id) === DKW.need)); DKW.f.k = c ? c[0] : ''; }   // ✏️ 그 문구를 찾아 열었으면 = 그 칸막이
+            const list = dkFilterBar(bar, all.map(id => ({ id, k: String(dkwP(id).서랍칸 || '') })), DKW.f, dkwTrayPaint);   // 🗂 걸러 보기 한 줄 (js/desk.js · 책 서랍과 같은 것)
             const card = id => {
                 const pg = dkwOut(id), need = DKW.need && cabGOf(id) === DKW.need;
                 return `<div class="dkw-it${need ? ' need' : ''}${dkwIsPen(id) ? ' pen' : ''}" data-id="${htmlEsc(id)}"><button type="button" class="dkw-use" title="꺼내 쓰기"><span class="dkw-art">${dkwArt(id)}</span><b>${htmlEsc(dkwName(id))}</b>${pg ? '<em>페이지에</em>' : ''}</button></div>`;
@@ -361,7 +355,7 @@
             const u = String(DKW.place).split(':')[0];
             const onChest = !inBox && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
             if (!inBox && !onChest) return false;
-            dkwBackOne(id, true); dkwAtPut(id, DKW.place); if (DKW.cat && String(dkwP(id).서랍칸 || '') !== DKW.cat) DKW.cat = ''; dkwTrayPaint();   // 다른 종류를 보고 있었으면 = 전체로 (넣은 것이 보이게)
+            dkwBackOne(id, true); dkwAtPut(id, DKW.place); if (DKW.f && DKW.f.k && String(dkwP(id).서랍칸 || '') !== DKW.f.k) DKW.f.k = ''; dkwTrayPaint();   // 다른 종류를 보고 있었으면 = 전체로 (넣은 것이 보이게)
             const it = dkwq('dkwIn') && dkwq('dkwIn').querySelector(`.dkw-it[data-id="${CSS.escape(id)}"]:not([aria-hidden])`);
             if (it) { it.scrollIntoView({ block: 'nearest', inline: 'nearest' }); it.animate([{ transform: 'translateY(-26px) scale(1.25)', opacity: .3 }, { transform: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.9,.3,1.2)' }); }   // 쏙 들어가는 모습
             if (window.dkbPulse) { const h = dkwItemEl(u); if (h) dkbPulse(h); }

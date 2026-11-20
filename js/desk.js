@@ -1247,6 +1247,27 @@
             return typeof s === 'number' && s >= 0 ? { s, agreed } : null;
         }
         window.dkChestPick = dkChestPick;
+        /* 🗂 서랍 걸러 보기 한 줄 (도련 11-20 · 1360 · 하나로 : ✏️ 문구함 · 📔 다이어리 · 📒 스티커첩 · 🧩 표지 · 내지 서랍) : [전체] [종류 …] │ [규격 …]
+           종류를 고르면 = 그 종류 모든 규격 섞어서 · 규격을 고르면 = 그 규격만 (한 번 더 톡 = 풀기 · '모든 규격' 버튼은 없어요) · 규격 = 지금 종류에 있는 것만 · 하나뿐인 줄은 숨겨요
+           L = [{ id, k: 종류 이름, s: 규격 }] 보일 차례 · st = { k, s } (서랍마다 기억) · → 걸러진 id */
+        const dkSpecRank = s => { const i = MK.SPECS.findIndex(x => x[0] === s); return i < 0 ? 99 : i; };
+        const dkSpecOf = mm => { const m = Array.isArray(mm) ? mm : MK.mmOf(mm); if (!m) return ''; const x = MK.SPECS.find(([, w, h]) => Math.abs(w - m[0]) < 2 && Math.abs(h - m[1]) < 2); return x ? x[0] : `${Math.round(m[0])}×${Math.round(m[1])}`; };   // 📐 mm → 규격 이름 (상품공방과 같은 표)
+        function dkFilterBar(bar, L, st, repaint) {
+            const kinds = [...new Set(L.map(x => x.k).filter(Boolean))];
+            if (st.k && !kinds.includes(st.k)) st.k = '';
+            const byK = L.filter(x => !st.k || x.k === st.k);
+            const sizes = [...new Set(byK.map(x => x.s).filter(Boolean))].sort((a, b) => dkSpecRank(a) - dkSpecRank(b) || String(a).localeCompare(String(b)));
+            if (st.s && !sizes.includes(st.s)) st.s = '';
+            const btn = (on, d, v, n, c) => `<button type="button" class="dkw-cat${on ? ' on' : ''}" data-${d}="${htmlEsc(v)}">${htmlEsc(n)}<small>${c}</small></button>`;
+            const kh = kinds.length > 1 ? btn(!st.k, 'k', '', '전체', L.length) + kinds.map(k => btn(st.k === k, 'k', k, k, L.filter(x => x.k === k).length)).join('') : '';
+            const sh = sizes.length > 1 ? sizes.map(z => btn(st.s === z, 's', z, z, byK.filter(x => x.s === z).length)).join('') : '';
+            if (bar) {
+                bar.innerHTML = kh + (kh && sh ? '<i class="dkw-catsep" aria-hidden="true"></i>' : '') + sh; bar.hidden = !(kh || sh);
+                bar.onclick = e => { const b = e.target.closest('.dkw-cat'); if (!b) return; if (b.dataset.k != null) { st.k = b.dataset.k; st.s = ''; } else st.s = st.s === b.dataset.s ? '' : b.dataset.s; repaint(); };
+            }
+            return byK.filter(x => !st.s || x.s === st.s).map(x => x.id);
+        }
+        window.dkFilterBar = dkFilterBar; window.dkSpecOf = dkSpecOf;
         const dkbPulse = t => { rePop(t, 'dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)
