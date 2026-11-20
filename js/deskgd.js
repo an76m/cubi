@@ -36,7 +36,7 @@
         function dkwPlaceOk(p) { const [u, s] = String(p).split(':'); return s == null ? dkwIsCupU(u) : (dkHomes()[u] || []).some(e => e.k === 'gd' && e.s === +s); }
         const dkwHere = p => { const at = dkwAt(); return dkwOwnAll().filter(id => at[id] === p); };   // 그 집에 사는 문구
         const dkwOut = id => (DKW.fl && DKW.fl.has(id)) || (dkwIsPen(id) ? dkwPenOut().includes(id) : cabIsOn(id));   // ✋ 떠 있는 손도 = 밖에 (펜꽂이에서 빠져 보여요)   // 페이지에 꺼내 둔 것 (손에 든 것 포함)
-        function dkwAtPut(id, p) { const m = dkwAt(); m[id] = p; dkwAtSet(m); dkwDeskSoon(); }
+        function dkwAtPut(id, p) { const m = dkwAt(); delete m[id]; m[id] = p; dkwAtSet(m); dkwDeskSoon(); }   // 지우고 다시 적어요 = 기록 순서 = 들어온 순서 (🗄️ 문구함 '최근에 넣은 것부터' · 도련 11-20 · 1359)
         const dkwPlaceName = p => { const [u, s] = String(p || '').split(':'), o = DK.items.find(x => x.u === u); if (!o) return ''; const S = dkSlots(o.id); return dkName(o) + (s != null && S ? ' ' + dkSlotNm(+s, S.length) + ' 서랍' : ''); };
         /* 집이 없는 문구 정리 : 🎁 처음 선물 = 담는 소품 상품 '처음담기' (✏️ 펜꽂이 · 🗄️ 문구함 칸 · 없으면 🛍️ 봉투 · 도련 11-06) · 나머지 (집이 없어졌거나 집 없이 받은 것) = 봉투에 담아 책상에 (페이지에 꺼내 둔 것은 치울 때)
            꾸미는 중 · 선물 받는 중 · 책상이 아직 없으면 기다려요 */
@@ -291,44 +291,66 @@
             const c = dkwColors(await dkSlotTone('gd', hu, hs)), r = dkwRoom('dkwTray');   // 🎨 서랍 색 = 그 칸 색 (dkSlotTone 하나로 · 스티커 서랍도 같이)
             r.innerHTML = `<div class="dkw-drawer" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
                 <div class="dkw-dtop"><b>🗄️ 문구함</b><small>${htmlEsc(dkwPlaceName(place))}</small><button type="button" class="dkw-bin" id="dkwBin" aria-pressed="false" title="버리기">🗑</button><button type="button" class="dkw-dx" aria-label="닫기" onclick="dkwClose()">✕</button></div>
+                <div class="dkw-cats" id="dkwCats"></div>
                 <div class="dkw-din" id="dkwIn"></div>
-                <span class="dkw-more" id="dkwMore" hidden><b>⬇ 아래로 더 있어요</b></span>
                 <div class="dkw-dfront"><span class="dkw-lbl">✏️ 문구함</span><i class="dkw-knob"></i></div>
                 <div class="dkw-foot"><span id="dkwTip"></span></div></div>`;
-            DKW.bin = false;
+            DKW.bin = false; DKW.cat = null;                                      // 🗂 처음 = 전체 (꺼낼 문구 종류를 알면 그 칸막이)
             dkwq('dkwBin').onclick = () => { DKW.bin = !DKW.bin; dkwTrayPaint(); };   // 🗑 버리기 (도련 11-02 · 📱 문구함 서랍처럼 · 톡 = 휴지통으로 · js/skins.js gdBin)
             dkwShow(r); dkwTrayPaint();                                          // 보이게 한 뒤 그려요 (줄이 넘치는지 재야 해서)
             dkwFly(r.querySelector('.dkw-drawer'), el);
         }
-        /* 🗄️ 서랍 칸막이 = 한 줄씩 · 옆으로 끝없이 넘겨요 (도련 11-02 · 📱 보관함처럼) : 문구가 늘어도 서랍 높이는 그대로 · 칸막이 종류가 한눈에
-           넘치는 줄만 = 같은 줄을 세 번 이어 붙이고 가운데에서 시작 · 끝에 가까워지면 한 바퀴만큼 몰래 되돌려요 (끝에 닿으면 처음 것이 다시 와요)
-           넘기기 : 👆 밀기 · 🖱 끌기 · 휠 · ‹ › · 다시 그려도(♥) 넘긴 자리 그대로 */
+        /* 🗄️ 문구함 서랍 (도련 11-20 · 1359 : 열면 여러 종류가 다채롭게 · 필요한 종류는 위 칸막이 이름을 눌러 자세히)
+           위 = 칸막이 이름 버튼 [전체 N] [필기구 N] [자 · 칼 N] … (상품 '서랍칸' 같은 이름끼리 · 버튼 차례 = 문구 종류 표 차례 · 필기구 먼저)
+           전체 = 칸막이마다 돌아가며 하나씩 (필기구 · 가위 · 테이프 · 자 · 다시 필기구 …) · 칸막이 안 = 최근에 넣은 것부터 (dkwAtPut 기록 차례)
+           서랍 안 = 두 줄 · 옆으로 넘겨요 (위아래로 끌면 꺼내기) · 문구가 아주 많아도 보이는 만큼만 그리고 넘길 때 더 그려요 (DKW_PAGE) */
+        const DKW_PAGE = 40;
+        function dkwTrayList() {                                                  // → { cats: [[이름, [id 최근 먼저]]], all: 전체 차례 }
+            const at = dkwAt(), mine = new Set(dkwHere(DKW.place)), rank = new Map(dkwOwnAll().map((id, i) => [id, i]));
+            const ids = Object.keys(at).filter(id => at[id] === DKW.place && mine.has(id) && !dkwOut(id)).reverse();   // ✋ 밖에 나온 문구는 서랍에 없어요 (도련 11-11)
+            const M = new Map();
+            ids.forEach(id => { const sn = String(dkwP(id).서랍칸 || ''); if (!sn) return; if (!M.has(sn)) M.set(sn, []); M.get(sn).push(id); });
+            const cats = [...M].sort((x, y) => Math.min(...x[1].map(i => rank.get(i))) - Math.min(...y[1].map(i => rank.get(i))));
+            const all = []; for (let i = 0; cats.some(c => c[1][i]); i++) cats.forEach(c => { if (c[1][i]) all.push(c[1][i]); });
+            return { cats, all };
+        }
         function dkwTrayPaint() {
-            const inn = dkwq('dkwIn'); if (!inn) return;
-            const keep = {}; inn.querySelectorAll('.dkw-row').forEach(r => { keep[r.dataset.k] = r._off || 0; }); const top = inn.scrollTop;   // 넘긴 자리 기억
-            const secs = [], at = {};                                          // 칸막이 = 상품 '서랍칸' (같은 이름끼리 · 필기구 먼저 · 그다음 종류 표 순서)
-            /* ✋ 밖에 나온 문구(떠 있는 · 페이지 위)는 서랍에 없어요 (도련 11-11 · 현실처럼) */
-            dkwHere(DKW.place).filter(id => !dkwOut(id)).forEach(id => { const sn = String(dkwP(id).서랍칸 || ''); if (!sn) return; if (at[sn] == null) { at[sn] = secs.length; secs.push([dkwIsPen(id) ? 'pen' : 's' + secs.length, sn, []]); } secs[at[sn]][2].push(id); });   // 필기구 칸 = 넓게 (css .dkw-pen)
-            for (let i = secs.length - 1; i >= 0; i--) if (!secs[i][2].length) secs.splice(i, 1);
-            const card = (id, copy) => {
+            const inn = dkwq('dkwIn'), bar = dkwq('dkwCats'); if (!inn) return;
+            const { cats, all } = dkwTrayList();
+            if (DKW.cat == null && DKW.need) { const c = cats.find(c => c[1].some(id => cabGOf(id) === DKW.need)); DKW.cat = c ? c[0] : ''; }   // ✏️ 그 문구를 찾아 열었으면 = 그 칸막이
+            if (DKW.cat && !cats.some(c => c[0] === DKW.cat)) DKW.cat = '';
+            const list = DKW.cat ? cats.find(c => c[0] === DKW.cat)[1] : all;
+            if (bar) {
+                bar.innerHTML = cats.length > 1 || DKW.cat ? [['', '전체', all.length]].concat(cats.map(c => [c[0], c[0], c[1].length])).map(([k, n, c]) => `<button type="button" class="dkw-cat${(DKW.cat || '') === k ? ' on' : ''}" data-c="${htmlEsc(k)}">${htmlEsc(n)}<small>${c}</small></button>`).join('') : '';
+                bar.onclick = e => { const b = e.target.closest('.dkw-cat'); if (!b) return; DKW.cat = b.dataset.c; dkwTrayPaint(); };
+                bar.hidden = !bar.innerHTML;
+            }
+            const card = id => {
                 const pg = dkwOut(id), need = DKW.need && cabGOf(id) === DKW.need;
-                return `<div class="dkw-it${need ? ' need' : ''}" data-id="${htmlEsc(id)}"${copy ? ' aria-hidden="true"' : ''}><button type="button" class="dkw-use" title="꺼내 쓰기"${copy ? ' tabindex="-1"' : ''}><span class="dkw-art">${dkwArt(id)}</span><b>${htmlEsc(dkwName(id))}</b>${pg ? '<em>페이지에</em>' : ''}</button></div>`;
+                return `<div class="dkw-it${need ? ' need' : ''}${dkwIsPen(id) ? ' pen' : ''}" data-id="${htmlEsc(id)}"><button type="button" class="dkw-use" title="꺼내 쓰기"><span class="dkw-art">${dkwArt(id)}</span><b>${htmlEsc(dkwName(id))}</b>${pg ? '<em>페이지에</em>' : ''}</button></div>`;
             };
-            inn.innerHTML = secs.length ? secs.map(([k, nm, ids]) => `<div class="dkw-sec dkw-${k}"><h4>${htmlEsc(nm)}<small>${ids.length}개</small></h4><div class="dkw-rowbox"><div class="dkw-row" data-k="${htmlEsc(nm)}"><div class="dkw-its">${ids.map(id => card(id)).join('')}</div></div>`
-                + `<button type="button" class="dkw-go l" aria-label="앞으로" hidden>‹</button><button type="button" class="dkw-go r" aria-label="뒤로" hidden>›</button></div></div>`).join('') : '<div class="dkw-none">서랍이 비었어요 · 🛍️ 봉투에서 문구를 끌어다 넣어요</div>';
-            inn.querySelectorAll('.dkw-row').forEach(r => dkwRowWire(r, keep[r.dataset.k] || 0, card));
-            inn.scrollTop = top;
-            inn.onclick = e => {                                                   // 톡 = 꺼내 쓰기 (이어 붙인 것도 같아요)
-                const it = e.target.closest('.dkw-it'); if (!it) return; const row = it.closest('.dkw-row'); if (row && row._drag) return;   // 끌어서 넘긴 건 톡이 아니에요
+            let n = Math.min(list.length, DKW_PAGE);
+            inn.innerHTML = list.length ? `<div class="dkw-grid">${list.slice(0, n).map(card).join('')}</div>` : '<div class="dkw-none">서랍이 비었어요 · 🛍️ 봉투에서 문구를 끌어다 넣어요</div>';
+            const g = inn.querySelector('.dkw-grid');
+            if (g) {
+                const more = () => { if (n >= list.length || g.scrollWidth - g.scrollLeft - g.clientWidth > 240) return; g.insertAdjacentHTML('beforeend', list.slice(n, n + DKW_PAGE).map(card).join('')); n = Math.min(list.length, n + DKW_PAGE); };   // 넘길 때 더 그려요
+                g.addEventListener('scroll', more, { passive: true }); requestAnimationFrame(more);
+                g.addEventListener('wheel', e => { const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (!d || g.scrollWidth <= g.clientWidth) return; e.preventDefault(); g.scrollLeft += d; }, { passive: false });
+                let d = null;                                                     // 🖱 끌어서 넘기기 (👆 손가락은 원래대로 밀려요)
+                g.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button > 0) return; d = { x: e.clientX, s: g.scrollLeft, id: e.pointerId }; });
+                g.addEventListener('pointermove', e => { if (!d || e.pointerId !== d.id) return; const dx = e.clientX - d.x; if (Math.abs(dx) > 6) { g._drag = true; g.classList.add('drag'); g.scrollLeft = d.s - dx; } });
+                const up = () => { if (!d) return; d = null; g.classList.remove('drag'); setTimeout(() => { g._drag = false; }, 0); };
+                g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up); g.addEventListener('pointerleave', up);
+            }
+            inn.onclick = e => {                                                   // 톡 = 꺼내 쓰기
+                const it = e.target.closest('.dkw-it'); if (!it || (g && g._drag)) return;
                 const id = it.dataset.id;
                 if (DKW.bin) { gdBin(id).then(ok => { if (ok) dkwTrayPaint(); }); return; }   // 🗑 버리는 중 = 톡 = 휴지통으로
                 if (e.target.closest('.dkw-use')) dkwFlyUse(id, it.querySelector('.dkw-art') || it);   // 톡 = 화면 가운데로 날아와 손에 (도련 11-11)
             };
-            const more = () => { const d = dkwq('dkwIn'), m = dkwq('dkwMore'); if (!d) return; const on = d.scrollHeight - d.scrollTop - d.clientHeight > 12; if (m) m.hidden = !on; };   // ⬇ 아래에 더 있어요 (칸막이 종류가 아주 많을 때만)
-            inn.onscroll = more; requestAnimationFrame(more);
             { const t = inn.closest('.dkw-drawer'), bb = dkwq('dkwBin'); if (t) t.classList.toggle('binning', !!DKW.bin); if (bb) { bb.classList.toggle('on', !!DKW.bin); bb.setAttribute('aria-pressed', !!DKW.bin); bb.textContent = DKW.bin ? '✓ 다 했어요' : '🗑'; } }
             if (DKW.bin) { const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '🗑 <b>버릴 문구를 톡</b> · 휴지통에 30일 보관했다가 지워져요 (⚙ 설정 → 🗑 휴지통에서 되살리기)'; return; }
-            const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '톡 = 꺼내 쓰기 · 옆으로 밀면 더 있어요';
+            const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '톡 = 꺼내 쓰기 · 옆으로 넘기면 더 있어요 · 위 이름 = 그 종류만';
         }
         /* 🗄️ 서랍이 열려 있을 때 넣는 길 둘 (도련 11-12) : 밖에 나온 문구를 ① 열린 문구함(위 창) 안으로 끌어 놓거나 ② 그 서랍장에 끌어 놓으면 = 고르기 없이 그 서랍에 · 바로 위 창에 보여요
            부르는 곳 = js/deskmove.js dropOn (떠 있는 문구 끌기) · 아래 꺼낸 문구 줄 끌기 (dkwOutGrab) → true = 넣었어요 */
@@ -339,7 +361,7 @@
             const u = String(DKW.place).split(':')[0];
             const onChest = !inBox && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
             if (!inBox && !onChest) return false;
-            dkwBackOne(id, true); dkwAtPut(id, DKW.place); dkwTrayPaint();
+            dkwBackOne(id, true); dkwAtPut(id, DKW.place); if (DKW.cat && String(dkwP(id).서랍칸 || '') !== DKW.cat) DKW.cat = ''; dkwTrayPaint();   // 다른 종류를 보고 있었으면 = 전체로 (넣은 것이 보이게)
             const it = dkwq('dkwIn') && dkwq('dkwIn').querySelector(`.dkw-it[data-id="${CSS.escape(id)}"]:not([aria-hidden])`);
             if (it) { it.scrollIntoView({ block: 'nearest', inline: 'nearest' }); it.animate([{ transform: 'translateY(-26px) scale(1.25)', opacity: .3 }, { transform: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.9,.3,1.2)' }); }   // 쏙 들어가는 모습
             if (window.dkbPulse) { const h = dkwItemEl(u); if (h) dkbPulse(h); }
@@ -347,26 +369,6 @@
             return true;
         }
         window.dkwTrayInto = dkwTrayInto;
-        function dkwRowWire(r, off, card) {                                         // 한 줄 : 넘치면 끝없이 · 아니면 그대로
-            const its = r.querySelector('.dkw-its'), box = r.parentNode, L = box.querySelector('.dkw-go.l'), R = box.querySelector('.dkw-go.r');
-            if (its.scrollWidth <= r.clientWidth + 2) { r._off = 0; return; }
-            const one = its.innerHTML, ids = [...its.children].map(x => x.dataset.id);
-            const lap0 = its.scrollWidth + parseFloat(getComputedStyle(its).columnGap || 6);   // 한 바퀴 길이 (사이 간격 하나 더)
-            its.innerHTML = ids.map(id => card(id, true)).join('') + one + ids.map(id => card(id, true)).join('');
-            r.classList.add('loop'); L.hidden = R.hidden = false;
-            const lap = () => its.children[ids.length].offsetLeft - its.children[0].offsetLeft || lap0;
-            r.scrollLeft = lap() + off;
-            const wrap = () => { const w = lap(); if (r.scrollLeft < w * .5) r.scrollLeft += w; else if (r.scrollLeft > w * 1.5) r.scrollLeft -= w; r._off = r.scrollLeft - w; };
-            r.addEventListener('scroll', wrap, { passive: true });
-            r.addEventListener('wheel', e => { const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (!d) return; e.preventDefault(); r.scrollLeft += d; }, { passive: false });   // 🖱 휠 = 옆으로
-            const step = k => { r.scrollBy({ left: k * r.clientWidth * .7, behavior: 'smooth' }); };
-            L.onclick = () => step(-1); R.onclick = () => step(1);
-            let d = null;                                                         // 🖱 끌어서 넘기기 (👆 손가락은 원래대로 밀려요)
-            r.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button > 0) return; d = { x: e.clientX, s: r.scrollLeft, id: e.pointerId }; r._drag = false; });
-            r.addEventListener('pointermove', e => { if (!d || e.pointerId !== d.id) return; const dx = e.clientX - d.x; if (Math.abs(dx) > 6) { r._drag = true; r.classList.add('drag'); } if (r._drag) r.scrollLeft = d.s - dx; });
-            const up = () => { if (!d) return; d = null; r.classList.remove('drag'); setTimeout(() => { r._drag = false; }, 0); };
-            r.addEventListener('pointerup', up); r.addEventListener('pointercancel', up); r.addEventListener('pointerleave', up);
-        }
 
         /* ---------- 꺼내 쓰기 ---------- */
         async function dkwReady() {                                               // 📔 책상 위 다이어리를 펴고 · 표지면 열어요
@@ -497,7 +499,7 @@
             if (window.dkCarry) dkCarry(src, ev, done); else dkwUse(id);
         }
         window.dkwArtOf = id => dkwArt(id);
-        /* 🗄️ 서랍 문구 : 위아래로 끌면 = 끌어내기 (옆으로 = 줄 넘기기 그대로) */
+        /* 🗄️ 서랍 문구 : 위아래로 끌면 = 끌어내기 (옆으로 = 넘기기 그대로) */
         document.addEventListener('pointerdown', ev => {
             const it = ev.target.closest && ev.target.closest('#dkwTray .dkw-it[data-id]');
             if (!it || ev.button > 0 || DKW.bin || it.getAttribute('aria-hidden')) return;
@@ -506,7 +508,7 @@
                 if (!on || e.pointerId !== ev.pointerId) return; const dx = e.clientX - x0, dy = e.clientY - y0;
                 if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) { on = false; off(); return; }   // 옆으로 = 넘기기
                 if (Math.abs(dy) < 14) return;
-                on = false; off(); const row = it.closest('.dkw-row'); if (row) row._drag = true;
+                on = false; off(); const row = it.closest('.dkw-grid'); if (row) row._drag = true;
                 dkwManual(id, it.querySelector('.dkw-art') || it, e); if (row) setTimeout(() => { row._drag = false; }, 400);
             };
             const up = e => { if (e.pointerId !== ev.pointerId) return; on = false; off(); };

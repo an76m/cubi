@@ -42,25 +42,21 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-dtop small { font-size: 12px; font-weight: 700; opacity: .85; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dkw-dx { border: 0; background: #fff; color: var(--dk); width: 30px; height: 30px; border-radius: 50%; font-size: 15px; font-weight: 900; flex: none; }
 .dkw-din { flex: 1 1 auto; min-height: 0; padding: 0 14px 14px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0; overscroll-behavior: contain; }   /* 칸막이가 많아지면 서랍 안을 위아래로 (칸막이 높이 = 들어 있는 만큼) */
-.dkw-sec { background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); border: 3px solid var(--dk); margin: -1.5px; padding: 6px 8px 8px; min-height: 0; box-sizing: border-box; flex: 0 0 calc(100% + 3px); min-width: 0; }
-.dkw-sec.dkw-pen, .dkw-sec.wide { flex-basis: calc(100% + 3px); }
-.dkw-sec h4 { margin: 0 0 6px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; color: var(--dk); }
-.dkw-sec h4 small { font-weight: 800; opacity: .75; }
-.dkw-rowbox { position: relative; }
-.dkw-row { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; }   /* 한 줄 · 옆으로 (끝없이 = js dkwRowWire) */
-.dkw-row::-webkit-scrollbar { display: none; }
-.dkw-row.drag, .dkw-row.drag * { cursor: grabbing; }
-.dkw-its { display: flex; flex-wrap: nowrap; gap: 6px; width: max-content; }
-.dkw-it { flex: none; }
-.dkw-go { position: absolute; top: 50%; translate: 0 -50%; z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--dk); background: #fff; color: var(--dk); font-size: 18px; font-weight: 900; line-height: 1; padding: 0; box-shadow: 0 2px 6px rgba(80, 40, 50, .2); }
-.dkw-go[hidden] { display: none; }
-.dkw-go.l { left: -6px; } .dkw-go.r { right: -6px; }
+.dkw-cats { display: flex; gap: 6px; padding: 2px 14px 8px; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); overflow-x: auto; scrollbar-width: none; flex: none; }   /* 🗂 칸막이 이름 (도련 11-20 · 1359) */
+.dkw-cats::-webkit-scrollbar { display: none; }
+.dkw-cats[hidden] { display: none; }
+.dkw-cat { flex: none; border: 2px solid var(--dk); background: #fff; color: var(--dk); border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 900; white-space: nowrap; }
+.dkw-cat small { margin-left: 4px; font-weight: 800; opacity: .7; }
+.dkw-cat.on { background: var(--dk); color: #fff; }
+.dkw-grid { flex: 0 0 100%; display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: 74px; gap: 6px; justify-content: start; padding: 8px; box-sizing: border-box; border: 3px solid var(--dk); background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; }   /* 두 줄 · 옆으로 (위아래로 끌면 꺼내기) */
+.dkw-grid::-webkit-scrollbar { display: none; }
+.dkw-grid.drag, .dkw-grid.drag * { cursor: grabbing; }
 .dkw-it { position: relative; width: 74px; }
 .dkw-use { width: 100%; border: 0; background: transparent; border-radius: 12px; padding: 4px 2px 5px; text-align: center; color: #5b3f4a; transition: transform .12s, background .12s; }
 .dkw-use:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .7); }
 .dkw-art { display: flex; justify-content: center; align-items: flex-end; height: 66px; }
 .dkw-art > svg { height: 100%; width: auto; max-width: 70px; }
-.dkw-it.pen .dkw-art > svg, .dkw-pen .dkw-art > svg { height: 100%; }
+.dkw-it.pen .dkw-art > svg { height: 100%; }
 .dkw-use b { display: block; font-size: 10.5px; line-height: 1.25; margin-top: 3px; word-break: keep-all; }
 .dkw-use em { display: inline-block; margin-top: 2px; font-style: normal; font-size: 9.5px; font-weight: 900; color: #fff; background: #8bc79a; border-radius: 999px; padding: 0 6px; }
 .dkw-it.need .dkw-use { animation: gdNeedTool .65s ease-in-out 4 alternate; }
@@ -73,9 +69,6 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-foot > span:empty { display: none; }
 .dkw-foot > span b { color: #c2457a; }
 @media (max-height: 700px) { .dkw-cupart { margin-top: 110px; } .dkw-art { height: 60px; } }
-.dkw-more { position: absolute; left: 18px; right: 18px; bottom: 102px; z-index: 3; height: 54px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; background: linear-gradient(transparent, var(--db) 75%); pointer-events: none; }   /* 아래에 더 있으면 끝을 서랍 색으로 흐리게 + 알림 */
-.dkw-more[hidden] { display: none; }
-.dkw-more > b { background: #fff; border: 2px solid var(--dk); color: var(--dk); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; font-weight: 900; }
 .dkw-drawer { position: relative; }
 /* 🗑 버리기 (도련 11-02 · js/skins.js gdBin) */
 .dkw-bin { border: 2px solid var(--dk); background: #fff; color: var(--dk); height: 30px; min-width: 30px; padding: 0 8px; border-radius: 999px; font-size: 13px; font-weight: 900; flex: none; white-space: nowrap; }
