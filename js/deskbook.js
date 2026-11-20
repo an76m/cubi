@@ -2,10 +2,10 @@
    🗄️ 📔 📒 책 서랍 (도련 11-20 · 💻 📲 책상 · 문구처럼 현실처럼)
    - 서랍장 칸 = 📔 다이어리 서랍 (날짜형바인더 · 날짜형노트 · 페이지바인더 · 페이지노트 · 빈 것 · 쓴 것 섞어서) / 📒 스티커첩 서랍 (스티커바인더 · 이형지북 · 새것 · 채운 것 섞어서)
      · 다이어리와 스티커첩은 한 칸에 섞지 않아요 (다이어리 = 끝난 결과물 · 스티커첩 = 다꾸할 준비 · 도련 11-20)
-     · 칸 여러 개 (칸마다 넣은 책만 · 한 칸에 하나씩도 · '한 창 = 한 자리'의 예외 · 칸 이름 = js/desk.js dkSlotK 'dy.칸' · 'ab.칸')
-   - 넣기 = 책상 위 책을 끌어 서랍장에 놓기 · 🛍️ 봉투 카드를 서랍장에 놓기 · 서랍이 열려 있으면 그 서랍 창 안에 놓기 → 칸을 골라요 (빈 칸 · 같은 종류 칸만 · 문구 · 스티커 칸은 못 골라요)
-     · 다른 종류 책 칸에 넣으면 = 칸을 바꿀지 묻고 → 안에 있던 책은 🗄️ 다른 서랍 고르기 / 📚 책상 위로
-     · 빈 칸에 처음 넣은 책이 그 칸 종류를 정해요
+     · 🗄️ 종류마다 서랍 하나만 (도련 11-21 · 1364 · ✏️ 문구함 · 🏷️ 스티커처럼 · 예전 '칸 여러 개'는 없앴어요 · 칸 이름 = 'dy' · 'ab' · 'bm' · 예전 'dy.0' 은 'dy' 로 읽고 여러 칸이면 dbkOneSweep 이 가장 많은 칸 하나로 모아요)
+   - 넣기 = 책상 위 책을 끌어 서랍장에 놓기 · 🛍️ 봉투 카드를 서랍장에 놓기 · 서랍이 열려 있으면 그 서랍 창 안에 놓기 → 칸을 골라요 (js/desk.js dkChestPick → dkSlotPut = 모든 종류 같은 길)
+     · 다른 것이 든 칸에 넣으면 = 바꿀지 묻고 원래 것은 빈 서랍으로 (안에 든 것째) · 그 종류 서랍이 다른 곳에 있으면 = 옮길지 묻고 안에 든 것째 이리로 (dbkMoveIn)
+     · 빈 칸에 처음 넣으면 그 칸이 그 종류 서랍이 돼요
    - 빼기 = 서랍을 열고 (서랍장 칸 톡) 책을 끌어 책상에 놓기 (놓은 자리) · 톡 = 꺼내서 펼치기
    - 📔 지금 펼쳐 쓰는 다이어리(dkyCur)는 넣을 수 없어요 (책상에서 떠오르고 내려앉는 그림이 그 권이라서 · 늘 책상에)
    - 💾 저장 = 메모리 'diary_desk_dy' (권마다 한 줄 { in: '서랍장u:칸', p, lb } · 책상 위 = { x, y, p, lb }) → 올릴 때 책상 위 것 = 배치.json · 서랍 속 = 설정/서랍/<서랍장>.json (js/holdfile.js · 1351) · 서랍을 열 때 그 서랍장 파일 한 번 (그 뒤 0번)
@@ -51,28 +51,33 @@
     const bndSoon = () => { if (window.bndRender) bndRender(); };
     const fits = t => { const o = t && DK.items.find(x => x.u === t.dataset.u); return !!o && o.at === 'desk' && !!dkSlots(o.id) && ['dy', 'ab', 'bm'].some(k => dkHoldOk(o.id).includes(k)); };
     const chestAt = (x, y) => document.elementsFromPoint(x, y).filter(e => !e.closest('.dkm-ghost, .dkm-fly')).map(e => e.closest('#deskStage .desk-item')).find(Boolean) || null;
-    const can = k => (i, c) => !c || !!dkBk(c.k);                                // 빈 칸 · 책 칸만 (✏️ 문구 · 🏷️ 스티커 칸은 그대로)
-    async function newSlot(u, s, k, tag) {                                        // 칸을 그 종류 책 서랍으로 (tag = 바뀌기 전 칸 이름표)
-        const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id); if (!S) return '';
-        const kk = dkSlotK(k, s), H = dkHomes(); H[u] = (H[u] || []).filter(e => e.s !== s); H[u].push(Object.assign({ k: kk, s, r: S[s] }, tag ? { tag } : {})); dkHomesSet(H);
-        return kk;
+    /* 🗄️ 칸째 옮기기 (js/desk.js dkSlotStuff · 1364) : 그 칸에 든 그 종류 것을 모두 새 칸으로 (두 서랍장 파일을 먼저 읽어요 · 올릴 때 파일도 따라가요) */
+    async function dbkMoveIn(k, fu, fs, tu, ts) {
+        if (window.hfReady) { try { await hfReady(fu); await hfReady(tu); } catch (e) { return; } }
+        if (k === 'bm') await matReady();
+        const M = dkyMap(), p0 = fu + ':' + fs; let ch = false;
+        Object.keys(M).forEach(id => { const o = M[id]; if (!o || typeof o !== 'object' || o.in !== p0) return; const b = bookOf(id); if (b ? kindOf(b) !== k : (k === 'bm') !== !!o.m) return; o.in = tu + ':' + ts; ch = true; });
+        if (ch) { save(M); trayPaint(); }
     }
-    /* 안에 있던 책 옮기기 (칸을 다른 종류로 바꿀 때) : 🗄️ 다른 서랍 고르기 (빈 칸 · 같은 종류 칸) / 📚 책상 위로 · false = 그만두기 */
-    async function moveAll(L, k, u0, s0) {
-        const [ic, K] = KN[k];
-        const back = k === 'bm' ? '🧺 조립 바구니로' : '📚 책상 위로';
-        const r = await showPick(`${ic} 안에 있던 ${K} ${L.length}${UNIT(k)}는 어디에 둘까요?`, ['🗄️ 다른 서랍 고르기', back]);
-        if (r < 0) return false; if (r === 1) return true;                     // 책상 위로 = 칸이 바뀌면 저절로 (dbkSlotGone)
-        const ok = (o, i, c) => !(o.u === u0 && i === s0) && (!c || dkBk(c.k) === k);
-        const C = dkOnDesk().filter(o => dkSlots(o.id) && dkHoldOk(o.id).includes(k) && dkSlots(o.id).some((x, i) => ok(o, i, (dkHomes()[o.u] || []).find(e => e.s === i)))).sort((a, b) => (b.u === u0) - (a.u === u0));
-        if (!C.length) { await showMsg(`🗄️ 옮길 빈 서랍이 없어요.<br><small>${ic} ${K}는 ${k === 'bm' ? '🧺 조립 바구니로' : '책상 위로'} 꺼내 둘게요</small>`); return true; }
-        for (let i = 0; ; i = (i + 1) % C.length) {
-            const o = C[i], t = document.querySelector(`#deskStage .desk-item[data-u="${o.u}"]`); if (!t) return true;
-            const s = await dkzChoose(t, o, k, { can: (j, c) => ok(o, j, c), ask: `${ic} 안에 있던 <b>${htmlEsc(josa(K, '을', '를'))}</b> 어느 서랍으로 옮길까요?`, no: back, more: C.length > 1 ? '다른 서랍장' : '' });
-            if (s === 'more') continue; if (typeof s !== 'number' || s < 0) return true;
-            const cur = (dkHomes()[o.u] || []).find(e => e.s === s); if (!cur) await newSlot(o.u, s, k);
-            L.forEach(id => setIn(id, o.u + ':' + s)); dkbPulse(t); return true;
-        }
+    /* 🗄️ 예전에 한 종류가 여러 칸이면 = 가장 많이 든 칸 하나로 모아요 (도련 11-21 · 1364 · ✏️ 문구함과 같은 규칙 · 그 서랍장 파일만 읽어요 · 겹칠 때만) */
+    let oneBusy = false;
+    async function dbkOneSweep() {
+        if (oneBusy) return; const H = dkHomes(), all = [];
+        Object.keys(H).forEach(u => H[u].forEach(e => { if (dkBk(e.k)) all.push([u, e]); }));
+        const dup = ['dy', 'ab', 'bm'].filter(k => all.filter(([, e]) => e.k === k).length > 1); if (!dup.length) return;
+        oneBusy = true;
+        try {
+            for (const k of dup) {
+                const L = all.filter(([, e]) => e.k === k);
+                if (window.hfReady) await Promise.all(L.map(([u]) => hfReady(u).catch(() => {})));
+                if (k === 'bm') await matReady();
+                const cnt = ([u, e]) => Object.values(dkyMap()).filter(o => o && typeof o === 'object' && o.in === u + ':' + e.s).length;
+                L.sort((a, b) => cnt(b) - cnt(a)); const [ku, ke] = L[0];
+                for (const [u, e] of L.slice(1)) await dbkMoveIn(k, u, e.s, ku, ke.s);
+                const H2 = dkHomes(); L.slice(1).forEach(([u, e]) => { H2[u] = (H2[u] || []).filter(x => !(x.s === e.s && x.k === k)); if (!H2[u].length) delete H2[u]; }); dkHomesSet(H2);
+            }
+            if (window.dknPaintAll) dknPaintAll(); dkDeskBooks(); trayPaint();
+        } finally { oneBusy = false; }
     }
     /* ✋ 넣기 : 그 서랍장에서 칸을 골라요 (열린 그 종류 서랍이 이 서랍장이면 = 바로 거기) → true = 넣었어요 */
     async function dbkPut(id, t, k, op) {                                         // op.s = 칸을 이미 골랐어요 (봉투 → js/desk.js dkbHome · 열린 서랍 창에 놓기) · 없으면 dkChestPick (칸 고르기 한 길 · 1357)
@@ -82,24 +87,13 @@
         if (k === 'bm') await matReady();                                         // 💤 재료 목록 (켤 때 안 읽어요)
         if (id === dkyCur()) { say('📔 지금 펼쳐 쓰는 다이어리는 서랍에 넣을 수 없어요.<br><small>다른 다이어리를 펼친 뒤 넣어요</small>'); return false; }
         if (window.hfReady) { try { await hfReady(o.u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 해 주세요</small>'); return false; } }   // 🗄️ 그 서랍장에 이미 든 책을 알아야 해요 (칸 바꾸기 · js/holdfile.js)
-        const u = o.u, nm = dkName(o), Z = dkHomes()[u] || [];
-        if (!(op && op.s != null) && !S.some((r, i) => can(k)(i, Z.find(e => e.s === i)))) { say(`🗄️ <b>${htmlEsc(nm)}</b>에는 ${ic} ${htmlEsc(josa(K, '을', '를'))} 넣을 서랍이 없어요.<br><small>빈 서랍이나 📔 📒 🧩 서랍에만 넣어요</small>`); return false; }
-        let s = op && op.s != null ? op.s : -1;
-        if (s < 0) { const P = await dkChestPick(t, o, k); if (!P) return false; if (P.go) return dbkPut(id, P.go, k); s = P.s; }
+        const u = o.u;
+        let s = op && op.s != null ? op.s : -1, agreed = !!(op && op.agreed);
+        if (s < 0) { const P = await dkChestPick(t, o, k); if (!P) return false; if (P.go) return dbkPut(id, P.go, k); s = P.s; agreed = P.agreed; }
         if (typeof s !== 'number' || s < 0) return false;
-        const cur = (dkHomes()[u] || []).find(e => e.s === s); let made = '';
-        if (cur && !dkBk(cur.k)) return false;                                 // ✏️ 🏷️ 칸 = 책을 못 넣어요 (칸 고르기에서 막혀요)
-        if (cur && dkBk(cur.k) !== k) {                                        // 다른 종류 책 칸 = 칸을 바꿀까요? → 안의 책은 다른 서랍 · 책상 위로
-            const k2 = dkBk(cur.k), [ic2, K2] = KN[k2];
-            if (!await showAsk(`${dkSlotNm(s, S.length)} 서랍은 ${ic2} ${K2} 서랍이에요.<br>${ic} ${htmlEsc(josa(K, '으로', '로'))} 바꿀까요?<br><span style="font-size:12px;color:#777;">다이어리 · 스티커첩 · 표지 · 내지는 한 서랍에 섞지 않아요</span>`, '바꾸기', '취소')) return false;
-            const L = here(u, s).map(b => b.id);
-            if (L.length && !await moveAll(L, k2, u, s)) return false;
-            const g = cur.tag ? Object.assign({}, cur.tag, cur.tag.t === K2 ? { t: K } : {}) : null;   // 🏷 칸 이름표가 종류 이름이면 새 종류로
-            made = await newSlot(u, s, k, g); dknPaintAll();
-        } else if (!cur) made = await newSlot(u, s, k);
+        if (!await dkSlotPut(t, o, k, s, agreed)) return false;                 // 🗄️ 그 칸 = 그 종류 서랍 (하나만 · ✏️ 문구 · 🏷️ 스티커와 같은 길 · 다른 곳에 있으면 안에 든 것째 옮겨요 · 1364)
         setIn(id, u + ':' + s);
         dkDeskBooks(); dknPaintAll(); deskFnPaint(); dkbPulse(t); trayPaint(); bndSoon();
-        if (made && !cur && !DK.edit && await showAsk(`🏷 ${dkSlotNm(s, S.length)} 칸에 이름표를 붙일까요?<br><span style="font-size:12px;color:#777;">어느 서랍인지 잊지 않게요 · 🛠 책상 꾸미기에서 바꿀 수 있어요</span>`, '붙이기', '안 붙이기')) { dkzTagOn(u, made); setTimeout(() => dknPanel(u + '|' + made), 50); }
         return true;
     }
     /* ✋ 끌어 놓았어요 (책상 위 책 · 서랍 속 책) : 열린 서랍 창 안 = 그 서랍 · 서랍장 위 = 칸 고르기 · 그 밖 = 넣지 않아요 → true = 넣었어요 */
@@ -239,7 +233,7 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && trayOn() && !document.querySelector('.modal[style*="flex"]')) { e.stopPropagation(); shut(); } }, true);
 
     window.dbkIn = dbkIn; window.dbkPut = dbkPut; window.dbkDrop = dbkDrop; window.dbkFits = fits; window.dbkSlotGone = dbkSlotGone;
-    window.dbkOpen = dbkOpen; window.dbkClose = dbkClose; window.dbkHere = here;
+    window.dbkOpen = dbkOpen; window.dbkClose = dbkClose; window.dbkHere = here; window.dbkMoveIn = dbkMoveIn; window.dbkOneSweep = dbkOneSweep;
     /* 🧩 조립 바구니가 쓰기 전 : 표지 · 내지 서랍이 있는 서랍장 파일만 읽어요 (그 서랍장 수만큼 · 한 번) */
     window.dbkMatReady = () => window.hfReady ? Promise.all(Object.keys(dkHomes()).filter(u => (dkHomes()[u] || []).some(e => dkBk(e.k) === 'bm') && DK.items.some(x => x.u === u && x.at === 'desk')).map(u => hfReady(u).catch(() => {}))) : Promise.resolve();
     window.dbkMatIn = id => !!dbkIn(id, matOf(id));
