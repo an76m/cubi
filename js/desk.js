@@ -1309,6 +1309,25 @@
             return sh;
         }
         window.dkShelf = dkShelf;
+        /* 🗄️ 서랍 창이 열린 채 그 밖(책상)을 눌렀어요 (하나로 · 도련 11-21 · 1367 : ✏️ 문구함 · 📔 📒 🧩 책 서랍 창 모두)
+           📌 작은 펜꽂이 도구 = 서랍이 닫혔을 때처럼 그대로 (톡 = 손에 · 위로 쏙 = 뽑기 · 펜꽂이가 커지지 않아요)
+           📔 책상 위 책 = 끌면 손에 들고 놓은 곳에 (열린 책 서랍 창 = 그 칸 · 서랍장 = 칸 고르기 · js/deskbook.js dbkDrop) · 톡 = 서랍 닫기
+           → true = 맡았어요 (부르는 쪽은 그대로 그만) · false = 그 밖 (예전처럼 책상 톡 · 닫기) */
+        function dkRoomPass(e, shut) {
+            if (e.button > 0) return false;
+            const P = document.elementsFromPoint(e.clientX, e.clientY);
+            const t = P.map(x => x.closest && x.closest('#deskStage .dkw-t')).find(Boolean);
+            if (t) { t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary, button: e.button, buttons: e.buttons })); return true; }
+            const v = P.map(x => x.closest && x.closest('#deskStage .dk-vol')).find(Boolean);
+            if (!v || !window.dbkDrop) return false;
+            e.preventDefault(); const x0 = e.clientX, y0 = e.clientY;
+            const mv = m => { if (m.pointerId !== e.pointerId || Math.hypot(m.clientX - x0, m.clientY - y0) < 10) return; off(); dkCarry(v, m, (x, y) => dbkDrop(v.dataset.b, x, y)); };
+            const up = m => { if (m.pointerId !== e.pointerId) return; off(); if (m.type === 'pointerup' && shut) shut(); };
+            const off = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
+            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+            return true;
+        }
+        window.dkRoomPass = dkRoomPass;
         /* ✋ 서랍 카드 끌기 (하나로) : 🖱 끌면 = 꺼내기 · 옮기기 (내리기 = 휠 · 슬라이더) / 👆 옆으로 끌면 = 꺼내기 · 옮기기 · 위아래로 밀면 = 내리기 → 'pick' | 'scroll' | '' (아직) */
         window.dkShelfDir = (x0, y0, e) => { const dx = Math.abs(e.clientX - x0), dy = Math.abs(e.clientY - y0); if (Math.max(dx, dy) < 9) return ''; return e.pointerType === 'mouse' || dx > dy ? 'pick' : 'scroll'; };
         const dkbPulse = t => { rePop(t, 'dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };

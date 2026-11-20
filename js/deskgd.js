@@ -126,7 +126,7 @@
         function dkwRoom(id) {
             let r = dkwq(id); if (r) return r;
             r = document.createElement('div'); r.id = id; r.className = 'dkw-room'; r.hidden = true;
-            r.addEventListener('pointerdown', e => { if (e.target !== r) return; if (window.dkDrawerOwns && dkDrawerOwns(r) && window.deskTapAt && deskTapAt(e.clientX, e.clientY)) return; dkwClose(); });   // 🗄 서랍에서 내려온 창 밖 = 그 자리 책상 톡 (같은 서랍 = 닫기 · 다른 서랍 = 이건 닫고 그 서랍 · 도련 11-05)
+            r.addEventListener('pointerdown', e => { if (e.target !== r) return; if (window.dkRoomPass && dkRoomPass(e, dkwClose)) return; if (window.dkDrawerOwns && dkDrawerOwns(r) && window.deskTapAt && deskTapAt(e.clientX, e.clientY)) return; dkwClose(); });   // 🗄 서랍에서 내려온 창 밖 = 그 자리 책상 톡 (같은 서랍 = 닫기 · 다른 서랍 = 이건 닫고 그 서랍 · 도련 11-05)
             document.body.appendChild(r); return r;
         }
         function dkwFly(box, el) {                                                // 책상 위 그 소품 자리에서 커지며 나와요

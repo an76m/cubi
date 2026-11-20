@@ -113,18 +113,10 @@
         r = document.createElement('div'); r.id = 'dbkTray'; r.className = 'dkw-room'; r.hidden = true;
         r.addEventListener('pointerdown', e => {
             if (e.target !== r) return;
-            const v = document.elementsFromPoint(e.clientX, e.clientY).map(x => x.closest('#deskStage .dk-vol')).find(Boolean);
-            if (v && e.button <= 0) { volGrab(e, v); return; }                    // ✋ 서랍이 열린 채 책상 위 책을 끌어 이 서랍 창에 넣기
+            if (dkRoomPass(e, shut)) return;                                      // ✋ 책상 위 책 끌기 · 📌 작은 펜꽂이 도구 (문구함 창과 같은 것 · js/desk.js)
             if (window.dkDrawerOwns && dkDrawerOwns(r) && window.deskTapAt && deskTapAt(e.clientX, e.clientY)) return; shut();   // 창 밖 = 그 자리 책상 톡 (다른 서랍처럼)
         });
         document.body.appendChild(r); return r;
-    }
-    function volGrab(ev, v) {                                                     // 끌면 = 손에 들고 놓은 곳에 (dbkDrop) · 톡 = 서랍 닫기 (예전처럼 창 밖 톡)
-        ev.preventDefault(); const x0 = ev.clientX, y0 = ev.clientY;
-        const mv = e => { if (e.pointerId !== ev.pointerId || Math.hypot(e.clientX - x0, e.clientY - y0) < 10) return; off(); dkCarry(v, e, (x, y) => dbkDrop(v.dataset.b, x, y)); };
-        const up = e => { if (e.pointerId !== ev.pointerId) return; off(); if (e.type === 'pointerup') shut(); };
-        const off = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
-        addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
     }
     function shut() { const r = trayEl(); if (!r || r.hidden) return; if (window.dkDrawerOwns && dkDrawerOwns(r)) { dkDrawerShut(true); return; } dbkClose(); }
     function dbkClose() {
