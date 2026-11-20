@@ -119,7 +119,17 @@
     const bkSig = () => { try { const H = bkHold(); return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album, H ? [[...H.s], [...H.b]] : 0]); } catch (e) { return String(Math.random()); } };
     /* (바구니 미리 읽기 bkWarm 도 지웠어요 · 도련 10-25 → 처음 열 때 한 번 읽고, 그다음부터는 기억한 목록으로 바로 그려요) */
     /* 바구니 카드 : 종류마다 모양 · 남은 양은 두께(--q)로만 */
-    const kitImg = u => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`;
+    const kitImg = (u, i) => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" data-i="${i}" onerror="bkImgFail(this)">`;
+    /* 🚨 상품 서버 그림이 안 나와요 (도련 11-20 · 길 두 개) : 그 종이 파일(드라이브 · 받은 그때 그림 원본)에서 같은 칸 그림으로 · 썸네일은 만들지 않아요 (원본을 그대로 작게)
+         · 종이 하나 = 한 번만 읽어요 (이 창 기억 · 다시 켜도 ⚡ js/drcache.js 가 기억) · 그래도 없으면 숨겨요 */
+    const BK_EMG = new Map();
+    window.bkImgFail = im => {
+        const c = im && im.closest('[data-id]'), i = im ? +im.dataset.i : NaN;
+        if (!c || !(i >= 0) || im.dataset.emg || !window.ownSheetImgs) { if (im) im.style.visibility = 'hidden'; return; }
+        im.dataset.emg = '1'; const id = c.dataset.id;
+        if (!BK_EMG.has(id)) BK_EMG.set(id, ownSheetImgs(id).then(r => (r && r.imgs) || []).catch(() => []));
+        BK_EMG.get(id).then(L => { if (L[i]) im.src = L[i]; else im.style.visibility = 'hidden'; });
+    };
     function bkCard(e) {
         const used = new Set(e.u), cols = Math.ceil(Math.sqrt(e.n)), x = e.x || {}, q = e.q0 ? Math.max(.08, e.q / e.q0) : 1;
         let inner, cls = 'k-' + e.k;
@@ -130,12 +140,12 @@
         else if (e.k === 'leaf') inner = `<span class="lf-pick bk-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(e.th || '')}')"></i></span>`;
         else if (e.L && e.us) inner = abLayHtml(e.L, e.us.map(u => window.kitSize ? kitSize(u, 96) : u), used);   // 🗺️ 시트 배치 그대로 (뗀 자리는 빈 종이)
         else if (e.th) inner = `<img src="${esc(e.th)}" alt="" draggable="false">`;
-        else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : kitImg(u)).join('')}</i>`;
+        else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : kitImg(u, i)).join('')}</i>`;
         return `<button type="button" class="bk-sh ${cls}${e.n === 1 && !e.q0 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="${esc(KIND_NAME[e.k] || '스티커')}">${inner}</button>`;
     }
     /* 🗺️ 시트 배치 그대로 (도련 10-29) : 흰 종이 (가로÷세로 = L.r) 위 원래 자리 · 크기 (% 라 카드 · 확대 어디서나) */
     function abLayHtml(L, srcs, used) {
-        return `<i class="bk-lay" style="--r:${(+L.r).toFixed(4)}">${L.b.map((v, i) => used && used.has(i) ? '' : `<img src="${esc(srcs[i] || '')}" alt="" loading="lazy" draggable="false" style="left:${(v[0] * 100).toFixed(2)}%;top:${(v[1] * 100).toFixed(2)}%;width:${(v[2] * 100).toFixed(2)}%;height:${(v[3] * 100).toFixed(2)}%" onerror="this.style.visibility='hidden'">`).join('')}</i>`;
+        return `<i class="bk-lay" style="--r:${(+L.r).toFixed(4)}">${L.b.map((v, i) => used && used.has(i) ? '' : `<img src="${esc(srcs[i] || '')}" alt="" loading="lazy" draggable="false" style="left:${(v[0] * 100).toFixed(2)}%;top:${(v[1] * 100).toFixed(2)}%;width:${(v[2] * 100).toFixed(2)}%;height:${(v[3] * 100).toFixed(2)}%" data-i="${i}" onerror="bkImgFail(this)">`).join('')}</i>`;   // 🚨 data-i = 그 칸 (서버 그림이 안 나오면 종이 파일 그림)
     }
     const KIND_NAME = { seal: '씰스티커', piece: '조각스티커', paper: '모조지스티커', tape: '마스킹테이프', memo: '메모지', tk: '떡메모지', leaf: '속지' };
     /* 바구니 꼬리표 : 무엇이 몇 개 (도련 10-25 · '5장'만으로는 헷갈려요) */
