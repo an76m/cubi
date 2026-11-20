@@ -29,7 +29,7 @@
         function dyoAll() { const v = prefGet(DYO_KEY, DYO_LOCAL); const L = Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && typeof x.id === 'string' && x.id && DYO_T.includes(x.t)) : []; L.forEach(dyoMy); return L; }
         function dyoSet(L, mem) { const v = (L || []).filter(Boolean); if (mem && dyoOnline()) store.putLoaded(DYO_KEY, JSON.stringify(v)); else prefSet(DYO_KEY, DYO_LOCAL, v); if (window.mineSoon) mineSoon(); }   // 📦 받은 다이어리 = 실물로 (js/mine.js)   // mem = 메모리에만
         const dyoGet = id => dyoAll().find(x => x.id === id) || null;
-        function dyoPut(line, mem) { const L = dyoAll(), i = L.findIndex(x => x.id === line.id); if (i >= 0) L[i] = line; else L.push(line); dyoSet(L, mem); }
+        function dyoPut(line, mem) { const L = dyoAll(), i = L.findIndex(x => x.id === line.id); if (i >= 0) L[i] = line; else L.push(line); dyoSet(L, mem); if (i < 0) setTimeout(() => { if (window.dkvNew) dkvNew(line.id); }, 0); }   // 🆕 새 권 = 책상 줄 빈자리에 (봉투에 담는 것은 그 뒤라 그대로 · js/desk.js · 1356)
         function dyoDel(id) { const L = dyoAll(); if (L.some(x => x.id === id)) dyoSet(L.filter(x => x.id !== id)); }
         const dyoDay = () => ymd();   // 🧰 js/util.js
         const DYO_FROM = ['basic', 'gift', 'mine', 'share', 'paid'];                 // 🏷️ 상품 분류 다섯 (도련 11-09 · 무료 · 선물 · 본인 · 공유 · 유료) · 처음받기 = basic + start: 1

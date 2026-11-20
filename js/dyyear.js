@@ -162,6 +162,7 @@
             const y = dyyThis(), G = DY_DESIGNS.filter(d => d.gift), ids = G.map(d => dyyNewId(y, d)), fl = G.findIndex(d => d.float);
             const lines = G.map((d, i) => dyyLineNew(ids[i], 'basic', Object.assign({ start: 1 }, d.ch === 'b' ? { cv: dyyCoverOf(y, d, 'basic'), rf: [dyyRefillOf(d, 'basic')] } : {})));   // 🎁 처음받기 = 무료(basic) + start (도련 11-09)
             dyoSet(dyoAll().filter(x => x.t !== 'date').concat(lines)); if (ids.length) prefSet(DYY_OPEN, DYY_OPEN_L, ids[Math.max(0, fl)]);
+            setTimeout(() => { if (window.dkvNew) ids.forEach(dkvNew); }, 0);   // 🆕 처음 선물 권 = 책상 줄에 (1356)
             if (window.giftMark) giftMark();   // 펼쳐 둘 권 = 상품공방 '처음띄움' (없으면 첫 권)
             if (window.deskVolInit) deskVolInit(G.map((d, i) => ({ id: ids[i], spot: d.desk, n: d.name })));   // 🎁 처음 책상 자리 = 상품공방 '처음책상' (없으면 봉투 · 도련 11-06)
             if (window.diag) diag('dygift', { gift: G.map((d, i) => `${ids[i]} ${d.name} ${d.n} ${d.mm}${d.float ? ' 🎈' : ''}`), pg: (typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.gift).map(p => `${p.id} ${p.g} ${p.n} ${p.mm}${p.float ? ' 🎈' : ''}`), open: ids[Math.max(0, fl)] || '' });   // 🧾 처음 선물 권 · 띄울 권 (도련 11-19 · 처음 로그인 규격 찾기)

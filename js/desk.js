@@ -1870,8 +1870,25 @@
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
             dkDeskBooks(); dkvFront(id); return true;
         }
-        function dkvHome(id) {                                                    // 📚 다이어리 줄의 빈자리에 (자리를 지우면 dkyPosOf 가 줄지어 세워요)
-            const M = dkyMap(); delete M[id];
+        /* 📚 다이어리 줄의 빈 자리 (도련 11-20 · 1356 : 책상에는 자리가 적힌 권만 보여요 → 새 권은 자리를 적어 줘요 · 예전엔 자리가 없으면 줄지어 저절로) */
+        function dkyFree() {
+            const P = dkvAll().map(b => dkyPosOf(b.id));
+            for (let k = 0; k < 400; k++) { const r = dkyRow(k); if (!P.some(p => Math.abs(p.x - r.x) < 40 && Math.abs(p.y - r.y) < 40)) return r; }
+            return dkyRow(1);
+        }
+        /* 🆕 새로 생긴 권 (조립 · 만들기 · 처음 선물 · js/dyown.js dyoPut) = 책상 줄 빈자리에 · 자리가 있거나 · 서랍 속 · 봉투 속이면 그대로 */
+        function dkvNew(id) {
+            if (!id || typeof prefSet !== 'function') return;
+            const M = dkyMap(), o = M[id];
+            if (o && typeof o === 'object' && (dkyOk(o) || o.in)) return;
+            if (Array.isArray(M._bag) && M._bag.includes(id)) return;
+            if (window.deskBagHold) { const H = deskBagHold(); if (H && H.d && H.d.has(id)) return; }
+            M[id] = Object.assign({}, o && typeof o === 'object' ? o : {}, dkyFree()); prefSet(DKY_KEY, DKY_LOCAL, M);
+            dkDeskBooks();
+        }
+        window.dkvNew = dkvNew;
+        function dkvHome(id) {                                                    // 📚 다이어리 줄의 빈자리에 (자리를 적어요 · 1356)
+            const M = dkyMap(); M[id] = Object.assign(M[id] && typeof M[id] === 'object' && M[id].lb ? { lb: M[id].lb } : {}, dkyFree());
             if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
             dkDeskBooks(); dkvFront(id);
