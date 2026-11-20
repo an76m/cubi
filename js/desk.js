@@ -384,10 +384,10 @@
         const dkSlots = id => { const c = dkCat(id); return (c && c.slots && c.slots.length && dkHold(id) && dkHold(id).ok) ? c.slots : null; };   // 칸이 있는 소품 (서랍장)
         const dkHoldOk = id => { const h = dkHold(id); return h ? (h.all || h.ok) : []; };
         /* 📔 📒 책 서랍 (도련 11-20 · js/deskbook.js) : 서랍장 칸에만 · 📔 다이어리 칸 = 다이어리 네 종류 (빈 것 · 쓴 것) · 📒 스티커첩 칸 = 스티커바인더 · 이형지북 (빈 것 · 채운 것) · 둘은 한 칸에 섞지 않아요
-           '한 창 = 한 자리'의 예외 = 칸 여러 개 (칸마다 넣은 책만) · 칸에 저장하는 이름 = 'dy.칸번호' · 'ab.칸번호' (한 서랍장 안에서 칸마다 달라요 · 'u|이름' 으로 칸을 찾는 곳이 그대로 맞게) */
+           🧩 표지 · 내지 칸 = 바인더 재료 · 종류마다 서랍 하나 (1364 · ✏️ 문구 · 🏷️ 스티커처럼 · 칸 이름 = 'dy' · 'ab' · 'bm') */
         const DKBK = { dy: ['dy', '다이어리', '', '📔', 'b'], ab: ['ab', '스티커첩', '', '📒', 'b'], bm: ['bm', '표지 · 내지', '', '🧩', 'b'] };   // 🧩 = 바인더 재료 서랍 (도련 11-20 · 1355 · js/deskbook.js)
-        const dkBk = k => { const m = /^(dy|ab|bm)(?:\.\d+)?$/.exec(k || ''); return m ? m[1] : ''; };   // 책 서랍이면 'dy' · 'ab' · 🧩 'bm'
-        const dkSlotK = k => dkBk(k) || k;                                     // 칸에 적는 이름 = 종류 하나 (도련 11-21 · 1364 : 📔 📒 🧩 도 ✏️ 문구처럼 한 칸만 · 예전 'dy.0' 은 'dy' 로 읽어요)
+        const dkBk = k => /^(dy|ab|bm)$/.test(k || '') ? k : '';   // 책 서랍이면 'dy' · 'ab' · 🧩 'bm'
+        const dkSlotK = k => dkBk(k) || k;                                     // 칸에 적는 이름 = 종류 하나 (도련 11-21 · 1364 : 📔 📒 🧩 도 ✏️ 문구처럼 한 칸만)
         const dkWins = () => DK_FNS.filter(f => DK_FN_OK.includes(f[0])).map(f => f.concat('fn')).concat([DKBK.dy, DKBK.ab, DKBK.bm], DKB_STK.map(k => ['h:' + k, DKH_NAMES[k], '', DK_HIC[k], 'h']));   // 🗄️ 스티커는 종류마다 따로 (서랍 한 칸 = 한 종류 · 도련 11-01)
         const dkWin = id => (id && dkBk(id) ? [id].concat(DKBK[dkBk(id)].slice(1)) : null) || (id && dkWins().find(x => x[0] === id)) || null;
         window.dkWin = dkWin;
@@ -1092,7 +1092,7 @@
             const v = typeof prefGet === 'function' ? prefGet(DKH_KEY, DKH_LOCAL) : null, H = v && typeof v === 'object' && !Array.isArray(v) ? v : {};
             Object.keys(H).forEach(u => {                                         // 🗄️ 서랍 칸 = 미리 정한 자리 (s = 몇 번째 칸) · 그 서랍에 넣을 수 있는 것만
                 const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), ok = o ? dkHoldOk(o.id) : [], seen = new Set();
-                H[u] = Array.isArray(H[u]) && S ? H[u].filter(e => e && typeof e === 'object' && S[e.s] && ok.includes(dkBk(e.k) || e.k) && dkWin(e.k) && !seen.has(e.s) && seen.add(e.s)).map(e => Object.assign({}, e, { k: dkSlotK(e.k), r: S[e.s] })) : [];
+                H[u] = Array.isArray(H[u]) && S ? H[u].filter(e => e && typeof e === 'object' && S[e.s] && ok.includes(dkBk(e.k) || e.k) && dkWin(e.k) && !seen.has(e.s) && seen.add(e.s)).map(e => Object.assign({}, e, { r: S[e.s] })) : [];
                 if (!H[u].length) delete H[u];
             });
             return H;
@@ -1896,7 +1896,6 @@
             if (ch) prefSet(DKY_KEY, DKY_LOCAL, M);
         }
         function dkDeskBooks(alb) {
-            if (window.dbkOneSweep) setTimeout(dbkOneSweep, 0);                   // 🗄️ 예전에 한 종류가 여러 칸이면 하나로 (겹칠 때만 · js/deskbook.js · 1364)
             if (!document.getElementById('deskStage')) return;
             { const c = dkyCur(), M = dkyMap(); if (c && !DK.edit && !DK.trial && !(M[c] && (dkyOk(M[c]) || M[c].in)) && !dkBagged().includes(c) && dkvEvery().some(b => b.id === c)) { M[c] = Object.assign({}, dkyPosOf(c), M[c] && M[c].lb ? { lb: M[c].lb } : {}); prefSet(DKY_KEY, DKY_LOCAL, M); } }   // 📔 펼쳐 쓰는 권이 책상 자리가 없으면 = 지금 자리를 적어 둬요 (다른 권을 펼쳐도 책상에 남게)
             if (!DK.albReal) DK.albs = dkAlbCopies();                             // 📒 🤍 스티커첩 = 진짜 목록을 읽기 전엔 늘 배치 사본으로 (배치를 읽은 뒤 · 서랍장 파일을 읽은 뒤에도 맞게) (켤 때 스티커 폴더 8파일 안 읽어요 · 도련 11-20 저장 정리 3단계)
