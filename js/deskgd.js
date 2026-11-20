@@ -301,15 +301,16 @@
             dkwFly(r.querySelector('.dkw-drawer'), el);
         }
         /* 🗄️ 문구함 서랍 (도련 11-20 · 1359 : 열면 여러 종류가 다채롭게 · 필요한 종류는 위 칸막이 이름을 눌러 자세히)
-           위 = 칸막이 이름 버튼 [전체 N] [필기구 N] [자 · 칼 N] … (상품 '서랍칸' 같은 이름끼리 · 버튼 차례 = 문구 종류 표 차례 · 필기구 먼저)
-           전체 = 칸막이마다 돌아가며 하나씩 (필기구 · 가위 · 테이프 · 자 · 다시 필기구 …) · 칸막이 안 = 최근에 넣은 것부터 (dkwAtPut 기록 차례)
+           위 = 종류 버튼 [전체 N] [필기구 N] [양면테이프 N] [칼 N] [자 N] … (문구 종류 하나씩 · 1362 · 버튼 차례 = 문구 종류 표 차례 · 필기구 먼저)
+           전체 = 종류마다 돌아가며 하나씩 (필기구 · 가위 · 테이프 · 자 · 다시 필기구 …) · 칸막이 안 = 최근에 넣은 것부터 (dkwAtPut 기록 차례)
            서랍 안 = 두 줄 · 옆으로 넘겨요 (위아래로 끌면 꺼내기) · 문구가 아주 많아도 보이는 만큼만 그리고 넘길 때 더 그려요 (DKW_PAGE) */
         const DKW_PAGE = 40;
+        const dkwKindName = id => dkwIsPen(id) ? '필기구' : ((GD_CAB.find(x => x[0] === cabGOf(id)) || [])[1] || '문구');   // 🗂 걸러 보기 = 문구 종류 하나씩 (도련 11-20 · 1362 · 예전 = 상품 '서랍칸' 묶음 이름)
         function dkwTrayList() {                                                  // → { cats: [[이름, [id 최근 먼저]]], all: 전체 차례 }
             const at = dkwAt(), mine = new Set(dkwHere(DKW.place)), rank = new Map(dkwOwnAll().map((id, i) => [id, i]));
             const ids = Object.keys(at).filter(id => at[id] === DKW.place && mine.has(id) && !dkwOut(id)).reverse();   // ✋ 밖에 나온 문구는 서랍에 없어요 (도련 11-11)
             const M = new Map();
-            ids.forEach(id => { const sn = String(dkwP(id).서랍칸 || ''); if (!sn) return; if (!M.has(sn)) M.set(sn, []); M.get(sn).push(id); });
+            ids.forEach(id => { const sn = dkwKindName(id); if (!M.has(sn)) M.set(sn, []); M.get(sn).push(id); });
             const cats = [...M].sort((x, y) => Math.min(...x[1].map(i => rank.get(i))) - Math.min(...y[1].map(i => rank.get(i))));
             const all = []; for (let i = 0; cats.some(c => c[1][i]); i++) cats.forEach(c => { if (c[1][i]) all.push(c[1][i]); });
             return { cats, all };
@@ -318,7 +319,7 @@
             const inn = dkwq('dkwIn'), bar = dkwq('dkwCats'); if (!inn) return;
             const { cats, all } = dkwTrayList();
             if (DKW.f.k == null) { const c = DKW.need && cats.find(c => c[1].some(id => cabGOf(id) === DKW.need)); DKW.f.k = c ? c[0] : ''; }   // ✏️ 그 문구를 찾아 열었으면 = 그 칸막이
-            const list = dkFilterBar(bar, all.map(id => ({ id, k: String(dkwP(id).서랍칸 || '') })), DKW.f, dkwTrayPaint);   // 🗂 걸러 보기 한 줄 (js/desk.js · 책 서랍과 같은 것)
+            const list = dkFilterBar(bar, all.map(id => ({ id, k: dkwKindName(id) })), DKW.f, dkwTrayPaint);   // 🗂 걸러 보기 한 줄 (js/desk.js · 책 서랍과 같은 것)
             const card = id => {
                 const pg = dkwOut(id), need = DKW.need && cabGOf(id) === DKW.need;
                 return `<div class="dkw-it${need ? ' need' : ''}${dkwIsPen(id) ? ' pen' : ''}" data-id="${htmlEsc(id)}"><button type="button" class="dkw-use" title="꺼내 쓰기"><span class="dkw-art">${dkwArt(id)}</span><b>${htmlEsc(dkwName(id))}</b>${pg ? '<em>페이지에</em>' : ''}</button></div>`;
@@ -355,7 +356,7 @@
             const u = String(DKW.place).split(':')[0];
             const onChest = !inBox && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
             if (!inBox && !onChest) return false;
-            dkwBackOne(id, true); dkwAtPut(id, DKW.place); if (DKW.f && DKW.f.k && String(dkwP(id).서랍칸 || '') !== DKW.f.k) DKW.f.k = ''; dkwTrayPaint();   // 다른 종류를 보고 있었으면 = 전체로 (넣은 것이 보이게)
+            dkwBackOne(id, true); dkwAtPut(id, DKW.place); if (DKW.f && DKW.f.k && dkwKindName(id) !== DKW.f.k) DKW.f.k = ''; dkwTrayPaint();   // 다른 종류를 보고 있었으면 = 전체로 (넣은 것이 보이게)
             const it = dkwq('dkwIn') && dkwq('dkwIn').querySelector(`.dkw-it[data-id="${CSS.escape(id)}"]:not([aria-hidden])`);
             if (it) { it.scrollIntoView({ block: 'nearest', inline: 'nearest' }); it.animate([{ transform: 'translateY(-26px) scale(1.25)', opacity: .3 }, { transform: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.9,.3,1.2)' }); }   // 쏙 들어가는 모습
             if (window.dkbPulse) { const h = dkwItemEl(u); if (h) dkbPulse(h); }
