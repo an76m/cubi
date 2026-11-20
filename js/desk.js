@@ -1268,6 +1268,23 @@
             return byK.filter(x => !st.s || x.s === st.s).map(x => x.id);
         }
         window.dkFilterBar = dkFilterBar; window.dkSpecOf = dkSpecOf;
+        /* 🗄️ 서랍 안 진열 하나 (도련 11-21 · 1363 · 통일 : ✏️ 문구함 · 📔 📒 🧩 책 서랍 모두)
+           첫 줄부터 왼쪽 → 오른쪽 · 줄이 차면 아래 줄 · 3줄까지 보이고 (서랍 높이 = 든 만큼 · 3줄까지) · 넘으면 📦 소품함처럼 슬라이더로 내려요
+           그리기 = 보이는 줄 + 조금 더만 (내릴 때 더 · 아주 많아도 가벼워요)
+           L = 보일 차례 · make(x) = 카드 (글 또는 요소) · cw · ch = 카드 칸 너비 · 높이 (px) → 진열 요소 */
+        function dkShelf(host, L, make, cw, ch) {
+            host.innerHTML = ''; const sh = document.createElement('div'); sh.className = 'dk-shelf'; host.appendChild(sh);
+            sh.style.setProperty('--cw', cw + 'px'); sh.style.setProperty('--ch', ch + 'px');
+            const G = 6, cols = Math.max(1, Math.floor((Math.max(cw, sh.clientWidth - 16) + G) / (cw + G)));
+            let n = 0;
+            const more = k => { const P = L.slice(n, n + k); n += P.length; P.forEach(x => { const c = make(x); if (typeof c === 'string') sh.insertAdjacentHTML('beforeend', c); else if (c) sh.appendChild(c); }); };
+            more(cols * 5);
+            sh.addEventListener('scroll', () => { if (n < L.length && sh.scrollHeight - sh.scrollTop - sh.clientHeight < ch * 2) more(cols * 4); }, { passive: true });
+            return sh;
+        }
+        window.dkShelf = dkShelf;
+        /* ✋ 서랍 카드 끌기 (하나로) : 🖱 끌면 = 꺼내기 · 옮기기 (내리기 = 휠 · 슬라이더) / 👆 옆으로 끌면 = 꺼내기 · 옮기기 · 위아래로 밀면 = 내리기 → 'pick' | 'scroll' | '' (아직) */
+        window.dkShelfDir = (x0, y0, e) => { const dx = Math.abs(e.clientX - x0), dy = Math.abs(e.clientY - y0); if (Math.max(dx, dy) < 9) return ''; return e.pointerType === 'mouse' || dx > dy ? 'pick' : 'scroll'; };
         const dkbPulse = t => { rePop(t, 'dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)

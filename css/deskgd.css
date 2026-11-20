@@ -49,9 +49,11 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-cat small { margin-left: 4px; font-weight: 800; opacity: .7; }
 .dkw-cat.on { background: var(--dk); color: #fff; }
 .dkw-catsep { flex: none; align-self: center; width: 2px; height: 20px; margin: 0 4px; background: var(--dk); opacity: .45; border-radius: 1px; }   /* 종류 │ 규격 (1360) */
-.dkw-grid { flex: 0 0 100%; display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-auto-columns: 74px; gap: 6px; justify-content: start; padding: 8px; box-sizing: border-box; border: 3px solid var(--dk); background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; }   /* 두 줄 · 옆으로 (위아래로 끌면 꺼내기) */
-.dkw-grid::-webkit-scrollbar { display: none; }
-.dkw-grid.drag, .dkw-grid.drag * { cursor: grabbing; }
+.dk-shelf { --g: 6px; flex: 0 0 100%; box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fill, var(--cw)); grid-auto-rows: minmax(var(--ch), auto); gap: var(--g); justify-content: start; align-content: start; padding: 8px; max-height: calc(var(--ch) * 3 + var(--g) * 2 + 16px + 6px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; border: 3px solid var(--dk); background: repeating-linear-gradient(90deg, var(--dl) 0 22px, var(--dm) 22px 23px); }   /* 🗄️ 서랍 안 진열 하나 (js/desk.js dkShelf · 1363 · 문구함 · 책 서랍) : 3줄까지 · 넘으면 슬라이더 (📦 소품함처럼) */
+.dk-shelf > * { justify-self: center; touch-action: pan-y; }   /* 👆 위아래로 밀기 = 내리기 · 옆으로 끌기 = 꺼내기 */
+.dk-shelf::-webkit-scrollbar { width: 10px; }   /* 슬라이더 늘 보이게 (📦 소품함처럼 · scrollbar-width 를 쓰면 크롬이 이 모양을 무시해요) */
+.dk-shelf::-webkit-scrollbar-thumb { background: var(--dk); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+.dk-shelf::-webkit-scrollbar-track { background: transparent; }
 .dkw-it { position: relative; width: 74px; }
 .dkw-use { width: 100%; border: 0; background: transparent; border-radius: 12px; padding: 4px 2px 5px; text-align: center; color: #5b3f4a; transition: transform .12s, background .12s; }
 .dkw-use:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .7); }
@@ -169,7 +171,7 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 
 /* 🗄️ 📔 📒 책 서랍 (도련 11-20 · js/deskbook.js) : 문구함 서랍 틀 그대로 · 안 = 책 앞모습을 나란히 · 톡 = 꺼내서 펼치기 · 끌기 = 책상에 */
 #dbkTray .dkw-drawer { width: min(760px, 94vw); }
-#dbkTray .dkw-din { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 10px; padding: 14px 16px 16px; min-height: 150px; max-height: 52vh; align-content: start; }
+#dbkTray .dkw-din { padding: 0 14px 14px; }   /* 진열 = .dk-shelf (문구함과 같은 것 · 1363) */
 #dbkTray .dkw-foot { padding: 6px 4px 0; text-align: center; font-size: 12px; font-weight: 700; color: #7a5a66; }
 .dbk-it { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .dbk-art { position: relative; display: block; flex: none; }
@@ -181,6 +183,8 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 /* 🧩 표지 · 내지 서랍 (도련 11-20 · 1355 · js/deskbook.js matCard) */
 .dbk-mat .dbk-art { display: flex; align-items: flex-end; justify-content: center; min-width: 64px; }
 .dbk-mat > small { font-size: 11px; color: #9a7f8c; margin-top: -4px; max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dbk-pickt { flex: 1 0 100%; font-size: 12px; font-weight: 800; color: var(--dk); text-align: center; }
+.dbk-pickt { flex: none; padding: 0 14px 6px; font-size: 12px; font-weight: 800; color: var(--dk); text-align: center; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); }
+.dk-shelf .dbk-it { max-width: var(--cw); }
+.dk-shelf .dbk-it > b { max-width: var(--cw); }
 .dkw-din.dbk-pick .dbk-it { cursor: pointer; }
 .dkw-foot .dbk-pickb { margin-left: 8px; padding: 4px 12px; font-size: 12px; border-radius: 999px; }
