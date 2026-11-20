@@ -2,7 +2,7 @@
    🪑 책상 모드 문구 (도련 11-02 · 현실처럼 · 💻 PC · 📲 아이패드 = html.desk-on · 📱 폰은 예전 🗄️ 문구함 창 그대로)
    - 🏠 문구의 집 (도련 11-05 · 현실처럼) : 봉투에서 끌어 넣은 그 소품 = 그 문구의 집 · 꺼내 쓰기도 거기서만 · 페이지에 꺼낸 문구 ✕ = 집으로
        집 = 'u' (펜꽂이 소품 · 꽂을 수 있는 것만 · 24개까지) · 'u:칸' (서랍장 그 칸 = 문구함 · 문구는 한 칸에 여러 종류 함께)
-       저장 = 'diary_gd_at' { 문구 id: 집 } (책상배치 · js/drive.js DESK_KEYS) · 넣기 = js/desk.js dkGdPut (봉투 카드 · 꺼낸 문구 줄에서 끌어 옮기기)
+       저장 = 'diary_gd_at' { 문구 id: 집 } (펜꽂이 = 배치.json · 서랍 칸 = 설정/서랍/<서랍장>.json · js/holdfile.js · 1351) · 넣기 = js/desk.js dkGdPut (봉투 카드 · 꺼낸 문구 줄에서 끌어 옮기기)
        집이 없어진 문구(소품을 버림 · 서랍 칸을 다른 걸로 바꿈) · 집 없이 받은 문구 = 봉투에 담겨 책상에 (다시 넣어요) · 🎁 처음 선물 = 책상 펜꽂이에 (dkwSweep)
        소품을 소품함에 치우면 = 안에 든 문구도 같이 (다시 꺼내 놓으면 그대로)
    - ✏️ 펜꽂이 소품 톡 = 그 펜꽂이가 앞으로 다가와요 (dkwCupOpen(u)) : 그 펜꽂이에 꽂힌 것만 · 잡고 위로 쏙 = 손에
@@ -42,6 +42,10 @@
            꾸미는 중 · 선물 받는 중 · 책상이 아직 없으면 기다려요 */
         function dkwSweep() {
             if (!dkwDesk() || DK.edit || window.dkGdWait > 0 || !dkOnDesk().length || (window.deskGiftBusy && deskGiftBusy()) || !window.deskBagAdd) return;
+            if (window.hfReady && window.hfLoaded) {                              // 🗄️ 문구함 서랍장 파일을 아직 안 읽었으면 = 읽은 뒤에 (서랍 속 문구를 집 없는 것으로 보지 않게 · js/holdfile.js)
+                const H0 = dkHomes(), us = Object.keys(H0).filter(u => H0[u].some(e => e.k === 'gd') && !hfLoaded(u));
+                if (us.length) { Promise.all(us.map(u => hfReady(u))).then(() => setTimeout(dkwSweep, 0)).catch(() => {}); return; }
+            }
             const at = dkwAt(), st = new Set(window.gdStarter ? gdStarter() : []), lost = []; let ch = false;
             const desk = dkOnDesk(), H = dkHomes(), n = u => Object.values(at).filter(p => p === u).length;
             const first = id => {                                                  // 🎁 처음 자리 = 책상 위 담는 소품 상품의 '처음담기' (도련 11-06 · 상품 순서 · 비어 있으면 봉투)
@@ -283,6 +287,7 @@
             DKW.need = typeof need === 'string' ? need : null; DKW.place = place;
             { const c = dkwq('dkwCup'); if (c && !c.hidden) { c.classList.remove('show'); c.hidden = true; } }   // ✏️ 펜꽂이에서 왔으면 펜꽂이는 내려놓고
             const [hu, hs] = place.split(':'), el = dkwItemEl(hu);
+            if (window.hfReady) { try { await hfReady(hu); } catch (e) { showMsg('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 열어 주세요</small>'); return; } }   // 🗄️ 그 서랍장 파일 (한 번 · js/holdfile.js)
             const c = dkwColors(await dkSlotTone('gd', hu, hs)), r = dkwRoom('dkwTray');   // 🎨 서랍 색 = 그 칸 색 (dkSlotTone 하나로 · 스티커 서랍도 같이)
             r.innerHTML = `<div class="dkw-drawer" style="--db:${c.body};--dl:${c.light};--dk:${c.line};--dm:${c.mid}">
                 <div class="dkw-dtop"><b>🗄️ 문구함</b><small>${htmlEsc(dkwPlaceName(place))}</small><button type="button" class="dkw-bin" id="dkwBin" aria-pressed="false" title="버리기">🗑</button><button type="button" class="dkw-dx" aria-label="닫기" onclick="dkwClose()">✕</button></div>

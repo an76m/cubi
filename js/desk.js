@@ -1695,14 +1695,15 @@
         function dkBagHold(id) { const M = dkyMap(); M._bag = dkBagged().filter(x => x !== id).concat([id]); if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M); }
         window.dkBagHold = dkBagHold;
         const dkvEvery = () => { const bg = dkBagged(); return dkvBooks().map(b => Object.assign({ t: 'dy' }, b)).concat(dkvPages(), (DK.albs || []).map(a => Object.assign({}, a))).filter(x => !bg.includes(x.id)); };   // 봉투 밖 모든 권 (🗄️ 서랍 속 포함)
-        const dkvAll = () => { const c = dkyCur(); return dkvEvery().filter(x => x.id === c || !(window.dbkIn && dbkIn(x.id, x))); };   // 책상 위 = 🗄️ 서랍에 넣은 권은 빼요 (펼쳐 쓰는 권은 늘 책상에 · js/deskbook.js)
+        const dkvAll = () => { const c = dkyCur(), M = dkyMap(); return dkvEvery().filter(x => x.id === c || dkyOk(M[x.id])); };   // 책상 위 = 배치.json 에 책상 자리가 있는 권만 (도련 11-20 · 저장 정리 : 권이 아주 많아도 · 나머지 = 📔 보관소 · 🗄️ 서랍 · 펼쳐 쓰는 권은 늘 책상에)
         const dkvOf = id => dkvAll().find(x => x.id === id);
         function dkyPosOf(id) {                                                   // 그 권 자리 (없으면 줄지어 꽂힌 자리)
             const M = dkyMap(); if (dkyOk(M[id])) return M[id];
             const L = dkvAll().filter(b => !dkyOk(M[b.id])), k = Math.max(0, L.findIndex(b => b.id === id));
-            if (!k) return { x: DESK_W / 2, y: 976, p: 'lay' };                      // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
-            return { x: 1373 - (Math.round(105 * dkvF()) + 10) * (k - 1), y: 870, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
+            return dkyRow(k);
         }
+        const dkyRow = k => !k ? { x: DESK_W / 2, y: 976, p: 'lay' }                // 🛏 처음 = 첫 권은 책상 가운데 앞에 눕혀요 (도련 11-03 · 떠 있던 다이어리를 내려놓으면 여기)
+            : { x: 1373 - (Math.round(105 * dkvF()) + 10) * (k - 1), y: 870, p: 'front' };   // 다른 권 = 앞을 보고 나란히 (도련 10-31)
         const dkvName = b => b.t === 'pg' ? String(b.g || '') : b.t === 'bd' || b.t === 'rl' ? `${b.lb || DKH_NAMES[b.k] || ''} ${b.t === 'bd' ? '바인더' : '이형지북'}` : (window.dyyTitle ? dyyTitle(b) : b.id);
         const dkvIc = b => b.t === 'bd' ? '📒' : b.t === 'rl' ? '🤍' : b.t === 'pg' ? (b.k === '노트' ? '📓' : '🗂️') : '📔';
         const dkvPos = id => (DK.volEdit && DK.volEdit[id]) || dkyPosOf(id);
@@ -1810,6 +1811,7 @@
         /* 펼쳐 둔 권 · 나머지 권 다시 그리기 (권이 바뀌거나 · 새로 받거나 · 버렸을 때 · js/dyyear.js dyyPaint) */
         function dkDeskBooks(alb) {
             if (!document.getElementById('deskStage')) return;
+            { const c = dkyCur(), M = dkyMap(); if (c && !DK.edit && !DK.trial && !(M[c] && (dkyOk(M[c]) || M[c].in)) && !dkBagged().includes(c) && dkvEvery().some(b => b.id === c)) { M[c] = Object.assign({}, dkyPosOf(c), M[c] && M[c].lb ? { lb: M[c].lb } : {}); prefSet(DKY_KEY, DKY_LOCAL, M); } }   // 📔 펼쳐 쓰는 권이 책상 자리가 없으면 = 지금 자리를 적어 둬요 (다른 권을 펼쳐도 책상에 남게)
             if ((alb || !DK.albs) && window.abDeskList && !DK.albGet) { DK.albGet = true; abDeskList().then(L => { DK.albGet = false; const was = JSON.stringify(DK.albs || null); DK.albs = L; if (was !== JSON.stringify(L)) dkVolsPaint(); }).catch(() => { DK.albGet = false; }); }   // 📒 🤍 스티커첩 (한 번 읽어 두고 · 받으면 다시)
             dkVolsPaint();
         }

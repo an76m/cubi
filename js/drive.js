@@ -738,6 +738,7 @@
             drive.monthIndex.clear(); drive.monthBusy.clear();
             drive.books.clear(); drive.bookBusy.clear();
             Object.values(KEY_FILES).forEach(F => { drive[F.prop] = null; });   // 설정 폴더 파일 모두 (도련 11-06 · 새 파일이 늘어도)
+            drive.deskSent = null; if (window.hfReset) hfReset();                 // 🗄️ 서랍장 파일 기억도 (js/holdfile.js)
         }
 
         /* ---------- 읽기 : 설정 / 하루치 ---------- */
@@ -1120,7 +1121,8 @@
         /* 설정 값은 모두 JSON 글자 · 잘못된 값이 하나 섞여도 설정.json 전체가 깨지지 않게 그 값만 빼고 저장 */
         function settingsBody(file) {
             return '{' + store.keys().filter(k => isSettingKey(k) && keyFile(k) === (file || 'settings')).map(k => {
-                const v = store.getItem(k);
+                let v = store.getItem(k);
+                if (file === 'desk' && window.hfOut) v = hfOut(k, v);              // 🗄️ 서랍 칸에 든 문구 · 책은 서랍장 파일로 (js/holdfile.js · 배치 = 책상 위에 보이는 것만 · 도련 11-20)
                 try { JSON.parse(v); } catch (e) { console.warn('설정 값이 JSON 이 아니라서 저장하지 않았어요:', k); return ''; }
                 return JSON.stringify(k) + ':' + v;
             }).filter(Boolean).join(',') + '}';
@@ -1214,11 +1216,14 @@
             let id = known ? known.id : null;
             if (!id && !((drive.deskNone && drive.deskNone.delete(which)) || (drive.keyNone && drive.keyNone.delete(which)))) { const f = await findFile(dir, F.name); id = f ? f.id : null; }   // 처음 = 이름으로 한 번
             goneScrub(which);                                                      // 🚛 목록이 정답
-            const body = settingsBody(which), sealed = await keyFileSeal(which, body);
+            const body = settingsBody(which);
+            if (which === 'desk' && id && drive.deskSent === body) { if (window.hfFlush) await hfFlush(); return; }   // 🗄️ 배치는 그대로 · 서랍 것만 바뀌었어요 (배치.json 은 다시 안 올려요)
+            const sealed = await keyFileSeal(which, body);
             let saved;
             try { saved = await driveUpsert(dir, F.name, id, sealed); }
             catch (e) { if (!(e && e.code === 'gone' && id)) throw e; drive[F.prop] = null; const f = await findFile(dir, F.name); saved = await driveUpsert(dir, F.name, f ? f.id : null, sealed); }   // 그 사이 지워진 번호 → 이름으로 다시
             drive[F.prop] = { id: saved.id, name: F.name, modifiedTime: saved.modifiedTime };
+            if (which === 'desk') { drive.deskSent = body; if (window.hfFlush) await hfFlush(); }   // 🗄️ 그다음 바뀐 서랍장 파일만 (js/holdfile.js)
             if (KEY_MADE.includes(which)) { const m = Object.assign({}, prefGet(MADE_KEY, '') || {}); if (!m[which]) { m[which] = 1; prefSet(MADE_KEY, '', m); if (window.deskBackOne) deskBackOne(which); } }   // 🛟 처음 생긴 목록 = 바로 백업도   // 📝 이 목록 파일을 만든 적 있어요 (없어지면 = 되살리기 · 표시가 없으면 = 아직 안 바뀐 선물 · 도련 11-07)
             if (which === 'cafe') { const o = JSON.parse(body); drive.cafeBase = new Map(Object.keys(o).map(k => [k, JSON.stringify(o[k])])); }
         }
@@ -1952,6 +1957,7 @@
                     const pk = par && pathOf.get(par);
                     if (pk && window.ownForgetDir && ownForgetDir(pk, c.fileId)) continue;   // 🎀 스티커 (목록 · 스티커첩 · 종이)
                     if (par && window.collForgetDir && collForgetDir(par)) continue;          // 🪑 ✏️ 🌈 받은- · 모음 목록
+                    if (par && window.hfForgetDir && hfForgetDir(par, f, c.fileId)) continue;   // 🗄️ 다른 기기가 서랍장 파일을 바꿨어요 → 다음에 쓸 때 다시 읽어요 (js/holdfile.js)
                     if (gone) continue;                                          // 지운 것 = 목록이 같이 바뀌어요
                     diag('remote-unknown', { name: f && f.name }); return false;  // 모르는 파일 → 새로 열기
                 }

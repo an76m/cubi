@@ -8,7 +8,7 @@
      · 빈 칸에 처음 넣은 책이 그 칸 종류를 정해요
    - 빼기 = 서랍을 열고 (서랍장 칸 톡) 책을 끌어 책상에 놓기 (놓은 자리) · 톡 = 꺼내서 펼치기
    - 📔 지금 펼쳐 쓰는 다이어리(dkyCur)는 넣을 수 없어요 (책상에서 떠오르고 내려앉는 그림이 그 권이라서 · 늘 책상에)
-   - 💾 저장 = 배치.json 'diary_desk_dy' 하나 (권마다 한 줄 { in: '서랍장u:칸', p, lb } · 책상 위 = { x, y, p, lb }) · 🚫 드라이브 요청 없어요 (서랍을 열 때 0번 · 책을 펼칠 때만 그 책)
+   - 💾 저장 = 메모리 'diary_desk_dy' (권마다 한 줄 { in: '서랍장u:칸', p, lb } · 책상 위 = { x, y, p, lb }) → 올릴 때 책상 위 것 = 배치.json · 서랍 속 = 설정/서랍/<서랍장>.json (js/holdfile.js · 1351) · 서랍을 열 때 그 서랍장 파일 한 번 (그 뒤 0번)
      · 빈 것인지 쓴 것인지는 여기 적지 않아요 (다이어리 = 다이어리/_목록.json w · 스티커첩 = 폴더)
      · 칸이 없어지거나 다른 것으로 바뀌면 안의 책은 책상 위로 (dbkSlotGone · js/desk.js dkHomesSet) · 서랍장을 📦 소품함에 넣으면 그동안은 책상 위에 보여요 (다시 꺼내면 서랍 속) */
 (function () {
@@ -67,6 +67,7 @@
         const [ic, K] = KN[k];
         if (!S || !dkHoldOk(o.id).includes(k)) { say(`${ic} ${htmlEsc(josa(K, '은', '는'))} <b>${htmlEsc(o ? dkName(o) : '이 소품')}</b>에 넣을 수 없어요.`); return false; }
         if (id === dkyCur()) { say('📔 지금 펼쳐 쓰는 다이어리는 서랍에 넣을 수 없어요.<br><small>다른 다이어리를 펼친 뒤 넣어요</small>'); return false; }
+        if (window.hfReady) { try { await hfReady(o.u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 해 주세요</small>'); return false; } }   // 🗄️ 그 서랍장에 이미 든 책을 알아야 해요 (칸 바꾸기 · js/holdfile.js)
         const u = o.u, nm = dkName(o), Z = dkHomes()[u] || [];
         if (!S.some((r, i) => can(k)(i, Z.find(e => e.s === i)))) { say(`🗄️ <b>${htmlEsc(nm)}</b>에는 ${ic} ${htmlEsc(josa(K, '을', '를'))} 넣을 서랍이 없어요.<br><small>빈 서랍이나 📔 📒 책 서랍에만 넣어요</small>`); return false; }
         const s = DBK.u === u && DBK.k === k && trayOn() ? DBK.s : await dkzChoose(t, o, k, { can: can(k) });
@@ -101,13 +102,13 @@
     /* 칸이 없어지거나 다른 것으로 바뀌었어요 (js/desk.js dkHomesSet) : 그 칸에 있던 책 = 책상 위로 (지워지지 않아요) */
     function dbkSlotGone(was, v) {
         if (!was || typeof was !== 'object') return;
-        const M = dkyMap(); let ch = false;
+        const M = dkyMap(); let ch = false, row = 1;
         const kAt = (H, u, s) => ((H && Array.isArray(H[u]) ? H[u] : []).find(e => e && e.s === s) || {}).k;
         Object.keys(M).forEach(id => {
             const o = M[id]; if (!o || typeof o !== 'object' || typeof o.in !== 'string') return;
             const [u, s] = o.in.split(':'); if (!DK.items.some(x => x.u === u)) return;   // 모르는 서랍장 (목록을 아직 안 읽었어요) = 그대로
             const k0 = dkBk(kAt(was, u, +s)); if (!k0 || k0 === dkBk(kAt(v, u, +s))) return;
-            delete o.in; ch = true;
+            delete o.in; Object.assign(o, (({ x, y, p }) => ({ x, y, p: o.p || p }))(dkyRow(row++))); ch = true;   // 📚 책상 다이어리 줄에 (하나씩 옆으로)
         });
         if (ch) { save(M); dkDeskBooks(); trayPaint(); }
     }
@@ -140,7 +141,8 @@
         r.classList.remove('show'); r.hidden = true; r.innerHTML = '';
         if (!document.querySelector('.dkw-room:not([hidden])')) document.documentElement.classList.remove('dkw-on');
     }
-    function dbkOpen(u, s) {
+    async function dbkOpen(u, s) {
+        if (window.hfReady) { try { await hfReady(u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 열어 주세요</small>'); return; } }   // 🗄️ 그 서랍장 파일 (한 번 · js/holdfile.js)
         s = +s; const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), e = (dkHomes()[u] || []).find(x => x.s === s), k = e && dkBk(e.k); if (!S || !k) return;
         const [ic, K] = KN[k], r = room();
         DBK.u = u; DBK.s = s; DBK.k = k;
