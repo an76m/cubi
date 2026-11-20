@@ -270,10 +270,10 @@
             dkown: { path: dirPath(DIRS.desk), name: '_목록', chunk: 1000, prop: 'deskOwnFile', lazy: 1 },   // 🪑 백 = 소품 / _목록1.json · _목록2.json … (1000개씩 · 도련 11-07 · 벽지 · 책상판도) // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06) · 💤 앱을 켤 때 안 읽어요 = 책상은 배치.json 만으로 · 소품함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · js/desk.js dkOwnReady)
             gdown: { path: dirPath(DIRS.gd), name: '_목록', chunk: 1000, prop: 'gdOwnFile' },   // 🔐 가진 문구 전부 = 백 문구 / _목록1.json … (1000개씩 · 앱을 켤 때 읽어요 = 필기구 · 문구의 집 · 도련 11-07)
             deskset: { path: DESK_PATH, name: '책상설정.json', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
-            dyown: { path: DIARY_PATH, name: '_목록.json', prop: 'dyOwnFile' },   // 🔐 백 = 다이어리 / _목록.json : 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from · 도련 11-07 · 981 · 앱을 켤 때 읽어요 · js/dyown.js)
-            bmown: { path: DIARY_PATH, name: '_바인더재료목록.json', prop: 'bmOwnFile', lazy: 1 },   // 🧩 🔐 다이어리 / _바인더재료목록.json : 가진 표지 · 내지 재료 (두 칸 · 💤 조립 · 만들기 · 받을 때 · 도련 11-08 폴더 둘을 합쳤어요)
-            esown: { path: dirPath(DIRS.emptyBook), name: '_목록.json', prop: 'esOwnFile', lazy: 1 },   // 📥 🔐 빈스티커첩 / _목록.json : 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 📒 바인더 · 🤍 이형지북 (두 칸 · 불러오면 그 종류 _스티커첩.json 으로 · 💤 · 도련 11-08 · js/basket.js FR)
-            bgown: { path: dirPath(DIRS.pattern), name: '_목록.json', prop: 'bgOwnFile', lazy: 1 },  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
+            dyown: { path: DIARY_PATH, name: '_목록', chunk: 1000, prop: 'dyOwnFile' },   // 📚 _목록1.json … (1000줄씩 · 도련 11-20 · 권 번호 · 규격 표 = _목록1)   // 🔐 백 = 다이어리 / _목록.json : 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from · 도련 11-07 · 981 · 앱을 켤 때 읽어요 · js/dyown.js)
+            bmown: { path: DIARY_PATH, name: '_바인더재료목록', chunk: 1000, prop: 'bmOwnFile', lazy: 1 },   // 📚 _바인더재료목록1.json … (1000줄씩 · 도련 11-20)   // 🧩 🔐 다이어리 / _바인더재료목록.json : 가진 표지 · 내지 재료 (두 칸 · 💤 조립 · 만들기 · 받을 때 · 도련 11-08 폴더 둘을 합쳤어요)
+            esown: { path: dirPath(DIRS.emptyBook), name: '_목록', chunk: 1000, prop: 'esOwnFile', lazy: 1 },   // 📚 _목록1.json … (1000줄씩 · 도련 11-20)   // 📥 🔐 빈스티커첩 / _목록.json : 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 📒 바인더 · 🤍 이형지북 (두 칸 · 불러오면 그 종류 _스티커첩.json 으로 · 💤 · 도련 11-08 · js/basket.js FR)
+            bgown: { path: dirPath(DIRS.pattern), name: '_목록', chunk: 1000, prop: 'bgOwnFile', lazy: 1 },   // 📚 _목록1.json … (1000줄씩 · 도련 11-20)  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
             binown: { path: DESK_PATH, name: '_휴지통목록.json', prop: 'binOwnFile' }, // 🔐 🗑 버린 상품 (30일 · 도련 11-06)
 
             me: { path: DESK_PATH, name: '_내정보.json', prop: 'meFile' }              // 🔐 잠금 · 별명 · 생년월일 · 연락처 (도련 11-06 · 개인정보)
@@ -768,9 +768,9 @@
         /* 📚 나눠 담는 목록 (도련 11-07 · 소품 · 문구 = 1000개씩 _목록1.json · _목록2.json …) : 키마다 배열 · 한 칸(u)은 처음 든 파일에 그대로 · 새것은 마지막 파일에
              받으면 마지막 파일 하나 · 버리면 그 칸이 든 파일 하나만 다시 올려요 · 읽을 때는 모두 동시에 · 🔐 파일마다 계정 열쇠 */
         const chunkRe = F => new RegExp('^' + F.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)\\.json$');
-        const chunkKey = e => e && typeof e === 'object' && typeof e.u === 'string' ? e.u : JSON.stringify(e);
+        const chunkKey = e => e && typeof e === 'object' && typeof e.u === 'string' ? e.u : e && typeof e === 'object' && typeof e.id === 'string' ? 'id:' + e.id : JSON.stringify(e);   // 줄 이름 = u (소품 · 문구 · 배경지 · 휴지통 칸) 또는 id (📔 권 · 📥 빈스티커첩 · 🧩 재료 · 도련 11-20) → 고쳐도 처음 파일 그대로
         drive.chunks = {};                                                        // which → { files: Map(n → {id, modifiedTime, body}), of: Map(키 → Map(u → n)) }
-        const chunkBody = (which, o) => { const r = {}; (DESK_FILE_KEYS[which] || []).forEach(k => { if (o && Array.isArray(o[k])) r[k] = o[k]; }); return JSON.stringify(r); };   // 키 순서를 늘 같게 (같은 내용이면 다시 안 올려요)
+        const chunkBody = (which, o) => { const r = {}; (DESK_FILE_KEYS[which] || []).forEach(k => { if (o && o[k] != null) r[k] = o[k]; }); return JSON.stringify(r); };   // 키 순서를 늘 같게 (같은 내용이면 다시 안 올려요) · 배열이 아닌 칸 (📔 권 번호 · 규격 표) = 파일 1 에만 (도련 11-20)
         async function chunkList(which) {
             const F = KEY_FILES[which], dir = await getFolder(F.path, false); if (!dir) return { dir: null, fs: [] };
             const re = chunkRe(F), fs = (await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and name contains '${qName(F.name)}'`, 'id,name,modifiedTime')).map(f => { const m = re.exec(f.name); return m ? Object.assign({ n: +m[1] }, f) : null; }).filter(Boolean);
@@ -786,18 +786,20 @@
             const parts = await Promise.all(fs.map(async f => [f, parseJsonObject(await keyFileText(which, f.id), which) || {}]));
             parts.forEach(([f, o]) => {
                 C.files.set(f.n, { id: f.id, modifiedTime: f.modifiedTime, body: chunkBody(which, o) }); if ((f.modifiedTime || '') > mt) mt = f.modifiedTime || '';
-                keys.forEach(k => { if (!Array.isArray(o[k])) return; (out[k] = out[k] || []).push(...o[k]); o[k].forEach(e => C.of.get(k).set(chunkKey(e), f.n)); });
+                keys.forEach(k => { if (o[k] != null && !Array.isArray(o[k])) { if (f.n === fs[0].n || !(k in out)) out[k] = o[k]; return; } if (!Array.isArray(o[k])) return; (out[k] = out[k] || []).push(...o[k]); o[k].forEach(e => C.of.get(k).set(chunkKey(e), f.n)); });   // 배열이 아닌 칸 = 첫 파일 것
             });
             drive[F.prop] = { id: fs[0].id, name: F.name, modifiedTime: mt };
             return out;
         }
         function chunkSplit(which) {                                               // 지금 메모리 → { n: {키: [...]} }
             const F = KEY_FILES[which], keys = DESK_FILE_KEYS[which] || [], C = drive.chunks[which] || (drive.chunks[which] = { files: new Map(), of: new Map(keys.map(k => [k, new Map()])) });
-            const B = new Map(), cnt = n => { const b = B.get(n); return b ? Object.values(b).reduce((a, x) => a + x.length, 0) : 0; };
+            const B = new Map(), cnt = n => { const b = B.get(n); return b ? Object.values(b).reduce((a, x) => a + (Array.isArray(x) ? x.length : 0), 0) : 0; };
             const put = (n, k, e) => { if (!B.has(n)) B.set(n, {}); const b = B.get(n); (b[k] = b[k] || []).push(e); };
             const later = [];
             keys.forEach(k => {
                 let v = null; try { v = JSON.parse(store.getItem(k)); } catch (e) {}
+                if (v != null && !Array.isArray(v)) { if (!B.has(1)) B.set(1, {}); B.get(1)[k] = v; return; }   // 배열이 아닌 칸 (📔 권 번호 · 규격 표) = 파일 1 에 통째로
+                if (v == null && C.files.size) { let o = {}; try { o = JSON.parse((C.files.get(Math.min(...C.files.keys())) || {}).body) || {}; } catch (e) {} if (o[k] != null && !Array.isArray(o[k])) { if (!B.has(1)) B.set(1, {}); B.get(1)[k] = o[k]; return; } }   // 아직 모르는 칸 = 파일에 있던 그대로
                 if (!Array.isArray(v)) {                                          // 아직 모르는 키 = 파일에 있던 그대로 (지우지 않아요)
                     C.files.forEach((f, n) => { let o = {}; try { o = JSON.parse(f.body) || {}; } catch (e) {} if (Array.isArray(o[k])) o[k].forEach(e => put(n, k, e)); });
                     return;
