@@ -361,29 +361,45 @@
             LG.t = setTimeout(() => { LG.q = LG.q.then(async () => {
                 if (!lgLive()) return;
                 try {
-                    const r = await lgRead(), fresh = LG.fresh; const me = fresh ? LG.d : lgMerge(LG.d, r.d); if (LG.d.root) me.root = LG.d.root;   // 🆕 새 출발 = 합치지 않고 그대로 (freshStart)
+                    const r = await lgRead(); const me = lgMerge(LG.d, r.d); if (LG.d.root) me.root = LG.d.root;
                     LG.d = me; LG.f = r.f || LG.f;
                     const body = await bodySeal(LEDGER_NAME, JSON.stringify(me));   // 🔐
-                    if (LG.f) { const u = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${LG.f}?uploadType=media&fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }); if (u.ok) { if (fresh) LG.fresh = false; return; } if (u.status !== 404) throw await driveFail(u, 'ledger'); LG.f = null; }
+                    if (LG.f) { const u = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${LG.f}?uploadType=media&fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }); if (u.ok) return; if (u.status !== 404) throw await driveFail(u, 'ledger'); LG.f = null; }
                     const b = 'lg_' + Math.random().toString(36).slice(2), meta = { name: LEDGER_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
                     const c = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--` });
                     if (!c.ok) throw await driveFail(c, 'ledger'); LG.f = (await c.json()).id;
                 } catch (e) { console.warn('📒 장부 저장 (다음에 다시)', e); diag('ledger', { bad: 'save' }); setTimeout(ledgerSave, 60000); }
             }); }, 1500);
         }
-        /* 🆕 처음 상태로 (도련 11-21 · 1366 : 드라이브의 말랑달콤 폴더를 지우고 다시 오면 = 첫 접속자처럼 · 브라우저 · 숨은 장부에 남은 옛것이 새 다이어리에 섞이지 않게)
-           loadFromDrive 가 말랑달콤 폴더가 없고 (drive.newbie) 숨은 장부에 예전 폴더 번호가 있을 때 불러요 · 처음 온 다꾸러는 장부가 없어서 그대로 (읽기 기억 · 실물 사본도 그대로 쌓여요)
-           버리는 것 (이 계정 것만 · 다른 계정 · 🏠 로그인 없이 · 👀 구경은 그대로)
-             📒 숨은 장부(appDataFolder)의 영구삭제 목록 (같은 번호의 처음 선물이 '지운 것'으로 숨지 않게 · 은퇴한 예전 폴더 번호는 남겨요)
-             ⚡ 드라이브 읽기 기억 (malang-drc) · 🎀 기억해 둔 스티커 목록 파일 번호 · 완료 전 스티커 쓴 흔적
-             📝 완료 전 임시저장 (다이어리 페이지 · 그림판 · 스티커 정리 · 오리던 모조지) · 📦 내 실물 사본 · ⏳ 못 올린 모음 (옛 폴더 것이 새 폴더로 올라가지 않게) */
+        /* 🆕 초기화 (도련 11-21 · 1369 '구글에서 말랑달콤 폴더를 지우면 = 모든 걸 초기화하고 다시 시작' · 1366 freshStart 를 넓혔어요)
+           말랑달콤 폴더가 없다 = 초기화 → 이 계정의 것을 모두 지우고 로그인도 풀어 처음 화면부터 (첫 접속자와 똑같아요)
+           부르는 곳 = loadFromDrive : 말랑달콤 폴더가 없고 (drive.newbie) 숨은 장부에 예전 폴더 번호가 있을 때 (= 폴더가 있었다가 없어졌어요)
+             · 쓰는 중에 폴더가 지워지면 (rootGone → rootReset) = 다시 열려서 여기로 와요
+             · 처음 온 다꾸러는 장부가 없어서 그대로 (폴더는 처음 저장할 때 생겨요 · 그 전에 다시 열어도 초기화되지 않아요)
+           지우는 것 (차례대로 · 장부를 못 지우면 아무것도 안 지우고 읽기 실패로 · 다음에 다시)
+             📒 숨은 장부(appDataFolder) 파일 통째로 (구글드라이브에서 사용자 눈에 안 보이는 유일한 파일)
+             ⚡ 드라이브 읽기 기억 · 🎀 스티커 목록 파일 번호 · 쓴 흔적 · 📝 완료 전 임시저장 · 📦 내 실물 사본 · 📚 읽어 둔 스티커 · 목록 · ⏳ 못 올린 것 (이 계정 것만)
+             🔑 로그인 기억 → 처음 화면 (구글 · 로그인 없이를 다시 골라요)
+           남기는 것 (도련 11-21) : 🏠 로그인 없이 쓴 다이어리 · 👤 게스트 (그 브라우저가 원본) · 다른 구글 계정 것 · ⚙ 이 기기 화면 기억 · 📦 앱 파일 · 서버(문구점 · 편지함 …)는 앱이 지울 수 없어요 */
         async function freshStart() {
             const w = (typeof COLL !== 'undefined' && COLL.who) || ''; diag('fresh', {});
-            if (LG.ok && Object.keys(LG.d.gone || {}).length) { LG.d.gone = {}; LG.fresh = true; ledgerSave(); }
+            await lgKill();                                                         // 📒 못 지우면 = 여기서 멈춰요 (읽기 실패 · 아무것도 안 지웠어요)
+            LG.d = lgClean(null); LG.f = null;
             if (window.DRC) { try { await DRC.wipe(); } catch (e) {} }
             if (window.ownFresh) ownFresh();
-            if (!w || w === 'me') return;                                           // 계정을 모르면 기기 보관은 건드리지 않아요
-            for (const n of ['mallang-pgdraft', 'mallang-ppdraft', 'mallang-absort', 'mallang-ownpaper', 'malang-mine', 'mallang-coll']) await idbForgetWho(n, w);
+            try { clearPending(); const { forget } = await readAllPending(); await forget(); } catch (e) {}   // ⏳ 못 올린 옛 내용 (새 폴더로 안 올라가요)
+            if (w && w !== 'me') for (const n of ['mallang-pgdraft', 'mallang-ppdraft', 'mallang-absort', 'mallang-ownpaper', 'malang-mine', 'mallang-coll']) await idbForgetWho(n, w);
+            try { ['gdrive_authed', 'malang_dev_mode'].forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (e) {}   // 🔑 로그인 기억 (js/settings.js BC_LOGIN 과 같아요)
+            drive.wiped = true;                                                     // 더 올리지 않아요
+            await showMsg('☁ 구글 드라이브에 <b>말랑달콤</b> 폴더가 없어서<br><b>처음 상태로 초기화</b>했어요.<br><span style="font-size:12px;color:#777;">다시 로그인하면 새로 시작해요</span>');
+            location.reload();
+            await new Promise(() => {});                                            // 다시 열릴 때까지 더 읽지 않아요 (폴더 · 처음 선물을 만들지 않게)
+        }
+        async function lgKill() {                                                   // 📒 숨은 장부 파일 모두 지우기 (여럿이어도) · 실패 = 에러
+            const q = `name='${qName(LEDGER_NAME)}' and 'appDataFolder' in parents and trashed=false`;
+            const r = await gfetch(`${DRIVE_API}?spaces=appDataFolder&q=${encodeURIComponent(q)}&fields=${encodeURIComponent('files(id)')}`, { fresh: 1 });   // 기억 말고 드라이브에 바로
+            if (!r.ok) throw await driveFail(r, 'ledger');
+            for (const f of ((await r.json()).files || [])) { const d = await gfetch(`${DRIVE_API}/${f.id}`, { method: 'DELETE' }); if (!d.ok && d.status !== 404) throw await driveFail(d, 'ledger'); }
         }
         function idbForgetWho(n, w) {                                               // 그 DB 에서 이 계정 것만 (열쇠 또는 값.who 에 계정 번호) · 없는 DB 는 만들지 않아요
             return new Promise(ok => {
@@ -391,7 +407,7 @@
                 r.onupgradeneeded = () => { try { r.transaction.abort(); } catch (e) {} };   // 처음 여는 DB = 없던 것 → 만들지 않고 그만
                 r.onerror = r.onblocked = () => ok();
                 r.onsuccess = () => {
-                    const d = r.result, st = [...d.objectStoreNames].filter(x => n !== 'mallang-coll' || x === 'outbox');   // 📚 모음은 못 올린 일만 (읽어 둔 것은 번호가 달라 안 섞여요)
+                    const d = r.result, st = [...d.objectStoreNames].filter(x => n !== 'mallang-coll' || x !== 'local');   // 📚 모음 = 이 계정 것 모두 (👤 게스트 'local' 은 그대로)
                     if (!st.length) { d.close(); ok(); return; }
                     try {
                         const t = d.transaction(st, 'readwrite');
@@ -1332,8 +1348,7 @@
             drive.wiped = true; clearTimeout(uploadTimer); diag('root', {});
             drive.dirtyKeys.clear(); clearPending();
             const { forget } = await readAllPending(); await forget();
-            await showMsg('☁ 구글 드라이브의 <b>말랑달콤</b> 폴더가 지워졌어요.<br>처음 상태로 다시 열게요.');
-            location.reload();
+            location.reload();                                                  // 다시 열리면 = 초기화 (freshStart · 알림은 거기서 한 번)
         }
         function flushUpload(opts) {
             const force = !!(opts && opts.force);
