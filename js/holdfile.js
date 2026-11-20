@@ -19,7 +19,7 @@
     function split() {
         const per = new Map(), at = u => per.get(u) || (per.set(u, { gd: {}, dy: {} }), per.get(u));
         const G = jget('diary_gd_at'); Object.keys(G).forEach(id => { const p = placeU(G[id]); if (p) at(p[0]).gd[id] = p[1]; });
-        const D = jget('diary_desk_dy'); Object.keys(D).forEach(id => { const o = D[id], p = o && typeof o === 'object' && placeU(o.in); if (!p) return; at(p[0]).dy[id] = Object.assign({ s: p[1] }, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}); });
+        const D = jget('diary_desk_dy'); Object.keys(D).forEach(id => { const o = D[id], p = o && typeof o === 'object' && placeU(o.in); if (!p) return; at(p[0]).dy[id] = Object.assign({ s: p[1] }, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); });   // a = 📒 🤍 스티커첩 사본 (desk.js dkAlbCopies)
         return per;
     }
     const bodyOf = (u, c) => JSON.stringify({ v: 1, u, gd: (c && c.gd) || {}, dy: (c && c.dy) || {} });
@@ -43,11 +43,12 @@
             if (dir) { const f = await findFile(dir, nameOf(u)); if (f) { HF.id.set(u, f.id); try { c = await ownUnlock(await readFileText(f.id)); } catch (e) { console.warn('🗄️ 서랍장 파일을 못 열었어요 (덮어쓰지 않아요)', u, e); HF.busy.delete(u); throw e; } } }
             const G = jget('diary_gd_at'), D = jget('diary_desk_dy'); let gch = false, dch = false;
             if (c && c.gd) Object.keys(c.gd).forEach(id => { if (!(id in G)) { G[id] = u + ':' + c.gd[id]; gch = true; } });
-            if (c && c.dy) Object.keys(c.dy).forEach(id => { if (!(id in D)) { const x = c.dy[id] || {}; D[id] = Object.assign({ in: u + ':' + x.s }, x.p ? { p: x.p } : {}, x.lb ? { lb: x.lb } : {}); dch = true; } });
+            if (c && c.dy) Object.keys(c.dy).forEach(id => { if (!(id in D)) { const x = c.dy[id] || {}; D[id] = Object.assign({ in: u + ':' + x.s }, x.p ? { p: x.p } : {}, x.lb ? { lb: x.lb } : {}, x.a ? { a: x.a } : {}); dch = true; } });
             if (gch) store.putLoaded('diary_gd_at', JSON.stringify(G));            // 올리지 않아요 (읽은 것 그대로)
             if (dch) store.putLoaded('diary_desk_dy', JSON.stringify(D));
             HF.got.set(u, c ? bodyOf(u, c) : bodyOf(u, null));
             HF.busy.delete(u);
+            if (dch && window.DK && DK.albs && !DK.albReal) DK.albs = null;      // 📒 🤍 서랍 속 스티커첩 사본도 더해서 다시
             if (gch && window.dkwDeskSoon) dkwDeskSoon(); if (dch && window.dkDeskBooks) dkDeskBooks();
             return true;
         })();

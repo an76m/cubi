@@ -28,13 +28,13 @@
     const here = (u, s) => { const c = dkyCur(), p = u + ':' + s; return dkvEvery().filter(b => b.id !== c && dbkIn(b.id, b) === p); };
     function setIn(id, p) {                                                       // 서랍에 넣어요 (봉투에서 왔으면 봉투에서도 빼요)
         const M = dkyMap(), o = M[id] && typeof M[id] === 'object' ? M[id] : {};
-        M[id] = Object.assign({ in: p }, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {});
+        M[id] = Object.assign({ in: p }, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {});   // a = 📒 🤍 사본 (desk.js dkAlbCopies)
         if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }
         save(M);
     }
     function takeOut(id) {                                                        // 서랍에서 꺼내 책상 다이어리 줄에 (이름표 · 모습 그대로)
         const M = dkyMap(), o = M[id]; if (!o || typeof o !== 'object' || !o.in) return;
-        const keep = Object.assign({}, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}); M[id] = keep; save(M);
+        const keep = Object.assign({}, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); M[id] = keep; save(M);
         const at = dkyPosOf(id), M2 = dkyMap(); M2[id] = Object.assign({}, at, keep, { p: keep.p || at.p }); save(M2);
     }
     const fits = t => { const o = t && DK.items.find(x => x.u === t.dataset.u); return !!o && o.at === 'desk' && !!dkSlots(o.id) && (dkHoldOk(o.id).includes('dy') || dkHoldOk(o.id).includes('ab')); };
