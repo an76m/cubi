@@ -1170,16 +1170,8 @@
         function dkbGrab(ev, n, j, card) {
             if (ev.button > 0) return; ev.preventDefault();
             const it = (dkBags()[n] || { it: [] }).it[j]; if (!it) return;
-            const gh = card.cloneNode(true); gh.className = 'dkb-card dkb-ghost'; document.body.appendChild(gh);
-            const place = (x, y) => { gh.style.left = x + 'px'; gh.style.top = y + 'px'; };
-            place(ev.clientX, ev.clientY); card.classList.add('dkb-out');
-            let hi = null;
-            const at = (x, y) => { gh.style.display = 'none'; const t = document.elementFromPoint(x, y); gh.style.display = ''; return t && t.closest ? t.closest('#deskStage .desk-item') : null; };
-            const mv = e => { if (e.pointerId !== ev.pointerId) return; place(e.clientX, e.clientY); const t = at(e.clientX, e.clientY); if (t !== hi) { if (hi) hi.classList.remove('dkh-hi'); hi = t; if (hi) hi.classList.add('dkh-hi'); } };
-            const up = e => {
-                if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
-                if (hi) hi.classList.remove('dkh-hi'); gh.remove(); card.classList.remove('dkb-out');
-                if (e.type === 'pointercancel') return;
+            const at = (x, y) => { const t = document.elementFromPoint(x, y); return t && t.closest ? t.closest('#deskStage .desk-item') : null; };
+            const up = e => {                                                    // 끌기 하나로 (js/deskmove.js dkDrag · 바로 끌어요 · 그림 = 카드)
                 const t = at(e.clientX, e.clientY), stg = document.getElementById('deskStage');
                 if (it.k === 'desk' && it.id && dkCat(it.id)) {                    // 🪑 산 소품 = 놓은 자리에 바로
                     const o = (it.u && DK.items.find(x => x.u === it.u)) || [...DK.items].reverse().find(x => x.id === it.id && x.at === 'box'), R = stg && stg.getBoundingClientRect();
@@ -1216,7 +1208,7 @@
                 if (!t) return;                                                   // 소품 밖 = 다시 봉투로
                 dkbHome(t, it, n, j, e.clientX, e.clientY);
             };
-            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+            dkDrag(ev, card, { min: 0, ghost: () => { const g = card.cloneNode(true); g.className = 'dkb-card dkb-ghost'; return g; }, from: 'dkb-out', at, drop: (x, y, e) => up(e) });
         }
         /* 봉투 카드 넣기 (도련 11-01 · 현실처럼) : 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … · 서랍 한 칸 = 한 종류 · 도련 11-01) · 📔 다이어리 = 다이어리 · ✂️ 문구 = 문구함
            넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
@@ -1320,16 +1312,13 @@
             if (t) { t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary, button: e.button, buttons: e.buttons })); return true; }
             const v = P.map(x => x.closest && x.closest('#deskStage .dk-vol')).find(Boolean);
             if (!v || !window.dbkDrop) return false;
-            e.preventDefault(); const x0 = e.clientX, y0 = e.clientY;
-            const mv = m => { if (m.pointerId !== e.pointerId || Math.hypot(m.clientX - x0, m.clientY - y0) < 10) return; off(); dkCarry(v, m, (x, y) => dbkDrop(v.dataset.b, x, y)); };
-            const up = m => { if (m.pointerId !== e.pointerId) return; off(); if (m.type === 'pointerup' && shut) shut(); };
-            const off = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
-            addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+            e.preventDefault();
+            dkDrag(e, v, { drop: (x, y) => dbkDrop(v.dataset.b, x, y), tap: () => { if (shut) shut(); } });   // 끌기 하나로 (js/deskmove.js) · 톡 = 창 밖 톡 (닫기)
             return true;
         }
         window.dkRoomPass = dkRoomPass;
         /* ✋ 서랍 카드 끌기 (하나로) : 🖱 끌면 = 꺼내기 · 옮기기 (내리기 = 휠 · 슬라이더) / 👆 옆으로 끌면 = 꺼내기 · 옮기기 · 위아래로 밀면 = 내리기 → 'pick' | 'scroll' | '' (아직) */
-        window.dkShelfDir = (x0, y0, e) => { const dx = Math.abs(e.clientX - x0), dy = Math.abs(e.clientY - y0); if (Math.max(dx, dy) < 9) return ''; return e.pointerType === 'mouse' || dx > dy ? 'pick' : 'scroll'; };
+        window.dkShelfDir = (x0, y0, e) => { const dx = Math.abs(e.clientX - x0), dy = Math.abs(e.clientY - y0); if (Math.max(dx, dy) < DK_FAR) return ''; return e.pointerType === 'mouse' || dx > dy ? 'pick' : 'scroll'; };
         const dkbPulse = t => { rePop(t, 'dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)
@@ -1399,15 +1388,32 @@
            op = { free : 빈 칸만 누를 수 있게, ask : 위 글, no : 취소 글, more : 세 번째 버튼 글 } */
         async function dkzChoose(t, o, win, op) {
             op = op || {};
-            const S = dkSlots(o.id), im = t.querySelector(':scope > img'), Z = dkHomes()[t.dataset.u] || [], [, K, , ic] = dkWin(win), same = c => !!c && (dkBk(c.k) || c.k) === win;
-            const html = (op.ask || `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요`) + (op.free ? `<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o))} · 빈 서랍만 고를 수 있어요</span>` : '')
-                + `<div class="dkz-pick"><img src="${im ? im.src : ''}" alt=""${o.fl && dkFlipOk(dkCat(o.id)) ? ' style="transform:scaleX(-1)"' : ''}>`
-                + S.map((r, i) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k), off = (op.free && c) || (op.can && !op.can(i, c));   // op.can = 고를 수 있는 칸만 (📔 📒 책 서랍 · js/deskbook.js)
-                    return `<button type="button" class="dkz-slot${same(c) ? ' on' : ''}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"${off ? ' disabled' : ` onclick="closeMsg('s${i}')"`}><b>${dkSlotNm(i, S.length)} 서랍</b><small>${w ? (same(c) && !dkBk(win) ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small></button>`; }).join('') + '</div>';
-            const a = document.getElementById('customAlertConfirmBtn'); a.style.display = 'none';
-            let r; try { r = op.more ? await showAsk3(html, '', op.no || '취소', op.more) : await showAsk(html, '', op.no || '취소'); } finally { a.style.display = ''; }
+            const Z = dkHomes()[t.dataset.u] || [], [, K, , ic] = dkWin(win), same = c => !!c && (dkBk(c.k) || c.k) === win;
+            return dkSlotAsk(t, {
+                head: (op.ask || `${ic} <b>${htmlEsc(josa(K, "을", "를"))}</b> 넣을 서랍을 눌러 주세요`) + (op.free ? `<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o))} · 빈 서랍만 고를 수 있어요</span>` : ''),
+                flip: !!(o.fl && dkFlipOk(dkCat(o.id))), no: op.no, more: op.more,
+                cell: (i, n) => { const c = Z.find(e => e.s === i), w = c && dkWin(c.k);
+                    return { cls: 'dkz-slot' + (same(c) ? ' on' : ''), off: (op.free && c) || (op.can && !op.can(i, c)),   // op.can = 고를 수 있는 칸만
+                        html: `<b>${dkSlotNm(i, n)} 서랍</b><small>${w ? (same(c) && !dkBk(win) ? '✔ 지금 여기' : `${w[3]} ${htmlEsc(w[1])}`) : '비어 있어요'}</small>` }; }
+            });
+        }
+        /* 🎯 칸 고르기 창 하나로 (도련 11-21 · 🗄️ 서랍장 dkzChoose · 🎀 마테 정리함 칸 고르기 · 공통 뼈대 + 칸마다 모습만 달라요)
+           그 소품 그림이 크게 뜨고 · 칸(상품 '소품.slots' %)마다 버튼 → 칸 번호 (취소 = -1 · 세 번째 버튼 = 'more')
+           op = { head : 위 글, slots : 칸 (없으면 그 서랍장 칸), cell(i, 칸 수) → { cls, html, off, title }, flip : 그림 뒤집기, cls : 그림 틀 class 더하기, no : 취소 글, more : 세 번째 버튼 글 } */
+        async function dkSlotAsk(t, op) {
+            const o = DK.items.find(x => x.u === t.dataset.u), S = op.slots || (o && dkSlots(o.id)) || [], im = t.querySelector(':scope > img');
+            const html = op.head + `<div class="dkz-pick${op.cls ? ' ' + op.cls : ''}"><img src="${im ? htmlEsc(im.src) : ''}" alt=""${op.flip ? ' style="transform:scaleX(-1)"' : ''}>`
+                + S.map((r, i) => { const c = op.cell(i, S.length) || {};
+                    return `<button type="button" class="${c.cls || 'dkz-slot'}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"${c.title ? ` title="${htmlEsc(c.title)}"` : ''}${c.off ? ' disabled' : ` onclick="closeMsg('s${i}')"`}>${c.html || ''}</button>`; }).join('') + '</div>';
+            const r = await dkAskPick(html, op.no, op.more);
             return r === 'extra' ? 'more' : typeof r === 'string' && r[0] === 's' ? +r.slice(1) : -1;
         }
+        /* 🎯 고르기 창 (확인 버튼 없이 · 고를 것을 누르면 closeMsg('글자') · 취소 · 세 번째 버튼) : 칸 고르기 · 🎀 꽂을 테이프 고르기 같은 곳 모두 */
+        async function dkAskPick(html, no, more) {
+            const a = document.getElementById('customAlertConfirmBtn'); if (a) a.style.display = 'none';
+            try { return more ? await showAsk3(html, '', no || '취소', more) : await showAsk(html, '', no || '취소'); } finally { if (a) a.style.display = ''; }
+        }
+        window.dkSlotAsk = dkSlotAsk; window.dkAskPick = dkAskPick;
         /* 🏷 칸 이름표 옮기기 (도련 11-01) : 칸이 바뀌면 이름표 자리도 그 칸만큼 같이 (직접 옮긴 자리 그대로 · 처음 자리면 새 칸 가운데) */
         function dkzTagMove(g, r0, r1) {
             const t = Object.assign({}, g); if (!r0 || !r1) { delete t.x; delete t.y; return t; }
@@ -1831,7 +1837,7 @@
             const mv = e => {
                 if (e.pointerId !== ev.pointerId) return;
                 if (!DK.edit) {                                                   // ✋ 평소 = 끌어서 🗄️ 서랍장에 넣기 (도련 11-20 · 문구처럼 · js/deskbook.js) · 자리 옮기기는 🛠 꾸미기에서만
-                    if (carried || Math.hypot(e.clientX - x0, e.clientY - y0) < 10 || !window.dkCarry || !window.dbkDrop || document.documentElement.classList.contains('desk-show')) return;
+                    if (carried || !dkFar(x0, y0, e) || !window.dkCarry || !window.dbkDrop || document.documentElement.classList.contains('desk-show')) return;
                     carried = true; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
                     dkCarry(el, e, (x, y) => dbkDrop(id, x, y)); return;
                 }
@@ -1843,7 +1849,7 @@
             const up = e => {
                 if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); el.classList.remove('lift');
                 if (e.type === 'pointercancel') return;
-                if (!DK.edit) { if (Math.hypot(e.clientX - x0, e.clientY - y0) < 10) dkVolOpen(id); return; }   // 평소 톡 = 그 권 펼치기
+                if (!DK.edit) { if (!dkFar(x0, y0, e)) dkVolOpen(id); return; }   // 평소 톡 = 그 권 펼치기
                 if (moved) { dkvSet(id, dkvFromEl(el)); dkVolsPaint(); dkvMenu(null); } else dkvMenu(id);
             };
             addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
@@ -1936,14 +1942,8 @@
             put(el, 'dkb-zitem');
             const shut = fast => dkwZoomOut(r, fast);                             // 날아가 제자리로 (도련 11-11)
             vols.forEach(v => {
-                const c = put(v, 'dkb-zvol'), id = v.dataset.b; c.classList.remove('cur', 'pose-on'); let p = null;
-                c.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { c.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
-                c.addEventListener('pointermove', e => {
-                    if (!p || e.pointerId !== p.id) return; const up = Math.max(0, p.y - e.clientY); c.style.translate = `0 ${(-up / k).toFixed(1)}px`;
-                    if (up > 60) { p = null; buzz(12); if (window.dkCarry) dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(true); }   // ✋ 뽑은 채로 끌어 놓은 자리에
-                });
-                const end = e => { if (!p || e.pointerId !== p.id) return; const tap = Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6; p = null; c.style.translate = ''; if (tap && window.dkwSay) dkwSay('✋ 잡고 위로 쏙 뽑아요', c); };
-                c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+                const c = put(v, 'dkb-zvol'), id = v.dataset.b; c.classList.remove('cur', 'pose-on');
+                dkPull(c, { k, up: 60, hint: '✋ 잡고 위로 쏙 뽑아요', out: e => { dkCarry(c, e, (x, y) => { dkvPlace(id, x, y); }); c.style.opacity = '0'; shut(true); } });   // ✋ 위로 쏙 뽑기 하나로 (js/deskmove.js) · 뽑은 채로 끌어 놓은 자리에
             });
             r.onpointerdown = e => { if (e.target === r) shut(); };
             dkwZoomIn(r, r.querySelector('.dkb-zart'), el, vols);                 // 🔍 책상 위 작은 바구니 · 안의 다이어리는 비워 두고 · 그 자리에서 날아와요

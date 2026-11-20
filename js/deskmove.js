@@ -55,11 +55,8 @@
     /* 🗄️ 서랍이 열려 있으면 넣는 길 둘 (도련 11-12 · ✏️ 문구 = js/deskgd.js dkwTrayInto 와 같아요) : 밖에 나온 스티커 · 마테를 ① 열린 그 종류 서랍 창 안 ② 그 서랍장에 끌어 놓기 = 고르기 없이 그 서랍 · 창에 바로 보여요 */
     function drawerInto(o, x, y) {
         const kind = o.k === 'tape' ? 'tape' : o.kind; if (!window.bkDrawerKind || bkDrawerKind() !== kind) return false;
-        const m = document.getElementById('basketKindModal'), box = m && m.querySelector('.modal-content'), b = box && box.getBoundingClientRect();
-        const inBox = !!b && b.width > 0 && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom;
-        const u = window.dkDrawerU ? dkDrawerU() : '';
-        const onChest = !inBox && !!u && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
-        if (!inBox && !onChest) return false;
+        const m = document.getElementById('basketKindModal'), box = m && m.querySelector('.modal-content'), u = window.dkDrawerU ? dkDrawerU() : '';
+        if (!drawerHit(box, u, x, y)) return false;                            // 🗄️ 넣는 자리 = 하나로 (drawerHit)
         const A = window.dktApi; if (o.k === 'tape' && A) { const w = o.from || A.where(o.id); if (w) A.put(o.id, w, null); }   // 정리함에서 빠져요
         if (window.dsPutBack) dsPutBack(o.id);                                  // 꺼낸 것 치우기 = 서랍 창이 바로 다시 그려요 (js/basket.js dsDrop)
         const h = u && document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (h && window.dkbPulse) dkbPulse(h);
@@ -72,23 +69,80 @@
         const t = holderAt(x, y); if (!t || !fits(t, o)) return false;
         await store(t, o); return true;                                         // 취소해도 = 넣지 않았을 뿐 (꺼낸 자리 그대로)
     }
-    /* ✋ 손으로 끌기 : 그림이 손을 따라와요 → 놓으면 done(x, y) */
-    function carry(src, ev, done) {
-        const r = src.getBoundingClientRect(), g = src.cloneNode(true);
-        g.classList.add('dkm-ghost'); g.removeAttribute('id'); g.classList.remove('grab', 'pull', 'dkt-lift');
-        Object.assign(g.style, { width: Math.max(24, Math.min(160, r.width)) + 'px', height: Math.max(24, Math.min(220, r.height)) + 'px', left: ev.clientX + 'px', top: ev.clientY + 'px', transform: 'none', translate: '', opacity: '' });
-        document.body.appendChild(g); src.classList.add('dkm-from');
+    /* ✋ 끌기 하나로 (도련 11-21 · 공통 뼈대 하나 + 상품마다 다른 것만 덧붙여요) : 책상의 모든 '그림이 손을 따라오는 끌기' = 이 함수
+         봉투 카드 · 꺼낸 문구 줄 · 서랍 카드 · 책상 책 · 마테 롤 · 🏪 적용해보기 테이프 · 펜꽂이 · 정리함에서 뽑은 것 모두 같아요
+       DK_FAR = 끌기로 치는 거리 하나 (그보다 덜 움직이고 떼면 = 톡) · dkFar(x0, y0, e) = 그만큼 움직였나요
+       dkDrag(ev, src, op) : ev = pointerdown (또는 이미 움직이는 중인 pointermove)
+         op.min   = 끌기 시작 거리 (기본 DK_FAR · 0 = 바로 끌기)
+         op.ghost = 따라올 그림 만들기 (src → 요소 · 기본 = src 그림 그대로 · .dkm-ghost)
+         op.grab  = true → 잡은 자리 그대로 따라와요 (기본 = 그림 가운데가 손끝)
+         op.at    = 지금 손 아래 보관함 (x, y → 요소 · 반짝 표시 · 기본 = 책상 보관함 · null = 표시 없음)
+         op.from  = 끄는 동안 원래 그림에 붙일 class (기본 'dkm-from' · '' = 없음)
+         op.dir   = (x0, y0, e) → 'pick' | 'scroll' | '' (서랍 카드 = dkShelfDir · scroll = 끌기 안 하고 놓아줘요)
+         op.start(e) · op.tap(e) · op.drop(x, y, e, hi) · op.cancel() */
+    const DK_FAR = 8;
+    const far = (x0, y0, e) => Math.hypot(e.clientX - x0, e.clientY - y0) >= DK_FAR;
+    function drag(ev, src, op) {
+        op = op || {};
+        const x0 = ev.clientX, y0 = ev.clientY, min = op.min == null ? DK_FAR : op.min, at = op.at === undefined ? holderAt : op.at, from = op.from == null ? 'dkm-from' : op.from;
+        let g = null, hi = null, ox = 0, oy = 0, on = false;
+        const place = e => { g.style.left = (e.clientX - ox) + 'px'; g.style.top = (e.clientY - oy) + 'px'; };
+        const light = t => { if (t === hi) return; if (hi) hi.classList.remove('dkh-hi'); hi = t; if (hi) hi.classList.add('dkh-hi'); };
+        const begin = e => {
+            on = true; const r = src.getBoundingClientRect();
+            g = op.ghost ? op.ghost(src) : ghostOf(src, r); g.removeAttribute('id'); g.style.pointerEvents = 'none';
+            if (op.grab) { ox = e.clientX - r.left; oy = e.clientY - r.top; Object.assign(g.style, { width: r.width + 'px', height: r.height + 'px' }); }
+            document.body.appendChild(g); place(e); if (from) src.classList.add(from);
+            if (op.start) op.start(e);
+        };
+        const off = () => { removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };
         const mv = e => {
-            if (e.pointerId !== ev.pointerId) return; g.style.left = e.clientX + 'px'; g.style.top = e.clientY + 'px';
-            const t = holderAt(e.clientX, e.clientY); document.querySelectorAll('.dkh-hi').forEach(x => { if (x !== t) x.classList.remove('dkh-hi'); }); if (t) t.classList.add('dkh-hi');
+            if (e.pointerId !== ev.pointerId) return;
+            if (!on) {
+                if (op.dir) { const d = op.dir(x0, y0, e); if (d === 'scroll') { off(); if (op.cancel) op.cancel(); return; } if (d !== 'pick') return; }
+                else if (min && Math.hypot(e.clientX - x0, e.clientY - y0) < min) return;
+                begin(e);
+            }
+            place(e); if (at) light(at(e.clientX, e.clientY));
         };
         const up = e => {
-            if (e.pointerId !== ev.pointerId) return; removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true);
-            g.remove(); src.classList.remove('dkm-from'); document.querySelectorAll('.dkh-hi').forEach(x => x.classList.remove('dkh-hi'));
-            if (e.type === 'pointerup') done(e.clientX, e.clientY);
+            if (e.pointerId !== ev.pointerId) return; off();
+            const t = hi; light(null); if (g) g.remove(); if (from) src.classList.remove(from);
+            if (e.type !== 'pointerup') { if (op.cancel) op.cancel(); return; }
+            if (!on) { if (op.tap) op.tap(e); return; }
+            if (op.drop) op.drop(e.clientX, e.clientY, e, at ? at(e.clientX, e.clientY) || t : null);
         };
         addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+        if (!min && !op.dir) { begin(ev); if (at) light(at(ev.clientX, ev.clientY)); }   // 바로 끌기 (이미 움직이는 중 · 뽑은 채로)
+        return { stop: () => { off(); light(null); if (g) g.remove(); if (from) src.classList.remove(from); } };
     }
+    function ghostOf(src, r) {                                                // 기본 따라오는 그림 = 그 그림 그대로 (크기만 알맞게)
+        const g = src.cloneNode(true);
+        g.classList.add('dkm-ghost'); g.classList.remove('grab', 'pull', 'dkt-lift', 'dkm-from');
+        Object.assign(g.style, { width: Math.max(24, Math.min(160, r.width)) + 'px', height: Math.max(24, Math.min(220, r.height)) + 'px', transform: 'none', translate: '', opacity: '' });
+        return g;
+    }
+    /* ✋ 손으로 끌기 (바로) : 그림이 손을 따라와요 → 놓으면 done(x, y) · dkDrag 의 짧은 이름 */
+    function carry(src, ev, done) { return drag(ev, src, { min: 0, drop: (x, y) => done(x, y) }); }
+    /* ✋ 위로 쏙 뽑기 하나로 (🎀 확대한 정리함 롤 · 🧺 바구니 책 · ✏️ 펜꽂이는 옆으로 밀기도 있어서 따로) : 잡고 위로 op.up 만큼 = 뽑혀요 → op.out(e) · 톡 = op.hint 글 */
+    function pull(b, op) {
+        let p = null; const k = () => op.k || 1;
+        b.addEventListener('pointerdown', e => { if (e.button > 0) return; e.preventDefault(); e.stopPropagation(); try { b.setPointerCapture(e.pointerId); } catch (er) {} p = { id: e.pointerId, y: e.clientY, x: e.clientX }; b.classList.add('grab'); });
+        b.addEventListener('pointermove', e => {
+            if (!p || e.pointerId !== p.id) return;
+            const up = Math.max(0, p.y - e.clientY); b.style.translate = `0 ${(-up / k()).toFixed(1)}px`;
+            if (up > op.up) { p = null; b.classList.remove('grab'); buzz(12); op.out(e); }   // 쏙 뽑혔어요
+        });
+        const end = e => { if (!p || e.pointerId !== p.id) return; const tap = !far(p.x, p.y, e); p = null; b.classList.remove('grab'); b.style.translate = ''; if (tap && op.hint && window.dkwSay) dkwSay(op.hint, b); };
+        b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+    }
+    /* 🗄️ 열린 서랍에 넣는 자리 하나로 (✏️ 문구함 · 🏷️ 스티커 · 🎀 마테 서랍 창 · 📔 📒 🧩 책 서랍) : ① 열린 서랍 창 안 ② 그 서랍장 위 → true */
+    function drawerHit(box, u, x, y) {
+        const b = box && box.getBoundingClientRect();
+        if (b && b.width > 0 && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) return true;
+        return !!u && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
+    }
+    window.DK_FAR = DK_FAR; window.dkFar = far; window.dkDrag = drag; window.dkPull = pull; window.dkDrawerHit = drawerHit;
     /* ✋ 톡 = 화면 가운데로 날아오기 (마테 롤 · 펜 · 서랍 문구 · 스티커 종이 모두 같은 모습) : 그 그림이 제자리에서 떠올라 가운데로 → 끝나면 resolve */
     function fly(src, x, y) {
         return new Promise(ok => {

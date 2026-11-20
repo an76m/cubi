@@ -76,11 +76,11 @@
         dkDeskBooks(); dknPaintAll(); deskFnPaint(); dkbPulse(t); trayPaint(); bndSoon();
         return true;
     }
-    /* ✋ 끌어 놓았어요 (책상 위 책 · 서랍 속 책) : 열린 서랍 창 안 = 그 서랍 · 서랍장 위 = 칸 고르기 · 그 밖 = 넣지 않아요 → true = 넣었어요 */
+    /* ✋ 끌어 놓았어요 (책상 위 책 · 서랍 속 책) : 열린 서랍 창 안 · 그 서랍장 위 = 그 서랍 (문구 · 스티커와 같아요) · 다른 서랍장 위 = 칸 고르기 · 그 밖 = 넣지 않아요 → true = 넣었어요 */
     async function dbkDrop(id, x, y) {
         const b = bookOf(id); if (!b || DK.edit) return false;
-        const k = kindOf(b), box = trayBox();
-        if (box && x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) {
+        const k = kindOf(b);
+        if (trayHit(x, y) || (DBK.k === k && trayHit(x, y, true))) {           // 다른 종류를 그 서랍장에 = 아래 칸 고르기
             const t = document.querySelector(`#deskStage .desk-item[data-u="${DBK.u}"]`);
             if (DBK.k !== k) { const [ic, K] = KN[k], [ic2, K2] = KN[DBK.k]; say(`${ic2} 이 서랍은 ${K2} 서랍이에요.<br><small>${ic} ${htmlEsc(josa(K, '은', '는'))} 빈 서랍이나 ${ic} ${K} 서랍에 넣어요</small>`); return false; }
             if (dbkIn(id, b) === DBK.u + ':' + DBK.s) return false;
@@ -107,17 +107,7 @@
     /* ---------- 🗄️ 서랍 창 (서랍장 칸 톡 → 서랍이 열리며 위에서 내려와요 · js/desk.js dkDrawerPull) ---------- */
     const trayEl = () => document.getElementById('dbkTray');
     const trayOn = () => { const r = trayEl(); return !!r && !r.hidden && !!DBK.u; };
-    const trayBox = () => { if (!trayOn()) return null; const d = trayEl().querySelector('.dkw-drawer'); return d ? d.getBoundingClientRect() : null; };
-    function room() {
-        let r = trayEl(); if (r) return r;
-        r = document.createElement('div'); r.id = 'dbkTray'; r.className = 'dkw-room'; r.hidden = true;
-        r.addEventListener('pointerdown', e => {
-            if (e.target !== r) return;
-            if (dkRoomPass(e, shut)) return;                                      // ✋ 책상 위 책 끌기 · 📌 작은 펜꽂이 도구 (문구함 창과 같은 것 · js/desk.js)
-            if (window.dkDrawerOwns && dkDrawerOwns(r) && window.deskTapAt && deskTapAt(e.clientX, e.clientY)) return; shut();   // 창 밖 = 그 자리 책상 톡 (다른 서랍처럼)
-        });
-        document.body.appendChild(r); return r;
-    }
+    const trayHit = (x, y, chest) => trayOn() && dkDrawerHit(trayEl().querySelector('.dkw-drawer'), chest ? DBK.u : '', x, y);   // 🗄️ 열린 서랍 창 안 (chest = 그 서랍장 위도) · 넣는 자리 하나로 (js/deskmove.js)
     function shut() { const r = trayEl(); if (!r || r.hidden) return; if (window.dkDrawerOwns && dkDrawerOwns(r)) { dkDrawerShut(true); return; } dbkClose(); }
     function dbkClose() {
         const r = trayEl(); DBK.u = ''; DBK.s = -1; if (!r) return;
@@ -128,15 +118,13 @@
         if (window.hfReady) { try { await hfReady(u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 열어 주세요</small>'); return; } }   // 🗄️ 그 서랍장 파일 (한 번 · js/holdfile.js)
         s = +s; const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), e = (dkHomes()[u] || []).find(x => x.s === s), k = e && dkBk(e.k); if (!S || !k) return;
         if (k === 'bm') await matReady();                                         // 💤 🧩 재료 목록 (켤 때 안 읽어요 · 한 번)
-        const [ic, K] = KN[k], r = room();
+        const [ic, K] = KN[k];
         DBK.u = u; DBK.s = s; DBK.k = k; DBK.pick = false; DBK.f = { k: '', s: '' };   // 🗂 처음 = 전체
-        r.innerHTML = `<div class="dkw-drawer dbk-drawer"><div class="dkw-dtop"><b>${ic} ${K} 서랍</b><small>${htmlEsc(dkName(o))} ${dkSlotNm(s, S.length)} 칸</small><button type="button" class="dkw-dx" aria-label="닫기">✕</button></div>`
-            + `<div class="dkw-cats" id="dbkCats" hidden></div><div class="dkw-din" id="dbkIn"></div><div class="dkw-dfront"><span class="dkw-lbl">${ic} ${K}</span><i class="dkw-knob"></i></div><div class="dkw-foot"><span>${k === 'bm' ? '톡 = 꺼내서 🧩 조립 바구니로' : '톡 = 꺼내서 펼치기 · 끌어서 책상에 놓기'}</span>${k === 'bm' ? '<button type="button" class="btn dbk-pickb">🧺 바구니에서 넣기</button>' : ''}</div></div>`;
-        r.querySelector('.dkw-dx').onclick = shut;
+        const r = await dkDrawerWin('dbkTray', { k: e.k, u, s, cls: 'dbk-drawer', title: `${ic} ${K} 서랍`, sub: `${dkName(o)} ${dkSlotNm(s, S.length)} 칸`, label: `${ic} ${K}`, cats: 'dbkCats', inn: 'dbkIn', shut,   // 🗄️ 서랍 창 하나로 (문구함과 같은 창 · js/deskgd.js)
+            foot: `<span>${k === 'bm' ? '톡 = 꺼내서 🧩 조립 바구니로' : '톡 = 꺼내서 펼치기 · 끌어서 책상에 놓기'}</span>${k === 'bm' ? '<button type="button" class="btn dbk-pickb">🧺 바구니에서 넣기</button>' : ''}` });
+        if (DBK.u !== u || DBK.s !== s) return;                                   // 색을 칠하는 사이 다른 서랍을 열었어요
         const pb = r.querySelector('.dbk-pickb'); if (pb) pb.onclick = () => { DBK.pick = !DBK.pick; DBK.f = { k: '', s: '' }; trayPaint(); };
-        if (window.dkSlotPaint) dkSlotPaint(r.querySelector('.dkw-drawer'), e.k, u, s, [248, 191, 205]);   // 🎨 서랍 색 = 그 칸 색 (문구함 · 스티커 서랍과 같은 함수)
-        r.hidden = false; requestAnimationFrame(() => r.classList.add('show')); document.documentElement.classList.add('dkw-on');
-        trayPaint();
+        dkDrawerShow(r, u, trayPaint);
     }
     function trayPaint() {
         const inn = document.getElementById('dbkIn'); if (!inn || !trayOn()) return;
@@ -183,24 +171,20 @@
         const t = document.querySelector(`#deskStage .desk-item[data-u="${DBK.u}"]`); if (!t) return;
         if (await dbkPut(b.id, t, 'bm', { s: DBK.s })) trayPaint();             // 열린 서랍 = 그 칸
     }
-    function grab(ev, it, b) {                                                    // 톡 = 꺼내서 펼치기 · 끌기 = 손에 들고 놓은 곳에 · 👆 위아래로 밀기 = 내리기
+    function grab(ev, it, b) {                                                    // 톡 = 꺼내서 펼치기 · 끌기 = 손에 들고 놓은 곳에 · 👆 위아래로 밀기 = 내리기 (끌기 하나로 · js/deskmove.js dkDrag)
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
-        const x0 = ev.clientX, y0 = ev.clientY, art = it.querySelector('.dbk-art');
-        const mv = e => {
-            if (e.pointerId !== ev.pointerId) return; const dir = dkShelfDir(x0, y0, e);   // 끌기 = 꺼내기 · 옮기기 · 👆 위아래로 밀기 = 내리기 (문구함과 같은 규칙 · js/desk.js)
-            if (dir === 'scroll') { off(); return; } if (dir !== 'pick') return;
-            off(); if (window.buzz) buzz(12);
-            dkCarry(art, e, async (x, y) => {
-                const box = trayBox(); if (box && x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) return;   // 서랍 안 = 그대로
+        dkDrag(ev, it.querySelector('.dbk-art'), {
+            dir: dkShelfDir,                                                      // 끌기 = 꺼내기 · 옮기기 · 👆 위아래로 밀기 = 내리기 (문구함과 같은 규칙 · js/desk.js)
+            start: () => { if (window.buzz) buzz(12); },
+            tap: () => { takeOut(b.id); dkDeskBooks(); shut(); setTimeout(() => b.mat ? window.bndOpen && bndOpen() : dkVolOpen(b.id), 360); },   // 톡 = 꺼내서 펼치기 · 🧩 재료 = 조립 방 바구니로
+            drop: async (x, y) => {
+                if (trayHit(x, y)) return;                                       // 서랍 안 = 그대로
                 const t = chestAt(x, y);
                 if (t && fits(t)) { if (await dbkPut(b.id, t, kindOf(b))) trayPaint(); return; }
                 if (b.mat) { say('🧩 표지 · 내지는 책상 위에 놓을 수 없어요.<br><small>서랍에 그대로 있어요 · 톡 하면 🧩 조립 바구니로 꺼내요</small>'); trayPaint(); return; }   // 🧩 재료는 책상에 안 놓여요 = 서랍에 그대로 (도련 11-20 · 1358)
                 if (dkvPlace(b.id, x, y)) trayPaint();                            // 📚 놓은 자리에 (책상)
-            });
-        };
-        const up = e => { if (e.pointerId !== ev.pointerId) return; off(); if (e.type === 'pointerup') { takeOut(b.id); dkDeskBooks(); shut(); setTimeout(() => b.mat ? window.bndOpen && bndOpen() : dkVolOpen(b.id), 360); } };   // 톡 = 꺼내서 펼치기 · 🧩 재료 = 조립 방 바구니로
-        const off = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
-        addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+            }
+        });
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && trayOn() && !document.querySelector('.modal[style*="flex"]')) { e.stopPropagation(); shut(); } }, true);
 
