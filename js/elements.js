@@ -142,22 +142,15 @@
         }
 
         /* 📚 기본스티커 : 그림과 목록은 Cloudflare 그림 보관함(KIT_BASE)에 있어요 (도구/말랑달콤_포장기.html 로 만든 zip 을 올려요)
-           - list.json : images [{ f, c }] 씰 낱장 · sheets [{ c, fs }] 씰 종이 · kits { 종류: [{ c, fs }] · [{ c, f }] } · t [미리보기가 있는 그림]
-             f = 그림 파일 이름 (같은 그림은 늘 같은 이름) → 원본 KIT_BASE/k/이름 · 미리보기 KIT_BASE/t/지문.webp (작게 보여 줄 때)
+           - list.json : images [{ f, c }] 씰 낱장 · sheets [{ c, fs }] 씰 종이 · kits { 종류: [{ c, fs }] · [{ c, f }] }
+             f = 그림 파일 이름 (같은 그림은 늘 같은 이름) → 원본 KIT_BASE/k/이름 (🖼️ 도련 11-20 : t/ 작은판 없앴어요 · 샵 진열대 미리보기는 🏷️ 씰 · 🧩 조각만 p/ · 나머지는 어디서나 원본)
            - 다이어리 안에서는 주소로 바꿔서 써요 : images [{ u, c }] · sheets [{ c, us }] · kits [{ c, us }] · [{ c, u }]
            - c = 기본스티커/씰스티커 아래 폴더 이름 = 카테고리 ('' 이면 '기본' 카테고리) · 나머지 종류는 js/stk-basic.js 가 각 창의 기본 칸에 제가 그린 그림과 섞어서 보여요
            - 카테고리만 이름이 보여요 ('1. 캐릭터' 처럼 앞 번호는 순서용 · 화면에는 '캐릭터') · 스티커 이름은 없어요
            - 목록은 앱을 켠 동안 한 번만 받아요 (basicKit) · 🏪 기본상품 샵이 써요 (js/basket.js · 🎒 유한 스티커 10-25 : 예전 그림 모음 목록 창은 없앴어요) */
         const KIT_BASE = 'https://malang-img.pages.dev';                    // ← 🖼️ 그림 보관함 (Cloudflare Pages 주소 · 끝에 / 없이)
-        const KIT_THUMB = new Set();                                         // 미리보기(t/)가 따로 있는 그림 지문
         const kitOk = f => typeof f === 'string' && /^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$/.test(f);
         const kitUrl = f => KIT_BASE + '/k/' + f;
-        /* 보여 줄 크기에 맞는 주소 : 작게(400 이하)는 미리보기 · 크게는 원본 */
-        function kitSize(u, w) {
-            u = String(u || '');
-            if (u.startsWith(KIT_BASE + '/k/')) { const f = u.slice(KIT_BASE.length + 3), h = f.split('.')[0]; return w <= 400 && KIT_THUMB.has(h) ? KIT_BASE + '/t/' + h + '.webp' : u; }
-            return u;
-        }
         const libCatName = c => c.replace(/^\d+\s*[.)_\-]?\s*/, '') || c;
         window.elOrig = elOrig;
 
@@ -183,7 +176,6 @@
         const kitP = P => P && typeof P === 'object' && !Array.isArray(P) ? P : {};   // 🧁 상품 속성 (이름 · 분류 · 순서 · 신상 · 종류별 값 · 상품공방이 넣어요)
         function kitParse(d) {
             {
-                (Array.isArray(d.t) ? d.t : []).forEach(h => { if (/^[0-9a-f]{16}$/.test(h)) KIT_THUMB.add(h); });
                 const us = fs => (Array.isArray(fs) ? fs : []).filter(kitOk).slice(0, KIT_MAX).map(kitUrl);
                 const pv = a => Array.isArray(a) && /^[0-9a-f]{16}$/.test(a[0]) && a.slice(1).every(n => typeof n === 'number' && n >= 0) ? { u: KIT_BASE + '/p/' + a[0] + '.webp', y: a[1], h: a[2], H: a[3], w: a[4] } : null;   // 🖼️ 묶음 미리보기 (포장기가 8장씩 한 파일에 세로로 · pa = [지문, y, 높이, 전체 높이, 폭] · 기본상품 샵 카드용)
                 const kits = {};
@@ -217,7 +209,7 @@
             return basicKitP;
         }
         /* (미리 받기는 안 해요 · 겉표지를 열 때 버벅여서 · 도련 10-25 → 기본상품 샵을 열 때 받아요) */
-        window.basicKit = basicKit; window.kitSize = kitSize; window.kitName = libCatName;
+        window.basicKit = basicKit; window.kitName = libCatName;
 
 
         /* 🔒 페이지 스티커 크기 바꾸기 막기 (도련 · 2026-10-16) : 빨간 점선 네모의 꼭짓점 · 두 손가락 · 마우스 휠로 크기가 안 바뀌어요 (돌리기 · 옮기기는 그대로)

@@ -119,7 +119,7 @@
     const bkSig = () => { try { const H = bkHold(); return JSON.stringify([B.all.map(e => [e.id, e.u, e.q, e.th ? e.th.length : 0]), B.album, H ? [[...H.s], [...H.b]] : 0]); } catch (e) { return String(Math.random()); } };
     /* (바구니 미리 읽기 bkWarm 도 지웠어요 · 도련 10-25 → 처음 열 때 한 번 읽고, 그다음부터는 기억한 목록으로 바로 그려요) */
     /* 바구니 카드 : 종류마다 모양 · 남은 양은 두께(--q)로만 */
-    const kitImg = (u, i) => `<img src="${esc(window.kitSize ? kitSize(u, 96) : u)}" alt="" loading="lazy" draggable="false" data-i="${i}" onerror="bkImgFail(this)">`;
+    const kitImg = (u, i) => `<img src="${esc(u)}" alt="" loading="lazy" draggable="false" data-i="${i}" onerror="bkImgFail(this)">`;
     /* 🚨 상품 서버 그림이 안 나와요 (도련 11-20 · 길 두 개) : 그 종이 파일(드라이브 · 받은 그때 그림 원본)에서 같은 칸 그림으로 · 썸네일은 만들지 않아요 (원본을 그대로 작게)
          · 종이 하나 = 한 번만 읽어요 (이 창 기억 · 다시 켜도 ⚡ js/drcache.js 가 기억) · 그래도 없으면 숨겨요 */
     const BK_EMG = new Map();
@@ -138,7 +138,7 @@
         else if (e.k === 'tk') inner = `<span class="bk-pad" style="--q:${q.toFixed(2)}">${window.tkMiniHtml ? tkMiniHtml('my', { src: e.th, glue: x.glue || '', mm: x.mm }) : ''}${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'memo') inner = `<span class="bk-pad bk-memo" style="--q:${q.toFixed(2)}"><img src="${esc(e.th || '')}" alt="" draggable="false">${qtyTxt ? `<b class="bk-qty top">${qtyTxt}</b>` : ''}</span>`;
         else if (e.k === 'leaf') inner = `<span class="lf-pick bk-leaf"><i class="lf-sw lf-my" style="--lf-img:url('${esc(e.th || '')}')"></i></span>`;
-        else if (e.L && e.us) inner = abLayHtml(e.L, e.us.map(u => window.kitSize ? kitSize(u, 96) : u), used);   // 🗺️ 시트 배치 그대로 (뗀 자리는 빈 종이)
+        else if (e.L && e.us) inner = abLayHtml(e.L, e.us, used);   // 🗺️ 시트 배치 그대로 (뗀 자리는 빈 종이)
         else if (e.th) inner = `<img src="${esc(e.th)}" alt="" draggable="false">`;
         else inner = `<i class="bk-grid" style="--c:${cols}">${(e.us || []).map((u, i) => used.has(i) ? '<b class="bk-hole"></b>' : kitImg(u, i)).join('')}</i>`;
         return `<button type="button" class="bk-sh ${cls}${e.n === 1 && !e.q0 ? ' one' : ''}" data-id="${esc(e.id)}" aria-label="${esc(KIND_NAME[e.k] || '스티커')}">${inner}</button>`;
@@ -1229,16 +1229,15 @@
     window.abDesk = abDesk; window.abKindMenu = abKindMenu; window.abKindGo = abKindGo; window.bkGetKind = bkGetKind; window.shQuick = shQuick; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 기본상품 샵 (도련 10-25) : 아이콘 8개 → 그 종류의 기본상품 샵 창 → 🔍 확대 → 🧺 받기
-       카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지만 '모양 · 배경' 두 매대 ---------- */
+       카테고리 · 스티커 이름 없이 (현실 가게도 그렇게 팔아요) · 새로 들어온 것이 맨 앞 · 📄 모조지 = 그림 한 장이 한 장 (도련 10-29 · 모양 · 배경 구분 없음) ---------- */
     const SH = { kind: '', items: [], zoom: -1, seq: 0 };
-    const kitThumb = (u, w) => window.kitSize ? kitSize(u, w) : u;
     /* 종류 : [아이콘 이름, 창 이름, 상품 만들기] (기본상품 샵 첫 창의 아이콘 순서 = 이 순서) */
     const SH_KINDS = {
         seal: ['씰스티커', async () => {
             const kit = await basicKit(), out = [];
             kit.sheets.filter(x => !(x.P && x.P.스토어)).reverse().forEach(x => out.push([x.us, x.pv, x.L]));   // 💎 스토어(유료) 씰은 빼요       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
             kit.images.slice().reverse().forEach(x => out.push([[x.u]]));            // 낱장
-            const items = out.map(([us, pv, L]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, L, thumbs: us.map(u => kitThumb(u, 96)), bigs: us.map(u => kitThumb(u, 360)), take: () => ownTakeKit(us, '', L) }));   // 🗺️ L = 시트 배치 그대로
+            const items = out.map(([us, pv, L]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, L, thumbs: us, bigs: us, take: () => ownTakeKit(us, '', L) }));   // 🗺️ L = 시트 배치 그대로
             return items;
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
@@ -1365,7 +1364,7 @@
         shDraw(k);
     }
     /* 📄 쪽으로 넘겨 보기 (도련 10-25 · 게시판처럼) : 한 쪽 = 3줄 (아래로 내리지 않게 · 칸 크기를 창에 맞춰요) · 지금 쪽을 보는 동안 다음 쪽 그림을 미리
-       · 📄 모조지 = [✂️ 모양 | 📄 배경] · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
+       · 📔 다이어리 = [📔 날짜형 | 📒 스티커 바인더 | 🤍 이형지북] 칸으로 나눠요 */
     const SH_ROWS = 2, SH_COLS = 2, SH_GAP = 10;   // 한 쪽 = 세로로 긴 카드 2 × 2 (도련 10-25 · 폰 · PC 모두)
     const SH_CATS = { bg: [['solid', '🎨 단색'], ['pat', '☁️ 패턴']] };   // 📔 다이어리 (도련 10-28 · 예전 정리 도구)
     /* 🏪 코너 (도련 11-04) : 칸이 있는 종류(📔 다이어리 · ✂️ 문구 · 🪑 책상소품 · 🌈 배경지)는 창 안 칸 탭 대신 코너에서 칸을 골라요 (종류가 얼마나 늘지 몰라서 넓은 화면에)
