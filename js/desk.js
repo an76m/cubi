@@ -1201,8 +1201,7 @@
                     if (window.dsPut) dsPut(it.u, it.lk && it.lk.sid).then(k => { if (k) dkbTake(n, j); else showMsg('⚠ 이 상품을 찾지 못했어요.<br><small>잠시 뒤 다시 해 주세요</small>'); });
                     return;
                 }
-                if (it.k === 'tool' && it.m && t && window.dbkFits && dbkFits(t)) { dbkPut(it.m, t, 'bm').then(ok => { if (ok) dkbTake(n, j); }); return; }   // 🧩 표지 · 내지 = 서랍장 위 = 🧩 서랍 칸에 (도련 11-20 · 1355)
-                if ((it.al || it.k === 'tool') && it.b && t && window.dbkFits && dbkFits(t)) { dbkPut(it.b, t, it.al ? 'ab' : 'dy').then(ok => { if (ok) dkbTake(n, j); }); return; }   // 🗄️ 📔 📒 서랍장 위 = 그 서랍 칸에 (도련 11-20 · js/deskbook.js)
+                if (t && dkbChestKey(t, it)) { dkbHome(t, it, n, j, e.clientX, e.clientY); return; }   // 🗄️ 서랍장 위 = 무엇이든 한 길 (dkbHome → dkChestPick 칸 고르기 · 도련 11-20 · 1357)
                 if (it.al && it.b) { if (dkvPlace(it.b, e.clientX, e.clientY)) dkbTake(n, j); return; }   // 📒 🤍 새 스티커첩 = 놓은 자리에 그 책
                 if (it.k === 'tool' && it.b) {                                    // 📔 새 다이어리 : 빈 곳 = 놓은 자리에 그 권 · 소품 위 = 책상에 놓을지 · 소품 안에 넣을지 물어봐요 (도련 10-31)
                     const tk = t && DK.items.find(x => x.u === t.dataset.u);
@@ -1224,11 +1223,36 @@
            넣을 수 있는 소품이면 = 그 소품에 (서랍장 = 그림이 크게 떠서 칸을 눌러 골라요 · dkzChoose) · 한 창 = 한 자리 (다른 곳에 있으면 '옮길까요?')
            못 넣는 소품(인형 · 시계 …)이면 = '○○에 넣을 수 없어요' 만 (넣을 곳은 안 알려요 · 도련 11-05) · 🌈 배경지 = 보류 */
         const dkbWin = k => k === 'tool' ? 'skin' : k === 'gd' ? 'gd' : DKB_STK.includes(k) ? 'h:' + k : '';   // 스티커 = 그 종류 창 (씰스티커 · 마스킹테이프 … 칸마다 한 종류)
+        /* 🗄️ 서랍장에 넣을 때 그 상품의 칸 종류 (도련 11-20 · 1357 : 봉투 → 서랍은 한 길) : ✏️ gd · 🏷️ h:종류 · 📔 dy · 📒 ab · 🧩 bm */
+        const dkbKey = it => it.k === 'gd' && it.gid ? 'gd' : it.k === 'tool' && it.m ? 'bm' : it.al && it.b ? 'ab' : it.k === 'tool' && it.b ? 'dy' : DKB_STK.includes(it.k) && !it.al ? 'h:' + it.k : '';
+        const dkbChestKey = (t, it) => { const o = t && DK.items.find(x => x.u === t.dataset.u); return o && o.at === 'desk' && dkSlots(o.id) && dkHoldOk(o.id).length ? dkbKey(it) : ''; };
+        /* 🗄️ 칸 고르기 하나 (봉투 · 책상 위 책 · 꺼낸 문구 · 모두 · 도련 11-20 · 1357 '들어갈 때마다 칸을 골라요')
+           → { s, agreed } · { go: 다른 서랍장 } · null (취소 · 못 넣어요) · 📔 📒 🧩 책 칸 = 빈 칸 · 책 칸만 / ✏️ 🏷️ = 아무 칸 (다른 것이 든 칸은 바꿀지 물어요) */
+        async function dkChestPick(t, o, key, op) {
+            op = op || {};
+            const S = dkSlots(o.id), u = o.u, H = dkHomes(), Z = H[u] || [], nm = dkName(o), [, K, , ic] = dkWin(key), bk = dkBk(key);
+            if (!S || !dkHoldOk(o.id).includes(key)) { showMsg(`${ic} ${htmlEsc(josa(K, '은', '는'))} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`); return null; }
+            const can = bk ? (i, c) => !c || !!dkBk(c.k) : null;
+            if (can && !S.some((r, i) => can(i, Z.find(e => e.s === i)))) { showMsg(`🗄️ <b>${htmlEsc(nm)}</b>에는 ${ic} ${htmlEsc(josa(K, '을', '를'))} 넣을 서랍이 없어요.<br><small>빈 서랍이나 📔 📒 🧩 서랍에만 넣어요</small>`); return null; }
+            let agreed = false;
+            if (!bk && S.every((r, i) => Z.some(e => e.s === i)) && !Z.some(e => e.k === key)) {   // 🗄️ 서랍이 다 찼어요 (도련 11-01) : 다른 서랍장(빈 서랍 있으면) · 서랍 바꾸기 · 취소
+                const other = dkOnDesk().find(x => x.u !== u && dkSlots(x.id) && dkHoldOk(x.id).includes(key) && dkSlots(x.id).some((r, i) => !(H[x.u] || []).some(e => e.s === i)));
+                const t2 = other && document.querySelector(`#deskStage .desk-item[data-u="${other.u}"]`);
+                const q = `🗄️ ${htmlEsc(nm)}의 서랍 ${S.length}칸이 다 찼어요.<br>${ic} ${htmlEsc(josa(K, '은', '는'))} 어떻게 할까요?<br><span style="font-size:12px;color:#777;">${t2 ? `${htmlEsc(dkName(other))}에는 빈 서랍이 있어요 · ` : ''}서랍을 바꾸면 원래 있던 것은 빈 서랍으로 옮겨요</span>`;
+                const r = t2 ? await showAsk3(q, '서랍 바꾸기', '취소', `${dkName(other)}에 넣기`) : await showAsk(q, '서랍 바꾸기', '취소');
+                if (r === 'extra') return { go: t2 };
+                if (!r) return null; agreed = true;
+            }
+            const s = await dkzChoose(t, o, key, Object.assign(can ? { can } : {}, op));
+            return typeof s === 'number' && s >= 0 ? { s, agreed } : null;
+        }
+        window.dkChestPick = dkChestPick;
         const dkbPulse = t => { rePop(t, 'dkh-in'); setTimeout(() => t.classList.remove('dkh-in'), 600); };
         async function dkbHome(t, it, n, j, cx, cy) {
             if (window.dktDrop && dktDrop(t, it, n, j, cx, cy)) return;           // 🎀 마테 정리함 (js/desktape.js)
-            if (it.k === 'gd' && it.gid) { if (await dkGdPut(it.gid, t)) { dkbPulse(t); dkbTake(n, j); } return; }   // ✏️ 문구 = 넣은 소품이 그 문구의 집 (도련 11-05)
-            let win = dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
+            const ck = dkbChestKey(t, it);
+            if (!ck && it.k === 'gd' && it.gid) { if (await dkGdPut(it.gid, t)) { dkbPulse(t); dkbTake(n, j); } return; }   // ✏️ 펜꽂이 · 서랍장 밖 (도련 11-05)
+            let win = ck || dkbWin(it.k); if (!win) { showMsg('🌈 배경지는 아직 소품에 넣을 수 없어요.'); return; }
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), nm = o ? dkName(o) : '이 소품', [, K, , ic] = dkWin(win);
             if (!o || !dkHoldOk(o.id).includes(win)) {                          // 🧸 못 넣는 소품 = '○○에 넣을 수 없어요'
                 showMsg(`${ic} ${josa(K, '은', '는')} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`);   // 넣을 수 있는 곳은 안 알려요 (소품이 끝없이 늘어요 · 도련 11-05)
@@ -1237,16 +1261,11 @@
             const S = dkSlots(o.id), M = deskFnMap(), H = dkHomes(), zones = H[u] || [];
             let s = -1, old = '';                                                // old = 바꾸기로 밀려난 것 (어디로 옮길지 물어봐요 · 도련 11-01)
             if (S) {
-                let agreed = false;                                              // 🗄️ 서랍이 다 찼어요 (도련 11-01) : 다른 서랍장(빈 서랍 있으면) · 서랍 바꾸기 · 취소
-                if (S.every((r, i) => zones.some(e => e.s === i)) && !zones.some(e => e.k === win)) {
-                    const other = dkOnDesk().find(x => x.u !== u && dkSlots(x.id) && dkHoldOk(x.id).includes(win) && dkSlots(x.id).some((r, i) => !(H[x.u] || []).some(e => e.s === i)));
-                    const t2 = other && document.querySelector(`#deskStage .desk-item[data-u="${other.u}"]`);
-                    const q = `🗄️ ${htmlEsc(nm)}의 서랍 ${S.length}칸이 다 찼어요.<br>${ic} ${htmlEsc(josa(K, '은', '는'))} 어떻게 할까요?<br><span style="font-size:12px;color:#777;">${t2 ? `${htmlEsc(dkName(other))}에는 빈 서랍이 있어요 · ` : ''}서랍을 바꾸면 원래 있던 스티커는 빈 서랍으로 옮기거나 빼요 (스티커 서랍엔 그대로)</span>`;
-                    const r = t2 ? await showAsk3(q, '서랍 바꾸기', '취소', `${dkName(other)}에 넣기`) : await showAsk(q, '서랍 바꾸기', '취소');
-                    if (r === 'extra') { dkbHome(t2, it, n, j, cx, cy); return; }
-                    if (!r) return; agreed = true;
-                }
-                s = await dkzChoose(t, o, win); if (s < 0) return;               // 🗄️ 서랍장 그림에서 칸 고르기 (도련 11-01)
+                const P = await dkChestPick(t, o, win); if (!P) return;           // 🗄️ 칸 고르기 = 한 길 (✏️ 문구 · 🏷️ 스티커 · 📔 📒 🧩 책 모두 · 1357)
+                if (P.go) { dkbHome(P.go, it, n, j, cx, cy); return; }
+                s = P.s; const agreed = P.agreed;
+                if (dkBk(win)) { if (await dbkPut(it.k === 'tool' && it.m ? it.m : it.b, t, win, { s })) dkbTake(n, j); return; }   // 📔 📒 🧩 (js/deskbook.js)
+                if (win === 'gd') { if (await dkGdPut(it.gid, t, { s, agreed })) { dkbPulse(t); dkbTake(n, j); } return; }   // ✏️ 문구함 (하나만 · 안에 든 문구도 같이 옮겨요)
                 const same = zones.find(e => e.k === win); if (same && same.s === s) { dkbPulse(t); dkbTake(n, j); return; }   // 이미 이 칸에
                 const cur = zones.find(e => e.s === s);
                 if (cur && !agreed && !await showAsk(`${nm} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>${josa(K, '으로', '로')} 바꿀까요?`, '바꾸기', '취소')) return;
@@ -1276,17 +1295,18 @@
         /* ✏️ 문구 넣기 (도련 11-05 · 현실처럼) : 넣은 곳 = 그 문구의 집 · 꺼내 쓰기도 거기서만 (js/deskgd.js 문구의 집)
            펜꽂이 = 꽂을 수 있는 것만 (필기구 · 상품 '연필꽂이' yes) · 24개까지 · 서랍장 = 칸을 골라요 (한 칸에 문구 여러 종류 함께 · 다른 것이 든 칸이면 바꿀지 물어요)
            봉투 카드 · 꺼낸 문구 줄에서 끌어 놓을 때 같이 써요 → true = 넣었어요 */
-        async function dkGdPut(id, t) {
+        async function dkGdPut(id, t, op) {                                       // op = { s, agreed } (봉투 → 칸을 이미 골랐어요 · dkbHome)
             const u = t.dataset.u, o = DK.items.find(x => x.u === u), ok = o ? dkHoldOk(o.id) : [], S = o && dkSlots(o.id), nm = o ? dkName(o) : '이 소품', gn = (window.dkwNameOf && dkwNameOf(id)) || '문구';
             const no = () => { showMsg(`✏️ ${htmlEsc(josa(gn, '은', '는'))} <b>${htmlEsc(nm)}</b>에 넣을 수 없어요.`); return false; };
             if (!o || !window.dkwAtPut) return no();
             if (S && ok.includes('gd')) {                                      // 🗄️ 문구함 = 서랍 하나만 (도련 11-13 · 스티커처럼)
-                const H0 = dkHomes(), here = (H0[u] || []).find(e => e.k === 'gd');
-                if (here) { dkwAtPut(id, u + ':' + here.s); dknPaintAll(); deskFnPaint(); return true; }   // 이 서랍장에 문구함이 있어요 = 바로 그 서랍에
+                let P = op && op.s != null ? op : null;                           // 🗄️ 들어갈 때마다 칸을 골라요 (도련 11-20 · 1357 · 예전엔 문구함이 있으면 묻지 않았어요)
+                if (!P) { P = await dkChestPick(t, o, 'gd'); if (!P) return false; if (P.go) return dkGdPut(id, P.go); }
+                const s = P.s, H0 = dkHomes(), here = (H0[u] || []).find(e => e.k === 'gd');
+                if (here && here.s === s) { dkwAtPut(id, u + ':' + s); dknPaintAll(); deskFnPaint(); return true; }   // 고른 칸 = 이 문구함
                 const wasU = Object.keys(H0).find(x => H0[x].some(e => e.k === 'gd')), we = wasU && H0[wasU].find(e => e.k === 'gd'), ow = wasU && DK.items.find(x => x.u === wasU);
-                const s = await dkzChoose(t, o, 'gd'); if (s < 0) return false;
                 const cur = (dkHomes()[u] || []).find(e => e.s === s);
-                if (cur && !await showAsk(`${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>문구함으로 바꿀까요?`, '바꾸기', '취소')) return false;
+                if (cur && !P.agreed && !await showAsk(`${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸에는 ${josa(dkWin(cur.k)[1], '이', '가')} 들어 있어요.<br>문구함으로 바꿀까요?`, '바꾸기', '취소')) return false;
                 if (ow && we && !await showAsk(`✏️ 문구함이 ${htmlEsc(dkName(ow))} ${dkSlotNm(we.s, (dkSlots(ow.id) || []).length)} 칸에 있어요.<br>${htmlEsc(nm)} ${dkSlotNm(s, S.length)} 칸으로 옮길까요?<br><span style="font-size:12px;color:#777;">안에 든 문구도 같이 옮겨요</span>`, '옮기기', '취소')) return false;
                 const H = dkHomes(), keepTag = we && we.tag ? dkzTagMove(we.tag, we.r, S[s]) : null;
                 Object.keys(H).forEach(x => { H[x] = H[x].filter(e => e.k !== 'gd'); if (!H[x].length) delete H[x]; });   // 다른 문구함 칸은 빼요 (하나만)

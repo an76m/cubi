@@ -75,7 +75,7 @@
         }
     }
     /* ✋ 넣기 : 그 서랍장에서 칸을 골라요 (열린 그 종류 서랍이 이 서랍장이면 = 바로 거기) → true = 넣었어요 */
-    async function dbkPut(id, t, k) {
+    async function dbkPut(id, t, k, op) {                                         // op.s = 칸을 이미 골랐어요 (봉투 → js/desk.js dkbHome · 열린 서랍 창에 놓기) · 없으면 dkChestPick (칸 고르기 한 길 · 1357)
         const o = t && DK.items.find(x => x.u === t.dataset.u), S = o && dkSlots(o.id); k = k || kindOf(bookOf(id));
         const [ic, K] = KN[k];
         if (!S || !dkHoldOk(o.id).includes(k)) { say(`${ic} ${htmlEsc(josa(K, '은', '는'))} <b>${htmlEsc(o ? dkName(o) : '이 소품')}</b>에 넣을 수 없어요.`); return false; }
@@ -83,10 +83,12 @@
         if (id === dkyCur()) { say('📔 지금 펼쳐 쓰는 다이어리는 서랍에 넣을 수 없어요.<br><small>다른 다이어리를 펼친 뒤 넣어요</small>'); return false; }
         if (window.hfReady) { try { await hfReady(o.u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 해 주세요</small>'); return false; } }   // 🗄️ 그 서랍장에 이미 든 책을 알아야 해요 (칸 바꾸기 · js/holdfile.js)
         const u = o.u, nm = dkName(o), Z = dkHomes()[u] || [];
-        if (!S.some((r, i) => can(k)(i, Z.find(e => e.s === i)))) { say(`🗄️ <b>${htmlEsc(nm)}</b>에는 ${ic} ${htmlEsc(josa(K, '을', '를'))} 넣을 서랍이 없어요.<br><small>빈 서랍이나 📔 📒 🧩 서랍에만 넣어요</small>`); return false; }
-        const s = DBK.u === u && DBK.k === k && trayOn() ? DBK.s : await dkzChoose(t, o, k, { can: can(k) });
+        if (!(op && op.s != null) && !S.some((r, i) => can(k)(i, Z.find(e => e.s === i)))) { say(`🗄️ <b>${htmlEsc(nm)}</b>에는 ${ic} ${htmlEsc(josa(K, '을', '를'))} 넣을 서랍이 없어요.<br><small>빈 서랍이나 📔 📒 🧩 서랍에만 넣어요</small>`); return false; }
+        let s = op && op.s != null ? op.s : -1;
+        if (s < 0) { const P = await dkChestPick(t, o, k); if (!P) return false; if (P.go) return dbkPut(id, P.go, k); s = P.s; }
         if (typeof s !== 'number' || s < 0) return false;
         const cur = (dkHomes()[u] || []).find(e => e.s === s); let made = '';
+        if (cur && !dkBk(cur.k)) return false;                                 // ✏️ 🏷️ 칸 = 책을 못 넣어요 (칸 고르기에서 막혀요)
         if (cur && dkBk(cur.k) !== k) {                                        // 다른 종류 책 칸 = 칸을 바꿀까요? → 안의 책은 다른 서랍 · 책상 위로
             const k2 = dkBk(cur.k), [ic2, K2] = KN[k2];
             if (!await showAsk(`${dkSlotNm(s, S.length)} 서랍은 ${ic2} ${K2} 서랍이에요.<br>${ic} ${htmlEsc(josa(K, '으로', '로'))} 바꿀까요?<br><span style="font-size:12px;color:#777;">다이어리 · 스티커첩 · 표지 · 내지는 한 서랍에 섞지 않아요</span>`, '바꾸기', '취소')) return false;
@@ -108,7 +110,7 @@
             const t = document.querySelector(`#deskStage .desk-item[data-u="${DBK.u}"]`);
             if (DBK.k !== k) { const [ic, K] = KN[k], [ic2, K2] = KN[DBK.k]; say(`${ic2} 이 서랍은 ${K2} 서랍이에요.<br><small>${ic} ${htmlEsc(josa(K, '은', '는'))} 빈 서랍이나 ${ic} ${K} 서랍에 넣어요</small>`); return false; }
             if (dbkIn(id, b) === DBK.u + ':' + DBK.s) return false;
-            return t ? dbkPut(id, t, k) : false;
+            return t ? dbkPut(id, t, k, { s: DBK.s }) : false;                       // 열린 서랍 창 안 = 그 칸
         }
         const t = chestAt(x, y); if (!t || !fits(t)) return false;
         return dbkPut(id, t, k);
@@ -203,7 +205,7 @@
     async function pickIn(ev, b) {                                                // 🧺 바구니 재료 톡 = 이 서랍에
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
         const t = document.querySelector(`#deskStage .desk-item[data-u="${DBK.u}"]`); if (!t) return;
-        if (await dbkPut(b.id, t, 'bm')) trayPaint();
+        if (await dbkPut(b.id, t, 'bm', { s: DBK.s })) trayPaint();             // 열린 서랍 = 그 칸
     }
     function grab(ev, it, b) {                                                    // 톡 = 꺼내서 펼치기 · 끌기 = 손에 들고 놓은 곳에
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
