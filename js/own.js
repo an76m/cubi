@@ -236,6 +236,7 @@
             Object.values(O.kd || {}).forEach(d => { if ((d.f && ids.has(d.f.id)) || hit(d.Lf) || hit(d.Tf)) { d.f = null; d.Lf = d.Tf = d.cn = null; d.cache = null; d.live = null; d.at = 0; } if ((d.albF && ids.has(d.albF.id)) || hit(d.Af)) { d.albF = null; d.Af = d.acn = null; d.alb = null; } });
         };
         window.ownForgetAllIds = () => { try { localStorage.removeItem(OWN_FILES_LS); } catch (e) {} };
+        window.ownFresh = () => { window.ownForgetAllIds(); try { const o = JSON.parse(localStorage.getItem(OWN_PEND) || '{}') || {}; delete o[ownWho()]; localStorage.setItem(OWN_PEND, JSON.stringify(o)); } catch (e) {} O.kw = null; O.kd = {}; };   // 🆕 처음 상태 (js/drive.js freshStart · 1366)
         async function ownIdxRead(k, pre) {                                      // pre : 이미 찾은 목록 파일들 { L: [[번호, id]], T: [[번호, id]] } (ownOpenKind · null = 없음)
             ownReset();
             if (ownMode() === 'mem') { ownK(k).gone = (O.mem.gone[k] || []).slice(); return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() })); }

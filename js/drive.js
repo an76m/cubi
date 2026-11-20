@@ -361,15 +361,45 @@
             LG.t = setTimeout(() => { LG.q = LG.q.then(async () => {
                 if (!lgLive()) return;
                 try {
-                    const r = await lgRead(); const me = lgMerge(LG.d, r.d); if (LG.d.root) me.root = LG.d.root;
+                    const r = await lgRead(), fresh = LG.fresh; const me = fresh ? LG.d : lgMerge(LG.d, r.d); if (LG.d.root) me.root = LG.d.root;   // 🆕 새 출발 = 합치지 않고 그대로 (freshStart)
                     LG.d = me; LG.f = r.f || LG.f;
                     const body = await bodySeal(LEDGER_NAME, JSON.stringify(me));   // 🔐
-                    if (LG.f) { const u = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${LG.f}?uploadType=media&fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }); if (u.ok) return; if (u.status !== 404) throw await driveFail(u, 'ledger'); LG.f = null; }
+                    if (LG.f) { const u = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${LG.f}?uploadType=media&fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }); if (u.ok) { if (fresh) LG.fresh = false; return; } if (u.status !== 404) throw await driveFail(u, 'ledger'); LG.f = null; }
                     const b = 'lg_' + Math.random().toString(36).slice(2), meta = { name: LEDGER_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
                     const c = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--` });
                     if (!c.ok) throw await driveFail(c, 'ledger'); LG.f = (await c.json()).id;
                 } catch (e) { console.warn('📒 장부 저장 (다음에 다시)', e); diag('ledger', { bad: 'save' }); setTimeout(ledgerSave, 60000); }
             }); }, 1500);
+        }
+        /* 🆕 처음 상태로 (도련 11-21 · 1366 : 드라이브의 말랑달콤 폴더를 지우고 다시 오면 = 첫 접속자처럼 · 브라우저 · 숨은 장부에 남은 옛것이 새 다이어리에 섞이지 않게)
+           loadFromDrive 가 말랑달콤 폴더가 없고 (drive.newbie) 숨은 장부에 예전 폴더 번호가 있을 때 불러요 · 처음 온 다꾸러는 장부가 없어서 그대로 (읽기 기억 · 실물 사본도 그대로 쌓여요)
+           버리는 것 (이 계정 것만 · 다른 계정 · 🏠 로그인 없이 · 👀 구경은 그대로)
+             📒 숨은 장부(appDataFolder)의 영구삭제 목록 (같은 번호의 처음 선물이 '지운 것'으로 숨지 않게 · 은퇴한 예전 폴더 번호는 남겨요)
+             ⚡ 드라이브 읽기 기억 (malang-drc) · 🎀 기억해 둔 스티커 목록 파일 번호 · 완료 전 스티커 쓴 흔적
+             📝 완료 전 임시저장 (다이어리 페이지 · 그림판 · 스티커 정리 · 오리던 모조지) · 📦 내 실물 사본 · ⏳ 못 올린 모음 (옛 폴더 것이 새 폴더로 올라가지 않게) */
+        async function freshStart() {
+            const w = (typeof COLL !== 'undefined' && COLL.who) || ''; diag('fresh', {});
+            if (LG.ok && Object.keys(LG.d.gone || {}).length) { LG.d.gone = {}; LG.fresh = true; ledgerSave(); }
+            if (window.DRC) { try { await DRC.wipe(); } catch (e) {} }
+            if (window.ownFresh) ownFresh();
+            if (!w || w === 'me') return;                                           // 계정을 모르면 기기 보관은 건드리지 않아요
+            for (const n of ['mallang-pgdraft', 'mallang-ppdraft', 'mallang-absort', 'mallang-ownpaper', 'malang-mine', 'mallang-coll']) await idbForgetWho(n, w);
+        }
+        function idbForgetWho(n, w) {                                               // 그 DB 에서 이 계정 것만 (열쇠 또는 값.who 에 계정 번호) · 없는 DB 는 만들지 않아요
+            return new Promise(ok => {
+                let r; try { r = indexedDB.open(n); } catch (e) { ok(); return; }
+                r.onupgradeneeded = () => { try { r.transaction.abort(); } catch (e) {} };   // 처음 여는 DB = 없던 것 → 만들지 않고 그만
+                r.onerror = r.onblocked = () => ok();
+                r.onsuccess = () => {
+                    const d = r.result, st = [...d.objectStoreNames].filter(x => n !== 'mallang-coll' || x === 'outbox');   // 📚 모음은 못 올린 일만 (읽어 둔 것은 번호가 달라 안 섞여요)
+                    if (!st.length) { d.close(); ok(); return; }
+                    try {
+                        const t = d.transaction(st, 'readwrite');
+                        st.forEach(x => { const c = t.objectStore(x).openCursor(); c.onsuccess = () => { const q = c.result; if (!q) return; const v = q.value; if (String(q.key).includes(w) || (v && typeof v === 'object' && String(v.who || '').includes(w))) q.delete(); q.continue(); }; });
+                        t.oncomplete = t.onerror = t.onabort = () => { d.close(); ok(); };
+                    } catch (e) { d.close(); ok(); }
+                };
+            });
         }
         /* 영구삭제 칸 하나 ↔ 장부 : 장부에만 있는 것 = 돌려받고 · 칸에만 있는 것 = 장부에 → 합친 칸 */
         function ledgerMix(key, arr) {
@@ -1013,6 +1043,7 @@
             const [settings, cafe] = await Promise.all([fetchKeyFile('settings'), fetchKeyFile('cafe')]);   // 읽지 못하면 여기서 에러 → 아무것도 바꾸지 않음
             drive.newbie = !drive.rootId; diag('start', { mode: drive.local ? 'folder' : 'google', newbie: drive.newbie ? 1 : 0 });   // 🆕 말랑달콤 폴더가 아직 없어요 = 처음 온 다꾸러 (되살리려고 폴더를 뒤지지 않아요 · 요청 줄이기 · 도련 11-05)
             if (typeof collWhoami === 'function') await collWhoami();        // 🔐 계정을 먼저 알아야 배치.json 을 열 수 있어요 (js/coll.js)
+            if (drive.newbie && LG.ok && LG.d.root) await freshStart();      // 🆕 말랑달콤 폴더가 없는데 장부엔 예전 폴더가 있어요 = 폴더를 지우고 다시 왔어요 → 이 계정의 옛 기억을 버려요 (첫 접속자처럼 · 1366 · 처음 온 다꾸러는 장부가 없어서 그대로)
             drive.deskLocked = false;
             const [desks, backs] = await Promise.all([fetchDeskFiles(), drive.newbie ? Promise.resolve(DESK_START2.map(() => null)) : Promise.all(DESK_START2.map(w => fetchKeyFile(w).catch(e => { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; })))]);   // ✏️ 백 문구 목록도 같이 (동시에)                            // 🪑 설정 폴더의 책상 · 목록 파일 (요청 한 번으로 찾고 동시에 읽어요)   // 🔐 못 여는 배치.json (다른 계정 것 · 깨짐) : 일기는 그대로 열고 · 내 백업이 열리면 되살려 새로 쓰고 (js/desk.js giftEnsure) · 아니면 절대 덮어쓰지 않아요
             clearTimeout(uploadTimer);
