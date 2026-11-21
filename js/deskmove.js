@@ -90,7 +90,7 @@
         const light = t => { if (t === hi) return; if (hi) hi.classList.remove('dkh-hi'); hi = t; if (hi) hi.classList.add('dkh-hi'); };
         const begin = e => {
             on = true; const r = src.getBoundingClientRect();
-            g = op.ghost ? op.ghost(src) : ghostOf(src, r); g.removeAttribute('id'); g.style.pointerEvents = 'none';
+            g = op.ghost ? op.ghost(src) : ghostOf(src, r); g.removeAttribute('id'); g.style.pointerEvents = 'none'; g.style.zIndex = '';   // 책상에서 쓰던 겹침 순서(인라인)는 버려요 = 늘 맨 위 (열린 서랍 창 뒤로 안 숨어요 · 도련 11-21)
             if (op.grab) { ox = e.clientX - r.left; oy = e.clientY - r.top; Object.assign(g.style, { width: r.width + 'px', height: r.height + 'px' }); }
             document.body.appendChild(g); place(e); if (from) src.classList.add(from);
             if (op.start) op.start(e);
