@@ -1953,7 +1953,8 @@
             const stg = document.getElementById('deskStage'), R = stg && stg.getBoundingClientRect(); if (!R) return false;
             if (cx < R.left || cx > R.right || cy < R.top || cy > R.bottom) return false;
             const s = DK.s || 1, x = Math.round(Math.max(40, Math.min(DESK_W - 40, (cx - R.left) / s))), y = Math.round(dkBoxFloor(x, Math.max(138, Math.min(1068, (cy - R.top) / s + 60)), null));
-            const M = dkyMap(), o0 = M[id] && typeof M[id] === 'object' ? M[id] : {}; M[id] = Object.assign({}, dkyOk(o0) ? o0 : o0.in ? { lb: o0.lb, a: o0.a } : {}, { x, y, p: o0.p || 'front' }); delete M[id].in; if (!M[id].lb) delete M[id].lb; if (!M[id].a) delete M[id].a;   // 처음 = 앞을 보고 세워요 · 🗄️ 서랍에서 꺼낸 책 = 이름표 · 모습 그대로 (js/deskbook.js)
+            const M = dkyMap(), o0 = M[id] && typeof M[id] === 'object' ? M[id] : {}; const out = !dkyOk(o0) || (Array.isArray(M._bag) && M._bag.includes(id));   // 🗄️ 서랍 · 🛍 봉투에서 꺼내 놓으면 = 세워요 (도련 11-21 · 예전 자세가 눕기여도)
+            M[id] = Object.assign({}, dkyOk(o0) ? o0 : o0.in ? { lb: o0.lb, a: o0.a } : {}, { x, y, p: out ? 'front' : o0.p || 'front' }); delete M[id].in; if (!M[id].lb) delete M[id].lb; if (!M[id].a) delete M[id].a;   // 처음 = 앞을 보고 세워요 · 🗄️ 서랍에서 꺼낸 책 = 이름표 · 모습 그대로 (js/deskbook.js)
             if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }   // 봉투에서 꺼냈어요
             if (typeof prefSet === 'function') prefSet(DKY_KEY, DKY_LOCAL, M);
             dkDeskBooks(); dkvFront(id); return true;

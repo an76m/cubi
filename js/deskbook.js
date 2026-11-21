@@ -42,11 +42,11 @@
         if (Array.isArray(M._bag)) { M._bag = M._bag.filter(x => x !== id); if (!M._bag.length) delete M._bag; }
         save(M);
     }
-    function takeOut(id) {                                                        // 서랍에서 꺼내 책상 다이어리 줄에 (이름표 · 모습 그대로)
+    function takeOut(id) {                                                        // 서랍에서 꺼내 책상 다이어리 줄에 (이름표 그대로 · 세워서)
         const M = dkyMap(), o = M[id]; if (!o || typeof o !== 'object' || !o.in) return;
         if (o.m) { delete M[id]; save(M); bndSoon(); return; }                  // 🧩 재료 = 🧺 조립 바구니로
-        const keep = Object.assign({}, o.p ? { p: o.p } : {}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); M[id] = keep; save(M);
-        const at = dkyPosOf(id), M2 = dkyMap(); M2[id] = Object.assign({}, at, keep, { p: keep.p || at.p }); save(M2);
+        const keep = Object.assign({}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); M[id] = keep; save(M);
+        const at = dkyPosOf(id), M2 = dkyMap(); M2[id] = Object.assign({}, at, keep, { p: 'front' }); save(M2);   // 꺼내면 = 세워요 (도련 11-21 · 끌어 놓을 때 dkvPlace 와 같아요)
     }
     const bndSoon = () => { if (window.bndRender) bndRender(); };
     const fits = t => { const o = t && DK.items.find(x => x.u === t.dataset.u); return !!o && o.at === 'desk' && !!dkSlots(o.id) && ['dy', 'ab', 'bm'].some(k => dkHoldOk(o.id).includes(k)); };
