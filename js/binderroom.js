@@ -5,7 +5,7 @@
      · 끼운 내지 묶음 = 책 아래 한 줄 (바구니로 끌거나 ✕ = 빼기) · 책 막대 ✕ = 표지 내려놓기
    - 📅 날짜 표지(해가 적힌) = 같은 크기 날짜 내지 하나 · 끼운 표지의 해로 날짜가 그려져요 · 해가 지난 표지는 못 해요
    - 🧩 조립하기 = 다이어리 목록에 한 권 · 쓴 재료는 바구니에서 빠져요 → 바인더는 책상 위에 (끌어서 옮겨요)
-   - ✏️ 내 바인더 고치기 = 이미 조립한 페이지바인더 (내지 더 끼우기 · 빼기 · 표지 바꾸기 · 뺀 것은 바구니로)
+   - ✏️ 내 바인더 고치기 = 이미 조립했지만 아직 안 쓴 페이지바인더 (꾸민 페이지가 있으면 목록에 없어요 · 도련 11-21) (내지 더 끼우기 · 빼기 · 표지 바꾸기 · 뺀 것은 바구니로)
    - 조립 규칙 · 저장은 js/dymaker.js (dmkRmInit · dmkRmPick · dmkRmAdd · dmkRmOut · dmkRoomSave) 와 같아요 · 여기는 그 모습만 */
 (function () {
     const B = { on: false, drag: null, book: null };
@@ -110,7 +110,7 @@
             + (refills.length ? '' : `<div class="bnd-hint">📄 내지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📅 날짜 내지 · 📄 페이지 내지에서 받아요</div>`);
         /* 작업대 */
         bq('bndWorkT').textContent = s.id ? '✏️ ' + (s.g || '내 바인더') + ' 고치기' : '작업대';
-        const mine = (window.dmkAll ? dmkAll() : []).filter(d => d.t === 'binder');
+        const mine = (window.dmkAll ? dmkAll() : []).filter(d => d.t === 'binder' && !(window.dmkFilledMax && dmkFilledMax(d.id) > 0));   // ✏️ 고치기 = 아직 안 쓴 바인더만 (꾸민 페이지가 있으면 = 쓴 바인더 · 안 보여요 · 도련 11-21)
         bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}${window.dmkLocked && dmkLocked(d.id) ? ' disabled' : ''}>${window.dmkLocked && dmkLocked(d.id) ? '🔒 ' : ''}${esc(d.g)}</option>`).join('')}</select>` : '';
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
         let at = 0;
