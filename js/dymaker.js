@@ -374,7 +374,6 @@
             const back = k === 'cover' ? [dmkRm.o0.cv].filter(Boolean) : dmkRm.o0.rf;
             const seen = new Set(), L = [], H = window.deskBagHold ? deskBagHold() : null;   // 🛍️ 봉투 속 재료는 꺼낼 때까지 없어요 (도련 11-11)
             if (H) H.d.forEach(id => seen.add(id));
-            const back0 = new Set(back.map(x => x && x.id));
             dymAll(k).concat(back).forEach(x => { const c = dmkClean(x); if (c && !seen.has(c.id) && !inNow.has(c.id)) { seen.add(c.id); L.push(c); } });   // 🗄️ 🧩 서랍 속 재료도 바구니에 (도련 11-21 · ✔ 완료 전까지는 서랍에도 그대로 · 완료하면 서랍에서 빠져요 dbkMatGone)
             return L;
         }
