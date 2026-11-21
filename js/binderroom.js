@@ -2,11 +2,11 @@
    🧩 바인더 조립 공간 (도련 11-07 · 981 · 💻 📲 책상 오른쪽 위 메뉴 '바인더 조립')
    - 왼쪽 🧺 재료 바구니 = 가진 표지 · 내지 (🧩 다이어리 / _바인더재료목록.json · js/dyown.js) · 만들기는 여기 없어요 (도련 11-11 : 📒 다이어리 → 🗂️ 바인더 만들기 · 조립은 고르기만)
    - 가운데 작업대 = 진짜 책 (1374 · 도련 11-21 · js/book.js bookOpen inline) : 표지를 놓으면 덮인 책 → 밀어서 펼쳐요 → 펼친 표지에 내지를 끼워요 (톡 또는 끌어다 놓기) → 쪽이 생겨 넘겨 봐요
-     · 끼운 내지 묶음 = 책 아래 한 줄 (바구니로 끌거나 ✕ = 빼기) · 책 막대 ✕ = 표지 내려놓기
+     · 끼운 내지 묶음 = 책 아래 한 줄 (보기만) · 되돌리기 = 아래 ⛓ 분리하기 하나 (표지 · 내지 모두 바구니로 · 도련 11-21)
    - 📅 날짜 표지(해가 적힌) = 같은 크기 날짜 내지 하나 · 끼운 표지의 해로 날짜가 그려져요 · 해가 지난 표지는 못 해요
    - 🧩 조립하기 = 다이어리 목록에 한 권 · 쓴 재료는 바구니에서 빠져요 → 바인더는 책상 위에 (끌어서 옮겨요)
    - ✏️ 내 바인더 고치기 = 이미 조립했지만 아직 안 쓴 페이지바인더 (꾸민 페이지가 있으면 목록에 없어요 · 도련 11-21) (내지 더 끼우기 · 빼기 · 표지 바꾸기 · 뺀 것은 바구니로)
-   - 조립 규칙 · 저장은 js/dymaker.js (dmkRmInit · dmkRmPick · dmkRmAdd · dmkRmOut · dmkRoomSave) 와 같아요 · 여기는 그 모습만 */
+   - 조립 규칙 · 저장은 js/dymaker.js (dmkRmInit · dmkRmPick · dmkRmAdd · dmkRmUnbind · dmkRoomSave) 와 같아요 · 여기는 그 모습만 */
 (function () {
     const B = { on: false, drag: null, book: null };
     const bq = id => document.getElementById(id);
@@ -26,11 +26,11 @@
                     <div class="bnd-bench" id="bndBench"></div>
                     <div class="bnd-bar"><label>이름 <input id="bndName" maxlength="20" autocomplete="off" placeholder="내 바인더"></label>
                         <span class="bnd-info" id="bndInfo"></span>
-                        <button type="button" class="btn" id="bndNew">새로</button>
+                        <button type="button" class="btn" id="bndNew">분리하기</button>
                         <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button></div></div></div>`;
         document.body.appendChild(el);
         bq('bndGo').onclick = bndCancel;
-        bq('bndNew').onclick = () => { window.dmkRmInit(''); render(); };
+        bq('bndNew').onclick = split;
         bq('bndOk').onclick = save;
         bq('bndName').oninput = e => { const s = st(); if (s) s.g = e.target.value; };
         el.addEventListener('pointerdown', down);
@@ -63,7 +63,7 @@
     }
     /* 📖 작업대 = 진짜 책처럼 (도련 11-21 · 1374 · 📚 책 엔진 js/book.js bookOpen 하나 · 📒 스티커바인더와 같은 엔진)
          표지를 놓으면 = 덮인 책 → 밀어서(또는 ›) 펼쳐요 → 펼친 표지에 내지를 끼우면(톡 · 끌기) 그 쪽들이 생겨요 → 넘겨 봐요 · 첫 쪽에서 앞으로 = 덮기
-         쪽 = 끼운 내지 차례대로 (📄 내지 = 그 내지무늬 · 📅 날짜 내지 = 그 해 날짜마다 한 쪽) · ✕ = 표지 내려놓기 (꾸민 쪽이 있는 바인더 고치기는 못 해요) */
+         쪽 = 끼운 내지 차례대로 (📄 내지 = 그 내지무늬 · 📅 날짜 내지 = 그 해 날짜마다 한 쪽) · 막대에 ✕ 없음 (되돌리기 = ⛓ 분리하기 하나) */
     const BND_SIDE = 'malang_bnd_side';
     const mmOf = c => { const m = String(c.mm || '').match(/([\d.]+)\D+([\d.]+)/); return m ? [+m[1], +m[2]] : [Math.round(148 / (c.r || 1.41)), 148]; };
     function pagesOf(s, cv) {                                                     // 끼운 내지 → 쪽마다 [무늬, 쪽 이름]
@@ -89,10 +89,9 @@
             blank: () => '<div class="bnd-pg end"></div>',
             cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${date ? '📅 ' + cv.y : '🗂️'} ${esc(cv.g)}</span><small>${esc(cv.n)} · 밀어서 펼쳐요</small></div>`,
             spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3),
-            title: () => `🗂️ ${esc(cv.g)} <small>· ✋ 잡고 바구니로 = 내려놓기</small>`,
+            title: () => `🗂️ ${esc(cv.g)} <small>· 표지</small>`,
             side: () => { try { return localStorage.getItem(BND_SIDE) || 'lr'; } catch (e) { return 'lr'; } }, setSide: v => { try { localStorage.setItem(BND_SIDE, v); } catch (e) {} },
             onPage: (pg, open) => { const e = bq('bndSheets'), h = e && e.querySelector('.bnd-empty'); if (h) h.textContent = hint(open); },   // 펼치면 안내 글이 바뀌어요 (다시 그리지 않아요)
-            onClose: coverOut                                                     // ✕ = 표지 내려놓기 (조립한 바인더 = 풀기)
         };
         if (B.book && B.book.id === cv.id && B.book.root()) { B.book.refresh(spec); return; }   // 같은 표지 = 쪽만 다시 (펼침 · 쪽은 그대로)
         bookOff(); B.book = bookOpen(bq('bndBookHost'), Object.assign(spec, { pg: 0, open: false }));   // 새 표지 = 덮인 책부터 (다이어리처럼 밀어서 열어요)
@@ -115,12 +114,11 @@
         bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}${window.dmkLocked && dmkLocked(d.id) ? ' disabled' : ''}>${window.dmkLocked && dmkLocked(d.id) ? '🔒 ' : ''}${esc(d.g)}</option>`).join('')}</select>` : '';
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
         let at = 0;
-        const filled = dmkRmFilled();
-        const sheets = s.rf.map((x0, i) => {                                     // 끼운 내지 묶음 (책 아래 한 줄 · 끌어서 바구니로 = 빼기 · ✕)
+        const sheets = s.rf.map((x0, i) => {                                     // 끼운 내지 (책 아래 한 줄 · 보기만 · 빼기 = ⛓ 분리하기 · 도련 11-21)
             const x = C(x0) || x0;
-            if (x.t === 'drefill') return `<div class="bnd-sheet" data-out="${i}" style="--i:${i}"><b>📅 ${esc(x.g)}</b><small>${cv ? cv.y + '년 날짜로' : ''} · ${window.dmkLeafName ? dmkLeafName(x.lf || 'line') : ''}</small><button type="button" class="bnd-x" data-x="${i}" title="빼기">✕</button></div>`;
-            const a = at + 1; at += x.pg; const keep = a - 1 < filled;
-            return `<div class="bnd-sheet${keep ? ' keep' : ''}" ${keep ? '' : `data-out="${i}"`} style="--i:${i}"><b>${a}~${at} · ${esc(x.g)}</b><small>${window.dmkLvText ? dmkLvText(x.lv, x.pg) : ''}</small>${keep ? '<span class="bnd-lock" title="꾸민 페이지가 있어서 뺄 수 없어요">🔒</span>' : `<button type="button" class="bnd-x" data-x="${i}" title="빼기">✕</button>`}</div>`;
+            if (x.t === 'drefill') return `<div class="bnd-sheet" style="--i:${i}"><b>📅 ${esc(x.g)}</b><small>${cv ? cv.y + '년 날짜로' : ''} · ${window.dmkLeafName ? dmkLeafName(x.lf || 'line') : ''}</small></div>`;
+            const a = at + 1; at += x.pg;
+            return `<div class="bnd-sheet" style="--i:${i}"><b>${a}~${at} · ${esc(x.g)}</b><small>${window.dmkLvText ? dmkLvText(x.lv, x.pg) : ''}</small></div>`;
         }).join('');
         const bench = bq('bndBench');
         if (!cv) { bookOff(); bench.innerHTML = `<div class="bnd-place" id="bndDrop"><b>🗂️</b><span>바구니에서 표지를 골라 여기에 놓아요</span></div>`; }
@@ -133,6 +131,7 @@
         bq('bndInfo').textContent = !cv ? '' : date ? (s.rf.length ? `📅 ${cv.y}년 다이어리가 돼요` : '날짜 내지를 끼워 주세요') : `내지 ${s.rf.length}묶음 · ${pg}페이지`;
         bq('bndName').value = s.g || ''; bq('bndName').disabled = date;
         bq('bndOk').disabled = !(cv && s.rf.length);
+        bq('bndNew').disabled = !(cv || s.rf.length) || (!!s.id && dmkRmFilled() > 0);   // ⛓ 분리할 게 없거나 꾸민 바인더 = 못 눌러요
     }
     /* 톡 · 끌기 */
     function act(t) {
@@ -146,33 +145,28 @@
             dmkRmAdd(t.dataset.rf); return;
         }
     }
-    function down(e) {                                                            // 톡 · 끌기 (끌기 하나로 · js/deskmove.js dkDrag)
+    function down(e) {                                                            // 톡 · 끌기 = 바구니 재료를 작업대로 (끌기 하나로 · js/deskmove.js dkDrag) · 되돌리기 = ⛓ 분리하기 하나 (도련 11-21)
         const ed = e.target.closest('[data-ed]'); if (ed) { e.preventDefault(); const [t, id] = ed.dataset.ed.split(':'); dmkForm(t, id); return; }
-        const x = e.target.closest('[data-x]'); if (x) { e.preventDefault(); dmkRmOut(+x.dataset.x); return; }
-        const bar = e.target.closest('#bndBench .bk.inline .bk-bar'), cvG = bar && !e.target.closest('button');   // 📖 책 막대를 잡고 = 표지째 끌기 (바구니로 = 내려놓기 · 풀기)
-        const t = cvG ? bar : e.target.closest('.bnd-card, .bnd-sheet[data-out]'); if (!t) return;
+        const t = e.target.closest('.bnd-card'); if (!t) return;
         if (e.button > 0) return; e.preventDefault();
-        const room = bq('bndRoom'), over = ev => document.elementFromPoint(ev.clientX, ev.clientY), out = cvG || t.dataset.out != null;
+        const room = bq('bndRoom'), over = ev => document.elementFromPoint(ev.clientX, ev.clientY);
         dkDrag(e, t, {
             at: null, from: 'lift',
-            ghost: () => { const s = st(), g = cvG ? document.createElement('div') : t.cloneNode(true); if (cvG) { g.className = 'bnd-ghost bnd-cvg'; g.innerHTML = cvCard(C(s.cv), ''); } else { g.classList.add('bnd-ghost'); g.style.width = t.getBoundingClientRect().width + 'px'; } return g; },
-            move: ev => { const o = over(ev); room.classList.toggle('drop-in', !!(o && o.closest('#bndBench')) && !out); room.classList.toggle('drop-out', !!(o && o.closest('#bndBasket')) && out); },
-            tap: () => { if (!out) act(t); },                                    // 톡 = 넣기 (끼운 내지 · 막대는 톡 = 아무것도)
-            drop: (cx, cy, ev) => {
-                room.classList.remove('drop-in', 'drop-out'); const o = over(ev);
-                if (out && o && o.closest('#bndBasket')) { if (cvG) coverOut(); else dmkRmOut(+t.dataset.out); return; }   // → 바구니 = 빼기 · 표지 = 내려놓기
-                if (!out && o && o.closest('#bndBench')) act(t);                // 바구니 → 작업대
-            },
-            cancel: () => room.classList.remove('drop-in', 'drop-out')
+            ghost: () => { const g = t.cloneNode(true); g.classList.add('bnd-ghost'); g.style.width = t.getBoundingClientRect().width + 'px'; return g; },
+            move: ev => { const o = over(ev); room.classList.toggle('drop-in', !!(o && o.closest('#bndBench'))); },
+            tap: () => act(t),                                                    // 톡 = 넣기
+            drop: (cx, cy, ev) => { room.classList.remove('drop-in'); const o = over(ev); if (o && o.closest('#bndBench')) act(t); },
+            cancel: () => room.classList.remove('drop-in')
         });
     }
-    /* 🗂️ 표지 내려놓기 (책 막대 ✕ · 막대를 잡고 바구니로 끌기 · 도련 11-21) : 새로 조립 중 = 작업대 비우기 · 조립한 바인더 = 풀기 (표지 · 내지 모두 바구니로 · 그 권은 없어져요) · 꾸민 페이지가 있으면 못 해요 */
-    async function coverOut() {
-        const s = st(); if (!s || !s.cv) return;
-        if (s.id && dmkRmFilled() > 0) { showMsg('🔒 꾸민 페이지가 있어서 표지를 내려놓을 수 없어요.'); return; }
-        if (!s.id) { s.cv = null; s.rf = []; render(); return; }
+    /* ⛓ 분리하기 (도련 11-21 '바구니로 옮기는 기능은 다 지우고 · 새로 → 분리하기 = 표지와 내지가 분리되어 바구니로') : 작업대의 표지 · 내지를 모두 바구니로
+       새로 조립 중 = 작업대 비우기 (아직 바구니에서 빠지지 않았어요) · 조립한 바인더 = 한 번 묻고 풀기 (그 바인더는 없어져요 · dymaker.js dmkRmUnbind) · 꾸민 페이지가 있으면 못 해요 */
+    async function split() {
+        const s = st(); if (!s || (!s.cv && !s.rf.length)) return;
+        if (!s.id) { dmkRmInit(''); render(); return; }
+        if (dmkRmFilled() > 0) { showMsg('🔒 꾸민 페이지가 있어서 분리할 수 없어요.'); return; }
         const n = (s.o0.rf || []).length;
-        if (await showAsk(`🧩 <b>${esc(s.g || '내 바인더')}</b> 바인더를 풀까요?<br><span style="font-size:12px;color:#777;">표지${n ? ` · 끼운 내지 ${n}개` : ''}가 바구니로 돌아가고 바인더는 없어져요</span>`, '🧩 풀기', '취소') !== true) return;
+        if (await showAsk(`⛓ <b>${esc(s.g || '내 바인더')}</b> 바인더를 분리할까요?<br><span style="font-size:12px;color:#777;">표지${n ? ` · 내지 ${n}묶음` : ''}이 바구니로 돌아가고 바인더는 없어져요</span>`, '⛓ 분리하기', '취소') !== true) return;
         if (window.dmkRmUnbind && dmkRmUnbind()) render();
     }
     async function save() {

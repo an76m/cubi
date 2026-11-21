@@ -14,7 +14,7 @@
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
                 page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
-                inline (자리 host 안에 · 옮기기 없음) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
+                onClose 없으면 ✕ 없음 (🧩 바인더 조립) · inline (자리 host 안에 · 옮기기 없음) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
 /* 📍 쪽 자리 (도련 11-15 · 2-1 : 가짜 날짜 없애기) : 날짜가 아닌 쪽 = BookSpot(n) · 0 = 📕 표지 · 1~ = 페이지형 다이어리 장 (예전 = '2000년 1월 n일' 가짜 날짜 · 1999-12-31 = 표지)
@@ -145,7 +145,7 @@ function bookOpen(host, spec) {
         const book = !B.open
             ? `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div></div>`
             : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div><div class="bk-spine" aria-hidden="true">${spec.spine(t)}</div></div>`;
-        B.root.innerHTML = `<div class="bk-bar" title="끌어서 옮기기">${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}<button type="button" class="bk-x" aria-label="닫기">✕</button></div><div class="bk-stage" id="bkStage">${book}</div>`;
+        B.root.innerHTML = `<div class="bk-bar"${spec.inline ? '' : ' title="끌어서 옮기기"'}>${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}${spec.onClose ? '<button type="button" class="bk-x" aria-label="닫기">✕</button>' : ''}</div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();
         fit();
         if (spec.wire) spec.wire(B.root.querySelector('.bk-stage'), B);
