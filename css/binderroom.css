@@ -41,12 +41,13 @@
 .bnd-sheet b { font-size: 13px; } .bnd-sheet small { font-size: 11px; color: #a07f8b; font-weight: 700; }
 @keyframes bndIn { from { transform: translateX(18px); opacity: 0; } }
 .bnd-empty { margin: auto; color: #b0899a; font-weight: 800; font-size: 13px; text-align: center; padding: 20px; }
-.bnd-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-top: 2px dashed #ecd6c8; }
-.bnd-bar label { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; }
-.bnd-bar input { border: 2px solid #f1d3dd; border-radius: 10px; padding: 6px 10px; font-size: 13px; width: 160px; }
-.bnd-info { flex: 1; font-size: 12.5px; color: #8b6a76; font-weight: 700; }
+.bnd-top { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 2px dashed #ecd6c8; }   /* 🧩 위 가운데 메뉴 하나 (도련 11-21 · 아래 막대와 합쳤어요) */
+.bnd-wt { font-weight: 800; font-size: 14px; }
+.bnd-top label { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; }
+.bnd-top input { border: 2px solid #f1d3dd; border-radius: 10px; padding: 6px 10px; font-size: 13px; width: 160px; }
+.bnd-info { font-size: 12.5px; color: #8b6a76; font-weight: 700; }
 .bnd-ok { background: var(--pk) !important; color: #fff !important; border-color: var(--pk) !important; font-weight: 900; }
-.bnd-ok:disabled { opacity: .45; }
+.bnd-top .btn:disabled { opacity: .45; cursor: default; }   /* 못 누르는 버튼 = 흐리게 (🧩 조립하기 · ⛓ 분리하기) */
 body.bnd-on .desk-top-r { display: none; }
 @media (max-width: 760px) { .bnd-mat { grid-template-columns: 1fr; grid-template-rows: 30% minmax(0, 1fr); } .bnd-bench { padding: 8px 4px; gap: 6px; } .bnd-info { flex-basis: 100%; order: 9; font-size: 12px; } .bnd-garland, .bnd-sign small { display: none; } }
 
@@ -63,10 +64,9 @@ body.bnd-on .desk-top-r { display: none; }
 .bnd-dkmode .bnd-card:hover { transform: translateY(-3px) rotate(0); }
 .bnd-dkmode .bnd-hint { background: rgba(255, 250, 240, .9); border-radius: 8px; padding: 6px 8px; }
 .bnd-dkmode .bnd-work { background: none; border: 0; box-shadow: none; overflow: visible; }
-.bnd-dkmode .bnd-work h3 { align-self: center; border: 1.5px solid #e2b9c9; border-radius: 12px; background: #fff; padding: 4px 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
 .bnd-dkmode .bnd-bench { padding: 10px 6px; }
 .bnd-dkmode .bnd-place { background: rgba(255, 255, 255, .55); border-color: rgba(194, 69, 122, .45); color: #8b5a6e; }
-.bnd-dkmode .bnd-bar { align-self: center; border: 2px solid #e9c7dd; border-radius: 16px; background: #fff; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); margin-top: 6px; padding: 8px 12px; }
+.bnd-dkmode .bnd-top { align-self: center; border: 2px solid #e9c7dd; border-radius: 16px; background: #fff; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); margin-bottom: 6px; padding: 6px 12px; }
 .bnd-dkmode .bnd-info:empty { display: none; }
 .bnd-dr { position: absolute; top: -6px; left: -6px; font-style: normal; font-size: 14px; background: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.18); }   /* 🗄️ 서랍 속 재료 (도련 11-21) */
 

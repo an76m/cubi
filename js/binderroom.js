@@ -22,12 +22,12 @@
                 <div class="bnd-panel bnd-basket" id="bndBasket"><h3>🧺 재료 바구니 <small>톡 · 끌어서 작업대로</small></h3>
                     <div class="bnd-sec"><b>🗂️ 표지</b><div class="bnd-grid" id="bndCovers"></div></div>
                     <div class="bnd-sec"><b>📄 내지</b><div class="bnd-grid" id="bndRefills"></div></div></div>
-                <div class="bnd-panel bnd-work"><h3><span id="bndWorkT">작업대</span><span class="bnd-mine" id="bndMine"></span></h3>
-                    <div class="bnd-bench" id="bndBench"></div>
-                    <div class="bnd-bar"><label>이름 <input id="bndName" maxlength="20" autocomplete="off" placeholder="내 바인더"></label>
+                <div class="bnd-panel bnd-work"><div class="bnd-top"><span class="bnd-wt" id="bndWorkT">작업대</span><span class="bnd-mine" id="bndMine"></span>
+                        <label>이름 <input id="bndName" maxlength="20" autocomplete="off" placeholder="내 바인더"></label>
                         <span class="bnd-info" id="bndInfo"></span>
                         <button type="button" class="btn" id="bndNew">분리하기</button>
-                        <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button></div></div></div>`;
+                        <button type="button" class="btn bnd-ok" id="bndOk">🧩 조립하기</button></div>
+                    <div class="bnd-bench" id="bndBench"></div></div></div>`;
         document.body.appendChild(el);
         bq('bndGo').onclick = bndCancel;
         bq('bndNew').onclick = split;
@@ -102,8 +102,7 @@
         const date = dmkRmDate(), n = dmkRmN(), lock = dmkRmLock(), cv = s.cv ? C(s.cv) : null;
         /* 🧺 바구니 */
         const covers = dmkRmPool('cover').filter(c => !(s.id && c.t === 'dcover'));
-        bq('bndCovers').innerHTML = covers.map(c => cvCard(c, c.t === 'cover' && c.from === 'mine' && window.dymGet && dymGet(c.id) ? `<i class="bnd-ed" data-ed="cover:${esc(c.id)}" title="고치기">✏️</i>` : '')).join('')
-            + (covers.some(c => c.t === 'dcover') ? '' : `<div class="bnd-hint">🗂️ 표지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📔 다이어리에서 받아요</div>`);
+        bq('bndCovers').innerHTML = covers.map(c => cvCard(c, c.t === 'cover' && c.from === 'mine' && window.dymGet && dymGet(c.id) ? `<i class="bnd-ed" data-ed="cover:${esc(c.id)}" title="고치기">✏️</i>` : '')).join('');   // 표지 얻는 곳 안내 글 없앰 (도련 11-21)
         const refills = dmkRmPool('refill');
         const fit = r => cv && (date ? r.t === 'drefill' : r.t === 'refill') && r.n === n;
         bq('bndRefills').innerHTML = refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('')
