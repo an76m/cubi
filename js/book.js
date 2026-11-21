@@ -3,6 +3,7 @@
    - 누가 무엇을 써요 (도련 11-16 · 1233 ~ 1238 다 끝)
        📒 스티커바인더 · 🤍 이형지북 (js/basket.js abFlt) = bookOpen 통째로 (표지 · 넘기기 · 막대 · 보기 · 크기)
        📔 날짜형노트 · 🗂️ 날짜형바인더 · 📓 페이지노트 · 🗂️ 페이지바인더 (js/page.js · js/skins.js) = 쪽 그리기 · 저장은 다이어리 것 + 아래 공통 부품
+       🧩 바인더 조립 작업대 (js/binderroom.js · 1374 · 도련 11-21 '다이어리처럼 현실적으로') = bookOpen 통째로 · inline (작업대 안) · 덮인 표지 → 펼치고 → 내지를 끼우면 쪽이 생겨요 → 넘겨 봐요
        공통 부품 = BookSpot (쪽 자리) · bookSide (◧◨) · bookCurlAt (넘어가는 그림) · bookTurner (넘기기 손길) · bookMover (막대 끌기)
    - 엔진이 하는 일
        표지 = 덮인 책으로 시작 · 밀어서(또는 ›) 열기 · 첫 쪽에서 앞으로 밀면(또는 ‹) 덮기
@@ -13,7 +14,7 @@
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
                 page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
-                side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
+                inline (자리 host 안에 · 옮기기 없음) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
 /* 📍 쪽 자리 (도련 11-15 · 2-1 : 가짜 날짜 없애기) : 날짜가 아닌 쪽 = BookSpot(n) · 0 = 📕 표지 · 1~ = 페이지형 다이어리 장 (예전 = '2000년 1월 n일' 가짜 날짜 · 1999-12-31 = 표지)
@@ -29,6 +30,7 @@ function bookSide(cur, s) {                                                  // 
     on[s] = !on[s]; if (!on.l && !on.r) return cur;
     return (on.l ? 'l' : '') + (on.r ? 'r' : '');
 }
+const BOOK_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';   // 🔗 바인더 링 하나 (📒 스티커바인더 · 🧩 바인더 조립 · 가운데 묶음 spine 에)
 const BOOK_DRAG = 8, BOOK_DONE = .35;                                       // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 (넘어가는 시간 = bookTurner 120 + 480 × 거리)
 /* 📖 넘어가는 그림 하나 = 종이 말림 (도련 11-15 · 2-4 · 📔 다이어리 js/page.js updateCurl · 📒 🤍 책 엔진이 같은 계산) : 넘기는 쪽 한 장(폭 W) 기준 자리
    d = 넘긴 만큼 (0 ~ W) · dir 1 = 다음 (오른쪽 끝에서 왼쪽으로) · -1 = 앞 (왼쪽 끝에서 오른쪽으로) · edge = 앞으로 넘길 때 잡는 왼쪽 끝 (다이어리 펼침면 = -W)
@@ -135,7 +137,7 @@ function bookOpen(host, spec) {
         norm();
         const t = two(), c = spec.colors, side = ph() ? '' : sideBtn('l'), side2 = ph() ? '' : sideBtn('r');
         if (!B.root) {
-            B.root = document.createElement('div'); B.root.className = 'bk ' + (spec.cls || '');
+            B.root = document.createElement('div'); B.root.className = 'bk ' + (spec.cls || '') + (spec.inline ? ' inline' : '');
             host.appendChild(B.root); wire();
         }
         B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]); B.root.style.setProperty('--abf', spec.face || 'none');   // 📁 앞표지 = 그 상품 표지.svg (도련 11-18)
@@ -151,12 +153,13 @@ function bookOpen(host, spec) {
     }
     /* 📐 크기 · 자리 (막대 가운데 기준) */
     function fit() {
-        const W = innerWidth, H = innerHeight, t = two(), one = B.open && !t;
+        const W = spec.inline ? host.clientWidth : innerWidth, H = spec.inline ? host.clientHeight : innerHeight, t = two(), one = B.open && !t;   // 🧩 inline = 자리(host) 안에 (바인더 조립 작업대)
         const padW = t ? 28 + 44 : one ? 14 + 64 : 28, padH = 28 + 52 + 16 + (ph() ? 24 : 40);
         const mm = spec.mm, R = mm[0] / mm[1];                                // 📏 한 쪽 = spec.mm [가로, 세로] 규격 · 실제 크기 (화면이 작으면 줄여요 · 도련 11-16)
         let h = Math.min(H - padH, (Math.min(W - 16, 1500) - padW) / ((t ? 2 : 1) * R), mm[1] * MM_PX);
-        h = Math.max(220, Math.floor(h));
+        h = Math.max(spec.inline ? 140 : 220, Math.floor(h));                  // 🧩 작업대 안 = 더 작아도 돼요 (📱 폰)
         B.root.style.setProperty('--ph', h + 'px'); B.root.style.setProperty('--pw', Math.floor(h * R) + 'px'); B.root.style.setProperty('--mmk', (h / mm[1]).toFixed(4));   // --mmk = 화면에서 1mm (px 숫자)
+        if (spec.inline) return;                                              // 자리 안 = 옮기지 않아요 (가운데 · css .bk.inline)
         let p = null; try { p = JSON.parse(localStorage.getItem(spec.posKey) || 'null'); } catch (e) {}
         place(p && isFinite(p.cx) ? p.cx : W / 2, p && isFinite(p.y) ? p.y : Math.max(8, (H - B.root.offsetHeight) / 2));
     }
@@ -180,7 +183,7 @@ function bookOpen(host, spec) {
             off: () => { R.classList.remove('mv'); try { localStorage.setItem(spec.posKey, JSON.stringify({ cx: Math.round(B.cx), y: Math.round(B.y) })); } catch (er) {} }
         });
         R.addEventListener('pointerdown', e => {
-            if ((e.pointerType === 'mouse' && e.button > 0) || B.busy || !e.target.closest('.bk-bar')) return;   // 막대 = 옮기기 (버튼 위에서 끌어도 · 살짝 누르면 버튼)
+            if (spec.inline || (e.pointerType === 'mouse' && e.button > 0) || B.busy || !e.target.closest('.bk-bar')) return;   // 막대 = 옮기기 (버튼 위에서 끌어도 · 살짝 누르면 버튼)
             B.mv.begin(e);
         });
         B.tr = bookTurner({                                                 // ✋ 넘기기 손길 = 공통 (bookTurner)
@@ -232,4 +235,4 @@ function bookOpen(host, spec) {
         turn, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
-window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
+window.BOOK_RING = BOOK_RING; window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;

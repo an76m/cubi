@@ -860,7 +860,7 @@
        · 🧺 바구니 = 🧺 바구니 화면과 같은 상자(.bk-bin) 를 세로로 길게 · 종이가 기울어 수북이 겹쳐 담겨요 · 많으면 안에서 위아래로 넘겨 봐요
        · 📒 바인더 : 표지째 펼친 두 쪽 (가운데 6공 링) · 한 쪽 = 투명 포켓 4개 → 두 쪽씩 넘겨요
        · 🤍 이형지북 : 왼쪽 스프링 · 반짝이는 이형지 한 쪽 · 뒤로 겹친 종이 · 아래 🟩 커팅 매트 = 떼는 자리 (바구니 아래) */
-    const ABS_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';
+    const ABS_RING = BOOK_RING;                                               // 🔗 링 그림 = 책 엔진 하나 (js/book.js · 🧩 바인더 조립도 같이)
     /* 🤍 이형지북 처음 안내 (도련 10-29) : 종이를 매트에 펼치기 전까지 바구니 → 매트 화살표 + 한 줄 (바구니 판에 붙어 같이 움직여요) */
     const ABS_GUIDE = '<div class="abx-guide" aria-hidden="true"><b>붙일 스티커 종이를<br>초록 매트로 끌어다 놓아요</b>'
         + '<svg viewBox="0 0 170 90"><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#8d6f7f" stroke-width="17" stroke-linecap="round"/><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#ff8fb4" stroke-width="11" stroke-linecap="round"/>'

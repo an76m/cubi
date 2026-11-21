@@ -1,13 +1,14 @@
 /* 말랑달콤 다이어리 - js/binderroom.js
    🧩 바인더 조립 공간 (도련 11-07 · 981 · 💻 📲 책상 오른쪽 위 메뉴 '바인더 조립')
    - 왼쪽 🧺 재료 바구니 = 가진 표지 · 내지 (🧩 다이어리 / _바인더재료목록.json · js/dyown.js) · 만들기는 여기 없어요 (도련 11-11 : 📒 다이어리 → 🗂️ 바인더 만들기 · 조립은 고르기만)
-   - 가운데 작업대 = 펼친 바인더 : 표지를 놓고 · 내지를 링에 끼워요 (톡 또는 끌어다 놓기) · 끼운 내지를 바구니로 끌거나 ✕ = 빼기
+   - 가운데 작업대 = 진짜 책 (1374 · 도련 11-21 · js/book.js bookOpen inline) : 표지를 놓으면 덮인 책 → 밀어서 펼쳐요 → 펼친 표지에 내지를 끼워요 (톡 또는 끌어다 놓기) → 쪽이 생겨 넘겨 봐요
+     · 끼운 내지 묶음 = 책 아래 한 줄 (바구니로 끌거나 ✕ = 빼기) · 책 막대 ✕ = 표지 내려놓기
    - 📅 날짜 표지(해가 적힌) = 같은 크기 날짜 내지 하나 · 끼운 표지의 해로 날짜가 그려져요 · 해가 지난 표지는 못 해요
    - 🧩 조립하기 = 다이어리 목록에 한 권 · 쓴 재료는 바구니에서 빠져요 → 바인더는 책상 위에 (끌어서 옮겨요)
    - ✏️ 내 바인더 고치기 = 이미 조립한 페이지바인더 (내지 더 끼우기 · 빼기 · 표지 바꾸기 · 뺀 것은 바구니로)
    - 조립 규칙 · 저장은 js/dymaker.js (dmkRmInit · dmkRmPick · dmkRmAdd · dmkRmOut · dmkRoomSave) 와 같아요 · 여기는 그 모습만 */
 (function () {
-    const B = { on: false, drag: null };
+    const B = { on: false, drag: null, book: null };
     const bq = id => document.getElementById(id);
     const esc = htmlEsc;   // 🧰 js/util.js
     const st = () => window.dmkRmState ? dmkRmState() : null;
@@ -49,7 +50,7 @@
     }
     function bndClose() {
         const el = bq('bndRoom'); if (!el || !B.on) return;
-        B.on = false; el.classList.remove('show', 'bnd-dkmode'); document.body.classList.remove('cal-on', 'bnd-on'); if (window.dtmShow) dtmShow(null);
+        B.on = false; bookOff(); el.classList.remove('show', 'bnd-dkmode'); document.body.classList.remove('cal-on', 'bnd-on'); if (window.dtmShow) dtmShow(null);
     }
     const C = v => window.dmkClean ? dmkClean(v) : v;
     const drIn = (h, id) => window.dbkMatIn && dbkMatIn(id) ? h.replace('>', '><i class="bnd-dr" title="서랍에 있어요 · ✔ 완료하면 서랍에서 빠져요">🗄️</i>') : h;   // 🗄️ 서랍 속 재료 표시 (도련 11-21 · 바구니에도 보여요)
@@ -59,6 +60,41 @@
     }
     function rfCard(r, R) {
         return drIn(`<div class="bnd-card bnd-rf" data-rf="${esc(r.id)}">${r.t === 'drefill' ? dmkRfThumb([[1, 1, r.lf || 'line']], R || 1.41, 64) : dmkRfThumb(r.lv, r.r, 64)}<span>${esc(r.g)}</span><small>${r.t === 'drefill' ? '📅 날짜 · ' + r.n : r.n + ' · ' + r.pg + 'p'}</small>${r.t === 'refill' && r.from === 'mine' && window.dymGet && dymGet(r.id) ? `<i class="bnd-ed" data-ed="refill:${esc(r.id)}" title="고치기">✏️</i>` : ''}</div>`, r.id);
+    }
+    /* 📖 작업대 = 진짜 책처럼 (도련 11-21 · 1374 · 📚 책 엔진 js/book.js bookOpen 하나 · 📒 스티커바인더와 같은 엔진)
+         표지를 놓으면 = 덮인 책 → 밀어서(또는 ›) 펼쳐요 → 펼친 표지에 내지를 끼우면(톡 · 끌기) 그 쪽들이 생겨요 → 넘겨 봐요 · 첫 쪽에서 앞으로 = 덮기
+         쪽 = 끼운 내지 차례대로 (📄 내지 = 그 내지무늬 · 📅 날짜 내지 = 그 해 날짜마다 한 쪽) · ✕ = 표지 내려놓기 (꾸민 쪽이 있는 바인더 고치기는 못 해요) */
+    const BND_SIDE = 'malang_bnd_side';
+    const mmOf = c => { const m = String(c.mm || '').match(/([\d.]+)\D+([\d.]+)/); return m ? [+m[1], +m[2]] : [Math.round(148 / (c.r || 1.41)), 148]; };
+    function pagesOf(s, cv) {                                                     // 끼운 내지 → 쪽마다 [무늬, 쪽 이름]
+        const P = [];
+        s.rf.forEach(x0 => { const x = C(x0) || x0;
+            if (x.t === 'drefill') { const y = cv.y || new Date().getFullYear(); for (let d = new Date(y, 0, 1); d.getFullYear() === y; d.setDate(d.getDate() + 1)) P.push([x.lf || 'line', `${d.getMonth() + 1}월 ${d.getDate()}일`]); return; }
+            const lv = x.lv && x.lv.length ? x.lv : [[1, x.pg, 'line']];
+            for (let k = 1; k <= x.pg; k++) { const r = lv.find(v => k >= v[0] && k <= v[1]) || lv[lv.length - 1]; P.push([r[2], String(P.length + 1)]); }
+        });
+        return P;
+    }
+    function bookOff() { if (B.book) { B.book.destroy(); B.book = null; } }
+    function bookShow(cv, s, date, lock) {
+        const P = pagesOf(s, cv), canX = !(s.id && lock), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 끼워요 (톡 · 끌어서 책에 · 여러 개 · 순서대로)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
+        B.hint = hint;
+        const leaf = (lf, p) => { const a = String(lf || 'line').split('/'); return window.leafCss ? leafCss(a[p % 2] || a[0]) : '#fffdfb'; };   // 📖 양쪽 디자인 = 왼쪽 / 오른쪽
+        const spec = {
+            id: cv.id, cls: 'bk-bd bk-bnd', inline: true, pages: Math.max(1, P.length), mm: mmOf(cv),
+            colors: [cv.c, `color-mix(in srgb, ${cv.c} 72%, #5a3a46)`], face: window.dyFaceCss && (cv.pid || cv.d) ? dyFaceCss(cv.pid || cv.d, 'px') : 'none',
+            page: p => P.length ? `<div class="bnd-pg" style="background:${esc(leaf(P[p][0], p))}"><b class="abx-no">${esc(P[p][1])}</b></div>`
+                : `<div class="bnd-pg bnd-pg0"><span>${date ? '📅 같은 크기 날짜 내지를<br>여기에 끼워요' : '📄 바구니의 내지를<br>톡 하거나 끌어서<br>여기에 끼워요'}</span></div>`,
+            blank: () => '<div class="bnd-pg end"></div>',
+            cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${date ? '📅 ' + cv.y : '🗂️'} ${esc(cv.g)}</span><small>${esc(cv.n)} · 밀어서 펼쳐요</small></div>`,
+            spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3),
+            title: () => `🗂️ ${esc(cv.g)} <small>· 표지</small>`,
+            side: () => { try { return localStorage.getItem(BND_SIDE) || 'lr'; } catch (e) { return 'lr'; } }, setSide: v => { try { localStorage.setItem(BND_SIDE, v); } catch (e) {} },
+            onPage: (pg, open) => { const e = bq('bndSheets'), h = e && e.querySelector('.bnd-empty'); if (h) h.textContent = hint(open); },   // 펼치면 안내 글이 바뀌어요 (다시 그리지 않아요)
+            onClose: () => { if (!canX) { showMsg('🔒 꾸민 페이지가 있어서 표지를 내려놓을 수 없어요.'); return; } const st0 = st(); if (st0) { st0.cv = null; st0.rf = []; } render(); }   // ✕ = 표지 내려놓기
+        };
+        if (B.book && B.book.id === cv.id && B.book.root()) { B.book.refresh(spec); return; }   // 같은 표지 = 쪽만 다시 (펼침 · 쪽은 그대로)
+        bookOff(); B.book = bookOpen(bq('bndBookHost'), Object.assign(spec, { pg: 0, open: false }));   // 새 표지 = 덮인 책부터 (다이어리처럼 밀어서 열어요)
     }
     function render() {
         if (!B.on) return;
@@ -79,17 +115,19 @@
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
         let at = 0;
         const filled = dmkRmFilled();
-        const sheets = s.rf.map((x0, i) => {
+        const sheets = s.rf.map((x0, i) => {                                     // 끼운 내지 묶음 (책 아래 한 줄 · 끌어서 바구니로 = 빼기 · ✕)
             const x = C(x0) || x0;
             if (x.t === 'drefill') return `<div class="bnd-sheet" data-out="${i}" style="--i:${i}"><b>📅 ${esc(x.g)}</b><small>${cv ? cv.y + '년 날짜로' : ''} · ${window.dmkLeafName ? dmkLeafName(x.lf || 'line') : ''}</small><button type="button" class="bnd-x" data-x="${i}" title="빼기">✕</button></div>`;
             const a = at + 1; at += x.pg; const keep = a - 1 < filled;
             return `<div class="bnd-sheet${keep ? ' keep' : ''}" ${keep ? '' : `data-out="${i}"`} style="--i:${i}"><b>${a}~${at} · ${esc(x.g)}</b><small>${window.dmkLvText ? dmkLvText(x.lv, x.pg) : ''}</small>${keep ? '<span class="bnd-lock" title="꾸민 페이지가 있어서 뺄 수 없어요">🔒</span>' : `<button type="button" class="bnd-x" data-x="${i}" title="빼기">✕</button>`}</div>`;
         }).join('');
-        bq('bndBench').innerHTML = cv
-            ? `<div class="bnd-open" style="--cv:${cv.c};--ar:${1 / cv.r}"><div class="bnd-left">${dmkCvThumb(cv.c, cv.r, 150, cv.pid || cv.d)}<b>${esc(cv.g)}</b><small>${cv.t === 'dcover' ? '📅 ' + cv.y + '년 · ' : ''}${cv.n} · ${cv.mm}mm</small>${s.id && lock ? '' : '<button type="button" class="bnd-x bnd-cvx" data-cvx="1" title="표지 내려놓기">↩</button>'}</div>
-                <div class="bnd-ring" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                <div class="bnd-right" id="bndDrop">${sheets || `<div class="bnd-empty">${date ? '📅 같은 크기 날짜 내지를 하나 끼워요' : '📄 같은 크기 내지를 끼워요 (여러 개 · 순서대로)'}</div>`}</div></div>`
-            : `<div class="bnd-place" id="bndDrop"><b>🗂️</b><span>바구니에서 표지를 골라 여기에 놓아요</span></div>`;
+        const bench = bq('bndBench');
+        if (!cv) { bookOff(); bench.innerHTML = `<div class="bnd-place" id="bndDrop"><b>🗂️</b><span>바구니에서 표지를 골라 여기에 놓아요</span></div>`; }
+        else {
+            if (!bq('bndBookHost')) bench.innerHTML = '<div class="bnd-bookhost" id="bndBookHost"></div><div class="bnd-sheets" id="bndSheets"></div>';
+            bookShow(cv, s, date, lock);
+            bq('bndSheets').innerHTML = sheets || `<div class="bnd-empty">${B.hint(!!(B.book && B.book.open))}</div>`;
+        }
         const pg = s.rf.reduce((t, x) => t + (C(x).t === 'drefill' ? 0 : C(x).pg), 0);
         bq('bndInfo').textContent = !cv ? '' : date ? (s.rf.length ? `📅 ${cv.y}년 다이어리가 돼요` : '날짜 내지를 끼워 주세요') : `내지 ${s.rf.length}묶음 · ${pg}페이지`;
         bq('bndName').value = s.g || ''; bq('bndName').disabled = date;
@@ -103,6 +141,7 @@
         if (t.dataset.cv) { if (t.classList.contains('old')) { showMsg('📅 해가 지난 표지라 조립할 수 없어요.'); return; } dmkRmPick(t.dataset.cv); if (st().cv && C(st().cv).id !== t.dataset.cv && dmkRmLock()) showMsg('꾸민 페이지가 있어서 같은 크기 표지로만 바꿀 수 있어요.'); return; }
         if (t.dataset.rf) {
             if (!s.cv) { showMsg('🗂️ 표지를 먼저 놓아 주세요.'); return; }
+            if (!B.book || !B.book.open) { showMsg('📖 표지를 먼저 펼쳐 주세요.<br><small>책을 밀거나 › 를 눌러요</small>'); return; }   // 다이어리처럼 = 펼친 표지에 끼워요 (도련 11-21)
             if (t.classList.contains('off')) { showMsg(dmkRmDate() ? `📅 ${dmkRmN()} 크기 날짜 내지만 끼울 수 있어요.` : `📄 ${dmkRmN()} 크기 내지만 끼울 수 있어요.`); return; }
             dmkRmAdd(t.dataset.rf); return;
         }
@@ -110,7 +149,6 @@
     function down(e) {
         const ed = e.target.closest('[data-ed]'); if (ed) { e.preventDefault(); const [t, id] = ed.dataset.ed.split(':'); dmkForm(t, id); return; }
         const x = e.target.closest('[data-x]'); if (x) { e.preventDefault(); dmkRmOut(+x.dataset.x); return; }
-        if (e.target.closest('[data-cvx]')) { e.preventDefault(); const s = st(); if (s) { s.cv = null; s.rf = []; render(); } return; }
         const t = e.target.closest('.bnd-card, .bnd-sheet[data-out]'); if (!t) return;
         e.preventDefault();
         B.drag = { t, x: e.clientX, y: e.clientY, g: null, id: e.pointerId };

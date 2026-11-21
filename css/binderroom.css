@@ -36,23 +36,16 @@
 .bnd-ghost { position: fixed; z-index: 2000; pointer-events: none; transform: translate(-50%, -60%) rotate(-4deg); box-shadow: 0 10px 24px rgba(107, 68, 56, .3); opacity: .95; }
 /* 작업대 */
 .bnd-mine select { font-size: 12px; border: 2px solid #f1d3dd; border-radius: 999px; padding: 3px 10px; background: #fff; color: inherit; max-width: 220px; }
-.bnd-bench { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; padding: 18px; overflow: auto; }
+.bnd-bench { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 18px; overflow: hidden; }
 .bnd-room.drop-in .bnd-bench { background: rgba(232, 143, 176, .08); box-shadow: inset 0 0 0 3px rgba(232, 143, 176, .5); }
 .bnd-place { display: grid; place-items: center; gap: 8px; width: min(420px, 90%); aspect-ratio: 1.4; border: 3px dashed #e5b9c9; border-radius: 18px; color: #b0899a; font-weight: 800; text-align: center; padding: 20px; }
 .bnd-place b { font-size: 46px; }
-.bnd-open { display: grid; grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1.25fr); width: min(760px, 100%); min-height: 330px; background: #fff; border: 3px solid var(--line); border-radius: 16px; box-shadow: 0 6px 0 rgba(107, 68, 56, .22); overflow: hidden; }
-.bnd-left { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 18px; background: color-mix(in srgb, var(--cv, #ffc6d6) 22%, #fff); }
-.bnd-left b { font-size: 15px; } .bnd-left small { font-size: 11.5px; color: #8b6a76; font-weight: 700; }
-.bnd-ring { display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; background: linear-gradient(90deg, #f3e9f1, #fff, #f3e9f1); border-left: 1px dashed #e5d3de; border-right: 1px dashed #e5d3de; }
-.bnd-ring i { width: 24px; height: 12px; border: 3px solid #c9b6d6; border-radius: 999px; background: #fff; box-shadow: inset 0 1px 0 #fff, 0 1px 0 rgba(0, 0, 0, .08); }
-.bnd-right { display: flex; flex-direction: column; gap: 6px; padding: 14px; overflow: auto; background: repeating-linear-gradient(#fffdfb 0 23px, #f4e8ef 23px 24px); }
 .bnd-sheet { position: relative; display: grid; gap: 2px; padding: 9px 34px 9px 12px; background: #fff; border: 2px solid #ecd6e2; border-left: 5px solid var(--pk); border-radius: 8px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: 0 2px 0 rgba(107, 68, 56, .08); animation: bndIn .25s ease both; }
 .bnd-sheet b { font-size: 13px; } .bnd-sheet small { font-size: 11px; color: #a07f8b; font-weight: 700; }
 .bnd-sheet.keep { cursor: default; border-left-color: #c9b6d6; }
 .bnd-sheet.lift { opacity: .3; }
 @keyframes bndIn { from { transform: translateX(18px); opacity: 0; } }
 .bnd-x { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border: 0; border-radius: 50%; background: #fff0f5; color: var(--deep); font-weight: 900; cursor: pointer; }
-.bnd-cvx { top: 10px; transform: none; }
 .bnd-lock { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
 .bnd-empty { margin: auto; color: #b0899a; font-weight: 800; font-size: 13px; text-align: center; padding: 20px; }
 .bnd-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-top: 2px dashed #ecd6c8; }
@@ -62,7 +55,7 @@
 .bnd-ok { background: var(--pk) !important; color: #fff !important; border-color: var(--pk) !important; font-weight: 900; }
 .bnd-ok:disabled { opacity: .45; }
 body.bnd-on .desk-top-r { display: none; }
-@media (max-width: 760px) { .bnd-mat { grid-template-columns: 1fr; grid-template-rows: 40% minmax(0, 1fr); } .bnd-open { grid-template-columns: 1fr 26px 1.2fr; min-height: 240px; } .bnd-garland, .bnd-sign small { display: none; } }
+@media (max-width: 760px) { .bnd-mat { grid-template-columns: 1fr; grid-template-rows: 30% minmax(0, 1fr); } .bnd-bench { padding: 8px 4px; gap: 6px; } .bnd-info { flex-basis: 100%; order: 9; font-size: 12px; } .bnd-garland, .bnd-sign small { display: none; } }
 
 /* 🧩 바인더조립모드 (도련 11-14 · js/binderroom.js bnd-dkmode) : 다이어리모드처럼 책상 위 = 🪵 책상판 무늬 / 🌈 배경지 · 위 🔑 잠금 · 오른쪽 위 메뉴 · 왼쪽 등나무 재료 바구니 · 가운데 펼친 표지 · 아래 작은 막대 */
 .bnd-room.bnd-dkmode { background-color: var(--dku-c, #f8d1de); background-image: var(--dku-i, none); background-size: var(--dku-s, auto); background-position: var(--dku-p, 0 0); background-repeat: var(--dku-r, repeat); }
@@ -80,12 +73,22 @@ body.bnd-on .desk-top-r { display: none; }
 .bnd-dkmode .bnd-work h3 { align-self: center; border: 1.5px solid #e2b9c9; border-radius: 12px; background: #fff; padding: 4px 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
 .bnd-dkmode .bnd-bench { padding: 10px 6px; }
 .bnd-dkmode .bnd-place { background: rgba(255, 255, 255, .55); border-color: rgba(194, 69, 122, .45); color: #8b5a6e; }
-.bnd-dkmode .bnd-open { border: 0; border-radius: 22px; padding: 14px; gap: 0; background: color-mix(in srgb, var(--cv, #ffc6d6) 85%, #fff); box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--cv, #ffc6d6) 70%, #6b4438), 0 16px 26px rgba(90, 50, 60, .32); min-height: 420px; }
-.bnd-dkmode .bnd-left { border-radius: 12px 0 0 12px; }
-.bnd-dkmode .bnd-right { border-radius: 0 12px 12px 0; }
 .bnd-dkmode .bnd-bar { align-self: center; border: 2px solid #e9c7dd; border-radius: 16px; background: #fff; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); margin-top: 6px; padding: 8px 12px; }
 .bnd-dkmode .bnd-info:empty { display: none; }
 .bnd-done { display: none; }
 .bnd-dkmode .bnd-done { display: inline-flex; }
 .bnd-dkmode .bnd-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
 .bnd-dr { position: absolute; top: -6px; left: -6px; font-style: normal; font-size: 14px; background: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.18); }   /* 🗄️ 서랍 속 재료 (도련 11-21) */
+
+/* 📖 작업대 = 진짜 책 (1374 · 도련 11-21 · js/book.js bookOpen inline · 📒 스티커바인더와 같은 책 모습) */
+.bnd-bookhost { position: relative; flex: 1; min-height: 0; align-self: stretch; display: flex; align-items: center; justify-content: center; }
+.bk.inline { position: relative; left: auto !important; top: auto !important; z-index: auto; }
+.bk.inline .bk-bar { cursor: default; }
+.bk.inline .bk-bar::before { display: none; }
+.bnd-pg { --mm: calc(var(--mmk) * 1px); --page-bg: #fffdfb; position: relative; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(150, 110, 130, .18); }
+.bnd-pg .abx-no { position: absolute; right: 8px; bottom: 6px; font-size: 11px; color: #a88a98; font-weight: 700; }
+.bnd-pg.bnd-pg0 { display: grid; place-items: center; background: repeating-linear-gradient(-45deg, #fffaf6 0 10px, #fbefe9 10px 20px); color: #a07f8b; font-weight: 800; font-size: 13px; text-align: center; line-height: 1.6; }
+.bnd-pg.end { background: transparent; box-shadow: none; }
+.bnd-sheets { flex: none; display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 2px 4px 6px; }
+.bnd-sheets .bnd-sheet { flex: none; min-width: 150px; }
+.bnd-sheets .bnd-empty { padding: 6px 12px; border-radius: 10px; background: rgba(255, 255, 255, .7); }
