@@ -77,7 +77,7 @@
     }
     function bookOff() { if (B.book) { B.book.destroy(); B.book = null; } }
     function bookShow(cv, s, date, lock) {
-        const P = pagesOf(s, cv), canX = !(s.id && lock), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 끼워요 (톡 · 끌어서 책에 · 여러 개 · 순서대로)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
+        const P = pagesOf(s, cv), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 끼워요 (톡 · 끌어서 책에 · 여러 개 · 순서대로)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
         B.hint = hint;
         const leaf = (lf, p) => { const a = String(lf || 'line').split('/'); return window.leafCss ? leafCss(a[p % 2] || a[0]) : '#fffdfb'; };   // 📖 양쪽 디자인 = 왼쪽 / 오른쪽
         const spec = {
@@ -89,10 +89,10 @@
             blank: () => '<div class="bnd-pg end"></div>',
             cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${date ? '📅 ' + cv.y : '🗂️'} ${esc(cv.g)}</span><small>${esc(cv.n)} · 밀어서 펼쳐요</small></div>`,
             spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3),
-            title: () => `🗂️ ${esc(cv.g)} <small>· 표지</small>`,
+            title: () => `🗂️ ${esc(cv.g)} <small>· ✋ 잡고 바구니로 = 내려놓기</small>`,
             side: () => { try { return localStorage.getItem(BND_SIDE) || 'lr'; } catch (e) { return 'lr'; } }, setSide: v => { try { localStorage.setItem(BND_SIDE, v); } catch (e) {} },
             onPage: (pg, open) => { const e = bq('bndSheets'), h = e && e.querySelector('.bnd-empty'); if (h) h.textContent = hint(open); },   // 펼치면 안내 글이 바뀌어요 (다시 그리지 않아요)
-            onClose: () => { if (!canX) { showMsg('🔒 꾸민 페이지가 있어서 표지를 내려놓을 수 없어요.'); return; } const st0 = st(); if (st0) { st0.cv = null; st0.rf = []; } render(); }   // ✕ = 표지 내려놓기
+            onClose: coverOut                                                     // ✕ = 표지 내려놓기 (조립한 바인더 = 풀기)
         };
         if (B.book && B.book.id === cv.id && B.book.root()) { B.book.refresh(spec); return; }   // 같은 표지 = 쪽만 다시 (펼침 · 쪽은 그대로)
         bookOff(); B.book = bookOpen(bq('bndBookHost'), Object.assign(spec, { pg: 0, open: false }));   // 새 표지 = 덮인 책부터 (다이어리처럼 밀어서 열어요)
@@ -146,32 +146,34 @@
             dmkRmAdd(t.dataset.rf); return;
         }
     }
-    function down(e) {
+    function down(e) {                                                            // 톡 · 끌기 (끌기 하나로 · js/deskmove.js dkDrag)
         const ed = e.target.closest('[data-ed]'); if (ed) { e.preventDefault(); const [t, id] = ed.dataset.ed.split(':'); dmkForm(t, id); return; }
         const x = e.target.closest('[data-x]'); if (x) { e.preventDefault(); dmkRmOut(+x.dataset.x); return; }
-        const t = e.target.closest('.bnd-card, .bnd-sheet[data-out]'); if (!t) return;
-        e.preventDefault();
-        B.drag = { t, x: e.clientX, y: e.clientY, g: null, id: e.pointerId };
-        const mv = ev => {
-            const d = B.drag; if (!d || ev.pointerId !== d.id) return;
-            if (!d.g && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 6) return;
-            if (!d.g) { d.g = t.cloneNode(true); d.g.classList.add('bnd-ghost'); const r = t.getBoundingClientRect(); d.g.style.width = r.width + 'px'; document.body.appendChild(d.g); t.classList.add('lift'); }
-            d.g.style.left = ev.clientX + 'px'; d.g.style.top = ev.clientY + 'px';
-            const over = document.elementFromPoint(ev.clientX, ev.clientY);
-            bq('bndRoom').classList.toggle('drop-in', !!(over && over.closest('#bndBench')) && !t.dataset.out);
-            bq('bndRoom').classList.toggle('drop-out', !!(over && over.closest('#bndBasket')) && !!t.dataset.out);
-        };
-        const up = ev => {
-            const d = B.drag; if (!d || ev.pointerId !== d.id) return;
-            removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
-            B.drag = null; t.classList.remove('lift'); bq('bndRoom').classList.remove('drop-in', 'drop-out');
-            if (!d.g) { if (!t.dataset.out) act(t); return; }                 // 톡
-            d.g.remove();
-            const over = document.elementFromPoint(ev.clientX, ev.clientY);
-            if (t.dataset.out != null && over && over.closest('#bndBasket')) { dmkRmOut(+t.dataset.out); return; }   // 끼운 내지 → 바구니 = 빼기
-            if (!t.dataset.out && over && over.closest('#bndBench')) act(t);   // 바구니 → 작업대
-        };
-        addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+        const bar = e.target.closest('#bndBench .bk.inline .bk-bar'), cvG = bar && !e.target.closest('button');   // 📖 책 막대를 잡고 = 표지째 끌기 (바구니로 = 내려놓기 · 풀기)
+        const t = cvG ? bar : e.target.closest('.bnd-card, .bnd-sheet[data-out]'); if (!t) return;
+        if (e.button > 0) return; e.preventDefault();
+        const room = bq('bndRoom'), over = ev => document.elementFromPoint(ev.clientX, ev.clientY), out = cvG || t.dataset.out != null;
+        dkDrag(e, t, {
+            at: null, from: 'lift',
+            ghost: () => { const s = st(), g = cvG ? document.createElement('div') : t.cloneNode(true); if (cvG) { g.className = 'bnd-ghost bnd-cvg'; g.innerHTML = cvCard(C(s.cv), ''); } else { g.classList.add('bnd-ghost'); g.style.width = t.getBoundingClientRect().width + 'px'; } return g; },
+            move: ev => { const o = over(ev); room.classList.toggle('drop-in', !!(o && o.closest('#bndBench')) && !out); room.classList.toggle('drop-out', !!(o && o.closest('#bndBasket')) && out); },
+            tap: () => { if (!out) act(t); },                                    // 톡 = 넣기 (끼운 내지 · 막대는 톡 = 아무것도)
+            drop: (cx, cy, ev) => {
+                room.classList.remove('drop-in', 'drop-out'); const o = over(ev);
+                if (out && o && o.closest('#bndBasket')) { if (cvG) coverOut(); else dmkRmOut(+t.dataset.out); return; }   // → 바구니 = 빼기 · 표지 = 내려놓기
+                if (!out && o && o.closest('#bndBench')) act(t);                // 바구니 → 작업대
+            },
+            cancel: () => room.classList.remove('drop-in', 'drop-out')
+        });
+    }
+    /* 🗂️ 표지 내려놓기 (책 막대 ✕ · 막대를 잡고 바구니로 끌기 · 도련 11-21) : 새로 조립 중 = 작업대 비우기 · 조립한 바인더 = 풀기 (표지 · 내지 모두 바구니로 · 그 권은 없어져요) · 꾸민 페이지가 있으면 못 해요 */
+    async function coverOut() {
+        const s = st(); if (!s || !s.cv) return;
+        if (s.id && dmkRmFilled() > 0) { showMsg('🔒 꾸민 페이지가 있어서 표지를 내려놓을 수 없어요.'); return; }
+        if (!s.id) { s.cv = null; s.rf = []; render(); return; }
+        const n = (s.o0.rf || []).length;
+        if (await showAsk(`🧩 <b>${esc(s.g || '내 바인더')}</b> 바인더를 풀까요?<br><span style="font-size:12px;color:#777;">표지${n ? ` · 끼운 내지 ${n}개` : ''}가 바구니로 돌아가고 바인더는 없어져요</span>`, '🧩 풀기', '취소') !== true) return;
+        if (window.dmkRmUnbind && dmkRmUnbind()) render();
     }
     async function save() {
         const s = st(); if (!s) return;

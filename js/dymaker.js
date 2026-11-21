@@ -461,6 +461,17 @@
             if (quiet) { if (window.dkDeskBooks) dkDeskBooks(); } else dmkUse(d);
             return d.id;
         }
+        /* 🧩 바인더 풀기 (도련 11-21 '조립된 표지 · 내지를 바구니로 옮길 수 있게') : 고치는 중인 바인더 = 표지 · 끼운 내지 모두 재료 바구니로 · 그 권은 없어져요
+           꾸민 페이지가 있으면 못 풀어요 (쓴 바인더) · 조립할 때 재료로 돌려놓는 것과 같은 길 (dmkRoomSave 의 '뺀 것 = 재료로') */
+        function dmkRmUnbind() {
+            if (!dmkRm || !dmkRm.id) return false;
+            const d = dmkGet(dmkRm.id); if (!d || dmkFilledMax(d.id) > 0) return false;
+            [dmkRm.o0.cv].concat(dmkRm.o0.rf).filter(Boolean).forEach(x => { const c = dmkClean(x); if (c) dymPut(c); });   // 표지 · 내지 = 재료로 돌아와요
+            if (window.dyNow && dyNow().id === d.id && window.dySet) dySet(DY_DEF);
+            dyoDel(d.id); dmkRm = null; dmkRmInit('');
+            if (window.dkDeskBooks) dkDeskBooks();
+            return true;
+        }
         async function dmkRoomDelete() {
             const d = dmkGet(dmkRm.id); if (!d) return;
             if (!(await showMsg(`🗑 <b>${dmkEsc(d.g)}</b> 바인더를 버릴까요?<br><span style="font-size:12px;color:#777;">끼운 표지 · 내지도 함께 버려져요. 꾸민 페이지는 드라이브 다이어리 폴더에 그대로 남아요.</span>`, true))) return;
@@ -471,7 +482,7 @@
 
         window.dmkOpen = dmkOpen; window.dmkMakeBinder = dmkMakeBinder; window.dmkMakeNote = dmkMakeNote; window.dmkForm = dmkForm; window.dmkSave = dmkSave; window.dmkDelete = dmkDelete; window.dmkDup = dmkDup; window.dmkClose = dmkClose; window.dmkPages = dmkPages; window.dmkLeafSet = dmkLeafSet; window.dmkColSet = dmkColSet; window.dmkLeafAdd = dmkLeafAdd; window.dmkLeafDel = dmkLeafDel; window.dmkLeafEdge = dmkLeafEdge;
         window.dmkRender = dmkRender; window.dmkPrevDraw = dmkPrevDraw; window.dmkAll = dmkAll; window.dmkParts = dmkParts; window.dmkGet = dmkGet; window.dmkSync = dmkSync; window.dmkEsc = dmkEsc; window.dkLeafOf = dkLeafOf;
-        window.dmkRoomOpen = dmkRoomOpen; window.dmkRmInit = dmkRmInit; window.dmkFilledMax = dmkFilledMax; window.dmkLockPage = dmkLockPage; window.dmkLocked = dmkLocked; window.dmkRmPool = dmkRmPool; window.dmkRmDate = dmkRmDate; window.dmkRmN = dmkRmN; window.dmkRmFilled = dmkRmFilled; window.dmkRmLock = dmkRmLock; window.dmkRmState = () => dmkRm; window.dmkClean = dmkClean; window.dmkCvThumb = dmkCvThumb; window.dmkRfThumb = dmkRfThumb; window.dmkLvText = dmkLvText; window.dmkLeafName = dmkLeafName; window.dmkRoomSave = dmkRoomSave; window.dmkRoomClose = dmkRoomClose; window.dmkRoomDelete = dmkRoomDelete; window.dmkRoomPrev = dmkRoomPrev; window.dmkRmPick = dmkRmPick; window.dmkRmAdd = dmkRmAdd; window.dmkRmOut = dmkRmOut;
+        window.dmkRoomOpen = dmkRoomOpen; window.dmkRmInit = dmkRmInit; window.dmkRmUnbind = dmkRmUnbind; window.dmkFilledMax = dmkFilledMax; window.dmkLockPage = dmkLockPage; window.dmkLocked = dmkLocked; window.dmkRmPool = dmkRmPool; window.dmkRmDate = dmkRmDate; window.dmkRmN = dmkRmN; window.dmkRmFilled = dmkRmFilled; window.dmkRmLock = dmkRmLock; window.dmkRmState = () => dmkRm; window.dmkClean = dmkClean; window.dmkCvThumb = dmkCvThumb; window.dmkRfThumb = dmkRfThumb; window.dmkLvText = dmkLvText; window.dmkLeafName = dmkLeafName; window.dmkRoomSave = dmkRoomSave; window.dmkRoomClose = dmkRoomClose; window.dmkRoomDelete = dmkRoomDelete; window.dmkRoomPrev = dmkRoomPrev; window.dmkRmPick = dmkRmPick; window.dmkRmAdd = dmkRmAdd; window.dmkRmOut = dmkRmOut;
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 (index.html에서 확인) */
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['dymaker'] = true;

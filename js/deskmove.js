@@ -70,7 +70,7 @@
         await store(t, o); return true;                                         // 취소해도 = 넣지 않았을 뿐 (꺼낸 자리 그대로)
     }
     /* ✋ 끌기 하나로 (도련 11-21 · 공통 뼈대 하나 + 상품마다 다른 것만 덧붙여요) : 책상의 모든 '그림이 손을 따라오는 끌기' = 이 함수
-         봉투 카드 · 꺼낸 문구 줄 · 서랍 카드 · 책상 책 · 마테 롤 · 🏪 적용해보기 테이프 · 펜꽂이 · 정리함에서 뽑은 것 모두 같아요
+         봉투 카드 · 꺼낸 문구 줄 · 서랍 카드 · 책상 책 · 마테 롤 · 🏪 적용해보기 테이프 · 펜꽂이 · 정리함에서 뽑은 것 · 🧩 바인더 조립 (재료 · 끼운 내지 · 표지) 모두 같아요
        DK_FAR = 끌기로 치는 거리 하나 (그보다 덜 움직이고 떼면 = 톡) · dkFar(x0, y0, e) = 그만큼 움직였나요
        dkDrag(ev, src, op) : ev = pointerdown (또는 이미 움직이는 중인 pointermove)
          op.min   = 끌기 시작 거리 (기본 DK_FAR · 0 = 바로 끌기)
@@ -79,7 +79,7 @@
          op.at    = 지금 손 아래 보관함 (x, y → 요소 · 반짝 표시 · 기본 = 책상 보관함 · null = 표시 없음)
          op.from  = 끄는 동안 원래 그림에 붙일 class (기본 'dkm-from' · '' = 없음)
          op.dir   = (x0, y0, e) → 'pick' | 'scroll' | '' (서랍 카드 = dkShelfDir · scroll = 끌기 안 하고 놓아줘요)
-         op.start(e) · op.tap(e) · op.drop(x, y, e, hi) · op.cancel() */
+         op.start(e) · op.move(e) · op.tap(e) · op.drop(x, y, e, hi) · op.cancel() */
     const DK_FAR = 8;
     const far = (x0, y0, e) => Math.hypot(e.clientX - x0, e.clientY - y0) >= DK_FAR;
     function drag(ev, src, op) {
@@ -103,7 +103,7 @@
                 else if (min && Math.hypot(e.clientX - x0, e.clientY - y0) < min) return;
                 begin(e);
             }
-            place(e); if (at) light(at(e.clientX, e.clientY));
+            place(e); if (at) light(at(e.clientX, e.clientY)); if (op.move) op.move(e);
         };
         const up = e => {
             if (e.pointerId !== ev.pointerId) return; off();
