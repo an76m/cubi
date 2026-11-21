@@ -7,15 +7,15 @@
               - 상품 하나 = 따로 하나 (현실처럼 · 같은 것도 또 받아요) : 파일이 여러 개인 상품(📔 다이어리)은 한 개에 폴더 하나 · 파일 하나인 상품(🪑 소품 · ✏️ 문구)은 한 개에 파일 하나
               - 🏷️ 스티커는 예외 (바구니 ↔ 스티커첩으로 옮겨 다녀서 목록 하나 · js/own.js)
               - 새 종류 = DIRS · DESK_DIRS · GD_DIRS 에 한 줄 · 작은 기록은 비슷한 것끼리 한 파일 (설정 폴더 · 기록.json · 설정.json)
-             ⭐ 저장 정리 (도련 11-20 · 1349~1353 · 03 저장지도 맨 위) : 목록은 모두 60KB씩 _목록1.json … (도련 11-21 · 나눠 담기 공통 chunkPlace · 바뀐 파일만 올려요) · 배치N.json = 책상 위 + 서랍 속 · 백업 파일 없음
+             ⭐ 저장 정리 (도련 11-20 · 1349~1353 · 03 저장지도 맨 위) : 목록은 모두 올리는 크기 55KB씩 _목록1.json … (도련 11-21 · 나눠 담기 공통 chunkPlace · 바뀐 파일만 올려요) · 배치N.json = 책상 위 + 서랍 속 · 백업 파일 없음
              말랑달콤 / 다이어리 / 🔐 _목록1.json …   📔 📕 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from gift · basic · mine · 노트 = 바로 · 바인더 = 조립하면 · 도련 11-07 · js/dyown.js)
                       / 다이어리 / 2026 분홍 1 / 2026-10-28.json · 표지.json · 검색.json · 다이어리.json   📔 날짜형 한 권 = 폴더 (노트 = 2026 분홍노트 1)
                       / 다이어리 / dk… / 다이어리.json · 표지.json · 3페이지.json · 검색.json   📕 페이지형 한 권 = 폴더 (권 id)
                       / 빈스티커첩 / 🔐 _목록1.json … (📒 바인더 · 🤍 이형지북 두 칸) · 받은-<c>.json   📥 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 책 (불러오면 그 종류 _스티커첩.json 으로 · 빈 책은 돌아와요 · 💤 · 도련 11-08)
                       / 다이어리 / 🔐 _바인더재료목록1.json … (표지 · 내지 두 칸)   🧩 바인더 재료 (받거나 만든 표지 · 내지 · 조립하면 빠져요 · 💤 쓸 때 읽어요 · 도련 11-08 폴더 둘을 합쳤어요)
                       / 배경지 / 내-<id>.json · 내-목록1.json   📚 내가 만든 배경지 모음 (js/coll.js)
-                      / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / _목록1.json … (60KB씩 · 글자만) · _목록1_썸네일.json … (그림 정보) · _스티커첩1.json … (60KB씩) · <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)   🎒 유한 스티커 (js/own.js · 목록도 종류마다 · 11-05)
-                      / 소품 / 🔐 _목록1.json · _목록2.json … (60KB씩 · 소품 + 벽지 · 책상판) · 받은-<id>.json   🪑 백 = 가진 소품 전부 (서랍장 · 시계 … 종류가 섞여요 · 도련 11-07 · 💤 소품함을 열 때 읽어요)
+                      / 씰 · 조각 · 모조지 · 마테 · 떡메 · 메모지 · 속지 / _목록1.json … (올리는 크기 55KB씩 · 글자만) · _목록1_썸네일.json … (그림 정보) · _스티커첩1.json … (올리는 크기 55KB씩) · <id>.json (내 종이 · 암호화) · 내-/받은- (공유하기 · 보류)   🎒 유한 스티커 (js/own.js · 목록도 종류마다 · 11-05)
+                      / 소품 / 🔐 _목록1.json · _목록2.json … (올리는 크기 55KB씩 · 소품 + 벽지 · 책상판) · 받은-<id>.json   🪑 백 = 가진 소품 전부 (서랍장 · 시계 … 종류가 섞여요 · 도련 11-07 · 💤 소품함을 열 때 읽어요)
                       / 문구 / 🔐 _목록1.json … · 받은-<id>.json   ✏️ 백 = 가진 문구 전부 (같은 것도 여러 개 · 앱을 켤 때 읽어요 · 도련 11-07)
                       / 배경지 / 받은-<id>.json · 🔐 _목록1.json …           🌈 샵에서 받은 배경지 하나에 파일 하나 (내가 만든 배경지 = 내-) · _목록.json = 가진 배경지 (💤 창을 열 때 읽어요 · 바뀔 때 처음 생겨요 · 도련 11-07)
                       / 인형돌 · 인형극 / <이름>.json                   👧 꾸미기용 아바타 인형 · 🎭 인형극 (js/doll-store.js · js/puppet.js · 도련 11-04 : 책상 '인형' 과 다른 폴더)
@@ -24,7 +24,7 @@
                               (_문제기록.json   예전 · 1317 부터 안 만들어요 · 🧾 기록은 이 기기에만)
                               설정N.json       ⚙ 설정 탭 값 · 펼친 권 · 본 것 표시 (🗺 인수인계 03_저장지도.md) · 상품 모습은 늘 서버 그대로 (사본 없음 · js/prod.js)
                               책상설정N.json   ⚙ 🔐 기능 연결 · 벽지 · 책상판 · 이름표 · 받은 공유 번호
-                              배치N.json       📍 🔐 소품 자리 · 펜꽂이 · 서랍 칸에 든 문구 · 책 · 책상 위 다이어리 · 스티커첩 (+ 그림 사본) · 봉투 (도련 11-21 · 서랍장 파일을 합쳤어요 · 60KB씩)
+                              배치N.json       📍 🔐 소품 자리 · 펜꽂이 · 서랍 칸에 든 문구 · 책 · 책상 위 다이어리 · 스티커첩 (+ 그림 사본) · 봉투 (도련 11-21 · 서랍장 파일을 합쳤어요 · 올리는 크기 55KB씩)
                               (권마다 집게 · 구멍 · 링 · 꺼낸 장 = 그 권 폴더 / 상태.json · 982)
                               _내정보N.json    🔐 잠금 · 별명 · 생년월일 · 연락처 (개인정보)
                               (_백업.json      없앴어요 · 1272 · 목록이 없어지면 받은- · 종이 파일 · 장부로 되살려요)
@@ -89,7 +89,8 @@
         const UPLOAD_MAX_WAIT_MS = 60000;        // ⏱ (30초 → 1분 · 도련 11-14) 쉬지 않고 계속 바꿔도 첫 변경부터 이 시간 안에는 한 번 올려요 (11-17 : 쉬는 시간도 60초라 = 처음 바꾼 뒤 60초에 한 번) (아무것도 안 바꾸면 저장 안 함 · 도련 10-20)
         const PENDING_KEY = 'gdrive_pending_backup'; // 화면이 꺼질 때 업로드가 끝나기 전에 앱이 멈출 경우를 대비한 임시 보관본
         const KEEPALIVE_MAX_BYTES = 60000;       // fetch keepalive 옵션은 본문 64KB 이하만 가능
-        const CHUNK_MAX_BYTES = 60000;           // 📚 나눠 담는 목록 파일 하나 = 글자 60KB 까지 (도련 11-21 · 압축 · 암호화 전 바이트 · 잰 값 : 올리는 크기 50KB = 글자 63KB (문구 집 · 가장 덜 줄어요) ~ 125KB (서랍 속 책) → 어떤 종류든 올리는 파일 50KB 안 = keepalive 64KB 안)
+        const CHUNK_UP_BYTES = 55000;            // 📚 나눠 담는 파일 하나 = 올리는 크기 55KB 까지 (도련 11-21 · keepalive 60KB 안 · 비율이 조금 빗나가도 넘지 않게 여유)
+        const CHUNK_WORST = 0.74;                // 하나도 안 줄어드는 글자 = 올리면 1.34배 (base64) → 글자 ÷ 올린 크기 = 0.74 · 비율을 모를 때 (어떤 글자든 안전)
         const DRIVE_API = 'https://www.googleapis.com/drive/v3/files';
         const FOLDER_MIME = 'application/vnd.google-apps.folder';
         /* 📔 날짜 다이어리 = 한 권에 폴더 하나 (도련 10-28 · js/dyyear.js) : 권 id '2026mint2' = 해 · 바인더 색 · 그 해 그 색 몇 번째 (지워도 번호는 다시 안 써요)
@@ -267,13 +268,13 @@
             settings: { path: SETTINGS_PATH, name: SETTINGS_FILE_NAME, prop: 'settingsFile' },
             cafe: { path: CAFE_PATH, name: CAFE_FILE_NAME, prop: 'cafeFile' },
             desk: { path: DESK_PATH, name: DESK_FILE_NAME, prop: 'deskFile' },     // 🪑 설정 / 배치1.json … = 자리 (책상 위 · 서랍 속 · 문구의 집 · 다이어리 · 봉투 · 도련 11-21 서랍장 파일을 합쳤어요)
-            dkown: { path: dirPath(DIRS.desk), name: '_목록', prop: 'deskOwnFile', lazy: 1 },   // 🪑 백 = 소품 / _목록1.json · _목록2.json … (60KB씩 · 도련 11-07 · 벽지 · 책상판도) // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06) · 💤 앱을 켤 때 안 읽어요 = 책상은 배치.json 만으로 · 소품함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · js/desk.js dkOwnReady)
-            gdown: { path: dirPath(DIRS.gd), name: '_목록', prop: 'gdOwnFile' },   // 🔐 가진 문구 전부 = 백 문구 / _목록1.json … (60KB씩 · 앱을 켤 때 읽어요 = 필기구 · 문구의 집 · 도련 11-07)
+            dkown: { path: dirPath(DIRS.desk), name: '_목록', prop: 'deskOwnFile', lazy: 1 },   // 🪑 백 = 소품 / _목록1.json · _목록2.json … (올리는 크기 55KB씩 · 도련 11-07 · 벽지 · 책상판도) // 🔐 가진 소품 전부 (보관함 포함 · 이게 '가진 것' · 도련 11-06) · 💤 앱을 켤 때 안 읽어요 = 책상은 배치.json 만으로 · 소품함 · 꾸미기 · 받기 · 버리기 때 (도련 11-07 · js/desk.js dkOwnReady)
+            gdown: { path: dirPath(DIRS.gd), name: '_목록', prop: 'gdOwnFile' },   // 🔐 가진 문구 전부 = 백 문구 / _목록1.json … (올리는 크기 55KB씩 · 앱을 켤 때 읽어요 = 필기구 · 문구의 집 · 도련 11-07)
             deskset: { path: DESK_PATH, name: '책상설정', prop: 'deskSetFile' },  // ⚙ 기능 연결 · 벽지 · 책상판 · 받은 공유 번호
-            dyown: { path: DIARY_PATH, name: '_목록', prop: 'dyOwnFile' },   // 📚 _목록1.json … (60KB씩 · 도련 11-20 · 권 번호 · 규격 표 = _목록1)   // 🔐 백 = 다이어리 / _목록.json : 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from · 도련 11-07 · 981 · 앱을 켤 때 읽어요 · js/dyown.js)
-            bmown: { path: DIARY_PATH, name: '_바인더재료목록', prop: 'bmOwnFile', lazy: 1 },   // 📚 _바인더재료목록1.json … (60KB씩 · 도련 11-20)   // 🧩 🔐 다이어리 / _바인더재료목록.json : 가진 표지 · 내지 재료 (두 칸 · 💤 조립 · 만들기 · 받을 때 · 도련 11-08 폴더 둘을 합쳤어요)
-            esown: { path: dirPath(DIRS.emptyBook), name: '_목록', prop: 'esOwnFile', lazy: 1 },   // 📚 _목록1.json … (60KB씩 · 도련 11-20)   // 📥 🔐 빈스티커첩 / _목록.json : 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 📒 바인더 · 🤍 이형지북 (두 칸 · 불러오면 그 종류 _스티커첩.json 으로 · 💤 · 도련 11-08 · js/basket.js FR)
-            bgown: { path: dirPath(DIRS.pattern), name: '_목록', prop: 'bgOwnFile', lazy: 1 },   // 📚 _목록1.json … (60KB씩 · 도련 11-20)  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
+            dyown: { path: DIARY_PATH, name: '_목록', prop: 'dyOwnFile' },   // 📚 _목록1.json … (올리는 크기 55KB씩 · 도련 11-20 · 권 번호 · 규격 표 = _목록1)   // 🔐 백 = 다이어리 / _목록.json : 쓸 수 있는 권 하나에 한 줄 (날짜형 · 페이지형 · from · 도련 11-07 · 981 · 앱을 켤 때 읽어요 · js/dyown.js)
+            bmown: { path: DIARY_PATH, name: '_바인더재료목록', prop: 'bmOwnFile', lazy: 1 },   // 📚 _바인더재료목록1.json … (올리는 크기 55KB씩 · 도련 11-20)   // 🧩 🔐 다이어리 / _바인더재료목록.json : 가진 표지 · 내지 재료 (두 칸 · 💤 조립 · 만들기 · 받을 때 · 도련 11-08 폴더 둘을 합쳤어요)
+            esown: { path: dirPath(DIRS.emptyBook), name: '_목록', prop: 'esOwnFile', lazy: 1 },   // 📚 _목록1.json … (올리는 크기 55KB씩 · 도련 11-20)   // 📥 🔐 빈스티커첩 / _목록.json : 받았지만 아직 어느 스티커 정리에 쓸지 안 정한 📒 바인더 · 🤍 이형지북 (두 칸 · 불러오면 그 종류 _스티커첩.json 으로 · 💤 · 도련 11-08 · js/basket.js FR)
+            bgown: { path: dirPath(DIRS.pattern), name: '_목록', prop: 'bgOwnFile', lazy: 1 },   // 📚 _목록1.json … (올리는 크기 55KB씩 · 도련 11-20)  // 🔐 가진 배경지 = 배경지 / _목록.json (도련 11-07 · 💤 앱을 켤 때 안 읽어요 · 🌈 배경지 창 · 샵 · 휴지통에서 쓸 때 keyFileLoad · 처음 온 다꾸러는 바뀔 때 처음 생겨요)
 
             me: { path: DESK_PATH, name: '_내정보', prop: 'meFile' }              // 🔐 잠금 · 별명 · 생년월일 · 연락처 (도련 11-06 · 개인정보)
         };
@@ -783,28 +784,51 @@
             DESK_WHICH.forEach(w => { drive[KEY_FILES[w].prop] = null; });
             const dir = await getFolder(DESK_PATH, false);
             if (!dir) { DESK_START.forEach(w => { drive.chunks[w] = { files: new Map(), of: new Map() }; (drive.keyNone = drive.keyNone || new Set()).add(w); }); return DESK_START.map(() => null); }
-            const fs = await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (${DESK_START.map(w => `name contains '${qName(KEY_FILES[w].name)}'`).join(' or ')})`, 'id,name,modifiedTime');
+            const fs = await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and (${DESK_START.map(w => `name contains '${qName(KEY_FILES[w].name)}'`).join(' or ')})`, 'id,name,modifiedTime,size');
             return Promise.all(DESK_START.map(async w => {
                 try { return await fetchChunked(w, fs); }                           // 📚 배치1.json … (같은 목록으로 찾아요)
                 catch (e) { if (e && e.type === 'corrupt') { drive.deskLocked = true; return null; } throw e; }
             }));
         }
         /* 📚 나눠 담기 공통 (도련 11-21 · 앱 전체가 이것 하나 : 소품 · 문구 · 다이어리 · 배치 · 스티커 목록 · 스티커첩 …)
-             줄마다 어느 파일(번호)에 둘지 정해요 : 한 번 든 줄은 처음 파일 그대로 · 새 줄 = 마지막 파일 · 마지막 파일이 CHUNK_MAX_BYTES(60KB) 를 넘으면 다음 번호
+             줄마다 어느 파일(번호)에 둘지 정해요 : 한 번 든 줄은 처음 파일 그대로 · 새 줄 = 마지막 파일 · 마지막 파일이 그 파일 기준 (chunkLim = 올리는 크기 55KB × 비율) 을 넘으면 다음 번호
              rows = 줄들 (순서대로) · keyOf = 줄 이름 · of = Map(줄 이름 → 번호 · 고쳐 둬요) · known = 이미 있는 파일 번호들 · sizeOf = 줄 크기 (글자 · 바이트)
              → Map(번호 → 그 파일의 줄들) · 물건이 줄어도 나뉜 파일을 다시 합치지 않아요 (도련 11-21 · 다 빠진 뒤쪽 파일만 지워요) */
         const chunkEnc = new TextEncoder(), chunkBytes = s => chunkEnc.encode(s).length;
-        function chunkPlace(rows, keyOf, of, known, sizeOf) {
-            const size = sizeOf || (r => chunkBytes(JSON.stringify(r)));
+        /* 📏 줄어드는 비율 (도련 11-21 '정해진 값 말고 계산') : 파일마다 = 글자 바이트 ÷ 올린 크기 (올릴 때 · 읽을 때 재요) · 4KB 보다 작은 파일은 앞머리 때문에 믿지 않아요
+             기준 = 올리는 크기 55KB × 그 파일 비율 · 비율을 모르는 파일 (새 파일) = 같은 목록의 다른 파일 중 가장 덜 줄어드는 것 · 그것도 없으면 0.74 (어떤 글자든 안전) */
+        const chunkRatio = (raw, up) => raw >= 4096 && up > 0 ? Math.min(8, Math.max(CHUNK_WORST, raw / up)) : 0;
+        function chunkLim(files, over) {                                          // files = Map(번호 → { r }) · over = 이번에 새로 잰 비율 (빗나갔을 때)
+            const r = n => (over && over.get(n)) || (files.get(n) || {}).r;
+            const known = [...new Set([...files.keys(), ...(over ? over.keys() : [])])].map(r).filter(Boolean), fb = known.length ? Math.min(...known) : CHUNK_WORST;
+            return n => CHUNK_UP_BYTES * (r(n) || fb);
+        }
+        /* 📏 빗나가면 그 자리에서 다시 (도련 11-21) : 나눈 파일을 올리기 전에 잠가서 크기를 재요 · 이번에 새로 넣은 줄이 든 파일이 60KB 를 넘으면
+             (예전 글자와 전혀 다른 글자가 들어왔어요) 그 파일의 진짜 비율로 새 줄만 다시 나눠요 · 몇 번까지 · 한 번 든 줄은 그대로 */
+        async function chunkFit(place, seal, of) {                                // place(over) → by (chunkPlace 결과) · seal(n, 줄들) → { raw, up } (올릴 글 · 바뀌지 않았으면 null)
+            const over = new Map();
+            for (let t = 0; ; t++) {
+                const by = place(over), sealed = new Map(); let again = false;
+                for (const [n, rs] of by) {
+                    const x = await seal(n, rs); sealed.set(n, x);
+                    if (x && t < 5 && x.up.length > KEEPALIVE_MAX_BYTES && (by.fresh.get(n) || []).length) { over.set(n, Math.max(CHUNK_WORST, Math.min(8, x.raw / x.up.length))); again = true; }
+                }
+                if (!again) return { by, sealed };
+                by.fresh.forEach(ks => ks.forEach(k => of.delete(k)));            // 새 줄만 다시 (한 번 든 줄은 그대로)
+            }
+        }
+        function chunkPlace(rows, keyOf, of, known, sizeOf, limOf) {              // limOf = 번호 → 그 파일 글자 기준 (chunkLim)
+            const size = sizeOf || (r => chunkBytes(JSON.stringify(r))), lim = limOf || (() => CHUNK_UP_BYTES * CHUNK_WORST);
             const by = new Map(), sz = new Map(), add = (n, r, b) => { if (!by.has(n)) by.set(n, []); by.get(n).push(r); sz.set(n, (sz.get(n) || 0) + b + 1); };
+            by.fresh = new Map();                                                   // 번호 → 이번에 새로 넣은 줄 이름 (chunkFit)
             const live = new Set(rows.map(keyOf)); [...of.keys()].forEach(k => { if (!live.has(k)) of.delete(k); });
             const fresh = [];
             rows.forEach(r => { const k = keyOf(r), b = size(r), n = of.get(k); if (n) add(n, r, b); else fresh.push([r, k, b]); });
             let last = Math.max(1, ...by.keys(), ...(known || []));
-            fresh.forEach(([r, k, b]) => { if (sz.get(last) && sz.get(last) + b > CHUNK_MAX_BYTES) last++; add(last, r, b); of.set(k, last); });   // 빈 파일에는 커도 한 줄은 넣어요
+            fresh.forEach(([r, k, b]) => { if (sz.get(last) && sz.get(last) + b > lim(last)) last++; add(last, r, b); of.set(k, last); if (!by.fresh.has(last)) by.fresh.set(last, []); by.fresh.get(last).push(k); });   // 빈 파일에는 커도 한 줄은 넣어요
             return by;
         }
-        window.chunkPlace = chunkPlace; window.chunkBytes = chunkBytes;
+        window.chunkPlace = chunkPlace; window.chunkBytes = chunkBytes; window.chunkRatio = chunkRatio; window.chunkLim = chunkLim; window.chunkFit = chunkFit;
         /* 📚 설정 · 목록 파일 나눠 담기 (KEY_FILES chunk) : <이름>1.json · <이름>2.json … · 키마다 배열은 줄마다 · {} 는 칸마다 · 그 밖의 값은 파일 1 에
              바뀐 파일만 다시 올려요 · 읽을 때는 모두 동시에 · 🔐 파일마다 계정 열쇠 */
         const chunkRe = F => new RegExp('^' + F.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)\\.json$');
@@ -823,7 +847,7 @@
         }
         async function chunkList(which) {
             const F = KEY_FILES[which], dir = await getFolder(F.path, false); if (!dir) return [];
-            return chunkPick(F, await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and name contains '${qName(F.name)}'`, 'id,name,modifiedTime'));
+            return chunkPick(F, await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and name contains '${qName(F.name)}'`, 'id,name,modifiedTime,size'));
         }
         async function fetchChunked(which, listed) {                              // listed = 이미 찾은 폴더 목록 (🪑 설정 폴더는 한 번에)
             const F = KEY_FILES[which];
@@ -833,7 +857,7 @@
             const out = {}; let mt = '';
             const parts = await Promise.all(fs.map(async f => [f, parseJsonObject(await keyFileText(which, f.id), which) || {}]));
             parts.forEach(([f, o]) => {
-                C.files.set(f.n, { id: f.id, modifiedTime: f.modifiedTime, body: chunkBody(which, o) }); if ((f.modifiedTime || '') > mt) mt = f.modifiedTime || '';
+                const body = chunkBody(which, o); C.files.set(f.n, { id: f.id, modifiedTime: f.modifiedTime, body, r: chunkRatio(chunkBytes(body), +f.size || 0) }); if ((f.modifiedTime || '') > mt) mt = f.modifiedTime || '';
                 chunkKeys(which, o).forEach(k => {
                     const x = o[k]; if (x == null) return;
                     if (Array.isArray(x)) out[k] = (Array.isArray(out[k]) ? out[k] : []).concat(x);
@@ -845,7 +869,7 @@
             drive[F.prop] = { id: fs[0].id, name: F.name, modifiedTime: mt };
             return out;
         }
-        function chunkSplit(which) {                                               // 지금 메모리 → { n: {키: [...] | {...}} }
+        function chunkSplit(which, over) {                                         // 지금 메모리 → { n: {키: [...] | {...}} } · .fresh = 번호 → 새로 넣은 줄
             const keys = chunkKeys(which, null), fixed = chunkFixed(which), C = drive.chunks[which] || (drive.chunks[which] = { files: new Map(), of: new Map() });
             const B = new Map(), at = n => B.get(n) || (B.set(n, {}), B.get(n)), rows = [], kind = {};
             const inFiles = k => { const r = []; [...C.files.keys()].sort((a, b) => a - b).forEach(n => { let o = {}; try { o = JSON.parse(C.files.get(n).body) || {}; } catch (e) {} if (o[k] != null) r.push([n, o[k]]); }); return r; };
@@ -860,9 +884,12 @@
                 kind[k] = Array.isArray(v) ? 'a' : 'o'; rows.push(...chunkRows(k, v));
                 at(1)[k] = Array.isArray(v) ? [] : {};                               // 빈 목록도 파일 1 에 (다 버렸어요)
             });
-            chunkPlace(rows, r => r.key, C.of, [...C.files.keys()], r => chunkBytes(JSON.stringify(r.e)) + (r.p != null ? chunkBytes(JSON.stringify(r.p)) + 1 : 0)).forEach((rs, n) => {
+            const P = chunkPlace(rows, r => r.key, C.of, [...C.files.keys()], r => chunkBytes(JSON.stringify(r.e)) + (r.p != null ? chunkBytes(JSON.stringify(r.p)) + 1 : 0), chunkLim(C.files, over));
+            P.forEach((rs, n) => {
                 rs.forEach(r => { const b = at(n); if (kind[r.k] === 'a') (b[r.k] = Array.isArray(b[r.k]) ? b[r.k] : []).push(r.e); else (b[r.k] = chunkObj(b[r.k]) ? b[r.k] : {})[r.p] = r.e; });
             });
+            B.fresh = P.fresh;
+            if (!B.has(1) && C.files.has(1)) B.set(1, {});                         // 다 지웠어요 = 파일 1 을 비워요
             B.forEach((b, n) => { if (n > 1 && Object.keys(b).every(k => (Array.isArray(b[k]) ? !b[k].length : chunkObj(b[k]) && !Object.keys(b[k]).length))) B.delete(n); });
             return B;
         }
@@ -873,16 +900,21 @@
             if (!fresh && !C.files) await fetchChunked(which);                    // 파일 번호를 아직 몰라요 (한 번만) · 📱 한 기기 기준 = 올리기 전에 다른 기기를 묻지 않아요 (도련 11-17)
             if (drive.keyNone) drive.keyNone.delete(which);
             goneScrub(which);                                                      // 🚛 목록이 정답
-            const B = chunkSplit(which), D = drive.chunks[which]; let mt = '', made = false;
+            const D = drive.chunks[which] || (drive.chunks[which] = { files: new Map(), of: new Map() }); let mt = '', made = false;
+            const seal = async (n, o) => {                                         // 바뀐 파일만 잠가 봐요 (up = 올리는 그대로)
+                const body = chunkBody(which, o || {}), cur = D.files.get(n); if (cur && cur.body === body) return null;
+                const raw = chunkBytes(body); return { body, raw, up: await bodySeal(F.name + n + '.json', await keyFileSeal(which, body)) };
+            };
+            const { by: B, sealed } = await chunkFit(over => chunkSplit(which, over), seal, D.of);   // 📏 빗나가면 그 자리에서 다시 나눠요
             for (const n of [...new Set([...B.keys(), ...D.files.keys()])].sort((a, b) => a - b)) {
-                const body = chunkBody(which, B.get(n) || {}), cur = D.files.get(n);
-                if (cur && cur.body === body) { if ((cur.modifiedTime || '') > mt) mt = cur.modifiedTime; continue; }
-                if (!B.has(n) && cur && n > 1) { await toTrash(cur.id, F.name + n + '.json', 'a'); D.files.delete(n); continue; }   // 다 빠진 뒤쪽 파일 (앱 정리 · 숨김)
-                const sealed = await keyFileSeal(which, body); let saved;
-                try { saved = await driveUpsert(dir, F.name + n + '.json', cur && cur.id, sealed); }
-                catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; const f = await findFile(dir, F.name + n + '.json'); saved = await driveUpsert(dir, F.name + n + '.json', f ? f.id : null, sealed); }   // 그 사이 지워진 번호 → 이름으로 다시
+                const cur = D.files.get(n), x = sealed.get(n);
+                if (!B.has(n)) { if (cur && n > 1) { await toTrash(cur.id, F.name + n + '.json', 'a'); D.files.delete(n); } continue; }   // 다 빠진 뒤쪽 파일 (앱 정리 · 숨김)
+                if (!x) { if (cur && (cur.modifiedTime || '') > mt) mt = cur.modifiedTime; continue; }   // 그대로
+                const name = F.name + n + '.json'; let saved;
+                try { saved = await driveUpsert(dir, name, cur && cur.id, x.up, true); }
+                catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; const f = await findFile(dir, name); saved = await driveUpsert(dir, name, f ? f.id : null, x.up, true); }   // 그 사이 지워진 번호 → 이름으로 다시
                 if (!cur) made = true;
-                D.files.set(n, { id: saved.id, modifiedTime: saved.modifiedTime, body }); if ((saved.modifiedTime || '') > mt) mt = saved.modifiedTime;
+                D.files.set(n, { id: saved.id, modifiedTime: saved.modifiedTime, body: x.body, r: chunkRatio(x.raw, x.up.length) }); if ((saved.modifiedTime || '') > mt) mt = saved.modifiedTime;
             }
             const first = D.files.get(Math.min(...D.files.keys()));
             drive[F.prop] = first ? { id: first.id, name: F.name, modifiedTime: mt } : null;
