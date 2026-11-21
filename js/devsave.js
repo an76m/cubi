@@ -285,10 +285,10 @@
               휴지통 이야기는 하지 않고 양쪽 휴지통까지 조용히 지워요
            3. 수락한 뒤에야 이삿짐을 싸요 · 진행 0 ~ 100% = 짐 싸기 + 구글 비우기(휴지통까지) + 옮기기 + 이 브라우저 비우기를 합친 것
            5. 끝나면 다음부터 구글로 열려요 (새로고침)
-           - 짐 = 말랑달콤 폴더의 파일 전부 (일기 · 설정 · 스티커 · 상품 목록 · 받은 파일 · 책상 자리 …) · 🗑 휴지통 · 🗑 버린 상품 목록(_휴지통목록.json)은 옮기지 않고 버려요
+           - 짐 = 말랑달콤 폴더의 파일 전부 (일기 · 설정 · 스티커 · 상품 목록 · 받은 파일 · 책상 자리 …) · 🗑 휴지통은 옮기지 않고 버려요
            - 🔐 계정 열쇠로 잠긴 것은 이 브라우저 열쇠('device')로 열어 구글 계정 열쇠로 다시 잠가요 (내용은 그대로 · js/own.js ownLock)
            - 옮기다 실패하면 이 브라우저 것은 지우지 않아요 (다시 누르면 처음부터 다시 · 구글 쪽은 그때 다시 비워요) */
-        const DV_TRASH = DV_TOP + '/휴지통', DV_BIN = () => `${DV_TOP}/${DIRS.settings}/${KEY_FILES.binown.name}`;   // 🗑 휴지통 칸 · 🗑 버린 상품 목록
+        const DV_TRASH = DV_TOP + '/휴지통';   // 🗑 휴지통 칸
         const DV_LOCKED = /^\{"v":1,"d":"[A-Za-z0-9+/=]*"\}$/;           // ownLock 이 만든 글 모양
         async function dvSettle() {                                      // 아직 기다리는 저장까지 이 브라우저에 다 넣어요
             try { if (isCoverOpen && !turn) saveData(false); } catch (e) {}
@@ -303,8 +303,7 @@
                 const [ks, vs] = await Promise.all([dvReq(st.getAllKeys()), dvReq(st.getAll())]);
                 return ks.map((k, i) => [String(k), vs[i]]);
             });
-            const bin = DV_BIN();
-            return all.filter(([p, t]) => typeof t === 'string' && p.startsWith(DV_TOP + '/') && !p.startsWith(DV_TRASH + '/') && p !== bin && (V.idx.get(p) || {}).k === 'f');
+            return all.filter(([p, t]) => typeof t === 'string' && p.startsWith(DV_TOP + '/') && !p.startsWith(DV_TRASH + '/') && (V.idx.get(p) || {}).k === 'f');
         }
         async function dvRelock(text, to) {                              // 🔐 'device' 열쇠 → 구글 계정 열쇠 (파일 통째 · 안에 든 글 모두)
             const one = async str => { try { return await ownLock(await ownUnlock(str, 'device'), to); } catch (e) { return str; } };   // 못 열면 그대로

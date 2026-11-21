@@ -414,13 +414,7 @@
             dyyBinSet(dyyBinList().filter(v => v.u !== id));
         }
         async function dyyBinSweep() { for (const x of dyyBinList().filter(v => !binLeft(v.at))) await dyyBinPurge(x.u); }   // 30일 지난 것
-        /* 예전 휴지통 목록의 다이어리 (js/bin.js binMigrate) : 쓴 권 = 휴지통 칸 (버린 때 그대로) · 안 쓴 권 = 🚛 */
-        async function dyyBinFromOld(e) {
-            if (!dyyOf(e.id) || dyyIds().includes(e.id) || dyyBinList().some(v => v.u === e.id)) return;
-            if (await dyyUsed(e.id)) dyyBinSet(dyyBinList().concat([{ u: e.id, at: +e.at || Date.now(), ln: Object.assign({}, e.ln && e.ln.id === e.id ? e.ln : dyyLineNew(e.id, 'basic'), { w: 1 }) }]));
-            else await binAdd({ k: 'dy', id: e.id, ln: e.ln });
-        }
-        window.dyyBinList = dyyBinList; window.dyyBinName = dyyBinName; window.dyyBinRestore = dyyBinRestore; window.dyyBinPurge = dyyBinPurge; window.dyyBinSweep = dyyBinSweep; window.dyyBinFromOld = dyyBinFromOld;
+        window.dyyBinList = dyyBinList; window.dyyBinName = dyyBinName; window.dyyBinRestore = dyyBinRestore; window.dyyBinPurge = dyyBinPurge; window.dyyBinSweep = dyyBinSweep;
         window.dyyDead = dyyDead; window.dyyDeadSay = dyyDeadSay; window.dyyUsedMark = dyyUsedMark; window.dyyLockAt = dyyLockAt; window.dyyOut = dyyOut;
 
         /* 📔 보관소 칸 (js/skins.js dyTabSet) : 최신 권부터 · 🗑 버리기 */
