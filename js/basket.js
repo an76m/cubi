@@ -846,7 +846,7 @@
         { const rl = bq('abRel'); if (rl) { rl.style.setProperty('--rk', abRelK().toFixed(4)); abRelHi(); } }   // 🤍 진짜 크기 · 큰 그림
         room.querySelectorAll('.abs-box').forEach(bx => {
             const f = P[bx.dataset.p] || ABS_DEF[bx.dataset.p], x = f[0] < 0 ? W - bx.offsetWidth - 24 : f[0] * W;   // 처음 = 바구니 왼쪽 · 정리북 오른쪽 끝
-            bx.style.left = Math.max(0, Math.min(W - bx.offsetWidth, x)) + 'px'; bx.style.top = Math.max(0, Math.min(H - bx.offsetHeight, f[1] * H)) + 'px';   // 책상 밖으로 안 나가요
+            absAt(bx, x, f[1] * H, W, H);
             bx.onpointerdown = ev => { if (ev.target.closest('.abs-grip')) abSpaceGrab(bx, ev); else abSpaceTop(bx); };
         });
     }
@@ -992,6 +992,13 @@
             ownSheetImgs(id).then(r => { const u = r && r.imgs && r.imgs[0]; if (!u) return; AB.hi.set(id, u); const im = document.querySelector(`#abRel .ab-it[data-id="${CSS.escape(id)}"] img`); if (im) im.src = u; }).catch(() => {}).finally(() => AB.hiBusy.delete(id));
         });
     }
+    /* ✋ 정리 공간 상자 자리 (도련 11-21 '가로로밖에 안 돼 · 자유롭게') : 위 · 아래 · 옆 어디로든 · 책상 밖으로 반쯤 나가도 돼요 · 손잡이는 늘 책상 안 (다시 잡을 수 있게) */
+    const ABS_KEEP = 70;                                                      // 손잡이(상자 위 가운데)가 책상 끝에서 이만큼은 안에 (px)
+    function absAt(bx, x, y, W, H) {
+        const h = bx.offsetWidth / 2;
+        bx.style.left = Math.max(ABS_KEEP - h, Math.min(W - ABS_KEEP - h, x)) + 'px';   // 옆 = 손잡이가 보일 만큼까지
+        bx.style.top = Math.max(0, Math.min(H - ABS_KEEP, y)) + 'px';       // 위 = 손잡이가 책상 위 끝까지 · 아래 = 손잡이가 보일 만큼
+    }
     function abSpaceTop(bx) { document.querySelectorAll('#absRoom .abs-box').forEach(o => o.classList.toggle('top', o === bx)); }
     function abSpaceGrab(bx, ev) {                                            // ✋ 손잡이를 끌어 옮기기
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation(); abSpaceTop(bx);
@@ -999,8 +1006,7 @@
         bx.classList.add('lift');
         const mv = e => {
             if (e.pointerId !== ev.pointerId) return;
-            bx.style.left = Math.max(0, Math.min(R.width - bx.offsetWidth, l0 + e.clientX - x0)) + 'px';
-            bx.style.top = Math.max(0, Math.min(R.height - bx.offsetHeight, t0 + e.clientY - y0)) + 'px';   // 아래로도 책상 밖으로 안 나가요
+            absAt(bx, l0 + e.clientX - x0, t0 + e.clientY - y0, R.width, R.height);
             if (AB.peelOn && window.pelRelayout) pelRelayout();
         };
         const up = e => {
