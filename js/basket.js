@@ -561,13 +561,11 @@
         { const m = bq('basketKindModal'); if (m) { const dm = V === 'desk' && abSpace() && !abPh() && document.documentElement.classList.contains('desk-on');   // 📒 스티커정리모드 = 책상 위 (도련 11-14)
             m.classList.toggle('abs-dkmode', dm); if (dm) { if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('스티커 정리'); absWatch(m); } else if (window.dtmShow) dtmShow(null);
             m.classList.toggle('ab-space', V === 'desk' && abSpace()); m.classList.toggle('ab-ph', V === 'desk' && abPh()); m.classList.toggle('abs-rl', V === 'desk' && abSpace() && !!B.desk && B.desk.mode === 'rl'); } }   // abs-rl : 🪡 핀셋이 저절로 (js/elements.js pinForce)   // 🪑 💻 📲 정리하기 = 화면 전체 정리 공간 (📱 폰은 창 그대로 · 도련 10-29)
-        const tabs = (V === 'bin' || V === 'album') && abHasAlbum() ? `<div class="ab-tabs"><button type="button" class="${V === 'bin' ? 'on' : ''}" onclick="bkView('bin')">🗄️ 서랍</button>`
-            + `<button type="button" class="${V === 'album' ? 'on' : ''}" onclick="bkView('album')">📒 스티커첩</button></div>` : '';
-        wrap.innerHTML = tabs + '<div class="ab-body" id="abBody"></div>';
+        wrap.innerHTML = '<div class="ab-body" id="abBody"></div>';             // 🗄️ 서랍 위 [서랍 · 스티커첩] 줄은 없앴어요 (도련 11-21 '스티커첩을 만드니까 서랍 위에 메뉴가 생겨요 · 안 생기게')
         if (V === 'bin') bkDraw(); else if (V === 'album') abAlbum(); else if (V === 'bd') abBinder(); else if (V === 'rl') abRel(); else if (V === 'desk') abDeskDraw();
         if (sc && !v) sc.scrollTop = keep;                                     // 고친 뒤 다시 그릴 때는 보던 자리 그대로
     }
-    /* 📒 스티커첩 탭은 정리한 스티커가 하나라도 생기면 보여요 (처음엔 🧺 바구니만 · 도련 10-25) */
+    /* 📒 정리한 스티커가 하나라도 있나 (스티커첩 보기) */
     const abHasAlbum = () => !!B.album && (abMine(B.album.bd).some(b => Object.keys(b.p || {}).length) || abMine(B.album.rl).some(r => (r.it || []).length));
     const abErr = e => { console.warn(e); showMsg('⚠ 정리하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); };
     /* 💾 ✔ 완료 때 한 번에 저장 (도련 11-15 : '완료 버튼을 누르기 전엔 구글드라이브에 저장되면 안 돼요' · 01 '완료는 하나')
