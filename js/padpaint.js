@@ -1324,8 +1324,6 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     /* ================= 🏷️ 씰스티커 (도련 11-14) ================= */
     const SEAL_SZ = { tall: ['세로', 700, 1000], wide: ['가로', 1000, 700], square: ['정사각', 860, 860] };   // [이름, 종이 px 가로, 세로]
     const PAPER_SZ = { tall: ['세로', 720, 960], square: ['정사각', 720, 720], long: ['길쭉', 720, 1200] }, PAPER_K = .5;   // 📄 모조지 가로 720 = 페이지 360px (js/papermaker.js PM_W · 두 배로 선명하게)
-    const SZT = () => P.kind === 'paper' ? PAPER_SZ : SEAL_SZ;
-    const szMm = v => P.kind === 'paper' ? `${Math.round(v[1] * PAPER_K * sealPh() / 644)} × ${Math.round(v[2] * PAPER_K * sealPh() / 644)}mm` : `${Math.round(sealPh() * v[1] / v[2])} × ${sealPh()}mm`;
     /* 📏 씰 시트 세로 644px = 148mm (js/stickerpeel.js PEL_SHEET_H · 스티커 그림 기준 1mm ≈ 4.35px · 떼어 붙이면 실제 크기 비율) → 1mm = P.H / 148 */
     const mmOf = s => +String(s || '').split(/[×x*]/)[1] || 0;
     const sealPh = () => (P.kind === 'seal' && +P.shm > 0 && P.shm) || 148;   // 📐 씰 시트 세로 mm (도련 11-19 : 크기를 직접 정해요 · 예전 시트 = 148)                                                // 📏 시트 그림 644px = 148mm (A6 · 1mm ≈ 4.35px · 다이어리 규격과 상관없이 · js/skins.js STK_MM · 도련 11-16 실제 크기 비율)
@@ -1367,21 +1365,6 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         $('ppSpL').onclick = e => { const b = e.target.closest('[data-sp]'); if (!b) return; pick = all.find(i => i.id === b.dataset.sp) || pick; const g = L.find(x => x.items.includes(pick)); P.spec = { n: g.n, mm: g.mm, r: pick.r, id: pick.id }; specBtn(); show(); };
         $('ppSlAt').onclick = e => { const b = e.target.closest('[data-at]'); if (!b) return; at = b.dataset.at; pop.querySelectorAll('[data-at]').forEach(x => x.classList.toggle('on', x === b)); show(); };
         show();
-    }
-    function sealPop() {
-        let pop = $('ppSizePop'); if (pop) { pop.remove(); return; }
-        commitFloat(); penEnd();
-        pop = document.createElement('div'); pop.id = 'ppSizePop'; pop.className = 'pp-pop pp-sizepop';
-        const T = SZT(), NM = P.kind === 'paper' ? '모조지' : '씰';
-        pop.innerHTML = `<div class="pp-pop-h"><b>📐 ${NM} 규격</b><button type="button" class="win-x" aria-label="닫기">✕</button></div>
-            <div class="pp-sz-b"><div class="pp-sz-l">${Object.entries(T).map(([k, v]) => `<button type="button" data-sz="${k}" class="${P.sz === k ? 'on' : ''}"><i style="aspect-ratio:${v[1]} / ${v[2]}"></i><b>${v[0]}</b><small>${szMm(v)}</small></button>`).join('')}</div></div>`;
-        document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
-        pop.querySelector('.pp-sz-l').onclick = async e => {
-            const b = e.target.closest('[data-sz]'); if (!b || b.dataset.sz === P.sz) return;
-            const v = T[b.dataset.sz], has = P.dirty || P.layers.some(l => l.type === 'photo');
-            if (has && window.showAsk && !(await showAsk(`📐 ${P.kind === 'paper' ? '모조지' : '시트'}를 <b>${v[0]}</b>(으)로 바꿀까요?<br><span style="font-size:12px;color:#777;">그린 것은 왼쪽 위 기준 그대로 남아요 · 시트 밖으로 나간 곳은 잘려요</span>`, '바꾸기', '그대로'))) return;
-            P.sz = b.dataset.sz; resizePaper(v[1], v[2]); pop.remove(); say(`📐 ${v[0]} ${P.kind === 'paper' ? '모조지' : '시트'}예요`);
-        };
     }
     /* ================= 📐 종이 크기 한 창 (도련 11-19 : 떡메 창처럼 · 칸 고르기 + 직접 정하기 mm + 이 크기로)
        🏷️ 씰 시트 · 📄 모조지 · 🧩 조각 판 = mm 칸 + 직접 정하기 · 📃 속지 = 다이어리 규격 칸만 (끼울 다이어리와 같은 규격이어야 해서 직접 정하기 없음) · 🧻 떡메 · 🎀 테이프 = sizePop ================= */
@@ -1432,12 +1415,6 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             if (has && window.showAsk && !(await showAsk(`📐 ${LF ? '속지' : C.nm}를 <b>${esc(what)}</b>${LF ? ' 규격' : ''}으로 바꿀까요?<br><span style="font-size:12px;color:#777;">그린 것은 왼쪽 위 기준 그대로 남아요 · ${W2 < P.W || H2 < P.H ? '작아지는 쪽은 <b>잘려요</b>' : '늘어난 곳은 빈 종이예요'}<br>되돌리기 기록은 비워져요</span>`, '바꾸기', '그대로'))) { if (P.kind === 'seal') P.shm = now[1]; return; }
             resizePaper(W2, H2, spec); pop.remove(); say(`📐 ${what} ${LF ? '속지' : C.nm}예요`, 1800);
         };
-    }
-    function addImgSrc(src, name) {
-        const im = new Image();
-        im.onload = () => { histSt(); const at = P.layers.findIndex(l => l.type !== 'paper'); const L = addLayer('photo', name || '그림', { img: im, s: 1, ox: 0, oy: 0, wash: 0, op: 1, fit: 'c' }, at < 0 ? P.layers.length : at); photoPaint(L); P.cur = L; P.dirty = true; if (P.mode === 'px') setTool('move'); renderAll(); paintLayers(); paintProps(); say('🏷️ ✋ 옮기기 · 오른쪽에서 크기', 2000); };
-        im.onerror = () => { if (window.showMsg) showMsg('그림을 열지 못했어요.'); };
-        im.src = src;
     }
     /* ✅ 완료 : 종이를 뺀 그림에서 떨어져 있는 덩어리마다 스티커 한 장 (하얀 칼선 · 자리 그대로) */
     const SEAL_R = 14, SEAL_GAP = 6;                                           // 칼선 두께 · 이만큼 가까우면 한 장 (그림 px)

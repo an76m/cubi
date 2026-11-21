@@ -81,11 +81,6 @@
             if (v) Y.d[day] = v; else delete Y.d[day];
             Y.touched.add(day); Y.dirty = true; srSchedule();
         }
-        /* 다른 기기에서 일기가 바뀌었어요 (js/drive.js checkRemote) → 검색 창을 열 때 다시 맞춰 봐요 */
-        function srRemote() {
-            sr.synced = false;
-            sr.years.forEach((Y, s) => { if (Y.ready && !Y.dirty) sr.years.delete(s); });
-        }
         /* 일기를 저장할 때마다 (js/elements.js 의 saveData 에서 불러요) */
         function searchTouch(key) {
             if (!srOn()) return;
@@ -249,4 +244,3 @@
         }
         window.openSearch = openSearch;
         window.searchTouch = searchTouch;
-        window.srRemote = srRemote;

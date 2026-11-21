@@ -37,7 +37,7 @@
 .dcm-l2 { inset: calc(var(--u) * 6.5); background: #d6cddf; }
 .dcm-l3 { inset: calc(var(--u) * 13.5); background: #2b2430; border-radius: calc(var(--u) * 4) !important; }
 .dcm-lens b { position: absolute; left: 0; right: 0; text-align: center; font-weight: 400; font-size: calc(var(--u) * 1.9); color: #8a6f86; letter-spacing: .04em; }
-.dcm-zt { top: calc(var(--u) * 2.3); } .dcm-zb { bottom: calc(var(--u) * 2.3); }
+
 .dcm-deco { left: calc(var(--u) * 4); top: calc(var(--u) * 7); width: calc(var(--u) * 36); height: calc(var(--u) * 36); }
 .dcm-name { left: calc(var(--u) * 7); bottom: calc(var(--u) * 7); display: flex; flex-direction: column; line-height: 1; color: var(--ln); }
 .dcm-name b { font-weight: 400; font-size: calc(var(--u) * 4.4); letter-spacing: .03em; }

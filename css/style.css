@@ -251,7 +251,6 @@
         .alert-msg { font-size: 15px; color: #444; margin-bottom: 18px; line-height: 1.5; word-break: keep-all; }
         .alert-btns { display: flex; gap: 8px; justify-content: center; }
 
-
            /* 📏 제목 → 카테고리 바짝 (모든 고르는 창 같게) */
         .cat-btn {
             padding: 4px 8px; font-size: 12px; border-radius: 10px; border: 1px solid var(--border-color);
@@ -311,8 +310,7 @@
         .gate-msg { font-size: 14px; color: #555; line-height: 1.7; }
         .gate-msg:empty { display: none; }
         .gate-pick { max-width: 340px; }
-        .gate-btn { justify-content: center; width: 100%; padding: 10px 12px; }
-        .gate-guest { background: none; border: none; color: #888; font-size: 12px; text-decoration: underline; cursor: pointer; font-family: inherit; }
+
         /* 🎀 첫 화면 꾸밈 (도련 10-18) : 겉표지와 같은 깅엄 바탕 · 작은 다이어리 · 기다릴 땐 하트 세 개 · 상태가 바뀌어도 같은 카드 안에서 스르륵 */
         .drive-gate { background:
             linear-gradient(90deg, color-mix(in srgb, var(--primary-accent) 9%, transparent) 50%, transparent 0) 0 0 / 46px 46px,
@@ -339,7 +337,7 @@
         @keyframes gateHop { 0%, 60%, 100% { translate: 0 0; } 30% { translate: 0 -8px; } }
         .gate-swap > :not(.gate-book) { animation: gateIn .35s ease both; }
         @keyframes gateIn { from { opacity: 0; translate: 0 6px; } }
-        .gate-card .gate-guest { padding: 4px 8px; color: #9a7884; }
+
         @media (prefers-reduced-motion: reduce) { .gate-book, .gate-dots i, .gate-swap > * { animation: none; } }
         /* 🧚 첫 화면 요정 버튼 (도련 10-20) : 파스텔 버튼 끝에 요정이 앉아 있어요 · 그림 한 칸 = 4px (SVG viewBox 76칸)
            평소 = 날개 파닥 · 눈 깜빡 · 하트 · 별가루 / 올리면 = 웃으며 깡충 · 요술봉 흔들기 / 누르면 = 눈 꼭 · 버튼 꾹 */
@@ -516,7 +514,6 @@
         .maker-btns .btn { justify-content: center; padding: 7px 6px; font-size: 13px; }
         .maker-btns .btn-primary { grid-column: 1 / -1; background: var(--primary-accent); border-color: var(--primary-accent); color: #fff; }
         #weaveKinds { margin-bottom: 10px; }
-
 
         /* 👧 내 인형들 */
         .doll-picker { max-width: 560px; }
@@ -1219,7 +1216,7 @@
         #keepModal .keep-go.keep-main { background: #ff8fab !important; color: #fff !important; border: 0 !important; }
         #keepModal .keep-content { max-height: 94vh; overflow-y: auto; }
         @media (max-width: 500px) { #keepModal .keep-content { padding: 18px 16px 14px; } .keep-ic { font-size: 40px; } .keep-title { font-size: 21px; margin: 6px 0; } .keep-lead { font-size: 16px; } .keep-rule { padding: 9px 10px; font-size: 13px; } .keep-way { font-size: 13px; } #keepModal .keep-go { padding: 11px; font-size: 16px; } }
-        .keep-sub { margin: 0 0 18px; font-size: 14px; line-height: 1.6; color: #8a6a78; word-break: keep-all; }
+
         #keepModal .keep-go { width: 100%; justify-content: center; font-size: 17px; padding: 13px; margin-top: 8px; }
         #keepModal .keep-x { width: 100%; justify-content: center; margin-top: 8px; font-size: 14px; border: 0; background: none; color: #8a6a78; }
         .ins-lead { margin: 4px 0 12px; font-size: 15px; line-height: 1.6; text-align: center; color: #5a3d4a; }
@@ -2290,7 +2287,6 @@
 .nw-chip { position: absolute; top: 3px; right: 3px; z-index: 3; padding: 2px 5px; border-radius: 999px; background: #ff5c7c; color: #fff; font-style: normal; font-size: 9px; font-weight: 900; line-height: 1; box-shadow: 0 2px 5px rgba(255, 92, 124, .4); pointer-events: none; animation: svcBadge 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { [data-nw].nw-on::after, [data-nw-any].nw-on::after, .nw-chip { animation: none; } }
 
-
 /* 📱 설정 창: 가로로 밀리지 않고 세로로만 움직이게 */
 #settingsModal .modal-content { overflow-x: hidden; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 #settingsModal .modal-content > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
@@ -2388,7 +2384,7 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 .lf-slide { position: absolute; top: 0; bottom: 0; width: calc(var(--pmw, 105) * var(--mm)); z-index: 0; pointer-events: none; box-shadow: -6px 0 14px rgba(90,40,60,.18); background: var(--sjb), var(--njb, var(--page-bg)); }
 .lf-slide.l { left: calc(50% - var(--pmw, 105) * var(--mm)); } .lf-slide.r { left: 50%; }
 .inner-page.dy-bdl:not(.dy-bo) .lf-slide.l { translate: calc(var(--gh) * -1) 0; } .inner-page.dy-bdl:not(.dy-bo) .lf-slide.r { translate: var(--gh) 0; }
-.lf-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; --sbg: 10px; }
+
 .lf-pick { font: inherit; font-size: 12.5px; font-weight: 700; color: var(--dk-ink, #7b5a63); background: none; border: 0; padding: 0; cursor: pointer; container-type: inline-size; }
 .lf-pick .lf-sw { --lf-holes: radial-gradient(circle at 4.6cqw 50%, color-mix(in srgb, var(--border-color) 55%, #fff) 1.5cqw, color-mix(in srgb, var(--border-color) 90%, #000 5%) 1.55cqw 1.9cqw, transparent 1.95cqw) 0 3cqw / 9cqw 9cqw repeat-y;
     display: block; aspect-ratio: 1; height: auto; border-radius: 10px; margin-bottom: 4px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--border-color) 55%, #fff); }
@@ -2471,7 +2467,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
     background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%, rgba(0,0,0,.06)), var(--tk-glue, color-mix(in srgb, var(--primary-accent) 62%, #fff)); box-shadow: 0 1.5px 0 rgba(0,0,0,.08); }
 .lm-tk .lm-glue-box { display: block; }
 
-
 .smk-hint b { color: var(--primary-accent); } .smk-hint small { font-size: 11px; color: var(--dk-soft, #b48b97); }   /* 🔤 글씨스티커 : 엔터 안내 2줄 */
 
 /* 💾 파일 이름 창 (js/sharebox.js shxAsk) */
@@ -2494,7 +2489,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 #skinModal .service-btn[hidden] { display: none !important; }
 
 /* 📚 모음 칸 (js/coll.js collGrid) : 칸들은 바깥 격자에 그대로 들어가고, 끝에 닿으면 다음 묶음을 읽어요 */
-.cg-more { grid-column: 1 / -1; width: 100%; min-height: 8px; text-align: center; font-size: 12.5px; color: #b08a98; padding: 6px 0; }
 
 /* 🔘 두 개 중 고르는 큰 버튼 (⚙️ 설정 🪑 화면 · 다이어리 줄 고르기 · .snb-pick) */
 .snb-pick { display: flex; gap: 8px; margin-top: 6px; }
@@ -2544,7 +2538,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 @keyframes snbBagWig { 0%, 78%, 100% { transform: rotate(0); } 84% { transform: rotate(-2.5deg); } 90% { transform: rotate(2deg); } 95% { transform: rotate(-1deg); } }
 
 @keyframes snbAgain { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
-
 
 /* =====================================================================
    💃 인형 움직이기 (js/doll-move.js) · 🪄 캐릭터 움직이기 (js/char-move.js)
@@ -2783,8 +2776,6 @@ button, .btn, .tb-btn, .service-btn, .smk-room label { touch-action: manipulatio
 [data-sbc][hidden] { display: none !important; }
                                /* 이름 없는 봉투 윗띠 */
 
-.lf-picks .lf-pick[data-sbc] .lf-sw { margin-bottom: 0; }
-
                                           /* 2칸짜리 씰 종이 뒤 빈칸은 다음 1칸짜리가 채워요 (js/elements.js libPages) */
    /* 1개짜리 칸과 같은 모양 (두께 없이) */
 
@@ -2870,7 +2861,6 @@ body.pen-rest .draw-layer { pointer-events: none; }   /* ✏️ 필기구가 쉬
 .element-box > .mf-probe { position: absolute; width: 0; height: 0; pointer-events: none; }
 
 /* 📁 로그인 없이 : 다시 오셨네요! (js/devsave.js dvAskAgain) */
-.gate-card .dv-title { font-size: 22px; }
 
 /* 🗑 휴지통 (js/trash.js) */
 .tr-box { max-width: 440px; width: min(94vw, 440px); }
@@ -3412,8 +3402,7 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .dmk-card.on { border-color: var(--pick-line); background: color-mix(in srgb, var(--pick) 10%, #fff); }
 .dmk-card:disabled { opacity: .35; cursor: default; }
 .dmk-card .dy-ed { top: 2px; left: auto; right: 2px; width: 22px; height: 22px; font-size: 11px; }
-.dmk-card.dmk-new { justify-content: center; border-style: dashed; color: var(--primary-accent); }
-.dmk-card.dmk-new b { font-size: 26px; font-weight: 400; line-height: 1; }
+
 .dmk-in { display: flex; align-items: center; gap: 8px; padding: 7px 8px; margin-top: 5px; border-radius: 12px; background: color-mix(in srgb, var(--primary-accent) 5%, #fff); }
 .dmk-in-n { flex: none; min-width: 58px; padding: 3px 6px; border-radius: 8px; background: #fff; text-align: center; font-size: 11.5px; font-weight: 800; color: var(--primary-accent); }
 .dmk-in-g { display: flex; flex-direction: column; min-width: 0; font-size: 13px; font-weight: 800; color: #5a3d4a; }
@@ -3494,11 +3483,9 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .gdc-it:active { transform: scale(.94); }
 .gdc-tip { margin: 14px 0 0; text-align: center; font-size: 11px; color: #8a6a72; background: rgba(255, 255, 255, .85); border-radius: 10px; padding: 3px 8px; }
 
-
 /* ✋ 하단 '다이어리' · '스티커' 창이 떠 있어도 뒤의 다이어리를 잡고 옮길 수 있어요 (도련 10-19 · 창 밖을 눌러도 안 닫혀요 → ✕ 로 닫기) */
 #skinModal, #patternModal, #makerModal, #stickerToolModal, #stickerSrcModal, #leafMakeModal, #basketModal, #basketKindModal, #shelfCornerModal, #shelfKindModal, .modal.skin-float { pointer-events: none; }
 #skinModal > .modal-content, #patternModal > .modal-content, #makerModal > .modal-content, #stickerToolModal > .modal-content, #stickerSrcModal > .modal-content, #leafMakeModal > .modal-content, #basketModal > .modal-content, #basketKindModal > .modal-content, #shelfCornerModal > .modal-content, #shelfKindModal > .modal-content, .modal.skin-float > .modal-content { pointer-events: auto; }
-
 
 /* 📄 배경 모조지 카드 : 종이 한 장이 크게 */
 
@@ -3615,7 +3602,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .sh-zbtns .sh-zclose { background: #fff; color: #c2457a; box-shadow: inset 0 0 0 1.5px #f2a7c0, 0 2px 0 rgba(0,0,0,.06); }   /* 🔍 확대 닫기 (도련 11-04) */
 .sh-content .modal-content, #shelfKindModal .modal-content { position: relative; }
 
-
 /* 📒 스티커첩 (10-25 · js/basket.js) : 종류 창 [🧺 바구니 | 📒 스티커첩] · 바인더 · 이형지 · 정리 책상 */
 .bk-tools { gap: 8px; }
 .ab-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin: 2px 0 10px; padding: 4px; border-radius: 16px; background: #fbe4ec; }
@@ -3643,7 +3629,7 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ab-head { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; flex-wrap: wrap; }
 .ab-back, .ab-mini { min-height: 36px; padding: 0 12px; border: 1.5px dashed #f2b8cb; border-radius: 18px; background: #fff; color: #8a4a64; font: inherit; font-size: 13px; cursor: pointer; }
 .ab-ttl { font-size: 15px; color: #b23b6c; }
-.ab-lbin { flex: 1; min-width: 90px; max-width: 160px; min-height: 36px; padding: 0 10px; border: 1.5px solid #f2c7d6; border-radius: 8px; background: #fffaf2; color: #7b4a5e; font: inherit; font-size: 14px; font-weight: 700; }
+
 .ab-binder { display: flex; min-height: 300px; }
 .ab-rings { display: flex; flex-direction: column; justify-content: space-around; align-items: center; width: 26px; padding: 24px 0; border-radius: 12px 0 0 12px; background: var(--c2); }
 .ab-rings i { width: 16px; height: 9px; border-radius: 5px; background: #ece7eb; box-shadow: inset 0 0 0 2px #cbc2c8; }
@@ -3682,10 +3668,10 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ab-freeb .ab-chip.rl { --c1: #f6f2fb; --c2: #c9b8e6; }
 .ab-chip.rl { border-radius: 2px; background: #f4f2f6; border: 1px solid #d9d0dc; box-shadow: none; }
 .ab-peelhint { padding: 16px 8px; margin-bottom: 10px; border: 1.5px dashed #f2c7d6; border-radius: 12px; text-align: center; font-size: 12.5px; color: #8a6a78; }
-.ab-peel { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid #ece6ee; border-radius: 12px; background: linear-gradient(135deg, #fdfdff, #f2f4fa); box-shadow: 0 3px 10px rgba(110,80,95,.16); max-height: 200px; overflow-y: auto; }
+
 .ab-st { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; padding: 4px; border: 0; border-radius: 10px; background: none; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
 .ab-st img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-.ab-peel:not(.baked) .ab-st img { filter: drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 1px 2px rgba(110,80,95,.25)); }
+
 .ab-st.on { background: rgba(255,107,136,.14); outline: 2px solid #ff6b88; }
 .ab-st.hole { display: block; border-radius: 10px; background: rgba(214,206,222,.3); outline: 1.2px dashed rgba(190,178,200,.6); outline-offset: -6px; cursor: default; }
 .ab-ghost { position: fixed; z-index: 100005; pointer-events: none; transform: rotate(-5deg) scale(1.06); filter: drop-shadow(0 10px 16px rgba(110,80,95,.35)); }
@@ -3781,8 +3767,7 @@ body:has(#pelRoom.show.pel-rel) .twz.pin-cur, body:has(#pelRoom.show.pel-rel) .p
 .st2-goods { position: relative; display: block; width: 70px; height: 60px; }
 .st2-goods::before, .st2-goods::after { content: ''; position: absolute; }
 .st2-tag { position: relative; z-index: 2; margin-top: 4px; padding: 2px 7px; background: #fff; border: 1.7px solid #7b5a63; border-radius: 4px; font-size: 12.5px; font-weight: 700; color: #8a4a64; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
-.st2-season { display: block; margin: 8px auto 10px; padding: 3px 12px; border: 1.7px solid #7b5a63; border-radius: 4px; background: #fff; font-size: 13px; font-weight: 700; color: #8a4a64; cursor: pointer; }
-.st2-season[hidden] { display: none; }
+
 /* 진열된 물건 (그림 대신 모양으로) */
 .g-seal .st2-goods::before { left: 6px; top: 8px; width: 44px; height: 50px; background: #fff; border-radius: 4px; transform: rotate(-6deg); box-shadow: 0 2px 3px rgba(0,0,0,.15); }
 .g-seal .st2-goods::after { left: 20px; top: 2px; width: 44px; height: 54px; border-radius: 4px; box-shadow: 0 2px 3px rgba(0,0,0,.15); background: radial-gradient(circle, #ffb3c9 4px, transparent 4.5px) 3px 4px / 13px 13px, #fff; background-clip: content-box; padding: 4px; box-sizing: border-box; }
@@ -3916,7 +3901,6 @@ html:not(.is-phone) .dsk .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width: 176
 .bk-roll .bk-qty { left: 50%; top: 50%; translate: -50% -50%; }
 .bk-qty.top { left: 50%; top: -7px; translate: -50% 0; }
 
-
 /* 🩷 다꾸하는 법 메모 (도련 10-26 · js/dkguide.js) : 페이지 위에 붙은 메모 · 눌리지 않아요(✕ 만) */
 .dg-note { position: absolute; z-index: 30; width: 272px; max-width: calc(100vw - 40px); box-sizing: border-box; padding: 24px 18px 13px; background: #fffbe8; border-radius: 4px 4px 14px 4px; box-shadow: 0 6px 14px rgba(190, 110, 140, .2); font-family: 'Gowun Dodum', sans-serif; color: #5e4250; font-size: 14px; line-height: 1.35; pointer-events: none; translate: -50% 0; rotate: -2deg; opacity: 0; scale: .92; transition: opacity .3s, scale .3s; }
 .dg-note.on { opacity: 1; scale: 1; }
@@ -3984,7 +3968,7 @@ html.desk-show .desk-item { pointer-events: none; }
 body.dg-on .desk-item.fn-sticker { filter: drop-shadow(0 8px 6px rgba(190, 110, 140, .28)) drop-shadow(0 0 12px rgba(245, 165, 36, .85)); }   /* 🩷 다꾸하는 법 메모 : 스티커 소품이 빛나요 */
 /* ⚙️ 설정 📖 다이어리 바탕 칸 : 💻 PC · 아이패드만 (html.desk-wide · js/drive.js deskSync) */
 .desk-tip { white-space: nowrap; }
-.dk-box-open { width: 100%; justify-content: center; margin-top: 4px; flex-direction: column; gap: 1px; } .dk-box-open small { font-size: 11px; color: #a08a94; font-weight: 400; }
+
 /* 🛠 책상 꾸미기 (js/desk.js · html.desk-edit) : 평소엔 소품이 안 움직여요 (톡 = 기능) · 꾸미기에서만 끌기 · 고르기 */
 html.desk-on .desk-item { cursor: default; } html.desk-on .desk-item[data-fn] { cursor: pointer; }
 html.desk-edit .desk-item, html.desk-edit .desk-item[data-fn] { cursor: grab; }
@@ -4102,8 +4086,7 @@ html.desk-edit .dke-tray { flex-direction: column; align-items: stretch !importa
 .st2-row .st2-more .st2-emo:has(svg) { width: 100%; }
 .desk-set { display: none; }
 html.desk-wide .desk-set { display: block; }
-.dk-fn-list { display: grid; gap: 6px; margin-top: 8px; }
-.dk-fn-list[hidden] { display: none; }
+
 .desk-guide { position: absolute; display: none; pointer-events: none; z-index: 4999; }
 .desk-guide.on { display: block; }
 .desk-guide.h { left: 0; right: 0; height: 0; border-top: 3px dashed #e2557f; }
@@ -4147,7 +4130,6 @@ html.desk-on.dk-bgon .desk-bg { opacity: 0; visibility: hidden; transition: opac
 /* 📖 펼친 채로 내려놓은 다이어리 = 두 쪽 (js/desk.js deskMiniPaint · 도련 10-28) · 접힘 · 펼침 모두 다이어리를 같은 비율로 복사 · MK.DESK_TILT 로 눕혀요 (55° · css --dk-tilt) */
 html.dk-landing .diary-wrapper :is(.dg-note, .bd-tool, .cover-notice, .drag-hint, .drive-badge) { opacity: 0 !important; transition: opacity .25s ease; }   /* 🪑 책상에 내려앉는 동안 화면 도구는 스르르 (js/desk.js · 도련 10-28) */
 html.desk-on .toolbar { display: none !important; }   /* 💻 책상 화면에서는 하단 메뉴를 안 보여요 (도련 10-26 · 소품으로 대신) */
-
 
 /* 🗄️ 스티커 서랍 (도련 11-05 · js/basket.js bkDraw) : 창 없이 서랍 하나 · 문구함 서랍(css/deskgd.css .dkw-drawer)과 같은 셀 그림 = 단색 + 굵은 선
    --db 몸 · --dl 바닥 · --dk 선 · --dm 안쪽 벽 (js/deskgd.js dkwColors) */
