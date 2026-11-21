@@ -44,7 +44,7 @@
         if (document.documentElement.classList.contains('desk-on')) { el.classList.add('bnd-dkmode'); if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('바인더 조립'); }   // 🧩 바인더조립모드 = 책상 위 (도련 11-14)
         render();
         try { if (window.dymReady) await dymReady(); } catch (e) { console.warn('🧩 재료', e); }
-        try { if (window.dbkMatReady) await dbkMatReady(); } catch (e) {}       // 🗄️ 🧩 서랍 속 재료 = 바구니에 안 나와요 (그 서랍장 파일만 · js/deskbook.js)
+        try { if (window.dbkMatReady) await dbkMatReady(); } catch (e) {}       // 🗄️ 🧩 서랍 속 재료 표시 (🗄️ · 그 서랍장 파일만 · js/deskbook.js)
         if (B.on) render();
     }
     function bndClose() {
@@ -52,12 +52,13 @@
         B.on = false; el.classList.remove('show', 'bnd-dkmode'); document.body.classList.remove('cal-on', 'bnd-on'); if (window.dtmShow) dtmShow(null);
     }
     const C = v => window.dmkClean ? dmkClean(v) : v;
+    const drIn = (h, id) => window.dbkMatIn && dbkMatIn(id) ? h.replace('>', '><i class="bnd-dr" title="서랍에 있어요 · ✔ 완료하면 서랍에서 빠져요">🗄️</i>') : h;   // 🗄️ 서랍 속 재료 표시 (도련 11-21 · 바구니에도 보여요)
     function cvCard(c, extra) {
         const yr = new Date().getFullYear(), old = c.t === 'dcover' && c.y < yr;
-        return `<div class="bnd-card bnd-cv${old ? ' old' : ''}" data-cv="${esc(c.id)}" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 64, c.pid || c.d)}<span>${esc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y + ' · ' + c.n : c.n}</small>${extra || ''}</div>`;
+        return drIn(`<div class="bnd-card bnd-cv${old ? ' old' : ''}" data-cv="${esc(c.id)}" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 64, c.pid || c.d)}<span>${esc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y + ' · ' + c.n : c.n}</small>${extra || ''}</div>`, c.id);
     }
     function rfCard(r, R) {
-        return `<div class="bnd-card bnd-rf" data-rf="${esc(r.id)}">${r.t === 'drefill' ? dmkRfThumb([[1, 1, r.lf || 'line']], R || 1.41, 64) : dmkRfThumb(r.lv, r.r, 64)}<span>${esc(r.g)}</span><small>${r.t === 'drefill' ? '📅 날짜 · ' + r.n : r.n + ' · ' + r.pg + 'p'}</small>${r.t === 'refill' && r.from === 'mine' && window.dymGet && dymGet(r.id) ? `<i class="bnd-ed" data-ed="refill:${esc(r.id)}" title="고치기">✏️</i>` : ''}</div>`;
+        return drIn(`<div class="bnd-card bnd-rf" data-rf="${esc(r.id)}">${r.t === 'drefill' ? dmkRfThumb([[1, 1, r.lf || 'line']], R || 1.41, 64) : dmkRfThumb(r.lv, r.r, 64)}<span>${esc(r.g)}</span><small>${r.t === 'drefill' ? '📅 날짜 · ' + r.n : r.n + ' · ' + r.pg + 'p'}</small>${r.t === 'refill' && r.from === 'mine' && window.dymGet && dymGet(r.id) ? `<i class="bnd-ed" data-ed="refill:${esc(r.id)}" title="고치기">✏️</i>` : ''}</div>`, r.id);
     }
     function render() {
         if (!B.on) return;
@@ -69,8 +70,6 @@
             + (covers.some(c => c.t === 'dcover') ? '' : `<div class="bnd-hint">🗂️ 표지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📔 다이어리에서 받아요</div>`);
         const refills = dmkRmPool('refill');
         const fit = r => cv && (date ? r.t === 'drefill' : r.t === 'refill') && r.n === n;
-        const inDr = window.dbkMatIn && window.dymAll ? dymAll('cover').concat(dymAll('refill')).filter(x => dbkMatIn(x.id)).length : 0;
-        { let h = bq('bndInDr'); if (!h) { h = document.createElement('div'); h.id = 'bndInDr'; h.className = 'bnd-hint'; bq('bndBasket').appendChild(h); } h.hidden = !inDr; h.textContent = inDr ? `🗄️ 서랍에 넣어 둔 표지 · 내지 ${inDr}개 · 서랍을 열고 톡 = 바구니로 꺼내요` : ''; }
         bq('bndRefills').innerHTML = refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('')
             + (refills.length ? '' : `<div class="bnd-hint">📄 내지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📅 날짜 내지 · 📄 페이지 내지에서 받아요</div>`);
         /* 작업대 */

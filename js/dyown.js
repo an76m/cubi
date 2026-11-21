@@ -43,7 +43,7 @@
         const dymGet = id => dymAll('cover').concat(dymAll('refill')).find(x => x.id === id) || null;
         function dymSet(k, L) { prefSet(DYM[k].key, DYM[k].l, (L || []).filter(Boolean)); if (window.mineSoon) mineSoon(); }   // 📦 받은 표지 · 내지 = 실물로
         function dymPut(it) { const k = dymKind(it && it.t); if (!k) return; const L = dymAll(k), i = L.findIndex(x => x.id === it.id); if (i >= 0) L[i] = it; else L.push(it); dymSet(k, L); }
-        function dymDel(id) { ['cover', 'refill'].forEach(k => { const L = dymAll(k); if (L.some(x => x.id === id)) dymSet(k, L.filter(x => x.id !== id)); }); }
+        function dymDel(id) { ['cover', 'refill'].forEach(k => { const L = dymAll(k); if (L.some(x => x.id === id)) dymSet(k, L.filter(x => x.id !== id)); }); if (window.dbkMatGone) dbkMatGone(id); }   // 🗄️ 서랍에 있던 재료면 서랍에서도 빠져요 (조립 ✔ 완료 · js/deskbook.js)
         /* 💤 재료 목록 준비 : 쓰기 전에 꼭 (읽은 적 없으면 한 번 읽고 · 없어졌으면 그 폴더 백업에서) · 🆕 처음 온 다꾸러 = 찾지 않아요 */
         let dymP = null, dymGen = -1;
         function dymReady() {

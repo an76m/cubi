@@ -12,7 +12,7 @@
      · 빈 것인지 쓴 것인지는 여기 적지 않아요 (다이어리 = 다이어리/_목록.json w · 스티커첩 = 폴더)
      · 칸이 없어지거나 다른 것으로 바뀌면 안의 책은 책상 위로 (dbkSlotGone · js/desk.js dkHomesSet) · 서랍장을 📦 소품함에 넣으면 그동안은 책상 위에 보여요 (다시 꺼내면 서랍 속)
    - 🧩 표지 · 내지 서랍 (도련 11-20 · 1355) : 바인더 재료(🗂️ 표지 · 📅 날짜 표지 · 📄 내지 · 📅 날짜 내지)만 넣는 칸 'bm' · 다이어리 · 스티커첩과 한 칸에 섞지 않아요 · 책상 위에는 안 놓여요
-     · 넣기 = 🛍️ 봉투 카드를 서랍장에 · 열린 🧩 서랍의 [🧺 바구니에서 넣기] (조립 바구니에 있는 재료) · 빼기 = 톡 → 🧩 바인더 조립 바구니로 (조립 방이 열려요) · 끌어서 다른 서랍장 = 옮기기 · 책상에 놓으면 = 못 놓아요 (서랍에 그대로 · 1358)
+     · 넣기 = 🛍️ 봉투 카드를 서랍장에 · 열린 🧩 서랍의 [🧺 바구니에서 넣기] (조립 바구니에 있는 재료) · 톡 · 책상에 끌어 놓기 = 🧩 바인더 조립할까요? (✔ 완료할 때까지 서랍에 그대로 · 조립 바구니에도 🗄️ 로 · 도련 11-21)로 (조립 방이 열려요) · 끌어서 다른 서랍장 = 옮기기 · 책상에 놓으면 = 못 놓아요 (서랍에 그대로 · 1358)
      · 서랍 속 재료는 🧩 조립 바구니에 안 나와요 (현실처럼 서랍에서 꺼내 써요 · js/dymaker.js dmkRmPool · 서랍장이 📦 소품함에 들어가면 바구니에 보여요)
      · 저장 = 메모리 'diary_desk_dy' 의 { in: '서랍장u:칸', m: 1 } → 서랍장 파일 bm { id: 칸 } (js/holdfile.js) · 재료 목록(_바인더재료목록N.json)에는 적지 않아요 */
 (function () {
@@ -44,7 +44,6 @@
     }
     function takeOut(id) {                                                        // 서랍에서 꺼내 책상 다이어리 줄에 (이름표 그대로 · 세워서)
         const M = dkyMap(), o = M[id]; if (!o || typeof o !== 'object' || !o.in) return;
-        if (o.m) { delete M[id]; save(M); bndSoon(); return; }                  // 🧩 재료 = 🧺 조립 바구니로
         const keep = Object.assign({}, o.lb ? { lb: o.lb } : {}, o.a ? { a: o.a } : {}); M[id] = keep; save(M);
         const at = dkyPosOf(id), M2 = dkyMap(); M2[id] = Object.assign({}, at, keep, { p: 'front' }); save(M2);   // 꺼내면 = 세워요 (도련 11-21 · 끌어 놓을 때 dkvPlace 와 같아요)
     }
@@ -121,7 +120,7 @@
         const [ic, K] = KN[k];
         DBK.u = u; DBK.s = s; DBK.k = k; DBK.pick = false; DBK.f = { k: '', s: '' };   // 🗂 처음 = 전체
         const r = await dkDrawerWin('dbkTray', { k: e.k, u, s, cls: 'dbk-drawer', title: `${ic} ${K} 서랍`, sub: `${dkName(o)} ${dkSlotNm(s, S.length)} 칸`, label: `${ic} ${K}`, cats: 'dbkCats', inn: 'dbkIn', shut,   // 🗄️ 서랍 창 하나로 (문구함과 같은 창 · js/deskgd.js)
-            foot: `<span>${k === 'bm' ? '톡 = 꺼내서 🧩 조립 바구니로' : '톡 = 꺼내서 펼치기 · 끌어서 책상에 놓기'}</span>${k === 'bm' ? '<button type="button" class="btn dbk-pickb">🧺 바구니에서 넣기</button>' : ''}` });
+            foot: `<span>${k === 'bm' ? '톡 = 🧩 바인더 조립하기' : '톡 = 꺼내서 펼치기 · 끌어서 책상에 놓기'}</span>${k === 'bm' ? '<button type="button" class="btn dbk-pickb">🧺 바구니에서 넣기</button>' : ''}` });
         if (DBK.u !== u || DBK.s !== s) return;                                   // 색을 칠하는 사이 다른 서랍을 열었어요
         const pb = r.querySelector('.dbk-pickb'); if (pb) pb.onclick = () => { DBK.pick = !DBK.pick; DBK.f = { k: '', s: '' }; trayPaint(); };
         dkDrawerShow(r, u, trayPaint);
@@ -171,17 +170,25 @@
         const t = document.querySelector(`#deskStage .desk-item[data-u="${DBK.u}"]`); if (!t) return;
         if (await dbkPut(b.id, t, 'bm', { s: DBK.s })) trayPaint();             // 열린 서랍 = 그 칸
     }
+    /* 🧩 표지 · 내지 톡 · 책상에 끌어 놓기 = 바인더 조립할까요? (도련 11-21) → 조립 = 서랍을 닫고 🧩 바인더 조립 (재료는 ✔ 완료할 때까지 서랍에 그대로 · 바구니에도 🗄️ 로 보여요) */
+    async function askBuild() {
+        const r = await showAsk('🧩 <b>바인더를 조립</b>할까요?<br><span style="font-size:12px;color:#777;">✔ 완료하기 전까지 표지 · 내지는 서랍에 그대로 있어요</span>', '🧩 조립하기', '취소');
+        if (r !== true) return;
+        shut(); setTimeout(() => { if (window.bndOpen) bndOpen(); }, 360);
+    }
+    /* 🗄️ 조립을 ✔ 완료해 재료가 없어졌어요 → 서랍 자리도 지워요 (js/dyown.js dymDel) */
+    function matGone(id) { const M = dkyMap(), o = M[id]; if (!o || typeof o !== 'object' || !o.m) return; delete M[id]; save(M); if (trayOn()) trayPaint(); }
     function grab(ev, it, b) {                                                    // 톡 = 꺼내서 펼치기 · 끌기 = 손에 들고 놓은 곳에 · 👆 위아래로 밀기 = 내리기 (끌기 하나로 · js/deskmove.js dkDrag)
         if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
         dkDrag(ev, it.querySelector('.dbk-art'), {
             dir: dkShelfDir,                                                      // 끌기 = 꺼내기 · 옮기기 · 👆 위아래로 밀기 = 내리기 (문구함과 같은 규칙 · js/desk.js)
             start: () => { if (window.buzz) buzz(12); },
-            tap: () => { takeOut(b.id); dkDeskBooks(); shut(); setTimeout(() => b.mat ? window.bndOpen && bndOpen() : dkVolOpen(b.id), 360); },   // 톡 = 꺼내서 펼치기 · 🧩 재료 = 조립 방 바구니로
+            tap: () => { if (b.mat) { askBuild(); return; } takeOut(b.id); dkDeskBooks(); shut(); setTimeout(() => dkVolOpen(b.id), 360); },   // 톡 = 꺼내서 펼치기 · 🧩 재료 = 바인더 조립할까요?
             drop: async (x, y) => {
                 if (trayHit(x, y)) return;                                       // 서랍 안 = 그대로
                 const t = chestAt(x, y);
                 if (t && fits(t)) { if (await dbkPut(b.id, t, kindOf(b))) trayPaint(); return; }
-                if (b.mat) { say('🧩 표지 · 내지는 책상 위에 놓을 수 없어요.<br><small>서랍에 그대로 있어요 · 톡 하면 🧩 조립 바구니로 꺼내요</small>'); trayPaint(); return; }   // 🧩 재료는 책상에 안 놓여요 = 서랍에 그대로 (도련 11-20 · 1358)
+                if (b.mat) { trayPaint(); askBuild(); return; }                   // 🧩 재료는 책상에 안 놓여요 = 서랍에 그대로 → 바인더 조립할까요? (도련 11-21)
                 if (dkvPlace(b.id, x, y)) trayPaint();                            // 📚 놓은 자리에 (책상)
             }
         });
@@ -192,6 +199,6 @@
     window.dbkOpen = dbkOpen; window.dbkClose = dbkClose; window.dbkHere = here; window.dbkMoveIn = dbkMoveIn;
     /* 🧩 조립 바구니가 쓰기 전 : 표지 · 내지 서랍이 있는 서랍장 파일만 읽어요 (그 서랍장 수만큼 · 한 번) */
     window.dbkMatReady = () => window.hfReady ? Promise.all(Object.keys(dkHomes()).filter(u => (dkHomes()[u] || []).some(e => dkBk(e.k) === 'bm') && DK.items.some(x => x.u === u && x.at === 'desk')).map(u => hfReady(u).catch(() => {}))) : Promise.resolve();
-    window.dbkMatIn = id => !!dbkIn(id, matOf(id));
+    window.dbkMatIn = id => !!dbkIn(id, matOf(id)); window.dbkMatGone = matGone;
 })();
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['deskbook'] = true;
