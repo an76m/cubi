@@ -31,7 +31,7 @@ function bookSide(cur, s) {                                                  // 
     return (on.l ? 'l' : '') + (on.r ? 'r' : '');
 }
 const BOOK_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';   // 🔗 바인더 링 하나 (📒 스티커바인더 · 🧩 바인더 조립 · 가운데 묶음 spine 에)
-const BOOK_DRAG = 8, BOOK_DONE = .35;                                       // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 (넘어가는 시간 = bookTurner 120 + 480 × 거리)
+const BOOK_DRAG = 8, BOOK_DONE = .35, BOOK_COVER_K = 1.5;   // BOOK_COVER_K = 펼침면 표지는 책도 같이 움직여서 손길을 더 길게 (📔 다이어리 · 📒 🧩 책 엔진 같이)                                       // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 (넘어가는 시간 = bookTurner 120 + 480 × 거리)
 /* 📖 넘어가는 그림 하나 = 종이 말림 (도련 11-15 · 2-4 · 📔 다이어리 js/page.js updateCurl · 📒 🤍 책 엔진이 같은 계산) : 넘기는 쪽 한 장(폭 W) 기준 자리
    d = 넘긴 만큼 (0 ~ W) · dir 1 = 다음 (오른쪽 끝에서 왼쪽으로) · -1 = 앞 (왼쪽 끝에서 오른쪽으로) · edge = 앞으로 넘길 때 잡는 왼쪽 끝 (다이어리 펼침면 = -W)
    → clip = 지금 쪽에서 가리는 곳 · fx · fw = 넘어가는 종이 뒷면 · sx · sw = 아래 쪽 그림자 (모두 그 쪽 왼쪽 위 기준 px) */
@@ -89,7 +89,7 @@ function bookTurner(o) {
         requestAnimationFrame(step);
     }
     return {
-        turn(dir) { if (T.drag || T.anim) return false; const ctx = o.start(dir); if (!ctx) return false; animate(ctx, ctx.w, true); return true; },
+        turn(dir) { if (T.drag || T.anim) return false; const ctx = o.start(dir); if (!ctx) return false; animate(ctx, ctx.w, true, ctx.rev); return true; },   // ctx.rev = 되감기 (📕 덮기)
         animate, busy: () => !!(T.anim || (T.drag && T.drag.on)), noClick: () => T.noClick && performance.now() - T.noClick < 400,
         stop() { T.drag = null; T.anim = null; }
     };
@@ -143,7 +143,7 @@ function bookOpen(host, spec) {
         B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]); B.root.style.setProperty('--abf', spec.face || 'none');   // 📁 앞표지 = 그 상품 표지.svg (도련 11-18)
         B.root.classList.toggle('shut', !B.open);
         const book = !B.open
-            ? `<div class="bk-book shut"><div class="bk-slot bk-cv" data-slot="cv">${spec.cover()}</div></div>`
+            ? `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div></div>`
             : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div><div class="bk-spine" aria-hidden="true">${spec.spine(t)}</div></div>`;
         B.root.innerHTML = `<div class="bk-bar" title="끌어서 옮기기">${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}<button type="button" class="bk-x" aria-label="닫기">✕</button></div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();
@@ -153,7 +153,7 @@ function bookOpen(host, spec) {
     }
     /* 📐 크기 · 자리 (막대 가운데 기준) */
     function fit() {
-        const W = spec.inline ? host.clientWidth : innerWidth, H = spec.inline ? host.clientHeight : innerHeight, t = two(), one = B.open && !t;   // 🧩 inline = 자리(host) 안에 (바인더 조립 작업대)
+        const W = spec.inline ? host.clientWidth : innerWidth, H = spec.inline ? host.clientHeight : innerHeight, t = !ph() && spec.side() === 'lr', one = !t;   // 🧩 inline = 자리(host) 안에 · 쪽 크기 = 덮었을 때도 펼친 모습 기준 (표지를 넘길 때 크기가 안 바뀌어요 · 📔 다이어리처럼)
         const padW = t ? 28 + 44 : one ? 14 + 64 : 28, padH = 28 + 52 + 16 + (ph() ? 24 : 40);
         const mm = spec.mm, R = mm[0] / mm[1];                                // 📏 한 쪽 = spec.mm [가로, 세로] 규격 · 실제 크기 (화면이 작으면 줄여요 · 도련 11-16)
         let h = Math.min(H - padH, (Math.min(W - 16, 1500) - padW) / ((t ? 2 : 1) * R), mm[1] * MM_PX);
@@ -197,31 +197,33 @@ function bookOpen(host, spec) {
     function slotRect(k) { const s = B.root.querySelector(`.bk-slot[data-slot="${k}"]`), st = B.root.querySelector('.bk-stage'); if (!s || !st) return null; const a = s.getBoundingClientRect(), b = st.getBoundingClientRect(); return { s, x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height }; }
     function start(dir) {
         if (B.busy) return null;
+        const cover = !B.open || (dir < 0 && B.pg === 0), back = cover && B.open;   // 📕 표지 열기 · 덮기 = 📔 다이어리와 같은 방식 (page.js openCoverAnimated · closeCoverAnimated)
+        if (cover && !B.open && dir < 0) return null;                          //   표지는 펼친 모습 위에서 넘어가요 (펼침면 = 표지가 오른쪽 쪽 자리에서 넘어가며 책이 가운데로 · 덮기 = 여는 것을 그대로 되감아요)
+        if (cover) { B.open = true; B.pg = 0; render(); }
         const t = two(), stage = B.root.querySelector('.bk-stage');
-        let k, cur, under, cdir = dir, cover = false, back = false, after;
-        if (!B.open) {                                                       // 📕 표지 열기 (표지가 말려 넘어가요)
-            if (dir < 0) return null;
-            k = 'cv'; cur = spec.cover(); under = pageHtml(0); cover = true; after = () => { B.open = true; B.pg = 0; };
-        } else if (dir < 0 && B.pg === 0) {                                  // 📕 첫 쪽에서 앞으로 = 덮기 (여는 것을 그대로 되감아요)
-            B.open = false; render();
-            k = 'cv'; cur = spec.cover(); under = pageHtml(0); cover = true; back = true; cdir = 1; after = () => { B.open = false; };
-        } else if (t && dir > 0) { k = 'r'; cur = pageHtml(B.pg + 1); under = pageHtml(B.pg + 3); after = () => { B.pg += 2; }; }
+        let k, cur, under, cdir = dir, after;
+        if (cover) { k = t ? 'r' : 'o'; cur = spec.cover(); under = pageHtml(t ? 1 : 0); cdir = 1; after = () => { B.open = !back; B.pg = 0; }; }
+        else if (t && dir > 0) { k = 'r'; cur = pageHtml(B.pg + 1); under = pageHtml(B.pg + 3); after = () => { B.pg += 2; }; }
         else if (t && dir < 0) { k = 'l'; cur = pageHtml(B.pg); under = pageHtml(B.pg - 2); after = () => { B.pg -= 2; }; }
         else if (dir > 0) { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg + 1); after = () => { B.pg += 1; }; }
         else { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg - 1); after = () => { B.pg -= 1; }; }
-        const r = slotRect(k); if (!r) return null;
+        const r = slotRect(k); if (!r) { if (cover) { B.open = back; render(); } return null; }
         r.s.innerHTML = `<div class="bk-under">${under}</div><div class="bk-cur">${cur}</div>`;
-        const cu = r.s.querySelector('.bk-cur'), gap = t && !cover ? 44 : 0;
+        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 ? 44 : 0;
         const fl = document.createElement('div'); fl.className = `bk-flap ${cdir > 0 ? 'dir-next' : 'dir-prev'}${cover ? ' cover' : ''}`; fl.style.top = r.y + 'px'; fl.style.height = r.h + 'px';
         const sh = document.createElement('i'); sh.className = `bk-ush ${cdir > 0 ? 'dir-next' : 'dir-prev'}`; sh.style.top = r.y + 'px'; sh.style.height = r.h + 'px';
         stage.appendChild(fl); stage.appendChild(sh);
-        const W = Math.max(80, r.w);
+        const W = Math.max(80, r.w), bk = stage.querySelector('.bk-book'), bx = bk ? bk.getBoundingClientRect().left - stage.getBoundingClientRect().left : 0, hid = Math.max(0, r.x - bx);
         const draw = d => { const g = bookCurlAt(W, d, cdir, 0), x = cdir > 0 ? g.fx - gap * d / W : g.fx;   // 펼친 두 쪽 사이 링 자리만큼 더 가요
             cu.style.clipPath = g.clip; fl.style.display = sh.style.display = g.show ? 'block' : 'none';
-            fl.style.left = (r.x + x) + 'px'; fl.style.width = g.fw + 'px'; sh.style.left = (r.x + g.sx) + 'px'; sh.style.width = g.sw + 'px'; };
-        const ctx = { w: W, d: 0, after,
+            fl.style.left = (r.x + x) + 'px'; fl.style.width = g.fw + 'px'; sh.style.left = (r.x + g.sx) + 'px'; sh.style.width = g.sw + 'px';
+            if (cover && t && bk) {                                            // 💻 펼침면 표지 = 넘긴 만큼 왼쪽 쪽이 드러나고 책이 가운데로 (📔 다이어리 updateCurl 과 같아요)
+                bk.style.clipPath = `inset(0 0 0 ${Math.max(0, Math.min(hid, r.x + (g.show ? x : W)) - bx)}px)`;
+                stage.style.translate = `${(-hid / 2 * (1 - d / W)).toFixed(1)}px 0`;
+            } };
+        const ctx = { w: W, d: 0, k: cover && t ? BOOK_COVER_K : 1, rev: back, after,   // 💻 표지는 책도 같이 움직여서 손길을 1.5배 (다이어리와 같아요) · 덮기 = 천천히 시작해 빨라져요
             set(px) { this.d = px; draw(back ? W - px : px); },                 // 덮기 = 다 넘긴 데서 되감아요
-            done(ok) { B.busy = null; if (ok) after(); else if (back && !B.open) B.open = true; render(); } };   // 덮기를 그만뒀어요 = 펼친 채로
+            done(ok) { B.busy = null; if (ok) after(); else if (cover) B.open = back; render(); } };   // 그만뒀어요 = 처음 모습 그대로
         B.busy = ctx; ctx.set(0);
         return ctx;
     }

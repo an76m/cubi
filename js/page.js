@@ -343,7 +343,7 @@
         let CURL = null;
         const curlCtx = () => {
             const t = turn, book = document.getElementById('diaryBook');
-            return { w: t.W, k: t.isCover && t.two ? 1.5 : 1, get d() { return turn === t ? t.d : 0; }, set: d => { if (turn === t) updateCurl(d); }, done: ok => { if (turn === t) endCurl(ok); },   // 💻 표지는 다이어리도 같이 옮겨가니 손가락 따라가게 (k)
+            return { w: t.W, k: t.isCover && t.two ? BOOK_COVER_K : 1, get d() { return turn === t ? t.d : 0; }, set: d => { if (turn === t) updateCurl(d); }, done: ok => { if (turn === t) endCurl(ok); },   // 💻 표지는 다이어리도 같이 옮겨가니 손가락 따라가게 (k)
                 out: (e, dir) => { const r = book.getBoundingClientRect(); return dir === 1 ? e.clientX <= r.left : e.clientX >= r.right; } };
         };
         function animateCurlTo(target, complete, rev, after) {                // rev = 거꾸로 (여는 것을 그대로 되감아요 · 천천히 시작해 빨라져요) · after = 끝난 뒤
