@@ -45,7 +45,6 @@
         if (document.documentElement.classList.contains('desk-on')) { el.classList.add('bnd-dkmode'); if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('바인더 조립'); }   // 🧩 바인더조립모드 = 책상 위 (도련 11-14)
         render();
         try { if (window.dymReady) await dymReady(); } catch (e) { console.warn('🧩 재료', e); }
-        try { if (window.dbkMatReady) await dbkMatReady(); } catch (e) {}       // 🗄️ 🧩 서랍 속 재료 표시 (🗄️ · 그 서랍장 파일만 · js/deskbook.js)
         if (B.on) render();
     }
     function bndClose() {

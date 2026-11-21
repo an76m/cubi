@@ -8,13 +8,13 @@
      · 빈 칸에 처음 넣으면 그 칸이 그 종류 서랍이 돼요
    - 빼기 = 서랍을 열고 (서랍장 칸 톡) 책을 끌어 책상에 놓기 (놓은 자리) · 톡 = 꺼내서 펼치기
    - 📔 지금 펼쳐 쓰는 다이어리(dkyCur)는 넣을 수 없어요 (책상에서 떠오르고 내려앉는 그림이 그 권이라서 · 늘 책상에)
-   - 💾 저장 = 메모리 'diary_desk_dy' (권마다 한 줄 { in: '서랍장u:칸', p, lb } · 책상 위 = { x, y, p, lb }) → 올릴 때 책상 위 것 = 배치.json · 서랍 속 = 설정/서랍/<서랍장>.json (js/holdfile.js · 1351) · 서랍을 열 때 그 서랍장 파일 한 번 (그 뒤 0번)
+   - 💾 저장 = 메모리 'diary_desk_dy' (권마다 한 줄 { in: '서랍장u:칸', p, lb } · 책상 위 = { x, y, p, lb }) → 책상 위 · 서랍 속 모두 설정 / 배치N.json (도련 11-21 · 서랍장 파일을 합쳤어요)
      · 빈 것인지 쓴 것인지는 여기 적지 않아요 (다이어리 = 다이어리/_목록.json w · 스티커첩 = 폴더)
      · 칸이 없어지거나 다른 것으로 바뀌면 안의 책은 책상 위로 (dbkSlotGone · js/desk.js dkHomesSet) · 서랍장을 📦 소품함에 넣으면 그동안은 책상 위에 보여요 (다시 꺼내면 서랍 속)
    - 🧩 표지 · 내지 서랍 (도련 11-20 · 1355) : 바인더 재료(🗂️ 표지 · 📅 날짜 표지 · 📄 내지 · 📅 날짜 내지)만 넣는 칸 'bm' · 다이어리 · 스티커첩과 한 칸에 섞지 않아요 · 책상 위에는 안 놓여요
      · 넣기 = 🛍️ 봉투 카드를 서랍장에 · 열린 🧩 서랍의 [🧺 바구니에서 넣기] (조립 바구니에 있는 재료) · 톡 · 책상에 끌어 놓기 = 🧩 바인더 조립할까요? (✔ 완료할 때까지 서랍에 그대로 · 조립 바구니에도 🗄️ 로 · 도련 11-21)로 (조립 방이 열려요) · 끌어서 다른 서랍장 = 옮기기 · 책상에 놓으면 = 못 놓아요 (서랍에 그대로 · 1358)
      · 서랍 속 재료는 🧩 조립 바구니에 안 나와요 (현실처럼 서랍에서 꺼내 써요 · js/dymaker.js dmkRmPool · 서랍장이 📦 소품함에 들어가면 바구니에 보여요)
-     · 저장 = 메모리 'diary_desk_dy' 의 { in: '서랍장u:칸', m: 1 } → 서랍장 파일 bm { id: 칸 } (js/holdfile.js) · 재료 목록(_바인더재료목록N.json)에는 적지 않아요 */
+     · 저장 = 메모리 'diary_desk_dy' 의 { in: '서랍장u:칸', m: 1 } → 배치N.json · 재료 목록(_바인더재료목록N.json)에는 적지 않아요 */
 (function () {
     const KN = { dy: ['📔', '다이어리'], ab: ['📒', '스티커첩'], bm: ['🧩', '표지 · 내지'] };
     /* 🧩 바인더 재료 (표지 · 내지) = 책처럼 서랍에 · 책상에는 없어요 */
@@ -49,9 +49,8 @@
     const bndSoon = () => { if (window.bndRender) bndRender(); };
     const fits = t => { const o = t && DK.items.find(x => x.u === t.dataset.u); return !!o && o.at === 'desk' && !!dkSlots(o.id) && ['dy', 'ab', 'bm'].some(k => dkHoldOk(o.id).includes(k)); };
     const chestAt = (x, y) => document.elementsFromPoint(x, y).filter(e => !e.closest('.dkm-ghost, .dkm-fly')).map(e => e.closest('#deskStage .desk-item')).find(Boolean) || null;
-    /* 🗄️ 칸째 옮기기 (js/desk.js dkSlotStuff · 1364) : 그 칸에 든 그 종류 것을 모두 새 칸으로 (두 서랍장 파일을 먼저 읽어요 · 올릴 때 파일도 따라가요) */
+    /* 🗄️ 칸째 옮기기 (js/desk.js dkSlotStuff · 1364) : 그 칸에 든 그 종류 것을 모두 새 칸으로 */
     async function dbkMoveIn(k, fu, fs, tu, ts) {
-        if (window.hfReady) { try { await hfReady(fu); await hfReady(tu); } catch (e) { return; } }
         if (k === 'bm') await matReady();
         const M = dkyMap(), p0 = fu + ':' + fs; let ch = false;
         Object.keys(M).forEach(id => { const o = M[id]; if (!o || typeof o !== 'object' || o.in !== p0) return; const b = bookOf(id); if (b ? kindOf(b) !== k : (k === 'bm') !== !!o.m) return; o.in = tu + ':' + ts; ch = true; });
@@ -64,7 +63,6 @@
         if (!S || !dkHoldOk(o.id).includes(k)) { say(`${ic} ${htmlEsc(josa(K, '은', '는'))} <b>${htmlEsc(o ? dkName(o) : '이 소품')}</b>에 넣을 수 없어요.`); return false; }
         if (k === 'bm') await matReady();                                         // 💤 재료 목록 (켤 때 안 읽어요)
         if (id === dkyCur()) { say('📔 지금 펼쳐 쓰는 다이어리는 서랍에 넣을 수 없어요.<br><small>다른 다이어리를 펼친 뒤 넣어요</small>'); return false; }
-        if (window.hfReady) { try { await hfReady(o.u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 해 주세요</small>'); return false; } }   // 🗄️ 그 서랍장에 이미 든 책을 알아야 해요 (칸 바꾸기 · js/holdfile.js)
         const u = o.u;
         let s = op && op.s != null ? op.s : -1, agreed = !!(op && op.agreed);
         if (s < 0) { const P = await dkChestPick(t, o, k); if (!P) return false; if (P.go) return dbkPut(id, P.go, k); s = P.s; agreed = P.agreed; }
@@ -113,7 +111,6 @@
         if (!document.querySelector('.dkw-room:not([hidden])')) document.documentElement.classList.remove('dkw-on');
     }
     async function dbkOpen(u, s) {
-        if (window.hfReady) { try { await hfReady(u); } catch (e) { say('🗄️ 서랍을 못 열었어요.<br><small>잠시 뒤에 다시 열어 주세요</small>'); return; } }   // 🗄️ 그 서랍장 파일 (한 번 · js/holdfile.js)
         s = +s; const o = DK.items.find(x => x.u === u), S = o && dkSlots(o.id), e = (dkHomes()[u] || []).find(x => x.s === s), k = e && dkBk(e.k); if (!S || !k) return;
         if (k === 'bm') await matReady();                                         // 💤 🧩 재료 목록 (켤 때 안 읽어요 · 한 번)
         const [ic, K] = KN[k];
@@ -196,8 +193,6 @@
 
     window.dbkIn = dbkIn; window.dbkPut = dbkPut; window.dbkDrop = dbkDrop; window.dbkFits = fits; window.dbkSlotGone = dbkSlotGone;
     window.dbkOpen = dbkOpen; window.dbkClose = dbkClose; window.dbkHere = here; window.dbkMoveIn = dbkMoveIn;
-    /* 🧩 조립 바구니가 쓰기 전 : 표지 · 내지 서랍이 있는 서랍장 파일만 읽어요 (그 서랍장 수만큼 · 한 번) */
-    window.dbkMatReady = () => window.hfReady ? Promise.all(Object.keys(dkHomes()).filter(u => (dkHomes()[u] || []).some(e => dkBk(e.k) === 'bm') && DK.items.some(x => x.u === u && x.at === 'desk')).map(u => hfReady(u).catch(() => {}))) : Promise.resolve();
     window.dbkMatIn = id => !!dbkIn(id, matOf(id)); window.dbkMatGone = matGone;
 })();
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['deskbook'] = true;
