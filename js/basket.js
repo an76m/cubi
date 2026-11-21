@@ -62,11 +62,12 @@
     }
     /* 📒 스티커정리모드 (책상 위 · 도련 11-14) : ✔ 완료 = 저장하고 책상으로 · ✕ = 저장하지 않고 책상으로 (도련 11-15) · 닫히면 오른쪽 위 메뉴 이름도 제자리 */
     window.abDone = async () => {                                              // ✔ 완료 = 이때 한 번에 드라이브로 (도련 11-15 : 완료 전엔 드라이브에 안 써요 · 이 기기에만)
-        if (abDirty()) { await abFlush(); if (abDirty()) return; }             // 못 올렸으면 그대로 (정리한 건 이 기기에 남아요)
+        if (abDirty() || AB.loads.length) { await abFlush(); if (abDirty() || AB.loads.length) return; }   // 못 올렸으면 그대로 (정리한 건 이 기기에 남아요) · 📥 불러온 책도 이때 드라이브로
         const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin');
     };
     window.abCancel = async close => {                                         // ✕ = 💾 임시저장 공통 물음 (js/tempsave.js · 도련 11-15 · 다이어리와 같게) : 💾 임시저장 = 이 기기에 저장하고 닫기 · 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 한 것은 버리고 닫기
         if (!(await tsClose({ title: '📒 정리하던 것을 어떻게 할까요?', dirty: () => abDirty(), save: async () => { if (B.kind) AB.dirtyK.add(B.kind); await abDraftNow(); return true; }, drop: abRevert }))) return;
+        if (!abDirty()) abLoadsDrop();                                         // 📥 불러오기만 했어요 = 없던 일
         const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin'); if (close) closeModal('basketKindModal');
     };
     window.abSpaceOff = () => { const m = bq('basketKindModal'); if (!m || !vis('basketKindModal') || B.view !== 'desk') return; bkView('bin'); closeModal('basketKindModal'); };
@@ -393,7 +394,7 @@
          · 저장 = 소품 · 문구와 같은 목록 파일 (🔐 말랑달콤 / 빈스티커첩 / _목록.json 두 칸 · _목록_백업.json · 받은- 파일은 섞여요 (종류 = 상품) · js/drive.js esown · 💤 쓸 때 읽어요)
          · 한 줄 { id, pid : 상품, n : 시트 수 · 쪽수, lb : 라벨, at, from : basic 샵 · gift 처음 선물 · back 되돌린 것, c : 원본 파일 }
          · 📦 실제 책처럼 (도련 11-08 · 소품 · 문구와 같아요) : 🏪 샵에서 받으면 목록 한 줄 + 원본 파일 받은-<c>.json (🔐 · js/coll.js ofAdd) · 🎁 처음 선물 = 목록에만
-           📥 불러오면 그 종류(씰 · 조각 …) _스티커첩.json 에 적히고 → 이 폴더에서는 목록 한 줄 · 원본 파일 둘 다 지워요 (책이 그 서랍으로 가요)
+           📥 불러오면 화면에만 · ✔ 완료 때 그 종류(씰 · 조각 …) _스티커첩N.json 에 적히고 → 이 폴더에서는 목록 한 줄 · 원본 파일 둘 다 지워요 (도련 11-21 · abLoadFree · abLoadsCommit)
            ↩ 빼면 스티커첩에서 지우고 → 이 폴더에 목록 한 줄 · 원본 파일을 다시 만들어요 · 목록이 없어지면 백업 → 원본 파일들로 되살려요
          · 빈 책(꽂은 것 · 붙인 것이 없는 책)만 ↩ 빼기 = 이 목록으로 돌아와요 · 책상 위 종류 없는 책 톡 = 안내만 */
     const FR = { bd: { key: 'diary_sbd_own', l: 'malang_sbd_own', w: 'esown', get dir() { return DIRS.emptyBook; } }, rl: { key: 'diary_rlb_own', l: 'malang_rlb_own', w: 'esown', get dir() { return DIRS.emptyBook; } } };   // 📥 빈스티커첩 한 폴더 (도련 11-08)
@@ -477,25 +478,49 @@
         else if (abFreeBag(t)) showMsg(`🛍️ ${nm}${t === 'bd' ? '가' : '이'} 아직 책상 위 봉투에 있어요.<br><small style="color:#777;">봉투에서 꺼내 책상에 놓으면 불러올 수 있어요</small>`);
         else showMsg(`받아 둔 ${nm}${t === 'bd' ? '가' : '이'} 없어요.<br><button type="button" class="btn bk-again" onclick="closeMsg();abGoShelf()">🏪 기본상품 샵에서 받아 오기</button>`);
     }
+    /* 📥 불러오기 = 화면에만 (도련 11-21 '불러오기만 해도 드라이브에서 파일이 옮겨져요 · 아무 일도 안 일어나기를') : AB.loads 에 적어 두고 책을 이 서랍 스티커첩에 얹어요
+         · 드라이브 = ✔ 완료 때 (abFlush · 스티커첩에 더하기 + 📥 목록에서 빼기 + 원본 파일 지우기) · 이 기기 = 꽂거나 붙인 뒤 임시저장할 때만 (불러오기만 = 바뀐 것 아님)
+         · 불러오기만 하고 닫으면 = 없던 일 (abLoadsDrop) · 그냥 닫기 = 마지막 임시저장 때로 */
+    AB.loads = [];                                                              // [{ t, k, x : 📥 목록 한 줄 }]
+    const abLoadBook = (t, k, x) => t === 'bd' ? { id: x.id, k, lb: x.lb || '', pid: x.pid, n: x.n, p: {} } : { id: x.id, k, lb: x.lb || '', pid: x.pid, n: x.n, it: [] };
+    function abLoadsShow() {                                                    // 아직 완료 전 불러온 책을 이 서랍 스티커첩에 얹어요 (다시 그릴 때마다)
+        if (!B.album) return;
+        AB.loads.filter(l => l.k === B.kind).forEach(l => { const L = l.t === 'bd' ? B.album.bd : B.album.rl; if (!L.some(b => b.id === l.x.id)) L.push(abLoadBook(l.t, l.k, l.x)); });
+    }
+    function abLoadsDrop() {                                                    // 불러오기만 하고 닫았어요 = 없던 일 (화면에서도 빼요)
+        if (!AB.loads.length) return;
+        const ids = new Set(AB.loads.map(l => l.x.id)); AB.loads = [];
+        if (B.album) { B.album.bd = (B.album.bd || []).filter(b => !ids.has(b.id)); B.album.rl = (B.album.rl || []).filter(b => !ids.has(b.id)); }
+        if (B.desk) { if (ids.has(B.desk.bd)) B.desk.bd = ''; if (ids.has(B.desk.rl)) B.desk.rl = ''; }
+        abSplit();
+    }
     async function abLoadFree(t, id) {
         try { if (window.closeMsg && document.querySelector('#customAlertModal[style*="flex"]')) closeMsg(); } catch (e) {}
         const k = B.kind; if (!abFreeOk(t) || !window.ownAlbum) return;
         await frReady().catch(() => {});
         const x = frAll(t).find(o => o.id === id); if (!x) { bkView(); return; }
-        const o = t === 'bd' ? { id: x.id, k, lb: x.lb || '', pid: x.pid, n: x.n, p: {} } : { id: x.id, k, lb: x.lb || '', pid: x.pid, n: x.n, it: [] };
-        abToast('불러오는 중', 'on');
-        try {                                                                   // 📥 불러오기는 그 자리에서 저장 (책 한 권을 옮기는 일 · 아직 안 한 정리는 그대로 두고 ✔ 완료 때)
-            await ownAlbum(a => { const L = t === 'bd' ? a.bd : a.rl; if (!L.some(b => b.id === o.id)) L.push(o); }, [k]);   // ① 이 서랍 _스티커첩.json 에 먼저
-            frSet(t, frAll(t).filter(b => b.id !== id));                          // ② 그다음 📥 목록에서 빼요 (멈춰도 잃지 않게 · 두 곳이면 스티커첩 쪽)
-            if (x.c && window.ofDel) ofDel(FR[t].dir, x.c);                     // ③ 원본 파일(받은-<c>.json)도 지워요 (이제 이 종류 _스티커첩.json 에 있어요)
-            const L = t === 'bd' ? B.album.bd : B.album.rl; if (!L.some(b => b.id === o.id)) L.push(o);
-            if (B.desk) { B.desk.mode = t; if (t === 'bd') { B.desk.bd = o.id; B.pg = 0; } else { B.desk.rl = o.id; B.desk.rpg = 0; } }
-            abSplit(); bkView(); B.sig = bkSig(); abToast('불러왔어요', 'ok');
-            if (window.dkDeskBooks) dkDeskBooks(true);
-        } catch (e) { abToast('', 'off'); abErr(e); }
+        if (!AB.loads.some(l => l.x.id === id)) AB.loads.push({ t, k, x: Object.assign({}, x) });
+        abLoadsShow();
+        const o = (t === 'bd' ? B.album.bd : B.album.rl).find(b => b.id === id);
+        if (B.desk && o) { B.desk.mode = t; if (t === 'bd') { B.desk.bd = o.id; B.pg = 0; } else { B.desk.rl = o.id; B.desk.rpg = 0; } }
+        abSplit(); bkView();
+    }
+    async function abLoadsCommit() {                                            // ✔ 완료 때 : 스티커첩에 더한 뒤 (abFlush 안에서 같이) → 📥 목록에서 빼고 → 원본 파일 지우기
+        const done = AB.loads.slice(); if (!done.length) return;
+        await frReady();
+        done.forEach(l => frSet(l.t, frAll(l.t).filter(b => b.id !== l.x.id)));
+        done.forEach(l => { if (l.x.c && window.ofDel) ofDel(FR[l.t].dir, l.x.c); });
+        AB.loads = AB.loads.filter(l => !done.includes(l));
+        if (window.dkDeskBooks) dkDeskBooks(true);
     }
     async function abReturnFree(t, id) {                                       // ↩ 빈 책만 📥 받은 목록으로 돌려보내요
         const L = t === 'bd' ? B.album.bd : B.album.rl, x = L.find(o => o.id === id); if (!x) return;
+        if (AB.loads.some(l => l.x.id === id)) {                               // 📥 완료 전에 불러온 책 = 드라이브엔 아직 없어요 → 화면에서만 빼요
+            if ((t === 'bd' ? Object.keys(x.p || {}).length : (x.it || []).length)) { showMsg('스티커가 들어 있는 책은 뺄 수 없어요.<br><small style="color:#777;">다 꺼내서 빈 책이 되면 뺄 수 있어요</small>'); return; }
+            AB.loads = AB.loads.filter(l => l.x.id !== id); L.splice(L.indexOf(x), 1);
+            if (B.desk) { if (t === 'bd') B.desk.bd = ''; else B.desk.rl = ''; }
+            abSplit(); bkView(); return;
+        }
         const empty = o => t === 'bd' ? !Object.keys(o.p || {}).length : !(o.it || []).length;
         if (!empty(x)) { showMsg('스티커가 들어 있는 책은 뺄 수 없어요.<br><small style="color:#777;">다 꺼내서 빈 책이 되면 뺄 수 있어요</small>'); return; }
         if (abDirty()) { showMsg('정리한 것을 먼저 ✔ 완료로 저장해 주세요.<br><small style="color:#777;">그다음 빈 책을 뺄 수 있어요</small>'); return; }   // 드라이브 책과 화면 책이 같을 때만 (도련 11-15)
@@ -557,11 +582,12 @@
     }
     async function abFlush() {
         clearTimeout(AB.flushT);
-        if (AB.fly || AB.relFly || (!AB.pend.length && !AB.rel.length) || !window.ownAlbum) return;
+        if (AB.fly || AB.relFly || (!AB.pend.length && !AB.rel.length && !AB.loads.length) || !window.ownAlbum) return;
         abToast('저장 중', 'on');
-        if (AB.pend.length) {
-            const fns = AB.pend; AB.pend = []; AB.fly = fns;
-            try { await ownAlbum(a => fns.forEach(fn => { try { fn(a); } catch (e) {} })); AB.fly = null; }
+        if (AB.pend.length || AB.loads.length) {
+            const fns = AB.pend, lds = AB.loads.slice(); AB.pend = []; AB.fly = fns;
+            const addLoads = a => lds.forEach(l => { const L = l.t === 'bd' ? a.bd : a.rl; if (!L.some(b => b.id === l.x.id)) L.push(abLoadBook(l.t, l.k, l.x)); });   // 📥 불러온 책 먼저 (그 책에 꽂은 것이 들어갈 자리)
+            try { await ownAlbum(a => { addLoads(a); fns.forEach(fn => { try { fn(a); } catch (e) {} }); }); AB.fly = null; await abLoadsCommit(); }   // 불러온 책의 종류는 열려 있지 않아도 그 종류 스티커첩에 더해져요 (js/own.js ownAlbum touched)
             catch (e) { AB.fly = null; AB.pend = fns.concat(AB.pend); abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }   // 못 올렸으면 버리지 않고 다시 (✔ 완료를 또 누르면)
         }
         if (AB.rel.length && window.ownRelBatch) {                               // 🤍 이형지북 : 여러 장을 한 번에 (목록 · 스티커첩 한 번씩)
@@ -572,7 +598,7 @@
                 if (ids.some(x => !x)) { showMsg('이미 썼거나 자리가 없는 스티커는 붙이지 못했어요.'); B.sig = ''; bkRender(true); }
             } catch (e) { AB.relFly = null; AB.rel = ops.concat(AB.rel); abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
         }
-        if (!AB.pend.length && !AB.rel.length) { abToast('저장됨', 'ok'); abDraftDrop(); }
+        if (!AB.pend.length && !AB.rel.length && !AB.loads.length) { abToast('저장됨', 'ok'); abDraftDrop(); }
         else AB.flushT = setTimeout(abFlush, 300);
     }
     /* 📱 완료 전 = 이 기기에만 (IndexedDB 'mallang-absort' · 계정|종류 하나 · js/pagedone.js 다이어리 임시저장과 같은 생각)
@@ -592,13 +618,14 @@
         const rec = { at: Date.now(), k,
             bd: (a.bd || []).map(b => ({ id: b.id, p: Object.assign({}, b.p), lb: b.lb || '', pid: b.pid })),
             rl: (a.rl || []).map(r => ({ id: r.id, lb: r.lb || '', xy: Object.fromEntries((r.it || []).filter(t => !String(t.s).startsWith('tmp')).map(t => [t.s, [t.x, t.y]])) })),
-            rel: (AB.relFly || []).concat(AB.rel).filter(o => rids.has(o.rl)).map(o => ({ src: o.src, k: o.k, rl: o.rl, pos: o.pos, tmp: o.tmp, img: o.img })) };
+            rel: (AB.relFly || []).concat(AB.rel).filter(o => rids.has(o.rl)).map(o => ({ src: o.src, k: o.k, rl: o.rl, pos: o.pos, tmp: o.tmp, img: o.img })),
+            ld: AB.loads.filter(l => l.k === k).map(l => ({ t: l.t, x: l.x })) };   // 📥 완료 전에 불러온 책 (꽂은 것과 같이)
         return abDTx('readwrite', st => st.put(rec, abDKey(k)));
     }
     function abDraftDrop() { clearTimeout(AB.dT); AB.uns = false; AB.at = 0; const ks = [...AB.dirtyK]; AB.dirtyK.clear(); ks.forEach(k => abDTx('readwrite', st => st.delete(abDKey(k)))); }
     async function abRevert() {                                                // 그냥 닫기 = 마지막 저장(자동 포함) 때로 · 저장한 적 없으면 드라이브 모습으로 (도련 11-15 · js/tempsave.js)
         const k = B.kind; clearTimeout(AB.dT); AB.uns = false;
-        AB.pend = []; AB.rel = [];
+        AB.pend = []; AB.rel = []; AB.loads = AB.loads.filter(l => l.k !== k);   // 📥 불러온 책도 (임시저장에 있으면 다시 얹어요)
         if (AB.peelOn && window.closeStickerPeel) closeStickerPeel();
         B.sig = ''; const pk = window.ownPeek ? ownPeek(k) : null;
         if (pk) B.album = bkUnbag(JSON.parse(JSON.stringify(pk.album)));
@@ -619,6 +646,8 @@
         return true;
     }
     function abDraftApply(d) {                                                 // 이 기기에 저장한 정리를 얹어요 (이어서 · 그냥 닫기)
+        (d.ld || []).forEach(l => { if (l && l.x && l.x.id && !AB.loads.some(o => o.x.id === l.x.id)) AB.loads.push({ t: l.t, k: d.k || B.kind, x: l.x }); });
+        abLoadsShow();                                                          // 📥 불러온 책 먼저 (꽂은 것이 들어갈 자리)
         const fn = a => {
             (d.bd || []).forEach(s => { const b = (a.bd || []).find(x => x.id === s.id); if (b) { b.p = Object.assign({}, s.p); b.lb = s.lb; if (s.pid) b.pid = s.pid; } });
             (d.rl || []).forEach(s => { const r = (a.rl || []).find(x => x.id === s.id); if (!r) return; r.lb = s.lb; (r.it || []).forEach(t => { const q = s.xy && s.xy[t.s]; if (q) { t.x = q[0]; t.y = q[1]; } }); });
@@ -628,6 +657,7 @@
         AB.dirtyK.add(d.k || B.kind); AB.at = d.at || 0;
     }
     function abReapply() {
+        abLoadsShow();                                                          // 📥 완료 전에 불러온 책 먼저
         (AB.fly || []).concat(AB.pend).forEach(fn => { try { fn(B.album); } catch (e) {} });
         (AB.relFly || []).concat(AB.rel).forEach(abRelShow);                     // 아직 저장 안 된 이형지북 스티커도 다시 얹어요
     }
