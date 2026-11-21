@@ -657,9 +657,6 @@ html.desk-show .dk-bag { visibility: hidden; }
 /* 😀 고른 이모지 빼기 ✕ (이름표 아이콘 줄) */
 .dkn-my { position: relative; display: inline-flex; }
 .dkn-my-x { position: absolute; top: -6px; right: -6px; width: 17px; height: 17px; padding: 0; border: 1.4px solid #e88fb0; border-radius: 50%; background: #fff; color: #c8457a; font-size: 10px; line-height: 1; font-weight: 700; cursor: pointer; display: grid; place-items: center; }
-.dkz-p { margin: 0; text-align: center; line-height: 1.5; }
-.dkz-pic { position: relative; margin: 2px auto; touch-action: none; user-select: none; cursor: crosshair; background: #fff; border: 1.5px solid #f0d6de; border-radius: 10px; }
-.dkz-pic > img { width: 100%; height: 100%; display: block; pointer-events: none; }
 .dkz-show { position: absolute; z-index: 5; pointer-events: none; }
 .dkz-show i { position: absolute; border: 2px dashed #e88fb0; border-radius: 6px; box-sizing: border-box; background: rgba(255, 211, 226, .25); }
 .dkz-show i.on { border: 3px solid #ff6b88; background: transparent; }   /* 👆 지금 고친 칸 */
@@ -867,7 +864,7 @@ html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-
 .ds-try-x { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
 /* 🏪 적용해보기 = 진짜 책상을 빈 방으로 빌려 써요 (도련 11-12 · js/desk.js deskTrial) : 샵 · 내 책상 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 닫기 */
 html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal { visibility: hidden !important; }
-html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-vol, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial #deskStage > .desk-skin, html.dk-trial .dke-hello, html.dk-trial .dkb-wait, html.dk-trial .dk-bagpn { display: none !important; }
+html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-vol, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial #deskStage > .desk-skin, html.dk-trial .dke-hello, html.dk-trial .dkb-wait { display: none !important; }
 .dk-try { position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; }
 .dk-try-tip { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: calc(100vw - 140px); padding: 8px 20px; border: 2px solid #f4a9c4; border-radius: 999px; font-size: 15px; font-weight: 700; color: #b1407a; white-space: nowrap; background: rgba(255, 255, 255, .95); box-shadow: 0 4px 0 rgba(232, 143, 176, .25); text-align: center; pointer-events: auto; }
 .dk-try-tip b { color: #c2457a; font-size: 15px; } .dk-try-tip span { font-size: 14px; color: #5a3d4a; } .dk-try-tip small { font-size: 11.5px; color: #9a7a88; }

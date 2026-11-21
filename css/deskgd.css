@@ -5,8 +5,6 @@
 body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show) .dkw-room { z-index: 1700; }
 body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show) .dkw-say { z-index: 1710; }   /* 🪡 스티커를 떼는 화면 위에서 핀셋을 찾으면 펜꽂이 · 서랍이 그 위로 (도련 11-05 : 떼는 화면 캔버스가 덮어 도구가 안 잡혔어요) */
 .dkw-room button { font-family: inherit; cursor: pointer; }
-.dkw-b { border: 2px solid #e88fb0; background: #fff; color: #c2457a; border-radius: 999px; padding: 7px 15px; font-size: 14px; font-weight: 800; box-shadow: 2px 2px 0 #e6dcf8; white-space: nowrap; }
-.dkw-b:hover { background: #fff0f5; }
 .dkw-say { position: fixed; left: 50%; top: 50%; translate: -50% -100%; z-index: 1400; background: #fff; border: 3px solid #e88fb0; color: #c2457a; font-weight: 900; font-size: 14px; padding: 9px 18px; border-radius: 999px; box-shadow: 3px 3px 0 #e6dcf8; opacity: 0; pointer-events: none; transition: opacity .2s; white-space: nowrap; }
 .dkw-say.on { opacity: 1; }
 
@@ -33,7 +31,6 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-t.nudge { animation: dkwNudge .45s ease; }
 @keyframes dkwNudge { 30% { translate: 0 -16px; } 60% { translate: 0 -4px; } }
 .dkw-t.pull { transform: translateX(-50%) translateY(-460px) rotate(0deg); opacity: 0; transition: transform .35s ease-in, opacity .35s ease-in; }
-.dkw-btns { display: flex; gap: 10px; }
 
 /* 🗄️ 문구함 서랍 */
 .dkw-drawer { width: min(900px, 94vw); max-height: 90vh; filter: drop-shadow(0 14px 22px rgba(60, 30, 40, .3)); }
@@ -130,7 +127,6 @@ html.an .dkt-roll { border-color: var(--an-ol, #7a4a5a); }
 /* 🔁 꾹 잡아 옮기기 (도련 11-11 · js/deskmove.js) */
 .dkm-ghost { position: fixed !important; z-index: 2147482900; translate: -50% -60%; rotate: -5deg; pointer-events: none !important; opacity: .92; filter: drop-shadow(0 8px 10px rgba(90,40,60,.3)); margin: 0 !important; right: auto !important; bottom: auto !important; }
 .dkm-from { opacity: .35 !important; }
-#dyModal.dkm-see > .modal-content { opacity: .18; pointer-events: none; transition: opacity .15s; }
 .dkt-roll, .dk-vol, #dkwCup .dkw-t, #dkwTray .dkw-it, #dyModal .dy-it { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 /* 🎀 정리함 빈 칸 = 톡 하면 서랍에서 골라 꽂아요 (보이지 않는 칸 · 마우스를 올리면 살짝) */
 .dkt-empty { position: absolute; pointer-events: auto; padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
@@ -158,15 +154,9 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 .dkb-zin { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .dkb-zin > * { position: absolute; }
 .dkb-zvol { cursor: grab; touch-action: none; transition: translate .15s; z-index: 2; }
-.dkm-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; max-height: 46vh; overflow: auto; }
-.dkm-pick button { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 78px; padding: 6px 4px; border: 2px solid #f0d7e1; border-radius: 14px; background: #fff; cursor: pointer; font: inherit; }
-.dkm-pick button:hover { border-color: #ff6b88; }
-.dkm-pick i { display: block; width: 52px; height: 52px; border-radius: 10px; background: center / contain no-repeat; }
-.dkm-pick svg { height: 52px; width: auto; }
-.dkm-pick small { font-size: 11px; color: #7a5a68; line-height: 1.2; }
 /* 🔍 확대하는 동안 책상 위 작은 소품은 비어 있어요 · 닫으면 큰 소품이 날아가 제자리로 (도련 11-11) */
 .dkz-away { visibility: hidden !important; }
-.dkw-room.leaving .dkw-hint, .dkw-room.leaving .dkw-btns { opacity: 0; transition: opacity .12s; }
+.dkw-room.leaving .dkw-hint { opacity: 0; transition: opacity .12s; }
 .dkw-fl.sel { cursor: none; z-index: 2147482990; }   /* 🖱 마우스에 붙은 문구 = 스티커 떼는 창 · 다른 창보다 위 (도련 11-13 : 창 뒤에 숨었어요) */ .dkw-fl.sel > i { pointer-events: none; animation: none; filter: drop-shadow(12px 20px 10px rgba(90,60,70,.32)); }   /* 🖱 마우스에 붙은 것 (클릭은 그 아래로) */
 
 /* 🗄️ 📔 📒 책 서랍 (도련 11-20 · js/deskbook.js) : 문구함 서랍 틀 그대로 · 안 = 책 앞모습을 나란히 · 톡 = 꺼내서 펼치기 · 끌기 = 책상에 */

@@ -769,15 +769,6 @@
             drive.monthBusy.set(key, p);
             try { return await p; } finally { drive.monthBusy.delete(key); }
         }
-        /* 그날 파일만 드라이브에서 다시 보기 (다른 기기 변경 확인 · 폴더를 통째로 다시 읽지 않아요) */
-        async function dayRefresh(key) {
-            const d = parseDayKey(key), idx = d && drive.monthIndex.get('all:' + d.b);
-            if (!idx || !d) return;
-            const name = dayFileName(d), fs = await driveList(`name='${qName(name)}' and '${idx.folderId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`, 'id,name,modifiedTime,size');
-            if (!fs.length) { idx.files.delete(name); return; }
-            idx.files.set(name, fs[0]);
-            if (fs.length > 1) idx.dups.set(name, fs); else idx.dups.delete(name);
-        }
 
         function resetDriveCaches() {
             if (drive.madeDirs) drive.madeDirs.clear();
@@ -1312,13 +1303,6 @@
             catch (e) { if (!(e && e.code === 'gone' && cur)) throw e; idx.files.delete(nm); saved = await driveUpsert(idx.folderId, nm, null, val); }
             idx.files.set(nm, { id: saved.id, name: nm, modifiedTime: saved.modifiedTime });
             drive.dayMeta.set(key, saved.modifiedTime);
-        }
-        /* 그날이 지금 펼쳐 둔 페이지면 다시 그리기 · 검색 목록도 */
-        function dayShownAgain(key) {
-            try {
-                if (typeof isCoverOpen !== 'undefined' && isCoverOpen && !turn && getDateKey(currentDate) === key) loadData();
-                if (typeof searchTouch === 'function') searchTouch(key);
-            } catch (e) { console.warn(e); }
         }
 
         /* 변경된 키 하나(또는 같은 설정 파일의 키 묶음)를 드라이브에 반영 */

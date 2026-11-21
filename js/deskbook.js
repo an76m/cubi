@@ -17,7 +17,6 @@
      · 저장 = 메모리 'diary_desk_dy' 의 { in: '서랍장u:칸', m: 1 } → 서랍장 파일 bm { id: 칸 } (js/holdfile.js) · 재료 목록(_바인더재료목록N.json)에는 적지 않아요 */
 (function () {
     const KN = { dy: ['📔', '다이어리'], ab: ['📒', '스티커첩'], bm: ['🧩', '표지 · 내지'] };
-    const UNIT = k => k === 'bm' ? '개' : '권';
     /* 🧩 바인더 재료 (표지 · 내지) = 책처럼 서랍에 · 책상에는 없어요 */
     const matOf = id => { const x = window.dymGet && dymGet(id); return x ? Object.assign({ mat: 1 }, window.dmkClean ? (dmkClean(x) || x) : x) : null; };
     const mats = () => { if (!window.dymAll) return []; const H = window.deskBagHold && deskBagHold(), bag = H ? H.d : new Set(); return dymAll('cover').concat(dymAll('refill')).filter(x => !bag.has(x.id)).map(x => Object.assign({ mat: 1 }, window.dmkClean ? (dmkClean(x) || x) : x)); };

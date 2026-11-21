@@ -203,8 +203,6 @@
         const giftGiven = () => typeof prefGet === 'function' && !!prefGet(GIFTED_KEY, GIFTED_LOCAL);
         function giftMark() { if (!giftGiven() && typeof prefSet === 'function') prefSet(GIFTED_KEY, GIFTED_LOCAL, Date.now()); }
         window.giftMark = giftMark; window.giftGiven = giftGiven;
-        /* 📖 되살리기는 여러 곳(책상 · 벽지 · 배경지 · 다이어리)이 한꺼번에 물어요 → 30초 안에는 한 번만 읽어요 (도련 11-06 · 쓰면 잊어요) */
-        const dkMemo = (fn, ms) => { let p = null, at = 0; const get = () => { if (!p || Date.now() - at > ms) { at = Date.now(); p = fn(); p.catch(() => { p = null; }); } return p; }; get.forget = () => { p = null; }; return get; };
         /* 되살리기에 넘기는 처음 선물 = 백업 속 from 선물 : 처음 선물을 준 적이 없으면 null */
         async function giftRead() {
             if (!giftGiven()) return null;

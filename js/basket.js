@@ -545,12 +545,6 @@
     /* 📒 스티커첩 탭은 정리한 스티커가 하나라도 생기면 보여요 (처음엔 🧺 바구니만 · 도련 10-25) */
     const abHasAlbum = () => !!B.album && (abMine(B.album.bd).some(b => Object.keys(b.p || {}).length) || abMine(B.album.rl).some(r => (r.it || []).length));
     const abErr = e => { console.warn(e); showMsg('⚠ 정리하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '')); };
-    /* 저장하는 동안 알려 줘요 (앱이 멈춘 게 아니에요 · 도련 10-25) : msg = 하는 중 · ok = 끝났어요 */
-    async function abDo(p, msg, ok) {                                         // 기다리게 하지 않아요 (저장하는 동안에도 계속 정리해요)
-        if (msg) abToast(msg, 'on');
-        try { const r = await p; if (msg && !AB.pend.length && !AB.fly) abToast(ok || '저장됨', 'ok'); return r; }
-        catch (e) { if (msg) abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); }
-    }
     /* 💾 ✔ 완료 때 한 번에 저장 (도련 11-15 : '완료 버튼을 누르기 전엔 구글드라이브에 저장되면 안 돼요' · 01 '완료는 하나')
        · 꽂기 · 빼기 · 라벨 · 표지 · 자리 옮기기 · 🤍 붙이기 = 화면에 바로 + 이 기기 IndexedDB 'mallang-absort' (계정|종류 · 앱이 꺼져도 다시 열면 이어서)
        · ✔ 완료 = abFlush (스티커첩 + 🤍 목록) → 이 기기 것 지움 · ✕ = 물어보고 버리기 (abCancel) · 못 올리면 그대로 남아요 (다시 ✔ 완료) */
