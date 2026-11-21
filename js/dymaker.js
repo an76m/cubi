@@ -340,7 +340,7 @@
             dmkRoomBuild();
             dmkQ('dmkRoomName').value = dmkRm.g;
             dmkQ('dmkRoomDel').hidden = !dmkRm.id;
-            dmkQ('dmkRoomOk').textContent = dmkRm.id ? '💾 저장' : '🧩 조립하기';
+            dmkQ('dmkRoomOk').textContent = '🧩 조립하기';   // 버튼 = 조립하기 하나 (저장 없음 · 도련 11-21)
             dmkRoomRender();
             dmkShut('dyModal', 'dmkModal'); openModal('dmkRoom');
             dmkSync('바인더');                                                  // 💤 재료 목록 (처음이면 읽고 다시 그려요)

@@ -75,9 +75,6 @@ body.bnd-on .desk-top-r { display: none; }
 .bnd-dkmode .bnd-place { background: rgba(255, 255, 255, .55); border-color: rgba(194, 69, 122, .45); color: #8b5a6e; }
 .bnd-dkmode .bnd-bar { align-self: center; border: 2px solid #e9c7dd; border-radius: 16px; background: #fff; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); margin-top: 6px; padding: 8px 12px; }
 .bnd-dkmode .bnd-info:empty { display: none; }
-.bnd-done { display: none; }
-.bnd-dkmode .bnd-done { display: inline-flex; }
-.bnd-dkmode .bnd-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
 .bnd-dr { position: absolute; top: -6px; left: -6px; font-style: normal; font-size: 14px; background: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.18); }   /* 🗄️ 서랍 속 재료 (도련 11-21) */
 
 /* 📖 작업대 = 진짜 책 (1374 · 도련 11-21 · js/book.js bookOpen inline · 📒 스티커바인더와 같은 책 모습) */
