@@ -225,7 +225,7 @@
             return '';
         }
 
-        const ownIdxClean = (arr, k) => (Array.isArray(arr) ? arr : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && e.f).map(e => Object.assign(e, { k: e.k || k, u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}));
+        const ownIdxClean = (arr, k) => (Array.isArray(arr) ? arr : []).filter(e => e && /^[\w-]{4,40}$/.test(e.id || '') && (e.f || (e.ref && typeof e.ref.s === 'string' && Number.isInteger(e.ref.c)))).map(e => Object.assign(e, { k: e.k || k, u: Array.isArray(e.u) ? e.u.filter(Number.isInteger) : [] }, e.q0 ? { q: Math.max(0, +e.q || 0) } : {}, Array.isArray(e.m) ? { m: e.m.filter(Number.isInteger) } : {}));   // 🤍 ref = 이형지북 스티커 (파일 없음)
         /* 🗑 기억해 둔 파일 번호가 휴지통 · 지워짐 (폴더를 지웠거나 · 같은 이름 폴더 합치기) = 구글 changes 가 알려 줘요 (도련 11-17 · 예전 = 번호마다 드라이브에 살아 있나 물었어요 ownLive)
            → js/drive.js 가 켤 때 · 돌아올 때 ownForgetIds(번호들) · 바뀐 것 기억이 끊겼으면 (처음 · 지움) ownForgetAllIds = 폴더에서 다시 찾아요 */
         window.ownForgetIds = ids => {
@@ -308,7 +308,7 @@
                 const b = base.find(e => e.id === id), sx = s.x || {};
                 const e = b ? Object.assign({}, b) : { id, at: Date.parse(x.createdTime) || Date.now(), from: s.from || 'basic', nm: s.nm || '' };
                 e.f = x.id; e.k = s.k || e.k || k; e.n = s.imgs.length || 1;
-                e.u = s.imgs.map((v, j) => v == null ? j : -1).filter(j => j >= 0);
+                e.u = s.imgs.map((v, j) => v == null ? j : -1).filter(j => j >= 0); delete e.m;   // 🤍 이형지북 스티커는 되살리지 못해요 → 그 칸은 시트로 돌아와요
                 if (s.q0) { e.q0 = s.q0; e.q = Math.max(0, +s.q || 0); }
                 if (!b) {
                     if (s.ts) e.ts = 1;
@@ -396,6 +396,30 @@
             OWN_FC.delete(fid);
             const res = await gfetch(`${DRIVE_API}/${fid}`, { method: 'DELETE' });
             if (!res.ok && res.status !== 404) throw await driveFail(res, 'delete');
+        }
+        /* 🤍 이형지북 스티커 = 그림 파일을 따로 만들지 않아요 (도련 11-21 '스티커 하나 붙일 때마다 파일이 생겨요 · 비효율' · 그림은 원래 시트에 그대로 · 어디 있는지만 적어요)
+             · 목록 한 줄 { id, n: 1, rel: 1, ref: { s: 원래 시트 id, c: 칸 } } (f 없음) · 이형지북 자리 = _스티커첩 it { s: 그 줄 id } (예전과 같아요)
+             · 원래 시트 줄 m = [이형지북에 가 있는 칸] (u 에도 들어 있어요 = 바구니 · 정리 책상에선 빈 칸) · 그 칸 그림은 시트 파일에 그대로
+             · 다이어리에 붙여 다 쓰면 그때 시트에서 그 칸 그림을 지워요 (ownRefSpend) · 시트는 m 이 남아 있으면 다 써도 목록에 남아요 (바구니엔 안 보여요) */
+        const ownMoved = e => Array.isArray(e && e.m) ? e.m : [];
+        const ownUsedOf = (s, e) => [...new Set(s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0).concat(ownMoved(e)))].sort((a, b) => a - b);   // 빈 칸 = 쓴 칸 + 이형지북에 가 있는 칸
+        const ownMask = (s, e) => { const m = ownMoved(e); return m.length ? s.imgs.map((v, i) => m.includes(i) ? null : v) : s.imgs; };   // 보이는 그림 (이형지북에 가 있는 칸은 비워요)
+        const ownEnd = e => e.u.length >= e.n && !ownMoved(e).length;            // 다 썼고 이형지북에 가 있는 칸도 없어요 = 종이째 사라져요
+        const ownGoneErr = () => Object.assign(new Error('gone'), { code: 'gone' });
+        async function ownEntSheet(e, list) {                                   // 줄 → 종이 (🤍 이형지북 스티커 = 원래 시트의 그 칸으로 만든 한 칸짜리)
+            if (!e.ref) return ownFileRead(e.f);
+            const src = list.find(x => x.id === e.ref.s); if (!src) throw ownGoneErr();
+            const s = await ownFileRead(src.f), c = e.ref.c, img = s.imgs[c]; if (img == null) throw ownGoneErr();
+            return Object.assign({ v: 1, id: e.id, k: e.k, from: e.from || s.from || 'basic', rel: 1, nm: s.nm || '', ts: s.ts ? 1 : 0, baked: !!s.baked, imgs: [img], wh: [(s.wh || [])[c] || [0, 0]], x: {} }, s.b ? { b: s.b } : {});
+        }
+        async function ownRefSpend(list, e, kills) {                            // 🤍 이형지북 스티커를 다 썼어요 (또는 버렸어요) → 원래 시트에서 그 칸을 진짜로 지워요
+            const src = e.ref && list.find(x => x.id === e.ref.s); if (!src) return;
+            const c = e.ref.c; src.m = ownMoved(src).filter(i => i !== c); if (!src.m.length) delete src.m;
+            let s; try { s = await ownFileRead(src.f); } catch (er) { if (er && er.code === 'gone') return; throw er; }
+            if (s.imgs[c] != null) { s.gh = s.gh || []; if (!s.gh[c]) s.gh[c] = await ownGhost(s.imgs[c], !s.baked); s.imgs[c] = null; }
+            src.u = ownUsedOf(s, src);
+            if (ownEnd(src)) { list.splice(list.indexOf(src), 1); O.spent.add(src.id); kills.push(src.f); }
+            else { const old = src.f; src.f = await ownFileNew(s); kills.push(old); }
         }
 
         /* ---------- 차례대로 (한 기기 안에서 겹치지 않게) ---------- */
@@ -622,7 +646,8 @@
                 const e = list.find(x => x.id === id);
                 if (!e || !ownAlive(e)) { ownTell(); return null; }
                 let s;
-                try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
+                try { s = await ownEntSheet(e, list); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
+                if (ownMoved(e).length) s.imgs = ownMask(s, e);                    // 🤍 이형지북에 가 있는 칸은 빈 칸으로
                 for (const p of ownPendGet()) { if (p.s !== id) continue; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else if (s.imgs[p.k] != null) { s.gh = s.gh || []; if (!s.gh[p.k]) s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); s.imgs[p.k] = null; } }   // 이 기기에서 쓰는 중인 칸 · 수량
                 const pp = ownPendGet().find(p => p.p && p.s === id);               // 📄 완료 전에 오린 모조지 = 이 기기의 남은 종이로
                 if (pp) { const r = await ownPaperGet(id); if (r && r.img) { s.imgs = [r.img]; s.x = Object.assign({}, s.x, { grained: 1 }, r.a0 && !(s.x && s.x.a0) ? { a0: r.a0 } : {}); } if (pp.left <= OWN_PAPER_END) return null; }
@@ -692,7 +717,7 @@
                     const bySheet = new Map(); L.forEach(p => { if (!bySheet.has(p.s)) bySheet.set(p.s, []); bySheet.get(p.s).push(p); });
                     for (const [id, P] of bySheet) {
                         const e = list.find(x => x.id === id);
-                        let s = null; if (e) { try { s = await ownFileRead(e.f); } catch (er) { if (!(er && er.code === 'gone')) throw er; } }
+                        let s = null; if (e) { try { s = await ownEntSheet(e, list); } catch (er) { if (!(er && er.code === 'gone')) throw er; } }
                         if (!e || !s) { O.spent.add(id); n++; if (prog) prog(n / N); continue; }
                         let end = false, slot = false;
                         for (const p of P) {
@@ -700,9 +725,9 @@
                             if (p.q) { s.q = Math.max(0, (s.q || 0) - p.q); e.q = s.q; end = s.q <= 0; }
                             else if (s.imgs[p.k] != null) { if (!(s.gh && s.gh[p.k])) { s.gh = s.gh || []; s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); } s.imgs[p.k] = null; slot = true; }
                         }
-                        if (slot) { e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0); end = e.u.length >= e.n; }
-                        if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); kills.push(e.f); }
-                        else { if (slot && e.th && !e.us) e.th = await ownThumb(s.imgs, 0, s.gh); const old = e.f; e.f = await ownFileNew(s); kills.push(old); }
+                        if (slot) { e.u = ownUsedOf(s, e); end = ownEnd(e); }
+                        if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); kills.push(e.f); if (e.ref) await ownRefSpend(list, e, kills); }   // 🤍 이형지북 스티커 = 원래 시트 그 칸도
+                        else { if (slot && e.th && !e.us) e.th = await ownThumb(ownMask(s, e), 0, s.gh); const old = e.f; e.f = await ownFileNew(s); kills.push(old); }
                         n++; if (prog) prog(n / N);
                     }
                     await ownIdxWrite(k, list);
@@ -742,7 +767,7 @@
             catch (e) { ownRetryLater(); throw e; }                              // 인터넷이 끊겼어요 → 나중에 이어서 (이 기기에서는 이미 빠져 보여요)
             const e = list.find(x => x.id === id);
             let s = null;
-            if (e) { try { s = await ownFileRead(e.f); } catch (er) { if (!(er && er.code === 'gone')) { ownRetryLater(); throw er; } } }
+            if (e) { try { s = await ownEntSheet(e, list); } catch (er) { if (!(er && er.code === 'gone')) { ownRetryLater(); throw er; } } }
             const gone = !e || !s || (op.q ? !(s.q > 0) : op.img != null ? false : s.imgs[op.k] == null);
             if (gone) {                                                          // 📱 다른 기기에서 이미 쓴 칸 · 다 쓴 묶음
                 done(); ownGone(el); if (!e || !s || op.q) O.spent.add(id);
@@ -755,19 +780,19 @@
             else {
                 if (!(s.gh && s.gh[op.k])) { s.gh = s.gh || []; s.gh[op.k] = await ownGhost(s.imgs[op.k], !s.baked); }   // 👻 뗀 자리 = 그림 모양 그대로 (모양만 · 도련 11-09)
                 s.imgs[op.k] = null;
-                e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
-                end = e.u.length >= e.n;
+                e.u = ownUsedOf(s, e);
+                end = ownEnd(e);
             }
-            const old = e.f;
+            const old = e.f, kills = [];
             try {
-                if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); }   // 마지막 칸 · 다 쓴 묶음 → 종이째 사라져요
+                if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); if (e.ref) await ownRefSpend(list, e, kills); }   // 마지막 칸 · 다 쓴 묶음 → 종이째 사라져요 · 🤍 이형지북 스티커 = 원래 시트 그 칸도
                 else {
-                    if (op.k != null && e.th && !e.us) e.th = await ownThumb(s.imgs, 0, s.gh);   // 바구니 미리보기도 뗀 자리가 비게
+                    if (op.k != null && e.th && !e.us) e.th = await ownThumb(ownMask(s, e), 0, s.gh);   // 바구니 미리보기도 뗀 자리가 비게
                     e.f = await ownFileNew(s);                                   // 새 파일로 바꿔 쓰고 옛 것은 완전 삭제 (옛 버전 기록으로 되살릴 수 없게)
                 }
                 await ownIdxWrite(k, list);
             } catch (er) { if (e.f !== old) ownFileKill(e.f).catch(() => {}); ownRetryLater(); throw er; }
-            await ownFileKill(old).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 (다음에 다시) :', er));
+            for (const f of [old].concat(kills)) await ownFileKill(f).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 (다음에 다시) :', er));
             done();
             ownSetKind(k, list); ownTell();
             return true;
@@ -990,46 +1015,25 @@
                 return r;
             });
         }
-        /* 🤍 이형지로 옮기기 : 종이의 한 칸을 떼어 → 한 칸짜리 새 종이 (이형지 위 그 자리) · 옮기는 건 쓴 게 아니에요 (다이어리에 붙일 때 사라져요) */
+        /* 🤍 이형지북으로 옮기기 (도련 11-21 · 파일 없이) : 시트의 그 칸 = 이형지북 스티커 한 줄 { ref: { s: 시트, c: 칸 } } · 시트 줄 m 에 그 칸 · 그림은 시트 파일에 그대로
+             · 드라이브 = 목록 · 스티커첩 글자만 (종이 파일을 새로 만들거나 바꿔 쓰지 않아요) · 옮기는 건 쓴 게 아니에요 (다이어리에 붙일 때 사라져요)
+             · 이미 이형지북 스티커인 줄을 또 옮기면 = 같은 칸을 가리키는 새 줄 (옛 줄은 빼요) */
+        function ownRelMake(list, e, c, sh) {                                   // → 새 줄 (못 옮기면 null) · sh = 그 시트 종이 (한 번 읽은 것)
+            const src = e.ref ? list.find(x => x.id === e.ref.s) : e, cc = e.ref ? e.ref.c : c;
+            if (!src || !sh || sh.imgs[cc] == null) return null;
+            if (!e.ref && (e.u.includes(cc) || ownPendGet().some(p => p.s === e.id && p.k === cc))) return null;   // 쓴 칸 · 이미 이형지북에 · 완료 전에 쓴 칸
+            const ne = Object.assign({ id: ownRid(), f: '', k: src.k, n: 1, u: [], at: Date.now(), from: src.from || sh.from || 'basic', rel: 1, nm: sh.nm || '', ref: { s: src.id, c: cc } }, src.b ? { b: src.b } : {}, sh.ts ? { ts: 1 } : {});
+            if (e.ref) list.splice(list.indexOf(e), 1);
+            else { src.m = ownMoved(src).concat([cc]); src.u = ownUsedOf(sh, src); }
+            list.push(ne);
+            return ne;
+        }
         async function ownRelMove(srcId, slot, relId, pos) {
-            ownReady();
-            return ownSerial(async () => {
-                const k = await ownFindKind(srcId); if (!k) return '';
-                const [list, alb0] = await Promise.all([ownIdxRead(k), ownAlbRead(k)]), a = ownAlbumClean(alb0, list);   // 동시에 읽어요 (그 종류만)
-                const rel = a.rl.find(r => r.id === relId);
-                if (!rel) { const er = new Error('gone'); er.code = 'gone'; throw er; }
-                const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+pos.pg || 0)));
-                if (rel.it.filter(t => t.pg === pg).length >= ownRelCap(rel)) { const er = new Error('relfull'); er.code = 'relfull'; throw er; }
-                const e = list.find(x => x.id === srcId);
-                if (!e || !ownAlive(e) || e.q0 || ownPendGet().some(p => p.s === srcId && p.k === slot)) return '';
-                let s; try { s = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') return ''; throw er; }
-                const img = s.imgs[slot]; if (img == null) return '';
-                const nid = ownRid();
-                const one = { v: 1, id: nid, k: e.k, from: e.from || s.from || 'basic', rel: 1, nm: s.nm || '', ts: s.ts ? 1 : 0, baked: !!s.baked, imgs: [img], wh: [(s.wh || [])[slot] || [0, 0]], x: {} };
-                if (e.b) one.b = e.b;
-                const ne = { id: nid, f: '', k: e.k, n: 1, u: [], at: Date.now(), from: one.from, rel: 1, nm: one.nm, th: await ownThumb([img], 96) };
-                if (e.b) ne.b = e.b; if (s.ts) ne.ts = 1;
-                ne.f = await ownFileNew(one);
-                s.imgs[slot] = null;
-                e.u = s.imgs.map((v, i) => v == null ? i : -1).filter(i => i >= 0);
-                const end = e.u.length >= e.n, old = e.f;
-                try {
-                    if (end) list.splice(list.indexOf(e), 1);
-                    else { if (e.th && !e.us) e.th = await ownThumb(s.imgs); e.f = await ownFileNew(s); }
-                    list.push(ne);
-                    rel.it.push({ s: nid, pg, x: Math.max(0, Math.min(1, +pos.x || 0)), y: Math.max(0, Math.min(1, +pos.y || 0)), r: +pos.r || 0 });
-                    await ownIdxWrite(k, list);
-                } catch (er) { ownFileKill(ne.f).catch(() => {}); if (e.f !== old) ownFileKill(e.f).catch(() => {}); throw er; }
-                await ownFileKill(old).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 :', er));
-                ownSetKind(k, list);
-                const c = ownAlbumClean(a, list);
-                try { await ownAlbWrite(k, c); ownK(k).alb = ownAlbPart(c, k); ownMerge(); } catch (er) { ownK(k).alb = null; ownMerge(); ownTell(); throw er; }   // 스티커첩 저장이 안 되면 새 종이는 바구니에 남아요 (잃어버리지 않아요)
-                ownTell();
-                return nid;
-            });
+            const r = await ownRelBatch([{ s: srcId, k: slot, rl: relId, pos }]);
+            return r[0] || '';
         }
         /* 🤍 이형지북으로 여러 장 한 번에 (도련 10-25 · 붙일 때마다 저장하지 않고 모아서) : ops = [{ s : 종이, k : 칸, rl : 이형지북, pos : { x, y, r, pg } }]
-           → 종류마다 목록 · 스티커첩은 한 번씩만 쓰고 · 같은 종이는 한 번만 바꿔 써요 · 결과 = 칸마다 새 종이 id ('' = 이미 썼거나 자리가 없어요) */
+           → 종류마다 목록 · 스티커첩 한 번씩만 써요 (종이 파일은 안 건드려요 · 읽기만) · 결과 = 칸마다 새 줄 id ('' = 이미 썼거나 자리가 없어요) */
         async function ownRelBatch(ops) {
             ownReady();
             return ownSerial(async () => {
@@ -1039,51 +1043,31 @@
                 if (!ks.length) return out;
                 const got = await Promise.all(ks.map(k => Promise.all([ownIdxRead(k), ownAlbRead(k)])));   // 동시에 읽어요
                 const lists = new Map(ks.map((k, i) => [k, got[i][0]]));
-                const a = ownAlbumClean(ownAlbJoin(got.map(g => g[1])), [].concat(...got.map(g => g[0]))), pend = ownPendGet();
-                const made = [], bySrc = new Map(), changedK = new Set();
-                ops.forEach((op, i) => { if (!bySrc.has(op.s)) bySrc.set(op.s, []); bySrc.get(op.s).push(i); });
-                const changed = [], jobs = [];
-                try {
-                    for (const [src, idxs] of bySrc) {
-                        let k = '', e = null;
-                        for (const [kk, L] of lists) { const hit = L.find(x => x.id === src); if (hit) { k = kk; e = hit; break; } }
-                        if (!e || !ownAlive(e) || e.q0) continue;
-                        const list = lists.get(k);
-                        let sh; try { sh = await ownFileRead(e.f); } catch (er) { if (er && er.code === 'gone') continue; throw er; }
-                        let any = false;
-                        for (const i of idxs) {
-                            const op = ops[i], rel = a.rl.find(r => r.id === op.rl); if (!rel) continue;
-                            const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+op.pos.pg || 0)));
-                            if (rel.it.filter(t => t.pg === pg).length >= ownRelCap(rel)) continue;
-                            const img = sh.imgs[op.k]; if (img == null || pend.some(p => p.s === src && p.k === op.k)) continue;
-                            const nid = ownRid();
-                            const one = { v: 1, id: nid, k: e.k, from: e.from || sh.from || 'basic', rel: 1, nm: sh.nm || '', ts: sh.ts ? 1 : 0, baked: !!sh.baked, imgs: [img], wh: [(sh.wh || [])[op.k] || [0, 0]], x: {} };
-                            if (e.b) one.b = e.b;
-                            const ne = { id: nid, f: '', k: e.k, n: 1, u: [], at: Date.now(), from: one.from, rel: 1, nm: one.nm, th: await ownThumb([img], 96) };
-                            if (e.b) ne.b = e.b; if (sh.ts) ne.ts = 1;
-                            jobs.push(ownFileNew(one).then(f => { ne.f = f; made.push(f); }));   // ⚡ 새 종이 파일은 한꺼번에 올려요
-                            sh.imgs[op.k] = null; any = true;
-                            list.push(ne);
-                            rel.it.push(Object.assign({ s: nid, pg, x: Math.max(0, Math.min(1, +op.pos.x || 0)), y: Math.max(0, Math.min(1, +op.pos.y || 0)), r: +op.pos.r || 0 }, +op.pos.w > 0 && +op.pos.h > 0 ? { w: Math.round(+op.pos.w), h: Math.round(+op.pos.h) } : {}));
-                            out[i] = nid;
-                        }
-                        if (!any) continue;
-                        changedK.add(k);
-                        e.u = sh.imgs.map((v, j) => v == null ? j : -1).filter(j => j >= 0);
-                        const old = e.f;
-                        if (e.u.length >= e.n) list.splice(list.indexOf(e), 1);
-                        else { if (e.th && !e.us) e.th = await ownThumb(sh.imgs); jobs.push(ownFileNew(sh).then(f => { e.f = f; made.push(f); })); }
-                        changed.push(old);
-                    }
-                    await Promise.all(jobs);
-                    if (!made.length) return out;
-                    for (const k of changedK) await ownIdxWrite(k, lists.get(k));
-                } catch (er) { made.forEach(fid => ownFileKill(fid).catch(() => {})); throw er; }
+                const a = ownAlbumClean(ownAlbJoin(got.map(g => g[1])), [].concat(...got.map(g => g[0])));
+                const changedK = new Set(), sheets = new Map();
+                for (let i = 0; i < ops.length; i++) {
+                    const op = ops[i]; let k = '', e = null;
+                    for (const [kk, L] of lists) { const hit = L.find(x => x.id === op.s); if (hit) { k = kk; e = hit; break; } }
+                    if (!e || !ownAlive(e) || e.q0) continue;
+                    const list = lists.get(k), rel = a.rl.find(r => r.id === op.rl); if (!rel) continue;
+                    const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+op.pos.pg || 0)));
+                    if (rel.it.filter(t => t.pg === pg).length >= ownRelCap(rel)) continue;
+                    const sid = e.ref ? e.ref.s : e.id, src = list.find(x => x.id === sid); if (!src) continue;
+                    if (!sheets.has(sid)) { try { sheets.set(sid, await ownFileRead(src.f)); } catch (er) { if (er && er.code === 'gone') { sheets.set(sid, null); continue; } throw er; } }
+                    const sh = sheets.get(sid), c = e.ref ? e.ref.c : op.k;
+                    const ne = ownRelMake(list, e, op.k, sh); if (!ne) continue;
+                    ne.th = await ownThumb([sh.imgs[c]], 96);
+                    if (e.ref) rel.it = rel.it.filter(t => t.s !== e.id);                 // 다른 자리로 옮겼어요
+                    rel.it.push(Object.assign({ s: ne.id, pg, x: Math.max(0, Math.min(1, +op.pos.x || 0)), y: Math.max(0, Math.min(1, +op.pos.y || 0)), r: +op.pos.r || 0 }, +op.pos.w > 0 && +op.pos.h > 0 ? { w: Math.round(+op.pos.w), h: Math.round(+op.pos.h) } : {}));
+                    if (!e.ref && src.th && !src.us) src.th = await ownThumb(ownMask(sh, src), 0, sh.gh);   // 바구니 미리보기도 그 칸이 비게
+                    out[i] = ne.id; changedK.add(k);
+                }
+                if (!changedK.size) return out;
+                for (const k of changedK) await ownIdxWrite(k, lists.get(k));
                 changedK.forEach(k => ownSetKind(k, lists.get(k)));
                 const c = ownAlbumClean(a, [].concat(...[...lists.values()]));
                 try { for (const k of changedK) { await ownAlbWrite(k, c); ownK(k).alb = ownAlbPart(c, k); } ownMerge(); }
-                catch (er) { changedK.forEach(k => { ownK(k).alb = null; }); ownMerge(); ownTell(); throw er; }   // 스티커첩 저장이 안 되면 새 종이는 바구니에 남아요
-                changed.forEach(old => ownFileKill(old).catch(er => console.warn('옛 종이 파일을 지우지 못했어요 :', er)));   // ⚡ 옛 파일 지우기는 기다리지 않아요 (목록에 없어서 안 보여요)
+                catch (er) { changedK.forEach(k => { ownK(k).alb = null; }); ownMerge(); ownTell(); throw er; }
                 ownTell();
                 return out;
             });
@@ -1120,10 +1104,19 @@
                 for (const k of await ownKindsFor([id], kk)) {
                     const list = await ownIdxRead(k), i = list.findIndex(e => e.id === id);
                     if (i < 0) continue;
-                    fid = list[i].f;                                                // 버린 뒤 칸을 쓰면 파일 번호가 바뀌어요 → 목록의 지금 번호
+                    const e = list[i];
+                    if (!e.ref && ownMoved(e).length) {                             // 🤍 이형지북에 가 있는 칸이 있어요 = 그 칸 그림은 남기고 나머지 칸만 버려요 (시트 줄은 안 보이게 남아요)
+                        const sh = await ownFileRead(e.f), keep = ownMoved(e), old = e.f;
+                        sh.imgs = sh.imgs.map((v, j) => keep.includes(j) ? v : null); e.u = sh.imgs.map((v, j) => j);
+                        e.f = await ownFileNew(sh); await ownIdxWrite(k, list); ownSetKind(k, list); await ownFileKill(old).catch(() => {});
+                        fid = ''; break;
+                    }
+                    fid = e.f;                                                      // 버린 뒤 칸을 쓰면 파일 번호가 바뀌어요 → 목록의 지금 번호
                     const d = ownK(k); d.gone = ownGoneClean((d.gone || []).concat([{ u: id, at: Date.now() }]));   // 🚛 영구삭제 칸 (영원히 · 도련 11-11)
                     if (window.ledgerMix) ledgerMix('own:' + k, d.gone);           // 📒 장부에도 바로
-                    list.splice(i, 1); await ownIdxWrite(k, list); ownSetKind(k, list);
+                    const kills = []; list.splice(i, 1); if (e.ref) await ownRefSpend(list, e, kills);   // 🤍 이형지북 스티커를 버렸어요 = 원래 시트 그 칸도
+                    await ownIdxWrite(k, list); ownSetKind(k, list);
+                    for (const f of kills) await ownFileKill(f).catch(() => {});
                     break;
                 }
                 await ownFileKill(fid);
