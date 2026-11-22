@@ -684,17 +684,18 @@
         const pinOpen = () => { const p = spHost(); return !!p && p.offsetParent !== null; };   // 🏠 지금 공간의 판 (진짜 = #innerPage · 🏪 연습장)
         const pinOff = () => !!twz || !((window.gdTwz && gdTwz() && pinOpen()) || (window.pinForce && pinForce()));   // 🪡 정리 공간 이형지북은 핀셋이 저절로 (js/basket.js pinForce · 도련 10-29)
         const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('body.sk-held, .sk-knife.grab, .rl-ruler.grab, #pcRoom:not([hidden]):not(.rest)');   // ✂️ 칼 · 📏 자를 잡고 있는 동안은 핀셋이 안 따라와요 (도련 10-19)
+        const PIN_BTN = '#abUpHost .ab-it';                                // 🤍 책상에 띄운 이형지북의 스티커 = 버튼이지만 핀셋이 다가가 집어요 (도련 11-22)
         const PIN_AREA = '#pelRoom, #pmRoom, #pcbRoom, #absRoom, #abUpHost .abf-rl', pinIn = n => spHost().contains(n) || !!n.closest(PIN_AREA);   // + 지금 공간의 판   // 🪡 핀셋이 갈 수 있는 곳 (📄 모조지 종이 #pmRoom : 오린 스티커를 핀셋으로 떼요 · 도련 10-21)
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.pin-cur, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);
-            if (!top || pinBusy() || top.closest('.pel-hint, #pageHeader, .tap-menu') || (top.closest('button') && !spHost().contains(top))) return false;   // 안내 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
+            if (!top || pinBusy() || top.closest('.pel-hint, #pageHeader, .tap-menu') || (top.closest('button') && !spHost().contains(top) && !top.closest(PIN_BTN))) return false;   // 안내 · 날짜 바 · 메뉴 · 창의 버튼 (페이지 안 😊 기분 · ☀️ 날씨 도장은 페이지라 돼요)
             if (pinIn(top)) return true;
             return top === document.body || top === document.documentElement || !!top.closest('#diaryWrapper, #bgPatternLayer');   // 🖼 배경지 (다이어리 둘레 · 무늬 배경)
         }
         function pinRel(x, y) {                                                  // 👆 핀셋과 상관있는 곳 (그 자리로 옮겨 가요) · 아니면 그 자리에 둥실
             const top = pinTop(x, y);
-            return !!top && !pinBusy() && pinIn(top) && !top.closest('.rl-ruler, .sk-knife, button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .bd-tool, .bd-back, .page-stamps');
+            return !!top && !pinBusy() && pinIn(top) && (!!top.closest(PIN_BTN) || !top.closest('.rl-ruler, .sk-knife, button, input, select, textarea, a, .tap-menu, .page-header, #pageHeader, .pel-hint, .bd-tool, .bd-back, .page-stamps'));
         }
         const pinDev = e => e.pointerType === 'mouse' || e.pointerType === 'pen' ? 'pc' : Math.min(screen.width, screen.height) < 600 ? 'phone' : 'pad';   // ✏️ 펜(애플 펜슬 · S펜)은 마우스처럼 : 닿기 전 떠 있는 펜 끝도 따라와요 (펜 호버 · 도련 10-21)
         function pinStart() {
