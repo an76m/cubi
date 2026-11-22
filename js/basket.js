@@ -132,7 +132,7 @@
         BK_EMG.get(id).then(L => { if (L[i]) im.src = L[i]; else im.style.visibility = 'hidden'; });
     };
     function bkCard(e) {
-        const used = new Set(e.u), cols = Math.ceil(Math.sqrt(e.n)), x = e.x || {}, q = e.q0 ? Math.max(.08, e.q / e.q0) : 1;
+        const used = new Set((e.u || []).concat(abRelPend(e.id))), cols = Math.ceil(Math.sqrt(e.n)), x = e.x || {}, q = e.q0 ? Math.max(.08, e.q / e.q0) : 1;
         let inner, cls = 'k-' + e.k;
         const qtyTxt = e.q0 && e.k !== 'tape' ? Math.max(0, e.q) + '장' : '';   // 남은 장수 (도련 10-26) · 🎀 테이프는 숫자 없이 롤 두께로만 (진짜 마테처럼 · 도련 10-26)
         if (e.k === 'tape') inner = `<span class="bk-roll" style="--q:${q.toFixed(2)}"><i style="background-image:url(&quot;${esc(e.th || '')}&quot;)"></i>${qtyTxt ? `<b class="bk-qty">${qtyTxt}</b>` : ''}</span>`;
@@ -356,6 +356,9 @@
          → 처음부터 '받아서 가진 것을 쓰면 줄어든다'를 알게 해요 (처음 선물 · ＋ 버튼 없음)
        · 정리한 모습은 스티커목록의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
     const AB = { drag: null, busy: false };
+    /* 🤍 완료 전에 이형지북에 붙인 칸 = 시트 카드에서도 뗀 자리로 (도련 11-23 · 1423 : 📒 바인더에 꽂기로 갔다 오면 시트가 바구니로 돌아가며 뗀 자국 없이 처음 모습이었어요)
+         ✔ 이 책 완료 전엔 목록(e.u)에 아직 없어요 → AB.rel · AB.relFly 에서 그 시트의 칸을 더해요 (그리기만 · 저장은 그대로 ✔ 때) */
+    const abRelPend = id => (AB.relFly || []).concat(AB.rel || []).filter(o => o.src === id).map(o => o.k);
     const REL_KINDS = new Set(['seal', 'piece']);
     /* 🧁 📒 스티커바인더 · 🤍 이형지북 = 서버 상품 (상품공방 '스티커바인더' · '이형지북' · 도련 11-04 : 상품 하나 = 디자인 하나 · 디자인이 늘어도 코드는 그대로)
        가진 책마다 pid = 그 디자인 상품 id (색 · 포켓 · 쪽수를 id 로 찾아요 · 서버 상품 그대로) */
