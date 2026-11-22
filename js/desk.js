@@ -612,8 +612,8 @@
         }
         window.dtmShow = dtmShow; window.dkModesOff = dkModesOff;   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
-        /* 🚪 이동 ▾ (도련 11-23 · 책상 꾸미기 ▾ 와 같은 틀) : [이동] = 갈 곳 고르는 창 · [내 방 나가기] = 저장 게이지 → 방을 나가는 연출 → 앱 끄기 (js/roomexit.js) */
-        const DKG_ITEMS = [['이동', () => deskMoveOpen()], ['내 방 나가기', () => window.roomExit && roomExit()]];
+        /* 🚪 이동 ▾ (도련 11-23 · 책상 꾸미기 ▾ 와 같은 틀) : [이동] = 갈 곳 고르는 창 · [설정] = ⚙ 설정 메뉴 · [내 방 나가기] = 저장 게이지 → 방을 나가는 연출 → 앱 끄기 (js/roomexit.js) */
+        const DKG_ITEMS = [['이동', () => deskMoveOpen()], ['설정', () => openSettingsMenu()], ['내 방 나가기', () => window.roomExit && roomExit()]];   // ⚙ 설정 = 예전 이동 창 왼쪽 위 '설정' 버튼 자리 (💻 📲 에선 이동 창에서 뺐어요 · 도련 11-23)
         function dkgPaint() {
             const m = document.getElementById('deskMoveMenu'); if (!m) return;
             m.querySelector('.dtm-list').innerHTML = DKG_ITEMS.map((x, i) => `<button type="button" role="menuitem" onclick="dkgRun(${i})">${x[0]}</button>`).join('');

@@ -765,6 +765,7 @@ html.desk-show .desk-hint, html.desk-edit .desk-hint { display: none; }
 .desk-top-r .dtm-list { gap: 2px; min-width: 100%; box-sizing: border-box; padding: 6px; background: #fff; border: 1.6px solid #e8bfd2; border-radius: 14px; box-shadow: 0 6px 18px rgba(141, 111, 127, .22); }
 .desk-top-r .dtm-list button { display: block; padding: 7px 14px; border: 0; border-radius: 10px; background: none; color: #7a5a6c; font: inherit; font-size: 13.5px; font-weight: 700; text-align: left; white-space: nowrap; cursor: pointer; }
 .desk-top-r .dtm-list button:hover { background: #fff0f6; } .desk-top-r .dtm-list button.on { background: #ffe3ee; color: #c8457a; }
+html.desk-on #moveSetBtn { visibility: hidden; }   /* 🚪 이동 창 왼쪽 위 '설정' = 📱 폰만 · 💻 📲 = 오른쪽 위 이동 ▾ [설정] (도련 11-23 · 자리는 남겨 제목이 가운데 그대로) */
 
 /* 🗄️ 서랍 고르기 (도련 11-01 · js/desk.js dkzChoose) : 알림 창 안에 서랍장 그림 + 칸 버튼 */
 .dkz-pick { position: relative; width: min(300px, 70vw); margin: 12px auto 2px; }
