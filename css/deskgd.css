@@ -37,7 +37,6 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-dtop { gap: 10px; padding: 10px 14px 8px; }   /* 틀 = css/style.css 🗄️ 서랍 창 틀 하나 */
 .dkw-dtop b { font-size: 16px; font-weight: 900; }
 .dkw-dtop small { font-size: 12px; font-weight: 700; opacity: .85; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dkw-dx { border: 0; background: #fff; color: var(--dk); width: 30px; height: 30px; border-radius: 50%; font-size: 15px; font-weight: 900; flex: none; }
 .dkw-din { flex: 1 1 auto; min-height: 0; padding: 0 14px 14px; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 0; overscroll-behavior: contain; }   /* 칸막이가 많아지면 서랍 안을 위아래로 (칸막이 높이 = 들어 있는 만큼) */
 .dkw-cats { display: flex; gap: 6px; padding: 2px 14px 8px; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); overflow-x: auto; scrollbar-width: none; flex: none; }   /* 🗂 칸막이 이름 (도련 11-20 · 1359) */
 .dkw-cats::-webkit-scrollbar { display: none; }
@@ -64,20 +63,11 @@ body:has(#pelRoom.show, #pcbRoom.show, #spkRoom.show, #pmRoom.show, #tkRoom.show
 .dkw-dfront { height: 62px; gap: 16px; }
 .dkw-lbl { font-size: 13px; font-weight: 900; background: #fff; border: 2px solid var(--dk); color: var(--dk); border-radius: 6px; padding: 2px 10px; }
 .dkw-knob { width: 24px; height: 24px; }
-.dkw-foot { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 10px 6px 0; flex-wrap: wrap; }
-.dkw-foot > span { flex: 0 1 auto; min-width: 0; color: var(--dk, #5a3d4a); font-size: 13px; font-weight: 800; background: #fff; border: 2px solid var(--dk, #8d6f7f); border-radius: 999px; padding: 3px 12px; }   /* 화면을 어둡게 하지 않아서(도련 11-05) 안내는 흰 띠 위에 */
-.dkw-foot > span:empty { display: none; }
-.dkw-foot > span b { color: #c2457a; }
 @media (max-height: 700px) { .dkw-cupart { margin-top: 110px; } .dkw-art { height: 60px; } }
 .dkw-drawer { position: relative; }
-/* 🗑 버리기 (도련 11-02 · js/skins.js gdBin) */
-.dkw-bin { border: 2px solid var(--dk); background: #fff; color: var(--dk); height: 30px; min-width: 30px; padding: 0 8px; border-radius: 999px; font-size: 13px; font-weight: 900; flex: none; white-space: nowrap; }
-.dkw-bin.on { background: #e05a7d; border-color: #e05a7d; color: #fff; }
-.dkw-drawer.binning .dkw-it { animation: dkwWig .5s ease-in-out infinite alternate; }
-.dkw-drawer.binning .dkw-use { position: relative; }
-.dkw-drawer.binning .dkw-use::after { content: '🗑'; position: absolute; right: 2px; top: 2px; font-size: 13px; background: #fff; border-radius: 50%; width: 20px; height: 20px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
-@keyframes dkwWig { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
-@media (prefers-reduced-motion: reduce) { .dkw-drawer.binning .dkw-it { animation: none; } }
+/* 🗑 서랍 버리기 = 글씨 버튼 (도련 11-23 · 1420 · 🗄️ 스티커 서랍 .bkd-chip 모양 그대로 · 누르면 고르는 창 js/deskgd.js dkBinPick) */
+.dkw-dtop .dkw-binb { margin-left: auto; }
+@keyframes dkwWig { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }   /* 📱 문구함 창 (css/style.css .pk-room.binning) 이 써요
 
 /* ↩ 꺼낸 문구 정리 (도련 11-03 · js/deskgd.js dkwBackPaint) : 다이어리 아래 책상 위 버튼 → 카드 줄 (봉투 속처럼) → 톡 = 제자리로 */
 /* 꺼낸 문구 그림 줄 (화면 아래 가운데 · 종이를 가리지 않게 · 그림 오른쪽 위 ✕ · 도련 11-05) */
@@ -162,7 +152,6 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 /* 🗄️ 📔 📒 책 서랍 (도련 11-20 · js/deskbook.js) : 문구함 서랍 틀 그대로 · 안 = 책 앞모습을 나란히 · 톡 = 꺼내서 펼치기 · 끌기 = 책상에 */
 #dbkTray .dkw-drawer { width: min(760px, 94vw); }
 #dbkTray .dkw-din { padding: 0 14px 14px; }   /* 진열 = .dk-shelf (문구함과 같은 것 · 1363) */
-#dbkTray .dkw-foot { padding: 6px 4px 0; text-align: center; font-size: 12px; font-weight: 700; color: #7a5a66; }
 .dbk-it { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .dbk-art { position: relative; display: block; flex: none; }
 .dbk-in { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
@@ -173,8 +162,5 @@ html.desk-on:not(.desk-edit) .dkw-desk .dkw-t:hover { filter: drop-shadow(0 0 3p
 /* 🧩 표지 · 내지 서랍 (도련 11-20 · 1355 · js/deskbook.js matCard) */
 .dbk-mat .dbk-art { display: flex; align-items: flex-end; justify-content: center; min-width: 64px; }
 .dbk-mat > small { font-size: 11px; color: #9a7f8c; margin-top: -4px; max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dbk-pickt { flex: none; padding: 0 14px 6px; font-size: 12px; font-weight: 800; color: var(--dk); text-align: center; background: var(--db); border-left: 4px solid var(--dk); border-right: 4px solid var(--dk); }
 .dk-shelf .dbk-it { max-width: var(--cw); }
 .dk-shelf .dbk-it > b { max-width: var(--cw); }
-.dkw-din.dbk-pick .dbk-it { cursor: pointer; }
-.dkw-foot .dbk-pickb { margin-left: 8px; padding: 4px 12px; font-size: 12px; border-radius: 999px; }

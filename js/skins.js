@@ -1532,17 +1532,17 @@
         async function gdCabBinTap(id) { if (await gdBin(id)) gdCabRender(); }
         /* 🚛 문구 버리기 → 바로 영구 삭제 (js/bin.js · 도련 11-11 · 📱 문구함 서랍 · 👝 보관함 · 🪑 책상 문구함 모두 여기로) */
         const gdBinName = id => String((((window.prodList ? prodList('문구') : []).find(v => v.id === id) || {}).P || {}).이름 || '');   // 상품 이름 그대로
-        async function gdBin(id) {
+        async function gdBin(id, quiet) {                                      // quiet = 묻기 · 알림 없이 (🗄️ 문구함 고르는 창이 한 번에 물어요 · js/deskgd.js dkwBinGo · 1420)
             const all = (gdOwnList() || []).filter(x => x.id === id); if (!all.length) return false;
             const o = all.slice().reverse().find(x => !x.g) || all[all.length - 1], last = all.length === 1;   // 여럿이면 하나만 (나중에 받은 것부터 · 선물은 맨 나중에)
             const pen = !!(window.pkIsId && pkIsId(id));
-            if (last && !pen && cabIsOn(id)) { showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return false; }
-            if (!window.binAsk || !await binAsk(gdBinName(id) + (last ? '' : ` 하나 (${all.length}개 중)`))) return false;
+            if (last && !pen && cabIsOn(id)) { if (!quiet) showMsg('페이지에 꺼내 둔 것은 버릴 수 없어요.<br><small>먼저 문구함에 넣어 주세요</small>'); return false; }
+            if (!quiet && (!window.binAsk || !await binAsk(gdBinName(id) + (last ? '' : ` 하나 (${all.length}개 중)`)))) return false;
             prefSet(GD_OWN, GD_OWN_L, (gdOwnList() || []).filter(x => x.u !== o.u).map(gdRec));
             if (!pen && last) { const g = cabGOf(id); if (gdMain(g) === id) gdMainSet(g, cabOwn(g)[0]); }
             await binAdd({ k: 'gd', id: o.u, o: Object.assign(gdRec(o), o.g ? { g: 1 } : {}) });   // 🎁 휴지통엔 선물이었는지도 (되돌리면 다시 선물 주소에)
             gdBinAfter();
-            binTold('');
+            if (!quiet) binTold('');
             return true;
         }
         function gdBinAfter() { if (window.pcRefill) pcRefill(); if (window.dkwDeskSoon) dkwDeskSoon(); }   // ✏️ 펜꽂이 · 🪑 책상 문구 다시

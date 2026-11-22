@@ -438,6 +438,17 @@
     }
     /* 📒 🤍 책상에 놓는 스티커첩 (도련 10-30 · js/desk.js dkVolsPaint) : [{ id, t: 'bd' | 'rl', k: 종류, lb, col: [바탕, 진한 색], mm: [가로, 세로] 규격 }] · 톡 = 그 종류 창에서 그 책 펼치기 */
     window.abTakeTool = abTakeTool; window.abFreeOpen = abFreeOpen; window.abLoadFree = abLoadFree; window.abReturnFree = abReturnFree;
+    /* 🚛 📥 받아 둔 책 (종류 없는 빈 책) 버리기 (도련 11-23 · 1420 · 🗄️ 📒 스티커첩 서랍 🗑 버리기 · js/deskbook.js) : 목록 줄 + 원본 파일 받은-<c>.json 을 지워요
+         · 스티커 정리에 쓰는 책(종류 서랍 스티커첩)은 여기 없어요 → 정리에서 ↩ 빼기(빈 책만)로 이 목록에 돌린 뒤 버려요 */
+    window.abFreeHas = async id => { await frReady(); return ['bd', 'rl'].some(t => frAll(t).some(x => x.id === id)); };
+    window.abFreeBin = async ids => {
+        await frReady();
+        for (const t of ['bd', 'rl']) {
+            const L = frAll(t), out = L.filter(x => ids.includes(x.id)); if (!out.length) continue;
+            frSet(t, L.filter(x => !ids.includes(x.id)));
+            out.forEach(x => { if (x.c && window.ofDel) ofDel(FR[t].dir, x.c); });
+        }
+    };
     window.abDeskList = async () => {
         if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
         let a; try { a = await ownAlbumGet(); } catch (e) { return []; }

@@ -132,15 +132,30 @@
            → 서랍 창 (그 안을 그리는 건 서랍마다 · dkFilterBar · dkShelf) */
         async function dkDrawerWin(id, op) {
             const r = dkwRoom(id, op.shut);
-            r.innerHTML = `<div class="dkw-drawer${op.cls ? ' ' + op.cls : ''}"><div class="dkw-dtop"><b>${op.title}</b><small>${htmlEsc(op.sub || '')}</small>${op.tools || ''}<button type="button" class="dkw-dx" aria-label="닫기">✕</button></div>`
-                + `<div class="dkw-cats" id="${op.cats}"></div><div class="dkw-din" id="${op.inn}"></div><div class="dkw-dfront"><span class="dkw-lbl">${op.label}</span><i class="dkw-knob"></i></div><div class="dkw-foot">${op.foot || ''}</div></div>`;
+            r.innerHTML = `<div class="dkw-drawer${op.cls ? ' ' + op.cls : ''}"><div class="dkw-dtop"><b>${op.title}</b><small>${htmlEsc(op.sub || '')}</small>${op.tools || ''}</div>`   // ✕ 닫기 · 아래 안내 줄 = 영구 삭제 (도련 11-23 · 1420 · 닫기 = 창 밖 · 서랍 톡)
+                + `<div class="dkw-cats" id="${op.cats}"></div><div class="dkw-din" id="${op.inn}"></div><div class="dkw-dfront"><span class="dkw-lbl">${op.label}</span><i class="dkw-knob"></i></div></div>`;
             const box = r.querySelector('.dkw-drawer');
-            r.querySelector('.dkw-dx').onclick = () => (op.shut || dkwClose)();
             await dkSlotPaint(box, op.k, op.u, op.s, [248, 191, 205]);         // 🎨 서랍 색 = 그 칸 색 (스티커 서랍과 같은 함수)
             return r;
         }
         function dkDrawerShow(r, u, paint) { dkwShow(r); if (paint) paint(); dkwFly(r.querySelector('.dkw-drawer'), u && dkwItemEl(u)); }   // 보이게 한 뒤 안을 그려요 (줄이 넘치는지 재야 해서) · 그 서랍장 자리에서 커지며 나와요
         window.dkDrawerWin = dkDrawerWin; window.dkDrawerShow = dkDrawerShow;
+        /* 🚛 서랍 🗑 버리기 = 고르는 창 하나 (도련 11-23 · 1420 · ✏️ 문구함 · 📒 스티커첩 · 🧩 표지 · 내지 서랍 같이 · 🗄️ 스티커 서랍 basket.js bkBin 과 같은 모양)
+             list = [{ id, el | html }] → 고른 id 들 (취소 = []) · note = 창 아래 작은 글 한 줄 */
+        const DKW_BINB = '<button type="button" class="bkd-chip dkw-binb" title="버리기">🗑<span>버리기</span></button>';   // 서랍 위 '🗑 버리기' 글씨 버튼 (스티커 서랍과 같은 모습)
+        function dkBinPick(nm, list, note) {
+            return new Promise(ok => {
+                const el = document.createElement('div'); el.className = 'shx-pop ish-pick dkb-pick';
+                el.innerHTML = `<div class="alert-card ish-card"><b class="shx-t">🗑 버릴 ${htmlEsc(josa(nm, '을', '를'))} 골라요</b>${note ? `<small class="ish-note">${note}</small>` : ''}<div class="ish-grid"></div>`
+                    + `<div class="alert-btns"><button type="button" class="btn btn-primary" data-ok>🚛 버리기</button><button type="button" class="btn" data-no>취소</button></div></div>`;
+                const g = el.querySelector('.ish-grid');
+                list.forEach(x => { const l = document.createElement('label'); l.className = 'ish-it'; l.innerHTML = `<input type="checkbox" value="${htmlEsc(x.id)}"><span class="ish-card-in"></span>`; const c = l.querySelector('.ish-card-in'); if (x.el) c.appendChild(x.el); else c.innerHTML = x.html || ''; g.appendChild(l); });
+                document.body.appendChild(el);
+                el.querySelector('[data-no]').onclick = () => { el.remove(); ok([]); };
+                el.querySelector('[data-ok]').onclick = () => { const ids = [...el.querySelectorAll('input:checked')].map(i => i.value); if (!ids.length) return; el.remove(); ok(ids); };
+            });
+        }
+        window.dkBinPick = dkBinPick; window.DKW_BINB = DKW_BINB;
         function dkwFly(box, el) {                                                // 책상 위 그 소품 자리에서 커지며 나와요
             if (!el) { box.animate([{ transform: 'scale(.85)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,.9,.3,1.1)' }); return; }
             const a = el.getBoundingClientRect(), b = box.getBoundingClientRect(); if (!b.width) return;
@@ -299,11 +314,17 @@
             DKW.need = typeof need === 'string' ? need : null; DKW.place = place;
             { const c = dkwq('dkwCup'); if (c && !c.hidden) { c.classList.remove('show'); c.hidden = true; } }   // ✏️ 펜꽂이에서 왔으면 펜꽂이는 내려놓고
             const [hu, hs] = place.split(':');
-            const r = await dkDrawerWin('dkwTray', { k: 'gd', u: hu, s: hs, title: '🗄️ 문구함', sub: dkwPlaceName(place), label: '✏️ 문구함', cats: 'dkwCats', inn: 'dkwIn', foot: '<span id="dkwTip"></span>',   // 🗄️ 서랍 창 하나로 (책 서랍과 같은 창)
-                tools: '<button type="button" class="dkw-bin" id="dkwBin" aria-pressed="false" title="버리기">🗑</button>' });
-            DKW.bin = false; DKW.f = { k: null, s: '' };                         // 🗂 처음 = 전체 (꺼낼 문구 종류를 알면 그 칸막이)
-            dkwq('dkwBin').onclick = () => { DKW.bin = !DKW.bin; dkwTrayPaint(); };   // 🗑 버리기 (도련 11-02 · 📱 문구함 서랍처럼 · 톡 = 휴지통으로 · js/skins.js gdBin)
+            const r = await dkDrawerWin('dkwTray', { k: 'gd', u: hu, s: hs, title: '🗄️ 문구함', sub: dkwPlaceName(place), label: '✏️ 문구함', cats: 'dkwCats', inn: 'dkwIn', tools: DKW_BINB });   // 🗄️ 서랍 창 하나로 (책 서랍과 같은 창)
+            DKW.f = { k: null, s: '' };                                          // 🗂 처음 = 전체 (꺼낼 문구 종류를 알면 그 칸막이)
+            r.querySelector('.dkw-binb').onclick = dkwBinGo;                       // 🗑 버리기 = 고르는 창 (도련 11-23 · 1420 · 예전 🗑 아이콘 → 톡 모드는 영구 삭제)
             dkDrawerShow(r, hu, dkwTrayPaint);
+        }
+        async function dkwBinGo() {                                               // 🚛 이 서랍 문구를 골라 버리기 (js/skins.js gdBin · 상품 = 쓰레기차)
+            const ids = dkwTrayList().all; if (!ids.length) { showMsg('버릴 문구가 없어요.'); return; }
+            const pick = await dkBinPick('문구', ids.map(id => ({ id, html: `<span class="dkw-art">${dkwArt(id)}</span><b>${htmlEsc(dkwName(id))}</b>` })));
+            if (!pick.length || !window.binAsk || !await binAsk(pick.length > 1 ? `문구 ${pick.length}개` : gdBinName(pick[0]))) return;
+            for (const id of pick) await gdBin(id, true);
+            binTold(''); dkwTrayPaint();
         }
         /* 🗄️ 문구함 서랍 (도련 11-20 · 1359 : 열면 여러 종류가 다채롭게 · 필요한 종류는 위 칸막이 이름을 눌러 자세히)
            위 = 종류 버튼 [전체 N] [필기구 N] [양면테이프 N] [칼 N] [자 N] … (문구 종류 하나씩 · 1362 · 버튼 차례 = 문구 종류 표 차례 · 필기구 먼저)
@@ -333,17 +354,13 @@
             inn.onclick = e => {                                                   // 톡 = 꺼내 쓰기
                 const it = e.target.closest('.dkw-it'); if (!it || (g && g._drag)) return;
                 const id = it.dataset.id;
-                if (DKW.bin) { gdBin(id).then(ok => { if (ok) dkwTrayPaint(); }); return; }   // 🗑 버리는 중 = 톡 = 휴지통으로
                 if (e.target.closest('.dkw-use')) dkwFlyUse(id, it.querySelector('.dkw-art') || it);   // 톡 = 화면 가운데로 날아와 손에 (도련 11-11)
             };
-            { const t = inn.closest('.dkw-drawer'), bb = dkwq('dkwBin'); if (t) t.classList.toggle('binning', !!DKW.bin); if (bb) { bb.classList.toggle('on', !!DKW.bin); bb.setAttribute('aria-pressed', !!DKW.bin); bb.textContent = DKW.bin ? '✓ 다 했어요' : '🗑'; } }
-            if (DKW.bin) { const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '🗑 <b>버릴 문구를 톡</b> · 휴지통에 30일 보관했다가 지워져요 (⚙ 설정 → 🗑 휴지통에서 되살리기)'; return; }
-            const tip = dkwq('dkwTip'); if (tip) tip.innerHTML = '톡 = 꺼내 쓰기 · 옆으로 넘기면 더 있어요 · 위 이름 = 그 종류만';
         }
         /* 🗄️ 서랍이 열려 있을 때 넣는 길 둘 (도련 11-12) : 밖에 나온 문구를 ① 열린 문구함(위 창) 안으로 끌어 놓거나 ② 그 서랍장에 끌어 놓으면 = 고르기 없이 그 서랍에 · 바로 위 창에 보여요
            부르는 곳 = js/deskmove.js dropOn (떠 있는 문구 끌기) · 아래 꺼낸 문구 줄 끌기 (dkwOutGrab) → true = 넣었어요 */
         function dkwTrayInto(id, x, y) {
-            const r = dkwq('dkwTray'); if (!r || r.hidden || !DKW.place || !dkwDesk() || DKW.bin) return false;
+            const r = dkwq('dkwTray'); if (!r || r.hidden || !DKW.place || !dkwDesk()) return false;
             const u = String(DKW.place).split(':')[0];
             if (!dkDrawerHit(r.querySelector('.dkw-drawer'), u, x, y)) return false;   // 🗄️ 넣는 자리 = 하나로 (js/deskmove.js)
             dkwBackOne(id, true); dkwAtPut(id, DKW.place); if (DKW.f && DKW.f.k && dkwKindName(id) !== DKW.f.k) DKW.f.k = ''; dkwTrayPaint();   // 다른 종류를 보고 있었으면 = 전체로 (넣은 것이 보이게)
@@ -485,7 +502,7 @@
         /* 🗄️ 서랍 문구 : 끌면 = 끌어내기 (👆 위아래로 밀면 = 내리기 · js/desk.js dkShelfDir) */
         document.addEventListener('pointerdown', ev => {
             const it = ev.target.closest && ev.target.closest('#dkwTray .dkw-it[data-id]');
-            if (!it || ev.button > 0 || DKW.bin || it.getAttribute('aria-hidden')) return;
+            if (!it || ev.button > 0 || it.getAttribute('aria-hidden')) return;
             const id = it.dataset.id, row = it.closest('.dk-shelf'), clr = () => { if (row) setTimeout(() => { row._drag = false; }, 400); };
             dkDrag(ev, it.querySelector('.dkw-art') || it, {                     // 끌기 하나로 (js/deskmove.js · 책 서랍과 같은 규칙 : 👆 위아래로 밀기 = 내리기)
                 dir: dkShelfDir,
