@@ -569,7 +569,7 @@
             let d = null; try { d = typeof txt === 'string' ? JSON.parse(txt) : txt; } catch (e) { return ''; }
             if (!d || typeof d !== 'object') return '';
             const W = w || Math.max(160, Math.min(280, (window.innerWidth || 360) - 90)), n = Array.isArray(d.i) ? d.i.length : 0;
-            return `<div class="dpv-card" style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 4px">${dayPreviewHtml(d, W)}<span style="font-size:11px;color:#777">${sub ? sub + ' · ' : ''}붙인 것 ${n}개</span></div>`;
+            return `<div class="dpv-card" style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 4px">${dayPreviewHtml(d, W)}${sub === false ? '' : `<span style="font-size:11px;color:#777">${sub ? sub + ' · ' : ''}붙인 것 ${n}개</span>`}</div>`;   // sub = false → 그림만 (아래 글 없이)
         }
         window.dayPreviewCard = dayPreviewCard;
         function convertGeometry(g, fromPage, toPage) {

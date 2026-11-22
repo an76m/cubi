@@ -186,7 +186,7 @@
         const r = L[0], nm = label(r.key, r);
         for (;;) {
             const go = typeof showAsk === 'function'
-                ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})<br>✅ 완료해야 다이어리에 저장돼요</span>`, '이어서 하기', '지우고 새로 하기')
+                ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시저장한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
                 : true;
             if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
             if (await askDrop(nm, r)) { drop(r.key); ui(); return; }
