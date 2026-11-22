@@ -247,11 +247,12 @@
         M.run = sync0(force).catch(e => console.warn('📦 실물', e)).finally(() => { M.run = null; if (M.again) { M.again = false; mineSync(true); } });
         return M.run;
     }
-    function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); if (window.driveHeld && driveHeld()) { if (!M.held) { M.held = true; driveLater(() => { M.held = false; mineSoon(); }); } return; } /* ⏸ 모아 두는 중 = 나갈 때 한 번 */ M.t = setTimeout(() => { const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
+    function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); if (window.driveHeld && driveHeld()) { if (!M.held) { M.held = true; driveLater(() => { M.held = false; mineSoon(); }); } return; } /* ⏸ 모아 두는 중 = 나갈 때 한 번 */ M.t = setTimeout(() => { M.t = null; const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
     function mineHint(id) { if (!id) return; if (Object.values(M.k).some(B => B.fid === id || B.gid === id)) { M.hint = true; mineSoon(); } }   // 🔔 다른 기기가 내 목록을 고쳤어요 (drive.js changesAny · 요청 더 없음)
     window.mineHint = mineHint;
     window.mineDiff = mineDiff; window.mineUrl = mineUrl; window.mineSnap = mineSnap; window.mineGot = mineGot;
     window.mineSync = mineSync; window.mineSoon = mineSoon; window.mineKOf = mineKOf;
+    window.mineFlush = async () => { if (M.t) { clearTimeout(M.t); M.t = null; const f = M.f; M.f = false; mineSync(f); } while (M.run) await M.run; };   // 🚪 내 방 나가기 (js/roomexit.js) : 기다리던 실물 목록 올리기를 지금 · 기다릴 게 없으면 요청 0 (도련 11-23)
     window.mineInfo = () => ({ who: M.who, kinds: Object.keys(M.k).map(g => ({ g, n: Object.keys(M.k[g].items).length, img: Object.keys(M.k[g].img).length, gf: M.k[g].gf.length, cs: M.k[g].cs.length, fid: M.k[g].fid })), diff: Object.keys(KINDS).reduce((a, K) => a + Object.keys(mineDiff(K)).length, 0), owned: g => owned(g) });   // 🔎 시험 · 점검
 })();
 

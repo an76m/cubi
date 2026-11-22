@@ -594,6 +594,7 @@
         }
         function dtmToggle(on) {
             const m = document.getElementById('deskTopMenu'); if (!m) return;
+            if (on !== false) dkgToggle(false);                                  // 🚪 이동 ▾ 목록은 닫아요 (목록은 하나만)
             const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
             L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-main').setAttribute('aria-expanded', String(open));
         }
@@ -611,8 +612,24 @@
         }
         window.dtmShow = dtmShow; window.dkModesOff = dkModesOff;   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
-        document.addEventListener('pointerdown', e => { const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false); }, true);
-        window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
+        /* 🚪 이동 ▾ (도련 11-23 · 책상 꾸미기 ▾ 와 같은 틀) : [이동] = 갈 곳 고르는 창 · [내 방 나가기] = 저장 게이지 → 방을 나가는 연출 → 앱 끄기 (js/roomexit.js) */
+        const DKG_ITEMS = [['이동', () => deskMoveOpen()], ['내 방 나가기', () => window.roomExit && roomExit()]];
+        function dkgPaint() {
+            const m = document.getElementById('deskMoveMenu'); if (!m) return;
+            m.querySelector('.dtm-list').innerHTML = DKG_ITEMS.map((x, i) => `<button type="button" role="menuitem" onclick="dkgRun(${i})">${x[0]}</button>`).join('');
+        }
+        function dkgToggle(on) {
+            const m = document.getElementById('deskMoveMenu'); if (!m) return;
+            const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
+            if (open) dtmToggle(false);
+            L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-main').setAttribute('aria-expanded', String(open));
+        }
+        function dkgRun(i) { dkgToggle(false); const it = DKG_ITEMS[i]; if (!it) return; dkModesOff(); deskTopGo(it[1]); }
+        document.addEventListener('pointerdown', e => {
+            const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false);
+            const v = document.getElementById('deskMoveMenu'); if (v && v.classList.contains('open') && !v.contains(e.target)) dkgToggle(false);
+        }, true);
+        window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun; window.dkgToggle = dkgToggle; window.dkgRun = dkgRun;
         function deskLeave() { if (window.bndClose) bndClose(); if (window.closeCraft) closeCraft(); if (window.closeCalRoom) closeCalRoom(); if (window.closeBoothPlace) closeBoothPlace(); if (window.closePostRoom) closePostRoom(); if (window.closeWorld) closeWorld(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
             dtmNext();                                                           // 🔽 돌아올 때마다 오른쪽 위 메뉴가 다음 것으로 (도련 11-01)
@@ -663,8 +680,8 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><button type="button" class="desk-shop-go" id="deskShopGo" onclick="dkModesOff(); deskTopGo(deskMoveOpen)" aria-label="이동">이동</button></div>`;
-            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); }
+                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><span class="dtm" id="deskMoveMenu"><button type="button" class="desk-shop-go dtm-main" id="deskShopGo" onclick="dkgToggle()" aria-haspopup="menu" aria-expanded="false" aria-label="이동"><span class="dtm-t">이동</span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span></div>`;   // 🚪 이동 ▾ = [이동] [내 방 나가기] (도련 11-23 · 책상 꾸미기 ▾ 와 같은 모양)
+            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); dkgPaint(); }
             dkModeXBuild();                                                       // ✕ 다이어리모드 · 스티커정리 · 바인더조립 = 오른쪽 위 ✕ (도련 11-15)   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();
