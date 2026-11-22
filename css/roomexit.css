@@ -7,9 +7,6 @@
 /* 💾 게이지 + 요정 둘 + 인사 = 알림판 가운데 (글씨 = 인사만 · 1416) */
 .rx-mid { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: min(600px, 92vw); height: 220px; }
 .rx-gauge { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: min(280px, 52vw); padding: 9px; border-radius: 99px; background: rgba(255, 250, 244, .92); border: 1.6px solid #9a6eaa; box-shadow: 0 4px 0 rgba(154, 110, 170, .22); transition: opacity .4s ease, scale .4s ease; }
-.rx-gauge i { display: block; height: 14px; border-radius: 99px; background: #f6e3ea; border: 1.5px solid #9a6eaa; overflow: hidden; }
-.rx-gauge u { display: block; height: 100%; width: 0; background: repeating-linear-gradient(45deg, #ff8fb1 0 10px, #ffa9c4 10px 20px); background-size: 28px 28px; animation: rxFlow .8s linear infinite; transition: width .35s ease; }
-@keyframes rxFlow { to { background-position: 28px 0; } }
 .rx.done .rx-gauge { opacity: 0; scale: .9; }
 .rx-fy { position: absolute; top: 50%; width: 104px; height: 96px; translate: 0 -54%; animation: rxFyBob 1.2s ease-in-out infinite; }
 .rx-fy.l { left: 6px; } .rx-fy.r { right: 6px; animation-delay: -.6s; }
@@ -36,7 +33,7 @@
 @keyframes rxSway { 0%, 100% { rotate: -7deg; } 50% { rotate: 7deg; } }
 .rx-glow { animation: rxGlow 3s ease-in-out infinite; } .rx-glow.g2 { animation-delay: -.5s; }
 @keyframes rxGlow { 0%, 100% { opacity: .25; } 50% { opacity: .7; } }
-@media (prefers-reduced-motion: reduce) { .rx, .rx-scene, .rx-night, .rx-hi { transition: opacity .3s ease !important; } .rx-gauge u, .rx-fy, .rx-tw, .rx-sway, .rx-glow, .rx-hi small span { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .rx, .rx-scene, .rx-night, .rx-hi { transition: opacity .3s ease !important; } .rx-fy, .rx-tw, .rx-sway, .rx-glow, .rx-hi small span { animation: none; } }
 #deskMoveMenu .dtm-list { left: auto; right: 0; }   /* 🚪 이동 ▾ 목록 = 화면 오른쪽 끝에 맞춰요 (안 잘리게) */
 body:has(#roomExit) #customAlertModal { z-index: 2147483200 !important; }   /* 못 올렸을 때 묻는 창 = 문 화면 위로 */
 /* 💗 지난번에 버튼 없이 껐으면 = 이동 ▾ 를 가리키는 화살표 + 한 줄 (도련 11-23 · js/roomexit.js rxHint) · 셀 애니 (단색 + 진한 선 · 딱 떨어지는 그늘) */

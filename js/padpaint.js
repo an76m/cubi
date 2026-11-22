@@ -1729,12 +1729,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         finally { if (!ok) g(-1); P.saving = false; if (b.isConnected) { b.disabled = false; b.textContent = '✅ 도안완료'; } }
     }
     /* 📊 저장 중 게이지 : 그림판 위에 덮개 + 막대 (g(0~100) = 채우기 · g(-1) = 닫기) */
-    function gauge() {
-        let el = $('ppSaving'); if (el) el.remove();
-        el = document.createElement('div'); el.id = 'ppSaving'; el.className = 'pp-saving'; el.setAttribute('role', 'progressbar'); el.setAttribute('aria-label', '저장 중');
-        el.innerHTML = '<div class="pp-sv-box"><b>💾 도안을 저장하고 있어요</b><div class="pp-sv-bar"><i></i></div><small>잠시만 기다려 주세요</small></div>';
-        document.body.appendChild(el);
-        return v => { if (v < 0) { el.remove(); return; } const i = el.querySelector('i'); if (i) i.style.width = v + '%'; el.setAttribute('aria-valuenow', v); };
+    function gauge() {                                                        // 📊 게이지 = 하나 (js/util.js gaugeOpen · 도련 11-23 · 1421)
+        const G = gaugeOpen('💾 도안을 저장하고 있어요', '잠시만 기다려 주세요', 'ppSaving');
+        return v => { if (v < 0) G.close(); else G.set(v); };
     }
 
     /* ================= 💾 임시저장 (도안/작업중-<종류>.json · 도련 11-14) ================= */

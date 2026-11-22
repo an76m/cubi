@@ -260,12 +260,9 @@
     }
 
     /* ---------- 게이지 ---------- */
-    function gauge(p, t) {
-        let g = q('pgGauge');
-        if (!g) { g = document.createElement('div'); g.id = 'pgGauge'; g.className = 'pg-gauge'; g.innerHTML = '<div class="pg-gbox"><b id="pgGT"></b><i><u id="pgGB"></u></i><small>창을 닫지 말고 잠깐 기다려 주세요</small></div>'; document.body.appendChild(g); }
-        q('pgGT').textContent = t; q('pgGB').style.width = Math.max(0, Math.min(100, p)) + '%';
-    }
-    function gaugeOff() { const g = q('pgGauge'); if (g) g.remove(); }
+    let G = null;                                                                 // 📊 게이지 = 하나 (js/util.js gaugeOpen · 도련 11-23 · 1421)
+    function gauge(p, t) { if (!G || !G.el.isConnected) G = gaugeOpen(t, '창을 닫지 말고 잠깐 기다려 주세요', 'pgGauge'); G.set(p, t); }
+    function gaugeOff() { if (G) G.close(); G = null; }
 
     /* ---------- 아래 가운데 (📔 다이어리모드 = 위 가운데 · css/pagedone.css · 도련 11-15) : ✅ 완료 버튼 · 완료한 페이지 표시 ---------- */
     function ui() {

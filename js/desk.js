@@ -587,18 +587,29 @@
         const DTM_ITEMS = [['책상 꾸미기', () => deskRun('edit')], ['스티커 정리', () => window.bkSortOpen && bkSortOpen()], ['바인더 조립', () => window.bndOpen && bndOpen()]];   // 🧩 바인더 조립 공간 (도련 11-07 · js/binderroom.js) · 🍽 오늘 쓸 스티커는 📱 폰만 (도련 11-13 · 책상은 다이어리모드로 충분)
         /* ✂️ 스티커 만들기는 뺐어요 (도련 11-14 : 책상에서는 📱 태블릿으로 만들어요 · openCraft 코드는 그대로) */
         const DTM = { i: 0 };
-        function dtmPaint() {
-            const m = document.getElementById('deskTopMenu'); if (!m) return;
-            m.querySelector('.dtm-t').textContent = DTM_ITEMS[DTM.i][0];
-            m.querySelector('.dtm-list').innerHTML = DTM_ITEMS.map((x, i) => `<button type="button" role="menuitem" class="${i === DTM.i ? 'on' : ''}" onclick="dtmRun(${i})">${x[0]}</button>`).join('');   // 지금 메뉴도 목록에 (분홍 · 정리 책상 '씰스티커 ▾' 목록처럼 · 도련 11-11)
+        /* 🔽 ▾ 메뉴 = 틀 하나 (도련 11-23 · 1421 '공통 기능은 하나로' · 🛠 책상 꾸미기 ▾ · 🚪 이동 ▾ 가 같이 써요 · 새 ▾ 메뉴 = DKM 에 한 줄)
+             DKM[id] = { items: [[이름, 할 일]], cur: () => 지금 칸 (있으면 버튼 글씨 = 그 이름 · 목록에 분홍) , name: 고정 글씨, before: 고르기 직전 }
+             목록은 하나만 열려요 · 밖 톡 = 닫기 · 고르면 dkModesOff → deskTopGo (다이어리 · 모드를 정리한 뒤) */
+        const DKM = {};
+        const dkMenuHtml = (id, name, main) => `<span class="dtm" id="${id}"><button type="button" class="desk-shop-go dtm-main"${main ? ` id="${main}"` : ''} onclick="dkMenuToggle('${id}')" aria-haspopup="menu" aria-expanded="false" aria-label="${name}"><span class="dtm-t">${name}</span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span>`;
+        function dkMenuPaint(id) {
+            const m = document.getElementById(id), M = DKM[id]; if (!m || !M) return;
+            const c = M.cur ? M.cur() : -1;
+            if (c >= 0) m.querySelector('.dtm-t').textContent = M.items[c][0];
+            m.querySelector('.dtm-list').innerHTML = M.items.map((x, i) => `<button type="button" role="menuitem" class="${i === c ? 'on' : ''}" onclick="dkMenuRun('${id}', ${i})">${x[0]}</button>`).join('');   // 지금 메뉴도 목록에 (분홍 · 정리 책상 '씰스티커 ▾' 목록처럼 · 도련 11-11)
         }
-        function dtmToggle(on) {
-            const m = document.getElementById('deskTopMenu'); if (!m) return;
-            if (on !== false) dkgToggle(false);                                  // 🚪 이동 ▾ 목록은 닫아요 (목록은 하나만)
+        function dkMenuToggle(id, on) {
+            const m = document.getElementById(id); if (!m) return;
             const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
+            if (open) Object.keys(DKM).forEach(k => { if (k !== id) dkMenuToggle(k, false); });   // 목록은 하나만
             L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-main').setAttribute('aria-expanded', String(open));
         }
-        function dtmRun(i) { dtmToggle(false); const it = DTM_ITEMS[i]; if (!it) return; if (window.dsClear) dsClear(); dkModesOff(); deskTopGo(it[1]); }
+        function dkMenuRun(id, i) { dkMenuToggle(id, false); const M = DKM[id], it = M && M.items[i]; if (!it) return; if (M.before) M.before(); dkModesOff(); deskTopGo(it[1]); }
+        document.addEventListener('pointerdown', e => { Object.keys(DKM).forEach(k => { const m = document.getElementById(k); if (m && m.classList.contains('open') && !m.contains(e.target)) dkMenuToggle(k, false); }); }, true);
+        window.dkMenuToggle = dkMenuToggle; window.dkMenuRun = dkMenuRun;
+        /* 🛠 책상 꾸미기 ▾ (옛 이름 dtmPaint · dtmToggle · dtmRun = 위 틀을 가리키기만) */
+        DKM.deskTopMenu = { items: DTM_ITEMS, cur: () => DTM.i, before: () => { if (window.dsClear) dsClear(); } };
+        const dtmPaint = () => dkMenuPaint('deskTopMenu'), dtmToggle = on => dkMenuToggle('deskTopMenu', on), dtmRun = i => dkMenuRun('deskTopMenu', i);
         /* 📒 🧩 책상 모드 (도련 11-14) : 스티커정리모드 · 바인더조립모드 = 다이어리모드처럼 책상 위 · 오른쪽 위 메뉴는 그 모드 이름 · 다른 메뉴 · 이동을 누르면 그 모드는 닫혀요 */
         let dtmPrev = null;
         function dtmShow(name) {
@@ -612,24 +623,10 @@
         }
         window.dtmShow = dtmShow; window.dkModesOff = dkModesOff;   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
-        /* 🚪 이동 ▾ (도련 11-23 · 책상 꾸미기 ▾ 와 같은 틀) : [이동] = 갈 곳 고르는 창 · [설정] = ⚙ 설정 메뉴 · [내 방 나가기] = 저장 게이지 → 방을 나가는 연출 → 앱 끄기 (js/roomexit.js) */
+        /* 🚪 이동 ▾ (도련 11-23 · 위 ▾ 틀 그대로) : [이동] = 갈 곳 고르는 창 · [설정] = ⚙ 설정 메뉴 · [내 방 나가기] = 저장 게이지 → 인사 → 🌙 불 꺼진 문 → 앱 끄기 (js/roomexit.js) */
         const DKG_ITEMS = [['이동', () => deskMoveOpen()], ['설정', () => openSettingsMenu()], ['내 방 나가기', () => window.roomExit && roomExit()]];   // ⚙ 설정 = 예전 이동 창 왼쪽 위 '설정' 버튼 자리 (💻 📲 에선 이동 창에서 뺐어요 · 도련 11-23)
-        function dkgPaint() {
-            const m = document.getElementById('deskMoveMenu'); if (!m) return;
-            m.querySelector('.dtm-list').innerHTML = DKG_ITEMS.map((x, i) => `<button type="button" role="menuitem" onclick="dkgRun(${i})">${x[0]}</button>`).join('');
-        }
-        function dkgToggle(on) {
-            const m = document.getElementById('deskMoveMenu'); if (!m) return;
-            const L = m.querySelector('.dtm-list'), open = on === undefined ? L.hidden : on;
-            if (open) dtmToggle(false);
-            L.hidden = !open; m.classList.toggle('open', open); m.querySelector('.dtm-main').setAttribute('aria-expanded', String(open));
-        }
-        function dkgRun(i) { dkgToggle(false); const it = DKG_ITEMS[i]; if (!it) return; dkModesOff(); deskTopGo(it[1]); }
-        document.addEventListener('pointerdown', e => {
-            const m = document.getElementById('deskTopMenu'); if (m && m.classList.contains('open') && !m.contains(e.target)) dtmToggle(false);
-            const v = document.getElementById('deskMoveMenu'); if (v && v.classList.contains('open') && !v.contains(e.target)) dkgToggle(false);
-        }, true);
-        window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun; window.dkgToggle = dkgToggle; window.dkgRun = dkgRun;
+        DKM.deskMoveMenu = { items: DKG_ITEMS };
+        window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
         function deskLeave() { if (window.bndClose) bndClose(); if (window.closeCraft) closeCraft(); if (window.closeCalRoom) closeCalRoom(); if (window.closeBoothPlace) closeBoothPlace(); if (window.closePostRoom) closePostRoom(); if (window.closeWorld) closeWorld(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
         function deskGoRoom() {                                                  // 🚪 내 방 = 어디서든 내 방 문을 지나 책상으로 (도련 10-31 · 가게는 가게 연출 · 그 밖 = roomGo)
             dtmNext();                                                           // 🔽 돌아올 때마다 오른쪽 위 메뉴가 다음 것으로 (도련 11-01)
@@ -680,8 +677,8 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r"><span class="dtm" id="deskTopMenu"><button type="button" class="desk-shop-go dtm-main" onclick="dtmToggle()" aria-haspopup="menu" aria-expanded="false"><span class="dtm-t"></span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span><span class="dtm" id="deskMoveMenu"><button type="button" class="desk-shop-go dtm-main" id="deskShopGo" onclick="dkgToggle()" aria-haspopup="menu" aria-expanded="false" aria-label="이동"><span class="dtm-t">이동</span><b aria-hidden="true">▾</b></button><span class="dtm-list" hidden></span></span></div>`;   // 🚪 이동 ▾ = [이동] [내 방 나가기] (도련 11-23 · 책상 꾸미기 ▾ 와 같은 모양)
-            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); dtmPaint(); dkgPaint(); }
+                <div class="desk-top-r">${dkMenuHtml('deskTopMenu', '')}${dkMenuHtml('deskMoveMenu', '이동', 'deskShopGo')}</div>`;   // 🔽 ▾ 메뉴 둘 = 틀 하나 (dkMenuHtml · 🛠 책상 꾸미기 ▾ · 🚪 이동 ▾)
+            const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); Object.keys(DKM).forEach(dkMenuPaint); }
             dkModeXBuild();                                                       // ✕ 다이어리모드 · 스티커정리 · 바인더조립 = 오른쪽 위 ✕ (도련 11-15)   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)
             deskItemsRender();

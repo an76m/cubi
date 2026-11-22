@@ -41,6 +41,21 @@ const waitMs = ms => new Promise(r => setTimeout(r, ms));                      /
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));                        // 범위 안으로
 function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }   // 📳 떨림 (안 되는 기기는 그냥 지나가요)
 const calmMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;   // ✨ 움직임 줄이기 켰나요
+/* 📊 저장 게이지 = 하나 (도련 11-23 · 1421 '공통 기능은 하나로' · ✅ 다이어리 완료 js/pagedone.js · 🎨 도안완료 js/padpaint.js · 🚪 내 방 나가기 js/roomexit.js · css/style.css .mg-*)
+     gaugeBar() = 막대 글 (분홍 빗금 · 흐르기) · gaugeSet(상자, 0~100) = 채우기 · gaugeOpen(제목, 작은 글, id) = 덮개 + 상자 → { el, set(p, 제목), close() } */
+const gaugeBar = () => '<span class="mg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></span>';
+function gaugeSet(root, p) {
+    const b = root && (root.classList.contains('mg-bar') ? root : root.querySelector('.mg-bar')); if (!b) return;
+    p = Math.round(Math.max(0, Math.min(100, +p || 0))); b.firstElementChild.style.width = p + '%'; b.setAttribute('aria-valuenow', p);
+}
+function gaugeOpen(title, sub, id) {
+    if (id) { const o = document.getElementById(id); if (o) o.remove(); }
+    const el = document.createElement('div'); el.className = 'mg-gauge'; if (id) el.id = id;
+    el.innerHTML = `<div class="mg-gbox"><b></b>${gaugeBar()}<small></small></div>`;
+    el.querySelector('b').textContent = title || ''; el.querySelector('small').textContent = sub || '';
+    document.body.appendChild(el);
+    return { el, set: (p, t) => { if (t != null) el.querySelector('b').textContent = t; gaugeSet(el, p); }, close: () => el.remove() };
+}
 function mkCanvas(w, h, up) { const c = document.createElement('canvas'), f = up ? Math.ceil : Math.round; c.width = Math.max(1, f(w)); c.height = Math.max(1, f(h)); return c; }   // 🖼 빈 그림판 (up = 올림)
 function tintCanvas(src, fill) { const c = mkCanvas(src.width, src.height), d = c.getContext('2d'); d.drawImage(src, 0, 0); d.globalCompositeOperation = 'source-in'; d.fillStyle = fill; d.fillRect(0, 0, c.width, c.height); return c; }   // 🎨 그림 모양대로 한 색
 function rrPath(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }   // ▢ 둥근 네모 길

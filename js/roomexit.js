@@ -25,17 +25,13 @@
         el.innerHTML = '<div class="rx-scene"><div class="rx-mid">'
             + '<div class="rx-fy l"><svg viewBox="-1 -3 26 25" data-an="1" aria-hidden="true">' + fy('#gateLoginBtn') + '</svg></div>'
             + '<div class="rx-fy r"><svg viewBox="-1 -3 26 25" data-an="1" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)"><g transform="translate(-51 0)">' + fy('#gateGuestBtn') + '</g></g></svg></div>'
-            + '<div class="rx-gauge" role="progressbar" aria-label="저장" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i><u></u></i></div>'
+            + '<div class="rx-gauge">' + gaugeBar() + '</div>'   // 📊 막대 = 하나 (js/util.js · 1421)
             + '<div class="rx-hi"><b>오늘도 다꾸해 줘서 고마워요</b><small>푹 쉬고 또 만나요 <span>💗</span></small></div>'
             + '</div></div><div class="rx-night"></div>';
         document.body.appendChild(el);
         return el;
     }
-    function setP(el, p) {
-        p = Math.max(0, Math.min(100, Math.round(p)));
-        const g = el.querySelector('.rx-gauge'); g.setAttribute('aria-valuenow', p);
-        g.querySelector('u').style.width = p + '%';
-    }
+    const setP = (el, p) => gaugeSet(el.querySelector('.rx-gauge'), p);
 
     /* 💾 기다리던 것 모두 올리기 → 다 올렸으면 true */
     async function saveAll(el) {

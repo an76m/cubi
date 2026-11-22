@@ -4215,3 +4215,15 @@ html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:
 .shop-scene.ph .sw-board { padding: 7px 12px; } .shop-scene.ph .sw-board b { font-size: 14px; }
 .shop-scene.ph .shop-way .shop-ic { width: 22px; height: 20px; line-height: 20px; }
 .shop-scene.ph .shop-back { left: 10px; top: 10px; padding: 7px 13px; font-size: 14px; } .shop-scene.ph .shop-x { right: 10px; top: 10px; }
+
+/* 📊 저장 게이지 = 하나 (도련 11-23 · 1421 · js/util.js gaugeBar · gaugeSet · gaugeOpen) : ✅ 다이어리 완료 · 🎨 도안완료 · 🚪 내 방 나가기 (막대만 · css/roomexit.css 가 둘레를 꾸며요) */
+.mg-bar { display: block; height: 14px; border-radius: 99px; background: #f6e3ea; border: 1.5px solid #5b3a33; overflow: hidden; }
+.mg-bar > i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(45deg, #ff8fb1 0 10px, #ffa9c4 10px 20px); background-size: 28px 28px; animation: mgFlow .8s linear infinite; transition: width .35s ease; }
+@keyframes mgFlow { to { background-position: 28px 0; } }
+.mg-gauge { position: fixed; inset: 0; z-index: 10050; display: grid; place-items: center; background: rgba(60, 35, 45, .28); }
+.mg-gbox { width: min(340px, 86vw); background: #fff; border: 2px solid #5b3a33; border-radius: 18px; padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 6px 0 rgba(91, 58, 51, .2); }
+.mg-gbox b { font-size: 16px; color: #5b3a33; text-align: center; }
+.mg-gbox small { font-size: 11px; color: #8a6070; text-align: center; }
+body:has(.mg-gauge) #customAlertModal { z-index: 10060 !important; }   /* 저장 중에 뜬 질문 (다른 기기에서 고쳤어요 등) = 게이지 위로 */
+.rx-gauge .mg-bar { border-color: #9a6eaa; }   /* 🚪 내 방 나가기 = 문 그림의 연보라 선 */
+@media (prefers-reduced-motion: reduce) { .mg-bar > i { animation: none; } }
