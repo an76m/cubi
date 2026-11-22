@@ -363,20 +363,12 @@ html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는
 body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur { z-index: 2147483000 !important; }
 
 /* 📒 6공 바인더 (펼친 두 쪽 · 가운데 링 · A5 속지 비율 · 크기는 js abSpaceFit 가 --ph 로) · 한 쪽만 볼 때는 링이 그 쪽 옆 (홀수 쪽 = 왼쪽 쪽 → 링이 오른쪽) */
-.abs-book { width: 700px; }
+.abs-book { width: max-content; }   /* 📚 책 크기 = 책 엔진이 (basket.js abSpaceBook) */
 .abx-tag { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 8px; }
 .abx-tag .ab-pick { flex: none; max-width: none; border: 1.6px solid var(--ol) !important; }
 .abx-tag .ab-lbdesk { background: #fffdf6; border-color: var(--ol); }   /* 🏷️ 라벨 = 똑바로 (도련 11-22 · css/style.css .ab-lbdesk 도) */
 .abx-cnt { flex: none; padding: 3px 9px; border-radius: 999px; background: #fffaf2; color: #8a5a6e; font-size: 11.5px; font-weight: 700; }
-.abx-side { flex: none; width: 34px; height: 34px; padding: 0; border: 1.6px solid var(--ol); border-radius: 10px; background: #fffaf2; color: #c8457a; opacity: .45; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-.abx-side.on { opacity: 1; background: #ffe6ef; }
 .abx-full { margin: 0 0 6px; font-size: 12px; color: #b23b6c; }
-.abx-binder { position: relative; width: 100%; padding: 14px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 18px; background: var(--c1); }
-.abx-binder.two { background-image: linear-gradient(90deg, transparent calc(50% - 22px), var(--c2) calc(50% - 22px) calc(50% + 22px), transparent calc(50% + 22px)); }
-.abx-binder.one.even { padding-right: 64px; background-image: linear-gradient(90deg, transparent calc(100% - 52px), var(--c2) calc(100% - 52px)); }
-.abx-binder.one.odd { padding-left: 64px; background-image: linear-gradient(90deg, var(--c2) 52px, transparent 52px); }
-.abx-spread { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
-.abx-binder.one .abx-spread { grid-template-columns: 1fr; }
 .abx-pg { position: relative; box-sizing: border-box; height: var(--ph, 520px); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3.2%; padding: 6% 5% 9%; border: 1.6px solid var(--ol); border-radius: 6px; background: #fffefb; }
 .abx-pg.end { background: #fbf6ef; background-image: repeating-linear-gradient(0deg, transparent 0 22px, #f1e6d8 22px 23px); }
 .abx-pg .ab-pk { position: relative; min-height: 0; padding: 12% 7% 7%; border: 1.6px solid #9cbfd8; border-radius: 4px; background: #eaf4fb; color: #7d9db6; font-size: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
@@ -384,14 +376,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abx-pg .ab-pk::after { content: ''; position: absolute; right: 10%; top: 16%; width: 6px; height: 30%; border-radius: 3px; background: rgba(255,255,255,.75); transform: rotate(14deg); pointer-events: none; z-index: 2; }   /* 비닐 반짝 */
 .abx-pg .ab-pk.full { background: #eaf4fb; border-color: #9cbfd8; }
 .abx-pg .ab-pk.ab-over { border: 2px dashed #ff6b88; background: #ffeef3; }
-.abs-book .abx-pg .ab-pk .bk-sh { width: 100% !important; max-width: 100%; max-height: 100%; box-sizing: border-box; padding: 6%; border: 1.4px solid var(--ol) !important; box-shadow: none !important; background: #fff !important; border-radius: 8px; }   /* 종이가 포켓에 꽉 (실제처럼) */
 .abx-no { position: absolute; bottom: 2.4%; left: 50%; translate: -50% 0; font-size: 11px; color: #b49aa8; font-weight: 700; pointer-events: none; }
-.abx-rings { position: absolute; left: 50%; top: 22px; bottom: 22px; width: 76px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
-.abx-binder.one.even .abx-rings { left: calc(100% - 52px); }
-.abx-binder.one.odd .abx-rings { left: 52px; }
-.abx-rings span { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 */
-.abx-rings svg { flex: none; width: 76px; height: 22px; }
-.abx-nav { margin-top: 8px; }
 
 /* 📒 🤍 펼친 바인더 · 이형지북 = 창 없이 떠 있는 책 (도련 11-15 · js/basket.js abFlt) : 위 막대 = 다이어리 날짜바처럼 · 막대를 끌면 옮겨져요 · 뒤 화면은 그대로 눌려요 */
 #basketKindModal.ab-flt { --ol: #8d6f7f; }
@@ -402,6 +387,8 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 #basketKindModal.ab-flt .bk-wrap, #basketKindModal.ab-flt .ab-body { margin: 0; padding: 0; }
 .bk { position: fixed; left: 0; top: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; filter: drop-shadow(0 8px 16px rgba(120, 70, 60, .18)); }
 .bk.mv { filter: drop-shadow(0 14px 24px rgba(120, 70, 60, .28)); }
+.bk.inline { position: relative; left: auto !important; top: auto !important; z-index: auto; }   /* 자리(host) 안에 놓인 책 = 🧩 바인더 조립 · 📒 🤍 스티커 정리 */
+.bk.inline .bk-bar::before { display: none; }
 .bk-bar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: min(360px, 92vw); height: 42px; padding: 0 6px; box-sizing: border-box;
     border: 2px solid #f6c9d8; border-radius: 14px; background: #fff3f7; color: #d2457a; font-weight: 800; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
 .bk.mv .bk-bar { cursor: grabbing; }
@@ -455,17 +442,8 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk .ab-rel.abf-rl .ab-relhint { color: #b4a6c4; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
 
 /* 🤍 스프링 이형지북 (왼쪽 스프링 · 반짝이는 이형지 · 뒤로 겹친 종이) */
-.abx-rlbook { position: relative; width: 100%; padding: 14px 14px 14px 34px; box-sizing: border-box; border: 2px solid var(--ol); border-radius: 8px 18px 18px 8px; background: #cbb8ec; }
-.abx-stack { position: absolute; left: 34px; right: 8px; top: 20px; bottom: 8px; border: 1.6px solid var(--ol); border-radius: 4px; background: #f6f3fa; }
-.abx-stack::after { content: ''; position: absolute; left: -1.6px; right: 3px; top: -8px; bottom: 3px; border: 1.6px solid var(--ol); border-radius: 4px; background: #fbf9fd; }
-.abs-book .ab-rel.abx-wax { position: relative; height: var(--ph, 520px); border: 1.6px solid var(--ol); border-radius: 4px; outline: 0; margin-right: 8px; margin-bottom: 8px;
     background-color: #fdfcff; background-image: repeating-linear-gradient(125deg, transparent 0 46px, #f2eef9 46px 70px, transparent 70px 96px, #f7f4fb 96px 104px) !important; }
-.abs-book .ab-rel.abx-wax.ab-over, .abs-book .ab-rel.abx-wax.ready { outline: 2px dashed #ff6b88; outline-offset: -6px; }
-.abs-book .ab-rel.abx-wax .ab-it { width: 54px; height: 54px; }
-.abs-book .ab-rel.abx-wax .ab-relhint { color: #b4a6c4; }
-.abx-coil { position: absolute; left: 4px; top: 18px; bottom: 18px; width: 46px; display: flex; flex-direction: column; justify-content: space-between; z-index: 2; pointer-events: none; }
-.abx-coil i { display: block; width: 46px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; position: relative; }
-.abx-coil i::after { content: ''; position: absolute; right: 6px; top: 1px; width: 6px; height: 6px; border-radius: 50%; background: #8a789e; }
+.abs-book .ab-rel.srt.ab-over, .abs-book .ab-rel.srt.ready { outline: 2px dashed #ff6b88; outline-offset: -6px; }   /* 🤍 여기에 놓여요 */
 .abx-none { width: 100%; padding: 30px 14px; border: 2px dashed var(--ol); border-radius: 18px; background: rgba(255,250,242,.9); }
 /* 🧺 톡 = 그 종이를 맨 위로 (겹친 바구니에서 보기 · 도련 10-29) · 끄는 종이는 떼는 판 위로 */
 .abs-basket .ab-sc.up .bk-sh { outline: 3px solid #ffb3c9; outline-offset: 2px; }
@@ -473,7 +451,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
    종이를 손가락으로 위로 끌어 포켓에 꽂아요 (톡 → 포켓 톡도) · 서랍 줄은 옆으로 넘겨 봐요 · 🤍 = 종이 톡 → 시트가 매트로 → 🪡 떼어 위로 */
 #basketKindModal.ab-ph > .modal-content { background-image: none !important; background-color: #fbefe2 !important; }
 .ab-ph .abs-bar { flex-wrap: wrap; gap: 6px 8px; padding: 8px 10px 8px; padding-top: max(8px, env(safe-area-inset-top)); }
-.ab-ph .abs-bar .ab-back { order: 0; padding: 6px 12px; }
 .ab-ph .abs-bar .ab-kind { order: 1; }
 .ab-ph .abs-bar .abs-fill { order: 2; }
 .ab-ph .abs-bar .ab-done { display: none; }                                   /* ‹ 서랍 과 같아요 */
@@ -484,13 +461,9 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .ab-ph .abs-room { display: flex; flex-direction: column; align-items: center; overflow: hidden; }
 .ab-ph .abs-box { position: relative; left: auto !important; top: auto !important; max-height: none; }
 .ab-ph .abs-book { order: 0; flex: 1; min-height: 0; justify-content: center; padding: 8px 0 4px; }
-.ab-ph .abs-book .abs-grip, .ab-ph .abx-side { display: none; }
+.ab-ph .abs-book .abs-grip { display: none; }
 .ab-ph .abx-tag { gap: 6px; margin-bottom: 6px; } .ab-ph .abx-tag .ab-lbdesk { max-width: 34%; overflow: hidden; }
-.ab-ph .abx-binder { padding: 10px; } .ab-ph .abx-binder.one.even { padding-right: 58px; } .ab-ph .abx-binder.one.odd { padding-left: 58px; }
-.ab-ph .abx-binder.one.even .abx-rings { left: calc(100% - 46px); } .ab-ph .abx-binder.one.odd .abx-rings { left: 46px; }
-.ab-ph .abx-rings { width: 60px; } .ab-ph .abx-rings svg { width: 60px; height: 18px; }
 .ab-ph .abx-pg .ab-pk span { font-size: 11px; }
-.ab-ph .abx-nav { margin-top: 4px; }
 /* 아래 서랍 시트 */
 .ab-ph .abs-basket { order: 1; flex: none; width: 100% !important; box-sizing: border-box; padding: 6px 0 max(10px, env(safe-area-inset-bottom)); background: #fffaf4; border-top: 1.6px solid #e8cbb0; border-radius: 22px 22px 0 0; box-shadow: 0 -6px 18px rgba(141, 111, 127, .16); z-index: 3; }
 .ab-ph .abs-basket.rise { animation: abpRise .32s cubic-bezier(.2, .9, .3, 1.05); }
@@ -529,7 +502,6 @@ body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 .abx-mat .ab-peelhint { flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.5; }
 .abx-mat .ab-peelhint small { font-size: 12px; }
 /* 🤍 이형지북 스티커 = 다이어리에 붙였을 때와 같은 크기 (w · h × 배율 --rk · js abRelK · 도련 10-29) */
-.abs-book .ab-rel.abx-wax .ab-it[style*="--iw"] { width: calc(var(--iw) * var(--rk, .5) * 1px); height: calc(var(--ih) * var(--rk, .5) * 1px); }
 .abs-basket .ab-stripempty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0; }
 
 /* 🗺️ 씰 시트 배치 그대로 (도련 10-29 · js/basket.js abLayHtml) : 흰 종이 위 원래 자리 · 크기 */

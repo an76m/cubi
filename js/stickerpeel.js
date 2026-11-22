@@ -400,7 +400,7 @@
                 hid.forEach(el => { el.style.pointerEvents = el.dataset.pe || ''; delete el.dataset.pe; });
                 const gp = under && under.closest('.abs-grip');
                 if (gp && window.abGripAt) { abGripAt(gp, e); return; }        // ✋ 정리 공간 이름표 = 바구니 · 정리북 옮기기 (떼는 판이 떠 있어도 · 도련 10-29)
-                const ri = under && under.closest('#abRel .ab-it');
+                const ri = under && under.closest('.ab-rel.srt .ab-it');
                 if (ri && window.abItGrab) { abItGrab(ri, e); return; }       // ✋ 이형지에 놓은 스티커 = 자리 옮기기 (js/basket.js)
                 const sc = under && under.closest('.ab-sc');
                 if (sc && window.abSheetDown) { abSheetDown(sc, e); return; }   // 바구니의 다른 종이 : 톡 = 맨 위로 · 끌어서 매트에 놓기 (js/basket.js abUp)
@@ -476,14 +476,14 @@
         }
         /* 🤍 이형지북 위에 놓으면 그 자리에 · 밖이면 종이로 돌아가요 */
         function pelRelDrop() {
-            const S = pelS, st = S.st, k = S.items.findIndex(o => o.st === st), R0 = S.rel.target();
+            const S = pelS, st = S.st, k = S.items.findIndex(o => o.st === st), R0 = S.rel.target(st.cx, st.cy);   // 놓은 곳의 쪽 (펼친 두 쪽이면 그 쪽 · pg)
             if (!R0 || st.cx < R0.left || st.cx > R0.right || st.cy < R0.top || st.cy > R0.bottom) {
                 st.state = 'on'; st.snap = null; pelLayout();
                 return;
             }
             st.state = 'done';
             const a0 = S.items[k] && S.items[k].a;                               // 진짜 크기 (다이어리에 붙였을 때의 그림 크기)
-            S.rel.drop(k, Object.assign({ x: (st.cx - R0.left) / R0.width, y: (st.cy - R0.top) / R0.height, r: Math.round(st.rot * 180 / Math.PI) }, a0 ? { w: a0.w - a0.m * 2, h: a0.h - a0.m * 2 } : {}));
+            S.rel.drop(k, Object.assign({ x: (st.cx - R0.left) / R0.width, y: (st.cy - R0.top) / R0.height, r: Math.round(st.rot * 180 / Math.PI) }, R0.pg != null ? { pg: R0.pg } : {}, a0 ? { w: a0.w - a0.m * 2, h: a0.h - a0.m * 2 } : {}));
             const left = S.items.filter(o => o.st.state === 'on');
             if (!left.length) { closeStickerPeel(); return; }
             pelPick(left[0]); pelLayout();
