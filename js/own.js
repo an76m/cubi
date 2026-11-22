@@ -655,14 +655,14 @@
         window.ownDesigns = ownDesigns; window.ownDesignPrint = ownDesignPrint; window.ownDesignDrop = ownDesignDrop;
 
         /* ---------- 📂 종이 한 장 열기 : 늘 드라이브의 지금 모습 (다른 기기에서 쓴 칸은 비어 있어요) ---------- */
-        async function ownSheet(id) {
+        async function ownSheet(id, moved) {                                    // moved = 🤍 칸이 모두 이형지북에 가 있는 시트도 (↩ 제자리로 돌려놓을 때 · basket.js abRelBack)
             ownReady();
             return ownSerial(async () => {
                 const k = await ownFindKind(id); if (!k) { ownTell(); return null; }
                 const list = await ownIdxRead(k);
                 ownSetKind(k, list);
                 const e = list.find(x => x.id === id);
-                if (!e || !ownAlive(e)) { ownTell(); return null; }
+                if (!e || !(ownAlive(e) || (moved && !e.bin && ownMoved(e).length))) { ownTell(); return null; }
                 let s;
                 try { s = await ownEntSheet(e, list); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
                 if (ownMoved(e).length) s.imgs = ownMask(s, e);                    // 🤍 이형지북에 가 있는 칸은 빈 칸으로
@@ -1063,17 +1063,10 @@
         async function ownRelBatch(ops) {
             ownReady();
             return ownSerial(async () => {
-                const ks = [];
-                for (const op of ops) { const k = await ownFindKind(op.s); if (k && !ks.includes(k)) ks.push(k); }
-                const out = ops.map(() => '');
-                if (!ks.length) return out;
-                const got = await Promise.all(ks.map(k => Promise.all([ownIdxRead(k), ownAlbRead(k)])));   // 동시에 읽어요
-                const lists = new Map(ks.map((k, i) => [k, got[i][0]]));
-                const a = ownAlbumClean(ownAlbJoin(got.map(g => g[1])), [].concat(...got.map(g => g[0])));
+                const out = ops.map(() => ''), { lists, a } = await ownRelRead(ops.map(o => o.s)); if (!a) return out;
                 const changedK = new Set(), sheets = new Map();
                 for (let i = 0; i < ops.length; i++) {
-                    const op = ops[i]; let k = '', e = null;
-                    for (const [kk, L] of lists) { const hit = L.find(x => x.id === op.s); if (hit) { k = kk; e = hit; break; } }
+                    const op = ops[i], { k, e } = ownRelFind(lists, op.s);
                     if (!e || !ownAlive(e) || e.q0) continue;
                     const list = lists.get(k), rel = a.rl.find(r => r.id === op.rl); if (!rel) continue;
                     const pg = Math.max(0, Math.min(rel.n - 1, Math.floor(+op.pos.pg || 0)));
@@ -1088,18 +1081,56 @@
                     if (!e.ref && src.th && !src.us) src.th = await ownThumb(ownMask(sh, src), 0, sh.gh);   // 바구니 미리보기도 그 칸이 비게
                     out[i] = ne.id; changedK.add(k);
                 }
-                if (!changedK.size) return out;
-                for (const k of changedK) await ownIdxWrite(k, lists.get(k));
-                changedK.forEach(k => ownSetKind(k, lists.get(k)));
-                const c = ownAlbumClean(a, [].concat(...[...lists.values()]));
-                try { for (const k of changedK) { await ownAlbWrite(k, c); ownK(k).alb = ownAlbPart(c, k); } ownMerge(); }
-                catch (er) { changedK.forEach(k => { ownK(k).alb = null; }); ownMerge(); ownTell(); throw er; }
-                ownTell();
+                await ownRelWrite(lists, a, changedK);
                 return out;
             });
         }
+        async function ownRelRead(ids) {                                        // 🤍 그 줄들의 종류 목록 · 스티커첩 (동시에 읽어요 · ownRelBatch · ownRelBack 같이)
+            const ks = [];
+            for (const id of ids) { const k = await ownFindKind(id); if (k && !ks.includes(k)) ks.push(k); }
+            const got = await Promise.all(ks.map(k => Promise.all([ownIdxRead(k), ownAlbRead(k)])));
+            const lists = new Map(ks.map((k, i) => [k, got[i][0]]));
+            return { lists, a: ks.length ? ownAlbumClean(ownAlbJoin(got.map(g => g[1])), [].concat(...got.map(g => g[0]))) : null };
+        }
+        const ownRelFind = (lists, id) => { for (const [k, L] of lists) { const e = L.find(x => x.id === id); if (e) return { k, e }; } return { k: '', e: null }; };
+        async function ownRelWrite(lists, a, changedK) {                        // 🤍 바뀐 종류만 목록 → 스티커첩 (ownRelBatch · ownRelBack 같이)
+            if (!changedK.size) return;
+            for (const k of changedK) await ownIdxWrite(k, lists.get(k));
+            changedK.forEach(k => ownSetKind(k, lists.get(k)));
+            const c = ownAlbumClean(a, [].concat(...[...lists.values()]));
+            try { for (const k of changedK) { await ownAlbWrite(k, c); ownK(k).alb = ownAlbPart(c, k); } ownMerge(); }
+            catch (er) { changedK.forEach(k => { ownK(k).alb = null; }); ownMerge(); ownTell(); throw er; }
+            ownTell();
+        }
+        /* ↩ 이형지북 스티커를 원래 시트 제자리로 (도련 11-23 · 현실처럼 핀셋으로 떼어 매트의 그 종이에 다시) : 이형지북 줄을 빼고 · 시트 줄 m 에서 그 칸을 빼요
+             · 그림은 처음부터 시트 파일에 그대로 있었어요 → 종이 파일은 안 건드려요 (목록 · 스티커첩 글자만) · 결과 = 줄마다 true (못 돌려놓았으면 false) */
+        async function ownRelBack(ids) {
+            ownReady();
+            return ownSerial(async () => {
+                const out = ids.map(() => false), { lists, a } = await ownRelRead(ids); if (!a) return out;
+                const changedK = new Set(), sheets = new Map();
+                for (let i = 0; i < ids.length; i++) {
+                    const { k, e } = ownRelFind(lists, ids[i]); if (!e || !e.ref || e.bin) continue;
+                    const list = lists.get(k), src = list.find(x => x.id === e.ref.s), c = e.ref.c; if (!src || src.bin || !ownMoved(src).includes(c)) continue;
+                    if (!sheets.has(src.id)) { try { sheets.set(src.id, await ownFileRead(src.f)); } catch (er) { if (er && er.code === 'gone') { sheets.set(src.id, null); continue; } throw er; } }
+                    const sh = sheets.get(src.id); if (!sh || sh.imgs[c] == null) continue;
+                    list.splice(list.indexOf(e), 1);
+                    a.rl.forEach(r => { r.it = r.it.filter(t => t.s !== e.id); });
+                    src.m = ownMoved(src).filter(x => x !== c); if (!src.m.length) delete src.m;
+                    src.u = ownUsedOf(sh, src); O.spent.delete(src.id);                 // 다 옮겨 바구니에 안 보이던 시트도 다시 보여요
+                    if (src.th && !src.us) src.th = await ownThumb(ownMask(sh, src), 0, sh.gh);   // 바구니 미리보기도 그 칸이 다시 차게
+                    out[i] = true; changedK.add(k);
+                }
+                await ownRelWrite(lists, a, changedK);
+                return out;
+            });
+        }
+        async function ownLineGet(id) {                                         // 목록 한 줄 (바구니에 안 보이는 줄도 · 사본)
+            ownReady();
+            return ownSerial(async () => { const k = await ownFindKind(id); if (!k) return null; const e = (await ownIdxRead(k)).find(x => x.id === id); return e ? ownPendFix(JSON.parse(JSON.stringify(e))) : null; });
+        }
         /* 종이의 그림들 (정리 책상에서 낱개로 보여 주기 · 쓰는 중인 칸은 비어요) */
-        async function ownSheetImgs(id) { const r = await ownSheet(id); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null, sb: (r.s.x && r.s.x.sb) || '' } : null; }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
+        async function ownSheetImgs(id, moved) { const r = await ownSheet(id, moved); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null, sb: (r.s.x && r.s.x.sb) || '' } : null; }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
 
         /* 실패 이유 → 알림 글 */
         function ownErrText(e) {
@@ -1162,4 +1193,4 @@
         window.ownTapeFix = ownTapeFix; window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownKitDesc = ownKitDesc; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id); window.ownPendOn = e => e ? ownPendFix(e) : e;   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id); window.ownPendOn = e => e ? ownPendFix(e) : e;   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelBatch = ownRelBatch; window.ownRelBack = ownRelBack; window.ownLineGet = ownLineGet; window.ownSheetImgs = ownSheetImgs;
