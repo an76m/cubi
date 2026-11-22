@@ -1802,8 +1802,9 @@
 
         /* 다음에 열었을 때, 업로드되지 못한 임시 보관본(변경된 날짜만)이 있으면 복구
            - 기기 시계는 믿지 않아요 : 보관할 때 적어 둔 '그때 드라이브 파일의 수정 시각'과 지금 수정 시각을 비교해요
-             · 같으면 그 사이 아무도 안 고친 것 → 한 번에 "복구할까요?"
-             · 다르면 그 사이 다른 기기가 고친 것 → 일기는 날마다 "어느 쪽을 남길까요?" · 설정은 한 번에 물어요
+             · 같으면 그 사이 아무도 안 고친 것 → 이 기기 것을 그대로 올려요
+             · 다르면 그 사이 다른 기기가 고친 것 → 일기 = 이 기기 것 (다른 기기 것은 🗑 휴지통) · 설정 = 나중에 바꾼 쪽
+             · 🤫 묻지 않아요 (도련 11-22 : 사용자는 어떻게 할지 몰라요 · 앱이 알아서)
              · ☕ 카페 기록은 묻지 않고 양쪽을 합쳐요 (cafeMerge)
            - 지금 드라이브 내용이 보관본과 같으면 (이미 올라감) 아무것도 안 해요 */
         async function recoverPendingBackup() {
@@ -1839,30 +1840,18 @@
                 if (store.getItem(k) === v) continue;                                   // 내용이 같음 (이미 올라갔어요)
                 if (!dk && keyFile(k) === 'cafe') cafe.push(k);
                 else if (k in B && B[k] === now) safe.push(k);                          // 그 사이 아무도 안 고쳤어요
-                else (dk ? askDays : askSet).push(k);                                   // 그 사이 다른 기기가 고쳤어요
+                else (dk ? askDays : askSet).push(dk ? k : [k, now]);                   // 그 사이 다른 기기가 고쳤어요 (설정 = 드라이브 시각도)
             }
             if (!keep) await forget();
             if (!safe.length && !cafe.length && !askDays.length && !askSet.length) return;
             const put = k => { const v = p.items[k]; if (v === null) store.removeItem(k); else store.setItem(k, v); };
             let any = false;
-            const when = new Date(p.savedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            try {
-                if (safe.length || cafe.length) {
-                    const yes = await showMsg('📴 ' + when + '에 바꾼 내용이<br>드라이브에 저장되지 못했어요. (' + (safe.length + cafe.length) + '건)<br>이 기기에 보관된 내용으로 복구할까요?<br><span style="font-size:12px;color:#777;">취소를 누르면 드라이브의 현재 내용을 유지해요.</span>', true);
-                    if (yes) {
-                        safe.forEach(put);
-                        cafe.forEach(k => { const m = cafeMerge(k, BV[k], p.items[k], store.getItem(k)); if (m !== store.getItem(k)) store.setItem(k, m); });
-                        any = true;
-                    }
-                }
-                for (const k of askDays) {
-                    const mine = await showAsk(`📴 ${when}에 고친 <b>${keyLabel(k)}</b> 일기가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 이 날을 고쳤어요.<br>어느 쪽을 남길까요?<br><span style="font-size:12px;color:#777;">고르지 않은 쪽은 사라져요.</span>`, '📝 이 기기 것', '📱 다른 기기 것');
-                    if (mine) { if (window.trashKeepDay) await trashKeepDay(k, store.getItem(k)); put(k); any = true; }   // 🗑 다른 기기 것은 휴지통에
-                }
-                if (askSet.length) {
-                    const mine = await showAsk(`📴 ${when}에 바꾼 <b>설정 ${askSet.length}개</b>가 저장되지 못했는데,<br>그 사이 📱 다른 기기에서 설정을 바꿨어요.<br>어느 쪽을 남길까요?`, '📝 이 기기 것', '📱 다른 기기 것');
-                    if (mine) { askSet.forEach(put); any = true; }
-                }
+            try {                                                               // 🤫 묻지 않고 앱이 알아서 (도련 11-22 '사용자는 이런 메세지가 나오면 어떻게 할지 몰라요')
+                safe.forEach(put);                                              // 그 사이 아무도 안 고쳤어요 = 이 기기 것을 그대로 올려요
+                cafe.forEach(k => { const m = cafeMerge(k, BV[k], p.items[k], store.getItem(k)); if (m !== store.getItem(k)) store.setItem(k, m); });   // ☕ 카페 기록 = 양쪽을 합쳐요
+                for (const k of askDays) { if (window.trashKeepDay) await trashKeepDay(k, store.getItem(k)); put(k); }   // 📔 일기 = 이 기기 것 · 다른 기기 것은 🗑 휴지통에 (되살릴 수 있어요)
+                for (const [k, now] of askSet) { if ((p.at[k] || 0) >= (Date.parse(now) || 0)) put(k); }   // ⚙ 설정 = 나중에 바꾼 쪽
+                any = true;
                 if (!any) return;
                 applyLoadedData();
                 await flushUpload({ force: true });
