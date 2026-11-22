@@ -1,22 +1,42 @@
-/* 🚪 내 방 나가기 (도련 11-23 · js/roomexit.js) : 로그인 문 그림(그림만) → 저장 게이지 → 카메라가 뒤로 빠지며 어두워져요 → 앱 끄기 */
+/* 🚪 내 방 나가기 (도련 11-23 · js/roomexit.js) : 로그인 문 그림(그림만) + 요정 둘 → 저장 게이지 → 다정한 인사 → 페이드아웃 → 🌙 불 꺼진 문 → 앱 끄기 (1416) */
 .rx { position: fixed; inset: 0; z-index: 2147483100; overflow: hidden; background: #231a24; opacity: 0; transition: opacity .6s ease, background 1.2s ease; touch-action: none; user-select: none; }
 .rx.on { opacity: 1; }
 .rx-scene { position: absolute; inset: 0; background: #f9d9e1 url(../img/gate-wide.webp?v=20261009-819) center / cover no-repeat; scale: 1.08; transition: scale .9s cubic-bezier(.2, .7, .3, 1); }   /* 그림 = 로그인 문 화면과 같아요 (css/style.css .drive-gate.gate-art) */
 @media (max-aspect-ratio: 1/1) { .rx-scene { background-image: url(../img/gate-tall.webp?v=20261009-819); } }
 .rx.on .rx-scene { scale: 1; }
-/* 💾 게이지 = 알림판 자리 (글씨 없이 막대만) */
-.rx-gauge { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: min(300px, 64vw); padding: 10px; border-radius: 99px; background: rgba(255, 250, 244, .9); border: 1.6px solid #9a6eaa; box-shadow: 0 4px 0 rgba(154, 110, 170, .22); transition: opacity .4s ease, scale .4s ease; }
+/* 💾 게이지 + 요정 둘 + 인사 = 알림판 가운데 (글씨 = 인사만 · 1416) */
+.rx-mid { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: min(600px, 92vw); height: 220px; }
+.rx-gauge { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: min(280px, 52vw); padding: 9px; border-radius: 99px; background: rgba(255, 250, 244, .92); border: 1.6px solid #9a6eaa; box-shadow: 0 4px 0 rgba(154, 110, 170, .22); transition: opacity .4s ease, scale .4s ease; }
 .rx-gauge i { display: block; height: 14px; border-radius: 99px; background: #f6e3ea; border: 1.5px solid #9a6eaa; overflow: hidden; }
 .rx-gauge u { display: block; height: 100%; width: 0; background: repeating-linear-gradient(45deg, #ff8fb1 0 10px, #ffa9c4 10px 20px); background-size: 28px 28px; animation: rxFlow .8s linear infinite; transition: width .35s ease; }
 @keyframes rxFlow { to { background-position: 28px 0; } }
 .rx.done .rx-gauge { opacity: 0; scale: .9; }
-/* 🎥 카메라 아웃 : 문 화면이 멀어지며 작아지고 · 둘레가 어두워져요 → 마지막에 다 어두워져요 */
-.rx.out .rx-scene { scale: .34; border-radius: 28px; opacity: .0; filter: blur(1.5px) brightness(.8);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
-    transition: scale 2.2s cubic-bezier(.55, 0, .25, 1), border-radius .6s ease, opacity .7s ease 1.55s, filter 2.2s ease, box-shadow .6s ease; }
-.rx.end { background: #140e15; }
-.rx.stay { cursor: pointer; }
-@media (prefers-reduced-motion: reduce) { .rx, .rx-scene, .rx.out .rx-scene { transition: opacity .3s ease !important; animation: none; } .rx-gauge u { animation: none; } }
+.rx-fy { position: absolute; top: 50%; width: 104px; height: 96px; translate: 0 -54%; animation: rxFyBob 1.2s ease-in-out infinite; }
+.rx-fy.l { left: 6px; } .rx-fy.r { right: 6px; animation-delay: -.6s; }
+.rx-fy svg { width: 100%; height: 100%; overflow: visible; }
+@keyframes rxFyBob { 0%, 100% { translate: 0 -54%; } 50% { translate: 0 calc(-54% - 6px); } }
+.rx.hi .gf-eo, .rx.hi .gf-ec { animation: none; opacity: 0; } .rx.hi .gf-eh { opacity: 1; }   /* 인사 = 웃는 눈 · 날갯짓 빠르게 · 요술봉 흔들기 */
+.rx.hi .gf-wu, .rx.hi .gf-wd { animation-duration: .18s; }
+.rx.hi .gf-wnd { transform-box: fill-box; transform-origin: 0% 100%; animation: rxWave .5s ease-in-out infinite alternate; }
+@keyframes rxWave { from { rotate: -14deg; } to { rotate: 10deg; } }
+.rx-hi { position: absolute; left: 50%; top: 50%; translate: -50% -50%; text-align: center; white-space: nowrap; opacity: 0; scale: .85; transition: opacity .45s ease, scale .45s cubic-bezier(.3, 1.6, .5, 1); pointer-events: none; }
+.rx.hi .rx-hi { opacity: 1; scale: 1; }
+.rx-hi b { display: block; font-family: 'Jua', var(--system-font), sans-serif; font-weight: 400; font-size: 26px; color: #e2779f; text-shadow: 0 2px 0 #fffaf0, 1.5px 0 0 #fffaf0, -1.5px 0 0 #fffaf0, 0 -1.5px 0 #fffaf0, 0 3px 0 rgba(154, 110, 170, .28); }   /* 로그인 화면 제목 글씨와 같아요 */
+.rx-hi small { display: block; margin-top: 6px; font-family: 'Jua', var(--system-font), sans-serif; font-size: 16px; color: #9a6eaa; }
+.rx-hi small span { display: inline-block; animation: rxBeat 1s ease-in-out infinite; }
+@keyframes rxBeat { 0%, 100% { scale: 1; } 50% { scale: 1.25; } }
+/* 페이드아웃 → 🌙 불 꺼진 문 (계속 · 톡 = 다시 들어오기) */
+.rx.fade .rx-scene { opacity: 0; transition: opacity 1.4s ease; }
+.rx-night { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; }
+.rx.night .rx-night { opacity: 1; } .rx.night { cursor: pointer; }
+.rx-night svg { width: 100%; height: 100%; display: block; }
+.rx-tw { animation: rxTw 2.4s steps(1) infinite; } .rx-tw.d1 { animation-delay: -.8s; } .rx-tw.d2 { animation-delay: -1.6s; }
+@keyframes rxTw { 0% { opacity: 1; } 50% { opacity: .25; } }
+.rx-sway { transform-box: fill-box; transform-origin: 50% 0%; animation: rxSway 3s ease-in-out infinite; }
+@keyframes rxSway { 0%, 100% { rotate: -7deg; } 50% { rotate: 7deg; } }
+.rx-glow { animation: rxGlow 3s ease-in-out infinite; } .rx-glow.g2 { animation-delay: -.5s; }
+@keyframes rxGlow { 0%, 100% { opacity: .25; } 50% { opacity: .7; } }
+@media (prefers-reduced-motion: reduce) { .rx, .rx-scene, .rx-night, .rx-hi { transition: opacity .3s ease !important; } .rx-gauge u, .rx-fy, .rx-tw, .rx-sway, .rx-glow, .rx-hi small span { animation: none; } }
 #deskMoveMenu .dtm-list { left: auto; right: 0; }   /* 🚪 이동 ▾ 목록 = 화면 오른쪽 끝에 맞춰요 (안 잘리게) */
 body:has(#roomExit) #customAlertModal { z-index: 2147483200 !important; }   /* 못 올렸을 때 묻는 창 = 문 화면 위로 */
 /* 💗 지난번에 버튼 없이 껐으면 = 이동 ▾ 를 가리키는 화살표 + 한 줄 (도련 11-23 · js/roomexit.js rxHint) · 셀 애니 (단색 + 진한 선 · 딱 떨어지는 그늘) */
