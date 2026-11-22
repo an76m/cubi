@@ -9,7 +9,7 @@
    - 화면마다 : tsAuto({ dirty, save }) 로 자동 저장을 맡기고 · 닫을 때 tsClose({ title, dirty, save, drop }) 하나로 물어보고 처리해요
    ※ util.js 다음 · 다이어리 · 그림판 · 스티커 정리 코드보다 먼저 읽어요 */
 const TS = { ms: 60000, hide: true };                                        // ⏱ 자동 임시저장 간격 (여기 한 곳만 고치면 세 곳 모두) · hide = 앱을 내릴 때도
-const TS_ASK = '💾 임시저장 = 이 기기에만 저장하고 닫아요 · 다시 열면 이어서 해요<br>그냥 닫기 = 마지막 임시저장(자동 포함) 뒤에 한 것은 저장하지 않고 닫아요';
+const TS_ASK = '💾 임시저장 = 이 기기에만 저장하고 닫아요';   // 나머지 설명은 뺐어요 (도련 11-22)
 function tsAuto(o) {                                                         // o = { dirty: () => 바뀐 게 있나, save: () => 이 기기에 저장 }
     const run = () => { try { if (o.dirty()) o.save(); } catch (e) { console.warn('💾 자동 임시저장', e); } };
     setInterval(run, TS.ms);
