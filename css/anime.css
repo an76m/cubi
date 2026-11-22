@@ -896,7 +896,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 .abs-bar .ab-tmpat:empty { display: none; }
 .ab-ph .abs-bar .ab-tmp { order: 2; padding: 6px 10px; } .ab-ph .abs-bar .ab-tmpat { display: none; }
 #basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
-#basketKindModal.ab-space .dk-tape { display: none !important; }   /* 창 모서리 테이프는 정리 공간에선 안 보여요 */
+#basketKindModal.ab-space .dk-tape, #basketKindModal.ab-flt .dk-tape { display: none !important; }   /* 창 모서리 테이프(분홍 · 초록)는 정리 공간 · 떠 있는 책(창 없음)에선 안 보여요 (도련 11-22) */
 /* 📒 🤍 책상에서 띄운 스티커첩 = 📔 다이어리처럼 (도련 11-22 · js/basket.js abUpLand · js/book.js desk) : 덮인 동안 막대 없음 · 떠 있는 동안 책상 위 그 권은 숨어요 */
 .bk.desk.shut .bk-bar { visibility: hidden; }
 #deskStage .dk-vol.up { visibility: hidden; }
