@@ -3718,7 +3718,7 @@ html:not(.is-phone) .bk-pile .bk-sh.one:is(.k-seal, .k-piece, .k-paper) { width:
 /* 🏷️ 정리 책상 라벨 · 포켓 안 종이는 칸에 꽉 차게 (도련 10-25) */
 .ab-target .ab-pick { flex: none; max-width: none; padding: 0 12px; }
 .ab-target small { flex: none; }
-.ab-lbdesk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; min-height: 38px; padding: 0 10px; border: 1.5px dashed #ff9fb8; border-radius: 10px; background: #fffaf2; transform: rotate(-1deg); }
+.ab-lbdesk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; min-height: 38px; padding: 0 10px; border: 1.5px dashed #ff9fb8; border-radius: 10px; background: #fffaf2; }
 .ab-lbdesk input { flex: 1; min-width: 0; border: 0; background: transparent; color: #7b4a5e; font: inherit; font-size: 14px; font-weight: 800; outline: none; }
 .ab-lbdesk input::placeholder { color: #c99aab; font-weight: 400; }
 .ab-lbdesk:focus-within { border-style: solid; border-color: #ff6b88; }

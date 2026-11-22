@@ -366,7 +366,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abs-book { width: 700px; }
 .abx-tag { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 8px; }
 .abx-tag .ab-pick { flex: none; max-width: none; border: 1.6px solid var(--ol) !important; }
-.abx-tag .ab-lbdesk { background: #fffdf6; border-color: var(--ol); transform: rotate(-1deg); }
+.abx-tag .ab-lbdesk { background: #fffdf6; border-color: var(--ol); }   /* 🏷️ 라벨 = 똑바로 (도련 11-22 · css/style.css .ab-lbdesk 도) */
 .abx-cnt { flex: none; padding: 3px 9px; border-radius: 999px; background: #fffaf2; color: #8a5a6e; font-size: 11.5px; font-weight: 700; }
 .abx-side { flex: none; width: 34px; height: 34px; padding: 0; border: 1.6px solid var(--ol); border-radius: 10px; background: #fffaf2; color: #c8457a; opacity: .45; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .abx-side.on { opacity: 1; background: #ffe6ef; }
@@ -887,7 +887,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 
 /* 📒 스티커정리모드 (도련 11-14 · js/basket.js abs-dkmode) : 다이어리모드처럼 책상 위 = 바탕은 🪵 책상판 무늬 / 🌈 배경지 (html --dku-* · js/deskskin.js dkUnderVars) · 오른쪽 위 ✕ (도련 11-15 · 메뉴 · 이동 안 보여요) · 예전 오른쪽 위 메뉴 그대로 · 날짜바 자리에 정리 막대 */
 #basketKindModal.abs-dkmode > .modal-content { background-color: var(--dku-c, #f8d1de) !important; background-image: var(--dku-i, none) !important; background-size: var(--dku-s, auto) !important; background-position: var(--dku-p, 0 0) !important; background-repeat: var(--dku-r, repeat) !important; }
-#basketKindModal.abs-dkmode .abs-bar { align-self: center; width: fit-content; margin: 58px auto 4px; padding: 6px 10px; gap: 10px; background: #fff; border: 2px solid #e9c7dd; border-radius: 16px; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); }
+#basketKindModal.abs-dkmode .abs-bar { align-self: center; width: fit-content; margin: max(12px, env(safe-area-inset-top)) auto 4px;   /* 위로 올림 (도련 11-22 · 예전 58px) */ padding: 6px 10px; gap: 10px; background: #fff; border: 2px solid #e9c7dd; border-radius: 16px; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); }
 #basketKindModal.abs-dkmode .abs-bar .abs-fill, #basketKindModal.abs-dkmode .abs-bar .abs-x { display: none; }
 #basketKindModal.abs-dkmode .abs-bar .ab-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
 /* 💾 임시저장 (도련 11-15 · 다이어리와 같은 [💾 임시저장] [✔ 완료] · js/tempsave.js) */

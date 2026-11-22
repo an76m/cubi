@@ -1023,7 +1023,7 @@
     }
     /* 책 위에 붙은 이름표 : 다른 책 고르기 · 🏷️ 라벨 · 몇 장 */
     function abSpaceTag(t, x, L, cnt, extra) {
-        return `<div class="abx-tag"><button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 ${t === 'bd' ? '바인더' : '이형지북'} 고르기">${t === 'bd' ? abChip(x) : '<i class="ab-chip rl"></i>'}${L.length > 1 ? `${L.findIndex(o => o.id === x.id) + 1} / ${L.length} ▾` : t === 'bd' ? '바인더' : '이형지북'}</button>${abLbDesk(t, x)}<small class="abx-cnt">${cnt}</small>${extra || ''}</div>`;
+        return `<div class="abx-tag">${L.length > 1 ? `<button type="button" class="ab-pick" onclick="abNextTarget()" aria-label="다른 ${t === 'bd' ? '바인더' : '이형지북'} 고르기">${t === 'bd' ? abChip(x) : '<i class="ab-chip rl"></i>'}${L.findIndex(o => o.id === x.id) + 1} / ${L.length} ▾</button>` : ''}${abLbDesk(t, x)}<small class="abx-cnt">${cnt}</small>${extra || ''}</div>`;
     }
     function abPocketsAt(b, p, byId) {                                         // byId = 그 책 종류의 종이들 (📒 책상에 띄운 책은 종류마다 따로 · 없으면 지금 서랍)
         let h = '';
