@@ -1511,13 +1511,13 @@
             if (UI.menu() || !(H.classList.contains('desk-show') || abUp) || !deskDownXY) return;
             if (Math.hypot(ev.clientX - deskDownXY[0], ev.clientY - deskDownXY[1]) > 8) return;   // 끌기는 아니에요
             const t = ev.target;
-            if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, button, input, textarea, select, a, [contenteditable]')) return;
+            if (t.closest && t.closest('.diary-book, .toolbar, .modal, .drive-gate, #dskLayer, #abUpHost, button, input, textarea, select, a, [contenteditable]')) return;
             if (t !== document.body && t !== H && !(t.classList && (t.classList.contains('diary-wrapper') || t.classList.contains('desk-bg') || t.classList.contains('desk-stage')))) return;
             if (window.dkwAteAt && Date.now() - dkwAteAt < 450) return;           // ✋ 이 톡은 손에 든(마우스에 붙은) 문구 내려놓기였어요 (js/deskgd.js · 도련 11-12)
             if (!H.classList.contains('dk-bgon') && window.deskTapAt && deskTapAt(ev.clientX, ev.clientY)) return;   // 접힌 채 떠 있어 책상이 보이면 = 옆 소품 톡 = 그 소품의 기능 (js/desk.js)
             if (H.classList.contains('dk-bgon')) return;                         // 📔 다이어리모드 = 밖 톡으로는 안 나가요 · 오른쪽 위 ✕ 로만 (도련 11-15 · 묻고 닫기 js/desk.js dkModeExit)
-            if (abUp) { if (window.abUpLand && !(window.abUpOpen && abUpOpen())) abUpLand(); return; }   // 📒 🤍 펼친 채 = 밖 톡으로는 안 내려놓아요 (막대 ✕ 로만 · 다이어리처럼)
-            if (window.deskCloseDiary) deskCloseDiary();
+            if (abUp && window.abUpLand) abUpLand();                             // 📒 🤍 덮인 스티커첩은 모두 내려앉아요 · 펼친 책은 그대로 (막대 ✕ 로만 · 다이어리처럼 · 여러 권 · 도련 11-22)
+            if (H.classList.contains('desk-show') && window.deskCloseDiary) deskCloseDiary();
         });
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
            그림은 화면을 꽉 채우고(cover) · 알림판 자리(그림 픽셀)를 화면 자리로 바꿔 카드 가운데를 맞추고 · 카드가 타원 안에 들어가게 줄여요 */

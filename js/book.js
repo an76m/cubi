@@ -162,7 +162,8 @@ function bookOpen(host, spec) {
         B.root.style.setProperty('--ph', h + 'px'); B.root.style.setProperty('--pw', Math.floor(h * R) + 'px'); B.root.style.setProperty('--mmk', (h / mm[1]).toFixed(4));   // --mmk = 화면에서 1mm (px 숫자)
         if (spec.inline) return;                                              // 자리 안 = 옮기지 않아요 (가운데 · css .bk.inline)
         let p = null; try { p = JSON.parse(localStorage.getItem(spec.posKey) || 'null'); } catch (e) {}
-        place(p && isFinite(p.cx) ? p.cx : W / 2, p && isFinite(p.y) ? p.y : Math.max(8, (H - B.root.offsetHeight) / 2));
+        const k = spec.nudge || 0;                                          // nudge = 처음 자리를 그만큼 비켜요 (📒 🤍 책상에 여러 권 띄우면 겹치지 않게)
+        place(p && isFinite(p.cx) ? p.cx : W / 2 + k, p && isFinite(p.y) ? p.y : Math.max(8, (H - B.root.offsetHeight) / 2) + k);
     }
     function place(cx, y) {                                                  // cx = 막대 가운데 · 막대가 늘 화면 안에 (책은 반쯤 넘어가도 돼요 · 📱 폰 = 늘 화면 안)
         const W = innerWidth, H = innerHeight, w = B.root.offsetWidth;

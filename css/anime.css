@@ -898,6 +898,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 #basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
 #basketKindModal.ab-space .dk-tape, #basketKindModal.ab-flt .dk-tape { display: none !important; }   /* 창 모서리 테이프(분홍 · 초록)는 정리 공간 · 떠 있는 책(창 없음)에선 안 보여요 (도련 11-22) */
 /* 📒 🤍 책상에서 띄운 스티커첩 = 📔 다이어리처럼 (도련 11-22 · js/basket.js abUpLand · js/book.js desk) : 덮인 동안 막대 없음 · 떠 있는 동안 책상 위 그 권은 숨어요 */
+.ab-uphost { position: fixed; inset: 0; z-index: 900; pointer-events: none; --ol: #8d6f7f; }   /* 책상에 띄운 책들 자리 (창 1000 밑 · 다이어리 위 · 빈 곳은 책상을 만져요) */
 .bk.desk.shut .bk-bar { visibility: hidden; }
 #deskStage .dk-vol.up { visibility: hidden; }
 .bk-cover .bk-hint { position: absolute; bottom: 7%; left: 50%; font-size: 13px; font-weight: 700; white-space: nowrap; color: #7b5a63; transform: translateX(-50%); animation: bkNudge 1.5s infinite; pointer-events: none; }   /* 📔 다이어리 겉표지 '밀어서 열기' 와 같아요 (style.css .cover-page .drag-hint) */

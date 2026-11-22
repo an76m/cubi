@@ -647,7 +647,6 @@
             document.body.appendChild(b);
         }
         async function dkModeExit() {
-            if (document.documentElement.classList.contains('ab-up') && window.abUpLand) { abUpLand(); return; }   // 📒 🤍 책상에서 띄운 스티커첩 (Esc 등) = 덮고 내려앉아요 (도련 11-22)
             const ab = document.getElementById('basketKindModal');
             if (ab && ab.classList.contains('abs-dkmode') && ab.style.display === 'flex') { if (window.abCancel) abCancel(); return; }   // 📒 스티커정리모드 (✕ = 저장 안 하고 · 정리한 게 있으면 물어요 · 도련 11-15)
             if (window.bndIsOpen && bndIsOpen()) { if (window.bndCancel) bndCancel(); else if (window.bndClose) bndClose(); return; }   // 🧩 바인더조립모드 (✕ = 조립 안 하고 · 놓은 게 있으면 물어요)
@@ -1804,7 +1803,7 @@
         /* 📔 권 그림 하나 (책상 위 · 🗄️ 서랍 속 같은 틀 · js/deskbook.js) : v = { x, y, p, lb } */
         function dkvMake(b, v, isCur) {
             const [w, h] = dkvSz(b, v.p), C = b.col ? ['', b.col[0], b.col[1]] : dkvCol(b.c);
-            const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (b.t === 'pg' ? (b.k === '노트' ? ' note pg' : ' pg') : b.t !== 'dy' ? ' alb ' + b.t : '') + (b.t === 'dy' && window.dyyIsNote && dyyIsNote(b) ? ' note' : '') + (isCur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
+            const el = document.createElement('div'); el.className = 'dk-vol p-' + v.p + (window.abUpHas && abUpHas(b.id) ? ' up' : '') + (b.t === 'pg' ? (b.k === '노트' ? ' note pg' : ' pg') : b.t !== 'dy' ? ' alb ' + b.t : '') + (b.t === 'dy' && window.dyyIsNote && dyyIsNote(b) ? ' note' : '') + (isCur ? ' cur' : ''); el.dataset.b = b.id; el.setAttribute('role', 'button'); el.title = `${dkvIc(b)} ${dkvName(b)}`;
             Object.assign(el.style, { left: Math.round((v.x || 0) - w / 2) + 'px', top: Math.round((v.y || 0) - h) + 'px', width: w + 'px', height: h + 'px' }); el.style.setProperty('--sy', dkvMm(b)[1] / 148); el.style.setProperty('--lk', dkvLk());   // 📏 실제 비율 · 🛏 눕힌 그림 줄인 비율
             el.style.setProperty('--dy-c', C[1]); el.style.setProperty('--primary-accent', C[2]);
             { const pid = b.t === 'dy' ? b.c : b.t === 'pg' ? b.pid : ''; if (pid && window.dyFaceCss) el.style.setProperty('--dyv-img', dyFaceCss(pid, 'px')); else if (b.face) el.style.setProperty('--dyv-img', b.face); }   // 📒 🤍 스티커바인더 · 이형지북 = abDeskList face   // 📁 그 상품의 표지.svg (도련 11-18)
@@ -1893,7 +1892,6 @@
         window.dkvLayer = dkvLayer; window.dkvLbPanel = dkvLbPanel; window.dkvLbSet = dkvLbSet;
         /* 평소 다이어리 권 톡 = 그 권 펼치기 (펼쳐 둔 권은 먼저 저장 · js/dyyear.js dyySelect) */
         function dkVolOpen(id) {
-            if (document.documentElement.classList.contains('ab-up') && window.abUpLand) { abUpLand(() => dkVolOpen(id)); return; }   // 📒 🤍 떠 있는 스티커첩은 먼저 내려놓고 (한 번에 한 권 · 다이어리처럼)
             const a = dkvOf(id);
             if (a && a.t === 'pg') { if (deskAnim) return; if (dyNow().id !== id) dySet(id); dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary()); return; }   // 📓 🗂️ 페이지 다이어리 = 그 권 펼치기 (도련 11-06)
             if (a && a.t !== 'dy' && !a.k) { if (window.abOpenFree) abOpenFree(a.t, a.id); return; }   // 📥 종류 없는 책 = 빈 책 그대로 펼쳐 보기 · 넘기기 (도련 11-15 · 예전 = 안내만)
@@ -2355,7 +2353,7 @@
         let deskTopBusy = false;
         async function deskTopGo(run) {
             const H = document.documentElement;
-            if (H.classList.contains('ab-up') && window.abUpLand) { abUpLand(run); return; }   // 📒 🤍 띄운 스티커첩 = 먼저 내려놓고
+            if (H.classList.contains('ab-up') && window.abUpAll) { abUpAll(() => deskTopGo(run)); return; }   // 📒 🤍 띄운 스티커첩 = 모두 먼저 내려놓고 (다이어리도 이어서)
             if (!H.classList.contains('desk-show')) { run(); return; }
             if (deskTopBusy || deskAnim) return;
             deskTopBusy = true;
