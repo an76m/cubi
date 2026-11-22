@@ -647,7 +647,7 @@
             document.body.appendChild(b);
         }
         async function dkModeExit() {
-            if (document.documentElement.classList.contains('ab-up') && window.abUpLand) { abUpLand(); return; }   // 📒 🤍 책상에서 띄운 스티커첩 = 덮고 내려앉아요 (다이어리처럼 · 도련 11-22)
+            if (document.documentElement.classList.contains('ab-up') && window.abUpLand) { abUpLand(); return; }   // 📒 🤍 책상에서 띄운 스티커첩 (Esc 등) = 덮고 내려앉아요 (도련 11-22)
             const ab = document.getElementById('basketKindModal');
             if (ab && ab.classList.contains('abs-dkmode') && ab.style.display === 'flex') { if (window.abCancel) abCancel(); return; }   // 📒 스티커정리모드 (✕ = 저장 안 하고 · 정리한 게 있으면 물어요 · 도련 11-15)
             if (window.bndIsOpen && bndIsOpen()) { if (window.bndCancel) bndCancel(); else if (window.bndClose) bndClose(); return; }   // 🧩 바인더조립모드 (✕ = 조립 안 하고 · 놓은 게 있으면 물어요)
@@ -2052,7 +2052,7 @@
         }
         /* 📖 책상 대신 바탕 (도련 11-12) : 다이어리가 떠 있고(desk-show) 표지를 펼쳤을 때만 (html.dk-bgon · css/style.css) · 로그인 뒤 접힌 채 떠 있으면 책상이 보여요
            부르는 곳 = js/page.js refreshLayout (표지 펼치기 · 덮기 · 그 밖 모두) · 떠오르기 끝 */
-        function dkBgSync() { const H = document.documentElement; H.classList.toggle('dk-bgon', UI.desk() && ((H.classList.contains('desk-show') && !H.classList.contains('dk-landing') && !!isCoverOpen) || !!(window.abUpOpen && abUpOpen()))); }   // 📒 🤍 책상에서 띄운 스티커첩을 펼쳐도 (js/basket.js · 도련 11-22)
+        function dkBgSync() { const H = document.documentElement; H.classList.toggle('dk-bgon', UI.desk() && H.classList.contains('desk-show') && !H.classList.contains('dk-landing') && !!isCoverOpen); }
         window.dkBgSync = dkBgSync;
         function dkFoldShut() {                                                   // 겉표지로 덮어요 (다시 펴면 밀어서 열기부터)
             if (!dkOpenNow()) return;

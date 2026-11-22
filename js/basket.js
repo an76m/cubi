@@ -751,8 +751,8 @@
             spine: two => t === 'bd' ? ABS_RING.repeat(3) + '<span></span>' + ABS_RING.repeat(3) : '<i></i>'.repeat(14),
             title: () => `${t === 'bd' ? '📒' : '🤍'} ${esc(nm)} <small>· 표지</small>`,
             side: () => abSideGet(), setSide: v => { try { localStorage.setItem(ABS_SIDE, v); } catch (e) {} },
-            onPage: (pg, open) => { B.pg = pg; AB.bookOpen = open; if (up && window.dkBgSync) dkBgSync(); },   // 📒 🤍 책상에서 띄운 책 = 펼치면 바탕 (다이어리처럼)
-            onClose: up ? undefined : () => abFltClose(), desk: up,              // 책상에서 띄운 책 = 막대에 ✕ 없음 · 덮인 동안 막대 없음 (다이어리처럼 · 닫기 = 덮인 채 밖 톡 · 펼치면 오른쪽 위 ✕)
+            onPage: (pg, open) => { B.pg = pg; AB.bookOpen = open; },
+            onClose: up ? () => abUpLand() : () => abFltClose(), desk: up,     // 책상에서 띄운 책 = 막대 ✕ = 덮이며 내려앉기 · 덮인 동안 막대 없음 (다이어리처럼) · 바탕은 안 깔아요 (도련 11-22 · 다이어리와 다른 점)
             wire: stage => {
                 if (t === 'bd') { stage.onclick = ev => { const k = ev.target.closest('.bk-sh'); if (k && stage.contains(k)) bkOpenSheet(k.dataset.id); }; return; }
                 stage.querySelectorAll('.bk-slot .abf-rl').forEach(box => box.onpointerdown = ev => {
@@ -776,7 +776,8 @@
     }
     /* 📒 🤍 책상에서 띄운 스티커첩 (도련 11-22 '스티커바인더 · 이형지북이 다이어리와 같길') : 다이어리와 같은 움직임 · 같은 규칙
          떠오르기 · 내려앉기 = js/desk.js dkBookFly (그 권 그림에서 · 그 권 그림으로) · 떠 있는 동안 책상 위 그 권은 숨어요 (.dk-vol.up)
-         덮인 채 = 막대 없음 · 책상 빈 곳 톡 = 내려앉기 (js/drive.js · 옆 소품 톡 = 그 소품) · 펼치면 = 바탕 (dk-bgon) + 오른쪽 위 ✕ = 덮이며 내려앉기 (js/desk.js dkModeExit) · 한 번에 한 권 */
+         덮인 채 = 막대 없음 · 책상 빈 곳 톡 = 내려앉기 (js/drive.js · 옆 소품 톡 = 그 소품) · 펼치면 = 막대 + ✕ (덮이며 내려앉기) · 한 번에 한 권
+         다이어리와 다른 점 (도련 11-22) : 펼쳐도 바탕을 안 깔아요 (책상 그대로) · 오른쪽 위 ✕ 대신 막대 ✕ */
     const abUpVol = id => document.querySelector(`#deskStage .dk-vol[data-b="${CSS.escape(id)}"]`);
     window.abUpOpen = () => document.documentElement.classList.contains('ab-up') && !!AB.book && AB.book.open;
     function abUpLand(after) {
@@ -785,9 +786,8 @@
         if (AB.landing) return; AB.landing = true; AB.coverOnce = true;
         const id = AB.book.id;
         AB.book.shut(() => {                                                  // 📕 펼쳤으면 덮고 (다이어리 closeCoverAnimated 처럼)
-            if (window.dkBgSync) dkBgSync();                                  // 책상이 먼저 돌아오고 그 위로 내려앉아요
             const R = AB.book && AB.book.root(), vo = abUpVol(id);
-            const fin = () => { if (!AB.landing) return; AB.landing = false; if (vo) vo.classList.remove('up'); H.classList.remove('ab-up'); B.up = ''; abFltClose(); if (window.dkBgSync) dkBgSync(); if (after) after(); };
+            const fin = () => { if (!AB.landing) return; AB.landing = false; if (vo) vo.classList.remove('up'); H.classList.remove('ab-up'); B.up = ''; abFltClose(); if (after) after(); };
             if (!R || !vo || !window.dkBookFly) { fin(); return; }
             const a = dkBookFly(R, vo, R.querySelector('.bk-book'), '', true); a.onfinish = a.oncancel = fin;
         });
@@ -796,7 +796,7 @@
     function abBookOff() {
         if (AB.book) { AB.book.destroy(); AB.book = null; }
         const H = document.documentElement;
-        if (H.classList.contains('ab-up') && !AB.landing) { document.querySelectorAll('#deskStage .dk-vol.up').forEach(v => v.classList.remove('up')); H.classList.remove('ab-up'); if (window.dkBgSync) dkBgSync(); }   // 📒 🤍 띄운 책이 다른 길로 닫혀도 책상 위 그 권은 돌아와요
+        if (H.classList.contains('ab-up') && !AB.landing) { document.querySelectorAll('#deskStage .dk-vol.up').forEach(v => v.classList.remove('up')); H.classList.remove('ab-up'); }   // 📒 🤍 띄운 책이 다른 길로 닫혀도 책상 위 그 권은 돌아와요
     }
     /* 📥 종류 없는 책 (아직 정리할 스티커를 정하지 않은 바인더 · 이형지북) = 빈 책 그대로 펼쳐 보고 넘겨 봐요 (도련 11-15 · 다이어리처럼 · 꽂기 · 붙이기는 📒 스티커 정리에서) */
     window.abOpenFree = async (t, id) => {

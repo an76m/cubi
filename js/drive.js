@@ -1516,7 +1516,7 @@
             if (window.dkwAteAt && Date.now() - dkwAteAt < 450) return;           // ✋ 이 톡은 손에 든(마우스에 붙은) 문구 내려놓기였어요 (js/deskgd.js · 도련 11-12)
             if (!H.classList.contains('dk-bgon') && window.deskTapAt && deskTapAt(ev.clientX, ev.clientY)) return;   // 접힌 채 떠 있어 책상이 보이면 = 옆 소품 톡 = 그 소품의 기능 (js/desk.js)
             if (H.classList.contains('dk-bgon')) return;                         // 📔 다이어리모드 = 밖 톡으로는 안 나가요 · 오른쪽 위 ✕ 로만 (도련 11-15 · 묻고 닫기 js/desk.js dkModeExit)
-            if (abUp) { if (window.abUpLand) abUpLand(); return; }
+            if (abUp) { if (window.abUpLand && !(window.abUpOpen && abUpOpen())) abUpLand(); return; }   // 📒 🤍 펼친 채 = 밖 톡으로는 안 내려놓아요 (막대 ✕ 로만 · 다이어리처럼)
             if (window.deskCloseDiary) deskCloseDiary();
         });
         /* 🚪 로그인 화면 그림 속 레이스 알림판에 카드를 붙여요 (도련 10-26 · css .gate-art)
