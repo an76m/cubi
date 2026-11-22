@@ -247,7 +247,7 @@
         M.run = sync0(force).catch(e => console.warn('📦 실물', e)).finally(() => { M.run = null; if (M.again) { M.again = false; mineSync(true); } });
         return M.run;
     }
-    function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); M.t = setTimeout(() => { const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
+    function mineSoon(force) { M.f = M.f || !!force; clearTimeout(M.t); if (window.driveHeld && driveHeld()) { if (!M.held) { M.held = true; driveLater(() => { M.held = false; mineSoon(); }); } return; } /* ⏸ 모아 두는 중 = 나갈 때 한 번 */ M.t = setTimeout(() => { const f = M.f; M.f = false; mineSync(f); }, M.f ? 1500 : 400); }   // 받은 것(force)은 이어지는 부름에도 그대로
     function mineHint(id) { if (!id) return; if (Object.values(M.k).some(B => B.fid === id || B.gid === id)) { M.hint = true; mineSoon(); } }   // 🔔 다른 기기가 내 목록을 고쳤어요 (drive.js changesAny · 요청 더 없음)
     window.mineHint = mineHint;
     window.mineDiff = mineDiff; window.mineUrl = mineUrl; window.mineSnap = mineSnap; window.mineGot = mineGot;

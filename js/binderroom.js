@@ -39,7 +39,7 @@
     async function bndOpen() {
         if (!window.dmkRmInit) return;
         if (window.deskLeave) deskLeave();
-        const el = build(); B.on = true;
+        const el = build(); if (!B.on && window.driveHold) driveHold(true); B.on = true;   // ⏸ 조립하는 동안 드라이브 저장은 모아 두었다가 나갈 때 한 번 (도련 11-22)
         if (!st()) dmkRmInit('');
         el.classList.add('show'); document.body.classList.add('cal-on', 'bnd-on');
         if (document.documentElement.classList.contains('desk-on')) { el.classList.add('bnd-dkmode'); if (window.dkUnderVars) dkUnderVars(); if (window.dtmShow) dtmShow('바인더 조립'); }   // 🧩 바인더조립모드 = 책상 위 (도련 11-14)
@@ -50,6 +50,7 @@
     function bndClose() {
         const el = bq('bndRoom'); if (!el || !B.on) return;
         B.on = false; bookOff(); el.classList.remove('show', 'bnd-dkmode'); document.body.classList.remove('cal-on', 'bnd-on'); if (window.dtmShow) dtmShow(null);
+        if (window.driveHold) driveHold(false);                                 // ☁ 나갈 때 = 조립한 것 모두 한 번에 드라이브로
     }
     const C = v => window.dmkClean ? dmkClean(v) : v;
     const drIn = (h, id) => window.dbkMatIn && dbkMatIn(id) ? h.replace('>', '><i class="bnd-dr" title="서랍에 있어요 · ✔ 완료하면 서랍에서 빠져요">🗄️</i>') : h;   // 🗄️ 서랍 속 재료 표시 (도련 11-21 · 바구니에도 보여요)
@@ -177,7 +178,8 @@
         if (window.dkDeskBooks) dkDeskBooks();
         await showMsg(`🧩 ${was ? '다시 조립했어요' : '조립했어요'}!<br><span style="font-size:12px;color:#777;">${date ? '📅 날짜형바인더' : '🗂️ 바인더'}는 책상 위에 있어요 · 끌어서 옮겨요</span>`);
     }
-    /* 🧩 조립 = 🧩 조립하기 버튼 하나 (도련 11-21 · 저장 · ✔ 완료 버튼 없음 : 조립한 뒤에도 쓰기 전엔 고칠 수 있어서 '임시저장 · 완료' 규칙이 안 맞아요 · 드라이브엔 다른 변경처럼 1분 뒤 자동)
+    /* 🧩 조립 = 🧩 조립하기 버튼 하나 (도련 11-21 · 저장 · ✔ 완료 버튼 없음 : 조립한 뒤에도 쓰기 전엔 고칠 수 있어서 '임시저장 · 완료' 규칙이 안 맞아요)
+       ☁ 드라이브 = 조립 공간을 나갈 때(✕ · 닫기) 한 번에 (도련 11-22 '여러 개 조립하고 나갈 때 저장하는 게 효율적' · drive.js driveHold) · 이 기기엔 바로 보관
        ✕ = 조립하지 않고 나가기 (놓은 게 있으면 한 번 물어요) */
     const bndDirty = () => { const s = st(); if (!s || !s.o0) return false; const a = s.rf || [], b = s.o0.rf || []; return s.cv !== s.o0.cv || a.length !== b.length || a.some((x, i) => x !== b[i]); };
     async function bndCancel() {

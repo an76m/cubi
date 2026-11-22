@@ -320,7 +320,7 @@
             const id = dyyNewId(+cv.y, d);
             dyoPut(dyyLineNew(id, 'mine', { cv: Object.assign({}, cv), rf: [Object.assign({}, rf)] }));
             dymDel(cv.id); dymDel(rf.id);
-            dyyFile(id, 'mine', true);
+            if (window.driveLater) driveLater(() => dyyFile(id, 'mine', true)); else dyyFile(id, 'mine', true);   // ⏸ 🧩 바인더 조립 중이면 = 나갈 때 권 폴더를 만들어요
             if (window.dkDeskBooks) dkDeskBooks();                             // 📔 책상 위에 (자리가 없으면 줄지어)
             dyySelect(id);
             return id;

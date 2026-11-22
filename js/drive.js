@@ -169,13 +169,26 @@
             if (drive.ready) {
                 if (!dirtySince) dirtySince = Date.now();
                 clearTimeout(uploadTimer);
-                uploadTimer = setTimeout(() => flushUpload(), Math.min(UPLOAD_DEBOUNCE_MS, Math.max(0, dirtySince + UPLOAD_MAX_WAIT_MS - Date.now())));
+                if (!holdN) uploadTimer = setTimeout(() => flushUpload(), Math.min(UPLOAD_DEBOUNCE_MS, Math.max(0, dirtySince + UPLOAD_MAX_WAIT_MS - Date.now())));   // ⏸ 모아 두는 중(driveHold)이면 = 1분 올리기도 기다려요
                 if (!pendSince) pendSince = Date.now();                       // 🛟 이 기기 보관 = 모아서 자주 (드라이브는 위 1분 그대로)
                 clearTimeout(pendTimer);
                 pendTimer = setTimeout(pendNow, Math.min(PEND_MS, Math.max(0, pendSince + PEND_MAX_MS - Date.now())));
             }
             updateBadge();
         }
+        /* ⏸ 모아 두었다가 한 번에 (도련 11-22 '요청 줄이기 · 🧩 바인더 조립은 여러 개 조립하고 나갈 때 저장') : driveHold(true) 동안
+             = 1분 올리기 안 해요 (바꾼 것은 이 기기에 보관 3초 그대로) · driveLater(fn) = 드라이브에 바로 쓰던 것(받은 목록 · 날짜형 권 폴더)을 미뤄요
+             driveHold(false) = 미룬 것 하고 · 바로 올려요 · 앱을 내리거나 닫을 때도 미룬 것은 바로 해요 (saveOnScreenOff) */
+        let holdN = 0; const holdQ = [];
+        function holdRun() { holdQ.splice(0).forEach(f => { try { f(); } catch (e) { console.warn('⏸', e); } }); }
+        window.driveHold = on => {
+            if (on) { holdN++; return; }
+            if (!holdN || --holdN) return;
+            holdRun();
+            if (drive.dirty && drive.ready && !drive.guest) flushUpload();
+        };
+        window.driveHeld = () => holdN > 0;
+        window.driveLater = fn => { if (holdN) holdQ.push(fn); else fn(); };
         /* 🛟 못 올린 것 이 기기 보관 (도련 11-22) : 바꾼 뒤 3초 쉬면 (계속 바꿔도 10초에 한 번) 브라우저에 보관
            = 앱이 갑자기 꺼져도 (브라우저가 죽음 · 폰이 앱을 끔 · 전원) 다음에 켜면 알아서 올려요 (recoverPendingBackup)
            · 바뀔 때마다 바로는 안 해요 (앱이 느려져요) · 드라이브 올리기 1분은 그대로 (요청 줄이기) · 앱을 내릴 때 · 못 올렸을 때는 예전처럼 바로 */
@@ -1808,6 +1821,7 @@
             if (drive.reopening || drive.stopped) return;                       // ☁ 드라이브 것으로 새로 여는 중 · 🔌 멈춘 기기 = 버린 것을 남기지 않아요
             try { if (!turn) saveData(false); } catch (err) {}      // 편집 중인 글/스티커를 메모리(store)에 반영
             if (!drive.ready || drive.guest || drive.wiped) return;  // 로그인 전 · 게스트면 저장할 곳이 없음 · 🗑 폴더가 지워졌으면 올리지 않음
+            holdRun();                                               // ⏸ 미뤄 둔 것도 지금
             if (drive.dirty || drive.uploading) {
                 savePending();                                       // 업로드 전에 먼저 이 기기에 안전하게 보관
                 if (drive.dirty) flushUpload();                      // 디바운스(3초) 기다리지 않고 즉시 업로드
