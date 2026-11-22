@@ -365,7 +365,7 @@
         const bcCount = (db, st) => bcTx(db, st, 'readonly', o => o.count());
         /* 📝 완료 전 작업 = 이 기기 임시저장 (도련 11-15 : '그 밖의 브라우저 저장(시험용)'에 섞여 묻지 않고 지워지던 것을 따로 · ⚠ 칸)
            그림판 (js/drive.js draftWrite) · 다이어리 페이지 (js/pagedone.js) · 스티커 정리 (js/basket.js) · 오리던 모조지 (js/own.js) · 이름을 알려 주지 않는 브라우저에서도 늘 세어요 */
-        const BC_DRAFT = ['mallang-ppdraft', 'mallang-pgdraft', 'mallang-absort', 'mallang-ownpaper'];
+        const BC_DRAFT = ['mallang-ppdraft', 'mallang-pgdraft', 'mallang-ownpaper'];
         async function bcScan() {
             const G = {};
             const add = (id, n, sz) => { const g = G[id] || (G[id] = { n: 0, sz: 0 }); g.n += n || 0; g.sz += sz || 0; };

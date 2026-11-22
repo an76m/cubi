@@ -240,6 +240,7 @@
             ownReset();
             if (ownMode() === 'mem') { ownK(k).gone = (O.mem.gone[k] || []).slice(); return (O.mem.idx[k] || []).map(e => Object.assign({}, e, { u: e.u.slice() })); }
             const d = ownK(k);
+            if (OWN_HELD.idx.has(k)) return JSON.parse(JSON.stringify(OWN_HELD.idx.get(k)));   // ⏸ 아직 안 쓴 것이 진짜 (모아 두는 중)
             if (pre === undefined && d.cache) return JSON.parse(d.cache);         // 📱 한 기기 기준 (도련 11-17) : 이 창에서 읽거나 쓴 목록 그대로 (매번 드라이브에서 새로 받지 않아요 · 다른 기기 것은 돌아올 때 drive.js checkRemote)
             const find = async () => { const dir = await ownKindDir(k, false); return dir ? ownPre(await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and name contains '_목록'`, 'id,name,modifiedTime')) : null; };
             let P = pre;
@@ -334,7 +335,24 @@
             clearTimeout(ownSaidT);
             ownSaidT = setTimeout(() => { if (typeof showMsg === 'function') showMsg('🛟 스티커 목록 파일이 없어졌거나 깨져서 <b>백업으로 되살렸어요.</b><br><span style="font-size:12px;color:#777;">스티커는 그대로예요. 바인더 · 이형지 자리는 백업한 날로 돌아갔을 수 있어요.</span>'); }, 300);
         }
+        /* ⏸ 모아 두었다가 한 번에 (도련 11-22 · js/drive.js driveHold · 📒 스티커 정리 공간에 있는 동안) : 목록 · 스티커첩을 드라이브에 바로 쓰지 않고
+             이 창에만 (목록 = d.cache · 스티커첩 = OWN_HELD) → 나갈 때(driveHold(false)) · 앱을 내릴 때 한 번에 · 종이 파일(시트)은 그대로 바로 */
+        const OWN_HELD = { idx: new Map(), alb: new Map(), q: false };
+        const ownHeldNow = () => ownMode() !== 'mem' && !!window.driveHeld && driveHeld();
+        function ownHeldLater() {
+            if (OWN_HELD.q) return; OWN_HELD.q = true;
+            driveLater(() => { OWN_HELD.q = false; ownSerial(async () => {
+                const I = [...OWN_HELD.idx], A = [...OWN_HELD.alb]; OWN_HELD.idx.clear(); OWN_HELD.alb.clear();
+                for (const [k, list] of I) await ownIdxPut(k, list).catch(e => { console.warn('⏸ 목록', k, e); OWN_HELD.idx.set(k, list); });
+                for (const [k, a] of A) await ownAlbPut(k, a).catch(e => { console.warn('⏸ 스티커첩', k, e); OWN_HELD.alb.set(k, a); });
+                if (OWN_HELD.idx.size || OWN_HELD.alb.size) ownHeldLater();     // 못 쓴 것 = 다음에 다시
+            }); });
+        }
         async function ownIdxWrite(k, list) {
+            if (ownHeldNow()) { const d = ownK(k); d.cache = JSON.stringify(list); d.n = list.length; OWN_HELD.idx.set(k, JSON.parse(d.cache)); ownHeldLater(); return; }
+            return ownIdxPut(k, list);
+        }
+        async function ownIdxPut(k, list) {
             if (ownMode() === 'mem') { O.mem.idx[k] = list.map(e => Object.assign({}, e, { u: e.u.slice() })); O.mem.gone[k] = (ownK(k).gone || []).slice(); return; }
             const d = ownK(k), dir = await ownKindDir(k, true), cn = d.cn || (d.cn = new Map()), Lf = d.Lf || (d.Lf = new Map()), Tf = d.Tf || (d.Tf = new Map());
             const split = rows => { const m = {}, lines = rows.map(e => { const o = Object.assign({}, e), t = {}; OWN_SIDE.forEach(q => { if (o[q] != null && o[q] !== '') t[q] = o[q]; delete o[q]; }); if (Object.keys(t).length) m[e.id] = t; return o; }); return { lines, m }; };   // 줄 = 글자만 · 그림 정보 = 썸네일 파일
@@ -927,6 +945,7 @@
         /* 📒 스티커첩은 종류마다 작은 파일 하나 (그 종류 폴더 / _스티커첩.json · 암호화) : 바인더에 꽂을 때 목록 파일을 건드리지 않아서 빨라요 (도련 10-25) */
         async function ownAlbRead(k, pre) {                                      // pre : 이미 찾은 스티커첩 파일들 { A: [[번호, id]] } (ownOpenKind · null = 없음)
             if (ownMode() === 'mem') return O.mem.alb[k] ? JSON.parse(JSON.stringify(O.mem.alb[k])) : null;
+            if (OWN_HELD.alb.has(k)) return JSON.parse(JSON.stringify(OWN_HELD.alb.get(k)));   // ⏸ 아직 안 쓴 것이 진짜 (모아 두는 중)
             const d = ownK(k);
             const find = async () => { const dir = await ownKindDir(k, false); return dir ? ownAlbPre(await driveList(`'${dir}' in parents and trashed=false and mimeType!='${FOLDER_MIME}' and name contains '_스티커첩'`, 'id,name,modifiedTime')) : null; };
             let P = pre;
@@ -965,6 +984,10 @@
             return a;
         }
         async function ownAlbWrite(k, a) {
+            if (ownHeldNow()) { OWN_HELD.alb.set(k, JSON.parse(JSON.stringify(ownAlbPart(a, k)))); ownHeldLater(); return; }
+            return ownAlbPut(k, a);
+        }
+        async function ownAlbPut(k, a) {
             a = ownAlbPart(a, k);                                                 // 그 종류 것만 (다른 종류 바인더가 섞이지 않게)
             if (ownMode() === 'mem') { O.mem.alb[k] = JSON.parse(JSON.stringify(a)); return; }
             const d = ownK(k), dir = await ownKindDir(k, true), cn = d.acn || (d.acn = new Map()), Af = d.Af || (d.Af = new Map());

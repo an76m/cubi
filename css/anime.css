@@ -455,7 +455,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .ab-ph .abs-bar { flex-wrap: wrap; gap: 6px 8px; padding: 8px 10px 8px; padding-top: max(8px, env(safe-area-inset-top)); }
 .ab-ph .abs-bar .ab-kind { order: 1; }
 .ab-ph .abs-bar .abs-fill { order: 2; }
-.ab-ph .abs-bar .ab-done { display: none; }                                   /* ‹ 서랍 과 같아요 */
 .ab-ph .abs-bar .abs-x { order: 3; }
 .ab-ph .abs-bar .ab-tabs { order: 4; width: 100%; }
 .ab-ph .abs-bar .ab-tabs button { font-size: 13px; padding: 7px 4px; }
@@ -863,11 +862,9 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 #basketKindModal.abs-dkmode .abs-bar { align-self: center; width: fit-content; margin: max(12px, env(safe-area-inset-top)) auto 4px;   /* 위로 올림 (도련 11-22 · 예전 58px) */ padding: 6px 10px; gap: 10px; background: #fff; border: 2px solid #e9c7dd; border-radius: 16px; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); }
 #basketKindModal.abs-dkmode .abs-bar .abs-fill, #basketKindModal.abs-dkmode .abs-bar .abs-x { display: none; }
 #basketKindModal.abs-dkmode .abs-bar .ab-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
+#basketKindModal.abs-dkmode .abs-bar .ab-done:disabled { opacity: .45; cursor: default; }   /* ✔ 이 책 완료 = 담을 게 있을 때만 (도련 11-22) */
+.ab-ph .abs-bar .ab-done { order: 2; padding: 6px 12px; }
 /* 💾 임시저장 (도련 11-15 · 다이어리와 같은 [💾 임시저장] [✔ 완료] · js/tempsave.js) */
-.abs-bar .ab-tmp { background: #fff !important; border: 1.6px solid #ff8fb1 !important; color: #d2457a !important; font-weight: 800; }
-.abs-bar .ab-tmpat { flex: none; font-size: 11px; color: #a07a8a; white-space: nowrap; }
-.abs-bar .ab-tmpat:empty { display: none; }
-.ab-ph .abs-bar .ab-tmp { order: 2; padding: 6px 10px; } .ab-ph .abs-bar .ab-tmpat { display: none; }
 #basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
 #basketKindModal.ab-space .dk-tape, #basketKindModal.ab-flt .dk-tape { display: none !important; }   /* 창 모서리 테이프(분홍 · 초록)는 정리 공간 · 떠 있는 책(창 없음)에선 안 보여요 (도련 11-22) */
 /* 📒 🤍 책상에서 띄운 스티커첩 = 📔 다이어리처럼 (도련 11-22 · js/basket.js abUpLand · js/book.js desk) : 덮인 동안 막대 없음 · 떠 있는 동안 책상 위 그 권은 숨어요 */

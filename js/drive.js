@@ -412,7 +412,7 @@
             if (window.DRC) { try { await DRC.wipe(); } catch (e) {} }
             if (window.ownFresh) ownFresh();
             try { clearPending(); const { forget } = await readAllPending(); await forget(); } catch (e) {}   // ⏳ 못 올린 옛 내용 (새 폴더로 안 올라가요)
-            if (w && w !== 'me') for (const n of ['mallang-pgdraft', 'mallang-ppdraft', 'mallang-absort', 'mallang-ownpaper', 'malang-mine', 'mallang-coll']) await idbForgetWho(n, w);
+            if (w && w !== 'me') for (const n of ['mallang-pgdraft', 'mallang-ppdraft', 'mallang-ownpaper', 'malang-mine', 'mallang-coll']) await idbForgetWho(n, w);
             try { ['gdrive_authed', 'malang_dev_mode'].forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch (e) {}   // 🔑 로그인 기억 (js/settings.js BC_LOGIN 과 같아요)
             drive.wiped = true;                                                     // 더 올리지 않아요
             await showMsg('☁ 구글 드라이브에 <b>말랑달콤</b> 폴더가 없어서<br><b>처음 상태로 초기화</b>했어요.<br><span style="font-size:12px;color:#777;">다시 로그인하면 새로 시작해요</span>');

@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/tempsave.js
-   💾 임시저장 공통 (도련 11-15) : 📔 다이어리 · 🎨 태블릿 그림판 앱 6개 (📱 폰 그림판도) · 📒 🤍 스티커 정리 (바인더 · 이형지북) 가 같이 써요
+   💾 임시저장 공통 (도련 11-15) : 📔 다이어리 · 🎨 태블릿 그림판 앱 6개 (📱 폰 그림판도) 가 같이 써요
    - 임시저장 = 이 기기 브라우저 저장공간(IndexedDB)에만 · 구글 드라이브는 ✅ 완료 때만
    - ⏱ 자동 임시저장 = TS.ms 마다 (바뀐 게 있을 때만) + 앱을 내릴 때 · 💾 임시저장 버튼 = 지금 바로 · 둘 다 같은 '저장'
    - ✕ 닫기 = 물어봐요 [💾 임시저장] [그냥 닫기] (tsCloseAsk)
@@ -7,7 +7,7 @@
        그냥 닫기 = 마지막 저장(수동 · 자동) 뒤에 한 것은 버리고 닫기 (새 창 = 아무것도 안 남아요 · 쓴 스티커 · 종이도 저장한 때로 돌아가요)
        버튼 말고 물음 창이 닫히면 = 그대로 (닫지 않아요)
    - 화면마다 : tsAuto({ dirty, save }) 로 자동 저장을 맡기고 · 닫을 때 tsClose({ title, dirty, save, drop }) 하나로 물어보고 처리해요
-   ※ util.js 다음 · 다이어리 · 그림판 · 스티커 정리 코드보다 먼저 읽어요 */
+   ※ util.js 다음 · 다이어리 · 그림판 코드보다 먼저 읽어요 */
 const TS = { ms: 60000, hide: true };                                        // ⏱ 자동 임시저장 간격 (여기 한 곳만 고치면 세 곳 모두) · hide = 앱을 내릴 때도
 const TS_ASK = '💾 임시저장 = 이 기기에만 저장하고 닫아요';   // 나머지 설명은 뺐어요 (도련 11-22)
 function tsAuto(o) {                                                         // o = { dirty: () => 바뀐 게 있나, save: () => 이 기기에 저장 }
@@ -33,8 +33,8 @@ async function tsClose(o) {                                                  // 
     return false;
 }
 const tsHm = t => new Date(t).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
-const tsAt = t => `📱 이 기기에 임시저장${t ? ' · ' + tsHm(t) : ''}`;        // 상태 한 줄 (다이어리 · 스티커 정리 막대)
-function tsSaved(t, note) {                                                 // 💾 버튼을 눌렀어요 = 언제 · 어디에 저장했는지 알려 줘요 (다이어리 · 스티커 정리 같은 글)
+const tsAt = t => `📱 이 기기에 임시저장${t ? ' · ' + tsHm(t) : ''}`;        // 상태 한 줄 (다이어리 막대)
+function tsSaved(t, note) {                                                 // 💾 버튼을 눌렀어요 = 언제 · 어디에 저장했는지 알려 줘요 (다이어리)
     if (window.showMsg) showMsg(`💾 이 기기에 임시저장했어요 (${tsHm(t || Date.now())})<br><span style="font-size:12px;color:#777;">다른 기기에서는 보이지 않아요${note ? '<br>' + note : ''}</span>`);
 }
 window.TS = TS; window.tsSaved = tsSaved; window.tsAuto = tsAuto; window.tsCloseAsk = tsCloseAsk; window.tsClose = tsClose; window.tsAt = tsAt; window.tsHm = tsHm;
