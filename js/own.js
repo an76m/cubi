@@ -1058,10 +1058,6 @@
             list.push(ne);
             return ne;
         }
-        async function ownRelMove(srcId, slot, relId, pos) {
-            const r = await ownRelBatch([{ s: srcId, k: slot, rl: relId, pos }]);
-            return r[0] || '';
-        }
         /* 🤍 이형지북으로 여러 장 한 번에 (도련 10-25 · 붙일 때마다 저장하지 않고 모아서) : ops = [{ s : 종이, k : 칸, rl : 이형지북, pos : { x, y, r, pg } }]
            → 종류마다 목록 · 스티커첩 한 번씩만 써요 (종이 파일은 안 건드려요 · 읽기만) · 결과 = 칸마다 새 줄 id ('' = 이미 썼거나 자리가 없어요) */
         async function ownRelBatch(ops) {
@@ -1166,4 +1162,4 @@
         window.ownTapeFix = ownTapeFix; window.ownList = ownList; window.ownAdd = ownAdd; window.ownSheet = ownSheet; window.ownUse = ownUse; window.ownLeft = ownLeft;
         window.ownQty = ownQty; window.ownPaper = ownPaper; window.ownQtyLeft = ownQtyLeft; window.ownTake = ownTake; window.ownTakeMany = ownTakeMany; window.ownThumb = ownThumb; window.OWN_KIND = OWN_KIND;
         window.ownOnChange = ownOnChange; window.ownPendGet = ownPendGet; window.ownTakeKit = ownTakeKit; window.ownKitDesc = ownKitDesc; window.ownTakeMine = ownTakeMine; window.ownErrText = ownErrText; window.ownMode = ownMode;
-        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id); window.ownPendOn = e => e ? ownPendFix(e) : e;   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelMove = ownRelMove; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;
+        window.ownAlbum = ownAlbum; window.ownAlbumGet = ownAlbumGet; window.ownPeek = ownPeek; window.ownSeen = () => (O.idx || []).slice(); window.ownSpent = id => O.spent.has(id); window.ownPendOn = e => e ? ownPendFix(e) : e;   // 읽어 둔 모든 종류 window.ownOpen = ownOpen; window.ownRelBatch = ownRelBatch; window.ownSheetImgs = ownSheetImgs;

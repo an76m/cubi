@@ -83,7 +83,7 @@
 
 /* ---------- 버튼 · 입력 ---------- */
 .modal-content .btn { border: 1.5px dashed var(--dk-line); background: #fff; color: var(--dk-ink); border-radius: 12px; font-weight: 700; box-shadow: none; }
-.modal-content .btn.service-btn, .modal-content .btn.save-choice { border-style: solid; }
+.modal-content .btn.service-btn { border-style: solid; }
 .modal-content .btn.service-btn { border: 0; background: none; }
 .modal-content .btn-primary, .modal-content .btn.btn-primary { position: relative; background: var(--dk-accent); color: #fff; border: 0; }
 .modal-content .btn-primary::before { content: ''; position: absolute; inset: 3px; border: 1.4px dashed rgba(255, 255, 255, .75); border-radius: 9px; pointer-events: none; }
@@ -126,10 +126,6 @@
 .modal-content .svc-cat:active { transform: scale(.98); }
 
 /* 💾 저장 고르기 */
-.modal-content .btn.save-choice { background: #fff; border: 0; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--dk-line) 55%, #fff), 0 3px 8px rgba(200, 120, 140, .1); border-radius: 14px; }
-.modal-content .save-choice-icon.dk-die { width: 44px; height: 44px; font-size: 28px; flex: none; }
-.modal-content .save-choice-text b { color: var(--dk-ink); }
-.modal-content .save-choice-text small { color: var(--dk-soft); }
 
 /* ---------- 💬 알림 · 확인 ---------- */
 .alert-card { position: relative; background: var(--win-fill, #fffdf8); background-image: radial-gradient(var(--dk-dot) 1.1px, transparent 1.3px); background-size: 15px 15px;

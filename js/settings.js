@@ -1,5 +1,5 @@
 /* 말랑달콤 다이어리 - js/settings.js
-   PC 백업/불러오기 · PNG 저장 · 용량 확인 · 페이지 · 창 열기/닫기
+   용량 확인 · 페이지 · 창 열기/닫기 (💾 저장 고르기 창 · 🖼 PNG 저장은 1422 에 지웠어요 · 11-15 빈 곳 메뉴 '저장' 영구 삭제의 뒷정리)
    ※ 파일 불러오는 순서: drive → app → page → elements → settings → service (index.html 참고) */
         /* 💾 데이터 관리 버튼 글씨 : 로그인 없이(이 브라우저) 쓰는 중이면 그에 맞게 (js/devsave.js) */
         function dmLabels() {
@@ -7,66 +7,6 @@
             set('dmLogoutBtn', L ? '☁ 구글로 이동' : '🚪 로그아웃');   // 🚚 로그인 없이 → 구글 (js/devsave.js dvLogin · 도련 11-09)
             const lb = document.getElementById('dmLogoutBtn'); if (lb) lb.onclick = L ? () => driveLogin() : () => driveLogout();
             const q = document.getElementById('dmQuotaLabel'); if (q) q.innerHTML = L ? '💾 이 브라우저 저장공간 <span style="font-size:11px; color:#999;">(브라우저가 다이어리에 내어 준 칸)</span>' : '☁ 내 구글 저장공간 <span style="font-size:11px; color:#999;">(지메일·구글 포토와 함께 써요)</span>';
-        }
-
-        function roundedRectPath(ctx, x, y, w, h, radii) {
-            const [tl, tr, br, bl] = radii;
-            ctx.beginPath();
-            ctx.moveTo(x + tl, y);
-            ctx.lineTo(x + w - tr, y);
-            ctx.arcTo(x + w, y, x + w, y + tr, tr);
-            ctx.lineTo(x + w, y + h - br);
-            ctx.arcTo(x + w, y + h, x + w - br, y + h, br);
-            ctx.lineTo(x + bl, y + h);
-            ctx.arcTo(x, y + h, x, y + h - bl, bl);
-            ctx.lineTo(x, y + tl);
-            ctx.arcTo(x, y, x + tl, y, tl);
-            ctx.closePath();
-        }
-
-        function exportToPNG() {
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어주세요!'); return; }
-            if (turn) return;
-            if (selectedElement) selectedElement.classList.remove('selected');
-
-            const navButtons = document.querySelectorAll('.page-nav-btn');
-            navButtons.forEach(btn => btn.style.visibility = 'hidden');
-
-            const innerPage = document.getElementById('innerPage');
-            const prevShadow = innerPage.style.boxShadow;
-            innerPage.style.boxShadow = 'none';
-            innerPage.classList.add('png-mode');
-
-            const restore = () => {
-                innerPage.style.boxShadow = prevShadow;
-                innerPage.classList.remove('png-mode');
-                navButtons.forEach(btn => btn.style.visibility = 'visible');
-                if (selectedElement) selectedElement.classList.add('selected');
-            };
-
-            return html2canvas(innerPage, {
-                backgroundColor: null,
-                useCORS: true,
-                scale: 2
-            }).then(canvas => {
-                const s = canvas.width / innerPage.offsetWidth;
-                const out = document.createElement('canvas');
-                out.width = canvas.width;
-                out.height = canvas.height;
-                const ctx = out.getContext('2d');
-                roundedRectPath(ctx, 0, 0, out.width, out.height, [15 * s, 22 * s, 22 * s, 15 * s]);
-                ctx.clip();
-                ctx.drawImage(canvas, 0, 0);
-
-                const link = document.createElement('a');
-                link.download = `${getDateKey(currentDate)}.png`;
-                link.href = out.toDataURL('image/png');
-                link.click();
-                restore(); if (window.saveBusy) saveBusy(false);
-            }).catch(() => {
-                restore(); if (window.saveBusy) saveBusy(false);
-                showMsg('⚠ PNG 저장에 실패했습니다.');
-            });
         }
 
         /* 💾 저장 용량 : 내 구글 저장공간 게이지 + 말랑달콤 전체(다이어리 + 인형) 크기 (설정창을 열 때 갱신)

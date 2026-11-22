@@ -1138,28 +1138,6 @@
         function clearCanvas() { document.getElementById('canvasArea').innerHTML = ''; }
 
 
-        /* =====================================================================
-           💾 저장 버튼 : 어떤 저장을 할지 고르는 창
-           - ☁ 웹에 저장      : 구글 드라이브에 저장 (다른 기기에서도 이어서 보기) → saveData(true)
-           - 🖼 기기에 PNG 저장 : 지금 페이지를 사진 파일로 컴퓨터·폰에 내려받기 → exportToPNG()
-           ===================================================================== */
-        function openSaveChooser() {
-            if (!isCoverOpen) { showMsg('먼저 다이어리를 열어주세요!'); return; }
-            const web = document.getElementById('saveWebDesc');
-            const L = !!drive.local, set = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };   // 🏠 로그인 없이 쓰면 '이 브라우저에 저장' (js/devsave.js)
-            set('saveWebIcon', L ? '🏠' : '☁');
-            set('saveWebTitle', L ? '저장 (이 브라우저)' : '웹에 저장 (구글 드라이브)');
-            set('saveChooserNote', L ? '※ 일기는 쓰는 동안 몇 초마다 이 브라우저에 자동 저장돼요.' : '※ 일기는 쓰는 동안 몇 초마다 웹에 자동 저장돼요.');
-            if (web) web.textContent = L ? '이 브라우저에 저장해요. 다른 기기에서도 쓰려면 ⚙ 설정 → ☁ 구글로 이동.' : drive.ready && !drive.guest
-                ? '내 구글 드라이브에 저장해요. 다른 기기에서 로그인해도 이어서 볼 수 있어요.'
-                : '⚠ 지금은 로그인되어 있지 않아서 웹에 저장할 수 없어요.';
-            openModal('saveChooser');
-        }
-        function chooseSave(kind) {
-            closeModal('saveChooser');
-            if (kind === 'web') saveData(true);
-            if (kind === 'png') { saveBusy('🖼 사진으로 저장 중…'); setTimeout(() => { let p = null; try { p = exportToPNG(); } catch (e) { console.warn('PNG', e); showMsg('⚠ PNG 저장에 실패했습니다.'); } if (!p) saveBusy(false); }, 60); }   // 끝나면 js/settings.js 가 saveBusy(false)
-        }
         /* 💾 저장 중 (도련 10-19 · 페이지 팝업메뉴 저장) : 하얀 바탕 · 화면 가운데 · 너무 빨리 끝나도 잠깐은 보여요 */
         let saveBusyAt = 0;
         function saveBusy(t) {

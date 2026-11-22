@@ -351,7 +351,7 @@
     /* ---------- 📒 스티커첩 (도련 10-25) : 종류 창 = [🧺 바구니 | 📒 스티커첩] 탭
        · 📒 바인더 = 종이째 포켓에 꽂기 (시트 수 · 한 쪽 포켓 = 그 바인더 상품) · 🤍 이형지북 = 한 칸씩 떼어 모으기 (20쪽 · 🏷️ 씰 · 😀 이모지 · 🧩 조각만)
        · 📒 정리하기(정리 책상) : 위 = 바구니 종이 한 줄 · 아래 = 바인더 포켓 / 이형지 → 끌어 놓거나 · 톡 고르고 톡 놓기
-       · 이형지로 옮겨도 쓴 게 아니에요 (파일 없이 시트의 그 칸을 가리켜요 · 도련 11-21 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelMove)
+       · 이형지로 옮겨도 쓴 게 아니에요 (파일 없이 시트의 그 칸을 가리켜요 · 도련 11-21 · 다이어리에 붙일 때 사라져요 · js/own.js ownRelBatch)
        · 바인더 · 이형지북도 🏪 기본상품 샵 → 📔 다이어리에서 받아 와야 내 것이 돼요 (공짜여도 받아서 가지고 · 칸이 차면 또 받아요 · 도련 10-25)
          → 처음부터 '받아서 가진 것을 쓰면 줄어든다'를 알게 해요 (처음 선물 · ＋ 버튼 없음)
        · 정리한 모습은 스티커목록의 스티커첩.json(암호화)에 저장 → 다른 기기에서도 그대로 ---------- */
@@ -1156,7 +1156,7 @@
             document.querySelectorAll('#abPeel .ab-st.on').forEach(x => x.classList.remove('on'));
         } else bkView();
         AB.hi.set(tmp, img);
-        AB.rel.push({ src, k: slot, rl: D.rl, pos, tmp, img });                // 💾 모아서 한 번에 (도련 11-14 : 끌어다 놓기 abRelDrop 과 같게 · 예전 = 한 장마다 바로 ownRelMove)
+        AB.rel.push({ src, k: slot, rl: D.rl, pos, tmp, img });                // 💾 모아서 한 번에 (도련 11-14 : 끌어다 놓기 abRelDrop 과 같게 · 예전 한 장마다 바로 쓰던 함수는 1422 에 지웠어요)
         B.sig = bkSig();
         abOkSync();
         if (B.desk && B.desk.sheet && B.desk.sheet.id === src && !B.desk.sheet.imgs.some(u => u != null)) { B.desk.pick = ''; B.desk.sheet = null; }

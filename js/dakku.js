@@ -1,7 +1,7 @@
 /* 말랑달콤 다이어리 - js/dakku.js
    🎀 다꾸 다이컷 : 모든 창(.modal)을 모눈 종이 카드 + 마스킹테이프 + 손그림 다이컷 스티커 아이콘으로 꾸며요 (모양은 css/dakku.css)
    - 창 위쪽 테이프 두 장 · 알림 창은 하트 스티커
-   - 메뉴 칸(.service-btn) · 카페 분류(.svc-cat) · 저장 고르기(.save-choice) 의 이모지를 손그림 아이콘으로 (이름이 표에 없으면 이모지에 하얀 테두리만)
+   - 메뉴 칸(.service-btn) · 카페 분류(.svc-cat) 의 이모지를 손그림 아이콘으로 (이름이 표에 없으면 이모지에 하얀 테두리만)
    - 구역 제목은 노랑 · 분홍 · 민트 마스킹테이프로 돌아가며 칠해요
    - 나중에 만들어지는 창(배경음악 · 인형 등)도 처음 열릴 때 똑같이 꾸며요
    ※ 색은 다이어리 스킨(--primary-accent · --border-color · --win-fill)을 따라가요 · 이 파일이 없어도 다이어리는 그대로 동작 */
@@ -164,7 +164,6 @@
             die(ic, b.dataset.ico || MAP[name.replace(/\s+/g, ' ')], i);                     // data-ico = 아이콘을 직접 (두 줄 이름 등)
         });
         box.querySelectorAll('.svc-cat').forEach((c, i) => { const ic = c.querySelector('.svc-cat-icon'), b = c.querySelector('b'); if (ic && b && !ic.querySelector('svg')) die(ic, c.dataset.ico || MAP[b.textContent.trim()], i + 1); else if (ic) die(ic, '', i + 1); });
-        box.querySelectorAll('.save-choice').forEach((c, i) => { const ic = c.querySelector('.save-choice-icon'), b = c.querySelector('b'); if (ic && b) die(ic, /PNG/.test(b.textContent) ? 'pick' : 'cloud', i); });
         /* 구역 제목 : 마스킹테이프 (노랑 · 분홍 · 민트 돌아가며) */
         const first = box.querySelector('.modal-title');                     // 창 제목(첫 번째)은 리본 · 나머지 제목은 테이프
         box.querySelectorAll('.skin-section-title, .modal-title, .form-group > label').forEach(s => { if (s !== first) s.classList.add('dk-sec'); });
