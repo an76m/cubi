@@ -100,7 +100,7 @@
     function rxHint() {
         const m = document.getElementById('deskMoveMenu'); if (!m || m.querySelector('.rx-hint')) return;
         const h = document.createElement('div'); h.className = 'rx-hint'; h.setAttribute('role', 'note');
-        h.innerHTML = '<svg class="rx-arw" viewBox="0 0 40 48" aria-hidden="true"><path d="M20 3 L35 21 L26 21 L26 42 Q26 45 23 45 L17 45 Q14 45 14 42 L14 21 L5 21 Z" fill="#ffb3cd" stroke="#c8457a" stroke-width="2.6" stroke-linejoin="round"/><path d="M17.5 25 L17.5 39" stroke="#ffe3ee" stroke-width="3" stroke-linecap="round"/><circle cx="31" cy="34" r="3.2" fill="#fff" stroke="#c8457a" stroke-width="1.6"/><circle cx="9" cy="31" r="2.2" fill="#ffe28a" stroke="#c8457a" stroke-width="1.4"/></svg>'
+        h.innerHTML = '<svg class="rx-arw" viewBox="0 0 40 48" aria-hidden="true"><path d="M20 3 L35 21 L26 21 L26 42 Q26 45 23 45 L17 45 Q14 45 14 42 L14 21 L5 21 Z" fill="#ffb3cd" stroke="#c8457a" stroke-width="2.6" stroke-linejoin="round"/><path d="M17.5 25 L17.5 39" stroke="#ffe3ee" stroke-width="3" stroke-linecap="round"/></svg>'
             + '<span class="rx-tip">앱을 끌 땐 꼭 <b>내 방 나가기</b>로 나가 주세요 💗</span>';
         m.appendChild(h);
         const off = () => { if (!h.isConnected) return; h.classList.add('bye'); setTimeout(() => h.remove(), 350); };

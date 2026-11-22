@@ -20,13 +20,13 @@
 #deskMoveMenu .dtm-list { left: auto; right: 0; }   /* 🚪 이동 ▾ 목록 = 화면 오른쪽 끝에 맞춰요 (안 잘리게) */
 body:has(#roomExit) #customAlertModal { z-index: 2147483200 !important; }   /* 못 올렸을 때 묻는 창 = 문 화면 위로 */
 /* 💗 지난번에 버튼 없이 껐으면 = 이동 ▾ 를 가리키는 화살표 + 한 줄 (도련 11-23 · js/roomexit.js rxHint) · 셀 애니 (단색 + 진한 선 · 딱 떨어지는 그늘) */
-.rx-hint { position: absolute; top: calc(100% + 4px); right: 6px; z-index: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; cursor: pointer; animation: rxHintIn .45s cubic-bezier(.3, 1.5, .5, 1) both; }
-.rx-arw { width: 38px; height: 46px; margin-right: 8px; filter: drop-shadow(2px 2px 0 #e6dcf8); transform-origin: 50% 0; animation: rxArw .9s ease-in-out infinite; }
+.rx-hint { position: absolute; top: calc(100% + 4px); right: 6px; z-index: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; cursor: pointer; animation: rxHintIn .45s cubic-bezier(.3, 1.5, .5, 1) backwards, rxBob 1s ease-in-out .45s infinite; }   /* 화살표 + 한 줄 = 한 몸으로 위아래 (도련 11-23) */
+.rx-arw { width: 38px; height: 46px; margin-right: 8px; filter: drop-shadow(2px 2px 0 #e6dcf8); }
 .rx-tip { padding: 8px 14px; border-radius: 16px; background: #fff; border: 1.6px solid #e8bfd2; color: #7a5a6c; font-size: 13.5px; font-weight: 700; white-space: nowrap; box-shadow: 3px 3px 0 #e6dcf8; }
 .rx-tip b { color: #c8457a; }
 .rx-hint.bye { animation: rxHintOut .3s ease forwards; }
 .dtm.open .rx-hint { display: none; }   /* 목록이 열리면 비켜요 */
-@keyframes rxArw { 0%, 100% { translate: 0 6px; rotate: -6deg; } 50% { translate: 0 -2px; rotate: 6deg; } }
+@keyframes rxBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
 @keyframes rxHintIn { from { opacity: 0; translate: 0 -10px; scale: .8; } }
 @keyframes rxHintOut { to { opacity: 0; translate: 0 -8px; scale: .9; } }
-@media (prefers-reduced-motion: reduce) { .rx-arw, .rx-hint { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .rx-hint { animation: none; } }
