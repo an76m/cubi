@@ -14,7 +14,7 @@
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
                 page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
-                onClose 없으면 ✕ 없음 (🧩 바인더 조립) · inline (자리 host 안에 · 옮기기 없음) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
+                onClose 없으면 ✕ 없음 (🧩 바인더 조립 · 📒 🤍 책상에서 띄운 책) · desk (📒 🤍 책상에서 띄운 책 = 📔 다이어리처럼 덮인 동안 막대 없음 · 도련 11-22) · inline (자리 host 안에 · 옮기기 없음) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
 /* 📍 쪽 자리 (도련 11-15 · 2-1 : 가짜 날짜 없애기) : 날짜가 아닌 쪽 = BookSpot(n) · 0 = 📕 표지 · 1~ = 페이지형 다이어리 장 (예전 = '2000년 1월 n일' 가짜 날짜 · 1999-12-31 = 표지)
@@ -137,7 +137,7 @@ function bookOpen(host, spec) {
         norm();
         const t = two(), c = spec.colors, side = ph() ? '' : sideBtn('l'), side2 = ph() ? '' : sideBtn('r');
         if (!B.root) {
-            B.root = document.createElement('div'); B.root.className = 'bk ' + (spec.cls || '') + (spec.inline ? ' inline' : '');
+            B.root = document.createElement('div'); B.root.className = 'bk ' + (spec.cls || '') + (spec.inline ? ' inline' : '') + (spec.desk ? ' desk' : '');
             host.appendChild(B.root); wire();
         }
         B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]); B.root.style.setProperty('--abf', spec.face || 'none');   // 📁 앞표지 = 그 상품 표지.svg (도련 11-18)
@@ -228,6 +228,14 @@ function bookOpen(host, spec) {
         return ctx;
     }
     function turn(dir) { if (!B.busy && (dir > 0 ? canNext() : canPrev())) B.tr.turn(dir); }
+    function shut(after) {                                                    // 📕 덮기 (어느 쪽에서든 · 📔 다이어리 closeCoverAnimated 처럼 첫 쪽에서 표지가 되감겨 덮여요) → after()
+        const fin = () => { if (after) after(); };
+        if (!B.open) { fin(); return; }
+        if (B.busy || (B.tr && B.tr.busy())) { setTimeout(() => shut(after), 120); return; }
+        if (B.pg) { B.pg = 0; render(); }
+        const ctx = start(-1); if (!ctx) { B.open = false; render(); fin(); return; }
+        B.tr.animate(ctx, ctx.w, true, ctx.rev, fin);
+    }
     const onResize = () => { if (B.alive && B.root && !B.busy) render(); };
     addEventListener('resize', onResize);
     render();
@@ -235,7 +243,7 @@ function bookOpen(host, spec) {
         get id() { return spec.id; }, get pg() { return B.pg; }, get open() { return B.open; }, get busy() { return !!(B.busy || (B.tr && B.tr.busy())); },
         root: () => B.root,
         refresh(s2) { if (s2) Object.assign(spec, s2); if (!B.busy && !(B.tr && B.tr.busy())) render(); },   // 쪽 안 내용이 바뀌었어요 (자리 · 쪽 · 열림은 그대로)
-        turn, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
+        turn, shut, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
 window.BOOK_RING = BOOK_RING; window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;

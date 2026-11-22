@@ -647,6 +647,7 @@
             document.body.appendChild(b);
         }
         async function dkModeExit() {
+            if (document.documentElement.classList.contains('ab-up') && window.abUpLand) { abUpLand(); return; }   // 📒 🤍 책상에서 띄운 스티커첩 = 덮고 내려앉아요 (다이어리처럼 · 도련 11-22)
             const ab = document.getElementById('basketKindModal');
             if (ab && ab.classList.contains('abs-dkmode') && ab.style.display === 'flex') { if (window.abCancel) abCancel(); return; }   // 📒 스티커정리모드 (✕ = 저장 안 하고 · 정리한 게 있으면 물어요 · 도련 11-15)
             if (window.bndIsOpen && bndIsOpen()) { if (window.bndCancel) bndCancel(); else if (window.bndClose) bndClose(); return; }   // 🧩 바인더조립모드 (✕ = 조립 안 하고 · 놓은 게 있으면 물어요)
@@ -1892,6 +1893,7 @@
         window.dkvLayer = dkvLayer; window.dkvLbPanel = dkvLbPanel; window.dkvLbSet = dkvLbSet;
         /* 평소 다이어리 권 톡 = 그 권 펼치기 (펼쳐 둔 권은 먼저 저장 · js/dyyear.js dyySelect) */
         function dkVolOpen(id) {
+            if (document.documentElement.classList.contains('ab-up') && window.abUpLand) { abUpLand(() => dkVolOpen(id)); return; }   // 📒 🤍 떠 있는 스티커첩은 먼저 내려놓고 (한 번에 한 권 · 다이어리처럼)
             const a = dkvOf(id);
             if (a && a.t === 'pg') { if (deskAnim) return; if (dyNow().id !== id) dySet(id); dkDeskBooks(); requestAnimationFrame(() => deskOpenDiary()); return; }   // 📓 🗂️ 페이지 다이어리 = 그 권 펼치기 (도련 11-06)
             if (a && a.t !== 'dy' && !a.k) { if (window.abOpenFree) abOpenFree(a.t, a.id); return; }   // 📥 종류 없는 책 = 빈 책 그대로 펼쳐 보기 · 넘기기 (도련 11-15 · 예전 = 안내만)
@@ -1990,14 +1992,14 @@
         window.dkVolsPaint = dkVolsPaint; window.dkDeskBooks = dkDeskBooks; window.dkvPose = dkvPose;
 
         const dkyApply = () => dkLayers();                                       // 📔 권 자리가 바뀌면 레이어만 (권 그림 = dkVolsPaint)
-        /* 떠오르기 · 내려앉기 = 책상 위 그 권 그림(.dk-vol.cur)에서 · 그 그림으로 (모든 권이 같은 틀이라 놓인 모습 그대로 이어져요) */
-        function dkDeskTf(w) {
-            const bk = document.getElementById('diaryBook'), ip = document.getElementById('innerPage'), cv = document.getElementById('coverPage');
-            const vo = document.querySelector('#deskStage .dk-vol.cur'), f = vo && vo.querySelector('.dv-cv'); if (!f) return 'none';
-            const rw = w.getBoundingClientRect(), rv = dkVisEl(bk, ip, cv).getBoundingClientRect();
+        /* 🪂 떠오르기 · 내려앉기 공통 (📔 다이어리 · 📒 🤍 스티커첩 같이 · 도련 11-22 '다이어리와 같게') = 책상 위 그 권 그림(vo)에서 · 그 그림으로
+             w = 떠오르는 것 (통째로 움직여요) · vis = 그 안에서 책상 권과 맞출 책 그림 · p = 책상 위 놓인 모양 (side · front · lay) */
+        function dkBookFlyTf(w, vo, vis, p) {
+            const f = vo && vo.querySelector('.dv-cv'); if (!f || !vis) return 'none';
+            const rw = w.getBoundingClientRect(), rv = vis.getBoundingClientRect();
             const ox = rv.left + rv.width / 2 - rw.left, oy = rv.bottom - rw.top;
             w.style.transformOrigin = `${ox}px ${oy}px`;
-            const p = dkyGet().p, s = DK.s || 1;
+            const s = DK.s || 1;
             if (p !== 'lay') {                                                    // 📚 📔 세운 권 : 그 표지 높이에 맞게 · 📚 꽂기는 옆으로 돌아 책등만
                 const T = f.getBoundingClientRect(), k = T.height / rv.height;
                 return `translate(${T.left + T.width / 2 - rw.left - ox}px, ${T.bottom - rw.top - oy}px) scale(${k})` + (p === 'side' ? ' perspective(1400px) rotateY(-84deg)' : '');
@@ -2005,6 +2007,13 @@
             const R = vo.getBoundingClientRect(), k = vo.offsetWidth / rv.width, bx = R.left + R.width / 2, lk = dkvLk(), by = R.bottom - 13 * lk * s;   // 🛏 눕힌 표지 = 같은 각도 (css .dk-vol.p-lay .dv-cv · --lk)
             return `translate(${bx - rw.left - ox}px, ${by - rw.top - oy}px) scale(${s}) perspective(${900 * lk}px) rotateX(${DK_TILT}deg) scale(${k})`;
         }
+        function dkBookFly(w, vo, vis, p, down) {                                     // → 애니메이션 (떠오르기 640 · 내려앉기 = 그대로 거꾸로 · 도련 11-13) · p 없으면 = 그 권 그림 모양 그대로
+            const tf = dkBookFlyTf(w, vo, vis, p || (vo && vo.classList.contains('p-lay') ? 'lay' : vo && vo.classList.contains('p-side') ? 'side' : 'front'));
+            return w.animate(down ? [{ transform: 'none' }, { transform: tf }] : [{ transform: tf }, { transform: 'none' }], down
+                ? { duration: 640, easing: 'cubic-bezier(.8, 0, .8, .2)', fill: 'forwards' } : { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+        }
+        window.dkBookFly = dkBookFly;
+        const dkDiaryFly = (w, down) => dkBookFly(w, document.querySelector('#deskStage .dk-vol.cur'), dkVisEl(document.getElementById('diaryBook'), document.getElementById('innerPage'), document.getElementById('coverPage')), dkyGet().p, down);
         function deskOpenDiary() {
             const H = document.documentElement, w = document.getElementById('diaryWrapper');
             if (window.diag) { const t = window.dyLook ? dyLook() : null; diag('dkup', { win: [innerWidth, innerHeight], book: window.dyyBookId ? dyyBookId() : '', look: t ? `${t.id} ${t.g || ''} ${t.n || ''} ${t.mm || ''}` : '-' }); }   // 🧾 다이어리 떠오르기 (누가 불렀는지 · 1327 크기 바뀜 찾기)
@@ -2013,9 +2022,8 @@
             if (window.dsUnderPaint) dsUnderPaint();                              // 📖 다이어리 바탕 = 🪵 책상판 무늬 / 🌈 배경지 (도련 11-12 · js/deskskin.js)
             H.classList.add('desk-show');                                         // 📖 접힌 채 떠 있는 동안은 책상이 보여요 · 표지를 펼치면 바탕 (dkBgSync) · 로그인 뒤 처음은 늘 접힌 채 (isCoverOpen = false) · 그 뒤로는 내려놓은 모양 그대로
             if (typeof refreshLayout === 'function') refreshLayout();             // 📐 떠오르기 전에 크기 · 펼침면을 지금 화면(하단 메뉴 포함)에 맞춰요 (숨어 있는 동안 맞춘 크기로 크게 떴다가 줄던 것 · 도련 10-28)
-            const tf = dkDeskTf(w);                                               // 책상 위 그 권 그림(.dk-vol.cur)에서 떠올라요 (그 그림은 desk-show 동안 숨어요)
             H.classList.add('dk-landing'); requestAnimationFrame(() => requestAnimationFrame(() => H.classList.remove('dk-landing')));   // 화면 도구(안내 쪽지 · 핀셋)는 떠오르며 스르르
-            const a = w.animate([{ transform: tf }, { transform: 'none' }], { duration: 640, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+            const a = dkDiaryFly(w, false);                                       // 책상 위 그 권 그림(.dk-vol.cur)에서 떠올라요 (그 그림은 desk-show 동안 숨어요)
             a.onfinish = a.oncancel = () => { w.style.transformOrigin = '';
                 deskAnim = false; dkBgSync();
                 if (DK.coverOnce && !isCoverOpen && typeof openCoverAnimated === 'function') openCoverAnimated();   // 📖 표지를 한 번 열어 본 뒤로는 = 떠오르며 펼쳐져요 (도련 11-12 · 로그인 뒤 처음 한 번만 직접 열어요)
@@ -2039,12 +2047,12 @@
             deskAnim = true;
             H.classList.add('dk-landing');                                        // 화면 도구는 내려앉는 동안 스르르 사라져요 (책상 위 다이어리엔 없어요)
             H.classList.remove('dk-bgon');                                        // 📖 책상이 먼저 돌아오고 그 위로 내려앉아요
-            const a = w.animate([{ transform: 'none' }, { transform: dkDeskTf(w) }], { duration: 640, easing: 'cubic-bezier(.8, 0, .8, .2)', fill: 'forwards' });   // 🪂 떠오르기(640 · .2 .8 .2 1)를 그대로 거꾸로 (도련 11-13)
+            const a = dkDiaryFly(w, true);                                        // 🪂 떠오르기를 그대로 거꾸로 (도련 11-13)
             a.onfinish = () => { H.classList.remove('desk-show', 'dk-landing', 'dk-bgon'); a.cancel(); w.style.transformOrigin = ''; deskAnim = false; };
         }
         /* 📖 책상 대신 바탕 (도련 11-12) : 다이어리가 떠 있고(desk-show) 표지를 펼쳤을 때만 (html.dk-bgon · css/style.css) · 로그인 뒤 접힌 채 떠 있으면 책상이 보여요
            부르는 곳 = js/page.js refreshLayout (표지 펼치기 · 덮기 · 그 밖 모두) · 떠오르기 끝 */
-        function dkBgSync() { const H = document.documentElement; H.classList.toggle('dk-bgon', UI.desk() && H.classList.contains('desk-show') && !H.classList.contains('dk-landing') && !!isCoverOpen); }
+        function dkBgSync() { const H = document.documentElement; H.classList.toggle('dk-bgon', UI.desk() && ((H.classList.contains('desk-show') && !H.classList.contains('dk-landing') && !!isCoverOpen) || !!(window.abUpOpen && abUpOpen()))); }   // 📒 🤍 책상에서 띄운 스티커첩을 펼쳐도 (js/basket.js · 도련 11-22)
         window.dkBgSync = dkBgSync;
         function dkFoldShut() {                                                   // 겉표지로 덮어요 (다시 펴면 밀어서 열기부터)
             if (!dkOpenNow()) return;
@@ -2347,6 +2355,7 @@
         let deskTopBusy = false;
         async function deskTopGo(run) {
             const H = document.documentElement;
+            if (H.classList.contains('ab-up') && window.abUpLand) { abUpLand(run); return; }   // 📒 🤍 띄운 스티커첩 = 먼저 내려놓고
             if (!H.classList.contains('desk-show')) { run(); return; }
             if (deskTopBusy || deskAnim) return;
             deskTopBusy = true;
