@@ -829,7 +829,7 @@
         if (B.view === 'desk') { if (AB.peelOn && window.closeStickerPeel) closeStickerPeel(); }   // 띄운 종이는 닫아요 · 담지 않은 정리는 그대로 (✔ 이 책 완료 때 같이) · (띄운 종이 닫기 · 정리한 건 ✔ 완료 때 같이 저장)
         B.wantSort = true; B.wantMode = mode; bkOpenKind(k);
     }
-    function abMode(m) { const D = B.desk; if (!D) return; if (AB.peelOn && m !== 'rl' && window.closeStickerPeel) closeStickerPeel(); D.mode = m; D.sel = -1; bkView(); }
+    function abMode(m) { const D = B.desk; if (!D) return; D.mode = m; D.sel = -1; if (AB.peelOn && m !== 'rl' && window.closeStickerPeel) closeStickerPeel(); bkView(); }   // 🟩 매트에 펼친 종이(D.pick)는 그대로 (도련 11-23 · 1424 : 📒 바인더에 꽂기로 갔다 와도 뗀 모습 그대로 그 자리 · 바인더에 꽂으면 매트에서도 빠져요) · 떼는 종이 그림만 잠깐 닫아요
     function abNextTarget() {
         const D = B.desk; if (!D) return;
         const L = abMine(D.mode === 'bd' ? B.album.bd : B.album.rl); if (L.length < 2) return;
@@ -1067,7 +1067,7 @@
                 AB.peelOn = '';
                 const D3 = B.desk;
                 if (D3 && D3.pick === id && D3.sheet && !D3.sheet.imgs.some(u => u != null)) { D3.pick = ''; D3.sheet = null; if (B.view === 'desk') bkView(); }   // 다 뗐어요
-                else if (D3 && D3.pick === id && B.view === 'desk') { D3.pick = ''; D3.sheet = null; bkView(); }   // ✕ 로 닫았어요
+                else if (D3 && D3.pick === id && B.view === 'desk' && D3.mode === 'rl') { D3.pick = ''; D3.sheet = null; bkView(); }   // ✕ 로 닫았어요 (📒 바인더에 꽂기로 바꿔 닫힌 것 = 매트에 그대로 · 1424)
             }
         } });
         if (!ok && AB.peelOn === id) AB.peelOn = '';
