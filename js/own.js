@@ -704,26 +704,27 @@
         /* ✅ 다이어리 페이지 완료 (도련 11-14 · js/pagedone.js) : 그 페이지에서 쓴 칸 · 수량(h = 페이지 키)을 종이마다 한 번에 드라이브에
            - 종류마다 목록 1번 읽기 + 종이마다 1번 읽고 1번 새로 쓰기 + 옛 종이 지우기 + 목록 1번 쓰기 (한 장씩 할 때보다 요청이 아주 적어요)
            - 실패하면 throw : 그 칸들은 이 기기에 그대로 남아요 (ownUnhold 로 풀면 ownReplay 가 인터넷이 되면 이어서 지워요)
-           - 다른 기기에서 이미 쓴 칸 · 다 쓴 묶음 = 조용히 넘어가요 (페이지에서 빼지 않아요 · 드문 일) */
+           - 다른 기기에서 이미 쓴 칸 · 다 쓴 묶음 = 그 스티커를 페이지에서 조용히 빼고 완료해요 (도련 11-22 '스티커는 1번 쓰면 살아나면 안 돼 · 알려 주지 마') */
         const ownHeld = hk => ownPendGet().filter(p => p.h === hk);
         async function ownCommit(hk, prog) {
             const ops = ownHeld(hk); if (!ops.length) { if (prog) prog(1); return true; }
             return ownSerial(async () => {
                 const byK = new Map();
                 for (const p of ops) { let k = p.kk && OWN_KIND[p.kk] ? p.kk : await ownFindKind(p.s); if (!k) continue; if (!byK.has(k)) byK.set(k, []); byK.get(k).push(p); }
-                const N = [...byK.values()].reduce((a, L) => a + new Set(L.map(p => p.s)).size, 0) || 1, done = []; let n = 0;
+                const N = [...byK.values()].reduce((a, L) => a + new Set(L.map(p => p.s)).size, 0) || 1, done = [], dead = new Set(); let n = 0;   // dead = 이미 쓴 칸 'id:칸' · 'id:*' 종이째
                 for (const [k, L] of byK) {
                     const list = await ownIdxRead(k), kills = [];
                     const bySheet = new Map(); L.forEach(p => { if (!bySheet.has(p.s)) bySheet.set(p.s, []); bySheet.get(p.s).push(p); });
                     for (const [id, P] of bySheet) {
                         const e = list.find(x => x.id === id);
                         let s = null; if (e) { try { s = await ownEntSheet(e, list); } catch (er) { if (!(er && er.code === 'gone')) throw er; } }
-                        if (!e || !s) { O.spent.add(id); n++; if (prog) prog(n / N); continue; }
+                        if (!e || !s) { O.spent.add(id); dead.add(id + ':*'); n++; if (prog) prog(n / N); continue; }
                         let end = false, slot = false;
                         for (const p of P) {
                             if (p.p) { const r = await ownPaperGet(id); if (r && r.img) { s.imgs = [r.img]; if (r.th) e.th = r.th; s.x = Object.assign({}, s.x, { grained: 1 }, r.a0 && !(s.x && s.x.a0) ? { a0: r.a0 } : {}); end = r.left <= OWN_PAPER_END; } continue; }   // 📄 모조지 = 남은 종이 그림으로
                             if (p.q) { s.q = Math.max(0, (s.q || 0) - p.q); e.q = s.q; end = s.q <= 0; }
                             else if (s.imgs[p.k] != null) { if (!(s.gh && s.gh[p.k])) { s.gh = s.gh || []; s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); } s.imgs[p.k] = null; slot = true; }
+                            else if (p.k != null) dead.add(id + ':' + p.k);                   // 📱 다른 기기에서 이미 쓴 칸
                         }
                         if (slot) { e.u = ownUsedOf(s, e); end = ownEnd(e); }
                         if (end) { list.splice(list.indexOf(e), 1); O.spent.add(id); kills.push(e.f); if (e.ref) await ownRefSpend(list, e, kills); }   // 🤍 이형지북 스티커 = 원래 시트 그 칸도
@@ -735,10 +736,16 @@
                     done.push([k, list]);
                 }
                 for (const p of ops) if (p.p) await ownPaperDel(p.s).catch(() => {});
+                if (dead.size) ownDeadOut(hk, dead);                               // 🚫 한 번 쓴 스티커는 두 번 안 붙어요 (조용히 페이지에서 빼요)
                 ownPendSet(ownPendGet().filter(p => p.h !== hk));                 // 먼저 지우고 목록을 얹어야 두 번 빠져 보이지 않아요
                 done.forEach(([k, list]) => ownSetKind(k, list)); ownTell();
                 return true;
             });
+        }
+        function ownDeadOut(hk, dead) {                                          // 그 페이지에서 이미 쓴 칸의 스티커 빼기 (저장된 글 + 화면)
+            const hit = ow => { const i = String(ow || '').lastIndexOf(':'); return i > 0 && (dead.has(ow) || dead.has(ow.slice(0, i) + ':*')); };
+            try { const d = JSON.parse(store.getItem(hk) || 'null'); if (d && Array.isArray(d.i)) { const n = d.i.length; d.i = d.i.filter(it => !hit(it && it.ow)); if (d.i.length !== n) store.putLoaded(hk, JSON.stringify(d)); } } catch (e) {}
+            document.querySelectorAll('#canvasArea [data-own]').forEach(el => { if (hit(el.dataset.own)) el.remove(); });
         }
         function ownUnhold(hk) { ownPendSet(ownPendGet().map(p => { if (p.h === hk) { const q = Object.assign({}, p); delete q.h; return q; } return p; })); }   // 완료했는데 못 올렸어요 → 보통 '이어서 지우기'로 (인터넷이 되면 ownReplay)
         function ownDropHeld(keys) { const K = new Set(keys); ownPendGet().forEach(p => { if (p.p && p.h && K.has(p.h)) ownPaperDel(p.s).catch(() => {}); }); ownPendSet(ownPendGet().filter(p => !(p.h && K.has(p.h)))); O.spent = new Set(); O.kd = {}; O.idx = null; O.album = null; ownTell(); }   // 목록은 다음에 볼 때 다시 읽어요   // 🆕 처음부터 = 쓴 칸이 시트로 돌아가요

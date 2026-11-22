@@ -977,7 +977,8 @@
                 if (img && el.dataset.sh) { try { item.sh = JSON.parse(el.dataset.sh); } catch (e) {} }   // ✨ 셰이더 스티커 : 효과 이름 · GLSL 글자 · 속도 · 세기 (js/glrun.js)
                 if (el.dataset.ph) item.ph = el.dataset.ph;                    // 🕳️ 펀칭기로 같이 뚫린 구멍 (js/skins.js bdPierce)
                 if (img && el.dataset.bgp) item.bgp = 1;                        // 📄 배경 모조지 : 옮겨도 맨 뒤 그대로 (js/papermaker.js · 10-23)
-                if (img && el.dataset.ts) item.ts = 1;                          // 🔤 글씨스티커 : 📷 사진 꾸미기 창이 안 떠요 (js/page.js getSelectedPhoto)                       // 📄 모조지스티커 : 옮길 때 떼지 않고 살짝 떠서 (아래 makeTransformable)
+                if (img && el.dataset.ts) item.ts = 1;
+                if (img && /:/.test(el.dataset.own || '')) item.ow = el.dataset.own;   // 🎒 어느 종이의 몇째 칸인지 (완료할 때 다른 기기에서 이미 쓴 칸이면 빼요 · js/own.js ownCommit · 도련 11-22)                          // 🔤 글씨스티커 : 📷 사진 꾸미기 창이 안 떠요 (js/page.js getSelectedPhoto)                       // 📄 모조지스티커 : 옮길 때 떼지 않고 살짝 떠서 (아래 makeTransformable)
                 if (img && el.dataset.frame) {                                  // 📷 사진 틀 (js/frame.js)
                     item.fr = el.dataset.frame;
                     if (el.dataset.caption) item.cp = el.dataset.caption;
@@ -1048,6 +1049,7 @@
                 el.appendChild(img);
                 if (data.float) el.dataset.float = 1;
                 if (data.ts) el.dataset.ts = 1;
+                if (data.ow) el.dataset.own = data.ow;
                 if (data.bgp) el.dataset.bgp = 1;
                 if (data.cm && window.cmvDress) cmvDress(el, img, data.cm);    // 🪄 움직이는 캐릭터 (js/char-move.js) : 그림 위에 움직이는 캔버스를 겹쳐요
                 else if (data.sh && window.glrDress) glrDress(el, img, data.sh); // ✨ 셰이더 스티커 (js/glrun.js) : 그림 위에 움직이는 캔버스를 겹쳐요

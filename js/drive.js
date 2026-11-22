@@ -183,7 +183,7 @@
         let pendTimer = null, pendSince = 0;
         function pendNow() {
             pendTimer = null; pendSince = 0;
-            if (drive.reopening || !drive.ready || drive.guest || drive.wiped || !drive.dirty) return;
+            if (drive.reopening || drive.stopped || !drive.ready || drive.guest || drive.wiped || !drive.dirty) return;
             savePending();
         }
 
@@ -1375,7 +1375,7 @@
             const force = !!(opts && opts.force);
             clearTimeout(uploadTimer); dirtySince = 0;
             uploadChain = uploadChain.then(async () => {
-                if (!drive.ready || drive.guest) return false;
+                if (!drive.ready || drive.guest || drive.stopped) return false;   // 🔌 다른 기기에서 열어서 멈춘 기기 = 안 올려요
                 if (force && isCoverOpen) {                                 // 💾 저장 버튼: 지금 보고 있는 날짜 파일을 한 번 더 덮어씀
                     const k = getDateKey(currentDate);
                     if (drive.loadedDays.has(k) && store.getItem(k) !== null && !(window.pgHeld && pgHeld(k))) drive.dirtyKeys.add(k);   // ✅ 완료 전 페이지는 올리지 않아요 (js/pagedone.js)
@@ -1438,6 +1438,7 @@
 
         async function postLoginTasks() {
             await recoverPendingBackup();
+            openMark();                                                      // 🔌 이 기기가 열었어요 (먼저 켜 둔 기기는 멈춰요)
             if (window.dfFix) dfFix();                                       // 🗂 꾸민 페이지만 보기 : 꾸민 날 목록 (js/skins.js)
             if (window.deskLoginShow) deskLoginShow();                       // 📔 로그인하면 늘 다이어리 겉표지 (js/desk.js)
             setTimeout(sealOld, 20000);                                      // 🔐 예전 파일 잠그기 (뒤에서 조금씩 · 도련 11-11)
@@ -1804,7 +1805,7 @@
         }
 
         function saveOnScreenOff() {
-            if (drive.reopening) return;                                        // ☁ 드라이브 것으로 새로 여는 중 = 버린 것을 남기지 않아요
+            if (drive.reopening || drive.stopped) return;                       // ☁ 드라이브 것으로 새로 여는 중 · 🔌 멈춘 기기 = 버린 것을 남기지 않아요
             try { if (!turn) saveData(false); } catch (err) {}      // 편집 중인 글/스티커를 메모리(store)에 반영
             if (!drive.ready || drive.guest || drive.wiped) return;  // 로그인 전 · 게스트면 저장할 곳이 없음 · 🗑 폴더가 지워졌으면 올리지 않음
             if (drive.dirty || drive.uploading) {
@@ -1938,6 +1939,7 @@
                     const j = await res.json();
                     if (window.DRC) await DRC.apply(j.changes || []);              // ⚡ 바뀐 것은 기억에서 잊어요 (내 것 · 다른 기기 것 모두)
                     drcGone(j.changes);
+                    (j.changes || []).forEach(c => { if (openAt && c.file && c.file.name === OPEN_NAME && !changeMine(c) && Date.parse(c.file.modifiedTime || c.time || '') > openAt) drive.otherOpen = true; });   // 🔌 나보다 나중에 다른 기기가 열었어요
                     (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c) && !(c.file && ((c.file.spaces || []).includes('appDataFolder') || c.file.name === LEDGER_NAME))) out.push(c); });   // 📒 장부는 화면과 상관없어요 (다음에 쓸 때 다시 읽어요)
                     if (window.mineHint) (j.changes || []).forEach(c => { if (!changeMine(c)) mineHint(c.fileId); });   // 📦 내 실물 목록
                     if (j.newStartPageToken) { changeTok = j.newStartPageToken; drive.lastChanges = j.changes || []; if (window.DRC && DRC.on) await DRC.ready(changeTok); return out; }
@@ -1946,6 +1948,41 @@
             } catch (e) { return null; }
             changeTok = null; return null;
         }
+        /* 🔌 한 번에 한 기기만 (도련 11-22 '동시에 켜면 한쪽 기기를 끄게 · 그 뒤로 드라이브에 저장 · 요청은 가능한 안 쓰게')
+             켤 때 = 숨은 칸(appDataFolder)에 '열림' 표시 1번 쓰기 (이 기기 파일 하나 · 번호는 이 기기에 기억 · 요청 1번)
+             → 먼저 켜 둔 기기는 돌아올 때 이미 하는 '바뀐 것 묻기'(changes) 에서 나보다 나중 표시를 보면 = 멈춰요 (요청 0번 더)
+             멈춘 기기 = 안 올려요 · 못 올린 것은 버려요 (☁ 드라이브가 1순위) · 안내를 닫으면 = 이 기기에서 다시 열기 (그러면 다른 기기가 멈춰요)
+             같은 브라우저 다른 탭도 같아요 (탭마다 '이 창이 쓴 것'이 달라서) · 🏠 로그인 없이 쓰기는 이 브라우저 하나라 안 해요 */
+        const OPEN_NAME = '_열림.json', OPEN_LS = 'malang_open_id';
+        let openAt = 0;
+        async function openMark() {
+            if (drive.local || !drive.ready || drive.guest) return;
+            const lk = OPEN_LS + ':' + pendWho(), body = JSON.stringify({ at: Date.now() });
+            let id = ''; try { id = localStorage.getItem(lk) || ''; } catch (e) {}
+            try {
+                let r = id ? await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media&fields=id,modifiedTime`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }) : null;
+                if (!r || !r.ok) {                                              // 처음 · 지워졌어요 = 새로
+                    const b = 'diary_boundary_' + Math.random().toString(36).slice(2), meta = { name: OPEN_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
+                    r = await gfetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime`, { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b },
+                        body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--` });
+                    if (!r.ok) return;
+                }
+                const j = await r.json(); try { localStorage.setItem(lk, j.id); } catch (e) {}
+                openAt = Date.parse(j.modifiedTime || '') || 0;                  // 구글 시각 (기기 시계는 안 믿어요)
+            } catch (e) { console.warn('🔌 열림 표시', e); }
+        }
+        let openStopped = false;
+        async function openStop() {
+            if (openStopped) return; openStopped = true;
+            drive.stopped = true; clearTimeout(uploadTimer); clearTimeout(pendTimer);
+            drive.dirtyKeys.clear(); try { clearPending(); } catch (e) {}       // 못 올린 것은 버려요 (드라이브가 1순위)
+            if (window.showMsg) await showMsg('📱 다른 기기에서 말랑달콤을 열었어요.<br>한 번에 한 기기에서만 쓸 수 있어요.<br><span style="font-size:12px;color:#777;">이 기기는 저장을 멈췄어요 · 확인을 누르면 이 기기에서 다시 열어요</span>');
+            driveReopen('');
+        }
+        window.openMark = openMark;
+        /* ⌚ 한동안(2분) 손대지 않다가 다시 누르면 = 바뀐 것 묻기 (💻 창이 늘 선택돼 있으면 '돌아왔다' 신호가 안 와요 · 60초 안에는 또 안 물어요) */
+        let lastInput = Date.now();
+        ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { const now = Date.now(); if (now - lastInput > 120000) checkRemote(); lastInput = now; }, true));
         function checkRemote(force) {
             if (!drive.ready || drive.guest || document.hidden || drive.needAuth || drive.wiped || drive.reopening) return Promise.resolve();
             if (!force && Date.now() - lastRemoteCheck < 60000) return Promise.resolve();   // ⏱ 60초 안에 또는 안 물어요 (도련 11-17 · 예전 50초)
@@ -1953,6 +1990,7 @@
             lastRemoteCheck = Date.now();
             remoteChecking = (async () => {
                 const ch = await changesForeign();                             // 🔔 요청 1번 (바뀐 게 없으면 여기서 끝)
+                if (drive.otherOpen) { openStop(); return; }
                 if (!ch || !ch.length) return;
                 drive.lastForeign = ch.map(c => ({ id: c.fileId, name: c.file ? c.file.name : '(지움)', at: c.time }));   // 📊 상황판 · 점검
                 if (ch.some(c => c.fileId === drive.rootId && (c.removed || !c.file || c.file.trashed))) { rootReset(); return; }   // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로 (changes 안에 있어요 · 따로 묻지 않아요)
