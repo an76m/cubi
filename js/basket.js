@@ -545,6 +545,7 @@
         (a.bd || []).forEach(b => Object.values(b.p || {}).forEach(id => placed.add(id)));
         (a.rl || []).forEach(r => (r.it || []).forEach(t => placed.add(t.s)));
         B.byId = new Map(B.all.map(e => [e.id, e]));
+        (AB.relFly || []).concat(AB.rel).forEach(o => { if (o.tmp && o.img) B.byId.set(o.tmp, { id: o.tmp, th: o.img }); });   // 🤍 완료 전에 붙인 스티커 그림은 남겨요 (라벨을 바꾸면 쪽을 넘겼다 오면 안 보이던 것 · 도련 11-22)
         const H = bkHold(), bag = e => !!H && H.s.has(e.id);
         B.bagN = B.all.filter(e => bkKindOf(e) === B.kind && bag(e)).length;   // 🛍️ 봉투에 아직 있는 것
         B.list = B.all.filter(e => bkKindOf(e) === B.kind && !placed.has(e.id) && !DS.m.has(e.id) && !bag(e));   // 🗂️ 페이지에 꺼내 둔 종이는 바구니에 없어요 (✕ 로 치우면 돌아와요)
@@ -596,7 +597,7 @@
                 if (ids.some(x => !x)) { showMsg('이미 썼거나 자리가 없는 스티커는 붙이지 못했어요.'); B.sig = ''; bkRender(true); }
             } catch (e) { AB.relFly = null; AB.rel = ops.concat(AB.rel); abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
         }
-        if (!AB.pend.length && !AB.rel.length && !AB.loads.length) { abToast('저장됨', 'ok'); abDraftDrop(); }
+        if (!AB.pend.length && !AB.rel.length && !AB.loads.length) { abToast('저장됨', 'ok'); abDraftDrop(); if (window.dkDeskBooks) dkDeskBooks(true); }   // 🪑 책상 위 권 표지도 바로 (라벨 · 색 · 도련 11-22)
         else AB.flushT = setTimeout(abFlush, 300);
     }
     /* 📱 완료 전 = 이 기기에만 (IndexedDB 'mallang-absort' · 계정|종류 하나 · js/pagedone.js 다이어리 임시저장과 같은 생각)
