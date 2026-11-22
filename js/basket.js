@@ -602,7 +602,7 @@
     }
     /* 📱 완료 전 = 이 기기에만 (IndexedDB 'mallang-absort' · 계정|종류 하나 · js/pagedone.js 다이어리 임시저장과 같은 생각)
        { at, bd: [{ id, p, lb, pid }], rl: [{ id, lb, xy: { 스티커: [x, y] } }], rel: [🤍 붙인 것 { src, k, rl, pos, tmp, img }] } = 그 종류 책 모습 그대로 */
-    AB.dirtyK = new Set(); AB.rest = new Set(); AB.dT = 0;
+    AB.dirtyK = new Set(); AB.rest = new Set(); AB.dT = 0; AB.base = new Map();   // base = 종류마다 정리를 시작할 때 드라이브 스티커첩 지문
     const abDirty = () => !!(AB.pend.length || AB.rel.length || AB.fly || AB.relFly);
     let abDbP = null;
     const abDb = () => abDbP || (abDbP = new Promise(ok => { try { const r = indexedDB.open('mallang-absort', 1); r.onupgradeneeded = () => r.result.createObjectStore('d'); r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
@@ -614,14 +614,15 @@
         const k = B.kind, a = B.album; if (!k || !a || !AB.dirtyK.has(k)) return;
         AB.at = Date.now();
         const rids = new Set((a.rl || []).map(r => r.id));
-        const rec = { at: Date.now(), k,
+        if (!AB.base.has(k)) { const pk = window.ownPeek ? ownPeek(k) : null; AB.base.set(k, strFp(pk ? JSON.stringify(pk.album) : '')); }   // ☁ 정리를 시작할 때 드라이브 스티커첩 지문 (아래 abDraftRestore)
+        const rec = { at: Date.now(), k, base: AB.base.get(k),
             bd: (a.bd || []).map(b => ({ id: b.id, p: Object.assign({}, b.p), lb: b.lb || '', pid: b.pid })),
             rl: (a.rl || []).map(r => ({ id: r.id, lb: r.lb || '', xy: Object.fromEntries((r.it || []).filter(t => !String(t.s).startsWith('tmp')).map(t => [t.s, [t.x, t.y]])) })),
             rel: (AB.relFly || []).concat(AB.rel).filter(o => rids.has(o.rl)).map(o => ({ src: o.src, k: o.k, rl: o.rl, pos: o.pos, tmp: o.tmp, img: o.img })),
             ld: AB.loads.filter(l => l.k === k).map(l => ({ t: l.t, x: l.x })) };   // 📥 완료 전에 불러온 책 (꽂은 것과 같이)
         return abDTx('readwrite', st => st.put(rec, abDKey(k)));
     }
-    function abDraftDrop() { clearTimeout(AB.dT); AB.uns = false; AB.at = 0; const ks = [...AB.dirtyK]; AB.dirtyK.clear(); ks.forEach(k => abDTx('readwrite', st => st.delete(abDKey(k)))); }
+    function abDraftDrop() { clearTimeout(AB.dT); AB.uns = false; AB.at = 0; const ks = [...AB.dirtyK]; AB.dirtyK.clear(); ks.forEach(k => AB.base.delete(k)); ks.forEach(k => abDTx('readwrite', st => st.delete(abDKey(k)))); }
     async function abRevert() {                                                // 그냥 닫기 = 마지막 저장(자동 포함) 때로 · 저장한 적 없으면 드라이브 모습으로 (도련 11-15 · js/tempsave.js)
         const k = B.kind; clearTimeout(AB.dT); AB.uns = false;
         AB.pend = []; AB.rel = []; AB.loads = AB.loads.filter(l => l.k !== k);   // 📥 불러온 책도 (임시저장에 있으면 다시 얹어요)
@@ -641,6 +642,9 @@
         const k = B.kind; if (!k || AB.rest.has(k)) return false; AB.rest.add(k);
         if (AB.dirtyK.has(k)) return false;
         const d = await abDTx('readonly', st => st.get(abDKey(k))); if (!d || B.kind !== k || !B.album) return false;
+        const pk = window.ownPeek ? ownPeek(k) : null;
+        if (pk && d.base !== strFp(JSON.stringify(pk.album))) { abDTx('readwrite', st => st.delete(abDKey(k))); return false; }   // ☁ 그 사이 드라이브 스티커첩이 바뀌었어요 (다른 기기에서 완료) = 드라이브 것 · 이 기기 임시저장은 묻지 않고 지워요 (도련 11-22 '임시저장은 임시 · 진짜는 완료')
+        AB.base.set(k, d.base);
         abDraftApply(d); abToast('완료 전 정리를 이어서 해요', 'ok');
         return true;
     }

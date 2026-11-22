@@ -1816,7 +1816,7 @@
         /* 다음에 열었을 때, 업로드되지 못한 임시 보관본(변경된 날짜만)이 있으면 복구
            - 기기 시계는 믿지 않아요 : 보관할 때 적어 둔 '그때 드라이브 파일의 수정 시각'과 지금 수정 시각을 비교해요
              · 같으면 그 사이 아무도 안 고친 것 → 이 기기 것을 그대로 올려요
-             · 다르면 그 사이 다른 기기가 고친 것 → 일기 = 이 기기 것 (다른 기기 것은 🗑 휴지통) · 설정 = 나중에 바꾼 쪽
+             · 다르면 그 사이 다른 기기가 고친 것 → ☁ 드라이브 것 그대로 · 이 기기 것은 버려요 (일기 · 설정 모두 · 휴지통에도 안 넣어요 · 도련 11-22)
              · 🤫 묻지 않아요 (도련 11-22 : 사용자는 어떻게 할지 몰라요 · 앱이 알아서)
              · ☕ 카페 기록은 묻지 않고 양쪽을 합쳐요 (cafeMerge)
            - 지금 드라이브 내용이 보관본과 같으면 (이미 올라감) 아무것도 안 해요 */
@@ -1825,7 +1825,7 @@
             if (!p) { await forget(); return; }
             if (!drive.local && !(await getFolder([TOP_FOLDER_NAME], false).catch(() => 'x'))) { await forget(); return; }   // 🗑 말랑달콤 폴더가 없으면 옛 보관본은 버려요 (처음 상태)
             const B = p.b && typeof p.b === 'object' ? p.b : {}, BV = p.bv && typeof p.bv === 'object' ? p.bv : {};
-            const safe = [], cafe = [], askDays = [], askSet = [];
+            const safe = [], cafe = [];
             let keep = false;                                                           // 💤 목록을 못 읽어 비교 못 한 칸이 있으면 보관본을 지우지 않아요
             for (const k of Object.keys(p.items)) {
                 const v = p.items[k];
@@ -1853,19 +1853,14 @@
                 if (store.getItem(k) === v) continue;                                   // 내용이 같음 (이미 올라갔어요)
                 if (!dk && keyFile(k) === 'cafe') cafe.push(k);
                 else if (k in B && B[k] === now) safe.push(k);                          // 그 사이 아무도 안 고쳤어요
-                else (dk ? askDays : askSet).push(dk ? k : [k, now]);                   // 그 사이 다른 기기가 고쳤어요 (설정 = 드라이브 시각도)
+                //                                                                         그 사이 다른 기기가 고쳤어요 = ☁ 드라이브 것 그대로 (이 기기 것은 버려요 · 휴지통에도 안 넣어요 · 도련 11-22)
             }
             if (!keep) await forget();
-            if (!safe.length && !cafe.length && !askDays.length && !askSet.length) return;
+            if (!safe.length && !cafe.length) return;
             const put = k => { const v = p.items[k]; if (v === null) store.removeItem(k); else store.setItem(k, v); };
-            let any = false;
             try {                                                               // 🤫 묻지 않고 앱이 알아서 (도련 11-22 '사용자는 이런 메세지가 나오면 어떻게 할지 몰라요')
                 safe.forEach(put);                                              // 그 사이 아무도 안 고쳤어요 = 이 기기 것을 그대로 올려요
                 cafe.forEach(k => { const m = cafeMerge(k, BV[k], p.items[k], store.getItem(k)); if (m !== store.getItem(k)) store.setItem(k, m); });   // ☕ 카페 기록 = 양쪽을 합쳐요
-                for (const k of askDays) { if (window.trashKeepDay) await trashKeepDay(k, store.getItem(k)); put(k); }   // 📔 일기 = 이 기기 것 · 다른 기기 것은 🗑 휴지통에 (되살릴 수 있어요)
-                for (const [k, now] of askSet) { if ((p.at[k] || 0) >= (Date.parse(now) || 0)) put(k); }   // ⚙ 설정 = 나중에 바꾼 쪽
-                any = true;
-                if (!any) return;
                 applyLoadedData();
                 await flushUpload({ force: true });
             } catch (e) { showMsg('⚠ 복구에 실패했어요.'); }
@@ -1963,12 +1958,9 @@
                 if (ch.some(c => c.fileId === drive.rootId && (c.removed || !c.file || c.file.trashed))) { rootReset(); return; }   // 🗑 다른 기기에서 말랑달콤 폴더를 지웠으면 이 창도 처음 상태로 (changes 안에 있어요 · 따로 묻지 않아요)
                 diag('remote', { n: ch.length });
                 try { if (!turn) saveData(false); } catch (e) {}           // 쓰던 글을 먼저 메모리에
-                const mineN = drive.dirtyKeys.size;
-                let useDrive = true;
-                if (mineN) useDrive = await showAsk(`📱 다른 기기에서 바뀐 내용이 있어요.<br>이 기기에도 아직 드라이브에 못 올린 것이 <b>${mineN}개</b> 있어요.<br>어느 쪽을 쓸까요?<br><span style="font-size:12px;color:#777;">☁ 드라이브 것 = 이 기기에서 바꾼 것은 버려요<br>📱 이 기기 것 = 다른 기기에서 바꾼 것 위에 덮어써요</span>`, '☁ 드라이브 것', '📱 이 기기 것');
-                if (!useDrive) { flushUpload({ force: true }); return; }
+                const mineN = drive.dirtyKeys.size;                            // ☁ 드라이브가 1순위 (도련 11-22) : 이 기기에서 못 올린 것은 버리고 드라이브 것으로 · 묻지도 알리지도 않아요
                 if (!mineN && await refreshChanged(ch)) return;               // ⚡ 바뀐 파일만 다시 받아요 (도련 11-17 · 새로 열기 21번 → 바뀐 것만)
-                driveReopen(mineN ? '' : '📱 다른 기기에서 바뀐 내용이 있어서 새로 불러올게요.');
+                driveReopen('');                                               // 조용히 새로 열기 (못 올린 것 · 보관본은 버려요)
             })().catch(e => console.warn('다른 기기 변경 확인 실패:', e)).finally(() => { remoteChecking = null; });
             return remoteChecking;
         }

@@ -13,7 +13,7 @@
    - 다른 페이지 · 다른 다이어리에 처음 뭔가를 하면 : "꾸미던 중이에요 [그 페이지로 가기] [지우고 여기서 시작]" (넘기기 · 구경만은 그냥 돼요)
    - 지우기는 한 번 더 물어요 (붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요) */
 (function () {
-    const PG = { key: '', done: false, orig: new Map(), drafts: new Map(), uns: new Set(), meta: new Map(), saved: null, asked: false, busy: false, warned: '', at: 0, gating: false, mute: '' };
+    const PG = { base: new Map(), key: '', done: false, orig: new Map(), drafts: new Map(), uns: new Set(), meta: new Map(), saved: null, asked: false, busy: false, warned: '', at: 0, gating: false, mute: '' };
     const q = id => document.getElementById(id);
     const on = () => typeof drive !== 'undefined' && !!drive.ready && !drive.guest;
     const who = () => (window.pendWho ? pendWho() : 'g:');
@@ -39,7 +39,11 @@
         return new Promise(ok => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } });
     }
     const idKey = key => who() + '|' + key;
-    const draftPut = (key, txt, held) => { PG.at = Date.now(); return tx('readwrite', st => st.put(Object.assign({ who: who(), key, txt, at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? spotSave(currentDate) : 0 }, held ? { held } : {}), idKey(key))); };   // ds = 그 날 · 그 쪽 (js/book.js spotSave)   // vol · ds = 그 권 · 그 페이지로 가려고 · held = 그때 쓴 스티커 · 모조지 종이 (그냥 닫기 = 이때로)
+    /* ☁ 드라이브가 1순위 (도련 11-22 '임시저장은 임시 · 진짜는 완료') : 임시저장에 = 꾸미기 시작할 때 드라이브 그 페이지 지문(base)
+       → 다시 켜서 이어서 할 때 드라이브 지문이 다르면 (다른 기기에서 꾸미거나 완료) = 이 기기 임시저장은 묻지 않고 지워요 (휴지통 없이 · 꺼내 둔 스티커는 시트로) */
+    const fp = strFp;                                                        // 🧰 js/util.js
+    const baseOf = key => { if (!PG.base.has(key)) PG.base.set(key, fp(PG.orig.has(key) ? PG.orig.get(key) : store.getItem(key))); return PG.base.get(key); };
+    const draftPut = (key, txt, held) => { PG.at = Date.now(); return tx('readwrite', st => st.put(Object.assign({ who: who(), key, txt, base: baseOf(key), at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? spotSave(currentDate) : 0 }, held ? { held } : {}), idKey(key))); };   // ds = 그 날 · 그 쪽 (js/book.js spotSave)   // vol · ds = 그 권 · 그 페이지로 가려고 · held = 그때 쓴 스티커 · 모조지 종이 (그냥 닫기 = 이때로)
     const draftGet = key => tx('readonly', st => st.get(idKey(key)));
     const draftDel = key => tx('readwrite', st => st.delete(idKey(key)));
     async function draftsMine() { const all = await tx('readonly', st => st.getAll()); return (all || []).filter(r => r && r.who === who() && r.key); }
@@ -56,7 +60,7 @@
         PG.uns.delete(key);
         const r = await draftGet(key);
         if (r && r.txt != null) { if (!PG.orig.has(key)) PG.orig.set(key, store.getItem(key)); PG.drafts.set(key, r.txt); store.putLoaded(key, r.txt); }
-        else { PG.drafts.delete(key); if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); } }
+        else { PG.drafts.delete(key); PG.base.delete(key); if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); } }
         if (window.ownHeldTrim) await ownHeldTrim(key, r && r.held ? r.held : null);
         if (curKey() === key && typeof loadData === 'function') { try { loadData(); } catch (e) {} }   // 화면도 그때 모습으로 (안 그러면 다음 저장 때 다시 담겨요)
         ui();
@@ -131,7 +135,7 @@
     }
     async function recOf(key) { const r = await draftGet(key); return Object.assign({ key, txt: PG.drafts.get(key) }, PG.meta.get(key) || {}, r || {}, PG.uns.has(key) ? { txt: PG.drafts.get(key) } : {}); }
     function drop(key) {                                                      // 🗑 그 페이지 임시저장 지우기 (드라이브는 원래 그대로 · 쓴 스티커는 서랍으로)
-        PG.drafts.delete(key); PG.uns.delete(key); draftDel(key);
+        PG.drafts.delete(key); PG.uns.delete(key); PG.base.delete(key); draftDel(key);
         if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); }
         if (window.ownDropHeld) ownDropHeld([key]);
     }
@@ -184,6 +188,9 @@
         if (!L.length) return;
         if (L.length > 1) { const old = L.slice(1); old.forEach(r => draftDel(r.key)); if (window.ownDropHeld) ownDropHeld(old.map(r => r.key)); L = [L[0]]; }   // 예전에 여러 개 남은 것 = 가장 최근 것만
         const r = L[0], nm = label(r.key, r);
+        if (typeof ensureKeyLoaded === 'function') { try { await ensureKeyLoaded(r.key); } catch (e) {} }
+        if (drive.loadedDays.has(r.key) && r.base !== fp(PG.orig.has(r.key) ? PG.orig.get(r.key) : store.getItem(r.key))) { drop(r.key); ui(); return; }   // ☁ 그 사이 드라이브가 바뀌었어요 = 드라이브 것 (묻지 않아요) · 못 읽었으면 그대로 두고 다음에
+        PG.base.set(r.key, r.base);                                           // 이어서 하면 = 처음 지문 그대로
         for (;;) {
             const go = typeof showAsk === 'function'
                 ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시저장한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
@@ -235,7 +242,7 @@
         let d = null; try { d = JSON.parse(store.getItem(key) || 'null'); } catch (e) {}
         d = d && typeof d === 'object' ? d : { v: 3, i: [] };
         d.done = Date.now();
-        PG.orig.delete(key);
+        PG.orig.delete(key); PG.base.delete(key);
         store.setItem(key, JSON.stringify(d));                                // markDirty → 올리기
         try { if (window.deskLastDeco) deskLastDeco(); } catch (e) {}
         try { if (window.dkMark) dkMark(key, true); } catch (e) {}
