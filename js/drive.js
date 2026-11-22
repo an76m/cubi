@@ -170,8 +170,21 @@
                 if (!dirtySince) dirtySince = Date.now();
                 clearTimeout(uploadTimer);
                 uploadTimer = setTimeout(() => flushUpload(), Math.min(UPLOAD_DEBOUNCE_MS, Math.max(0, dirtySince + UPLOAD_MAX_WAIT_MS - Date.now())));
+                if (!pendSince) pendSince = Date.now();                       // 🛟 이 기기 보관 = 모아서 자주 (드라이브는 위 1분 그대로)
+                clearTimeout(pendTimer);
+                pendTimer = setTimeout(pendNow, Math.min(PEND_MS, Math.max(0, pendSince + PEND_MAX_MS - Date.now())));
             }
             updateBadge();
+        }
+        /* 🛟 못 올린 것 이 기기 보관 (도련 11-22) : 바꾼 뒤 3초 쉬면 (계속 바꿔도 10초에 한 번) 브라우저에 보관
+           = 앱이 갑자기 꺼져도 (브라우저가 죽음 · 폰이 앱을 끔 · 전원) 다음에 켜면 알아서 올려요 (recoverPendingBackup)
+           · 바뀔 때마다 바로는 안 해요 (앱이 느려져요) · 드라이브 올리기 1분은 그대로 (요청 줄이기) · 앱을 내릴 때 · 못 올렸을 때는 예전처럼 바로 */
+        const PEND_MS = 3000, PEND_MAX_MS = 10000;
+        let pendTimer = null, pendSince = 0;
+        function pendNow() {
+            pendTimer = null; pendSince = 0;
+            if (drive.reopening || !drive.ready || drive.guest || drive.wiped || !drive.dirty) return;
+            savePending();
         }
 
         /* ---------- 로그인 / 토큰 ---------- */
