@@ -6,7 +6,10 @@
       · ✅ 완료 전 다이어리 · 그림판 임시저장은 규칙대로 이 기기에만 (드라이브에 안 올려요 · 도련 11-15)
       · 못 올렸으면 묻기 [다시 저장] [그대로 나가기 = 이 기기에 보관 → 다음에 켜면 올려요 (drive.js savePending · recoverPendingBackup)]
    ③ 다 되면 카메라가 문에서 뒤로 빠지며 (멀어지고 어두워져요) → 앱 끄기 (window.close)
-      · 브라우저 탭은 스스로 못 닫을 수 있어요 → 어두운 화면에 남고 · 톡 = 다시 들어오기 (새로 열기) */
+      · 브라우저 탭은 스스로 못 닫을 수 있어요 → 어두운 화면에 남고 · 톡 = 다시 들어오기 (새로 열기)
+   💗 버튼 없이 끈 다음 = 이동 ▾ 를 가리키는 화살표 (도련 11-23 · 1414) : 💻 📲 책상이 보이면 이 기기에 '켜 둠' 표시 (localStorage malang_rx_open)
+      · 내 방 나가기 = 표시 지움 · 다음에 켤 때 표시가 남아 있으면 = 지난번엔 버튼 없이 껐어요 → 화살표 + 한 줄 (이동 ▾ 를 누르거나 · 화살표 톡 · 20초 = 사라져요)
+      · 드라이브 요청 0 (이 기기 한 칸) · 새로고침 · 업데이트로 다시 열어도 버튼 없이 나간 것으로 봐요 · 📱 폰(하단 메뉴)은 버튼이 없어서 안 해요 */
 (function () {
     let busy = false;
     const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -83,6 +86,7 @@
                 if (!again) { try { if (typeof savePending === 'function') savePending(); } catch (e) {} break; }
                 setP(el, 0);
             }
+            try { localStorage.removeItem(RX_OPEN); } catch (e) {}              // 💗 잘 나갔어요 (다음에 켤 때 화살표 없음)
             await wait(450);
             el.classList.add('done');                                           // 게이지 스르르 사라짐
             await wait(calm() ? 50 : 450);
@@ -90,6 +94,34 @@
         } finally { busy = false; }
     }
     window.roomExit = roomExit;
+
+    /* 💗 지난번에 버튼 없이 껐으면 = 이동 ▾ 를 가리키는 화살표 */
+    const RX_OPEN = 'malang_rx_open';
+    function rxHint() {
+        const m = document.getElementById('deskMoveMenu'); if (!m || m.querySelector('.rx-hint')) return;
+        const h = document.createElement('div'); h.className = 'rx-hint'; h.setAttribute('role', 'note');
+        h.innerHTML = '<svg class="rx-arw" viewBox="0 0 40 48" aria-hidden="true"><path d="M20 3 L35 21 L26 21 L26 42 Q26 45 23 45 L17 45 Q14 45 14 42 L14 21 L5 21 Z" fill="#ffb3cd" stroke="#c8457a" stroke-width="2.6" stroke-linejoin="round"/><path d="M17.5 25 L17.5 39" stroke="#ffe3ee" stroke-width="3" stroke-linecap="round"/><circle cx="31" cy="34" r="3.2" fill="#fff" stroke="#c8457a" stroke-width="1.6"/><circle cx="9" cy="31" r="2.2" fill="#ffe28a" stroke="#c8457a" stroke-width="1.4"/></svg>'
+            + '<span class="rx-tip">앱을 끌 땐 꼭 <b>내 방 나가기</b>로 나가 주세요 💗</span>';
+        m.appendChild(h);
+        const off = () => { if (!h.isConnected) return; h.classList.add('bye'); setTimeout(() => h.remove(), 350); };
+        h.addEventListener('click', off);
+        const b = document.getElementById('deskShopGo'); if (b) b.addEventListener('click', off, { once: true });
+        setTimeout(off, 20000);
+    }
+    async function rxBoot() {
+        for (let i = 0; i < 600; i++) {                                         // 로그인해서 책상이 보일 때까지 (5분까지)
+            await wait(500);
+            const d = D(), g = document.getElementById('driveGate'), b = document.getElementById('deskShopGo');
+            if (!d || !(d.ready || d.local) || d.guest) continue;               // 👀 구경은 빼요
+            if (!window.UI || !UI.desk() || (g && g.style.display !== 'none')) continue;
+            if (!b || !b.getBoundingClientRect().width) continue;
+            let was = false; try { was = localStorage.getItem(RX_OPEN) === '1'; localStorage.setItem(RX_OPEN, '1'); } catch (e) { return; }
+            if (was) setTimeout(rxHint, 900);                                   // 문이 열리고 책상이 자리 잡은 뒤
+            return;
+        }
+    }
+    window.rxHint = rxHint;                                                    // 🔎 시험 · 점검
+    rxBoot();
 })();
 
 /* 이 파일을 끝까지 문제없이 읽었다는 표시 */
