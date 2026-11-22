@@ -5,7 +5,7 @@
        바인더 표지 만들기 : 이름 · 크기 · 표지 색 (6공 링)  → 바인더표지 재료 (from mine)
        내지 만들기        : 이름 · 크기 · 페이지 수 · 내지 구간 → 바인더내지 재료 (from mine)
        📑 하나 더 : 같은 표지 · 내지를 또 하나 (재료는 쓰면 빠지니까)
-       🧩 바인더 조립 : 표지 하나 + 같은 크기 내지를 원하는 만큼 (순서대로) = 쓸 수 있는 바인더 한 권 · 끼운 표지 · 내지는 재료에서 빠져요 (현실처럼)
+       🧩 바인더 조립 : 표지 하나 + 같은 크기 내지 하나 (📄 페이지 · 📅 날짜 모두 · 도련 11-23 · 1418) = 쓸 수 있는 바인더 한 권 · 끼운 표지 · 내지는 재료에서 빠져요 (현실처럼)
          · 끼울 때의 모양을 그대로 담아요 · 빼면 (꾸민 페이지가 없는 내지만) 재료로 돌아와요 · 표지를 바꾸면 예전 표지도 돌아와요
          · 📅 날짜형바인더 = 해가 적힌 표지(샵 · 첫 선물) + 날짜 내지 하나 (해 없음 · 표지의 해를 따라가요) · 해가 지난 표지는 조립 못 해요 · 조립하면 내지를 빼지 않아요 (js/dyyear.js dyyAssemble)
    - 만든 노트 · 조립한 바인더 = 다이어리 종류 하나 (js/skins.js DY_TYPES 와 같은 모양 + my · pg · lv) → 고르면 그 권이 열려요
@@ -390,10 +390,10 @@
         function dmkRmAdd(id) {
             const r = dmkRmPool('refill').find(x => x.id === id); if (!r || !dmkRm.cv) return;
             if (dmkRmDate()) { if (r.t !== 'drefill' || r.n !== dmkRmN()) return; dmkRm.rf = [r]; }   // 📅 날짜 내지는 하나 (같은 크기)
-            else {
+            else {                                                               // 📄 페이지 내지도 하나 (도련 11-23 · 1418 · 예전 = 600페이지까지 여러 묶음 이어서) · 다른 내지를 끼우면 바뀌고 먼저 것은 바구니로
                 if (r.t !== 'refill' || r.n !== dmkRmN()) return;
-                if (dmkRm.rf.reduce((s, x) => s + x.pg, 0) + r.pg > DMK_BIND_MAX) { showMsg(`바인더 한 권에는 ${DMK_BIND_MAX}페이지까지 끼울 수 있어요.`); return; }
-                dmkRm.rf.push(r);
+                if (dmkRm.rf.length && dmkRmLock()) { showMsg('꾸민 페이지가 있어서 내지를 바꿀 수 없어요.'); return; }
+                dmkRm.rf = [r];
             }
             dmkRmRedraw();
         }

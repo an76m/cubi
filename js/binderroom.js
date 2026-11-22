@@ -77,7 +77,7 @@
     }
     function bookOff() { if (B.book) { B.book.destroy(); B.book = null; } }
     function bookShow(cv, s, date, lock) {
-        const P = pagesOf(s, cv), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 끼워요 (톡 · 끌어서 책에 · 여러 개 · 순서대로)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
+        const P = pagesOf(s, cv), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 하나 끼워요 (톡 · 끌어서 책에)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
         B.hint = hint;
         const leaf = (lf, p) => { const a = String(lf || 'line').split('/'); return window.leafCss ? leafCss(a[p % 2] || a[0]) : '#fffdfb'; };   // 📖 양쪽 디자인 = 왼쪽 / 오른쪽
         const spec = {
