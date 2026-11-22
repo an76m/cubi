@@ -190,7 +190,7 @@ function bookOpen(host, spec) {
         });
         B.tr = bookTurner({                                                 // ✋ 넘기기 손길 = 공통 (bookTurner)
             el: R,
-            grab: e => !B.busy && e.target.closest('.bk-stage') && !e.target.closest('.ab-it, input, textarea') ? 0 : false,   // 쪽 안에서 끄는 것(이형지 스티커)은 그대로 · 종이 위에서 밀어도 넘겨요 (넘긴 뒤 톡은 안 가요)
+            grab: e => !B.busy && e.target.closest('.bk-stage') && !e.target.closest('.ab-it, input, textarea' + (spec.desk ? ', .bk-sh' : '')) ? 0 : false,   /* 🪑 책상에 띄운 바인더 = 종이는 끌어내요 (넘기기는 종이 밖에서) */   // 쪽 안에서 끄는 것(이형지 스티커)은 그대로 · 종이 위에서 밀어도 넘겨요 (넘긴 뒤 톡은 안 가요)
             start: dir => (dir > 0 ? canNext() : canPrev()) ? start(dir) : null
         });
     }

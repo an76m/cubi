@@ -684,7 +684,7 @@
         const pinOpen = () => { const p = spHost(); return !!p && p.offsetParent !== null; };   // 🏠 지금 공간의 판 (진짜 = #innerPage · 🏪 연습장)
         const pinOff = () => !!twz || !((window.gdTwz && gdTwz() && pinOpen()) || (window.pinForce && pinForce()));   // 🪡 정리 공간 이형지북은 핀셋이 저절로 (js/basket.js pinForce · 도련 10-29)
         const pinBusy = () => document.body.classList.contains('draw-on') || !!document.querySelector('body.sk-held, .sk-knife.grab, .rl-ruler.grab, #pcRoom:not([hidden]):not(.rest)');   // ✂️ 칼 · 📏 자를 잡고 있는 동안은 핀셋이 안 따라와요 (도련 10-19)
-        const PIN_AREA = '#pelRoom, #pmRoom, #pcbRoom, #absRoom', pinIn = n => spHost().contains(n) || !!n.closest(PIN_AREA);   // + 지금 공간의 판   // 🪡 핀셋이 갈 수 있는 곳 (📄 모조지 종이 #pmRoom : 오린 스티커를 핀셋으로 떼요 · 도련 10-21)
+        const PIN_AREA = '#pelRoom, #pmRoom, #pcbRoom, #absRoom, #abUpHost .abf-rl', pinIn = n => spHost().contains(n) || !!n.closest(PIN_AREA);   // + 지금 공간의 판   // 🪡 핀셋이 갈 수 있는 곳 (📄 모조지 종이 #pmRoom : 오린 스티커를 핀셋으로 떼요 · 도련 10-21)
         const pinTop = (x, y) => document.elementsFromPoint(x, y).find(n => !n.closest('.pin-cur, .el-peel-back'));
         function pinOver(x, y) {
             const top = pinTop(x, y);

@@ -58,6 +58,7 @@
             /* 배경(화면) 가운데 하얀 종이 한 장 (크기는 페이지에 맞춰요) : 한 장이면 그 크기, 여러 장이면 칸을 나눠 나란히 */
             const pg = pelPageOn() ? pelPage() : null, r = pg ? pg.getBoundingClientRect() : { left: 0, top: 0, width: Math.min(S.W, 1100), height: S.H };
             if (S.rel) return pelRelLayout();
+            if (S.spot) return pelSpotLayout();
             let cx = S.W / 2, cy = S.H / 2;
             cx += S.mv.x; cy += S.mv.y;                                          // 종이를 옮긴 만큼
             const it = S.items, n = it.length, pw = Math.min(r.width, S.W);
@@ -96,6 +97,22 @@
                 o.slot = { cx: p.cx, cy: p.cy, w: iw * sc, h: ih * sc };
                 if (o.st.state === 'on') Object.assign(o.st, p, { s: sc, rot: 0 });
             });
+        }
+        /* 🤍 책상에 띄운 이형지북 (opt.spot · 도련 11-22) : 하얀 종이 없이 = 이형지북에 붙은 그 자리 · 그 크기 · 그 기울기 그대로 → 핀셋으로 바로 떼어요
+             그 스티커 그림(spot.el)은 떼는 동안 숨어요 · 페이지 밖에 놓으면 그 자리로 돌아가요 · 책이 옮겨지면 따라가요 · 스티커 밖을 누르면 닫혀요 (책 그대로) */
+        function pelSpotLayout() {
+            const S = pelS, el = S.spot.el, o = S.items[0]; if (!o || !o.a || !el.isConnected) return;
+            const R = el.getBoundingClientRect(), cx = R.left + R.width / 2, cy = R.top + R.height / 2, iw = o.a.w - o.a.m * 2, ih = o.a.h - o.a.m * 2, s = Math.min(el.offsetWidth / iw, el.offsetHeight / ih);
+            o.slot = { cx, cy, w: iw * s, h: ih * s }; S.board = { cx, cy, w: iw * s, h: ih * s };
+            if (o.st.state === 'on') Object.assign(o.st, { cx, cy, s, rot: (S.spot.r || 0) * Math.PI / 180 });
+            S.spot.k = [R.left, R.top, R.width].map(Math.round).join();
+        }
+        function pelGrab(g) {                                                // ✋ 누른 그 손길로 바로 떼기 시작 (가장 가까운 가장자리부터)
+            const S = pelS, o = S.items[0]; if (!o || !o.a || o.st.state !== 'on') return;
+            const P = [g.x, g.y], e = stkEdge(o.a, o.st, P); if (!e.bp) return;
+            pelPick(o); const C = pelToStage(o.st, e.bp[0], e.bp[1]);
+            S.drag = { mode: 'peel', C, F: C.slice(), start: P, last: P, lt: performance.now() };
+            pelHitPlace(1); stkCap(pelq('pelHit'), { pointerId: g.pid });
         }
         /* 🤍 이형지북 모드 : 정한 자리에 한 줄로 (넘치면 옆으로 밀어요) */
         function pelRelLayout() {
@@ -211,15 +228,18 @@
             pelPick(S.items.find(o => o.st.state === 'on'));
             S.L = opt && opt.L && Array.isArray(opt.L.b) && opt.L.b.length === list.length ? opt.L : null;   // 🗺️ 시트 배치 그대로 (도련 10-29)
             S.sb = null; if (S.L && opt.sb) { try { S.sb = await pelLoad(opt.sb); } catch (e) {} }   // 🗂️ 내가 꾸민 시트의 바탕 (색 · 무늬 · 이름표 · js/sheetmaker.js)
+            if (S.spot) S.spot.el.style.visibility = '';                       // 앞서 집던 스티커는 제자리에 보이게
+            S.spot = (opt && opt.spot) || null; if (S.spot) S.spot.el.style.visibility = 'hidden';   // 🤍 책상 이형지북 = 그 자리에서 (그림은 떼는 동안 숨어요)
             S.rel = (opt && opt.rel) || null; S.relA = null; pelq('pelRoom').classList.toggle('pel-rel', !!S.rel);
             S.own = own; S.ts = !!(opt && opt.ts); S.drag = null; S.gone = 0; S.back = 0; S.mv = { x: 0, y: 0 }; S.on = true;
             pelLayout();
             if (opt && opt.at && S.board && !S.rel) pelShift(opt.at.x - S.board.cx, opt.at.y - S.board.cy);   // 🗂️ 꺼내 둔 종이를 열면 그 자리에서 (basket.js dsOpen)
             stkShow(S, 'pelRoom', pelFrame);
+            if (S.spot && opt.grab && opt.grab.down()) pelGrab(opt.grab);       // 아직 누르고 있으면 = 그대로 떼어져요
             return true;
         }
         function closeStickerPeel() {
-            const S = pelS, rel = S.rel; if (!rel && S.board && S.own) S.lastAt = { id: S.own.id, x: S.board.cx, y: S.board.cy };   // 🗂️ 꺼내 둔 종이로 돌아갈 자리 (basket.js dsMoveFromPeel)
+            const S = pelS, rel = S.rel; if (S.spot) { S.spot.el.style.visibility = ''; S.spot = null; S.lastAt = null; } else if (!rel && S.board && S.own) S.lastAt = { id: S.own.id, x: S.board.cx, y: S.board.cy };   // 🗂️ 꺼내 둔 종이로 돌아갈 자리 (basket.js dsMoveFromPeel)
             stkHide(S, 'pelRoom', 'pel-rel'); S.rel = null; pelNoise(0); pelLiveClear();
             if (rel) { if (rel.close) rel.close(); return; }                     // 🤍 정리 책상은 그대로
             if (window.stkReturn) stkReturn();                                // ✨ 스티커 창에서 왔으면 다시 떠요
@@ -241,11 +261,15 @@
                 if (S.rel.alive && !S.rel.alive()) { closeStickerPeel(); return; }
                 if (!S.drag || S.drag.mode === 'win') { const A = S.rel.at(), o = S.relA; if (!o || Math.abs(A.top - o.top) > .5 || Math.abs(A.left - o.left) > .5 || Math.abs(A.width - o.width) > .5) { S.relA = { top: A.top, left: A.left, width: A.width }; pelLayout(); } }
             }
+            if (S.spot && !S.drag && S.st.state === 'on' && !S.st.snap) {        // 🤍 책상 이형지북 : 책이 사라지면 닫고 · 옮겨지면 따라가요
+                const el = S.spot.el; if (!el.isConnected) { closeStickerPeel(); return; }
+                const R = el.getBoundingClientRect(); if ([R.left, R.top, R.width].map(Math.round).join() !== S.spot.k) pelLayout();
+            }
             const ctx = stkClear(S), st = S.st, a = S.a;                         // 🎞️ 스티커 엔진
             const bo = stkAway(S, t);                                            // 마지막 스티커를 떼어 내면 스르르 사라져요 (📱 폰은 뗄 때마다) · 붙이고 나면 남은 스티커와 같이 다시 스르르
             /* 어둡게 깔기는 없앴어요 (도련 11-05 · 화면이 어두워지지 않게) */
             if (S.rel) { const A = S.rel.at(); ctx.save(); ctx.beginPath(); ctx.rect(A.left, A.top - 6, A.width, A.height + 12); ctx.clip(); }   // 🤍 종이는 정한 자리 안에서만 보여요 (옆으로 밀어 넘겨요)
-            if (bo > 0) {                                                        // 🏷️ 하얀 네모 (스티커 종이)
+            if (bo > 0 && !S.spot) {                                             // 🏷️ 하얀 네모 (스티커 종이) · 🤍 책상 이형지북은 없어요
                 const B = S.board, bx = B.cx - B.w / 2, by = B.cy - B.h / 2;
                 ctx.save(); ctx.globalAlpha = bo; ctx.shadowColor = 'rgba(120,80,95,.25)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4;
                 pelRR(ctx, bx, by, B.w, B.h, 14);
@@ -255,7 +279,8 @@
             }
             if (bo > 0 && S.items.length > 1 && !S.rel) { ctx.save(); ctx.globalAlpha = bo; pelDrawTape(ctx); ctx.restore(); }   // 여러 개 씰 종이 : 위쪽 '✋ 잡고 옮겨요'
             const bx = pelq('pelX');                                             // ✕ : 하얀 종이 오른쪽 위 끝 (모조지스티커처럼 · 종이를 따라 다녀요)
-            if (bx) { const B = S.rel ? (A => ({ cx: A.left + A.width / 2, w: A.width, cy: A.top + A.height / 2, h: A.height }))(S.rel.at()) : S.board; bx.style.left = (B.cx + B.w / 2 - 24) + 'px'; bx.style.top = (B.cy - B.h / 2 - 20) + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
+            if (bx && S.spot) bx.style.visibility = 'hidden';
+            else if (bx) { const B = S.rel ? (A => ({ cx: A.left + A.width / 2, w: A.width, cy: A.top + A.height / 2, h: A.height }))(S.rel.at()) : S.board; bx.style.left = (B.cx + B.w / 2 - 24) + 'px'; bx.style.top = (B.cy - B.h / 2 - 20) + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
             const d = S.drag, cur = S.items.find(o => o.st === st);
             if (bo > 0) for (const o of S.items) if (o.st.state !== 'on' && o.slot) pelResidue(ctx, o.slot, bo, o);   // 🎒 뗀 자국 (빈 자리)
             for (const o of S.items) {                                           // 종이 위에 남은 스티커들 (잡은 건 맨 위에)
@@ -361,6 +386,7 @@
                 return;
             }
             if (hit) { pelWiggle(hit.st); return; }
+            if (S.spot) { closeStickerPeel(); return; }                       // 🤍 책상 이형지북 : 스티커 밖 = 그만 (책 그대로)
             const B = S.board;                                                   // 하얀 종이 빈 곳 → 종이 옮기기
             if (B && Math.abs(P[0] - B.cx) <= B.w / 2 && Math.abs(P[1] - B.cy) <= B.h / 2) {
                 S.drag = { mode: 'board', last: P, lt: performance.now() };

@@ -287,7 +287,7 @@
     }
     window.bkLift = bkLift;
     /* 서랍 창은 그대로 둔 채 떼는 화면이 그 위에 떠요 (💻 📲 · 도련 11-05) · 📱 폰만 화면이 좁아 서랍 창이 잠깐 비켜요 (js/stickermaker.js stkLeave) */
-    async function bkOpenSheet(id, stay) {                                    // stay = 다이어리는 그대로 (🏷️ 씰만 · 꺼낸 종이 톡 · 도련 11-05)
+    async function bkOpenSheet(id, stay, po) {                                // stay = 다이어리는 그대로 (🏷️ 씰만 · 꺼낸 종이 톡 · 도련 11-05) · po = 떼는 화면에 더 줄 것 (🤍 책상 이형지북 = spot · grab · 📒 바인더에서 끌어낸 자리 = at · 도련 11-22)
         if (/^design:/.test(String(id || ''))) {                              // 📐 도안으로 저장된 것을 바로 쓰기 (📱 폰 작업실 '바로 붙이기' · 도련 11-14) = 바로 뽑아서 꺼내요
             const sid = window.ownPrintDesign ? await ownPrintDesign(id) : '';
             if (window.craftRefresh) craftRefresh();
@@ -296,7 +296,7 @@
         }
         if (!stay) {
             if (!isCoverOpen) { showMsg('먼저 다이어리를 열어 주세요!'); return; }
-            await bkLift();
+            if (po && po.spot) bkLift(); else await bkLift();                  // 🤍 핀셋으로 바로 뗄 땐 기다리지 않아요 (다이어리는 떠오르는 동안 떼어요)
         }
         if (B.opening || !window.ownSheet) return;
         B.opening = id;
@@ -308,7 +308,7 @@
             const s = r.s, x = s.x || {}, own = { id, wh: s.wh, gh: s.gh || [], raw: !s.baked };   // 👻 gh = 뗀 자리 모양 · raw = 하얀 테두리를 이제 둘러요 (뗀 자리도 그만큼 크게)
             const die = async a => c && c.baked ? a.map(u => u == null ? null : (c.baked[s.imgs.indexOf(u)] || u)) : !s.baked && window.pelBake ? Promise.all(a.map(u => u ? pelBake(u).catch(() => u) : null)) : a;   // 하얀 테두리 (⚙ 설정을 따라요 · 미리 구운 것이 있으면 그대로)
             let ok = false;
-            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && UI.phone()) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: DS.at, L: s.L || null, sb: x.sb || '', stay: !!stay }); }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
+            if (s.k === 'seal') { const srcs = await die(s.imgs); if (window.stkLeave && UI.phone() && !(po && po.spot)) stkLeave(); ok = window.openStickerPeel && await openStickerPeel(srcs, { own, ts: !!s.ts, at: (po && po.at) || DS.at, spot: po && po.spot, grab: po && po.grab, L: s.L || null, sb: x.sb || '', stay: !!stay }); }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
             else if (s.k === 'piece') {
                 const slots = s.imgs.map((u, i) => u ? i : -1).filter(i => i >= 0), srcs = await die(slots.map(i => s.imgs[i]));
                 if (window.stkLeave && UI.phone()) stkLeave();
@@ -750,12 +750,13 @@
             onPage: U ? null : (pg, open) => { B.pg = pg; AB.bookOpen = open; },
             onClose: U ? () => abUpLand(x.id) : () => abFltClose(), desk: !!U,  // 책상에 띄운 책 = 막대 ✕ = 덮이며 내려앉기 · 덮인 동안 막대 없음 (다이어리처럼) · 바탕은 안 깔아요 (도련 11-22)
             wire: stage => {
+                if (U) { abUpWire(stage, t); return; }                          // 🪑 책상에 띄운 책 = 꺼내 쓰기 (📒 끌어내기 · 🤍 핀셋으로 떼기)
                 if (t === 'bd') { stage.onclick = ev => { const k = ev.target.closest('.bk-sh'); if (k && stage.contains(k)) bkOpenSheet(k.dataset.id); }; return; }
                 stage.querySelectorAll('.bk-slot .abf-rl').forEach(box => box.onpointerdown = ev => {
                     const it = ev.target.closest('.ab-it'); if (!it || ev.button > 0) return;
                     ev.preventDefault();
                     const r0 = it.getBoundingClientRect();
-                    AB.drag = { kind: 'move', view: !!U, it, id: it.dataset.id, rid: x.id, x0: ev.clientX, y0: ev.clientY, ox: ev.clientX - (r0.left + r0.width / 2), oy: ev.clientY - (r0.top + r0.height / 2), br: box.getBoundingClientRect(), on: false, pid: ev.pointerId };   // view = 책상에 띄운 책 : 톡 = 꺼내 쓰기만 (자리 옮기기는 📒 스티커 정리에서)
+                    AB.drag = { kind: 'move', it, id: it.dataset.id, rid: x.id, x0: ev.clientX, y0: ev.clientY, ox: ev.clientX - (r0.left + r0.width / 2), oy: ev.clientY - (r0.top + r0.height / 2), br: box.getBoundingClientRect(), on: false, pid: ev.pointerId };
                     try { box.setPointerCapture(ev.pointerId); } catch (e) {}
                 });
             }
@@ -774,6 +775,37 @@
          덮인 채 = 막대 없음 · 책상 빈 곳 톡 = 덮인 책은 다 내려앉아요 (js/drive.js · 펼친 책은 그대로) · 펼치면 = 막대 + ✕ (덮이며 내려앉기) · 바탕은 안 깔아요
          한 번 내려놓은 뒤로는 = 떠오르며 펼쳐져요 · 누른 책이 맨 앞으로 · 종이 · 스티커 톡 = 꺼내 쓰기 (다이어리가 펼쳐져 있어야 해요) */
     AB.ups = new Map();                                                       // id → { t, k, x, byId, book }
+    /* 🪑 책상에 띄운 책에서 꺼내 쓰기 (도련 11-22)
+         📒 바인더 = 포켓의 종이를 톡 하거나 끌어내면 = 그 종이가 크게 펼쳐져요 (떼는 화면 · 끌어낸 곳에서) → 페이지에 붙여요
+         🤍 이형지북 = 붙은 스티커를 🪡 핀셋으로 그 자리에서 바로 떼어 → 다이어리 페이지에 붙여요 (스티커 한 장 창이 따로 뜨지 않아요 · js/stickerpeel.js spot)
+         다이어리가 안 떠 있으면 같이 떠올라요 · 쪽 넘기기는 종이 · 스티커 밖에서 */
+    function abUpWire(stage, t) {
+        stage.querySelectorAll('.bk-slot ' + (t === 'bd' ? '.bk-sh' : '.ab-it')).forEach(k => k.onpointerdown = ev => {
+            if (ev.button > 0) return;
+            ev.preventDefault();
+            if (t === 'rl') {                                                 // 🤍 핀셋으로 바로 떼기 (누른 채로 끌면 떼어져요 · 놓았다가 다시 집어도 돼요)
+                if (window.stkTwz && !stkTwz(ev.clientX, ev.clientY)) return;   // 핀셋을 들어야 만져요 (안 들었으면 핀셋 안내)
+                let down = true; const up = e => { if (e.pointerId === ev.pointerId) { down = false; removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); } };
+                addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+                bkOpenSheet(k.dataset.id, false, { spot: { el: k, r: parseFloat(k.style.getPropertyValue('--r')) || 0 }, grab: { x: ev.clientX, y: ev.clientY, pid: ev.pointerId, down: () => down } });
+                return;
+            }
+            const x0 = ev.clientX, y0 = ev.clientY; let g = null;             // 📒 종이 끌어내기 (살짝 커지며 손을 따라와요)
+            const mv = e => {
+                if (e.pointerId !== ev.pointerId) return;
+                if (!g) { if (Math.hypot(e.clientX - x0, e.clientY - y0) < 7) return; const r = k.getBoundingClientRect(); g = k.cloneNode(true); g.classList.add('ab-upghost'); Object.assign(g.style, { width: r.width + 'px', height: r.height + 'px', left: (r.left + r.width / 2) + 'px', top: (r.top + r.height / 2) + 'px' }); document.body.appendChild(g); k.style.visibility = 'hidden'; }
+                g.style.left = e.clientX + 'px'; g.style.top = e.clientY + 'px';
+            };
+            const end = e => {
+                if (e.pointerId !== ev.pointerId) return;
+                removeEventListener('pointermove', mv, true); removeEventListener('pointerup', end, true); removeEventListener('pointercancel', end, true);
+                if (g) { g.remove(); k.style.visibility = ''; }
+                if (e.type === 'pointercancel') return;
+                bkOpenSheet(k.dataset.id, false, g ? { at: { x: e.clientX, y: e.clientY } } : null);   // 톡 = 가운데 · 끌어냈으면 놓은 곳에서 펼쳐져요
+            };
+            addEventListener('pointermove', mv, true); addEventListener('pointerup', end, true); addEventListener('pointercancel', end, true);
+        });
+    }
     const abUpVol = id => document.querySelector(`#deskStage .dk-vol[data-b="${CSS.escape(id)}"]`);
     function abUpHost() {
         let h = document.getElementById('abUpHost');
@@ -1233,7 +1265,7 @@
         const d = AB.drag; if (!d || d.pid !== ev.pointerId) return;
         const dx = ev.clientX - d.x0, dy = ev.clientY - d.y0;
         if (d.kind === 'move') {
-            if (d.view || (!d.on && Math.hypot(dx, dy) < 7)) return;              // 책상에 띄운 책 = 자리는 안 옮겨요 (톡 = 꺼내 쓰기만)
+            if (!d.on && Math.hypot(dx, dy) < 7) return;
             d.on = true; d.it.classList.add('lift');
             d.x = Math.max(.05, Math.min(.95, (ev.clientX - d.ox - d.br.left) / d.br.width));
             d.y = Math.max(.05, Math.min(.95, (ev.clientY - d.oy - d.br.top) / d.br.height));
