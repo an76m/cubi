@@ -398,8 +398,7 @@
                 hid.forEach(el => { el.dataset.pe = el.style.pointerEvents; el.style.pointerEvents = 'none'; });
                 const under = document.elementFromPoint(P[0], P[1]);
                 hid.forEach(el => { el.style.pointerEvents = el.dataset.pe || ''; delete el.dataset.pe; });
-                const gp = under && under.closest('.abs-grip');
-                if (gp && window.abGripAt) { abGripAt(gp, e); return; }        // ✋ 정리 공간 이름표 = 바구니 · 정리북 옮기기 (떼는 판이 떠 있어도 · 도련 10-29)
+                if (under && window.abGripAt && under.closest('.abs-grip, .abs-book .bk-bar') && !under.closest('button')) { abGripAt(under, e); return; }   // ✋ 바구니 이름표 · 📚 책 막대        // ✋ 정리 공간 이름표 = 바구니 · 정리북 옮기기 (떼는 판이 떠 있어도 · 도련 10-29)
                 const ri = under && under.closest('.ab-rel.srt .ab-it');
                 if (ri && window.abItGrab) { abItGrab(ri, e); return; }       // ✋ 이형지에 놓은 스티커 = 자리 옮기기 (js/basket.js)
                 const sc = under && under.closest('.ab-sc');
