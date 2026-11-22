@@ -2,7 +2,7 @@
    🧩 바인더 조립 공간 (도련 11-07 · 981 · 💻 📲 책상 오른쪽 위 메뉴 '바인더 조립')
    - 왼쪽 🧺 재료 바구니 = 가진 표지 · 내지 (🧩 다이어리 / _바인더재료목록.json · js/dyown.js) · 만들기는 여기 없어요 (도련 11-11 : 📒 다이어리 → 🗂️ 바인더 만들기 · 조립은 고르기만)
    - 가운데 작업대 = 진짜 책 (1374 · 도련 11-21 · js/book.js bookOpen inline) : 표지를 놓으면 덮인 책 → 밀어서 펼쳐요 → 펼친 표지에 내지를 끼워요 (톡 또는 끌어다 놓기) → 쪽이 생겨 넘겨 봐요
-     · 끼운 내지 묶음 = 책 아래 한 줄 (보기만) · 되돌리기 = 아래 ⛓ 분리하기 하나 (표지 · 내지 모두 바구니로 · 도련 11-21)
+     · 되돌리기 = 아래 ⛓ 분리하기 하나 (표지 · 내지 모두 바구니로 · 도련 11-21) · 책 아래 끼운 내지 정보 줄은 영구 삭제 (도련 11-23)
    - 📅 날짜 표지(해가 적힌) = 같은 크기 날짜 내지 하나 · 끼운 표지의 해로 날짜가 그려져요 · 해가 지난 표지는 못 해요
    - 🧩 조립하기 = 다이어리 목록에 한 권 · 쓴 재료는 바구니에서 빠져요 → 바인더는 책상 위에 (끌어서 옮겨요)
    - ✏️ 내 바인더 고치기 = 이미 조립했지만 아직 안 쓴 페이지바인더 (꾸민 페이지가 있으면 목록에 없어요 · 도련 11-21) (내지 더 끼우기 · 빼기 · 표지 바꾸기 · 뺀 것은 바구니로)
@@ -79,14 +79,14 @@
     function bookShow(cv, s, date, lock) {
         const P = pagesOf(s, cv), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 하나 끼워요 (톡 · 끌어서 책에)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
         B.hint = hint;
+        const empty = `<div class="bnd-pg bnd-pg0"><span>${date ? '📅 같은 크기 날짜 내지를<br>여기에 끼워요' : '📄 바구니의 내지를<br>톡 하거나 끌어서<br>여기에 끼워요'}</span></div>`;
         const leaf = (lf, p) => { const a = String(lf || 'line').split('/'); return window.leafCss ? leafCss(a[p % 2] || a[0]) : '#fffdfb'; };   // 📖 양쪽 디자인 = 왼쪽 / 오른쪽
         const spec = {
             id: cv.id, cls: 'bk-bd bk-bnd', inline: true, real: true,   // 📏 실제 규격 크기 (도련 11-21)
             pages: Math.max(1, P.length), mm: mmOf(cv),
             colors: [cv.c, `color-mix(in srgb, ${cv.c} 72%, #5a3a46)`], face: window.dyFaceCss && (cv.pid || cv.d) ? dyFaceCss(cv.pid || cv.d, 'px') : 'none',
-            page: p => P.length ? `<div class="bnd-pg" style="background:${esc(leaf(P[p][0], p))}"><b class="abx-no">${esc(P[p][1])}</b></div>`
-                : `<div class="bnd-pg bnd-pg0"><span>${date ? '📅 같은 크기 날짜 내지를<br>여기에 끼워요' : '📄 바구니의 내지를<br>톡 하거나 끌어서<br>여기에 끼워요'}</span></div>`,
-            blank: () => '<div class="bnd-pg end"></div>',
+            page: p => P.length ? `<div class="bnd-pg" style="background:${esc(leaf(P[p][0], p))}"><b class="abx-no">${esc(P[p][1])}</b></div>` : empty,
+            blank: () => P.length ? '<div class="bnd-pg end"></div>' : empty,   // 내지 전 = 양쪽 모두 표지 색 위에 안내 (도련 11-23 · 1419 · 예전 왼쪽만 내지색 빗금 종이)
             cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${date ? '📅 ' + cv.y : '🗂️'} ${esc(cv.g)}</span><small>${esc(cv.n)} · 밀어서 펼쳐요</small></div>`,
             spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3),
             title: () => `🗂️ ${esc(cv.g)} <small>· 표지</small>`,
@@ -112,19 +112,12 @@
         const mine = (window.dmkAll ? dmkAll() : []).filter(d => d.t === 'binder' && !(window.dmkFilledMax && dmkFilledMax(d.id) > 0));   // ✏️ 고치기 = 아직 안 쓴 바인더만 (꾸민 페이지가 있으면 = 쓴 바인더 · 안 보여요 · 도련 11-21)
         bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}${window.dmkLocked && dmkLocked(d.id) ? ' disabled' : ''}>${window.dmkLocked && dmkLocked(d.id) ? '🔒 ' : ''}${esc(d.g)}</option>`).join('')}</select>` : '';
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
-        let at = 0;
-        const sheets = s.rf.map((x0, i) => {                                     // 끼운 내지 (책 아래 한 줄 · 보기만 · 빼기 = ⛓ 분리하기 · 도련 11-21)
-            const x = C(x0) || x0;
-            if (x.t === 'drefill') return `<div class="bnd-sheet" style="--i:${i}"><b>📅 ${esc(x.g)}</b><small>${cv ? cv.y + '년 날짜로' : ''} · ${window.dmkLeafName ? dmkLeafName(x.lf || 'line') : ''}</small></div>`;
-            const a = at + 1; at += x.pg;
-            return `<div class="bnd-sheet" style="--i:${i}"><b>${a}~${at} · ${esc(x.g)}</b><small>${window.dmkLvText ? dmkLvText(x.lv, x.pg) : ''}</small></div>`;
-        }).join('');
         const bench = bq('bndBench');
         if (!cv) { bookOff(); bench.innerHTML = `<div class="bnd-place" id="bndDrop"><b>🗂️</b><span>바구니에서 표지를 골라 여기에 놓아요</span></div>`; }
         else {
             if (!bq('bndBookHost')) bench.innerHTML = '<div class="bnd-bookhost" id="bndBookHost"></div><div class="bnd-sheets" id="bndSheets"></div>';
             bookShow(cv, s, date, lock);
-            bq('bndSheets').innerHTML = sheets || `<div class="bnd-empty">${B.hint(!!(B.book && B.book.open))}</div>`;
+            bq('bndSheets').innerHTML = s.rf.length ? '' : `<div class="bnd-empty">${B.hint(!!(B.book && B.book.open))}</div>`;   // 끼운 내지 정보 줄 (책 아래 · '1~40 · 페이지 내지 …')은 영구 삭제 (도련 11-23 · 1419) · 안 끼웠을 때 안내 한 줄만
         }
         const pg = s.rf.reduce((t, x) => t + (C(x).t === 'drefill' ? 0 : C(x).pg), 0);
         bq('bndInfo').textContent = !cv ? '' : date ? (s.rf.length ? `📅 ${cv.y}년 다이어리가 돼요` : '날짜 내지를 끼워 주세요') : `내지 ${s.rf.length}묶음 · ${pg}페이지`;
