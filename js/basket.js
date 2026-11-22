@@ -705,7 +705,6 @@
         abFlt('bd', b);
     }
     function abLabel(t, id, v) { const fn = a => { const x = (t === 'bd' ? a.bd : a.rl).find(o => o.id === id); if (x) x.lb = String(v || '').trim().slice(0, 8); }; abQueue(fn); abSplit(); if (B.view !== 'desk') bkView(); B.sig = bkSig(); }
-    function abColor(id) { const L = AB_BDP.filter(x => !x.P.숨김), fn = a => { const b = a.bd.find(o => o.id === id); if (b && L.length) b.pid = L[(L.findIndex(x => x.id === b.pid) + 1) % L.length].id; };   /* 🎨 표지 = 다음 바인더 디자인 */ abQueue(fn); bkView(); B.sig = bkSig(); }
 
     /* 🤍 이형지 : 톡 = 꺼내 쓰기 · 끌기 = 자리 옮기기 */
     function abRelItems(r, pg, byId) {
@@ -718,7 +717,7 @@
     /* 📒 🤍 펼친 바인더 · 이형지북 = 창 없이 책상 위에 떠 있는 책 (도련 11-15 · 스티커 정리의 바인더 모습 그대로)
        위 막대 (다이어리 날짜바처럼) : [◧ 왼쪽 페이지] ‹ 쪽 / 모든 쪽 › [◨ 오른쪽 페이지] ✕ · 막대를 끌면 책이 옮겨져요 (자리 = 이 기기 malang_ab_flt)
        왼쪽 · 오른쪽 페이지 = 스티커 정리와 같은 스위치 (책 막대 ◧ ◨ · malang_ab_side) · 📱 폰 = 한 쪽씩
-       📒 종이 톡 = 꺼내 쓰기 · 🤍 스티커 톡 = 다이어리에 붙이러 · 끌기 = 자리 옮기기 · 라벨 · 🎨 표지 = 스티커 정리에서 · 뒤 화면은 그대로 쓸 수 있어요 (창이 막지 않아요) */
+       📒 종이 톡 = 꺼내 쓰기 · 🤍 스티커 톡 = 다이어리에 붙이러 · 끌기 = 자리 옮기기 · 라벨 = 스티커 정리에서 · 뒤 화면은 그대로 쓸 수 있어요 (창이 막지 않아요) */
     const ABF_POS = 'malang_ab_flt';
     /* 📚 책 엔진에 이 책의 다른 점만 알려 줘요 (js/book.js) */
     function abFltSpec(t, x, U) {                                             // U = 📒 🤍 책상에 띄운 책 { byId } (없으면 = 서랍에서 연 책 · 지금 서랍 B)
@@ -956,16 +955,15 @@
             if (!b) book = `<div class="abx-none">${abNoneMsg('bd')}</div>`;
             else {
                 D.bd = b.id; const full = Object.keys(b.p).length >= b.n;
-                book = abSpaceTag('bd', b, L, `${Object.keys(b.p).length} / ${b.n}장`, `<button type="button" class="ab-mini" onclick="abColor('${esc(b.id)}')">🎨 표지</button>` + abFreeBtns('bd', b))
-                    + (full ? `<div class="abx-full">📒 가득 찼어요 · ${abFreeList('bd').length ? `<button type="button" class="ab-mini" onclick="abFreeOpen('bd')">📥 다른 바인더 불러오기</button>` : `<button type="button" class="ab-mini" onclick="abGoShelf()">🏪 새 바인더 받기</button>`}</div>` : '')
-                    + '<div class="abx-bkhost" id="abBkHost"></div>';
+                book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('bd', b, L, `${Object.keys(b.p).length} / ${b.n}장`, abFreeBtns('bd', b))
+                    + (full ? `<div class="abx-full">📒 가득 찼어요 · ${abFreeList('bd').length ? `<button type="button" class="ab-mini" onclick="abFreeOpen('bd')">📥 다른 바인더 불러오기</button>` : `<button type="button" class="ab-mini" onclick="abGoShelf()">🏪 새 바인더 받기</button>`}</div>` : '');
             }
         } else {
             const L = abMine(B.album.rl), r = L.find(x => x.id === D.rl) || L[0];
             if (!r) book = `<div class="abx-none">${abNoneMsg('rl')}</div>`;
             else {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
-                book = abSpaceTag('rl', r, L, abRelCnt(r), abFreeBtns('rl', r)) + '<div class="abx-bkhost" id="abBkHost"></div>';
+                book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('rl', r, L, abRelCnt(r), abFreeBtns('rl', r));   // 이름표 줄 = 책 아래 (도련 11-22)
             }
         }
         return bar + `<div class="abs-room" id="absRoom">${basket}<section class="abs-box abs-book ${D.mode}" data-p="book">${book}</section></div>`;
@@ -1299,7 +1297,7 @@
     document.addEventListener('pointerup', abUp);
     document.addEventListener('pointercancel', abUp);
 
-    window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abLabel = abLabel; window.abColor = abColor;
+    window.bkView = bkView; window.abOpen = abOpen; window.abGoShelf = abGoShelf; window.abLabel = abLabel;
     window.abDesk = abDesk; window.abKindMenu = abKindMenu; window.abKindGo = abKindGo; window.bkGetKind = bkGetKind; window.shQuick = shQuick; window.bkGlowGet = bkGlowGet; window.abMode = abMode; window.abTapSheet = abTapSheet; window.abItGrab = abItGrab; window.abNextTarget = abNextTarget;
 
     /* ---------- 🏪 기본상품 샵 (도련 10-25) : 아이콘 8개 → 그 종류의 기본상품 샵 창 → 🔍 확대 → 🧺 받기
