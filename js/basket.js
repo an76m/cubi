@@ -105,7 +105,7 @@
         if (peek) { B.all = peek.list.slice(); B.album = bkUnbag(JSON.parse(JSON.stringify(peek.album))); abReapply(); abSplit(); B.sig = bkSig(); if (!B.drag && !AB.drag) bkView(); }
         else if (!wrap.querySelector('.ab-tabs, .ab-head, .ab-body')) wrap.innerHTML = bkMsg('🗄️ 서랍을 여는 중…');
         try {
-            const got = window.ownOpen ? await ownOpen(force, B.kind) : { list: await ownList(force, B.kind), album: { bd: [], rl: [], g: {} } };   // 그 종류의 목록 · 스티커첩을 동시에
+            const [got] = await Promise.all([window.ownOpen ? ownOpen(force, B.kind) : ownList(force, B.kind).then(list => ({ list, album: { bd: [], rl: [], g: {} } })), frReady().catch(() => {})]);   // 그 종류의 목록 · 스티커첩을 동시에 · 📥 받아 둔 책 목록도 (F5 뒤 정리 공간에서 비어 보이던 것 · 도련 11-23)
             B.all = got.list.slice();
             B.album = bkUnbag(JSON.parse(JSON.stringify(got.album)));
             abReapply();                                                        // 아직 저장 안 된 정리는 그 위에 다시 (화면이 되돌아가지 않게)
@@ -453,8 +453,8 @@
     };
     window.abDeskList = async () => {
         if (!window.ownAlbumGet || !(window.ownMode && ownMode())) return [];
+        try { await frReady(); } catch (e) {}                                     // 📥 받아 둔 책 목록 먼저 (스티커첩을 못 읽어도 · 도련 11-23)
         let a; try { a = await ownAlbumGet(); } catch (e) { return []; }
-        try { await frReady(); } catch (e) {}
         const ids = new Set((a.bd || []).map(b => b.id).concat((a.rl || []).map(r => r.id)));   // 불러오다 멈춰 두 곳에 있으면 = 스티커첩 쪽 (📥 목록 것은 안 보여요)
         const free = frAll('bd').filter(x => !ids.has(x.id)).map(b => ({ id: b.id, t: 'bd', k: '', lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b), face: abFace('bd', b) })).concat(frAll('rl').filter(x => !ids.has(x.id)).map(r => ({ id: r.id, t: 'rl', k: '', lb: r.lb || '', col: abRlCol(r), mm: abMmOf('rl', r), face: abFace('rl', r) })));   // 📥 종류 없는 책 (도련 11-08)
         return (a.bd || []).map(b => ({ id: b.id, t: 'bd', k: b.k, lb: b.lb || '', col: abCol(b), mm: abMmOf('bd', b), face: abFace('bd', b) })).concat((a.rl || []).map(r => ({ id: r.id, t: 'rl', k: r.k, lb: r.lb || '', col: abRlCol(r), mm: abMmOf('rl', r), face: abFace('rl', r) })), free);
