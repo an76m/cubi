@@ -13,7 +13,6 @@
     const CF = (p, k) => `#ppProp .pp-cbk.open ${k || 'input'}[data-cf$="|${p}"]${k ? '' : ':not(.nb)'}`;                       // 🧩 열린 기능 칸
     const SF = (p, k) => `#ppProp .pp-cbk.sbe.picked > .pp-cbf > .pp-cf ${k || 'input'}[data-cf$="|${p}"]${k ? '' : ':not(.nb)'}`;   // 🌀 고른 도형 칸
     const SK = (p, k) => `#ppProp .pp-cbk.sb.open ${k || 'input'}[data-cf$="|${p}"]${k ? '' : ':not(.nb)'}`;                        // 🌀 열린 기능 칸
-    const OPEN1 = '#ppProp .pp-cbk:not(.open) [data-cbo]';
     const eye = t => () => { const id = window.ppTourHook && ppTourHook.layerOf(t); return id == null ? null : $(`#ppLy .pp-ly[data-id="${id}"] .eye`); };
     const W = () => (window.ppTest ? ppTest().W : 900), H = () => (window.ppTest ? ppTest().H : 1200);
     /* 📐 스티커 종류마다 종이 크기가 달라요 (도련 11-19 · 1313) : 예시는 속지(900 × 1269) 기준으로 만들고 · 지금 종이에 맞게 줄여 가운데에 놓아요
@@ -30,16 +29,16 @@
     const R = Math.round, HT = (cx, cy, k) => `M ${R(cx)} ${R(cy + k * 1.25)} C ${R(cx - k * 1.6)} ${R(cy + k * .4)} ${R(cx - k * .9)} ${R(cy - k * .6)} ${R(cx)} ${R(cy + k * .15)} C ${R(cx + k * .9)} ${R(cy - k * .6)} ${R(cx + k * 1.6)} ${R(cy + k * .4)} ${R(cx)} ${R(cy + k * 1.25)} Z`;
     const ST = (cx, cy, Ro) => { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? Ro * .45 : Ro; p.push(`${R(cx + Math.cos(a) * q)} ${R(cy + Math.sin(a) * q)}`); } return 'M ' + p.join(' L ') + ' Z'; };
     const CIR = (cx, cy, r) => `M ${R(cx - r)} ${R(cy)} A ${R(r)} ${R(r)} 0 1 1 ${R(cx + r)} ${R(cy)} A ${R(r)} ${R(r)} 0 1 1 ${R(cx - r)} ${R(cy)}`;
-    const TAB = { c: '#ppRTab [data-rt="bk"]', say: '오른쪽 🧩 기능 탭을 열어요' }, FOLD = { c: '#ppProp summary[data-cbfold]', say: '📐 상자 자리 · 글자를 펼쳐요' };
+    const TAB = { c: '#ppRTab [data-rt="bk"]', say: '오른쪽 🧩 기능 탭을 열어요' }, FOLD = { c: () => { const d = document.querySelector('#ppProp .pp-cbfold'); return d && !d.open ? d.querySelector('summary') : null; }, opt: 1, say: '📐 상자를 펼쳐요' };   // 이미 펴져 있으면 그대로 (누르면 접혀요 · 1445)
     const BOX = (k, v) => ({ v: `#ppProp input[data-cbx="${k}"]`, val: () => Math.round(BOXF[k](typeof v === 'function' ? v() : v)), say: { x: '상자 가로 자리', y: '상자 세로 자리', w: '상자 폭', h: '상자 높이' }[k] });
     const BOXR = (k, v) => ({ v: `#ppProp input[data-cbx="${k}"]`, val: v, say: { x: '상자 가로 자리', y: '상자 세로 자리', w: '상자 폭', h: '상자 높이' }[k] });   // 종이 그대로 (가득 채우기)
-    const TXT = t => ({ v: '#ppProp textarea[data-cbtext]', val: t, say: '상자 안 글자를 써요' });
+    const TXT = t => [{ c: '#ppProp [data-cbshow="text"]', opt: 1, say: '＋ 글자' }, { v: '#ppProp textarea[data-cbtext]', val: t, say: '상자 안 글자를 써요' }];   // ➕ 글자 칸은 꺼내서 (1445 · 이미 있으면 건너뛰어요)
     const PART = (k, say) => ({ c: `#ppProp [data-cbpart="${k}"]`, say });
     const SKN = n => () => [...document.querySelectorAll('#ppProp .pp-cbk.sb .nm')].filter(b => b.textContent.includes(n)).pop();   // 🌀 이름으로 기능 칸 열기
     const CNM = n => () => [...document.querySelectorAll('#ppProp .pp-cbk .nm')].find(b => b.textContent.includes(n) && !b.closest('.pp-cbk').classList.contains('open'));   // 🧩 이름으로 닫힌 기능 칸 열기
     const SKNI = (n, i) => () => [...document.querySelectorAll('#ppProp .pp-cbk.sb .nm')].filter(b => b.textContent.includes(n))[i];   // 🌀 같은 이름 중 i 번째
     const NODE = i => () => [...document.querySelectorAll('#ppProp .pp-cbtree [data-cbnode]')][i];   // 🌳 나무 i 번째 줄 (0 = 맨 위 상자)
-    const TIN = { c: '#ppProp [data-cbt="in"]', say: '🌳 ＋ 안에 상자' }, TSIB = { c: '#ppProp [data-cbt="sib"]', say: '🌳 ＋ 옆에 상자 (같은 이름)' }, ROOT = { c: '#ppProp [data-cbnode="root"]', say: '맨 위 상자를 골라요' };
+    const TIN = { c: '#ppProp [data-cbt="in"]', say: '🌳 ＋ 안에 상자' }, TSIB = { c: '#ppProp [data-cbt="sib"]', say: '🌳 ＋ 옆에 상자 (같은 이름)' }, ROOT = { c: '#ppProp [data-cbnode="root"]', opt: 1, say: '맨 위 상자를 골라요' };   // 🌳 나무가 아직 없으면 = 이미 맨 위 (1445)
     const NM = (n, say) => ({ v: '#ppProp input[data-cbnm]', val: n, say: say || `🏷️ 이름 (class) = ${n}`, pause: 750 }), NTX = t => ({ v: '#ppProp textarea[data-cbntext]', val: t, say: '이 상자 안 글자' });
     const SDUP = { c: '#ppProp .pp-cbk.sbe.picked [data-sba="dup"][data-k="e"]', say: '⧉ 도형 복제' };
     const CDUP = { c: '#ppProp .pp-cbk.open [data-cba="dup"]', say: '⧉ 같은 기능 한 장 더 (복제)' };
@@ -109,14 +108,14 @@
     const TOUR = [
         { m: 's', g: 'css', lv: 1, e: '🧺', k: 'gingham', n: '깅엄 체크 천', d: '되풀이 줄무늬를 가로 한 장 · 세로 한 장 겹치면 겹친 곳이 진해져 체크가 돼요', s: [
             { c: M('css'), say: '🧩 CSS 로 가요 · 상자 하나가 생겨요' }, TAB, FOLD, BOX('w', 60), BOX('h', () => Math.round(60 * LW / LH * .85)), BOX('x', 20), BOX('y', 30),
-            { c: OPEN1, say: '바탕색을 열어요' }, { v: CF('v.c.c'), val: '#ffffff', say: '하얀 천' },
+            { c: CBT('background-color'), say: '🎨 바탕색' }, { v: CF('v.c.c'), val: '#ffffff', say: '하얀 천' },
             { c: CBT('border-radius'), say: '⬜ 둥근 모서리' }, { v: CF('v.r.n'), val: Z(56), say: '' },
             { c: CBT('repeating-linear-gradient'), say: '🔁 되풀이 직선 = 줄무늬 한 장' },
             { v: CF('v.ang'), val: 0, say: '가로 줄무늬로' },
             ...STOP(CF, 0, '#ff8fb1', Z(0), 50), ...STOP(CF, 1, '#ff8fb1', Z(50), 50), ...STOP(CF, 2, '#ffffff', Z(50), 0), ...STOP(CF, 3, '#ffffff', Z(100), 0),
             CDUP, { v: CF('v.ang'), val: 90, say: '하나는 세로로 = 겹친 곳이 진해져서 깅엄!' }] },
         { m: 's', g: 'css', lv: 2, e: '🌈', k: 'cliptext', n: '글자 안에 무늬', d: '줄무늬를 깔고 바탕 오리기를 글자로 → 무늬가 글자 모양으로만 남아요', s: [
-            { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, { c: OPEN1, say: '바탕색' }, { v: CF('v.c.a'), val: 0, say: '상자는 투명하게' }, FOLD, TXT('말랑'),
+            { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, ...TXT('말랑'),
             { c: CBT('font-size'), say: '🔠 글자 크기' }, { v: CF('v.s.n'), val: Z(260), say: '아주 크게' },
             { c: CBT('font-weight'), say: '🅱️ 글자 굵기' }, { pick: CF('v.w', 'select'), opt: '900', say: '아주 굵게' },
             { c: CBT('repeating-linear-gradient'), say: '🔁 되풀이 줄무늬 (45°)' },
@@ -126,8 +125,7 @@
             { c: CBT('-webkit-text-fill-color'), say: '🫗 글자 속은 투명하게 = 무늬가 보여요 · 완성!' }] },
         { m: 's', g: 'css', lv: 2, e: '🍭', k: 'pop', n: '겹테두리 팝 글씨', d: '글자 테두리를 두르고 글자 그림자를 색만 바꿔 세 번 비껴 쌓아요', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB,
-            { c: OPEN1, say: '바탕색을 열어요' }, { v: CF('v.c.a'), val: 0, say: '상자는 투명하게 (글씨만)' },
-            FOLD, TXT('말랑'),
+            FOLD, ...TXT('말랑'),
             { c: CBT('font-size'), say: '🔠 글자 크기' }, { v: CF('v.s.n'), val: Z(210), say: '' },
             { c: CBT('font-weight'), say: '🅱️ 굵게' }, { pick: CF('v.w', 'select'), opt: '900', say: '' },
             { c: CBT('color'), say: '🖌 글자색' }, { v: CF('v.c.c'), val: '#ffffff', say: '하양' },
@@ -137,7 +135,7 @@
             { c: CBT('tshadow'), say: '💬 그림자 2' }, { v: CF('v.x.n'), val: Z(14), say: '' }, { v: CF('v.y.n'), val: Z(14), say: '' }, { v: CF('v.c.c'), val: '#7cc8ff', say: '하늘' },
             { c: CBT('tshadow'), say: '💬 그림자 3 (맨 위)' }, { v: CF('v.x.n'), val: Z(7), say: '' }, { v: CF('v.y.n'), val: Z(7), say: '' }, { v: CF('v.c.c'), val: '#ffd23f', say: '노랑 · 완성!' }] },
         { m: 's', g: 'css', lv: 3, e: '🎀', k: 'ribbon', n: '새틴 리본 라벨', d: '세로 그라데이션으로 광택 · 바깥 테두리 점선 = 바느질 · 장식 둘로 리본 꼬리', s: [
-            { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOX('w', 60), BOX('h', 10), BOX('x', 20), BOX('y', 42), TXT('MALANG'),
+            { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOX('w', 60), BOX('h', 10), BOX('x', 20), BOX('y', 42), ...TXT('MALANG'),
             { c: CBT('linear-gradient'), say: '🌈 광택 그라데이션' }, { v: CF('v.ang'), val: 180, say: '위에서 아래로' }, ADDST(), ADDST(),
             ...STOP(CF, 0, '#ff9cbb', 0), ...STOP(CF, 1, '#ff6f97', 45), ...STOP(CF, 2, '#f25485', 55), ...STOP(CF, 3, '#ff86a8', 100),
             { c: CBT('color'), say: '🖌 글자색' }, { v: CF('v.c.c'), val: '#ffffff', say: '' },
@@ -207,13 +205,13 @@
             { c: SBB('feDropShadow'), say: '🪄 4 : 그림자' }, { v: SK('v.dy'), val: Z(8), say: '' },
             { c: SBB('feMerge'), say: '🪄 5 : 칼선 위에 원래 그림' }, { pick: SK('v.a', 'select'), opt: 'prev', say: '' }, { pick: SK('v.b', 'select'), opt: 'SourceGraphic', say: '' }, { pick: SK('v.c', 'select'), opt: 'SourceGraphic', say: '' },
             { c: eye('svg'), say: '👁 SVG 레이어는 숨겨요 (모양 · 필터만 빌려요)' },
-            { c: M('css'), say: '🧩 이제 CSS 로 깅엄 무늬' }, TAB, { c: OPEN1, say: '바탕색' }, { v: CF('v.c.c'), val: '#ffffff', say: '' },
+            { c: M('css'), say: '🧩 이제 CSS 로 깅엄 무늬' }, TAB, { c: CBT('background-color'), say: '🎨 바탕색' }, { v: CF('v.c.c'), val: '#ffffff', say: '' },
             ...GINGHAM,
             { c: CBT('m-url'), say: '🎭 가리기 · 그림 (CSS → SVG)' }, { pick: '#ppProp .pp-cbk.open select[data-cbly]', opt: 'SVG', say: '🗂️ 아까 그린 SVG 하트 모양으로' },
             { c: CBT('svg-filter'), say: '🌀 SVG 필터 쓰기' }, { pick: CF('v.ref', 'select'), opt: 1, say: '하얀 칼선 필터 · 완성!' }] },
         { m: 's', g: 'mix', lv: 3, e: '📷', k: 'polaroid', n: '밤하늘 폴라로이드', d: 'CSS 상자 안에 상자 (사진 칸 · 글씨 · 테이프) + SVG 별 · 상자째 살짝 돌려요', s: [
             { c: M('css'), say: '🧩 CSS 로 폴라로이드 종이' }, TAB, FOLD, BOX('w', 46), BOX('h', () => Math.round(46 * LW / LH * 1.26)), BOX('x', 27), BOX('y', 20),
-            { c: OPEN1, say: '바탕색' }, { v: CF('v.c.c'), val: '#fffdf8', say: '크림색 종이' },
+            { c: CBT('background-color'), say: '🎨 바탕색' }, { v: CF('v.c.c'), val: '#fffdf8', say: '크림색 종이' },
             { c: CBT('padding'), say: '🔳 안쪽 여백' }, { v: CF('v.v.n'), val: Z(22), say: '' },
             { c: CBT('shadow'), say: '🌑 그림자' }, { v: CF('v.y.n'), val: Z(16), say: '' }, { v: CF('v.b.n'), val: Z(34), say: '' }, { v: CF('v.c.a'), val: 30, say: '' },
             { c: CBT('rotate'), say: '🔄 살짝 기울여요 (안에 든 것도 같이)' }, { v: CF('v.v'), val: 3, say: '' },
@@ -245,7 +243,7 @@
             ...COL(205, .6, .92, '🎨 하늘색'), PXL(ST(174, 170, 17), '별 하나'),
             ...COL(46, .75, 1, '🎨 노랑'), DOT(102, 104, '콕 (낙서 칸 왼쪽 위)'), DOT(198, 198, '콕 (오른쪽 아래)'),
             { c: M('css'), say: '🧩 CSS 로 포장지 한 장' }, TAB, FOLD, BOXR('w', 100), BOXR('h', 100), BOXR('x', 0), BOXR('y', 0),
-            { c: OPEN1, say: '바탕색' }, { v: CF('v.c.c'), val: '#fff3c9', say: '크림 노랑' },
+            { c: CBT('background-color'), say: '🎨 바탕색' }, { v: CF('v.c.c'), val: '#fff3c9', say: '크림 노랑' },
             { c: CBT('url'), say: '🖼️ 그림 깔기' }, LYP('픽셀', '🗂️ 그림판 레이어 그림으로 → 아까 그린 낙서'),
             LAY, { pick: CF('L.sz', 'select'), opt: 'w h', say: '' }, { pick: CF('L.w.u', 'select'), opt: 'px', say: '' }, { v: CF('L.w.n'), val: () => R(D(.16)), say: '' }, { pick: CF('L.h.u', 'select'), opt: 'px', say: '' }, { v: CF('L.h.n'), val: () => R(D(.16)), say: '작게' },
             { pick: CF('L.rep', 'select'), opt: 'repeat', say: '🔁 반복 = 포장지!' },
@@ -253,7 +251,7 @@
             { c: eye('px'), say: '👁 낙서 레이어는 숨겨요 · 완성!' }] },
         { m: 's', g: 'css', lv: 1, e: '📒', k: 'notegrid', ks: ['leaf'], n: '모눈 노트 속지', d: '가는 줄 두 장으로 모눈 · 장식(::before) 한 줄로 왼쪽 여백 선', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOXR('w', 100), BOXR('h', 100), BOXR('x', 0), BOXR('y', 0),
-            { c: OPEN1, say: '바탕색' }, { v: CF('v.c.c'), val: '#fffdf6', say: '크림색 종이' },
+            { c: CBT('background-color'), say: '🎨 바탕색' }, { v: CF('v.c.c'), val: '#fffdf6', say: '크림색 종이' },
             { c: CBT('repeating-linear-gradient'), say: '🔁 되풀이 줄 = 가로줄' }, { v: CF('v.ang'), val: 0, say: '' },
             ...STOP(CF, 0, '#bfe0f5', 0), ...STOP(CF, 1, '#bfe0f5', 2), ...STOP(CF, 2, '#ffffff', 2, 0), ...STOP(CF, 3, '#ffffff', 36, 0),
             CDUP, { v: CF('v.ang'), val: 90, say: '하나는 세로로 = 모눈!' },
@@ -265,7 +263,7 @@
             { c: CBT('top'), say: '' }, { pick: CF('v.v.u', 'select'), opt: 'px', say: '' }, { v: CF('v.v.n'), val: 0, say: '완성! 속지 한 장' }] },
         { m: 's', g: 'css', lv: 1, e: '🎀', k: 'dottape', ks: ['tape'], n: '땡땡이 마스킹테이프', d: '원형 그라데이션 점을 종이 폭에 딱 맞게 반복 · 위아래 점선 테두리', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOXR('w', 100), BOXR('h', 100), BOXR('x', 0), BOXR('y', 0),
-            { c: OPEN1, say: '바탕색' }, { v: CF('v.c.c'), val: '#a8e2d0', say: '민트' }, { v: CF('v.c.a'), val: 85, say: '살짝 비치게 (테이프 느낌)' },
+            { c: CBT('background-color'), say: '🎨 바탕색' }, { v: CF('v.c.c'), val: '#a8e2d0', say: '민트' }, { v: CF('v.c.a'), val: 85, say: '살짝 비치게 (테이프 느낌)' },
             { c: CBT('radial-gradient'), say: '🔆 동그란 점' }, { pick: CF('v.size', 'select'), opt: 'closest-side', say: '' }, ...STOP(CF, 0, '#ffffff'), ...STOP(CF, 1, '#ffffff', 40), ADDST(), ...STOP(CF, 2, '#ffffff', 46, 0),
             { c: '#ppProp .pp-cbk.open summary[data-cblay]', say: '🧭 놓는 방법' }, { pick: CF('L.sz', 'select'), opt: 'w h', say: '' }, { v: CF('L.w.n'), val: () => W() / 8, say: '' }, { v: CF('L.h.n'), val: () => H() / 4, say: '폭을 딱 나누는 크기 = 이어 붙여도 점이 안 잘려요' },
             { c: CBT('border-top'), say: '⬆️ 위 점선' }, { v: CF('v.w.n'), val: 3, say: '' }, { pick: CF('v.s', 'select'), opt: 'dashed', say: '점선' }, { v: CF('v.c.c'), val: '#ffffff', say: '' },
@@ -273,7 +271,6 @@
         /* ---------- 🎬 움직이는 예시 (실험용 · 도련 개인) ---------- */
         { m: 'a', g: 'css', lv: 1, e: '🍭', k: 'lollipop', n: '빙글빙글 막대사탕', d: '상자 안에 사탕 · 막대 · 사탕에 되풀이 부채꼴 + 돌리기 움직임', s: [
             { c: M('css'), say: '🧩 CSS 로 가요' }, TAB, FOLD, BOX('w', 40), BOX('h', () => Math.round(40 * LW / LH * 1.7)), BOX('x', 30), BOX('y', 18),
-            { c: OPEN1, say: '' }, { v: CF('v.c.a'), val: 0, say: '맨 위 상자는 투명하게' },
             { c: CBT('flex-direction'), say: '🌳 사탕 · 막대를 위아래로' }, { pick: CF('v.m', 'select'), opt: 'column', say: '' },
             TIN, NM('사탕'),
             { c: CNM('바탕색'), say: '' }, { v: CF('v.c.c'), val: '#ffffff', say: '' }, { c: CNM('폭'), say: '' }, { v: CF('v.v.n'), val: 100, say: '' }, { c: CNM('높이'), say: '' }, { v: CF('v.v.n'), val: 59, say: '' },
@@ -343,7 +340,6 @@
             ...COL(26, .325, .965, '🎨 귀 안 살구색'), { c: PT('paint'), say: '' }, TAPV(89, 106, ''), TAPV(211, 106, ''),
             ...COL(31, .22, .965, '🎨 크림색'), TAPV(150, 184, '주둥이'), TAPV(150, 262, '배'),
             { c: M('css'), say: '🧩 CSS 로 얼굴 · 머그 · 김' }, TAB, FOLD, BOX('w', 60), BOX('h', () => 60 * LW / LH), BOX('x', 20), BOX('y', () => 40 - 30 * LW / LH),
-            { c: OPEN1, say: '' }, { v: CF('v.c.a'), val: 0, say: '맨 위 상자 = 투명한 곰 칸' },
             ...KID('눈', '#6b4438', 118, 150, 12, 15, 50, '👀 눈'),
             { c: CBT('animation'), say: '🎬 깜빡 (높이를 잠깐 줄여요)' }, { v: CF('v.dur'), val: 4, say: '' }, { pick: CF('v.dir', 'select'), opt: 'normal', say: '' }, { pick: CF('v.ease', 'select'), opt: 'linear', say: '' },
             ...KF(0, 'height', 0, () => R(15 * U())), ...KF(1, 'height', 90, () => R(15 * U())), ADDKF, ...KF(2, 'height', 95, () => R(2 * U())), ADDKF, ...KF(3, 'height', 100, () => R(15 * U())),
@@ -397,7 +393,6 @@
             ...COL(345, .3, 1, '🎨 연분홍'), { c: PT('paint'), say: '🪣 칠하기' }, TAPV(150, 150, '얼굴'),
             ...COL(14, .48, .42, '🎨 눈은 진한 갈색'), TAPV(131, 106, ''), TAPV(169, 106, ''),
             { c: M('css'), say: '🧩 CSS 로 가져와요' }, TAB, FOLD, ...BXC(85, 26, 215, 258),
-            { c: OPEN1, say: '' }, { v: CF('v.c.a'), val: 0, say: '바탕은 투명' },
             { c: CBT('url'), say: '🖼️ 그림 깔기' }, LYP('벡터', '🗂️ 그림판 레이어 그림으로 → 벡터 (선명한 그대로)'),
             LAY, { pick: CF('L.sz', 'select'), opt: 'contain', say: '상자에 쏙' },
             { c: CBT('animation'), say: '🎬 움직임 = 좌우로 흔들 (처음 장면이 돌리기예요)' }, { v: CF('v.dur'), val: 2.6, say: '' },
@@ -416,7 +411,6 @@
             { c: PT('paint'), say: '' }, TAPV(131, 180, ''), TAPV(169, 180, ''),
             VSW(4, '입은 선으로'), ...CRV(BUNP.mouth, ''),
             { c: M('css'), say: '🧩 CSS 로 가져와요' }, TAB, FOLD, ...BXC(70, 40, 230, 260),
-            { c: OPEN1, say: '' }, { v: CF('v.c.a'), val: 0, say: '바탕은 투명' },
             { c: CBT('display'), say: '🌳 안의 상자를 바닥 가운데에' }, { c: CBT('justify-content'), say: '' }, { pick: CF('v.m', 'select'), opt: 'center', say: '' }, { c: CBT('align-items'), say: '' }, { pick: CF('v.m', 'select'), opt: 'flex-end', say: '아래로' },
             { c: CBT('radial-gradient'), say: '🔆 바닥 그림자' }, ...STOP(CF, 0, '#6b4438', 0, 22), ...STOP(CF, 1, '#6b4438', 70, 0),
             LAY, { pick: CF('L.sz', 'select'), opt: 'w h', say: '' }, { pick: CF('L.w.u', 'select'), opt: '%', say: '' }, { v: CF('L.w.n'), val: 70, say: '' }, { pick: CF('L.h.u', 'select'), opt: '%', say: '' }, { v: CF('L.h.n'), val: 10, say: '' }, { v: CF('L.y'), val: 100, say: '' }, { pick: CF('L.rep', 'select'), opt: 'no-repeat', say: '' },
@@ -491,9 +485,10 @@
     async function doStep(s, run) {
         await hold(); if (!T.on || run !== T.run) return false;
         bub(s.say || '');
+        if (s.c && s.opt && !find(s.c)) return true;                       // ➕ 이미 꺼낸 칸 · 없어도 되는 걸음 (1445)
         if (s.c) { const el = await get(s.c); if (!el) throw new Error('없음 ' + s.c); await moveTo(el);
             if (T.follow) { ring(el); bub((s.say || '') + ' 👉 반짝이는 곳을 눌러요'); const me = await userDid(el, 'click'); ring(null); if (!me) { await tap(); el.click(); } }
-            else { await tap(); el.click(); } }
+            else { await tap(); (el.isConnected ? el : (find(s.c) || el)).click(); } }   // 그 사이 칸을 다시 그렸으면 새 칸을 눌러요 (1445)
         else if (s.v || s.pick) { const el = await get(s.v || s.pick); if (!el) throw new Error('없음 ' + (s.v || s.pick)); await moveTo(el);
             let val = typeof s.val === 'function' ? s.val() : s.val;
             if (s.pick) { const o = [...el.options]; const op = typeof s.opt === 'number' ? o[s.opt] : o.find(x => x.value === s.opt) || o.find(x => x.textContent.includes(s.opt)); if (!op) throw new Error('고를 것 없음 ' + s.opt); val = op.value; }

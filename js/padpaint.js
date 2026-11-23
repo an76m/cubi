@@ -73,7 +73,7 @@
         const L = Object.assign({ id: uid++, type, name, vis: true, lock: false, op: 1, blend: 'source-over', aLock: false, cv: mkCv(P.W, P.H), shapes: [], dirtyV: true }, extra || {});
         if (type === 'vec' || type === 'css' || type === 'svg') L.cache = mkCv(P.W, P.H);
         if (type === 'svg' && !L.els) L.els = [];                             // 🌀 svg 블록 레이어 = 도형 목록 (js/svgblocks.js)
-        if (type === 'css') { if (!L.kids) L.kids = []; if (!L.cls) L.cls = {}; if (!L.pfl) L.pfl = []; if (!L.pfn) L.pfn = []; if (!L.blocks) L.blocks = [CB.fresh('background-color')]; if (!L.pb) L.pb = []; if (!L.pa) L.pa = []; if (!L.box) L.box = { x: .15, y: .15, w: .7, h: .7 }; if (L.text == null) L.text = ''; }   // 🧩 블록 레이어 = 상자 하나 + 블록 + 상자 안 글자 (js/cssblocks.js)
+        if (type === 'css') { if (!L.kids) L.kids = []; if (!L.cls) L.cls = {}; if (!L.pfl) L.pfl = []; if (!L.pfn) L.pfn = []; if (!L.blocks) L.blocks = [];   /* 🧩 빈 상자부터 (미리 넣는 바탕색 없음 · 도련 11-24 · 1445) */ if (!L.pb) L.pb = []; if (!L.pa) L.pa = []; if (!L.box) L.box = { x: .15, y: .15, w: .7, h: .7 }; if (L.text == null) L.text = ''; }   // 🧩 블록 레이어 = 상자 하나 + 블록 + 상자 안 글자 (js/cssblocks.js)
         if (at == null) { const i = P.cur ? P.layers.indexOf(P.cur) + 1 : P.layers.length; P.layers.splice(i, 0, L); } else P.layers.splice(at, 0, L);
         return L;
     }
@@ -1076,6 +1076,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     const cbFind = (L, id) => { let f = null; const go = (A, par) => (A || []).forEach((n, i) => { if (f) return; if (n.id === id) f = { n, A, i, par }; else go(n.kids, n); }); go(L.kids, null); return f; };   // 🌳 상자 나무에서 찾기
     const cbNode = L => (P.cbNode && P.cbNode !== 'root' && cbFind(L, P.cbNode)) ? cbFind(L, P.cbNode).n : null;
     const cbParts = L => CB.partsOf(L, cbNode(L));
+    const cbShow = L => { const S = P.cbShowL = P.cbShowL || new Map(); if (!S.has(L.id)) S.set(L.id, new Set()); return S.get(L.id); };   // ➕ 꺼낸 칸 (그림판을 쓰는 동안만 · 안에 든 게 있으면 저절로 보여요)
     const cbPart = L => { const k = P.cbPart || 'blocks', o = cbParts(L); if (!o[k]) o[k] = []; return o[k]; };
     const cbAll = L => { const A = []; [L].concat(Object.values(L.cls || {})).forEach(o => CB.PART.forEach(([k]) => { if (o[k]) A.push(...o[k]); })); return A; };
     let cbUid = Date.now() % 100000;
@@ -1166,22 +1167,36 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     }
     function cbPanel(L) {
         const bx = L.box, pc = v => Math.round(v * 100), sl2 = (k, n, v, min, max) => `<label class="pp-sl">${n}<input type="range" data-cbx="${k}" min="${min}" max="${max}" value="${pc(v)}"><b>${pc(v)}%</b></label>`;
-        let h = `<details class="pp-cbfold"${P.cbBox ? ' open' : ''}><summary data-cbfold="1">📐 상자 자리 · 글자<em>${L.text ? '글자 있음 · ' : ''}${pc(bx.w)} × ${pc(bx.h)}%</em></summary><div class="pp-cbbox">${sl2('x', '가로 자리', bx.x, -50, 100)}${sl2('y', '세로 자리', bx.y, -50, 100)}${sl2('w', '폭', bx.w, 2, 150)}${sl2('h', '높이', bx.h, 2, 150)}
-            <div class="r"><span>상자</span><div><button type="button" data-cbq="full">⬛ 종이 가득</button><button type="button" data-cbq="center">⊙ 가운데로</button></div></div>
-            <label class="pp-cbt">맨 위 상자 안 글자<textarea data-cbtext="1" rows="2" placeholder="글자를 쓰면 상자 안에 나와요">${esc(L.text || '')}</textarea></label></div></details>`;
+        /* ➕ 빈 종이부터 쌓기 (도련 11-24 · 1445 '필요한 것만 추가') : 처음 = 📐 상자 하나 · 🔤 글자 · 🌳 상자 나무 · ✨ 부분은 ＋ 로 꺼내요 (안에 든 게 있으면 늘 보여요) · ✕ = 다시 숨기기 (든 게 있으면 묻고 비워요) */
+        const sh = cbShow(L), showText = !!L.text || sh.has('text'), showTree = !!(L.kids || []).length || sh.has('tree');
+        if (!showTree) P.cbNode = 'root';
+        let h = `<details class="pp-cbfold"${P.cbBox ? ' open' : ''}><summary data-cbfold="1">📐 상자<em>${pc(bx.w)} × ${pc(bx.h)}%</em></summary><div class="pp-cbbox">${sl2('x', '가로 자리', bx.x, -50, 100)}${sl2('y', '세로 자리', bx.y, -50, 100)}${sl2('w', '폭', bx.w, 2, 150)}${sl2('h', '높이', bx.h, 2, 150)}
+            <div class="r"><span>상자</span><div><button type="button" data-cbq="full">⬛ 종이 가득</button><button type="button" data-cbq="center">⊙ 가운데로</button></div></div></div></details>`;
+        if (showText) h += `<div class="pp-cbsec"><b>🔤 글자<span class="x" data-cbhide="text" title="숨기기">✕</span></b><textarea data-cbtext="1" rows="2">${esc(L.text || '')}</textarea></div>`;
         const nd = cbNode(L), sel = nd ? nd.id : 'root', sameN = nd ? nd.name : null;
         const row = (n, d) => `<button type="button" data-cbnode="${n.id}" class="${n.id === sel ? 'on' : ''}${sameN && n.id !== sel && n.name === sameN ? ' same' : ''}" style="padding-left:${8 + d * 16}px"><span>${n.kids.length ? '📦' : '▫️'} ${esc(String(n.text || '').slice(0, 8))}</span><code>.${esc(n.name)}</code></button>` + n.kids.map(k => row(k, d + 1)).join('');
-        h += `<div class="pp-cbtree"><b>🌳 상자 나무<em>안에 든 것 = 들여쓰기 · 같은 이름 = 같은 기능</em></b><button type="button" data-cbnode="root" class="${sel === 'root' ? 'on' : ''}"><span>▣ 맨 위 상자</span><code>.내-디자인</code></button>${(L.kids || []).map(n => row(n, 1)).join('')}
+        if (showTree) h += `<div class="pp-cbtree"><b>🌳 상자 나무<span class="x" data-cbhide="tree" title="숨기기">✕</span></b><button type="button" data-cbnode="root" class="${sel === 'root' ? 'on' : ''}"><span>▣ 맨 위 상자</span><code>.내-디자인</code></button>${(L.kids || []).map(n => row(n, 1)).join('')}
             <div class="pp-cbtb"><button type="button" data-cbt="in">＋ 안에 상자</button><button type="button" data-cbt="sib">＋ 옆에 상자</button><button type="button" data-cbt="up" title="앞 차례로">▲</button><button type="button" data-cbt="down" title="뒤 차례로">▼</button><button type="button" data-cbt="del" title="이 상자 빼기">🗑</button></div>
             ${nd ? `<label class="pp-cbt">이름 (class) · 같은 이름이면 기능을 같이 써요<input type="text" class="tx" data-cbnm="1" value="${esc(nd.name)}"></label><label class="pp-cbt">이 상자 안 글자<textarea data-cbntext="1" rows="1" placeholder="글자 · 이모지">${esc(nd.text || '')}</textarea></label>` : ''}</div>`;
-        const A = cbPart(L), PO = cbParts(L);
-        const cur = P.cbPart || 'blocks', PN = Object.fromEntries(CB_PART.map(x => [x[0], x[1]]));
-        h += `<div class="pp-cbparts"><b>고른 상자의 부분<em>위가 앞 · 눌러서 고르기</em></b>${CB_PART.map(([k, n, o]) => `<button type="button" data-cbpart="${k}" class="${cur === k ? 'on' : ''}${(PO[k] || []).length ? '' : ' empty'}"><span>${n}</span><small>${o}</small><i>${(PO[k] || []).length ? '기능 ' + PO[k].length : '비어 있음'}</i></button>`).join('')}</div>`;
-        h += `<h4>🧩 ${PN[cur]} 기능 (${A.length})<em>위가 앞 · 눌러서 열기</em></h4>`;
-        if (!A.length) h += `<p class="pp-hint">${cur === 'blocks' ? '왼쪽 기능 상자에서 기능을 눌러 보세요' : `✨ ${PN[cur]}는 본체에 붙는 작은 상자예요 · 기능을 넣으면 생겨요<br>처음엔 본체와 같은 크기로 겹쳐요 → ✨ 장식 상자 묶음의 폭 · 높이 · 왼쪽에서 · 위에서로 자리를 정하고 · 바탕색이나 장식 글자로 보이게 해요`}</p>`;
+        const PO = cbParts(L), PN = Object.fromEntries(CB_PART.map(x => [x[0], x[1]]));
+        const partOn = k => k === 'blocks' || !!(PO[k] || []).length || sh.has(k) || P.cbPart === k;
+        if (!partOn(P.cbPart || 'blocks')) P.cbPart = 'blocks';
+        const A = cbPart(L), cur = P.cbPart || 'blocks', PS = CB_PART.filter(([k]) => partOn(k));
+        if (PS.length > 1) h += `<div class="pp-cbparts"><b>고른 상자의 부분</b>${PS.map(([k, n, o]) => `<button type="button" data-cbpart="${k}" class="${cur === k ? 'on' : ''}${(PO[k] || []).length ? '' : ' empty'}"><span>${n}</span><small>${o}</small><i>${(PO[k] || []).length ? '기능 ' + PO[k].length : ''}</i>${k === 'blocks' ? '' : `<span class="x" data-cbhide="${k}" title="숨기기">✕</span>`}</button>`).join('')}</div>`;
+        if (PS.length > 1 && A.length) h += `<h4>🧩 ${PN[cur]} 기능 (${A.length})</h4>`;
         h += A.map((c, i) => cbCard(c, i, A.length)).join('');
+        const add = (showText ? [] : ['<button type="button" data-cbshow="text">＋ 글자</button>']).concat(showTree ? [] : ['<button type="button" data-cbt="in">＋ 안에 상자</button>'])
+            .concat([['pb', '장식 1'], ['pa', '장식 2'], ['pfl', '첫 글자'], ['pfn', '첫 줄']].filter(([k]) => !partOn(k)).map(([k, n]) => `<button type="button" data-cbpart="${k}">＋ ${n}</button>`));
+        if (add.length) h += `<div class="pp-cbadd">${add.join('')}</div>`;
         h += `<div class="r"><span>코드</span><div><button type="button" data-cbq="code" class="${P.cbCode ? 'on' : ''}">👩‍💻 ${P.cbCode ? '코드 숨기기' : '진짜 CSS 코드 보기'}</button></div></div>${P.cbCode ? `<pre class="pp-cbcode">${esc(CB.cssText(L))}</pre>` : ''}<input type="file" accept="image/*" id="ppCbFile" hidden>`;
         return h;
+    }
+    async function cbHide(L, k) {                                             // ✕ 꺼낸 칸 숨기기 (든 게 있으면 묻고 비워요 · 되돌리기 됨)
+        if (L.lock) { say('🔒 잠긴 레이어예요'); return; }
+        const PO = cbParts(L), n = k === 'text' ? (L.text ? 1 : 0) : k === 'tree' ? (L.kids || []).length : (PO[k] || []).length;
+        if (n && !(await showAsk(k === 'text' ? '🔤 쓴 글자를 지울까요?' : k === 'tree' ? `🌳 안에 넣은 상자 ${n}개를 뺄까요?` : `✨ 이 부분의 기능 ${n}개를 뺄까요?`))) return;
+        if (n) { histSt(); if (k === 'text') L.text = ''; else if (k === 'tree') { L.kids = []; cbGc(L); P.cbNode = 'root'; } else PO[k].length = 0; L.dirtyV = true; P.dirty = true; renderAll(); paintLayers(); }
+        cbShow(L).delete(k); if (P.cbPart === k) P.cbPart = 'blocks'; P.cbOpen = null; paintProps(); drawOv();
     }
     function cbProp(e, L) {                                                     // true = 블록 칸에서 처리했어요
         const t = e.target, Cof = id => cbAll(L).find(c => c.id === id), code = () => { if (P.cbCode) { const c = $('ppProp').querySelector('.pp-cbcode'); if (c) c.textContent = CB.cssText(L); } };
@@ -1207,9 +1222,12 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         const sm = t.closest('summary');                                       // 접기 · 펴기 = 기억 (다시 그려도 그대로)
         if (sm && sm.dataset.cbfold) { P.cbBox = !sm.parentElement.open; return true; }
         if (sm && sm.dataset.cblay) { const id = sm.dataset.cblay, A = P.cbLay = P.cbLay || []; if (sm.parentElement.open) { const i = A.indexOf(id); if (i >= 0) A.splice(i, 1); } else A.push(id); return true; }
+        const hd = t.closest('[data-cbhide]');
+        if (hd) { cbHide(L, hd.dataset.cbhide); return true; }
         const b = t.closest('button'); if (!b) return false; const ds = b.dataset;
+        if (ds.cbshow) { cbShow(L).add(ds.cbshow); paintProps(); const ta = $('ppProp').querySelector('[data-cbtext]'); if (ta && ds.cbshow === 'text') ta.focus(); return true; }
         if (ds.cbo) { P.cbOpen = P.cbOpen === ds.cbo ? null : ds.cbo; paintProps(); return true; }
-        if (ds.cbpart) { P.cbPart = ds.cbpart; paintProps(); drawOv(); return true; }
+        if (ds.cbpart) { P.cbPart = ds.cbpart; if (ds.cbpart !== 'blocks') cbShow(L).add(ds.cbpart); paintProps(); drawOv(); return true; }
         if (ds.cbnode) { P.cbNode = ds.cbnode; P.cbPart = 'blocks'; P.cbOpen = null; paintProps(); drawOv(); return true; }
         if (ds.cbt) { if (L.lock) { say('🔒 잠긴 레이어예요'); return true; } histSt(); cbTreeAct(L, ds.cbt); L.dirtyV = true; P.dirty = true; renderAll(); paintProps(); drawOv(); return true; }
         if (ds.cbq === 'code') { P.cbCode = !P.cbCode; paintProps(); return true; }
