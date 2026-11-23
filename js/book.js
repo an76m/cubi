@@ -163,7 +163,7 @@ function bookOpen(host, spec) {
         if (spec.real) h = Math.round(mm[1] * MM_PX);                         // 📏 real = 늘 실제 규격 크기 (화면보다 크면 자리 안에서 밀어 봐요 · 🧩 바인더 조립 · 도련 11-21)
         B.root.style.setProperty('--ph', h + 'px'); B.root.style.setProperty('--pw', Math.floor(h * R) + 'px'); B.root.style.setProperty('--mmk', (h / mm[1]).toFixed(4));   // --mmk = 화면에서 1mm (px 숫자)
         if (spec.inline) return;                                              // 자리 안 = 옮기지 않아요 (가운데 · css .bk.inline)
-        let p = null; try { p = JSON.parse(localStorage.getItem(spec.posKey) || 'null'); } catch (e) {}
+        let p = lsGet(spec.posKey, null);
         const k = spec.nudge || 0;                                          // nudge = 처음 자리를 그만큼 비켜요 (📒 🤍 책상에 여러 권 띄우면 겹치지 않게)
         place(p && isFinite(p.cx) ? p.cx : W / 2 + k, p && isFinite(p.y) ? p.y : Math.max(8, (H - B.root.offsetHeight) / 2) + k);
     }

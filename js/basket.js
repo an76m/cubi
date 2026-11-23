@@ -903,7 +903,7 @@
     const abSpace = () => true;                                               // 🪑 정리 공간 = 모든 기기 (📱 폰도 · 도련 11-11 : 예전 폰 창은 길고 깨져요) · 배치만 다르게 ↓
     const abPh = () => UI.phone();                                            // 📱 폰 배치 : 위 = 바인더 · 이형지북 한 쪽 · 아래 = 서랍 시트가 올라와요 (스티커 만들기처럼) · 종이를 위로 끌어 올려요
     const abPile = () => abSpace() && !abPh();                                // 🧺 흩어진 바구니 (💻 📲) · 📱 은 한 줄 (옆으로 넘겨 봐요)
-    function abSpaceGet() { let v = null; try { v = JSON.parse(localStorage.getItem(ABS_LOCAL)); } catch (e) {} return Object.assign({}, ABS_DEF, v && typeof v === 'object' ? v : {}); }
+    function abSpaceGet() { const v = lsGet(ABS_LOCAL, null); return Object.assign({}, ABS_DEF, v && typeof v === 'object' ? v : {}); }
     function abSpacePlace() {
         const room = bq('absRoom'); if (!room) return;
         if (abPh()) { abPhFit(room); abRelHi(); return; }               // 📱 = 끌어 옮기기 없이 위 · 아래 (css .ab-ph)

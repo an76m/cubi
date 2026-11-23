@@ -60,7 +60,7 @@
            ===================================================================== */
         const DIAG_MAX = 400, DIAG_LS = 'malang_diag_q', DIAG = { q: [] };
         try { const L = JSON.parse(localStorage.getItem(DIAG_LS) || '[]'); if (Array.isArray(L)) DIAG.q = L.slice(-DIAG_MAX).map(r => { delete r.up; return r; }); } catch (e) {}
-        const diagKeep = () => { try { localStorage.setItem(DIAG_LS, JSON.stringify(DIAG.q.slice(-DIAG_MAX))); } catch (e) {} };
+        const diagKeep = () => lsSet(DIAG_LS, DIAG.q.slice(-DIAG_MAX));
         const diagDev = (() => { try { let d = localStorage.getItem('malang_dev_id'); if (!d) { d = Math.random().toString(36).slice(2, 7); localStorage.setItem('malang_dev_id', d); } return d; } catch (e) { return 'x'; } })();
         const diagVer = () => { try { const m = /[?&]v=([\w-]+)/.exec((document.querySelector('script[src*="js/drive.js"]') || {}).src || ''); return m ? m[1].replace(/^20261009-/, '') : ''; } catch (e) { return ''; } };
         function diagWho() {                                                     // 누가 불렀는지 (함수 이름 두 개)
@@ -607,7 +607,7 @@
                     if (back !== t) { await driveUpsert((f.parents || [])[0], f.name, f.id, t, true); diag('sealOld', { bad: 'back', name: f.name }); continue; }   // 🛟 원래 글로
                     done++;
                 }
-                if (!left) { m[who] = Date.now(); try { localStorage.setItem(LS, JSON.stringify(m)); } catch (e) {} }
+                if (!left) { m[who] = Date.now(); lsSet(LS, m); }
                 if (done) diag('sealOld', { n: done, left: left ? 1 : 0 });
             } catch (e) { console.warn('🔐 예전 파일 잠그기 (다음에 다시)', e); }
             finally { sealOldBusy = false; }
@@ -2001,7 +2001,7 @@
             let told = []; try { told = JSON.parse(localStorage.getItem(OPEN_TOLD) || '[]'); } catch (e) {} if (!Array.isArray(told)) told = [];
             const keys = on.map(f => f.id + '@' + (f.modifiedTime || '')), fresh = keys.filter(k => !told.includes(k));
             if (!fresh.length) return;
-            try { localStorage.setItem(OPEN_TOLD, JSON.stringify(told.filter(k => on.some(f => k.startsWith(f.id + '@'))).concat(fresh).slice(-20))); } catch (e) {}   // 띄우기 전에 적어요 (✕ 로 닫아도 한 번)
+            lsSet(OPEN_TOLD, told.filter(k => on.some(f => k.startsWith(f.id + '@'))).concat(fresh).slice(-20));   // 띄우기 전에 적어요 (✕ 로 닫아도 한 번)
             diag('otheron', { n: fresh.length });
             setTimeout(() => { if (window.showWarn) showWarn('경고! 다른 기기에서도 말랑달콤이 켜져 있어요.<br>지금 이 기기에서 쓰면, 저쪽 기기에서 아직 저장 안 한 것은 <b class="dk-warnw">사라져요.</b><br><span style="font-size:13px;color:#8a5a66;">저쪽 기기에서 💗 내 방 나가기로 먼저 꺼 주세요</span>'); }, 1500);   // 🚨 경광등 (도련 11-23)
         }

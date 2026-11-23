@@ -308,7 +308,7 @@
     let onImg = null, onErr = null, pend = 0, tainted = false;
     const mkCv = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
     const xml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const loadImg = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
+    const loadImg = loadImgP;   // 🧰 js/util.js
     async function bake(L, key, w, h, extra) {
         const D = decls(L.blocks), M = Math.ceil(Math.max(w, h) * .5) + 80, SW = Math.ceil(w + M * 2), SH = Math.ceil(h + M * 2);
         let alltx = ''; walk(L, n => { alltx += n.text || ''; }); [L].concat(usedCls(L).map(nm => partsOf(L, { name: nm }))).forEach(P0 => { alltx += PART.map(([k]) => expand(P0[k]).filter(c => c.t === 'content').map(c => c.v.t).join('')).join(''); });

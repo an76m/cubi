@@ -547,7 +547,7 @@
            그리기 = 붙인 것 자리 (쪽 · mm) · 크기 (W) · 돌기 · 겹침 순서 · 그림 · 글 · 속지 (정확한 다이어리 모습이 아니라 알아보기용) */
         function dayPreviewHtml(day, w) {
             const mm = (window.dyMmOf && dyMmOf()) || [105, 148], W = w || 300, k = W / (mm[0] * 2), H = Math.round(mm[1] * k);
-            const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            const esc = htmlEsc;   // 🧰 js/util.js (' 도 바꿔요 = 화면에 보이는 건 같아요)
             const sj = (day && day.sj) || {}, side = s => { const o = sj[s]; if (!o) return ''; const src = o.s ? (sj.l && sj.l.i) : o.i; return src ? `<img src="${esc(src)}" style="position:absolute;left:${s === 'r' ? '50%' : 0};top:0;width:50%;height:100%;object-fit:cover;opacity:.9">` : ''; };
             const font = id => { try { const f = (window.fontList || (typeof fontList !== 'undefined' ? fontList : [])).find(x => x.id === id); return f ? f.css : ''; } catch (e) { return ''; } };
             const items = ((day && day.i) || []).slice().sort((a, b) => (a.z || 0) - (b.z || 0)).map(it => {

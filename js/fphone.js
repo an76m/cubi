@@ -450,7 +450,7 @@
             el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
         }
         function fpPlace() {
-            let p = null; try { p = JSON.parse(localStorage.getItem(FP_POS)); } catch (e) {}
+            let p = lsGet(FP_POS, null);
             const pg = document.getElementById('diaryWrapper'), r = pg ? pg.getBoundingClientRect() : { right: innerWidth - 20, bottom: innerHeight - 120 };
             const x = p && isFinite(p.x) ? p.x * innerWidth : Math.min(innerWidth - 110, r.right - 60), y = p && isFinite(p.y) ? p.y * innerHeight : Math.min(innerHeight - 260, r.bottom - 300);
             fp.el.style.left = x + 'px'; fp.el.style.top = y + 'px';

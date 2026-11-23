@@ -10,7 +10,7 @@
     const KN = { seal: ['🏷️', '씰'], piece: ['🧩', '조각'], paper: ['📄', '모조지'], leaf: ['📃', '속지'], tk: ['🧻', '떡메'], memo: ['📝', '메모지'], tape: ['🎀', '마테'] };
     const PR = { on: false, k: '', list: [], busy: new Set(), going: false, out: null };
     const q = id => document.getElementById(id);
-    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const esc = htmlEsc;   // 🧰 js/util.js
 
     function build() {
         let el = q('phPr'); if (el) return el;

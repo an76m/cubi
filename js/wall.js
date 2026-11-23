@@ -23,9 +23,9 @@
         const wlLinkOk = u => typeof u === 'string' && /^https:\/\/drive\.google\.com\/[\w\-\/?=&.%]+$/.test(u);
         let wlMine = {};
         try { const m = JSON.parse(localStorage.getItem(WL_MINE)); if (m && typeof m === 'object') Object.keys(m).forEach(k => { if (+k > 0 && m[k] && wlLinkOk(m[k].u)) wlMine[k] = { n: String(m[k].n || '').slice(0, 30), u: m[k].u }; }); } catch (e) {}
-        const wlMineSave = () => { try { localStorage.setItem(WL_MINE, JSON.stringify(wlMine)); } catch (e) {} };
+        const wlMineSave = () => lsSet(WL_MINE, wlMine);
         const WL_LOCAL = 'malang_walls';                 // 지난번 목록 (열자마자 바로 보여 주고, 뒤에서 새 목록으로 바꿔요)
-        try { const c = JSON.parse(localStorage.getItem(WL_LOCAL)); if (Array.isArray(c)) wl.items = c; } catch (e) {}
+        { const c = lsGet(WL_LOCAL, null); if (Array.isArray(c)) wl.items = c; }
         /* 불러오는 중 그림 : 카페 버튼과 같은 움직이는 폰 */
         const WL_PHONE = `<svg class="wl-ico wl-wait-ico" viewBox="7 1 26 38" aria-hidden="true">
             <defs><linearGradient id="wlWaitG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc2d6"/><stop offset=".5" stop-color="#d9c8ff"/><stop offset="1" stop-color="#bfe6ff"/></linearGradient>
@@ -50,7 +50,7 @@
                     return j;
                 }, { alive: open, onTry: n => { const b = document.getElementById('wlBody'); if (b && !(wl.items && wl.items.length)) b.innerHTML = `<div class="wl-wait">${WL_PHONE}<p>${KT_MSG(n)}</p></div>`; } });
                 wl.items = j.items; wl.at = Date.now();
-                try { localStorage.setItem(WL_LOCAL, JSON.stringify(j.items)); } catch (e) {}
+                lsSet(WL_LOCAL, j.items);
             } catch (e) { if (!(wl.items && wl.items.length)) wl.items = null; wl.at = 0; }   // 못 받으면 지난번 목록은 그대로
         }
         /* 카페를 열 때 · 배경화면을 열 때 : 받아 둔 지 1분이 넘었으면 새로 받기 (받는 중이면 그걸 기다려요) */

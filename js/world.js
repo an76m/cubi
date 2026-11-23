@@ -196,7 +196,7 @@
             g.beginPath(); g.moveTo(p.x - 8, by + bh); g.lineTo(p.x, by + bh + 10); g.lineTo(p.x + 8, by + bh); g.stroke();
             g.fillStyle = '#5b3f4a'; lines.forEach((s, i) => g.fillText(s, p.x, by + 8 + lh / 2 + i * lh));
         }
-        function rr(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+        const rr = rrPath;   // 🧰 js/util.js
         function wrap(g, s, max) { const out = []; let cur = ''; for (const ch of s) { if (g.measureText(cur + ch).width > max && cur) { out.push(cur); cur = ''; } cur += ch; } if (cur) out.push(cur); return out.slice(0, 4); }
 
         function loop(t) {

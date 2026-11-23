@@ -157,7 +157,7 @@
             const sw = src.width, sh = src.height, k = Math.max(w / sw, h / sh), cw = w / k, ch = h / k;
             ctx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, x, y, w, h);
         }
-        function pbRound(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+        const pbRound = rrPath;   // 🧰 js/util.js
         function pbCompose() {
             const L = PB_LAYOUTS[pb.layout], F = PB_FRAMES.find(f => f[0] === pb.frame) || PB_FRAMES[0];
             const rows = Math.ceil(L.n / L.cols), W = L.w, H = L.pad * 2 + rows * L.slot[1] + (rows - 1) * L.gap + L.foot;

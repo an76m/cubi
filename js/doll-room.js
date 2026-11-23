@@ -135,7 +135,7 @@
             openModal('dollPicker');
         }
 
-        function readDraft() { try { return JSON.parse(localStorage.getItem(DOLL_DRAFT_KEY)); } catch (e) { return null; } }
+        function readDraft() { return lsGet(DOLL_DRAFT_KEY, null); }
         function clearDraft() { try { localStorage.removeItem(DOLL_DRAFT_KEY); } catch (e) {} }
 
         async function renderDollPicker(force) {
@@ -258,7 +258,7 @@
             DR.doll.stats.hard = DR.doll.layers.length > 0;
             clearTimeout(draftTimer);
             draftTimer = setTimeout(() => {
-                try { localStorage.setItem(DOLL_DRAFT_KEY, JSON.stringify({ doll: DR.doll, editId: DR.editId, step: DR.step })); } catch (e) {}
+                lsSet(DOLL_DRAFT_KEY, { doll: DR.doll, editId: DR.editId, step: DR.step });
             }, 700);
         }
         /* 되돌리기 : 인형 전체(제작 기록 빼고)를 찍어 둬요 */

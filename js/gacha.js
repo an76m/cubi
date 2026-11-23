@@ -70,7 +70,7 @@
             const b = await r.blob(); return await new Promise((ok, no) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = no; f.readAsDataURL(b); }); };
         function capsSet(list) {
             const a = (list || []).filter(p => p && p.id && p.until).map(p => ({ id: p.id, until: p.until }));
-            try { localStorage.setItem(CAPS_LOCAL, JSON.stringify(a)); } catch (e) {}
+            lsSet(CAPS_LOCAL, a);
         }
         /* 🧭 캡슐 스티커 얻는 방법 (스티커 칸 아래 · 첫 선물 창 공통) : 늘 보여요 */
         function capsGuide(inPop) {

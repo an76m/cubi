@@ -179,7 +179,7 @@
 #dashP input{width:110px;border:1px solid #f0b8c8;border-radius:6px;padding:2px 6px;font:inherit}#dashP .tip{color:#9a7884;font-size:12px}#dashP code{background:#fff0f5;padding:0 4px;border-radius:4px}
 #dashP{resize:both;overflow:hidden;min-width:360px;min-height:240px}#dashP .dh{cursor:move;user-select:none}#dashP details{margin:2px 0}#dashP summary{cursor:pointer}`;
     const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다'], ['log', '🧾 기록']];
-    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const esc = s => htmlEsc(s);   // 🧰 js/util.js (dash.js 가 util.js 보다 먼저 읽혀서 = 쓸 때 불러요)
     let DOC = document;                                                       // 그리는 곳 = 따로 창 (팝업) 또는 앱 안 (팝업이 막혔을 때)
     function el() {
         let p = DOC.getElementById('dashP'); if (p) return p;

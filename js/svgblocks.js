@@ -292,7 +292,7 @@
     /* ---------- 그리기 : 브라우저 svg → 그림 ---------- */
     let onImg = null, pend = 0;
     const mkCv = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
-    const loadImg = src => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
+    const loadImg = loadImgP;   // 🧰 js/util.js
     async function bake(L, key, W, H) {
         const fonts = await fontsOf(L);
         const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(build(L, W, H, fonts));

@@ -26,7 +26,7 @@
             return r && r.h && r.s ? r : null;
         }
         function lockWrite(r) {
-            if (r) { store.setItem(LOCK_KEY, JSON.stringify(r)); try { localStorage.setItem(LOCK_LOCAL, JSON.stringify(r)); } catch (e) {} }
+            if (r) { store.setItem(LOCK_KEY, JSON.stringify(r)); lsSet(LOCK_LOCAL, r); }
             else { store.removeItem(LOCK_KEY); try { localStorage.removeItem(LOCK_LOCAL); } catch (e) {} }
             lk2.rec = r;
         }
@@ -176,6 +176,6 @@
         function lockSetAuto(v) { const r = lockRead(); if (!r) return; r.a = +v || 0; lockWrite(r); }
 
         /* 페이지를 열자마자 : 이 기기에 잠금 기록이 있으면 드라이브를 읽기 전에도 잠금 화면 */
-        (function lockBoot() { let r = null; try { r = JSON.parse(localStorage.getItem(LOCK_LOCAL)); } catch (e) {} if (r && r.h) { lk2.rec = r; lockNeed(); } })();
+        (function lockBoot() { const r = lsGet(LOCK_LOCAL, null); if (r && r.h) { lk2.rec = r; lockNeed(); } })();
         window.openLockSettings = openLockSettings;
         window.lockAfterLoad = lockAfterLoad;

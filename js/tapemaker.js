@@ -83,7 +83,7 @@
                 x.font = `700 ${fs}px sans-serif`;
                 const k = t ? Math.min(12, Math.max(1, Math.ceil((x.measureText(t).width + fs * 1.6) / TPM_OUT * C / s0) * s0 / C)) : 1, W = Math.round(TPM_OUT * k);
                 try {
-                    const bg = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = MK.url(MK.tileSvg(r, C * k, C)); });
+                    const bg = await loadImgP(MK.url(MK.tileSvg(r, C * k, C)));   // 🧰 js/util.js
                     cv.width = W; cv.height = TPM_OUT; x.drawImage(bg, 0, 0, W, TPM_OUT);
                     if (t) { x.font = `700 ${fs}px sans-serif`; x.fillStyle = /^#[0-9a-f]{6}$/i.test(r.tc || '') ? r.tc : '#ffffff'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(t, W / 2, TPM_OUT / 2); }
                     tpmS.pimg = cv.toDataURL('image/png'); tpmS.pk = k;

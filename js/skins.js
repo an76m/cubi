@@ -159,8 +159,7 @@
 
         function loadPatLayout() {
             const out = Object.assign({}, PAT_DEFAULT_LAYOUT);
-            let saved = null;
-            try { saved = JSON.parse(localStorage.getItem(PAT_LAYOUT_KEY)); } catch (e) {}
+            const saved = lsGet(PAT_LAYOUT_KEY, null);
             if (saved && typeof saved === 'object') {
                 Object.keys(PAT_LAYOUT_LIMITS).forEach(k => {
                     const n = parseInt(saved[k], 10), lim = PAT_LAYOUT_LIMITS[k];
@@ -169,7 +168,7 @@
             }
             return out;
         }
-        function savePatLayout() { try { localStorage.setItem(PAT_LAYOUT_KEY, JSON.stringify(patLayout)); } catch (e) {} }
+        function savePatLayout() { lsSet(PAT_LAYOUT_KEY, patLayout); }
 
         /* 배경지 칸 (스티커 창과 같은 이름) : 기본 = 페이지 4색 바탕 · 내가만든 (10-18 숨김) · 공유받은 = 📥 파일로 받은 것 + 🌟 등록된 사용자 배경지
            이벤트 = 앞으로 이벤트로 나눠 줄 배경지 (아직 없어서 칸이 숨어 있어요) · 문구점 = 🛍️ 문구점 가기 */
