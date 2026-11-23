@@ -673,7 +673,7 @@
         function deskBuild() {
             const bg = document.getElementById('deskBg'); if (!bg || bg.querySelector('#deskStage')) return;
             dkLoad();
-            bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp?v=20261114-1920" alt="" draggable="false">
+            bg.innerHTML = `<div id="deskStage" class="desk-stage"><img class="desk-room" src="img/desk-wide.webp?v=f5507e1cb0" alt="" draggable="false">
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>

@@ -15,7 +15,6 @@
         const ST_W = 1536, ST_H = 1024, ST_BOOTH = [782, 522];                  // 길 그림 · 그 속 포토부스 가운데
         const STM_W = 941, STM_H = 1672, STM_BOOTH = [468, 960];                // 📱 세로 길 그림 (img/booth-street-m.webp · 도련 11-09) · 그 속 포토부스 가운데
         const BS_SIGN = [142, 17, 689, 159], BS_TV = [57, 353, 217, 733], BS_CURTAIN = [240, 245, 694, 912], BS_LAMP = [243, 997], BS_SLOT = [88, 999, 200, 1051];   // 간판 안쪽 · 화면 안쪽 · 커튼 · 출력구 옆 동그라미 · 출력구 구멍
-        const IMG_V = '?v=20261009-1237';
         /* 🎨 배경 테마 = css/boothroom.css 의 [data-th="이름"] (벽 · 바닥 · 불빛 · 장식) · 새 테마 = css 한 덩어리 + 여기 이름만 바꾸면 돼요 (예 크리스마스 'xmas') */
         const BTH_THEME = () => 'base';
         const B = { on: false, busy: false, raf: 0, t0: 0, led: null, tv: null };
@@ -28,7 +27,7 @@
             el = document.createElement('div'); el.id = 'bthRoom'; el.className = 'bth-room';
             el.innerHTML = `<div class="bth-set" aria-hidden="true"><i class="bth-wall"></i><i class="bth-floor"></i><i class="bth-glow"></i><i class="bth-deco"></i></div>
                 <div class="bth-booth" id="bthBooth">
-                    <img class="bth-pic" src="img/booth.webp${IMG_V}" alt="포토부스" draggable="false">
+                    <img class="bth-pic" src="img/booth.webp?v=f36ec0e32e" alt="포토부스" draggable="false">
                     <canvas class="bth-led" id="bthLed" aria-label="PHOTOBOOTH 전광판"></canvas>
                     <div class="bth-tv"><canvas id="bthTv"></canvas></div>
                     <i class="bth-lamp" id="bthLamp"></i>
@@ -140,8 +139,8 @@
 
         /* ---------- 🚶 길 → 포토부스 앞 (캡슐기계 · 벽 달력과 같은 연출 : 포토부스 쪽으로 빨려 들어가며 빛 · 뒤에서 미리 열어 둬요) ---------- */
         const walkGo = () => ({ id: 'bthWalk', cls: 'bth-walk', wait: 700,
-                land: { img: 'img/booth-street.webp' + IMG_V, W: ST_W, H: ST_H, focus: [560, 1000, 260, 800], at: ST_BOOTH },
-                port: { img: 'img/booth-street-m.webp?v=20261009-1042', W: STM_W, H: STM_H, focus: [280, 660, 660, 1260], at: STM_BOOTH } });
+                land: { img: 'img/booth-street.webp?v=19d6873502', W: ST_W, H: ST_H, focus: [560, 1000, 260, 800], at: ST_BOOTH },
+                port: { img: 'img/booth-street-m.webp?v=27fa28f41e', W: STM_W, H: STM_H, focus: [280, 660, 660, 1260], at: STM_BOOTH } });
         function approach() { placeGo(walkGo()); }                              // 🛣️ 길 → 포토부스 (js/util.js placeGo)
         async function openBoothPlace() {
             if (B.on || !(await placeReady(walkGo())) || B.on) return;           // ⏳ 길 그림이 준비되면 (단색 없이 · js/util.js)

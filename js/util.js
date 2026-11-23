@@ -120,7 +120,7 @@ function coverFit(W, H, focus) {
    ⏳ 여는 함수는 먼저 await placeReady(o) (그림이 준비된 뒤에 = 단색 없이 그림째로 한꺼번에 · 도련 11-23)
 /* 🖼 그림 준비되면 (도련 11-23 · 연출 화면 공용 : 단색 바탕이 먼저 보이지 않게 그림이 다 그려질 준비가 된 뒤에 화면을 띄워요)
    picReady(src, max) = 그 그림을 받아 그릴 준비까지 (한 번 받은 그림은 기억 · 실패하면 다음에 다시) · 늦으면 max ms (기본 1초) 에서 그냥 넘어가요 (멈춘 것처럼 보이지 않게)
-   그림 파일은 index.html 🖼 keepPics 목록에 있어야 기기 보관함에 남아요 (sw.js) */
+   그림 파일은 index.html 🖼 keepFiles 목록에 있어야 기기 보관함에 남아요 (sw.js) */
 const PIC_OK = new Map();
 function picReady(src, max) {
     if (!src) return Promise.resolve();

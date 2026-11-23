@@ -27,11 +27,9 @@
         function dmLoad() {
             if (typeof DREAM_SYMBOLS !== 'undefined') return Promise.resolve();
             if (dm.loaded) return dm.loaded;
-            const ver = (document.querySelector('script[src*="js/dream.js"]') || {}).src || '';
-            const v = (ver.match(/[?&]v=([^&]+)/) || [])[1] || '';
             dm.loaded = new Promise((res, rej) => {
                 const s = document.createElement('script');
-                s.src = 'js/dream-data.js' + (v ? '?v=' + v : '');
+                s.src = 'js/dream-data.js?v=f86132316f';   // ?v= = 파일 지문 (도구/버전찍기/ai_stamp.py · 글자 그대로)
                 s.onload = () => typeof DREAM_SYMBOLS !== 'undefined' ? res() : rej(new Error('data'));
                 s.onerror = () => { dm.loaded = null; rej(new Error('load')); };
                 document.head.appendChild(s);

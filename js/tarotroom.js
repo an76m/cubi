@@ -45,7 +45,7 @@
             if (el) el.remove();                                                 // 💻 ↔ 📱 가 바뀌었어요 (창 크기) → 그 그림으로 다시
             const W = ph ? TRO_PH.W : TRO_W, H = ph ? TRO_PH.H : TRO_H;
             el = document.createElement('div'); el.id = 'tarotRoom'; el.className = 'tro-room' + (ph ? ' ph' : '');
-            el.innerHTML = `<div class="tro-stage" id="trStage"><img class="tro-bg" src="${ph ? 'img/tarot-room-m.webp?v=20261009-1035' : 'img/tarot-room.webp?v=20261009-1018'}" alt="" draggable="false">
+            el.innerHTML = `<div class="tro-stage" id="trStage"><img class="tro-bg" src="${ph ? 'img/tarot-room-m.webp?v=3b690f6cd8' : 'img/tarot-room.webp?v=c57e1558c9'}" alt="" draggable="false">
                     ${troFx(ph)}
                     <svg class="tro-cards" viewBox="0 0 ${W} ${H}" aria-hidden="true">${TRO_CARDS.map((c, i) => `<polygon class="tro-card" data-i="${i}" points="${ph ? TRO_PH.cards[i] : c[3]}"/>`).join('')}</svg>
                 </div>
@@ -82,8 +82,8 @@
         const TRO_DOOR = { cx: 836, cy: 290, sy: 668 };                             // 달 창 가운데 · 문 위 '타로카페' 글자 자리 (그림 px)
         
         const troGo = () => ({ id: 'troDoor', cls: 'tro-door', step: 'enter', snd: 'sndTarotDoor', sign: { cls: 'tro-door-sign', text: '✦ 타로카페 ✦' },
-                land: { img: 'img/tarot-door.webp?v=20261009-1024', W: TRO_W, H: TRO_H, at: [TRO_DOOR.cx, TRO_DOOR.cy], sign: [TRO_DOOR.cx, TRO_DOOR.sy, 64] },
-                port: { img: 'img/tarot-door-m.webp?v=20261009-1035', W: TRO_PH.W, H: TRO_PH.H, at: [TRO_PH.door.cx, TRO_PH.door.cy], sign: [TRO_PH.door.cx, TRO_PH.door.sy, 60] } });
+                land: { img: 'img/tarot-door.webp?v=5fa5846982', W: TRO_W, H: TRO_H, at: [TRO_DOOR.cx, TRO_DOOR.cy], sign: [TRO_DOOR.cx, TRO_DOOR.sy, 64] },
+                port: { img: 'img/tarot-door-m.webp?v=ad5ca4f8f8', W: TRO_PH.W, H: TRO_PH.H, at: [TRO_PH.door.cx, TRO_PH.door.cy], sign: [TRO_PH.door.cx, TRO_PH.door.sy, 60] } });
         function troDoor() { placeGo(troGo()); }                                // 🚪 타로카페 문 (js/util.js placeGo)
         async function openTarotRoom() {
             if (!(await placeReady(troGo()))) return;                            // ⏳ 문 그림이 준비되면 (단색 없이 · js/util.js)

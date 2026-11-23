@@ -67,7 +67,7 @@
             let el = aroq('arcRoom'); if (el) return el;
             const G = window.arcadeGames ? arcadeGames() : [], gOf = id => G.find(g => g.id === id);
             el = document.createElement('div'); el.id = 'arcRoom'; el.className = 'aro-room';
-            el.innerHTML = `<div class="aro-stage" id="aroStage"><img class="aro-bg" src="img/arcade-room.webp?v=20261009-1035" alt="" draggable="false">
+            el.innerHTML = `<div class="aro-stage" id="aroStage"><img class="aro-bg" src="img/arcade-room.webp?v=b3d6817563" alt="" draggable="false">
                     ${ARO_SCR.map(([id, q], i) => { const g = gOf(id);
                         return g ? `<button type="button" class="aro-scr" data-i="${i}" style="--c:${g.color};transform:${aroH(q)}" aria-label="${g.name}"><i>${g.icon}</i><b>${g.name}</b></button>`
                             : `<div class="aro-scr deco" style="transform:${aroH(q)}"><b>INSERT COIN</b></div>`; }).join('')}
@@ -131,8 +131,8 @@
         /* 🚪 오락실 문 (기본상품 샵 · 타로카페처럼) */
         const ARO_PH = { W: 941, H: 1672, cx: 470, cy: 860, sy: 160 };          // 📱 세로 분홍 유리문 (img/arcade-door-m.webp · 도련 11-09) · 손잡이 사이 · '뿅뿅오락실' 글자 자리
         const aroGo = () => ({ id: 'aroDoor', cls: 'aro-door', step: 'enter', snd: 'sndArcadeDoor', sign: { cls: 'aro-door-sign', text: '뿅뿅오락실' },
-                land: { img: 'img/arcade-door.webp?v=20261009-1035', W: ARO_W, H: ARO_H, focus: [500, 1170, 80, 800], at: [836, 600], sign: [836, 150, 46] },
-                port: { img: 'img/arcade-door-m.webp?v=20261009-1039', W: ARO_PH.W, H: ARO_PH.H, focus: [60, 880, 100, 1100], at: [ARO_PH.cx, ARO_PH.cy], sign: [ARO_PH.cx, ARO_PH.sy, 72] } });
+                land: { img: 'img/arcade-door.webp?v=b113d41adf', W: ARO_W, H: ARO_H, focus: [500, 1170, 80, 800], at: [836, 600], sign: [836, 150, 46] },
+                port: { img: 'img/arcade-door-m.webp?v=c514cbf9a4', W: ARO_PH.W, H: ARO_PH.H, focus: [60, 880, 100, 1100], at: [ARO_PH.cx, ARO_PH.cy], sign: [ARO_PH.cx, ARO_PH.sy, 72] } });
         function aroDoor() { placeGo(aroGo()); }                                // 🚪 오락실 분홍 유리문 (js/util.js placeGo)
         async function openArcRoom() {
             if (!(await placeReady(aroGo()))) return;                            // ⏳ 문 그림이 준비되면 (단색 없이 · js/util.js)

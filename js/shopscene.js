@@ -30,8 +30,8 @@
         }
         /* 📱 폰 가게 (도련 11-10 · 세로 그림 941 × 1672) : 입구 문 → 스티커 코너(입구) · 다이어리 · 문구 · 책상소품 · 코너 이름 · 칸 · 팻말은 서버(상품공방 샵) 그대로
            그림 · 간판 자리만 폰 것 (상품공방 '샵' 상품 · 화면 = 📱 폰 · 구역마다 하나 · 넷이 다 있어야 열려요 · 모자라면 예전 기본상품 샵 창) · 이름표는 그림 자리 대신 아래 상자에 줄 바꿈 (폰은 좁아서 15칸이 겹쳐요) · 산 것은 🛍️ 봉투 없이 바로 서랍 (폰은 책상이 없어요 · shopBagOn) */
-        const SHOP_PH = { W: 941, H: 1672, v: '?v=20261009-1047',                // 📱 문만 앱 그림 (💻 문처럼 · 코너 그림 · 간판은 상품공방 샵 '화면 = 폰' · 1048 도련)
-            door: { img: 'img/shop-door-m.webp', sign: [472, 750, 320, 140], go: [472, 970] } };
+        const SHOP_PH = { W: 941, H: 1672,                // 📱 문만 앱 그림 (💻 문처럼 · 코너 그림 · 간판은 상품공방 샵 '화면 = 폰' · 1048 도련)
+            door: { img: 'img/shop-door-m.webp?v=3d9179e9d5', sign: [472, 750, 320, 140], go: [472, 970] } };
         const shopC = c => { const A = shopData() || {}, D = A[c || 'stk']; if (!D || !SC.ph) return D; const P = (A[' ph'] || {})[c || 'stk']; return P ? Object.assign({}, D, { img: P.img, W: P.W, H: P.H, sign: P.sign }) : D; };   // 📱 이름 · 칸 · 팻말 = 💻 것 · 그림 · 간판 = 폰 것
         /* 🖼 구역 그림 미리 받기 (도련 11-04 : 처음 걸어갈 때 그림이 늦게 떠서 이름만 먼저 바뀌었어요) : 가게에 들어갈 때 모두 받아 두고 · 옮길 땐 그 그림이 준비된 뒤에 바꿔요 */
         const shopPicAll = () => { if (shopData()) SHOP_CN.forEach(c => picReady(shopC(c).img)); };   // 🖼 js/util.js picReady (그림 준비 공용)
@@ -44,8 +44,8 @@
             el = document.createElement('div'); el.id = 'shopScene'; el.className = 'shop-scene';
             el.innerHTML = `<div class="shop-in"><img class="shop-room" src="${shopC('').img}" alt="" draggable="false"><div class="shop-cs"><b></b></div><div class="shop-spots"></div></div>
                 <button type="button" class="shop-back" onclick="shopCorner('')">‹ ${htmlEsc(shopC('').n)}</button>
-                <div class="shop-door"><img src="img/shop-door.webp?v=20261009-819" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
-                <div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
+                <div class="shop-door"><img src="img/shop-door.webp?v=53bdb831d2" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
+                <div class="shop-home"><img src="img/room-door.webp?v=6d7683e228" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
                 <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (!SC.on) return; if (SC.ph !== UI.tall()) { shopSceneClose(true); return; } shopFit(); });   // 폰 ↔ 넓은 화면이 바뀌면 가게를 닫아요
@@ -106,8 +106,8 @@
             el.querySelector('.shop-door').style.transformOrigin = ph ? `${D.x + SHOP_PH.door.go[0] * D.s}px ${D.y + SHOP_PH.door.go[1] * D.s}px` : `${D.x + SHOP_SIGN.cx * D.s}px ${D.y + 560 * D.s}px`;   // 문 손잡이 쪽으로 다가가요
         }
         /* 📱 폰 = 다이어리 문 (도련 11-10 · img/room-door-m.webp 941 × 1672 · 타원 판에 '다이어리' · 폰은 내 방이 없어요 → 하단 메뉴 넷이 있는 다이어리로) */
-        const HOME_PH = { W: 941, H: 1672, img: 'img/room-door-m.webp?v=20261009-1048', sign: { cx: 465, cy: 622, w: 420, h: 220 }, go: 880 };
-        const homeSrc = () => UI.tall() ? HOME_PH.img : 'img/room-door.webp?v=20261009-923';   // 🚪 내 방 문 그림 (📱 = 다이어리 문)
+        const HOME_PH = { W: 941, H: 1672, img: 'img/room-door-m.webp?v=48e3462ca0', sign: { cx: 465, cy: 622, w: 420, h: 220 }, go: 880 };
+        const homeSrc = () => UI.tall() ? HOME_PH.img : 'img/room-door.webp?v=6d7683e228';   // 🚪 내 방 문 그림 (📱 = 다이어리 문)
         function homeFit(el) {                                                  // 🚪 내 방 문 (가게 · 다른 장소에서 돌아올 때 같은 문 · roomGo)
             const ph = UI.tall(), W = ph ? HOME_PH.W : DOOR_W, H = ph ? HOME_PH.H : DOOR_H, S = ph ? HOME_PH.sign : HOME_SIGN;
             const D = shopCover(W, H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
@@ -124,7 +124,7 @@
             if (roomBusy) return;
             if (calmMotion()) { leave(); return; }
             let el = document.getElementById('roomGo');
-            if (!el) { el = document.createElement('div'); el.id = 'roomGo'; el.className = 'shop-scene room-go'; el.innerHTML = `<div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>`; document.body.appendChild(el); }
+            if (!el) { el = document.createElement('div'); el.id = 'roomGo'; el.className = 'shop-scene room-go'; el.innerHTML = `<div class="shop-home"><img src="img/room-door.webp?v=6d7683e228" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>`; document.body.appendChild(el); }
             roomBusy = true;
             picReady(homeSrc()).then(() => {                                    // ⏳ 문 그림이 준비되면 = 문째로 한꺼번에 (단색 바탕 먼저 X · 도련 11-23)
             homeFit(el); el.classList.add('on', 'home');
@@ -135,7 +135,7 @@
         }
         window.roomGo = roomGo;
         /* 🚪 → 🩷 → 🏪 */
-        const shopDoorSrc = () => UI.tall() ? SHOP_PH.door.img + SHOP_PH.v : 'img/shop-door.webp?v=20261009-819';   // 🚪 가게 문 그림 (📱 = 세로 문)
+        const shopDoorSrc = () => UI.tall() ? SHOP_PH.door.img : 'img/shop-door.webp?v=53bdb831d2';   // 🚪 가게 문 그림 (📱 = 세로 문)
         function shopSceneOpen() {
             if (!shopData() || (UI.tall() && !shopData()[' ph'])) { if (window.showMsg) showMsg('🏪 기본상품 샵을 준비하는 중이에요<br>잠시 뒤에 다시 와 주세요'); return; }   // 🏪 샵 코너가 없으면 (예전 기본상품 샵 창은 영구 삭제 · 도련 11-10)
             if (SC.on || SC.busy) return;

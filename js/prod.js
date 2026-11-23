@@ -8,14 +8,14 @@
    - 받지 못했으면 다이어리를 시작하지 않아요 (index.html 파일 누락 확인 · '다시 열기') */
 const PROD_BASE = 'https://malang-img.pages.dev';
 /* 🧁 진짜 목록을 빠르게 (도련 11-17 "기기 것은 가짜 목록 · 버전 확인으로 최신인지") :
-     - index.html 이 이 기기에 둔 목록(localStorage malang_prod_last)을 먼저 넣어요 (PROD_FROM 'dev') → 여기서 바로 서버 prod-v.txt (몇 바이트) 를 물어요
-       같은 버전 = 그대로 진짜 목록 · 다르면 = 새 prod.js 를 받아 바꾸고 다시 그려요 (prodRebuild) · 서버에 prod-v.txt 가 없으면 (예전 포장) prod.js 를 받아 비교
+     - index.html 이 이 기기에 둔 목록(localStorage malang_prod_last)을 먼저 넣어요 (PROD_FROM 'dev') → 여기서 바로 서버 조각표 prod-i.json (몇 KB · 같으면 304) 를 물어요
+       같은 버전 = 그대로 진짜 목록 · 다르면 = 바뀐 조각만 받아 바꾸고 다시 그려요 (prodParts → prodRebuild · 1442) · 조각표가 없는 서버면 prod.js 를 통째로 받아 비교
      - 🚨 3초 안에 답이 없거나 못 받으면 = 비상 (PROD_CACHED : 지난 목록 + 가진 것 모두 내 실물 그림 · js/mine.js)
      - window.PROD_READY = 확인이 끝나면 (로그인 · 처음 선물은 이것을 기다려요 · js/drive.js loadFromDrive)
      - 처음 기기 = index.html 이 서버 prod.js 를 기다려서 받은 것 → 이 기기에 둬요 */
 const PROD_LS = 'malang_prod_last';
 const prodGood = p => !!(p && p.prod && typeof p.prod === 'object' && Object.values(p.prod).some(a => Array.isArray(a) && a.length));
-const prodKeep = p => { try { const t = JSON.stringify(p); if (localStorage.getItem(PROD_LS) !== t) localStorage.setItem(PROD_LS, t); } catch (e) { } };
+const prodKeep = p => { try { const t = JSON.stringify(p); if (localStorage.getItem(PROD_LS) !== t) localStorage.setItem(PROD_LS, t); } catch (e) { console.warn('🧁 이 기기에 상품 목록을 못 뒀어요 (다음에 켤 때 서버에서 다시)', e); } };
 if (window.PROD_FROM !== 'dev' && prodGood(window.MALANG_PROD)) prodKeep(window.MALANG_PROD);
 const PROD_OKF = f => typeof f === 'string' && /^[0-9a-f]{16}\.(png|jpg|gif|webp|svg)$/.test(f);
 let PROD_RAW = (window.MALANG_PROD && window.MALANG_PROD.prod && typeof window.MALANG_PROD.prod === 'object') ? window.MALANG_PROD.prod : {};
@@ -49,18 +49,42 @@ const PROD_HOOKS = [];
 const prodHook = fn => { if (typeof fn === 'function') PROD_HOOKS.push(fn); };
 function prodRebuild() { PROD_C.all = {}; PROD_HOOKS.forEach(fn => { try { fn(); } catch (e) { console.warn('🧁 다시 만들기', e); } }); }
 const prodRawOf = (k, id) => (Array.isArray(PROD_RAW[k]) ? PROD_RAW[k] : []).find(x => x && x.id === id) || null;   // 서버 줄 그대로 (📦 받을 때 내 실물로)
-/* 🔎 버전 확인 (기기 목록으로 시작했을 때만) */
+/* 📦 상품 목록 조각 (도련 11-23 · 1442 '버전이 다른 것만 받기') : 서버(상품공방 포장)는 목록을 조각마다 d/<지문>.json 으로 올리고 · prod-i.json = { v, p: { 조각 이름: 지문 } } (몇 KB)
+     조각 이름 = 'prod:종류' (상품 줄) · 'rules' (제작 규칙) · 'kit:images' · 'kit:sheets' · 'kit:종류' (기본스티커 목록 · js/elements.js)
+     지문이 같은 조각 = 이 기기 것 그대로 · 다른 조각만 받아요 (d/ 는 내용이 바뀌면 이름이 바뀌어서 브라우저가 한 번 받으면 다시 묻지 않아요)
+   prodParts(ix, 이름들, have = { 이름: 지문 } 이 기기 것, old = 이름 → 이 기기 값) → { 이름: 값 } · prodIndex() = 서버 조각표 (확인 때 받은 것 · 없으면 지금 받아요) */
+const PROD_GET = (u, ms, how) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); return fetch(u, { cache: how || 'no-store', signal: c.signal }).finally(() => clearTimeout(t)); };
+const prodIxGood = ix => !!(ix && ix.v && ix.p && typeof ix.p === 'object' && Object.values(ix.p).every(h => /^[0-9a-f]{16}$/.test(h)));
+const prodIxGet = () => PROD_GET(PROD_BASE + '/prod-i.json', 3000, 'no-cache').then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status)))).then(ix => { if (!prodIxGood(ix)) throw new Error('bad'); return ix; });   // no-cache = 같으면 304 (몇 바이트)
+async function prodParts(ix, names, have, old) {
+    const out = {};
+    await Promise.all(names.map(async n => {
+        const h = ix.p[n]; if (!h) return;
+        const o = have && have[n] === h ? old(n) : undefined;
+        out[n] = o !== undefined ? o : await PROD_GET(PROD_BASE + '/d/' + h + '.json', 8000, 'default').then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))));
+    }));
+    return out;
+}
+let PROD_IX = null;
+const prodPick = (ix, f) => Object.keys(ix.p).filter(f).reduce((o, n) => (o[n] = ix.p[n], o), {});   // 조각표 중 일부
+async function prodIndex() { await window.PROD_READY; if (!PROD_IX) PROD_IX = await prodIxGet(); return PROD_IX; }
+window.prodParts = prodParts; window.prodIndex = prodIndex;
+/* 🔎 버전 확인 (기기 목록으로 시작했을 때만 · 처음 기기 = 서버 prod.js 를 막 받았어요 · 그 안 i = 상품 조각표) */
 window.PROD_READY = (function () {
     if (window.PROD_FROM !== 'dev') return Promise.resolve('srv');
-    const cur = window.MALANG_PROD, get = (u, ms) => { const c = new AbortController(), t = setTimeout(() => c.abort(), ms); return fetch(u, { cache: 'no-store', signal: c.signal }).finally(() => clearTimeout(t)); };
+    const cur = window.MALANG_PROD, get = (u, ms) => PROD_GET(u, ms);
     const swap = p => { window.MALANG_PROD = p; PROD_RAW = p.prod; PROD_C.srv = {}; PROD_C.all = {}; prodKeep(p); prodRebuild(); };
     const emerg = why => { window.PROD_CACHED = Date.now(); console.warn('🚨 서버 상품 목록을 확인 못 했어요 (' + why + ') → 지난 목록 + 내 실물로'); PROD_C.all = {}; prodRebuild(); if (window.mineSoon) mineSoon(); return 'cached'; };
-    const full = () => get(PROD_BASE + '/prod.js?v=' + Date.now(), 8000).then(r => r.ok ? r.text() : Promise.reject(r.status)).then(t => { const p = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); if (!prodGood(p)) throw new Error('bad'); if (String(p.v) !== String(cur.v) || JSON.stringify(p) !== JSON.stringify(cur)) { swap(p); return 'new'; } return 'same'; });   // 받은 김에 내용까지 비교
-    return get(PROD_BASE + '/prod-v.txt', 3000).then(r => {
-        if (r.status === 404) return full();                                  // 예전 포장 (버전 파일 없음) = 목록을 받아 비교
-        if (!r.ok) throw new Error(r.status);
-        return r.text().then(v => String(v).trim() === String(cur.v) ? 'same' : full());
-    }).catch(e => emerg(e && e.name === 'AbortError' ? '시간 초과' : String(e && e.message || e)));
+    const full = () => get(PROD_BASE + '/prod.js?v=' + Date.now(), 8000).then(r => r.ok ? r.text() : Promise.reject(r.status)).then(t => { const p = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); if (!prodGood(p)) throw new Error('bad'); if (prodSig(p) !== prodSig(cur)) { swap(p); return 'new'; } return 'same'; });   // 받은 김에 내용까지 비교
+    const prodSig = x => JSON.stringify([String(x.v), x.prod, x.rules === undefined ? null : x.rules]);   // 버전 · 상품 · 규칙 (조각표 i 는 빼고)
+    const isP = n => n === 'rules' || n.startsWith('prod:');
+    const pull = ix => prodParts(ix, Object.keys(ix.p).filter(isP), cur.i || {}, n => n === 'rules' ? (cur.rules === undefined ? null : cur.rules) : (cur.prod || {})[n.slice(5)]).then(got => {   // 규칙이 없던 서버 = null 조각   // 📦 바뀐 조각만
+        const p = { v: ix.v, prod: {}, rules: got.rules, i: prodPick(ix, isP) };
+        Object.keys(ix.p).forEach(n => { if (n !== 'rules' && n in got) p.prod[n.slice(5)] = got[n]; });   // 서버 차례 그대로
+        if (!prodGood(p)) throw new Error('bad'); swap(p); return 'new';
+    });
+    return prodIxGet().then(ix => { PROD_IX = ix; return String(ix.v) === String(cur.v) ? 'same' : pull(ix); }, e => e && e.message === '404' ? full() : Promise.reject(e))   // 조각표가 없는 서버 = 목록 통째로 받아 비교
+        .catch(e => emerg(e && e.name === 'AbortError' ? '시간 초과' : String(e && e.message || e)));
 })();
 /* 🗒️ 내지 무늬 = 상품 (도련 11-18 · 3단계 · 상품공방 다이어리/내지무늬) : 디자인.svg 한 칸 (그림 1 = 1mm) 을 속지색 위에 이어 깔아요 · 앱에 무늬 코드 없음
    다이어리 · 내지 상품의 '내지' 값 = 내지무늬 상품 id ('grid' · 왼쪽/오른쪽 'grid/dot') */

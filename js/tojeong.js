@@ -48,10 +48,9 @@
         function tjLoad() {
             if (window.KoreanLunarCalendar) return Promise.resolve();
             if (tj.libLoad) return tj.libLoad;
-            const v = (((document.querySelector('script[src*="js/tojeong.js"]') || {}).src || '').match(/[?&]v=([^&]+)/) || [])[1] || '';
             tj.libLoad = new Promise((res, rej) => {
                 const s = document.createElement('script');
-                s.src = 'js/lib/korean-lunar-calendar.min.js' + (v ? '?v=' + v : '');
+                s.src = 'js/lib/korean-lunar-calendar.min.js?v=f206f9ba81';   // ?v= = 파일 지문 (도구/버전찍기/ai_stamp.py · 글자 그대로)
                 s.onload = () => window.KoreanLunarCalendar ? res() : rej(new Error('lib'));
                 s.onerror = () => { tj.libLoad = null; rej(new Error('load')); };
                 document.head.appendChild(s);

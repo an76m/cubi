@@ -142,7 +142,7 @@
         }
 
         /* 📚 기본스티커 : 그림과 목록은 Cloudflare 그림 보관함(KIT_BASE)에 있어요 (도구/말랑달콤_포장기.html 로 만든 zip 을 올려요)
-           - list.json : images [{ f, c }] 씰 낱장 · sheets [{ c, fs }] 씰 종이 · kits { 종류: [{ c, fs }] · [{ c, f }] }
+           - 목록 (상품 조각 kit:… · 1442 · 예전 list.json 과 같은 모양) : images [{ f, c }] 씰 낱장 · sheets [{ c, fs }] 씰 종이 · kits { 종류: [{ c, fs }] · [{ c, f }] }
              f = 그림 파일 이름 (같은 그림은 늘 같은 이름) → 원본 KIT_BASE/k/이름 (🖼️ 도련 11-20 : t/ 작은판 없앴어요 · 샵 진열대 미리보기는 🏷️ 씰 · 🧩 조각만 p/ · 나머지는 어디서나 원본)
            - 다이어리 안에서는 주소로 바꿔서 써요 : images [{ u, c }] · sheets [{ c, us }] · kits [{ c, us }] · [{ c, u }]
            - c = 기본스티커/씰스티커 아래 폴더 이름 = 카테고리 ('' 이면 '기본' 카테고리) · 나머지 종류는 js/stk-basic.js 가 각 창의 기본 칸에 제가 그린 그림과 섞어서 보여요
@@ -154,16 +154,31 @@
         const libCatName = c => c.replace(/^\d+\s*[.)_\-]?\s*/, '') || c;
         window.elOrig = elOrig;
 
+        /* 📦 목록 = 상품 조각 (도련 11-23 · 1442 · js/prod.js prodIndex · prodParts) : 'kit:images' · 'kit:sheets' · 'kit:종류' · 지문이 같은 조각은 이 기기 것 그대로 (malang_kit_last) · 바뀐 조각만 받아요
+           서버 조각표를 못 받으면 = 이 기기에 둔 목록으로 (없으면 keepTrying 이 다시) · 조각표가 없는 서버(404) = list.json 통째로 */
+        const KIT_LS = 'malang_kit_last';
         async function fetchLibraryList() {
-            if (!KIT_BASE) throw new Error('setup');
-            const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), KT_WAIT_SLOW);   // 기다리는 시간은 keepTrying 이 정해요 (5초 · 느리면 10초)
-            try {
-                const res = await fetch(KIT_BASE + '/list.json', { signal: ctl.signal, cache: 'no-cache' });
-                if (!res.ok) throw new Error('server');
-                const d = await res.json();
-                if (!d || !Array.isArray(d.images)) throw new Error('server');
-                return kitParse(d);
-            } finally { clearTimeout(timer); }
+            if (!KIT_BASE || !window.prodIndex) throw new Error('setup');
+            const kept = lsGet(KIT_LS, null), K = kept && kept.i && kept.d && typeof kept.d === 'object' ? kept : { i: {}, d: {} };
+            let ix = null, ixErr = null; try { ix = await prodIndex(); } catch (e) { ixErr = e; }
+            if (!ix && ixErr && ixErr.message === '404') {                   // 조각표가 없는 서버 = 목록 한 장(list.json) 통째로
+                const res = await fetch(KIT_BASE + '/list.json', { cache: 'no-cache' }); if (!res.ok) throw new Error('server');
+                const d0 = await res.json(); if (!d0 || !Array.isArray(d0.images)) throw new Error('server');
+                return kitParse(d0);
+            }
+            let got;
+            if (ix) {
+                const names = Object.keys(ix.p).filter(n => n.startsWith('kit:'));
+                if (!names.includes('kit:images')) throw new Error('server');
+                got = await prodParts(ix, names, K.i, n => K.d[n]);
+                const i = {}; names.forEach(n => { i[n] = ix.p[n]; });
+                if (JSON.stringify(K.i) !== JSON.stringify(i)) { const dd = {}; names.forEach(n => { dd[n] = got[n]; }); lsSet(KIT_LS, { i, d: dd }); }
+            } else if (Object.keys(K.d).length) got = K.d;                    // 서버가 안 보여요 = 이 기기에 둔 것
+            else throw new Error('server');
+            const d = { images: got['kit:images'] || [], sheets: got['kit:sheets'] || [], kits: {} };
+            Object.keys(ix ? ix.p : got).forEach(n => { if (n.startsWith('kit:') && !['kit:images', 'kit:sheets'].includes(n) && n in got) d.kits[n.slice(4)] = got[n]; });   // 서버 차례 그대로
+            if (!Array.isArray(d.images)) throw new Error('server');
+            return kitParse(d);
         }
         /* 🗺️ 씰 시트 배치 (도련 10-29 · 포장기 L = { r : 가로÷세로, b : [그림마다 [x, y, w, h] 0~1] }) : 그림 순서와 맞춰서 (못 쓰는 그림은 같이 빼요) */
         const KIT_MAX = 150;                                                 // 🏷️ 시트 · 봉투 하나의 그림 수 (도련 11-04 : 30 이면 디저트 씰 73장이 30장만 보였어요)

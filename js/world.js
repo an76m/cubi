@@ -18,7 +18,7 @@
    - 닫기 없음 = 오른쪽 위 '이동' (다른 장소처럼) · Esc = 내 방 */
     (function () {
         const WORLD_URL = 'https://malang-world.podcast20260131.workers.dev';                                                   // 🌐 광장 서버 주소 (https://malang-world.○○○.workers.dev · 도련이 올린 뒤 넣어요)
-        const W = 2400, H = 1600, V = '?v=20261009-1119', DIR = 'img/world/';
+        const W = 2400, H = 1600;
         const SPEED = 260, CH_H = 140, CH_R = 18, SAY_MAX = 60, SAY_MS = 7000;  // 걷는 빠르기 (땅 px / 초) · 인형 키 · 발 둘레 · 말풍선 글자 · 보이는 시간
         /* 물건 : [그림, 발끝 x, 발끝 y, 크기 배율, 못 지나가는 타원 [가로 반지름, 세로 반지름, 위로 올리기]] */
         const OBJ = [
@@ -33,7 +33,8 @@
             ['flower', 620, 560], ['flower', 1900, 560], ['flower', 520, 1100], ['flower', 2040, 1080], ['flower', 1000, 1460], ['flower', 1560, 1460],
             ['flower', 200, 1500], ['flower', 2200, 260], ['flower', 760, 1040, .8], ['flower', 1760, 1020, .8]
         ];
-        const NAMES = ['ground', 'tree', 'bench', 'fountain', 'flower', 'shop1', 'shop2', 'lamp'];
+        const PIC = { ground: 'img/world/ground.svg?v=53ca76b92d', tree: 'img/world/tree.svg?v=7dfb0a4d61', bench: 'img/world/bench.svg?v=94215c83bb', fountain: 'img/world/fountain.svg?v=f2b2b16c23', flower: 'img/world/flower.svg?v=198cdac65b', shop1: 'img/world/shop1.svg?v=1fb8589f83', shop2: 'img/world/shop2.svg?v=28e151b1ec', lamp: 'img/world/lamp.svg?v=0f11c56e61' };   // 주소는 글자 그대로 (?v= = 파일 지문 · 도구/버전찍기/ai_stamp.py)
+        const NAMES = Object.keys(PIC);
         const person = o => Object.assign({ x: 1260, y: 1160, tx: 1260, ty: 1160, ar: 208 / 470, face: 1, walk: 0, t: Math.random() * 9, img: null, ras: null, name: '나', say: '', sayT: 0 }, o);
         const S = { on: false, built: false, img: {}, ras: {}, z: 1, dpr: 1, vw: 0, vh: 0, cam: { x: 1260, y: 1100 },
             me: person({ me: true }), ppl: new Map(), key: {}, joy: null, goal: null, raf: 0, last: 0,
@@ -47,7 +48,7 @@
 
         /* 그림 읽기 · 화면 배율에 맞게 미리 그려 두기 (매번 SVG 를 그리면 느려요) */
         const load = src => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
-        async function loadAll() { await Promise.all(NAMES.map(async n => { if (!S.img[n]) S.img[n] = await load(DIR + n + '.svg' + V); })); }
+        async function loadAll() { await Promise.all(NAMES.map(async n => { if (!S.img[n]) S.img[n] = await load(PIC[n]); })); }
         function raster(img, w, h) {
             const k = Math.min(S.z * S.dpr, 2), c = document.createElement('canvas');
             c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));

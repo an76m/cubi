@@ -138,7 +138,7 @@
             const cv = gq('gcCanvas'); cv.width = gc.W; cv.height = gc.H;
             el.classList.add('gc-scene');
             const st = document.createElement('div'); st.className = 'gcs-stage'; st.id = 'gcsStage';
-            st.innerHTML = `<img class="gcs-bg" src="img/gacha-room.webp?v=20261009-1022" alt="" draggable="false">
+            st.innerHTML = `<img class="gcs-bg" src="img/gacha-room.webp?v=150822641f" alt="" draggable="false">
                 <span class="gcs-soon" style="left:238px">🐾 동물 캡슐 · 준비중</span><span class="gcs-soon" style="left:596px">🦖 공룡 캡슐 · 준비중</span>`;
             const wrap = el.querySelector('.gc-wrap');
             st.appendChild(el.querySelector('.gc-head')); st.appendChild(el.querySelector('.gc-machine')); st.appendChild(wrap);
@@ -149,8 +149,8 @@
         const GCS_GO = { cx: 1330, cy: 640 };                                     // 길 그림의 캡슐기계 셋 가운데 (그림 px)
         const GCS_PH = { W: 941, H: 1672, cx: 765, cy: 1010 };                  // 📱 세로 길 그림 (img/gacha-street-m.webp · 도련 11-09) · 빨간 캡슐기계 셋 가운데
         const gcsGo = () => ({ id: 'gcsGo', cls: 'gcs-walk', wait: 700,
-                land: { img: 'img/gacha-street.webp?v=20261009-1038', W: GCS_W, H: GCS_H, focus: [380, 1560, 60, 800], at: [GCS_GO.cx, GCS_GO.cy] },
-                port: { img: 'img/gacha-street-m.webp?v=20261009-1038', W: GCS_PH.W, H: GCS_PH.H, focus: [560, 941, 880, 1180], at: [GCS_PH.cx, GCS_PH.cy] } });   // 📱 기계 셋이 늘 보이게
+                land: { img: 'img/gacha-street.webp?v=8a2d7c6ac2', W: GCS_W, H: GCS_H, focus: [380, 1560, 60, 800], at: [GCS_GO.cx, GCS_GO.cy] },
+                port: { img: 'img/gacha-street-m.webp?v=f986150364', W: GCS_PH.W, H: GCS_PH.H, focus: [560, 941, 880, 1180], at: [GCS_PH.cx, GCS_PH.cy] } });   // 📱 기계 셋이 늘 보이게
         function gcsApproach() { placeGo(gcsGo()); }                            // 🛣️ 문방구 앞 길 → 캡슐기계 (js/util.js placeGo)
         function gcSceneFit() {
             const st = gq('gcsStage'); if (!st) return;

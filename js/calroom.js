@@ -23,7 +23,7 @@
         function crBuild() {
             let el = crq('calRoom'); if (el) return el;
             el = document.createElement('div'); el.id = 'calRoom'; el.className = 'cr-room';
-            el.innerHTML = `<div class="cr-stage" id="crStage"><img class="cr-bg" src="img/cal-room.webp?v=20261009-999" alt="" draggable="false">
+            el.innerHTML = `<div class="cr-stage" id="crStage"><img class="cr-bg" src="img/cal-room.webp?v=fc3904efb9" alt="" draggable="false">
                 <div class="cr-ttl"><button type="button" class="cr-nav" onclick="crMove(-1)" aria-label="지난달">‹</button><span id="crTitle"></span><button type="button" class="cr-nav" onclick="crMove(1)" aria-label="다음 달">›</button></div>
                 <div class="cr-grid" id="crGrid"></div>
                 <div class="cr-tabs" id="crTabs"></div>   <!-- 위 버튼 줄 = 오른쪽 메뉴 보이기 · 숨기기 -->
@@ -91,8 +91,8 @@
         }
         /* 🏠 거실 벽걸이 달력 전환 (도련 11-01 · 우체통 · 타로카페 · 캡슐기계와 같은 전환) : 햇살 드는 거실(img/cal-living.webp) → 벽의 달력 쪽으로 커지며 따뜻한 분홍빛 → 달력 · 동작 줄이기면 바로 */
         const crGo = () => ({ id: 'crGo', cls: 'pr-walk cr-walk',
-                land: { img: 'img/cal-living.webp?v=20261009-1045', W: CR_W, H: CR_H, focus: [820, 1460, 60, 640], at: [1142, 278] },
-                port: { img: 'img/cal-living-m.webp?v=20261009-1037', W: CRM.W, H: CRM.H, focus: [560, 941, 380, 700], at: CRM.liv } });
+                land: { img: 'img/cal-living.webp?v=448941666c', W: CR_W, H: CR_H, focus: [820, 1460, 60, 640], at: [1142, 278] },
+                port: { img: 'img/cal-living-m.webp?v=b9d24becbe', W: CRM.W, H: CRM.H, focus: [560, 941, 380, 700], at: CRM.liv } });
         function crApproach() { placeGo(crGo()); }                               // 🏠 거실 → 벽걸이 달력 (js/util.js placeGo)
         /* 📱 폰 벽걸이 달력 (도련 11-09) : 거실 → 달력 연출은 💻 📲 와 같고 · 달력(img/cal-room-m.webp) 아래 빈 칸에 예전 폰 버튼 셋 (📅 출석 도장판 · 🩷 생리 달력 · ⏳ D-day = 원래 창을 그대로 열어요)
            그림은 가로를 맞춰 달력이 다 보이게 (남는 곳 = 그림 가장자리 분홍) · 나가기 = 오른쪽 위 '이동' */
@@ -100,7 +100,7 @@
         function crmBuild() {
             let el = crq('calRoomM'); if (el) return el;
             el = document.createElement('div'); el.id = 'calRoomM'; el.className = 'cr-room crm';
-            el.innerHTML = `<img class="crm-bg" id="crmBg" src="img/cal-room-m.webp?v=20261009-1037" alt="" draggable="false">
+            el.innerHTML = `<img class="crm-bg" id="crmBg" src="img/cal-room-m.webp?v=1ece47841f" alt="" draggable="false">
                 <div class="crm-box" id="crmBox">
                     <div class="crm-btns">
                         <button type="button" class="crm-b" onclick="window.openAttend ? openAttend() : comingSoon('📅 출석 도장판')"><span>📅</span><b>출석 도장판</b><small>도장 찍고 코인 찾기</small></button>

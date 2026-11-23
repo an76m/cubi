@@ -5,12 +5,14 @@
    - 잊는 때 (js/drive.js 가 불러요)
        ① 바뀐 것 묻기 답 (켤 때 drcBoot · 돌아올 때 changesForeign) : 내용만 바뀐 파일 = 그 파일 내용은 잊고 그 파일이 든 목록엔 새 값만 바꿔 끼워요 (🩹 patchLists · 도련 11-17) · 새로 생김 · 이름 · 자리가 바뀜 = 그 폴더 안 목록 · 이름 찾기 목록을 잊어요 · 지움 · 휴지통 = 그것이 든 목록 · 그 안을 찾은 목록
        ② 이 창이 쓸 때 (gfetch 쓰기) : 내용 고침 = 그 파일이 든 목록에 새 값만 · 새 파일 = 그 폴더 안 목록 · 이름 · 휴지통 · 옮기기 = 목록 모두 · 올린 내용은 그대로 기억 (driveUpsert · 다음에 켤 때 지문 md5 가 같으면 다시 안 받아요)
+   - 📏 크기 (도련 11-23 · 1442) : 기억마다 [크기, 마지막 쓴 때] 를 meta 에 적어 진짜 크기를 세요 (덮어쓰면 그만큼만 · 잊으면 빼요) · 300MB 를 넘으면 오래 안 쓴 것부터 240MB 까지만 잊어요 (예전 = 통째로 비움)
+       켤 때 = 목록만 꺼내요 (예전 = 파일 내용까지 모두 메모리로) · meta 에 크기 표가 없으면 한 번 훑어 다시 만들어요
    - 처음 기기 · 브라우저 저장을 지움 · 🍎 7일 규칙으로 지워짐 · 표시가 너무 오래돼 구글이 안 받아 줌 = 예전처럼 다 읽어요 (드라이브가 기준이라 잃는 건 없어요)
    - 🏠 로그인 없이 · 👀 구경 = 안 써요 (드라이브 요청이 없어서) · 🧹 설정 브라우저 지우기 = '🖼 읽어 둔 스티커 · 그림 · 목록' 칸 */
 (function () {
     const API = 'https://www.googleapis.com/drive/v3/files', ABOUT = 'https://www.googleapis.com/drive/v3/about';
-    const DB = 'malang-drc', MAXB = 6 * 1024 * 1024, CAP = 300 * 1024 * 1024;
-    const D = { on: false, who: '', db: null, lists: new Map(), about: new Map(), q: Promise.resolve(), hit: 0, miss: 0, size: 0, tok: '' };
+    const DB = 'malang-drc', MAXB = 6 * 1024 * 1024; let CAP = 300 * 1024 * 1024, LOW = 240 * 1024 * 1024;
+    const D = { on: false, who: '', db: null, lists: new Map(), about: new Map(), q: Promise.resolve(), hit: 0, miss: 0, size: 0, tok: '', ix: new Map(), ixT: 0 };   // ix = 기억 하나마다 [크기, 마지막 쓴 때]
     const req = r => new Promise((ok, no) => { r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
     function open() {
         if (D.db) return Promise.resolve(D.db);
@@ -37,17 +39,37 @@
         try { await open(); } catch (e) { return ''; }
         if (D.who !== who) D.who = who;
         let m = null; try { m = await req(tx('m', 'readonly').get(who)); } catch (e) {}
-        D.size = (m && m.size) || 0; D.tok = (m && m.tok) || '';
-        try { const L = await req(tx('r', 'readonly').index('w').getAll(who)); L.forEach(e => { if (e.t === 'L') D.lists.set(e.k, e.s); }); } catch (e) {}
+        D.tok = (m && m.tok) || ''; D.ix.clear(); D.size = 0;
+        if (m && Array.isArray(m.ix)) m.ix.forEach(x => { if (Array.isArray(x) && typeof x[0] === 'string') ixSet(x[0], +x[1] || 0, +x[2] || 0); });
+        else await ixScan();                                                     // 📏 크기 표가 없어요 = 한 번 훑어 만들어요 (하나씩 · 내용을 한꺼번에 들고 있지 않게)
+        try { const L = await req(tx('r', 'readonly').index('wf').getAll(IDBKeyRange.only([who, '']))); L.forEach(e => { if (e.t === 'L') D.lists.set(e.k, e.s); }); } catch (e) {}   // 목록만 (파일 내용은 쓸 때 하나씩)
         return D.tok;
     }
     async function ready(tok) {                                                  // 바뀐 것을 다 잊은 뒤 = 이제 기억에서 꺼내 써요
         D.tok = tok || ''; D.on = !!(D.db && D.who && tok);
         if (D.on) await saveMeta();
     }
-    const saveMeta = () => serial(async () => { try { await req(tx('m', 'readwrite').put({ w: D.who, tok: D.tok, size: D.size, at: Date.now() })); } catch (e) {} });
+    const saveMeta = () => { clearTimeout(D.ixT); D.ixT = 0; return serial(async () => { try { await req(tx('m', 'readwrite').put({ w: D.who, tok: D.tok, size: D.size, ix: [...D.ix].map(([k, v]) => [k, v[0], v[1]]), at: Date.now() })); } catch (e) {} }); };
+    const metaSoon = () => { if (!D.ixT) D.ixT = setTimeout(saveMeta, 3000); };   // 📏 크기 표는 모아서 조금 뒤에 한 번
+    /* 📏 크기 표 (ix) : 넣을 때 · 고칠 때 = 그 크기로 (예전 크기는 빼고) · 잊을 때 = 빼요 */
+    function ixSet(k, n, a) { const o = D.ix.get(k); if (o) D.size -= o[0]; D.ix.set(k, [n, a || Date.now()]); D.size += n; }
+    function ixDel(k) { const o = D.ix.get(k); if (!o) return; D.size -= o[0]; D.ix.delete(k); }
+    const byteLen = b => (b && (b.byteLength || b.length)) || 0;
+    function ixScan() {
+        return new Promise(ok => {
+            let c; try { c = tx('r', 'readonly').index('w').openCursor(IDBKeyRange.only(D.who)); } catch (e) { ok(); return; }
+            c.onsuccess = () => { const cur = c.result; if (!cur) { ok(); return; } ixSet(cur.value.k, byteLen(cur.value.b), 0); cur.continue(); };
+            c.onerror = () => ok();
+        });
+    }
+    async function trim() {                                                      // 📏 넘쳤으면 오래 안 쓴 것부터 LOW 까지
+        if (D.size <= CAP) return;
+        const old = [...D.ix].sort((x, y) => x[1][1] - y[1][1]), ks = []; let sz = D.size;
+        for (const [k, v] of old) { if (sz <= LOW) break; ks.push(k); sz -= v[0]; }
+        await dropKeys(ks); metaSoon();
+    }
     async function wipe() {                                                      // 이 계정 기억 모두 버리기 (표시도)
-        D.on = false; D.lists.clear(); D.size = 0; D.tok = '';
+        D.on = false; D.lists.clear(); D.size = 0; D.tok = ''; D.ix.clear(); clearTimeout(D.ixT); D.ixT = 0;
         if (!D.db || !D.who) return;
         await serial(async () => {
             try { const ks = await req(tx('r', 'readonly').index('w').getAllKeys(D.who)); const s = tx('r', 'readwrite'); ks.forEach(k => s.delete(k)); await new Promise(ok => { s.transaction.oncomplete = s.transaction.onerror = ok; }); } catch (e) {}
@@ -57,7 +79,7 @@
     /* ---------- 잊기 ---------- */
     function dropKeys(ks) {
         if (!ks.length || !D.db) return Promise.resolve();
-        ks.forEach(k => D.lists.delete(k));
+        ks.forEach(k => { D.lists.delete(k); ixDel(k); }); metaSoon();
         return serial(async () => { try { const s = tx('r', 'readwrite'); ks.forEach(k => s.delete(k)); await new Promise(ok => { s.transaction.oncomplete = s.transaction.onerror = ok; }); } catch (e) {} });
     }
     const urlQ = k => { try { return decodeURIComponent(k); } catch (e) { return k; } };
@@ -84,7 +106,7 @@
     }
     function rewrite(k, text) {                                                  // 목록 글 고쳐 쓰기
         D.lists.set(k, text);
-        return serial(async () => { try { const e = await req(tx('r', 'readonly').get(k)); if (!e) return; e.s = text; e.b = new TextEncoder().encode(text).buffer; await req(tx('r', 'readwrite').put(e)); } catch (er) {} });
+        return serial(async () => { try { const e = await req(tx('r', 'readonly').get(k)); if (!e) return; e.s = text; e.b = new TextEncoder().encode(text).buffer; ixSet(k, e.b.byteLength); metaSoon(); await req(tx('r', 'readwrite').put(e)); } catch (er) {} });
     }
     /* 🩹 그 파일이 든 목록 = 버리지 않고 새 값만 바꿔 끼워요 (도련 11-17 · changes 답 · 올린 답에 새 수정 시각 · 크기 · 지문이 있어요)
        f = 새 정보 (null = 지웠어요 · 휴지통) → { has: 들어 있던 목록 수, out: 이름이 바뀌거나 다른 폴더로 옮겨졌어요 } */
@@ -127,7 +149,7 @@
         let e = null;
         try { e = await req(tx('r', 'readonly').get(D.who + '|' + url)); } catch (er) { return null; }
         if (!e) { D.miss++; return null; }
-        D.hit++;
+        D.hit++; const o = D.ix.get(e.k); if (o) { o[1] = Date.now(); metaSoon(); } else { ixSet(e.k, byteLen(e.b)); metaSoon(); }   // 📏 마지막 쓴 때
         return new Response(e.b, { status: 200, headers: { 'content-type': e.ct || 'application/json' } });
     }
     async function keep(url, res) {                                              // 받은 그대로 기억 (늘 · 표시가 정해지기 전에도 · 켤 때 다 잊고 시작하면 써요)
@@ -142,9 +164,10 @@
     }
     async function put(e) {
         if (e.t === 'L') D.lists.set(e.k, e.s);
-        D.size += e.b.byteLength || e.b.length || 0;
-        if (D.size > CAP) { const t = D.tok; await wipe(); D.tok = t; D.on = !!t; D.size = 0; await saveMeta(); return; }   // 너무 커지면 한 번 비우고 다시 (표시는 그대로)
-        return serial(async () => { try { await req(tx('r', 'readwrite').put(e)); } catch (er) {} });
+        ixSet(e.k, byteLen(e.b)); metaSoon();                                     // 📏 같은 것을 덮어쓰면 예전 크기는 빼요
+        const p = serial(async () => { try { await req(tx('r', 'readwrite').put(e)); } catch (er) {} });
+        if (D.size > CAP) await trim();                                          // 너무 커지면 오래 안 쓴 것부터 (예전 = 통째로 비움)
+        return p;
     }
     /* 이 창이 쓸 때 (gfetch 쓰기 답 뒤) */
     async function wrote(url, opts, id, j) {                                    // j = 쓰기 답 (번호 · 수정 시각 · 지문)
@@ -173,5 +196,5 @@
         const b = new TextEncoder().encode(body).buffer; if (b.byteLength > MAXB) return;
         await put({ k: D.who + '|' + API + '/' + id + '?alt=media', w: D.who, t: 'F', f: id, b, ct: 'application/json', md5: md5 || '' });
     }
-    window.DRC = { boot, ready, wipe, apply, serve, keep, wrote, keepBody, off: () => { D.on = false; }, get on() { return D.on; }, stat: () => ({ on: D.on, hit: D.hit, miss: D.miss, lists: D.lists.size, size: D.size }) };
+    window.DRC = { limit: (c, l) => { CAP = c; LOW = l; }, boot, ready, wipe, apply, serve, keep, wrote, keepBody, off: () => { D.on = false; }, get on() { return D.on; }, stat: () => ({ on: D.on, hit: D.hit, miss: D.miss, lists: D.lists.size, size: D.size, n: D.ix.size })  };
 })();

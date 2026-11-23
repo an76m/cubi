@@ -62,7 +62,7 @@
         try { const L = JSON.parse(localStorage.getItem(DIAG_LS) || '[]'); if (Array.isArray(L)) DIAG.q = L.slice(-DIAG_MAX).map(r => { delete r.up; return r; }); } catch (e) {}
         const diagKeep = () => lsSet(DIAG_LS, DIAG.q.slice(-DIAG_MAX));
         const diagDev = (() => { try { let d = localStorage.getItem('malang_dev_id'); if (!d) { d = Math.random().toString(36).slice(2, 7); localStorage.setItem('malang_dev_id', d); } return d; } catch (e) { return 'x'; } })();
-        const diagVer = () => { try { const m = /[?&]v=([\w-]+)/.exec((document.querySelector('script[src*="js/drive.js"]') || {}).src || ''); return m ? m[1].replace(/^20261009-/, '') : ''; } catch (e) { return ''; } };
+        const diagVer = () => { try { return (document.querySelector('meta[name="app-version"]') || {}).content || ''; } catch (e) { return ''; } };   // 앱 버전 (파일 ?v= 는 지문이라 meta 로 · 1442)
         function diagWho() {                                                     // 누가 불렀는지 (함수 이름 두 개)
             const L = String(new Error().stack || '').split('\n').slice(1).map(l => (/at (?:async )?([\w$.]+) /.exec(l) || [])[1]).filter(n => n && !/^(diag|diagWho|driveTrash|ownFileKill|Object\.|Promise|new |eval|async$)/.test(n));
             return L.slice(0, 2).join('<');

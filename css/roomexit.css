@@ -1,8 +1,8 @@
 /* 🚪 내 방 나가기 (도련 11-23 · js/roomexit.js) : 로그인 문 그림(그림만) + 요정 둘 → 저장 게이지 → 다정한 인사 → 페이드아웃 → 🌙 불 꺼진 문 → 앱 끄기 (1416) */
 .rx { position: fixed; inset: 0; z-index: 2147483100; overflow: hidden; background: #231a24; opacity: 0; transition: opacity .6s ease, background 1.2s ease; touch-action: none; user-select: none; }
 .rx.on { opacity: 1; }
-.rx-scene { position: absolute; inset: 0; background: #f9d9e1 url(../img/gate-wide.webp?v=20261009-819) center / cover no-repeat; scale: 1.08; transition: scale .9s cubic-bezier(.2, .7, .3, 1); }   /* 그림 = 로그인 문 화면과 같아요 (css/style.css .drive-gate.gate-art) */
-@media (max-aspect-ratio: 1/1) { .rx-scene { background-image: url(../img/gate-tall.webp?v=20261009-819); } }
+.rx-scene { position: absolute; inset: 0; background: #f9d9e1 url(../img/gate-wide.webp?v=3889dd54c4) center / cover no-repeat; scale: 1.08; transition: scale .9s cubic-bezier(.2, .7, .3, 1); }   /* 그림 = 로그인 문 화면과 같아요 (css/style.css .drive-gate.gate-art) */
+@media (max-aspect-ratio: 1/1) { .rx-scene { background-image: url(../img/gate-tall.webp?v=7bdb387444); } }
 .rx.on .rx-scene { scale: 1; }
 /* 💾 게이지 + 요정 둘 + 인사 = 알림판 가운데 (글씨 = 인사만 · 1416) */
 .rx-mid { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: min(600px, 92vw); height: 220px; }

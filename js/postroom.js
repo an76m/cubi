@@ -27,7 +27,7 @@
                     <i class="pr-moon"></i>
                     <i class="pr-lamp" style="left:330px"></i><i class="pr-lamph" style="left:307px"></i>
                     <i class="pr-lamp" style="left:1330px"></i><i class="pr-lamph" style="left:1307px"></i>
-                    <img class="pr-bg" src="${ph ? 'img/post-box-m.webp?v=20261009-1041' : 'img/post-box.webp?v=20261009-1001'}" alt="" draggable="false">
+                    <img class="pr-bg" src="${ph ? 'img/post-box-m.webp?v=20425bbcca' : 'img/post-box.webp?v=54aa4a4c20'}" alt="" draggable="false">
                     <div class="pr-slot">✉️ 편지는 여기로 쏙</div>
                     <div class="pr-win">
                         <div class="pr-view" id="prCats">
@@ -103,8 +103,8 @@
         }
         /* 🌙 강변 우체통 전환 (도련 11-01 · 타로카페 · 오락실 · 캡슐기계와 같은 전환) : 밤 강변 길(img/post-street.webp) → 가로등 아래 빨간 우체통 쪽으로 커지며 노란 · 보랏빛 → 우체통 · 동작 줄이기면 바로 */
         const prWalk = () => ({ id: 'prGo', cls: 'pr-walk',
-                land: { img: 'img/post-street.webp?v=20261009-1041', W: PR_W, H: PR_H, focus: [700, 1420, 100, 700], at: [1062, 450] },
-                port: { img: 'img/post-street-m.webp?v=20261009-1041', W: PR_PH.W, H: PR_PH.H, focus: [380, 760, 850, 1150], at: [PR_PH.street.cx, PR_PH.street.cy] } });
+                land: { img: 'img/post-street.webp?v=ed3775c10e', W: PR_W, H: PR_H, focus: [700, 1420, 100, 700], at: [1062, 450] },
+                port: { img: 'img/post-street-m.webp?v=9f416023ae', W: PR_PH.W, H: PR_PH.H, focus: [380, 760, 850, 1150], at: [PR_PH.street.cx, PR_PH.street.cy] } });
         function prApproach() { placeGo(prWalk()); }                              // 🌙 강변 길 → 우체통 (js/util.js placeGo)
         async function openPostRoom() {
             if (!(await placeReady(prWalk()))) return;                             // ⏳ 길 그림이 준비되면 (단색 없이 · js/util.js)

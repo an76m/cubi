@@ -3,7 +3,8 @@
      1) version.txt (사이트 맨 위 · 숫자 한 줄 · 예 20261009-1238) 를 늘 새로 물어봐요 (몇십 바이트)
      2) 기기 보관함(코드 보관함 = 'malang-code-<버전>')이 그 버전과 같으면 → 깃허브에 묻지 않고 보관함에서 바로 열어요 (코드 126개를 다시 묻지 않아요)
         다르거나 없으면 → 깃허브에서 새 첫 화면을 받아 열고 · 조금 뒤 뒤에서 새 보관함을 만들어요 (다 받은 뒤에만 바꾸고 · 하나라도 못 받으면 안 바꿔요)
-     3) 보관함에서 열었어도 뒤에서 첫 화면이 바뀌었는지 한 번 더 물어봐요 (version.txt 를 빼먹고 올려도 다음 열 때 새것 · 갇히지 않게)
+     3) 보관함에서 열었어도 뒤에서 첫 화면이 바뀌었는지 한 번 더 물어봐요 (같으면 304 · 몇 바이트) (version.txt 를 빼먹고 올려도 다음 열 때 새것 · 갇히지 않게)
+   ▶ 📄 파일 주소의 ?v= = 그 파일 내용의 지문 (도구/버전찍기/ai_stamp.py · 1442) : 새 버전이어도 지문이 같은 파일은 이 기기 것을 그대로 (새 보관함에 옮겨 담아요) · 바뀐 파일만 깃허브에서
    ▶ 쓰는 동안 : 아무것도 확인하지 않아요 · 보관함 안의 파일(?v= 붙은 코드 · 그림)만 꺼내 줘요 · 일기 · 드라이브 · 스티커 그림은 보관하지 않아요 (늘 원래대로)
    ▶ 🚨 비상구 : version.txt 에 'off' 라고 쓰면 모든 기기가 보관함을 지우고 예전처럼 깃허브에서 바로 열어요 · 설정의 '브라우저 저장 지우기'도 보관함 · 서비스 워커를 지워요
    ▶ 인터넷이 느려도 version.txt 답을 끝까지 기다려요 (도련 11-12 · 예전 2.5초에서 그만두면 폰에서 옛 버전이 열렸어요)
@@ -25,6 +26,7 @@ const OFFLINE_HTML = `<!doctype html><html lang="ko"><head><meta charset="utf-8"
 const HTML_H = { 'Content-Type': 'text/html; charset=utf-8' };
 const BASE = new URL('./', self.location).href;                 // 사이트 맨 위
 const INDEX_KEY = BASE + 'index.html';
+const checkIndex = () => fetch(INDEX_KEY, { cache: 'no-cache' });   // 🛟 안전망 = 바뀌었는지만 (같으면 304 · 몇 바이트 · 1442 : 예전엔 열 때마다 첫 화면 100KB 를 통째로) · 깃허브 중간 서버 때문에 늦어도 10분
 const freshIndex = () => fetch(INDEX_KEY + '?t=' + Date.now(), { cache: 'no-store' });   // 첫 화면은 늘 깃허브 원본에서 (도련 11-12 : 기기 보관 · 중간 서버(CDN) 10분 보관을 모두 건너뛰어요)
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -57,16 +59,22 @@ async function build(html) {
         const urls = [...new Set([...html.matchAll(/(?:src|href)="([^"]+\?v=[^"]+)"/g)].map(x => new URL(x[1].replace(/&amp;/g, '&'), BASE).href).filter(u => u.startsWith(self.location.origin)))];
         const got = [];
         for (let i = 0; i < urls.length; i += 6) {                   // 6개씩
-            const part = await Promise.all(urls.slice(i, i + 6).map(async u => { let r = await fetch(u); if (!r.ok) r = await fetch(u, { cache: 'reload' }); if (!r.ok) throw new Error('miss ' + u); return [u, r]; }));   // 브라우저가 기억한 '없음'이면 깃허브에 다시
+            const part = await Promise.all(urls.slice(i, i + 6).map(async u => { const old = (await oldCopy(u, name)) || FRESH.get(u); if (old) return [u, old];   // 📄 같은 주소 = 같은 내용 (?v= 파일 지문 · 1442) = 이 기기에 있는 것 그대로 · 바뀐 파일만 받아요
+                let r = await fetch(u); if (!r.ok) r = await fetch(u, { cache: 'reload' }); if (!r.ok) throw new Error('miss ' + u); return [u, r]; }));   // 브라우저가 기억한 '없음'이면 깃허브에 다시
             got.push(...part);
         }
         const c = await caches.open(name);
         for (const [u, r] of got) await c.put(u, r);
         await c.put(INDEX_KEY, new Response(html, { headers: HTML_H }));
         await c.put(OK_KEY, new Response(v));                       // ✔ 다 받았어요 (이 표시가 있어야 이 보관함을 써요)
-        await sweep(v);
+        await sweep(v); FRESH.clear();
     } catch (e) { await caches.delete(name); }                       // 하나라도 못 받으면 = 이 보관함은 버려요 (다음에 열 때 다시)
     finally { building = ''; }
+}
+const FRESH = new Map();                                          // 📄 이 창이 방금 깃허브에서 받은 ?v= 파일 (새 보관함에 그대로 · 다 만들면 비워요)
+async function oldCopy(u, skip) {                                  // 다 받은 다른 보관함에 같은 주소가 있으면 그것
+    for (const k of await codeCaches()) { if (k === skip) continue; const c = await caches.open(k); if (!(await c.match(OK_KEY))) continue; const r = await c.match(u); if (r) return r; }
+    return null;
 }
 async function sweep(keep) { for (const k of await codeCaches()) if (k !== CODE + keep) await caches.delete(k); }
 async function offAll() { for (const k of await codeCaches()) await caches.delete(k); }
@@ -76,7 +84,7 @@ self.addEventListener('fetch', e => {
     if (req.mode === 'navigate') { e.respondWith(openPage(e)); return; }
     const u = new URL(req.url);
     if (u.origin !== self.location.origin || !u.searchParams.has('v')) return;   // 보관함에 있을 수 있는 것 = 같은 사이트의 ?v= 파일만 (나머지는 브라우저가 그대로)
-    e.respondWith(caches.match(req.url).then(r => r || fetch(req)));
+    e.respondWith(caches.match(req.url).then(r => r || fetch(req).then(res => { if (res.ok && res.type === 'basic' && FRESH.size < 400) FRESH.set(req.url, res.clone()); return res; })));   // 📄 방금 받은 것 = 새 보관함 만들 때 다시 받지 않게 (1442)
 });
 
 async function openPage(e) {
@@ -88,7 +96,7 @@ async function openPage(e) {
     if (have && (want === have || !want)) {                         // 같은 버전 (또는 version.txt 를 못 물었어요 = 인터넷이 끊김) → 보관함
         const r = await cachedIndex(have);
         if (r) {
-            if (want) e.waitUntil(freshIndex().then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
+            if (want) e.waitUntil(checkIndex().then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
             return r;
         }
     }
