@@ -1194,7 +1194,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
     async function cbHide(L, k) {                                             // ✕ 꺼낸 칸 숨기기 (든 게 있으면 묻고 비워요 · 되돌리기 됨)
         if (L.lock) { say('🔒 잠긴 레이어예요'); return; }
         const PO = cbParts(L), n = k === 'text' ? (L.text ? 1 : 0) : k === 'tree' ? (L.kids || []).length : (PO[k] || []).length;
-        if (n && !(await showAsk(k === 'text' ? '🔤 쓴 글자를 지울까요?' : k === 'tree' ? `🌳 안에 넣은 상자 ${n}개를 뺄까요?` : `✨ 이 부분의 기능 ${n}개를 뺄까요?`))) return;
+        if (n && !(await showAsk(k === 'text' ? '🔤 쓴 글자를 지울까요?' : k === 'tree' ? `🌳 안에 넣은 상자 ${n}개를 뺄까요?` : `✨ 이 부분의 기능 ${n}개를 뺄까요?`, '🗑 빼기', '그대로'))) return;   // 버튼 글자 (1446 · 빈 버튼이었어요)
         if (n) { histSt(); if (k === 'text') L.text = ''; else if (k === 'tree') { L.kids = []; cbGc(L); P.cbNode = 'root'; } else PO[k].length = 0; L.dirtyV = true; P.dirty = true; renderAll(); paintLayers(); }
         cbShow(L).delete(k); if (P.cbPart === k) P.cbPart = 'blocks'; P.cbOpen = null; paintProps(); drawOv();
     }
