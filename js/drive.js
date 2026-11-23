@@ -360,10 +360,11 @@
             return o;
         }
         async function lgRead() {                                                  // → { d, f } (장부가 여럿이면 = 합치고 · 나머지는 지워요)
-            const q = `name='${qName(LEDGER_NAME)}' and 'appDataFolder' in parents and trashed=false`;
-            const r = await gfetch(`${DRIVE_API}?spaces=appDataFolder&q=${encodeURIComponent(q)}&orderBy=createdTime&fields=${encodeURIComponent('files(id,name)')}`);
+            const q = `(name='${qName(LEDGER_NAME)}' or name='${qName(OPEN_NAME)}') and 'appDataFolder' in parents and trashed=false`;   // 🔌 기기마다 켜짐 · 꺼짐 표시도 같이 (요청 안 늘려요 · 도련 11-23)
+            const r = await gfetch(`${DRIVE_API}?spaces=appDataFolder&q=${encodeURIComponent(q)}&orderBy=createdTime&fields=${encodeURIComponent('files(id,name,modifiedTime,appProperties)')}`);
             if (!r.ok) throw await driveFail(r, 'ledger');
-            const fs = (await r.json()).files || [];
+            const all = (await r.json()).files || [], fs = all.filter(f => f.name === LEDGER_NAME);
+            drive.openSeen = all.filter(f => f.name === OPEN_NAME);
             let d = null;
             for (const f of fs) {                                                   // 🔐 장부도 잠가요 (드라이브의 json 은 모두 · 못 열면 에러 = 이번엔 장부 없이 · 덮어쓰지 않아요)
                 const t = await gfetch(`${DRIVE_API}/${f.id}?alt=media`); if (!t.ok) throw await driveFail(t, 'ledger');
@@ -1953,7 +1954,7 @@
                     const j = await res.json();
                     if (window.DRC) await DRC.apply(j.changes || []);              // ⚡ 바뀐 것은 기억에서 잊어요 (내 것 · 다른 기기 것 모두)
                     drcGone(j.changes);
-                    (j.changes || []).forEach(c => { if (openAt && c.file && c.file.name === OPEN_NAME && !changeMine(c) && Date.parse(c.file.modifiedTime || c.time || '') > openAt) drive.otherOpen = true; });   // 🔌 나보다 나중에 다른 기기가 열었어요
+                    (j.changes || []).forEach(c => { if (openAt && c.file && c.file.name === OPEN_NAME && !changeMine(c) && (c.file.appProperties || {}).on !== '0' && Date.parse(c.file.modifiedTime || c.time || '') > openAt) drive.otherOpen = true; });   // 🔌 나보다 나중에 다른 기기가 열었어요
                     (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c) && !(c.file && ((c.file.spaces || []).includes('appDataFolder') || c.file.name === LEDGER_NAME))) out.push(c); });   // 📒 장부는 화면과 상관없어요 (다음에 쓸 때 다시 읽어요)
                     if (window.mineHint) (j.changes || []).forEach(c => { if (!changeMine(c)) mineHint(c.fileId); });   // 📦 내 실물 목록
                     if (j.newStartPageToken) { changeTok = j.newStartPageToken; drive.lastChanges = j.changes || []; if (window.DRC && DRC.on) await DRC.ready(changeTok); return out; }
@@ -1969,22 +1970,54 @@
              같은 브라우저 다른 탭도 같아요 (탭마다 '이 창이 쓴 것'이 달라서) · 🏠 로그인 없이 쓰기는 이 브라우저 하나라 안 해요 */
         const OPEN_NAME = '_열림.json', OPEN_LS = 'malang_open_id';
         let openAt = 0;
+        const openKey = () => OPEN_LS + ':' + pendWho();
+        const openMine = () => { try { return localStorage.getItem(openKey()) || ''; } catch (e) { return ''; } };
         async function openMark() {
             if (drive.local || !drive.ready || drive.guest) return;
-            const lk = OPEN_LS + ':' + pendWho(), body = JSON.stringify({ at: Date.now() });
-            let id = ''; try { id = localStorage.getItem(lk) || ''; } catch (e) {}
+            const lk = openKey(), body = JSON.stringify({ at: Date.now() }), ON = { appProperties: { on: '1' } };   // 🔌 켜짐 = on '1' (끌 때 '0' · openOff)
+            const part = meta => { const b = 'diary_boundary_' + Math.random().toString(36).slice(2); return { b, body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--` }; };
+            const id = openMine(); openOffSent = false;
             try {
-                let r = id ? await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media&fields=id,modifiedTime`, { method: 'PATCH', headers: { 'Content-Type': 'application/json; charset=UTF-8' }, body }) : null;
+                let r = null;
+                if (id) { const m = part(ON); r = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart&fields=id,modifiedTime`, { method: 'PATCH', headers: { 'Content-Type': 'multipart/related; boundary=' + m.b }, body: m.body }); }
                 if (!r || !r.ok) {                                              // 처음 · 지워졌어요 = 새로
-                    const b = 'diary_boundary_' + Math.random().toString(36).slice(2), meta = { name: OPEN_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
-                    r = await gfetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime`, { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b },
-                        body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${body}\r\n--${b}--` });
+                    const m = part(Object.assign({ name: OPEN_NAME, mimeType: 'application/json', parents: ['appDataFolder'] }, ON));
+                    r = await gfetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime`, { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + m.b }, body: m.body });
                     if (!r.ok) return;
                 }
                 const j = await r.json(); try { localStorage.setItem(lk, j.id); } catch (e) {}
                 openAt = Date.parse(j.modifiedTime || '') || 0;                  // 구글 시각 (기기 시계는 안 믿어요)
+                openTell(j.id);
             } catch (e) { console.warn('🔌 열림 표시', e); }
         }
+        /* 📱 다른 기기가 켜져 있어요 = 꺼 달라고 한 번만 권해요 (도련 11-23 · 끄고 안 끄고는 사용자 · 앱은 알려 주기만)
+             · 켤 때 장부를 찾으며 같이 본 표시 (drive.openSeen · 요청 0번 더) · on '1' = 켜짐 · 표시 하나(그 기기 · 그 시각)는 이 기기에서 한 번만 (✕ 로 닫아도 · localStorage · 드라이브엔 안 써요)
+             · 배터리가 나가 '꺼짐'을 못 남긴 기기도 = 한 번만 뜨고 끝 · 그 기기가 다시 켜지면(시각이 바뀌면) 그때 또
+             · 사용자가 안 꺼도 괜찮아요 = 지금 안전장치 그대로 (나중에 켠 이 기기가 이기고 · 먼저 켠 기기는 저장을 멈춰요) */
+        const OPEN_TOLD = 'malang_open_told';
+        function openTell(mine) {
+            const on = (drive.openSeen || []).filter(f => f.id !== mine && (f.appProperties || {}).on === '1'); drive.openSeen = null;
+            if (!on.length) return;
+            let told = []; try { told = JSON.parse(localStorage.getItem(OPEN_TOLD) || '[]'); } catch (e) {} if (!Array.isArray(told)) told = [];
+            const keys = on.map(f => f.id + '@' + (f.modifiedTime || '')), fresh = keys.filter(k => !told.includes(k));
+            if (!fresh.length) return;
+            try { localStorage.setItem(OPEN_TOLD, JSON.stringify(told.filter(k => on.some(f => k.startsWith(f.id + '@'))).concat(fresh).slice(-20))); } catch (e) {}   // 띄우기 전에 적어요 (✕ 로 닫아도 한 번)
+            diag('otheron', { n: fresh.length });
+            setTimeout(() => { if (window.showMsg) showMsg('📱 다른 기기에서 말랑달콤이 켜져 있어요.<br>그 기기를 꺼 주세요.<br><span style="font-size:12px;color:#777;">두 기기를 같이 켜 두면 먼저 켠 기기는 저장을 멈춰요<br>끌 때는 💗 내 방 나가기로 나가면 저장하고 꺼져요</span>'); }, 1500);
+        }
+        /* 🔌 끌 때 = 내 표시를 '꺼짐'으로 (요청 1번 · 도련 11-23) : 💗 내 방 나가기 (js/roomexit.js) · 창을 닫을 때 (pagehide · keepalive = 닫혀도 대개 가요)
+             · 표시 글자만 바꿔요 (on '0') · 다른 기기는 이 바뀜을 '나중에 켰어요'로 보지 않아요 (changesForeign) */
+        let openOffSent = false;
+        function openOff(keep) {
+            if (openOffSent || drive.local || !drive.ready || drive.guest || !drive.token) return Promise.resolve();
+            const id = openMine(); if (!id) return Promise.resolve();
+            openOffSent = true;
+            try {
+                return fetch(`${DRIVE_API}/${id}?fields=id`, { method: 'PATCH', keepalive: !!keep, headers: { Authorization: 'Bearer ' + drive.token, 'Content-Type': 'application/json; charset=UTF-8' }, body: JSON.stringify({ appProperties: { on: '0' } }) }).then(() => {}, () => {});
+            } catch (e) { return Promise.resolve(); }
+        }
+        window.addEventListener('pagehide', () => openOff(true));
+        window.addEventListener('pageshow', e => { if (e.persisted && openOffSent) openMark(); });   // 되돌아온 창 (뒤로 가기 보관) = 다시 켜짐
         let openStopped = false;
         async function openStop() {
             if (openStopped) return; openStopped = true;
@@ -1993,7 +2026,7 @@
             if (window.showMsg) await showMsg('📱 다른 기기에서 말랑달콤을 열었어요.<br>한 번에 한 기기에서만 쓸 수 있어요.<br><span style="font-size:12px;color:#777;">이 기기는 저장을 멈췄어요 · 확인을 누르면 이 기기에서 다시 열어요</span>');
             driveReopen('');
         }
-        window.openMark = openMark;
+        window.openMark = openMark; window.openOff = openOff;
         /* ⌚ 한동안(2분) 손대지 않다가 다시 누르면 = 바뀐 것 묻기 (💻 창이 늘 선택돼 있으면 '돌아왔다' 신호가 안 와요 · 60초 안에는 또 안 물어요) */
         let lastInput = Date.now();
         ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { const now = Date.now(); if (now - lastInput > 120000) checkRemote(); lastInput = now; }, true));

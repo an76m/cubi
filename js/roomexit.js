@@ -108,6 +108,7 @@
                 setP(el, 0);
             }
             try { localStorage.removeItem(RX_OPEN); } catch (e) {}              // 💗 잘 나갔어요 (다음에 켤 때 화살표 없음)
+            if (window.openOff) openOff();                                     // 🔌 드라이브에 이 기기 '꺼짐' (다른 기기에서 '꺼 주세요'가 안 떠요 · js/drive.js)
             await wait(450);
             el.classList.add('done');                                           // 게이지 스르르 사라짐
             await wait(calm() ? 50 : 450);
