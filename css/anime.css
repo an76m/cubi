@@ -325,6 +325,18 @@ html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는
 .ab-kmenu { position: absolute; top: calc(100% - 4px); left: 92px; z-index: 30; display: grid; grid-template-columns: repeat(2, auto); gap: 4px; padding: 8px; background: #fff; border: 1.6px solid #e8bfd2; border-radius: 14px; box-shadow: 0 6px 18px rgba(141,111,127,.22); }
 .ab-kmenu button { display: flex; align-items: center; gap: 6px; padding: 5px 12px 5px 6px; border: 0; border-radius: 10px; background: none; color: #7a5a6c; font: inherit; font-size: 13.5px; font-weight: 700; white-space: nowrap; cursor: pointer; text-align: left; }
 .ab-kmenu button:hover { background: #fff0f6; } .ab-kmenu button.on { background: #ffe3ee; color: #c8457a; }
+/* 📚 종류 + 이 종류 책 (도련 11-23 · js/basket.js abBookGrid · 빈 작업대도 같이) : 표지 + 짧은 이름 · 분홍 테두리 = 지금 작업대 · 분홍 점 = 받아 둔 새 책 */
+.ab-kmenu:has(.abm-books) { display: flex; gap: 10px; }
+.abm-kinds { display: grid; grid-template-columns: repeat(2, auto); gap: 4px; align-content: start; }
+.ab-kmenu:has(.abm-books) .abm-kinds { grid-template-columns: auto; padding-right: 10px; border-right: 1.5px solid #f5e6ee; }
+.abm-books { display: grid; grid-template-columns: repeat(3, 76px); gap: 10px 8px; align-content: start; justify-content: center; padding: 4px; }
+.ab-kmenu .abm-bk, .abm-bk { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; border: 0; border-radius: 12px; background: none; color: #7a5a6c; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.abm-bk:hover { background: #fff4f8; }
+.abm-bk i { display: block; width: 44px; height: 58px; border-radius: 6px; background: var(--c1); border: 2px solid var(--c2); box-shadow: 2px 2px 0 rgba(0, 0, 0, .06); }
+.abm-bk span { max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abm-bk.on i { outline: 3px solid #ff8fb8; outline-offset: 3px; }
+.abm-bk.new::after { content: ''; position: absolute; top: 2px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: #ff6b8f; border: 2px solid #fff; }
+.abx-none .abm-books { margin-top: 14px; }
 .abs-bar .ab-tabs { margin: 0; width: min(380px, 40vw); }
 .abs-bar .ab-done { margin: 0; padding: 6px 16px; }
 .abs-fill { flex: 1; }
@@ -365,7 +377,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 /* 📒 6공 바인더 (펼친 두 쪽 · 가운데 링 · A5 속지 비율 · 크기는 js abSpaceFit 가 --ph 로) · 한 쪽만 볼 때는 링이 그 쪽 옆 (홀수 쪽 = 왼쪽 쪽 → 링이 오른쪽) */
 .abs-book { width: max-content; }   /* 📚 책 크기 = 책 엔진이 (basket.js abSpaceBook) */
 .abx-tag { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 10px 0 0; }   /* 🏷️ 라벨 · 몇 장 · 빼기 = 책 아래 가운데 (도련 11-22) */
-.abx-tag .ab-pick { flex: none; max-width: none; border: 1.6px solid var(--ol) !important; }
 .abx-tag .ab-lbdesk { flex: 0 1 200px; background: #fffdf6; border-color: var(--ol); }   /* 🏷️ 라벨 = 똑바로 (도련 11-22 · css/style.css .ab-lbdesk 도) */
 .abx-cnt { flex: none; padding: 3px 9px; border-radius: 999px; background: #fffaf2; color: #8a5a6e; font-size: 11.5px; font-weight: 700; }
 .abx-full { margin: 0 0 6px; font-size: 12px; color: #b23b6c; }
@@ -448,7 +459,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abs-book .ab-rel.srt.ab-over, .abs-book .ab-rel.srt.ready { outline: 2px dashed #ff6b88; outline-offset: -6px; }   /* 🤍 여기에 놓여요 */
 .abx-none { width: 100%; padding: 30px 14px; border: 2px dashed var(--ol); border-radius: 18px; background: rgba(255,250,242,.9); }
 .abs-book .abx-none { width: min(420px, 42vw); min-height: 200px; padding: 44px 20px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; } .ab-ph .abs-book .abx-none { width: 100%; }
-.abx-trayin:empty { display: none; } .abx-trayin { margin-top: 12px; }   /* 🪑 빈 작업대 : 📥 불러오기 (도련 11-23) */
 .abs-basket.ab-over { outline: 3px dashed #ff6b88; outline-offset: 4px; border-radius: 16px; } .abx-mat.ab-over { outline: 3px dashed #fff; outline-offset: -8px; }   /* 📒 꽂은 종이 → 바구니 · 🤍 이형지북 스티커 → 매트 (여기에 놓여요) */
 .abx-pg .ab-pk.full { cursor: grab; } .ab-pk.ab-lifted .bk-sh { opacity: .35; }
 /* 🧺 톡 = 그 종이를 맨 위로 (겹친 바구니에서 보기 · 도련 10-29) · 끄는 종이는 떼는 판 위로 */

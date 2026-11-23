@@ -3630,7 +3630,6 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ab-sc.on { outline: 3px solid #ff6b88; outline-offset: 1px; background: rgba(255,255,255,.35); }
 .ab-sc.ab-lifted, .ab-st.ab-lifted { opacity: .35; }
 .ab-stripempty { padding: 18px 8px; color: #fff; font-size: 12.5px; text-shadow: 0 1px 2px rgba(80,40,10,.4); }
-.ab-pick { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; max-width: 70%; padding: 0 14px; border: 1.5px solid #f2b8cb; border-radius: 19px; background: #fff; color: #8a4a64; font: inherit; font-size: 13.5px; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .ab-chip { flex: none; display: inline-block; width: 12px; height: 15px; border-radius: 2px 4px 4px 2px; background: var(--c1); box-shadow: inset 3px 0 0 var(--c2); }
 /* 📥 받아 둔 책 불러오기 (도련 11-08 · js/basket.js abFreeHtml) */
 .ab-free { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
