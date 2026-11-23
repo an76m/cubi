@@ -75,7 +75,7 @@
        dkDrag(ev, src, op) : ev = pointerdown (또는 이미 움직이는 중인 pointermove)
          op.min   = 끌기 시작 거리 (기본 DK_FAR · 0 = 바로 끌기)
          op.ghost = 따라올 그림 만들기 (src → 요소 · 기본 = src 그림 그대로 · .dkm-ghost)
-         op.grab  = true → 잡은 자리 그대로 따라와요 (기본 = 그림 가운데가 손끝)
+         op.grab  = true → 처음 누른 자리 그대로 따라와요 (기본 = 그림 가운데가 손끝) · 그림 = dkGhost 하나
          op.at    = 지금 손 아래 보관함 (x, y → 요소 · 반짝 표시 · 기본 = 책상 보관함 · null = 표시 없음)
          op.from  = 끄는 동안 원래 그림에 붙일 class (기본 'dkm-from' · '' = 없음)
          op.dir   = (x0, y0, e) → 'pick' | 'scroll' | '' (서랍 카드 = dkShelfDir · scroll = 끌기 안 하고 놓아줘요)
@@ -85,14 +85,11 @@
     function drag(ev, src, op) {
         op = op || {};
         const x0 = ev.clientX, y0 = ev.clientY, min = op.min == null ? DK_FAR : op.min, at = op.at === undefined ? holderAt : op.at, from = op.from == null ? 'dkm-from' : op.from;
-        let g = null, hi = null, ox = 0, oy = 0, on = false;
-        const place = e => { g.style.left = (e.clientX - ox) + 'px'; g.style.top = (e.clientY - oy) + 'px'; };
+        let g = null, G = null, hi = null, on = false;
         const light = t => { if (t === hi) return; if (hi) hi.classList.remove('dkh-hi'); hi = t; if (hi) hi.classList.add('dkh-hi'); };
         const begin = e => {
-            on = true; const r = src.getBoundingClientRect();
-            g = op.ghost ? op.ghost(src) : ghostOf(src, r); g.removeAttribute('id'); g.style.pointerEvents = 'none'; g.style.zIndex = '';   // 책상에서 쓰던 겹침 순서(인라인)는 버려요 = 늘 맨 위 (열린 서랍 창 뒤로 안 숨어요 · 도련 11-21)
-            if (op.grab) { ox = e.clientX - r.left; oy = e.clientY - r.top; Object.assign(g.style, { width: r.width + 'px', height: r.height + 'px' }); }
-            document.body.appendChild(g); place(e); if (from) src.classList.add(from);
+            on = true; G = ghost(src, x0, y0, op); g = G.g;   // 책상에서 쓰던 겹침 순서(인라인)는 버려요 = 늘 맨 위 (열린 서랍 창 뒤로 안 숨어요 · 도련 11-21)
+            G.place(e); if (from) src.classList.add(from);
             if (op.start) op.start(e);
         };
         const off = () => { removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };
@@ -103,7 +100,7 @@
                 else if (min && Math.hypot(e.clientX - x0, e.clientY - y0) < min) return;
                 begin(e);
             }
-            place(e); if (at) light(at(e.clientX, e.clientY)); if (op.move) op.move(e);
+            G.place(e); if (at) light(at(e.clientX, e.clientY)); if (op.move) op.move(e);
         };
         const up = e => {
             if (e.pointerId !== ev.pointerId) return; off();
@@ -115,6 +112,22 @@
         addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
         if (!min && !op.dir) { begin(ev); if (at) light(at(ev.clientX, ev.clientY)); }   // 바로 끌기 (이미 움직이는 중 · 뽑은 채로)
         return { stop: () => { off(); light(null); if (g) g.remove(); if (from) src.classList.remove(from); } };
+    }
+    /* ✋ 손을 따라오는 그림 하나로 (도련 11-23 · dkDrag · 📚 스티커 정리 바구니 종이 · 포켓 종이 · 이형지북 스티커 같이) : src 그림 → { g, place(e) }
+         op.ghost = 그림 만들기 (기본 ghostOf) · op.grab = 처음 누른 점(x0 y0)이 그림 안 그 자리에 붙어 따라와요 · 보이던 크기 그대로 (안 그림 크기도 · 기울기 · 키우기는 잡은 점 중심) */
+    function ghost(src, x0, y0, op) {
+        op = op || {};
+        const r = src.getBoundingClientRect(), g = op.ghost ? op.ghost(src) : ghostOf(src, r);
+        g.removeAttribute('id'); g.style.pointerEvents = 'none'; g.style.zIndex = '';
+        let ox = 0, oy = 0;
+        if (op.grab) {
+            const k = src.offsetWidth ? r.width / src.offsetWidth : 1;
+            ox = x0 - r.left; oy = y0 - r.top;
+            Object.assign(g.style, { width: r.width + 'px', height: r.height + 'px', transformOrigin: ox + 'px ' + oy + 'px' });
+            [...g.children].forEach((c, i) => { const o = src.children[i]; if (o && o.offsetWidth) { c.style.width = o.offsetWidth * k + 'px'; c.style.height = o.offsetHeight * k + 'px'; } });   // 바구니에선 크게 그려진 종이가 들면 작아지던 것 (도련 11-23)
+        }
+        document.body.appendChild(g);
+        return { g, place: e => { g.style.left = (e.clientX - ox) + 'px'; g.style.top = (e.clientY - oy) + 'px'; } };
     }
     function ghostOf(src, r) {                                                // 기본 따라오는 그림 = 그 그림 그대로 (크기만 알맞게)
         const g = src.cloneNode(true);
@@ -142,7 +155,7 @@
         if (b && b.width > 0 && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) return true;
         return !!u && document.elementsFromPoint(x, y).some(e => { const h = e.closest && e.closest('#deskStage .desk-item'); return !!h && h.dataset.u === u; });
     }
-    window.DK_FAR = DK_FAR; window.dkFar = far; window.dkDrag = drag; window.dkPull = pull; window.dkDrawerHit = drawerHit;
+    window.DK_FAR = DK_FAR; window.dkFar = far; window.dkDrag = drag; window.dkGhost = ghost; window.dkPull = pull; window.dkDrawerHit = drawerHit;
     /* ✋ 톡 = 화면 가운데로 날아오기 (마테 롤 · 펜 · 서랍 문구 · 스티커 종이 모두 같은 모습) : 그 그림이 제자리에서 떠올라 가운데로 → 끝나면 resolve */
     function fly(src, x, y) {
         return new Promise(ok => {

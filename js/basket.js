@@ -1201,17 +1201,11 @@
         } else bkView();
         B.sig = bkSig();
     }
-    /* ✋ 끌 때 손에 든 그림 (도련 11-23 · 바구니 종이 · 포켓 종이 · 이형지북 스티커 같이) : 잡은 그 자리 그대로 따라와요 (가운데로 튀지 않게)
-         · px py = 잡은 점 (화면) · 보이는 크기 그대로 (작게 그려진 카드도) · 기울기 · 살짝 키우기는 잡은 점을 중심으로 */
+    /* ✋ 끌 때 손에 든 그림 = js/deskmove.js dkGhost 하나 (책상 끌기와 같이 · 잡은 자리 · 크기 그대로) · 모양만 바구니 것 (.ab-ghost 기울기) */
     function abGhost(d, src, cls, px, py) {
-        const r = src.getBoundingClientRect(), w = src.offsetWidth || r.width, k = r.width / (w || 1) || 1, g = document.createElement('div');
-        g.className = 'ab-ghost' + (cls ? ' ' + cls : ''); g.innerHTML = src.innerHTML; g.style.width = w + 'px'; g.style.height = (src.offsetHeight || r.height / k) + 'px';   // 높이도 그대로 (잡은 점이 어긋나지 않게)
-        [...g.children].forEach((c, i) => { const o = src.children[i]; if (o && o.offsetWidth) { c.style.width = o.offsetWidth + 'px'; c.style.height = o.offsetHeight + 'px'; } });   // 안의 그림도 보이던 크기 그대로 (바구니에선 크게 · 들면 작아지던 것)
-        d.ox = (px - r.left) / k; d.oy = (py - r.top) / k;                      // 잡은 점 (그림 안 · 줄이기 전 크기)
-        g.style.transformOrigin = d.ox + 'px ' + d.oy + 'px'; g.style.transform = `rotate(-5deg) scale(${(1.06 * k).toFixed(3)})`;
-        document.body.appendChild(g); d.ghost = g;
+        d.gp = dkGhost(src, px, py, { grab: true, ghost: s => { const g = document.createElement('div'); g.className = 'ab-ghost' + (cls ? ' ' + cls : ''); g.innerHTML = s.innerHTML; return g; } });
+        d.ghost = d.gp.g;
     }
-    const abGhostGo = (d, ev) => { d.ghost.style.left = (ev.clientX - d.ox) + 'px'; d.ghost.style.top = (ev.clientY - d.oy) + 'px'; };
     function abMovePk(a, b) {                                                // 📒 꽂은 종이를 다른 빈 포켓으로
         const D = B.desk, b0 = D && abBdOf(D.bd); if (!b0 || !b0.p[a] || b0.p[b] || a === b) return;
         const bd = D.bd, fn = x => { const o = x.bd.find(y => y.id === bd); if (!o || !o.p[a] || o.p[b]) return; o.p[b] = o.p[a]; delete o.p[a]; };
@@ -1259,7 +1253,7 @@
                 const R = d.br, out = ev.clientX < R.left || ev.clientX > R.right || ev.clientY < R.top || ev.clientY > R.bottom, mat = document.querySelector('#absRoom .abx-mat');
                 if (out) {
                     if (!d.ghost) { abGhost(d, d.it, 'st', ev.clientX, ev.clientY); d.it.style.visibility = 'hidden'; }   // 지금 잡은 그 자리 그대로 (스티커가 손을 따라와요)
-                    abGhostGo(d, ev);
+                    d.gp.place(ev);
                     if (mat) mat.classList.toggle('ab-over', abOnMat(ev.clientX, ev.clientY));
                     d.out = true; return;
                 }
@@ -1291,7 +1285,7 @@
             }
             d.inBin = false; d.src.classList.remove('lift'); d.src.style.left = d.l0 + 'px'; d.src.style.top = d.t0 + 'px'; ghost();   // 바구니 밖 = 들어서 옮기기 (매트 · 포켓)
         }
-        abGhostGo(d, ev);
+        d.gp.place(ev);
         const el = document.elementFromPoint(ev.clientX, ev.clientY), tg = el && (d.kind === 'sheet' ? el.closest('.ab-pk:not(.full)') : d.kind === 'pk' ? el.closest('.ab-pk:not(.full), .abs-basket') : el.closest('.ab-rel.srt[data-pg]'));
         document.querySelectorAll('.ab-over').forEach(x => { if (x !== tg) x.classList.remove('ab-over'); });
         if (tg) tg.classList.add('ab-over');
