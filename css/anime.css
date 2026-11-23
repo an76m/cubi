@@ -344,6 +344,7 @@ html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는
 /* 책상 · 물건 자리 */
 .abs-room { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .abs-box { position: absolute; display: flex; flex-direction: column; align-items: center; max-height: calc(100% - 12px); z-index: 1; }
+.abs-box[hidden] { display: none; }   /* 🪑 빈 작업대 = 아무것도 안 보여요 (도련 11-23) */
 .abs-box.top { z-index: 2; }
 .abs-box.lift { z-index: 3; }
 .abs-grip { flex: none; display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 8px; padding: 5px 14px 5px 10px; border: 1.6px solid var(--ol); border-radius: 999px; background: #fffdf8;

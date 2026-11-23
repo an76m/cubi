@@ -516,7 +516,6 @@
         }, 600);
         document.addEventListener('pointerup', stop, true); document.addEventListener('pointercancel', stop, true); document.addEventListener('pointermove', far, true);
     }
-    function abTrayHtml(t) { return bkMsg(`${t === 'bd' ? '📒' : '🤍'} 작업대가 비었어요.`, '<br><small>위 ▾ 에서 골라요</small>'); }   // 🪑 빈 작업대 (✔ 이 책 완료로 치웠어요) · 책 고르기는 위 종류 ▾ 메뉴 하나로 (가운데엔 안 둬요 · 도련 11-23)
     function abPlace(t, id) { const D = B.desk; if (!D) return; D[t] = id; if (t === 'bd') B.pg = 0; else D.rpg = 0; bkView(); }
     function abFreeOpen(t) {                                                  // 📥 불러오기 창 (책이 있을 때 다른 책을 더)
         const nm = t === 'bd' ? '바인더' : '이형지북', fr = abFreeHtml(t);
@@ -956,7 +955,7 @@
         let book;                                                             // 📚 책 = 책 엔진 (js/book.js · 책상에 띄운 책과 같은 모습 · 도련 11-22 '공통은 통일') · 그리기는 abSpaceBook (자리 크기를 잰 뒤)
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = D.bd === '' ? null : L.find(x => x.id === D.bd) || L[0];   // '' = 빈 작업대 (✔ 이 책 완료로 치웠어요)
-            if (!b) book = `<div class="abx-none">${L.length || abFreeList('bd').length ? abTrayHtml('bd') : abNoneMsg('bd')}</div>`;
+            if (!b) book = L.length || abFreeList('bd').length ? '' : `<div class="abx-none">${abNoneMsg('bd')}</div>`;   // 🪑 빈 작업대 = 아무것도 안 둬요 (깔끔하게 · 도련 11-23 · 고르기는 위 ▾)
             else {
                 D.bd = b.id; const full = Object.keys(b.p).length >= b.n;
                 book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('bd', b, `${Object.keys(b.p).length} / ${b.n}장`)
@@ -964,13 +963,13 @@
             }
         } else {
             const L = abMine(B.album.rl), r = D.rl === '' ? null : L.find(x => x.id === D.rl) || L[0];
-            if (!r) book = `<div class="abx-none">${L.length || abFreeList('rl').length ? abTrayHtml('rl') : abNoneMsg('rl')}</div>`;
+            if (!r) book = L.length || abFreeList('rl').length ? '' : `<div class="abx-none">${abNoneMsg('rl')}</div>`;
             else {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('rl', r, abRelCnt(r));   // 이름표 줄 = 책 아래 (도련 11-22)
             }
         }
-        return bar + `<div class="abs-room" id="absRoom">${basket}<section class="abs-box abs-book ${D.mode}" data-p="book-${D.mode}">${book}</section></div>`;
+        return bar + `<div class="abs-room" id="absRoom">${basket}<section class="abs-box abs-book ${D.mode}" data-p="book-${D.mode}"${book ? '' : ' hidden'}>${book}</section></div>`;
     }
     /* 책 아래 이름표 : 🏷️ 라벨 · 몇 장 (다른 책 고르기 · 불러오기 · 빼기 = 위 종류 ▾ 메뉴 하나로 · 도련 11-23) */
     function abSpaceTag(t, x, cnt) { return `<div class="abx-tag">${abLbDesk(t, x)}<small class="abx-cnt">${cnt}</small></div>`; }
