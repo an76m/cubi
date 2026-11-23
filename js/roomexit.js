@@ -25,7 +25,7 @@
         el.innerHTML = '<div class="rx-scene"><div class="rx-mid">'
             + '<div class="rx-fy l"><svg viewBox="-1 -3 26 25" data-an="1" aria-hidden="true">' + fy('#gateLoginBtn') + '</svg></div>'
             + '<div class="rx-fy r"><svg viewBox="-1 -3 26 25" data-an="1" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)"><g transform="translate(-51 0)">' + fy('#gateGuestBtn') + '</g></g></svg></div>'
-            + '<div class="rx-gauge">' + gaugeBar() + '</div>'   // 📊 막대 = 하나 (js/util.js · 1421)
+            + '<div class="rx-gauge">' + gaugeBar() + '</div><div class="rx-gt">저장 중...</div>'   // 📊 막대 = 하나 (js/util.js · 1421) · 밑에 무슨 게이지인지 (도련 11-23)
             + '<div class="rx-hi"><b>오늘도 다꾸해 줘서 고마워요</b><small>푹 쉬고 또 만나요 <span>💗</span></small></div>'
             + '</div></div><div class="rx-night"></div>';
         document.body.appendChild(el);
@@ -110,7 +110,7 @@
             try { localStorage.removeItem(RX_OPEN); } catch (e) {}              // 💗 잘 나갔어요 (다음에 켤 때 화살표 없음)
             if (window.openOff) openOff();                                     // 🔌 드라이브에 이 기기 '꺼짐' (다른 기기에서 '꺼 주세요'가 안 떠요 · js/drive.js)
             await wait(450);
-            el.classList.add('done');                                           // 다 올렸어요 (게이지 · 글씨는 그대로 · 도련 11-23)
+            el.classList.add('done'); el.querySelector('.rx-gt').textContent = '저장했어요';   // 다 올렸어요 (게이지 · 글씨는 그대로 · 도련 11-23)
             await leave(el);
         } finally { busy = false; }
     }
