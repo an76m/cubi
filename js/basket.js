@@ -1089,7 +1089,7 @@
         const imgs = D.sheet.baked || !window.pelBake ? D.sheet.imgs : await Promise.all(D.sheet.imgs.map(u => u ? pelBake(u).catch(() => u) : null));   // 하얀 테두리 (⚙ 설정을 따라요)
         const D2 = B.desk;
         if (!D2 || !D2.sheet || D2.sheet.id !== id || D2.mode !== 'rl' || B.view !== 'desk') { if (AB.peelOn === id) AB.peelOn = ''; return; }
-        const ok = await openStickerPeel(imgs, { L: D.sheet.L || null, sb: D.sheet.sb || '', rel: {
+        const ok = await openStickerPeel(imgs, { own: { id, wh: D.sheet.wh, gh: D.sheet.gh || [], raw: !D.sheet.baked }, L: D.sheet.L || null, sb: D.sheet.sb || '', rel: {   // 👻 뗀 자리 = 그림 모양 (바구니 밖 종이와 같은 own)
             at: () => { const z = bq('abPeelZone'); return z ? z.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: 130, right: innerWidth, bottom: 130 }; },
             target: (cx, cy) => { const b = abRelAt(cx, cy); if (!b) return null; const r = b.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height, pg: +b.dataset.pg }; },   // 놓은 곳의 쪽 (펼친 두 쪽 중)
             alive: () => vis('basketKindModal') && B.view === 'desk' && !!bq('abPeelZone'),
@@ -1110,7 +1110,7 @@
         const D = B.desk; if (!D) return;
         pos = Object.assign({ x: Math.max(.08, Math.min(.92, pos.x)), y: Math.max(.1, Math.min(.9, pos.y)), r: Math.max(-25, Math.min(25, pos.r || 0)), pg: pos.pg != null ? pos.pg : D.rpg || 0 }, pos.w > 0 && pos.h > 0 ? { w: Math.round(pos.w), h: Math.round(pos.h) } : {});   // w · h = 진짜 크기
         let img = '';
-        if (D.sheet && D.sheet.id === src) { img = D.sheet.imgs[k] || ''; D.sheet.imgs[k] = null; }
+        if (D.sheet && D.sheet.id === src) img = abCellOff(D.sheet, k) || '';
         const tmp = 'tmp' + Date.now() + k, rel = abRlOf(D.rl), relEl = abRelBoxes().find(b => +b.dataset.pg === pos.pg);   // 화면에는 바로 붙여 보여요 (그 쪽에)
         if (rel && img) { B.byId.set(tmp, { id: tmp, th: img }); AB.hi.set(tmp, img); rel.it.push(Object.assign({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }, pos.w ? { w: Math.round(pos.w), h: Math.round(pos.h) } : {})); }
         if (relEl && img) {
@@ -1143,7 +1143,7 @@
         } else { AB.rel.splice(AB.rel.indexOf(op), 1); AB.hi.delete(id); }
         abBackHide({ id }); abSplit();
         if (D.sheet && D.sheet.id === src) {                                    // 매트의 그 종이 제자리에 다시
-            D.sheet.imgs[c] = img;
+            abCellOn(D.sheet, c, img);
             if (AB.peelOn === src && window.closeStickerPeel) { AB.peelKeep = true; try { closeStickerPeel(); } finally { AB.peelKeep = false; } }
         } else { D.pick = src; D.sheet = null; D.sel = -1; }                     // 매트가 비었어요 = 그 종이가 펼쳐져요
         B.sig = bkSig(); abOkSync(); buzz(8); bkView();
@@ -1152,8 +1152,8 @@
     async function abLoadSheet(id) {
         let r = null; try { r = await ownSheetImgs(id, abBackCells(id).length > 0); } catch (e) { abErr(e); }
         const D = B.desk; if (!D || D.pick !== id) return;
-        if (r && r.imgs) { r = Object.assign({}, r, { imgs: r.imgs.slice() }); abBackOps().forEach(o => { if (o.s === id && o.img) r.imgs[o.c] = o.img; }); (AB.relFly || []).concat(AB.rel).forEach(o => { if (o.src === id) r.imgs[o.k] = null; }); }   // ↩ 돌려놓은 칸은 다시 · 🤍 완료 전 뗀 칸은 비어 보여요
-        if (!r || !r.imgs.some(u => u != null)) { D.pick = ''; D.sheet = null; } else D.sheet = { id, imgs: r.imgs, baked: r.baked, L: r.L, sb: r.sb };
+        if (r && r.imgs) { r = Object.assign({}, r, { imgs: r.imgs.slice(), gh: (r.gh || []).slice() }); abBackOps().forEach(o => { if (o.s === id && o.img) abCellOn(r, o.c, o.img); }); (AB.relFly || []).concat(AB.rel).forEach(o => { if (o.src === id) abCellOff(r, o.k); }); }   // ↩ 돌려놓은 칸은 다시 · 🤍 완료 전 뗀 칸은 비어 보여요
+        if (!r || !r.imgs.some(u => u != null)) { D.pick = ''; D.sheet = null; } else D.sheet = { id, imgs: r.imgs, baked: r.baked, L: r.L, sb: r.sb, gh: r.gh, wh: r.wh };
         if (B.view === 'desk' && !AB.drag) bkView();
     }
     function abTapSheet(id) {
@@ -1224,8 +1224,7 @@
         const pos = { x: Math.max(.08, Math.min(.92, (cx - r.left) / r.width)), y: Math.max(.1, Math.min(.9, (cy - r.top) / r.height)), r: Math.round((Math.random() - .5) * 24) };
         const src = D.sheet.id; D.sel = -1;
         pos.pg = +box.dataset.pg || 0;                                        // 놓은 쪽 (펼친 두 쪽 중)
-        const img = D.sheet.imgs[slot], tmp = 'tmp' + Date.now(), rel = abRlOf(D.rl);   // 화면에는 바로 붙여 보여요
-        D.sheet.imgs[slot] = null;
+        const img = abCellOff(D.sheet, slot), tmp = 'tmp' + Date.now(), rel = abRlOf(D.rl);   // 화면에는 바로 붙여 보여요
         if (rel) { B.byId.set(tmp, { id: tmp, th: img }); rel.it.push({ s: tmp, pg: pos.pg, x: pos.x, y: pos.y, r: pos.r }); }
         const stEl = document.querySelector(`#abPeel .ab-st[data-slot="${slot}"]`), relEl = box;      // 화면만 바로 고쳐요 (다시 그리지 않아요)
         if (stEl && relEl) {
@@ -1875,11 +1874,15 @@
         DS.c.set(id, p); p.then(v => { if (!v) { DS.c.delete(id); DS.v.delete(id); } else DS.v.set(id, v); }, () => DS.c.delete(id));
         return p;
     }
+    /* 👻 뗀 자리 모양 하나로 (도련 11-23 · 꺼내 둔 종이 dsFresh · 🟩 매트 위 종이 abLoadSheet 같이) : 이 기기에서 방금 뗀 칸 = 그 그림 모양 · 나머지 = 저장된 모양 */
+    const abGhosts = (imgs, used, gh0, baked) => imgs.map((u, i) => used.has(i) && u ? ((baked && baked[i]) || u) : (gh0 || [])[i] || null);
+    function abCellOff(sh, k) { const u = sh.imgs[k]; sh.imgs[k] = null; if (u) (sh.gh = sh.gh || [])[k] = u; return u; }   // 🟩 매트 종이에서 한 칸 떼기 = 빈 자리는 그 모양대로
+    function abCellOn(sh, k, u) { sh.imgs[k] = u; if (sh.gh) sh.gh[k] = null; }   // ↩ 다시 붙이기
     function dsFresh(id, v) {                                                 // 그사이 이 기기에서 뗀 자리는 비워요 (쓴 기록 · 목록)
         const e = dsEntry(id), used = new Set((e && e.u) || []);
         (window.ownPendGet ? ownPendGet() : []).forEach(p => { if (p.s === id && !p.q) used.add(p.k); });
         if (!used.size) return v;
-        const imgs = v.s.imgs.map((u, i) => used.has(i) ? null : u), gh = v.s.imgs.map((u, i) => used.has(i) && u ? ((v.baked && v.baked[i]) || u) : (v.s.gh || [])[i] || null);   // 👻 방금 뗀 자리도 그 모양대로
+        const imgs = v.s.imgs.map((u, i) => used.has(i) ? null : u), gh = abGhosts(v.s.imgs, used, v.s.gh, v.baked);   // 👻 방금 뗀 자리도 그 모양대로
         return { s: Object.assign({}, v.s, { imgs, gh }), baked: v.baked && v.baked.map((u, i) => used.has(i) ? null : u) };
     }
     function dsMoveFromPeel(d) { const a = window.pelLastAt && pelLastAt(); if (a && a.id === d.id) { d.x = a.x; d.y = a.y; } }   // 떼는 화면에서 옮긴 자리에서 작아져요 (도련 10-26)

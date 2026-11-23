@@ -434,7 +434,7 @@
             const src = e.ref && list.find(x => x.id === e.ref.s); if (!src) return;
             const c = e.ref.c; src.m = ownMoved(src).filter(i => i !== c); if (!src.m.length) delete src.m;
             let s; try { s = await ownFileRead(src.f); } catch (er) { if (er && er.code === 'gone') return; throw er; }
-            if (s.imgs[c] != null) { s.gh = s.gh || []; if (!s.gh[c]) s.gh[c] = await ownGhost(s.imgs[c], !s.baked); s.imgs[c] = null; }
+            await ownGhostCell(s, c);
             src.u = ownUsedOf(s, src);
             if (ownEnd(src)) { list.splice(list.indexOf(src), 1); O.spent.add(src.id); kills.push(src.f); }
             else { const old = src.f; src.f = await ownFileNew(s); kills.push(old); }
@@ -665,8 +665,8 @@
                 if (!e || !(ownAlive(e) || (moved && !e.bin && ownMoved(e).length))) { ownTell(); return null; }
                 let s;
                 try { s = await ownEntSheet(e, list); } catch (er) { if (er && er.code === 'gone') { ownTell(); return null; } throw er; }
-                if (ownMoved(e).length) s.imgs = ownMask(s, e);                    // 🤍 이형지북에 가 있는 칸은 빈 칸으로
-                for (const p of ownPendGet()) { if (p.s !== id) continue; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else if (s.imgs[p.k] != null) { s.gh = s.gh || []; if (!s.gh[p.k]) s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); s.imgs[p.k] = null; } }   // 이 기기에서 쓰는 중인 칸 · 수량
+                for (const c of ownMoved(e)) await ownGhostCell(s, c);             // 🤍 이형지북에 가 있는 칸은 빈 칸으로 · 뗀 자리는 그림 모양 (도련 11-23 · 네모 아니게)
+                for (const p of ownPendGet()) { if (p.s !== id) continue; if (p.q) s.q = Math.max(0, (s.q || 0) - p.q); else await ownGhostCell(s, p.k); }   // 이 기기에서 쓰는 중인 칸 · 수량
                 const pp = ownPendGet().find(p => p.p && p.s === id);               // 📄 완료 전에 오린 모조지 = 이 기기의 남은 종이로
                 if (pp) { const r = await ownPaperGet(id); if (r && r.img) { s.imgs = [r.img]; s.x = Object.assign({}, s.x, { grained: 1 }, r.a0 && !(s.x && s.x.a0) ? { a0: r.a0 } : {}); } if (pp.left <= OWN_PAPER_END) return null; }
                 if (s.q0 && s.q <= 0) return null;
@@ -741,7 +741,7 @@
                         for (const p of P) {
                             if (p.p) { const r = await ownPaperGet(id); if (r && r.img) { s.imgs = [r.img]; if (r.th) e.th = r.th; s.x = Object.assign({}, s.x, { grained: 1 }, r.a0 && !(s.x && s.x.a0) ? { a0: r.a0 } : {}); end = r.left <= OWN_PAPER_END; } continue; }   // 📄 모조지 = 남은 종이 그림으로
                             if (p.q) { s.q = Math.max(0, (s.q || 0) - p.q); e.q = s.q; end = s.q <= 0; }
-                            else if (s.imgs[p.k] != null) { if (!(s.gh && s.gh[p.k])) { s.gh = s.gh || []; s.gh[p.k] = await ownGhost(s.imgs[p.k], !s.baked); } s.imgs[p.k] = null; slot = true; }
+                            else if (s.imgs[p.k] != null) { await ownGhostCell(s, p.k); slot = true; }
                             else if (p.k != null) dead.add(id + ':' + p.k);                   // 📱 다른 기기에서 이미 쓴 칸
                         }
                         if (slot) { e.u = ownUsedOf(s, e); end = ownEnd(e); }
@@ -803,8 +803,7 @@
             if (op.q) { s.q = Math.max(0, s.q - op.q); e.q = s.q; end = s.q <= 0; }
             else if (op.img != null) { s.imgs = [op.img]; if (op.th) e.th = op.th; s.x = Object.assign({}, s.x, { grained: 1 }, op.a0 && !(s.x && s.x.a0) ? { a0: op.a0 } : {}); end = op.left <= OWN_PAPER_END; }   // a0 : 처음 종이의 잉크 양 (남은 비율 재기)
             else {
-                if (!(s.gh && s.gh[op.k])) { s.gh = s.gh || []; s.gh[op.k] = await ownGhost(s.imgs[op.k], !s.baked); }   // 👻 뗀 자리 = 그림 모양 그대로 (모양만 · 도련 11-09)
-                s.imgs[op.k] = null;
+                await ownGhostCell(s, op.k);                                    // 👻 뗀 자리 = 그림 모양 그대로 (모양만 · 도련 11-09)
                 e.u = ownUsedOf(s, e);
                 end = ownEnd(e);
             }
@@ -849,6 +848,11 @@
         /* ---------- 🖼️ 종이 미리보기 (만든 스티커 : 바구니 칸 · 뗀 자리는 비워요) ---------- */
         const ownImg = src => new Promise(ok => { if (!src) { ok(null); return; } const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
         /* 👻 뗀 자리 실루엣 : 그림은 버리고 모양(투명도)만 · 긴 쪽 128px PNG (하얀 테두리째 · 다 쓰면 종이와 함께 지워져요) */
+        async function ownGhostCell(s, k) {                                     // 👻 한 칸을 비우며 그 자리 모양을 남겨요 (하나로 · 다이어리에 씀 · 이형지북에 가 있음 · 이 기기에서 쓰는 중 · 다 씀)
+            if (s.imgs[k] == null) return;
+            if (!(s.gh && s.gh[k])) { s.gh = s.gh || []; s.gh[k] = await ownGhost(s.imgs[k], !s.baked); }
+            s.imgs[k] = null;
+        }
         async function ownGhost(src, bake) {
             if (!src) return null;
             if (bake && window.pelBake) src = await pelBake(src).catch(() => src);
@@ -1130,7 +1134,7 @@
             return ownSerial(async () => { const k = await ownFindKind(id); if (!k) return null; const e = (await ownIdxRead(k)).find(x => x.id === id); return e ? ownPendFix(JSON.parse(JSON.stringify(e))) : null; });
         }
         /* 종이의 그림들 (정리 책상에서 낱개로 보여 주기 · 쓰는 중인 칸은 비어요) */
-        async function ownSheetImgs(id, moved) { const r = await ownSheet(id, moved); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null, sb: (r.s.x && r.s.x.sb) || '' } : null; }   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
+        async function ownSheetImgs(id, moved) { const r = await ownSheet(id, moved); return r ? { imgs: r.s.imgs.slice(), baked: !!r.s.baked, L: r.s.L || null, sb: (r.s.x && r.s.x.sb) || '', gh: (r.s.gh || []).slice(), wh: r.s.wh || null } : null; }   // 👻 gh · wh = 뗀 자리 모양 · 크기 (떼는 종이 own · 11-23)   // 🗂️ sb = 내가 꾸민 시트 바탕 (js/sheetmaker.js)
 
         /* 실패 이유 → 알림 글 */
         function ownErrText(e) {
