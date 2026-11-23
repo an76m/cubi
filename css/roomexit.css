@@ -7,7 +7,7 @@
 /* 💾 게이지 + 요정 둘 + 인사 = 알림판 가운데 (글씨 = 인사만 · 1416) */
 .rx-mid { position: absolute; left: 50%; top: 55%; translate: -50% -50%; width: min(600px, 92vw); height: 220px; }
 .rx-gauge { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: min(280px, 52vw); padding: 9px; border-radius: 99px; background: rgba(255, 250, 244, .92); border: 1.6px solid #9a6eaa; box-shadow: 0 4px 0 rgba(154, 110, 170, .22); transition: opacity .4s ease, scale .4s ease; }
-.rx.done .rx-gauge { opacity: 0; scale: .9; }
+.rx-mid .rx-gauge { top: calc(50% + 34px); }   /* 글씨 밑에 게이지 · 저장 내내 같이 (도련 11-23 · 1438) */
 .rx-fy { position: absolute; top: 50%; width: 104px; height: 96px; translate: 0 -54%; animation: rxFyBob 1.2s ease-in-out infinite; }
 .rx-fy.l { left: 6px; } .rx-fy.r { right: 6px; animation-delay: -.6s; }
 .rx-fy svg { width: 100%; height: 100%; overflow: visible; }
@@ -16,8 +16,8 @@
 .rx.hi .gf-wu, .rx.hi .gf-wd { animation-duration: .18s; }
 .rx.hi .gf-wnd { transform-box: fill-box; transform-origin: 0% 100%; animation: rxWave .5s ease-in-out infinite alternate; }
 @keyframes rxWave { from { rotate: -14deg; } to { rotate: 10deg; } }
-.rx-hi { position: absolute; left: 50%; top: 50%; translate: -50% -50%; text-align: center; white-space: nowrap; opacity: 0; scale: .85; transition: opacity .45s ease, scale .45s cubic-bezier(.3, 1.6, .5, 1); pointer-events: none; }
-.rx.hi .rx-hi { opacity: 1; scale: 1; }
+.rx-hi { position: absolute; left: 50%; top: calc(50% - 26px); translate: -50% -50%; text-align: center; white-space: nowrap; opacity: 0; scale: .85; transition: opacity .45s ease, scale .45s cubic-bezier(.3, 1.6, .5, 1); pointer-events: none; }
+.rx.on .rx-hi { opacity: 1; scale: 1; }   /* 인사 글씨 = 문 화면과 함께 바로 (게이지와 한꺼번에) */
 .rx-hi b { display: block; font-family: 'Jua', var(--system-font), sans-serif; font-weight: 400; font-size: 26px; color: #e2779f; text-shadow: 0 2px 0 #fffaf0, 1.5px 0 0 #fffaf0, -1.5px 0 0 #fffaf0, 0 -1.5px 0 #fffaf0, 0 3px 0 rgba(154, 110, 170, .28); }   /* 로그인 화면 제목 글씨와 같아요 */
 .rx-hi small { display: block; margin-top: 6px; font-family: 'Jua', var(--system-font), sans-serif; font-size: 16px; color: #9a6eaa; }
 .rx-hi small span { display: inline-block; animation: rxBeat 1s ease-in-out infinite; }

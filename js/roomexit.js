@@ -6,7 +6,7 @@
       · ✅ 완료 전 다이어리 · 그림판 임시저장은 규칙대로 이 기기에만 (드라이브에 안 올려요 · 도련 11-15)
       · 못 올렸으면 묻기 [다시 저장] [그대로 나가기 = 이 기기에 보관 → 다음에 켜면 올려요 (drive.js savePending · recoverPendingBackup)]
    ② 게이지 양옆 = 로그인 화면 요정 둘 (#gateLoginBtn · #gateGuestBtn 의 .gf-fy 를 그대로 복사 · 파랑은 거울로 마주 봐요 · 1416)
-   ③ 다 되면 게이지가 사라지고 다정한 인사 (요정 = 웃는 눈 · 요술봉 흔들기) → 문 화면 페이드아웃 → 🌙 어두운 화면 '불 꺼진 문' (팻말 살랑 · 하트 수면등 · 별 깜빡 · 글씨 없음 · 1416 도련 11-23 시안 C)
+   ③ 인사 글씨 = 처음부터 게이지 위에 같이 (도련 11-23 · 1438 '한꺼번에 · 글씨 밑에 게이지') · 다 되면 요정 = 웃는 눈 · 요술봉 흔들기 → 문 화면 페이드아웃 → 🌙 어두운 화면 '불 꺼진 문' (팻말 살랑 · 하트 수면등 · 별 깜빡 · 글씨 없음 · 1416 도련 11-23 시안 C)
       → 4초 뒤 앱 끄기 (window.close) · 💻 설치한 앱 창 = 닫혀요 · 🌐 브라우저 탭은 못 닫아서 그 그림이 그대로 · 톡 = 다시 들어오기 (새로 열기)
       · 시안 = 인수인계 작업_1123_방나가기시안/ (예전 1413 카메라 아웃은 없앴어요)
    💗 버튼 없이 끈 다음 = 이동 ▾ 를 가리키는 화살표 (도련 11-23 · 1414) : 💻 📲 책상이 보이면 이 기기에 '켜 둠' 표시 (localStorage malang_rx_open)
@@ -80,8 +80,8 @@
         + '</svg>';
     /* 💗 인사 → 페이드아웃 → 🌙 불 꺼진 문 → 앱 끄기 */
     async function leave(el) {
-        el.classList.add('hi');                                                 // 인사 (요정 웃는 눈 · 요술봉)
-        await wait(calm() ? 1500 : 2800);
+        el.classList.add('hi');                                                 // 요정 웃는 눈 · 요술봉 (인사 글씨는 처음부터 게이지 위에 · 1438)
+        await wait(calm() ? 800 : 1600);
         el.querySelector('.rx-night').innerHTML = NIGHT;
         el.classList.add('fade');                                               // 문 화면 페이드아웃
         await wait(calm() ? 400 : 1400);
@@ -110,8 +110,7 @@
             try { localStorage.removeItem(RX_OPEN); } catch (e) {}              // 💗 잘 나갔어요 (다음에 켤 때 화살표 없음)
             if (window.openOff) openOff();                                     // 🔌 드라이브에 이 기기 '꺼짐' (다른 기기에서 '꺼 주세요'가 안 떠요 · js/drive.js)
             await wait(450);
-            el.classList.add('done');                                           // 게이지 스르르 사라짐
-            await wait(calm() ? 50 : 450);
+            el.classList.add('done');                                           // 다 올렸어요 (게이지 · 글씨는 그대로 · 도련 11-23)
             await leave(el);
         } finally { busy = false; }
     }
