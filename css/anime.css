@@ -336,7 +336,6 @@ html.desk-on #dyModal .mt-back { visibility: hidden; }   /* 📔 책상에서는
 .abm-bk span { max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .abm-bk.on i { outline: 3px solid #ff8fb8; outline-offset: 3px; }
 .abm-bk.new::after { content: ''; position: absolute; top: 2px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: #ff6b8f; border: 2px solid #fff; }
-.abx-none .abm-books { margin-top: 14px; }
 .abs-bar .ab-tabs { margin: 0; width: min(380px, 40vw); }
 .abs-bar .ab-done { margin: 0; padding: 6px 16px; }
 .abs-fill { flex: 1; }

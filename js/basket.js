@@ -486,7 +486,7 @@
         const P = (t === 'bd' ? AB_BDP : AB_RL).find(p => p.id === x.pid), c = t === 'bd' ? abCol(x) : ['#f6f2fb', '#c9b8e6'];
         return `<button type="button" class="ab-freeb" onclick="${go}"><i class="ab-chip${t === 'rl' ? ' rl' : ''}" style="--c1:${c[0]};--c2:${c[1]}"></i><b>${esc(x.lb || (P && P.P.이름) || (t === 'bd' ? '바인더' : '이형지북'))}</b><small>${sub}</small></button>`;
     }
-    /* 📚 책 고르기 하나 (도련 11-23 '글씨 · 덧붙은 기능 싫어요' · 위 종류 ▾ 메뉴 · 빈 작업대 같이) : 표지 + 짧은 이름만
+    /* 📚 책 고르기 하나 (도련 11-23 '글씨 · 덧붙은 기능 싫어요' · 위 종류 ▾ 메뉴에만) : 표지 + 짧은 이름만
          · 이 서랍 책 = 톡 = 작업대에 올려요 (분홍 테두리 = 지금 작업대) · 📥 받아 둔 빈 책 = 분홍 점 · 톡 = 이 서랍으로 불러와 올려요
          · 빈 책 길게 누르기 = 서랍에서 빼기 (받아 둔 책으로 · 예전 ↩ 빼기 버튼) */
     function abBookGrid(t) {
@@ -516,7 +516,7 @@
         }, 600);
         document.addEventListener('pointerup', stop, true); document.addEventListener('pointercancel', stop, true); document.addEventListener('pointermove', far, true);
     }
-    function abTrayHtml(t) { return bkMsg(`${t === 'bd' ? '📒' : '🤍'} 작업대가 비었어요.`, abBookGrid(t)); }   // 🪑 빈 작업대 (✔ 이 책 완료로 치웠어요)
+    function abTrayHtml(t) { return bkMsg(`${t === 'bd' ? '📒' : '🤍'} 작업대가 비었어요.`, '<br><small>위 ▾ 에서 골라요</small>'); }   // 🪑 빈 작업대 (✔ 이 책 완료로 치웠어요) · 책 고르기는 위 종류 ▾ 메뉴 하나로 (가운데엔 안 둬요 · 도련 11-23)
     function abPlace(t, id) { const D = B.desk; if (!D) return; D[t] = id; if (t === 'bd') B.pg = 0; else D.rpg = 0; bkView(); }
     function abFreeOpen(t) {                                                  // 📥 불러오기 창 (책이 있을 때 다른 책을 더)
         const nm = t === 'bd' ? '바인더' : '이형지북', fr = abFreeHtml(t);
