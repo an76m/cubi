@@ -148,11 +148,10 @@
         /* 🏪 문방구 앞 전환 (도련 11-01 · 타로카페 · 오락실 문과 같은 전환) : 길에서 본 문방구(img/gacha-street.webp) → 캡슐기계 쪽으로 커지며 따뜻한 빛 → 캡슐기계 앞 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
         const GCS_GO = { cx: 1330, cy: 640 };                                     // 길 그림의 캡슐기계 셋 가운데 (그림 px)
         const GCS_PH = { W: 941, H: 1672, cx: 765, cy: 1010 };                  // 📱 세로 길 그림 (img/gacha-street-m.webp · 도련 11-09) · 빨간 캡슐기계 셋 가운데
-        function gcsApproach() {                                               // 🛣️ 문방구 앞 길 → 캡슐기계 (js/util.js placeGo)
-            placeGo({ id: 'gcsGo', cls: 'gcs-walk', wait: 700,
+        const gcsGo = () => ({ id: 'gcsGo', cls: 'gcs-walk', wait: 700,
                 land: { img: 'img/gacha-street.webp?v=20261009-1038', W: GCS_W, H: GCS_H, focus: [380, 1560, 60, 800], at: [GCS_GO.cx, GCS_GO.cy] },
                 port: { img: 'img/gacha-street-m.webp?v=20261009-1038', W: GCS_PH.W, H: GCS_PH.H, focus: [560, 941, 880, 1180], at: [GCS_PH.cx, GCS_PH.cy] } });   // 📱 기계 셋이 늘 보이게
-        }
+        function gcsApproach() { placeGo(gcsGo()); }                            // 🛣️ 문방구 앞 길 → 캡슐기계 (js/util.js placeGo)
         function gcSceneFit() {
             const st = gq('gcsStage'); if (!st) return;
             const { s, x, y } = coverFit(GCS_W, GCS_H, [790, 1615, 60, 700]);   // 그림 = 화면 꽉 (기본상품 샵처럼 · 흐린 배경 없이) · 우리 기계 + 메뉴판은 늘 보이게
@@ -252,6 +251,7 @@
 
         /* ---------- 열기 · 닫기 ---------- */
         async function openGacha() {
+            if (!(await placeReady(gcsGo()))) return;                            // ⏳ 길 그림이 준비되면 (단색 없이 · js/util.js)
             if (typeof closeModal === 'function') closeModal('serviceModal');
             if (gcSceneUse() && window.deskLeave) deskLeave();                     // 🏪 장소 : 달력 · 우체통 · 타로카페에 있었으면 떠나요
             gcBuild();

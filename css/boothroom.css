@@ -72,7 +72,6 @@
 /* 🚶 길 → 포토부스 앞 (캡슐기계 · 벽 달력과 같은 연출 · 색만 분홍 라벤더) */
 .bth-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #f3d9e8; }
 .bth-walk.on { display: block; }
-.bth-walk.on .bth-walk-in img { animation: troDoorIn .35s ease; }
 .bth-walk.leave { animation: troDoorOut .45s ease forwards; }
 .bth-walk-in { position: absolute; inset: 0; }
 .bth-walk-in img { position: absolute; max-width: none; user-select: none; -webkit-user-drag: none; }

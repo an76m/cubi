@@ -5,6 +5,7 @@
           🧩 조각스티커 · 📄 모조지스티커 = 태블릿 화면 안 그림 앱 (✏️ 직접 그리기 + 📎 사진 불러오기 · 사진 위에 그려도 돼요)
             조각 = 그린 모양대로 하얀 칼선 (js/stickermaker.js smAdd 'piece' · 🧩 봉투 하나) · 모조지 = 종이 한 장 그대로 (pmMakeSheet → smAdd 'paper')
    - 닫기 = 오른쪽 위 ✕ · 태블릿 바깥 톡 · Esc → 책상 자리로 작게 돌아가요
+   - 커지고 작아지는 동안에도 화면(앱 6개)은 그대로 보여요 (도련 11-23 · 예전엔 날아가는 동안 화면을 가렸어요)
    - 책상 위 작은 화면 (시계 · 앱 아이콘) = js/desk.js deskItemHtml (.dk-pad) */
 (function () {
     'use strict';
@@ -85,7 +86,6 @@
         if (q('tbWs') && q('tbWs').classList.contains('show')) { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); }
         IP.busy = true;
         const room = q('ipRoom'), pad = q('ipPad'), el = IP.el, S = el && el.isConnected ? el.getBoundingClientRect() : null, T = pad.getBoundingClientRect();
-        q('ipScr').classList.add('off');
         room.classList.remove('lit');
         if (S && S.width > 4 && !quiet() && S.bottom > 0 && S.top < innerHeight) {
             pad.classList.add('fly'); pad.style.transition = `transform ${FLY - 80}ms cubic-bezier(.5, 0, .7, .4)`;
@@ -94,7 +94,7 @@
         } else { pad.style.transition = 'opacity .2s'; pad.style.opacity = 0; await wait(200); }
         if (el) el.style.visibility = '';
         room.classList.remove('show'); pad.classList.remove('fly'); Object.assign(pad.style, { transition: '', transform: '', opacity: '' });
-        q('ipScr').classList.remove('off'); q('ipScr').innerHTML = '';
+        q('ipScr').innerHTML = '';
         document.body.classList.remove('ip-on');
         IP.on = false; IP.busy = false; IP.D = null; IP.app = null;
     }

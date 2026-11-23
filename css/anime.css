@@ -570,6 +570,7 @@ html.desk-edit .dky-lb { pointer-events: none; }   /* 🏷 다이어리 이름�
 .shop-home img { position: absolute; user-select: none; -webkit-user-drag: none; }
 .shop-home::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #ffd3e2 0, #ffdbe7 30%, #fbd0de 60%, rgba(251, 208, 222, .6) 85%); }
 .shop-scene.home .shop-home { opacity: 1; transition: opacity .45s ease; }
+.room-go.home:not(.home-go) .shop-home { transition: none; }   /* 🚪 다른 장소 → 내 방 = 문 그림이 준비된 뒤 화면째로 함께 (js/shopscene.js roomGo · 도련 11-23) */
 .shop-scene.home-go .shop-home { transition: transform 1.2s cubic-bezier(.4, 0, .8, .5), opacity .5s ease .9s; transform: scale(2.4); }
 .shop-scene.home-go .shop-home::after { transition: opacity .8s ease .3s; opacity: 1; }
 .shop-scene.home-go .shop-sign.home { transition: opacity .3s ease; opacity: 0; }

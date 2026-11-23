@@ -139,13 +139,12 @@
         const run = () => { if (!B.raf) B.raf = requestAnimationFrame(loop); };
 
         /* ---------- 🚶 길 → 포토부스 앞 (캡슐기계 · 벽 달력과 같은 연출 : 포토부스 쪽으로 빨려 들어가며 빛 · 뒤에서 미리 열어 둬요) ---------- */
-        function approach() {                                                  // 🛣️ 길 → 포토부스 (js/util.js placeGo)
-            placeGo({ id: 'bthWalk', cls: 'bth-walk', wait: 700,
+        const walkGo = () => ({ id: 'bthWalk', cls: 'bth-walk', wait: 700,
                 land: { img: 'img/booth-street.webp' + IMG_V, W: ST_W, H: ST_H, focus: [560, 1000, 260, 800], at: ST_BOOTH },
                 port: { img: 'img/booth-street-m.webp?v=20261009-1042', W: STM_W, H: STM_H, focus: [280, 660, 660, 1260], at: STM_BOOTH } });
-        }
-        function openBoothPlace() {
-            if (B.on) return;
+        function approach() { placeGo(walkGo()); }                              // 🛣️ 길 → 포토부스 (js/util.js placeGo)
+        async function openBoothPlace() {
+            if (B.on || !(await placeReady(walkGo())) || B.on) return;           // ⏳ 길 그림이 준비되면 (단색 없이 · js/util.js)
             approach();
             const el = build(); el.dataset.th = BTH_THEME();
             B.on = true; el.classList.add('show'); placeIn('bth-on'); fit(); run();

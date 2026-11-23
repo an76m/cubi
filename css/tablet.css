@@ -6,8 +6,7 @@
 .ip-room.lit .ip-dim { opacity: 1; }
 .ip-pad { position: absolute; transform-origin: 0 0; }
 .ip-img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-select: none; }
-.ip-scr { position: absolute; overflow: hidden; border-radius: 3.2% / 4.6%; transition: opacity .25s ease; display: flex; flex-direction: column; color: #5b3f4a; container-type: size; }
-.ip-pad.fly .ip-scr, .ip-scr.off { opacity: 0; }
+.ip-scr { position: absolute; overflow: hidden; border-radius: 3.2% / 4.6%; display: flex; flex-direction: column; color: #5b3f4a; container-type: size; }
 
 /* 🏠 홈 화면 */
 .ip-home { background: linear-gradient(#ffe6f0, #fff4e6 55%, #e8f3ff); align-items: center; }

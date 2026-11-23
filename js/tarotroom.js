@@ -81,12 +81,12 @@
            → 둥근 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
         const TRO_DOOR = { cx: 836, cy: 290, sy: 668 };                             // 달 창 가운데 · 문 위 '타로카페' 글자 자리 (그림 px)
         
-        function troDoor() {                                                   // 🚪 타로카페 문 (js/util.js placeGo)
-            placeGo({ id: 'troDoor', cls: 'tro-door', step: 'enter', snd: 'sndTarotDoor', sign: { cls: 'tro-door-sign', text: '✦ 타로카페 ✦' },
+        const troGo = () => ({ id: 'troDoor', cls: 'tro-door', step: 'enter', snd: 'sndTarotDoor', sign: { cls: 'tro-door-sign', text: '✦ 타로카페 ✦' },
                 land: { img: 'img/tarot-door.webp?v=20261009-1024', W: TRO_W, H: TRO_H, at: [TRO_DOOR.cx, TRO_DOOR.cy], sign: [TRO_DOOR.cx, TRO_DOOR.sy, 64] },
                 port: { img: 'img/tarot-door-m.webp?v=20261009-1035', W: TRO_PH.W, H: TRO_PH.H, at: [TRO_PH.door.cx, TRO_PH.door.cy], sign: [TRO_PH.door.cx, TRO_PH.door.sy, 60] } });
-        }
-        function openTarotRoom() {
+        function troDoor() { placeGo(troGo()); }                                // 🚪 타로카페 문 (js/util.js placeGo)
+        async function openTarotRoom() {
+            if (!(await placeReady(troGo()))) return;                            // ⏳ 문 그림이 준비되면 (단색 없이 · js/util.js)
             if (window.deskLeave) deskLeave();                                   // 달력 · 우체통에 있었으면 떠나요
             troDoor();                                                           // 🚪 문을 지나 들어가요 (방은 문 뒤에서 미리 열어 둬요)
             const el = troBuild();

@@ -116,7 +116,33 @@ function coverFit(W, H, focus) {
    길 → 그 자리로 빨려 들어가며 빛 (📅 달력 · 🎁 캡슐기계 · 💌 우체통 · 📸 포토부스) · 문 → 문 안으로 (🔮 타로카페 · 🕹️ 오락실) · 방은 뒤에서 미리 열어 둬요
    o = { id, cls (바깥 클래스 · 첫 이름 + '-in' = 안쪽 · 연출 = 각 css), step ('go' 길 · 'enter' 문), wait (그림을 보여 주는 ms), snd (소리 함수 이름),
          sign: { cls, text } (문 위 글자), land / port = { img, W, H, focus: [x0, x1, y0, y1] (늘 보일 곳), at: [x, y] (들어갈 곳), sign: [x, y, 글자 크기] } }
-   💻 📲 = land (가로 그림) · 📱 = port (세로 그림 · js/uimode.js UI.pick) · ✨ 움직임 줄이기면 안 해요 */
+   💻 📲 = land (가로 그림) · 📱 = port (세로 그림 · js/uimode.js UI.pick) · ✨ 움직임 줄이기면 안 해요
+   ⏳ 여는 함수는 먼저 await placeReady(o) (그림이 준비된 뒤에 = 단색 없이 그림째로 한꺼번에 · 도련 11-23)
+/* 🖼 그림 준비되면 (도련 11-23 · 연출 화면 공용 : 단색 바탕이 먼저 보이지 않게 그림이 다 그려질 준비가 된 뒤에 화면을 띄워요)
+   picReady(src, max) = 그 그림을 받아 그릴 준비까지 (한 번 받은 그림은 기억 · 실패하면 다음에 다시) · 늦으면 max ms (기본 1초) 에서 그냥 넘어가요 (멈춘 것처럼 보이지 않게)
+   그림 파일은 index.html 🖼 keepPics 목록에 있어야 기기 보관함에 남아요 (sw.js) */
+const PIC_OK = new Map();
+function picReady(src, max) {
+    if (!src) return Promise.resolve();
+    let p = PIC_OK.get(src);
+    if (!p) {
+        const im = new Image(); im.src = src;
+        p = (im.decode ? im.decode() : new Promise((ok, no) => { im.onload = ok; im.onerror = no; })).catch(() => { PIC_OK.delete(src); });
+        PIC_OK.set(src, p);
+    }
+    return Promise.race([p, waitMs(max == null ? 1000 : max)]);
+}
+window.picReady = picReady;
+/* placeReady(o) = 장소 여는 함수 맨 앞에서 (placeGo 와 같은 o) : 그 장소 첫 그림이 준비될 때까지 기다려요 · 기다리는 중에 또 누르면 false (두 번 열리지 않게) */
+const placeWait = {};
+async function placeReady(o) {
+    if (placeWait[o.id]) return false;
+    if (calmMotion()) return true;
+    placeWait[o.id] = true;
+    try { await picReady(UI.pick(o.land, o.port).img); } finally { placeWait[o.id] = false; }
+    return true;
+}
+window.placeReady = placeReady;
 const placeBusy = {};
 function placeGo(o) {
     if (placeBusy[o.id] || matchMedia('(prefers-reduced-motion: reduce)').matches) return;

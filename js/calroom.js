@@ -90,11 +90,10 @@
             crRender();
         }
         /* 🏠 거실 벽걸이 달력 전환 (도련 11-01 · 우체통 · 타로카페 · 캡슐기계와 같은 전환) : 햇살 드는 거실(img/cal-living.webp) → 벽의 달력 쪽으로 커지며 따뜻한 분홍빛 → 달력 · 동작 줄이기면 바로 */
-        function crApproach() {                                                 // 🏠 거실 → 벽걸이 달력 (js/util.js placeGo)
-            placeGo({ id: 'crGo', cls: 'pr-walk cr-walk',
+        const crGo = () => ({ id: 'crGo', cls: 'pr-walk cr-walk',
                 land: { img: 'img/cal-living.webp?v=20261009-1045', W: CR_W, H: CR_H, focus: [820, 1460, 60, 640], at: [1142, 278] },
                 port: { img: 'img/cal-living-m.webp?v=20261009-1037', W: CRM.W, H: CRM.H, focus: [560, 941, 380, 700], at: CRM.liv } });
-        }
+        function crApproach() { placeGo(crGo()); }                               // 🏠 거실 → 벽걸이 달력 (js/util.js placeGo)
         /* 📱 폰 벽걸이 달력 (도련 11-09) : 거실 → 달력 연출은 💻 📲 와 같고 · 달력(img/cal-room-m.webp) 아래 빈 칸에 예전 폰 버튼 셋 (📅 출석 도장판 · 🩷 생리 달력 · ⏳ D-day = 원래 창을 그대로 열어요)
            그림은 가로를 맞춰 달력이 다 보이게 (남는 곳 = 그림 가장자리 분홍) · 나가기 = 오른쪽 위 '이동' */
         const CRM = { W: 941, H: 1672, box: [70, 762, 873, 1277], liv: [786, 530] };
@@ -121,7 +120,8 @@
             const [l, tp, r, b] = P.box;
             Object.assign(crq('crmBox').style, { left: x + l * s + 'px', top: y + tp * s + 'px', width: (r - l) * s + 'px', height: (b - tp) * s + 'px' });
         }
-        function openCalRoom() {
+        async function openCalRoom() {
+            if (!(await placeReady(crGo()))) return;                             // ⏳ 거실 그림이 준비되면 (단색 없이 · js/util.js)
             if (window.closePostRoom) closePostRoom();
             if (UI.tall()) { crApproach(); const el = crmBuild(); el.classList.add('show'); crmFit(); placeIn('cal-on'); return; }   // 📱
             crApproach();                                                        // 🏠 거실 → 벽걸이 달력 (달력은 뒤에서 미리 열어 둬요)

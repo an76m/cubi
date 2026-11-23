@@ -102,12 +102,12 @@
             if (v === 'fb') prq('feedbackInput').focus();
         }
         /* 🌙 강변 우체통 전환 (도련 11-01 · 타로카페 · 오락실 · 캡슐기계와 같은 전환) : 밤 강변 길(img/post-street.webp) → 가로등 아래 빨간 우체통 쪽으로 커지며 노란 · 보랏빛 → 우체통 · 동작 줄이기면 바로 */
-        function prApproach() {                                                // 🌙 강변 길 → 우체통 (js/util.js placeGo)
-            placeGo({ id: 'prGo', cls: 'pr-walk',
+        const prWalk = () => ({ id: 'prGo', cls: 'pr-walk',
                 land: { img: 'img/post-street.webp?v=20261009-1041', W: PR_W, H: PR_H, focus: [700, 1420, 100, 700], at: [1062, 450] },
                 port: { img: 'img/post-street-m.webp?v=20261009-1041', W: PR_PH.W, H: PR_PH.H, focus: [380, 760, 850, 1150], at: [PR_PH.street.cx, PR_PH.street.cy] } });
-        }
-        function openPostRoom() {
+        function prApproach() { placeGo(prWalk()); }                              // 🌙 강변 길 → 우체통 (js/util.js placeGo)
+        async function openPostRoom() {
+            if (!(await placeReady(prWalk()))) return;                             // ⏳ 길 그림이 준비되면 (단색 없이 · js/util.js)
             if (window.closeCalRoom) closeCalRoom();
             prApproach();                                                        // 🌙 강변 길 → 우체통 (우체통은 뒤에서 미리 열어 둬요)
             const el = prBuild();

@@ -130,12 +130,12 @@
         }
         /* 🚪 오락실 문 (기본상품 샵 · 타로카페처럼) */
         const ARO_PH = { W: 941, H: 1672, cx: 470, cy: 860, sy: 160 };          // 📱 세로 분홍 유리문 (img/arcade-door-m.webp · 도련 11-09) · 손잡이 사이 · '뿅뿅오락실' 글자 자리
-        function aroDoor() {                                                   // 🚪 오락실 분홍 유리문 (js/util.js placeGo)
-            placeGo({ id: 'aroDoor', cls: 'aro-door', step: 'enter', snd: 'sndArcadeDoor', sign: { cls: 'aro-door-sign', text: '뿅뿅오락실' },
+        const aroGo = () => ({ id: 'aroDoor', cls: 'aro-door', step: 'enter', snd: 'sndArcadeDoor', sign: { cls: 'aro-door-sign', text: '뿅뿅오락실' },
                 land: { img: 'img/arcade-door.webp?v=20261009-1035', W: ARO_W, H: ARO_H, focus: [500, 1170, 80, 800], at: [836, 600], sign: [836, 150, 46] },
                 port: { img: 'img/arcade-door-m.webp?v=20261009-1039', W: ARO_PH.W, H: ARO_PH.H, focus: [60, 880, 100, 1100], at: [ARO_PH.cx, ARO_PH.cy], sign: [ARO_PH.cx, ARO_PH.sy, 72] } });
-        }
-        function openArcRoom() {
+        function aroDoor() { placeGo(aroGo()); }                                // 🚪 오락실 분홍 유리문 (js/util.js placeGo)
+        async function openArcRoom() {
+            if (!(await placeReady(aroGo()))) return;                            // ⏳ 문 그림이 준비되면 (단색 없이 · js/util.js)
             if (window.deskLeave) deskLeave();
             if (UI.tall()) { aroDoor(); if (window.openArcade) openArcade(); return; }   // 📱 분홍 유리문 → 바로 오락기 13개 창 (🏆 명예의 전당 = 창 맨 위 · 도련 11-09)
             if (typeof warmServer === 'function' && typeof HOF_API_URL !== 'undefined' && HOF_API_URL) warmServer(HOF_API_URL);   // 🏆 명예의 전당 서버 미리 깨우기

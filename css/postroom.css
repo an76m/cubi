@@ -48,7 +48,6 @@ body.post-on .desk-top-r { display: none; }
 /* 🌙 강변 우체통 전환 (도련 11-01 · js/postroom.js prApproach · 타로카페 · 오락실 · 캡슐기계와 같은 전환) : 처음부터 불투명 · 그림만 스르르 → 우체통 쪽으로 커지며 노란 · 보랏빛 */
 .pr-walk { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #3b3566; }
 .pr-walk.on { display: block; }
-.pr-walk.on .pr-walk-in img { animation: troDoorIn .35s ease; }
 .pr-walk.leave { animation: troDoorOut .4s ease forwards; }
 .pr-walk-in { position: absolute; inset: 0; }
 .pr-walk-in img { position: absolute; user-select: none; -webkit-user-drag: none; }

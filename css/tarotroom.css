@@ -50,8 +50,7 @@ body.tarot-on .desk-top-r { display: none; }
 
 /* 🚪 타로카페 문 (도련 10-31 · 기본상품 샵 들어갈 때처럼 · js/tarotroom.js troDoor) : 문 → 달 창 쪽으로 다가가며 보랏빛 · 금빛 → 타로카페 */
 .tro-door { display: none; position: fixed; inset: 0; z-index: 1700; overflow: hidden; background: #241a3a; }
-.tro-door.on { display: block; }   /* 처음부터 불투명 (뒤의 타로카페가 먼저 비치지 않게 · 도련 11-01) · 그림만 스르르 */
-.tro-door.on .tro-door-in img, .tro-door.on .tro-door-sign { animation: troDoorIn .35s ease; }
+.tro-door.on { display: block; }   /* 처음부터 불투명 (뒤의 타로카페가 먼저 비치지 않게 · 도련 11-01) · 그림은 준비된 뒤에 함께 떠요 (js/util.js placeReady · 도련 11-23) */
 .tro-door.leave { animation: troDoorOut .4s ease forwards; }
 .tro-door-in { position: absolute; inset: 0; }
 .tro-door-in img { position: absolute; user-select: none; -webkit-user-drag: none; }
@@ -62,7 +61,7 @@ body.tarot-on .desk-top-r { display: none; }
 .tro-door.enter .tro-door-in { transition: transform 1.4s cubic-bezier(.4, 0, .8, .5) .15s, opacity .5s ease 1.15s; transform: scale(2.6); opacity: 0; }
 .tro-door.enter .tro-door-in::after { transition: opacity .8s ease .45s; opacity: 1; }
 .tro-door.enter .tro-door-sign { transition: opacity .3s ease; opacity: 0; }
-@keyframes troDoorIn { from { opacity: 0; } } @keyframes troDoorOut { to { opacity: 0; } }
+@keyframes troDoorOut { to { opacity: 0; } }
 
 /* 📱 폰 = 세로 그림 941 × 1672 (도련 11-09 · js/tarotroom.js TRO_PH) : 그림은 화면 아래에 붙고 남는 위는 하늘색 · 연출 자리만 세로 그림에 맞춰요 */
 .tro-room.ph { background: #201e55; }

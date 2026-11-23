@@ -34,12 +34,7 @@
             door: { img: 'img/shop-door-m.webp', sign: [472, 750, 320, 140], go: [472, 970] } };
         const shopC = c => { const A = shopData() || {}, D = A[c || 'stk']; if (!D || !SC.ph) return D; const P = (A[' ph'] || {})[c || 'stk']; return P ? Object.assign({}, D, { img: P.img, W: P.W, H: P.H, sign: P.sign }) : D; };   // 📱 이름 · 칸 · 팻말 = 💻 것 · 그림 · 간판 = 폰 것
         /* 🖼 구역 그림 미리 받기 (도련 11-04 : 처음 걸어갈 때 그림이 늦게 떠서 이름만 먼저 바뀌었어요) : 가게에 들어갈 때 모두 받아 두고 · 옮길 땐 그 그림이 준비된 뒤에 바꿔요 */
-        const SHOP_PIC = new Map();
-        function shopPic(src) {
-            if (!SHOP_PIC.has(src)) { const im = new Image(); im.src = src; SHOP_PIC.set(src, (im.decode ? im.decode() : Promise.resolve()).catch(() => {})); }
-            return SHOP_PIC.get(src);
-        }
-        const shopPicAll = () => { if (shopData()) SHOP_CN.forEach(c => shopPic(shopC(c).img)); };
+        const shopPicAll = () => { if (shopData()) SHOP_CN.forEach(c => picReady(shopC(c).img)); };   // 🖼 js/util.js picReady (그림 준비 공용)
         const HOME_SIGN = { cx: 836, cy: 490, w: 420, h: 200 };                   // 🚪 내 방 문 타원 판 안쪽 (img/room-door.webp px · 도련 10-30)
         const SC = { on: false, busy: false, corner: '', spots: [], ph: false, bag: false };
 
@@ -80,7 +75,7 @@
             const el = document.getElementById('shopScene'); if (!el || !SC.on || SC.busy || (k && (k === 'stk' || !shopC(k) || !shopCnOn(k))) || SC.corner === k) return;
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display && m.style.display !== 'none') { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const go = () => { SC.corner = k; shopSpotsPaint(); shopFit(); };
-            const pic = Promise.race([shopPic(shopC(k).img), new Promise(r => setTimeout(r, 4000))]);   // 그림이 준비되면 (늦어도 4초)
+            const pic = picReady(shopC(k).img, 4000);   // 그림이 준비되면 (늦어도 4초)
             if (calmMotion()) { SC.busy = true; pic.then(() => { SC.busy = false; go(); }); return; }
             const d = shopWayDir(k || SC.corner), toL = k ? d === 'l' : d !== 'l';   // 왼쪽 코너로 = 화면이 오른쪽으로 밀려요 (내가 왼쪽으로 걸어가니까)
             SC.busy = true; el.classList.remove('walk-in', 'from-l', 'from-r'); el.classList.add('walk-out', toL ? 'to-r' : 'to-l');
@@ -112,10 +107,11 @@
         }
         /* 📱 폰 = 다이어리 문 (도련 11-10 · img/room-door-m.webp 941 × 1672 · 타원 판에 '다이어리' · 폰은 내 방이 없어요 → 하단 메뉴 넷이 있는 다이어리로) */
         const HOME_PH = { W: 941, H: 1672, img: 'img/room-door-m.webp?v=20261009-1048', sign: { cx: 465, cy: 622, w: 420, h: 220 }, go: 880 };
+        const homeSrc = () => UI.tall() ? HOME_PH.img : 'img/room-door.webp?v=20261009-923';   // 🚪 내 방 문 그림 (📱 = 다이어리 문)
         function homeFit(el) {                                                  // 🚪 내 방 문 (가게 · 다른 장소에서 돌아올 때 같은 문 · roomGo)
             const ph = UI.tall(), W = ph ? HOME_PH.W : DOOR_W, H = ph ? HOME_PH.H : DOOR_H, S = ph ? HOME_PH.sign : HOME_SIGN;
             const D = shopCover(W, H), hm = el.querySelector('.shop-home img'), hs = el.querySelector('.shop-sign.home');
-            const src = ph ? HOME_PH.img : 'img/room-door.webp?v=20261009-923'; if (hm.getAttribute('src') !== src) hm.setAttribute('src', src);
+            const src = homeSrc(); if (hm.getAttribute('src') !== src) hm.setAttribute('src', src);
             hs.querySelector('b').textContent = UI.desk() ? '내 방' : '다이어리';   // ▤ 하단 메뉴 화면(📱 · 💻 📲) = 다이어리로
             hm.style.width = W * D.s + 'px'; hm.style.height = H * D.s + 'px'; hm.style.left = D.x + 'px'; hm.style.top = D.y + 'px';
             hs.style.left = (D.x + S.cx * D.s) + 'px'; hs.style.top = (D.y + S.cy * D.s) + 'px'; hs.style.width = S.w * D.s + 'px'; hs.style.height = S.h * D.s + 'px'; hs.style.fontSize = (S.h * D.s * (ph ? .4 : .36)) + 'px';
@@ -129,20 +125,26 @@
             if (calmMotion()) { leave(); return; }
             let el = document.getElementById('roomGo');
             if (!el) { el = document.createElement('div'); el.id = 'roomGo'; el.className = 'shop-scene room-go'; el.innerHTML = `<div class="shop-home"><img src="img/room-door.webp?v=20261009-923" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>`; document.body.appendChild(el); }
-            roomBusy = true; homeFit(el);
-            el.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('home')));
+            roomBusy = true;
+            picReady(homeSrc()).then(() => {                                    // ⏳ 문 그림이 준비되면 = 문째로 한꺼번에 (단색 바탕 먼저 X · 도련 11-23)
+            homeFit(el); el.classList.add('on', 'home');
             setTimeout(leave, 550);
             setTimeout(() => el.classList.add('home-go'), 1000);
             setTimeout(() => { el.classList.add('leave'); setTimeout(() => { el.classList.remove('on', 'home', 'home-go', 'leave'); roomBusy = false; }, 380); }, 2300);
+            });
         }
         window.roomGo = roomGo;
         /* 🚪 → 🩷 → 🏪 */
+        const shopDoorSrc = () => UI.tall() ? SHOP_PH.door.img + SHOP_PH.v : 'img/shop-door.webp?v=20261009-819';   // 🚪 가게 문 그림 (📱 = 세로 문)
         function shopSceneOpen() {
             if (!shopData() || (UI.tall() && !shopData()[' ph'])) { if (window.showMsg) showMsg('🏪 기본상품 샵을 준비하는 중이에요<br>잠시 뒤에 다시 와 주세요'); return; }   // 🏪 샵 코너가 없으면 (예전 기본상품 샵 창은 영구 삭제 · 도련 11-10)
             if (SC.on || SC.busy) return;
+            SC.busy = true; picReady(shopDoorSrc()).then(() => { SC.busy = false; shopSceneIn(); });   // ⏳ 문 그림이 준비되면 = 문째로 한꺼번에 (도련 11-23 · js/util.js)
+        }
+        function shopSceneIn() {
             SC.ph = UI.tall(); SC.bag = UI.desk();   // 🏘️ 📱 세로 가게 · 🛍️ 봉투 = 💻 📲 책상에서만 (하단 메뉴 · 📱 = 바로 서랍)
             const el = shopBuild(); el.classList.toggle('ph', SC.ph);
-            { const di = el.querySelector('.shop-door img'), src = SC.ph ? SHOP_PH.door.img + SHOP_PH.v : 'img/shop-door.webp?v=20261009-819'; if (di.getAttribute('src') !== src) di.setAttribute('src', src); }
+            { const di = el.querySelector('.shop-door img'), src = shopDoorSrc(); if (di.getAttribute('src') !== src) di.setAttribute('src', src); }
             SC.corner = ''; shopSpotsPaint(); shopPicAll();   // 🖼 구역 그림 미리
             if (window.deskReset) deskReset();                                   // 🧹 책상 위 창은 닫고 · 꺼내 둔 상품은 제자리로 (도련 11-05 · 11-11 · js/desk.js)
             document.querySelectorAll('.modal').forEach(m => { if (m.style.display === 'flex' || m.style.display === 'block') { const x = m.querySelector('.mt-x'); if (x) x.click(); else m.style.display = 'none'; } });
@@ -163,9 +165,12 @@
             ['shelfKindModal', 'shelfCornerModal'].forEach(id => { const m = document.getElementById(id); if (m && m.style.display !== 'none' && m.style.display) { if (window.shZoomOff) shZoomOff(); m.style.display = 'none'; } });
             const done = () => { el.classList.remove('on', 'inside', 'enter', 'leave', 'home', 'home-go'); SC.on = false; SC.busy = false; const L = window.SHOP_BAG || []; window.SHOP_BAG = []; if (L.length && window.deskBagAdd) setTimeout(() => deskBagAdd(L), 250); };   // 🛍️ 산 것을 봉투에 담아 책상 위에 (js/desk.js)
             if (quick === true || calmMotion()) { el.classList.add('leave'); setTimeout(done, 380); return; }
-            SC.busy = true; shopFit(); el.classList.add('home');
+            SC.busy = true;
+            picReady(homeSrc()).then(() => {                                    // ⏳ 내 방 문 그림이 준비되면
+            shopFit(); el.classList.add('home');
             setTimeout(() => el.classList.add('home-go'), 1000);
             setTimeout(() => { el.classList.add('leave'); setTimeout(done, 380); }, 2300);
+            });
         }
         function shopSpot(k) {
             if (SC.busy || !window.shOpenKind) return;
