@@ -379,7 +379,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .abx-tag { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 10px 0 0; }   /* 🏷️ 라벨 · 몇 장 · 빼기 = 책 아래 가운데 (도련 11-22) */
 .abx-tag .ab-lbdesk { flex: 0 1 200px; background: #fffdf6; border-color: var(--ol); }   /* 🏷️ 라벨 = 똑바로 (도련 11-22 · css/style.css .ab-lbdesk 도) */
 .abx-cnt { flex: none; padding: 3px 9px; border-radius: 999px; background: #fffaf2; color: #8a5a6e; font-size: 11.5px; font-weight: 700; }
-.abx-full { margin: 0 0 6px; font-size: 12px; color: #b23b6c; }
 .abx-pg { position: relative; box-sizing: border-box; height: var(--ph, 520px); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3.2%; padding: 6% 5% 9%; border: 1.6px solid var(--ol); border-radius: 6px; background: #fffefb; }
 .abx-pg.end { background: #fbf6ef; background-image: repeating-linear-gradient(0deg, transparent 0 22px, #f1e6d8 22px 23px); }
 .abx-pg .ab-pk { position: relative; min-height: 0; padding: 12% 7% 7%; border: 1.6px solid #9cbfd8; border-radius: 4px; background: #eaf4fb; color: #7d9db6; font-size: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
@@ -457,8 +456,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 /* 🤍 스프링 이형지북 (왼쪽 스프링 · 반짝이는 이형지 · 뒤로 겹친 종이) */
     background-color: #fdfcff; background-image: repeating-linear-gradient(125deg, transparent 0 46px, #f2eef9 46px 70px, transparent 70px 96px, #f7f4fb 96px 104px) !important; }
 .abs-book .ab-rel.srt.ab-over, .abs-book .ab-rel.srt.ready { outline: 2px dashed #ff6b88; outline-offset: -6px; }   /* 🤍 여기에 놓여요 */
-.abx-none { width: 100%; padding: 30px 14px; border: 2px dashed var(--ol); border-radius: 18px; background: rgba(255,250,242,.9); }
-.abs-book .abx-none { width: min(420px, 42vw); min-height: 200px; padding: 44px 20px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; } .ab-ph .abs-book .abx-none { width: 100%; }
 .abs-basket.ab-over { outline: 3px dashed #ff6b88; outline-offset: 4px; border-radius: 16px; } .abx-mat.ab-over { outline: 3px dashed #fff; outline-offset: -8px; }   /* 📒 꽂은 종이 → 바구니 · 🤍 이형지북 스티커 → 매트 (여기에 놓여요) */
 .abx-pg .ab-pk.full { cursor: grab; } .ab-pk.ab-lifted .bk-sh { opacity: .35; }
 /* 🧺 톡 = 그 종이를 맨 위로 (겹친 바구니에서 보기 · 도련 10-29) · 끄는 종이는 떼는 판 위로 */

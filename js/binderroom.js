@@ -19,7 +19,7 @@
                 <div class="bnd-garland" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
                 <button type="button" class="bnd-go desk-shop-go" id="bndGo">닫기</button></div>
             <div class="bnd-mat">
-                <div class="bnd-panel bnd-basket" id="bndBasket"><h3>🧺 재료 바구니 <small>톡 · 끌어서 작업대로</small></h3>
+                <div class="bnd-panel bnd-basket" id="bndBasket"><h3>🧺 재료 바구니</h3>
                     <div class="bnd-sec"><b>🗂️ 표지</b><div class="bnd-grid" id="bndCovers"></div></div>
                     <div class="bnd-sec"><b>📄 내지</b><div class="bnd-grid" id="bndRefills"></div></div></div>
                 <div class="bnd-panel bnd-work"><div class="bnd-top"><span class="bnd-wt" id="bndWorkT">작업대</span><span class="bnd-mine" id="bndMine"></span>
@@ -105,15 +105,14 @@
         bq('bndCovers').innerHTML = covers.map(c => cvCard(c, c.t === 'cover' && c.from === 'mine' && window.dymGet && dymGet(c.id) ? `<i class="bnd-ed" data-ed="cover:${esc(c.id)}" title="고치기">✏️</i>` : '')).join('');   // 표지 얻는 곳 안내 글 없앰 (도련 11-21)
         const refills = dmkRmPool('refill');
         const fit = r => cv && (date ? r.t === 'drefill' : r.t === 'refill') && r.n === n;
-        bq('bndRefills').innerHTML = refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('')
-            + (refills.length ? '' : `<div class="bnd-hint">📄 내지는 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵 → 📅 날짜 내지 · 📄 페이지 내지에서 받아요</div>`);
+        bq('bndRefills').innerHTML = refills.sort((a, b) => fit(b) - fit(a)).map(r => rfCard(r, cv && cv.r).replace('class="bnd-card bnd-rf"', `class="bnd-card bnd-rf${cv && !fit(r) ? ' off' : ''}"`)).join('');
         /* 작업대 */
         bq('bndWorkT').textContent = s.id ? '✏️ ' + (s.g || '내 바인더') + ' 고치기' : '작업대';
         const mine = (window.dmkAll ? dmkAll() : []).filter(d => d.t === 'binder' && !(window.dmkFilledMax && dmkFilledMax(d.id) > 0));   // ✏️ 고치기 = 아직 안 쓴 바인더만 (꾸민 페이지가 있으면 = 쓴 바인더 · 안 보여요 · 도련 11-21)
         bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}${window.dmkLocked && dmkLocked(d.id) ? ' disabled' : ''}>${window.dmkLocked && dmkLocked(d.id) ? '🔒 ' : ''}${esc(d.g)}</option>`).join('')}</select>` : '';
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
         const bench = bq('bndBench');
-        if (!cv) { bookOff(); bench.innerHTML = `<div class="bnd-place" id="bndDrop"><b>🗂️</b><span>바구니에서 표지를 골라 여기에 놓아요</span></div>`; }
+        if (!cv) { bookOff(); bench.innerHTML = ''; }   // 빈 작업대 = 아무것도 (안내 글 없이 · 도련 11-23)
         else {
             if (!bq('bndBookHost')) bench.innerHTML = '<div class="bnd-bookhost" id="bndBookHost"></div><div class="bnd-sheets" id="bndSheets"></div>';
             bookShow(cv, s, date, lock);

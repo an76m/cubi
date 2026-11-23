@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611232212">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611232343">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611232212', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611232343', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -45,7 +45,7 @@
     <link rel="preload" as="image" href="img/gate-tall.webp?v=7bdb387444" media="(max-aspect-ratio: 1/1)">
     <link rel="stylesheet" href="css/style.css?v=7e183ff88f">
     <link rel="stylesheet" href="css/dakku.css?v=14c7d5b804">
-    <link rel="stylesheet" href="css/anime.css?v=8282513daf">
+    <link rel="stylesheet" href="css/anime.css?v=406aff1ca0">
     <link rel="stylesheet" href="css/boothroom.css?v=8b3a99af67">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
     <link rel="stylesheet" href="css/calroom.css?v=5a5e7b4246">   <!-- 📅 달력 (💻 📲 · js/calroom.js) -->   <!-- 🎬 애니 스타일 (맨 뒤 · js/anime.js) -->
     <link rel="stylesheet" href="css/postroom.css?v=cb8a8ccb94">   <!-- 📮 우체통 (💻 📲 · js/postroom.js) -->
@@ -60,7 +60,7 @@
     <link rel="stylesheet" href="css/padpaint.css?v=d2d97b5ad0">   <!-- 🎨 태블릿 그림판 (js/padpaint.js) -->
     <link rel="stylesheet" href="css/phonepaint.css?v=9e0758e505">   <!-- 📱 폰 그림판 · 🖨 폰 프린터 (도련 11-14) -->
     <link rel="stylesheet" href="css/pagedone.css?v=41db3a5f04">   <!-- ✅ 다이어리 페이지 완료 (js/pagedone.js) -->
-    <link rel="stylesheet" href="css/binderroom.css?v=da42a3a0c7">   <!-- 🧩 바인더 조립 공간 (981) -->
+    <link rel="stylesheet" href="css/binderroom.css?v=2e71995c84">   <!-- 🧩 바인더 조립 공간 (981) -->
     <link rel="stylesheet" href="css/sheetmaker.css?v=3f9136d5e3">   <!-- 🗂️ 시트 꾸미기 (js/sheetmaker.js) -->   <!-- 🎨 다꾸 작업실 (js/craft.js) -->
     <link rel="stylesheet" href="css/tarotroom.css?v=efb5f9ff05">   <!-- 🔮 타로카페 (💻 📲 · js/tarotroom.js) -->
     <link rel="stylesheet" href="css/arcroom.css?v=4385212313">   <!-- 🕹️ 뿅뿅오락실 장소 (💻 📲 · js/arcroom.js) -->
@@ -819,7 +819,7 @@
     <script src="js/deskskin.js?v=795e15a1f1"></script>   <!-- 🧱 벽지 · 🪵 책상 (책상 화면 · 샵 책상 소품 · 소품함) -->   <!-- 🌈 배경지 = 상품 (샵에서 받기 · 보관함 · 버리기) -->   <!-- 📔 기본 다이어리 = 1년짜리 날짜 다이어리 · 해마다 기본상품 샵에서 받기 · 다이어리 보관소 -->
     <script src="js/dkguide.js?v=7269b4a46b"></script>   <!-- 🩷 처음 쓰는 사람용 다꾸하는 법 메모 -->
     <script src="js/dymaker.js?v=ae4e3d9993"></script>
-    <script src="js/binderroom.js?v=5f2d75492b"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
+    <script src="js/binderroom.js?v=e91863c5ce"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
     <script src="js/pattern-maker.js?v=c2b4573ad0"></script>
     <script src="js/doll-art.js?v=f915514812"></script>
     <script src="js/doll-render.js?v=ff511cb454"></script>
@@ -911,7 +911,7 @@
     <script src="js/wall.js?v=45d55309ec"></script>
     <script src="js/arrival.js?v=aab1d09b48"></script>
     <script src="js/own.js?v=bf7afced9d"></script>   <!-- 🎒 유한 스티커 : 내 종이 저장 · 한 번 쓰면 영원히 사라져요 -->
-    <script src="js/basket.js?v=d7931575eb"></script>   <!-- 🧺 내 바구니 · 🏪 기본상품 샵 -->
+    <script src="js/basket.js?v=58303d3f4c"></script>   <!-- 🧺 내 바구니 · 🏪 기본상품 샵 -->
     <script src="js/stktray.js?v=697d373956"></script>   <!-- 🍽 오늘 쓸 스티커 : 고르기 · 쟁반 (📱 폰만 · 저장 안 함) -->
     <script src="js/itemshare.js?v=48b92b95db"></script>   <!-- 📤 공유 파일로 저장 · 📥 불러오기 (받으면 그 계정의 새 1개) -->
     <script src="js/shopscene.js?v=5d497368f0"></script>

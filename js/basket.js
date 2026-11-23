@@ -471,11 +471,7 @@
         ['bd', 'rl'].forEach(t => { B.bagAl[t] = (a[t] || []).filter(b => H.b.has(b.id)); a[t] = (a[t] || []).filter(b => !H.b.has(b.id)); });
         return a;
     }
-    const abNoneMsg = t => {                                                  // 바인더 · 이형지북이 없어요 (봉투에 있으면 꺼내라고)
-        const nm = t === 'bd' ? '바인더' : '이형지북', jo = t === 'bd' ? '가' : '이';
-        if (abFreeBag(t)) return bkMsg(`🛍️ ${nm}${jo} 아직 책상 위 봉투에 있어요.`, '<br><small>봉투에서 꺼내 책상에 놓으면 여기에서 불러와 써요</small>');
-        return bkMsg(`아직 ${nm}${jo} 없어요.`, `<button type="button" class="btn bk-again" onclick="abGoShelf()">🏪 기본상품 샵에서 ${nm} 받아 오기</button>`);
-    };    /* 📥 받아 둔 책 (종류 없는 · 봉투에서 꺼낸 것만) → 이 서랍으로 불러오기 · 빈 책 ↩ 빼기 (도련 11-08) */
+    /* 📥 받아 둔 책 (종류 없는 · 봉투에서 꺼낸 것만) → 이 서랍으로 불러오기 · 빈 책 ↩ 빼기 (도련 11-08) */
     const abFreeOk = t => (t === 'bd' ? BD_KINDS : REL_KINDS).has(B.kind);
     const abFreeIn = t => { const H = bkHold(), have = new Set(((B.album || {})[t] || []).map(x => x.id)); return frAll(t).filter(x => !have.has(x.id) && (t === 'bd' ? AB_BDP : AB_RL).some(p => p.id === x.pid)); };
     const abFreeList = t => { const H = bkHold(); return abFreeOk(t) ? abFreeIn(t).filter(x => !(H && H.b && H.b.has(x.id))) : []; };
@@ -957,15 +953,14 @@
         let book;                                                             // 📚 책 = 책 엔진 (js/book.js · 책상에 띄운 책과 같은 모습 · 도련 11-22 '공통은 통일') · 그리기는 abSpaceBook (자리 크기를 잰 뒤)
         if (D.mode === 'bd') {
             const L = abMine(B.album.bd), b = D.bd === '' ? null : L.find(x => x.id === D.bd) || L[0];   // '' = 빈 작업대 (✔ 이 책 완료로 치웠어요)
-            if (!b) book = L.length || abFreeList('bd').length ? '' : `<div class="abx-none">${abNoneMsg('bd')}</div>`;   // 🪑 빈 작업대 = 아무것도 안 둬요 (깔끔하게 · 도련 11-23 · 고르기는 위 ▾)
+            if (!b) book = '';                                                  // 🪑 빈 작업대 = 아무것도 안 둬요 (안내 글 · 샵 버튼 없이 · 도련 11-23 · 고르기는 위 ▾)
             else {
-                D.bd = b.id; const full = Object.keys(b.p).length >= b.n;
-                book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('bd', b, `${Object.keys(b.p).length} / ${b.n}장`)
-                    + (full ? `<div class="abx-full">📒 가득 찼어요 · ${abFreeList('bd').length ? `<button type="button" class="ab-mini" onclick="abFreeOpen('bd')">📥 다른 바인더 불러오기</button>` : `<button type="button" class="ab-mini" onclick="abGoShelf()">🏪 새 바인더 받기</button>`}</div>` : '');
+                D.bd = b.id;
+                book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('bd', b, `${Object.keys(b.p).length} / ${b.n}장`);   // 가득 = 장수로 보여요 (안내 줄 없이 · 도련 11-23)
             }
         } else {
             const L = abMine(B.album.rl), r = D.rl === '' ? null : L.find(x => x.id === D.rl) || L[0];
-            if (!r) book = L.length || abFreeList('rl').length ? '' : `<div class="abx-none">${abNoneMsg('rl')}</div>`;
+            if (!r) book = '';
             else {
                 D.rl = r.id; D.rpg = Math.max(0, Math.min(r.n - 1, D.rpg || 0));
                 book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('rl', r, abRelCnt(r));   // 이름표 줄 = 책 아래 (도련 11-22)
