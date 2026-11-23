@@ -2003,7 +2003,7 @@
             if (!fresh.length) return;
             try { localStorage.setItem(OPEN_TOLD, JSON.stringify(told.filter(k => on.some(f => k.startsWith(f.id + '@'))).concat(fresh).slice(-20))); } catch (e) {}   // 띄우기 전에 적어요 (✕ 로 닫아도 한 번)
             diag('otheron', { n: fresh.length });
-            setTimeout(() => { if (window.showMsg) showMsg('📱 다른 기기에서 말랑달콤이 켜져 있어요.<br>그 기기를 꺼 주세요.<br><span style="font-size:12px;color:#777;">두 기기를 같이 켜 두면 먼저 켠 기기는 저장을 멈춰요<br>끌 때는 💗 내 방 나가기로 나가면 저장하고 꺼져요</span>'); }, 1500);
+            setTimeout(() => { if (window.showWarn) showWarn('경고! 다른 기기에서도 말랑달콤이 켜져 있어요.<br>지금 이 기기에서 쓰면, 저쪽 기기에서 아직 저장 안 한 것은 <b class="dk-warnw">사라져요.</b><br><span style="font-size:13px;color:#8a5a66;">저쪽 기기에서 💗 내 방 나가기로 먼저 꺼 주세요</span>'); }, 1500);   // 🚨 경광등 (도련 11-23)
         }
         /* 🔌 끌 때 = 내 표시를 '꺼짐'으로 (요청 1번 · 도련 11-23) : 💗 내 방 나가기 (js/roomexit.js) · 창을 닫을 때 (pagehide · keepalive = 닫혀도 대개 가요)
              · 표시 글자만 바꿔요 (on '0') · 다른 기기는 이 바뀜을 '나중에 켰어요'로 보지 않아요 (changesForeign) */

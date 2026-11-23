@@ -22,6 +22,13 @@
                 document.getElementById('customAlertModal').style.display = 'flex';
             });
         }
+        /* 🚨 경고 = 하트 대신 경광등 (노란빛이 깜박 · 도련 11-23 · 📱 다른 기기가 켜져 있을 때 js/drive.js openTell) : 닫으면 다시 하트 */
+        async function showWarn(msg) {
+            const c = document.querySelector('#customAlertModal .alert-card');
+            if (!c.querySelector('.dk-siren')) c.insertAdjacentHTML('beforeend', '<span class="dk-siren" aria-hidden="true"><svg viewBox="0 0 72 80"><defs><linearGradient id="dkSrDome" x1="0" x2="1"><stop offset="0" stop-color="#b3121f"/><stop offset=".35" stop-color="#ff3b45"/><stop offset=".6" stop-color="#ff6a70"/><stop offset="1" stop-color="#a80f1b"/></linearGradient><linearGradient id="dkSrBase" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a4048"/><stop offset="1" stop-color="#231c22"/></linearGradient><radialGradient id="dkSrCore" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="#fffbe0"/><stop offset=".3" stop-color="#fff27a"/><stop offset=".62" stop-color="#ffc400"/><stop offset="1" stop-color="#ff8a00" stop-opacity="0"/></radialGradient><clipPath id="dkSrClip"><path d="M14 58 L16 22 Q17 8 36 8 Q55 8 56 22 L58 58 Z"/></clipPath></defs><path d="M14 58 L16 22 Q17 8 36 8 Q55 8 56 22 L58 58 Z" fill="url(#dkSrDome)" stroke="#7a0c16" stroke-width="2"/><g clip-path="url(#dkSrClip)"><ellipse class="dk-sr-core" cx="36" cy="36" rx="15" ry="15" fill="url(#dkSrCore)"/><path d="M16 30 Q36 24 56 30" stroke="#c81825" stroke-width="1.4" fill="none" opacity=".6"/><path d="M15 44 Q36 38 57 44" stroke="#c81825" stroke-width="1.4" fill="none" opacity=".6"/></g><path d="M21 18 Q24 12 31 11" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/><rect x="10" y="56" width="52" height="18" rx="6" fill="url(#dkSrBase)" stroke="#120d11" stroke-width="2"/><rect x="31" y="61" width="10" height="8" rx="2" fill="#120d11"/><rect x="33" y="62.5" width="3" height="5" rx="1" fill="#6b5f68"/></svg></span>');
+            c.classList.add('is-warn');
+            try { return await showMsg(msg); } finally { c.classList.remove('is-warn'); }
+        }
         /* 버튼 글자를 바꿔서 묻기 (확인 → ok · 취소 → no) : 결과 true / false */
         async function showAsk(msg, ok, no) {
             const a = document.getElementById('customAlertConfirmBtn'), b = document.getElementById('customAlertCancelBtn');
