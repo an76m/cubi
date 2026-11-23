@@ -899,7 +899,7 @@
     /* 🪑 정리 공간 (도련 10-29 · 💻 컴퓨터 · 📲 패드) : 창 대신 화면 전체가 정리하는 책상 · 🧺 바구니와 📒 정리북(바인더 · 이형지북)이 펼쳐져 있어요
        · 둘 다 위쪽 손잡이를 끌어 원하는 자리로 (다이어리처럼) → 정리북을 왼쪽 · 바구니를 오른쪽에 두는 것도 마음대로
        · 놓은 자리는 이 기기에 기억해요 (localStorage malang_ab_space · 화면 크기 비율) · 📱 폰은 예전 창 그대로 */
-    const ABS_LOCAL = 'malang_ab_space', ABS_DEF = { basket: [.015, 0], book: [-1, 0] };
+    const ABS_LOCAL = 'malang_ab_space', ABS_DEF = { basket: [.015, 0], 'book-bd': [-1, 0], 'book-rl': [-1, 0] };   // 📒 바인더 · 🤍 이형지북 = 따로 (두 권 · 도련 11-23)
     const abSpace = () => true;                                               // 🪑 정리 공간 = 모든 기기 (📱 폰도 · 도련 11-11 : 예전 폰 창은 길고 깨져요) · 배치만 다르게 ↓
     const abPh = () => UI.phone();                                            // 📱 폰 배치 : 위 = 바인더 · 이형지북 한 쪽 · 아래 = 서랍 시트가 올라와요 (스티커 만들기처럼) · 종이를 위로 끌어 올려요
     const abPile = () => abSpace() && !abPh();                                // 🧺 흩어진 바구니 (💻 📲) · 📱 은 한 줄 (옆으로 넘겨 봐요)
@@ -956,7 +956,7 @@
                 book = '<div class="abx-bkhost" id="abBkHost"></div>' + abSpaceTag('rl', r, L, abRelCnt(r), abFreeBtns('rl', r));   // 이름표 줄 = 책 아래 (도련 11-22)
             }
         }
-        return bar + `<div class="abs-room" id="absRoom">${basket}<section class="abs-box abs-book ${D.mode}" data-p="book">${book}</section></div>`;
+        return bar + `<div class="abs-room" id="absRoom">${basket}<section class="abs-box abs-book ${D.mode}" data-p="book-${D.mode}">${book}</section></div>`;
     }
     /* 책 위에 붙은 이름표 : 다른 책 고르기 · 🏷️ 라벨 · 몇 장 */
     function abSpaceTag(t, x, L, cnt, extra) {

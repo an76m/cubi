@@ -280,7 +280,10 @@
             if (bo > 0 && S.items.length > 1 && !S.rel) { ctx.save(); ctx.globalAlpha = bo; pelDrawTape(ctx); ctx.restore(); }   // 여러 개 씰 종이 : 위쪽 '✋ 잡고 옮겨요'
             const bx = pelq('pelX');                                             // ✕ : 하얀 종이 오른쪽 위 끝 (모조지스티커처럼 · 종이를 따라 다녀요)
             if (bx && S.spot) bx.style.visibility = 'hidden';
-            else if (bx) { const B = S.rel ? (A => ({ cx: A.left + A.width / 2, w: A.width, cy: A.top + A.height / 2, h: A.height }))(S.rel.at()) : S.board; bx.style.left = (B.cx + B.w / 2 - 24) + 'px'; bx.style.top = (B.cy - B.h / 2 - 20) + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
+            else if (bx) {                                                    // 🤍 매트 위에서도 = 하얀 종이 오른쪽 위 끝 (매트 모서리 말고 · 도련 11-23) · 종이를 옆으로 밀면 매트 안에서 멈춰요
+                const B = S.board, A = S.rel && S.rel.at(); let x = B.cx + B.w / 2 - 24, y = B.cy - B.h / 2 - 20;
+                if (A) { x = Math.max(A.left, Math.min(A.left + A.width - 24, x)); y = Math.max(A.top - 20, y); }
+                bx.style.left = x + 'px'; bx.style.top = y + 'px'; bx.style.opacity = bo; bx.style.visibility = bo > 0 ? '' : 'hidden'; }
             const d = S.drag, cur = S.items.find(o => o.st === st);
             if (bo > 0) for (const o of S.items) if (o.st.state !== 'on' && o.slot) pelResidue(ctx, o.slot, bo, o);   // 🎒 뗀 자국 (빈 자리)
             for (const o of S.items) {                                           // 종이 위에 남은 스티커들 (잡은 건 맨 위에)
