@@ -1989,7 +1989,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         get on() { return !!P.on; }, get busy() { return !!P.tour; },
         begin() { if (!P.on || P.tour) return false; commitFloat(); penEnd(); P.tour = { s0: snapshot(), dirty: P.dirty };
             const pp = P.layers.filter(l => l.type === 'paper'); P.layers = pp; P.cur = pp[0] || null; P.hist = []; P.redo = []; P.sel = null; P.many = []; P.pt = null; P.cbOpen = null; P.sbSel = null; P.sbOpen = null; P.cbPart = 'blocks'; P.cbNode = 'root'; P.cbBox = false; P.cbCode = false; P.sbCode = false;
-            setMode('px'); renderAll(); paintLayers(); paintProps(); return true; },
+            P.mode = ''; setMode('px'); renderAll(); paintLayers(); paintProps(); return true; },   // ✏️ 늘 새 픽셀 레이어부터 (이미 픽셀 모드였으면 종이에 그려졌어요 · 1444)
         end() { const T = P.tour; if (!T) return; commitFloat(); penEnd(); P.tour = null;   // 🎓 예시 보기 결과는 버리고 원래 그림으로 (가져가기 없음 · 도련 11-19)
             restoreDraft(T.s0, true); P.hist = []; P.redo = []; P.dirty = T.dirty; },
         layerOf: t => { const l = [...P.layers].reverse().find(q => q.type === t); return l ? l.id : null; }
