@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611242218">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611242226">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611242218', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611242226', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -883,7 +883,7 @@
     <script src="js/stickerprinter.js?v=edee912570"></script>   <!-- 🖨️ 말랑 스티커 프린터 : 책상에서 떠올라 → 사진 한 장 · 여러 장 → 버튼 꾹 = 종이가 지이잉 (예전 🖼️ 앨범에서 골라 만들기) -->   <!-- 📷 말랑 디카 : 책상에서 떠올라 휙 → 화면 보며 사진 스티커 · 폴라로이드처럼 출력 (예전 📷 사진 찍어 만들기) -->   <!-- 🏷️ 라벨 스티커 기계 : 책상에서 떠올라 자판으로 글씨 스티커 (예전 🔤 글씨 스티커) -->
     <script src="js/cssblocks.js?v=4d0b32062a"></script>   <!-- 🧩 블록 레이어 엔진 (그림판 · css 기능을 블록으로 · 도련 11-18) -->
     <script src="js/svgblocks.js?v=a6e9cce104"></script>   <!-- 🌀 svg 블록 레이어 엔진 (그림판 · svg 기능을 블록으로 · 도련 11-18) -->
-    <script src="js/padpaint.js?v=b0efd20c96"></script>   <!-- 🎨 태블릿 그림판 : 레이어 · 픽셀 · 벡터 (속지부터) -->
+    <script src="js/padpaint.js?v=1a38d3aa4b"></script>   <!-- 🎨 태블릿 그림판 : 레이어 · 픽셀 · 벡터 (속지부터) -->
     <script src="js/padtourview.js?v=44ae34c768"></script>   <!-- 🎓 따라 보기 미리보기 = 예시마다 진짜 CSS · SVG 코드 (도련 11-19 · 1312) -->
     <script src="js/padtour.js?v=2f233b949f"></script>   <!-- 🎓 그림판 따라 보기 (예시를 고르면 마우스가 움직이며 만들어요 · 도련 11-19) -->
     <script src="js/tablet.js?v=7ada1c628e"></script>   <!-- 📱 태블릿 : 책상에서 크게 → 앱 6개 (속지 · 떡메 · 마테 · 씰 시트 꾸미기 · 🧩 조각 · 📄 모조지 그림 앱) -->

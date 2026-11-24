@@ -1377,7 +1377,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
                 <div class="pp-slon" style="width:${W}px;height:${H}px">${PC || PA ? '' : `<i class="pp-slsh" style="left:${(cx - SW / 2).toFixed(1)}px;top:${top.toFixed(1)}px;width:${SW.toFixed(1)}px;height:${SH.toFixed(1)}px"></i>`}${st}</div></div>`;
             const mm = 148 / PG_PX, big = cut.reduce((m, o) => o.wh[0] * o.wh[1] > m[0] * m[1] ? o.wh : m, [0, 0]);   // 그림 px = 페이지 px
             if (PA) { const v = cut[0].wh; $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>모조지 한 장 약 <b>${Math.round(v[0] * mm)} × ${Math.round(v[1] * mm)}mm</b>` + (v[1] * mm > ph ? '<br><span style="color:#c2457a">⚠ 모조지가 한 페이지보다 길어요</span>' : ''); return; }
-            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>${PC ? '조각 ' + cut.length + '개' : '스티커 ' + cut.length + '장'} · 가장 큰 것 약 <b>${Math.round(big[0] * mm)} × ${Math.round(big[1] * mm)}mm</b>`
+            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>${PC ? '조각 ' + cut.length + '개' : '스티커 ' + cut.length + '개'} · 가장 큰 것 약 <b>${Math.round(big[0] * mm)} × ${Math.round(big[1] * mm)}mm</b>`
                 + (PC ? '' : (SW > W / 2 + 1 ? '<br><span style="color:#c2457a">⚠ 시트가 한 페이지보다 넓어요 (떼어서 나눠 붙여요)</span>' : '') + '<br><span style="font-size:11px;color:#8a6a76">점선 = 씰 시트 한 장 (세로 ' + sealPh() + 'mm · 실제 크기 비율)</span>');
         };
         $('ppSpL').onclick = e => { const b = e.target.closest('[data-sp]'); if (!b) return; pick = all.find(i => i.id === b.dataset.sp) || pick; const g = L.find(x => x.items.includes(pick)); P.spec = { n: g.n, mm: g.mm, r: pick.r, id: pick.id }; specBtn(); show(); };
@@ -1735,10 +1735,10 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             else await ownTake({ k: 'leaf', from: 'mine', imgs: [await pageBest(c)], x: Object.assign({ lf: 'my', two: !!P.two }, P.spec ? { sz: { n: P.spec.n, mm: P.spec.mm, r: P.spec.r } } : {}) });   // 📐 어느 규격으로 그렸는지 (나중에 쓰려고 적어 둬요)
             P.dirty = false; g(85); if (P.savedAnim) say('✨ 움직이는 스티커로 저장했어요', 2200);
             if (window.draftDrop) { try { await draftDrop(DRAFT_K[P.kind] || P.kind); } catch (e) { console.warn('📐 작업 중 파일 지우기', e); } }   // ✅ 완료 = 작업 중 파일은 이제 필요 없어요
-            if (window.ownAdd && ownAdd.design && window.ownDzMsg) ownDzMsg('design:' + ownAdd.design, nSeal ? (P.kind === 'piece' ? `🧩 조각 ${nSeal}개` : `🏷️ 스티커 ${nSeal}장`) : '');   // 📐 도안 (📱 태블릿 = 책상 프린터 · 📱 폰 = 🖨 지금 바로 뽑기)
+            if (window.ownAdd && ownAdd.design && window.ownDzMsg) ownDzMsg('design:' + ownAdd.design, nSeal ? (P.kind === 'piece' ? `🧩 조각 ${nSeal}개` : `🏷️ 스티커 ${nSeal}개`) : '');   // 📐 도안 (📱 태블릿 = 책상 프린터 · 📱 폰 = 🖨 지금 바로 뽑기)
             else if (P.kind === 'paper' && window.showMsg) showMsg('📄 모조지 한 장을 <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">✂️ 가위로 오려 붙여요.</span>');
             else if (P.kind === 'piece' && window.showMsg) showMsg(`🧩 조각 ${nSeal}개를 <b>🗄️ 서랍</b>에 넣었어요!`);
-            else if (P.kind === 'seal' && window.showMsg) showMsg(`🏷️ 스티커 ${nSeal}장짜리 씰 시트를 <b>🗄️ 서랍</b>에 넣었어요!`);
+            else if (P.kind === 'seal' && window.showMsg) showMsg(`🏷️ 스티커 ${nSeal}개짜리 씰 시트를 <b>🗄️ 서랍</b>에 넣었어요!`);
             else if (window.showMsg) showMsg(`${P.kind === 'tk' ? '🧻 떡메 한 묶음을' : P.kind === 'tape' ? '🎀 테이프 한 롤을' : '📃 속지를'} <b>🗄️ 서랍</b>에 넣었어요!<br><span style="font-size:12px;color:#777;">다이어리에서 서랍을 열어 꺼내 써요.</span>`);
             g(100); ok = true; await new Promise(r => setTimeout(r, 350));        // 가득 찬 것을 잠깐 보여 주고
             g(-1);
