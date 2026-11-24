@@ -96,6 +96,11 @@
         if (B.book && B.book.id === cv.id && B.book.root()) { B.book.refresh(spec); return; }   // 같은 표지 = 쪽만 다시 (펼침 · 쪽은 그대로)
         bookOff(); B.book = bookOpen(bq('bndBookHost'), Object.assign(spec, { pg: 0, open: false }));   // 새 표지 = 덮인 책부터 (다이어리처럼 밀어서 열어요)
     }
+    function guidePos() {                                                    // 👉 안내 = 바구니 오른쪽 끝에서 150px 안쪽부터 (바구니 넓이가 바뀌어도 · 이형지북 .abx-guide 와 같은 자리 잡기)
+        const g = document.querySelector('#bndRoom .bnd-mat > .bnd-guide'), k = bq('bndBasket'); if (!g || !k) return;
+        g.style.left = (k.offsetLeft + k.offsetWidth - 150) + 'px';
+    }
+    addEventListener('resize', guidePos);
     function render() {
         if (!B.on) return;
         const s = st(); if (!s) return;
@@ -112,7 +117,9 @@
         bq('bndMine').innerHTML = mine.length ? `<select id="bndMineSel" title="내 바인더 고치기"><option value="">✏️ 내 바인더 고치기</option>${mine.map(d => `<option value="${esc(d.id)}"${d.id === s.id ? ' selected' : ''}${window.dmkLocked && dmkLocked(d.id) ? ' disabled' : ''}>${window.dmkLocked && dmkLocked(d.id) ? '🔒 ' : ''}${esc(d.g)}</option>`).join('')}</select>` : '';
         const sel = bq('bndMineSel'); if (sel) sel.onchange = () => { dmkRmInit(sel.value); render(); };
         const bench = bq('bndBench');
-        if (!cv) { bookOff(); bench.innerHTML = covers.length ? dragGuide('표지를<br>작업대로 끌어다 놓아요', 'bnd-guide') : ''; }   // 빈 작업대 = 👉 표지 끌어다 놓기 안내만 (가진 표지가 있을 때 · js/util.js dragGuide · 도련 11-24 · 표지가 없으면 아무것도)
+        const mat = bench.closest('.bnd-mat'), gd = mat.querySelector(':scope > .bnd-guide');   // 👉 빈 작업대 = 바구니에 걸친 '표지를 작업대로' 안내 (가진 표지가 있을 때만 · js/util.js dragGuide · 도련 11-24 · 표지를 놓으면 · 표지가 없으면 없어요)
+        if (!cv && covers.length) { if (!gd) mat.insertAdjacentHTML('beforeend', dragGuide('표지를<br>작업대로 끌어다 놓아요', 'bnd-guide')); guidePos(); } else if (gd) gd.remove();
+        if (!cv) { bookOff(); bench.innerHTML = ''; }
         else {
             if (!bq('bndBookHost')) bench.innerHTML = '<div class="bnd-bookhost" id="bndBookHost"></div><div class="bnd-sheets" id="bndSheets"></div>';
             bookShow(cv, s, date, lock);
