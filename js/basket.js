@@ -1745,6 +1745,22 @@
         return { real, sid };
     }
     const shIntoOf = x => x.tool ? 'stool' : shInto();                       // 📒 🤍 정리 도구 = 책상 위 (shGoSee 'stool')
+    /* 🧺 받기 하나 (도련 11-24 '복사된 기능은 하나로' · 카드 shQuick · 확대 shTake 가 같이) : 로그인 확인 → '받는 중…' → 🛍️ 봉투 → 받기 → 됐으면 ok() (버튼 · 글 바꾸기는 부르는 쪽) · 못 받으면 버튼 되돌리고 알림 */
+    async function shReceive(x, into, btn, ok) {
+        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 받을 수 있어요.'); return; }
+        btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
+        bagStart(); let bagOk = false;
+        try {
+            const { real, sid } = await shGetOne(x, into);
+            bagOk = true; bagNote(x, real, x.tool, sid);
+            buzz(10);
+            ok();
+        } catch (e) {
+            console.warn(e);
+            btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
+            showMsg('⚠ 스티커를 받지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
+        } finally { bagEnd(bagOk); }
+    }
     /* 🧺 카드에서 바로 받기 (확대 없이 · 도련 10-26) : 받으면 버튼이 초록 '보관함 확인' (📒 🤍 정리 도구도 · 도련 11-16) */
     async function shQuick(i, btn) {
         const x = SH.items[i]; if (!x || btn.disabled) return;
@@ -1754,20 +1770,10 @@
             btn.classList.add('got'); btn.textContent = shGotText(x); btn.onclick = () => shGoSee(k0, 0);
             got.add(i); return;
         }
-        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 받을 수 있어요.'); return; }
-        btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
-        bagStart(); let bagOk = false;
-        try {
-            const { real, sid } = await shGetOne(x, into);
-            bagOk = true; bagNote(x, real, x.tool, sid);
-            buzz(10);
+        await shReceive(x, into, btn, () => {
             btn.classList.remove('busy'); btn.classList.add('got'); btn.textContent = shGotText(); btn.disabled = false; btn.onclick = () => shGoSee(into, 0);   // 초록 버튼 = 그 바구니로 바로 (도련 10-26)
             got.add(i);                                                          // 창을 닫았다 열면 다시 받기
-        } catch (e) {
-            console.warn(e);
-            btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
-            showMsg('⚠ 스티커를 받지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
-        } finally { bagEnd(bagOk); }
+        });
     }
     async function shTake(btn) {
         const zi = SH.zoom, x = SH.items[zi]; if (!x || btn.disabled) return;
@@ -1781,13 +1787,7 @@
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${k}', 0)">${shGotText()}</button></div>`;
             return;
         }
-        if (!window.ownTake || !ownMode()) { showMsg('🔐 구글 계정으로 로그인하거나<br>🏠 로그인 없이 다꾸할 때 스티커를 받을 수 있어요.'); return; }
-        btn.disabled = true; btn.classList.add('busy'); btn.textContent = '받는 중…';
-        bagStart(); let bagOk = false;
-        try {
-            const { real, sid } = await shGetOne(x, into);
-            bagOk = true; bagNote(x, real, x.tool, sid);
-            buzz(10);
+        await shReceive(x, into, btn, () => {
             /* 받았어요 → 이 창에서는 더 못 받아요 : 🗄️ 받은 것 보러 가기 · 닫기 중에 골라요 (닫았다 다시 열면 또 받을 수 있어요 · 도련 10-25) */
             got.add(zi); if (here()) SH.redraw = true;                           // 확대에서 받아도 카드 버튼은 초록
             const box = btn.closest('.sh-zbtns');
@@ -1795,11 +1795,7 @@
             if (box) box.outerHTML = `<div class="sh-got"><b>✓ 받았어요!</b><small>${shInShop() ? '봉투에 담았어요 · 내 방에서 꺼내요' : where + '에 넣었어요'}</small></div>`
                 + (x.tool && !shInShop() ? '<small class="sh-desc">정리하고 싶은 스티커 서랍 → 📒 정리하기에서 📥 불러와 써요</small>' : '')
                 + `<div class="sh-zbtns"><button type="button" class="sh-take sh-zget got" onclick="shGoSee('${into}', 0)">${shGotText()}</button></div>`;
-        } catch (e) {
-            console.warn(e);
-            btn.classList.remove('busy'); btn.textContent = '🧺 받기'; btn.disabled = false;
-            showMsg('⚠ 스티커를 받지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : ''));
-        } finally { bagEnd(bagOk); }
+        });
     }
 
 

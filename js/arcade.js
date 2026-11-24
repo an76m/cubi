@@ -563,6 +563,11 @@
             ctx.fillStyle = color; ctx.fillText(s, x, y);
         }
         const arIn = (x, y, r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+        const AR_KEY4 = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 };          // ⌨️ 키보드 1~4 = 단추 넷 (도련 11-24 '복사된 기능은 하나로')
+        const arPick4 = (btns, pick) => ({                                      // 🔢 단추 넷 고르기 (톡 · 키보드 1~4) = 4. 셈 · 5. 색깔 헷갈리기 가 같이
+            down(x, y) { const i = btns.findIndex(b => arIn(x, y, b)); if (i >= 0) pick(i); },
+            keyDown(c) { const k = AR_KEY4[c]; if (k !== undefined) pick(k); }
+        });
         function arBg(c, W, H, a, b) { const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, a); g.addColorStop(1, b); c.fillStyle = g; c.fillRect(0, 0, W, H); }
         function arBtn(c, r, fill, label, size, color, pressed) {
             c.fillStyle = 'rgba(0,0,0,.12)'; arRound(c, r.x, r.y + 4, r.w, r.h, 14); c.fill();
@@ -591,7 +596,7 @@
                     input++;
                     if (input >= seq.length) { h.score(seq.length * 10); h.sfx('up'); mode = 'wait'; t = .9; msg = '좋아요! ✨'; }
                 },
-                keyDown(c) { const k = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[c]; if (k !== undefined) { const p = pads[k]; this.down(p.x + 5, p.y + 5); } },
+                keyDown(c) { const k = AR_KEY4[c]; if (k !== undefined) { const p = pads[k]; this.down(p.x + 5, p.y + 5); } },
                 update(dt) {
                     if (litT > 0) { litT -= dt; if (litT <= 0) lit = -1; }
                     if (mode === 'wait' && (t -= dt) <= 0) { seq.push(Math.floor(Math.random() * 4)); mode = 'show'; idx = 0; t = .3; msg = '잘 보세요 👀'; }
@@ -743,8 +748,7 @@
                 flash = .25; make();
             }
             return {
-                down(x, y) { const i = btns.findIndex(b => arIn(x, y, b)); if (i >= 0) pick(i); },
-                keyDown(c) { const k = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[c]; if (k !== undefined) pick(k); },
+                ...arPick4(btns, pick),
                 update(dt) { if (done) return; left -= dt; flash = Math.max(0, flash - dt); if (left <= 0) { left = 0; done = true; h.over(); } },
                 draw(c) {
                     arBg(c, W, H, '#effaff', '#f0ecff');
@@ -780,8 +784,7 @@
                 flash = .25; make();
             }
             return {
-                down(x, y) { const i = btns.findIndex(b => arIn(x, y, b)); if (i >= 0) pick(i); },
-                keyDown(c) { const k = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 }[c]; if (k !== undefined) pick(k); },
+                ...arPick4(btns, pick),
                 update(dt) { if (done) return; left -= dt; flash = Math.max(0, flash - dt); if (left <= 0) { left = 0; done = true; h.over(); } },
                 draw(c) {
                     arBg(c, W, H, '#fbf7ff', '#fff3f6');

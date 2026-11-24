@@ -2,22 +2,23 @@
 .cr8-room { position: fixed; inset: 0; z-index: 950; display: none; flex-direction: column; overflow: hidden; color: #5b3f4a; font-family: inherit;
     --line: #6b4438; --mat: #bfe3cf; --mat2: #a9d6bd; --pk: #e88fb0; --deep: #c2457a;
     background: linear-gradient(#fbe9ef, #f7dfe8 96px, #f3d9e2 96px 104px, #e9c9b0 104px); }
-.cr8-room.show { display: flex; animation: crIn .25s ease both; }
+/* 🧩 아래 .bnd-* = 바인더 조립 공간도 같은 벽 · 간판 · 가랜드 · 나가기 · 패널 (css/binderroom.css 에서 옮겨 와 하나로 · 도련 11-24) */
+.cr8-room.show, .bnd-room.show { display: flex; animation: crIn .25s ease both; }
 .cr8-room button { font-family: inherit; cursor: pointer; }
-.cr8-wall { position: relative; height: 104px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left)); }
+.cr8-wall, .bnd-wall { position: relative; height: 104px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left)); }
 .cr8-sign { background: #fff; border: 3px solid var(--line); border-radius: 12px; padding: 7px 16px; font-weight: 900; font-size: 18px; box-shadow: 3px 3px 0 #e6dcf8; white-space: nowrap; }
-.cr8-sign small { display: block; font-size: 11px; color: #a07f8b; font-weight: 700; }
-.cr8-garland { display: flex; gap: 6px; }
-.cr8-garland i { width: 20px; height: 24px; clip-path: polygon(0 0, 100% 0, 50% 100%); background: #ffb3cb; }
-.cr8-garland i:nth-child(2) { background: #ffe08a; } .cr8-garland i:nth-child(3) { background: #9fd0ff; } .cr8-garland i:nth-child(4) { background: #bfe9c9; } .cr8-garland i:nth-child(5) { background: #d9c8ff; }
-.cr8-go { margin-left: auto; }
+.cr8-sign small, .bnd-sign small { display: block; font-size: 11px; color: #a07f8b; font-weight: 700; }
+.cr8-garland, .bnd-garland { display: flex; gap: 6px; }
+.cr8-garland i, .bnd-garland i { width: 20px; height: 24px; clip-path: polygon(0 0, 100% 0, 50% 100%); background: #ffb3cb; }
+.cr8-garland i:nth-child(2), .bnd-garland i:nth-child(2) { background: #ffe08a; } .cr8-garland i:nth-child(3), .bnd-garland i:nth-child(3) { background: #9fd0ff; } .cr8-garland i:nth-child(4), .bnd-garland i:nth-child(4) { background: #bfe9c9; } .cr8-garland i:nth-child(5), .bnd-garland i:nth-child(5) { background: #d9c8ff; }
+.cr8-go, .bnd-go { margin-left: auto; }
 .cr8-mat { position: relative; flex: 1; min-height: 0; margin: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); border: 4px solid var(--line); border-radius: 16px;
     background: var(--mat); background-image: linear-gradient(var(--mat2) 1px, transparent 1px), linear-gradient(90deg, var(--mat2) 1px, transparent 1px); background-size: 24px 24px;
     display: grid; grid-template-columns: 180px 340px minmax(0, 1fr); gap: 14px; padding: 14px; }   /* 종류 → 새로 만들기 → 내가 만든 것 (도련 11-02) */
 .cr8-mat::after { content: '말랑달콤 CUTTING MAT'; position: absolute; right: 16px; bottom: 4px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: rgba(60, 110, 80, .45); pointer-events: none; }
-.cr8-panel { background: rgba(255, 252, 248, .97); border: 3px solid var(--line); border-radius: 14px; box-shadow: 0 4px 0 rgba(107, 68, 56, .25); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.cr8-panel h3 { margin: 0; padding: 10px 12px 8px; font-size: 14px; border-bottom: 2px dashed #ecd6c8; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.cr8-panel h3 small { font-size: 11.5px; color: #a07f8b; font-weight: 700; }
+.cr8-panel, .bnd-panel { background: rgba(255, 252, 248, .97); border: 3px solid var(--line); border-radius: 14px; box-shadow: 0 4px 0 rgba(107, 68, 56, .25); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.cr8-panel h3, .bnd-panel h3 { margin: 0; padding: 10px 12px 8px; font-size: 14px; border-bottom: 2px dashed #ecd6c8; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cr8-panel h3 small, .bnd-panel h3 small { font-size: 11.5px; color: #a07f8b; font-weight: 700; }
 .cr8-x { display: none; border: 0; background: #fff0f5; color: var(--deep); width: 28px; height: 28px; border-radius: 50%; font-weight: 900; }
 /* 종류 */
 .cr8-klist { padding: 6px 8px 10px; overflow: auto; display: grid; gap: 2px; align-content: start; }

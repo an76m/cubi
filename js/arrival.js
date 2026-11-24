@@ -168,8 +168,7 @@
                     const m = wlMine[no], isPc = typeof wlIsPc === 'function' && wlIsPc(no), tag = typeof wlTag === 'function' ? wlTag(no) : no;
                     rows.push(`<li class="ar-li" data-k="wall"><span>${isPc ? '💻' : '📱'}</span><div><b>${arEsc(m.n || '배경화면 ' + tag + '번')}</b>
                         <small class="gp-dd">링크를 누르면 <em>구글 드라이브</em>가 열려요</small>
-                        <a class="wl-lp-url" href="${arEsc(m.u)}" target="_blank" rel="noopener">${arEsc(m.u.replace(/^https:\/\//, '').replace(/\?.*$/, ''))}</a>
-                        <div class="wl-lp-btns"><button type="button" class="btn wl-lp-open" data-n="${no}">🔗 링크 열기</button><button type="button" class="btn wl-lp-copy" data-n="${no}">📋 복사</button></div>
+                        ${wlLinkHtml(no)}
                         <small class="ar-where">📍 ${AR_WHERE.wall[2]} → 🎁 받기 에서도 다시 볼 수 있어요</small></div></li>`);
                 });
             }
@@ -199,12 +198,7 @@
             const shut = () => { localStorage.removeItem(AR_PENDING); el.classList.add('out'); setTimeout(() => el.remove(), 260); };
             el.querySelector('.gp-close').onclick = shut; el.addEventListener('click', e => { if (e.target === el) shut(); });   // ✕ 또는 창 밖 (도련 10-28)
             el.querySelectorAll('.ar-go').forEach(b => { b.onclick = () => { shut(); setTimeout(() => arGo(b.dataset.go), 280); }; });
-            el.querySelectorAll('.wl-lp-open').forEach(b => { b.onclick = () => window.open(wlMine[b.dataset.n].u, '_blank', 'noopener'); });
-            el.querySelectorAll('.wl-lp-copy').forEach(b => { b.onclick = async () => {
-                const u = wlMine[b.dataset.n].u;
-                if (typeof pigCopy === 'function') await pigCopy(u, '링크'); else { try { await navigator.clipboard.writeText(u); } catch (e) {} }
-                b.textContent = '✅ 복사했어요'; setTimeout(() => { b.textContent = '📋 복사'; }, 1800);
-            }; });
+            if (typeof wlLinkWire === 'function') wlLinkWire(el);         // 🔗 링크 열기 · 복사 = js/wall.js 하나
             document.body.appendChild(el);
             requestAnimationFrame(() => el.classList.add('on'));
             setTimeout(() => { if (typeof sndChime === 'function') sndChime(); }, 900);

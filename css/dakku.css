@@ -189,9 +189,8 @@
 .smk-room .tpm-lead, .pb-room .pb-lead { color: var(--dk-ink); }
 .smk-room input[type="range"], .smk-room input[type="checkbox"], .pb-room input[type="checkbox"] { accent-color: var(--dk-accent); }
 /* 만드는 판 : 하얀 스티커 대지 (투명한 곳은 옅은 분홍 체크) */
-.smk-room .smk-stage canvas { background: repeating-conic-gradient(color-mix(in srgb, var(--dk-accent) 7%, #fff) 0 25%, #fff 0 50%) 50% / 20px 20px;
+.smk-room .smk-stage canvas, .smk-room .tpm-stage { background: repeating-conic-gradient(color-mix(in srgb, var(--dk-accent) 7%, #fff) 0 25%, #fff 0 50%) 50% / 20px 20px;
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--dk-line), 0 6px 16px rgba(160, 90, 110, .14); }
-.smk-room .tpm-stage { background: repeating-conic-gradient(color-mix(in srgb, var(--dk-accent) 7%, #fff) 0 25%, #fff 0 50%) 50% / 20px 20px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--dk-line), 0 6px 16px rgba(160, 90, 110, .14); }
 .smk-room .smk-all { border: 1.5px dashed var(--dk-line); }
 /* 포토부스 : 틀 고르기 칸 */
 .pb-room .pb-layouts button { border: 1.5px dashed var(--dk-line); box-shadow: 0 2px 6px rgba(160, 90, 110, .08); color: var(--dk-ink); }

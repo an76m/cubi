@@ -185,11 +185,26 @@
             Object.keys(g).forEach(k => { const v = g[k], no = parseInt(k, 10); if (no > 0 && Array.isArray(v) && wlLinkOk(v[1])) { wlMine[no] = { n: String(v[0] || '').slice(0, 30), u: v[1] }; got++; } });
             if (got) { wlMineSave(); wlRefresh(); }
         }
+        /* 🔗 배경화면 링크 줄 = 하나 (도련 11-24 '복사된 기능은 하나로' · 🖼️ 내 배경화면 링크 창 wlLinkPop · 💝 선물 도착 창 js/arrival.js 가 같이 써요)
+             wlLinkHtml(n) = 주소 + [🔗 링크 열기] [📋 복사] · wlLinkWire(창) = 그 창의 버튼들에 할 일 붙이기 */
+        function wlLinkHtml(n) {
+            const m = wlMine[n]; if (!m) return '';
+            return `<a class="wl-lp-url" href="${wlEsc(m.u)}" target="_blank" rel="noopener">${wlEsc(m.u.replace(/^https:\/\//, '').replace(/\?.*$/, ''))}</a>
+                    <div class="wl-lp-btns"><button type="button" class="btn wl-lp-open" data-n="${n}">🔗 링크 열기</button><button type="button" class="btn wl-lp-copy" data-n="${n}">📋 복사</button></div>`;
+        }
+        function wlLinkWire(el) {
+            el.querySelectorAll('.wl-lp-open').forEach(b => { b.onclick = () => window.open(wlMine[b.dataset.n].u, '_blank', 'noopener'); });
+            el.querySelectorAll('.wl-lp-copy').forEach(b => { b.onclick = async () => {
+                const u = wlMine[b.dataset.n].u;
+                if (typeof pigCopy === 'function') await pigCopy(u, '링크'); else { try { await navigator.clipboard.writeText(u); } catch (e) {} }
+                b.textContent = '✅ 복사했어요'; setTimeout(() => { b.textContent = '📋 복사'; }, 1800);
+            }; });
+        }
+        window.wlLinkHtml = wlLinkHtml; window.wlLinkWire = wlLinkWire;
         function wlLinkPop(nos) {                             // 이쁜 링크 창 ('받기' 버튼에서 · 언제든 다시 볼 수 있어요)
             nos = (Array.isArray(nos) ? nos : [nos]).filter(n => wlMine[n]);
             if (!nos.length) return;
             const old = document.getElementById('wlLinkPop'); if (old) old.remove();
-            const short = u => u.replace(/^https:\/\//, '').replace(/\?.*$/, '');
             const el = document.createElement('div');
             el.id = 'wlLinkPop'; el.className = 'gp-wrap wl-lp calm';
             el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
@@ -201,20 +216,14 @@
                 <p class="gp-s">아래 링크를 눌러 파일을 받아 주세요<br>링크를 누르면 <b>구글 드라이브</b>가 열려요</p>
                 <ul class="gp-list">
                   ${nos.map(n => { const m = wlMine[n]; return `<li><span>${wlIsPc(n) ? '💻' : '📱'}</span><div><b>${wlEsc(m.n || '배경화면 ' + wlTag(n) + '번')}</b>
-                    <a class="wl-lp-url" href="${wlEsc(m.u)}" target="_blank" rel="noopener">${wlEsc(short(m.u))}</a>
-                    <div class="wl-lp-btns"><button type="button" class="btn wl-lp-open" data-n="${n}">🔗 링크 열기</button><button type="button" class="btn wl-lp-copy" data-n="${n}">📋 복사</button></div></div></li>`; }).join('')}
+                    ${wlLinkHtml(n)}</div></li>`; }).join('')}
                 </ul>
                 <div class="gp-until">💡 이 링크는 <b>📱 말랑달콤 배경화면</b> 창에서 구입한 배경화면의 <b>받기</b> 버튼을 눌러도 언제든 다시 볼 수 있어요</div>
                 <button type="button" class="gp-close x-only" aria-label="닫기">✕</button>
               </div>`;
             const shut = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260); };
             el.querySelector('.gp-close').onclick = shut; el.addEventListener('click', e => { if (e.target === el) shut(); });   // ✕ 또는 창 밖 (도련 10-28)
-            el.querySelectorAll('.wl-lp-open').forEach(b => { b.onclick = () => window.open(wlMine[b.dataset.n].u, '_blank', 'noopener'); });
-            el.querySelectorAll('.wl-lp-copy').forEach(b => { b.onclick = async () => {
-                const u = wlMine[b.dataset.n].u;
-                if (typeof pigCopy === 'function') await pigCopy(u, '링크'); else { try { await navigator.clipboard.writeText(u); } catch (e) {} }
-                b.textContent = '✅ 복사했어요'; setTimeout(() => { b.textContent = '📋 복사'; }, 1800);
-            }; });
+            wlLinkWire(el);
             document.body.appendChild(el);
             requestAnimationFrame(() => el.classList.add('on'));
         }
