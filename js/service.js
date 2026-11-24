@@ -273,7 +273,6 @@
         }
         const SVC_CAT_NAMES = { make: '🧸 인형방', watch: '🎧 보고·듣기' };
         function svcOpenCat(id) {
-            if (id === 'make') return openDollSoon();                         // 🧸 인형방 = 준비중 (어디서 열어도 · 10-23 도련)
             if (id === 'daily' && window.openCalRoom) return openCalRoom();   // 📅 💻 📲 = 달력 한 장 · 📱 = 세로 달력 안에 버튼 셋 (도련 11-09) (출석 · 생리 · D-day · 도련 10-31 · js/calroom.js)
             if (id === 'game' && window.openArcRoom) return openArcRoom();   /* 📱 도 (유리문 → 오락기 창 · 아이콘 둘 창은 안 써요 · 도련 11-09) */   // 🕹️ 💻 📲 = 뿅뿅오락실 장소 (화면마다 게임 · 도련 11-01 · js/arcroom.js)
             if (id === 'fortune' && window.openTarotRoom) return openTarotRoom();   // 🔮 💻 📲 📱 = 타로카페 (📱 폰은 세로 그림 · 도련 11-09) (카드 다섯 장 = 메뉴 · 도련 10-31 · js/tarotroom.js)
@@ -291,7 +290,6 @@
         function openShop(at) { window.open('shop/' + (at || ''), '_blank'); }      // at : 문구점 안의 칸 (예 '#/c/스티커')
         function openPet() { comingSoon('🐾 펫 키우기'); }
         function openHoney() { comingSoon('🍯 꿀농장'); }
-        function openDollSoon() { comingSoon('🧸 인형방'); }   // 🚧 인형방 = 준비중 (10-23 도련 · 인형방 · 인형극 창은 안 열어요 · 코드는 그대로 · 다시 열려면 index.html 버튼을 svcOpenCat('make') 로)
         if (typeof window.openPuppetShow !== 'function') window.openPuppetShow = () => comingSoon('🎭 인형극');   // js/puppet.js 가 없을 때만
         function openSweetVideo() { comingSoon('🎬 달콤영상'); }
         function openFortune() { if (typeof openFortuneCard === 'function') openFortuneCard(); else comingSoon('🔮 포춘카드'); }   // js/fortune.js

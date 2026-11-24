@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611240143">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611241410">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611240143', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611241410', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -692,7 +692,7 @@
                     <button class="svc-cat" type="button" data-nw="coin" data-ico="gift" data-place="gacha" onclick="openRandomBox()"><span class="svc-cat-icon">🎁</span><b>문방구 캡슐기계</b><small>코인으로 스티커 뽑기</small></button>   <!-- 🎁 🌷 달력에서 빼서 따로 (도련 10-31) -->
                     <button class="svc-cat" type="button" id="svcBtnPlant" data-ico="sprout" onclick="comingSoon('🌷 베란다 화분')"><span class="svc-cat-icon">🌷</span><b>베란다 화분</b><small>일기 쓰고 물 주기</small><i>(준비중)</i></button>   <!-- 🚧 화분 = 준비중 (도련 10-31 · js/plant.js 는 그대로 · 다시 열려면 onclick 을 openPlant() 로) -->
                     <button class="svc-cat" type="button" data-ico="ball" data-place="tarot" onclick="svcOpenCat('fortune')"><span class="svc-cat-icon">🔮</span><b>타로카페</b><small>재미로 보는 운세</small></button>
-                    <button class="svc-cat" type="button" data-ico="doll" onclick="openDollSoon()"><span class="svc-cat-icon">🧸</span><b>인형방</b><small>인형 옷 입히기</small><i>(준비중)</i></button>
+                    <button class="svc-cat" type="button" data-ico="doll" onclick="svcOpenCat('make')"><span class="svc-cat-icon">🧸</span><b>인형방</b><small>인형 옷 입히기</small></button>
                     <button class="svc-cat" type="button" data-ico="game" data-place="game" onclick="svcOpenCat('game')"><span class="svc-cat-icon">🕹️</span><b>뿅뿅오락실</b><small>미니 게임</small></button>
                     <button class="svc-cat" type="button" onclick="openPet()"><span class="svc-cat-icon">🐾</span><b>펫 키우기</b><small>함께 자라는 펫</small><i>(준비중)</i></button>
                     <button class="svc-cat" type="button" onclick="comingSoon('🐠 거실 어항')"><span class="svc-cat-icon">🐠</span><b>거실 어항</b><small>물고기 키우기</small><i>(준비중)</i></button>   <!-- 🐠 도련 10-31 -->
@@ -829,7 +829,7 @@
     <script src="js/glrun.js?v=057a9ca27a"></script>
     <script src="js/char-move.js?v=29b324a3ae"></script>
     <script src="js/puppet.js?v=bf23916e18"></script>
-    <script src="js/service.js?v=f9734a014c"></script>
+    <script src="js/service.js?v=adb0537b67"></script>
     <!-- 🎁 랜덤박스 (없어도 다이어리는 정상 동작) -->
     <script src="js/gacha.js?v=4619f19c81"></script>
     <script src="js/presence.js?v=8acca374f6"></script>
