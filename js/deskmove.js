@@ -114,16 +114,18 @@
         return { stop: () => { off(); light(null); if (g) g.remove(); if (from) src.classList.remove(from); } };
     }
     /* ✋ 손을 따라오는 그림 하나로 (도련 11-23 · dkDrag · 📚 스티커 정리 바구니 종이 · 포켓 종이 · 이형지북 스티커 같이) : src 그림 → { g, place(e) }
-         op.ghost = 그림 만들기 (기본 ghostOf) · op.grab = 처음 누른 점(x0 y0)이 그림 안 그 자리에 붙어 따라와요 · 보이던 크기 그대로 (안 그림 크기도 · 기울기 · 키우기는 잡은 점 중심) */
+         op.ghost = 그림 만들기 (기본 ghostOf) · op.grab = 처음 누른 점(x0 y0)이 그림 안 그 자리에 붙어 따라와요 · 보이던 크기 그대로 (안 그림 크기도 · 기울기 · 키우기는 잡은 점 중심)
+         op.fit = [넓이, 높이] → 들면 그 크기 안에 맞게 (잡은 점도 같은 비율 · 📒 바인더에 꽂을 종이 = 포켓 크기 · 도련 11-24) */
     function ghost(src, x0, y0, op) {
         op = op || {};
         const r = src.getBoundingClientRect(), g = op.ghost ? op.ghost(src) : ghostOf(src, r);
         g.removeAttribute('id'); g.style.pointerEvents = 'none'; g.style.zIndex = '';
         let ox = 0, oy = 0;
         if (op.grab) {
-            const k = src.offsetWidth ? r.width / src.offsetWidth : 1;
-            ox = x0 - r.left; oy = y0 - r.top;
-            Object.assign(g.style, { width: r.width + 'px', height: r.height + 'px', transformOrigin: ox + 'px ' + oy + 'px' });
+            const q = op.fit && r.width && r.height ? Math.min(op.fit[0] / r.width, op.fit[1] / r.height) : 1;   // 📏 맞출 크기 (없으면 그대로)
+            const k = (src.offsetWidth ? r.width / src.offsetWidth : 1) * q;
+            ox = (x0 - r.left) * q; oy = (y0 - r.top) * q;
+            Object.assign(g.style, { width: r.width * q + 'px', height: r.height * q + 'px', transformOrigin: ox + 'px ' + oy + 'px' });
             [...g.children].forEach((c, i) => { const o = src.children[i]; if (o && o.offsetWidth) { c.style.width = o.offsetWidth * k + 'px'; c.style.height = o.offsetHeight * k + 'px'; } });   // 바구니에선 크게 그려진 종이가 들면 작아지던 것 (도련 11-23)
         }
         document.body.appendChild(g);

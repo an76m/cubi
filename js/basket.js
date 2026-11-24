@@ -70,7 +70,7 @@
     };
     window.abCancel = async close => {
         if (abDirty() || AB.loads.length) {
-            if (!await showAsk('✔ 이 책 완료를 누르지 않은 정리가 있어요.<br>정리하지 않고 나갈까요?', '정리 안 하고 나가기', '계속 정리하기')) return;
+            if (!await showAsk('이 책 정리완료를 누르지 않은 정리가 있어요.<br>정리하지 않고 나갈까요?', '정리 안 하고 나가기', '계속 정리하기')) return;
             abDiscard();
         }
         const m = bq('basketKindModal'); if (m && m.classList.contains('abs-dkmode')) { window.abSpaceOff(); return; } bkView('bin'); if (close) closeModal('basketKindModal');
@@ -649,7 +649,7 @@
                 if (ids.some(x => !x)) { showMsg('이미 썼거나 자리가 없는 스티커는 붙이지 못했어요.'); B.sig = ''; bkRender(true); }
             } catch (e) { AB.relFly = null; AB.rel = ops.concat(AB.rel); abToast('', 'off'); abErr(e); B.sig = ''; bkRender(true); return; }
         }
-        if (!AB.pend.length && !AB.rel.length && !AB.back.length && !AB.loads.length) { abToast('✔ 이 책 완료', 'ok'); if (window.dkDeskBooks) dkDeskBooks(true); }   // 🪑 책상 위 권 표지도 바로 (라벨 · 색 · 도련 11-22)
+        if (!AB.pend.length && !AB.rel.length && !AB.back.length && !AB.loads.length) { abToast('이 책 정리완료', 'ok'); if (window.dkDeskBooks) dkDeskBooks(true); }   // 🪑 책상 위 권 표지도 바로 (라벨 · 색 · 도련 11-22)
         else AB.flushT = setTimeout(abFlush, 300);
     }
     const abDirty = () => !!(AB.pend.length || AB.rel.length || AB.back.length || AB.fly || AB.relFly || AB.backFly);
@@ -938,7 +938,7 @@
     const ABS_GUIDE = dragGuide('붙일 스티커 종이를<br>초록 매트로 끌어다 놓아요', 'abx-guide');   // 👉 끌어다 놓기 안내 = js/util.js 하나
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
-        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="abDone()"${abDirty() || AB.loads.length ? '' : ' disabled'}>✔ 이 책 완료</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="abCancel(true)">✕</button></div>`;
+        const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="abDone()"${abDirty() || AB.loads.length ? '' : ' disabled'}>이 책 정리완료</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="abCancel(true)">✕</button></div>`;
         const nIn = B.list.filter(e => !(D.mode === 'rl' && e.id === D.pick)).length;   // 매트에 펼친 종이는 빼고 세요
         const grip = (t, n) => `<div class="abs-grip" title="끌어서 옮기기"><i aria-hidden="true">⠿</i><b>${t}</b>${n != null ? `<small>${n}</small>` : ''}</div>`;
         /* 🧺 바구니 */
@@ -1209,7 +1209,8 @@
     }
     /* ✋ 끌 때 손에 든 그림 = js/deskmove.js dkGhost 하나 (책상 끌기와 같이 · 잡은 자리 · 크기 그대로) · 모양만 바구니 것 (.ab-ghost 기울기) */
     function abGhost(d, src, cls, px, py) {
-        d.gp = dkGhost(src, px, py, { grab: true, ghost: s => { const g = document.createElement('div'); g.className = 'ab-ghost' + (cls ? ' ' + cls : ''); g.innerHTML = s.innerHTML; return g; } });
+        const pk = cls !== 'st' && [...document.querySelectorAll('.ab-pk')].find(x => x.offsetWidth), pr = pk && pk.getBoundingClientRect();   // 📒 바인더가 펼쳐져 있으면 = 종이를 포켓 크기로 들어요 (도련 11-24 '바구니보다 커지니까 불편')
+        d.gp = dkGhost(src, px, py, { grab: true, fit: pr ? [pr.width, pr.height] : null, ghost: s => { const g = document.createElement('div'); g.className = 'ab-ghost' + (cls ? ' ' + cls : ''); g.innerHTML = s.innerHTML; return g; } });
         d.ghost = d.gp.g;
     }
     function abMovePk(a, b) {                                                // 📒 꽂은 종이를 다른 빈 포켓으로
