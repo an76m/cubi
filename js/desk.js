@@ -565,23 +565,7 @@
             if (document.body.classList.contains('bth-on')) return 'booth';   // 📸 포토부스 거리 (js/boothroom.js)
             return 'room';
         }
-        /* 🚪 방 밖 = 화면 꽉 문 그림 (도련 11-24 · img/move-door.webp 1672 × 941 · coverFit = 문이 가운데) : 문 가운데 판(MV_PANEL) 안에 제목 + 칸들 (글씨는 화면 크기 그대로 · 넘치면 판 안에서 내려 보기) */
-        const MV_W = 1672, MV_H = 941, MV_PANEL = [522, 172, 1148, 806];      // 판 안쪽 (왼 · 위 · 오른 · 아래 · 그림 px)
-        function mvFit() {
-            const m = document.getElementById('moveModal'), img = m && m.querySelector('.mv-door'); if (!img) return;
-            const f = coverFit(MV_W, MV_H, [MV_PANEL[0] - 30, MV_PANEL[2] + 30, MV_PANEL[1] - 20, MV_PANEL[3] + 20]);
-            img.style.transform = `translate(${f.x}px, ${f.y}px) scale(${f.s})`;
-            const g = 10, L = Math.max(g, f.x + MV_PANEL[0] * f.s), T = Math.max(g + 40, f.y + MV_PANEL[1] * f.s);   // 위 = ✕ · 설정 자리
-            const R = Math.min(innerWidth - g, f.x + MV_PANEL[2] * f.s), B = Math.min(innerHeight - g, f.y + MV_PANEL[3] * f.s);
-            const c = m.querySelector('.modal-content');
-            [['--mx', L], ['--my', T], ['--mw', R - L], ['--mh', B - T]].forEach(([k, v]) => c.style.setProperty(k, Math.round(v) + 'px'));
-            c.style.setProperty('--mc', R - L >= 420 ? 3 : 2);                 // 칸 = 판이 넓으면 3줄 · 좁으면 (📱) 2줄
-        }
-        window.mvFit = mvFit;
-        addEventListener('resize', () => { const m = document.getElementById('moveModal'); if (m && m.style.display === 'flex') mvFit(); });
-        async function deskMoveOpen() {
-            const img = document.querySelector('#moveModal .mv-door');
-            if (img) await picReady(img.getAttribute('src'));                    // 🖼 문 그림이 준비되면 (util.js · 1441 · 늦으면 1초)
+        function deskMoveOpen() {
             if (window.evLiveCheck) evLiveCheck();                               // 🎉 지금 열린 이벤트 광장이 있나 (js/service.js · 1분에 한 번까지 · 칸을 저절로 보여요)
             const box = document.getElementById('moveCafe'), here = deskHere();
             const rm = document.getElementById('moveRoom'), ph = UI.menu();   // 💻 📲 하단 메뉴 화면도 책상이 없어요 (도련 11-10)   // 📱 폰은 내 방(책상)이 없어요 → '다이어리' = 하단 메뉴 넷이 있는 다이어리 화면으로 (도련 11-09)
@@ -640,7 +624,7 @@
         window.dtmShow = dtmShow; window.dkModesOff = dkModesOff;   // 🧺 공중에 떠 있는 스티커창은 바구니로 정리 (이동처럼 · 도련 11-09)
         function dtmNext() { DTM.i = (DTM.i + 1) % DTM_ITEMS.length; dtmPaint(); }
         /* 🚪 이동 ▾ (도련 11-23 · 위 ▾ 틀 그대로) : [이동] = 갈 곳 고르는 창 · [설정] = ⚙ 설정 메뉴 · [내 방 나가기] = 저장 게이지 → 인사 → 🌙 불 꺼진 문 → 앱 끄기 (js/roomexit.js) */
-        const DKG_ITEMS = [['방 밖', () => deskMoveOpen()], ['설정', () => openSettingsMenu()], ['잠들기', () => window.roomExit && roomExit()]];   // 🌙 이름 = 방 밖 · 잠들기 (도련 11-24)   // ⚙ 설정 = 예전 이동 창 왼쪽 위 '설정' 버튼 자리 (💻 📲 에선 이동 창에서 뺐어요 · 도련 11-23)
+        const DKG_ITEMS = [['장소', () => deskMoveOpen()], ['설정', () => openSettingsMenu()], ['잠들기', () => window.roomExit && roomExit()]];   // 🌙 이름 = 장소 · 잠들기 (도련 11-24)   // ⚙ 설정 = 예전 이동 창 왼쪽 위 '설정' 버튼 자리 (💻 📲 에선 이동 창에서 뺐어요 · 도련 11-23)
         DKM.deskMoveMenu = { items: DKG_ITEMS };
         window.DTM = DTM; window.dtmToggle = dtmToggle; window.dtmRun = dtmRun;
         function deskLeave() { if (window.bndClose) bndClose(); if (window.closeCraft) closeCraft(); if (window.closeCalRoom) closeCalRoom(); if (window.closeBoothPlace) closeBoothPlace(); if (window.closePostRoom) closePostRoom(); if (window.closeWorld) closeWorld(); if (window.closeTarotRoom) closeTarotRoom(); if (window.closeArcRoom) closeArcRoom(); if (window.closeGacha && document.body.classList.contains('gacha-on')) closeGacha(); }      // 📅 달력(벽)에서 다른 곳으로 = 달력을 떠나요
@@ -693,7 +677,7 @@
                 <div class="dk-diary" id="deskDiary" aria-hidden="true"></div>   <!-- 📔 기준점만 (권 그림 = .dk-vol · dkVolsPaint) -->
                 <i class="desk-guide h"></i><i class="desk-guide v"></i>
                 <div class="desk-tip" id="deskTip"></div></div>
-                <div class="desk-top-r">${dkMenuHtml('deskTopMenu', '')}${dkMenuHtml('deskMoveMenu', '방 밖', 'deskShopGo')}</div>`;   // 🔽 ▾ 메뉴 둘 = 틀 하나 (dkMenuHtml · 🛠 책상 꾸미기 ▾ · 🚪 이동 ▾)
+                <div class="desk-top-r">${dkMenuHtml('deskTopMenu', '')}${dkMenuHtml('deskMoveMenu', '장소', 'deskShopGo')}</div>`;   // 🔽 ▾ 메뉴 둘 = 틀 하나 (dkMenuHtml · 🛠 책상 꾸미기 ▾ · 🚪 이동 ▾)
             const tr = bg.querySelector('.desk-top-r'); if (tr) { document.body.appendChild(tr); Object.keys(DKM).forEach(dkMenuPaint); }
             dkModeXBuild();                                                       // ✕ 다이어리모드 · 스티커정리 · 바인더조립 = 오른쪽 위 ✕ (도련 11-15)   // 🪑 다이어리를 펼쳐도 보이게 (책상 그림 밖 · 맨 위 · 도련 10-31)   /* 🚪 오른쪽 위 이동 → 갈 곳 고르는 창 (index.html #moveModal · 도련 10-31 · 책상만 볼 때) */
             if (window.dsPaint) dsPaint();                                        // 🧱 벽지 · 🪵 책상 (js/deskskin.js)

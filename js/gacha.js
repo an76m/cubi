@@ -77,9 +77,9 @@
             return `<div class="cs-guide${inPop ? ' in-pop' : ''}">
               <div class="cs-guide-t">✨ 움직이는 캡슐 스티커, 이렇게 모아요</div>
               <ol>
-                <li><b>🚪 방 밖 → 📅 벽걸이 달력 → 출석 도장</b>에서 하루 한 번 도장을 찍어요</li>
+                <li><b>🚪 장소 → 📅 벽걸이 달력 → 출석 도장</b>에서 하루 한 번 도장을 찍어요</li>
                 <li>한 달에 몇 번, 도장 밑에 숨은 <b>🪙 코인</b>이 나와요</li>
-                <li><b>🚪 방 밖 → 🎁 문방구 캡슐기계</b>에 코인을 넣고 캡슐을 뽑아요</li>
+                <li><b>🚪 장소 → 🎁 문방구 캡슐기계</b>에 코인을 넣고 캡슐을 뽑아요</li>
                 <li>나온 스티커는 <b>30일 동안</b> 여기 <b>🎁 캡슐 스티커</b> 칸에서 붙일 수 있어요</li>
               </ol>
               <button type="button" class="btn cs-guide-go" onclick="capsGoAttend()">📅 출석 도장 찍으러 가기</button>
@@ -143,7 +143,7 @@
             const wrap = el.querySelector('.gc-wrap');
             st.appendChild(el.querySelector('.gc-head')); st.appendChild(el.querySelector('.gc-machine')); st.appendChild(wrap);
             el.insertBefore(st, el.firstChild);
-            const go = document.createElement('button'); go.type = 'button'; go.className = 'gcs-go desk-shop-go'; go.textContent = '방 밖'; go.onclick = () => deskMoveOpen(); el.appendChild(go);   // 🚪 화면 오른쪽 위 (그림이 잘려도)
+            const go = document.createElement('button'); go.type = 'button'; go.className = 'gcs-go desk-shop-go'; go.textContent = '장소'; go.onclick = () => deskMoveOpen(); el.appendChild(go);   // 🚪 화면 오른쪽 위 (그림이 잘려도)
         }
         /* 🏪 문방구 앞 전환 (도련 11-01 · 타로카페 · 오락실 문과 같은 전환) : 길에서 본 문방구(img/gacha-street.webp) → 캡슐기계 쪽으로 커지며 따뜻한 빛 → 캡슐기계 앞 (문 뒤에서 미리 열어 둬요) · 동작 줄이기면 바로 */
         const GCS_GO = { cx: 1330, cy: 640 };                                     // 길 그림의 캡슐기계 셋 가운데 (그림 px)

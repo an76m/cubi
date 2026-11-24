@@ -173,7 +173,6 @@
             if (m && MT_FROM.includes(id)) { m.classList.toggle('mt-from-set', Date.now() - (window._viaSetMenu || 0) < 1500); window._viaSetMenu = 0; }   // ‹ 설정 = 설정 메뉴에서 열었을 때만 (도련 11-20)
             mtDecorate(m);       // 카페는 늘 카테고리부터
             m.style.display = 'flex';
-            if (id === 'moveModal' && window.mvFit) mvFit();   // 🚪 방 밖 = 문 판에 맞추기 (js/desk.js)
             mtFit(m);
             const t = m.querySelector('.modal-title.mt-bar .mt-text');
             if (t && !t.dataset.fit) { t.dataset.fit = 1; new MutationObserver(() => mtFit(m)).observe(t, { childList: true, characterData: true, subtree: true }); }

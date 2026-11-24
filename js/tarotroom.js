@@ -51,7 +51,7 @@
                 </div>
                 <div class="tro-ttl">🔮 타로카페<small>오늘은 어떤 카드를 뒤집어 볼까요?</small></div>
                 ${ph ? '<div class="tro-tags">' : ''}${TRO_CARDS.map((c, i) => `<button type="button" class="tro-tag" data-i="${i}">${c[0]}<small>${c[1]}</small></button>`).join('')}${ph ? '</div>' : ''}
-                <button type="button" class="tro-go desk-shop-go" onclick="deskMoveOpen()">방 밖</button>`;   // 제목 · 이름표 · 이동 = 화면 위 (그림이 잘려도 화면 안에)
+                <button type="button" class="tro-go desk-shop-go" onclick="deskMoveOpen()">장소</button>`;   // 제목 · 이름표 · 이동 = 화면 위 (그림이 잘려도 화면 안에)
             document.body.appendChild(el);
             const hov = (i, on) => el.querySelectorAll(`[data-i="${i}"]`).forEach(x => x.classList.toggle('hov', on));
             el.querySelectorAll('[data-i]').forEach(x => {

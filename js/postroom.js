@@ -46,7 +46,7 @@
                             <div class="pr-in" id="prFbIn"><div class="pr-hd">불편한 점, 바라는 기능, 응원의 한마디 · 제작자에게 바로 전해져요</div></div>
                         </div>
                     </div>
-                    <button type="button" class="pr-go desk-shop-go" onclick="deskMoveOpen()">방 밖</button>   <!-- 🚪 닫기 대신 이동 (달력과 같은 틀) -->
+                    <button type="button" class="pr-go desk-shop-go" onclick="deskMoveOpen()">장소</button>   <!-- 🚪 닫기 대신 이동 (달력과 같은 틀) -->
                 </div>`;
             document.body.appendChild(el);
             if (ph) { const room = el; room.appendChild(room.querySelector('.pr-slot')); room.appendChild(room.querySelector('.pr-win')); room.appendChild(room.querySelector('.pr-go')); room.querySelectorAll('.pr-lamp, .pr-lamph').forEach(x => x.remove()); }   // 📱 안 창 · 글씨 · 이동 = 화면 크기 (그림 밖으로 꺼내요)

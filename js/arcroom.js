@@ -82,7 +82,7 @@
                     </div>
                     <div class="aro-tip" id="aroTip" hidden></div>
                 </div>
-                <button type="button" class="aro-go desk-shop-go" onclick="deskMoveOpen()">방 밖</button>`;
+                <button type="button" class="aro-go desk-shop-go" onclick="deskMoveOpen()">장소</button>`;
             document.body.appendChild(el);
             const tip = aroq('aroTip');
             el.querySelectorAll('.aro-scr[data-i]').forEach(b => {
