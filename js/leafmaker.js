@@ -33,7 +33,7 @@
             lmq('lmWash').oninput = e => { lm.wash = +e.target.value; lmDraw(); };
             lmq('lmFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) lmPhoto(f); };
             const sd = document.createElement('div'); sd.id = 'lmSide'; sd.className = 'stk-tabs lm-tabs lm-side';   // 📃 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로 · 도련 11-16)
-            sd.innerHTML = '<button type="button" class="stk-tab" data-two="">📄 한 쪽 디자인</button><button type="button" class="stk-tab" data-two="1">📖 양쪽 디자인</button>';
+            sd.innerHTML = '<button type="button" class="stk-tab" data-two="">📄 한 페이지 디자인</button><button type="button" class="stk-tab" data-two="1">📖 양쪽 디자인</button>';
             sd.onclick = e => { const b = e.target.closest('button'); if (!b || !!b.dataset.two === lm.two) return; lm.two = !!b.dataset.two; lmOpen('leaf', true); };
             lmq('lmTabs').before(sd);
             const cv = lmq('lmCv');

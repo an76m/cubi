@@ -122,7 +122,7 @@
             dmkQ('dmkName').value = dmk.g; dmkQ('dmkName').placeholder = '내 ' + T.name;
             dmkQ('dmkDel').hidden = !old; dmkQ('dmkDup').hidden = !old || t === 'note';
             dmkQ('dmkOk').textContent = old ? '💾 저장' : t === 'note' || t === 'dnote' ? '✨ 만들기' : '📤 보관하기';
-            dmkQ('dmkHint').textContent = { cover: '페이지 바인더 표지만 만들어요 · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워요', refill: '페이지 바인더 내지만 만들어요 · 같은 크기 페이지 바인더 표지에 끼워 써요', dcover: '해가 적힌 날짜형 바인더 표지예요 · 🧩 바인더 조립에서 같은 크기 날짜형 내지를 끼워요', drefill: '날짜형 바인더 내지예요 · 해가 없어요 (끼운 표지의 해를 따라가요) · 같은 크기 날짜형 표지에 끼워요', dnote: '1월 1일 ~ 12월 31일 하루 한 쪽 날짜형노트예요 · 완제품이라 바로 써요' }[t] || '';
+            dmkQ('dmkHint').textContent = { cover: '페이지 바인더 표지만 만들어요 · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워요', refill: '페이지 바인더 내지만 만들어요 · 같은 크기 페이지 바인더 표지에 끼워 써요', dcover: '해가 적힌 날짜형 바인더 표지예요 · 🧩 바인더 조립에서 같은 크기 날짜형 내지를 끼워요', drefill: '날짜형 바인더 내지예요 · 해가 없어요 (끼운 표지의 해를 따라가요) · 같은 크기 날짜형 표지에 끼워요', dnote: '1월 1일 ~ 12월 31일 하루 한 펼침면 날짜형노트예요 · 완제품이라 바로 써요' }[t] || '';
             dmkRender();
             dmkShut('dyModal', 'dmkRoom'); openModal('dmkModal');
         }

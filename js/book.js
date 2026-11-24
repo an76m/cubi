@@ -123,13 +123,13 @@ function bookOpen(host, spec) {
     const B = { spec, open: !!spec.open, pg: Math.max(0, spec.pg || 0), busy: null, root: null, alive: true };
     const two = () => !ph() && B.open && spec.side() === 'lr';
     const sideBtn = s => `<button type="button" class="page-side bk-side${spec.side().includes(s) ? ' on' : ''}" aria-pressed="${spec.side().includes(s)}" aria-label="${s === 'l' ? '왼쪽 페이지' : '오른쪽 페이지'}" data-side="${s}">${window.dvSideSvg ? dvSideSvg(s) : s}</button>`;
-    const arrow = d => `<button type="button" class="page-arrow bk-arr" aria-label="${d < 0 ? '앞 쪽' : '다음 쪽'}" data-d="${d}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+    const arrow = d => `<button type="button" class="page-arrow bk-arr" aria-label="${d < 0 ? '앞 페이지' : '다음 페이지'}" data-d="${d}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
     const pageHtml = p => p >= 0 && p < spec.pages ? spec.page(p) : spec.blank();
     function norm() { B.pg = Math.max(0, Math.min(spec.pages - 1, B.pg)); if (two()) B.pg -= B.pg % 2; }
     function barText() {
         if (!B.open) return spec.title();
         const t = two(), n = spec.pages;
-        return `${B.pg + 1}${t && B.pg + 1 < n ? '–' + (B.pg + 2) : ''} <small>/ ${n}쪽</small>`;
+        return `${B.pg + 1}${t && B.pg + 1 < n ? '–' + (B.pg + 2) : ''} <small>/ ${n}페이지</small>`;
     }
     const canNext = () => !B.open || B.pg + (two() ? 2 : 1) < spec.pages;
     const canPrev = () => B.open && !(spec.stay && B.pg === 0);               // 첫 쪽에서 앞으로 = 덮기 · stay = 덮지 않아요 (📒 🤍 스티커 정리)

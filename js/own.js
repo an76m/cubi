@@ -1144,7 +1144,7 @@
             if (c === 'corrupt') return '스티커 목록을 읽을 수 없어요.<br><span style="font-size:12px;color:#777;">다른 계정의 말랑달콤 폴더이거나 파일이 깨졌어요.</span>';
             if (c === 'full') return '☁ 구글 드라이브 저장공간이 가득 찼어요.';
             if (c === 'auth') return '다시 로그인해 주세요.';
-            if (c === 'relfull') return '이 쪽은 가득 찼어요. 다른 쪽에 붙여 주세요.';
+            if (c === 'relfull') return '이 페이지는 가득 찼어요. 다른 페이지에 붙여 주세요.';
             if (c === 'gone') return '스티커첩이 바뀌었어요. 다시 열어 주세요.';
             return '인터넷 연결을 확인한 뒤 다시 해 주세요.';
         }

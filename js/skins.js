@@ -770,7 +770,7 @@
            - 두 쪽에 걸친 것 = 양면테이프 · 스티커 · 글 메모 무엇이든 (그 꾸밈의 네모가 두 쪽 종이에 다 닿으면)
            - 구멍을 가린 것 = 구멍 자리에 보이는 그림이 있으면 (투명한 곳 · 펀칭기로 같이 뚫은 자리는 괜찮아요) · 책상 = 양면테이프가 종이 밖까지 (bdTapeLinks pin)
            - 버튼은 늘 📥 바인더 · 누르면 걸린 꾸밈이 빨갛게 깜박이고 이유가 화면 가운데 떠요 (도련 10-19) */
-        const BD_WHY = { holes: '🕳️ 구멍 12개를 먼저 뚫어 주세요', link: '✂️ 두 쪽에 걸쳐 붙은 걸 떼어 주세요', cover: '🙈 구멍을 가린 스티커는 펀칭기로 뚫어 주세요', desk: '🩹 책상에 붙은 테이프를 떼어 주세요' };
+        const BD_WHY = { holes: '🕳️ 구멍 12개를 먼저 뚫어 주세요', link: '✂️ 두 페이지에 걸쳐 붙은 걸 떼어 주세요', cover: '🙈 구멍을 가린 스티커는 펀칭기로 뚫어 주세요', desk: '🩹 책상에 붙은 테이프를 떼어 주세요' };
         const bdAlpha = new Map();                                              // 그림 src → 작은 알파 지도 (못 읽으면 null = 네모로 판단)
         function bdAlphaOf(img) {
             const k = img.currentSrc || img.src; if (!k || !img.complete || !img.naturalWidth) return null;

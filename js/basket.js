@@ -341,7 +341,7 @@
         if (!lfFits(x.sz)) { showMsg(lfNo(x.sz)); return false; }           // 📏 늘이지 않아요
         const img = s.imgs[0], two = !!x.two, left = s.q != null ? +s.q : 2;
         const opts = two ? [['양쪽 (왼쪽 · 오른쪽 디자인)', 'lr'], ['왼쪽만', 'l'], ['오른쪽만', 'r']] : [['왼쪽', 'l'], ['오른쪽', 'r'], ['양쪽 (두 장)', 'lr']];
-        const ok = opts.filter(o => o[1].length <= left), n = await showPick(`📃 어느 쪽에 끼울까요?<br><span style="font-size:12px;color:#777;">${two ? '양쪽 디자인 속지예요.' : '한 쪽 디자인 속지예요.'} 끼운 쪽마다 한 장씩 써요.</span>`, ok.map(o => o[0]));
+        const ok = opts.filter(o => o[1].length <= left), n = await showPick(`📃 어느 페이지에 끼울까요?<br><span style="font-size:12px;color:#777;">${two ? '양쪽 디자인 속지예요.' : '한 페이지 디자인 속지예요.'} 끼운 페이지마다 한 장씩 써요.</span>`, ok.map(o => o[0]));
         if (n < 0) return false;
         const sd = ok[n][1];
         if (window.stkBlink) stkBlink();
@@ -478,7 +478,7 @@
     const abFreeBag = t => { const H = bkHold(); return abFreeOk(t) && abFreeIn(t).some(x => H && H.b && H.b.has(x.id)); };
     function abFreeHtml(t) {
         const L = abFreeList(t); if (!L.length) return '';
-        return `<div class="ab-free">${L.map(x => abBookBtn(t, x, `abLoadFree('${t}','${esc(x.id)}')`, t === 'bd' ? x.n + '장' : x.n + '쪽')).join('')}</div>`;
+        return `<div class="ab-free">${L.map(x => abBookBtn(t, x, `abLoadFree('${t}','${esc(x.id)}')`, t === 'bd' ? x.n + '장' : x.n + '페이지')).join('')}</div>`;
     }
     function abBookBtn(t, x, go, sub) {                                       // 📒 🤍 책 하나 = 동그란 버튼 (📥 불러오기 · 🪑 작업대에 올리기 같이)
         const P = (t === 'bd' ? AB_BDP : AB_RL).find(p => p.id === x.pid), c = t === 'bd' ? abCol(x) : ['#f6f2fb', '#c9b8e6'];
@@ -692,7 +692,7 @@
         const body = bq('abBody'), a = B.album, bds = abMine(a.bd), rls = abMine(a.rl);
         const plus = t => `<button type="button" class="ab-plus" onclick="abFreeOpen('${t}')"><b>📥</b>받아 둔 책<br>불러오기</button>`;   // 📥 (도련 11-08 · 샵에서 받은 책은 종류 없이 기다려요)
         const bd = bds.map(b => { const c = abCol(b); return `<button type="button" class="ab-bd" style="--c1:${c[0]};--c2:${c[1]};--abf:${esc(abFace('bd', b))}" onclick="abOpen('bd','${esc(b.id)}')"><span class="ab-cover">${b.lb ? `<i class="ab-lb">${esc(b.lb)}</i>` : ''}</span><small>${Object.keys(b.p).length}장 꽂힘</small></button>`; }).join('');
-        const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개 · ${r.n}쪽</small></button>`).join('');
+        const rl = rls.map(r => `<button type="button" class="ab-rlc" onclick="abOpen('rl','${esc(r.id)}')"><span class="ab-rlsheet">${abRelMini(r)}${r.lb ? `<i class="ab-lb">${esc(r.lb)}</i>` : ''}</span><small>${r.it.length}개 · ${r.n}페이지</small></button>`).join('');
         body.innerHTML = (BD_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>📒 바인더</span><small>종이째 꽂아 둬요</small></h4><div class="ab-row">${bd}${plus('bd')}</div></div>` : '')
             + (REL_KINDS.has(B.kind) ? `<div class="ab-sec"><h4 class="ab-h"><span>🤍 이형지북</span><small>하나씩 떼어 모아요</small></h4><div class="ab-row">${rl}${plus('rl')}</div></div>` : '')
             + '<p class="bk-note">바인더 · 이형지북은 🏪 기본상품 샵에서 받아 와서 📥 불러와 써요 · 빈 책은 ↩ 빼기로 돌려놔요<br>톡 하면 펼쳐져요 · 정리는 🗄️ 서랍 → 📒 정리에서 해요</p>';
@@ -731,9 +731,9 @@
             id: x.id, cls: 'bk-' + t, pages, posKey: U ? ABF_POS + ':' + x.id : ABF_POS, mm: abMmOf(t, x),   // 📏 한 쪽 = 그 상품 규격 mm · 책상에 띄운 책 = 권마다 자리 (여러 권 · 도련 11-22)
             colors: t === 'bd' ? abCol(x) : abRlCol(x), face: abFace(t, x),
             page: p => t === 'bd' ? `<div class="abx-pg">${abPocketsAt(x, p, byId)}<b class="abx-no">${p + 1}</b></div>`
-                : `<div class="ab-rel abx-wax abf-rl" data-pg="${p}">${abRelItems(x, p, byId)}${x.it.some(o => (o.pg || 0) === p) ? '' : `<span class="ab-relhint">${x.it.length ? '이 쪽은 비어 있어요' : '비어 있어요<br>📒 스티커 정리에서 떼어 붙여요'}</span>`}</div>`,
+                : `<div class="ab-rel abx-wax abf-rl" data-pg="${p}">${abRelItems(x, p, byId)}${x.it.some(o => (o.pg || 0) === p) ? '' : `<span class="ab-relhint">${x.it.length ? '이 페이지는 비어 있어요' : '비어 있어요<br>📒 스티커 정리에서 떼어 붙여요'}</span>`}</div>`,
             blank: () => t === 'bd' ? '<div class="abx-pg end"></div>' : '<div class="ab-rel abx-wax abf-rl end"></div>',
-            cover: () => `<div class="bk-cover ${t}"><span class="bk-cvlb">${t === 'bd' ? '📒' : '🤍'} ${esc(nm)}</span><small>${pages}쪽</small>${U ? '<span class="bk-hint">◀ 밀어서 열기</span>' : ''}</div>`,   // 🪑 책상에 띄운 책 = 다이어리 겉표지처럼 '밀어서 열기'
+            cover: () => `<div class="bk-cover ${t}"><span class="bk-cvlb">${t === 'bd' ? '📒' : '🤍'} ${esc(nm)}</span><small>${pages}페이지</small>${U ? '<span class="bk-hint">◀ 밀어서 열기</span>' : ''}</div>`,   // 🪑 책상에 띄운 책 = 다이어리 겉표지처럼 '밀어서 열기'
             spine: two => t === 'bd' ? ABS_RING.repeat(3) + '<span></span>' + ABS_RING.repeat(3) : '<i></i>'.repeat(14),
             title: () => `${t === 'bd' ? '📒' : '🤍'} ${esc(nm)} <small>· 표지</small>`,
             side: () => abSideGet(), setSide: v => { try { localStorage.setItem(ABS_SIDE, v); } catch (e) {} },
@@ -1018,7 +1018,7 @@
     }
     const abRelBoxes = () => [...document.querySelectorAll('#absRoom .ab-rel.srt[data-pg]')];   // 🤍 보이는 이형지 쪽 (펼친 두 쪽이면 둘)
     function abRelAt(cx, cy) { return abRelBoxes().find(b => { const r = b.getBoundingClientRect(); return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom; }) || null; }
-    const abRelCnt = r => `쪽마다 ${abRelCap(r)}개 · ${r.it.length}개 붙였어요`;
+    const abRelCnt = r => `페이지마다 ${abRelCap(r)}개 · ${r.it.length}개 붙였어요`;
     /* 🧺 톡 = 맨 위로 (겹친 종이 중 그 종이를 올려서 봐요) · 🟩 매트 위인지 (떼는 판이 위에 떠 있어도 자리로 봐요) */
     function abRaise(id) {
         B.up = id; const c = document.querySelector(`#abStrip .ab-sc[data-id="${CSS.escape(id)}"]`);
@@ -1368,8 +1368,8 @@
         tool: ['다이어리', async () => {                                        // 📔 날짜형 다이어리 (해마다 기본 다이어리 · js/dyyear.js · 도련 10-28) + 🗂️ 스티커 정리 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
             const on = (K, x) => !x.P.숨김 && prodList(K).some(y => y.id === x.id);   // 진열 = 서버에 있고 숨기지 않은 디자인
             const out = (window.dyyShopList ? dyyShopList() : [])
-                .concat(AB_BDP.filter(x => on('스티커바인더', x)).map(x => ({ cnt: `${x.P.이름} · 속지 ${Math.ceil(x.P.장수 / x.P.포켓 / 2)}장 · 시트 ${+x.P.장수}장 꽂아요`, desc: `한 쪽에 ${+x.P.포켓}포켓 · 앞뒤 ${Math.ceil(x.P.장수 / x.P.포켓)}쪽 · 꽂아도 쓴 게 아니에요`, look: 'binder', pid: x.id, tool: 'bd', name: String(x.P.이름) })))
-                .concat(AB_RL.filter(x => on('이형지북', x)).map(x => ({ cnt: `${x.P.이름} · 이형지 ${+x.P.쪽수}쪽 · 스티커 ${x.P.쪽수 * x.P.포켓}개`, desc: `한 쪽에 ${+x.P.포켓}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', pid: x.id, tool: 'rl', name: String(x.P.이름) })));
+                .concat(AB_BDP.filter(x => on('스티커바인더', x)).map(x => ({ cnt: `${x.P.이름} · 속지 ${Math.ceil(x.P.장수 / x.P.포켓 / 2)}장 · 시트 ${+x.P.장수}장 꽂아요`, desc: `한 페이지에 ${+x.P.포켓}포켓 · 앞뒤 ${Math.ceil(x.P.장수 / x.P.포켓)}페이지 · 꽂아도 쓴 게 아니에요`, look: 'binder', pid: x.id, tool: 'bd', name: String(x.P.이름) })))
+                .concat(AB_RL.filter(x => on('이형지북', x)).map(x => ({ cnt: `${x.P.이름} · 이형지 ${+x.P.쪽수}페이지 · 스티커 ${x.P.쪽수 * x.P.포켓}개`, desc: `한 페이지에 ${+x.P.포켓}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', pid: x.id, tool: 'rl', name: String(x.P.이름) })));
             return out;
         }],
         bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)
@@ -1548,8 +1548,8 @@
         season: '이벤트 기간에만 나오는 스티커예요 · 기간이 지나면 매대에서 사라져요',
         bg: '받은 배경지는 🌈 배경지 창에 모여요 · 같은 것도 또 받을 수 있어요',
         tool: {
-            dyb: '<b>1월 1일 ~ 12월 31일</b>, 하루에 한 쪽씩 쓰는 1년 바인더 다이어리예요 · 디자인마다 따로 한 권 · 해가 바뀌면 여기서 새해 다이어리를 받아요',
-            dyn: '<b>1월 1일 ~ 12월 31일</b>, 하루에 한 쪽씩 쓰는 1년 노트예요 · 링이 없는 얇은 노트 · 디자인마다 따로 한 권 · 해가 바뀌면 여기서 새해 노트를 받아요',
+            dyb: '<b>1월 1일 ~ 12월 31일</b>, 하루에 한 펼침면씩 쓰는 1년 바인더 다이어리예요 · 디자인마다 따로 한 권 · 해가 바뀌면 여기서 새해 다이어리를 받아요',
+            dyn: '<b>1월 1일 ~ 12월 31일</b>, 하루에 한 펼침면씩 쓰는 1년 노트예요 · 링이 없는 얇은 노트 · 디자인마다 따로 한 권 · 해가 바뀌면 여기서 새해 노트를 받아요',
             bd: '일기장이 아니라 <b>스티커 보관용</b>이에요 · 🗄️ 서랍의 스티커 종이를 포켓에 종이째 꽂아 정리해요 · 꽂아도 줄지 않아요',
             rl: '스티커를 <b>한 칸씩 떼어 모아 두는 책</b>이에요 (씰 · 이모지 · 조각) · 🪡 핀셋으로 떼어 옮겨요 · 옮겨도 줄지 않아요'
         },
@@ -1582,7 +1582,7 @@
         SH.pg = Math.max(0, Math.min(pages - 1, SH.pg || 0));
         const page = list.slice(SH.pg * per, (SH.pg + 1) * per);
         const arw = (d, on, lb) => `<button type="button" class="sh-arw ${d < 0 ? 'l' : 'r'}" aria-label="${lb}" onclick="shPage(${d})"${on ? '' : ' disabled'}><svg viewBox="0 0 40 54" aria-hidden="true"><path d="M30 5 L7 27 L30 49 Q35 51 35 45 L35 9 Q35 3 30 5Z"/><path class="hl" d="M27 13 L15 25"/></svg></button>`;
-        const nav = pages > 1 ? arw(-1, SH.pg > 0, '앞 쪽') + arw(1, SH.pg < pages - 1, '다음 쪽') + `<div class="sh-pgno">${SH.pg + 1} / ${pages}</div>` : '';   // ◀ ▶ 창 양옆 · 쪽 번호는 아래 가운데 (도련 10-28 시안)
+        const nav = pages > 1 ? arw(-1, SH.pg > 0, '앞 페이지') + arw(1, SH.pg < pages - 1, '다음 페이지') + `<div class="sh-pgno">${SH.pg + 1} / ${pages}</div>` : '';   // ◀ ▶ 창 양옆 · 쪽 번호는 아래 가운데 (도련 10-28 시안)
         box.innerHTML = `<div class="sh-case">${shTip(k)}${page.length ? `<div class="sh-grid" style="--cols:${cols}">${page.map(([x, i]) => shCard(x, i)).join('')}</div>` : bkMsg('아직 진열된 것이 없어요.')}</div>${nav}`;   // 🎀 레이스 창 (도련 10-28 시안 · 테두리는 shkFrame)
         shFit(box);
         shPreload(list.slice((SH.pg + 1) * per, (SH.pg + 2) * per));          // 다음 쪽 미리

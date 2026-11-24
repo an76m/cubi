@@ -107,7 +107,7 @@
         document.querySelectorAll('#ppBarX, #ppSpecPop, #ppSizePop').forEach(e => e.remove());   // 예전 막대 · 창은 지우고
         const bar = o.bar, x = document.createElement('div'); x.id = 'ppBarX'; x.className = 'pp-barx';
         x.innerHTML = `<div class="pp-mode"><button type="button" data-m="px">🖌️ 픽셀<small>손으로 쓱쓱 · 펜 있으면 좋아요</small></button><button type="button" data-m="vec">✒️ 벡터<small>점을 찍어 그려요 · 마우스로도</small></button><button type="button" data-m="css">🧩 CSS<small>상자를 CSS 기능으로 꾸며요</small></button><button type="button" data-m="svg">🌀 SVG<small>도형에 SVG 기능을 붙여요</small></button></div><button type="button" class="pp-tourb" data-tour="1" title="예시를 고르면 마우스가 움직이며 만드는 과정을 보여 줘요">🎓 예시 보기<small>CSS · SVG 예시</small></button>
-${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" title="속지 규격 (다이어리 규격 중에서)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button><button type="button" class="pp-specb pp-two" data-q="two" title="📄 한 쪽 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로)"></button>' : ''}${P.kind === 'paper' ? '<button type="button" class="pp-specb" data-q="seal" title="모조지 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 모조지를 다이어리 옆에 실제 크기 비율로 놓아 봐요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 씰 스티커를 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'piece' ? '<button type="button" class="pp-specb" data-q="seal" title="조각 판 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 조각을 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
+${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" title="속지 규격 (다이어리 규격 중에서)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 속지를 다이어리에 끼워 보고 · 그 다이어리 크기로 맞춰요"></button><button type="button" class="pp-specb pp-two" data-q="two" title="📄 한 페이지 디자인 (양쪽에 같이도) · 📖 양쪽 디자인 (왼쪽 · 오른쪽 따로)"></button>' : ''}${P.kind === 'paper' ? '<button type="button" class="pp-specb" data-q="seal" title="모조지 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 모조지를 다이어리 옆에 실제 크기 비율로 놓아 봐요"></button>' : ''}${P.kind === 'seal' ? '<button type="button" class="pp-specb" data-q="seal" title="씰 시트 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 씰 스티커를 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'piece' ? '<button type="button" class="pp-specb" data-q="seal" title="조각 판 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 조각을 다이어리에 실제 크기 비율로 붙여 봐요"></button>' : ''}${P.kind === 'tk' || P.kind === 'tape' ? `<button type="button" class="pp-specb" data-q="size" title="${P.kind === 'tape' ? '테이프' : '떡메모지'} 실제 크기 (mm)"></button><button type="button" class="pp-specb" data-q="spec" title="만든 ${P.kind === 'tape' ? '테이프' : '떡메'}를 다이어리에 실제 크기로 붙여 봐요"></button>` : ''}<div class="pp-qa"><button type="button" data-q="undo" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-q="redo" title="다시 (Ctrl+Y)">↷</button></div>`;
         bar.appendChild(x);
         x.addEventListener('click', e => { if (e.target.closest('[data-tour]')) { if (window.padTour) padTour.open(); return; } const m = e.target.closest('[data-m]'), qq = e.target.closest('[data-q]'); if (m) setMode(m.dataset.m); if (qq && qq.dataset.q === 'seal') { paperPop(); return; } if (qq && qq.dataset.q === 'two') { twoFlip(); return; } if (qq) qq.dataset.q === 'spec' ? (P.kind === 'tk' || P.kind === 'tape' ? tkPastePop() : P.kind === 'seal' || P.kind === 'piece' || P.kind === 'paper' ? sealPastePop() : specPop()) : qq.dataset.q === 'size' ? sizePop() : (qq.dataset.q === 'undo' ? undo : redo)(); });
         o.L.innerHTML = `<h4 id="ppSrcT">📥 가져오기</h4><div class="pp-src"><button type="button" data-a="photo">📎 사진</button></div>
@@ -1357,7 +1357,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             <div class="pp-sp-b"><div class="pp-sp-l" id="ppSpL">${L.map(g => `<div class="pp-sg"><div class="pp-sg-h"><b>${esc(g.n)}</b><small>${esc(g.mm)}mm</small></div>
                 <div class="pp-sg-i">${g.items.map(i => `<button type="button" data-sp="${esc(i.id)}"><i style="background:${esc(i.bd)}"></i>${esc(i.name)}${i.id === cur.id ? '<u>펼친 다이어리</u>' : ''}</button>`).join('')}</div></div>`).join('')}</div>
             <div class="pp-sp-r"><p class="pp-sp-h">${PA ? '📄 모조지 한 장을 <b>실제 크기 비율</b>로 다이어리 위에 놓아 봤어요 · ✂️ 오린 만큼 붙어요' : `${PC ? '🧩 봉투에서 꺼내 붙이면' : '🏷️ 시트에서 떼어 붙이면'} <b>이 크기 그대로</b> 다이어리에 붙어요`}</p><div class="pp-bkw" id="ppBk"></div><p class="pp-sp-t" id="ppSpT"></p>
-            <div class="pp-sl-at" id="ppSlAt"><button type="button" data-at="l">◀ 왼쪽 쪽</button><button type="button" data-at="r" class="on">오른쪽 쪽 ▶</button></div></div></div>`;
+            <div class="pp-sl-at" id="ppSlAt"><button type="button" data-at="l">◀ 왼쪽 페이지</button><button type="button" data-at="r" class="on">오른쪽 페이지 ▶</button></div></div></div>`;
         document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
         const show = () => {
             const g = L.find(x => x.items.includes(pick)), ph = mmOf(g.mm) || 148, pw = +String(g.mm).split(/[×x*]/)[0] || 105;
@@ -1376,9 +1376,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             $('ppBk').innerHTML = `<div class="pp-bk b-${pick.b}" style="--bd:${esc(pick.bd)};--pg:${esc(pick.pg)};--w:${W}px;--h:${H}px"><div class="pp-sprd pp-sprd-0"></div><i class="pp-bind"></i>
                 <div class="pp-slon" style="width:${W}px;height:${H}px">${PC || PA ? '' : `<i class="pp-slsh" style="left:${(cx - SW / 2).toFixed(1)}px;top:${top.toFixed(1)}px;width:${SW.toFixed(1)}px;height:${SH.toFixed(1)}px"></i>`}${st}</div></div>`;
             const mm = 148 / PG_PX, big = cut.reduce((m, o) => o.wh[0] * o.wh[1] > m[0] * m[1] ? o.wh : m, [0, 0]);   // 그림 px = 페이지 px
-            if (PA) { const v = cut[0].wh; $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>모조지 한 장 약 <b>${Math.round(v[0] * mm)} × ${Math.round(v[1] * mm)}mm</b>` + (v[1] * mm > ph ? '<br><span style="color:#c2457a">⚠ 모조지가 한 쪽보다 길어요</span>' : ''); return; }
-            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>${PC ? '조각 ' + cut.length + '개' : '스티커 ' + cut.length + '장'} · 가장 큰 것 약 <b>${Math.round(big[0] * mm)} × ${Math.round(big[1] * mm)}mm</b>`
-                + (PC ? '' : (SW > W / 2 + 1 ? '<br><span style="color:#c2457a">⚠ 시트가 한 쪽보다 넓어요 (떼어서 나눠 붙여요)</span>' : '') + '<br><span style="font-size:11px;color:#8a6a76">점선 = 씰 시트 한 장 (세로 ' + sealPh() + 'mm · 실제 크기 비율)</span>');
+            if (PA) { const v = cut[0].wh; $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>모조지 한 장 약 <b>${Math.round(v[0] * mm)} × ${Math.round(v[1] * mm)}mm</b>` + (v[1] * mm > ph ? '<br><span style="color:#c2457a">⚠ 모조지가 한 페이지보다 길어요</span>' : ''); return; }
+            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>${PC ? '조각 ' + cut.length + '개' : '스티커 ' + cut.length + '장'} · 가장 큰 것 약 <b>${Math.round(big[0] * mm)} × ${Math.round(big[1] * mm)}mm</b>`
+                + (PC ? '' : (SW > W / 2 + 1 ? '<br><span style="color:#c2457a">⚠ 시트가 한 페이지보다 넓어요 (떼어서 나눠 붙여요)</span>' : '') + '<br><span style="font-size:11px;color:#8a6a76">점선 = 씰 시트 한 장 (세로 ' + sealPh() + 'mm · 실제 크기 비율)</span>');
         };
         $('ppSpL').onclick = e => { const b = e.target.closest('[data-sp]'); if (!b) return; pick = all.find(i => i.id === b.dataset.sp) || pick; const g = L.find(x => x.items.includes(pick)); P.spec = { n: g.n, mm: g.mm, r: pick.r, id: pick.id }; specBtn(); show(); };
         $('ppSlAt').onclick = e => { const b = e.target.closest('[data-at]'); if (!b) return; at = b.dataset.at; pop.querySelectorAll('[data-at]').forEach(x => x.classList.toggle('on', x === b)); show(); };
@@ -1403,11 +1403,11 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         const LF = P.kind === 'leaf', C = PP_SZ[P.kind], now = paperMm();
         const L = LF ? specList() : C.L; if (LF && !L.length) { say('📐 고를 수 있는 다이어리 규격이 아직 없어요'); return; }
         pop = document.createElement('div'); pop.id = 'ppSizePop'; pop.className = 'pp-pop pp-sizepop';
-        const card = LF ? (g, i) => { const m = String(g.mm).split(/[×x*]/).map(Number); return `<button type="button" data-i="${i}" data-w="${m[0]}" data-h="${m[1]}"><i style="aspect-ratio:${m[0] * (P.two ? 2 : 1)} / ${m[1]}"></i><b>${esc(g.n)}</b><small>${esc(g.mm)}mm${P.two ? ' · 두 쪽' : ''}</small></button>`; }
+        const card = LF ? (g, i) => { const m = String(g.mm).split(/[×x*]/).map(Number); return `<button type="button" data-i="${i}" data-w="${m[0]}" data-h="${m[1]}"><i style="aspect-ratio:${m[0] * (P.two ? 2 : 1)} / ${m[1]}"></i><b>${esc(g.n)}</b><small>${esc(g.mm)}mm${P.two ? ' · 펼침면' : ''}</small></button>`; }
             : (v, i) => `<button type="button" data-i="${i}" data-w="${v[0]}" data-h="${v[1]}"><i style="aspect-ratio:${v[0]} / ${v[1]}"></i><b>${v[0]} × ${v[1]}</b><small>${v[2]}</small></button>`;
         pop.innerHTML = `<div class="pp-pop-h"><b>📐 ${LF ? '속지 규격' : C.nm + ' 크기'}</b><button type="button" class="win-x" aria-label="닫기">✕</button></div>
             <div class="pp-sz-b"><div class="pp-sz-l">${L.map(card).join('')}</div>
-            ${LF ? `<div class="pp-sz-c"><small>📃 속지는 <b>다이어리 규격</b>으로만 만들어요 · 같은 규격 다이어리에 끼워요${P.two ? ' · 📖 양쪽 디자인 = 펼친 두 쪽' : ''}</small></div>`
+            ${LF ? `<div class="pp-sz-c"><small>📃 속지는 <b>다이어리 규격</b>으로만 만들어요 · 같은 규격 다이어리에 끼워요${P.two ? ' · 📖 양쪽 디자인 = 펼침면' : ''}</small></div>`
                 : `<div class="pp-sz-c"><b>직접 정하기</b><label>가로 <input type="number" id="ppSzW" min="${C.lim[0]}" max="${C.lim[1]}" value="${now[0]}"> mm</label><label>세로 <input type="number" id="ppSzH" min="${C.lim[0]}" max="${C.lim[1]}" value="${now[1]}"> mm</label><small>${C.lim[0]} ~ ${C.lim[1]}mm</small></div>`}
             <button type="button" class="pp-sp-go" id="ppSzGo">📐 이 ${LF ? '규격' : '크기'}로</button></div>`;
         document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
@@ -1817,7 +1817,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
 
     /* ================= 📐 다이어리 규격 (도련 11-14) : 앱의 모든 바인더 · 노트 크기 중에서 골라 끼워 보기 · 그 크기로 종이 맞추기
        - 상품 그대로 (📔 날짜형바인더 · 날짜형노트 js/app.js DY_DESIGNS · 🗂️ 페이지바인더 · 📕 페이지노트 js/skins.js DY_TYPES · 숨김 상품은 빼요) · 같은 규격(이름 + mm)끼리 묶어요
-       - 📏 속지 = 종이 한 쪽 (규격 mm · js/skins.js dyLeafR) · 📖 양쪽 디자인 = 펼친 두 쪽 (가로 × 2) · 다이어리에는 쪽마다 그 mm 그대로 (늘이지 않아요 · js/leafpad.js) · 같은 규격 다이어리에만 (도련 11-16)
+       - 📏 속지 = 종이 한 쪽 (규격 mm · js/skins.js dyLeafR) · 📖 양쪽 디자인 = 펼침면 (가로 × 2) · 다이어리에는 쪽마다 그 mm 그대로 (늘이지 않아요 · js/leafpad.js) · 같은 규격 다이어리에만 (도련 11-16)
        - 종이 맞추기 = 가로 900 그대로 · 세로 = 900 × 그 다이어리 속지 비율 · 그린 것은 위 기준 그대로 (작아지면 아래가 잘려요) ================= */
     const SPEC_B = { ring: '링 바인더', tn: '고무줄 노트', spread: '쫙 펼침', hard: '하드커버', thin: '얇은 노트' };
     function specList() {
@@ -1864,14 +1864,14 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         const a = document.querySelector('#ppBarX [data-q="seal"]'); if (a) a.innerHTML = `<b>📐 속지 규격</b><small>${P.spec ? esc(P.spec.n) + ' · ' + esc(P.spec.mm) + 'mm' : '규격 고르기'}</small>`;
         const b = document.querySelector('#ppBarX [data-q="spec"]'); if (!b) return;
         const s = P.spec; b.innerHTML = `<b>📔 다이어리에 끼워 보기</b><small>${s ? '지금 다이어리 · ' + esc(s.n) : '다이어리 고르기'}</small>`;   // 누르기 전에 무엇인지 알게 (도련 11-14)
-        const t = document.querySelector('#ppBarX .pp-two'); if (t) t.innerHTML = P.two ? '<b>📖 양쪽 디자인</b><small>왼쪽 · 오른쪽 따로</small>' : '<b>📄 한 쪽 디자인</b><small>양쪽에 같이도</small>';
+        const t = document.querySelector('#ppBarX .pp-two'); if (t) t.innerHTML = P.two ? '<b>📖 양쪽 디자인</b><small>왼쪽 · 오른쪽 따로</small>' : '<b>📄 한 페이지 디자인</b><small>양쪽에 같이도</small>';
         const ov = $('ppStage'); if (ov) ov.classList.toggle('pp-two-on', !!P.two);
     }
     const leafR = r => P.two ? r / 2 : r;                                     // 📃 종이 비율 (세로 ÷ 가로) : 한 쪽 = 규격 · 📖 양쪽 = 펼친 두 쪽 (가로 × 2)
     const ratioOk = r => Math.abs(leafR(r) - P.H / P.W) < .015;
     function twoFlip() {                                                      // 📄 한 쪽 ↔ 📖 양쪽 디자인 (도련 11-16 · 가로 900 그대로 · 세로를 그 비율로)
         P.two = !P.two; const r = P.spec && P.spec.r > 0 ? P.spec.r : P.H / P.W * (P.two ? 1 : .5);
-        resizePaper(P.W, Math.round(P.W * leafR(r)), P.spec); say(P.two ? '📖 양쪽 디자인 · 가운데 점선 왼쪽 = 왼쪽 쪽 · 오른쪽 = 오른쪽 쪽' : '📄 한 쪽 디자인 · 끼울 때 양쪽에 같이 · 한 쪽에만 골라요', 2600);
+        resizePaper(P.W, Math.round(P.W * leafR(r)), P.spec); say(P.two ? '📖 양쪽 디자인 · 가운데 점선 왼쪽 = 왼쪽 페이지 · 오른쪽 = 오른쪽 페이지' : '📄 한 페이지 디자인 · 끼울 때 양쪽 페이지에 같이 · 한 페이지에만 골라요', 2600);
     }
     function specShot() {                                                      // 미리보기용 작은 그림
         const w = 320, h = Math.round(w * P.H / P.W), c = mkCv(w, h), x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
@@ -1888,7 +1888,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         pop.innerHTML = `<div class="pp-pop-h"><b>📐 다이어리 규격 · 끼워 보기</b><button type="button" class="win-x" aria-label="닫기">✕</button></div>
             <div class="pp-sp-b"><div class="pp-sp-l" id="ppSpL">${L.map(g => `<div class="pp-sg"><div class="pp-sg-h"><b>${esc(g.n)}</b><small>${esc(g.mm)}mm</small>${g.items.some(i => ratioOk(i.r)) ? '<em>지금 종이</em>' : ''}</div>
                 <div class="pp-sg-i">${g.items.map(i => `<button type="button" data-sp="${esc(i.id)}"><i style="background:${esc(i.bd)}"></i>${esc(i.name)}${i.id === cur.id ? '<u>펼친 다이어리</u>' : ''}</button>`).join('')}</div></div>`).join('')}</div>
-            <div class="pp-sp-r"><p class="pp-sp-h">📃 속지 한 장 = <b>${P.two ? '펼친 두 쪽 (양쪽 디자인)' : '한 쪽'}</b> 크기예요</p><div class="pp-bkw" id="ppBk"></div><p class="pp-sp-t" id="ppSpT"></p><button type="button" class="pp-sp-go" id="ppSpGo"></button></div></div>`;
+            <div class="pp-sp-r"><p class="pp-sp-h">📃 속지 한 장 = <b>${P.two ? '펼침면 (양쪽 디자인)' : '한 페이지'}</b> 크기예요</p><div class="pp-bkw" id="ppBk"></div><p class="pp-sp-t" id="ppSpT"></p><button type="button" class="pp-sp-go" id="ppSpGo"></button></div></div>`;
         document.body.appendChild(pop); pop.querySelector('.win-x').onclick = () => pop.remove();
         const groupOf = it => L.find(g => g.items.includes(it));
         const show = () => {
@@ -1989,13 +1989,13 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
                 $('ppBk').innerHTML = `<div class="pp-bk b-${pick.b}" style="--bd:${esc(pick.bd)};--pg:${esc(pick.pg)};--w:${W}px;--h:${H}px"><div class="pp-sprd pp-sprd-0"></div><i class="pp-bind"></i>
                     <i class="pp-tpon" style="width:${(70 * k).toFixed(1)}px;height:${th.toFixed(1)}px;left:calc(75% - ${(35 * k).toFixed(1)}px);top:calc(40% - ${(th / 2).toFixed(1)}px);transform:rotate(-8deg);background-image:url(&quot;${tu}&quot;)"></i>
                     <i class="pp-tpon" style="width:${(36 * k).toFixed(1)}px;height:${th.toFixed(1)}px;left:${(12 * k).toFixed(1)}px;top:${(14 * k).toFixed(1)}px;transform:rotate(-38deg);background-image:url(&quot;${tu}&quot;)"></i></div>`;
-                $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>테이프 폭이 한 쪽 세로의 ${Math.round(P.tkmm[1] / ph * 100)}% 쯤이에요`;
+                $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>테이프 폭이 한 페이지 세로의 ${Math.round(P.tkmm[1] / ph * 100)}% 쯤이에요`;
                 return;
             }
             $('ppBk').innerHTML = `<div class="pp-bk b-${pick.b}" style="--bd:${esc(pick.bd)};--pg:${esc(pick.pg)};--w:${W}px;--h:${H}px"><div class="pp-sprd pp-sprd-0"></div><i class="pp-bind"></i>
                 <div class="pp-tkon" style="width:${tw.toFixed(1)}px;height:${th.toFixed(1)}px;left:calc(75% - ${(tw / 2).toFixed(1)}px);top:calc(50% - ${(th / 2).toFixed(1)}px)"><img src="${shot}" alt=""><i class="pp-tktape"></i></div></div>`;   /* 뜯어 붙인 한 장 = 테이프로 (풀칠 띠는 묶음에 남아요) */
             const big = P.tkmm[0] > pw || P.tkmm[1] > ph;
-            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 쪽 ${esc(g.mm)}mm<br>` + (big ? '⚠ 떡메가 다이어리 한 쪽보다 커요' : `떡메가 한 쪽의 가로 ${Math.round(P.tkmm[0] / pw * 100)}% · 세로 ${Math.round(P.tkmm[1] / ph * 100)}% 쯤이에요`);
+            $('ppSpT').innerHTML = `<b>${esc(pick.name)}</b> · 한 페이지 ${esc(g.mm)}mm<br>` + (big ? '⚠ 떡메가 다이어리 한 페이지보다 커요' : `떡메가 한 페이지의 가로 ${Math.round(P.tkmm[0] / pw * 100)}% · 세로 ${Math.round(P.tkmm[1] / ph * 100)}% 쯤이에요`);
         };
         $('ppSpL').onclick = e => { const b = e.target.closest('[data-sp]'); if (!b) return; pick = all.find(i => i.id === b.dataset.sp) || pick; show(); };
         show();
