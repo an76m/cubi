@@ -505,11 +505,12 @@ body:has(#basketKindModal.ab-ph[style*="display: flex"]) .toolbar { display: non
 body:has(#basketKindModal.ab-space) .ab-ghost { z-index: 2147482000; }
 /* 🤍 이형지북 처음 안내 : 바구니 → 🟩 매트 화살표 (매트에 종이를 펼치면 사라져요 · 도련 10-29) */
 .abx-row { position: relative; }
-.abx-guide { position: absolute; z-index: 6; left: calc(var(--bw, 340px) - 150px); top: 16%; width: 230px; pointer-events: none; animation: abxNudge 1.3s ease-in-out infinite alternate; }
-.abx-guide b { display: block; width: max-content; max-width: 210px; padding: 8px 14px; border: 2px solid var(--ol); border-radius: 14px; background: #ffd3e2; color: #8a2f58; font-size: 14px; line-height: 1.35; text-align: center; }
-.abx-guide svg { display: block; width: 150px; height: 80px; margin: 2px 0 0 40px; }
+.drag-guide { position: absolute; z-index: 6; width: 230px; pointer-events: none; --ol: #8d6f7f; animation: abxNudge 1.3s ease-in-out infinite alternate; }   /* 👉 끌어다 놓기 안내 = 하나 (js/util.js dragGuide · 자리는 부르는 쪽) */
+.abx-guide { left: calc(var(--bw, 340px) - 150px); top: 16%; }
+.drag-guide b { display: block; width: max-content; max-width: 210px; padding: 8px 14px; border: 2px solid var(--ol); border-radius: 14px; background: #ffd3e2; color: #8a2f58; font-size: 14px; line-height: 1.35; text-align: center; }
+.drag-guide svg { display: block; width: 150px; height: 80px; margin: 2px 0 0 40px; }
 @keyframes abxNudge { from { transform: translate(0, 0); } to { transform: translate(10px, 4px); } }
-@media (prefers-reduced-motion: reduce) { .abx-guide { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .drag-guide { animation: none; } }
 .abx-mat .ab-peelhint { flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.5; }
 .abx-mat .ab-peelhint small { font-size: 12px; }
 /* 🤍 이형지북 스티커 = 다이어리에 붙였을 때와 같은 크기 (w · h × 배율 --rk · js abRelK · 도련 10-29) */

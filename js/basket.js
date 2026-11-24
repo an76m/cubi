@@ -935,9 +935,7 @@
        · 🤍 이형지북 : 왼쪽 스프링 · 반짝이는 이형지 한 쪽 · 뒤로 겹친 종이 · 아래 🟩 커팅 매트 = 떼는 자리 (바구니 아래) */
     const ABS_RING = BOOK_RING;                                               // 🔗 링 그림 = 책 엔진 하나 (js/book.js · 🧩 바인더 조립도 같이)
     /* 🤍 이형지북 처음 안내 (도련 10-29) : 종이를 매트에 펼치기 전까지 바구니 → 매트 화살표 + 한 줄 (바구니 판에 붙어 같이 움직여요) */
-    const ABS_GUIDE = '<div class="abx-guide" aria-hidden="true"><b>붙일 스티커 종이를<br>초록 매트로 끌어다 놓아요</b>'
-        + '<svg viewBox="0 0 170 90"><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#8d6f7f" stroke-width="17" stroke-linecap="round"/><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#ff8fb4" stroke-width="11" stroke-linecap="round"/>'
-        + '<path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>';
+    const ABS_GUIDE = dragGuide('붙일 스티커 종이를<br>초록 매트로 끌어다 놓아요', 'abx-guide');   // 👉 끌어다 놓기 안내 = js/util.js 하나
     function abSpaceHtml(D, strip, tabsH) {
         const kn = ((bq('bkTitle') || {}).textContent || '').replace(/^\S+\s*/, '');
         const bar = `<div class="abs-bar"><button type="button" class="ab-kind" onclick="abKindMenu(this)" aria-haspopup="menu" title="정리할 스티커 바꾸기"><i>${abKic(B.kind)}</i>${esc(BK_KINDS[B.kind] || kn)}<b aria-hidden="true">▾</b></button>${tabsH}<span class="abs-fill"></span><button type="button" class="btn ab-done" onclick="abDone()"${abDirty() || AB.loads.length ? '' : ' disabled'}>✔ 이 책 완료</button><button type="button" class="abs-x win-x" aria-label="닫기" onclick="abCancel(true)">✕</button></div>`;

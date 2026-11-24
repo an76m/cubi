@@ -133,6 +133,12 @@ function picReady(src, max) {
     return Promise.race([p, waitMs(max == null ? 1000 : max)]);
 }
 window.picReady = picReady;
+/* 👉 끌어다 놓기 안내 = 하나 (도련 11-24 · 1453 · 🤍 이형지북 종이 → 🟩 매트 · 🧩 바인더 조립 표지 → 작업대) : 말풍선 한 줄 + 굽은 화살표 (살랑 · 눌리지 않아요)
+     dragGuide(글, 자리 클래스) → html · 모양 = css/anime.css .drag-guide · 자리 (left · top) 는 부르는 쪽 클래스로 */
+function dragGuide(txt, cls) {
+    return `<div class="drag-guide ${cls || ''}" aria-hidden="true"><b>${txt}</b><svg viewBox="0 0 170 90"><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#8d6f7f" stroke-width="17" stroke-linecap="round"/><path d="M12 14C52 64 108 74 146 54" fill="none" stroke="#ff8fb4" stroke-width="11" stroke-linecap="round"/><path d="M126 30L160 48L130 78Z" fill="#ff8fb4" stroke="#8d6f7f" stroke-width="3" stroke-linejoin="round"/></svg></div>`;
+}
+window.dragGuide = dragGuide;
 /* placeReady(o) = 장소 여는 함수 맨 앞에서 (placeGo 와 같은 o) : 그 장소 첫 그림이 준비될 때까지 기다려요 · 기다리는 중에 또 누르면 false (두 번 열리지 않게) */
 const placeWait = {};
 async function placeReady(o) {
