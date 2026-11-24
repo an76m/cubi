@@ -127,8 +127,8 @@
                 const stk = typeof OWN_KIND !== 'undefined' && Object.values(OWN_KIND).includes(dir);
                 return stk ? `🏷️ ${dir} 스티커` : dir === DIRS.pattern ? '🎨 배경지' : '📦 ' + dir;
             }
-            if (parts.length > 3 && parts[parts.length - 3] === DIRS.diary && /^dk/.test(dir)) return '📕 ' + (/^(\d+)페이지\.json$/.test(file) ? file.replace(/^(\d+)페이지\.json$/, '$1페이지') : /^표지\.json$/.test(file) ? '표지' : '다이어리');   // 📕 다이어리 / dk… / 3페이지.json (도련 11-07)
-            if (dir === DIRS.note || dir === DIRS.binder) return '📕 ' + (/-(\d+)페이지\.json$/.test(file) ? file.replace(/^.*-(\d+)페이지\.json$/, '$1페이지') : /-표지\.json$/.test(file) ? '표지' : '다이어리');
+            if (parts.length > 3 && parts[parts.length - 3] === DIRS.diary && /^dk/.test(dir)) return '📕 ' + (/^(\d+)페이지\.json$/.test(file) ? file.replace(/^(\d+)페이지\.json$/, '$1번째 펼침면') : /^표지\.json$/.test(file) ? '표지' : '다이어리');   // 📕 다이어리 / dk… / 3페이지.json (도련 11-07)
+            if (dir === DIRS.note || dir === DIRS.binder) return '📕 ' + (/-(\d+)페이지\.json$/.test(file) ? file.replace(/^.*-(\d+)페이지\.json$/, '$1번째 펼침면') : /-표지\.json$/.test(file) ? '표지' : '다이어리');
             if (/\/인형극\//.test(path)) return '🎭 인형극 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/인형돌?\//.test(path)) return '👧 인형 ' + parts[parts.length - 1].replace(/\.json$/, '');
             if (/\/목록\//.test(path)) return '📋 모음 목록';

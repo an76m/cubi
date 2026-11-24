@@ -142,7 +142,7 @@
             <details class="dmk-row dmk-col" data-on="note cover dnote dcover"><summary><b>🎨 세부 색</b> <small>표지 · 테두리 · 강조 · 속지 (표지 색을 고르면 저절로 · 하나씩 바꿀 수 있어요)</small></summary><div class="dmk-cols" id="dmkCols"></div></details>
             <div class="dmk-row" data-on="note refill"><b>펼침면 수</b><div class="dmk-pg"><button type="button" class="dmk-step" onclick="dmkPages(-10)">−</button><input id="dmkPg" type="number" inputmode="numeric" min="${DMK_PG.min}" max="${DMK_PG.max}" onchange="dmkPages(0, this.value)"><button type="button" class="dmk-step" onclick="dmkPages(10)">＋</button><small>${DMK_PG.min}~${DMK_PG.max}페이지</small></div></div>
             <div class="dmk-row dmk-col" data-on="dnote drefill"><b>내지 <small>모든 날 같은 내지</small></b><div class="dmk-lv-pick" id="dmkLf1"></div></div>
-            <div class="dmk-row dmk-col" data-on="note refill"><b>내지 <small>페이지 구간마다 골라요</small></b><div id="dmkLeaf"></div>
+            <div class="dmk-row dmk-col" data-on="note refill"><b>내지 <small>펼침면 구간마다 골라요</small></b><div id="dmkLeaf"></div>
                 <button type="button" class="dmk-add" onclick="dmkLeafAdd()">✂️ 구간 나누기</button></div>
             <div class="sub-modal-btns">
                 <button class="btn" id="dmkDel" type="button" onclick="dmkDelete()">🗑 지우기</button>
@@ -181,7 +181,7 @@
             dmkQ('dmkPg').value = dmk.pg;
             const many = dmk.lv.length > 1;
             dmkQ('dmkLeaf').innerHTML = dmk.lv.map((r, i) => `<div class="dmk-lv">
-                <div class="dmk-lv-r"><input type="number" inputmode="numeric" value="${r[0]}" ${i ? '' : 'disabled'} onchange="dmkLeafEdge(${i}, 0, this.value)"><span>~</span><input type="number" inputmode="numeric" value="${r[1]}" ${i === dmk.lv.length - 1 ? 'disabled' : ''} onchange="dmkLeafEdge(${i}, 1, this.value)"><span>페이지</span>${many ? `<button type="button" class="dmk-x" title="이 구간 빼기" onclick="dmkLeafDel(${i})">✕</button>` : ''}</div>
+                <div class="dmk-lv-r"><input type="number" inputmode="numeric" value="${r[0]}" ${i ? '' : 'disabled'} onchange="dmkLeafEdge(${i}, 0, this.value)"><span>~</span><input type="number" inputmode="numeric" value="${r[1]}" ${i === dmk.lv.length - 1 ? 'disabled' : ''} onchange="dmkLeafEdge(${i}, 1, this.value)"><span>펼침면</span>${many ? `<button type="button" class="dmk-x" title="이 구간 빼기" onclick="dmkLeafDel(${i})">✕</button>` : ''}</div>
                 <div class="dmk-lv-pick">${leafList().map(([v, n]) => `<button type="button" class="lf-pick dmk-lf${r[2] === v ? ' on' : ''}" onclick="dmkLeafSet(${i}, '${v}')"><i class="lf-sw" style="background:var(--lf-holes), ${htmlEsc(leafBg(v, .9))}, var(--page-bg, #fff)"></i>${n}</button>`).join('')}</div></div>`).join('');
             dmkQ('dmkLeaf').closest('.dmk-row').querySelector('.dmk-add').hidden = dmk.lv[dmk.lv.length - 1][1] - dmk.lv[dmk.lv.length - 1][0] < 1 || dmk.lv.length >= 10;
             dmkPrevDraw();
@@ -403,7 +403,7 @@
             const cv = dmkRm.cv && dmkClean(dmkRm.cv), H = 96;
             if (!cv) { dmkQ('dmkRoomPrev').innerHTML = `<span class="dmk-prev-n">표지를 먼저 골라 주세요<small>표지가 없으면 📒 다이어리 → 🗂️ 바인더 만들기에서 만들거나 🏪 샵에서 받아요</small></span>`; return; }
             const pg = dmkRm.rf.reduce((s, x) => s + dmkRfPg(x), 0);
-            const sub = cv.t === 'dcover' ? `📅 ${cv.y}년 · ${cv.n} · ${cv.mm}mm · ${dmkRm.rf.length ? '날짜 내지 끼움' : '날짜 내지를 끼워요'}` : `${cv.n} · ${cv.mm}mm · 내지 ${dmkRm.rf.length}묶음 · ${pg}페이지`;
+            const sub = cv.t === 'dcover' ? `📅 ${cv.y}년 · ${cv.n} · ${cv.mm}mm · ${dmkRm.rf.length ? '날짜 내지 끼움' : '날짜 내지를 끼워요'}` : `${cv.n} · ${cv.mm}mm · 내지 ${dmkRm.rf.length}묶음 · ${pg}펼침면`;
             dmkQ('dmkRoomPrev').innerHTML = `<span class="dmk-stack">${dmkCvThumb(cv.c, cv.r, H, cv.pid || cv.d)}${pg ? `<span class="dmk-stack-n">${pg}</span>` : ''}</span><span class="dmk-prev-n">${dmkEsc(dmkRm.g || cv.g || '내 바인더')}<small>${sub}</small></span>`;
         }
         function dmkRoomRender() {
