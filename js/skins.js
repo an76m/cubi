@@ -1997,8 +1997,8 @@
             if (!dkIs(date) || !dkType()) return '';
             const o = dkNow(), n = dkNo(date);
             if (!n) return '📕 표지 꾸미기';
-            if (dkView() === 'date') return o.days[n] ? formatDate(dkDayOf(o.days[n])) : '새 장';
-            return `${n} / ${o.pages} 페이지`;
+            if (dkView() === 'date') return o.days[n] ? formatDate(dkDayOf(o.days[n])) : '새 펼침면';
+            return `${n} / ${o.pages} 펼침면`;   // 📖 펼침면 = 왼쪽 · 오른쪽 = 하루치 (도련 11-24)
         }
         function dkTap() {                                                     // 위 바 가운데를 누르면 : 유한은 페이지 수 ↔ 날짜 · 기본은 한 달 모아보기
             if (!dkType()) { if (window.openMonth) openMonth(); return; }
@@ -2153,7 +2153,7 @@
             const cell = it => it === 'new'
                 ? `<button type="button" class="dy-it dy-new" onclick="dmkOpen('${dyKind}')"><span class="dy-stage"><b>＋</b></span><span class="dy-n">${dyKind === '바인더' ? '🧩 바인더 조립' : '새 ' + DY_KNAME[dyKind] + ' 만들기'}</span><small>${dyKind === '바인더' ? '표지 만들기 · 내지 만들기 · 끼우기' : '크기 · 표지 · 내지 · 페이지 수'}</small></button>`
                 : it.my
-                ? `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${dmkEsc(it.g)}</span><small>${it.n} · ${it.pg}페이지</small>${dyNoteFree(it) ? '' : `<span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkOpen('${dyKind}', '${it.id}')">✏️</span>`}</button>`   /* 📕 받은 노트는 상품 모양 그대로 (✏️ 고치기 없음 · 도련 11-11) */
+                ? `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${dmkEsc(it.g)}</span><small>${it.n} · ${it.pg}펼침면</small>${dyNoteFree(it) ? '' : `<span class="dy-ed" role="button" tabindex="0" title="고치기" onclick="event.stopPropagation(); dmkOpen('${dyKind}', '${it.id}')">✏️</span>`}</button>`   /* 📕 받은 노트는 상품 모양 그대로 (✏️ 고치기 없음 · 도련 11-11) */
                 : `<button type="button" class="dy-it" data-id="${it.id}" onclick="dySet('${it.id}')"><span class="dy-stage">${dyThumb(it)}</span><span class="dy-n">${it.g}</span><small>${it.g === it.n ? '' : it.n + ' · '}${it.mm}</small></button>`;
             document.getElementById('dyPickList').innerHTML = list.length ? `<div class="dy-row">${list.map(cell).join('')}</div>` : `<div class="cs-empty">${empty}</div>`;
             dyRender();

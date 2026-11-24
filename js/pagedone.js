@@ -130,7 +130,7 @@
     const others = key => [...new Set([...PG.drafts.keys(), ...heldKeys()])].filter(k => k && k !== key);
     function label(key, r) {
         const d = typeof parseDayKey === 'function' && parseDayKey(key), p = !d && typeof parsePageKey === 'function' && parsePageKey(key);
-        const nm = d ? dayLabel(d) : p ? (p.n ? `${p.n}페이지` : '표지') : '페이지';
+        const nm = d ? dayLabel(d) + ' 페이지' : p ? (p.n ? `${p.n}번째 펼침면` : '표지') : '페이지';   // 📕 페이지형 = 펼침면 (왼쪽 · 오른쪽 = 하루치 · 도련 11-24) · 이름에 '페이지 · 펼침면' 까지
         return (r && r.vol && r.vol !== curVol() ? '다른 다이어리의 ' : '') + nm;
     }
     async function recOf(key) { const r = await draftGet(key); return Object.assign({ key, txt: PG.drafts.get(key) }, PG.meta.get(key) || {}, r || {}, PG.uns.has(key) ? { txt: PG.drafts.get(key) } : {}); }
@@ -141,7 +141,7 @@
     }
     const pv = (r, sub) => r && r.txt && window.dayPreviewCard ? dayPreviewCard(r.txt, sub) : '';   // 🖼 그 페이지 모습 (도련 11-19 : 뭔지 보고 고르게)
     const askDrop = (nm, r) => typeof showAsk === 'function'
-        ? showAsk(`🗑 <b>${nm}</b> 페이지에 꾸민 것을 지울까요?${pv(r)}<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
+        ? showAsk(`🗑 <b>${nm}</b>에 꾸민 것을 지울까요?${pv(r)}<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
         : Promise.resolve(true);
     async function goDraft(key, r) {                                          // ➡️ 그 권 · 그 페이지 펼치기
         const vol = r && r.vol, ds = r && r.ds;
@@ -153,7 +153,7 @@
         await until(() => !(typeof turn !== 'undefined' && turn), 3000);
         if (curKey() === key) { if (typeof loadData === 'function') loadData(); }
         else if (ds && typeof goToDate === 'function') goToDate(spotLoad(ds));
-        else if (window.showMsg) showMsg(`📖 <b>${label(key, r)}</b> 페이지를 펼치면 이어서 꾸밀 수 있어요.`);
+        else if (window.showMsg) { const nm = label(key, r); showMsg(`📖 <b>${nm}</b>${josaOf(nm, '을', '를')} 펼치면 이어서 꾸밀 수 있어요.`); }
     }
     async function gate() {                                                   // 다른 페이지에 처음 손댔어요 → 그 페이지로 가기 / 지우고 여기서 시작
         const key = curKey();
@@ -164,7 +164,7 @@
             const o = L[0], r = await recOf(o), nm = label(o, r);
             for (;;) {
                 const go = typeof showAsk === 'function'
-                    ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이에요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료하거나 지워야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '지우고 여기서 시작')
+                    ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료하거나 지워야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '지우고 여기서 시작')
                     : true;
                 if (go) {                                                     // 여기 방금 한 것은 없던 일로 (쓴 스티커도 서랍으로)
                     PG.mute = key; drop(key);
@@ -193,7 +193,7 @@
         PG.base.set(r.key, r.base);                                           // 이어서 하면 = 처음 지문 그대로
         for (;;) {
             const go = typeof showAsk === 'function'
-                ? await showAsk(`✏️ <b>${nm}</b> 페이지를 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시저장한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
+                ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시저장한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
                 : true;
             if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
             if (await askDrop(nm, r)) { drop(r.key); ui(); return; }

@@ -140,7 +140,7 @@
             <div class="dmk-row" data-on="dnote dcover"><b>해</b><div class="dmk-chips" id="dmkYear"></div></div>
             <div class="dmk-row" data-on="note cover dnote dcover"><b>표지 색</b><div class="dmk-sw" id="dmkColor"></div></div>
             <details class="dmk-row dmk-col" data-on="note cover dnote dcover"><summary><b>🎨 세부 색</b> <small>표지 · 테두리 · 강조 · 속지 (표지 색을 고르면 저절로 · 하나씩 바꿀 수 있어요)</small></summary><div class="dmk-cols" id="dmkCols"></div></details>
-            <div class="dmk-row" data-on="note refill"><b>페이지 수</b><div class="dmk-pg"><button type="button" class="dmk-step" onclick="dmkPages(-10)">−</button><input id="dmkPg" type="number" inputmode="numeric" min="${DMK_PG.min}" max="${DMK_PG.max}" onchange="dmkPages(0, this.value)"><button type="button" class="dmk-step" onclick="dmkPages(10)">＋</button><small>${DMK_PG.min}~${DMK_PG.max}페이지</small></div></div>
+            <div class="dmk-row" data-on="note refill"><b>펼침면 수</b><div class="dmk-pg"><button type="button" class="dmk-step" onclick="dmkPages(-10)">−</button><input id="dmkPg" type="number" inputmode="numeric" min="${DMK_PG.min}" max="${DMK_PG.max}" onchange="dmkPages(0, this.value)"><button type="button" class="dmk-step" onclick="dmkPages(10)">＋</button><small>${DMK_PG.min}~${DMK_PG.max}페이지</small></div></div>
             <div class="dmk-row dmk-col" data-on="dnote drefill"><b>내지 <small>모든 날 같은 내지</small></b><div class="dmk-lv-pick" id="dmkLf1"></div></div>
             <div class="dmk-row dmk-col" data-on="note refill"><b>내지 <small>페이지 구간마다 골라요</small></b><div id="dmkLeaf"></div>
                 <button type="button" class="dmk-add" onclick="dmkLeafAdd()">✂️ 구간 나누기</button></div>
@@ -163,7 +163,7 @@
             }
             const t = dmkDesign(), H = 96;
             const pic = t.t === 'cover' ? dmkCvThumb(t.c, t.r, H) : t.t === 'refill' ? dmkRfThumb(t.lv, t.r, H) : `<span class="dy-th" data-b="${t.b}" style="--dy-c:${t.cols.테두리색};--dy-p:${t.cols.속지색};width:${Math.round(H / t.r * 2)}px;height:${H}px"><i></i><i></i></span>`;
-            const sub = t.t === 'cover' ? `${t.n} · ${t.mm}mm · 6공 링` : `${t.n} · ${t.mm}mm · ${t.pg}페이지`;
+            const sub = t.t === 'cover' ? `${t.n} · ${t.mm}mm · 6공 링` : `${t.n} · ${t.mm}mm · ${t.pg}펼침면`;
             dmkQ('dmkPrev').innerHTML = `${pic}<span class="dmk-prev-n">${dmkEsc(t.g)}<small>${sub}</small></span>`;
         }
         function dmkRender() {
@@ -424,12 +424,12 @@
                 const a = at + 1; at += x.pg; const keep = a - 1 < filled;
                 return `<div class="dmk-in"><span class="dmk-in-n">${a}~${at}</span><span class="dmk-in-g">${dmkEsc(x.g)}<small>${dmkLvText(x.lv, x.pg)}</small></span>${keep ? '<span class="dmk-in-lock" title="꾸민 페이지가 있어서 뺄 수 없어요">🔒</span>' : `<button type="button" class="dmk-x" title="빼기" onclick="dmkRmOut(${i})">✕</button>`}</div>`;
             }).join('') : `<div class="dmk-empty">아직 끼운 내지가 없어요. 아래에서 눌러 끼워요.</div>`;
-            dmkQ('dmkRoomPg').textContent = dmkRm.rf.length && !date ? `${at}페이지` : '';
+            dmkQ('dmkRoomPg').textContent = dmkRm.rf.length && !date ? `${at}펼침면` : '';
             dmkQ('dmkRoomRfHint').textContent = date ? '날짜 내지 하나 · 표지의 해를 따라가요' : '누르면 맨 뒤에 끼워요';
             const refills = dmkRmPool('refill').filter(r => (date ? r.t === 'drefill' : r.t === 'refill') && (!n || r.n === n));   // 같은 크기만
             dmkQ('dmkRoomRf').innerHTML = refills.map(r => r.t === 'drefill'
                 ? `<button type="button" class="dmk-card" onclick="dmkRmAdd('${r.id}')">${dmkRfThumb([[1, 1, r.lf || 'line']], (dmkRm.cv && dmkClean(dmkRm.cv).r) || 1.4, 56)}<span>${dmkEsc(r.g)}</span><small>📅 날짜</small></button>`
-                : `<button type="button" class="dmk-card" ${n ? '' : 'disabled'} onclick="dmkRmAdd('${r.id}')">${dmkRfThumb(r.lv, r.r, 56)}<span>${dmkEsc(r.g)}</span><small>${r.n} · ${r.pg}p</small>${r.from === 'mine' && dymGet(r.id) ? ed('refill', r.id) : ''}</button>`).join('')
+                : `<button type="button" class="dmk-card" ${n ? '' : 'disabled'} onclick="dmkRmAdd('${r.id}')">${dmkRfThumb(r.lv, r.r, 56)}<span>${dmkEsc(r.g)}</span><small>${r.n} · ${r.pg}펼침면</small>${r.from === 'mine' && dymGet(r.id) ? ed('refill', r.id) : ''}</button>`).join('')
                 + (dmkRm.cv && !refills.length && !(date && dmkRm.rf.length) ? `<div class="dmk-empty">${date ? n + ' 크기 날짜 내지가 없어요. 🏪 기본상품 샵 → 📅 날짜 내지에서 받아요.' : n + ' 크기 내지가 아직 없어요.'}</div>` : '');
             dmkQ('dmkRoomOk').disabled = !(dmkRm.cv && dmkRm.rf.length);
             dmkRoomPrev();

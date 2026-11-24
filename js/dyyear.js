@@ -294,9 +294,9 @@
                 .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.cvOnly && !p.off).map(p => ({   // 🗂️ 페이지바인더 표지 (도련 11-07)
                     cnt: `${p.g} 표지`, desc: `${p.g} · 바인더 표지 · ${p.n} (${p.mm}) · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워 써요`, look: 'pbinder', pid: p.id, cols: p.cols, n: p.n, cat: 'pgb', give: () => dyyPCoverGive(p), name: `${p.g} 표지` })))
                 .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.k === '노트' && !p.off).map(p => ({   // 📕 페이지노트 = 완제품 (도련 11-11 · 받으면 바로 한 권)
-                    cnt: p.g, desc: `${p.g} · 페이지노트 · ${p.n} (${p.mm}) · ${p.pg}페이지 · 받을 때마다 새 노트 한 권 (다른 노트 기록과 따로)`, look: 'pnote', pid: p.id, cols: p.cols, n: p.n, cat: 'pgn', give: () => dyyPNoteGive(p), name: p.g })))
+                    cnt: p.g, desc: `${p.g} · 페이지노트 · ${p.n} (${p.mm}) · ${p.pg}펼침면 · 받을 때마다 새 노트 한 권 (다른 노트 기록과 따로)`, look: 'pnote', pid: p.id, cols: p.cols, n: p.n, cat: 'pgn', give: () => dyyPNoteGive(p), name: p.g })))
                 .concat((typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => !r.off && prodList(r.K).some(x => x.id === r.id)).map(r => ({   // 📅 날짜 내지 · 📄 페이지 내지 (샵 칸도 둘 · 도련 11-07)
-                    cnt: r.g, desc: `${r.t === 'date' ? '📅 날짜 내지 · 끼운 표지의 해를 따라가요' : `📄 페이지 내지 · ${r.pg}쪽`} · ${r.n} (${r.mm}) · 🧩 같은 크기 바인더 표지에 끼워요`, look: 'refill', lf: r.lf, rt: r.t, n: r.n, cat: r.t === 'date' ? 'dyr' : 'pgr', give: () => dyyRefillGive(r), name: r.g })));
+                    cnt: r.g, desc: `${r.t === 'date' ? '📅 날짜 내지 · 끼운 표지의 해를 따라가요' : `📄 페이지 내지 · ${r.pg}펼침면`} · ${r.n} (${r.mm}) · 🧩 같은 크기 바인더 표지에 끼워요`, look: 'refill', lf: r.lf, rt: r.t, n: r.n, cat: r.t === 'date' ? 'dyr' : 'pgr', give: () => dyyRefillGive(r), name: r.g })));
         }
         async function dyyGive(y, d) {
             if (d.ch === 'b') {                                                // 🗂️ 날짜형바인더 = 조립품 : 샵 = 해가 적힌 표지 → 🧩 바인더 재료 (도련 11-07 · 981)

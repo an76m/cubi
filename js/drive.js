@@ -285,7 +285,7 @@
         const isPageKey = k => PAGE_KEY_RE.test(k), isBookKey = k => BOOK_KEY_RE.test(k), isStateKey = k => STATE_KEY_RE.test(k);
         const STATE_FILE = '상태.json';
         const isOwnFile = k => isDayKey(k) || isPageKey(k) || isBookKey(k) || isStateKey(k);    // 키 하나가 드라이브 파일 하나 (하루 · 장 · 다이어리.json)
-        function keyLabel(k) { if (isStateKey(k)) return '다이어리 상태'; const d = parseDayKey(k); if (d) return dayLabel(d); const p = parsePageKey(k); return p ? (p.n ? `${p.n}페이지` : '표지') : '다이어리'; }
+        function keyLabel(k) { if (isStateKey(k)) return '다이어리 상태'; const d = parseDayKey(k); if (d) return dayLabel(d); const p = parsePageKey(k); return p ? (p.n ? `${p.n}번째 펼침면` : '표지') : '다이어리'; }   // 📖 화면 글만 펼침면 (파일 이름 fileOfKey '-3페이지.json' 은 그대로 · 도련 11-24)
         function isSettingKey(k) { return (k.startsWith('diary_') || VAULT_KEYS.includes(k)) && !isDayKey(k); }
         /* 설정 키가 드라이브의 어느 파일로 가는지 : 'cafe' · 'split' · 'settings' */
         function keyFile(k) { if (CAFE_KEYS.includes(k)) return 'cafe'; for (const w of DESK_WHICH) if (DESK_FILE_KEYS[w].includes(k)) return w; return 'settings'; }

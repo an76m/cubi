@@ -207,7 +207,7 @@
                 let snip = flat.slice(Math.max(0, i - 24), i + 60); if (i > 24) snip = '…' + snip; if (i + 60 < flat.length) snip += '…';
                 let html = srEsc(snip);
                 words.forEach(w => { html = html.replace(new RegExp(srEsc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), s => `<mark>${s}</mark>`); });
-                const head = bk ? `<b>${pn}페이지</b><small>${m}월 ${d}일</small>` : `<b>${m}월 ${d}일</b><small>${y} · ${wk[dt.getDay()]}</small>`;
+                const head = bk ? `<b>${pn}번째 펼침면</b><small>${m}월 ${d}일</small>` : `<b>${m}월 ${d}일</b><small>${y} · ${wk[dt.getDay()]}</small>`;
                 return `<button type="button" class="sr-it" onclick="srGo('${x.day}')"><span class="sr-d">${head}</span><span class="sr-t">${html}</span></button>`;
             }).join('') + (hits.length > 200 ? '<p class="sr-more">최근 200일까지 보여 줘요. 낱말을 더 넣어 좁혀 보세요.</p>' : '');
         }

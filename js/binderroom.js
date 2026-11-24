@@ -59,7 +59,7 @@
         return drIn(`<div class="bnd-card bnd-cv${old ? ' old' : ''}" data-cv="${esc(c.id)}" title="${old ? '해가 지난 표지예요' : ''}">${dmkCvThumb(c.c, c.r, 64, c.pid || c.d)}<span>${esc(c.g)}</span><small>${c.t === 'dcover' ? '📅 ' + c.y + ' · ' + c.n : c.n}</small>${extra || ''}</div>`, c.id);
     }
     function rfCard(r, R) {
-        return drIn(`<div class="bnd-card bnd-rf" data-rf="${esc(r.id)}">${r.t === 'drefill' ? dmkRfThumb([[1, 1, r.lf || 'line']], R || 1.41, 64) : dmkRfThumb(r.lv, r.r, 64)}<span>${esc(r.g)}</span><small>${r.t === 'drefill' ? '📅 날짜 · ' + r.n : r.n + ' · ' + r.pg + 'p'}</small>${r.t === 'refill' && r.from === 'mine' && window.dymGet && dymGet(r.id) ? `<i class="bnd-ed" data-ed="refill:${esc(r.id)}" title="고치기">✏️</i>` : ''}</div>`, r.id);
+        return drIn(`<div class="bnd-card bnd-rf" data-rf="${esc(r.id)}">${r.t === 'drefill' ? dmkRfThumb([[1, 1, r.lf || 'line']], R || 1.41, 64) : dmkRfThumb(r.lv, r.r, 64)}<span>${esc(r.g)}</span><small>${r.t === 'drefill' ? '📅 날짜 · ' + r.n : r.n + ' · ' + r.pg + '펼침면'}</small>${r.t === 'refill' && r.from === 'mine' && window.dymGet && dymGet(r.id) ? `<i class="bnd-ed" data-ed="refill:${esc(r.id)}" title="고치기">✏️</i>` : ''}</div>`, r.id);
     }
     /* 📖 작업대 = 진짜 책처럼 (도련 11-21 · 1374 · 📚 책 엔진 js/book.js bookOpen 하나 · 📒 스티커바인더와 같은 엔진)
          표지를 놓으면 = 덮인 책 → 밀어서(또는 ›) 펼쳐요 → 펼친 표지에 내지를 끼우면(톡 · 끌기) 그 쪽들이 생겨요 → 넘겨 봐요 · 첫 쪽에서 앞으로 = 덮기
@@ -126,7 +126,7 @@
             bq('bndSheets').innerHTML = s.rf.length ? '' : `<div class="bnd-empty">${B.hint(!!(B.book && B.book.open))}</div>`;   // 끼운 내지 정보 줄 (책 아래 · '1~40 · 페이지 내지 …')은 영구 삭제 (도련 11-23 · 1419) · 안 끼웠을 때 안내 한 줄만
         }
         const pg = s.rf.reduce((t, x) => t + (C(x).t === 'drefill' ? 0 : C(x).pg), 0);
-        bq('bndInfo').textContent = !cv ? '' : date ? (s.rf.length ? `📅 ${cv.y}년 다이어리가 돼요` : '날짜 내지를 끼워 주세요') : `내지 ${s.rf.length}묶음 · ${pg}페이지`;
+        bq('bndInfo').textContent = !cv ? '' : date ? (s.rf.length ? `📅 ${cv.y}년 다이어리가 돼요` : '날짜 내지를 끼워 주세요') : `내지 ${s.rf.length}묶음 · ${pg}펼침면`;
         bq('bndName').value = s.g || ''; bq('bndName').disabled = date;
         bq('bndOk').disabled = !(cv && s.rf.length);
         bq('bndNew').disabled = !(cv || s.rf.length) || (!!s.id && dmkRmFilled() > 0);   // ⛓ 분리할 게 없거나 꾸민 바인더 = 못 눌러요
