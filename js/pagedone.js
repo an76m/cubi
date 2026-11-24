@@ -10,7 +10,7 @@
    💾 임시저장 = 이 기기 전체에서 한 페이지만 (도련 11-14 · 스티커 만들기 임시저장처럼)
    - 아래 가운데 [💾 임시저장] [✅ 완료] · '📱 이 기기에 임시저장 · 오후 3:12' (자동으로도 계속 저장 · 버튼은 '이 기기에만 · 한 페이지만'을 알려 주는 몫)
    - 로그인 뒤 다이어리가 떠오르면 (표지 덮인 채) : "꾸미던 중이었어요 [이어서 하기] [지우고 새로 하기]" · 이어서 = 그 권 · 그 페이지로
-   - 다른 페이지 · 다른 다이어리에 처음 뭔가를 하면 : "꾸미던 중이에요 [그 페이지로 가기] [지우고 여기서 시작]" (넘기기 · 구경만은 그냥 돼요)
+   - 다른 페이지 · 다른 다이어리에 처음 뭔가를 하면 : "꾸미던 중이에요 [그 페이지로 가기] [완료하고 여기서 시작]" (넘기기 · 구경만은 그냥 돼요)
    - 지우기는 한 번 더 물어요 (붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요) */
 (function () {
     const PG = { base: new Map(), key: '', done: false, orig: new Map(), drafts: new Map(), uns: new Set(), meta: new Map(), saved: null, asked: false, busy: false, warned: '', at: 0, gating: false, mute: '' };
@@ -143,6 +143,14 @@
     const askDrop = (nm, r) => typeof showAsk === 'function'
         ? showAsk(`🗑 <b>${nm}</b>에 꾸민 것을 지울까요?${pv(r)}<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
         : Promise.resolve(true);
+    const askDone = (nm, r) => typeof showAsk === 'function'                  // ✅ 그 페이지 완료할까요? (그 페이지 모습 보고 · 완료 = 못 고쳐요)
+        ? showAsk(`✅ <b>${nm}</b>${josaOf(nm, '을', '를')} <b>완료</b>할까요?${pv(r)}<span style="font-size:12px;color:#777;">완료하면 드라이브에 저장되고 그 페이지는 <b>고칠 수 없어요</b><br>그다음 여기서 이어서 꾸밀 수 있어요</span>`, '완료', '아니요')
+        : Promise.resolve(true);
+    async function finishOther(key, r) {                                      // ✅ 다른 페이지 완료 (펼치지 않고 · 임시저장한 모습 그대로 · 도련 11-25)
+        const txt = PG.drafts.has(key) ? PG.drafts.get(key) : r && r.txt;
+        if (txt != null && store.getItem(key) !== txt) { if (!PG.orig.has(key)) PG.orig.set(key, store.getItem(key)); store.putLoaded(key, txt); }
+        await finish(key);
+    }
     async function goDraft(key, r) {                                          // ➡️ 그 권 · 그 페이지 펼치기
         const vol = r && r.vol, ds = r && r.ds;
         if (vol && vol !== curVol() && window.dkVolOpen) {
@@ -155,7 +163,7 @@
         else if (ds && typeof goToDate === 'function') goToDate(spotLoad(ds));
         else if (window.showMsg) { const nm = label(key, r); showMsg(`📖 <b>${nm}</b>${josaOf(nm, '을', '를')} 펼치면 이어서 꾸밀 수 있어요.`); }
     }
-    async function gate() {                                                   // 다른 페이지에 처음 손댔어요 → 그 페이지로 가기 / 지우고 여기서 시작
+    async function gate() {                                                   // 다른 페이지에 처음 손댔어요 → 그 페이지로 가기 / 완료하고 여기서 시작 (도련 11-25)
         const key = curKey();
         if (PG.gating || PG.busy || !on() || !dirty(key)) return;
         const L = others(key); if (!L.length) return;
@@ -164,7 +172,7 @@
             const o = L[0], r = await recOf(o), nm = label(o, r);
             for (;;) {
                 const go = typeof showAsk === 'function'
-                    ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료하거나 지워야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '지우고 여기서 시작')
+                    ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료해야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '완료하고 여기서 시작')
                     : true;
                 if (go) {                                                     // 여기 방금 한 것은 없던 일로 (쓴 스티커도 서랍으로)
                     PG.mute = key; drop(key);
@@ -172,7 +180,7 @@
                     await goDraft(o, r);
                     break;
                 }
-                if (await askDrop(nm, r)) { L.forEach(drop); try { if (typeof saveData === 'function') await saveData(false); } catch (e) {} break; }
+                if (await askDone(nm, r)) { await finishOther(o, r); break; }   // 완료하고 여기서 시작 = 그 페이지를 드라이브에 올리고 여기서 이어서 꾸며요 (도련 11-25 · 예전 '지우고 여기서 시작')
             }
         } finally { PG.gating = false; ui(); }
     }
@@ -209,6 +217,10 @@
             : true;
         if (!ok || curKey() !== key) return;
         try { await saveData(false); } catch (e) {}                           // 마지막 손길까지 (이 기기에)
+        await finish(key);
+    }
+    async function finish(key) {                                              // ✅ 완료 = 하나 (이 페이지 ✅ 버튼 · 다른 페이지 '완료하고 여기서 시작' · 도련 11-25)
+        const here = key === curKey();
         PG.busy = true; PG.busyKey = key; ui();
         gauge(4, '✏️ 완료 준비 중…');
         let stickersOk = false;
@@ -224,7 +236,7 @@
             gauge(100, '✅ 완료!');
             await draftDel(key); PG.drafts.delete(key); PG.uns.delete(key);
             await wait(650); gaugeOff();
-            if (window.showMsg) showMsg('✅ 완료했어요!<br><span style="font-size:12px;color:#777;">이 페이지는 이제 고칠 수 없어요</span>');
+            if (window.showMsg) showMsg(here ? '✅ 완료했어요!<br><span style="font-size:12px;color:#777;">이 페이지는 이제 고칠 수 없어요</span>' : '✅ 완료했어요!<br><span style="font-size:12px;color:#777;">이제 여기서 이어서 꾸밀 수 있어요</span>');
         } catch (e) {
             console.warn('✅ 완료 저장', e);
             if (!stickersOk && window.ownUnhold) ownUnhold(key);                 // 스티커 칸은 '이어서 지우기'로 (인터넷이 되면)
@@ -235,7 +247,7 @@
             gaugeOff();
             if (window.showMsg) showMsg('📶 지금은 드라이브에 다 올리지 못했어요.<br><span style="font-size:12px;color:#777;">완료한 페이지는 이 기기에 안전하게 보관했어요 · 인터넷이 되면 마저 올려요</span>');
         } finally {
-            PG.busy = false; PG.busyKey = ''; PG.done = true; PG.key = key; ui();
+            PG.busy = false; PG.busyKey = ''; if (here) { PG.done = true; PG.key = key; } ui();
         }
     }
     function mark(key) {                                                     // 완료 표시를 달고 보통 저장(드라이브로)
