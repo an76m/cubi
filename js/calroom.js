@@ -33,7 +33,7 @@
                     <div class="cr-box" id="crCy"><div class="cr-h">🩷 생리</div></div>
                     <div class="cr-none" id="crNone">위 버튼을 눌러 메뉴를 열어 보세요</div>
                 </div>
-                <button type="button" class="cr-go desk-shop-go" onclick="deskMoveOpen()">이동</button>   <!-- 🚪 닫기 대신 이동 (도련 10-31 · 벽 달력도 한 장소) -->
+                <button type="button" class="cr-go desk-shop-go" onclick="deskMoveOpen()">방 밖</button>   <!-- 🚪 닫기 대신 이동 (도련 10-31 · 벽 달력도 한 장소) -->
             </div>`;
             document.body.appendChild(el);
             el.addEventListener('click', e => { if (e.target.closest('.cr-side')) { clearTimeout(cr.t); cr.t = setTimeout(crRender, 60); } });   // 옮겨 온 원래 창에서 고치면 달력 칸도 다시
@@ -109,7 +109,7 @@
                     </div>
                     <p class="crm-tip">💡 📅 출석 도장판 어딘가에 <b>🪙 코인</b>이 숨어 있어요. 찾은 코인으로 🎁 문방구 캡슐기계에서 <b>움직이는 캡슐 스티커</b>를 뽑아요.</p>
                 </div>
-                <button type="button" class="cr-go desk-shop-go crm-go" onclick="deskMoveOpen()">이동</button>`;
+                <button type="button" class="cr-go desk-shop-go crm-go" onclick="deskMoveOpen()">방 밖</button>`;
             document.body.appendChild(el);
             return el;
         }

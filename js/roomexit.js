@@ -102,7 +102,7 @@
             for (;;) {
                 if (await saveAll(el)) break;
                 el.classList.add('wait');
-                const again = await showAsk('☁ 아직 저장하지 못한 게 있어요.<br><span style="font-size:12px;color:#777;">그대로 나가면 이 기기에 보관했다가 다음에 켤 때 저장해요.</span>', '다시 저장', '그대로 나가기');
+                const again = await showAsk('☁ 아직 저장하지 못한 게 있어요.<br><span style="font-size:12px;color:#777;">그대로 잠들면 이 기기에 보관했다가 다음에 켤 때 저장해요.</span>', '다시 저장', '그대로 잠들기');
                 el.classList.remove('wait');
                 if (!again) { try { if (typeof savePending === 'function') savePending(); } catch (e) {} break; }
                 setP(el, 0);
@@ -122,7 +122,7 @@
         const m = document.getElementById('deskMoveMenu'); if (!m || m.querySelector('.rx-hint')) return;
         const h = document.createElement('div'); h.className = 'rx-hint'; h.setAttribute('role', 'note');
         h.innerHTML = '<svg class="rx-arw" viewBox="0 0 40 48" aria-hidden="true"><path d="M20 3 L35 21 L26 21 L26 42 Q26 45 23 45 L17 45 Q14 45 14 42 L14 21 L5 21 Z" fill="#ffb3cd" stroke="#c8457a" stroke-width="2.6" stroke-linejoin="round"/><path d="M17.5 25 L17.5 39" stroke="#ffe3ee" stroke-width="3" stroke-linecap="round"/></svg>'
-            + '<span class="rx-tip">그냥 끄면 저장되지 않을 수 있어요.<br>다음엔 꼭 <b>내 방 나가기</b>로 꺼 주세요</span>';   // 도련 11-23 : 불이익이 느껴지게 · 하트 빼고
+            + '<span class="rx-tip">그냥 끄면 저장되지 않을 수 있어요.<br>다음엔 꼭 <b>잠들기</b>로 꺼 주세요</span>';   // 도련 11-23 : 불이익이 느껴지게 · 하트 빼고
         m.appendChild(h);
         const off = () => { if (!h.isConnected) return; h.classList.add('bye'); setTimeout(() => h.remove(), 350); };
         h.addEventListener('click', off);

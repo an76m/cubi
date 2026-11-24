@@ -34,7 +34,7 @@
                     <div class="bth-out" id="bthOut"><img alt="" draggable="false"></div>
                     <button type="button" class="bth-curtain" id="bthCurtain" aria-label="커튼을 열고 들어가기"><span class="bth-hint">📸 커튼을 톡!</span></button>
                 </div>
-                <button type="button" class="bth-go desk-shop-go" onclick="deskMoveOpen()">이동</button>
+                <button type="button" class="bth-go desk-shop-go" onclick="deskMoveOpen()">방 밖</button>
                 <div class="bth-focus" id="bthFocus" hidden><div class="bth-card"><img id="bthFocusImg" alt="찍은 사진"><p id="bthFocusTx"></p><button type="button" class="bth-okb" id="bthFocusOk">확인</button></div></div>`;
             document.body.appendChild(el);
             bq('bthCurtain').onclick = enter;

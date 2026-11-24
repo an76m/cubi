@@ -344,7 +344,7 @@
             el = document.createElement('div'); el.id = 'worldRoom'; el.className = 'wd-room';
             el.innerHTML = `<canvas id="wdCanvas"></canvas>
                 <div class="wd-title">🌳 말랑 광장 <small id="wdSt" onclick="worldTapSt()"></small></div>
-                <button type="button" class="wd-go desk-shop-go" onclick="deskMoveOpen()">이동</button>
+                <button type="button" class="wd-go desk-shop-go" onclick="deskMoveOpen()">방 밖</button>
                 <div class="wd-joy" id="wdJoy"><i></i></div>
                 <form class="wd-say" id="wdSay" autocomplete="off"><input id="wdSayIn" maxlength="${SAY_MAX}" enterkeyhint="send"><button type="submit" class="btn">말하기</button></form>`;
             document.body.appendChild(el);

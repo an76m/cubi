@@ -46,7 +46,7 @@
                 <button type="button" class="shop-back" onclick="shopCorner('')">‹ ${htmlEsc(shopC('').n)}</button>
                 <div class="shop-door"><img src="img/shop-door.webp?v=53bdb831d2" alt="" draggable="false"><div class="shop-sign"><b>기본상품 샵</b><small>말랑달콤</small></div></div>
                 <div class="shop-home"><img src="img/room-door.webp?v=6d7683e228" alt="" draggable="false"><div class="shop-sign home"><b>내 방</b></div></div>
-                <button type="button" class="shop-x" onclick="deskMoveOpen()">이동</button>`;
+                <button type="button" class="shop-x" onclick="deskMoveOpen()">방 밖</button>`;
             document.body.appendChild(el);
             addEventListener('resize', () => { if (!SC.on) return; if (SC.ph !== UI.tall()) { shopSceneClose(true); return; } shopFit(); });   // 폰 ↔ 넓은 화면이 바뀌면 가게를 닫아요
             return el;

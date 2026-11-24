@@ -789,14 +789,18 @@ html.desk-on #moveSetBtn { visibility: hidden; }   /* 🚪 이동 창 왼쪽 위
 .dkz-slot:disabled { cursor: default; background: rgba(120, 100, 110, .28); border-style: dotted; opacity: .7; transform: none; }
 .dkz-slot:disabled b, .dkz-slot:disabled small { color: #6b5560; }
 
-/* 🚪 이동 창 넓게 (도련 11-02) : 💻 PC · 📲 아이패드 = 가로 3칸 (4칸은 옆으로 너무 길어서 3칸으로 · 도련 11-02) · 📱 폰은 예전 한 줄 그대로 */
-@media (min-width: 600px) and (min-height: 600px) {
-    #moveModal > .modal-content { box-sizing: border-box; width: min(92vw, 800px); max-width: none; max-height: 92vh; max-height: 92dvh; }
-    #moveModal > .modal-content > .svc-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    #moveModal .svc-cat:not(.svc-extra) { grid-column: auto; padding: 10px 12px; grid-template-columns: 40px minmax(0, 1fr) 10px; column-gap: 10px; }
-    #moveModal .svc-cat:not(.svc-extra) .svc-cat-icon { width: 38px; height: 38px; font-size: 24px; }
-    #moveModal .svc-cat:not(.svc-extra) small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-}
+/* 🚪 방 밖 (도련 11-24) : 화면 꽉 문 그림 (img/move-door.webp · 1672 × 941) · 문 가운데 판(--mx --my --mw --mh = js/desk.js mvFit) 안에 제목 + 갈 곳 칸들 · ✕ = 화면 오른쪽 위 · 📱 설정 = 화면 왼쪽 위 */
+#moveModal > .modal-content { position: fixed; inset: 0; width: auto !important; max-width: none !important; height: auto; max-height: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; outline: 0 !important; background: #f4b8c0 !important; box-shadow: none !important; overflow: hidden; display: block; }
+#moveModal .dk-tape { display: none !important; }
+#moveModal > .modal-content::before, #moveModal > .modal-content::after { display: none !important; }
+#moveModal .mv-door { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; max-width: none; transform-origin: 0 0; pointer-events: none; user-select: none; -webkit-user-select: none; }
+#moveModal .modal-title.mt-bar { position: absolute; left: var(--mx, 0); top: var(--my, 0); width: var(--mw, 100%); margin: 0; z-index: 2; }
+#moveModal .modal-title.mt-bar .mt-back { position: fixed; left: 14px; top: 14px; }
+#moveModal .modal-title.mt-bar .mt-x { position: fixed; right: 14px; top: 14px; width: 40px; height: 40px; font-size: 18px; border-radius: 50%; background: rgba(255, 250, 246, .94) !important; border: 1.5px solid #e9a9bd !important; box-shadow: 0 2px 8px rgba(160, 70, 100, .22) !important; }
+#moveModal > .modal-content > .svc-cats { position: absolute; left: var(--mx, 0); top: calc(var(--my, 0px) + 50px); width: var(--mw, 100%); height: calc(var(--mh, 100%) - 50px); box-sizing: border-box; padding: 2px 4px 8px; overflow-y: auto; overscroll-behavior: contain; grid-template-columns: repeat(var(--mc, 3), minmax(0, 1fr)); align-content: safe center; gap: 12px 10px; scrollbar-width: thin; }
+#moveModal .svc-cat:not(.svc-extra) { grid-column: auto; padding: 7px 9px; grid-template-columns: 34px minmax(0, 1fr) 8px; column-gap: 8px; background: rgba(255, 249, 245, .9); border: 1.5px solid #f0bccb; border-radius: 14px; box-shadow: 0 2px 6px rgba(190, 90, 120, .14); }
+#moveModal .svc-cat:not(.svc-extra) .svc-cat-icon { width: 32px; height: 32px; font-size: 21px; }
+#moveModal .svc-cat:not(.svc-extra) small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ✏️ 문구 셀 애니 (도련 11-02) : 그림자 없이 (그림은 상품공방 그림 그대로 · js/gdpic.js) */
 html.an .dkw-t, html.an .dkw-desk .dkw-t { filter: none !important; }
