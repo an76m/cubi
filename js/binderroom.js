@@ -96,9 +96,9 @@
         if (B.book && B.book.id === cv.id && B.book.root()) { B.book.refresh(spec); return; }   // 같은 표지 = 쪽만 다시 (펼침 · 쪽은 그대로)
         bookOff(); B.book = bookOpen(bq('bndBookHost'), Object.assign(spec, { pg: 0, open: false }));   // 새 표지 = 덮인 책부터 (다이어리처럼 밀어서 열어요)
     }
-    function guidePos() {                                                    // 👉 안내 = 바구니 오른쪽 끝에서 150px 안쪽부터 (바구니 넓이가 바뀌어도 · 이형지북 .abx-guide 와 같은 자리 잡기)
+    function guidePos() {                                                    // 👉 안내 = 화살 꼬리가 바구니 오른쪽 끝에서 70px 안쪽 · 말풍선은 바구니 밖 (바구니 넓이가 바뀌어도 · 이형지북 .abx-guide 와 같은 자리 잡기)
         const g = document.querySelector('#bndRoom .bnd-mat > .bnd-guide'), k = bq('bndBasket'); if (!g || !k) return;
-        g.style.left = (k.offsetLeft + k.offsetWidth - 150) + 'px';
+        g.style.left = (k.offsetLeft + k.offsetWidth - 70) + 'px';
     }
     addEventListener('resize', guidePos);
     function render() {

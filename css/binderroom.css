@@ -27,7 +27,7 @@
 /* 작업대 */
 .bnd-mine select { font-size: 12px; border: 2px solid #f1d3dd; border-radius: 999px; padding: 3px 10px; background: #fff; color: inherit; max-width: 220px; }
 .bnd-bench { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 18px; overflow: hidden; }
-.bnd-mat > .bnd-guide { top: 14%; z-index: 3; }   /* 👉 빈 작업대 = 표지 끌어다 놓기 안내 : 바구니 오른쪽 끝에 걸쳐서 작업대로 (left = js/binderroom.js guidePos · 모양 = css/anime.css .drag-guide · 이형지북과 같이) */
+.bnd-mat > .bnd-guide { top: 8%; z-index: 3; }   /* 👉 빈 작업대 = 표지 끌어다 놓기 안내 : 바구니 오른쪽 끝에 걸쳐서 작업대로 (left = js/binderroom.js guidePos · 모양 = css/anime.css .drag-guide · 이형지북과 같이) */
 .bnd-room.drop-in .bnd-bench { background: rgba(232, 143, 176, .08); box-shadow: inset 0 0 0 3px rgba(232, 143, 176, .5); }
 .bnd-empty { margin: auto; color: #b0899a; font-weight: 800; font-size: 13px; text-align: center; padding: 20px; }
 .bnd-top { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 2px dashed #ecd6c8; }   /* 🧩 위 가운데 메뉴 하나 (도련 11-21 · 아래 막대와 합쳤어요) */
