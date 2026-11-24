@@ -283,6 +283,13 @@
             document.getElementById('svcTitle').textContent = SVC_CAT_NAMES[id] || '☕ 카페';
             document.getElementById('svcBack').classList.remove('mt-none');
         }
+        /* ‹ 인형방 (도련 11-24 · 인형방 · 인형 움직이기 · 캐릭터 움직이기 · 인형극 창 왼쪽 위) : 그 창 닫기 (저장 안 한 것 묻기 그대로) → 닫혔으면 🧸 인형방 창 */
+        async function dollBack(id, close) {
+            await close();
+            const m = document.getElementById(id);
+            if (!m || getComputedStyle(m).display === 'none') svcOpenCat('make');
+        }
+        window.dollBack = dollBack;
         function goCafe() {
             window.open(CAFE_URL, '_blank', 'noopener');
         }

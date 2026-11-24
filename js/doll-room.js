@@ -75,6 +75,7 @@
                 <div class="doll-draft" id="dollDraftNote" style="display:none"></div>
                 <div class="doll-grid" id="dollGrid"></div>
                 <button class="btn" type="button" style="width:100%;justify-content:center;margin-top:12px;" onclick="closeModal('dollPicker')">닫기</button>
+                <button class="btn" type="button" onclick="dollBack('dollPicker', () => closeModal('dollPicker'))">← 인형방</button>   <!-- ‹ 인형방 = 제목 줄 왼쪽 (settings.js mtDecorate · 도련 11-24) -->
               </div>
             </div>
             <div class="doll-room" id="dollRoom" style="display:none">

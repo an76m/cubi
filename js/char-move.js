@@ -550,7 +550,7 @@ void main(){
                     </div>
                   </div>
                 </div>
-                <button class="btn cmv-close" type="button" onclick="closeCharMove()">닫기</button>
+                <button class="btn cmv-close" type="button" onclick="closeCharMove()">닫기</button><button class="btn" type="button" onclick="dollBack('charMove', closeCharMove)">← 인형방</button>
               </div>
             </div>`;
             document.body.appendChild(wrap.firstElementChild);

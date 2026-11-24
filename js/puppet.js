@@ -164,7 +164,7 @@
                     <button type="button" class="btn" id="psBack">◀ 목록</button>
                   </div>
                 </div>
-                <button class="btn ps-close" type="button" onclick="closePuppetShow()">닫기</button>
+                <button class="btn ps-close" type="button" onclick="closePuppetShow()">닫기</button><button class="btn" type="button" onclick="dollBack('puppetShow', closePuppetShow)">← 인형방</button>
               </div>
             </div>
             <div class="ps-play" id="psPlay" hidden>

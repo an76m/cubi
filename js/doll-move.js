@@ -93,7 +93,7 @@
                     <button class="btn" type="button" id="dmvBack">◀ 다른 인형</button>
                   </div>
                 </div>
-                <button class="btn dmv-close" type="button" onclick="closeDollMove()">닫기</button>
+                <button class="btn dmv-close" type="button" onclick="closeDollMove()">닫기</button><button class="btn" type="button" onclick="dollBack('dollMove', closeDollMove)">← 인형방</button>
               </div>
             </div>`;
             document.body.appendChild(wrap.firstElementChild);
