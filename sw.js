@@ -10,6 +10,7 @@
    ▶ 인터넷이 느려도 version.txt 답을 끝까지 기다려요 (도련 11-12 · 예전 2.5초에서 그만두면 폰에서 옛 버전이 열렸어요)
    ▶ 첫 화면(index.html)은 늘 '?t=지금' 을 붙여 받아요 (도련 11-12 : 깃허브 앞의 중간 서버가 첫 화면을 10분까지 들고 있어서 · 올린 직후에도 새것)
    ▶ 🛑 못 받으면 (도련 11-25) : version.txt · 새 첫 화면을 1 · 2 · 4초 쉬고 다시 (모두 4번) → 그래도 안 되면 멈춤 화면 '인터넷 연결을 확인해 주세요 [🔄 다시 시도]' · 예전 버전 보관함으로 열지 않아요 (예전 코드로 저장하면 데이터가 꼬일 수 있어요) · version.txt 가 없다는 답(404) = 깃허브 첫 화면 그대로
+   ▶ 📊 깃허브에 보낸 요청 = gh() 로 세요 (도련 11-25 · 이번 열기 · 날마다 · 'malang-dash' 보관함 · js/dash.js 상황판이 물어봐요)
    ※ 이 파일은 꼭 index.html 과 같은 폴더(맨 위)에 있어야 해요 */
 
 const CODE = 'malang-code-';                                     // 보관함 이름 = CODE + 버전
@@ -27,10 +28,18 @@ const stopPage = what => new Response(STOP_HTML(what), { headers: HTML_H });
 const TRY_WAIT = [1000, 2000, 4000];                             // 🔁 다시 해 보기 = 1 · 2 · 4초 쉬고 (모두 4번 · js/util.js retryN 과 같은 간격)
 async function retry(fn) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= TRY_WAIT.length) throw e; await new Promise(r => setTimeout(r, TRY_WAIT[i])); } } }
 const HTML_H = { 'Content-Type': 'text/html; charset=utf-8' };
+/* 📊 깃허브에 보낸 요청 세기 (도련 11-25 · js/dash.js 상황판 '🐙 깃허브') : 이번 열기 (첫 화면을 열 때 처음부터) · 날마다 (14일) · 'malang-dash' 보관함에 한 줄 (워커가 잠들어도 남게) */
+const DASH_KEY = '/__dash__';
+let dash = null, dashT = 0;
+const dayKST = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+async function dashLoad() { if (dash) return dash; try { const r = await (await caches.open('malang-dash')).match(DASH_KEY); dash = r ? await r.json() : null; } catch (e) { } return (dash = dash && dash.day ? dash : { sess: 0, day: {} }); }
+function dashSave() { clearTimeout(dashT); dashT = setTimeout(() => { const ks = Object.keys(dash.day).sort(); while (ks.length > 14) delete dash.day[ks.shift()]; caches.open('malang-dash').then(c => c.put(DASH_KEY, new Response(JSON.stringify(dash)))).catch(() => {}); }, 1000); }
+async function gh(req, opt) { try { await dashLoad(); dash.sess++; const d = dayKST(); dash.day[d] = (dash.day[d] || 0) + 1; dashSave(); } catch (e) { } return fetch(req, opt); }   // 🐙 깃허브로 가는 fetch 는 모두 이것으로
+self.addEventListener('message', e => { if (e.data && e.data.dash && e.ports[0]) dashLoad().then(d => e.ports[0].postMessage(d)).catch(() => {}); });
 const BASE = new URL('./', self.location).href;                 // 사이트 맨 위
 const INDEX_KEY = BASE + 'index.html';
-const checkIndex = () => fetch(INDEX_KEY, { cache: 'no-cache' });   // 🛟 안전망 = 바뀌었는지만 (같으면 304 · 몇 바이트 · 1442 : 예전엔 열 때마다 첫 화면 100KB 를 통째로) · 깃허브 중간 서버 때문에 늦어도 10분
-const freshIndex = () => fetch(INDEX_KEY + '?t=' + Date.now(), { cache: 'no-store' });   // 첫 화면은 늘 깃허브 원본에서 (도련 11-12 : 기기 보관 · 중간 서버(CDN) 10분 보관을 모두 건너뛰어요)
+const checkIndex = () => gh(INDEX_KEY, { cache: 'no-cache' });   // 🛟 안전망 = 바뀌었는지만 (같으면 304 · 몇 바이트 · 1442 : 예전엔 열 때마다 첫 화면 100KB 를 통째로) · 깃허브 중간 서버 때문에 늦어도 10분
+const freshIndex = () => gh(INDEX_KEY + '?t=' + Date.now(), { cache: 'no-store' });   // 첫 화면은 늘 깃허브 원본에서 (도련 11-12 : 기기 보관 · 중간 서버(CDN) 10분 보관을 모두 건너뛰어요)
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(caches.delete('malang-kit-v1').then(() => self.clients.claim()).then(() => {   // 예전 그림 보관함(10-25) 치우기
@@ -38,7 +47,7 @@ self.addEventListener('activate', e => e.waitUntil(caches.delete('malang-kit-v1'
 })));
 
 async function askVersion() {                                    // version.txt : 못 물으면 1 · 2 · 4초 쉬고 다시 (도련 11-25) · null = 끝내 못 물었어요 (인터넷) · '' = 답은 왔는데 버전이 없어요 (깃허브에 version.txt 가 없음 → 깃허브 첫 화면 그대로)
-    try { return await retry(async () => { const r = await fetch(BASE + 'version.txt?t=' + Date.now(), { cache: 'no-store' }); if (r.status >= 500) throw new Error(String(r.status)); if (!r.ok) return ''; const t = (await r.text()).trim(); return t.length < 40 ? t : ''; }); } catch (e) { return null; }
+    try { return await retry(async () => { const r = await gh(BASE + 'version.txt?t=' + Date.now(), { cache: 'no-store' }); if (r.status >= 500) throw new Error(String(r.status)); if (!r.ok) return ''; const t = (await r.text()).trim(); return t.length < 40 ? t : ''; }); } catch (e) { return null; }
 }
 async function codeCaches() { return (await caches.keys()).filter(k => k.startsWith(CODE)); }
 async function readyVersion() {                                  // 다 받은 보관함 중 가장 새 것의 버전
@@ -63,7 +72,7 @@ async function build(html) {
         const got = [];
         for (let i = 0; i < urls.length; i += 6) {                   // 6개씩
             const part = await Promise.all(urls.slice(i, i + 6).map(async u => { const old = (await oldCopy(u, name)) || FRESH.get(u); if (old) return [u, old];   // 📄 같은 주소 = 같은 내용 (?v= 파일 지문 · 1442) = 이 기기에 있는 것 그대로 · 바뀐 파일만 받아요
-                let r = await fetch(u); if (!r.ok) r = await fetch(u, { cache: 'reload' }); if (!r.ok) throw new Error('miss ' + u); return [u, r]; }));   // 브라우저가 기억한 '없음'이면 깃허브에 다시
+                let r = await gh(u); if (!r.ok) r = await gh(u, { cache: 'reload' }); if (!r.ok) throw new Error('miss ' + u); return [u, r]; }));   // 브라우저가 기억한 '없음'이면 깃허브에 다시
             got.push(...part);
         }
         const c = await caches.open(name);
@@ -87,15 +96,16 @@ self.addEventListener('fetch', e => {
     if (req.mode === 'navigate') { e.respondWith(openPage(e)); return; }
     const u = new URL(req.url);
     if (u.origin !== self.location.origin || !u.searchParams.has('v')) return;   // 보관함에 있을 수 있는 것 = 같은 사이트의 ?v= 파일만 (나머지는 브라우저가 그대로)
-    e.respondWith(caches.match(req.url).then(r => r || fetch(req).then(res => { if (res.ok && res.type === 'basic' && FRESH.size < 400) FRESH.set(req.url, res.clone()); return res; })));   // 📄 방금 받은 것 = 새 보관함 만들 때 다시 받지 않게 (1442)
+    e.respondWith(caches.match(req.url).then(r => r || gh(req).then(res => { if (res.ok && res.type === 'basic' && FRESH.size < 400) FRESH.set(req.url, res.clone()); return res; })));   // 📄 방금 받은 것 = 새 보관함 만들 때 다시 받지 않게 (1442)
 });
 
 async function openPage(e) {
     const req = e.request;
-    if (!isApp(req.url)) return fetch(req).catch(() => stopPage('말랑달콤'));   // 다른 쪽 (녹화 · 안내 페이지 …) = 예전 그대로
+    if (!isApp(req.url)) return gh(req).catch(() => stopPage('말랑달콤'));   // 다른 쪽 (녹화 · 안내 페이지 …) = 예전 그대로
+    try { await dashLoad(); dash.sess = 0; } catch (e) { }                // 📊 이번 열기 = 여기부터 세요
     const want = await askVersion();
     if (want === null) return stopPage('앱 업데이트 확인');           // 🛑 버전을 끝내 못 물었어요 = 보관함(예전 버전)으로 열지 않고 멈춰요 (도련 11-25 · 예전 코드로 저장하면 데이터가 꼬일 수 있어요)
-    if (want === 'off') { await offAll(); return fetch(req, { cache: 'no-cache' }).catch(() => stopPage('말랑달콤')); }   // 🚨 비상구
+    if (want === 'off') { await offAll(); return gh(req, { cache: 'no-cache' }).catch(() => stopPage('말랑달콤')); }   // 🚨 비상구
     const have = await readyVersion();
     if (have && want === have) {                                     // 같은 버전 → 보관함
         const r = await cachedIndex(have);

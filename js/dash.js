@@ -1,13 +1,14 @@
 /* 말랑달콤 다이어리 - js/dash.js
    📊 백엔드 상황판 (도련 11-17 · Esc = 닫기 · 🪟 앱과 따로 창 (팝업 · 윗단 잡고 옮기기 · 막히면 앱 안에 옮길 수 있는 창) · 개발 중 도련 QA 용 · 상품공방처럼 써 보면서 고쳐요)
    - 다른 파일을 고치지 않아요 : fetch 를 감싸서 모든 요청을 기록 + 몇 개의 전역 함수(loadFromDrive · applyLoadedData · deskItemsRender · openCoverAnimated)에 시각 표시
+   - 요약 = 🌐 종류별 요청 수 (도련 11-25 · 드라이브 · 깃허브 · 상품 서버 · 앱스크립트 · 구글 로그인 · 그 밖 · 이번 실행 / 오늘) · 드라이브 점수 · 한도는 '드라이브 요청' · '사용자 수' 탭
    - 탭 : 요약 · 드라이브 요청 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 기록(날마다)
    - 구글 드라이브 점수 (2026-05 새 방식) : 정보 읽기 5 · 쓰기 50 · 목록 100 · 파일 받기 200 (프로젝트 1분 1,000,000 · 사람 1분 325,000 · 하루 400,000,000 = 계산기 칸에서 바꿔요)
    - '앱 열기 한 번' = loadFromDrive 시작부터 60초 동안 · 날마다 합계 = localStorage malang_dash_days (14일)
    - 📋 복사 = 상황판 내용을 글로 (AI 에게 붙여 주기) */
 (function () {
     const T0 = performance.now(), DAYS_KEY = 'malang_dash_days', CALC_KEY = 'malang_dash_calc', OPEN_MS = 60000;
-    const D = { reqs: [], marks: [], errs: [], opens: [], names: new Map(), srv: { n: 0, b: 0 }, other: { n: 0, b: 0 }, on: false, tab: 'sum', timer: 0, filt: '' };
+    const D = { reqs: [], marks: [], errs: [], opens: [], names: new Map(), srv: { n: 0, b: 0 }, svc: {}, oh: new Map(), gh: { sess: 0, day: {} }, on: false, tab: 'sum', timer: 0, filt: '' };
     const now = () => performance.now() - T0;
     const mark = (n, extra) => { D.marks.push({ n, t: now(), x: extra || '' }); };
     window.dashMark = mark;
@@ -28,6 +29,23 @@
     }
     const isDrive = url => /^https:\/\/www\.googleapis\.com\/(drive|upload\/drive)\//.test(url);
     const isSrv = url => url.startsWith('https://malang-img.pages.dev');
+    /* 🌐 어디로 보낸 요청인가 (도련 11-25 · 종류별 요청 수) : ☁ 구글 드라이브 = fetch 감싸기 · 🐙 깃허브 (앱 코드 · 같은 사이트) = 서비스 워커가 센 것 + 워커 없이 간 것 · 그 밖 = 브라우저 기록 (PerformanceObserver) */
+    const SVC = [['drive', '☁ 구글 드라이브'], ['gh', '🐙 깃허브 (앱 코드)'], ['srv', '🧁 상품 서버'], ['gas', '📜 앱스크립트'], ['world', '🎪 광장 서버'], ['login', '🔑 구글 로그인'], ['other', '🌐 그 밖']];
+    function svcOf(url) {
+        if (isDrive(url)) return 'drive';
+        let u; try { u = new URL(url, location.href); } catch (e) { return 'other'; }
+        if (u.origin === location.origin) return 'gh';
+        if (isSrv(u.href)) return 'srv';
+        if (/^script\.google(usercontent)?\.com$/.test(u.hostname)) return 'gas';
+        if (/^malang-world\./.test(u.hostname)) return 'world';                // 🎪 광장 · 이벤트 (Cloudflare Workers · js/world.js · 웹소켓 연결은 못 세요)
+        if (/^(accounts\.google\.com|oauth2\.googleapis\.com|apis\.google\.com)$/.test(u.hostname)) return 'login';
+        return 'other';
+    }
+    function svcAdd(k, url) {
+        D.svc[k] = (D.svc[k] || 0) + 1;
+        if (k === 'other') { let h = '?'; try { h = new URL(url, location.href).hostname; } catch (e) { } D.oh.set(h, (D.oh.get(h) || 0) + 1); }
+        const d = dayOf(); d.s = d.s || {}; d.s[k] = (d.s[k] || 0) + 1; daySave();
+    }
     const HELP = new Set(['gfetch', 'fetch', 'driveList', 'readFileText', 'driveUpsert', 'driveMeta', 'findFile', 'findFolder', 'getFolder', 'createFolder', 'ensureToken', 'driveFail', 'sealOpen', 'bodySeal', 'Promise.then', 'Array.map', 'Array.forEach', 'Promise.all']);
     function feature() {                                                      // 누가 보냈나 = 코드 자리 (파일:함수)
         const st = String(new Error().stack || '').split('\n').slice(2); let anon = '';
@@ -65,18 +83,30 @@
         if (isDrive(url)) {
             const k = classify(m, url), r = { t, m, k, pts: PTS[k], feat: feature(), name: what(m, url, opts && opts.body), up: bsize(opts && opts.body), down: 0, ms: 0, st: 0 };
             D.reqs.push(r); if (D.reqs.length > 3000) D.reqs.shift();
-            dayAdd(r);
+            dayAdd(r); svcAdd('drive');
             return F0(input, opts).then(res => {
                 r.ms = Math.round(now() - t); r.st = res.status;
                 res.clone().arrayBuffer().then(b => { r.down = b.byteLength; dayBytes(r); if (/json/.test(res.headers.get('content-type') || '')) { try { learn(JSON.parse(new TextDecoder().decode(b))); } catch (e) { } } }).catch(() => { });
                 return res;
             }, e => { r.ms = Math.round(now() - t); r.st = -1; throw e; });
         }
-        if (isSrv(url)) { D.srv.n++; return F0(input, opts).then(res => { res.clone().arrayBuffer().then(b => { D.srv.b += b.byteLength; }).catch(() => { }); return res; }); }
-        D.other.n++;
+        if (isSrv(url)) return F0(input, opts).then(res => { res.clone().arrayBuffer().then(b => { D.srv.b += b.byteLength; }).catch(() => { }); return res; });
         return F0(input, opts);
     };
-    try { new PerformanceObserver(l => l.getEntries().forEach(e => { if (isSrv(e.name) && e.initiatorType !== 'fetch') { D.srv.n++; D.srv.b += e.transferSize || 0; } })).observe({ type: 'resource', buffered: true }); } catch (e) { }
+    /* 🌐 드라이브 밖 요청 = 브라우저 기록으로 세요 (코드 · 그림 · 상품 · 앱스크립트 · 로그인 · 글꼴 …)
+         🐙 같은 사이트 : 서비스 워커가 맡은 창의 ?v= 파일 · 첫 화면 = 워커가 세요 (아래 ghAsk) · 그 밖 = 진짜로 받았을 때만 (transferSize > 0 · 브라우저 기억에서 꺼낸 것은 빼요) */
+    const swOn = () => !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+    function seen(e) {
+        const k = svcOf(e.name); if (k === 'drive') return;
+        if (k === 'gh') { if (swOn() && (e.entryType === 'navigation' || /[?&]v=/.test(e.name))) return; if (!(e.transferSize > 0)) return; }
+        if (k === 'srv') { D.srv.n++; if (e.initiatorType !== 'fetch') D.srv.b += e.transferSize || 0; }
+        svcAdd(k, e.name);
+    }
+    try { new PerformanceObserver(l => l.getEntries().forEach(seen)).observe({ type: 'resource', buffered: true }); } catch (e) { }
+    try { new PerformanceObserver(l => l.getEntries().forEach(seen)).observe({ type: 'navigation', buffered: true }); } catch (e) { }
+    function ghAsk() {                                                        // 🐙 서비스 워커가 깃허브에 보낸 요청 (sw.js dashCount · 이번 열기 · 날마다)
+        try { const c = navigator.serviceWorker && navigator.serviceWorker.controller; if (!c) return; const ch = new MessageChannel(); ch.port1.onmessage = e => { if (e.data && e.data.day && JSON.stringify(e.data) !== JSON.stringify(D.gh)) { D.gh = e.data; paintSoon(); } }; c.postMessage({ dash: 1 }, [ch.port2]); } catch (e) { }
+    }
 
     /* ⚠ 경고 · 오류 모으기 */
     ['warn', 'error'].forEach(lv => { const o = console[lv].bind(console); console[lv] = function (...a) { try { D.errs.push({ t: now(), lv, s: a.map(x => x instanceof Error ? x.message : typeof x === 'object' ? (() => { try { return JSON.stringify(x).slice(0, 200); } catch (e) { return String(x); } })() : String(x)).join(' ').slice(0, 300) }); if (D.errs.length > 200) D.errs.shift(); } catch (e) { } return o(...a); }; });
@@ -113,7 +143,7 @@
         const d = dayOf(); d.opens.push(o.pts); if (d.opens.length > 30) d.opens.shift(); daySave();
     }
     document.addEventListener('DOMContentLoaded', () => { mark('📄 화면 틀 완성 (DOMContentLoaded)'); hookAll(); });
-    window.addEventListener('load', () => { mark('📄 파일 모두 받음 (load)'); hookAll(); if (window.PROD_READY) PROD_READY.then(v => mark('🧁 상품 목록 확인 끝', String(v))); });
+    window.addEventListener('load', () => { mark('📄 파일 모두 받음 (load)'); hookAll(); setTimeout(ghAsk, 1500); if (window.PROD_READY) PROD_READY.then(v => mark('🧁 상품 목록 확인 끝', String(v))); });
 
     /* 🧮 계산 */
     const fmt = n => Math.round(n).toLocaleString('ko-KR');
@@ -224,17 +254,15 @@ ${table(['때', '무슨 일', '내용', '부른 곳', '기기 · 버전'], all.s
     }
     const VIEW = {
         sum() {
-            const s = stats(D.reqs), m = stats(lastMin()), u = users(), d = dayOf();
-            return `<div class="cards">
-<div class="card"><small>이번 실행 드라이브 요청</small><span class="big">${fmt(s.n)}</span>번 · ${fmt(s.p)}점</div>
-<div class="card"><small>최근 1분</small><span class="big">${fmt(m.p)}</span>점 · ${m.n}번</div>
-<div class="card"><small>오늘 (이 기기)</small><span class="big">${fmt(d.pts)}</span>점 · ${fmt(d.n)}번</div>
-<div class="card"><small>앱 열기 한 번 (로그인 후 60초)</small><span class="big">${fmt(u.oc.v)}</span>점<br><span class="tip">${u.oc.src}</span></div>
-<div class="card"><small>가능한 사용자 (계산기 가정)</small><span class="big">${isFinite(u.max) ? fmt(u.max) : '—'}</span>명<br><span class="tip">${u.at}가 먼저 차요</span></div>
-<div class="card"><small>상품 목록</small>${prodState()}</div></div>
-${VIEW.vsGoogle(m)}
-<h4>종류별 (이번 실행)</h4>${table(['종류', '번', '점수'], kindRows(s))}
-<h4>점수를 많이 쓴 곳 TOP 8</h4>${table(['코드 자리 (파일:함수)', '번', '점수', '주고받은 양'], byFeat(D.reqs).slice(0, 8).map(([f, x]) => [`<code>${esc(f)}</code>`, x.n, x.p, kb(x.b)]))}
+            ghAsk();
+            const d = dayOf(), ds = d.s || {}, g = D.gh, gd = (g.day || {})[today()] || 0;
+            const run = k => (D.svc[k] || 0) + (k === 'gh' ? g.sess || 0 : 0), day = k => (ds[k] || 0) + (k === 'gh' ? gd : 0);
+            const tot = SVC.reduce((a, [k]) => a + run(k), 0), totD = SVC.reduce((a, [k]) => a + day(k), 0);
+            const oh = [...D.oh.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([h, n]) => esc(h) + ' ' + n).join(' · ');
+            return `<div class="cards">${SVC.map(([k, n]) => `<div class="card"><small>${n}</small><span class="big">${fmt(run(k))}</span>번<br><span class="tip">오늘 (이 기기) ${fmt(day(k))}번</span></div>`).join('')}
+<div class="card"><small>모두</small><span class="big">${fmt(tot)}</span>번<br><span class="tip">오늘 (이 기기) ${fmt(totD)}번</span></div></div>
+<p class="tip">이번 실행 = 이 창을 연 뒤 (🐙 깃허브는 앱을 열 때 버전 확인부터) · 오늘 = 이 기기 합계 · 🐙 = 서비스 워커가 깃허브에 보낸 것 + 브라우저가 진짜로 받은 것 (기기 보관함 · 브라우저 기억에서 꺼낸 것은 빼요) · 🧁 상품 서버 = 목록 · 그림 · 🔑 = 구글 로그인 창 · 열쇠${oh ? ` · 🌐 그 밖 = ${oh}` : ''}</p>
+<div class="cards"><div class="card"><small>상품 목록</small>${prodState()}</div></div>
 <h4>⏱ 앱 열기 단계</h4>${table(['단계', '앱 시작 후'], D.marks.map(x => [esc(x.n) + (x.x ? ` <span class="tip">${esc(x.x)}</span>` : ''), (x.t / 1000).toFixed(2) + '초']))}
 ${D.errs.length ? `<h4 class="warn">⚠ 경고 · 오류 ${D.errs.length}개 (상태 탭)</h4>` : ''}`;
         },
@@ -328,6 +356,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         if (D.tab === 'state' && typeof collScan === 'function' && typeof COLL !== 'undefined') collScan('outbox', (k, v) => v && v.who === COLL.who).then(L => { const o = DOC.getElementById('dashOutbox'); if (o) o.textContent = '📮 아직 못 올린 모음 작업 (outbox) : ' + ((L || []).length) + '개'; }).catch(() => { });
     }
     function report() {
+        ghAsk();                                                                // 🐙 다음 복사 때 더 새것 (워커 답은 조금 뒤)
         const s = stats(D.reqs), u = users(), d = dayOf();
         const L = [];
         L.push('📊 말랑달콤 백엔드 상황판 · ' + new Date().toLocaleString('ko-KR') + ' · 앱 ' + (document.querySelector('meta[name="app-version"]') || {}).content + ' · ' + (innerWidth + '×' + innerHeight));
@@ -335,6 +364,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         L.push(`오늘 (이 기기) : ${d.n}번 · ${d.pts}점 · 앱 열기 점수 [${(d.opens || []).join(', ')}]`);
         L.push(`앱 열기 한 번 = ${Math.round(u.oc.v)}점 (${u.oc.src}) · 쓰는 동안 1분 = ${Math.round(u.up.v)}점 · 가정 열기 ${calc.opens}번 · ${calc.useMin}분 · 붐빌 때 ${calc.peak}% → 하루 한도 ${isFinite(u.byDay) ? Math.round(u.byDay) : '—'}명 · 1분 한도 ${isFinite(u.byMin) ? Math.round(u.byMin) : '—'}명`);
         { const m = stats(lastMin()), pc = (v, l) => (l ? v / l * 100 : 0).toFixed(3) + '%'; L.push(`🏁 구글 한도 비교 : 최근 1분 ${m.p}점 = 한 사람 1분(${calc.perUserMin}) 의 ${pc(m.p, calc.perUserMin)} · 프로젝트 1분(${calc.perMin}) 의 ${pc(m.p, calc.perMin)} · 가장 많이 쓴 1분 ${u.myMax}점 · 앱 열기 ${Math.round(u.oc.v)}점 = 프로젝트 1분의 ${pc(u.oc.v, calc.perMin)} · 오늘 ${d.pts}점 = 하루(${calc.perDay}) 의 ${pc(d.pts, calc.perDay)}`); }
+        { const ds = dayOf().s || {}, g = D.gh, gd = (g.day || {})[today()] || 0; L.push('🌐 종류별 요청 (이번 실행 / 오늘) : ' + SVC.map(([k, n]) => `${n} ${(D.svc[k] || 0) + (k === 'gh' ? g.sess || 0 : 0)} / ${(ds[k] || 0) + (k === 'gh' ? gd : 0)}`).join(' · ') + (D.oh.size ? ' · 그 밖 = ' + [...D.oh.entries()].map(([h, n]) => h + ' ' + n).join(', ') : '')); }
         L.push('상품 목록 : ' + prodState() + ' · 🧁 서버 ' + D.srv.n + '번 ' + kb(D.srv.b));
         L.push('', '⏱ 단계'); D.marks.forEach(x => L.push(`  ${(x.t / 1000).toFixed(2)}초  ${x.n} ${x.x}`));
         L.push('', '💯 점수 TOP'); byFeat(D.reqs).slice(0, 12).forEach(([f, x]) => L.push(`  ${f} : ${x.n}번 ${x.p}점 ${kb(x.b)}`));
