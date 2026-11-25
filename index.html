@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611251727">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611251738">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611251727', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611251738', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -833,8 +833,8 @@
     <script src="js/service.js?v=839c3de643"></script>
     <!-- 🎁 랜덤박스 (없어도 다이어리는 정상 동작) -->
     <script src="js/gacha.js?v=d9d6390e32"></script>
-    <script src="js/presence.js?v=8acca374f6"></script>
-    <script src="js/fbase.js?v=7dffb1ee5d"></script>   <!-- 🔥 파이어스토어 연결 (🔔 선물 벨 · 📞 전화기) -->
+    <script src="js/presence.js?v=f656ebf20d"></script>
+    <script src="js/fbase.js?v=469bad7753"></script>   <!-- 🔥 파이어스토어 연결 (🔔 선물 벨 · 📞 전화기) -->
     <script src="js/fphone.js?v=b6959d773f"></script>   <!-- 📞 반짝이 피처폰 메신저 (로그인 회원끼리) -->
     <!-- 🎵 배경음악 (없어도 다이어리는 정상 동작) -->
     <script src="js/bgm.js?v=241a47a072"></script>

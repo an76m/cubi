@@ -19,7 +19,8 @@
             if (FB.sdk) return FB.sdk;
             const [A, U, F] = await Promise.all(['app', 'auth', 'firestore'].map(n => import(FB_SDK + n + '.js')));
             const app = A.getApps().find(x => x.name === 'malang') || A.initializeApp(FB_CFG, 'malang');
-            FB.sdk = { U, F, auth: U.getAuth(app), db: F.getFirestore(app) };
+            let auth; try { auth = U.initializeAuth(app, { persistence: U.inMemoryPersistence }); } catch (e) { auth = U.getAuth(app); }   // 🧠 기기에 로그인을 남기지 않아요 = 켤 때 되살리기 확인(accounts:lookup) 1번이 없어요 (도련 11-25 · 어차피 출입증으로 다시 들어가요)
+            FB.sdk = { U, F, auth, db: F.getFirestore(app) };
             return FB.sdk;
         }
         async function fbApi(action, data) {                                     // 앱스크립트 (구글 로그인 확인이 필요한 것)
@@ -51,6 +52,20 @@
             }
             FB.starting = false;
         }
+        /* 🔥 출입증 = 'here' 에 같이 (도련 11-25 · 1474 · 앱스크립트 요청 2번 → 1번 · 서버 말랑달콤사람들_앱스크립트.gs handle 'here' + fb) */
+        function fbHereBegin() { if (FB.on || FB.starting || !fbUsable() || Date.now() < FB.retryAt) return false; FB.starting = true; FB.retryAt = Date.now() + 60000; return true; }
+        async function fbFromHere(j) {
+            try {
+                if (!(j && j.ok && j.ft)) throw new Error((j && j.error) || 'hello');   // 서버가 출입증을 못 줬어요 = 1분 뒤 fbStart 가 따로 한 번
+                await fbSignIn(j.ft, j.nick || '');
+            } catch (e) {
+                console.warn('🔥 파이어스토어 연결:', e);
+                if (fbQuota(e)) { FB.err = 'quota'; FB.retryAt = Date.now() + 600000; } else if (FB.err !== 'setup') FB.err = 'net';
+                window.dispatchEvent(new CustomEvent('fbauth'));
+            }
+            FB.starting = false;
+        }
+        window.fbHereBegin = fbHereBegin; window.fbFromHere = fbFromHere;
         function fbStop() {
             if (FB.bellUnsub) { try { FB.bellUnsub(); } catch (e) {} }
             FB.bellUnsub = null; FB.bell = false; FB.on = false; FB.uid = ''; FB.nick = ''; FB.err = ''; FB.retryAt = 0;
@@ -72,7 +87,7 @@
 
         setInterval(() => {
             if (!fbUsable()) { if (FB.on || FB.err) fbStop(); return; }
-            if (!FB.on && !FB.starting && Date.now() >= FB.retryAt) fbStart();
+            if (!FB.on && !FB.starting && Date.now() >= FB.retryAt && !(window.prHereSoon && prHereSoon())) fbStart();   // 첫 'here' 가 곧 가면 = 그것에 같이 실어요 (fbHereBegin)
             else if (FB.on && !FB.bellUnsub && Date.now() >= FB.retryAt) { FB.retryAt = Date.now() + 60000; fbBell(); }   // 벨이 끊겼으면 1분 뒤 다시
         }, 1500);
         window.fbOn = fbOn; window.fbBellOn = fbBellOn; window.fbSignIn = fbSignIn; window.fbApi = fbApi; window.fbLoad = fbLoad; window.fbQuota = fbQuota;

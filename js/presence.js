@@ -26,20 +26,24 @@
             if (/iPad|Tablet/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (/Android/i.test(ua) && !/Mobile/i.test(ua))) return '태블릿';
             return /Mobi|iPhone|Android/i.test(ua) ? '휴대폰' : 'PC';
         }
+        const prHereSoon = () => !pr.last && prOk();                         // 첫 'here' 를 아직 안 보냈어요 (🔥 fbase.js 가 기다렸다가 같이 받아요)
+        window.prHereSoon = prHereSoon;
         async function prHere() {
             if (!prOk()) return;
             pr.last = Date.now();
             try { await ensureToken(); } catch (e) { pr.last = Date.now() - PR_EVERY + 30000; return; }          // 못 닿으면 30초 뒤 다시 (3시간을 기다리면 선물을 늦게 받아요)
+            const fb = !!(window.fbHereBegin && fbHereBegin());                // 🔥 파이어스토어 출입증도 같이 받기 (도련 11-25 · 앱스크립트 요청 2번 → 1번 · js/fbase.js fbFromHere)
             try {
-                const res = await fetch(MEMBER_API_URL, { method: 'POST', body: JSON.stringify({ action: 'here', token: drive.token, dev: prDevice() }) });
+                const res = await fetch(MEMBER_API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'here', token: drive.token, dev: prDevice() }, fb ? { fb: 1 } : {})) });
                 const j = await res.json();
+                if (fb) fbFromHere(j);
                 if (!(j && j.ok)) pr.last = Date.now() - PR_EVERY + 30000;
                 if (j && j.ok && typeof setGift === 'function') setGift(j.tape, j.tp);
                 if (j && j.ok && typeof wlSetMine === 'function') wlSetMine(j.walls);          // 🖼️ 내가 받은 배경화면 (js/wall.js)
                 if (j && j.ok && j.me) pr.me = String(j.me);
                 if (j && j.ok && j.code) { pr.code = String(j.code); try { localStorage.setItem('malang_code', pr.code); } catch (e) {} }   // 🛍️ 문구점 주문에 저금 코드를 같이 적으려고 (shop/shop.js)
                 if (j && j.ok && j.gift) prGift(j.gift);
-            } catch (e) { pr.last = Date.now() - PR_EVERY + 30000; }
+            } catch (e) { pr.last = Date.now() - PR_EVERY + 30000; if (fb) fbFromHere(null); }
         }
 
         /* 🎁 선물 도착 신호 물어보기 (가벼운 GET · 답 : { gift: { t: {…}, p: {…} } | '' }) */
