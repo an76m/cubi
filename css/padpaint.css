@@ -88,7 +88,7 @@
 .pp-pop { position: fixed; z-index: 990; left: 300px; top: 120px; width: 300px; max-height: 70vh; display: flex; flex-direction: column; background: #fffdf8; border: 3px solid #6b4438; border-radius: 16px; box-shadow: 0 12px 30px rgba(90, 50, 60, .25); }
 .pp-pop-h { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1.5px dashed #f1d3dd; }
 
-/* 💾 임시저장 · ✅ 완료 (도련 11-14) */
+/* 💾 임시보관 · ✅ 완료 (도련 11-14) */
 .pp-end { margin-top: auto; display: grid; grid-template-columns: 1fr 1.3fr; gap: 7px; }
 .pp-end .pp-go { margin-top: 0; }
 .pp-tmp { font: inherit; font-size: 14px; font-weight: 900; border-radius: 14px; border: 2px solid #e88fb0; background: #fff; color: #c2457a; cursor: pointer; padding: 10px 4px; box-shadow: 0 3px 0 #f2c6d4; }

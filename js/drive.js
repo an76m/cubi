@@ -403,7 +403,7 @@
              · 처음 온 다꾸러는 장부가 없어서 그대로 (폴더는 처음 저장할 때 생겨요 · 그 전에 다시 열어도 초기화되지 않아요)
            지우는 것 (차례대로 · 장부를 못 지우면 아무것도 안 지우고 읽기 실패로 · 다음에 다시)
              📒 숨은 장부(appDataFolder) 파일 통째로 (구글드라이브에서 사용자 눈에 안 보이는 유일한 파일)
-             ⚡ 드라이브 읽기 기억 · 🎀 스티커 목록 파일 번호 · 쓴 흔적 · 📝 완료 전 임시저장 · 📦 내 실물 사본 · 📚 읽어 둔 스티커 · 목록 · ⏳ 못 올린 것 (이 계정 것만)
+             ⚡ 드라이브 읽기 기억 · 🎀 스티커 목록 파일 번호 · 쓴 흔적 · 📝 완료 전 임시보관 · 📦 내 실물 사본 · 📚 읽어 둔 스티커 · 목록 · ⏳ 못 올린 것 (이 계정 것만)
              🔑 로그인 기억 → 처음 화면 (구글 · 로그인 없이를 다시 골라요)
            남기는 것 (도련 11-21) : 🏠 로그인 없이 쓴 다이어리 · 👤 게스트 (그 브라우저가 원본) · 다른 구글 계정 것 · ⚙ 이 기기 화면 기억 · 📦 앱 파일 · 서버(문구점 · 편지함 …)는 앱이 지울 수 없어요 */
         async function freshStart() {
@@ -1458,8 +1458,8 @@
             setTimeout(sealOld, 20000);                                      // 🔐 예전 파일 잠그기 (뒤에서 조금씩 · 도련 11-11)
         }
         window.sealOld = sealOld;
-        /* 📱 태블릿 그림판 💾 임시저장 = 이 기기에만 (도련 11-14 · 다이어리 임시저장과 같게) : IndexedDB 'mallang-ppdraft' · 계정마다 · 종류마다 하나 · 자동으로도 저장 (js/padpaint.js)
-           드라이브에는 임시저장 파일이 없어요 → 앱을 열 때 드라이브를 묻지 않아요 (예전 '도안/작업중-' 찾기는 없앴어요 · 도련 11-17 · 쓸데없는 요청 1번) */
+        /* 📱 태블릿 그림판 💾 임시보관 = 이 기기에만 (도련 11-14 · 다이어리 임시보관과 같게) : IndexedDB 'mallang-ppdraft' · 계정마다 · 종류마다 하나 · 자동으로도 저장 (js/padpaint.js)
+           드라이브에는 임시보관 파일이 없어요 → 앱을 열 때 드라이브를 묻지 않아요 (예전 '도안/작업중-' 찾기는 없앴어요 · 도련 11-17 · 쓸데없는 요청 1번) */
         let ppdbP = null;
         const ppdb = () => ppdbP || (ppdbP = new Promise(ok => { try { const r = indexedDB.open('mallang-ppdraft', 1); r.onupgradeneeded = () => r.result.createObjectStore('d'); r.onsuccess = () => ok(r.result); r.onerror = r.onblocked = () => ok(null); } catch (e) { ok(null); } }));
         async function ppdTx(mode, fn) { const d = await ppdb(); if (!d) throw new Error('이 기기에 저장할 수 없어요'); return new Promise((ok, no) => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => no(t.error || new Error('idb')); } catch (e) { no(e); } }); }

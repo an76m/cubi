@@ -4,7 +4,7 @@
     opacity: 0; pointer-events: none; transition: transform .35s cubic-bezier(.3, 1.4, .5, 1), opacity .25s; font-family: inherit; width: max-content; max-width: calc(100vw - 20px); box-sizing: border-box; }
 .pg-bar.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
 /* 📔 다이어리모드(책상 위) = 위 가운데 · 날짜바 위에 얇은 한 줄 (도련 11-15 · 아래는 서랍 · 도구가 가려요) · 위에서 내려와요 · 📱 폰 · 그 밖은 그대로 아래 가운데
-   [✅ 완료] 완료하면 고칠 수 없어요 / [💾 임시저장] 📱 이 기기에 임시저장 (두 줄 · 도련 11-22 · #pgBar 안만 · style.css 의 다른 .pg-go !important 를 이겨요) */
+   [✅ 완료] 완료하면 고칠 수 없어요 / [💾 임시보관] 📱 이 기기에 임시보관 (두 줄 · 도련 11-22 · #pgBar 안만 · style.css 의 다른 .pg-go !important 를 이겨요) */
 html.desk-on.dk-bgon .pg-bar { top: max(5px, env(safe-area-inset-top)); bottom: auto; transform: translate(-50%, -160%); gap: 6px; padding: 3px 5px; border-width: 1.5px; box-shadow: 0 2px 0 rgba(91, 58, 51, .2), 0 5px 12px rgba(90, 50, 60, .14); }
 html.desk-on.dk-bgon .pg-bar.on { transform: translate(-50%, 0); }
 html.desk-on.dk-bgon #pgBar .pg-go { font-size: 13.5px !important; padding: 3px 13px !important; box-shadow: 0 2px 0 #d9577f; }
@@ -18,7 +18,7 @@ html.desk-on.dk-bgon .pg-bar.done { padding: 4px 12px; }
 .pg-sv { border: 2px solid #5b3a33; border-radius: 99px; background: #fff7d6; color: #5b3a33; font: inherit; font-size: 14px; font-weight: 900; padding: 7px 14px; cursor: pointer; box-shadow: 0 3px 0 #d8b955; white-space: nowrap; flex: none; width: auto; height: auto; line-height: 1.2; writing-mode: horizontal-tb; }
 .pg-sv:active { transform: translateY(2px); box-shadow: 0 1px 0 #d8b955; }
 .pg-bar.go .pg-t span:first-child { color: #5b3a33; }
-/* 두 줄 (도련 11-22) : 1줄 = [✅ 완료] 완료하면 고칠 수 없어요 · 2줄 = [💾 임시저장] 📱 이 기기에 임시저장 · 시각 (버튼 너비는 같게) */
+/* 두 줄 (도련 11-22) : 1줄 = [✅ 완료] 완료하면 고칠 수 없어요 · 2줄 = [💾 임시보관] 📱 이 기기에 임시보관 · 시각 (버튼 너비는 같게) */
 .pg-bar.go { display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 8px; row-gap: 12px; border-radius: 20px; }
 .pg-bar.go .pg-t { display: contents; }
 .pg-bar.go .pg-t span { padding-right: 6px; line-height: 1.3; }

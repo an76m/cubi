@@ -651,7 +651,7 @@
         }
         window.deskReset = deskReset;
         /* ✕ 책상으로 (도련 11-15) : 📔 다이어리모드 · 📒 스티커정리모드 · 🧩 바인더조립모드에선 오른쪽 위 메뉴 · 이동 대신 이 ✕ 하나 (css/anime.css .dk-mode-x)
-           톡 = 📒 🧩 저장하지 않고 나가기 (정리 · 조립한 게 있으면 한 번 물어요 · 저장은 ✔ 완료 · 도련 11-15) · 📔 = 꾸미던 게 있으면 [💾 임시저장] [그냥 닫기] 묻고 다이어리를 책상에 내려놓기 (밖 톡으로는 안 나가요 · 1219) · ⛔ 예전 🔑 잠금 스위치(dkLock)는 영구 삭제 */
+           톡 = 📒 🧩 저장하지 않고 나가기 (정리 · 조립한 게 있으면 한 번 물어요 · 저장은 ✔ 완료 · 도련 11-15) · 📔 = 꾸미던 게 있으면 [💾 임시보관] [그냥 닫기] 묻고 다이어리를 책상에 내려놓기 (밖 톡으로는 안 나가요 · 1219) · ⛔ 예전 🔑 잠금 스위치(dkLock)는 영구 삭제 */
         function dkModeXBuild() {
             if (document.getElementById('dkModeX')) return;
             const b = document.createElement('button'); b.type = 'button'; b.id = 'dkModeX'; b.className = 'dk-mode-x'; b.textContent = '✕';
@@ -2396,7 +2396,7 @@
             }
         }
         window.deskTopGo = deskTopGo;
-        window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary; window.dkVolOpen = dkVolOpen; window.dkyCur = dkyCur;   // 💾 임시저장 페이지로 가기 (js/pagedone.js)
+        window.deskSnapToggle = deskSnapToggle; window.deskOpenDiary = deskOpenDiary; window.deskCloseDiary = deskCloseDiary; window.dkVolOpen = dkVolOpen; window.dkyCur = dkyCur;   // 💾 임시보관 페이지로 가기 (js/pagedone.js)
         window.deskTipAct = deskTipAct; window.deskPut = deskPut; window.deskDiscard = deskDiscard; window.deskGive = deskGive; window.deskReceive = deskReceive; window.deskBoxPick = deskBoxPick; window.deskBoxAllIn = deskBoxAllIn; window.deskBoxTab = deskBoxTab; window.deskTrayTab = deskTrayTab; window.deskShopList = deskShopList; window.deskBoxOpen = deskBoxOpen; window.deskBoxRender = deskBoxRender;
         window.deskFnPick = deskFnPick; window.deskEditOpen = deskEditOpen; window.deskEditEnd = deskEditEnd; window.deskEditShop = deskEditShop;
         window.deskTapAt = deskTapAt;  window.deskModeRender = deskModeRender;

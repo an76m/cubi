@@ -11,7 +11,7 @@
         /* 만드는 방법 : [아이콘, 이름, 설명, 여는 일(종류), 기능 스위치, (📱 폰 설명)] */
         const smGo = (k, fn) => { if (window.smPickKind) { smPickKind(k); closeModal('stickerSrcModal'); } if (window[fn]) window[fn](); };   // 📷 · 🖼️ = 그 종류로 정해 두고 바로
         const CRAFT_WAYS = {
-            paint: ['🎨', '그려서 만들기', '붓 · 색 · 레이어 · 📎 사진 · 🏷️ 내 스티커 · 💾 자동 임시저장 · 📔 붙여 보기', k => window.openPhonePaint && openPhonePaint(k), 'stkmake'],   // 📱 폰 그림판 (js/phonepaint.js · 태블릿 그림판과 같은 것 · 도련 11-14 · 폰에서만)
+            paint: ['🎨', '그려서 만들기', '붓 · 색 · 레이어 · 📎 사진 · 🏷️ 내 스티커 · 💾 자동 임시보관 · 📔 붙여 보기', k => window.openPhonePaint && openPhonePaint(k), 'stkmake'],   // 📱 폰 그림판 (js/phonepaint.js · 태블릿 그림판과 같은 것 · 도련 11-14 · 폰에서만)
             booth: ['📸', '포토부스', '네컷 · 2×2 · 한 컷 · 필터 · 글씨 · 반짝이', () => window.openBooth && openBooth(), 'stkmake'],
             cam: ['📷', '사진 찍어 만들기', '📷 말랑 디카로 찍거나 골라 모양대로 (하트 · 별 … · ✂️ 손으로)', k => (!phone() && window.openDigicam) ? openDigicam({ kind: k, el: window.dcActEl && dcActEl('camera') }) : smGo(k, 'smOpenCam'), 'stkmake', '📷 사진을 찍어 모양대로 (하트 · 별 … · ✂️ 손으로)'],   // 📷 💻 📲 = js/digicam.js (도련 11-08) · 📱 폰 = 예전 폰 화면 js/stickermaker.js (도련 11-14)
             /* 🖼️ 앨범에서 골라 만들기 (🖨️ 프린터 사진 → 스티커) = 영구 삭제 (도련 11-14 : 프린터는 📐 도안을 뽑는 곳 · 사진 · 모양 · 여러 장은 📱 태블릿 🏷️ 씰스티커) */

@@ -6,7 +6,7 @@
        가운데 : 종이 (화면 거의 전체) / 아래 한 줄 : 🎨 도구 · 🗂 레이어 · 📔 붙여 보기 · 💾 · ✅ 완료
        🎨 도구 · 🗂 레이어 = 누를 때만 아래에서 올라오는 판 (도련 11-15 · 폰 전용 화면 · 판 밖 톡 · ✕ · ‹ · 같은 버튼 다시 = 닫기 · 도구 · 색을 골라도 열린 채)
        판의 탭 = 🎨 도구 / 🗂 레이어 · 더보기 (🧩 담은 조각 · 🎀 미리보기 · 💗 풀칠 띠도 거기) · 🎨 버튼 = 지금 도구 그림 + 지금 색 점
-   - 💾 임시저장 = 종류마다 하나 · 이 기기에만 (js/drive.js draftHas · 태블릿과 같은 것) → 열 때 '이어서 / 새로' (새로 = 한 번 더 물어요)
+   - 💾 임시보관 = 종류마다 하나 · 이 기기에만 (js/drive.js draftHas · 태블릿과 같은 것) → 열 때 '이어서 / 새로' (새로 = 한 번 더 물어요)
    - ✅ 완료 = 📐 내 도안 (js/own.js ownDesignOnly : 📱 폰 작업실) → '🖨 지금 바로 뽑기' (ownDzMsg) → 🗄️ 서랍
    ※ 이 파일이 없어도 다이어리는 정상 동작 (🎨 그려서 만들기만 안 보여요) */
 (function () {
@@ -25,7 +25,7 @@
         let el = q('phPaint'); if (el) el.remove();
         const [ic, nm] = KIND[k];
         el = document.createElement('div'); el.id = 'phPaint'; el.className = 'phw';
-        el.innerHTML = `<div class="phw-top"><button type="button" class="phw-back" id="phwBack" aria-label="나가기">‹</button><span class="phw-t"><b>${ic} ${nm} 그리기</b><small id="phwSub">📱 이 기기에 임시저장 (자동)</small></span></div>
+        el.innerHTML = `<div class="phw-top"><button type="button" class="phw-back" id="phwBack" aria-label="나가기">‹</button><span class="phw-t"><b>${ic} ${nm} 그리기</b><small id="phwSub">📱 이 기기에 임시보관 (자동)</small></span></div>
             <div class="phw-bar shm-bar" id="phwBar"></div>
             <div class="phw-c" id="phwC"></div>
             <div class="phw-dim" id="phwDim"></div>
@@ -38,7 +38,7 @@
                 <button type="button" class="phw-ic" data-open="R" id="phwOpR"><i>🗂</i><span>레이어</span></button>
                 ${k === 'piece' ? '<button type="button" class="phw-ic phw-add" id="phwAdd"><i>➕</i><span>담기</span></button>' : ''}
                 <button type="button" class="phw-ic" id="phwTry"><i>📔</i><span>${k === 'leaf' ? '끼워 보기' : k === 'paper' ? '놓아 보기' : '붙여 보기'}</span></button>
-                <button type="button" class="phw-ic phw-sv" id="phwSave" aria-label="임시저장"><i>💾</i><span>저장</span></button>
+                <button type="button" class="phw-ic phw-sv" id="phwSave" aria-label="임시보관"><i>💾</i><span>저장</span></button>
                 <button type="button" class="phw-go" id="phwGo">✅ 완료</button>
             </div></div>`;
         document.body.appendChild(el);
@@ -107,7 +107,7 @@
     }
     async function closePhonePaint(done) {
         if (!PH.on) return;
-        if (!done && window.ppDirty && ppDirty() && !(await tsClose({ title: '🎨 작업 중인 그림을 어떻게 할까요?', dirty: () => true,   // ‹ 나가기 = 💾 임시저장 공통 물음 (태블릿과 같아요 · js/tempsave.js · 도련 11-15)
+        if (!done && window.ppDirty && ppDirty() && !(await tsClose({ title: '🎨 작업 중인 그림을 어떻게 할까요?', dirty: () => true,   // ‹ 나가기 = 💾 임시보관 공통 물음 (태블릿과 같아요 · js/tempsave.js · 도련 11-15)
             save: async () => window.ppSaveDraft ? !!(await ppSaveDraft(true)) : true, drop: async () => { if (window.ppDiscard) await ppDiscard(); } }))) return;
         PH.on = false; PH.tok++;
         if (PH.obs) { PH.obs.disconnect(); PH.obs = null; }

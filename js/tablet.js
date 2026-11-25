@@ -203,11 +203,11 @@
         const r = q('tbWs'); if (r && !quietly) { r.classList.remove('show'); document.body.classList.remove('tb-ws-on'); }
         IP.D = null;
     }
-    async function leaveOk() {                                               // 🎨 그림판 ‹ 홈 · ✕ = 물어봐요 (도련 11-15) : [💾 임시저장] = 이 기기에 저장하고 닫기 · [그냥 닫기] = 저장하지 않고 닫기 (1223 : 🗑 지우기 영구 삭제 · 1220 : 계속 그리기 없앰)
+    async function leaveOk() {                                               // 🎨 그림판 ‹ 홈 · ✕ = 물어봐요 (도련 11-15) : [💾 임시보관] = 이 기기에 저장하고 닫기 · [그냥 닫기] = 저장하지 않고 닫기 (1223 : 🗑 지우기 영구 삭제 · 1220 : 계속 그리기 없앰)
         if (WS.k && window.ppDirty && q('tbWs') && q('tbWs').classList.contains('show') && q('tbWsC').querySelector('.pp-stage, canvas')) {
             const DK = (window.PP_DRAFT_K || {})[WS.k] || WS.k;
             let has = ppDirty(); if (!has) { try { has = !!(window.draftHas && await draftHas(DK)); } catch (e) {} }
-            if (has) return tsClose({ title: '🎨 작업 중인 그림을 어떻게 할까요?', dirty: () => true,   // 💾 임시저장 공통 (js/tempsave.js · 도련 11-15) : 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 그린 것만 버려요 (그 전 임시저장은 그대로)
+            if (has) return tsClose({ title: '🎨 작업 중인 그림을 어떻게 할까요?', dirty: () => true,   // 💾 임시보관 공통 (js/tempsave.js · 도련 11-15) : 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 그린 것만 버려요 (그 전 임시보관은 그대로)
                 save: async () => !ppDirty() || (window.ppSaveDraft ? !!(await ppSaveDraft(true)) : true), drop: async () => { if (window.ppDiscard) await ppDiscard(); } });
         }
         if (IP.D && IP.D.dirty && typeof showAsk === 'function') return !!(await showAsk('그리던 그림이 사라져요.<br>나갈까요?', '나가기', '계속 그리기'));
@@ -225,7 +225,7 @@
     /* 🎨 그림판 (js/padpaint.js) : 레이어 · 픽셀 · 벡터 · 속지부터 (도련 11-13 · 다음에 떡메 · 마테 · 조각 · 모조지) */
     let wsTok = 0;
     async function wsPaint(k) {
-        const tok = ++wsTok;                                                  // 🐞 임시저장을 찾는 동안 홈 → 다시 열기 · 두 번 누르기 = 마지막 것만 열어요 (도련 11-14 : 그림판이 두 벌 열려 위 막대가 겹쳤어요)
+        const tok = ++wsTok;                                                  // 🐞 임시보관을 찾는 동안 홈 → 다시 열기 · 두 번 누르기 = 마지막 것만 열어요 (도련 11-14 : 그림판이 두 벌 열려 위 막대가 겹쳤어요)
         const T = k === 'tk', TP = k === 'tape', SL = k === 'seal', PC = k === 'piece', PA = k === 'paper', NM = T ? '떡메' : TP ? '테이프' : SL ? '씰스티커' : PC ? '조각' : PA ? '모조지' : '속지';
         wsOpen(T ? '🧻 떡메모지 만들기' : TP ? '🎀 마스킹테이프 만들기' : SL ? '🏷️ 씰스티커 만들기' : PC ? '🧩 조각스티커 만들기' : PA ? '📄 모조지스티커 만들기' : '📃 속지 만들기', TP ? '한 칸을 그리면 쭉 이어져요 · 🖌️ 픽셀 · ✒️ 벡터' : PA ? '보이는 그대로 인쇄된 한 장 · 쓸 때 ✂️ 가위로 오려 붙여요' : PC ? '그린 모양대로 하얀 칼선 · ➕ 담기로 4개까지 · 한 봉투' : SL ? '떨어져 그린 그림 = 스티커 한 장씩 · 하얀 칼선 · 놓은 자리 그대로 시트' : '레이어 · 🖌️ 픽셀 그리기 · ✒️ 벡터 그리기', 'tb-paint', () => { if (window.ppClose) ppClose(); });
         WS.k = k;                                                             // 지금 그림판 종류 (나갈 때 묻기 · leaveOk · wsOpen 이 비운 뒤에)
@@ -233,15 +233,15 @@
         const go = draft => ppOpen({ kind: k, W: 900, H, bar: q('tbWs').querySelector('.shm-bar'), L: q('tbWsL'), C: q('tbWsC'), R: q('tbWsR'),
             bg: T ? '#fff6cf' : TP ? '#ffc6d6' : PA ? '#fdfaf2' : '#ffffff',   /* 📃 속지 기본 = 흰 종이 (도련 11-14 · 예전 = 다이어리 속지색) */ mk: T ? { bg: '#fff6cf', g: 'line', lc: '#f1d58a', gap: 40 } : TP ? { bg: '#ffc6d6', g: 'plain', lc: '#ffffff', gap: 24 } : { g: 'plain', lc: '#f6d5df', gap: 56 }, draft,
             done: () => { const c = WS.close; WS.close = null; if (c) c(); wsEnd(); home(); } });
-        /* 💾 임시저장해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
+        /* 💾 임시보관해 둔 작업이 있으면 먼저 물어요 (도련 11-14 : 종류마다 하나 · 새 작업 = 바로 지워요) */
         const DK = (window.PP_DRAFT_K || {})[k] || k;
         let has = null; try { has = window.draftHas ? await draftHas(DK) : null; } catch (e) { console.warn('📐 작업 중 파일', e); }
         if (tok !== wsTok || !q('tbWs').classList.contains('show')) return;
         if (!has) { go(null); return; }
         const when = (() => { const d = new Date(has.at); return isNaN(d) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; })();
-        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 ${NM}가 있어요</h3><p>📱 이 기기에 ${when ? when + '에 ' : ''}임시저장한 작업이에요.</p>
+        q('tbWsC').innerHTML = `<div class="pp-ask"><h3>💾 그리던 ${NM}가 있어요</h3><p>📱 이 기기에 ${when ? when + '에 ' : ''}임시보관한 작업이에요.</p>
             <div class="bt"><div><button type="button" class="go" data-a="cont">✏️ 이어서 작업</button></div>
-            <div><button type="button" class="new" data-a="new">🆕 새 작업</button><small>⚠ 새 작업을 하면 임시저장해 둔<br>작업은 사라져요</small></div></div></div>`;
+            <div><button type="button" class="new" data-a="new">🆕 새 작업</button><small>⚠ 새 작업을 하면 임시보관해 둔<br>작업은 사라져요</small></div></div></div>`;
         q('tbWsC').querySelector('.pp-ask').addEventListener('click', async e => {
             const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
             e.currentTarget.querySelectorAll('button').forEach(x => { x.disabled = true; });
@@ -252,7 +252,7 @@
             b.textContent = '📂 불러오는 중…';
             let d = null; try { d = await draftRead(DK); } catch (er) { console.warn('📐 작업 중 파일 읽기', er); }
             q('tbWsC').innerHTML = '';
-            if (!d) { if (window.showMsg) showMsg('⚠ 임시저장한 작업을 열지 못했어요.<br>새로 시작해요.'); go(null); return; }
+            if (!d) { if (window.showMsg) showMsg('⚠ 임시보관한 작업을 열지 못했어요.<br>새로 시작해요.'); go(null); return; }
             go(d);
         });
     }

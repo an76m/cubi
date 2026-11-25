@@ -1,7 +1,7 @@
 /* 말랑달콤 다이어리 - js/util.js
    🧰 공용 도구 (도련 10-30 : 같은 걸 파일마다 또 만들지 않기 · 새 기능도 여기 것을 써요)
    - htmlEsc(글) : 화면에 넣는 글을 안전하게 (& < > " ')
-   - strFp(글) : 글의 짧은 지문 (같은 글 = 같은 지문 · 임시저장이 드라이브 그때 모습과 같은지 볼 때 · 도련 11-22)
+   - strFp(글) : 글의 짧은 지문 (같은 글 = 같은 지문 · 임시보관이 드라이브 그때 모습과 같은지 볼 때 · 도련 11-22)
    - josa(낱말, 받침 있을 때, 없을 때) : 낱말 + 조사 (예 josa('바구니', '으로', '로') = '바구니로') · josaOf = 조사만
    - lsGet(키, 없을 때) · lsSet(키, 값) : 이 기기 저장(localStorage)에 JSON 으로 (막혀 있어도 멈추지 않아요)
    - 🕘 tzDay · tzNow · tzText (시계 한 곳 · DIARY_TZ) · waitMs · clampN · buzz · calmMotion · mkCanvas · tintCanvas · rrPath · loadImgP

@@ -7,8 +7,8 @@
    - 앱이 갑자기 꺼졌다 다시 열면 : 다이어리를 펼칠 때 "꾸미던 페이지가 있어요 [이어서 하기] [처음부터]"
      처음부터 = 이 기기 보관본을 지우고 쓴 스티커는 시트로 돌아가요 (드라이브는 원래 그대로라 저절로)
    - 완료하지 않고 다른 날로 넘기면 : 그 페이지는 이 기기에 그대로 (돌아오면 이어서) · 짧게 알려요
-   💾 임시저장 = 이 기기 전체에서 한 페이지만 (도련 11-14 · 스티커 만들기 임시저장처럼)
-   - 아래 가운데 [💾 임시저장] [✅ 완료] · '📱 이 기기에 임시저장 · 오후 3:12' (자동으로도 계속 저장 · 버튼은 '이 기기에만 · 한 페이지만'을 알려 주는 몫)
+   💾 임시보관 = 이 기기 전체에서 한 페이지만 (도련 11-14 · 스티커 만들기 임시보관처럼)
+   - 아래 가운데 [💾 임시보관] [✅ 완료] · '📱 이 기기에 임시보관 · 오후 3:12' (자동으로도 계속 저장 · 버튼은 '이 기기에만 · 한 페이지만'을 알려 주는 몫)
    - 로그인 뒤 다이어리가 떠오르면 (표지 덮인 채) : "꾸미던 중이었어요 [이어서 하기] [지우고 새로 하기]" · 이어서 = 그 권 · 그 페이지로
    - 다른 페이지 · 다른 다이어리에 처음 뭔가를 하면 : "꾸미던 중이에요 [그 페이지로 가기] [완료하고 여기서 시작]" (넘기기 · 구경만은 그냥 돼요)
    - 지우기는 한 번 더 물어요 (붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요) */
@@ -39,8 +39,8 @@
         return new Promise(ok => { try { const t = d.transaction('d', mode), r = fn(t.objectStore('d')); t.oncomplete = () => ok(r ? r.result : true); t.onerror = t.onabort = () => ok(null); } catch (e) { ok(null); } });
     }
     const idKey = key => who() + '|' + key;
-    /* ☁ 드라이브가 1순위 (도련 11-22 '임시저장은 임시 · 진짜는 완료') : 임시저장에 = 꾸미기 시작할 때 드라이브 그 페이지 지문(base)
-       → 다시 켜서 이어서 할 때 드라이브 지문이 다르면 (다른 기기에서 꾸미거나 완료) = 이 기기 임시저장은 묻지 않고 지워요 (휴지통 없이 · 꺼내 둔 스티커는 시트로) */
+    /* ☁ 드라이브가 1순위 (도련 11-22 '임시보관은 임시 · 진짜는 완료') : 임시보관에 = 꾸미기 시작할 때 드라이브 그 페이지 지문(base)
+       → 다시 켜서 이어서 할 때 드라이브 지문이 다르면 (다른 기기에서 꾸미거나 완료) = 이 기기 임시보관은 묻지 않고 지워요 (휴지통 없이 · 꺼내 둔 스티커는 시트로) */
     const fp = strFp;                                                        // 🧰 js/util.js
     const baseOf = key => { if (!PG.base.has(key)) PG.base.set(key, fp(PG.orig.has(key) ? PG.orig.get(key) : store.getItem(key))); return PG.base.get(key); };
     const draftPut = (key, txt, held) => { PG.at = Date.now(); return tx('readwrite', st => st.put(Object.assign({ who: who(), key, txt, base: baseOf(key), at: PG.at, vol: curVol(), ds: typeof currentDate !== 'undefined' ? spotSave(currentDate) : 0 }, held ? { held } : {}), idKey(key))); };   // ds = 그 날 · 그 쪽 (js/book.js spotSave)   // vol · ds = 그 권 · 그 페이지로 가려고 · held = 그때 쓴 스티커 · 모조지 종이 (그냥 닫기 = 이때로)
@@ -65,7 +65,7 @@
         if (curKey() === key && typeof loadData === 'function') { try { loadData(); } catch (e) {} }   // 화면도 그때 모습으로 (안 그러면 다음 저장 때 다시 담겨요)
         ui();
     }
-    tsAuto({ dirty: () => PG.uns.size > 0 && !PG.busy, save: flushAll });    // ⏱ 자동 임시저장 (TS.ms · 앱을 내릴 때도)
+    tsAuto({ dirty: () => PG.uns.size > 0 && !PG.busy, save: flushAll });    // ⏱ 자동 임시보관 (TS.ms · 앱을 내릴 때도)
 
     /* ---------- 완료한 페이지인가 ---------- */
     function pgDoneOf(txt) {
@@ -99,8 +99,8 @@
         if (txt === PG.orig.get(key) && !held(key)) PG.drafts.delete(key);
         else PG.drafts.set(key, txt);
         PG.uns.add(key); PG.meta.set(key, { vol: curVol(), ds: typeof currentDate !== 'undefined' ? spotSave(currentDate) : 0 });   // 그 권 · 그 페이지 (아직 저장 전이어도 '그 페이지로 가기')
-        //                                                                    💾 이 기기 저장은 자동 임시저장 · 💾 버튼 · ✕ 물음 때 (js/tempsave.js · 도련 11-15 · 예전 = 바꿀 때마다 바로)
-        if (others(key).length) setTimeout(gate, 0);                          // 💾 임시저장은 한 페이지만 : 다른 페이지에 처음 손댔어요
+        //                                                                    💾 이 기기 저장은 자동 임시보관 · 💾 버튼 · ✕ 물음 때 (js/tempsave.js · 도련 11-15 · 예전 = 바꿀 때마다 바로)
+        if (others(key).length) setTimeout(gate, 0);                          // 💾 임시보관은 한 페이지만 : 다른 페이지에 처음 손댔어요
         ui();
         return true;
     };
@@ -125,7 +125,7 @@
         if (!PG.asked) ask();
     };
 
-    /* ---------- 💾 임시저장은 한 페이지만 ---------- */
+    /* ---------- 💾 임시보관은 한 페이지만 ---------- */
     const heldKeys = () => { try { return window.ownPendGet ? ownPendGet().filter(p => p && p.h).map(p => p.h) : []; } catch (e) { return []; } };
     const others = key => [...new Set([...PG.drafts.keys(), ...heldKeys()])].filter(k => k && k !== key);
     function label(key, r) {
@@ -134,7 +134,7 @@
         return (r && r.vol && r.vol !== curVol() ? '다른 다이어리의 ' : '') + nm;
     }
     async function recOf(key) { const r = await draftGet(key); return Object.assign({ key, txt: PG.drafts.get(key) }, PG.meta.get(key) || {}, r || {}, PG.uns.has(key) ? { txt: PG.drafts.get(key) } : {}); }
-    function drop(key) {                                                      // 🗑 그 페이지 임시저장 지우기 (드라이브는 원래 그대로 · 쓴 스티커는 서랍으로)
+    function drop(key) {                                                      // 🗑 그 페이지 임시보관 지우기 (드라이브는 원래 그대로 · 쓴 스티커는 서랍으로)
         PG.drafts.delete(key); PG.uns.delete(key); PG.base.delete(key); draftDel(key);
         if (PG.orig.has(key)) { store.putLoaded(key, PG.orig.get(key)); PG.orig.delete(key); }
         if (window.ownDropHeld) ownDropHeld([key]);
@@ -146,7 +146,7 @@
     const askDone = (nm, r) => typeof showAsk === 'function'                  // ✅ 그 페이지 완료할까요? (그 페이지 모습 보고 · 완료 = 못 고쳐요)
         ? showAsk(`✅ <b>${nm}</b>${josaOf(nm, '을', '를')} <b>완료</b>할까요?${pv(r)}<span style="font-size:12px;color:#777;">완료하면 드라이브에 저장되고 그 페이지는 <b>고칠 수 없어요</b><br>그다음 여기서 이어서 꾸밀 수 있어요</span>`, '완료', '아니요')
         : Promise.resolve(true);
-    async function finishOther(key, r) {                                      // ✅ 다른 페이지 완료 (펼치지 않고 · 임시저장한 모습 그대로 · 도련 11-25)
+    async function finishOther(key, r) {                                      // ✅ 다른 페이지 완료 (펼치지 않고 · 임시보관한 모습 그대로 · 도련 11-25)
         const txt = PG.drafts.has(key) ? PG.drafts.get(key) : r && r.txt;
         if (txt != null && store.getItem(key) !== txt) { if (!PG.orig.has(key)) PG.orig.set(key, store.getItem(key)); store.putLoaded(key, txt); }
         await finish(key);
@@ -172,7 +172,7 @@
             const o = L[0], r = await recOf(o), nm = label(o, r);
             for (;;) {
                 const go = typeof showAsk === 'function'
-                    ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, '💾 임시저장한 모습')}<span style="font-size:12px;color:#777;">💾 임시저장은 한 페이지만 돼요<br>그 페이지를 ✅ 완료해야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '완료하고 여기서 시작')
+                    ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, '💾 임시보관한 모습')}<span style="font-size:12px;color:#777;">💾 임시보관은 한 페이지만 돼요<br>그 페이지를 ✅ 완료해야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '완료하고 여기서 시작')
                     : true;
                 if (go) {                                                     // 여기 방금 한 것은 없던 일로 (쓴 스티커도 서랍으로)
                     PG.mute = key; drop(key);
@@ -185,7 +185,7 @@
         } finally { PG.gating = false; ui(); }
     }
 
-    /* ---------- 🔁 로그인 뒤 다이어리가 떠오르면 : 꾸미던 페이지가 있어요 (임시저장 = 한 페이지) ---------- */
+    /* ---------- 🔁 로그인 뒤 다이어리가 떠오르면 : 꾸미던 페이지가 있어요 (임시보관 = 한 페이지) ---------- */
     async function ask() {
         if (!on() || PG.asked || !(coverOpen() || floating())) return;
         PG.asked = true;
@@ -201,7 +201,7 @@
         PG.base.set(r.key, r.base);                                           // 이어서 하면 = 처음 지문 그대로
         for (;;) {
             const go = typeof showAsk === 'function'
-                ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시저장되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시저장한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
+                ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시보관되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시보관한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
                 : true;
             if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
             if (await askDrop(nm, r)) { drop(r.key); ui(); return; }
@@ -261,14 +261,14 @@
         try { if (typeof searchTouch === 'function') searchTouch(key); } catch (e) {}
     }
 
-    /* ---------- 💾 임시저장 버튼 (자동으로도 늘 저장 · 누르면 지금 저장하고 알려 줘요) ---------- */
+    /* ---------- 💾 임시보관 버튼 (자동으로도 늘 저장 · 누르면 지금 저장하고 알려 줘요) ---------- */
     async function saveNow() {
         const key = curKey();
         if (PG.busy || !on() || PG.done) return;
         try { if (typeof saveData === 'function') await saveData(false); } catch (e) {}
         if (!PG.drafts.has(key) && !held(key)) { if (window.showMsg) showMsg('💾 아직 꾸민 것이 없어요.'); return; }
         await flush(key); ui();
-        tsSaved(PG.at, '임시저장은 한 페이지만 돼요 · ✅ 완료해야 다이어리에 저장돼요');
+        tsSaved(PG.at, '임시보관은 한 페이지만 돼요 · ✅ 완료해야 다이어리에 저장돼요');
     }
 
     /* ---------- 게이지 ---------- */
@@ -281,7 +281,7 @@
         let b = q('pgBar');
         if (!b) {
             b = document.createElement('div'); b.id = 'pgBar'; b.className = 'pg-bar';
-            b.innerHTML = '<button type="button" class="pg-sv" id="pgSv">💾 임시저장</button><button type="button" class="pg-go" id="pgGo">✅ 완료</button><small class="pg-t" id="pgT"></small>';
+            b.innerHTML = '<button type="button" class="pg-sv" id="pgSv">💾 임시보관</button><button type="button" class="pg-go" id="pgGo">✅ 완료</button><small class="pg-t" id="pgT"></small>';
             document.body.appendChild(b);
             q('pgGo').addEventListener('click', done);
             q('pgSv').addEventListener('click', saveNow);
@@ -312,9 +312,9 @@
         mo.observe(c, { childList: true });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
-    /* 📔 다이어리모드 ✕ (도련 11-15 · js/desk.js dkModeExit) : 완료 전 꾸민 게 있으면 [💾 임시저장] [그냥 닫기] (1224 : 🗑 지우기 영구 삭제 · 1221 : 계속 꾸미기 없앰 · 버튼 말고 창이 닫히면 그대로)
+    /* 📔 다이어리모드 ✕ (도련 11-15 · js/desk.js dkModeExit) : 완료 전 꾸민 게 있으면 [💾 임시보관] [그냥 닫기] (1224 : 🗑 지우기 영구 삭제 · 1221 : 계속 꾸미기 없앰 · 버튼 말고 창이 닫히면 그대로)
        💾 = 이 기기에 그대로 두고 닫기 (다시 펼치면 이어서) · 그냥 닫기 = 그대로 닫기 (꾸미는 동안 이 기기에 늘 담겨서 다시 펼치면 이어서) · 예전 🗑 지우기 = 이 페이지에 꾸민 것을 지우고 닫기 (붙인 스티커는 서랍으로 · 드라이브는 원래 그대로) */
-    async function closeAsk() {                                              // 📔 다이어리모드 ✕ = 💾 임시저장 공통 물음 (js/tempsave.js · 도련 11-15) : 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 꾸민 것은 버려요
+    async function closeAsk() {                                              // 📔 다이어리모드 ✕ = 💾 임시보관 공통 물음 (js/tempsave.js · 도련 11-15) : 그냥 닫기 = 마지막 저장(자동 포함) 뒤에 꾸민 것은 버려요
         const key = curKey();
         if (!on() || PG.busy || PG.done || !key || !dirty(key)) return !PG.busy;
         return tsClose({ title: '✏️ 꾸미던 페이지를 어떻게 할까요?', dirty: () => true, save: () => flush(key), drop: () => revert(key) });

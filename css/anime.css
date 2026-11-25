@@ -892,7 +892,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 #basketKindModal.abs-dkmode .abs-bar .ab-done { background: #ff8fb1 !important; border-color: #ff8fb1 !important; color: #fff !important; font-weight: 800; }
 #basketKindModal.abs-dkmode .abs-bar .ab-done:disabled { opacity: .45; cursor: default; }   /* ✔ 이 책 완료 = 담을 게 있을 때만 (도련 11-22) */
 .ab-ph .abs-bar .ab-done { order: 2; padding: 6px 12px; }
-/* 💾 임시저장 (도련 11-15 · 다이어리와 같은 [💾 임시저장] [✔ 완료] · js/tempsave.js) */
+/* 💾 임시보관 (도련 11-15 · 다이어리와 같은 [💾 임시보관] [✔ 완료] · js/tempsave.js) */
 #basketKindModal.abs-dkmode .abs-grip { background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, .08); }
 #basketKindModal.ab-space .dk-tape, #basketKindModal.ab-flt .dk-tape { display: none !important; }   /* 창 모서리 테이프(분홍 · 초록)는 정리 공간 · 떠 있는 책(창 없음)에선 안 보여요 (도련 11-22) */
 /* 📒 🤍 책상에서 띄운 스티커첩 = 📔 다이어리처럼 (도련 11-22 · js/basket.js abUpLand · js/book.js desk) : 덮인 동안 막대 없음 · 떠 있는 동안 책상 위 그 권은 숨어요 */

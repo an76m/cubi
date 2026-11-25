@@ -5,10 +5,10 @@
    - 🗂️ 레이어 : 종이(맨 아래 · 하얀 종이 · 꾸미기는 블록 레이어로 · 도련 11-18 종이 꾸미기 창 없앰) · 사진(📎) · 픽셀 · 벡터 · 🧩 블록(css 공식 기능 · js/cssblocks.js) 섞어서 · 👁 · 🔒 · 섞는 법 · 투명도 · 그린 곳만 칠
    - 🖌️ 픽셀 = 손으로 쓱쓱 (펜 압력 = 굵기 · 떨림 보정 = 마우스도 매끈) : 브러시(붓 모양 6) · 연필 · 마커 · 에어 · 지우개 · 채우기 · 스포이드 · 올가미 · 옮기기 · 도형 · 글씨 · 확대
    - ✒️ 벡터 = 점을 찍어 그려요 (펜 없이 마우스로도) : 선택 · 점 고치기 · 점 찍기(클릭 = 꺾인 점 · 끌기 = 둥근 점 · 첫 점 = 닫기 · Enter = 끝) · 곡선 · 네모 · 동그라미 · 하트 · 별 · 글씨 · 점 자르기 · 칠하기 · 옮기기
-   - 💾 임시저장 (도련 11-14) = 도안/작업중-속지.json 하나에 모두 (레이어 · 그림 PNG · 사진 JPEG · 벡터 점 · 종이 · 도구) · 종류마다 하나 · 열 때 [이어서 작업] [새 작업] (js/tablet.js)
+   - 💾 임시보관 (도련 11-14) = 도안/작업중-속지.json 하나에 모두 (레이어 · 그림 PNG · 사진 JPEG · 벡터 점 · 종이 · 도구) · 종류마다 하나 · 열 때 [이어서 작업] [새 작업] (js/tablet.js)
    - 🏷️ 씰스티커 (도련 11-14) : 종이 = 씰 시트 (📐 씰 규격 세로 · 가로 · 정사각 · SEAL_SZ) · 📎 사진 · 🏷️ 내가 만든 스티커(📸 · 📷 · 🔤) = 그림 레이어로 시트 위에 (작게 · 옮기기 · 크기)
      ✅ 완료 = 떨어져 있는 그림마다 한 장 (sealOut : 붙어 있으면 한 장 · 하얀 칼선 · 놓은 자리 그대로 시트 배치 L) → 📐 도안 (🖨 프린터에서 한 시트)
-   - 🧩 조각스티커 (도련 11-14) : 종이 = 조각 판 800×800 (PIECE_K .5 → 페이지 400px) · 그린 것 전체 = 조각 하나 (하얀 칼선) · ➕ 이 조각 담기 (4개까지 · P.pcs · 임시저장에도) · ✅ 완료 = 담은 조각 + 그리던 것 → 📐 도안 (🖨 늘 4조각)
+   - 🧩 조각스티커 (도련 11-14) : 종이 = 조각 판 800×800 (PIECE_K .5 → 페이지 400px) · 그린 것 전체 = 조각 하나 (하얀 칼선) · ➕ 이 조각 담기 (4개까지 · P.pcs · 임시보관에도) · ✅ 완료 = 담은 조각 + 그리던 것 → 📐 도안 (🖨 늘 4조각)
    - 📄 모조지스티커 (도련 11-14) : 종이 = 모조지 한 장 그대로 (📐 모조지 규격 세로 · 정사각 · 길쭉 · PAPER_SZ · 가로 720px = 페이지 360px · js/papermaker.js PM_W) · 🧵 종이 꾸미기 · 📎 사진(가득) · 🏷️ 내가 만든 스티커
      ✅ 완료 = 보이는 그대로 인쇄된 모조지 한 장 (ownTake paper · 쓸 때 ✂️ 가위로 오려요) → 📐 도안
    - 📔 붙여 보기 (씰 · 조각 · 모조지) : 스티커 그림 644px = 148mm (붙이면 실제 크기 비율 · js/elements.js elOrig · js/skins.js STK_MM · dyImgK) → 씰은 시트 세로 = 644 로 구워요
@@ -62,7 +62,7 @@
         const pop = $('ppPop'); if (pop) pop.remove();
     }
     const ppDirty = () => !!(P.on && P.dirty);
-    async function ppDiscard() {                                              // 🗑 나갈 때 '지우기' : 자동 임시저장을 멈추고 (저장 중이면 끝날 때까지 기다려요 · 그다음 지워야 다시 안 생겨요)
+    async function ppDiscard() {                                              // 🗑 나갈 때 '지우기' : 자동 임시보관을 멈추고 (저장 중이면 끝날 때까지 기다려요 · 그다음 지워야 다시 안 생겨요)
         P.dirty = false;
         for (let i = 0; i < 60 && P.saving; i++) await new Promise(r => setTimeout(r, 50));
         P.dirty = false;
@@ -80,7 +80,7 @@
     function paperPaint(L) {                                                    // 🧵 종이 (js/maker.js 속지 종이 그대로)
         const x = L.cv.getContext('2d'); x.clearRect(0, 0, P.W, P.H); x.fillStyle = L.mk.bg || '#fff'; x.fillRect(0, 0, P.W, P.H);
         if (window.MK && MK.paperSvg && MK.url) {
-            const im = new Image(); im.onload = () => { x.clearRect(0, 0, P.W, P.H); x.drawImage(im, 0, 0, P.W, P.H); renderAll(); paintLayers(); }; im.src = MK.url(MK.paperSvg(Object.assign({}, L.mk, { top: 0, head: '' }), P.W, P.H));   // 위 여백 · 머리글 없음 (예전 임시저장에 남아 있어도)
+            const im = new Image(); im.onload = () => { x.clearRect(0, 0, P.W, P.H); x.drawImage(im, 0, 0, P.W, P.H); renderAll(); paintLayers(); }; im.src = MK.url(MK.paperSvg(Object.assign({}, L.mk, { top: 0, head: '' }), P.W, P.H));   // 위 여백 · 머리글 없음 (예전 임시보관에 남아 있어도)
         } else { x.strokeStyle = L.mk.lc || '#f6d5df'; x.lineWidth = 2; for (let y = (L.mk.gap || 56); y < P.H; y += (L.mk.gap || 56)) { x.beginPath(); x.moveTo(0, y); x.lineTo(P.W, y); x.stroke(); } }
     }
     function photoPaint(L) {                                                    // 📎 사진 레이어 : 종이 가득 (크기 · 자리 · 연하게)
@@ -122,9 +122,9 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
             <div class="pp-lyb"><button type="button" class="add" data-l="px">＋ 픽셀</button><button type="button" class="add" data-l="vec">＋ 벡터</button><button type="button" class="add" data-l="css">＋ CSS</button><button type="button" class="add" data-l="svg">＋ SVG</button><button type="button" data-l="dup">⧉ 복제</button><button type="button" data-l="del">🗑 삭제</button></div>
             <div class="pp-lyb three"><button type="button" data-l="merge">⤓ 아래로 합치기</button><button type="button" data-l="lock">🔒 잠그기</button><button type="button" data-l="cutl">✂ 잘라 붙이기</button></div></div>
             <h4 id="ppPropT"></h4><div id="ppProp" class="pp-prop"></div>
-            <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시저장</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
-            <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시저장 (자동으로도 저장돼요)</p>
-            <p class="pp-hint pp-endt">💾 임시저장은 작업 중인 이 기기에만 임시로 저장돼요<br>📐 완료된 도안은 🖨 프린터에서 스티커로 뽑아요</p>`;   // 도련 11-15 : 버튼 밑 두 줄
+            <div class="pp-end"><button type="button" class="pp-tmp" id="ppTmp">💾 임시보관</button><button type="button" class="shm-go pp-go" id="ppGo">✅ 도안완료</button></div>
+            <p class="pp-tmpt" id="ppTmpT">📱 이 기기에 임시보관 (자동으로도 저장돼요)</p>
+            <p class="pp-hint pp-endt">💾 임시보관은 작업 중인 이 기기에만 임시로 저장돼요<br>📐 완료된 도안은 🖨 프린터에서 스티커로 뽑아요</p>`;   // 도련 11-15 : 버튼 밑 두 줄
         o.L.onclick = e => { const a = e.target.closest('[data-a]'); if (a) { if (a.dataset.a === 'photo') $('ppFile').click(); } };
         if (P.kind === 'piece') { $('ppPcAdd').onclick = pcAdd; $('ppPcs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; P.pcs.splice(+b.dataset.i, 1); P.dirty = true; pcPaint(); }; pcPaint(); }
         $('ppFile').onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) addPhoto(f); };
@@ -1322,7 +1322,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         else return false;
         L.dirtyV = true; P.dirty = true; renderAll(); paintLayers(); paintProps(); return true;
     }
-    function cbImg(L, f) {                                                      // 🖼️ 그림 깔기 url() : 긴 쪽 1600px 까지 줄여 블록 안에 (임시저장에도 같이)
+    function cbImg(L, f) {                                                      // 🖼️ 그림 깔기 url() : 긴 쪽 1600px 까지 줄여 블록 안에 (임시보관에도 같이)
         const u = URL.createObjectURL(f), im = new Image();
         im.onload = () => {
             URL.revokeObjectURL(u); const k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = mkCv(Math.round(im.width * k), Math.round(im.height * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
@@ -1491,7 +1491,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         commitFloat(); penEnd();
         if (P.pcs.length >= 4) { if (window.showMsg) showMsg('🧩 조각은 4개까지 담을 수 있어요.<br><span style="font-size:12px;color:#777;">✅ 완료를 눌러 도안으로 저장해요.</span>'); return; }
         const one = pieceOne(); if (!one) { say('🧩 먼저 조각을 그려 주세요'); return; }
-        P.pcs.push(Object.assign({}, one, { u: await pieceBest(one), cv: undefined, vb: undefined }));   // 🗜 담을 때 가장 작게 (그림 · svg 중 · 그림 판은 임시저장(IndexedDB)에 못 넣어서 글로만)
+        P.pcs.push(Object.assign({}, one, { u: await pieceBest(one), cv: undefined, vb: undefined }));   // 🗜 담을 때 가장 작게 (그림 · svg 중 · 그림 판은 임시보관(IndexedDB)에 못 넣어서 글로만)
         delete P.pcs[P.pcs.length - 1].cv;
         P.layers = P.layers.filter(l => l.type === 'paper'); P.cur = addLayer('px', '그림 1'); P.hist = []; P.redo = [];   // 담은 조각은 판에서 비워요 (↶ 로 되살리면 두 번 담겨요)
         P.dirty = true; renderAll(); paintLayers(); paintProps(); pcPaint();
@@ -1706,7 +1706,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         if (P.saving) return;
         if (P.tour) { say('🎓 예시 보기를 먼저 끝내요'); return; }
         commitFloat(); penEnd();
-        if (!P.dirty && !(P.pcs && P.pcs.length) && !P.layers.some(l => l.type === 'photo' || (l.type === 'vec' && l.shapes.length) || (l.type === 'css' && cbAll(l).length) || (l.type === 'svg' && l.els.length) || (l.type === 'px' && !isBlank(l.cv)))) { /* 💾 임시저장한 뒤(dirty 아님)에도 그린 게 있으면 넣어요 */ if (window.showMsg) showMsg('먼저 그림을 그리거나 📎 사진을 넣어 주세요.'); return; }
+        if (!P.dirty && !(P.pcs && P.pcs.length) && !P.layers.some(l => l.type === 'photo' || (l.type === 'vec' && l.shapes.length) || (l.type === 'css' && cbAll(l).length) || (l.type === 'svg' && l.els.length) || (l.type === 'px' && !isBlank(l.cv)))) { /* 💾 임시보관한 뒤(dirty 아님)에도 그린 게 있으면 넣어요 */ if (window.showMsg) showMsg('먼저 그림을 그리거나 📎 사진을 넣어 주세요.'); return; }
         if (window.dkTrialNoSave && dkTrialNoSave()) return;
         if (!window.ownTake) { if (window.comingSoon) comingSoon('🗄️ 서랍에 넣기'); return; }
         if (window.showAsk && !(await showAsk('✅ 도안을 완료할까요?<br><small style="color:#777;">완료한 도안은 수정할 수 없어요</small>', '✅ 완료', '취소'))) return;   // 도련 11-15 : 완료 · 취소를 고르게
@@ -1752,7 +1752,7 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
         return v => { if (v < 0) G.close(); else G.set(v); };
     }
 
-    /* ================= 💾 임시저장 (도안/작업중-<종류>.json · 도련 11-14) ================= */
+    /* ================= 💾 임시보관 (도안/작업중-<종류>.json · 도련 11-14) ================= */
     const DRAFT_K = { leaf: '속지', tk: '떡메', tape: '마테', piece: '조각', paper: '모조지', seal: '씰' };
     const isBlank = c => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for (let i = 3; i < d.length; i += 4) if (d[i]) return false; return true; };
     function photoData(im) {                                                  // 📎 사진 = 종이 크기에 맞게 줄여서 (긴 쪽 1800px · JPEG)
@@ -1773,26 +1773,26 @@ ${P.kind === 'leaf' ? '<button type="button" class="pp-specb" data-q="seal" titl
                 return o;
             }) };
     }
-    /* 📱 이 기기에만 (도련 11-14 · 다이어리 임시저장과 같게) : 💾 버튼 = 지금 저장하고 알려 줘요 · 그리는 동안 자동으로도 (auto = 그리던 것을 끊지 않아요) */
+    /* 📱 이 기기에만 (도련 11-14 · 다이어리 임시보관과 같게) : 💾 버튼 = 지금 저장하고 알려 줘요 · 그리는 동안 자동으로도 (auto = 그리던 것을 끊지 않아요) */
     const hm = t => new Date(t).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
-    function tmpShow() { const t = $('ppTmpT'); if (t) t.textContent = '📱 이 기기에 임시저장' + (P.savedAt ? ' · ' + hm(P.savedAt) : ' (자동으로도 저장돼요)'); }
+    function tmpShow() { const t = $('ppTmpT'); if (t) t.textContent = '📱 이 기기에 임시보관' + (P.savedAt ? ' · ' + hm(P.savedAt) : ' (자동으로도 저장돼요)'); }
     async function saveDraft(quietly, auto) {
         if (P.saving) return false;
         if (P.tour) { if (!auto) say('🎓 예시 보기 중에는 저장하지 않아요 · 끝내고 저장해요'); return false; }
         if (!auto) { commitFloat(); penEnd(); }
         if (window.dkTrialNoSave && dkTrialNoSave()) return false;
-        if (!window.draftWrite) { if (window.comingSoon) comingSoon('💾 임시저장'); return false; }
+        if (!window.draftWrite) { if (window.comingSoon) comingSoon('💾 임시보관'); return false; }
         const b = auto ? null : $('ppTmp'); P.saving = true; if (b) { b.disabled = true; b.textContent = '💾 저장 중…'; }
         try {
             P.dirty = false;                                                  // 저장하는 사이에 그린 것은 다음 자동 저장으로
             await draftWrite(DRAFT_K[P.kind] || P.kind, snapshot()); P.savedAt = Date.now(); tmpShow();
-            if (!quietly) say(`📱 이 기기에 임시저장했어요 (${hm(P.savedAt)}) · 다른 기기에서는 보이지 않아요 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : P.kind === 'seal' ? '씰' : P.kind === 'piece' ? '조각' : P.kind === 'paper' ? '모조지' : '속지'}마다 하나`, 3200);
+            if (!quietly) say(`📱 이 기기에 임시보관했어요 (${hm(P.savedAt)}) · 다른 기기에서는 보이지 않아요 · ${P.kind === 'tk' ? '떡메' : P.kind === 'tape' ? '테이프' : P.kind === 'seal' ? '씰' : P.kind === 'piece' ? '조각' : P.kind === 'paper' ? '모조지' : '속지'}마다 하나`, 3200);
             return true;
         }
-        catch (e) { P.dirty = true; console.warn('💾 임시저장', e); if (!auto && window.showMsg) showMsg('⚠ 임시저장하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
-        finally { P.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '💾 임시저장'; } }
+        catch (e) { P.dirty = true; console.warn('💾 임시보관', e); if (!auto && window.showMsg) showMsg('⚠ 임시보관하지 못했어요.<br>' + (window.ownErrText ? ownErrText(e) : '잠시 뒤 다시 해 주세요.')); return false; }
+        finally { P.saving = false; if (b && b.isConnected) { b.disabled = false; b.textContent = '💾 임시보관'; } }
     }
-    tsAuto({ dirty: () => P.on && !P.tour && P.dirty && !P.saving && !P.drag && !P.fl && !P.pen, save: () => saveDraft(true, true) });   // 📱 자동 임시저장 = 공통 (js/tempsave.js TS.ms · 앱을 내릴 때도 · 바뀐 게 있을 때만 · 이 기기에만 · 도련 11-15)
+    tsAuto({ dirty: () => P.on && !P.tour && P.dirty && !P.saving && !P.drag && !P.fl && !P.pen, save: () => saveDraft(true, true) });   // 📱 자동 임시보관 = 공통 (js/tempsave.js TS.ms · 앱을 내릴 때도 · 바뀐 게 있을 때만 · 이 기기에만 · 도련 11-15)
     function restoreDraft(d, keep) {                                          // keep = 📐 규격 바꾸기 (조용히 · 그린 것은 그대로)
         const loadImg = src => new Promise(ok => { if (!src) return ok(null); const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
         P.layers = []; P.cur = null;

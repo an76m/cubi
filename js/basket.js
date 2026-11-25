@@ -61,7 +61,7 @@
         openModal('basketModal');
     }
     /* 📒 스티커정리모드 (책상 위 · 도련 11-14) · ✔ 이 책 완료 = 지금 정리한 것을 담고 작업대의 그 책을 치워요 (다음 책을 골라 올려요 · 도련 11-23)
-         ☁ 드라이브 = 정리 공간을 나갈 때(✕) 한 번에 (🧩 바인더 조립과 같게 · drive.js driveHold · own.js ⏸) · 💾 임시저장은 없어요 (도련 11-22 '이제 필요 없어')
+         ☁ 드라이브 = 정리 공간을 나갈 때(✕) 한 번에 (🧩 바인더 조립과 같게 · drive.js driveHold · own.js ⏸) · 💾 임시보관은 없어요 (도련 11-22 '이제 필요 없어')
          ✕ = 이 책 완료를 안 누른 게 있으면 한 번 묻고 버려요 */
     window.abDone = async () => {
         const D = B.desk, m = D && D.mode, had = abDirty() || AB.loads.length;
@@ -522,8 +522,8 @@
         else showMsg(`받아 둔 ${nm}${t === 'bd' ? '가' : '이'} 없어요.<br><button type="button" class="btn bk-again" onclick="closeMsg();abGoShelf()">🏪 기본상품 샵에서 받아 오기</button>`);
     }
     /* 📥 불러오기 = 화면에만 (도련 11-21 '불러오기만 해도 드라이브에서 파일이 옮겨져요 · 아무 일도 안 일어나기를') : AB.loads 에 적어 두고 책을 이 서랍 스티커첩에 얹어요
-         · 드라이브 = ✔ 완료 때 (abFlush · 스티커첩에 더하기 + 📥 목록에서 빼기 + 원본 파일 지우기) · 이 기기 = 꽂거나 붙인 뒤 임시저장할 때만 (불러오기만 = 바뀐 것 아님)
-         · 불러오기만 하고 닫으면 = 없던 일 (abLoadsDrop) · 그냥 닫기 = 마지막 임시저장 때로 */
+         · 드라이브 = ✔ 완료 때 (abFlush · 스티커첩에 더하기 + 📥 목록에서 빼기 + 원본 파일 지우기) · 이 기기 = 꽂거나 붙인 뒤 임시보관할 때만 (불러오기만 = 바뀐 것 아님)
+         · 불러오기만 하고 닫으면 = 없던 일 (abLoadsDrop) · 그냥 닫기 = 마지막 임시보관 때로 */
     AB.loads = [];                                                              // [{ t, k, x : 📥 목록 한 줄 }]
     const abLoadBook = (t, k, x) => t === 'bd' ? { id: x.id, k, lb: x.lb || '', pid: x.pid, n: x.n, p: {} } : { id: x.id, k, lb: x.lb || '', pid: x.pid, n: x.n, it: [] };
     function abLoadsShow() {                                                    // 아직 완료 전 불러온 책을 이 서랍 스티커첩에 얹어요 (다시 그릴 때마다)

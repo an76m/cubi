@@ -564,7 +564,7 @@
             return `<div class="dpv" style="position:relative;width:${W}px;height:${H}px;background:#fffdf8;border:1.5px solid #f1c6d6;border-radius:6px;overflow:hidden;box-sizing:content-box">${side('l')}${side('r')}<i style="position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #f1c6d6"></i>${items}</div>`;
         }
         window.dayPreviewHtml = dayPreviewHtml;
-        /* 🖼 물음 창에 '그게 뭔지' 보여 주기 (도련 11-19 : 임시저장 · 이어서 하기 같은 물음은 글만 보면 뭔지 몰라요) : txt = 하루 장 글 · sub = 아래 작은 글 · 못 그리면 '' */
+        /* 🖼 물음 창에 '그게 뭔지' 보여 주기 (도련 11-19 : 임시보관 · 이어서 하기 같은 물음은 글만 보면 뭔지 몰라요) : txt = 하루 장 글 · sub = 아래 작은 글 · 못 그리면 '' */
         function dayPreviewCard(txt, sub, w) {
             let d = null; try { d = typeof txt === 'string' ? JSON.parse(txt) : txt; } catch (e) { return ''; }
             if (!d || typeof d !== 'object') return '';

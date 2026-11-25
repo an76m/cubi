@@ -177,7 +177,7 @@
         if (window.dkDeskBooks) dkDeskBooks();
         await showMsg(`🧩 ${was ? '다시 조립했어요' : '조립했어요'}!<br><span style="font-size:12px;color:#777;">${date ? '📅 날짜형바인더' : '🗂️ 바인더'}는 책상 위에 있어요 · 끌어서 옮겨요</span>`);
     }
-    /* 🧩 조립 = 🧩 조립하기 버튼 하나 (도련 11-21 · 저장 · ✔ 완료 버튼 없음 : 조립한 뒤에도 쓰기 전엔 고칠 수 있어서 '임시저장 · 완료' 규칙이 안 맞아요)
+    /* 🧩 조립 = 🧩 조립하기 버튼 하나 (도련 11-21 · 저장 · ✔ 완료 버튼 없음 : 조립한 뒤에도 쓰기 전엔 고칠 수 있어서 '임시보관 · 완료' 규칙이 안 맞아요)
        ☁ 드라이브 = 조립 공간을 나갈 때(✕ · 닫기) 한 번에 (도련 11-22 '여러 개 조립하고 나갈 때 저장하는 게 효율적' · drive.js driveHold) · 이 기기엔 바로 보관
        ✕ = 조립하지 않고 나가기 (놓은 게 있으면 한 번 물어요) */
     const bndDirty = () => { const s = st(); if (!s || !s.o0) return false; const a = s.rf || [], b = s.o0.rf || []; return s.cv !== s.o0.cv || a.length !== b.length || a.some((x, i) => x !== b[i]); };
