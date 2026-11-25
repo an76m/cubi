@@ -143,9 +143,6 @@
     const askDrop = (nm, r) => typeof showAsk === 'function'
         ? showAsk(`🗑 <b>${nm}</b>에 꾸민 것을 지울까요?${pv(r)}<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
         : Promise.resolve(true);
-    const askDone = (nm, r) => typeof showAsk === 'function'                  // ✅ 그 페이지 완료할까요? (그 페이지 모습 보고 · 완료 = 못 고쳐요)
-        ? showAsk(`✅ <b>${nm}</b>${josaOf(nm, '을', '를')} <b>완료</b>할까요?${pv(r)}<span style="font-size:12px;color:#777;">완료하면 드라이브에 저장되고 그 페이지는 <b>고칠 수 없어요</b><br>그다음 여기서 이어서 꾸밀 수 있어요</span>`, '완료', '아니요')
-        : Promise.resolve(true);
     async function finishOther(key, r) {                                      // ✅ 다른 페이지 완료 (펼치지 않고 · 임시보관한 모습 그대로 · 도련 11-25)
         const txt = PG.drafts.has(key) ? PG.drafts.get(key) : r && r.txt;
         if (txt != null && store.getItem(key) !== txt) { if (!PG.orig.has(key)) PG.orig.set(key, store.getItem(key)); store.putLoaded(key, txt); }
@@ -170,18 +167,14 @@
         PG.gating = true;
         try {
             const o = L[0], r = await recOf(o), nm = label(o, r);
-            for (;;) {
-                const go = typeof showAsk === 'function'
-                    ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, '💾 임시보관한 모습')}<span style="font-size:12px;color:#777;">💾 임시보관은 한 페이지만 돼요<br>그 페이지를 ✅ 완료해야 여기서 꾸밀 수 있어요</span>`, '그 페이지로 가기', '완료하고 여기서 시작')
-                    : true;
-                if (go) {                                                     // 여기 방금 한 것은 없던 일로 (쓴 스티커도 서랍으로)
-                    PG.mute = key; drop(key);
-                    if (typeof loadData === 'function') { try { await loadData(); } catch (e) {} }
-                    await goDraft(o, r);
-                    break;
-                }
-                if (await askDone(nm, r)) { await finishOther(o, r); break; }   // 완료하고 여기서 시작 = 그 페이지를 드라이브에 올리고 여기서 이어서 꾸며요 (도련 11-25 · 예전 '지우고 여기서 시작')
-            }
+            const go = typeof showAsk === 'function'
+                ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이에요.${pv(r, false)}<span style="font-size:12px;color:#777;">그 페이지를 완료해야 여기서 꾸밀 수 있으며,<br>완료된 페이지는 고칠 수 없어요</span>`, '그 페이지로 가기', '완료하고 여기서 시작')
+                : true;
+            if (go) {                                                 // 여기 방금 한 것은 없던 일로 (쓴 스티커도 서랍으로)
+                PG.mute = key; drop(key);
+                if (typeof loadData === 'function') { try { await loadData(); } catch (e) {} }
+                await goDraft(o, r);
+            } else await finishOther(o, r);                              // 완료하고 여기서 시작 = 한 번 더 묻지 않고 그 페이지를 드라이브에 올리고 여기서 이어서 꾸며요 (도련 11-25 · 예전 '지우고 여기서 시작')
         } finally { PG.gating = false; ui(); }
     }
 
