@@ -1587,6 +1587,7 @@
             if (!show || !T) { if (pn) pn.hidden = true; dknEmoClose(); return; }   // 🛠 꾸미기 · 상품을 넣으며 '붙이기'를 골랐을 때 (그때는 바로 저장)
             if (!pn) { pn = document.createElement('div'); pn.id = 'dknPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); pn.addEventListener('click', e => e.stopPropagation()); }
             pn.dataset.u = id;
+            if (show === true && !T.g.on) { T.g.on = true; T.put(T.g); dknPaintAll(); }   // 🏷 이름표를 누르면 = 붙이기 켠 채로 열려요 (도련 11-25 · 끄면 떼어져요)
             pn.innerHTML = dknHtml(T.g, 'dknSet', 'dknPanel(false)', htmlEsc(T.sub), T.a);
             pn.hidden = false;
         }
@@ -1891,8 +1892,10 @@
         function dkvLbPanel(id) {
             let pn = document.getElementById('dkvLbPanel');
             if (!id || !DK.edit) { if (pn) pn.hidden = true; return; }
+            const opening = !pn || pn.hidden || pn.dataset.b !== id;              // 새로 열 때만 (켠 채로 쓰다 끈 것은 그대로)
             if (!pn) { pn = document.createElement('div'); pn.id = 'dkvLbPanel'; pn.className = 'dky-lbp'; document.body.appendChild(pn); pn.addEventListener('pointerdown', e => e.stopPropagation()); }
             const v = dkvPos(id), L = dkyLb(v), fc = dkyFace(v.p), b = dkvOf(id);
+            if (opening && !L.on) { L.on = true; dkvSet(id, { lb: L }); dkVolsPaint(); }   // 🏷 이름표를 누르면 = 붙이기 켠 채로 열려요 (도련 11-25 · 끄면 떼어져요)
             pn.dataset.b = id;
             pn.innerHTML = dknHtml(Object.assign({}, L, L[fc]), 'dkvLbSet', 'dkvLbPanel(false)', `${b ? dkvIc(b) + ' ' + dkvName(b) + ' · ' : ''}${fc === 'side' ? '📚 책등' : '📔 앞면'} · 자리는 가로 · 세로로`, { t: '예 : 2026 · 일기', ic: b ? dkvIc(b) : '📔' });
             pn.hidden = false;
