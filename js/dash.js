@@ -8,7 +8,7 @@
    - 📋 복사 = 상황판 내용을 글로 (AI 에게 붙여 주기) */
 (function () {
     const T0 = performance.now(), DAYS_KEY = 'malang_dash_days', CALC_KEY = 'malang_dash_calc', OPEN_MS = 60000;
-    const D = { reqs: [], marks: [], errs: [], opens: [], names: new Map(), srv: { n: 0, b: 0 }, svc: {}, oh: new Map(), gh: { sess: 0, day: {} }, on: false, tab: 'sum', timer: 0, filt: '' };
+    const D = { reqs: [], marks: [], errs: [], opens: [], names: new Map(), srv: { n: 0, b: 0 }, svc: {}, mem: {}, urls: new Map(), oh: new Map(), gh: { sess: 0, day: {} }, on: false, tab: 'sum', timer: 0, filt: '' };
     const now = () => performance.now() - T0;
     const mark = (n, extra) => { D.marks.push({ n, t: now(), x: extra || '' }); };
     window.dashMark = mark;
@@ -98,8 +98,10 @@
     const swOn = () => !!(navigator.serviceWorker && navigator.serviceWorker.controller);
     function seen(e) {
         const k = svcOf(e.name); if (k === 'drive') return;
-        if (k === 'gh') { if (swOn() && (e.entryType === 'navigation' || /[?&]v=/.test(e.name))) return; if (!(e.transferSize > 0)) return; }
+        if (k === 'gh' && swOn() && (e.entryType === 'navigation' || /[?&]v=/.test(e.name))) return;
+        if (!(e.transferSize > 0) && (k === 'gh' || e.encodedBodySize > 0 || e.decodedBodySize > 0)) { D.mem[k] = (D.mem[k] || 0) + 1; return; }   // 🧠 브라우저 기억에서 꺼냄 = 서버 요청 아님 (다른 주소는 서버가 Timing-Allow-Origin 을 줄 때만 알 수 있어요 · 상품 서버 = 상품공방 포장 _headers)
         if (k === 'srv') { D.srv.n++; if (e.initiatorType !== 'fetch') D.srv.b += e.transferSize || 0; }
+        const u = e.name.split('#')[0]; D.urls.set(u, (D.urls.get(u) || 0) + 1);   // 🔁 같은 주소를 또 받았나 (비효율 찾기)
         svcAdd(k, e.name);
     }
     try { new PerformanceObserver(l => l.getEntries().forEach(seen)).observe({ type: 'resource', buffered: true }); } catch (e) { }
@@ -259,10 +261,12 @@ ${table(['때', '무슨 일', '내용', '부른 곳', '기기 · 버전'], all.s
             const run = k => (D.svc[k] || 0) + (k === 'gh' ? g.sess || 0 : 0), day = k => (ds[k] || 0) + (k === 'gh' ? gd : 0);
             const tot = SVC.reduce((a, [k]) => a + run(k), 0), totD = SVC.reduce((a, [k]) => a + day(k), 0);
             const oh = [...D.oh.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([h, n]) => esc(h) + ' ' + n).join(' · ');
-            return `<div class="cards">${SVC.map(([k, n]) => `<div class="card"><small>${n}</small><span class="big">${fmt(run(k))}</span>번<br><span class="tip">오늘 (이 기기) ${fmt(day(k))}번</span></div>`).join('')}
+            const dup = [...D.urls.entries()].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            return `<div class="cards">${SVC.map(([k, n]) => `<div class="card"><small>${n}</small><span class="big">${fmt(run(k))}</span>번<br><span class="tip">오늘 (이 기기) ${fmt(day(k))}번${D.mem[k] ? ` · 🧠 기억에서 ${fmt(D.mem[k])}번 (안 셈)` : ''}</span></div>`).join('')}
 <div class="card"><small>모두</small><span class="big">${fmt(tot)}</span>번<br><span class="tip">오늘 (이 기기) ${fmt(totD)}번</span></div></div>
 <p class="tip">이번 실행 = 이 창을 연 뒤 (🐙 깃허브는 앱을 열 때 버전 확인부터) · 오늘 = 이 기기 합계 · 🐙 = 서비스 워커가 깃허브에 보낸 것 + 브라우저가 진짜로 받은 것 (기기 보관함 · 브라우저 기억에서 꺼낸 것은 빼요) · 🧁 상품 서버 = 목록 · 그림 · 🔑 = 구글 로그인 창 · 열쇠${oh ? ` · 🌐 그 밖 = ${oh}` : ''}</p>
 <div class="cards"><div class="card"><small>상품 목록</small>${prodState()}</div></div>
+<h4>🔁 같은 주소를 서버에서 또 받은 것 (드라이브 빼고 · 비효율 찾기)</h4>${dup.length ? table(['주소', '번'], dup.map(([u, n]) => [esc(u.replace(location.origin, '🐙').replace('https://malang-img.pages.dev', '🧁').slice(0, 90)), n])) : '<p class="tip">없어요 👍</p>'}
 <h4>⏱ 앱 열기 단계</h4>${table(['단계', '앱 시작 후'], D.marks.map(x => [esc(x.n) + (x.x ? ` <span class="tip">${esc(x.x)}</span>` : ''), (x.t / 1000).toFixed(2) + '초']))}
 ${D.errs.length ? `<h4 class="warn">⚠ 경고 · 오류 ${D.errs.length}개 (상태 탭)</h4>` : ''}`;
         },
@@ -364,7 +368,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         L.push(`오늘 (이 기기) : ${d.n}번 · ${d.pts}점 · 앱 열기 점수 [${(d.opens || []).join(', ')}]`);
         L.push(`앱 열기 한 번 = ${Math.round(u.oc.v)}점 (${u.oc.src}) · 쓰는 동안 1분 = ${Math.round(u.up.v)}점 · 가정 열기 ${calc.opens}번 · ${calc.useMin}분 · 붐빌 때 ${calc.peak}% → 하루 한도 ${isFinite(u.byDay) ? Math.round(u.byDay) : '—'}명 · 1분 한도 ${isFinite(u.byMin) ? Math.round(u.byMin) : '—'}명`);
         { const m = stats(lastMin()), pc = (v, l) => (l ? v / l * 100 : 0).toFixed(3) + '%'; L.push(`🏁 구글 한도 비교 : 최근 1분 ${m.p}점 = 한 사람 1분(${calc.perUserMin}) 의 ${pc(m.p, calc.perUserMin)} · 프로젝트 1분(${calc.perMin}) 의 ${pc(m.p, calc.perMin)} · 가장 많이 쓴 1분 ${u.myMax}점 · 앱 열기 ${Math.round(u.oc.v)}점 = 프로젝트 1분의 ${pc(u.oc.v, calc.perMin)} · 오늘 ${d.pts}점 = 하루(${calc.perDay}) 의 ${pc(d.pts, calc.perDay)}`); }
-        { const ds = dayOf().s || {}, g = D.gh, gd = (g.day || {})[today()] || 0; L.push('🌐 종류별 요청 (이번 실행 / 오늘) : ' + SVC.map(([k, n]) => `${n} ${(D.svc[k] || 0) + (k === 'gh' ? g.sess || 0 : 0)} / ${(ds[k] || 0) + (k === 'gh' ? gd : 0)}`).join(' · ') + (D.oh.size ? ' · 그 밖 = ' + [...D.oh.entries()].map(([h, n]) => h + ' ' + n).join(', ') : '')); }
+        { const ds = dayOf().s || {}, g = D.gh, gd = (g.day || {})[today()] || 0; L.push('🌐 종류별 요청 (이번 실행 / 오늘) : ' + SVC.map(([k, n]) => `${n} ${(D.svc[k] || 0) + (k === 'gh' ? g.sess || 0 : 0)} / ${(ds[k] || 0) + (k === 'gh' ? gd : 0)}`).join(' · ') + (Object.keys(D.mem).length ? ' · 🧠 기억에서 (안 셈) ' + Object.entries(D.mem).map(([k, n]) => k + ' ' + n).join(', ') : '') + ([...D.urls.values()].some(n => n > 1) ? ' · 🔁 또 받음 ' + [...D.urls.entries()].filter(([, n]) => n > 1).slice(0, 8).map(([u, n]) => u.slice(-50) + '×' + n).join(', ') : '') + (D.oh.size ? ' · 그 밖 = ' + [...D.oh.entries()].map(([h, n]) => h + ' ' + n).join(', ') : '')); }
         L.push('상품 목록 : ' + prodState() + ' · 🧁 서버 ' + D.srv.n + '번 ' + kb(D.srv.b));
         L.push('', '⏱ 단계'); D.marks.forEach(x => L.push(`  ${(x.t / 1000).toFixed(2)}초  ${x.n} ${x.x}`));
         L.push('', '💯 점수 TOP'); byFeat(D.reqs).slice(0, 12).forEach(([f, x]) => L.push(`  ${f} : ${x.n}번 ${x.p}점 ${kb(x.b)}`));
