@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611251244">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611251255">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611251244', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611251255', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -916,7 +916,7 @@
     <script src="js/itemshare.js?v=48b92b95db"></script>   <!-- 📤 공유 파일로 저장 · 📥 불러오기 (받으면 그 계정의 새 1개) -->
     <script src="js/shopscene.js?v=84393d7d88"></script>
     <script src="js/anime.js?v=7617816265"></script>   <!-- 🎬 애니 스타일 : SVG 그림을 단색 · 파스텔 선으로 (css/anime.css) -->   <!-- 🏪 기본상품 샵 가게 (문 → 연핑크 → 가게 안) -->
-    <script src="js/pagedone.js?v=93fa619763"></script>   <!-- ✅ 다이어리 페이지 완료 : 완료 전 = 이 기기에만 · 완료 = 드라이브에 한 번 · 완료한 페이지는 고칠 수 없어요 -->
+    <script src="js/pagedone.js?v=4b1189f616"></script>   <!-- ✅ 다이어리 페이지 완료 : 완료 전 = 이 기기에만 · 완료 = 드라이브에 한 번 · 완료한 페이지는 고칠 수 없어요 -->
 
     <!-- 🛡 파일 누락 확인 : 하나라도 못 읽었으면 다이어리를 시작하지 않아서 잘못된 저장을 막아요 -->
     <script>

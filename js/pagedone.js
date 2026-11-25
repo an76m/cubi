@@ -9,7 +9,7 @@
    - 완료하지 않고 다른 날로 넘기면 : 그 페이지는 이 기기에 그대로 (돌아오면 이어서) · 짧게 알려요
    💾 임시보관 = 이 기기 전체에서 한 페이지만 (도련 11-14 · 스티커 만들기 임시보관처럼)
    - 아래 가운데 [💾 임시보관] [✅ 완료] · '📱 이 기기에 임시보관 · 오후 3:12' (자동으로도 계속 저장 · 버튼은 '이 기기에만 · 한 페이지만'을 알려 주는 몫)
-   - 로그인 뒤 다이어리가 떠오르면 (표지 덮인 채) : "꾸미던 중이었어요 [이어서 하기] [지우고 새로 하기]" · 이어서 = 그 권 · 그 페이지로
+   - 로그인 뒤 다이어리가 떠오르면 (표지 덮인 채) : "꾸미던 중이었어요 [이어서 하기] [완료 후 새로하기]" (도련 11-25 · 지우기는 없어요 = 완료하고 새로) · 이어서 = 그 권 · 그 페이지로
    - 다른 페이지 · 다른 다이어리에 처음 뭔가를 하면 : "꾸미던 중이에요 [그 페이지로 가기] [완료하고 여기서 시작]" (넘기기 · 구경만은 그냥 돼요)
    - 지우기는 한 번 더 물어요 (붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요) */
 (function () {
@@ -140,9 +140,6 @@
         if (window.ownDropHeld) ownDropHeld([key]);
     }
     const pv = (r, sub) => r && r.txt && window.dayPreviewCard ? dayPreviewCard(r.txt, sub) : '';   // 🖼 그 페이지 모습 (도련 11-19 : 뭔지 보고 고르게)
-    const askDrop = (nm, r) => typeof showAsk === 'function'
-        ? showAsk(`🗑 <b>${nm}</b>에 꾸민 것을 지울까요?${pv(r)}<br><span style="font-size:12px;color:#777;">붙인 스티커는 서랍으로 돌아가요 · 되돌릴 수 없어요</span>`, '지우기', '아니요')
-        : Promise.resolve(true);
     async function finishOther(key, r) {                                      // ✅ 다른 페이지 완료 (펼치지 않고 · 임시보관한 모습 그대로 · 도련 11-25)
         const txt = PG.drafts.has(key) ? PG.drafts.get(key) : r && r.txt;
         if (txt != null && store.getItem(key) !== txt) { if (!PG.orig.has(key)) PG.orig.set(key, store.getItem(key)); store.putLoaded(key, txt); }
@@ -192,13 +189,12 @@
         if (typeof ensureKeyLoaded === 'function') { try { await ensureKeyLoaded(r.key); } catch (e) {} }
         if (drive.loadedDays.has(r.key) && r.base !== fp(PG.orig.has(r.key) ? PG.orig.get(r.key) : store.getItem(r.key))) { drop(r.key); ui(); return; }   // ☁ 그 사이 드라이브가 바뀌었어요 = 드라이브 것 (묻지 않아요) · 못 읽었으면 그대로 두고 다음에
         PG.base.set(r.key, r.base);                                           // 이어서 하면 = 처음 지문 그대로
-        for (;;) {
-            const go = typeof showAsk === 'function'
-                ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시보관되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시보관한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '지우고 새로 하기')
-                : true;
-            if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
-            if (await askDrop(nm, r)) { drop(r.key); ui(); return; }
-        }
+        const go = typeof showAsk === 'function'
+            ? await showAsk(`✏️ <b>${nm}</b>${josaOf(nm, '을', '를')} 꾸미던 중이었어요.${pv(r, false)}<span style="font-size:12px;color:#777;">📱 이 기기에 임시보관되어 있어요 (${hm(r.at || Date.now())})</span>`   /* 그림 아래 '임시보관한 모습 · 붙인 것' · '완료해야 다이어리에 저장돼요' 줄은 뺐어요 (도련 11-22) */, '이어서 하기', '완료 후 새로하기')
+            : true;
+        if (go) { PG.drafts.set(r.key, r.txt); PG.at = r.at || Date.now(); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held); ui(); await goDraft(r.key, r); return; }   // 쓴 스티커도 저장한 때로 (앱이 갑자기 꺼졌으면 그 뒤에 쓴 것은 시트로)
+        PG.drafts.set(r.key, r.txt); if (r.held && window.ownHeldTrim) await ownHeldTrim(r.key, r.held);   // ✅ 완료 후 새로하기 = 임시보관한 모습 그대로 완료 (드라이브로) · 한 번 더 묻지 않아요 (도련 11-25 · 예전 '지우고 새로 하기')
+        await finishOther(r.key, r);
     }
 
     /* ---------- ✅ 완료 ---------- */
