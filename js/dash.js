@@ -99,7 +99,9 @@
     function seen(e) {
         const k = svcOf(e.name); if (k === 'drive') return;
         if (k === 'gh' && swOn() && (e.entryType === 'navigation' || /[?&]v=/.test(e.name))) return;
-        if (!(e.transferSize > 0) && (k === 'gh' || e.encodedBodySize > 0 || e.decodedBodySize > 0)) { D.mem[k] = (D.mem[k] || 0) + 1; return; }   // 🧠 브라우저 기억에서 꺼냄 = 서버 요청 아님 (다른 주소는 서버가 Timing-Allow-Origin 을 줄 때만 알 수 있어요 · 상품 서버 = 상품공방 포장 _headers)
+        const blind = !(e.transferSize > 0) && !(e.encodedBodySize > 0) && !(e.decodedBodySize > 0);   // 크기를 안 알려 줘요 (다른 주소 · 서버 표시 Timing-Allow-Origin 이 없음 · 그 표시 전에 받아 둔 사본도)
+        const cached = e.deliveryType === 'cache' || (!(e.transferSize > 0) && (k === 'gh' || e.encodedBodySize > 0 || e.decodedBodySize > 0)) || (blind && k !== 'gh' && e.duration < 5);   // 🧠 사본 = 크롬이 '캐시' 라고 알려 줌 · 크기는 있는데 주고받은 게 0 · 크기를 모르면 5ms 안에 끝남 (서버에 다녀오면 수십 ms · 도련 11-25 개발자도구 확인 : 사본 0~1ms)
+        if (cached) { D.mem[k] = (D.mem[k] || 0) + 1; return; }   // 🧠 브라우저 기억에서 꺼냄 = 서버 요청 아님 (다른 주소는 서버가 Timing-Allow-Origin 을 줄 때만 알 수 있어요 · 상품 서버 = 상품공방 포장 _headers)
         if (k === 'srv') { D.srv.n++; if (e.initiatorType !== 'fetch') D.srv.b += e.transferSize || 0; }
         const u = e.name.split('#')[0]; D.urls.set(u, (D.urls.get(u) || 0) + 1);   // 🔁 같은 주소를 또 받았나 (비효율 찾기)
         svcAdd(k, e.name);
