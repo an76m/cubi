@@ -789,9 +789,9 @@ html.desk-on #moveSetBtn { visibility: hidden; }   /* 🚪 이동 창 왼쪽 위
 .dkz-slot:disabled { cursor: default; background: rgba(120, 100, 110, .28); border-style: dotted; opacity: .7; transform: none; }
 .dkz-slot:disabled b, .dkz-slot:disabled small { color: #6b5560; }
 
-/* 🚪 장소 (도련 11-24 · 시안 작업_1124_장소배경시안 D) : 가운데 연보라 반투명 팝업 (도련 11-25 · 메뉴 전체를 감싸요 · 뒤 화면이 둘레에 · 팝업 안에도 비쳐요) · 가운데에 🏷 금테 문패 제목 + 🟨 파스텔 카드 칸 · ✕ = 팝업 오른쪽 위 · 📱 설정 = 팝업 왼쪽 위
+/* 🚪 장소 (도련 11-24 · 시안 작업_1124_장소배경시안 D) : 가운데 연보라 팝업 (도련 11-25 · 메뉴 전체를 감싸요 · 뒤 화면이 둘레에 보여요 · 1477 반투명은 1478 에 되돌림) · 가운데에 🏷 금테 문패 제목 + 🟨 파스텔 카드 칸 · ✕ = 팝업 오른쪽 위 · 📱 설정 = 팝업 왼쪽 위
      칸 = PC · 📲 4줄 / 좁으면 2줄 · 넘치면 화면에서 내려 보기 */
-#moveModal > .modal-content { position: fixed; inset: 0; box-sizing: border-box !important; width: min(920px, calc(100vw - 24px)) !important; max-width: none !important; height: fit-content; max-height: calc(100dvh - 24px) !important; margin: auto !important; padding: 62px 22px 26px !important; border: 2px solid #fff !important; border-radius: 28px !important; outline: 0 !important; box-shadow: 0 12px 34px rgba(110, 80, 150, .32) !important; background: radial-gradient(ellipse at 50% 35%, rgba(247, 238, 251, .78), rgba(236, 226, 247, .78) 50%, rgba(221, 210, 240, .78)) !important;   /* 반투명 (도련 11-25 · 뒤 방이 비쳐요) */ display: flex; flex-direction: column; align-items: center; justify-content: safe center; overflow-y: auto; overscroll-behavior: contain; }
+#moveModal > .modal-content { position: fixed; inset: 0; box-sizing: border-box !important; width: min(920px, calc(100vw - 24px)) !important; max-width: none !important; height: fit-content; max-height: calc(100dvh - 24px) !important; margin: auto !important; padding: 62px 22px 26px !important; border: 2px solid #fff !important; border-radius: 28px !important; outline: 0 !important; box-shadow: 0 12px 34px rgba(110, 80, 150, .32) !important; background: radial-gradient(ellipse at 50% 35%, #f7eefb, #ece2f7 50%, #ddd2f0) !important; display: flex; flex-direction: column; align-items: center; justify-content: safe center; overflow-y: auto; overscroll-behavior: contain; }
 #moveModal .dk-tape { display: none !important; }
 #moveModal > .modal-content::before, #moveModal > .modal-content::after { display: none !important; }
 #moveModal .modal-title.mt-bar { flex: none; margin: 0 0 22px; }
