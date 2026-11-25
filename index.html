@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611251804">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611251810">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611251804', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611251810', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -45,7 +45,7 @@
     <link rel="preload" as="image" href="img/gate-tall.webp?v=7bdb387444" media="(max-aspect-ratio: 1/1)">
     <link rel="stylesheet" href="css/style.css?v=d1ddc5ded1">
     <link rel="stylesheet" href="css/dakku.css?v=2852565c39">
-    <link rel="stylesheet" href="css/anime.css?v=2561662409">
+    <link rel="stylesheet" href="css/anime.css?v=1df5a9bbe7">
     <link rel="stylesheet" href="css/boothroom.css?v=8b3a99af67">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
     <link rel="stylesheet" href="css/calroom.css?v=5a5e7b4246">   <!-- 📅 달력 (💻 📲 · js/calroom.js) -->   <!-- 🎬 애니 스타일 (맨 뒤 · js/anime.js) -->
     <link rel="stylesheet" href="css/postroom.css?v=cb8a8ccb94">   <!-- 📮 우체통 (💻 📲 · js/postroom.js) -->
