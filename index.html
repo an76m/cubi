@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611251326">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611251331">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611251326', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611251331', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -60,7 +60,7 @@
     <link rel="stylesheet" href="css/padpaint.css?v=60a5610017">   <!-- 🎨 태블릿 그림판 (js/padpaint.js) -->
     <link rel="stylesheet" href="css/phonepaint.css?v=9e0758e505">   <!-- 📱 폰 그림판 · 🖨 폰 프린터 (도련 11-14) -->
     <link rel="stylesheet" href="css/pagedone.css?v=d1cd0c41ca">   <!-- ✅ 다이어리 페이지 완료 (js/pagedone.js) -->
-    <link rel="stylesheet" href="css/binderroom.css?v=ecb615e71a">   <!-- 🧩 바인더 조립 공간 (981) -->
+    <link rel="stylesheet" href="css/binderroom.css?v=852433c870">   <!-- 🧩 바인더 조립 공간 (981) -->
     <link rel="stylesheet" href="css/sheetmaker.css?v=3f9136d5e3">   <!-- 🗂️ 시트 꾸미기 (js/sheetmaker.js) -->   <!-- 🎨 다꾸 작업실 (js/craft.js) -->
     <link rel="stylesheet" href="css/tarotroom.css?v=efb5f9ff05">   <!-- 🔮 타로카페 (💻 📲 · js/tarotroom.js) -->
     <link rel="stylesheet" href="css/arcroom.css?v=4385212313">   <!-- 🕹️ 뿅뿅오락실 장소 (💻 📲 · js/arcroom.js) -->

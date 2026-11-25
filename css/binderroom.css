@@ -54,6 +54,7 @@ body.bnd-on .desk-top-r { display: none; }
 .bnd-dkmode .bnd-work { background: none; border: 0; box-shadow: none; overflow: visible; }
 .bnd-dkmode .bnd-bench { padding: 10px 6px; }
 .bnd-dkmode .bnd-top { align-self: center; border: 2px solid #e9c7dd; border-radius: 16px; background: #fff; box-shadow: 0 4px 10px rgba(120, 70, 60, .15); margin-bottom: 6px; padding: 6px 12px; }
+@media (min-width: 761px) { .bnd-dkmode .bnd-top { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 6; width: max-content; max-width: calc(100vw - 140px); margin: 0; } }   /* 📌 화면 위 가운데 (도련 11-25 · 📒 스티커 정리 메뉴처럼 · 좁은 화면은 작업대 위 그대로) */
 .bnd-dkmode .bnd-info:empty { display: none; }
 .bnd-dr { position: absolute; top: -6px; left: -6px; font-style: normal; font-size: 14px; background: #fff; border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.18); }   /* 🗄️ 서랍 속 재료 (도련 11-21) */
 
