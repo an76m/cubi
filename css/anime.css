@@ -789,9 +789,9 @@ html.desk-on #moveSetBtn { visibility: hidden; }   /* 🚪 이동 창 왼쪽 위
 .dkz-slot:disabled { cursor: default; background: rgba(120, 100, 110, .28); border-style: dotted; opacity: .7; transform: none; }
 .dkz-slot:disabled b, .dkz-slot:disabled small { color: #6b5560; }
 
-/* 🚪 장소 (도련 11-24 · 시안 작업_1124_장소배경시안 D) : 화면 꽉 연보라 바탕 (어디서 열어도 같아요) · 가운데에 🏷 금테 문패 제목 + 🟨 파스텔 카드 칸 · ✕ = 화면 오른쪽 위 · 📱 설정 = 왼쪽 위
+/* 🚪 장소 (도련 11-24 · 시안 작업_1124_장소배경시안 D) : 화면 꽉 · 바탕 없음 (도련 11-25 · 뒤 화면이 보여요) · 가운데에 🏷 금테 문패 제목 + 🟨 파스텔 카드 칸 · ✕ = 화면 오른쪽 위 · 📱 설정 = 왼쪽 위
      칸 = PC · 📲 4줄 / 좁으면 2줄 · 넘치면 화면에서 내려 보기 */
-#moveModal > .modal-content { position: fixed; inset: 0; width: auto !important; max-width: none !important; height: auto; max-height: none !important; margin: 0 !important; padding: 64px 14px 24px !important; border: 0 !important; border-radius: 0 !important; outline: 0 !important; box-shadow: none !important; background: radial-gradient(ellipse at 50% 35%, #f7eefb, #ece2f7 50%, #ddd2f0) !important; display: flex; flex-direction: column; align-items: center; justify-content: safe center; overflow-y: auto; overscroll-behavior: contain; }
+#moveModal > .modal-content { position: fixed; inset: 0; width: auto !important; max-width: none !important; height: auto; max-height: none !important; margin: 0 !important; padding: 64px 14px 24px !important; border: 0 !important; border-radius: 0 !important; outline: 0 !important; box-shadow: none !important; background: transparent !important; display: flex; flex-direction: column; align-items: center; justify-content: safe center; overflow-y: auto; overscroll-behavior: contain; }
 #moveModal .dk-tape { display: none !important; }
 #moveModal > .modal-content::before, #moveModal > .modal-content::after { display: none !important; }
 #moveModal .modal-title.mt-bar { flex: none; margin: 0 0 22px; }
