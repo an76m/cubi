@@ -275,7 +275,7 @@
             dvSetMode('idb'); showGate('wait', '📔 다이어리를 펴는 중…');
             try { localStorage.removeItem('gdrive_authed'); } catch (e) {}   // 🚪 마지막에 고른 쪽으로 : 로그인 없이를 골랐으면 다음에도 첫 화면 (구글 자동 로그인 안 함)
             try { await dvStart(); }
-            catch (e) { console.warn(e); dvSetMode(''); dvQuit(); enterGuestMode(); showMsg('⚠ 이 기기에 저장하지 못해서 구경만 할 수 있어요.'); }
+            catch (e) { console.warn(e); if (e && e.type === 'stop') return; dvSetMode(''); dvQuit(); enterGuestMode(); showMsg('⚠ 이 기기에 저장하지 못해서 구경만 할 수 있어요.'); }   // 🛑 상품 서버를 못 받았으면 = 멈춤 화면 그대로 (drive.js bootStop)
         }
         /* ---------- ☁ 구글로 이동 (도련 11-09 · 말랑달콤의 이사는 이것 하나) ----------
            🏠 로그인 없이(이 브라우저) → ☁ 구글 드라이브 : 짐을 100% 그대로 옮기고 · 데이터는 언제나 한 곳에만

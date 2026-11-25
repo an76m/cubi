@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611251535">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611251620">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611251535', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611251620', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -33,8 +33,8 @@
     
 
     <script src="js/features.js?v=1dc8f2f517"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
-    <script src="js/dash.js?v=03d025200a"></script>   <!-- 📊 백엔드 상황판 (💻 F2 · 드라이브 요청 · 점수 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 도련 QA) -->
-    <script src="js/util.js?v=52c5773490"></script>
+    <script src="js/dash.js?v=8812e401e1"></script>   <!-- 📊 백엔드 상황판 (💻 F2 · 드라이브 요청 · 점수 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 도련 QA) -->
+    <script src="js/util.js?v=c5fad027b0"></script>
     <script src="js/imgsmall.js?v=11e98b522a"></script>   <!-- 🗜 그림 굽기 엔진 하나 (상품공방 · AI 와 같은 규칙 · elements.js cvSmall · 그림판) -->
     <script src="js/tempsave.js?v=b2a0069abf"></script>   <!-- 💾 임시보관 공통 (자동 60초 · ✕ [💾 임시보관] [그냥 닫기] · 다이어리 · 그림판 · 스티커 정리 · 도련 11-15) -->
     <script src="js/book.js?v=1e2b766e23"></script>   <!-- 📚 책 엔진 (표지 · 넘기기 · 두 쪽/한 쪽 · 상단바 · 지금 = 스티커바인더 · 이형지북 · 도련 11-15) -->
@@ -43,7 +43,7 @@
     <script src="js/onlyone.js?v=8d0a6e248f"></script>   <!-- 🔒 한 기기에 다이어리 하나만 (먼저 연 창만 · 다른 것보다 먼저) -->
     <link rel="preload" as="image" href="img/gate-wide.webp?v=3889dd54c4" media="(min-aspect-ratio: 1/1)">   <!-- 🚪 로그인 문 그림을 먼저 받아요 (켤 때 바탕색만 잠깐 보이는 것 줄이기 · 도련 10-29) -->
     <link rel="preload" as="image" href="img/gate-tall.webp?v=7bdb387444" media="(max-aspect-ratio: 1/1)">
-    <link rel="stylesheet" href="css/style.css?v=dc3e46179d">
+    <link rel="stylesheet" href="css/style.css?v=d1ddc5ded1">
     <link rel="stylesheet" href="css/dakku.css?v=2852565c39">
     <link rel="stylesheet" href="css/anime.css?v=2561662409">
     <link rel="stylesheet" href="css/boothroom.css?v=8b3a99af67">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
@@ -102,6 +102,7 @@
             </span>
             <span class="gf-desc">구경만 하거나, 이 기기에서만 쓰고 싶을 때<i>(접속한 기기에 저장)</i></span>
             </button>
+            <button id="gateRetryBtn" class="btn gate-retry" type="button" style="display:none" onclick="location.reload()">🔄 다시 시도</button>   <!-- 🛑 멈춤 (도련 11-25 · js/drive.js bootStop) -->
         </div>
     </div>
 
@@ -785,24 +786,24 @@
 
     <!-- 📦 코드 파일 (순서 중요 · 업데이트할 때 ?v= 뒤 숫자를 바꾸면 모든 사용자가 새 파일을 받아요) -->
     <script src="js/trash.js?v=d1e23ce5c1"></script>   <!-- 🗑 방 안 휴지통 : 기록(지운 페이지 · 인형 · 덮어쓰기 전 모습 …) · 쓴 다이어리 30일 -->
-    <script src="js/devsave.js?v=c7ee703fdd"></script>   <!-- 📁 로그인 없이 : 이 기기의 말랑달콤 폴더에 저장 -->
+    <script src="js/devsave.js?v=09da730ee5"></script>   <!-- 📁 로그인 없이 : 이 기기의 말랑달콤 폴더에 저장 -->
     <script>/* 🧁 상품 목록 (도련 11-17 · 버전 확인) : 이 기기에 둔 목록이 있으면 그것을 먼저 (js/prod.js 가 서버 조각표 prod-i.json 과 같은지 · 1442 바로 확인 · 다르면 새로 받아 바꿔요 · 로그인은 확인이 끝난 뒤)
          · 처음 기기 = 서버 prod.js 를 기다려요 (예전 그대로) */
         (function () { var c = null; try { c = JSON.parse(localStorage.getItem('malang_prod_last') || 'null'); } catch (e) { }
             if (c && c.prod && typeof c.prod === 'object' && c.v) { window.MALANG_PROD = c; window.PROD_FROM = 'dev'; }
             else document.write('<script src="https://malang-img.pages.dev/prod.js"><\/script>'); })();</script>
-    <script src="js/prod.js?v=9ee1611a11"></script>   <!-- 🧁 상품 목록 읽기 (prodList) -->
+    <script src="js/prod.js?v=bd96d8908d"></script>   <!-- 🧁 상품 목록 읽기 (prodList) -->
     <script src="js/gdpic.js?v=1fe396ce5e"></script>   <!-- 🧁 문구 그림 = 상품공방 그림 + 속성 그대로 (gdPic · 앱은 모양을 그리지 않아요) -->
     <script src="js/space.js?v=f6a0bed7af"></script>   <!-- 🏠 공간 : 문구는 하나 · 저장은 공간이 정해요 (진짜 다이어리 = 저장 · 연습장 = 저장 안 함) -->
     <script src="js/gdtry.js?v=785f081008"></script>   <!-- 🏪 문구 사용해보기 = 가상 연습장 (저장 없음 · 닫으면 사라져요) -->
     <script src="js/drcache.js?v=9d8d47acf2"></script>   <!-- ⚡ 드라이브 읽기 기억 (켤 때 바뀐 것만 받기 · 도련 11-17) -->
-    <script src="js/drive.js?v=a034fec801"></script>
+    <script src="js/drive.js?v=224a2cc688"></script>
     <script src="js/desk.js?v=33713d2fe9"></script>   <!-- 🪑 책상 꾸미기 (💻 PC · 아이패드만) -->
     <script src="js/roomexit.js?v=64de6cb98b"></script>   <!-- 🚪 내 방 나가기 = 저장 게이지 → 카메라 아웃 → 앱 끄기 (도련 11-23) -->
     <script src="js/deskpaint.js?v=3a2e8eae6f"></script>
     <script src="js/deskcustom.js?v=94644f5dd8"></script>   <!-- 🎨 소품 꾸미기 창 (색칠 + 불빛 · 숫자 · 알람 · 사진 · 누르는 곳) -->   <!-- 🎨 책상 소품 꾸미기 (칠하기 · 이미지 붙이기) -->
     <script src="js/coll.js?v=5abbaff6f2"></script>
-    <script src="js/mine.js?v=f367180a39"></script>   <!-- 📦 내 실물 : 받은 소품 · 문구 = 내 드라이브에 진짜로 (받은 그때 모습 · 종류마다 묶음 _실물.json · 기기 보관) -->
+    <script src="js/mine.js?v=abd265a47e"></script>   <!-- 📦 내 실물 : 받은 소품 · 문구 = 내 드라이브에 진짜로 (받은 그때 모습 · 종류마다 묶음 _실물.json · 기기 보관) -->
     <script src="js/sound.js?v=b762fb2db0"></script>
     <script src="js/app.js?v=64c8e9e76d"></script>
     <script src="js/page.js?v=868d9e4666"></script>

@@ -237,9 +237,10 @@
             const get = !opts.method || opts.method === 'GET';
             if (get && !opts.fresh && window.DRC && DRC.on) { const c = await DRC.serve(url); if (c) return c; }   // ⚡ 이 기기에 둔 것 (js/drcache.js · 바뀐 것은 changes 로 이미 잊었어요)
             await ensureToken();
-            const res = await fetch(url, Object.assign({}, opts, {
+            const send = () => fetch(url, Object.assign({}, opts, {
                 headers: Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + drive.token })
             }));
+            const res = get && !opts.keepalive ? await retryN(send) : await send();   // 🔁 읽기 = 인터넷이 잠깐 끊겨도 1 · 2 · 4초 쉬고 다시 (도련 11-25 · 쓰기는 두 번 만들어질 수 있어서 flushUpload 가 다시 올려요)
             if (res.status === 401 && !retried) { drive.token = null; return gfetch(url, opts, true); }
             if (res.ok && opts.method && opts.method !== 'GET' && /googleapis\.com\/(upload\/)?drive\/v3\/files/.test(url)) {   // 📱 이 창이 손댄 파일 = 내 것 (checkRemote 가 다른 기기 것과 나눠요)
                 const m = /\/files\/([^/?]+)/.exec(url); if (m) mineIds.add(m[1]);
@@ -1119,7 +1120,8 @@
         function prefetchAfterTurn(dir) { const d = window.dyStep ? dyStep(currentDate, dir) : addDays(currentDate, dir); return prefetchDays(d ? [d] : []); }
 
         async function loadFromDrive() {
-            if (window.PROD_READY) await PROD_READY;                       // 🧁 상품 목록 버전 확인이 끝난 뒤 (처음 선물 · 되살리기가 진짜 목록으로 · 늦어도 3초 · js/prod.js)
+            if (window.PROD_READY) await PROD_READY;                       // 🧁 상품 목록 버전 확인이 끝난 뒤 (처음 선물 · 되살리기가 진짜 목록으로 · 못 받으면 1 · 2 · 4초 쉬고 다시 · js/prod.js)
+            if (window.PROD_FAIL) throw bootStop('상품 서버');              // 🛑 상품 목록을 끝내 못 받았어요 = 멈춤 (js/prod.js · 도련 11-25 · 예전 지난 목록 비상은 없앴어요)
             resetDriveCaches(); drive.rootId = null; drive.keyNone = new Set();
             await drcBoot();                                                 // 🔔 읽기 전에 표시 (읽는 사이 바뀐 것도 다음 확인에 잡혀요) · ⚡ 지난번 표시가 있으면 바뀐 것만 잊고 나머지는 이 기기에 둔 것으로 (js/drcache.js · 도련 11-17)
             await ledgerLoad();                                              // 📒 장부 먼저 (은퇴한 예전 폴더는 쓰지 않아요 · 영구삭제 한 벌)
@@ -1385,6 +1387,10 @@
             const { forget } = await readAllPending(); await forget();
             location.reload();                                                  // 다시 열리면 = 초기화 (freshStart · 알림은 거기서 한 번)
         }
+        /* 🔁 못 올렸을 때 다시 올리기 (도련 11-25) : 30초 → 1분 → 2분 → 5분 (계속 5분) · 올리면 처음부터 · 인터넷이 돌아오면 (online) 기다리지 않고 바로 */
+        const UP_RETRY = [30000, 60000, 120000, 300000];
+        let upFails = 0;
+        addEventListener('online', () => { if (drive.error && !drive.full && uploadTimer) { clearTimeout(uploadTimer); uploadTimer = null; flushUpload(); } });
         function flushUpload(opts) {
             const force = !!(opts && opts.force);
             clearTimeout(uploadTimer); dirtySince = 0;
@@ -1419,11 +1425,11 @@
                     showMsg('☁ 구글 드라이브 저장공간이 <b>가득 찼어요.</b><br>고친 내용은 이 기기에 보관해 둘게요.<br><span style="font-size:12px;color:#777;">지메일 · 구글 포토 등에서 필요 없는 파일을 지우면 자동으로 다시 저장해요.</span>');
                 }
                 if (allOk) {
-                    drive.lastSaved = new Date(); drive.full = false;
+                    drive.lastSaved = new Date(); drive.full = false; upFails = 0;
                     if (!drive.dirty) clearPending();                       // 그 사이 새 변경이 없을 때만 임시 보관본 삭제
                 } else {
                     savePending();                                          // 🛟 못 올렸으면 바로 이 기기에 보관 (도련 11-09 : 다시 하기를 기다리는 중에 앱이 갑자기 꺼져도 · 다음에 열면 복구 · 올리면 지워요)
-                    if (!authFail) uploadTimer = setTimeout(() => flushUpload(), full ? 5 * 60000 : 30000);
+                    if (!authFail) { const w = full ? 5 * 60000 : UP_RETRY[Math.min(upFails, UP_RETRY.length - 1)]; upFails++; uploadTimer = setTimeout(() => flushUpload(), w); }   // 🔁 30초 → 1분 → 2분 → 5분 (도련 11-25 · 인터넷이 돌아오면 바로 · 아래 online)
                 }
                 updateBadge(); updateStorageInfo();
                 return allOk;
@@ -1507,6 +1513,7 @@
             const login = state === 'login';
             document.getElementById('gateLoginBtn').style.display = login ? 'flex' : 'none';
             document.getElementById('gateGuestBtn').style.display = login ? 'flex' : 'none';
+            const rb = document.getElementById('gateRetryBtn'); if (rb) rb.style.display = state === 'stop' ? '' : 'none';
             requestAnimationFrame(gateFit);
         }
 
@@ -1639,6 +1646,12 @@
             });
             return true;
         }
+        /* 🛑 켤 때 못 받으면 멈춤 (도련 11-25 · 1 → 2 : 몇 번 다시 해 본 뒤 · 예전 것으로 열지 않아요) : 어디가 안 되는지 + [🔄 다시 시도] (새로고침 = 깃허브 · 상품 · 구글 모두 다시 확인)
+           이미 연 앱이 쓰는 동안 못 올린 것은 멈추지 않아요 (이 기기에 보관 + 다시 올리기 · flushUpload) */
+        function bootStop(where) {
+            showGate('stop', `⚠ <b>${where}</b>에 연결하지 못했어요.<br>인터넷 연결을 확인해 주세요.<br><span style="font-size:12px;color:#777;">다이어리가 잘못 저장되지 않도록 멈춰 두었어요.</span>`);
+            const e = new Error('stop'); e.type = 'stop'; return e;
+        }
         async function initDrive() {
             /* 🚪 첫 화면 (도련 11-09) : ☁ 구글로 로그인했던 기기 = 창 없이 바로 · 🏠 로그인 없이 쓰는 사람 = 열 때마다 첫 화면 (구글 로그인을 늘 권해요 · 이어 쓰기는 '로그인 없이 다꾸하기') */
             if (typeof LOCAL_TEST !== 'undefined' && LOCAL_TEST && typeof localTestStart === 'function') { await localTestStart(); return; }   // 💻 내 컴퓨터(localhost) : 로그인 없이 · 이 브라우저에 저장 (js/localtest.js)
@@ -1647,10 +1660,12 @@
                 return;
             }
             showGate('wait', '☁ 구글 드라이브에 연결하는 중…');
+            if (window.PROD_READY) await PROD_READY;                           // 🛑 상품 서버부터 (도련 11-25 · 모두 확인한 뒤에 첫 화면 · 못 받으면 멈춤)
+            if (window.PROD_FAIL) { bootStop('상품 서버'); return; }
             const fileHint = location.protocol === 'file:'
                 ? '<br><br><span style="font-size:12px;color:#d6487f;">이 파일이 <b>file://</b>로 열려 있어요. 구글 로그인은 https 주소(GitHub Pages 등)나 localhost에서만 동작해요.</span>' : '';
             if (!(await waitForGoogle(10000))) {
-                showGate('login', '구글 로그인 스크립트를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.' + fileHint);
+                if (fileHint) showGate('login', '구글 로그인 스크립트를 불러오지 못했어요.' + fileHint); else bootStop('구글 로그인');
                 return;
             }
             driveClientMake();
@@ -1658,8 +1673,9 @@
             let authed = false;
             try { authed = localStorage.getItem(AUTH_FLAG_KEY) === '1'; } catch (e) {}
             if (authed) {
-                try { await requestToken('none'); await loadFromDrive(); hideGate(); postLoginTasks(); return; }
-                catch (e) { if (e && e.type === 'corrupt') { showGate('login', driveErrorText(e)); return; } }
+                let tok = false;
+                try { await requestToken('none'); tok = true; await loadFromDrive(); hideGate(); postLoginTasks(); return; }
+                catch (e) { if (e && e.type === 'corrupt') { showGate('login', driveErrorText(e)); return; } if (tok) { if (e && e.type !== 'stop') bootStop('구글 드라이브'); return; } }   // 🛑 로그인은 됐는데 읽기를 못 했어요 = 로그인 화면 말고 멈춤 (도련 11-25)
             }
             showGate('login', fileHint.replace(/^<br><br>/, ''));               // 설명은 두 버튼 안에 있어요
         }
@@ -1669,8 +1685,9 @@
             const guestDays = drive.guest ? guestSnapshot() : null;               // 👤 게스트로 쓴 일기 (로그인하면 메모리가 드라이브 것으로 바뀌어서 먼저 챙겨요)
             if (!drive.client && !driveClientMake() && await waitForGoogle(10000)) driveClientMake();   // 이 브라우저로 열었으면 구글 준비가 아직이에요
             showGate('wait', '☁ 구글 로그인 중이에요…<br>잠시만 기다려 주세요');      // 계정을 고른 뒤에도 보이는 글이라 '고르세요' 대신 (도련 10-21)
-            try { await requestToken('select_account'); showGate('wait', '☁ 다이어리를 불러오는 중이에요…<br>잠시만 기다려 주세요'); await loadFromDrive(); hideGate(); await postLoginTasks(); }
-            catch (e) { showGate('login', driveErrorText(e)); if (guestDays) guestHold = guestDays; return; }
+            let tok = false;
+            try { await requestToken('select_account'); tok = true; showGate('wait', '☁ 다이어리를 불러오는 중이에요…<br>잠시만 기다려 주세요'); await loadFromDrive(); hideGate(); await postLoginTasks(); }
+            catch (e) { if (tok && !(e && e.type === 'corrupt')) { if (!(e && e.type === 'stop')) bootStop('구글 드라이브'); } else showGate('login', driveErrorText(e)); if (guestDays) guestHold = guestDays; return; }
             if (window.dvAfterLogin) dvAfterLogin();                              // 🏠 로그인 없이 쓰던 기기도 이제 드라이브로 열려요
             if (guestDays || guestHold) guestCarry(Object.assign({}, guestHold || {}, guestDays || {}));
         }

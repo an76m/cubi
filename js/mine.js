@@ -12,7 +12,7 @@
        가진 것 = 다이어리 목록 · 바인더 재료 목록의 pid (상품 id) · 날짜 표지 d + 날짜형 권 id 안의 디자인 (dyyOf)
    - 🎯 드라이브 요청을 아껴요 (도련 11-16 · 11-17 : 많은 사용자 = 앱 전체 요청 한도 · 서버 = 요청 · 트래픽 무제한)
        평소 앱을 열 때 = 드라이브 0번 (기기 것) · 묻는 때 = 받거나 새로 생겼을 때 (쓰기 전 합치기) · 다른 기기가 고쳤을 때 (drive.js changes 를 같이 봐요) · 하루 한 번
-       🚨 서버가 아예 없으면 = js/prod.js 기기에 둔 지난 목록 + 가진 것 모두 내 실물로 (PROD_CACHED)
+       🛑 서버 상품 목록을 못 받으면 = 다이어리를 열지 않고 멈춰요 (도련 11-25 · js/prod.js PROD_FAIL · 예전 '지난 목록 + 내 실물' 비상은 없앴어요)
        평소 그림 = 늘 서버 (같은 그림이면 서버 주소 그대로) · 드라이브를 물을 때도 '바뀌었나' 목록 요청 1번 · 바뀌었으면 가벼운 목록만 (그림 X)
        🚨 비상 (서버에 없거나 서버 모습이 내 것과 달라요) + 기기에 그 그림이 없어요 → 1) 서버에 같은 그림 이름이 있으면 서버 2) 없으면 드라이브 그림 묶음 (파일 번호로 바로 · 요청 1번)
    - 기기 보관 (IndexedDB 'malang-mine' · 계정|묶음) : 목록 + 받아 둔 그림 (서버에서 받은 것 · 비상 때 드라이브에서 받은 것)
@@ -78,7 +78,7 @@
     function mineDiff(K) {
         if (M.diff[K]) return M.diff[K];
         const B = KINDS[K] && M.k[KINDS[K]], D = {};
-        if (B) Object.keys(B.items).forEach(k => { const x = B.items[k]; if (x.K !== K) return; const id = k.slice(K.length + 1), s = window.prodRawOf ? prodRawOf(K, id) : null; if (!s || LOOK(s) !== LOOK(x) || window.PROD_CACHED) D[id] = Object.assign({ id }, x); });   // 🚨 서버가 없으면 가진 것 모두 내 실물로 (그림 = 기기 · 드라이브)
+        if (B) Object.keys(B.items).forEach(k => { const x = B.items[k]; if (x.K !== K) return; const id = k.slice(K.length + 1), s = window.prodRawOf ? prodRawOf(K, id) : null; if (!s || LOOK(s) !== LOOK(x)) D[id] = Object.assign({ id }, x); });   // 🚨 서버가 없으면 가진 것 모두 내 실물로 (그림 = 기기 · 드라이브)
         return (M.diff[K] = D);
     }
     function apply() {                                                         // 다른 것이 바뀌었을 때만 다시 그려요

@@ -4,7 +4,7 @@
    - strFp(글) : 글의 짧은 지문 (같은 글 = 같은 지문 · 임시보관이 드라이브 그때 모습과 같은지 볼 때 · 도련 11-22)
    - josa(낱말, 받침 있을 때, 없을 때) : 낱말 + 조사 (예 josa('바구니', '으로', '로') = '바구니로') · josaOf = 조사만
    - lsGet(키, 없을 때) · lsSet(키, 값) : 이 기기 저장(localStorage)에 JSON 으로 (막혀 있어도 멈추지 않아요)
-   - 🕘 tzDay · tzNow · tzText (시계 한 곳 · DIARY_TZ) · waitMs · clampN · buzz · calmMotion · mkCanvas · tintCanvas · rrPath · loadImgP
+   - 🕘 tzDay · tzNow · tzText (시계 한 곳 · DIARY_TZ) · waitMs · retryN (🔁 1 · 2 · 4초 다시) · clampN · buzz · calmMotion · mkCanvas · tintCanvas · rrPath · loadImgP
    - ✨ rePop (톡 다시) · popFor (잠깐 보이기) · 💬 bubbleAt (말풍선) · ✋ tipPlace (든 도구 끝 = 마우스) · 🔊 scrubSound (떼는 소리) · 💬 hintPop (떼기 화면 안내 한 줄)
    - 🆔 gdPre · gdSuf : 상품 id 앞머리 · 나머지 (문구 종류를 알아요) · idStamp(앞머리) : 받은 책 한 권 id (앞머리-한국 시각 14자리)
    ※ index.html 에서 맨 먼저 (features.js 다음) 읽어요 */
@@ -38,6 +38,9 @@ const ymd = (d, sep = '-') => { d = d || new Date(); const z = n => String(n).pa
 
 /* 🧰 자잘한 공용 도구 (도련 11-13 · 파일마다 같은 걸 만들지 않기 · 파일 안 옛 이름은 이것을 가리키기만 해요) */
 const waitMs = ms => new Promise(r => setTimeout(r, ms));                      // ⏳ 기다리기
+/* 🔁 다시 해 보기 (도련 11-25 · 공통) : fn 이 실패하면 1 · 2 · 4초 쉬고 다시 (모두 4번 · sw.js retry 와 같은 간격) · 마지막 실패는 그대로 던져요 · again(e) = 다시 해 볼 실패인지 (없으면 모두) */
+const RETRY_WAIT = [1000, 2000, 4000];
+async function retryN(fn, again) { for (let i = 0; ; i++) { try { return await fn(i); } catch (e) { if (i >= RETRY_WAIT.length || (again && !again(e))) throw e; await waitMs(RETRY_WAIT[i]); } } }
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));                        // 범위 안으로
 function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }   // 📳 떨림 (안 되는 기기는 그냥 지나가요)
 const calmMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;   // ✨ 움직임 줄이기 켰나요

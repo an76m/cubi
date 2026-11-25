@@ -307,6 +307,8 @@
         .gate-msg { font-size: 14px; color: #555; line-height: 1.7; }
         .gate-msg:empty { display: none; }
         .gate-pick { max-width: 340px; }
+        .gate-retry { padding: 10px 26px; border-radius: 14px; border: 0; background: #ff8fab; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; }   /* 🛑 멈춤 화면 다시 시도 (도련 11-25) */
+        .drive-gate[data-state="stop"] .gate-dots { display: none; }
 
         /* 🎀 첫 화면 꾸밈 (도련 10-18) : 겉표지와 같은 깅엄 바탕 · 작은 다이어리 · 기다릴 땐 하트 세 개 · 상태가 바뀌어도 같은 카드 안에서 스르륵 */
         .drive-gate { background:

@@ -9,20 +9,23 @@
    ▶ 🚨 비상구 : version.txt 에 'off' 라고 쓰면 모든 기기가 보관함을 지우고 예전처럼 깃허브에서 바로 열어요 · 설정의 '브라우저 저장 지우기'도 보관함 · 서비스 워커를 지워요
    ▶ 인터넷이 느려도 version.txt 답을 끝까지 기다려요 (도련 11-12 · 예전 2.5초에서 그만두면 폰에서 옛 버전이 열렸어요)
    ▶ 첫 화면(index.html)은 늘 '?t=지금' 을 붙여 받아요 (도련 11-12 : 깃허브 앞의 중간 서버가 첫 화면을 10분까지 들고 있어서 · 올린 직후에도 새것)
-   ▶ 인터넷이 끊기면 : 보관함이 있으면 그것으로 · 없으면 안내 화면
+   ▶ 🛑 못 받으면 (도련 11-25) : version.txt · 새 첫 화면을 1 · 2 · 4초 쉬고 다시 (모두 4번) → 그래도 안 되면 멈춤 화면 '인터넷 연결을 확인해 주세요 [🔄 다시 시도]' · 예전 버전 보관함으로 열지 않아요 (예전 코드로 저장하면 데이터가 꼬일 수 있어요) · version.txt 가 없다는 답(404) = 깃허브 첫 화면 그대로
    ※ 이 파일은 꼭 index.html 과 같은 폴더(맨 위)에 있어야 해요 */
 
 const CODE = 'malang-code-';                                     // 보관함 이름 = CODE + 버전
 const OK_KEY = '__ok__';                                        // 다 받은 보관함 표시
 const VER_RE = /<meta name="app-version" content="([^"]+)"/;
-const OFFLINE_HTML = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+const STOP_HTML = what => `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>말랑달콤 다이어리</title></head>
 <body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#ffe6f0;font-family:sans-serif;color:#7a4a5a;text-align:center">
 <div style="background:#fff;border:2px solid #ffb6c1;border-radius:20px;padding:28px 24px;max-width:300px">
-<div style="font-size:42px">📔</div><h2 style="margin:10px 0;color:#ff6b81">인터넷 연결이 끊겼어요</h2>
-<p style="line-height:1.6;margin:0 0 16px">일기는 구글 드라이브에 저장돼서<br>인터넷이 연결되어야 열 수 있어요.</p>
-<button onclick="location.reload()" style="border:0;border-radius:12px;background:#ff8fab;color:#fff;font-size:16px;padding:10px 22px">다시 열기</button>
-</div></body></html>`;
+<div style="font-size:42px">📔</div><h2 style="margin:10px 0;color:#ff6b81">인터넷 연결을 확인해 주세요</h2>
+<p style="line-height:1.6;margin:0 0 16px">${what}에 연결하지 못해서<br>다이어리를 열지 않고 멈췄어요.</p>
+<button onclick="location.reload()" style="border:0;border-radius:12px;background:#ff8fab;color:#fff;font-size:16px;padding:10px 22px">🔄 다시 시도</button>
+</div></body></html>`;   // 🛑 멈춤 화면 (도련 11-25 · 몇 번 다시 해 봐도 안 되면 · 예전 버전으로 열지 않아요)
+const stopPage = what => new Response(STOP_HTML(what), { headers: HTML_H });
+const TRY_WAIT = [1000, 2000, 4000];                             // 🔁 다시 해 보기 = 1 · 2 · 4초 쉬고 (모두 4번 · js/util.js retryN 과 같은 간격)
+async function retry(fn) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= TRY_WAIT.length) throw e; await new Promise(r => setTimeout(r, TRY_WAIT[i])); } } }
 const HTML_H = { 'Content-Type': 'text/html; charset=utf-8' };
 const BASE = new URL('./', self.location).href;                 // 사이트 맨 위
 const INDEX_KEY = BASE + 'index.html';
@@ -34,8 +37,8 @@ self.addEventListener('activate', e => e.waitUntil(caches.delete('malang-kit-v1'
     e.waitUntil(askVersion().then(v => v === 'off' ? offAll() : readyVersion().then(h => h ? null : freshIndex().then(x => x.ok ? x.text() : '').then(t => t && build(t)))).catch(() => {}));   // 처음 설치 = 다음에 열 때 바로 보관함에서 열리게 지금 만들어 둬요
 })));
 
-async function askVersion() {                                    // version.txt : 답이 올 때까지 기다려요 (느려도 · 도련 11-12 : 버전 확인은 꼭 한 번 성공) · 인터넷이 아예 끊겼을 때만 ''
-    try { const r = await fetch(BASE + 'version.txt?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return ''; const t = (await r.text()).trim(); return t.length < 40 ? t : ''; } catch (e) { return ''; }
+async function askVersion() {                                    // version.txt : 못 물으면 1 · 2 · 4초 쉬고 다시 (도련 11-25) · null = 끝내 못 물었어요 (인터넷) · '' = 답은 왔는데 버전이 없어요 (깃허브에 version.txt 가 없음 → 깃허브 첫 화면 그대로)
+    try { return await retry(async () => { const r = await fetch(BASE + 'version.txt?t=' + Date.now(), { cache: 'no-store' }); if (r.status >= 500) throw new Error(String(r.status)); if (!r.ok) return ''; const t = (await r.text()).trim(); return t.length < 40 ? t : ''; }); } catch (e) { return null; }
 }
 async function codeCaches() { return (await caches.keys()).filter(k => k.startsWith(CODE)); }
 async function readyVersion() {                                  // 다 받은 보관함 중 가장 새 것의 버전
@@ -89,25 +92,23 @@ self.addEventListener('fetch', e => {
 
 async function openPage(e) {
     const req = e.request;
-    if (!isApp(req.url)) return fetch(req).catch(() => new Response(OFFLINE_HTML, { headers: HTML_H }));   // 다른 쪽 (녹화 · 안내 페이지 …) = 예전 그대로
+    if (!isApp(req.url)) return fetch(req).catch(() => stopPage('말랑달콤'));   // 다른 쪽 (녹화 · 안내 페이지 …) = 예전 그대로
     const want = await askVersion();
-    if (want === 'off') { await offAll(); return fetch(req, { cache: 'no-cache' }).catch(() => new Response(OFFLINE_HTML, { headers: HTML_H })); }   // 🚨 비상구
+    if (want === null) return stopPage('앱 업데이트 확인');           // 🛑 버전을 끝내 못 물었어요 = 보관함(예전 버전)으로 열지 않고 멈춰요 (도련 11-25 · 예전 코드로 저장하면 데이터가 꼬일 수 있어요)
+    if (want === 'off') { await offAll(); return fetch(req, { cache: 'no-cache' }).catch(() => stopPage('말랑달콤')); }   // 🚨 비상구
     const have = await readyVersion();
-    if (have && (want === have || !want)) {                         // 같은 버전 (또는 version.txt 를 못 물었어요 = 인터넷이 끊김) → 보관함
+    if (have && want === have) {                                     // 같은 버전 → 보관함
         const r = await cachedIndex(have);
         if (r) {
-            if (want) e.waitUntil(checkIndex().then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
+            e.waitUntil(checkIndex().then(x => x.ok ? x.text() : '').then(t => { const m = VER_RE.exec(t); if (m && m[1] !== have) return build(t); }).catch(() => {}));   // 🛟 첫 화면이 바뀌었으면 다음 열 때 새것
             return r;
         }
     }
-    try {                                                            // 새 버전 (또는 보관함 없음) = 깃허브에서 바로
-        const r = await freshIndex();
+    try {                                                            // 새 버전 (또는 보관함 없음 · version.txt 가 없음) = 깃허브에서 바로 · 못 받으면 1 · 2 · 4초 쉬고 다시
+        const r = await retry(async () => { const x = await freshIndex(); if (x.status >= 500) throw new Error(String(x.status)); return x; });
         if (!r.ok) return r;
         const html = await r.text();
         e.waitUntil(build(html));
         return new Response(html, { status: r.status, headers: HTML_H });
-    } catch (err) {
-        const r = have && await cachedIndex(have);
-        return r || new Response(OFFLINE_HTML, { headers: HTML_H });
-    }
+    } catch (err) { return stopPage('앱 업데이트'); }                  // 🛑 예전 버전으로 열지 않아요 (도련 11-25)
 }
