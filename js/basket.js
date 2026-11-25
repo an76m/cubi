@@ -1630,7 +1630,7 @@
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }
     function shCard(x, i) {
-        return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="확대">${shLook(x)}</button><small class="sh-cnt">${esc(x.cnt || '')}</small>`
+        return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="${esc(x.cnt || '확대')}">${shLook(x)}</button>`   /* 목록 카드 = 그림 + 버튼만 (도련 11-25 · 설명 글은 🔍 확대에만) */
             + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">${SH.kind === 'gd' ? '사용해보기' : SH.kind === 'desk' ? '적용해보기' : '🔍 확대'}</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shIntoOf(x)}', 0)">${shGotText(x)}</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">${x.give ? '🎁 받기' : '🧺 받기'}</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (기본상품 샵 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
