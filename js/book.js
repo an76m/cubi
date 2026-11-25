@@ -250,3 +250,18 @@ function bookOpen(host, spec) {
     };
 }
 window.BOOK_RING = BOOK_RING; window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
+/* 🏪 샵 펼쳐보기 (도련 11-25 '받아서 책상에서 펼쳐 볼 때 그 모습을 샵에서 · 현실처럼') : 받기 전에 그 책을 규격 크기로 펼쳐 넘겨 봐요
+   - 책 = bookOpen 그대로 (덮인 표지 → 밀어서 펼치기 · 넘기기 · ◧ ◨ · 막대 끌기) · 크기 = 실제 규격 (화면이 작으면 줄여요 · 책상에 띄운 책과 같아요)
+   - 저장 없음 · 닫으면 사라져요 · 닫기 = 책 막대 ✕ (다이어리 날짜바처럼) · 책 밖 바탕 누르기 · 바탕 = 🏪 사용해보기와 같은 .gdt
+   - 쓰는 곳 = js/basket.js shZoom (📔 다이어리 · 노트 · 바인더 표지 · 내지 = js/dyyear.js dyyTrySpec · 📒 🤍 = basket.js abTrySpec) */
+const BKT_SIDE = 'malang_bktry_side';
+function bookTry(spec) {
+    bookTryOff();
+    const r = document.createElement('div'); r.id = 'bkTry'; r.className = 'gdt bk-try';
+    document.body.appendChild(r);
+    r.addEventListener('pointerdown', e => { if (e.target === r) bookTryOff(); });   // 책 밖 바탕을 누르면 닫혀요 (✕ = 책 막대에 하나)
+    bookTry.B = bookOpen(r, Object.assign({ side: () => lsGet(BKT_SIDE, 'lr'), setSide: v => lsSet(BKT_SIDE, v) }, spec, { inline: false, posKey: 'malang_bktry_pos', pg: 0, open: !!spec.open, onClose: bookTryOff, onPage: null, wire: null, desk: false }));
+    return true;
+}
+function bookTryOff() { if (bookTry.B) { bookTry.B.destroy(); bookTry.B = null; } const r = document.getElementById('bkTry'); if (r) r.remove(); }
+window.bookTry = bookTry; window.bookTryOff = bookTryOff;

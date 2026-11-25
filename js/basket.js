@@ -851,7 +851,13 @@
     window.abUpHas = id => AB.ups.has(id);                                    // 책상을 다시 그려도 떠 있는 권 그림은 숨긴 채 (js/desk.js dkVolsPaint)
     function abBookOff() { if (AB.book) { AB.book.destroy(); AB.book = null; } }
     /* 📥 종류 없는 책 (아직 정리할 스티커를 정하지 않은 바인더 · 이형지북) = 빈 책 그대로 펼쳐 보고 넘겨 봐요 (도련 11-15 · 다이어리처럼 · 꽂기 · 붙이기는 📒 스티커 정리에서) */
-    window.abOpenFree = (t, id) => abUpRise(t, '', id);                     // 📥 종류 없는 빈 책도 책상에서 = 같은 떠 있는 책 (펼쳐 보고 넘겨 봐요)
+    window.abOpenFree = (t, id) => abUpRise(t, '', id);
+    /* 🏪 샵 펼쳐보기 (도련 11-25 · js/book.js bookTry) : 📒 스티커바인더 · 🤍 이형지북 = 받은 그때 모습 = 빈 책 (포켓 · 이형지만) · 같은 책 그림 (abFltSpec) */
+    function abTrySpec(it) {
+        const t = it.tool, p = (t === 'bd' ? AB_BDP : AB_RL).find(v => v.id === it.pid); if (!p) return null;
+        const x = t === 'bd' ? { id: 'try-' + p.id, pid: p.id, n: +p.P.장수, p: {}, lb: '' } : { id: 'try-' + p.id, pid: p.id, n: +p.P.쪽수, it: [], lb: '' };
+        return Object.assign(abFltSpec(t, x, null), t === 'rl' ? { page: () => '<div class="ab-rel abx-wax abf-rl"></div>' } : {});   // 🤍 빈 이형지 = 안내 글 없이
+    }                     // 📥 종류 없는 빈 책도 책상에서 = 같은 떠 있는 책 (펼쳐 보고 넘겨 봐요)
     function abFltClose() { abBookOff(); if (B.free) { B.free = null; B.view = 'bin'; closeModal('basketKindModal'); return; } if (B.fltBack === 'album') { bkView('album'); return; } bkView('bin'); closeModal('basketKindModal'); }   // ✕ = 스티커첩에서 열었으면 스티커첩으로 · 책상에서 열었으면 닫기
     window.abFltClose = abFltClose;
     /* 📒 정리 책상 */
@@ -1629,16 +1635,19 @@
         if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }
+    const SH_TRY = ['diary', 'note', 'pbinder', 'pnote', 'refill', 'binder', 'relbook'];   // 📖 펼쳐보기 되는 모양 (책)
+    const shTrySpec = x => !SH_TRY.includes(x.look) ? null : x.tool ? abTrySpec(x) : window.dyyTrySpec ? dyyTrySpec(x) : null;
     function shCard(x, i) {
         return `<div class="sh-item"><button type="button" class="sh-look" onclick="shZoom(${i})" aria-label="${esc(x.cnt || '확대')}">${shLook(x)}</button>`   /* 목록 카드 = 그림 + 버튼만 (도련 11-25 · 설명 글은 🔍 확대에만) */
-            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">${SH.kind === 'gd' ? '사용해보기' : SH.kind === 'desk' ? '적용해보기' : '🔍 확대'}</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shIntoOf(x)}', 0)">${shGotText(x)}</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">${x.give ? '🎁 받기' : '🧺 받기'}</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
+            + `<div class="sh-btns"><button type="button" class="sh-take sh-zoombtn" onclick="shZoom(${i})">${SH.kind === 'gd' ? '사용해보기' : SH.kind === 'desk' ? '적용해보기' : SH_TRY.includes(x.look) ? '📖 펼쳐보기' : '🔍 확대'}</button>${SH.got && SH.got.has(i) ? `<button type="button" class="sh-take sh-get got" onclick="shGoSee('${shIntoOf(x)}', 0)">${shGotText(x)}</button>` : `<button type="button" class="sh-take sh-get" onclick="shQuick(${i}, this)">${x.give ? '🎁 받기' : '🧺 받기'}</button>`}</div></div>`;   // 받은 것은 창을 닫았다 열 때까지 초록 (쪽을 넘겨도 그대로 · 도련 10-26)   // 받기를 바로 (도련 10-26 · 처음 온 사람은 받으러 와요)
     }
     /* 🔍 확대 : 그 스티커 전체 모습 + 아래 🧺 받기 (기본상품 샵 창 안에 겹쳐 떠요 · 창이 하나라는 규칙 그대로) */
     function shZoom(i) {
         const x = SH.items[i], z = bq('shZoom'); if (!x || !z) return;
         if (x.look === 'dskin' && x.sid && window.dsTry) { dsTry(x.sid); return; }
         if (x.look === 'desk' && x.id && window.deskTrial && UI.desk() && deskTrial(x.id)) return;
-        if (x.look === 'gd' && x.gid && window.gdTry && gdTry(x.gid)) return;   // ✏️ 문구 사용해보기 = 가상 연습장 (도련 11-12 · js/gdtry.js · 저장 없음 · 닫으면 사라져요)   // 🪑 소품 적용해보기 = 빈 방에 놓고 써 봐요 (도련 11-12 · js/desk.js)   // 🧱 🪵 적용해보기 = 빈 방에 그것만 바뀐 모습 (도련 11-11 · js/deskskin.js)
+        if (x.look === 'gd' && x.gid && window.gdTry && gdTry(x.gid)) return;
+        { const ts = shTrySpec(x); if (ts && window.bookTry && bookTry(ts)) return; }   // 📖 펼쳐보기 = 받아서 책상에서 펼친 모습 그대로 (도련 11-25 · 다이어리 · 노트 · 바인더 · 내지 · 📒 🤍)   // ✏️ 문구 사용해보기 = 가상 연습장 (도련 11-12 · js/gdtry.js · 저장 없음 · 닫으면 사라져요)   // 🪑 소품 적용해보기 = 빈 방에 놓고 써 봐요 (도련 11-12 · js/desk.js)   // 🧱 🪵 적용해보기 = 빈 방에 그것만 바뀐 모습 (도련 11-11 · js/deskskin.js)
         SH.zoom = i;
         let pick = '';
         /* 📒 🤍 정리 도구 = 종류를 고르지 않아요 (도련 11-08 · 받아서 스티커 창에서 📥 불러와요) */
