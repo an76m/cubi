@@ -14,7 +14,7 @@
        크기 = 화면 안에 한 쪽(A5 비율) · 펼친 두 쪽이 다 들어오게
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
-                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · cvSpine ('ring' = 덮인 표지 등에 링 자리 리벳 · 'spring' = 왼쪽 끝에 스프링 고리) · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
+                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · cvSpine ('ring' · 'spring' = 덮인 표지 왼쪽 구멍에 감긴 고리 · 펼친 묶음과 같은 자리) · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
                 onClose 없으면 ✕ 없음 (🧩 바인더 조립 · 📒 스티커 정리) · stay (첫 쪽에서 덮지 않아요 · 📒 🤍 스티커 정리) · ph() (쪽 높이를 쓰는 곳이 정해요) · desk (📒 🤍 책상에서 띄운 책 = 📔 다이어리처럼 덮인 동안 막대 없음 · 도련 11-22) · inline (자리 host 안에 · 옮기기 없음) · hold (잡아 끄는 것 = 쪽을 안 넘겨요 · 📒 정리 공간 포켓의 종이 · 1425) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
@@ -144,7 +144,7 @@ function bookOpen(host, spec) {
         B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]); B.root.style.setProperty('--abf', spec.face || 'none');   // 📁 앞표지 = 그 상품 표지.svg (도련 11-18)
         B.root.classList.toggle('shut', !B.open);
         const book = !B.open
-            ? `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div>${spec.cvSpine ? `<div class="bk-spine bk-cvsp ${spec.cvSpine}">${spec.cvSpine === 'ring' ? spec.spine(false).replace(/<svg[\s\S]*?<\/svg>/g, '<b></b>') : spec.spine(false)}</div>` : ''}</div>`   // 🗂️ 덮인 책 묶음 (도련 11-26 '현실처럼') : spring = 스프링 고리가 왼쪽 끝에 보여요 (🤍 이형지북) · ring = 링은 안에 숨고 등에 링 자리 리벳만 (펼친 링과 같은 높이 · 📒 🗂️ 바인더)
+            ? `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div>${coverSpine()}</div>`   // 🌀 덮인 책 = 표지 왼쪽 구멍에 고리가 감겨 있어요 (실제 바인더 · 스프링 노트처럼 · 펼친 링 · 스프링과 같은 자리 · 도련 11-26)
             : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div><div class="bk-spine" aria-hidden="true">${spec.spine(t)}</div></div>`;
         B.root.innerHTML = `<div class="bk-bar"${spec.inline ? '' : ' title="끌어서 옮기기"'}>${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}${spec.onClose ? '<button type="button" class="bk-x" aria-label="닫기">✕</button>' : ''}</div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();
@@ -211,9 +211,9 @@ function bookOpen(host, spec) {
         else if (dir > 0) { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg + 1); after = () => { B.pg += 1; }; }
         else { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg - 1); after = () => { B.pg -= 1; }; }
         const r = slotRect(k); if (!r) { if (cover) { B.open = back; render(); } return null; }
-        if (cover) { r.x -= 22; r.y -= 16; r.w += 38; r.h += 32; }               // 📐 넘어가는 표지 = 덮인 표지와 같은 크기 (쪽 + 둘레 · css .bk-cur > .bk-cover)
+        if (cover) return flipCover(r, t, stage, under, after, back);          // 📕 표지 = 묶음을 축으로 돌아 넘어가요 (도련 11-26 '그 모습 그대로 열려야 · 현실처럼')
         r.s.innerHTML = `<div class="bk-under">${under}</div><div class="bk-cur">${cur}</div>`;
-        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 ? 44 : 0; if (cover) cu.classList.add('cv');
+        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 ? 44 : 0;
         const fl = document.createElement('div'); fl.className = `bk-flap ${cdir > 0 ? 'dir-next' : 'dir-prev'}${cover ? ' cover' : ''}`; fl.style.top = r.y + 'px'; fl.style.height = r.h + 'px';
         const sh = document.createElement('i'); sh.className = `bk-ush ${cdir > 0 ? 'dir-next' : 'dir-prev'}`; sh.style.top = r.y + 'px'; sh.style.height = r.h + 'px';
         stage.appendChild(fl); stage.appendChild(sh);
@@ -231,6 +231,26 @@ function bookOpen(host, spec) {
         B.busy = ctx; ctx.set(0);
         return ctx;
     }
+    /* 📕 표지 넘기기 = 진짜 책처럼 (도련 11-26) : 덮인 모습 그대로의 표지가 왼쪽 묶음(링 · 스프링)을 축으로 돌아요 (3D rotateY)
+         · 표지 크기 = 덮인 책 그대로 (쪽 + 둘레) · 링은 표지에 걸린 채 · 90° 를 넘으면 안쪽 면 · 그만큼 왼쪽 쪽이 드러나요 · 💻 책은 같이 가운데로 */
+    function flipCover(r, t, stage, under, after, back) {
+        r.s.innerHTML = under;
+        const bk = stage.querySelector('.bk-book'), sb = stage.getBoundingClientRect(), kb = bk.getBoundingClientRect();
+        const ax = r.x - 22, W = r.w + 38, bx = kb.left - sb.left, hid = Math.max(0, ax - bx);   // ax = 묶음 (표지가 도는 축) · W = 표지 너비
+        const f = document.createElement('div'); f.className = 'bk-flip3' + (spec.cvSpine ? ' ' + spec.cvSpine : '');
+        f.style.left = ax + 'px'; f.style.top = (r.y - 16) + 'px'; f.style.width = W + 'px'; f.style.height = (r.h + 32) + 'px';
+        f.innerHTML = `<div class="bk-f3 fr">${spec.cover()}${coverSpine()}</div><div class="bk-f3 bk3">${spec.cover3b ? spec.cover3b() : ''}</div>`;
+        stage.appendChild(f);
+        const draw = d => { const p = Math.max(0, Math.min(1, d / W)), a = 180 * p, c = Math.cos(a * Math.PI / 180);
+            f.style.transform = `perspective(${Math.round(W * 7)}px) rotateY(${-a.toFixed(2)}deg)`;
+            if (t) { bk.style.clipPath = `inset(0 0 0 ${Math.max(0, hid - (c < 0 ? -c * W : 0)).toFixed(1)}px)`; stage.style.translate = `${(-hid / 2 * (1 - p)).toFixed(1)}px 0`; } };
+        const ctx = { w: W, d: 0, k: t ? BOOK_COVER_K : 1, rev: back, after,
+            set(px) { this.d = px; draw(back ? W - px : px); },
+            done(ok) { B.busy = null; f.remove(); bk.style.clipPath = ''; stage.style.translate = ''; if (ok) after(); else B.open = back; render(); } };
+        B.busy = ctx; ctx.set(0);
+        return ctx;
+    }
+    const coverSpine = () => spec.cvSpine ? `<div class="bk-spine bk-cvsp ${spec.cvSpine}">${spec.spine(false).replace(/<svg[\s\S]*?<\/svg>|<i><\/i>/g, '<b></b>')}</div>` : '';   // 🌀 덮인 표지 묶음 = 구멍 + 감긴 고리 (펼친 링 · 스프링과 같은 자리)
     function turn(dir) { if (!B.busy && (dir > 0 ? canNext() : canPrev())) B.tr.turn(dir); }
     function shut(after) {                                                    // 📕 덮기 (어느 쪽에서든 · 📔 다이어리 closeCoverAnimated 처럼 첫 쪽에서 표지가 되감겨 덮여요) → after()
         const fin = () => { if (after) after(); };
