@@ -1,5 +1,6 @@
 /* 🏪 문구 사용해보기 = 가상 연습장 (도련 11-12 · js/gdtry.js) : 화면 가득 · 펼친 종이 · 손에 든 문구 · 한 줄 안내 · 닫기 */
-.gdt { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; background: radial-gradient(circle at 50% 40%, #fdf0f5, #f6dce6); touch-action: none; user-select: none; -webkit-user-select: none; }
+.gdt, .dy-try-bg { background: radial-gradient(circle at 50% 40%, #fdf0f5, #f6dce6); }   /* 🏪 샵 펼쳐보기 바탕 하나 (책 엔진 bookTry · 📔 진짜 다이어리 css/anime.css .dy-try-bg) */
+.gdt { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 .gdt-st { position: absolute; left: 0; top: 0; transform-origin: 0 0; container-type: inline-size; }   /* cqw = 연습장 너비 (🕳️ 바인더 구멍 자리 · js/skins.js .dy-holes) */
 .gdt-book { position: absolute; inset: 0; display: flex; filter: drop-shadow(0 10px 22px rgba(150, 90, 110, .25)); }
 .gdt-pg { flex: 1; background: #fffdf8 repeating-linear-gradient(#fffdf8 0 31px, #e9e1ec 31px 32px); background-position: 0 70px; border: 1px solid #ecd9e0; }

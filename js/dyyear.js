@@ -319,6 +319,8 @@
             if (typeof refreshLayout === 'function') refreshLayout();
             if (window.dkSync) dkSync(true);
             loadData();
+            const bg = document.createElement('div'); bg.id = 'dyTryBg'; bg.className = 'dy-try-bg'; document.body.appendChild(bg);   // 책상 대신 샵 펼쳐보기 바탕 (📒 🤍 와 같아요 · 바탕을 누르면 닫혀요)
+            bg.addEventListener('pointerdown', dyyTryEnd);
             H.classList.add('dy-trial'); dkTrialUi(true, '📖 펼쳐 넘겨 보세요 · 꾸미기와 저장은 안 돼요', '', dyyTryEnd);
             deskOpenDiary();
             return true;
@@ -326,7 +328,7 @@
         function dyyTryEnd() {
             if (!window.dyTry) return;
             const H = document.documentElement, t0 = Date.now();
-            const fin = () => { window.dyTry = null; dkTrialUi(false); H.classList.remove('dy-trial'); curSet(DYT.back || new Date()); DYT.back = null;
+            const fin = () => { window.dyTry = null; dkTrialUi(false); H.classList.remove('dy-trial'); const bg = document.getElementById('dyTryBg'); if (bg) bg.remove(); curSet(DYT.back || new Date()); DYT.back = null;
                 if (typeof refreshLayout === 'function') refreshLayout(); if (window.dkSync) dkSync(true); loadData(); };
             if (!H.classList.contains('desk-show')) return fin();
             deskCloseDiary();

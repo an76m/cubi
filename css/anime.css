@@ -877,7 +877,10 @@ html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-
 .ds-try-st > .desk-skin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ds-try-x { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
 /* 🏪 적용해보기 = 진짜 책상을 빈 방으로 빌려 써요 (도련 11-12 · js/desk.js deskTrial) : 샵 · 내 책상 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 닫기 */
-html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal, html.dy-trial #shopScene, html.dy-trial #shelfKindModal, html.dy-trial #shelfCornerModal { visibility: hidden !important; }   /* html.dy-trial = 📖 다이어리 펼쳐보기 (js/dyyear.js dyyTry) */
+html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal, html.dy-trial #shopScene, html.dy-trial #shelfKindModal, html.dy-trial #shelfCornerModal { visibility: hidden !important; }
+/* 📖 다이어리 펼쳐보기 (도련 11-27 '가게에서 구경하는데 집이 나오면 이상하잖아 · 스티커바인더 · 이형지북 볼 때 배경이면 돼' · js/dyyear.js dyyTry) : 책상 대신 샵 펼쳐보기 바탕 (css/gdtry.css .gdt 와 같은 색) · 다이어리만 그 위로 */
+.dy-try-bg { position: fixed; inset: 0; z-index: 994; touch-action: none; }
+html.dy-trial .diary-wrapper { z-index: 995; }
 html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-vol, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial #deskStage > .desk-skin, html.dk-trial .dke-hello, html.dk-trial .dkb-wait { display: none !important; }
 .dk-try { position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; }
 .dk-try-tip { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: calc(100vw - 140px); padding: 8px 20px; border: 2px solid #f4a9c4; border-radius: 999px; font-size: 15px; font-weight: 700; color: #b1407a; white-space: nowrap; background: rgba(255, 255, 255, .95); box-shadow: 0 4px 0 rgba(232, 143, 176, .25); text-align: center; pointer-events: auto; }
