@@ -421,6 +421,10 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-book.shut > .bk-slot > .bk-cover { position: absolute; inset: -16px -16px -16px -22px; width: auto !important; height: auto !important; }   /* 표지 = 쪽보다 둘레만큼 커요 */
 /* 🌀 덮인 책 묶음 (도련 11-26 '보통 바인더 모습 · 그 모습 그대로 열려야') : 표지 왼쪽 가장자리 구멍에 고리가 감겨 있어요 · 자리 = 펼친 링 · 스프링과 같아요 (같은 spine 틀) */
 .bk-spine.bk-cvsp { left: 0; top: 22px; bottom: 22px; z-index: 4; }
+/* 📔 샵 펼쳐보기 가상 다이어리 (도련 11-27 · js/dyyear.js dyyTrySpec) : 묶음 = 진짜 다이어리 그림 (js/skins.js dyParts · 링 · 밴드 · 접힘 · 리본 · css/style.css .dy-*) 을 펼침면 가운데에 · cqw = 한 쪽 폭 (진짜와 같은 단위) */
+.bk-dy .bk-spine:not(.bk-cvsp) { display: block; top: 0; bottom: 0; width: var(--pw); container-type: inline-size; gap: 0; }
+.bk-dy .bk-book.one.even .bk-spine:not(.bk-cvsp) { left: 100%; } .bk-dy .bk-book.one.odd .bk-spine:not(.bk-cvsp) { left: 0; }
+.bk-dy .bk-spine .dy-tape, .bk-dy .bk-spine .dy-seam, .bk-dy .bk-spine .dy-edge-w, .bk-dy .bk-spine .dy-bo-btn { display: none; }   /* 진짜 바인더의 꺼내기 · 테이프 = 가상 틀엔 없어요 */
 .bk-cvsp b { position: relative; flex: none; width: 40px; height: 22px; background: radial-gradient(circle at 30px 60%, #8a789e 0 3.2px, transparent 3.7px); }   /* 구멍 (펼친 링 끝 점과 같은 색) */
 .bk-cvsp b::before, .bk-cvsp b::after { content: ''; position: absolute; top: 60%; box-sizing: border-box; border-radius: 50%; border-right-color: transparent !important; }
 .bk-cvsp b::before { left: 2px; width: 30px; height: 15px; translate: 0 -66%; border: 7px solid #9d88c2; }   /* 🔗 감긴 링 = 펼친 링 그림과 같은 색 · 굵기 (진한 바깥 + 밝은 안) */
@@ -438,7 +442,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-spine { position: absolute; left: 50%; top: 22px; bottom: 22px; width: 76px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; z-index: 3; }
 .bk-book.one.even .bk-spine { left: calc(100% - 52px); }
 .bk-book.one.odd .bk-spine { left: 52px; }
-.bk-spine span { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 */
+.bk-spine span:not([class]) { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 (이름 없는 span 만 · 📔 가상 다이어리 묶음 .dy-* 는 그 그림 그대로) */
 .bk-spine svg { flex: none; width: 76px; height: 22px; }
 .bk-rl .bk-spine { gap: 0; justify-content: space-between; }
 .bk-rl .bk-spine i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
@@ -677,7 +681,7 @@ html.desk-show .dk-bag { visibility: hidden; }
    표지 = 다이어리 색 단색 + 작은 땡땡이 · 바깥 선(표지 둘레) 3.5px · 안쪽 선은 모두 같은 한 줄 2px(--dyv-ol · 이 다이어리만 애니 연한 선 규칙의 예외 · 여러 겹 선 없음) · 딱 떨어지는 그늘(선 없이)
    가운데 책등 = 한 톤 진한 단색 · 링 6개 = 굵은 파스텔 핑크 + 진한 선 + 그늘 한 톤 · 종이 = 둥근 모서리 + 선 한 줄 · 속지 = --page-bg (아주 연한 다이어리 색) · 줄 없음
    닫은 겉표지 = 같은 표지 + 책등 + 해 이름판(.cv-year · js/dyyear.js dyyPaint) · 흰 박음질 · 탭 · 고무줄 · 리본 · 참 · 레이스 · 깅엄 없음 */
-html.an .inner-page, html.an .cover-page, html.an .dk-fold-f {
+html.an .inner-page, html.an .cover-page, html.an .dk-fold-f, html.an .bk-dy {
   --dyv: color-mix(in srgb, var(--dy-c, var(--border-color)), var(--primary-accent) 12%);
   --dyv-ol: color-mix(in srgb, var(--primary-accent) 68%, #3a2a55);
   --dyv-sh: color-mix(in srgb, var(--dyv), #5b3f7a 22%);
@@ -877,10 +881,7 @@ html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-
 .ds-try-st > .desk-skin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ds-try-x { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
 /* 🏪 적용해보기 = 진짜 책상을 빈 방으로 빌려 써요 (도련 11-12 · js/desk.js deskTrial) : 샵 · 내 책상 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 닫기 */
-html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal, html.dy-trial #shopScene, html.dy-trial #shelfKindModal, html.dy-trial #shelfCornerModal { visibility: hidden !important; }
-/* 📖 다이어리 펼쳐보기 (도련 11-27 '가게에서 구경하는데 집이 나오면 이상하잖아 · 스티커바인더 · 이형지북 볼 때 배경이면 돼' · js/dyyear.js dyyTry) : 책상 대신 샵 펼쳐보기 바탕 (css/gdtry.css .gdt 와 같은 색) · 다이어리만 그 위로 */
-.dy-try-bg { position: fixed; inset: 0; z-index: 994; touch-action: none; }
-html.dy-trial .diary-wrapper { z-index: 995; }
+html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal { visibility: hidden !important; }
 html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-vol, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial #deskStage > .desk-skin, html.dk-trial .dke-hello, html.dk-trial .dkb-wait { display: none !important; }
 .dk-try { position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; }
 .dk-try-tip { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: calc(100vw - 140px); padding: 8px 20px; border: 2px solid #f4a9c4; border-radius: 999px; font-size: 15px; font-weight: 700; color: #b1407a; white-space: nowrap; background: rgba(255, 255, 255, .95); box-shadow: 0 4px 0 rgba(232, 143, 176, .25); text-align: center; pointer-events: auto; }

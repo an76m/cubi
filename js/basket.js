@@ -1647,8 +1647,7 @@
         if (x.look === 'dskin' && x.sid && window.dsTry) { dsTry(x.sid); return; }
         if (x.look === 'desk' && x.id && window.deskTrial && UI.desk() && deskTrial(x.id)) return;
         if (x.look === 'gd' && x.gid && window.gdTry && gdTry(x.gid)) return;
-        if (window.dyyTry && dyyTry(x)) return;                                // 📔 다이어리 · 노트 · 바인더 = 진짜 다이어리에 입혀 펼쳐요 (도련 11-26)
-        { const ts = shTrySpec(x); if (ts && window.bookTry && bookTry(ts)) return; }   // 📒 🤍 · 📅 📄 내지 = 책 엔진   // 📖 펼쳐보기 = 받아서 책상에서 펼친 모습 그대로 (도련 11-25 · 다이어리 · 노트 · 바인더 · 내지 · 📒 🤍)   // ✏️ 문구 사용해보기 = 가상 연습장 (도련 11-12 · js/gdtry.js · 저장 없음 · 닫으면 사라져요)   // 🪑 소품 적용해보기 = 빈 방에 놓고 써 봐요 (도련 11-12 · js/desk.js)   // 🧱 🪵 적용해보기 = 빈 방에 그것만 바뀐 모습 (도련 11-11 · js/deskskin.js)
+        { const ts = shTrySpec(x); if (ts && window.bookTry && bookTry(ts)) return; }   // 📒 🤍 · 📔 다이어리 · 노트 · 바인더 · 📅 📄 내지 = 모두 책 엔진 (가상 틀 · 저장 없음)   // 📖 펼쳐보기 = 받아서 책상에서 펼친 모습 그대로 (도련 11-25 · 다이어리 · 노트 · 바인더 · 내지 · 📒 🤍)   // ✏️ 문구 사용해보기 = 가상 연습장 (도련 11-12 · js/gdtry.js · 저장 없음 · 닫으면 사라져요)   // 🪑 소품 적용해보기 = 빈 방에 놓고 써 봐요 (도련 11-12 · js/desk.js)   // 🧱 🪵 적용해보기 = 빈 방에 그것만 바뀐 모습 (도련 11-11 · js/deskskin.js)
         SH.zoom = i;
         let pick = '';
         /* 📒 🤍 정리 도구 = 종류를 고르지 않아요 (도련 11-08 · 받아서 스티커 창에서 📥 불러와요) */

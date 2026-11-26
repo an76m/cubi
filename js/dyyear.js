@@ -52,7 +52,6 @@
         }
         const dyyHas = y => dyyBooks().some(b => b.y === +y);
         function dyyBook() {                                                   // 지금 펼친 권 (없으면 마지막 권 · 한 권도 없으면 null)
-            if (window.dyTry) return dyTry.book || null;                       // 🏪 펼쳐보기 = 받지 않은 빈 권 (dyyTry)
             const L = dyyBooks(), o = dyyOf(prefGet(DYY_OPEN, DYY_OPEN_L));
             if (o && L.some(b => b.id === o.id)) return o;
             return L.length ? L[L.length - 1] : null;
@@ -299,53 +298,40 @@
                 .concat((typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => !r.off && prodList(r.K).some(x => x.id === r.id)).map(r => ({   // 📅 날짜 내지 · 📄 페이지 내지 (샵 칸도 둘 · 도련 11-07)
                     cnt: r.g, desc: `${r.t === 'date' ? '📅 날짜 내지 · 끼운 표지의 해를 따라가요' : `📄 페이지 내지 · ${r.pg}펼침면`} · ${r.n} (${r.mm}) · 🧩 같은 크기 바인더 표지에 끼워요`, look: 'refill', rid: r.id, lf: r.lf, rt: r.t, n: r.n, cat: r.t === 'date' ? 'dyr' : 'pgr', give: () => dyyRefillGive(r), name: r.g })));
         }
-        /* 🏪 샵 펼쳐보기 = 진짜 다이어리 (도련 11-26 '문구 · 소품처럼 진짜를 가져와 보여 주면') : 책상 다이어리에 그 상품을 잠깐 입혀 펼쳐요
-             - window.dyTry 하나만 = 모양 (js/skins.js dyNow) · 권 (dyyBook · 페이지 권 id dkId) 를 그 상품의 빈 권으로 · 설정 (지금 쓰는 다이어리) 은 그대로
-             - 받지 않은 권 id (날짜형 = …-0 · 페이지 = dktry…) = 내 권과 섞이지 않아요 · 🔒 완료한 페이지처럼 고칠 수 없어요 (js/pagedone.js pgDoneNow = 저장 · 붙이기 · 떼기 모두 막힘)
-             - 닫기 = 적용해보기와 같은 ✕ (js/desk.js dkTrialUi) → 내려놓고 내 권 그대로 다시
-             - 📅 📄 내지만 = 아직 책 엔진 (dyyTrySpec · 표지 없는 종이 묶음) */
-        const DYT = { back: null };
-        function dyyTry(x) {
-            if (window.dyTry || !window.UI || !UI.desk() || !window.deskOpenDiary || !window.dkTrialUi) return false;
-            let look = null, book = null;
-            if (x.look === 'note' || x.look === 'diary') { const d = DY_DESIGNS.find(v => v.id === x.dc); if (!d) return false; book = dyyOf(`${+x.yr || dyyThis()}${d.ch}-${d.id}-0`); }   // 0 = 받은 권은 1부터 (dyyNewId)
-            else if (x.look === 'pnote' || x.look === 'pbinder') { look = DY_TYPES.find(v => v.id === x.pid); if (!look) return false; }
-            if (!look && !book) return false;
-            const H = document.documentElement;
-            if (H.classList.contains('desk-show')) return false;                // 내 다이어리가 떠 있으면 = 그대로 (샵은 책상 위에서만)
-            DYT.back = currentDate;
-            window.dyTry = { look, book };
-            curSet(typeof dyOpenDate === 'function' ? dyOpenDate() : new Date());
-            if (typeof refreshLayout === 'function') refreshLayout();
-            if (window.dkSync) dkSync(true);
-            loadData();
-            const bg = document.createElement('div'); bg.id = 'dyTryBg'; bg.className = 'dy-try-bg'; document.body.appendChild(bg);   // 책상 대신 샵 펼쳐보기 바탕 (📒 🤍 와 같아요 · 바탕을 누르면 닫혀요)
-            bg.addEventListener('pointerdown', dyyTryEnd);
-            H.classList.add('dy-trial'); dkTrialUi(true, '📖 펼쳐 넘겨 보세요 · 꾸미기와 저장은 안 돼요', '', dyyTryEnd);
-            deskOpenDiary();
-            return true;
-        }
-        function dyyTryEnd() {
-            if (!window.dyTry) return;
-            const H = document.documentElement, t0 = Date.now();
-            const fin = () => { window.dyTry = null; dkTrialUi(false); H.classList.remove('dy-trial'); const bg = document.getElementById('dyTryBg'); if (bg) bg.remove(); curSet(DYT.back || new Date()); DYT.back = null;
-                if (typeof refreshLayout === 'function') refreshLayout(); if (window.dkSync) dkSync(true); loadData(); };
-            if (!H.classList.contains('desk-show')) return fin();
-            deskCloseDiary();
-            const wait = () => { if (!H.classList.contains('desk-show') || Date.now() - t0 > 4000) fin(); else setTimeout(wait, 80); };   // 덮고 내려앉을 때까지
-            wait();
-        }
-        window.dyyTry = dyyTry; window.dyyTryEnd = dyyTryEnd;
-        function dyyTrySpec(x) {                                               // 📅 📄 내지만 = 펼친 종이 묶음 (책 엔진 · js/book.js bookTry)
-            if (x.look !== 'refill') return null;
-            const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
+        /* 🏪 샵 📖 펼쳐보기 = 가상 틀 (도련 11-27 '가상의 다이어리 틀 안에 디자인 · 페이지 수 · 표지에서 페이지 넘기기만') : 책 엔진 (js/book.js bookTry · 📒 🤍 와 같은 틀 · 처음부터 가운데)
+             - 모양은 진짜 다이어리 것을 빌려요 = 묶음 그림 js/skins.js dyParts (링 · 밴드 · 접힘 · 리본) · 그 상품 링.svg (--dy-ring) · 표지.svg · 색 · 내지 무늬 · 규격 mm · 펼침면 수
+             - 저장 · 붙이기 · 드라이브 = 이 틀에는 처음부터 없어요 (닫으면 사라져요)
+             📔 날짜형노트 · 📕 페이지노트 = 표지 + 모든 펼침면 · 🗂️ 바인더 표지 = 표지 + 빈 묶음 (내지는 따로 사요) · 📅 📄 내지 = 펼친 종이만 */
+        function dyyTrySpec(x) {
             const lfBg = (lf, p, bg) => { const a = String(lf || '').split('/'); return `--page-bg:${bg};background:${window.leafCss ? leafCss(a[p % 2] || a[0]) : bg}`; };
-            const P = [];
-            if (r.t === 'date') { const y = dyyThis(); for (let d = new Date(y, 0, 1); d.getFullYear() === y; d.setDate(d.getDate() + 1)) P.push([r.lf, `${d.getMonth() + 1}월 ${d.getDate()}일`], [r.lf, '']); }   // 하루 = 펼침면
-            else for (let k = 1; k <= r.pg; k++) { const v = (r.lv || []).find(q => k >= q[0] && k <= q[1]), f = v ? v[2] : r.lf; P.push([f, String(k)], [f, '']); }   // 쪽수 = 펼침면 수
-            return { id: 'try', cls: 'bk-bd bk-try-dy', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length,
-                page: p => `<div class="bnd-pg" style="${htmlEsc(lfBg(P[p][0], p, '#fffdfb'))}"><b class="abx-no">${htmlEsc(P[p][1])}</b></div>`,
-                blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3) };
+            const pageOf = (P, bg) => p => `<div class="bnd-pg" style="${htmlEsc(lfBg(P[p][0], p, bg))}"><b class="abx-no">${htmlEsc(P[p][1])}</b></div>`;
+            const dates = (y, lf) => { const P = []; for (let d = new Date(y, 0, 1); d.getFullYear() === y; d.setDate(d.getDate() + 1)) P.push([lf, `${d.getMonth() + 1}월 ${d.getDate()}일`], [lf, '']); return P; };   // 📖 하루 = 펼침면
+            const nums = (pg, lv, lf) => { const P = []; for (let k = 1; k <= pg; k++) { const r = (lv || []).find(v => k >= v[0] && k <= v[1]), f = r ? r[2] : lf; P.push([f, String(k)], [f, '']); } return P; };   // 📖 쪽수 = 펼침면 수
+            const hex = v => (String(v || '').match(/#[0-9a-f]{6}/i) || [''])[0];
+            const book = L => {
+                const ring = window.dyRingCss ? dyRingCss(L.pid) : '', gap = (MK.GAP[L.b] || 0);
+                return { id: 'try', cls: 'bk-dy', mm: MK.mmOf(L.mm), colors: [hex(L.cover) || L.border, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
+                    pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
+                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.nm)}</span><small>${htmlEsc(L.n)}</small></div>`,
+                    spine: () => (window.dyParts ? dyParts({ b: L.b })[1] : ''), cvSpine: L.b === 'ring' ? 'ring' : '', cvRing: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3),
+                    wire: st => { const r = st.closest('.bk'); r.style.setProperty('--dy-c', L.border); r.style.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(L.pid) : 'none');   // 🎨 이 틀에만 (내 다이어리 색은 그대로)
+                        if (ring) r.style.setProperty('--dy-ring', ring); r.style.setProperty('--gap', `calc(${gap} * var(--mmk) * 1px)`); r.style.setProperty('--gh', `calc(${gap / 2} * var(--mmk) * 1px)`); } };
+            };
+            if (x.look === 'diary' || x.look === 'note') {
+                const d = DY_DESIGNS.find(v => v.id === x.dc), c = d && DY_COL[d.id]; if (!d || !c) return null;
+                return book({ nm: x.name || d.name, n: d.n, b: d.b, mm: d.mm, pid: d.id, cover: c.cover, border: c.border, page: c.page, P: x.look === 'note' ? dates(+x.yr || dyyThis(), d.lf) : [] });
+            }
+            if (x.look === 'pbinder' || x.look === 'pnote') {
+                const p = DY_TYPES.find(v => v.id === x.pid); if (!p) return null;
+                return book({ nm: p.g, n: p.n, b: p.b, mm: p.mm, pid: p.id, cover: p.cols.표지색 || p.c, border: p.cols.테두리색, page: p.cols.속지색, P: x.look === 'pnote' ? nums(p.pg, p.lv, (p.lv[p.lv.length - 1] || [])[2]) : [] });
+            }
+            if (x.look === 'refill') {                                         // 📅 📄 내지 = 표지 없이 펼친 종이 묶음 (구멍 자리)
+                const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
+                const P = r.t === 'date' ? dates(dyyThis(), r.lf) : nums(r.pg, r.lv, r.lf);
+                return { id: 'try', cls: 'bk-bd bk-try-dy', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length, page: pageOf(P, '#fffdfb'),
+                    blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3) };
+            }
+            return null;
         }
         window.dyyTrySpec = dyyTrySpec;
         async function dyyGive(y, d) {

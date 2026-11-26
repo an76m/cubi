@@ -1086,7 +1086,6 @@
         /* 하루치를 메모리로 읽어 오기 (이미 읽었으면 바로 끝, 읽는 중이면 그 요청을 같이 기다림) */
         const ensureDayLoaded = date => ensureKeyLoaded(getDateKey(date));
         function ensureKeyLoaded(key) {
-            if (window.dyTry && !drive.guest) drive.loadedDays.add(key);          // 🏪 펼쳐보기 (js/dyyear.js dyyTry) = 받지 않은 빈 권 · 드라이브에 묻지 않고 빈 채로 읽은 셈
             if (drive.guest || drive.loadedDays.has(key)) return Promise.resolve(true);
             if (drive.dayLoads.has(key)) return drive.dayLoads.get(key);
             const gen = drive.gen;

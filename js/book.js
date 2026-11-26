@@ -236,7 +236,7 @@ function bookOpen(host, spec) {
         B.busy = ctx; ctx.set(0);
         return ctx;
     }
-    const coverSpine = () => spec.cvSpine ? `<div class="bk-spine bk-cvsp ${spec.cvSpine}">${spec.spine(false).replace(/<svg[\s\S]*?<\/svg>|<i><\/i>/g, '<b></b>')}</div>` : '';   // 🌀 덮인 표지 묶음 = 구멍 + 감긴 고리 (펼친 링 · 스프링과 같은 자리)
+    const coverSpine = () => spec.cvSpine ? `<div class="bk-spine bk-cvsp ${spec.cvSpine}">${(spec.cvRing || spec.spine)(false).replace(/<svg[\s\S]*?<\/svg>|<i><\/i>/g, '<b></b>')}</div>` : '';   // 🌀 덮인 표지 묶음 = 구멍 + 감긴 고리 (펼친 링 · 스프링과 같은 자리)
     function turn(dir) { if (!B.busy && (dir > 0 ? canNext() : canPrev())) B.tr.turn(dir); }
     function shut(after) {                                                    // 📕 덮기 (어느 쪽에서든 · 📔 다이어리 closeCoverAnimated 처럼 첫 쪽에서 표지가 되감겨 덮여요) → after()
         const fin = () => { if (after) after(); };
