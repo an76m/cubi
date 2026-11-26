@@ -418,6 +418,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-book.one.even { padding-right: 64px; background-image: linear-gradient(90deg, transparent calc(100% - 52px), var(--c2) calc(100% - 52px)); }
 .bk-book.one.odd { padding-left: 64px; background-image: linear-gradient(90deg, var(--c2) 52px, transparent 52px); }
 .bk-book.shut { padding: 0; border: 0; background: none; }
+.bk-book.shut .bk-cvsp { left: 0; top: 22px; bottom: 22px; z-index: 4; }   /* 🗂️ 덮인 바인더 = 왼쪽 끝에 링 반쯤 걸쳐요 (펼친 링과 같은 높이 · 도련 11-26 '표지일 때부터 바인더') */
 .bk-spread { display: grid; grid-template-columns: var(--pw) var(--pw); gap: 44px; }
 .bk-book.one .bk-spread { grid-template-columns: var(--pw); }
 .bk-slot { position: relative; width: var(--pw); height: var(--ph); }
@@ -434,7 +435,6 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
     background-image: linear-gradient(90deg, var(--c2) 0 34px, transparent 34px), var(--abf, none);   /* 📁 겉 = 그 상품 표지.svg (도련 11-18) */ color: #6b4a5a; text-align: center; }
 .bk-cover .bk-cvlb { max-width: 70%; padding: 8px 14px; border: 1.6px solid var(--ol); border-radius: 10px; background: #fffdf6; font-weight: 800; font-size: 16px; transform: rotate(-1.5deg); word-break: keep-all; }
 .bk-cover small { padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.8); font-size: 12px; font-weight: 700; color: #8a6a7a; }
-.bk-cover.rl { background-image: repeating-linear-gradient(0deg, transparent 0 22px, #8a789e 22px 25px, transparent 25px 34px), linear-gradient(90deg, #eeeaf6 0 30px, transparent 30px); }   /* 🤍 스프링 */
 /* 📖 넘어가는 그림 = 종이 말림 (다이어리와 같은 그림 · js/book.js bookCurlAt) : 지금 쪽(.bk-cur)이 가려지고 · 아래(.bk-under) = 넘긴 뒤 · 뒷면(.bk-flap)이 말려 넘어가요 */
 .bk-under, .bk-cur { position: absolute; inset: 0; }
 .bk-under > *, .bk-cur > * { width: 100% !important; height: 100% !important; box-sizing: border-box; }

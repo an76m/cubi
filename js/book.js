@@ -14,7 +14,7 @@
        크기 = 화면 안에 한 쪽(A5 비율) · 펼친 두 쪽이 다 들어오게
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
-                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
+                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · cvSpine (true = 덮인 표지 왼쪽에도 그 묶음 · 바인더 · 스프링) · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
                 onClose 없으면 ✕ 없음 (🧩 바인더 조립 · 📒 스티커 정리) · stay (첫 쪽에서 덮지 않아요 · 📒 🤍 스티커 정리) · ph() (쪽 높이를 쓰는 곳이 정해요) · desk (📒 🤍 책상에서 띄운 책 = 📔 다이어리처럼 덮인 동안 막대 없음 · 도련 11-22) · inline (자리 host 안에 · 옮기기 없음) · hold (잡아 끄는 것 = 쪽을 안 넘겨요 · 📒 정리 공간 포켓의 종이 · 1425) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
@@ -144,7 +144,7 @@ function bookOpen(host, spec) {
         B.root.style.setProperty('--c1', c[0]); B.root.style.setProperty('--c2', c[1]); B.root.style.setProperty('--abf', spec.face || 'none');   // 📁 앞표지 = 그 상품 표지.svg (도련 11-18)
         B.root.classList.toggle('shut', !B.open);
         const book = !B.open
-            ? `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div></div>`
+            ? `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div>${spec.cvSpine ? `<div class="bk-spine bk-cvsp">${spec.spine(false)}</div>` : ''}</div>`   // 🗂️ 바인더 = 덮여 있을 때도 왼쪽에 링 (펼친 링과 같은 자리 · 같은 그림 · 도련 11-26)
             : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div><div class="bk-spine" aria-hidden="true">${spec.spine(t)}</div></div>`;
         B.root.innerHTML = `<div class="bk-bar"${spec.inline ? '' : ' title="끌어서 옮기기"'}>${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}${spec.onClose ? '<button type="button" class="bk-x" aria-label="닫기">✕</button>' : ''}</div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();

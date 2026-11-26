@@ -312,13 +312,13 @@
                 const d = DY_DESIGNS.find(v => v.id === x.dc), c = d && DY_COL[d.id]; if (!d || !c) return null;
                 const P = x.look === 'note' ? dates(+x.yr, d.lf) : [];
                 return book({ nm: x.name || d.name, n: d.n, mm: MK.mmOf(d.mm), colors: [c.cover.match(/#[0-9a-f]{6}/i) ? c.cover.match(/#[0-9a-f]{6}/i)[0] : c.border, c.border], face: window.dyFaceCss ? dyFaceCss(d.id, 'px') : 'none',
-                    pages: Math.max(1, P.length), page: P.length ? pageOf(P, c.page) : () => '<div class="bnd-pg end"></div>', spine: () => ring(d.b) });
+                    pages: Math.max(1, P.length), page: P.length ? pageOf(P, c.page) : () => '<div class="bnd-pg end"></div>', spine: () => ring(d.b), cvSpine: d.b === 'ring' });
             }
             if (x.look === 'pbinder' || x.look === 'pnote') {
                 const p = DY_TYPES.find(v => v.id === x.pid); if (!p) return null;
                 const P = x.look === 'pnote' ? nums(p.pg, p.lv, (p.lv[p.lv.length - 1] || [])[2]) : [];
                 return book({ nm: p.g, n: p.n, mm: MK.mmOf(p.mm), colors: [p.c, p.cols.테두리색], face: window.dyFaceCss ? dyFaceCss(p.id, 'px') : 'none',
-                    pages: Math.max(1, P.length), page: P.length ? pageOf(P, p.cols.속지색) : () => '<div class="bnd-pg end"></div>', spine: () => ring(p.b) });
+                    pages: Math.max(1, P.length), page: P.length ? pageOf(P, p.cols.속지색) : () => '<div class="bnd-pg end"></div>', spine: () => ring(p.b), cvSpine: p.b === 'ring' });
             }
             if (x.look === 'refill') {
                 const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
