@@ -310,10 +310,11 @@
             const hex = v => (String(v || '').match(/#[0-9a-f]{6}/i) || [''])[0];
             const book = L => {
                 const ring = window.dyRingCss ? dyRingCss(L.pid) : '', gap = (MK.GAP[L.b] || 0);
-                return { id: 'try', cls: 'bk-dy', mm: MK.mmOf(L.mm), colors: [hex(L.cover) || L.border, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
+                const ring6 = L.b === 'ring', c1 = hex(L.cover) || L.border;   // 🗂️ 링 바인더 = 🧩 바인더 조립 책상과 같은 묶음 · 색 (BOOK_RINGS · 도련 11-27) · 📓 노트 = 진짜 다이어리 묶음 그림 (dyParts)
+                return { id: 'try', cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
                     pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
                     title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.nm)}</span><small>${htmlEsc(L.n)}</small></div>`,
-                    spine: () => (window.dyParts ? dyParts({ b: L.b })[1] : ''), cvSpine: L.b === 'ring' ? 'ring' : '', cvRing: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3),
+                    spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 ? 'ring' : '',
                     wire: st => { const r = st.closest('.bk'); r.style.setProperty('--dy-c', L.border); r.style.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(L.pid) : 'none');   // 🎨 이 틀에만 (내 다이어리 색은 그대로)
                         if (ring) r.style.setProperty('--dy-ring', ring); r.style.setProperty('--gap', `calc(${gap} * var(--mmk) * 1px)`); r.style.setProperty('--gh', `calc(${gap / 2} * var(--mmk) * 1px)`); } };
             };
@@ -329,7 +330,7 @@
                 const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
                 const P = r.t === 'date' ? dates(dyyThis(), r.lf) : nums(r.pg, r.lv, r.lf);
                 return { id: 'try', cls: 'bk-bd bk-try-dy', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length, page: pageOf(P, '#fffdfb'),
-                    blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3) };
+                    blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => BOOK_RINGS };
             }
             return null;
         }
