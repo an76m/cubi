@@ -3652,14 +3652,10 @@ details.dmk-row > summary { cursor: pointer; list-style: none; } details.dmk-row
 .ab-done { min-width: 140px; }
 /* 🗂️ 기본상품 샵 정리 도구 (바인더 · 이형지북) */
 .sh-tool { display: grid; place-items: center; width: 100%; min-height: 128px; padding: 6px 0; }
-.sh-tool .ab-cover, .sh-tool .ab-rlsheet { pointer-events: none; }
-.ab-rlsheet.sh-relbook { background: var(--abf, none), #fff; }   /* 📁 샵 이형지북 = 그 상품 표지.svg (도련 11-18) */
 .sh-tool.sh-gd svg { width: 78%; height: auto; max-height: 120px; pointer-events: none; }   /* ✏️ 문구 · 🪑 책상 소품 (도련 10-27) */
 .sh-tool.sh-gd.sh-pen svg { width: auto; height: 100px; }   /* ✏️ 필기구 = 세로로 길어서 높이로 (이름표에 안 겹치게 · 도련 10-31) */
 .sh-tool.sh-desk img { max-width: 86%; max-height: 120px; object-fit: contain; pointer-events: none; }
 .sh-zlook .sh-tool { min-height: 0; padding: 18px 0; }
-.sh-zlook .sh-tool .ab-cover { width: 150px; height: 190px; }
-.sh-zlook .sh-tool .ab-rlsheet { width: 150px; height: 196px; }
 .ab-plus { word-break: keep-all; }
 .sh-desc { margin-top: -6px; font-size: 12px; color: #a08890; text-align: center; word-break: keep-all; }
 /* 🧺 바구니 안 종이 2배 (도련 10-25 · 바인더 포켓 · 정리 책상 줄은 그대로) */
