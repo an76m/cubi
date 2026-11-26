@@ -880,14 +880,14 @@ html.an.is-phone .inner-page .dy-cov, html.an.is-phone .inner-page[data-dy] .dy-
 .ds-try-st { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
 .ds-try-st > .desk-skin { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ds-try-x { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; }
-/* 🏪 적용해보기 = 진짜 책상을 빈 방으로 빌려 써요 (도련 11-12 · js/desk.js deskTrial) : 샵 · 내 책상 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 닫기 */
+/* 🏪 책상소품 적용해보기 = 가상 빈 방 (도련 11-12 · 11-27 · js/desk.js deskTrial · js/deskskin.js dsRoom) : 방이 책상을 덮어요 · 샵 창 · 책상 위 떠 있는 것은 잠깐 숨고 · 위에 쓰는 법 · 오른쪽 위 ✕ (방)
+   방 z 930 = 책상 위 · 기계 창 (📱 태블릿 940 · 🏷️ 📷 🖨️ 1600) · 기능 창 (.modal 1000) 아래 */
+.ds-try.dk { z-index: 930; }
 html.dk-trial #shopScene, html.dk-trial #shelfKindModal, html.dk-trial #shelfCornerModal { visibility: hidden !important; }
-html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-vol, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial #deskStage > .desk-skin, html.dk-trial .dke-hello, html.dk-trial .dkb-wait { display: none !important; }
+html.dk-trial #deskEditBar, html.dk-trial #deskEditTray, html.dk-trial .desk-top-r, html.dk-trial .dk-bag, html.dk-trial #dskLayer, html.dk-trial .dkw-fl, html.dk-trial #dkwBackPn, html.dk-trial .dke-hello, html.dk-trial .dkb-wait { display: none !important; }
 .dk-try { position: fixed; inset: 0; z-index: 2147482000; pointer-events: none; }
 .dk-try-tip { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: calc(100vw - 140px); padding: 8px 20px; border: 2px solid #f4a9c4; border-radius: 999px; font-size: 15px; font-weight: 700; color: #b1407a; white-space: nowrap; background: rgba(255, 255, 255, .95); box-shadow: 0 4px 0 rgba(232, 143, 176, .25); text-align: center; pointer-events: auto; }
 .dk-try-tip b { color: #c2457a; font-size: 15px; } .dk-try-tip span { font-size: 14px; color: #5a3d4a; } .dk-try-tip small { font-size: 11.5px; color: #9a7a88; }
-.dk-try-x { position: absolute; top: max(10px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); pointer-events: auto; }
-html.dk-trial .desk-stage::after, html.dk-trial #deskTip, html.dk-trial .dk-hostlb { display: none !important; }   /* 꾸미기 모눈 · 고른 소품 단추 없이 = 진짜 방처럼 */
 /* 🏪 적용해보기 기능 창 (도련 11-12) : 오른쪽에 떠서 소품을 보며 바로 써 봐요 (창 밖 = 책상 그대로) · 기계가 뜨면 적용해보기 띠는 잠깐 숨어요 (기계 ✕ 로 닫아요) */
 html.dk-trial #deskCsModal { justify-content: flex-end; padding-right: 3vw; background: none; pointer-events: none; }
 html.dk-trial #deskCsModal > .modal-content { pointer-events: auto; width: min(92vw, 360px); }
@@ -898,10 +898,10 @@ body.lbm-on .dk-try, body.dcm-on .dk-try, body.spr-on .dk-try { display: none; }
 .dkt-tryg { position: fixed; z-index: 2147482002; width: 46px; height: 46px; border-radius: 50%; background: center / cover no-repeat; box-shadow: inset 0 0 0 9px rgba(255, 255, 255, .55); pointer-events: none; translate: -50% -50%; }
 html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0; padding-left: 3vw; }
 /* 📷 집게 사진이 전구줄에 닿으면 (도련 11-12 · js/desklights.js dlPegHint) : 줄 위 그 자리 반짝 동그라미 + '놓으면 집혀요' · 집게 사진이 빛나요 */
-#deskStage > .dl-pegmk { position: absolute; z-index: 99990; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; border: 3px solid #ff7aa8; background: rgba(255, 255, 255, .55); box-shadow: 0 0 0 4px rgba(255, 122, 168, .25), 0 0 14px rgba(255, 122, 168, .6); pointer-events: none; animation: dlPegMk .8s ease-in-out infinite alternate; }
-#deskStage > .dl-pegmk b { position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0; white-space: nowrap; padding: 4px 12px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-size: 15px; font-weight: 800; box-shadow: 0 3px 10px rgba(160, 90, 110, .2); }
+.desk-stage > .dl-pegmk, .ds-try-st > .dl-pegmk { position: absolute; z-index: 99990; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; border: 3px solid #ff7aa8; background: rgba(255, 255, 255, .55); box-shadow: 0 0 0 4px rgba(255, 122, 168, .25), 0 0 14px rgba(255, 122, 168, .6); pointer-events: none; animation: dlPegMk .8s ease-in-out infinite alternate; }
+.desk-stage > .dl-pegmk b, .ds-try-st > .dl-pegmk b { position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0; white-space: nowrap; padding: 4px 12px; border-radius: 99px; background: #fff; border: 2px solid #f4a9c4; color: #c2457a; font-size: 15px; font-weight: 800; box-shadow: 0 3px 10px rgba(160, 90, 110, .2); }
 @keyframes dlPegMk { from { scale: .85; } to { scale: 1.15; } }
-#deskStage .desk-item.dl-near { filter: drop-shadow(0 0 6px #ff7aa8) drop-shadow(0 0 2px #fff); }
+.desk-item.dl-near { filter: drop-shadow(0 0 6px #ff7aa8) drop-shadow(0 0 2px #fff); }
 
 /* 📒 스티커정리모드 (도련 11-14 · js/basket.js abs-dkmode) : 다이어리모드처럼 책상 위 = 바탕은 🪵 책상판 무늬 / 🌈 배경지 (html --dku-* · js/deskskin.js dkUnderVars) · 오른쪽 위 ✕ (도련 11-15 · 메뉴 · 이동 안 보여요) · 예전 오른쪽 위 메뉴 그대로 · 날짜바 자리에 정리 막대 */
 #basketKindModal.abs-dkmode > .modal-content { background-color: var(--dku-c, #f8d1de) !important; background-image: var(--dku-i, none) !important; background-size: var(--dku-s, auto) !important; background-position: var(--dku-p, 0 0) !important; background-repeat: var(--dku-r, repeat) !important; }

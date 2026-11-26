@@ -19,7 +19,10 @@
     const IMG = new Map();                                                    // 그림 주소 → Image
     let run = false, T0 = performance.now(), last = T0, PEGS = [];
     const cfgOf = c => (c && c.줄) || {};
-    const itemOf = u => DK.items.find(x => x.u === u);
+    const itemOf = u => window.dkItem ? dkItem(u) : DK.items.find(x => x.u === u);   // 내 책상 + 🏪 가상 빈 방 (js/desk.js dkItem)
+    const stageOf = el => el && el.closest('.desk-stage, .ds-try-st');       // 그 소품이 놓인 방 (책상 · 가상 빈 방 · 크기는 둘 다 1920×1080)
+    const scaleOf = stg => (stg && stg.getBoundingClientRect().width / (stg.offsetWidth || 1)) || DK.s || 1;
+    const ITEMS = '#deskStage .desk-item, .ds-try-st .desk-item';
     const imgOf = src => { if (!IMG.has(src)) { const im = new Image(); im.src = src; IMG.set(src, im); } return IMG.get(src); };
     const hex = c => { const n = parseInt(String(c || '#ffe28c').slice(1), 16) || 0xffe28c; return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(','); };
 
@@ -44,7 +47,7 @@
         }
         el.classList.add('dk-lt');
         const cv = document.createElement('canvas'); cv.className = 'dl-cv'; cv.setAttribute('aria-hidden', 'true'); el.appendChild(cv); st.cv = cv;
-        const stg = document.getElementById('deskStage'); let L = stg.querySelector(':scope > .dk-lights');
+        const stg = stageOf(el); if (!stg) return null; let L = stg.querySelector(':scope > .dk-lights');
         if (!L) { L = document.createElement('div'); L.className = 'dk-lights'; L.setAttribute('aria-hidden', 'true'); stg.appendChild(L); }
         const gl = document.createElement('canvas'); gl.className = 'dl-glow'; gl.dataset.gu = u; L.appendChild(gl); st.gl = gl;
         wire(); S.set(u, st); return st;
@@ -79,7 +82,7 @@
     function draw(st, now, dt) {
         const el = st.el, c = cfgOf(st.c), o = itemOf(st.u) || {}, on = !(o.cs && o.cs.off);
         const W = el.offsetWidth + DL_M * 2, H = el.offsetHeight + DL_M * 2, ox = el.offsetLeft - DL_M, oy = el.offsetTop - DL_M;
-        const k = Math.min(2, (DK.s || 1) * (devicePixelRatio || 1));
+        const k = Math.min(2, scaleOf(stageOf(el)) * (devicePixelRatio || 1));
         Object.assign(st.cv.style, { left: -DL_M + 'px', top: -DL_M + 'px', width: W + 'px', height: H + 'px' }); fitCv(st.cv, W, H, k);
         Object.assign(st.gl.style, { left: ox + 'px', top: oy + 'px', width: W + 'px', height: H + 'px', display: el.style.display === 'none' ? 'none' : '' }); fitCv(st.gl, W, H, k);
         const x = st.cv.getContext('2d'), g = st.gl.getContext('2d'), P = st.pts;
@@ -119,21 +122,21 @@
         requestAnimationFrame(frame);
     }
     function dlPaint() {                                                      // js/desk.js deskItemsRender 끝에서
-        const els = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('rope'));   // 🎐 상품 '기능' rope (도련 11-06)
+        const els = [...document.querySelectorAll(ITEMS)].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('rope'));   // 🎐 상품 '기능' rope (도련 11-06)
         S.forEach((st, u) => { if (!els.includes(st.el)) dropState(u); });
-        PEGS = [...document.querySelectorAll('#deskStage .desk-item')].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('peg'));
+        PEGS = [...document.querySelectorAll(ITEMS)].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('peg'));
         els.forEach(el => { const o = itemOf(el.dataset.u); if (o && Array.isArray(o.lb)) { el.style.width = o.lb[0] + 'px'; el.style.height = o.lb[1] + 'px'; } stateOf(el); });
         if (S.size && !run) { run = true; last = performance.now(); requestAnimationFrame(frame); }
     }
 
     /* ---------- 🛠 꾸미기 : 끝 · 핀 끌기 ---------- */
-    function toDesk(ev) { const R = document.getElementById('deskStage').getBoundingClientRect(), s = DK.s || 1; return { x: (ev.clientX - R.left) / s, y: (ev.clientY - R.top) / s }; }
+    function toDesk(ev, el) { const stg = stageOf(el) || document.getElementById('deskStage'), R = stg.getBoundingClientRect(), s = scaleOf(stg); return { x: (ev.clientX - R.left) / s, y: (ev.clientY - R.top) / s }; }
     function hitPin(st, m, r) { let best = -1, bd = r; st.pins.forEach((p, k) => { const a = absPin(st, p), d = Math.hypot(a.x - m.x, a.y - m.y); if (d < bd) { bd = d; best = k; } }); return best; }
     function hitAny(ev) {                                                     // 꾸미기 중 · 핀이나 줄 위를 눌렀나 (소품 네모 밖으로 처진 줄도)
-        if (!DK.edit || !S.size) return null;
-        const m = toDesk(ev), r = 18 / (DK.s || 1);
-        for (const st of S.values()) { const k = hitPin(st, m, r); if (k >= 0) return { st, k, m }; }
-        for (const st of S.values()) { let k = -1, bd = r * .8; st.pts.forEach((p, i) => { const d = Math.hypot(p.x - m.x, p.y - m.y); if (d < bd) { bd = d; k = i; } }); if (k >= 0) return { st, k, m, rope: true }; }
+        if (!S.size) return null;
+        const can = st => DK.edit || (window.dkTryItem && dkTryItem(st.u)), at = st => ({ m: toDesk(ev, st.el), r: 18 / scaleOf(stageOf(st.el)) });   // 🛠 꾸미기 · 🏪 가상 빈 방
+        for (const st of S.values()) { if (!can(st)) continue; const { m, r } = at(st), k = hitPin(st, m, r); if (k >= 0) return { st, k, m }; }
+        for (const st of S.values()) { if (!can(st)) continue; const { m, r } = at(st); let k = -1, bd = r * .8; st.pts.forEach((p, i) => { const d = Math.hypot(p.x - m.x, p.y - m.y); if (d < bd) { bd = d; k = i; } }); if (k >= 0) return { st, k, m, rope: true }; }
         return null;
     }
     let DRAG = null, WIRED = false;
@@ -149,7 +152,7 @@
         }, true);
         document.addEventListener('pointermove', ev => {
             if (!DRAG || ev.pointerId !== DRAG.id) return;
-            ev.stopImmediatePropagation(); const { st, k } = DRAG, m = toDesk(ev), p = clampPin(st, k, m.x, m.y);
+            ev.stopImmediatePropagation(); const { st, k } = DRAG, m = toDesk(ev, st.el), p = clampPin(st, k, m.x, m.y);
             st.pins.set(k, { x: p.x - st.el.offsetLeft, y: p.y - st.el.offsetTop });
         }, true);
         const up = ev => { if (!DRAG || ev.pointerId !== DRAG.id) return; ev.stopImmediatePropagation(); const st = DRAG.st; DRAG = null; refit(st); };
@@ -167,12 +170,12 @@
         st.pins.forEach(p => { p.x += ol - l; p.y += ot - t; });
         Object.assign(el.style, { left: l + 'px', top: t + 'px', width: w + 'px', height: h + 'px' });
         o.x = l; o.y = t; o.lb = [w, h]; o.lp = [...st.pins].sort((a, b) => a[0] - b[0]).map(([k, p]) => [+(k / (DL_N - 1)).toFixed(4), Math.round(p.x), Math.round(p.y)]);
-        DK.base[st.u] = { x: l, y: t };
+        if (!(window.dkTryItem && dkTryItem(st.u))) DK.base[st.u] = { x: l, y: t };
         dkPersist(o); if (window.deskZAll) deskZAll(); if (window.deskTipPlace) deskTipPlace();
     }
     function dlSolid(el, cx, cy) {                                            // 톡 · 끌기 = 줄 · 전구 · 핀 위만 (빈 곳은 아래 소품으로 · js/desk.js dkSolidAt)
         const st = S.get(el.dataset.u); if (!st) return false;
-        const m = toDesk({ clientX: cx, clientY: cy }), r = 14 / (DK.s || 1), c = cfgOf(st.c), n = Math.max(0, Math.round(+c.n || 0)), B = st.c.bulbs || [];
+        const m = toDesk({ clientX: cx, clientY: cy }, el), r = 14 / scaleOf(stageOf(el)), c = cfgOf(st.c), n = Math.max(0, Math.round(+c.n || 0)), B = st.c.bulbs || [];
         if (st.pts.some(p => Math.hypot(p.x - m.x, p.y - m.y) < r)) return true;
         for (let i = 0; i < n; i++) { const b = B.length ? B[i % B.length] : null, s = (b && +b.s) || 30, p = onRope(st.pts, (i + .5) / n); if (Math.hypot(p.x - m.x, p.y + s * .4 - m.y) < s * .6 + r * .5) return true; }
         return false;
@@ -196,12 +199,13 @@
     const isPeg = el => ((dkCat(el.dataset.id) || {}).can || []).includes('peg');
     function pegNear(el) {                                                    // 가장 가까운 줄 자리 (집게 끝에서 40px 안) → { d, r, t, p } | null
         const pg = pegPt(el), a = { x: el.offsetLeft + pg[0], y: el.offsetTop + pg[1] }; let best = null;
-        S.forEach(st => { for (let i = 1; i < 200; i++) { const t = i / 200, p = onRope(st.pts, t), d = Math.hypot(p.x - a.x, p.y - a.y); if (d < 40 && (!best || d < best.d)) best = { d, r: st.u, t: +t.toFixed(4), p }; } });
+        const stg = stageOf(el); S.forEach(st => { if (stageOf(st.el) !== stg) return; for (let i = 1; i < 200; i++) { const t = i / 200, p = onRope(st.pts, t), d = Math.hypot(p.x - a.x, p.y - a.y); if (d < 40 && (!best || d < best.d)) best = { d, r: st.u, t: +t.toFixed(4), p }; } });
         return best;
     }
     /* 📷 끄는 동안 = 줄에 닿으면 알려 줘요 (도련 11-12 : 만든 사람이 아니면 줄에 놓으면 집힌다는 걸 몰라요) : 줄 위 그 자리에 반짝 동그라미 + 집게가 빛나요 */
     function dlPegHint(el) {
-        const st0 = document.getElementById('deskStage'); if (!st0) return;
+        if (!el) { document.querySelectorAll('.dl-pegmk').forEach(m => m.remove()); return; }
+        const st0 = stageOf(el); if (!st0) return;
         let mk = st0.querySelector(':scope > .dl-pegmk');
         const b = el && isPeg(el) ? pegNear(el) : null;
         if (el) el.classList.toggle('dl-near', !!b);

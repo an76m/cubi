@@ -10,9 +10,9 @@
     const DKT_KEY = 'diary_desk_tape', DKT_L = 'malang_desk_tape';
     const T = { list: null, loading: false, fresh: false, tmp: new Map(), ov: {}, wait: new Map() };   // wait = 임시 롤을 누르고 기다리는 중 (tmp → [ok])   // ov = { 정리함 u: [칸마다 임시 롤 id] } (저장 전 · 화면에만)   // fresh = 방금 새로 읽은 목록 (없는 테이프를 뺄 때만)
     const desk = UI.desk;
-    const trying = () => !!(DK.trial && T.try);                              // 🏪 적용해보기 = 화면에서만 (저장 없음 · 도련 11-12)
-    const read = () => { if (trying()) return JSON.parse(JSON.stringify(T.try.M)); const v = typeof prefGet === 'function' ? prefGet(DKT_KEY, DKT_L) : null; return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
-    const write = v => { if (trying()) { T.try.M = v; trayPaint(); return; } if (typeof prefSet === 'function') prefSet(DKT_KEY, DKT_L, v); };
+    const trying = () => !!T.try;                                             // 🏪 가상 빈 방 정리함 (js/desk.js deskTrial · 도련 11-12 · 11-27) = 그 칸은 화면에만 (저장할 곳 없음)
+    const read = () => { const v0 = typeof prefGet === 'function' ? prefGet(DKT_KEY, DKT_L) : null, v = v0 && typeof v0 === 'object' && !Array.isArray(v0) ? v0 : {}; return T.try ? Object.assign({}, v, JSON.parse(JSON.stringify(T.try.M))) : v; };   // 가상 정리함 칸 = 그 정리함만 따로
+    const write = v => { if (trying()) { T.try.M = { [T.try.u]: v[T.try.u] || [] }; trayPaint(); return; } if (typeof prefSet === 'function') prefSet(DKT_KEY, DKT_L, v); };
     const isRack = el => !!el && dkDef(el).hold === 'tape';   // 🧺 상품 '담는것' = 마테 롤 (도련 11-06 · 종류가 아니라 상품)
     const slotsOf = el => (dkDef(el).slots || []).filter(r => Array.isArray(r) && r.length === 4);
     const entry = id => (T.list || []).find(e => e.id === id) || T.tmp.get(id) || null;   // T.tmp = 🎁 아직 드라이브에 저장 중인 처음 선물 롤 (먼저 보여 줘요)
@@ -31,7 +31,7 @@
     /* 정리함에 꽂힌 테이프 id (지금 책상에 있는 정리함만 · 다 쓴 · 버린 테이프는 빼요) */
     function held() {
         const M = read(), out = new Set();
-        document.querySelectorAll('#deskStage .desk-item').forEach(el => { if (isRack(el)) (M[el.dataset.u] || []).forEach(id => { if (id) out.add(id); }); });
+        document.querySelectorAll('#deskStage .desk-item, .ds-try-st .desk-item').forEach(el => { if (isRack(el)) (M[el.dataset.u] || []).forEach(id => { if (id) out.add(id); }); });
         return out;
     }
     window.dktHeld = () => desk() ? held() : new Set();
@@ -39,7 +39,7 @@
     function paint() {
         if (!desk()) return;
         const M = read(); let dirty = false;
-        document.querySelectorAll('#deskStage .desk-item').forEach(el => {
+        document.querySelectorAll('#deskStage .desk-item, .ds-try-st .desk-item').forEach(el => {
             let host = el.querySelector(':scope > .dkt-rack');
             if (!isRack(el)) { if (host) host.remove(); return; }
             if (!host) { host = document.createElement('div'); host.className = 'dkt-rack'; el.appendChild(host); }
@@ -51,7 +51,7 @@
             const img = el.querySelector(':scope > img'), d = dkDef(el);
             const iw = parseFloat(el.style.width) || el.offsetWidth, ih = parseFloat(el.style.height) || el.offsetHeight;
             host.innerHTML = S.map((r, i) => {
-                const id = ids[i]; if (!id || (T.list && !entry(id))) return DK.edit ? '' : `<button type="button" class="dkt-empty" data-i="${i}" title="빈 칸 · 톡 = 서랍에서 꺼내 꽂기" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"></button>`;   // 🎀 빈 칸 톡 = 서랍 테이프 꽂기 (도련 11-11)
+                const id = ids[i]; if (!id || (T.list && !entry(id))) return DK.edit || (window.dkTryItem && dkTryItem(el.dataset.u)) ? '' : `<button type="button" class="dkt-empty" data-i="${i}" title="빈 칸 · 톡 = 서랍에서 꺼내 꽂기" style="left:${r[0]}%;top:${r[1]}%;width:${r[2] - r[0]}%;height:${r[3] - r[1]}%"></button>`;   // 🎀 빈 칸 톡 = 서랍 테이프 꽂기 (도련 11-11)
                 const e = entry(id), q = e && e.q0 ? Math.max(.25, Math.min(1, e.q / e.q0)) : 1, th = e && e.th ? e.th : '';
                 const H = (r[3] - r[1]) * (.55 + .45 * q), W = (r[2] - r[0]) * .86;   // 남은 길이만큼 지름이 줄어요
                 return `<button type="button" class="dkt-roll${window.dsHas && dsHas(id) ? ' dkt-out' : ''}" data-i="${i}" data-id="${htmlEsc(id)}" title="🎀 마스킹테이프" style="left:${(r[0] + (r[2] - r[0] - W) / 2).toFixed(2)}%;top:${(r[3] - H).toFixed(2)}%;width:${W.toFixed(2)}%;height:${H.toFixed(2)}%"><i style="width:${(H / 100 * ih).toFixed(1)}px;height:${(W / 100 * iw).toFixed(1)}px;background-image:url(&quot;${htmlEsc(th)}&quot;)"></i></button>`;   // 무늬 = 테이프 결 그대로 세로로 (롤 둘레)
@@ -68,7 +68,7 @@
         b.addEventListener('pointerdown', ev => {
             if (ev.button > 0) return; ev.preventDefault(); ev.stopPropagation();
             const id = b.dataset.id, i = +b.dataset.i, u = el.dataset.u;
-            if (!DK.edit) {                                                     // 평소 : 톡 = 가운데로 · 끌기 = 손으로 꺼내기 (도련 11-11)
+            if (!DK.edit && !(window.dkTryItem && dkTryItem(u))) {             // 평소 : 톡 = 가운데로 · 끌기 = 손으로 꺼내기 (도련 11-11) · 🏪 가상 빈 방 정리함 = 꾸미기처럼 옮겨 보기 · 톡 = 빼기
                 const x0 = ev.clientX, y0 = ev.clientY;
                 const mv = e => { if (e.pointerId !== ev.pointerId || !dkFar(x0, y0, e)) return; off(); follow(id, { u, i }, e); };   // ✋ 끌기 시작 = 바로 큰 롤(꺼낸 모습)이 손을 따라와요 (도련 11-11)
                 const up = e => { if (e.pointerId !== ev.pointerId) return; off(); if (e.type === 'pointerup') use(id, b); };
@@ -96,7 +96,7 @@
         });
     }
     function slotAt(x, y) {                                                   // 그 자리의 정리함 칸 { u, i }
-        for (const el of document.querySelectorAll('#deskStage .desk-item')) {
+        for (const el of document.querySelectorAll('#deskStage .desk-item, .ds-try-st .desk-item')) {
             if (!isRack(el)) continue;
             const im = el.querySelector(':scope > img') || el, R = im.getBoundingClientRect(); if (x < R.left || x > R.right || y < R.top || y > R.bottom) continue;
             const px = (x - R.left) / R.width * 100, S = slotsOf(el);
@@ -139,7 +139,7 @@
     }
     /* 🔍 정리함 확대 (도련 11-11 · 펜꽂이처럼) : 정리함 틀(롤 말고)을 톡 = 정리함이 화면 가운데로 다가와요 → 롤을 잡고 위로 쏙 = 꺼내요 (이미 가운데라 바로 그 자리에) · 밖 톡 · 닫기 = 닫혀요 */
     function zoom(u) {
-        const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!el || !isRack(el) || !window.dkwRoom) return;
+        const el = document.querySelector(`.desk-item[data-u="${u}"]`); if (!el || !isRack(el) || !window.dkwRoom) return;
         paint();
         const r = dkwRoom('dktZoom'), iw = el.offsetWidth || parseFloat(el.style.width), ih = el.offsetHeight || parseFloat(el.style.height);
         const W = Math.min(innerWidth * .86, 760), H = Math.round(W * ih / iw);
@@ -166,7 +166,7 @@
     window.dktZoom = zoom;
     /* 🎀 칸 고르기 (도련 11-04 · 서랍장 dkzChoose 처럼) : 정리함 그림이 크게 뜨고 빈 칸을 직접 눌러요 · 찬 칸 = 그 테이프가 보이고 못 눌러요 · 결과 = 칸 번호 (취소 = -1) */
     async function pickSlot(t, ids, need) {                                   // 칸 고르기 창 하나로 (js/desk.js dkSlotAsk · 서랍장과 같은 창 · 칸 모습만 달라요)
-        const o = DK.items.find(x => x.u === t.dataset.u);
+        const o = window.dkItem ? dkItem(t.dataset.u) : DK.items.find(x => x.u === t.dataset.u);
         return dkSlotAsk(t, {
             slots: slotsOf(t), cls: 'dkt-pick',
             head: `🎀 <b>마스킹테이프</b>를 꽂을 칸을 눌러 주세요<br><span style="font-size:12px;color:#777;">${htmlEsc(dkName(o) || '마테 정리함')} · 빈 칸만 고를 수 있어요${need > 1 ? ` · ${need}개는 고른 칸부터 빈 칸에 차례로` : ''}</span>`,
@@ -211,7 +211,7 @@
     async function trial(on, u) {
         const old = document.getElementById('dktTry'); if (old) old.remove();
         if (!on) { if (T.try) T.try.ids.forEach(id => T.tmp.delete(id)); T.try = null; return; }
-        const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!el || !isRack(el)) return;
+        const el = document.querySelector(`.desk-item[data-u="${u}"]`); if (!el || !isRack(el)) return;
         const n = slotsOf(el).length || 10;
         T.try = { u, M: { [u]: Array(n).fill(null) }, ids: [] };
         let L = []; try { const C = window.sbShelf ? await sbShelf('tape') : []; L = await Promise.all(C.slice(0, n).map(c => c.take().catch(() => null))); } catch (e) {}
@@ -231,7 +231,7 @@
         if (ev.button > 0) return; ev.preventDefault();
         const id = b.dataset.id;
         const set = f => { if (!T.try) return; const M = read(), u = T.try.u, row = (M[u] || []).slice(); if (!f(row, u)) { trayPaint(); return; } M[u] = row; write(M); paint();
-            const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (el && window.dkbPulse) dkbPulse(el); };
+            const el = document.querySelector(`.desk-item[data-u="${u}"]`); if (el && window.dkbPulse) dkbPulse(el); };
         dkDrag(ev, b, {
             at: null, from: 'in',
             ghost: () => { const g = document.createElement('i'); g.className = 'dkt-tryg'; g.style.backgroundImage = b.style.backgroundImage; return g; },

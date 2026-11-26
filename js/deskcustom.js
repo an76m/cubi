@@ -31,7 +31,8 @@
     const dcEsc = t => htmlEsc(t || '');   // 🧰 js/util.js
     const dcMemoHtml = (m, i, sel) => `<div class="dk-memo m-${m.p}${sel ? ' sel' : ''}" data-i="${i}" style="left:${m.x}%;top:${m.y}%;--r:${m.r || 0}deg"><p>${dcEsc(m.t)}</p></div>`;
 
-    const dcItem = u => DK.items.find(x => x.u === u);
+    const dcItem = u => window.dkItem ? dkItem(u) : DK.items.find(x => x.u === u);   // 내 책상 + 🏪 가상 빈 방 (js/desk.js dkItem)
+    const dcEl = u => document.querySelector(`.desk-item[data-u="${u}"]`);   // 소품 그림 (책상 · 가상 빈 방 · u 는 하나뿐)
     const dcCat = o => (o && dkCat(o.id)) || {};
     const dcKind = o => { const C = (dcCat(o).can || []).map(f => DC_CAN[f]).filter(Boolean); if (!C.length) return null; const a = C.find(c => c.act); return { tabs: [].concat(...C.map(c => c.tabs)), act: a ? a.act : null, area: a && a.area ? a.area : null }; };   // 기능을 합쳐요 (톡 동작은 하나 · 앞 기능)
     const dcCs = o => (o.cs = o.cs || {});
@@ -44,12 +45,12 @@
     function dcOpen(u, keep) {
         const o = dcItem(u); if (!o) return;
         DC.u = u; DC.area = null;
-        const K = dcKind(o), tabs = (DK.trial ? [] : ['paint']).concat(K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []);   // 🏪 적용해보기 = 색칠 · 누르는 곳 빼고 기능만
-        if (K && K.act && dcFnOf(u) && !DK.trial) tabs.unshift('area');
+        const K = dcKind(o), tabs = (window.dkTryItem && dkTryItem(u) ? [] : ['paint']).concat(K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []);   // 🏪 적용해보기 = 색칠 · 누르는 곳 빼고 기능만
+        if (K && K.act && dcFnOf(u) && !(window.dkTryItem && dkTryItem(u))) tabs.unshift('area');
         if (!tabs.length) return;   /* 👆 누르는 곳 = 맨 앞 · 꾸미기 열면 바로 보여 줌 */
         if (!keep) DC.mi = -1;
-        if (!keep || !tabs.includes(DC.tab)) DC.tab = DK.trial ? tabs[0] : tabs[0] === 'area' ? 'area' : (tabs[1] || 'paint');
-        const t = document.getElementById('deskCsTitle'); if (t) t.textContent = DK.trial ? '✨ ' + dkName(o) : '🎨 ' + dkName(o) + ' 꾸미기';
+        if (!keep || !tabs.includes(DC.tab)) DC.tab = window.dkTryItem && dkTryItem(u) ? tabs[0] : tabs[0] === 'area' ? 'area' : (tabs[1] || 'paint');
+        const t = document.getElementById('deskCsTitle'); if (t) t.textContent = window.dkTryItem && dkTryItem(u) ? '✨ ' + dkName(o) : '🎨 ' + dkName(o) + ' 꾸미기';
         const bar = document.getElementById('deskCsTabs');
         if (bar) bar.innerHTML = tabs.map(k => `<button type="button" class="dcs-tab${k === DC.tab ? ' on' : ''}" onclick="dcTab('${k}')">${DC_TAB[k]}</button>`).join('');
         dcBody();
@@ -185,7 +186,7 @@
 
     /* ---------- 🪑 책상 위 모습 (불빛 · 숫자) ---------- */
     function dcApply(u) {
-        const o = dcItem(u), el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (!o || !el) return;
+        const o = dcItem(u), el = dcEl(u); if (!o || !el) return;
         const cs = o.cs || {}, can = dcCat(o).can || [];
         if (can.includes('light')) {
             el.classList.toggle('lit', !!cs.on); el.style.setProperty('--lt', cs.light || dcLights(o)[0]);
@@ -202,7 +203,7 @@
     const DC_SVG = 'http://www.w3.org/2000/svg';
     function dcGlowPts(c) { return Array.isArray(c.glow) ? c.glow.filter(p => Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1])).map(p => [+p[0], +p[1]]) : []; }
     function dcGlow(el, c) {
-        const st = document.getElementById('deskStage'), u = el.dataset.u; if (!st) return;
+        const st = el.closest('.desk-stage, .ds-try-st'), u = el.dataset.u; if (!st) return;   // 불빛 한 겹 = 그 소품이 놓인 방 (책상 · 가상 빈 방)
         let L = st.querySelector(':scope > .dk-lights');
         if (!L) { L = document.createElement('div'); L.className = 'dk-lights'; L.setAttribute('aria-hidden', 'true'); st.appendChild(L); }
         let g = [...L.children].find(x => x.dataset.gu === u);
@@ -249,7 +250,7 @@
         return true;
     }
     /* ⏰ 알람 : 1초마다 (책상 화면) · 그 분 0초 ~ 59초 사이 한 번 · 하루 한 번 (alarm.last = 날짜) */
-    function dcRingStop() { const el = DC.ring && document.querySelector(`#deskStage .desk-item[data-u="${DC.ring}"]`); if (el) el.classList.remove('ring'); clearInterval(DC.ringT); DC.ring = null; }
+    function dcRingStop() { const el = DC.ring && dcEl(DC.ring); if (el) el.classList.remove('ring'); clearInterval(DC.ringT); DC.ring = null; }
     setInterval(() => {
         if (typeof DK === 'undefined' || !DK.items || DC.ring) return;
         const n = new Date(), hm = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'), day = n.toDateString();
@@ -263,12 +264,12 @@
     /* 🏪 적용해보기 (도련 11-12) : 처음부터 기능 창이 떠 있어요 (색칠 빼고 · 버튼 없이 바로) · 기계(라벨기 · 디카 · 프린터) = 기계가 바로 떠요 · 소품을 톡 = 앱처럼 동작 + 창 */
     const dcTrialTabs = o => { const K = dcKind(o); return K ? K.tabs.filter(t => t !== 'digits' || dcCat(o).lcd) : []; };
     function dcTrialOpen(u, did, first) {
-        const o = dcItem(u); if (!o || !DK.trial) return;
+        const o = dcItem(u); if (!o || !(window.dkTryItem && dkTryItem(u))) return;
         const K = dcKind(o), M = document.getElementById('deskCsModal'), on = M && M.style.display === 'flex';
         if (dcTrialTabs(o).length) { if (on && DC.u === u) dcBody(); else dcOpen(u);
-            const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`), R = el && el.getBoundingClientRect();   // 창은 소품 반대쪽에 (소품이 가리지 않게)
+            const el = dcEl(u), R = el && el.getBoundingClientRect();   // 창은 소품 반대쪽에 (소품이 가리지 않게)
             if (M) M.classList.toggle('dct-l', !!R && R.left + R.width / 2 > innerWidth / 2); return; }
-        if (first && K && ['label', 'camera', 'print', 'pad'].includes(K.act)) { const el = document.querySelector(`#deskStage .desk-item[data-u="${u}"]`); if (el) dcTap(el, 0, 0); }
+        if (first && K && ['label', 'camera', 'print', 'pad'].includes(K.act)) { const el = dcEl(u); if (el) dcTap(el, 0, 0); }
     }
     function dcTrialOff() { dcRingStop(); const M = document.getElementById('deskCsModal'); if (M) M.classList.remove('dct-l'); if (M && M.style.display === 'flex' && window.closeModal) closeModal('deskCsModal'); }
     window.dcTrialOpen = dcTrialOpen; window.dcTrialOff = dcTrialOff;

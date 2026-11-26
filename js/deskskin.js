@@ -154,9 +154,10 @@
             if (!it || !dsCat(it.id)) return ''; dsUse(it.u); return dsCat(it.id).k;
         }
         window.dsPut = dsPut;
-        /* 🏪 적용해보기 (도련 11-11) : 샵에서 벽지 · 책상판을 고르면 화면 가득 빈 방에 그것만 바뀐 모습 (소품 없이 · 나머지는 기본 그대로) · 오른쪽 위 닫기 */
-        function dsTry(id) {
-            const c = dsCat(id); if (!c) return;
+        /* 🏪 가상 빈 방 하나 (도련 11-11 · 11-27 '가상틀에 책상만') : 화면 가득 기본 방 (img/desk-wide.webp · 1920×1080 = 책상과 같은 크기 · 같은 맞춤) · 오른쪽 위 ✕
+             - 🧱 🪵 벽지 · 책상판 적용해보기 = 그 무늬만 바뀐 방 (dsTry) · 🪑 책상소품 적용해보기 = 그 소품만 놓인 방 (js/desk.js deskTrial · k 'dk' = 샵 창 · 기계 창 아래)
+             - 아무것도 저장하지 않아요 · 닫으면 방에 놓인 것 다 사라져요 */
+        function dsRoom(k, off) {
             let r = document.getElementById('dsTry');
             if (!r) {
                 r = document.createElement('div'); r.id = 'dsTry'; r.className = 'ds-try';
@@ -165,18 +166,29 @@
                 addEventListener('resize', () => { if (!r.hidden) dsTryFit(); });
                 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !r.hidden) dsTryOff(); });
             }
-            const st = r.querySelector('.ds-try-st'), old = st.querySelector('.desk-skin'); if (old) old.remove();
+            const st = r.querySelector('.ds-try-st'), f = r._off; r._off = null; if (f) f();   // 다른 것이 열려 있었으면 = 먼저 닫아요
+            st.querySelectorAll(':scope > :not(.desk-room)').forEach(e => e.remove());
+            r.classList.toggle('dk', k === 'dk'); r._off = off || null;
+            r.hidden = false; dsTryFit();
+            return st;
+        }
+        function dsTry(id) {
+            const c = dsCat(id); if (!c) return;
+            const st = dsRoom('ds');
             const html = (c.k === 'wall' ? dsSvg(id, '') : dsSvg('', id)).replace(/id="dk/g, 'id="dkTry').replace(/url\(#dk/g, 'url(#dkTry');   // 기본 = 방 그림 그대로 · 무늬 이름을 책상 화면 것과 다르게 (같으면 지금 내 방 벽지가 보였어요 · 도련 11-11)
             if (html) st.querySelector('.desk-room').insertAdjacentHTML('afterend', html);
-            r.hidden = false; dsTryFit();
         }
         function dsTryFit() {                                                    // 책상 화면과 같게 = 화면 꽉 (아래 맞춤)
             const r = document.getElementById('dsTry'), st = r && r.querySelector('.ds-try-st'); if (!st) return;
             const W = innerWidth, H = innerHeight, s = Math.max(W / 1920, H / 1080);
             st.style.transform = `translate(${(W - 1920 * s) / 2}px, ${H - 1080 * s}px) scale(${s})`;
         }
-        function dsTryOff() { const r = document.getElementById('dsTry'); if (r) r.hidden = true; }
-        window.dsTry = dsTry; window.dsTryOff = dsTryOff;
+        function dsTryOff() {
+            const r = document.getElementById('dsTry'); if (!r || r.hidden) return;
+            r.hidden = true; r.querySelectorAll('.ds-try-st > :not(.desk-room)').forEach(e => e.remove());
+            const f = r._off; r._off = null; if (f) f();                       // 🪑 소품 적용해보기 끝 (js/desk.js deskTrialEnd)
+        }
+        window.dsTry = dsTry; window.dsTryOff = dsTryOff; window.dsRoom = dsRoom;
         /* 🗑 버리기 (마지막 하나도 · 쓰던 것이면 그림 그대로로) */
         async function dsDiscard(u) {
             try { await dsReady(); } catch (e) { return; }                      // 💤 먼저 가진 것

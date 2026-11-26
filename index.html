@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611270051">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611270112">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611270051', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611270112', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -45,7 +45,7 @@
     <link rel="preload" as="image" href="img/gate-tall.webp?v=7bdb387444" media="(max-aspect-ratio: 1/1)">
     <link rel="stylesheet" href="css/style.css?v=d1ddc5ded1">
     <link rel="stylesheet" href="css/dakku.css?v=2852565c39">
-    <link rel="stylesheet" href="css/anime.css?v=49e0589b27">
+    <link rel="stylesheet" href="css/anime.css?v=378d524af2">
     <link rel="stylesheet" href="css/boothroom.css?v=8b3a99af67">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
     <link rel="stylesheet" href="css/calroom.css?v=5a5e7b4246">   <!-- 📅 달력 (💻 📲 · js/calroom.js) -->   <!-- 🎬 애니 스타일 (맨 뒤 · js/anime.js) -->
     <link rel="stylesheet" href="css/postroom.css?v=cb8a8ccb94">   <!-- 📮 우체통 (💻 📲 · js/postroom.js) -->
@@ -798,10 +798,10 @@
     <script src="js/gdtry.js?v=785f081008"></script>   <!-- 🏪 문구 사용해보기 = 가상 연습장 (저장 없음 · 닫으면 사라져요) -->
     <script src="js/drcache.js?v=9d8d47acf2"></script>   <!-- ⚡ 드라이브 읽기 기억 (켤 때 바뀐 것만 받기 · 도련 11-17) -->
     <script src="js/drive.js?v=224a2cc688"></script>
-    <script src="js/desk.js?v=33713d2fe9"></script>   <!-- 🪑 책상 꾸미기 (💻 PC · 아이패드만) -->
+    <script src="js/desk.js?v=00b28837dc"></script>   <!-- 🪑 책상 꾸미기 (💻 PC · 아이패드만) -->
     <script src="js/roomexit.js?v=64de6cb98b"></script>   <!-- 🚪 내 방 나가기 = 저장 게이지 → 카메라 아웃 → 앱 끄기 (도련 11-23) -->
     <script src="js/deskpaint.js?v=3a2e8eae6f"></script>
-    <script src="js/deskcustom.js?v=94644f5dd8"></script>   <!-- 🎨 소품 꾸미기 창 (색칠 + 불빛 · 숫자 · 알람 · 사진 · 누르는 곳) -->   <!-- 🎨 책상 소품 꾸미기 (칠하기 · 이미지 붙이기) -->
+    <script src="js/deskcustom.js?v=71967b14b3"></script>   <!-- 🎨 소품 꾸미기 창 (색칠 + 불빛 · 숫자 · 알람 · 사진 · 누르는 곳) -->   <!-- 🎨 책상 소품 꾸미기 (칠하기 · 이미지 붙이기) -->
     <script src="js/coll.js?v=5abbaff6f2"></script>
     <script src="js/mine.js?v=abd265a47e"></script>   <!-- 📦 내 실물 : 받은 소품 · 문구 = 내 드라이브에 진짜로 (받은 그때 모습 · 종류마다 묶음 _실물.json · 기기 보관) -->
     <script src="js/sound.js?v=b762fb2db0"></script>
@@ -817,7 +817,7 @@
     <script src="js/dyown.js?v=38468a228a"></script>   <!-- 📚 가진 다이어리 · 🧩 바인더 재료 (981) -->
     <script src="js/dyyear.js?v=76e01e51d5"></script>
     <script src="js/bgown.js?v=2b0e94fa1c"></script>
-    <script src="js/deskskin.js?v=795e15a1f1"></script>   <!-- 🧱 벽지 · 🪵 책상 (책상 화면 · 샵 책상 소품 · 소품함) -->   <!-- 🌈 배경지 = 상품 (샵에서 받기 · 보관함 · 버리기) -->   <!-- 📔 기본 다이어리 = 1년짜리 날짜 다이어리 · 해마다 기본상품 샵에서 받기 · 다이어리 보관소 -->
+    <script src="js/deskskin.js?v=83f5684236"></script>   <!-- 🧱 벽지 · 🪵 책상 (책상 화면 · 샵 책상 소품 · 소품함) -->   <!-- 🌈 배경지 = 상품 (샵에서 받기 · 보관함 · 버리기) -->   <!-- 📔 기본 다이어리 = 1년짜리 날짜 다이어리 · 해마다 기본상품 샵에서 받기 · 다이어리 보관소 -->
     <script src="js/dkguide.js?v=7399048c6c"></script>   <!-- 🩷 처음 쓰는 사람용 다꾸하는 법 메모 -->
     <script src="js/dymaker.js?v=70cecd42c8"></script>
     <script src="js/binderroom.js?v=da3e86f9e9"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
@@ -868,10 +868,10 @@
     <script src="js/postroom.js?v=ba8dddddc1"></script>   <!-- 📮 우체통 : 익명 편지함 · 건의함 (💻 📲) -->
     <script src="js/world.js?v=0eca52fe19"></script>   <!-- 🌳 말랑 광장 : 임시 2.5D 월드 · 혼자 걷기 (features world) -->
     <script src="js/deskgd.js?v=f10ddc884b"></script>   <!-- 🪑 책상 모드 문구 : ✏️ 펜꽂이가 다가와요 · 🗄️ 문구함 서랍 (💻 📲) -->
-    <script src="js/desktape.js?v=3d97e199a1"></script>   <!-- 🎀 마테 정리함 : 마스킹테이프를 세워 두고 골라 써요 (💻 📲 책상) -->
+    <script src="js/desktape.js?v=47d5d93566"></script>   <!-- 🎀 마테 정리함 : 마스킹테이프를 세워 두고 골라 써요 (💻 📲 책상) -->
     <script src="js/deskmove.js?v=8dfe7c16ab"></script>   <!-- 🔁 꾹 잡아 옮기기 : 정리함 · 펜꽂이 · 서랍 · 다이어리 (💻 📲 책상 · 도련 11-11) -->
     <script src="js/deskbook.js?v=08222d2a50"></script>   <!-- 🗄️ 📔 📒 책 서랍 : 다이어리 · 스티커첩을 서랍장 칸에 넣고 빼요 (💻 📲 책상 · 도련 11-20) -->
-    <script src="js/desklights.js?v=06f9707b17"></script>   <!-- 💡 전구줄 : 출렁이는 줄 · 전구 · 빛 · 깜빡임 (책상 소품 lights) -->
+    <script src="js/desklights.js?v=6a6a698c9f"></script>   <!-- 💡 전구줄 : 출렁이는 줄 · 전구 · 빛 · 깜빡임 (책상 소품 lights) -->
     <script src="js/craft.js?v=3ea94ff81c"></script>   <!-- 🎨 다꾸 작업실 : 스티커 · 배경지 만들기 한 곳에 (💻 📲 📱) -->
     <script src="js/tarotroom.js?v=419dc3f89f"></script>   <!-- 🔮 타로카페 : 카드 다섯 장 = 메뉴 (💻 📲) -->
     <script src="js/arcroom.js?v=457f2df292"></script>   <!-- 🕹️ 뿅뿅오락실 장소 : 오락기 화면마다 게임 (💻 📲) -->
