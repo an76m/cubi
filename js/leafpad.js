@@ -316,9 +316,8 @@
                 ownQty(tkS.own.id, 1, el).catch(er => console.warn('떡메를 아직 못 줄였어요 (다시 해요) :', er));
                 const left = window.ownQtyLeft ? ownQtyLeft(tkS.own.id) : 1;
                 if (left <= 0) { tkSay('마지막 장이었어요 ✨'); setTimeout(closeTteokRoom, 700); return; }
-                tkSay(`붙었어요 ✨ <b>${left}장</b> 남았어요`); return;
+                return;                                                          // 붙인 뒤 메시지 없음 (도련 11-26 · 버튼을 가려요)
             }
-            tkSay('붙었어요 ✨ 한 장 더 뜯어도 돼요');
         }
 
         /* 📝 페이지에 붙은 떡메 = 글상자(textarea) + 뒤에 깔린 떡메 그림 · 일기에는 글 + 떡메 종류(tk) + 그림 그대로(tb) 저장 (js/elements.js)
