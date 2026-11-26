@@ -88,7 +88,7 @@
             page: p => P.length ? `<div class="bnd-pg" style="background:${esc(leaf(P[p][0], p))}"><b class="abx-no">${esc(P[p][1])}</b></div>` : empty,
             blank: () => P.length ? '<div class="bnd-pg end"></div>' : empty,   // 내지 전 = 양쪽 모두 표지 색 위에 안내 (도련 11-23 · 1419 · 예전 왼쪽만 내지색 빗금 종이)
             cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${date ? '📅 ' + cv.y : '🗂️'} ${esc(cv.g)}</span><small>${esc(cv.n)} · 밀어서 펼쳐요</small></div>`,
-            spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3), cvSpine: true,
+            spine: () => BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3), cvSpine: 'ring',
             title: () => `🗂️ ${esc(cv.g)} <small>· 표지</small>`,
             side: () => { try { return localStorage.getItem(BND_SIDE) || 'lr'; } catch (e) { return 'lr'; } }, setSide: v => { try { localStorage.setItem(BND_SIDE, v); } catch (e) {} },
             onPage: (pg, open) => { const e = bq('bndSheets'), h = e && e.querySelector('.bnd-empty'); if (h) h.textContent = hint(open); },   // 펼치면 안내 글이 바뀌어요 (다시 그리지 않아요)

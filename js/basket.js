@@ -734,7 +734,7 @@
                 : `<div class="ab-rel abx-wax abf-rl" data-pg="${p}">${abRelItems(x, p, byId)}${x.it.some(o => (o.pg || 0) === p) ? '' : `<span class="ab-relhint">${x.it.length ? '이 페이지는 비어 있어요' : '비어 있어요<br>📒 스티커 정리에서 떼어 붙여요'}</span>`}</div>`,
             blank: () => t === 'bd' ? '<div class="abx-pg end"></div>' : '<div class="ab-rel abx-wax abf-rl end"></div>',
             cover: () => `<div class="bk-cover ${t}"><span class="bk-cvlb">${t === 'bd' ? '📒' : '🤍'} ${esc(nm)}</span><small>${pages}페이지</small>${U ? '<span class="bk-hint">◀ 밀어서 열기</span>' : ''}</div>`,   // 🪑 책상에 띄운 책 = 다이어리 겉표지처럼 '밀어서 열기'
-            spine: two => t === 'bd' ? ABS_RING.repeat(3) + '<span></span>' + ABS_RING.repeat(3) : '<i></i>'.repeat(14), cvSpine: true,
+            spine: two => t === 'bd' ? ABS_RING.repeat(3) + '<span></span>' + ABS_RING.repeat(3) : '<i></i>'.repeat(14), cvSpine: t === 'bd' ? 'ring' : 'spring',
             title: () => `${t === 'bd' ? '📒' : '🤍'} ${esc(nm)} <small>· 표지</small>`,
             side: () => abSideGet(), setSide: v => { try { localStorage.setItem(ABS_SIDE, v); } catch (e) {} },
             onPage: U ? null : (pg, open) => { B.pg = pg; AB.bookOpen = open; },
