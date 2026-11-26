@@ -954,14 +954,14 @@
                 else if (window.dcTrialOpen) dcTrialOpen(u0, false, true); }, 350);
             return true;
         }
-        function dkTrialUi(on, tip, nm) {
+        function dkTrialUi(on, tip, nm, onX) {   // onX = ✕ 누르면 (없으면 적용해보기 끝 · 📔 펼쳐보기 = js/dyyear.js dyyTryEnd)
             let b = document.getElementById('dkTry');
             if (!on) { if (b) b.remove(); document.documentElement.classList.remove('dk-trial'); return; }
             if (!b) { b = document.createElement('div'); b.id = 'dkTry'; b.className = 'dk-try'; document.body.appendChild(b); }
             b.innerHTML = `<div class="dk-try-tip">${tip}</div><button type="button" class="try-x dk-try-x" aria-label="닫기">✕</button>`;   // 핵심 한 줄만
-            b.querySelector('.dk-try-x').onclick = () => deskEditEnd(false);
+            b.querySelector('.dk-try-x').onclick = () => (onX ? onX() : deskEditEnd(false));
         }
-        window.deskTrial = deskTrial;
+        window.deskTrial = deskTrial; window.dkTrialUi = dkTrialUi;
         window.dkTrialNoSave = () => { if (!DK.trial) return false; if (window.showMsg) showMsg('🏪 적용해보기에서는 저장되지 않아요'); return true; };   // 🏷️📷🖨️ 기계가 만든 것 저장 막기 (한 곳)
         /* 위 막대 (확정 가능 여부) · 아래 📦 보관함 줄 */
         /* 🎨 색칠 · 🖼 사진 미리 보기 (도련 10-28) : 창을 닫으면 책상에 칠한 모습만 보여 주고 (어울리나 전체로 보기) · 하단 ✔ 완료 때 파일에 저장 · ✕ 취소 = 처음 그림
@@ -2385,7 +2385,7 @@
         /* 💾 저장은 실패하면 안 돼요 (도련 10-31) : 될 때까지 다시 · 늦어지면 왜 늦는지 알려 줘요 (화면 위 '저장 중' 표시 = js/elements.js saveBusy) */
         async function deskSaveSure() {
             const why = () => {                                                   // 지금 저장할 수 없는 이유 (saveData 는 이때 조용히 건너뛰어요)
-                if (typeof drive === 'undefined' || drive.guest) return '';
+                if (typeof drive === 'undefined' || drive.guest || window.dyTry) return '';   // 🏪 펼쳐보기 = 저장할 것 없음 (saveData 가 건너뛰어요)
                 const k = typeof getDateKey === 'function' ? getDateKey(currentDate) : '';
                 if (!drive.ready) return '드라이브에 다시 연결하는 중이에요';
                 if (k && !drive.loadedDays.has(k)) { if (typeof ensureKeyLoaded === 'function') ensureKeyLoaded(k).catch(() => {}); return '이 날짜를 드라이브에서 아직 불러오는 중이에요'; }

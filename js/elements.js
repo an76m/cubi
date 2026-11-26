@@ -961,7 +961,7 @@
         window.elTweezers = elTweezers; window.twzPin = twzPin;
 
         async function saveData(showAlert = false) {
-            if (!isCoverOpen) return;
+            if (!isCoverOpen || window.dyTry) return;                          // 🏪 펼쳐보기 = 저장 없음 (js/dyyear.js dyyTry)
             if (window.pgDoneNow && pgDoneNow()) return;                           // ✅ 완료한 페이지는 다시 저장하지 않아요 (고칠 수 없어요 · js/pagedone.js)
             if (window.dyyPastLock && dyyPastLock()) return;                   // 🔒 지난 해 다이어리 = 저장하지 않아요 (펼칠 때 이미 지난 해였던 장만 · 자정 전에 쓰던 장은 저장해요)
             const canvas = document.getElementById('canvasArea');

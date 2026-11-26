@@ -439,7 +439,7 @@
         }
         const dyFind = id => DY_TYPES.find(t => t.id === id) || (typeof dmkGet === 'function' ? dmkGet(id) : null);   // 📓 내가 만든 노트 · 바인더도 (js/dymaker.js)
         /* 📔 날짜형 = 'basic' (날짜 · 1년 · 보관소 = js/dyyear.js) · 모양 = 펼친 권의 디자인 (규격 · 묶음 · 도련 11-04 · js/dyyear.js dyyBookType) */
-        const dyNow = () => dyFind(prefGet(DY_KEY, DY_LOCAL)) || (window.dyyBookType ? dyyBookType() : null);   // js/dyyear.js 가 이 파일 뒤라 처음엔 없어요
+        const dyNow = () => window.dyTry ? (dyTry.look || (window.dyyBookType ? dyyBookType() : null)) : dyFind(prefGet(DY_KEY, DY_LOCAL)) || (window.dyyBookType ? dyyBookType() : null);   // 🏪 펼쳐보기 = 그 상품 모양 (설정은 그대로 · js/dyyear.js dyyTry)   // js/dyyear.js 가 이 파일 뒤라 처음엔 없어요
         const dyLook = dyNow;
         /* 📢 📕 공지 카드 · 표지 꾸미기 = 펼친 권의 상품 체크 (상품공방 '공지' · '표지꾸미기' · 도련 11-06 · 앱은 따르기만)
            - 공지 체크 : 평소에도 환영 카드 · 안 하면 평소엔 숨기고 새 공지(notice.json id 1 이상)가 오면 어느 다이어리든 보여요
@@ -1952,6 +1952,7 @@
         function dkMap() { const m = prefGet(DK_KEY, DK_LOCAL); return m && typeof m === 'object' ? m : {}; }   // 규격 id → 권 id (☁ 로그인 중엔 드라이브 것만 · js/drive.js prefGet)
         function dkId(make) {                                                  // 지금 고른 규격의 권 id (make : 없으면 새로)
             const t = dkType(); if (!t) return null;
+            if (window.dyTry) return 'dktry' + String(t.id).toLowerCase().replace(/[^0-9a-z]/g, '');   // 🏪 펼쳐보기 = 받은 권과 섞이지 않는 빈 권 (만들지 않아요)
             const o = Object.assign({}, dkMap());
             if (o[t.id] || !make) return o[t.id] || null;
             o[t.id] = 'dk' + (String(t.id).toLowerCase().replace(/[^0-9a-z]/g, '') || Date.now().toString(36));   // 기기마다 같은 id

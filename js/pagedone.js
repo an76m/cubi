@@ -78,10 +78,11 @@
     const held = key => !!(window.ownHeld && ownHeld(key).length);
     const dirty = key => PG.drafts.has(key) || held(key);
     window.pgHeld = key => PG.orig.has(key) || PG.drafts.has(key);
-    window.pgDoneNow = () => on() && coverOpen() && PG.done && PG.key === curKey();
+    window.pgDoneNow = () => (!!window.dyTry && coverOpen()) || (on() && coverOpen() && PG.done && PG.key === curKey());   // 🏪 펼쳐보기 (js/dyyear.js dyyTry) = 완료한 페이지처럼 고칠 수 없어요 (저장 · 붙이기 · 떼기 모두)
     window.pgHoldKey = () => (on() && coverOpen() && !PG.done ? curKey() : '');
     window.pgBlock = (x, y) => {
         if (!window.pgDoneNow()) return false;
+        if (window.dyTry) { if (window.showMsg) showMsg('🏪 펼쳐보기예요 · 받으면 꾸밀 수 있어요'); return true; }
         if (window.elLockSay) elLockSay(x, y); else if (window.showMsg) showMsg('✅ 완료한 페이지예요 · 고칠 수 없어요');
         return true;
     };
