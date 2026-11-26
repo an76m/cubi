@@ -31,7 +31,7 @@ function bookSide(cur, s) {                                                  // 
     on[s] = !on[s]; if (!on.l && !on.r) return cur;
     return (on.l ? 'l' : '') + (on.r ? 'r' : '');
 }
-const BOOK_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';   // 🔗 바인더 링 하나 (📒 스티커바인더 · 🧩 바인더 조립 · 가운데 묶음 spine 에)
+const BOOK_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><circle cx="11" cy="27" r="5.5" fill="#5d4a66"/><circle cx="109" cy="27" r="5.5" fill="#5d4a66"/><path d="M11 30C25 10 95 10 109 30" fill="none" stroke="#a597c9" stroke-width="4.2" stroke-linecap="round"/><path d="M11 25C25 5 95 5 109 25" fill="none" stroke="#b9abd8" stroke-width="4.2" stroke-linecap="round"/></svg>';   // 🔗 바인더 링 하나 = 구멍 두 개 + 두 줄 와이어 (덮인 표지 고리와 같은 색 · 굵기 · 도련 11-26) (📒 스티커바인더 · 🧩 바인더 조립 · 가운데 묶음 spine 에)
 const BOOK_DRAG = 8, BOOK_DONE = .35, BOOK_COVER_K = 1.5;   // BOOK_COVER_K = 펼침면 표지는 책도 같이 움직여서 손길을 더 길게 (📔 다이어리 · 📒 🧩 책 엔진 같이)                                       // 몇 px 부터 끌기 · 얼마나 끌면 넘어가요 (넘어가는 시간 = bookTurner 120 + 480 × 거리)
 /* 📖 넘어가는 그림 하나 = 종이 말림 (도련 11-15 · 2-4 · 📔 다이어리 js/page.js updateCurl · 📒 🤍 책 엔진이 같은 계산) : 넘기는 쪽 한 장(폭 W) 기준 자리
    d = 넘긴 만큼 (0 ~ W) · dir 1 = 다음 (오른쪽 끝에서 왼쪽으로) · -1 = 앞 (왼쪽 끝에서 오른쪽으로) · edge = 앞으로 넘길 때 잡는 왼쪽 끝 (다이어리 펼침면 = -W)
@@ -211,9 +211,9 @@ function bookOpen(host, spec) {
         else if (dir > 0) { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg + 1); after = () => { B.pg += 1; }; }
         else { k = 'o'; cur = pageHtml(B.pg); under = pageHtml(B.pg - 1); after = () => { B.pg -= 1; }; }
         const r = slotRect(k); if (!r) { if (cover) { B.open = back; render(); } return null; }
-        if (cover) return flipCover(r, t, stage, under, after, back);          // 📕 표지 = 묶음을 축으로 돌아 넘어가요 (도련 11-26 '그 모습 그대로 열려야 · 현실처럼')
+        if (cover) { r.x -= 22; r.y -= 16; r.w += 38; r.h += 32; cur = cur.replace(/<\/div>\s*$/, coverSpine() + '</div>'); }   // 📕 넘어가는 표지 = 덮인 표지 그대로 (쪽 + 둘레 · 고리 · 도련 11-26) · 📔 다이어리처럼 말리며 열려요
         r.s.innerHTML = `<div class="bk-under">${under}</div><div class="bk-cur">${cur}</div>`;
-        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 ? 44 : 0;
+        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 ? 44 : 0; if (cover) cu.classList.add('cv');
         const fl = document.createElement('div'); fl.className = `bk-flap ${cdir > 0 ? 'dir-next' : 'dir-prev'}${cover ? ' cover' : ''}`; fl.style.top = r.y + 'px'; fl.style.height = r.h + 'px';
         const sh = document.createElement('i'); sh.className = `bk-ush ${cdir > 0 ? 'dir-next' : 'dir-prev'}`; sh.style.top = r.y + 'px'; sh.style.height = r.h + 'px';
         stage.appendChild(fl); stage.appendChild(sh);
@@ -228,25 +228,6 @@ function bookOpen(host, spec) {
         const ctx = { w: W, d: 0, k: cover && t ? BOOK_COVER_K : 1, rev: back, after,   // 💻 표지는 책도 같이 움직여서 손길을 1.5배 (다이어리와 같아요) · 덮기 = 천천히 시작해 빨라져요
             set(px) { this.d = px; draw(back ? W - px : px); },                 // 덮기 = 다 넘긴 데서 되감아요
             done(ok) { B.busy = null; if (ok) after(); else if (cover) B.open = back; render(); } };   // 그만뒀어요 = 처음 모습 그대로
-        B.busy = ctx; ctx.set(0);
-        return ctx;
-    }
-    /* 📕 표지 넘기기 = 진짜 책처럼 (도련 11-26) : 덮인 모습 그대로의 표지가 왼쪽 묶음(링 · 스프링)을 축으로 돌아요 (3D rotateY)
-         · 표지 크기 = 덮인 책 그대로 (쪽 + 둘레) · 링은 표지에 걸린 채 · 90° 를 넘으면 안쪽 면 · 그만큼 왼쪽 쪽이 드러나요 · 💻 책은 같이 가운데로 */
-    function flipCover(r, t, stage, under, after, back) {
-        r.s.innerHTML = under;
-        const bk = stage.querySelector('.bk-book'), sb = stage.getBoundingClientRect(), kb = bk.getBoundingClientRect();
-        const ax = r.x - 22, W = r.w + 38, bx = kb.left - sb.left, hid = Math.max(0, ax - bx);   // ax = 묶음 (표지가 도는 축) · W = 표지 너비
-        const f = document.createElement('div'); f.className = 'bk-flip3' + (spec.cvSpine ? ' ' + spec.cvSpine : '');
-        f.style.left = ax + 'px'; f.style.top = (r.y - 16) + 'px'; f.style.width = W + 'px'; f.style.height = (r.h + 32) + 'px';
-        f.innerHTML = `<div class="bk-f3 fr">${spec.cover()}${coverSpine()}</div><div class="bk-f3 bk3">${spec.cover3b ? spec.cover3b() : ''}</div>`;
-        stage.appendChild(f);
-        const draw = d => { const p = Math.max(0, Math.min(1, d / W)), a = 180 * p, c = Math.cos(a * Math.PI / 180);
-            f.style.transform = `perspective(${Math.round(W * 7)}px) rotateY(${-a.toFixed(2)}deg)`;
-            if (t) { bk.style.clipPath = `inset(0 0 0 ${Math.max(0, hid - (c < 0 ? -c * W : 0)).toFixed(1)}px)`; stage.style.translate = `${(-hid / 2 * (1 - p)).toFixed(1)}px 0`; } };
-        const ctx = { w: W, d: 0, k: t ? BOOK_COVER_K : 1, rev: back, after,
-            set(px) { this.d = px; draw(back ? W - px : px); },
-            done(ok) { B.busy = null; f.remove(); bk.style.clipPath = ''; stage.style.translate = ''; if (ok) after(); else B.open = back; render(); } };
         B.busy = ctx; ctx.set(0);
         return ctx;
     }

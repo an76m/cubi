@@ -427,11 +427,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-cvsp b::after { content: ''; position: absolute; left: 3px; top: 50%; width: 30px; height: 10px; translate: 0 -62%; box-sizing: border-box; border: 2.6px solid #b9abd8; border-right-color: transparent; border-radius: 50%; filter: drop-shadow(0 3px 0 #a597c9) drop-shadow(0 1px 1px rgba(60,40,80,.35)); }   /* 감긴 고리 (두 줄) */
 .bk-cvsp span { flex: 1; visibility: hidden; }
 .bk-book.shut > .bk-slot > .bk-cover { box-shadow: inset 30px 0 0 rgba(0, 0, 0, .04); }   /* 구멍 줄 (살짝) */
-/* 📕 넘어가는 표지 (js/book.js flipCover) = 덮인 표지 그대로 · 왼쪽 묶음을 축으로 돌아요 · 90° 넘으면 안쪽 면 */
-.bk-flip3 { position: absolute; z-index: 7; transform-origin: 0 50%; transform-style: preserve-3d; pointer-events: none; }
-.bk-f3 { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.bk-f3 > .bk-cover { position: absolute; inset: 0; width: auto !important; height: auto !important; }
-.bk-f3.bk3 { transform: rotateY(180deg); border: 2px solid var(--ol); border-radius: 14px 4px 4px 14px; background: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)), var(--c1); box-shadow: inset 0 0 0 10px rgba(255,255,255,.12); }   /* 표지 안쪽 면 */   /* 🗂️ 덮인 바인더 = 왼쪽 끝에 링 반쯤 걸쳐요 (펼친 링과 같은 높이 · 도련 11-26 '표지일 때부터 바인더') */
+.bk-cur.cv { inset: -16px -16px -16px -22px; }   /* 📕 넘어가는 표지 = 덮인 표지와 같은 크기 (js/book.js start · cover) */   /* 🗂️ 덮인 바인더 = 왼쪽 끝에 링 반쯤 걸쳐요 (펼친 링과 같은 높이 · 도련 11-26 '표지일 때부터 바인더') */
 .bk-spread { display: grid; grid-template-columns: var(--pw) var(--pw); gap: 44px; }
 .bk-book.one .bk-spread { grid-template-columns: var(--pw); }
 .bk-slot { position: relative; width: var(--pw); height: var(--ph); }
@@ -439,10 +435,12 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-spine { position: absolute; left: 50%; top: 22px; bottom: 22px; width: 76px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; z-index: 3; }
 .bk-book.one.even .bk-spine { left: calc(100% - 52px); }
 .bk-book.one.odd .bk-spine { left: 52px; }
-.bk-spine span { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 */
+.bk-spine span { flex: 1; width: 14px; border: 2px solid #a597c9; border-radius: 8px; background: #e9e3f5; }   /* 링 기둥 */
 .bk-spine svg { flex: none; width: 76px; height: 22px; }
 .bk-rl .bk-spine { gap: 0; justify-content: space-between; }
-.bk-rl .bk-spine i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
+.bk-rl .bk-spine i { position: relative; display: block; width: 52px; height: 10px; box-sizing: border-box; border: 2.6px solid #b9abd8; border-bottom-color: transparent; border-radius: 50%; filter: drop-shadow(0 3px 0 #a597c9) drop-shadow(0 1px 1px rgba(60,40,80,.35)); }   /* 🌀 스프링 = 덮인 표지 고리와 같은 두 줄 와이어 (도련 11-26) */
+.bk-rl .bk-spine i::before, .bk-rl .bk-spine i::after { content: ''; position: absolute; top: 3px; width: 6px; height: 7px; border-radius: 50%; background: #5d4a66; filter: none; }
+.bk-rl .bk-spine i::before { left: -4px; } .bk-rl .bk-spine i::after { right: -4px; }
 /* 📕 표지 (덮인 책 · 왼쪽 = 묶음) */
 .bk-cover { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px solid var(--ol); border-radius: 6px 18px 18px 6px; background: var(--c1);
     background-image: linear-gradient(90deg, var(--c2) 0 22px, transparent 22px), var(--abf, none);   /* 📁 겉 = 그 상품 표지.svg (도련 11-18) */ color: #6b4a5a; text-align: center; }
