@@ -213,13 +213,13 @@ function bookOpen(host, spec) {
         const r = slotRect(k); if (!r) { if (cover) { B.open = back; render(); } return null; }
         if (cover) { r.x -= 22; r.y -= 16; r.w += 38; r.h += 32; }               // 📕 넘어가는 표지 = 덮인 표지 그대로 (쪽 + 둘레 · 도련 11-26)   // 📕 넘어가는 표지 = 덮인 표지 그대로 (쪽 + 둘레 · 고리 · 도련 11-26) · 📔 다이어리처럼 말리며 열려요
         r.s.innerHTML = `<div class="bk-under">${under}</div><div class="bk-cur">${cur}</div>`;
-        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 ? 44 : 0; if (cover) cu.classList.add('cv');
+        const cu = r.s.querySelector('.bk-cur'), gap = t && cdir > 0 && !cover ? 44 : 0; if (cover) cu.classList.add('cv');   // 표지 gap 0 = 이미 묶음 가운데부터 (둘레 포함) · 더 갈 틈 없음 (도련 11-26 '틈이 보여')
         const fl = document.createElement('div'); fl.className = `bk-flap ${cdir > 0 ? 'dir-next' : 'dir-prev'}${cover ? ' cover' : ''}`; fl.style.top = r.y + 'px'; fl.style.height = r.h + 'px';
         const sh = document.createElement('i'); sh.className = `bk-ush ${cdir > 0 ? 'dir-next' : 'dir-prev'}`; sh.style.top = r.y + 'px'; sh.style.height = r.h + 'px';
         stage.appendChild(fl); stage.appendChild(sh);
         if (cover && spec.cvSpine) {                                           // 🔗 표지가 넘어가는 동안 = 덮인 모습의 고리가 묶음 자리에 그대로 (펼친 링은 다 넘어간 뒤 · 도련 11-26 '닫힌 모습과 펼쳐질 모습 일치')
             const g = document.createElement('div'); g.innerHTML = coverSpine(); const sp = g.firstChild;
-            sp.style.left = r.x + 'px'; sp.style.top = (r.y + 22) + 'px'; sp.style.bottom = 'auto'; sp.style.height = (r.h - 44) + 'px'; sp.style.zIndex = 8; stage.appendChild(sp);
+            sp.style.left = r.x + 'px'; sp.style.top = (r.y + 22) + 'px'; sp.style.bottom = 'auto'; sp.style.height = (r.h - 44) + 'px'; sp.style.zIndex = 5; stage.appendChild(sp);   // 말려 넘어오는 표지 뒷면(z 6) 아래 = 고리가 표지에 가려져요
             B.root.classList.add('cvturn');
         }
         const W = Math.max(80, r.w), bk = stage.querySelector('.bk-book'), bx = bk ? bk.getBoundingClientRect().left - stage.getBoundingClientRect().left : 0, hid = Math.max(0, r.x - bx);
