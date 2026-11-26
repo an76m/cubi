@@ -311,7 +311,7 @@
             const book = L => {
                 const ring = window.dyRingCss ? dyRingCss(L.pid) : '', gap = (MK.GAP[L.b] || 0);
                 const ring6 = L.b === 'ring', c1 = hex(L.cover) || L.border;   // 🗂️ 링 바인더 = 🧩 바인더 조립 책상과 같은 묶음 · 색 (BOOK_RINGS · 도련 11-27) · 📓 노트 = 진짜 다이어리 묶음 그림 (dyParts)
-                return { id: 'try', cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
+                return { id: 'try', spread: true, cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
                     pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
                     title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.nm)}</span><small>${htmlEsc(L.n)}</small></div>`,
                     spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 ? 'ring' : '',
@@ -329,7 +329,7 @@
             if (x.look === 'refill') {                                         // 📅 📄 내지 = 표지 없이 펼친 종이 묶음 (구멍 자리)
                 const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
                 const P = r.t === 'date' ? dates(dyyThis(), r.lf) : nums(r.pg, r.lv, r.lf);
-                return { id: 'try', cls: 'bk-bd bk-try-dy', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length, page: pageOf(P, '#fffdfb'),
+                return { id: 'try', spread: true, cls: 'bk-bd bk-try-dy', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length, page: pageOf(P, '#fffdfb'),
                     blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => BOOK_RINGS };
             }
             return null;

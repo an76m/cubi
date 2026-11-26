@@ -16,7 +16,7 @@
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
                 page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · cvSpine ('ring' · 'spring' = 덮인 표지 왼쪽 구멍에 감긴 고리 · 펼친 묶음과 같은 자리) · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
                 onClose 없으면 ✕ 없음 (🧩 바인더 조립 · 📒 스티커 정리) · stay (첫 쪽에서 덮지 않아요 · 📒 🤍 스티커 정리) · ph() (쪽 높이를 쓰는 곳이 정해요) · desk (📒 🤍 책상에서 띄운 책 = 📔 다이어리처럼 덮인 동안 막대 없음 · 도련 11-22) · inline (자리 host 안에 · 옮기기 없음) · hold (잡아 끄는 것 = 쪽을 안 넘겨요 · 📒 정리 공간 포켓의 종이 · 1425) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
-                mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) }
+                mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) · spread (막대 글 = 펼침면 수 · 📔 샵 다이어리 펼쳐보기) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
 /* 📍 쪽 자리 (도련 11-15 · 2-1 : 가짜 날짜 없애기) : 날짜가 아닌 쪽 = BookSpot(n) · 0 = 📕 표지 · 1~ = 페이지형 다이어리 장 (예전 = '2000년 1월 n일' 가짜 날짜 · 1999-12-31 = 표지)
    지금 보는 곳(currentDate · js/app.js) = 날짜(📔 날짜형의 날) 또는 BookSpot · 바꾸기 = curSet · 저장할 때 = spotSave / spotLoad (글자 'p3') */
@@ -130,6 +130,7 @@ function bookOpen(host, spec) {
     function barText() {
         if (!B.open) return spec.title();
         const t = two(), n = spec.pages;
+        if (spec.spread) return `${Math.floor(B.pg / 2) + 1} <small>/ ${Math.ceil(n / 2)}펼침면</small>`;   // 📔 다이어리 · 노트 · 바인더 · 내지 = 펼침면 (다이어리 날짜바와 같은 말 · 도련 11-27)
         return `${B.pg + 1}${t && B.pg + 1 < n ? '–' + (B.pg + 2) : ''} <small>/ ${n}페이지</small>`;
     }
     const canNext = () => !B.open || B.pg + (two() ? 2 : 1) < spec.pages;
