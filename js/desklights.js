@@ -122,7 +122,7 @@
         requestAnimationFrame(frame);
     }
     function dlPaint() {                                                      // js/desk.js deskItemsRender 끝에서
-        const els = [...document.querySelectorAll(ITEMS)].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('rope'));   // 🎐 상품 '기능' rope (도련 11-06)
+        const els = [...document.querySelectorAll(ITEMS)].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('rope'));   // 🎐 기능 rope (전구줄 · DK_CAN_OF)
         S.forEach((st, u) => { if (!els.includes(st.el)) dropState(u); });
         PEGS = [...document.querySelectorAll(ITEMS)].filter(el => ((dkCat(el.dataset.id) || {}).can || []).includes('peg'));
         els.forEach(el => { const o = itemOf(el.dataset.u); if (o && Array.isArray(o.lb)) { el.style.width = o.lb[0] + 'px'; el.style.height = o.lb[1] + 'px'; } stateOf(el); });

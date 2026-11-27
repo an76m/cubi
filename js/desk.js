@@ -34,6 +34,9 @@
              slots = 서랍 칸 [왼 · 위 · 오른 · 아래] (그림 %) · surf = 올리는 면 [세로 자리, 왼쪽 끝, 오른쪽 끝] (소품 px) · clock = 바늘 { cx, cy, r } · lcd · photo = [왼 · 위 · 오른 · 아래] %
            처음받기 = 🎁 기본 세트 (아니면 nost) · 숨김 = 샵에서만 빠지고 가진 다꾸러는 그대로 · 소품은 꾸미기 상품이라 고치면 모두 새 모습 */
         const DKB_STK0 = ['seal', 'piece', 'paper', 'tape', 'tk', 'leaf', 'memo'];
+        /* 🧩 소품 기능 = 소품 종류로만 (도련 11-27 '현실처럼 · 기능을 섞지 않아요' · 상품공방 DK_CAN_OF 와 같게) : turn ↔ 좌우 돌리기 · light 💡 불빛 · clock 🕰 시계 · memo 📝 메모 붙이기
+           rope 🎐 전구줄 (js/desklights.js) · peg 📷 집게 사진 · label 🏷️ 라벨 기계 (js/labelmaker.js) · camera 📷 말랑 디카 · print 🖨️ 스티커 프린터 (js/stickerprinter.js) · pad 📱 태블릿 (js/tablet.js) · 새 종류 = 기능 없음 */
+        const DK_CAN_OF = { lamp: ['turn', 'light'], clock: ['clock'], board: ['memo'], lights: ['rope'], peg: ['peg'], labeler: ['label'], digicam: ['camera'], printer: ['print'], tablet: ['pad'] };
         const DK_HOLD_OF = { pc: { all: ['pc'] }, skin: { all: ['skin'] }, drawer: { ok: ['gd', 'dy', 'ab', 'bm'].concat(DKB_STK0.map(k => 'h:' + k)) }, tape: null };   // 🧺 상품 '담는것' → 넣을 수 있는 창 (tape = 마테 롤만 · js/desktape.js)
         const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
             const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
@@ -44,8 +47,7 @@
             if (x.u.크게) o.big = x.u.크게; else delete o.big;   // 📱 크게 떴을 때 그림 (태블릿 · js/tablet.js)
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)
             o.kind = String(o.kind).replace(/[\/\\'"<>`]/g, '').slice(0, 20);   // 🆕 새 종류 = 상품공방 폴더 이름 그대로 (도련 11-06 · 드라이브 폴더 · 보관함 칸 이름)
-            const CAN = ['turn', 'light', 'clock', 'memo', 'rope', 'peg', 'label', 'camera', 'print', 'pad'];   // pad = 📱 태블릿 (js/tablet.js · 도련 11-13)   // print = 🖨️ 말랑 스티커 프린터 (js/stickerprinter.js)   // label = 🏷️ 라벨 스티커 기계 (js/labeler.js) · camera = 📷 말랑 디카 (js/digicam.js · 도련 11-08)       // 🧩 고르는 기능 = 상품공방 '기능' (도련 11-06 · 종류가 아니라 상품이 정해요 · 새 소품도 코드 없이)
-            o.can = (Array.isArray(P.기능) ? P.기능 : []).filter(f => CAN.includes(f));
+            o.can = (DK_CAN_OF[o.kind] || []).slice();   // 🧩 기능 = 소품 종류로만 (도련 11-27 '현실처럼 · 기능을 섞지 않아요')
             if (P.종류이름) o.kn = String(P.종류이름).slice(0, 12); if (P.종류아이콘) o.ki = String(P.종류아이콘).slice(0, 4);   // 🏪 샵 · 보관함 칸 이름 (새 종류)
             if (o.can.includes('rope')) o.bulbs = ((o.줄 && o.줄.그림) || []).map(g => g && x.u[g.f] ? { src: x.u[g.f], pv: g.pv, s: g.s } : null).filter(Boolean);   // 💡 전구줄 그림 (상품 폴더의 전구1 … · js/desklights.js)
             if (P.처음받기) delete o.nost; else o.nost = 1;
@@ -1758,7 +1760,7 @@
         function deskItemHtml(it, p) {
             const st = `left:${p.x}px;top:${p.y}px;width:${it.w}px;height:${it.h}px`, cls = 'desk-item' + (it.wall ? ' wall' : '') + (p.fl && dkFlipOk(it) ? ' dk-fl' : '');   // ↔ 좌우 바꾼 소품 (그림만 · 바늘은 그대로)
             let over = '';
-            if (it.clock && (it.can || []).includes('clock')) {                     // 🕰 바늘 (상품 '기능' clock · 도련 11-06) (지금 시각 · deskTick)
+            if (it.clock && (it.can || []).includes('clock')) {                     // 🕰 바늘 (소품 종류 기능 clock · DK_CAN_OF) (지금 시각 · deskTick)
                 const c = it.clock, d = c.r * 2, hh = d * it.w / it.h;
                 over = `<svg class="dk-hands" viewBox="-50 -50 100 100" aria-hidden="true" style="left:${c.cx}%;top:${c.cy}%;width:${d}%;height:${hh}%"><line class="hr" x1="0" y1="6" x2="0" y2="-24"/><line class="mn" x1="0" y1="8" x2="0" y2="-38"/><line class="sc" x1="0" y1="10" x2="0" y2="-41"/><circle r="4.5"/></svg>`;
             }
@@ -2280,7 +2282,7 @@
             }
         }
         /* ↔ 좌우 바꾸기 (도련 10-31 · 11-03) : 현실에서 물건을 돌려 놓는 것 (그림 뒤집기가 아니에요) · 돌릴 수 있는 종류만 = DK_TURN (지금 🪔 스탠드) · 저장 fl: 1 */
-        /* ↔ 돌릴 수 있는 소품 = 상품 '기능' turn (도련 11-06 · 뒤집기가 아니에요 · 불빛도 돌린 쪽으로) */
+        /* ↔ 돌릴 수 있는 소품 = 기능 turn (스탠드 · DK_CAN_OF · 뒤집기가 아니에요 · 불빛도 돌린 쪽으로) */
         const dkFlipOk = c => !!c && Array.isArray(c.can) && c.can.includes('turn');
         function deskFlip() {
             const el = DK.sel, o = el && DK.items.find(x => x.u === el.dataset.u); if (!o || !dkFlipOk(dkCat(o.id))) return;

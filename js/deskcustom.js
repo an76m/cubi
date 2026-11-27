@@ -8,9 +8,9 @@
        네모가 소품의 85% 이상이면 기능을 누를 자리가 없어서 고쳐 달라고 해요 · 너무 작으면(그림 px 28 미만) 안 돼요
    저장 : 바꾸면 바로 책상에 보이고 · 🛠 책상 꾸미기 하단 ✔ 완료 때 한꺼번에 저장 (취소 = 처음대로 · 창마다 완료 없음 · 도련 10-28)
           배치.json 의 소품 o.cs = { on, light, font, ink, alarm: { t, on }, area: [l, t, r, b] (%), memos: [{ p, t, x, y, r }] } (js/desk.js dkPersist)
-   ※ 기능 = 상품공방 '기능' (도련 11-06 · DC_CAN) · 새 동작을 만들면 DC_CAN 에 한 줄 (그 뒤로는 아무 소품에나 골라요) · 그림마다 다르면 DESK_ITEMS 에 area(누르는 곳) · cork(메모 붙는 곳) (도련 11-01) */
+   ※ 기능 = 소품 종류로만 (js/desk.js DK_CAN_OF · 도련 11-27 · DC_CAN = 기능마다 꾸미기 · 톡) · 새 동작을 만들면 DC_CAN 에 한 줄 + DK_CAN_OF 에 종류 · 그림마다 다르면 DESK_ITEMS 에 area(누르는 곳) · cork(메모 붙는 곳) (도련 11-01) */
 (function () {
-    /* 🧩 기능마다 꾸미기 탭 · 톡 동작 · 기본 누르는 곳 (도련 11-06 · 상품 '기능' 을 합쳐요 · 예전엔 종류마다) */
+    /* 🧩 기능마다 꾸미기 탭 · 톡 동작 · 기본 누르는 곳 (소품 종류 → 기능 · js/desk.js DK_CAN_OF) */
     const DC_CAN = {
         light: { tabs: ['light'], act: 'lamp', area: [0, 0, 62, 50] },     // 💡 불빛 : 톡 = 켜고 끄기 · 모양 = 상품 '소품.glow'
         clock: { tabs: ['digits', 'alarm'] },                               // 🕰 시계 : 숫자(lcd 가 있을 때) · 알람
