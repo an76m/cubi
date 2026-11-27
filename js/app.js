@@ -178,7 +178,7 @@ let fontList = [
             ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트'].forEach(K => (window.prodList ? prodList(K) : []).forEach(x => { const u = x.u || {}, wh = (x.wh && x.wh.표지) || []; if (u.표지 || u.링) DY_FILES[x.id] = { face: u.표지 || '', fw: +wh[0] || 0, fh: +wh[1] || 0, ring: u.링 || '' }; }));
         }
         dyFilesBuild();
-        window.dyFaceCss = (id, u) => { const f = DY_FILES[id]; return f && f.face && f.fw > 0 && f.fh > 0 ? `url("${f.face}") 0 0 / ${f.fw}${u || 'cqw'} ${f.fh}${u || 'cqw'} repeat` : 'none'; };   // 표지 한 칸을 이어 깔아요 (그림 1 = 종이 폭 1% cqw · 책상 위 권 = 1px · css --dy-face · --dyv-img)
+        window.dyFaceCss = (id, u) => { const f = DY_FILES[id]; if (!(f && f.face && f.fw > 0 && f.fh > 0)) return 'none'; return u === 'px' && f.fw >= 100 ? `url("${f.face}") center / 100% 100% no-repeat` : `url("${f.face}") 0 0 / ${f.fw}${u || 'cqw'} ${f.fh}${u || 'cqw'} repeat`; };   // 📐 표지 = 규격 크기 한 장 (도련 11-28 · 그림 1 = 종이 폭 1% · 가로 100 = 한 장) : 다이어리 겉 · 펼친 둘레 (cqw) = 그대로 · 책상 위 권 · 견본 (px) = 그 칸에 한 장 · 작은 한 칸 = 이어 깔기
         window.dyRingCss = id => { const f = DY_FILES[id]; return f && f.ring ? `url("${f.ring}") center / 100% 100% no-repeat` : ''; };   // 링 한 개 (css --dy-ring · 없으면 '' = 앱 기본 링)
         /* 📅 📄 바인더 내지 = 서버 상품 (상품공방 '날짜형내지' · '페이지내지' · 도련 11-07 · 종류 = 폴더) : date 날짜 내지 (해 없음 · 끼운 표지의 해를 따라가요) · page 페이지 내지 (쪽수 · 내지 구간)
            규격 = 같은 크기 표지에만 끼워요 · 🧩 받으면 바인더내지 재료 (js/dyyear.js dyyShopList · js/dymaker.js) */
