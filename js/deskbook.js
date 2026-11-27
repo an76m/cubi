@@ -171,7 +171,7 @@
     function matCard(b, H) {
         const it = document.createElement('div'); it.className = 'dbk-it dbk-mat'; it.dataset.b = b.id;
         const cv = b.t === 'cover' || b.t === 'dcover', R = +b.r > 0 ? +b.r : 1.414, h = 96;
-        const art = cv ? (window.dmkCvThumb ? dmkCvThumb(b.c, R, h, b.pid || b.d) : '') : window.dmkRfThumb ? (b.t === 'drefill' ? dmkRfThumb([[1, 1, b.lf || 'line']], 1.41, h) : dmkRfThumb(b.lv || [], R, h)) : '';
+        const art = cv ? (window.dmkCvThumb ? dmkCvThumb(b.c, R, h, b.pid || b.d) : '') : window.dmkRfThumb ? (b.t === 'drefill' ? dmkRfThumb([[1, 1, b.lf || '']], 1.41, h) : dmkRfThumb(b.lv || [], R, h)) : '';
         const ic = b.t === 'dcover' || b.t === 'drefill' ? '📅' : cv ? '🗂️' : '📄', sub = b.t === 'dcover' ? b.y + ' · ' + (b.n || '') : b.t === 'refill' ? (b.n || '') + ' · ' + (b.pg || 0) + 'p' : (b.n || '');
         it.title = `${ic} ${b.g || ''}`;
         it.innerHTML = `<span class="dbk-art" style="height:${H}px">${art}</span><b>${ic} ${htmlEsc(b.g || (cv ? '표지' : '내지'))}</b><small>${htmlEsc(sub)}</small>`;

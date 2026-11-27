@@ -22,7 +22,6 @@
 .bnd-card small { font-size: 10.5px; color: #a07f8b; font-weight: 700; }
 .bnd-card.off, .bnd-card.old { opacity: .42; }
 .bnd-card.lift { opacity: .3; }
-.bnd-ed { position: absolute; right: 4px; top: 3px; font-style: normal; font-size: 13px; cursor: pointer; }
 .bnd-ghost { position: fixed; z-index: 2000; pointer-events: none; transform: translate(-50%, -60%) rotate(-4deg); box-shadow: 0 10px 24px rgba(107, 68, 56, .3); opacity: .95; }
 /* 작업대 */
 .bnd-mine select { font-size: 12px; border: 2px solid #f1d3dd; border-radius: 999px; padding: 3px 10px; background: #fff; color: inherit; max-width: 220px; }

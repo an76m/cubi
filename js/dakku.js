@@ -97,12 +97,10 @@
       cloud: `<path d="M13 36h23a7 7 0 0 0 1-14 10 10 0 0 0-19-3 8.5 8.5 0 0 0-5 17z" fill="#d4ecff" ${K}/>${face(24, 29, 7)}<ellipse cx="18" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/><ellipse cx="30" cy="32" rx="2" ry="1.3" fill="#ff9fb5" opacity=".8"/>`,
       heartS: `<path d="${heart(24, 30, 1.6)}" fill="#ff8fab" ${K}/><path d="M13 16q1.5-3.5 5-3.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
     };
-    /* ✨ 만들기 아이콘 (10-24 도련 : 다이어리 창의 노트 만들기 · 바인더 만들기 · 배경지 만들기)
+    /* ✨ 만들기 아이콘 (10-24 도련 : 배경지 만들기 · 바인더 조립 · 도련 11-28 노트 · 바인더 만들기는 없앴어요)
        본 아이콘을 조금 줄이고 오른쪽 아래에 분홍 ＋ 단추 (스티커 만들기 칸들과 같은 느낌) */
     const plus = `<circle cx="37.5" cy="37.5" r="8" fill="#ff8fab" ${K}/><path d="M37.5 33.6v7.8M33.6 37.5h7.8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`;
     const small = (k, x = 1, y = 0) => `<g transform="translate(${x} ${y}) scale(.84)">${ICON[k]}</g>`;
-    ICON.notemk = small('note', 1, 1) + plus;
-    ICON.bindmk = small('binder', 1, 0) + plus;
     ICON.bindasm = small('binder', 1, 0) + `<path d="M31.5 31.5h3.2a2.6 2.6 0 1 1 5.2 0h3.2v3.6a2.6 2.6 0 1 0 0 5.2v3.6h-11.6z" fill="#8fd6bc" ${K}/>`;   // 🧩 바인더 조립 = 바인더 + 퍼즐 조각 (도련 11-11 · 만들기 ➕ 와 구분)
     ICON.patmk = `<g transform="rotate(-7 21 24)"><rect x="6" y="8" width="29" height="32" rx="3.5" fill="#fff6cf" ${K}/>`
         + `<path d="M6 17h29M6 26h29M14.5 8v32M24 8v32" stroke="#ffc6d6" stroke-width="2.4" opacity=".75"/>`
@@ -116,7 +114,7 @@
     const MAP = {
         '이모지': 'emoji', '계절 스티커': 'season', '캡슐스티커': 'caps', '마스킹테이프': 'tape', '조각스티커': 'piece', '씰스티커': 'seal', '모조지스티커': 'paper', '속지': 'leaf', '메모지': 'memo', '떡메모지': 'tteok',
         '포토부스': 'booth', '사진찍기': 'cam', '사진고르기': 'pick', '사진찍어 만들기': 'cam', '조각스티커 만들기': 'piece', '씰스티커 만들기': 'seal', '모조지스티커 만들기': 'paper', '앨범골라 만들기': 'pick', '글씨 스티커': 'text', '글씨스티커 만들기': 'text', '마스킹테이프 만들기': 'tapemk', '속지 만들기': 'leafmk', '떡메모지 만들기': 'tteokmk',
-        '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '페이지노트': 'note', '페이지바인더': 'binder', '페이지노트 만들기': 'notemk', '페이지바인더 만들기': 'bindmk', '표지 꾸미기': 'cover', '페이지': 'leaf', '노트 만들기': 'notemk', '바인더 만들기': 'bindmk', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
+        '내 서랍': 'drawer', '기본상품 샵': 'shelf', '내 바구니': 'basket', '다이어리 고르기': 'diary', '다이어리': 'dybook', '노트': 'note', '바인더': 'binder', '페이지노트': 'note', '페이지바인더': 'binder', '표지 꾸미기': 'cover', '페이지': 'leaf', '배경지 만들기': 'patmk', '배경지': 'cloud', '이미지로 배경지': 'pick', '그려서 배경지': 'brush',
         '펫 키우기': 'paw',
         '말랑달콤 저금통': 'piggy', '말랑달콤 배경화면': 'wall', '말랑달콤 문구점': 'shop',
         '출석 도장판': 'cal', '문방구 캡슐기계': 'gift', '생리 달력': 'calheart', 'D-day': 'dday',

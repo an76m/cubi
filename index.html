@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611280313">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611280341">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611280313', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611280341', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -32,7 +32,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Fredoka:wght@700&family=Nanum+Pen+Script&family=Gowun+Dodum&family=Sunflower:wght@500&family=Jua&family=Do+Hyeon&family=Hi+Melody&family=Poor+Story&family=Single+Day&family=Gamja+Flower&family=Yeon+Sung&family=East+Sea+Dokdo&family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700&family=Nanum+Myeongjo&family=Cute+Font&family=Dongle&family=Song+Myung&family=Stylish&family=Kirang+Haerang&family=Gugi&family=Press+Start+2P&display=swap" rel="stylesheet">
     
 
-    <script src="js/features.js?v=1dc8f2f517"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
+    <script src="js/features.js?v=6d4cf8e992"></script>   <!-- 🔓 기능 공개 스위치 (다른 것보다 먼저) -->
     <script src="js/dash.js?v=024e9f5543"></script>   <!-- 📊 백엔드 상황판 (💻 F2 · 드라이브 요청 · 점수 · 사용자 수 · 속도 · 데이터 · 브라우저 저장 · 상태 · 도련 QA) -->
     <script src="js/util.js?v=c5fad027b0"></script>
     <script src="js/imgsmall.js?v=11e98b522a"></script>   <!-- 🗜 그림 굽기 엔진 하나 (상품공방 · AI 와 같은 규칙 · elements.js cvSmall · 그림판) -->
@@ -43,7 +43,7 @@
     <script src="js/onlyone.js?v=8d0a6e248f"></script>   <!-- 🔒 한 기기에 다이어리 하나만 (먼저 연 창만 · 다른 것보다 먼저) -->
     <link rel="preload" as="image" href="img/gate-wide.webp?v=3889dd54c4" media="(min-aspect-ratio: 1/1)">   <!-- 🚪 로그인 문 그림을 먼저 받아요 (켤 때 바탕색만 잠깐 보이는 것 줄이기 · 도련 10-29) -->
     <link rel="preload" as="image" href="img/gate-tall.webp?v=7bdb387444" media="(max-aspect-ratio: 1/1)">
-    <link rel="stylesheet" href="css/style.css?v=659d2df02a">
+    <link rel="stylesheet" href="css/style.css?v=5784cffd8c">
     <link rel="stylesheet" href="css/dakku.css?v=2852565c39">
     <link rel="stylesheet" href="css/anime.css?v=4a016de60e">
     <link rel="stylesheet" href="css/boothroom.css?v=8b3a99af67">   <!-- 📸 포토부스 거리 (js/boothroom.js) -->
@@ -60,7 +60,7 @@
     <link rel="stylesheet" href="css/padpaint.css?v=60a5610017">   <!-- 🎨 태블릿 그림판 (js/padpaint.js) -->
     <link rel="stylesheet" href="css/phonepaint.css?v=9e0758e505">   <!-- 📱 폰 그림판 · 🖨 폰 프린터 (도련 11-14) -->
     <link rel="stylesheet" href="css/pagedone.css?v=d1cd0c41ca">   <!-- ✅ 다이어리 페이지 완료 (js/pagedone.js) -->
-    <link rel="stylesheet" href="css/binderroom.css?v=852433c870">   <!-- 🧩 바인더 조립 공간 (981) -->
+    <link rel="stylesheet" href="css/binderroom.css?v=2cedbebc73">   <!-- 🧩 바인더 조립 공간 (981) -->
     <link rel="stylesheet" href="css/sheetmaker.css?v=3f9136d5e3">   <!-- 🗂️ 시트 꾸미기 (js/sheetmaker.js) -->   <!-- 🎨 다꾸 작업실 (js/craft.js) -->
     <link rel="stylesheet" href="css/tarotroom.css?v=efb5f9ff05">   <!-- 🔮 타로카페 (💻 📲 · js/tarotroom.js) -->
     <link rel="stylesheet" href="css/arcroom.css?v=4385212313">   <!-- 🕹️ 뿅뿅오락실 장소 (💻 📲 · js/arcroom.js) -->
@@ -369,8 +369,8 @@
          3칸씩 : 1줄 = 📔 다이어리 · 📓 페이지노트 · 🗂️ 페이지바인더
                  2줄 = 📕 표지 꾸미기 · 페이지노트 만들기 · 페이지바인더 만들기 (만들기는 그 위 칸 아래)
                  3줄 = 🌈 배경지 · 🖌️ 배경지 만들기(→ 🖼️ 이미지로 · 🖌️ 그려서 창)
-         📓 노트 · 🗂️ 바인더 = 내가 만든 것 고르기 (dyOpen) · 두 만들기 = js/dymaker.js dmkOpen (11-05 도련 : 들어가게)
-         이름이 긴 칸은 &#10; 로 두 줄 (js/dakku.js 라벨 · data-ico = 아이콘 · 만들기 아이콘 notemk · bindmk · patmk) -->
+         📓 노트 · 🗂️ 바인더 = 가진 것 고르기 (dyOpen) · 🧩 바인더 조립 = js/dymaker.js dmkOpen (도련 11-28 : 노트 · 바인더 만들기 창은 영구 삭제)
+         이름이 긴 칸은 &#10; 로 두 줄 (js/dakku.js 라벨 · data-ico = 아이콘 · 만들기 아이콘 patmk) -->
     <div class="modal" id="skinModal">
         <div class="modal-content">
             <div class="modal-title">📒 다이어리</div>
@@ -378,8 +378,6 @@
                 <!-- 📒 다이어리 = 네 종류 (도련 11-11 : 날짜형바인더 · 날짜형노트 · 페이지바인더 · 페이지노트 · js/skins.js dyOpen · 날짜형 둘 = 받은 권 보관소를 종류로 나눠서 js/dyyear.js dyyCells) -->
                 <button class="btn service-btn" data-ico="dybook" onclick="closeModal('skinModal'); openModal('dyKindModal')"><span class="service-icon">📔</span>다이어리</button>   <!-- 📒 다이어리 네 종류를 한 버튼으로 (도련 11-11 → #dyKindModal) -->
                 <button class="btn service-btn" data-ft="dybook" onclick="dkCoverEdit()"><span class="service-icon">📕</span>표지 꾸미기</button>   <!-- 표꾸 : 노트 · 바인더만 (js/skins.js dkCoverEdit · 숨김) -->
-                <button class="btn service-btn" data-ico="notemk" data-ft="dymake" onclick="closeModal('skinModal'); openModal('noteMkModal')"><span class="service-icon">📓</span>노트 만들기</button>   <!-- 📓 날짜형노트 · 페이지노트 (도련 11-11 · js/dymaker.js dmkMakeNote) -->
-                <button class="btn service-btn" data-ico="bindmk" data-ft="dymake" onclick="closeModal('skinModal'); openModal('bindMkModal')"><span class="service-icon">🗂️</span>바인더 만들기</button>   <!-- 🗂️ 표지만 · 내지만 만들어 🧩 재료로 보관 (도련 11-11 · js/dymaker.js dmkMakeBinder) -->
                 <button class="btn service-btn" data-ico="bindasm" onclick="closeModal('skinModal'); if (window.bndOpen && !UI.phone()) bndOpen(); else dmkOpen('바인더')"><span class="service-icon">🗂️</span>바인더 조립</button>   <!-- 🧩 바인더 조립 (js/dymaker.js) -->   <!-- 🧩 바인더 조립 = 보관한 표지 · 내지를 골라 한 권으로 (도련 11-11 · 만들기와 따로) -->
                 <button class="btn service-btn" data-ft="pattern" onclick="openPatternList()"><span class="service-icon">🌈</span>배경지</button>
                 <button class="btn service-btn" data-ft="pattern patmake" data-ico="patmk" onclick="closeModal('skinModal'); openModal('patMakeModal')"><span class="service-icon">🖌️</span>배경지 만들기</button>
@@ -400,31 +398,6 @@
             <div class="sub-modal-btns"><button class="btn" onclick="closeModal('dyKindModal'); openModal('skinModal')">← 다이어리</button></div>
         </div>
     </div>
-    <!-- 📓 노트 만들기 (도련 11-11) : 날짜형노트 · 페이지노트 = 완제품 → 만들면 바로 한 권 (js/dymaker.js dmkMakeNote) -->
-    <div class="modal" id="noteMkModal">
-        <div class="modal-content">
-            <div class="modal-title">📓 노트 만들기</div>
-            <p class="bmk-tip" style="text-align:center;font-size:13px;color:#8a6f80;margin:0 0 10px">노트는 완제품이라 만들면 바로 한 권이 돼요</p>
-            <div class="service-grid stk-menu">
-                <button class="btn service-btn" data-ico="dynote" onclick="closeModal('noteMkModal'); dmkMakeNote('dnote')"><span class="service-icon">📓</span>날짜형노트&#10;만들기</button>
-                <button class="btn service-btn" data-ico="notemk" onclick="closeModal('noteMkModal'); dmkMakeNote('note')"><span class="service-icon">📓</span>페이지노트&#10;만들기</button>
-            </div>
-        </div>
-    </div>
-    <!-- 🗂️ 바인더 만들기 (도련 11-11) : 표지만 · 내지만 따로 만들어 🧩 바인더 재료로 보관 → 🧩 바인더 조립에서 골라 한 권으로 (js/dymaker.js dmkMakeBinder) -->
-    <div class="modal" id="bindMkModal">
-        <div class="modal-content">
-            <div class="modal-title">🗂️ 바인더 만들기</div>
-            <p class="bmk-tip" style="text-align:center;font-size:13px;color:#8a6f80;margin:0 0 10px">날짜형 · 페이지 바인더의 표지와 내지를 따로 만들어 보관해요<br>🧩 바인더 조립에서 같은 종류 · 같은 크기끼리 골라 한 권으로 만들어요</p>
-            <div class="service-grid stk-menu">
-                <button class="btn service-btn" data-ico="dybinder" onclick="closeModal('bindMkModal'); dmkMakeBinder('dcover')"><span class="service-icon">📔</span>날짜형 바인더&#10;표지 만들기</button>
-                <button class="btn service-btn" data-ico="leafmk" onclick="closeModal('bindMkModal'); dmkMakeBinder('drefill')"><span class="service-icon">📅</span>날짜형 바인더&#10;내지 만들기</button>
-                <button class="btn service-btn" data-ico="bindmk" onclick="closeModal('bindMkModal'); dmkMakeBinder('cover')"><span class="service-icon">🗂️</span>페이지 바인더&#10;표지 만들기</button>
-                <button class="btn service-btn" data-ico="leafmk" onclick="closeModal('bindMkModal'); dmkMakeBinder('refill')"><span class="service-icon">📄</span>페이지 바인더&#10;내지 만들기</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 🖌️ 배경지 만들기 창 (📒 다이어리 → 🖌️ · 10-24 도련) : 🖼️ 이미지로 배경지 · 🖌️ 그려서 배경지 (js/pattern-maker.js openMaker) -->
     <div class="modal" id="patMakeModal">
         <div class="modal-content">
@@ -792,7 +765,7 @@
         (function () { var c = null; try { c = JSON.parse(localStorage.getItem('malang_prod_last') || 'null'); } catch (e) { }
             if (c && c.prod && typeof c.prod === 'object' && c.v) { window.MALANG_PROD = c; window.PROD_FROM = 'dev'; }
             else document.write('<script src="https://malang-img.pages.dev/prod.js"><\/script>'); })();</script>
-    <script src="js/prod.js?v=789738e0b0"></script>   <!-- 🧁 상품 목록 읽기 (prodList) -->
+    <script src="js/prod.js?v=b57f55bc24"></script>   <!-- 🧁 상품 목록 읽기 (prodList) -->
     <script src="js/gdpic.js?v=1fe396ce5e"></script>   <!-- 🧁 문구 그림 = 상품공방 그림 + 속성 그대로 (gdPic · 앱은 모양을 그리지 않아요) -->
     <script src="js/space.js?v=f6a0bed7af"></script>   <!-- 🏠 공간 : 문구는 하나 · 저장은 공간이 정해요 (진짜 다이어리 = 저장 · 연습장 = 저장 안 함) -->
     <script src="js/gdtry.js?v=785f081008"></script>   <!-- 🏪 문구 사용해보기 = 가상 연습장 (저장 없음 · 닫으면 사라져요) -->
@@ -812,15 +785,15 @@
     <script src="js/settings.js?v=502e290da3"></script>
     <script src="js/patterns.js?v=a37a8400a0"></script>
     <script src="js/pattern-recipe.js?v=c74fa4f1b8"></script>
-    <script src="js/skins.js?v=af58955ccf"></script>
+    <script src="js/skins.js?v=7d5aac832f"></script>
     <script src="js/bin.js?v=0130321401"></script>   <!-- 🚛 버린 상품 = 바로 영구 삭제 + 영구삭제 칸 (모든 상품 공통 · 쓴 다이어리만 휴지통) -->
     <script src="js/dyown.js?v=38468a228a"></script>   <!-- 📚 가진 다이어리 · 🧩 바인더 재료 (981) -->
-    <script src="js/dyyear.js?v=2bfd8fca55"></script>
+    <script src="js/dyyear.js?v=f67303aa00"></script>
     <script src="js/bgown.js?v=2b0e94fa1c"></script>
     <script src="js/deskskin.js?v=83f5684236"></script>   <!-- 🧱 벽지 · 🪵 책상 (책상 화면 · 샵 책상 소품 · 소품함) -->   <!-- 🌈 배경지 = 상품 (샵에서 받기 · 보관함 · 버리기) -->   <!-- 📔 기본 다이어리 = 1년짜리 날짜 다이어리 · 해마다 기본상품 샵에서 받기 · 다이어리 보관소 -->
     <script src="js/dkguide.js?v=7399048c6c"></script>   <!-- 🩷 처음 쓰는 사람용 다꾸하는 법 메모 -->
-    <script src="js/dymaker.js?v=28d252305a"></script>
-    <script src="js/binderroom.js?v=32a13eb649"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
+    <script src="js/dymaker.js?v=50a1f1ede1"></script>
+    <script src="js/binderroom.js?v=d3b95ccbb0"></script>   <!-- 🧩 책상 바인더 조립 공간 (981) -->
     <script src="js/pattern-maker.js?v=c2b4573ad0"></script>
     <script src="js/doll-art.js?v=f915514812"></script>
     <script src="js/doll-render.js?v=ff511cb454"></script>
@@ -851,7 +824,7 @@
     <script src="js/plant.js?v=6668a8b8e6"></script>
     <script src="js/attend.js?v=d0efc5597d"></script>
     <script src="js/tape.js?v=0972c1160c"></script>
-    <script src="js/leafpad.js?v=e11918d9a5"></script>
+    <script src="js/leafpad.js?v=a553fa4519"></script>
     <script src="js/leafmaker.js?v=2110d6a8f3"></script>
     <script src="js/draw.js?v=43e38b01b6"></script>
     <script src="js/pencase.js?v=5747011fa8"></script>
@@ -870,7 +843,7 @@
     <script src="js/deskgd.js?v=f10ddc884b"></script>   <!-- 🪑 책상 모드 문구 : ✏️ 펜꽂이가 다가와요 · 🗄️ 문구함 서랍 (💻 📲) -->
     <script src="js/desktape.js?v=47d5d93566"></script>   <!-- 🎀 마테 정리함 : 마스킹테이프를 세워 두고 골라 써요 (💻 📲 책상) -->
     <script src="js/deskmove.js?v=8dfe7c16ab"></script>   <!-- 🔁 꾹 잡아 옮기기 : 정리함 · 펜꽂이 · 서랍 · 다이어리 (💻 📲 책상 · 도련 11-11) -->
-    <script src="js/deskbook.js?v=08222d2a50"></script>   <!-- 🗄️ 📔 📒 책 서랍 : 다이어리 · 스티커첩을 서랍장 칸에 넣고 빼요 (💻 📲 책상 · 도련 11-20) -->
+    <script src="js/deskbook.js?v=510be4b694"></script>   <!-- 🗄️ 📔 📒 책 서랍 : 다이어리 · 스티커첩을 서랍장 칸에 넣고 빼요 (💻 📲 책상 · 도련 11-20) -->
     <script src="js/desklights.js?v=a36c150328"></script>   <!-- 💡 전구줄 : 출렁이는 줄 · 전구 · 빛 · 깜빡임 (책상 소품 lights) -->
     <script src="js/craft.js?v=3ea94ff81c"></script>   <!-- 🎨 다꾸 작업실 : 스티커 · 배경지 만들기 한 곳에 (💻 📲 📱) -->
     <script src="js/tarotroom.js?v=419dc3f89f"></script>   <!-- 🔮 타로카페 : 카드 다섯 장 = 메뉴 (💻 📲) -->
@@ -897,7 +870,7 @@
     <script src="js/stkcut.js?v=6f7d280147"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
     <script src="js/ruler.js?v=c9430d2af1"></script>   <!-- 📏 자 : 펜꽂이에서 뽑아 페이지에 깔아 둬요 · 칼 · 색연필을 대면 반듯하게 · 진짜 cm -->
     <script src="js/piecebag.js?v=e6746f9136"></script>
-    <script src="js/dakku.js?v=cce2f69b32"></script>
+    <script src="js/dakku.js?v=c5fd012244"></script>
     <script src="js/papermaker.js?v=7217cb8719"></script>
     <script src="js/stk-basic.js?v=2ee4b3d2d0"></script>
     <script src="js/peelfx.js?v=1e57778686"></script>

@@ -106,7 +106,7 @@
         const dyyRefillProd = (R, from) => R.t === 'date' ? { id: dymNewId(), t: 'drefill', pid: R.id, n: R.n, lf: R.lf, g: R.g, from } : { id: dymNewId(), t: 'refill', pid: R.id, n: R.n, g: R.g, pg: R.pg, lv: R.lv, from };   // 📄 바인더내지 상품 → 재료
         function dyyRefillOf(d, from) {                                         // 🎁 첫 선물 바인더에 끼울 날짜 내지 = 표지 상품 '처음내지' (없으면 같은 크기 날짜 내지 · 그것도 없으면 줄노트)
             const R = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => r.t === 'date' && r.n === d.n), r = R.find(x => x.id === d.rf0) || R[0];
-            return r ? dyyRefillProd(r, from) : { id: dymNewId(), t: 'drefill', n: d.n, lf: d.lf || 'line', g: `${d.name} 날짜 내지`, from };
+            return r ? dyyRefillProd(r, from) : { id: dymNewId(), t: 'drefill', n: d.n, lf: d.lf || '', g: `${d.name} 날짜 내지`, from };
         }
         /* 🧩 샵에서 받은 바인더 재료 (표지 · 내지) = 봉투 속 (도련 11-11 : 꺼내기 전엔 🧩 바인더 조립 바구니에 없어요) · m = 재료 (책상에 놓는 권이 아니에요) */
         function dyyMatGot(o) { dymPut(o); window.dyyLastGiven = { id: o.id, t: Date.now(), m: 1 }; }
