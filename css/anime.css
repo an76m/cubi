@@ -699,7 +699,7 @@ html.an .dy-gap::before { background: transparent !important; box-shadow: none !
 /* 📁 링 = 그 상품의 링.svg 한 개 (도련 11-18 · js/dyyear.js --dy-ring · 앱에 링 그림 코드 없음) */
 html.an .dy-rings i { background: var(--dy-ring, none) !important; }
 /* 닫은 겉표지 (책상 위 다이어리도) */
-html.an .cover-page, html.an .cover-page.cv-book { background: var(--dy-front, var(--dyv-img)), var(--dyv) !important; border: 0 !important; border-radius: 3cqw 6.5cqw 6.5cqw 3cqw !important; }
+html.an .cover-page, html.an .cover-page.cv-book { background: var(--dyv-img), var(--dyv) !important; border: 0 !important; border-radius: 3cqw 6.5cqw 6.5cqw 3cqw !important; }
 html.an #diaryBook .cover-page { box-shadow: 0 0 0 3.5px var(--dyv-ol), 8px 9px 0 0 var(--dyv-sh) !important; }
 html.an .cover-page::before { width: 10cqw !important; border-radius: 3cqw 0 0 3cqw; background: var(--dyv-sh) !important; box-shadow: 2px 0 0 var(--dyv-ol); }
 .cv-year { display: none; }
@@ -850,7 +850,7 @@ html.an .inner-page[data-dy="thin"] .dy-cov::before { content: ''; position: abs
   background: repeating-linear-gradient(90deg, var(--page-bg, #fff) 0 .42cqw, color-mix(in srgb, var(--dyv-ol) 32%, var(--page-bg, #fff)) .42cqw .56cqw) left / 2.2cqw 100% no-repeat, repeating-linear-gradient(270deg, var(--page-bg, #fff) 0 .42cqw, color-mix(in srgb, var(--dyv-ol) 32%, var(--page-bg, #fff)) .42cqw .56cqw) right / 2.2cqw 100% no-repeat, var(--page-bg, #fff); }   /* 겹친 종이 단면 (양옆) */
 html.an .inner-page[data-dy="thin"] .canvas-area { border-radius: 1.2cqw !important; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--dyv-ol) 70%, transparent) !important; }
 html.an .inner-page[data-dy="thin"] .dy-fold { width: 14cqw; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--dyv-ol) 7%, transparent) 30%, color-mix(in srgb, var(--dyv-ol) 18%, transparent) calc(50% - .5px), color-mix(in srgb, var(--dyv-ol) 55%, transparent) calc(50% - .5px) calc(50% + .5px), color-mix(in srgb, var(--dyv-ol) 18%, transparent) calc(50% + .5px), color-mix(in srgb, var(--dyv-ol) 7%, transparent) 70%, transparent) !important; }   /* 접힌 곳 그늘 (실 없음) */
-html.an #diaryBook[data-dy="thin"] .cover-page, html.an #diaryBook[data-dy="thin"] .cover-page.cv-book { background: var(--dy-front, var(--dyv-img)), var(--dyv) !important; border-radius: 1.6cqw 3.6cqw 3.6cqw 1.6cqw !important; }
+html.an #diaryBook[data-dy="thin"] .cover-page, html.an #diaryBook[data-dy="thin"] .cover-page.cv-book { background: var(--dyv-img), var(--dyv) !important; border-radius: 1.6cqw 3.6cqw 3.6cqw 1.6cqw !important; }
 html.an #diaryBook[data-dy="thin"] .cover-page { box-shadow: 0 0 0 3px var(--dyv-ol), 6px 7px 0 0 var(--dyv-sh) !important; }
 html.an #diaryBook[data-dy="thin"] .cover-page::before { width: 3.2cqw !important; border-radius: 1.6cqw 0 0 1.6cqw; }
 /* 📦 소품함 준비 중 (도련 11-08) : 소품함이 뜰 오른쪽 자리에 작은 알약 · 눌러지지 않아요 (책상은 그대로 만져요) · 다 읽으면 소품함 창 */

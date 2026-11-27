@@ -96,7 +96,7 @@
         }
 
         /* ---------- 작은 그림 ---------- */
-        function dmkCvThumb(c, r, H, fid) { const f = fid && window.dyFrontCss ? dyFrontCss(fid, 'px') : 'none'; return `<span class="dmk-cvth" style="--c:${c};--cf:${htmlEsc(f)};width:${Math.round(H / r)}px;height:${H}px"></span>`; }   // 📁 fid = 그 표지 상품 (표지.svg · 도련 11-18)
+        function dmkCvThumb(c, r, H, fid) { const f = fid && window.dyFaceCss ? dyFaceCss(fid, 'px') : 'none'; return `<span class="dmk-cvth" style="--c:${c};--cf:${htmlEsc(f)};width:${Math.round(H / r)}px;height:${H}px"></span>`; }   // 📁 fid = 그 표지 상품 (표지.svg · 도련 11-18)
         function dmkRfThumb(lv, r, H) { const id = (lv[0] || [0, 0, 'line'])[2]; return `<span class="lf-pick dmk-rfth" style="width:${Math.round(H / r)}px;height:${H}px"><i class="lf-sw" style="background:var(--lf-holes), ${htmlEsc(leafBg(id, H / 148 * 1.6))}, var(--page-bg, #fff)"></i></span>`; }   // 🗒️ 그 내지무늬 상품 디자인 (도련 11-18)
         const dmkLvText = (lv, pg) => { const l = lv.length ? lv : [[1, pg, 'line']]; return l.length === 1 ? dmkLeafName(l[0][2]) : l.map(r => `${r[0]}~${r[1]} ${dmkLeafName(r[2])}`).join(' · '); };
 

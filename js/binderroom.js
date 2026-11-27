@@ -84,7 +84,7 @@
         const spec = {
             id: cv.id, cls: 'bk-bd bk-bnd', inline: true, real: true,   // 📏 실제 규격 크기 (도련 11-21)
             pages: Math.max(1, P.length), mm: mmOf(cv),
-            colors: [cv.c, `color-mix(in srgb, ${cv.c} 72%, #5a3a46)`], face: window.dyFrontCss && (cv.pid || cv.d) ? dyFrontCss(cv.pid || cv.d, 'px') : 'none',
+            colors: [cv.c, `color-mix(in srgb, ${cv.c} 72%, #5a3a46)`], face: window.dyFaceCss && (cv.pid || cv.d) ? dyFaceCss(cv.pid || cv.d, 'px') : 'none',
             page: p => P.length ? `<div class="bnd-pg" style="background:${esc(leaf(P[p][0], p))}"><b class="abx-no">${esc(P[p][1])}</b></div>` : empty,
             blank: () => P.length ? '<div class="bnd-pg end"></div>' : empty,   // 내지 전 = 양쪽 모두 표지 색 위에 안내 (도련 11-23 · 1419 · 예전 왼쪽만 내지색 빗금 종이)
             cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${date ? '📅 ' + cv.y : '🗂️'} ${esc(cv.g)}</span><small>${esc(cv.n)} · 밀어서 펼쳐요</small></div>`,

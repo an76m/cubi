@@ -83,7 +83,7 @@
             const k = b && dyyBasic() ? DY_COL[dyyColor(b.c)] : C ? { cover: C.표지색, page: C.속지색, border: C.테두리색, accent: C.강조색 } : null, r = document.documentElement.style;
             [['--dy-cover', 'cover'], ['--dy-page', 'page'], ['--dy-border', 'border'], ['--dy-accent', 'accent']].forEach(([v, n]) => k ? r.setProperty(v, k[n]) : r.removeProperty(v));
             const pid = b && dyyBasic() ? dyyColor(b.c) : t ? (t.pid || t.id) : '', ring = window.dyRingCss ? dyRingCss(pid) : '';   // 📁 펼친 권의 표지 · 링 = 그 상품 폴더의 파일 (도련 11-18)
-            r.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(pid) : 'none'); r.setProperty('--dy-front', window.dyFrontCss ? dyFrontCss(pid) : 'none');   // 📔 닫힌 앞표지 (css .cover-page)
+            r.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(pid) : 'none');
             if (ring) r.setProperty('--dy-ring', ring); else r.removeProperty('--dy-ring');
         }
         let dyyLastNote = null;
@@ -311,9 +311,9 @@
             const book = L => {
                 const ring = window.dyRingCss ? dyRingCss(L.pid) : '', gap = (MK.GAP[L.b] || 0);
                 const ring6 = L.b === 'ring', c1 = hex(L.cover) || L.border;   // 🗂️ 링 바인더 = 🧩 바인더 조립 책상과 같은 묶음 · 색 (BOOK_RINGS · 도련 11-27) · 📓 노트 = 진짜 다이어리 묶음 그림 (dyParts)
-                return { id: 'try', spread: true, cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFrontCss ? dyFrontCss(L.pid, 'px') : 'none',
+                return { id: 'try', spread: true, cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
                     pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
-                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => window.dyHasFront && dyHasFront(L.pid) ? '<div class="bk-cover bd"></div>' : `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.nm)}</span><small>${htmlEsc(L.n)}</small></div>`,   // 📔 앞표지.svg = 표지 그림 그대로 (이름표 없이)
+                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.nm)}</span><small>${htmlEsc(L.n)}</small></div>`,
                     spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 ? 'ring' : '',
                     wire: st => { const r = st.closest('.bk'); r.style.setProperty('--dy-c', L.border); r.style.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(L.pid) : 'none');   // 🎨 이 틀에만 (내 다이어리 색은 그대로)
                         if (ring) r.style.setProperty('--dy-ring', ring); r.style.setProperty('--gap', `calc(${gap} * var(--mmk) * 1px)`); r.style.setProperty('--gh', `calc(${gap / 2} * var(--mmk) * 1px)`); } };

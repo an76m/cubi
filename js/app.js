@@ -175,12 +175,10 @@ let fontList = [
         const DY_FILES = {};
         function dyFilesBuild() {
             Object.keys(DY_FILES).forEach(k => delete DY_FILES[k]);
-            ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트'].forEach(K => (window.prodList ? prodList(K) : []).forEach(x => { const u = x.u || {}, wh = (x.wh && x.wh.표지) || []; if (u.표지 || u.링 || u.앞표지) DY_FILES[x.id] = { face: u.표지 || '', fw: +wh[0] || 0, fh: +wh[1] || 0, ring: u.링 || '', front: u.앞표지 || '' }; }));
+            ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트'].forEach(K => (window.prodList ? prodList(K) : []).forEach(x => { const u = x.u || {}, wh = (x.wh && x.wh.표지) || []; if (u.표지 || u.링) DY_FILES[x.id] = { face: u.표지 || '', fw: +wh[0] || 0, fh: +wh[1] || 0, ring: u.링 || '' }; }));
         }
         dyFilesBuild();
         window.dyFaceCss = (id, u) => { const f = DY_FILES[id]; return f && f.face && f.fw > 0 && f.fh > 0 ? `url("${f.face}") 0 0 / ${f.fw}${u || 'cqw'} ${f.fh}${u || 'cqw'} repeat` : 'none'; };   // 표지 한 칸을 이어 깔아요 (그림 1 = 종이 폭 1% cqw · 책상 위 권 = 1px · css --dy-face · --dyv-img)
-        window.dyFrontCss = (id, u) => { const f = DY_FILES[id]; return f && f.front ? `url("${f.front}") center / 100% 100% no-repeat` : dyFaceCss(id, u); };   // 📔 닫힌 앞표지 = 앞표지.svg 한 장 (🧁 상품공방 표지 메이커 · 도련 11-27 · 없으면 표지 한 칸 이어 깔기)
-        window.dyHasFront = id => !!(DY_FILES[id] && DY_FILES[id].front);
         window.dyRingCss = id => { const f = DY_FILES[id]; return f && f.ring ? `url("${f.ring}") center / 100% 100% no-repeat` : ''; };   // 링 한 개 (css --dy-ring · 없으면 '' = 앱 기본 링)
         /* 📅 📄 바인더 내지 = 서버 상품 (상품공방 '날짜형내지' · '페이지내지' · 도련 11-07 · 종류 = 폴더) : date 날짜 내지 (해 없음 · 끼운 표지의 해를 따라가요) · page 페이지 내지 (쪽수 · 내지 구간)
            규격 = 같은 크기 표지에만 끼워요 · 🧩 받으면 바인더내지 재료 (js/dyyear.js dyyShopList · js/dymaker.js) */
