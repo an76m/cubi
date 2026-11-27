@@ -41,7 +41,7 @@
         function dmkMap() { const m = {}; dyoAll().filter(x => x.t !== 'date').concat(dymAll('cover'), dymAll('refill')).forEach(x => { m[x.id] = x; }); return m; }   // 📚 권 + 🧩 재료
         const dmkPg = v => Math.max(DMK_PG.min, Math.min(DMK_PG.max, Math.round(+v) || DMK_PG.def));
         function dmkLv(lv, pg) {                                               // 내지 구간 [[처음, 끝, 내지] …] 확인
-            return (Array.isArray(lv) ? lv : []).map(r => Array.isArray(r) ? [Math.max(1, Math.round(+r[0]) || 1), Math.min(pg, Math.round(+r[1]) || pg), leafList().some(l => l[0] === r[2]) ? r[2] : 'line'] : null).filter(r => r && r[0] <= r[1]);
+            return (Array.isArray(lv) ? lv : []).map(r => Array.isArray(r) ? [Math.max(1, Math.round(+r[0]) || 1), Math.min(pg, Math.round(+r[1]) || pg), leafOk(r[2]) ? r[2] : 'line'] : null).filter(r => r && r[0] <= r[1]);
         }
         function dmkClean(d) {                                                  // 드라이브 · 설정에서 읽은 것 확인
             if (!d || typeof d !== 'object' || !/^my[\w-]{1,30}$/.test(d.id || '')) return null;
@@ -51,7 +51,7 @@
             if (d.start) o.start = 1;                                            // 🎁 처음받기 (도련 11-09)
             if (t === 'dcover') { const D = window.dyyDesignOf ? dyyDesignOf(d.d) : null; return Object.assign(o, { y: Math.round(+d.y) || new Date().getFullYear(), d: String(d.d || ''), n: D ? D.n : o.n, mm: D ? D.mm : o.mm, r: D ? D.r : o.r, c: D ? D.c : DMK_COLORS[6], b: 'ring' }, d.md && typeof d.md === 'object' ? { md: d.md } : {}); }   // 📅 해가 적힌 표지 = 그 디자인 그대로 · ✏️ 내가 만든 표지 = md (도련 11-11)
             if (d.pid) o.pid = String(d.pid).slice(0, 60);                      // 🏪 받은 상품 id
-            if (t === 'drefill') return Object.assign(o, { lf: leafList().some(l => l[0] === d.lf) ? d.lf : 'line' });   // 📅 날짜 내지 (해 없음 · 크기 n = 같은 크기 표지에만)
+            if (t === 'drefill') return Object.assign(o, { lf: leafOk(d.lf) ? d.lf : 'line' });   // 📅 날짜 내지 (해 없음 · 크기 n = 같은 크기 표지에만)
             const color = c => /^#[0-9a-f]{6}$/i.test(c || '') ? c : DMK_COLORS[k === '바인더' ? 6 : 0];
             if (t === 'note') { const pg = dmkPg(d.pg); return Object.assign(o, { my: 1, b: DMK_BINDS[k].some(x => x[0] === d.b) ? d.b : DMK_BINDS[k][0][0], c: color(d.c), cols: dmkCols(d.cols, color(d.c)), cw: !!(d.cw && d.cols), pg, lv: dmkLv(d.lv, pg) }); }
             if (t === 'cover') return Object.assign(o, { b: 'ring', c: color(d.c), cols: dmkCols(d.cols, color(d.c)), cw: !!(d.cw && d.cols) });

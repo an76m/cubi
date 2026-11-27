@@ -87,19 +87,31 @@ window.PROD_READY = (function () {
     return retryN(() => prodIxGet(), no404).then(ix => { PROD_IX = ix; return String(ix.v) === String(cur.v) ? 'same' : retryN(() => pull(ix)); }, e => e && e.message === '404' ? retryN(full) : Promise.reject(e))   // 🔁 못 받으면 1 · 2 · 4초 쉬고 다시 · 조각표가 없는 서버 = 목록 통째로 받아 비교
         .catch(e => stop(e && e.name === 'AbortError' ? '시간 초과' : String(e && e.message || e)));
 })();
-/* 🗒️ 내지 무늬 = 상품 (도련 11-18 · 3단계 · 상품공방 다이어리/내지무늬) : 디자인.svg 한 칸 (그림 1 = 1mm) 을 속지색 위에 이어 깔아요 · 앱에 무늬 코드 없음
-   다이어리 · 내지 상품의 '내지' 값 = 내지무늬 상품 id ('grid' · 왼쪽/오른쪽 'grid/dot') */
-function leafList() { return prodList('내지무늬').filter(x => x.u && x.u.디자인 && x.wh && x.wh.디자인).map(x => [x.id, String((x.P || {}).이름 || x.id)]); }
-function leafOk(v) { const a = String(v || '').split('/'), L = leafList(); return a.length <= 2 && a.every(x => L.some(l => l[0] === x)); }
+/* 🗒️ 내지 = 그 다이어리 상품 폴더 안 그림 (도련 11-28 '폴더 하나 = 온전한 상품 하나 · 다른 곳과 연결 없이') : 내지.svg (· 내지2.svg …) 한 칸 (그림 1 = 1mm) 을 속지색 위에 이어 깔아요
+   - 상품 속성 '내지' · '내지구간' 값 = 그 폴더의 파일 이름 ('내지' · 왼쪽/오른쪽 '내지/내지2') → leafOf(상품, 값) = 앱 안 내지 값 '상품id:내지'
+   - 🧩 부품 내지 = 상품 폴더 부품/다이어리/내지 (서버 '부품내지' · 다꾸러가 직접 만드는 다이어리에서 고르는 목록 · 값 = 그 파일 id)
+   - 쪽 크기만 한 그림 (가로 50mm 넘게) = 한 쪽에 맞춰 한 장 · 작은 그림 = 이어 깔기 */
+const LEAF_PK = ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트', '날짜형내지', '페이지내지'];
+function leafList() { return prodList('부품내지').filter(x => x.u && x.u.디자인 && x.wh && x.wh.디자인).map(x => [x.id, String((x.P || {}).이름 || x.id)]); }
+function leafSrc(v) {                                                         // 내지 값 하나 → { u 그림 주소, wh [가로, 세로] mm }
+    const k = String(v || ''), i = k.indexOf(':');
+    if (i < 0) { const x = prodList('부품내지').find(p => p.id === k); return x && x.u && x.u.디자인 && x.wh && x.wh.디자인 ? { u: x.u.디자인, wh: x.wh.디자인 } : null; }
+    const id = k.slice(0, i), r = k.slice(i + 1);
+    for (const K of LEAF_PK) { const x = prodList(K).find(p => p.id === id); if (x) return x.u && x.u[r] && x.wh && x.wh[r] ? { u: x.u[r], wh: x.wh[r] } : null; }
+    return null;
+}
+function leafOf(x, v) { const a = String(v || '').split('/').filter(Boolean); return x && a.length && a.length <= 2 && a.every(r => x.u && x.u[r] && x.wh && x.wh[r]) ? a.map(r => x.id + ':' + r).join('/') : ''; }   // 상품 속성 값 → 앱 내지 값 ('' = 그 폴더에 그림이 없어요)
+function leafOk(v) { const a = String(v || '').split('/'); return a.length <= 2 && a.every(x => !!leafSrc(x)); }
+const leafPage = wh => +wh[0] > 50;                                           // 쪽 크기만 한 그림
 function leafCss(id) {
-    const x = prodList('내지무늬').find(p => p.id === id), u = x && x.u && x.u.디자인, wh = x && x.wh && x.wh.디자인;
-    return u && wh ? `url("${u}") 0 0 / calc(${+wh[0]} * var(--mm)) calc(${+wh[1]} * var(--mm)) repeat, var(--page-bg)` : 'var(--page-bg)';
+    const s = leafSrc(id); if (!s) return 'var(--page-bg)';
+    return leafPage(s.wh) ? `url("${s.u}") 0 0 / 100% 100% no-repeat, var(--page-bg)` : `url("${s.u}") 0 0 / calc(${+s.wh[0]} * var(--mm)) calc(${+s.wh[1]} * var(--mm)) repeat, var(--page-bg)`;
 }
 function leafBg(id, k) {                                                      // 작은 견본 (샵 카드) : 1mm = k px · 첫 무늬 (왼쪽)
-    const x = prodList('내지무늬').find(p => p.id === String(id || '').split('/')[0]), u = x && x.u && x.u.디자인, wh = x && x.wh && x.wh.디자인;
-    return u && wh ? `url("${u}") 0 0 / ${(+wh[0] * k).toFixed(2)}px ${(+wh[1] * k).toFixed(2)}px repeat` : 'none';
+    const s = leafSrc(String(id || '').split('/')[0]); if (!s) return 'none';
+    return leafPage(s.wh) ? `url("${s.u}") 0 0 / 100% 100% no-repeat` : `url("${s.u}") 0 0 / ${(+s.wh[0] * k).toFixed(2)}px ${(+s.wh[1] * k).toFixed(2)}px repeat`;
 }
-window.leafList = leafList; window.leafOk = leafOk; window.leafCss = leafCss; window.leafBg = leafBg;
+window.leafList = leafList; window.leafOk = leafOk; window.leafOf = leafOf; window.leafCss = leafCss; window.leafBg = leafBg;
 window.prodList = prodList; window.prodFix = prodFix; window.prodShelf = prodShelf; window.prodOn = prodOn; window.prodSrv = prodSrv;
 window.prodHook = prodHook; window.prodRebuild = prodRebuild; window.prodRawOf = prodRawOf; window.PROD_OKF = PROD_OKF;
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['prod'] = prodOn();   // 🛡 목록을 못 받았으면 다이어리를 시작하지 않아요 (index.html 아래 확인)
