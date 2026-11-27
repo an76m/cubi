@@ -35,6 +35,62 @@
            ===================================================================== */
         const GOOGLE_CLIENT_ID = '1020129080030-42dun4pqvve1pjg9r21m62dd71h6hui5.apps.googleusercontent.com'; // ← 본인 OAuth 클라이언트 ID로 교체
         const TOP_FOLDER_NAME = '말랑달콤';                         // 최상위 폴더
+        /* =====================================================================
+           🙈 드라이브 이름 = 앱만 아는 기호 (도련 11-27 '사용자는 못 알아보고 · 앱은 이름만 보고 알아보고 · 개발자는 📊 상황판에서 한글로')
+           - 앱 코드는 늘 한글 이름 그대로 써요 (설정 / 배치1.json · 소품 / 받은-….json …) → 드라이브와 주고받는 문 (gfetch) 하나에서만 바꿔요
+             보낼 때 dnEnc (검색 글 name='…' · name contains '…' · 만들기 · 이름 바꾸기) · 받을 때 dnDec (목록 · 파일 정보 · changes 의 name)
+           - 바꾸는 법 : ① 대문자 · ^ 는 ^ 로 감싸요 (사용자가 지은 인형 이름도 그대로 되돌아오게) ② 정해진 한글 낱말 → 대문자 기호 (DN_W · 긴 것부터)
+                        ③ 숫자 · 영어 소문자 = 자리 바꾸기 (DN_SRC → DN_DST · 상품 id · 날짜 · 시각이 안 보여요) · '.json' · 기호 - _ › ~ 빈칸은 그대로 (이름 모양 = 검색 앞머리가 그대로 맞아요)
+           - '말랑달콤' 으로 시작하는 이름 (맨 위 폴더 · 은퇴한 예전 폴더) 은 그대로
+           - 거꾸로 풀기 = 📊 상황판 🗂 드라이브 탭 · tests/fakedrive.py dn_enc / dn_dec (같은 표 · 시험 t_dname)
+           - ⚠ 표를 바꾸면 이미 만든 드라이브 이름을 못 읽어요 (개발 중 = 말랑달콤 폴더를 지우고 새로) · 낱말 더하기는 X 다음 남은 글자로
+           ===================================================================== */
+        const DN_W = [['목록', 'A'], ['받은', 'B'], ['설정', 'C'], ['다이어리', 'D'], ['빈스티커첩', 'E'], ['표지', 'F'], ['문구', 'G'], ['썸네일', 'H'], ['배경지', 'I'], ['검색', 'J'], ['소품', 'K'], ['기록', 'L'], ['바인더재료', 'M'], ['내', 'N'], ['인형돌', 'O'], ['배치', 'P'], ['인형극', 'Q'], ['실물', 'R'], ['스티커첩', 'S'], ['상태', 'T'], ['책상', 'U'], ['페이지', 'V'], ['내정보', 'W'], ['휴지', 'Y'], ['도안', 'Z'],
+            ['휴지통', 'XA'], ['그림', 'XB'], ['장부', 'XC'], ['열림', 'XD'], ['씰', 'XE'], ['조각', 'XF'], ['모조지', 'XG'], ['마테', 'XH'], ['떡메', 'XI'], ['메모지', 'XJ'], ['속지', 'XK'], ['문제', 'XL']];
+        const DN_SRC = '0123456789abcdefghijklmnopqrstuvwxyz', DN_DST = 'h9x5qvobtcwpiy6su084drafkm17lz2jegn3';
+        const DN_E = {}, DN_D = {}, DN_C = {}; [...DN_SRC].forEach((c, i) => { DN_E[c] = DN_DST[i]; DN_D[DN_DST[i]] = c; }); DN_W.forEach(([w, c]) => { DN_C[c] = w; });
+        const DN_WL = DN_W.slice().sort((a, b) => b[0].length - a[0].length);
+        function dnEnc(n) {
+            n = String(n == null ? '' : n); if (!n || n.startsWith(TOP_FOLDER_NAME)) return n;
+            const ext = /\.json$/.test(n) ? '.json' : ''; let s = ext ? n.slice(0, -5) : n;
+            s = s.replace(/[A-Z^]/g, c => '^' + (c === '^' ? '^' : c.toLowerCase()));
+            for (const [w, c] of DN_WL) s = s.split(w).join(c);
+            return s.replace(/[0-9a-z]/g, c => DN_E[c]) + ext;
+        }
+        function dnDec(n) {
+            n = String(n == null ? '' : n); if (!n || n.startsWith(TOP_FOLDER_NAME)) return n;
+            const ext = /\.json$/.test(n) ? '.json' : ''; let s = ext ? n.slice(0, -5) : n;
+            s = s.replace(/[0-9a-z]/g, c => DN_D[c]).replace(/X[A-Z]|[A-Z]/g, c => DN_C[c] != null ? DN_C[c] : c);
+            return s.replace(/\^(\^|[a-z])/g, (m, c) => c === '^' ? '^' : c.toUpperCase()) + ext;
+        }
+        const dnQ = q => String(q || '').replace(/name( contains |=)'((?:\\.|[^'\\])*)'/g, (m, op, v) => `name${op}'${qName(dnEnc(v.replace(/\\(.)/g, '$1')))}'`);   // 검색 글 안의 이름
+        function dnUrl(url) {                                                     // 보낼 주소 : 목록 검색 q 만
+            if (!/googleapis\.com\/drive\/v3\/files\?/.test(url)) return url;
+            return url.replace(/([?&]q=)([^&]*)/, (m, k, v) => { try { return k + encodeURIComponent(dnQ(decodeURIComponent(v))); } catch (e) { return m; } });
+        }
+        function dnBody(body) {                                                    // 보낼 내용 : 만들기 · 이름 바꾸기의 name (여러 조각이면 첫 조각 = 파일 정보만)
+            if (typeof body !== 'string' || body.indexOf('"name"') < 0) return body;
+            const one = t => t.replace(/"name":"((?:\\.|[^"\\])*)"/, (m, v) => { try { return '"name":' + JSON.stringify(dnEnc(JSON.parse('"' + v + '"'))); } catch (e) { return m; } });
+            if (body[0] === '{') return one(body);
+            const b = /^--(\S+)\r\n/.exec(body); if (!b) return body;
+            const i = body.indexOf('--' + b[1], b[0].length); if (i < 0) return body;
+            return one(body.slice(0, i)) + body.slice(i);
+        }
+        function dnWalk(o, f) {                                                   // 답 안의 모든 name (files · file · 맨 위)
+            if (Array.isArray(o)) { o.forEach(x => dnWalk(x, f)); return o; }
+            if (o && typeof o === 'object') for (const k of Object.keys(o)) { if (k === 'name' && typeof o[k] === 'string') o[k] = f(o[k]); else if (o[k] && typeof o[k] === 'object') dnWalk(o[k], f); }
+            return o;
+        }
+        const dnRe = changes => dnWalk(JSON.parse(JSON.stringify(changes || [])), dnEnc);   // ⚡ 기억(js/drcache.js)은 드라이브 이름 그대로 (기호) 로만 비교해요
+        async function dnRes(res, url) {                                         // 받은 답 : 파일 정보 · 목록 · changes 의 name 을 한글로 (내용 받기 alt=media · 버전 내용은 그대로)
+            if (!res || !/googleapis\.com\/drive\/v3\/(files|changes)/.test(url) || /[?&]alt=media/.test(url) || /\/revisions\/[^/?]+/.test(url)) return res;
+            let t; try { t = await res.clone().text(); } catch (e) { return res; }
+            if (!t || t.indexOf('"name"') < 0) return res;
+            let j; try { j = JSON.parse(t); } catch (e) { return res; }
+            dnWalk(j, dnDec); try { drvLearn(j); } catch (e) {}
+            return new Response(JSON.stringify(j), { status: res.status, statusText: res.statusText, headers: res.headers });
+        }
+        window.dnEnc = dnEnc; window.dnDec = dnDec;
         /* 📁 폴더 이름은 여기 한 곳에서만 (도련 10-26 · 새 폴더 = 한 줄 추가) · 스티커 종류 폴더는 js/own.js OWN_KIND */
         const DIRS = {
             day: '날짜형바인더', dayNote: '날짜형노트', note: '페이지노트', binder: '페이지바인더',   // 📔 다이어리 종류 (도련 10-28 · 나중 날짜형노트)
@@ -231,7 +287,51 @@
             }
         }
 
-        async function gfetch(url, opts = {}, retried = false) {
+        async function gfetch(url, opts = {}) {                              // 🙈 드라이브와 주고받는 문 하나 = 이름 기호 바꾸기 (위 DN · 앱 안은 늘 한글 이름)
+            const o = opts && opts.body ? Object.assign({}, opts, { body: dnBody(opts.body) }) : opts;
+            const res = await dnRes(await gfetchRaw(dnUrl(url), o), url);
+            if (res && res.ok && opts && opts.method && opts.method !== 'GET') drvWrote(url, opts, res);   // 📊 🗂 이 기기가 바꾼 것 = 상황판에 바로
+            return res;
+        }
+        /* 📊 상황판 🗂 드라이브 (도련 11-27 '앱 테스트하면서 드라이브를 실시간으로 봐야 해') : 이 기기가 만들고 · 고치고 · 지운 것 = 그 순간 (요청 0번)
+             · 다른 기기 · 드라이브 화면에서 한 것 = 탭을 연 동안만 몇 초마다 changes (drvPeek · 탭을 닫으면 멈춰요) · 이름 = 한글 (기호는 옆에 작게) · js/dash.js VIEW.drv */
+        const DRV = { ev: [], nm: new Map(), on: null, tok: null };
+        function drvLearn(j) { (function walk(o) { if (Array.isArray(o)) return o.forEach(walk); if (!o || typeof o !== 'object') return; if (o.id && typeof o.name === 'string') DRV.nm.set(o.id, { name: o.name, parent: (o.parents || [])[0] || '', dir: o.mimeType === FOLDER_MIME }); Object.values(o).forEach(v => { if (v && typeof v === 'object') walk(v); }); })(j); }
+        function drvNote(op, id, name, who) {
+            const k = DRV.nm.get(id) || {}; if (name) DRV.nm.set(id, Object.assign({}, k, { name }));
+            DRV.ev.push({ t: Date.now(), op, id: id || '', name: name || k.name || '', p: k.parent || '', who: who || '이 기기' }); if (DRV.ev.length > 400) DRV.ev.shift();
+            if (DRV.on) try { DRV.on(); } catch (e) {}
+        }
+        async function drvWrote(url, opts, res) {
+            if (!/googleapis\.com\/(upload\/)?drive\/v3\/files/.test(url)) return;
+            let j = null; try { j = await res.clone().json(); } catch (e) {}
+            const m = /\/files\/([^/?]+)/.exec(url), id = (m && m[1]) || (j && j.id) || '', b = typeof opts.body === 'string' ? opts.body : '';
+            const nm = (/"name":"((?:\\.|[^"\\])*)"/.exec(b) || [])[1], name = nm ? JSON.parse('"' + nm + '"') : '', par = (/"parents":\["([^"]+)"/.exec(b) || [])[1] || '';
+            if (name && id) DRV.nm.set(id, { name, parent: par, dir: /google-apps\.folder/.test(b) });
+            const op = opts.method === 'DELETE' ? '🔥 지움' : /"trashed":true/.test(b) ? '🗑 휴지통' : /addParents/.test(url) ? '↪ 옮김' : opts.method === 'POST' ? (/google-apps\.folder/.test(b) ? '📁 폴더' : '➕ 만듦') : name ? '🏷 이름' : '✏️ 고침';
+            drvNote(op, id, name);
+        }
+        async function drvPeek() {                                               // 👀 다른 기기 것 (탭을 연 동안만 · 앱의 changes 표시와 따로)
+            if (!drive.token || drive.local) return;
+            try {
+                if (!DRV.tok) { const r = await gfetch('https://www.googleapis.com/drive/v3/changes/startPageToken'); if (r.ok) DRV.tok = (await r.json()).startPageToken; return; }
+                const r = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(DRV.tok)}&pageSize=200&spaces=${CH_SPACES}&fields=*`); if (!r.ok) { DRV.tok = null; return; }
+                const j = await r.json(); drvLearn(j);
+                (j.changes || []).forEach(c => { if (mineIds.has(c.fileId)) return; const f = c.file || {}; drvNote(c.removed ? '🔥 지움' : f.trashed ? '🗑 휴지통' : '🔄 바뀜', c.fileId, f.name, '다른 곳'); });
+                DRV.tok = j.newStartPageToken || j.nextPageToken || DRV.tok;
+            } catch (e) {}
+        }
+        async function drvTree() {                                               // 🌳 앱이 만든 것 전부 (드라이브 화면처럼 · 누를 때만)
+            const all = []; let pt = '';
+            for (let i = 0; i < 30; i++) {
+                const r = await gfetch(`${DRIVE_API}?q=${encodeURIComponent('trashed=false')}&pageSize=1000&fields=${encodeURIComponent('nextPageToken,files(id,name,parents,mimeType,modifiedTime,size)')}${pt ? '&pageToken=' + encodeURIComponent(pt) : ''}`, { fresh: true });
+                if (!r.ok) throw new Error('drvTree ' + r.status);
+                const j = await r.json(); drvLearn(j); all.push(...(j.files || [])); pt = j.nextPageToken; if (!pt) break;
+            }
+            return all;
+        }
+        window.DRV = DRV; window.drvPeek = drvPeek; window.drvTree = drvTree;
+        async function gfetchRaw(url, opts = {}, retried = false) {
             if (drive.madeDirs && drive.madeDirs.size && opts.method && (opts.method === 'DELETE' || /addParents|removeParents/.test(url) || (opts.method === 'PATCH' && !/uploadType=media/.test(url) && /"(trashed|name|parents)"/.test(String(opts.body || ''))))) drive.madeDirs.clear();   // 📁 지우기 · 휴지통 · 이름 · 옮기기 = 방금 만든 폴더 안 기억도 버려요 (다시 찾아요)
             if (drive.local && window.vfsFetch) return vfsFetch(url, opts);        // 🏠 로그인 없이 이 브라우저 : 드라이브 대신 (js/devsave.js)
             const get = !opts.method || opts.method === 'GET';
@@ -241,7 +341,7 @@
                 headers: Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + drive.token })
             }));
             const res = get && !opts.keepalive ? await retryN(send) : await send();   // 🔁 읽기 = 인터넷이 잠깐 끊겨도 1 · 2 · 4초 쉬고 다시 (도련 11-25 · 쓰기는 두 번 만들어질 수 있어서 flushUpload 가 다시 올려요)
-            if (res.status === 401 && !retried) { drive.token = null; return gfetch(url, opts, true); }
+            if (res.status === 401 && !retried) { drive.token = null; return gfetchRaw(url, opts, true); }
             if (res.ok && opts.method && opts.method !== 'GET' && /googleapis\.com\/(upload\/)?drive\/v3\/files/.test(url)) {   // 📱 이 창이 손댄 파일 = 내 것 (checkRemote 가 다른 기기 것과 나눠요)
                 const m = /\/files\/([^/?]+)/.exec(url); if (m) mineIds.add(m[1]);
                 let nid = '', wj = null; try { wj = await res.clone().json(); } catch (e) {}
@@ -252,7 +352,7 @@
             const tries = opts._tries || 0;
             if (tries < 4 && !opts.keepalive && (res.status === 429 || res.status >= 500 || (res.status === 403 && /rate/i.test(await driveReason(res))))) {
                 await new Promise(r => setTimeout(r, 1000 * 2 ** tries + Math.random() * 400));
-                return gfetch(url, Object.assign({}, opts, { _tries: tries + 1 }), retried);
+                return gfetchRaw(url, Object.assign({}, opts, { _tries: tries + 1 }), retried);
             }
             return res;
         }
@@ -1954,7 +2054,7 @@
                         t = j.nextPageToken;
                     }
                 } catch (e) {}
-                if (ok) { await DRC.apply(all); drcGone(all); await DRC.ready(changeTok); drive.drcBoot = { n: all.length, ch: all }; return; }
+                if (ok) { await DRC.apply(dnRe(all)); drcGone(all); await DRC.ready(changeTok); drive.drcBoot = { n: all.length, ch: all }; return; }
             }
             await DRC.wipe(); if (window.ownForgetAllIds) ownForgetAllIds();   // 바뀐 것을 모르는 사이가 생겼어요 → 기억한 파일 번호도 버리고 폴더에서 다시 찾아요
             await changesStart(); if (changeTok) await DRC.ready(changeTok); drive.drcBoot = { n: -1, ch: null };
@@ -1969,7 +2069,7 @@
                     const res = await gfetch(`https://www.googleapis.com/drive/v3/changes?pageToken=${encodeURIComponent(tok)}&pageSize=1000&spaces=${CH_SPACES}&fields=*`);
                     if (!res.ok) { changeTok = null; if (window.DRC) await DRC.wipe(); if (window.ownForgetAllIds) ownForgetAllIds(); return null; }   // 표시가 안 맞으면 기억도 버려요 (다음에 켤 때 다 읽어요)
                     const j = await res.json();
-                    if (window.DRC) await DRC.apply(j.changes || []);              // ⚡ 바뀐 것은 기억에서 잊어요 (내 것 · 다른 기기 것 모두)
+                    if (window.DRC) await DRC.apply(dnRe(j.changes));              // ⚡ 바뀐 것은 기억에서 잊어요 (내 것 · 다른 기기 것 모두)
                     drcGone(j.changes);
                     (j.changes || []).forEach(c => { if (openAt && c.file && c.file.name === OPEN_NAME && !changeMine(c) && (c.file.appProperties || {}).on !== '0' && Date.parse(c.file.modifiedTime || c.time || '') > openAt) drive.otherOpen = true; });   // 🔌 나보다 나중에 다른 기기가 열었어요
                     (j.changes || []).forEach(c => { if (c.fileId && !changeMine(c) && !(c.file && ((c.file.spaces || []).includes('appDataFolder') || c.file.name === LEDGER_NAME))) out.push(c); });   // 📒 장부는 화면과 상관없어요 (다음에 쓸 때 다시 읽어요)

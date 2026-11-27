@@ -212,7 +212,7 @@
 #dashP .card small{display:block;color:#a07a88}#dashP .bar{height:9px;background:#ff9fbc;border-radius:5px;min-width:2px}#dashP .warn{color:#d23c3c}#dashP .ok{color:#2e9b5e}
 #dashP input{width:110px;border:1px solid #f0b8c8;border-radius:6px;padding:2px 6px;font:inherit}#dashP .tip{color:#9a7884;font-size:12px}#dashP code{background:#fff0f5;padding:0 4px;border-radius:4px}
 #dashP{resize:both;overflow:hidden;min-width:360px;min-height:240px}#dashP .dh{cursor:move;user-select:none}#dashP details{margin:2px 0}#dashP summary{cursor:pointer}`;
-    const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다'], ['log', '🧾 기록']];
+    const TABS = [['sum', '요약'], ['req', '드라이브 요청'], ['users', '사용자 수'], ['speed', '속도'], ['data', '데이터'], ['store', '브라우저 저장'], ['state', '상태'], ['days', '날마다'], ['log', '🧾 기록'], ['drv', '🗂 드라이브']];
     const esc = s => htmlEsc(s);   // 🧰 js/util.js (dash.js 가 util.js 보다 먼저 읽혀서 = 쓸 때 불러요)
     let DOC = document;                                                       // 그리는 곳 = 따로 창 (팝업) 또는 앱 안 (팝업이 막혔을 때)
     function el() {
@@ -255,6 +255,42 @@
         if (D.tab !== 'log') return;
         box.innerHTML = `<p class="tip">🧾 문제 기록 (log) · 이 기기 기록 · 최근 ${Math.min(300, all.length)}줄 · 모두 ${all.length}줄 · 새것이 위 · 📋 복사 = 기록 그대로 (Claude 에게)</p>
 ${table(['때', '무슨 일', '내용', '부른 곳', '기기 · 버전'], all.slice(-300).reverse().map(r => [esc(when(r.t)), esc(DIAG_TXT[r.e] || r.e), `<span class="tip">${esc(rest(r))}</span>`, `<code>${esc(r.who || '')}</code>`, esc(r.d + ' · ' + r.v)]))}`;
+    }
+    /* 🗂 드라이브 (도련 11-27 '앱 테스트하면서 드라이브를 실시간으로 · 상황판에서 한글로') : 드라이브 이름은 기호 (js/drive.js DN · dnEnc / dnDec) → 여기서만 한글로 풀어 보여요
+         · 위 = 실시간 줄 (이 기기 = 그 순간 · 다른 곳 = 5초마다 changes · 탭을 연 동안만) · 아래 = 🌳 나무 (누를 때 한 번 읽기 · 파일 톡 = 잠금 푼 내용) */
+    const DV = { tree: null, open: new Set(), peek: 0, dirty: true, show: '', busy: false };
+    function drvPaint(box, full) {
+        if (!window.DRV) { box.innerHTML = '<p class="warn">드라이브 장치를 불러오지 못했어요.</p>'; return; }
+        DRV.on = () => { DV.dirty = true; };
+        if (!DV.peek) { DV.peek = setInterval(() => { if (!D.on || D.tab !== 'drv') { clearInterval(DV.peek); DV.peek = 0; if (window.DRV) DRV.on = null; return; } if (window.drvPeek) drvPeek(); }, 5000); if (window.drvPeek) drvPeek(); }
+        if (!full && !DV.dirty) return; DV.dirty = false;
+        const when = t => new Date(t).toLocaleTimeString('ko-KR', { hour12: false });
+        const nm = id => { const k = DRV.nm.get(id); return k ? k.name : ''; };
+        const path = id => { const L = []; let k = DRV.nm.get(id), n = 0; while (k && k.parent && n++ < 8) { const p = DRV.nm.get(k.parent); if (!p) break; L.unshift(p.name); k = p; } return L.join(' › '); };
+        const code = n => window.dnEnc ? `<small class="tip"> ${esc(dnEnc(n))}</small>` : '';
+        const ev = DRV.ev.slice(-150).reverse();
+        let h = `<p class="tip">🗂 드라이브 · 사용자 눈 = 회색 기호 · 이 기기 = 그 순간 · 다른 기기 · 드라이브 화면 = 5초마다 (이 탭을 연 동안만) · <button data-dv="tree">🌳 나무 ${DV.tree ? '다시 ' : ''}읽기</button> <button data-dv="clr">🧹 줄 지우기</button></p>`;
+        h += table(['때', '무엇', '이름', '자리', '어디서'], ev.map(e => [when(e.t), e.op, `<a href="#" data-dvf="${esc(e.id)}">${esc(e.name || nm(e.id) || e.id)}</a>${code(e.name || nm(e.id))}`, `<span class="tip">${esc(path(e.id))}</span>`, e.who]));
+        if (DV.busy) h += '<p class="tip">🌳 읽는 중…</p>';
+        if (DV.tree) {
+            const kids = new Map(); DV.tree.forEach(f => { const p = (f.parents || [])[0] || ''; if (!kids.has(p)) kids.set(p, []); kids.get(p).push(f); });
+            const ids = new Set(DV.tree.map(f => f.id)), roots = DV.tree.filter(f => !ids.has((f.parents || [])[0]));
+            const dir = f => f.mimeType === 'application/vnd.google-apps.folder';
+            const row = (f, d) => { const k = (kids.get(f.id) || []).sort((a, b) => (dir(b) - dir(a)) || a.name.localeCompare(b.name)); const op = DV.open.has(f.id) || d < 1;
+                return `<div style="padding-left:${d * 14}px">${dir(f) ? `<a href="#" data-dvd="${f.id}">${op ? '▾' : '▸'} 📁 ${esc(f.name)}</a> <small class="tip">${k.length}</small>` : `<a href="#" data-dvf="${f.id}">📄 ${esc(f.name)}</a> <small class="tip">${f.size ? Math.round(f.size / 1024 * 10) / 10 + 'KB' : ''}</small>`}${code(f.name)}</div>` + (dir(f) && op ? k.map(x => row(x, d + 1)).join('') : ''); };
+            h += `<h4>🌳 나무 (파일 ${DV.tree.length}개)</h4>` + roots.map(f => row(f, 0)).join('');
+        }
+        if (DV.show) h += `<h4>📄 내용</h4><pre style="white-space:pre-wrap;max-height:300px;overflow:auto;background:#fff;border:1px solid #f3d3dd;border-radius:8px;padding:6px;font-size:11px">${esc(DV.show)}</pre>`;
+        const top = box.scrollTop; box.innerHTML = h; box.scrollTop = full ? 0 : top;
+        if (!box.dvWired) { box.dvWired = 1; box.addEventListener('click', async e => {
+            const a = e.target.closest('[data-dv],[data-dvd],[data-dvf]'); if (!a || D.tab !== 'drv') return; e.preventDefault();
+            if (a.dataset.dv === 'clr') DRV.ev.length = 0;
+            else if (a.dataset.dv === 'tree') { DV.busy = true; DV.dirty = true; drvPaint(box); try { DV.tree = await drvTree(); } catch (x) { DV.show = '🌳 못 읽었어요 : ' + x.message; } DV.busy = false; }
+            else if (a.dataset.dvd) { DV.open.has(a.dataset.dvd) ? DV.open.delete(a.dataset.dvd) : DV.open.add(a.dataset.dvd); }
+            else if (a.dataset.dvf) { DV.show = '읽는 중…'; DV.dirty = true; drvPaint(box); try { let t = await readFileText(a.dataset.dvf); if (/^\{"v":1,"d"/.test(t) && typeof ownUnlock === 'function') { try { const u = await ownUnlock(t); t = typeof u === 'string' ? u : JSON.stringify(u); } catch (x) {} } let o = t;   // 🔐 스티커 · 받은 상품 = 계정 열쇠 한 겹 더 (js/own.js ownUnlock)
+ try { o = JSON.stringify(JSON.parse(t), null, 1); } catch (x) {} DV.show = `${nm(a.dataset.dvf)} (${a.dataset.dvf})\n` + String(o).slice(0, 20000); } catch (x) { DV.show = '못 읽었어요 : ' + (x && x.message || x); } }
+            DV.dirty = true; drvPaint(box);
+        }); }
     }
     const VIEW = {
         sum() {
@@ -355,6 +391,7 @@ ${s.ss.length ? `<h4>🗂 sessionStorage (${s.ss.length}개 · 이 탭만)</h4>$
         const ae = DOC.activeElement, focus = ae && p.contains(ae) && ae.tagName === 'INPUT' ? ae.dataset : null;
         if (D.tab === 'store') { if (full) { box.innerHTML = VIEW.store(); storePaint(box); } return; }
         if (D.tab === 'log') { if (full) logPaint(box); return; }   // 🧾 기록 = 탭을 누를 때만 다시 읽어요
+        if (D.tab === 'drv') { drvPaint(box, full); return; }      // 🗂 드라이브 = 바뀔 때만 다시 그려요
         const top = box.scrollTop;
         box.innerHTML = VIEW[D.tab]();
         box.scrollTop = full ? 0 : top;
