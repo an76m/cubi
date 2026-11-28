@@ -127,12 +127,12 @@
         function elCenter(el) {
             const go = () => {
                 if (!el.isConnected || +el.dataset.posX !== (el._p0 ?? 100) || el.dataset.posY !== '100') return;
-                const pg = spPage(), r0 = pg.getBoundingClientRect(), k = r0.width / (pg.offsetWidth || r0.width) || 1, r = spRect();
+                const pg = spPage(), r0 = window.dyRect ? dyRect(pg) : pg.getBoundingClientRect(), k = r0.width / (pg.offsetWidth || r0.width) || 1, r = spRect(), V = (x, y) => window.dyIn ? dyIn(x, y) : [x, y];   // 🔄
                 const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${el.dataset.rotation || 0}deg)`; };
                 put(0, 0);
                 const b = el.getBoundingClientRect(), hw = Math.min(b.width, r.width) / 2, hh = Math.min(b.height, r.height) / 2;
                 const cx = Math.min(r.right - hw, Math.max(r.left + hw, window.innerWidth / 2)), cy = Math.min(r.bottom - hh, Math.max(r.top + hh, window.innerHeight / 2));
-                put(Math.round((cx - (b.left + b.width / 2)) / k), Math.round((cy - (b.top + b.height / 2)) / k));
+                { const p = V(cx, cy), q = V(b.left + b.width / 2, b.top + b.height / 2); put(Math.round((p[0] - q[0]) / k), Math.round((p[1] - q[1]) / k)); }
                 if (selectedElement === el && typeof positionTextPanel === 'function') positionTextPanel();
                 spSave(false);
             };
@@ -430,7 +430,7 @@
                 const img = el.querySelector(':scope > img'), span = !img && el.querySelector(':scope > span');
                 if (img && (!img.complete || !img.naturalWidth || (typeof isTapeSrc === 'function' && isTapeSrc(img.dataset.src)))) return null;
                 if (!img && !span) return null;
-                const ca = spPage(), k = (ca.getBoundingClientRect().width / (ca.offsetWidth || 1)) || 1, S = scale * k;
+                const ca = spPage(), k = ((window.dyRect ? dyRect(ca) : ca.getBoundingClientRect()).width / (ca.offsetWidth || 1)) || 1, S = scale * k;
                 const node = img || span, w = node.offsetWidth * S, h = node.offsetHeight * S;
                 if (w < 4 || h < 4) return null;
                 let src = img;
@@ -865,8 +865,8 @@
         }
         /* 스티커 안 좌표 ↔ 화면 좌표 (돌리기 · 크기 · 페이지 배율까지) */
         function twzGeo() {
-            const t = twz, ca = spPage(), r = ca.getBoundingClientRect(), k = r.width / (ca.offsetWidth || r.width) || 1;
-            const s = parseFloat(t.el.dataset.scale) || 1, a = ((parseFloat(t.el.dataset.rotation) || 0) + (parseFloat(t.el.style.rotate) || 0)) * Math.PI / 180;   // 📄 바인더 쪽째 돌린 것까지 (js/skins.js bdFreeApply)
+            const t = twz, ca = spPage(), r = window.dyRect ? dyRect(ca) : ca.getBoundingClientRect(), k = r.width / (ca.offsetWidth || r.width) || 1;   // 🔄 돌린 다이어리 (js/page.js)
+            const s = parseFloat(t.el.dataset.scale) || 1, a = ((parseFloat(t.el.dataset.rotation) || 0) + (parseFloat(t.el.style.rotate) || 0) + (window.dyRot ? dyRot() : 0)) * Math.PI / 180;   // 📄 바인더 쪽째 돌린 것까지 (js/skins.js bdFreeApply)
             const b = t.el.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;   // 가운데는 화면에 보이는 그대로 (바인더 쪽 벌어짐 · 옮긴 쪽까지)
             return { toLoc: (X, Y) => { const ux = (X - cx) / k, uy = (Y - cy) / k; return [(ux * Math.cos(-a) - uy * Math.sin(-a)) / s + t.W / 2, (ux * Math.sin(-a) + uy * Math.cos(-a)) / s + t.H / 2]; } };
         }

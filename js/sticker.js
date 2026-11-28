@@ -192,7 +192,7 @@ function stkStick(o) {
     const el = pg.querySelector('.element-box:last-child');
     if (el) {
         if (o.mark) o.mark(el);
-        { const zs = window.dyScale ? dyScale() : 1, za = window.dyRot ? dyRot() : 0; elPlace(el, P, cx, cy, o.w / P.k / zs, o.h / P.k / zs, (o.deg || 0) - za); }   // 🔄 돌린 다이어리 = 화면에 보이던 크기 · 기울기 그대로
+        elPlace(el, P, cx, cy, o.w / P.k, o.h / P.k, (o.deg || 0) - (window.dyRot ? dyRot() : 0));   // 🔄 돌린 다이어리 = 화면에 보이던 기울기 그대로 (P.k 에 작아진 배율도 들어 있어요)
         if (o.orig && window.elOrig) elOrig(el);                                // 🖼️ 원본 크기로 (가운데는 그대로)
         if (o.after) o.after(el, pg);
     }

@@ -226,11 +226,11 @@
     async function split(el, pts) {
         const kind = cutKind(el); if (!kind) return false;
         const g = await render(el, kind), { c, R, W, H, B, P } = g;
-        const ca = spPage(), car = ca.getBoundingClientRect(), k = car.width / (ca.offsetWidth || car.width) || 1;
+        const ca = spPage(), car = window.dyRect ? dyRect(ca) : ca.getBoundingClientRect(), k = car.width / (ca.offsetWidth || car.width) || 1;   // 🔄 돌린 다이어리 (js/page.js)
         const s = parseFloat(el.dataset.scale) || 1, rot = (parseFloat(el.dataset.rotation) || 0) * Math.PI / 180;
         const px = parseFloat(el.dataset.posX) || 0, py = parseFloat(el.dataset.posY) || 0, cx = px + W / 2, cy = py + H / 2;
         const br = el.getBoundingClientRect(), scx = br.left + br.width / 2, scy = br.top + br.height / 2;   // 보이는 자리 그대로 (🗂 바인더는 쪽마다 옮겨지고 돌아가 있어요 · translate · rotate)
-        const vrot = rot + (parseFloat(getComputedStyle(el).rotate) || 0) * Math.PI / 180;
+        const vrot = rot + ((parseFloat(getComputedStyle(el).rotate) || 0) + (window.dyRot ? dyRot() : 0)) * Math.PI / 180;   // 🔄 화면에서 보이는 기울기 = 다이어리 돌린 만큼 더
         const toLocal = ([X, Y]) => {                   // 화면 → 스티커 그림 좌표 (캔버스 px)
             const ux = (X - scx) / k, uy = (Y - scy) / k;
             const lx = (ux * Math.cos(-vrot) - uy * Math.sin(-vrot)) / s + W / 2, ly = (ux * Math.sin(-vrot) + uy * Math.cos(-vrot)) / s + H / 2;

@@ -451,48 +451,50 @@
         }
         /* 🔄 다이어리 돌리기 (도련 11-28 '현실처럼 돌려서 다꾸' · 2D 툴처럼 보기만 돌려요 · 붙인 것 · 저장은 그대로)
            - 네 모서리(종이 밖 테두리 + 안쪽 조금 · .dr-h)를 잡고 끌면 돌아가요 → 놓으면 가까운 90도에 착 · 화면에 맞게 살짝 작아져요
-           - 돌아가는 점 = 종이(#canvasArea) 가운데 · 화면 → 종이 바꾸기는 여기 하나 : dyIn(화면 점 → 안 돌린 점) · dyOut(거꾸로) · dyVec(움직인 거리) · dyRect(상자)
+           - 돌아가는 점 = 종이(#canvasArea) 가운데 · 화면 → 종이 바꾸기는 여기 하나 : dyIn(화면 점 → 안 돌린 점) · dyOut(거꾸로) · dyVec(움직인 거리 → 종이 px) · dyRect(상자 · 너비 ÷ offsetWidth = 배율)
            - 지금 맞춘 것 = 📌 스티커 붙이기 · 옮기기 · 늘이기 · ✏️ 펜 · 그 밖의 문구는 돌린 동안 막아요 (gdHold) · 페이지 넘기기 · 바인더 꺼내기도 쉬어요
            - 기억하지 않아요 (겉표지를 덮으면 바로 · 앱을 켜면 늘 똑바로) */
-        const DRT = { a: 0, s: 1, drag: null };
+        const DRT = { a: 0, s: 1, t: [0, 0], drag: null };
         const drW = () => document.getElementById('diaryWrapper');
         function drPivot() { const c = document.getElementById('canvasArea'), r = c && c.getBoundingClientRect(); return r && r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: 0, y: 0 }; }
         function drMap(x, y, a, s, P) { const t = a * Math.PI / 180, dx = x - P.x, dy = y - P.y; return [P.x + s * (dx * Math.cos(t) - dy * Math.sin(t)), P.y + s * (dx * Math.sin(t) + dy * Math.cos(t))]; }
-        function dyIn(x, y) { if (!DRT.a && DRT.s === 1) return [x, y]; const P = drPivot(), t = -DRT.a * Math.PI / 180, dx = (x - P.x) / DRT.s, dy = (y - P.y) / DRT.s; return [P.x + dx * Math.cos(t) - dy * Math.sin(t), P.y + dx * Math.sin(t) + dy * Math.cos(t)]; }
-        function dyOut(x, y) { return !DRT.a && DRT.s === 1 ? [x, y] : drMap(x, y, DRT.a, DRT.s, drPivot()); }
+        function dyIn(x, y) { if (!DRT.a) return [x, y]; const P = drPivot(), t = -DRT.a * Math.PI / 180, dx = x - P.x, dy = y - P.y; return [P.x + dx * Math.cos(t) - dy * Math.sin(t), P.y + dx * Math.sin(t) + dy * Math.cos(t)]; }   // 돌리기만 풀어요 (작아진 크기는 그대로 → 상자 너비 ÷ offsetWidth = 화면 배율에 같이 들어가요)
+        function dyOut(x, y) { return !DRT.a ? [x, y] : drMap(x, y, DRT.a, 1, drPivot()); }
         function dyVec(dx, dy) { if (!DRT.a && DRT.s === 1) return [dx, dy]; const t = -DRT.a * Math.PI / 180; return [(dx * Math.cos(t) - dy * Math.sin(t)) / DRT.s, (dx * Math.sin(t) + dy * Math.cos(t)) / DRT.s]; }
         function dyRect(el) {
-            const r = el.getBoundingClientRect(); if (!DRT.a && DRT.s === 1) return r;
+            const r = el.getBoundingClientRect(); if (!DRT.a) return r;
             const Q = [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]].map(p => dyIn(p[0], p[1])), X = Q.map(p => p[0]), Y = Q.map(p => p[1]);
             const L = Math.min(...X), T = Math.min(...Y), R = Math.max(...X), B = Math.max(...Y);
             return { left: L, top: T, right: R, bottom: B, width: R - L, height: B - T, x: L, y: T };
         }
         const dyRot = () => DRT.a, dyScale = () => DRT.s;
-        function drApply(a, s, anim) {
-            const w = drW(); if (!w) return; DRT.a = a; DRT.s = s;
-            w.classList.toggle('dr-anim', !!anim); w.style.rotate = a ? a + 'deg' : ''; w.style.scale = s !== 1 ? String(s) : '';
+        function drApply(a, s, anim, t) {
+            const w = drW(); if (!w) return; DRT.a = a; DRT.s = s; if (t) DRT.t = t;
+            w.classList.toggle('dr-anim', !!anim); w.style.rotate = a ? a + 'deg' : ''; w.style.scale = s !== 1 ? String(s) : ''; w.style.translate = DRT.t[0] || DRT.t[1] ? `${DRT.t[0]}px ${DRT.t[1]}px` : '';
             document.documentElement.classList.toggle('dy-rot', !!(((a % 360) + 360) % 360));
         }
         function drOrigin() {                                                   // 돌아가는 점 = 종이 가운데 (wrapper 안 자리 · 안 돌린 채로 재요)
             const w = drW(), c = document.getElementById('canvasArea'); if (!w || !c) return;
-            const a = DRT.a, s = DRT.s; w.style.rotate = ''; w.style.scale = '';
+            const a = DRT.a, s = DRT.s; w.style.rotate = ''; w.style.scale = ''; w.style.translate = '';
             const wr = w.getBoundingClientRect(), cr = c.getBoundingClientRect();
             w.style.transformOrigin = `${(cr.left + cr.width / 2 - wr.left).toFixed(1)}px ${(cr.top + cr.height / 2 - wr.top).toFixed(1)}px`;
             drApply(a, s, false);
         }
-        function drFit(a) {                                                     // 옆으로 눕히면 화면에 들어가게 (위 · 아래 메뉴 피해서)
-            if (!(((a % 180) + 180) % 180)) return 1;
-            const ip = document.getElementById('innerPage'), cov = document.querySelector('#dyBack > .dy-cov'); if (!ip) return 1;
-            const W = Math.max(ip.offsetWidth, cov ? cov.offsetWidth : 0), H = Math.max(ip.offsetHeight, cov ? cov.offsetHeight : 0), P = drPivot();
-            const tb = document.querySelector('.toolbar'), bot = tb && tb.offsetParent ? tb.getBoundingClientRect().top - 8 : window.innerHeight - 8;
-            const mx = 2 * Math.min(P.x - 20, window.innerWidth - P.x - 20), my = 2 * Math.min(P.y - 20, bot - 12 - P.y);
-            return Math.max(.3, Math.min(1, mx / H, my / W));
+        function drFit(a) {                                                     // 옆으로 눕히면 화면에 들어가게 (위 · 아래 메뉴 피해서 가운데로 · 작게) → { s, t: [x, y] 옮김 }
+            if (!(((a % 180) + 180) % 180)) return { s: 1, t: [0, 0] };
+            const ip = document.getElementById('innerPage'), cov = document.querySelector('#dyBack > .dy-cov'); if (!ip) return { s: 1, t: [0, 0] };
+            const W = Math.max(ip.offsetWidth, cov ? cov.offsetWidth : 0), H = Math.max(ip.offsetHeight, cov ? cov.offsetHeight : 0), P = drPivot(), P0 = [P.x - DRT.t[0], P.y - DRT.t[1]];
+            const tb = document.querySelector('.toolbar'), top = 20, bot = (tb && tb.offsetParent ? tb.getBoundingClientRect().top : window.innerHeight) - 12;
+            const sc = Math.max(.3, Math.min(1, (window.innerWidth - 40) / H, (bot - top) / W)), cy = (top + bot) / 2, hw = H * sc / 2;
+            const cx = Math.min(window.innerWidth - 20 - hw, Math.max(20 + hw, P0[0]));   // 가로는 그 자리 그대로 (화면 밖이면 안으로)
+            return { s: sc, t: [Math.round(cx - P0[0]), Math.round(cy - P0[1])] };
         }
         function drPlace() {                                                    // 모서리 손잡이 = 다이어리 판(.dy-cov) 네 모서리
             const ip = document.getElementById('innerPage'); if (!ip || DRT.drag) return;
             let h = document.getElementById('drH');
             if (!h) { h = document.createElement('div'); h.id = 'drH'; h.className = 'dr-h'; h.setAttribute('aria-hidden', 'true'); h.innerHTML = ['tl', 'tr', 'bl', 'br'].map(c => `<i class="${c}"></i>`).join(''); h.addEventListener('pointerdown', drDown); }
             if (h.parentNode !== ip) ip.appendChild(h);
+            drTwist();
             const cov = ip.querySelector('#dyBack > .dy-cov') || document.getElementById('canvasArea'); if (!cov) return;
             if (!DRT.a) drOrigin();
             const a = dyRect(ip), b = dyRect(cov), k = a.width / (ip.offsetWidth || a.width) || 1;
@@ -517,11 +519,38 @@
             const d = DRT.drag; if (!d || e.pointerId !== d.id) return;
             ['pointermove', 'pointerup', 'pointercancel'].forEach((t, i) => d.el.removeEventListener(t, [drMove, drUp, drUp][i]));
             DRT.drag = null; drW().classList.remove('dr-on');
-            const to = d.b0 + Math.round((DRT.a - d.b0) / 90) * 90, n = ((to % 360) + 360) % 360, s = drFit(n);
-            drApply(to, s, true);
-            setTimeout(() => { if (DRT.drag) return; drApply(n, s, false); drPlace(); if (typeof positionTextPanel === 'function') positionTextPanel(); if (window.bdSync) bdSync(); }, 300);
+            const to = d.b0 + Math.round((DRT.a - d.b0) / 90) * 90, n = ((to % 360) + 360) % 360, f = drFit(n);
+            drApply(to, f.s, true, f.t);
+            setTimeout(() => { if (DRT.drag) return; drApply(n, f.s, false); drPlace(); if (typeof positionTextPanel === 'function') positionTextPanel(); if (window.bdSync) bdSync(); }, 300);
         }
-        function drReset() { if (DRT.a || DRT.s !== 1) { drApply(0, 1, false); if (window.bdSync) bdSync(); } }
+        /* 👆👆 두 손가락으로 비틀기 (빈 종이 · 판 위 · 스티커 · 문구 위는 그것만) : 15도 넘게 비틀면 돌기 시작 → 놓으면 90도 맞춤 */
+        let drTw = null;
+        const drAng = t => Math.atan2(t[1].clientY - t[0].clientY, t[1].clientX - t[0].clientX) * 180 / Math.PI;
+        function drTwist() {
+            const w = drW(); if (!w || w._drTw) return; w._drTw = 1;
+            w.addEventListener('touchstart', e => {
+                if (!isCoverOpen || turn || e.touches.length !== 2 || DRT.drag || document.getElementById('diaryBook').classList.contains('dy-one')) { if (e.touches.length !== 2) drTw = null; return; }   // 📱 한 쪽 보기는 아직
+                if ([...e.touches].some(t => t.target.closest && t.target.closest('.element-box, .bd-tool, button, textarea, input, .dr-h'))) return;
+                drTw = { a0: drAng(e.touches), b0: DRT.a, on: false };
+            }, { passive: true });
+            w.addEventListener('touchmove', e => {
+                if (!drTw || e.touches.length !== 2) return;
+                let da = drAng(e.touches) - drTw.a0; da = ((da + 540) % 360) - 180;
+                if (!drTw.on && Math.abs(da) < 15) return;
+                if (!drTw.on) { drTw.on = true; drLetGo(); if (!DRT.a) drOrigin(); }
+                if (e.cancelable) e.preventDefault();
+                drApply(drTw.b0 + da, DRT.s, false);
+            }, { passive: false });
+            const end = e => {
+                if (!drTw || e.touches.length >= 2) return; const t = drTw; drTw = null; if (!t.on) return;
+                const to = t.b0 + Math.round((DRT.a - t.b0) / 90) * 90, n = ((to % 360) + 360) % 360, f = drFit(n);
+                drApply(to, f.s, true, f.t);
+                setTimeout(() => { if (DRT.drag || drTw) return; drApply(n, f.s, false); drPlace(); if (typeof positionTextPanel === 'function') positionTextPanel(); if (window.bdSync) bdSync(); }, 300);
+            };
+            w.addEventListener('touchend', end); w.addEventListener('touchcancel', end);
+        }
+        function drReset() { if (DRT.a || DRT.s !== 1) { drApply(0, 1, false, [0, 0]); if (window.bdSync) bdSync(); } }
+        window.dyRotSet = a => { drOrigin(); const f = drFit(a); drApply(a, f.s, false, f.t); drPlace(); };   // 🧪 시험용 (바로 돌려 놓기)
         window.dyIn = dyIn; window.dyOut = dyOut; window.dyVec = dyVec; window.dyRect = dyRect; window.dyRot = dyRot; window.dyScale = dyScale; window.drPlace = drPlace;
         function setupCurlDrag() {
             const wrapper = document.getElementById('diaryWrapper');
@@ -710,7 +739,7 @@
                 }
             }
             dySizeDiag('lay');
-            if (isCoverOpen) { if (DRT.a) drApply(DRT.a, drFit(DRT.a), false); drPlace(); }   // 🔄 모서리 손잡이 · 돌린 채 화면이 바뀌면 다시 맞춤
+            if (isCoverOpen) { if (DRT.a) { const f = drFit(DRT.a); drApply(DRT.a, f.s, false, f.t); } drPlace(); }   // 🔄 모서리 손잡이 · 돌린 채 화면이 바뀌면 다시 맞춤
         }
         /* 🧾 다이어리 크기 기록 (도련 11-19 · 1314 "창을 살짝 조절하니까 다이어리 규격이 바뀌었어" · 여기선 재현이 안 돼서) : 다이어리 모양 · 크기가 바뀔 때만 문제 기록에 한 줄 (js/drive.js diag 'dysize')
            📊 상황판 → 🧾 기록 → 📋 복사 → Claude 에게 · 원인을 찾으면 지워요 */

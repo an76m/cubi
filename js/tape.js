@@ -43,15 +43,15 @@
             const fit = tapeFit(url); url = fit.url;
             if (!addImage(url)) return false;
             const el = document.querySelector('#canvasArea .element-box:last-child');
-            const cv = document.getElementById('canvasArea'), cr = cv.getBoundingClientRect(), k = cr.width / (cv.offsetWidth || cr.width) || 1;
-            const want = at ? Math.hypot(at.x2 - at.x1, at.y2 - at.y1) / k : 170, deg = at ? Math.round(Math.atan2(at.y2 - at.y1, at.x2 - at.x1) * 180 / Math.PI) : -8;
+            const cv = document.getElementById('canvasArea'), cr = window.dyRect ? dyRect(cv) : cv.getBoundingClientRect(), k = cr.width / (cv.offsetWidth || cr.width) || 1, V = (x, y) => window.dyIn ? dyIn(x, y) : [x, y];   // 🔄 돌린 다이어리 (js/page.js)
+            const want = at ? Math.hypot(at.x2 - at.x1, at.y2 - at.y1) / k : 170, deg = at ? Math.round(Math.atan2(at.y2 - at.y1, at.x2 - at.x1) * 180 / Math.PI - (window.dyRot ? dyRot() : 0)) : -8;
             const w = Math.round(own ? Math.min(want, left) : want);
             if (el) {
                 el.style.width = w + 'px'; el.style.height = fit.h + 'px'; el.dataset.rotation = deg; el.style.transform = el.style.transform.replace(/rotate\([^)]*\)/, `rotate(${deg}deg)`);
                 if (at) {                                                        // 뽑은 테이프의 가운데에 (돌려도 가운데는 그대로)
                     const put = (x, y) => { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(${el.dataset.scale || 1}) rotate(${deg}deg)`; };
                     put(0, 0); const b = el.getBoundingClientRect();
-                    put(Math.round(((at.x1 + at.x2) / 2 - (b.left + b.width / 2)) / k), Math.round(((at.y1 + at.y2) / 2 - (b.top + b.height / 2)) / k));
+                    { const p = V((at.x1 + at.x2) / 2, (at.y1 + at.y2) / 2), q = V(b.left + b.width / 2, b.top + b.height / 2); put(Math.round((p[0] - q[0]) / k), Math.round((p[1] - q[1]) / k)); }
                 }
                 selectElement(el);
             }

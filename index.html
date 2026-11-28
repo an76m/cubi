@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611281711">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611281731">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611281711', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611281731', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -779,13 +779,13 @@
     <script src="js/mine.js?v=abd265a47e"></script>   <!-- 📦 내 실물 : 받은 소품 · 문구 = 내 드라이브에 진짜로 (받은 그때 모습 · 종류마다 묶음 _실물.json · 기기 보관) -->
     <script src="js/sound.js?v=b762fb2db0"></script>
     <script src="js/app.js?v=04cb4caaed"></script>
-    <script src="js/page.js?v=74536df209"></script>
-    <script src="js/elements.js?v=cd5924d5d9"></script>
+    <script src="js/page.js?v=5710af3967"></script>
+    <script src="js/elements.js?v=54ca2f674f"></script>
     <script src="js/tapmenu.js?v=991f87343e"></script>
     <script src="js/settings.js?v=502e290da3"></script>
     <script src="js/patterns.js?v=6dbd0c9053"></script>
     <script src="js/pattern-recipe.js?v=c74fa4f1b8"></script>
-    <script src="js/skins.js?v=c1bea3f4d9"></script>
+    <script src="js/skins.js?v=cc4db6aafe"></script>
     <script src="js/bin.js?v=0130321401"></script>   <!-- 🚛 버린 상품 = 바로 영구 삭제 + 영구삭제 칸 (모든 상품 공통 · 쓴 다이어리만 휴지통) -->
     <script src="js/dyown.js?v=38468a228a"></script>   <!-- 📚 가진 다이어리 · 🧩 바인더 재료 (981) -->
     <script src="js/dyyear.js?v=94dd2db458"></script>
@@ -823,10 +823,10 @@
     <script src="js/tojeong.js?v=10b116600f"></script>
     <script src="js/plant.js?v=6668a8b8e6"></script>
     <script src="js/attend.js?v=d0efc5597d"></script>
-    <script src="js/tape.js?v=0972c1160c"></script>
+    <script src="js/tape.js?v=dd72a7d616"></script>
     <script src="js/leafpad.js?v=695d50f883"></script>
     <script src="js/leafmaker.js?v=2110d6a8f3"></script>
-    <script src="js/draw.js?v=1ac64c2c87"></script>
+    <script src="js/draw.js?v=9dadcc85e1"></script>
     <script src="js/pencase.js?v=04caddd793"></script>
     <script src="js/frame.js?v=d0d7cac645"></script>
     <script src="js/season.js?v=02c39df124"></script>
@@ -864,10 +864,10 @@
     <script src="js/phonepaint.js?v=42418e6758"></script>   <!-- 🎨 📱 폰 그림판 : 태블릿 그림판을 한 손 크기로 (속지 · 떡메 · 마테 · 씰 · 조각 · 모조지 · 도련 11-14) -->
     <script src="js/phoneprint.js?v=d6a7668709"></script>   <!-- 🖨 📱 폰 프린터 : 📐 내 도안 → 서랍 (제작 규칙 · 도련 11-14) -->
     <script src="js/sheetmaker.js?v=1e28360f62"></script>   <!-- 🗂️ 시트 꾸미기 : 그림 여러 개 → 씰 시트 한 장 (✂️ 스티커 만들기 → 🏷️ 씰) -->
-    <script src="js/sticker.js?v=6398504cd2"></script>   <!-- 🏷️ 스티커 엔진 (핀셋 · 떼는 소리 · 붙이기 · 🏷️ 씰 · 🧩 조각 · 📄 모조지가 같이 · 도련 11-16) -->
+    <script src="js/sticker.js?v=300f208a0e"></script>   <!-- 🏷️ 스티커 엔진 (핀셋 · 떼는 소리 · 붙이기 · 🏷️ 씰 · 🧩 조각 · 📄 모조지가 같이 · 도련 11-16) -->
     <script src="js/stickerpeel.js?v=a186114b81"></script>
     <script src="js/stkedit.js?v=ffc86bdf0e"></script>   <!-- 🎨 스티커 다듬기 : 씰 종이에서 떼기 전에 색 · 뒤집기 · 자르기 · 지우개 · 글씨 · 반짝이 -->
-    <script src="js/stkcut.js?v=365badb3d9"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
+    <script src="js/stkcut.js?v=15da28ad80"></script>   <!-- ✂️ 스티커 자르기 : 꾹 누르기 메뉴 → 스티커 칼로 가로질러 그어 두 조각 -->
     <script src="js/ruler.js?v=7fa80efdde"></script>   <!-- 📏 자 : 펜꽂이에서 뽑아 페이지에 깔아 둬요 · 칼 · 색연필을 대면 반듯하게 · 진짜 cm -->
     <script src="js/piecebag.js?v=e6746f9136"></script>
     <script src="js/dakku.js?v=c5fd012244"></script>

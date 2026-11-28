@@ -1082,8 +1082,8 @@
         const gdToolOf = n => { for (let t = n && n.closest && n.closest('.bd-tool'); t; t = t.parentElement && t.parentElement.closest('.bd-tool')) if (t.parentElement === gdIp()) return t; return null; };   // 판에 놓인 문구 (예전 '#innerPage > .bd-tool')
         const gdBoxOf = n => { const b = n && n.closest && n.closest('.element-box'); return b && b.parentElement === spPage() ? b : null; };   // 종이에 붙은 꾸밈 (예전 '#canvasArea > .element-box')
         const gdEl = id => { const ip = gdIp(); return ip ? [...ip.querySelectorAll(':scope > .bd-tool')].find(x => x.dataset.t === id) || null : null; };
-        function gdK() { const ip = gdIp(), r = ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }
-        const gdTo = (x, y) => { const { r, k } = gdK(); return { x: (x - r.left) / k, y: (y - r.top) / k }; };   // 화면 → 다이어리(innerPage) 자리
+        function gdK() { const ip = gdIp(), r = window.dyRect ? dyRect(ip) : ip.getBoundingClientRect(); return { r, k: r.width / (ip.offsetWidth || r.width) || 1 }; }   // 🔄 r = 안 돌린 상자 (js/page.js dyRect)
+        const gdTo = (x, y) => { const { r, k } = gdK(); if (window.dyIn) [x, y] = dyIn(x, y); return { x: (x - r.left) / k, y: (y - r.top) / k }; };   // 화면 → 다이어리(innerPage) 자리
         function gdArea() {                                                     // 다이어리 둘레 (집게가 물 자리만큼 조금 넉넉히) · 화면 안
             const cv = spPage(), r0 = cv && cv.getBoundingClientRect(); if (!r0 || !r0.width) return null;
             const r = { left: r0.left, top: r0.top, right: r0.right, bottom: r0.bottom };
@@ -1150,7 +1150,7 @@
                 document.querySelectorAll('#innerPage > .bd-tool[data-cup]').forEach(el => { delete el.dataset.cup; if (!el.classList.contains('held')) gdHome(el); });
             }).observe(m, { attributes: true, attributeFilter: ['style'] });
         })();
-        const gdScr = p => { const { r, k } = gdK(); return [r.left + p.x * k, r.top + p.y * k]; };   // 다이어리 자리 → 화면
+        const gdScr = p => { const { r, k } = gdK(), q = [r.left + p.x * k, r.top + p.y * k]; return window.dyOut ? dyOut(q[0], q[1]) : q; };   // 다이어리 자리 → 화면
         function gdPick(id) {                                                   // 🗄️ 문구함 서랍 톡 : 놓기 ↔ 치우기 (아래 cabFlip)
             if (gdInfo(id) && !spOpen() && UI.desk()) { showMsg('📔 책상 위 다이어리를 펴면 문구를 꺼낼 수 있어요.'); return; }
             if (!gdInfo(id) || !gdIp() || !spOpen()) return;
@@ -1170,7 +1170,6 @@
         }
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
-            if (window.dyRot && dyRot()) { if (window.showMsg) showMsg('🔄 다이어리를 똑바로 놓고 써 주세요\n(돌린 동안은 스티커 · 펜만 돼요)'); return; }   // 🔄 1단계 : 다른 문구는 아직 돌린 다이어리에 안 맞춰졌어요 (js/page.js)
             gdPenOff();
             const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
             if (prev) {
@@ -1639,8 +1638,8 @@
            - el.dataset.ph = "x,y,r|…" (그 꾸밈 안 자리 · 돌리기 · 크기 전 px) → CSS mask 로 그 자리만 비워요 (저장 'ph') */
         function bdLocal(el, X, Y) {                                            // 화면 (X, Y) → 그 꾸밈 안 자리 (보이는 그대로 · 바인더 쪽 옮김 · 돌림까지)
             const b = el.getBoundingClientRect(); if (!b.width) return null;
-            const cv = spPage(), k = cv.getBoundingClientRect().width / (cv.offsetWidth || 1) || 1, s = parseFloat(el.dataset.scale) || 1;
-            const a = -((parseFloat(el.dataset.rotation) || 0) + (parseFloat(getComputedStyle(el).rotate) || 0)) * Math.PI / 180;
+            const cv = spPage(), k = (window.dyRect ? dyRect(cv) : cv.getBoundingClientRect()).width / (cv.offsetWidth || 1) || 1, s = parseFloat(el.dataset.scale) || 1;
+            const a = -((parseFloat(el.dataset.rotation) || 0) + (parseFloat(getComputedStyle(el).rotate) || 0) + (window.dyRot ? dyRot() : 0)) * Math.PI / 180;   // 🔄 다이어리 돌린 만큼 더
             const ux = (X - b.left - b.width / 2) / k, uy = (Y - b.top - b.height / 2) / k;
             return { x: (ux * Math.cos(a) - uy * Math.sin(a)) / s + el.offsetWidth / 2, y: (ux * Math.sin(a) + uy * Math.cos(a)) / s + el.offsetHeight / 2, s, k };
         }
@@ -1716,6 +1715,7 @@
                 const vx = (x - r.left) / k - sh.cx - sh.x, vy = (y - r.top) / k - sh.cy - sh.y, a = -sh.r * Math.PI / 180;
                 return { x: vx * Math.cos(a) - vy * Math.sin(a) + sh.cx - cv.offsetLeft - (side === 'r' ? 1 : -1) * gh, y: vx * Math.sin(a) + vy * Math.cos(a) + sh.cy - cv.offsetTop };
             }
+            if (window.dyIn) [x, y] = dyIn(x, y);                              // 🔄 돌린 다이어리 (js/page.js · r = 안 돌린 상자)
             const p = { x: (x - r.left) / k - cv.offsetLeft, y: (y - r.top) / k - cv.offsetTop };
             if (ip.classList.contains('dy-bdl') && !ip.classList.contains('dy-bo')) p.x += p.x < cv.offsetWidth / 2 ? gh : -gh;   // 링에 끼운 동안 두 쪽은 틈의 반씩 바깥으로
             return p;
@@ -1723,6 +1723,7 @@
         window.bdCvAt = (x, y) => {                                             // ✂️ 스티커 칼 조각 자리 (js/stkcut.js) : 화면 → 저장 자리 + 쪽 (그 뒤 bdPin) · 바인더가 아니면 null
             const ip = gdIp(), cv = spPage(), bk = spBook(); if (!ip || !cv || !bk || !ip.classList.contains('dy-bdl') || ip.classList.contains('dy-bo')) return null;
             if (bdFree) { const sd = gdSide(x, y), m = gdCv(x, y, sd); return { x: m.x, y: m.y, sd }; }
+            if (window.dyIn) [x, y] = dyIn(x, y);                              // 🔄
             const { r, k } = gdK(), gh = bdGh(), vx = (x - r.left) / k - cv.offsetLeft, sd = vx < cv.offsetWidth / 2 ? 'l' : 'r';   // 링에 끼운 동안 : 보이는 쪽 그대로 (두 쪽은 틈의 반씩 바깥으로)
             return { x: vx + (sd === 'l' ? gh : -gh), y: (y - r.top) / k - cv.offsetTop, sd };
         };

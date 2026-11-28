@@ -119,7 +119,7 @@
             e.preventDefault(); e.stopPropagation();
             if (!pcS.held && !pcS.carry && window.rlOn && rlOn()) { rlMeasure(e); return; }   // 📏 문구함에서 꺼낸 자 : 아무것도 안 든 채 가장자리를 쓸면 길이 재기
             if (!pcS.held || pcS.carry) return;                 // 📒 필기구를 뽑아야 써져요
-            const sn = dw.tool !== 'erase' && window.rlSnap && !(window.dyRot && dyRot()) ? rlSnap(e.clientX, e.clientY) : null;   // 🔄 돌린 동안은 자에 안 붙어요   // 📏 자 가장자리에 대고 그으면 반듯하게
+            const sn = dw.tool !== 'erase' && window.rlSnap ? rlSnap(e.clientX, e.clientY) : null;   // 📏 자 가장자리에 대고 그으면 반듯하게
             const at = sn ? rlProj(sn, e.clientX, e.clientY) : [e.clientX, e.clientY];
             pcHeldAt(at[0], at[1]);                                            // 연필심이 닿은 바로 그 자리
             try { dw.svg.setPointerCapture(e.pointerId); } catch (err) {}
@@ -135,7 +135,7 @@
         };
         function penMove(e) {
             if (dw.snap && dw.cur && !rlStay(dw.snap.sn, e.clientX, e.clientY)) { dw.snap = null; rlTell(null); }   // 자 바깥으로 끌면 떨어져서 이어 그려요 (자 안쪽으로는 붙은 채 · 도련 10-19)
-            else if (!dw.snap && dw.cur && dw.cur.tool !== 'erase' && window.rlSnap && !(window.dyRot && dyRot())) {   // 📏 긋다가 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (그어 온 선은 그대로)
+            else if (!dw.snap && dw.cur && dw.cur.tool !== 'erase' && window.rlSnap) {   // 📏 긋다가 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (그어 온 선은 그대로)
                 const sn = rlSnap(e.clientX, e.clientY);
                 if (sn) { const at = rlProj(sn, e.clientX, e.clientY); dw.cur.pts.push(penPointXY(at[0], at[1])); dw.snap = { sn, a: at, n: dw.cur.pts.length }; }
             }
