@@ -931,6 +931,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 .sh-oglb { container-type: normal; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; }
 .sh-oglb b { max-width: 86%; padding: 5px 10px; border: 1.6px solid var(--ol, #b79bb0); border-radius: 10px; background: #fffdf6; font-size: 13px; font-weight: 800; transform: rotate(-1.5deg); word-break: keep-all; text-align: center; }
 .sh-infw { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 0; }
+.sh-grid .sh-infw { height: 100%; } .sh-infw > .sh-paper { width: 100%; }   /* 🏷️ 씰 · 🧩 조각 시트는 칸을 꽉 (안쪽 그림 크기 그대로) */
 .sh-infw > .sh-side { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); white-space: nowrap; box-shadow: 0 1px 4px rgba(110, 80, 95, .18); }   /* 🔢 수량 = 디자인 안 아래 (썸네일이 작아지지 않게) */
 .sh-oglb small { white-space: nowrap; font-size: 11px !important; padding: 2px 8px !important; }
 .sh-oglb small, .sh-side { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .85); font-size: 12px; font-weight: 700; color: #8a6a7a; }

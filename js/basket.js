@@ -1362,7 +1362,7 @@
             const kit = await basicKit(), out = [];
             kit.sheets.filter(x => !(x.P && x.P.스토어)).reverse().forEach(x => out.push([x.us, x.pv, x.L]));   // 💎 스토어(유료) 씰은 빼요       // 새로 들어온 것(뒤 번호)이 맨 앞 · pv = 묶음 미리보기 한 장
             kit.images.slice().reverse().forEach(x => out.push([[x.u]]));            // 낱장
-            const items = out.map(([us, pv, L]) => ({ cnt: `씰 ${us.length}개`, look: 'grid', pv, L, thumbs: us, bigs: us, take: () => ownTakeKit(us, '', L) }));   // 🗺️ L = 시트 배치 그대로
+            const items = out.map(([us, pv, L]) => ({ cnt: `씰 ${us.length}개`, inf: `🏷️ ${us.length}개`, look: 'grid', pv, L, thumbs: us, bigs: us, take: () => ownTakeKit(us, '', L) }));   // 🗺️ L = 시트 배치 그대로
             return items;
         }],
         piece: ['조각스티커', async () => window.sbShelf ? sbShelf('piece') : []],
