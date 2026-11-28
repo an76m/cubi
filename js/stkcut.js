@@ -18,8 +18,8 @@
         KN_KINDS.length = 0;
         (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'knife' && x.id.startsWith('knife-')).forEach(x => {
             const p = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(p);
-            if (!tip || !String(x.P.이름 || '')) { console.warn('🧁 칼 속성이 모자라요 :', x.id); return; }
-            KN_KINDS.push({ id: gdSuf(x.id), name: String(x.P.이름), box: p.size, tip });
+            if (!tip) { console.warn('🧁 칼 속성이 모자라요 :', x.id); return; }
+            KN_KINDS.push({ id: gdSuf(x.id), name: String(x.P.이름 || '').trim() || '칼', box: p.size, tip });
         });
     }
     knBuild();

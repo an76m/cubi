@@ -41,8 +41,8 @@
         const dkItemOf = x => {                                                   // 상품 하나 → 소품 정보
             const P = x.P || {}, o = Object.assign({}, P.소품 && typeof P.소품 === 'object' ? P.소품 : {});
             const num = v => v !== '' && v != null && isFinite(+v);              // 🔎 크기 · 처음 자리 · 이름 = 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
-            if (!x.u.디자인 || !o.kind || !String(P.이름 || '') || !(+o.w > 0) || !(+o.h > 0) || !num(o.x) || !num(o.y)) { console.warn('🧁 소품 속성이 모자라요 :', x.id); return null; }
-            Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름), w: +o.w, h: +o.h, x: +o.x, y: +o.y });
+            if (!x.u.디자인 || !o.kind || !(+o.w > 0) || !(+o.h > 0) || !num(o.x) || !num(o.y)) { console.warn('🧁 소품 속성이 모자라요 :', x.id); return null; }
+            Object.assign(o, { id: x.id, src: x.u.디자인, name: String(P.이름 || '').trim() || '책상 소품',   /* 🏷 이름 없어도 돼요 */ w: +o.w, h: +o.h, x: +o.x, y: +o.y });
             if (x.u.앞벽) o.front = x.u.앞벽; else delete o.front;
             if (x.u.크게) o.big = x.u.크게; else delete o.big;   // 📱 크게 떴을 때 그림 (태블릿 · js/tablet.js)
             if (x.u.서랍속) o.inside = x.u.서랍속; else delete o.inside;   // 🗄 서랍 속 그림 (없으면 그림자 · js/desk.js dkDrawerPull)

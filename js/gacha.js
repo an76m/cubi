@@ -62,7 +62,7 @@
         /* ---------- 🎁 캡슐 스티커 선물권 [{ id, until:'yyyy-MM-dd' }] · 당첨된 순서 (서버가 정한 순서 그대로) ---------- */
         const CAPS_LOCAL = 'malang_caps';
         /* 🧁 캡슐 스티커 = 서버 상품 (상품공방 '캡슐스티커' · js/prod.js · 도련 11-02 · id 는 랜덤박스 서버 STICKER_IDS 와 같게) · 바구니에 넣을 땐 그림째(data 주소) */
-        const CAPS = (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.u && x.u.디자인).map(x => ({ id: x.id, name: String(x.P.이름 || ''), url: x.u.디자인 }));
+        const CAPS = (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.u && x.u.디자인).map(x => ({ id: x.id, name: String(x.P.이름 || '').trim() || '캡슐 스티커', url: x.u.디자인 }));
         const capsList = () => CAPS;
         const capsUrl = k => k.url;
         const capsData = async k => { const r = await fetch(k.url); if (!r.ok) throw new Error('caps'); const t = r.headers.get('content-type') || '';
@@ -94,7 +94,7 @@
         /* 🎁 처음 선물 캡슐 (도련 11-06 · 상품공방 캡슐스티커 '처음받기' 체크 · 앱이 고르지 않아요 · js/basket.js bkStarterSheets → js/desk.js giftEnsure)
            → [종이 만들기] · cap = 그 캡슐 id (받으면 '첫 선물이 도착했어요' 창 · capsGiftPop) */
         const capsStarter = () => (window.prodList ? prodList('캡슐스티커') : []).filter(x => x.P.처음받기 && x.u && x.u.디자인)
-            .map(x => { const k = { id: x.id, name: String(x.P.이름 || ''), url: x.u.디자인 }; return async () => ({ k: 'seal', from: 'basic', start: 1, nm: k.name, imgs: [await capsData(k)], baked: true, cap: k.id }); });
+            .map(x => { const k = { id: x.id, name: String(x.P.이름 || '').trim() || '캡슐 스티커', url: x.u.디자인 }; return async () => ({ k: 'seal', from: 'basic', start: 1, nm: k.name, imgs: [await capsData(k)], baked: true, cap: k.id }); });
         window.capsStarter = capsStarter; window.capsGiftPop = id => capsWelcomePop(id);
         function capsWelcomePop(id, until) {
             const k = capsList().find(x => x.id === id); if (!k) return;

@@ -375,8 +375,8 @@
     function abBuild() {
         AB_BDP.length = 0; AB_RL.length = 0;
         const okC = v => /^#[0-9a-f]{6}$/i.test(v || ''), okN = v => +v > 0;     // 🔎 이름 · 색 · 포켓 · 장수 · 쪽수 = 상품 그대로 (빠지면 안 나와요)
-        (window.prodList ? prodList('스티커바인더') : []).forEach(x => { if (String(x.P.이름 || '') && Array.isArray(x.P.색) && okC(x.P.색[0]) && okC(x.P.색[1]) && okN(x.P.포켓) && okN(x.P.장수)) AB_BDP.push(x); else console.warn('🧁 스티커바인더 속성이 모자라요 :', x.id); });
-        (window.prodList ? prodList('이형지북') : []).forEach(x => { if (String(x.P.이름 || '') && okN(x.P.포켓) && okN(x.P.쪽수)) AB_RL.push(x); else console.warn('🧁 이형지북 속성이 모자라요 :', x.id); });
+        (window.prodList ? prodList('스티커바인더') : []).forEach(x => { if (Array.isArray(x.P.색) && okC(x.P.색[0]) && okC(x.P.색[1]) && okN(x.P.포켓) && okN(x.P.장수)) AB_BDP.push(x); else console.warn('🧁 스티커바인더 속성이 모자라요 :', x.id); });
+        (window.prodList ? prodList('이형지북') : []).forEach(x => { if (okN(x.P.포켓) && okN(x.P.쪽수)) AB_RL.push(x); else console.warn('🧁 이형지북 속성이 모자라요 :', x.id); });
     }
     abBuild();
     if (window.prodHook) prodHook(abBuild);                                   // 📦 내 실물 (js/mine.js)
@@ -1374,8 +1374,8 @@
         tool: ['다이어리', async () => {                                        // 📔 날짜형 다이어리 (해마다 기본 다이어리 · js/dyyear.js · 도련 10-28) + 🗂️ 스티커 정리 바인더 · 이형지북 (공짜지만 받아 와야 내 것 · 도련 10-25)
             const on = (K, x) => !x.P.숨김 && prodList(K).some(y => y.id === x.id);   // 진열 = 서버에 있고 숨기지 않은 디자인
             const out = (window.dyyShopList ? dyyShopList() : [])
-                .concat(AB_BDP.filter(x => on('스티커바인더', x)).map(x => ({ cnt: `${x.P.이름} · 속지 ${Math.ceil(x.P.장수 / x.P.포켓 / 2)}장 · 시트 ${+x.P.장수}장 꽂아요`, desc: `한 페이지에 ${+x.P.포켓}포켓 · 앞뒤 ${Math.ceil(x.P.장수 / x.P.포켓)}페이지 · 꽂아도 쓴 게 아니에요`, look: 'binder', pid: x.id, tool: 'bd', name: String(x.P.이름) })))
-                .concat(AB_RL.filter(x => on('이형지북', x)).map(x => ({ cnt: `${x.P.이름} · 이형지 ${+x.P.쪽수}페이지 · 스티커 ${x.P.쪽수 * x.P.포켓}개`, desc: `한 페이지에 ${+x.P.포켓}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', pid: x.id, tool: 'rl', name: String(x.P.이름) })));
+                .concat(AB_BDP.filter(x => on('스티커바인더', x)).map(x => ({ cnt: `${x.P.이름 || '스티커바인더'} · 속지 ${Math.ceil(x.P.장수 / x.P.포켓 / 2)}장 · 시트 ${+x.P.장수}장 꽂아요`, desc: `한 페이지에 ${+x.P.포켓}포켓 · 앞뒤 ${Math.ceil(x.P.장수 / x.P.포켓)}페이지 · 꽂아도 쓴 게 아니에요`, look: 'binder', pid: x.id, tool: 'bd', name: String(x.P.이름) })))
+                .concat(AB_RL.filter(x => on('이형지북', x)).map(x => ({ cnt: `${x.P.이름 || '이형지북'} · 이형지 ${+x.P.쪽수}페이지 · 스티커 ${x.P.쪽수 * x.P.포켓}개`, desc: `한 페이지에 ${+x.P.포켓}개씩 붙여요 · 옮겨 붙여도 쓴 게 아니에요`, look: 'relbook', pid: x.id, tool: 'rl', name: String(x.P.이름) })));
             return out;
         }],
         bg: ['배경지', async () => window.bgoShopList ? bgoShopList() : []],   // 🌈 배경지 (도련 10-28 · 받으면 🌈 배경지 창 보관함 · js/bgown.js)

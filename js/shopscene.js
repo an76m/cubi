@@ -20,7 +20,7 @@
         let SHOP_D = null;
         function shopData() {
             if (SHOP_D) return SHOP_D;
-            const ok = x => { const P = x.P, wh = x.wh.디자인; return SHOP_CN.includes(P.구역) && x.u.디자인 && Array.isArray(wh) && wh[0] > 0 && wh[1] > 0 && String(P.이름 || '') && Array.isArray(P.간판) && P.간판.length === 4 && P.간판.every(v => isFinite(+v)) && P.자리 && typeof P.자리 === 'object'; };
+            const ok = x => { const P = x.P, wh = x.wh.디자인; return SHOP_CN.includes(P.구역) && x.u.디자인 && Array.isArray(wh) && wh[0] > 0 && wh[1] > 0 && Array.isArray(P.간판) && P.간판.length === 4 && P.간판.every(v => isFinite(+v)) && P.자리 && typeof P.자리 === 'object'; };
             const L = (window.prodShelf ? prodShelf('샵') : []), D = {}, DP = {};   // 📱 화면 = '폰' 인 샵 상품 = 폰 그림 · 간판 (도련 11-10 · 상품공방에 올려요 · 깃허브 아니에요)
             L.forEach(x => { if (!ok(x)) { console.warn('🏪 샵 구역 속성이 모자라요 (상품공방 샵) :', x.id); return; } const T = x.P.화면 === '폰' ? DP : D; if (!T[x.P.구역]) T[x.P.구역] = { n: x.P.이름, img: x.u.디자인, W: x.wh.디자인[0], H: x.wh.디자인[1], sign: x.P.간판.map(Number), at: x.P.자리, ways: x.P.길 && typeof x.P.길 === 'object' ? x.P.길 : {} }; });
             const miss = SHOP_CN.filter(c => !D[c]); if (miss.length) { console.warn('🏪 샵 구역이 없어요 (상품공방 샵) :', miss.join(' · ')); return null; }

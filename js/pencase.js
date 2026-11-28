@@ -18,8 +18,8 @@
         /* 필기구 하나 = 상품 그대로 (색 · 굵기 · 이름 · 크기 · 쓰는끝 · 그림) · 하나라도 없으면 안 나와요 (🧁 상품공방이 검수 · 도련 11-02) */
         function pkMake(x, tool) {
             const P = x.P, p = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(p);
-            if (!p || !tip || !(+P.굵기 > 0) || !String(P.이름 || '') || (tool !== 'erase' && !/^#[0-9a-f]{6}$/i.test(P.색 || ''))) { console.warn('🧁 필기구 속성이 모자라요 :', x.id); return null; }
-            return { id: x.id, tool, color: tool === 'erase' ? '' : P.색, w: +P.굵기, name: String(P.이름), box: p.size, tip, off: !!P.숨김 };
+            if (!p || !tip || !(+P.굵기 > 0) || (tool !== 'erase' && !/^#[0-9a-f]{6}$/i.test(P.색 || ''))) { console.warn('🧁 필기구 속성이 모자라요 :', x.id); return null; }
+            return { id: x.id, tool, color: tool === 'erase' ? '' : P.색, w: +P.굵기, name: String(P.이름 || '').trim() || '필기구', box: p.size, tip, off: !!P.숨김 };
         }
         const PK_KINDS = [
             { k: 'pen', lb: '색연필', list: () => pkOf('pen').map(x => pkMake(x, 'pen')).filter(Boolean) },

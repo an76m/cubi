@@ -401,10 +401,10 @@
             DY_PKINDS.forEach(([K, k]) => (window.prodList ? prodList(K) : []).forEach(x => {
                 const P = x.P || {};                                           // 🔎 상품 그대로 (빠지면 안 나와요)
                 const hx = v => /^#[0-9a-f]{6}$/i.test(v || ''), lf = v => leafOf(x, v), pg = Math.round(+P.쪽수);   // 📐 날짜형과 같은 설계도 (도련 11-05) : 4색 · 쪽수 · 내지(+ 구간)
-                if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || (k === '노트' && (!(pg > 0) || !lf(P.내지))) ||   /* 🗂️ 페이지바인더 = 표지 (내지는 바인더내지 상품 · 981) */ !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
+                if (!(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => hx(P[n])) || (k === '노트' && (!(pg > 0) || !lf(P.내지))) ||   /* 🗂️ 페이지바인더 = 표지 (내지는 바인더내지 상품 · 981) */ !String(P.규격 || '') || !String(P.mm || '')) { console.warn('🧁 페이지형 다이어리 속성이 모자라요 :', K, x.id); return; }
                 const lv = (Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], lf(r[2])]);
                 const c = (String(P.표지색).match(/#[0-9a-f]{6}/i) || [P.테두리색])[0];   // 책 그림 색 = 표지 첫 색
-                DY_TYPES.push({ id: x.id, k, g: String(P.이름), n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg: k === '노트' ? pg : 0, lv: k === '노트' ? lv.reverse().concat([[1, pg, lf(P.내지)]]) : [], cvOnly: k === '바인더', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
+                DY_TYPES.push({ id: x.id, k, g: String(P.이름 || '').trim() || (k === '노트' ? '페이지 노트' : '페이지 다이어리'),   /* 🏷 이름 없어도 돼요 */ n: String(P.규격), mm: String(P.mm), b: P.b, r: +P.r, c, cols: { 표지색: String(P.표지색), 테두리색: P.테두리색, 강조색: P.강조색, 속지색: P.속지색 }, pg: k === '노트' ? pg : 0, lv: k === '노트' ? lv.reverse().concat([[1, pg, lf(P.내지)]]) : [], cvOnly: k === '바인더', rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기 && !P.스토어, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 🎁 처음 선물 = 상품공방 체크 (도련 11-06 · js/dymaker.js dmkStarter) · 📢 📕 = 상품공방 체크 (도련 11-06 · dyNtOn · dyCvOk)   // 구간 먼저 찾고 · 없으면 기본 내지
             }));
         }
         dyTypesBuild();
@@ -1566,9 +1566,9 @@
                 const P = x.P || {};
                 if (['tweez', 'punch', 'tape', 'scissors', 'clip'].includes(P.문구종류)) {   // 📐 페이지에 놓일 크기 · 쓰는끝 (그림 px → 크기 상자 · js/gdpic.js) · 이름 · 하나라도 없으면 안 나와요 (🧁 상품공방이 검수)
                     const pic = window.gdPic && gdPic(x.id), tip = window.gdPicTip && gdPicTip(pic);
-                    if (!tip || !String(P.이름 || '') || (P.문구종류 === 'clip' && !x.id.startsWith('clip-'))) { console.warn('🧁 문구 속성이 모자라요 :', x.id); return; }
-                    GD[x.id] = { g: P.문구종류, n: String(P.이름), w: pic.size[0], h: pic.size[1], hx: tip[0], hy: tip[1] };
-                    if (P.문구종류 === 'clip') CLIPS.push([gdSuf(x.id), String(P.이름)]);
+                    if (!tip || (P.문구종류 === 'clip' && !x.id.startsWith('clip-'))) { console.warn('🧁 문구 속성이 모자라요 :', x.id); return; }
+                    GD[x.id] = { g: P.문구종류, n: String(P.이름 || '').trim() || '문구', w: pic.size[0], h: pic.size[1], hx: tip[0], hy: tip[1] };
+                    if (P.문구종류 === 'clip') CLIPS.push([gdSuf(x.id), String(P.이름 || '').trim() || '집게']);
                 }
             });
             L.forEach(x => { if (x.P.처음받기) GD_STARTER.push(x.id); if (x.P.숨김) GD_OFF.add(x.id); });

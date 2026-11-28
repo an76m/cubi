@@ -162,11 +162,11 @@ let fontList = [
             Object.keys(DY_COL).forEach(k => delete DY_COL[k]); DY_DESIGNS.length = 0;
             const okC = v => /^#[0-9a-f]{6}$/i.test(v || '');
             DY_DKINDS.forEach(([K, kind, ch]) => (window.prodList ? prodList(K) : []).forEach(x0 => {   // 🔎 상품 그대로 (빠지면 안 나와요 · 상품공방이 검수)
-                const bad = x => { const P = x.P || {}; return !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || (ch === 'n' && !leafOf(x, P.내지)); };
+                const bad = x => { const P = x.P || {}; return !String(P.표지색 || '') || !['테두리색', '강조색', '속지색'].every(n => okC(P[n])) || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !['ring', 'tn', 'spread', 'hard', 'thin'].includes(P.b) || (ch === 'n' && !leafOf(x, P.내지)); };
                 const x = window.prodFix ? prodFix(K, x0, y => !bad(y)) : (bad(x0) ? null : x0), P = (x && x.P) || {};   // 🛟 받은 그때 모습이 걸리면 서버 지금 모습 (도련 11-19)
                 if (!x) { console.warn('🧁 날짜형 다이어리 속성이 모자라요 :', K, x0.id); return; }
                 DY_COL[x.id] = { cover: String(P.표지색), page: P.속지색, border: P.테두리색, accent: P.강조색 };
-                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: leafOf(x, P.내지), rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 📢 📕 공지 카드 · 표지 꾸미기 = 상품공방 체크 (도련 11-06 · js/skins.js dyNtOn · dyCvOk)   // 🎁 처음 책상 자리 · 처음 떠 있는 권 = 상품공방 (도련 11-06 · js/desk.js deskVolInit)
+                DY_DESIGNS.push({ id: x.id, K, kind, ch, name: String(P.이름 || '').trim() || '다이어리',   /* 🏷 이름 없어도 돼요 (도련 11-28 '이름이 중요하지 않아') */ n: String(P.규격), mm: String(P.mm), r: +P.r, b: P.b, c: P.테두리색, lf: leafOf(x, P.내지), rf0: String(P.처음내지 || ''), off: !!P.숨김, gift: !!P.처음받기, desk: P.처음책상, float: !!P.처음띄움, ntOn: !!P.공지, cvOk: !!P.표지꾸미기 });   // 📢 📕 공지 카드 · 표지 꾸미기 = 상품공방 체크 (도련 11-06 · js/skins.js dyNtOn · dyCvOk)   // 🎁 처음 책상 자리 · 처음 떠 있는 권 = 상품공방 (도련 11-06 · js/desk.js deskVolInit)
             }));
         }
         dyColorsBuild();
@@ -187,9 +187,9 @@ let fontList = [
             DY_REFILLS.length = 0;
             [['날짜형내지', 'date'], ['페이지내지', 'page']].forEach(([K, t]) => (window.prodList ? prodList(K) : []).forEach(x => {
                 const P = x.P || {}, pg = Math.round(+P.쪽수), lf = v => leafOf(x, v);   // 🗒️ 그 폴더의 내지 그림 (js/prod.js)
-                if (!String(P.이름 || '') || !String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !lf(P.내지) || (t === 'page' && !(pg > 0))) { console.warn('🧁 바인더 내지 속성이 모자라요 :', x.id); return; }
+                if (!String(P.규격 || '') || !String(P.mm || '') || !(+P.r > 0) || !lf(P.내지) || (t === 'page' && !(pg > 0))) { console.warn('🧁 바인더 내지 속성이 모자라요 :', x.id); return; }
                 const lv = t === 'page' ? [[1, pg, lf(P.내지)]].concat((Array.isArray(P.내지구간) ? P.내지구간 : []).filter(r => Array.isArray(r) && +r[0] >= 1 && +r[1] >= +r[0] && +r[1] <= pg && lf(r[2])).map(r => [+r[0], +r[1], lf(r[2])])) : [];
-                DY_REFILLS.push({ id: x.id, K, t, g: String(P.이름), n: String(P.규격), mm: String(P.mm), r: +P.r, lf: lf(P.내지), pg: t === 'page' ? pg : 0, lv, off: !!P.숨김 });
+                DY_REFILLS.push({ id: x.id, K, t, g: String(P.이름 || '').trim() || (t === 'date' ? '날짜 내지' : '페이지 내지'),   /* 🏷 이름 없어도 돼요 */ n: String(P.규격), mm: String(P.mm), r: +P.r, lf: lf(P.내지), pg: t === 'page' ? pg : 0, lv, off: !!P.숨김 });
             }));
         }
         dyRefillsBuild();

@@ -28,8 +28,8 @@
         RL_KINDS.length = 0;
         (window.prodList ? prodList('문구') : []).filter(x => x.P.문구종류 === 'ruler' && x.id.startsWith('ruler-')).forEach(x => {
             const a = x.P.눈금영역, ok = Array.isArray(a) && a.length === 4 && a.every(n => isFinite(+n)) && +a[2] > +a[0] && +a[3] > +a[1];
-            if (!ok || !/^#[0-9a-f]{6}$/i.test(x.P.눈금색 || '') || !String(x.P.이름 || '') || !(window.gdPic && gdPic(x.id))) { console.warn('🧁 자 속성이 모자라요 :', x.id); return; }   // 🧁 상품공방이 검수
-            RL_KINDS.push({ id: gdSuf(x.id), name: String(x.P.이름), area: a.map(Number), ink: x.P.눈금색 });
+            if (!ok || !/^#[0-9a-f]{6}$/i.test(x.P.눈금색 || '') || !(window.gdPic && gdPic(x.id))) { console.warn('🧁 자 속성이 모자라요 :', x.id); return; }   // 🧁 상품공방이 검수
+            RL_KINDS.push({ id: gdSuf(x.id), name: String(x.P.이름 || '').trim() || '자', area: a.map(Number), ink: x.P.눈금색 });
         });
     }
     rlKindsBuild();

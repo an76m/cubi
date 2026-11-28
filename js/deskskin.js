@@ -18,7 +18,7 @@
         function dsBuild() {                                                       // 🧁 서버 상품 그대로 (js/prod.js)
             DS_CAT.length = 0;
             [['벽지', 'wall'], ['책상판', 'top']].forEach(([kind, k]) => (window.prodList ? prodList(kind) : []).forEach(x => {
-                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || ''), off: !!P.숨김, gift: !!P.처음받기 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
+                const P = x.P || {}, c = { id: x.id, k, n: String(P.이름 || '').trim() || (k === 'wall' ? '벽지' : '책상판'),   /* 🏷 이름 없어도 돼요 */ off: !!P.숨김, gift: !!P.처음받기 };   // 🔎 상품 그대로 (도련 11-02 · 빠지면 안 나와요 · 상품공방이 검수)
                 const u = x.u && x.u.디자인, wh = x.wh && x.wh.디자인;
                 if (u && Array.isArray(wh) && +wh[0] > 0 && +wh[1] > 0) { c.img = u; c.iw = +wh[0]; c.ih = +wh[1]; }   // 📁 디자인 한 칸 = 벽 · 책상 윗면에 제 크기로 이어 깔아요 (도련 11-18 · 단색 · 기본도 디자인 파일)
                 if (k === 'top' && Array.isArray(P.책상색) && P.책상색.length >= 5) c.t = P.책상색.slice(0, 5);   // 🪵 안쪽 그늘 · 앞 띠 색 (값)
