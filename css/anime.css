@@ -264,8 +264,6 @@ html .modal .mt-x, html.an .modal .mt-x, .modal-title.mt-bar .mt-x, .dp-x, .x-on
 .sh-tool.sh-dy { min-height: 128px; }
 .sh-rfl { position: relative; display: grid; place-items: center; align-content: center; gap: 4px; width: 74px; height: 104px; border-radius: 3px; background-color: #fffdfb; border: 1.5px solid var(--an-ol, #bba6d6); box-shadow: 3px 4px 0 rgba(176, 150, 214, .25), 6px 8px 0 -1px #fff, 6px 8px 0 .5px rgba(176, 150, 214, .35); pointer-events: none; }   /* 📄 바인더 내지 (981) */
 .sh-rfl .sh-rfh { position: absolute; left: 4px; top: 10px; bottom: 10px; width: 8px; background: radial-gradient(circle 2.6px at 50% 50%, #e9dff0 70%, transparent 76%) 0 0 / 8px 15px repeat-y; }
-.sh-rfl b { font-size: 22px; line-height: 1; }
-.sh-rfl small { font: 700 10px/1 'Jua', sans-serif; color: #9a86a8; letter-spacing: .5px; background: #fff; padding: 2px 5px; border-radius: 6px; }
 .dy-yr .dy-stage { position: relative; }
 .dy-yr-n { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); padding: 1px 8px; border-radius: 999px; background: #fff; border: 1.2px solid var(--an-ol, #bba6d6); color: #c8457a; font: 800 12px/1.3 'Jua', sans-serif; }
 /* 📔 보관소 🗑 버리기 (js/dyyear.js dyyDiscard) */
