@@ -1620,12 +1620,7 @@
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'dskin') return `<div class="sh-tool sh-ds">${window.dsSwatch ? dsSwatch(x.sid) : ''}</div>`;   // 🧱 🪵 견본
         if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
-        if (x.look === 'refill') {                                             // 📄 바인더 내지 = 실제 모습 (그 상품의 내지 그림 · 규격 비율 · 6공 · 도련 11-28 '거짓 모습 말고 · 반쪽 = 한 쪽 · 양쪽 = 펼친 두 쪽 · 정보 두 줄' · 상품공방 썸네일과 같은 요리법)
-            const r = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).find(v => v.id === x.rid) || {}, m = MK.mmOf(r.mm) || [105, 148], s = window.leafSrc ? leafSrc(x.lf) : null, two = !!(s && s.two), H = 80, W = Math.round(H * m[0] / m[1]);   // 카드 높이 안에 종이 + 정보 두 줄
-            const pg = side => `<span class="sh-rfl${two ? ' two ' + side : ''}" style="width:${W}px;height:${H}px;background:${esc(leafBg(x.lf, W / m[0], side))}, #fffdfb">${side === 'r' ? '' : '<i class="sh-rfh"></i>'}</span>`;
-            const l1 = `${r.t === 'date' ? '📅 ' + new Date().getFullYear() + ' ' : '📄 '}${r.g || ''}`, l2 = `${r.n || ''} · ${r.t === 'date' ? (window.dyyDays ? dyyDays(new Date().getFullYear()) : 365) : r.pg}펼침면`;
-            return `<div class="sh-tool sh-dy"><span class="sh-rfw">${pg('l')}${two ? pg('r') : ''}</span><span class="sh-rfi"><b>${esc(l1)}</b><small>${esc(l2)}</small></span></div>`;
-        }
+        if (x.look === 'refill') return `<div class="sh-tool sh-bk">${shRefillHtml(x, big ? 240 : 118)}</div>`;   // 📄 바인더 내지 = 표지와 같은 자리 · 같은 이름표 (도련 11-28 '정보 위치도 통일 · 화면을 꽉')
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: src[0] }) : ''}</div>`;
@@ -1635,6 +1630,19 @@
         if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }
+    /* 📄 바인더 내지 썸네일 (도련 11-28 '받아서 펼쳤을 때 모습 · 정보는 표지처럼 가운데 이름표 · 화면을 꽉') : 덮인 책과 같은 틀 (js/book.js bookCoverHtml)
+       종이 = 그 상품의 내지 그림 (실제 크기 비율 · 속지색 기본) · 반쪽 = 한 쪽 + 왼쪽 링 · 양쪽 = 펼친 두 쪽 (가운데 접힘) · 이름표 = 아이콘 (해) 이름 / 규격 · 펼침면 수 */
+    function shRefillHtml(x, h) {
+        const r = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).find(v => v.id === x.rid) || {}, m0 = MK.mmOf(r.mm) || [105, 148], s = window.leafSrc ? leafSrc(x.lf) : null, two = !!(s && s.two);
+        const mm = two ? [m0[0] * 2, m0[1]] : m0, k = 300 / m0[1];          // 그림 1mm = k px (덮인 책 틀 높이 300)
+        const img = !s ? 'none' : two || s.wh[0] > 50 ? `url("${s.u}") 0 0 / 100% 100% no-repeat` : `url("${s.u}") 0 0 / ${(s.wh[0] * k).toFixed(1)}px ${(s.wh[1] * k).toFixed(1)}px repeat`;
+        const face = two ? `linear-gradient(90deg, transparent calc(50% - 1px), rgba(150, 120, 170, .45) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)), ${img}` : img;
+        const y = new Date().getFullYear(), l1 = `${r.t === 'date' ? '📅 ' + y + ' ' : '📄 '}${r.g || ''}`, l2 = `${r.n || ''} · ${r.t === 'date' ? (window.dyyDays ? dyyDays(y) : 365) : r.pg}펼침면`;
+        return bookCoverHtml({ cls: 'bk-bd bk-rf', mm, colors: ['#fffdfb', two ? '#fffdfb' : '#f3ecf6'], face,
+            cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${esc(l1)}</span><small>${esc(l2)}</small></div>`,
+            spine: () => BOOK_RINGS, cvSpine: two ? '' : 'ring' }, two ? h * (300 * m0[0] / m0[1] + 38) / (600 * m0[0] / m0[1] + 38) : h);   // 📖 펼친 두 쪽 = 카드 폭 안에 (한 쪽 표지와 같은 폭)
+    }
+    window.shRefillHtml = shRefillHtml;
     const SH_TRY = ['diary', 'note', 'pbinder', 'pnote', 'refill', 'binder', 'relbook'];   // 📖 펼쳐보기 되는 모양 (책)
     const shTrySpec = x => !SH_TRY.includes(x.look) ? null : x.tool ? abTrySpec(x) : window.dyyTrySpec ? dyyTrySpec(x) : null;
     function shCard(x, i) {
