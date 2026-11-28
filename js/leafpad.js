@@ -308,7 +308,7 @@
             addText();                                                           // 떡메는 메모도 돼요 : 글상자 + 뒤에 떡메 그림 (짧게 톡 → 글쓰기)
             const el = pg.querySelector('.element-box:last-child'); if (!el) return;
             tkNoteDress(el, tk.pad, src);
-            elPlace(el, P, cx, cy, TW + 12, TH + 20, Math.round(rot * 10) / 10);
+            elPlace(el, P, cx, cy, TW + 12, TH + 20, Math.round((rot - (window.dyRot ? dyRot() : 0)) * 10) / 10);   // 🔄 돌린 다이어리 = 보이던 기울기 그대로
             el.classList.remove('selected'); if (selectedElement === el) { selectedElement = null; if (typeof updateTextPanel === 'function') updateTextPanel(); }   // 그냥 놓이기만 · 톡 누르면 그때 골라져서 글쓰기
             if (typeof saveData === 'function') saveData(false);
             if (tkS.own && window.ownQty) {                                      // 🎒 한 장 뜯어 붙이면 묶음이 한 장 줄어요 (js/own.js)

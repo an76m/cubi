@@ -111,15 +111,15 @@
         window.penRest = penRest;
         function penPoint(e) { return penPointXY(e.clientX, e.clientY); }
         function penPointXY(x, y) {
-            const c = spPage(), r = c.getBoundingClientRect();
-            dw.k = r.width / (c.offsetWidth || r.width) || 1;
+            const c = spPage(), r = window.dyRect ? dyRect(c) : c.getBoundingClientRect();   // 🔄 돌린 다이어리 (js/page.js dyIn · dyRect)
+            dw.k = r.width / (c.offsetWidth || r.width) || 1; [x, y] = window.dyIn ? dyIn(x, y) : [x, y];
             return [(x - r.left) / dw.k, (y - r.top) / dw.k];
         }
         function penDown(e) {
             e.preventDefault(); e.stopPropagation();
             if (!pcS.held && !pcS.carry && window.rlOn && rlOn()) { rlMeasure(e); return; }   // 📏 문구함에서 꺼낸 자 : 아무것도 안 든 채 가장자리를 쓸면 길이 재기
             if (!pcS.held || pcS.carry) return;                 // 📒 필기구를 뽑아야 써져요
-            const sn = dw.tool !== 'erase' && window.rlSnap ? rlSnap(e.clientX, e.clientY) : null;   // 📏 자 가장자리에 대고 그으면 반듯하게
+            const sn = dw.tool !== 'erase' && window.rlSnap && !(window.dyRot && dyRot()) ? rlSnap(e.clientX, e.clientY) : null;   // 🔄 돌린 동안은 자에 안 붙어요   // 📏 자 가장자리에 대고 그으면 반듯하게
             const at = sn ? rlProj(sn, e.clientX, e.clientY) : [e.clientX, e.clientY];
             pcHeldAt(at[0], at[1]);                                            // 연필심이 닿은 바로 그 자리
             try { dw.svg.setPointerCapture(e.pointerId); } catch (err) {}
@@ -135,7 +135,7 @@
         };
         function penMove(e) {
             if (dw.snap && dw.cur && !rlStay(dw.snap.sn, e.clientX, e.clientY)) { dw.snap = null; rlTell(null); }   // 자 바깥으로 끌면 떨어져서 이어 그려요 (자 안쪽으로는 붙은 채 · 도련 10-19)
-            else if (!dw.snap && dw.cur && dw.cur.tool !== 'erase' && window.rlSnap) {   // 📏 긋다가 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (그어 온 선은 그대로)
+            else if (!dw.snap && dw.cur && dw.cur.tool !== 'erase' && window.rlSnap && !(window.dyRot && dyRot())) {   // 📏 긋다가 자 가장자리에 닿으면 거기서부터 자를 따라 곧게 (그어 온 선은 그대로)
                 const sn = rlSnap(e.clientX, e.clientY);
                 if (sn) { const at = rlProj(sn, e.clientX, e.clientY); dw.cur.pts.push(penPointXY(at[0], at[1])); dw.snap = { sn, a: at, n: dw.cur.pts.length }; }
             }
@@ -281,16 +281,17 @@
             el.dataset.posX = 0; el.dataset.posY = 0; el.dataset.scale = 1; el.dataset.rotation = 0;
             el.style.transform = 'translate(0px, 0px) scale(1) rotate(0deg)';
             // 그린 자리에 정확히 놓기 (화면 확대 · 여백까지 계산)
-            const pg = spPage(), c = pg.getBoundingClientRect(), k = c.width / (pg.offsetWidth || c.width) || 1, ir = img.getBoundingClientRect();
+            const BR = e => window.dyRect ? dyRect(e) : e.getBoundingClientRect();   // 🔄
+            const pg = spPage(), c = BR(pg), k = c.width / (pg.offsetWidth || c.width) || 1, ir = BR(img);
             const ew = bw + (bw - ir.width / k), eh = bh + (bh - ir.height / k);
             el.style.width = ew + 'px'; el.style.height = eh + 'px';
-            const ir2 = img.getBoundingClientRect();
+            const ir2 = BR(img);
             const px = (c.left + x0 * k - ir2.left) / k, py = (c.top + y0 * k - ir2.top) / k;
             el.dataset.posX = px; el.dataset.posY = py;
             el.style.transform = `translate(${px}px, ${py}px) scale(1) rotate(0deg)`;
             const fix = n => requestAnimationFrame(() => {                     // 📎 바인더 : 붙은 쪽(bd-l · bd-r)만큼 벌어져 보여서 그린 자리에서 밀려나요 → 화면에서 그린 자리 그대로 맞추기 (도련 10-19)
                 if (!el.isConnected) return;
-                const r3 = img.getBoundingClientRect(), dx = (c.left + x0 * k - r3.left) / k, dy = (c.top + y0 * k - r3.top) / k;
+                const r3 = BR(img), dx = (c.left + x0 * k - r3.left) / k, dy = (c.top + y0 * k - r3.top) / k;
                 if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
                 const x = +el.dataset.posX + dx, y = +el.dataset.posY + dy; el.dataset.posX = x; el.dataset.posY = y;
                 el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(0deg)`; spSave(false);
@@ -678,10 +679,11 @@
         pcS.lay = [];                                                         // [{ id, el }] 페이지에 놓인 필기구
         function pcLayDown() {
             const o = pcS.held, h = drq('pcHeld'), ip = drq('innerPage'); if (!o || !h || !ip) return;
-            const r = h.getBoundingClientRect(), k = typeof gdK === 'function' ? gdK().k : (ip.getBoundingClientRect().width / (ip.offsetWidth || 1)) || 1, ir = ip.getBoundingClientRect();
-            const cx = (r.left + r.width / 2 - ir.left) / k, cy = (r.top + r.height / 2 - ir.top) / k, W = o.box[0], H = o.box[1];
+            const r = h.getBoundingClientRect(), ir = window.dyRect ? dyRect(ip) : ip.getBoundingClientRect(), k = ir.width / (ip.offsetWidth || 1) || 1;   // 🔄 돌린 다이어리 (js/page.js)
+            const c0 = window.dyIn ? dyIn(r.left + r.width / 2, r.top + r.height / 2) : [r.left + r.width / 2, r.top + r.height / 2];
+            const cx = (c0[0] - ir.left) / k, cy = (c0[1] - ir.top) / k, W = o.box[0], H = o.box[1];
             const el = document.createElement('div'); el.className = 'pc-lay'; el.dataset.id = o.id; el.innerHTML = pcSvg(o);
-            Object.assign(el.style, { left: (cx - W / 2) + 'px', top: (cy - H / 2) + 'px', width: W + 'px', height: H + 'px', transform: `rotate(${handLeft() ? 28 : -28}deg)` });
+            Object.assign(el.style, { left: (cx - W / 2) + 'px', top: (cy - H / 2) + 'px', width: W + 'px', height: H + 'px', transform: `rotate(${(handLeft() ? 28 : -28) - (window.dyRot ? dyRot() : 0)}deg)` });
             ip.appendChild(el); pcS.lay.push({ id: o.id, el });
             pcS.held = null; pcS.laid = null; pcS.press = null; pcS.carry = null;
             h.hidden = true; h.classList.remove('carry', 'in', 'laid');

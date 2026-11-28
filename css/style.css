@@ -4193,3 +4193,12 @@ html.dk-dropping .modal:not(.dk-keep) > .modal-content, html.dk-dropping .modal:
 body:has(.mg-gauge) #customAlertModal { z-index: 10060 !important; }   /* 저장 중에 뜬 질문 (다른 기기에서 고쳤어요 등) = 게이지 위로 */
 .rx-gauge .mg-bar { border-color: #9a6eaa; }   /* 🚪 내 방 나가기 = 문 그림의 연보라 선 */
 @media (prefers-reduced-motion: reduce) { .mg-bar > i { animation: none; } }
+
+/* 🔄 다이어리 돌리기 (js/page.js drPlace · drDown · 도련 11-28) : 네 모서리 = 판 밖 20px + 안쪽 14px (기분 · 날씨 버튼 · 페이지 넘기기와 안 겹쳐요) · 보이는 그림은 없어요 */
+.dr-h { position: absolute; z-index: 40; pointer-events: none; }
+.dr-h > i { position: absolute; width: 34px; height: 34px; pointer-events: auto; cursor: grab; touch-action: none; border-radius: 50%; }
+.dr-h > i.tl { left: -20px; top: -20px; } .dr-h > i.tr { right: -20px; top: -20px; } .dr-h > i.bl { left: -20px; bottom: -20px; } .dr-h > i.br { right: -20px; bottom: -20px; }
+.diary-wrapper.dr-on, .diary-wrapper.dr-on .dr-h > i { cursor: grabbing; }
+.diary-wrapper.dr-anim { transition: rotate .28s cubic-bezier(.3, .7, .3, 1), scale .28s ease; }
+html.dy-rotdbg .dr-h > i { background: rgba(80, 140, 255, .35); outline: 1px dashed #36f; }   /* 🧪 시험용 : 손잡이 자리 보기 */
+#diaryBook.dy-one .dr-h { display: none; }   /* 📱 한 쪽 보기는 아직 안 돌려요 (돌아가는 점 = 두 쪽 가운데라서) */

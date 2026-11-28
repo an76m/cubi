@@ -596,7 +596,7 @@
         const bdBook = () => dkIs(currentDate) ? (dyNow() || {}).id || '' : (window.dyyBookId ? dyyBookId() : '');
         const bdPg = () => { const d = currentDate; return dkIs(d) ? dkNo(d) : ymd(d); };
         const bdLay = () => { const t = dyLook(); return !!t && t.b === 'ring' && isCoverOpen && !!bdBook() && (dkIs(currentDate) ? dkNo(currentDate) > 0 : !dkType()) && !(typeof dkCv === 'function' && dkCv()); };   // 6공 바인더 속지 (폰도)
-        const bdOn = () => bdLay() && dvDev() !== 'phone';                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
+        const bdOn = () => bdLay() && dvDev() !== 'phone' && !(window.dyRot && dyRot());   // 🔄 돌린 동안은 꺼내기 쉬어요                     // 📱 폰에선 꺼내기를 못 해요 (도련 10-18 · 버튼도 안 생겨요)
         function bdGet() { if (!bdLay()) return 0; const m = bsGet(BD_KEY), b = m[bdBook()] || {}; return +b[bdPg()] || 0; }
         function bdPut(v) {
             const m = Object.assign({}, bsGet(BD_KEY)), id = bdBook(), b = Object.assign({}, m[id] || {});
@@ -1170,6 +1170,7 @@
         }
         function gdHold(id, x, y, e) {                                             // 손에 들기 (들고 있던 것은 이것이 있던 자리에)
             const el = gdEl(id); if (!el) return;
+            if (window.dyRot && dyRot()) { if (window.showMsg) showMsg('🔄 다이어리를 똑바로 놓고 써 주세요\n(돌린 동안은 스티커 · 펜만 돼요)'); return; }   // 🔄 1단계 : 다른 문구는 아직 돌린 다이어리에 안 맞춰졌어요 (js/page.js)
             gdPenOff();
             const prev = gdHeld && gdHeld !== id && gdEl(gdHeld);
             if (prev) {

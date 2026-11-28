@@ -98,14 +98,14 @@
            pageK(pg) = { r: 페이지 화면 상자, k: 확대 비율 } · pageIn(r, x, y) = 화면 점을 페이지 안으로 · elPut = 자리 · 돌기 쓰기
            elCenterTo = 상자 가운데를 화면 점(cx, cy)에 맞춰요 (페이지 안 다른 것들 때문에 생기는 차이까지)
            elPlace = 크기 · 돌기 정하고 → (mid) → 가운데 맞추기 · PADB 14 = .element-box 안쪽 여백 6px · 테두리 1px (양쪽) */
-        const pageK = pg => { const r = pg.getBoundingClientRect(); return { r, k: r.width / (pg.offsetWidth || r.width) || 1 }; };
-        const pageIn = (r, x, y) => [Math.min(r.right, Math.max(r.left, x)), Math.min(r.bottom, Math.max(r.top, y))];
+        const pageK = pg => { const r = window.dyRect ? dyRect(pg) : pg.getBoundingClientRect(); return { r, k: r.width / (pg.offsetWidth || r.width) || 1 }; };   // 🔄 r = 안 돌린 상자 (js/page.js dyRect)
+        const pageIn = (r, x, y) => { const v = window.dyIn ? dyIn(x, y) : [x, y], c = [Math.min(r.right, Math.max(r.left, v[0])), Math.min(r.bottom, Math.max(r.top, v[1]))]; return window.dyOut ? dyOut(c[0], c[1]) : c; };   // 🔄 화면 점 그대로 받고 돌려줘요
         function elPut(el, x, y, deg) { el.dataset.posX = x; el.dataset.posY = y; el.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(${deg}deg)`; }
-        function elCenterTo(el, cx, cy, k, deg) { const b = el.getBoundingClientRect(); elPut(el, Math.round(+el.dataset.posX + (cx - (b.left + b.width / 2)) / k), Math.round(+el.dataset.posY + (cy - (b.top + b.height / 2)) / k), deg); }
+        function elCenterTo(el, cx, cy, k, deg) { const b = window.dyRect ? dyRect(el) : el.getBoundingClientRect(); [cx, cy] = window.dyIn ? dyIn(cx, cy) : [cx, cy]; elPut(el, Math.round(+el.dataset.posX + (cx - (b.left + b.width / 2)) / k), Math.round(+el.dataset.posY + (cy - (b.top + b.height / 2)) / k), deg); }
         function elPlace(el, P, cx, cy, w, h, deg, mid) {
             const { r, k } = P; el.style.width = w + 'px'; el.style.height = h + 'px'; el.dataset.rotation = deg;
             if (mid) mid();
-            elPut(el, Math.round((cx - r.left) / k - (w + 14) / 2), Math.round((cy - r.top) / k - (h + 14) / 2), deg);
+            { const v = window.dyIn ? dyIn(cx, cy) : [cx, cy]; elPut(el, Math.round((v[0] - r.left) / k - (w + 14) / 2), Math.round((v[1] - r.top) / k - (h + 14) / 2), deg); }   // 🔄 화면 점 → 안 돌린 점
             elCenterTo(el, cx, cy, k, deg);
         }
         window.pageK = pageK; window.pageIn = pageIn; window.elPut = elPut; window.elCenterTo = elCenterTo; window.elPlace = elPlace;
@@ -365,7 +365,7 @@
                 const pos = getClientPos(e);
 
                 if (actionType === 'move') {
-                    const ddx = pos.x - startX, ddy = pos.y - startY;
+                    const [ddx, ddy] = window.dyVec ? dyVec(pos.x - startX, pos.y - startY) : [pos.x - startX, pos.y - startY];   // 🔄 돌린 다이어리 = 손 움직임도 돌려서
                     if (seal) { seal.move(pos.x, pos.y); return; }
                     if (!lifted && Math.hypot(ddx, ddy) > 6) {
                         lifted = true;
@@ -393,7 +393,7 @@
                     if (!EL_SCALE_LOCK && rotD0 > 8) { scale = Math.max(0.2, Math.min(5, rotS0 * d / rotD0)); el.dataset.scale = scale; }   // 가까이 → 작게 · 멀리 → 크게 (🔒 크기 막기면 돌리기만)
                 } else if (actionType === 'stretch') {
                     const a = rotation * Math.PI / 180;
-                    const d = ((pos.x - startX) * Math.cos(a) + (pos.y - startY) * Math.sin(a)) / (scale || 1);
+                    const [vx, vy] = window.dyVec ? dyVec(pos.x - startX, pos.y - startY) : [pos.x - startX, pos.y - startY], d = (vx * Math.cos(a) + vy * Math.sin(a)) / (scale || 1);
                     const tmax = el.dataset.own ? +el.dataset.ownMax || initialW : el._tapeMax != null ? el._tapeMax : 1200;   // 🎒 롤에 남은 만큼만 늘어나요
                     el.style.width = Math.round(Math.max(40, Math.min(1200, tmax, initialW + d))) + 'px';
                 }
