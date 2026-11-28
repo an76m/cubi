@@ -33,7 +33,24 @@ function bookSide(cur, s) {                                                  // 
 }
 const BOOK_RING = '<svg viewBox="0 0 120 34" aria-hidden="true"><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#9d88c2" stroke-width="11" stroke-linecap="round"/><path d="M10 27C24 3 96 3 110 27" fill="none" stroke="#f1eef8" stroke-width="6" stroke-linecap="round"/><circle cx="10" cy="28" r="5" fill="#8a789e"/><circle cx="110" cy="28" r="5" fill="#8a789e"/></svg>';   // 🔗 바인더 링 하나 (도련 11-26 '원래 링이 좋아' = 처음 그림 그대로 · 덮인 표지 고리도 이 색 · 굵기) (📒 스티커바인더 · 🧩 바인더 조립 · 가운데 묶음 spine 에)
 const BOOK_RINGS = BOOK_RING.repeat(3) + '<span></span>' + BOOK_RING.repeat(3);   // 🗂️ 6공 바인더 묶음 = 링 셋 + 기둥 + 링 셋 (🧩 바인더 조립 · 🏪 샵 바인더 표지 · 📅 📄 내지 · 도련 11-27 '샵에서도 책상처럼 링이 있는 표지')
-const bookCvSpine = spec => spec.cvSpine ? `<div class="bk-spine bk-cvsp ${spec.cvSpine}">${spec.spine(false).replace(/<svg[\s\S]*?<\/svg>|<i><\/i>/g, '<b></b>')}</div>` : '';   // 🌀 덮인 표지 묶음 = 구멍 + 감긴 고리 (펼친 링 · 스프링과 같은 자리)
+/* 🕳️ 구멍 자리 = 실제 규격 (도련 11-28 '구멍도 현실 규격대로') : 종이 세로 h mm → 위에서부터 구멍 가운데 mm 목록 (가운데 맞춤)
+   🗂️ 6공 링 = 셋씩 두 묶음 · 묶음 안 19mm · 두 묶음 사이 = 세로에 따라 70 (A5 · 슬림 · 라지 · B5) · 51 (바이블 · B6 · 한달) · 38 (A6) · 19 (미니6공 · 패스포트 · A7)
+   🌀 스프링 = 3:1 (8.47mm) 같은 간격으로 종이 끝까지 (위아래 6mm 남겨요) */
+function bookHoles(h, kind) {
+    h = +h || 148;
+    if (kind === 'spring') { const p = 25.4 / 3, n = Math.max(2, Math.floor((h - 12) / p) + 1), t = (h - (n - 1) * p) / 2; return Array.from({ length: n }, (_, i) => +(t + i * p).toFixed(2)); }
+    const g = h >= 200 ? 70 : h >= 160 ? 51 : h >= 135 ? 38 : 19, d = [0, 19, 38, 38 + g, 57 + g, 76 + g], t = (h - d[5]) / 2;
+    return d.map(v => +(t + v).toFixed(2));
+}
+/* 묶음 그림을 구멍 자리에 놓아요 : 🗂️ 링 그림(BOOK_RING) · 🌀 스프링(<i>) 이면 · 그 밖(📓 노트 묶음 등)은 그대로 · cv = 덮인 표지 고리 (<b>) */
+function bookSpineAt(spec, html, cv) {
+    const mm = spec.mm, ring = html.includes('viewBox="0 0 120 34"'), spring = /^(<i><\/i>)+$/.test(html);
+    if (!mm || !(ring || spring)) return { cls: '', html: cv ? html.replace(/<svg[\s\S]*?<\/svg>|<i><\/i>/g, '<b></b>') : html };
+    const Y = bookHoles(mm[1], ring ? 'ring' : 'spring');
+    const one = y => cv ? `<b style="--y:${y}"></b>` : ring ? BOOK_RING.replace('<svg ', `<svg style="--y:${y}" `) : `<i style="--y:${y}"></i>`;
+    return { cls: ' at', html: Y.map(one).join('') + (ring && !cv ? `<span style="--y1:${Y[2]};--y2:${Y[3]}"></span>` : '') };
+}
+const bookCvSpine = spec => { if (!spec.cvSpine) return ''; const o = bookSpineAt(spec, spec.spine(false), true); return `<div class="bk-spine bk-cvsp ${spec.cvSpine}${o.cls}">${o.html}</div>`; };   // 🌀 덮인 표지 묶음 = 구멍 + 감긴 고리 (펼친 링 · 스프링과 같은 자리)
 const bookShutHtml = spec => `<div class="bk-book shut"><div class="bk-slot">${spec.cover()}</div>${bookCvSpine(spec)}</div>`;   // 📕 덮인 책 (펼쳐보기 · 책상 · 샵 카드 하나)
 /* 🏪 샵 카드 = 덮인 책 그대로 (도련 11-27 '팝업창 디자인이 실제 모습과 달라') : 펼쳐보기 · 책상과 같은 표지 (그림 · 색 · 링) · 크기만 작게 (h = 카드 높이 px) */
 function bookCoverHtml(spec, h) {
@@ -154,7 +171,7 @@ function bookOpen(host, spec) {
         B.root.classList.toggle('shut', !B.open);
         const book = !B.open
             ? bookShutHtml(spec)   // 🌀 덮인 책 = 표지 왼쪽 구멍에 고리가 감겨 있어요 (실제 바인더 · 스프링 노트처럼 · 펼친 링 · 스프링과 같은 자리 · 도련 11-26)
-            : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div><div class="bk-spine" aria-hidden="true">${spec.spine(t)}</div></div>`;
+            : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div>${(o => `<div class="bk-spine${o.cls}" aria-hidden="true">${o.html}</div>`)(bookSpineAt(spec, spec.spine(t)))}</div>`;
         B.root.innerHTML = `<div class="bk-bar"${spec.inline ? '' : ' title="끌어서 옮기기"'}>${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}${spec.onClose ? '<button type="button" class="bk-x" aria-label="닫기">✕</button>' : ''}</div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();
         fit();
@@ -265,7 +282,7 @@ function bookOpen(host, spec) {
         turn, shut, destroy() { B.alive = false; removeEventListener('resize', onResize); if (B.root) B.root.remove(); B.root = null; }
     };
 }
-window.BOOK_RING = BOOK_RING; window.BOOK_RINGS = BOOK_RINGS; window.bookCoverHtml = bookCoverHtml; window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
+window.bookHoles = bookHoles; window.BOOK_RING = BOOK_RING; window.BOOK_RINGS = BOOK_RINGS; window.bookCoverHtml = bookCoverHtml; window.bookCurlAt = bookCurlAt; window.bookOpen = bookOpen; window.bookSide = bookSide; window.bookMover = bookMover; window.bookTurner = bookTurner; window.BookSpot = BookSpot; window.bookSpot = bookSpot; window.isSpot = isSpot; window.spotSave = spotSave; window.spotLoad = spotLoad;
 /* 🏪 샵 펼쳐보기 (도련 11-25 '받아서 책상에서 펼쳐 볼 때 그 모습을 샵에서 · 현실처럼') : 받기 전에 그 책을 규격 크기로 펼쳐 넘겨 봐요
    - 책 = bookOpen 그대로 (덮인 표지 → 밀어서 펼치기 · 넘기기 · ◧ ◨ · 막대 끌기) · 크기 = 실제 규격 (화면이 작으면 줄여요 · 책상에 띄운 책과 같아요)
    - 저장 없음 · 닫으면 사라져요 · 닫기 = 책 막대 ✕ (다이어리 날짜바처럼) · 책 밖 바탕 누르기 · 바탕 = 🏪 사용해보기와 같은 .gdt

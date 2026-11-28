@@ -3140,6 +3140,19 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .dy-holes i:nth-child(6n+4) { top: calc(100% - 24.9cqw); } .dy-holes i:nth-child(6n+5) { top: calc(100% - 15.9cqw); } .dy-holes i:nth-child(6n) { top: calc(100% - 6.9cqw); }
 .inner-page.dy-bh-pop .dy-holes i { animation: dyHole .35s ease-out both; }
 .dy-holes i { transition: left .75s cubic-bezier(.45, .05, .3, 1); }
+/* 🕳️ 링 · 구멍 자리 = 실제 규격 (js/skins.js dyDeco --hy1~6 · js/book.js bookHoles · 도련 11-28) : 6공 셋씩 19mm · 두 묶음 사이는 종이 세로에 따라 */
+.inner-page.dy-hy .dy-rings i:nth-child(1) { top: var(--hy1); bottom: auto; }
+.inner-page.dy-hy .dy-rings i:nth-child(2) { top: var(--hy2); bottom: auto; }
+.inner-page.dy-hy .dy-rings i:nth-child(3) { top: var(--hy3); bottom: auto; }
+.inner-page.dy-hy .dy-rings i:nth-child(4) { top: var(--hy4); bottom: auto; }
+.inner-page.dy-hy .dy-rings i:nth-child(5) { top: var(--hy5); bottom: auto; }
+.inner-page.dy-hy .dy-rings i:nth-child(6) { top: var(--hy6); bottom: auto; }
+.inner-page.dy-hy .dy-holes i:nth-child(6n+1) { top: var(--hy1); }
+.inner-page.dy-hy .dy-holes i:nth-child(6n+2) { top: var(--hy2); }
+.inner-page.dy-hy .dy-holes i:nth-child(6n+3) { top: var(--hy3); }
+.inner-page.dy-hy .dy-holes i:nth-child(6n+4) { top: var(--hy4); }
+.inner-page.dy-hy .dy-holes i:nth-child(6n+5) { top: var(--hy5); }
+.inner-page.dy-hy .dy-holes i:nth-child(6n) { top: var(--hy6); }
 .inner-page.dy-bo .dy-holes i { left: calc(50% - 4.5 * var(--mm)); }
 .inner-page.dy-bo .dy-holes i:nth-child(n+7) { left: calc(50% + 4.5 * var(--mm)); }
 @keyframes dyHole { from { transform: scale(0); } 70% { transform: scale(1.25); } to { transform: none; } }

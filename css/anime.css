@@ -436,6 +436,12 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-book.one.odd .bk-spine { left: 52px; }
 .bk-spine span:not([class]) { flex: 1; width: 16px; border: 1.6px solid #9d88c2; border-radius: 8px; background: #f1eef8; }   /* 링 기둥 (이름 없는 span 만 · 📔 가상 다이어리 묶음 .dy-* 는 그 그림 그대로) */
 .bk-spine svg { flex: none; width: 76px; height: 22px; }
+/* 🕳️ 구멍 자리 = 실제 규격 (js/book.js bookHoles · bookSpineAt · 도련 11-28) : --y = 종이 위에서 구멍 가운데까지 mm · 묶음 상자는 종이보다 6px 아래에서 시작 */
+.bk-spine.at > * { position: absolute; left: 50%; margin: 0; }
+.bk-spine.at > svg { top: calc(var(--y) * var(--mmk) * 1px - 24px); translate: -50% 0; }   /* 링 그림 끝 점(구멍) = 그림 위에서 18px */
+.bk-spine.at > i { top: calc(var(--y) * var(--mmk) * 1px - 6px); translate: -50% -50%; }
+.bk-spine.at > span { top: calc(var(--y1) * var(--mmk) * 1px - 4px); height: max(0px, calc((var(--y2) - var(--y1)) * var(--mmk) * 1px - 22px)); translate: -50% 0; }   /* 링 기둥 = 두 묶음 사이 */
+.bk-cvsp.at > b { position: absolute; left: 50%; top: calc(var(--y) * var(--mmk) * 1px - 6px); translate: -50% -50%; }   /* 덮인 표지 고리 = 예전 가운데 맞춤 그대로 */
 .bk-rl .bk-spine { gap: 0; justify-content: space-between; }
 .bk-rl .bk-spine i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
 /* 📕 표지 (덮인 책 · 왼쪽 = 묶음) */

@@ -1846,6 +1846,10 @@
             if (!bk) { bk = document.createElement('div'); bk.id = 'dyBack'; bk.className = 'dy-deco'; bk.setAttribute('aria-hidden', 'true'); page.prepend(bk); }
             if (!fr) { fr = document.createElement('div'); fr.id = 'dyFront'; fr.className = 'dy-deco'; fr.setAttribute('aria-hidden', 'true'); page.appendChild(fr); }
             let hl = document.getElementById('dyHoleL'); if (!hl) { hl = document.createElement('div'); hl.id = 'dyHoleL'; hl.className = 'dy-deco'; hl.setAttribute('aria-hidden', 'true'); cv.after(hl); }
+            {   // 🕳️ 링 · 구멍 자리 = 실제 규격 (js/book.js bookHoles · 도련 11-28 '구멍도 현실 규격대로') : --hy1~6 = 종이 위에서 구멍 가운데까지 (세로 %)
+                const h = ((window.dyMmOf && dyMmOf()) || [105, 148])[1], Y = t.b === 'ring' && window.bookHoles ? bookHoles(h, 'ring') : null;
+                page.classList.toggle('dy-hy', !!Y); if (Y) Y.forEach((y, i) => page.style.setProperty('--hy' + (i + 1), (y / h * 100).toFixed(3) + '%'));   // 종이 세로에 대한 %
+            }
             const dk = t.id; if (bk.dataset.k !== dk) { const [b, f, h] = dyParts(t); bk.innerHTML = b; fr.innerHTML = f; hl.innerHTML = h; bk.dataset.k = fr.dataset.k = dk; }
             [bk, fr, hl].forEach(el => Object.assign(el.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px' }));
             page.dataset.dy = book.dataset.dy = t.b; page.style.setProperty('--dy-c', t.id === DY_DEF ? 'var(--border-color)' : t.c);   /* 📔 날짜형 = 그 권 색 */   // 📔 기본 다이어리 테두리는 고른 페이지 색을 따라가요 (10-18)
