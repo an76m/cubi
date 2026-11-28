@@ -733,7 +733,7 @@
             page: p => t === 'bd' ? `<div class="abx-pg">${abPocketsAt(x, p, byId)}<b class="abx-no">${p + 1}</b></div>`
                 : `<div class="ab-rel abx-wax abf-rl" data-pg="${p}">${abRelItems(x, p, byId)}${x.it.some(o => (o.pg || 0) === p) ? '' : `<span class="ab-relhint">${x.it.length ? '이 페이지는 비어 있어요' : '비어 있어요<br>📒 스티커 정리에서 떼어 붙여요'}</span>`}</div>`,
             blank: () => t === 'bd' ? '<div class="abx-pg end"></div>' : '<div class="ab-rel abx-wax abf-rl end"></div>',
-            cover: () => `<div class="bk-cover ${t}"><span class="bk-cvlb">${t === 'bd' ? '📒' : '🤍'} ${esc(nm)}</span><small>${pages}페이지</small>${U ? '<span class="bk-hint">◀ 밀어서 열기</span>' : ''}</div>`,   // 🪑 책상에 띄운 책 = 다이어리 겉표지처럼 '밀어서 열기'
+            cover: () => `<div class="bk-cover ${t}"><span class="bk-cvlb">${t === 'bd' ? '📒' : '🤍'} ${esc(nm)}</span><small>${(s => s ? esc(s) + ' · ' : '')(String(((t === 'bd' ? abBdP(x) : abRlP(x)) || { P: {} }).P.규격 || ''))}${pages}페이지</small>${U ? '<span class="bk-hint">◀ 밀어서 열기</span>' : ''}</div>`,   // 🪑 책상에 띄운 책 = 다이어리 겉표지처럼 '밀어서 열기'
             spine: two => t === 'bd' ? ABS_RING.repeat(3) + '<span></span>' + ABS_RING.repeat(3) : '<i></i>'.repeat(14), cvSpine: t === 'bd' ? 'ring' : 'spring',
             title: () => `${t === 'bd' ? '📒' : '🤍'} ${esc(nm)} <small>· 표지</small>`,
             side: () => abSideGet(), setSide: v => { try { localStorage.setItem(ABS_SIDE, v); } catch (e) {} },
@@ -1620,7 +1620,12 @@
         if (x.look === 'desk') return `<div class="sh-tool sh-desk"><img src="${esc(x.src)}" alt="" loading="lazy"></div>`;
         if (x.look === 'dskin') return `<div class="sh-tool sh-ds">${window.dsSwatch ? dsSwatch(x.sid) : ''}</div>`;   // 🧱 🪵 견본
         if (x.look === 'bg') { const p = typeof BG_PATTERNS !== 'undefined' && BG_PATTERNS.find(q => q.id === x.pid); const st = p ? Object.entries(p.css || {}).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';') : ''; return `<div class="sh-tool sh-bg"><span class="sh-bgsw" style="${esc(st)}"></span></div>`; }   // 🌈 배경지 견본
-        if (x.look === 'refill') { const r = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).find(v => v.id === x.rid), m = (r && MK.mmOf(r.mm)) || [105, 148]; return `<div class="sh-tool sh-dy"><span class="sh-rfl" style="height:${Math.round(74 * m[1] / m[0])}px;background:${esc(leafBg(x.lf, 1.4))}, #fffdfb"><i class="sh-rfh"></i></span></div>`; }   // 📄 바인더 내지 = 실제 모습 (그 상품의 내지 그림 · 규격 비율 · 6공 · 도련 11-28 '거짓 모습 말고' · 상품공방 썸네일과 같은 요리법)
+        if (x.look === 'refill') {                                             // 📄 바인더 내지 = 실제 모습 (그 상품의 내지 그림 · 규격 비율 · 6공 · 도련 11-28 '거짓 모습 말고 · 반쪽 = 한 쪽 · 양쪽 = 펼친 두 쪽 · 정보 두 줄' · 상품공방 썸네일과 같은 요리법)
+            const r = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).find(v => v.id === x.rid) || {}, m = MK.mmOf(r.mm) || [105, 148], s = window.leafSrc ? leafSrc(x.lf) : null, two = !!(s && s.two), H = 80, W = Math.round(H * m[0] / m[1]);   // 카드 높이 안에 종이 + 정보 두 줄
+            const pg = side => `<span class="sh-rfl${two ? ' two ' + side : ''}" style="width:${W}px;height:${H}px;background:${esc(leafBg(x.lf, W / m[0], side))}, #fffdfb">${side === 'r' ? '' : '<i class="sh-rfh"></i>'}</span>`;
+            const l1 = `${r.t === 'date' ? '📅 ' + new Date().getFullYear() + ' ' : '📄 '}${r.g || ''}`, l2 = `${r.n || ''} · ${r.t === 'date' ? (window.dyyDays ? dyyDays(new Date().getFullYear()) : 365) : r.pg}펼침면`;
+            return `<div class="sh-tool sh-dy"><span class="sh-rfw">${pg('l')}${two ? pg('r') : ''}</span><span class="sh-rfi"><b>${esc(l1)}</b><small>${esc(l2)}</small></span></div>`;
+        }
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: src[0] }) : ''}</div>`;

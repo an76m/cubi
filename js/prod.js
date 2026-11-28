@@ -106,12 +106,12 @@ function leafCss(id, side) {                                                  //
     if (s.two) return `url("${s.u}") ${side === 'r' ? '100%' : '0'} 0 / 200% 100% no-repeat, var(--page-bg)`;
     return leafPage(s.wh) ? `url("${s.u}") 0 0 / 100% 100% no-repeat, var(--page-bg)` : `url("${s.u}") 0 0 / calc(${+s.wh[0]} * var(--mm)) calc(${+s.wh[1]} * var(--mm)) repeat, var(--page-bg)`;
 }
-function leafBg(id, k) {                                                      // 작은 견본 (샵 카드) : 1mm = k px · 펼침면 그림 = 왼쪽 반
+function leafBg(id, k, side) {                                                // 작은 견본 (샵 카드) : 1mm = k px · 펼침면 그림 = side 반 (없으면 왼쪽)
     const s = leafSrc(id); if (!s) return 'none';
-    if (s.two) return `url("${s.u}") 0 0 / 200% 100% no-repeat`;
+    if (s.two) return `url("${s.u}") ${side === 'r' ? '100%' : '0'} 0 / 200% 100% no-repeat`;
     return leafPage(s.wh) ? `url("${s.u}") 0 0 / 100% 100% no-repeat` : `url("${s.u}") 0 0 / ${(+s.wh[0] * k).toFixed(2)}px ${(+s.wh[1] * k).toFixed(2)}px repeat`;
 }
-window.leafOk = leafOk; window.leafOf = leafOf; window.leafCss = leafCss; window.leafBg = leafBg;
+window.leafOk = leafOk; window.leafSrc = leafSrc; window.leafOf = leafOf; window.leafCss = leafCss; window.leafBg = leafBg;
 window.prodList = prodList; window.prodFix = prodFix; window.prodShelf = prodShelf; window.prodOn = prodOn; window.prodSrv = prodSrv;
 window.prodHook = prodHook; window.prodRebuild = prodRebuild; window.prodRawOf = prodRawOf; window.PROD_OKF = PROD_OKF;
 (window.MALLANG_LOADED = window.MALLANG_LOADED || {})['prod'] = prodOn();   // 🛡 목록을 못 받았으면 다이어리를 시작하지 않아요 (index.html 아래 확인)

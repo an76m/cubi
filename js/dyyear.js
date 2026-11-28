@@ -289,10 +289,10 @@
         function dyyShopList() {
             const y = dyyThis();
             return DY_DESIGNS.filter(d => !d.off && prodList(d.K).some(x => x.id === d.id)).map(d => d.ch === 'b'
-                ? { cnt: `${y} ${d.name} 표지`, desc: `${d.name} · 바인더 표지 · ${d.n} (${d.mm}) · 📅 ${y}년 · 🧩 바인더 조립에서 같은 크기 날짜 내지를 끼워 써요`, look: 'diary', yr: y, dc: d.id, cat: 'dyb', give: () => dyyGive(y, d), name: `${y} ${d.name} 표지` }
+                ? { cnt: `${y} ${d.name}${d.named ? ' 표지' : ''}`, desc: `${d.name} · 바인더 표지 · ${d.n} (${d.mm}) · 📅 ${y}년 · 🧩 바인더 조립에서 같은 크기 날짜 내지를 끼워 써요`, look: 'diary', yr: y, dc: d.id, cat: 'dyb', give: () => dyyGive(y, d), name: `${y} ${d.name}${d.named ? ' 표지' : ''}` }
                 : { cnt: `${y} ${d.name}`, desc: `${d.name} · 노트 · ${d.n} (${d.mm}) · ${y}년 1월 1일 ~ 12월 31일 · 받을 때마다 새 다이어리 한 권 (다른 다이어리 기록과 따로)`, look: 'note', yr: y, dc: d.id, cat: 'dyn', give: () => dyyGive(y, d), name: `${y} ${d.name}` })
                 .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.cvOnly && !p.off).map(p => ({   // 🗂️ 페이지바인더 표지 (도련 11-07)
-                    cnt: `${p.g} 표지`, desc: `${p.g} · 바인더 표지 · ${p.n} (${p.mm}) · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워 써요`, look: 'pbinder', pid: p.id, cols: p.cols, n: p.n, cat: 'pgb', give: () => dyyPCoverGive(p), name: `${p.g} 표지` })))
+                    cnt: `${p.g}${p.named ? ' 표지' : ''}`, desc: `${p.g} · 바인더 표지 · ${p.n} (${p.mm}) · 🧩 바인더 조립에서 같은 크기 페이지 내지를 끼워 써요`, look: 'pbinder', pid: p.id, cols: p.cols, n: p.n, cat: 'pgb', give: () => dyyPCoverGive(p), name: `${p.g}${p.named ? ' 표지' : ''}` })))
                 .concat((typeof DY_TYPES !== 'undefined' ? DY_TYPES : []).filter(p => p.k === '노트' && !p.off).map(p => ({   // 📕 페이지노트 = 완제품 (도련 11-11 · 받으면 바로 한 권)
                     cnt: p.g, desc: `${p.g} · 페이지노트 · ${p.n} (${p.mm}) · ${p.pg}펼침면 · 받을 때마다 새 노트 한 권 (다른 노트 기록과 따로)`, look: 'pnote', pid: p.id, cols: p.cols, n: p.n, cat: 'pgn', give: () => dyyPNoteGive(p), name: p.g })))
                 .concat((typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).filter(r => !r.off && prodList(r.K).some(x => x.id === r.id)).map(r => ({   // 📅 날짜 내지 · 📄 페이지 내지 (샵 칸도 둘 · 도련 11-07)
@@ -302,6 +302,8 @@
              - 모양은 진짜 다이어리 것을 빌려요 = 묶음 그림 js/skins.js dyParts (링 · 밴드 · 접힘 · 리본) · 그 상품 링.svg (--dy-ring) · 표지.svg · 색 · 내지 무늬 · 규격 mm · 펼침면 수
              - 저장 · 붙이기 · 드라이브 = 이 틀에는 처음부터 없어요 (닫으면 사라져요)
              📔 날짜형노트 · 📕 페이지노트 = 표지 + 모든 펼침면 · 🗂️ 바인더 표지 = 표지 + 빈 묶음 (내지는 따로 사요) · 📅 📄 내지 = 펼친 종이만 */
+        const dyyDays = y => (new Date(y, 1, 29).getMonth() === 1 ? 366 : 365);   // 📅 그해 날 수 = 펼침면 수
+        const dyyBind = b => ((window.MK && MK.BINDS || []).find(v => v[0] === b) || [, ''])[1];   // 묶음 이름 (링 · 실 제본 …)
         function dyyTrySpec(x) {
             const lfBg = (lf, p, bg) => `--page-bg:${bg};background:${window.leafCss ? leafCss(lf, p % 2 ? 'r' : 'l') : bg}`;   // 📖 펼침면 그림 = 왼쪽 반 / 오른쪽 반
             const pageOf = (P, bg) => p => `<div class="bnd-pg" style="${htmlEsc(lfBg(P[p][0], p, bg))}"><b class="abx-no">${htmlEsc(P[p][1])}</b></div>`;
@@ -313,18 +315,18 @@
                 const ring6 = L.b === 'ring', c1 = hex(L.cover) || L.border;   // 🗂️ 링 바인더 = 🧩 바인더 조립 책상과 같은 묶음 · 색 (BOOK_RINGS · 도련 11-27) · 📓 노트 = 진짜 다이어리 묶음 그림 (dyParts)
                 return { id: 'try', spread: true, cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
                     pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
-                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.nm)}</span><small>${htmlEsc(L.n)}</small></div>`,
+                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.l1 || L.nm)}</span><small>${htmlEsc(L.l2 || L.n)}</small></div>`,   /* 🏷 썸네일 정보 = 두 줄 (도련 11-28 '어떤 상품인지 알 수 있게 · 기준 통일') : 아이콘 (해) 종류·이름 / 규격 · 펼침면 수 · 묶음 */
                     spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 ? 'ring' : '',
                     wire: st => { const r = st.closest('.bk'); r.style.setProperty('--dy-c', L.border); r.style.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(L.pid) : 'none');   // 🎨 이 틀에만 (내 다이어리 색은 그대로)
                         if (ring) r.style.setProperty('--dy-ring', ring); r.style.setProperty('--gap', `calc(${gap} * var(--mmk) * 1px)`); r.style.setProperty('--gh', `calc(${gap / 2} * var(--mmk) * 1px)`); } };
             };
             if (x.look === 'diary' || x.look === 'note') {
                 const d = DY_DESIGNS.find(v => v.id === x.dc), c = d && DY_COL[d.id]; if (!d || !c) return null;
-                return book({ nm: x.name || d.name, n: d.n, b: d.b, mm: d.mm, pid: d.id, cover: c.cover, border: c.border, page: c.page, P: x.look === 'note' ? dates(+x.yr || dyyThis(), d.lf) : [] });
+                return book({ nm: x.name || d.name, n: d.n, l1: `${x.look === 'note' ? '📓' : '📔'} ${x.name || d.name}`, l2: x.look === 'note' ? `${d.n} · ${dyyDays(+x.yr || dyyThis())}펼침면` : `${d.n} · ${dyyBind(d.b)}`, b: d.b, mm: d.mm, pid: d.id, cover: c.cover, border: c.border, page: c.page, P: x.look === 'note' ? dates(+x.yr || dyyThis(), d.lf) : [] });
             }
             if (x.look === 'pbinder' || x.look === 'pnote') {
                 const p = DY_TYPES.find(v => v.id === x.pid); if (!p) return null;
-                return book({ nm: p.g, n: p.n, b: p.b, mm: p.mm, pid: p.id, cover: p.cols.표지색 || p.c, border: p.cols.테두리색, page: p.cols.속지색, P: x.look === 'pnote' ? nums(p.pg, p.lv, (p.lv[p.lv.length - 1] || [])[2]) : [] });
+                return book({ nm: p.g, n: p.n, l1: x.look === 'pnote' ? `📕 ${p.g}` : `🗂️ ${p.g}${p.named ? ' 표지' : ''}`, l2: x.look === 'pnote' ? `${p.n} · ${p.pg}펼침면` : `${p.n} · ${dyyBind(p.b)}`, b: p.b, mm: p.mm, pid: p.id, cover: p.cols.표지색 || p.c, border: p.cols.테두리색, page: p.cols.속지색, P: x.look === 'pnote' ? nums(p.pg, p.lv, (p.lv[p.lv.length - 1] || [])[2]) : [] });
             }
             if (x.look === 'refill') {                                         // 📅 📄 내지 = 표지 없이 펼친 종이 묶음 (구멍 자리)
                 const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
@@ -334,7 +336,7 @@
             }
             return null;
         }
-        window.dyyTrySpec = dyyTrySpec;
+        window.dyyTrySpec = dyyTrySpec; window.dyyDays = dyyDays;
         async function dyyGive(y, d) {
             if (d.ch === 'b') {                                                // 🗂️ 날짜형바인더 = 조립품 : 샵 = 해가 적힌 표지 → 🧩 바인더 재료 (도련 11-07 · 981)
                 try { if (!await dymReady()) return 'fail'; } catch (e) { return 'fail'; }
