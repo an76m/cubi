@@ -3078,7 +3078,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .dy-gap { position: absolute; top: -.6cqw; bottom: -.6cqw; left: 50%; width: var(--gap); margin-left: calc(var(--gh) * -1); }   /* 📏 책등 = 두 쪽 사이 틈 mm (js/maker.js MK.GAP · 종이를 가리지 않아요) · 색 = css/anime.css */
 .dy-gap::before { content: ''; position: absolute; left: 50%; top: 4cqw; bottom: 4cqw; width: 55%; margin-left: -27.5%; }
 .dy-rings { position: absolute; left: calc(50% - 15cqw); top: 0; bottom: 0; width: 30cqw; }
-.dy-rings i { position: absolute; left: 0; width: 30cqw; height: 9cqw; margin-top: -6.3cqw; }   /* 링 그림 = css/anime.css */
+.dy-rings i { --rw: calc((var(--gap) + 9 * var(--mm)) / .7); position: absolute; left: calc(15cqw - var(--rw) / 2); width: var(--rw); height: 9cqw; margin-top: -6.3cqw; }   /* 링 그림 = css/anime.css · 🔗 링.svg 끝 (200 × 60 의 x 30 · 170 = 폭의 15% · 85%) = 양쪽 구멍 가운데 (틈 + 구멍까지 4.5mm 씩 · 도련 11-28 '링과 구멍이 안 맞아' · 상품공방 dyPartSvgs 링 그림과 같은 약속) */
 .dy-rings i:nth-child(1) { top: 7.5cqw; } .dy-rings i:nth-child(2) { top: 16.5cqw; } .dy-rings i:nth-child(3) { top: 25.5cqw; }
 .dy-rings i:nth-child(4) { bottom: 22.2cqw; } .dy-rings i:nth-child(5) { bottom: 13.2cqw; } .dy-rings i:nth-child(6) { bottom: 4.2cqw; }
 /* 📎 집게 = 장식 (도련 10-18 · 페이지 들림 연출은 뺐어요) · 왼쪽 쪽 위 가장자리에 꽂혀요 */
@@ -3131,7 +3131,7 @@ body.pin-on, body.pin-on * { cursor: none !important; }   /* 💻 핀셋이 마�
 .inner-page.dy-ring-open .dy-seam, .inner-page[data-dg] .dy-seam { opacity: 0 !important; }   /* ✋ 링만 연 채 (js/skins.js bdDgEnd) */
 .dy-holes { position: absolute; inset: 0; pointer-events: none; }
 .dy-holes i { position: absolute; left: calc(50% - var(--gh) - 4.5 * var(--mm));   /* 🕳️ 구멍 = 종이 안쪽 끝에서 4.5mm */ width: 2.4cqw; height: 2.4cqw; margin: -1.2cqw 0 0 -1.2cqw; border-radius: 50%; visibility: hidden;
-    background: color-mix(in srgb, var(--dy-c) 55%, #fff); box-shadow: inset 0 .35cqw .5cqw rgba(60, 35, 50, .5), 0 0 0 .2cqw rgba(160, 120, 135, .35); }
+    background: color-mix(in srgb, var(--dy-c) 55%, #fff); box-shadow: inset 0 .35cqw 0 rgba(60, 35, 50, .3), 0 0 0 .2cqw rgba(160, 120, 135, .35); }   /* 셀 애니 = 흐림 없이 (샵 · 바인더 조립 구멍과 같은 모습 css/anime.css .bk-hole · 도련 11-28) */
 .inner-page.dy-bh .dy-holes i, .dy-holes i.on { visibility: visible; }   /* 🕳️ 펀칭기로 하나씩 뚫은 구멍 = .on (js/skins.js gdPunch) */
 .dy-holes i.pop, .bd-hole.pop { animation: dyHole .35s ease-out both; }
 .inner-page.dy-bo .dy-holes i { background: color-mix(in srgb, var(--bg-color, #ffe6f0) 80%, #c9a3b3); }

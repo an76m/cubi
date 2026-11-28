@@ -217,7 +217,7 @@ function bookOpen(host, spec) {
     /* 📐 크기 · 자리 (막대 가운데 기준) */
     function fit() {
         const W = spec.inline ? host.clientWidth : innerWidth, H = spec.inline ? host.clientHeight : innerHeight, t = !ph() && spec.side() === 'lr', one = !t;   // 🧩 inline = 자리(host) 안에 · 쪽 크기 = 덮었을 때도 펼친 모습 기준 (표지를 넘길 때 크기가 안 바뀌어요 · 📔 다이어리처럼)
-        const padW = t ? 28 + 44 : one ? 14 + 64 : 28, padH = 28 + 52 + 16 + (ph() ? 24 : 40);
+        const padW = t ? 28 + 44 : one ? 14 + 64 + 20 : 28, padH = 28 + 52 + 16 + (ph() ? 24 : 40);
         const mm = spec.mm, R = mm[0] / mm[1];                                // 📏 한 쪽 = spec.mm [가로, 세로] 규격 · 실제 크기 (화면이 작으면 줄여요 · 도련 11-16)
         let h = Math.min(H - padH, (Math.min(W - 16, 1500) - padW) / ((t ? 2 : 1) * R), mm[1] * MM_PX);
         h = Math.max(spec.inline ? 140 : 220, Math.floor(h));                  // 🧩 작업대 안 = 더 작아도 돼요 (📱 폰)

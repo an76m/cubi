@@ -391,8 +391,8 @@
             if (x.look === 'refill') {                                         // 📅 📄 내지 = 표지 없이 펼친 종이 묶음 (구멍 자리)
                 const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;
                 const P = r.t === 'date' ? dates(dyyThis(), r.lf) : nums(r.pg, r.lv, r.lf);
-                return { id: 'try', spread: true, cls: 'bk-bd bk-try-dy', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length, page: pageOf(P, '#fffdfb'),
-                    blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => '', holes: true };   // 🕳️ 내지만 = 구멍만 (링 없이 · 도련 11-28)
+                return { id: 'try', spread: true, cls: 'bk-bd bk-try-dy bk-loose', mm: MK.mmOf(r.mm), colors: ['#fffdfb', '#d9cbd2'], face: 'none', open: true, stay: true, pages: P.length, page: pageOf(P, '#fffdfb'),
+                    blank: () => '<div class="bnd-pg end"></div>', title: () => htmlEsc(r.g), cover: () => '', spine: () => '', holes: true };   // 🕳️ 내지만 = 구멍만 (링 없이 · 도련 11-28) · bk-loose = 표지 · 책등 없이 종이만 (다이어리에 끼운 종이와 같은 모습 · 구멍 = 뒤가 비쳐요 · css/anime.css)
             }
             return null;
         }
