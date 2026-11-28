@@ -303,7 +303,7 @@
              - 저장 · 붙이기 · 드라이브 = 이 틀에는 처음부터 없어요 (닫으면 사라져요)
              📔 날짜형노트 · 📕 페이지노트 = 표지 + 모든 펼침면 · 🗂️ 바인더 표지 = 표지 + 빈 묶음 (내지는 따로 사요) · 📅 📄 내지 = 펼친 종이만 */
         function dyyTrySpec(x) {
-            const lfBg = (lf, p, bg) => { const a = String(lf || '').split('/'); return `--page-bg:${bg};background:${window.leafCss ? leafCss(a[p % 2] || a[0]) : bg}`; };
+            const lfBg = (lf, p, bg) => `--page-bg:${bg};background:${window.leafCss ? leafCss(lf, p % 2 ? 'r' : 'l') : bg}`;   // 📖 펼침면 그림 = 왼쪽 반 / 오른쪽 반
             const pageOf = (P, bg) => p => `<div class="bnd-pg" style="${htmlEsc(lfBg(P[p][0], p, bg))}"><b class="abx-no">${htmlEsc(P[p][1])}</b></div>`;
             const dates = (y, lf) => { const P = []; for (let d = new Date(y, 0, 1); d.getFullYear() === y; d.setDate(d.getDate() + 1)) P.push([lf, `${d.getMonth() + 1}월 ${d.getDate()}일`], [lf, '']); return P; };   // 📖 하루 = 펼침면
             const nums = (pg, lv, lf) => { const P = []; for (let k = 1; k <= pg; k++) { const r = (lv || []).find(v => k >= v[0] && k <= v[1]), f = r ? r[2] : lf; P.push([f, String(k)], [f, '']); } return P; };   // 📖 쪽수 = 펼침면 수

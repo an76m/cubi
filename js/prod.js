@@ -87,25 +87,28 @@ window.PROD_READY = (function () {
     return retryN(() => prodIxGet(), no404).then(ix => { PROD_IX = ix; return String(ix.v) === String(cur.v) ? 'same' : retryN(() => pull(ix)); }, e => e && e.message === '404' ? retryN(full) : Promise.reject(e))   // 🔁 못 받으면 1 · 2 · 4초 쉬고 다시 · 조각표가 없는 서버 = 목록 통째로 받아 비교
         .catch(e => stop(e && e.name === 'AbortError' ? '시간 초과' : String(e && e.message || e)));
 })();
-/* 🗒️ 내지 = 그 다이어리 상품 폴더 안 그림 (도련 11-28 '폴더 하나 = 온전한 상품 하나 · 부품 폴더는 소스만 · 앱은 부품을 몰라요') : 내지.svg (· 내지2.svg …) = 규격 크기 한 장 (작은 한 칸이면 이어 깔기 · 그림 1 = 1mm)
-   - 상품 속성 '내지' · '내지구간' 값 = 그 폴더의 파일 이름 ('내지' · 왼쪽/오른쪽 '내지/내지2') → leafOf(상품, 값) = 앱 안 내지 값 '상품id:내지'
-   - 모르는 값 = 속지색만 */
+/* 🗒️ 내지 = 그 다이어리 상품 폴더 안 그림 1개 (도련 11-28 '폴더 하나 = 온전한 상품 · 속지와 같은 방식') : 내지.svg = 규격 크기 한 장 (작은 한 칸이면 이어 깔기 · 그림 1 = 1mm)
+   - 상품 속성 '양쪽' = 그림이 펼침면 크기 → 왼쪽 반 = 왼쪽 쪽 · 오른쪽 반 = 오른쪽 쪽 (없으면 = 반쪽 그림 하나를 양쪽에 같이) · 내지는 늘 양쪽 모두 깔려요 (바탕 종이)
+   - 상품 속성 '내지' · '내지구간' 값 = 그 폴더의 파일 이름 하나 ('내지' · 구간 '내지2' …) → leafOf(상품, 값) = 앱 안 내지 값 '상품id:내지'
+   - 쪽 = leafCss(값, 'l' | 'r') · 모르는 값 = 속지색만 */
 const LEAF_PK = ['날짜형바인더', '날짜형노트', '페이지바인더', '페이지노트', '날짜형내지', '페이지내지'];
-function leafSrc(v) {                                                         // 내지 값 하나 → { u 그림 주소, wh [가로, 세로] mm }
+function leafSrc(v) {                                                         // 내지 값 → { u 그림 주소, wh [가로, 세로] mm, two 펼침면 그림 }
     const k = String(v || ''), i = k.indexOf(':'); if (i < 0) return null;
     const id = k.slice(0, i), r = k.slice(i + 1);
-    for (const K of LEAF_PK) { const x = prodList(K).find(p => p.id === id); if (x) return x.u && x.u[r] && x.wh && x.wh[r] ? { u: x.u[r], wh: x.wh[r] } : null; }
+    for (const K of LEAF_PK) { const x = prodList(K).find(p => p.id === id); if (x) return x.u && x.u[r] && x.wh && x.wh[r] ? { u: x.u[r], wh: x.wh[r], two: !!(x.P && x.P.양쪽) } : null; }
     return null;
 }
-function leafOf(x, v) { const a = String(v || '').split('/').filter(Boolean); return x && a.length && a.length <= 2 && a.every(r => x.u && x.u[r] && x.wh && x.wh[r]) ? a.map(r => x.id + ':' + r).join('/') : ''; }   // 상품 속성 값 → 앱 내지 값 ('' = 그 폴더에 그림이 없어요)
-function leafOk(v) { const a = String(v || '').split('/'); return a.length <= 2 && a.every(x => !!leafSrc(x)); }
+function leafOf(x, v) { const r = String(v || ''); return x && r && !r.includes('/') && x.u && x.u[r] && x.wh && x.wh[r] ? x.id + ':' + r : ''; }   // 상품 속성 값 → 앱 내지 값 ('' = 그 폴더에 그림이 없어요)
+function leafOk(v) { return !!leafSrc(v); }
 const leafPage = wh => +wh[0] > 50;                                           // 쪽 크기만 한 그림
-function leafCss(id) {
+function leafCss(id, side) {                                                  // side 'l' · 'r' = 펼침면 그림이면 그 반 (없으면 왼쪽)
     const s = leafSrc(id); if (!s) return 'var(--page-bg)';
+    if (s.two) return `url("${s.u}") ${side === 'r' ? '100%' : '0'} 0 / 200% 100% no-repeat, var(--page-bg)`;
     return leafPage(s.wh) ? `url("${s.u}") 0 0 / 100% 100% no-repeat, var(--page-bg)` : `url("${s.u}") 0 0 / calc(${+s.wh[0]} * var(--mm)) calc(${+s.wh[1]} * var(--mm)) repeat, var(--page-bg)`;
 }
-function leafBg(id, k) {                                                      // 작은 견본 (샵 카드) : 1mm = k px · 첫 무늬 (왼쪽)
-    const s = leafSrc(String(id || '').split('/')[0]); if (!s) return 'none';
+function leafBg(id, k) {                                                      // 작은 견본 (샵 카드) : 1mm = k px · 펼침면 그림 = 왼쪽 반
+    const s = leafSrc(id); if (!s) return 'none';
+    if (s.two) return `url("${s.u}") 0 0 / 200% 100% no-repeat`;
     return leafPage(s.wh) ? `url("${s.u}") 0 0 / 100% 100% no-repeat` : `url("${s.u}") 0 0 / ${(+s.wh[0] * k).toFixed(2)}px ${(+s.wh[1] * k).toFixed(2)}px repeat`;
 }
 window.leafOk = leafOk; window.leafOf = leafOf; window.leafCss = leafCss; window.leafBg = leafBg;

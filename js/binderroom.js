@@ -80,7 +80,7 @@
         const P = pagesOf(s, cv), hint = open => open ? (date ? '📅 같은 크기 날짜 내지를 하나 끼워요 (톡 · 끌어서 책에)' : '📄 같은 크기 내지를 하나 끼워요 (톡 · 끌어서 책에)') : '📖 표지를 밀어서 (또는 ›) 펼쳐요';
         B.hint = hint;
         const empty = `<div class="bnd-pg bnd-pg0"><span>${date ? '📅 같은 크기 날짜 내지를<br>여기에 끼워요' : '📄 바구니의 내지를<br>톡 하거나 끌어서<br>여기에 끼워요'}</span></div>`;
-        const leaf = (lf, p) => { const a = String(lf || '').split('/'); return window.leafCss ? leafCss(a[p % 2] || a[0]) : '#fffdfb'; };   // 📖 양쪽 디자인 = 왼쪽 / 오른쪽
+        const leaf = (lf, p) => window.leafCss ? leafCss(lf, p % 2 ? 'r' : 'l') : '#fffdfb';   // 📖 펼침면 그림 = 왼쪽 반 / 오른쪽 반 (js/prod.js)
         const spec = {
             id: cv.id, cls: 'bk-bd bk-bnd', inline: true, real: true,   // 📏 실제 규격 크기 (도련 11-21)
             pages: Math.max(1, P.length), mm: mmOf(cv),

@@ -28,12 +28,12 @@
            📃 속지
            ===================================================================== */
         /* 📄 내지 · 📃 속지 = 종이 한 쪽 엔진 (도련 11-16 : 둘은 다른 제품 · 엔진만 같이 · 쪽마다 따로 · 규격 mm 그대로 · 늘이지 않아요)
-           - 📄 내지 = 그 다이어리의 바탕 종이 (바인더 내지 · 노트 · 상품공방 '내지' · 정해진 수량 · 날짜 · 페이지 기능) : 내지 값 '상품id:내지' (양쪽 같이) 또는 '상품id:내지/상품id:내지2' (왼쪽/오른쪽 · lfPair)
+           - 📄 내지 = 그 다이어리의 바탕 종이 (바인더 내지 · 노트 · 상품공방 '내지' · 정해진 수량 · 날짜 · 페이지 기능) : 내지 값 '상품id:내지' · 늘 양쪽 (상품 속성 양쪽 = 펼침면 그림 → 왼쪽 반 · 오른쪽 반 · js/prod.js leafCss)
            - 📃 속지 = 그날 그 쪽 내지 위에 붙이는 종이 (노트 · 바인더 모두 · 수량 · 날짜와 상관없이 디자인만) : 쪽마다 { i 그림, h 반쪽 } · h '' = 한 쪽 그림 통째 · 'l' · 'r' = 양쪽 디자인(펼친 두 쪽 그림)의 왼쪽 · 오른쪽 반
            - 그리기 = css ::before (왼쪽 쪽) · ::after (오른쪽 쪽) · 내지 무늬 --nj-l · --nj-r (🗒️ 그 다이어리 폴더의 내지 그림 · js/prod.js leafCss) · 속지 --sj-l · --sj-r · 그 위에 붙인 것들
            - 하루 파일 = sj { l, r } (r.s = 왼쪽과 같은 그림 · 그림을 두 번 적지 않게) · 내지는 적지 않아요 (그 다이어리 내지 상품에서 · js/dymaker.js dkLeafOf) */
-        const lfOne = x => leafOk(x) && !String(x).includes('/') ? x : '';   // 🗒️ 그 상품 폴더의 내지 (상품id:내지 · js/prod.js) · 모르면 '' = 속지색만 (도련 11-28)
-        const lfPair = v => { const a = String(v || '').split('/'); return [lfOne(a[0]), lfOne(a[1] || a[0])]; };   // 'a' → [a, a] · 'a/b' → [왼쪽 a, 오른쪽 b]
+        const lfOne = x => leafOk(x) ? x : '';   // 🗒️ 그 상품 폴더의 내지 (상품id:내지 · js/prod.js) · 모르면 '' = 속지색만 (도련 11-28)
+        const lfPair = v => { const k = lfOne(v); return [k, k]; };   // 내지 = 늘 양쪽 (펼침면 그림이면 leafCss 가 반씩 · js/prod.js)
         let pageNj = ['', ''], pageSj = { l: null, r: null };      // 지금 페이지의 내지 · 속지 (js/elements.js 저장 · 불러오기)
         const lfMyOk = img => /^data:image\/(jpeg|png|webp|svg)/.test(img || '');
         /* 📏 속지 규격 (도련 11-16) : 만들 때 규격을 적어요 (sz = { n 이름, mm '가로×세로', r 한 쪽 세로 ÷ 가로 }) → 같은 규격 다이어리에만 끼워요 (늘이지 않아요) */
@@ -47,7 +47,7 @@
         /* 내지 · 속지 입히기 (오늘 페이지 · 넘길 때 보이는 옆 페이지 · 끼우는 그림 모두) */
         function lfApply(c, nj, sj) {
             const pr = lfPair(nj);
-            c.style.setProperty('--nj-l', leafCss(pr[0])); c.style.setProperty('--nj-r', leafCss(pr[1]));   // 🗒️ 그 상품의 디자인 한 칸
+            c.style.setProperty('--nj-l', leafCss(pr[0], 'l')); c.style.setProperty('--nj-r', leafCss(pr[1], 'r'));   // 🗒️ 그 상품의 디자인 한 칸
             ['l', 'r'].forEach(sd => { const b = sjBg(sj && sj[sd]); if (b) c.style.setProperty('--sj-' + sd, b); else c.style.removeProperty('--sj-' + sd); });
             return pr;
         }
@@ -70,7 +70,7 @@
             lfSlideSnd();
             const sls = [...sd].map(x => {
                 const sl = document.createElement('div'); sl.className = 'lf-slide ' + x;
-                sl.style.setProperty('--sjb', sjBg(next[x])); sl.style.setProperty('--njb', leafCss(pageNj[x === 'l' ? 0 : 1]));
+                sl.style.setProperty('--sjb', sjBg(next[x])); sl.style.setProperty('--njb', leafCss(pageNj[x === 'l' ? 0 : 1], x));
                 c.appendChild(sl); return sl;
             });
             const done = () => { sls.forEach(x => x.remove()); setPageLeaf(pageNj.join('/'), next); if (typeof saveData === 'function') saveData(false); };
