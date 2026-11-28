@@ -315,8 +315,8 @@
             /* 💻 펼침면 : 넘기는 장(한 쪽)이 가운데 묶음을 축으로 반대쪽 쪽 위로 넘어가요 · 겉표지는 넘기는 만큼 다이어리가 가운데로 옮겨가요 */
             const two = book.classList.contains('dy-sp') && !book.classList.contains('dy-one');
             if (two) { flapLayer.style.left = -W + 'px'; flapLayer.style.width = 2 * W + 'px'; }
-            const bx = book.getBoundingClientRect().left;
-            const uOff = under.getBoundingClientRect().left - bx, fOff = two ? -W : 0;     // 아래 장 · 넘김 층이 책 왼쪽에서 얼마나 떨어져 있는지
+            const RB = el => DRT.a ? dyRect(el) : el.getBoundingClientRect(), bx = RB(book).left;   // 🔄 돌린 다이어리 = 안 돌린 자리로
+            const uOff = (RB(under).left - bx) / DRT.s, fOff = two ? -W : 0;     // 아래 장 · 넘김 층이 책 왼쪽에서 얼마나 떨어져 있는지
             const edgeL = !isCover && two ? -W : 0;                                          // 전날로 넘길 때 잡는 왼쪽 끝 (펼침면은 왼쪽 쪽 끝)
             turn = { isCover, dir, to: targetDate, W, pageEl, under, shadow, flapLayer, flap, d: 0, two, uOff, fOff, edgeL, keep };
             updateCurl(0);
@@ -343,8 +343,8 @@
         let CURL = null;
         const curlCtx = () => {
             const t = turn, book = document.getElementById('diaryBook');
-            return { w: t.W, k: t.isCover && t.two ? BOOK_COVER_K : 1, get d() { return turn === t ? t.d : 0; }, set: d => { if (turn === t) updateCurl(d); }, done: ok => { if (turn === t) endCurl(ok); },   // 💻 표지는 다이어리도 같이 옮겨가니 손가락 따라가게 (k)
-                out: (e, dir) => { const r = book.getBoundingClientRect(); return dir === 1 ? e.clientX <= r.left : e.clientX >= r.right; } };
+            return { w: t.W, k: (t.isCover && t.two ? BOOK_COVER_K : 1) * DRT.s, get d() { return turn === t ? t.d : 0; }, set: d => { if (turn === t) updateCurl(d); }, done: ok => { if (turn === t) endCurl(ok); },   // 💻 표지는 다이어리도 같이 옮겨가니 손가락 따라가게 (k)
+                out: (e, dir) => { const r = DRT.a ? dyRect(book) : book.getBoundingClientRect(); return dir === 1 ? e.clientX <= r.left : e.clientX >= r.right; } };
         };
         function animateCurlTo(target, complete, rev, after) {                // rev = 거꾸로 (여는 것을 그대로 되감아요 · 천천히 시작해 빨라져요) · after = 끝난 뒤
             if (!turn || !CURL) return;
@@ -445,8 +445,8 @@
            - 오른쪽 끝 → 왼쪽으로 밀면 다음 날 · 왼쪽 끝 → 오른쪽으로 밀면 전날 (가운데에서 그림 · 글을 만질 때는 안 넘어가요)
            - 겉표지는 어디를 잡아도 열려요 */
         const CURL_EDGE = { ratio: 0.15, min: 36, max: 80 };      // 끝 영역 너비 : 페이지 너비의 15% (36~80px)
-        function curlEdgeAt(x, book) {
-            const r = (window.dyEdgeRect && dyEdgeRect()) || book.getBoundingClientRect(), z = clampNum(r.width * CURL_EDGE.ratio, CURL_EDGE.min, CURL_EDGE.max);   // 💻 펼침면은 두 쪽 전체의 양쪽 끝
+        function curlEdgeAt(x, book) {                                         // x = 안 돌린 자리 (dyIn)
+            const r0 = window.dyEdgeRect && dyEdgeRect(), r = DRT.a ? dyRect(r0 ? document.getElementById('innerPage') : book) : r0 || book.getBoundingClientRect(), z = clampNum(r.width * CURL_EDGE.ratio, CURL_EDGE.min, CURL_EDGE.max);   // 💻 펼침면은 두 쪽 전체의 양쪽 끝
             return x >= r.right - z ? 1 : x <= r.left + z ? -1 : 0;
         }
         /* 🔄 다이어리 돌리기 (도련 11-28 '현실처럼 돌려서 다꾸' · 2D 툴처럼 보기만 돌려요 · 붙인 것 · 저장은 그대로)
@@ -478,6 +478,25 @@
             const w = drW(); if (!w) return; DRT.a = a; DRT.s = s; if (t) DRT.t = t;
             w.classList.toggle('dr-anim', !!anim); w.style.rotate = a ? a + 'deg' : ''; w.style.scale = s !== 1 ? String(s) : ''; w.style.translate = DRT.t[0] || DRT.t[1] ? `${DRT.t[0]}px ${DRT.t[1]}px` : '';
             document.documentElement.classList.toggle('dy-rot', !!(((a % 360) + 360) % 360));
+            drHead();
+        }
+        /* 📅 날짜바는 똑바로 (도련 11-28 '날짜바는 고정') : 다이어리가 돌아도 날짜바는 서 있고 · 보이는 종이 위쪽 가운데 (돌리기 전과 같은 높이 차이)
+           hy0 = 똑바로일 때 날짜바 가운데 - 종이 위 (px) · 날짜바 = 다이어리 안이라 반대로 돌리고(rotate) 옮겨요(translate · 원래 css translate 더하기) */
+        function drHy0() {
+            const hd = document.getElementById('pageHeader'), v = drVis(); if (!hd || !v || DRT.a) return;
+            hd.style.translate = ''; hd.style.rotate = ''; const r = hd.getBoundingClientRect(); if (r.height) DRT.hy0 = { y: r.top + r.height / 2 - v.top, x: r.left + r.width / 2 - (v.left + v.width / 2) };
+        }
+        function drHead() {
+            const hd = document.getElementById('pageHeader'); if (!hd) return;
+            hd.style.translate = ''; hd.style.rotate = '';
+            if (!(((DRT.a % 360) + 360) % 360) || !DRT.hy0) return;
+            const v = drVis(); if (!v) return;
+            const b = (getComputedStyle(hd).translate || '').split(/\s+/).map(parseFloat), bx = b[0] || 0, by = b[1] || 0;   // 📱 한 쪽 보기 css translate
+            hd.style.rotate = -DRT.a + 'deg';
+            const bk = document.getElementById('diaryBook'), up = dyVec(0, -1), cut = bk && bk.classList.contains('dy-one') && (bk.classList.contains('dy-r') ? up[0] < -.5 : up[0] > .5);   // 📱 한 쪽 보기 : 위쪽이 가려진 쪽(css clip)이면 아래에
+            const ty = cut ? v.bottom - DRT.hy0.y * DRT.s : v.top + DRT.hy0.y * DRT.s;
+            const r = hd.getBoundingClientRect(), [lx, ly] = dyVec(v.left + v.width / 2 + DRT.hy0.x * DRT.s - (r.left + r.width / 2), ty - (r.top + r.height / 2));
+            hd.style.translate = `${(bx + lx).toFixed(1)}px ${(by + ly).toFixed(1)}px`;
         }
         function drOrigin() {                                                   // 돌아가는 점 = 종이 가운데 (wrapper 안 자리 · 안 돌린 채로 재요)
             const w = drW(), c = document.getElementById('canvasArea'); if (!w || !c) return;
@@ -503,7 +522,7 @@
             if (h.parentNode !== ip) ip.appendChild(h);
             drTwist();
             const cov = ip.querySelector('#dyBack > .dy-cov') || document.getElementById('canvasArea'); if (!cov) return;
-            if (!DRT.a) drOrigin();
+            if (!DRT.a) { drOrigin(); drHy0(); }
             const a = dyRect(ip), k = a.width / (ip.offsetWidth || a.width) || 1; let b = dyRect(cov);
             const bk = document.getElementById('diaryBook'), cv = document.getElementById('canvasArea');
             if (bk && cv && bk.classList.contains('dy-one')) {                    // 📱 한 쪽 보기 = 보이는 쪽 (종이 ∩ 책) + 판 둘레만큼
@@ -516,7 +535,7 @@
         function drDown(e) {
             if (!e.target.closest('.dr-h > i') || !isCoverOpen || turn || (e.pointerType === 'mouse' && e.button !== 0)) return;
             e.preventDefault(); e.stopPropagation(); drLetGo();
-            if (!DRT.a) drOrigin();
+            if (!DRT.a) { drOrigin(); drHy0(); }
             const P = drPivot(); DRT.drag = { id: e.pointerId, P, a0: Math.atan2(e.clientY - P.y, e.clientX - P.x) * 180 / Math.PI, b0: DRT.a, el: e.target };
             try { e.target.setPointerCapture(e.pointerId); } catch (err) {}
             drW().classList.add('dr-on');
@@ -549,7 +568,7 @@
                 if (!drTw || e.touches.length !== 2) return;
                 let da = drAng(e.touches) - drTw.a0; da = ((da + 540) % 360) - 180;
                 if (!drTw.on && Math.abs(da) < 15) return;
-                if (!drTw.on) { drTw.on = true; drLetGo(); if (!DRT.a) drOrigin(); }
+                if (!drTw.on) { drTw.on = true; drLetGo(); if (!DRT.a) { drOrigin(); drHy0(); } }
                 if (e.cancelable) e.preventDefault();
                 drApply(drTw.b0 + da, DRT.s, false);
             }, { passive: false });
@@ -562,16 +581,16 @@
             w.addEventListener('touchend', end); w.addEventListener('touchcancel', end);
         }
         function drReset() { if (DRT.a || DRT.s !== 1) { drApply(0, 1, false, [0, 0]); if (window.bdSync) bdSync(); } }
-        window.dyRotSet = a => { drOrigin(); const f = drFit(a); drApply(a, f.s, false, f.t); drPlace(); };   // 🧪 시험용 (바로 돌려 놓기)
+        window.dyRotSet = a => { if (!DRT.a) { drOrigin(); drHy0(); } const f = drFit(a); drApply(a, f.s, false, f.t); drPlace(); };   // 🧪 시험용 (바로 돌려 놓기)
         window.dyIn = dyIn; window.dyOut = dyOut; window.dyVec = dyVec; window.dyRect = dyRect; window.dyRot = dyRot; window.dyScale = dyScale; window.drPlace = drPlace;
         function setupCurlDrag() {
             const wrapper = document.getElementById('diaryWrapper');
             const book = document.getElementById('diaryBook');
             CURL = bookTurner({
-                el: wrapper,
+                el: wrapper, pt: e => dyIn(e.clientX, e.clientY),   // 🔄 돌린 다이어리 = 종이 방향으로 끌어요
                 grab: e => {                                                     // 펼친 뒤엔 끝을 잡아야 · 겉표지는 어디든 (그림 · 글 · 버튼 위는 안 넘겨요)
-                    if (turn || DRT.a || e.target.closest('.element-box, button, textarea, input, select, .dr-h')) return false;   // 🔄 돌린 동안 · 모서리 손잡이는 안 넘겨요
-                    const edge = isCoverOpen ? curlEdgeAt(e.clientX, book) : 0;
+                    if (turn || DRT.drag || e.target.closest('.element-box, button, textarea, input, select, .dr-h')) return false;   // 🔄 모서리 손잡이는 안 넘겨요
+                    const edge = isCoverOpen ? curlEdgeAt(dyIn(e.clientX, e.clientY)[0], book) : 0;   // 🔄 돌린 다이어리 = 종이 끝 기준 (현실처럼)
                     return isCoverOpen && !edge ? false : edge;
                 },
                 start: dir => {
@@ -615,7 +634,7 @@
                 if (!isCoverOpen || turn || PGM.busy()) return;
                 if (e.pointerType === 'mouse' && e.button !== 0) return;
                 if (!e.target.closest('#pageHeader') || e.target.closest('input, select, .tap-menu')) return;   // 날짜바만 (버튼 위에서 끌어도 옮겨져요 · 살짝 누르면 그대로 버튼)
-                if (curlEdgeAt(e.clientX, book)) return;
+                if (curlEdgeAt(dyIn(e.clientX, e.clientY)[0], book)) return;
                 pgmBegin(e);
             });
             /* ✏️ 🪡 문구를 들고 있어도 (그리는 중 · 핀셋 · 가위 · 칼 …) 날짜바를 잡으면 다이어리가 옮겨져요 (도련 11-05)

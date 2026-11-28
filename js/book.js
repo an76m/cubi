@@ -72,15 +72,15 @@ function bookCurlAt(W, d, dir, edge) {
          start(dir, e) → ctx | null,  ctx = { w (끝까지 px), k (손가락 대비 · 기본 1), set(px), done(ok), out(e) → true = 다 넘겼어요 } }
    돌려줘요 = { turn(dir) 버튼 · animate(ctx, toPx, ok, rev, after) · busy() } */
 function bookTurner(o) {
-    const T = { drag: null, anim: null };
+    const T = { drag: null, anim: null }, PT = e => o.pt ? o.pt(e) : [e.clientX, e.clientY];   // o.pt = 화면 점 → 책 기준 점 (🔄 돌린 다이어리 · js/page.js)
     o.el.addEventListener('pointerdown', e => {
         if (T.drag || T.anim || (e.pointerType === 'mouse' && e.button !== 0)) return;
         const g = o.grab(e); if (g === false) return;
-        T.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false, edge: g };
+        const P = PT(e); T.drag = { id: e.pointerId, x: P[0], y: P[1], on: false, edge: g };
     });
     addEventListener('pointermove', e => {
         const d = T.drag; if (!d || d.id !== e.pointerId) return;
-        const dx = e.clientX - d.x, dy = e.clientY - d.y;
+        const P = PT(e), dx = P[0] - d.x, dy = P[1] - d.y;
         if (!d.on) {
             if (Math.abs(dx) < BOOK_DRAG || Math.abs(dx) < Math.abs(dy)) return;
             const dir = dx < 0 ? 1 : -1;
@@ -89,9 +89,9 @@ function bookTurner(o) {
             d.on = true; d.dir = dir; d.ctx = ctx;
             try { o.el.setPointerCapture(e.pointerId); } catch (er) {}
         }
-        const c = d.ctx, moved = ((d.dir === 1 ? d.x - e.clientX : e.clientX - d.x) - BOOK_DRAG) / (c.k || 1);
+        const c = d.ctx, moved = ((d.dir === 1 ? d.x - P[0] : P[0] - d.x) - BOOK_DRAG) / (c.k || 1);
         c.set(Math.max(0, Math.min(c.w, moved)));
-        if ((c.out && c.out(e, d.dir)) || moved >= c.w) { T.drag = null; animate(c, c.w, true); }   // 끝까지 = 넘어가요
+        if ((c.out && c.out({ clientX: P[0], clientY: P[1] }, d.dir)) || moved >= c.w) { T.drag = null; animate(c, c.w, true); }   // 끝까지 = 넘어가요
     });
     const end = e => {
         const d = T.drag; if (!d || d.id !== e.pointerId) return;

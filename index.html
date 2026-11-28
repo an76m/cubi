@@ -6,10 +6,10 @@
     <title>🎀 말랑달콤 다이어리 🎀</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffb6c1">
-    <meta name="app-version" content="202611281751">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
+    <meta name="app-version" content="202611281758">   <!-- 🔢 이 첫 화면의 버전 = version.txt (sw.js · 도련 11-08) · 파일 ?v= = 그 파일 내용의 지문 (1442 · 바뀐 파일만 새로 받아요) · 손으로 고치지 말고 도구/버전찍기/ai_stamp.py 로 (한국 시각 12자리 + 지문) -->
     <script>/* 🔢 열 때 한 번만 (도련 11-08) : 서비스 워커가 아직 없는 첫 방문 등에서 옛 첫 화면이 열렸으면 → 로그인 전에만 조용히 한 번 다시 열어 새 버전 · 쓰는 동안엔 확인하지 않아요 */
     (function () {
-        var V = '202611281751', t0 = Date.now(), K = 'malang_ver_jump';
+        var V = '202611281758', t0 = Date.now(), K = 'malang_ver_jump';
         if (location.protocol === 'file:' || !window.fetch || (navigator.serviceWorker && navigator.serviceWorker.controller)) return;   // 서비스 워커가 이미 열 때 확인했어요
         var num = function (s) { var p = String(s).split('-'); return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0]; };
         var newer = function (a, b) { a = num(a); b = num(b); return a[0] !== b[0] ? a[0] > b[0] : a[1] > b[1]; };
@@ -37,7 +37,7 @@
     <script src="js/util.js?v=c5fad027b0"></script>
     <script src="js/imgsmall.js?v=11e98b522a"></script>   <!-- 🗜 그림 굽기 엔진 하나 (상품공방 · AI 와 같은 규칙 · elements.js cvSmall · 그림판) -->
     <script src="js/tempsave.js?v=b2a0069abf"></script>   <!-- 💾 임시보관 공통 (자동 60초 · ✕ [💾 임시보관] [그냥 닫기] · 다이어리 · 그림판 · 스티커 정리 · 도련 11-15) -->
-    <script src="js/book.js?v=2795028220"></script>   <!-- 📚 책 엔진 (표지 · 넘기기 · 두 쪽/한 쪽 · 상단바 · 지금 = 스티커바인더 · 이형지북 · 도련 11-15) -->
+    <script src="js/book.js?v=fc9af47302"></script>   <!-- 📚 책 엔진 (표지 · 넘기기 · 두 쪽/한 쪽 · 상단바 · 지금 = 스티커바인더 · 이형지북 · 도련 11-15) -->
     <script src="js/uimode.js?v=a2068cc92c"></script>   <!-- 🧭 화면 모드 한 곳 (🪑 책상 · ▤ 하단 메뉴 · 📱 세로 장소 · UI.* · 도련 11-10) -->
     <script src="js/maker.js?v=5a6a438827"></script>   <!-- 🧵 만들기 엔진 (상품공방과 같은 코드 · 무늬 · 종이 · 테이프 · 다이어리 값 표) -->
     <script src="js/onlyone.js?v=8d0a6e248f"></script>   <!-- 🔒 한 기기에 다이어리 하나만 (먼저 연 창만 · 다른 것보다 먼저) -->
@@ -779,7 +779,7 @@
     <script src="js/mine.js?v=abd265a47e"></script>   <!-- 📦 내 실물 : 받은 소품 · 문구 = 내 드라이브에 진짜로 (받은 그때 모습 · 종류마다 묶음 _실물.json · 기기 보관) -->
     <script src="js/sound.js?v=b762fb2db0"></script>
     <script src="js/app.js?v=04cb4caaed"></script>
-    <script src="js/page.js?v=c279ff9977"></script>
+    <script src="js/page.js?v=875a658436"></script>
     <script src="js/elements.js?v=54ca2f674f"></script>
     <script src="js/tapmenu.js?v=991f87343e"></script>
     <script src="js/settings.js?v=502e290da3"></script>
