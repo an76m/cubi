@@ -962,3 +962,12 @@ html.is-phone .cv-strap { top: 42px; bottom: -6px; width: calc(100% + 6px); }
 .bk-cover .bk-strap::before { content: ''; position: absolute; inset: 14% 8% 14% 8%; border: 1.5px dashed rgba(255, 255, 255, .85); border-radius: 20% 4% 4% 20% / 50% 10% 10% 50%; }
 .bk-cover .bk-strap::after { content: ''; position: absolute; left: 8%; top: 50%; height: 60%; aspect-ratio: 1; translate: 0 -50%; border-radius: 50%;
   box-sizing: border-box; background: radial-gradient(circle, #c9c9d2 0 26%, #8a8a96 26% 32%, #c9c9d2 32%); border: 1.5px solid #74747f; box-shadow: 1px 1px 0 rgba(90, 50, 70, .28); }   /* 단색 + 아웃라인 */
+/* 🔘 책 엔진 덮인 표지 끈 = 끌어서 젖히기 (js/book.js strapWire · 펼쳐보기 · 책상 바인더) */
+.bk-cover .bk-strap.live { pointer-events: auto; cursor: grab; touch-action: none; transform-origin: 100% 50%; rotate: var(--sr, 0deg); transition: rotate .32s cubic-bezier(.3, .7, .3, 1); }
+.bk-cover .bk-strap.live.open { rotate: var(--sr, 180deg); }
+.bk-cover .bk-strap.live.drag { transition: none; cursor: grabbing; }
+.bk-cover .bk-strap.live.snap::after { animation: strapSnap .25s ease-out; }
+.bk-cover .bk-strap.live.hint { animation: strapHint .5s ease-in-out; }
+.bk-book.shut.cv-nudge { animation: cvNudge .42s ease-in-out; }
+.bk-cover .bk-sock { position: absolute; top: 74%; right: 22%; width: 5%; aspect-ratio: 1; translate: 0 -50%; box-sizing: border-box; border-radius: 50%; background: radial-gradient(circle, #74747f 0 30%, #c9c9d2 30%); border: 1.5px solid #74747f; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.bk-cover:has(.bk-strap.open) .bk-sock, .bk-cover:has(.bk-strap.drag) .bk-sock { opacity: 1; }

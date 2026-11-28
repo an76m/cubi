@@ -144,7 +144,7 @@
             if (el) { el.classList.remove('hint'); void el.offsetWidth; el.classList.add('hint'); }
             if (strapTold < 3 && window.bubbleAt && el) { strapTold++; const r = el.querySelector('.cv-band').getBoundingClientRect(); bubbleAt('strapSay', 'twz-say', '🔘 끈을 오른쪽으로 끌어 똑딱이를 먼저 풀어요', r.left + r.width / 2, r.top, { half: 140, dy: 14, top: 40 }); }
         };
-        window.dyStrapPaint = dyStrapPaint;
+        window.dyStrapPaint = dyStrapPaint; window.strapSnd = strapSnd;
         let dyyLastNote = null;
         function dyyPaint() {
             const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
@@ -372,7 +372,8 @@
             const book = L => {
                 const ring = window.dyRingCss ? dyRingCss(L.pid) : '', gap = (MK.GAP[L.b] || 0);
                 const ring6 = L.b === 'ring', c1 = hex(L.cover) || L.border;   // 🗂️ 링 바인더 = 🧩 바인더 조립 책상과 같은 묶음 · 색 (BOOK_RINGS · 도련 11-27) · 📓 노트 = 진짜 다이어리 묶음 그림 (dyParts)
-                return { id: 'try', spread: true, cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
+                return { id: 'try', spread: true, strap: !!L.strap, cls: ring6 ? 'bk-bd' : 'bk-dy',   // 🔘 스트랩 = 펼쳐보기도 끈을 풀어야 열려요 (js/book.js · 이 창에서만)
+                    mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
                     pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
                     title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.l1 || L.nm)}</span><small>${htmlEsc(L.l2 || L.n)}</small>${L.strap ? '<i class="bk-strap" aria-hidden="true"></i>' : ''}</div>`,   /* 🔘 스트랩 (도련 11-28) */   /* 🏷 썸네일 정보 = 두 줄 (도련 11-28 '어떤 상품인지 알 수 있게 · 기준 통일') : 아이콘 (해) 종류·이름 / 규격 · 펼침면 수 · 묶음 */
                     spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 && !L.strap ? 'ring' : '',   // 🔘 스트랩 = 표지가 등까지 감싸 링이 안 보여요

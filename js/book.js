@@ -177,8 +177,42 @@ function bookOpen(host, spec) {
         B.root.innerHTML = `<div class="bk-bar"${spec.inline ? '' : ' title="끌어서 옮기기"'}>${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}${spec.onClose ? '<button type="button" class="bk-x" aria-label="닫기">✕</button>' : ''}</div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();
         fit();
+        if (!B.open) strapWire();                                              // 🔘 스트랩 (덮인 책)
         if (spec.wire) spec.wire(B.root.querySelector('.bk-stage'), B);
         if (spec.onPage) spec.onPage(B.pg, B.open);
+    }
+    /* 🔘 스트랩 바인더 (도련 11-28 · 📔 겉표지 js/dyyear.js dyStrapPaint 와 같은 동작) : 덮인 표지의 끈(.bk-strap)을 오른쪽으로 끌면 풀려요 · 왼쪽으로 끌어 덮으면 잠겨요
+       잠겨 있으면 표지가 안 열려요 (start · 들썩) · 잠김 = 이 기기 malang_strap (spec.strapKey · 없으면 이 창에서만) */
+    const STRAP_LS = 'malang_strap';
+    const strapM = () => { try { const m = JSON.parse(localStorage.getItem(STRAP_LS) || '{}'); return m && typeof m === 'object' ? m : {}; } catch (e) { return {}; } };
+    function strapOpen() { if (!spec.strap) return true; if (B.strapO != null) return B.strapO; return spec.strapKey ? strapM()[spec.strapKey] === 0 : false; }
+    function strapSave(open) { B.strapO = open; if (!spec.strapKey) return; const m = strapM(); if (open) m[spec.strapKey] = 0; else delete m[spec.strapKey]; try { localStorage.setItem(STRAP_LS, JSON.stringify(m)); } catch (e) {} }
+    function strapWire() {
+        const st = spec.strap && B.root.querySelector('.bk-book.shut .bk-strap'); if (!st) return;
+        st.classList.add('live'); st.classList.toggle('open', strapOpen());
+        if (!st.parentNode.querySelector('.bk-sock')) st.insertAdjacentHTML('beforebegin', '<i class="bk-sock" aria-hidden="true"></i>');   // 표지 쪽 단추 받침 (풀면 보여요)
+        st.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            const o0 = st.classList.contains('open'), w = st.getBoundingClientRect().width || 60, x0 = e.clientX; let r = o0 ? 180 : 0;
+            try { st.setPointerCapture(e.pointerId); } catch (er) {}
+            st.classList.add('drag');
+            const mv = ev => { if (ev.pointerId !== e.pointerId) return; r = Math.max(0, Math.min(180, (o0 ? 180 : 0) + (ev.clientX - x0) / w * 180)); st.style.setProperty('--sr', r.toFixed(1) + 'deg'); };
+            const up = ev => {
+                if (ev.pointerId !== e.pointerId) return;
+                st.removeEventListener('pointermove', mv); st.removeEventListener('pointerup', up); st.removeEventListener('pointercancel', up);
+                st.classList.remove('drag'); st.style.removeProperty('--sr');
+                const open = r > 90; if (open === o0) return;
+                strapSave(open); st.classList.toggle('open', open); st.classList.remove('snap'); void st.offsetWidth; st.classList.add('snap'); if (window.strapSnd) strapSnd();
+            };
+            st.addEventListener('pointermove', mv); st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+        });
+    }
+    function strapNudge() {
+        const bk = B.root && B.root.querySelector('.bk-book.shut'), st = bk && bk.querySelector('.bk-strap'); if (!bk) return;
+        bk.classList.remove('cv-nudge'); void bk.offsetWidth; bk.classList.add('cv-nudge'); setTimeout(() => bk.classList.remove('cv-nudge'), 450);
+        if (st) { st.classList.remove('hint'); void st.offsetWidth; st.classList.add('hint'); }
+        if (window.bubbleAt && st && (B.strapTold = (B.strapTold || 0) + 1) <= 3) { const r = st.getBoundingClientRect(); bubbleAt('strapSay', 'twz-say', '🔘 끈을 오른쪽으로 끌어 똑딱이를 먼저 풀어요', r.left + r.width / 2, r.top, { half: 140, dy: 14, top: 40 }); }
     }
     /* 📐 크기 · 자리 (막대 가운데 기준) */
     function fit() {
@@ -229,7 +263,8 @@ function bookOpen(host, spec) {
     function start(dir) {
         if (B.busy) return null;
         const cover = !B.open || (dir < 0 && B.pg === 0), back = cover && B.open;   // 📕 표지 열기 · 덮기 = 📔 다이어리와 같은 방식 (page.js openCoverAnimated · closeCoverAnimated)
-        if (cover && !B.open && dir < 0) return null;                          //   표지는 펼친 모습 위에서 넘어가요 (펼침면 = 표지가 오른쪽 쪽 자리에서 넘어가며 책이 가운데로 · 덮기 = 여는 것을 그대로 되감아요)
+        if (cover && !B.open && dir < 0) return null;
+        if (cover && !B.open && !strapOpen()) { strapNudge(); return null; }     // 🔘 스트랩이 잠겨 있으면 안 열려요                          //   표지는 펼친 모습 위에서 넘어가요 (펼침면 = 표지가 오른쪽 쪽 자리에서 넘어가며 책이 가운데로 · 덮기 = 여는 것을 그대로 되감아요)
         if (cover) { B.open = true; B.pg = 0; render(); }
         const t = two(), stage = B.root.querySelector('.bk-stage');
         let k, cur, under, cdir = dir, after;

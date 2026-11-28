@@ -408,6 +408,7 @@
             }));
         }
         dyTypesBuild();
+        window.dyStrapOf = pid => { const d = (typeof DY_DESIGNS !== 'undefined' ? DY_DESIGNS : []).find(x => x.id === pid) || DY_TYPES.find(x => x.id === pid); return !!(d && d.strap); };   // 🔘 그 표지 상품이 스트랩인지 (js/binderroom.js)
         if (window.prodHook) prodHook(dyTypesBuild);                          // 📦 내 실물 (js/mine.js)
         const DY_DEF = 'basic';                                                // 처음 설치하면 기본 다이어리
         const DY_TAB = ['다이어리', '노트', '바인더'];                         // 고르기 창 위 카테고리 = k (도련 · 10-18 : 실물 모양으로 · 저장 폴더는 나누지 않아요 · 다이어리.json kind)
