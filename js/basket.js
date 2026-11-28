@@ -1391,7 +1391,7 @@
             const L = window.prodShelf ? prodShelf('계절스티커').filter(x => inDays(x.P.기간)) : [];   // 🧁 계절 상품 (상품공방 · 도련 11-02) · 그림에 하얀 테두리가 이미 있어요
             const asData = u => /\.svg$/i.test(u) ? fetch(u).then(r => r.text()).then(t => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t)) : Promise.resolve(u);
             return L.map(x => { const us = Object.keys(x.u).sort().map(r => x.u[r]);
-                return { cnt: `씰 ${us.length}개`, look: 'grid', thumbs: us, take: async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true }) }; }).filter(x => x.thumbs.length);
+                return { cnt: `씰 ${us.length}개`, inf: `🏷️ ${us.length}개`, look: 'grid', thumbs: us, take: async () => ({ k: 'seal', imgs: await Promise.all(us.map(asData)), baked: true }) }; }).filter(x => x.thumbs.length);
         }],
     };
     /* 🎁 처음 선물 (도련 11-06 · 상품공방 '처음받기' 체크 = 처음 온 다꾸러에게 · 앱은 체크된 것만 줘요 · js/desk.js giftEnsure)
