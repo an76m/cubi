@@ -68,16 +68,16 @@
             const out = [], k = sbOwnK[kind];
             list.forEach(x => {
                 const urls = x.urls || [x.url], bigs = urls.map(u => thumb(u, 360));
-                if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
+                if (kind === 'piece') out.push({ bigs, pv: x.pv, cnt: `조각 ${urls.length}개`, inf: `🧩 ${urls.length}조각`, look: 'grid', thumbs: urls.map(u => thumb(u, 96)),
                     take: async () => ({ k, imgs: await Promise.all(urls.map(u => sbDie(kitAt(u, 600)))), baked: true }) });
                 else if (kind === 'paper') out.push({ bigs, cnt: '모조지 한 장', look: 'sheet', thumbs: [thumb(urls[0], 240)],   // 📄 받은 그림 한 장 = 모조지 한 장 (도련 10-29 · 모양 · 배경 구분 없음 · 오릴지 통째로 뗄지는 다꾸러가)
                     take: async () => ({ k, imgs: [(await sbData(kitAt(urls[0], 1200))).src] }) });
-                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', look: 'tape', thumbs: [thumb(x.url, 240)], take: () => sbTapeTake(x) });   // 🎀 한 롤 길이 · 폭 = 상품 (롤길이 · 테이프폭)
-                else if (kind === 'tk') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],   // 🧻 한 묶음 · 풀칠 띠 색 = 상품
+                else if (kind === 'tape') out.push({ bigs, cnt: '한 롤', inf: `🎀 ${+x.P.롤길이 >= 1000 ? +(x.P.롤길이 / 1000).toFixed(2) + 'm' : (+x.P.롤길이 || 0) + 'mm'} · 폭 ${+x.P.테이프폭 || 0}mm`, look: 'tape', thumbs: [thumb(x.url, 240)], take: () => sbTapeTake(x) });   // 🎀 한 롤 길이 · 폭 = 상품 (롤길이 · 테이프폭)
+                else if (kind === 'tk') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, inf: `🧻 ${+x.P.묶음장수}장`, look: 'tkimg', thumbs: [thumb(x.url, 200)],   // 🧻 한 묶음 · 풀칠 띠 색 = 상품
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, 600))).src], q0: +x.P.묶음장수, x: { pad: 'my', glue: x.P.풀칠색, mm: x.P.크기.slice(0, 2) } }) });   // 📏 크기 = [가로, 세로] mm (상품공방)
-                else if (kind === 'leaf') out.push({ bigs, cnt: `${x.P.규격 || ''} ${+x.P.묶음장수}장`.trim(), look: 'leafimg', thumbs: [thumb(x.url, 240)],
+                else if (kind === 'leaf') out.push({ bigs, cnt: `${x.P.규격 || ''} ${+x.P.묶음장수}장`.trim(), look: 'leafimg', lb: ['📃 ' + (String(x.P.이름 || '').trim() || '속지'), `${x.P.규격 || ''} · ${+x.P.묶음장수 || 1}장`], two: !!x.P.양쪽, ar: (m => m ? m[0] * (x.P.양쪽 ? 2 : 1) / m[1] : 0)(MK.mmOf(x.P.mm)), thumbs: [thumb(x.url, 240)],
                     take: async () => ({ k, imgs: [(await sbData(kitAt(x.url, x.P.양쪽 ? 1800 : 900), true)).src], q0: +x.P.묶음장수, x: { lf: 'my', sz: lfSz(x.P.mm), two: !!x.P.양쪽 } }) });   // 📏 규격 = 상품공방 (같은 규격 다이어리에만)
-                else if (kind === 'memo') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],   // 📝 한 묶음 · 글자색 = 상품
+                else if (kind === 'memo') out.push({ bigs, cnt: `${+x.P.묶음장수}장`, inf: `📝 ${+x.P.묶음장수}장`, look: 'memoimg', thumbs: [thumb(x.url, 120)],   // 📝 한 묶음 · 글자색 = 상품
                     take: async () => { const d = await sbData(kitAt(x.url, 600)); return { k, imgs: [d.src], q0: +x.P.묶음장수, x: { pp: 'img', w: d.w, h: d.h, tc: x.P.글자색, mm: +x.P.가로 } }; } });   // 📏 가로 mm (상품공방)
             });
             return out;
