@@ -1626,24 +1626,24 @@
         const src = big && x.bigs ? x.bigs : x.thumbs, n = (src || x.chars || []).length, cols = big ? Math.ceil(Math.sqrt(Math.max(1, n))) : Math.ceil(Math.sqrt(Math.max(1, n) * .7));   // 카드는 세로로 길게 (포장기 pvOf 와 같은 칸 수)
         if (x.look === 'tape') return `<div class="sh-tape"><i style="background-image:url(&quot;${esc(src[0])}&quot;)"></i></div>`;
         if (x.look === 'tkimg') return `<div class="sh-pad">${window.tkMiniHtml ? tkMiniHtml('my', { src: src[0] }) : ''}</div>`;
-        if (x.look === 'leafimg') return shOrigHtml(src[0], x.lb ? shOgLb(x.lb[0], x.lb[1]) : '', x.two, x.ar);   // 📃 속지 = 원본 그림 그대로 (도련 11-28 · 반쪽 = 한 쪽 · 양쪽 = 펼친 두 쪽 · 사기 전에 알 수 있게)
+        if (x.look === 'leafimg') return shOrigHtml(src[0], x.lb ? shOgLb(x.lb[0], x.lb[1], x.two) : '', x.two, x.ar);   // 📃 속지 = 원본 그림 그대로 (도련 11-28 · 반쪽 = 한 쪽 · 양쪽 = 펼친 두 쪽 · 사기 전에 알 수 있게)
         if (!big && x.pv && x.look === 'grid') { const p = x.pv; return `<div class="sh-paper"><svg class="sh-pv" viewBox="0 0 ${p.w} ${p.h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><svg width="${p.w}" height="${p.h}"><image href="${esc(p.u)}" x="0" y="${-p.y}" width="${p.w}" height="${p.H}"/></svg></svg></div>`; }   // 🖼️ 묶음 미리보기 (작은 그림 수십 장 대신 · 포장기 p/ 한 파일에서 내 칸만 잘라 보여요)
         if (x.L && x.look === 'grid' && (big || !x.pv)) return `<div class="sh-paper sh-lay">${abLayHtml(x.L, src)}</div>`;   // 🗺️ 시트 배치 그대로
         if (x.look === 'memoimg' || x.look === 'sheet') return `<div class="sh-paper one"><img src="${esc(src[0])}" alt="" loading="lazy"></div>`;
         return `<div class="sh-paper${n === 1 ? ' one' : ''}"><i class="bk-grid" style="--c:${cols}">${src.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`).join('')}</i></div>`;
     }
     /* 📄 내지 · 📃 속지 썸네일 = 원본 그림 그대로 (도련 11-28 '꾸미지 말고 그냥 보여줘') : 반쪽 = 한 쪽 · 양쪽 = 펼친 두 쪽 (그림 비율 그대로)
-       아래 한 줄 = 📄 한 쪽 / 📖 양쪽 (사기 전에 알 수 있게) · 내지는 가운데 이름표 (표지와 같은 자리 · 아이콘 (해) 이름 / 규격 · 펼침면 수) */
-    const shOgLb = (l1, l2) => `<span class="sh-oglb"><b>${esc(l1)}</b><small>${esc(l2)}</small></span>`;
+       📄 한 쪽 / 📖 양쪽 = 이름표 두째 줄 (사기 전에 알 수 있게 · 디자인 안) · 가운데 이름표 (표지와 같은 자리 · 아이콘 (해) 이름 / 규격 · 펼침면 수) */
+    const shOgLb = (l1, l2, two) => `<span class="sh-oglb"><b>${esc(l1)}</b><small>${esc(l2)} · ${two ? '양쪽' : '한쪽'}</small></span>`;
     function shOrigHtml(u, lab, two, ar, tile) {   // tile = 작은 무늬 조각 (페이지 크기에 대한 % · 바둑판으로 채워요)
-        const pic = tile ? `<i class="sh-ogt" style="background:url(&quot;${esc(u || '')}&quot;) 0 0 / ${tile[0].toFixed(2)}% ${tile[1].toFixed(2)}% repeat #fffdfb"></i>` : `<img src="${esc(u || '')}" alt="" loading="lazy">`;
-        return `<span class="sh-orig"><span class="sh-og" style="--ar:${(+ar || .7).toFixed(3)}">${pic}${lab || ''}</span><small class="sh-side">${two ? '📖 양쪽 (펼친 두 쪽)' : '📄 한 쪽'}</small></span>`;
+        const pic = tile ? `<i class="sh-ogt" style="background:url(&quot;${esc(u || '')}&quot;) 0 0 / ${tile[0].toFixed(2)}% ${tile[1].toFixed(2)}% repeat #fffaf2"></i>` : `<img src="${esc(u || '')}" alt="" loading="lazy">`;
+        return `<span class="sh-orig"><span class="sh-og" style="--ar:${(+ar || .7).toFixed(3)}">${pic}${lab || ''}</span></span>`;   // 📄 한 쪽 / 📖 양쪽 = 이름표 두째 줄 (디자인 안 · 도련 11-28)
     }
     function shRefillHtml(x) {
         const r = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).find(v => v.id === x.rid) || {}, s = window.leafSrc ? leafSrc(x.lf) : null, two = !!(s && s.two), m = MK.mmOf(r.mm) || [105, 148];
         const y = new Date().getFullYear(), l1 = `${r.t === 'date' ? '📅 ' + y + ' ' : '📄 '}${r.g || ''}`, l2 = `${r.n || ''} · ${r.t === 'date' ? (window.dyyDays ? dyyDays(y) : 365) : r.pg}펼침면`;
         const tile = s && !two && s.wh[0] <= 50 ? [s.wh[0] / m[0] * 100, s.wh[1] / m[1] * 100] : null;
-        return shOrigHtml(s && s.u, shOgLb(l1, l2), two, m[0] * (two ? 2 : 1) / m[1], tile);
+        return shOrigHtml(s && s.u, shOgLb(l1, l2, two), two, m[0] * (two ? 2 : 1) / m[1], tile);
     }
     window.shRefillHtml = shRefillHtml;
     const SH_TRY = ['diary', 'note', 'pbinder', 'pnote', 'refill', 'binder', 'relbook'];   // 📖 펼쳐보기 되는 모양 (책)
