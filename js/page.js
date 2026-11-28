@@ -590,6 +590,7 @@
                 el: wrapper, pt: e => dyIn(e.clientX, e.clientY),   // 🔄 돌린 다이어리 = 종이 방향으로 끌어요
                 grab: e => {                                                     // 펼친 뒤엔 끝을 잡아야 · 겉표지는 어디든 (그림 · 글 · 버튼 위는 안 넘겨요)
                     if (turn || DRT.drag || e.target.closest('.element-box, button, textarea, input, select, .dr-h')) return false;   // 🔄 모서리 손잡이는 안 넘겨요
+                    if (!isCoverOpen && window.dyStrapLocked && dyStrapLocked()) { if (window.dyStrapNudge) dyStrapNudge(e); return false; }   // 🔘 스트랩이 잠겨 있으면 안 열려요 (js/dyyear.js)
                     const edge = isCoverOpen ? curlEdgeAt(dyIn(e.clientX, e.clientY)[0], book) : 0;   // 🔄 돌린 다이어리 = 종이 끝 기준 (현실처럼)
                     return isCoverOpen && !edge ? false : edge;
                 },

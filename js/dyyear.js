@@ -85,7 +85,66 @@
             const pid = b && dyyBasic() ? dyyColor(b.c) : t ? (t.pid || t.id) : '', ring = window.dyRingCss ? dyRingCss(pid) : '';   // 📁 펼친 권의 표지 · 링 = 그 상품 폴더의 파일 (도련 11-18)
             r.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(pid) : 'none');
             if (ring) r.setProperty('--dy-ring', ring); else r.removeProperty('--dy-ring');
+            dyStrapPaint();                                                   // 🔘 스트랩 바인더
         }
+        /* 🔘 스트랩 바인더 (도련 11-28 시안 A '모든지 현실처럼') : 링 바인더 표지 + 오른쪽 끈 + 은색 똑딱이 (상품공방 '스트랩')
+           - 잠겨 있으면 표지가 안 열려요 (밀면 들썩 · js/page.js grab → dyStrapLocked · dyStrapNudge)
+           - 끈을 오른쪽으로 끌면 = 풀려요 (끈이 바깥으로 젖혀져요) · 풀린 끈을 왼쪽으로 끌어 덮으면 = 잠겨요 · 덮을 때 저절로 안 잠겨요 (수동 · 도련 11-28)
+           - 잠김 · 풀림 = 권마다 이 기기에 (malang_strap · 화면 모습이라 드라이브엔 안 올려요) */
+        const STRAP_LS = 'malang_strap';
+        function dyStrapNow() {
+            const b = dyyBook(), t = !dyyBasic() && typeof dkType === 'function' ? dkType() : null;
+            const d = b && dyyBasic() ? DY_DESIGNS.find(x => x.id === dyyColor(b.c)) : t;
+            return d && d.strap ? { key: String((b && b.id) || (t && t.id) || 'x') } : null;
+        }
+        const strapMap = () => { try { const m = JSON.parse(localStorage.getItem(STRAP_LS) || '{}'); return m && typeof m === 'object' ? m : {}; } catch (e) { return {}; } };
+        const strapShut = key => strapMap()[key] !== 0;                       // 처음 = 잠긴 채 와요
+        function strapSet(key, shut) { const m = strapMap(); if (shut) delete m[key]; else m[key] = 0; try { localStorage.setItem(STRAP_LS, JSON.stringify(m)); } catch (e) {} }
+        function dyStrapPaint() {
+            const cp = document.getElementById('coverPage'), bk = document.getElementById('diaryBook'), s = dyStrapNow(); document.documentElement.classList.toggle('dy-strap', !!s);
+            let el = document.getElementById('cvStrap');
+            if (!s || !cp || !bk) { if (el) el.remove(); return; }
+            if (!el) {
+                el = document.createElement('div'); el.id = 'cvStrap'; el.className = 'cv-strap';
+                el.innerHTML = '<i class="cv-sock" aria-hidden="true"></i><b class="cv-band" title="끈을 끌어서 똑딱이 풀기 · 잠그기"></b>';
+                el.querySelector('.cv-band').addEventListener('pointerdown', strapDown);
+            }
+            if (el.parentNode !== bk) bk.appendChild(el);                        // 책 안 · 겉표지 위 (겉표지는 밖을 잘라서 끈이 나올 수 없어요 · css .cv-strap = 겉표지와 같은 자리)
+            el.dataset.k = s.key; el.classList.toggle('open', !strapShut(s.key)); el.style.removeProperty('--sr');
+            { const cs = getComputedStyle(cp), band = el.querySelector('.cv-band'); Object.assign(band.style, { backgroundImage: cs.backgroundImage, backgroundColor: cs.backgroundColor, backgroundSize: cs.backgroundSize, backgroundPosition: '0 0' }); }   // 끈 = 표지와 같은 무늬 그대로
+        }
+        let strapDg = null;
+        function strapDown(e) {
+            const el = document.getElementById('cvStrap'); if (!el || (e.pointerType === 'mouse' && e.button !== 0)) return;
+            e.preventDefault(); e.stopPropagation();
+            const band = e.currentTarget, open = el.classList.contains('open'), w = band.getBoundingClientRect().width || 80;
+            strapDg = { id: e.pointerId, x: e.clientX, open, w, band, el, r: open ? 180 : 0 };
+            try { band.setPointerCapture(e.pointerId); } catch (er) {}
+            el.classList.add('drag');
+            band.addEventListener('pointermove', strapMove); band.addEventListener('pointerup', strapUp); band.addEventListener('pointercancel', strapUp);
+        }
+        function strapMove(e) {
+            const d = strapDg; if (!d || e.pointerId !== d.id) return;
+            const dx = (e.clientX - d.x) * ((window.dyRot && dyRot()) ? 1 : 1);   // 겉표지는 돌리지 않아요
+            d.r = Math.max(0, Math.min(180, (d.open ? 180 : 0) + dx / d.w * 180));   // 오른쪽으로 끌면 젖혀져요 · 왼쪽으로 끌면 덮여요
+            d.el.style.setProperty('--sr', d.r.toFixed(1) + 'deg');
+        }
+        function strapUp(e) {
+            const d = strapDg; if (!d || e.pointerId !== d.id) return; strapDg = null;
+            ['pointermove', 'pointerup', 'pointercancel'].forEach((t, i) => d.band.removeEventListener(t, [strapMove, strapUp, strapUp][i]));
+            const open = d.r > 90; d.el.classList.remove('drag'); d.el.style.removeProperty('--sr');
+            if (open !== d.open) { strapSet(d.el.dataset.k, !open); d.el.classList.toggle('open', open); d.el.classList.remove('snap'); void d.el.offsetWidth; d.el.classList.add('snap'); strapSnd(); }
+        }
+        function strapSnd() { try { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; const a = strapSnd.a || (strapSnd.a = new C()), t = a.currentTime, o = a.createOscillator(), g = a.createGain(); o.type = 'square'; o.frequency.setValueAtTime(1800, t); o.frequency.exponentialRampToValueAtTime(500, t + .05); g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.001, t + .07); o.connect(g).connect(a.destination); o.start(t); o.stop(t + .08); } catch (e) {} }   // 🔊 딱!
+        let strapTold = 0;
+        window.dyStrapLocked = () => { const s = dyStrapNow(); return !!s && strapShut(s.key) && !!document.getElementById('cvStrap'); };
+        window.dyStrapNudge = e => {                                           // 잠긴 채 밀면 = 표지가 들썩 · 처음 몇 번은 말풍선
+            const cp = document.getElementById('coverPage'), el = document.getElementById('cvStrap'); if (!cp) return;
+            cp.classList.remove('cv-nudge'); void cp.offsetWidth; cp.classList.add('cv-nudge'); setTimeout(() => cp.classList.remove('cv-nudge'), 450);
+            if (el) { el.classList.remove('hint'); void el.offsetWidth; el.classList.add('hint'); }
+            if (strapTold < 3 && window.bubbleAt && el) { strapTold++; const r = el.querySelector('.cv-band').getBoundingClientRect(); bubbleAt('strapSay', 'twz-say', '🔘 끈을 오른쪽으로 끌어 똑딱이를 먼저 풀어요', r.left + r.width / 2, r.top, { half: 140, dy: 14, top: 40 }); }
+        };
+        window.dyStrapPaint = dyStrapPaint;
         let dyyLastNote = null;
         function dyyPaint() {
             const b = dyyBook(), yl = document.getElementById('cvYear'); if (yl) yl.textContent = b && dyyBasic() ? String(b.y) : '';   // 📔 겉표지 해 이름판 (도련 10-30 시안)
@@ -315,18 +374,18 @@
                 const ring6 = L.b === 'ring', c1 = hex(L.cover) || L.border;   // 🗂️ 링 바인더 = 🧩 바인더 조립 책상과 같은 묶음 · 색 (BOOK_RINGS · 도련 11-27) · 📓 노트 = 진짜 다이어리 묶음 그림 (dyParts)
                 return { id: 'try', spread: true, cls: ring6 ? 'bk-bd' : 'bk-dy', mm: MK.mmOf(L.mm), colors: ring6 ? [c1, `color-mix(in srgb, ${c1} 72%, #5a3a46)`] : [c1, L.border], face: window.dyFaceCss ? dyFaceCss(L.pid, 'px') : 'none',
                     pages: Math.max(1, L.P.length), page: L.P.length ? pageOf(L.P, L.page) : () => '<div class="bnd-pg end"></div>', blank: () => '<div class="bnd-pg end"></div>',
-                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.l1 || L.nm)}</span><small>${htmlEsc(L.l2 || L.n)}</small></div>`,   /* 🏷 썸네일 정보 = 두 줄 (도련 11-28 '어떤 상품인지 알 수 있게 · 기준 통일') : 아이콘 (해) 종류·이름 / 규격 · 펼침면 수 · 묶음 */
-                    spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 ? 'ring' : '',
+                    title: () => htmlEsc(L.nm) + ' <small>· 표지</small>', cover: () => `<div class="bk-cover bd"><span class="bk-cvlb">${htmlEsc(L.l1 || L.nm)}</span><small>${htmlEsc(L.l2 || L.n)}</small>${L.strap ? '<i class="bk-strap" aria-hidden="true"></i>' : ''}</div>`,   /* 🔘 스트랩 (도련 11-28) */   /* 🏷 썸네일 정보 = 두 줄 (도련 11-28 '어떤 상품인지 알 수 있게 · 기준 통일') : 아이콘 (해) 종류·이름 / 규격 · 펼침면 수 · 묶음 */
+                    spine: () => ring6 ? BOOK_RINGS : window.dyParts ? dyParts({ b: L.b })[1] : '', cvSpine: ring6 && !L.strap ? 'ring' : '',   // 🔘 스트랩 = 표지가 등까지 감싸 링이 안 보여요
                     wire: st => { const r = st.closest('.bk'); r.style.setProperty('--dy-c', L.border); r.style.setProperty('--dy-face', window.dyFaceCss ? dyFaceCss(L.pid) : 'none');   // 🎨 이 틀에만 (내 다이어리 색은 그대로)
                         if (ring) r.style.setProperty('--dy-ring', ring); r.style.setProperty('--gap', `calc(${gap} * var(--mmk) * 1px)`); r.style.setProperty('--gh', `calc(${gap / 2} * var(--mmk) * 1px)`); } };
             };
             if (x.look === 'diary' || x.look === 'note') {
                 const d = DY_DESIGNS.find(v => v.id === x.dc), c = d && DY_COL[d.id]; if (!d || !c) return null;
-                return book({ nm: x.name || d.name, n: d.n, l1: `${x.look === 'note' ? '📓' : '📔'} ${x.name || d.name}`, l2: x.look === 'note' ? `${d.n} · ${dyyDays(+x.yr || dyyThis())}펼침면` : `${d.n} · ${dyyBind(d.b)}`, b: d.b, mm: d.mm, pid: d.id, cover: c.cover, border: c.border, page: c.page, P: x.look === 'note' ? dates(+x.yr || dyyThis(), d.lf) : [] });
+                return book({ nm: x.name || d.name, n: d.n, l1: `${x.look === 'note' ? '📓' : '📔'} ${x.name || d.name}`, l2: x.look === 'note' ? `${d.n} · ${dyyDays(+x.yr || dyyThis())}펼침면` : `${d.n} · ${dyyBind(d.b)}${d.strap ? ' · 스트랩' : ''}`, strap: x.look !== 'note' && d.strap, b: d.b, mm: d.mm, pid: d.id, cover: c.cover, border: c.border, page: c.page, P: x.look === 'note' ? dates(+x.yr || dyyThis(), d.lf) : [] });
             }
             if (x.look === 'pbinder' || x.look === 'pnote') {
                 const p = DY_TYPES.find(v => v.id === x.pid); if (!p) return null;
-                return book({ nm: p.g, n: p.n, l1: x.look === 'pnote' ? `📕 ${p.g}` : `🗂️ ${p.g}${p.named ? ' 표지' : ''}`, l2: x.look === 'pnote' ? `${p.n} · ${p.pg}펼침면` : `${p.n} · ${dyyBind(p.b)}`, b: p.b, mm: p.mm, pid: p.id, cover: p.cols.표지색 || p.c, border: p.cols.테두리색, page: p.cols.속지색, P: x.look === 'pnote' ? nums(p.pg, p.lv, (p.lv[p.lv.length - 1] || [])[2]) : [] });
+                return book({ nm: p.g, n: p.n, l1: x.look === 'pnote' ? `📕 ${p.g}` : `🗂️ ${p.g}${p.named ? ' 표지' : ''}`, l2: x.look === 'pnote' ? `${p.n} · ${p.pg}펼침면` : `${p.n} · ${dyyBind(p.b)}${p.strap ? ' · 스트랩' : ''}`, strap: x.look !== 'pnote' && p.strap, b: p.b, mm: p.mm, pid: p.id, cover: p.cols.표지색 || p.c, border: p.cols.테두리색, page: p.cols.속지색, P: x.look === 'pnote' ? nums(p.pg, p.lv, (p.lv[p.lv.length - 1] || [])[2]) : [] });
             }
             if (x.look === 'refill') {                                         // 📅 📄 내지 = 표지 없이 펼친 종이 묶음 (구멍 자리)
                 const r = DY_REFILLS.find(v => v.id === x.rid); if (!r) return null;

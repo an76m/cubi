@@ -420,7 +420,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-cvsp b::before, .bk-cvsp b::after { content: ''; position: absolute; top: 60%; box-sizing: border-box; border-radius: 50%; border-right-color: transparent !important; }
 .bk-cvsp.ring b { width: 46px; background: none; }   /* 🔗 접힌 링 = 정면 알약 (펼친 링과 같은 색 · 작게 · 끝이 표지 구멍에 반쯤 덮여요 · 도련 11-28 시안6) */
 .bk-cvsp.ring b::before { left: 14px; top: 50%; width: 25px; height: 6px; translate: 0 -50%; border: 1.4px solid #8a789e !important; border-radius: 3px; background: #eeeaf6; z-index: 2; }
-.bk-cvsp.ring b::after { left: 33px; top: 50%; width: 8px; height: 8px; translate: 0 -50%; border: 0 !important; border-radius: 50%; background: radial-gradient(circle at 45% 45%, #4a3a52 0 55%, #6d5a75 75%, rgba(255,255,255,.7) 92%); z-index: 3; clip-path: inset(0 0 0 45%); }   /* 구멍 */
+.bk-cvsp.ring b::after { left: 33px; top: 50%; width: 8px; height: 8px; translate: 0 -50%; border: 0 !important; border-radius: 50%; box-sizing: border-box; background: #4a3a52; border: 1.5px solid #f3e8ee; z-index: 3; clip-path: inset(0 0 0 45%); }   /* 구멍 = 단색 + 밝은 테 (셀 애니) */
 .bk-cvsp.spring b { height: 11px; background: none; }
 .bk-cvsp.spring b::before { left: 0; top: 0; width: 32px; height: 11px; translate: none; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }   /* 🌀 스프링 = 펼친 스프링과 같은 알약 */
 .bk-cvsp.spring b::after { left: 25px; top: 2.5px; width: 6px; height: 6px; translate: none; border: 0; background: #8a789e; }
@@ -442,7 +442,7 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-spine.at > i { top: calc(var(--y) * var(--mmk) * 1px - 6px); translate: -50% -50%; }
 .bk-spine.at > span { top: calc(var(--y1) * var(--mmk) * 1px - 4px); height: max(0px, calc((var(--y2) - var(--y1)) * var(--mmk) * 1px - 22px)); translate: -50% 0; }   /* 링 기둥 = 두 묶음 사이 */
 .bk-cvsp.at > b { position: absolute; left: 50%; top: calc(var(--y) * var(--mmk) * 1px - 6px); translate: -50% -50%; }   /* 덮인 표지 고리 = 예전 가운데 맞춤 그대로 */
-.bk-slot > .bk-hole { position: absolute; width: calc(var(--pw) * .024) !important; height: auto !important; aspect-ratio: 1; top: calc(var(--y) * var(--mmk) * 1px); translate: -50% -50%; border-radius: 50%; background: color-mix(in srgb, var(--c1) 70%, #fff); box-shadow: inset 0 1px 2px rgba(60, 35, 50, .45), 0 0 0 .5px rgba(160, 120, 135, .35); pointer-events: none; z-index: 2; }   /* 🕳️ 6공 종이 구멍 (js/book.js holes) */
+.bk-slot > .bk-hole { position: absolute; width: calc(var(--pw) * .024) !important; height: auto !important; aspect-ratio: 1; top: calc(var(--y) * var(--mmk) * 1px); translate: -50% -50%; border-radius: 50%; box-sizing: border-box; background: color-mix(in srgb, var(--c1) 70%, #fff); border: 1px solid color-mix(in srgb, var(--c1) 55%, #5a3a46); pointer-events: none; z-index: 2; }   /* 🕳️ 6공 종이 구멍 (js/book.js holes) */
 .bk-slot > .bk-hole.l { left: calc(100% - 4.5 * var(--mmk) * 1px); } .bk-slot > .bk-hole.r { left: calc(4.5 * var(--mmk) * 1px); }
 .bk-rl .bk-spine { gap: 0; justify-content: space-between; }
 .bk-rl .bk-spine i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
@@ -927,7 +927,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 .sh-zlook .sh-og { --oh: min(60vh, 440px); }
 .sh-og .sh-ogt { display: block; width: 100%; aspect-ratio: var(--ar); border-radius: 4px; box-shadow: 0 2px 8px rgba(110, 80, 95, .22); }
 .sh-og img { display: block; width: 100%; aspect-ratio: var(--ar); object-fit: fill; background: #fffaf2; border-radius: 4px; box-shadow: 0 2px 8px rgba(110, 80, 95, .22); }
-.sh-hole { position: absolute; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: #efe6ea; box-shadow: inset 0 1px 2px rgba(60, 35, 50, .45), 0 0 0 .5px rgba(160, 120, 135, .35); pointer-events: none; }   /* 🕳️ 내지 구멍 (js/basket.js shHolesHtml) */
+.sh-hole { position: absolute; aspect-ratio: 1; translate: -50% -50%; box-sizing: border-box; border-radius: 50%; background: #e7dbe1; border: 1px solid #b89aa8; pointer-events: none; }   /* 🕳️ 내지 구멍 (js/basket.js shHolesHtml) */
 .sh-oglb { container-type: normal; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; }
 .sh-oglb b { max-width: 86%; padding: 5px 10px; border: 1.6px solid var(--ol, #b79bb0); border-radius: 10px; background: #fffdf6; font-size: 13px; font-weight: 800; transform: rotate(-1.5deg); word-break: keep-all; text-align: center; }
 .sh-infw { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 0; }
@@ -935,3 +935,30 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 .sh-infw > .sh-side { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); white-space: nowrap; box-shadow: 0 1px 4px rgba(110, 80, 95, .18); }   /* 🔢 수량 = 디자인 안 아래 (썸네일이 작아지지 않게) */
 .sh-oglb small { white-space: nowrap; font-size: 11px !important; padding: 2px 8px !important; }
 .sh-oglb small, .sh-side { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .85); font-size: 12px; font-weight: 700; color: #8a6a7a; }
+
+/* 🔘 스트랩 바인더 겉표지 (js/dyyear.js dyStrapPaint · 도련 11-28 시안 A) : 오른쪽 끈 = 표지와 같은 무늬 · 하얀 바느질 · 은색 똑딱이 · 끌어서 젖히기 (--sr 0 ~ 180deg) */
+.cv-strap { position: absolute; top: 48px; left: 0; right: 0; bottom: 0; z-index: 11; pointer-events: none; container-type: inline-size; }   /* = 겉표지 자리 (css/style.css .cover-page) · 겉표지 위 */
+html.is-phone .cv-strap { top: 42px; bottom: -6px; width: calc(100% + 6px); }
+#coverPage[style*="none"] ~ .cv-strap, html:not(.dy-strap) .cv-strap { display: none; }   /* 펼친 동안은 안 보여요 */
+.cv-strap .cv-band { --w: 36cqw; position: absolute; top: 74%; right: -4cqw; width: var(--w); height: 15cqw; margin-top: -7.5cqw; box-sizing: border-box; border-radius: 7.5cqw 1.2cqw 1.2cqw 7.5cqw;
+  background: var(--dyv-img, none), var(--dyv, var(--dy-cover, #f5a3bb)); box-shadow: 0 0 0 3px var(--dyv-ol, #c0587a), 3px 4px 0 var(--dyv-sh, rgba(150, 80, 110, .3));
+  transform-origin: calc(100% - 4cqw) 50%; rotate: var(--sr, 0deg); transition: rotate .32s cubic-bezier(.3, .7, .3, 1); pointer-events: auto; cursor: grab; touch-action: none; }
+.cv-strap .cv-band::before { content: ''; position: absolute; inset: 2cqw 2cqw 2cqw 2cqw; border: .5cqw dashed rgba(255, 255, 255, .8); border-radius: 6cqw 1cqw 1cqw 6cqw; pointer-events: none; }   /* 바느질 */
+.cv-strap .cv-band::after { content: ''; position: absolute; left: 3cqw; top: 50%; width: 9cqw; height: 9cqw; margin-top: -4.5cqw; border-radius: 50%;
+  box-sizing: border-box; background: radial-gradient(circle, #c9c9d2 0 2.3cqw, #8a8a96 2.3cqw 2.8cqw, #c9c9d2 2.8cqw); border: .55cqw solid #74747f; box-shadow: .5cqw .6cqw 0 rgba(90, 50, 70, .28); }   /* 은색 똑딱이 = 단색 + 아웃라인 (셀 애니 · 01 '그림 = 셀 애니') */
+.cv-strap .cv-sock { position: absolute; top: 74%; right: 19.5cqw; width: 6cqw; height: 6cqw; margin-top: -3cqw; box-sizing: border-box; border-radius: 50%; background: radial-gradient(circle, #74747f 0 1.3cqw, #c9c9d2 1.3cqw); border: .5cqw solid #74747f; opacity: 0; transition: opacity .2s; }   /* 표지 쪽 단추 받침 (풀면 보여요) */
+.cv-strap.open .cv-band { rotate: var(--sr, 180deg); }
+.cv-strap.open .cv-sock, .cv-strap.drag .cv-sock { opacity: 1; }
+.cv-strap.drag .cv-band { transition: none; cursor: grabbing; }
+.cv-strap.snap .cv-band::after { animation: strapSnap .25s ease-out; }
+.cv-strap.hint .cv-band { animation: strapHint .5s ease-in-out; }
+@keyframes strapSnap { 40% { scale: .82; } }
+@keyframes strapHint { 30% { translate: 1.5cqw 0; } 60% { translate: -.5cqw 0; } }
+.cover-page.cv-nudge { animation: cvNudge .42s ease-in-out; }
+@keyframes cvNudge { 25% { rotate: y -6deg; } 60% { rotate: y 2deg; } }
+/* 🔘 스트랩 바인더 덮인 책 (샵 · 펼쳐보기 · 상품공방 = js/dyyear.js book · 도련 11-28) : 겉표지 .cv-strap 과 같은 모양 (작게) */
+.bk-cover .bk-strap { position: absolute; top: 74%; right: 0; width: 34%; aspect-ratio: 36 / 15; translate: 0 -50%; box-sizing: border-box; border-radius: 22% 5% 5% 22% / 50% 12% 12% 50%;
+  background: var(--abf, none), var(--c1, #f5a3bb); background-position: 0 0; box-shadow: 0 0 0 2.5px color-mix(in srgb, var(--c2, #c0587a) 70%, #5a3a46), 2px 3px 0 rgba(150, 80, 110, .25);   /* 제 색의 진한 아웃라인 */ pointer-events: none; }
+.bk-cover .bk-strap::before { content: ''; position: absolute; inset: 14% 8% 14% 8%; border: 1.5px dashed rgba(255, 255, 255, .85); border-radius: 20% 4% 4% 20% / 50% 10% 10% 50%; }
+.bk-cover .bk-strap::after { content: ''; position: absolute; left: 8%; top: 50%; height: 60%; aspect-ratio: 1; translate: 0 -50%; border-radius: 50%;
+  box-sizing: border-box; background: radial-gradient(circle, #c9c9d2 0 26%, #8a8a96 26% 32%, #c9c9d2 32%); border: 1.5px solid #74747f; box-shadow: 1px 1px 0 rgba(90, 50, 70, .28); }   /* 단색 + 아웃라인 */
