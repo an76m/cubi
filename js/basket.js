@@ -1635,15 +1635,20 @@
     /* 📄 내지 · 📃 속지 썸네일 = 원본 그림 그대로 (도련 11-28 '꾸미지 말고 그냥 보여줘') : 반쪽 = 한 쪽 · 양쪽 = 펼친 두 쪽 (그림 비율 그대로)
        📄 한 쪽 / 📖 양쪽 = 이름표 두째 줄 (사기 전에 알 수 있게 · 디자인 안) · 가운데 이름표 (표지와 같은 자리 · 아이콘 (해) 이름 / 규격 · 펼침면 수) */
     const shOgLb = (l1, l2, two) => `<span class="sh-oglb"><b>${esc(l1)}</b><small>${esc(l2)} · ${two ? '양쪽' : '한쪽'}</small></span>`;
-    function shOrigHtml(u, lab, two, ar, tile) {   // tile = 작은 무늬 조각 (페이지 크기에 대한 % · 바둑판으로 채워요)
+    const shHolesHtml = (m, two) => {   // 🕳️ 내지 = 처음부터 6공 구멍 (도련 11-28 '현실처럼' · js/book.js bookHoles · 종이 안쪽 끝에서 4.5mm · 지름 = 쪽 너비 2.4% · 진짜 다이어리 .dy-holes 와 같아요)
+        if (!window.bookHoles && typeof bookHoles !== 'function') return ''; const W = m[0] * (two ? 2 : 1), d = (2.4 * m[0] / W).toFixed(3);
+        const xs = two ? [m[0] - 4.5, m[0] + 4.5] : [4.5];
+        return bookHoles(m[1], 'ring').map(y => xs.map(x => `<i class="sh-hole" style="left:${(x / W * 100).toFixed(3)}%;top:${(y / m[1] * 100).toFixed(3)}%;width:${d}%"></i>`).join('')).join('');
+    };
+    function shOrigHtml(u, lab, two, ar, tile, hl) {   // tile = 작은 무늬 조각 (페이지 크기에 대한 % · 바둑판으로 채워요)
         const pic = tile ? `<i class="sh-ogt" style="background:url(&quot;${esc(u || '')}&quot;) 0 0 / ${tile[0].toFixed(2)}% ${tile[1].toFixed(2)}% repeat #fffaf2"></i>` : `<img src="${esc(u || '')}" alt="" loading="lazy">`;
-        return `<span class="sh-orig"><span class="sh-og" style="--ar:${(+ar || .7).toFixed(3)}">${pic}${lab || ''}</span></span>`;   // 📄 한 쪽 / 📖 양쪽 = 이름표 두째 줄 (디자인 안 · 도련 11-28)
+        return `<span class="sh-orig"><span class="sh-og" style="--ar:${(+ar || .7).toFixed(3)}">${pic}${hl || ''}${lab || ''}</span></span>`;   // 📄 한 쪽 / 📖 양쪽 = 이름표 두째 줄 (디자인 안 · 도련 11-28)
     }
     function shRefillHtml(x) {
         const r = (typeof DY_REFILLS !== 'undefined' ? DY_REFILLS : []).find(v => v.id === x.rid) || {}, s = window.leafSrc ? leafSrc(x.lf) : null, two = !!(s && s.two), m = MK.mmOf(r.mm) || [105, 148];
         const y = new Date().getFullYear(), l1 = `${r.t === 'date' ? '📅 ' + y + ' ' : '📄 '}${r.g || ''}`, l2 = `${r.n || ''} · ${r.t === 'date' ? (window.dyyDays ? dyyDays(y) : 365) : r.pg}펼침면`;
         const tile = s && !two && s.wh[0] <= 50 ? [s.wh[0] / m[0] * 100, s.wh[1] / m[1] * 100] : null;
-        return shOrigHtml(s && s.u, shOgLb(l1, l2, two), two, m[0] * (two ? 2 : 1) / m[1], tile);
+        return shOrigHtml(s && s.u, shOgLb(l1, l2, two), two, m[0] * (two ? 2 : 1) / m[1], tile, shHolesHtml(m, two));
     }
     window.shRefillHtml = shRefillHtml;
     const SH_TRY = ['diary', 'note', 'pbinder', 'pnote', 'refill', 'binder', 'relbook'];   // 📖 펼쳐보기 되는 모양 (책)

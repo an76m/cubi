@@ -442,6 +442,8 @@ body:has(#basketKindModal.ab-space.abs-rl[style*="display: flex"]) .twz.pin-cur 
 .bk-spine.at > i { top: calc(var(--y) * var(--mmk) * 1px - 6px); translate: -50% -50%; }
 .bk-spine.at > span { top: calc(var(--y1) * var(--mmk) * 1px - 4px); height: max(0px, calc((var(--y2) - var(--y1)) * var(--mmk) * 1px - 22px)); translate: -50% 0; }   /* 링 기둥 = 두 묶음 사이 */
 .bk-cvsp.at > b { position: absolute; left: 50%; top: calc(var(--y) * var(--mmk) * 1px - 6px); translate: -50% -50%; }   /* 덮인 표지 고리 = 예전 가운데 맞춤 그대로 */
+.bk-slot > .bk-hole { position: absolute; width: calc(var(--pw) * .024) !important; height: auto !important; aspect-ratio: 1; top: calc(var(--y) * var(--mmk) * 1px); translate: -50% -50%; border-radius: 50%; background: color-mix(in srgb, var(--c1) 70%, #fff); box-shadow: inset 0 1px 2px rgba(60, 35, 50, .45), 0 0 0 .5px rgba(160, 120, 135, .35); pointer-events: none; z-index: 2; }   /* 🕳️ 6공 종이 구멍 (js/book.js holes) */
+.bk-slot > .bk-hole.l { left: calc(100% - 4.5 * var(--mmk) * 1px); } .bk-slot > .bk-hole.r { left: calc(4.5 * var(--mmk) * 1px); }
 .bk-rl .bk-spine { gap: 0; justify-content: space-between; }
 .bk-rl .bk-spine i { display: block; width: 52px; height: 11px; border: 1.6px solid #8a789e; border-radius: 6px; background: #eeeaf6; }
 /* 📕 표지 (덮인 책 · 왼쪽 = 묶음) */
@@ -925,6 +927,7 @@ html.dk-trial #deskCsModal.dct-l { justify-content: flex-start; padding-right: 0
 .sh-zlook .sh-og { --oh: min(60vh, 440px); }
 .sh-og .sh-ogt { display: block; width: 100%; aspect-ratio: var(--ar); border-radius: 4px; box-shadow: 0 2px 8px rgba(110, 80, 95, .22); }
 .sh-og img { display: block; width: 100%; aspect-ratio: var(--ar); object-fit: fill; background: #fffaf2; border-radius: 4px; box-shadow: 0 2px 8px rgba(110, 80, 95, .22); }
+.sh-hole { position: absolute; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: #efe6ea; box-shadow: inset 0 1px 2px rgba(60, 35, 50, .45), 0 0 0 .5px rgba(160, 120, 135, .35); pointer-events: none; }   /* 🕳️ 내지 구멍 (js/basket.js shHolesHtml) */
 .sh-oglb { container-type: normal; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; }
 .sh-oglb b { max-width: 86%; padding: 5px 10px; border: 1.6px solid var(--ol, #b79bb0); border-radius: 10px; background: #fffdf6; font-size: 13px; font-weight: 800; transform: rotate(-1.5deg); word-break: keep-all; text-align: center; }
 .sh-infw { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 0; }

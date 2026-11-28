@@ -614,7 +614,7 @@
                 ip.style.setProperty('--bd-ring', ring.join(', ') || '0 0 0 4px #fff'); ip.style.setProperty('--bd-rad', cs.borderRadius);
             }
             ip.classList.toggle('dy-hand', bdMode() === 'hand');               // ✋ 수동 : 꺼내기 대신 🔓 링 열기 버튼
-            ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && bdMode() === 'auto' && (v & 1) > 0); ip.classList.toggle('dy-bh', lay && (v & 2) > 0);
+            ip.classList.toggle('dy-bdl', lay); ip.classList.toggle('dy-bd', on); ip.classList.toggle('dy-bo', on && bdMode() === 'auto' && (v & 1) > 0); ip.classList.toggle('dy-bh', lay);   // 🕳️ 6공 내지 = 처음부터 구멍 12개 (도련 11-28 '현실처럼' · 펀칭기는 구멍을 가린 스티커 · 구멍 없는 종이에)
             bdSides(); gdHoleSync();                                         // 🕳️ 하나씩 뚫은 구멍
             const fs = on && !bdSt && bdFreeGet();                             // ✋ 링을 연 채 그만둔 장이면 그 모습 그대로 (bdFreeSave)
             if (fs) { bdSt = { at: bdAt(), open: 1 }; ip.classList.add('dy-bo-go', 'dy-ring-open', 'dy-free-in'); bdFreeOn(fs); requestAnimationFrame(() => requestAnimationFrame(() => ip.classList.remove('dy-free-in'))); }

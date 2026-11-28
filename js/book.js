@@ -14,7 +14,7 @@
        크기 = 화면 안에 한 쪽(A5 비율) · 펼친 두 쪽이 다 들어오게
    - 책 종류가 알려 줄 것 (bookOpen(host, spec))
        spec = { id, cls (모양 이름 · css) , pages (쪽 수), pg (처음 쪽), open (처음부터 펼침),
-                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · cvSpine ('ring' · 'spring' = 덮인 표지 왼쪽 구멍에 감긴 고리 · 펼친 묶음과 같은 자리) · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
+                page(p) → 한 쪽 html · blank() → 빈 쪽 html · cover() → 앞표지 html · spine(two) → 가운데 묶음 html · holes (true = 링 없이 6공 구멍만) · cvSpine ('ring' · 'spring' = 덮인 표지 왼쪽 구멍에 감긴 고리 · 펼친 묶음과 같은 자리) · colors [겉, 테두리] · face (표지 css 그림 · 없으면 'none'),
                 onClose 없으면 ✕ 없음 (🧩 바인더 조립 · 📒 스티커 정리) · stay (첫 쪽에서 덮지 않아요 · 📒 🤍 스티커 정리) · ph() (쪽 높이를 쓰는 곳이 정해요) · desk (📒 🤍 책상에서 띄운 책 = 📔 다이어리처럼 덮인 동안 막대 없음 · 도련 11-22) · inline (자리 host 안에 · 옮기기 없음) · hold (잡아 끄는 것 = 쪽을 안 넘겨요 · 📒 정리 공간 포켓의 종이 · 1425) · real (늘 실제 규격 크기 · 넘치면 자리 안에서 밀어 봐요) · side() · setSide(v) (l · r · lr) · title() (덮였을 때 가운데 글) · wire(stage) (쪽 안 손길) · onPage(pg, open) · onClose() · posKey ·
                 mm [가로, 세로] (📏 한 쪽 종이 규격 · 실제 크기로 떠요 · css --mmk = 화면 1mm) · spread (막대 글 = 펼침면 수 · 📔 샵 다이어리 펼쳐보기) }
    ※ util.js 다음 · 책을 쓰는 파일(basket.js)보다 먼저 읽어요 */
@@ -150,6 +150,8 @@ function bookOpen(host, spec) {
     const sideBtn = s => `<button type="button" class="page-side bk-side${spec.side().includes(s) ? ' on' : ''}" aria-pressed="${spec.side().includes(s)}" aria-label="${s === 'l' ? '왼쪽 페이지' : '오른쪽 페이지'}" data-side="${s}">${window.dvSideSvg ? dvSideSvg(s) : s}</button>`;
     const arrow = d => `<button type="button" class="page-arrow bk-arr" aria-label="${d < 0 ? '앞 페이지' : '다음 페이지'}" data-d="${d}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
     const pageHtml = p => p >= 0 && p < spec.pages ? spec.page(p) : spec.blank();
+    const ringy = !!spec.mm && (spec.holes === true || String(spec.spine(false)).includes('viewBox="0 0 120 34"'));   // 🗂️ 6공 링 묶음 · holes = 링 없이 구멍만 (📄 내지 펼쳐보기)
+    const holes = side => ringy ? bookHoles(spec.mm[1], 'ring').map(y => `<i class="bk-hole ${side}" style="--y:${y}"></i>`).join('') : '';   // 🕳️ 6공 종이 = 처음부터 구멍 (도련 11-28 '현실처럼' · 안쪽 끝에서 4.5mm · l = 왼쪽 쪽(구멍 오른쪽) · r = 오른쪽 쪽)
     function norm() { B.pg = Math.max(0, Math.min(spec.pages - 1, B.pg)); if (two()) B.pg -= B.pg % 2; }
     function barText() {
         if (!B.open) return spec.title();
@@ -171,7 +173,7 @@ function bookOpen(host, spec) {
         B.root.classList.toggle('shut', !B.open);
         const book = !B.open
             ? bookShutHtml(spec)   // 🌀 덮인 책 = 표지 왼쪽 구멍에 고리가 감겨 있어요 (실제 바인더 · 스프링 노트처럼 · 펼친 링 · 스프링과 같은 자리 · 도련 11-26)
-            : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}</div>`}</div>${(o => `<div class="bk-spine${o.cls}" aria-hidden="true">${o.html}</div>`)(bookSpineAt(spec, spec.spine(t)))}</div>`;
+            : `<div class="bk-book ${t ? 'two' : 'one ' + (B.pg % 2 ? 'odd' : 'even')}"><div class="bk-spread">${t ? `<div class="bk-slot" data-slot="l">${pageHtml(B.pg)}${holes('l')}</div><div class="bk-slot" data-slot="r">${pageHtml(B.pg + 1)}${holes('r')}</div>` : `<div class="bk-slot" data-slot="o">${pageHtml(B.pg)}${holes(B.pg % 2 ? 'r' : 'l')}</div>`}</div>${(o => `<div class="bk-spine${o.cls}" aria-hidden="true">${o.html}</div>`)(bookSpineAt(spec, spec.spine(t)))}</div>`;
         B.root.innerHTML = `<div class="bk-bar"${spec.inline ? '' : ' title="끌어서 옮기기"'}>${side}${arrow(-1)}<span class="bk-cnt">${barText()}</span>${arrow(1)}${side2}${spec.onClose ? '<button type="button" class="bk-x" aria-label="닫기">✕</button>' : ''}</div><div class="bk-stage" id="bkStage">${book}</div>`;
         const [pv, nx] = B.root.querySelectorAll('.bk-arr'); pv.disabled = !canPrev(); nx.disabled = !canNext();
         fit();
